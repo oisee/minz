@@ -1,0 +1,52 @@
+{
+  "base": "7b282474",
+  "source_path": "examples/nanz/widemath.nanz",
+  "source_sha256": "f602875384794e55e4175961ddb822c3c45760a638b54eee90e13aeb27178ea8",
+  "book": "Nanz Language Book v7 \u00a7\u00a73.1-3.4 width/sign/modulo/casts; chapter7 function and return ABI; chapter8 structs, operator overloads from original declarations",
+  "entry_names": [
+    "op_mul_u8_u8",
+    "abs8",
+    "sign8",
+    "negate8",
+    "min8",
+    "max8",
+    "clamp8",
+    "abs_diff8",
+    "sat_add8",
+    "sat_sub8",
+    "abs16",
+    "sign16",
+    "min16",
+    "max16",
+    "clamp16",
+    "abs_diff16",
+    "sat_add16",
+    "sat_sub16",
+    "op_mul",
+    "op_add",
+    "op_sub",
+    "area",
+    "big_area",
+    "pixel_distance",
+    "brightness_blend",
+    "newtype_area"
+  ],
+  "source_abi_sha256": "7aa1135ba68e25e42c4106985e297673f914ffac7c12f91dc1d77750c534982b",
+  "domains": {
+    "unary_byte": "all256 bitpatterns abs8/sign8/negate8",
+    "byte_pairs": "all65536 pairs min/max/absdiff/satadd/satsub/area/op_mul_u8_u8",
+    "byte_clamp": "all256 x with ordered lo/hi boundary set0,1,127,128,254,255",
+    "word_unary": "all65536 bitpatterns abs16/sign16",
+    "word_pairs": "deterministic boundary+walkingbits unsigned/signed min/max/absdiff/satadd/satsub; not2^32exhaustive",
+    "word_clamp": "same boundaries ordered lo<=hi",
+    "application": "brightness all256mix with12independent endpointpairs; pixel_distance bounds; big_area40000; W8 operator input memory bytes and newtype_area product allpairs iffeasible"
+  },
+  "oracle": "Go independent arithmetic modulo8/16; signed viaint8/int16; saturating math; brightness (a*(255-mix)+b*mix)/256 (integerfloor), notclaimedmix255=b",
+  "modes": [
+    "default",
+    "grace-size",
+    "grace-speed"
+  ],
+  "native_state": "originalwholemodule; only explicit invocation drivers; actualallocatedABI; returnPC7000/SPeff2; entire64KiBunchangedexceptobservedusedstack/spills and W8resultmemory; codeimmutable",
+  "frozen_before_native_measurement": true
+}

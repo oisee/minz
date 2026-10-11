@@ -1,0 +1,2419 @@
+[
+  {
+    "FallibleCY": false,
+    "Name": "op_mul_u8_u8",
+    "Params": [
+      {
+        "Name": "a",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "b",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Name": "result",
+          "Ty": {},
+          "ArrayLen": 0,
+          "Init": {
+            "Val": 0,
+            "Ty": {}
+          },
+          "Initial": null,
+          "At": null
+        },
+        {
+          "Name": "shift",
+          "Ty": {},
+          "ArrayLen": 0,
+          "Init": {
+            "Name": "a",
+            "Ty": {}
+          },
+          "Initial": null,
+          "At": null
+        },
+        {
+          "Name": "mult",
+          "Ty": {},
+          "ArrayLen": 0,
+          "Init": {
+            "Name": "b",
+            "Ty": {}
+          },
+          "Initial": null,
+          "At": null
+        },
+        {
+          "Cond": {
+            "Op": "\u003e",
+            "L": {
+              "Name": "mult",
+              "Ty": {}
+            },
+            "R": {
+              "Val": 0,
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Body": {
+            "Body": [
+              {
+                "Cond": {
+                  "Op": "==",
+                  "L": {
+                    "Op": "%",
+                    "L": {
+                      "Name": "mult",
+                      "Ty": {}
+                    },
+                    "R": {
+                      "Val": 2,
+                      "Ty": {}
+                    },
+                    "Ty": {}
+                  },
+                  "R": {
+                    "Val": 1,
+                    "Ty": {}
+                  },
+                  "Ty": {}
+                },
+                "Then": {
+                  "Body": [
+                    {
+                      "Target": {
+                        "Name": "result",
+                        "Ty": {}
+                      },
+                      "Val": {
+                        "Op": "+",
+                        "L": {
+                          "Name": "result",
+                          "Ty": {}
+                        },
+                        "R": {
+                          "Name": "shift",
+                          "Ty": {}
+                        },
+                        "Ty": {}
+                      }
+                    }
+                  ]
+                },
+                "Else": null
+              },
+              {
+                "Target": {
+                  "Name": "shift",
+                  "Ty": {}
+                },
+                "Val": {
+                  "Op": "+",
+                  "L": {
+                    "Name": "shift",
+                    "Ty": {}
+                  },
+                  "R": {
+                    "Name": "shift",
+                    "Ty": {}
+                  },
+                  "Ty": {}
+                }
+              },
+              {
+                "Target": {
+                  "Name": "mult",
+                  "Ty": {}
+                },
+                "Val": {
+                  "Op": "/",
+                  "L": {
+                    "Name": "mult",
+                    "Ty": {}
+                  },
+                  "R": {
+                    "Val": 2,
+                    "Ty": {}
+                  },
+                  "Ty": {}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Val": {
+            "Name": "result",
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "abs8",
+    "Params": [
+      {
+        "Name": "x",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Cond": {
+            "Op": "\u003c",
+            "L": {
+              "Name": "x",
+              "Ty": {}
+            },
+            "R": {
+              "Val": 0,
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Then": {
+            "Body": [
+              {
+                "Val": {
+                  "Op": "-",
+                  "L": {
+                    "Val": 0,
+                    "Ty": {}
+                  },
+                  "R": {
+                    "Name": "x",
+                    "Ty": {}
+                  },
+                  "Ty": {}
+                },
+                "Vals": null
+              }
+            ]
+          },
+          "Else": null
+        },
+        {
+          "Val": {
+            "Name": "x",
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "sign8",
+    "Params": [
+      {
+        "Name": "x",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Cond": {
+            "Op": "\u003c",
+            "L": {
+              "Name": "x",
+              "Ty": {}
+            },
+            "R": {
+              "Val": 0,
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Then": {
+            "Body": [
+              {
+                "Val": {
+                  "Op": "-",
+                  "X": {
+                    "Val": 1,
+                    "Ty": {}
+                  },
+                  "Ty": {}
+                },
+                "Vals": null
+              }
+            ]
+          },
+          "Else": null
+        },
+        {
+          "Cond": {
+            "Op": "\u003e",
+            "L": {
+              "Name": "x",
+              "Ty": {}
+            },
+            "R": {
+              "Val": 0,
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Then": {
+            "Body": [
+              {
+                "Val": {
+                  "Val": 1,
+                  "Ty": {}
+                },
+                "Vals": null
+              }
+            ]
+          },
+          "Else": null
+        },
+        {
+          "Val": {
+            "Val": 0,
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "negate8",
+    "Params": [
+      {
+        "Name": "x",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Val": {
+            "Op": "-",
+            "L": {
+              "Val": 0,
+              "Ty": {}
+            },
+            "R": {
+              "Name": "x",
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "min8",
+    "Params": [
+      {
+        "Name": "a",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "b",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Cond": {
+            "Op": "\u003c",
+            "L": {
+              "Name": "a",
+              "Ty": {}
+            },
+            "R": {
+              "Name": "b",
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Then": {
+            "Body": [
+              {
+                "Val": {
+                  "Name": "a",
+                  "Ty": {}
+                },
+                "Vals": null
+              }
+            ]
+          },
+          "Else": null
+        },
+        {
+          "Val": {
+            "Name": "b",
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "max8",
+    "Params": [
+      {
+        "Name": "a",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "b",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Cond": {
+            "Op": "\u003e",
+            "L": {
+              "Name": "a",
+              "Ty": {}
+            },
+            "R": {
+              "Name": "b",
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Then": {
+            "Body": [
+              {
+                "Val": {
+                  "Name": "a",
+                  "Ty": {}
+                },
+                "Vals": null
+              }
+            ]
+          },
+          "Else": null
+        },
+        {
+          "Val": {
+            "Name": "b",
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "clamp8",
+    "Params": [
+      {
+        "Name": "x",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "lo",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "hi",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Cond": {
+            "Op": "\u003c",
+            "L": {
+              "Name": "x",
+              "Ty": {}
+            },
+            "R": {
+              "Name": "lo",
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Then": {
+            "Body": [
+              {
+                "Val": {
+                  "Name": "lo",
+                  "Ty": {}
+                },
+                "Vals": null
+              }
+            ]
+          },
+          "Else": null
+        },
+        {
+          "Cond": {
+            "Op": "\u003e",
+            "L": {
+              "Name": "x",
+              "Ty": {}
+            },
+            "R": {
+              "Name": "hi",
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Then": {
+            "Body": [
+              {
+                "Val": {
+                  "Name": "hi",
+                  "Ty": {}
+                },
+                "Vals": null
+              }
+            ]
+          },
+          "Else": null
+        },
+        {
+          "Val": {
+            "Name": "x",
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "abs_diff8",
+    "Params": [
+      {
+        "Name": "a",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "b",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Cond": {
+            "Op": "\u003e=",
+            "L": {
+              "Name": "a",
+              "Ty": {}
+            },
+            "R": {
+              "Name": "b",
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Then": {
+            "Body": [
+              {
+                "Val": {
+                  "Op": "-",
+                  "L": {
+                    "Name": "a",
+                    "Ty": {}
+                  },
+                  "R": {
+                    "Name": "b",
+                    "Ty": {}
+                  },
+                  "Ty": {}
+                },
+                "Vals": null
+              }
+            ]
+          },
+          "Else": null
+        },
+        {
+          "Val": {
+            "Op": "-",
+            "L": {
+              "Name": "b",
+              "Ty": {}
+            },
+            "R": {
+              "Name": "a",
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "sat_add8",
+    "Params": [
+      {
+        "Name": "a",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "b",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Name": "wa",
+          "Ty": {},
+          "ArrayLen": 0,
+          "Init": {
+            "Name": "a",
+            "Ty": {}
+          },
+          "Initial": null,
+          "At": null
+        },
+        {
+          "Name": "wb",
+          "Ty": {},
+          "ArrayLen": 0,
+          "Init": {
+            "Name": "b",
+            "Ty": {}
+          },
+          "Initial": null,
+          "At": null
+        },
+        {
+          "Name": "sum",
+          "Ty": {},
+          "ArrayLen": 0,
+          "Init": {
+            "Op": "+",
+            "L": {
+              "Name": "wa",
+              "Ty": {}
+            },
+            "R": {
+              "Name": "wb",
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Initial": null,
+          "At": null
+        },
+        {
+          "Cond": {
+            "Op": "\u003e",
+            "L": {
+              "Name": "sum",
+              "Ty": {}
+            },
+            "R": {
+              "Val": 255,
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Then": {
+            "Body": [
+              {
+                "Val": {
+                  "Val": 255,
+                  "Ty": {}
+                },
+                "Vals": null
+              }
+            ]
+          },
+          "Else": null
+        },
+        {
+          "Val": {
+            "Op": "+",
+            "L": {
+              "Name": "a",
+              "Ty": {}
+            },
+            "R": {
+              "Name": "b",
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "sat_sub8",
+    "Params": [
+      {
+        "Name": "a",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "b",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Cond": {
+            "Op": "\u003c",
+            "L": {
+              "Name": "a",
+              "Ty": {}
+            },
+            "R": {
+              "Name": "b",
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Then": {
+            "Body": [
+              {
+                "Val": {
+                  "Val": 0,
+                  "Ty": {}
+                },
+                "Vals": null
+              }
+            ]
+          },
+          "Else": null
+        },
+        {
+          "Val": {
+            "Op": "-",
+            "L": {
+              "Name": "a",
+              "Ty": {}
+            },
+            "R": {
+              "Name": "b",
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "abs16",
+    "Params": [
+      {
+        "Name": "x",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Cond": {
+            "Op": "\u003c",
+            "L": {
+              "Name": "x",
+              "Ty": {}
+            },
+            "R": {
+              "Val": 0,
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Then": {
+            "Body": [
+              {
+                "Val": {
+                  "Op": "-",
+                  "L": {
+                    "Val": 0,
+                    "Ty": {}
+                  },
+                  "R": {
+                    "Name": "x",
+                    "Ty": {}
+                  },
+                  "Ty": {}
+                },
+                "Vals": null
+              }
+            ]
+          },
+          "Else": null
+        },
+        {
+          "Val": {
+            "Name": "x",
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "sign16",
+    "Params": [
+      {
+        "Name": "x",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Cond": {
+            "Op": "\u003c",
+            "L": {
+              "Name": "x",
+              "Ty": {}
+            },
+            "R": {
+              "Val": 0,
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Then": {
+            "Body": [
+              {
+                "Val": {
+                  "Op": "-",
+                  "X": {
+                    "Val": 1,
+                    "Ty": {}
+                  },
+                  "Ty": {}
+                },
+                "Vals": null
+              }
+            ]
+          },
+          "Else": null
+        },
+        {
+          "Cond": {
+            "Op": "\u003e",
+            "L": {
+              "Name": "x",
+              "Ty": {}
+            },
+            "R": {
+              "Val": 0,
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Then": {
+            "Body": [
+              {
+                "Val": {
+                  "Val": 1,
+                  "Ty": {}
+                },
+                "Vals": null
+              }
+            ]
+          },
+          "Else": null
+        },
+        {
+          "Val": {
+            "Val": 0,
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "min16",
+    "Params": [
+      {
+        "Name": "a",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "b",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Cond": {
+            "Op": "\u003c",
+            "L": {
+              "Name": "a",
+              "Ty": {}
+            },
+            "R": {
+              "Name": "b",
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Then": {
+            "Body": [
+              {
+                "Val": {
+                  "Name": "a",
+                  "Ty": {}
+                },
+                "Vals": null
+              }
+            ]
+          },
+          "Else": null
+        },
+        {
+          "Val": {
+            "Name": "b",
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "max16",
+    "Params": [
+      {
+        "Name": "a",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "b",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Cond": {
+            "Op": "\u003e",
+            "L": {
+              "Name": "a",
+              "Ty": {}
+            },
+            "R": {
+              "Name": "b",
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Then": {
+            "Body": [
+              {
+                "Val": {
+                  "Name": "a",
+                  "Ty": {}
+                },
+                "Vals": null
+              }
+            ]
+          },
+          "Else": null
+        },
+        {
+          "Val": {
+            "Name": "b",
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "clamp16",
+    "Params": [
+      {
+        "Name": "x",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "lo",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "hi",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Cond": {
+            "Op": "\u003c",
+            "L": {
+              "Name": "x",
+              "Ty": {}
+            },
+            "R": {
+              "Name": "lo",
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Then": {
+            "Body": [
+              {
+                "Val": {
+                  "Name": "lo",
+                  "Ty": {}
+                },
+                "Vals": null
+              }
+            ]
+          },
+          "Else": null
+        },
+        {
+          "Cond": {
+            "Op": "\u003e",
+            "L": {
+              "Name": "x",
+              "Ty": {}
+            },
+            "R": {
+              "Name": "hi",
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Then": {
+            "Body": [
+              {
+                "Val": {
+                  "Name": "hi",
+                  "Ty": {}
+                },
+                "Vals": null
+              }
+            ]
+          },
+          "Else": null
+        },
+        {
+          "Val": {
+            "Name": "x",
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "abs_diff16",
+    "Params": [
+      {
+        "Name": "a",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "b",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Cond": {
+            "Op": "\u003e=",
+            "L": {
+              "Name": "a",
+              "Ty": {}
+            },
+            "R": {
+              "Name": "b",
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Then": {
+            "Body": [
+              {
+                "Val": {
+                  "Op": "-",
+                  "L": {
+                    "Name": "a",
+                    "Ty": {}
+                  },
+                  "R": {
+                    "Name": "b",
+                    "Ty": {}
+                  },
+                  "Ty": {}
+                },
+                "Vals": null
+              }
+            ]
+          },
+          "Else": null
+        },
+        {
+          "Val": {
+            "Op": "-",
+            "L": {
+              "Name": "b",
+              "Ty": {}
+            },
+            "R": {
+              "Name": "a",
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "sat_add16",
+    "Params": [
+      {
+        "Name": "a",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "b",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Name": "ah",
+          "Ty": {},
+          "ArrayLen": 0,
+          "Init": {
+            "Op": "/",
+            "L": {
+              "Name": "a",
+              "Ty": {}
+            },
+            "R": {
+              "Val": 256,
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Initial": null,
+          "At": null
+        },
+        {
+          "Name": "bh",
+          "Ty": {},
+          "ArrayLen": 0,
+          "Init": {
+            "Op": "/",
+            "L": {
+              "Name": "b",
+              "Ty": {}
+            },
+            "R": {
+              "Val": 256,
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Initial": null,
+          "At": null
+        },
+        {
+          "Cond": {
+            "Op": "\u003e",
+            "L": {
+              "Op": "+",
+              "L": {
+                "Name": "ah",
+                "Ty": {}
+              },
+              "R": {
+                "Name": "bh",
+                "Ty": {}
+              },
+              "Ty": {}
+            },
+            "R": {
+              "Val": 255,
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Then": {
+            "Body": [
+              {
+                "Val": {
+                  "Val": 65535,
+                  "Ty": {}
+                },
+                "Vals": null
+              }
+            ]
+          },
+          "Else": null
+        },
+        {
+          "Name": "sum",
+          "Ty": {},
+          "ArrayLen": 0,
+          "Init": {
+            "Op": "+",
+            "L": {
+              "Name": "a",
+              "Ty": {}
+            },
+            "R": {
+              "Name": "b",
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Initial": null,
+          "At": null
+        },
+        {
+          "Cond": {
+            "Op": "\u003c",
+            "L": {
+              "Name": "sum",
+              "Ty": {}
+            },
+            "R": {
+              "Name": "a",
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Then": {
+            "Body": [
+              {
+                "Val": {
+                  "Val": 65535,
+                  "Ty": {}
+                },
+                "Vals": null
+              }
+            ]
+          },
+          "Else": null
+        },
+        {
+          "Val": {
+            "Name": "sum",
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "sat_sub16",
+    "Params": [
+      {
+        "Name": "a",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "b",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Cond": {
+            "Op": "\u003c",
+            "L": {
+              "Name": "a",
+              "Ty": {}
+            },
+            "R": {
+              "Name": "b",
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Then": {
+            "Body": [
+              {
+                "Val": {
+                  "Val": 0,
+                  "Ty": {}
+                },
+                "Vals": null
+              }
+            ]
+          },
+          "Else": null
+        },
+        {
+          "Val": {
+            "Op": "-",
+            "L": {
+              "Name": "a",
+              "Ty": {}
+            },
+            "R": {
+              "Name": "b",
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "op_mul",
+    "Params": [
+      {
+        "Name": "a",
+        "Ty": {
+          "Name": "W8",
+          "Fields": [
+            {
+              "Name": "v",
+              "Ty": {}
+            }
+          ],
+          "IsUnion": false
+        },
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "b",
+        "Ty": {
+          "Name": "W8",
+          "Fields": [
+            {
+              "Name": "v",
+              "Ty": {}
+            }
+          ],
+          "IsUnion": false
+        },
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Name": "result",
+          "Ty": {},
+          "ArrayLen": 0,
+          "Init": {
+            "Val": 0,
+            "Ty": {}
+          },
+          "Initial": null,
+          "At": null
+        },
+        {
+          "Name": "shift",
+          "Ty": {},
+          "ArrayLen": 0,
+          "Init": {
+            "X": {
+              "Name": "a",
+              "Ty": {
+                "Name": "W8",
+                "Fields": [
+                  {
+                    "Name": "v",
+                    "Ty": {}
+                  }
+                ],
+                "IsUnion": false
+              }
+            },
+            "Field": "v",
+            "Offset": 0,
+            "Ty": {}
+          },
+          "Initial": null,
+          "At": null
+        },
+        {
+          "Name": "mult",
+          "Ty": {},
+          "ArrayLen": 0,
+          "Init": {
+            "X": {
+              "Name": "b",
+              "Ty": {
+                "Name": "W8",
+                "Fields": [
+                  {
+                    "Name": "v",
+                    "Ty": {}
+                  }
+                ],
+                "IsUnion": false
+              }
+            },
+            "Field": "v",
+            "Offset": 0,
+            "Ty": {}
+          },
+          "Initial": null,
+          "At": null
+        },
+        {
+          "Cond": {
+            "Op": "\u003e",
+            "L": {
+              "Name": "mult",
+              "Ty": {}
+            },
+            "R": {
+              "Val": 0,
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Body": {
+            "Body": [
+              {
+                "Cond": {
+                  "Op": "==",
+                  "L": {
+                    "Op": "%",
+                    "L": {
+                      "Name": "mult",
+                      "Ty": {}
+                    },
+                    "R": {
+                      "Val": 2,
+                      "Ty": {}
+                    },
+                    "Ty": {}
+                  },
+                  "R": {
+                    "Val": 1,
+                    "Ty": {}
+                  },
+                  "Ty": {}
+                },
+                "Then": {
+                  "Body": [
+                    {
+                      "Target": {
+                        "Name": "result",
+                        "Ty": {}
+                      },
+                      "Val": {
+                        "Op": "+",
+                        "L": {
+                          "Name": "result",
+                          "Ty": {}
+                        },
+                        "R": {
+                          "Name": "shift",
+                          "Ty": {}
+                        },
+                        "Ty": {}
+                      }
+                    }
+                  ]
+                },
+                "Else": null
+              },
+              {
+                "Target": {
+                  "Name": "shift",
+                  "Ty": {}
+                },
+                "Val": {
+                  "Op": "+",
+                  "L": {
+                    "Name": "shift",
+                    "Ty": {}
+                  },
+                  "R": {
+                    "Name": "shift",
+                    "Ty": {}
+                  },
+                  "Ty": {}
+                }
+              },
+              {
+                "Target": {
+                  "Name": "mult",
+                  "Ty": {}
+                },
+                "Val": {
+                  "Op": "/",
+                  "L": {
+                    "Name": "mult",
+                    "Ty": {}
+                  },
+                  "R": {
+                    "Val": 2,
+                    "Ty": {}
+                  },
+                  "Ty": {}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Val": {
+            "Name": "result",
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "op_add",
+    "Params": [
+      {
+        "Name": "a",
+        "Ty": {
+          "Name": "W8",
+          "Fields": [
+            {
+              "Name": "v",
+              "Ty": {}
+            }
+          ],
+          "IsUnion": false
+        },
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "b",
+        "Ty": {
+          "Name": "W8",
+          "Fields": [
+            {
+              "Name": "v",
+              "Ty": {}
+            }
+          ],
+          "IsUnion": false
+        },
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {
+      "Name": "W8",
+      "Fields": [
+        {
+          "Name": "v",
+          "Ty": {}
+        }
+      ],
+      "IsUnion": false
+    },
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Val": {
+            "St": {
+              "Name": "W8",
+              "Fields": [
+                {
+                  "Name": "v",
+                  "Ty": {}
+                }
+              ],
+              "IsUnion": false
+            },
+            "Fields": [
+              {
+                "Name": "v",
+                "Val": {
+                  "Op": "+",
+                  "L": {
+                    "X": {
+                      "Name": "a",
+                      "Ty": {
+                        "Name": "W8",
+                        "Fields": [
+                          {
+                            "Name": "v",
+                            "Ty": {}
+                          }
+                        ],
+                        "IsUnion": false
+                      }
+                    },
+                    "Field": "v",
+                    "Offset": 0,
+                    "Ty": {}
+                  },
+                  "R": {
+                    "X": {
+                      "Name": "b",
+                      "Ty": {
+                        "Name": "W8",
+                        "Fields": [
+                          {
+                            "Name": "v",
+                            "Ty": {}
+                          }
+                        ],
+                        "IsUnion": false
+                      }
+                    },
+                    "Field": "v",
+                    "Offset": 0,
+                    "Ty": {}
+                  },
+                  "Ty": {}
+                }
+              }
+            ]
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "op_sub",
+    "Params": [
+      {
+        "Name": "a",
+        "Ty": {
+          "Name": "W8",
+          "Fields": [
+            {
+              "Name": "v",
+              "Ty": {}
+            }
+          ],
+          "IsUnion": false
+        },
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "b",
+        "Ty": {
+          "Name": "W8",
+          "Fields": [
+            {
+              "Name": "v",
+              "Ty": {}
+            }
+          ],
+          "IsUnion": false
+        },
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {
+      "Name": "W8",
+      "Fields": [
+        {
+          "Name": "v",
+          "Ty": {}
+        }
+      ],
+      "IsUnion": false
+    },
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Val": {
+            "St": {
+              "Name": "W8",
+              "Fields": [
+                {
+                  "Name": "v",
+                  "Ty": {}
+                }
+              ],
+              "IsUnion": false
+            },
+            "Fields": [
+              {
+                "Name": "v",
+                "Val": {
+                  "Op": "-",
+                  "L": {
+                    "X": {
+                      "Name": "a",
+                      "Ty": {
+                        "Name": "W8",
+                        "Fields": [
+                          {
+                            "Name": "v",
+                            "Ty": {}
+                          }
+                        ],
+                        "IsUnion": false
+                      }
+                    },
+                    "Field": "v",
+                    "Offset": 0,
+                    "Ty": {}
+                  },
+                  "R": {
+                    "X": {
+                      "Name": "b",
+                      "Ty": {
+                        "Name": "W8",
+                        "Fields": [
+                          {
+                            "Name": "v",
+                            "Ty": {}
+                          }
+                        ],
+                        "IsUnion": false
+                      }
+                    },
+                    "Field": "v",
+                    "Offset": 0,
+                    "Ty": {}
+                  },
+                  "Ty": {}
+                }
+              }
+            ]
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "area",
+    "Params": [
+      {
+        "Name": "w",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "h",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Val": {
+            "Fn": "op_mul_u8_u8",
+            "Args": [
+              {
+                "Name": "w",
+                "Ty": {}
+              },
+              {
+                "Name": "h",
+                "Ty": {}
+              }
+            ],
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "big_area",
+    "Params": null,
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Name": "w",
+          "Ty": {},
+          "ArrayLen": 0,
+          "Init": {
+            "Val": 200,
+            "Ty": {}
+          },
+          "Initial": null,
+          "At": null
+        },
+        {
+          "Name": "h",
+          "Ty": {},
+          "ArrayLen": 0,
+          "Init": {
+            "Val": 200,
+            "Ty": {}
+          },
+          "Initial": null,
+          "At": null
+        },
+        {
+          "Val": {
+            "Fn": "op_mul_u8_u8",
+            "Args": [
+              {
+                "Name": "w",
+                "Ty": {}
+              },
+              {
+                "Name": "h",
+                "Ty": {}
+              }
+            ],
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "pixel_distance",
+    "Params": [
+      {
+        "Name": "x1",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "y1",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "x2",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "y2",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Name": "dx",
+          "Ty": {},
+          "ArrayLen": 0,
+          "Init": {
+            "Fn": "abs_diff8",
+            "Args": [
+              {
+                "Name": "x1",
+                "Ty": {}
+              },
+              {
+                "Name": "x2",
+                "Ty": {}
+              }
+            ],
+            "Ty": {}
+          },
+          "Initial": null,
+          "At": null
+        },
+        {
+          "Name": "dy",
+          "Ty": {},
+          "ArrayLen": 0,
+          "Init": {
+            "Fn": "abs_diff8",
+            "Args": [
+              {
+                "Name": "y1",
+                "Ty": {}
+              },
+              {
+                "Name": "y2",
+                "Ty": {}
+              }
+            ],
+            "Ty": {}
+          },
+          "Initial": null,
+          "At": null
+        },
+        {
+          "Val": {
+            "Fn": "op_mul_u8_u8",
+            "Args": [
+              {
+                "Name": "dx",
+                "Ty": {}
+              },
+              {
+                "Name": "dy",
+                "Ty": {}
+              }
+            ],
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "brightness_blend",
+    "Params": [
+      {
+        "Name": "a",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "b",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "mix",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Name": "inv",
+          "Ty": {},
+          "ArrayLen": 0,
+          "Init": {
+            "Op": "-",
+            "L": {
+              "Val": 255,
+              "Ty": {}
+            },
+            "R": {
+              "Name": "mix",
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Initial": null,
+          "At": null
+        },
+        {
+          "Name": "wa",
+          "Ty": {},
+          "ArrayLen": 0,
+          "Init": {
+            "Fn": "op_mul_u8_u8",
+            "Args": [
+              {
+                "Name": "a",
+                "Ty": {}
+              },
+              {
+                "Name": "inv",
+                "Ty": {}
+              }
+            ],
+            "Ty": {}
+          },
+          "Initial": null,
+          "At": null
+        },
+        {
+          "Name": "wb",
+          "Ty": {},
+          "ArrayLen": 0,
+          "Init": {
+            "Fn": "op_mul_u8_u8",
+            "Args": [
+              {
+                "Name": "b",
+                "Ty": {}
+              },
+              {
+                "Name": "mix",
+                "Ty": {}
+              }
+            ],
+            "Ty": {}
+          },
+          "Initial": null,
+          "At": null
+        },
+        {
+          "Name": "total",
+          "Ty": {},
+          "ArrayLen": 0,
+          "Init": {
+            "Op": "+",
+            "L": {
+              "Name": "wa",
+              "Ty": {}
+            },
+            "R": {
+              "Name": "wb",
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Initial": null,
+          "At": null
+        },
+        {
+          "Val": {
+            "Op": "/",
+            "L": {
+              "Name": "total",
+              "Ty": {}
+            },
+            "R": {
+              "Val": 256,
+              "Ty": {}
+            },
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  },
+  {
+    "FallibleCY": false,
+    "Name": "newtype_area",
+    "Params": [
+      {
+        "Name": "w",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      },
+      {
+        "Name": "h",
+        "Ty": {},
+        "RegClass": 0,
+        "SMC": false
+      }
+    ],
+    "Captures": null,
+    "RetTy": {},
+    "RetTys": null,
+    "Body": {
+      "Body": [
+        {
+          "Name": "a",
+          "Ty": {
+            "Name": "W8",
+            "Fields": [
+              {
+                "Name": "v",
+                "Ty": {}
+              }
+            ],
+            "IsUnion": false
+          },
+          "ArrayLen": 0,
+          "Init": {
+            "St": {
+              "Name": "W8",
+              "Fields": [
+                {
+                  "Name": "v",
+                  "Ty": {}
+                }
+              ],
+              "IsUnion": false
+            },
+            "Fields": [
+              {
+                "Name": "v",
+                "Val": {
+                  "Name": "w",
+                  "Ty": {}
+                }
+              }
+            ]
+          },
+          "Initial": null,
+          "At": null
+        },
+        {
+          "Name": "b",
+          "Ty": {
+            "Name": "W8",
+            "Fields": [
+              {
+                "Name": "v",
+                "Ty": {}
+              }
+            ],
+            "IsUnion": false
+          },
+          "ArrayLen": 0,
+          "Init": {
+            "St": {
+              "Name": "W8",
+              "Fields": [
+                {
+                  "Name": "v",
+                  "Ty": {}
+                }
+              ],
+              "IsUnion": false
+            },
+            "Fields": [
+              {
+                "Name": "v",
+                "Val": {
+                  "Name": "h",
+                  "Ty": {}
+                }
+              }
+            ]
+          },
+          "Initial": null,
+          "At": null
+        },
+        {
+          "Val": {
+            "Fn": "op_mul",
+            "Args": [
+              {
+                "Name": "a",
+                "Ty": {
+                  "Name": "W8",
+                  "Fields": [
+                    {
+                      "Name": "v",
+                      "Ty": {}
+                    }
+                  ],
+                  "IsUnion": false
+                }
+              },
+              {
+                "Name": "b",
+                "Ty": {
+                  "Name": "W8",
+                  "Fields": [
+                    {
+                      "Name": "v",
+                      "Ty": {}
+                    }
+                  ],
+                  "IsUnion": false
+                }
+              }
+            ],
+            "Ty": {}
+          },
+          "Vals": null
+        }
+      ]
+    },
+    "ExternClobbers": null,
+    "IsExtern": false,
+    "ExternAddr": 0,
+    "IsIO": false
+  }
+]
