@@ -174,6 +174,17 @@ func (g *z80cg) genCall(inst *Inst) error {
 			}
 			callee.Contract.Params = append(callee.Contract.Params, Param{Ty: ty, Class: standardParamClass(ty, i)})
 		}
+		paramTys := make([]Ty, len(callee.Contract.Params))
+		for i, p := range callee.Contract.Params {
+			paramTys[i] = p.Ty
+		}
+		classes, err := CanonicalIndirectParamClasses(paramTys)
+		if err != nil {
+			return err
+		}
+		for i := range callee.Contract.Params {
+			callee.Contract.Params[i].Class = classes[i]
+		}
 		callee.Contract.StructReturnBuffers = inst.StructReturnBuffers
 		returns := inst.IndirectReturnTys
 		if len(returns) == 0 && inst.Dst != NoReg {

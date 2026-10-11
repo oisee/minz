@@ -18,6 +18,9 @@ type LocalTableProblem struct {
 }
 
 func PrepareLocalTableProblem(f *mir2.Func, allocation *mir2.AllocResult) (*LocalTableProblem, error) {
+	if f != nil && f.Attrs.FixedIndirectABI {
+		return nil, fmt.Errorf("checked local table does not model the canonical indirect entry bridge")
+	}
 	if f == nil || allocation == nil || len(f.Blocks) != 1 || f.Attrs.IsExtern || len(f.Contract.Returns) != 1 {
 		return nil, fmt.Errorf("local table requires single-result leaf block")
 	}
