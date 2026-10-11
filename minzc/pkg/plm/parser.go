@@ -39,7 +39,7 @@ func ParseModuleFile(path, src string) (*Module, error) {
 }
 
 type parser struct {
-	l         *Lexer
+	l          *Lexer
 	extraDecls []*VarDecl // extra VarDecls emitted by multi-BASED name lists
 }
 
@@ -1368,27 +1368,25 @@ func (p *parser) parseUnaryExpr() (Expr, error) {
 			}
 			return &UnOp{Op: "." + kw.Val + ".", X: x}, nil
 		}
-		// .IDENT — address-of operator (like C's &).
-		// .IDENT(idx) — address of array element: consume the subscript.
-		// .IDENT.FIELD — record field address: consume the field chain.
+		// .IDENT and .IDENT(index) preserve address semantics in the AST.
 		if kw.Kind == TokIdent {
-			p.l.Next() // consume ident
+			p.l.Next()
+			addr := &AddrExpr{Name: kw.Val}
 			if p.l.IsKind(TokLParen) {
 				p.l.Next()
-				p.skipBalancedParenContent()
-			}
-			// Consume chained .field accessors (record field address)
-			for p.l.IsKind(TokDot) {
-				p.l.Next()
-				if p.l.IsKind(TokIdent) {
-					p.l.Next()
+				idx, err := p.parseExpr()
+				if err != nil {
+					return nil, err
 				}
-				if p.l.IsKind(TokLParen) {
-					p.l.Next()
-					p.skipBalancedParenContent()
+				if _, err := p.l.ExpectKind(TokRParen); err != nil {
+					return nil, err
 				}
+				addr.Idx = idx
 			}
-			return &VarRef{Name: kw.Val}, nil
+			if p.l.IsKind(TokDot) {
+				return nil, fmt.Errorf("line %d: record field address not supported", kw.Line)
+			}
+			return addr, nil
 		}
 		// .('string') — string literal address (DATA init context); return placeholder 0
 		if kw.Kind == TokLParen {

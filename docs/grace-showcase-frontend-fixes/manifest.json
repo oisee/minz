@@ -1,0 +1,9 @@
+{
+  "base_commit": "4f556d23",
+  "files": {
+    "REPORT.md": "dc5bca08d551b24e82e35dd469b080b095203d9cfeba81916bc5f3b90394c93a",
+    "focused-showcase.txt": "a8b9a778a2ac8de2f2ad802d3faa83efa51602c1101d66745919494fd72879e1",
+    "frontend-packages.txt": "fd272b8256bd9078d20cf74ab9cb39ee4ac7e6bd5fa4aacc488f88de3dd5e349",
+    "vm-z80-regressions.txt": "14574f6fba1da85ec5de558d4b77a13fe31647024eaa01de69b7749346846d12"
+  }
+}

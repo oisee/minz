@@ -322,6 +322,14 @@ func PasTypeToMIR2(t PasType) mir2.Ty {
 	case *ArrayType:
 		elem := PasTypeToMIR2(t.Elem)
 		return &mir2.ArrayTy{Elem: elem, Len: t.Hi - t.Lo + 1}
+	case *RecordType:
+		st := &mir2.StructTy{}
+		for _, f := range t.Fields {
+			for _, name := range f.Names {
+				st.Fields = append(st.Fields, mir2.StructField{Name: name, Ty: PasTypeToMIR2(f.Ty)})
+			}
+		}
+		return st
 	case *PointerType:
 		return mir2.TyPtr
 	case *ProcPtrType:

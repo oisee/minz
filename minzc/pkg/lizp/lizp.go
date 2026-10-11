@@ -43,8 +43,8 @@ import (
 
 // macros holds user-defined macros: name → (params, body template).
 type macro struct {
-	params []string   // parameter names
-	body   lanz.Node  // template body (params substituted on expansion)
+	params []string  // parameter names
+	body   lanz.Node // template body (params substituted on expansion)
 }
 
 // Compile parses Lizp source and returns a HIR module.
@@ -273,6 +273,11 @@ func desugarExpr(n lanz.Node) lanz.Node {
 	}
 
 	switch head.Atom {
+	case "return":
+		if len(n.List) == 2 {
+			return desugarReturnValue(n.List[1], n.Line)
+		}
+		return n
 	case "let":
 		return desugarLet(n)
 	case "cond":
@@ -411,6 +416,18 @@ func desugarExpr(n lanz.Node) lanz.Node {
 			return desugarExpr(n.List[1])
 		}
 		return n
+	case "peek":
+		if len(n.List) == 2 {
+			return list(n.Line, atom("load", n.Line), desugarExpr(n.List[1]), atom("u8", n.Line))
+		}
+		return n
+	case "poke":
+		if len(n.List) == 3 {
+			// Poke writes one byte even when the value expression is a word.
+			val := list(n.Line, atom("cast", n.Line), desugarExpr(n.List[2]), atom("u8", n.Line))
+			return list(n.Line, atom("store", n.Line), desugarExpr(n.List[1]), val)
+		}
+		return n
 	case "string-ref":
 		// (string-ref str idx) → (load (+ str idx))
 		if len(n.List) == 3 {
@@ -490,7 +507,7 @@ func desugarDo(n lanz.Node) lanz.Node {
 	if len(n.List) < 3 || !n.List[1].IsList() || !n.List[2].IsList() {
 		return n
 	}
-	bindings := n.List[1] // ((var type init step) ...)
+	bindings := n.List[1]   // ((var type init step) ...)
 	testClause := n.List[2] // (test result)
 	body := n.List[3:]
 
@@ -568,6 +585,32 @@ func desugarLet(n lanz.Node) lanz.Node {
 		stmts = append(stmts, desugarExpr(s))
 	}
 	return lanz.Node{List: stmts, Line: n.Line}
+}
+
+// In a return context, progn must run its prefix before returning its final
+// value. Convert branches to statement control flow rather than a void call
+// to the syntactic block form.
+func desugarReturnValue(n lanz.Node, line int) lanz.Node {
+	if n.IsList() && len(n.List) > 0 {
+		switch n.List[0].Atom {
+		case "cond":
+			return desugarReturnValue(desugarCond(n), line)
+		case "if":
+			if len(n.List) == 4 {
+				return list(line, atom("if", line), desugarExpr(n.List[1]), desugarReturnValue(n.List[2], line), desugarReturnValue(n.List[3], line))
+			}
+		case "progn", "begin", "block":
+			if len(n.List) > 1 {
+				body := []lanz.Node{atom("block", line)}
+				for _, s := range n.List[1 : len(n.List)-1] {
+					body = append(body, desugarExpr(s))
+				}
+				body = append(body, desugarReturnValue(n.List[len(n.List)-1], line))
+				return lanz.Node{List: body, Line: line}
+			}
+		}
+	}
+	return list(line, atom("return", line), desugarExpr(n))
 }
 
 // (cond (test1 expr1) (test2 expr2) ... (t default))
@@ -733,7 +776,7 @@ func desugarThreadFirst(n lanz.Node) lanz.Node {
 			// (-> x (f a b)) → (f x a b)
 			children := make([]lanz.Node, 0, len(form.List)+1)
 			children = append(children, form.List[0]) // function name
-			children = append(children, acc)           // threaded value
+			children = append(children, acc)          // threaded value
 			children = append(children, form.List[1:]...)
 			acc = lanz.Node{List: children, Line: n.Line}
 		}

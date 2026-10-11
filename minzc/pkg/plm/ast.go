@@ -92,7 +92,7 @@ type Stmt interface{ plmStmt() }
 // AssignStmt: <name> = <expr>;  or  <name>(<idx>) = <expr>;  (array element write)
 type AssignStmt struct {
 	Name string
-	Idx  Expr   // non-nil: array element assignment — arr(idx) = val
+	Idx  Expr // non-nil: array element assignment — arr(idx) = val
 	Val  Expr
 }
 
@@ -228,3 +228,11 @@ type CastExpr struct {
 }
 
 func (*CastExpr) plmExpr() {}
+
+// AddrExpr is the address of a variable or indexed array element.
+type AddrExpr struct {
+	Name string
+	Idx  Expr
+}
+
+func (*AddrExpr) plmExpr() {}

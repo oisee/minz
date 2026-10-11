@@ -1,0 +1,24 @@
+=== RUN   TestShowcaseCompileAssemble
+    showcase_test.go:86: Found 192 showcase files
+=== RUN   TestShowcaseCompileAssemble/self_tokenizer.lizp
+    showcase_test.go:129: pipeline: line 156: assert "assert is_ws(32) == 1" [z80]: assemble errors: line 19: unknown instruction or invalid operands: CALL
+=== RUN   TestShowcaseCompileAssemble/01_sum_array.plm
+    showcase_test.go:94: known failure: asm: PLM codegen produces instructions MZA can't encode yet
+=== RUN   TestShowcaseCompileAssemble/bubble_sort.pas
+    showcase_test.go:159: OK: 5916 bytes asm, 489 bytes binary
+=== RUN   TestShowcaseCompileAssemble/records.pas
+    showcase_test.go:159: OK: 3250 bytes asm, 207 bytes binary
+=== RUN   TestShowcaseCompileAssemble/hello.plm
+    showcase_test.go:159: OK: 611 bytes asm, 21 bytes binary
+=== RUN   TestShowcaseCompileAssemble/sum_array.plm
+    showcase_test.go:159: OK: 684 bytes asm, 32 bytes binary
+--- FAIL: TestShowcaseCompileAssemble (0.07s)
+    --- FAIL: TestShowcaseCompileAssemble/self_tokenizer.lizp (0.02s)
+    --- SKIP: TestShowcaseCompileAssemble/01_sum_array.plm (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/bubble_sort.pas (0.03s)
+    --- PASS: TestShowcaseCompileAssemble/records.pas (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/hello.plm (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/sum_array.plm (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/nanz	0.078s
+FAIL

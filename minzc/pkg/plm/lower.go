@@ -36,6 +36,7 @@ func LowerModule(pm *Module) (*hir.Module, error) {
 	l := &modLowerer{
 		pm:           pm,
 		fnRetTy:      make(map[string]PLMType),
+		globalTypes:  make(map[string]PLMType),
 		globalArrays: make(map[string]int),
 		globalBased:  make(map[string]string),
 		globalAt:     make(map[string]*uint16),
@@ -46,11 +47,12 @@ func LowerModule(pm *Module) (*hir.Module, error) {
 // ── Module lowerer ────────────────────────────────────────────────────────────
 
 type modLowerer struct {
+	globalTypes  map[string]PLMType
 	pm           *Module
-	fnRetTy      map[string]PLMType  // return type per procedure name
-	globalArrays map[string]int      // name → array size (0 = scalar)
-	globalBased  map[string]string   // name → base variable (BASED)
-	globalAt     map[string]*uint16  // name → AT address
+	fnRetTy      map[string]PLMType // return type per procedure name
+	globalArrays map[string]int     // name → array size (0 = scalar)
+	globalBased  map[string]string  // name → base variable (BASED)
+	globalAt     map[string]*uint16 // name → AT address
 }
 
 func (l *modLowerer) lower() (*hir.Module, error) {
@@ -68,6 +70,7 @@ func (l *modLowerer) lower() (*hir.Module, error) {
 		switch d := d.(type) {
 		case *VarDecl:
 			for _, name := range d.Names {
+				l.globalTypes[name] = d.Ty
 				elemTy := plmToMIR2(d.Ty)
 
 				// Track array metadata.
@@ -277,6 +280,9 @@ func (pl *procLowerer) typeOf(name string) PLMType {
 	if ty, ok := pl.localTypes[name]; ok {
 		return ty
 	}
+	if ty, ok := pl.ml.globalTypes[name]; ok {
+		return ty
+	}
 	return PLMWord // default
 }
 
@@ -328,7 +334,7 @@ func (pl *procLowerer) lowerStmt(s Stmt) ([]hir.Stmt, error) {
 			elemTy := plmToMIR2(pl.typeOf(s.Name))
 			base := &hir.AddrOfExpr{Sym: s.Name}
 			indexedPtr := &hir.IndexExpr{Base: base, Idx: idx, ElemTy: elemTy}
-			return []hir.Stmt{&hir.StoreStmt{Ptr: indexedPtr, Val: val}}, nil
+			return []hir.Stmt{&hir.StoreStmt{Ptr: hir.AddrExpr(indexedPtr), Val: val}}, nil
 		}
 
 		// PL/M scalar assignment to an array variable (no explicit index) means
@@ -337,7 +343,7 @@ func (pl *procLowerer) lowerStmt(s Stmt) ([]hir.Stmt, error) {
 			elemTy := plmToMIR2(pl.typeOf(s.Name))
 			base := &hir.AddrOfExpr{Sym: s.Name}
 			indexedPtr := &hir.IndexExpr{Base: base, Idx: hir.U8(0), ElemTy: elemTy}
-			return []hir.Stmt{&hir.StoreStmt{Ptr: indexedPtr, Val: val}}, nil
+			return []hir.Stmt{&hir.StoreStmt{Ptr: hir.AddrExpr(indexedPtr), Val: val}}, nil
 		}
 
 		ty := plmToMIR2(pl.typeOf(s.Name))
@@ -501,6 +507,16 @@ func (pl *procLowerer) lowerExpr(e Expr) (hir.Expr, error) {
 		}
 		return hir.U16(int64(e.Val)), nil
 
+	case *AddrExpr:
+		if e.Idx == nil {
+			return hir.Addr(e.Name), nil
+		}
+		idx, err := pl.lowerExpr(e.Idx)
+		if err != nil {
+			return nil, err
+		}
+		return hir.AddrExpr(hir.Index(hir.Addr(e.Name), idx, plmToMIR2(pl.typeOf(e.Name)))), nil
+
 	case *VarRef:
 		// BASED variable read: X BASED Y → *Y (load through pointer)
 		if base, ok := pl.basedVar(e.Name); ok {
@@ -555,6 +571,19 @@ func (pl *procLowerer) lowerExpr(e Expr) (hir.Expr, error) {
 			elemTy := plmToMIR2(pl.typeOf(e.Fn))
 			base := &hir.AddrOfExpr{Sym: e.Fn}
 			return &hir.IndexExpr{Base: base, Idx: idx, ElemTy: elemTy}, nil
+		}
+		// A declared scalar WORD used with one index is byte access through
+		// its stored address (PL/M-80 PTR(I)), not a procedure call.
+		if _, isProc := pl.ml.fnRetTy[e.Fn]; !isProc && len(e.Args) == 1 {
+			_, local := pl.paramTypes[e.Fn]
+			_, global := pl.ml.globalTypes[e.Fn]
+			if (local || global) && pl.typeOf(e.Fn) == PLMWord {
+				idx, err := pl.lowerExpr(e.Args[0])
+				if err != nil {
+					return nil, err
+				}
+				return hir.Index(hir.Var(e.Fn, mir2.TyU16), idx, mir2.TyU8), nil
+			}
 		}
 		// Indirect call: if name is a local ADDRESS variable (not a procedure),
 		// emit CallIndirectExpr — the variable holds a function pointer.

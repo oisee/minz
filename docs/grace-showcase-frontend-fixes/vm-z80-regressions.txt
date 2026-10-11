@@ -1,0 +1,12 @@
+=== RUN   TestPeekPokeReturnPrognVMZ80
+--- PASS: TestPeekPokeReturnPrognVMZ80 (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/lizp	0.011s
+=== RUN   TestRecordFieldOffsetsAndArrayStoreVMZ80
+--- PASS: TestRecordFieldOffsetsAndArrayStoreVMZ80 (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pascal	0.015s
+=== RUN   TestDeclaredWordPointerIndexVMZ80
+--- PASS: TestDeclaredWordPointerIndexVMZ80 (0.03s)
+PASS
+ok  	github.com/minz/minzc/pkg/plm	0.035s
