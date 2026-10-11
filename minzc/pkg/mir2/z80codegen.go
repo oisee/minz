@@ -504,6 +504,8 @@ type z80cg struct {
 	nativeSpillCount                      int
 	nativeOrphanLabels                    map[string]string
 	err                                   error // first emission error, returned by Z80Codegen
+	localFrameDepth                       map[string]int
+	hasLocalFrame                         bool
 	ar                                    *AllocResult
 	sb                                    *strings.Builder
 	mod                                   *Module                    // parent module (for callee contract lookup at call sites)
@@ -794,6 +796,12 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 }
 
 func (g *z80cg) genFunc(f *Func) {
+	var frameErr error
+	g.localFrameDepth, g.hasLocalFrame, frameErr = nativeAllocaDepths(f)
+	if frameErr != nil {
+		g.err = frameErr
+		return
+	}
 	g.fn = f
 	g.regInfo = collectRegInfo(f)
 	g.cmpSwapped = make(map[Reg]bool)
@@ -861,6 +869,7 @@ func (g *z80cg) genFunc(f *Func) {
 		g.emitf("%s:", tramp.label)
 		g.emitParallelCopy(tramp.copies)
 		if tramp.isRet {
+			g.emitLocalFrameCleanup(tramp.frameBytes)
 			g.emit("    RET")
 		} else {
 			g.emitf("    JRS %s", tramp.target)
@@ -1067,7 +1076,7 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	// Detect tail call: last instruction is OpCall whose result feeds directly
 	// into TermRet. genCall will emit JP instead of CALL; genTerm skips RET.
 	g.tailCallInst = nil
-	if len(b.Insts) > 0 && peep.bodyLbl == "" {
+	if len(b.Insts) > 0 && peep.bodyLbl == "" && !g.hasLocalFrame {
 		last := b.Insts[len(b.Insts)-1]
 		if last.Op == OpCall && !isIntrinsic(last.Sym) {
 			if ret, ok := b.Term.(*TermRet); ok {

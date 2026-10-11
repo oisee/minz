@@ -1,0 +1,6 @@
+=== RUN   TestOriginalManhattanNativeModel
+    showcase_manhattan_native_test.go:242: native did not return {manhattan [0 0 0 0] 0}
+--- FAIL: TestOriginalManhattanNativeModel (0.08s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.086s
+FAIL

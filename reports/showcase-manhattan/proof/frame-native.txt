@@ -1,0 +1,8 @@
+=== RUN   TestNativeLocalFrameCFGAndReturns
+--- PASS: TestNativeLocalFrameCFGAndReturns (0.04s)
+=== RUN   TestNativeLocalFrameStableLoopAndNoAllocationPath
+--- PASS: TestNativeLocalFrameStableLoopAndNoAllocationPath (0.00s)
+=== RUN   TestNativeLocalFrameRejectsUnequalJoinAndGrowingLoop
+--- PASS: TestNativeLocalFrameRejectsUnequalJoinAndGrowingLoop (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.055s
