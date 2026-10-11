@@ -1,0 +1,8 @@
+{
+  "head": "7bac0a31e8b350a375a87d86d773d54db62bc92c",
+  "files": {
+    "minzc/pkg/mir2/normal_global_diamond_prototype.go": "eb98c7c917124c524453ca46ee5bdec1ad4a920b24b81da8fde948bacd120658",
+    "minzc/pkg/mir2/normal_global_diamond_prototype_test.go": "b4e5ed5746f3d3660cd656d6ce6f273f02719d2ee03562b6dcc185febd418063"
+  },
+  "reviewer_cpu_runs": 0
+}
