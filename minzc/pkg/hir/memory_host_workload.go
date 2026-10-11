@@ -358,7 +358,12 @@ func RunMemoryHostMIRBaseline(source *Module, m *mir2.Module, w MemoryHostWorklo
 	if e = mir2.Verify(m); e != nil {
 		return nil, e
 	}
-	vm := mir2.NewVM(m)
+	return runPreparedMemoryHost(source, m, owned, ctx, mir2.NewVM(m), nil, nil)
+}
+
+// Internal-only hook and observation plumbing; public baseline callers never
+// supply a VM, host callback, or counter observer.
+func runPreparedMemoryHost(source *Module, m *mir2.Module, owned MemoryHostWorkload, ctx ProfileContext, vm *mir2.VM, hooks map[string]mir2.HostFunc, observed func(MemoryHostObservation)) (*MemoryHostRun, error) {
 	used := vm.AllocHeap(nil).I
 	for _, r := range owned.Regions {
 		if int64(r.Address) < used {
@@ -369,6 +374,9 @@ func RunMemoryHostMIRBaseline(source *Module, m *mir2.Module, w MemoryHostWorklo
 	vm.MaxSteps = owned.MaxSteps
 	vm.MaxMemory = owned.MaxMemory
 	vm.Hosts = map[string]mir2.HostFunc{}
+	for name, hook := range hooks {
+		vm.Hosts[name] = hook
+	}
 	events := []MemoryHostAccess{}
 	checkRegion := func(op mir2.Op, addr int64) error {
 		if addr < 0 || addr > 65535 {
@@ -484,10 +492,16 @@ func RunMemoryHostMIRBaseline(source *Module, m *mir2.Module, w MemoryHostWorklo
 				o.Failure = &copyFailure
 			}
 			out.Invocations = append(out.Invocations, o)
+			if observed != nil {
+				observed(o)
+			}
 			return out, fmt.Errorf("memory host: invocation %d: %w", j, err)
 		}
 		o.Results = append([]mir2.Value{}, result...)
 		out.Invocations = append(out.Invocations, o)
+		if observed != nil {
+			observed(o)
+		}
 	}
 	return out, nil
 }
