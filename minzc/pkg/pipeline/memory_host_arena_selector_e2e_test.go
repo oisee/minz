@@ -3,6 +3,7 @@ package pipeline
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/minz/minzc/pkg/hir"
 	"os"
 	"path/filepath"
@@ -178,7 +179,7 @@ func TestMemoryHostArenaSelectorLateFactoryMutation(t *testing.T) {
 					case "candidate_global":
 						m.Globals[0].Init[0] ^= 1
 					case "candidate_shared":
-						m.Funcs[0].Body = first.Funcs[0].Body
+						m.FuncByName("cur").Body = first.FuncByName("cur").Body
 					}
 				}
 				return m, nil
@@ -188,6 +189,67 @@ func TestMemoryHostArenaSelectorLateFactoryMutation(t *testing.T) {
 			}
 			if calls < 8 {
 				t.Fatal("test did not reach late original/candidate factory phase", calls)
+			}
+		})
+	}
+}
+
+func TestMemoryHostArenaSelectorSentinelOriginMutation(t *testing.T) {
+	_, w := memoryHostParserFixture(t)
+	w.Calls = []hir.MemoryHostInvocation{{Function: "region_match", Arguments: []int64{0x8fff, 0, 0}}}
+	serialized := arenaSelectorProfile(t, w)
+	for _, phase := range []int{3, 12} {
+		t.Run(fmt.Sprint(phase), func(t *testing.T) {
+			calls := 0
+			var first *hir.Module
+			factory := func() (*hir.Module, error) {
+				m, _ := memoryHostParserFixture(t)
+				calls++
+				if calls == 1 {
+					first = m
+				}
+				if calls == phase {
+					stmt := first.FuncByName("region_match").Body.Body[1]
+					origin, ok := first.SourceLocations[stmt]
+					if !ok {
+						t.Fatal("known region_match While lacks source origin")
+					}
+					origin.ByteOffset++
+					first.SourceLocations[stmt] = origin
+				}
+				return m, nil
+			}
+			if evidence, e := MeasureMemoryHostArenaPeel(factory, w, serialized, MemoryHostArenaSelectorOptions{Goal: "speed", MaxSites: 1}); e == nil || evidence != nil {
+				t.Fatal("retained source origin mutation accepted")
+			}
+			if calls < phase {
+				t.Fatal("did not reach requested sentinel phase", calls)
+			}
+		})
+	}
+}
+func TestMemoryHostArenaSelectorStaleHostsAndWorkload(t *testing.T) {
+	_, w := memoryHostParserFixture(t)
+	w.Calls = []hir.MemoryHostInvocation{{Function: "region_match", Arguments: []int64{0x8fff, 0, 0}}}
+	serialized := arenaSelectorProfile(t, w)
+	for _, mode := range []string{"host", "workload"} {
+		t.Run(mode, func(t *testing.T) {
+			b, e := json.Marshal(w)
+			if e != nil {
+				t.Fatal(e)
+			}
+			var changed hir.MemoryHostWorkload
+			if e = json.Unmarshal(b, &changed); e != nil {
+				t.Fatal(e)
+			}
+			if mode == "host" {
+				changed.Hosts["peek"] = hir.MemoryHostWriteU8
+			} else {
+				changed.Calls[0].Arguments[2] = 1
+			}
+			factory := func() (*hir.Module, error) { m, _ := memoryHostParserFixture(t); return m, nil }
+			if evidence, e := MeasureMemoryHostArenaPeel(factory, changed, serialized, MemoryHostArenaSelectorOptions{Goal: "speed", MaxSites: 1}); e == nil || evidence != nil {
+				t.Fatal("stale host/workload accepted", mode)
 			}
 		})
 	}
