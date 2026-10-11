@@ -1,0 +1,217 @@
+=== RUN   TestOriginalFibPipeNative
+=== RUN   TestOriginalFibPipeNative/fib_parallel_copy
+=== RUN   TestOriginalFibPipeNative/fib_parallel_copy/ordinary
+    original_fib_pipe_native_test.go:423: {
+          "calls": {
+            "fib": 256
+          },
+          "cycles_including_CALL": {
+            "fib": 4455680
+          },
+          "execution_sha256": "b88d2977508fc7091045d078b1b96f8e90e58ac7724061d8250ec880930be13a",
+          "module_bytes": 29,
+          "raw_only_lifted": {},
+          "source_assertions": 8,
+          "source_sha256": "1816bdacb6be551b42edfb83365149d00b7ce9dfa0193ade4beed24ca3479671",
+          "spill_bytes": {},
+          "stack_depths": {
+            "fib": 6
+          }
+        }
+=== RUN   TestOriginalFibPipeNative/fib_parallel_copy/grace-size
+    original_fib_pipe_native_test.go:423: {
+          "calls": {
+            "fib": 256
+          },
+          "cycles_including_CALL": {
+            "fib": 4455680
+          },
+          "execution_sha256": "b88d2977508fc7091045d078b1b96f8e90e58ac7724061d8250ec880930be13a",
+          "module_bytes": 29,
+          "raw_only_lifted": {},
+          "source_assertions": 8,
+          "source_sha256": "1816bdacb6be551b42edfb83365149d00b7ce9dfa0193ade4beed24ca3479671",
+          "spill_bytes": {},
+          "stack_depths": {
+            "fib": 6
+          }
+        }
+=== RUN   TestOriginalFibPipeNative/fib_parallel_copy/grace-speed
+    original_fib_pipe_native_test.go:423: {
+          "calls": {
+            "fib": 256
+          },
+          "cycles_including_CALL": {
+            "fib": 4455680
+          },
+          "execution_sha256": "b88d2977508fc7091045d078b1b96f8e90e58ac7724061d8250ec880930be13a",
+          "module_bytes": 29,
+          "raw_only_lifted": {},
+          "source_assertions": 8,
+          "source_sha256": "1816bdacb6be551b42edfb83365149d00b7ce9dfa0193ade4beed24ca3479671",
+          "spill_bytes": {},
+          "stack_depths": {
+            "fib": 6
+          }
+        }
+=== RUN   TestOriginalFibPipeNative/pipe_fold_mul_combos
+=== RUN   TestOriginalFibPipeNative/pipe_fold_mul_combos/ordinary
+    original_fib_pipe_native_test.go:423: {
+          "calls": {
+            "add_acc": 65536,
+            "board_idx": 65536,
+            "double": 256,
+            "inc": 256,
+            "main": 1,
+            "pipe1": 1,
+            "pipe2": 1,
+            "pipe3": 1,
+            "sum_data": 2321,
+            "sum_from_100": 2321,
+            "sum_let": 2321,
+            "triple": 256
+          },
+          "cycles_including_CALL": {
+            "add_acc": 2031616,
+            "board_idx": 3604480,
+            "double": 7936,
+            "inc": 7936,
+            "main": 8,
+            "pipe1": 34,
+            "pipe2": 34,
+            "pipe3": 34,
+            "sum_data": 424743,
+            "sum_from_100": 424743,
+            "sum_let": 424743,
+            "triple": 13056
+          },
+          "execution_sha256": "d7c1ffee80c544be8b8c221d2f058993bac2b1727758e97c38fda4c4d007b022",
+          "module_bytes": 91,
+          "raw_only_lifted": {},
+          "source_assertions": 11,
+          "source_sha256": "db44d4f56184592498d612b86658823effb95f52b16c15de58dfe6c45a3fb76f",
+          "spill_bytes": {},
+          "stack_depths": {
+            "add_acc": 2,
+            "board_idx": 2,
+            "double": 2,
+            "inc": 2,
+            "pipe1": 2,
+            "pipe2": 2,
+            "pipe3": 2,
+            "sum_data": 2,
+            "sum_from_100": 2,
+            "sum_let": 2,
+            "triple": 2
+          }
+        }
+=== RUN   TestOriginalFibPipeNative/pipe_fold_mul_combos/grace-size
+    original_fib_pipe_native_test.go:423: {
+          "calls": {
+            "add_acc": 65536,
+            "board_idx": 65536,
+            "double": 256,
+            "inc": 256,
+            "main": 1,
+            "pipe1": 1,
+            "pipe2": 1,
+            "pipe3": 1,
+            "sum_data": 2321,
+            "sum_from_100": 2321,
+            "sum_let": 2321,
+            "triple": 256
+          },
+          "cycles_including_CALL": {
+            "add_acc": 2031616,
+            "board_idx": 3604480,
+            "double": 7936,
+            "inc": 7936,
+            "main": 8,
+            "pipe1": 34,
+            "pipe2": 34,
+            "pipe3": 34,
+            "sum_data": 424743,
+            "sum_from_100": 424743,
+            "sum_let": 424743,
+            "triple": 13056
+          },
+          "execution_sha256": "d7c1ffee80c544be8b8c221d2f058993bac2b1727758e97c38fda4c4d007b022",
+          "module_bytes": 91,
+          "raw_only_lifted": {},
+          "source_assertions": 11,
+          "source_sha256": "db44d4f56184592498d612b86658823effb95f52b16c15de58dfe6c45a3fb76f",
+          "spill_bytes": {},
+          "stack_depths": {
+            "add_acc": 2,
+            "board_idx": 2,
+            "double": 2,
+            "inc": 2,
+            "pipe1": 2,
+            "pipe2": 2,
+            "pipe3": 2,
+            "sum_data": 2,
+            "sum_from_100": 2,
+            "sum_let": 2,
+            "triple": 2
+          }
+        }
+=== RUN   TestOriginalFibPipeNative/pipe_fold_mul_combos/grace-speed
+    original_fib_pipe_native_test.go:423: {
+          "calls": {
+            "add_acc": 65536,
+            "board_idx": 65536,
+            "double": 256,
+            "inc": 256,
+            "main": 1,
+            "pipe1": 1,
+            "pipe2": 1,
+            "pipe3": 1,
+            "sum_data": 2321,
+            "sum_from_100": 2321,
+            "sum_let": 2321,
+            "triple": 256
+          },
+          "cycles_including_CALL": {
+            "add_acc": 2031616,
+            "board_idx": 3604480,
+            "double": 7936,
+            "inc": 7936,
+            "main": 8,
+            "pipe1": 34,
+            "pipe2": 34,
+            "pipe3": 34,
+            "sum_data": 424743,
+            "sum_from_100": 424743,
+            "sum_let": 424743,
+            "triple": 13056
+          },
+          "execution_sha256": "d7c1ffee80c544be8b8c221d2f058993bac2b1727758e97c38fda4c4d007b022",
+          "module_bytes": 91,
+          "raw_only_lifted": {},
+          "source_assertions": 11,
+          "source_sha256": "db44d4f56184592498d612b86658823effb95f52b16c15de58dfe6c45a3fb76f",
+          "spill_bytes": {},
+          "stack_depths": {
+            "add_acc": 2,
+            "board_idx": 2,
+            "double": 2,
+            "inc": 2,
+            "pipe1": 2,
+            "pipe2": 2,
+            "pipe3": 2,
+            "sum_data": 2,
+            "sum_from_100": 2,
+            "sum_let": 2,
+            "triple": 2
+          }
+        }
+--- PASS: TestOriginalFibPipeNative (0.93s)
+    --- PASS: TestOriginalFibPipeNative/fib_parallel_copy (0.15s)
+        --- PASS: TestOriginalFibPipeNative/fib_parallel_copy/ordinary (0.05s)
+        --- PASS: TestOriginalFibPipeNative/fib_parallel_copy/grace-size (0.05s)
+        --- PASS: TestOriginalFibPipeNative/fib_parallel_copy/grace-speed (0.05s)
+    --- PASS: TestOriginalFibPipeNative/pipe_fold_mul_combos (0.78s)
+        --- PASS: TestOriginalFibPipeNative/pipe_fold_mul_combos/ordinary (0.26s)
+        --- PASS: TestOriginalFibPipeNative/pipe_fold_mul_combos/grace-size (0.26s)
+        --- PASS: TestOriginalFibPipeNative/pipe_fold_mul_combos/grace-speed (0.26s)
+PASS

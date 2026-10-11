@@ -1,0 +1,265 @@
+{
+  "schema": "minz.local-artifact-manifest/v1",
+  "files": [
+    {
+      "path": "REPORT.md",
+      "bytes": 3924,
+      "sha256": "00a4bb314a464c9f8c2683cbfa459744e1481f372fe0ca368b05e5b0b5e5577c"
+    },
+    {
+      "path": "actual/fib_parallel_copy/grace-size/abi.json",
+      "bytes": 8604,
+      "sha256": "6cbe586ed6edd39a6b827a1189822488074c97e69b4eb2051c249676c66e5ea6"
+    },
+    {
+      "path": "actual/fib_parallel_copy/grace-size/execution.a80",
+      "bytes": 1098,
+      "sha256": "53bafbc656510cc6d255e698155ab8b96bcbef23c2f321292f68678f410f0dc4"
+    },
+    {
+      "path": "actual/fib_parallel_copy/grace-size/execution.bin",
+      "bytes": 33,
+      "sha256": "b88d2977508fc7091045d078b1b96f8e90e58ac7724061d8250ec880930be13a"
+    },
+    {
+      "path": "actual/fib_parallel_copy/grace-size/final.mir",
+      "bytes": 602,
+      "sha256": "ddf79c701f9e4a35f026371d34c46748cf044d7129ed9c0565c6c1c98d599365"
+    },
+    {
+      "path": "actual/fib_parallel_copy/grace-size/program.a80",
+      "bytes": 1069,
+      "sha256": "50cac03a958c8270cafb930a234cd6a1b759a564e7a2fc209b3cf1d709873210"
+    },
+    {
+      "path": "actual/fib_parallel_copy/grace-size/program.bin",
+      "bytes": 29,
+      "sha256": "7a7a6a6e46565c460a7d38915ba10de824c3f68524a6ad9b5c7ae1db93e13325"
+    },
+    {
+      "path": "actual/fib_parallel_copy/grace-size/results.json",
+      "bytes": 397,
+      "sha256": "35544fa6f14548701a268d44b61e5bf80d421a8e3660e88a704a87a35d20713d"
+    },
+    {
+      "path": "actual/fib_parallel_copy/grace-speed/abi.json",
+      "bytes": 8605,
+      "sha256": "ef1ad63281d4066d007fe16b236dc67f24fa9143f6b6c6cd12f7f764e7647cc9"
+    },
+    {
+      "path": "actual/fib_parallel_copy/grace-speed/execution.a80",
+      "bytes": 1098,
+      "sha256": "53bafbc656510cc6d255e698155ab8b96bcbef23c2f321292f68678f410f0dc4"
+    },
+    {
+      "path": "actual/fib_parallel_copy/grace-speed/execution.bin",
+      "bytes": 33,
+      "sha256": "b88d2977508fc7091045d078b1b96f8e90e58ac7724061d8250ec880930be13a"
+    },
+    {
+      "path": "actual/fib_parallel_copy/grace-speed/final.mir",
+      "bytes": 602,
+      "sha256": "ddf79c701f9e4a35f026371d34c46748cf044d7129ed9c0565c6c1c98d599365"
+    },
+    {
+      "path": "actual/fib_parallel_copy/grace-speed/program.a80",
+      "bytes": 1069,
+      "sha256": "50cac03a958c8270cafb930a234cd6a1b759a564e7a2fc209b3cf1d709873210"
+    },
+    {
+      "path": "actual/fib_parallel_copy/grace-speed/program.bin",
+      "bytes": 29,
+      "sha256": "7a7a6a6e46565c460a7d38915ba10de824c3f68524a6ad9b5c7ae1db93e13325"
+    },
+    {
+      "path": "actual/fib_parallel_copy/grace-speed/results.json",
+      "bytes": 397,
+      "sha256": "35544fa6f14548701a268d44b61e5bf80d421a8e3660e88a704a87a35d20713d"
+    },
+    {
+      "path": "actual/fib_parallel_copy/ordinary/abi.json",
+      "bytes": 8607,
+      "sha256": "78914e531bf838605bf90e93eca7a6b988fbcdbebc68ed3723a44c7f7a3b75ba"
+    },
+    {
+      "path": "actual/fib_parallel_copy/ordinary/execution.a80",
+      "bytes": 1104,
+      "sha256": "b1c5adb4576e5aa29cd78bb869f4619e4d4a4d5ec9d6b59d858c823657772904"
+    },
+    {
+      "path": "actual/fib_parallel_copy/ordinary/execution.bin",
+      "bytes": 33,
+      "sha256": "b88d2977508fc7091045d078b1b96f8e90e58ac7724061d8250ec880930be13a"
+    },
+    {
+      "path": "actual/fib_parallel_copy/ordinary/final.mir",
+      "bytes": 602,
+      "sha256": "ddf79c701f9e4a35f026371d34c46748cf044d7129ed9c0565c6c1c98d599365"
+    },
+    {
+      "path": "actual/fib_parallel_copy/ordinary/program.a80",
+      "bytes": 1075,
+      "sha256": "42472d3910471587e1860fc5b7c2f339ece128c809aac3512692de4557c52911"
+    },
+    {
+      "path": "actual/fib_parallel_copy/ordinary/program.bin",
+      "bytes": 29,
+      "sha256": "7a7a6a6e46565c460a7d38915ba10de824c3f68524a6ad9b5c7ae1db93e13325"
+    },
+    {
+      "path": "actual/fib_parallel_copy/ordinary/results.json",
+      "bytes": 397,
+      "sha256": "35544fa6f14548701a268d44b61e5bf80d421a8e3660e88a704a87a35d20713d"
+    },
+    {
+      "path": "actual/fib_parallel_copy/raw.mir",
+      "bytes": 735,
+      "sha256": "0677da382db1b3c4cf5ce616637feda581611c8f53bc240a64c87ae1e9864ba9"
+    },
+    {
+      "path": "actual/pipe_fold_mul_combos/grace-size/abi.json",
+      "bytes": 43102,
+      "sha256": "330f60f4d35505c3c8bc6783d37c1e35a590a0712b3f24330113999a7b1cd4f4"
+    },
+    {
+      "path": "actual/pipe_fold_mul_combos/grace-size/execution.a80",
+      "bytes": 3756,
+      "sha256": "6f630bfad64bdfc336eb086298c30f01c65e852454aefe310714346d920b7769"
+    },
+    {
+      "path": "actual/pipe_fold_mul_combos/grace-size/execution.bin",
+      "bytes": 135,
+      "sha256": "d7c1ffee80c544be8b8c221d2f058993bac2b1727758e97c38fda4c4d007b022"
+    },
+    {
+      "path": "actual/pipe_fold_mul_combos/grace-size/final.mir",
+      "bytes": 2689,
+      "sha256": "15a42c18f38ea1ab6e2784e781540efddc36c4e6c90ef96cc5e8ec512bf029a5"
+    },
+    {
+      "path": "actual/pipe_fold_mul_combos/grace-size/program.a80",
+      "bytes": 3357,
+      "sha256": "5cfdb82063854a639e8aa90e0f23501655636aab8f0120ce945249796256130c"
+    },
+    {
+      "path": "actual/pipe_fold_mul_combos/grace-size/program.bin",
+      "bytes": 91,
+      "sha256": "e8d1d4d50152e349a0aef68be11c629a5baf03da3dfaa12ecd6dd03df3f828ad"
+    },
+    {
+      "path": "actual/pipe_fold_mul_combos/grace-size/results.json",
+      "bytes": 1023,
+      "sha256": "0028d11ce7255715fd6daa867320112c517471189a9f4720c09c0574ab1aa006"
+    },
+    {
+      "path": "actual/pipe_fold_mul_combos/grace-speed/abi.json",
+      "bytes": 43103,
+      "sha256": "1368d6c48df9d0c9928011f39e5e6fc06bf414605f3dc3813fd51a017662930c"
+    },
+    {
+      "path": "actual/pipe_fold_mul_combos/grace-speed/execution.a80",
+      "bytes": 3756,
+      "sha256": "6f630bfad64bdfc336eb086298c30f01c65e852454aefe310714346d920b7769"
+    },
+    {
+      "path": "actual/pipe_fold_mul_combos/grace-speed/execution.bin",
+      "bytes": 135,
+      "sha256": "d7c1ffee80c544be8b8c221d2f058993bac2b1727758e97c38fda4c4d007b022"
+    },
+    {
+      "path": "actual/pipe_fold_mul_combos/grace-speed/final.mir",
+      "bytes": 2689,
+      "sha256": "15a42c18f38ea1ab6e2784e781540efddc36c4e6c90ef96cc5e8ec512bf029a5"
+    },
+    {
+      "path": "actual/pipe_fold_mul_combos/grace-speed/program.a80",
+      "bytes": 3357,
+      "sha256": "5cfdb82063854a639e8aa90e0f23501655636aab8f0120ce945249796256130c"
+    },
+    {
+      "path": "actual/pipe_fold_mul_combos/grace-speed/program.bin",
+      "bytes": 91,
+      "sha256": "e8d1d4d50152e349a0aef68be11c629a5baf03da3dfaa12ecd6dd03df3f828ad"
+    },
+    {
+      "path": "actual/pipe_fold_mul_combos/grace-speed/results.json",
+      "bytes": 1023,
+      "sha256": "0028d11ce7255715fd6daa867320112c517471189a9f4720c09c0574ab1aa006"
+    },
+    {
+      "path": "actual/pipe_fold_mul_combos/ordinary/abi.json",
+      "bytes": 43105,
+      "sha256": "d67f0f193c1dc992eba5be6edad5735ec0261e083251926cdf6453b2eb676898"
+    },
+    {
+      "path": "actual/pipe_fold_mul_combos/ordinary/execution.a80",
+      "bytes": 3846,
+      "sha256": "af7af320ba5f6bff8a8cca238d8284b62126ad44bdb3b6781140d0825f087ac2"
+    },
+    {
+      "path": "actual/pipe_fold_mul_combos/ordinary/execution.bin",
+      "bytes": 135,
+      "sha256": "d7c1ffee80c544be8b8c221d2f058993bac2b1727758e97c38fda4c4d007b022"
+    },
+    {
+      "path": "actual/pipe_fold_mul_combos/ordinary/final.mir",
+      "bytes": 2689,
+      "sha256": "15a42c18f38ea1ab6e2784e781540efddc36c4e6c90ef96cc5e8ec512bf029a5"
+    },
+    {
+      "path": "actual/pipe_fold_mul_combos/ordinary/program.a80",
+      "bytes": 3447,
+      "sha256": "d8465ad7b6531561e9540bddeb65ab2d2880a12ef4b31cc001e0ee69c2c8b143"
+    },
+    {
+      "path": "actual/pipe_fold_mul_combos/ordinary/program.bin",
+      "bytes": 91,
+      "sha256": "e8d1d4d50152e349a0aef68be11c629a5baf03da3dfaa12ecd6dd03df3f828ad"
+    },
+    {
+      "path": "actual/pipe_fold_mul_combos/ordinary/results.json",
+      "bytes": 1023,
+      "sha256": "0028d11ce7255715fd6daa867320112c517471189a9f4720c09c0574ab1aa006"
+    },
+    {
+      "path": "actual/pipe_fold_mul_combos/raw.mir",
+      "bytes": 3621,
+      "sha256": "6512fea20ac2caf88a0a65cbf25f2906788c589e8a043d48d178e00d3fc5f85d"
+    },
+    {
+      "path": "compile-inspection.txt",
+      "bytes": 10197,
+      "sha256": "4e1ece1a92ac9aa0114f406028a607ba6f579d6506759c5fa3a2a3f680132623"
+    },
+    {
+      "path": "fib-pipe.test.gz",
+      "bytes": 13534728,
+      "sha256": "016875908d7892e0f527c86946ed5c1be5c515f4541b2c001454e2ff595dd0a4"
+    },
+    {
+      "path": "fib_parallel_copy.nanz",
+      "bytes": 412,
+      "sha256": "1816bdacb6be551b42edfb83365149d00b7ce9dfa0193ade4beed24ca3479671"
+    },
+    {
+      "path": "freeze.json",
+      "bytes": 1480,
+      "sha256": "982f397e1df6ef18e231d4b5594b6021374331fa98d30656fc66315d24530f39"
+    },
+    {
+      "path": "identity.json",
+      "bytes": 308,
+      "sha256": "c0d8f8e7be71e308afb767cf52fcb2e4ff6d711bc7256cd0582a4ca3018ec19a"
+    },
+    {
+      "path": "native-tests.txt",
+      "bytes": 7275,
+      "sha256": "7107fef70aa2af5d5270667c8c820d00e86dee6f16c720a80c8162f2b75a8ed8"
+    },
+    {
+      "path": "pipe_fold_mul_combos.nanz",
+      "bytes": 1131,
+      "sha256": "db44d4f56184592498d612b86658823effb95f52b16c15de58dfe6c45a3fb76f"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+; MIR2 module: examples/tests/fib_parallel_copy.nanz
+fun @fib(%r1: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r2 = const 0 : u8 [general]
+    %r3 = const 1 : u8 [general]
+    %r4 = const 0 : u8 [general]
+    jmp @loop_head1(%r2, %r3, %r4, %r1)
+  block @loop_head1(%r2: u8 [general], %r3: u8 [general], %r4: u8 [general], %r8: u8 [general]):
+    %r9 = cmp.ult %r4, %r8 : bool [flag]
+    cond_ret %r9, [%r2], @loop_body2()
+  block @loop_body2:
+    %r10 = add %r2, %r3 : u8 [general]
+    %r11 = const 1 : u8 [general]
+    %r12 = add %r4, %r11 : u8 [general]
+    jmp @loop_head1(%r3, %r10, %r12, %r8)
+
