@@ -1,0 +1,2 @@
+command: ['/tmp/minzc-pfcco-arena', '/home/alice/dev/minz-artifacts/grace-workspaces/checked-next-consumer/examples/nanz/08_arena_allocator.nanz', '--Osize', '--asserts', 'none', '--contract-strategy', 'greedy', '-o', '/home/alice/dev/minz-artifacts/grace-workspaces/checked-next-consumer/reports/artifacts/pfcco-arena/greedy-cli.a80']
+exit: 0
