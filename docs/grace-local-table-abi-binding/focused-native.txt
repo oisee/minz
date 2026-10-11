@@ -1,0 +1,94 @@
+=== RUN   TestLocalTableRejectsForgedStorageAndMissingTiedInputNative
+=== RUN   TestLocalTableRejectsForgedStorageAndMissingTiedInputNative/memory-named-A
+    table_abi_binding_test.go:43: rejected unsupported parameter ABI
+=== RUN   TestLocalTableRejectsForgedStorageAndMissingTiedInputNative/missing-tied-input
+    table_abi_binding_test.go:43: rejected missing, unbound or mistyped local input vreg 0
+--- PASS: TestLocalTableRejectsForgedStorageAndMissingTiedInputNative (0.00s)
+    --- PASS: TestLocalTableRejectsForgedStorageAndMissingTiedInputNative/memory-named-A (0.00s)
+    --- PASS: TestLocalTableRejectsForgedStorageAndMissingTiedInputNative/missing-tied-input (0.00s)
+=== RUN   TestLocalTableRejectsABITypeAndDefinitionMismatches
+=== RUN   TestLocalTableRejectsABITypeAndDefinitionMismatches/duplicate-block
+=== RUN   TestLocalTableRejectsABITypeAndDefinitionMismatches/block-type
+=== RUN   TestLocalTableRejectsABITypeAndDefinitionMismatches/block-class
+=== RUN   TestLocalTableRejectsABITypeAndDefinitionMismatches/param-nil
+=== RUN   TestLocalTableRejectsABITypeAndDefinitionMismatches/param-hard-class
+=== RUN   TestLocalTableRejectsABITypeAndDefinitionMismatches/operand-type
+=== RUN   TestLocalTableRejectsABITypeAndDefinitionMismatches/return-type
+=== RUN   TestLocalTableRejectsABITypeAndDefinitionMismatches/return-physical-width
+=== RUN   TestLocalTableRejectsABITypeAndDefinitionMismatches/unused-operand
+=== RUN   TestLocalTableRejectsABITypeAndDefinitionMismatches/negative-operand
+=== RUN   TestLocalTableRejectsABITypeAndDefinitionMismatches/memory-kind
+=== RUN   TestLocalTableRejectsABITypeAndDefinitionMismatches/stack-kind
+=== RUN   TestLocalTableRejectsABITypeAndDefinitionMismatches/shadow-kind
+=== RUN   TestLocalTableRejectsABITypeAndDefinitionMismatches/flag-kind
+=== RUN   TestLocalTableRejectsABITypeAndDefinitionMismatches/register-offset
+=== RUN   TestLocalTableRejectsABITypeAndDefinitionMismatches/bool-type
+--- PASS: TestLocalTableRejectsABITypeAndDefinitionMismatches (0.00s)
+    --- PASS: TestLocalTableRejectsABITypeAndDefinitionMismatches/duplicate-block (0.00s)
+    --- PASS: TestLocalTableRejectsABITypeAndDefinitionMismatches/block-type (0.00s)
+    --- PASS: TestLocalTableRejectsABITypeAndDefinitionMismatches/block-class (0.00s)
+    --- PASS: TestLocalTableRejectsABITypeAndDefinitionMismatches/param-nil (0.00s)
+    --- PASS: TestLocalTableRejectsABITypeAndDefinitionMismatches/param-hard-class (0.00s)
+    --- PASS: TestLocalTableRejectsABITypeAndDefinitionMismatches/operand-type (0.00s)
+    --- PASS: TestLocalTableRejectsABITypeAndDefinitionMismatches/return-type (0.00s)
+    --- PASS: TestLocalTableRejectsABITypeAndDefinitionMismatches/return-physical-width (0.00s)
+    --- PASS: TestLocalTableRejectsABITypeAndDefinitionMismatches/unused-operand (0.00s)
+    --- PASS: TestLocalTableRejectsABITypeAndDefinitionMismatches/negative-operand (0.00s)
+    --- PASS: TestLocalTableRejectsABITypeAndDefinitionMismatches/memory-kind (0.00s)
+    --- PASS: TestLocalTableRejectsABITypeAndDefinitionMismatches/stack-kind (0.00s)
+    --- PASS: TestLocalTableRejectsABITypeAndDefinitionMismatches/shadow-kind (0.00s)
+    --- PASS: TestLocalTableRejectsABITypeAndDefinitionMismatches/flag-kind (0.00s)
+    --- PASS: TestLocalTableRejectsABITypeAndDefinitionMismatches/register-offset (0.00s)
+    --- PASS: TestLocalTableRejectsABITypeAndDefinitionMismatches/bool-type (0.00s)
+=== RUN   TestLocalTableFunctionMutationAndHistoricalContextRefused
+--- PASS: TestLocalTableFunctionMutationAndHistoricalContextRefused (0.00s)
+=== RUN   TestLocalTableConstantReturnPreservesUnwrittenFlagsNative
+--- PASS: TestLocalTableConstantReturnPreservesUnwrittenFlagsNative (0.00s)
+=== RUN   TestLocalTableUnboundEntryParamNative
+    table_boundary_test.go:25: unbound entry rejected duplicate or mismatched entry block parameter
+--- PASS: TestLocalTableUnboundEntryParamNative (0.00s)
+=== RUN   TestLocalTableRejectsHardClassesAndUseBeforeDefinition
+=== RUN   TestLocalTableRejectsHardClassesAndUseBeforeDefinition/hard
+=== RUN   TestLocalTableRejectsHardClassesAndUseBeforeDefinition/unbound
+=== RUN   TestLocalTableRejectsHardClassesAndUseBeforeDefinition/redefined
+=== RUN   TestLocalTableRejectsHardClassesAndUseBeforeDefinition/return
+--- PASS: TestLocalTableRejectsHardClassesAndUseBeforeDefinition (0.00s)
+    --- PASS: TestLocalTableRejectsHardClassesAndUseBeforeDefinition/hard (0.00s)
+    --- PASS: TestLocalTableRejectsHardClassesAndUseBeforeDefinition/unbound (0.00s)
+    --- PASS: TestLocalTableRejectsHardClassesAndUseBeforeDefinition/redefined (0.00s)
+    --- PASS: TestLocalTableRejectsHardClassesAndUseBeforeDefinition/return (0.00s)
+=== RUN   TestCheckedLocalTableNativeBenefitIncludesPairSaves
+    table_checked_test.go:184: middle=IX current-cost=70 native-T=95 bytes=10 BIN=013412c5dde1dde5e1c9
+    table_checked_test.go:184: middle=DE current-cost=32 native-T=57 bytes=7 BIN=0134125059ebc9
+--- PASS: TestCheckedLocalTableNativeBenefitIncludesPairSaves (0.00s)
+=== RUN   TestProductionTableBindsActualReturnContractAndTerminator
+--- PASS: TestProductionTableBindsActualReturnContractAndTerminator (0.00s)
+=== RUN   TestCheckedRawEmissionPreservesFullFlags
+    table_production_test.go:124: raw=false F=00 BIN=3e01b7c9
+    table_production_test.go:124: raw=true F=02 BIN=3e01fe00c9
+--- PASS: TestCheckedRawEmissionPreservesFullFlags (0.00s)
+=== RUN   TestProductionTableRejectsCallsCFGAndFlags
+=== RUN   TestProductionTableRejectsCallsCFGAndFlags/call
+=== RUN   TestProductionTableRejectsCallsCFGAndFlags/cfg
+=== RUN   TestProductionTableRejectsCallsCFGAndFlags/flag
+=== RUN   TestProductionTableRejectsCallsCFGAndFlags/terminator
+--- PASS: TestProductionTableRejectsCallsCFGAndFlags (0.00s)
+    --- PASS: TestProductionTableRejectsCallsCFGAndFlags/call (0.00s)
+    --- PASS: TestProductionTableRejectsCallsCFGAndFlags/cfg (0.00s)
+    --- PASS: TestProductionTableRejectsCallsCFGAndFlags/flag (0.00s)
+    --- PASS: TestProductionTableRejectsCallsCFGAndFlags/terminator (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.022s
+=== RUN   TestCheckedRealWeightedSolverAndNativeCallers
+    checked_local_real_test.go:138: weighted exact corpus + caller harness all 256 inputs: module 44→20 B helper 182→86 T caller 238→142 T; actual ABI/SP verified; generation [weighted: admitted weighted_caller: skipped: unsupported local opcode call]
+--- PASS: TestCheckedRealWeightedSolverAndNativeCallers (0.89s)
+=== RUN   TestCheckedRealAlreadyOptimalLeafKeepsBaseline
+    checked_local_real_test.go:185: low_nibble corpus exact equal-size candidate retained PBQP all 256 inputs PASS; [swap_nibbles: skipped: hard class or invalid local definition unsupported rol1: skipped: hard class or invalid local definition unsupported rol3: skipped: hard class or invalid local definition unsupported high_nibble: skipped: hard class or invalid local definition unsupported low_nibble: admitted main: skipped: local table requires single-result leaf block]
+--- PASS: TestCheckedRealAlreadyOptimalLeafKeepsBaseline (0.65s)
+=== RUN   TestCheckedLocalTableOrdinaryHIRSelectsSmallerNativeFunction
+    checked_local_tables_test.go:110: ordinary add5 all 256 byte inputs: module 8→6 bytes fixture 56→49 T; result/SP pass
+--- PASS: TestCheckedLocalTableOrdinaryHIRSelectsSmallerNativeFunction (0.07s)
+=== RUN   TestCheckedLocalTableTamperFallsBackAndProfileRefuses
+--- PASS: TestCheckedLocalTableTamperFallsBackAndProfileRefuses (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.635s

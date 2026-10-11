@@ -1,0 +1,17 @@
+=== RUN   TestLocalTableRejectsForgedStorageAndMissingTiedInputNative
+=== RUN   TestLocalTableRejectsForgedStorageAndMissingTiedInputNative/memory-named-A
+    table_abi_binding_test.go:86: accepted memory-named-A: A=100 want 8 SP=f000 ASM=; fun abi_binding() ; clobbers: F
+        abi_binding:
+            INC A
+            RET
+=== RUN   TestLocalTableRejectsForgedStorageAndMissingTiedInputNative/missing-tied-input
+    table_abi_binding_test.go:86: accepted missing-tied-input: A=106 want 7 SP=f000 ASM=; fun abi_binding() ; clobbers: F
+        abi_binding:
+            ADD A, C
+            RET
+--- FAIL: TestLocalTableRejectsForgedStorageAndMissingTiedInputNative (0.00s)
+    --- FAIL: TestLocalTableRejectsForgedStorageAndMissingTiedInputNative/memory-named-A (0.00s)
+    --- FAIL: TestLocalTableRejectsForgedStorageAndMissingTiedInputNative/missing-tied-input (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/vir	0.011s
+FAIL

@@ -25,36 +25,52 @@ func PrepareLocalTableProblem(f *mir2.Func, allocation *mir2.AllocResult) (*Loca
 	if block == nil {
 		return nil, fmt.Errorf("nil entry block")
 	}
-	parameters := map[mir2.Reg]bool{}
+	parameters := map[mir2.Reg]mir2.Param{}
 	for _, p := range f.Contract.Params {
-		if p.Reg <= 0 || parameters[p.Reg] {
+		if _, duplicate := parameters[p.Reg]; p.Reg <= 0 || duplicate || !localIntegerType(p.Ty) {
 			return nil, fmt.Errorf("invalid or duplicate contract parameter")
 		}
-		parameters[p.Reg] = true
+		parameters[p.Reg] = p
 	}
-	defined := map[mir2.Reg]bool{}
+	defined := map[mir2.Reg]mir2.Ty{}
+	entryParams := map[mir2.Reg]bool{}
 	for _, p := range block.Params {
-		if !parameters[p.Dst] {
-			return nil, fmt.Errorf("entry block parameter missing from contract")
+		contract, exists := parameters[p.Dst]
+		if !exists || entryParams[p.Dst] || p.Ty != contract.Ty || p.Class != contract.Class {
+			return nil, fmt.Errorf("duplicate or mismatched entry block parameter")
 		}
-		defined[p.Dst] = true
+		entryParams[p.Dst] = true
 	}
-	for r := range parameters {
-		defined[r] = true
+	for r, p := range parameters {
+		defined[r] = p.Ty
 	}
 	for _, inst := range block.Insts {
-		if inst == nil || inst.Dst <= 0 || inst.ClsHard {
+		if inst == nil || inst.Dst <= 0 || inst.ClsHard || !localIntegerType(inst.Ty) {
 			return nil, fmt.Errorf("hard class or invalid local definition unsupported")
 		}
-		for _, r := range inst.Src {
-			if r > 0 && !defined[r] {
-				return nil, fmt.Errorf("unbound local input vreg %d", r)
+		arity := 0
+		switch inst.Op {
+		case mir2.OpConst:
+		case mir2.OpMove:
+			arity = 1
+		case mir2.OpAdd, mir2.OpSub, mir2.OpAnd, mir2.OpOr, mir2.OpXor:
+			arity = 2
+		default:
+			return nil, fmt.Errorf("unsupported local opcode %s", inst.Op)
+		}
+		for i, r := range inst.Src {
+			if i >= arity {
+				if r != 0 {
+					return nil, fmt.Errorf("unexpected local operand")
+				}
+			} else if r <= 0 || defined[r] != inst.Ty {
+				return nil, fmt.Errorf("missing, unbound or mistyped local input vreg %d", r)
 			}
 		}
-		if defined[inst.Dst] {
+		if _, exists := defined[inst.Dst]; exists {
 			return nil, fmt.Errorf("redefined local vreg %d", inst.Dst)
 		}
-		defined[inst.Dst] = true
+		defined[inst.Dst] = inst.Ty
 	}
 
 	term, ok := block.Term.(*mir2.TermRet)
@@ -62,7 +78,7 @@ func PrepareLocalTableProblem(f *mir2.Func, allocation *mir2.AllocResult) (*Loca
 		return nil, fmt.Errorf("local table requires unconditional single return")
 	}
 	ret := f.Contract.Returns[0]
-	if ret.Ty == nil || ret.Class == mir2.ClassFlag || ret.Ty.Width() != 8 && ret.Ty.Width() != 16 {
+	if !localIntegerType(ret.Ty) || ret.Class == mir2.ClassFlag {
 		return nil, fmt.Errorf("unsupported return ABI")
 	}
 	for _, p := range block.Params {
@@ -70,12 +86,12 @@ func PrepareLocalTableProblem(f *mir2.Func, allocation *mir2.AllocResult) (*Loca
 			return nil, fmt.Errorf("return block parameter not yet certified")
 		}
 	}
-	if !defined[term.Vals[0]] {
-		return nil, fmt.Errorf("unbound return value")
+	if defined[term.Vals[0]] != ret.Ty {
+		return nil, fmt.Errorf("unbound or mistyped return value")
 	}
 	returnName := mir2.ReturnLocation(ret.Class, ret.Ty)
 	returnLoc := Z80.LocByName(returnName)
-	if returnLoc < 0 {
+	if returnLoc < 0 || Z80.Locs[returnLoc].Width != ret.Ty.Width() {
 		return nil, fmt.Errorf("unsupported return location")
 	}
 	opts := SolverOptions{OptSize: true, CheckedReturnLocation: returnName, CheckedRawEmission: true, ParamLocs: map[int]int{}}
@@ -85,7 +101,7 @@ func PrepareLocalTableProblem(f *mir2.Func, allocation *mir2.AllocResult) (*Loca
 			return nil, fmt.Errorf("missing parameter allocation")
 		}
 		index := Z80.LocByName(loc.Name)
-		if index < 0 || p.Ty == nil || Z80.Locs[index].Width != p.Ty.Width() || Z80.NonAllocatable.Has(index) {
+		if index < 0 || !localPhysicalRegister(loc) || (mir2.Z80CostTable{}).Cost(p.Class, loc) >= mir2.InfCost || Z80.Locs[index].Width != p.Ty.Width() || Z80.NonAllocatable.Has(index) {
 			return nil, fmt.Errorf("unsupported parameter ABI")
 		}
 		opts.ParamLocs[int(p.Reg)] = index
@@ -93,16 +109,6 @@ func PrepareLocalTableProblem(f *mir2.Func, allocation *mir2.AllocResult) (*Loca
 	var ops []VIROp
 	maxReg := 0
 	for _, inst := range block.Insts {
-		if inst.Ty == nil || inst.Ty.Width() != 8 && inst.Ty.Width() != 16 {
-			return nil, fmt.Errorf("unsupported instruction type")
-		}
-		// A deliberately small independently executable domain. Calls, effects,
-		// casts, comparisons/flags and CFG stay in the production backend.
-		switch inst.Op {
-		case mir2.OpConst, mir2.OpMove, mir2.OpAdd, mir2.OpSub, mir2.OpAnd, mir2.OpOr, mir2.OpXor:
-		default:
-			return nil, fmt.Errorf("unsupported local opcode %s", inst.Op)
-		}
 		copyInst := *inst
 		lowered, err := translateInst(&copyInst, Z80, nil)
 		if err != nil {
@@ -140,20 +146,23 @@ func PrepareLocalTableProblem(f *mir2.Func, allocation *mir2.AllocResult) (*Loca
 	// Preserve values that survive a destructive tied accumulator operation.
 	// Saves are explicit problem operations and are included in admission/cost.
 	ops = insertSaveMoves(append([]VIROp(nil), ops...), Z80)
-	contract, err := json.Marshal(f.Contract)
+	context, err := localFunctionContext(f)
 	if err != nil {
 		return nil, err
 	}
-	binding := (&mir2.Module{Funcs: []*mir2.Func{f}}).Dump() + string(contract)
-	opts.CheckedContext = fmt.Sprintf("production-local-v3:%x", sha256.Sum256([]byte(binding)))
+	opts.CheckedContext = context
 	return &LocalTableProblem{Ops: ops, Options: opts, Function: f}, nil
 }
 
 // Emit emits raw direct instructions. No solver, caller adapters, unchecked
 // peepholes, runtime helpers or extra module storage are introduced.
 func (p *LocalTableProblem) Emit(table *RegAllocTable) (string, error) {
-	if p == nil || table == nil {
+	if p == nil || table == nil || p.Function == nil {
 		return "", fmt.Errorf("nil local table problem")
+	}
+	context, err := localFunctionContext(p.Function)
+	if err != nil || context != p.Options.CheckedContext {
+		return "", fmt.Errorf("changed local function binding")
 	}
 	assignment, _, ok := table.LookupChecked(p.Ops, Z80, p.Options)
 	if !ok {
@@ -162,4 +171,40 @@ func (p *LocalTableProblem) Emit(table *RegAllocTable) (string, error) {
 	vf := &Func{Name: p.Function.Name, Blocks: []Block{{Ops: p.Ops}}}
 	// OpRet is already part of the admitted ops; no outside terminator is emitted.
 	return emitFromTable(&mir2.Func{Name: p.Function.Name}, vf, p.Ops, assignment, Z80, p.Options)
+}
+
+// Width alone is not a semantic type proof (e.g. bool, BCD and fixed point).
+func localIntegerType(ty mir2.Ty) bool {
+	return ty == mir2.TyU8 || ty == mir2.TyI8 || ty == mir2.TyU16 || ty == mir2.TyI16
+}
+
+func localPhysicalRegister(loc mir2.PhysLoc) bool {
+	if loc.Offset != 0 {
+		return false
+	}
+	switch loc.Name {
+	case "IX", "IY":
+		return loc.Kind == mir2.LocIXY
+	case "IXH", "IXL", "IYH", "IYL":
+		return loc.Kind == mir2.LocIXY8
+	default:
+		return loc.Kind == mir2.LocReg
+	}
+}
+
+func localFunctionContext(f *mir2.Func) (string, error) {
+	if f == nil || len(f.Blocks) != 1 || f.Blocks[0] == nil || f.Blocks[0].Term == nil {
+		return "", fmt.Errorf("invalid local function binding")
+	}
+	for _, inst := range f.Blocks[0].Insts {
+		if inst == nil {
+			return "", fmt.Errorf("nil local instruction binding")
+		}
+	}
+	contract, err := json.Marshal(f.Contract)
+	if err != nil {
+		return "", err
+	}
+	binding := (&mir2.Module{Funcs: []*mir2.Func{f}}).Dump() + string(contract)
+	return fmt.Sprintf("production-local-v4:%x", sha256.Sum256([]byte(binding))), nil
 }
