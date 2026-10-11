@@ -312,6 +312,14 @@ Tokenizer ordinary PFCCO tradeoff теперь подтверждён:5474→546
 greedy требует 1193 B / 3896 T. Memory hosts и вывод tokenizer в этом домене
 не поддерживаются. [Интеграция086](grace-integration-086/README.md).
 
+FAT12 disk ABI исправлен: byte-load из BC/DE в spill теперь сохраняет
+живой AF; номер диска больше не заменяется последним байтом имени.
+18 исходных native FAT12 случаев и125 ISA regressions проходят.
+Memory-host теперь допускает действительно недостижимые extern с полным
+исходником, сохраняя source/candidate reachability и hard ABI проверки.
+[Интеграция087](grace-integration-087/README.md).
+Новый full core5fe165dd: HIR/MIR2/Nanz/VIR PASS, CLI пока выполняется.
+
 ## Следующие шаги
 
 1. Проверять checked-local таблицы на дополнительных реальных случаях и

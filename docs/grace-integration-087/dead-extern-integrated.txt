@@ -1,0 +1,43 @@
+=== RUN   TestMemoryHostDeadExternDefensiveHooks
+--- PASS: TestMemoryHostDeadExternDefensiveHooks (0.00s)
+=== RUN   TestMemoryHostDeadExternSourceAndCandidateAdmission
+=== RUN   TestMemoryHostDeadExternSourceAndCandidateAdmission/direct
+=== RUN   TestMemoryHostDeadExternSourceAndCandidateAdmission/transitive
+=== RUN   TestMemoryHostDeadExternSourceAndCandidateAdmission/false_branch
+=== RUN   TestMemoryHostDeadExternSourceAndCandidateAdmission/parameter
+=== RUN   TestMemoryHostDeadExternSourceAndCandidateAdmission/indirect
+=== RUN   TestMemoryHostDeadExternSourceAndCandidateAdmission/address_escape
+=== RUN   TestMemoryHostDeadExternSourceAndCandidateAdmission/extern_body
+=== RUN   TestMemoryHostDeadExternSourceAndCandidateAdmission/extern_to_definition
+=== RUN   TestMemoryHostDeadExternSourceAndCandidateAdmission/return
+=== RUN   TestMemoryHostDeadExternSourceAndCandidateAdmission/address
+=== RUN   TestMemoryHostDeadExternSourceAndCandidateAdmission/clobber
+=== RUN   TestMemoryHostDeadExternSourceAndCandidateAdmission/call
+=== RUN   TestMemoryHostDeadExternSourceAndCandidateAdmission/unknown_dead_call
+--- PASS: TestMemoryHostDeadExternSourceAndCandidateAdmission (0.04s)
+    --- PASS: TestMemoryHostDeadExternSourceAndCandidateAdmission/direct (0.00s)
+    --- PASS: TestMemoryHostDeadExternSourceAndCandidateAdmission/transitive (0.00s)
+    --- PASS: TestMemoryHostDeadExternSourceAndCandidateAdmission/false_branch (0.00s)
+    --- PASS: TestMemoryHostDeadExternSourceAndCandidateAdmission/parameter (0.00s)
+    --- PASS: TestMemoryHostDeadExternSourceAndCandidateAdmission/indirect (0.00s)
+    --- PASS: TestMemoryHostDeadExternSourceAndCandidateAdmission/address_escape (0.00s)
+    --- PASS: TestMemoryHostDeadExternSourceAndCandidateAdmission/extern_body (0.00s)
+    --- PASS: TestMemoryHostDeadExternSourceAndCandidateAdmission/extern_to_definition (0.00s)
+    --- PASS: TestMemoryHostDeadExternSourceAndCandidateAdmission/return (0.00s)
+    --- PASS: TestMemoryHostDeadExternSourceAndCandidateAdmission/address (0.00s)
+    --- PASS: TestMemoryHostDeadExternSourceAndCandidateAdmission/clobber (0.00s)
+    --- PASS: TestMemoryHostDeadExternSourceAndCandidateAdmission/call (0.00s)
+    --- PASS: TestMemoryHostDeadExternSourceAndCandidateAdmission/unknown_dead_call (0.00s)
+=== RUN   TestMemoryHostLoopProfileUserHookNamespaceIsNotAuthority
+--- PASS: TestMemoryHostLoopProfileUserHookNamespaceIsNotAuthority (0.04s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	0.086s
+=== RUN   TestMemoryHostUnboundDeadExternNativeFetchDenied
+--- PASS: TestMemoryHostUnboundDeadExternNativeFetchDenied (0.03s)
+=== RUN   TestMemoryHostReachableAliasAndUnreachableNextFunction
+--- PASS: TestMemoryHostReachableAliasAndUnreachableNextFunction (0.00s)
+=== RUN   TestOriginalIdiomaticSumReadOrderVMZ80
+    showcase_idiomatic_sum_oracle_test.go:168: exact original idiomatic/chain sum:1024 calls + observer, full514RAM/all256lengths/orderedreads/raw-finalVM+nativeSPcode; 3984313 T/46 B SHA 82a1e4e76f5d3deebf9f53b6045c8fec39c5168dc3b3796b47148eff679f2d66
+--- PASS: TestOriginalIdiomaticSumReadOrderVMZ80 (0.68s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.732s
