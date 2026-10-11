@@ -1,0 +1,1 @@
+Prepared saved-only four-corpus fixed-policy audit. Run only after owner terminal freeze. Reuses sibling cli-review/saved-actual native/Go-typed/source-host auditors. Derived nested records never standalone Legacy attestations. No CPU execution.
