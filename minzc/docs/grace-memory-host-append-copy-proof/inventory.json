@@ -1,0 +1,29 @@
+{
+  "base": "0bfe99a6",
+  "files": [
+    {
+      "path": "pkg/hir/append_copy_proof.go",
+      "sha256": "2f23b9ea81ebec532a7534a9e295439f97c0a737a8217983b800761c957fc2b0"
+    },
+    {
+      "path": "pkg/hir/append_copy_proof_test.go",
+      "sha256": "5c3fc9de899529cd8bce71a7aa864a4b05835429503f476a3e1b35d55deed509"
+    },
+    {
+      "path": "docs/grace-memory-host-append-copy-proof/README.md",
+      "sha256": "6c1311b62b4c902d5c60d08b0a85e82b5dc7fbfa0b1e5d6ef61384fd9fbcf73e"
+    },
+    {
+      "path": "docs/grace-memory-host-append-copy-proof/append_oracle.py",
+      "sha256": "41ed1796bcdb51dcc7985884c97c6219644e9f110e622b410cd8e48729bf66c9"
+    },
+    {
+      "path": "docs/grace-memory-host-append-copy-proof/oracle-test.txt",
+      "sha256": "0f7bacc29229014e52a37dd6227c70c6609affac410d7811b5a3b07d4875cf45"
+    },
+    {
+      "path": "docs/grace-memory-host-append-copy-proof/proof-test.txt",
+      "sha256": "ddf8e5ea07b0088d980d99ad265fb7071596c3060bab7fceb955e0922aefc3b6"
+    }
+  ]
+}
