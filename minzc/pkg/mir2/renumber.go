@@ -55,6 +55,16 @@ func (m *Module) RenumberRegs() {
 						}
 					}
 				}
+				if inst.Asm != nil {
+					for _, r := range append(append([]Reg{}, inst.Asm.Ins...), inst.Asm.Outs...) {
+						if r != NoReg {
+							if _, ok := remap[r]; !ok {
+								remap[r] = next
+								next++
+							}
+						}
+					}
+				}
 				for _, er := range inst.ExtraRets {
 					if er != NoReg {
 						if _, ok := remap[er]; !ok {
@@ -148,6 +158,10 @@ func (m *Module) RenumberRegs() {
 				}
 				mrs(inst.Args)
 				mrs(inst.ExtraRets)
+				if inst.Asm != nil {
+					mrs(inst.Asm.Ins)
+					mrs(inst.Asm.Outs)
+				}
 			}
 			if b.Term != nil {
 				remapTerm(b.Term, mr, mrs)
