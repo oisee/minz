@@ -397,7 +397,7 @@ func (g *z80cg) genExt(inst *Inst) {
 	src := g.loc(inst.Src[0])
 	srcW := inst.SrcTy.Width()
 	dstW := inst.Ty.Width()
-	if inst.SrcTy == TyBool && (dstW == 8 || dstW == 16) {
+	if inst.SrcTy == TyBool && (dstW == 8 || dstW == 16 || dstW == 24 || dstW == 32) {
 		if src == "F" || inst.Src[0] == g.pendingFlagReg {
 			// F carries a predicate, not a byte; materialize the full condition.
 			// A may hold an unrelated live value, so preserve it until the
@@ -409,7 +409,11 @@ func (g *z80cg) genExt(inst *Inst) {
 				g.emit("    PUSH AF")
 			}
 			g.emitFlagPredicateByte(g.condCode(g.fn, inst.Src[0]))
-			if dstW == 16 {
+			if dstW >= 24 {
+				// Materialize the predicate before widening its canonical byte.
+				// Snapshotting also handles a destination overlapping a live pair.
+				g.genUnsignedExtBytes(dst, "A", 8, dstW)
+			} else if dstW == 16 {
 				g.emitLD8(lowByte(dst), "A")
 				g.emitLD8(highByte(dst), "0")
 			} else if dst != "A" {

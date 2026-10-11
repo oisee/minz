@@ -1,0 +1,10 @@
+=== RUN   TestBoolExtensionSourceVMZ80
+--- PASS: TestBoolExtensionSourceVMZ80 (0.10s)
+=== RUN   TestBoolWideExtensionSourceNative
+=== RUN   TestBoolWideExtensionSourceNative/24
+=== RUN   TestBoolWideExtensionSourceNative/32
+--- PASS: TestBoolWideExtensionSourceNative (0.17s)
+    --- PASS: TestBoolWideExtensionSourceNative/24 (0.08s)
+    --- PASS: TestBoolWideExtensionSourceNative/32 (0.08s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.269s
