@@ -1,0 +1,5 @@
+=== RUN   TestNormalDiamondActualSourceStatic
+    unsigned_pair_compare_diagnostic_test.go:116: actualcur edits1 beforeSHA2ae4c13b0993140f78bd49cbf5d197c30b5746dd15c40d3d6c66fcb7e4632fed afterSHA079d9478b6867b91b5e8c43155cab938c0d2dda1f50ea3da38899a8bbd7da77f
+--- PASS: TestNormalDiamondActualSourceStatic (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.010s

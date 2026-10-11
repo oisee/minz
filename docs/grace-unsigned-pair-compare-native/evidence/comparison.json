@@ -1,0 +1,26 @@
+[
+  {
+    "variant": "original",
+    "T": 1135370,
+    "bytes": 2000,
+    "steps": 109829,
+    "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941",
+    "compiler_id": "executable-sha256:dfdf728ead9492e6a01b6280faca85ec25ef46813640e0ca79e562ee56cbae1c"
+  },
+  {
+    "variant": "compare",
+    "T": 1132449,
+    "bytes": 2001,
+    "steps": 109966,
+    "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+    "compiler_id": "executable-sha256:dfdf728ead9492e6a01b6280faca85ec25ef46813640e0ca79e562ee56cbae1c"
+  },
+  {
+    "variant": "reuse-compare",
+    "T": 1096139,
+    "bytes": 1998,
+    "steps": 108955,
+    "binary_sha256": "4815da6c8331fc8a1f7f41233d8ecc5c1d760bce93bf5ec27ca74670706f42d8",
+    "compiler_id": "executable-sha256:dfdf728ead9492e6a01b6280faca85ec25ef46813640e0ca79e562ee56cbae1c"
+  }
+]
