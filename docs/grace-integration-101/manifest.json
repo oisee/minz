@@ -1,0 +1,24 @@
+{
+  "files": [
+    {
+      "path": "docs/grace-integration-101/README.md",
+      "bytes": 1776,
+      "sha256": "afd98a1b517e37b3702edc7be69e2384cbdae5356074be6e197b2cb36be7914e"
+    },
+    {
+      "path": "docs/grace-integration-101/composition-root-native.txt",
+      "bytes": 252,
+      "sha256": "11614b1f3d87d147f5ffa031dfdbc44c5799f05d25b3964cf81154d5b7618d39"
+    },
+    {
+      "path": "docs/grace-integration-101/profile-admission-integrated-hir.txt",
+      "bytes": 43,
+      "sha256": "39e753d6ce16f636224a3eb0c5d31562399286531cfd0f75968f3555ca93efb1"
+    },
+    {
+      "path": "docs/grace-integration-101/profile-admission-integrated-native.txt",
+      "bytes": 8080,
+      "sha256": "fd9531857aa3489a6eab32296b53988f1d25f202cf51b1efd508614bd37ae655"
+    }
+  ]
+}
