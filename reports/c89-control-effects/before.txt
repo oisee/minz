@@ -1,0 +1,29 @@
+=== RUN   TestControlEffectsRawVM
+=== RUN   TestControlEffectsRawVM/while_post
+    control_effects_test.go:58: while_post n1 got[] want1 errmir2.VM: gas limit reached (10000 steps)
+=== RUN   TestControlEffectsRawVM/do_post
+    control_effects_test.go:58: do_post n0 got[{1}] want0 err<nil>
+=== RUN   TestControlEffectsRawVM/for_post
+    control_effects_test.go:58: for_post n1 got[] want1 errmir2.VM: gas limit reached (10000 steps)
+=== RUN   TestControlEffectsRawVM/choose
+    control_effects_test.go:58: choose n0 got[{8}] want7 err<nil>
+=== RUN   TestControlEffectsRawVM/choose_else
+    control_effects_test.go:58: choose_else n0 got[{9}] want8 err<nil>
+=== RUN   TestControlEffectsRawVM/for_continue
+    control_effects_test.go:58: for_continue n3 got[] want1 errmir2.VM: gas limit reached (10000 steps)
+=== RUN   TestControlEffectsRawVM/do_continue
+    control_effects_test.go:58: do_continue n0 got[{1}] want0 err<nil>
+=== RUN   TestControlEffectsRawVM/while_call
+    control_effects_test.go:58: while_call n1 got[{1}] want0 err<nil>
+--- FAIL: TestControlEffectsRawVM (0.00s)
+    --- FAIL: TestControlEffectsRawVM/while_post (0.00s)
+    --- FAIL: TestControlEffectsRawVM/do_post (0.00s)
+    --- FAIL: TestControlEffectsRawVM/for_post (0.00s)
+    --- FAIL: TestControlEffectsRawVM/choose (0.00s)
+    --- FAIL: TestControlEffectsRawVM/choose_else (0.00s)
+    --- FAIL: TestControlEffectsRawVM/for_continue (0.00s)
+    --- FAIL: TestControlEffectsRawVM/do_continue (0.00s)
+    --- FAIL: TestControlEffectsRawVM/while_call (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/c89	0.011s
+FAIL
