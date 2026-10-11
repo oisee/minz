@@ -1,0 +1,8 @@
+=== RUN   TestIndependentCallFrameRejectsWrongResultByte
+--- PASS: TestIndependentCallFrameRejectsWrongResultByte (0.00s)
+=== RUN   TestIndependentCallFrameRejectsWrongAFRestoreByte
+    call_frame_independent_review_test.go:17: AF restoration accepted A-byte as flags F
+--- FAIL: TestIndependentCallFrameRejectsWrongAFRestoreByte (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.013s
+FAIL

@@ -1,0 +1,32 @@
+[
+  {
+    "path": "docs/grace-call-frame-independent-review/README.md",
+    "bytes": 1600,
+    "sha256": "692db096d03a94e077eff8be1d63db0f5beb132449c06e3f51e0f0cd06c32a2f"
+  },
+  {
+    "path": "docs/grace-call-frame-independent-review/final-typed-transfer.txt",
+    "bytes": 302,
+    "sha256": "aa1af66fcfe106664277d1821fa42b1a99aee226b4bd66a62a3f77af5878661a"
+  },
+  {
+    "path": "docs/grace-call-frame-independent-review/typed-transfer-review.txt",
+    "bytes": 395,
+    "sha256": "ba500616c734385ec3f5bd19b44669d424c944e1455f4f91d4ad5aec15955942"
+  },
+  {
+    "path": "docs/grace-call-frame-independent-review/wrong-result-byte-before.txt",
+    "bytes": 271,
+    "sha256": "1daa2797858e14b447a1fbddd2fd3c43e5f8b0ac3df5b7b695c83f9e45bc35b1"
+  },
+  {
+    "path": "minzc/pkg/pipeline/call_frame_independent_review_test.go",
+    "bytes": 1184,
+    "sha256": "d308b8d32895888847132beb401e2cf826214aa11e3bf43ce2677992bdac8629"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_call_frame.go",
+    "bytes": 15336,
+    "sha256": "3286d05301ed2bc494f82eb6437c01f525c44fb7543ed7042890d5374c92860a"
+  }
+]

@@ -1,0 +1,6 @@
+=== RUN   TestIndependentCallFrameRejectsWrongResultByte
+--- PASS: TestIndependentCallFrameRejectsWrongResultByte (0.00s)
+=== RUN   TestIndependentCallFrameRejectsWrongAFRestoreByte
+--- PASS: TestIndependentCallFrameRejectsWrongAFRestoreByte (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.010s

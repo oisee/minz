@@ -1,0 +1,6 @@
+=== RUN   TestIndependentCallFrameRejectsWrongResultByte
+    call_frame_independent_review_test.go:9: typed A->C result accepted F-byte source slot0
+--- FAIL: TestIndependentCallFrameRejectsWrongResultByte (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.007s
+FAIL
