@@ -1,0 +1,14 @@
+{
+  "files": [
+    {
+      "path": "docs/grace-integration-111/site-copy-summary.json",
+      "bytes": 367,
+      "sha256": "58205943bc4dcac5a6f9d05ecc219811e86c41f16aa2131b6feb3f07aa908b88"
+    },
+    {
+      "path": "docs/grace-integration-111/README.md",
+      "bytes": 1335,
+      "sha256": "0f588542d80621a586bbfdb5333f361e6f8c06bb7a7a0b880ce6a8000a55ce19"
+    }
+  ]
+}
