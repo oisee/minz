@@ -1,0 +1,28 @@
+=== RUN   TestVerifyDirectCallShapeMalformed
+=== RUN   TestVerifyDirectCallShapeMalformed/missing
+    verify_call_shape_test.go:43: malformed call admitted missing
+=== RUN   TestVerifyDirectCallShapeMalformed/extra
+    verify_call_shape_test.go:43: malformed call admitted extra
+=== RUN   TestVerifyDirectCallShapeMalformed/zero
+    verify_call_shape_test.go:43: malformed call admitted zero
+=== RUN   TestVerifyDirectCallShapeMalformed/void_result
+    verify_call_shape_test.go:43: malformed call admitted void_result
+=== RUN   TestVerifyDirectCallShapeMalformed/extra_return
+    verify_call_shape_test.go:43: malformed call admitted extra_return
+=== RUN   TestVerifyDirectCallShapeMalformed/nil_type
+    verify_call_shape_test.go:43: malformed call admitted nil_type
+=== RUN   TestVerifyDirectCallShapeMalformed/aggregate_to_scalar
+    verify_call_shape_test.go:43: malformed call admitted aggregate_to_scalar
+--- FAIL: TestVerifyDirectCallShapeMalformed (0.00s)
+    --- FAIL: TestVerifyDirectCallShapeMalformed/missing (0.00s)
+    --- FAIL: TestVerifyDirectCallShapeMalformed/extra (0.00s)
+    --- FAIL: TestVerifyDirectCallShapeMalformed/zero (0.00s)
+    --- FAIL: TestVerifyDirectCallShapeMalformed/void_result (0.00s)
+    --- FAIL: TestVerifyDirectCallShapeMalformed/extra_return (0.00s)
+    --- FAIL: TestVerifyDirectCallShapeMalformed/nil_type (0.00s)
+    --- FAIL: TestVerifyDirectCallShapeMalformed/aggregate_to_scalar (0.00s)
+=== RUN   TestVerifyDirectCallCoercionsAndDiscard
+--- PASS: TestVerifyDirectCallCoercionsAndDiscard (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/mir2	0.007s
+FAIL

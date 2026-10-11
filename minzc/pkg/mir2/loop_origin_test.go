@@ -230,7 +230,7 @@ func TestLoopOriginsCondRetSink(t *testing.T) {
 }
 
 func TestLoopOriginsTailRecursionMove(t *testing.T) {
-	f := &Func{Name: "countdown", nextReg: 10, Contract: Contract{Params: []Param{{Reg: 1, Ty: TyU8}}}, Blocks: []*Block{
+	f := &Func{Name: "countdown", nextReg: 10, Contract: Contract{Params: []Param{{Reg: 1, Ty: TyU8}}, Returns: []Return{{Ty: TyU8, Class: ClassAcc}}}, Blocks: []*Block{
 		{Label: "entry", Insts: []*Inst{
 			{Op: OpConst, Dst: 2, Ty: TyU8, Imm: 0},
 			{Op: OpCmp, Dst: 3, Ty: TyBool, SrcTy: TyU8, Cond: CmpNe, Src: [2]Reg{1, 2}},

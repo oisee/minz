@@ -1,0 +1,46 @@
+--- FAIL: TestLoopOriginsTailRecursionMove (0.00s)
+    loop_origin_test.go:245: direct call @countdown: incompatible consumed return
+[Z80-VALIDATE] double: 4 invalid instruction(s)
+  line 3: >>> ADD A, <<<
+  line 4: >>> LD , A <<<
+[Z80-VALIDATE] fibonacci: 16 invalid instruction(s)
+  line 3: >>> LD , 1 <<<
+  line 8: >>> LD , 0 <<<
+  line 11: >>> LD , 0 <<<
+  line 12: >>> LD , 1 <<<
+  line 13: >>> LD , 2 <<<
+  line 19: >>> LD L, <<<
+  line 21: >>> ADD HL, <<<
+  line 22: >>> LD , L <<<
+[Z80-VALIDATE] double: 4 invalid instruction(s)
+  line 3: >>> ADD A, <<<
+  line 4: >>> LD , A <<<
+; MIR2 module: fib
+fun @fibonacci(%r1: u8 [acc]) -> u16 [pointer]
+  block @entry:
+    %r2 = const 1 : u8 [general]
+    %r3 = cmp.le %r1, %r2 : bool [flag]
+    br_if %r3, @base(), @loop_init()
+  block @base:
+    %r4 = ext %r1 : u8 -> u16 [acc]
+    ret %r4
+  block @loop_init:
+    %r5 = const 0 : u16 [pointer]
+    %r6 = const 1 : u16 [index]
+    %r7 = const 2 : u8 [counter]
+    jmp @loop_head(%r5, %r6, %r7)
+  block @loop_head(%r8: u16 [pointer], %r9: u16 [index], %r10: u8 [counter]):
+    %r11 = cmp.le %r10, %r1 : bool [flag]
+    br_if %r11, @loop_body(%r8, %r9, %r10), @exit(%r9)
+  block @loop_body(%r12: u16 [pointer], %r13: u16 [index], %r14: u8 [counter]):
+    %r15 = add %r12, %r13 : u16 [pointer]
+    %r16 = const 1 : u8 [general]
+    %r17 = add %r14, %r16 : u8 [counter]
+    jmp @loop_head(%r13, %r15, %r17)
+  block @exit(%r18: u16 [pointer]):
+    ret %r18
+
+
+FAIL
+FAIL	github.com/minz/minzc/pkg/mir2	85.230s
+FAIL
