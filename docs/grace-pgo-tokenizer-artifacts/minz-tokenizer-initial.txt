@@ -1,0 +1,7 @@
+=== RUN   TestTypedTokenizerProgramBaseline
+[HIR-SPLIT] scan → scan$split_19 (6 inputs, pressure 9)
+    tokenizer_program_test.go:257: statement 20: HIR scan: unknown variable "s"
+--- FAIL: TestTypedTokenizerProgramBaseline (0.08s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.086s
+FAIL

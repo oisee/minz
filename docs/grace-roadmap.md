@@ -144,3 +144,5 @@ pointer-walk, оставляя invariant-base. На sum_array выбирает 3
 [Forward byte copy](grace-pgo-forward-copy.md): отдельный source-site selector измеряет sequential copy с alias, exact state/access oracle и сохранёнными бинарниками; typed allocation caller ускорился388885→283030T, size сохраняет86B baseline. Следующий этап — дополнительные реальные callers и контроль роста кода.
 
 [Typed interning mixed PGO](grace-pgo-mixed-intern.md): целый caller поиска/переиспользования/размещения строк и checksum,8измеренных вариантов; speed1635072→962137T, size626→539B. Следующая очередь — расширение tokenizer program coverage и контроль proof/target ABI.
+
+[Полный typed tokenizer](grace-pgo-tokenizer.md): весь scanner/intern/token-record caller проходит независимый state/resource-traffic oracle и assembled Z80;30 persistent calls. Copy PGO 2270286→2259865T (−0,459%), 4346→4475B; size оставляет original. Исправлена lexical interface зависимость HIR splitter. Следующий этап — standalone Block shadowing в HIR lowerer, затем доминирующие scanner/search loops; original extern ABI и hardware ещё впереди.

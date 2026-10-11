@@ -1,0 +1,6 @@
+=== RUN   TestTypedTokenizerProgramBaseline
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    tokenizer_program_test.go:358: tokenizer30calls 2270286T/4346B arena432
+--- PASS: TestTypedTokenizerProgramBaseline (1.07s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.087s

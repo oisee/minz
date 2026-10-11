@@ -1,0 +1,52 @@
+{
+  "calls": 30,
+  "arena_bump": 432,
+  "candidate_records": [
+    {
+      "size": false,
+      "candidate": 0,
+      "t_states": 2270286,
+      "bytes": 4346,
+      "binary_sha256": "048b95267b15d26a4a71d0a7051a16dd12f5f66c36e9ce1c922b45d109babc33"
+    },
+    {
+      "size": false,
+      "candidate": 1,
+      "t_states": 2259865,
+      "bytes": 4475,
+      "binary_sha256": "9755ac65f59ed3ee83d28316a85de378edb50e381c6d18c2103786927c2a79f8"
+    },
+    {
+      "size": true,
+      "candidate": 0,
+      "t_states": 2270286,
+      "bytes": 4346,
+      "binary_sha256": "048b95267b15d26a4a71d0a7051a16dd12f5f66c36e9ce1c922b45d109babc33"
+    },
+    {
+      "size": true,
+      "candidate": 1,
+      "t_states": 2259865,
+      "bytes": 4475,
+      "binary_sha256": "9755ac65f59ed3ee83d28316a85de378edb50e381c6d18c2103786927c2a79f8"
+    }
+  ],
+  "cli_records": [
+    {
+      "objective": "speed",
+      "selected": 1,
+      "t_states": 2259865,
+      "bytes": 4475,
+      "binary_sha256": "9755ac65f59ed3ee83d28316a85de378edb50e381c6d18c2103786927c2a79f8"
+    },
+    {
+      "objective": "size",
+      "selected": 0,
+      "t_states": 2270286,
+      "bytes": 4346,
+      "binary_sha256": "048b95267b15d26a4a71d0a7051a16dd12f5f66c36e9ce1c922b45d109babc33"
+    }
+  ],
+  "independent_resource_traffic": "all bytes reads/writes",
+  "global_traffic": "VM/target agreement only; host independently checks all global values"
+}

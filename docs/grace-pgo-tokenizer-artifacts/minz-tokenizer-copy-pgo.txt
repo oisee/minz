@@ -1,0 +1,16 @@
+=== RUN   TestTypedTokenizerProgramBaseline
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    tokenizer_program_test.go:358: tokenizer30calls 2270286T/4346B arena432
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    tokenizer_program_test.go:412: tokenizer copy size=false candidate0 2270286T/4346B
+    tokenizer_program_test.go:412: tokenizer copy size=false candidate1 2259865T/4475B
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    tokenizer_program_test.go:412: tokenizer copy size=true candidate0 2270286T/4346B
+    tokenizer_program_test.go:412: tokenizer copy size=true candidate1 2259865T/4475B
+--- PASS: TestTypedTokenizerProgramBaseline (6.97s)
+=== RUN   TestTokenizerIndependentHostKnownSemantics
+--- PASS: TestTokenizerIndependentHostKnownSemantics (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	7.001s
