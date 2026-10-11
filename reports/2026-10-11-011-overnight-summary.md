@@ -1,6 +1,6 @@
 # Ночной итог Grace / PGO — 11 октября 2026
 
-Актуально на 10:04 UTC. Цель продолжается: выбирать оптимизации по проверенному
+Актуально на 10:09 UTC. Цель продолжается: выбирать оптимизации по проверенному
 профилю, от исходника через HIR/MIR до собранного Z80-бинарника. MIR VM служит
 промежуточным oracle; итоговые варианты исполняются в Z80-эмуляторе с проверкой
 результатов, памяти, порядка host events, размера и T-states. Проверка на
@@ -38,20 +38,23 @@ collection baseline сохранены. Независимые аудиты пр
 
 ## Опубликовано и локально сохранено
 
-Подтверждённая приватная публикация Sites — **версия 52**:
+Подтверждённая приватная публикация Sites — **версия 53**:
 https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/
 
+- [Policy-aware selector](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-policy-selector.html)
+- [Явный CLI v2](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-policy-cli.html)
 - [Compare opt-in](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/unsigned-pair-policy.html)
 - [Корпус](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/global-word-load-corpus.html)
 - [Legacy CLI](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-cli-selection.html)
 - [Отрицательный diamond эксперимент](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/normal-global-diamond.html)
 
-Полная офлайн-копия версии 52 проверена: **15158 файлов, 62 страницы**, все
+Предыдущая офлайн-копия версии 52 проверена: **15158 файлов, 62 страницы**, все
 SHA256 совпали, публикационные архивы читаются; отсутствующих локальных ссылок
 и внешних зависимостей нет. Главная страница:
 `/home/alice/dev/minz/artifacts/grace-reports/2026-10-10-resume/site/index.html`.
 Исходники, профили, proofs, ASM/BIN, логи и Git bundles сохранены.
-Новый selector и CLI пока не объявлены опубликованными.
+Selector и CLI опубликованы в приватном Sites 53. Whole offline sync новой
+версии выполняется; его итог ещё не заявляется.
 
 Отдельный diamond forwarding эксперимент дал +1969 T / −2 B и остался в
 изолированной ветке. Частный compare+reuse эксперимент дал −39231 T / −2 B;
@@ -85,8 +88,11 @@ Actual Speed: mask 3, 1076715 T / 2100 B; actual Size: mask 2, 1076874 T /
 `393af1d821477b991a0bf452f00c79bd6d77368c3cff9cde64faa1ee1b130808`.
 Общий CLI gate PASS 69.418 s. Два fresh full30 integration запуска текущей
 сборки завершились; независимый аудит нового контекста ещё выполняется.
-Следом готовится тот же корпус из четырёх workloads с новой явной policy;
-входы проверяются до новых запусков, старые профили не переподписываются.
+Все восемь свежих corpus CLI запусков завершились exit 0 на сборке393af1.
+Четыре неизменённых workload, 50 вызовов, 32 кандидата; обе цели выбрали
+append-copy,1979 B. T: 326090 / 3968554 / 1270168 / 696909. Первый независимый
+аудит e02291a7 прошёл; второй ещё выполняется. Corpus этап пока не опубликован.
+Старые profiles/контексты остаются отдельными аналитическими сравнениями.
 
 ## Сохранение веток и решения
 
