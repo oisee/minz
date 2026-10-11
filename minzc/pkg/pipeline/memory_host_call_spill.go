@@ -11,6 +11,7 @@ import (
 
 type MemoryHostResolvedCallSpill struct {
 	Descriptor mir2.NativeCallSpillSnapshot `json:"descriptor"`
+	CallPC     uint16                       `json:"call_pc"`
 	PCs        []uint16                     `json:"pcs"`
 	Opcodes    [][]byte                     `json:"opcodes"`
 }
@@ -23,12 +24,15 @@ type memoryHostSavedCallSpill struct {
 	Width, Depth   int
 	Slot           uint16
 	Value          uint16
+	CallPC         uint16
+	DidCall        bool
 }
 type memoryHostActiveCallSpill struct {
 	Frame            *MemoryHostResolvedCallSpill
 	Entry            uint16
 	Next             int
 	OldHL, SlotValue uint16
+	OldF             byte
 }
 
 func resolveMemoryHostCallSpills(a *z80asm.Result, assembly string, ds []mir2.NativeCallSpillSnapshot, module *mir2.Module, allocation *mir2.AllocResult) (map[uint16]memoryHostCallSpillStep, []MemoryHostResolvedCallSpill, error) {
@@ -143,7 +147,20 @@ func resolveMemoryHostCallSpills(a *z80asm.Result, assembly string, ds []mir2.Na
 		if len(expected) != len(d.Instructions) {
 			return nil, nil, fmt.Errorf("call-spill sequence length")
 		}
-		frame := MemoryHostResolvedCallSpill{Descriptor: d}
+		var callLine *z80asm.ListingLine
+		for li := range a.Listing {
+			l := &a.Listing[li]
+			if strings.Contains(l.SourceLine, "@minz-spill-call:"+d.CallID) {
+				if callLine != nil {
+					return nil, nil, fmt.Errorf("duplicate spill call marker")
+				}
+				callLine = l
+			}
+		}
+		if callLine == nil || len(callLine.Bytes) != 3 || callLine.Bytes[0] != 0xcd {
+			return nil, nil, fmt.Errorf("missing direct spill call opcode")
+		}
+		frame := MemoryHostResolvedCallSpill{Descriptor: d, CallPC: uint16(callLine.Address)}
 		delta := 0
 		deltas := []int{}
 		for j, i := range d.Instructions {
@@ -160,6 +177,10 @@ func resolveMemoryHostCallSpills(a *z80asm.Result, assembly string, ds []mir2.Na
 			if line == nil || !bytes.Equal(line.Bytes, expected[j]) || line.Address < 0 || line.Address+len(line.Bytes) > 65536 {
 				return nil, nil, fmt.Errorf("call-spill opcode/marker mismatch")
 			}
+			offset := line.Address - a.Origin
+			if offset < 0 || offset+len(line.Bytes) > len(a.Binary) || !bytes.Equal(a.Binary[offset:offset+len(line.Bytes)], line.Bytes) {
+				return nil, nil, fmt.Errorf("call-spill listing differs binary")
+			}
 			if j > 0 && line.Address != int(frame.PCs[j-1])+len(frame.Opcodes[j-1]) {
 				return nil, nil, fmt.Errorf("call-spill sequence discontinuity")
 			}
@@ -172,6 +193,9 @@ func resolveMemoryHostCallSpills(a *z80asm.Result, assembly string, ds []mir2.Na
 			if expected[j][0] == 0xe1 || expected[j][0] == 0xf1 {
 				delta += 2
 			}
+		}
+		if d.Stage == "save" && int(frame.PCs[len(frame.PCs)-1])+len(frame.Opcodes[len(frame.Opcodes)-1]) > callLine.Address || d.Stage == "restore" && int(frame.PCs[0]) < callLine.Address+3 {
+			return nil, nil, fmt.Errorf("call-spill stage order differs call")
 		}
 		resolved = append(resolved, frame)
 		fr := &resolved[len(resolved)-1]
@@ -205,11 +229,14 @@ func (m *memoryHostZ80Memory) beginCallSpill(pc uint16) {
 		}
 		entry := m.cpu.SP()
 		if d.Stage == "restore" {
+			if int(entry)+1 >= 65536 {
+				panic(memoryHostNativeTrap{"call-spill restore wraps stack"})
+			}
 			if len(m.savedCallSpills) == 0 {
 				panic(memoryHostNativeTrap{"restore without saved spill"})
 			}
 			last := m.savedCallSpills[len(m.savedCallSpills)-1]
-			if last.CallID != d.CallID || last.Symbol != d.Symbol || last.Width != d.Width || last.Depth != len(m.callFrames) || last.Slot != entry || uint16(m.data[entry])|uint16(m.data[entry+1])<<8 != last.Value {
+			if last.CallID != d.CallID || last.Symbol != d.Symbol || last.Width != d.Width || last.Depth != len(m.callFrames) || last.Slot != entry || last.CallPC != s.Frame.CallPC || !last.DidCall || uint16(m.data[entry])|uint16(m.data[entry+1])<<8 != last.Value {
 				panic(memoryHostNativeTrap{"call-spill restore activation/home mismatch"})
 			}
 		}
@@ -230,6 +257,7 @@ func (m *memoryHostZ80Memory) beginCallSpill(pc uint16) {
 			}
 		}
 		active.OldHL = m.cpu.HL()
+		active.OldF = m.cpu.F
 		active.SlotValue = uint16(m.data[sp]) | uint16(m.data[sp+1])<<8
 		r, e := memoryHostMemoryRecipe(m, pc)
 		if e != nil || len(r) != 4 {
@@ -262,14 +290,14 @@ func (m *memoryHostZ80Memory) finishCallSpill() error {
 	if int(m.cpu.SP()) != int(a.Entry)+delta {
 		return fmt.Errorf("call-spill post SP")
 	}
-	if op == 0xe3 && m.cpu.HL() != a.SlotValue {
+	if op == 0xe3 && (m.cpu.HL() != a.SlotValue || m.cpu.F != a.OldF) {
 		return fmt.Errorf("call-spill exchanged HL differs")
 	}
 	a.Next++
 	if a.Next == len(s.Frame.PCs) {
 		d := s.Frame.Descriptor
 		if d.Stage == "save" {
-			m.savedCallSpills = append(m.savedCallSpills, memoryHostSavedCallSpill{d.CallID, d.Symbol, d.Width, len(m.callFrames), m.cpu.SP(), uint16(m.data[m.cpu.SP()]) | uint16(m.data[m.cpu.SP()+1])<<8})
+			m.savedCallSpills = append(m.savedCallSpills, memoryHostSavedCallSpill{CallID: d.CallID, Symbol: d.Symbol, Width: d.Width, Depth: len(m.callFrames), Slot: m.cpu.SP(), Value: uint16(m.data[m.cpu.SP()]) | uint16(m.data[m.cpu.SP()+1])<<8, CallPC: s.Frame.CallPC})
 		} else {
 			m.savedCallSpills = m.savedCallSpills[:len(m.savedCallSpills)-1]
 		}

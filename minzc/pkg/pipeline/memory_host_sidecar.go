@@ -31,7 +31,7 @@ func resolveMemoryHostSidecar(a *z80asm.Result, records []mir2.NativeMemoryAcces
 		for i := range a.Listing {
 			l := &a.Listing[i]
 			comment := strings.SplitN(l.SourceLine, ";", 2)
-			if len(comment) == 2 && strings.HasSuffix(strings.TrimSpace(comment[1]), marker) {
+			if len(comment) == 2 && mir2.NativeAnnotationCount(l.SourceLine, marker) == 1 {
 				if line != nil {
 					return nil, nil, fmt.Errorf("duplicate access marker")
 				}
