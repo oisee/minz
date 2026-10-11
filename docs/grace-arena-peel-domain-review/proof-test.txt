@@ -1,0 +1,24 @@
+=== RUN   TestArenaPeelIndependentProof
+=== RUN   TestArenaPeelIndependentProof/valid
+=== RUN   TestArenaPeelIndependentProof/swap
+=== RUN   TestArenaPeelIndependentProof/len1beforepair
+=== RUN   TestArenaPeelIndependentProof/tailzero
+=== RUN   TestArenaPeelIndependentProof/otherfunc
+=== RUN   TestArenaPeelIndependentProof/global
+=== RUN   TestArenaPeelIndependentProof/origin
+=== RUN   TestArenaPeelIndependentProof/orphan
+=== RUN   TestArenaPeelIndependentProof/sticky
+=== RUN   TestArenaPeelIndependentProof/nil
+--- PASS: TestArenaPeelIndependentProof (0.59s)
+    --- PASS: TestArenaPeelIndependentProof/valid (0.04s)
+    --- PASS: TestArenaPeelIndependentProof/swap (0.05s)
+    --- PASS: TestArenaPeelIndependentProof/len1beforepair (0.05s)
+    --- PASS: TestArenaPeelIndependentProof/tailzero (0.07s)
+    --- PASS: TestArenaPeelIndependentProof/otherfunc (0.08s)
+    --- PASS: TestArenaPeelIndependentProof/global (0.09s)
+    --- PASS: TestArenaPeelIndependentProof/origin (0.09s)
+    --- PASS: TestArenaPeelIndependentProof/orphan (0.08s)
+    --- PASS: TestArenaPeelIndependentProof/sticky (0.04s)
+    --- PASS: TestArenaPeelIndependentProof/nil (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	0.597s
