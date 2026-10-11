@@ -1,0 +1,41 @@
+{
+  "result-mismatch": [
+    "ex19_assert_forms.nanz",
+    "crypto.lizp",
+    "dsp.lizp",
+    "scheme_r5rs.lizp",
+    "promoted_arithmetic.nanz"
+  ],
+  "missing-import": [
+    "hello_zx.nanz",
+    "hello_world.nanz",
+    "nc_agon.nanz",
+    "tui_demo.nanz",
+    "tui_hello.nanz",
+    "irc_client.nanz",
+    "meta_screen.nanz",
+    "sap_mara_cpm.nanz",
+    "screen_alv.nanz",
+    "screen_declarative.nanz",
+    "sql_test6.nanz",
+    "sqlite_test.nanz",
+    "test_irc_minimal.nanz",
+    "tetris_cpm.nanz",
+    "typed_print.nanz",
+    "zsql.nanz",
+    "zsql_zx.nanz",
+    "zsql_zx_real.nanz",
+    "console_demo.nanz"
+  ],
+  "HIR/type-refusal": [
+    "self_tokenizer.lizp",
+    "bubble_sort.pas",
+    "records.pas",
+    "hello.plm",
+    "sum_array.plm"
+  ],
+  "assembly-invalid": [
+    "51_impl_cpm_demo.nanz",
+    "tetris_tui.nanz"
+  ]
+}
