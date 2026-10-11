@@ -1,5 +1,5 @@
 {
-  "sha256": "75fb9ab7b33458fec021b912ec9a4aa15e26c9941237fb22e8b157926e1b6651",
+  "sha256": "d38d184e77245b08bdd044a1eb8bb1d24807f51e9a57c7e28d86fb60b7d8d85e",
   "expected": {
     "retained_loop": 0,
     "independent_copy": "x"
