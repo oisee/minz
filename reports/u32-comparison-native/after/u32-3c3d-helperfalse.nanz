@@ -1,0 +1,4 @@
+global a:u32
+global b:u32
+global result:u8
+fun execute(){result=u8(a <= b)}

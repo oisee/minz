@@ -248,7 +248,7 @@ func (g *z80cg) genCmp(inst *Inst) {
 
 	// 32-bit DWord comparison: must dispatch before isPairReg (DWord locs also
 	// have pair names like "HL", so they'd otherwise fall into genCmp16).
-	if g.isDWord(inst.Src[0]) || g.isDWord(inst.Src[1]) {
+	if g.wideComparisonOperand(inst, inst.Src[0]) || g.wideComparisonOperand(inst, inst.Src[1]) {
 		g.genCmp32(inst)
 		return
 	}
@@ -732,64 +732,97 @@ func (g *z80cg) genCmp16(inst *Inst) {
 	g.pendingFlagReg = inst.Dst
 }
 
-// genCmp32 emits a non-destructive 32-bit unsigned comparison (lhs vs rhs)
-// via a PUSH/SBC-chain/POP pattern; carry is set if lhs < rhs, NC if lhs >= rhs.
-//
-// Strategy (lhs=HL+H'L', rhs=DE+D'E'):
-//
-//	PUSH HL          ; save a_lo  (11T)
-//	EXX
-//	PUSH HL          ; save a_hi  (11T, HL = H'L' after EXX)
-//	EXX
-//	AND A            ; clear carry (4T)
-//	SBC HL, DE       ; a_lo - b_lo; carry = lo borrow (15T)
-//	EXX
-//	SBC HL, DE       ; a_hi - b_hi - lo_carry; carry = 32-bit borrow (15T)
-//	EXX
-//	EXX              ; switch to restore a_hi
-//	POP HL           ; restore H'L' (10T); carry preserved by POP rr
-//	EXX
-//	POP HL           ; restore HL  (10T); carry preserved
-//
-// Total: 91T.  For the typical abs_diff pattern this is followed immediately by
-// BrIf which branches on carry — no intermediate store of the flag needed.
+// wideComparisonOperand includes semantic widths for memory-backed u32 values.
+func (g *z80cg) wideComparisonOperand(inst *Inst, r Reg) bool {
+	if inst.SrcTy != nil && inst.SrcTy.Width() > 16 {
+		return true
+	}
+	if info, ok := g.regInfo[r]; ok && info.Ty != nil && info.Ty.Width() > 16 {
+		return true
+	}
+	return g.isDWord(r)
+}
+
+// genCmp32 snapshots operands before scratch writes, then compares bytes from
+// most to least significant. Biasing the signed high byte gives signed ordering
+// without overflowing subtraction. Final CP supplies full-value C and Z.
 func (g *z80cg) genCmp32(inst *Inst) {
-	lhs := g.loc(inst.Src[0])
-	rhs := g.loc(inst.Src[1])
-
-	// CmpGt/CmpLe: swap operands so the carry encodes the right condition.
-	//   CmpUgt(a,b): a>b ↔ b<a → swap, then carry = (b<a) ✓
-	//   CmpUle(a,b): a≤b ↔ b≥a → swap, then NC = (b≥a) ✓
-	isGtOrLe := inst.Cond == CmpGt || inst.Cond == CmpUgt ||
-		inst.Cond == CmpLe || inst.Cond == CmpUle
-	if isGtOrLe {
-		lhs, rhs = rhs, lhs
-		g.cmpSwapped[inst.Dst] = true
+	g.emit("    PUSH IX")
+	g.emit("    PUSH BC")
+	g.emit("    PUSH AF")
+	for _, r := range inst.Src {
+		loc := g.loc(r)
+		width := 32
+		if info, ok := g.regInfo[r]; ok && info.Ty != nil {
+			width = info.Ty.Width()
+		}
+		for i := 0; i < 4; i++ {
+			if i*8 >= width {
+				g.emit("    LD A, 0")
+			} else if cv, ok := g.constVals[r]; ok {
+				g.emitf("    LD A, %d", uint64(cv)>>(8*i)&255)
+			} else if isSpill(loc) {
+				suffix := ""
+				if i != 0 {
+					suffix = fmt.Sprintf("+%d", i)
+				}
+				g.emitNativeSpillf(loc, i, 1, false, "    LD A, (%s%s)", loc, suffix)
+			} else if isPairReg(loc) {
+				if i >= 2 {
+					g.emit("    EXX")
+				}
+				part := lowByte(loc)
+				if i%2 != 0 {
+					part = highByte(loc)
+				}
+				g.emitf("    LD A, %s", part)
+				if i >= 2 {
+					g.emit("    EXX")
+				}
+			} else {
+				g.err = fmt.Errorf("wide comparison r%d has unsupported home %s", r, loc)
+				return
+			}
+			g.emit("    PUSH AF")
+		}
 	}
-
-	// Z80 SBC requires lhs in HL.  The allocator biases ClassDWord toward HL (cost 0),
-	// so lhs=HL is the common case.
-	if lhs != "HL" {
-		g.comment(fmt.Sprintf("TODO: genCmp32 lhs=%s not HL (rhs=%s)", lhs, rhs))
-		return
+	g.emit("    LD IX, 0")
+	g.emit("    ADD IX, SP")
+	idx := g.trampIdx
+	g.trampIdx++
+	done := fmt.Sprintf(".wide_cmp_done_%d", idx)
+	for i := 3; i >= 0; i-- {
+		g.emitf("    LD B, (IX+%d)", 7-2*i)
+		if i == 3 && isSignedOrdering(inst) {
+			g.emit("    LD A, B")
+			g.emit("    XOR 128")
+			g.emit("    LD B, A")
+		}
+		g.emitf("    LD A, (IX+%d)", 15-2*i)
+		if i == 3 && isSignedOrdering(inst) {
+			g.emit("    XOR 128")
+		}
+		g.emit("    CP B")
+		if i != 0 {
+			g.emitf("    JP NZ, %s", done)
+		}
 	}
-
-	// Non-destructive 32-bit comparison (lhs preserved by PUSH/POP):
-	g.emit("    PUSH HL") // save a_lo (main HL)
-	g.emit("    EXX")
-	g.emit("    PUSH HL") // save a_hi (shadow HL = H'L')
-	g.emit("    EXX")
-	g.emit("    AND A") // clear carry
-	g.emitSBCHL(rhs)    // a_lo - b_lo; carry = lo borrow
-	g.emit("    EXX")
-	g.emitSBCHL(rhs) // a_hi - b_hi - lo_carry; carry = 32-bit borrow
-	g.emit("    EXX")
-	// Restore a (carry preserved by POP rr — POP does not affect flags):
-	g.emit("    EXX")
-	g.emit("    POP HL") // restore H'L' (a_hi)
-	g.emit("    EXX")
-	g.emit("    POP HL") // restore HL   (a_lo)
-	g.invalidate("HL")   // HL was clobbered during SBC, now restored; flush cache
+	g.emitf("%s:", done)
+	for i := 0; i < 8; i++ {
+		g.emit("    POP BC")
+	}
+	// POP and LD retain the comparison flags while restoring original A.
+	g.emit("    POP BC")
+	g.emit("    LD A, B")
+	g.emit("    POP BC")
+	g.emit("    POP IX")
+	g.invalidate("A")
+	g.invalidate("BC")
+	g.invalidate("IX")
+	g.pendingFlagReg = inst.Dst
+	if inst.Cond == CmpGt || inst.Cond == CmpUgt || inst.Cond == CmpLe || inst.Cond == CmpUle {
+		g.cmpNeedsTwo[inst.Dst] = true
+	}
 }
 
 // Comparisons can encode their result in Z, carry, or a two-flag predicate.

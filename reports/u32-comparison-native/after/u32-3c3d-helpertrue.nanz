@@ -1,0 +1,6 @@
+global a:u32
+global b:u32
+global result:u8
+fun compare(x:u32,y:u32)->bool {if x <= y {return true}
+return false}
+fun execute(){result=u8(compare(a,b))}

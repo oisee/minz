@@ -1,0 +1,17 @@
+; MIR2 module: wide_compare.nanz
+global @a : u32
+global @b : u32
+global @result : u8
+
+fun @execute()
+  block @entry:
+    %r1 = addr_of @a : ptr [pointer]
+    %r2 = load %r1 : u32 [general]
+    %r3 = addr_of @b : ptr [pointer]
+    %r4 = load %r3 : u32 [general]
+    %r5 = cmp.ne %r2, %r4 : bool [flag]
+    %r6 = ext %r5 : bool -> u8 [general]
+    %r7 = addr_of @result : ptr [pointer]
+    store %r7, %r6 : u8
+    ret void
+
