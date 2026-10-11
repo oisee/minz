@@ -1,0 +1,19 @@
+=== RUN   TestOriginalPipeAndImportNativeModels
+=== RUN   TestOriginalPipeAndImportNativeModels/ex28_pipe.nanz
+    showcase_pipe_import_oracle_test.go:167: exact ex28_pipe.nanz: 2 calls raw/finalVM/native model, 2 original assertions retained; SP/guards/immutableimage 47 B SHA f57fe3aea64a0b12a27a549e8ebb710776e36c5253fb3bec5ab384c0599c29de
+=== RUN   TestOriginalPipeAndImportNativeModels/ex23_import_unqualified.nanz
+    showcase_pipe_import_oracle_test.go:167: exact ex23_import_unqualified.nanz: 256 calls raw/finalVM/native model, 2 original assertions retained; SP/guards/immutableimage 1539 B SHA ec9e3b47553b1caf4a058867342427e77193efa438a1619fe05aaf3f124ba102
+=== RUN   TestOriginalPipeAndImportNativeModels/ex24_import_qualified.nanz
+    showcase_pipe_import_oracle_test.go:167: exact ex24_import_qualified.nanz: 1 calls raw/finalVM/native model, 1 original assertions retained; SP/guards/immutableimage 7 B SHA ec5e47387aa5278aebcf7134d69ec2e40c333a2982f9a8c7aad5b671a2ff0d7b
+=== RUN   TestOriginalPipeAndImportNativeModels/ex25_import_alias_glob.nanz
+    showcase_pipe_import_oracle_test.go:167: exact ex25_import_alias_glob.nanz: 1 calls raw/finalVM/native model, 1 original assertions retained; SP/guards/immutableimage 7 B SHA fd467b05f77e3a31f7119ceddff0c96a2b62b422035689ceeab74032876da191
+=== RUN   TestOriginalPipeAndImportNativeModels/ops.nanz
+    showcase_pipe_import_oracle_test.go:167: exact mathlib/ops.nanz: 1792 calls raw/finalVM/native model, 0 original assertions retained; SP/guards/immutableimage 13323 B SHA 59e7b27add5a8e99cc0d986fc8b9911696d7bd904818f007919223a94625c842
+--- PASS: TestOriginalPipeAndImportNativeModels (0.26s)
+    --- PASS: TestOriginalPipeAndImportNativeModels/ex28_pipe.nanz (0.00s)
+    --- PASS: TestOriginalPipeAndImportNativeModels/ex23_import_unqualified.nanz (0.02s)
+    --- PASS: TestOriginalPipeAndImportNativeModels/ex24_import_qualified.nanz (0.00s)
+    --- PASS: TestOriginalPipeAndImportNativeModels/ex25_import_alias_glob.nanz (0.00s)
+    --- PASS: TestOriginalPipeAndImportNativeModels/ops.nanz (0.24s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.266s
