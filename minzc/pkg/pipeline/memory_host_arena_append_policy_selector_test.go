@@ -329,7 +329,9 @@ func TestMemoryHostPolicySelectorOriginalParserExport(t *testing.T) {
 		options := MemoryHostBaselineOptions{UnsignedPairComparePolicy: policy}
 		association, err := RunZ80MemoryHostLoopProfileWithOptions(parse, w, options)
 		if err != nil {
-			os.WriteFile(filepath.Join(out, "error.txt"), []byte(err.Error()+"\n"), 0644)
+			if writeErr := os.WriteFile(filepath.Join(out, "error.txt"), []byte(err.Error()+"\n"), 0644); writeErr != nil {
+				t.Fatal(writeErr)
+			}
 			t.Fatal(err)
 		}
 		profile, err := json.MarshalIndent(association, "", "  ")
@@ -343,7 +345,9 @@ func TestMemoryHostPolicySelectorOriginalParserExport(t *testing.T) {
 		factory := func() (*hir.Module, error) { calls++; return parse() }
 		result, err := MeasureMemoryHostArenaAppendWithOptions(factory, w, profile, MemoryHostArenaAppendSelectorOptions{Goal: "speed", MaxSites: 2}, options)
 		if err != nil {
-			os.WriteFile(filepath.Join(out, "error.txt"), []byte(err.Error()+"\n"), 0644)
+			if writeErr := os.WriteFile(filepath.Join(out, "error.txt"), []byte(err.Error()+"\n"), 0644); writeErr != nil {
+				t.Fatal(writeErr)
+			}
 			t.Fatal(err)
 		}
 		encoded, err := json.MarshalIndent(result, "", "  ")
