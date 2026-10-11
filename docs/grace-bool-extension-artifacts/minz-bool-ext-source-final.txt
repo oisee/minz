@@ -1,0 +1,4 @@
+=== RUN   TestBoolExtensionSourceVMZ80
+--- PASS: TestBoolExtensionSourceVMZ80 (0.11s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.117s

@@ -1,0 +1,5 @@
+{
+  "minzc/pkg/mir2/z80codegen_move.go": "a90ad8a9afd4075014072679bdc67724030c9d63f60fe1ddd5a0a8bea0bdcf2c",
+  "minzc/pkg/mir2/bool_ext_codegen_test.go": "1fcf0e56f3f0e2f1b9b1311968da5fae7ca1da7f044615e5d829de702588f6f9",
+  "minzc/pkg/pipeline/bool_extension_source_test.go": "5bb8fc63dd0ea5e673afd918019e3d2118358f58661852718d64241a9af4fbe9"
+}

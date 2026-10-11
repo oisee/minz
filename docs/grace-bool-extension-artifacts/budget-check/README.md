@@ -1,0 +1,9 @@
+The final frozen bool-extension compiler compiled the unchanged budget source for four constant-if/invariant-base masks with two actual Grace passes per mask. Compile times: 0.399s, 125.109s, 5.779s, 117.593s; total 248.880s. A fresh assembler then confirmed exact source, ASM and binary equality with the preceding local-binding stage at docs/grace-local-binding-artifacts/budget-check. Binary sizes: 344/344/232/344 bytes. The prior 722.080s machine workload gate therefore remains applicable through byte identity; this check did not rerun that workload or the old compiler.
+
+Only four OptSize=false compilations were executed. The budget-specific OptSize deduplication is unchanged: the rule allowlist admits only constant-if/invariant-base, the empty pointer policy disables pointer rewrites, and no copy/region/ordered-byte policy is enabled. OptSize is consumed by HIR Grace; neither admitted rule depends on it. No eight-compilation claim is made.
+
+compile.go and audit.go are the exact executed helpers. source.nanz, compile.txt, audit.txt and current/ contain the fixture, terminal output, fresh audit and exact generated ASM/BIN. The audit reads raw or gzip archival files and compares against the saved prior stage, including freshly assembled current binary hashes. Parent owns the stage-wide SHA manifest.
+
+Commands (from minzc in the frozen production checkout):
+    GOCACHE=/tmp/minz-grace-gocache /home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/bin/go run /tmp/minz-bool-extension-budget-evidence/compile.go /tmp/minz-bool-extension-budget-evidence/current > /tmp/minz-bool-extension-budget-evidence/compile.txt
+    GOCACHE=/tmp/minz-grace-gocache /home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/bin/go run /tmp/minz-bool-extension-budget-evidence/audit.go /tmp/minz-bool-extension-budget-evidence > /tmp/minz-bool-extension-budget-evidence/audit.txt

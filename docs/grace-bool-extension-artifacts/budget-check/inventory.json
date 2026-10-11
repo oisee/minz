@@ -1,0 +1,16 @@
+{
+  "README.md": "0cc0e216e333485bc25e060886042fe32332a7c778c40b2bd2359ffd4a3448e7",
+  "audit.go": "106136e0bd9b4eda6970ff2b694d9352217004ed4f0b209f93163cc5600ef8b1",
+  "audit.txt": "2a6c8502c8a6bbd8258c891fd7ea355485a7db0e3d693fc7ddf6ff609526aba6",
+  "compile.go": "d8fda71d906b67c30e2f59387d731995164c67d03e0d2b45d6a8a16b906e6939",
+  "compile.txt": "ad0f0a53dc299eeabad82a3bed48eb24dc91475f58858a48a094b99c6198b614",
+  "current/size-false-mask-0.a80": "e7c12729800680c16237d4082bccf16f423186341c74c10e02e2557c9eb3abda",
+  "current/size-false-mask-0.bin": "2c649dce57e429c2332f3cf4e79c465c8d78c1bd76b33bb47b28f370759baf57",
+  "current/size-false-mask-1.a80": "3586208bec5645608a3b342693bcb24c17ebfb20b1a6613c55d7b5042e0f5f9b",
+  "current/size-false-mask-1.bin": "2c649dce57e429c2332f3cf4e79c465c8d78c1bd76b33bb47b28f370759baf57",
+  "current/size-false-mask-2.a80": "841fc7071ad57e44c9cb7e87c585aebc7df6b7318ea061378a77690f84de7ab7",
+  "current/size-false-mask-2.bin": "12056d7c0a831060ba7f9fc5c541be0021d320cf07ff384f2194af448d5625f8",
+  "current/size-false-mask-3.a80": "3586208bec5645608a3b342693bcb24c17ebfb20b1a6613c55d7b5042e0f5f9b",
+  "current/size-false-mask-3.bin": "2c649dce57e429c2332f3cf4e79c465c8d78c1bd76b33bb47b28f370759baf57",
+  "source.nanz": "3e52eaec62f9e9f9cb5034340f230935495f656ff91672ede5e71848615f83c7"
+}

@@ -1,0 +1,14 @@
+{
+  "cur": 239391,
+  "intern_region": 334605,
+  "is_atom_char": 120219,
+  "is_digit": 2926,
+  "is_space": 13290,
+  "make_node": 141414,
+  "parse_sexpr": 236919,
+  "peek": 35292,
+  "poke": 15997,
+  "region_match": 51575,
+  "set_d1": 8700,
+  "skip_ws": 21166
+}

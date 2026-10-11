@@ -1,0 +1,87 @@
+[
+  {
+    "path": "adapter.a80.gz",
+    "bytes": 4186,
+    "sha256": "0276c0a4ee5415835b870f422336b32a4daa5f8174286fbde2403b666cfb0ee4"
+  },
+  {
+    "path": "audit.py",
+    "bytes": 1150,
+    "sha256": "bb08672b73f324861b2a886d43ddfd9bc9d18f14c54a1a837c310ce9eb7b92d9"
+  },
+  {
+    "path": "workload.json.gz",
+    "bytes": 219,
+    "sha256": "873660116c71158644801be9be4e357b5b8f9dc3e0609d1ab74ba85e853755b8"
+  },
+  {
+    "path": "pc-costs.json",
+    "bytes": 87933,
+    "sha256": "8f7436a8edea7f465101b4184baf379dc59944fe98d139bbfed467cb9954ec5b"
+  },
+  {
+    "path": "profile.go",
+    "bytes": 6428,
+    "sha256": "500728667e9559240da6896f7d1beeb2dc82b86ee991880b5fda9858e6e8b530"
+  },
+  {
+    "path": "replay.txt",
+    "bytes": 156,
+    "sha256": "c52642dc469fe356f0542bbdbdc0f9f206166abade1873c7e92a82e7a6b478da"
+  },
+  {
+    "path": "function-costs.json",
+    "bytes": 259,
+    "sha256": "f0a3fc2cd0ec205d2bbe9f54cd3ac5d0658bd6d16643b4b15b478d83701895d7"
+  },
+  {
+    "path": "symbols.json",
+    "bytes": 5526,
+    "sha256": "fbc204af1fa2c807d5d56d91caac9d5e0155259726bab814a8ade2eb1825c774"
+  },
+  {
+    "path": "cost.json.gz",
+    "bytes": 241,
+    "sha256": "44aa20db7458ba354a3f2c928adb061659a0ff210c16b9b9b58898a1b26a6384"
+  },
+  {
+    "path": "source.nanz",
+    "bytes": 7164,
+    "sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "path": "adapter.bin",
+    "bytes": 2091,
+    "sha256": "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51"
+  },
+  {
+    "path": "eligibility.json",
+    "bytes": 75,
+    "sha256": "b2890e6005ddf93f1ff295521ad9ec1bbc3f094da5ca62d03afc9cde311a4dfa"
+  },
+  {
+    "path": "audit.txt",
+    "bytes": 87,
+    "sha256": "4d24b1e3bf8d1e07ccaa71aa7054a4adab6cf5a657670e4dfa3fe95aac0d0e4d"
+  },
+  {
+    "path": "target.json.gz",
+    "bytes": 12293,
+    "sha256": "5c387aadb18a6ca4b330e1e5a360c5e8877ffe1ae9233ca0fd52043c095d134b"
+  },
+  {
+    "path": "README.md",
+    "bytes": 3847,
+    "sha256": "55b36d3f3aad4d4912ea5ada4430dd019380f4517942f5824821f911dbebc349"
+  },
+  {
+    "path": "summary.json",
+    "bytes": 844,
+    "sha256": "6aed046ae705c7740aa1c1cb941a1ff1a405cf77470ec12873c3ae3015bb96dc"
+  },
+  {
+    "path": "word-eligibility.json",
+    "bytes": 50,
+    "sha256": "8eee4cbf8313c112e9e702c90460a3fd085fd281127ca52f9c3f6cb89792d847"
+  }
+]

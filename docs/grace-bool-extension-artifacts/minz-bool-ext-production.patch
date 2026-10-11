@@ -1,0 +1,68 @@
+diff --git a/minzc/pkg/mir2/z80codegen_move.go b/minzc/pkg/mir2/z80codegen_move.go
+index b04412f1..1e000611 100644
+--- a/minzc/pkg/mir2/z80codegen_move.go
++++ b/minzc/pkg/mir2/z80codegen_move.go
+@@ -397,15 +397,55 @@ func (g *z80cg) genExt(inst *Inst) {
+ 	src := g.loc(inst.Src[0])
+ 	srcW := inst.SrcTy.Width()
+ 	dstW := inst.Ty.Width()
+-	if inst.SrcTy == TyBool && dstW == 8 && src == "F" {
+-		// A comparison in F is a predicate, not a byte. Materialize its
+-		// actual condition as 0/1; carry alone is wrong for GE/LE/EQ.
+-		g.emitFlagPredicateByte(g.condCode(g.fn, inst.Src[0]))
+-		if dst != "A" {
+-			g.emitLD8(dst, "A")
++	if inst.SrcTy == TyBool && (dstW == 8 || dstW == 16) {
++		if src == "F" || inst.Src[0] == g.pendingFlagReg {
++			// F carries a predicate, not a byte; materialize the full condition.
++			// A may hold an unrelated live value, so preserve it until the
++			// canonical boolean has reached its allocated byte/word destination.
++			source := inst.Src[0]
++			sourceLive := g.regsLiveAfterInst(inst)[source]
++			keepA := dst != "A" && !(sourceLive && src == "A")
++			if keepA {
++				g.emit("    PUSH AF")
++			}
++			g.emitFlagPredicateByte(g.condCode(g.fn, inst.Src[0]))
++			if dstW == 16 {
++				g.emitLD8(lowByte(dst), "A")
++				g.emitLD8(highByte(dst), "0")
++			} else if dst != "A" {
++				g.emitLD8(dst, "A")
++			}
++			if sourceLive {
++				if src == "F" {
++					// A flag-only value must survive later flag-clobbering work.
++					home := g.freeScratch8(inst)
++					if home == "" {
++						home = g.spillLabel(source)
++					}
++					g.emitLD8(home, "A")
++					g.physOverride[source] = home
++				} else if src != "A" {
++					g.emitLD8(src, "A")
++					g.invalidate(src)
++				}
++			}
++			if keepA {
++				g.emit("    POP AF")
++			}
++			g.invalidate("A")
++			g.invalidate(dst)
++			g.pendingFlagReg = NoReg
++			return
+ 		}
+-		g.pendingFlagReg = NoReg
+-		return
++		if dstW == 8 {
++			if src != dst {
++				g.emitLD8(dst, src)
++			}
++			g.invalidate(dst)
++			return
++		}
++		// A materialized bool is already a canonical byte (0 or 1).
++		srcW = 8
+ 	}
+ 
+ 	if srcW == 8 && dstW == 16 {
