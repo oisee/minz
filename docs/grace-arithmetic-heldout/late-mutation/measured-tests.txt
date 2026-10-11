@@ -1,0 +1,26 @@
+=== RUN   TestArithmeticProspectiveHeldout
+    arithmetic_heldout_test.go:142: speed mask0: 25492 T / 174 B
+    arithmetic_heldout_test.go:142: speed mask1: 25492 T / 174 B
+    arithmetic_heldout_test.go:142: speed mask2: 26808 T / 214 B
+    arithmetic_heldout_test.go:142: speed mask3: 26808 T / 214 B
+    arithmetic_heldout_test.go:163: speed selected0 heldout 470109 T / 174 B
+    arithmetic_heldout_test.go:142: size mask0: 25492 T / 174 B
+    arithmetic_heldout_test.go:142: size mask1: 25492 T / 174 B
+    arithmetic_heldout_test.go:142: size mask2: 26808 T / 214 B
+    arithmetic_heldout_test.go:142: size mask3: 26808 T / 214 B
+    arithmetic_heldout_test.go:163: size selected0 heldout 470109 T / 174 B
+--- PASS: TestArithmeticProspectiveHeldout (1.31s)
+=== RUN   TestPFCCOProspectiveHeldout
+    pfcco_prospective_heldout_test.go:119: speed mask0: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask1: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask2: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask3: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:153: speed selected1 heldout 5568 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask0: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask1: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask2: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask3: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:153: size selected0 heldout 6252 T / 52 B
+--- PASS: TestPFCCOProspectiveHeldout (1.05s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.365s
