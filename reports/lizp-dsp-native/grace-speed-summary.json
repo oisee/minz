@@ -1,0 +1,19 @@
+{
+  "allowed_generated_spill_bytes": {},
+  "bytes": 116,
+  "entries": {
+    "clamp_signal": 20736,
+    "lowpass": 65536,
+    "peak": 65536,
+    "sawtooth": 65280,
+    "square_wave": 65280
+  },
+  "stack_depth_per_entry": {
+    "clamp_signal": 2,
+    "lowpass": 2,
+    "peak": 2,
+    "sawtooth": 10,
+    "square_wave": 2
+  },
+  "stack_low": "eff6"
+}

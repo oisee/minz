@@ -1,0 +1,47 @@
+; MIR2 module: dsp.lizp
+fun @square_wave(%r1: u8 [general], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = mod %r1, %r2 : u8 [general]
+    %r4 = const 2 : u8 [general]
+    %r5 = div %r2, %r4 : u8 [general]
+    %r6 = cmp.ult %r3, %r5 : bool [flag]
+    %r7 = const 0 : u8 [general]
+    cond_ret %r6, [%r7], @if_then1()
+  block @if_then1:
+    %r8 = const 255 : u8 [general]
+    ret %r8
+
+fun @sawtooth(%r9: u8 [general], %r10: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r11 = mod %r9, %r10 : u8 [general]
+    %r12 = const 255 : u8 [general]
+    %r13 = mul %r11, %r12 : u8 [general]
+    %r14 = div %r13, %r10 : u8 [general]
+    ret %r14
+
+fun @lowpass(%r15: u8 [acc], %r16: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r17 = add %r15, %r16 : u8 [acc]
+    %r18 = const 2 : u8 [general]
+    %r19 = div %r17, %r18 : u8 [general]
+    ret %r19
+
+fun @clamp_signal(%r20: u8 [acc], %r21: u8 [general], %r22: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r23 = cmp.ult %r20, %r21 : bool [flag]
+    br_if %r23, @if_then1(), @if_else3()
+  block @if_then1:
+    ret %r21
+  block @if_else3:
+    %r24 = cmp.ugt %r20, %r22 : bool [flag]
+    cond_ret %r24, [%r20], @if_then4()
+  block @if_then4:
+    ret %r22
+
+fun @peak(%r25: u8 [acc], %r26: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r27 = cmp.ugt %r25, %r26 : bool [flag]
+    cond_ret %r27, [%r26], @cret_then1()
+  block @cret_then1:
+    ret %r25
+
