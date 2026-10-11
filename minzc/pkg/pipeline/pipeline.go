@@ -317,8 +317,10 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	} else {
 		ct = mir2.Z80CostTable{}
 	}
-	cs := mir2.OptimizeContracts(m, ct)
-	mir2.ApplyContracts(m, cs)
+	if opt.ContractOpt {
+		cs := mir2.OptimizeContracts(m, ct)
+		mir2.ApplyContracts(m, cs)
+	}
 
 	// Module-level: replace ranged-param pure functions with LUTs.
 	// Must run AFTER contract optimisation — LUT synthesis inherits the

@@ -1,0 +1,6 @@
+=== RUN   TestCompileHIRStepsRespectsContractOption
+    contract_option_test.go:32: ContractOpt false still optimized parameter class
+--- FAIL: TestCompileHIRStepsRespectsContractOption (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.008s
+FAIL
