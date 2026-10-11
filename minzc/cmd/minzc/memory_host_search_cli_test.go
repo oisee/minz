@@ -273,7 +273,7 @@ func TestSearchCLICollectAndPairedReplay(t *testing.T) {
 			}
 		}
 		hash := func(b []byte) string { return fmt.Sprintf("%x", sha256.Sum256(b)) }
-		if d.Goal != goal || d.Selected != e.Selected || d.SearchSHA256 != hash(payload) || d.SourceName != source || d.SourceSHA256 != hash(read(source)) {
+		if d.Schema != "minz.memory-host-arena-append-policy-search-cli-decision/v1" || d.Goal != goal || d.Selected != e.Selected || d.SearchSHA256 != hash(payload) || d.SourceName != source || d.SourceSHA256 != hash(read(source)) {
 			t.Fatal("decision source/search binding")
 		}
 		for policy, name := range []string{"association-legacy-v2.json", "association-preserve-v2.json"} {
