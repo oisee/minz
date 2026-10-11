@@ -21,3 +21,19 @@ fun indirect(f:fun(u8)->Outer,x:u8,y:u8)->u16 {let a:Outer=f(x)
 let q:u8=disturb(83)
 return a.inner.b+u16(a.inner.a)}
 fun invoke(x:u8,y:u8)->u16{return indirect(build,x,y)}
+fun retained_loop(x:u8,y:u8)->u16 {
+var kept:Outer=build(x)
+var i:u8=0
+while i<3 {
+let item:Outer=build(i)
+if i==0 {kept=item}
+i=i+1
+}
+return u16(kept.inner.a)
+}
+fun independent_copy(x:u8,y:u8)->u16 {
+let first:Outer=build(x)
+var second:Outer=first
+second.inner.a=y
+return u16(first.inner.a)
+}
