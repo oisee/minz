@@ -1,0 +1,6 @@
+{
+  "error": "measured compiler modes: Z80 profile workload: hosts/ASM unsupported: disk_read",
+  "goal": "size",
+  "no_partial_winner": true,
+  "result_nil": true
+}
