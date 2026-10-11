@@ -72,6 +72,8 @@ type Inst struct {
 	// Call metadata (OpCall, OpCallIndirect)
 	CallAttr            CallAttrs
 	StructReturnBuffers []StructReturnBuffer `json:",omitempty"`
+	IndirectParamTys    []Ty                 `json:",omitempty"`
+	IndirectReturnTys   []Ty                 `json:",omitempty"`
 
 	// Variadic argument list (OpCall, OpCallIndirect)
 	Args []Reg

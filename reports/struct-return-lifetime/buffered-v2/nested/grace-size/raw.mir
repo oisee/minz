@@ -1,0 +1,166 @@
+; MIR2 module: nested-result.nanz
+global @scratch : u8
+
+fun @build(%r1: u8 [acc], %r92: ptr [pointer]) [struct-result0 param1 Outer:5B] -> Outer [pointer]
+  block @entry:
+    %r2 = alloca 5 : ptr
+    %r3 = const 7 : u8 [general]
+    store %r2, %r3 : u8
+    %r4 = field %r2, +1 : ptr [pointer]
+    store %r4, %r1 : u8
+    %r5 = ext %r1 : u8 -> u16 [pointer]
+    %r6 = const 256 : u16 [pointer]
+    %r7 = add %r5, %r6 : u16 [pointer]
+    %r8 = field %r2, +1 : ptr [pointer]
+    %r9 = field %r8, +1 : ptr [pointer]
+    store %r9, %r7 : u16
+    %r10 = const 9 : u8 [general]
+    %r11 = field %r2, +4 : ptr [pointer]
+    store %r11, %r10 : u8
+    %r12 = const 0 : u8 [general]
+    %r13 = cmp.eq %r1, %r12 : bool [flag]
+    br_if %r13, @if_then1(), @if_else3()
+  block @if_then1:
+    %r14 = const 8 : u8 [general]
+    store %r2, %r14 : u8
+    jmp @if_join2()
+  block @if_else3:
+    %r15 = const 7 : u8 [general]
+    store %r2, %r15 : u8
+    jmp @if_join2()
+  block @if_join2:
+    %r94 = load %r2 : u8 [general]
+    %r95 = field %r2, +1 : ptr [pointer]
+    %r96 = load %r95 : u8 [general]
+    %r97 = field %r2, +2 : ptr [pointer]
+    %r98 = load %r97 : u8 [general]
+    %r99 = field %r2, +3 : ptr [pointer]
+    %r100 = load %r99 : u8 [general]
+    %r101 = field %r2, +4 : ptr [pointer]
+    %r102 = load %r101 : u8 [general]
+    store %r92, %r94 : u8
+    %r103 = field %r92, +1 : ptr [pointer]
+    store %r103, %r96 : u8
+    %r104 = field %r92, +2 : ptr [pointer]
+    store %r104, %r98 : u8
+    %r105 = field %r92, +3 : ptr [pointer]
+    store %r105, %r100 : u8
+    %r106 = field %r92, +4 : ptr [pointer]
+    store %r106, %r102 : u8
+    ret %r92
+
+fun @disturb(%r16: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r17 = alloca 5 : ptr
+    store %r17, %r16 : u8
+    %r18 = field %r17, +1 : ptr [pointer]
+    store %r18, %r16 : u8
+    %r19 = ext %r16 : u8 -> u16 [pointer]
+    %r20 = const 512 : u16 [pointer]
+    %r21 = add %r19, %r20 : u16 [pointer]
+    %r22 = field %r17, +1 : ptr [pointer]
+    %r23 = field %r22, +1 : ptr [pointer]
+    store %r23, %r21 : u16
+    %r24 = field %r17, +4 : ptr [pointer]
+    store %r24, %r16 : u8
+    %r25 = field %r17, +1 : ptr [pointer]
+    %r26 = load %r25 : u8 [general]
+    %r27 = addr_of @scratch : ptr [pointer]
+    store %r27, %r26 : u8
+    %r28 = load %r17 : u8 [acc]
+    ret %r28
+
+fun @nested(%r29: u8 [acc], %r30: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r107 = alloca 5 : ptr
+    %r31 = move %r29 : u8 [acc]
+    %r32 = call @build(%r31, %r107) : Outer [pointer] [struct-result0 param1 Outer:5B]
+    %r33 = move %r30 : u8 [acc]
+    %r34 = call @disturb(%r33) : u8 [acc]
+    %r35 = field %r32, +1 : ptr [pointer]
+    %r36 = field %r35, +1 : ptr [pointer]
+    %r37 = load %r36 : u16 [pointer]
+    %r38 = field %r32, +1 : ptr [pointer]
+    %r39 = load %r38 : u8 [general]
+    %r40 = ext %r39 : u8 -> u16 [pointer]
+    %r41 = add %r37, %r40 : u16 [pointer]
+    ret %r41
+
+fun @recurse(%r42: u8 [acc], %r93: ptr [pointer]) [struct-result0 param1 Inner:3B] -> Inner [pointer]
+  block @entry:
+    %r108 = alloca 3 : ptr
+    %r43 = alloca 3 : ptr
+    store %r43, %r42 : u8
+    %r44 = ext %r42 : u8 -> u16 [pointer]
+    %r45 = const 256 : u16 [pointer]
+    %r46 = add %r44, %r45 : u16 [pointer]
+    %r47 = field %r43, +1 : ptr [pointer]
+    store %r47, %r46 : u16
+    %r48 = const 0 : u8 [general]
+    %r49 = cmp.ugt %r42, %r48 : bool [flag]
+    br_if %r49, @if_then1(), @if_join2()
+  block @if_then1:
+    %r50 = const 1 : u8 [general]
+    %r51 = sub %r42, %r50 : u8 [acc]
+    %r52 = move %r51 : u8 [acc]
+    %r53 = call @recurse(%r52, %r108) : Inner [pointer] [struct-result0 param1 Inner:3B]
+    %r54 = field %r43, +1 : ptr [pointer]
+    %r55 = load %r54 : u16 [pointer]
+    %r56 = field %r53, +1 : ptr [pointer]
+    %r57 = load %r56 : u16 [pointer]
+    %r58 = add %r55, %r57 : u16 [pointer]
+    %r59 = field %r43, +1 : ptr [pointer]
+    store %r59, %r58 : u16
+    jmp @if_join2()
+  block @if_join2:
+    %r109 = load %r43 : u8 [general]
+    %r110 = field %r43, +1 : ptr [pointer]
+    %r111 = load %r110 : u8 [general]
+    %r112 = field %r43, +2 : ptr [pointer]
+    %r113 = load %r112 : u8 [general]
+    store %r93, %r109 : u8
+    %r114 = field %r93, +1 : ptr [pointer]
+    store %r114, %r111 : u8
+    %r115 = field %r93, +2 : ptr [pointer]
+    store %r115, %r113 : u8
+    ret %r93
+
+fun @recursive(%r60: u8 [acc], %r61: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r116 = alloca 3 : ptr
+    %r62 = move %r60 : u8 [acc]
+    %r63 = call @recurse(%r62, %r116) : Inner [pointer] [struct-result0 param1 Inner:3B]
+    %r64 = move %r61 : u8 [acc]
+    %r65 = call @disturb(%r64) : u8 [acc]
+    %r66 = field %r63, +1 : ptr [pointer]
+    %r67 = load %r66 : u16 [pointer]
+    %r68 = load %r63 : u8 [general]
+    %r69 = ext %r68 : u8 -> u16 [pointer]
+    %r70 = add %r67, %r69 : u16 [pointer]
+    ret %r70
+
+fun @indirect(%r71: ptr [pointer], %r72: u8 [general], %r73: u8 [counter]) -> u16 [pointer]
+  block @entry:
+    %r117 = alloca 5 : ptr
+    %r74 = move %r72 : u8 [acc]
+    %r75 = call_indirect %r71(%r74, %r117) : Outer [pointer] [indirect-abi [u8 ptr] -> [Outer]] [struct-result0 param1 Outer:5B]
+    %r76 = const 83 : u8 [general]
+    %r77 = move %r76 : u8 [acc]
+    %r78 = call @disturb(%r77) : u8 [acc]
+    %r79 = field %r75, +1 : ptr [pointer]
+    %r80 = field %r79, +1 : ptr [pointer]
+    %r81 = load %r80 : u16 [pointer]
+    %r82 = field %r75, +1 : ptr [pointer]
+    %r83 = load %r82 : u8 [general]
+    %r84 = ext %r83 : u8 -> u16 [pointer]
+    %r85 = add %r81, %r84 : u16 [pointer]
+    ret %r85
+
+fun @invoke(%r86: u8 [acc], %r87: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r88 = addr_of @build : ptr [pointer]
+    %r89 = move %r88 : ptr [pointer]
+    %r90 = move %r87 : u8 [counter]
+    %r91 = call @indirect(%r89, %r86, %r90) : u16 [pointer]
+    ret %r91
+
