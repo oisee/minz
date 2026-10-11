@@ -1,0 +1,19 @@
+{
+  "files": [
+    {
+      "path": "docs/grace-integration-110/weighted-root.txt",
+      "bytes": 1687,
+      "sha256": "43d8c7a499b8a1903023e49a1a1e9cd798b71ff8940932119c109850cc0446db"
+    },
+    {
+      "path": "docs/grace-integration-110/catalog-42-vm-native.json",
+      "bytes": 407563,
+      "sha256": "ed791d0d0a1c3ebf198232fca8c227d90fd15ae55b2144ca9556f9924fe87a6b"
+    },
+    {
+      "path": "docs/grace-integration-110/README.md",
+      "bytes": 1250,
+      "sha256": "c0358eeeec637de8e5f4cd3e55175538325a7b3aea5bc29ec60c0bea4f3d38b6"
+    }
+  ]
+}

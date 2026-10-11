@@ -1,0 +1,12 @@
+=== RUN   TestIndexedQuotientWeightedNative
+=== RUN   TestIndexedQuotientWeightedNative/original-factor10
+    weighted_shape_audit_test.go:58: 13 original vregs → 2 historical variables, record5 prefix172B
+    weighted_shape_audit_test.go:109: weighted exact corpus + caller harness all 256 inputs: module 44→20 B helper 182→86 T caller 238→142 T; actual ABI/SP verified; generation &{[[1 3 4 5 6 7 8 9 10 11 12 13] [14]]   0 vir-indexed-enrt-quotient-import/v1 /mnt/safe/z80-compiler/tables/enriched_4v.enr 533535a031b4b904d6a1df55e1254724041384a7302850036ac7e65f57482180 18db326cf50ec63dfc1653a9835cc0edfec7b169a4284ce0574d402530025052 156506 0x1f476e2bcd40 5 172 0x1f476e09c7e0 lifted historical quotient independently admitted}
+=== RUN   TestIndexedQuotientWeightedNative/same-shape-factor9
+    weighted_shape_audit_test.go:58: 12 original vregs → 2 historical variables, record5 prefix172B
+    weighted_shape_audit_test.go:109: weighted exact corpus + caller harness all 256 inputs: module 40→19 B helper 166→82 T caller 222→138 T; actual ABI/SP verified; generation &{[[1 3 4 5 6 7 8 9 10 11 12] [13]]   0 vir-indexed-enrt-quotient-import/v1 /mnt/safe/z80-compiler/tables/enriched_4v.enr 533535a031b4b904d6a1df55e1254724041384a7302850036ac7e65f57482180 18db326cf50ec63dfc1653a9835cc0edfec7b169a4284ce0574d402530025052 156506 0x1f476e0226c0 5 172 0x1f476e2937a0 lifted historical quotient independently admitted}
+--- PASS: TestIndexedQuotientWeightedNative (1.65s)
+    --- PASS: TestIndexedQuotientWeightedNative/original-factor10 (0.86s)
+    --- PASS: TestIndexedQuotientWeightedNative/same-shape-factor9 (0.79s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.661s
