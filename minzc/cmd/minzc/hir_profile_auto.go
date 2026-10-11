@@ -18,8 +18,13 @@ var hirProfileSiteRules bool
 var hirProfileJointSites bool
 var hirProfileWeightedSites bool
 var hirProfileForwardCopySites bool
+var hirProfileMixedCopyWeightedSites bool
 
 func validateHIRProfileAuto(source string) error {
+	if hirProfileMixedCopyWeightedSites && (!hirProfileJoint || hirProfileForwardCopySites || hirProfileInvariantSites || hirProfileSiteRules || hirProfileJointSites || hirProfileWeightedSites || hirProfileIndependentRules) {
+		return fmt.Errorf("HIR mixed copy weighted sites: requires --hir-profile-joint and cannot combine with other site or independent rule modes")
+	}
+
 	if hirProfileForwardCopySites && (!hirProfileJoint || hirProfileInvariantSites || hirProfileSiteRules || hirProfileJointSites || hirProfileWeightedSites || hirProfileIndependentRules) {
 		return fmt.Errorf("HIR forward copy sites: requires --hir-profile-joint and cannot combine with invariant, site, weighted, or independent rule modes")
 	}
@@ -151,7 +156,16 @@ func prepareHIRProfileJoint(m *hir.Module, factory func() (*hir.Module, error), 
 	var result *pipeline.ProfileVariantSetResult
 	var evidence any
 	var decisions any
-	if hirProfileForwardCopySites {
+	if hirProfileMixedCopyWeightedSites {
+		mixed, err := pipeline.MeasureMixedCopyWeightedVariantSets(factory, observations, workload, options, 4)
+		if err != nil {
+			return nil, err
+		}
+		result = &pipeline.ProfileVariantSetResult{Steps: mixed.Steps, Binary: mixed.Binary}
+		evidence = mixed.Evidence
+		best := mixed.Evidence.Candidates[mixed.Evidence.Selected]
+		decisions = map[string]any{"schema": "minz.mixed-copy-weighted-site-decisions/v1", "compatibility": mixed.Evidence.Compatibility, "selected": mixed.Evidence.Selected, "requested_choices": best.RequestedSites, "proofs": best.Proofs, "postcompile_proofs": best.FinalProofs, "binary_sha256": best.BinarySHA256, "evidence_sha256": mixed.Evidence.SHA256}
+	} else if hirProfileForwardCopySites {
 		copyResult, copyErr := pipeline.MeasureForwardCopySiteVariantSets(factory, observations, workload, options, 4)
 		if copyErr != nil {
 			return nil, copyErr

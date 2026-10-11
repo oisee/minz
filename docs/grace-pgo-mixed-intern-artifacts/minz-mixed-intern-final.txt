@@ -1,0 +1,77 @@
+=== RUN   TestTypedInternCheckedProgramBaseline
+    intern_program_test.go:274: internbaseline30calls1635072T/626B finalbump559 hits15
+--- PASS: TestTypedInternCheckedProgramBaseline (0.15s)
+=== RUN   TestMixedCopyWeightedCompleteCaller
+    profile_mixed_copy_weighted_test.go:160: sizefalse candidate01554320T/243B
+    profile_mixed_copy_weighted_test.go:160: sizefalse candidate1979850T/385B
+    profile_mixed_copy_weighted_test.go:160: sizefalse candidate2935310T/176B
+    profile_mixed_copy_weighted_test.go:160: sizefalse candidate3735795T/315B
+    profile_mixed_copy_weighted_test.go:160: sizefalse candidate41448465T/378B
+    profile_mixed_copy_weighted_test.go:160: sizefalse candidate5873995T/520B
+    profile_mixed_copy_weighted_test.go:160: sizefalse candidate6829455T/311B
+    profile_mixed_copy_weighted_test.go:160: sizefalse candidate7629940T/450B
+    profile_mixed_copy_weighted_test.go:160: sizetrue candidate01554320T/243B
+    profile_mixed_copy_weighted_test.go:160: sizetrue candidate1979850T/385B
+    profile_mixed_copy_weighted_test.go:160: sizetrue candidate2935310T/176B
+    profile_mixed_copy_weighted_test.go:160: sizetrue candidate3735795T/315B
+    profile_mixed_copy_weighted_test.go:160: sizetrue candidate41448465T/378B
+    profile_mixed_copy_weighted_test.go:160: sizetrue candidate5873995T/520B
+    profile_mixed_copy_weighted_test.go:160: sizetrue candidate6829455T/311B
+    profile_mixed_copy_weighted_test.go:160: sizetrue candidate7629940T/450B
+--- PASS: TestMixedCopyWeightedCompleteCaller (4.78s)
+=== RUN   TestMixedCopyWeightedApplicationRefusals
+=== RUN   TestMixedCopyWeightedApplicationRefusals/unknown_false
+=== RUN   TestMixedCopyWeightedApplicationRefusals/wrong_kind
+=== RUN   TestMixedCopyWeightedApplicationRefusals/preseed
+=== RUN   TestMixedCopyWeightedApplicationRefusals/prior_copy
+=== RUN   TestMixedCopyWeightedApplicationRefusals/stale
+=== RUN   TestMixedCopyWeightedApplicationRefusals/previous
+=== RUN   TestMixedCopyWeightedApplicationRefusals/copy_onto_weighted
+=== RUN   TestMixedCopyWeightedApplicationRefusals/duplicate
+--- PASS: TestMixedCopyWeightedApplicationRefusals (0.04s)
+    --- PASS: TestMixedCopyWeightedApplicationRefusals/unknown_false (0.00s)
+    --- PASS: TestMixedCopyWeightedApplicationRefusals/wrong_kind (0.00s)
+    --- PASS: TestMixedCopyWeightedApplicationRefusals/preseed (0.00s)
+    --- PASS: TestMixedCopyWeightedApplicationRefusals/prior_copy (0.00s)
+    --- PASS: TestMixedCopyWeightedApplicationRefusals/stale (0.00s)
+    --- PASS: TestMixedCopyWeightedApplicationRefusals/previous (0.00s)
+    --- PASS: TestMixedCopyWeightedApplicationRefusals/copy_onto_weighted (0.00s)
+    --- PASS: TestMixedCopyWeightedApplicationRefusals/duplicate (0.00s)
+=== RUN   TestMixedCopyWeightedSelectorFreshAndDimensions
+=== RUN   TestMixedCopyWeightedSelectorFreshAndDimensions/nil
+=== RUN   TestMixedCopyWeightedSelectorFreshAndDimensions/shared
+=== RUN   TestMixedCopyWeightedSelectorFreshAndDimensions/shared_ast
+=== RUN   TestMixedCopyWeightedSelectorFreshAndDimensions/prior_policy
+=== RUN   TestMixedCopyWeightedSelectorFreshAndDimensions/mutated_prior
+=== RUN   TestMixedCopyWeightedSelectorFreshAndDimensions/stale_source
+=== RUN   TestMixedCopyWeightedSelectorFreshAndDimensions/forged
+=== RUN   TestMixedCopyWeightedSelectorFreshAndDimensions/cap_two
+--- PASS: TestMixedCopyWeightedSelectorFreshAndDimensions (0.34s)
+    --- PASS: TestMixedCopyWeightedSelectorFreshAndDimensions/nil (0.00s)
+    --- PASS: TestMixedCopyWeightedSelectorFreshAndDimensions/shared (0.02s)
+    --- PASS: TestMixedCopyWeightedSelectorFreshAndDimensions/shared_ast (0.02s)
+    --- PASS: TestMixedCopyWeightedSelectorFreshAndDimensions/prior_policy (0.00s)
+    --- PASS: TestMixedCopyWeightedSelectorFreshAndDimensions/mutated_prior (0.09s)
+    --- PASS: TestMixedCopyWeightedSelectorFreshAndDimensions/stale_source (0.01s)
+    --- PASS: TestMixedCopyWeightedSelectorFreshAndDimensions/forged (0.01s)
+    --- PASS: TestMixedCopyWeightedSelectorFreshAndDimensions/cap_two (0.01s)
+=== RUN   TestMixedCopyWeightedTypedInternCaller
+    profile_mixed_copy_weighted_test.go:407: intern size=false mask0 1635072T/626B
+    profile_mixed_copy_weighted_test.go:407: intern size=false mask1 1184776T/758B
+    profile_mixed_copy_weighted_test.go:407: intern size=false mask2 1089098T/539B
+    profile_mixed_copy_weighted_test.go:407: intern size=false mask3 992839T/691B
+    profile_mixed_copy_weighted_test.go:407: intern size=false mask4 1604370T/761B
+    profile_mixed_copy_weighted_test.go:407: intern size=false mask5 1154074T/893B
+    profile_mixed_copy_weighted_test.go:407: intern size=false mask6 1058396T/674B
+    profile_mixed_copy_weighted_test.go:407: intern size=false mask7 962137T/826B
+    profile_mixed_copy_weighted_test.go:407: intern size=true mask0 1635072T/626B
+    profile_mixed_copy_weighted_test.go:407: intern size=true mask1 1184776T/758B
+    profile_mixed_copy_weighted_test.go:407: intern size=true mask2 1089098T/539B
+    profile_mixed_copy_weighted_test.go:407: intern size=true mask3 992839T/691B
+    profile_mixed_copy_weighted_test.go:407: intern size=true mask4 1604370T/761B
+    profile_mixed_copy_weighted_test.go:407: intern size=true mask5 1154074T/893B
+    profile_mixed_copy_weighted_test.go:407: intern size=true mask6 1058396T/674B
+    profile_mixed_copy_weighted_test.go:407: intern size=true mask7 962137T/826B
+--- PASS: TestMixedCopyWeightedTypedInternCaller (5.99s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	11.348s

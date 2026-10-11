@@ -1,0 +1,99 @@
+{
+  "binary_sha256": "e5b6ccb7eddd3e0dfb967a19cc6c23cddd44a8458ecd52a91a0c46681e72d49d",
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:399bc48ff1fe8abf708014192befaa683fcae9c8fd2a9f1288155dfe225df6fe",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+      "target_id": "module-target:1/model:cpm-z80-v1",
+      "workload_sha256": "b56931794a2a078b9768d09f4429c648e3bc37c780f79f1ac7f68410278cd334",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "/tmp/minz-grace-pgo-resume/examples/nanz/grace_intern_checked.nanz": "f8106be4e72bbebdb2d69b167243adf1bd93dbabbb3efd4d1afa73ad8bd62900",
+        "arena": "9c9b3365a5704fb1bbd5dbac227ecc2e878dedce86338eca2ec1278e21ac1a9e",
+        "input00": "bbeebd879e1dff6918546dc0c179fdde505f2a21591c9a9c96e36b054ec5af83",
+        "input01": "0fa35b0e024e82984bde38965e453c0cd5eed2357d9e6ea198275ec2a65bcbe9",
+        "input02": "a018f49ef7d333ee50b9860ed585a82074db2552057c85658d018cb250aa3a6d",
+        "input03": "0fa35b0e024e82984bde38965e453c0cd5eed2357d9e6ea198275ec2a65bcbe9",
+        "input04": "3ed93a442b5fa38f141f040ff640f6c5d9ef13a465c6cbfd02f389e8d0694fa0",
+        "input05": "5e2a28bba201f852ea96f159feedbaebc3376ca03ef51481ca0c2b90f84c9ea5",
+        "input06": "fbe7da592cf66f3a4ad08a2476c6d203ea8b52a705f44ab640345bd35f580548",
+        "input07": "3d8a98f4cb285c111d0a5485104e72b28323a3f14e0494c5bc58c98af65e78df",
+        "input08": "0fa35b0e024e82984bde38965e453c0cd5eed2357d9e6ea198275ec2a65bcbe9",
+        "input09": "3d8a98f4cb285c111d0a5485104e72b28323a3f14e0494c5bc58c98af65e78df",
+        "input10": "16b58c90ad4e1d8b401d92d833e4ed3c604fceb49c6edb99f17e92363a8ab189",
+        "input11": "ae620aa4f1bbe23523e8a79c6689ed02827c8acd1d118f341b029651baea025e",
+        "input12": "3ed93a442b5fa38f141f040ff640f6c5d9ef13a465c6cbfd02f389e8d0694fa0",
+        "input13": "bbeebd879e1dff6918546dc0c179fdde505f2a21591c9a9c96e36b054ec5af83",
+        "input14": "fbe7da592cf66f3a4ad08a2476c6d203ea8b52a705f44ab640345bd35f580548",
+        "input15": "40f076a9855c7441d26b6f4dc76cfee14ec442ca5c860c3821ec7f580c2f2fcc",
+        "input16": "40f076a9855c7441d26b6f4dc76cfee14ec442ca5c860c3821ec7f580c2f2fcc",
+        "input17": "2fd31081d262eada858875486ccf657f213b55b62ba1ef1f471f2f4f55c9c8c6",
+        "input18": "2fd31081d262eada858875486ccf657f213b55b62ba1ef1f471f2f4f55c9c8c6",
+        "input19": "12c079387cacd80613d2c658d66a0bd2af145b03d34935b5dab78ce450346699",
+        "input20": "8898ba6101b6d13044592e67e9b8e575d543299731ca43572c4efe77fae4a331",
+        "input21": "12c079387cacd80613d2c658d66a0bd2af145b03d34935b5dab78ce450346699",
+        "input22": "8898ba6101b6d13044592e67e9b8e575d543299731ca43572c4efe77fae4a331",
+        "input23": "0fa35b0e024e82984bde38965e453c0cd5eed2357d9e6ea198275ec2a65bcbe9",
+        "input24": "ae620aa4f1bbe23523e8a79c6689ed02827c8acd1d118f341b029651baea025e",
+        "input25": "bbeebd879e1dff6918546dc0c179fdde505f2a21591c9a9c96e36b054ec5af83",
+        "input26": "c4fda18d1c4344bd59eb4bbc9003c426d9f9ff84f9e552ab53c8fe8e9d80bf14",
+        "input27": "4310c1ae960979edbc13e5fbbeafe51b0816740fc5025c25af673f1642f5cada",
+        "input28": "c4fda18d1c4344bd59eb4bbc9003c426d9f9ff84f9e552ab53c8fe8e9d80bf14",
+        "input29": "40f076a9855c7441d26b6f4dc76cfee14ec442ca5c860c3821ec7f580c2f2fcc"
+      }
+    },
+    "hir_sha256": "fe3ae775629de51d6a50481f38d551a6defec5ccf9fb7bbb0febe3c0cebbe996",
+    "origins_sha256": "d450bc623232ef3aef987fb98408c60952c451b7d8aa1adfacb660f4b241862f"
+  },
+  "evidence_sha256": "ee15777168d471ec7ad041939ea86f6943ca14041818b49eed0e58c6b3b4ecdd",
+  "postcompile_proofs": {
+    "copy_proofs": [
+      {
+        "site_id": "1347de1b06d210410ff29c52124b0d3b4b083c633ee19f245fa57ec2d058c373",
+        "function": "copy_forward",
+        "enabled": false
+      }
+    ],
+    "weighted_proofs": [
+      {
+        "site_id": "4d5961876f6d0e28ca4c678bc05c4170df7e2088ab263d8257d8b40f293c1806",
+        "function": "weighted_checksum",
+        "scalar": true,
+        "pointer": false,
+        "weight_binding": "__grace_base_0"
+      }
+    ]
+  },
+  "proofs": {
+    "copy_proofs": [
+      {
+        "site_id": "1347de1b06d210410ff29c52124b0d3b4b083c633ee19f245fa57ec2d058c373",
+        "function": "copy_forward",
+        "enabled": false
+      }
+    ],
+    "weighted_proofs": [
+      {
+        "site_id": "4d5961876f6d0e28ca4c678bc05c4170df7e2088ab263d8257d8b40f293c1806",
+        "function": "weighted_checksum",
+        "scalar": true,
+        "pointer": false,
+        "weight_binding": "__grace_base_0"
+      }
+    ]
+  },
+  "requested_choices": {
+    "copy_sites": {
+      "1347de1b06d210410ff29c52124b0d3b4b083c633ee19f245fa57ec2d058c373": false
+    },
+    "weighted_scalar_sites": {
+      "4d5961876f6d0e28ca4c678bc05c4170df7e2088ab263d8257d8b40f293c1806": true
+    },
+    "weighted_pointer_sites": {
+      "4d5961876f6d0e28ca4c678bc05c4170df7e2088ab263d8257d8b40f293c1806": false
+    }
+  },
+  "schema": "minz.mixed-copy-weighted-site-decisions/v1",
+  "selected": 2
+}

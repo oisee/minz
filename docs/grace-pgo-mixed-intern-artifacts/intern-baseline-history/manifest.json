@@ -1,0 +1,170 @@
+{
+  "schema": "minz.artifact-manifest/v1",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 826,
+      "sha256": "e61b1d33a5a023136b98cf1b65d686b1d871056f1837e80c1693428ed7156c92"
+    },
+    {
+      "path": "after-fix/baseline-cost.json",
+      "bytes": 171,
+      "sha256": "b5f2c98e7842f667b99f93ec1c6a9bb56692bac78394e3f26198016b1b568e67"
+    },
+    {
+      "path": "after-fix/baseline.a80",
+      "bytes": 10028,
+      "sha256": "247dcfb3e3c2f02a2e7ef5416e9ebf2aa8049efa39d0141ab75bbee90516e41b"
+    },
+    {
+      "path": "after-fix/baseline.bin",
+      "bytes": 626,
+      "sha256": "a46b6f759f76b1cd8519e064536e4351ea43fd5b338ff9394dfbfd33cd053057"
+    },
+    {
+      "path": "after-fix/baseline.mir",
+      "bytes": 6375,
+      "sha256": "9d9275fbf4a14edb0ba47714ba0e9da47d7cb033afd513cc83be66dd0752b665"
+    },
+    {
+      "path": "after-fix/oracle.json.gz",
+      "bytes": 16972,
+      "sha256": "8d2d1cd0cffdd09bed96c3db5ce83be650bbbb8c79dbe80b25e4441e64e4af3d"
+    },
+    {
+      "path": "after-fix/raw.json.gz",
+      "bytes": 21892,
+      "sha256": "d54b668b12f650131f1bf84da8895d7ff8c937b215a96cb31a20d530b6c5cad9"
+    },
+    {
+      "path": "after-fix/source.nanz",
+      "bytes": 1435,
+      "sha256": "f8106be4e72bbebdb2d69b167243adf1bd93dbabbb3efd4d1afa73ad8bd62900"
+    },
+    {
+      "path": "after-fix/target.json.gz",
+      "bytes": 49418,
+      "sha256": "f215f87f58f4d5a103de0970a11cb7eda4497caa01bd5f756779f6aee0f812bf"
+    },
+    {
+      "path": "after-fix/workload.json",
+      "bytes": 16320,
+      "sha256": "e5fe7a7e9b269dfe68433e248b2076470fb5e53865739bd332b22b6e141aa1c3"
+    },
+    {
+      "path": "before-fix/baseline.a80",
+      "bytes": 9982,
+      "sha256": "aa4320cea135774f6d413c6c15bee34dcc9bc201db5c9c6e43bc8fd43fcea1cf"
+    },
+    {
+      "path": "before-fix/baseline.bin",
+      "bytes": 622,
+      "sha256": "91ff7c75c0ac4b01e5ffa76c36acc82ab5164481f0e338ae44138f20dcc5298c"
+    },
+    {
+      "path": "before-fix/baseline.mir",
+      "bytes": 6375,
+      "sha256": "9d9275fbf4a14edb0ba47714ba0e9da47d7cb033afd513cc83be66dd0752b665"
+    },
+    {
+      "path": "before-fix/failure.txt",
+      "bytes": 90,
+      "sha256": "0f79bcd1dd4f1d35ee2879c438a6dd32f799d19ab86eae4d977349185be81e9c"
+    },
+    {
+      "path": "before-fix/isolated-calls.json.gz",
+      "bytes": 11373,
+      "sha256": "82af97921a8ba4b6602cb7e77a88391ce5acfc130664abccd7f30d9b6648cb4d"
+    },
+    {
+      "path": "before-fix/oracle.json.gz",
+      "bytes": 16972,
+      "sha256": "8d2d1cd0cffdd09bed96c3db5ce83be650bbbb8c79dbe80b25e4441e64e4af3d"
+    },
+    {
+      "path": "before-fix/raw.json.gz",
+      "bytes": 21890,
+      "sha256": "d971677d235acd2ae32e49810aefcd6e034790c5b4fbc4bb9bfd42dd08ca0f2e"
+    },
+    {
+      "path": "before-fix/source.nanz",
+      "bytes": 1435,
+      "sha256": "f8106be4e72bbebdb2d69b167243adf1bd93dbabbb3efd4d1afa73ad8bd62900"
+    },
+    {
+      "path": "before-fix/target.json",
+      "bytes": 4,
+      "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    },
+    {
+      "path": "before-fix/workload.json",
+      "bytes": 16320,
+      "sha256": "e5fe7a7e9b269dfe68433e248b2076470fb5e53865739bd332b22b6e141aa1c3"
+    },
+    {
+      "path": "minz-intern-backend.patch",
+      "bytes": 5816,
+      "sha256": "aa0f4298f4ebe92a12d4c50707ed751f0bff631b8e6135dfe717c99ebe7e106a"
+    },
+    {
+      "path": "minz-intern-fixed-baseline.txt",
+      "bytes": 243,
+      "sha256": "8247db24da9a5681d6a7b0a0e21a310195c99083d21e62f423ac9bde44d32af1"
+    },
+    {
+      "path": "minz-intern-focused-legacy-final.txt",
+      "bytes": 48,
+      "sha256": "541a73cf2f5e5644a1b197e6f716a1b4fe0c7dd25b8c02eb7254ae902452cc93"
+    },
+    {
+      "path": "minz-intern-hir-mir2-final.txt",
+      "bytes": 85,
+      "sha256": "94eb396f216e2463443e5c6683400a41884820ab32535a00ff5148dabc629f59"
+    },
+    {
+      "path": "minz-intern-mir2-tsmc-final.txt",
+      "bytes": 43,
+      "sha256": "13cf360d930ad9fb4df85daf653cc76fce460f3496970ea4d53c052e0758c4ef"
+    },
+    {
+      "path": "minz-intern-program-baseline.txt",
+      "bytes": 284,
+      "sha256": "bff5e0629b0430d366faca886fdc1d396fb04f168781fd6b21041b367c66a521"
+    },
+    {
+      "path": "minz-intern-spill-regression.txt",
+      "bytes": 43,
+      "sha256": "1cb078e3fcf161e992522125251258ae90cf06fbc51423ef2982f3d4b51252ff"
+    },
+    {
+      "path": "minz-intern-spill-review.md",
+      "bytes": 2649,
+      "sha256": "9440a674b5614ae6e2113248d999435392e6c76c6840d99b6267ccb8ec54c6b3"
+    },
+    {
+      "path": "source/examples/nanz/grace_intern_checked.nanz",
+      "bytes": 1435,
+      "sha256": "f8106be4e72bbebdb2d69b167243adf1bd93dbabbb3efd4d1afa73ad8bd62900"
+    },
+    {
+      "path": "source/minzc/pkg/mir2/z80codegen_copy.go",
+      "bytes": 16052,
+      "sha256": "be20413b514f44d7ba2505029e478f8036c6c2b77f109c8f61d059088e249d2a"
+    },
+    {
+      "path": "source/minzc/pkg/mir2/z80codegen_move.go",
+      "bytes": 28488,
+      "sha256": "899574e80a9c8edbe4583b3b79aba06c6571339e3f7682742b3ef06404cef1e0"
+    },
+    {
+      "path": "source/minzc/pkg/mir2/z80codegen_spill_copy_live_test.go",
+      "bytes": 3809,
+      "sha256": "8f1c025d40bd86a7a4f5fef6e6dbb8aeaba65ca2639d84988ab3ee486c6f60db"
+    },
+    {
+      "path": "source/minzc/pkg/pipeline/intern_program_test.go",
+      "bytes": 7808,
+      "sha256": "9cc429e4bee79f0aec22d27b9c5dec61543a8d992d331c84ed201e58b64064fc"
+    }
+  ]
+}

@@ -747,9 +747,12 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 		}
 		// Spill-to-spill: route through HL.
 		if isSpill(src) && isSpill(dst) {
+			// HL is implicit scratch, not a defined MIR destination. Preserve
+			// a live pointer (including a later argument shuffle source).
+			g.emit("    PUSH HL")
 			g.emitf("    LD HL, (%s)", src)
 			g.emitf("    LD (%s), HL", dst)
-			g.invalidate("HL")
+			g.emit("    POP HL")
 			break
 		}
 		// LocMem spill slot → register pair: use LD rr, (nn).

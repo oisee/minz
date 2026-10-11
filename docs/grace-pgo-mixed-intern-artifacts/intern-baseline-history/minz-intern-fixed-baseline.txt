@@ -1,0 +1,5 @@
+=== RUN   TestTypedInternCheckedProgramBaseline
+    intern_program_test.go:219: internbaseline30calls1635072T/626B finalbump559 hits15
+--- PASS: TestTypedInternCheckedProgramBaseline (0.24s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.255s

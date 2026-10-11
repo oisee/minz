@@ -1,0 +1,22 @@
+=== RUN   TestMixedCopyWeightedApplicationRefusals
+=== RUN   TestMixedCopyWeightedApplicationRefusals/unknown_false
+=== RUN   TestMixedCopyWeightedApplicationRefusals/wrong_kind
+=== RUN   TestMixedCopyWeightedApplicationRefusals/preseed
+=== RUN   TestMixedCopyWeightedApplicationRefusals/prior_copy
+=== RUN   TestMixedCopyWeightedApplicationRefusals/stale
+=== RUN   TestMixedCopyWeightedApplicationRefusals/previous
+=== RUN   TestMixedCopyWeightedApplicationRefusals/copy_onto_weighted
+=== RUN   TestMixedCopyWeightedApplicationRefusals/duplicate
+=== RUN   TestMixedCopyWeightedApplicationRefusals/caller_body
+--- PASS: TestMixedCopyWeightedApplicationRefusals (0.02s)
+    --- PASS: TestMixedCopyWeightedApplicationRefusals/unknown_false (0.00s)
+    --- PASS: TestMixedCopyWeightedApplicationRefusals/wrong_kind (0.00s)
+    --- PASS: TestMixedCopyWeightedApplicationRefusals/preseed (0.00s)
+    --- PASS: TestMixedCopyWeightedApplicationRefusals/prior_copy (0.00s)
+    --- PASS: TestMixedCopyWeightedApplicationRefusals/stale (0.00s)
+    --- PASS: TestMixedCopyWeightedApplicationRefusals/previous (0.00s)
+    --- PASS: TestMixedCopyWeightedApplicationRefusals/copy_onto_weighted (0.00s)
+    --- PASS: TestMixedCopyWeightedApplicationRefusals/duplicate (0.00s)
+    --- PASS: TestMixedCopyWeightedApplicationRefusals/caller_body (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.029s

@@ -1,0 +1,3 @@
+ok  	github.com/minz/minzc/pkg/hir	7.930s
+ok  	github.com/minz/minzc/pkg/mir2	3.949s
+ok  	github.com/minz/minzc/pkg/nanz	1.775s

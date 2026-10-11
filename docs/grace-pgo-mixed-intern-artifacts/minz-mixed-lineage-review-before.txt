@@ -1,0 +1,5 @@
+clean proof: <nil>
+marker moved from while to return proof: <nil>
+unattributed while=true return marker={SiteID:6579884b945ad5048f4a6aae351bb52f2c5d71da6acc6cb403d158f82c9d8108 Role:original Rule: PreviousRule:}
+source unmappedloops=1 proof=<nil>
+two ordinary loop markers swapped proof: <nil>

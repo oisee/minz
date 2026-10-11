@@ -1,0 +1,168 @@
+{
+  "status": "PASS",
+  "independent_pascal_intern_oracle": true,
+  "calls": 30,
+  "candidate_forms_checked": 96,
+  "candidate_calls_checked": 2880,
+  "exact_resources_and_globals_traffic": true,
+  "final_bump": 559,
+  "final_hits": 15,
+  "objectives": [
+    {
+      "mode": "selector-speed",
+      "size": false,
+      "selected": 7,
+      "costs_t_states_bytes": [
+        [
+          1635072,
+          626
+        ],
+        [
+          1184776,
+          758
+        ],
+        [
+          1089098,
+          539
+        ],
+        [
+          992839,
+          691
+        ],
+        [
+          1604370,
+          761
+        ],
+        [
+          1154074,
+          893
+        ],
+        [
+          1058396,
+          674
+        ],
+        [
+          962137,
+          826
+        ]
+      ]
+    },
+    {
+      "mode": "selector-size",
+      "size": true,
+      "selected": 2,
+      "costs_t_states_bytes": [
+        [
+          1635072,
+          626
+        ],
+        [
+          1184776,
+          758
+        ],
+        [
+          1089098,
+          539
+        ],
+        [
+          992839,
+          691
+        ],
+        [
+          1604370,
+          761
+        ],
+        [
+          1154074,
+          893
+        ],
+        [
+          1058396,
+          674
+        ],
+        [
+          962137,
+          826
+        ]
+      ]
+    },
+    {
+      "mode": "cli-speed",
+      "size": false,
+      "selected": 7,
+      "costs_t_states_bytes": [
+        [
+          1635072,
+          626
+        ],
+        [
+          1184776,
+          758
+        ],
+        [
+          1089098,
+          539
+        ],
+        [
+          992839,
+          691
+        ],
+        [
+          1604370,
+          761
+        ],
+        [
+          1154074,
+          893
+        ],
+        [
+          1058396,
+          674
+        ],
+        [
+          962137,
+          826
+        ]
+      ]
+    },
+    {
+      "mode": "cli-size",
+      "size": true,
+      "selected": 2,
+      "costs_t_states_bytes": [
+        [
+          1635072,
+          626
+        ],
+        [
+          1184776,
+          758
+        ],
+        [
+          1089098,
+          539
+        ],
+        [
+          992839,
+          691
+        ],
+        [
+          1604370,
+          761
+        ],
+        [
+          1154074,
+          893
+        ],
+        [
+          1058396,
+          674
+        ],
+        [
+          962137,
+          826
+        ]
+      ]
+    }
+  ]
+}

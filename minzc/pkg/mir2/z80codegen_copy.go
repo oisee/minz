@@ -471,10 +471,20 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 			g.emitLD8(dst, src)
 		}
 	} else if isSpill(src) && isSpill(dst) {
-		// Spill-to-spill: route through HL.
+		// Spill-to-spill: HL is scratch. A TSMC destination additionally
+		// uses A while patching immediate bytes; preserve both live sources.
+		tsmcDestination := g.tsmcPairByAddr(dst) != nil
+		if tsmcDestination {
+			g.emit("    PUSH AF")
+		}
+		g.emit("    PUSH HL")
 		g.loadSpill16("HL", src)
 		g.storeSpill16(dst, "HL")
-		g.invalidate("HL")
+		g.emit("    POP HL")
+		if tsmcDestination {
+			g.emit("    POP AF")
+			g.invalidate("A")
+		}
 	} else if isSpill(src) {
 		// LocMem spill → register: use loadSpill16 (handles TSMC).
 		if isPairReg(dst) {

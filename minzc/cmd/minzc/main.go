@@ -235,6 +235,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&hirProfileSiteRules, "hir-profile-site-rules", false, "Cross constant-if choices with --hir-profile-invariant-sites (up to 32 measured variants)")
 	rootCmd.Flags().BoolVar(&hirProfileJointSites, "hir-profile-joint-sites", false, "Jointly measure pointer-walk, scalar source-site hoists and constant-if (up to 32 variants)")
 	rootCmd.Flags().BoolVar(&hirProfileForwardCopySites, "hir-profile-forward-copy-sites", false, "Measure exact forward byte-copy sites with --hir-profile-joint (up to 16 variants)")
+	rootCmd.Flags().BoolVar(&hirProfileMixedCopyWeightedSites, "hir-profile-mixed-copy-weighted-sites", false, "Measure exact copy and weighted checksum choices with --hir-profile-joint (up to 16 variants)")
 	rootCmd.Flags().BoolVar(&hirProfileWeightedSites, "hir-profile-weighted-sites", false, "Permit verified weighted checksum composition with --hir-profile-joint-sites")
 	rootCmd.Flags().StringVar(&hirProfileAutoDirectory, "hir-profile-auto", "", "collect, measure full u8 sum domain and compile; save evidence in directory")
 	rootCmd.Flags().StringVar(&hirProfileAutoFunction, "hir-profile-function", "", "exact sum function to measure with --hir-profile-auto")
@@ -1109,7 +1110,7 @@ func compileViaHIR(sourceFile string) error {
 				return err
 			}
 		}
-		if !hirProfileForwardCopySites {
+		if !hirProfileForwardCopySites && !hirProfileMixedCopyWeightedSites {
 			if err := writeHIRProfileJSON(filepath.Join(hirProfileAutoDirectory, "decisions.json"), steps.ProfileDecisions); err != nil {
 				return err
 			}

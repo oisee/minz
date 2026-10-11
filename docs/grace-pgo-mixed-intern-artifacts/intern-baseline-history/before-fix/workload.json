@@ -1,0 +1,739 @@
+{
+  "exact_data_access": true,
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 4000000,
+  "max_memory": 65536,
+  "resources": {
+    "arena": "paWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaWlpaU=",
+    "input00": "Wg==",
+    "input01": "ZnVuWg==",
+    "input02": "Zm5a",
+    "input03": "ZnVuWg==",
+    "input04": "ZnVtWg==",
+    "input05": "Zm9uWg==",
+    "input06": "cmV0dXJuWg==",
+    "input07": "dmFyWg==",
+    "input08": "ZnVuWg==",
+    "input09": "dmFyWg==",
+    "input10": "ZnVa",
+    "input11": "ZnVublo=",
+    "input12": "ZnVtWg==",
+    "input13": "Wg==",
+    "input14": "cmV0dXJuWg==",
+    "input15": "CzBVep/E6Q4zWH2ix+wRNluApcrvFDleg6jN8hc8YYar0PUaP2SJrtP4HUJnjLHW+yBFao+02f4jSG2St9wBJktwlbrfBClOc5i94gcsUXabwOUKL1R5nsPoDTJXfKHG6xA1Wn+kye4TOF2Cp8zxFjtgharP9Bk+Y4it0vccQWaLsNX6H0RpjrPY/SJHbJG22wAlSm+Uud4DKE1yl7zhBitQdZq/5AkuU3idwucMMVZ7oMXqDzRZfqPI7RI3XIGmy/AVOl+Eqc7zGD1ih6zR9htAZYqv1PkeQ2iNstf8IUZrkLXa/yRJbpO43QInTHGWu+AFKk90mb7jCC1Sd5zBWg==",
+    "input16": "CzBVep/E6Q4zWH2ix+wRNluApcrvFDleg6jN8hc8YYar0PUaP2SJrtP4HUJnjLHW+yBFao+02f4jSG2St9wBJktwlbrfBClOc5i94gcsUXabwOUKL1R5nsPoDTJXfKHG6xA1Wn+kye4TOF2Cp8zxFjtgharP9Bk+Y4it0vccQWaLsNX6H0RpjrPY/SJHbJG22wAlSm+Uud4DKE1yl7zhBitQdZq/5AkuU3idwucMMVZ7oMXqDzRZfqPI7RI3XIGmy/AVOl+Eqc7zGD1ih6zR9htAZYqv1PkeQ2iNstf8IUZrkLXa/yRJbpO43QInTHGWu+AFKk90mb7jCC1Sd5zBWg==",
+    "input17": "CzBVep/E6Q4zWH2ix+wRNluApcrvFDleg6jN8hc8YYar0PUaP2SJrtP4HUJnjLHW+yBFao+02f4jSG2St9wBJktwlbrfBClOc5i94gcsUXabwOUKL1R5nsPoDTJXfKHG6xA1Wn+kye4TOF2Cp8zxFjtgharP9Bk+Y4it0vccQeaLsNX6H0RpjrPY/SJHbJG22wAlSm+Uud4DKE1yl7zhBitQdZq/5AkuU3idwucMMVZ7oMXqDzRZfqPI7RI3XIGmy/AVOl+Eqc7zGD1ih6zR9htAZYqv1PkeQ2iNstf8IUZrkLXa/yRJbpO43QInTHGWu+AFKk90mb7jCC1Sd5zBWg==",
+    "input18": "CzBVep/E6Q4zWH2ix+wRNluApcrvFDleg6jN8hc8YYar0PUaP2SJrtP4HUJnjLHW+yBFao+02f4jSG2St9wBJktwlbrfBClOc5i94gcsUXabwOUKL1R5nsPoDTJXfKHG6xA1Wn+kye4TOF2Cp8zxFjtgharP9Bk+Y4it0vccQeaLsNX6H0RpjrPY/SJHbJG22wAlSm+Uud4DKE1yl7zhBitQdZq/5AkuU3idwucMMVZ7oMXqDzRZfqPI7RI3XIGmy/AVOl+Eqc7zGD1ih6zR9htAZYqv1PkeQ2iNstf8IUZrkLXa/yRJbpO43QInTHGWu+AFKk90mb7jCC1Sd5zBWg==",
+    "input19": "AFo=",
+    "input20": "/1o=",
+    "input21": "AFo=",
+    "input22": "/1o=",
+    "input23": "ZnVuWg==",
+    "input24": "ZnVublo=",
+    "input25": "Wg==",
+    "input26": "YWJjWg==",
+    "input27": "YWJkWg==",
+    "input28": "YWJjWg==",
+    "input29": "CzBVep/E6Q4zWH2ix+wRNluApcrvFDleg6jN8hc8YYar0PUaP2SJrtP4HUJnjLHW+yBFao+02f4jSG2St9wBJktwlbrfBClOc5i94gcsUXabwOUKL1R5nsPoDTJXfKHG6xA1Wn+kye4TOF2Cp8zxFjtgharP9Bk+Y4it0vccQWaLsNX6H0RpjrPY/SJHbJG22wAlSm+Uud4DKE1yl7zhBitQdZq/5AkuU3idwucMMVZ7oMXqDzRZfqPI7RI3XIGmy/AVOl+Eqc7zGD1ih6zR9htAZYqv1PkeQ2iNstf8IUZrkLXa/yRJbpO43QInTHGWu+AFKk90mb7jCC1Sd5zBWg=="
+  },
+  "globals": {
+    "intern_bump": "AAA=",
+    "intern_calls": "+g==",
+    "intern_checksum": "AAA=",
+    "intern_hits": "AA==",
+    "intern_last": "AAA="
+  },
+  "calls": [
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input00"
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 2
+        },
+        {
+          "value": 65500
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input01"
+        },
+        {
+          "value": 3
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 65501
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input02"
+        },
+        {
+          "value": 2
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 257
+        },
+        {
+          "value": 65502
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input03"
+        },
+        {
+          "value": 3
+        },
+        {
+          "value": 65530
+        },
+        {
+          "value": 17
+        },
+        {
+          "value": 65503
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input04"
+        },
+        {
+          "value": 3
+        },
+        {
+          "value": 12345
+        },
+        {
+          "value": 54321
+        },
+        {
+          "value": 65504
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input05"
+        },
+        {
+          "value": 3
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 2
+        },
+        {
+          "value": 65505
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input06"
+        },
+        {
+          "value": 6
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 65506
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input07"
+        },
+        {
+          "value": 3
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 257
+        },
+        {
+          "value": 65507
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input08"
+        },
+        {
+          "value": 3
+        },
+        {
+          "value": 65530
+        },
+        {
+          "value": 17
+        },
+        {
+          "value": 65508
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input09"
+        },
+        {
+          "value": 3
+        },
+        {
+          "value": 12345
+        },
+        {
+          "value": 54321
+        },
+        {
+          "value": 65509
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input10"
+        },
+        {
+          "value": 2
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 2
+        },
+        {
+          "value": 65510
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input11"
+        },
+        {
+          "value": 4
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 65511
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input12"
+        },
+        {
+          "value": 3
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 257
+        },
+        {
+          "value": 65512
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input13"
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 65530
+        },
+        {
+          "value": 17
+        },
+        {
+          "value": 65513
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input14"
+        },
+        {
+          "value": 6
+        },
+        {
+          "value": 12345
+        },
+        {
+          "value": 54321
+        },
+        {
+          "value": 65514
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input15"
+        },
+        {
+          "value": 255
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 2
+        },
+        {
+          "value": 65515
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input16"
+        },
+        {
+          "value": 255
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 65516
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input17"
+        },
+        {
+          "value": 255
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 257
+        },
+        {
+          "value": 65517
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input18"
+        },
+        {
+          "value": 255
+        },
+        {
+          "value": 65530
+        },
+        {
+          "value": 17
+        },
+        {
+          "value": 65518
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input19"
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 12345
+        },
+        {
+          "value": 54321
+        },
+        {
+          "value": 65519
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input20"
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 2
+        },
+        {
+          "value": 65520
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input21"
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 65521
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input22"
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 257
+        },
+        {
+          "value": 65522
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input23"
+        },
+        {
+          "value": 3
+        },
+        {
+          "value": 65530
+        },
+        {
+          "value": 17
+        },
+        {
+          "value": 65523
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input24"
+        },
+        {
+          "value": 4
+        },
+        {
+          "value": 12345
+        },
+        {
+          "value": 54321
+        },
+        {
+          "value": 65524
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input25"
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 2
+        },
+        {
+          "value": 65525
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input26"
+        },
+        {
+          "value": 3
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 65526
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input27"
+        },
+        {
+          "value": 3
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 257
+        },
+        {
+          "value": 65527
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input28"
+        },
+        {
+          "value": 3
+        },
+        {
+          "value": 65530
+        },
+        {
+          "value": 17
+        },
+        {
+          "value": 65528
+        }
+      ]
+    },
+    {
+      "function": "intern_checked",
+      "arguments": [
+        {
+          "resource": "arena"
+        },
+        {
+          "resource": "input29"
+        },
+        {
+          "value": 255
+        },
+        {
+          "value": 12345
+        },
+        {
+          "value": 54321
+        },
+        {
+          "value": 65529
+        }
+      ]
+    }
+  ]
+}

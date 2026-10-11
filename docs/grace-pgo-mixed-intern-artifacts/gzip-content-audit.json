@@ -1,0 +1,70 @@
+{
+  "status": "PASS",
+  "files": [
+    {
+      "path": "cli/size/joint-evidence.json.gz",
+      "uncompressed_bytes": 118897702,
+      "uncompressed_sha256": "ce5fa8c2ae97852c53162cd1a77a148e34259e6a06ad6fc34c05ea5e27981ced"
+    },
+    {
+      "path": "cli/size/run.json.gz",
+      "uncompressed_bytes": 3371887,
+      "uncompressed_sha256": "1891fb5e01be1ff0bde17a41b8e4bfa5895a6962ab1e9e8ca762d93f3bc26dcb"
+    },
+    {
+      "path": "cli/speed/joint-evidence.json.gz",
+      "uncompressed_bytes": 118897703,
+      "uncompressed_sha256": "6dd55fc858fce1fa8c668b956d3148d7977e7526c1ceb8d68495d99750466437"
+    },
+    {
+      "path": "cli/speed/run.json.gz",
+      "uncompressed_bytes": 3371887,
+      "uncompressed_sha256": "1891fb5e01be1ff0bde17a41b8e4bfa5895a6962ab1e9e8ca762d93f3bc26dcb"
+    },
+    {
+      "path": "intern-baseline-history/after-fix/oracle.json.gz",
+      "uncompressed_bytes": 2473303,
+      "uncompressed_sha256": "9ecaa1ed8d9e3e106575bedf549d7621a8abce8c70f5fa45a1e341c0a4cc0999"
+    },
+    {
+      "path": "intern-baseline-history/after-fix/raw.json.gz",
+      "uncompressed_bytes": 3371796,
+      "uncompressed_sha256": "f922589d7b219a00ad54047e570288a78069eb5345ba0eda4b5f66cc364c121b"
+    },
+    {
+      "path": "intern-baseline-history/after-fix/target.json.gz",
+      "uncompressed_bytes": 3801859,
+      "uncompressed_sha256": "5c24aa5ac3e938930d5544bb1621f91d608e1793ccb88721af638ae7b6ed795d"
+    },
+    {
+      "path": "intern-baseline-history/before-fix/isolated-calls.json.gz",
+      "uncompressed_bytes": 500386,
+      "uncompressed_sha256": "cd62542ebeb057e9d5dd19eac1971b4df64493ca8d77594a59fa1531e69b04b1"
+    },
+    {
+      "path": "intern-baseline-history/before-fix/oracle.json.gz",
+      "uncompressed_bytes": 2473303,
+      "uncompressed_sha256": "9ecaa1ed8d9e3e106575bedf549d7621a8abce8c70f5fa45a1e341c0a4cc0999"
+    },
+    {
+      "path": "intern-baseline-history/before-fix/raw.json.gz",
+      "uncompressed_bytes": 3371796,
+      "uncompressed_sha256": "a516f3b91f8843f6d6d9caf7d594aaef3418cb934194ecc06f57b844c03c8281"
+    },
+    {
+      "path": "selector/oracle.json.gz",
+      "uncompressed_bytes": 2473303,
+      "uncompressed_sha256": "9ecaa1ed8d9e3e106575bedf549d7621a8abce8c70f5fa45a1e341c0a4cc0999"
+    },
+    {
+      "path": "selector/size-false-evidence.json.gz",
+      "uncompressed_bytes": 118897164,
+      "uncompressed_sha256": "5c40ebed5d9ef131d2c6d158f357685f87b7d04d667b57f9a5b29000362c47ec"
+    },
+    {
+      "path": "selector/size-true-evidence.json.gz",
+      "uncompressed_bytes": 118897163,
+      "uncompressed_sha256": "f67d7fabca03d32d76c95206c1841e6cf586c1bd8ae3f5616a0606c635fef8ec"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+=== RUN   TestTypedInternCheckedProgramBaseline
+    intern_program_test.go:204: Z80 profile workload: invocation 1: line 0: assert "" [z80]: return[0] got 65501, want 294
+--- FAIL: TestTypedInternCheckedProgramBaseline (1.74s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	1.751s
+FAIL

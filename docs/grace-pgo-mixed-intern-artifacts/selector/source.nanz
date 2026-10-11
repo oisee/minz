@@ -1,0 +1,61 @@
+// Typed port of self_tokenizer.nanz str_len/region_eq/intern allocation logic.
+// Arena/source pointers are caller resources; persistent bump is a u16 offset.
+// Capacity is supplied by the bounded workload. No external peek/poke hosts.
+ global intern_bump:u16=0
+ global intern_calls:u8=250
+ global intern_hits:u8=0
+ global intern_last:u16=0
+ global intern_checksum:u16=0
+
+ fun copy_forward(dst:^u8,src:^u8,n:u8)->u8 {
+ var i:u8=0
+ while i<n {dst[i]=src[i]
+ i=i+1}
+ return i
+ }
+
+ fun weighted_checksum(ptr:^u8,n:u8,a:u16,b:u16,seed:u16)->u16 {
+ var sum:u16=seed
+ var i:u8=0
+ while i<n {sum=sum+(a+b)
+ sum=sum+u16(ptr[i])
+ i=i+1}
+ return sum
+ }
+
+ fun region_eq(src:^u8,arena:^u8,offset:u16,len:u8)->u8 {
+ var i:u8=0
+ while i<len {
+ if src[i]!=arena[offset+1+u16(i)] {return 0}
+ i=i+1
+ }
+ return 1
+ }
+
+ fun intern(arena:^u8,src:^u8,len:u8)->u16 {
+ var p:u16=0
+ while p<intern_bump {
+ var slen:u8=arena[p]
+ if slen==len {
+ if region_eq(src,arena,p,len)==1 {
+ intern_hits=intern_hits+1
+ return p
+ }
+ }
+ p=p+1+u16(slen)
+ }
+ var new_p:u16=intern_bump
+ arena[new_p]=len
+ var copied:u8=copy_forward(arena+new_p+1,src,len)
+ intern_bump=intern_bump+1+u16(copied)
+ return new_p
+ }
+
+ fun intern_checked(arena:^u8,src:^u8,len:u8,a:u16,b:u16,seed:u16)->u16 {
+ var offset:u16=intern(arena,src,len)
+ var value:u16=weighted_checksum(arena+offset+1,len,a,b,seed)
+ intern_calls=intern_calls+1
+ intern_last=offset
+ intern_checksum=value
+ return value
+ }
