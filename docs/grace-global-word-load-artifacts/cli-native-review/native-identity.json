@@ -1,0 +1,6 @@
+{
+  "executable": "/home/alice/dev/minz-artifacts/grace-checkpoints/minzc-global-word-load-production",
+  "sha256": "dba34fdc489d4fa00f985bff82952076f8de8f68488999dfe98364af242c9ca5",
+  "source_file": "../examples/nanz/self_lanz_parser.nanz",
+  "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+}

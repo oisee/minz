@@ -1,0 +1,186 @@
+{
+  "speed": {
+    "intern_region/body/s1": [
+      40,
+      156
+    ],
+    "skip_ws/body/s1/then/s0": [
+      4,
+      25
+    ],
+    "main/body/s2": [
+      0,
+      0
+    ],
+    "parse_sexpr/body/s8/then/s2": [
+      9,
+      23
+    ],
+    "region_match/body/s1": [
+      49,
+      59
+    ],
+    "skip_ws/body/s0": [
+      153,
+      24
+    ],
+    "parse_sexpr/body/s5": [
+      51,
+      858
+    ],
+    "parse_sexpr/body/s3/then/s7": [
+      22,
+      27
+    ],
+    "intern_region/body/s5": [
+      13,
+      286
+    ],
+    "print_node/body/s4/then/s3": [
+      0,
+      0
+    ],
+    "print_str/body/s2": [
+      0,
+      0
+    ]
+  },
+  "size": {
+    "intern_region/body/s1": [
+      40,
+      156
+    ],
+    "skip_ws/body/s1/then/s0": [
+      4,
+      25
+    ],
+    "main/body/s2": [
+      0,
+      0
+    ],
+    "parse_sexpr/body/s8/then/s2": [
+      9,
+      23
+    ],
+    "region_match/body/s1": [
+      49,
+      59
+    ],
+    "skip_ws/body/s0": [
+      153,
+      24
+    ],
+    "parse_sexpr/body/s5": [
+      51,
+      858
+    ],
+    "parse_sexpr/body/s3/then/s7": [
+      22,
+      27
+    ],
+    "intern_region/body/s5": [
+      13,
+      286
+    ],
+    "print_node/body/s4/then/s3": [
+      0,
+      0
+    ],
+    "print_str/body/s2": [
+      0,
+      0
+    ]
+  },
+  "small-collect": {
+    "intern_region/body/s1": [
+      1,
+      0
+    ],
+    "skip_ws/body/s1/then/s0": [
+      0,
+      0
+    ],
+    "main/body/s2": [
+      0,
+      0
+    ],
+    "parse_sexpr/body/s8/then/s2": [
+      0,
+      0
+    ],
+    "region_match/body/s1": [
+      1,
+      0
+    ],
+    "skip_ws/body/s0": [
+      0,
+      0
+    ],
+    "parse_sexpr/body/s5": [
+      0,
+      0
+    ],
+    "parse_sexpr/body/s3/then/s7": [
+      0,
+      0
+    ],
+    "intern_region/body/s5": [
+      1,
+      0
+    ],
+    "print_node/body/s4/then/s3": [
+      0,
+      0
+    ],
+    "print_str/body/s2": [
+      0,
+      0
+    ]
+  },
+  "small-replay": {
+    "intern_region/body/s1": [
+      1,
+      0
+    ],
+    "skip_ws/body/s1/then/s0": [
+      0,
+      0
+    ],
+    "main/body/s2": [
+      0,
+      0
+    ],
+    "parse_sexpr/body/s8/then/s2": [
+      0,
+      0
+    ],
+    "region_match/body/s1": [
+      1,
+      0
+    ],
+    "skip_ws/body/s0": [
+      0,
+      0
+    ],
+    "parse_sexpr/body/s5": [
+      0,
+      0
+    ],
+    "parse_sexpr/body/s3/then/s7": [
+      0,
+      0
+    ],
+    "intern_region/body/s5": [
+      1,
+      0
+    ],
+    "print_node/body/s4/then/s3": [
+      0,
+      0
+    ],
+    "print_str/body/s2": [
+      0,
+      0
+    ]
+  }
+}

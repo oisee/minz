@@ -1,0 +1,9 @@
+Closed memory-host speed selected mask3: 1079636T / 2099B; evidence /home/alice/dev/minz-artifacts/grace-checkpoints/global-word-load-cli-evidence/speed
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag

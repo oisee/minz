@@ -1,0 +1,475 @@
+{
+  "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+  "executable_sha256": "dba34fdc489d4fa00f985bff82952076f8de8f68488999dfe98364af242c9ca5",
+  "candidate_audits": [
+    {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941",
+      "t_states": 1135370,
+      "bytes": 2000,
+      "str_bump": 37163,
+      "node_bump": 32808,
+      "case": "speed",
+      "goal": "speed",
+      "candidate": "original"
+    },
+    {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "2b5d02b0ba923a61604512e3b50e76ef3c6aa54b5cc13470c3f620d705a64fae",
+      "t_states": 1135211,
+      "bytes": 2121,
+      "str_bump": 37163,
+      "node_bump": 32808,
+      "case": "speed",
+      "goal": "speed",
+      "candidate": "arena"
+    },
+    {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975",
+      "t_states": 1079795,
+      "bytes": 1978,
+      "str_bump": 37163,
+      "node_bump": 32808,
+      "case": "speed",
+      "goal": "speed",
+      "candidate": "append"
+    },
+    {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "4bdce86bd7a724f34e7eee180e8a6530b07f33cadd39e7a1a93813df6c841c13",
+      "t_states": 1079636,
+      "bytes": 2099,
+      "str_bump": 37163,
+      "node_bump": 32808,
+      "case": "speed",
+      "goal": "speed",
+      "candidate": "both"
+    },
+    {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941",
+      "t_states": 1135370,
+      "bytes": 2000,
+      "str_bump": 37163,
+      "node_bump": 32808,
+      "case": "size",
+      "goal": "size",
+      "candidate": "original"
+    },
+    {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "2b5d02b0ba923a61604512e3b50e76ef3c6aa54b5cc13470c3f620d705a64fae",
+      "t_states": 1135211,
+      "bytes": 2121,
+      "str_bump": 37163,
+      "node_bump": 32808,
+      "case": "size",
+      "goal": "size",
+      "candidate": "arena"
+    },
+    {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975",
+      "t_states": 1079795,
+      "bytes": 1978,
+      "str_bump": 37163,
+      "node_bump": 32808,
+      "case": "size",
+      "goal": "size",
+      "candidate": "append"
+    },
+    {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "4bdce86bd7a724f34e7eee180e8a6530b07f33cadd39e7a1a93813df6c841c13",
+      "t_states": 1079636,
+      "bytes": 2099,
+      "str_bump": 37163,
+      "node_bump": 32808,
+      "case": "size",
+      "goal": "size",
+      "candidate": "both"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941",
+      "t_states": 604,
+      "bytes": 2000,
+      "str_bump": 32769,
+      "node_bump": 32768,
+      "case": "small-collect",
+      "goal": "speed",
+      "candidate": "original"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "2b5d02b0ba923a61604512e3b50e76ef3c6aa54b5cc13470c3f620d705a64fae",
+      "t_states": 583,
+      "bytes": 2121,
+      "str_bump": 32769,
+      "node_bump": 32768,
+      "case": "small-collect",
+      "goal": "speed",
+      "candidate": "arena"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975",
+      "t_states": 663,
+      "bytes": 1978,
+      "str_bump": 32769,
+      "node_bump": 32768,
+      "case": "small-collect",
+      "goal": "speed",
+      "candidate": "append"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "4bdce86bd7a724f34e7eee180e8a6530b07f33cadd39e7a1a93813df6c841c13",
+      "t_states": 642,
+      "bytes": 2099,
+      "str_bump": 32769,
+      "node_bump": 32768,
+      "case": "small-collect",
+      "goal": "speed",
+      "candidate": "both"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941",
+      "t_states": 604,
+      "bytes": 2000,
+      "str_bump": 32769,
+      "node_bump": 32768,
+      "case": "small-replay",
+      "goal": "speed",
+      "candidate": "original"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "2b5d02b0ba923a61604512e3b50e76ef3c6aa54b5cc13470c3f620d705a64fae",
+      "t_states": 583,
+      "bytes": 2121,
+      "str_bump": 32769,
+      "node_bump": 32768,
+      "case": "small-replay",
+      "goal": "speed",
+      "candidate": "arena"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975",
+      "t_states": 663,
+      "bytes": 1978,
+      "str_bump": 32769,
+      "node_bump": 32768,
+      "case": "small-replay",
+      "goal": "speed",
+      "candidate": "append"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "4bdce86bd7a724f34e7eee180e8a6530b07f33cadd39e7a1a93813df6c841c13",
+      "t_states": 642,
+      "bytes": 2099,
+      "str_bump": 32769,
+      "node_bump": 32768,
+      "case": "small-replay",
+      "goal": "speed",
+      "candidate": "both"
+    }
+  ],
+  "actual_decisions": [
+    {
+      "case": "speed",
+      "goal": "speed",
+      "selected": 3,
+      "candidate": "both",
+      "costs_t": [
+        1135370,
+        1135211,
+        1079795,
+        1079636
+      ],
+      "bytes": [
+        2000,
+        2121,
+        1978,
+        2099
+      ]
+    },
+    {
+      "case": "size",
+      "goal": "size",
+      "selected": 2,
+      "candidate": "append",
+      "costs_t": [
+        1135370,
+        1135211,
+        1079795,
+        1079636
+      ],
+      "bytes": [
+        2000,
+        2121,
+        1978,
+        2099
+      ]
+    },
+    {
+      "case": "small-collect",
+      "goal": "speed",
+      "selected": 1,
+      "candidate": "arena",
+      "costs_t": [
+        604,
+        583,
+        663,
+        642
+      ],
+      "bytes": [
+        2000,
+        2121,
+        1978,
+        2099
+      ]
+    },
+    {
+      "case": "small-replay",
+      "goal": "speed",
+      "selected": 1,
+      "candidate": "arena",
+      "costs_t": [
+        604,
+        583,
+        663,
+        642
+      ],
+      "bytes": [
+        2000,
+        2121,
+        1978,
+        2099
+      ]
+    }
+  ],
+  "independent_source_counts": {
+    "speed": {
+      "intern_region/body/s1": [
+        40,
+        156
+      ],
+      "skip_ws/body/s1/then/s0": [
+        4,
+        25
+      ],
+      "main/body/s2": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s8/then/s2": [
+        9,
+        23
+      ],
+      "region_match/body/s1": [
+        49,
+        59
+      ],
+      "skip_ws/body/s0": [
+        153,
+        24
+      ],
+      "parse_sexpr/body/s5": [
+        51,
+        858
+      ],
+      "parse_sexpr/body/s3/then/s7": [
+        22,
+        27
+      ],
+      "intern_region/body/s5": [
+        13,
+        286
+      ],
+      "print_node/body/s4/then/s3": [
+        0,
+        0
+      ],
+      "print_str/body/s2": [
+        0,
+        0
+      ]
+    },
+    "size": {
+      "intern_region/body/s1": [
+        40,
+        156
+      ],
+      "skip_ws/body/s1/then/s0": [
+        4,
+        25
+      ],
+      "main/body/s2": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s8/then/s2": [
+        9,
+        23
+      ],
+      "region_match/body/s1": [
+        49,
+        59
+      ],
+      "skip_ws/body/s0": [
+        153,
+        24
+      ],
+      "parse_sexpr/body/s5": [
+        51,
+        858
+      ],
+      "parse_sexpr/body/s3/then/s7": [
+        22,
+        27
+      ],
+      "intern_region/body/s5": [
+        13,
+        286
+      ],
+      "print_node/body/s4/then/s3": [
+        0,
+        0
+      ],
+      "print_str/body/s2": [
+        0,
+        0
+      ]
+    },
+    "small-collect": {
+      "intern_region/body/s1": [
+        1,
+        0
+      ],
+      "skip_ws/body/s1/then/s0": [
+        0,
+        0
+      ],
+      "main/body/s2": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s8/then/s2": [
+        0,
+        0
+      ],
+      "region_match/body/s1": [
+        1,
+        0
+      ],
+      "skip_ws/body/s0": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s5": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s3/then/s7": [
+        0,
+        0
+      ],
+      "intern_region/body/s5": [
+        1,
+        0
+      ],
+      "print_node/body/s4/then/s3": [
+        0,
+        0
+      ],
+      "print_str/body/s2": [
+        0,
+        0
+      ]
+    },
+    "small-replay": {
+      "intern_region/body/s1": [
+        1,
+        0
+      ],
+      "skip_ws/body/s1/then/s0": [
+        0,
+        0
+      ],
+      "main/body/s2": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s8/then/s2": [
+        0,
+        0
+      ],
+      "region_match/body/s1": [
+        1,
+        0
+      ],
+      "skip_ws/body/s0": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s5": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s3/then/s7": [
+        0,
+        0
+      ],
+      "intern_region/body/s5": [
+        1,
+        0
+      ],
+      "print_node/body/s4/then/s3": [
+        0,
+        0
+      ],
+      "print_str/body/s2": [
+        0,
+        0
+      ]
+    }
+  },
+  "same_executable_replay_equal": true
+}

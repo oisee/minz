@@ -1,0 +1,18 @@
+[
+  {
+    "run": "speed",
+    "exit_code": 0
+  },
+  {
+    "run": "size",
+    "exit_code": 0
+  },
+  {
+    "run": "small-collect",
+    "exit_code": 0
+  },
+  {
+    "run": "small-replay",
+    "exit_code": 0
+  }
+]
