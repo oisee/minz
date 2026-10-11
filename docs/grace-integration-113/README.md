@@ -1,0 +1,7 @@
+# Existing EXX u32 checks and their scope
+
+Roota3d40b48 existingMIR2 TestDWord_* /TestZ80U32CallerSpillSnapshot/TestAbsDiffU32Z80 PASS0.087s. ADD/SUB textualcodegenchecks requireEXX andADD/ADC/SBC but do not independently executeeverycase. AbsDiffU32 andcaller-spillsnapshot existingnativecases executeactualcode withboundaryvalues. This mixedcheckisnotproof ofcompleteu32arithmetic/rotateorSHA256. Newindependentprimitiveaudit explicitlyassignedseparately.
+
+CurrentgenBinOp32 mainHLlo/shadowH'L'hi andDE/D'E' addsequenceADDHLDE/EXX/ADCHLDE/EXX costs34T onlywhen operandsalreadyplaced; transfer/save/callcostadditional. EXX swapsBC/DE/HL banks butpreservesAFcarry. No u64implementationclaim. SHA256roundsuse32bitwords;64bitlengthneededonlypadding,SHA512uses64bitwords. Existingexamples/nanz/sha256.nanz is u16helperdemonstration, notfullhashproof. Nativegapinvestigationunderway.
+
+RetainedZ3 binarySHA54bae839dd54e262edac6f755fc99659ce2a121301faff20a3e3b94478dcead0 independentlymatched; wordMULnativepass106 uses thissolver. WholepublishedSitev65copyterminalverifiedin111. TaggedResultoriginalsource prospectivefreeze underway; Bigpipeline8bf live. Overallgoalactive.
