@@ -1,0 +1,13 @@
+{
+  "calls": [
+    {
+      "Entry": "compute",
+      "Expected": 25,
+      "Args": null
+    }
+  ],
+  "native_results": "GQ==",
+  "source_assertions": 1,
+  "source_path": "../../../reports/showcase-src/2026-03-14/ex24_import_qualified.nanz",
+  "source_sha256": "b30449883492a7617d62c6869cf3486eb3689af9b845ec21c28e7f395f087a51"
+}

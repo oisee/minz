@@ -1,0 +1,29 @@
+{
+  "base_commit": "da7c0684",
+  "files": {
+    "README.md": "f88a6ebf965fe73ac3ed5b4d28c53ff01161434f0703eeeff80b1ccd7c605174",
+    "catalog-test.txt": "1fc36d8c35449636f525de213883fe74b67876f91af4bbf57a123f631dba3295",
+    "catalog.json": "fad2cbbb293564bf886e6e20fd4164d6214c116bb01bfbe33c5eeff2da3b5b8b",
+    "checks.txt": "968c7aadaf9e0d22b370b72538aebedb256251a5e3d390ba14851405a48a742f",
+    "ex23_import_unqualified.nanz/oracle.json": "7db7a511c9770e3ebf51295cbe0cfed68c68dcefbfc75b5697201bf03dde3a58",
+    "ex23_import_unqualified.nanz/source.nanz": "e65c2a9ba21835cc3fa49ff1c235f0a48ac38d79baff815abde98f393b141df1",
+    "ex23_import_unqualified.nanz/target.a80": "d8947b49c366f0917f5c5d86934dfd47dd030b4440457227554ee57bb2cd4789",
+    "ex23_import_unqualified.nanz/target.bin": "ec9e3b47553b1caf4a058867342427e77193efa438a1619fe05aaf3f124ba102",
+    "ex24_import_qualified.nanz/oracle.json": "33a18a1e1d92d436a2fb9a6278b1e4e23e34a448a9c57327d3e830012c277b15",
+    "ex24_import_qualified.nanz/source.nanz": "b30449883492a7617d62c6869cf3486eb3689af9b845ec21c28e7f395f087a51",
+    "ex24_import_qualified.nanz/target.a80": "c0e4fa3c6c142023c4ac0be3b60b5deb867bde6eeb70469597ddb83b49d1def3",
+    "ex24_import_qualified.nanz/target.bin": "ec5e47387aa5278aebcf7134d69ec2e40c333a2982f9a8c7aad5b671a2ff0d7b",
+    "ex25_import_alias_glob.nanz/oracle.json": "c58ae6a549563abdc61067dfcb611879057a3178096b6d78377eff218793cee0",
+    "ex25_import_alias_glob.nanz/source.nanz": "3cde5e96496c6ca925ae2410043df8abeac49040e2e8262f25c20bd9584cd805",
+    "ex25_import_alias_glob.nanz/target.a80": "94c093ac0b032db4e5eb8a9a538b1169d552c34f096113c763abe2fded5fe35b",
+    "ex25_import_alias_glob.nanz/target.bin": "fd467b05f77e3a31f7119ceddff0c96a2b62b422035689ceeab74032876da191",
+    "ex28_pipe.nanz/oracle.json": "60295ed738805d1f590f3deeaff94408f08fe7af42cc1970a0ad92fcb94f15c9",
+    "ex28_pipe.nanz/source.nanz": "f1c25c6f70c1e5105813fe3a84ddef5f7b6fd54aa1915383cc2859d29c0101e4",
+    "ex28_pipe.nanz/target.a80": "4579560b1498bfb67a322f573958abc71b90c4a16f9ff3ee96cb1ca43a915da4",
+    "ex28_pipe.nanz/target.bin": "f57fe3aea64a0b12a27a549e8ebb710776e36c5253fb3bec5ab384c0599c29de",
+    "ops.nanz/oracle.json": "1d915dbefb0428e2874b2b6852f1a86a9bf2a5d49e54bfa1cc124bb9fb2a6fc2",
+    "ops.nanz/source.nanz": "f68ec5e20342396460f655a397aecd24cb36bb50767c77212ccf9306cc46f39c",
+    "ops.nanz/target.a80": "3416b6e653d39bff175b9474c4b6a4f4292f3aeae056c5781467210b5eb76d7e",
+    "ops.nanz/target.bin": "59e7b27add5a8e99cc0d986fc8b9911696d7bd904818f007919223a94625c842"
+  }
+}

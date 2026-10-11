@@ -1,0 +1,7 @@
+import mathlib.ops { add as plus, triple as tri }
+
+fun compute() -> u8 {
+    return plus(tri(3), 1)
+}
+
+assert compute() == 10
