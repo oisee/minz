@@ -1,0 +1,127 @@
+; MIR2 module: examples/tests/nanz_advantage_showcase.nanz
+global @vals : [5]u8
+
+fun @double(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = add %r1, %r1 : u8 [acc]
+    ret %r2
+
+fun @inc(%r3: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r4 = const 1 : u8 [general]
+    %r5 = add %r3, %r4 : u8 [acc]
+    ret %r5
+
+fun @square(%r6: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r7 = mul %r6, %r6 : u8 [general]
+    ret %r7
+
+fun @pipeline_demo() -> u8 [acc]
+  block @entry:
+    %r8 = const 49 : u8 [acc]
+    ret %r8
+
+fun @add_acc(%r9: u8 [acc], %r10: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r11 = add %r9, %r10 : u8 [acc]
+    ret %r11
+
+fun @sum_all() -> u8 [acc]
+  block @entry:
+    %r12 = const 0 : u8 [general]
+    %r13 = addr_of @vals : ptr [pointer]
+    %r14 = move %r13 : ptr [pointer]
+    %r15 = const 5 : u8 [general]
+    jmp @fe_body1(%r15, %r14, %r12)
+  block @fe_body1(%r16: u8 [counter], %r14: ptr [pointer], %r12: u8 [general]):
+    %r19 = load %r14 : u8 [general]
+    %r20 = add %r12, %r19 : u8 [general]
+    %r21 = ptr_bump %r14, +1 : ptr [pointer]
+    djnz %r16, @fe_body1(%r21, %r20), @fe_exit2(%r20)
+  block @fe_exit2(%r20: u8 [general]):
+    ret %r20
+
+fun @sum_plus_offset() -> u8 [acc]
+  block @entry:
+    %r23 = const 0 : u8 [general]
+    %r24 = addr_of @vals : ptr [pointer]
+    %r25 = move %r24 : ptr [pointer]
+    %r26 = const 5 : u8 [general]
+    jmp @fe_body1(%r26, %r25, %r23)
+  block @fe_body1(%r27: u8 [counter], %r25: ptr [pointer], %r23: u8 [general]):
+    %r30 = load %r25 : u8 [general]
+    %r31 = add %r23, %r30 : u8 [general]
+    %r32 = ptr_bump %r25, +1 : ptr [pointer]
+    djnz %r27, @fe_body1(%r32, %r31), @fe_exit2(%r31)
+  block @fe_exit2(%r31: u8 [general]):
+    %r34 = const 5 : u8 [general]
+    %r35 = add %r31, %r34 : u8 [acc]
+    ret %r35
+
+fun @fib(%r36: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r37 = const 2 : u8 [general]
+    %r38 = cmp.ult %r36, %r37 : bool [flag]
+    br_if %r38, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r36
+  block @if_join2:
+    %r39 = const 0 : u8 [general]
+    %r40 = const 1 : u8 [general]
+    %r41 = const 2 : u8 [general]
+    jmp @loop_head3(%r39, %r40, %r41, %r36)
+  block @loop_head3(%r39: u8 [general], %r40: u8 [general], %r41: u8 [general], %r45: u8 [general]):
+    %r46 = cmp.ule %r41, %r45 : bool [flag]
+    cond_ret %r46, [%r40], @loop_body4()
+  block @loop_body4:
+    %r47 = add %r39, %r40 : u8 [general]
+    %r48 = const 1 : u8 [general]
+    %r49 = add %r41, %r48 : u8 [general]
+    jmp @loop_head3(%r40, %r47, %r49, %r45)
+
+fun @fib8() -> u8 [acc]
+  block @entry:
+    %r50 = const 21 : u8 [acc]
+    ret %r50
+
+fun @fib12() -> u8 [acc]
+  block @entry:
+    %r51 = const 144 : u8 [acc]
+    ret %r51
+
+fun @opposite(%r52: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r53 = const 0 : u8 [general]
+    %r54 = cmp.eq %r52, %r53 : bool [flag]
+    br_if %r54, @if_then1(), @if_join2()
+  block @if_then1:
+    %r55 = const 1 : u8 [general]
+    ret %r55
+  block @if_join2:
+    %r56 = const 1 : u8 [general]
+    %r57 = cmp.eq %r52, %r56 : bool [flag]
+    br_if %r57, @if_then3(), @if_join4()
+  block @if_then3:
+    %r58 = const 0 : u8 [general]
+    ret %r58
+  block @if_join4:
+    %r59 = const 2 : u8 [general]
+    %r60 = cmp.eq %r52, %r59 : bool [flag]
+    %r61 = const 2 : u8 [general]
+    cond_ret %r60, [%r61], @if_then5()
+  block @if_then5:
+    %r62 = const 3 : u8 [general]
+    ret %r62
+
+fun @board_idx(%r63: u8 [general], %r64: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r65 = const 10 : u8 [general]
+    %r66 = mul %r64, %r65 : u8 [general]
+    %r67 = add %r66, %r63 : u8 [acc]
+    ret %r67
+
+fun @main()
+  block @entry:
+    ret void
+

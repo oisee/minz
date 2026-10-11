@@ -1,0 +1,52 @@
+{
+  "calls": {
+    "add_acc": 65536,
+    "board_idx": 65536,
+    "double": 256,
+    "fib": 255,
+    "fib12": 1,
+    "fib8": 1,
+    "inc": 256,
+    "main": 1,
+    "opposite": 4,
+    "pipeline_demo": 1,
+    "square": 256,
+    "sum_all": 9057,
+    "sum_plus_offset": 9057
+  },
+  "cycles_including_CALL": {
+    "add_acc": 2031616,
+    "board_idx": 3604480,
+    "double": 7936,
+    "fib": 2947295,
+    "fib12": 34,
+    "fib8": 34,
+    "inc": 7936,
+    "main": 8,
+    "opposite": 274,
+    "pipeline_demo": 34,
+    "square": 126208,
+    "sum_all": 1929141,
+    "sum_plus_offset": 2055939
+  },
+  "execution_sha256": "3367d7197dd29b2cae9a61cce28f4ca69724af24ba8dc1ed454b8b40a1fbea63",
+  "module_bytes": 156,
+  "raw_only_lifted": {},
+  "source_assertions": 9,
+  "source_sha256": "04f3b01dc1126dae71b4b1152716df7e9e1f1225e747c3150f4ad5b0b9850875",
+  "spill_bytes": {},
+  "stack_depths": {
+    "add_acc": 2,
+    "board_idx": 2,
+    "double": 2,
+    "fib": 2,
+    "fib12": 2,
+    "fib8": 2,
+    "inc": 2,
+    "opposite": 2,
+    "pipeline_demo": 2,
+    "square": 8,
+    "sum_all": 2,
+    "sum_plus_offset": 2
+  }
+}

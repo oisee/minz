@@ -1,0 +1,7 @@
+{
+  "complete_register_state_cycle": true,
+  "input": 255,
+  "native_loop_head_visits": 770,
+  "native_sp": 61438,
+  "vm_max_steps": 10000
+}
