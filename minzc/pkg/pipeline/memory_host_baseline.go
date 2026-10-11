@@ -24,6 +24,9 @@ type MemoryHostBaselineEvidence struct {
 // RunZ80MemoryHostBaseline owns the workload before calling the factory. Every
 // returned HIR must be independently allocated and have identical complete
 // source and origin identity. The assembly and raw oracle are created privately.
+// Failed-call evidence is limited to matching typed denials from the closed host
+// builtins. Direct native memory permission traps and execution limits refuse
+// attestation as infrastructure errors.
 func RunZ80MemoryHostBaseline(factory func() (*hir.Module, error), workload hir.MemoryHostWorkload) (*MemoryHostBaselineEvidence, error) {
 	fail := func(e error) (*MemoryHostBaselineEvidence, error) {
 		return nil, fmt.Errorf("memory host baseline: %w", e)

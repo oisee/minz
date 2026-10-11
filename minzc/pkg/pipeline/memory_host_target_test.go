@@ -167,6 +167,46 @@ fun load(addr:u16)->u8{return peek(addr)}
 			if len(target.Invocations) != 1 || target.Invocations[0].Error == "" || len(target.Invocations[0].Events) != 1 || target.Invocations[0].Regions["data"][1] != 255 {
 				t.Fatal("target partial prefix")
 			}
+			failure := target.Invocations[0].Failure
+			if failure == nil || failure.Kind != "undeclared" || failure.Address != 0x8002 || failure.Write {
+				t.Fatalf("target denial cause: %+v", failure)
+			}
+			for _, field := range []string{"kind", "address", "direction"} {
+				t.Run("forged_denial_"+field, func(t *testing.T) {
+					payload, e := json.Marshal(raw)
+					if e != nil {
+						t.Fatal(e)
+					}
+					var forged hir.MemoryHostRun
+					if e = json.Unmarshal(payload, &forged); e != nil {
+						t.Fatal(e)
+					}
+					switch field {
+					case "kind":
+						forged.Invocations[0].Failure.Kind = "read-only"
+					case "address":
+						forged.Invocations[0].Failure.Address = 0x8003
+					case "direction":
+						forged.Invocations[0].Failure.Write = true
+					}
+					if evidence, e := runZ80MemoryHostWorkload(steps, m, w, forged); e == nil || evidence != nil {
+						t.Fatalf("different denial cause accepted: %s, %v", field, e)
+					}
+				})
+			}
+			public, e := RunZ80MemoryHostBaseline(func() (*hir.Module, error) { return parse(), nil }, w)
+			if e != nil {
+				t.Fatal(e)
+			}
+			publicFailure := public.Target.Invocations[0].Failure
+			if publicFailure == nil || *publicFailure != *failure {
+				t.Fatalf("public denial cause: %+v", publicFailure)
+			}
+			limited := w
+			limited.MaxSteps = 1
+			if evidence, e := RunZ80MemoryHostBaseline(func() (*hir.Module, error) { return parse(), nil }, limited); e == nil || evidence != nil {
+				t.Fatalf("execution limit accepted as memory denial: %v", e)
+			}
 		} else {
 			if target.Invocations[1].Results[0].I != 255 {
 				t.Fatal("two-call RAM persistence")
