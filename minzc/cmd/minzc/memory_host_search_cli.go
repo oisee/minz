@@ -157,6 +157,8 @@ func runMemoryHostSearchCLI(sourceFile string) error {
 	selected := result.Selections[int(result.Selected.Policy)].Candidates[result.Selected.Mask]
 	targetEvidence := selected.Evidence.Baseline.Target
 	decision := struct {
+		SourceName        string                                `json:"source_name"`
+		SourceSHA256      string                                `json:"source_sha256"`
 		Schema            string                                `json:"schema"`
 		Goal              string                                `json:"goal"`
 		Selected          pipeline.MemoryHostPolicySearchChoice `json:"selected"`
@@ -166,40 +168,21 @@ func runMemoryHostSearchCLI(sourceFile string) error {
 		BinarySHA256      string                                `json:"binary_sha256"`
 		TStates           int64                                 `json:"t_states"`
 		Bytes             int                                   `json:"bytes"`
-	}{"minz.memory-host-arena-append-policy-search-cli-decision/v1", goal, result.Selected, selected.Choices, fmt.Sprintf("%x", sha256.Sum256(encoded)), [2]string{fmt.Sprintf("%x", sha256.Sum256(input.Legacy)), fmt.Sprintf("%x", sha256.Sum256(input.PreserveSpeed))}, targetEvidence.BinarySHA256, targetEvidence.TotalTStates, len(targetEvidence.Binary)}
-	// Semantic refusals create no artifact directory. IO errors can leave partial files.
-	if e = validateMemoryHostSearchCLI(sourceFile); e != nil {
-		return e
-	}
-	write := func(n string, b []byte) error {
-		p := filepath.Join(memoryHostSearchCLI.Directory, n)
-		if e := os.MkdirAll(filepath.Dir(p), 0755); e != nil {
-			return e
-		}
-		return os.WriteFile(p, b, 0644)
-	}
-	for n, b := range map[string][]byte{"source.nanz": source, "association-legacy-v2.json": input.Legacy, "association-preserve-v2.json": input.PreserveSpeed, "search.json": encoded, "selected.a80": []byte(targetEvidence.Assembly), "selected.bin": targetEvidence.Binary} {
-		if e = write(n, b); e != nil {
-			return e
-		}
-	}
+	}{sourceFile, sourceSHA, "minz.memory-host-arena-append-policy-search-cli-decision/v1", goal, result.Selected, selected.Choices, fmt.Sprintf("%x", sha256.Sum256(encoded)), [2]string{fmt.Sprintf("%x", sha256.Sum256(input.Legacy)), fmt.Sprintf("%x", sha256.Sum256(input.PreserveSpeed))}, targetEvidence.BinarySHA256, targetEvidence.TotalTStates, len(targetEvidence.Binary)}
+	files := map[string][]byte{"source.nanz": source, "association-legacy-v2.json": input.Legacy, "association-preserve-v2.json": input.PreserveSpeed, "search.json": encoded, "selected.a80": []byte(targetEvidence.Assembly), "selected.bin": targetEvidence.Binary}
 	for n, v := range map[string]any{"workload.json": result.Selections[0].Candidates[0].Evidence.Baseline.Workload, "decisions.json": decision} {
 		b, e := json.MarshalIndent(v, "", "  ")
 		if e != nil {
 			return e
 		}
-		if e = write(n, b); e != nil {
-			return e
-		}
+		files[n] = b
 	}
 	for policy, s := range result.Selections {
 		b, e := json.MarshalIndent(s, "", "  ")
 		if e != nil {
 			return e
 		}
-		if e = write(fmt.Sprintf("selection-policy%d-v2.json", policy), b); e != nil {
-			return e
-		}
+		files[fmt.Sprintf("selection-policy%d-v2.json", policy)] = b
 		for mask, c := range s.Candidates {
 			b, e := json.MarshalIndent(c.Evidence, "", "  ")
 			if e != nil {
@@ -207,12 +190,33 @@ func runMemoryHostSearchCLI(sourceFile string) error {
 			}
 			t := c.Evidence.Baseline.Target
 			for n, b := range map[string][]byte{"baseline-v2.json": b, "target.a80": []byte(t.Assembly), "target.bin": t.Binary, "final.mir2": []byte(t.FinalMIRDump), "allocation.json": t.AllocationJSON} {
-				if e = write(filepath.Join(fmt.Sprintf("policy%d-mask%d", policy, mask), n), b); e != nil {
-					return e
-				}
+				files[filepath.Join(fmt.Sprintf("policy%d-mask%d", policy, mask), n)] = b
 			}
 		}
 	}
+	// Marshal every semantic payload before any filesystem mutation.
+	names := memoryHostSearchCLIOutputNames()
+	if len(files) != len(names) {
+		return fmt.Errorf("memory host search CLI: incomplete output inventory")
+	}
+	for _, name := range names {
+		if _, ok := files[name]; !ok {
+			return fmt.Errorf("memory host search CLI: missing output %s", name)
+		}
+	}
+	if e = validateMemoryHostSearchCLI(sourceFile); e != nil {
+		return e
+	}
+	for _, name := range names {
+		path := filepath.Join(memoryHostSearchCLI.Directory, name)
+		if e = os.MkdirAll(filepath.Dir(path), 0755); e != nil {
+			return e
+		}
+		if e = os.WriteFile(path, files[name], 0644); e != nil {
+			return e
+		}
+	}
+	// IO errors may leave partial files; admission and marshal refusals do not.
 	if outputFile != "" {
 		if e = os.WriteFile(outputFile, []byte(targetEvidence.Assembly), 0644); e != nil {
 			return e
