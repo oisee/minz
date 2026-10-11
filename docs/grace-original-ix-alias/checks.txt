@@ -1,0 +1,5 @@
+=== RUN   TestOriginalIXPointerAliasVMZ80
+    showcase_ix_alias_oracle_test.go:148: exact original IX source:1536 roundtrip +6sum+observer; full259RAM/orderedwrite-read aliases/rawVM/nativeSPcode; 218507 T/38 B SHA ea02b537e95d125161e7de70558db6a2a1e88d7898443a347a4550670866b73e
+--- PASS: TestOriginalIXPointerAliasVMZ80 (0.13s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.136s

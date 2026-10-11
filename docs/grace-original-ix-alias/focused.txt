@@ -1,0 +1,11 @@
+=== RUN   TestOriginalForeachReadOrderVMZ80
+    showcase_foreach_oracle_test.go:142: exact original sum/max forEach:60 calls + observer, full514RAM/orderedreads/rawVM+nativeSPcode; 291930 T/59 B SHA df200ed1899721eb3147d47be45bdaf740ea99803a70a21c51d4b369d93944c1
+--- PASS: TestOriginalForeachReadOrderVMZ80 (0.09s)
+=== RUN   TestOriginalIXPointerAliasVMZ80
+    showcase_ix_alias_oracle_test.go:148: exact original IX source:1536 roundtrip +6sum+observer; full259RAM/orderedwrite-read aliases/rawVM/nativeSPcode; 218507 T/38 B SHA ea02b537e95d125161e7de70558db6a2a1e88d7898443a347a4550670866b73e
+--- PASS: TestOriginalIXPointerAliasVMZ80 (0.14s)
+=== RUN   TestOriginalMapInPlaceCumulativeVMZ80
+    showcase_mapinplace_oracle_test.go:158: exact original mapInPlace:20 persistent calls + separate observer, full1030RAM/order/stack/code; wrap separately; 118329 T/22 B SHA3644107cb1297e339a418ac0a545d5a9aa7392870115b80fad9e57df2ea453ee
+--- PASS: TestOriginalMapInPlaceCumulativeVMZ80 (0.07s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.315s
