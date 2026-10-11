@@ -306,6 +306,12 @@ Tokenizer ordinary PFCCO tradeoff теперь подтверждён:5474→546
 319166→319442T нафиксированной полной нагрузке. Greedy сохраняется поумолчанию;
 измеренный selectorstrategies пока разрабатывается отдельно. [Интеграция084](grace-integration-084/README.md).
 
+Новый API MeasureContractStrategies интегрирован: off, greedy и PBQP,
+точный измеренный ASM/BIN, отдельные Speed/Size и фиксированный порядок равенства.
+На arena обе цели выбирают off: он равен PBQP — 1184 B / 3808 T;
+greedy требует 1193 B / 3896 T. Memory hosts и вывод tokenizer в этом домене
+не поддерживаются. [Интеграция086](grace-integration-086/README.md).
+
 ## Следующие шаги
 
 1. Проверять checked-local таблицы на дополнительных реальных случаях и

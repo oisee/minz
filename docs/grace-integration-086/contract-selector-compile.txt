@@ -1,0 +1,2 @@
+ok  	github.com/minz/minzc/pkg/pipeline	0.009s [no tests to run]
+ok  	github.com/minz/minzc/cmd/minzc	0.008s [no tests to run]

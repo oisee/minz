@@ -1,0 +1,53 @@
+=== RUN   TestPFCCOExistingArenaNativeConsumer
+    pfcco_arena_native_test.go:121: strategy="" test_alloc_sequence 2206T return0000
+    pfcco_arena_native_test.go:121: strategy="" test_oom 1449T return0000
+    pfcco_arena_native_test.go:121: strategy="" test_small_allocs 1899T return0000
+    pfcco_arena_native_test.go:121: strategy="" test_sizeof 28T return0000
+    pfcco_arena_native_test.go:121: strategy="" test_split 3896T return0000
+    pfcco_arena_native_test.go:121: strategy="" test_typed_alloc 1611T return0000
+    pfcco_arena_native_test.go:121: strategy="" init_frame 375T return3f00
+    pfcco_arena_native_test.go:121: strategy="" alloc_and_check 465T return0000
+    pfcco_arena_native_test.go:121: strategy="" alloc_and_check 465T return0000
+    pfcco_arena_native_test.go:121: strategy="" alloc_and_check 465T return0000
+    pfcco_arena_native_test.go:121: strategy="" get_remaining 241T return3e40
+    pfcco_arena_native_test.go:195: strategy="" arena_split independent100boundarypairs 220T actual pointer/word ABI and4memorybytes PASS
+    pfcco_arena_native_test.go:121: strategy="pbqp" test_alloc_sequence 2206T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" test_oom 1449T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" test_small_allocs 1899T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" test_sizeof 28T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" test_split 3808T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" test_typed_alloc 1611T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" init_frame 375T return3f00
+    pfcco_arena_native_test.go:121: strategy="pbqp" alloc_and_check 465T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" alloc_and_check 465T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" alloc_and_check 465T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" get_remaining 241T return3e40
+    pfcco_arena_native_test.go:195: strategy="pbqp" arena_split independent100boundarypairs 190T actual pointer/word ABI and4memorybytes PASS
+    pfcco_arena_native_test.go:212: exact arena source BIN1193→1184B sum11calls13100→13012T
+--- PASS: TestPFCCOExistingArenaNativeConsumer (0.11s)
+=== RUN   TestMeasuredContractStrategiesTieAndRefusals
+=== RUN   TestMeasuredContractStrategiesTieAndRefusals/shared
+=== RUN   TestMeasuredContractStrategiesTieAndRefusals/source
+=== RUN   TestMeasuredContractStrategiesTieAndRefusals/latefailure
+=== RUN   TestMeasuredContractStrategiesTieAndRefusals/lateABI
+=== RUN   TestMeasuredContractStrategiesTieAndRefusals/metadata
+--- PASS: TestMeasuredContractStrategiesTieAndRefusals (0.86s)
+    --- PASS: TestMeasuredContractStrategiesTieAndRefusals/shared (0.02s)
+    --- PASS: TestMeasuredContractStrategiesTieAndRefusals/source (0.02s)
+    --- PASS: TestMeasuredContractStrategiesTieAndRefusals/latefailure (0.23s)
+    --- PASS: TestMeasuredContractStrategiesTieAndRefusals/lateABI (0.30s)
+    --- PASS: TestMeasuredContractStrategiesTieAndRefusals/metadata (0.02s)
+=== RUN   TestMeasuredContractStrategiesOriginalArena
+    profile_contract_strategies_test.go:88: size candidate0 B1184 T3808
+    profile_contract_strategies_test.go:88: size candidate1 B1193 T3896
+    profile_contract_strategies_test.go:88: size candidate2 B1184 T3808
+    profile_contract_strategies_test.go:104: size selected0 heldout7165T
+    profile_contract_strategies_test.go:88: speed candidate0 B1184 T3808
+    profile_contract_strategies_test.go:88: speed candidate1 B1193 T3896
+    profile_contract_strategies_test.go:88: speed candidate2 B1184 T3808
+    profile_contract_strategies_test.go:104: speed selected0 heldout7165T
+--- PASS: TestMeasuredContractStrategiesOriginalArena (2.62s)
+=== RUN   TestMeasuredContractStrategiesOwnsWorkloadAndRejectsDomains
+--- PASS: TestMeasuredContractStrategiesOwnsWorkloadAndRejectsDomains (0.48s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.085s

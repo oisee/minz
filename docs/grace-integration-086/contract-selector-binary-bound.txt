@@ -1,0 +1,26 @@
+=== RUN   TestMeasuredContractStrategiesTieAndRefusals
+=== RUN   TestMeasuredContractStrategiesTieAndRefusals/shared
+=== RUN   TestMeasuredContractStrategiesTieAndRefusals/source
+=== RUN   TestMeasuredContractStrategiesTieAndRefusals/latefailure
+=== RUN   TestMeasuredContractStrategiesTieAndRefusals/lateABI
+=== RUN   TestMeasuredContractStrategiesTieAndRefusals/metadata
+--- PASS: TestMeasuredContractStrategiesTieAndRefusals (0.79s)
+    --- PASS: TestMeasuredContractStrategiesTieAndRefusals/shared (0.02s)
+    --- PASS: TestMeasuredContractStrategiesTieAndRefusals/source (0.02s)
+    --- PASS: TestMeasuredContractStrategiesTieAndRefusals/latefailure (0.21s)
+    --- PASS: TestMeasuredContractStrategiesTieAndRefusals/lateABI (0.26s)
+    --- PASS: TestMeasuredContractStrategiesTieAndRefusals/metadata (0.02s)
+=== RUN   TestMeasuredContractStrategiesOriginalArena
+    profile_contract_strategies_test.go:95: size candidate0 B1184 T3808
+    profile_contract_strategies_test.go:95: size candidate1 B1193 T3896
+    profile_contract_strategies_test.go:95: size candidate2 B1184 T3808
+    profile_contract_strategies_test.go:111: size selected0 heldout7165T
+    profile_contract_strategies_test.go:95: speed candidate0 B1184 T3808
+    profile_contract_strategies_test.go:95: speed candidate1 B1193 T3896
+    profile_contract_strategies_test.go:95: speed candidate2 B1184 T3808
+    profile_contract_strategies_test.go:111: speed selected0 heldout7165T
+--- PASS: TestMeasuredContractStrategiesOriginalArena (2.37s)
+=== RUN   TestMeasuredContractStrategiesOwnsWorkloadAndRejectsDomains
+--- PASS: TestMeasuredContractStrategiesOwnsWorkloadAndRejectsDomains (0.49s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.655s
