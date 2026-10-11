@@ -1,0 +1,12962 @@
+[
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      0,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      0,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      0,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      0,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      1,
+      1
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      1,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      1,
+      128
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      1,
+      254
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      1,
+      255
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      127,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      127,
+      1
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      127,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      127,
+      128
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      127,
+      254
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      127,
+      255
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      128,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      128,
+      1
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      128,
+      127
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      128,
+      128
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      128,
+      254
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      128,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      254,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      254,
+      1
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      254,
+      127
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      254,
+      128
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      254,
+      254
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      254,
+      255
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      255,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      255,
+      1
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      255,
+      127
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      255,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      255,
+      254
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      0,
+      255,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      0,
+      0
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      0,
+      1
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      0,
+      127
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      0,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      0,
+      254
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      0,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      1,
+      0
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      1,
+      1
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      1,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      1,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      1,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      1,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      127,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      127,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      127,
+      127
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      127,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      127,
+      254
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      127,
+      255
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      128,
+      0
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      128,
+      1
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      128,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      128,
+      128
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      128,
+      254
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      128,
+      255
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      254,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      254,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      254,
+      127
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      254,
+      128
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      254,
+      254
+    ],
+    "Expected": 251
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      254,
+      255
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      255,
+      0
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      255,
+      1
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      255,
+      127
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      255,
+      128
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      255,
+      254
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      1,
+      255,
+      255
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      0,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      0,
+      1
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      0,
+      127
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      0,
+      128
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      0,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      0,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      1,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      1,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      1,
+      127
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      1,
+      128
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      1,
+      254
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      1,
+      255
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      127,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      127,
+      1
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      127,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      127,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      127,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      127,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      128,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      128,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      128,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      128,
+      128
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      128,
+      254
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      128,
+      255
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      254,
+      0
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      254,
+      1
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      254,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      254,
+      128
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      254,
+      254
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      254,
+      255
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      255,
+      0
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      255,
+      1
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      255,
+      127
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      255,
+      128
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      255,
+      254
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      127,
+      255,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      0,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      0,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      0,
+      127
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      0,
+      128
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      0,
+      254
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      0,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      1,
+      0
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      1,
+      1
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      1,
+      127
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      1,
+      128
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      1,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      1,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      127,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      127,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      127,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      127,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      127,
+      254
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      127,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      128,
+      0
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      128,
+      1
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      128,
+      127
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      128,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      128,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      128,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      254,
+      0
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      254,
+      1
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      254,
+      127
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      254,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      254,
+      254
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      254,
+      255
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      255,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      255,
+      1
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      255,
+      127
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      255,
+      128
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      255,
+      254
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      128,
+      255,
+      255
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      0,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      0,
+      1
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      0,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      0,
+      128
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      0,
+      254
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      0,
+      255
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      1,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      1,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      1,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      1,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      1,
+      254
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      1,
+      255
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      127,
+      0
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      127,
+      1
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      127,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      127,
+      128
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      127,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      127,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      128,
+      0
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      128,
+      1
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      128,
+      127
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      128,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      128,
+      254
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      128,
+      255
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      254,
+      0
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      254,
+      1
+    ],
+    "Expected": 251
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      254,
+      127
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      254,
+      128
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      254,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      254,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      255,
+      0
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      255,
+      1
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      255,
+      127
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      255,
+      128
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      255,
+      254
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      254,
+      255,
+      255
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      0,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      0,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      0,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      0,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      0,
+      254
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      0,
+      255
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      1,
+      0
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      1,
+      1
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      1,
+      127
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      1,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      1,
+      254
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      1,
+      255
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      127,
+      0
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      127,
+      1
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      127,
+      127
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      127,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      127,
+      254
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      127,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      128,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      128,
+      1
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      128,
+      127
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      128,
+      128
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      128,
+      254
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      128,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      254,
+      0
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      254,
+      1
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      254,
+      127
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      254,
+      128
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      254,
+      254
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      254,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      255,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      255,
+      1
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      255,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      255,
+      128
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      255,
+      254
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      0,
+      255,
+      255,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      0,
+      1
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      0,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      0,
+      128
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      0,
+      254
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      0,
+      255
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      1,
+      0
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      1,
+      1
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      1,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      1,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      1,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      1,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      127,
+      0
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      127,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      127,
+      127
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      127,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      127,
+      254
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      127,
+      255
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      128,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      128,
+      1
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      128,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      128,
+      128
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      128,
+      254
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      128,
+      255
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      254,
+      0
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      254,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      254,
+      127
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      254,
+      128
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      254,
+      254
+    ],
+    "Expected": 251
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      254,
+      255
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      255,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      255,
+      1
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      255,
+      127
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      255,
+      128
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      255,
+      254
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      0,
+      255,
+      255
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      0,
+      0
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      0,
+      1
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      0,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      0,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      0,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      0,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      1,
+      0
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      1,
+      127
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      1,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      1,
+      254
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      1,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      127,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      127,
+      1
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      127,
+      127
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      127,
+      128
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      127,
+      254
+    ],
+    "Expected": 123
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      127,
+      255
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      128,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      128,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      128,
+      127
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      128,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      128,
+      254
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      128,
+      255
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      254,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      254,
+      1
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      254,
+      127
+    ],
+    "Expected": 123
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      254,
+      128
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      254,
+      254
+    ],
+    "Expected": 250
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      254,
+      255
+    ],
+    "Expected": 251
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      255,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      255,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      255,
+      127
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      255,
+      128
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      255,
+      254
+    ],
+    "Expected": 251
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      1,
+      255,
+      255
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      0,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      0,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      0,
+      127
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      0,
+      128
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      0,
+      254
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      0,
+      255
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      1,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      1,
+      1
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      1,
+      127
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      1,
+      128
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      1,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      1,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      127,
+      0
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      127,
+      1
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      127,
+      127
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      127,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      127,
+      254
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      127,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      128,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      128,
+      1
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      128,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      128,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      128,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      128,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      254,
+      0
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      254,
+      1
+    ],
+    "Expected": 123
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      254,
+      127
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      254,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      254,
+      254
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      254,
+      255
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      255,
+      0
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      255,
+      1
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      255,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      255,
+      128
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      255,
+      254
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      127,
+      255,
+      255
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      0,
+      0
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      0,
+      1
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      0,
+      127
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      0,
+      128
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      0,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      0,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      1,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      1,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      1,
+      127
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      1,
+      128
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      1,
+      254
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      1,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      127,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      127,
+      1
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      127,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      127,
+      128
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      127,
+      254
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      127,
+      255
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      128,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      128,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      128,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      128,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      128,
+      254
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      128,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      254,
+      0
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      254,
+      1
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      254,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      254,
+      128
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      254,
+      254
+    ],
+    "Expected": 123
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      254,
+      255
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      255,
+      0
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      255,
+      1
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      255,
+      127
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      255,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      255,
+      254
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      128,
+      255,
+      255
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      0,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      0,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      0,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      0,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      0,
+      254
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      0,
+      255
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      1,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      1,
+      1
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      1,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      1,
+      128
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      1,
+      254
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      1,
+      255
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      127,
+      0
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      127,
+      1
+    ],
+    "Expected": 123
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      127,
+      127
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      127,
+      128
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      127,
+      254
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      127,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      128,
+      0
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      128,
+      1
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      128,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      128,
+      128
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      128,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      128,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      254,
+      0
+    ],
+    "Expected": 251
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      254,
+      1
+    ],
+    "Expected": 250
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      254,
+      127
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      254,
+      128
+    ],
+    "Expected": 123
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      254,
+      254
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      254,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      255,
+      0
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      255,
+      1
+    ],
+    "Expected": 251
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      255,
+      127
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      255,
+      128
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      255,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      254,
+      255,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      0,
+      0
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      0,
+      1
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      0,
+      127
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      0,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      0,
+      254
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      0,
+      255
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      1,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      1,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      1,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      1,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      1,
+      254
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      1,
+      255
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      127,
+      0
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      127,
+      1
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      127,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      127,
+      128
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      127,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      127,
+      255
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      128,
+      0
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      128,
+      1
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      128,
+      127
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      128,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      128,
+      254
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      128,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      254,
+      0
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      254,
+      1
+    ],
+    "Expected": 251
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      254,
+      127
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      254,
+      128
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      254,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      254,
+      255
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      255,
+      0
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      255,
+      1
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      255,
+      127
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      255,
+      128
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      255,
+      254
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      1,
+      255,
+      255,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      0,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      0,
+      1
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      0,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      0,
+      128
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      0,
+      254
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      0,
+      255
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      1,
+      0
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      1,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      1,
+      127
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      1,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      1,
+      254
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      1,
+      255
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      127,
+      0
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      127,
+      1
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      127,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      127,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      127,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      127,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      128,
+      0
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      128,
+      1
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      128,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      128,
+      128
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      128,
+      254
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      128,
+      255
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      254,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      254,
+      1
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      254,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      254,
+      128
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      254,
+      254
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      254,
+      255
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      255,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      255,
+      1
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      255,
+      127
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      255,
+      128
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      255,
+      254
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      0,
+      255,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      0,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      0,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      0,
+      127
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      0,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      0,
+      254
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      0,
+      255
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      1,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      1,
+      1
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      1,
+      127
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      1,
+      128
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      1,
+      254
+    ],
+    "Expected": 123
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      1,
+      255
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      127,
+      0
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      127,
+      1
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      127,
+      127
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      127,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      127,
+      254
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      127,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      128,
+      0
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      128,
+      1
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      128,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      128,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      128,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      128,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      254,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      254,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      254,
+      127
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      254,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      254,
+      254
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      254,
+      255
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      255,
+      0
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      255,
+      1
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      255,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      255,
+      128
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      255,
+      254
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      1,
+      255,
+      255
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      0,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      0,
+      1
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      0,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      0,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      0,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      0,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      1,
+      0
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      1,
+      1
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      1,
+      127
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      1,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      1,
+      254
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      1,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      127,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      127,
+      1
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      127,
+      127
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      127,
+      128
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      127,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      127,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      128,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      128,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      128,
+      127
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      128,
+      128
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      128,
+      254
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      128,
+      255
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      254,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      254,
+      1
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      254,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      254,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      254,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      254,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      255,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      255,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      255,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      255,
+      128
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      255,
+      254
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      127,
+      255,
+      255
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      0,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      0,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      0,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      0,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      0,
+      254
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      0,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      1,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      1,
+      1
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      1,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      1,
+      128
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      1,
+      254
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      1,
+      255
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      127,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      127,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      127,
+      127
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      127,
+      128
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      127,
+      254
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      127,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      128,
+      0
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      128,
+      1
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      128,
+      127
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      128,
+      128
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      128,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      128,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      254,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      254,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      254,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      254,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      254,
+      254
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      254,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      255,
+      0
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      255,
+      1
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      255,
+      127
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      255,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      255,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      128,
+      255,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      0,
+      0
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      0,
+      1
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      0,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      0,
+      128
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      0,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      0,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      1,
+      0
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      1,
+      1
+    ],
+    "Expected": 123
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      1,
+      127
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      1,
+      128
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      1,
+      254
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      1,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      127,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      127,
+      1
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      127,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      127,
+      128
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      127,
+      254
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      127,
+      255
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      128,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      128,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      128,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      128,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      128,
+      254
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      128,
+      255
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      254,
+      0
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      254,
+      1
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      254,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      254,
+      128
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      254,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      254,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      255,
+      0
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      255,
+      1
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      255,
+      127
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      255,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      255,
+      254
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      254,
+      255,
+      255
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      0,
+      0
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      0,
+      1
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      0,
+      127
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      0,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      0,
+      254
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      0,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      1,
+      0
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      1,
+      1
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      1,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      1,
+      128
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      1,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      1,
+      255
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      127,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      127,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      127,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      127,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      127,
+      254
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      127,
+      255
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      128,
+      0
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      128,
+      1
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      128,
+      127
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      128,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      128,
+      254
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      128,
+      255
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      254,
+      0
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      254,
+      1
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      254,
+      127
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      254,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      254,
+      254
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      254,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      255,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      255,
+      1
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      255,
+      127
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      255,
+      128
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      255,
+      254
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      127,
+      255,
+      255,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      0,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      0,
+      1
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      0,
+      127
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      0,
+      128
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      0,
+      254
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      0,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      1,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      1,
+      1
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      1,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      1,
+      128
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      1,
+      254
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      1,
+      255
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      127,
+      0
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      127,
+      1
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      127,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      127,
+      128
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      127,
+      254
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      127,
+      255
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      128,
+      0
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      128,
+      1
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      128,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      128,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      128,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      128,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      254,
+      0
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      254,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      254,
+      127
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      254,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      254,
+      254
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      254,
+      255
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      255,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      255,
+      1
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      255,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      255,
+      128
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      255,
+      254
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      0,
+      255,
+      255
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      0,
+      0
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      0,
+      1
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      0,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      0,
+      128
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      0,
+      254
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      0,
+      255
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      1,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      1,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      1,
+      127
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      1,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      1,
+      254
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      1,
+      255
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      127,
+      0
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      127,
+      1
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      127,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      127,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      127,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      127,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      128,
+      0
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      128,
+      1
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      128,
+      127
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      128,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      128,
+      254
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      128,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      254,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      254,
+      1
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      254,
+      127
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      254,
+      128
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      254,
+      254
+    ],
+    "Expected": 123
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      254,
+      255
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      255,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      255,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      255,
+      127
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      255,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      255,
+      254
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      1,
+      255,
+      255
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      0,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      0,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      0,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      0,
+      128
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      0,
+      254
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      0,
+      255
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      1,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      1,
+      1
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      1,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      1,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      1,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      1,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      127,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      127,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      127,
+      127
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      127,
+      128
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      127,
+      254
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      127,
+      255
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      128,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      128,
+      1
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      128,
+      127
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      128,
+      128
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      128,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      128,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      254,
+      0
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      254,
+      1
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      254,
+      127
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      254,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      254,
+      254
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      254,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      255,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      255,
+      1
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      255,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      255,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      255,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      127,
+      255,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      0,
+      0
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      0,
+      1
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      0,
+      127
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      0,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      0,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      0,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      1,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      1,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      1,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      1,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      1,
+      254
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      1,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      127,
+      0
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      127,
+      1
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      127,
+      127
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      127,
+      128
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      127,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      127,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      128,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      128,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      128,
+      127
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      128,
+      128
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      128,
+      254
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      128,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      254,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      254,
+      1
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      254,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      254,
+      128
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      254,
+      254
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      254,
+      255
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      255,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      255,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      255,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      255,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      255,
+      254
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      128,
+      255,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      0,
+      0
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      0,
+      1
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      0,
+      127
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      0,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      0,
+      254
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      0,
+      255
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      1,
+      0
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      1,
+      1
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      1,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      1,
+      128
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      1,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      1,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      127,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      127,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      127,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      127,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      127,
+      254
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      127,
+      255
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      128,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      128,
+      1
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      128,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      128,
+      128
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      128,
+      254
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      128,
+      255
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      254,
+      0
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      254,
+      1
+    ],
+    "Expected": 123
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      254,
+      127
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      254,
+      128
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      254,
+      254
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      254,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      255,
+      0
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      255,
+      1
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      255,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      255,
+      128
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      255,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      254,
+      255,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      0,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      0,
+      1
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      0,
+      127
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      0,
+      128
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      0,
+      254
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      0,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      1,
+      0
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      1,
+      1
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      1,
+      127
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      1,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      1,
+      254
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      1,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      127,
+      0
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      127,
+      1
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      127,
+      127
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      127,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      127,
+      254
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      127,
+      255
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      128,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      128,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      128,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      128,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      128,
+      254
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      128,
+      255
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      254,
+      0
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      254,
+      1
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      254,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      254,
+      128
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      254,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      254,
+      255
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      255,
+      0
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      255,
+      1
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      255,
+      127
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      255,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      255,
+      254
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      128,
+      255,
+      255,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      0,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      0,
+      1
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      0,
+      127
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      0,
+      128
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      0,
+      254
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      0,
+      255
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      1,
+      0
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      1,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      1,
+      127
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      1,
+      128
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      1,
+      254
+    ],
+    "Expected": 251
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      1,
+      255
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      127,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      127,
+      1
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      127,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      127,
+      128
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      127,
+      254
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      127,
+      255
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      128,
+      0
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      128,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      128,
+      127
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      128,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      128,
+      254
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      128,
+      255
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      254,
+      0
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      254,
+      1
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      254,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      254,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      254,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      254,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      255,
+      0
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      255,
+      1
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      255,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      255,
+      128
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      255,
+      254
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      0,
+      255,
+      255
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      0,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      0,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      0,
+      127
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      0,
+      128
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      0,
+      254
+    ],
+    "Expected": 251
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      0,
+      255
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      1,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      1,
+      1
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      1,
+      127
+    ],
+    "Expected": 123
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      1,
+      128
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      1,
+      254
+    ],
+    "Expected": 250
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      1,
+      255
+    ],
+    "Expected": 251
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      127,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      127,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      127,
+      127
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      127,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      127,
+      254
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      127,
+      255
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      128,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      128,
+      1
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      128,
+      127
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      128,
+      128
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      128,
+      254
+    ],
+    "Expected": 123
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      128,
+      255
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      254,
+      0
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      254,
+      1
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      254,
+      127
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      254,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      254,
+      254
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      254,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      255,
+      0
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      255,
+      1
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      255,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      255,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      255,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      1,
+      255,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      0,
+      0
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      0,
+      1
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      0,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      0,
+      128
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      0,
+      254
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      0,
+      255
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      1,
+      0
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      1,
+      1
+    ],
+    "Expected": 123
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      1,
+      127
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      1,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      1,
+      254
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      1,
+      255
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      127,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      127,
+      1
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      127,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      127,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      127,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      127,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      128,
+      0
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      128,
+      1
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      128,
+      127
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      128,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      128,
+      254
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      128,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      254,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      254,
+      1
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      254,
+      127
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      254,
+      128
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      254,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      254,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      255,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      255,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      255,
+      127
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      255,
+      128
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      255,
+      254
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      127,
+      255,
+      255
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      0,
+      0
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      0,
+      1
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      0,
+      127
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      0,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      0,
+      254
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      0,
+      255
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      1,
+      0
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      1,
+      1
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      1,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      1,
+      128
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      1,
+      254
+    ],
+    "Expected": 123
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      1,
+      255
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      127,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      127,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      127,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      127,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      127,
+      254
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      127,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      128,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      128,
+      1
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      128,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      128,
+      128
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      128,
+      254
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      128,
+      255
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      254,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      254,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      254,
+      127
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      254,
+      128
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      254,
+      254
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      254,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      255,
+      0
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      255,
+      1
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      255,
+      127
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      255,
+      128
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      255,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      128,
+      255,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      0,
+      0
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      0,
+      1
+    ],
+    "Expected": 251
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      0,
+      127
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      0,
+      128
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      0,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      0,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      1,
+      0
+    ],
+    "Expected": 251
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      1,
+      1
+    ],
+    "Expected": 250
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      1,
+      127
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      1,
+      128
+    ],
+    "Expected": 123
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      1,
+      254
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      1,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      127,
+      0
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      127,
+      1
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      127,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      127,
+      128
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      127,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      127,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      128,
+      0
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      128,
+      1
+    ],
+    "Expected": 123
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      128,
+      127
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      128,
+      128
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      128,
+      254
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      128,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      254,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      254,
+      1
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      254,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      254,
+      128
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      254,
+      254
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      254,
+      255
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      255,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      255,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      255,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      255,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      255,
+      254
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      254,
+      255,
+      255
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      0,
+      0
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      0,
+      1
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      0,
+      127
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      0,
+      128
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      0,
+      254
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      0,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      1,
+      0
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      1,
+      1
+    ],
+    "Expected": 251
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      1,
+      127
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      1,
+      128
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      1,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      1,
+      255
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      127,
+      0
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      127,
+      1
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      127,
+      127
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      127,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      127,
+      254
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      127,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      128,
+      0
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      128,
+      1
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      128,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      128,
+      128
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      128,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      128,
+      255
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      254,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      254,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      254,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      254,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      254,
+      254
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      254,
+      255
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      255,
+      0
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      255,
+      1
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      255,
+      127
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      255,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      255,
+      254
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      254,
+      255,
+      255,
+      255
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      0,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      0,
+      1
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      0,
+      127
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      0,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      0,
+      254
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      0,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      1,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      1,
+      1
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      1,
+      127
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      1,
+      128
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      1,
+      254
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      1,
+      255
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      127,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      127,
+      1
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      127,
+      127
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      127,
+      128
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      127,
+      254
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      127,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      128,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      128,
+      1
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      128,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      128,
+      128
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      128,
+      254
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      128,
+      255
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      254,
+      0
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      254,
+      1
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      254,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      254,
+      128
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      254,
+      254
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      254,
+      255
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      255,
+      0
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      255,
+      1
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      255,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      255,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      255,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      0,
+      255,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      0,
+      0
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      0,
+      1
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      0,
+      127
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      0,
+      128
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      0,
+      254
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      0,
+      255
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      1,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      1,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      1,
+      127
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      1,
+      128
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      1,
+      254
+    ],
+    "Expected": 251
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      1,
+      255
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      127,
+      0
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      127,
+      1
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      127,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      127,
+      128
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      127,
+      254
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      127,
+      255
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      128,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      128,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      128,
+      127
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      128,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      128,
+      254
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      128,
+      255
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      254,
+      0
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      254,
+      1
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      254,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      254,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      254,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      254,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      255,
+      0
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      255,
+      1
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      255,
+      127
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      255,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      255,
+      254
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      1,
+      255,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      0,
+      0
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      0,
+      1
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      0,
+      127
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      0,
+      128
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      0,
+      254
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      0,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      1,
+      0
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      1,
+      1
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      1,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      1,
+      128
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      1,
+      254
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      1,
+      255
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      127,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      127,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      127,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      127,
+      128
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      127,
+      254
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      127,
+      255
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      128,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      128,
+      1
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      128,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      128,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      128,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      128,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      254,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      254,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      254,
+      127
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      254,
+      128
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      254,
+      254
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      254,
+      255
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      255,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      255,
+      1
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      255,
+      127
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      255,
+      128
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      255,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      127,
+      255,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      0,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      0,
+      1
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      0,
+      127
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      0,
+      128
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      0,
+      254
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      0,
+      255
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      1,
+      0
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      1,
+      1
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      1,
+      127
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      1,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      1,
+      254
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      1,
+      255
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      127,
+      0
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      127,
+      1
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      127,
+      127
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      127,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      127,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      127,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      128,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      128,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      128,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      128,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      128,
+      254
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      128,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      254,
+      0
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      254,
+      1
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      254,
+      127
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      254,
+      128
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      254,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      254,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      255,
+      0
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      255,
+      1
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      255,
+      127
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      255,
+      128
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      255,
+      254
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      128,
+      255,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      0,
+      0
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      0,
+      1
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      0,
+      127
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      0,
+      128
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      0,
+      254
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      0,
+      255
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      1,
+      0
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      1,
+      1
+    ],
+    "Expected": 251
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      1,
+      127
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      1,
+      128
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      1,
+      254
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      1,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      127,
+      0
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      127,
+      1
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      127,
+      127
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      127,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      127,
+      254
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      127,
+      255
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      128,
+      0
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      128,
+      1
+    ],
+    "Expected": 124
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      128,
+      127
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      128,
+      128
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      128,
+      254
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      128,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      254,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      254,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      254,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      254,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      254,
+      254
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      254,
+      255
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      255,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      255,
+      1
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      255,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      255,
+      128
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      255,
+      254
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      254,
+      255,
+      255
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      0,
+      0
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      0,
+      1
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      0,
+      127
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      0,
+      128
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      0,
+      254
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      0,
+      255
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      1,
+      0
+    ],
+    "Expected": 253
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      1,
+      1
+    ],
+    "Expected": 252
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      1,
+      127
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      1,
+      128
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      1,
+      254
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      1,
+      255
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      127,
+      0
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      127,
+      1
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      127,
+      127
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      127,
+      128
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      127,
+      254
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      127,
+      255
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      128,
+      0
+    ],
+    "Expected": 126
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      128,
+      1
+    ],
+    "Expected": 125
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      128,
+      127
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      128,
+      128
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      128,
+      254
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      128,
+      255
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      254,
+      0
+    ],
+    "Expected": 0
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      254,
+      1
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      254,
+      127
+    ],
+    "Expected": 129
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      254,
+      128
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      254,
+      254
+    ],
+    "Expected": 2
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      254,
+      255
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      255,
+      0
+    ],
+    "Expected": 255
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      255,
+      1
+    ],
+    "Expected": 254
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      255,
+      127
+    ],
+    "Expected": 128
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      255,
+      128
+    ],
+    "Expected": 127
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      255,
+      254
+    ],
+    "Expected": 1
+  },
+  {
+    "Entry": "manhattan",
+    "Args": [
+      255,
+      255,
+      255,
+      255
+    ],
+    "Expected": 0
+  }
+]

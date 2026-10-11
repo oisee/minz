@@ -10,10 +10,11 @@ import (
 // It resolves block-argument copies for one outgoing BrIf edge.
 // If isRet is true, the block ends with RET instead of JRS target.
 type trampolineBlock struct {
-	label  string // local label for this trampoline
-	copies []parallelCopy
-	target string // real destination label (already formatted)
-	isRet  bool   // true → emit RET instead of JRS target
+	label      string // local label for this trampoline
+	copies     []parallelCopy
+	target     string // real destination label (already formatted)
+	isRet      bool   // true → emit RET instead of JRS target
+	frameBytes int
 }
 
 // restoreLiveOutOverrides moves every relocated vreg that is live out of the
@@ -131,6 +132,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		} else {
 			g.emitParallelCopy(g.buildReturnCopies(t.Vals))
 		}
+		g.emitLocalFrameCleanup(g.localFrameDepth[g.curBlock.Label])
 		// main() is the program entry point: use XOR A / DI / HALT instead of
 		// RET so mze/mzx can detect program termination cleanly.  XOR A zeroes
 		// A for a clean exit code 0.
@@ -349,6 +351,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		thenLbl := g.branchLabel(f, t.Then, copies)
 		retCopies := g.buildReturnCopies(t.Vals)
 		thenFT := g.isFallThrough(f, t.Then) && len(copies) == 0
+		frameBytes := g.localFrameDepth[g.curBlock.Label]
 
 		switch cc {
 		case "CLE":
@@ -357,6 +360,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			g.emitf("    JRS C, %s", thenLbl)
 			g.emitf("    JRS Z, %s", thenLbl)
 			g.emitParallelCopy(retCopies)
+			g.emitLocalFrameCleanup(frameBytes)
 			g.emit("    RET")
 		case "CGT":
 			// a > b: take Then if NC && NZ.
@@ -371,12 +375,13 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			// Register ret path as trampoline so it's emitted AFTER the fallthrough
 			// then-block (otherwise the inline label would block the fallthrough path).
 			g.trampolines = append(g.trampolines, trampolineBlock{
-				label:  retLbl,
-				copies: retCopies,
-				isRet:  true,
+				label:      retLbl,
+				copies:     retCopies,
+				isRet:      true,
+				frameBytes: frameBytes,
 			})
 		default:
-			if thenFT && len(retCopies) == 0 {
+			if thenFT && len(retCopies) == 0 && frameBytes == 0 {
 				// Then-block is the fallthrough AND return path is empty:
 				// use RET invertCC (1 byte, optimal). Only safe when retCopies is
 				// empty — otherwise retCopies would corrupt registers that @then
@@ -388,12 +393,14 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 				// then fall through to @then naturally.
 				g.emitf("    JRS %s, %s", cc, thenLbl)
 				g.emitParallelCopy(retCopies)
+				g.emitLocalFrameCleanup(frameBytes)
 				g.emit("    RET")
 			} else {
 				// General case: emit conditional jump to Then first, then return path.
 				g.emitf("    JRS %s, %s", cc, thenLbl)
 				g.emitParallelCopy(copies)
 				g.emitParallelCopy(retCopies)
+				g.emitLocalFrameCleanup(frameBytes)
 				g.emit("    RET")
 			}
 		}
