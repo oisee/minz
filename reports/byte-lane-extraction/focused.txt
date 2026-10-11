@@ -1,0 +1,11 @@
+=== RUN   TestByteLoadSpillKeepsLiveAccumulator
+--- PASS: TestByteLoadSpillKeepsLiveAccumulator (0.14s)
+=== RUN   TestGlobalWordDirectEDClosedRecipe
+--- PASS: TestGlobalWordDirectEDClosedRecipe (0.01s)
+=== RUN   TestGlobalWordDirectOriginalBoth30
+    global_word_direct_target_test.go:15: explicit bounded prototype export
+--- SKIP: TestGlobalWordDirectOriginalBoth30 (0.00s)
+=== RUN   TestTruncMaskKeepsByteStoreIdentityAndFaultPrefix
+--- PASS: TestTruncMaskKeepsByteStoreIdentityAndFaultPrefix (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.163s

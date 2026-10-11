@@ -474,8 +474,25 @@ func SimplifyIdentities(f *Func) bool {
 	consts := collectKnownConsts(f)
 	changed := false
 	for _, b := range f.Blocks {
+		defs := map[Reg]*Inst{}
 		for i, inst := range b.Insts {
 			switch inst.Op {
+			case OpTrunc:
+				// trunc8(and16(x, 255)) == trunc8(x), including signed x.
+				// Only inspect a dominating definition in this block; do not
+				// touch the original byte memory instructions or remove an
+				// AND whose full-width value has another consumer.
+				mask := defs[inst.Src[0]]
+				if !inst.ClsHard && inst.Ty != nil && inst.Ty.Width() == 8 && inst.SrcTy != nil && inst.SrcTy.Width() == 16 &&
+					mask != nil && mask.Op == OpAnd && !mask.ClsHard && mask.Ty != nil && mask.Ty.Width() == 16 {
+					for n := 0; n < 2; n++ {
+						if k := defs[mask.Src[n]]; k != nil && k.Op == OpConst && k.Ty != nil && k.Ty.Width() == 16 && k.Imm == 255 {
+							inst.Src[0] = mask.Src[1-n]
+							changed = true
+							break
+						}
+					}
+				}
 			case OpPtrAdd:
 				// PtrAdd(x, 0) → Move(x)
 				if v, ok := consts[inst.Src[1]]; ok && v == 0 {
@@ -524,6 +541,9 @@ func SimplifyIdentities(f *Func) bool {
 					}
 					changed = true
 				}
+			}
+			if inst.Dst != NoReg {
+				defs[inst.Dst] = b.Insts[i]
 			}
 		}
 	}
