@@ -197,6 +197,18 @@ func MeasureMemoryHostArenaPeel(factory func() (*hir.Module, error), w hir.Memor
 	if e = check(); e != nil {
 		return nil, e
 	}
+	if precompileProof == nil || !reflect.DeepEqual(precompileProof.OriginalCompatibility, association.Baseline.Compatibility) || !reflect.DeepEqual(precompileProof.ActualCompatibility, variant.Compatibility) || !reflect.DeepEqual(precompileProof.OriginalFunctions, association.Baseline.FunctionSites) || !reflect.DeepEqual(precompileProof.ActualFunctions, variant.FunctionSites) {
+		return nil, fmt.Errorf("arena selector: measured baseline differs from precompile proof")
+	}
+	var selectedSource hir.LoopSite
+	for _, s := range loaded.Sites.Sites {
+		if s.ID == site {
+			selectedSource = s
+		}
+	}
+	if !reflect.DeepEqual(precompileProof.SourceSite, selectedSource) {
+		return nil, fmt.Errorf("arena selector: loaded source site differs from proof")
+	}
 	if e = arenaSameObservations(association.Baseline.Raw.Invocations, variant.Raw.Invocations); e != nil {
 		return nil, e
 	}
@@ -340,6 +352,18 @@ func buildMemoryHostArenaPrecompileProof(source, actual *hir.Module, w hir.Memor
 	}
 	if !found || sourceSite.Function != "region_match" || sourceSite.HIRPath != "body/s1" {
 		return nil, fmt.Errorf("arena selector: unexpected source proof site")
+	}
+	tailFound := false
+	for _, s := range as.Sites {
+		if s.ID == siteID {
+			if s.Function != "region_match" || s.HIRPath != "body/s4" || !reflect.DeepEqual(s.Origin, sourceSite.Origin) {
+				return nil, fmt.Errorf("arena selector: actual tail site differs")
+			}
+			tailFound = true
+		}
+	}
+	if !tailFound {
+		return nil, fmt.Errorf("arena selector: missing actual tail site")
 	}
 	return &MemoryHostArenaPrecompileProof{Schema: "minz.exact-memory-host-arena-peel-precompile/v1", Function: "region_match", SourceSite: sourceSite, OriginalCompatibility: sk, ActualCompatibility: ak, OriginalFunctions: sf, ActualFunctions: af, ActualSites: as}, nil
 }
