@@ -52,6 +52,12 @@ type VM struct {
 	// OpPatch, OpLoadPatched, ASM, ports, and instruction fetches are excluded.
 	ObserveDataAccess func(VMDataAccess)
 
+	// CheckDataAccess runs before each actual OpLoad/OpStore byte access.
+	// A non-nil error stops the instruction before that byte is accessed; earlier
+	// successful bytes and their observations remain committed. Nil preserves
+	// the default VM behavior. The hook must not mutate or reenter the VM.
+	CheckDataAccess func(inst *Inst, addr int64) error
+
 	// Execution limits (protect against infinite loops in comptime code).
 	MaxSteps  int64 // 0 = unlimited (not recommended for comptime)
 	MaxMemory int   // heap byte limit; 0 = 64 KB default
@@ -70,7 +76,8 @@ type VM struct {
 // VMDataAccess is one executed OpLoad/OpStore byte access. Addr is the actual
 // VM heap offset after pointer-width wrapping, not a relocated Z80 address.
 // Value is the byte read or written. Repeated/overlapping accesses produce
-// separate events; a rejected out-of-bounds instruction produces none.
+// separate events; a rejected heap-range instruction produces none. A per-byte
+// CheckDataAccess failure retains observations for earlier successful bytes.
 type VMDataAccess struct {
 	Op    Op // OpLoad (read) or OpStore (write)
 	Addr  int64
@@ -680,12 +687,19 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 			return fmt.Errorf("load: out-of-bounds address %d (heap size %d)", offset, len(vm.heap))
 		}
 		var v int64
-		if observe := vm.ObserveDataAccess; observe != nil {
+		if observe := vm.ObserveDataAccess; observe != nil || vm.CheckDataAccess != nil {
 			for i := 0; i < width; i++ {
 				addr := int64((uint64(a.I) + uint64(i)) & mask)
+				if vm.CheckDataAccess != nil {
+					if err := vm.CheckDataAccess(inst, addr); err != nil {
+						return err
+					}
+				}
 				value := vm.heap[int(addr)]
 				v |= int64(value) << (8 * i)
-				observe(VMDataAccess{Op: OpLoad, Addr: addr, Value: value})
+				if observe != nil {
+					observe(VMDataAccess{Op: OpLoad, Addr: addr, Value: value})
+				}
 			}
 		} else {
 			for i := 0; i < width; i++ {
@@ -703,12 +717,19 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		if !vm.wrappedHeapRangeValid(a.I, width, mask) {
 			return fmt.Errorf("store: out-of-bounds address %d (heap size %d)", offset, len(vm.heap))
 		}
-		if observe := vm.ObserveDataAccess; observe != nil {
+		if observe := vm.ObserveDataAccess; observe != nil || vm.CheckDataAccess != nil {
 			for i := 0; i < width; i++ {
 				addr := int64((uint64(a.I) + uint64(i)) & mask)
+				if vm.CheckDataAccess != nil {
+					if err := vm.CheckDataAccess(inst, addr); err != nil {
+						return err
+					}
+				}
 				value := byte(val >> (8 * i))
 				vm.heap[int(addr)] = value
-				observe(VMDataAccess{Op: OpStore, Addr: addr, Value: value})
+				if observe != nil {
+					observe(VMDataAccess{Op: OpStore, Addr: addr, Value: value})
+				}
 			}
 		} else {
 			for i := 0; i < width; i++ {
