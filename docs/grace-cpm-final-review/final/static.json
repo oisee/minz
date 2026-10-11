@@ -1,0 +1,9 @@
+{
+  "wrapper_exactly_startup_plus_four_module_changes_plus_bridge": true,
+  "fresh_OUT_replacements": 22,
+  "program_bytes": 2574,
+  "program_sha256": "087a9c7376591a82169b963891493ab6389cf26ebab728ef08a63e7664c73112",
+  "status": 351,
+  "savedSP": 349,
+  "execution_performed": false
+}
