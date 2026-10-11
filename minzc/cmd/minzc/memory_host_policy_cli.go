@@ -61,6 +61,9 @@ func memoryHostPolicyCLIOutputNames() []string {
 	return names
 }
 func validateMemoryHostPolicyCLI(source string) error {
+	if memoryHostSearchCLIRequested() {
+		return fmt.Errorf("memory host policy CLI: search mode is incompatible")
+	}
 	if memoryHostPolicyCLI.Directory == "" || memoryHostCLI.Workload == "" {
 		return fmt.Errorf("memory host policy CLI: policy directory and workload are required")
 	}

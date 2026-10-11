@@ -231,6 +231,7 @@ func init() {
 	registerHIRProfileFlags(rootCmd)
 	registerMemoryHostCLIFlags(rootCmd)
 	registerMemoryHostPolicyCLIFlags(rootCmd)
+	registerMemoryHostSearchCLIFlags(rootCmd)
 	rootCmd.Flags().BoolVar(&hirProfileJoint, "hir-profile-joint", false, "measure candidate combinations on full VM/Z80 workload with --hir-profile-auto")
 	rootCmd.Flags().BoolVar(&hirProfileIndependentRules, "hir-profile-independent-rules", false, "measure constant-if and invariant-base independently with --hir-profile-joint")
 	rootCmd.Flags().BoolVar(&hirProfileInvariantSites, "hir-profile-invariant-sites", false, "measure scalar invariant-base choices by source site with --hir-profile-joint")
@@ -284,6 +285,9 @@ func main() {
 }
 
 func compile(sourceFile string) error {
+	if memoryHostSearchCLIRequested() {
+		return runMemoryHostSearchCLI(sourceFile)
+	}
 	if memoryHostPolicyCLIRequested() {
 		return runMemoryHostPolicyCLI(sourceFile)
 	}
