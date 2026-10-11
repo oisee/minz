@@ -1,0 +1,1 @@
+wall_s=0.01 max_rss_kib=20224 user_s=0.01 sys_s=0.00

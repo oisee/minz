@@ -22,6 +22,41 @@ func PrepareLocalTableProblem(f *mir2.Func, allocation *mir2.AllocResult) (*Loca
 		return nil, fmt.Errorf("local table requires single-result leaf block")
 	}
 	block := f.Blocks[0]
+	if block == nil {
+		return nil, fmt.Errorf("nil entry block")
+	}
+	parameters := map[mir2.Reg]bool{}
+	for _, p := range f.Contract.Params {
+		if p.Reg <= 0 || parameters[p.Reg] {
+			return nil, fmt.Errorf("invalid or duplicate contract parameter")
+		}
+		parameters[p.Reg] = true
+	}
+	defined := map[mir2.Reg]bool{}
+	for _, p := range block.Params {
+		if !parameters[p.Dst] {
+			return nil, fmt.Errorf("entry block parameter missing from contract")
+		}
+		defined[p.Dst] = true
+	}
+	for r := range parameters {
+		defined[r] = true
+	}
+	for _, inst := range block.Insts {
+		if inst == nil || inst.Dst <= 0 || inst.ClsHard {
+			return nil, fmt.Errorf("hard class or invalid local definition unsupported")
+		}
+		for _, r := range inst.Src {
+			if r > 0 && !defined[r] {
+				return nil, fmt.Errorf("unbound local input vreg %d", r)
+			}
+		}
+		if defined[inst.Dst] {
+			return nil, fmt.Errorf("redefined local vreg %d", inst.Dst)
+		}
+		defined[inst.Dst] = true
+	}
+
 	term, ok := block.Term.(*mir2.TermRet)
 	if !ok || len(term.Vals) != 1 {
 		return nil, fmt.Errorf("local table requires unconditional single return")
@@ -35,6 +70,9 @@ func PrepareLocalTableProblem(f *mir2.Func, allocation *mir2.AllocResult) (*Loca
 			return nil, fmt.Errorf("return block parameter not yet certified")
 		}
 	}
+	if !defined[term.Vals[0]] {
+		return nil, fmt.Errorf("unbound return value")
+	}
 	returnName := mir2.ReturnLocation(ret.Class, ret.Ty)
 	returnLoc := Z80.LocByName(returnName)
 	if returnLoc < 0 {
@@ -47,7 +85,7 @@ func PrepareLocalTableProblem(f *mir2.Func, allocation *mir2.AllocResult) (*Loca
 			return nil, fmt.Errorf("missing parameter allocation")
 		}
 		index := Z80.LocByName(loc.Name)
-		if index < 0 || p.Ty == nil || Z80.Locs[index].Width != p.Ty.Width() {
+		if index < 0 || p.Ty == nil || Z80.Locs[index].Width != p.Ty.Width() || Z80.NonAllocatable.Has(index) {
 			return nil, fmt.Errorf("unsupported parameter ABI")
 		}
 		opts.ParamLocs[int(p.Reg)] = index
@@ -107,7 +145,7 @@ func PrepareLocalTableProblem(f *mir2.Func, allocation *mir2.AllocResult) (*Loca
 		return nil, err
 	}
 	binding := (&mir2.Module{Funcs: []*mir2.Func{f}}).Dump() + string(contract)
-	opts.CheckedContext = fmt.Sprintf("production-local-v2:%x", sha256.Sum256([]byte(binding)))
+	opts.CheckedContext = fmt.Sprintf("production-local-v3:%x", sha256.Sum256([]byte(binding)))
 	return &LocalTableProblem{Ops: ops, Options: opts, Function: f}, nil
 }
 
