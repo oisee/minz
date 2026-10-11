@@ -1,0 +1,42 @@
+[
+  {
+    "path": "README.md",
+    "bytes": 3933,
+    "sha256": "6fc13e902b1aa0c28a5b3bd2759fafa127f4c919b63078b040ea31f2219fa729"
+  },
+  {
+    "path": "export_sites.go",
+    "bytes": 450,
+    "sha256": "f191acf7a3a663e32927aa6435c88b642abdf571921e307748bab794b0bb75f8"
+  },
+  {
+    "path": "factory-baseline.json.gz",
+    "bytes": 55120,
+    "sha256": "651057bbf2d7f4ac9c5da33b40d5759acdba493cb1045a037b13cea1621c8cb1"
+  },
+  {
+    "path": "independent-counts.json",
+    "bytes": 1984,
+    "sha256": "3a4bd81ed449a393817cb37e0136ee0a48231fe76c0bfc849bfff4139b3db8c6"
+  },
+  {
+    "path": "independent-oracle.txt",
+    "bytes": 1822,
+    "sha256": "70e2f4a80e8d106432830ef557c3f1ba4fe3f84051ff4e4e8f4e8ee10fcfda92"
+  },
+  {
+    "path": "independent_counter_oracle.py",
+    "bytes": 5472,
+    "sha256": "824dd0418feb5b76aecbb654f3071d59fb5bda28134406a9cd008c79cec09407"
+  },
+  {
+    "path": "source-sites.json",
+    "bytes": 5136,
+    "sha256": "6b5330f53b3895ea57182c9e4a53d2fa5eb729ca09299c4ee237eb79fc7e2e17"
+  },
+  {
+    "path": "source.nanz",
+    "bytes": 7164,
+    "sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  }
+]

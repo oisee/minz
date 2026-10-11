@@ -1,0 +1,161 @@
+{
+  "schema": "minz.hir-loop-sites/v1",
+  "stage": "input-hir",
+  "sites": [
+    {
+      "id": "14e906809493d807b5c8213ae9a3419c1682578e09546e913bf6a8f1a60ba5ae",
+      "function": "main",
+      "kind": "while",
+      "ordinal": 0,
+      "hir_path": "body/s2",
+      "origin": {
+        "unit": "../../../examples/nanz/self_lanz_parser.nanz",
+        "byte_offset": 6524,
+        "line": 234,
+        "byte_column": 5,
+        "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+      }
+    },
+    {
+      "id": "27d7ca463d5dab399a40f2ac04a045445840ff27b464e128cd8a85349adb6ff3",
+      "function": "print_str",
+      "kind": "while",
+      "ordinal": 0,
+      "hir_path": "body/s2",
+      "origin": {
+        "unit": "../../../examples/nanz/self_lanz_parser.nanz",
+        "byte_offset": 5495,
+        "line": 192,
+        "byte_column": 5,
+        "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+      }
+    },
+    {
+      "id": "40a1f12c9d6003c6797082eb3af4bbc64a6038693905541ea0fe736cec0ee5d7",
+      "function": "parse_sexpr",
+      "kind": "while",
+      "ordinal": 0,
+      "hir_path": "body/s5",
+      "origin": {
+        "unit": "../../../examples/nanz/self_lanz_parser.nanz",
+        "byte_offset": 4747,
+        "line": 165,
+        "byte_column": 5,
+        "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+      }
+    },
+    {
+      "id": "503aaf3d909385e31fd960c5f5f5c50ccab3e46cb8b5ee9c683bb46d259be315",
+      "function": "skip_ws",
+      "kind": "while",
+      "ordinal": 0,
+      "hir_path": "body/s1/then/s0",
+      "origin": {
+        "unit": "../../../examples/nanz/self_lanz_parser.nanz",
+        "byte_offset": 1982,
+        "line": 68,
+        "byte_column": 9,
+        "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+      }
+    },
+    {
+      "id": "5b2198d5ef725d7d72a06f7f382d3f37d9a23c57a8a327e2f20e9d110dd6c016",
+      "function": "parse_sexpr",
+      "kind": "while",
+      "ordinal": 0,
+      "hir_path": "body/s8/then/s2",
+      "origin": {
+        "unit": "../../../examples/nanz/self_lanz_parser.nanz",
+        "byte_offset": 4993,
+        "line": 175,
+        "byte_column": 9,
+        "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+      }
+    },
+    {
+      "id": "6eee52d2b0c0d69d235793c6c09a16f8ca92492947d04a0332e553dc8ca97cd7",
+      "function": "region_match",
+      "kind": "while",
+      "ordinal": 0,
+      "hir_path": "body/s1",
+      "origin": {
+        "unit": "../../../examples/nanz/self_lanz_parser.nanz",
+        "byte_offset": 2347,
+        "line": 81,
+        "byte_column": 5,
+        "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+      }
+    },
+    {
+      "id": "83f722d56fc54e6de6d7204ed44e0c87b56df9b6dc11438399f79410ae009c26",
+      "function": "intern_region",
+      "kind": "while",
+      "ordinal": 0,
+      "hir_path": "body/s5",
+      "origin": {
+        "unit": "../../../examples/nanz/self_lanz_parser.nanz",
+        "byte_offset": 2816,
+        "line": 100,
+        "byte_column": 5,
+        "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+      }
+    },
+    {
+      "id": "8bd70808437905033bcb833f9bfb7824f350eb890d875b846272321a919b1197",
+      "function": "print_node",
+      "kind": "while",
+      "ordinal": 0,
+      "hir_path": "body/s4/then/s3",
+      "origin": {
+        "unit": "../../../examples/nanz/self_lanz_parser.nanz",
+        "byte_offset": 5979,
+        "line": 217,
+        "byte_column": 9,
+        "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+      }
+    },
+    {
+      "id": "8cbe52bdcf0c750ccd33972c892a88375c28d143f53612a31b3cd327e8e16fb1",
+      "function": "skip_ws",
+      "kind": "while",
+      "ordinal": 0,
+      "hir_path": "body/s0",
+      "origin": {
+        "unit": "../../../examples/nanz/self_lanz_parser.nanz",
+        "byte_offset": 1885,
+        "line": 65,
+        "byte_column": 5,
+        "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+      }
+    },
+    {
+      "id": "97347d6abcb727074650dc5d4ed61949c6a27ee2fcc2b9c45e15bf7cd097b6d8",
+      "function": "intern_region",
+      "kind": "while",
+      "ordinal": 0,
+      "hir_path": "body/s1",
+      "origin": {
+        "unit": "../../../examples/nanz/self_lanz_parser.nanz",
+        "byte_offset": 2561,
+        "line": 90,
+        "byte_column": 5,
+        "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+      }
+    },
+    {
+      "id": "c886df75767b5422c0ace7b5b88b959bc72cef2e7ccf361b7a486819a08ca851",
+      "function": "parse_sexpr",
+      "kind": "while",
+      "ordinal": 0,
+      "hir_path": "body/s3/then/s7",
+      "origin": {
+        "unit": "../../../examples/nanz/self_lanz_parser.nanz",
+        "byte_offset": 4415,
+        "line": 152,
+        "byte_column": 9,
+        "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+      }
+    }
+  ],
+  "unmapped_loops": 0
+}
