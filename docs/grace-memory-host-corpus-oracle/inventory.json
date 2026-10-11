@@ -3,6 +3,10 @@
   "workload_owner": "627b76fc",
   "files": [
     {
+      "path": "docs/grace-memory-host-corpus-oracle/FINAL-AUDIT.md",
+      "sha256": "54923e2e87bbfcc4d2cc407b9c1b532ffb561197add5ee0c0ed9f094dce8d516"
+    },
+    {
       "path": "docs/grace-memory-host-corpus-oracle/PLAN.md",
       "sha256": "0726d06a89f66672532b669c79e85fc38f51355f1bd944c973861546cb77398a"
     },
@@ -17,6 +21,14 @@
     {
       "path": "docs/grace-memory-host-corpus-oracle/capacity-review.json",
       "sha256": "554687c87f53fa1f1b863ee4fdee70fd202365200960d64aed83180cd517395d"
+    },
+    {
+      "path": "docs/grace-memory-host-corpus-oracle/final-corpus-audit.json",
+      "sha256": "51c178ad9ef9d4b462194f8a75d3a01ed5d86db16b6674d70944ccd7b3901d8d"
+    },
+    {
+      "path": "docs/grace-memory-host-corpus-oracle/final-corpus-audit.txt",
+      "sha256": "4a9d4de9d5d5318a6ca72c69597ab9949e3e0be563080939956e94ef0082ce6e"
     },
     {
       "path": "docs/grace-memory-host-corpus-oracle/fresh-dominant-expected.json.gz",
