@@ -10,6 +10,10 @@ import (
 // This initial ABI admits defined u8/void functions and immediate statement
 // checks. Nested fallible expressions require explicit outcome threading.
 func ResolveErrorABI(m *Module) error {
+	// Validate structure before visitors inspect or annotate the module.
+	if err := Verify(m); err != nil {
+		return err
+	}
 	funcs := map[string]*Func{}
 	for _, f := range m.Funcs {
 		funcs[f.Name] = f

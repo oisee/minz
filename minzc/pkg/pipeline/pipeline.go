@@ -137,6 +137,10 @@ func DefaultOptions() Options { return Options{ContractOpt: true} }
 
 // CompileHIRSteps runs the full HIR→MIR2→Z80 pipeline and returns all intermediate outputs.
 func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
+	// Runtime and ABI admission below inspect fields and traverse bodies.
+	if err := hir.Verify(hm); err != nil {
+		return Steps{}, err
+	}
 	var opt Options
 	if len(opts) > 0 {
 		opt = opts[0]
