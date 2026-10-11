@@ -1,0 +1,16 @@
+=== RUN   TestShowcaseBufStreamNativeCapacityModel
+=== RUN   TestShowcaseBufStreamNativeCapacityModel/cap0
+=== RUN   TestShowcaseBufStreamNativeCapacityModel/cap1
+=== RUN   TestShowcaseBufStreamNativeCapacityModel/cap3
+=== RUN   TestShowcaseBufStreamNativeCapacityModel/cap63
+=== RUN   TestShowcaseBufStreamNativeCapacityModel/cap64
+=== NAME  TestShowcaseBufStreamNativeCapacityModel
+    showcase_stream_oracle_test.go:75: ORACLE examples/nanz/30_stream_test.nanz 5 capacities × 70 writes; full 64-byte buffer + 6-byte descriptor; VM/native independent model PASS
+--- PASS: TestShowcaseBufStreamNativeCapacityModel (0.23s)
+    --- PASS: TestShowcaseBufStreamNativeCapacityModel/cap0 (0.04s)
+    --- PASS: TestShowcaseBufStreamNativeCapacityModel/cap1 (0.04s)
+    --- PASS: TestShowcaseBufStreamNativeCapacityModel/cap3 (0.04s)
+    --- PASS: TestShowcaseBufStreamNativeCapacityModel/cap63 (0.05s)
+    --- PASS: TestShowcaseBufStreamNativeCapacityModel/cap64 (0.05s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.240s

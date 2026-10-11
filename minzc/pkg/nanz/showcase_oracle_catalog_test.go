@@ -20,20 +20,23 @@ import (
 )
 
 type oracleCatalogEntry struct {
-	Target           uint8    `json:"hir_target"`
-	InlineASM        []string `json:"inline_asm_contracts"`
-	Path             string   `json:"path"`
-	SHA256           string   `json:"source_sha256"`
-	Frontend         string   `json:"frontend"`
-	Entries          []string `json:"entries"`
-	Externs          []string `json:"externs"`
-	Imports          []string `json:"source_imports"`
-	SourceAssertions int      `json:"source_assertions"`
-	AssertionScope   string   `json:"assertion_scope"`
-	NativeBehavior   string   `json:"native_behavior"`
-	Workload         string   `json:"workload"`
-	Model            string   `json:"independent_model"`
-	Requirement      string   `json:"external_requirement_or_remaining_work"`
+	Target           uint8             `json:"hir_target"`
+	InlineASM        []string          `json:"inline_asm_contracts"`
+	Path             string            `json:"path"`
+	SHA256           string            `json:"source_sha256"`
+	Frontend         string            `json:"frontend"`
+	Entries          []string          `json:"entries"`
+	Externs          []string          `json:"externs"`
+	Imports          []string          `json:"source_imports"`
+	SourceAssertions int               `json:"source_assertions"`
+	AssertionScope   string            `json:"assertion_scope"`
+	NativeBehavior   string            `json:"native_behavior"`
+	Workload         string            `json:"workload"`
+	Model            string            `json:"independent_model"`
+	Requirement      string            `json:"external_requirement_or_remaining_work"`
+	Intent           string            `json:"entry_structure_not_execution_claim"`
+	Evidence         []catalogEvidence `json:"reviewed_evidence"`
+	TestReferences   []string          `json:"test_source_references_not_execution_claim"`
 }
 
 // Catalog every exact corpus path. Metadata is evidence of possible entry
@@ -60,6 +63,7 @@ func TestShowcaseExecutableOracleCatalog(t *testing.T) {
 		}
 	}
 	sort.Strings(paths)
+	references := catalogTestReferences(t, root, paths)
 	var catalog []oracleCatalogEntry
 	counts := map[string]int{}
 	for _, path := range paths {
@@ -87,6 +91,12 @@ func TestShowcaseExecutableOracleCatalog(t *testing.T) {
 		if e != nil {
 			t.Fatalf("%s frontend metadata: %v", relative, e)
 		}
+		row.Intent = "callable-subroutines; workload required"
+		if h.FuncByName("main") != nil {
+			row.Intent = "declares main; whole-main execution not implied"
+		}
+		row.TestReferences = references[row.Path]
+		row.Evidence = []catalogEvidence{}
 		row.Target = h.Target
 		row.InlineASM = []string{}
 		for _, f := range h.Funcs {
@@ -207,7 +217,9 @@ func TestShowcaseExecutableOracleCatalog(t *testing.T) {
 			row.Model = "All 6912 ZX screen bytes from independent row/col/color formula; macro counter 3"
 			row.Requirement = "pkg/lizp TestZXExamplesFullScreenVMZ80; no ULA/contention/hardware claim"
 		}
+		applyReviewedCatalogEvidence(t, root, &row)
 		if len(row.Entries) == 0 {
+			row.Intent = "declaration-only/library; importing caller required"
 			row.Requirement = "Library/declaration-only source: exercise through importing caller and chosen workload."
 		}
 		counts[row.NativeBehavior]++
@@ -224,7 +236,7 @@ func TestShowcaseExecutableOracleCatalog(t *testing.T) {
 			Base    string               `json:"base_commit"`
 			Scope   string               `json:"scope"`
 			Entries []oracleCatalogEntry `json:"entries"`
-		}{"ff11ba69", "Metadata catalog; only executed-independent-vm-z80 rows claim explicitly bounded behavioral coverage", catalog}, "", "  ")
+		}{"ee21cae8", "All 193 paths retained. Reviewed evidence proves only named entries/workloads; discovered test references, source assertions and main declarations are not native execution proofs. Derived CP/M main is separate evidence, never transferred to original source.", catalog}, "", "  ")
 		if e != nil {
 			t.Fatal(e)
 		}
