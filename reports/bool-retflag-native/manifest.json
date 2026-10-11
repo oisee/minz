@@ -1,0 +1,119 @@
+{
+  "files": [
+    {
+      "path": "reports/bool-retflag-native/run.txt",
+      "bytes": 1914,
+      "sha256": "6437aa50ba167e37b2072f11f91a2745655a533dd49b261254661db56a5f7070"
+    },
+    {
+      "path": "reports/bool-retflag-native/workload.json",
+      "bytes": 579,
+      "sha256": "fcb476e93662df19d7c6875a9dc856b9a12d8e575538446592b8e8654b421bd8"
+    },
+    {
+      "path": "reports/bool-retflag-native/native/calls.json.gz",
+      "bytes": 522568,
+      "sha256": "e687b5eaa32cd8cfa1b7b0661e9a468131d2113c02e0e33135d7a9bb01675efc"
+    },
+    {
+      "path": "reports/bool-retflag-native/native/source.nanz",
+      "bytes": 2999,
+      "sha256": "95896d353dfdd27b523890cb7f1526b7ebe9d659eed0cfc461433e95f616bce7"
+    },
+    {
+      "path": "reports/bool-retflag-native/native/grace-size/evidence.json",
+      "bytes": 1638,
+      "sha256": "4b3e6438e1bb1939180cd777b745126c9d8a1b233996c9095f14ffa75e69f9bb"
+    },
+    {
+      "path": "reports/bool-retflag-native/native/grace-size/raw.mir",
+      "bytes": 3157,
+      "sha256": "d6b53166d7988254c4ec8f023b954f69e222505be311ffeabefbb76f09908891"
+    },
+    {
+      "path": "reports/bool-retflag-native/native/grace-size/final.mir",
+      "bytes": 2972,
+      "sha256": "ed34a4a741ef8e87d78f99cb8d66483d0bb549667862af7dc0d9116a091e2228"
+    },
+    {
+      "path": "reports/bool-retflag-native/native/grace-size/target.a80",
+      "bytes": 4204,
+      "sha256": "79577dff28a35a949e6dfa9a8c3c12798a1aa1dce0dc9c43c0e10bda0d7bdfb9"
+    },
+    {
+      "path": "reports/bool-retflag-native/native/grace-size/target.bin",
+      "bytes": 220,
+      "sha256": "b554cc65a2274cd34f0030c71ed0da0630183385f2b72c82c6bbb59da34788fc"
+    },
+    {
+      "path": "reports/bool-retflag-native/native/grace-size/allocation.json",
+      "bytes": 3824,
+      "sha256": "70b04c746b579ac4e79160fa34bf025087add4ef054d24b746bc4e1c513b7c4d"
+    },
+    {
+      "path": "reports/bool-retflag-native/native/grace-speed/evidence.json",
+      "bytes": 1639,
+      "sha256": "49bb59a93ab033ea7ab3596e0e0ad3a05f0b03d808f1da2a6992b8ee10bf21d4"
+    },
+    {
+      "path": "reports/bool-retflag-native/native/grace-speed/raw.mir",
+      "bytes": 3157,
+      "sha256": "d6b53166d7988254c4ec8f023b954f69e222505be311ffeabefbb76f09908891"
+    },
+    {
+      "path": "reports/bool-retflag-native/native/grace-speed/final.mir",
+      "bytes": 2972,
+      "sha256": "ed34a4a741ef8e87d78f99cb8d66483d0bb549667862af7dc0d9116a091e2228"
+    },
+    {
+      "path": "reports/bool-retflag-native/native/grace-speed/target.a80",
+      "bytes": 4204,
+      "sha256": "79577dff28a35a949e6dfa9a8c3c12798a1aa1dce0dc9c43c0e10bda0d7bdfb9"
+    },
+    {
+      "path": "reports/bool-retflag-native/native/grace-speed/target.bin",
+      "bytes": 220,
+      "sha256": "b554cc65a2274cd34f0030c71ed0da0630183385f2b72c82c6bbb59da34788fc"
+    },
+    {
+      "path": "reports/bool-retflag-native/native/grace-speed/allocation.json",
+      "bytes": 3824,
+      "sha256": "70b04c746b579ac4e79160fa34bf025087add4ef054d24b746bc4e1c513b7c4d"
+    },
+    {
+      "path": "reports/bool-retflag-native/native/default/evidence.json",
+      "bytes": 1640,
+      "sha256": "e465ff7c2f72e9fd872c1c7d3e636afa25435ecd66f29ff687ee484e715672ce"
+    },
+    {
+      "path": "reports/bool-retflag-native/native/default/raw.mir",
+      "bytes": 3157,
+      "sha256": "d6b53166d7988254c4ec8f023b954f69e222505be311ffeabefbb76f09908891"
+    },
+    {
+      "path": "reports/bool-retflag-native/native/default/final.mir",
+      "bytes": 3089,
+      "sha256": "ab80005cf51115d74eb538ba4f1d3df878ba040ecc0fd4058727a3368125216a"
+    },
+    {
+      "path": "reports/bool-retflag-native/native/default/target.a80",
+      "bytes": 4431,
+      "sha256": "eb811647ff40aa2841a9f25f467668d3328144bc2ec01934d9b4a41d1d27c1f4"
+    },
+    {
+      "path": "reports/bool-retflag-native/native/default/target.bin",
+      "bytes": 220,
+      "sha256": "b554cc65a2274cd34f0030c71ed0da0630183385f2b72c82c6bbb59da34788fc"
+    },
+    {
+      "path": "reports/bool-retflag-native/native/default/allocation.json",
+      "bytes": 3824,
+      "sha256": "70b04c746b579ac4e79160fa34bf025087add4ef054d24b746bc4e1c513b7c4d"
+    },
+    {
+      "path": "reports/2026-10-11-072-original-bool-retflag-native.md",
+      "bytes": 2516,
+      "sha256": "58698b53f2404fcb177cc19928e8df4f84fd27b68f0027a5fbb9215fa885aa44"
+    }
+  ]
+}
