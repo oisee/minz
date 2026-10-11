@@ -1,0 +1,36 @@
+{
+  "code_commit": "354a47efb3b734e5ef0d1a9c9f1eb20a6f8a3393",
+  "archive_sha256": "7c68901fcbb4e319b1ed4380e8a1e73fa2270e8e72180bc8778d8330c73adfc4",
+  "archive_source_commit": "c3864cf2e3f2ab379e92c98c001ab4341586c5cd",
+  "all_archive_payload_hashes_verified": 53,
+  "current_sources": {
+    "minzc/pkg/hir/native_composition_test.go": "066148c0957f2bcde8f9aa1f41fa0b1a793955e07839ec15355b557d87fc517f",
+    "minzc/pkg/hir/native_lowering_judge_test.go": "0c039d2f6d4aaf172df26958f8ebba6acb09921a114a86f26c1ac5716866d031",
+    "minzc/pkg/mir2/constprop.go": "fe8cb44b521f1f8e5a824c2716a98486a0f7718f2ff442a75b8c1150d9ea6349",
+    "minzc/pkg/mir2/typed_zero_identity_test.go": "c70c38923c983b0af1ecd48a351ae30e27c374339a50987e6c8cd6dc0c403179",
+    "minzc/pkg/pipeline/typed_zero_identities_native_test.go": "54d5a32d6a597278877e492eb350a5da197931ce386f4bc162ee60328fd92274",
+    "minzc/pkg/mir2/z80codegen_muldiv.go": "fe5799515e5fdec62f5850962f8b0fb0b59110c9390e32f78ca18742599aa4b7",
+    "minzc/pkg/mir2/byte_word_fusion.go": "d732ecb01eb62595d4b51c612b757da3e3543241e83838c8df9c478440ab5fe2",
+    "minzc/pkg/mir2/pbqp.go": "fe703716f9ffc2872f7c135384d5e7dc8ec3b938765f16324bfa82ceb236610f",
+    "minzc/pkg/mir2/grace_runner.go": "01015ccab2e6f367ace5448b7b97c1fe9f70700a3e184405eff63bc47d6db08c",
+    "minzc/pkg/mir2/condret.go": "abfadd34622586d4cb68655ba73f8750cabe36ad4d3683e41e1ea1b0b1ca334f",
+    "minzc/pkg/z80spec/locations.go": "f7e17219f69301f5514b7b8bf52a921bdf90f860f0ebded0cf694cd3a7e0cc8f",
+    "minzc/pkg/vir/table_checked.go": "6ea9911c215abb269319ecd86b90f719f5aac26a73c6719898a9d54f8b231195",
+    "minzc/pkg/vir/table_production.go": "4484b92330e5d9bb5d52f3b1fea8172ae85fe28b54b5940f891800a4798266cd",
+    "minzc/pkg/vir/pipeline.go": "60f93c6b6e6a2508852e1496cb9f9cbad76a7a701fa392fe5c5be9282287ff7d",
+    "minzc/pkg/mir2/z80codegen_parallel_overlap_test.go": "86f9291c64d370cb2799f02172814dd129eb39a9cfc35680dc77ed202f6e81a3",
+    "minzc/pkg/mir2/z80codegen_dword_parallel_test.go": "d9a14b9ed966159f3228e79013da1310d41e9d08dc513cd457ec2e5a7028e5f4"
+  },
+  "archived_excerpts": {
+    "minzc/pkg/lir/combine.go": "20dd2a4a23e1e07e0924c4f4af86ddb0e9531b19af9acd1c8942b39a2d7b9a3f",
+    "minzc/pkg/lir/outparam_promote.go": "898cf7e9c1509408d824354d602a9bf73f879f7e4fa4b300c2761d0884e7935a",
+    "minzc/pkg/lir/rules.go": "5c30f5a0197912e6150f1bcfbdf6f21d99cae2773947eaf4c2fe73050f357f3b",
+    "minzc/pkg/lir/wfc.go": "0e8f55d4ced694ab37fba4440375dc3c555e9bba528262bc4bcf7f2ce2bf6ff1",
+    "minzc/pkg/lir/z80peephole.go": "d8af14766253906791a1aaa1d02f81994bee461d89822e3a15e19cb67c6dcb7f",
+    "minzc/pkg/lir/cfgrules.go": "ae5f399f822f8b23bbc5f850d8926435853ac1368d948570781b7ce5de9b34ea",
+    "minzc/pkg/hir/lir_research_judge_test.go": "6f78ad3d20fae6d9a58cc6ba6111e3a7685fc230e290dc72ad86187e0617e925"
+  },
+  "new_runtime_tests_run": false,
+  "composition_test_body_same": true,
+  "composition_source_models_same_except_archived_measurements": true
+}
