@@ -1,0 +1,756 @@
+--- FAIL: TestUnsignedExtensionNative (0.10s)
+    --- FAIL: TestUnsignedExtensionNative/8_16_B'_HL (0.00s)
+        zero_extension_native_test.go:30: assembly <nil>
+            ORG 32768
+                LD L, B'
+                LD H, 0
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_16_B'_DE (0.00s)
+        zero_extension_native_test.go:30: assembly <nil>
+            ORG 32768
+                LD E, B'
+                LD D, 0
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_16_B'_BC (0.00s)
+        zero_extension_native_test.go:30: assembly <nil>
+            ORG 32768
+                LD C, B'
+                LD B, 0
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_16_B'__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:30: assembly <nil>
+            ORG 32768
+                EX AF, AF'
+                LD A, B'
+                LD (_spill_ext_r2), A
+                EX AF, AF'
+                EX AF, AF'
+                LD A, 0
+                LD (_spill_ext_r2+1), A
+                EX AF, AF'
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_A_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=24689abc A/F=0/0 expected 0/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 A→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_A_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=0/0 expected 0/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 A→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_A_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01234 A/F=0/0 expected 0/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 A→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_A__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5 A/F=0/0 expected 0/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 A→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_C_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=24689abc A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 C→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_C_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 C→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_C_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01200 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 C→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_C__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 C→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_H_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=246800bc A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 H→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_H_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 H→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_H_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01234 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 H→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_H__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 H→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_IXL_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=24689abc A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 IXL→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_IXL_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 IXL→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_IXL_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01234 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 IXL→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_IXL__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 IXL→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_IYH_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=24689abc A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 IYH→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_IYH_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 IYH→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_IYH_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01234 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 IYH→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_IYH__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 IYH→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_B'_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=24689abc A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 B'→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_B'_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 B'→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_B'_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=f01234 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 B'→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24_B'__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 B'→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24__spill_ext_r1_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=24689abc A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 _spill_ext_r1→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24__spill_ext_r1_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 _spill_ext_r1→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24__spill_ext_r1_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01234 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 _spill_ext_r1→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_24__spill_ext_r1__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u24 _spill_ext_r1→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_A_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=24689abc A/F=0/0 expected 0/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 A→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_A_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=0/0 expected 0/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 A→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_A_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01234 A/F=0/0 expected 0/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 A→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_A__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5a5 A/F=0/0 expected 0/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 A→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_C_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=24689abc A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 C→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_C_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 C→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_C_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01200 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 C→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_C__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 C→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_H_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=246800bc A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 H→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_H_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 H→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_H_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01234 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 H→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_H__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 H→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_IXL_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=24689abc A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 IXL→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_IXL_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 IXL→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_IXL_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01234 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 IXL→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_IXL__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 IXL→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_IYH_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=24689abc A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 IYH→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_IYH_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 IYH→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_IYH_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01234 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 IYH→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_IYH__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 IYH→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_B'_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=24689abc A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 B'→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_B'_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 B'→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_B'_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=f01234 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 B'→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32_B'__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 B'→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32__spill_ext_r1_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=24689abc A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 _spill_ext_r1→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32__spill_ext_r1_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 _spill_ext_r1→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32__spill_ext_r1_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01234 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 _spill_ext_r1→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/8_32__spill_ext_r1__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u8→u32 _spill_ext_r1→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_24__spill_ext_r1_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=24689abc A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u24 _spill_ext_r1→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_24__spill_ext_r1_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u24 _spill_ext_r1→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_24__spill_ext_r1_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01234 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u24 _spill_ext_r1→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_24__spill_ext_r1__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u24 _spill_ext_r1→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_24_HL_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u24 HL→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_24_HL_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01234 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u24 HL→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_24_HL__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u24 HL→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_24_DE_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=24689abc A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u24 DE→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_24_DE_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01234 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u24 DE→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_24_DE__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u24 DE→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_24_IX_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=24689abc A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u24 IX→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_24_IX_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u24 IX→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_24_IX_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01234 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u24 IX→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_24_IX__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u24 IX→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_24_IY_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=24689abc A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u24 IY→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_24_IY_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u24 IY→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_24_IY_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01234 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u24 IY→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_24_IY__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u24 IY→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_32__spill_ext_r1_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=24689abc A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u32 _spill_ext_r1→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_32__spill_ext_r1_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u32 _spill_ext_r1→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_32__spill_ext_r1_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01234 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u32 _spill_ext_r1→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_32__spill_ext_r1__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u32 _spill_ext_r1→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_32_HL_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u32 HL→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_32_HL_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01234 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u32 HL→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_32_HL__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u32 HL→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_32_DE_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=24689abc A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u32 DE→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_32_DE_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01234 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u32 DE→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_32_DE__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u32 DE→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_32_IX_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=24689abc A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u32 IX→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_32_IX_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u32 IX→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_32_IX_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01234 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u32 IX→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_32_IX__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u32 IX→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_32_IY_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=24689abc A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u32 IY→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_32_IY_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u32 IY→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_32_IY_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01234 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u32 IY→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/16_32_IY__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u16→u32 IY→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/24_32__spill_ext_r1_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=24689abc A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u24→u32 _spill_ext_r1→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/24_32__spill_ext_r1_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u24→u32 _spill_ext_r1→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/24_32__spill_ext_r1_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01234 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u24→u32 _spill_ext_r1→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/24_32__spill_ext_r1__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u24→u32 _spill_ext_r1→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/24_32_HL_DE (0.00s)
+        zero_extension_native_test.go:42: value=0 got=35795678 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u24→u32 HL→DE
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/24_32_HL_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01234 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u24→u32 HL→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/24_32_HL__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u24→u32 HL→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/24_32_DE_HL (0.00s)
+        zero_extension_native_test.go:42: value=0 got=24689abc A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u24→u32 DE→HL
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/24_32_DE_BC (0.00s)
+        zero_extension_native_test.go:42: value=0 got=def01234 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u24→u32 DE→BC
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestUnsignedExtensionNative/24_32_DE__spill_ext_r2 (0.00s)
+        zero_extension_native_test.go:42: value=0 got=a5a5a5a5 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                ; TODO: ext u24→u32 DE→_spill_ext_r2
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+FAIL
+FAIL	github.com/minz/minzc/pkg/mir2	0.115s
+FAIL
