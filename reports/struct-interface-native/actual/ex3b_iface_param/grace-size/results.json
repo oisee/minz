@@ -1,0 +1,18 @@
+{
+  "calls": {
+    "Dog_speak": 2,
+    "feed": 2
+  },
+  "cycles_including_CALL": {
+    "Dog_speak": 68,
+    "feed": 68
+  },
+  "execution_sha256": "f821e5a51947b4227c3b1bbf060ff97adeaca26437bf0fddfcb7a4ed5966226b",
+  "module_bytes": 6,
+  "mutable_object_guard_addresses": {},
+  "source_sha256": "d71ba92330826788fb759f58f88660312dc2018c89dbddef06d25b1b41acdc3c",
+  "stack_depths": {
+    "Dog_speak": 2,
+    "feed": 2
+  }
+}

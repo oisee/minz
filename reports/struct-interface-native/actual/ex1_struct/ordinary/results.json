@@ -1,0 +1,28 @@
+{
+  "calls": {
+    "get_b": 768,
+    "get_g": 768,
+    "get_r": 768,
+    "set_rgb": 984
+  },
+  "cycles_including_CALL": {
+    "get_b": 30720,
+    "get_g": 30720,
+    "get_r": 30720,
+    "set_rgb": 68880
+  },
+  "execution_sha256": "2392d1e4012a84d3397b47686c220efab9085586d069a9f25412564f202e438e",
+  "module_bytes": 24,
+  "mutable_object_guard_addresses": {
+    "32789": true,
+    "32790": true,
+    "32791": true
+  },
+  "source_sha256": "1028825d183ba0d11d2f43ac678b6afcc9cd91c475450d440a9239c731d7682e",
+  "stack_depths": {
+    "get_b": 2,
+    "get_g": 2,
+    "get_r": 2,
+    "set_rgb": 2
+  }
+}

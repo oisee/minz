@@ -1,0 +1,21 @@
+{
+  "calls": {
+    "Cat_speak": 2,
+    "Dog_speak": 2,
+    "demo": 1
+  },
+  "cycles_including_CALL": {
+    "Cat_speak": 68,
+    "Dog_speak": 68,
+    "demo": 34
+  },
+  "execution_sha256": "8812f236ec763bd3466b79cf491fe6247c0ae96d05613156cca8ffe194074741",
+  "module_bytes": 9,
+  "mutable_object_guard_addresses": {},
+  "source_sha256": "3a0c1b5a906485e6a0e3871bdad241072a9429adf6a186ecdd339b6c14984d35",
+  "stack_depths": {
+    "Cat_speak": 2,
+    "Dog_speak": 2,
+    "demo": 2
+  }
+}

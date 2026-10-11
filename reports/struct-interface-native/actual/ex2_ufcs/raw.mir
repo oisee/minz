@@ -1,0 +1,32 @@
+; MIR2 module: reports/showcase-src/2026-03-10/ex2_ufcs.nanz
+global @acc_g : Acc
+
+fun @Acc_add(%r1: ptr [pointer], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = load %r1 : u8 [general]
+    %r4 = add %r3, %r2 : u8 [acc]
+    store %r1, %r4 : u8
+    %r5 = load %r1 : u8 [acc]
+    ret %r5
+
+fun @Acc_reset(%r6: ptr [pointer])
+  block @entry:
+    %r7 = const 0 : u8 [general]
+    store %r6, %r7 : u8
+    ret void
+
+fun @sum_two(%r8: u8 [acc], %r9: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r10 = addr_of @acc_g : ptr [pointer]
+    %r11 = move %r10 : ptr [pointer]
+    call @Acc_reset(%r11)
+    %r12 = addr_of @acc_g : ptr [pointer]
+    %r13 = move %r12 : ptr [pointer]
+    %r14 = call @Acc_add(%r13, %r8) : u8 [acc]
+    %r15 = addr_of @acc_g : ptr [pointer]
+    %r16 = move %r15 : ptr [pointer]
+    %r17 = call @Acc_add(%r16, %r9) : u8 [acc]
+    %r18 = addr_of @acc_g : ptr [pointer]
+    %r19 = load %r18 : u8 [acc]
+    ret %r19
+

@@ -1,0 +1,394 @@
+=== RUN   TestOriginalStructInterfaceNative
+=== RUN   TestOriginalStructInterfaceNative/ex1_struct
+=== RUN   TestOriginalStructInterfaceNative/ex1_struct/ordinary
+    original_struct_interface_native_test.go:355: {
+          "calls": {
+            "get_b": 768,
+            "get_g": 768,
+            "get_r": 768,
+            "set_rgb": 984
+          },
+          "cycles_including_CALL": {
+            "get_b": 30720,
+            "get_g": 30720,
+            "get_r": 30720,
+            "set_rgb": 68880
+          },
+          "execution_sha256": "2392d1e4012a84d3397b47686c220efab9085586d069a9f25412564f202e438e",
+          "module_bytes": 24,
+          "mutable_object_guard_addresses": {
+            "32789": true,
+            "32790": true,
+            "32791": true
+          },
+          "source_sha256": "1028825d183ba0d11d2f43ac678b6afcc9cd91c475450d440a9239c731d7682e",
+          "stack_depths": {
+            "get_b": 2,
+            "get_g": 2,
+            "get_r": 2,
+            "set_rgb": 2
+          }
+        }
+=== RUN   TestOriginalStructInterfaceNative/ex1_struct/grace-size
+    original_struct_interface_native_test.go:355: {
+          "calls": {
+            "get_b": 768,
+            "get_g": 768,
+            "get_r": 768,
+            "set_rgb": 984
+          },
+          "cycles_including_CALL": {
+            "get_b": 30720,
+            "get_g": 30720,
+            "get_r": 30720,
+            "set_rgb": 68880
+          },
+          "execution_sha256": "2392d1e4012a84d3397b47686c220efab9085586d069a9f25412564f202e438e",
+          "module_bytes": 24,
+          "mutable_object_guard_addresses": {
+            "32789": true,
+            "32790": true,
+            "32791": true
+          },
+          "source_sha256": "1028825d183ba0d11d2f43ac678b6afcc9cd91c475450d440a9239c731d7682e",
+          "stack_depths": {
+            "get_b": 2,
+            "get_g": 2,
+            "get_r": 2,
+            "set_rgb": 2
+          }
+        }
+=== RUN   TestOriginalStructInterfaceNative/ex1_struct/grace-speed
+    original_struct_interface_native_test.go:355: {
+          "calls": {
+            "get_b": 768,
+            "get_g": 768,
+            "get_r": 768,
+            "set_rgb": 984
+          },
+          "cycles_including_CALL": {
+            "get_b": 30720,
+            "get_g": 30720,
+            "get_r": 30720,
+            "set_rgb": 68880
+          },
+          "execution_sha256": "2392d1e4012a84d3397b47686c220efab9085586d069a9f25412564f202e438e",
+          "module_bytes": 24,
+          "mutable_object_guard_addresses": {
+            "32789": true,
+            "32790": true,
+            "32791": true
+          },
+          "source_sha256": "1028825d183ba0d11d2f43ac678b6afcc9cd91c475450d440a9239c731d7682e",
+          "stack_depths": {
+            "get_b": 2,
+            "get_g": 2,
+            "get_r": 2,
+            "set_rgb": 2
+          }
+        }
+=== RUN   TestOriginalStructInterfaceNative/ex2_ufcs
+=== RUN   TestOriginalStructInterfaceNative/ex2_ufcs/ordinary
+    original_struct_interface_native_test.go:355: {
+          "calls": {
+            "Acc_add": 131072,
+            "Acc_reset": 512,
+            "sum_two": 65536
+          },
+          "cycles_including_CALL": {
+            "Acc_add": 7340032,
+            "Acc_reset": 18944,
+            "sum_two": 9043968
+          },
+          "execution_sha256": "bcce8c8fbe25cbc2417b63f04416103b7b9df74e061e5443995c0ba3d255696e",
+          "module_bytes": 35,
+          "mutable_object_guard_addresses": {
+            "24576": true,
+            "32802": true,
+            "65535": true
+          },
+          "source_sha256": "a7ebf82edbfcc931bb336de2808c4aae2835c5a293b78f124ed96c39f23421ea",
+          "stack_depths": {
+            "Acc_add": 2,
+            "Acc_reset": 2,
+            "sum_two": 2
+          }
+        }
+=== RUN   TestOriginalStructInterfaceNative/ex2_ufcs/grace-size
+    original_struct_interface_native_test.go:355: {
+          "calls": {
+            "Acc_add": 131072,
+            "Acc_reset": 512,
+            "sum_two": 65536
+          },
+          "cycles_including_CALL": {
+            "Acc_add": 7340032,
+            "Acc_reset": 18944,
+            "sum_two": 9043968
+          },
+          "execution_sha256": "bcce8c8fbe25cbc2417b63f04416103b7b9df74e061e5443995c0ba3d255696e",
+          "module_bytes": 35,
+          "mutable_object_guard_addresses": {
+            "24576": true,
+            "32802": true,
+            "65535": true
+          },
+          "source_sha256": "a7ebf82edbfcc931bb336de2808c4aae2835c5a293b78f124ed96c39f23421ea",
+          "stack_depths": {
+            "Acc_add": 2,
+            "Acc_reset": 2,
+            "sum_two": 2
+          }
+        }
+=== RUN   TestOriginalStructInterfaceNative/ex2_ufcs/grace-speed
+    original_struct_interface_native_test.go:355: {
+          "calls": {
+            "Acc_add": 131072,
+            "Acc_reset": 512,
+            "sum_two": 65536
+          },
+          "cycles_including_CALL": {
+            "Acc_add": 7340032,
+            "Acc_reset": 18944,
+            "sum_two": 9043968
+          },
+          "execution_sha256": "bcce8c8fbe25cbc2417b63f04416103b7b9df74e061e5443995c0ba3d255696e",
+          "module_bytes": 35,
+          "mutable_object_guard_addresses": {
+            "24576": true,
+            "32802": true,
+            "65535": true
+          },
+          "source_sha256": "a7ebf82edbfcc931bb336de2808c4aae2835c5a293b78f124ed96c39f23421ea",
+          "stack_depths": {
+            "Acc_add": 2,
+            "Acc_reset": 2,
+            "sum_two": 2
+          }
+        }
+=== RUN   TestOriginalStructInterfaceNative/ex3_iface
+=== RUN   TestOriginalStructInterfaceNative/ex3_iface/ordinary
+    original_struct_interface_native_test.go:355: {
+          "calls": {
+            "Cat_speak": 2,
+            "Dog_speak": 2,
+            "demo": 1
+          },
+          "cycles_including_CALL": {
+            "Cat_speak": 68,
+            "Dog_speak": 68,
+            "demo": 34
+          },
+          "execution_sha256": "8812f236ec763bd3466b79cf491fe6247c0ae96d05613156cca8ffe194074741",
+          "module_bytes": 9,
+          "mutable_object_guard_addresses": {},
+          "source_sha256": "3a0c1b5a906485e6a0e3871bdad241072a9429adf6a186ecdd339b6c14984d35",
+          "stack_depths": {
+            "Cat_speak": 2,
+            "Dog_speak": 2,
+            "demo": 2
+          }
+        }
+=== RUN   TestOriginalStructInterfaceNative/ex3_iface/grace-size
+    original_struct_interface_native_test.go:355: {
+          "calls": {
+            "Cat_speak": 2,
+            "Dog_speak": 2,
+            "demo": 1
+          },
+          "cycles_including_CALL": {
+            "Cat_speak": 68,
+            "Dog_speak": 68,
+            "demo": 34
+          },
+          "execution_sha256": "8812f236ec763bd3466b79cf491fe6247c0ae96d05613156cca8ffe194074741",
+          "module_bytes": 9,
+          "mutable_object_guard_addresses": {},
+          "source_sha256": "3a0c1b5a906485e6a0e3871bdad241072a9429adf6a186ecdd339b6c14984d35",
+          "stack_depths": {
+            "Cat_speak": 2,
+            "Dog_speak": 2,
+            "demo": 2
+          }
+        }
+=== RUN   TestOriginalStructInterfaceNative/ex3_iface/grace-speed
+    original_struct_interface_native_test.go:355: {
+          "calls": {
+            "Cat_speak": 2,
+            "Dog_speak": 2,
+            "demo": 1
+          },
+          "cycles_including_CALL": {
+            "Cat_speak": 68,
+            "Dog_speak": 68,
+            "demo": 34
+          },
+          "execution_sha256": "8812f236ec763bd3466b79cf491fe6247c0ae96d05613156cca8ffe194074741",
+          "module_bytes": 9,
+          "mutable_object_guard_addresses": {},
+          "source_sha256": "3a0c1b5a906485e6a0e3871bdad241072a9429adf6a186ecdd339b6c14984d35",
+          "stack_depths": {
+            "Cat_speak": 2,
+            "Dog_speak": 2,
+            "demo": 2
+          }
+        }
+=== RUN   TestOriginalStructInterfaceNative/ex3b_iface_param
+=== RUN   TestOriginalStructInterfaceNative/ex3b_iface_param/ordinary
+    original_struct_interface_native_test.go:355: {
+          "calls": {
+            "Dog_speak": 2,
+            "feed": 2
+          },
+          "cycles_including_CALL": {
+            "Dog_speak": 68,
+            "feed": 68
+          },
+          "execution_sha256": "f821e5a51947b4227c3b1bbf060ff97adeaca26437bf0fddfcb7a4ed5966226b",
+          "module_bytes": 6,
+          "mutable_object_guard_addresses": {},
+          "source_sha256": "d71ba92330826788fb759f58f88660312dc2018c89dbddef06d25b1b41acdc3c",
+          "stack_depths": {
+            "Dog_speak": 2,
+            "feed": 2
+          }
+        }
+=== RUN   TestOriginalStructInterfaceNative/ex3b_iface_param/grace-size
+    original_struct_interface_native_test.go:355: {
+          "calls": {
+            "Dog_speak": 2,
+            "feed": 2
+          },
+          "cycles_including_CALL": {
+            "Dog_speak": 68,
+            "feed": 68
+          },
+          "execution_sha256": "f821e5a51947b4227c3b1bbf060ff97adeaca26437bf0fddfcb7a4ed5966226b",
+          "module_bytes": 6,
+          "mutable_object_guard_addresses": {},
+          "source_sha256": "d71ba92330826788fb759f58f88660312dc2018c89dbddef06d25b1b41acdc3c",
+          "stack_depths": {
+            "Dog_speak": 2,
+            "feed": 2
+          }
+        }
+=== RUN   TestOriginalStructInterfaceNative/ex3b_iface_param/grace-speed
+    original_struct_interface_native_test.go:355: {
+          "calls": {
+            "Dog_speak": 2,
+            "feed": 2
+          },
+          "cycles_including_CALL": {
+            "Dog_speak": 68,
+            "feed": 68
+          },
+          "execution_sha256": "f821e5a51947b4227c3b1bbf060ff97adeaca26437bf0fddfcb7a4ed5966226b",
+          "module_bytes": 6,
+          "mutable_object_guard_addresses": {},
+          "source_sha256": "d71ba92330826788fb759f58f88660312dc2018c89dbddef06d25b1b41acdc3c",
+          "stack_depths": {
+            "Dog_speak": 2,
+            "feed": 2
+          }
+        }
+=== RUN   TestOriginalStructInterfaceNative/ex0_test_struct
+=== RUN   TestOriginalStructInterfaceNative/ex0_test_struct/ordinary
+    original_struct_interface_native_test.go:355: {
+          "calls": {
+            "Acc_add": 131072,
+            "Acc_reset": 512,
+            "sum_two": 65536
+          },
+          "cycles_including_CALL": {
+            "Acc_add": 7340032,
+            "Acc_reset": 18944,
+            "sum_two": 9043968
+          },
+          "execution_sha256": "bcce8c8fbe25cbc2417b63f04416103b7b9df74e061e5443995c0ba3d255696e",
+          "module_bytes": 35,
+          "mutable_object_guard_addresses": {
+            "24576": true,
+            "32802": true,
+            "65535": true
+          },
+          "source_sha256": "7ca3725c6ae9a3dbd3c497a3df7e7d2dc2d62f3acd57a96855db3db50aea78b5",
+          "stack_depths": {
+            "Acc_add": 2,
+            "Acc_reset": 2,
+            "sum_two": 2
+          }
+        }
+=== RUN   TestOriginalStructInterfaceNative/ex0_test_struct/grace-size
+    original_struct_interface_native_test.go:355: {
+          "calls": {
+            "Acc_add": 131072,
+            "Acc_reset": 512,
+            "sum_two": 65536
+          },
+          "cycles_including_CALL": {
+            "Acc_add": 7340032,
+            "Acc_reset": 18944,
+            "sum_two": 9043968
+          },
+          "execution_sha256": "bcce8c8fbe25cbc2417b63f04416103b7b9df74e061e5443995c0ba3d255696e",
+          "module_bytes": 35,
+          "mutable_object_guard_addresses": {
+            "24576": true,
+            "32802": true,
+            "65535": true
+          },
+          "source_sha256": "7ca3725c6ae9a3dbd3c497a3df7e7d2dc2d62f3acd57a96855db3db50aea78b5",
+          "stack_depths": {
+            "Acc_add": 2,
+            "Acc_reset": 2,
+            "sum_two": 2
+          }
+        }
+=== RUN   TestOriginalStructInterfaceNative/ex0_test_struct/grace-speed
+    original_struct_interface_native_test.go:355: {
+          "calls": {
+            "Acc_add": 131072,
+            "Acc_reset": 512,
+            "sum_two": 65536
+          },
+          "cycles_including_CALL": {
+            "Acc_add": 7340032,
+            "Acc_reset": 18944,
+            "sum_two": 9043968
+          },
+          "execution_sha256": "bcce8c8fbe25cbc2417b63f04416103b7b9df74e061e5443995c0ba3d255696e",
+          "module_bytes": 35,
+          "mutable_object_guard_addresses": {
+            "24576": true,
+            "32802": true,
+            "65535": true
+          },
+          "source_sha256": "7ca3725c6ae9a3dbd3c497a3df7e7d2dc2d62f3acd57a96855db3db50aea78b5",
+          "stack_depths": {
+            "Acc_add": 2,
+            "Acc_reset": 2,
+            "sum_two": 2
+          }
+        }
+--- PASS: TestOriginalStructInterfaceNative (8.07s)
+    --- PASS: TestOriginalStructInterfaceNative/ex1_struct (0.04s)
+        --- PASS: TestOriginalStructInterfaceNative/ex1_struct/ordinary (0.01s)
+        --- PASS: TestOriginalStructInterfaceNative/ex1_struct/grace-size (0.01s)
+        --- PASS: TestOriginalStructInterfaceNative/ex1_struct/grace-speed (0.01s)
+    --- PASS: TestOriginalStructInterfaceNative/ex2_ufcs (3.96s)
+        --- PASS: TestOriginalStructInterfaceNative/ex2_ufcs/ordinary (1.22s)
+        --- PASS: TestOriginalStructInterfaceNative/ex2_ufcs/grace-size (1.33s)
+        --- PASS: TestOriginalStructInterfaceNative/ex2_ufcs/grace-speed (1.41s)
+    --- PASS: TestOriginalStructInterfaceNative/ex3_iface (0.01s)
+        --- PASS: TestOriginalStructInterfaceNative/ex3_iface/ordinary (0.00s)
+        --- PASS: TestOriginalStructInterfaceNative/ex3_iface/grace-size (0.00s)
+        --- PASS: TestOriginalStructInterfaceNative/ex3_iface/grace-speed (0.00s)
+    --- PASS: TestOriginalStructInterfaceNative/ex3b_iface_param (0.01s)
+        --- PASS: TestOriginalStructInterfaceNative/ex3b_iface_param/ordinary (0.00s)
+        --- PASS: TestOriginalStructInterfaceNative/ex3b_iface_param/grace-size (0.00s)
+        --- PASS: TestOriginalStructInterfaceNative/ex3b_iface_param/grace-speed (0.00s)
+    --- PASS: TestOriginalStructInterfaceNative/ex0_test_struct (4.06s)
+        --- PASS: TestOriginalStructInterfaceNative/ex0_test_struct/ordinary (1.40s)
+        --- PASS: TestOriginalStructInterfaceNative/ex0_test_struct/grace-size (1.26s)
+        --- PASS: TestOriginalStructInterfaceNative/ex0_test_struct/grace-speed (1.39s)
+PASS
