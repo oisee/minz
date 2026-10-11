@@ -64,48 +64,23 @@ https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/
 
 ## В работе
 
-Проверка **supplied-profile CLI route закрыта**: authentic current профиль
-принят (arena-only, 763 T / 2212 B), authentic stale и три явно synthetic
-completion/count mutations отклонены с точными причинами, exit 1 и без output
-каталога. Четыре accepted кандидата прошли независимые state/event/count/
-proof/native SHA audits и проверку сохранённых файлов после переноса.
-Это не failed-profile exporter; production code/exe не менялись.
-Пакет `716a6c87` committed/pushed; приватная Sites версия 46 опубликована.
-Полная офлайн-копия версии 46 проверена: 13044 файла, 56 страниц,
-все SHA256 совпадают, все архивы читаются, отсутствующих ссылок нет.
+Последний production этап закрыт: direct global u16→DE/BC loads,
+коммит2908f18f. Общий pipeline1107.431s PASS; packages и CLI зелёные,
+showcase31same0new. Fresh CLI dba34:16candidates/4profiles/decisions
+прошли два независимых аудита. Full30speed1079636T2099B, size1079795T1978B.
 
-Actual per-PC этап измерен и проверен: два прежних 30-call BIN/ASM/state/
-T/steps совпали, сырые PC журналы сохранены, отдельная physical projection
-распределяет все T по функциям и адаптерам. Экономия 74469 T полностью в
-intern_region (71370 T) и region_match (3099 T). Cur239391 T и parse236919 T
-неизменны. Пакет `154f4a95` и итоговый native saved-file review прошли;
-приватная Sites версия 47 опубликована. Полная офлайн-копия проверена:
-13193 файла, 57 страниц, SHA256 совпадают, все архивы читаются,
-потерянных ссылок и внешних зависимостей нет.
-диагностический hook остаётся только в изолированной ветке.
+Обновление корпуса также закрыто:4unchangedworkloads50calls,32candidates,
+8freshprofiles/decisions; все speed3→2, size2. Отчёт опубликован вSites49.
+Полная офлайн-копия49 проверена:14447 файлов,59 страниц, всеSHA256 и
+архивы PASS, отсутствующих локальных ссылок нет.
 
-Backend direct global u16→DE/BC прототип дал measured gain на whole30:
-original1221494→1135370 T,2091→2000 B; both1147025→1079636 T,2197→2099 B.
-Независимые fullstate/events/native SHA аудиты прошли. Пять frozen source/test
-файлов интегрированы; общий pipeline завершился1107.431s PASS. HIR22.104/MIR5.174/
-Nanz1.592/Lanz0.015/C895.336/CLI21.181 s PASS; showcase31same0new.
-Новая production CLI dba34 имеет собственные свежие профили: full30speed/
-size и short collect прошли, same-executable replay завершает проверку.
-Final CLI saved-audit прошёл. Первый pipeline упёрся в 10m timeout и
-выявил три устаревших baseline T/SHA assertions. Их reference обновлён
-по независимо проверенному новому BIN; focused3tests4.173s PASS.
-Полный suite завершился1107.431s PASS; backend этап закрыт,
-итоговый2908f18f pushed, приватная Sites48 опубликована. Логи первого отказа сохранены.
-Final suite с timeout30m завершился: **1107.431 s PASS**. Отдельный
-artifact-only corpus refresh на dba завершён: все четыре speed-набора
-выбрали append-only вместо прежнего both;32candidate/8profiles/8decisions
-прошли два независимых аудита. Пакет7df6632e перенесён; savedgzip
-проверка после переноса PASS. Полный suite прошёл; corpus отчёт опубликован: Sites49, sourcee173ca14.
-Офлайн-копия49 полностью проверена:14447 файлов,59 страниц,
-SHA256/архивы/локальные ссылки PASS.
-Inputs и планы новых проверок committed/pushed в постоянных ветках.
-Production checkpoint сохраняется как WIP; аудитированные старые этапы
-остаются доступными. Диагностический PC hook в production не переносился.
+Следующий этап — выключенный по умолчанию normal-global diamond helper.
+Прототип2731b6c6/frozen7bac и независимый reviewabd8e98a сохранены в
+постоянных отдельных ветках. RawMIR/VM проверки unsignedbounds, callback/
+store barriers и malformedmetadata прошли. Два новых файла не подключены
+к production pipeline и не перенесены в основную ветку. Агент готовит
+bounded source→MIR→assembledZ80 эксперимент с unchanged whole30oracle;
+actualnative расходы этого преобразования ещё не измерены.
 
 ## Сохранение веток и решения Alice
 
