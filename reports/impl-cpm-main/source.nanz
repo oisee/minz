@@ -1,0 +1,76 @@
+// impl blocks — CP/M demo with real output
+// Compile: mz examples/nanz/51_impl_cpm_demo.nanz -o /tmp/impl.a80 -t cpm
+// Run:     mze /tmp/impl.bin --load 0x100 -t cpm --console-io --timeout 500000
+
+struct Circle {
+    radius: u8
+}
+
+struct Rect {
+    w: u8,
+    h: u8
+}
+
+impl Geometry for Circle {
+    fun area(self) -> u8 {
+        return 3 * self.radius * self.radius
+    }
+}
+
+impl Geometry for Rect {
+    fun area(self) -> u8 {
+        return self.w * self.h
+    }
+}
+
+fun putchar(ch: u8) -> void {
+    asm z80 (in ch) {
+        LD E, A
+        LD C, 2
+        CALL 5
+    }
+}
+
+fun print_u8(n: u8) -> void {
+    if n >= 100 {
+        var h: u8 = 0
+        while n >= 100 {
+            n = n - 100
+            h = h + 1
+        }
+        putchar(h + 48)
+    }
+    var t: u8 = 0
+    while n >= 10 {
+        n = n - 10
+        t = t + 1
+    }
+    putchar(t + 48)
+    putchar(n + 48)
+}
+
+fun newline() -> void {
+    putchar(13)
+    putchar(10)
+}
+
+fun main() -> void {
+    var c: Circle
+    c.radius = 5
+
+    var r: Rect
+    r.w = 10
+    r.h = 5
+
+    // Circle area: 75
+    putchar(67)   // C
+    putchar(58)   // :
+    print_u8(c.area())
+    newline()
+
+    // Rect area: 50
+    putchar(82)   // R
+    putchar(58)   // :
+    print_u8(r.area())
+    newline()
+}
