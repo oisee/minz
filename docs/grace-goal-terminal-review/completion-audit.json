@@ -1,0 +1,171 @@
+{
+  "schema": "minz.independent-goal-completion-audit/v1",
+  "audit_source_checkpoint": "9490000a",
+  "overall_goal_status": "technical_requirements_verified_publication_offline_closure_pending",
+  "native_execution_by_auditor": false,
+  "requirements": [
+    {
+      "id": "sum_original_source_and_profile",
+      "status": "passed",
+      "evidence_root": "/home/alice/dev/minz-artifacts/grace-checkpoints/sum-decimal-cost-refresh-evidence/actual",
+      "source_sha256": "fa0ad7d685c31aeb52b91b323bcef46e5c86c0e4390b2fd41ecd69ecfef58694",
+      "context_executable_sha256": "b479c62fd53a16dc46f735090625f3d559998fcfcc15481a72470630c9d209c0",
+      "profile_entries": 6,
+      "profile_body_entries": 341,
+      "site_id": "413717c0664c475bf9c67ee592bac740dccdcf0b002c75bd2dfb19155938ed2f",
+      "source_loop_path": "body/s2",
+      "complete_calls": 6,
+      "failed_calls": 0
+    },
+    {
+      "id": "economic_choice_to_ordinary_Grace",
+      "status": "passed",
+      "evidence": "profile_guided_sum_test.go ApplyProfileDecisions -> RunGraceWithOptions PointerWalkSites; selected artifacts retained",
+      "choice": "pointer-walk",
+      "original_t_states": 48495,
+      "selected_t_states": 13879,
+      "whole_module_bytes": {
+        "original": 195,
+        "selected": 250
+      },
+      "size_choice": "original",
+      "short_speed_choice": "original",
+      "scope": "six-call workload primary Tstates; byte choice independent primary module size"
+    },
+    {
+      "id": "sum_VM_assembled_Z80_six_lengths",
+      "status": "passed",
+      "lengths": [
+        0,
+        1,
+        5,
+        16,
+        64,
+        255
+      ],
+      "variants": [
+        "original",
+        "pointer-walk",
+        "selected"
+      ],
+      "individual_saved_measurements": 18,
+      "math_oracle": "n*(n+1)/2 modulo256",
+      "all_results_match": true,
+      "all_full_BIN_sizes_match": true,
+      "all_timings_asserted": true,
+      "local_payloads": [
+        "source",
+        "workload",
+        "profile",
+        "decisions",
+        "input HIR",
+        "raw/optimized MIR",
+        "program ASM/BIN",
+        "bootstrapped execution ASM/BIN",
+        "measurements",
+        "retained executable"
+      ]
+    },
+    {
+      "id": "sum_pipeline_admission_and_boundaries",
+      "status": "passed_in_same_focused_invocation",
+      "evidence": "retained test/source and terminal PASS0.80; direct integrated ProfileSelection six calls plus boundary n0..3 under speed/size",
+      "saved_individual_boundary_payloads": false,
+      "refusals": [
+        "stale cost HIR fingerprint",
+        "unknown site without mutation",
+        "changed source identity",
+        "changed compile settings",
+        "unmeasured assembler mode"
+      ]
+    },
+    {
+      "id": "real_program_profile_to_binary_behavior_and_economic_goals",
+      "status": "passed_bounded_current_source",
+      "evidence": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-final-full30-evidence",
+      "program": "original SelfLanz parser closed persistent30calls",
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "context_executable_sha256": "9ec48c5f2eaa42e786be9adddc0b824c374d5c39a599a8d2dd0ef3181a2b65d1",
+      "original_source_sites": 11,
+      "policies": 2,
+      "masks_per_policy": 4,
+      "actual_goal_runs": [
+        "speed collect",
+        "speed replay",
+        "size collect",
+        "size replay"
+      ],
+      "unique_native_execution_observations": 1080,
+      "saved_observation_records": 1200,
+      "copied_association_records": 120,
+      "speed": {
+        "policy": 1,
+        "mask": 3,
+        "t_states": 1233170,
+        "bytes": 2490
+      },
+      "size": {
+        "policy": 0,
+        "mask": 2,
+        "t_states": 1236250,
+        "bytes": 2368
+      },
+      "independent_checks": [
+        "full10globals",
+        "full persistent resources",
+        "ordered peek/poke events",
+        "source11counters",
+        "two-delta precompile proof and origins",
+        "policy-bound native sidecar/frame/spill/allocation/MIR/BIN SHA",
+        "exact selected output and supplied replay association bytes"
+      ]
+    },
+    {
+      "id": "three_current_Steps_native_reference_refresh",
+      "status": "passed_focused_and_independent_saved_audits",
+      "parent_commit": "71b75390",
+      "final_review_commit": "b2c2e70e",
+      "diagnostic_executable_sha256": "ff4137918e480a6ee4689916502ec2735c50d6af9e0f0f62a60eaedbf4377cbe",
+      "verification_executable_sha256": "7a1e1dd74f2cc832701338b237ab68c501f8b152639e0956cd32532054af19ac",
+      "final_T": 1291565,
+      "final_B": 2388,
+      "final_binary_sha256": "a9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73",
+      "source_unit": "../../../examples/nanz/self_lanz_parser.nanz",
+      "route": "Steps internally assembled baseline",
+      "observations_per_separate_run": 90,
+      "updated_assertions": "three fixedT/SHA pairs only",
+      "independent_guards_preserved": true,
+      "diagnostic_history_preserved": true,
+      "scope": "does not replace broad gate terminal inventory"
+    },
+    {
+      "id": "required_current_broad_pipeline_and_CLI_gates",
+      "status": "verified_reconciled_terminal_suite",
+      "evidence": "terminal-reconciliation.json + raw fullsuite nonzero/269inventory + focused3PASS/current90saved audit",
+      "sessions_at_last_parent_confirmed_state": {
+        "current_full_pipeline": "89426 terminal exit1 2560.907 ONLY3obsolete refs, reconciled",
+        "prior_717_pipeline": "86830 terminal exit1 ONLYsame3oldrefs",
+        "current_full_CLI": "35152 terminalPASS306.414 exit0"
+      },
+      "current_pipeline_executable_sha256": "85c8df0b053ff36d985c9568ebd1e4d2ad87c9b107d47148d9f29b4658da661e",
+      "reason": "All executable production source unchanged; exact3old assertion failures independently measured/currentfocusedPASS. Raw fullnonzero exit remains preserved, not rewritten as literalPASS.",
+      "current_MIR2": "PASS5.930",
+      "showcase": "same26 previous failures:19import-path5HIR2resultmismatch;0new"
+    }
+  ],
+  "limits": [
+    "Not a proof for every program or arbitrary extern/port effects: real-program experiment has a closed typed memory-host contract.",
+    "Current sum timings certify called sum_array and whole-module BIN footprint, not main output time.",
+    "Guard fallback model coefficients are retained but the current six-length source profile takes fast/equal paths; no invented new fallback-domain measurements.",
+    "Previous 1022-row model audits remain historical; not silently rebound to current compiler.",
+    "CP/M main is a separate derived CString source emulator demonstration; no physical hardware or realOS execution claim.",
+    "Frozen-choice retrospective corpus evaluation is not blind unseen heldout training.",
+    "No source-to-target dynamic loop lineage or fresh per-PC counts inferred from these saved measurements."
+  ],
+  "summary": "Original bounded technical goal verified by current sum/profile/Grace/VMZ80 evidence, realprogram Speed/Size/replay behavior and reconciled complete broad suite. No new CPU necessary for unchanged production/test bodies. Final user-facing publication and offline status/manifest synchronization remain before overall administrative closure.",
+  "report_review": {
+    "current_state": "No broadPASS/goalcomplete claim found. Correct branch/main distinction, current/historical costs, realSizeexecution and1200record/1080execution accounting.",
+    "overnight_summary": "Current section explicitly leaves89426pending and explains compile-before-reference-update; history separated.",
+    "wording_limit": "CPM current-state shorthand fullSelfLanz main should continue to name the explicitly derivedCString source, not unchangedsource main. Its fullRAM proof is separate from closed unchangedsource parser workload."
+  }
+}
