@@ -6,19 +6,25 @@
 
 ## Сводка последнего проверенного состояния
 
-Checkpoint интеграции plasma — `00bab964`; исторические результаты ниже
-сохраняют свои исходники и режимы. Общая цель не закрыта.
+Последние root code checkpoints: widening `9b20ab89`, literal-width `48e5fe6d`,
+CLI evidence assertion `561dab36`. Исторические результаты ниже сохраняют
+свои исходники и режимы. Общая цель не закрыта.
 
 | Требование | Что доказано | Что ещё не доказано |
 |---|---|---|
 | Заявленный корпус | Все 194 пути имеют явный статус; 51 bounded independent VM/Z80 path | 86 ждут независимого оракула, остальные имеют отдельные ASM/runtime/host ограничения; bounded entry не означает всё приложение |
 | PFCCO/PBQP и таблицы | Реальные назначения, moves/saves и native польза на packet/weighted; bounded solver audit | Произвольные calls/CFG/islands и глобальная оптимальность |
-| Автоматический выбор и heldout | Self-Lanz и HashMap: неизменённый выбранный BIN быстрее на заранее отложенных входах; packet даёт отдельный PFCCO выигрыш | Pascal SORT теперь также прошёл prospective3train/8heldout; остальные runtime/corpus ограничения сохраняются |
+| Автоматический выбор и heldout | Self-Lanz, HashMap и Pascal SORT: training-selected BIN проверен на заранее отложенных входах; packet даёт отдельный PFCCO выигрыш | Остальные runtime/corpus ограничения сохраняются; это не универсальный выигрыш на всех программах |
 | Полное удаление LIR и перенос пользы | Пакет/consumers удалены; shared engines/native тесты сохранены; word ×10/12, byte fusion и K11 перенесены с native пользой | Полнота общих physical constraints/pattern choices требует предметного аудита |
-| Воспроизводимость | Исходники, workloads, решения, ASM/BIN и логи на `/mnt/safe/minz/grace/2026-10-11/`; v66 сайт целиком проверен по SHA | Текущие общие gates должны завершиться со своим точным checkpoint |
+| Воспроизводимость | Исходники, workloads, решения, ASM/BIN и логи на `/mnt/safe/minz/grace/2026-10-11/`; v67 сайт: 9 860 файлов целиком проверены по SHA | Текущие общие gates должны завершиться со своим точным checkpoint |
 
-После plasma полный MIR2 root **PASS 29,506 с**. Последний полный CLI
-**PASS 365,129 с** на `708e77c5` предшествует preflight/typed-constant/mul fixes.
+Свежий full core `c69e350e`: HIR/MIR2/Nanz/VIR **PASS**
+([пакет135](grace-integration-135/README.md)); он предшествует signed widening.
+Full CLI этого checkpoint завершился **FAIL 351,983 с**: один тест фиксировал
+исторические такты. Проверка исправлена и focused PASS 19,153 с
+([пакет138](grace-integration-138/README.md)); нового full CLI PASS пока нет.
+Fresh showcase после widening **PASS 11,547 с**
+([пакет140](grace-integration-140/README.md)).
 Полный pipeline `a7954042` подтверждён живым; он предшествует plasma.
 Эти результаты нельзя объединять в один общий current fullsuite PASS.
 
@@ -540,5 +546,22 @@ VIR можно перепроектировать вокруг MIR-native про
 
 Флаговые scalar writers и полноразрядные u32/i32 сравнения исправлены;
 unsigned widening extension также исправлено. [Проверки интеграции133](grace-integration-133/README.md)
-и [интеграции134](grace-integration-134/README.md). Signed widening physical homes проверяются отдельно.
+и [интеграции134](grace-integration-134/README.md). Signed widening physical homes также исправлены; root 100 368 native случаев
+PASS ([пакет136](grace-integration-136/README.md)).
 Полный pipelinea7954042 жив, currentfullPASS по нему не заявляется.
+
+
+## Текущая проверка оставшегося корпуса
+
+Неизменённый widemath, все26callables: provisional native/VM matrix
+в isolated ветке проходит после frontend literal-width и aggregate-address
+исправлений. Root ещё не интегрировал aggregate correction; effect/ABI controls
+доделываются. Original promoted_arithmetic получает расширенный whole-source
+oracle вместо нескольких asserts. Mixed unsigned width contradiction
+проверяется отдельно; общая mixed signedness policy не придумана по правилам C.
+[Независимый аудит всей цели](../reports/2026-10-11-080-objective-completion-b1adbf09.md).
+
+Весь опубликованный v67 сохранён локально и на шаре; exact manifest
+подтверждён после устранения copy metadata ошибки
+([пакет139](grace-integration-139/README.md)). Позднейшие исправления имеют
+свежие repo/share пакеты; текущий сайт сохраняет свой более ранний checkpoint.
