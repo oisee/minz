@@ -57,3 +57,24 @@ collect fresh profiles; old supplied profiles cannot be relabeled current.
 Preserve old measured PC/native evidence and explicit before/after binaries.
 Native cost oracle is actual CPU T-states and step counts, not the local estimate.
 No CPU execution has occurred in this independent design review.
+
+## Lifetime review of draft af4ced95
+
+The old pattern uses a block-local address use count. A legal dominating AddrOf
+may be consumed directly by a successor instruction without appearing as an edge
+argument. Removing AddrOf in the entry would leave the later consumer's physical
+pointer uninitialized. The new DE/BC slice must require function-wide unique use.
+Use the canonical Inst.Uses/countRegUses analysis, including OpAsm.Asm.Ins,
+indirect-call targets and terminator uses; raw Src/Args scans alone miss asm input
+bindings. Reject missing function context for the new optimization. Preserve old
+HL behavior within this stage unless an actual preexisting bug is separately
+approved for repair.
+
+MIR Verify already rejects duplicate SSA definitions and forward same-block use,
+and permits properly dominated direct cross-block uses. Meaningful negative
+fixture: entry AddrOf(global), word load into DE/BC, jump to successor which
+byte-loads the same virtual address and returns the independent byte value.
+AddrOf must remain emitted. A separate OpAsm input of the address exercises the
+canonical-use requirement. Edge forwarding and same-block multiple loads also
+must retain pointer materialization. These are legality/accounting source-review
+requirements; no CPU tests are repeated by this reviewer.
