@@ -1,0 +1,24 @@
+=== RUN   TestCPMRecursiveLiveSpillRestoration
+=== RUN   TestCPMRecursiveLiveSpillRestoration/0
+=== RUN   TestCPMRecursiveLiveSpillRestoration/1
+=== RUN   TestCPMRecursiveLiveSpillRestoration/2
+=== RUN   TestCPMRecursiveLiveSpillRestoration/7
+=== RUN   TestCPMRecursiveLiveSpillRestoration/12
+=== RUN   TestCPMRecursiveLiveSpillRestoration/31
+--- PASS: TestCPMRecursiveLiveSpillRestoration (0.18s)
+    --- PASS: TestCPMRecursiveLiveSpillRestoration/0 (0.04s)
+    --- PASS: TestCPMRecursiveLiveSpillRestoration/1 (0.05s)
+    --- PASS: TestCPMRecursiveLiveSpillRestoration/2 (0.04s)
+    --- PASS: TestCPMRecursiveLiveSpillRestoration/7 (0.02s)
+    --- PASS: TestCPMRecursiveLiveSpillRestoration/12 (0.01s)
+    --- PASS: TestCPMRecursiveLiveSpillRestoration/31 (0.01s)
+=== RUN   TestCPMRuntimeOriginalSelfLanzMain
+    original_lanz_main_test.go:324: resident stack touched 50 bytes
+    original_lanz_main_test.go:336: exact main 135 stdout bytes all regions/globals/stack guards PASS 983310 T BIN 4727 SHA 4446673251c6b756d50e36f236c33c1c7af2270170ed322b34f78f59046b5097
+--- PASS: TestCPMRuntimeOriginalSelfLanzMain (0.22s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.416s
+=== RUN   TestCPMRuntimeGuardedStackOverflowAndFlags
+--- PASS: TestCPMRuntimeGuardedStackOverflowAndFlags (0.01s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	0.013s

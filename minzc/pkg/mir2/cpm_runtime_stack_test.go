@@ -79,3 +79,38 @@ func TestCPMRuntimeConditionalCallGuardPaths(t *testing.T) {
 		t.Fatal("conditional call bypass admitted")
 	}
 }
+
+func TestCPMRuntimeReservePathAdmission(t *testing.T) {
+	entry := strings.Replace(cpmRuntimeEntry, "    CALL main", "    CALL __cpm_stack_check\n    CALL main", 1)
+	balanced := func(pushes int) string {
+		return "main:\n CALL __cpm_stack_check\n" + strings.Repeat(" PUSH AF\n", pushes) + strings.Repeat(" POP AF\n", pushes) + " RET\n"
+	}
+	for _, n := range []int{1, 4, 12, 13} {
+		if e := validateCPMRuntimeAssemblyMode(entry+balanced(n)+cpmRuntimeGuardedTail(64), true); e != nil {
+			t.Fatal(n, e)
+		}
+	}
+	if e := validateCPMRuntimeAssemblyMode(entry+balanced(14)+cpmRuntimeGuardedTail(64), true); e == nil {
+		t.Fatal("growth below helper headroom admitted")
+	}
+	// One branch reaches growth with a guard, another without. The latter
+	// must reject even when the join's textual predecessor has a guard.
+	join := "main:\n JP Z, checked_path\n JP joined\nchecked_path:\n CALL __cpm_stack_check\njoined:\n PUSH AF\n POP AF\n RET\n"
+	if e := validateCPMRuntimeAssemblyMode(entry+join+cpmRuntimeGuardedTail(64), true); e == nil {
+		t.Fatal("unsafe join admitted")
+	}
+	// A loop consumes reserve on each iteration; it cannot reuse credit forever.
+	loop := "main:\n CALL __cpm_stack_check\ngrowth:\n PUSH AF\n JR growth\n"
+	if e := validateCPMRuntimeAssemblyMode(entry+loop+cpmRuntimeGuardedTail(64), true); e == nil {
+		t.Fatal("loop reused reserve")
+	}
+}
+
+func TestCPMRuntimeRejectsForgedReserveLimit(t *testing.T) {
+	entry := strings.Replace(cpmRuntimeEntry, "    CALL main", "    CALL __cpm_stack_check\n    CALL main", 1)
+	body := "main:\n CALL __cpm_stack_check\n PUSH AF\n POP AF\n RET\n"
+	code := strings.Replace(entry+body+cpmRuntimeGuardedTail(64), "__cpm_stack+32", "__cpm_stack+2", 1)
+	if e := validateCPMRuntimeAssemblyMode(code, true); e == nil {
+		t.Fatal("forged guard bound admitted")
+	}
+}

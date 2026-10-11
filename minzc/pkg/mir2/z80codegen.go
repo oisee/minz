@@ -476,6 +476,7 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 	if opt.Runtime == Z80RuntimeCPM {
 		if opt.RuntimeStackBytes != 0 {
 			result += cpmRuntimeGuardedTail(opt.RuntimeStackBytes)
+			result = coalesceCPMStackGuards(result)
 		} else {
 			result += cpmRuntimeTail
 		}

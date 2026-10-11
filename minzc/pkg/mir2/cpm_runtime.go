@@ -152,6 +152,9 @@ func validateCPMRuntimeAssemblyMode(assembly string, guarded bool) error {
 		code[line.Address] = item{text, line.Address + len(line.Bytes)}
 	}
 	if guarded {
+		if a.Symbols["__cpm_stack_limit"] != a.Symbols["__cpm_stack"]+32 {
+			return fmt.Errorf("CP/M runtime invalid checker reserve bound")
+		}
 		pc := a.Symbols["__cpm_stack_check"]
 		for _, line := range strings.Split(cpmStackCheck, "\n") {
 			text := strings.TrimSpace(line)
@@ -165,27 +168,11 @@ func validateCPMRuntimeAssemblyMode(assembly string, guarded bool) error {
 			pc = i.next
 		}
 	}
-	if guarded {
-		previous := map[int]string{}
-		for _, i := range code {
-			previous[i.next] = i.text
-		}
-		guardStart, guardEnd := a.Symbols["__cpm_stack_check"], a.Symbols["__cpm_status"]
-		for pc, i := range code {
-			if pc >= guardStart && pc < guardEnd {
-				continue
-			}
-			fields := strings.Fields(i.text)
-			op := strings.ToUpper(fields[0])
-			if (op == "PUSH" || op == "CALL") && i.text != "CALL __cpm_stack_check" && strings.TrimSpace(previous[pc]) != "CALL __cpm_stack_check" {
-				return fmt.Errorf("CP/M runtime missing stack guard at %04x: %s", pc, i.text)
-			}
-		}
-	}
+
 	type frame struct{ next, base, entry int }
 	type state struct {
 		pc, depth int
-		checked   bool
+		reserve   int
 		frames    []frame
 	}
 	seen := map[string]bool{}
@@ -194,7 +181,7 @@ func validateCPMRuntimeAssemblyMode(assembly string, guarded bool) error {
 	for len(queue) > 0 {
 		s := queue[len(queue)-1]
 		queue = queue[:len(queue)-1]
-		key := fmt.Sprintf("%d/%d/%t/%v", s.pc, s.depth, s.checked, s.frames)
+		key := fmt.Sprintf("%d/%d/%d/%v", s.pc, s.depth, s.reserve, s.frames)
 		if seen[key] {
 			continue
 		}
@@ -213,7 +200,7 @@ func validateCPMRuntimeAssemblyMode(assembly string, guarded bool) error {
 		fields := strings.Fields(i.text)
 		op := strings.ToUpper(fields[0])
 		rest := strings.TrimSpace(strings.TrimPrefix(i.text, fields[0]))
-		next := state{pc: i.next, depth: s.depth, frames: s.frames}
+		next := state{pc: i.next, depth: s.depth, reserve: s.reserve, frames: s.frames}
 		target := func(name string) (int, error) {
 			v, ok := a.Symbols[strings.TrimSpace(name)]
 			if !ok {
@@ -221,8 +208,8 @@ func validateCPMRuntimeAssemblyMode(assembly string, guarded bool) error {
 			}
 			return int(v), nil
 		}
-		if guarded && (op == "PUSH" || op == "CALL" && rest != "__cpm_stack_check") && !s.checked {
-			return fmt.Errorf("CP/M runtime stack growth reached without executing guard at %04x", s.pc)
+		if guarded && (op == "PUSH" || op == "CALL" && rest != "__cpm_stack_check") && s.reserve < 8 {
+			return fmt.Errorf("CP/M runtime stack growth reached without executing guard at %04x %s reserve%d depth%d", s.pc, i.text, s.reserve, s.depth)
 		}
 		switch op {
 		case "RST":
@@ -233,11 +220,13 @@ func validateCPMRuntimeAssemblyMode(assembly string, guarded bool) error {
 			}
 		case "PUSH":
 			next.depth += 2
+			next.reserve -= 2
 		case "POP":
 			next.depth -= 2
+			next.reserve = min(next.reserve+2, 32)
 		case "CALL":
 			if guarded && rest == "__cpm_stack_check" {
-				next.checked = true
+				next.reserve = 32
 				break
 			}
 			parts := strings.Split(rest, ",")
@@ -299,7 +288,7 @@ func validateCPMRuntimeAssemblyMode(assembly string, guarded bool) error {
 			if e != nil {
 				return e
 			}
-			queue = append(queue, state{pc: pc, depth: s.depth, frames: s.frames})
+			queue = append(queue, state{pc: pc, depth: s.depth, reserve: s.reserve, frames: s.frames})
 			if !conditional {
 				continue
 			}
@@ -392,6 +381,61 @@ func cpmRuntimeGuardedTail(bytes int) string {
 		out.WriteByte('\n')
 	}
 	text := strings.Replace(out.String(), "    DS 256", fmt.Sprintf("    DS %d", bytes), 1)
-	text = strings.Replace(text, "__cpm_saved_sp:", "__cpm_stack_limit EQU __cpm_stack+8\n"+cpmStackCheck+"\n__cpm_status:\n DB 0\n__cpm_saved_sp:", 1)
+	text = strings.Replace(text, "__cpm_saved_sp:", "__cpm_stack_limit EQU __cpm_stack+32\n"+cpmStackCheck+"\n__cpm_status:\n DB 0\n__cpm_saved_sp:", 1)
 	return text
+}
+
+// Coalesce only within emitted straight-line regions. Admission separately
+// proves the reserve on actual CFG edges, independent of textual placement.
+func coalesceCPMStackGuards(assembly string) string {
+	var out strings.Builder
+	reserve := 0
+	pending := ""
+	inChecker := false
+	for _, line := range strings.Split(assembly, "\n") {
+		text := strings.TrimSpace(strings.SplitN(line, ";", 2)[0])
+		if strings.HasPrefix(text, "__cpm_stack_check:") {
+			inChecker = true
+		}
+		if strings.HasPrefix(text, "__cpm_status:") {
+			inChecker = false
+		}
+		if !inChecker && text == "CALL __cpm_stack_check" {
+			pending = line
+			continue
+		}
+		if strings.Contains(text, ":") {
+			reserve = 0
+		}
+		fields := strings.Fields(text)
+		if !inChecker && len(fields) > 0 {
+			op := fields[0]
+			if op == "PUSH" || op == "CALL" {
+				if reserve < 8 && pending != "" {
+					out.WriteString(pending)
+					out.WriteByte('\n')
+					reserve = 32
+				}
+				if op == "PUSH" {
+					reserve -= 2
+				} else {
+					reserve = 0
+				}
+				pending = ""
+			} else if op == "POP" {
+				reserve = min(reserve+2, 32)
+			} else if op == "JP" || op == "JR" || op == "JRS" || op == "DJNZ" || op == "RET" {
+				reserve = 0
+			}
+		}
+		if pending != "" {
+			out.WriteString(pending)
+			out.WriteByte('\n')
+			reserve = 32
+			pending = ""
+		}
+		out.WriteString(line)
+		out.WriteByte('\n')
+	}
+	return out.String()
 }

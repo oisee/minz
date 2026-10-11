@@ -243,9 +243,9 @@ func TestCPMRuntimeGuardedStackOverflowAndFlags(t *testing.T) {
 			t.Fatalf("overflow unexpected memory write %04x", p)
 		}
 	}
-	// Guard uses six temporary bytes. Accepted check retains eight bytes of
-	// slack after those pushes, so the next guarded growth can safely check.
-	for _, space := range []uint16{6, 8, 10, 12, 14, 16, 64} {
+	// Guard uses six temporary bytes. Accepted check retains 32 bytes of
+	// slack after those pushes, so grouped growth retains checker headroom.
+	for _, space := range []uint16{6, 8, 10, 12, 14, 16, 32, 36, 38, 40, 64} {
 		z.LoadMemory(0x100, a.Binary)
 		base := uint16(a.Symbols["__cpm_stack"])
 		sp := base + space - 2
@@ -266,7 +266,7 @@ func TestCPMRuntimeGuardedStackOverflowAndFlags(t *testing.T) {
 			t.Fatal(e)
 		}
 		got := z.GetRegisters()
-		if space >= 14 {
+		if space >= 38 {
 			if got.A != keep.A || got.F != keep.F || got.BC != keep.BC || got.DE != keep.DE || got.HL != keep.HL || got.IX != keep.IX || got.IY != keep.IY || got.SP != sp+2 || got.PC != 0 {
 				t.Fatalf("check preservation space%d %+v", space, got)
 			}

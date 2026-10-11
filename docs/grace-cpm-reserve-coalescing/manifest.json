@@ -1,0 +1,214 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "1c5f3a60c9b032e5b907197c611f67197852d7ea99ab379228222eea192a916e",
+      "bytes": 4638
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeGuardedTokenizerMain/capture.json",
+      "sha256": "80548643cb21829e826369bf92e9c8f473add949b4bb7cd73ae635ba0c7f83f7",
+      "bytes": 23250
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeGuardedTokenizerMain/oracle.json",
+      "sha256": "e26dea83380f0e8ff3b9bf6c50ef1e61d78c8b62cd4f35208aa5e2cbe3ec3b61",
+      "bytes": 23224
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeGuardedTokenizerMain/source.nanz",
+      "sha256": "d893df00710b7f1105b8bfb58342aca1c1f8cce7eb674037a8d6ca41b91b0689",
+      "bytes": 16825
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeGuardedTokenizerMain/stdout.txt",
+      "sha256": "1c1dc59687f184eed7ff4fb9e1b79a66598b89aac3d0a0dce0378474763e1fd1",
+      "bytes": 146
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeGuardedTokenizerMain/target.a80",
+      "sha256": "1677534b1b2ec8cfe5e68a3451440a70eae1228321b4fc27a94476c088ace555",
+      "bytes": 84880
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeGuardedTokenizerMain/target.bin",
+      "sha256": "fa27a5cf01defbbf709f7d86676b41bc526cfae56e8656c03716f943c1d598fd",
+      "bytes": 7397
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalSelfLanzMain/capture.json",
+      "sha256": "b34a7748e4fa30bdb463bdd0466415a8e1b8f3b7979cc1bf0f6f30bcdc72543e",
+      "bytes": 22362
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalSelfLanzMain/oracle.json",
+      "sha256": "b608ad12398db25a082812618a40dd4cb545b09ea14342cadcf96af6f1a1ccfa",
+      "bytes": 22129
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalSelfLanzMain/source.nanz",
+      "sha256": "763d9f369e3bbbdbcb84dee2627aff5ee90e57d99ad8d0f69e7db0c8325a6b51",
+      "bytes": 7229
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalSelfLanzMain/stdout.txt",
+      "sha256": "884543244d67393e4b942d6ce4b74a389a1904365bd0505d8c6e497d3fc292e5",
+      "bytes": 135
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalSelfLanzMain/target.a80",
+      "sha256": "5884fbb43159fba1fbcc769240d959354bb376f6f1eadc4bfc43570556147d13",
+      "bytes": 38218
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalSelfLanzMain/target.bin",
+      "sha256": "181ec753e334e11006c17ee2804bf33cb956892397b2d8b800688cc0620cbc56",
+      "bytes": 3968
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalTokenizerMain/capture.json",
+      "sha256": "f117b780a7d8149e0df150d5578a95a25762c9c845963f464903063c792d809a",
+      "bytes": 23250
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalTokenizerMain/oracle.json",
+      "sha256": "e26dea83380f0e8ff3b9bf6c50ef1e61d78c8b62cd4f35208aa5e2cbe3ec3b61",
+      "bytes": 23224
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalTokenizerMain/source.nanz",
+      "sha256": "d893df00710b7f1105b8bfb58342aca1c1f8cce7eb674037a8d6ca41b91b0689",
+      "bytes": 16825
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalTokenizerMain/stdout.txt",
+      "sha256": "1c1dc59687f184eed7ff4fb9e1b79a66598b89aac3d0a0dce0378474763e1fd1",
+      "bytes": 146
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalTokenizerMain/target.a80",
+      "sha256": "a84b00db6ef7e55429775ddab841bca59d57b4711ded605525d5cb20806d0511",
+      "bytes": 77389
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalTokenizerMain/target.bin",
+      "sha256": "ff30ec8eb3ab19f9a81044256e14e7ed48c706daa832bfc89de9714d100bfea4",
+      "bytes": 5815
+    },
+    {
+      "path": "artifacts/admission-final.txt",
+      "sha256": "7fbf465180ecac937ad992b44a7f9fab504dbebf2902dc4bc611eb251adcfb8e",
+      "bytes": 1554
+    },
+    {
+      "path": "artifacts/baseline/TestCPMRuntimeGuardedTokenizerMain/capture.json",
+      "sha256": "56672512bc1e148729ee5ca007cc7c16e270e225208f3128d9625a3888a9d426",
+      "bytes": 23250
+    },
+    {
+      "path": "artifacts/baseline/TestCPMRuntimeGuardedTokenizerMain/oracle.json",
+      "sha256": "e26dea83380f0e8ff3b9bf6c50ef1e61d78c8b62cd4f35208aa5e2cbe3ec3b61",
+      "bytes": 23224
+    },
+    {
+      "path": "artifacts/baseline/TestCPMRuntimeGuardedTokenizerMain/source.nanz",
+      "sha256": "d893df00710b7f1105b8bfb58342aca1c1f8cce7eb674037a8d6ca41b91b0689",
+      "bytes": 16825
+    },
+    {
+      "path": "artifacts/baseline/TestCPMRuntimeGuardedTokenizerMain/stdout.txt",
+      "sha256": "1c1dc59687f184eed7ff4fb9e1b79a66598b89aac3d0a0dce0378474763e1fd1",
+      "bytes": 146
+    },
+    {
+      "path": "artifacts/baseline/TestCPMRuntimeGuardedTokenizerMain/target.a80",
+      "sha256": "4adcdc0d64331a2b47fb16d9db8d2befc49b2f805523c8e63a9aab93542089d1",
+      "bytes": 92870
+    },
+    {
+      "path": "artifacts/baseline/TestCPMRuntimeGuardedTokenizerMain/target.bin",
+      "sha256": "0d84f56d0af3196035e49605dddd887acebc2aca1924fc5b353cd00d6169aeb4",
+      "bytes": 8285
+    },
+    {
+      "path": "artifacts/compilers.json",
+      "sha256": "c34bc6eff544b41a168f376d4e705fd504b6f26281c4f7075efd80e99c089ea8",
+      "bytes": 419
+    },
+    {
+      "path": "artifacts/focused.txt",
+      "sha256": "be27c64446f8b455bb3c7b774f446b59f66b9631337bed3e04b9fcc891989090",
+      "bytes": 3894
+    },
+    {
+      "path": "artifacts/mir2-full.txt",
+      "sha256": "28f14865ec720450d3e048366fb1d7dcb5dabb18eb71b84eee1168215613258c",
+      "bytes": 44
+    },
+    {
+      "path": "artifacts/native-cli-proof.txt",
+      "sha256": "2e8a777812bdfa64f8de658f8cda9fdbf32b0c28627dd3664d2b0af35b748b2f",
+      "bytes": 3892
+    },
+    {
+      "path": "artifacts/overflow.a80",
+      "sha256": "743790fbc816281413e313d630ee5c96278b63ad9c41499c385337389a28cc3d",
+      "bytes": 2327
+    },
+    {
+      "path": "artifacts/overflow.com",
+      "sha256": "0884cc6cd6bd5f92403d4d1cd163755f2f653b66ef9cb0a2501743d18a437c41",
+      "bytes": 200
+    },
+    {
+      "path": "artifacts/overflow.json",
+      "sha256": "5a18ac2fea74e716eb0efd8f2fcc2627c4de8b6b10484a6103d2de36f4275b30",
+      "bytes": 196
+    },
+    {
+      "path": "artifacts/parser-baseline-proof.txt",
+      "sha256": "8ba8b0f3bcf692f9cebc2d5d7c763fdb17525dfae2dc0f06006d5aa1d5956db4",
+      "bytes": 1336
+    },
+    {
+      "path": "artifacts/parser-baseline.a80",
+      "sha256": "0dd4bbc0967f4c856279b9fc0c583d1709791bc901fe21d189b58183e3142855",
+      "bytes": 45020
+    },
+    {
+      "path": "artifacts/parser-baseline.com",
+      "sha256": "4446673251c6b756d50e36f236c33c1c7af2270170ed322b34f78f59046b5097",
+      "bytes": 4727
+    },
+    {
+      "path": "artifacts/parser.a80",
+      "sha256": "5884fbb43159fba1fbcc769240d959354bb376f6f1eadc4bfc43570556147d13",
+      "bytes": 38218
+    },
+    {
+      "path": "artifacts/parser.com",
+      "sha256": "181ec753e334e11006c17ee2804bf33cb956892397b2d8b800688cc0620cbc56",
+      "bytes": 3968
+    },
+    {
+      "path": "artifacts/tokenizer-baseline-proof.txt",
+      "sha256": "9f72971b73c916704cdb6fa8939ee4eddb64c233710bf3a2d3eb0565f3cebf85",
+      "bytes": 417
+    },
+    {
+      "path": "artifacts/tokenizer-baseline.com",
+      "sha256": "0d84f56d0af3196035e49605dddd887acebc2aca1924fc5b353cd00d6169aeb4",
+      "bytes": 8285
+    },
+    {
+      "path": "artifacts/tokenizer.a80",
+      "sha256": "1677534b1b2ec8cfe5e68a3451440a70eae1228321b4fc27a94476c088ace555",
+      "bytes": 84880
+    },
+    {
+      "path": "artifacts/tokenizer.com",
+      "sha256": "fa27a5cf01defbbf709f7d86676b41bc526cfae56e8656c03716f943c1d598fd",
+      "bytes": 7397
+    }
+  ]
+}

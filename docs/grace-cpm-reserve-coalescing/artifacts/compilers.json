@@ -1,0 +1,12 @@
+{
+  "final": {
+    "name": "mz-cpm-coalesced-final",
+    "sha256": "8a241aecc3352b2073382bcbaa58d3e8c55d1b68392138046dcd441fac70a81d"
+  },
+  "tokenizer_baseline": {
+    "name": "mz-cpm-reserve-baseline",
+    "sha256": "f15e0e6539eb5fda51d6865a82842348c665a96b69d068692c68903677f9dbb5",
+    "compiler_base": "85773cf6",
+    "test_only_change": "same production runtime tokenizer oracle added; no production edits"
+  }
+}

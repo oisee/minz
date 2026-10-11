@@ -27,9 +27,14 @@ func TestOriginalTokenizerMainNativeFullState(t *testing.T) {
 		t.Run(name, func(t *testing.T) { originalTokenizerMain(t, cpm) })
 	}
 }
-func TestCPMRuntimeOriginalTokenizerMain(t *testing.T) { originalTokenizerRuntimeMain(t, true, true) }
-func originalTokenizerMain(t *testing.T, cpm bool)     { originalTokenizerRuntimeMain(t, cpm, false) }
-func originalTokenizerRuntimeMain(t *testing.T, cpm, production bool) {
+func TestCPMRuntimeOriginalTokenizerMain(t *testing.T) {
+	originalTokenizerRuntimeMain(t, true, true, 0)
+}
+func TestCPMRuntimeGuardedTokenizerMain(t *testing.T) {
+	originalTokenizerRuntimeMain(t, true, true, 1024)
+}
+func originalTokenizerMain(t *testing.T, cpm bool) { originalTokenizerRuntimeMain(t, cpm, false, 0) }
+func originalTokenizerRuntimeMain(t *testing.T, cpm, production bool, stack int) {
 	const path = "../../../examples/nanz/self_tokenizer.nanz"
 	source, e := os.ReadFile(path)
 	if e != nil {
@@ -42,6 +47,7 @@ func originalTokenizerRuntimeMain(t *testing.T, cpm, production bool) {
 	opts := Options{AssertMode: "none"}
 	if production {
 		opts.Runtime = mir2.Z80RuntimeCPM
+		opts.RuntimeStackBytes = stack
 		opts.ContractOpt = true
 	}
 	steps, e := CompileHIRSteps(h, opts)
@@ -108,10 +114,16 @@ __oracle_incoming_sp:
 	if e != nil || len(a.Errors) > 0 {
 		t.Fatal(e, a.Errors)
 	}
-	if production && os.Getenv("MINZ_CPM_TOKENIZER_COM") != "" {
+	if production && stack == 0 && os.Getenv("MINZ_CPM_TOKENIZER_COM") != "" {
 		bin, e := os.ReadFile(os.Getenv("MINZ_CPM_TOKENIZER_COM"))
 		if e != nil || !bytes.Equal(bin, a.Binary) {
 			t.Fatal("ordinary CLI COM differs from runtime compiler", e)
+		}
+	}
+	if production && stack != 0 && os.Getenv("MINZ_CPM_GUARDED_TOKENIZER_COM") != "" {
+		b, e := os.ReadFile(os.Getenv("MINZ_CPM_GUARDED_TOKENIZER_COM"))
+		if e != nil || !bytes.Equal(b, a.Binary) {
+			t.Fatal("guarded CLI COM differs", e)
 		}
 	}
 	z := emulator.NewRemogattoZ80WithScreen()
@@ -288,6 +300,12 @@ __oracle_incoming_sp:
 		}
 	}
 	if production {
+		if stack != 0 {
+			mutable[uint16(a.Symbols["__cpm_status"])] = true
+			if z.GetMemory(uint16(a.Symbols["__cpm_status"])) != 0 {
+				t.Fatal("guarded tokenizer status")
+			}
+		}
 		for _, r := range [][2]int{{a.Symbols["__cpm_saved_sp"], a.Symbols["__cpm_saved_sp"] + 2}, {a.Symbols["__cpm_stack"], a.Symbols["__cpm_stack_top"]}} {
 			for p := r[0]; p < r[1]; p++ {
 				mutable[uint16(p)] = true
