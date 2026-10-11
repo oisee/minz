@@ -1,0 +1,19 @@
+{
+  "base": 65535,
+  "binary_bytes": 9880,
+  "byte_accesses": [
+    {
+      "Op": 24,
+      "Addr": 65535,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Addr": 0,
+      "Value": 0
+    }
+  ],
+  "name": "ld_word",
+  "t_states": 78,
+  "value": 1
+}

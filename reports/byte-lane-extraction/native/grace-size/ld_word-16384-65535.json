@@ -1,0 +1,19 @@
+{
+  "base": 16384,
+  "binary_bytes": 9841,
+  "byte_accesses": [
+    {
+      "Op": 24,
+      "Addr": 16384,
+      "Value": 255
+    },
+    {
+      "Op": 24,
+      "Addr": 16385,
+      "Value": 255
+    }
+  ],
+  "name": "ld_word",
+  "t_states": 78,
+  "value": 65535
+}
