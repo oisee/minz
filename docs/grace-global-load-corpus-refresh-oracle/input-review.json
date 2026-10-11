@@ -1,0 +1,42 @@
+[
+  {
+    "corpus": "fresh-dominant",
+    "sha256": "8dedd77c5bd8ed3c8a55859a973c9721013467dff0f2e6f54dc338604e866213",
+    "calls": 20,
+    "events": 1876,
+    "string_bytes": 477,
+    "max_node_bytes": 8,
+    "max_source_bytes": 36,
+    "prior_workload_exact": true
+  },
+  {
+    "corpus": "long-atoms",
+    "sha256": "7bb2930fd351516dccc3be1421379ca5c54725799d208a001f9ca53d8c26a102",
+    "calls": 9,
+    "events": 9576,
+    "string_bytes": 723,
+    "max_node_bytes": 24,
+    "max_source_bytes": 483,
+    "prior_workload_exact": true
+  },
+  {
+    "corpus": "nested-mixed",
+    "sha256": "ec3860ad5d2e95d25a8ae4e4666d5024a61197656ac293109982d0b59d0b3c12",
+    "calls": 9,
+    "events": 4150,
+    "string_bytes": 117,
+    "max_node_bytes": 144,
+    "max_source_bytes": 56,
+    "prior_workload_exact": true
+  },
+  {
+    "corpus": "short-reuse",
+    "sha256": "bfe1608ab73d8e077eb7da5994a0e8fda8ed256bdac5eadc7cd9bd589415951d",
+    "calls": 12,
+    "events": 963,
+    "string_bytes": 23,
+    "max_node_bytes": 48,
+    "max_source_bytes": 26,
+    "prior_workload_exact": true
+  }
+]
