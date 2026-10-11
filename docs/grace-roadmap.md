@@ -124,3 +124,7 @@ pointer-walk, оставляя invariant-base. На sum_array выбирает 3
 [Контролируемый VM harness](grace-pgo-harness.md) выполняет ordered calls, initial globals/resources и limits из хешируемого workload. Следующая очередь: site lineage и guard events, затем cost policy.
 
 [Первое профильное решение на реальном sum_array](grace-pgo-decision.md): full workload 48495→31483 T-states, +49 module bytes; short/size выбирают original. VM + assembled Z80 + oracle проходят для 0/1/5/16/64/255. Общая PGO инфраструктура opt-in; следующие этапы — fallback/full-domain model и CLI/pipeline registration, corpus и MIR lineage.
+
+## Скалярные циклы и проверенный checksum (11 октября)
+
+[Измеренный scalar этап](grace-pgo-scalar.md): invariant-base выносит точное неизменное u16 сложение; полный checksum workload с обычным caller, persistent globals и буфером проходит независимые VM/Z80 oracles и exact access counts. 30 вызовов: 1166563→475239 T, 168→116 B. Текущие sum-array коэффициенты после исправлений backend: original69+141n, fast212+91n, equality+7, fallback231+143n; прежние числа выше относятся к истории. Общая цель — проверяемая оптимизация реальных программ до бинарного Z80; следующие формы циклов и составная rule policy ещё требуют реализации и измерения.

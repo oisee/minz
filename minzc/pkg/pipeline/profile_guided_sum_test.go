@@ -47,7 +47,7 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 		t.Fatal(e)
 	}
 	profileJSON, _ := json.MarshalIndent(profileRun.Profile, "", "  ")
-	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-all-six-lengths-v1", OriginalBytes: 128, PointerBytes: 177, OriginalEntry: 69, OriginalIteration: 141, EqualEntryExtra: 7, FastEntry: 189, FastIteration: 89, FallbackEntry: 208, FallbackIteration: 141, FallbackMeasured: true}
+	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-all-six-lengths-v1", OriginalBytes: 128, PointerBytes: 185, OriginalEntry: 69, OriginalIteration: 141, EqualEntryExtra: 7, FastEntry: 212, FastIteration: 91, FallbackEntry: 231, FallbackIteration: 143, FallbackMeasured: true}
 	decisions, e := hir.SelectLoopVariants(bytes.NewReader(profileJSON), input, context, model, false)
 	if e != nil {
 		t.Fatal(e)
@@ -170,8 +170,8 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 			expected := 69 + 141*int(n)
 			expectedSize := 128
 			if variant != "original" {
-				expected = 189 + 89*int(n)
-				expectedSize = 177
+				expected = 212 + 91*int(n)
+				expectedSize = 185
 			}
 			if cycles != expected || size != expectedSize {
 				t.Fatalf("cost model disproved: %s n=%d got=%d/%d expected=%d/%d", variant, n, cycles, size, expected, expectedSize)
@@ -242,8 +242,8 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 			wantCycles := 69 + 141*int(n)
 			wantBytes := 128
 			if expectedVariant == "pointer-walk" {
-				wantCycles = 189 + 89*int(n)
-				wantBytes = 177
+				wantCycles = 212 + 91*int(n)
+				wantBytes = 185
 			}
 			if cycles != wantCycles || codeBytes != wantBytes {
 				t.Fatalf("retained decision not executed correctly: n=%d size=%v cycles=%d bytes=%d", n, size, cycles, codeBytes)

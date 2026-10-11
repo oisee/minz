@@ -1,0 +1,5 @@
+=== RUN   TestMeasuredU16LoopAccumulator
+    profile_grace_variants_test.go:94: baseline 83615T/64B common 22979T/26B selected 1
+--- PASS: TestMeasuredU16LoopAccumulator (0.09s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.098s

@@ -279,6 +279,13 @@ func (v *hirVerifier) stmt(s Stmt, env map[string]mir2.Ty, loops int) error {
 		}
 		return v.bind(env, s.Name, ty)
 	case *AssignStmt:
+		if bit, ok := s.Target.(*BitExpr); ok {
+			switch bit.X.(type) {
+			case *VarRefExpr, *FieldExpr, *IndexExpr, *LoadExpr, *DerefExpr:
+			default:
+				return v.fail("bit assignment requires an addressable scalar base")
+			}
+		}
 		if vr, ok := s.Target.(*VarRefExpr); ok && v.aliases[vr.Name] != nil {
 			return v.fail("reassignment of callable alias %q is unsupported", vr.Name)
 		}

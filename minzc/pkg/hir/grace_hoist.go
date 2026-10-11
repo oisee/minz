@@ -107,7 +107,15 @@ func findGraceHoist(f *Func, b *Block, globals map[string]bool) *graceHoist {
 					loopUnsafe = true
 				}
 				if a, ok := s.(*AssignStmt); ok {
-					if v, ok := a.Target.(*VarRefExpr); ok {
+					target := a.Target
+					for {
+						bit, ok := target.(*BitExpr)
+						if !ok {
+							break
+						}
+						target = bit.X
+					}
+					if v, ok := target.(*VarRefExpr); ok {
 						assigned[v.Name] = true
 					}
 				}
@@ -131,12 +139,9 @@ func findGraceHoist(f *Func, b *Block, globals map[string]bool) *graceHoist {
 			if !ok || candidate != nil || x.Op != "+" || (x.Ty != mir2.TyU16 && !mir2.IsPointer(x.Ty)) || !leaf(x.L) || !leaf(x.R) {
 				return
 			}
-			// Require a pointer parameter: this first rule targets address bases.
-			l, lok := x.L.(*VarRefExpr)
-			r, rok := x.R.(*VarRefExpr)
-			if (lok && mir2.IsPointer(l.Ty)) || (rok && mir2.IsPointer(r.Ty)) {
-				candidate = x
-			}
+			// The same proof covers ordinary u16 scalar addition: unchanged
+			// leaves, total arithmetic, and exact existing result truncation.
+			candidate = x
 		}
 		walkExpr(loop.Cond, check)
 		walkGraceBlocks(loop.Body, "", func(_ string, bb *Block) {

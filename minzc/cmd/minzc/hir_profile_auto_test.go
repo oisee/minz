@@ -52,7 +52,7 @@ func TestHIRProfileAutoMeasuredCompilation(t *testing.T) {
 	if err := json.Unmarshal(data, &decisions); err != nil {
 		t.Fatal(err)
 	}
-	if len(decisions) != 1 || decisions[0].Variant != "pointer-walk" || decisions[0].OriginalTStates != "774" || decisions[0].PointerTStates != "634" {
+	if len(decisions) != 1 || decisions[0].Variant != "pointer-walk" || decisions[0].OriginalTStates != "774" || decisions[0].PointerTStates != "667" {
 		t.Fatal(decisions)
 	}
 	// Saved profile/model must work with the same binary and compilation settings.

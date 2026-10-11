@@ -1,6 +1,10 @@
 package mir2
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/minz/minzc/pkg/z80spec"
+)
 
 // parallelCopy is a single register-to-register move in a parallel copy sequence.
 type parallelCopy struct {
@@ -38,7 +42,8 @@ func (g *z80cg) buildReturnCopies(vals []Reg) []parallelCopy {
 }
 
 // buildBlockCopies computes the parallel copies needed to pass args to a
-// target block's formal parameters.  Returns only moves where src ≠ dst.
+// target block's formal parameters, including coalesced destinations so scratch
+// selection knows which registers already hold their final values.
 func (g *z80cg) buildBlockCopies(f *Func, targetName string, args []Reg) []parallelCopy {
 	if len(args) == 0 {
 		return nil
@@ -65,7 +70,9 @@ func (g *z80cg) buildBlockCopies(f *Func, targetName string, args []Reg) []paral
 		// moved to their canonical destination in the target block.
 		src := g.loc(arg)
 		if src == dst {
-			continue // pre-coalescing or same-location allocation — no copy needed
+			// Keep coalesced destinations visible to cycle scratch selection.
+			copies = append(copies, parallelCopy{srcName: src, dstName: dst, ty: ty})
+			continue
 		}
 		// If this argument is a compile-time constant, mark it for deferred
 		// rematerialisation AFTER all register-to-register copies are resolved.
@@ -93,6 +100,53 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 	if len(copies) == 0 {
 		return
 	}
+	// A pair and either of its halves are the same storage. Resolve mixed
+	// pair/byte shuffles at byte granularity so both dependency ordering and
+	// cycle breaking see the actual registers (e.g. IY->DE, C->IYH).
+	partialOverlap := false
+	for _, a := range copies {
+		for _, b := range copies {
+			if !a.isImm && !b.isImm && a.dstName != b.srcName &&
+				z80spec.Overlaps(a.dstName, b.srcName) {
+				partialOverlap = true
+			}
+		}
+	}
+	if partialOverlap {
+		var bytes []parallelCopy
+		for _, c := range copies {
+			if c.isImm || c.ty.Width() > 16 || c.srcName == "F" || c.dstName == "F" {
+				bytes = append(bytes, c)
+				continue
+			}
+			if c.ty.Width() > 8 && (isPairReg(c.srcName) || isSpill(c.srcName)) &&
+				(isPairReg(c.dstName) || isSpill(c.dstName)) {
+				srcHi, srcLo := highByte(c.srcName), lowByte(c.srcName)
+				dstHi, dstLo := highByte(c.dstName), lowByte(c.dstName)
+				if isSpill(c.srcName) {
+					srcHi, srcLo = c.srcName+"+1", c.srcName
+				}
+				if isSpill(c.dstName) {
+					dstHi, dstLo = c.dstName+"+1", c.dstName
+				}
+				bytes = append(bytes,
+					parallelCopy{srcName: srcHi, dstName: dstHi, ty: TyU8},
+					parallelCopy{srcName: srcLo, dstName: dstLo, ty: TyU8})
+			} else {
+				// Match emitSingleCopy's truncation/zero-extension semantics.
+				c.ty = TyU8
+				if isPairReg(c.srcName) {
+					c.srcName = lowByte(c.srcName)
+				}
+				if isPairReg(c.dstName) {
+					bytes = append(bytes, parallelCopy{dstName: highByte(c.dstName), ty: TyU8, isImm: true})
+					c.dstName = lowByte(c.dstName)
+				}
+				bytes = append(bytes, c)
+			}
+		}
+		copies = bytes
+	}
 	type move struct {
 		src, dst string
 		ty       Ty
@@ -110,7 +164,7 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 	}
 	moves := make([]move, len(regCopies))
 	for i, c := range regCopies {
-		moves[i] = move{src: c.srcName, dst: c.dstName, ty: c.ty}
+		moves[i] = move{src: c.srcName, dst: c.dstName, ty: c.ty, done: c.srcName == c.dstName}
 	}
 
 	for {
@@ -188,9 +242,8 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 			//   LD E, C     (backward: who writes TO E? C→E. C still original.)
 			//   LD C, A     (put D_old into C via scratch)
 			//
-			// When A is part of the cycle, using A as scratch would overwrite it
-			// during the walk before the final restore.  Pick the first 8-bit
-			// register not involved in any pending move instead.
+			// Only borrow A, saving AF first. Other unused byte registers may
+			// hold values live across the edge, outside this copy list.
 			cycleRegs := map[string]bool{}
 			for i := range moves {
 				if !moves[i].done {
@@ -203,21 +256,19 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 				}
 			}
 			scratch := "A"
-			if cycleRegs["A"] {
-				for _, r := range []string{"C", "E", "H", "L", "D", "B"} {
-					if !cycleRegs[r] {
-						scratch = r
-						break
-					}
-				}
-			}
 
 			if cycleRegs[scratch] {
-				// All seven byte registers are occupied. Snapshot the pending
-				// sources on the stack; shadow AF protects the main accumulator.
+				// A participates in the shuffle. Snapshot the pending sources on
+				// the stack; shadow AF protects the main accumulator.
+				// Give shadow F the original flags too: a snapshot read through
+				// shadow A may subsequently be popped into the main accumulator.
+				g.emit("    PUSH AF")
+				g.emit("    EX AF, AF'")
+				g.emit("    POP AF")
+				g.emit("    EX AF, AF'")
 				var pending []int
 				for i := range moves {
-					if moves[i].done {
+					if moves[i].done || moves[i].ty.Width() > 8 {
 						continue
 					}
 					pending = append(pending, i)
@@ -246,6 +297,7 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 			}
 
 			firstDst := m.dst
+			g.emit("    PUSH AF")
 			if m.src != scratch {
 				g.emitSingleCopy(m.src, scratch, m.ty)
 			}
@@ -269,6 +321,7 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 			if firstDst != scratch {
 				g.emitSingleCopy(scratch, firstDst, m.ty)
 			}
+			g.emit("    POP AF")
 		} else {
 			// Walk backwards around a word cycle, just as for byte cycles.
 			// Saving src frees src, not dst: BC->HL, HL->DE, DE->BC
@@ -385,14 +438,11 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 		case isSpill(src) && dst == "A":
 			g.emitf("    LD A, (%s)", src)
 		case isSpill(src):
-			g.emitf("    LD A, (%s)", src)
-			g.emitLD8(dst, "A")
-			g.invalidate("A")
+			g.emitLD8(dst, src)
 		case isSpill(dst) && src == "A":
 			g.emitf("    LD (%s), A", dst)
 		case isSpill(dst):
-			g.emitLDA(src)
-			g.emitf("    LD (%s), A", dst)
+			g.emitLD8(dst, src)
 		case (isIXYReg(src) && (dst == "H" || dst == "L")) ||
 			(isIXYReg(dst) && (src == "H" || src == "L")):
 			// DD/FD prefix conflict: LD H,IXH encodes as LD IXH,IXH (NOP).

@@ -1,0 +1,27 @@
+=== RUN   TestHIRGraceScalarHoistProofBoundaries
+=== RUN   TestHIRGraceScalarHoistProofBoundaries/plain
+=== RUN   TestHIRGraceScalarHoistProofBoundaries/bit-write
+=== RUN   TestHIRGraceScalarHoistProofBoundaries/mutated
+=== RUN   TestHIRGraceScalarHoistProofBoundaries/shadowed
+=== RUN   TestHIRGraceScalarHoistProofBoundaries/call
+=== RUN   TestHIRGraceScalarHoistProofBoundaries/before
+--- PASS: TestHIRGraceScalarHoistProofBoundaries (0.01s)
+    --- PASS: TestHIRGraceScalarHoistProofBoundaries/plain (0.00s)
+    --- PASS: TestHIRGraceScalarHoistProofBoundaries/bit-write (0.00s)
+    --- PASS: TestHIRGraceScalarHoistProofBoundaries/mutated (0.00s)
+    --- PASS: TestHIRGraceScalarHoistProofBoundaries/shadowed (0.00s)
+    --- PASS: TestHIRGraceScalarHoistProofBoundaries/call (0.00s)
+    --- PASS: TestHIRGraceScalarHoistProofBoundaries/before (0.00s)
+=== RUN   TestHIRBitMutationLoopCarriesCurrentValue
+--- PASS: TestHIRBitMutationLoopCarriesCurrentValue (0.00s)
+=== RUN   TestHIRNestedBitAssignmentRejectedBeforeLowering
+--- PASS: TestHIRNestedBitAssignmentRejectedBeforeLowering (0.00s)
+=== RUN   TestMeasuredScalarInvariantDomain
+    profile_scalar_domain_test.go:64: sizefalse baseline647844T/77B selected171768T/36B
+    profile_scalar_domain_test.go:64: sizetrue baseline647844T/77B selected171768T/36B
+--- PASS: TestMeasuredScalarInvariantDomain (0.33s)
+=== RUN   TestMeasuredScalarChecksumProgram
+    profile_scalar_program_test.go:315: 30 calls: baseline 1166563T/168B hoisted 475239T/116B selected 1
+--- PASS: TestMeasuredScalarChecksumProgram (0.79s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.148s

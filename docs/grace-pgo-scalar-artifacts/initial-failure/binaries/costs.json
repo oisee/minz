@@ -1,0 +1,16 @@
+[
+  {
+    "binary_sha256": "ef98c3f21148358229a3c0ee8d2817838f25dc6c660dfeceb45bd9e3205a4f79",
+    "candidate": 0,
+    "common_grace_rules": false,
+    "error": "Z80 profile workload: invocation 2: line 0: assert \"\" [z80]: return[0] got 65501, want 65505",
+    "module_bytes": 164
+  },
+  {
+    "binary_sha256": "5f739a5d83a329783f38da378def60e4bef12accfca2f0fdfdcaac379539d6b5",
+    "candidate": 1,
+    "common_grace_rules": true,
+    "error": "Z80 profile workload: invocation 0: line 0: assert \"\" [z80]: return[0] got 220, want 65500",
+    "module_bytes": 114
+  }
+]

@@ -1,0 +1,5 @@
+{
+  "reason": "measure profile variant sets: candidate 0 target workload: Z80 profile workload: invocation 2: line 0: assert \"\" [z80]: return[0] got 65501, want 65505",
+  "selected": null,
+  "status": "rejected"
+}

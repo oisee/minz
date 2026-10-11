@@ -1,0 +1,31 @@
+ok  	github.com/minz/minzc/pkg/pipeline	0.007s
+--- FAIL: TestZ80ParallelCopyPairHalfOverlap (0.03s)
+    --- FAIL: TestZ80ParallelCopyPairHalfOverlap/separate_byte_word_cycles/edge (0.00s)
+        z80codegen_parallel_overlap_test.go:115: F/SP=00/ff00 want 45/ff00
+                PUSH AF
+                EX AF, AF'
+                LD A, B
+                PUSH AF
+                EX AF, AF'
+                POP AF
+                EX AF, AF'
+                POP AF
+                LD B, A
+                EX AF, AF'
+                EX DE, HL
+    --- FAIL: TestZ80ParallelCopyPairHalfOverlap/separate_byte_word_cycles/call (0.00s)
+        z80codegen_parallel_overlap_test.go:115: F/SP=00/ff00 want 45/ff00
+                PUSH AF
+                EX AF, AF'
+                LD A, B
+                PUSH AF
+                EX AF, AF'
+                POP AF
+                EX AF, AF'
+                POP AF
+                LD B, A
+                EX AF, AF'
+                EX DE, HL
+FAIL
+FAIL	github.com/minz/minzc/pkg/mir2	0.049s
+FAIL

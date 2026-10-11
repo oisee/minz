@@ -2235,7 +2235,15 @@ func scanStmt(s Stmt, env map[string]mir2.Reg, muts map[string]bool) {
 	case *Block:
 		scanBlock(st, env, muts)
 	case *AssignStmt:
-		if vr, ok := st.Target.(*VarRefExpr); ok {
+		target := st.Target
+		for {
+			bit, ok := target.(*BitExpr)
+			if !ok {
+				break
+			}
+			target = bit.X
+		}
+		if vr, ok := target.(*VarRefExpr); ok {
 			if _, inEnv := env[vr.Name]; inEnv {
 				muts[vr.Name] = true
 			}

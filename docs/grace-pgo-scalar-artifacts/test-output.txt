@@ -1,0 +1,5 @@
+=== RUN   TestMeasuredScalarChecksumProgram
+    profile_scalar_program_test.go:315: 30 calls: baseline 1166563T/168B hoisted 475239T/116B selected 1
+--- PASS: TestMeasuredScalarChecksumProgram (0.64s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.646s

@@ -1,0 +1,45 @@
+; MIR2 module: ../../../examples/nanz/grace_weighted_checksum.nanz
+global @checksum_calls : u8
+global @checksum_last : u16
+
+fun @weighted_checksum(%r1: ptr [pointer], %r2: u8 [general], %r3: u16 [index], %r4: u16 [index], %r5: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r6 = const 0 : u8 [general]
+    jmp @loop_head1(%r3, %r4, %r6, %r2, %r1, %r5)
+  block @loop_head1(%r7: u16 [pointer], %r8: u16 [pointer], %r9: u8 [general], %r10: u8 [general], %r11: ptr [general], %r12: u16 [pointer]):
+    %r13 = cmp.ult %r9, %r10 : bool [flag]
+    cond_ret %r13, [%r12], @loop_body2()
+  block @loop_body2:
+    %r14 = add %r7, %r8 : u16 [pointer]
+    %r15 = add %r12, %r14 : u16 [pointer]
+    %r16 = ext %r9 : u8 -> u16 [index]
+    %r17 = ptr_add %r11, %r16 : ptr [pointer]
+    %r18 = load %r17 : u8 [general]
+    %r19 = ext %r18 : u8 -> u16 [pointer]
+    %r20 = add %r15, %r19 : u16 [pointer]
+    %r21 = const 1 : u8 [general]
+    %r22 = add %r9, %r21 : u8 [general]
+    jmp @loop_head1(%r7, %r8, %r22, %r10, %r11, %r20)
+
+fun @record_checksum(%r29: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r30 = addr_of @checksum_calls : ptr [pointer]
+    %r31 = load %r30 : u8 [general]
+    %r32 = const 1 : u8 [general]
+    %r33 = add %r31, %r32 : u8 [acc]
+    %r34 = addr_of @checksum_calls : ptr [pointer]
+    store %r34, %r33 : u8
+    %r35 = addr_of @checksum_last : ptr [pointer]
+    store %r35, %r29 : u16
+    ret %r29
+
+fun @checksum_packet(%r36: ptr [pointer], %r37: u8 [general], %r38: u16 [index], %r39: u16 [index], %r40: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r41 = move %r36 : ptr [pointer]
+    %r42 = move %r38 : u16 [index]
+    %r43 = move %r39 : u16 [index]
+    %r44 = move %r40 : u16 [index]
+    %r45 = call @weighted_checksum(%r41, %r37, %r42, %r43, %r44) : u16 [pointer]
+    %r46 = call @record_checksum(%r45) : u16 [pointer]
+    ret %r46
+

@@ -1,0 +1,10 @@
+{
+  "_spill_weighted_checksum_r6": 32898,
+  "checksum_calls": 32929,
+  "checksum_last": 32930,
+  "checksum_packet": 32921,
+  "record_checksum": 32899,
+  "weighted_checksum": 32768,
+  "weighted_checksum.weighted_checksum_loop_body2": 32806,
+  "weighted_checksum.weighted_checksum_loop_head1": 32792
+}

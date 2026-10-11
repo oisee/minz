@@ -1,0 +1,24 @@
+{
+  "calls": 30,
+  "direct_failures": [
+    "candidate 0: Z80 profile workload: invocation 2: line 0: assert \"\" [z80]: return[0] got 65501, want 65505",
+    "candidate 1: Z80 profile workload: invocation 0: line 0: assert \"\" [z80]: return[0] got 220, want 65500"
+  ],
+  "error": "measure profile variant sets: candidate 0 target workload: Z80 profile workload: invocation 2: line 0: assert \"\" [z80]: return[0] got 65501, want 65505",
+  "options": {
+    "ProfileSelection": null,
+    "CollectHIRSites": false,
+    "ContractOpt": false,
+    "AnnotateTStates": false,
+    "LIRCheck": false,
+    "UseLIR": false,
+    "UseGrace": false,
+    "GraceStats": null,
+    "UseHIRGrace": true,
+    "OptSize": false,
+    "Backend": "",
+    "AssertMode": "none",
+    "SkipZ80Emission": false
+  },
+  "status": "rejected"
+}

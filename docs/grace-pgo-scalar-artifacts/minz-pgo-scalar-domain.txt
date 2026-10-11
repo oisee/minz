@@ -1,0 +1,6 @@
+=== RUN   TestMeasuredScalarInvariantDomain
+    profile_scalar_domain_test.go:64: sizefalse baseline647412T/75B selected171768T/36B
+    profile_scalar_domain_test.go:64: sizetrue baseline647412T/75B selected171768T/36B
+--- PASS: TestMeasuredScalarInvariantDomain (0.27s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.280s

@@ -1,0 +1,7 @@
+=== RUN   TestMeasuredScalarChecksumProgram
+    profile_scalar_program_test.go:315: 30 calls: baseline 1166563T/168B hoisted 475239T/116B selected 1
+--- PASS: TestMeasuredScalarChecksumProgram (0.50s)
+=== RUN   TestZ80ProfileWorkloadPersistentMutations
+--- PASS: TestZ80ProfileWorkloadPersistentMutations (0.08s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.588s

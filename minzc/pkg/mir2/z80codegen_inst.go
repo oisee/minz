@@ -356,6 +356,19 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.genCmp(inst)
 
 	case OpLoad:
+		// Some byte loads need A as an encoding bridge, even though their
+		// allocated destination is elsewhere. Preserve the accumulator and
+		// flags, including live loop parameters, across that implicit scratch.
+		_, lutLoad := g.lutLoadPat[inst.Dst]
+		loadPtr := g.loc(inst.Src[0])
+		if inst.Ty.Width() <= 8 && dst != "A" && !isSpill(dst) &&
+			(lutLoad || loadPtr == "BC" || loadPtr == "DE" || isIXYReg(dst)) {
+			g.emit("    EX AF, AF'      ; preserve byte-load scratch")
+			defer func() {
+				g.emit("    EX AF, AF'      ; restore byte-load scratch")
+				g.invalidate("A") // restored A is not an alias of loaded dst
+			}()
+		}
 		// Page-aligned LUT fast path (Phase 6e — BC★/DE★ optimization):
 		//
 		//   Baseline (HL path, 18T):

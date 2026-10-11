@@ -1,0 +1,8 @@
+=== RUN   TestShowcaseCompileAssemble
+    showcase_test.go:86: Found 189 showcase files
+=== RUN   TestShowcaseCompileAssemble/sha256.nanz
+    showcase_test.go:156: OK: 6821 bytes asm, 556 bytes binary
+--- PASS: TestShowcaseCompileAssemble (0.03s)
+    --- PASS: TestShowcaseCompileAssemble/sha256.nanz (0.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/nanz	0.039s

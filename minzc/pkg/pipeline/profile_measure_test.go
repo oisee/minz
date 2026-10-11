@@ -42,7 +42,7 @@ func TestMeasureLoopCostModel(t *testing.T) {
 			t.Fatal("execution binaries not bound to evidence")
 		}
 	}
-	if model.OriginalEntry != 69 || model.OriginalIteration != 141 || model.FastEntry != 189 || model.FastIteration != 89 || model.EqualEntryExtra != 7 || model.FallbackEntry != 208 || model.FallbackIteration != 141 || !model.FallbackMeasured {
+	if model.OriginalEntry != 69 || model.OriginalIteration != 141 || model.FastEntry != 212 || model.FastIteration != 91 || model.EqualEntryExtra != 7 || model.FallbackEntry != 231 || model.FallbackIteration != 143 || !model.FallbackMeasured {
 		t.Fatalf("unexpected measured coefficients: %+v", model)
 	}
 	if len(evidence.Rows) != 1022 || model.OriginalBytes != uint64(len(evidence.OriginalBinary)) || model.PointerBytes != uint64(len(evidence.PointerBinary)) {
