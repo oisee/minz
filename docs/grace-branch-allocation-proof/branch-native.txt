@@ -1,0 +1,37 @@
+=== RUN   TestCheckedBranchCorpusLeafNativeAllByteInputs
+    branch_table_boundary_test.go:29: baseline MIR ; MIR2 module: 
+        fun @is_digit_b(%r22: u8 [acc]) -> bool [acc]
+          block @entry:
+            %r23 = const 48 : u8 [general]
+            %r24 = cmp.uge %r22, %r23 : bool [flag]
+            br_if %r24, @if_then1(), @if_join2()
+          block @if_then1:
+            %r25 = const 57 : u8 [general]
+            %r26 = cmp.ule %r22, %r25 : bool [flag]
+            br_if %r26, @if_then3(), @if_join4()
+          block @if_then3:
+            %r27 = const 1 : bool [general]
+            ret %r27
+          block @if_join4:
+            jmp @if_join2()
+          block @if_join2:
+            %r28 = const 0 : bool [general]
+            ret %r28
+        
+        fun @digit_live_caller(%r53: u8 [acc]) -> u8 [acc]
+          block @entry:
+            %r54 = move %r53 : u8 [acc]
+            %r55 = call @is_digit_b(%r54) : bool [acc]
+            %r56 = const 0 : bool [general]
+            %r57 = cmp.ne %r55, %r56 : bool [flag]
+            cond_ret %r57, [%r53], @if_then1()
+          block @if_then1:
+            %r58 = const 1 : u8 [general]
+            %r59 = add %r53, %r58 : u8 [acc]
+            ret %r59
+        
+        
+    branch_table_boundary_test.go:118: all256 independent predicate and live-caller VM/Z80 PASS; totals including input/CALL/RET/DI/HALT=map[digit_live_caller:43915 is_digit_b:24123]
+--- PASS: TestCheckedBranchCorpusLeafNativeAllByteInputs (0.05s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.054s

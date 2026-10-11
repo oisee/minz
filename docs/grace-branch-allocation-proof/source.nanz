@@ -1,0 +1,114 @@
+// Bool retFlag test corpus
+// Tests all comparison types for Z3 per-function retFlag optimization
+//
+// CmpEq → Z natural
+// CmpLt → CY natural
+// CmpGt → CY+Z
+// Each should get optimal ret_mode from Z3
+//
+// Part A: -> bool (triggers retFlag optimization)
+// Part B: -> u8 (legacy, no retFlag)
+
+// ═══════════════════════════════════════════
+// Part A: -> bool (retFlag candidates)
+// ═══════════════════════════════════════════
+
+// --- Equality (Z flag natural) ---
+
+fun is_zero_b(x: u8) -> bool {
+    return x == 0
+}
+
+fun is_ten_b(x: u8) -> bool {
+    return x == 10
+}
+
+fun eq_b(a: u8, b: u8) -> bool {
+    return a == b
+}
+
+// --- Less-than (CY flag natural) ---
+
+fun is_small_b(x: u8) -> bool {
+    return x < 10
+}
+
+fun lt_b(a: u8, b: u8) -> bool {
+    return a < b
+}
+
+// --- Greater-than ---
+
+fun is_big_b(x: u8) -> bool {
+    return x > 200
+}
+
+fun gt_b(a: u8, b: u8) -> bool {
+    return a > b
+}
+
+// --- Range check ---
+
+fun is_digit_b(c: u8) -> bool {
+    if c >= 48 {
+        if c <= 57 { return true }
+    }
+    return false
+}
+
+fun is_upper_b(c: u8) -> bool {
+    if c >= 65 {
+        if c <= 90 { return true }
+    }
+    return false
+}
+
+// ═══════════════════════════════════════════
+// Part B: -> u8 (legacy materialized 0/1)
+// ═══════════════════════════════════════════
+
+fun is_zero(x: u8) -> u8 {
+    if x == 0 { return 1 }
+    return 0
+}
+
+fun is_small(x: u8) -> u8 {
+    if x < 10 { return 1 }
+    return 0
+}
+
+fun is_digit(c: u8) -> u8 {
+    if c >= 48 {
+        if c <= 57 { return 1 }
+    }
+    return 0
+}
+
+// ═══════════════════════════════════════════
+// Asserts — Part A: bool functions
+// ═══════════════════════════════════════════
+
+// Part A asserts — blocked until VIR retFlag codegen (F→A move pattern)
+// assert is_zero_b(0) == 1
+// assert is_zero_b(1) == 0
+// assert is_ten_b(10) == 1
+// assert eq_b(5, 5) == 1
+// assert is_small_b(0) == 1
+// assert lt_b(3, 7) == 1
+// assert is_big_b(201) == 1
+// assert gt_b(7, 3) == 1
+// assert is_digit_b(48) == 1
+// assert is_upper_b(65) == 1
+
+// ═══════════════════════════════════════════
+// Asserts — Part B: u8 functions (baseline)
+// ═══════════════════════════════════════════
+
+assert is_zero(0) == 1
+assert is_zero(1) == 0
+assert is_small(0) == 1
+assert is_small(10) == 0
+assert is_digit(48) == 1
+assert is_digit(65) == 0
+
+fun digit_live_caller(c:u8)->u8 { if is_digit_b(c) { return c+1 } return c }

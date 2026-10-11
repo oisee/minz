@@ -1,0 +1,11 @@
+{
+  "README.md": "1846635daf503538a1f0e745614bb7ffb0c59bf72d21b3b6edfd8e877d3b2d3c",
+  "baseline.a80": "25a51b6ce250a02b203e52ac84773fb7e12e5572ccbe64dd744d14634f5b5ba2",
+  "baseline.bin": "0294a962b74f5d9cc28e83be14b0e069a6e2ef7f4c7c893a2844cf71580a35c3",
+  "baseline.mir": "6b0e7a5d222218bc52218cf21df0242d1c820e1cb2c4df06490600017c2390dc",
+  "branch-native.txt": "ba1eb9b17409304a57a6cfc2dacf85f7de378b9aaeb2e58efa0a0d53514eb7e9",
+  "exhaustive-native.txt": "936365582362e8a612786773ed536ee393cbe7da03c16a6ae7f99556237008d4",
+  "mir2-full.txt": "12f9b2dc194ce2d8c939d6fef704c8894d1d957002eea4caf1a8ae62fc363762",
+  "package-compile.txt": "39e8ee5c2cf24ab0d7be8631a8a0fdf673c54edea01f01da61fdf10876bde4d0",
+  "source.nanz": "df5021980cdda13bd5bc84ccf6ecba12e6d2bceb4bb6f62d31759b98763c0520"
+}
