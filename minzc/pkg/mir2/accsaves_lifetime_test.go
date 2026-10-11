@@ -1,6 +1,9 @@
 package mir2
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestAccSaveScratchProtectsPairAndForeignIDs(t *testing.T) {
 	f := &Func{Name: "standalone"}
@@ -45,6 +48,57 @@ func TestAccSaveRenameLifetimeAndCanonicalOperands(t *testing.T) {
 		}
 		if isUsedAfterIdx(b, 0, 1) {
 			t.Fatal("redefined value considered live")
+		}
+	}
+}
+
+func TestAccSaveNoFreeByteSpillsOrRefusesRecursive(t *testing.T) {
+	for _, recursive := range []bool{false, true} {
+		m := &Module{Name: "full_bytes"}
+		f := m.AddFunc("save")
+		a := f.AllocReg()
+		c := f.AllocReg()
+		b := f.NewBlock("entry")
+		b.Insts = []*Inst{{Op: OpConst, Dst: a, Ty: TyU8, Imm: 7}, {Op: OpConst, Dst: c, Ty: TyU8, Imm: 9}}
+		ar := &AllocResult{Locs: map[Reg]PhysLoc{a: {Kind: LocReg, Name: "A"}, c: {Kind: LocReg, Name: "A"}}}
+		for _, name := range []string{"D", "E", "H", "L", "B", "C"} {
+			r := f.AllocReg()
+			ar.Locs[r] = PhysLoc{Kind: LocReg, Name: name}
+			b.Insts = append(b.Insts, &Inst{Op: OpConst, Dst: r, Ty: TyU8, Imm: 1})
+		}
+		b.Term = &TermRet{Vals: []Reg{a}}
+		f.Contract.Returns = []Return{{Ty: TyU8, Class: ClassAcc}}
+		f.Attrs.IsRecursive = recursive
+		if e := Verify(m); e != nil {
+			t.Fatal(e)
+		}
+		err := InsertAccSaves(f, ar)
+		if recursive {
+			if err == nil {
+				t.Fatal("recursive absolute spill accepted")
+			}
+			continue
+		}
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(ar.Spilled) != 1 || ar.Loc(ar.Spilled[0]).Kind != LocMem {
+			t.Fatal("required save silently skipped")
+		}
+		if e := Verify(m); e != nil {
+			t.Fatal(e)
+		}
+		vm := NewVM(m)
+		got, e := vm.Call("save", nil)
+		if e != nil || len(got) != 1 || got[0].I != 7 {
+			t.Fatal("saved MIR return", got, e)
+		}
+		asm, e := Z80Codegen(m, ar)
+		if e != nil {
+			t.Fatal(e)
+		}
+		if !strings.Contains(asm, "LD (_spill_save_r") || !strings.Contains(asm, "LD A, (_spill_save_r") {
+			t.Fatal("missing actual spill store/reload", asm)
 		}
 	}
 }
