@@ -58,7 +58,7 @@ func TestMultiFunctionProfileVMZ80(t *testing.T) {
 	// Coefficients come from the existing exact-sum Z80 fixture. This test
 	// executes the selected variants with current backend preservation costs;
 	// these synthetic coefficients do not mint production measurement evidence.
-	model := hir.LoopCostModel{CompilerID: c.CompilerID, SemanticsID: c.SemanticsID, TargetID: c.TargetID, HIRSHA256: run.Profile.Compatibility.HIRSHA256, CompilationID: config, EvidenceID: "test-fixture", OriginalBytes: 128, PointerBytes: 177, OriginalEntry: 69, OriginalIteration: 141, FastEntry: 189, FastIteration: 89}
+	model := hir.LoopCostModel{CompilerID: c.CompilerID, SemanticsID: c.SemanticsID, TargetID: c.TargetID, HIRSHA256: run.Profile.Compatibility.HIRSHA256, CompilationID: config, EvidenceID: "test-fixture", OriginalBytes: 128, PointerBytes: 177, OriginalEntry: 69, OriginalIteration: 141, FastEntry: 189, FastZeroEntry: 189, FastZeroMeasured: true, FastIteration: 89}
 	models := []hir.LoopCostModel{model, model}
 	models[0].Function, models[1].Function = "short_sum", "long_sum"
 	observations, err := json.Marshal(run.Profile)
@@ -87,7 +87,7 @@ func TestMultiFunctionProfileVMZ80(t *testing.T) {
 		name   string
 		n      int64
 		cycles int
-	}{{"short_sum", 1, 210}, {"long_sum", 40, 3852}} {
+	}{{"short_sum", 1, 210}, {"long_sum", 40, 1455}} {
 		want := call.n * (call.n + 1) / 2 & 255
 		values, err := vm.Call(call.name, []mir2.Value{{I: 0x4000}, {I: call.n}})
 		if err != nil || len(values) != 1 || values[0].I != want {

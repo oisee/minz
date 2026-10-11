@@ -1,0 +1,22 @@
+; HIR module: examples/nanz/grace_seeded_sum.nanz
+global @seeded_calls : u8
+global @seeded_last : u16
+
+fun @seeded_sum(ptr: ptr, n: u8, seed: u16) -> u16
+  var sum: u16 = (seed:u16)
+  var i: u8 = 0:u8
+  if (cast((ptr:ptr)):u16 <= (65535:u16 - cast((n:u8)):u16):u16):bool
+    foreach __grace_element_0: u8 in *((ptr:ptr))[0..(n:u8)]
+      (sum:u16) = ((sum:u16) + cast((__grace_element_0:u8)):u16):u16
+    (i:u8) = (n:u8)
+  else
+    while ((i:u8) < (n:u8)):bool
+      (sum:u16) = ((sum:u16) + cast(((ptr:ptr))[(i:u8)]:u8):u16):u16
+      (i:u8) = ((i:u8) + 1:u8):u8
+  return (sum:u16)
+
+fun @seeded_packet(ptr: ptr, n: u8, seed: u16) -> u16
+  var value: u16 = call @seeded_sum((ptr:ptr), (n:u8), (seed:u16)):u16
+  (seeded_calls:u8) = ((seeded_calls:u8) + 1:u8):u8
+  (seeded_last:u16) = (value:u16)
+  return (value:u16)

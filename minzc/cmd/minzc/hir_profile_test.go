@@ -147,7 +147,7 @@ func TestHIRProfileCollectionAndApplication(t *testing.T) {
 	context := run.Profile.Compatibility.Context
 	// Independent measured fixture from docs/grace-pgo-decision.md. These costs
 	// belong only to this test; production CLI supplies no default costs.
-	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: run.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "docs/grace-pgo-decision.md", OriginalBytes: 128, PointerBytes: 177, OriginalEntry: 69, OriginalIteration: 141, EqualEntryExtra: 7, FastEntry: 189, FastIteration: 89, FallbackEntry: 208, FallbackIteration: 141, FallbackMeasured: true}
+	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: run.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "docs/grace-pgo-decision.md", OriginalBytes: 128, PointerBytes: 177, OriginalEntry: 69, OriginalIteration: 141, EqualEntryExtra: 7, FastEntry: 189, FastZeroEntry: 189, FastZeroMeasured: true, FastIteration: 89, FallbackEntry: 208, FallbackIteration: 141, FallbackMeasured: true}
 	model.CompilationID, err = pipeline.ProfileCompilationID(pipeline.Options{ContractOpt: true, Backend: "z80", AssertMode: "none"}, "default")
 	if err != nil {
 		t.Fatal(err)

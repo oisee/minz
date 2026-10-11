@@ -1,0 +1,40 @@
+=== RUN   TestSelectLoopVariantsWithModels
+=== RUN   TestSelectLoopVariantsWithModels/empty
+=== RUN   TestSelectLoopVariantsWithModels/duplicate
+=== RUN   TestSelectLoopVariantsWithModels/function
+=== RUN   TestSelectLoopVariantsWithModels/unknown
+=== RUN   TestSelectLoopVariantsWithModels/hir
+=== RUN   TestSelectLoopVariantsWithModels/compiler
+=== RUN   TestSelectLoopVariantsWithModels/semantics
+=== RUN   TestSelectLoopVariantsWithModels/target
+=== RUN   TestSelectLoopVariantsWithModels/evidence
+=== RUN   TestSelectLoopVariantsWithModels/bytes
+=== RUN   TestSelectLoopVariantsWithModels/zero_model
+--- PASS: TestSelectLoopVariantsWithModels (0.05s)
+    --- PASS: TestSelectLoopVariantsWithModels/empty (0.00s)
+    --- PASS: TestSelectLoopVariantsWithModels/duplicate (0.00s)
+    --- PASS: TestSelectLoopVariantsWithModels/function (0.00s)
+    --- PASS: TestSelectLoopVariantsWithModels/unknown (0.00s)
+    --- PASS: TestSelectLoopVariantsWithModels/hir (0.00s)
+    --- PASS: TestSelectLoopVariantsWithModels/compiler (0.00s)
+    --- PASS: TestSelectLoopVariantsWithModels/semantics (0.00s)
+    --- PASS: TestSelectLoopVariantsWithModels/target (0.00s)
+    --- PASS: TestSelectLoopVariantsWithModels/evidence (0.00s)
+    --- PASS: TestSelectLoopVariantsWithModels/bytes (0.00s)
+    --- PASS: TestSelectLoopVariantsWithModels/zero_model (0.00s)
+=== RUN   TestSelectLoopVariantsExactFastZeroEntries
+=== RUN   TestSelectLoopVariantsExactFastZeroEntries/missing_zero
+=== RUN   TestSelectLoopVariantsExactFastZeroEntries/old_schema
+=== RUN   TestSelectLoopVariantsExactFastZeroEntries/null_zero
+=== RUN   TestSelectLoopVariantsExactFastZeroEntries/too_many_zeros
+=== RUN   TestSelectLoopVariantsExactFastZeroEntries/all_zeros_with_bodies
+=== RUN   TestSelectLoopVariantsExactFastZeroEntries/no_zero_model
+--- PASS: TestSelectLoopVariantsExactFastZeroEntries (0.01s)
+    --- PASS: TestSelectLoopVariantsExactFastZeroEntries/missing_zero (0.00s)
+    --- PASS: TestSelectLoopVariantsExactFastZeroEntries/old_schema (0.00s)
+    --- PASS: TestSelectLoopVariantsExactFastZeroEntries/null_zero (0.00s)
+    --- PASS: TestSelectLoopVariantsExactFastZeroEntries/too_many_zeros (0.00s)
+    --- PASS: TestSelectLoopVariantsExactFastZeroEntries/all_zeros_with_bodies (0.00s)
+    --- PASS: TestSelectLoopVariantsExactFastZeroEntries/no_zero_model (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	0.064s

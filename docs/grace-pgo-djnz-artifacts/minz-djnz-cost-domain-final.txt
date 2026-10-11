@@ -1,0 +1,44 @@
+=== RUN   TestSumProfileCostFullU8Domain
+    profile_cost_domain_test.go:103: fallback n=1 original=210 pointer=374 overhead=164
+    profile_cost_domain_test.go:103: fallback n=2 original=351 pointer=517 overhead=166
+    profile_cost_domain_test.go:103: fallback n=255 original=36024 pointer=36696 overhead=672
+    profile_cost_domain_test.go:119: Verified 1022 address/length scenarios on original and pointer VM + assembled Z80
+--- PASS: TestSumProfileCostFullU8Domain (22.69s)
+=== RUN   TestMeasureLoopCostModel
+--- PASS: TestMeasureLoopCostModel (9.64s)
+=== RUN   TestMeasureLoopCostModelRefusals
+=== RUN   TestMeasureLoopCostModelRefusals/nil_factory
+=== RUN   TestMeasureLoopCostModelRefusals/factory_error
+=== RUN   TestMeasureLoopCostModelRefusals/nil_module
+=== RUN   TestMeasureLoopCostModelRefusals/backend
+=== RUN   TestMeasureLoopCostModelRefusals/unknown_backend
+=== RUN   TestMeasureLoopCostModelRefusals/skipped_emission
+=== RUN   TestMeasureLoopCostModelRefusals/profile_already_selected
+=== RUN   TestMeasureLoopCostModelRefusals/wrong_function
+=== RUN   TestMeasureLoopCostModelRefusals/shared_module
+=== RUN   TestMeasureLoopCostModelRefusals/shared_AST
+=== RUN   TestMeasureLoopCostModelRefusals/different_HIR
+=== RUN   TestMeasureLoopCostModelRefusals/non_u8
+=== RUN   TestMeasureLoopCostModelRefusals/different_return
+=== RUN   TestMeasureLoopCostModelRefusals/sticky_input
+=== RUN   TestMeasureLoopCostModelRefusals/source_manifest_missing
+=== RUN   TestMeasureLoopCostModelRefusals/missing_target
+--- PASS: TestMeasureLoopCostModelRefusals (0.22s)
+    --- PASS: TestMeasureLoopCostModelRefusals/nil_factory (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/factory_error (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/nil_module (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/backend (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/unknown_backend (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/skipped_emission (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/profile_already_selected (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/wrong_function (0.06s)
+    --- PASS: TestMeasureLoopCostModelRefusals/shared_module (0.01s)
+    --- PASS: TestMeasureLoopCostModelRefusals/shared_AST (0.01s)
+    --- PASS: TestMeasureLoopCostModelRefusals/different_HIR (0.02s)
+    --- PASS: TestMeasureLoopCostModelRefusals/non_u8 (0.06s)
+    --- PASS: TestMeasureLoopCostModelRefusals/different_return (0.05s)
+    --- PASS: TestMeasureLoopCostModelRefusals/sticky_input (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/source_manifest_missing (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/missing_target (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	32.553s

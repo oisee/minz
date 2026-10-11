@@ -17,6 +17,7 @@ type GuardCounts struct {
 	SiteID              string `json:"site_id"`
 	EqualEntries        uint64 `json:"equal_entries"`
 	FastEntries         uint64 `json:"fast_entries"`
+	FastZeroEntries     uint64 `json:"fast_zero_entries"`
 	FallbackEntries     uint64 `json:"fallback_entries"`
 	FastBodyEntries     uint64 `json:"fast_body_entries"`
 	FallbackBodyEntries uint64 `json:"fallback_body_entries"`
@@ -208,6 +209,9 @@ func NewLoopProfiler(m *Module) (*LoopProfiler, error) {
 						n := uint64(args[1].I) & 255
 						if base <= 65535-n {
 							p.guards[guardIndex].FastEntries++
+							if n == 0 {
+								p.guards[guardIndex].FastZeroEntries++
+							}
 							p.guards[guardIndex].FastBodyEntries += n
 							if base == 65535-n {
 								p.guards[guardIndex].EqualEntries++
@@ -279,5 +283,5 @@ func (p *LoopProfiler) Snapshot() LoopProfile {
 		}
 		key = &c
 	}
-	return LoopProfile{Guards: append([]GuardCounts{}, p.guards...), Compatibility: key, Schema: "minz.input-hir-loop-observations/v4", Stage: "unoptimised-mir2-vm", Sites: &sites, Counts: append([]LoopCounts{}, p.counts...), CompletedCalls: p.completed, FailedCalls: p.failed}
+	return LoopProfile{Guards: append([]GuardCounts{}, p.guards...), Compatibility: key, Schema: "minz.input-hir-loop-observations/v5", Stage: "unoptimised-mir2-vm", Sites: &sites, Counts: append([]LoopCounts{}, p.counts...), CompletedCalls: p.completed, FailedCalls: p.failed}
 }

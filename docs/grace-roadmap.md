@@ -134,3 +134,6 @@ pointer-walk, оставляя invariant-base. На sum_array выбирает 3
 ## Скалярные циклы и проверенный checksum (11 октября)
 
 [Измеренный scalar этап](grace-pgo-scalar.md): invariant-base выносит точное неизменное u16 сложение; полный checksum workload с обычным caller, persistent globals и буфером проходит независимые VM/Z80 oracles и exact access counts. 30 вызовов: 1166563→475239 T, 168→116 B. Текущие sum-array коэффициенты после исправлений backend: original69+141n, fast212+91n, equality+7, fallback231+143n; прежние числа выше относятся к истории. Общая цель — проверяемая оптимизация реальных программ до бинарного Z80; следующие формы циклов и составная rule policy ещё требуют реализации и измерения.
+
+
+[Byte countdown и точный zero-trip model](grace-pgo-djnz.md): ForEach/DJNZ исправлен до actual Z80, seeded caller148452→139581T; sum_array48495→13879T. Новая модель fast n0=212, n>0=210+37n, module128/183B; fallback231+143n, equality+7. Profile observations/v5 требуют fast_zero_entries и measured zero cost. Следующая очередь — новые реальные формы циклов и проверка выигрыша на корпусе; hardware остаётся дальнейшим этапом.

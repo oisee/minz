@@ -1,0 +1,45 @@
+[
+  {
+    "compatibility": {
+      "schema": "minz.loop-profile-compatibility/v1",
+      "context": {
+        "compiler_id": "executable-sha256:580c05d682ac3764276c634678747990ede9068d46920e267999b9c4f5bc13c2",
+        "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+        "target_id": "module-target:1/model:cpm-z80-v1",
+        "workload_sha256": "56fb9764350293aff7780c4b8f8ba66d2eabe44969f709df316919642d85c76d",
+        "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+        "dependencies": {
+          "data": "3ef33734daae0e353f132ff5f3241d8f86ba81f851c0b9685149f079c16eb45b",
+          "examples/nanz/grace_seeded_sum.nanz": "abc8df5dad8c2639a09de170f1cae6c31dc62ab5dcec01a0ce5c6a872b17c6c7"
+        }
+      },
+      "hir_sha256": "ce3ca5c1f1b1ca9b5922d6049474f17ae2df75bd7a36e8384af80b4dae1234f8",
+      "origins_sha256": "eb547be52dcacfccb4fdd3dc68ea53a162bd15a94dc99d9efb3b8961eeabc832"
+    },
+    "site_id": "2523c48c85caee3e34c346c8998c25feffeae02bc9da400a8e29bc35c4a8a276",
+    "variant": "pointer-walk",
+    "reason": "jointly measured source-site choices",
+    "original_t_states": "",
+    "model": {
+      "compiler_id": "",
+      "semantics_id": "",
+      "function": "",
+      "hir_sha256": "",
+      "target_id": "",
+      "compilation_id": "",
+      "evidence_id": "",
+      "original_bytes": 0,
+      "pointer_bytes": 0,
+      "original_entry_t_states": 0,
+      "original_iteration_t_states": 0,
+      "equal_entry_extra_t_states": 0,
+      "fast_entry_t_states": 0,
+      "fast_zero_entry_t_states": 0,
+      "fast_zero_measured": false,
+      "fallback_entry_t_states": 0,
+      "fallback_iteration_t_states": 0,
+      "fallback_measured": false,
+      "fast_iteration_t_states": 0
+    }
+  }
+]

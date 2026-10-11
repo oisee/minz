@@ -106,7 +106,7 @@ func TestMixedGuardWorkloadDecision(t *testing.T) {
 		t.Fatal(e)
 	}
 	p.VM.EnsureHeap(65536)
-	model := hir.LoopCostModel{CompilerID: c.CompilerID, SemanticsID: c.SemanticsID, Function: "sum_array", HIRSHA256: p.Snapshot().Compatibility.HIRSHA256, TargetID: c.TargetID, EvidenceID: "full-u8-test", OriginalBytes: 128, PointerBytes: 177, OriginalEntry: 69, OriginalIteration: 141, EqualEntryExtra: 7, FastEntry: 189, FastIteration: 89, FallbackEntry: 208, FallbackIteration: 141, FallbackMeasured: true}
+	model := hir.LoopCostModel{CompilerID: c.CompilerID, SemanticsID: c.SemanticsID, Function: "sum_array", HIRSHA256: p.Snapshot().Compatibility.HIRSHA256, TargetID: c.TargetID, EvidenceID: "full-u8-test", OriginalBytes: 128, PointerBytes: 177, OriginalEntry: 69, OriginalIteration: 141, EqualEntryExtra: 7, FastEntry: 189, FastZeroEntry: 189, FastZeroMeasured: true, FastIteration: 89, FallbackEntry: 208, FallbackIteration: 141, FallbackMeasured: true}
 	// A fallback-only workload always pays extra guard setup.
 	if _, e := p.Call("sum_array", []mir2.Value{{I: 65535}, {I: 1}}); e != nil {
 		t.Fatal(e)

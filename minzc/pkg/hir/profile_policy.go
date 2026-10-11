@@ -9,7 +9,8 @@ import (
 )
 
 // LoopCostModel is a measured target model, supplied independently of the profile.
-// Linear costs must be validated for the supported domain by assembled execution.
+// Positive-trip affine costs and distinct zero-trip costs must be
+// validated for the supported domain by assembled execution.
 // Cost models never establish rewrite legality. EvidenceID names saved measurements.
 type LoopCostModel struct {
 	CompilerID        string `json:"compiler_id"`
@@ -25,6 +26,8 @@ type LoopCostModel struct {
 	OriginalIteration uint64 `json:"original_iteration_t_states"`
 	EqualEntryExtra   uint64 `json:"equal_entry_extra_t_states"`
 	FastEntry         uint64 `json:"fast_entry_t_states"`
+	FastZeroEntry     uint64 `json:"fast_zero_entry_t_states"`
+	FastZeroMeasured  bool   `json:"fast_zero_measured"`
 	FallbackEntry     uint64 `json:"fallback_entry_t_states"`
 	FallbackIteration uint64 `json:"fallback_iteration_t_states"`
 	FallbackMeasured  bool   `json:"fallback_measured"`
@@ -71,7 +74,7 @@ func SelectLoopVariantsWithModels(r io.Reader, m *Module, c ProfileContext, mode
 	}
 	byFunction := map[string]LoopCostModel{}
 	for _, model := range models {
-		if model.CompilerID != c.CompilerID || model.SemanticsID != c.SemanticsID || model.TargetID != c.TargetID || model.EvidenceID == "" || model.OriginalBytes == 0 || model.PointerBytes == 0 {
+		if model.CompilerID != c.CompilerID || model.SemanticsID != c.SemanticsID || model.TargetID != c.TargetID || model.EvidenceID == "" || model.OriginalBytes == 0 || model.PointerBytes == 0 || !model.FastZeroMeasured {
 			return nil, fmt.Errorf("loop policy: missing or incompatible cost model")
 		}
 		if model.Function == "" || m.FuncByName(model.Function) == nil || model.HIRSHA256 != profile.Compatibility.HIRSHA256 {
@@ -105,8 +108,9 @@ func SelectLoopVariantsWithModels(r io.Reader, m *Module, c ProfileContext, mode
 		}
 		g, ok := guards[count.SiteID]
 		if ok && covered && (g.FallbackEntries == 0 || model.FallbackMeasured) && g.FastEntries <= count.Entries && g.FallbackEntries == count.Entries-g.FastEntries && g.FastBodyEntries <= count.BodyEntries && g.FallbackBodyEntries == count.BodyEntries-g.FastBodyEntries && count.Entries > 0 {
-			d.PointerTStates = total(g.FastEntries, g.FastBodyEntries, model.FastEntry, model.FastIteration)
+			d.PointerTStates = total(g.FastEntries-g.FastZeroEntries, g.FastBodyEntries, model.FastEntry, model.FastIteration)
 			fast, _ := new(big.Int).SetString(d.PointerTStates, 10)
+			fast.Add(fast, new(big.Int).Mul(new(big.Int).SetUint64(g.FastZeroEntries), new(big.Int).SetUint64(model.FastZeroEntry)))
 			fallback, _ := new(big.Int).SetString(total(g.FallbackEntries, g.FallbackBodyEntries, model.FallbackEntry, model.FallbackIteration), 10)
 			fast.Add(fast, fallback)
 			fast.Add(fast, new(big.Int).Mul(new(big.Int).SetUint64(g.EqualEntries), new(big.Int).SetUint64(model.EqualEntryExtra)))

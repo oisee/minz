@@ -909,6 +909,13 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		if targetBlk != nil && len(targetBlk.Params) > 0 && len(jmp.Args) != len(targetBlk.Params) {
 			return false
 		}
+		// DJNZ supplies the first body parameter implicitly. Redirecting its
+		// body needs a separate counter-preserving composition proof.
+		for _, pred := range f.Blocks {
+			if t, ok := pred.Term.(*TermDJNZ); ok && t.Body == label {
+				return false
+			}
+		}
 		newTarget := jmp.Target
 		newArgs := jmp.Args
 		changed := false
@@ -932,6 +939,28 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 				if t.Else == label {
 					t.Else = newTarget
 					t.ElseArgs = newArgs
+					changed = true
+				}
+			case *TermDJNZ:
+				if t.Exit == label {
+					t.Exit = newTarget
+					t.ExitArgs = append([]Reg(nil), newArgs...)
+					changed = true
+				}
+			case *TermBrIf2:
+				if t.Eq == label {
+					t.Eq = newTarget
+					t.EqArgs = append([]Reg(nil), newArgs...)
+					changed = true
+				}
+				if t.Lt == label {
+					t.Lt = newTarget
+					t.LtArgs = append([]Reg(nil), newArgs...)
+					changed = true
+				}
+				if t.Gt == label {
+					t.Gt = newTarget
+					t.GtArgs = append([]Reg(nil), newArgs...)
 					changed = true
 				}
 			case *TermCondRet:
@@ -1336,6 +1365,11 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			argSourceParamIdx[i] = paramIdx[a]
 		}
 
+		for _, pred := range f.Blocks {
+			if t, ok := pred.Term.(*TermDJNZ); ok && t.Body == label {
+				return false
+			}
+		}
 		newTarget := jmp.Target
 		changed := false
 
@@ -1371,6 +1405,28 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 				if t.Else == label {
 					t.ElseArgs = remap(t.ElseArgs)
 					t.Else = newTarget
+					changed = true
+				}
+			case *TermDJNZ:
+				if t.Exit == label {
+					t.ExitArgs = remap(t.ExitArgs)
+					t.Exit = newTarget
+					changed = true
+				}
+			case *TermBrIf2:
+				if t.Eq == label {
+					t.EqArgs = remap(t.EqArgs)
+					t.Eq = newTarget
+					changed = true
+				}
+				if t.Lt == label {
+					t.LtArgs = remap(t.LtArgs)
+					t.Lt = newTarget
+					changed = true
+				}
+				if t.Gt == label {
+					t.GtArgs = remap(t.GtArgs)
+					t.Gt = newTarget
 					changed = true
 				}
 			case *TermCondRet:

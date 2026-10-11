@@ -1,0 +1,323 @@
+=== RUN   TestForEachDJNZLoweringAndControlFallback
+--- PASS: TestForEachDJNZLoweringAndControlFallback (0.00s)
+=== RUN   TestHIRGracePointerWalkRealSourceAndFacts
+--- PASS: TestHIRGracePointerWalkRealSourceAndFacts (0.00s)
+=== RUN   TestHIRGracePointerWalkDifferential
+=== RUN   TestHIRGracePointerWalkDifferential/raw/tuple=false
+=== RUN   TestHIRGracePointerWalkDifferential/optimized/tuple=false
+=== RUN   TestHIRGracePointerWalkDifferential/optimized_mir_grace/tuple=false
+=== RUN   TestHIRGracePointerWalkDifferential/raw/tuple=true
+=== RUN   TestHIRGracePointerWalkDifferential/optimized/tuple=true
+=== RUN   TestHIRGracePointerWalkDifferential/optimized_mir_grace/tuple=true
+--- PASS: TestHIRGracePointerWalkDifferential (2.09s)
+    --- PASS: TestHIRGracePointerWalkDifferential/raw/tuple=false (0.33s)
+    --- PASS: TestHIRGracePointerWalkDifferential/optimized/tuple=false (0.44s)
+    --- PASS: TestHIRGracePointerWalkDifferential/optimized_mir_grace/tuple=false (0.29s)
+    --- PASS: TestHIRGracePointerWalkDifferential/raw/tuple=true (0.36s)
+    --- PASS: TestHIRGracePointerWalkDifferential/optimized/tuple=true (0.29s)
+    --- PASS: TestHIRGracePointerWalkDifferential/optimized_mir_grace/tuple=true (0.38s)
+=== RUN   TestHIRGracePointerWalkMeasurements
+    hir_grace_pointer_walk_test.go:170: raw MIR shape: blocks 4 -> 9; instructions 9 -> 20
+    hir_grace_pointer_walk_test.go:174: raw n=0 VM instructions 3 -> 10
+    hir_grace_pointer_walk_test.go:174: raw n=1 VM instructions 10 -> 13
+    hir_grace_pointer_walk_test.go:174: raw n=5 VM instructions 38 -> 25
+    hir_grace_pointer_walk_test.go:174: raw n=16 VM instructions 115 -> 58
+    hir_grace_pointer_walk_test.go:174: raw n=64 VM instructions 451 -> 202
+    hir_grace_pointer_walk_test.go:174: raw n=255 VM instructions 1788 -> 775
+    hir_grace_pointer_walk_test.go:170: optimized MIR shape: blocks 3 -> 8; instructions 9 -> 19
+    hir_grace_pointer_walk_test.go:174: optimized n=0 VM instructions 3 -> 9
+    hir_grace_pointer_walk_test.go:174: optimized n=1 VM instructions 10 -> 12
+    hir_grace_pointer_walk_test.go:174: optimized n=5 VM instructions 38 -> 24
+    hir_grace_pointer_walk_test.go:174: optimized n=16 VM instructions 115 -> 57
+    hir_grace_pointer_walk_test.go:174: optimized n=64 VM instructions 451 -> 201
+    hir_grace_pointer_walk_test.go:174: optimized n=255 VM instructions 1788 -> 774
+    hir_grace_pointer_walk_test.go:170: optimized_mir_grace MIR shape: blocks 3 -> 6; instructions 9 -> 19
+    hir_grace_pointer_walk_test.go:174: optimized_mir_grace n=0 VM instructions 3 -> 9
+    hir_grace_pointer_walk_test.go:174: optimized_mir_grace n=1 VM instructions 10 -> 12
+    hir_grace_pointer_walk_test.go:174: optimized_mir_grace n=5 VM instructions 38 -> 24
+    hir_grace_pointer_walk_test.go:174: optimized_mir_grace n=16 VM instructions 115 -> 57
+    hir_grace_pointer_walk_test.go:174: optimized_mir_grace n=64 VM instructions 451 -> 201
+    hir_grace_pointer_walk_test.go:174: optimized_mir_grace n=255 VM instructions 1788 -> 774
+--- PASS: TestHIRGracePointerWalkMeasurements (0.01s)
+=== RUN   TestHIRGracePointerWalkGuards
+=== RUN   TestHIRGracePointerWalkGuards/global_collision
+=== RUN   TestHIRGracePointerWalkGuards/stride
+=== RUN   TestHIRGracePointerWalkGuards/nonzero_start
+=== RUN   TestHIRGracePointerWalkGuards/changed_bound
+=== RUN   TestHIRGracePointerWalkGuards/binding
+--- PASS: TestHIRGracePointerWalkGuards (0.00s)
+    --- PASS: TestHIRGracePointerWalkGuards/global_collision (0.00s)
+    --- PASS: TestHIRGracePointerWalkGuards/stride (0.00s)
+    --- PASS: TestHIRGracePointerWalkGuards/nonzero_start (0.00s)
+    --- PASS: TestHIRGracePointerWalkGuards/changed_bound (0.00s)
+    --- PASS: TestHIRGracePointerWalkGuards/binding (0.00s)
+=== RUN   TestHIRGracePointerWalkAssertions
+--- PASS: TestHIRGracePointerWalkAssertions (0.08s)
+=== RUN   TestRangeForEachStageOrderVMZ80
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_then_map/n=0/grace=false
+    iterator_stage_semantics_test.go:84: result=0 T_states=144 code_bytes=134
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_then_map/n=0/grace=true
+    iterator_stage_semantics_test.go:84: result=0 T_states=144 code_bytes=134
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_then_map/n=1/grace=false
+    iterator_stage_semantics_test.go:84: result=0 T_states=191 code_bytes=134
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_then_map/n=1/grace=true
+    iterator_stage_semantics_test.go:84: result=0 T_states=191 code_bytes=134
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_then_map/n=5/grace=false
+    iterator_stage_semantics_test.go:84: result=63 T_states=835 code_bytes=134
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_then_map/n=5/grace=true
+    iterator_stage_semantics_test.go:84: result=63 T_states=835 code_bytes=134
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_then_map/n=255/grace=false
+    iterator_stage_semantics_test.go:84: result=74 T_states=48835 code_bytes=134
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_then_map/n=255/grace=true
+    iterator_stage_semantics_test.go:84: result=74 T_states=48835 code_bytes=134
+=== RUN   TestRangeForEachStageOrderVMZ80/map_then_filter/n=0/grace=false
+    iterator_stage_semantics_test.go:84: result=0 T_states=144 code_bytes=135
+=== RUN   TestRangeForEachStageOrderVMZ80/map_then_filter/n=0/grace=true
+    iterator_stage_semantics_test.go:84: result=0 T_states=144 code_bytes=135
+=== RUN   TestRangeForEachStageOrderVMZ80/map_then_filter/n=1/grace=false
+    iterator_stage_semantics_test.go:84: result=16 T_states=328 code_bytes=135
+=== RUN   TestRangeForEachStageOrderVMZ80/map_then_filter/n=1/grace=true
+    iterator_stage_semantics_test.go:84: result=16 T_states=328 code_bytes=135
+=== RUN   TestRangeForEachStageOrderVMZ80/map_then_filter/n=5/grace=false
+    iterator_stage_semantics_test.go:84: result=98 T_states=1108 code_bytes=135
+=== RUN   TestRangeForEachStageOrderVMZ80/map_then_filter/n=5/grace=true
+    iterator_stage_semantics_test.go:84: result=98 T_states=1108 code_bytes=135
+=== RUN   TestRangeForEachStageOrderVMZ80/map_then_filter/n=255/grace=false
+    iterator_stage_semantics_test.go:84: result=109 T_states=49875 code_bytes=135
+=== RUN   TestRangeForEachStageOrderVMZ80/map_then_filter/n=255/grace=true
+    iterator_stage_semantics_test.go:84: result=109 T_states=49875 code_bytes=135
+=== RUN   TestRangeForEachStageOrderVMZ80/two_filters/n=0/grace=false
+    iterator_stage_semantics_test.go:84: result=0 T_states=144 code_bytes=141
+=== RUN   TestRangeForEachStageOrderVMZ80/two_filters/n=0/grace=true
+    iterator_stage_semantics_test.go:84: result=0 T_states=144 code_bytes=141
+=== RUN   TestRangeForEachStageOrderVMZ80/two_filters/n=1/grace=false
+    iterator_stage_semantics_test.go:84: result=0 T_states=191 code_bytes=141
+=== RUN   TestRangeForEachStageOrderVMZ80/two_filters/n=1/grace=true
+    iterator_stage_semantics_test.go:84: result=0 T_states=191 code_bytes=141
+=== RUN   TestRangeForEachStageOrderVMZ80/two_filters/n=5/grace=false
+    iterator_stage_semantics_test.go:84: result=55 T_states=963 code_bytes=141
+=== RUN   TestRangeForEachStageOrderVMZ80/two_filters/n=5/grace=true
+    iterator_stage_semantics_test.go:84: result=55 T_states=963 code_bytes=141
+=== RUN   TestRangeForEachStageOrderVMZ80/two_filters/n=255/grace=false
+    iterator_stage_semantics_test.go:84: result=215 T_states=63463 code_bytes=141
+=== RUN   TestRangeForEachStageOrderVMZ80/two_filters/n=255/grace=true
+    iterator_stage_semantics_test.go:84: result=215 T_states=63463 code_bytes=141
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_none/n=0/grace=false
+    iterator_stage_semantics_test.go:84: result=0 T_states=129 code_bytes=114
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_none/n=0/grace=true
+    iterator_stage_semantics_test.go:84: result=0 T_states=129 code_bytes=114
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_none/n=1/grace=false
+    iterator_stage_semantics_test.go:84: result=0 T_states=143 code_bytes=114
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_none/n=1/grace=true
+    iterator_stage_semantics_test.go:84: result=0 T_states=143 code_bytes=114
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_none/n=5/grace=false
+    iterator_stage_semantics_test.go:84: result=0 T_states=255 code_bytes=114
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_none/n=5/grace=true
+    iterator_stage_semantics_test.go:84: result=0 T_states=255 code_bytes=114
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_none/n=255/grace=false
+    iterator_stage_semantics_test.go:84: result=0 T_states=7255 code_bytes=114
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_none/n=255/grace=true
+    iterator_stage_semantics_test.go:84: result=0 T_states=7255 code_bytes=114
+--- PASS: TestRangeForEachStageOrderVMZ80 (0.45s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_then_map/n=0/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_then_map/n=0/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_then_map/n=1/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_then_map/n=1/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_then_map/n=5/grace=false (0.02s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_then_map/n=5/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_then_map/n=255/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_then_map/n=255/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/map_then_filter/n=0/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/map_then_filter/n=0/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/map_then_filter/n=1/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/map_then_filter/n=1/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/map_then_filter/n=5/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/map_then_filter/n=5/grace=true (0.02s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/map_then_filter/n=255/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/map_then_filter/n=255/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/two_filters/n=0/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/two_filters/n=0/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/two_filters/n=1/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/two_filters/n=1/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/two_filters/n=5/grace=false (0.02s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/two_filters/n=5/grace=true (0.02s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/two_filters/n=255/grace=false (0.02s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/two_filters/n=255/grace=true (0.02s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_none/n=0/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_none/n=0/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_none/n=1/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_none/n=1/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_none/n=5/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_none/n=5/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_none/n=255/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_none/n=255/grace=true (0.01s)
+=== RUN   TestRangeForEachCapturedStagesVMZ80
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=0/grace=false
+    iterator_stage_semantics_test.go:131: result=0 T_states=76 code_bytes=48
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=0/grace=true
+    iterator_stage_semantics_test.go:131: result=0 T_states=76 code_bytes=48
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=1/grace=false
+    iterator_stage_semantics_test.go:131: result=0 T_states=147 code_bytes=48
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=1/grace=true
+    iterator_stage_semantics_test.go:131: result=0 T_states=147 code_bytes=48
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=5/grace=false
+    iterator_stage_semantics_test.go:131: result=15 T_states=428 code_bytes=48
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=5/grace=true
+    iterator_stage_semantics_test.go:131: result=15 T_states=428 code_bytes=48
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=255/grace=false
+    iterator_stage_semantics_test.go:131: result=122 T_states=18428 code_bytes=48
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=255/grace=true
+    iterator_stage_semantics_test.go:131: result=122 T_states=18428 code_bytes=48
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=0/grace=false
+    iterator_stage_semantics_test.go:131: result=0 T_states=76 code_bytes=48
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=0/grace=true
+    iterator_stage_semantics_test.go:131: result=0 T_states=76 code_bytes=48
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=1/grace=false
+    iterator_stage_semantics_test.go:131: result=0 T_states=147 code_bytes=48
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=1/grace=true
+    iterator_stage_semantics_test.go:131: result=0 T_states=147 code_bytes=48
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=5/grace=false
+    iterator_stage_semantics_test.go:131: result=15 T_states=428 code_bytes=48
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=5/grace=true
+    iterator_stage_semantics_test.go:131: result=15 T_states=428 code_bytes=48
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=255/grace=false
+    iterator_stage_semantics_test.go:131: result=122 T_states=18428 code_bytes=48
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=255/grace=true
+    iterator_stage_semantics_test.go:131: result=122 T_states=18428 code_bytes=48
+--- PASS: TestRangeForEachCapturedStagesVMZ80 (0.11s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=0/grace=false (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=0/grace=true (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=1/grace=false (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=1/grace=true (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=5/grace=false (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=5/grace=true (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=255/grace=false (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=255/grace=true (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=0/grace=false (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=0/grace=true (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=1/grace=false (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=1/grace=true (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=5/grace=false (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=5/grace=true (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=255/grace=false (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=255/grace=true (0.01s)
+=== RUN   TestMeasureLoopCostModel
+    profile_measure_test.go:35: measure loop cost: nonlinear measured cost at fast/2
+--- FAIL: TestMeasureLoopCostModel (16.56s)
+=== RUN   TestMeasureLoopCostModelRefusals
+=== RUN   TestMeasureLoopCostModelRefusals/nil_factory
+=== RUN   TestMeasureLoopCostModelRefusals/factory_error
+=== RUN   TestMeasureLoopCostModelRefusals/nil_module
+=== RUN   TestMeasureLoopCostModelRefusals/backend
+=== RUN   TestMeasureLoopCostModelRefusals/unknown_backend
+=== RUN   TestMeasureLoopCostModelRefusals/skipped_emission
+=== RUN   TestMeasureLoopCostModelRefusals/profile_already_selected
+=== RUN   TestMeasureLoopCostModelRefusals/wrong_function
+=== RUN   TestMeasureLoopCostModelRefusals/shared_module
+=== RUN   TestMeasureLoopCostModelRefusals/shared_AST
+=== RUN   TestMeasureLoopCostModelRefusals/different_HIR
+=== RUN   TestMeasureLoopCostModelRefusals/non_u8
+=== RUN   TestMeasureLoopCostModelRefusals/different_return
+=== RUN   TestMeasureLoopCostModelRefusals/sticky_input
+=== RUN   TestMeasureLoopCostModelRefusals/source_manifest_missing
+=== RUN   TestMeasureLoopCostModelRefusals/missing_target
+--- PASS: TestMeasureLoopCostModelRefusals (0.24s)
+    --- PASS: TestMeasureLoopCostModelRefusals/nil_factory (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/factory_error (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/nil_module (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/backend (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/unknown_backend (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/skipped_emission (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/profile_already_selected (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/wrong_function (0.07s)
+    --- PASS: TestMeasureLoopCostModelRefusals/shared_module (0.01s)
+    --- PASS: TestMeasureLoopCostModelRefusals/shared_AST (0.01s)
+    --- PASS: TestMeasureLoopCostModelRefusals/different_HIR (0.03s)
+    --- PASS: TestMeasureLoopCostModelRefusals/non_u8 (0.06s)
+    --- PASS: TestMeasureLoopCostModelRefusals/different_return (0.06s)
+    --- PASS: TestMeasureLoopCostModelRefusals/sticky_input (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/source_manifest_missing (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/missing_target (0.00s)
+=== RUN   TestSeededPointerWalkMeasuredCaller
+    seeded_pointer_walk_test.go:95: sizefalse candidate0 148452T/62B
+    seeded_pointer_walk_test.go:95: sizefalse candidate1 151677T/158B
+    seeded_pointer_walk_test.go:95: sizefalse candidate2 148452T/62B
+    seeded_pointer_walk_test.go:95: sizefalse candidate3 151677T/158B
+    seeded_pointer_walk_test.go:95: sizetrue candidate0 148452T/62B
+    seeded_pointer_walk_test.go:95: sizetrue candidate1 151677T/158B
+    seeded_pointer_walk_test.go:95: sizetrue candidate2 148452T/62B
+    seeded_pointer_walk_test.go:95: sizetrue candidate3 151677T/158B
+--- PASS: TestSeededPointerWalkMeasuredCaller (1.04s)
+=== RUN   TestSeededPointerWalkAddressDomain
+--- PASS: TestSeededPointerWalkAddressDomain (2.21s)
+=== RUN   TestSeededPointerWalkZ80Boundary
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n0 seed0 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n0 seed0 enabledtrue
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n0 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n0 seed65535 enabledtrue
+    seeded_pointer_walk_test.go:212: boundary ptr65536 n0 seed0 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65536 n0 seed0 enabledtrue
+    seeded_pointer_walk_test.go:212: boundary ptr65536 n0 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65536 n0 seed65535 enabledtrue
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n0 seed0 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n0 seed0 enabledtrue
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n0 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n0 seed65535 enabledtrue
+    seeded_pointer_walk_test.go:212: boundary ptr65534 n1 seed0 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65534 n1 seed0 enabledtrue
+    seeded_pointer_walk_test.go:212: boundary ptr65534 n1 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65534 n1 seed65535 enabledtrue
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n1 seed0 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n1 seed0 enabledtrue
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n1 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n1 seed65535 enabledtrue
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n1 seed0 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n1 seed0 enabledtrue
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n1 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n1 seed65535 enabledtrue
+    seeded_pointer_walk_test.go:212: boundary ptr65530 n5 seed0 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65530 n5 seed0 enabledtrue
+    seeded_pointer_walk_test.go:212: boundary ptr65530 n5 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65530 n5 seed65535 enabledtrue
+    seeded_pointer_walk_test.go:212: boundary ptr65531 n5 seed0 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65531 n5 seed0 enabledtrue
+    seeded_pointer_walk_test.go:212: boundary ptr65531 n5 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65531 n5 seed65535 enabledtrue
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n5 seed0 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n5 seed0 enabledtrue
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n5 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n5 seed65535 enabledtrue
+    seeded_pointer_walk_test.go:212: boundary ptr65280 n255 seed0 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65280 n255 seed0 enabledtrue
+    seeded_pointer_walk_test.go:212: boundary ptr65280 n255 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65280 n255 seed65535 enabledtrue
+    seeded_pointer_walk_test.go:212: boundary ptr65281 n255 seed0 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65281 n255 seed0 enabledtrue
+    seeded_pointer_walk_test.go:212: boundary ptr65281 n255 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65281 n255 seed65535 enabledtrue
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n255 seed0 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n255 seed0 enabledtrue
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n255 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:212: boundary ptr65535 n255 seed65535 enabledtrue
+--- PASS: TestSeededPointerWalkZ80Boundary (0.25s)
+=== RUN   TestSeededPointerWalkLegality
+=== RUN   TestSeededPointerWalkLegality/stride
+=== RUN   TestSeededPointerWalkLegality/mutated_seed
+=== RUN   TestSeededPointerWalkLegality/mutated_bound
+=== RUN   TestSeededPointerWalkLegality/global_collision
+=== RUN   TestSeededPointerWalkLegality/seed_call
+=== RUN   TestSeededPointerWalkLegality/seed_global
+=== RUN   TestSeededPointerWalkLegality/seed_expr
+=== RUN   TestSeededPointerWalkLegality/index_nonzero
+--- PASS: TestSeededPointerWalkLegality (0.00s)
+    --- PASS: TestSeededPointerWalkLegality/stride (0.00s)
+    --- PASS: TestSeededPointerWalkLegality/mutated_seed (0.00s)
+    --- PASS: TestSeededPointerWalkLegality/mutated_bound (0.00s)
+    --- PASS: TestSeededPointerWalkLegality/global_collision (0.00s)
+    --- PASS: TestSeededPointerWalkLegality/seed_call (0.00s)
+    --- PASS: TestSeededPointerWalkLegality/seed_global (0.00s)
+    --- PASS: TestSeededPointerWalkLegality/seed_expr (0.00s)
+    --- PASS: TestSeededPointerWalkLegality/index_nonzero (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	23.069s
+FAIL

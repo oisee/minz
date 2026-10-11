@@ -153,7 +153,7 @@ func MeasureLoopCostModel(factory func() (*hir.Module, error), function string, 
 		return fail(fmt.Errorf("requires exact accumulator return"))
 	}
 	site := selectedSite
-	evidence := &LoopCostEvidence{Schema: "minz.measured-u8-sum/v1", Compatibility: key, Function: function, SiteID: site, CompilationID: config, Options: options, AssemblerMode: "default", Rows: []LoopCostRow{}}
+	evidence := &LoopCostEvidence{Schema: "minz.measured-u8-sum/v2", Compatibility: key, Function: function, SiteID: site, CompilationID: config, Options: options, AssemblerMode: "default", Rows: []LoopCostRow{}}
 	evidence.Options.GraceStats = nil
 	variants := make([]measuredLoopVariant, 2)
 	for i, variant := range []string{"original", "pointer-walk"} {
@@ -400,9 +400,12 @@ func fitMeasuredLoopRows(rows []LoopCostRow) (hir.LoopCostModel, error) {
 		}
 		return LoopCostRow{}
 	}
-	zero, one := find("fast", 0), find("fast", 1)
+	zero, one, two := find("fast", 0), find("fast", 1), find("fast", 2)
 	f1, f2 := find("fallback", 1), find("fallback", 2)
-	coefficients := []int{zero.Original, one.Original - zero.Original, zero.Pointer, one.Pointer - zero.Pointer, find("equality", 0).Pointer - zero.Pointer, f1.Pointer - (f2.Pointer - f1.Pointer), f2.Pointer - f1.Pointer}
+	coefficients := []int{zero.Original, one.Original - zero.Original, one.Pointer - (two.Pointer - one.Pointer), two.Pointer - one.Pointer, find("equality", 0).Pointer - zero.Pointer, f1.Pointer - (f2.Pointer - f1.Pointer), f2.Pointer - f1.Pointer}
+	if zero.Pointer < 0 {
+		return m, fmt.Errorf("negative fitted zero-trip cost")
+	}
 	for _, c := range coefficients {
 		if c < 0 {
 			return m, fmt.Errorf("negative fitted coefficient")
@@ -410,6 +413,8 @@ func fitMeasuredLoopRows(rows []LoopCostRow) (hir.LoopCostModel, error) {
 	}
 	m.OriginalEntry = uint64(coefficients[0])
 	m.OriginalIteration = uint64(coefficients[1])
+	m.FastZeroEntry = uint64(zero.Pointer)
+	m.FastZeroMeasured = true
 	m.FastEntry = uint64(coefficients[2])
 	m.FastIteration = uint64(coefficients[3])
 	m.EqualEntryExtra = uint64(coefficients[4])
@@ -424,6 +429,9 @@ func fitMeasuredLoopRows(rows []LoopCostRow) (hir.LoopCostModel, error) {
 		}
 		seen[id] = true
 		want := m.FastEntry + m.FastIteration*uint64(r.N)
+		if r.N == 0 {
+			want = m.FastZeroEntry
+		}
 		switch r.Path {
 		case "equality":
 			want += m.EqualEntryExtra
@@ -437,7 +445,7 @@ func fitMeasuredLoopRows(rows []LoopCostRow) (hir.LoopCostModel, error) {
 			return hir.LoopCostModel{}, fmt.Errorf("unknown measured path")
 		}
 		if r.Original < 0 || r.Pointer < 0 || uint64(r.Original) != m.OriginalEntry+m.OriginalIteration*uint64(r.N) || uint64(r.Pointer) != want {
-			return hir.LoopCostModel{}, fmt.Errorf("nonlinear measured cost at %s", id)
+			return hir.LoopCostModel{}, fmt.Errorf("nonlinear measured cost at %s: original=%d pointer=%d want=%d model=%+v", id, r.Original, r.Pointer, want, m)
 		}
 	}
 	return m, nil

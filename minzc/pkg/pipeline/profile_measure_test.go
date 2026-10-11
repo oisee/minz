@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -42,7 +43,7 @@ func TestMeasureLoopCostModel(t *testing.T) {
 			t.Fatal("execution binaries not bound to evidence")
 		}
 	}
-	if model.OriginalEntry != 69 || model.OriginalIteration != 141 || model.FastEntry != 212 || model.FastIteration != 91 || model.EqualEntryExtra != 7 || model.FallbackEntry != 231 || model.FallbackIteration != 143 || !model.FallbackMeasured {
+	if model.OriginalEntry != 69 || model.OriginalIteration != 141 || model.FastEntry != 210 || model.FastIteration != 37 || model.FastZeroEntry != 212 || !model.FastZeroMeasured || model.EqualEntryExtra != 7 || model.FallbackEntry != 231 || model.FallbackIteration != 143 || !model.FallbackMeasured {
 		t.Fatalf("unexpected measured coefficients: %+v", model)
 	}
 	if len(evidence.Rows) != 1022 || model.OriginalBytes != uint64(len(evidence.OriginalBinary)) || model.PointerBytes != uint64(len(evidence.PointerBinary)) {
@@ -54,6 +55,20 @@ func TestMeasureLoopCostModel(t *testing.T) {
 	}
 	if model.EvidenceID != fmt.Sprintf("sha256:%x", sha256.Sum256(data)) {
 		t.Fatal("evidence digest mismatch")
+	}
+	if directory := os.Getenv("MINZ_PGO_ARTIFACT_DIR"); directory != "" {
+		if err := os.MkdirAll(directory, 0755); err != nil {
+			t.Fatal(err)
+		}
+		for name, value := range map[string]any{"loop-cost-model.json": model, "loop-cost-evidence.json": evidence} {
+			artifact, err := json.MarshalIndent(value, "", "  ")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(directory, name), append(artifact, '\n'), 0644); err != nil {
+				t.Fatal(err)
+			}
+		}
 	}
 	h, err := factory()
 	if err != nil {

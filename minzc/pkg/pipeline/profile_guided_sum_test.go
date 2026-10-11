@@ -47,7 +47,7 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 		t.Fatal(e)
 	}
 	profileJSON, _ := json.MarshalIndent(profileRun.Profile, "", "  ")
-	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-all-six-lengths-v1", OriginalBytes: 128, PointerBytes: 185, OriginalEntry: 69, OriginalIteration: 141, EqualEntryExtra: 7, FastEntry: 212, FastIteration: 91, FallbackEntry: 231, FallbackIteration: 143, FallbackMeasured: true}
+	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-all-six-lengths-v1", OriginalBytes: 128, PointerBytes: 183, OriginalEntry: 69, OriginalIteration: 141, EqualEntryExtra: 7, FastEntry: 210, FastIteration: 37, FastZeroEntry: 212, FastZeroMeasured: true, FallbackEntry: 231, FallbackIteration: 143, FallbackMeasured: true}
 	decisions, e := hir.SelectLoopVariants(bytes.NewReader(profileJSON), input, context, model, false)
 	if e != nil {
 		t.Fatal(e)
@@ -170,8 +170,11 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 			expected := 69 + 141*int(n)
 			expectedSize := 128
 			if variant != "original" {
-				expected = 212 + 91*int(n)
-				expectedSize = 185
+				expected = 210 + 37*int(n)
+				if n == 0 {
+					expected = 212
+				}
+				expectedSize = 183
 			}
 			if cycles != expected || size != expectedSize {
 				t.Fatalf("cost model disproved: %s n=%d got=%d/%d expected=%d/%d", variant, n, cycles, size, expected, expectedSize)
@@ -228,7 +231,7 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 				t.Fatal(e)
 			}
 			expectedVariant := "original"
-			if n >= 3 && !size {
+			if n >= 2 && !size {
 				expectedVariant = "pointer-walk"
 			}
 			if d[0].Variant != expectedVariant {
@@ -242,8 +245,11 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 			wantCycles := 69 + 141*int(n)
 			wantBytes := 128
 			if expectedVariant == "pointer-walk" {
-				wantCycles = 212 + 91*int(n)
-				wantBytes = 185
+				wantCycles = 210 + 37*int(n)
+				if n == 0 {
+					wantCycles = 212
+				}
+				wantBytes = 183
 			}
 			if cycles != wantCycles || codeBytes != wantBytes {
 				t.Fatalf("retained decision not executed correctly: n=%d size=%v cycles=%d bytes=%d", n, size, cycles, codeBytes)

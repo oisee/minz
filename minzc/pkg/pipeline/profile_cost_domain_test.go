@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-// Validate the linear model over every u8 trip length, both admitted addresses
+// Validate measured zero-trip and positive-trip models over every u8 length, both admitted addresses
 // and the last valid address range that intentionally takes the guard fallback.
 func TestSumProfileCostFullU8Domain(t *testing.T) {
 	source, err := os.ReadFile("../../../examples/nanz/01_sum_array.nanz")
@@ -85,7 +85,10 @@ func TestSumProfileCostFullU8Domain(t *testing.T) {
 			if measured[0] != 69+141*n {
 				t.Fatalf("original model n=%d got=%d", n, measured[0])
 			}
-			expectedFast := 212 + 91*n
+			expectedFast := 210 + 37*n
+			if n == 0 {
+				expectedFast = 212
+			}
 			if path == "last-fast" {
 				expectedFast += 7
 			}

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 	"reflect"
 	"strings"
@@ -43,7 +44,7 @@ func TestSelectLoopVariantsWithModels(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	model := hir.LoopCostModel{CompilerID: c.CompilerID, SemanticsID: c.SemanticsID, TargetID: c.TargetID, HIRSHA256: run.Profile.Compatibility.HIRSHA256, EvidenceID: "test-fixture", OriginalBytes: 128, PointerBytes: 177, OriginalEntry: 69, OriginalIteration: 141, FastEntry: 189, FastIteration: 89}
+	model := hir.LoopCostModel{CompilerID: c.CompilerID, SemanticsID: c.SemanticsID, TargetID: c.TargetID, HIRSHA256: run.Profile.Compatibility.HIRSHA256, EvidenceID: "test-fixture", OriginalBytes: 128, PointerBytes: 177, OriginalEntry: 69, OriginalIteration: 141, FastEntry: 189, FastZeroMeasured: true, FastZeroEntry: 189, FastIteration: 89}
 	models := []hir.LoopCostModel{model, model}
 	models[0].Function, models[1].Function = "short_sum", "long_sum"
 	selectModels := func(p hir.LoopProfile, models []hir.LoopCostModel, size bool) ([]hir.ProfileDecision, error) {
@@ -125,7 +126,7 @@ func TestSelectLoopVariantsWithModels(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, field := range []string{"empty", "duplicate", "function", "unknown", "hir", "compiler", "semantics", "target", "evidence", "bytes"} {
+	for _, field := range []string{"empty", "duplicate", "function", "unknown", "hir", "compiler", "semantics", "target", "evidence", "bytes", "zero model"} {
 		t.Run(field, func(t *testing.T) {
 			bad := append([]hir.LoopCostModel{}, models...)
 			switch field {
@@ -149,6 +150,8 @@ func TestSelectLoopVariantsWithModels(t *testing.T) {
 				bad[1].EvidenceID = ""
 			case "bytes":
 				bad[1].PointerBytes = 0
+			case "zero model":
+				bad[1].FastZeroMeasured = false
 			}
 			d, err := selectModels(run.Profile, bad, false)
 			if err == nil || d != nil {
@@ -173,5 +176,72 @@ func TestSelectLoopVariantsWithModels(t *testing.T) {
 	}
 	if _, err := hir.SelectLoopVariantsWithModels(bytes.NewReader(append(data, data...)), m, c, models, false); err == nil {
 		t.Fatal("accepted trailing JSON")
+	}
+}
+
+// Zero-trip DJNZ entry differs from the affine positive-trip intercept. Neither
+// total loop entries nor summed body entries can reconstruct its frequency.
+func TestSelectLoopVariantsExactFastZeroEntries(t *testing.T) {
+	m, err := nanz.Parse(`fun sum(ptr:^u8,n:u8)->u8 {
+ var s:u8=0
+ var i:u8=0
+ while i<n {s=s+ptr[i]
+ i=i+1}
+ return s
+}`, "zero-cost.nanz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	c, err := hir.BuildAutomaticProfileContext(m, hir.ProfileInputs{TargetModel: "z80-test"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, err := hir.NewLoopProfilerWithContext(m, c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	p.VM.EnsureHeap(65536)
+	for _, args := range [][2]int64{{0x4000, 0}, {0x4000, 1}, {0x4000, 255}, {65535, 0}, {65535, 1}} {
+		if _, err := p.Call("sum", []mir2.Value{{I: args[0]}, {I: args[1]}}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	profile := p.Snapshot()
+	if len(profile.Guards) != 1 || profile.Guards[0].FastZeroEntries != 2 || profile.Guards[0].FastEntries != 4 || profile.Guards[0].FastBodyEntries != 256 {
+		t.Fatalf("guard observations: %+v", profile.Guards)
+	}
+	model := hir.LoopCostModel{CompilerID: c.CompilerID, SemanticsID: c.SemanticsID, TargetID: c.TargetID, HIRSHA256: profile.Compatibility.HIRSHA256, Function: "sum", EvidenceID: "zero-cost-fixture", OriginalBytes: 1, PointerBytes: 2, OriginalEntry: 69, OriginalIteration: 141, FastEntry: 200, FastIteration: 80, FastZeroEntry: 100, FastZeroMeasured: true, EqualEntryExtra: 7, FallbackEntry: 231, FallbackIteration: 143, FallbackMeasured: true}
+	data, _ := json.Marshal(profile)
+	decisions, err := hir.SelectLoopVariants(bytes.NewReader(data), m, c, model, false)
+	if err != nil || len(decisions) != 1 || decisions[0].OriginalTStates != "36582" || decisions[0].PointerTStates != "21461" {
+		t.Fatalf("exact zero costs: %+v %v", decisions, err)
+	}
+	for _, name := range []string{"missing zero", "old schema", "null zero", "too many zeros", "all zeros with bodies", "no zero model"} {
+		t.Run(name, func(t *testing.T) {
+			var raw map[string]any
+			if err := json.Unmarshal(data, &raw); err != nil {
+				t.Fatal(err)
+			}
+			row := raw["guards"].([]any)[0].(map[string]any)
+			badModel := model
+			switch name {
+			case "missing zero":
+				delete(row, "fast_zero_entries")
+			case "old schema":
+				raw["schema"] = "minz.input-hir-loop-observations/v4"
+			case "null zero":
+				row["fast_zero_entries"] = nil
+			case "too many zeros":
+				row["fast_zero_entries"] = 5
+			case "all zeros with bodies":
+				row["fast_zero_entries"] = 4
+			case "no zero model":
+				badModel.FastZeroMeasured = false
+			}
+			bad, _ := json.Marshal(raw)
+			if d, err := hir.SelectLoopVariants(bytes.NewReader(bad), m, c, badModel, false); err == nil || d != nil {
+				t.Fatalf("accepted missing/inconsistent zero evidence: %+v %v", d, err)
+			}
+		})
 	}
 }

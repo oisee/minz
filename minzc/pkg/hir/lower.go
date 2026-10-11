@@ -1446,7 +1446,10 @@ func (l *lowerer) lowerForRange(st *ForRangeStmt) {
 
 // lowerForEach lowers a ForEachStmt.
 //
-// MIR2 structure (ptr → HL, u8 counter → B for DJNZ, wide counter → pair):
+// Byte loops without control transfers use an initial zero-trip check and
+// a DJNZ back-edge, whose first target parameter receives the decremented
+// count. The counter class prefers B; codegen handles its actual allocation.
+// Wide loops and bodies with control transfers retain the structure below:
 //
 //	entry:
 //	    ptr0 = lower(Ptr) + Start * stride
@@ -1495,6 +1498,11 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	// Compute element count.
 	cntReg := l.lowerExpr(st.Len)
 	cntTy := st.Len.ExprTy()
+	if cntTy == mir2.TyU8 && !needsTrampoline {
+		l.lowerForEachByteCountdown(st, envBefore, ptrReg, cntReg, stride)
+		return
+	}
+
 	cntClass := mir2.ClassCounter
 	zeroClass := mir2.ClassAcc
 	if cntTy.Width() > mir2.TyU8.Width() {
@@ -1504,8 +1512,7 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 		zeroClass = cntClass
 	}
 
-	// Literal operands are loop-invariant. Define them once in the preheader;
-	// recreating them in head/continue wastes two VM instructions per element.
+	// Literal operands are loop-invariant for the general control-flow path.
 	zero := l.bld.Const(0, cntTy, zeroClass)
 	one := l.bld.Const(1, cntTy, cntClass)
 
@@ -1621,6 +1628,63 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	// Element var goes out of scope.
 	delete(exitEnv, st.Var)
 	l.env = exitEnv
+}
+
+// Byte fall-through bodies need only one zero-trip check. DJNZ decrements
+// the counter on the back-edge, so no zero/one values remain live in the body.
+// Bodies with control transfers retain the general trampoline implementation.
+func (l *lowerer) lowerForEachByteCountdown(st *ForEachStmt, envBefore map[string]mir2.Reg, ptrReg, cntReg mir2.Reg, stride int64) {
+	allUsed := map[string]bool{}
+	scanUsedInBlock(st.Body, envBefore, allUsed)
+	for name := range scanMutations(st.Body, envBefore) {
+		allUsed[name] = true
+	}
+	delete(allUsed, st.Var)
+	mutated := sortedKeys(allUsed, envBefore)
+	bodyLabel, exitLabel := l.fresh("fe_body"), l.fresh("fe_exit")
+	zero := l.bld.Const(0, mir2.TyU8, mir2.ClassAcc)
+	nonzero := l.bld.Cmp(mir2.CmpNe, cntReg, zero, mir2.ClassFlag, false)
+	initial := append([]mir2.Reg{cntReg, ptrReg}, l.collectArgs(mutated)...)
+	l.bld.BrIf(nonzero, bodyLabel, initial, exitLabel, l.collectArgs(mutated))
+	body := l.bld.SwitchToNewBlock(bodyLabel)
+	if origin, ok := l.lineage[st]; ok {
+		if l.mf.LoopOrigins == nil {
+			l.mf.LoopOrigins = map[string]mir2.LoopOrigin{}
+		}
+		l.mf.LoopOrigins[bodyLabel] = mir2.LoopOrigin{SiteID: origin.SiteID, Role: origin.Role, Rule: origin.Rule}
+	}
+	cnt := l.bld.BlockParam(body, mir2.TyU8, mir2.ClassCounter)
+	ptr := l.bld.BlockParam(body, mir2.TyPtr, mir2.ClassPointer)
+	env := cloneMap(envBefore)
+	for _, name := range mutated {
+		env[name] = l.bld.BlockParam(body, l.envTy[name], classForLoop(l.envTy[name], name))
+	}
+	l.env = env
+	if st.PtrIter {
+		l.bind(st.Var, ptr, mir2.TyPtr)
+	} else {
+		l.bind(st.Var, l.bld.Load(ptr, st.ElemTy, classForExpr(st.ElemTy)), st.ElemTy)
+	}
+	previous := l.inLoopContext
+	l.inLoopContext = true
+	l.lowerBlock(st.Body)
+	l.inLoopContext = previous
+	if st.MutateInPlace {
+		if final, ok := l.env[st.Var]; ok {
+			l.bld.Store(ptr, final, st.ElemTy)
+		}
+	}
+	ptrNext := l.bld.PtrBump(ptr, stride, mir2.ClassPointer)
+	updates := l.collectArgs(mutated)
+	back := append([]mir2.Reg{ptrNext}, updates...)
+	l.bld.DJNZ(cnt, bodyLabel, back, exitLabel, updates)
+	exit := l.bld.SwitchToNewBlock(exitLabel)
+	env = cloneMap(envBefore)
+	for _, name := range mutated {
+		env[name] = l.bld.BlockParam(exit, l.envTy[name], classForExpr(l.envTy[name]))
+	}
+	delete(env, st.Var)
+	l.env = env
 }
 
 // ── Switch lowering ───────────────────────────────────────────────────────────

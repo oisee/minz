@@ -94,8 +94,11 @@ func TestSeededPointerWalkMeasuredCaller(t *testing.T) {
 			}
 			t.Logf("size%v candidate%d %dT/%dB", size, mask, c.TotalTStates, c.ModuleBytes)
 		}
-		if best != 0 {
-			t.Fatal("seeded regression must retain cheaper original", best)
+		if !size && (best != 1 || r.Evidence.Candidates[best].TotalTStates >= r.Evidence.Candidates[0].TotalTStates) {
+			t.Fatal("seeded pointer countdown must improve measured caller", best)
+		}
+		if size && best != 0 {
+			t.Fatal("size must retain smaller original", best)
 		}
 		if r.Evidence.Selected != best || !bytes.Equal(r.Binary, r.Evidence.Candidates[best].Binary) {
 			t.Fatal("unmeasured winner")

@@ -1,0 +1,56 @@
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[Z80-VALIDATE] main: 2 invalid instruction(s)
+  line 3: >>> LD A, <<<
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+lir: native LIR codegen disabled (wrong code found by exhaustive judges); module compiled with PBQP
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+--- FAIL: TestSumProfileCostFullU8Domain (0.06s)
+    profile_cost_domain_test.go:96: fast model n=2 got=284
+--- FAIL: TestProfileGuidedSumVMZ80 (0.22s)
+    profile_guided_sum_test.go:184: original n=0 result=0 T-states=69 module_bytes=128
+    profile_guided_sum_test.go:184: original n=1 result=1 T-states=210 module_bytes=128
+    profile_guided_sum_test.go:184: original n=5 result=15 T-states=774 module_bytes=128
+    profile_guided_sum_test.go:184: original n=16 result=136 T-states=2325 module_bytes=128
+    profile_guided_sum_test.go:184: original n=64 result=32 T-states=9093 module_bytes=128
+    profile_guided_sum_test.go:184: original n=255 result=128 T-states=36024 module_bytes=128
+    profile_guided_sum_test.go:180: cost model disproved: pointer-walk n=0 got=212/183 expected=212/185
+--- FAIL: TestMeasureLoopCostModel (16.23s)
+    profile_measure_test.go:46: unexpected measured coefficients: {CompilerID:executable-sha256:d4071a211a645dda113e68c68a7a5812b7a236db8a9c592b0cd37f7c0ca35a14 SemanticsID:minz.unoptimised-mir2-vm-loop-events/v2 Function:sum_array HIRSHA256:4343de25f0d74860be3bc12290b68bf795c8a79751e0b01aa21de262ba68c8e6 TargetID:module-target:0/model:z80-pbqp-default-jrs/v1 CompilationID:6dfa40a5225aad0195b4fff38ffff8ebcfd525e4270cb05e5aa34628e3470a24 EvidenceID:sha256:6f555c9b05b37b29f145062d19b141ebf407aec53ef6ecc9ea52bde8a0d05076 OriginalBytes:128 PointerBytes:183 OriginalEntry:69 OriginalIteration:141 EqualEntryExtra:7 FastEntry:210 FastZeroEntry:212 FastZeroMeasured:true FallbackEntry:231 FallbackIteration:143 FallbackMeasured:true FastIteration:37}
+--- FAIL: TestMultiFunctionProfileVMZ80 (0.12s)
+    profile_test.go:98: long_sum cycles=1455 want=3852
+--- FAIL: TestSeededPointerWalkMeasuredCaller (0.25s)
+    seeded_pointer_walk_test.go:95: sizefalse candidate0 148452T/62B
+    seeded_pointer_walk_test.go:95: sizefalse candidate1 139581T/156B
+    seeded_pointer_walk_test.go:95: sizefalse candidate2 148452T/62B
+    seeded_pointer_walk_test.go:95: sizefalse candidate3 139581T/156B
+    seeded_pointer_walk_test.go:98: seeded regression must retain cheaper original 1
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	137.098s
+FAIL

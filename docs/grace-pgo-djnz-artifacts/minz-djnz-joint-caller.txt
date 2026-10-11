@@ -1,0 +1,22 @@
+=== RUN   TestJointSourceSitesPersistentCaller
+    profile_joint_source_sites_test.go:144: sizefalse candidate0 1417060T/249B
+    profile_joint_source_sites_test.go:144: sizefalse candidate1 1244100T/303B
+    profile_joint_source_sites_test.go:144: sizefalse candidate2 726480T/220B
+    profile_joint_source_sites_test.go:144: sizefalse candidate3 553520T/274B
+    profile_joint_source_sites_test.go:144: sizefalse candidate4 1417060T/249B
+    profile_joint_source_sites_test.go:144: sizefalse candidate5 1244100T/303B
+    profile_joint_source_sites_test.go:144: sizefalse candidate6 726480T/220B
+    profile_joint_source_sites_test.go:144: sizefalse candidate7 553520T/274B
+    profile_joint_source_sites_test.go:165: sizefalse winner3
+    profile_joint_source_sites_test.go:144: sizetrue candidate0 1417060T/249B
+    profile_joint_source_sites_test.go:144: sizetrue candidate1 1244100T/303B
+    profile_joint_source_sites_test.go:144: sizetrue candidate2 726480T/220B
+    profile_joint_source_sites_test.go:144: sizetrue candidate3 553520T/274B
+    profile_joint_source_sites_test.go:144: sizetrue candidate4 1417060T/249B
+    profile_joint_source_sites_test.go:144: sizetrue candidate5 1244100T/303B
+    profile_joint_source_sites_test.go:144: sizetrue candidate6 726480T/220B
+    profile_joint_source_sites_test.go:144: sizetrue candidate7 553520T/274B
+    profile_joint_source_sites_test.go:165: sizetrue winner2
+--- PASS: TestJointSourceSitesPersistentCaller (3.04s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.070s

@@ -1,0 +1,6 @@
+=== RUN   TestForEachDJNZLoweringAndControlFallback
+--- PASS: TestForEachDJNZLoweringAndControlFallback (0.00s)
+=== RUN   TestForEachDJNZCallsVMZ80
+--- PASS: TestForEachDJNZCallsVMZ80 (0.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.026s

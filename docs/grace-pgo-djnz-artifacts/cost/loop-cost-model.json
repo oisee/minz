@@ -1,0 +1,21 @@
+{
+  "compiler_id": "executable-sha256:dc9fe6be07a58ecf4a690c62c38157ff8742b4e62e404caf301b1ccdeb64f778",
+  "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+  "function": "sum_array",
+  "hir_sha256": "4343de25f0d74860be3bc12290b68bf795c8a79751e0b01aa21de262ba68c8e6",
+  "target_id": "module-target:0/model:z80-pbqp-default-jrs/v1",
+  "compilation_id": "6dfa40a5225aad0195b4fff38ffff8ebcfd525e4270cb05e5aa34628e3470a24",
+  "evidence_id": "sha256:ab5c545ab7fa598311bb6353934bc87ebcd9499089b1f7506e7c6114ccf38099",
+  "original_bytes": 128,
+  "pointer_bytes": 183,
+  "original_entry_t_states": 69,
+  "original_iteration_t_states": 141,
+  "equal_entry_extra_t_states": 7,
+  "fast_entry_t_states": 210,
+  "fast_zero_entry_t_states": 212,
+  "fast_zero_measured": true,
+  "fallback_entry_t_states": 231,
+  "fallback_iteration_t_states": 143,
+  "fallback_measured": true,
+  "fast_iteration_t_states": 37
+}
