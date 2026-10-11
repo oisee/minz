@@ -256,3 +256,6 @@ https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-corpus.h
 Следующий boundedэтап — смена выбора на zero-body workload иотказы
 unobservedsites/typedhostfailure/gas; independentoracle иnativeplan
 в постоянныхветках. Productioncode/exe не меняются.
+
+Офлайн Sites44 проверена:12094 файла,54 страницы,0 потерянных ссылок
+и внешних зависимостей; все публикационныеархивы читаются.
