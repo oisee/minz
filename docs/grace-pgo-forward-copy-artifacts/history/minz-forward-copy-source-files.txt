@@ -1,0 +1,6 @@
+minzc/pkg/hir/grace.go
+minzc/pkg/hir/grace_forward_copy.go
+minzc/pkg/hir/rules/forward_copy.grace
+minzc/pkg/pipeline/forward_copy_caller_test.go
+minzc/pkg/pipeline/forward_copy_prototype_test.go
+minzc/pkg/pipeline/forward_copy_z80_test.go

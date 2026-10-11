@@ -1,0 +1,14 @@
+[
+  {
+    "bytes": 84,
+    "enabled": false,
+    "error": "Z80 profile workload: invocation 1: line 0: assert \"\" [z80]: return[0] got 12, want 1",
+    "sha256": "4a48ffbc75d31edccfe9141758be8271947587f918db310845641831f20d1d6c"
+  },
+  {
+    "bytes": 219,
+    "enabled": true,
+    "sha256": "2119dc99550877ab286caed05bb7fec64b4a1118296d8a3709823f4a3010a492",
+    "total_t_states": 283030
+  }
+]

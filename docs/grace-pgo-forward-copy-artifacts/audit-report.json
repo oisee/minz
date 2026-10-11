@@ -1,0 +1,71 @@
+{
+  "status": "PASS",
+  "independent_sequential_oracle": true,
+  "raw_and_postcompile_and_target_calls_checked": 720,
+  "modes": [
+    {
+      "mode": "selector-speed",
+      "size": false,
+      "costs_t_states_bytes": [
+        [
+          388885,
+          86
+        ],
+        [
+          283030,
+          221
+        ]
+      ],
+      "selected": 1,
+      "calls_checked_per_candidate": 30
+    },
+    {
+      "mode": "selector-size",
+      "size": true,
+      "costs_t_states_bytes": [
+        [
+          388885,
+          86
+        ],
+        [
+          283030,
+          221
+        ]
+      ],
+      "selected": 0,
+      "calls_checked_per_candidate": 30
+    },
+    {
+      "mode": "cli-speed",
+      "size": false,
+      "costs_t_states_bytes": [
+        [
+          388885,
+          86
+        ],
+        [
+          283030,
+          221
+        ]
+      ],
+      "selected": 1,
+      "calls_checked_per_candidate": 30
+    },
+    {
+      "mode": "cli-size",
+      "size": true,
+      "costs_t_states_bytes": [
+        [
+          388885,
+          86
+        ],
+        [
+          283030,
+          221
+        ]
+      ],
+      "selected": 0,
+      "calls_checked_per_candidate": 30
+    }
+  ]
+}

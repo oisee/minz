@@ -1,0 +1,464 @@
+{
+  "exact_data_access": true,
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 3000000,
+  "max_memory": 65536,
+  "resources": {
+    "alternating": "AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/",
+    "ff": "////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////",
+    "overlap": "CzBVep/E6Q4zWH2ix+wRNluApcrvFDleg6jN8hc8YYar0PUaP2SJrtP4HUJnjLHW+yBFao+02f4jSG2St9wBJktwlbrfBClOc5i94gcsUXabwOUKL1R5nsPoDTJXfKHG6xA1Wn+kye4TOF2Cp8zxFjtgharP9Bk+Y4it0vccQWaLsNX6H0RpjrPY/SJHbJG22wAlSm+Uud4DKE1yl7zhBitQdZq/5AkuU3idwucMMVZ7oMXqDzRZfqPI7RI3XIGmy/AVOl+Eqc7zGD1ih6zR9htAZYqv1PkeQ2iNstf8IUZrkLXa/yRJbpO43QInTHGWu+AFKk90mb7jCC1Sd5zB5gswVXqfxOkOM1h9osfsETZbgKXK7xQ5XoOozfIXPGGGq9D1Gj9kia7T+B1CZ4yx1vsgRWqPtNn+I0htkrfcASZLcJW63wQpTnOYveIHLFF2m8DlCi9UeZ7D6A0yV3yhxusQNVp/pMnuEzhdgqfM8RY7YIWqz/QZPmOIrdL3HEFmi7DV+h9EaY6z2P0iR2yRttsAJUpvlLneAyhNcpe84QYrUHWav+QJLlN4ncLnDDFWe6DF6g80WX6jyO0SN1yBpsvwFTpfhKnO8xg9Yoes0fYbQGWKr9T5HkNojbLX/CFGa5C12v8kSW6TuN0CJ0xxlrvgBSpPdJm+4wgtUnecweYLMFV6n8TpDjNYfaLH7BE2W4Clyu8UOV6DqM3yFzxhhqvQ9Ro/ZImu0/gdQmeMsdb7IEVqj7TZ/iNIbZK33AEmS3CVut8EKU5zmL3iByxRdpvA5QovVHme",
+    "ramp": "CzBVep/E6Q4zWH2ix+wRNluApcrvFDleg6jN8hc8YYar0PUaP2SJrtP4HUJnjLHW+yBFao+02f4jSG2St9wBJktwlbrfBClOc5i94gcsUXabwOUKL1R5nsPoDTJXfKHG6xA1Wn+kye4TOF2Cp8zxFjtgharP9Bk+Y4it0vccQWaLsNX6H0RpjrPY/SJHbJG22wAlSm+Uud4DKE1yl7zhBitQdZq/5AkuU3idwucMMVZ7oMXqDzRZfqPI7RI3XIGmy/AVOl+Eqc7zGD1ih6zR9htAZYqv1PkeQ2iNstf8IUZrkLXa/yRJbpO43QInTHGWu+AFKk90mb7jCC1Sd5zB5gswVXqfxOkOM1h9osfsETZbgKXK7xQ5XoOozfIXPGGGq9D1Gj9kia7T+B1CZ4yx1vsgRWqPtNn+I0htkrfcASZLcJW63wQpTnOYveIHLFF2m8DlCi9UeZ7D6A0yV3yhxusQNVp/pMnuEzhdgqfM8RY7YIWqz/QZPmOIrdL3HEFmi7DV+h9EaY6z2P0iR2yRttsAJUpvlLneAyhNcpe84QYrUHWav+QJLlN4ncLnDDFWe6DF6g80WX6jyO0SN1yBpsvwFTpfhKnO8xg9Yoes0fYbQGWKr9T5HkNojbLX/CFGa5C12v8kSW6TuN0CJ0xxlrvgBSpPdJm+4wgtUnecweYLMFV6n8TpDjNYfaLH7BE2W4Clyu8UOV6DqM3yFzxhhqvQ9Ro/ZImu0/gdQmeMsdb7IEVqj7TZ/iNIbZK33AEmS3CVut8EKU5zmL3iByxRdpvA5QovVHme",
+    "zero": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+  },
+  "globals": {
+    "appended": "+g==",
+    "arena_used": "/v8="
+  },
+  "calls": [
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "ramp",
+          "offset": 300
+        },
+        {
+          "resource": "ramp"
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "ramp",
+          "offset": 300
+        },
+        {
+          "resource": "ramp"
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "ramp",
+          "offset": 300
+        },
+        {
+          "resource": "ramp"
+        },
+        {
+          "value": 5
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "ramp",
+          "offset": 300
+        },
+        {
+          "resource": "ramp"
+        },
+        {
+          "value": 16
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "ramp",
+          "offset": 300
+        },
+        {
+          "resource": "ramp"
+        },
+        {
+          "value": 64
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "ramp",
+          "offset": 300
+        },
+        {
+          "resource": "ramp"
+        },
+        {
+          "value": 255
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "ff",
+          "offset": 300
+        },
+        {
+          "resource": "ff"
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "ff",
+          "offset": 300
+        },
+        {
+          "resource": "ff"
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "ff",
+          "offset": 300
+        },
+        {
+          "resource": "ff"
+        },
+        {
+          "value": 5
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "ff",
+          "offset": 300
+        },
+        {
+          "resource": "ff"
+        },
+        {
+          "value": 16
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "ff",
+          "offset": 300
+        },
+        {
+          "resource": "ff"
+        },
+        {
+          "value": 64
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "ff",
+          "offset": 300
+        },
+        {
+          "resource": "ff"
+        },
+        {
+          "value": 255
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "zero",
+          "offset": 300
+        },
+        {
+          "resource": "zero"
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "zero",
+          "offset": 300
+        },
+        {
+          "resource": "zero"
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "zero",
+          "offset": 300
+        },
+        {
+          "resource": "zero"
+        },
+        {
+          "value": 5
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "zero",
+          "offset": 300
+        },
+        {
+          "resource": "zero"
+        },
+        {
+          "value": 16
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "zero",
+          "offset": 300
+        },
+        {
+          "resource": "zero"
+        },
+        {
+          "value": 64
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "zero",
+          "offset": 300
+        },
+        {
+          "resource": "zero"
+        },
+        {
+          "value": 255
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "alternating"
+        },
+        {
+          "resource": "alternating",
+          "offset": 300
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "alternating"
+        },
+        {
+          "resource": "alternating",
+          "offset": 300
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "alternating"
+        },
+        {
+          "resource": "alternating",
+          "offset": 300
+        },
+        {
+          "value": 5
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "alternating"
+        },
+        {
+          "resource": "alternating",
+          "offset": 300
+        },
+        {
+          "value": 16
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "alternating"
+        },
+        {
+          "resource": "alternating",
+          "offset": 300
+        },
+        {
+          "value": 64
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "alternating"
+        },
+        {
+          "resource": "alternating",
+          "offset": 300
+        },
+        {
+          "value": 255
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "overlap"
+        },
+        {
+          "resource": "overlap"
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "overlap"
+        },
+        {
+          "resource": "overlap"
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "overlap"
+        },
+        {
+          "resource": "overlap"
+        },
+        {
+          "value": 5
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "overlap"
+        },
+        {
+          "resource": "overlap"
+        },
+        {
+          "value": 16
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "overlap"
+        },
+        {
+          "resource": "overlap"
+        },
+        {
+          "value": 64
+        }
+      ]
+    },
+    {
+      "function": "append_token",
+      "arguments": [
+        {
+          "resource": "overlap"
+        },
+        {
+          "resource": "overlap"
+        },
+        {
+          "value": 255
+        }
+      ]
+    }
+  ]
+}

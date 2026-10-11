@@ -659,6 +659,27 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.ptrAddPushHL = NoReg
 			}()
 		}
+		// Byte stores through BC/DE and index-register encodings use A
+		// as an implicit scratch. A may still hold the next loop index or
+		// another live value, even when it is not an operand of this store.
+		if inst.Ty.Width() <= 8 {
+			ptr, val := g.loc(inst.Src[0]), g.loc(inst.Src[1])
+			_, constant := g.constVals[inst.Src[1]]
+			indexedScratch := isIXY(ptr) && !constant && (val == "H" || val == "L" || isIXYReg(val) || isSpill(val) || isPairReg(val) && (lowByte(val) == "H" || lowByte(val) == "L" || isIXYReg(lowByte(val))))
+			if val != "A" && (ptr == "BC" || ptr == "DE" || indexedScratch) {
+				liveA := false
+				for r := range g.regsLiveAfterInst(inst) {
+					if g.loc(r) == "A" {
+						liveA = true
+						break
+					}
+				}
+				if liveA {
+					g.emit("    PUSH AF    ; preserve live A across byte store")
+					defer func() { g.emit("    POP AF"); g.invalidate("A") }()
+				}
+			}
+		}
 		addrReg := inst.Src[0]
 		if info, ok := g.globalFieldStore[addrReg]; ok && inst.Ty.Width() == 8 {
 			if info.hlChain {

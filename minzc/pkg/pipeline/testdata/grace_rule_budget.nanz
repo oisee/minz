@@ -203,6 +203,8 @@ if false {}
 // Seeded buffer checksum: every byte contributes its value and the invariant
 // 16-bit weight a+b. All additions wrap modulo 65536. No data is read for n=0.
 // Calls surround the loop because hir-invariant-base's proof excludes loop calls.
+// Pure modular additions deliberately put the byte contribution first: this
+// fixture tests scalar rewrite-budget competition outside the weighted pointer proof.
 global checksum_calls: u8 = 0
 global checksum_last: u16 = 0
 
@@ -210,8 +212,8 @@ fun weighted_checksum(ptr: ^u8, n: u8, a: u16, b: u16, seed: u16) -> u16 {
     var sum: u16 = seed
     var i: u8 = 0
     while i < n {
-        sum = sum + (a + b)
         sum = sum + u16(ptr[i])
+        sum = sum + (a + b)
         i = i + 1
     }
     return sum
@@ -233,8 +235,8 @@ fun weighted_checksum_second(ptr: ^u8, n: u8, a: u16, b: u16, seed: u16) -> u16 
     var sum: u16 = seed
     var i: u8 = 0
     while i < n {
-        sum = sum + (a + b)
         sum = sum + u16(ptr[i])
+        sum = sum + (a + b)
         i = i + 1
     }
     return sum

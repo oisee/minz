@@ -1,0 +1,15 @@
+fun copy_forward(dst:^u8,src:^u8,n:u8)->u8 {
+ var i:u8=0
+ while i<n {dst[i]=src[i]
+ i=i+1}
+ return i
+}
+global appended:u8=250
+ global arena_used:u16=0
+ fun append_token(dst:^u8,src:^u8,n:u8)->u8 {
+ dst[0]=n
+ var copied:u8=copy_forward(dst+1,src,n)
+ appended=appended+1
+ arena_used=arena_used+u16(n)+1
+ return copied
+ }

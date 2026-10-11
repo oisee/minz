@@ -112,7 +112,7 @@ func measureInvariantSiteVariantSets(factory func() (*hir.Module, error), observ
 		if err != nil {
 			return nil, err
 		}
-		if m == nil || m.PointerWalkPolicy != nil || m.LoopLineage != nil || m.GraceRulePolicy != nil || m.InvariantBasePolicy != nil {
+		if m == nil || m.ForwardCopyPolicy != nil || m.PointerWalkPolicy != nil || m.LoopLineage != nil || m.GraceRulePolicy != nil || m.InvariantBasePolicy != nil {
 			return nil, fmt.Errorf("factory must return fresh input HIR without policy/lineage")
 		}
 		if weightedComposition {
@@ -238,7 +238,7 @@ func measureInvariantSiteVariantSets(factory func() (*hir.Module, error), observ
 		if err != nil {
 			return fail(err)
 		}
-		if !jointEqual(k, key) || m.PointerWalkPolicy != nil || m.LoopLineage != nil || m.GraceRulePolicy != nil || m.InvariantBasePolicy != nil {
+		if !jointEqual(k, key) || m.ForwardCopyPolicy != nil || m.PointerWalkPolicy != nil || m.LoopLineage != nil || m.GraceRulePolicy != nil || m.InvariantBasePolicy != nil {
 			return fail(fmt.Errorf("factory mutated previously returned HIR/source"))
 		}
 	}

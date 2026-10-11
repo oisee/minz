@@ -1,0 +1,36 @@
+=== RUN   TestForwardCopyPrototypeZ80Boundary
+    forward_copy_prototype_test.go:136: copy dst20480 src16384 n0
+    forward_copy_prototype_test.go:136: copy dst16385 src16384 n0
+    forward_copy_prototype_test.go:136: copy dst16384 src16385 n0
+    forward_copy_prototype_test.go:136: copy dst65535 src16384 n0
+    forward_copy_prototype_test.go:136: copy dst65536 src16384 n0
+    forward_copy_prototype_test.go:136: copy dst20480 src65535 n0
+    forward_copy_prototype_test.go:136: copy dst20480 src65536 n0
+    forward_copy_prototype_test.go:136: copy dst65535 src65535 n0
+    forward_copy_prototype_test.go:136: copy dst20480 src16384 n1
+    forward_copy_prototype_test.go:136: copy dst16385 src16384 n1
+    forward_copy_prototype_test.go:136: copy dst16384 src16385 n1
+    forward_copy_prototype_test.go:136: copy dst65534 src16384 n1
+    forward_copy_prototype_test.go:136: copy dst65535 src16384 n1
+    forward_copy_prototype_test.go:136: copy dst20480 src65534 n1
+    forward_copy_prototype_test.go:136: copy dst20480 src65535 n1
+    forward_copy_prototype_test.go:136: copy dst65535 src65535 n1
+    forward_copy_prototype_test.go:136: copy dst20480 src16384 n5
+    forward_copy_prototype_test.go:136: copy dst16385 src16384 n5
+    forward_copy_prototype_test.go:136: copy dst16384 src16385 n5
+    forward_copy_prototype_test.go:136: copy dst65530 src16384 n5
+    forward_copy_prototype_test.go:136: copy dst65531 src16384 n5
+    forward_copy_prototype_test.go:136: copy dst20480 src65530 n5
+    forward_copy_prototype_test.go:136: copy dst20480 src65531 n5
+    forward_copy_prototype_test.go:136: copy dst65535 src65535 n5
+    forward_copy_prototype_test.go:136: copy dst20480 src16384 n255
+    forward_copy_prototype_test.go:136: copy dst16385 src16384 n255
+    forward_copy_prototype_test.go:136: copy dst16384 src16385 n255
+    forward_copy_prototype_test.go:136: copy dst65280 src16384 n255
+    forward_copy_prototype_test.go:136: copy dst65281 src16384 n255
+    forward_copy_prototype_test.go:136: copy dst20480 src65280 n255
+    forward_copy_prototype_test.go:136: copy dst20480 src65281 n255
+    forward_copy_prototype_test.go:136: copy dst65535 src65535 n255
+--- PASS: TestForwardCopyPrototypeZ80Boundary (0.42s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.426s

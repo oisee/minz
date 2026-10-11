@@ -140,3 +140,5 @@ pointer-walk, оставляя invariant-base. На sum_array выбирает 3
 
 
 [Weighted composition v4](grace-pgo-weighted-composition.md): exactscalarpreheader плюс guardedpointerbyteiteration даёт weightedcaller475239→347888T; mixedcaller553520→345795T. НовыйexplicitAPI/CLI проверяетsourceproof и actualpre/postshape; genericoverlapнеразрешён. Следующиеэтапы — дополнительныеформы/эффекты реальныхциклов и снижениеcodegrowth; hardwareещёпредстоит.
+
+[Forward byte copy](grace-pgo-forward-copy.md): отдельный source-site selector измеряет sequential copy с alias, exact state/access oracle и сохранёнными бинарниками; typed allocation caller ускорился388885→283030T, size сохраняет86B baseline. Следующий этап — дополнительные реальные callers и контроль роста кода.

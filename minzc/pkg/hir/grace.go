@@ -20,6 +20,9 @@ var graceInvariantBaseRule string
 //go:embed rules/pointer_walk.grace
 var gracePointerWalkRule string
 
+//go:embed rules/forward_copy.grace
+var graceForwardCopyRule string
+
 // GraceOptions selects the rewrite budget and conservative size policy.
 // OptimizeForSize excludes versioned pointer loops, which duplicate the body.
 // It does not promise globally minimal machine code.
@@ -53,7 +56,7 @@ func RunGraceWithOptions(m *Module, options GraceOptions) (*grace.RuleResult, er
 	if err := Verify(m); err != nil {
 		return result, err
 	}
-	rules, err := grace.ParseRules(graceConstantIfRule + "\n" + graceInvariantBaseRule + "\n" + gracePointerWalkRule)
+	rules, err := grace.ParseRules(graceConstantIfRule + "\n" + graceInvariantBaseRule + "\n" + gracePointerWalkRule + "\n" + graceForwardCopyRule)
 	if err != nil {
 		return result, err
 	}
@@ -170,6 +173,59 @@ func RunGraceWithOptions(m *Module, options GraceOptions) (*grace.RuleResult, er
 					m.LoopLineage[p.loop] = previousOrigin
 				}
 				graph.err = fmt.Errorf("HIR Grace hir-guarded-pointer-walk: %w", err)
+				return false
+			}
+			return true
+		})
+		reg.RegisterPredicate("hir-has-forward-copy", func(_ rewrite.IRGraph, bindings grace.BlockBindings, _ []string) bool {
+			if (options.OptimizeForSize && m.ForwardCopyPolicy == nil) || m.GraceRulePolicy == nil || !m.GraceRulePolicy[ForwardCopyRule] {
+				return false
+			}
+			b := graph.byLabel[bindings["b"]]
+			if b == nil {
+				return false
+			}
+			plan := findGraceForwardCopy(b.owner, b.block, graph.globals)
+			if plan == nil {
+				return false
+			}
+			if m.ForwardCopyPolicy != nil {
+				origin, ok := m.LoopLineage[plan.loop]
+				return ok && m.ForwardCopyPolicy[origin.SiteID]
+			}
+			return true
+		})
+		reg.RegisterAction("hirForwardCopy", func(_ rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
+			b := graph.byLabel[bindings["b"]]
+			if b == nil {
+				return false
+			}
+			p := findGraceForwardCopy(b.owner, b.block, graph.globals)
+			if p == nil {
+				return false
+			}
+			old := b.block.Body[1]
+			versioned := p.versionedLoop()
+			b.block.Body[1] = versioned
+			fast := versioned.Then.Body[1]
+			origin, mapped := m.LoopLineage[p.loop]
+			if mapped {
+				f := origin
+				f.Role = "fast"
+				f.Rule = ForwardCopyRule
+				m.LoopLineage[fast] = f
+				s := origin
+				s.Role = "fallback"
+				s.Rule = ForwardCopyRule
+				m.LoopLineage[p.loop] = s
+			}
+			if err := verifyGraceModule(m); err != nil {
+				if mapped {
+					delete(m.LoopLineage, fast)
+					m.LoopLineage[p.loop] = origin
+				}
+				b.block.Body[1] = old
+				graph.err = fmt.Errorf("HIR Grace forward copy: %w", err)
 				return false
 			}
 			return true

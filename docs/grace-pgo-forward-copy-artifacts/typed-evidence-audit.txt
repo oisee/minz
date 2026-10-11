@@ -1,0 +1,4 @@
+PASS selector-speed typed self-excluding evidence SHA256=1c59a6749555a000c2f3a2e9f39ea855a0b632d5aaba22a1348c75401e4bbc1b
+PASS selector-size typed self-excluding evidence SHA256=b5f0472b3b32dcbd03fb32f9edc7864485bd5f2448ac2a032bb911ec22077127
+PASS cli-speed typed self-excluding evidence SHA256=00ada8bac10045ccf171f4e691d8d74e9bd5e4e80c94b0530c228f551527121e
+PASS cli-size typed self-excluding evidence SHA256=666cc91cf31f194393a7cc787637623b9136c09264fa6f08a0556b668cfe1191

@@ -17,8 +17,13 @@ var hirProfileInvariantSites bool
 var hirProfileSiteRules bool
 var hirProfileJointSites bool
 var hirProfileWeightedSites bool
+var hirProfileForwardCopySites bool
 
 func validateHIRProfileAuto(source string) error {
+	if hirProfileForwardCopySites && (!hirProfileJoint || hirProfileInvariantSites || hirProfileSiteRules || hirProfileJointSites || hirProfileWeightedSites || hirProfileIndependentRules) {
+		return fmt.Errorf("HIR forward copy sites: requires --hir-profile-joint and cannot combine with invariant, site, weighted, or independent rule modes")
+	}
+
 	if hirProfileWeightedSites && !hirProfileJointSites {
 		return fmt.Errorf("HIR weighted sites: requires --hir-profile-joint-sites")
 	}
@@ -145,7 +150,17 @@ func prepareHIRProfileJoint(m *hir.Module, factory func() (*hir.Module, error), 
 	}
 	var result *pipeline.ProfileVariantSetResult
 	var evidence any
-	if hirProfileInvariantSites {
+	var decisions any
+	if hirProfileForwardCopySites {
+		copyResult, copyErr := pipeline.MeasureForwardCopySiteVariantSets(factory, observations, workload, options, 4)
+		if copyErr != nil {
+			return nil, copyErr
+		}
+		result = &pipeline.ProfileVariantSetResult{Steps: copyResult.Steps, Binary: copyResult.Binary}
+		evidence = copyResult.Evidence
+		best := copyResult.Evidence.Candidates[copyResult.Evidence.Selected]
+		decisions = map[string]any{"schema": "minz.forward-copy-site-decisions/v1", "compatibility": copyResult.Evidence.Compatibility, "selected": copyResult.Evidence.Selected, "requested_copy_sites": best.RequestedSites, "proofs": best.FinalProofs, "binary_sha256": best.BinarySHA256}
+	} else if hirProfileInvariantSites {
 		measureSites := pipeline.MeasureInvariantSiteVariantSets
 		if hirProfileSiteRules {
 			measureSites = pipeline.MeasureInvariantSiteRuleVariantSets
@@ -169,10 +184,13 @@ func prepareHIRProfileJoint(m *hir.Module, factory func() (*hir.Module, error), 
 		}
 		evidence = result.Evidence
 	}
+	if decisions == nil {
+		decisions = result.Decisions
+	}
 	if err := os.MkdirAll(hirProfileAutoDirectory, 0755); err != nil {
 		return nil, err
 	}
-	for name, value := range map[string]any{"workload.json": workload, "profile.json": run.Profile, "run.json": run, "joint-evidence.json": evidence, "decisions.json": result.Decisions} {
+	for name, value := range map[string]any{"workload.json": workload, "profile.json": run.Profile, "run.json": run, "joint-evidence.json": evidence, "decisions.json": decisions} {
 		if err := writeHIRProfileJSON(filepath.Join(hirProfileAutoDirectory, name), value); err != nil {
 			return nil, err
 		}

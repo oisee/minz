@@ -1,0 +1,19 @@
+=== RUN   TestForwardCopyPrototypeAddressAliasDomain
+    forward_copy_prototype_test.go:92: Verified8192 sequentialcopy alias/address scenarios on rawVM beforeafter withfirsttrap/partialmemory oracle
+--- PASS: TestForwardCopyPrototypeAddressAliasDomain (1.46s)
+=== RUN   TestForwardCopyPrototypeLegalityAndOptIn
+=== RUN   TestForwardCopyPrototypeLegalityAndOptIn/nonzero_index
+=== RUN   TestForwardCopyPrototypeLegalityAndOptIn/stride
+=== RUN   TestForwardCopyPrototypeLegalityAndOptIn/reversed_index
+=== RUN   TestForwardCopyPrototypeLegalityAndOptIn/extra_store
+=== RUN   TestForwardCopyPrototypeLegalityAndOptIn/mutated_source
+=== RUN   TestForwardCopyPrototypeLegalityAndOptIn/wrong_return
+--- PASS: TestForwardCopyPrototypeLegalityAndOptIn (0.00s)
+    --- PASS: TestForwardCopyPrototypeLegalityAndOptIn/nonzero_index (0.00s)
+    --- PASS: TestForwardCopyPrototypeLegalityAndOptIn/stride (0.00s)
+    --- PASS: TestForwardCopyPrototypeLegalityAndOptIn/reversed_index (0.00s)
+    --- PASS: TestForwardCopyPrototypeLegalityAndOptIn/extra_store (0.00s)
+    --- PASS: TestForwardCopyPrototypeLegalityAndOptIn/mutated_source (0.00s)
+    --- PASS: TestForwardCopyPrototypeLegalityAndOptIn/wrong_return (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.470s

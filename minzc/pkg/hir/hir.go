@@ -98,6 +98,7 @@ func TargetFromString(s string) uint8 {
 type Module struct {
 	InvariantBasePolicy map[string]bool         `json:"-"` // nil defaults; source-site allowlist requires seeded lineage
 	GraceRulePolicy     map[string]bool         `json:"-"` // nil: defaults; explicit common-rule choices for measured variants
+	ForwardCopyPolicy   map[string]bool         `json:"-"` // explicit measured copy-site allowlist; nil only for manual rule opt-in
 	PointerWalkPolicy   map[string]bool         `json:"-"` // opt-in sticky PGO choice, independent of legality
 	LoopLineage         map[Stmt]LoopLineage    `json:"-"` // attribution after explicit seeding
 	SourceUnits         map[string]string       `json:"-"` // hashes of actual frontend inputs, including loop-free units

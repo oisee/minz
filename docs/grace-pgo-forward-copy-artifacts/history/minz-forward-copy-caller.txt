@@ -1,0 +1,7 @@
+=== RUN   TestForwardCopyPrototypeMeasuredCaller
+    forward_copy_caller_test.go:177: enabledtrue 283030T/219B
+    forward_copy_caller_test.go:183: [Z80 profile workload: invocation 1: line 0: assert "" [z80]: return[0] got 12, want 1]
+--- FAIL: TestForwardCopyPrototypeMeasuredCaller (0.22s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.225s
+FAIL

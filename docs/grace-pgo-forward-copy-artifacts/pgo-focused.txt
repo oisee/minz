@@ -1,0 +1,109 @@
+=== RUN   TestForwardCopyPrototypeMeasuredCaller
+    forward_copy_caller_test.go:199: enabledfalse 388885T/86B
+    forward_copy_caller_test.go:199: enabledtrue 283030T/221B
+    forward_copy_caller_test.go:252: copyselectorsizefalse winner1 283030T/221B
+    forward_copy_caller_test.go:252: copyselectorsizetrue winner0 388885T/86B
+--- PASS: TestForwardCopyPrototypeMeasuredCaller (1.03s)
+=== RUN   TestForwardCopyPrototypeAddressAliasDomain
+    forward_copy_prototype_test.go:92: Verified8192 sequentialcopy alias/address scenarios on rawVM beforeafter withfirsttrap/partialmemory oracle
+--- PASS: TestForwardCopyPrototypeAddressAliasDomain (1.48s)
+=== RUN   TestForwardCopyPrototypeLegalityAndOptIn
+=== RUN   TestForwardCopyPrototypeLegalityAndOptIn/nonzero_index
+=== RUN   TestForwardCopyPrototypeLegalityAndOptIn/stride
+=== RUN   TestForwardCopyPrototypeLegalityAndOptIn/reversed_index
+=== RUN   TestForwardCopyPrototypeLegalityAndOptIn/extra_store
+=== RUN   TestForwardCopyPrototypeLegalityAndOptIn/mutated_source
+=== RUN   TestForwardCopyPrototypeLegalityAndOptIn/wrong_return
+--- PASS: TestForwardCopyPrototypeLegalityAndOptIn (0.00s)
+    --- PASS: TestForwardCopyPrototypeLegalityAndOptIn/nonzero_index (0.00s)
+    --- PASS: TestForwardCopyPrototypeLegalityAndOptIn/stride (0.00s)
+    --- PASS: TestForwardCopyPrototypeLegalityAndOptIn/reversed_index (0.00s)
+    --- PASS: TestForwardCopyPrototypeLegalityAndOptIn/extra_store (0.00s)
+    --- PASS: TestForwardCopyPrototypeLegalityAndOptIn/mutated_source (0.00s)
+    --- PASS: TestForwardCopyPrototypeLegalityAndOptIn/wrong_return (0.00s)
+=== RUN   TestForwardCopyPrototypeZ80Boundary
+    forward_copy_prototype_test.go:135: copy dst20480 src16384 n0
+    forward_copy_prototype_test.go:135: copy dst16385 src16384 n0
+    forward_copy_prototype_test.go:135: copy dst16384 src16385 n0
+    forward_copy_prototype_test.go:135: copy dst65535 src16384 n0
+    forward_copy_prototype_test.go:135: copy dst65536 src16384 n0
+    forward_copy_prototype_test.go:135: copy dst20480 src65535 n0
+    forward_copy_prototype_test.go:135: copy dst20480 src65536 n0
+    forward_copy_prototype_test.go:135: copy dst65535 src65535 n0
+    forward_copy_prototype_test.go:135: copy dst20480 src16384 n1
+    forward_copy_prototype_test.go:135: copy dst16385 src16384 n1
+    forward_copy_prototype_test.go:135: copy dst16384 src16385 n1
+    forward_copy_prototype_test.go:135: copy dst65534 src16384 n1
+    forward_copy_prototype_test.go:135: copy dst65535 src16384 n1
+    forward_copy_prototype_test.go:135: copy dst20480 src65534 n1
+    forward_copy_prototype_test.go:135: copy dst20480 src65535 n1
+    forward_copy_prototype_test.go:135: copy dst65535 src65535 n1
+    forward_copy_prototype_test.go:135: copy dst20480 src16384 n5
+    forward_copy_prototype_test.go:135: copy dst16385 src16384 n5
+    forward_copy_prototype_test.go:135: copy dst16384 src16385 n5
+    forward_copy_prototype_test.go:135: copy dst65530 src16384 n5
+    forward_copy_prototype_test.go:135: copy dst65531 src16384 n5
+    forward_copy_prototype_test.go:135: copy dst20480 src65530 n5
+    forward_copy_prototype_test.go:135: copy dst20480 src65531 n5
+    forward_copy_prototype_test.go:135: copy dst65535 src65535 n5
+    forward_copy_prototype_test.go:135: copy dst20480 src16384 n255
+    forward_copy_prototype_test.go:135: copy dst16385 src16384 n255
+    forward_copy_prototype_test.go:135: copy dst16384 src16385 n255
+    forward_copy_prototype_test.go:135: copy dst65280 src16384 n255
+    forward_copy_prototype_test.go:135: copy dst65281 src16384 n255
+    forward_copy_prototype_test.go:135: copy dst20480 src65280 n255
+    forward_copy_prototype_test.go:135: copy dst20480 src65281 n255
+    forward_copy_prototype_test.go:135: copy dst65535 src65535 n255
+--- PASS: TestForwardCopyPrototypeZ80Boundary (0.67s)
+=== RUN   TestForwardCopySelectorRefusals
+=== RUN   TestForwardCopySelectorRefusals/nil_factory
+=== RUN   TestForwardCopySelectorRefusals/shared
+=== RUN   TestForwardCopySelectorRefusals/shared_ast
+=== RUN   TestForwardCopySelectorRefusals/prior_policy
+=== RUN   TestForwardCopySelectorRefusals/mutated_prior_policy
+=== RUN   TestForwardCopySelectorRefusals/source_changed
+=== RUN   TestForwardCopySelectorRefusals/forged_count
+=== RUN   TestForwardCopySelectorRefusals/bad_cap
+=== RUN   TestForwardCopySelectorRefusals/backend
+=== RUN   TestForwardCopySelectorRefusals/skip
+--- PASS: TestForwardCopySelectorRefusals (0.16s)
+    --- PASS: TestForwardCopySelectorRefusals/nil_factory (0.00s)
+    --- PASS: TestForwardCopySelectorRefusals/shared (0.02s)
+    --- PASS: TestForwardCopySelectorRefusals/shared_ast (0.01s)
+    --- PASS: TestForwardCopySelectorRefusals/prior_policy (0.00s)
+    --- PASS: TestForwardCopySelectorRefusals/mutated_prior_policy (0.02s)
+    --- PASS: TestForwardCopySelectorRefusals/source_changed (0.02s)
+    --- PASS: TestForwardCopySelectorRefusals/forged_count (0.07s)
+    --- PASS: TestForwardCopySelectorRefusals/bad_cap (0.00s)
+    --- PASS: TestForwardCopySelectorRefusals/backend (0.00s)
+    --- PASS: TestForwardCopySelectorRefusals/skip (0.00s)
+=== RUN   TestForwardCopyIndependentStructuralRefusals
+=== RUN   TestForwardCopyIndependentStructuralRefusals/guard
+=== RUN   TestForwardCopyIndependentStructuralRefusals/guard_base
+=== RUN   TestForwardCopyIndependentStructuralRefusals/length
+=== RUN   TestForwardCopyIndependentStructuralRefusals/mutate_store
+=== RUN   TestForwardCopyIndependentStructuralRefusals/store_order
+=== RUN   TestForwardCopyIndependentStructuralRefusals/load_type
+=== RUN   TestForwardCopyIndependentStructuralRefusals/step
+=== RUN   TestForwardCopyIndependentStructuralRefusals/final_index
+=== RUN   TestForwardCopyIndependentStructuralRefusals/fallback
+=== RUN   TestForwardCopyIndependentStructuralRefusals/marker
+=== RUN   TestForwardCopyIndependentStructuralRefusals/fresh_collision
+=== RUN   TestForwardCopyIndependentStructuralRefusals/prefix
+--- PASS: TestForwardCopyIndependentStructuralRefusals (0.23s)
+    --- PASS: TestForwardCopyIndependentStructuralRefusals/guard (0.02s)
+    --- PASS: TestForwardCopyIndependentStructuralRefusals/guard_base (0.02s)
+    --- PASS: TestForwardCopyIndependentStructuralRefusals/length (0.03s)
+    --- PASS: TestForwardCopyIndependentStructuralRefusals/mutate_store (0.02s)
+    --- PASS: TestForwardCopyIndependentStructuralRefusals/store_order (0.02s)
+    --- PASS: TestForwardCopyIndependentStructuralRefusals/load_type (0.02s)
+    --- PASS: TestForwardCopyIndependentStructuralRefusals/step (0.02s)
+    --- PASS: TestForwardCopyIndependentStructuralRefusals/final_index (0.02s)
+    --- PASS: TestForwardCopyIndependentStructuralRefusals/fallback (0.03s)
+    --- PASS: TestForwardCopyIndependentStructuralRefusals/marker (0.02s)
+    --- PASS: TestForwardCopyIndependentStructuralRefusals/fresh_collision (0.03s)
+    --- PASS: TestForwardCopyIndependentStructuralRefusals/prefix (0.02s)
+=== RUN   TestForwardCopySelectorSitesBoundaryAndUnobserved
+--- PASS: TestForwardCopySelectorSitesBoundaryAndUnobserved (1.92s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	5.510s

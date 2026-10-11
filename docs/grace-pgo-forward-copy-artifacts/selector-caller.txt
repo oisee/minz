@@ -1,0 +1,8 @@
+=== RUN   TestForwardCopyPrototypeMeasuredCaller
+    forward_copy_caller_test.go:199: enabledfalse 388885T/86B
+    forward_copy_caller_test.go:199: enabledtrue 283030T/221B
+    forward_copy_caller_test.go:252: copyselectorsizefalse winner1 283030T/221B
+    forward_copy_caller_test.go:252: copyselectorsizetrue winner0 388885T/86B
+--- PASS: TestForwardCopyPrototypeMeasuredCaller (1.47s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.484s
