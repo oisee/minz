@@ -1,0 +1,15 @@
+{
+  "source_checkpoint": "71713e09",
+  "executable_sha256": "972d1d5ba32143d8e8e6dc50070ff81091570b24c712552371daab5e748169ee",
+  "exit_code": 1,
+  "elapsed_seconds": 2301.032,
+  "failing_tests": [
+    "TestMemoryHostFactoryOriginalParser",
+    "TestMemoryHostLoopAssociationOriginalParser",
+    "TestMemoryHostOriginalSelfLanzTarget"
+  ],
+  "reported_target_t_states": 1291565,
+  "reported_target_binary_sha256": "684b5dfb0aa4ac248a173b90161c62f3bd4635afe3cef7b83d254ee691860fc1",
+  "cause_under_review": "fixed reference costs/hash predate corrected backend; independent behavior checks passed before target test fixed reference assertion",
+  "current_pipeline_session": 89426
+}
