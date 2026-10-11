@@ -176,3 +176,18 @@ func TestExperimentalUnsignedPairPendingAndConstantRefusal(t *testing.T) {
 		t.Fatal("live pending condition admitted")
 	}
 }
+
+func TestExperimentalUnsignedPairCacheState(t *testing.T) {
+	m, ar := pairCmpFixture("HL", "DE", CmpUge, false, false)
+	f := m.Funcs[0]
+	inst := f.Blocks[0].Insts[0]
+	// The comparison invalidates A aliases while physical word pairs stay intact.
+	var out strings.Builder
+	g := &z80cg{experimentalUnsignedPreservePair: true, mod: m, fn: f, curBlock: f.Blocks[0], ar: ar, regInfo: collectRegInfo(f), constVals: map[Reg]int64{}, sb: &out, holdsPhys: map[string]string{"A": "B", "B": "A", "HL": "DE", "DE": "HL"}, cmpSwapped: map[Reg]bool{}, cmpNeedsTwo: map[Reg]bool{}, lastFlagsLhs: "A", lastFlagsRhs: "D"}
+	if !g.tryExperimentalUnsignedPairCmp(inst) {
+		t.Fatal("eligible cmp refused")
+	}
+	if g.pendingFlagReg != inst.Dst || g.pendingAccReg != NoReg || g.holdsPhys["A"] != "" || g.holdsPhys["B"] != "" || g.holdsPhys["HL"] != "DE" || g.holdsPhys["DE"] != "HL" || g.lastFlagsLhs != "" || g.lastFlagsRhs != "" {
+		t.Fatal("cache/pending state", g.holdsPhys)
+	}
+}
