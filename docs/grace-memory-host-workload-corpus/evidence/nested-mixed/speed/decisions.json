@@ -1,0 +1,13 @@
+{
+  "schema": "minz.memory-host-arena-append-cli-decision/v1",
+  "goal": "speed",
+  "selected": 3,
+  "choices": {
+    "arena_peel": true,
+    "append_hoist": true
+  },
+  "selection_sha256": "b3e72049f149dd4e8774f26a9191b10499dfb84a9b391ef14bdf75077d518ef2",
+  "binary_sha256": "2ed1a44a51fa41196191a8fad9429a5b97040aefa5f9fc90257c2fa7921d93cc",
+  "t_states": 1392784,
+  "bytes": 2197
+}
