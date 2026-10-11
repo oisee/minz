@@ -198,7 +198,7 @@ func TestMemoryHostArenaSelectorSentinelOriginMutation(t *testing.T) {
 	_, w := memoryHostParserFixture(t)
 	w.Calls = []hir.MemoryHostInvocation{{Function: "region_match", Arguments: []int64{0x8fff, 0, 0}}}
 	serialized := arenaSelectorProfile(t, w)
-	for _, phase := range []int{3, 12} {
+	for _, phase := range []int{3, 6, 12} {
 		t.Run(fmt.Sprint(phase), func(t *testing.T) {
 			calls := 0
 			var first *hir.Module
