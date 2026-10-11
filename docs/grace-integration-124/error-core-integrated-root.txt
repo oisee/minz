@@ -1,0 +1,16 @@
+=== RUN   TestErrorABIVerifyAndSimultaneousOutcomeDefs
+--- PASS: TestErrorABIVerifyAndSimultaneousOutcomeDefs (0.00s)
+=== RUN   TestFallibleCYNativeCallerFramesAndSavedRegisters
+--- PASS: TestFallibleCYNativeCallerFramesAndSavedRegisters (0.75s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.760s
+=== RUN   TestErrorABIRejectsUnsupportedBeforeLowering
+--- PASS: TestErrorABIRejectsUnsupportedBeforeLowering (0.00s)
+=== RUN   TestFallibleSuffixHasExplicitSuccessStatusAndAPIParity
+--- PASS: TestFallibleSuffixHasExplicitSuccessStatusAndAPIParity (0.00s)
+=== RUN   TestValueOnlyProfilesRejectLanguageOutcomeBeforeExecution
+--- PASS: TestValueOnlyProfilesRejectLanguageOutcomeBeforeExecution (0.00s)
+=== RUN   TestErrorABIRejectsUnimplementedBackend
+--- PASS: TestErrorABIRejectsUnimplementedBackend (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.010s

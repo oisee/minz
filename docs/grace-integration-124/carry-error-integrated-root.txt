@@ -1,0 +1,13 @@
+=== RUN   TestOriginalCarryErrorNative
+    showcase_carry_error_native_test.go:346: main initial CY=0 output="5250" error=1 restored SP PASS
+    showcase_carry_error_native_test.go:346: main initial CY=1 output="5250" error=1 restored SP PASS
+    showcase_carry_error_native_test.go:349: default 327936 native + raw/final VM outcome/SP/RAM calls PASS; 0 source assertions retained
+    showcase_carry_error_native_test.go:346: main initial CY=0 output="5250" error=1 restored SP PASS
+    showcase_carry_error_native_test.go:346: main initial CY=1 output="5250" error=1 restored SP PASS
+    showcase_carry_error_native_test.go:349: grace-size 327936 native + raw/final VM outcome/SP/RAM calls PASS; 0 source assertions retained
+    showcase_carry_error_native_test.go:346: main initial CY=0 output="5250" error=1 restored SP PASS
+    showcase_carry_error_native_test.go:346: main initial CY=1 output="5250" error=1 restored SP PASS
+    showcase_carry_error_native_test.go:349: grace-speed 327936 native + raw/final VM outcome/SP/RAM calls PASS; 0 source assertions retained
+--- PASS: TestOriginalCarryErrorNative (51.41s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	51.442s

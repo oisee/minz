@@ -20,8 +20,8 @@
   Поддержка native u32 memory/caller/spill уже исправлена и проверена отдельно;
   это не делает host interpreter подходящим для обычного Z80.
   Сборка корпуса не доказывает правильность исполнения. Новый
-  [актуальный каталог](grace-integration-120/catalog-49-vm-native.json) фиксирует все
-  194 точных пути: 49 имеют ограниченное independent VM/native покрытие; новый fib_iter, ранее пропущенная ссылка18tail и исходные local struct вызовы подтверждены отдельно. Новый CP/M demo
+  [актуальный каталог](grace-integration-124/catalog-50-vm-native.json) фиксирует все
+  194 точных пути: 50 имеют ограниченное independent VM/native покрытие; новый fib_iter, ранее пропущенная ссылка18tail и исходные local struct вызовы подтверждены отдельно. Новый CP/M demo
   имеет отдельный native CALL5-hook proof. Все прочие пути сохраняют явные
   pending/ASM/runtime/host ограничения.
 - **Pascal bubble sort: исправлен реальный native miscompile** (`ff11ba69`).
@@ -458,3 +458,12 @@ workload guards сохранены. [Пакет121](grace-integration-121/README
 полный MIR2 PASS20,940 с. Отдельный popcount evidence теперь содержит
 точный executable; root replay этого файла PASS.
 [Пакет123](grace-integration-123/README.md).
+
+## Явная семантика CY ошибок
+
+Original14_error_propagation исправлен и прошёл983808 независимых
+raw/final VM/native вызовов и полный main. Root PASS51,442 с; полные
+HIR/MIR2/Nanz PASS. Code/status не теряются через CALL и cleanup.
+[Пакет124](grace-integration-124/README.md). Поддержаны прямые проверяемые
+u8/void вызовы; word/tuple/extern/nested CY формы и value-only profiles
+пока явно отвергаются. Это не универсальная обработка ошибок.
