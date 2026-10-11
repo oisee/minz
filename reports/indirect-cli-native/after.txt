@@ -1,0 +1,36 @@
+=== RUN   TestIndirectMIR2DefaultAssembly
+--- PASS: TestIndirectMIR2DefaultAssembly (0.01s)
+=== RUN   TestIndirectCallEmissionScope
+=== RUN   TestIndirectCallEmissionScope/mir2
+=== RUN   TestIndirectCallEmissionScope/all_mir2_annotations
+=== RUN   TestIndirectCallEmissionScope/c
+=== RUN   TestIndirectCallEmissionScope/mir2_dump
+=== RUN   TestIndirectCallEmissionScope/hir_dump
+=== RUN   TestIndirectCallEmissionScope/z80_assembly
+=== RUN   TestIndirectCallEmissionScope/z80_binary
+=== RUN   TestIndirectCallEmissionScope/default_z80_product
+=== RUN   TestIndirectCallEmissionScope/z80_assert
+--- PASS: TestIndirectCallEmissionScope (0.08s)
+    --- PASS: TestIndirectCallEmissionScope/mir2 (0.00s)
+    --- PASS: TestIndirectCallEmissionScope/all_mir2_annotations (0.00s)
+    --- PASS: TestIndirectCallEmissionScope/c (0.00s)
+    --- PASS: TestIndirectCallEmissionScope/mir2_dump (0.00s)
+    --- PASS: TestIndirectCallEmissionScope/hir_dump (0.00s)
+    --- PASS: TestIndirectCallEmissionScope/z80_assembly (0.01s)
+    --- PASS: TestIndirectCallEmissionScope/z80_binary (0.01s)
+    --- PASS: TestIndirectCallEmissionScope/default_z80_product (0.01s)
+    --- PASS: TestIndirectCallEmissionScope/z80_assert (0.03s)
+=== RUN   TestIndirectIntermediateAsserts
+=== RUN   TestIndirectIntermediateAsserts/mir2_sandbox
+=== RUN   TestIndirectIntermediateAsserts/bad_mir2_sandbox
+=== RUN   TestIndirectIntermediateAsserts/z80_sandbox
+=== RUN   TestIndirectIntermediateAsserts/bad_z80_sandbox
+--- PASS: TestIndirectIntermediateAsserts (0.02s)
+    --- PASS: TestIndirectIntermediateAsserts/mir2_sandbox (0.00s)
+    --- PASS: TestIndirectIntermediateAsserts/bad_mir2_sandbox (0.00s)
+    --- PASS: TestIndirectIntermediateAsserts/z80_sandbox (0.01s)
+    --- PASS: TestIndirectIntermediateAsserts/bad_z80_sandbox (0.01s)
+=== RUN   TestIndirectUnresolvedLiveCallerGuard
+--- PASS: TestIndirectUnresolvedLiveCallerGuard (0.00s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	0.131s

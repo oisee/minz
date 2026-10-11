@@ -1,0 +1,9 @@
+# CLI indirect CALL: актуальные ожидания и native oracle
+
+Основа `db34bba3`. Изменены `cmd/minzc/indirect_emission_test.go` и устаревшее ожидание warning в `default_output_test.go`: ожидание отказа устарело после появления typed indirect ABI с сохранением caller values. Сохранён исходный `examples/c89/func_ptr.c`; для CLI он копируется во временный каталог, чтобы default output не изменял corpus.
+
+Теперь ASM, BIN, default product и Z80 asserts должны успешно компилироваться. Реальный ASM CLI сравнивается с API для того же исходника; BIN сравнивается с тем же target output format (стандартная цель zxspectrum создаёт SNA snapshot, а не compact raw BIN). Исполняемая часть независимо запускается эмулятором Z80 через настоящий CALL для всех шести source test-функций: 7, 20, 13, 42, 20 и 65529. Проверяются возврат на исходный PC, восстановление SP, неизменность полного RAM вне фактически занятого stack interval и объявленных spill bytes, сохранение OpCallIndirect/typed metadata и trampoline CALL/JP(IX). Это ограниченный source oracle, не exhaustive proof C89.
+
+MIR2-only sandbox остаётся без ASM. Z80 sandbox должен принудительно получить ASM несмотря на SkipZ80Emission и пройти тот же native oracle. Отрицательные ожидания присутствуют и для MIR2, и для Z80 sandbox: изменение ожидаемого результата должно вызвать ошибку sandbox.
+
+Focused test трёх исходных групп и отрицательного unresolved control PASS. Default MIR2 assertions теперь сопровождаются ASM, без предупреждения unsupported ABI, и тем же native oracle. Отдельный control удаляет semantic indirect signature из compiled исходного fixture: живой caller должен снова отклоняться, production guard не ослаблен. Две основные группы дополнительно проходят три последовательных запуска. Сохранён before log с пятью устаревшими отказами; общий CLI gate не повторялся и PASS для него не заявляется.
