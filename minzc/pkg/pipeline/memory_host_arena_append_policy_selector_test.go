@@ -300,6 +300,10 @@ func TestMemoryHostPolicySelectorOriginalParserExport(t *testing.T) {
 	if dir == "" {
 		t.Skip("explicit eight-candidate policy artifact export")
 	}
+	referenceDir := os.Getenv("MINZ_MEMORY_HOST_POLICY_SELECTOR_REFERENCE")
+	if referenceDir == "" {
+		t.Fatal("prior two public baseline reference directory required")
+	}
 	source, err := os.ReadFile("../../../examples/nanz/self_lanz_parser.nanz")
 	if err != nil {
 		t.Fatal(err)
@@ -380,6 +384,22 @@ func TestMemoryHostPolicySelectorOriginalParserExport(t *testing.T) {
 		summary, _ := json.MarshalIndent(map[string]any{"actual_selector_goal": "speed", "actual_selected": result.Selected, "derived_size_selected": sizeWinner, "factory_calls": calls, "size_scope": "calculated from the same saved actual four candidates; no second selector execution"}, "", "  ")
 		if err = os.WriteFile(filepath.Join(out, "derived-objectives.json"), summary, 0644); err != nil {
 			t.Fatal(err)
+		}
+
+		referenceBytes, err := os.ReadFile(filepath.Join(referenceDir, name, "baseline-v2.json"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		var reference MemoryHostBaselineEvidenceV2
+		if err = json.Unmarshal(referenceBytes, &reference); err != nil {
+			t.Fatal(err)
+		}
+		if reference.Schema != "minz.memory-host-baseline/v2" || reference.CompileOptions != options || reference.Baseline == nil {
+			t.Fatal("reference policy envelope")
+		}
+		got, want := result.Candidates[0].Evidence.Baseline.Target, reference.Baseline.Target
+		if got.BinarySHA256 != want.BinarySHA256 || got.Assembly != want.Assembly || got.AdapterSHA256 != want.AdapterSHA256 || got.TotalTStates != want.TotalTStates || got.ExecutedSteps != want.ExecutedSteps || got.MIRSHA256 != want.MIRSHA256 || got.AllocationSHA256 != want.AllocationSHA256 || got.SidecarSHA256 != want.SidecarSHA256 || got.CallFramesSHA256 != want.CallFramesSHA256 || !reflect.DeepEqual(got.Invocations, want.Invocations) || !reflect.DeepEqual(got.InvocationTStates, want.InvocationTStates) {
+			t.Fatal("original policy candidate disagrees with prior public baseline")
 		}
 		if first == nil {
 			first = result
