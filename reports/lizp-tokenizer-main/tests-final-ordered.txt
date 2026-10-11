@@ -1,0 +1,7 @@
+=== RUN   TestOriginalLizpTokenizerWholeMain
+    original_lizp_tokenizer_main_test.go:227: ordinary original fullmain + 9 persistent lexer fixtures raw/final/native PASS
+    original_lizp_tokenizer_main_test.go:227: grace-size original fullmain + 9 persistent lexer fixtures raw/final/native PASS
+    original_lizp_tokenizer_main_test.go:227: grace-speed original fullmain + 9 persistent lexer fixtures raw/final/native PASS
+--- PASS: TestOriginalLizpTokenizerWholeMain (0.11s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.122s

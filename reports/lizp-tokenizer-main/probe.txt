@@ -1,0 +1,8 @@
+output @mir.io.print.u8 [{1}]
+output @mir.io.print.u8 [{3}]
+output @mir.io.print.u8 [{4}]
+output @mir.io.print.u8 [{4}]
+output @mir.io.print.u8 [{2}]
+output @mir.io.print.u8 [{5}]
+output @mir.io.print.nl []
+main [{0}] <nil> state [7 0 7 0 0 0]

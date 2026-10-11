@@ -1,0 +1,7 @@
+{
+  "bin_sha256": "f952a2ba8402230eb3ac6759a672b46f6d79a69e42a1adb8150207e5f52b4292",
+  "fixtures": 9,
+  "main_output": "134425\n",
+  "source_asserts_retained": 7,
+  "source_sha256": "601b838183ec5f800dfa85605ade3f949b462d93008ce590b2bf606732384348"
+}
