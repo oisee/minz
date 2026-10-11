@@ -1,0 +1,19 @@
+running: 3 shards / elapsed 25.2s
+running: 3 shards / elapsed 45.2s
+shard 2: PASS 43.62s / 53 tests
+running: 2 shards / elapsed 48.8s
+running: 2 shards / elapsed 68.8s
+running: 2 shards / elapsed 88.8s
+shard 1: PASS 90.77s / 11 tests
+running: 1 shards / elapsed 95.9s
+running: 1 shards / elapsed 115.9s
+running: 1 shards / elapsed 135.9s
+running: 1 shards / elapsed 155.9s
+running: 1 shards / elapsed 175.9s
+running: 1 shards / elapsed 195.9s
+running: 1 shards / elapsed 215.9s
+running: 1 shards / elapsed 235.9s
+running: 1 shards / elapsed 255.9s
+running: 1 shards / elapsed 275.9s
+shard 0: PASS 274.59s / 7 tests
+PASS: 71 tests, 279.75s including build
