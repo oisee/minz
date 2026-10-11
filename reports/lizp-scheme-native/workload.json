@@ -1,0 +1,22 @@
+{
+  "compiler_checkpoint": "02ada1b6",
+  "source_sha256": "1af1b643711d49199737f4a8e4439e1b00750335922c33046dc94ee0bcecacc0",
+  "all_unary_bytes": [
+    "square",
+    "cube",
+    "is_zero",
+    "is_even",
+    "is_odd",
+    "classify",
+    "inc",
+    "dbl"
+  ],
+  "all_byte_pairs": [
+    "my_min",
+    "my_max",
+    "hypotenuse_sq"
+  ],
+  "independent_oracle": "host modulo256 arithmetic, byte comparison, parity, ordered classification; no expectations read from source assertions",
+  "calls_per_mode": 198656,
+  "calls_total": 595968
+}

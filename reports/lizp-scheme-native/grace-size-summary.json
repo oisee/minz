@@ -1,0 +1,31 @@
+{
+  "allowed_generated_spill_bytes": {},
+  "bytes": 138,
+  "entries": {
+    "classify": 256,
+    "cube": 256,
+    "dbl": 256,
+    "hypotenuse_sq": 65536,
+    "inc": 256,
+    "is_even": 256,
+    "is_odd": 256,
+    "is_zero": 256,
+    "my_max": 65536,
+    "my_min": 65536,
+    "square": 256
+  },
+  "stack_depth_per_entry": {
+    "classify": 2,
+    "cube": 10,
+    "dbl": 2,
+    "hypotenuse_sq": 10,
+    "inc": 2,
+    "is_even": 2,
+    "is_odd": 2,
+    "is_zero": 2,
+    "my_max": 2,
+    "my_min": 2,
+    "square": 8
+  },
+  "stack_low": "eff6"
+}

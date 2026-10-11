@@ -1,0 +1,95 @@
+; MIR2 module: scheme_test.lizp
+fun @square(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = mul %r1, %r1 : u8 [general]
+    ret %r2
+
+fun @cube(%r3: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r4 = mul %r3, %r3 : u8 [general]
+    %r5 = mul %r3, %r4 : u8 [general]
+    ret %r5
+
+fun @is_zero(%r6: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r7 = const 0 : u8 [general]
+    %r8 = cmp.eq %r6, %r7 : bool [flag]
+    %r9 = const 0 : u8 [general]
+    cond_ret %r8, [%r9], @if_then1()
+  block @if_then1:
+    %r10 = const 1 : u8 [general]
+    ret %r10
+
+fun @is_even(%r11: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r12 = const 2 : u8 [general]
+    %r13 = mod %r11, %r12 : u8 [general]
+    %r14 = const 0 : u8 [general]
+    %r15 = cmp.eq %r13, %r14 : bool [flag]
+    %r16 = const 0 : u8 [general]
+    cond_ret %r15, [%r16], @if_then1()
+  block @if_then1:
+    %r17 = const 1 : u8 [general]
+    ret %r17
+
+fun @is_odd(%r18: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r19 = const 2 : u8 [general]
+    %r20 = mod %r18, %r19 : u8 [general]
+    %r21 = const 0 : u8 [general]
+    %r22 = cmp.ne %r20, %r21 : bool [flag]
+    %r23 = const 0 : u8 [general]
+    cond_ret %r22, [%r23], @if_then1()
+  block @if_then1:
+    %r24 = const 1 : u8 [general]
+    ret %r24
+
+fun @my_min(%r25: u8 [acc], %r26: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r27 = cmp.ult %r25, %r26 : bool [flag]
+    cond_ret %r27, [%r26], @cret_then1()
+  block @cret_then1:
+    ret %r25
+
+fun @my_max(%r28: u8 [acc], %r29: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r30 = cmp.ugt %r28, %r29 : bool [flag]
+    cond_ret %r30, [%r29], @cret_then1()
+  block @cret_then1:
+    ret %r28
+
+fun @classify(%r31: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r32 = const 10 : u8 [general]
+    %r33 = cmp.ult %r31, %r32 : bool [flag]
+    br_if %r33, @if_then1(), @if_else3()
+  block @if_then1:
+    %r34 = const 1 : u8 [general]
+    ret %r34
+  block @if_else3:
+    %r35 = const 100 : u8 [general]
+    %r36 = cmp.ult %r31, %r35 : bool [flag]
+    %r37 = const 3 : u8 [general]
+    cond_ret %r36, [%r37], @if_then4()
+  block @if_then4:
+    %r38 = const 2 : u8 [general]
+    ret %r38
+
+fun @hypotenuse_sq(%r39: u8 [acc], %r40: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r41 = mul %r39, %r39 : u8 [general]
+    %r42 = mul %r40, %r40 : u8 [general]
+    %r43 = add %r41, %r42 : u8 [acc]
+    ret %r43
+
+fun @inc(%r44: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r45 = const 1 : u8 [general]
+    %r46 = add %r44, %r45 : u8 [acc]
+    ret %r46
+
+fun @dbl(%r47: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r48 = add %r47, %r47 : u8 [acc]
+    ret %r48
+
