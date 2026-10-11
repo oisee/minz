@@ -1,0 +1,158 @@
+[
+  {
+    "original": "inputs/stale-executable.json",
+    "gzip": "inputs/stale-executable.json.gz",
+    "bytes": 81022,
+    "sha256": "df69d7ee397e9442aa2b54d291bcecdd3346d172d1325e7847beeafcd488b02d"
+  },
+  {
+    "original": "inputs/synthetic-cumulative-mismatch.json",
+    "gzip": "inputs/synthetic-cumulative-mismatch.json.gz",
+    "bytes": 81022,
+    "sha256": "6f76e6473d8a25978ac02356ff342db1e5ae3fb1bdae4d53083aa3ea5af97314"
+  },
+  {
+    "original": "inputs/synthetic-failed-invocation.json",
+    "gzip": "inputs/synthetic-failed-invocation.json.gz",
+    "bytes": 81066,
+    "sha256": "e4b512bd36e6890867bbc0d7aaac862a53026e796ef23d761afa0e400878639b"
+  },
+  {
+    "original": "inputs/synthetic-failed-sample.json",
+    "gzip": "inputs/synthetic-failed-sample.json.gz",
+    "bytes": 81063,
+    "sha256": "80d4d871185976f8fb5a8cdf85dbf01f449a5f4b3f42471d03dc21ef832d6c8d"
+  },
+  {
+    "original": "inputs/valid-current.json",
+    "gzip": "inputs/valid-current.json.gz",
+    "bytes": 81022,
+    "sha256": "7779c2add3e7076fa9730a3f823f0133731b9f5f46b3f39e790dca8274a675f1"
+  },
+  {
+    "original": "inputs/workload.json",
+    "gzip": "inputs/workload.json.gz",
+    "bytes": 22881,
+    "sha256": "481dfb912fd3555306951b75c9715aceedb25ef96558803344347dd035fa0079"
+  },
+  {
+    "original": "valid-current/append/allocation.json",
+    "gzip": "valid-current/append/allocation.json.gz",
+    "bytes": 17418,
+    "sha256": "86380f0420aa7269a1ddafb3c8f92f7b167c5a673c66a58d10730daab7cd9f81"
+  },
+  {
+    "original": "valid-current/append/factory-baseline.json",
+    "gzip": "valid-current/append/factory-baseline.json.gz",
+    "bytes": 301381,
+    "sha256": "4e7f2860de5de537c318f957acb8fa535d0876e07f46b3a06d971de7d951bec7"
+  },
+  {
+    "original": "valid-current/append/final.mir2",
+    "gzip": "valid-current/append/final.mir2.gz",
+    "bytes": 25250,
+    "sha256": "a736f9e74df1ad18dc473e0e1b01f7785dc62e74f6932eabeaa3417307ebd49b"
+  },
+  {
+    "original": "valid-current/append/target.a80",
+    "gzip": "valid-current/append/target.a80.gz",
+    "bytes": 31767,
+    "sha256": "27a1ba8444beccfe652500bb283da1cd79815dc926d991013a52da66730d3c90"
+  },
+  {
+    "original": "valid-current/arena/allocation.json",
+    "gzip": "valid-current/arena/allocation.json.gz",
+    "bytes": 18007,
+    "sha256": "e8aa144b006db6dce1c5d8df9f167a50aa6f03fb22074a2b63f503d90b450c91"
+  },
+  {
+    "original": "valid-current/arena/factory-baseline.json",
+    "gzip": "valid-current/arena/factory-baseline.json.gz",
+    "bytes": 311181,
+    "sha256": "72c0b430ee43a65cf6ad45490179fba09b119ad2a47ec100afbda5dfd41a551e"
+  },
+  {
+    "original": "valid-current/arena/final.mir2",
+    "gzip": "valid-current/arena/final.mir2.gz",
+    "bytes": 26107,
+    "sha256": "c96af837dbdb84f7164c11e1c1e12e741c28ab8758a4eff1d428076150516383"
+  },
+  {
+    "original": "valid-current/arena/target.a80",
+    "gzip": "valid-current/arena/target.a80.gz",
+    "bytes": 33928,
+    "sha256": "2fb6a4e4693e905584f0f7f78667b52b33099b968f1ab61356bfbf4d14e8111d"
+  },
+  {
+    "original": "valid-current/both/allocation.json",
+    "gzip": "valid-current/both/allocation.json.gz",
+    "bytes": 18007,
+    "sha256": "fcbbced5794f3a65155762f254a9287133a3842d009e70c158156dc322c7a068"
+  },
+  {
+    "original": "valid-current/both/factory-baseline.json",
+    "gzip": "valid-current/both/factory-baseline.json.gz",
+    "bytes": 311110,
+    "sha256": "1e964004dc92d69af6971c6129a4984b3b5bf41a64f4c2a70a33ed87395106b7"
+  },
+  {
+    "original": "valid-current/both/final.mir2",
+    "gzip": "valid-current/both/final.mir2.gz",
+    "bytes": 26143,
+    "sha256": "936a8d9aca6f7ac80723e498fab2bc44ffacfe2b05037d470bb45938ceee9ef1"
+  },
+  {
+    "original": "valid-current/both/target.a80",
+    "gzip": "valid-current/both/target.a80.gz",
+    "bytes": 33808,
+    "sha256": "2f7bbab0b46fe75a94c4cd5ffe5e5a92f2ea3d2a490afa39d483838108291941"
+  },
+  {
+    "original": "valid-current/original/allocation.json",
+    "gzip": "valid-current/original/allocation.json.gz",
+    "bytes": 17418,
+    "sha256": "9af8fdfdeb8d341f6f28097323c96a5b59d1fee911045b363782e8e64e0d8976"
+  },
+  {
+    "original": "valid-current/original/factory-baseline.json",
+    "gzip": "valid-current/original/factory-baseline.json.gz",
+    "bytes": 301452,
+    "sha256": "bc8ab170d670addb2849886112100f937dd23a0041362c8cd70aa9c2d6396b2d"
+  },
+  {
+    "original": "valid-current/original/final.mir2",
+    "gzip": "valid-current/original/final.mir2.gz",
+    "bytes": 25214,
+    "sha256": "7c6d066dba853d5612611b53a442e5a355d1480e31d0c0225feff75525fbd913"
+  },
+  {
+    "original": "valid-current/original/target.a80",
+    "gzip": "valid-current/original/target.a80.gz",
+    "bytes": 31887,
+    "sha256": "461d1ff70cd7bf140a5bea77df7b2948a1a069af35f2cd08b6fbffcaa8382414"
+  },
+  {
+    "original": "valid-current/selected.a80",
+    "gzip": "valid-current/selected.a80.gz",
+    "bytes": 33928,
+    "sha256": "2fb6a4e4693e905584f0f7f78667b52b33099b968f1ab61356bfbf4d14e8111d"
+  },
+  {
+    "original": "valid-current/selection.json",
+    "gzip": "valid-current/selection.json.gz",
+    "bytes": 1925166,
+    "sha256": "15285bf1ea715f7c8caceb0fa8df94787e7393aa8a01c1437753771e3f2d3b81"
+  },
+  {
+    "original": "valid-current/source-profile.json",
+    "gzip": "valid-current/source-profile.json.gz",
+    "bytes": 81022,
+    "sha256": "7779c2add3e7076fa9730a3f823f0133731b9f5f46b3f39e790dca8274a675f1"
+  },
+  {
+    "original": "valid-current/workload.json",
+    "gzip": "valid-current/workload.json.gz",
+    "bytes": 22880,
+    "sha256": "1e6d2b0640ce68ae98014ca93458730a27214f501d5e05ef7950e629d9934968"
+  }
+]
