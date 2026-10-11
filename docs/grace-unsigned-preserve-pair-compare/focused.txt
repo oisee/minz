@@ -1,0 +1,8 @@
+=== RUN   TestExperimentalUnsignedPairCompareNative
+--- PASS: TestExperimentalUnsignedPairCompareNative (0.01s)
+=== RUN   TestExperimentalUnsignedPairCompareFallback
+--- PASS: TestExperimentalUnsignedPairCompareFallback (0.00s)
+=== RUN   TestExperimentalUnsignedPairPendingAndConstantRefusal
+--- PASS: TestExperimentalUnsignedPairPendingAndConstantRefusal (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	(cached)
