@@ -1,0 +1,2 @@
+@extern fun peek(addr:u16)->u8
+fun oracle_observe(addr:u16)->u8 {return peek(addr)}
