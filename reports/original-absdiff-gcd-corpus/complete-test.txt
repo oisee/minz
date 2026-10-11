@@ -1,0 +1,144 @@
+=== RUN   TestOriginalAbsDiffGCDCorpusComplete
+=== RUN   TestOriginalAbsDiffGCDCorpusComplete/ex4a_abs_diff
+=== RUN   TestOriginalAbsDiffGCDCorpusComplete/ex4a_abs_diff/ordinary
+    original_absdiff_gcd_corpus_test.go:362: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "abs_diff": 65536
+          },
+          "mixed_zero_nonreturn_controls": 0,
+          "module_bytes": 5,
+          "source_sha256": "d200af0eb58a60d00262b54224da749ecb07a25ec15638ba03e4bf3f308ccf90",
+          "stack_depths": {
+            "abs_diff": 2
+          },
+          "terminating_workload_tstates": 2488832
+        }
+=== RUN   TestOriginalAbsDiffGCDCorpusComplete/ex4a_abs_diff/grace-size
+    original_absdiff_gcd_corpus_test.go:362: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "abs_diff": 65536
+          },
+          "mixed_zero_nonreturn_controls": 0,
+          "module_bytes": 5,
+          "source_sha256": "d200af0eb58a60d00262b54224da749ecb07a25ec15638ba03e4bf3f308ccf90",
+          "stack_depths": {
+            "abs_diff": 2
+          },
+          "terminating_workload_tstates": 2488832
+        }
+=== RUN   TestOriginalAbsDiffGCDCorpusComplete/ex4a_abs_diff/grace-speed
+    original_absdiff_gcd_corpus_test.go:362: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "abs_diff": 65536
+          },
+          "mixed_zero_nonreturn_controls": 0,
+          "module_bytes": 5,
+          "source_sha256": "d200af0eb58a60d00262b54224da749ecb07a25ec15638ba03e4bf3f308ccf90",
+          "stack_depths": {
+            "abs_diff": 2
+          },
+          "terminating_workload_tstates": 2488832
+        }
+=== RUN   TestOriginalAbsDiffGCDCorpusComplete/ex4b_abs_diff_u16
+=== RUN   TestOriginalAbsDiffGCDCorpusComplete/ex4b_abs_diff_u16/ordinary
+    original_absdiff_gcd_corpus_test.go:362: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "abs_diff_u16": 65732
+          },
+          "mixed_zero_nonreturn_controls": 0,
+          "module_bytes": 11,
+          "source_sha256": "9ef0622b17529e2989b36a749291ee50f6facfbff17f7818c7c001e4348ffbca",
+          "stack_depths": {
+            "abs_diff_u16": 2
+          },
+          "terminating_workload_tstates": 4005872
+        }
+=== RUN   TestOriginalAbsDiffGCDCorpusComplete/ex4b_abs_diff_u16/grace-size
+    original_absdiff_gcd_corpus_test.go:362: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "abs_diff_u16": 65732
+          },
+          "mixed_zero_nonreturn_controls": 0,
+          "module_bytes": 11,
+          "source_sha256": "9ef0622b17529e2989b36a749291ee50f6facfbff17f7818c7c001e4348ffbca",
+          "stack_depths": {
+            "abs_diff_u16": 2
+          },
+          "terminating_workload_tstates": 4005872
+        }
+=== RUN   TestOriginalAbsDiffGCDCorpusComplete/ex4b_abs_diff_u16/grace-speed
+    original_absdiff_gcd_corpus_test.go:362: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "abs_diff_u16": 65732
+          },
+          "mixed_zero_nonreturn_controls": 0,
+          "module_bytes": 11,
+          "source_sha256": "9ef0622b17529e2989b36a749291ee50f6facfbff17f7818c7c001e4348ffbca",
+          "stack_depths": {
+            "abs_diff_u16": 2
+          },
+          "terminating_workload_tstates": 4005872
+        }
+=== RUN   TestOriginalAbsDiffGCDCorpusComplete/ex8_gcd
+=== RUN   TestOriginalAbsDiffGCDCorpusComplete/ex8_gcd/ordinary
+    original_absdiff_gcd_corpus_test.go:362: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "gcd": 65026
+          },
+          "mixed_zero_nonreturn_controls": 510,
+          "module_bytes": 21,
+          "source_sha256": "88747063a59526e797061cf828911c417e661723efb3b614715f2d2109977832",
+          "stack_depths": {
+            "gcd": 2
+          },
+          "terminating_workload_tstates": 96153077
+        }
+=== RUN   TestOriginalAbsDiffGCDCorpusComplete/ex8_gcd/grace-size
+    original_absdiff_gcd_corpus_test.go:362: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "gcd": 65026
+          },
+          "mixed_zero_nonreturn_controls": 510,
+          "module_bytes": 15,
+          "source_sha256": "88747063a59526e797061cf828911c417e661723efb3b614715f2d2109977832",
+          "stack_depths": {
+            "gcd": 2
+          },
+          "terminating_workload_tstates": 58563703
+        }
+=== RUN   TestOriginalAbsDiffGCDCorpusComplete/ex8_gcd/grace-speed
+    original_absdiff_gcd_corpus_test.go:362: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "gcd": 65026
+          },
+          "mixed_zero_nonreturn_controls": 510,
+          "module_bytes": 15,
+          "source_sha256": "88747063a59526e797061cf828911c417e661723efb3b614715f2d2109977832",
+          "stack_depths": {
+            "gcd": 2
+          },
+          "terminating_workload_tstates": 58563703
+        }
+--- PASS: TestOriginalAbsDiffGCDCorpusComplete (4.85s)
+    --- PASS: TestOriginalAbsDiffGCDCorpusComplete/ex4a_abs_diff (0.34s)
+        --- PASS: TestOriginalAbsDiffGCDCorpusComplete/ex4a_abs_diff/ordinary (0.11s)
+        --- PASS: TestOriginalAbsDiffGCDCorpusComplete/ex4a_abs_diff/grace-size (0.12s)
+        --- PASS: TestOriginalAbsDiffGCDCorpusComplete/ex4a_abs_diff/grace-speed (0.11s)
+    --- PASS: TestOriginalAbsDiffGCDCorpusComplete/ex4b_abs_diff_u16 (0.37s)
+        --- PASS: TestOriginalAbsDiffGCDCorpusComplete/ex4b_abs_diff_u16/ordinary (0.13s)
+        --- PASS: TestOriginalAbsDiffGCDCorpusComplete/ex4b_abs_diff_u16/grace-size (0.12s)
+        --- PASS: TestOriginalAbsDiffGCDCorpusComplete/ex4b_abs_diff_u16/grace-speed (0.12s)
+    --- PASS: TestOriginalAbsDiffGCDCorpusComplete/ex8_gcd (4.14s)
+        --- PASS: TestOriginalAbsDiffGCDCorpusComplete/ex8_gcd/ordinary (1.50s)
+        --- PASS: TestOriginalAbsDiffGCDCorpusComplete/ex8_gcd/grace-size (1.14s)
+        --- PASS: TestOriginalAbsDiffGCDCorpusComplete/ex8_gcd/grace-speed (1.50s)
+PASS

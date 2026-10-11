@@ -1,0 +1,18 @@
+; MIR2 module: reports/showcase-src/2026-03-10/ex4a_abs_diff.nanz
+fun @abs_diff(%r1: u8 [acc], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = cmp.eq %r1, %r2 : bool [flag]
+    br_if %r3, @if_then1(), @if_join2()
+  block @if_then1:
+    %r4 = const 0 : u8 [general]
+    ret %r4
+  block @if_join2:
+    %r5 = cmp.ult %r1, %r2 : bool [flag]
+    br_if %r5, @if_then3(), @if_join4()
+  block @if_then3:
+    %r6 = sub %r2, %r1 : u8 [acc]
+    ret %r6
+  block @if_join4:
+    %r7 = sub %r1, %r2 : u8 [acc]
+    ret %r7
+

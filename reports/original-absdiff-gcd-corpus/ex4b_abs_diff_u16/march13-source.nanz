@@ -1,0 +1,6 @@
+fun abs_diff_u16(a: u16, b: u16) -> u16 {
+    if a < b {
+        return b - a
+    }
+    return a - b
+}
