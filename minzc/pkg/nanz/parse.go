@@ -5853,6 +5853,17 @@ func resultTy(l, r mir2.Ty, op string) mir2.Ty {
 	if mir2.IsPointer(r) && mir2.PointerElem(r) != mir2.TyU8 {
 		return r
 	}
+	// Primitive unsigned arithmetic uses the widest operand. Do this before
+	// the historical u16 shortcut so a word cannot truncate a u24/u32 peer.
+	// Shifts and mixed signedness retain their existing separate policies.
+	if op != "<<" && op != ">>" && mir2.IsInt(l) && mir2.IsInt(r) &&
+		!mir2.IsSigned(l) && !mir2.IsSigned(r) {
+		if r.Width() > l.Width() {
+			return r
+		}
+		return l
+	}
+
 	if l == mir2.TyU16 || r == mir2.TyU16 {
 		return mir2.TyU16
 	}

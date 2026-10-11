@@ -1,0 +1,26 @@
+=== RUN   TestMixedUnsignedWidthBothOrders
+=== RUN   TestMixedUnsignedWidthBothOrders/u24_add
+=== RUN   TestMixedUnsignedWidthBothOrders/u24_sub
+=== RUN   TestMixedUnsignedWidthBothOrders/u24_and
+=== RUN   TestMixedUnsignedWidthBothOrders/u24_or
+=== RUN   TestMixedUnsignedWidthBothOrders/u24_xor
+=== RUN   TestMixedUnsignedWidthBothOrders/u32_add
+=== RUN   TestMixedUnsignedWidthBothOrders/u32_sub
+=== RUN   TestMixedUnsignedWidthBothOrders/u32_and
+=== RUN   TestMixedUnsignedWidthBothOrders/u32_or
+=== RUN   TestMixedUnsignedWidthBothOrders/u32_xor
+--- PASS: TestMixedUnsignedWidthBothOrders (1.79s)
+    --- PASS: TestMixedUnsignedWidthBothOrders/u24_add (0.13s)
+    --- PASS: TestMixedUnsignedWidthBothOrders/u24_sub (0.16s)
+    --- PASS: TestMixedUnsignedWidthBothOrders/u24_and (0.13s)
+    --- PASS: TestMixedUnsignedWidthBothOrders/u24_or (0.16s)
+    --- PASS: TestMixedUnsignedWidthBothOrders/u24_xor (0.35s)
+    --- PASS: TestMixedUnsignedWidthBothOrders/u32_add (0.13s)
+    --- PASS: TestMixedUnsignedWidthBothOrders/u32_sub (0.18s)
+    --- PASS: TestMixedUnsignedWidthBothOrders/u32_and (0.16s)
+    --- PASS: TestMixedUnsignedWidthBothOrders/u32_or (0.17s)
+    --- PASS: TestMixedUnsignedWidthBothOrders/u32_xor (0.23s)
+=== RUN   TestSignedWordLiteralLeftKeepsArithmeticWidth
+--- PASS: TestSignedWordLiteralLeftKeepsArithmeticWidth (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.811s
