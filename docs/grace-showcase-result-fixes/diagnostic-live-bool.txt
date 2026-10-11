@@ -1,0 +1,7 @@
+=== RUN   TestTruthAliasBindingsVMZ80
+    result_semantics_test.go:47: line 11: assert "assert live_bool(0, 3) == 0" [z80]: got 1, want 0
+--- FAIL: TestTruthAliasBindingsVMZ80 (0.01s)
+=== RUN   TestComparisonBooleanALUVMZ80
+signal: terminated
+FAIL	github.com/minz/minzc/pkg/lizp	92.495s
+FAIL

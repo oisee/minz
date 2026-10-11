@@ -31,8 +31,19 @@ func (g *z80cg) genInst(inst *Inst) {
 	}
 
 	// Scratch relocations of A are instruction-local. Return them to their
-	// allocated home before another instruction can allocate that scratch.
+	// allocated home before another instruction can allocate that scratch. A dead
+	// relocation must not overwrite a newer value that shares the allocated A.
+	// Keep the current destination override: recursive spill staging owns it.
+	liveOverrides := g.regsLiveAfterInst(inst)
+	for _, r := range inst.Uses() {
+		liveOverrides[r] = true
+	}
+	delete(liveOverrides, inst.Dst)
 	for _, r := range slices.Sorted(maps.Keys(g.physOverride)) {
+		if r != inst.Dst && !liveOverrides[r] {
+			delete(g.physOverride, r)
+			continue
+		}
 		loc := g.physOverride[r]
 		if g.ar.Loc(r).Name == "A" && loc != "A" && loc != "F" {
 			g.emitLD8("A", loc)

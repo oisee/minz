@@ -141,10 +141,17 @@ func desugarDefun(n lanz.Node) ([]lanz.Node, error) {
 	retType := n.List[arrowIdx+1]
 	bodyStart := arrowIdx + 2
 
+	// Preserve parameters named t/nil: these names are identifiers when bound,
+	// and only unbound occurrences are Lisp truth/zero aliases.
+	aliases := map[string]string{}
+	aliasID := 0
+	reserveAliasNames(n, aliases)
+	params = renameTruthBindings(params, aliases, &aliasID)
+
 	// Desugar body statements
 	var body []lanz.Node
 	for _, s := range n.List[bodyStart:] {
-		ds := desugarExpr(s)
+		ds := desugarExpr(shadowTruthAliases(s, aliases, &aliasID))
 		body = append(body, ds)
 	}
 
@@ -237,6 +244,89 @@ func desugarDefextern(n lanz.Node) ([]lanz.Node, error) {
 	}
 	result := lanz.Node{List: elems, Line: n.Line}
 	return []lanz.Node{result}, nil
+}
+
+// Alpha-renaming happens before sugar expansion, so truth aliases remain
+// available without rewriting a declared parameter or let variable into a literal.
+func reserveAliasNames(n lanz.Node, scope map[string]string) {
+	if n.IsAtom() {
+		scope["\x00"+n.Atom] = n.Atom
+		return
+	}
+	for _, child := range n.List {
+		reserveAliasNames(child, scope)
+	}
+}
+
+func renameTruthBindings(bindings lanz.Node, scope map[string]string, id *int) lanz.Node {
+	bindings.List = append([]lanz.Node(nil), bindings.List...)
+	for i, b := range bindings.List {
+		if !b.IsList() || len(b.List) == 0 {
+			continue
+		}
+		name := b.List[0].Atom
+		if name != "t" && name != "nil" {
+			continue
+		}
+		fresh := ""
+		for {
+			(*id)++
+			fresh = fmt.Sprintf("__lizp_alias_%s_%d", name, *id)
+			if _, occupied := scope["\x00"+fresh]; !occupied {
+				break
+			}
+		}
+		scope["\x00"+fresh] = fresh
+		scope[name] = fresh
+		b.List = append([]lanz.Node(nil), b.List...)
+		b.List[0] = atom(fresh, b.Line)
+		bindings.List[i] = b
+	}
+	return bindings
+}
+
+func shadowTruthAliases(n lanz.Node, scope map[string]string, id *int) lanz.Node {
+	if n.IsAtom() {
+		if name, ok := scope[n.Atom]; ok {
+			n.Atom = name
+		}
+		return n
+	}
+	if len(n.List) == 0 {
+		return n
+	}
+	n.List = append([]lanz.Node(nil), n.List...)
+	head := n.List[0].Atom
+	if (head == "let" || head == "fn" || head == "lambda") && len(n.List) >= 3 {
+		inner := make(map[string]string, len(scope))
+		for k, v := range scope {
+			inner[k] = v
+		}
+		bindings := n.List[1]
+		if head == "let" {
+			bindings.List = append([]lanz.Node(nil), bindings.List...)
+			for i, b := range bindings.List {
+				b.List = append([]lanz.Node(nil), b.List...)
+				for j := 2; j < len(b.List); j++ {
+					b.List[j] = shadowTruthAliases(b.List[j], scope, id)
+				}
+				bindings.List[i] = b
+			}
+		}
+		n.List[1] = renameTruthBindings(bindings, inner, id)
+		start := 2
+		if head != "let" {
+			start = 3
+		}
+		for i := start; i < len(n.List); i++ {
+			n.List[i] = shadowTruthAliases(n.List[i], inner, id)
+		}
+		return n
+	}
+	for i := 1; i < len(n.List); i++ {
+		n.List[i] = shadowTruthAliases(n.List[i], scope, id)
+	}
+	return n
 }
 
 // desugarExpr transforms Lizp expression sugar into Lanz forms.

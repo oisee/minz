@@ -132,15 +132,8 @@ func (g *z80cg) freeScratch8(upcomingInst *Inst) string {
 	return ""
 }
 
-// materializePendingFlag checks whether the most recent ClassFlag result
-// (pendingFlagReg) is still needed after upcomingInst. If so, it emits:
-//
-//	SBC A, A      ; A = 0xFF if condition-true, 0x00 if condition-false
-//	LD  <scratch>, A
-//
-// where <scratch> is a register that is not currently holding any live value,
-// and reroutes pendingFlagReg via physOverride so subsequent genBinOp reads
-// it from there rather than from the (now-clobbered) carry flag.
+// materializePendingFlag preserves a live predicate before another comparison
+// overwrites F. Use its full condition (Z, C, NC, or compound), and retain A.
 func (g *z80cg) materializePendingFlag(upcomingInst *Inst) {
 	if g.pendingFlagReg == NoReg {
 		return
@@ -149,11 +142,16 @@ func (g *z80cg) materializePendingFlag(upcomingInst *Inst) {
 		g.pendingFlagReg = NoReg
 		return
 	}
-	scratch := g.pickScratch8(upcomingInst)
-	// Materialize carry → 0xFF (true) or 0x00 (false) via SBC A, A.
-	g.emit("    SBC A, A")
+	scratch := g.freeScratch8(upcomingInst)
+	if scratch == "" {
+		scratch = g.spillLabel(g.pendingFlagReg)
+	}
+	g.emit("    PUSH AF")
+	g.emitFlagPredicateByte(g.condCode(g.fn, g.pendingFlagReg))
+	g.emitLD8(scratch, "A")
+	g.emit("    POP AF")
 	g.invalidate("A")
-	g.emitf("    LD %s, A", scratch)
+	g.invalidate(scratch)
 	g.physOverride[g.pendingFlagReg] = scratch
 	g.pendingFlagReg = NoReg
 }

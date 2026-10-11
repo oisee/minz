@@ -1,0 +1,65 @@
+=== RUN   TestU16ThroughHIRAndMIR2
+=== RUN   TestU16ThroughHIRAndMIR2/add16
+=== RUN   TestU16ThroughHIRAndMIR2/local16
+--- PASS: TestU16ThroughHIRAndMIR2 (0.00s)
+    --- PASS: TestU16ThroughHIRAndMIR2/add16 (0.00s)
+    --- PASS: TestU16ThroughHIRAndMIR2/local16 (0.00s)
+=== RUN   TestCompileMinimal
+--- PASS: TestCompileMinimal (0.00s)
+=== RUN   TestCompileDefun
+--- PASS: TestCompileDefun (0.00s)
+=== RUN   TestCompileLet
+--- PASS: TestCompileLet (0.00s)
+=== RUN   TestCompileCond
+--- PASS: TestCompileCond (0.00s)
+=== RUN   TestCompileDotimes
+--- PASS: TestCompileDotimes (0.00s)
+=== RUN   TestCompileDefstruct
+--- PASS: TestCompileDefstruct (0.00s)
+=== RUN   TestCompileDefglobal
+--- PASS: TestCompileDefglobal (0.00s)
+=== RUN   TestCompileWhenUnless
+--- PASS: TestCompileWhenUnless (0.00s)
+=== RUN   TestCompileHexBinary
+--- PASS: TestCompileHexBinary (0.00s)
+=== RUN   TestCompileSetq
+--- PASS: TestCompileSetq (0.00s)
+=== RUN   TestCompileProgn
+--- PASS: TestCompileProgn (0.00s)
+=== RUN   TestCompileBoolOps
+--- PASS: TestCompileBoolOps (0.00s)
+=== RUN   TestCompileDefextern
+--- PASS: TestCompileDefextern (0.00s)
+=== RUN   TestCompileDefmacro
+--- PASS: TestCompileDefmacro (0.00s)
+=== RUN   TestCompileThreadFirst
+--- PASS: TestCompileThreadFirst (0.00s)
+=== RUN   TestCompileThreadLast
+--- PASS: TestCompileThreadLast (0.00s)
+=== RUN   TestMacroExpansionRecursive
+--- PASS: TestMacroExpansionRecursive (0.00s)
+=== RUN   TestAssert_Parse
+--- PASS: TestAssert_Parse (0.00s)
+=== RUN   TestAssert_HexLiteral
+--- PASS: TestAssert_HexLiteral (0.00s)
+=== RUN   TestAssert_E2E
+--- PASS: TestAssert_E2E (0.00s)
+=== RUN   TestFuncall
+--- PASS: TestFuncall (0.00s)
+=== RUN   TestLambda
+--- PASS: TestLambda (0.00s)
+=== RUN   TestLetStar
+--- PASS: TestLetStar (0.00s)
+=== RUN   TestCase
+--- PASS: TestCase (0.00s)
+=== RUN   TestTruthAliasBindingsVMZ80
+    result_semantics_test.go:53: 90 independent assertions verified by MIR2 VM and assembled Z80
+--- PASS: TestTruthAliasBindingsVMZ80 (0.26s)
+=== RUN   TestComparisonBooleanALUVMZ80
+    result_semantics_test.go:89: 2700 independent assertions verified by MIR2 VM and assembled Z80
+--- PASS: TestComparisonBooleanALUVMZ80 (3.01s)
+=== RUN   TestCaesarExampleBoundaryVMZ80
+    result_semantics_test.go:114: 61 source assertions verified by MIR2 VM and assembled Z80
+--- PASS: TestCaesarExampleBoundaryVMZ80 (0.20s)
+PASS
+ok  	github.com/minz/minzc/pkg/lizp	3.478s

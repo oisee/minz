@@ -1,0 +1,11 @@
+=== RUN   TestShowcaseCompileAssemble
+    showcase_test.go:86: Found 192 showcase files
+=== RUN   TestShowcaseCompileAssemble/crypto.lizp
+    showcase_test.go:159: OK: 2174 bytes asm, 99 bytes binary
+=== RUN   TestShowcaseCompileAssemble/dsp.lizp
+    showcase_test.go:159: OK: 2131 bytes asm, 115 bytes binary
+--- PASS: TestShowcaseCompileAssemble (0.04s)
+    --- PASS: TestShowcaseCompileAssemble/crypto.lizp (0.02s)
+    --- PASS: TestShowcaseCompileAssemble/dsp.lizp (0.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/nanz	0.046s

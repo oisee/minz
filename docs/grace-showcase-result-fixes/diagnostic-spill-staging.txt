@@ -1,0 +1,562 @@
+[Z80-VALIDATE] double: 4 invalid instruction(s)
+  line 3: >>> ADD A, <<<
+  line 4: >>> LD , A <<<
+[Z80-VALIDATE] fibonacci: 16 invalid instruction(s)
+  line 3: >>> LD , 1 <<<
+  line 8: >>> LD , 0 <<<
+  line 11: >>> LD , 0 <<<
+  line 12: >>> LD , 1 <<<
+  line 13: >>> LD , 2 <<<
+  line 19: >>> LD L, <<<
+  line 21: >>> ADD HL, <<<
+  line 22: >>> LD , L <<<
+[Z80-VALIDATE] double: 4 invalid instruction(s)
+  line 3: >>> ADD A, <<<
+  line 4: >>> LD , A <<<
+; MIR2 module: fib
+fun @fibonacci(%r1: u8 [acc]) -> u16 [pointer]
+  block @entry:
+    %r2 = const 1 : u8 [general]
+    %r3 = cmp.le %r1, %r2 : bool [flag]
+    br_if %r3, @base(), @loop_init()
+  block @base:
+    %r4 = ext %r1 : u8 -> u16 [acc]
+    ret %r4
+  block @loop_init:
+    %r5 = const 0 : u16 [pointer]
+    %r6 = const 1 : u16 [index]
+    %r7 = const 2 : u8 [counter]
+    jmp @loop_head(%r5, %r6, %r7)
+  block @loop_head(%r8: u16 [pointer], %r9: u16 [index], %r10: u8 [counter]):
+    %r11 = cmp.le %r10, %r1 : bool [flag]
+    br_if %r11, @loop_body(%r8, %r9, %r10), @exit(%r9)
+  block @loop_body(%r12: u16 [pointer], %r13: u16 [index], %r14: u8 [counter]):
+    %r15 = add %r12, %r13 : u16 [pointer]
+    %r16 = const 1 : u8 [general]
+    %r17 = add %r14, %r16 : u8 [counter]
+    jmp @loop_head(%r13, %r15, %r17)
+  block @exit(%r18: u16 [pointer]):
+    ret %r18
+
+
+runtime: goroutine stack exceeds 1000000000-byte limit
+runtime: sp=0x26763d4a8398 stack=[0x26763d4a8000, 0x26765d4a8000]
+fatal error: stack overflow
+
+runtime stack:
+runtime.throw({0xc790d3?, 0x43f2da?})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/panic.go:1229 +0x48 fp=0x777d9619bd10 sp=0x777d9619bce0 pc=0x48a508
+runtime.newstack()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/stack.go:1207 +0x5fd fp=0x777d9619be40 sp=0x777d9619bd10 pc=0x46e43d
+runtime.morestack()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:681 +0x7d fp=0x777d9619be48 sp=0x777d9619be40 pc=0x49039d
+
+goroutine 1546 gp=0x26761ca51860 m=5 mp=0x26761ca80008 [running]:
+internal/runtime/maps.NewMap(0xbd7140, 0x1, 0x26763d4a8630?, 0x1000000000000)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/internal/runtime/maps/map.go:264 +0x210 fp=0x26763d4a83a8 sp=0x26763d4a83a0 pc=0x40e270
+runtime.makemap(0x0?, 0x0?, 0x0?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/map.go:67 +0x29 fp=0x26763d4a83d8 sp=0x26763d4a83a8 pc=0x4882e9
+github.com/minz/minzc/pkg/mir2.ComputeLiveness(0x26761cd24140)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/liveness.go:220 +0xae fp=0x26763d4a86f8 sp=0x26763d4a83d8 pc=0x65056e
+github.com/minz/minzc/pkg/mir2.(*z80cg).regsLiveAfterInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_call.go:897 +0x45 fp=0x26763d4a8750 sp=0x26763d4a86f8 pc=0x6973a5
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:35 +0x10f fp=0x26763d4a8d50 sp=0x26763d4a8750 pc=0x6a3b4f
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26763d4a9180 sp=0x26763d4a8d50 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26763d4a9780 sp=0x26763d4a9180 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26763d4a9bb0 sp=0x26763d4a9780 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26763d4aa1b0 sp=0x26763d4a9bb0 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26763d4aa5e0 sp=0x26763d4aa1b0 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26763d4aabe0 sp=0x26763d4aa5e0 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26763d4ab010 sp=0x26763d4aabe0 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26763d4ab610 sp=0x26763d4ab010 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26763d4aba40 sp=0x26763d4ab610 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26763d4ac040 sp=0x26763d4aba40 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26763d4ac470 sp=0x26763d4ac040 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26763d4aca70 sp=0x26763d4ac470 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26763d4acea0 sp=0x26763d4aca70 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26763d4ad4a0 sp=0x26763d4acea0 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26763d4ad8d0 sp=0x26763d4ad4a0 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26763d4aded0 sp=0x26763d4ad8d0 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26763d4ae300 sp=0x26763d4aded0 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26763d4ae900 sp=0x26763d4ae300 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26763d4aed30 sp=0x26763d4ae900 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26763d4af330 sp=0x26763d4aed30 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26763d4af760 sp=0x26763d4af330 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26763d4afd60 sp=0x26763d4af760 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26763d4b0190 sp=0x26763d4afd60 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26763d4b0790 sp=0x26763d4b0190 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26763d4b0bc0 sp=0x26763d4b0790 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26763d4b11c0 sp=0x26763d4b0bc0 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26763d4b15f0 sp=0x26763d4b11c0 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26763d4b1bf0 sp=0x26763d4b15f0 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26763d4b2020 sp=0x26763d4b1bf0 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26763d4b2620 sp=0x26763d4b2020 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26763d4b2a50 sp=0x26763d4b2620 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26763d4b3050 sp=0x26763d4b2a50 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26763d4b3480 sp=0x26763d4b3050 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26763d4b3a80 sp=0x26763d4b3480 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26763d4b3eb0 sp=0x26763d4b3a80 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26763d4b44b0 sp=0x26763d4b3eb0 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26763d4b48e0 sp=0x26763d4b44b0 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26763d4b4ee0 sp=0x26763d4b48e0 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26763d4b5310 sp=0x26763d4b4ee0 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26763d4b5910 sp=0x26763d4b5310 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26763d4b5d40 sp=0x26763d4b5910 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26763d4b6340 sp=0x26763d4b5d40 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26763d4b6770 sp=0x26763d4b6340 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26763d4b6d70 sp=0x26763d4b6770 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26763d4b71a0 sp=0x26763d4b6d70 pc=0x6ca4ba
+...411618 frames elided...
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26765d499ed0 sp=0x26765d4998d0 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26765d49a300 sp=0x26765d499ed0 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26765d49a900 sp=0x26765d49a300 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26765d49ad30 sp=0x26765d49a900 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26765d49b330 sp=0x26765d49ad30 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26765d49b760 sp=0x26765d49b330 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26765d49bd60 sp=0x26765d49b760 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26765d49c190 sp=0x26765d49bd60 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26765d49c790 sp=0x26765d49c190 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26765d49cbc0 sp=0x26765d49c790 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26765d49d1c0 sp=0x26765d49cbc0 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26765d49d5f0 sp=0x26765d49d1c0 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26765d49dbf0 sp=0x26765d49d5f0 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26765d49e020 sp=0x26765d49dbf0 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26765d49e620 sp=0x26765d49e020 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26765d49ea50 sp=0x26765d49e620 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26765d49f050 sp=0x26765d49ea50 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26765d49f480 sp=0x26765d49f050 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26765d49fa80 sp=0x26765d49f480 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26765d49feb0 sp=0x26765d49fa80 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26765d4a04b0 sp=0x26765d49feb0 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26765d4a08e0 sp=0x26765d4a04b0 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26765d4a0ee0 sp=0x26765d4a08e0 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26765d4a1310 sp=0x26765d4a0ee0 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26765d4a1910 sp=0x26765d4a1310 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26765d4a1d40 sp=0x26765d4a1910 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26765d4a2340 sp=0x26765d4a1d40 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26765d4a2770 sp=0x26765d4a2340 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26765d4a2d70 sp=0x26765d4a2770 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26765d4a31a0 sp=0x26765d4a2d70 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26765d4a37a0 sp=0x26765d4a31a0 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26765d4a3bd0 sp=0x26765d4a37a0 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26765d4a41d0 sp=0x26765d4a3bd0 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26765d4a4600 sp=0x26765d4a41d0 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26765d4a4c00 sp=0x26765d4a4600 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26765d4a5030 sp=0x26765d4a4c00 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26765d4a5630 sp=0x26765d4a5030 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26765d4a5a60 sp=0x26765d4a5630 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26765d4a6060 sp=0x26765d4a5a60 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26765d4a6490 sp=0x26765d4a6060 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26765d4a6a90 sp=0x26765d4a6490 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genWideSpills(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_spill.go:78 +0xb3a fp=0x26765d4a6ec0 sp=0x26765d4a6a90 pc=0x6ca4ba
+github.com/minz/minzc/pkg/mir2.(*z80cg).genInst(0x26761cb3f208, 0x26761cafc1e0)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen_inst.go:59 +0x3f9 fp=0x26765d4a74c0 sp=0x26765d4a6ec0 pc=0x6a3e39
+github.com/minz/minzc/pkg/mir2.(*z80cg).genBlock(0x26761cb3f208, 0x26761cd24140, 0x26761ca32140)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen.go:1029 +0x4a5 fp=0x26765d4a75c0 sp=0x26765d4a74c0 pc=0x685165
+github.com/minz/minzc/pkg/mir2.(*z80cg).genFunc(0x26761cb3f208, 0x26761cd24140)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen.go:788 +0x953 fp=0x26765d4a7ae0 sp=0x26765d4a75c0 pc=0x6837b3
+github.com/minz/minzc/pkg/mir2.Z80Codegen(0x26761cd240a0, 0x26761cbd7e80, {0x0, 0x0, 0x0?})
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/z80codegen.go:271 +0x80b fp=0x26765d4a7e40 sp=0x26765d4a7ae0 pc=0x67ebab
+github.com/minz/minzc/pkg/mir2_test.TestP8WideSpill.func1(0x26761cb3ed88)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/p8_invalid_asm_test.go:134 +0x549 fp=0x26765d4a7f70 sp=0x26765d4a7e40 pc=0xadd289
+testing.tRunner(0x26761cb3ed88, 0x26761cf9c140)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2036 +0xea fp=0x26765d4a7fc0 sp=0x26765d4a7f70 pc=0x52474a
+testing.(*T).Run.gowrap1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2101 +0x1b fp=0x26765d4a7fe0 sp=0x26765d4a7fc0 pc=0x5258db
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26765d4a7fe8 sp=0x26765d4a7fe0 pc=0x491e61
+created by testing.(*T).Run in goroutine 1545
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2101 +0x4c5
+
+goroutine 1 gp=0x26761c95e1e0 m=nil [chan receive]:
+runtime.gopark(0x3007dde5d3ec8?, 0x3007dde4662e0?, 0xe0?, 0x62?, 0x777dde5d3ec8?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:462 +0xce fp=0x26761ceab990 sp=0x26761ceab970 pc=0x48a62e
+runtime.chanrecv(0x26761c98e380, 0x26761ceaba77, 0x1)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/chan.go:667 +0x4ae fp=0x26761ceaba08 sp=0x26761ceab990 pc=0x41acce
+runtime.chanrecv1(0x122e4c0?, 0xcdf820?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/chan.go:509 +0x12 fp=0x26761ceaba30 sp=0x26761ceaba08 pc=0x41a812
+testing.(*T).Run(0x26761cb3e6c8, {0xc79a51?, 0x0?}, 0xcb6810)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2109 +0x4e5 fp=0x26761ceabb08 sp=0x26761ceaba30 pc=0x525765
+testing.runTests.func1(0x26761cb3e6c8)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2585 +0x3e fp=0x26761ceabb50 sp=0x26761ceabb08 pc=0x527b7e
+testing.tRunner(0x26761cb3e6c8, 0x26761cc49c58)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2036 +0xea fp=0x26761ceabba0 sp=0x26761ceabb50 pc=0x52474a
+testing.runTests({0xc80605, 0x15}, {0xc8b1f3, 0x1e}, 0x26761cd94090, {0x1223d40, 0x1b0, 0x1b0}, {0xc2ab08d625bd7869, 0x8bb30a63ee, ...})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2583 +0x505 fp=0x26761ceabc88 sp=0x26761ceabba0 pc=0x527a45
+testing.(*M).Run(0x26761ca48640)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2443 +0x6ac fp=0x26761ceabec8 sp=0x26761ceabc88 pc=0x5263cc
+main.main()
+	_testmain.go:910 +0x9b fp=0x26761ceabf48 sp=0x26761ceabec8 pc=0xb0d2db
+runtime.main()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:290 +0x2d5 fp=0x26761ceabfe0 sp=0x26761ceabf48 pc=0x453fb5
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26761ceabfe8 sp=0x26761ceabfe0 pc=0x491e61
+
+goroutine 2 gp=0x26761c95ed20 m=nil [force gc (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:462 +0xce fp=0x26761c9eafa8 sp=0x26761c9eaf88 pc=0x48a62e
+runtime.goparkunlock(...)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:468
+runtime.forcegchelper()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:375 +0xb3 fp=0x26761c9eafe0 sp=0x26761c9eafa8 pc=0x4542d3
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26761c9eafe8 sp=0x26761c9eafe0 pc=0x491e61
+created by runtime.init.7 in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:363 +0x1a
+
+goroutine 3 gp=0x26761c95f2c0 m=nil [GC sweep wait]:
+runtime.gopark(0x122e301?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:462 +0xce fp=0x26761c9eb788 sp=0x26761c9eb768 pc=0x48a62e
+runtime.goparkunlock(...)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:468
+runtime.bgsweep(0x26761c98e080)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgcsweep.go:324 +0x151 fp=0x26761c9eb7c8 sp=0x26761c9eb788 pc=0x43b7b1
+runtime.gcenable.gowrap1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:214 +0x17 fp=0x26761c9eb7e0 sp=0x26761c9eb7c8 pc=0x42cb17
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26761c9eb7e8 sp=0x26761c9eb7e0 pc=0x491e61
+created by runtime.gcenable in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:214 +0x66
+
+goroutine 4 gp=0x26761c95f4a0 m=nil [sleep]:
+runtime.gopark(0x26761ca1e000?, 0xb6026306acf1c?, 0x0?, 0x0?, 0x0?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:462 +0xce fp=0x26761c9ebf38 sp=0x26761c9ebf18 pc=0x48a62e
+runtime.goparkunlock(...)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:468
+runtime.(*scavengerState).sleep(0x122eca0, 0x4130b46000000000)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgcscavenge.go:504 +0xf6 fp=0x26761c9ebfa8 sp=0x26761c9ebf38 pc=0x4393f6
+runtime.bgscavenge(0x26761c98e080)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgcscavenge.go:662 +0x74 fp=0x26761c9ebfc8 sp=0x26761c9ebfa8 pc=0x4397d4
+runtime.gcenable.gowrap2()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:215 +0x17 fp=0x26761c9ebfe0 sp=0x26761c9ebfc8 pc=0x42cad7
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26761c9ebfe8 sp=0x26761c9ebfe0 pc=0x491e61
+created by runtime.gcenable in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:215 +0xa5
+
+goroutine 5 gp=0x26761ca50000 m=nil [finalizer wait]:
+runtime.gopark(0x4638b5?, 0x1c8?, 0x40?, 0x99?, 0x26761c9ea601?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:462 +0xce fp=0x26761c9ea620 sp=0x26761c9ea600 pc=0x48a62e
+runtime.runFinalizers()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mfinal.go:210 +0x107 fp=0x26761c9ea7e0 sp=0x26761c9ea620 pc=0x42ba87
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26761c9ea7e8 sp=0x26761c9ea7e0 pc=0x491e61
+created by runtime.createfing in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mfinal.go:172 +0x3d
+
+goroutine 6 gp=0x26761ca503c0 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:462 +0xce fp=0x26761c9ec740 sp=0x26761c9ec720 pc=0x48a62e
+runtime.gcBgMarkWorker(0x26761c992620)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1791 +0xeb fp=0x26761c9ec7c8 sp=0x26761c9ec740 pc=0x42f5eb
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x17 fp=0x26761c9ec7e0 sp=0x26761c9ec7c8 pc=0x42f4d7
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26761c9ec7e8 sp=0x26761c9ec7e0 pc=0x491e61
+created by runtime.gcBgMarkStartWorkers in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x105
+
+goroutine 18 gp=0x26761ca843c0 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:462 +0xce fp=0x26761c9e6740 sp=0x26761c9e6720 pc=0x48a62e
+runtime.gcBgMarkWorker(0x26761c992620)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1791 +0xeb fp=0x26761c9e67c8 sp=0x26761c9e6740 pc=0x42f5eb
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x17 fp=0x26761c9e67e0 sp=0x26761c9e67c8 pc=0x42f4d7
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26761c9e67e8 sp=0x26761c9e67e0 pc=0x491e61
+created by runtime.gcBgMarkStartWorkers in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x105
+
+goroutine 19 gp=0x26761ca845a0 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:462 +0xce fp=0x26761c9e6f40 sp=0x26761c9e6f20 pc=0x48a62e
+runtime.gcBgMarkWorker(0x26761c992620)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1791 +0xeb fp=0x26761c9e6fc8 sp=0x26761c9e6f40 pc=0x42f5eb
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x17 fp=0x26761c9e6fe0 sp=0x26761c9e6fc8 pc=0x42f4d7
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26761c9e6fe8 sp=0x26761c9e6fe0 pc=0x491e61
+created by runtime.gcBgMarkStartWorkers in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x105
+
+goroutine 20 gp=0x26761ca84780 m=nil [GC worker (idle)]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:462 +0xce fp=0x26761c9e7740 sp=0x26761c9e7720 pc=0x48a62e
+runtime.gcBgMarkWorker(0x26761c992620)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1791 +0xeb fp=0x26761c9e77c8 sp=0x26761c9e7740 pc=0x42f5eb
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x17 fp=0x26761c9e77e0 sp=0x26761c9e77c8 pc=0x42f4d7
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26761c9e77e8 sp=0x26761c9e77e0 pc=0x491e61
+created by runtime.gcBgMarkStartWorkers in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x105
+
+goroutine 21 gp=0x26761ca84960 m=nil [GC worker (idle)]:
+runtime.gopark(0xb6025ee99090a?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:462 +0xce fp=0x26761c9e7f40 sp=0x26761c9e7f20 pc=0x48a62e
+runtime.gcBgMarkWorker(0x26761c992620)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1791 +0xeb fp=0x26761c9e7fc8 sp=0x26761c9e7f40 pc=0x42f5eb
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x17 fp=0x26761c9e7fe0 sp=0x26761c9e7fc8 pc=0x42f4d7
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26761c9e7fe8 sp=0x26761c9e7fe0 pc=0x491e61
+created by runtime.gcBgMarkStartWorkers in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x105
+
+goroutine 22 gp=0x26761ca84b40 m=nil [GC worker (idle)]:
+runtime.gopark(0xb6025ee9a0c0f?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:462 +0xce fp=0x26761c9e8740 sp=0x26761c9e8720 pc=0x48a62e
+runtime.gcBgMarkWorker(0x26761c992620)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1791 +0xeb fp=0x26761c9e87c8 sp=0x26761c9e8740 pc=0x42f5eb
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x17 fp=0x26761c9e87e0 sp=0x26761c9e87c8 pc=0x42f4d7
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26761c9e87e8 sp=0x26761c9e87e0 pc=0x491e61
+created by runtime.gcBgMarkStartWorkers in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x105
+
+goroutine 23 gp=0x26761ca84d20 m=nil [GC worker (idle)]:
+runtime.gopark(0xb6025ee9ca266?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:462 +0xce fp=0x26761c9e8f40 sp=0x26761c9e8f20 pc=0x48a62e
+runtime.gcBgMarkWorker(0x26761c992620)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1791 +0xeb fp=0x26761c9e8fc8 sp=0x26761c9e8f40 pc=0x42f5eb
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x17 fp=0x26761c9e8fe0 sp=0x26761c9e8fc8 pc=0x42f4d7
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26761c9e8fe8 sp=0x26761c9e8fe0 pc=0x491e61
+created by runtime.gcBgMarkStartWorkers in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x105
+
+goroutine 34 gp=0x26761ce18000 m=nil [GC worker (idle)]:
+runtime.gopark(0xb6025ee9ea5a1?, 0x3?, 0xdc?, 0xa5?, 0x0?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:462 +0xce fp=0x26761ce1e740 sp=0x26761ce1e720 pc=0x48a62e
+runtime.gcBgMarkWorker(0x26761c992620)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1791 +0xeb fp=0x26761ce1e7c8 sp=0x26761ce1e740 pc=0x42f5eb
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x17 fp=0x26761ce1e7e0 sp=0x26761ce1e7c8 pc=0x42f4d7
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26761ce1e7e8 sp=0x26761ce1e7e0 pc=0x491e61
+created by runtime.gcBgMarkStartWorkers in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x105
+
+goroutine 7 gp=0x26761ca505a0 m=nil [GC worker (idle)]:
+runtime.gopark(0xb6025ee9e8747?, 0x3?, 0x8?, 0x7a?, 0x0?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:462 +0xce fp=0x26761c9ecf40 sp=0x26761c9ecf20 pc=0x48a62e
+runtime.gcBgMarkWorker(0x26761c992620)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1791 +0xeb fp=0x26761c9ecfc8 sp=0x26761c9ecf40 pc=0x42f5eb
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x17 fp=0x26761c9ecfe0 sp=0x26761c9ecfc8 pc=0x42f4d7
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26761c9ecfe8 sp=0x26761c9ecfe0 pc=0x491e61
+created by runtime.gcBgMarkStartWorkers in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x105
+
+goroutine 24 gp=0x26761ca84f00 m=nil [GC worker (idle)]:
+runtime.gopark(0xb6025ee9b9a57?, 0x1?, 0x68?, 0xac?, 0x0?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:462 +0xce fp=0x26761c9e9740 sp=0x26761c9e9720 pc=0x48a62e
+runtime.gcBgMarkWorker(0x26761c992620)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1791 +0xeb fp=0x26761c9e97c8 sp=0x26761c9e9740 pc=0x42f5eb
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x17 fp=0x26761c9e97e0 sp=0x26761c9e97c8 pc=0x42f4d7
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26761c9e97e8 sp=0x26761c9e97e0 pc=0x491e61
+created by runtime.gcBgMarkStartWorkers in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x105
+
+goroutine 35 gp=0x26761ce181e0 m=nil [GC worker (idle)]:
+runtime.gopark(0xb6025ee98530c?, 0x3?, 0x4e?, 0x2a?, 0x0?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:462 +0xce fp=0x26761ce1ef40 sp=0x26761ce1ef20 pc=0x48a62e
+runtime.gcBgMarkWorker(0x26761c992620)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1791 +0xeb fp=0x26761ce1efc8 sp=0x26761ce1ef40 pc=0x42f5eb
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x17 fp=0x26761ce1efe0 sp=0x26761ce1efc8 pc=0x42f4d7
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26761ce1efe8 sp=0x26761ce1efe0 pc=0x491e61
+created by runtime.gcBgMarkStartWorkers in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x105
+
+goroutine 8 gp=0x26761ca50780 m=nil [GC worker (idle)]:
+runtime.gopark(0xb6025ee9e9ceb?, 0x3?, 0x92?, 0xbd?, 0x0?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:462 +0xce fp=0x26761c9ed740 sp=0x26761c9ed720 pc=0x48a62e
+runtime.gcBgMarkWorker(0x26761c992620)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1791 +0xeb fp=0x26761c9ed7c8 sp=0x26761c9ed740 pc=0x42f5eb
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x17 fp=0x26761c9ed7e0 sp=0x26761c9ed7c8 pc=0x42f4d7
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26761c9ed7e8 sp=0x26761c9ed7e0 pc=0x491e61
+created by runtime.gcBgMarkStartWorkers in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x105
+
+goroutine 25 gp=0x26761ca850e0 m=nil [GC worker (idle)]:
+runtime.gopark(0xb6025ee9c11b6?, 0x3?, 0xc6?, 0x5b?, 0x0?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:462 +0xce fp=0x26761c9e9f40 sp=0x26761c9e9f20 pc=0x48a62e
+runtime.gcBgMarkWorker(0x26761c992620)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1791 +0xeb fp=0x26761c9e9fc8 sp=0x26761c9e9f40 pc=0x42f5eb
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x17 fp=0x26761c9e9fe0 sp=0x26761c9e9fc8 pc=0x42f4d7
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26761c9e9fe8 sp=0x26761c9e9fe0 pc=0x491e61
+created by runtime.gcBgMarkStartWorkers in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x105
+
+goroutine 36 gp=0x26761ce183c0 m=nil [GC worker (idle)]:
+runtime.gopark(0xb6025ee9848d0?, 0x3?, 0x6f?, 0x62?, 0x0?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:462 +0xce fp=0x26761ce1f740 sp=0x26761ce1f720 pc=0x48a62e
+runtime.gcBgMarkWorker(0x26761c992620)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1791 +0xeb fp=0x26761ce1f7c8 sp=0x26761ce1f740 pc=0x42f5eb
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x17 fp=0x26761ce1f7e0 sp=0x26761ce1f7c8 pc=0x42f4d7
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26761ce1f7e8 sp=0x26761ce1f7e0 pc=0x491e61
+created by runtime.gcBgMarkStartWorkers in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x105
+
+goroutine 26 gp=0x26761ca852c0 m=nil [GC worker (idle)]:
+runtime.gopark(0xb6025ee9a3e87?, 0x1?, 0x27?, 0xcb?, 0x0?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:462 +0xce fp=0x26761ce1a740 sp=0x26761ce1a720 pc=0x48a62e
+runtime.gcBgMarkWorker(0x26761c992620)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1791 +0xeb fp=0x26761ce1a7c8 sp=0x26761ce1a740 pc=0x42f5eb
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x17 fp=0x26761ce1a7e0 sp=0x26761ce1a7c8 pc=0x42f4d7
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26761ce1a7e8 sp=0x26761ce1a7e0 pc=0x491e61
+created by runtime.gcBgMarkStartWorkers in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x105
+
+goroutine 9 gp=0x26761ca50960 m=nil [GC worker (idle)]:
+runtime.gopark(0xb6025ee997106?, 0x1?, 0xdc?, 0x5a?, 0x0?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:462 +0xce fp=0x26761c9edf40 sp=0x26761c9edf20 pc=0x48a62e
+runtime.gcBgMarkWorker(0x26761c992620)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1791 +0xeb fp=0x26761c9edfc8 sp=0x26761c9edf40 pc=0x42f5eb
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x17 fp=0x26761c9edfe0 sp=0x26761c9edfc8 pc=0x42f4d7
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26761c9edfe8 sp=0x26761c9edfe0 pc=0x491e61
+created by runtime.gcBgMarkStartWorkers in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mgc.go:1695 +0x105
+
+goroutine 27 gp=0x26761ce18d20 m=nil [cleanup wait]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:462 +0xce fp=0x26761ce21f68 sp=0x26761ce21f48 pc=0x48a62e
+runtime.goparkunlock(...)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:468
+runtime.(*cleanupQueue).dequeue(0x122ef80)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mcleanup.go:522 +0xd4 fp=0x26761ce21fa0 sp=0x26761ce21f68 pc=0x4287d4
+runtime.runCleanups()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mcleanup.go:718 +0x45 fp=0x26761ce21fe0 sp=0x26761ce21fa0 pc=0x428e45
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26761ce21fe8 sp=0x26761ce21fe0 pc=0x491e61
+created by runtime.(*cleanupQueue).createGs in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/mcleanup.go:672 +0xa5
+
+goroutine 1545 gp=0x26761ce85860 m=nil [chan receive]:
+runtime.gopark(0x3007dde5d3ec8?, 0x3007dde4662e0?, 0xe0?, 0x62?, 0x777dde5d3ec8?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/proc.go:462 +0xce fp=0x26761ce215a8 sp=0x26761ce21588 pc=0x48a62e
+runtime.chanrecv(0x26761c98e400, 0x26761ce2168f, 0x1)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/chan.go:667 +0x4ae fp=0x26761ce21620 sp=0x26761ce215a8 pc=0x41acce
+runtime.chanrecv1(0x122e4c0?, 0xcdf820?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/chan.go:509 +0x12 fp=0x26761ce21648 sp=0x26761ce21620 pc=0x41a812
+testing.(*T).Run(0x26761cb3eb48, {0xc6e7d5?, 0x0?}, 0x26761cf9c140)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2109 +0x4e5 fp=0x26761ce21720 sp=0x26761ce21648 pc=0x525765
+github.com/minz/minzc/pkg/mir2_test.TestP8WideSpill(0x26761cb3eb48)
+	/home/alice/dev/minz-artifacts/grace-workspaces/showcase-result-fixes/minzc/pkg/mir2/p8_invalid_asm_test.go:119 +0x6e fp=0x26761ce21770 sp=0x26761ce21720 pc=0xadccce
+testing.tRunner(0x26761cb3eb48, 0xcb6810)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2036 +0xea fp=0x26761ce217c0 sp=0x26761ce21770 pc=0x52474a
+testing.(*T).Run.gowrap1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2101 +0x1b fp=0x26761ce217e0 sp=0x26761ce217c0 pc=0x5258db
+runtime.goexit({})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/asm_amd64.s:1771 +0x1 fp=0x26761ce217e8 sp=0x26761ce217e0 pc=0x491e61
+created by testing.(*T).Run in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2101 +0x4c5
+FAIL	github.com/minz/minzc/pkg/mir2	3.308s
+ok  	github.com/minz/minzc/pkg/lanz	0.010s
+FAIL
