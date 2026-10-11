@@ -1,0 +1,7 @@
+[regalloc] loaded 1 binary entries from /tmp/TestBinaryOnlyTableCountsAsAvailable121681478/001/enrt_one.bin
+[regalloc] loaded 56 exhaustive entries from regalloc_exhaustive.json
+--- FAIL: TestLocSets8IXDefinitions (0.00s)
+    solver_test.go:768: locSets8IX[5] should have 11 entries, got 9
+FAIL
+FAIL	github.com/minz/minzc/pkg/vir	0.012s
+FAIL
