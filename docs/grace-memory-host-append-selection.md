@@ -42,6 +42,12 @@ Final independent selector review и GC/cap/proof-binding gates прошли.
 Семь новых файлов интегрированы; существующий backend не изменён. HIR21.144 s,
 MIR6.295 s, C896.057 s и CLI21.199 s PASS; showcase31 прежнее падение,0 новых.
 Первый общий Nanz run включал известный showcase и потому завершился FAIL;
-отдельный Nanz без showcase прошёл за2.148 s. Полный pipeline ещё выполняется.
+отдельный Nanz без showcase прошёл за2.148 s. Полный pipeline прошёл за462.479 s.
 
 [Артефакты](grace-memory-host-append-artifacts/manifest.json).
+
+Следующая отдельная проба композиции уже измерена: четыре freshactual бинарника
+прошли тот же30-call workload. Original1221494 T /2091 B, arena1218395 T /2212 B,
+append1150124 T /2076 B, both1147025 T /2197 B. На этих измерениях speed выгоднее
+both (−6,10%), size — append. Новые данные ещё проходят независимый аудит;
+комбинированный measured selector не входит в текущий append API.

@@ -2,7 +2,8 @@
   "schema": "minz.artifact-sha256/v1",
   "files": {
     "cli-tests.txt": "6446ada0a7d4d41c03670b17447b8c79493a8af6bb7949892edbf32495999af5",
-    "default-path-reuse.md": "99b8067e52f8e11dbdfd31b95cea05e8d4d5e6c2eb0262efa316ed2acecbb241",
+    "commands.txt": "94ac89838a3b41189d2565ebd3791ba4949ae36b7babbfe58453c37f923aafe7",
+    "default-path-reuse.md": "560ef04b01d1d53bd56125cfae5809702b524f03f732ebd89bcfd1e0da88222f",
     "independent-proof/README.md": "6c1311b62b4c902d5c60d08b0a85e82b5dc7fbfa0b1e5d6ef61384fd9fbcf73e",
     "independent-proof/append_oracle.py": "41ed1796bcdb51dcc7985884c97c6219644e9f110e622b410cd8e48729bf66c9",
     "independent-proof/inventory.json": "79cd271bdfb3cde974741082e10d763f1cef1353a895d3b0386258652480d717",
@@ -24,6 +25,7 @@
     "native-review/selector-review-snapshot.json": "f3b7423cf0243d2cdb7fd96262fa3c574ef20c2e47321e4f0ac1057878014e29",
     "native-review/selector-typed-audit.txt": "8446bbf3655e1c666aca1ce52ac3c6add33b7425bd6c919f5fad1e32a025df62",
     "packages-tests.txt": "e4be90ec6460e4c07f986f672ff948f92832c15d1cc8710214cc9173f57e681a",
+    "pipeline-tests.txt": "5d257cb9e2a2590b0854744e3833c4d3392498565e88bb1ef2c021c0f1142e17",
     "production-source-sha256.json": "d1a15b3545eaefa8ea8e4160f3f379776d6e6c3148086b7e67f4b67d7fe02419",
     "prototype/PLAN.md": "8c4a1bb2c259f1c903ed6040a92e265d9a1ba674cda1a9c8078644490e4f03f6",
     "prototype/README.md": "e754b0b3bc16994c08b9f5a8efeb2fa45a20c0bea9eeb81a748fec54cf58b689",

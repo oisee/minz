@@ -1,0 +1,13 @@
+Production checkpoint bafc7b9f; integrated source inventory contains7 exact new files from0595773b. Commands ran from permanentcompiler/minzc with Go1.26.8 and GOCACHE=/tmp/minz-grace-gocache (cache disposable; sources/artifacts permanent).
+
+go test ./pkg/pipeline -skip '^TestIndependentGraceRulesBudgetCompetition$' -count=1 (PASS462.479s)
+go test ./pkg/hir ./pkg/mir2 ./pkg/nanz ./pkg/c89 -count=1 (Nanz includes known showcase failures; retained log)
+go test ./pkg/nanz -skip '^TestShowcaseCompileAssemble$' -count=1 (PASS2.148s)
+go test ./pkg/nanz -run '^TestShowcaseCompileAssemble$' -count=1 -v (31 same failures,0new)
+go test ./cmd/minzc -count=1 (PASS21.199s)
+go build -o /home/alice/dev/minz-artifacts/grace-checkpoints/minzc-append-selector-final ./cmd/minzc
+
+Portable saved-artifact audits, no compiler/CPU replay:
+from repo: python3 docs/grace-memory-host-append-artifacts/native-review/audit_selector.py docs/grace-memory-host-append-artifacts/selector-e2e
+from minzc: go run ../docs/grace-memory-host-append-artifacts/selector-e2e/verify_selection.go ../docs/grace-memory-host-append-artifacts/selector-e2e
+Run per-candidate verify_public_host.py and verify_typed_payload.go with its explicit directory; gzip supported. For historical isolated measurements use focused test names in saved logs and source tests.
