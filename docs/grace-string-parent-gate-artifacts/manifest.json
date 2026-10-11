@@ -12,6 +12,11 @@
       "sha256": "dd95dcb9f2fe6b78c498dd24196bf5c0033b66b171c1132cdfa382ab561846de"
     },
     {
+      "path": "string-parent-frontends-corrected.txt",
+      "bytes": 12416,
+      "sha256": "6d7944f9d76b3ff75a63dce852233fa575fffd6e2598fbc724caa1e4cf0170fc"
+    },
+    {
       "path": "string-parent-packages.txt",
       "bytes": 749,
       "sha256": "b6ea17e13b0a719392e79085498147f681b4a34d36d530a3727961e4e4193468"
@@ -26,5 +31,6 @@
       "bytes": 12268,
       "sha256": "7be4f1a5c08d645056ab1e5146cfd625e7c050672e79845fe2124ae5871739db"
     }
-  ]
+  ],
+  "corrected_frontends": "Full Lanz PASS .011s; full Nanz fails only showcase (35 failures already recorded), no other test failure; run after 9329251d fixture corrections"
 }
