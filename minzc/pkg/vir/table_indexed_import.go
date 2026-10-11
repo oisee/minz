@@ -13,6 +13,9 @@ import (
 
 type IndexedLegacyImportEvidence struct {
 	QuotientGroups [][]int                        `json:"quotient_groups,omitempty"`
+	SourceSHA256   string                         `json:"source_sha256,omitempty"`
+	BlockSHA256    string                         `json:"block_sha256,omitempty"`
+	BlockOffset    int64                          `json:"block_offset,omitempty"`
 	Schema         string                         `json:"schema"`
 	Path           string                         `json:"path"`
 	HeaderSHA256   string                         `json:"header_sha256"`
@@ -191,6 +194,11 @@ func importIndexedENRTMapped(path string, shape *EnrichedShape, p *LocalTablePro
 	if assignment == nil {
 		return ev, nil
 	}
+	return admitIndexedAssignment(ev, assignment, cost, p, target, groups)
+}
+func admitIndexedAssignment(ev *IndexedLegacyImportEvidence, assignment []int, cost int, p *LocalTableProblem, target *RegAllocTable, groups [][]int) (*IndexedLegacyImportEvidence, error) {
+	idx := ev.RecordIndex
+	var e error
 	if groups != nil {
 		ev.Schema = "vir-indexed-enrt-quotient-import/v1"
 		ev.QuotientGroups = groups
