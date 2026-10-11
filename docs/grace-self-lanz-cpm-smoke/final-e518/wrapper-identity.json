@@ -1,0 +1,13 @@
+{
+  "source_sha256": "574cef717965dbe6fcf6937ae35935b7b7e26f2051e49e7862d1826cff76f42d",
+  "ordinary_assembly_sha256": "eab73d9e4e7ac94304fe3118c1a95609be96af2734b77c26ec72d60cbd2fbae2",
+  "assembled_sha256": "88ecbde8c94c59d644b0a322fdb7cb2c8d5bc93e83257b337f8f2463f02c2aaf",
+  "print_out_replacements": 22,
+  "extern_contracts": [
+    "peek HL -> A",
+    "poke HL,C -> void"
+  ],
+  "main_exit": "exact known XOR A/DI/HALT block before main_trmp0 -> XOR A/RET",
+  "startup_and_bridge": "unchanged guarded single-ORG startup and six-pair BDOS2 bridge",
+  "execution_performed": false
+}

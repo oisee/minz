@@ -1,0 +1,1550 @@
+MinZ Z80 Assembler Listing
+==========================
+
+0100  ED 73 5D 01  LD (__cpm_smoke_saved_sp), SP
+0104  2A 06 00     LD HL, (6)
+0107  11 00 D0     LD DE, 0xD000
+010A  B7           OR A
+010B  ED 52        SBC HL, DE
+010D  DA 5A 01     JP C, __cpm_smoke_refuse
+0110  2A 5D 01     LD HL, (__cpm_smoke_saved_sp)
+0113  11 00 D0     LD DE, 0xD000
+0116  B7           OR A
+0117  ED 52        SBC HL, DE
+0119  DA 5A 01     JP C, __cpm_smoke_refuse
+011C  21 5A A5     LD HL, 0xA55A
+011F  22 00 60     LD (__cpm_smoke_stack_low_canary), HL
+0122  21 A5 5A     LD HL, 0x5AA5
+0125  22 02 70     LD (__cpm_smoke_stack_high_canary), HL
+0128  31 02 70     LD SP, __cpm_smoke_stack_top
+012B  CD 60 01     CALL main
+012E  2A 00 60     LD HL, (__cpm_smoke_stack_low_canary)
+0131  11 5A A5     LD DE, 0xA55A
+0134  B7           OR A
+0135  ED 52        SBC HL, DE
+0137  C2 4E 01     JP NZ, __cpm_smoke_canary_failed
+013A  2A 02 70     LD HL, (__cpm_smoke_stack_high_canary)
+013D  11 A5 5A     LD DE, 0x5AA5
+0140  B7           OR A
+0141  ED 52        SBC HL, DE
+0143  C2 4E 01     JP NZ, __cpm_smoke_canary_failed
+0146  3E 01        LD A, 1
+0148  32 5F 01     LD (__cpm_smoke_status), A
+014B  C3 53 01     JP __cpm_smoke_return
+014E  3E 02        LD A, 2
+0150  32 5F 01     LD (__cpm_smoke_status), A
+0153  ED 7B 5D 01  LD SP, (__cpm_smoke_saved_sp)
+0157  C3 00 00     JP 0
+015A  C3 00 00     JP 0
+015D  00 00        DW 0
+015F  00           DB 0
+0160  11 70 0A     LD DE, _mir2_str_3
+0163  21 00 00     LD HL, 0
+0166  E5           PUSH HL
+0167  19           ADD HL, DE
+0168  E5           PUSH HL
+0169  C1           POP BC
+016A  E1           POP HL
+016B  D5           PUSH DE
+016C  E5           PUSH HL
+016D  60           LD H, B
+016E  69           LD L, C
+016F  CD 16 03     CALL peek
+0172  E1           POP HL
+0173  D1           POP DE
+0174  A7           AND A
+0175  CA 11 03     JR Z, main.main_trmp0
+0178  ED 4B 59 0A  LD BC, (src_buf) ; u16 direct load, no scratch clobber
+017C  E5           PUSH HL
+017D  09           ADD HL, BC
+017E  E5           PUSH HL
+017F  C1           POP BC
+0180  E1           POP HL
+0181  E5           PUSH HL
+0182  19           ADD HL, DE
+0183  E5           PUSH HL
+0184  DD E1        POP IX
+0186  E1           POP HL
+0187  C5           PUSH BC
+0188  D5           PUSH DE
+0189  E5           PUSH HL
+018A  DD E5        PUSH IX
+018C  E1           POP HL
+018D  CD 16 03     CALL peek
+0190  E1           POP HL
+0191  D1           POP DE
+0192  C1           POP BC
+0193  D5           PUSH DE
+0194  E5           PUSH HL
+0195  60           LD H, B
+0196  69           LD L, C
+0197  4F           LD C, A
+0198  CD 18 03     CALL poke
+019B  E1           POP HL
+019C  D1           POP DE
+019D  23           INC HL
+019E  18 C6        JR main.main_loop_head1
+01A0  2A 59 0A     LD HL, (src_buf) ; u16 direct load (20T, no A clobber)
+01A3  19           ADD HL, DE
+01A4  0E 00        LD C, 0
+01A6  D5           PUSH DE
+01A7  CD 18 03     CALL poke
+01AA  D1           POP DE
+01AB  21 5B 0A     LD HL, src_len
+01AE  73           LD (HL), E ; lo
+01AF  23           INC HL
+01B0  72           LD (HL), D ; hi
+01B1  2B           DEC HL
+01B2  21 9E 0A     LD HL, _mir2_str_4
+01B5  7E           LD A, (HL)
+01B6  23           INC HL
+01B7  54           LD D, H
+01B8  5D           LD E, L
+01B9  A7           AND A
+01BA  28 13        JR Z, main.main_loop_exit8
+01BC  08           EX AF, AF' ; preserve byte-load scratch
+01BD  1A           LD A, (DE)
+01BE  67           LD H, A
+01BF  08           EX AF, AF' ; restore byte-load scratch
+01C0  F5           PUSH AF
+01C1  7C           LD A, H
+01C2  CD F7 0A     CALL __cpm_smoke_putchar
+01C5  F1           POP AF
+01C6  21 01 00     LD HL, 1
+01C9  19           ADD HL, DE
+01CA  3D           DEC A
+01CB  54           LD D, H
+01CC  5D           LD E, L
+01CD  18 EA        JR main.main_loop_head6
+01CF  21 A6 0A     LD HL, _mir2_str_5
+01D2  7E           LD A, (HL)
+01D3  23           INC HL
+01D4  54           LD D, H
+01D5  5D           LD E, L
+01D6  A7           AND A
+01D7  28 13        JR Z, main.main_loop_exit13
+01D9  08           EX AF, AF' ; preserve byte-load scratch
+01DA  1A           LD A, (DE)
+01DB  67           LD H, A
+01DC  08           EX AF, AF' ; restore byte-load scratch
+01DD  F5           PUSH AF
+01DE  7C           LD A, H
+01DF  CD F7 0A     CALL __cpm_smoke_putchar
+01E2  F1           POP AF
+01E3  21 01 00     LD HL, 1
+01E6  19           ADD HL, DE
+01E7  3D           DEC A
+01E8  54           LD D, H
+01E9  5D           LD E, L
+01EA  18 EA        JR main.main_loop_head11
+01EC  3E 0A        LD A, 0x0A
+01EE  CD F7 0A     CALL __cpm_smoke_putchar
+01F1  CD 4D 07     CALL parse_sexpr
+01F4  54           LD D, H
+01F5  5D           LD E, L
+01F6  21 D4 0A     LD HL, _mir2_str_6
+01F9  7E           LD A, (HL)
+01FA  23           INC HL
+01FB  44           LD B, H
+01FC  4D           LD C, L
+01FD  A7           AND A
+01FE  28 13        JR Z, main.main_loop_exit18
+0200  08           EX AF, AF' ; preserve byte-load scratch
+0201  0A           LD A, (BC)
+0202  67           LD H, A
+0203  08           EX AF, AF' ; restore byte-load scratch
+0204  F5           PUSH AF
+0205  7C           LD A, H
+0206  CD F7 0A     CALL __cpm_smoke_putchar
+0209  F1           POP AF
+020A  21 01 00     LD HL, 1
+020D  09           ADD HL, BC
+020E  3D           DEC A
+020F  44           LD B, H
+0210  4D           LD C, L
+0211  18 EA        JR main.main_loop_head16
+0213  62           LD H, D
+0214  6B           LD L, E
+0215  CD 56 09     CALL print_node
+0218  3E 0A        LD A, 0x0A
+021A  CD F7 0A     CALL __cpm_smoke_putchar
+021D  21 DD 0A     LD HL, _mir2_str_7
+0220  7E           LD A, (HL)
+0221  23           INC HL
+0222  54           LD D, H
+0223  5D           LD E, L
+0224  A7           AND A
+0225  28 13        JR Z, main.main_loop_exit23
+0227  08           EX AF, AF' ; preserve byte-load scratch
+0228  1A           LD A, (DE)
+0229  67           LD H, A
+022A  08           EX AF, AF' ; restore byte-load scratch
+022B  F5           PUSH AF
+022C  7C           LD A, H
+022D  CD F7 0A     CALL __cpm_smoke_putchar
+0230  F1           POP AF
+0231  21 01 00     LD HL, 1
+0234  19           ADD HL, DE
+0235  3D           DEC A
+0236  54           LD D, H
+0237  5D           LD E, L
+0238  18 EA        JR main.main_loop_head21
+023A  ED 5B 61 0A  LD DE, (node_bump) ; u16 direct load, no scratch clobber
+023E  2A 5F 0A     LD HL, (node_arena) ; u16 direct load (20T, no A clobber)
+0241  D5           PUSH DE
+0242  E5           PUSH HL
+0243  D1           POP DE
+0244  E1           POP HL
+0245  B7           OR A
+0246  ED 52        SBC HL, DE
+0248  54           LD D, H
+0249  5D           LD E, L
+024A  D5           PUSH DE
+024B  E1           POP HL
+024C  CB 3C        SRL H
+024E  CB 1D        RR L
+0250  CB 3C        SRL H
+0252  CB 1D        RR L
+0254  CB 3C        SRL H
+0256  CB 1D        RR L
+0258  7D           LD A, L
+0259  4F           LD C, A
+025A  06 00        LD B, 0
+025C  79           LD A, C
+025D  FE 64        CP 100
+025F  38 06        JR C, main.pdec_ht2
+0261  D6 64        SUB 100
+0263  4F           LD C, A
+0264  04           INC B
+0265  18 F5        JR main.pdec_h2
+0267  78           LD A, B
+0268  B7           OR A
+0269  28 05        JR Z, main.pdec_t2
+026B  C6 30        ADD A, 48
+026D  CD F7 0A     CALL __cpm_smoke_putchar
+0270  16 00        LD D, 0
+0272  79           LD A, C
+0273  FE 0A        CP 10
+0275  38 06        JR C, main.pdec_tt2
+0277  D6 0A        SUB 10
+0279  4F           LD C, A
+027A  14           INC D
+027B  18 F5        JR main.pdec_tl2
+027D  78           LD A, B
+027E  B2           OR D
+027F  28 06        JR Z, main.pdec_u2
+0281  7A           LD A, D
+0282  C6 30        ADD A, 48
+0284  CD F7 0A     CALL __cpm_smoke_putchar
+0287  79           LD A, C
+0288  C6 30        ADD A, 48
+028A  CD F7 0A     CALL __cpm_smoke_putchar
+028D  21 E5 0A     LD HL, _mir2_str_8
+0290  7E           LD A, (HL)
+0291  23           INC HL
+0292  54           LD D, H
+0293  5D           LD E, L
+0294  A7           AND A
+0295  28 13        JR Z, main.main_loop_exit28
+0297  08           EX AF, AF' ; preserve byte-load scratch
+0298  1A           LD A, (DE)
+0299  67           LD H, A
+029A  08           EX AF, AF' ; restore byte-load scratch
+029B  F5           PUSH AF
+029C  7C           LD A, H
+029D  CD F7 0A     CALL __cpm_smoke_putchar
+02A0  F1           POP AF
+02A1  21 01 00     LD HL, 1
+02A4  19           ADD HL, DE
+02A5  3D           DEC A
+02A6  54           LD D, H
+02A7  5D           LD E, L
+02A8  18 EA        JR main.main_loop_head26
+02AA  ED 5B 65 0A  LD DE, (str_bump) ; u16 direct load, no scratch clobber
+02AE  2A 63 0A     LD HL, (str_arena) ; u16 direct load (20T, no A clobber)
+02B1  D5           PUSH DE
+02B2  E5           PUSH HL
+02B3  D1           POP DE
+02B4  E1           POP HL
+02B5  B7           OR A
+02B6  ED 52        SBC HL, DE
+02B8  7D           LD A, L
+02B9  4F           LD C, A
+02BA  06 00        LD B, 0
+02BC  79           LD A, C
+02BD  FE 64        CP 100
+02BF  38 06        JR C, main.pdec_ht3
+02C1  D6 64        SUB 100
+02C3  4F           LD C, A
+02C4  04           INC B
+02C5  18 F5        JR main.pdec_h3
+02C7  78           LD A, B
+02C8  B7           OR A
+02C9  28 05        JR Z, main.pdec_t3
+02CB  C6 30        ADD A, 48
+02CD  CD F7 0A     CALL __cpm_smoke_putchar
+02D0  16 00        LD D, 0
+02D2  79           LD A, C
+02D3  FE 0A        CP 10
+02D5  38 06        JR C, main.pdec_tt3
+02D7  D6 0A        SUB 10
+02D9  4F           LD C, A
+02DA  14           INC D
+02DB  18 F5        JR main.pdec_tl3
+02DD  78           LD A, B
+02DE  B2           OR D
+02DF  28 06        JR Z, main.pdec_u3
+02E1  7A           LD A, D
+02E2  C6 30        ADD A, 48
+02E4  CD F7 0A     CALL __cpm_smoke_putchar
+02E7  79           LD A, C
+02E8  C6 30        ADD A, 48
+02EA  CD F7 0A     CALL __cpm_smoke_putchar
+02ED  21 F0 0A     LD HL, _mir2_str_9
+02F0  7E           LD A, (HL)
+02F1  23           INC HL
+02F2  54           LD D, H
+02F3  5D           LD E, L
+02F4  A7           AND A
+02F5  28 13        JR Z, main.main_loop_exit33
+02F7  08           EX AF, AF' ; preserve byte-load scratch
+02F8  1A           LD A, (DE)
+02F9  67           LD H, A
+02FA  08           EX AF, AF' ; restore byte-load scratch
+02FB  F5           PUSH AF
+02FC  7C           LD A, H
+02FD  CD F7 0A     CALL __cpm_smoke_putchar
+0300  F1           POP AF
+0301  21 01 00     LD HL, 1
+0304  19           ADD HL, DE
+0305  3D           DEC A
+0306  54           LD D, H
+0307  5D           LD E, L
+0308  18 EA        JR main.main_loop_head31
+030A  3E 0A        LD A, 0x0A
+030C  CD F7 0A     CALL __cpm_smoke_putchar
+030F  AF           XOR A
+0310  C9           RET
+0311  54           LD D, H
+0312  5D           LD E, L
+0313  C3 A0 01     JR main.main_loop_exit3
+0316  7E           LD A, (HL)
+0317  C9           RET
+0318  71           LD (HL), C
+0319  C9           RET
+031A  FE 20        CP 32
+031C  20 03        JR NZ, is_space.is_space_if_join2
+031E  3E 01        LD A, 1
+0320  C9           RET
+0321  FE 09        CP 9
+0323  20 03        JR NZ, is_space.is_space_if_join4
+0325  3E 01        LD A, 1
+0327  C9           RET
+0328  FE 0A        CP 10
+032A  20 03        JR NZ, is_space.is_space_if_join6
+032C  3E 01        LD A, 1
+032E  C9           RET
+032F  FE 0D        CP 13
+0331  3E 00        LD A, 0
+0333  C0           RET NZ
+0334  3E 01        LD A, 1
+0336  C9           RET
+0337  FE 30        CP 48
+0339  38 0B        JR C, is_digit.is_digit_if_join2
+033B  FE 39        CP 57
+033D  38 04        JR C, is_digit.is_digit_if_then3
+033F  28 02        JR Z, is_digit.is_digit_if_then3
+0341  18 03        JR is_digit.is_digit_if_join4
+0343  3E 01        LD A, 1
+0345  C9           RET
+0346  3E 00        LD A, 0
+0348  C9           RET
+0349  A7           AND A
+034A  20 03        JR NZ, is_atom_char.is_atom_char_if_join2
+034C  3E 00        LD A, 0
+034E  C9           RET
+034F  FE 20        CP 32
+0351  20 03        JR NZ, is_atom_char.is_atom_char_if_join4
+0353  3E 00        LD A, 0
+0355  C9           RET
+0356  FE 09        CP 9
+0358  20 03        JR NZ, is_atom_char.is_atom_char_if_join6
+035A  3E 00        LD A, 0
+035C  C9           RET
+035D  FE 0A        CP 10
+035F  20 03        JR NZ, is_atom_char.is_atom_char_if_join8
+0361  3E 00        LD A, 0
+0363  C9           RET
+0364  FE 0D        CP 13
+0366  20 03        JR NZ, is_atom_char.is_atom_char_if_join10
+0368  3E 00        LD A, 0
+036A  C9           RET
+036B  FE 28        CP 40
+036D  20 03        JR NZ, is_atom_char.is_atom_char_if_join12
+036F  3E 00        LD A, 0
+0371  C9           RET
+0372  FE 29        CP 41
+0374  3E 01        LD A, 1
+0376  C0           RET NZ
+0377  3E 00        LD A, 0
+0379  C9           RET
+037A  ED 5B 5D 0A  LD DE, (pos) ; u16 direct load, no scratch clobber
+037E  2A 5B 0A     LD HL, (src_len) ; u16 direct load (20T, no A clobber)
+0381  EB           EX DE, HL
+0382  B7           OR A
+0383  ED 52        SBC HL, DE
+0385  EB           EX DE, HL
+0386  38 03        JR C, cur.cur_if_join2
+0388  3E 00        LD A, 0
+038A  C9           RET
+038B  ED 5B 59 0A  LD DE, (src_buf) ; u16 direct load, no scratch clobber
+038F  2A 5D 0A     LD HL, (pos) ; u16 direct load (20T, no A clobber)
+0392  19           ADD HL, DE
+0393  C3 16 03     JP peek
+0396  CD 7A 03     CALL cur
+0399  CD 1A 03     CALL is_space
+039C  FE 01        CP 1
+039E  20 0E        JR NZ, skip_ws.skip_ws_loop_exit3
+03A0  ED 5B 5D 0A  LD DE, (pos) ; u16 direct load, no scratch clobber
+03A4  13           INC DE
+03A5  21 5D 0A     LD HL, pos
+03A8  73           LD (HL), E ; lo
+03A9  23           INC HL
+03AA  72           LD (HL), D ; hi
+03AB  2B           DEC HL
+03AC  18 E8        JR skip_ws.skip_ws_loop_head1
+03AE  CD 7A 03     CALL cur
+03B1  FE 3B        CP 59
+03B3  C0           RET NZ
+03B4  CD 7A 03     CALL cur
+03B7  FE 0A        CP 10
+03B9  28 15        JR Z, skip_ws.skip_ws_loop_exit8
+03BB  CD 7A 03     CALL cur
+03BE  A7           AND A
+03BF  20 01        JR NZ, skip_ws.skip_ws_if_join10
+03C1  C9           RET
+03C2  ED 5B 5D 0A  LD DE, (pos) ; u16 direct load, no scratch clobber
+03C6  13           INC DE
+03C7  21 5D 0A     LD HL, pos
+03CA  73           LD (HL), E ; lo
+03CB  23           INC HL
+03CC  72           LD (HL), D ; hi
+03CD  2B           DEC HL
+03CE  18 E4        JR skip_ws.skip_ws_loop_head6
+03D0  ED 5B 5D 0A  LD DE, (pos) ; u16 direct load, no scratch clobber
+03D4  13           INC DE
+03D5  21 5D 0A     LD HL, pos
+03D8  73           LD (HL), E ; lo
+03D9  23           INC HL
+03DA  72           LD (HL), D ; hi
+03DB  2B           DEC HL
+03DC  CD 96 03     CALL skip_ws
+03DF  C9           RET
+03E0  FD 26 00     LD IYH, 0
+03E3  FD 68        LD IYL, B
+03E5  FD 7C        LD A, IYH
+03E7  FD BD        CP IYL
+03E9  3E 01        LD A, 1
+03EB  D0           RET NC
+03EC  01 01 00     LD BC, 1
+03EF  E5           PUSH HL
+03F0  09           ADD HL, BC
+03F1  E5           PUSH HL
+03F2  C1           POP BC
+03F3  E1           POP HL
+03F4  08           EX AF, AF'
+03F5  FD 7C        LD A, IYH
+03F7  DD 6F        LD IXL, A
+03F9  08           EX AF, AF'
+03FA  DD 26 00     LD IXH, 0
+03FD  E5           PUSH HL
+03FE  D5           PUSH DE
+03FF  C5           PUSH BC
+0400  E1           POP HL
+0401  D5           PUSH DE
+0402  DD 54        LD D, IXH
+0404  DD 5D        LD E, IXL
+0406  19           ADD HL, DE
+0407  D1           POP DE
+0408  E5           PUSH HL
+0409  C1           POP BC
+040A  D1           POP DE
+040B  E1           POP HL
+040C  D5           PUSH DE
+040D  E5           PUSH HL
+040E  FD E5        PUSH IY
+0410  60           LD H, B
+0411  69           LD L, C
+0412  CD 16 03     CALL peek
+0415  FD E1        POP IY
+0417  E1           POP HL
+0418  D1           POP DE
+0419  ED 4B 59 0A  LD BC, (src_buf) ; u16 direct load, no scratch clobber
+041D  E5           PUSH HL
+041E  C5           PUSH BC
+041F  E1           POP HL
+0420  19           ADD HL, DE
+0421  E5           PUSH HL
+0422  C1           POP BC
+0423  E1           POP HL
+0424  08           EX AF, AF'
+0425  FD 7C        LD A, IYH
+0427  DD 6F        LD IXL, A
+0429  08           EX AF, AF'
+042A  DD 26 00     LD IXH, 0
+042D  E5           PUSH HL
+042E  D5           PUSH DE
+042F  C5           PUSH BC
+0430  E1           POP HL
+0431  D5           PUSH DE
+0432  DD 54        LD D, IXH
+0434  DD 5D        LD E, IXL
+0436  19           ADD HL, DE
+0437  D1           POP DE
+0438  E5           PUSH HL
+0439  C1           POP BC
+043A  D1           POP DE
+043B  E1           POP HL
+043C  F5           PUSH AF
+043D  D5           PUSH DE
+043E  E5           PUSH HL
+043F  FD E5        PUSH IY
+0441  60           LD H, B
+0442  69           LD L, C
+0443  CD 16 03     CALL peek
+0446  47           LD B, A
+0447  FD E1        POP IY
+0449  E1           POP HL
+044A  D1           POP DE
+044B  F1           POP AF
+044C  B8           CP B
+044D  28 03        JR Z, region_match.region_match_if_join5
+044F  3E 00        LD A, 0
+0451  C9           RET
+0452  0E 01        LD C, 1
+0454  FD 7C        LD A, IYH
+0456  C6 01        ADD A, 1
+0458  FD 67        LD IYH, A
+045A  18 89        JR region_match.region_match_loop_head1
+045C  2A 63 0A     LD HL, (str_arena) ; u16 direct load (20T, no A clobber)
+045F  DD 69        LD IXL, C
+0461  ED 4B 65 0A  LD BC, (str_bump) ; u16 direct load, no scratch clobber
+0465  E5           PUSH HL
+0466  B7           OR A
+0467  ED 42        SBC HL, BC
+0469  E1           POP HL
+046A  D2 B0 05     JR NC, intern_region.intern_region_trmp0
+046D  D5           PUSH DE
+046E  E5           PUSH HL
+046F  DD E5        PUSH IX
+0471  CD 16 03     CALL peek
+0474  DD E1        POP IX
+0476  E1           POP HL
+0477  D1           POP DE
+0478  DD BD        CP IXL
+047A  20 20        JR NZ, intern_region.intern_region_if_join5
+047C  D5           PUSH DE
+047D  C1           POP BC
+047E  DD 65        LD IXH, IXL
+0480  F5           PUSH AF
+0481  D5           PUSH DE
+0482  E5           PUSH HL
+0483  DD E5        PUSH IX
+0485  50           LD D, B
+0486  59           LD E, C
+0487  DD 44        LD B, IXH
+0489  CD E0 03     CALL region_match
+048C  47           LD B, A
+048D  DD E1        POP IX
+048F  E1           POP HL
+0490  D1           POP DE
+0491  F1           POP AF
+0492  FD 67        LD IYH, A ; preserve live accumulator before CMP
+0494  78           LD A, B
+0495  FE 01        CP 1
+0497  FD 7C        LD A, IYH
+0499  20 01        JR NZ, intern_region.intern_region_if_join7
+049B  C9           RET
+049C  23           INC HL
+049D  4F           LD C, A
+049E  06 00        LD B, 0
+04A0  09           ADD HL, BC
+04A1  18 BE        JR intern_region.intern_region_loop_head1
+04A3  ED 5B 65 0A  LD DE, (str_bump) ; u16 direct load, no scratch clobber
+04A7  ED 4B 65 0A  LD BC, (str_bump) ; u16 direct load, no scratch clobber
+04AB  E5           PUSH HL
+04AC  F5           PUSH AF
+04AD  3A C6 05     LD A, (_spill_intern_region_r135)
+04B0  6F           LD L, A
+04B1  F1           POP AF
+04B2  E3           EX (SP), HL
+04B3  D5           PUSH DE
+04B4  E5           PUSH HL
+04B5  60           LD H, B
+04B6  69           LD L, C
+04B7  08           EX AF, AF'
+04B8  3A C6 05     LD A, (_spill_intern_region_r135)
+04BB  4F           LD C, A
+04BC  08           EX AF, AF'
+04BD  CD 18 03     CALL poke
+04C0  E1           POP HL
+04C1  D1           POP DE
+04C2  E3           EX (SP), HL
+04C3  F5           PUSH AF
+04C4  7D           LD A, L
+04C5  32 C6 05     LD (_spill_intern_region_r135), A
+04C8  F1           POP AF
+04C9  E1           POP HL
+04CA  F5           PUSH AF
+04CB  3E 00        LD A, 0
+04CD  32 C7 05     LD (_spill_intern_region_r141), A
+04D0  F1           POP AF
+04D1  3A C7 05     LD A, (_spill_intern_region_r141)
+04D4  E5           PUSH HL
+04D5  21 C6 05     LD HL, _spill_intern_region_r135
+04D8  66           LD H, (HL)
+04D9  BC           CP H
+04DA  E1           POP HL
+04DB  D2 BC 05     JR NC, intern_region.intern_region_trmp1
+04DE  ED 4B 65 0A  LD BC, (str_bump) ; u16 direct load, no scratch clobber
+04E2  03           INC BC
+04E3  08           EX AF, AF'
+04E4  3A C7 05     LD A, (_spill_intern_region_r141)
+04E7  DD 6F        LD IXL, A
+04E9  08           EX AF, AF'
+04EA  DD 26 00     LD IXH, 0
+04ED  E5           PUSH HL
+04EE  D5           PUSH DE
+04EF  C5           PUSH BC
+04F0  E1           POP HL
+04F1  D5           PUSH DE
+04F2  DD 54        LD D, IXH
+04F4  DD 5D        LD E, IXL
+04F6  19           ADD HL, DE
+04F7  D1           POP DE
+04F8  E5           PUSH HL
+04F9  C1           POP BC
+04FA  D1           POP DE
+04FB  E1           POP HL
+04FC  DD 21 59 0A  LD IX, src_buf
+0500  F5           PUSH AF ; preserve word-load scratch
+0501  DD 7E 00     LD A, (IX+0) ; lo
+0504  F5           PUSH AF ; stage low byte before replacing address
+0505  DD 7E 01     LD A, (IX+1) ; hi
+0508  DD 67        LD IXH, A
+050A  F1           POP AF
+050B  DD 6F        LD IXL, A
+050D  F1           POP AF ; restore word-load scratch
+050E  E5           PUSH HL
+050F  D5           PUSH DE
+0510  D5           PUSH DE
+0511  DD 54        LD D, IXH
+0513  DD 5D        LD E, IXL
+0515  19           ADD HL, DE
+0516  D1           POP DE
+0517  E5           PUSH HL
+0518  DD E1        POP IX
+051A  D1           POP DE
+051B  E1           POP HL
+051C  08           EX AF, AF'
+051D  3A C7 05     LD A, (_spill_intern_region_r141)
+0520  FD 6F        LD IYL, A
+0522  08           EX AF, AF'
+0523  FD 26 00     LD IYH, 0
+0526  E5           PUSH HL
+0527  D5           PUSH DE
+0528  DD E5        PUSH IX
+052A  E1           POP HL
+052B  D5           PUSH DE
+052C  FD 54        LD D, IYH
+052E  FD 5D        LD E, IYL
+0530  19           ADD HL, DE
+0531  D1           POP DE
+0532  E5           PUSH HL
+0533  DD E1        POP IX
+0535  D1           POP DE
+0536  E1           POP HL
+0537  E5           PUSH HL
+0538  F5           PUSH AF
+0539  3A C6 05     LD A, (_spill_intern_region_r135)
+053C  6F           LD L, A
+053D  F1           POP AF
+053E  E3           EX (SP), HL
+053F  E5           PUSH HL
+0540  F5           PUSH AF
+0541  3A C7 05     LD A, (_spill_intern_region_r141)
+0544  6F           LD L, A
+0545  F1           POP AF
+0546  E3           EX (SP), HL
+0547  C5           PUSH BC
+0548  D5           PUSH DE
+0549  E5           PUSH HL
+054A  DD E5        PUSH IX
+054C  E1           POP HL
+054D  CD 16 03     CALL peek
+0550  E1           POP HL
+0551  D1           POP DE
+0552  C1           POP BC
+0553  E3           EX (SP), HL
+0554  F5           PUSH AF
+0555  7D           LD A, L
+0556  32 C7 05     LD (_spill_intern_region_r141), A
+0559  F1           POP AF
+055A  E1           POP HL
+055B  E3           EX (SP), HL
+055C  F5           PUSH AF
+055D  7D           LD A, L
+055E  32 C6 05     LD (_spill_intern_region_r135), A
+0561  F1           POP AF
+0562  E1           POP HL
+0563  E5           PUSH HL
+0564  F5           PUSH AF
+0565  3A C6 05     LD A, (_spill_intern_region_r135)
+0568  6F           LD L, A
+0569  F1           POP AF
+056A  E3           EX (SP), HL
+056B  E5           PUSH HL
+056C  F5           PUSH AF
+056D  3A C7 05     LD A, (_spill_intern_region_r141)
+0570  6F           LD L, A
+0571  F1           POP AF
+0572  E3           EX (SP), HL
+0573  D5           PUSH DE
+0574  E5           PUSH HL
+0575  60           LD H, B
+0576  69           LD L, C
+0577  4F           LD C, A
+0578  CD 18 03     CALL poke
+057B  E1           POP HL
+057C  D1           POP DE
+057D  E3           EX (SP), HL
+057E  F5           PUSH AF
+057F  7D           LD A, L
+0580  32 C7 05     LD (_spill_intern_region_r141), A
+0583  F1           POP AF
+0584  E1           POP HL
+0585  E3           EX (SP), HL
+0586  F5           PUSH AF
+0587  7D           LD A, L
+0588  32 C6 05     LD (_spill_intern_region_r135), A
+058B  F1           POP AF
+058C  E1           POP HL
+058D  0E 01        LD C, 1
+058F  3A C7 05     LD A, (_spill_intern_region_r141)
+0592  C6 01        ADD A, 1
+0594  32 C7 05     LD (_spill_intern_region_r141), A
+0597  C3 D1 04     JR intern_region.intern_region_loop_head8
+059A  2A 65 0A     LD HL, (str_bump) ; u16 direct load (20T, no A clobber)
+059D  23           INC HL
+059E  08           EX AF, AF'
+059F  3A C8 05     LD A, (_spill_intern_region_r160)
+05A2  4F           LD C, A
+05A3  08           EX AF, AF'
+05A4  06 00        LD B, 0
+05A6  09           ADD HL, BC
+05A7  01 65 0A     LD BC, str_bump
+05AA  22 65 0A     LD (str_bump), HL ; u16 direct store (16T, no A clobber)
+05AD  62           LD H, D
+05AE  6B           LD L, E
+05AF  C9           RET
+05B0  08           EX AF, AF'
+05B1  DD 7D        LD A, IXL
+05B3  32 C6 05     LD (_spill_intern_region_r135), A
+05B6  08           EX AF, AF'
+05B7  62           LD H, D
+05B8  6B           LD L, E
+05B9  C3 A3 04     JR intern_region.intern_region_loop_exit3
+05BC  08           EX AF, AF'
+05BD  3A C6 05     LD A, (_spill_intern_region_r135)
+05C0  32 C8 05     LD (_spill_intern_region_r160), A
+05C3  08           EX AF, AF'
+05C4  18 D4        JR intern_region.intern_region_loop_exit10
+05C6  00           _spill_intern_region_r135: DB 0
+05C7  00           _spill_intern_region_r141: DB 0
+05C8  00           _spill_intern_region_r160: DB 0
+05C9  2A 61 0A     LD HL, (node_bump) ; u16 direct load (20T, no A clobber)
+05CC  C5           PUSH BC
+05CD  D5           PUSH DE
+05CE  E5           PUSH HL
+05CF  DD E5        PUSH IX
+05D1  4F           LD C, A
+05D2  CD 18 03     CALL poke
+05D5  DD E1        POP IX
+05D7  E1           POP HL
+05D8  D1           POP DE
+05D9  C1           POP BC
+05DA  FD 21 01 00  LD IY, 1
+05DE  E5           PUSH HL
+05DF  D5           PUSH DE
+05E0  D5           PUSH DE
+05E1  FD 54        LD D, IYH
+05E3  FD 5D        LD E, IYL
+05E5  19           ADD HL, DE
+05E6  D1           POP DE
+05E7  E5           PUSH HL
+05E8  FD E1        POP IY
+05EA  D1           POP DE
+05EB  E1           POP HL
+05EC  E5           PUSH HL
+05ED  D5           PUSH DE
+05EE  E1           POP HL
+05EF  7D           LD A, L
+05F0  E6 FF        AND 255
+05F2  6F           LD L, A
+05F3  26 00        LD H, 0
+05F5  22 DB 06     LD (_spill_make_node_r177), HL
+05F8  E1           POP HL
+05F9  E5           PUSH HL
+05FA  2A DB 06     LD HL, (_spill_make_node_r177)
+05FD  22 DD 06     LD (_spill_make_node_r178), HL
+0600  E1           POP HL
+0601  C5           PUSH BC
+0602  D5           PUSH DE
+0603  E5           PUSH HL
+0604  DD E5        PUSH IX
+0606  FD E5        PUSH IY
+0608  E1           POP HL
+0609  08           EX AF, AF'
+060A  3A DD 06     LD A, (_spill_make_node_r178)
+060D  4F           LD C, A
+060E  08           EX AF, AF'
+060F  CD 18 03     CALL poke
+0612  DD E1        POP IX
+0614  E1           POP HL
+0615  D1           POP DE
+0616  C1           POP BC
+0617  FD 21 02 00  LD IY, 2
+061B  E5           PUSH HL
+061C  D5           PUSH DE
+061D  D5           PUSH DE
+061E  FD 54        LD D, IYH
+0620  FD 5D        LD E, IYL
+0622  19           ADD HL, DE
+0623  D1           POP DE
+0624  E5           PUSH HL
+0625  FD E1        POP IY
+0627  D1           POP DE
+0628  E1           POP HL
+0629  E5           PUSH HL
+062A  D5           PUSH DE
+062B  E1           POP HL
+062C  6C           LD L, H
+062D  26 00        LD H, 0
+062F  54           LD D, H
+0630  5D           LD E, L
+0631  E1           POP HL
+0632  C5           PUSH BC
+0633  E5           PUSH HL
+0634  DD E5        PUSH IX
+0636  FD E5        PUSH IY
+0638  E1           POP HL
+0639  4B           LD C, E
+063A  CD 18 03     CALL poke
+063D  DD E1        POP IX
+063F  E1           POP HL
+0640  C1           POP BC
+0641  11 03 00     LD DE, 3
+0644  E5           PUSH HL
+0645  19           ADD HL, DE
+0646  54           LD D, H
+0647  5D           LD E, L
+0648  E1           POP HL
+0649  E5           PUSH HL
+064A  C5           PUSH BC
+064B  E1           POP HL
+064C  7D           LD A, L
+064D  E6 FF        AND 255
+064F  6F           LD L, A
+0650  26 00        LD H, 0
+0652  E5           PUSH HL
+0653  FD E1        POP IY
+0655  E1           POP HL
+0656  C5           PUSH BC
+0657  E5           PUSH HL
+0658  DD E5        PUSH IX
+065A  62           LD H, D
+065B  6B           LD L, E
+065C  FD 4D        LD C, IYL
+065E  CD 18 03     CALL poke
+0661  DD E1        POP IX
+0663  E1           POP HL
+0664  C1           POP BC
+0665  11 04 00     LD DE, 4
+0668  E5           PUSH HL
+0669  19           ADD HL, DE
+066A  54           LD D, H
+066B  5D           LD E, L
+066C  E1           POP HL
+066D  E5           PUSH HL
+066E  C5           PUSH BC
+066F  E1           POP HL
+0670  6C           LD L, H
+0671  26 00        LD H, 0
+0673  E5           PUSH HL
+0674  C1           POP BC
+0675  E1           POP HL
+0676  E5           PUSH HL
+0677  DD E5        PUSH IX
+0679  62           LD H, D
+067A  6B           LD L, E
+067B  CD 18 03     CALL poke
+067E  DD E1        POP IX
+0680  E1           POP HL
+0681  11 05 00     LD DE, 5
+0684  E5           PUSH HL
+0685  19           ADD HL, DE
+0686  54           LD D, H
+0687  5D           LD E, L
+0688  E1           POP HL
+0689  DD 7D        LD A, IXL
+068B  E6 FF        AND 255
+068D  4F           LD C, A
+068E  06 00        LD B, 0
+0690  E5           PUSH HL
+0691  DD E5        PUSH IX
+0693  62           LD H, D
+0694  6B           LD L, E
+0695  CD 18 03     CALL poke
+0698  DD E1        POP IX
+069A  E1           POP HL
+069B  11 06 00     LD DE, 6
+069E  E5           PUSH HL
+069F  19           ADD HL, DE
+06A0  54           LD D, H
+06A1  5D           LD E, L
+06A2  E1           POP HL
+06A3  E5           PUSH HL
+06A4  DD E5        PUSH IX
+06A6  E1           POP HL
+06A7  6C           LD L, H
+06A8  26 00        LD H, 0
+06AA  E5           PUSH HL
+06AB  C1           POP BC
+06AC  E1           POP HL
+06AD  E5           PUSH HL
+06AE  62           LD H, D
+06AF  6B           LD L, E
+06B0  CD 18 03     CALL poke
+06B3  E1           POP HL
+06B4  11 07 00     LD DE, 7
+06B7  E5           PUSH HL
+06B8  19           ADD HL, DE
+06B9  54           LD D, H
+06BA  5D           LD E, L
+06BB  E1           POP HL
+06BC  0E 00        LD C, 0
+06BE  E5           PUSH HL
+06BF  62           LD H, D
+06C0  6B           LD L, E
+06C1  CD 18 03     CALL poke
+06C4  E1           POP HL
+06C5  ED 5B 61 0A  LD DE, (node_bump) ; u16 direct load, no scratch clobber
+06C9  01 08 00     LD BC, 8
+06CC  E5           PUSH HL
+06CD  EB           EX DE, HL
+06CE  09           ADD HL, BC
+06CF  EB           EX DE, HL
+06D0  E1           POP HL
+06D1  01 61 0A     LD BC, node_bump
+06D4  7B           LD A, E
+06D5  02           LD (BC), A ; lo
+06D6  03           INC BC
+06D7  7A           LD A, D
+06D8  02           LD (BC), A ; hi
+06D9  0B           DEC BC
+06DA  C9           RET
+06DB  00 00        _spill_make_node_r177: DB 0, 0
+06DD  00 00        _spill_make_node_r178: DB 0, 0
+06DF  21 01 00     LD HL, 1
+06E2  19           ADD HL, DE
+06E3  D5           PUSH DE
+06E4  CD 16 03     CALL peek
+06E7  D1           POP DE
+06E8  4F           LD C, A
+06E9  06 00        LD B, 0
+06EB  21 02 00     LD HL, 2
+06EE  19           ADD HL, DE
+06EF  C5           PUSH BC
+06F0  CD 16 03     CALL peek
+06F3  C1           POP BC
+06F4  6F           LD L, A
+06F5  26 00        LD H, 0
+06F7  65           LD H, L
+06F8  2E 00        LD L, 0
+06FA  09           ADD HL, BC
+06FB  C9           RET
+06FC  21 03 00     LD HL, 3
+06FF  19           ADD HL, DE
+0700  D5           PUSH DE
+0701  CD 16 03     CALL peek
+0704  D1           POP DE
+0705  4F           LD C, A
+0706  06 00        LD B, 0
+0708  21 04 00     LD HL, 4
+070B  19           ADD HL, DE
+070C  C5           PUSH BC
+070D  CD 16 03     CALL peek
+0710  C1           POP BC
+0711  6F           LD L, A
+0712  26 00        LD H, 0
+0714  65           LD H, L
+0715  2E 00        LD L, 0
+0717  09           ADD HL, BC
+0718  C9           RET
+0719  01 03 00     LD BC, 3
+071C  E5           PUSH HL
+071D  09           ADD HL, BC
+071E  E5           PUSH HL
+071F  C1           POP BC
+0720  E1           POP HL
+0721  E5           PUSH HL
+0722  D5           PUSH DE
+0723  E1           POP HL
+0724  7D           LD A, L
+0725  E6 FF        AND 255
+0727  6F           LD L, A
+0728  26 00        LD H, 0
+072A  E5           PUSH HL
+072B  DD E1        POP IX
+072D  E1           POP HL
+072E  D5           PUSH DE
+072F  E5           PUSH HL
+0730  60           LD H, B
+0731  69           LD L, C
+0732  DD 4D        LD C, IXL
+0734  CD 18 03     CALL poke
+0737  E1           POP HL
+0738  D1           POP DE
+0739  01 04 00     LD BC, 4
+073C  09           ADD HL, BC
+073D  E5           PUSH HL
+073E  C1           POP BC
+073F  D5           PUSH DE
+0740  E1           POP HL
+0741  6C           LD L, H
+0742  26 00        LD H, 0
+0744  60           LD H, B
+0745  F5           PUSH AF
+0746  79           LD A, C
+0747  4D           LD C, L
+0748  6F           LD L, A
+0749  F1           POP AF
+074A  C3 18 03     JP poke
+074D  CD 96 03     CALL skip_ws
+0750  CD 7A 03     CALL cur
+0753  A7           AND A
+0754  20 06        JR NZ, parse_sexpr.parse_sexpr_if_join2
+0756  3E 00        LD A, 0
+0758  6F           LD L, A
+0759  26 00        LD H, 0
+075B  C9           RET
+075C  FE 28        CP 40
+075E  C2 0B 08     JR NZ, parse_sexpr.parse_sexpr_if_join4
+0761  ED 5B 5D 0A  LD DE, (pos) ; u16 direct load, no scratch clobber
+0765  13           INC DE
+0766  21 5D 0A     LD HL, pos
+0769  73           LD (HL), E ; lo
+076A  23           INC HL
+076B  72           LD (HL), D ; hi
+076C  2B           DEC HL
+076D  CD 96 03     CALL skip_ws
+0770  CD 7A 03     CALL cur
+0773  FE 29        CP 41
+0775  20 25        JR NZ, parse_sexpr.parse_sexpr_if_join6
+0777  ED 5B 5D 0A  LD DE, (pos) ; u16 direct load, no scratch clobber
+077B  13           INC DE
+077C  21 5D 0A     LD HL, pos
+077F  73           LD (HL), E ; lo
+0780  23           INC HL
+0781  72           LD (HL), D ; hi
+0782  2B           DEC HL
+0783  21 68 0A     LD HL, SEXP_LIST
+0786  4E           LD C, (HL)
+0787  79           LD A, C
+0788  0E 00        LD C, 0
+078A  06 00        LD B, 0
+078C  16 00        LD D, 0
+078E  59           LD E, C
+078F  48           LD C, B
+0790  DD 6A        LD IXL, D
+0792  16 00        LD D, 0
+0794  06 00        LD B, 0
+0796  DD 26 00     LD IXH, 0
+0799  C3 C9 05     JP make_node
+079C  CD 4D 07     CALL parse_sexpr
+079F  54           LD D, H
+07A0  5D           LD E, L
+07A1  21 68 0A     LD HL, SEXP_LIST
+07A4  4E           LD C, (HL)
+07A5  79           LD A, C
+07A6  62           LD H, D
+07A7  6B           LD L, E
+07A8  06 00        LD B, 0
+07AA  0E 00        LD C, 0
+07AC  D5           PUSH DE
+07AD  54           LD D, H
+07AE  5D           LD E, L
+07AF  DD 69        LD IXL, C
+07B1  48           LD C, B
+07B2  06 00        LD B, 0
+07B4  DD 26 00     LD IXH, 0
+07B7  CD C9 05     CALL make_node
+07BA  D1           POP DE
+07BB  D5           PUSH DE
+07BC  E5           PUSH HL
+07BD  CD 96 03     CALL skip_ws
+07C0  E1           POP HL
+07C1  D1           POP DE
+07C2  D5           PUSH DE
+07C3  E5           PUSH HL
+07C4  CD 7A 03     CALL cur
+07C7  E1           POP HL
+07C8  D1           POP DE
+07C9  FE 29        CP 41
+07CB  CA 17 09     JR Z, parse_sexpr.parse_sexpr_trmp0
+07CE  D5           PUSH DE
+07CF  E5           PUSH HL
+07D0  CD 7A 03     CALL cur
+07D3  E1           POP HL
+07D4  D1           POP DE
+07D5  A7           AND A
+07D6  20 01        JR NZ, parse_sexpr.parse_sexpr_if_join11
+07D8  C9           RET
+07D9  D5           PUSH DE
+07DA  E5           PUSH HL
+07DB  CD 4D 07     CALL parse_sexpr
+07DE  44           LD B, H
+07DF  4D           LD C, L
+07E0  E1           POP HL
+07E1  D1           POP DE
+07E2  DD 60        LD IXH, B
+07E4  DD 69        LD IXL, C
+07E6  C5           PUSH BC
+07E7  E5           PUSH HL
+07E8  62           LD H, D
+07E9  6B           LD L, E
+07EA  DD 54        LD D, IXH
+07EC  DD 5D        LD E, IXL
+07EE  CD 19 07     CALL set_d1
+07F1  E1           POP HL
+07F2  C1           POP BC
+07F3  C5           PUSH BC
+07F4  E5           PUSH HL
+07F5  CD 96 03     CALL skip_ws
+07F8  E1           POP HL
+07F9  C1           POP BC
+07FA  50           LD D, B
+07FB  59           LD E, C
+07FC  18 C4        JR parse_sexpr.parse_sexpr_loop_head7
+07FE  2A 5D 0A     LD HL, (pos) ; u16 direct load (20T, no A clobber)
+0801  23           INC HL
+0802  11 5D 0A     LD DE, pos
+0805  22 5D 0A     LD (pos), HL ; u16 direct store (16T, no A clobber)
+0808  60           LD H, B
+0809  69           LD L, C
+080A  C9           RET
+080B  21 5D 0A     LD HL, pos
+080E  F5           PUSH AF ; preserve word-load scratch
+080F  7E           LD A, (HL) ; lo
+0810  DD 6F        LD IXL, A
+0812  23           INC HL
+0813  7E           LD A, (HL) ; hi
+0814  DD 67        LD IXH, A
+0816  2B           DEC HL
+0817  F1           POP AF ; restore word-load scratch
+0818  DD E5        PUSH IX
+081A  CD 7A 03     CALL cur
+081D  DD E1        POP IX
+081F  DD E5        PUSH IX
+0821  CD 49 03     CALL is_atom_char
+0824  DD E1        POP IX
+0826  FE 01        CP 1
+0828  20 0C        JR NZ, parse_sexpr.parse_sexpr_loop_exit14
+082A  2A 5D 0A     LD HL, (pos) ; u16 direct load (20T, no A clobber)
+082D  23           INC HL
+082E  11 5D 0A     LD DE, pos
+0831  22 5D 0A     LD (pos), HL ; u16 direct store (16T, no A clobber)
+0834  18 E2        JR parse_sexpr.parse_sexpr_loop_head12
+0836  2A 5D 0A     LD HL, (pos) ; u16 direct load (20T, no A clobber)
+0839  B7           OR A
+083A  D5           PUSH DE
+083B  DD 54        LD D, IXH
+083D  DD 5D        LD E, IXL
+083F  ED 52        SBC HL, DE
+0841  D1           POP DE
+0842  7D           LD A, L
+0843  FD 67        LD IYH, A
+0845  FD 7C        LD A, IYH
+0847  A7           AND A
+0848  20 06        JR NZ, parse_sexpr.parse_sexpr_if_join16
+084A  3E 00        LD A, 0
+084C  6F           LD L, A
+084D  26 00        LD H, 0
+084F  C9           RET
+0850  2A 59 0A     LD HL, (src_buf) ; u16 direct load (20T, no A clobber)
+0853  D5           PUSH DE
+0854  DD 54        LD D, IXH
+0856  DD 5D        LD E, IXL
+0858  19           ADD HL, DE
+0859  D1           POP DE
+085A  DD E5        PUSH IX
+085C  FD E5        PUSH IY
+085E  CD 16 03     CALL peek
+0861  FD E1        POP IY
+0863  DD E1        POP IX
+0865  DD E5        PUSH IX
+0867  FD E5        PUSH IY
+0869  CD 37 03     CALL is_digit
+086C  FD E1        POP IY
+086E  DD E1        POP IX
+0870  FE 01        CP 1
+0872  C2 F5 08     JR NZ, parse_sexpr.parse_sexpr_if_join18
+0875  21 00 00     LD HL, 0
+0878  FD 2E 00     LD IYL, 0
+087B  FD 7D        LD A, IYL
+087D  FD BC        CP IYH
+087F  D2 1C 09     JR NC, parse_sexpr.parse_sexpr_trmp1
+0882  F5           PUSH AF
+0883  D5           PUSH DE
+0884  11 0A 00     LD DE, 10
+0887  C5           PUSH BC
+0888  44           LD B, H
+0889  4D           LD C, L
+088A  26 00        LD H, 0
+088C  2E 00        LD L, 0
+088E  3E 10        LD A, 16
+0890  CB 3A        SRL D
+0892  CB 1B        RR E
+0894  30 01        JR NC, parse_sexpr.parse_sexpr_m16_335_sk
+0896  09           ADD HL, BC
+0897  CB 21        SLA C
+0899  CB 10        RL B
+089B  3D           DEC A
+089C  20 F2        JR NZ, parse_sexpr.parse_sexpr_m16_335_lp
+089E  C1           POP BC
+089F  D1           POP DE
+08A0  F1           POP AF
+08A1  ED 5B 59 0A  LD DE, (src_buf) ; u16 direct load, no scratch clobber
+08A5  E5           PUSH HL
+08A6  EB           EX DE, HL
+08A7  C5           PUSH BC
+08A8  DD 44        LD B, IXH
+08AA  DD 4D        LD C, IXL
+08AC  09           ADD HL, BC
+08AD  C1           POP BC
+08AE  EB           EX DE, HL
+08AF  E1           POP HL
+08B0  FD 4D        LD C, IYL
+08B2  06 00        LD B, 0
+08B4  E5           PUSH HL
+08B5  EB           EX DE, HL
+08B6  09           ADD HL, BC
+08B7  EB           EX DE, HL
+08B8  E1           POP HL
+08B9  E5           PUSH HL
+08BA  DD E5        PUSH IX
+08BC  FD E5        PUSH IY
+08BE  62           LD H, D
+08BF  6B           LD L, E
+08C0  CD 16 03     CALL peek
+08C3  FD E1        POP IY
+08C5  DD E1        POP IX
+08C7  E1           POP HL
+08C8  5F           LD E, A
+08C9  16 00        LD D, 0
+08CB  19           ADD HL, DE
+08CC  11 30 00     LD DE, 48
+08CF  B7           OR A
+08D0  ED 52        SBC HL, DE
+08D2  0E 01        LD C, 1
+08D4  FD 7D        LD A, IYL
+08D6  C6 01        ADD A, 1
+08D8  FD 6F        LD IYL, A
+08DA  18 9F        JR parse_sexpr.parse_sexpr_loop_head19
+08DC  11 69 0A     LD DE, SEXP_INT
+08DF  08           EX AF, AF' ; preserve byte-load scratch
+08E0  1A           LD A, (DE)
+08E1  4F           LD C, A
+08E2  08           EX AF, AF' ; restore byte-load scratch
+08E3  79           LD A, C
+08E4  06 00        LD B, 0
+08E6  0E 00        LD C, 0
+08E8  54           LD D, H
+08E9  5D           LD E, L
+08EA  DD 69        LD IXL, C
+08EC  48           LD C, B
+08ED  06 00        LD B, 0
+08EF  DD 26 00     LD IXH, 0
+08F2  C3 C9 05     JP make_node
+08F5  DD 54        LD D, IXH
+08F7  DD 5D        LD E, IXL
+08F9  FD 4C        LD C, IYH
+08FB  CD 5C 04     CALL intern_region
+08FE  11 67 0A     LD DE, SEXP_ATOM
+0901  08           EX AF, AF' ; preserve byte-load scratch
+0902  1A           LD A, (DE)
+0903  4F           LD C, A
+0904  08           EX AF, AF' ; restore byte-load scratch
+0905  79           LD A, C
+0906  06 00        LD B, 0
+0908  0E 00        LD C, 0
+090A  54           LD D, H
+090B  5D           LD E, L
+090C  DD 69        LD IXL, C
+090E  48           LD C, B
+090F  06 00        LD B, 0
+0911  DD 26 00     LD IXH, 0
+0914  C3 C9 05     JP make_node
+0917  44           LD B, H
+0918  4D           LD C, L
+0919  C3 FE 07     JR parse_sexpr.parse_sexpr_loop_exit9
+091C  18 BE        JR parse_sexpr.parse_sexpr_loop_exit21
+091E  E5           PUSH HL
+091F  CD 16 03     CALL peek
+0922  E1           POP HL
+0923  DD 26 00     LD IXH, 0
+0926  DD 6F        LD IXL, A
+0928  DD 7C        LD A, IXH
+092A  DD BD        CP IXL
+092C  D0           RET NC
+092D  11 01 00     LD DE, 1
+0930  E5           PUSH HL
+0931  19           ADD HL, DE
+0932  54           LD D, H
+0933  5D           LD E, L
+0934  E1           POP HL
+0935  DD 4C        LD C, IXH
+0937  06 00        LD B, 0
+0939  E5           PUSH HL
+093A  EB           EX DE, HL
+093B  09           ADD HL, BC
+093C  EB           EX DE, HL
+093D  E1           POP HL
+093E  E5           PUSH HL
+093F  DD E5        PUSH IX
+0941  62           LD H, D
+0942  6B           LD L, E
+0943  CD 16 03     CALL peek
+0946  DD E1        POP IX
+0948  E1           POP HL
+0949  CD F7 0A     CALL __cpm_smoke_putchar
+094C  0E 01        LD C, 1
+094E  DD 7C        LD A, IXH
+0950  C6 01        ADD A, 1
+0952  DD 67        LD IXH, A
+0954  18 D2        JR print_str.print_str_loop_head1
+0956  0E 00        LD C, 0
+0958  E5           PUSH HL
+0959  06 00        LD B, 0
+095B  B7           OR A
+095C  ED 42        SBC HL, BC
+095E  E1           POP HL
+095F  20 01        JR NZ, print_node.print_node_if_join2
+0961  C9           RET
+0962  E5           PUSH HL
+0963  CD 16 03     CALL node_tag
+0966  E1           POP HL
+0967  11 67 0A     LD DE, SEXP_ATOM
+096A  08           EX AF, AF' ; preserve byte-load scratch
+096B  1A           LD A, (DE)
+096C  4F           LD C, A
+096D  08           EX AF, AF' ; restore byte-load scratch
+096E  B9           CP C
+096F  20 08        JR NZ, print_node.print_node_if_join4
+0971  54           LD D, H
+0972  5D           LD E, L
+0973  CD DF 06     CALL node_d0
+0976  C3 1E 09     JP print_str
+0979  11 69 0A     LD DE, SEXP_INT
+097C  08           EX AF, AF' ; preserve byte-load scratch
+097D  1A           LD A, (DE)
+097E  4F           LD C, A
+097F  08           EX AF, AF' ; restore byte-load scratch
+0980  B9           CP C
+0981  20 3B        JR NZ, print_node.print_node_if_join6
+0983  54           LD D, H
+0984  5D           LD E, L
+0985  CD DF 06     CALL node_d0
+0988  7D           LD A, L
+0989  4F           LD C, A
+098A  06 00        LD B, 0
+098C  79           LD A, C
+098D  FE 64        CP 100
+098F  38 06        JR C, print_node.pdec_ht0
+0991  D6 64        SUB 100
+0993  4F           LD C, A
+0994  04           INC B
+0995  18 F5        JR print_node.pdec_h0
+0997  78           LD A, B
+0998  B7           OR A
+0999  28 05        JR Z, print_node.pdec_t0
+099B  C6 30        ADD A, 48
+099D  CD F7 0A     CALL __cpm_smoke_putchar
+09A0  16 00        LD D, 0
+09A2  79           LD A, C
+09A3  FE 0A        CP 10
+09A5  38 06        JR C, print_node.pdec_tt0
+09A7  D6 0A        SUB 10
+09A9  4F           LD C, A
+09AA  14           INC D
+09AB  18 F5        JR print_node.pdec_tl0
+09AD  78           LD A, B
+09AE  B2           OR D
+09AF  28 06        JR Z, print_node.pdec_u0
+09B1  7A           LD A, D
+09B2  C6 30        ADD A, 48
+09B4  CD F7 0A     CALL __cpm_smoke_putchar
+09B7  79           LD A, C
+09B8  C6 30        ADD A, 48
+09BA  CD F7 0A     CALL __cpm_smoke_putchar
+09BD  C9           RET
+09BE  11 68 0A     LD DE, SEXP_LIST
+09C1  08           EX AF, AF' ; preserve byte-load scratch
+09C2  1A           LD A, (DE)
+09C3  4F           LD C, A
+09C4  08           EX AF, AF' ; restore byte-load scratch
+09C5  B9           CP C
+09C6  C0           RET NZ
+09C7  11 6A 0A     LD DE, _mir2_str_0
+09CA  1A           LD A, (DE)
+09CB  13           INC DE
+09CC  42           LD B, D
+09CD  4B           LD C, E
+09CE  A7           AND A
+09CF  28 19        JR Z, print_node.print_node_loop_exit13
+09D1  08           EX AF, AF' ; preserve byte-load scratch
+09D2  0A           LD A, (BC)
+09D3  57           LD D, A
+09D4  08           EX AF, AF' ; restore byte-load scratch
+09D5  F5           PUSH AF
+09D6  7A           LD A, D
+09D7  CD F7 0A     CALL __cpm_smoke_putchar
+09DA  F1           POP AF
+09DB  11 01 00     LD DE, 1
+09DE  E5           PUSH HL
+09DF  C5           PUSH BC
+09E0  E1           POP HL
+09E1  19           ADD HL, DE
+09E2  54           LD D, H
+09E3  5D           LD E, L
+09E4  E1           POP HL
+09E5  3D           DEC A
+09E6  42           LD B, D
+09E7  4B           LD C, E
+09E8  18 E4        JR print_node.print_node_loop_head11
+09EA  54           LD D, H
+09EB  5D           LD E, L
+09EC  CD DF 06     CALL node_d0
+09EF  0E 01        LD C, 1
+09F1  16 00        LD D, 0
+09F3  E5           PUSH HL
+09F4  5A           LD E, D
+09F5  16 00        LD D, 0
+09F7  B7           OR A
+09F8  ED 52        SBC HL, DE
+09FA  E1           POP HL
+09FB  28 40        JR Z, print_node.print_node_loop_exit16
+09FD  79           LD A, C
+09FE  A7           AND A
+09FF  20 2A        JR NZ, print_node.print_node_if_join18
+0A01  11 6C 0A     LD DE, _mir2_str_1
+0A04  1A           LD A, (DE)
+0A05  01 01 00     LD BC, 1
+0A08  E5           PUSH HL
+0A09  62           LD H, D
+0A0A  6B           LD L, E
+0A0B  09           ADD HL, BC
+0A0C  E5           PUSH HL
+0A0D  C1           POP BC
+0A0E  E1           POP HL
+0A0F  A7           AND A
+0A10  28 19        JR Z, print_node.print_node_loop_exit23
+0A12  08           EX AF, AF' ; preserve byte-load scratch
+0A13  0A           LD A, (BC)
+0A14  57           LD D, A
+0A15  08           EX AF, AF' ; restore byte-load scratch
+0A16  F5           PUSH AF
+0A17  7A           LD A, D
+0A18  CD F7 0A     CALL __cpm_smoke_putchar
+0A1B  F1           POP AF
+0A1C  11 01 00     LD DE, 1
+0A1F  E5           PUSH HL
+0A20  C5           PUSH BC
+0A21  E1           POP HL
+0A22  19           ADD HL, DE
+0A23  54           LD D, H
+0A24  5D           LD E, L
+0A25  E1           POP HL
+0A26  3D           DEC A
+0A27  42           LD B, D
+0A28  4B           LD C, E
+0A29  18 E4        JR print_node.print_node_loop_head21
+0A2B  0E 00        LD C, 0
+0A2D  C5           PUSH BC
+0A2E  E5           PUSH HL
+0A2F  CD 56 09     CALL print_node
+0A32  E1           POP HL
+0A33  C1           POP BC
+0A34  C5           PUSH BC
+0A35  54           LD D, H
+0A36  5D           LD E, L
+0A37  CD FC 06     CALL node_d1
+0A3A  C1           POP BC
+0A3B  18 B4        JR print_node.print_node_loop_head14
+0A3D  21 6E 0A     LD HL, _mir2_str_2
+0A40  7E           LD A, (HL)
+0A41  23           INC HL
+0A42  54           LD D, H
+0A43  5D           LD E, L
+0A44  A7           AND A
+0A45  C8           RET Z
+0A46  08           EX AF, AF' ; preserve byte-load scratch
+0A47  1A           LD A, (DE)
+0A48  67           LD H, A
+0A49  08           EX AF, AF' ; restore byte-load scratch
+0A4A  F5           PUSH AF
+0A4B  7C           LD A, H
+0A4C  CD F7 0A     CALL __cpm_smoke_putchar
+0A4F  F1           POP AF
+0A50  21 01 00     LD HL, 1
+0A53  19           ADD HL, DE
+0A54  3D           DEC A
+0A55  54           LD D, H
+0A56  5D           LD E, L
+0A57  18 EB        JR print_node.print_node_loop_head26
+0A59  00 C0        DW 49152
+0A5B  00 00        DW 0
+0A5D  00 00        DW 0
+0A5F  00 80        DW 32768
+0A61  00 80        DW 32768
+0A63  00 90        DW 36864
+0A65  00 90        DW 36864
+0A67  01           DB 1
+0A68  02           DB 2
+0A69  03           DB 3
+0A6A  01 28        DB 1, "("
+0A6C  01 20        DB 1, " "
+0A6E  01 29        DB 1, ")"
+0A70  28 66 75 6E 20 61 64 64 20 28 28 61 20 75 38 29 20 28 62 20 75 38 29 29 20 75 38 20 28 72 65 74 75 72 6E 20 28 2B 20 61 20 62 29 29 29 00 DB "(fun add ((a u8) (b u8)) u8 (return (+ a b)))", 0
+0A9E  07 49 6E 70 75 74 3A 20 DB 7, "Input: "
+0AA6  2D 28 66 75 6E 20 61 64 64 20 28 28 61 20 75 38 29 20 28 62 20 75 38 29 29 20 75 38 20 28 72 65 74 75 72 6E 20 28 2B 20 61 20 62 29 29 29 DB 45, "(fun add ((a u8) (b u8)) u8 (return (+ a b)))"
+0AD4  08 50 61 72 73 65 64 3A 20 DB 8, "Parsed: "
+0ADD  07 4E 6F 64 65 73 3A 20 DB 7, "Nodes: "
+0AE5  0A 20 53 74 72 69 6E 67 73 3A 20 DB 10, " Strings: "
+0AF0  06 20 62 79 74 65 73 DB 6, " bytes"
+0AF7  F5           PUSH AF
+0AF8  C5           PUSH BC
+0AF9  D5           PUSH DE
+0AFA  E5           PUSH HL
+0AFB  DD E5        PUSH IX
+0AFD  FD E5        PUSH IY
+0AFF  5F           LD E, A
+0B00  0E 02        LD C, 2
+0B02  CD 05 00     CALL 5
+0B05  FD E1        POP IY
+0B07  DD E1        POP IX
+0B09  E1           POP HL
+0B0A  D1           POP DE
+0B0B  C1           POP BC
+0B0C  F1           POP AF
+0B0D  C9           RET
