@@ -1,0 +1,14 @@
+{
+  "scope": "11 checkpoint executables plus 276 payload checks across canonical/historical copies of three CLI packets; actual fixed-winner replay from share; no fresh candidate search",
+  "checkpoint_manifest_before_sha256": "c64b7f8ed9d13788672ef304754bfada84d94723953e9ff8e2eac775fa18cbeb",
+  "source_unit": "examples/nanz/pfcco_weighted_packet.nanz",
+  "source_sha256": "6a8ecc8d50e41f5609cabb061b7a06474a7e72619295259d9e5aa4e3cc5bb4ab",
+  "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/frozen-cli-share-audit",
+  "training": "/mnt/safe/minz/grace/2026-10-11/compiler-docs/grace-compiler-mode-replay-trust/artifacts/training",
+  "frozen_executable": "/mnt/safe/minz/grace/2026-10-11/compiler-checkpoints/mz-compiler-mode-replay-trust-final",
+  "binary_sha256": "23a46320f4d5adaf3a706457cf721145f0ff0df85efcd4c8e0e2b0f0d83642f0",
+  "heldout_calls": 12,
+  "heldout_t_states": 5568,
+  "standalone_cwd": "/home/alice/dev/minz-artifacts/grace-checkpoints/frozen-cli-share-audit/standalone",
+  "standalone_status": "PASS exact same saved binary, 12 calls, 5568T"
+}

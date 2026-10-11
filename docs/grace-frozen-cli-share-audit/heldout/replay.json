@@ -1,0 +1,7 @@
+{
+  "schema": "minz.compiler-modes-replay/v1",
+  "selected": 1,
+  "training_selection_sha256": "ffc9b87b7294bc92fadb9fcb68730e628d536b04290b45ee4d6f754154db3056",
+  "binary_sha256": "23a46320f4d5adaf3a706457cf721145f0ff0df85efcd4c8e0e2b0f0d83642f0",
+  "training_reproduced": true
+}
