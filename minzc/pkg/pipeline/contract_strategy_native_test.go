@@ -28,10 +28,16 @@ fun multi(x:u8)->u8 {
 }`
 
 func TestContractStrategyPinnedNativeSource(t *testing.T) {
+	runContractStrategyPinnedSource(t, pfccoPinnedSource)
+}
+func TestContractStrategyLiteralRHSNativeSource(t *testing.T) {
+	runContractStrategyPinnedSource(t, strings.Replace(pfccoPinnedSource, "return x+x+3", "return 3+x", 1))
+}
+func runContractStrategyPinnedSource(t *testing.T, source string) {
 	var baselineT uint64
 	var baselineBytes int
 	for _, strategy := range []string{"", "pbqp"} {
-		h := graceMeasureParse(t, pfccoPinnedSource)
+		h := graceMeasureParse(t, source)
 		s, err := CompileHIRSteps(h, Options{ContractOpt: true, ContractStrategy: strategy, AssertMode: "none"})
 		if err != nil {
 			t.Fatal(err)
@@ -68,6 +74,9 @@ func TestContractStrategyPinnedNativeSource(t *testing.T) {
 		var total uint64
 		for x := 0; x < 256; x++ {
 			want := byte(4*x + 3)
+			if strings.Contains(source, "return 3+x") {
+				want = byte(3*x + 3)
+			}
 			trace++
 			if x == 0 {
 				want = 0
@@ -111,7 +120,11 @@ func TestContractStrategyPinnedNativeSource(t *testing.T) {
 			if name == "" {
 				name = "greedy"
 			}
-			for file, data := range map[string][]byte{"pinned-source.nanz": []byte(pfccoPinnedSource), "pinned-" + name + ".a80": []byte(s.Assembly), "pinned-" + name + ".bin": bin.Binary, "pinned-" + name + "-metrics.txt": []byte(fmt.Sprintf("%d T / %d B\n", total, len(bin.Binary)))} {
+			prefix := "pinned"
+			if strings.Contains(source, "return 3+x") {
+				prefix = "literal-rhs"
+			}
+			for file, data := range map[string][]byte{prefix + "-source.nanz": []byte(source), prefix + "-" + name + ".a80": []byte(s.Assembly), prefix + "-" + name + ".bin": bin.Binary, prefix + "-" + name + "-metrics.txt": []byte(fmt.Sprintf("%d T / %d B\n", total, len(bin.Binary)))} {
 				if err := os.MkdirAll(dir, 0755); err != nil {
 					t.Fatal(err)
 				}

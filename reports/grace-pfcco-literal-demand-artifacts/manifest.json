@@ -1,0 +1,57 @@
+{
+  "base_commit": "89fff011",
+  "files": {
+    "before-asm-inspection.txt": {
+      "bytes": 4321,
+      "sha256": "2deb85cb918ae4fc2d880301ee26c6263ff820d6d427faa835b73a8fdf501dc3"
+    },
+    "full-mir2.txt": {
+      "bytes": 43,
+      "sha256": "876a7bcd7d5130ea304c8a912a81a13d44a828bfd0329eddaa707b01abf7f186"
+    },
+    "literal-rhs-greedy-metrics.txt": {
+      "bytes": 15,
+      "sha256": "dab0f780e7210157d6184e26f2c5ceb0de1ca172c687a4d7ec15f5bbaa8cb9ee"
+    },
+    "literal-rhs-greedy.a80": {
+      "bytes": 1653,
+      "sha256": "76afa283f485e92fb3526df35be00021f14dae1578cd962b35446340e9dfbf3e"
+    },
+    "literal-rhs-greedy.bin": {
+      "bytes": 60,
+      "sha256": "b4f71bf597b8596e4619856e54def2f089cef10e761c0398a0724e02e620e4ca"
+    },
+    "literal-rhs-pbqp-metrics.txt": {
+      "bytes": 15,
+      "sha256": "8be033e8ef47af6c2018474e6b44ca0619236ea0daf7e4d11bf33034277acf5f"
+    },
+    "literal-rhs-pbqp.a80": {
+      "bytes": 1629,
+      "sha256": "d8f8035df4908e3f91add65ea4c3acf5762734364149926363f7305c49115c3a"
+    },
+    "literal-rhs-pbqp.bin": {
+      "bytes": 58,
+      "sha256": "a51c675ad56cc168d38a5ee4d4fc763a383815d6791a5ac9b87d162dd31182c8"
+    },
+    "literal-rhs-source.nanz": {
+      "bytes": 246,
+      "sha256": "667f002a944ec6a67e5671e4ef434a03dd877b1ae54ae09956bc430b87f7fc21"
+    },
+    "native-bounded-enumeration.txt": {
+      "bytes": 2285,
+      "sha256": "d4b5e6a5b138f7ada9d8669f94d0fe4bb1c3593642e4c3835be27f1e81f8aed2"
+    },
+    "ordinary-pipeline.txt": {
+      "bytes": 706,
+      "sha256": "a4e89b077fb4e4801f2aebe4ee6886ed6b62924eb23d5ebce69f31f6e1dcd2fe"
+    },
+    "packet-and-heldout.txt": {
+      "bytes": 1366,
+      "sha256": "736f80ed17ed06db9afad7b552f29863b3e8d06895dd6e02eb9c7b95399f146b"
+    },
+    "production-compile.txt": {
+      "bytes": 5562,
+      "sha256": "86ec94de97b727ad05278e31d8ef9f3f282d99b8cf3cf5cb7ec279398d529c03"
+    }
+  }
+}

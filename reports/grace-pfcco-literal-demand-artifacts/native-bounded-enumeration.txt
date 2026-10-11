@@ -1,0 +1,31 @@
+=== RUN   TestPFCCOForestsMatchIndependentExhaustiveMeasuredAdapters
+    contracts_exhaustive_native_test.go:110: native adapter matrix A/C/E including real CALL/RET and liveBC saves: [[35 71 43] [39 67 43] [39 71 39]]
+    contracts_exhaustive_native_test.go:119: omitted21T-save negative control picks C at real71T vs exact A55T
+    contracts_exhaustive_native_test.go:169: 600 deterministic forest tasks, domains3, up to729 assignments each: feasible exact optima and infeasible refusal PASS
+--- PASS: TestPFCCOForestsMatchIndependentExhaustiveMeasuredAdapters (0.00s)
+=== RUN   TestPFCCOR1RestoresAccumulatedCosts
+--- PASS: TestPFCCOR1RestoresAccumulatedCosts (0.00s)
+=== RUN   TestPFCCOR1RejectsIncompatibleNeighborChoice
+--- PASS: TestPFCCOR1RejectsIncompatibleNeighborChoice (0.00s)
+=== RUN   TestPFCCORejectsInfeasibleAssignments
+=== RUN   TestPFCCORejectsInfeasibleAssignments/isolated
+=== RUN   TestPFCCORejectsInfeasibleAssignments/leaf
+=== RUN   TestPFCCORejectsInfeasibleAssignments/residual
+--- PASS: TestPFCCORejectsInfeasibleAssignments (0.00s)
+    --- PASS: TestPFCCORejectsInfeasibleAssignments/isolated (0.00s)
+    --- PASS: TestPFCCORejectsInfeasibleAssignments/leaf (0.00s)
+    --- PASS: TestPFCCORejectsInfeasibleAssignments/residual (0.00s)
+=== RUN   TestPFCCOMultiCallMeasuredAudit
+    pfcco_multicall_audit_test.go:161: doubleOffset=false conditional=false PBQP=43264 T/21 B greedy=44288 T/22 B exhaustive-native=43264 T/21 B
+    pfcco_multicall_audit_test.go:161: doubleOffset=false conditional=true PBQP=46026 T/26 B greedy=49585 T/27 B exhaustive-native=46026 T/26 B
+    pfcco_multicall_audit_test.go:161: doubleOffset=true conditional=false PBQP=46336 T/24 B greedy=47360 T/25 B exhaustive-native=46336 T/24 B
+    pfcco_multicall_audit_test.go:161: doubleOffset=true conditional=true PBQP=49086 T/29 B greedy=52645 T/30 B exhaustive-native=49086 T/29 B
+--- PASS: TestPFCCOMultiCallMeasuredAudit (0.96s)
+=== RUN   TestPFCCOByteAdapterNativeMatrix
+--- PASS: TestPFCCOByteAdapterNativeMatrix (0.43s)
+=== RUN   TestPFCCOBodyDemandAndFixedCallee
+--- PASS: TestPFCCOBodyDemandAndFixedCallee (0.00s)
+=== RUN   TestPFCCOLiteralAccumulatorDemandBoundaries
+--- PASS: TestPFCCOLiteralAccumulatorDemandBoundaries (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	1.399s

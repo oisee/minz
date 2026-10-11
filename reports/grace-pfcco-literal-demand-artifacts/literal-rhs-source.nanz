@@ -1,0 +1,15 @@
+global trace:u8=0
+fun twice(@z80_c x:u8)->u8 {
+ asm z80 { ; fixed C ABI marker }
+ trace=trace+1
+ return x+x
+}
+fun offset(x:u8)->u8 {
+ trace=trace+1
+ return 3+x
+}
+fun multi(x:u8)->u8 {
+ var a:u8=twice(x)
+ if x!=0 { return a+offset(x) }
+ return a
+}
