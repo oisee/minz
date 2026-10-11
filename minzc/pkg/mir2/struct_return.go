@@ -99,36 +99,62 @@ func LowerStructReturnBuffers(m *Module) error {
 			if !ok {
 				continue
 			}
+			type pendingCopy struct {
+				dest   Reg
+				values []Reg
+			}
+			copies := make([]pendingCopy, 0, len(f.Contract.StructReturnBuffers))
+			address := func(base Reg, off int) Reg {
+				if off == 0 {
+					return base
+				}
+				r := f.AllocReg()
+				b.Insts = append(b.Insts, &Inst{Op: OpField, Dst: r, Src: [2]Reg{base}, Ty: TyPtr, Cls: ClassPointer, Imm: int64(off)})
+				return r
+			}
+			// Snapshot every returned object before any destination write. Hidden
+			// buffers may overlap another result's source; slot-by-slot copying is unsafe.
 			for _, slot := range f.Contract.StructReturnBuffers {
 				if slot.ReturnIndex >= len(ret.Vals) {
 					return fmt.Errorf("missing struct return value: %s", f.Name)
 				}
 				source := ret.Vals[slot.ReturnIndex]
 				dest := f.Contract.Params[slot.ParamIndex].Reg
-				// Snapshot all bytes before any store, preserving value semantics even
-				// when a caller buffer aliases the source object. Ordinary byte access
-				// instructions retain their own identities and full observer semantics.
-				n := ByteWidth(slot.Ty)
-				values := make([]Reg, n)
-				address := func(base Reg, off int) Reg {
-					if off == 0 {
-						return base
-					}
-					r := f.AllocReg()
-					b.Insts = append(b.Insts, &Inst{Op: OpField, Dst: r, Src: [2]Reg{base}, Ty: TyPtr, Cls: ClassPointer, Imm: int64(off)})
-					return r
-				}
-				for i := 0; i < n; i++ {
-					addr := address(source, i)
+				values := make([]Reg, ByteWidth(slot.Ty))
+				for off := range values {
+					addr := address(source, off)
 					r := f.AllocReg()
 					b.Insts = append(b.Insts, &Inst{Op: OpLoad, Dst: r, Src: [2]Reg{addr}, Ty: TyU8, Cls: ClassGeneral})
-					values[i] = r
+					values[off] = r
 				}
-				for i, r := range values {
-					addr := address(dest, i)
+				copies = append(copies, pendingCopy{dest, values})
+				ret.Vals[slot.ReturnIndex] = dest
+			}
+			for _, copy := range copies {
+				for off, r := range copy.values {
+					addr := address(copy.dest, off)
 					b.Insts = append(b.Insts, &Inst{Op: OpStore, Src: [2]Reg{addr, r}, Ty: TyU8})
 				}
-				ret.Vals[slot.ReturnIndex] = dest
+			}
+
+		}
+	}
+	// Derive this even when contract optimization is disabled. Indirect calls
+	// cannot consult the allocation chosen for their dynamically resolved target.
+	for _, f := range m.Funcs {
+		for _, b := range f.Blocks {
+			for _, inst := range b.Insts {
+				if inst.Op == OpAddrOf {
+					if target := m.FuncByName(inst.Sym); target != nil {
+						target.Attrs.FixedIndirectABI = true
+						for i := range target.Contract.Returns {
+							target.Contract.Returns[i].Class = standardIndirectReturnClass(target.Contract.Returns[i].Ty, i)
+						}
+						for i := range target.Contract.Params {
+							target.Contract.Params[i].Class = standardParamClass(target.Contract.Params[i].Ty, i)
+						}
+					}
+				}
 			}
 		}
 	}
@@ -238,7 +264,51 @@ func VerifyStructReturnBuffers(m *Module) error {
 
 func sameStructLayout(a, b Ty) bool { return reflect.DeepEqual(a, b) }
 
+// ValidateIndirectTargetABI checks semantic types before entering a resolved
+// VM target. Legacy untyped scalar MIR retains its previous dispatch behavior.
+func ValidateIndirectTargetABI(inst *Inst, target *Func) error {
+	if target.Attrs.FallibleCY {
+		return fmt.Errorf("indirect target fallible CY ABI unsupported: %s", target.Name)
+	}
+	if len(inst.IndirectParamTys) == 0 && len(inst.IndirectReturnTys) == 0 && len(inst.StructReturnBuffers) == 0 {
+		if len(target.Contract.StructReturnBuffers) != 0 {
+			return fmt.Errorf("untyped indirect target requires struct result buffers: %s", target.Name)
+		}
+		return nil
+	}
+	if len(inst.IndirectParamTys) != len(target.Contract.Params) || len(inst.IndirectReturnTys) != len(target.Contract.Returns) || !reflect.DeepEqual(inst.StructReturnBuffers, target.Contract.StructReturnBuffers) {
+		return fmt.Errorf("indirect target ABI shape mismatch: %s", target.Name)
+	}
+	for i, ty := range inst.IndirectParamTys {
+		if !reflect.DeepEqual(ty, target.Contract.Params[i].Ty) {
+			return fmt.Errorf("indirect target parameter ABI mismatch: %s", target.Name)
+		}
+	}
+	for i, ty := range inst.IndirectReturnTys {
+		if !reflect.DeepEqual(ty, target.Contract.Returns[i].Ty) {
+			return fmt.Errorf("indirect target return ABI mismatch: %s", target.Name)
+		}
+	}
+	return nil
+}
+
 // SourceParamCount excludes ABI-generated result-buffer parameters.
 func SourceParamCount(f *Func) int {
 	return len(f.Contract.Params) - len(f.Contract.StructReturnBuffers)
+}
+
+func standardIndirectReturnClass(ty Ty, pos int) RegClass {
+	if pos == 0 {
+		if z80ValueWidth(ty) > 8 {
+			return ClassPointer
+		}
+		return ClassAcc
+	}
+	if pos == 1 {
+		if z80ValueWidth(ty) > 8 {
+			return ClassIndex
+		}
+		return ClassCounter
+	}
+	return ClassGeneral
 }

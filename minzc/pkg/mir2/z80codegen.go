@@ -857,6 +857,19 @@ func (g *z80cg) genFunc(f *Func) {
 		return
 	}
 
+	if f.Attrs.FixedIndirectABI {
+		g.curBlock = f.Entry()
+		g.pendingAccReg = NoReg
+		g.pendingFlagReg = NoReg
+		// The public indirect ABI is canonical; allocation may place a
+		// long-lived incoming pointer in a named spill slot. Bridge exactly
+		// once before body code clobbers the incoming physical registers.
+		var copies []parallelCopy
+		for _, p := range f.Contract.Params {
+			copies = append(copies, parallelCopy{srcName: canonicalReturnLoc(p.Class, p.Ty), dstName: g.loc(p.Reg), ty: p.Ty})
+		}
+		g.emitParallelCopy(copies)
+	}
 	for i, b := range f.Blocks {
 		g.blockIdx = i
 		g.nativeBlockIndex = i
@@ -1031,6 +1044,7 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	g.curBlock = b
 	g.pendingFlagReg = NoReg
 	g.pendingAccReg = NoReg
+
 	// If a block param is allocated to A, any compare instruction in this block
 	// would clobber it with "LD A, lhs". Mark it as pending so materializePendingAcc
 	// can save it to a scratch register before the clobber occurs.

@@ -903,6 +903,9 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		if targetFn == nil {
 			return fmt.Errorf("mir2.VM: OpCallIndirect: no function at address %d", ptrVal)
 		}
+		if err := ValidateIndirectTargetABI(inst, targetFn); err != nil {
+			return err
+		}
 		rets, err := vm.callFunc(targetFn, args)
 		if err != nil {
 			return err
@@ -912,6 +915,11 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 				fr.set(inst.Dst, truncate(rets[0], inst.Ty))
 			} else {
 				fr.set(inst.Dst, rets[0])
+			}
+		}
+		for i, r := range inst.ExtraRets {
+			if r != NoReg && i+1 < len(rets) {
+				fr.set(r, rets[i+1])
 			}
 		}
 		return nil

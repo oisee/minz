@@ -1014,6 +1014,20 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		return l.lowerBlock(st)
 
 	case *VarDeclStmt:
+		if ty, ok := mir2.BaseOf(st.Ty).(*mir2.StructTy); ok && st.ArrayLen == 0 {
+			// Source struct locals own their bytes; a call-site result buffer is
+			// temporary and can be reused by the next loop iteration.
+			dest := l.fixedStructStorage(ty)
+			if lit, ok := st.Init.(*StructLitExpr); ok {
+				l.emitStructLitFields(lit, func() mir2.Reg { return dest })
+			} else if st.Init != nil {
+				src := l.lowerExpr(st.Init)
+				l.copyStructValue(dest, src, ty)
+			}
+			delete(l.fnAliases, st.Name)
+			l.bind(st.Name, dest, st.Ty)
+			return false
+		}
 		var r mir2.Reg
 		if st.Init != nil {
 			// Check for fold/reduce: let result = fold(ptr, init, cb, n)
@@ -1150,6 +1164,24 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			}
 		}
 		val := l.lowerExpr(st.Val)
+		if ty, ok := mir2.BaseOf(st.Target.ExprTy()).(*mir2.StructTy); ok {
+			var dest mir2.Reg
+			if tgt, ok := st.Target.(*VarRefExpr); ok {
+				if _, global := l.findGlobal(tgt.Name); global {
+					dest = l.globalAddr(tgt.Name)
+				} else {
+					dest = l.env[tgt.Name]
+					if dest == mir2.NoReg {
+						dest = l.fixedStructStorage(ty)
+						l.bind(tgt.Name, dest, tgt.Ty)
+					}
+				}
+			} else {
+				dest = l.lowerExprAddr(st.Target)
+			}
+			l.copyStructValue(dest, val, ty)
+			return false
+		}
 		switch tgt := st.Target.(type) {
 		case *VarRefExpr:
 			// Global variable: store through pointer.
@@ -3895,6 +3927,33 @@ func invertCond(e Expr) Expr {
 // this ensures each OpAddrOf result has useCount==1, enabling the HL-chain
 // optimization in z80codegen (LD HL,sym ; LD (HL),n ; INC HL ; ...).
 // Fields may appear in any source order; unmentioned fields are left uninitialized.
+// fixedStructStorage allocates one owned object in the function frame, even
+// for a source declaration in a conditional or loop body.
+func (l *lowerer) fixedStructStorage(ty *mir2.StructTy) mir2.Reg {
+	r := l.mf.AllocReg()
+	i := &mir2.Inst{Op: mir2.OpAlloca, Dst: r, Ty: mir2.TyPtr, Cls: mir2.ClassPointer, Imm: int64(max(1, mir2.ByteWidth(ty)))}
+	l.mf.Entry().Insts = append([]*mir2.Inst{i}, l.mf.Entry().Insts...)
+	return r
+}
+
+func (l *lowerer) copyStructValue(dest, source mir2.Reg, ty *mir2.StructTy) {
+	values := make([]mir2.Reg, mir2.ByteWidth(ty))
+	for off := range values {
+		addr := source
+		if off != 0 {
+			addr = l.bld.Field(source, int64(off), mir2.ClassPointer)
+		}
+		values[off] = l.bld.Load(addr, mir2.TyU8, mir2.ClassGeneral)
+	}
+	for off, value := range values {
+		addr := dest
+		if off != 0 {
+			addr = l.bld.Field(dest, int64(off), mir2.ClassPointer)
+		}
+		l.bld.Store(addr, value, mir2.TyU8)
+	}
+}
+
 func (l *lowerer) emitStructLitFields(lit *StructLitExpr, baseProvider func() mir2.Reg) {
 	for _, fi := range lit.Fields {
 		// Find the matching struct field to get its type and byte offset.
@@ -3929,7 +3988,11 @@ func (l *lowerer) emitStructLitFields(lit *StructLitExpr, baseProvider func() mi
 		} else {
 			addr = l.bld.Field(base, int64(byteOff), mir2.ClassPointer)
 		}
-		l.bld.Store(addr, val, fieldTy)
+		if ty, ok := mir2.BaseOf(fieldTy).(*mir2.StructTy); ok {
+			l.copyStructValue(addr, val, ty)
+		} else {
+			l.bld.Store(addr, val, fieldTy)
+		}
 	}
 }
 

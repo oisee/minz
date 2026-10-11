@@ -68,6 +68,9 @@ type Return struct {
 // IsLeaf and IsRecursive are computed by analysis; the rest are set during
 // code generation from the source AST.
 type FuncAttrs struct {
+	// FixedIndirectABI fixes canonical physical parameters for address-taken
+	// functions; contract classes alone are allocator preferences.
+	FixedIndirectABI bool `json:",omitempty"`
 	// FallibleCY fixes error ABI: success NC, failure CY+A code.
 	FallibleCY bool
 	// IsExtern: declaration only (no body blocks).
