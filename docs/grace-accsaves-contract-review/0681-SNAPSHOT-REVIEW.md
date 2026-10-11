@@ -1,0 +1,7 @@
+# Follow-up at 0681daf9
+
+The helper now uses z80SpillBytes(info.Ty), matching actual native data-home storage, and excludes isTSMCSpill(r). These changes close the two newly identified representation concerns in the ordinary data-home path. No additional blocking source defect was found for that bounded path. This reviewer did not run native tests.
+
+The new result-preservation fixture independently places A=0x78, HL=0x9ABC, DE=0xDEF0, BC=0x3456 and C/Z=true after modeled callee writes, then verifies snapshot restoration retains all of those values, restores byte 0xA5 and word 0xBEEF, and balances SP. It exercises restoration after results have been picked up; it does not execute the full multi-return pickup algorithm. The separate recursive fixture covers zero, one, three and seven depths, both byte and word homes, using the mathematical triangular sum and exact terminal PC/SP.
+
+Source clear for the authorized bounded execution. Keep claims limited to genuine currently allocated native 1/2-byte data homes. Direct recursive codegen disables TSMC. Exclusion of TSMC slots prevents stale data reads but does not make existing mutual/indirect TSMC reentry activation-safe. Likewise, dynamically generated non-LocMem spill overrides remain outside this collector. No new closed-host stack permission is added, and unsupported wide integer homes fail code generation rather than silently truncating snapshots.
