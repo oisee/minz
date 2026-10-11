@@ -1,0 +1,51 @@
+=== RUN   TestFrozenTransferExport
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_transfer_test.go:519: short-reuse reported policy0/mask0 330515T/2000B BIN1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941
+    memory_host_transfer_test.go:519: short-reuse same-policy-support policy1/mask0 329597T/2001B BINef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd
+    memory_host_transfer_test.go:519: short-reuse reported policy1/mask3 326650T/2100B BIN987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac
+    memory_host_transfer_test.go:519: short-reuse reported policy0/mask2 327008T/1978B BIN1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_transfer_test.go:519: long-atoms reported policy0/mask0 4110605T/2000B BIN1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941
+    memory_host_transfer_test.go:519: long-atoms same-policy-support policy1/mask0 4110217T/2001B BINef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd
+    memory_host_transfer_test.go:519: long-atoms reported policy1/mask3 3968826T/2100B BIN987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac
+    memory_host_transfer_test.go:519: long-atoms reported policy0/mask2 3968942T/1978B BIN1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_transfer_test.go:519: nested-mixed reported policy0/mask0 1297899T/2000B BIN1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941
+    memory_host_transfer_test.go:519: nested-mixed same-policy-support policy1/mask0 1286305T/2001B BINef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd
+    memory_host_transfer_test.go:519: nested-mixed reported policy1/mask3 1271819T/2100B BIN987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac
+    memory_host_transfer_test.go:519: nested-mixed reported policy0/mask2 1281762T/1978B BIN1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_transfer_test.go:519: fresh-dominant reported policy0/mask0 789462T/2000B BIN1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941
+    memory_host_transfer_test.go:519: fresh-dominant same-policy-support policy1/mask0 786526T/2001B BINef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd
+    memory_host_transfer_test.go:519: fresh-dominant reported policy1/mask3 696957T/2100B BIN987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac
+    memory_host_transfer_test.go:519: fresh-dominant reported policy0/mask2 699845T/1978B BIN1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975
+--- PASS: TestFrozenTransferExport (91.40s)
+PASS

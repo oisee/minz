@@ -1,0 +1,22 @@
+{
+  "source_name": "../examples/nanz/self_lanz_parser.nanz",
+  "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+  "schema": "minz.memory-host-arena-append-policy-search-cli-decision/v1",
+  "goal": "size",
+  "selected": {
+    "policy": 0,
+    "mask": 2
+  },
+  "choices": {
+    "arena_peel": false,
+    "append_hoist": true
+  },
+  "search_sha256": "eccdcf623d50dbc081e444e5760427c9ac8679d3f8ad2146b1e887576581251f",
+  "association_sha256": [
+    "a061fa74ccd87b9327358b85c62b755702597f8871089afff64bbcdcbe7ea7db",
+    "84956d8f677edb8a136d41281856c9c809c8e83d6d6bd40205bf910813b7852d"
+  ],
+  "binary_sha256": "1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975",
+  "t_states": 1079795,
+  "bytes": 1978
+}

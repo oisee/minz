@@ -1,0 +1,83 @@
+{
+  "schema": "minz.independent-frozen-transfer-audit/v1",
+  "training_executable_sha256": "0d6df9fbf769bdcca6969717449f587ff856b0c7d38d525b78129811abe0de12",
+  "evaluation_executable_sha256": "2ce28f20ed167885c845ecbfbbb8a94c446ced9f96d521efebaf5cb5632e1cc1",
+  "complete_four_workloads": false,
+  "workloads": [
+    {
+      "workload": "nested-mixed",
+      "rows": [
+        {
+          "calls": 9,
+          "ordered_events": 4150,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941",
+          "t_states": 1297899,
+          "bytes": 2000,
+          "str_bump": 36981,
+          "node_bump": 32904,
+          "policy": 0,
+          "mask": 0,
+          "role": "reported",
+          "delta_t_vs_control": 0,
+          "delta_bytes_vs_control": 0,
+          "percent_t_vs_control": 0.0
+        },
+        {
+          "calls": 9,
+          "ordered_events": 4150,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+          "t_states": 1286305,
+          "bytes": 2001,
+          "str_bump": 36981,
+          "node_bump": 32904,
+          "policy": 1,
+          "mask": 0,
+          "role": "same-policy-support",
+          "delta_t_vs_control": -11594,
+          "delta_bytes_vs_control": 1,
+          "percent_t_vs_control": -0.8932898476691946
+        },
+        {
+          "calls": 9,
+          "ordered_events": 4150,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac",
+          "t_states": 1271819,
+          "bytes": 2100,
+          "str_bump": 36981,
+          "node_bump": 32904,
+          "policy": 1,
+          "mask": 3,
+          "role": "reported",
+          "delta_t_vs_control": -26080,
+          "delta_bytes_vs_control": 100,
+          "percent_t_vs_control": -2.009401347870674
+        },
+        {
+          "calls": 9,
+          "ordered_events": 4150,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975",
+          "t_states": 1281762,
+          "bytes": 1978,
+          "str_bump": 36981,
+          "node_bump": 32904,
+          "policy": 0,
+          "mask": 2,
+          "role": "reported",
+          "delta_t_vs_control": -16137,
+          "delta_bytes_vs_control": -22,
+          "percent_t_vs_control": -1.2433170839949796
+        }
+      ],
+      "native_observations": 36,
+      "scope": "fixed tuples only; supporting1/0 separate, no reselection or fresh source loop profile"
+    }
+  ],
+  "native_observations": 36,
+  "reported_evaluations": 3,
+  "supporting_baselines": 1,
+  "scope": "retrospective known-corpus frozen-choice evaluation; no target execution or winner reselection"
+}

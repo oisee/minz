@@ -1,0 +1,178 @@
+[
+  {
+    "workload": "nested-mixed",
+    "policy": 0,
+    "mask": 0,
+    "role": "reported",
+    "t_states": 1297899,
+    "bytes": 2000,
+    "delta_t_vs_control": 0,
+    "percent_t_vs_control": 0.0,
+    "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941"
+  },
+  {
+    "workload": "nested-mixed",
+    "policy": 1,
+    "mask": 0,
+    "role": "same-policy-support",
+    "t_states": 1286305,
+    "bytes": 2001,
+    "delta_t_vs_control": -11594,
+    "percent_t_vs_control": -0.89329,
+    "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd"
+  },
+  {
+    "workload": "nested-mixed",
+    "policy": 1,
+    "mask": 3,
+    "role": "reported",
+    "t_states": 1271819,
+    "bytes": 2100,
+    "delta_t_vs_control": -26080,
+    "percent_t_vs_control": -2.009401,
+    "binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac"
+  },
+  {
+    "workload": "nested-mixed",
+    "policy": 0,
+    "mask": 2,
+    "role": "reported",
+    "t_states": 1281762,
+    "bytes": 1978,
+    "delta_t_vs_control": -16137,
+    "percent_t_vs_control": -1.243317,
+    "binary_sha256": "1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975"
+  },
+  {
+    "workload": "short-reuse",
+    "policy": 0,
+    "mask": 0,
+    "role": "reported",
+    "t_states": 330515,
+    "bytes": 2000,
+    "delta_t_vs_control": 0,
+    "percent_t_vs_control": 0.0,
+    "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941"
+  },
+  {
+    "workload": "short-reuse",
+    "policy": 1,
+    "mask": 0,
+    "role": "same-policy-support",
+    "t_states": 329597,
+    "bytes": 2001,
+    "delta_t_vs_control": -918,
+    "percent_t_vs_control": -0.277748,
+    "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd"
+  },
+  {
+    "workload": "short-reuse",
+    "policy": 1,
+    "mask": 3,
+    "role": "reported",
+    "t_states": 326650,
+    "bytes": 2100,
+    "delta_t_vs_control": -3865,
+    "percent_t_vs_control": -1.169387,
+    "binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac"
+  },
+  {
+    "workload": "short-reuse",
+    "policy": 0,
+    "mask": 2,
+    "role": "reported",
+    "t_states": 327008,
+    "bytes": 1978,
+    "delta_t_vs_control": -3507,
+    "percent_t_vs_control": -1.061071,
+    "binary_sha256": "1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975"
+  },
+  {
+    "workload": "long-atoms",
+    "policy": 0,
+    "mask": 0,
+    "role": "reported",
+    "t_states": 4110605,
+    "bytes": 2000,
+    "delta_t_vs_control": 0,
+    "percent_t_vs_control": 0.0,
+    "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941"
+  },
+  {
+    "workload": "long-atoms",
+    "policy": 1,
+    "mask": 0,
+    "role": "same-policy-support",
+    "t_states": 4110217,
+    "bytes": 2001,
+    "delta_t_vs_control": -388,
+    "percent_t_vs_control": -0.009439,
+    "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd"
+  },
+  {
+    "workload": "long-atoms",
+    "policy": 1,
+    "mask": 3,
+    "role": "reported",
+    "t_states": 3968826,
+    "bytes": 2100,
+    "delta_t_vs_control": -141779,
+    "percent_t_vs_control": -3.449103,
+    "binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac"
+  },
+  {
+    "workload": "long-atoms",
+    "policy": 0,
+    "mask": 2,
+    "role": "reported",
+    "t_states": 3968942,
+    "bytes": 1978,
+    "delta_t_vs_control": -141663,
+    "percent_t_vs_control": -3.446281,
+    "binary_sha256": "1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975"
+  },
+  {
+    "workload": "fresh-dominant",
+    "policy": 0,
+    "mask": 0,
+    "role": "reported",
+    "t_states": 789462,
+    "bytes": 2000,
+    "delta_t_vs_control": 0,
+    "percent_t_vs_control": 0.0,
+    "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941"
+  },
+  {
+    "workload": "fresh-dominant",
+    "policy": 1,
+    "mask": 0,
+    "role": "same-policy-support",
+    "t_states": 786526,
+    "bytes": 2001,
+    "delta_t_vs_control": -2936,
+    "percent_t_vs_control": -0.371899,
+    "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd"
+  },
+  {
+    "workload": "fresh-dominant",
+    "policy": 1,
+    "mask": 3,
+    "role": "reported",
+    "t_states": 696957,
+    "bytes": 2100,
+    "delta_t_vs_control": -92505,
+    "percent_t_vs_control": -11.717473,
+    "binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac"
+  },
+  {
+    "workload": "fresh-dominant",
+    "policy": 0,
+    "mask": 2,
+    "role": "reported",
+    "t_states": 699845,
+    "bytes": 1978,
+    "delta_t_vs_control": -89617,
+    "percent_t_vs_control": -11.351655,
+    "binary_sha256": "1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975"
+  }
+]
