@@ -58,7 +58,11 @@ func TestMemoryHostCallSpillBinding(t *testing.T) {
 			a, s, d, m, ar := callSpillTestFixture(t)
 			switch name {
 			case "call-binary":
-				a.Binary[18] ^= 1
+				for _, l := range a.Listing {
+					if mir2.NativeAnnotationCount(l.SourceLine, "@minz-spill-call:f0_b0_i1") == 1 {
+						a.Binary[l.Address-a.Origin+1] ^= 1
+					}
+				}
 			case "call-target":
 				m.Funcs[0].Blocks[0].Insts[1].Sym = "missing"
 			case "call-marker":
