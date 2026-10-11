@@ -459,3 +459,20 @@ Sites59terminalSUCCEEDED deploymentappgdep_6acb904d94608191be9e62d39f01171a vers
 Final decimal parent gates: MIR2PASS5.930, showcase5.17 has exactsame26(19imports5HIR2resultmismatch), rootbb1bbaf9 push. FullCLI35152 LIVE exactd21273 retainedfinal-decimal-cli-executable; finalfullpipeline89426 launchedsourcebb1bbaf9 confirmedLIVE, exact85c8df0b053ff36d985c9568ebd1e4d2ad87c9b107d47148d9f29b4658da661e retainedfinal-decimal-pipeline-executable. Older717pipeline86830 independentlyLIVE (distinctsource neededcurrentrun, no timeoutrestart). Bothfull30auditsclosed native6c697/cost2360 root49b721 packet828alltracked portablePASS. Latestfull30/CPM/sum+showcase copiedoffline. No newsourceimplementation changes; await broadterminalgates. Goalactive.
 
 FinalCLI35152TERMINALPASS306.414s exit0 sourcef8c694a5 exactd21273 retained; logcopied docs/grace-certified-parent-gates/final-decimal-cli.txt. FullMIR2PASS5.930, showcasedecimal exact26same. Fullpipelines86830old717 and89426currentbb1 confirmedLIVE. Independentobjectiveaudit andbackendPRinventory agentsrunning read-only; no newCPU. Goalactive.
+
+
+## Current reconciliation after native reference refresh
+
+`71b75390` changes only three measured T/BIN test references plus test-only
+pre-assert native export. Three focused fixtures PASS; diagnostic and final
+executables/raw artifacts remain separate in `grace-memory-host-native-ref-refresh`.
+Two independent saved-only audits confirm source behavior, 90 observations per
+run, loop counts and exact ASM/BIN. Old full pipeline 86830 is terminal FAIL
+with only these three stale references, preserved in certified-parent-gates.
+Current full pipeline 89426 is still executing, source bb1bbaf9 / ELF SHA256
+85c8df0b053ff36d985c9568ebd1e4d2ad87c9b107d47148d9f29b4658da661e,
+compiled before reference updates. Do not restart or claim general PASS.
+Current CLI 35152 terminal PASS 306.414 s; MIR2 PASS 5.930 s; showcase same26.
+Night summary now leads with one current state, separating historical entries.
+Sites59 remains live; current gate/reference statuses need publication refresh
+after terminal pipeline and completion audit. No user decision/blocker.
