@@ -13,6 +13,9 @@ type memoryHostZ80Memory struct {
 	cpu                                                  *z80.Z80
 	snapshots                                            map[uint16]memoryHostSnapshotStep
 	activeSnapshot                                       *memoryHostActiveSnapshot
+	callSpills                                           map[uint16]memoryHostCallSpillStep
+	activeCallSpill                                      *memoryHostActiveCallSpill
+	savedCallSpills                                      []memoryHostSavedCallSpill
 	snapshotData                                         bool
 	stackPair                                            [65536]string
 	data                                                 [65536]byte
@@ -86,6 +89,7 @@ func (m *memoryHostZ80Memory) begin(pc uint16) {
 	}
 	m.prepareFrame(pc)
 	m.beginSnapshot(pc)
+	m.beginCallSpill(pc)
 	m.fetchNext = int(pc)
 	m.fetchEnd = int(pc) + n
 }
@@ -209,6 +213,9 @@ func memoryHostNativeStep(m *memoryHostZ80Memory) (cycles int, err error) {
 	if e := m.finishSnapshot(); e != nil {
 		return 0, e
 	}
+	if e := m.finishCallSpill(); e != nil {
+		return 0, e
+	}
 	if pair, ok := snapshotPushPair(m.data[m.instructionPC : int(m.instructionPC)+m.lengths[m.instructionPC]]); ok {
 		m.stackPair[m.cpu.SP()] = pair
 	}
@@ -246,6 +253,15 @@ func (m *memoryHostZ80Memory) prepareFrame(pc uint16) {
 	if recipe[0].Write {
 		value := uint16(0)
 		if isCall {
+			for j := range m.savedCallSpills {
+				s := &m.savedCallSpills[j]
+				if s.CallPC == pc && s.Depth == len(m.callFrames) {
+					if s.DidCall {
+						panic(memoryHostNativeTrap{"spill snapshot reused call"})
+					}
+					s.DidCall = true
+				}
+			}
 			value = pc + uint16(m.lengths[pc])
 			m.callFrames = append(m.callFrames, memoryHostCallFrame{m.instructionSP - 2, value})
 		} else {

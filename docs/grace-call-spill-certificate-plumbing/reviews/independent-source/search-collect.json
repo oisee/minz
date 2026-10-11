@@ -1,0 +1,260 @@
+{
+  "schema": "minz.independent-policy-search-saved-audit/v1",
+  "executable_sha256": "4d818aab4c5bbae1e5e794a7d6c1f9c8d22e1421f651c174fdc908a3f1b3d653",
+  "native_observations": 20,
+  "actual_speed_selected": {
+    "policy": 1,
+    "mask": 1
+  },
+  "derived_size_selected": {
+    "policy": 0,
+    "mask": 2
+  },
+  "candidates": [
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "684b5dfb0aa4ac248a173b90161c62f3bd4635afe3cef7b83d254ee691860fc1",
+      "t_states": 739,
+      "bytes": 2244,
+      "str_bump": 36865,
+      "node_bump": 40960,
+      "policy": 0,
+      "mask": 0
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "ca9e640d7ead412cd3ee3eceb639ae72346d33ca5a0077529b3f845247ab2a0b",
+      "t_states": 718,
+      "bytes": 2365,
+      "str_bump": 36865,
+      "node_bump": 40960,
+      "policy": 0,
+      "mask": 1
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "28ecc5812fa1b83590961dd399911203d0c10f1b88388c68dc8a3ede932fa141",
+      "t_states": 796,
+      "bytes": 2224,
+      "str_bump": 36865,
+      "node_bump": 40960,
+      "policy": 0,
+      "mask": 2
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "0ce9798b7a43168f58cfed3243b9374308f3c11f585ee87bca78496857c06984",
+      "t_states": 775,
+      "bytes": 2345,
+      "str_bump": 36865,
+      "node_bump": 40960,
+      "policy": 0,
+      "mask": 3
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "a48ab886ded3620a252470f3e762a3e57e43fc849982da85c0eee9aec0a1e6dd",
+      "t_states": 722,
+      "bytes": 2245,
+      "str_bump": 36865,
+      "node_bump": 40960,
+      "policy": 1,
+      "mask": 0
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "a86a45c7d6f1667e194d4049bbdd40d545057bf163ec7c52ff4ec1a8f7b75bef",
+      "t_states": 701,
+      "bytes": 2366,
+      "str_bump": 36865,
+      "node_bump": 40960,
+      "policy": 1,
+      "mask": 1
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "481eb5bb3818058e736d5f0016d73cff7bbfd0688c6eec1dd3228ddf66fac423",
+      "t_states": 779,
+      "bytes": 2225,
+      "str_bump": 36865,
+      "node_bump": 40960,
+      "policy": 1,
+      "mask": 2
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "8d240b8da01efe34d80e1320e26fb938fde59465af2473fb9d0d334a01927528",
+      "t_states": 758,
+      "bytes": 2346,
+      "str_bump": 36865,
+      "node_bump": 40960,
+      "policy": 1,
+      "mask": 3
+    }
+  ],
+  "input_baselines": [
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "684b5dfb0aa4ac248a173b90161c62f3bd4635afe3cef7b83d254ee691860fc1",
+      "t_states": 739,
+      "bytes": 2244,
+      "str_bump": 36865,
+      "node_bump": 40960
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "a48ab886ded3620a252470f3e762a3e57e43fc849982da85c0eee9aec0a1e6dd",
+      "t_states": 722,
+      "bytes": 2245,
+      "str_bump": 36865,
+      "node_bump": 40960
+    }
+  ],
+  "source_counts": [
+    {
+      "intern_region/body/s1": [
+        1,
+        0
+      ],
+      "parse_sexpr/body/s5": [
+        0,
+        0
+      ],
+      "intern_region/body/s5": [
+        1,
+        0
+      ],
+      "skip_ws/body/s0": [
+        0,
+        0
+      ],
+      "skip_ws/body/s1/then/s0": [
+        0,
+        0
+      ],
+      "print_str/body/s2": [
+        0,
+        0
+      ],
+      "region_match/body/s1": [
+        1,
+        0
+      ],
+      "print_node/body/s4/then/s3": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s3/then/s7": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s8/then/s2": [
+        0,
+        0
+      ],
+      "main/body/s2": [
+        0,
+        0
+      ]
+    },
+    {
+      "intern_region/body/s1": [
+        1,
+        0
+      ],
+      "parse_sexpr/body/s5": [
+        0,
+        0
+      ],
+      "intern_region/body/s5": [
+        1,
+        0
+      ],
+      "skip_ws/body/s0": [
+        0,
+        0
+      ],
+      "skip_ws/body/s1/then/s0": [
+        0,
+        0
+      ],
+      "print_str/body/s2": [
+        0,
+        0
+      ],
+      "region_match/body/s1": [
+        1,
+        0
+      ],
+      "print_node/body/s4/then/s3": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s3/then/s7": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s8/then/s2": [
+        0,
+        0
+      ],
+      "main/body/s2": [
+        0,
+        0
+      ]
+    }
+  ],
+  "search_file_sha256": "29bd261ec16554255d4e5b7bef4255891e53d7f89342cbf1ac0d9eb31d148d60",
+  "input_sha256": [
+    "525763024eaede2aa96ce9b7c099972ab435df8a140558d94a1c8b72a1b5f116",
+    "40ea6f747ee11e113670154d7f12f1004fa0b4d772bd41066068512bfb605544"
+  ],
+  "actual_goal": "speed",
+  "actual_selected": {
+    "policy": 1,
+    "mask": 1
+  },
+  "scope": "independent exact-source native/state/event/count/proof plus exact CLI decision/file bindings; actual goal, no CPU or target lineage",
+  "decision": {
+    "source_name": "/tmp/TestSearchCLICollectAndPairedReplay2069994929/001/input.nanz",
+    "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+    "schema": "minz.memory-host-arena-append-policy-search-cli-decision/v1",
+    "goal": "speed",
+    "selected": {
+      "policy": 1,
+      "mask": 1
+    },
+    "choices": {
+      "arena_peel": true,
+      "append_hoist": false
+    },
+    "search_sha256": "29bd261ec16554255d4e5b7bef4255891e53d7f89342cbf1ac0d9eb31d148d60",
+    "association_sha256": [
+      "525763024eaede2aa96ce9b7c099972ab435df8a140558d94a1c8b72a1b5f116",
+      "40ea6f747ee11e113670154d7f12f1004fa0b4d772bd41066068512bfb605544"
+    ],
+    "binary_sha256": "a86a45c7d6f1667e194d4049bbdd40d545057bf163ec7c52ff4ec1a8f7b75bef",
+    "t_states": 701,
+    "bytes": 2366
+  }
+}

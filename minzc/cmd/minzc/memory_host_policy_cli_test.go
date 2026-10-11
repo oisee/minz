@@ -122,6 +122,7 @@ func policySmallFixture(t *testing.T) (string, string) {
 }
 func TestPolicyCLICollectReplay(t *testing.T) {
 	source, _ := policySmallFixture(t)
+	retainCallSpillCLIFixture(t, source, "policy")
 	if e := runMemoryHostPolicyCLI(source); e != nil {
 		t.Fatal(e)
 	}

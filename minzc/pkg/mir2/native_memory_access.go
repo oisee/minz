@@ -99,7 +99,7 @@ func validateNativeMemoryOrigins(m *Module, origins map[*Inst]GlobalMemoryOrigin
 // remove, duplicate or orphan any recorded semantic access marker.
 func CheckNativeMemoryAccessMarkers(assembly string, records []NativeMemoryAccess) error {
 	for _, r := range records {
-		if r.ID == "" || strings.Count(assembly, "@minz-memory-access:"+r.ID+"\n") != 1 {
+		if r.ID == "" || NativeAnnotationCount(assembly, "@minz-memory-access:"+r.ID) != 1 {
 			return fmt.Errorf("native memory access: missing/duplicate marker %q", r.ID)
 		}
 	}

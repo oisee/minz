@@ -195,11 +195,15 @@ func LoadMemoryHostLoopProfileEvidenceV2(r io.Reader, source *hir.Module, w hir.
 	if e != nil {
 		return nil, e
 	}
+	spills, e := json.Marshal(t.CallSpills)
+	if e != nil {
+		return nil, e
+	}
 	var allocation bytes.Buffer
 	if e = json.Compact(&allocation, t.AllocationJSON); e != nil {
 		return nil, e
 	}
-	if hash(t.Binary) != t.BinarySHA256 || hash([]byte(t.FinalMIRDump)) != t.MIRSHA256 || hash(side) != t.SidecarSHA256 || hash(frames) != t.CallFramesSHA256 || hash(allocation.Bytes()) != t.AllocationSHA256 {
+	if hash(t.Binary) != t.BinarySHA256 || hash([]byte(t.FinalMIRDump)) != t.MIRSHA256 || hash(side) != t.SidecarSHA256 || hash(frames) != t.CallFramesSHA256 || hash(spills) != t.CallSpillsSHA256 || hash(allocation.Bytes()) != t.AllocationSHA256 {
 		return nil, fmt.Errorf("policy association: native hash binding")
 	}
 	// RawMessage preserves JSON presentation whitespace on unmarshal. Native

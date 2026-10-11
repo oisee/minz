@@ -221,6 +221,7 @@ func TestSearchCLIAssociationCaps(t *testing.T) {
 
 func TestSearchCLICollectAndPairedReplay(t *testing.T) {
 	source, workload := withSearchCLI(t)
+	retainCallSpillCLIFixture(t, source, "search")
 	b, err := os.ReadFile("../../../examples/nanz/self_lanz_parser.nanz")
 	if err != nil {
 		t.Fatal(err)
