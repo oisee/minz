@@ -12,14 +12,15 @@ CLI evidence assertion `561dab36`. Исторические результаты
 
 | Требование | Что доказано | Что ещё не доказано |
 |---|---|---|
-| Заявленный корпус | Все 194 пути имеют явный статус; 51 bounded independent VM/Z80 path | 86 ждут независимого оракула, остальные имеют отдельные ASM/runtime/host ограничения; bounded entry не означает всё приложение |
+| Заявленный корпус | Все 194 пути имеют явный статус; 53 independent VM/Z80 paths | 84 ждут независимого оракула, остальные имеют отдельные ASM/runtime/host ограничения; bounded entry не означает всё приложение |
 | PFCCO/PBQP и таблицы | Реальные назначения, moves/saves и native польза на packet/weighted; bounded solver audit | Произвольные calls/CFG/islands и глобальная оптимальность |
 | Автоматический выбор и heldout | Self-Lanz, HashMap и Pascal SORT: training-selected BIN проверен на заранее отложенных входах; packet даёт отдельный PFCCO выигрыш | Остальные runtime/corpus ограничения сохраняются; это не универсальный выигрыш на всех программах |
 | Полное удаление LIR и перенос пользы | Пакет/consumers удалены; shared engines/native тесты сохранены; word ×10/12, byte fusion и K11 перенесены с native пользой | Полнота общих physical constraints/pattern choices требует предметного аудита |
 | Воспроизводимость | Исходники, workloads, решения, ASM/BIN и логи на `/mnt/safe/minz/grace/2026-10-11/`; v67 сайт: 9 860 файлов целиком проверены по SHA | Текущие общие gates должны завершиться со своим точным checkpoint |
 
-Свежий full core `c69e350e`: HIR/MIR2/Nanz/VIR **PASS**
-([пакет135](grace-integration-135/README.md)); он предшествует signed widening.
+Свежий full core `4587e753`: HIR/MIR2/Nanz/VIR **PASS**
+([пакет144](grace-integration-144/README.md)); включает signed/unsigned/bool widening,
+unsigned promotion и aggregate-address corrections. Новый CLI4587e753 выполняется отдельно.
 Full CLI этого checkpoint завершился **FAIL 351,983 с**: один тест фиксировал
 исторические такты. Проверка исправлена и focused PASS 19,153 с
 ([пакет138](grace-integration-138/README.md)); нового full CLI PASS пока нет.
@@ -553,12 +554,16 @@ PASS ([пакет136](grace-integration-136/README.md)).
 
 ## Текущая проверка оставшегося корпуса
 
-Неизменённый widemath, все26callables: provisional native/VM matrix
-в isolated ветке проходит после frontend literal-width и aggregate-address
-исправлений. Root ещё не интегрировал aggregate correction; effect/ABI controls
-доделываются. Original promoted_arithmetic получает расширенный whole-source
-oracle вместо нескольких asserts. Mixed unsigned width contradiction
-проверяется отдельно; общая mixed signedness policy не придумана по правилам C.
+Неизменённый widemath: все26callables, 2 248 035 nativecalls в трёх режимах,
+raw/finalVM и orderedfield/RAM/SP/code модели; rootbounded replay PASS1,108 с
+([пакет145](grace-integration-145/README.md)). Originalpromoted_arithmetic:
+все9entries, 1 060 692nativecalls с raw/finalVM models, actualCALL/fullRAM.
+Каталог после обоихproofs:53 independentpaths и84pending
+([пакет146](grace-integration-146/README.md)).
+Mixedunsignedwidth исправлен отдельно. Signedmixedcomparison native
+согласуется с MIRSrcTy в следующем исправлении; frontendобщаяsignednesspolicy
+не придумана по правилам C. LocalreturnedW8 lifetime за пределами немедленного
+inspection проверяется отдельно; immediateproof не покрывает escapingvalue.
 [Независимый аудит всей цели](../reports/2026-10-11-080-objective-completion-b1adbf09.md).
 
 Весь опубликованный v67 сохранён локально и на шаре; exact manifest
