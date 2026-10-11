@@ -6,7 +6,7 @@
 
 ## Новый этап: единый backend без LIR
 
-Проверенная сводка на `cad80340`; результаты прежних сборок ниже сохраняют
+Проверенная сводка на `7fe6cf8d`; результаты прежних сборок ниже сохраняют
 свой исходный контекст. Общая цель из [плана](../reports/2026-10-11-017-unified-backend-roadmap.md)
 ещё активна: корректность заявленного корпуса, проверенные контракты и таблицы,
 выигрыш Grace на разных программах и заранее отложенных нагрузках.
@@ -14,14 +14,14 @@
 - **LIR полностью удалён из живого компилятора** (`47127a27`). Shared rewrite
   engines, VIR и native оракулы сохранены. Архив 53 research-файлов проверен
   по SHA256: [пакет удаления](grace-lir-final-removal/README.md).
-- **193 из 194 текущих showcase собираются** в свежем прогоне на `ed4c1d56`
+- **193 из 194 текущих showcase собираются** в свежем прогоне на `76bbe91e`
   (193 PASS, один SKIP; исходные 193 пути плюс новый CP/M demo); отдельный opt-in запуск пропуска — явный FAIL. Один host ZVM
   получает явный отказ: его story[131072] превышает 16-битное адресное пространство.
   Поддержка native u32 memory/caller/spill уже исправлена и проверена отдельно;
   это не делает host interpreter подходящим для обычного Z80.
   Сборка корпуса не доказывает правильность исполнения. Новый
-  [актуальный каталог](grace-integration-077/catalog-33-vm-native.json) фиксирует все
-  194 точных пути: 33 имеют ограниченное independent VM/native покрытие. Новый CP/M demo
+  [актуальный каталог](grace-integration-080/catalog-34-vm-native.json) фиксирует все
+  194 точных пути: 34 имеют ограниченное independent VM/native покрытие. Новый CP/M demo
   имеет отдельный native CALL5-hook proof. Все прочие пути сохраняют явные
   pending/ASM/runtime/host ограничения.
 - **Pascal bubble sort: исправлен реальный native miscompile** (`ff11ba69`).
@@ -176,7 +176,13 @@ Nanz 84327 → 82283 T, 60 → 58 B; independent native назначения и
 test-only coverage не меняет production. [Полный лог](grace-integration-077/core-a3cc555-full.txt).
 
 Рекурсивный selfLanz теперь собирается обычным CLI (`ecda27e1`, `5f5c7c52`,
-`c23ba0cc`): COM 4727 B, 983310 T, 17 AST nodes/135 stdout bytes.
+`c23ba0cc`, `7fe6cf8d`): после объединения guards COM 3968 B, 415614 T,
+17 AST nodes/135 stdout bytes. В одинаковом guarded1024 режиме прежние
+4727 B/983310 T сокращены на 759 B/57,7%; tokenizer 8285 → 7397 B,
+869959 → 408919 T. Новый root CLI COM совпал с API и прошёл независимый
+native full-state оракул. На малом стеке возможен более ранний controlled
+overflow; минимальный успешный вход checker теперь требует 38 B.
+[Свежая интеграция и каталог](grace-integration-080/README.md).
 Guard проверяется по реальному CFG-пути; forced recursive shared spill и
 controlled overflow проходят. Публичный MZE вывод совпал побайтно.
 Это BDOS hook, не настоящая CP/M OS. [Runtime](grace-cpm-recursive-runtime.md).

@@ -1,0 +1,13 @@
+{
+  "README.md": "0667d1836845f41c60059d5220c608c8ac121ff577c05d5617ff2cb724dcc40a",
+  "catalog-34-vm-native.json": "8012ab0ded3a6a67793f2167ba3141a25946af0867e65a10e56842ed727c3c9b",
+  "catalog-34-vm-native.txt": "ed756a8beaf1b185a359cd2ca8b093b2f87c72652ff0ab2ef97c73675c5db5a1",
+  "compiler.json": "80ada2e8eb14b3943693fc801e0995b9173f426ee36e6f6f2ce02fb9d958c7b7",
+  "cpm-coalescing-7fe6-integrated.txt": "b06e5326ef56c4fd606f456a8ff942cfcb1c1ed102dc33a088a0dbc91f859b68",
+  "cpm-root-7fe6-cli-native.txt": "8dbde996b055d05a3d7f9e35aa0914e24b331ec863f7c99b6bacca53d6bfa8a8",
+  "hash16-7fe6-solver.txt": "dc833186e6643ab4982ba0e37ee2e82256c649601bfb20e4abf79eb72f881070",
+  "parser-root-7fe6-cli.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "parser-root-7fe6.com": "181ec753e334e11006c17ee2804bf33cb956892397b2d8b800688cc0620cbc56",
+  "tokenizer-root-7fe6-cli.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tokenizer-root-7fe6.com": "fa27a5cf01defbbf709f7d86676b41bc526cfae56e8656c03716f943c1d598fd"
+}
