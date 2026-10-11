@@ -1,0 +1,21 @@
+fun fib(n: u8) -> u8 {
+    var a: u8 = 0
+    var b: u8 = 1
+    var i: u8 = 0
+    while i < n {
+        let temp: u8 = a + b
+        a = b
+        b = temp
+        i = i + 1
+    }
+    return a
+}
+
+assert fib(0) == 0 via z80
+assert fib(1) == 1 via z80
+assert fib(2) == 1 via z80
+assert fib(3) == 2 via z80
+assert fib(4) == 3 via z80
+assert fib(5) == 5 via z80
+assert fib(6) == 8 via z80
+assert fib(7) == 13 via z80
