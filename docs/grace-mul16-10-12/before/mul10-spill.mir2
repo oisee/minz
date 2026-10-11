@@ -1,0 +1,7 @@
+; MIR2 module: 
+fun @multiply(%r1: u16 [pointer])
+  block @entry:
+    %r2 = const 10 : u16 [general]
+    %r3 = mul %r1, %r2 : u16 [pointer]
+    ret %r3
+

@@ -1,0 +1,124 @@
+=== RUN   TestMul16SmallConstantSourceVMZ80
+=== RUN   TestMul16SmallConstantSourceVMZ80/k10/x0/gracefalse
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=0
+=== RUN   TestMul16SmallConstantSourceVMZ80/k10/x0/gracetrue
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=0
+=== RUN   TestMul16SmallConstantSourceVMZ80/k10/x1/gracefalse
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=10
+=== RUN   TestMul16SmallConstantSourceVMZ80/k10/x1/gracetrue
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=10
+=== RUN   TestMul16SmallConstantSourceVMZ80/k10/x255/gracefalse
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=2550
+=== RUN   TestMul16SmallConstantSourceVMZ80/k10/x255/gracetrue
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=2550
+=== RUN   TestMul16SmallConstantSourceVMZ80/k10/x256/gracefalse
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=2560
+=== RUN   TestMul16SmallConstantSourceVMZ80/k10/x256/gracetrue
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=2560
+=== RUN   TestMul16SmallConstantSourceVMZ80/k10/x5461/gracefalse
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=54610
+=== RUN   TestMul16SmallConstantSourceVMZ80/k10/x5461/gracetrue
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=54610
+=== RUN   TestMul16SmallConstantSourceVMZ80/k10/x6553/gracefalse
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=65530
+=== RUN   TestMul16SmallConstantSourceVMZ80/k10/x6553/gracetrue
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=65530
+=== RUN   TestMul16SmallConstantSourceVMZ80/k10/x32767/gracefalse
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=65526
+=== RUN   TestMul16SmallConstantSourceVMZ80/k10/x32767/gracetrue
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=65526
+=== RUN   TestMul16SmallConstantSourceVMZ80/k10/x32768/gracefalse
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=0
+=== RUN   TestMul16SmallConstantSourceVMZ80/k10/x32768/gracetrue
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=0
+=== RUN   TestMul16SmallConstantSourceVMZ80/k10/x65534/gracefalse
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=65516
+=== RUN   TestMul16SmallConstantSourceVMZ80/k10/x65534/gracetrue
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=65516
+=== RUN   TestMul16SmallConstantSourceVMZ80/k10/x65535/gracefalse
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=65526
+=== RUN   TestMul16SmallConstantSourceVMZ80/k10/x65535/gracetrue
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=65526
+=== RUN   TestMul16SmallConstantSourceVMZ80/k12/x0/gracefalse
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=0
+=== RUN   TestMul16SmallConstantSourceVMZ80/k12/x0/gracetrue
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=0
+=== RUN   TestMul16SmallConstantSourceVMZ80/k12/x1/gracefalse
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=12
+=== RUN   TestMul16SmallConstantSourceVMZ80/k12/x1/gracetrue
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=12
+=== RUN   TestMul16SmallConstantSourceVMZ80/k12/x255/gracefalse
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=3060
+=== RUN   TestMul16SmallConstantSourceVMZ80/k12/x255/gracetrue
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=3060
+=== RUN   TestMul16SmallConstantSourceVMZ80/k12/x256/gracefalse
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=3072
+=== RUN   TestMul16SmallConstantSourceVMZ80/k12/x256/gracetrue
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=3072
+=== RUN   TestMul16SmallConstantSourceVMZ80/k12/x5461/gracefalse
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=65532
+=== RUN   TestMul16SmallConstantSourceVMZ80/k12/x5461/gracetrue
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=65532
+=== RUN   TestMul16SmallConstantSourceVMZ80/k12/x6553/gracefalse
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=13100
+=== RUN   TestMul16SmallConstantSourceVMZ80/k12/x6553/gracetrue
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=13100
+=== RUN   TestMul16SmallConstantSourceVMZ80/k12/x32767/gracefalse
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=65524
+=== RUN   TestMul16SmallConstantSourceVMZ80/k12/x32767/gracetrue
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=65524
+=== RUN   TestMul16SmallConstantSourceVMZ80/k12/x32768/gracefalse
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=0
+=== RUN   TestMul16SmallConstantSourceVMZ80/k12/x32768/gracetrue
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=0
+=== RUN   TestMul16SmallConstantSourceVMZ80/k12/x65534/gracefalse
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=65512
+=== RUN   TestMul16SmallConstantSourceVMZ80/k12/x65534/gracetrue
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=65512
+=== RUN   TestMul16SmallConstantSourceVMZ80/k12/x65535/gracefalse
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=65524
+=== RUN   TestMul16SmallConstantSourceVMZ80/k12/x65535/gracetrue
+    mul16_small_constants_test.go:26: T=1079 bytes=32 want=65524
+--- PASS: TestMul16SmallConstantSourceVMZ80 (0.07s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k10/x0/gracefalse (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k10/x0/gracetrue (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k10/x1/gracefalse (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k10/x1/gracetrue (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k10/x255/gracefalse (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k10/x255/gracetrue (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k10/x256/gracefalse (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k10/x256/gracetrue (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k10/x5461/gracefalse (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k10/x5461/gracetrue (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k10/x6553/gracefalse (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k10/x6553/gracetrue (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k10/x32767/gracefalse (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k10/x32767/gracetrue (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k10/x32768/gracefalse (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k10/x32768/gracetrue (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k10/x65534/gracefalse (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k10/x65534/gracetrue (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k10/x65535/gracefalse (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k10/x65535/gracetrue (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k12/x0/gracefalse (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k12/x0/gracetrue (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k12/x1/gracefalse (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k12/x1/gracetrue (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k12/x255/gracefalse (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k12/x255/gracetrue (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k12/x256/gracefalse (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k12/x256/gracetrue (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k12/x5461/gracefalse (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k12/x5461/gracetrue (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k12/x6553/gracefalse (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k12/x6553/gracetrue (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k12/x32767/gracefalse (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k12/x32767/gracetrue (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k12/x32768/gracefalse (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k12/x32768/gracetrue (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k12/x65534/gracefalse (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k12/x65534/gracetrue (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k12/x65535/gracefalse (0.00s)
+    --- PASS: TestMul16SmallConstantSourceVMZ80/k12/x65535/gracetrue (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.082s

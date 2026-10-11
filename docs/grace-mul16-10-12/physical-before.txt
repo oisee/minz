@@ -1,0 +1,5 @@
+=== RUN   TestMul16Constants10And12Physical
+    mul16_small_constants_test.go:43: 192 physical VM/Z80 checks
+--- PASS: TestMul16Constants10And12Physical (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.015s

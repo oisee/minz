@@ -1,0 +1,229 @@
+{
+  "base_commit": "c3864cf2",
+  "files": {
+    "REPORT.md": {
+      "bytes": 3728,
+      "sha256": "348379603f5ea85ce60d81b5538f12c8d422696db0142dc51f7c257d63c05fe4"
+    },
+    "after/mul10-DE.a80": {
+      "bytes": 178,
+      "sha256": "0608391b7c4ffb24b446e0f50b4895cb3d943a90aa20cfd6eab17c23247da57c"
+    },
+    "after/mul10-DE.bin": {
+      "bytes": 13,
+      "sha256": "618005c95b17431d1ea8c584345f91ef0545f1dd4d6f1a57b5d39c64839f5249"
+    },
+    "after/mul10-DE.mir2": {
+      "bytes": 153,
+      "sha256": "e753e4b4f6e74f893bbddc27d6ec559207b25402410bdbfff7b59141add100ec"
+    },
+    "after/mul10-HL.a80": {
+      "bytes": 131,
+      "sha256": "0190420dfbc71abca121e05627e8a7547d85f57a11fb2024bd98e97d0f24a1c9"
+    },
+    "after/mul10-HL.bin": {
+      "bytes": 9,
+      "sha256": "ee77c2bdf40f5a42636c3e94c8b1fe476fe2007311e96e6a0211b97280df1f74"
+    },
+    "after/mul10-HL.mir2": {
+      "bytes": 153,
+      "sha256": "e753e4b4f6e74f893bbddc27d6ec559207b25402410bdbfff7b59141add100ec"
+    },
+    "after/mul10-IX.a80": {
+      "bytes": 177,
+      "sha256": "1eea256af695b2c34b5fcef44f21b9d206a4d7ff6cf536b6b7829262e75b16a8"
+    },
+    "after/mul10-IX.bin": {
+      "bytes": 14,
+      "sha256": "626971811a97b255d0bb53b97ce4be09eaf512acc2b557a6a1621e4769cdcbe6"
+    },
+    "after/mul10-IX.mir2": {
+      "bytes": 153,
+      "sha256": "e753e4b4f6e74f893bbddc27d6ec559207b25402410bdbfff7b59141add100ec"
+    },
+    "after/mul10-spill.a80": {
+      "bytes": 211,
+      "sha256": "7eb229d695a5abb3b355580c59c32632e77d1b2252c329616eb291e8d5077e92"
+    },
+    "after/mul10-spill.bin": {
+      "bytes": 16,
+      "sha256": "47490662b530cc76c405072eac2f2784a1e94ca7d23bfa679a1f6fad623f7344"
+    },
+    "after/mul10-spill.mir2": {
+      "bytes": 153,
+      "sha256": "e753e4b4f6e74f893bbddc27d6ec559207b25402410bdbfff7b59141add100ec"
+    },
+    "after/mul12-DE.a80": {
+      "bytes": 178,
+      "sha256": "b48eb0cfdc7ee6e4f8d2cf092dfc32fc4aed1579ca292a79fbabbcf45e0364aa"
+    },
+    "after/mul12-DE.bin": {
+      "bytes": 13,
+      "sha256": "4e4ffdd33313d4446ba0f5ef6e4fab5468e25fa90a654694d637b4afd6a4a128"
+    },
+    "after/mul12-DE.mir2": {
+      "bytes": 153,
+      "sha256": "43204c9a98d7c14ee0edcf2c9d3be1afc42e6c5c2e8156af818d7be054ad1672"
+    },
+    "after/mul12-HL.a80": {
+      "bytes": 131,
+      "sha256": "f994329e3ce2666810d7c27764f32d2db3c9fe6278cb13fba05cb81d36ef28fd"
+    },
+    "after/mul12-HL.bin": {
+      "bytes": 9,
+      "sha256": "7b34c27ab55f0882f651267401b7f697f2e6bd99fa7daf8f49c706754a2f9919"
+    },
+    "after/mul12-HL.mir2": {
+      "bytes": 153,
+      "sha256": "43204c9a98d7c14ee0edcf2c9d3be1afc42e6c5c2e8156af818d7be054ad1672"
+    },
+    "after/mul12-IX.a80": {
+      "bytes": 177,
+      "sha256": "54aac8f5c769b2a292616f6425a8dad46f60f8e39f0ef2038b26a8384ae8c326"
+    },
+    "after/mul12-IX.bin": {
+      "bytes": 14,
+      "sha256": "39192beb5fc9ff511abf3d466226b83f5ae54035e73a7bdd1300844db1b2b234"
+    },
+    "after/mul12-IX.mir2": {
+      "bytes": 153,
+      "sha256": "43204c9a98d7c14ee0edcf2c9d3be1afc42e6c5c2e8156af818d7be054ad1672"
+    },
+    "after/mul12-spill.a80": {
+      "bytes": 211,
+      "sha256": "7d13775e85a629cabb257fab1a08450e1c445bb8bba39bcf7e3170a8bebc0b66"
+    },
+    "after/mul12-spill.bin": {
+      "bytes": 16,
+      "sha256": "f404de8a8212ba3767df0174b5b10de3e3b0187d4ed7aa8b0d1eda15f2e6da37"
+    },
+    "after/mul12-spill.mir2": {
+      "bytes": 153,
+      "sha256": "43204c9a98d7c14ee0edcf2c9d3be1afc42e6c5c2e8156af818d7be054ad1672"
+    },
+    "after/results.json": {
+      "bytes": 96422,
+      "sha256": "f34345be9e4f1604e21a102a55743175dfc6f581fd4cbcc729fc040902b39e92"
+    },
+    "before/mul10-DE.a80": {
+      "bytes": 440,
+      "sha256": "aa092bd516257f3ef693da0306820d66a3431f3b5aa7a66d608fefd6711b3767"
+    },
+    "before/mul10-DE.bin": {
+      "bytes": 36,
+      "sha256": "71c7b14ff853efdea078eb66e172e13000d604d8c82d14f9790edd2bf01b442f"
+    },
+    "before/mul10-DE.mir2": {
+      "bytes": 153,
+      "sha256": "e753e4b4f6e74f893bbddc27d6ec559207b25402410bdbfff7b59141add100ec"
+    },
+    "before/mul10-HL.a80": {
+      "bytes": 393,
+      "sha256": "d70171d1a5e953babc6278441e9d9297904604b6b0bdf0b8bd1d3cbbb9d06d9a"
+    },
+    "before/mul10-HL.bin": {
+      "bytes": 32,
+      "sha256": "c05aebeb33fe81a1dcedc6a21278d1787ed5b3af8e37cb040766786cb9b741e3"
+    },
+    "before/mul10-HL.mir2": {
+      "bytes": 153,
+      "sha256": "e753e4b4f6e74f893bbddc27d6ec559207b25402410bdbfff7b59141add100ec"
+    },
+    "before/mul10-IX.a80": {
+      "bytes": 439,
+      "sha256": "6c7627061b9a1ec4d8f4115ced6992508fa05755bcf7c064b1805bbfaa9fe42b"
+    },
+    "before/mul10-IX.bin": {
+      "bytes": 37,
+      "sha256": "42a3ac900dcbcbf0ae3fb4562853e6b0eccbcbd57ce0391cb2668ee07437ec36"
+    },
+    "before/mul10-IX.mir2": {
+      "bytes": 153,
+      "sha256": "e753e4b4f6e74f893bbddc27d6ec559207b25402410bdbfff7b59141add100ec"
+    },
+    "before/mul10-spill.a80": {
+      "bytes": 473,
+      "sha256": "bed79aa6f77d576dad9e7f147b8f857d300f416588d28fce5f335d9b56311826"
+    },
+    "before/mul10-spill.bin": {
+      "bytes": 39,
+      "sha256": "3b00c2af143bfc830ce97bcb7ca76b7c2df6f999c0d1b66c2e754c3bb01ac029"
+    },
+    "before/mul10-spill.mir2": {
+      "bytes": 153,
+      "sha256": "e753e4b4f6e74f893bbddc27d6ec559207b25402410bdbfff7b59141add100ec"
+    },
+    "before/mul12-DE.a80": {
+      "bytes": 440,
+      "sha256": "0e115430eef615a9ddc9d21abb00dfd26511c346b95bede8dd6090ec408dd127"
+    },
+    "before/mul12-DE.bin": {
+      "bytes": 36,
+      "sha256": "f7d2163c939dee31a930117eb03e91537d00cf116258109225e33aa6b7111139"
+    },
+    "before/mul12-DE.mir2": {
+      "bytes": 153,
+      "sha256": "43204c9a98d7c14ee0edcf2c9d3be1afc42e6c5c2e8156af818d7be054ad1672"
+    },
+    "before/mul12-HL.a80": {
+      "bytes": 393,
+      "sha256": "c39b5371dc99655d77f7511033a13135c324e2ddf9a46c75fb61a47dc480035e"
+    },
+    "before/mul12-HL.bin": {
+      "bytes": 32,
+      "sha256": "a094041eaa2615b6fa38041ba3f8657c09bee3a51cee3f979772df4f208885fc"
+    },
+    "before/mul12-HL.mir2": {
+      "bytes": 153,
+      "sha256": "43204c9a98d7c14ee0edcf2c9d3be1afc42e6c5c2e8156af818d7be054ad1672"
+    },
+    "before/mul12-IX.a80": {
+      "bytes": 439,
+      "sha256": "8ca2c4cf93156f3bf8a5ac559765d559e9df4d489c3fe7a547d3c6f355731dee"
+    },
+    "before/mul12-IX.bin": {
+      "bytes": 37,
+      "sha256": "1307fc1016fdb0fb0b387cfc9ba45237b73215b60ade5a552a2c2ae487b7d580"
+    },
+    "before/mul12-IX.mir2": {
+      "bytes": 153,
+      "sha256": "43204c9a98d7c14ee0edcf2c9d3be1afc42e6c5c2e8156af818d7be054ad1672"
+    },
+    "before/mul12-spill.a80": {
+      "bytes": 473,
+      "sha256": "c171fc4cabd810030c7ec30e7368d08fbc63a36731aff4a6a4610bcbb4f9b86c"
+    },
+    "before/mul12-spill.bin": {
+      "bytes": 39,
+      "sha256": "db3b5ccc3a6b0d8d285cca295a7b664899563908c41ec61dacaaec046b32895b"
+    },
+    "before/mul12-spill.mir2": {
+      "bytes": 153,
+      "sha256": "43204c9a98d7c14ee0edcf2c9d3be1afc42e6c5c2e8156af818d7be054ad1672"
+    },
+    "before/results.json": {
+      "bytes": 96710,
+      "sha256": "6150da64099f8e8cbad41a39cc52ad0fd69f442610242e5df4c063c5d36cd0b5"
+    },
+    "mir2-package.txt": {
+      "bytes": 43,
+      "sha256": "e1477e7b3a119147d1506aa1a108d299e8248341ab95bea654e802191d8610f9"
+    },
+    "physical-after.txt": {
+      "bytes": 210,
+      "sha256": "dd9ffa6b865c9b8ed963c0f99e643d3798f67770ffa044d49c5cd92130464033"
+    },
+    "physical-before.txt": {
+      "bytes": 209,
+      "sha256": "742e4e4de4b0232f19ce76d065bf32ec20af1b245e171fa89d62d642ee5bf59a"
+    },
+    "source-after.txt": {
+      "bytes": 8184,
+      "sha256": "003fb5c575e1673a7ab7c5c275ff76045a22a3f9c10713e417a2bf6aa8dd9cc8"
+    },
+    "source-before.txt": {
+      "bytes": 8304,
+      "sha256": "d214ba3852c627cab6e2786fa53092cd4390b8755cbad5628d6a1229f63f424a"
+    }
+  }
+}
