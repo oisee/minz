@@ -175,3 +175,6 @@ pointer-walk, оставляя invariant-base. На sum_array выбирает 3
 
 
 [Закрытый memory-host baseline](grace-memory-host-baseline.md): неизменённый Self-Lanz выполняет30 persistent calls на verified input MIR VM и actual Z80, с проверкой памяти и порядка ресурсных byte events.1221494 T /2091 B. Host inputs замкнуты на два встроенных byte-действия; глобальные/stack/spill обращения проверяет внутренний instruction sidecar. Полный pipeline289.268 s PASS, showcase31 прежнее падение,0 новых. Это основание для следующего host-aware arena-first string comparison сертификата и source-bound профиля; оптимизация parser пока не заявлена.
+
+
+[Исходные циклы и native host-baseline](grace-memory-host-loop-baseline.md): отдельный закрытый collector измеряет11 source sites SelfLanz30; cumulative/per-call counters совпадают с независимой моделью, region_match49/59. Native baseline1221494 T /2091 B unchanged; fullpipeline296.585 s PASS, showcase31same0new. Счётчики privateVM не являются legality или targetlooplineage. Далее source-bound first-byte arena comparison proof/domain и измеренный выбор вариантов.

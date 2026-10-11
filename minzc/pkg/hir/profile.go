@@ -53,6 +53,10 @@ type LoopProfiler struct {
 // NewLoopProfiler leaves the caller's HIR untouched. Missing source origins
 // remain unmapped. Hosts/heap and gas limit can be configured through VM.
 func NewLoopProfiler(m *Module) (*LoopProfiler, error) {
+	return newLoopProfiler(m, true)
+}
+
+func newLoopProfiler(m *Module, collectGuards bool) (*LoopProfiler, error) {
 	sites, err := BuildLoopSiteMap(m)
 	if err != nil {
 		return nil, err
@@ -63,7 +67,7 @@ func NewLoopProfiler(m *Module) (*LoopProfiler, error) {
 		reserved[g.Name] = true
 	}
 	for _, f := range m.Funcs {
-		if plan := findGracePointerWalk(f, f.Body, reserved); plan != nil && plan.loopIndex == 2 {
+		if plan := findGracePointerWalk(f, f.Body, reserved); collectGuards && plan != nil && plan.loopIndex == 2 {
 			for _, site := range sites.Sites {
 				if site.Function == f.Name && site.HIRPath == "body/s2" {
 					p.guardFunctions[f.Name] = len(p.guards)
@@ -97,6 +101,11 @@ func NewLoopProfiler(m *Module) (*LoopProfiler, error) {
 	}
 	// Choose a namespace absent from both declarations and source calls.
 	used := map[string]bool{}
+	if !collectGuards {
+		for _, g := range m.Globals {
+			used[g.Name] = true
+		}
+	}
 	for _, f := range m.Funcs {
 		used[f.Name] = true
 		walkGraceBlocks(f.Body, "", func(_ string, b *Block) {
@@ -202,6 +211,9 @@ func NewLoopProfiler(m *Module) (*LoopProfiler, error) {
 			copyModule.Funcs = append(copyModule.Funcs, &Func{Name: name, IsExtern: true, RetTy: mir2.TyVoid, Params: params})
 			hooks[name] = func(args []mir2.Value) ([]mir2.Value, error) {
 				if event == "entry" {
+					if !collectGuards && p.counts[i].Entries == ^uint64(0) {
+						return nil, fmt.Errorf("loop profile: entry counter overflow")
+					}
 					p.counts[i].Entries++
 					if _, ok := p.guardNames[i]; ok {
 						guardIndex := p.guardFunctions[sites.Sites[i].Function]
@@ -222,6 +234,9 @@ func NewLoopProfiler(m *Module) (*LoopProfiler, error) {
 						}
 					}
 				} else {
+					if !collectGuards && p.counts[i].BodyEntries == ^uint64(0) {
+						return nil, fmt.Errorf("loop profile: body counter overflow")
+					}
 					p.counts[i].BodyEntries++
 				}
 				return nil, nil

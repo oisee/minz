@@ -1,0 +1,85 @@
+{
+  "source_checkpoint": "b6fad729",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 1422,
+      "sha256": "931aa11fb030aadd76df526a6c0351c3bf1f4cb06cfd16c1e9e1d923f0718571"
+    },
+    {
+      "path": "audit.go",
+      "bytes": 1711,
+      "sha256": "d6b10d5400b2af993a1381883cc9e9a36987255af929f0a36f2a0e01ebdf652e"
+    },
+    {
+      "path": "audit.txt",
+      "bytes": 816,
+      "sha256": "2a6c8502c8a6bbd8258c891fd7ea355485a7db0e3d693fc7ddf6ff609526aba6"
+    },
+    {
+      "path": "commands.txt",
+      "bytes": 771,
+      "sha256": "df7629864b94f86327080fcdd49528323ac95e8c3336967ee239994766afb378"
+    },
+    {
+      "path": "compile.go",
+      "bytes": 1369,
+      "sha256": "d8fda71d906b67c30e2f59387d731995164c67d03e0d2b45d6a8a16b906e6939"
+    },
+    {
+      "path": "compile.txt",
+      "bytes": 510,
+      "sha256": "e8446582cc4afc905c10e585a64c69c1252e6e441ed2b7eb47f6896f363e18ff"
+    },
+    {
+      "path": "compiler-identity.json",
+      "bytes": 879,
+      "sha256": "da41e0da93c1e744ef17f1f097da9d7f5a45e0fffda79e6520bc1f0f40f345df"
+    },
+    {
+      "path": "current/size-false-mask-0.a80.gz",
+      "bytes": 1693,
+      "sha256": "e7d1edfe702b066698b25ab29a4eaa03dc86b58109a5960487a8e47eef7ccb51"
+    },
+    {
+      "path": "current/size-false-mask-0.bin",
+      "bytes": 344,
+      "sha256": "2c649dce57e429c2332f3cf4e79c465c8d78c1bd76b33bb47b28f370759baf57"
+    },
+    {
+      "path": "current/size-false-mask-1.a80.gz",
+      "bytes": 1118,
+      "sha256": "48f2b70d2310e5f7a8a028431287ec6ff70a4b4d226bbcc32c7c21e1593c4007"
+    },
+    {
+      "path": "current/size-false-mask-1.bin",
+      "bytes": 344,
+      "sha256": "2c649dce57e429c2332f3cf4e79c465c8d78c1bd76b33bb47b28f370759baf57"
+    },
+    {
+      "path": "current/size-false-mask-2.a80.gz",
+      "bytes": 1531,
+      "sha256": "bc08b7deeb7553f5f307475095c286b64a7363fb96eaf49b97e438aae44fd052"
+    },
+    {
+      "path": "current/size-false-mask-2.bin",
+      "bytes": 232,
+      "sha256": "12056d7c0a831060ba7f9fc5c541be0021d320cf07ff384f2194af448d5625f8"
+    },
+    {
+      "path": "current/size-false-mask-3.a80.gz",
+      "bytes": 1118,
+      "sha256": "48f2b70d2310e5f7a8a028431287ec6ff70a4b4d226bbcc32c7c21e1593c4007"
+    },
+    {
+      "path": "current/size-false-mask-3.bin",
+      "bytes": 344,
+      "sha256": "2c649dce57e429c2332f3cf4e79c465c8d78c1bd76b33bb47b28f370759baf57"
+    },
+    {
+      "path": "source.nanz.gz",
+      "bytes": 600,
+      "sha256": "d29e95cbe15b22e06b8e9ec73e1fc95e46af2d4ae208cf14b9f7cb2cd920110a"
+    }
+  ]
+}

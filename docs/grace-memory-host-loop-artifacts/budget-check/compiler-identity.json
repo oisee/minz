@@ -1,0 +1,13 @@
+{
+  "production_base": "b33573658dad3e8a5323677d4b0486b5af6a91fb",
+  "frozen_source_checkpoint": "b6fad729",
+  "compiler_files": {
+    "minzc/pkg/hir/memory_host_loop_profile.go": "b83ae428cc262ba6951d8be9aa652dcd4676cb71252243f2b574e65a6cb2a8a5",
+    "minzc/pkg/hir/memory_host_loop_profile_test.go": "ecc0df6859b09ff79ad562c5f091b7975fbd80ca711b90ac4e1d382fb753d76b",
+    "minzc/pkg/hir/memory_host_workload.go": "5250dc76b8f188ca66508f02f9462df34cc048cbbc1f2b06b36a5ff1e7e46d01",
+    "minzc/pkg/hir/profile.go": "60eddbdd241ac508972fb98033056350a25ee1e563fba4053e0c9b7168f47caf",
+    "minzc/pkg/pipeline/memory_host_loop_profile.go": "eee0d489ed1d6bd5659dead4b0ee0fa2967bdf63406777eb154a149b7a16e083",
+    "minzc/pkg/pipeline/memory_host_loop_profile_test.go": "e81c6e5a44f00847f4cd0eda91727c0b27c68962a890bb591a60b486ac1ea65f"
+  },
+  "verified_unchanged_at_terminal": true
+}
