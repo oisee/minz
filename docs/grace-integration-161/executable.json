@@ -1,0 +1,9 @@
+{
+  "code_checkpoint": "4040453b",
+  "built_head": "eaa486bb (report-only addition)",
+  "sha256": "6af3dcbe2b691849f7b71ab25d3eb24970795284917119e70f56f08f9695d94e",
+  "local": "/home/alice/dev/minz-artifacts/grace-checkpoints/plm-cost-4040453b.test",
+  "share": "/mnt/safe/minz/grace/2026-10-11/compiler-checkpoints/plm-cost-4040453b.test",
+  "required_cwd": "compiler/minzc/pkg/pipeline",
+  "command": "plm-cost-4040453b.test -test.run ^TestOriginalPLMAbsDiffFibComplete$ -test.count=1"
+}
