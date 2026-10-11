@@ -129,6 +129,16 @@ func TestShowcaseCompileAssemble(t *testing.T) {
 				t.Fatalf("pipeline: %v", err)
 			}
 
+			// Opt-in diagnostics retain compiler output before assembly.
+			if dir := os.Getenv("MINZ_SHOWCASE_ARTIFACTS"); dir != "" {
+				if err := os.MkdirAll(dir, 0755); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(filepath.Join(dir, base+ext+".a80"), []byte(asmText), 0644); err != nil {
+					t.Fatal(err)
+				}
+			}
+
 			// Step 3: Assemble
 			assembler := z80asm.NewAssembler()
 			result, err := assembler.AssembleString(asmText)

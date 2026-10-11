@@ -1886,8 +1886,13 @@ func (p *parser) resolveModulePath(modPath string, line int) (string, error) {
 	}
 
 	for _, dir := range dirs {
+		candidateBase := basePath
+		// stdlib-qualified imports already name the configured library root.
+		if dir == p.opts.StdlibDir && strings.HasPrefix(modPath, "stdlib.") {
+			candidateBase = strings.TrimPrefix(basePath, "stdlib"+string(filepath.Separator))
+		}
 		for _, ext := range exts {
-			candidate := filepath.Join(dir, basePath+ext)
+			candidate := filepath.Join(dir, candidateBase+ext)
 			if _, err := os.Stat(candidate); err == nil {
 				return candidate, nil
 			}
