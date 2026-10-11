@@ -100,6 +100,96 @@
     "sha256": "7b03e5250bad11be028e12f99d993a3b12469d60053622b3705def8f3e8f84b6"
   },
   {
+    "path": "independent-native-review/FINAL_ACTUAL_REVIEW.md",
+    "bytes": 3982,
+    "sha256": "5b7edcdedbd1aeabffc19579ebddfc05ebbeedefbda815a67f46374db4ee25cc"
+  },
+  {
+    "path": "independent-native-review/FROZEN_RELEASE.md",
+    "bytes": 2064,
+    "sha256": "ba4f18fc3bb8f2c1b0fcaf87fb86cddf7fa91b854007bd8b8b20f2329a009436"
+  },
+  {
+    "path": "independent-native-review/REVIEW.md",
+    "bytes": 4305,
+    "sha256": "c02e17dc8e1c9b791d6332298983dfe45e620f5e84c93e74b8d91c10781c12c2"
+  },
+  {
+    "path": "independent-native-review/SOURCE_REVIEW.md",
+    "bytes": 2150,
+    "sha256": "a15969d46c18d7b54b9cafddb53304710260e755297e36c0d6b35cf31a007a10"
+  },
+  {
+    "path": "independent-native-review/audit_saved_actual.py",
+    "bytes": 4553,
+    "sha256": "d36fb748d4a246a894e04d610251384e207b99c41e4e8391280e5b790375e7f9"
+  },
+  {
+    "path": "independent-native-review/audit_typed.go.txt",
+    "bytes": 2140,
+    "sha256": "ec427538c90d0232e4066b9881e26f9b74ef298f3f335216446bad6088b21703"
+  },
+  {
+    "path": "independent-native-review/both-typed-audit.txt",
+    "bytes": 384,
+    "sha256": "90d2935fa4787fd66b8d59f2e8fcf7e646c6e86de15245c36e73ce001c6154b4"
+  },
+  {
+    "path": "independent-native-review/costmodel-plan-bd61562d.md",
+    "bytes": 3854,
+    "sha256": "39f1851c53408a01bb1296169d0224d58a89be74cc377fdfc99e2849f982648d"
+  },
+  {
+    "path": "independent-native-review/frozen-source-inventory.json",
+    "bytes": 584,
+    "sha256": "1ce3ed9e561e56b3aa4124670853de2eba81c4743875928ea62f926dc7eb10c8"
+  },
+  {
+    "path": "independent-native-review/original-typed-audit.txt",
+    "bytes": 384,
+    "sha256": "e13e5824e441704105b597261be3c91fe55556cd808cdf5a63f8f2ccc315d71c"
+  },
+  {
+    "path": "independent-native-review/owner-actual-full30.txt",
+    "bytes": 538,
+    "sha256": "c0af677451539d73b1fcf7f1c43491bbc224c47ea4251c6e45ffb689d7274667"
+  },
+  {
+    "path": "independent-native-review/owner-focused-current.txt",
+    "bytes": 2276,
+    "sha256": "e086075fe8e5c0dad568f7e446b268f77d3a6dbc140efb7319ece56fa96e930f"
+  },
+  {
+    "path": "independent-native-review/owner-focused-frozen.txt",
+    "bytes": 2640,
+    "sha256": "7b03e5250bad11be028e12f99d993a3b12469d60053622b3705def8f3e8f84b6"
+  },
+  {
+    "path": "independent-native-review/saved-payload-inventory.json",
+    "bytes": 1105,
+    "sha256": "e6c7ca08de5ec37de7a7b2cae3e6133544174185b6821a51c2f69602057021d2"
+  },
+  {
+    "path": "independent-native-review/saved-python-audit.txt",
+    "bytes": 1440,
+    "sha256": "52efb9786e554dba5c0a561b4c1956684b603705d717616ac20737173e56ab54"
+  },
+  {
+    "path": "independent-native-review/source-inventory.json",
+    "bytes": 741,
+    "sha256": "29d298d5551f5c237c278ed71129a36cc1b600dbe6bb8c7b12676ca6c20273fc"
+  },
+  {
+    "path": "independent-native-review/source-review-a149.json",
+    "bytes": 419,
+    "sha256": "ceffce9ffa1e421149caa98dc42dab1f87157e49522187c2bd369e8541a4c2cc"
+  },
+  {
+    "path": "independent-native-review/verify_host_oracle.py",
+    "bytes": 9529,
+    "sha256": "133ca68609f7b7c326efbfc55c91b5fbe2269555051f6aebd5b9817a7b8165ed"
+  },
+  {
     "path": "independent-oracle-review/FINAL-AUDIT.md",
     "bytes": 2429,
     "sha256": "e19bf3d05c3cbbdd28f56e73d21d7ab77440d2b8a71edb5b91f9f77dfa5e8902"
