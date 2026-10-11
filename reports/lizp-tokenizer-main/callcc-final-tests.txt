@@ -1,0 +1,8 @@
+=== RUN   TestVMConditionalCallTakenAndInverted
+--- PASS: TestVMConditionalCallTakenAndInverted (0.00s)
+=== RUN   TestVMConditionalCallRejectsUnrelatedPredicate
+--- PASS: TestVMConditionalCallRejectsUnrelatedPredicate (0.00s)
+=== RUN   TestVMConditionalCallBooleanAndNonlocalComparator
+--- PASS: TestVMConditionalCallBooleanAndNonlocalComparator (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.008s
