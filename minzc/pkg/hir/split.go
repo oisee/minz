@@ -328,20 +328,22 @@ func FindSplitPoints(f *Func, pressure []int) []splitCandidate {
 			definedBefore[v] = true
 		}
 		for i := 0; i <= splitAt; i++ {
-			for v := range defs[i] {
-				definedBefore[v] = true
+			switch d := stmts[i].(type) {
+			case *VarDeclStmt:
+				definedBefore[d.Name] = true
+			case *TupleLetStmt:
+				for _, name := range d.Names {
+					if name != "_" {
+						definedBefore[name] = true
+					}
+				}
 			}
 		}
 
 		usedAfter := make(map[string]bool)
-		definedAfter := make(map[string]bool)
+		boundAfter := map[string]bool{}
 		for i := splitAt + 1; i < len(stmts); i++ {
-			for v := range refs[i] {
-				usedAfter[v] = true
-			}
-			for v := range defs[i] {
-				definedAfter[v] = true
-			}
+			splitFreeRefs(stmts[i], boundAfter, usedAfter)
 		}
 
 		// Inputs: defined before AND used after.
@@ -386,6 +388,24 @@ func ApplySplit(m *Module, f *Func, c splitCandidate) *Func {
 	stmts := f.Body.Body
 	if c.splitAt >= len(stmts)-1 {
 		return nil
+	}
+
+	// Local callable aliases require binding/signature forwarding, not a plain
+	// scalar parameter. Keep such interfaces intact until that ABI is supported.
+	for _, stmt := range stmts[:c.splitAt+1] {
+		decl, ok := stmt.(*VarDeclStmt)
+		if !ok {
+			continue
+		}
+		value, ok := decl.Init.(*VarRefExpr)
+		if !ok || m.FuncByName(value.Name) == nil {
+			continue
+		}
+		for _, input := range c.inputs {
+			if input == decl.Name {
+				return nil
+			}
+		}
 	}
 
 	// Build sub-function.
@@ -440,7 +460,26 @@ func ApplySplit(m *Module, f *Func, c splitCandidate) *Func {
 	if countReturns(f) != 0 {
 		newBody[c.splitAt+1] = &ReturnStmt{Val: callExpr}
 	}
+	oldBody := f.Body.Body
 	f.Body.Body = newBody
+	// Independently validate the entire proposed interface before publishing it.
+	// Statement pointers are retained, preserving source origins and lineage.
+	trial := *m
+	trial.Funcs = append([]*Func(nil), m.Funcs...)
+	found := false
+	for _, existing := range trial.Funcs {
+		if existing == f {
+			found = true
+		}
+	}
+	if !found {
+		trial.Funcs = append(trial.Funcs, f)
+	}
+	trial.Funcs = append(trial.Funcs, sub)
+	if err := Verify(&trial); err != nil {
+		f.Body.Body = oldBody
+		return nil
+	}
 
 	return sub
 }
@@ -574,6 +613,7 @@ func collectExprRefs(e Expr, refs map[string]bool) {
 	case *VarRefExpr:
 		refs[e.Name] = true
 	case *CallExpr:
+		refs[e.Fn] = true // local callable aliases are lexical dependencies too
 		for _, a := range e.Args {
 			collectExprRefs(a, refs)
 		}
@@ -630,4 +670,91 @@ func countReturns(f *Func) int {
 		return 1
 	}
 	return 0
+}
+
+// splitFreeRefs collects dependencies with lexical block bindings respected.
+// A declaration in one branch cannot become an input at its parent's boundary.
+func splitFreeRefs(s Stmt, bound map[string]bool, refs map[string]bool) {
+	copyBound := func() map[string]bool {
+		out := map[string]bool{}
+		for n, v := range bound {
+			out[n] = v
+		}
+		return out
+	}
+	expr := func(e Expr) {
+		found := map[string]bool{}
+		collectExprRefs(e, found)
+		for n := range found {
+			if !bound[n] {
+				refs[n] = true
+			}
+		}
+	}
+	switch x := s.(type) {
+	case *Block:
+		inner := copyBound()
+		for _, child := range x.Body {
+			splitFreeRefs(child, inner, refs)
+		}
+	case *VarDeclStmt:
+		expr(x.Init)
+		for _, e := range x.Initial {
+			expr(e)
+		}
+		bound[x.Name] = true
+	case *TupleLetStmt:
+		expr(x.Call)
+		for _, n := range x.Names {
+			bound[n] = true
+		}
+	case *IfStmt:
+		expr(x.Cond)
+		if x.Then != nil {
+			splitFreeRefs(x.Then, copyBound(), refs)
+		}
+		if x.Else != nil {
+			splitFreeRefs(x.Else, copyBound(), refs)
+		}
+	case *WhileStmt:
+		expr(x.Cond)
+		if x.Body != nil {
+			splitFreeRefs(x.Body, copyBound(), refs)
+		}
+	case *ForRangeStmt:
+		expr(x.Start)
+		expr(x.End)
+		inner := copyBound()
+		inner[x.Var] = true
+		if x.Body != nil {
+			splitFreeRefs(x.Body, inner, refs)
+		}
+	case *ForEachStmt:
+		expr(x.Ptr)
+		expr(x.Start)
+		expr(x.Len)
+		inner := copyBound()
+		inner[x.Var] = true
+		if x.Body != nil {
+			splitFreeRefs(x.Body, inner, refs)
+		}
+	case *SwitchStmt:
+		expr(x.Val)
+		for _, c := range x.Cases {
+			if c.Body != nil {
+				splitFreeRefs(c.Body, copyBound(), refs)
+			}
+		}
+		if x.Default != nil {
+			splitFreeRefs(x.Default, copyBound(), refs)
+		}
+	default:
+		found := map[string]bool{}
+		collectVarRefs(s, found, map[string]bool{})
+		for n := range found {
+			if !bound[n] {
+				refs[n] = true
+			}
+		}
+	}
 }
