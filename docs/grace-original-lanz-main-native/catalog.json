@@ -2733,7 +2733,7 @@
       "native_behavior": "executed-independent-vm-z80",
       "workload": "30 persistent parsing calls: valid/nested/malformed/decimal wrapping/comments/255..257 atom lengths",
       "independent_model": "Independent Go Lanz parser: node/string arenas, globals, result and exact byte accesses",
-      "external_requirement_or_remaining_work": "Original parser entries with explicit peek/poke/console runtime adapters. Original main is not this workload; separate derived CP/M evidence below. Current exact-source whole main separately executed through port23 and test CP/M BDOS2 assembly runtime adapter; source corrected CString literal. Historical CString derivative retains its own hashes.",
+      "external_requirement_or_remaining_work": "Original parser entries with explicit peek/poke/console runtime adapters. Original main is not this workload; separate derived CP/M evidence below. Frozen parser prospective test replays historical source SHA 0e92689, not this current-source SHA. Current exact-source whole main separately executed through port23 and test CP/M BDOS2 assembly runtime adapter; source corrected CString literal. Historical CString derivative retains its own hashes.",
       "entry_structure_not_execution_claim": "declares main; whole-main execution not implied",
       "reviewed_evidence": [
         {
@@ -2750,8 +2750,8 @@
         },
         {
           "test_or_artifact": "minzc/pkg/pipeline/parser_prospective_heldout_test.go::TestParserProspectiveHeldout",
-          "evidence_file_sha256": "f91898cfccae3616975352027d06814f4cd55dba1c7e09b35251b337319d3931",
-          "source_relation": "original functions; frozen unseen workloads",
+          "evidence_file_sha256": "c4fee5e8fb1ba0e56cfcd4c29e8720bca069d114c17bcea646bd8dabe7503e9e",
+          "source_relation": "historical immutable 0e92689 source snapshot; frozen unseen workloads",
           "scope": "Training-selected candidate and baseline separately checked against Go parser model on frozen heldout inputs; no whole-main claim."
         },
         {
@@ -2778,20 +2778,15 @@
         "minzc/pkg/hir/arena_peel_proof_test.go:54",
         "minzc/pkg/pipeline/global_word_direct_target_test.go:17",
         "minzc/pkg/pipeline/global_word_direct_target_test.go:23",
-        "minzc/pkg/pipeline/memory_host_arena_append_policy_selector_test.go:307",
         "minzc/pkg/pipeline/memory_host_arena_append_policy_selector_test.go:316",
         "minzc/pkg/pipeline/memory_host_policy_search_test.go:19",
         "minzc/pkg/pipeline/memory_host_policy_search_test.go:29",
-        "minzc/pkg/pipeline/memory_host_policy_search_test.go:330",
         "minzc/pkg/pipeline/memory_host_policy_search_test.go:339",
         "minzc/pkg/pipeline/memory_host_policy_search_test.go:355",
-        "minzc/pkg/pipeline/memory_host_reference_export_test.go:28",
-        "minzc/pkg/pipeline/memory_host_target_test.go:18",
-        "minzc/pkg/pipeline/memory_host_target_test.go:22",
+        "minzc/pkg/pipeline/memory_host_target_test.go:27",
         "minzc/pkg/pipeline/original_lanz_main_test.go:31",
         "minzc/pkg/pipeline/parser_prospective_heldout_test.go:17",
         "minzc/pkg/pipeline/self_lanz_baseline_test.go:155",
-        "minzc/pkg/pipeline/unsigned_pair_policy_test.go:191",
         "minzc/pkg/pipeline/unsigned_pair_policy_test.go:200"
       ]
     },

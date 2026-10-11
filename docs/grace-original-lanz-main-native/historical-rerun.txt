@@ -1,0 +1,23 @@
+=== RUN   TestMemoryHostPolicySelectorOriginalParserExport
+    memory_host_arena_append_policy_selector_test.go:301: explicit eight-candidate policy artifact export
+--- SKIP: TestMemoryHostPolicySelectorOriginalParserExport (0.00s)
+=== RUN   TestMemoryHostPolicySearchOriginalParserExport
+    memory_host_policy_search_test.go:313: explicit complete policy-mask search artifact export
+--- SKIP: TestMemoryHostPolicySearchOriginalParserExport (0.00s)
+=== RUN   TestMemoryHostOriginalSelfLanzTarget
+    memory_host_target_test.go:88: reference native cycle/binary drift 1269009 27a7c8ea7b77725ee5f61e9f4be625bd1b582b1b03e1013021e0ab3766ee8545
+--- FAIL: TestMemoryHostOriginalSelfLanzTarget (0.75s)
+=== RUN   TestParserProspectiveHeldout
+    parser_prospective_heldout_test.go:149: training mask 0: 1016414 T / 2364 B
+    parser_prospective_heldout_test.go:149: training mask 1: 1017340 T / 2485 B
+    parser_prospective_heldout_test.go:149: training mask 2: 992049 T / 2344 B
+    parser_prospective_heldout_test.go:149: training mask 3: 992975 T / 2465 B
+    parser_prospective_heldout_test.go:185: heldout mask 0: 2141572 T / 2364 B SHA 27a7c8ea7b77725ee5f61e9f4be625bd1b582b1b03e1013021e0ab3766ee8545
+    parser_prospective_heldout_test.go:185: heldout mask 2: 2093170 T / 2344 B SHA 24f6b56e2960ff965275cba73bb842b12651c82c1548a898032e07d6979b2a0a
+--- PASS: TestParserProspectiveHeldout (20.64s)
+=== RUN   TestUnsignedPairPolicyOriginalParserExport
+    unsigned_pair_policy_test.go:177: explicit two-case public API artifact export
+--- SKIP: TestUnsignedPairPolicyOriginalParserExport (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	21.412s
+FAIL

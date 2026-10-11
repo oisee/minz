@@ -15,7 +15,9 @@ import (
 func TestParserProspectiveHeldout(t *testing.T) {
 	const report = "../../../docs/grace-parser-prospective-heldout"
 	const path = "../../../examples/nanz/self_lanz_parser.nanz"
-	source, e := os.ReadFile(path)
+	// The prospective experiment binds its immutable source snapshot, not the
+	// subsequently corrected example main. Freeze and old artifacts remain exact.
+	source, e := os.ReadFile(report + "/artifacts/source.nanz")
 	if e != nil {
 		t.Fatal(e)
 	}
