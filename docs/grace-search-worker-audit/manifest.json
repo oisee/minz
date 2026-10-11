@@ -1,0 +1,25 @@
+{
+  "base_commit": "f918ccd9",
+  "files": [
+    {
+      "path": "cpu-cumulative.txt",
+      "bytes": 18817,
+      "sha256": "33d7faa3c357c84cd9494d88d0d2183ccc66bb79204f4545145ba8821cd15a53"
+    },
+    {
+      "path": "cpu.pprof",
+      "bytes": 79714,
+      "sha256": "55f51d9ba0e891bb2d8b468cdd3d6eee211a9df8293c4136aa0ad63396b80c24"
+    },
+    {
+      "path": "stages.txt",
+      "bytes": 521,
+      "sha256": "46a483d5186d0e1af4a67a1042d3b9967e1473404b563c43d1d0c72827b97c52"
+    },
+    {
+      "path": "timings.json",
+      "bytes": 288,
+      "sha256": "d36e4f23ff43699f52ffadf4f6dca1256a0cc702d49a90a7b2c9348ffe0c47c9"
+    }
+  ]
+}

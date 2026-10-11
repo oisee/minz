@@ -1,0 +1,8 @@
+{
+  "closed_association_including_fullbaseline": 2.411827287,
+  "compile_fresh_to_asm": 0.069036846,
+  "fixed_policy_four_candidates_and_guards": 18.389116191,
+  "native_run_annotations_admission": 0.362503537,
+  "parse_fresh_source": 0.000280948,
+  "raw_vm_with_admission": 0.083388748
+}
