@@ -157,3 +157,57 @@ func TestGlobalWordDirectPairAsmUseRemains(t *testing.T) {
 		}
 	}
 }
+
+func TestGlobalWordDirectPairByteUseAfterLoad(t *testing.T) {
+	for _, pair := range []string{"DE", "BC"} {
+		for _, value := range []uint16{0, 255, 256, 65535, 0x1234} {
+			m := &mir2.Module{Name: "pair-byte-use"}
+			f := m.AddFunc("read_then_store")
+			f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU16, Class: mir2.ClassPair}}
+			b := mir2.NewBuilder(f)
+			b.SwitchToNewBlock("entry")
+			old := b.Const(0x5a, mir2.TyU8, mir2.ClassGeneral)
+			oldCopy := b.Move(old, mir2.TyU8, mir2.ClassAcc)
+			address := b.AddrOf("word", mir2.ClassPointer)
+			word := b.Load(address, mir2.TyU16, mir2.ClassPair)
+			low := b.Trunc(word, mir2.TyU16, mir2.TyU8, mir2.ClassAcc)
+			output := b.AddrOf("low_out", mir2.ClassPointer)
+			b.Store(output, low, mir2.TyU8)
+			b.Ret(word)
+			m.Globals = []mir2.Global{{Name: "word", Ty: mir2.TyU16, Init: []byte{byte(value), byte(value >> 8)}}, {Name: "low_out", Ty: mir2.TyU8}}
+			byteReg := "E"
+			if pair == "BC" {
+				byteReg = "C"
+			}
+			ar := &mir2.AllocResult{Locs: map[mir2.Reg]mir2.PhysLoc{old: {Kind: mir2.LocReg, Name: byteReg}, oldCopy: {Kind: mir2.LocReg, Name: "A"}, address: {Kind: mir2.LocReg, Name: "HL"}, word: {Kind: mir2.LocReg, Name: pair}, low: {Kind: mir2.LocReg, Name: "A"}, output: {Kind: mir2.LocReg, Name: "HL"}}}
+			if e := mir2.Verify(m); e != nil {
+				t.Fatal(e)
+			}
+			text, e := mir2.Z80Codegen(m, ar)
+			if e != nil {
+				t.Fatal(e)
+			}
+			if !strings.Contains(text, "LD "+pair+", (word)") {
+				t.Fatal("direct path missing")
+			}
+			assembly := "ORG 0x8000\nLD SP,0xff00\nCALL read_then_store\nDI\nHALT\n" + text
+			a, e := z80asm.NewAssembler().AssembleString(assembly)
+			if e != nil || len(a.Errors) > 0 {
+				t.Fatal(e, a.Errors)
+			}
+			z := emulator.NewRemogattoZ80()
+			z.Reset()
+			z.LoadMemory(0x8000, a.Binary)
+			z.SetRegisters(emulator.Registers{PC: 0x8000, SP: 0xff00})
+			for steps := 0; !z.IsHalted(); steps++ {
+				if steps > 1000 {
+					t.Fatal("did not halt")
+				}
+				z.Step()
+			}
+			if z.GetMemory(uint16(a.Symbols["low_out"])) != byte(value) || z.GetRegisters().HL != value {
+				t.Fatalf("stale destination-byte cache pair%s value%04x result%+v\n%s", pair, value, z.GetRegisters(), text)
+			}
+		}
+	}
+}
