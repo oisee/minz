@@ -1,0 +1,5 @@
+=== RUN   TestOriginalPlasmaAttributeMul11
+    plasma_mul11_test.go:164: 1024 exact original plasma_attr calls; 331508T 1555B SHAda0678eaaac073391b9637fe6a0c02c21707f17459f251ebe589bf88f7b90fd1
+--- PASS: TestOriginalPlasmaAttributeMul11 (0.19s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.201s
