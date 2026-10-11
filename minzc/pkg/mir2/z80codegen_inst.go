@@ -454,7 +454,11 @@ func (g *z80cg) genInst(inst *Inst) {
 		// uses A as scratch and corrupts loop counters stored in A.
 		if inst.Ty.Width() == 16 {
 			if sym, ok := g.globalU16LoadSym[inst.Src[0]]; ok && (dst == "HL" || dst == "DE" || dst == "BC") {
-				g.emitNativeMemoryf(inst, 0, 2, "    LD %s, (%s)    ; u16 direct load, no scratch clobber", dst, sanitizeIdent(sym))
+				if dst == "HL" {
+					g.emitNativeMemoryf(inst, 0, 2, "    LD HL, (%s)    ; u16 direct load (20T, no A clobber)", sanitizeIdent(sym))
+				} else {
+					g.emitNativeMemoryf(inst, 0, 2, "    LD %s, (%s)    ; u16 direct load, no scratch clobber", dst, sanitizeIdent(sym))
+				}
 				g.invalidate(dst)
 				break
 			}

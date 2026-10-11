@@ -35,7 +35,13 @@ func TestGlobalWordDirectPairNative(t *testing.T) {
 		for _, value := range []uint16{0, 255, 256, 65535, 0x1234, 0x90ff} {
 			t.Run(fmt.Sprintf("%s_%04x", pair, value), func(t *testing.T) {
 				m, ar := directPairModule(pair, false, false, false)
+				if err := mir2.Verify(m); err != nil {
+					t.Fatal(err)
+				}
 				m.Globals[0].Init = []byte{byte(value), byte(value >> 8)}
+				if err := mir2.Verify(m); err != nil {
+					t.Fatal(err)
+				}
 				text, e := mir2.Z80Codegen(m, ar)
 				if e != nil {
 					t.Fatal(e)
@@ -117,6 +123,9 @@ func TestGlobalWordDirectPairRefusals(t *testing.T) {
 		}{{"shared", true, false, false}, {"numeric", false, true, false}, {"successor", false, false, true}} {
 			t.Run(pair+"_"+tc.name, func(t *testing.T) {
 				m, ar := directPairModule(pair, tc.shared, tc.numeric, tc.successor)
+				if err := mir2.Verify(m); err != nil {
+					t.Fatal(err)
+				}
 				text, e := mir2.Z80Codegen(m, ar)
 				if e != nil {
 					t.Fatal(e)

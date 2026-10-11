@@ -806,35 +806,19 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 		if useCount[addrReg] != 1 {
 			continue // addr reg used by other instructions too
 		}
-		// DE/BC extension must not suppress an address consumed in a successor.
-		// Register coalescing may leave direct cross-block uses without edge args.
-		if dst != "HL" && g.fn != nil {
-			shared := false
-			for _, other := range g.fn.Blocks {
-				if other == b {
-					continue
-				}
-				for _, user := range other.Insts {
-					for _, r := range user.Src {
-						if r == addrReg {
-							shared = true
-						}
-					}
-					for _, r := range user.Args {
-						if r == addrReg {
-							shared = true
-						}
-					}
-				}
-				if other.Term != nil {
-					for _, r := range other.Term.termUses() {
-						if r == addrReg {
-							shared = true
-						}
-					}
+		// The DE/BC extension requires the address to have one use across
+		// the whole function, including direct successor and terminator uses.
+		if dst != "HL" {
+			if g.fn == nil || countRegUses(g.fn)[addrReg] != 1 {
+				continue
+			}
+			storage := false
+			for _, global := range g.mod.Globals {
+				if global.Name == def.Sym && ByteWidth(global.Ty) >= 2 {
+					storage = true
 				}
 			}
-			if shared {
+			if !storage {
 				continue
 			}
 		}
