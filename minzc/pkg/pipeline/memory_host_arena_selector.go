@@ -42,6 +42,7 @@ func MeasureMemoryHostArenaPeel(factory func() (*hir.Module, error), w hir.Memor
 	payload := append([]byte{}, serialized...)
 	seen := map[uintptr]bool{}
 	retained := []*hir.Module{}
+	privateRoots := []any{}
 	fresh := func() (*hir.Module, error) {
 		m, e := factory()
 		if e != nil {
@@ -151,6 +152,71 @@ func MeasureMemoryHostArenaPeel(factory func() (*hir.Module, error), w hir.Memor
 		if e = identity(actual); e != nil {
 			return nil, e
 		}
+		// Preserve the original pointer graph before transformation/compilation
+		// drops old bodies, expressions or backing slices. Address-only freshness
+		// sets must never encounter GC reuse of formerly owned source nodes.
+		root := *actual
+		root.Funcs = make([]*hir.Func, len(actual.Funcs))
+		for i, f := range actual.Funcs {
+			c := *f
+			root.Funcs[i] = &c
+		}
+		privateRoots = append(privateRoots, &root, actual)
+		var retainPointers func(reflect.Value)
+		visited := map[uintptr]bool{}
+		retainPointers = func(v reflect.Value) {
+			if !v.IsValid() {
+				return
+			}
+			if v.Kind() == reflect.Interface {
+				if !v.IsNil() {
+					retainPointers(v.Elem())
+				}
+				return
+			}
+			switch v.Kind() {
+			case reflect.Pointer:
+				if v.IsNil() || visited[v.Pointer()] {
+					return
+				}
+				visited[v.Pointer()] = true
+				if v.CanInterface() {
+					privateRoots = append(privateRoots, v.Interface())
+				}
+				retainPointers(v.Elem())
+			case reflect.Map:
+				if v.IsNil() || visited[v.Pointer()] {
+					return
+				}
+				visited[v.Pointer()] = true
+				if v.CanInterface() {
+					privateRoots = append(privateRoots, v.Interface())
+				}
+				it := v.MapRange()
+				for it.Next() {
+					retainPointers(it.Key())
+					retainPointers(it.Value())
+				}
+			case reflect.Slice:
+				if v.CanInterface() {
+					privateRoots = append(privateRoots, v.Interface())
+				}
+				for i := 0; i < v.Len(); i++ {
+					retainPointers(v.Index(i))
+				}
+			case reflect.Array:
+				for i := 0; i < v.Len(); i++ {
+					retainPointers(v.Index(i))
+				}
+			case reflect.Struct:
+				for i := 0; i < v.NumField(); i++ {
+					if v.Field(i).CanInterface() {
+						retainPointers(v.Field(i))
+					}
+				}
+			}
+		}
+		retainPointers(reflect.ValueOf(actual))
 		if e = peelMemoryHostArenaFirstByte(actual, owned); e != nil {
 			return nil, e
 		}
@@ -180,6 +246,7 @@ func MeasureMemoryHostArenaPeel(factory func() (*hir.Module, error), w hir.Memor
 	if o.Goal == "speed" && b.TotalTStates < a.TotalTStates || o.Goal == "size" && len(b.Binary) < len(a.Binary) {
 		out.Selected = 1
 	}
+	runtime.KeepAlive(privateRoots)
 	runtime.KeepAlive(retained)
 	return out, nil
 }
