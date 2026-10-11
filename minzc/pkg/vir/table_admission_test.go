@@ -220,3 +220,30 @@ func TestTableLiveThroughValueExecutesWithSafeAssignment(t *testing.T) {
 	}
 	t.Logf("Safe live-through assignment ASM/BIN %x: A=%d SP=%04x T=%d", result.Binary, regs.A, regs.SP, z.GetCycles())
 }
+
+func TestTableRejectsOverlappingLiveValues(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		a, b   string
+		aw, bw int
+	}{
+		{"same-byte", "A", "A", 8, 8}, {"pair-half", "HL", "L", 16, 8},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ops := []VIROp{{Op: OpConst, Dst: 1, Width: tc.aw, Imm: 37}, {Op: OpConst, Dst: 2, Width: tc.bw, Imm: 5},
+				{Op: OpStoreGlobal, Src: [2]int{2, -1}, Width: tc.bw, Sym: "out"}, {Op: OpRet, Src: [2]int{1, -1}, Width: tc.aw}}
+			if err := validateTableAssignment(ops, map[int]int{1: Z80.LocByName(tc.a), 2: Z80.LocByName(tc.b)}, Z80); err == nil {
+				t.Fatal("overlapping live values admitted")
+			}
+		})
+	}
+}
+
+func TestTableRejectsDestructiveTieWithLiveSource(t *testing.T) {
+	ops := []VIROp{{Op: OpConst, Dst: 1, Width: 8, Imm: 7}, {Op: OpConst, Dst: 2, Width: 8, Imm: 5},
+		{Op: OpAdd, Dst: 3, Src: [2]int{1, 2}, Width: 8}, {Op: OpStoreGlobal, Src: [2]int{3, -1}, Width: 8, Sym: "sum"},
+		{Op: OpRet, Src: [2]int{1, -1}, Width: 8}}
+	if err := validateTableAssignment(ops, map[int]int{1: 0, 2: 1, 3: 0}, Z80); err == nil {
+		t.Fatal("destructive tie overwrites still-live source")
+	}
+}

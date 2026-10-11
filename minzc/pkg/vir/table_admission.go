@@ -56,9 +56,35 @@ func validateTableAssignment(ops []VIROp, assignment map[int]int, desc *MachineD
 		// Walk backwards independently of the solver's range approximation.
 		// Inputs consumed here may still be needed later; outputs are produced
 		// after the clobber and must not be mistaken for live-through values.
+		overlaps := func(a, b int) bool {
+			return a == b || desc.Locs[a].Alias.Has(b) || desc.Locs[b].Alias.Has(a) ||
+				(desc.Name == "z80" && z80spec.Overlaps(desc.Locs[a].Name, desc.Locs[b].Name))
+		}
+		check := func(values map[int]bool, i int) error {
+			for a := range values {
+				for b := range values {
+					if a < b && overlaps(assignment[a], assignment[b]) {
+						return fmt.Errorf("op %d overlapping live vregs %d and %d", i, a, b)
+					}
+				}
+			}
+			return nil
+		}
 		live := make(map[int]bool)
 		for i := len(ops) - 1; i >= 0; i-- {
 			op := ops[i]
+			// Definitions write their locations even if the result is dead.
+			// Only a move from an equal value permits overlapping live storage.
+			for _, d := range append([]int{op.Dst}, op.AsmOuts...) {
+				if d <= 0 {
+					continue
+				}
+				for v := range live {
+					if v != d && overlaps(assignment[d], assignment[v]) && !(op.Op == OpMove && v == op.Src[0] && assignment[d] == assignment[v]) {
+						return fmt.Errorf("op %d definition vreg %d overwrites live vreg %d", i, d, v)
+					}
+				}
+			}
 			delete(live, op.Dst)
 			for _, v := range op.AsmOuts {
 				delete(live, v)
@@ -71,8 +97,7 @@ func validateTableAssignment(ops []VIROp, assignment map[int]int, desc *MachineD
 						conflict = true
 						return false
 					}
-					if loc == clobber || desc.Locs[loc].Alias.Has(clobber) || desc.Locs[clobber].Alias.Has(loc) ||
-						(desc.Name == "z80" && z80spec.Overlaps(desc.Locs[loc].Name, desc.Locs[clobber].Name)) {
+					if overlaps(loc, clobber) {
 						conflict = true
 						return false
 					}
@@ -91,6 +116,9 @@ func validateTableAssignment(ops []VIROp, assignment map[int]int, desc *MachineD
 				if v > 0 {
 					live[v] = true
 				}
+			}
+			if err := check(live, i); err != nil {
+				return err
 			}
 		}
 	}
