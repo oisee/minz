@@ -27,6 +27,7 @@ func run() error {
 	asset := flag.String("enrt", "", "canonical ENRT v1 table (4v or 5v)")
 	output := flag.String("out", "", "new checked JSON table")
 	evidence := flag.String("evidence", "", "JSON diagnostics, including rejections")
+	quotient := flag.Bool("quotient", false, "explicitly collapse nonoverlapping same-register allocation variables before historical lookup")
 	stdlib := flag.String("stdlib", "", "original source import search path")
 	flag.Parse()
 	if flag.NArg() != 0 || *source == "" || *asset == "" || *output == "" || *evidence == "" {
@@ -69,7 +70,11 @@ func run() error {
 		p, e := vir.PrepareLocalTableProblem(f, base.Allocation)
 		d := decision{Function: f.Name}
 		if e == nil {
-			d.Evidence, e = vir.ImportIndexedENRT(*asset, p, table)
+			if *quotient {
+				d.Evidence, e = vir.ImportIndexedENRTQuotient(*asset, p, table)
+			} else {
+				d.Evidence, e = vir.ImportIndexedENRT(*asset, p, table)
+			}
 		}
 		if e != nil {
 			d.Error = e.Error()
