@@ -127,8 +127,8 @@ Legacy/mask2 663T/1978B. Zero-body не доказывает dynamic compareacti
 (full300+short20). API перенесён exact2files в44739f77 и pushed.
 Общий pipeline выполняется; HIR/MIR/C89/CLI/Nanz PASS, showcase31same0new.
 Broad gate нашёл цикл зависимостей frontend same-package tests→pipeline→Nanz→
-frontend. Исправление только тестовых пакетов выполняется отдельно;
-независимая проверка полного HIR неизменна. Новый поиск пока не опубликован.
+frontend. Test-only исправление перенесено be43274d и pushed; Lanz/Lizp/PLM/Pascal
+в рабочей ветке PASS .012/.012/.020/.011s. Независимая проверка полного HIR неизменна. Новый поиск пока не опубликован.
 Следом: завершить gates/пакет и публикацию, затем отдельный явный search CLI.
 
 ## Сохранение веток и решения
