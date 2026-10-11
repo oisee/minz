@@ -48,6 +48,23 @@ func TestPFCCOExistingArenaNativeConsumer(t *testing.T) {
 			}
 			return uint16(v)
 		}
+		mutableGlobals := map[uint16]bool{}
+		for _, g := range steps.MIR2Module.Globals {
+			if g.IsConst {
+				continue
+			}
+			for i := 0; i < mir2.ByteWidth(g.Ty); i++ {
+				mutableGlobals[symbol(g.Name)+uint16(i)] = true
+			}
+		}
+		checkCode := func() {
+			t.Helper()
+			for i, b := range bin.Binary {
+				if !mutableGlobals[uint16(bin.Origin+i)] && z.GetMemory(uint16(bin.Origin+i)) != b {
+					t.Fatalf("strategy=%q compiled image changed at %04x", strategy, bin.Origin+i)
+				}
+			}
+		}
 		total := 0
 		for _, c := range calls {
 			var args []mir2.Value
@@ -98,6 +115,7 @@ func TestPFCCOExistingArenaNativeConsumer(t *testing.T) {
 			if got.PC != 0xf100 || got.SP != 0xf000 || v != c.want {
 				t.Fatalf("%s %s got%04x want%04x PC%04x SP%04x", strategy, c.name, v, c.want, got.PC, got.SP)
 			}
+			checkCode()
 			cycles := z.GetCycles() - start
 			total += cycles
 			t.Logf("strategy=%q %s %dT return%04x", strategy, c.name, cycles, v)
@@ -114,6 +132,10 @@ func TestPFCCOExistingArenaNativeConsumer(t *testing.T) {
 			for _, sizeValue := range values {
 				ptr := uint16(0xd000)
 				want := startValue + sizeValue
+				for _, guard := range []uint16{ptr - 1, ptr + 4} {
+					z.SetMemory(guard, 0x6d)
+					vm.WriteHeap(int64(guard), 0x6d)
+				}
 				for i := uint16(0); i < 4; i++ {
 					z.SetMemory(ptr+i, 0xa5)
 					vm.WriteHeap(int64(ptr+i), 0xa5)
@@ -156,6 +178,12 @@ func TestPFCCOExistingArenaNativeConsumer(t *testing.T) {
 						t.Fatal("split memory", strategy, startValue, sizeValue, i, b, memory)
 					}
 				}
+				for _, guard := range []uint16{ptr - 1, ptr + 4} {
+					if z.GetMemory(guard) != 0x6d || vm.ReadHeap(int64(guard), 1)[0] != 0x6d {
+						t.Fatalf("split wrote outside four-byte destination at %04x", guard)
+					}
+				}
+				checkCode()
 				c := z.GetCycles() - before
 				if matrixT == 0 {
 					matrixT = c
