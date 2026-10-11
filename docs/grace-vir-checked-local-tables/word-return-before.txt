@@ -1,0 +1,13 @@
+=== RUN   TestCheckedLocalTableNativeBenefitIncludesPairSaves
+    table_checked_test.go:176: middle=IX current-cost=70 native-T=95 bytes=10 BIN=013412c5dde1dde5e1c9
+    table_checked_test.go:172: native HL=0000 SP=f000 ASM=; fun word() ; clobbers: F
+        word:
+            LD BC, 4660
+            LD D, B
+            LD E, C
+            RET
+         BIN=0134125059c9
+--- FAIL: TestCheckedLocalTableNativeBenefitIncludesPairSaves (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/vir	0.010s
+FAIL

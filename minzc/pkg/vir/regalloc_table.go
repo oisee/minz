@@ -13,7 +13,7 @@
 // vreg pairs conflict.
 //
 // This gives O(1) compile-time register allocation for functions that
-// match a precomputed entry — no Z3, no GPU, instant and provably optimal.
+// match a precomputed entry. Legacy research costs are not compiled certificates.
 package vir
 
 import (
@@ -27,6 +27,8 @@ import (
 
 // RegAllocEntry is one precomputed optimal assignment.
 type RegAllocEntry struct {
+	Schema     string `json:"schema,omitempty"`
+	CostModel  string `json:"costModel,omitempty"`
 	Signature  string `json:"sig"`
 	NVregs     int    `json:"nVregs"`
 	NOps       int    `json:"nOps"`
@@ -60,7 +62,8 @@ func GetRegAllocTable() *RegAllocTable {
 	return globalTable
 }
 
-// Lookup checks if a precomputed assignment exists for the given VIR ops.
+// Lookup is the legacy research lookup. Compiled admission uses LookupChecked.
+// It checks if a precomputed assignment exists for the given VIR ops.
 // Tries three signature formats in order:
 //  1. Original signature (legacy)
 //  2. Exhaustive GPU signature (56 entries)
@@ -182,6 +185,7 @@ func (t *RegAllocTable) Add(sig string, entry *RegAllocEntry) {
 
 // LookupByKey looks up an entry by its raw signature key.
 // Used by MZV host functions that compute the key externally.
+// This is unchecked research data, never compiled admission.
 func (t *RegAllocTable) LookupByKey(key string) (*RegAllocEntry, bool) {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
