@@ -39,7 +39,8 @@ func TestLiteralPrintingNative(t *testing.T) {
 			if len(a.Errors) > 0 {
 				t.Fatal(a.Errors)
 			}
-			z := emulator.NewRemogattoZ80()
+			z := emulator.NewRemogattoZ80WithScreen()
+			z.SetROMEnd(0)
 			z.MaxCycles = 1000000
 			if e = z.LoadMemory(0x100, a.Binary); e != nil {
 				t.Fatal(e)
@@ -58,7 +59,7 @@ func TestLiteralPrintingNative(t *testing.T) {
 			if runErr != nil {
 				t.Fatal(runErr)
 			}
-			if regs.SP != 0xF000 || int(regs.PC) != a.Symbols["test_done"]+2 {
+			if regs.SP != 0xF000 || int(regs.PC) != a.Symbols["test_done"]+1 {
 				t.Fatalf("termination PC/SP %x/%x", regs.PC, regs.SP)
 			}
 			for n, v := range map[string]uint16{"__print_ptr_1": 123, "__print_count_2": 456} {
@@ -115,7 +116,8 @@ func TestLiteralStorageNative(t *testing.T) {
 			if !bytes.Equal(actual, c.want) {
 				t.Fatal("native pool encoding", actual, c.want)
 			}
-			z := emulator.NewRemogattoZ80()
+			z := emulator.NewRemogattoZ80WithScreen()
+			z.SetROMEnd(0)
 			z.MaxCycles = 1000000
 			if e = z.LoadMemory(0x100, a.Binary); e != nil {
 				t.Fatal(e)
@@ -127,7 +129,7 @@ func TestLiteralStorageNative(t *testing.T) {
 			if runErr != nil {
 				t.Fatal(runErr)
 			}
-			if r.SP != 0xF000 || int(r.PC) != a.Symbols["storage_done"]+2 {
+			if r.SP != 0xF000 || int(r.PC) != a.Symbols["storage_done"]+1 {
 				t.Fatal("termination", r)
 			}
 			if z.GetMemory(uint16(a.Symbols["first"])) != c.want[0] {
@@ -137,7 +139,7 @@ func TestLiteralStorageNative(t *testing.T) {
 	}
 }
 
-func saveStringNative(t *testing.T, name, source, assembled string, steps pipeline.Steps, a *z80asm.Result, output, expected []byte, regs emulator.Registers, z *emulator.RemogattoZ80, runErr error) {
+func saveStringNative(t *testing.T, name, source, assembled string, steps pipeline.Steps, a *z80asm.Result, output, expected []byte, regs emulator.Registers, z *emulator.RemogattoZ80WithScreen, runErr error) {
 	t.Helper()
 	dir := os.Getenv("MINZ_STRING_NATIVE_ARTIFACTS")
 	if dir == "" {
