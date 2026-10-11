@@ -68,24 +68,12 @@
     "sha256": "9714316a396caa07200be79f702c6fd313e71a1361daac99a692ba29589a6b7c"
   },
   {
-    "path": "tools/__pycache__/audit_search.cpython-312.pyc",
-    "sha256": "743b830e6ec760c01dfbd24659c2a29566deaeff97a1130bbc2660a44cc2bc90"
-  },
-  {
     "path": "tools/audit_search.py",
     "sha256": "01ea8561948c31e98a96b2cc3d8b152de904732fb3a3e988fc12d5b417fdd15c"
   },
   {
     "path": "tools/audit_transfer.py",
     "sha256": "683a7cc48710eac700e0d5687b2e6cd2c9ca0950eb5861f8ff9eb80e30f7b638"
-  },
-  {
-    "path": "tools/model/__pycache__/audit_profile.cpython-312.pyc",
-    "sha256": "679c5c2be8adb03281914f2544f76c65122e4dcb477089a3e242ad3faba35414"
-  },
-  {
-    "path": "tools/model/__pycache__/verify_corpus.cpython-312.pyc",
-    "sha256": "64e52fdd78855866a0b69696bd1feffce0a85bc56def0d73f2e978efe1f46996"
   },
   {
     "path": "tools/model/audit_profile.py",
