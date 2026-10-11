@@ -1,0 +1,6 @@
+@extern fun peek(addr:u16)->u8
+fun oracle_sum(addr:u16,n:u8)->u8 {var p:^u8=addr
+ return sum_chain(p,n)}
+fun oracle_max(addr:u16,n:u8)->u8 {var p:^u8=addr
+ return max_chain(p,n)}
+fun oracle_observe(addr:u16)->u8 {return peek(addr)}

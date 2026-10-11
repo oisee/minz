@@ -1,0 +1,20 @@
+{
+  "base_commit": "85773cf6",
+  "files": {
+    "README.md": "67baa8f896c87f380c1b51fa7fe2544e9ca46ce1e6989e0dda860a8f6af497c9",
+    "catalog-test.txt": "fa481456165f46fe55a4b359d4c251085caa0791113d3595ef52cb130509c45b",
+    "catalog.json.gz": "3bd0f41017447bf38f12be36a3573aaa5ac3938dc68bee0d045747e9bf0df75c",
+    "checks.txt": "ef1e1dda39c9eec62af59f58ce3f62ed1a53d6550317997c6d9f6c92fb91886a",
+    "final.mir2.gz": "f87d78db7bdc46735ced21563ea93e2c65df683b70e738e6c0d8af6fb2c12936",
+    "focused.txt": "0d462f541d820a9dbda185518d3192358cd71554f81bde56313551285e4d5703",
+    "independent-model.json.gz": "c483cb8343916776af806e3437fe5692e72aeeb1f2a2d0e3c6276c86055cd764",
+    "native.json.gz": "a2c113d170fca9c9b92e6269d2b6c8e63fe55e2c45c0fc89abc78cd270157529",
+    "raw.json.gz": "79a23cdad69be7e6dc9dfc30cab5c824c16054e785ff2fb1134c9035d7d9a6dd",
+    "runtime-adapter.nanz": "10cb1d98f7cffe4bd368b996800526951e8a7a60770f8e8dfb02bc8e550664d3",
+    "source.nanz": "e1e53370ff161285310b11fd2a0ad573f96cef85193532c0f1ebe4c9217641eb",
+    "target.a80": "6f0d5fe66752e71d4392a918f3f2e69c657c10c42c8c75db6799f4b4b24f6d6f",
+    "target.bin": "df200ed1899721eb3147d47be45bdaf740ea99803a70a21c51d4b369d93944c1",
+    "unadapted.a80": "48f58b181e76fb5753d6bab1f9783e3efc2fa6a929668630176e05df705ab267",
+    "workload.json.gz": "75deba159866d21fdc74c409dc8e8d94fd050130f135a4922b8c97836e3d8e75"
+  }
+}
