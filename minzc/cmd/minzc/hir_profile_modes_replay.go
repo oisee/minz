@@ -3,8 +3,10 @@ package main
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -146,6 +148,9 @@ func loadCompilerModeReplay(directory string) (*compilerModeReplayInput, error) 
 	if e.Schema != "minz.measured-compiler-modes/v1" || e.Compatibility == nil || len(e.Candidates) != 4 || e.Selected < 0 || e.Selected >= 4 || (e.Goal != "speed" && e.Goal != "size") {
 		return nil, fmt.Errorf("compiler modes replay: invalid selection")
 	}
+	if err := validateCompilerModeTrainingRuns(r); err != nil {
+		return nil, err
+	}
 	best := 0
 	for i, c := range e.Candidates {
 		options := pipeline.Options{ContractOpt: i&1 != 0, UseGrace: i&2 != 0, AssertMode: "none"}
@@ -182,9 +187,17 @@ func runHIRCompilerModesReplay(sourceFile, stdlibDir string, source []byte, fact
 	if err != nil {
 		return err
 	}
+	heldBytes, err := readHIRProfileBytes(hirProfileAutoWorkload, hirWorkloadJSONLimit)
+	if err != nil {
+		return err
+	}
 	var held hir.ProfileWorkload
 	if err = decodeHIRProfileJSON(hirProfileAutoWorkload, hirWorkloadJSONLimit, &held); err != nil {
 		return err
+	}
+	decodedBytes, err := readHIRProfileBytes(hirProfileAutoWorkload, hirWorkloadJSONLimit)
+	if err != nil || !bytes.Equal(decodedBytes, heldBytes) {
+		return fmt.Errorf("compiler modes replay: heldout workload changed during admission")
 	}
 	m, err := factory()
 	if err != nil {
@@ -276,6 +289,31 @@ func runHIRCompilerModesReplay(sourceFile, stdlibDir string, source []byte, fact
 	if err != nil {
 		return err
 	}
+	// Reproduce the recorded selected mode on training, not a new search.
+	trainingSource, err := factory()
+	if err != nil {
+		return err
+	}
+	if err = checkModule(trainingSource); err != nil {
+		return err
+	}
+	trainingOracle, err := hir.RunLoopProfile(trainingSource, saved.workload)
+	if err != nil {
+		return err
+	}
+	if !compilerModeReplayEqual(trainingOracle, saved.evidence.Oracle) {
+		return fmt.Errorf("compiler modes replay: recorded training oracle was not reproduced")
+	}
+	trainingRun, err := pipeline.RunZ80ProfileWorkload(steps, trainingSource, saved.workload, *trainingOracle)
+	if err != nil {
+		return err
+	}
+	if err = checkModule(trainingSource); err != nil {
+		return err
+	}
+	if !compilerModeReplayEqual(trainingRun, winner.Run) {
+		return fmt.Errorf("compiler modes replay: recorded winner training execution was not reproduced")
+	}
 	oracleSource, err := factory()
 	if err != nil {
 		return err
@@ -312,13 +350,18 @@ func runHIRCompilerModesReplay(sourceFile, stdlibDir string, source []byte, fact
 	if !reflect.DeepEqual(reread.files, saved.files) {
 		return fmt.Errorf("compiler modes replay: training artifacts changed during replay")
 	}
+	finalHeld, err := readHIRProfileBytes(hirProfileAutoWorkload, hirWorkloadJSONLimit)
+	if err != nil || !bytes.Equal(finalHeld, heldBytes) {
+		return fmt.Errorf("compiler modes replay: heldout workload changed during replay")
+	}
 	payloads := map[string][]byte{"selected.bin": saved.files["selected.bin"], "selected.a80": saved.files["selected.a80"]}
 	record := struct {
-		Schema          string `json:"schema"`
-		Selected        int    `json:"selected"`
-		SelectionSHA256 string `json:"training_selection_sha256"`
-		BinarySHA256    string `json:"binary_sha256"`
-	}{"minz.compiler-modes-replay/v1", saved.evidence.Selected, saved.evidence.SHA256, run.BinarySHA256}
+		Schema             string `json:"schema"`
+		Selected           int    `json:"selected"`
+		SelectionSHA256    string `json:"training_selection_sha256"`
+		BinarySHA256       string `json:"binary_sha256"`
+		TrainingReproduced bool   `json:"training_reproduced"`
+	}{"minz.compiler-modes-replay/v1", saved.evidence.Selected, saved.evidence.SHA256, run.BinarySHA256, true}
 	for name, value := range map[string]any{"workload.json": held, "oracle.json": oracle, "run.json": run, "replay.json": record} {
 		data, err := marshalCompilerModesJSON(value)
 		if err != nil {
@@ -343,5 +386,39 @@ func runHIRCompilerModesReplay(sourceFile, stdlibDir string, source []byte, fact
 		return err
 	}
 	fmt.Fprintf(os.Stderr, "[compiler-modes replay] fixed mode %d: %d T / %d B; saved BIN %s\n", saved.evidence.Selected, run.TotalTStates, len(saved.files["selected.bin"]), run.BinarySHA256)
+	return nil
+}
+
+func validateCompilerModeTrainingRuns(saved *compilerModeReplayInput) error {
+	fail := func() error { return fmt.Errorf("compiler modes replay: inconsistent training execution evidence") }
+	e, w := &saved.evidence, saved.workload
+	oracle := e.Oracle
+	n := len(w.Calls)
+	if oracle == nil || n == 0 || oracle.Profile.FailedCalls != 0 || oracle.Profile.CompletedCalls != uint64(n) || !compilerModeReplayEqual(oracle.Profile.Compatibility, e.Compatibility) || len(oracle.Results) != n || len(oracle.Snapshots) != n || (w.ExactDataAccess && len(oracle.Accesses) != n) {
+		return fail()
+	}
+	for _, c := range e.Candidates {
+		r := c.Run
+		if r == nil || !compilerModeReplayEqual(r.Compatibility, e.Compatibility) || len(r.Invocations) != n || len(r.BootstrapSHA256) != n || r.TotalTStates < 0 || r.BootstrapTStates < 0 || r.ExecutedSteps <= 0 || r.ExecutedSteps > w.MaxSteps {
+			return fail()
+		}
+		sum := int64(0)
+		for i, row := range r.Invocations {
+			hash, err := hex.DecodeString(r.BootstrapSHA256[i])
+			if err != nil || len(hash) != 32 || r.BootstrapSHA256[i] != hex.EncodeToString(hash) {
+				return fail()
+			}
+			if row.Function != w.Calls[i].Function || row.TStates <= 0 || sum > math.MaxInt64-row.TStates || !compilerModeReplayEqual(row.Results, oracle.Results[i]) || !compilerModeReplayEqual(row.Snapshot, oracle.Snapshots[i]) {
+				return fail()
+			}
+			if w.ExactDataAccess && (row.Access == nil || !compilerModeReplayEqual(row.Access, oracle.Accesses[i])) {
+				return fail()
+			}
+			sum += row.TStates
+		}
+		if sum != r.TotalTStates || sum > math.MaxInt64-r.BootstrapTStates || !compilerModeReplayEqual(r.Globals, oracle.Globals) || !compilerModeReplayEqual(r.Resources, oracle.Resources) {
+			return fail()
+		}
+	}
 	return nil
 }
