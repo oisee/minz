@@ -1,0 +1,16 @@
+# Caller spill snapshot draft review
+
+Reviewed b9963575 in the isolated recursive-spill-call-save worktree. No compiler edits or native execution by this reviewer. The two production file hashes are recorded separately.
+
+The proposed geometry is correct for ordinary one- and two-byte data homes. Each PUSH HL / load-home / EX (SP),HL leaves the home snapshot on the stack and restores the incoming HL. Byte loads additionally preserve the complete AF. Reverse EX (SP),HL / store-home / POP HL preserves the already-picked-up HL result; byte restores preserve A and every flag. Instructions in these sequences do not otherwise alter flags. Snapshots precede argument copies and physical caller saves, so recursive argument-home overwrites occur after capture. Existing result pickup removes its own physical save image before the new snapshots are popped. Its IX-relative offsets remain relative to that image, with the snapshots below it. Conditional calls skip the whole sequence; tail calls have no continuation and are excluded.
+
+The existing gated direct-recursion byte/word fixture is appropriate for a first bounded eight-case execution: zero, one, three and seven levels with independent triangular-sum results, exact SP and terminal PC. The source review does not identify a blocker for those eight cases. This is not a generic reentrancy certificate; pending result, mutual/indirect and representation controls remain separate.
+
+Two representation issues were sent to the backend before generic release:
+
+- The new helper uses ByteWidth(info.Ty), whereas ordinary Z80 spill emission uses z80SpillBytes(info.Ty). Aggregates are address values in native code even if their source type is wider than two bytes. A live spilled array/struct may therefore acquire a new unsupported-width error or an incorrect one-byte snapshot. Use the existing native spill-width contract, with explicit handling of unsupported wide integers.
+- A TSMC-eligible allocated LocMem value still resolves through g.loc to its spillLabel, but its live value can reside only in patched reload immediates. Reading a newly synthesized data label does not capture that value. Direct recursive functions disable TSMC and the bounded fixture is unaffected. All-call collection must either handle actual TSMC storage or explicitly exclude it without claiming to repair mutual/indirect TSMC reentry. isRecursive currently recognizes only direct self calls.
+
+Dynamic physical overrides are deliberately omitted from data-home snapshots and retained by ordinary caller-save pairs when they name real registers. A dynamically created spill home on a non-LocMem allocation is also outside the new collector. That pre-existing representation needs an explicit scope statement or a separate test before claiming preservation of every memory-backed live value.
+
+Ordinary spill labels are per-function/per-vreg, so excluding Dst and ExtraRets avoids restoring the named result homes. There is no coalesced shared label in this path. Cache contents are preserved during snapshot/restore, and the existing post-call invalidation remains conservative. The new EX (SP),HL instructions do not expand the closed memory-host decoder or sidecar authority; that runner may still refuse an unsupported sequence.
