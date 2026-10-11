@@ -1,0 +1,32 @@
+package hir_test
+
+import (
+ "testing"
+ . "github.com/minz/minzc/pkg/hir"
+ "github.com/minz/minzc/pkg/mir2"
+)
+
+func TestArenaAppendIndependentReview(t *testing.T) {
+ for _, name := range []string{"rename_target", "duplicate_target", "shared_statement", "unrelated_origin", "origin_on_new_prefix", "collide_i", "collide_p", "collide_j", "collide_srcbase", "collide_dstbase", "unknown_host", "nochange_false0", "nochange_false1", "nochange_false2", "nochange_false3"} {
+  t.Run(name, func(t *testing.T) {
+   source, actual, w, c := arenaAppendProofFixture(t,3)
+   switch name {
+   case "rename_target": actual.FuncByName("region_match").Name="other_region"
+   case "duplicate_target": actual.Funcs=append(actual.Funcs,actual.FuncByName("region_match"))
+   case "shared_statement": actual.FuncByName("intern_region").Body.Body[9]=actual.FuncByName("region_match").Body.Body[5]
+   case "unrelated_origin":
+    s:=actual.FuncByName("node_tag").Body.Body[0]; l:=actual.SourceLocations[s]; l.ByteOffset++; actual.SourceLocations[s]=l
+   case "origin_on_new_prefix":
+    f:=actual.FuncByName("region_match"); l:=actual.SourceLocations[f.Body.Body[3]]; delete(actual.SourceLocations,f.Body.Body[3]); actual.SourceLocations[f.Body.Body[0]]=l
+   case "collide_i", "collide_p", "collide_j", "collide_srcbase", "collide_dstbase":
+    n:=map[string]string{"collide_i":"i","collide_p":"p","collide_j":"j","collide_srcbase":"__append_src_base","collide_dstbase":"__append_dst_base"}[name]
+    for _, m:=range []*Module{source,actual} { m.Globals=append(m.Globals,mir2.Global{Name:n,Ty:mir2.TyU16,Init:[]byte{0,0}}) }
+   case "unknown_host": w.Hosts["evil"]="evil"
+   case "nochange_false0", "nochange_false1", "nochange_false2", "nochange_false3":
+    mask:=int(name[len(name)-1]-'0'); source, actual, w, c=arenaAppendProofFixture(t,mask); c=MemoryHostArenaAppendChoices{}
+    if mask==0 { if e:=ValidateMemoryHostArenaAppendChoices(source,actual,w,c);e!=nil {t.Fatal(e)}; return }
+   }
+   if e:=ValidateMemoryHostArenaAppendChoices(source,actual,w,c);e==nil {t.Fatalf("accepted %s",name)} else {t.Log(e)}
+  })
+ }
+}
