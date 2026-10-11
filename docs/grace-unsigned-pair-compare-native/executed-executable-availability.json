@@ -1,0 +1,6 @@
+{
+  "executed_compiler_id": "executable-sha256:dfdf728ead9492e6a01b6280faca85ec25ef46813640e0ca79e562ee56cbae1c",
+  "executed_test_binary_saved": false,
+  "availability": "go test temporary executable was removed after execution; bounded filesystem/cache search did not recover it before stopping search",
+  "reconstructed_binary_claim": false
+}
