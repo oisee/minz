@@ -1391,16 +1391,6 @@
       "sha256": "eae09d688b5e5feed77629577533cc3037c649c6ad9579419e57055e535d946f"
     },
     {
-      "path": "independent/semantic/model/__pycache__/audit_profile.cpython-312.pyc",
-      "bytes": 3502,
-      "sha256": "cd054aa61cc0471c2d2c0ab95dc640b67038c9ebb4d62bc03d8973d0cb319769"
-    },
-    {
-      "path": "independent/semantic/model/__pycache__/verify_corpus.cpython-312.pyc",
-      "bytes": 18936,
-      "sha256": "ded708e40967e46eb52e841951d485fe99419bcd4b7f73ea8641889f3c96e97f"
-    },
-    {
       "path": "independent/semantic/model/audit_profile.py",
       "bytes": 1951,
       "sha256": "50814a6c4b56c341836bf58803cf14cb23918e74d92973b0bfb04d0217a37531"
