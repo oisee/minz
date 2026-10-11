@@ -1,0 +1,11 @@
+{
+  "base": "5b44c0d6",
+  "export_patch": "2c71f21c",
+  "executable": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-native-ref-refresh-diagnostic.test",
+  "sha256": "ff4137918e480a6ee4689916502ec2735c50d6af9e0f0f62a60eaedbf4377cbe",
+  "test_pattern": "^(TestMemoryHostFactoryOriginalParser|TestMemoryHostLoopAssociationOriginalParser|TestMemoryHostOriginalSelfLanzTarget)$",
+  "count": 1,
+  "executed": false,
+  "historical_assertions_intentionally_retained": true,
+  "artifact_env": "MINZ_MEMORY_HOST_REF_REFRESH"
+}

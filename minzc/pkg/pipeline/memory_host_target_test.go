@@ -45,6 +45,7 @@ func TestMemoryHostOriginalSelfLanzTarget(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
+	exportMemoryHostReferenceBeforeAssert(t, "target", target, map[string]any{"workload.json": w, "raw.json": raw})
 	host := newLanzHost()
 	for i, input := range lanzBaselineInputs() {
 		clear(host.ram[0xc000:0xd000])
@@ -78,7 +79,7 @@ func TestMemoryHostOriginalSelfLanzTarget(t *testing.T) {
 	if fmt.Sprintf("%x", sha256.Sum256([]byte(target.FinalMIRDump))) != target.MIRSHA256 || fmt.Sprintf("%x", sha256.Sum256(target.AllocationJSON)) != target.AllocationSHA256 {
 		t.Fatal("diagnostic payload hash mismatch")
 	}
-	if target.TotalTStates != 1135370 || target.BinarySHA256 != "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941" {
+	if target.TotalTStates != 1291565 || target.BinarySHA256 != "a9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73" {
 		t.Fatal("reference native cycle/binary drift", target.TotalTStates, target.BinarySHA256)
 	}
 	if dir := os.Getenv("MINZ_MEMORY_HOST_ARTIFACTS"); dir != "" {

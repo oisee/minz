@@ -1,0 +1,9 @@
+# Three current original Steps references verified
+
+One reviewed diagnostic runff413 preserved historical1135370/SHA1f0 assertions and failed exactly three old-reference checks while retaining all native data. One separately reviewed final run7a1e1dd74f2cc832701338b237ab68c501f8b152639e0956cd32532054af19ac passed the three updated fixtures (1.08s factory,2.60s association,0.94s directtarget), exit0. Both exact executables and logs are retained. No other CPU run occurred in this refresh.
+
+Current independently measured Steps references are1291565T2388B/SHAa9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73. Ninety native observations in each separate run pass the independent exact-original source model: full10globals, all persistent nodes/strings/source resources,3017orderedhostevents per30call baseline and11association loop-site counts. Factory/association/directraw and target evidence is exactly equal within each fresh executable context. Sourceunit remains../../../examples/nanz/self_lanz_parser.nanz; route remains internally compiled Steps, not a substituted CLI baseline.
+
+Production admission is unchanged. The only reference updates are the three fixedT/SHA pairs. Four test-only export edits retain exactASM/BIN/MIR/allocation/source/evidence before historical assertions. Independent parser/event/count and diagnostic hash guards remain in their existing tests. Namednode_tag label-audit output is an existing external-symbol advisory resolved by the bounded host adapter; it does not establish an extra permission or suppress test failure.
+
+Diagnostic and final actualpayloads are kept separate. The first attempted final test build overlapped reference edits and produced the old identicalff413SHA; identity check caught that before execution and it was rebuilt to7a1e. No old native snapshot was relabeled. General broad pipeline/CLI completion remains separately required and is not asserted by these three focused tests.

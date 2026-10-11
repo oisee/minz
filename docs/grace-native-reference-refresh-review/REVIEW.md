@@ -1,0 +1,9 @@
+# Current fixture native reference review
+
+PASS, saved-only. The three diagnostic factory/loop-association/target outputs independently reassemble at their declared origin0400 to exact2388-byte BIN SHAa9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73. Each executes30calls and costs1291565 emulator T-states; complete target envelopes are identical. Current executable identity isff4137918e480a6ee4689916502ec2735c50d6af9e0f0f62a60eaedbf4377cbe. Fixture source logical unit is../../../examples/nanz/self_lanz_parser.nanz, exact0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526. This differs from CLI logical unit, so these are fixture-specific references.
+
+Typed sidecar, call-spill, call-frame, allocation and final-MIR hashes passed. Embedded and saved ASM/BIN match. The independent source interpreter checks all90native calls, complete globals/resource snapshots and3017 ordered events per image. Raw observations also match. The loop profile has all11sites with independently replayed cumulative/per-call source entry/body counts; no count was inferred from machine cost.
+
+The diagnostic run failed only the three old hardcoded native expectations after saving successful semantic outputs. Updating those three references to the actual frozen values is justified; it is not a new runtime exception or a semantics relaxation. Original failure log remains in the owner's artifact packet. An ensuing focused verification should retain the same source/compiler context and exact current values, not substitute the different freshCLI reference.
+
+No CPU was executed for this review. Helpers retain typed Go hash/reassembly checks and the independent source model. Current repeated observations are90native records plus the loop-profile source records, not a new full30 search measurement.

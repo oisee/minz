@@ -1,0 +1,14 @@
+=== RUN   TestMemoryHostFactoryOriginalParser
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostFactoryOriginalParser (1.08s)
+=== RUN   TestMemoryHostLoopAssociationOriginalParser
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostLoopAssociationOriginalParser (2.60s)
+=== RUN   TestMemoryHostOriginalSelfLanzTarget
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_target_test.go:101: production memory host original30 1291565T/2388B SHAa9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73
+--- PASS: TestMemoryHostOriginalSelfLanzTarget (0.94s)
+PASS

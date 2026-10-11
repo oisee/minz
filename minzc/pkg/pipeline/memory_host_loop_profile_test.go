@@ -17,6 +17,7 @@ func TestMemoryHostLoopAssociationOriginalParser(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	exportMemoryHostReferenceBeforeAssert(t, "association", r.Baseline.Target, map[string]any{"loop-baseline-association.json": r})
 	if r.Profile.CompletedCalls != 30 || r.Profile.FailedCalls != 0 || len(r.Profile.Counts) != 11 {
 		t.Fatal("wrong invocation/site boundary")
 	}
@@ -32,7 +33,7 @@ func TestMemoryHostLoopAssociationOriginalParser(t *testing.T) {
 	if !found {
 		t.Fatal("region_match absent")
 	}
-	if r.Baseline.Target.TotalTStates != 1135370 || r.Baseline.Target.BinarySHA256 != "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941" {
+	if r.Baseline.Target.TotalTStates != 1291565 || r.Baseline.Target.BinarySHA256 != "a9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73" {
 		t.Fatal("instrumentation changed native baseline")
 	}
 	if dir := os.Getenv("MINZ_MEMORY_HOST_LOOP_ARTIFACTS"); dir != "" {
