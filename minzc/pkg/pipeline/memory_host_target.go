@@ -285,6 +285,9 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
 	out.AllocationSHA256 = fmt.Sprintf("%x", sha256.Sum256(allocation))
 	m.cpu = z80.NewZ80(m, memoryHostNoPorts{})
 	for i, call := range w.Calls {
+		if m.activeCallSpill != nil || len(m.savedCallSpills) != 0 {
+			return fail(fmt.Errorf("pending native call-spill snapshot before invocation"))
+		}
 		m.active = false
 		for _, p := range call.Patches {
 			r := w.Regions[p.Region]
