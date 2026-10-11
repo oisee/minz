@@ -1,0 +1,45 @@
+{
+  "base": "4f58692b",
+  "files": [
+    {
+      "path": "docs/grace-mir-direct-call-shape/REPORT.md",
+      "sha256": "7bd879e56a49c93f5651ee503b394628aa1b414144a3b880a1c6cab5f9ac7cd7"
+    },
+    {
+      "path": "docs/grace-mir-direct-call-shape/after.txt",
+      "sha256": "541877cefbea32ce8bf6d14ed1dfa8bae0b350a80cd656613cd47dd71aafa1ca"
+    },
+    {
+      "path": "docs/grace-mir-direct-call-shape/before.txt",
+      "sha256": "3e3bc5e02ca1bdb091b7996934fac5c866ea2706597e46d598049223143858ce"
+    },
+    {
+      "path": "docs/grace-mir-direct-call-shape/first-full-mir2.txt",
+      "sha256": "c37ebe43bec8a8d869c4e5761d214c72800171d4431a0e1c98908308edfdfd54"
+    },
+    {
+      "path": "docs/grace-mir-direct-call-shape/mir2.txt",
+      "sha256": "7e520b2fda09816af8508fe14e4c5b3f2eba592ff4fdadb4c7af094ef10f9a4f"
+    },
+    {
+      "path": "docs/grace-mir-direct-call-shape/pipeline.txt",
+      "sha256": "964812ab1bdff72d1c2859d12532dbf217d36c36b63f15a896616a7d31160fe6"
+    },
+    {
+      "path": "minzc/pkg/mir2/loop_origin_test.go",
+      "sha256": "6f20b1a6e1ce6ad3b0ff097c69e63495578fb7bbfe0193432624c07f1496a6c1"
+    },
+    {
+      "path": "minzc/pkg/mir2/verify.go",
+      "sha256": "bd62abb8479e723763f08df1327555c37eebb24554763fdd8341d06b7a9edef5"
+    },
+    {
+      "path": "minzc/pkg/mir2/verify_call_shape_test.go",
+      "sha256": "c2a23eecb1092f7233486e79ae0ba0a1ed81469b5472036fe73f6125dd4a7aeb"
+    },
+    {
+      "path": "minzc/pkg/mir2/verify_calls.go",
+      "sha256": "dba263b24352989a5fd10e74ef29578de66aa275a61037ac71ab13e1f0b4fe6b"
+    }
+  ]
+}
