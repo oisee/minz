@@ -300,7 +300,7 @@ HashMap теперь258962→237948T/990→970B на этом compiler конт�
 Явный Z3 weighted/caller/indirecttable gate PASS, поддерживаемые пакеты
 compile-only без LIR PASS. Это повторная проверка прежних входов,
 не новый unseen experiment. [Пакет083](grace-integration-083/README.md).
-Полный pipeline3e143f9f выполняется отдельно.
+Полный pipeline3e143f9f завершился PASS2804.368с; он предшествует последним изменениям.
 
 Tokenizer ordinary PFCCO tradeoff теперь подтверждён:5474→5462B,
 319166→319442T нафиксированной полной нагрузке. Greedy сохраняется поумолчанию;
@@ -336,7 +336,7 @@ Root independent ABI/memory/wrap/zero/fault-prefix проверки проход
 3. Расширять измеренный invariant address hoist и автоматический выбор
    полезных кандидатов. Memory fusion отложена: порядок partial trap и
    liveness нельзя менять без явного доказательства.
-4. Полный core5fe165dd прошёл. Полный pipeline3e143f9f ещё выполняется;
+4. Полный core5fe165dd и pipeline3e143f9f прошли на своих snapshot;
    отдельный свежий CLI запускается тремя процессами. Проверить соответствие
    всей цели по актуальным исходникам и точным scope каждого gate.
 5. Обновить приватную сводную страницу сайта после следующего gate;
@@ -369,3 +369,5 @@ Root independent ABI/memory/wrap/zero/fault-prefix проверки проход
 Indexed ENRT5v conversion даёт triple module34→31B/direct66→54T/indirect123→111T. Pure byte-lane identity ускоряет FAT st_word220→93T и уменьшает модуль на23B, сохраняя byte-store эффекты. Свежие fullMIR2/VIR PASS12.391/2.178с. [Пакет092](grace-integration-092/README.md). Sites64 опубликован на snapshot2d09774a и целиком сохранён на шаре; indexed+lane опубликованы в repo/share позднее.
 
 Compatibility внутри одного admission boundary теперь вычисляется один раз; все callback boundaries и executable hash сохранены. Root fullHIR PASS28.209с, equivalence PASS0.055с и factory/preflight pipeline PASS20.574с. [Пакет093](grace-integration-093/README.md).
+
+Полный pipeline3e143f9f теперь terminal PASS2804.368с. Новая заранее frozen packed FAT12 нагрузка выявила native write_fat12 mismatch при raw/finalVM совпадении с независимым oracle; расследуется до выбора оптимизаций. [Пакет094](grace-integration-094/README.md).
