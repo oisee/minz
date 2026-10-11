@@ -1212,10 +1212,10 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			// Use lowerExprAs to widen integer literals to the callee's type,
 			// then apply the calling-convention class coercion (same as regular CallExpr).
 			paramTy := a.ExprTy()
-			if _, isStruct := a.ExprTy().(*mir2.StructTy); isStruct && i < len(calleeParams) && mir2.IsPointer(calleeParams[i].Ty) {
+			if i < len(calleeParams) {
 				paramTy = calleeParams[i].Ty
 			}
-			r := l.lowerExpr(a)
+			r := l.lowerExprAs(a, paramTy)
 			tgtCls := classForParam(paramTy, i)
 			if tgtCls != classForExpr(paramTy) {
 				r = l.bld.Move(r, paramTy, tgtCls)
