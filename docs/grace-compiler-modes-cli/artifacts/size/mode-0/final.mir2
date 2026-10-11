@@ -1,0 +1,25 @@
+; MIR2 module: examples/nanz/pfcco_weighted_packet.nanz
+global @packet_trace : u16
+
+fun @displacement(%r1: u16 [pointer], %r2: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r3 = addr_of @packet_trace : ptr [pointer]
+    %r4 = load %r3 : u16 [pointer]
+    %r5 = const 1 : u16 [pointer]
+    %r6 = add %r4, %r5 : u16 [pointer]
+    %r7 = addr_of @packet_trace : ptr [pointer]
+    store %r7, %r6 : u16
+    %r8 = sub %r2, %r1 : u16 [pointer]
+    ret %r8
+
+fun @weighted_packet(%r9: u16 [pointer], %r10: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r11 = move %r10 : u16 [index]
+    %r12 = call @displacement(%r9, %r11) : u16 [pointer]
+    %r13 = move %r9 : u16 [index]
+    %r14 = call @displacement(%r10, %r13) : u16 [pointer]
+    %r15 = const 3 : u16 [pointer]
+    %r16 = mul %r14, %r15 : u16 [pointer]
+    %r17 = add %r12, %r16 : u16 [pointer]
+    ret %r17
+

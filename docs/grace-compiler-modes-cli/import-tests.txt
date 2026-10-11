@@ -1,0 +1,7 @@
+=== RUN   TestCompilerModeCLIImportedSource
+[compiler-modes] speed selected mode 0: 24 T / 10 B; artifacts /tmp/TestCompilerModeCLIImportedSource2868291578/001/evidence
+--- PASS: TestCompilerModeCLIImportedSource (0.79s)
+=== RUN   TestCompilerModeCLIImportedOutputAlias
+--- PASS: TestCompilerModeCLIImportedOutputAlias (0.02s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	0.812s

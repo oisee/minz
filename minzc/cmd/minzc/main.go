@@ -231,6 +231,7 @@ func init() {
 	registerMemoryHostCLIFlags(rootCmd)
 	registerMemoryHostPolicyCLIFlags(rootCmd)
 	registerMemoryHostSearchCLIFlags(rootCmd)
+	rootCmd.Flags().BoolVar(&hirProfileCompilerModes, "hir-profile-compiler-modes", false, "measure ContractOpt/MIR Grace modes on controlled workload; requires --hir-profile-auto")
 	rootCmd.Flags().BoolVar(&hirProfileJoint, "hir-profile-joint", false, "measure candidate combinations on full VM/Z80 workload with --hir-profile-auto")
 	rootCmd.Flags().BoolVar(&hirProfileIndependentRules, "hir-profile-independent-rules", false, "measure constant-if and invariant-base independently with --hir-profile-joint")
 	rootCmd.Flags().BoolVar(&hirProfileInvariantSites, "hir-profile-invariant-sites", false, "measure scalar invariant-base choices by source site with --hir-profile-joint")
@@ -1098,6 +1099,9 @@ func compileViaHIR(sourceFile string) error {
 			}
 			m.Target = hir.TargetFromString(target)
 			return m, nil
+		}
+		if hirProfileCompilerModes {
+			return runHIRCompilerModes(sourceFile, stdlibDir, src, factory)
 		}
 		if hirProfileJoint {
 			result, jointErr := prepareHIRProfileJoint(hirMod, factory, opts)

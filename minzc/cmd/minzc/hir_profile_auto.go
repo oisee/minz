@@ -25,6 +25,9 @@ var hirProfileOrderedByteRWFunctions bool
 var hirProfileMixedCopyRegionSites bool
 
 func validateHIRProfileAuto(source string) error {
+	if hirProfileCompilerModes {
+		return validateHIRCompilerModes(source)
+	}
 	if hirProfileOrderedByteRWFunctions && (!hirProfileJoint || hirProfileOrderedByteFunctions || hirProfileForwardCopySites || hirProfileMixedCopyWeightedSites || hirProfileRegionCompareSites || hirProfileMixedCopyRegionSites || hirProfileInvariantSites || hirProfileSiteRules || hirProfileJointSites || hirProfileWeightedSites || hirProfileIndependentRules) {
 		return fmt.Errorf("HIR ordered byte read/write functions: requires --hir-profile-joint and cannot combine with other function, site or independent rule modes")
 	}

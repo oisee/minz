@@ -1,0 +1,2 @@
+speed mode 1 2320 T 52 B: arithmetic, state, access, hashes, exact output PASS
+size mode 0 2605 T 52 B: arithmetic, state, access, hashes, exact output PASS

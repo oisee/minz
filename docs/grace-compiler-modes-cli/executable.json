@@ -1,0 +1,7 @@
+{
+  "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/mz-compiler-modes",
+  "sha256": "d49dc066e0f3eb0b29fea3eca7f75b521fc8e463e9e774354352c1cb3d1a4555",
+  "go": "go1.26.8",
+  "branch": "feat/compiler-modes-cli",
+  "base": "919b54c2"
+}
