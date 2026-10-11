@@ -707,18 +707,24 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		}
 
 	case OpLoad:
+		if inst.SequentialBytes && (ty != TyU16 || len(inst.SequentialByteOrigins) != 2 || inst.SequentialByteOrigins[0] == nil || inst.SequentialByteOrigins[1] == nil) {
+			return fmt.Errorf("invalid sequential byte load")
+		}
 		offset := int(a.I)
 		width := ByteWidth(ty)
 		mask := fr.pointerMask(inst.Src[0])
-		if !vm.wrappedHeapRangeValid(a.I, width, mask) {
+		if !inst.SequentialBytes && !vm.wrappedHeapRangeValid(a.I, width, mask) {
 			return fmt.Errorf("load: out-of-bounds address %d (heap size %d)", offset, len(vm.heap))
 		}
 		var v int64
-		if observe := vm.ObserveDataAccess; observe != nil || vm.CheckDataAccess != nil {
+		if observe := vm.ObserveDataAccess; observe != nil || vm.CheckDataAccess != nil || inst.SequentialBytes {
 			for i := 0; i < width; i++ {
 				addr := int64((uint64(a.I) + uint64(i)) & mask)
+				if inst.SequentialBytes && !vm.wrappedHeapRangeValid(addr, 1, mask) {
+					return fmt.Errorf("sequential byte access: out-of-bounds address %d (heap size %d)", addr, len(vm.heap))
+				}
 				if vm.CheckDataAccess != nil {
-					if err := vm.CheckDataAccess(inst, addr); err != nil {
+					if err := vm.CheckDataAccess(sequentialByteInstruction(inst, i), addr); err != nil {
 						return err
 					}
 				}
@@ -736,19 +742,25 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		result = truncate(Value{I: v}, ty)
 
 	case OpStore:
+		if inst.SequentialBytes && (ty != TyU16 || len(inst.SequentialByteOrigins) != 2 || inst.SequentialByteOrigins[0] == nil || inst.SequentialByteOrigins[1] == nil) {
+			return fmt.Errorf("invalid sequential byte store")
+		}
 		// Src[0]=ptr, Src[1]=val; ty is value type.
 		offset := int(a.I)
 		val := b.I
 		width := ByteWidth(ty)
 		mask := fr.pointerMask(inst.Src[0])
-		if !vm.wrappedHeapRangeValid(a.I, width, mask) {
+		if !inst.SequentialBytes && !vm.wrappedHeapRangeValid(a.I, width, mask) {
 			return fmt.Errorf("store: out-of-bounds address %d (heap size %d)", offset, len(vm.heap))
 		}
-		if observe := vm.ObserveDataAccess; observe != nil || vm.CheckDataAccess != nil {
+		if observe := vm.ObserveDataAccess; observe != nil || vm.CheckDataAccess != nil || inst.SequentialBytes {
 			for i := 0; i < width; i++ {
 				addr := int64((uint64(a.I) + uint64(i)) & mask)
+				if inst.SequentialBytes && !vm.wrappedHeapRangeValid(addr, 1, mask) {
+					return fmt.Errorf("sequential byte access: out-of-bounds address %d (heap size %d)", addr, len(vm.heap))
+				}
 				if vm.CheckDataAccess != nil {
-					if err := vm.CheckDataAccess(inst, addr); err != nil {
+					if err := vm.CheckDataAccess(sequentialByteInstruction(inst, i), addr); err != nil {
 						return err
 					}
 				}
@@ -1235,4 +1247,11 @@ func (vm *VM) wrappedHeapRangeValid(address int64, width int, mask uint64) bool 
 		}
 	}
 	return true
+}
+
+func sequentialByteInstruction(inst *Inst, byteIndex int) *Inst {
+	if inst.SequentialBytes && len(inst.SequentialByteOrigins) == 2 {
+		return inst.SequentialByteOrigins[byteIndex]
+	}
+	return inst
 }

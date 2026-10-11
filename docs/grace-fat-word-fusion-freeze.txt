@@ -1,0 +1,1 @@
+6c11a845959df00dc01471e273f0196e7939121eaa9cb6e1f6206cc492ffbbb5  stdlib/fs/fat12.nanz

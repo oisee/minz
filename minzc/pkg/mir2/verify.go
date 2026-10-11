@@ -163,6 +163,9 @@ func verifyFunc(f *Func) error {
 
 	for _, blk := range f.Blocks {
 		for ii, inst := range blk.Insts {
+			if !sequentialByteOriginsValid(f, inst) {
+				return fmt.Errorf("sequential byte flag requires u16 load/store")
+			}
 			// Check all uses are defined.
 			for _, u := range inst.Uses() {
 				if err := checkUse(u, blk, ii); err != nil {

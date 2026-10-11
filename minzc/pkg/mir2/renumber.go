@@ -76,6 +76,30 @@ func (m *Module) RenumberRegs() {
 			}
 		}
 
+		// Allocate metadata-only IDs after executable registers, preserving native allocation.
+		for _, b := range f.Blocks {
+			for _, i := range b.Insts {
+				var regs []Reg
+				for _, d := range i.SequentialAddressDefs {
+					if d != nil {
+						regs = append(regs, d.Dst, d.Src[0], d.Src[1])
+					}
+				}
+				for _, o := range i.SequentialByteOrigins {
+					if o != nil {
+						regs = append(regs, o.Src[0])
+					}
+				}
+				for _, r := range regs {
+					if r != NoReg {
+						if _, ok := remap[r]; !ok {
+							remap[r] = next
+							next++
+						}
+					}
+				}
+			}
+		}
 		if len(remap) == 0 {
 			continue
 		}
@@ -107,6 +131,20 @@ func (m *Module) RenumberRegs() {
 				inst.Dst = mr(inst.Dst)
 				for i := range inst.Src {
 					inst.Src[i] = mr(inst.Src[i])
+				}
+				// Metadata registers need a consistent mapping even when their
+				// executable definitions were eliminated after fusion.
+				for _, d := range inst.SequentialAddressDefs {
+					if d != nil {
+						d.Dst = mr(d.Dst)
+						d.Src[0] = mr(d.Src[0])
+						d.Src[1] = mr(d.Src[1])
+					}
+				}
+				for _, o := range inst.SequentialByteOrigins {
+					if o != nil {
+						o.Src[0] = mr(o.Src[0])
+					}
 				}
 				mrs(inst.Args)
 				mrs(inst.ExtraRets)

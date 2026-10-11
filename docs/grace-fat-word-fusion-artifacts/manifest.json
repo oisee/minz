@@ -1,0 +1,23 @@
+{
+  "base_commit": "e436bd98b064db730b2a9acaa5b9723d7b55f95f",
+  "source_sha256": "6c11a845959df00dc01471e273f0196e7939121eaa9cb6e1f6206cc492ffbbb5",
+  "files": {
+    "cli-help.txt": "80aa7c46b301b0325ba3d706327b6d3872b902b61dc5115b1d5c0e8b95ef2543",
+    "first.txt": "509b9a670cd4319e6af65fecebfb5e8399a8e6e7d61d4a2b85cbce995c6e24e5",
+    "fused-false/final.mir2": "cee59002a64b157cd34542cf2fd97f707d47080ec64735530270a53e46606672",
+    "fused-false/native.json.gz": "5ad9a03e3677124d6d1e96f66dfa303befa38e260de50a965da823d88415793c",
+    "fused-false/target.a80": "31cd26be3ead98d04117906327a4b206dd6df715dd41c0939fe324c6c0025057",
+    "fused-false/target.bin": "60803503e50440190c40715fc3aa2c89ad23ba8ac83a301dd6beb91c64612b6c",
+    "fused-true/final.mir2": "9b0e4879ac2cf04c93a3ddb665611fabea6f3999a7762548bb0b143da97b2a39",
+    "fused-true/native.json.gz": "5e211db90797beba8b0c2e14825ba0658b6be8be2b3b60f94a263f0f7ee7c292",
+    "fused-true/target.a80": "6c97e63910d30729d70ff7dc182919e21cd01d5b0fa4299e66637cf1de0d3eaf",
+    "fused-true/target.bin": "ad8b1b6702387dbeea2d503f2e3b73f79095a14eb85b21f8c5d8ad3c850fba01",
+    "hir.txt": "3fb8c8fe8bac617251d2e48d0f5eb2982aa08b91d595aaae2abc6f32cd94fe4f",
+    "mir2.txt": "ab1627197a13c3e8fc124b846ffdd9eb00f05647555571b90ef90f38457f8afc",
+    "native.txt": "b88eea192d3de835a0b539a0dfae2b5237b815edf9124112cd859a9e6e048c8f",
+    "raw.json.gz": "5436b4201c77233cf52995cd5356e864ffa474117f6dd1b3a549fc35ba9d0f80",
+    "safety.txt": "42d2bcaf091702232fac6aa60d4b6ef93d0b8ad386dfaac0577ba6e28f5dd5e9",
+    "source.nanz": "6c11a845959df00dc01471e273f0196e7939121eaa9cb6e1f6206cc492ffbbb5",
+    "workload.json": "4110ab3ca68e296a63b96e1b6207a6fb8890e6c7db4e2b1b93bb5249cd1bca5e"
+  }
+}

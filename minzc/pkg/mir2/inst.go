@@ -28,9 +28,17 @@ import "fmt"
 // Join-point values are expressed as BlockParam entries on the target Block
 // and as Args slices on TermJmp / TermBrIf.
 type Inst struct {
-	Op  Op
-	Dst Reg    // result register; NoReg if the instruction produces no value
-	Src [2]Reg // up to 2 operand registers
+	Op Op
+	// SequentialBytes preserves a fused low-to-high byte sequence, including
+	// partial observations/writes before a later byte fails bounds or authority.
+	SequentialBytes bool `json:",omitempty"`
+	// SequentialByteOrigins retain exact original byte callback identity.
+	// SequentialAddressDefs preserve the pure address DAG as checked metadata;
+	// neither retired values nor address proof nodes execute again.
+	SequentialAddressDefs []*Inst `json:",omitempty"`
+	SequentialByteOrigins []*Inst `json:",omitempty"`
+	Dst                   Reg     // result register; NoReg if the instruction produces no value
+	Src                   [2]Reg  // up to 2 operand registers
 
 	Imm int64  // immediate value (OpConst, OpAlloca byte count, OpPatchSlot init)
 	Sym string // symbol name (OpAddrOf, OpCall / intrinsic names)

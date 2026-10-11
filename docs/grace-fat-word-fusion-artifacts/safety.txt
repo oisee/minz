@@ -1,0 +1,46 @@
+=== RUN   TestSequentialByteWordFusionPrefixAndWrap
+--- PASS: TestSequentialByteWordFusionPrefixAndWrap (0.00s)
+=== RUN   TestSequentialByteWordFusionDenials
+=== RUN   TestSequentialByteWordFusionDenials/storefalse/shared
+=== RUN   TestSequentialByteWordFusionDenials/storefalse/reversed
+=== RUN   TestSequentialByteWordFusionDenials/storefalse/call
+=== RUN   TestSequentialByteWordFusionDenials/storefalse/store
+=== RUN   TestSequentialByteWordFusionDenials/storefalse/load
+=== RUN   TestSequentialByteWordFusionDenials/storefalse/asm
+=== RUN   TestSequentialByteWordFusionDenials/storefalse/forward
+=== RUN   TestSequentialByteWordFusionDenials/storefalse/wrongflag
+=== RUN   TestSequentialByteWordFusionDenials/storetrue/shared
+=== RUN   TestSequentialByteWordFusionDenials/storetrue/reversed
+=== RUN   TestSequentialByteWordFusionDenials/storetrue/call
+=== RUN   TestSequentialByteWordFusionDenials/storetrue/store
+=== RUN   TestSequentialByteWordFusionDenials/storetrue/load
+=== RUN   TestSequentialByteWordFusionDenials/storetrue/asm
+=== RUN   TestSequentialByteWordFusionDenials/storetrue/forward
+=== RUN   TestSequentialByteWordFusionDenials/storetrue/wrongflag
+--- PASS: TestSequentialByteWordFusionDenials (0.00s)
+    --- PASS: TestSequentialByteWordFusionDenials/storefalse/shared (0.00s)
+    --- PASS: TestSequentialByteWordFusionDenials/storefalse/reversed (0.00s)
+    --- PASS: TestSequentialByteWordFusionDenials/storefalse/call (0.00s)
+    --- PASS: TestSequentialByteWordFusionDenials/storefalse/store (0.00s)
+    --- PASS: TestSequentialByteWordFusionDenials/storefalse/load (0.00s)
+    --- PASS: TestSequentialByteWordFusionDenials/storefalse/asm (0.00s)
+    --- PASS: TestSequentialByteWordFusionDenials/storefalse/forward (0.00s)
+    --- PASS: TestSequentialByteWordFusionDenials/storefalse/wrongflag (0.00s)
+    --- PASS: TestSequentialByteWordFusionDenials/storetrue/shared (0.00s)
+    --- PASS: TestSequentialByteWordFusionDenials/storetrue/reversed (0.00s)
+    --- PASS: TestSequentialByteWordFusionDenials/storetrue/call (0.00s)
+    --- PASS: TestSequentialByteWordFusionDenials/storetrue/store (0.00s)
+    --- PASS: TestSequentialByteWordFusionDenials/storetrue/load (0.00s)
+    --- PASS: TestSequentialByteWordFusionDenials/storetrue/asm (0.00s)
+    --- PASS: TestSequentialByteWordFusionDenials/storetrue/forward (0.00s)
+    --- PASS: TestSequentialByteWordFusionDenials/storetrue/wrongflag (0.00s)
+=== RUN   TestSequentialByteFlagAdmission
+--- PASS: TestSequentialByteFlagAdmission (0.00s)
+=== RUN   TestSequentialByteWordFaultWithoutObserver
+--- PASS: TestSequentialByteWordFaultWithoutObserver (0.00s)
+=== RUN   TestSequentialByteOriginCallbackIdentity
+--- PASS: TestSequentialByteOriginCallbackIdentity (0.00s)
+=== RUN   TestSequentialByteMetadataSurvivesRenumber
+--- PASS: TestSequentialByteMetadataSurvivesRenumber (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.010s
