@@ -1,0 +1,62 @@
+; MIR2 module: reports/showcase-src/2026-03-14/ex27_strings.nanz
+string @mir2.str.0 = "Hello, World!"
+string @mir2.str.1 = "Pascal-style string"
+string @mir2.str.2 = "Long string with u16 prefix"
+string @mir2.str.3 = "This is a\nmulti-line string\nwith triple quotes"
+
+fun @greet()
+  block @entry:
+    %r1 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r2 = move %r1 : ptr [pointer]
+    call @@mir.io.print.str(%r2)
+    ret void
+
+fun @greet_pascal()
+  block @entry:
+    %r3 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r4 = load %r3 : u8 [general]
+    %r5 = const 1 : u16 [pointer]
+    %r6 = add %r3, %r5 : ptr [acc]
+    jmp @loop_head3(%r4, %r6)
+  block @loop_head3(%r4: u8 [general], %r8: ptr [general]):
+    %r9 = const 0 : u8 [general]
+    %r10 = cmp.ne %r4, %r9 : bool [flag]
+    cond_ret %r10, [], @loop_body4()
+  block @loop_body4:
+    %r11 = load %r8 : u8 [general]
+    %r12 = move %r11 : u8 [acc]
+    call @@mir.io.print.char(%r12)
+    %r13 = const 1 : u16 [pointer]
+    %r14 = add %r8, %r13 : ptr [general]
+    %r15 = const 1 : u8 [general]
+    %r16 = sub %r4, %r15 : u8 [general]
+    jmp @loop_head3(%r16, %r14)
+
+fun @greet_long()
+  block @entry:
+    %r17 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r18 = load %r17 : u16 [pointer]
+    %r19 = const 2 : u16 [pointer]
+    %r20 = add %r17, %r19 : ptr [acc]
+    jmp @loop_head3(%r18, %r20)
+  block @loop_head3(%r18: u16 [pointer], %r22: ptr [general]):
+    %r23 = const 0 : u16 [pointer]
+    %r24 = cmp.ne %r18, %r23 : bool [flag]
+    cond_ret %r24, [], @loop_body4()
+  block @loop_body4:
+    %r25 = load %r22 : u8 [general]
+    %r26 = move %r25 : u8 [acc]
+    call @@mir.io.print.char(%r26)
+    %r27 = const 1 : u16 [pointer]
+    %r28 = add %r22, %r27 : ptr [general]
+    %r29 = const 1 : u16 [pointer]
+    %r30 = sub %r18, %r29 : u16 [pointer]
+    jmp @loop_head3(%r30, %r28)
+
+fun @multiline()
+  block @entry:
+    %r31 = addr_of @@mir2.str.3 : ptr [pointer]
+    %r32 = move %r31 : ptr [pointer]
+    call @@mir.io.print.str(%r32)
+    ret void
+

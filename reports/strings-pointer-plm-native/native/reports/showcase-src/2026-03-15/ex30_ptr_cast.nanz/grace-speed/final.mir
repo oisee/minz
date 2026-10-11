@@ -1,0 +1,20 @@
+; MIR2 module: reports/showcase-src/2026-03-15/ex30_ptr_cast.nanz
+fun @peek(%r1: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    %r2 = load %r1 : u8 [acc]
+    ret %r2
+
+fun @poke(%r3: u16 [pointer], %r4: u8 [general])
+  block @entry:
+    store %r3, %r4 : u8
+    ret void
+
+fun @main() -> u8 [acc]
+  block @entry:
+    %r5 = const 32768 : u16 [pointer]
+    %r6 = const 42 : u8 [general]
+    store %r5, %r6 : u8
+    %r7 = const 32768 : u16 [pointer]
+    %r8 = load %r7 : u8 [acc]
+    ret %r8
+
