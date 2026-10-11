@@ -30,3 +30,6 @@ pipeline logs saved on the share. Goal remains active.
 All TestMeasureProfileVariantSets tests after the diagnostic fix: root
 PASS1.718s, including caller, fresh-input/mutation refusals, site-cap and
 forged-count checks. No admission guard was loosened.
+
+Invariant-site mutation/policy/forged-profile and count-boundary refusals
+also PASS1.929s after the retained-HIR diagnostic fix.
