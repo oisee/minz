@@ -1,0 +1,41 @@
+; MIR2 module: conditional-invariant.nanz
+fun @scalar(%r1: u16 [pointer], %r2: u16 [index], %r3: u8 [counter], %r4: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r5 = const 0 : u8 [general]
+    %r6 = const 0 : u8 [general]
+    %r7 = add %r1, %r2 : u16 [pointer]
+    jmp @loop_head1(%r7, %r6, %r3, %r5)
+  block @loop_head1(%r8: u16 [pointer], %r9: u8 [general], %r10: u8 [general], %r11: u16 [pointer]):
+    %r12 = cmp.ult %r9, %r10 : bool [flag]
+    br_if %r12, @loop_body2(), @loop_exit3(%r8, %r9, %r10, %r11)
+  block @loop_body2:
+    %r13 = add %r11, %r8 : u16 [pointer]
+    %r14 = const 1 : u8 [general]
+    %r15 = add %r9, %r14 : u8 [general]
+    jmp @loop_head1(%r8, %r15, %r10, %r13)
+  block @loop_exit3(%r16: u16 [pointer], %r17: u8 [general], %r18: u8 [general], %r19: u16 [pointer]):
+    %r20 = const 0 : u8 [general]
+    %r21 = cmp.eq %r4, %r20 : bool [flag]
+    br_if %r21, @if_then4(), @if_join5()
+  block @if_then4:
+    ret %r19
+  block @if_join5:
+    %r22 = const 0 : u8 [general]
+    jmp @loop_head6(%r1, %r2, %r22, %r18, %r19)
+  block @loop_head6(%r23: u16 [pointer], %r24: u16 [pointer], %r25: u8 [general], %r26: u8 [general], %r27: u16 [pointer]):
+    %r28 = cmp.ult %r25, %r26 : bool [flag]
+    br_if %r28, @loop_body7(), @loop_exit8(%r23, %r24, %r25, %r26, %r27)
+  block @loop_body7:
+    %r29 = add %r23, %r24 : u16 [pointer]
+    %r30 = add %r27, %r29 : u16 [pointer]
+    %r31 = const 1 : u8 [general]
+    %r32 = add %r25, %r31 : u8 [general]
+    jmp @loop_head6(%r23, %r24, %r32, %r26, %r30)
+  block @loop_exit8(%r33: u16 [pointer], %r34: u16 [pointer], %r35: u8 [general], %r36: u8 [general], %r37: u16 [pointer]):
+    ret %r37
+
+fun @idle() -> u16 [pointer]
+  block @entry:
+    %r38 = const 7 : u8 [general]
+    ret %r38
+

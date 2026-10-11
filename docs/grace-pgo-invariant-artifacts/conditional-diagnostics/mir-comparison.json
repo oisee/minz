@@ -1,0 +1,82 @@
+[
+  {
+    "path": "four/MIRGrace=false/mask0/compiled.opt.mir",
+    "optimized_mir_identical": true,
+    "raw_mir_identical": true
+  },
+  {
+    "path": "four/MIRGrace=false/mask1/compiled.opt.mir",
+    "optimized_mir_identical": true,
+    "raw_mir_identical": true
+  },
+  {
+    "path": "four/MIRGrace=false/mask2/compiled.opt.mir",
+    "optimized_mir_identical": true,
+    "raw_mir_identical": true
+  },
+  {
+    "path": "four/MIRGrace=false/mask3/compiled.opt.mir",
+    "optimized_mir_identical": true,
+    "raw_mir_identical": true
+  },
+  {
+    "path": "four/MIRGrace=true/mask0/compiled.opt.mir",
+    "optimized_mir_identical": true,
+    "raw_mir_identical": true
+  },
+  {
+    "path": "four/MIRGrace=true/mask1/compiled.opt.mir",
+    "optimized_mir_identical": true,
+    "raw_mir_identical": true
+  },
+  {
+    "path": "four/MIRGrace=true/mask2/compiled.opt.mir",
+    "optimized_mir_identical": true,
+    "raw_mir_identical": true
+  },
+  {
+    "path": "four/MIRGrace=true/mask3/compiled.opt.mir",
+    "optimized_mir_identical": true,
+    "raw_mir_identical": true
+  },
+  {
+    "path": "six/MIRGrace=false/mask0/compiled.opt.mir",
+    "optimized_mir_identical": true,
+    "raw_mir_identical": true
+  },
+  {
+    "path": "six/MIRGrace=false/mask1/compiled.opt.mir",
+    "optimized_mir_identical": true,
+    "raw_mir_identical": true
+  },
+  {
+    "path": "six/MIRGrace=false/mask2/compiled.opt.mir",
+    "optimized_mir_identical": true,
+    "raw_mir_identical": true
+  },
+  {
+    "path": "six/MIRGrace=false/mask3/compiled.opt.mir",
+    "optimized_mir_identical": true,
+    "raw_mir_identical": true
+  },
+  {
+    "path": "six/MIRGrace=true/mask0/compiled.opt.mir",
+    "optimized_mir_identical": true,
+    "raw_mir_identical": true
+  },
+  {
+    "path": "six/MIRGrace=true/mask1/compiled.opt.mir",
+    "optimized_mir_identical": true,
+    "raw_mir_identical": true
+  },
+  {
+    "path": "six/MIRGrace=true/mask2/compiled.opt.mir",
+    "optimized_mir_identical": true,
+    "raw_mir_identical": true
+  },
+  {
+    "path": "six/MIRGrace=true/mask3/compiled.opt.mir",
+    "optimized_mir_identical": true,
+    "raw_mir_identical": true
+  }
+]

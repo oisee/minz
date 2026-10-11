@@ -1,0 +1,36 @@
+=== RUN   TestHIRInvariantSitePolicySkipsDisabledFirstLoop
+=== RUN   TestHIRInvariantSitePolicySkipsDisabledFirstLoop/0
+=== RUN   TestHIRInvariantSitePolicySkipsDisabledFirstLoop/1
+=== RUN   TestHIRInvariantSitePolicySkipsDisabledFirstLoop/2
+=== RUN   TestHIRInvariantSitePolicySkipsDisabledFirstLoop/3
+--- PASS: TestHIRInvariantSitePolicySkipsDisabledFirstLoop (0.60s)
+    --- PASS: TestHIRInvariantSitePolicySkipsDisabledFirstLoop/0 (0.12s)
+    --- PASS: TestHIRInvariantSitePolicySkipsDisabledFirstLoop/1 (0.15s)
+    --- PASS: TestHIRInvariantSitePolicySkipsDisabledFirstLoop/2 (0.16s)
+    --- PASS: TestHIRInvariantSitePolicySkipsDisabledFirstLoop/3 (0.16s)
+=== RUN   TestHIRInvariantSitePolicyRequiresAttribution
+--- PASS: TestHIRInvariantSitePolicyRequiresAttribution (0.00s)
+=== RUN   TestHIRScalarInvariantDiscoverySeesBothLoops
+--- PASS: TestHIRScalarInvariantDiscoverySeesBothLoops (0.00s)
+=== RUN   TestHIRInvariantPolicyCannotEnableMutation
+--- PASS: TestHIRInvariantPolicyCannotEnableMutation (0.00s)
+=== RUN   TestInvariantSiteVariantSets
+=== RUN   TestInvariantSiteVariantSets/sites0/zerofalse
+=== RUN   TestInvariantSiteVariantSets/sites0/zerotrue
+=== RUN   TestInvariantSiteVariantSets/sites1/zerofalse
+=== RUN   TestInvariantSiteVariantSets/sites1/zerotrue
+=== RUN   TestInvariantSiteVariantSets/sites2/zerofalse
+=== RUN   TestInvariantSiteVariantSets/sites2/zerotrue
+--- PASS: TestInvariantSiteVariantSets (2.18s)
+    --- PASS: TestInvariantSiteVariantSets/sites0/zerofalse (0.21s)
+    --- PASS: TestInvariantSiteVariantSets/sites0/zerotrue (0.16s)
+    --- PASS: TestInvariantSiteVariantSets/sites1/zerofalse (0.34s)
+    --- PASS: TestInvariantSiteVariantSets/sites1/zerotrue (0.33s)
+    --- PASS: TestInvariantSiteVariantSets/sites2/zerofalse (0.59s)
+    --- PASS: TestInvariantSiteVariantSets/sites2/zerotrue (0.55s)
+=== RUN   TestInvariantSiteVariantSetsRefusals
+--- PASS: TestInvariantSiteVariantSetsRefusals (0.38s)
+=== RUN   TestInvariantSiteVariantSetsCountBoundary
+--- PASS: TestInvariantSiteVariantSetsCountBoundary (1.40s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.572s

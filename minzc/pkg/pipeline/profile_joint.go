@@ -113,7 +113,7 @@ func measureProfileVariantSets(factory func() (*hir.Module, error), observations
 		if err != nil {
 			return nil, err
 		}
-		if m == nil || m.PointerWalkPolicy != nil || m.LoopLineage != nil || m.GraceRulePolicy != nil {
+		if m == nil || m.PointerWalkPolicy != nil || m.LoopLineage != nil || m.GraceRulePolicy != nil || m.InvariantBasePolicy != nil {
 			return nil, fmt.Errorf("factory must return fresh input HIR without policy/lineage")
 		}
 		if err := jointCheckFreshHIR(m, seen); err != nil {
@@ -185,7 +185,7 @@ func measureProfileVariantSets(factory func() (*hir.Module, error), observations
 		if err != nil {
 			return fail(err)
 		}
-		if !jointEqual(k, key) || m.PointerWalkPolicy != nil || m.LoopLineage != nil || m.GraceRulePolicy != nil {
+		if !jointEqual(k, key) || m.PointerWalkPolicy != nil || m.LoopLineage != nil || m.GraceRulePolicy != nil || m.InvariantBasePolicy != nil {
 			return fail(fmt.Errorf("factory mutated previously returned HIR/source"))
 		}
 	}

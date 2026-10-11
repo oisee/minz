@@ -13,8 +13,12 @@ import (
 var hirProfileAutoDirectory, hirProfileAutoFunction, hirProfileAutoWorkload string
 var hirProfileJoint bool
 var hirProfileIndependentRules bool
+var hirProfileInvariantSites bool
 
 func validateHIRProfileAuto(source string) error {
+	if hirProfileInvariantSites && (!hirProfileJoint || hirProfileIndependentRules) {
+		return fmt.Errorf("HIR invariant sites: requires --hir-profile-joint and cannot combine with --hir-profile-independent-rules")
+	}
 	if hirProfileIndependentRules && !hirProfileJoint {
 		return fmt.Errorf("HIR profile rules: --hir-profile-independent-rules requires --hir-profile-joint")
 	}
@@ -127,14 +131,26 @@ func prepareHIRProfileJoint(m *hir.Module, factory func() (*hir.Module, error), 
 	if hirProfileIndependentRules {
 		measure = pipeline.MeasureGraceRuleVariantSets
 	}
-	result, err := measure(factory, observations, workload, options, 4)
-	if err != nil {
-		return nil, err
+	var result *pipeline.ProfileVariantSetResult
+	var evidence any
+	if hirProfileInvariantSites {
+		sites, siteErr := pipeline.MeasureInvariantSiteVariantSets(factory, observations, workload, options, 4)
+		if siteErr != nil {
+			return nil, siteErr
+		}
+		result = &pipeline.ProfileVariantSetResult{Steps: sites.Steps, Decisions: sites.Decisions, Binary: sites.Binary}
+		evidence = sites.Evidence
+	} else {
+		result, err = measure(factory, observations, workload, options, 4)
+		if err != nil {
+			return nil, err
+		}
+		evidence = result.Evidence
 	}
 	if err := os.MkdirAll(hirProfileAutoDirectory, 0755); err != nil {
 		return nil, err
 	}
-	for name, value := range map[string]any{"workload.json": workload, "profile.json": run.Profile, "run.json": run, "joint-evidence.json": result.Evidence, "decisions.json": result.Decisions} {
+	for name, value := range map[string]any{"workload.json": workload, "profile.json": run.Profile, "run.json": run, "joint-evidence.json": evidence, "decisions.json": result.Decisions} {
 		if err := writeHIRProfileJSON(filepath.Join(hirProfileAutoDirectory, name), value); err != nil {
 			return nil, err
 		}

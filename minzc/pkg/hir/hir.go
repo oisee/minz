@@ -96,6 +96,7 @@ func TargetFromString(s string) uint8 {
 
 // Module is the top-level HIR unit.
 type Module struct {
+	InvariantBasePolicy map[string]bool         `json:"-"` // nil defaults; source-site allowlist requires seeded lineage
 	GraceRulePolicy     map[string]bool         `json:"-"` // nil: defaults; explicit common-rule choices for measured variants
 	PointerWalkPolicy   map[string]bool         `json:"-"` // opt-in sticky PGO choice, independent of legality
 	LoopLineage         map[Stmt]LoopLineage    `json:"-"` // attribution after explicit seeding

@@ -1,0 +1,460 @@
+=== RUN   TestConditionalInvariantRegression
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=false/mask0
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=false/mask1
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=false/mask2
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=false/mask3
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=true/mask0
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=true/mask1
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=true/mask2
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=true/mask3
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=false/mask0
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=false/mask1
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=false/mask2
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=false/mask3
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=true/mask0
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=true/mask1
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=true/mask2
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=true/mask3
+--- PASS: TestConditionalInvariantRegression (0.84s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=false/mask0 (0.04s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=false/mask1 (0.04s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=false/mask2 (0.04s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=false/mask3 (0.04s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=true/mask0 (0.04s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=true/mask1 (0.04s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=true/mask2 (0.04s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=true/mask3 (0.04s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=false/mask0 (0.06s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=false/mask1 (0.05s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=false/mask2 (0.05s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=false/mask3 (0.05s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=true/mask0 (0.06s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=true/mask1 (0.08s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=true/mask2 (0.10s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=true/mask3 (0.08s)
+=== RUN   TestConditionalInvariantSiteCandidates
+--- PASS: TestConditionalInvariantSiteCandidates (0.42s)
+=== RUN   TestHIRInvariantSitePolicySkipsDisabledFirstLoop
+=== RUN   TestHIRInvariantSitePolicySkipsDisabledFirstLoop/0
+=== RUN   TestHIRInvariantSitePolicySkipsDisabledFirstLoop/1
+=== RUN   TestHIRInvariantSitePolicySkipsDisabledFirstLoop/2
+=== RUN   TestHIRInvariantSitePolicySkipsDisabledFirstLoop/3
+--- PASS: TestHIRInvariantSitePolicySkipsDisabledFirstLoop (0.76s)
+    --- PASS: TestHIRInvariantSitePolicySkipsDisabledFirstLoop/0 (0.18s)
+    --- PASS: TestHIRInvariantSitePolicySkipsDisabledFirstLoop/1 (0.21s)
+    --- PASS: TestHIRInvariantSitePolicySkipsDisabledFirstLoop/2 (0.18s)
+    --- PASS: TestHIRInvariantSitePolicySkipsDisabledFirstLoop/3 (0.19s)
+=== RUN   TestInvariantSiteVariantSets
+=== RUN   TestInvariantSiteVariantSets/sites0/zerofalse
+=== RUN   TestInvariantSiteVariantSets/sites0/zerotrue
+=== RUN   TestInvariantSiteVariantSets/sites1/zerofalse
+=== RUN   TestInvariantSiteVariantSets/sites1/zerotrue
+=== RUN   TestInvariantSiteVariantSets/sites2/zerofalse
+=== RUN   TestInvariantSiteVariantSets/sites2/zerotrue
+--- PASS: TestInvariantSiteVariantSets (2.41s)
+    --- PASS: TestInvariantSiteVariantSets/sites0/zerofalse (0.23s)
+    --- PASS: TestInvariantSiteVariantSets/sites0/zerotrue (0.23s)
+    --- PASS: TestInvariantSiteVariantSets/sites1/zerofalse (0.39s)
+    --- PASS: TestInvariantSiteVariantSets/sites1/zerotrue (0.29s)
+    --- PASS: TestInvariantSiteVariantSets/sites2/zerofalse (0.67s)
+    --- PASS: TestInvariantSiteVariantSets/sites2/zerotrue (0.60s)
+=== RUN   TestInvariantSiteVariantSetsRefusals
+--- PASS: TestInvariantSiteVariantSetsRefusals (0.31s)
+=== RUN   TestInvariantSiteVariantSetsCountBoundary
+--- PASS: TestInvariantSiteVariantSetsCountBoundary (1.54s)
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=0/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=0/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=0/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=0/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=1/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=1/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=1/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=1/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=5/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=5/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=5/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=5/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=255/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=255/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=255/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=255/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=0/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=0/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=0/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=0/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=1/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=1/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=1/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=1/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=5/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=5/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=5/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=5/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=255/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=255/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=255/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=255/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=0/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=0/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=0/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=0/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=1/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=1/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=1/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=1/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=5/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=5/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=5/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=5/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=255/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=255/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=255/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=255/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=0/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=0/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=0/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=0/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=1/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=1/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=1/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=1/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=5/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=5/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=5/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=5/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=255/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=255/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=255/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=255/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=0/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=0/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=0/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=0/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=1/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=1/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=1/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=1/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=5/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=5/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=5/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=5/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=255/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=255/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=255/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=255/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=0/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=0/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=0/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=0/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=1/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=1/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=1/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=1/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=5/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=5/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=5/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=5/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=255/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=255/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=255/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=255/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=0/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=0/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=0/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=0/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=1/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=1/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=1/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=1/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=5/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=5/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=5/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=5/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=255/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=255/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=255/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=255/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=0/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=0/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=0/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=0/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=1/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=1/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=1/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=1/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=5/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=5/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=5/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=5/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=255/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=255/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=255/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=255/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=0/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=0/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=0/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=0/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=1/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=1/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=1/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=1/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=5/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=5/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=5/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=5/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=255/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=255/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=255/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=255/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=0/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=0/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=0/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=0/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=1/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=1/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=1/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=1/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=5/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=5/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=5/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=5/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=255/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=255/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=255/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=255/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=0/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=0/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=0/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=0/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=1/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=1/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=1/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=1/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=5/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=5/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=5/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=5/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=255/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=255/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=255/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=255/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=0/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=0/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=0/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=0/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=1/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=1/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=1/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=1/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=5/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=5/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=5/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=5/m=255
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=255/m=0
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=255/m=1
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=255/m=5
+=== RUN   TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=255/m=255
+--- PASS: TestSequentialLoopsPreserveLiveWordOperands (6.88s)
+    --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false (1.80s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=0/m=0 (0.02s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=0/m=1 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=0/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=0/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=1/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=1/m=1 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=1/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=1/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=5/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=5/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=5/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=5/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=255/m=0 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=255/m=1 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=255/m=5 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=65535/b=2/n=255/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=0/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=0/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=0/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=0/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=1/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=1/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=1/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=1/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=5/m=0 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=5/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=5/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=5/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=255/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=255/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=255/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=4660/b=258/n=255/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=0/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=0/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=0/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=0/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=1/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=1/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=1/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=1/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=5/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=5/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=5/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=5/m=255 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=255/m=0 (0.02s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=255/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=255/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=false/a=32768/b=32768/n=255/m=255 (0.04s)
+    --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true (1.82s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=0/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=0/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=0/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=0/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=1/m=0 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=1/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=1/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=1/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=5/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=5/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=5/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=5/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=255/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=255/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=255/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=65535/b=2/n=255/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=0/m=0 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=0/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=0/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=0/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=1/m=0 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=1/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=1/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=1/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=5/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=5/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=5/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=5/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=255/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=255/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=255/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=4660/b=258/n=255/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=0/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=0/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=0/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=0/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=1/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=1/m=1 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=1/m=5 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=1/m=255 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=5/m=0 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=5/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=5/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=5/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=255/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=255/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=255/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=false/MIRGrace=true/a=32768/b=32768/n=255/m=255 (0.04s)
+    --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false (1.63s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=0/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=0/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=0/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=0/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=1/m=0 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=1/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=1/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=1/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=5/m=0 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=5/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=5/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=5/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=255/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=255/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=255/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=65535/b=2/n=255/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=0/m=0 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=0/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=0/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=0/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=1/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=1/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=1/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=1/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=5/m=0 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=5/m=1 (0.02s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=5/m=5 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=5/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=255/m=0 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=255/m=1 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=255/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=4660/b=258/n=255/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=0/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=0/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=0/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=0/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=1/m=0 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=1/m=1 (0.02s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=1/m=5 (0.02s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=1/m=255 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=5/m=0 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=5/m=1 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=5/m=5 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=5/m=255 (0.02s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=255/m=0 (0.02s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=255/m=1 (0.02s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=255/m=5 (0.02s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=false/a=32768/b=32768/n=255/m=255 (0.03s)
+    --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true (1.64s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=0/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=0/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=0/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=0/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=1/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=1/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=1/m=5 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=1/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=5/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=5/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=5/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=5/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=255/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=255/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=255/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=65535/b=2/n=255/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=0/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=0/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=0/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=0/m=255 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=1/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=1/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=1/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=1/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=5/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=5/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=5/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=5/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=255/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=255/m=1 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=255/m=5 (0.02s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=4660/b=258/n=255/m=255 (0.02s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=0/m=0 (0.02s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=0/m=1 (0.02s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=0/m=5 (0.02s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=0/m=255 (0.02s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=1/m=0 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=1/m=1 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=1/m=5 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=1/m=255 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=5/m=0 (0.03s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=5/m=1 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=5/m=5 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=5/m=255 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=255/m=0 (0.04s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=255/m=1 (0.02s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=255/m=5 (0.02s)
+        --- PASS: TestSequentialLoopsPreserveLiveWordOperands/HIRGrace=true/MIRGrace=true/a=32768/b=32768/n=255/m=255 (0.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	13.179s

@@ -1,0 +1,48 @@
+=== RUN   TestConditionalInvariantRegression
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=false/mask0
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=false/mask1
+    conditional_invariant_regression_test.go:162: Z80 profile workload: invocation 3: line 0: assert "" [z80]: return[0] got 514, want 2
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=false/mask2
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=false/mask3
+    conditional_invariant_regression_test.go:162: Z80 profile workload: invocation 3: line 0: assert "" [z80]: return[0] got 514, want 2
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=true/mask0
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=true/mask1
+    conditional_invariant_regression_test.go:162: Z80 profile workload: invocation 3: line 0: assert "" [z80]: return[0] got 514, want 2
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=true/mask2
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=true/mask3
+    conditional_invariant_regression_test.go:162: Z80 profile workload: invocation 3: line 0: assert "" [z80]: return[0] got 514, want 2
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=false/mask0
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=false/mask1
+    conditional_invariant_regression_test.go:162: Z80 profile workload: invocation 3: line 0: assert "" [z80]: return[0] got 4721, want 4465
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=false/mask2
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=false/mask3
+    conditional_invariant_regression_test.go:162: Z80 profile workload: invocation 3: line 0: assert "" [z80]: return[0] got 4721, want 4465
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=true/mask0
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=true/mask1
+    conditional_invariant_regression_test.go:162: Z80 profile workload: invocation 3: line 0: assert "" [z80]: return[0] got 4721, want 4465
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=true/mask2
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=true/mask3
+    conditional_invariant_regression_test.go:162: Z80 profile workload: invocation 3: line 0: assert "" [z80]: return[0] got 4721, want 4465
+--- FAIL: TestConditionalInvariantRegression (1.14s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=false/mask0 (0.04s)
+    --- FAIL: TestConditionalInvariantRegression/four/MIRGrace=false/mask1 (0.03s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=false/mask2 (0.04s)
+    --- FAIL: TestConditionalInvariantRegression/four/MIRGrace=false/mask3 (0.06s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=true/mask0 (0.07s)
+    --- FAIL: TestConditionalInvariantRegression/four/MIRGrace=true/mask1 (0.07s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=true/mask2 (0.07s)
+    --- FAIL: TestConditionalInvariantRegression/four/MIRGrace=true/mask3 (0.06s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=false/mask0 (0.09s)
+    --- FAIL: TestConditionalInvariantRegression/six/MIRGrace=false/mask1 (0.08s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=false/mask2 (0.10s)
+    --- FAIL: TestConditionalInvariantRegression/six/MIRGrace=false/mask3 (0.07s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=true/mask0 (0.10s)
+    --- FAIL: TestConditionalInvariantRegression/six/MIRGrace=true/mask1 (0.08s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=true/mask2 (0.10s)
+    --- FAIL: TestConditionalInvariantRegression/six/MIRGrace=true/mask3 (0.07s)
+=== RUN   TestConditionalInvariantSiteCandidates
+    conditional_invariant_regression_test.go:201: measure invariant site variant sets: candidate 2 target workload: Z80 profile workload: invocation 3: line 0: assert "" [z80]: return[0] got 514, want 2
+--- FAIL: TestConditionalInvariantSiteCandidates (0.21s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	1.355s
+FAIL

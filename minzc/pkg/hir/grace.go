@@ -88,7 +88,7 @@ func RunGraceWithOptions(m *Module, options GraceOptions) (*grace.RuleResult, er
 			return true
 		})
 		reg.RegisterPredicate("hir-has-invariant-base", func(_ rewrite.IRGraph, bindings grace.BlockBindings, _ []string) bool {
-			return (m.GraceRulePolicy == nil || m.GraceRulePolicy["hir-invariant-base"]) && graph.err == nil && len(graph.facts.DB.Query("hir-invariant-base", bindings["b"])) != 0
+			return (m.GraceRulePolicy == nil || m.GraceRulePolicy["hir-invariant-base"]) && graph.err == nil && graph.hoist(bindings["b"]) != nil
 		})
 		reg.RegisterAction("hirHoistBase", func(_ rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
 			h := graph.hoist(bindings["b"])
@@ -195,6 +195,7 @@ type hirGraceGraph struct {
 	byLabel map[string]*hirGraceBlock
 	err     error
 	globals map[string]bool
+	module  *Module
 	facts   *Facts
 }
 
@@ -206,7 +207,7 @@ type hirGraceBlock struct {
 }
 
 func newHIRGraceGraph(m *Module) *hirGraceGraph {
-	g := &hirGraceGraph{byLabel: make(map[string]*hirGraceBlock), globals: map[string]bool{}, facts: AnalyzeFacts(m)}
+	g := &hirGraceGraph{module: m, byLabel: make(map[string]*hirGraceBlock), globals: map[string]bool{}, facts: AnalyzeFacts(m)}
 	for _, f := range m.Funcs {
 		g.globals[f.Name] = true
 	}
@@ -345,7 +346,14 @@ func (g *hirGraceGraph) hoist(label string) *graceHoist {
 	if b == nil || b.unsafeControl {
 		return nil
 	}
-	return findGraceHoist(b.owner, b.block, g.globals)
+	var selected func(*WhileStmt) bool
+	if g.module.InvariantBasePolicy != nil {
+		selected = func(loop *WhileStmt) bool {
+			origin, ok := g.module.LoopLineage[loop]
+			return ok && g.module.InvariantBasePolicy[origin.SiteID]
+		}
+	}
+	return findGraceHoistSelected(b.owner, b.block, g.globals, selected)
 }
 
 // These lowering intrinsics may inline callbacks into the caller environment.

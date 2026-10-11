@@ -3,6 +3,7 @@ package hir
 import (
 	"fmt"
 	"github.com/minz/minzc/pkg/mir2"
+	"sort"
 )
 
 // A deliberately narrow LICM proof: exact 16-bit ordinary + of unmodified
@@ -16,6 +17,12 @@ type graceHoist struct {
 }
 
 func findGraceHoist(f *Func, b *Block, globals map[string]bool) *graceHoist {
+	return findGraceHoistSelected(f, b, globals, nil)
+}
+
+// Selection restricts ordinary legality; it cannot make an illegal expression legal.
+// Filter while scanning, so a disabled earlier loop cannot hide a later selection.
+func findGraceHoistSelected(f *Func, b *Block, globals map[string]bool, selected func(*WhileStmt) bool) *graceHoist {
 	params := map[string]bool{}
 	used := map[string]bool{}
 	for _, p := range f.Params {
@@ -87,7 +94,7 @@ func findGraceHoist(f *Func, b *Block, globals map[string]bool) *graceHoist {
 	}
 	for i, s := range b.Body {
 		loop, ok := s.(*WhileStmt)
-		if !ok || loop.Body == nil {
+		if !ok || loop.Body == nil || (selected != nil && !selected(loop)) {
 			continue
 		}
 		assigned := map[string]bool{}
@@ -376,4 +383,100 @@ func rewriteGraceBlock(b *Block, target Expr, value Expr) *Block {
 		out.Body[i] = s
 	}
 	return out
+}
+
+// EligibleScalarInvariantSites reports original attributed loops where the
+// existing proof permits a scalar u16 addition. It neither rewrites nor seeds
+// the input. Pointer-result plans are excluded from this scalar-site contract.
+func EligibleScalarInvariantSites(m *Module) ([]string, error) {
+	if m == nil {
+		return nil, fmt.Errorf("invariant sites: nil module")
+	}
+	if err := Verify(m); err != nil {
+		return nil, err
+	}
+	sites, err := BuildLoopSiteMap(m)
+	if err != nil {
+		return nil, err
+	}
+	paths := map[string]map[string]string{}
+	for _, s := range sites.Sites {
+		if paths[s.Function] == nil {
+			paths[s.Function] = map[string]string{}
+		}
+		paths[s.Function][s.HIRPath] = s.ID
+	}
+	reserved := map[string]bool{}
+	for _, f := range m.Funcs {
+		reserved[f.Name] = true
+	}
+	for _, g := range m.Globals {
+		reserved[g.Name] = true
+	}
+	eligible := []string{}
+	for _, f := range m.Funcs {
+		walkGraceBlocks(f.Body, "body", func(path string, b *Block) {
+			for i, s := range b.Body {
+				loop, ok := s.(*WhileStmt)
+				if !ok {
+					continue
+				}
+				plan := findGraceHoistSelected(f, b, reserved, func(candidate *WhileStmt) bool { return candidate == loop })
+				if plan != nil && plan.expr.Ty == mir2.TyU16 {
+					if id := paths[f.Name][fmt.Sprintf("%s/s%d", path, i)]; id != "" {
+						eligible = append(eligible, id)
+					}
+				}
+			}
+		})
+	}
+	sort.Strings(eligible)
+	return eligible, nil
+}
+
+// EligibleInvariantBaseSites is the scalar source-proof discovery API.
+func EligibleInvariantBaseSites(m *Module) ([]string, error) { return EligibleScalarInvariantSites(m) }
+
+// RemainingInvariantBaseSites reports legal scalar additions still present in
+// attributed current loops. It uses lineage identities after rewriting, avoiding
+// original HIR paths that may shift when preheader declarations are inserted.
+func RemainingInvariantBaseSites(m *Module) ([]string, error) {
+	if m == nil {
+		return nil, fmt.Errorf("invariant remaining: nil module")
+	}
+	if err := Verify(m); err != nil {
+		return nil, err
+	}
+	reserved := map[string]bool{}
+	for _, f := range m.Funcs {
+		reserved[f.Name] = true
+	}
+	for _, g := range m.Globals {
+		reserved[g.Name] = true
+	}
+	seen := map[string]bool{}
+	for _, f := range m.Funcs {
+		walkGraceBlocks(f.Body, "", func(_ string, b *Block) {
+			for _, s := range b.Body {
+				loop, ok := s.(*WhileStmt)
+				if !ok {
+					continue
+				}
+				origin, mapped := m.LoopLineage[loop]
+				if !mapped {
+					continue
+				}
+				plan := findGraceHoistSelected(f, b, reserved, func(candidate *WhileStmt) bool { return candidate == loop })
+				if plan != nil && plan.expr.Ty == mir2.TyU16 {
+					seen[origin.SiteID] = true
+				}
+			}
+		})
+	}
+	out := []string{}
+	for id := range seen {
+		out = append(out, id)
+	}
+	sort.Strings(out)
+	return out, nil
 }

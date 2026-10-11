@@ -1,0 +1,41 @@
+; MIR2 module: six-param.nanz
+fun @scalar(%r1: u16 [pointer], %r2: u16 [index], %r3: u16 [index], %r4: u16 [index], %r5: u8 [general], %r6: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r7 = const 0 : u8 [general]
+    %r8 = const 0 : u8 [general]
+    %r9 = add %r1, %r2 : u16 [pointer]
+    jmp @loop_head1(%r9, %r8, %r5, %r7)
+  block @loop_head1(%r10: u16 [pointer], %r11: u8 [general], %r12: u8 [general], %r13: u16 [pointer]):
+    %r14 = cmp.ult %r11, %r12 : bool [flag]
+    br_if %r14, @loop_body2(), @loop_exit3(%r10, %r11, %r12, %r13)
+  block @loop_body2:
+    %r15 = add %r13, %r10 : u16 [pointer]
+    %r16 = const 1 : u8 [general]
+    %r17 = add %r11, %r16 : u8 [general]
+    jmp @loop_head1(%r10, %r17, %r12, %r15)
+  block @loop_exit3(%r18: u16 [pointer], %r19: u8 [general], %r20: u8 [general], %r21: u16 [pointer]):
+    %r22 = const 0 : u8 [general]
+    %r23 = cmp.eq %r6, %r22 : bool [flag]
+    br_if %r23, @if_then4(), @if_join5()
+  block @if_then4:
+    ret %r21
+  block @if_join5:
+    %r24 = const 0 : u8 [general]
+    %r25 = add %r3, %r4 : u16 [pointer]
+    jmp @loop_head6(%r25, %r24, %r20, %r21)
+  block @loop_head6(%r26: u16 [pointer], %r27: u8 [general], %r28: u8 [general], %r29: u16 [pointer]):
+    %r30 = cmp.ult %r27, %r28 : bool [flag]
+    br_if %r30, @loop_body7(), @loop_exit8(%r26, %r27, %r28, %r29)
+  block @loop_body7:
+    %r31 = add %r29, %r26 : u16 [pointer]
+    %r32 = const 1 : u8 [general]
+    %r33 = add %r27, %r32 : u8 [general]
+    jmp @loop_head6(%r26, %r33, %r28, %r31)
+  block @loop_exit8(%r34: u16 [pointer], %r35: u8 [general], %r36: u8 [general], %r37: u16 [pointer]):
+    ret %r37
+
+fun @idle() -> u16 [pointer]
+  block @entry:
+    %r38 = const 7 : u8 [general]
+    ret %r38
+

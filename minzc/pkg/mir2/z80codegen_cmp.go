@@ -95,8 +95,17 @@ func (g *z80cg) accStillNeeded(upcomingInst *Inst) bool {
 // pickScratch8 returns an 8-bit scratch register that is not currently
 // occupied by an operand, destination or value live after upcomingInst.
 // Prefers E, H, L (unlikely to hold params) before D, B, C.
-// Always excludes "A" and "F".
+// Always excludes "A" and "F". Legacy materialization callers retain the D
+// fallback; preservation callers use freeScratch8 and handle exhaustion.
 func (g *z80cg) pickScratch8(upcomingInst *Inst) string {
+	if scratch := g.freeScratch8(upcomingInst); scratch != "" {
+		return scratch
+	}
+	return "D" // existing fallback for pending-value materialization
+}
+
+// freeScratch8 reports exhaustion rather than selecting an occupied register.
+func (g *z80cg) freeScratch8(upcomingInst *Inst) string {
 	used := map[string]bool{"A": true, "F": true}
 	mark := func(loc string) {
 		used[loc] = true
@@ -120,7 +129,7 @@ func (g *z80cg) pickScratch8(upcomingInst *Inst) string {
 			return r
 		}
 	}
-	return "D" // existing fallback for register-exhausted blocks
+	return ""
 }
 
 // materializePendingFlag checks whether the most recent ClassFlag result
@@ -170,9 +179,10 @@ func (g *z80cg) materializePendingAcc(upcomingInst *Inst) {
 
 // saveAccForCondRet preserves a live accumulator before CMP replaces A.
 // CFG liveness includes values carried through blocks without block parameters.
-func (g *z80cg) saveAccForCondRet(cmpInst *Inst) {
+// The caller must defer a nonnil restoration when no scratch byte is free.
+func (g *z80cg) saveAccForCondRet(cmpInst *Inst) func() {
 	if g.fn == nil || g.curBlock == nil || g.loc(cmpInst.Src[0]) == "A" {
-		return
+		return nil
 	}
 	// A byte comparison with a nonconstant RHS in A uses CP lhs below,
 	// swapping the predicate instead of loading lhs into A. CP preserves A,
@@ -184,20 +194,26 @@ func (g *z80cg) saveAccForCondRet(cmpInst *Inst) {
 		(isSimpleReg(lhs) || isIXYReg(lhs)) && !isPairReg(lhs) && lhs != "F" &&
 		!g.isDWord(cmpInst.Src[0]) && !g.isDWord(cmpInst.Src[1]) &&
 		(cmpInst.SrcTy == nil || cmpInst.SrcTy.Width() <= 8) {
-		return
+		return nil
 	}
 	for r := range g.regsLiveAfterInst(cmpInst) {
 		if r == cmpInst.Dst || g.loc(r) != "A" {
 			continue
 		}
-		scratch := g.pickScratch8(cmpInst)
+		scratch := g.freeScratch8(cmpInst)
+		if scratch == "" {
+			// All bytes belong to live words/counters. Save A on the stack;
+			// restore it through H without replacing the comparison's flags.
+			return g.saveLiveScratch(cmpInst, "AF")
+		}
 		g.emitf("    LD %s, A    ; preserve live accumulator before CMP", scratch)
 		g.physOverride[r] = scratch
 		if g.pendingAccReg == r {
 			g.pendingAccReg = NoReg
 		}
-		return
+		return nil
 	}
+	return nil
 }
 
 func (g *z80cg) genCmp(inst *Inst) {
@@ -212,10 +228,13 @@ func (g *z80cg) genCmp(inst *Inst) {
 	// 2. Save any live ClassAcc register whose A value would be overwritten by
 	//    the "LD A, imm" used to set up the CP operand.
 	// 3. Preserve A values live through this block or needed by later instructions.
-	// Relocated values use a free scratch register through physOverride.
+	// Relocated values use a free scratch register through physOverride; on
+	// exhaustion, stack restoration preserves A and the new comparison flags.
 	g.materializePendingFlag(inst)
 	g.materializePendingAcc(inst)
-	g.saveAccForCondRet(inst)
+	if restore := g.saveAccForCondRet(inst); restore != nil {
+		defer restore()
+	}
 
 	lhs := g.loc(inst.Src[0])
 	rhs := g.loc(inst.Src[1])

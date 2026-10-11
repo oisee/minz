@@ -1,0 +1,1494 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 807,
+      "sha256": "2c46d0ae57d97425bcb7361a8c8cf45c061ea27d5f531e7f039332d2407004f0"
+    },
+    {
+      "path": "cli/decisions.json",
+      "bytes": 2110,
+      "sha256": "31018f0a1462b86951dcda4a6bccfa7aee7b944a5d7a7c3ee06148db4ae11cfb"
+    },
+    {
+      "path": "cli/input.hir",
+      "bytes": 890,
+      "sha256": "b361441a356a3e2399da8641cfedc6d5b6325a12dbaeec70738ac1f609ebc8e5"
+    },
+    {
+      "path": "cli/joint-evidence.json",
+      "bytes": 12028881,
+      "sha256": "66d0c0043a05be0987e662acd868890ba6f77a95ceb5cd815dcfffa622ca1a66"
+    },
+    {
+      "path": "cli/optimized.mir",
+      "bytes": 1850,
+      "sha256": "dcdf4ab218d7a206e38556b07283021cb8d292c2f6d23d97e585bd95b71ef743"
+    },
+    {
+      "path": "cli/profile.json",
+      "bytes": 2252,
+      "sha256": "3d3a25d5e4167a7fce229d93d01be21ff8ed47c689d3cb91b73530e5ad46fa26"
+    },
+    {
+      "path": "cli/raw.mir",
+      "bytes": 2017,
+      "sha256": "0d33dd0c4a3b3322fe672d7e1f08e94e547e19f0deec926c1ed711ffb3e82539"
+    },
+    {
+      "path": "cli/run.json",
+      "bytes": 1242216,
+      "sha256": "041f440c16a7c364dba14b84cc856643a142d43afb8984026014386ea14d34f2"
+    },
+    {
+      "path": "cli/selected.a80",
+      "bytes": 2578,
+      "sha256": "a91f3203da786958a180417efe4cac5c488534433b696a03ca53258d1d447ccc"
+    },
+    {
+      "path": "cli/selected.bin",
+      "bytes": 116,
+      "sha256": "2b21efca5f301cc65edf82338d6fbebf6761a1ee9f7a0b75c7f6db7680b095f7"
+    },
+    {
+      "path": "cli/workload.json",
+      "bytes": 11324,
+      "sha256": "08dd4f8c0a0360edbf33794b8bba8996aa2ed1fe5c108c8193e0fdbbde8aa6c6"
+    },
+    {
+      "path": "cli-output.a80",
+      "bytes": 2578,
+      "sha256": "a91f3203da786958a180417efe4cac5c488534433b696a03ca53258d1d447ccc"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=false/mask0/compiled.a80",
+      "bytes": 2106,
+      "sha256": "f905de811e35c04b6311d6d37b2105769e50f958ecb58c91aebeec65d910df32"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=false/mask0/compiled.bin",
+      "bytes": 105,
+      "sha256": "fc71b0d9d751e4b704b4dd754c1ebb0fa14b8e8aafd02b380152b94728b1a2e0"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=false/mask0/compiled.hir",
+      "bytes": 490,
+      "sha256": "d179fcd2c38acfbb126427f32adfb106ee2d894196c144ce6cdc443924fd5d16"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=false/mask0/compiled.opt.mir",
+      "bytes": 1617,
+      "sha256": "777271cd1e955c31a938f3db2f075cd6436add54b1f788dfd564c63baf71863c"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=false/mask0/compiled.raw.mir",
+      "bytes": 1811,
+      "sha256": "f8c1f86196ce3c17365604d04a912781a9982a8de28ab8998111b007314010cd"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=false/mask1/compiled.a80",
+      "bytes": 1801,
+      "sha256": "81b42a0d5b684dfeedfd782ac0af8d54354eb71e8091269f4f77b594303f2661"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=false/mask1/compiled.bin",
+      "bytes": 88,
+      "sha256": "a05146f3af4d37153368340e3eeacb42529d67d604aa6d892f33a2c1a5e5b804"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=false/mask1/compiled.hir",
+      "bytes": 539,
+      "sha256": "817ac24fa7320eccfc3561836beda0c3da06c785c3dde588172ef6b0f78d10b3"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=false/mask1/compiled.opt.mir",
+      "bytes": 1531,
+      "sha256": "c71f5e58ac5a9d3878cadfad117d8be5d0a4b6e0b54163720f385f01b8acf72f"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=false/mask1/compiled.raw.mir",
+      "bytes": 1751,
+      "sha256": "f848de3a31afd8ba4afb7213a8a5f587f7acdd918077069b18cf5a780d67224c"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=false/mask2/compiled.a80",
+      "bytes": 2013,
+      "sha256": "e7637f09181e08e9c1de103407c3b62580795f037861e50669a001d79567d92b"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=false/mask2/compiled.bin",
+      "bytes": 94,
+      "sha256": "f54bc074e3060d8141af04fac95bc2bcbb6c9d91b3312e34d965aab2d293528f"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=false/mask2/compiled.hir",
+      "bytes": 539,
+      "sha256": "80d6673fe2879c7565a86c10ebadb6e980c302cef855b40e4996ef68157a2662"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=false/mask2/compiled.opt.mir",
+      "bytes": 1584,
+      "sha256": "4deb0e8c9a3b693c846e6894296835541013457965f6c45a0e13abec2ffa777f"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=false/mask2/compiled.raw.mir",
+      "bytes": 1751,
+      "sha256": "0ae5392e39571136c8a5919e80cb5fea2e2626c8152e34a3571b365196164f70"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=false/mask3/compiled.a80",
+      "bytes": 1708,
+      "sha256": "ea883c5882fd68b000207f36802ea908f5be2553ee5926e5e50e2c823c1ff60e"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=false/mask3/compiled.bin",
+      "bytes": 77,
+      "sha256": "788b1297320b1790af863656095640993a8409a691547f2a919c17383b7b873d"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=false/mask3/compiled.hir",
+      "bytes": 588,
+      "sha256": "2a4d1bb87bee004a3c46ff58855c2a6fdb9243c1c6f1cf71a67d480d151dca46"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=false/mask3/compiled.opt.mir",
+      "bytes": 1498,
+      "sha256": "8fae4e78f261385acd6b672f2df83607e7f7b9b236a322eb36b084b1942a270f"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=false/mask3/compiled.raw.mir",
+      "bytes": 1691,
+      "sha256": "521f27ee4ae56b0f2bf3d03a4da56add3347dbd792802e3ee6448f7de368c1cf"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=true/mask0/compiled.a80",
+      "bytes": 2085,
+      "sha256": "ce90b9c3f2f34c5ffe8dd850c658aaafb340a79fd05f0472d376b3084efcfea6"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=true/mask0/compiled.bin",
+      "bytes": 105,
+      "sha256": "fc71b0d9d751e4b704b4dd754c1ebb0fa14b8e8aafd02b380152b94728b1a2e0"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=true/mask0/compiled.hir",
+      "bytes": 490,
+      "sha256": "d179fcd2c38acfbb126427f32adfb106ee2d894196c144ce6cdc443924fd5d16"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=true/mask0/compiled.opt.mir",
+      "bytes": 1617,
+      "sha256": "777271cd1e955c31a938f3db2f075cd6436add54b1f788dfd564c63baf71863c"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=true/mask0/compiled.raw.mir",
+      "bytes": 1811,
+      "sha256": "f8c1f86196ce3c17365604d04a912781a9982a8de28ab8998111b007314010cd"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=true/mask1/compiled.a80",
+      "bytes": 1780,
+      "sha256": "0f2c5cd84ca4250ec09cc3619d9709717337679767bcc6fc542766e507c56dc3"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=true/mask1/compiled.bin",
+      "bytes": 88,
+      "sha256": "a05146f3af4d37153368340e3eeacb42529d67d604aa6d892f33a2c1a5e5b804"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=true/mask1/compiled.hir",
+      "bytes": 539,
+      "sha256": "817ac24fa7320eccfc3561836beda0c3da06c785c3dde588172ef6b0f78d10b3"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=true/mask1/compiled.opt.mir",
+      "bytes": 1531,
+      "sha256": "c71f5e58ac5a9d3878cadfad117d8be5d0a4b6e0b54163720f385f01b8acf72f"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=true/mask1/compiled.raw.mir",
+      "bytes": 1751,
+      "sha256": "f848de3a31afd8ba4afb7213a8a5f587f7acdd918077069b18cf5a780d67224c"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=true/mask2/compiled.a80",
+      "bytes": 1992,
+      "sha256": "50165a54fc0a6dbac35dd686a8d9b9747ee84e3a54358230b8a115e58d5d300c"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=true/mask2/compiled.bin",
+      "bytes": 94,
+      "sha256": "f54bc074e3060d8141af04fac95bc2bcbb6c9d91b3312e34d965aab2d293528f"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=true/mask2/compiled.hir",
+      "bytes": 539,
+      "sha256": "80d6673fe2879c7565a86c10ebadb6e980c302cef855b40e4996ef68157a2662"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=true/mask2/compiled.opt.mir",
+      "bytes": 1584,
+      "sha256": "4deb0e8c9a3b693c846e6894296835541013457965f6c45a0e13abec2ffa777f"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=true/mask2/compiled.raw.mir",
+      "bytes": 1751,
+      "sha256": "0ae5392e39571136c8a5919e80cb5fea2e2626c8152e34a3571b365196164f70"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=true/mask3/compiled.a80",
+      "bytes": 1687,
+      "sha256": "a114e001e0cf1937e348ad218129f14969bff8b75c5f01250aa70d7b20816c26"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=true/mask3/compiled.bin",
+      "bytes": 77,
+      "sha256": "788b1297320b1790af863656095640993a8409a691547f2a919c17383b7b873d"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=true/mask3/compiled.hir",
+      "bytes": 588,
+      "sha256": "2a4d1bb87bee004a3c46ff58855c2a6fdb9243c1c6f1cf71a67d480d151dca46"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=true/mask3/compiled.opt.mir",
+      "bytes": 1498,
+      "sha256": "8fae4e78f261385acd6b672f2df83607e7f7b9b236a322eb36b084b1942a270f"
+    },
+    {
+      "path": "conditional-diagnostics/after/four/MIRGrace=true/mask3/compiled.raw.mir",
+      "bytes": 1691,
+      "sha256": "521f27ee4ae56b0f2bf3d03a4da56add3347dbd792802e3ee6448f7de368c1cf"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask0.a80",
+      "bytes": 2106,
+      "sha256": "f905de811e35c04b6311d6d37b2105769e50f958ecb58c91aebeec65d910df32"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask0.allocation",
+      "bytes": 825,
+      "sha256": "478fe0b48f2868bdf22a6c94603dfe914c19303f3a1ad80adcb58867f8b6d3d0"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask0.bin",
+      "bytes": 105,
+      "sha256": "fc71b0d9d751e4b704b4dd754c1ebb0fa14b8e8aafd02b380152b94728b1a2e0"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask0.hir",
+      "bytes": 490,
+      "sha256": "d179fcd2c38acfbb126427f32adfb106ee2d894196c144ce6cdc443924fd5d16"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask0.opt.mir",
+      "bytes": 1617,
+      "sha256": "777271cd1e955c31a938f3db2f075cd6436add54b1f788dfd564c63baf71863c"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask0.raw.mir",
+      "bytes": 1811,
+      "sha256": "f8c1f86196ce3c17365604d04a912781a9982a8de28ab8998111b007314010cd"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask1.a80",
+      "bytes": 1852,
+      "sha256": "fb22dbf846b3e0b3bff9ea01545111a0af03e200540d2bdd89753895d567b87d"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask1.allocation",
+      "bytes": 778,
+      "sha256": "15c3139c5b23f909a3b7b5c45a33bd771357889dc7b0717f7ec4ad425095a333"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask1.bin",
+      "bytes": 88,
+      "sha256": "ba3d107a0a9c46c8135033f20ef01d19cdf2db1fbf08aaa4d8f909972d0a24d3"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask1.hir",
+      "bytes": 539,
+      "sha256": "817ac24fa7320eccfc3561836beda0c3da06c785c3dde588172ef6b0f78d10b3"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask1.opt.mir",
+      "bytes": 1531,
+      "sha256": "c71f5e58ac5a9d3878cadfad117d8be5d0a4b6e0b54163720f385f01b8acf72f"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask1.raw.mir",
+      "bytes": 1751,
+      "sha256": "f848de3a31afd8ba4afb7213a8a5f587f7acdd918077069b18cf5a780d67224c"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask2.a80",
+      "bytes": 2013,
+      "sha256": "e7637f09181e08e9c1de103407c3b62580795f037861e50669a001d79567d92b"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask2.allocation",
+      "bytes": 823,
+      "sha256": "f2ccba4e164c1c304b3aa03f964f0e10eb1cb5c13dea3f3de64762abba6dd270"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask2.bin",
+      "bytes": 94,
+      "sha256": "f54bc074e3060d8141af04fac95bc2bcbb6c9d91b3312e34d965aab2d293528f"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask2.hir",
+      "bytes": 539,
+      "sha256": "80d6673fe2879c7565a86c10ebadb6e980c302cef855b40e4996ef68157a2662"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask2.opt.mir",
+      "bytes": 1584,
+      "sha256": "4deb0e8c9a3b693c846e6894296835541013457965f6c45a0e13abec2ffa777f"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask2.raw.mir",
+      "bytes": 1751,
+      "sha256": "0ae5392e39571136c8a5919e80cb5fea2e2626c8152e34a3571b365196164f70"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask3.a80",
+      "bytes": 1759,
+      "sha256": "43414d7051dd82019e2ae0290a8420c1e601c4f31d8d672884f0c928a53e937c"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask3.allocation",
+      "bytes": 718,
+      "sha256": "d3e8d3d101f700e91fcf915367b338bf77155f9abc644d0123f2bc7e39e0dd34"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask3.bin",
+      "bytes": 77,
+      "sha256": "92b2e96a4b1c622967fa041a5b3b9009c6d5c4a51c31e4e9a5f213c9b792fd5c"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask3.hir",
+      "bytes": 588,
+      "sha256": "2a4d1bb87bee004a3c46ff58855c2a6fdb9243c1c6f1cf71a67d480d151dca46"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask3.opt.mir",
+      "bytes": 1498,
+      "sha256": "8fae4e78f261385acd6b672f2df83607e7f7b9b236a322eb36b084b1942a270f"
+    },
+    {
+      "path": "conditional-diagnostics/after/mask3.raw.mir",
+      "bytes": 1691,
+      "sha256": "521f27ee4ae56b0f2bf3d03a4da56add3347dbd792802e3ee6448f7de368c1cf"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=false/mask0/compiled.a80",
+      "bytes": 2675,
+      "sha256": "9ffd5a07d5a5332c25e819ad2f7fe1c376afa6aa3bb43a20689e7e5d0479be45"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=false/mask0/compiled.bin",
+      "bytes": 141,
+      "sha256": "873027d5d8f95d0b986a0b417d7d8cd8f74cf51022a21caf95ae50f69a401380"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=false/mask0/compiled.hir",
+      "bytes": 506,
+      "sha256": "b2245a7a17190d2394c004d65ddc206b7881074c935ffc1044d1a8ed9ee9cc8b"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=false/mask0/compiled.opt.mir",
+      "bytes": 1605,
+      "sha256": "d6ac007cca4628910f4a347a5dbbc9d99240da90975b7f2732fac27f829414b6"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=false/mask0/compiled.raw.mir",
+      "bytes": 1853,
+      "sha256": "2309b4ae21e00dca6488363644207fc904a30bd20eae57bea2ec19056736f22f"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=false/mask1/compiled.a80",
+      "bytes": 2129,
+      "sha256": "5772333c2edb18e8276455a1d3741d7e28aa59c4d5ab431b9550295976c67f41"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=false/mask1/compiled.bin",
+      "bytes": 103,
+      "sha256": "d8aa7674bd7d808332f1556b7a783f3697fc18b3518daf2e7f336dff656a138e"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=false/mask1/compiled.hir",
+      "bytes": 555,
+      "sha256": "39adf16a67a9ee29df0ecf3963b3e8a9e7800df64878e4605e4c336a4724bafa"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=false/mask1/compiled.opt.mir",
+      "bytes": 1573,
+      "sha256": "d6c34a6be14a0c7901cd4f388936ff97b57d043b933d16b7ca524aefaf5fbbfe"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=false/mask1/compiled.raw.mir",
+      "bytes": 1795,
+      "sha256": "c69de037573cb10b43c0f480b5b9e97ea77b08848f1a8f0bb123c2f8dfc091f8"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=false/mask2/compiled.a80",
+      "bytes": 2728,
+      "sha256": "7d60f27c88bde3b6a69ed093a118afc5e86678a7c9899d703bbf501cdcb8e45a"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=false/mask2/compiled.bin",
+      "bytes": 142,
+      "sha256": "2302e7d4d69df908d5b9c05e0adfac7628ba85bf7277c2140592b9e4fab8544d"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=false/mask2/compiled.hir",
+      "bytes": 555,
+      "sha256": "85917a54542cdc17c4bcb53d744f0fda9c6800421f92b068644027dca5cdcecb"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=false/mask2/compiled.opt.mir",
+      "bytes": 1572,
+      "sha256": "108498b20fec1f5b978ebf042247f180427789c740fa9485a55a2f796089563c"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=false/mask2/compiled.raw.mir",
+      "bytes": 1793,
+      "sha256": "f2cbab8c84d5d32a523460ca4ede81cbd92874928c397232f572dd277fb4290b"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=false/mask3/compiled.a80",
+      "bytes": 2054,
+      "sha256": "df28da2a0444d54311d2d735e422b82eca07d5c9e1428b4d73900e0f41b0b8c2"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=false/mask3/compiled.bin",
+      "bytes": 94,
+      "sha256": "e273989c0ed8b59bc367932c4d80dd29ffdf81f4c0c7ccfe4e68c6140bcacb47"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=false/mask3/compiled.hir",
+      "bytes": 604,
+      "sha256": "cbc6b51d8344f0d0bc103178c57f14b8a0c6901f29f82cee7069ef552512dc71"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=false/mask3/compiled.opt.mir",
+      "bytes": 1540,
+      "sha256": "2ba2c56604d2c0ffebd76d2ac848422f3d52a67cb738fd0b4e858039cd38f22f"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=false/mask3/compiled.raw.mir",
+      "bytes": 1735,
+      "sha256": "75ca9b78f642185a0af6e587ad4b04cd19db060b115d01790c3bc158b4299270"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=true/mask0/compiled.a80",
+      "bytes": 2654,
+      "sha256": "1c215b91ab1f127c7932bc1e1e7d60c3eafcf9b06ab964bba8f01d73f8f740f1"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=true/mask0/compiled.bin",
+      "bytes": 141,
+      "sha256": "873027d5d8f95d0b986a0b417d7d8cd8f74cf51022a21caf95ae50f69a401380"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=true/mask0/compiled.hir",
+      "bytes": 506,
+      "sha256": "b2245a7a17190d2394c004d65ddc206b7881074c935ffc1044d1a8ed9ee9cc8b"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=true/mask0/compiled.opt.mir",
+      "bytes": 1605,
+      "sha256": "d6ac007cca4628910f4a347a5dbbc9d99240da90975b7f2732fac27f829414b6"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=true/mask0/compiled.raw.mir",
+      "bytes": 1853,
+      "sha256": "2309b4ae21e00dca6488363644207fc904a30bd20eae57bea2ec19056736f22f"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=true/mask1/compiled.a80",
+      "bytes": 2108,
+      "sha256": "611c78f8307719c19c01ad4348dde96d737065b099146230996ff87ecc1439a8"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=true/mask1/compiled.bin",
+      "bytes": 103,
+      "sha256": "d8aa7674bd7d808332f1556b7a783f3697fc18b3518daf2e7f336dff656a138e"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=true/mask1/compiled.hir",
+      "bytes": 555,
+      "sha256": "39adf16a67a9ee29df0ecf3963b3e8a9e7800df64878e4605e4c336a4724bafa"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=true/mask1/compiled.opt.mir",
+      "bytes": 1573,
+      "sha256": "d6c34a6be14a0c7901cd4f388936ff97b57d043b933d16b7ca524aefaf5fbbfe"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=true/mask1/compiled.raw.mir",
+      "bytes": 1795,
+      "sha256": "c69de037573cb10b43c0f480b5b9e97ea77b08848f1a8f0bb123c2f8dfc091f8"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=true/mask2/compiled.a80",
+      "bytes": 2707,
+      "sha256": "df5d9b96930229dc8559db1d08cd483b853187b534c83ee627e9ee7e266e6b84"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=true/mask2/compiled.bin",
+      "bytes": 142,
+      "sha256": "2302e7d4d69df908d5b9c05e0adfac7628ba85bf7277c2140592b9e4fab8544d"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=true/mask2/compiled.hir",
+      "bytes": 555,
+      "sha256": "85917a54542cdc17c4bcb53d744f0fda9c6800421f92b068644027dca5cdcecb"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=true/mask2/compiled.opt.mir",
+      "bytes": 1572,
+      "sha256": "108498b20fec1f5b978ebf042247f180427789c740fa9485a55a2f796089563c"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=true/mask2/compiled.raw.mir",
+      "bytes": 1793,
+      "sha256": "f2cbab8c84d5d32a523460ca4ede81cbd92874928c397232f572dd277fb4290b"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=true/mask3/compiled.a80",
+      "bytes": 2033,
+      "sha256": "3ab80f4bd74332551ecc1da269d912db00ae1f914bb7335c65447b2d706f31e8"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=true/mask3/compiled.bin",
+      "bytes": 94,
+      "sha256": "e273989c0ed8b59bc367932c4d80dd29ffdf81f4c0c7ccfe4e68c6140bcacb47"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=true/mask3/compiled.hir",
+      "bytes": 604,
+      "sha256": "cbc6b51d8344f0d0bc103178c57f14b8a0c6901f29f82cee7069ef552512dc71"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=true/mask3/compiled.opt.mir",
+      "bytes": 1540,
+      "sha256": "2ba2c56604d2c0ffebd76d2ac848422f3d52a67cb738fd0b4e858039cd38f22f"
+    },
+    {
+      "path": "conditional-diagnostics/after/six/MIRGrace=true/mask3/compiled.raw.mir",
+      "bytes": 1735,
+      "sha256": "75ca9b78f642185a0af6e587ad4b04cd19db060b115d01790c3bc158b4299270"
+    },
+    {
+      "path": "conditional-diagnostics/after-mir2-test.log",
+      "bytes": 7123,
+      "sha256": "2df85220023c458ba4ca356cb2cb295f5d2d07e5dbe3c2a7fe2f12c87115be6a"
+    },
+    {
+      "path": "conditional-diagnostics/after-pipeline-test.log",
+      "bytes": 48865,
+      "sha256": "c36fd25b5f7362523e9300238268e4f342bedcfdd0f8fe2c9d4798b77102a5a5"
+    },
+    {
+      "path": "conditional-diagnostics/after-six/mask0.a80",
+      "bytes": 2675,
+      "sha256": "9ffd5a07d5a5332c25e819ad2f7fe1c376afa6aa3bb43a20689e7e5d0479be45"
+    },
+    {
+      "path": "conditional-diagnostics/after-six/mask0.bin",
+      "bytes": 141,
+      "sha256": "873027d5d8f95d0b986a0b417d7d8cd8f74cf51022a21caf95ae50f69a401380"
+    },
+    {
+      "path": "conditional-diagnostics/after-six/mask0.hir",
+      "bytes": 494,
+      "sha256": "e9312e66433950ec16e4eb393cd3a762bef4911b3c364261f563cfb5326613be"
+    },
+    {
+      "path": "conditional-diagnostics/after-six/mask0.opt.mir",
+      "bytes": 1593,
+      "sha256": "0c814cdd0f1ddfe95f5fcd246d6b92214ea3c0335cefbb21b9e723a46baa5dc2"
+    },
+    {
+      "path": "conditional-diagnostics/after-six/mask0.raw.mir",
+      "bytes": 1841,
+      "sha256": "89ef000fa6f729df765ff78b6d390c67c53dd30037080832ac5e207a7a002327"
+    },
+    {
+      "path": "conditional-diagnostics/after-six/mask1.a80",
+      "bytes": 2129,
+      "sha256": "5772333c2edb18e8276455a1d3741d7e28aa59c4d5ab431b9550295976c67f41"
+    },
+    {
+      "path": "conditional-diagnostics/after-six/mask1.bin",
+      "bytes": 103,
+      "sha256": "d8aa7674bd7d808332f1556b7a783f3697fc18b3518daf2e7f336dff656a138e"
+    },
+    {
+      "path": "conditional-diagnostics/after-six/mask1.hir",
+      "bytes": 543,
+      "sha256": "28f5fbaacc1dd8d1efb0f00ace09640796d5573486e0a7e1edc893e4bd3cd521"
+    },
+    {
+      "path": "conditional-diagnostics/after-six/mask1.opt.mir",
+      "bytes": 1561,
+      "sha256": "d9e08e4bc337ff02845e7442cddd3cde5bc699e6362652266df445cfba8fb144"
+    },
+    {
+      "path": "conditional-diagnostics/after-six/mask1.raw.mir",
+      "bytes": 1783,
+      "sha256": "1ebb78c9217dae7c09c47f5afdbf2336821e567b09c691523a7b27da2085fbf5"
+    },
+    {
+      "path": "conditional-diagnostics/after-six/mask2.a80",
+      "bytes": 2728,
+      "sha256": "7d60f27c88bde3b6a69ed093a118afc5e86678a7c9899d703bbf501cdcb8e45a"
+    },
+    {
+      "path": "conditional-diagnostics/after-six/mask2.bin",
+      "bytes": 142,
+      "sha256": "2302e7d4d69df908d5b9c05e0adfac7628ba85bf7277c2140592b9e4fab8544d"
+    },
+    {
+      "path": "conditional-diagnostics/after-six/mask2.hir",
+      "bytes": 543,
+      "sha256": "4b56b6bcc8e5986f86029f2f708ed63f6767d8625532839a47f1b492788c72af"
+    },
+    {
+      "path": "conditional-diagnostics/after-six/mask2.opt.mir",
+      "bytes": 1560,
+      "sha256": "e4a2c8e9e6b3261bdcec96edab8ffaaafa1f69a90a29523faa35c8a62831e204"
+    },
+    {
+      "path": "conditional-diagnostics/after-six/mask2.raw.mir",
+      "bytes": 1781,
+      "sha256": "510b68e1bae5b49adcb2d9d9a58509c8c6256de62b9d289b972d8fa031eb7e6a"
+    },
+    {
+      "path": "conditional-diagnostics/after-six/mask3.a80",
+      "bytes": 2054,
+      "sha256": "df28da2a0444d54311d2d735e422b82eca07d5c9e1428b4d73900e0f41b0b8c2"
+    },
+    {
+      "path": "conditional-diagnostics/after-six/mask3.bin",
+      "bytes": 94,
+      "sha256": "e273989c0ed8b59bc367932c4d80dd29ffdf81f4c0c7ccfe4e68c6140bcacb47"
+    },
+    {
+      "path": "conditional-diagnostics/after-six/mask3.hir",
+      "bytes": 592,
+      "sha256": "51b5afcce40cf348e99f5252679a25554c34a0ff8e10dda98baa0e4150a4cded"
+    },
+    {
+      "path": "conditional-diagnostics/after-six/mask3.opt.mir",
+      "bytes": 1528,
+      "sha256": "64f2f862b8f29487d25ae08d4a691b4fbccb6f1c88f92b3035cea2a17a93e1bb"
+    },
+    {
+      "path": "conditional-diagnostics/after-six/mask3.raw.mir",
+      "bytes": 1723,
+      "sha256": "90019aeb960fb5b28be8b7c3d80ea4c8c977e7e9e87d7cd7bb17bc66defbbc92"
+    },
+    {
+      "path": "conditional-diagnostics/after-z80codegen_alu.go",
+      "bytes": 33256,
+      "sha256": "0d08ecc48aeddfcd3f680f9e116872e0db7663654da23c7a18272c0c1492c1ca"
+    },
+    {
+      "path": "conditional-diagnostics/after-z80codegen_cmp.go",
+      "bytes": 26765,
+      "sha256": "d97b608d3f243806bde705546af0b317933c9dd45804dcbc5ef34c3e3d6e1b83"
+    },
+    {
+      "path": "conditional-diagnostics/backend-and-test.patch",
+      "bytes": 13168,
+      "sha256": "c81b1de5e90ac07d1c3f29a5e114206e5fdd29dbe5be1242f1b2bf265c7e38a4"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask0.a80",
+      "bytes": 2106,
+      "sha256": "f905de811e35c04b6311d6d37b2105769e50f958ecb58c91aebeec65d910df32"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask0.allocation",
+      "bytes": 825,
+      "sha256": "478fe0b48f2868bdf22a6c94603dfe914c19303f3a1ad80adcb58867f8b6d3d0"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask0.bin",
+      "bytes": 105,
+      "sha256": "fc71b0d9d751e4b704b4dd754c1ebb0fa14b8e8aafd02b380152b94728b1a2e0"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask0.hir",
+      "bytes": 490,
+      "sha256": "d179fcd2c38acfbb126427f32adfb106ee2d894196c144ce6cdc443924fd5d16"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask0.opt.mir",
+      "bytes": 1617,
+      "sha256": "777271cd1e955c31a938f3db2f075cd6436add54b1f788dfd564c63baf71863c"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask0.raw.mir",
+      "bytes": 1811,
+      "sha256": "f8c1f86196ce3c17365604d04a912781a9982a8de28ab8998111b007314010cd"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask1.a80",
+      "bytes": 1848,
+      "sha256": "aedfd068c127b8e6f2dac1b03876fb4556e8a0f7efc0e92179f8d9ddfac0d48c"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask1.allocation",
+      "bytes": 778,
+      "sha256": "15c3139c5b23f909a3b7b5c45a33bd771357889dc7b0717f7ec4ad425095a333"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask1.bin",
+      "bytes": 85,
+      "sha256": "b2ff520ee98cffb628ad63dcab12e7f13d5eb18e73c5af7bef933fa95a5b7025"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask1.hir",
+      "bytes": 539,
+      "sha256": "817ac24fa7320eccfc3561836beda0c3da06c785c3dde588172ef6b0f78d10b3"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask1.opt.mir",
+      "bytes": 1531,
+      "sha256": "c71f5e58ac5a9d3878cadfad117d8be5d0a4b6e0b54163720f385f01b8acf72f"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask1.raw.mir",
+      "bytes": 1751,
+      "sha256": "f848de3a31afd8ba4afb7213a8a5f587f7acdd918077069b18cf5a780d67224c"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask2.a80",
+      "bytes": 2013,
+      "sha256": "e7637f09181e08e9c1de103407c3b62580795f037861e50669a001d79567d92b"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask2.allocation",
+      "bytes": 823,
+      "sha256": "f2ccba4e164c1c304b3aa03f964f0e10eb1cb5c13dea3f3de64762abba6dd270"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask2.bin",
+      "bytes": 94,
+      "sha256": "f54bc074e3060d8141af04fac95bc2bcbb6c9d91b3312e34d965aab2d293528f"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask2.hir",
+      "bytes": 539,
+      "sha256": "80d6673fe2879c7565a86c10ebadb6e980c302cef855b40e4996ef68157a2662"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask2.opt.mir",
+      "bytes": 1584,
+      "sha256": "4deb0e8c9a3b693c846e6894296835541013457965f6c45a0e13abec2ffa777f"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask2.raw.mir",
+      "bytes": 1751,
+      "sha256": "0ae5392e39571136c8a5919e80cb5fea2e2626c8152e34a3571b365196164f70"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask3.a80",
+      "bytes": 1755,
+      "sha256": "0a23ff7653a8f3beca03043edf398c0e3d51001971b6edc551a45f686c765ae0"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask3.allocation",
+      "bytes": 718,
+      "sha256": "d3e8d3d101f700e91fcf915367b338bf77155f9abc644d0123f2bc7e39e0dd34"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask3.bin",
+      "bytes": 74,
+      "sha256": "f8cc87efb0d4a9904751332073a02c059291d7f4a67b028b1a717049d6182492"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask3.hir",
+      "bytes": 588,
+      "sha256": "2a4d1bb87bee004a3c46ff58855c2a6fdb9243c1c6f1cf71a67d480d151dca46"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask3.opt.mir",
+      "bytes": 1498,
+      "sha256": "8fae4e78f261385acd6b672f2df83607e7f7b9b236a322eb36b084b1942a270f"
+    },
+    {
+      "path": "conditional-diagnostics/before/mask3.raw.mir",
+      "bytes": 1691,
+      "sha256": "521f27ee4ae56b0f2bf3d03a4da56add3347dbd792802e3ee6448f7de368c1cf"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=false/mask0/compiled.a80",
+      "bytes": 2106,
+      "sha256": "f905de811e35c04b6311d6d37b2105769e50f958ecb58c91aebeec65d910df32"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=false/mask0/compiled.bin",
+      "bytes": 105,
+      "sha256": "fc71b0d9d751e4b704b4dd754c1ebb0fa14b8e8aafd02b380152b94728b1a2e0"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=false/mask0/compiled.hir",
+      "bytes": 490,
+      "sha256": "d179fcd2c38acfbb126427f32adfb106ee2d894196c144ce6cdc443924fd5d16"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=false/mask0/compiled.opt.mir",
+      "bytes": 1617,
+      "sha256": "777271cd1e955c31a938f3db2f075cd6436add54b1f788dfd564c63baf71863c"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=false/mask0/compiled.raw.mir",
+      "bytes": 1811,
+      "sha256": "f8c1f86196ce3c17365604d04a912781a9982a8de28ab8998111b007314010cd"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=false/mask1/compiled.a80",
+      "bytes": 1848,
+      "sha256": "aedfd068c127b8e6f2dac1b03876fb4556e8a0f7efc0e92179f8d9ddfac0d48c"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=false/mask1/compiled.bin",
+      "bytes": 85,
+      "sha256": "b2ff520ee98cffb628ad63dcab12e7f13d5eb18e73c5af7bef933fa95a5b7025"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=false/mask1/compiled.hir",
+      "bytes": 539,
+      "sha256": "817ac24fa7320eccfc3561836beda0c3da06c785c3dde588172ef6b0f78d10b3"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=false/mask1/compiled.opt.mir",
+      "bytes": 1531,
+      "sha256": "c71f5e58ac5a9d3878cadfad117d8be5d0a4b6e0b54163720f385f01b8acf72f"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=false/mask1/compiled.raw.mir",
+      "bytes": 1751,
+      "sha256": "f848de3a31afd8ba4afb7213a8a5f587f7acdd918077069b18cf5a780d67224c"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=false/mask2/compiled.a80",
+      "bytes": 2013,
+      "sha256": "e7637f09181e08e9c1de103407c3b62580795f037861e50669a001d79567d92b"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=false/mask2/compiled.bin",
+      "bytes": 94,
+      "sha256": "f54bc074e3060d8141af04fac95bc2bcbb6c9d91b3312e34d965aab2d293528f"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=false/mask2/compiled.hir",
+      "bytes": 539,
+      "sha256": "80d6673fe2879c7565a86c10ebadb6e980c302cef855b40e4996ef68157a2662"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=false/mask2/compiled.opt.mir",
+      "bytes": 1584,
+      "sha256": "4deb0e8c9a3b693c846e6894296835541013457965f6c45a0e13abec2ffa777f"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=false/mask2/compiled.raw.mir",
+      "bytes": 1751,
+      "sha256": "0ae5392e39571136c8a5919e80cb5fea2e2626c8152e34a3571b365196164f70"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=false/mask3/compiled.a80",
+      "bytes": 1755,
+      "sha256": "0a23ff7653a8f3beca03043edf398c0e3d51001971b6edc551a45f686c765ae0"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=false/mask3/compiled.bin",
+      "bytes": 74,
+      "sha256": "f8cc87efb0d4a9904751332073a02c059291d7f4a67b028b1a717049d6182492"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=false/mask3/compiled.hir",
+      "bytes": 588,
+      "sha256": "2a4d1bb87bee004a3c46ff58855c2a6fdb9243c1c6f1cf71a67d480d151dca46"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=false/mask3/compiled.opt.mir",
+      "bytes": 1498,
+      "sha256": "8fae4e78f261385acd6b672f2df83607e7f7b9b236a322eb36b084b1942a270f"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=false/mask3/compiled.raw.mir",
+      "bytes": 1691,
+      "sha256": "521f27ee4ae56b0f2bf3d03a4da56add3347dbd792802e3ee6448f7de368c1cf"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=true/mask0/compiled.a80",
+      "bytes": 2085,
+      "sha256": "ce90b9c3f2f34c5ffe8dd850c658aaafb340a79fd05f0472d376b3084efcfea6"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=true/mask0/compiled.bin",
+      "bytes": 105,
+      "sha256": "fc71b0d9d751e4b704b4dd754c1ebb0fa14b8e8aafd02b380152b94728b1a2e0"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=true/mask0/compiled.hir",
+      "bytes": 490,
+      "sha256": "d179fcd2c38acfbb126427f32adfb106ee2d894196c144ce6cdc443924fd5d16"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=true/mask0/compiled.opt.mir",
+      "bytes": 1617,
+      "sha256": "777271cd1e955c31a938f3db2f075cd6436add54b1f788dfd564c63baf71863c"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=true/mask0/compiled.raw.mir",
+      "bytes": 1811,
+      "sha256": "f8c1f86196ce3c17365604d04a912781a9982a8de28ab8998111b007314010cd"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=true/mask1/compiled.a80",
+      "bytes": 1827,
+      "sha256": "d8476d4a35c6212ecdb842a097f078c017b6574b879ebda8823bc584466e32a1"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=true/mask1/compiled.bin",
+      "bytes": 85,
+      "sha256": "b2ff520ee98cffb628ad63dcab12e7f13d5eb18e73c5af7bef933fa95a5b7025"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=true/mask1/compiled.hir",
+      "bytes": 539,
+      "sha256": "817ac24fa7320eccfc3561836beda0c3da06c785c3dde588172ef6b0f78d10b3"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=true/mask1/compiled.opt.mir",
+      "bytes": 1531,
+      "sha256": "c71f5e58ac5a9d3878cadfad117d8be5d0a4b6e0b54163720f385f01b8acf72f"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=true/mask1/compiled.raw.mir",
+      "bytes": 1751,
+      "sha256": "f848de3a31afd8ba4afb7213a8a5f587f7acdd918077069b18cf5a780d67224c"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=true/mask2/compiled.a80",
+      "bytes": 1992,
+      "sha256": "50165a54fc0a6dbac35dd686a8d9b9747ee84e3a54358230b8a115e58d5d300c"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=true/mask2/compiled.bin",
+      "bytes": 94,
+      "sha256": "f54bc074e3060d8141af04fac95bc2bcbb6c9d91b3312e34d965aab2d293528f"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=true/mask2/compiled.hir",
+      "bytes": 539,
+      "sha256": "80d6673fe2879c7565a86c10ebadb6e980c302cef855b40e4996ef68157a2662"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=true/mask2/compiled.opt.mir",
+      "bytes": 1584,
+      "sha256": "4deb0e8c9a3b693c846e6894296835541013457965f6c45a0e13abec2ffa777f"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=true/mask2/compiled.raw.mir",
+      "bytes": 1751,
+      "sha256": "0ae5392e39571136c8a5919e80cb5fea2e2626c8152e34a3571b365196164f70"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=true/mask3/compiled.a80",
+      "bytes": 1734,
+      "sha256": "49bfefa782cac0af7035f9f82973ff408596fbc09978531937800abc2b85e7b2"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=true/mask3/compiled.bin",
+      "bytes": 74,
+      "sha256": "f8cc87efb0d4a9904751332073a02c059291d7f4a67b028b1a717049d6182492"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=true/mask3/compiled.hir",
+      "bytes": 588,
+      "sha256": "2a4d1bb87bee004a3c46ff58855c2a6fdb9243c1c6f1cf71a67d480d151dca46"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=true/mask3/compiled.opt.mir",
+      "bytes": 1498,
+      "sha256": "8fae4e78f261385acd6b672f2df83607e7f7b9b236a322eb36b084b1942a270f"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/four/MIRGrace=true/mask3/compiled.raw.mir",
+      "bytes": 1691,
+      "sha256": "521f27ee4ae56b0f2bf3d03a4da56add3347dbd792802e3ee6448f7de368c1cf"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=false/mask0/compiled.a80",
+      "bytes": 2675,
+      "sha256": "9ffd5a07d5a5332c25e819ad2f7fe1c376afa6aa3bb43a20689e7e5d0479be45"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=false/mask0/compiled.bin",
+      "bytes": 141,
+      "sha256": "873027d5d8f95d0b986a0b417d7d8cd8f74cf51022a21caf95ae50f69a401380"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=false/mask0/compiled.hir",
+      "bytes": 506,
+      "sha256": "b2245a7a17190d2394c004d65ddc206b7881074c935ffc1044d1a8ed9ee9cc8b"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=false/mask0/compiled.opt.mir",
+      "bytes": 1605,
+      "sha256": "d6ac007cca4628910f4a347a5dbbc9d99240da90975b7f2732fac27f829414b6"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=false/mask0/compiled.raw.mir",
+      "bytes": 1853,
+      "sha256": "2309b4ae21e00dca6488363644207fc904a30bd20eae57bea2ec19056736f22f"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=false/mask1/compiled.a80",
+      "bytes": 2175,
+      "sha256": "ff3a2cc21a616b7d27baaad73e86d05c831bda9837a8c08dde2c310e64258c4c"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=false/mask1/compiled.bin",
+      "bytes": 100,
+      "sha256": "9b4113df9631922b5e562bf065d08ed4a80e810ebbc733532583363887366cfd"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=false/mask1/compiled.hir",
+      "bytes": 555,
+      "sha256": "39adf16a67a9ee29df0ecf3963b3e8a9e7800df64878e4605e4c336a4724bafa"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=false/mask1/compiled.opt.mir",
+      "bytes": 1573,
+      "sha256": "d6c34a6be14a0c7901cd4f388936ff97b57d043b933d16b7ca524aefaf5fbbfe"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=false/mask1/compiled.raw.mir",
+      "bytes": 1795,
+      "sha256": "c69de037573cb10b43c0f480b5b9e97ea77b08848f1a8f0bb123c2f8dfc091f8"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=false/mask2/compiled.a80",
+      "bytes": 2728,
+      "sha256": "7d60f27c88bde3b6a69ed093a118afc5e86678a7c9899d703bbf501cdcb8e45a"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=false/mask2/compiled.bin",
+      "bytes": 142,
+      "sha256": "2302e7d4d69df908d5b9c05e0adfac7628ba85bf7277c2140592b9e4fab8544d"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=false/mask2/compiled.hir",
+      "bytes": 555,
+      "sha256": "85917a54542cdc17c4bcb53d744f0fda9c6800421f92b068644027dca5cdcecb"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=false/mask2/compiled.opt.mir",
+      "bytes": 1572,
+      "sha256": "108498b20fec1f5b978ebf042247f180427789c740fa9485a55a2f796089563c"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=false/mask2/compiled.raw.mir",
+      "bytes": 1793,
+      "sha256": "f2cbab8c84d5d32a523460ca4ede81cbd92874928c397232f572dd277fb4290b"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=false/mask3/compiled.a80",
+      "bytes": 2100,
+      "sha256": "2ed0565d498891d50f952192fb7d8c0d8d8df4732fddabb7f4885496adb1efd3"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=false/mask3/compiled.bin",
+      "bytes": 91,
+      "sha256": "bf63d3687dc966b38bdbbefaf3fd44d7ffb9544a70f1e371db0a3274d46ddf02"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=false/mask3/compiled.hir",
+      "bytes": 604,
+      "sha256": "cbc6b51d8344f0d0bc103178c57f14b8a0c6901f29f82cee7069ef552512dc71"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=false/mask3/compiled.opt.mir",
+      "bytes": 1540,
+      "sha256": "2ba2c56604d2c0ffebd76d2ac848422f3d52a67cb738fd0b4e858039cd38f22f"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=false/mask3/compiled.raw.mir",
+      "bytes": 1735,
+      "sha256": "75ca9b78f642185a0af6e587ad4b04cd19db060b115d01790c3bc158b4299270"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=true/mask0/compiled.a80",
+      "bytes": 2654,
+      "sha256": "1c215b91ab1f127c7932bc1e1e7d60c3eafcf9b06ab964bba8f01d73f8f740f1"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=true/mask0/compiled.bin",
+      "bytes": 141,
+      "sha256": "873027d5d8f95d0b986a0b417d7d8cd8f74cf51022a21caf95ae50f69a401380"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=true/mask0/compiled.hir",
+      "bytes": 506,
+      "sha256": "b2245a7a17190d2394c004d65ddc206b7881074c935ffc1044d1a8ed9ee9cc8b"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=true/mask0/compiled.opt.mir",
+      "bytes": 1605,
+      "sha256": "d6ac007cca4628910f4a347a5dbbc9d99240da90975b7f2732fac27f829414b6"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=true/mask0/compiled.raw.mir",
+      "bytes": 1853,
+      "sha256": "2309b4ae21e00dca6488363644207fc904a30bd20eae57bea2ec19056736f22f"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=true/mask1/compiled.a80",
+      "bytes": 2154,
+      "sha256": "2f2bc53c4daefba0875e021e05be973e4cfed7aba691ae8835d9584f9c2e7a28"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=true/mask1/compiled.bin",
+      "bytes": 100,
+      "sha256": "9b4113df9631922b5e562bf065d08ed4a80e810ebbc733532583363887366cfd"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=true/mask1/compiled.hir",
+      "bytes": 555,
+      "sha256": "39adf16a67a9ee29df0ecf3963b3e8a9e7800df64878e4605e4c336a4724bafa"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=true/mask1/compiled.opt.mir",
+      "bytes": 1573,
+      "sha256": "d6c34a6be14a0c7901cd4f388936ff97b57d043b933d16b7ca524aefaf5fbbfe"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=true/mask1/compiled.raw.mir",
+      "bytes": 1795,
+      "sha256": "c69de037573cb10b43c0f480b5b9e97ea77b08848f1a8f0bb123c2f8dfc091f8"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=true/mask2/compiled.a80",
+      "bytes": 2707,
+      "sha256": "df5d9b96930229dc8559db1d08cd483b853187b534c83ee627e9ee7e266e6b84"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=true/mask2/compiled.bin",
+      "bytes": 142,
+      "sha256": "2302e7d4d69df908d5b9c05e0adfac7628ba85bf7277c2140592b9e4fab8544d"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=true/mask2/compiled.hir",
+      "bytes": 555,
+      "sha256": "85917a54542cdc17c4bcb53d744f0fda9c6800421f92b068644027dca5cdcecb"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=true/mask2/compiled.opt.mir",
+      "bytes": 1572,
+      "sha256": "108498b20fec1f5b978ebf042247f180427789c740fa9485a55a2f796089563c"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=true/mask2/compiled.raw.mir",
+      "bytes": 1793,
+      "sha256": "f2cbab8c84d5d32a523460ca4ede81cbd92874928c397232f572dd277fb4290b"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=true/mask3/compiled.a80",
+      "bytes": 2079,
+      "sha256": "567e4dda1ee709777c4dd737bc855123f4dc69d91c8bef68cf1ba9abc46ebed8"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=true/mask3/compiled.bin",
+      "bytes": 91,
+      "sha256": "bf63d3687dc966b38bdbbefaf3fd44d7ffb9544a70f1e371db0a3274d46ddf02"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=true/mask3/compiled.hir",
+      "bytes": 604,
+      "sha256": "cbc6b51d8344f0d0bc103178c57f14b8a0c6901f29f82cee7069ef552512dc71"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=true/mask3/compiled.opt.mir",
+      "bytes": 1540,
+      "sha256": "2ba2c56604d2c0ffebd76d2ac848422f3d52a67cb738fd0b4e858039cd38f22f"
+    },
+    {
+      "path": "conditional-diagnostics/before-expanded/six/MIRGrace=true/mask3/compiled.raw.mir",
+      "bytes": 1735,
+      "sha256": "75ca9b78f642185a0af6e587ad4b04cd19db060b115d01790c3bc158b4299270"
+    },
+    {
+      "path": "conditional-diagnostics/before-test.log",
+      "bytes": 4008,
+      "sha256": "57e01d137a351e5f15dbf7ea98685b2753f8431cfb291d6cbd0e9b7d2baf0c97"
+    },
+    {
+      "path": "conditional-diagnostics/before-z80codegen_alu.go",
+      "bytes": 32774,
+      "sha256": "14e38e8673be0e7ab485b9ccb3de359c83729ca87676337dfc68af296223ed54"
+    },
+    {
+      "path": "conditional-diagnostics/before-z80codegen_cmp.go",
+      "bytes": 25967,
+      "sha256": "489376ad86134349abcda8edfc609844c001a3d466797dd293f87c4e0fb982d2"
+    },
+    {
+      "path": "conditional-diagnostics/conditional_invariant_regression_test.go",
+      "bytes": 6583,
+      "sha256": "80fcf6b57eff0288f659ed2a2e596840f6b5b6e305173f3cdb64e1262209345c"
+    },
+    {
+      "path": "conditional-diagnostics/details.md",
+      "bytes": 8376,
+      "sha256": "ab5775178520cae1961e303bad1cc52b0e6458c8552a6b486fe2e45e356c32e5"
+    },
+    {
+      "path": "conditional-diagnostics/earlier-six-param-bool.nanz",
+      "bytes": 227,
+      "sha256": "76cf4c91238a3217fc967fda6dc33f5d3a481ec0201ed1c6fc6a006931453be0"
+    },
+    {
+      "path": "conditional-diagnostics/earlier-six-param.nanz",
+      "bytes": 227,
+      "sha256": "f98551d7fa0777e8212bc33be897a3a3224fd890a11278f9c19da38f6b3f2d24"
+    },
+    {
+      "path": "conditional-diagnostics/mask0.a80",
+      "bytes": 2106,
+      "sha256": "f905de811e35c04b6311d6d37b2105769e50f958ecb58c91aebeec65d910df32"
+    },
+    {
+      "path": "conditional-diagnostics/mask0.allocation",
+      "bytes": 825,
+      "sha256": "478fe0b48f2868bdf22a6c94603dfe914c19303f3a1ad80adcb58867f8b6d3d0"
+    },
+    {
+      "path": "conditional-diagnostics/mask0.bin",
+      "bytes": 105,
+      "sha256": "fc71b0d9d751e4b704b4dd754c1ebb0fa14b8e8aafd02b380152b94728b1a2e0"
+    },
+    {
+      "path": "conditional-diagnostics/mask0.hir",
+      "bytes": 490,
+      "sha256": "d179fcd2c38acfbb126427f32adfb106ee2d894196c144ce6cdc443924fd5d16"
+    },
+    {
+      "path": "conditional-diagnostics/mask0.opt.mir",
+      "bytes": 1617,
+      "sha256": "777271cd1e955c31a938f3db2f075cd6436add54b1f788dfd564c63baf71863c"
+    },
+    {
+      "path": "conditional-diagnostics/mask0.raw.mir",
+      "bytes": 1811,
+      "sha256": "f8c1f86196ce3c17365604d04a912781a9982a8de28ab8998111b007314010cd"
+    },
+    {
+      "path": "conditional-diagnostics/mask1.a80",
+      "bytes": 1848,
+      "sha256": "aedfd068c127b8e6f2dac1b03876fb4556e8a0f7efc0e92179f8d9ddfac0d48c"
+    },
+    {
+      "path": "conditional-diagnostics/mask1.allocation",
+      "bytes": 778,
+      "sha256": "15c3139c5b23f909a3b7b5c45a33bd771357889dc7b0717f7ec4ad425095a333"
+    },
+    {
+      "path": "conditional-diagnostics/mask1.bin",
+      "bytes": 85,
+      "sha256": "b2ff520ee98cffb628ad63dcab12e7f13d5eb18e73c5af7bef933fa95a5b7025"
+    },
+    {
+      "path": "conditional-diagnostics/mask1.hir",
+      "bytes": 539,
+      "sha256": "817ac24fa7320eccfc3561836beda0c3da06c785c3dde588172ef6b0f78d10b3"
+    },
+    {
+      "path": "conditional-diagnostics/mask1.opt.mir",
+      "bytes": 1531,
+      "sha256": "c71f5e58ac5a9d3878cadfad117d8be5d0a4b6e0b54163720f385f01b8acf72f"
+    },
+    {
+      "path": "conditional-diagnostics/mask1.raw.mir",
+      "bytes": 1751,
+      "sha256": "f848de3a31afd8ba4afb7213a8a5f587f7acdd918077069b18cf5a780d67224c"
+    },
+    {
+      "path": "conditional-diagnostics/mask2.a80",
+      "bytes": 2013,
+      "sha256": "e7637f09181e08e9c1de103407c3b62580795f037861e50669a001d79567d92b"
+    },
+    {
+      "path": "conditional-diagnostics/mask2.allocation",
+      "bytes": 823,
+      "sha256": "f2ccba4e164c1c304b3aa03f964f0e10eb1cb5c13dea3f3de64762abba6dd270"
+    },
+    {
+      "path": "conditional-diagnostics/mask2.bin",
+      "bytes": 94,
+      "sha256": "f54bc074e3060d8141af04fac95bc2bcbb6c9d91b3312e34d965aab2d293528f"
+    },
+    {
+      "path": "conditional-diagnostics/mask2.hir",
+      "bytes": 539,
+      "sha256": "80d6673fe2879c7565a86c10ebadb6e980c302cef855b40e4996ef68157a2662"
+    },
+    {
+      "path": "conditional-diagnostics/mask2.opt.mir",
+      "bytes": 1584,
+      "sha256": "4deb0e8c9a3b693c846e6894296835541013457965f6c45a0e13abec2ffa777f"
+    },
+    {
+      "path": "conditional-diagnostics/mask2.raw.mir",
+      "bytes": 1751,
+      "sha256": "0ae5392e39571136c8a5919e80cb5fea2e2626c8152e34a3571b365196164f70"
+    },
+    {
+      "path": "conditional-diagnostics/mask3.a80",
+      "bytes": 1755,
+      "sha256": "0a23ff7653a8f3beca03043edf398c0e3d51001971b6edc551a45f686c765ae0"
+    },
+    {
+      "path": "conditional-diagnostics/mask3.allocation",
+      "bytes": 718,
+      "sha256": "d3e8d3d101f700e91fcf915367b338bf77155f9abc644d0123f2bc7e39e0dd34"
+    },
+    {
+      "path": "conditional-diagnostics/mask3.bin",
+      "bytes": 74,
+      "sha256": "f8cc87efb0d4a9904751332073a02c059291d7f4a67b028b1a717049d6182492"
+    },
+    {
+      "path": "conditional-diagnostics/mask3.hir",
+      "bytes": 588,
+      "sha256": "2a4d1bb87bee004a3c46ff58855c2a6fdb9243c1c6f1cf71a67d480d151dca46"
+    },
+    {
+      "path": "conditional-diagnostics/mask3.opt.mir",
+      "bytes": 1498,
+      "sha256": "8fae4e78f261385acd6b672f2df83607e7f7b9b236a322eb36b084b1942a270f"
+    },
+    {
+      "path": "conditional-diagnostics/mask3.raw.mir",
+      "bytes": 1691,
+      "sha256": "521f27ee4ae56b0f2bf3d03a4da56add3347dbd792802e3ee6448f7de368c1cf"
+    },
+    {
+      "path": "conditional-diagnostics/mir-comparison.json",
+      "bytes": 2131,
+      "sha256": "3a824d524a4a9a35cdf859c5bcc381803ec225a71f7a45eaa15fcaa27c0a0f31"
+    },
+    {
+      "path": "conditional-diagnostics/original.nanz",
+      "bytes": 215,
+      "sha256": "44c4e5cca0bf5207c5caf6d34eb18b486e019eb58e2f1351a2dccceb88dddf2d"
+    },
+    {
+      "path": "conditional-diagnostics/replay.go",
+      "bytes": 2143,
+      "sha256": "eb8bb54bd028aed2b9e4737815bcd6de9e67469d9508552c05fd54f66d4a700e"
+    },
+    {
+      "path": "conditional-diagnostics/sha256.json",
+      "bytes": 29919,
+      "sha256": "fc9c396f2280f4b4c334bf9584e3fdd2666906098d4a6c0aa325efa071d0e691"
+    },
+    {
+      "path": "conditional-diagnostics/site-selector.log",
+      "bytes": 129985,
+      "sha256": "bcbcfede48911bcc54700c2e60bfada7a61aa78617d4019ff6609ecf38634f16"
+    },
+    {
+      "path": "conditional-diagnostics/summary.md",
+      "bytes": 859,
+      "sha256": "50f288bbff0aa89a7a6e02036cd11bd41ce4ced08360c819222399657cb4462d"
+    },
+    {
+      "path": "conditional-diagnostics/z80codegen_alu.go",
+      "bytes": 33256,
+      "sha256": "0d08ecc48aeddfcd3f680f9e116872e0db7663654da23c7a18272c0c1492c1ca"
+    },
+    {
+      "path": "conditional-diagnostics/z80codegen_cmp.go",
+      "bytes": 26765,
+      "sha256": "d97b608d3f243806bde705546af0b317933c9dd45804dcbc5ef34c3e3d6e1b83"
+    },
+    {
+      "path": "conditional-review.md",
+      "bytes": 8376,
+      "sha256": "ab5775178520cae1961e303bad1cc52b0e6458c8552a6b486fe2e45e356c32e5"
+    },
+    {
+      "path": "minz-pgo-conditional-recheck.txt",
+      "bytes": 7960,
+      "sha256": "8597414bbc3277081639827bced511ffe8eacfe4720fcc86a5885645738374df"
+    },
+    {
+      "path": "minz-pgo-invariant-backend-final.txt",
+      "bytes": 85,
+      "sha256": "e120dc7a5df351e7ba8d9a3f0c0909d8e7be4bff066bee171646068f4d2169bf"
+    },
+    {
+      "path": "minz-pgo-invariant-cli-current.txt",
+      "bytes": 45,
+      "sha256": "8fc4c8d73204cc7c7c0c8501cab6ac59d9b7009eaff094ee34028bab9b489c5f"
+    },
+    {
+      "path": "minz-pgo-invariant-cli-run.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "minz-pgo-invariant-cli-tests.txt",
+      "bytes": 45,
+      "sha256": "2efa8336e43b3250910cc1f20a683b919e40029f77f842beb4a1bf7e61d7cafe"
+    },
+    {
+      "path": "minz-pgo-invariant-cost-final.txt",
+      "bytes": 48,
+      "sha256": "37a7afd2f2d1f858cca63e37252a71f9a5dbed923ce27f4ace1de6e1e3223233"
+    },
+    {
+      "path": "minz-pgo-invariant-final-directed.txt",
+      "bytes": 2104,
+      "sha256": "3efc451f9947d357e33232ba7a5cfe5513cb1372ffd601f1924fb2790e22221d"
+    },
+    {
+      "path": "minz-pgo-invariant-pipeline-stable.txt",
+      "bytes": 49,
+      "sha256": "9550bee45291e686d6b3e4209b6049839d4d4c7a3e5d967c435a60cf5072cc59"
+    },
+    {
+      "path": "minz-pgo-invariant-pipeline.txt",
+      "bytes": 49,
+      "sha256": "d94c9517f9cc2fc24e1bb0c32127c5d466509ef279159553b2ca0332787f50d0"
+    },
+    {
+      "path": "minz-pgo-invariant-showcase.txt",
+      "bytes": 39297,
+      "sha256": "814797fea510748a5c6e8d38363ee691e71711f048b7e18f6dbded311516a886"
+    },
+    {
+      "path": "minz-pgo-invariant-sites-cli-final.txt",
+      "bytes": 45,
+      "sha256": "7e4ced0db7ea79d43e89c1335bd3aa26bcf449428a793c30669816671719a9da"
+    },
+    {
+      "path": "minz-pgo-site-base-packages.txt",
+      "bytes": 85,
+      "sha256": "0d1b527bca1eeca2eefc492d578a8b75ca8eae4645d072ff119410021745833d"
+    },
+    {
+      "path": "selector-review.md",
+      "bytes": 5224,
+      "sha256": "8b8652a012f6c59fb52d3944426df39e35a6daecdd2ac7971b902c128307d98c"
+    }
+  ]
+}

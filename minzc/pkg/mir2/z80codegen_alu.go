@@ -282,7 +282,9 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				// Example: fib — after first CALL, A=fib(n-1) is needed later but
 				// computing n-2 requires loading n (from scratch) into A.
 				g.saveABeforeOverwrite(inst)
-				g.saveAccIfLive(inst)
+				if restore := g.saveAccIfLive(inst); restore != nil {
+					defer restore()
+				}
 				g.emitLDA(lhs)
 			}
 			switch mnem {
@@ -312,7 +314,9 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			g.saveABeforeOverwrite(inst)
 			// A will be clobbered (LD A,lhs then ALU). If A holds a value
 			// that's used later, save it.
-			g.saveAccIfLive(inst)
+			if restore := g.saveAccIfLive(inst); restore != nil {
+				defer restore()
+			}
 		}
 		if lhs != "A" {
 			g.emitLDA(lhs)
@@ -693,7 +697,9 @@ func (g *z80cg) genBinOp32(mnem, dst, lhs, rhs string) {
 // saveAccIfLive checks whether A contains a live value from a virtual register
 // that will be needed AFTER the current instruction.  If so, it relocates
 // A's value to a scratch register (via physOverride) so the ALU can use A freely.
-func (g *z80cg) saveAccIfLive(inst *Inst) {
+// On exhaustion, the caller must defer the returned stack restoration until
+// after copying the ALU result to its allocated destination.
+func (g *z80cg) saveAccIfLive(inst *Inst) func() {
 	// Several non-overlapping vregs can share A. Select a value that is live
 	// here, not the lowest allocated ID (which may be a long-dead parameter).
 	live := g.regsLiveAfterInst(inst)
@@ -701,10 +707,16 @@ func (g *z80cg) saveAccIfLive(inst *Inst) {
 		if r == inst.Dst || r == inst.Src[0] || r == inst.Src[1] || g.loc(r) != "A" {
 			continue
 		}
-		scratch := g.pickScratch8(inst)
+		scratch := g.freeScratch8(inst)
+		if scratch == "" {
+			// The result is copied out of A before this deferred restoration.
+			// Do not overwrite a live word byte when all scratch bytes are busy.
+			return g.saveLiveScratch(inst, "AF")
+		}
 		g.emitf("    LD %s, A    ; preserve live r%d before ALU scratch", scratch, r)
 		g.physOverride[r] = scratch
 	}
+	return nil
 }
 
 // reorderAccMoves swaps consecutive instruction pairs where a move→A is followed
