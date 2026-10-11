@@ -1,0 +1,11 @@
+{
+  "inline-asm-target-needs-audit": 32,
+  "agon-mos-runtime": 5,
+  "executed-independent-vm-z80": 68,
+  "pending-independent-oracle": 16,
+  "bounded-independent-vm-native": 51,
+  "executed-independent-bounded": 2,
+  "external-runtime-needs-audit": 18,
+  "executed-native-cpm-runtime": 1,
+  "host-only-memory-model": 1
+}

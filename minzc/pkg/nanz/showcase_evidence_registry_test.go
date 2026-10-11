@@ -3,6 +3,7 @@ package nanz_test
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -188,7 +189,56 @@ func applyReviewedCatalogEvidence(t *testing.T, root string, row *oracleCatalogE
 	case "examples/nanz/sha256.nanz":
 		row.Requirement += " Current source implements only arithmetic/bit helpers; no complete SHA256 compression, digest or block vectors. Whole-hash promise remains unimplemented."
 	}
+	applyLatestCorpusReview(t, root, row)
 	if row.TestReferences == nil {
 		row.TestReferences = []string{}
+	}
+}
+
+// Apply only explicitly reviewed exact-source updates. A diagnostic may keep
+// pending status; the existence of evidence never automatically grants PASS.
+func applyLatestCorpusReview(t *testing.T, root string, row *oracleCatalogEntry) {
+	t.Helper()
+	var updates []struct {
+		Path     string            `json:"path"`
+		SHA      string            `json:"source_sha256"`
+		Status   string            `json:"native_behavior"`
+		Workload string            `json:"workload"`
+		Model    string            `json:"independent_model"`
+		Boundary string            `json:"boundary"`
+		Evidence map[string]string `json:"evidence"`
+	}
+	b, err := os.ReadFile(filepath.Join(root, "docs/grace-integration-203/reviewed-updates.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = json.Unmarshal(b, &updates); err != nil {
+		t.Fatal(err)
+	}
+	for _, u := range updates {
+		if u.Path != row.Path {
+			continue
+		}
+		if u.SHA != row.SHA256 {
+			t.Fatalf("reviewed source changed: %s", u.Path)
+		}
+		row.NativeBehavior = u.Status
+		row.Workload, row.Model, row.Requirement = u.Workload, u.Model, u.Boundary
+		paths := make([]string, 0, len(u.Evidence))
+		for p := range u.Evidence {
+			paths = append(paths, p)
+		}
+		sort.Strings(paths)
+		for _, p := range paths {
+			b, err := os.ReadFile(filepath.Join(root, p))
+			if err != nil {
+				t.Fatal(err)
+			}
+			sum := sha256.Sum256(b)
+			if hex.EncodeToString(sum[:]) != u.Evidence[p] {
+				t.Fatalf("reviewed evidence changed: %s", p)
+			}
+			row.Evidence = append(row.Evidence, catalogEvidence{p, u.Evidence[p], "reviewed exact-source root replay", u.Workload + "; " + u.Boundary})
+		}
 	}
 }
