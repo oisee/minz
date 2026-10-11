@@ -422,15 +422,12 @@ func (s *CallSignature) Clone() *CallSignature {
 	if s == nil {
 		return nil
 	}
-	out := &CallSignature{}
-	for _, t := range s.Params {
-		out.Params = append(out.Params, mir2.CloneSemanticType(t))
-	}
-	for _, t := range s.Returns {
-		out.Returns = append(out.Returns, mir2.CloneSemanticType(t))
-	}
-	out.ResolveStructReturnABI()
-	return out
+	// Clone the recorded ABI exactly: cloning must not repair a malformed
+	// descriptor or change alias relationships before the verifier checks it.
+	source := &mir2.Inst{IndirectParamTys: s.Params, IndirectReturnTys: s.Returns, StructReturnBuffers: s.StructReturnBuffers}
+	copy := &mir2.Inst{}
+	mir2.CloneCallABIMetadata(copy, source)
+	return &CallSignature{Params: copy.IndirectParamTys, Returns: copy.IndirectReturnTys, StructReturnBuffers: copy.StructReturnBuffers}
 }
 
 func (f *Func) Signature() *CallSignature {
