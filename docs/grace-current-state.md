@@ -385,3 +385,5 @@ Root historicalcoverage118 functions PASS19.091с:9admitted,3smaller/4equal/2lar
 Selector ownership fix c0a7e49f удерживает отсоединённые HIR nodes/storage, предотвращая ложное shared-ownership после GC. Реальное разделение по-прежнему отклоняется; root GC/selector refusals PASS. [Пакет100](grace-integration-100/README.md).
 
 Полный FAT public selector теперь rootPASS24.301с: Speed/Size выбирают baseline5572T9543B, exactsameBIN frozenheldout36calls11199T. Нового выигрышанет; большие/медленные альтернативы отвергнуты. [Пакет102](grace-integration-102/README.md).
+
+Original ex19 localstruct return исправлен a8f7b4b5: root11568calls VM/native PASS2.046с/fullMIR2PASS12.318с. Каталог теперь39boundedVM/native paths, остальные исходныеentries не объявлены доказанными. Профильdemo печати сохраняется только вне reachable closure. [Пакет103](grace-integration-103/README.md).

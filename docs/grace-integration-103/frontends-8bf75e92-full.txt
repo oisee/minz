@@ -1,0 +1,12 @@
+score=65535 game=Game(7)
+[Z80-VALIDATE] set_border: 2 invalid instruction(s)
+  line 3: >>> LD A, col <<<
+--- FAIL: TestControlledProfileRefusalsAndPartialFailure (0.06s)
+    profile_run_test.go:132: external host not refused: out=<nil> err=memory host: reachable undefined function "@mir.io.print.u8"
+[Z80-VALIDATE] terminate: 1 invalid instruction(s)
+  line 3: >>> LD HL, _inbuf+2 <<<
+FAIL
+FAIL	github.com/minz/minzc/pkg/nanz	13.169s
+ok  	github.com/minz/minzc/pkg/vir	2.316s
+ok  	github.com/minz/minzc/pkg/c89	4.659s
+FAIL

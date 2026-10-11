@@ -1,0 +1,9 @@
+# Original structs return; profile regression boundaries
+
+Root `a8f7b4b5` fixes missing local-frame cleanup on native returns. Full MIR2 PASS12.318s; original3856calls per mode ×3=11568 raw/finalVM/native PASS2.046s. Source/name/40assertions unchanged. CFG proves unique outstanding frame depth; INC SP cleanup preserves result registers and flags. Equal-depth joins/separate returns/stable loops work; unequal-depth joins/growing allocations and explicit stack/ASM with locals refuse until dynamic-frame support. No optimization claim against the nonreturning baseline.
+
+Current catalog194 adds limited proof for originalex19 manhattan/get_x/get_y. It now records39paths with bounded VM/native evidence plus one separate CP/M proof; this does not prove all source entries or the remaining compile-only paths. Historical catalog085 retained unchanged. All37 frame payloads SHA/size/tracking verified and copied to compiler-reports/showcase-manhattan on the share.
+
+Broader checks exposed new profile admission regressions: Nanz expected a partial print-host failure, but closed admission now refuses before execution. Test expectation updated. Ordinary sum_array CLI sources retain unreachable printing demo main; exact known output intrinsics in unreachable functions may remain, while reachable output and unknown dead intrinsics refuse. Root denial tests PASS0.077s; two affected CLI collect/apply/search tests PASS14.508s; full Nanz PASS11.854s after expectation correction. The archived earlier full Nanz FAIL is retained; C89/VIR passed4.659/2.316s in that run. No full CLI/pipeline success claimed: frozen8bf75e92 jobs remain live and precede both corrections/framefix.
+
+Standalone upstream register-identity branch is separately pushed at78671c49 againstmain4743cb7c, with unchanged-main failure and four-line fix/native regressions. It is not merged into main. Overall goal remains active.

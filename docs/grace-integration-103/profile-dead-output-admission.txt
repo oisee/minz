@@ -1,0 +1,44 @@
+=== RUN   TestProfileWorkloadDeniedHooksAndPrivateEvents
+--- PASS: TestProfileWorkloadDeniedHooksAndPrivateEvents (0.00s)
+=== RUN   TestProfileUncalledOutputIntrinsicHasNoExecutionAuthority
+--- PASS: TestProfileUncalledOutputIntrinsicHasNoExecutionAuthority (0.02s)
+=== RUN   TestProfileWorkloadDeadExternAdmission
+--- PASS: TestProfileWorkloadDeadExternAdmission (0.03s)
+=== RUN   TestProfileWorkloadAdmissionSourceAndCandidateDenials
+=== RUN   TestProfileWorkloadAdmissionSourceAndCandidateDenials/direct
+=== RUN   TestProfileWorkloadAdmissionSourceAndCandidateDenials/transitive
+=== RUN   TestProfileWorkloadAdmissionSourceAndCandidateDenials/false-block
+=== RUN   TestProfileWorkloadAdmissionSourceAndCandidateDenials/parameter
+=== RUN   TestProfileWorkloadAdmissionSourceAndCandidateDenials/class
+=== RUN   TestProfileWorkloadAdmissionSourceAndCandidateDenials/clobbers
+=== RUN   TestProfileWorkloadAdmissionSourceAndCandidateDenials/address
+=== RUN   TestProfileWorkloadAdmissionSourceAndCandidateDenials/injected-call
+=== RUN   TestProfileWorkloadAdmissionSourceAndCandidateDenials/return
+=== RUN   TestProfileWorkloadAdmissionSourceAndCandidateDenials/body
+=== RUN   TestProfileWorkloadAdmissionSourceAndCandidateDenials/undefined
+=== RUN   TestProfileWorkloadAdmissionSourceAndCandidateDenials/function-address
+=== RUN   TestProfileWorkloadAdmissionSourceAndCandidateDenials/indirect
+=== RUN   TestProfileWorkloadAdmissionSourceAndCandidateDenials/ports
+=== RUN   TestProfileWorkloadAdmissionSourceAndCandidateDenials/asm
+=== RUN   TestProfileWorkloadAdmissionSourceAndCandidateDenials/smc
+=== RUN   TestProfileWorkloadAdmissionSourceAndCandidateDenials/genuine-dead-DCE
+--- PASS: TestProfileWorkloadAdmissionSourceAndCandidateDenials (0.03s)
+    --- PASS: TestProfileWorkloadAdmissionSourceAndCandidateDenials/direct (0.01s)
+    --- PASS: TestProfileWorkloadAdmissionSourceAndCandidateDenials/transitive (0.01s)
+    --- PASS: TestProfileWorkloadAdmissionSourceAndCandidateDenials/false-block (0.01s)
+    --- PASS: TestProfileWorkloadAdmissionSourceAndCandidateDenials/parameter (0.00s)
+    --- PASS: TestProfileWorkloadAdmissionSourceAndCandidateDenials/class (0.00s)
+    --- PASS: TestProfileWorkloadAdmissionSourceAndCandidateDenials/clobbers (0.00s)
+    --- PASS: TestProfileWorkloadAdmissionSourceAndCandidateDenials/address (0.00s)
+    --- PASS: TestProfileWorkloadAdmissionSourceAndCandidateDenials/injected-call (0.00s)
+    --- PASS: TestProfileWorkloadAdmissionSourceAndCandidateDenials/return (0.00s)
+    --- PASS: TestProfileWorkloadAdmissionSourceAndCandidateDenials/body (0.00s)
+    --- PASS: TestProfileWorkloadAdmissionSourceAndCandidateDenials/undefined (0.00s)
+    --- PASS: TestProfileWorkloadAdmissionSourceAndCandidateDenials/function-address (0.00s)
+    --- PASS: TestProfileWorkloadAdmissionSourceAndCandidateDenials/indirect (0.00s)
+    --- PASS: TestProfileWorkloadAdmissionSourceAndCandidateDenials/ports (0.00s)
+    --- PASS: TestProfileWorkloadAdmissionSourceAndCandidateDenials/asm (0.00s)
+    --- PASS: TestProfileWorkloadAdmissionSourceAndCandidateDenials/smc (0.00s)
+    --- PASS: TestProfileWorkloadAdmissionSourceAndCandidateDenials/genuine-dead-DCE (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	0.077s
