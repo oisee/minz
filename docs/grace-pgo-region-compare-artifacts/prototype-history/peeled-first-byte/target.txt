@@ -1,0 +1,12 @@
+=== RUN   TestRegionComparePrototypeWholeTokenizer
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    region_compare_prototype_test.go:281: tokenizer30calls 2214152T/4732B arena432
+--- PASS: TestRegionComparePrototypeWholeTokenizer (1.61s)
+=== RUN   TestRegionComparePrototypeSecondReadTraps
+=== RUN   TestRegionComparePrototypeSecondReadTraps/left_second
+=== RUN   TestRegionComparePrototypeSecondReadTraps/right_second
+--- PASS: TestRegionComparePrototypeSecondReadTraps (0.00s)
+    --- PASS: TestRegionComparePrototypeSecondReadTraps/left_second (0.00s)
+    --- PASS: TestRegionComparePrototypeSecondReadTraps/right_second (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.626s

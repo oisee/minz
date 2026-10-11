@@ -1,0 +1,50 @@
+[
+  {
+    "record": "region-size-true-evidence.json",
+    "schema": "minz.region-compare-site-variant-sets/v1",
+    "evidence_sha256": "0595fb4f00f4150629f2115b137f8d4e6569a87eb0826b849bde37e26d692b7b",
+    "selected": 0,
+    "candidates": [
+      {
+        "requested": {
+          "c1d4e406d7b5f6ba9c2f9938a3de68dcb613e0d71db89f7a7bf0c6037c3fc759": false
+        },
+        "binary_sha256": "048b95267b15d26a4a71d0a7051a16dd12f5f66c36e9ce1c922b45d109babc33",
+        "bytes": 4346,
+        "t_states": 2270286
+      },
+      {
+        "requested": {
+          "c1d4e406d7b5f6ba9c2f9938a3de68dcb613e0d71db89f7a7bf0c6037c3fc759": true
+        },
+        "binary_sha256": "9f66eebbe30f988a7f9d4361aa2d654805a5bf3543d92126bf8c5e77f06f1b13",
+        "bytes": 4732,
+        "t_states": 2214152
+      }
+    ]
+  },
+  {
+    "record": "region-size-false-evidence.json",
+    "schema": "minz.region-compare-site-variant-sets/v1",
+    "evidence_sha256": "497f7c32dc698699b5955182d02e65f9f5c78a4590573b4793ae29357db6c4c8",
+    "selected": 1,
+    "candidates": [
+      {
+        "requested": {
+          "c1d4e406d7b5f6ba9c2f9938a3de68dcb613e0d71db89f7a7bf0c6037c3fc759": false
+        },
+        "binary_sha256": "048b95267b15d26a4a71d0a7051a16dd12f5f66c36e9ce1c922b45d109babc33",
+        "bytes": 4346,
+        "t_states": 2270286
+      },
+      {
+        "requested": {
+          "c1d4e406d7b5f6ba9c2f9938a3de68dcb613e0d71db89f7a7bf0c6037c3fc759": true
+        },
+        "binary_sha256": "9f66eebbe30f988a7f9d4361aa2d654805a5bf3543d92126bf8c5e77f06f1b13",
+        "bytes": 4732,
+        "t_states": 2214152
+      }
+    ]
+  }
+]

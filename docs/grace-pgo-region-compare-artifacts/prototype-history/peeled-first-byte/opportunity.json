@@ -1,0 +1,10 @@
+{
+  "entries": 178,
+  "positive": 177,
+  "iterations": 285,
+  "first_equal": 52,
+  "complete_equal": 42,
+  "first_mismatch": 125,
+  "one_equal": 6,
+  "zero": 1
+}

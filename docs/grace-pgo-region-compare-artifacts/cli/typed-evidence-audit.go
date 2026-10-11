@@ -1,0 +1,3 @@
+package main
+import("compress/gzip";"crypto/sha256";"encoding/json";"fmt";"os";"path/filepath";"github.com/minz/minzc/pkg/pipeline")
+func main(){for _,mode:=range []string{"speed","size"}{f,e:=os.Open(filepath.Join(os.Args[1],mode,"joint-evidence.json.gz"));if e!=nil{panic(e)};r,e:=gzip.NewReader(f);if e!=nil{panic(e)};var v pipeline.RegionCompareSiteEvidence;if e=json.NewDecoder(r).Decode(&v);e!=nil{panic(e)};want:=v.SHA256;v.SHA256="";b,e:=json.Marshal(v);if e!=nil{panic(e)};actual:=fmt.Sprintf("%x",sha256.Sum256(b));if actual!=want{panic("typed evidence SHA mismatch")};fmt.Println("PASS",mode,"typed evidence SHA",actual);r.Close();f.Close()}}

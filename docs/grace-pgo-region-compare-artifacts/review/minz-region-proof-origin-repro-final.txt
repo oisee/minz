@@ -1,0 +1,3 @@
+clean accepted true err <nil>
+orphanOrigin accepted false err region compare: detached source origin
+policy accepted false err region compare: unrelated/missing policies

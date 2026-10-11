@@ -1,0 +1,22 @@
+=== RUN   TestRegionCompareCompiledHelperRefusals
+=== RUN   TestRegionCompareCompiledHelperRefusals/argument
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+=== RUN   TestRegionCompareCompiledHelperRefusals/suffix
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+=== RUN   TestRegionCompareCompiledHelperRefusals/helper_metadata
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+=== RUN   TestRegionCompareCompiledHelperRefusals/extra_helper
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+=== RUN   TestRegionCompareCompiledHelperRefusals/origin
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+=== RUN   TestRegionCompareCompiledHelperRefusals/lineage
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+--- PASS: TestRegionCompareCompiledHelperRefusals (3.05s)
+    --- PASS: TestRegionCompareCompiledHelperRefusals/argument (0.37s)
+    --- PASS: TestRegionCompareCompiledHelperRefusals/suffix (0.33s)
+    --- PASS: TestRegionCompareCompiledHelperRefusals/helper_metadata (0.58s)
+    --- PASS: TestRegionCompareCompiledHelperRefusals/extra_helper (0.59s)
+    --- PASS: TestRegionCompareCompiledHelperRefusals/origin (0.56s)
+    --- PASS: TestRegionCompareCompiledHelperRefusals/lineage (0.57s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.064s

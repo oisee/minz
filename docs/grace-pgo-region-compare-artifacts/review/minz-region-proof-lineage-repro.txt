@@ -1,0 +1,4 @@
+clean accepted true err <nil>
+orphan accepted false err region compare 65549e4b294b179b41a118070fcbde535c7c90f4898733114576844a00c82489: unreachable lineage entry
+unrelatedID accepted false err region compare 65549e4b294b179b41a118070fcbde535c7c90f4898733114576844a00c82489: lineage multiplicity
+missingUnrelated accepted false err region compare 65549e4b294b179b41a118070fcbde535c7c90f4898733114576844a00c82489: lineage multiplicity

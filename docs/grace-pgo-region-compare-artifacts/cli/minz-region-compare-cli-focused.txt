@@ -1,0 +1,32 @@
+=== RUN   TestHIRProfileRegionCompareValidation
+=== RUN   TestHIRProfileRegionCompareValidation/joint
+=== RUN   TestHIRProfileRegionCompareValidation/copy
+=== RUN   TestHIRProfileRegionCompareValidation/mixed
+=== RUN   TestHIRProfileRegionCompareValidation/invariant
+=== RUN   TestHIRProfileRegionCompareValidation/site
+=== RUN   TestHIRProfileRegionCompareValidation/jointsites
+=== RUN   TestHIRProfileRegionCompareValidation/weighted
+=== RUN   TestHIRProfileRegionCompareValidation/independent
+=== RUN   TestHIRProfileRegionCompareValidation/auto
+=== RUN   TestHIRProfileRegionCompareValidation/workload
+=== RUN   TestHIRProfileRegionCompareValidation/restriction
+=== RUN   TestHIRProfileRegionCompareValidation/separate
+--- PASS: TestHIRProfileRegionCompareValidation (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/joint (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/copy (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/mixed (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/invariant (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/site (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/jointsites (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/weighted (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/independent (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/auto (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/workload (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/restriction (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/separate (0.00s)
+=== RUN   TestHIRProfileRegionCompareCompilation
+    hir_profile_region_compare_test.go:205: region CLI objective=speed selected1 48694T/475B sha9deafb6c1ae35a886fdad2a7e697885ba8b2374349928b059887b33e7512207d
+    hir_profile_region_compare_test.go:205: region CLI objective=size selected0 183792T/134B shaeff9fc4ee069716606b3a9510374faf542bd903c450f154bfa65d5b88749ccfd
+--- PASS: TestHIRProfileRegionCompareCompilation (0.55s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	0.559s

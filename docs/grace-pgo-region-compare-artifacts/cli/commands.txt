@@ -1,0 +1,3 @@
+Executable /tmp/minzc-region-compare-final built from final production sources with -buildvcs=false (isolated worktree Git stamping unavailable).
+Both modes: --hir-grace --hir-profile-joint --hir-profile-region-compare-sites --hir-profile-auto <mode-directory> --hir-profile-auto-workload input-workload.json -o <mode>.a80; size adds --Osize.
+Two actual candidates x30 persistent calls per objective. Host audit checks all results/fullglobals+resources/resource reads+writes; globaltraffic VM-target agreement only.

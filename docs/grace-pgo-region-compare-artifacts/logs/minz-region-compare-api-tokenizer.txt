@@ -1,0 +1,9 @@
+=== RUN   TestRegionCompareMeasuredCapBoundary
+--- PASS: TestRegionCompareMeasuredCapBoundary (3.67s)
+=== RUN   TestRegionCompareTypedTokenizerMeasured
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    profile_region_compare_test.go:304: measure region compare sites: region compare c1d4e406d7b5f6ba9c2f9938a3de68dcb613e0d71db89f7a7bf0c6037c3fc759: unrelated module content changed
+--- FAIL: TestRegionCompareTypedTokenizerMeasured (1.22s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	4.898s
+FAIL

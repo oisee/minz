@@ -1,0 +1,2 @@
+PASS full64k equality/mismatch/wrap/alias domain 230272 cases
+PASS independent sequential modular oracle 230442 cases; every u8 length/mismatch position, wrap/alias layouts and first/second/tail traps; exact ordered successful loads/error/fullheap

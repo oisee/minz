@@ -1,0 +1,4 @@
+partialReturn accepted false err region split: tail call result discarded/invented
+localArray accepted false err region split: argument order/type/binding
+VM [{9}] <nil>
+VM [{9}] <nil>

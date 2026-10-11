@@ -23,6 +23,9 @@ var gracePointerWalkRule string
 //go:embed rules/forward_copy.grace
 var graceForwardCopyRule string
 
+//go:embed rules/region_compare.grace
+var graceRegionCompareRule string
+
 // GraceOptions selects the rewrite budget and conservative size policy.
 // OptimizeForSize excludes versioned pointer loops, which duplicate the body.
 // It does not promise globally minimal machine code.
@@ -56,7 +59,7 @@ func RunGraceWithOptions(m *Module, options GraceOptions) (*grace.RuleResult, er
 	if err := Verify(m); err != nil {
 		return result, err
 	}
-	rules, err := grace.ParseRules(graceConstantIfRule + "\n" + graceInvariantBaseRule + "\n" + gracePointerWalkRule + "\n" + graceForwardCopyRule)
+	rules, err := grace.ParseRules(graceConstantIfRule + "\n" + graceInvariantBaseRule + "\n" + gracePointerWalkRule + "\n" + graceForwardCopyRule + "\n" + graceRegionCompareRule)
 	if err != nil {
 		return result, err
 	}
@@ -226,6 +229,48 @@ func RunGraceWithOptions(m *Module, options GraceOptions) (*grace.RuleResult, er
 				}
 				b.block.Body[1] = old
 				graph.err = fmt.Errorf("HIR Grace forward copy: %w", err)
+				return false
+			}
+			return true
+		})
+		reg.RegisterPredicate("hir-has-region-compare", func(_ rewrite.IRGraph, bindings grace.BlockBindings, _ []string) bool {
+			if graph.err != nil || m.RegionComparePolicy == nil || m.GraceRulePolicy == nil || !m.GraceRulePolicy[RegionCompareRule] {
+				return false
+			}
+			b := graph.byLabel[bindings["b"]]
+			if b == nil || b.block != b.owner.Body {
+				return false
+			}
+			p := findRegionCompare(b.owner, graph.globals)
+			if p == nil {
+				return false
+			}
+			origin, ok := m.LoopLineage[p.loop]
+			return ok && origin.Role == "original" && origin.Rule == "" && m.RegionComparePolicy[origin.SiteID]
+		})
+		reg.RegisterAction("hirRegionCompare", func(_ rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
+			b := graph.byLabel[bindings["b"]]
+			if b == nil {
+				return false
+			}
+			p := findRegionCompare(b.owner, graph.globals)
+			if p == nil {
+				return false
+			}
+			origin, ok := m.LoopLineage[p.loop]
+			if !ok {
+				return false
+			}
+			old := b.block.Body[1]
+			replacement, tail := p.rewrite()
+			b.block.Body[1] = replacement
+			m.LoopLineage[p.loop] = LoopLineage{SiteID: origin.SiteID, Role: "fallback", Rule: RegionCompareRule}
+			m.LoopLineage[tail] = LoopLineage{SiteID: origin.SiteID, Role: "fast", Rule: RegionCompareRule}
+			if e := verifyGraceModule(m); e != nil {
+				b.block.Body[1] = old
+				m.LoopLineage[p.loop] = origin
+				delete(m.LoopLineage, tail)
+				graph.err = fmt.Errorf("HIR Grace region compare: %w", e)
 				return false
 			}
 			return true
