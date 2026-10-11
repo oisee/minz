@@ -433,3 +433,5 @@ ex19_assert_forms, promoted_arithmetic, scheme_r5rs, tetris_tui).
 Четыре свежие ASM-регрессии также исчезли. Native-проверка строк через
 legacy route ещё впереди; общий строковый этап пока не закрыт.
 Все логи/сравнения сохранены с SHA, цель активна.
+
+12:28 UTC: ownerbc12 restoresaccsaves byte-exactbcd, testonlylegacyroute exporter reviewed/integratedecf641e8; exacta623legacy15oneactualrunFAIL4SString s/utf8/nul_s/s255, 11pass includingC/L/storage. ASMproves oldscratchD savecount overlapsliveDEptr andlaterLDD,1 overwritessavebeforeSUB1. Preservationstrategy/lifetimes nowrequiredstagefix, no blindretries. Rootfullpacket387verifiedcopied5f6c0039/pushed; legacyfailureseparatependingpacket. Goalactive.
