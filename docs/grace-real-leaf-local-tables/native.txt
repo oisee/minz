@@ -1,0 +1,15 @@
+=== RUN   TestCheckedRealWeightedSolverAndNativeCallers
+    checked_local_real_test.go:138: weighted exact corpus + caller harness all 256 inputs: module 44→20 B helper 182→86 T caller 238→142 T; actual ABI/SP verified; generation [weighted: admitted weighted_caller: skipped: unsupported local opcode call]
+--- PASS: TestCheckedRealWeightedSolverAndNativeCallers (1.30s)
+=== RUN   TestCheckedRealAlreadyOptimalLeafKeepsBaseline
+    checked_local_real_test.go:185: low_nibble corpus exact equal-size candidate retained PBQP all 256 inputs PASS; [swap_nibbles: skipped: unsupported instruction type rol1: skipped: unsupported instruction type rol3: skipped: unsupported instruction type high_nibble: skipped: unsupported instruction type low_nibble: admitted main: skipped: local table requires single-result leaf block]
+--- PASS: TestCheckedRealAlreadyOptimalLeafKeepsBaseline (0.94s)
+=== RUN   TestOfflineLocalGenerationRefusesIncompatibleOptions
+--- PASS: TestOfflineLocalGenerationRefusesIncompatibleOptions (0.00s)
+=== RUN   TestCheckedLocalTableOrdinaryHIRSelectsSmallerNativeFunction
+    checked_local_tables_test.go:110: ordinary add5 all 256 byte inputs: module 8→6 bytes fixture 56→49 T; result/SP pass
+--- PASS: TestCheckedLocalTableOrdinaryHIRSelectsSmallerNativeFunction (0.13s)
+=== RUN   TestCheckedLocalTableTamperFallsBackAndProfileRefuses
+--- PASS: TestCheckedLocalTableTamperFallsBackAndProfileRefuses (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.386s

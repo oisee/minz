@@ -35,6 +35,7 @@ import (
 	"github.com/minz/minzc/pkg/semantic"
 	"github.com/minz/minzc/pkg/trace"
 	"github.com/minz/minzc/pkg/version"
+	"github.com/minz/minzc/pkg/vir"
 	"github.com/minz/minzc/pkg/z80asm"
 	"github.com/spf13/cobra"
 )
@@ -75,10 +76,12 @@ var (
 	pgoDebug   bool   // Debug PGO decisions
 
 	// Backend selection
-	checkedLocalTablePath string // --checked-local-table: admitted leaf OptSize candidates
-	optSize               bool   // -Osize: optimize for code size (Grace reroll, DJNZ loops)
-	useGrace              bool   // --grace: run all Grace MIR2 passes before VIR lowering
-	useHIRGrace           bool   // --hir-grace: run structural Grace rules before HIR lowering
+	generateCheckedLocalTablePath string // offline output table
+	checkedLocalSolver            string // Z3 executable for offline generation
+	checkedLocalTablePath         string // --checked-local-table: admitted leaf OptSize candidates
+	optSize                       bool   // -Osize: optimize for code size (Grace reroll, DJNZ loops)
+	useGrace                      bool   // --grace: run all Grace MIR2 passes before VIR lowering
+	useHIRGrace                   bool   // --hir-grace: run structural Grace rules before HIR lowering
 
 	// Assert control
 	listAsserts          bool
@@ -255,6 +258,8 @@ func init() {
 	rootCmd.Flags().BoolVar(&ctieDebug, "ctie-debug", false, "show CTIE optimization decisions and statistics")
 	rootCmd.Flags().BoolVar(&compileTrace, "compile-trace", false, "show all optimization decisions and transformations")
 	rootCmd.Flags().StringVar(&superoptRules, "superopt-rules", "", "path to z80-optimizer rules.json[.gz] for superoptimizer peephole pass")
+	rootCmd.Flags().StringVar(&generateCheckedLocalTablePath, "generate-checked-local-table", "", "generate admitted leaf register table offline (requires --Osize)")
+	rootCmd.Flags().StringVar(&checkedLocalSolver, "checked-local-solver", "z3", "Z3 executable for offline local table generation")
 	rootCmd.Flags().StringVar(&checkedLocalTablePath, "checked-local-table", "", "use checked local register table for smaller leaf Z80 functions (requires --Osize)")
 	rootCmd.Flags().BoolVar(&optSize, "Osize", false, "optimize for code size: Grace reroll; skip HIR Grace's versioned pointer loops")
 	rootCmd.Flags().BoolVar(&useGrace, "grace", false, "run all Grace MIR2 passes before VIR lowering (DSE, CondRetSink, BlockMerge, etc.)")
@@ -1069,6 +1074,19 @@ func compileViaHIR(sourceFile string) error {
 			return err
 		}
 		opts.ProfileSelection = selection
+	}
+	if generateCheckedLocalTablePath != "" {
+		table, notes, err := pipeline.GenerateCheckedLocalTables(hirMod, opts, vir.SolverOptions{Z3Path: checkedLocalSolver})
+		if err != nil {
+			return err
+		}
+		for _, note := range notes {
+			fmt.Fprintln(os.Stderr, "[checked-local] "+note)
+		}
+		if table.Size() == 0 {
+			return fmt.Errorf("no checked local entries admitted")
+		}
+		return table.Save(generateCheckedLocalTablePath)
 	}
 	var steps pipeline.Steps
 	jointCompiled := false

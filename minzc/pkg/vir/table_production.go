@@ -99,12 +99,15 @@ func PrepareLocalTableProblem(f *mir2.Func, allocation *mir2.AllocResult) (*Loca
 	}
 	ops = foldConstIntoALU(ops)
 	ops = EliminateDeadConsts(ops)
+	// Preserve values that survive a destructive tied accumulator operation.
+	// Saves are explicit problem operations and are included in admission/cost.
+	ops = insertSaveMoves(append([]VIROp(nil), ops...), Z80)
 	contract, err := json.Marshal(f.Contract)
 	if err != nil {
 		return nil, err
 	}
 	binding := (&mir2.Module{Funcs: []*mir2.Func{f}}).Dump() + string(contract)
-	opts.CheckedContext = fmt.Sprintf("production-local-v1:%x", sha256.Sum256([]byte(binding)))
+	opts.CheckedContext = fmt.Sprintf("production-local-v2:%x", sha256.Sum256([]byte(binding)))
 	return &LocalTableProblem{Ops: ops, Options: opts, Function: f}, nil
 }
 

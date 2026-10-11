@@ -1,0 +1,2 @@
+Error: generation requires ordinary Z80 OptSize without profile/table
+exit status 1

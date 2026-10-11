@@ -1,0 +1,2 @@
+low_nibble PIR=[{Pat:0xc8ef3281a40 DstPhys:0 SrcPhys:[0 -1] Imm:15 Sym: Comment: AsmText:} {Pat:0xc8ef3280168 DstPhys:0 SrcPhys:[0 -1] Imm:0 Sym: Comment: AsmText:} {Pat:0xc8ef3283138 DstPhys:-1 SrcPhys:[0 -1] Imm:0 Sym: Comment: AsmText:}]
+low_nibble ADMITTED map[5:0 7:0 8:0]
