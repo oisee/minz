@@ -1,0 +1,6 @@
+{
+  "base_commit": "6d583fc7",
+  "freeze_commit": "ba591dbf",
+  "executable_sha256": "3481fca65f996e61ecb17e0e3ac65a4257be006a2ca3b7b393e94b3164e25731",
+  "command": "from minzc/pkg/pipeline: MINZ_ADVANTAGE_ARTIFACTS=<packet>/actual <frozen-exe> -test.run ^TestOriginalAdvantageNative$ -test.count=1 -test.v"
+}

@@ -1,0 +1,147 @@
+; MIR2 module: examples/tests/nanz_advantage_showcase.nanz
+global @vals : [5]u8
+
+fun @double(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = add %r1, %r1 : u8 [acc]
+    ret %r2
+
+fun @inc(%r3: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r4 = const 1 : u8 [general]
+    %r5 = add %r3, %r4 : u8 [acc]
+    ret %r5
+
+fun @square(%r6: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r7 = mul %r6, %r6 : u8 [general]
+    ret %r7
+
+fun @pipeline_demo() -> u8 [acc]
+  block @entry:
+    %r8 = const 3 : u8 [general]
+    %r9 = move %r8 : u8 [acc]
+    %r10 = call @double(%r9) : u8 [acc]
+    %r11 = move %r10 : u8 [acc]
+    %r12 = call @inc(%r11) : u8 [acc]
+    %r13 = move %r12 : u8 [acc]
+    %r14 = call @square(%r13) : u8 [acc]
+    ret %r14
+
+fun @add_acc(%r15: u8 [acc], %r16: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r17 = add %r15, %r16 : u8 [acc]
+    ret %r17
+
+fun @sum_all() -> u8 [acc]
+  block @entry:
+    %r18 = const 0 : u8 [general]
+    %r19 = addr_of @vals : ptr [pointer]
+    %r20 = const 0 : u8 [general]
+    %r21 = ptr_add %r19, %r20 : ptr [pointer]
+    %r22 = const 5 : u8 [general]
+    %r23 = const 0 : u8 [acc]
+    %r24 = cmp.ne %r22, %r23 : bool [flag]
+    br_if %r24, @fe_body1(%r22, %r21, %r18), @fe_exit2(%r18)
+  block @fe_body1(%r25: u8 [counter], %r26: ptr [pointer], %r27: u8 [general]):
+    %r28 = load %r26 : u8 [general]
+    %r29 = add %r27, %r28 : u8 [general]
+    %r30 = ptr_bump %r26, +1 : ptr [pointer]
+    djnz %r25, @fe_body1(%r30, %r29), @fe_exit2(%r29)
+  block @fe_exit2(%r31: u8 [general]):
+    ret %r31
+
+fun @sum_plus_offset() -> u8 [acc]
+  block @entry:
+    %r32 = const 0 : u8 [general]
+    %r33 = addr_of @vals : ptr [pointer]
+    %r34 = const 0 : u8 [general]
+    %r35 = ptr_add %r33, %r34 : ptr [pointer]
+    %r36 = const 5 : u8 [general]
+    %r37 = const 0 : u8 [acc]
+    %r38 = cmp.ne %r36, %r37 : bool [flag]
+    br_if %r38, @fe_body1(%r36, %r35, %r32), @fe_exit2(%r32)
+  block @fe_body1(%r39: u8 [counter], %r40: ptr [pointer], %r41: u8 [general]):
+    %r42 = load %r40 : u8 [general]
+    %r43 = add %r41, %r42 : u8 [general]
+    %r44 = ptr_bump %r40, +1 : ptr [pointer]
+    djnz %r39, @fe_body1(%r44, %r43), @fe_exit2(%r43)
+  block @fe_exit2(%r45: u8 [general]):
+    %r46 = const 5 : u8 [general]
+    %r47 = add %r45, %r46 : u8 [acc]
+    ret %r47
+
+fun @fib(%r48: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r49 = const 2 : u8 [general]
+    %r50 = cmp.ult %r48, %r49 : bool [flag]
+    br_if %r50, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r48
+  block @if_join2:
+    %r51 = const 0 : u8 [general]
+    %r52 = const 1 : u8 [general]
+    %r53 = const 2 : u8 [general]
+    jmp @loop_head3(%r51, %r52, %r53, %r48)
+  block @loop_head3(%r54: u8 [general], %r55: u8 [general], %r56: u8 [general], %r57: u8 [general]):
+    %r58 = cmp.ule %r56, %r57 : bool [flag]
+    br_if %r58, @loop_body4(), @loop_exit5(%r54, %r55, %r56, %r57)
+  block @loop_body4:
+    %r59 = add %r54, %r55 : u8 [general]
+    %r60 = const 1 : u8 [general]
+    %r61 = add %r56, %r60 : u8 [general]
+    jmp @loop_head3(%r55, %r59, %r61, %r57)
+  block @loop_exit5(%r62: u8 [general], %r63: u8 [general], %r64: u8 [general], %r65: u8 [general]):
+    ret %r63
+
+fun @fib8() -> u8 [acc]
+  block @entry:
+    %r66 = const 8 : u8 [general]
+    %r67 = move %r66 : u8 [acc]
+    %r68 = call @fib(%r67) : u8 [acc]
+    ret %r68
+
+fun @fib12() -> u8 [acc]
+  block @entry:
+    %r69 = const 12 : u8 [general]
+    %r70 = move %r69 : u8 [acc]
+    %r71 = call @fib(%r70) : u8 [acc]
+    ret %r71
+
+fun @opposite(%r72: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r73 = const 0 : u8 [general]
+    %r74 = cmp.eq %r72, %r73 : bool [flag]
+    br_if %r74, @if_then1(), @if_join2()
+  block @if_then1:
+    %r75 = const 1 : u8 [general]
+    ret %r75
+  block @if_join2:
+    %r76 = const 1 : u8 [general]
+    %r77 = cmp.eq %r72, %r76 : bool [flag]
+    br_if %r77, @if_then3(), @if_join4()
+  block @if_then3:
+    %r78 = const 0 : u8 [general]
+    ret %r78
+  block @if_join4:
+    %r79 = const 2 : u8 [general]
+    %r80 = cmp.eq %r72, %r79 : bool [flag]
+    br_if %r80, @if_then5(), @if_join6()
+  block @if_then5:
+    %r81 = const 3 : u8 [general]
+    ret %r81
+  block @if_join6:
+    %r82 = const 2 : u8 [general]
+    ret %r82
+
+fun @board_idx(%r83: u8 [acc], %r84: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r85 = const 10 : u8 [general]
+    %r86 = mul %r84, %r85 : u8 [general]
+    %r87 = add %r86, %r83 : u8 [acc]
+    ret %r87
+
+fun @main()
+  block @entry:
+    ret void
+
