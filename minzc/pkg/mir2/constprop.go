@@ -1,5 +1,7 @@
 package mir2
 
+import "reflect"
+
 // collectKnownConsts returns a map of Reg → int64 for every OpConst-defined
 // register in f.  This is the seed used by PropagateConstants, FoldConstants,
 // and ConstantCallElim.
@@ -472,7 +474,7 @@ func PropagateConstants(f *Func) bool {
 // Returns true if any instruction was rewritten.
 func SimplifyIdentities(f *Func) bool {
 	consts := collectKnownConsts(f)
-	changed := false
+	changed := simplifyTypedZeroIdentities(f)
 	for _, b := range f.Blocks {
 		defs := map[Reg]*Inst{}
 		for i, inst := range b.Insts {
@@ -618,4 +620,120 @@ func rewriteTermUses(t Term, old, new_ Reg) {
 	case *TermRet:
 		rewriteSlice(t.Vals)
 	}
+}
+
+// simplifyTypedZeroIdentities transfers value identities before allocation.
+// It never reasons about textual flag-producing Z80 instructions. Opaque ASM,
+// first-class flag/CY consumers and fallible exits remain outside this domain.
+func simplifyTypedZeroIdentities(f *Func) bool {
+	if f == nil || f.Attrs.FallibleCY {
+		return false
+	}
+	for _, p := range f.Contract.Params {
+		if p.Class == ClassFlag {
+			return false
+		}
+	}
+	for _, r := range f.Contract.Returns {
+		if r.Class == ClassFlag {
+			return false
+		}
+	}
+	for _, b := range f.Blocks {
+		switch b.Term.(type) {
+		case *TermErrorRet:
+			return false
+		}
+		for _, p := range b.Params {
+			if p.Class == ClassFlag {
+				return false
+			}
+		}
+		for _, x := range b.Insts {
+			if x == nil || x.Op == OpAsm || x.Op == OpCallCond || x.Op == OpCmp || x.FallibleCY || x.FlagsOnly || x.Cls == ClassFlag {
+				return false
+			}
+		}
+	}
+	integer := func(t Ty) bool { return t == TyU8 || t == TyI8 || t == TyU16 || t == TyI16 }
+	changed := false
+	for _, b := range f.Blocks {
+		types := map[Reg]Ty{}
+		for _, p := range f.Contract.Params {
+			types[p.Reg] = p.Ty
+		}
+		for _, p := range b.Params {
+			types[p.Dst] = p.Ty
+		}
+		defs := map[Reg]*Inst{}
+		for i, x := range b.Insts {
+			if x == nil {
+				continue
+			}
+			clean := *x
+			clean.Op = 0
+			clean.Dst = 0
+			clean.Src = [2]Reg{}
+			clean.Ty = nil
+			clean.Cls = 0
+			clean.SrcLine = 0
+			clean.SrcFile = ""
+			// Unlisted metadata on a value opcode cannot be silently discarded.
+			pure := reflect.DeepEqual(clean, Inst{}) && !x.ClsHard && integer(x.Ty) && x.Dst > 0 && types[x.Src[0]] == x.Ty && types[x.Src[1]] == x.Ty
+			zero := func(r Reg) bool {
+				k := defs[r]
+				if k == nil || k.Op != OpConst || k.ClsHard || k.Ty != x.Ty || truncate(Value{I: k.Imm}, k.Ty).I != 0 {
+					return false
+				}
+				plain := *k
+				plain.Op, plain.Dst, plain.Imm, plain.Ty, plain.Cls = 0, 0, 0, nil, 0
+				plain.SrcFile, plain.SrcLine = "", 0
+				return reflect.DeepEqual(plain, Inst{})
+			}
+			replacement := -1
+			constant := false
+			if pure {
+				switch x.Op {
+				case OpOr, OpXor:
+					if zero(x.Src[1]) {
+						replacement = 0
+					} else if zero(x.Src[0]) {
+						replacement = 1
+					}
+				case OpSub, OpShl:
+					if zero(x.Src[1]) {
+						replacement = 0
+					}
+				case OpAnd, OpMul:
+					// Byte multiply-by-zero already has a cheaper native XOR path.
+					// Keep that path rather than forcing a general-class constant.
+					if x.Op == OpMul && x.Ty.Width() == 8 {
+						break
+					}
+					if zero(x.Src[0]) || zero(x.Src[1]) {
+						constant = true
+					}
+				}
+			}
+			if replacement >= 0 || constant {
+				y := *x
+				if constant {
+					y.Op = OpConst
+					y.Imm = 0
+					y.Src = [2]Reg{}
+				} else {
+					y.Op = OpMove
+					y.Src = [2]Reg{x.Src[replacement]}
+				}
+				b.Insts[i] = &y
+				x = &y
+				changed = true
+			}
+			if x.Dst != NoReg {
+				types[x.Dst] = x.Ty
+				defs[x.Dst] = x
+			}
+		}
+	}
+	return changed
 }
