@@ -1,0 +1,10 @@
+{
+  "source_checkpoint": "08be2950a05cb2c39cb03b4a60e0b17bab7a24fa",
+  "source_files_verified": 4524,
+  "source_manifest": "/mnt/safe/minz/grace/2026-10-11/compiler-source-evidence/checkpoint-08be2950/manifest.json",
+  "manifest_sha256": "36344e1492f57f30f2ea221c914c874142e8615a20aebd60fe0fa36104d12f10",
+  "share_index": "/mnt/safe/minz/grace/2026-10-11/README.md",
+  "index_missing_links": [],
+  "lizp_return_policy_payloads": 4,
+  "scope": "copy verification; no compiler gate PASS implied"
+}
