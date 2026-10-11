@@ -11,9 +11,6 @@ import (
 // Power-of-2 constants use N×(ADD A,A); small constants use LD tmp,A + adds.
 // Variable or large constants use the __mul8 runtime.
 func (g *z80cg) genMul(inst *Inst) {
-	if inst.Ty.Width() <= 8 {
-		defer g.saveWrittenScratch(inst)()
-	}
 	dst := g.loc(inst.Dst)
 	lhs := g.loc(inst.Src[0])
 
@@ -53,6 +50,10 @@ func (g *z80cg) genMul(inst *Inst) {
 			g.pendingAccReg = inst.Dst
 		}
 	}()
+	// Capture scratch preservation after relocating a live A operand. Otherwise
+	// restoring the old scratch pair discards the new home recorded in
+	// physOverride while later instructions still read that home.
+	defer g.saveWrittenScratch(inst)()
 	lhs = g.loc(inst.Src[0])
 	cv, isConst := g.constVals[inst.Src[1]]
 
