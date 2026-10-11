@@ -1,0 +1,16 @@
+{
+  "compile-only-comparison.json": "0aed1d1bf55bc326bb0702cf20ca3088fe63ec152677ea27f3816b691e9d8d52",
+  "PLAN.md": "7568bd76c115a471c099073bec2df974521ee772e0d04c3fd0b6d0a90c40380c",
+  "compile-pointer/optimized.mir": "a90beb47dff7a9a1ac5f1259f376b0869c592c6a04f075f084a3c1b5ce69911d",
+  "compile-pointer/raw.mir": "344db5a2aea5b1db06154fac1f128d4dd6a225bc7909b2901f476d30cbdd945c",
+  "compile-pointer/program.bin": "1fce33d6ef72067e5be110baab513847487c0accd5b36756cba48ec093984d2f",
+  "compile-pointer/program.a80": "474e69e15949db09efc35381610b07ecec4903c9ac87b71f50d525a6547c72e0",
+  "compile-pointer/prior-diff.txt": "18af1012d3ab780dddb7750eb241226b916fbe1219d0781e4333981edebedf39",
+  "compile-pointer/allocation.json": "8746a462cbd5a2ae7d9188dc21472bd5cf36774756608571114c7930fc550c7d",
+  "compile-original/optimized.mir": "b6456ea79eec67fab17210e719911353b02eca2db46b8fdecf1b716dd4e06060",
+  "compile-original/raw.mir": "c9192d010128d7c370e335077096ad393de6baaca975d5efe0f0e8fcf59d8503",
+  "compile-original/program.bin": "299f4e5f38eeb93548a24d1d0cced47c73ad5052a400021187c8ae5a528c232c",
+  "compile-original/program.a80": "17a4956bc4f65642848079b71b4ad7d641793422f09aa2bdad44d6439695ef65",
+  "compile-original/prior-diff.txt": "8368d4bdb0c5c82f24077f3e58c6384c28cc54d435757e2cf4e07f552ed95423",
+  "compile-original/allocation.json": "da32b0937d09d9f9950692b7df73b5b009a319914a895475065a7790efed8bad"
+}

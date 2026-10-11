@@ -1,0 +1,46 @@
+--- prior147202
++++ decimal195250
+@@ -68,6 +68,43 @@
+     JRS .main_loop_head3
+ .main_loop_exit5:
+     ; genCall: @mir.io.print.u8 dst=0
++    LD A, A
++    LD C, A
++    LD B, 0
++.pdec_h0:
++    LD A, C
++    CP 100
++    JR C, .pdec_ht0
++    SUB 100
++    LD C, A
++    INC B
++    JR .pdec_h0
++.pdec_ht0:
++    LD A, B
++    OR A
++    JR Z, .pdec_t0
++    ADD A, 48
++    OUT (0x23), A
++.pdec_t0:
++    LD D, 0
++.pdec_tl0:
++    LD A, C
++    CP 10
++    JR C, .pdec_tt0
++    SUB 10
++    LD C, A
++    INC D
++    JR .pdec_tl0
++.pdec_tt0:
++    LD A, B
++    OR D
++    JR Z, .pdec_u0
++    LD A, D
++    ADD A, 48
++    OUT (0x23), A
++.pdec_u0:
++    LD A, C
++    ADD A, 48
+     OUT (0x23), A
+     ; genCall: @mir.io.print.nl dst=0
+     LD A, 0x0A

@@ -1,0 +1,5 @@
+# Sum cost evidence after decimal-print repair
+
+Base `e51846f1`. This isolated test update preserves prior 147/202-byte evidence unchanged. Compile/assembly only measures whole original module at 195 bytes and pointer variant at 250 bytes. Both add 48 bytes solely in main's corrected print.u8 decimal sequence. The ASM suffix starting at sum_array is exactly identical to each corresponding prior compile artifact; the pointer-minus-original footprint remains 55 bytes.
+
+Only the test's whole-module byte constants and evidence identity change: `sum-array-z80-all-six-lengths-decimal-print-v3`. All timing assertions remain unchanged. Compile evidence cannot certify new timed execution; the frozen focused TestProfileGuidedSumVMZ80 executable must later be retained and released by root for one six-length/three-variant run with the boundary and short-size decisions. No CPU execution has yet occurred at this checkpoint. Main printing is present in whole-module BIN but not called by the sum-array timing harness.

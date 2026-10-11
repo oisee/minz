@@ -1,0 +1,16 @@
+[
+  {
+    "variant": "original",
+    "current_bytes": 195,
+    "prior_bytes": 147,
+    "sum_and_suffix_equal": true,
+    "current_asm_sha256": "17a4956bc4f65642848079b71b4ad7d641793422f09aa2bdad44d6439695ef65"
+  },
+  {
+    "variant": "pointer",
+    "current_bytes": 250,
+    "prior_bytes": 202,
+    "sum_and_suffix_equal": true,
+    "current_asm_sha256": "474e69e15949db09efc35381610b07ecec4903c9ac87b71f50d525a6547c72e0"
+  }
+]
