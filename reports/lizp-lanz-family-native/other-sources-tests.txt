@@ -1,0 +1,13 @@
+=== RUN   TestOriginalLizpLanzFamilyState
+    original_lizp_lanz_family_native_test.go:292: examples/lizp/factorial.lizp ordinary 257 native/raw/final independent fullstate PASS
+    original_lizp_lanz_family_native_test.go:292: examples/lizp/factorial.lizp grace-size 257 native/raw/final independent fullstate PASS
+    original_lizp_lanz_family_native_test.go:292: examples/lizp/factorial.lizp grace-speed 257 native/raw/final independent fullstate PASS
+    original_lizp_lanz_family_native_test.go:292: examples/lizp/hello.lizp ordinary 1 native/raw/final independent fullstate PASS
+    original_lizp_lanz_family_native_test.go:292: examples/lizp/hello.lizp grace-size 1 native/raw/final independent fullstate PASS
+    original_lizp_lanz_family_native_test.go:292: examples/lizp/hello.lizp grace-speed 1 native/raw/final independent fullstate PASS
+    original_lizp_lanz_family_native_test.go:292: reports/showcase-src/2026-03-15/ex29_lanz.lanz ordinary 66047 native/raw/final independent fullstate PASS
+    original_lizp_lanz_family_native_test.go:292: reports/showcase-src/2026-03-15/ex29_lanz.lanz grace-size 66047 native/raw/final independent fullstate PASS
+    original_lizp_lanz_family_native_test.go:292: reports/showcase-src/2026-03-15/ex29_lanz.lanz grace-speed 66047 native/raw/final independent fullstate PASS
+--- PASS: TestOriginalLizpLanzFamilyState (5.60s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	5.610s

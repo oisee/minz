@@ -1,0 +1,6 @@
+=== RUN   TestOriginalLizpLanzFamilyState
+    original_lizp_lanz_family_native_test.go:140: examples/lizp/cond_test.lizp ordinary raw classify [0] [] 0
+--- FAIL: TestOriginalLizpLanzFamilyState (0.01s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.013s
+FAIL

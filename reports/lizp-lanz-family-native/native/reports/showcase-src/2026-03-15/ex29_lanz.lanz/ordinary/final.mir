@@ -1,0 +1,31 @@
+; MIR2 module: ../../../reports/showcase-src/2026-03-15/ex29_lanz.lanz
+fun @double(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = add %r1, %r1 : u8 [acc]
+    ret %r2
+
+fun @sum_to(%r3: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r4 = const 0 : u8 [general]
+    %r5 = const 1 : u8 [general]
+    jmp @loop_head1(%r4, %r5, %r3)
+  block @loop_head1(%r4: u8 [general], %r5: u8 [general], %r8: u8 [general]):
+    %r9 = cmp.ule %r5, %r8 : bool [flag]
+    cond_ret %r9, [%r4], @loop_body2()
+  block @loop_body2:
+    %r10 = add %r4, %r5 : u8 [general]
+    %r11 = const 1 : u8 [general]
+    %r12 = add %r5, %r11 : u8 [general]
+    jmp @loop_head1(%r10, %r12, %r8)
+
+fun @abs_diff(%r13: u8 [acc], %r14: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r15 = cmp.uge %r13, %r14 : bool [flag]
+    br_if %r15, @if_then1(), @if_else3()
+  block @if_then1:
+    %r16 = sub %r13, %r14 : u8 [acc]
+    ret %r16
+  block @if_else3:
+    %r17 = sub %r14, %r13 : u8 [acc]
+    ret %r17
+
