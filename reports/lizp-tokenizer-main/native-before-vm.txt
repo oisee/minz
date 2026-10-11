@@ -1,0 +1,8 @@
+=== RUN   TestOriginalLizpTokenizerWholeMain
+    original_lizp_tokenizer_main_test.go:195: ordinary final  	
+        ; hi
+        (foo -12 34 "a b") 0 1 10 [] block @entry: block @if_then1: block @loop_exit3: mir2.VM: unhandled opcode call_cc
+--- FAIL: TestOriginalLizpTokenizerWholeMain (0.03s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.038s
+FAIL
