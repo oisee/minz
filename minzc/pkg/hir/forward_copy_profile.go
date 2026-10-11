@@ -47,6 +47,10 @@ func forwardCopyReserved(m *Module) map[string]bool {
 // ValidateForwardCopyProof checks source legality and actual independent shape,
 // including both guards, sequential read/store, pointer steps and exact fallback.
 func ValidateForwardCopyProof(source, actual *Module, siteID string, enabled bool) (ForwardCopyProof, error) {
+	return validateForwardCopyShape(source, actual, siteID, enabled)
+}
+
+func validateForwardCopyShape(source, actual *Module, siteID string, enabled bool) (ForwardCopyProof, error) {
 	fail := func(why string) (ForwardCopyProof, error) {
 		return ForwardCopyProof{}, fmt.Errorf("forward copy %s: %s", siteID, why)
 	}

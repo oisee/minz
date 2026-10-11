@@ -13,6 +13,14 @@ import (
 // Every generated helper must contribute an unchanged ordered source suffix;
 // its arguments must forward exactly the lexical free bindings of that suffix.
 func ValidateRegionCompareCompiledChoices(source, actual *Module, choices map[string]bool) ([]RegionCompareProof, error) {
+	view, e := normalizeRegionCompareSplits(source, actual)
+	if e != nil {
+		return nil, e
+	}
+	return ValidateRegionCompareChoices(source, view, choices)
+}
+
+func normalizeRegionCompareSplits(source, actual *Module) (*Module, error) {
 	if source == nil || actual == nil {
 		return nil, fmt.Errorf("region split: nil module")
 	}
@@ -146,7 +154,7 @@ func ValidateRegionCompareCompiledChoices(source, actual *Module, choices map[st
 			return nil, fmt.Errorf("region split: unexpected helper/function")
 		}
 	}
-	return ValidateRegionCompareChoices(source, &view, choices)
+	return &view, nil
 }
 
 func regionSplitFree(root *Block, reserved map[string]bool) map[string]bool {

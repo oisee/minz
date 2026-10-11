@@ -20,9 +20,14 @@ var hirProfileWeightedSites bool
 var hirProfileForwardCopySites bool
 var hirProfileMixedCopyWeightedSites bool
 var hirProfileRegionCompareSites bool
+var hirProfileMixedCopyRegionSites bool
 
 func validateHIRProfileAuto(source string) error {
-	if hirProfileRegionCompareSites && (!hirProfileJoint || hirProfileForwardCopySites || hirProfileMixedCopyWeightedSites || hirProfileInvariantSites || hirProfileSiteRules || hirProfileJointSites || hirProfileWeightedSites || hirProfileIndependentRules) {
+	if hirProfileMixedCopyRegionSites && (!hirProfileJoint || hirProfileRegionCompareSites || hirProfileForwardCopySites || hirProfileMixedCopyWeightedSites || hirProfileInvariantSites || hirProfileSiteRules || hirProfileJointSites || hirProfileWeightedSites || hirProfileIndependentRules) {
+		return fmt.Errorf("HIR mixed copy region sites: requires --hir-profile-joint and cannot combine with other site or independent rule modes")
+	}
+
+	if hirProfileRegionCompareSites && (!hirProfileJoint || hirProfileMixedCopyRegionSites || hirProfileForwardCopySites || hirProfileMixedCopyWeightedSites || hirProfileInvariantSites || hirProfileSiteRules || hirProfileJointSites || hirProfileWeightedSites || hirProfileIndependentRules) {
 		return fmt.Errorf("HIR region compare sites: requires --hir-profile-joint and cannot combine with other site or independent rule modes")
 	}
 
@@ -161,7 +166,16 @@ func prepareHIRProfileJoint(m *hir.Module, factory func() (*hir.Module, error), 
 	var result *pipeline.ProfileVariantSetResult
 	var evidence any
 	var decisions any
-	if hirProfileRegionCompareSites {
+	if hirProfileMixedCopyRegionSites {
+		mixed, err := pipeline.MeasureMixedCopyRegionSiteVariantSets(factory, observations, workload, options, 4)
+		if err != nil {
+			return nil, err
+		}
+		result = &pipeline.ProfileVariantSetResult{Steps: mixed.Steps, Binary: mixed.Binary}
+		evidence = mixed.Evidence
+		best := mixed.Evidence.Candidates[mixed.Evidence.Selected]
+		decisions = map[string]any{"schema": "minz.mixed-copy-region-site-decisions/v1", "compatibility": mixed.Evidence.Compatibility, "selected": mixed.Evidence.Selected, "requested_choices": best.RequestedSites, "proofs": best.Proofs, "postcompile_proofs": best.FinalProofs, "binary_sha256": best.BinarySHA256, "evidence_sha256": mixed.Evidence.SHA256}
+	} else if hirProfileRegionCompareSites {
 		region, err := pipeline.MeasureRegionCompareSiteVariantSets(factory, observations, workload, options, 4)
 		if err != nil {
 			return nil, err

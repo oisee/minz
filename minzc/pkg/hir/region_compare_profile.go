@@ -102,6 +102,10 @@ func ApplyRegionCompareSiteChoices(m *Module, c *ProfileCompatibility, choices m
 // arithmetic, early exits, resumed fallback, metadata and source attribution.
 // It never constructs an expected transformed body by invoking the rewriter.
 func ValidateRegionCompareProof(source, actual *Module, id string, enabled bool) (RegionCompareProof, error) {
+	return validateRegionCompareShape(source, actual, id, enabled, true)
+}
+
+func validateRegionCompareShape(source, actual *Module, id string, enabled, standalone bool) (RegionCompareProof, error) {
 	fail := func(why string) (RegionCompareProof, error) {
 		return RegionCompareProof{}, fmt.Errorf("region compare %s: %s", id, why)
 	}
@@ -144,41 +148,43 @@ func ValidateRegionCompareProof(source, actual *Module, id string, enabled bool)
 	if !reflect.DeepEqual(a, b) || !reflect.DeepEqual(source.Globals, actual.Globals) || source.Target != actual.Target {
 		return fail("metadata changed")
 	}
-	// Compare all unchanged module content; the chosen body and intentional
-	// policy/lineage bookkeeping are checked separately below.
-	x, y := *source, *actual
-	x.RegionComparePolicy = nil
-	y.RegionComparePolicy = nil
-	x.SourceLocations = nil
-	y.SourceLocations = nil
-	x.LoopLineage = nil
-	y.LoopLineage = nil
-	x.GraceRulePolicy = nil
-	y.GraceRulePolicy = nil
-	x.PointerWalkPolicy = nil
-	y.PointerWalkPolicy = nil
-	x.InvariantBasePolicy = nil
-	y.InvariantBasePolicy = nil
-	x.ForwardCopyPolicy = nil
-	y.ForwardCopyPolicy = nil
-	x.Funcs = make([]*Func, len(source.Funcs))
-	y.Funcs = make([]*Func, len(actual.Funcs))
-	for j, fn := range source.Funcs {
-		copy := *fn
-		if findRegionCompare(source.FuncByName(fn.Name), forwardCopyReserved(source)) != nil {
-			copy.Body = nil
+	if standalone {
+		// Compare all unchanged module content; the chosen body and intentional
+		// policy/lineage bookkeeping are checked separately below.
+		x, y := *source, *actual
+		x.RegionComparePolicy = nil
+		y.RegionComparePolicy = nil
+		x.SourceLocations = nil
+		y.SourceLocations = nil
+		x.LoopLineage = nil
+		y.LoopLineage = nil
+		x.GraceRulePolicy = nil
+		y.GraceRulePolicy = nil
+		x.PointerWalkPolicy = nil
+		y.PointerWalkPolicy = nil
+		x.InvariantBasePolicy = nil
+		y.InvariantBasePolicy = nil
+		x.ForwardCopyPolicy = nil
+		y.ForwardCopyPolicy = nil
+		x.Funcs = make([]*Func, len(source.Funcs))
+		y.Funcs = make([]*Func, len(actual.Funcs))
+		for j, fn := range source.Funcs {
+			copy := *fn
+			if findRegionCompare(source.FuncByName(fn.Name), forwardCopyReserved(source)) != nil {
+				copy.Body = nil
+			}
+			x.Funcs[j] = &copy
 		}
-		x.Funcs[j] = &copy
-	}
-	for j, fn := range actual.Funcs {
-		copy := *fn
-		if findRegionCompare(source.FuncByName(fn.Name), forwardCopyReserved(source)) != nil {
-			copy.Body = nil
+		for j, fn := range actual.Funcs {
+			copy := *fn
+			if findRegionCompare(source.FuncByName(fn.Name), forwardCopyReserved(source)) != nil {
+				copy.Body = nil
+			}
+			y.Funcs[j] = &copy
 		}
-		y.Funcs[j] = &copy
-	}
-	if !reflect.DeepEqual(x, y) {
-		return fail("unrelated module content changed")
+		if !reflect.DeepEqual(x, y) {
+			return fail("unrelated module content changed")
+		}
 	}
 	root := f.Body
 	eq := reflect.DeepEqual
@@ -189,8 +195,10 @@ func ValidateRegionCompareProof(source, actual *Module, id string, enabled bool)
 		l, ok := actual.LoopLineage[s]
 		return ok && l.SiteID == id && l.Role == role && l.Rule == rule && l.PreviousRule == ""
 	}
-	if e := regionCompareLineage(source, actual); e != nil {
-		return fail(e.Error())
+	if standalone {
+		if e := regionCompareLineage(source, actual); e != nil {
+			return fail(e.Error())
+		}
 	}
 	proof := RegionCompareProof{id, site.Function, site.Origin.SourceSHA256, enabled}
 	if !enabled {
