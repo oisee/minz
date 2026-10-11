@@ -32,7 +32,7 @@ func TestMemoryHostCallSnapshotBinding(t *testing.T) {
 	if e != nil || len(r) != 1 {
 		t.Fatal(e)
 	}
-	for _, name := range []string{"missing", "duplicate", "slot", "return_escape", "wrong_opcode", "saved_pair", "orphan"} {
+	for _, name := range []string{"missing", "duplicate", "slot", "return_escape", "wrong_opcode", "saved_pair", "orphan", "in_bounds_wrong_slot", "anchor_marker"} {
 		t.Run(name, func(t *testing.T) {
 			a, assembly, d := snapshotTestFixture(t)
 			switch name {
@@ -40,6 +40,10 @@ func TestMemoryHostCallSnapshotBinding(t *testing.T) {
 				d.Instructions[4].ID = "missing"
 			case "duplicate":
 				d.Instructions[4].ID = d.Instructions[3].ID
+			case "in_bounds_wrong_slot":
+				a.Listing[4].Bytes[2] = 0
+			case "anchor_marker":
+				assembly = strings.Replace(assembly, "@minz-call-frame:test_s3", "@lost:test_s3", 1)
 			case "slot":
 				a.Listing[5].Bytes[2] = 7
 			case "return_escape":

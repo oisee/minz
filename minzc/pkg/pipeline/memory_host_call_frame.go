@@ -180,6 +180,10 @@ func resolveMemoryHostCallFrames(a *z80asm.Result, assembly string, descriptors 
 			if found == nil || len(found.Bytes) == 0 || found.Address < 0 || found.Address+len(found.Bytes) > 65536 {
 				return nil, nil, fmt.Errorf("missing snapshot step %s", i.ID)
 			}
+			expected, e := z80asm.NewAssembler().AssembleString("ORG 0\n " + i.Assembly + "\n")
+			if e != nil || len(expected.Errors) > 0 || !bytes.Equal(expected.Binary, found.Bytes) {
+				return nil, nil, fmt.Errorf("snapshot instruction bytes differ from bound operation")
+			}
 			if len(lines) > 0 && lines[len(lines)-1].Address+len(lines[len(lines)-1].Bytes) != found.Address {
 				return nil, nil, fmt.Errorf("noncontiguous snapshot")
 			}
