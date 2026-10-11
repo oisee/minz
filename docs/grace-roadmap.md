@@ -178,3 +178,5 @@ pointer-walk, оставляя invariant-base. На sum_array выбирает 3
 
 
 [Исходные циклы и native host-baseline](grace-memory-host-loop-baseline.md): отдельный закрытый collector измеряет11 source sites SelfLanz30; cumulative/per-call counters совпадают с независимой моделью, region_match49/59. Native baseline1221494 T /2091 B unchanged; fullpipeline296.585 s PASS, showcase31same0new. Счётчики privateVM не являются legality или targetlooplineage. Далее source-bound first-byte arena comparison proof/domain и измеренный выбор вариантов.
+
+[Измеренный arena-first selector](grace-memory-host-arena-selection.md): строгий source-loop профиль повторяется до выбора двух приватно построенных вариантов. SelfLanz30: speed1218395 T /2212 B, size сохраняет1221494 T /2091 B; −3099 T,+121 B. Независимые pre/post whole-module proofs,33924 VM cases и36 actual-target boundary observations прошли. Полный pipeline397.044 s PASS, CLI/packages зелёные, showcase31same0new; все16 CLI и4 бюджетных BIN прежние. Далее append-copy base-hoist: изолированная проба1150124 T /2076 B, независимый domain ещё проверяется.

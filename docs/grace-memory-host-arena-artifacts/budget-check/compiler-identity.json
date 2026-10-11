@@ -1,0 +1,25 @@
+{
+  "production_base": "4fead12c2d3b85e4984132b8f4aec600bcd03f1f",
+  "frozen_source_checkpoint": "0bfe99a6",
+  "compiler_files": {
+    "minzc/pkg/hir/arena_peel_proof.go": "a04c76c69517f5c87409557a065575b94ee835b5f3e45adbc1fd89958d97daae",
+    "minzc/pkg/hir/arena_peel_proof_test.go": "7cfbc0f8232329be5f153d7bc3e9bda065a37c8f0a9dca258bc475c497f48068",
+    "minzc/pkg/hir/memory_host_loop_profile_load.go": "7240c109bd354673cd520d0884cbf527de7b187769acf23a168b8ce89d72c5ea",
+    "minzc/pkg/mir2/native_call_frame.go": "06d6ba17282ae06e1ad6c758961456f3dde738b6f48be9d9c99e0e4127d293be",
+    "minzc/pkg/mir2/native_call_frame_test.go": "b61ba428663a10ffa4357f26e72f8b3f5381a1bfae0773861ce2bc59c3adb126",
+    "minzc/pkg/mir2/z80codegen.go": "f91f44f5cb693cde4ba2990ef8bc3f60821647ed9e667da7af41a9a8ee4f34c5",
+    "minzc/pkg/mir2/z80codegen_call.go": "dc4949465efa726f780314dcd5ba6a0a2ee79bc62246d2421f50c8dd12ff7af2",
+    "minzc/pkg/pipeline/memory_host_arena_peel_domain_test.go": "6ff4b2274c782122188216f8188aafadd8834e0728799f097401a01fab3de61d",
+    "minzc/pkg/pipeline/memory_host_arena_peel_prototype.go": "258b4472e5b5a6c2872af459f5d44cec0415fb5c20cf2dacac0cfafa6c2d6cad",
+    "minzc/pkg/pipeline/memory_host_arena_peel_prototype_test.go": "9cf9e7063a378ed30cb550e376b410407cb530502e3678a77ada17fed3ee210e",
+    "minzc/pkg/pipeline/memory_host_arena_peel_target_domain_test.go": "cd1fa03b10d79850f2bec1cfbb7eb7ea6d6c974c7c5b2dd839b95f1a09f2b9c7",
+    "minzc/pkg/pipeline/memory_host_arena_precompile_proof_test.go": "b351d846d0a589187bd9f4ab7c57cc2f7c794f5b660325fba297d7b15db22ad3",
+    "minzc/pkg/pipeline/memory_host_arena_selector.go": "513d163449346ef8cd96a0652ca580a58cb5a58defbae8c1fecf31d302601ad5",
+    "minzc/pkg/pipeline/memory_host_arena_selector_e2e_test.go": "389e38c52df59aa5b9344a9e57eeb2049554277f935b1d323e91ad63533aa2ab",
+    "minzc/pkg/pipeline/memory_host_call_frame.go": "3286d05301ed2bc494f82eb6437c01f525c44fb7543ed7042890d5374c92860a",
+    "minzc/pkg/pipeline/memory_host_call_frame_test.go": "55549160ca23b98411dda3a3407e24cc145a932bb2ac6a39d1f0a417b9724528",
+    "minzc/pkg/pipeline/memory_host_target.go": "33be780bfc27c9bb629cf92a284afba76a54d43414505410be42b0ed1fcef0bc",
+    "minzc/pkg/pipeline/memory_host_z80_memory.go": "010a70efb98bc3d66704c14742232582b5889a47644c09776f1bca2f110494a9"
+  },
+  "verified_unchanged_at_terminal": true
+}

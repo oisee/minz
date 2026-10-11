@@ -1,0 +1,5 @@
+# github.com/minz/minzc/pkg/pipeline [github.com/minz/minzc/pkg/pipeline.test]
+pkg/pipeline/memory_host_arena_precompile_proof_test.go:10:6: TestMemoryHostArenaPeelIndependentProof redeclared in this block
+	pkg/pipeline/memory_host_arena_peel_prototype_test.go:158:6: other declaration of TestMemoryHostArenaPeelIndependentProof
+FAIL	github.com/minz/minzc/pkg/pipeline [build failed]
+FAIL

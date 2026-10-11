@@ -1,0 +1,44 @@
+=== RUN   TestMemoryHostArenaPeelTargetDomain
+=== RUN   TestMemoryHostArenaPeelTargetDomain/successful14
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_arena_peel_target_domain_test.go:127: original 14 calls 1366990T/2091B
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_arena_peel_target_domain_test.go:127: variant 14 calls 1366356T/2212B
+=== RUN   TestMemoryHostArenaPeelTargetDomain/first_left_denied
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_arena_peel_target_domain_test.go:127: original 1 calls 339T/2091B
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_arena_peel_target_domain_test.go:127: variant 1 calls 224T/2212B
+=== RUN   TestMemoryHostArenaPeelTargetDomain/first_right_denied
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_arena_peel_target_domain_test.go:127: original 1 calls 784T/2091B
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_arena_peel_target_domain_test.go:127: variant 1 calls 549T/2212B
+=== RUN   TestMemoryHostArenaPeelTargetDomain/tail_left_denied
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_arena_peel_target_domain_test.go:127: original 1 calls 2115T/2091B
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_arena_peel_target_domain_test.go:127: variant 1 calls 2071T/2212B
+=== RUN   TestMemoryHostArenaPeelTargetDomain/tail_right_denied
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_arena_peel_target_domain_test.go:127: original 1 calls 2560T/2091B
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_arena_peel_target_domain_test.go:127: variant 1 calls 2516T/2212B
+--- PASS: TestMemoryHostArenaPeelTargetDomain (12.01s)
+    --- PASS: TestMemoryHostArenaPeelTargetDomain/successful14 (3.13s)
+    --- PASS: TestMemoryHostArenaPeelTargetDomain/first_left_denied (2.82s)
+    --- PASS: TestMemoryHostArenaPeelTargetDomain/first_right_denied (2.66s)
+    --- PASS: TestMemoryHostArenaPeelTargetDomain/tail_left_denied (1.77s)
+    --- PASS: TestMemoryHostArenaPeelTargetDomain/tail_right_denied (1.64s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	12.022s

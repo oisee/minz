@@ -1,0 +1,7 @@
+testing: warning: no tests to run
+PASS
+ok  	github.com/minz/minzc/pkg/hir	0.006s [no tests to run]
+=== RUN   TestMemoryHostArenaPeelIndependentProof
+--- PASS: TestMemoryHostArenaPeelIndependentProof (0.06s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.071s

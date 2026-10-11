@@ -1,0 +1,24 @@
+=== RUN   TestMemoryHostArenaSelectorConsistentCountForgery
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostArenaSelectorConsistentCountForgery (2.56s)
+=== RUN   TestMemoryHostArenaSelectorLateFactoryMutation
+=== RUN   TestMemoryHostArenaSelectorLateFactoryMutation/retained_global
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostArenaSelectorLateFactoryMutation/candidate_global
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostArenaSelectorLateFactoryMutation/candidate_shared
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_arena_selector_e2e_test.go:187: late factory mutation accepted candidate_shared
+--- FAIL: TestMemoryHostArenaSelectorLateFactoryMutation (11.78s)
+    --- PASS: TestMemoryHostArenaSelectorLateFactoryMutation/retained_global (2.91s)
+    --- PASS: TestMemoryHostArenaSelectorLateFactoryMutation/candidate_global (2.42s)
+    --- FAIL: TestMemoryHostArenaSelectorLateFactoryMutation/candidate_shared (6.35s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	14.341s
+FAIL

@@ -1,0 +1,7 @@
+# Fresh ordinary native CLI regressions
+
+Built minzc-arena-selector-final with -buildvcs=false from the frozen18-file parent overlay. native-identity.json records the executable SHA and source inventory reference; commands.txt records all actual runs. The executable is preserved permanently in grace-checkpoints. These are ordinary hashmap read/write and tokenizer copy/region modes, without memory-host or arena selector flags.
+
+All16 measured candidates passed independent host results, complete declared memory and byte traffic audits, typed evidence SHA and selected ASM-to-BIN audits. Every candidate binary is unchanged from the previous memory-host CLI stage; comparison.json records all current and prior costs and hashes rather than assuming identity. Hashmap selects both helpers at123708T/965B for both goals. Tokenizer selects both transformations for speed at2174363T/4820B and original for size at2240918T/4305B.
+
+Run each program verify_host.py and, from minzc, verify_evidence.go. verify_assembly.go accepts this root directory. Native binaries are direct files; JSON/HIR/MIR/ASM payloads use deterministic gzip with exact bytes and mtime0. Auditors accept gzip. No additional parser or arena-selector execution was done for this CLI regression pack; independent original SelfLanz30 selector evidence is in ../selector-e2e and prototype domain evidence in ../prototype. Those retain the distinct original and peeled contexts and limited precompile proof scope. Root owns general gates, final manifest and publication.

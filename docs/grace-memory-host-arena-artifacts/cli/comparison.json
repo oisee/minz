@@ -1,0 +1,338 @@
+[
+  {
+    "program": "hashmap",
+    "goal": "speed",
+    "candidate": 0,
+    "selected": false,
+    "choices": {
+      "3c98e35e3ced022d63d7a7d5a7109dd3de50f53b202f3abb79aed49fc118c422": {
+        "kind": "write-u16-le",
+        "enabled": false
+      },
+      "751c39837089fdc9a9c8509f7ad3dc0c0cbdea128c658637c60f50ab870de81e": {
+        "kind": "read-u16-le",
+        "enabled": false
+      }
+    },
+    "t_states": 133994,
+    "bytes": 984,
+    "binary_sha256": "0390aa22f7b028216e55bca731f3ca1bb4e91ab06e70ddead41e756235034860",
+    "previous_t_states": 133994,
+    "previous_bytes": 984,
+    "same_binary_as_memory_host": true
+  },
+  {
+    "program": "hashmap",
+    "goal": "speed",
+    "candidate": 1,
+    "selected": false,
+    "choices": {
+      "3c98e35e3ced022d63d7a7d5a7109dd3de50f53b202f3abb79aed49fc118c422": {
+        "kind": "write-u16-le",
+        "enabled": false
+      },
+      "751c39837089fdc9a9c8509f7ad3dc0c0cbdea128c658637c60f50ab870de81e": {
+        "kind": "read-u16-le",
+        "enabled": true
+      }
+    },
+    "t_states": 126680,
+    "bytes": 980,
+    "binary_sha256": "31e686b05d328346cd092ee65a310c111de010c53c775d3c3cd8b92ccd016f11",
+    "previous_t_states": 126680,
+    "previous_bytes": 980,
+    "same_binary_as_memory_host": true
+  },
+  {
+    "program": "hashmap",
+    "goal": "speed",
+    "candidate": 2,
+    "selected": false,
+    "choices": {
+      "3c98e35e3ced022d63d7a7d5a7109dd3de50f53b202f3abb79aed49fc118c422": {
+        "kind": "write-u16-le",
+        "enabled": true
+      },
+      "751c39837089fdc9a9c8509f7ad3dc0c0cbdea128c658637c60f50ab870de81e": {
+        "kind": "read-u16-le",
+        "enabled": false
+      }
+    },
+    "t_states": 131022,
+    "bytes": 969,
+    "binary_sha256": "a839465972fd5bcb42021c1d1fb376dfbbd89d0cba81670d5f4154d1818b5130",
+    "previous_t_states": 131022,
+    "previous_bytes": 969,
+    "same_binary_as_memory_host": true
+  },
+  {
+    "program": "hashmap",
+    "goal": "speed",
+    "candidate": 3,
+    "selected": true,
+    "choices": {
+      "3c98e35e3ced022d63d7a7d5a7109dd3de50f53b202f3abb79aed49fc118c422": {
+        "kind": "write-u16-le",
+        "enabled": true
+      },
+      "751c39837089fdc9a9c8509f7ad3dc0c0cbdea128c658637c60f50ab870de81e": {
+        "kind": "read-u16-le",
+        "enabled": true
+      }
+    },
+    "t_states": 123708,
+    "bytes": 965,
+    "binary_sha256": "514b51a2cf0e26d8cb3f0ccfdb46122872c4860631b447cf8703a9b7d01325df",
+    "previous_t_states": 123708,
+    "previous_bytes": 965,
+    "same_binary_as_memory_host": true
+  },
+  {
+    "program": "hashmap",
+    "goal": "size",
+    "candidate": 0,
+    "selected": false,
+    "choices": {
+      "3c98e35e3ced022d63d7a7d5a7109dd3de50f53b202f3abb79aed49fc118c422": {
+        "kind": "write-u16-le",
+        "enabled": false
+      },
+      "751c39837089fdc9a9c8509f7ad3dc0c0cbdea128c658637c60f50ab870de81e": {
+        "kind": "read-u16-le",
+        "enabled": false
+      }
+    },
+    "t_states": 133994,
+    "bytes": 984,
+    "binary_sha256": "0390aa22f7b028216e55bca731f3ca1bb4e91ab06e70ddead41e756235034860",
+    "previous_t_states": 133994,
+    "previous_bytes": 984,
+    "same_binary_as_memory_host": true
+  },
+  {
+    "program": "hashmap",
+    "goal": "size",
+    "candidate": 1,
+    "selected": false,
+    "choices": {
+      "3c98e35e3ced022d63d7a7d5a7109dd3de50f53b202f3abb79aed49fc118c422": {
+        "kind": "write-u16-le",
+        "enabled": false
+      },
+      "751c39837089fdc9a9c8509f7ad3dc0c0cbdea128c658637c60f50ab870de81e": {
+        "kind": "read-u16-le",
+        "enabled": true
+      }
+    },
+    "t_states": 126680,
+    "bytes": 980,
+    "binary_sha256": "31e686b05d328346cd092ee65a310c111de010c53c775d3c3cd8b92ccd016f11",
+    "previous_t_states": 126680,
+    "previous_bytes": 980,
+    "same_binary_as_memory_host": true
+  },
+  {
+    "program": "hashmap",
+    "goal": "size",
+    "candidate": 2,
+    "selected": false,
+    "choices": {
+      "3c98e35e3ced022d63d7a7d5a7109dd3de50f53b202f3abb79aed49fc118c422": {
+        "kind": "write-u16-le",
+        "enabled": true
+      },
+      "751c39837089fdc9a9c8509f7ad3dc0c0cbdea128c658637c60f50ab870de81e": {
+        "kind": "read-u16-le",
+        "enabled": false
+      }
+    },
+    "t_states": 131022,
+    "bytes": 969,
+    "binary_sha256": "a839465972fd5bcb42021c1d1fb376dfbbd89d0cba81670d5f4154d1818b5130",
+    "previous_t_states": 131022,
+    "previous_bytes": 969,
+    "same_binary_as_memory_host": true
+  },
+  {
+    "program": "hashmap",
+    "goal": "size",
+    "candidate": 3,
+    "selected": true,
+    "choices": {
+      "3c98e35e3ced022d63d7a7d5a7109dd3de50f53b202f3abb79aed49fc118c422": {
+        "kind": "write-u16-le",
+        "enabled": true
+      },
+      "751c39837089fdc9a9c8509f7ad3dc0c0cbdea128c658637c60f50ab870de81e": {
+        "kind": "read-u16-le",
+        "enabled": true
+      }
+    },
+    "t_states": 123708,
+    "bytes": 965,
+    "binary_sha256": "514b51a2cf0e26d8cb3f0ccfdb46122872c4860631b447cf8703a9b7d01325df",
+    "previous_t_states": 123708,
+    "previous_bytes": 965,
+    "same_binary_as_memory_host": true
+  },
+  {
+    "program": "tokenizer",
+    "goal": "speed",
+    "candidate": 0,
+    "selected": false,
+    "choices": {
+      "copy_sites": {
+        "a649afb8aae61bb72a1f9edfa23d68a96afa5d665e4c2d5dcd98091bd33963bb": false
+      },
+      "region_compare_sites": {
+        "09404ca32d6ba56f835387c4029d564d960d282a635c07e9fa3fad0e62abfc44": false
+      }
+    },
+    "t_states": 2240918,
+    "bytes": 4305,
+    "binary_sha256": "a64435fd20077d1fbcec80e1bfcc7791f1440fe04b0aad01192c81066cba9f07",
+    "previous_t_states": 2240918,
+    "previous_bytes": 4305,
+    "same_binary_as_memory_host": true
+  },
+  {
+    "program": "tokenizer",
+    "goal": "speed",
+    "candidate": 1,
+    "selected": false,
+    "choices": {
+      "copy_sites": {
+        "a649afb8aae61bb72a1f9edfa23d68a96afa5d665e4c2d5dcd98091bd33963bb": false
+      },
+      "region_compare_sites": {
+        "09404ca32d6ba56f835387c4029d564d960d282a635c07e9fa3fad0e62abfc44": true
+      }
+    },
+    "t_states": 2184784,
+    "bytes": 4691,
+    "binary_sha256": "2bad75b9d302694221ceb73a125c48feaf2de7cf5d4e68716eea2f09bbf56be2",
+    "previous_t_states": 2184784,
+    "previous_bytes": 4691,
+    "same_binary_as_memory_host": true
+  },
+  {
+    "program": "tokenizer",
+    "goal": "speed",
+    "candidate": 2,
+    "selected": false,
+    "choices": {
+      "copy_sites": {
+        "a649afb8aae61bb72a1f9edfa23d68a96afa5d665e4c2d5dcd98091bd33963bb": true
+      },
+      "region_compare_sites": {
+        "09404ca32d6ba56f835387c4029d564d960d282a635c07e9fa3fad0e62abfc44": false
+      }
+    },
+    "t_states": 2230497,
+    "bytes": 4434,
+    "binary_sha256": "02becb5d180d6bb7ea3836fee0eaf8faf81ee0fb426d2b635bc7f622ecab2171",
+    "previous_t_states": 2230497,
+    "previous_bytes": 4434,
+    "same_binary_as_memory_host": true
+  },
+  {
+    "program": "tokenizer",
+    "goal": "speed",
+    "candidate": 3,
+    "selected": true,
+    "choices": {
+      "copy_sites": {
+        "a649afb8aae61bb72a1f9edfa23d68a96afa5d665e4c2d5dcd98091bd33963bb": true
+      },
+      "region_compare_sites": {
+        "09404ca32d6ba56f835387c4029d564d960d282a635c07e9fa3fad0e62abfc44": true
+      }
+    },
+    "t_states": 2174363,
+    "bytes": 4820,
+    "binary_sha256": "0c2c620ed84769eb04c70f1eb633b1226a6bf0e06bbbfa9152f9609b5f539804",
+    "previous_t_states": 2174363,
+    "previous_bytes": 4820,
+    "same_binary_as_memory_host": true
+  },
+  {
+    "program": "tokenizer",
+    "goal": "size",
+    "candidate": 0,
+    "selected": true,
+    "choices": {
+      "copy_sites": {
+        "a649afb8aae61bb72a1f9edfa23d68a96afa5d665e4c2d5dcd98091bd33963bb": false
+      },
+      "region_compare_sites": {
+        "09404ca32d6ba56f835387c4029d564d960d282a635c07e9fa3fad0e62abfc44": false
+      }
+    },
+    "t_states": 2240918,
+    "bytes": 4305,
+    "binary_sha256": "a64435fd20077d1fbcec80e1bfcc7791f1440fe04b0aad01192c81066cba9f07",
+    "previous_t_states": 2240918,
+    "previous_bytes": 4305,
+    "same_binary_as_memory_host": true
+  },
+  {
+    "program": "tokenizer",
+    "goal": "size",
+    "candidate": 1,
+    "selected": false,
+    "choices": {
+      "copy_sites": {
+        "a649afb8aae61bb72a1f9edfa23d68a96afa5d665e4c2d5dcd98091bd33963bb": false
+      },
+      "region_compare_sites": {
+        "09404ca32d6ba56f835387c4029d564d960d282a635c07e9fa3fad0e62abfc44": true
+      }
+    },
+    "t_states": 2184784,
+    "bytes": 4691,
+    "binary_sha256": "2bad75b9d302694221ceb73a125c48feaf2de7cf5d4e68716eea2f09bbf56be2",
+    "previous_t_states": 2184784,
+    "previous_bytes": 4691,
+    "same_binary_as_memory_host": true
+  },
+  {
+    "program": "tokenizer",
+    "goal": "size",
+    "candidate": 2,
+    "selected": false,
+    "choices": {
+      "copy_sites": {
+        "a649afb8aae61bb72a1f9edfa23d68a96afa5d665e4c2d5dcd98091bd33963bb": true
+      },
+      "region_compare_sites": {
+        "09404ca32d6ba56f835387c4029d564d960d282a635c07e9fa3fad0e62abfc44": false
+      }
+    },
+    "t_states": 2230497,
+    "bytes": 4434,
+    "binary_sha256": "02becb5d180d6bb7ea3836fee0eaf8faf81ee0fb426d2b635bc7f622ecab2171",
+    "previous_t_states": 2230497,
+    "previous_bytes": 4434,
+    "same_binary_as_memory_host": true
+  },
+  {
+    "program": "tokenizer",
+    "goal": "size",
+    "candidate": 3,
+    "selected": false,
+    "choices": {
+      "copy_sites": {
+        "a649afb8aae61bb72a1f9edfa23d68a96afa5d665e4c2d5dcd98091bd33963bb": true
+      },
+      "region_compare_sites": {
+        "09404ca32d6ba56f835387c4029d564d960d282a635c07e9fa3fad0e62abfc44": true
+      }
+    },
+    "t_states": 2174363,
+    "bytes": 4820,
+    "binary_sha256": "0c2c620ed84769eb04c70f1eb633b1226a6bf0e06bbbfa9152f9609b5f539804",
+    "previous_t_states": 2174363,
+    "previous_bytes": 4820,
+    "same_binary_as_memory_host": true
+  }
+]

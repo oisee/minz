@@ -15,22 +15,24 @@ import (
 )
 
 type MemoryHostTargetEvidence struct {
-	Context           hir.ProfileContext          `json:"context"`
-	Binary            []byte                      `json:"binary"`
-	BinarySHA256      string                      `json:"binary_sha256"`
-	Assembly          string                      `json:"assembly"`
-	AdapterSHA256     string                      `json:"adapter_sha256"`
-	GlobalAddresses   map[string]int              `json:"global_addresses"`
-	Invocations       []hir.MemoryHostObservation `json:"invocations"`
-	InvocationTStates []int64                     `json:"invocation_t_states"`
-	TotalTStates      int64                       `json:"total_t_states"`
-	ExecutedSteps     int64                       `json:"executed_steps"`
-	Accesses          []MemoryHostResolvedAccess  `json:"accesses"`
-	SidecarSHA256     string                      `json:"sidecar_sha256"`
-	MIRSHA256         string                      `json:"mir_dump_sha256"`
-	AllocationSHA256  string                      `json:"allocation_sha256"`
-	FinalMIRDump      string                      `json:"final_mir_dump_diagnostic"`
-	AllocationJSON    json.RawMessage             `json:"allocation_diagnostic"`
+	Context           hir.ProfileContext            `json:"context"`
+	Binary            []byte                        `json:"binary"`
+	BinarySHA256      string                        `json:"binary_sha256"`
+	Assembly          string                        `json:"assembly"`
+	AdapterSHA256     string                        `json:"adapter_sha256"`
+	GlobalAddresses   map[string]int                `json:"global_addresses"`
+	Invocations       []hir.MemoryHostObservation   `json:"invocations"`
+	InvocationTStates []int64                       `json:"invocation_t_states"`
+	TotalTStates      int64                         `json:"total_t_states"`
+	ExecutedSteps     int64                         `json:"executed_steps"`
+	Accesses          []MemoryHostResolvedAccess    `json:"accesses"`
+	SidecarSHA256     string                        `json:"sidecar_sha256"`
+	MIRSHA256         string                        `json:"mir_dump_sha256"`
+	AllocationSHA256  string                        `json:"allocation_sha256"`
+	FinalMIRDump      string                        `json:"final_mir_dump_diagnostic"`
+	CallFrames        []MemoryHostResolvedCallFrame `json:"call_frames"`
+	CallFramesSHA256  string                        `json:"call_frames_sha256"`
+	AllocationJSON    json.RawMessage               `json:"allocation_diagnostic"`
 }
 
 // runZ80MemoryHostWorkload consumes only privately compiled steps and an internally
@@ -62,7 +64,8 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
 	}
 	origins := hir.MemoryHostGlobalOrigins(steps.MIR2Module)
 	records := []mir2.NativeMemoryAccess{}
-	captured, e := mir2.Z80Codegen(steps.MIR2Module, steps.Allocation, mir2.Z80CodegenOptions{NativeMemoryAccessOrigins: origins, NativeMemoryAccesses: &records})
+	frames := []mir2.NativeCallFrameSnapshot{}
+	captured, e := mir2.Z80Codegen(steps.MIR2Module, steps.Allocation, mir2.Z80CodegenOptions{NativeMemoryAccessOrigins: origins, NativeMemoryAccesses: &records, NativeCallFrames: &frames})
 	if e != nil {
 		return fail(e)
 	}
@@ -243,6 +246,17 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
 	if e != nil {
 		return fail(e)
 	}
+	snapshotSteps, resolvedFrames, e := resolveMemoryHostCallFrames(a, assembly, frames)
+	if e != nil {
+		return fail(e)
+	}
+	m.snapshots = snapshotSteps
+	out.CallFrames = resolvedFrames
+	framePayload, e := json.Marshal(resolvedFrames)
+	if e != nil {
+		return fail(e)
+	}
+	out.CallFramesSHA256 = fmt.Sprintf("%x", sha256.Sum256(framePayload))
 	m.protected = protected
 	out.Accesses = resolved
 	sidecar, _ := json.Marshal(resolved)

@@ -1,0 +1,14 @@
+{
+  "Cases": 33924,
+  "Invocations": 67848,
+  "ByteReads": 11837460,
+  "Denied": 4,
+  "Families": {
+    "alias_offset_-1": 256,
+    "alias_offset_0": 256,
+    "alias_offset_1": 256,
+    "all_lengths_and_mismatches": 32896,
+    "source_modular_wrap": 256,
+    "typed_denial_prefix": 4
+  }
+}

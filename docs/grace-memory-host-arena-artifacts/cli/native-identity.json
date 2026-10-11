@@ -1,0 +1,6 @@
+{
+  "base_head": "4fead12c2d3b85e4984132b8f4aec600bcd03f1f",
+  "binary_sha256": "5f8ae7457535466cbcb19f28d99178906f989f79b644f116e5699a1952088ad4",
+  "buildvcs": false,
+  "source_inventory": "docs/grace-memory-host-arena-artifacts/production-source-sha256.json"
+}

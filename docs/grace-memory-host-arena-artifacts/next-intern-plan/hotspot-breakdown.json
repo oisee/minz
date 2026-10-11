@@ -1,0 +1,50 @@
+{
+  "binary_sha256": "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51",
+  "source_pc_costs_sha256": "8f7436a8edea7f465101b4184baf379dc59944fe98d139bbfed467cb9954ec5b",
+  "total_tstates": 1221494,
+  "intern_tstates": 334605,
+  "ranges": [
+    {
+      "name": "scan_setup_head",
+      "start": 1618,
+      "end_exclusive": 1643,
+      "tstates": 22930
+    },
+    {
+      "name": "scan_body_comparison",
+      "start": 1643,
+      "end_exclusive": 1697,
+      "tstates": 31551
+    },
+    {
+      "name": "append_setup",
+      "start": 1697,
+      "end_exclusive": 1743,
+      "tstates": 3809
+    },
+    {
+      "name": "copy_condition",
+      "start": 1743,
+      "end_exclusive": 1756,
+      "tstates": 19435
+    },
+    {
+      "name": "copy_body",
+      "start": 1756,
+      "end_exclusive": 1888,
+      "tstates": 254254
+    },
+    {
+      "name": "append_finish",
+      "start": 1888,
+      "end_exclusive": 1910,
+      "tstates": 1417
+    },
+    {
+      "name": "trampolines_spill",
+      "start": 1910,
+      "end_exclusive": 1935,
+      "tstates": 1209
+    }
+  ]
+}

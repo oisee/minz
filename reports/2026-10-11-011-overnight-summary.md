@@ -129,3 +129,19 @@ https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-loop-bas
 проверен.14 успешных граничных вызовов и4 prefix-denial workloads сейчас
 проходят actualZ80. Measuredselector и durable production certificate ещё
 следующие задачи; решения Alice не требуются.
+
+## Обновление: измеренный arena selector
+
+Закрыт selector двух точных вариантов region_match: speed1218395 T /2212 B,
+size1221494 T /2091 B. Строгий профиль повторно исполняется, преобразование
+проверяет независимый pre/post validator.33924 VM cases и36 граничных
+наблюдений actual Z80 прошли; весь pipeline397.044 s PASS. Showcase31 прежнее
+падение,0 новых; все16 CLI и4 бюджетных бинарника прежние.
+Отчёт и доказательства сохранены локально; публикация следующей приватной версии
+Sites выполняется после коммита. Рабочие ветки находятся в постоянном хранилище
+и отправлены на GitHub.
+
+Следом уже выполняется append-copy base-hoist. Изолированный полный workload
+30 вызовов дал1150124 T /2076 B: −5,84% времени и −15 B кода. Память и
+ordered host events совпадают с независимой моделью. До интеграции остаются
+независимый proof/domain и общий прогон. Решений Alice не требуется.
