@@ -161,7 +161,12 @@ func TestExperimentalUnsignedPairPendingAndConstantRefusal(t *testing.T) {
 	m, ar := pairCmpFixture("HL", "DE", CmpUlt, false, false)
 	f := m.Funcs[0]
 	inst := f.Blocks[0].Insts[0]
-	g := &z80cg{experimentalUnsignedPreservePair: true, mod: m, fn: f, curBlock: f.Blocks[0], ar: ar, regInfo: collectRegInfo(f), constVals: map[Reg]int64{inst.Src[0]: 7}}
+	g := &z80cg{experimentalUnsignedPreservePair: true, mod: m, fn: f, curBlock: f.Blocks[0], ar: ar, regInfo: collectRegInfo(f), constVals: map[Reg]int64{}, liveness: ComputeLiveness(f), pendingAccReg: NoReg, pendingFlagReg: NoReg, sb: &strings.Builder{}, cmpSwapped: map[Reg]bool{}, cmpNeedsTwo: map[Reg]bool{}}
+	if !g.tryExperimentalUnsignedPairCmp(inst) {
+		t.Fatal("baseline eligible comparison refused")
+	}
+	g.pendingFlagReg = NoReg
+	g.constVals[inst.Src[0]] = 7
 	if g.tryExperimentalUnsignedPairCmp(inst) {
 		t.Fatal("constant operand admitted")
 	}
@@ -183,7 +188,7 @@ func TestExperimentalUnsignedPairCacheState(t *testing.T) {
 	inst := f.Blocks[0].Insts[0]
 	// The comparison invalidates A aliases while physical word pairs stay intact.
 	var out strings.Builder
-	g := &z80cg{experimentalUnsignedPreservePair: true, mod: m, fn: f, curBlock: f.Blocks[0], ar: ar, regInfo: collectRegInfo(f), constVals: map[Reg]int64{}, sb: &out, holdsPhys: map[string]string{"A": "B", "B": "A", "HL": "DE", "DE": "HL"}, cmpSwapped: map[Reg]bool{}, cmpNeedsTwo: map[Reg]bool{}, lastFlagsLhs: "A", lastFlagsRhs: "D"}
+	g := &z80cg{experimentalUnsignedPreservePair: true, mod: m, fn: f, curBlock: f.Blocks[0], ar: ar, regInfo: collectRegInfo(f), constVals: map[Reg]int64{}, liveness: ComputeLiveness(f), pendingAccReg: NoReg, pendingFlagReg: NoReg, sb: &out, holdsPhys: map[string]string{"A": "B", "B": "A", "HL": "DE", "DE": "HL"}, cmpSwapped: map[Reg]bool{}, cmpNeedsTwo: map[Reg]bool{}, lastFlagsLhs: "A", lastFlagsRhs: "D"}
 	if !g.tryExperimentalUnsignedPairCmp(inst) {
 		t.Fatal("eligible cmp refused")
 	}
