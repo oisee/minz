@@ -1,6 +1,6 @@
 # Ночной итог Grace / PGO — 11 октября 2026
 
-Актуально на 10:41 UTC. Цель продолжается: выбирать оптимизации по проверенному
+Актуально на 10:48 UTC. Цель продолжается: выбирать оптимизации по проверенному
 профилю, от исходника через HIR/MIR до собранного Z80-бинарника. MIR VM служит
 промежуточным oracle; итоговые варианты исполняются в Z80-эмуляторе с проверкой
 результатов, памяти, порядка host events, размера и T-states. Проверка на
@@ -38,9 +38,10 @@ collection baseline сохранены. Независимые аудиты пр
 
 ## Опубликовано и локально сохранено
 
-Подтверждённая приватная публикация Sites — **версия 54**:
+Подтверждённая приватная публикация Sites — **версия 55**:
 https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/
 
+- [Совместный policy×mask поиск](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-policy-search.html)
 - [Корпус с policy](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-policy-corpus.html)
 - [Policy-aware selector](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-policy-selector.html)
 - [Явный CLI v2](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-policy-cli.html)
@@ -128,7 +129,9 @@ Legacy/mask2 663T/1978B. Zero-body не доказывает dynamic compareacti
 Общий pipeline выполняется; HIR/MIR/C89/CLI/Nanz PASS, showcase31same0new.
 Broad gate нашёл цикл зависимостей frontend same-package tests→pipeline→Nanz→
 frontend. Test-only исправление перенесено be43274d и pushed; Lanz/Lizp/PLM/Pascal
-в рабочей ветке PASS .012/.012/.020/.011s. Независимая проверка полного HIR неизменна. Новый поиск пока не опубликован.
+в рабочей ветке PASS .012/.012/.020/.011s. Независимая проверка полного HIR неизменна. Новый поиск опубликован в приватном Sites55; пакет292payloads сохранён
+и trackedSHA проверен, relocatedauditsPASS320. Whole offline sync версии55
+выполняется; последний завершённый fullsync54 остаётся17965files65pages.
 Следом: завершить gates/пакет и публикацию, затем отдельный явный search CLI.
 
 ## Сохранение веток и решения
