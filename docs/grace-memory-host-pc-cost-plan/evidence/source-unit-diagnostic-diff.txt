@@ -1,0 +1,8 @@
+--- 
++++ 
+@@ -1,4 +1,4 @@
+-; MIR2 module: ../examples/nanz/self_lanz_parser.nanz
++; MIR2 module: ../../../examples/nanz/self_lanz_parser.nanz
+ string @mir2.str.0 = "("
+ string @mir2.str.1 = " "
+ string @mir2.str.2 = ")"

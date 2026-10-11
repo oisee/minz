@@ -1,0 +1,18 @@
+[
+  {
+    "path": "minzc/pkg/pipeline/memory_host_target.go",
+    "sha256": "a95a86fd671f68ecdab6cf0e0bee8db200d0c6e8178111050b5ba7e8971b5a29"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_pc_diagnostic.go",
+    "sha256": "827fff063ad18433fc35bfe387bf3e1dbfebc4e8b1e7fb0a20100592cd19fa50"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_pc_diagnostic_test.go",
+    "sha256": "811ff03c7099d365c4efd9f53f7f0260837659b1491a46bba325220e042fb164"
+  },
+  {
+    "path": "docs/grace-memory-host-pc-cost-plan/tools/project_owners.py",
+    "sha256": "e948a6d99ccb9d6f11f8d26161218958b9ea0877976f388ed9165ccb7fedaef6"
+  }
+]

@@ -1,0 +1,10 @@
+=== RUN   TestMemoryHostPCDiagnosticOriginalBoth30
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_pc_diagnostic_test.go:305: original 1221494T steps127538 BINfed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_pc_diagnostic_test.go:305: both 1147025T steps119303 BIN2ed1a44a51fa41196191a8fad9429a5b97040aefa5f9fc90257c2fa7921d93cc
+--- PASS: TestMemoryHostPCDiagnosticOriginalBoth30 (3.94s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.948s

@@ -1,0 +1,152 @@
+{
+  "original": {
+    "semantic": {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51",
+      "t_states": 1221494,
+      "bytes": 2091,
+      "str_bump": 37163,
+      "node_bump": 32808
+    },
+    "steps": 127538,
+    "t_states": 1221494,
+    "exclusive_owner_costs": {
+      "is_space": [
+        1473,
+        13290
+      ],
+      "cur": [
+        27761,
+        239391
+      ],
+      "skip_ws": [
+        1969,
+        21166
+      ],
+      "parse_sexpr": [
+        21306,
+        236919
+      ],
+      "adapter:peek": [
+        4152,
+        35292
+      ],
+      "adapter:poke": [
+        1882,
+        15997
+      ],
+      "make_node": [
+        14800,
+        141414
+      ],
+      "is_digit": [
+        362,
+        2926
+      ],
+      "is_atom_char": [
+        13302,
+        120219
+      ],
+      "intern_region": [
+        34047,
+        334605
+      ],
+      "region_match": [
+        5509,
+        51575
+      ],
+      "set_d1": [
+        975,
+        8700
+      ]
+    },
+    "aliases": {
+      "node_tag": {
+        "address": 1269,
+        "declaration": "node_tag    EQU peek"
+      }
+    },
+    "unowned": [
+      0,
+      0
+    ],
+    "ledger_sha256": "221b69b1bfb88131c91835bb42c416235a6e54bfb5e457ce674d9182836a5959"
+  },
+  "both": {
+    "semantic": {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "2ed1a44a51fa41196191a8fad9429a5b97040aefa5f9fc90257c2fa7921d93cc",
+      "t_states": 1147025,
+      "bytes": 2197,
+      "str_bump": 37163,
+      "node_bump": 32808
+    },
+    "steps": 119303,
+    "t_states": 1147025,
+    "exclusive_owner_costs": {
+      "is_space": [
+        1473,
+        13290
+      ],
+      "cur": [
+        27761,
+        239391
+      ],
+      "skip_ws": [
+        1969,
+        21166
+      ],
+      "parse_sexpr": [
+        21306,
+        236919
+      ],
+      "adapter:peek": [
+        4152,
+        35292
+      ],
+      "adapter:poke": [
+        1882,
+        15997
+      ],
+      "make_node": [
+        14800,
+        141414
+      ],
+      "is_digit": [
+        362,
+        2926
+      ],
+      "is_atom_char": [
+        13302,
+        120219
+      ],
+      "intern_region": [
+        26884,
+        263235
+      ],
+      "region_match": [
+        4437,
+        48476
+      ],
+      "set_d1": [
+        975,
+        8700
+      ]
+    },
+    "aliases": {
+      "node_tag": {
+        "address": 1269,
+        "declaration": "node_tag    EQU peek"
+      }
+    },
+    "unowned": [
+      0,
+      0
+    ],
+    "ledger_sha256": "4bb5d2697822beae7bb9d8b4cbd5ca6bb5da4c2906d616813d1f62b4c16d265c"
+  }
+}
