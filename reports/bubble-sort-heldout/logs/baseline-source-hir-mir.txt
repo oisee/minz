@@ -1,0 +1,317 @@
+; HIR module: ../examples/pascal/bubble_sort.pas
+global @ARR : [10]u8
+global @I : u8
+global @J : u8
+global @TEMP : u8
+global @SWAPPED : bool
+string #0 = "$"
+string #1 = "Before:$"
+string #2 = "After:$"
+
+fun @INITARRAY()
+  *(addr((addr @ARR:ptr)[0:u8]:u8):ptr) = 50:u8
+  *(addr((addr @ARR:ptr)[1:u8]:u8):ptr) = 30:u8
+  *(addr((addr @ARR:ptr)[2:u8]:u8):ptr) = 80:u8
+  *(addr((addr @ARR:ptr)[3:u8]:u8):ptr) = 10:u8
+  *(addr((addr @ARR:ptr)[4:u8]:u8):ptr) = 60:u8
+  *(addr((addr @ARR:ptr)[5:u8]:u8):ptr) = 40:u8
+  *(addr((addr @ARR:ptr)[6:u8]:u8):ptr) = 90:u8
+  *(addr((addr @ARR:ptr)[7:u8]:u8):ptr) = 20:u8
+  *(addr((addr @ARR:ptr)[8:u8]:u8):ptr) = 70:u8
+  *(addr((addr @ARR:ptr)[9:u8]:u8):ptr) = 100:u8
+  return
+
+fun @SORT()
+  while true:bool
+    (SWAPPED:bool) = 0:u8
+    (I:u8) = 0:u8
+    while ((I:u8) < ((10:u8 - 2:u8):u8 + 1:u16):u8):bool
+      if ((addr @ARR:ptr)[(I:u8)]:u8 > (addr @ARR:ptr)[((I:u8) + 1:u8):u8]:u8):bool
+        (TEMP:u8) = (addr @ARR:ptr)[(I:u8)]:u8
+        *(addr((addr @ARR:ptr)[(I:u8)]:u8):ptr) = (addr @ARR:ptr)[((I:u8) + 1:u8):u8]:u8
+        *(addr((addr @ARR:ptr)[((I:u8) + 1:u8):u8]:u8):ptr) = (TEMP:u8)
+        (SWAPPED:bool) = 1:u8
+      (I:u8) = ((I:u8) + 1:u16):u8
+    if (~(SWAPPED:bool)):bool
+      break
+  return
+
+fun @PRINTARRAY()
+  (I:u8) = 0:u8
+  while ((I:u8) < ((10:u8 - 1:u8):u8 + 1:u16):u8):bool
+    call @WriteU8((addr @ARR:ptr)[(I:u8)]:u8):void
+    call @ConOut(32:u8):void
+    (I:u8) = ((I:u8) + 1:u16):u8
+  call @WriteStr(addr @@mir2.str.0:ptr):void
+  call @WriteCrLf():void
+  return
+
+fun @main()
+  call @INITARRAY():void
+  call @WriteStr(addr @@mir2.str.1:ptr):void
+  call @WriteCrLf():void
+  call @PRINTARRAY():void
+  call @SORT():void
+  call @WriteStr(addr @@mir2.str.2:ptr):void
+  call @WriteCrLf():void
+  call @PRINTARRAY():void
+  return
+
+fun @ConOut(ch: u8)
+  <unknown stmt *hir.AsmStmt>
+  return
+
+fun @WriteCrLf()
+  <unknown stmt *hir.AsmStmt>
+  return
+
+fun @WriteStr(addr: u16)
+  <unknown stmt *hir.AsmStmt>
+  return
+
+fun @WriteU8(val: u8)
+  <unknown stmt *hir.AsmStmt>
+  return
+
+; MIR2 module: ../examples/pascal/bubble_sort.pas
+string @mir2.str.0 = "$"
+string @mir2.str.1 = "Before:$"
+string @mir2.str.2 = "After:$"
+global @ARR : [10]u8
+global @I : u8
+global @J : u8
+global @TEMP : u8
+global @SWAPPED : bool
+
+fun @INITARRAY()
+  block @entry:
+    %r1 = addr_of @ARR : ptr [pointer]
+    %r2 = const 0 : u8 [general]
+    %r3 = ptr_add %r1, %r2 : ptr [pointer]
+    %r4 = const 50 : u8 [general]
+    store %r3, %r4 : u8
+    %r5 = addr_of @ARR : ptr [pointer]
+    %r6 = const 1 : u8 [general]
+    %r7 = ptr_add %r5, %r6 : ptr [pointer]
+    %r8 = const 30 : u8 [general]
+    store %r7, %r8 : u8
+    %r9 = addr_of @ARR : ptr [pointer]
+    %r10 = const 2 : u8 [general]
+    %r11 = ptr_add %r9, %r10 : ptr [pointer]
+    %r12 = const 80 : u8 [general]
+    store %r11, %r12 : u8
+    %r13 = addr_of @ARR : ptr [pointer]
+    %r14 = const 3 : u8 [general]
+    %r15 = ptr_add %r13, %r14 : ptr [pointer]
+    %r16 = const 10 : u8 [general]
+    store %r15, %r16 : u8
+    %r17 = addr_of @ARR : ptr [pointer]
+    %r18 = const 4 : u8 [general]
+    %r19 = ptr_add %r17, %r18 : ptr [pointer]
+    %r20 = const 60 : u8 [general]
+    store %r19, %r20 : u8
+    %r21 = addr_of @ARR : ptr [pointer]
+    %r22 = const 5 : u8 [general]
+    %r23 = ptr_add %r21, %r22 : ptr [pointer]
+    %r24 = const 40 : u8 [general]
+    store %r23, %r24 : u8
+    %r25 = addr_of @ARR : ptr [pointer]
+    %r26 = const 6 : u8 [general]
+    %r27 = ptr_add %r25, %r26 : ptr [pointer]
+    %r28 = const 90 : u8 [general]
+    store %r27, %r28 : u8
+    %r29 = addr_of @ARR : ptr [pointer]
+    %r30 = const 7 : u8 [general]
+    %r31 = ptr_add %r29, %r30 : ptr [pointer]
+    %r32 = const 20 : u8 [general]
+    store %r31, %r32 : u8
+    %r33 = addr_of @ARR : ptr [pointer]
+    %r34 = const 8 : u8 [general]
+    %r35 = ptr_add %r33, %r34 : ptr [pointer]
+    %r36 = const 70 : u8 [general]
+    store %r35, %r36 : u8
+    %r37 = addr_of @ARR : ptr [pointer]
+    %r38 = const 9 : u8 [general]
+    %r39 = ptr_add %r37, %r38 : ptr [pointer]
+    %r40 = const 100 : u8 [general]
+    store %r39, %r40 : u8
+    ret void
+
+fun @SORT()
+  block @entry:
+    jmp @loop_head1()
+  block @loop_head1:
+    %r41 = const 1 : bool [general]
+    %r42 = const 0 : bool [general]
+    %r43 = cmp.ne %r41, %r42 : bool [flag]
+    br_if %r43, @loop_body2(), @loop_exit3()
+  block @loop_body2:
+    %r44 = const 0 : u8 [general]
+    %r45 = addr_of @SWAPPED : ptr [pointer]
+    store %r45, %r44 : bool
+    %r46 = const 0 : u8 [general]
+    %r47 = addr_of @I : ptr [pointer]
+    store %r47, %r46 : u8
+    jmp @loop_head4()
+  block @loop_head4:
+    %r48 = addr_of @I : ptr [pointer]
+    %r49 = load %r48 : u8 [general]
+    %r50 = const 10 : u8 [general]
+    %r51 = const 2 : u8 [general]
+    %r52 = sub %r50, %r51 : u8 [general]
+    %r53 = const 1 : u16 [pointer]
+    %r54 = add %r52, %r53 : u8 [general]
+    %r55 = cmp.ult %r49, %r54 : bool [flag]
+    br_if %r55, @loop_body5(), @loop_exit6()
+  block @loop_body5:
+    %r56 = addr_of @ARR : ptr [pointer]
+    %r57 = addr_of @I : ptr [pointer]
+    %r58 = load %r57 : u8 [general]
+    %r59 = ext %r58 : u8 -> u16 [index]
+    %r60 = ptr_add %r56, %r59 : ptr [pointer]
+    %r61 = load %r60 : u8 [general]
+    %r62 = addr_of @ARR : ptr [pointer]
+    %r63 = addr_of @I : ptr [pointer]
+    %r64 = load %r63 : u8 [general]
+    %r65 = const 1 : u8 [general]
+    %r66 = add %r64, %r65 : u8 [general]
+    %r67 = ext %r66 : u8 -> u16 [index]
+    %r68 = ptr_add %r62, %r67 : ptr [pointer]
+    %r69 = load %r68 : u8 [general]
+    %r70 = cmp.ugt %r61, %r69 : bool [flag]
+    br_if %r70, @if_then7(), @if_join8()
+  block @if_then7:
+    %r71 = addr_of @ARR : ptr [pointer]
+    %r72 = addr_of @I : ptr [pointer]
+    %r73 = load %r72 : u8 [general]
+    %r74 = ext %r73 : u8 -> u16 [index]
+    %r75 = ptr_add %r71, %r74 : ptr [pointer]
+    %r76 = load %r75 : u8 [general]
+    %r77 = addr_of @TEMP : ptr [pointer]
+    store %r77, %r76 : u8
+    %r78 = addr_of @ARR : ptr [pointer]
+    %r79 = addr_of @I : ptr [pointer]
+    %r80 = load %r79 : u8 [general]
+    %r81 = ptr_add %r78, %r80 : ptr [pointer]
+    %r82 = addr_of @ARR : ptr [pointer]
+    %r83 = addr_of @I : ptr [pointer]
+    %r84 = load %r83 : u8 [general]
+    %r85 = const 1 : u8 [general]
+    %r86 = add %r84, %r85 : u8 [general]
+    %r87 = ext %r86 : u8 -> u16 [index]
+    %r88 = ptr_add %r82, %r87 : ptr [pointer]
+    %r89 = load %r88 : u8 [general]
+    store %r81, %r89 : u8
+    %r90 = addr_of @ARR : ptr [pointer]
+    %r91 = addr_of @I : ptr [pointer]
+    %r92 = load %r91 : u8 [general]
+    %r93 = const 1 : u8 [general]
+    %r94 = add %r92, %r93 : u8 [general]
+    %r95 = ptr_add %r90, %r94 : ptr [pointer]
+    %r96 = addr_of @TEMP : ptr [pointer]
+    %r97 = load %r96 : u8 [general]
+    store %r95, %r97 : u8
+    %r98 = const 1 : u8 [general]
+    %r99 = addr_of @SWAPPED : ptr [pointer]
+    store %r99, %r98 : bool
+    jmp @if_join8()
+  block @if_join8:
+    %r100 = addr_of @I : ptr [pointer]
+    %r101 = load %r100 : u8 [general]
+    %r102 = const 1 : u16 [pointer]
+    %r103 = add %r101, %r102 : u8 [general]
+    %r104 = addr_of @I : ptr [pointer]
+    store %r104, %r103 : u8
+    jmp @loop_head4()
+  block @loop_exit6:
+    %r105 = addr_of @SWAPPED : ptr [pointer]
+    %r106 = load %r105 : bool [general]
+    %r107 = not %r106 : bool [general]
+    %r108 = const 0 : bool [general]
+    %r109 = cmp.ne %r107, %r108 : bool [flag]
+    br_if %r109, @if_then9(), @if_join10()
+  block @if_then9:
+    jmp @loop_exit3()
+  block @if_join10:
+    jmp @loop_head1()
+  block @loop_exit3:
+    ret void
+
+fun @PRINTARRAY()
+  block @entry:
+    %r110 = const 0 : u8 [general]
+    %r111 = addr_of @I : ptr [pointer]
+    store %r111, %r110 : u8
+    jmp @loop_head1()
+  block @loop_head1:
+    %r112 = addr_of @I : ptr [pointer]
+    %r113 = load %r112 : u8 [general]
+    %r114 = const 10 : u8 [general]
+    %r115 = const 1 : u8 [general]
+    %r116 = sub %r114, %r115 : u8 [general]
+    %r117 = const 1 : u16 [pointer]
+    %r118 = add %r116, %r117 : u8 [general]
+    %r119 = cmp.ult %r113, %r118 : bool [flag]
+    br_if %r119, @loop_body2(), @loop_exit3()
+  block @loop_body2:
+    %r120 = addr_of @ARR : ptr [pointer]
+    %r121 = addr_of @I : ptr [pointer]
+    %r122 = load %r121 : u8 [general]
+    %r123 = ext %r122 : u8 -> u16 [index]
+    %r124 = ptr_add %r120, %r123 : ptr [pointer]
+    %r125 = load %r124 : u8 [general]
+    %r126 = move %r125 : u8 [acc]
+    call @WriteU8(%r126)
+    %r127 = const 32 : u8 [general]
+    %r128 = move %r127 : u8 [acc]
+    call @ConOut(%r128)
+    %r129 = addr_of @I : ptr [pointer]
+    %r130 = load %r129 : u8 [general]
+    %r131 = const 1 : u16 [pointer]
+    %r132 = add %r130, %r131 : u8 [general]
+    %r133 = addr_of @I : ptr [pointer]
+    store %r133, %r132 : u8
+    jmp @loop_head1()
+  block @loop_exit3:
+    %r134 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r135 = move %r134 : ptr [pointer]
+    call @WriteStr(%r135)
+    call @WriteCrLf()
+    ret void
+
+fun @main()
+  block @entry:
+    call @INITARRAY()
+    %r136 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r137 = move %r136 : ptr [pointer]
+    call @WriteStr(%r137)
+    call @WriteCrLf()
+    call @PRINTARRAY()
+    call @SORT()
+    %r138 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r139 = move %r138 : ptr [pointer]
+    call @WriteStr(%r139)
+    call @WriteCrLf()
+    call @PRINTARRAY()
+    ret void
+
+fun @ConOut(%r140: u8 [acc])
+  block @entry:
+    asm "LD E, A\n    LD C, 2\n    CALL 0x0005"
+    ret void
+
+fun @WriteCrLf()
+  block @entry:
+    asm "LD E, 13\n    LD C, 2\n    CALL 5\n    LD E, 10\n    LD C, 2\n    CALL 5"
+    ret void
+
+fun @WriteStr(%r141: u16 [pointer])
+  block @entry:
+    asm "EX DE, HL\n    LD C, 9\n    CALL 0x0005"
+    ret void
+
+fun @WriteU8(%r142: u8 [acc])
+  block @entry:
+    asm "LD B, A\n    LD C, 0\n    LD A, B\n    CP 100\n    JR C, .wu8_tens\n    .wu8_h:\n    SUB 100\n    INC C\n    CP 100\n    JR NC, .wu8_h\n    LD B, A\n    LD A, C\n    ADD A, 48\n    LD E, A\n    PUSH BC\n    LD C, 2\n    CALL 0x0005\n    POP BC\n    LD A, B\n    LD C, 1\n    .wu8_tens:\n    LD B, 0\n    CP 10\n    JR C, .wu8_ones\n    .wu8_t:\n    SUB 10\n    INC B\n    CP 10\n    JR NC, .wu8_t\n    PUSH AF\n    LD A, B\n    ADD A, 48\n    LD E, A\n    LD C, 2\n    CALL 0x0005\n    POP AF\n    .wu8_ones:\n    ADD A, 48\n    LD E, A\n    LD C, 2\n    CALL 0x0005"
+    ret void
+

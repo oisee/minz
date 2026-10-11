@@ -1,0 +1,17 @@
+{
+  "exact_data_access": true,
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 1000000,
+  "max_memory": 65536,
+  "resources": {},
+  "globals": {
+    "ARR": "E8svtjuhSYxZdg=="
+  },
+  "calls": [
+    {
+      "function": "SORT",
+      "arguments": null
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "production_base": "e956c6c4",
+  "freeze_commit": "9baf339e",
+  "source_sha256": "f461d9d23e9b78c841999d3867db1d1d028353b80ce94354d7a1b89c70280732",
+  "frozen_executable_sha256": "5b71dce5a801c3e71f396c2b9b42ab67f9e51b3b280cf76ccefc9aceeab495ed",
+  "authoritative": "frozen-native",
+  "report": "2026-10-11-079-pascal-bubble-sort-heldout.md"
+}
