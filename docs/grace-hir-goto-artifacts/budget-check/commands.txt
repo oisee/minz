@@ -1,0 +1,3 @@
+Working directory: /tmp/minz-grace-pgo-resume/minzc
+GOCACHE=/tmp/minz-grace-gocache /home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/bin/go run ../docs/grace-hir-goto-artifacts/budget-check/compile.go ../docs/grace-hir-goto-artifacts/budget-check/current
+GOCACHE=/tmp/minz-grace-gocache /home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/bin/go run ../docs/grace-hir-goto-artifacts/budget-check/audit.go ../docs/grace-hir-goto-artifacts/budget-check

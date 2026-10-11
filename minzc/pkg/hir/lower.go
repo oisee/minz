@@ -34,6 +34,7 @@ package hir
 import (
 	"fmt"
 	"maps"
+	"sort"
 	"strings"
 
 	"github.com/minz/minzc/pkg/mir2"
@@ -259,13 +260,18 @@ type loopCtx struct {
 }
 
 type lowerer struct {
-	scopeRestores []func()
-	lineage       map[Stmt]LoopLineage
-	hf            *Func
-	m             *mir2.Module
-	mf            *mir2.Func
-	bld           *mir2.Builder
-	target        uint8 // platform target from hir.Module.Target
+	gotoDeadBodies map[*Block]bool
+	gotoDemands    map[string]map[string]bool
+	gotoAncestors  map[string][]*Block
+	activeBlocks   []*Block
+	gotoPending    map[string][]gotoIncoming
+	scopeRestores  []func()
+	lineage        map[Stmt]LoopLineage
+	hf             *Func
+	m              *mir2.Module
+	mf             *mir2.Func
+	bld            *mir2.Builder
+	target         uint8 // platform target from hir.Module.Target
 
 	// env maps variable names to their current virtual register.
 	// envTy maps variable names to their type (stable: set once, never changed).
@@ -314,6 +320,11 @@ type lowerer struct {
 	// backwardGotoVars records the sorted variable names threaded through each
 	// backward-goto label block. Set when the LabelStmt is first lowered.
 	backwardGotoVars map[string][]string
+}
+
+type gotoIncoming struct {
+	block *mir2.Block
+	env   map[string]mir2.Reg
 }
 
 func (l *lowerer) pushLoop(ctx loopCtx) {
@@ -577,6 +588,11 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 	// Detect backward gotos (loop-via-goto) — these need variable threading.
 	l.backwardGotoLabels = detectBackwardGotos(f.Body)
 	l.backwardGotoVars = make(map[string][]string)
+	l.gotoDeadBodies = map[*Block]bool{}
+	l.gotoDemands = gotoLabelDemands(f.Body)
+	l.gotoAncestors = map[string][]*Block{}
+	l.gotoPending = map[string][]gotoIncoming{}
+	collectGotoAncestors(f.Body, nil, l.gotoAncestors)
 
 	// Lower body.
 	l.lowerBlock(f.Body)
@@ -584,6 +600,12 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 	// Implicit return for void functions that fall off the end of the current block.
 	if !bld.Cur.IsSealed() {
 		bld.Ret()
+	}
+	// Function-wide labels in unreachable lexical branches were precreated.
+	for _, block := range bld.F.Blocks {
+		if !block.IsSealed() {
+			block.Term = &mir2.TermUnreachable{}
+		}
 	}
 }
 
@@ -746,6 +768,13 @@ func classForLoop(ty mir2.Ty, _ string) mir2.RegClass {
 // lowerBlock lowers a HIR block (list of statements).
 // Returns true if the block already ends with a terminator.
 func (l *lowerer) lowerBlock(blk *Block) bool {
+	dead := l.gotoDeadBodies[blk]
+	delete(l.gotoDeadBodies, blk)
+	return l.lowerBlockEntry(blk, dead)
+}
+func (l *lowerer) lowerBlockEntry(blk *Block, dead bool) bool {
+	l.activeBlocks = append(l.activeBlocks, blk)
+	defer func() { l.activeBlocks = l.activeBlocks[:len(l.activeBlocks)-1] }()
 	// Each lexical declaration hides a binding only for this block. Snapshot
 	// when the declaration executes, so earlier assignments to outer variables
 	// survive. Restore metadata together with the SSA register on every exit.
@@ -792,16 +821,148 @@ func (l *lowerer) lowerBlock(blk *Block) bool {
 	}
 	l.scopeRestores = append(l.scopeRestores, restore)
 	defer func() { restore(); l.scopeRestores = l.scopeRestores[:len(l.scopeRestores)-1] }()
-	terminated := false
+	terminated := dead
 	for _, s := range blk.Body {
 		if terminated {
 			// After a terminator (goto/break/return), only labels are reachable.
+			var targetBlocks []*Block
+			switch x := s.(type) {
+			case *Block:
+				targetBlocks = []*Block{x}
+			case *IfStmt:
+				targetBlocks = []*Block{x.Then, x.Else}
+			case *WhileStmt:
+				targetBlocks = []*Block{x.Body}
+			case *ForRangeStmt:
+				targetBlocks = []*Block{x.Body}
+			case *ForEachStmt:
+				targetBlocks = []*Block{x.Body}
+			}
+			if conditional, ok := s.(*IfStmt); ok {
+				found := false
+				for _, body := range []*Block{conditional.Then, conditional.Else} {
+					collectLabels(body, func(name string) {
+						if len(l.gotoPending[name]) > 0 {
+							found = true
+						}
+					})
+				}
+				if found {
+					unreachable := l.bld.SwitchToNewBlock(l.fresh("goto_unreachable"))
+					l.gotoDeadBodies[conditional.Then] = true
+					l.gotoDeadBodies[conditional.Else] = true
+					terminated = l.lowerIf(conditional)
+					unreachable.Term = &mir2.TermUnreachable{}
+				}
+				continue
+			}
+			if rng, ok := s.(*ForRangeStmt); ok {
+				found := false
+				collectLabels(rng.Body, func(name string) {
+					if len(l.gotoPending[name]) > 0 {
+						found = true
+					}
+				})
+				if found {
+					l.bld.SwitchToNewBlock(l.fresh("goto_unreachable"))
+					l.gotoDeadBodies[rng.Body] = true
+					l.lowerForRange(rng)
+					terminated = false
+				}
+				continue
+			}
+			if sw, ok := s.(*SwitchStmt); ok {
+				found := false
+				bodies := []*Block{sw.Default}
+				for _, c := range sw.Cases {
+					bodies = append(bodies, c.Body)
+				}
+				for _, body := range bodies {
+					collectLabels(body, func(name string) {
+						if len(l.gotoPending[name]) > 0 {
+							found = true
+						}
+					})
+				}
+				if found {
+					unreachable := l.bld.SwitchToNewBlock(l.fresh("goto_unreachable"))
+					for _, body := range bodies {
+						l.gotoDeadBodies[body] = true
+					}
+					l.lowerSwitch(sw)
+					unreachable.Term = &mir2.TermUnreachable{}
+					terminated = l.bld.Cur.IsSealed()
+				}
+				continue
+			}
+			if loop, ok := s.(*WhileStmt); ok {
+				found := false
+				collectLabels(loop.Body, func(name string) {
+					if len(l.gotoPending[name]) > 0 {
+						found = true
+					}
+				})
+				if found {
+					refs := map[string]bool{}
+					collectExprRefs(loop.Cond, refs)
+					missing := false
+					for name := range refs {
+						if _, ok := l.envTy[name]; ok && l.env[name] == mir2.NoReg {
+							missing = true
+						}
+					}
+					if missing {
+						// Verify only permits continuations which escape before
+						// reading this skipped condition binding.
+						terminated = l.lowerBlockEntry(loop.Body, true)
+					} else {
+						l.bld.SwitchToNewBlock(l.fresh("goto_unreachable"))
+						l.gotoDeadBodies[loop.Body] = true
+						l.lowerWhile(loop)
+						terminated = false
+					}
+				}
+				continue
+			}
+			for _, nested := range targetBlocks {
+				found := false
+				collectLabels(nested, func(name string) {
+					if len(l.gotoPending[name]) > 0 {
+						found = true
+					}
+				})
+				if found {
+					terminated = l.lowerBlockEntry(nested, true)
+				}
+			}
+			if len(targetBlocks) > 0 {
+				continue
+			}
 			if ls, ok := s.(*LabelStmt); ok {
 				l.lowerStmt(ls)
 				terminated = false
 				continue
 			}
-			// Skip dead code after terminator.
+			// A skipped initializer creates no SSA value, but its declaration
+			// still establishes lexical identity and type.
+			switch decl := s.(type) {
+			case *VarDeclStmt:
+				save(decl.Name)
+				delete(l.env, decl.Name)
+				delete(l.fnAliases, decl.Name)
+				delete(l.localArrays, decl.Name)
+				l.envTy[decl.Name] = decl.Ty
+			case *TupleLetStmt:
+				for i, name := range decl.Names {
+					if name != "_" {
+						save(name)
+						delete(l.env, name)
+						delete(l.fnAliases, name)
+						delete(l.localArrays, name)
+						l.envTy[name] = decl.Tys[i]
+					}
+				}
+			}
 			continue
 		}
 		switch decl := s.(type) {
@@ -817,6 +978,9 @@ func (l *lowerer) lowerBlock(blk *Block) bool {
 		if l.lowerStmt(s) {
 			terminated = true
 		}
+	}
+	if terminated && !l.bld.Cur.IsSealed() {
+		l.bld.Unreachable()
 	}
 	return terminated
 }
@@ -932,6 +1096,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		if foldReg, ok := l.tryLowerFold(st.Val); ok {
 			if tgt, ok2 := st.Target.(*VarRefExpr); ok2 {
 				l.env[tgt.Name] = foldReg
+				l.envTy[tgt.Name] = tgt.Ty
 				return false
 			}
 		}
@@ -969,8 +1134,10 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 				return false
 			}
 			// Re-bind the local variable to the new vreg (SSA-style rename).
-			// Type is already in envTy; just update the register.
+			// A goto may skip the declaration initializer and reach a full
+			// assignment. The verified target still supplies its lexical type.
 			l.env[tgt.Name] = val
+			l.envTy[tgt.Name] = tgt.Ty
 		case *DerefExpr:
 			ptr := l.lowerExpr(tgt.Ptr)
 			l.bld.Store(ptr, val, tgt.Ty)
@@ -1224,56 +1391,61 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		return false
 
 	case *LabelStmt:
-		blkLabel := "label_" + st.Name
-
-		if l.backwardGotoLabels[st.Name] {
-			// Backward-goto target: thread all current env vars through block params.
-			// This is analogous to a loop_head block.
-			varNames := sortedKeys(mapToBool(l.env), l.env)
-			l.backwardGotoVars[st.Name] = varNames
-
-			// Jump to label block with current values.
-			args := l.collectArgs(varNames)
-			if !l.bld.Cur.IsSealed() {
-				l.bld.Jmp(blkLabel, args...)
-			}
-
-			// Switch to the pre-created label block and add block params.
-			for _, blk := range l.bld.F.Blocks {
-				if blk.Label == blkLabel {
-					l.bld.SwitchTo(blk)
-					break
-				}
-			}
-			newEnv := cloneMap(l.env)
-			for _, name := range varNames {
-				ty := l.envTy[name]
-				r := l.bld.BlockParam(l.bld.Cur, ty, classForExpr(ty))
-				newEnv[name] = r
-			}
-			l.env = newEnv
-		} else {
-			// Forward-goto target: no block params needed.
-			if !l.bld.Cur.IsSealed() {
-				l.bld.Jmp(blkLabel)
-			}
-			for _, blk := range l.bld.F.Blocks {
-				if blk.Label == blkLabel {
-					l.bld.SwitchTo(blk)
-					break
-				}
+		label := "label_" + st.Name
+		vars := sortedKeys(l.gotoDemands[st.Name], l.env)
+		l.backwardGotoVars[st.Name] = vars
+		if !l.bld.Cur.IsSealed() {
+			l.bld.Jmp(label, l.collectArgs(vars)...)
+		}
+		for _, incoming := range l.gotoPending[st.Name] {
+			jump := incoming.block.Term.(*mir2.TermJmp)
+			for _, name := range vars {
+				jump.Args = append(jump.Args, incoming.env[name])
 			}
 		}
+		delete(l.gotoPending, st.Name)
+		for _, b := range l.bld.F.Blocks {
+			if b.Label == label {
+				l.bld.SwitchTo(b)
+				break
+			}
+		}
+		env := cloneMap(l.env)
+		for _, name := range vars {
+			ty := l.envTy[name]
+			env[name] = l.bld.BlockParam(l.bld.Cur, ty, classForExpr(ty))
+		}
+		l.env = env
 		return false
 
 	case *GotoStmt:
+		oldEnv, oldTy, oldAlias, oldArrays := l.env, l.envTy, l.fnAliases, l.localArrays
+		l.env = cloneMap(l.env)
+		l.envTy = maps.Clone(l.envTy)
+		l.fnAliases = maps.Clone(l.fnAliases)
+		l.localArrays = maps.Clone(l.localArrays)
+		depth := 0
+		ancestors := l.gotoAncestors[st.Label]
+		for i, b := range l.activeBlocks {
+			for _, targetBlock := range ancestors {
+				if b == targetBlock {
+					depth = i + 1
+				}
+			}
+		}
+		for i := len(l.scopeRestores) - 1; i >= depth; i-- {
+			l.scopeRestores[i]()
+		}
+
+		defer func() { l.env = oldEnv; l.envTy = oldTy; l.fnAliases = oldAlias; l.localArrays = oldArrays }()
 		target := "label_" + st.Label
-		if l.backwardGotoLabels[st.Label] {
+		if _, known := l.backwardGotoVars[st.Label]; known {
 			// Backward goto: pass current env values as block args.
 			varNames := l.backwardGotoVars[st.Label]
 			args := l.collectArgs(varNames)
 			l.bld.Jmp(target, args...)
 		} else {
+			l.gotoPending[st.Label] = append(l.gotoPending[st.Label], gotoIncoming{l.bld.Cur, cloneMap(l.env)})
 			l.bld.Jmp(target)
 		}
 		return true // goto is a terminator
@@ -1306,6 +1478,22 @@ func (l *lowerer) lowerIf(st *IfStmt) bool {
 
 	// Union of mutated vars (stable iteration order via sort).
 	mutated := unionKeys(thenMuts, elseMuts, envBefore)
+	if st.Else != nil {
+		left, right := gotoAssignedNames(st.Then), gotoAssignedNames(st.Else)
+		for name := range left {
+			if (right[name] || gotoStmtTerminates(st.Else)) && l.envTy[name] != nil && envBefore[name] == mir2.NoReg {
+				mutated = append(mutated, name)
+			}
+		}
+		if gotoStmtTerminates(st.Then) {
+			for name := range right {
+				if l.envTy[name] != nil && envBefore[name] == mir2.NoReg && !left[name] {
+					mutated = append(mutated, name)
+				}
+			}
+		}
+		sort.Strings(mutated)
+	}
 
 	thenLabel := l.fresh("if_then")
 	joinLabel := l.fresh("if_join")
@@ -1873,7 +2061,11 @@ func (l *lowerer) lowerSwitch(st *SwitchStmt) {
 	for i, c := range st.Cases {
 		imm := l.bld.Const(c.Val, valTy, mir2.ClassGeneral)
 		cond := l.bld.Cmp(mir2.CmpEq, valReg, imm, mir2.ClassFlag, false)
-		l.bld.BrIf(cond, caseLabels[i], nil, nextLabels[i], nil)
+		falseArgs := []mir2.Reg(nil)
+		if nextLabels[i] == joinLabel {
+			falseArgs = l.collectArgs(mutated)
+		}
+		l.bld.BrIf(cond, caseLabels[i], nil, nextLabels[i], falseArgs)
 		if i+1 < len(st.Cases) {
 			l.bld.SwitchToNewBlock(nextLabels[i])
 		}
@@ -2486,6 +2678,10 @@ func collectLabels(blk *Block, emit func(string)) {
 			collectLabels(st.Else, emit)
 		case *WhileStmt:
 			collectLabels(st.Body, emit)
+		case *ForRangeStmt:
+			collectLabels(st.Body, emit)
+		case *ForEachStmt:
+			collectLabels(st.Body, emit)
 		case *SwitchStmt:
 			for _, c := range st.Cases {
 				collectLabels(c.Body, emit)
@@ -2525,6 +2721,8 @@ func walkBackwardGotos(blk *Block, seen, result map[string]bool) {
 		case *WhileStmt:
 			walkBackwardGotos(st.Body, seen, result)
 		case *ForRangeStmt:
+			walkBackwardGotos(st.Body, seen, result)
+		case *ForEachStmt:
 			walkBackwardGotos(st.Body, seen, result)
 		case *SwitchStmt:
 			for _, c := range st.Cases {
@@ -3819,4 +4017,33 @@ func z80AutoClobbers(code string) mir2.ClassSet {
 		}
 	}
 	return cs
+}
+
+func collectGotoAncestors(b *Block, path []*Block, out map[string][]*Block) {
+	if b == nil {
+		return
+	}
+	path = append(append([]*Block(nil), path...), b)
+	for _, s := range b.Body {
+		switch x := s.(type) {
+		case *LabelStmt:
+			out[x.Name] = path
+		case *Block:
+			collectGotoAncestors(x, path, out)
+		case *IfStmt:
+			collectGotoAncestors(x.Then, path, out)
+			collectGotoAncestors(x.Else, path, out)
+		case *WhileStmt:
+			collectGotoAncestors(x.Body, path, out)
+		case *ForRangeStmt:
+			collectGotoAncestors(x.Body, path, out)
+		case *ForEachStmt:
+			collectGotoAncestors(x.Body, path, out)
+		case *SwitchStmt:
+			for _, c := range x.Cases {
+				collectGotoAncestors(c.Body, path, out)
+			}
+			collectGotoAncestors(x.Default, path, out)
+		}
+	}
 }

@@ -1,0 +1,38 @@
+outer_assign_before_shadow 0 ACCEPT got [{4}] want/reject 2 false error <nil>
+outer_assign_before_shadow 1 ACCEPT got [{2}] want/reject 2 false error <nil>
+same_scope_shadow_target 0 ACCEPT got [{3}] want/reject 3 false error <nil>
+same_scope_shadow_target 1 ACCEPT got [{3}] want/reject 3 false error <nil>
+nested_label_original 0 ACCEPT got [{4}] want/reject 2 false error <nil>
+nested_label_original 1 ACCEPT got [{2}] want/reject 2 false error <nil>
+nested_skipped_outer 0 HIRREFUSE HIR f: goto a skips lexical binding x
+nested_skipped_outer 1 HIRREFUSE HIR f: goto a skips lexical binding x
+same_scope_target_killed_init 0 ACCEPT got [{3}] want/reject 3 false error <nil>
+same_scope_target_killed_init 1 ACCEPT got [{3}] want/reject 3 false error <nil>
+shadow_launders_edge 0 HIRREFUSE HIR f: goto a skips lexical binding x
+shadow_launders_edge 1 HIRREFUSE HIR f: goto a skips lexical binding x
+nested_shadow_launders_edge 0 HIRREFUSE HIR f: goto a skips lexical binding x
+nested_shadow_launders_edge 1 HIRREFUSE HIR f: goto a skips lexical binding x
+dead_assignment_launders_edge 0 HIRREFUSE HIR f: goto a skips lexical binding x
+dead_assignment_launders_edge 1 HIRREFUSE HIR f: goto a skips lexical binding x
+goto_before_local_decl 0 HIRREFUSE HIR f: goto a skips lexical binding x
+goto_before_local_decl 1 HIRREFUSE HIR f: goto a skips lexical binding x
+unreachable_assign_after_goto 0 HIRREFUSE HIR f: goto a skips lexical binding x
+unreachable_assign_after_goto 1 HIRREFUSE HIR f: goto a skips lexical binding x
+unreachable_assign_after_return 0 ACCEPT got [{2}] want/reject 7 false error <nil>
+unreachable_assign_after_return 1 ACCEPT got [{7}] want/reject 7 false error <nil>
+local_shadow_kill 0 HIRREFUSE HIR f: goto a skips lexical binding x
+local_shadow_kill 1 HIRREFUSE HIR f: goto a skips lexical binding x
+branches_shadow_kill 0 HIRREFUSE HIR f: goto a skips lexical binding x
+branches_shadow_kill 1 HIRREFUSE HIR f: goto a skips lexical binding x
+unreachable_shadow_after_goto 0 HIRREFUSE HIR f: goto a skips lexical binding x
+unreachable_shadow_after_goto 1 HIRREFUSE HIR f: goto a skips lexical binding x
+conditional_transitive_jump 0 HIRREFUSE HIR f: goto a skips lexical binding x
+conditional_transitive_jump 1 HIRREFUSE HIR f: goto a skips lexical binding x
+both_branches_real_assign 0 ACCEPT got [{2}] want/reject 1 false error <nil>
+both_branches_real_assign 1 ACCEPT got [{1}] want/reject 1 false error <nil>
+return_or_real_assign 0 ACCEPT got [{2}] want/reject 7 false error <nil>
+return_or_real_assign 1 ACCEPT got [{7}] want/reject 7 false error <nil>
+goto_else_real_assign 0 ACCEPT got [{3}] want/reject 3 false error <nil>
+goto_else_real_assign 1 ACCEPT got [{3}] want/reject 3 false error <nil>
+one_branch_nested_local 0 HIRREFUSE HIR f: goto a skips lexical binding x
+one_branch_nested_local 1 HIRREFUSE HIR f: goto a skips lexical binding x

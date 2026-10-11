@@ -1,0 +1,60 @@
+=== RUN   TestGotoC89SourceVMZ80
+--- PASS: TestGotoC89SourceVMZ80 (0.05s)
+=== RUN   TestGotoC89SkippedInitializationBranchRejected
+--- PASS: TestGotoC89SkippedInitializationBranchRejected (0.00s)
+=== RUN   TestGotoC89ShadowDoesNotInitializeOuter
+--- PASS: TestGotoC89ShadowDoesNotInitializeOuter (0.00s)
+=== RUN   TestGotoScopeVMZ80
+=== RUN   TestGotoScopeVMZ80/backward_outer_shadow
+=== RUN   TestGotoScopeVMZ80/forward_outer_mutation
+=== RUN   TestGotoScopeVMZ80/forward_skip
+=== RUN   TestGotoScopeVMZ80/into_empty_block
+=== RUN   TestGotoScopeVMZ80/skip_unrelated_block
+=== RUN   TestGotoScopeVMZ80/into_false_if
+=== RUN   TestGotoScopeVMZ80/transitive_labels
+=== RUN   TestGotoScopeVMZ80/unused_skipped_local
+=== RUN   TestGotoScopeVMZ80/range_outward
+=== RUN   TestGotoScopeVMZ80/outer_local_shadow
+=== RUN   TestGotoScopeVMZ80/skipped_then_assigned
+=== RUN   TestGotoScopeVMZ80/into_false_loop_return
+=== RUN   TestGotoScopeVMZ80/into_loop_fallthrough
+=== RUN   TestGotoScopeVMZ80/transitive_killed
+=== RUN   TestGotoScopeVMZ80/into_switch_fallthrough
+=== RUN   TestGotoScopeVMZ80/into_range_return
+=== RUN   TestGotoScopeVMZ80/into_each_return
+=== RUN   TestGotoScopeVMZ80/into_loop_outward_false
+=== RUN   TestGotoScopeVMZ80/into_loop_outward_true
+=== RUN   TestGotoScopeVMZ80/into_if_two_labels_false
+=== RUN   TestGotoScopeVMZ80/into_if_two_labels_true
+--- PASS: TestGotoScopeVMZ80 (0.58s)
+    --- PASS: TestGotoScopeVMZ80/backward_outer_shadow (0.02s)
+    --- PASS: TestGotoScopeVMZ80/forward_outer_mutation (0.02s)
+    --- PASS: TestGotoScopeVMZ80/forward_skip (0.02s)
+    --- PASS: TestGotoScopeVMZ80/into_empty_block (0.02s)
+    --- PASS: TestGotoScopeVMZ80/skip_unrelated_block (0.02s)
+    --- PASS: TestGotoScopeVMZ80/into_false_if (0.02s)
+    --- PASS: TestGotoScopeVMZ80/transitive_labels (0.02s)
+    --- PASS: TestGotoScopeVMZ80/unused_skipped_local (0.02s)
+    --- PASS: TestGotoScopeVMZ80/range_outward (0.03s)
+    --- PASS: TestGotoScopeVMZ80/outer_local_shadow (0.02s)
+    --- PASS: TestGotoScopeVMZ80/skipped_then_assigned (0.03s)
+    --- PASS: TestGotoScopeVMZ80/into_false_loop_return (0.03s)
+    --- PASS: TestGotoScopeVMZ80/into_loop_fallthrough (0.03s)
+    --- PASS: TestGotoScopeVMZ80/transitive_killed (0.04s)
+    --- PASS: TestGotoScopeVMZ80/into_switch_fallthrough (0.04s)
+    --- PASS: TestGotoScopeVMZ80/into_range_return (0.03s)
+    --- PASS: TestGotoScopeVMZ80/into_each_return (0.03s)
+    --- PASS: TestGotoScopeVMZ80/into_loop_outward_false (0.04s)
+    --- PASS: TestGotoScopeVMZ80/into_loop_outward_true (0.04s)
+    --- PASS: TestGotoScopeVMZ80/into_if_two_labels_false (0.04s)
+    --- PASS: TestGotoScopeVMZ80/into_if_two_labels_true (0.04s)
+=== RUN   TestGotoSkippedUsedBindingRejected
+--- PASS: TestGotoSkippedUsedBindingRejected (0.00s)
+=== RUN   TestGotoLocalMutationAcrossScope
+--- PASS: TestGotoLocalMutationAcrossScope (0.00s)
+=== RUN   TestGotoSkippedInductionRejected
+--- PASS: TestGotoSkippedInductionRejected (0.00s)
+=== RUN   TestGotoSkippedIteratorRejected
+--- PASS: TestGotoSkippedIteratorRejected (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	0.639s

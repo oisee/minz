@@ -1,0 +1,18 @@
+forward_loop_label got [{9}] want 9 error <nil>
+cross_sibling_return got [{7}] want 7 error <nil>
+skip_then_assign got [{7}] want 7 error <nil>
+after_decl_shadow_chain got [{3}] want 3 error <nil>
+loop_entry_return got [{7}] want 7 error <nil>
+enter_loop_break HIRREFUSE HIR f: goto a enters loop with uninitialized induction state
+jumpbeforedeclaration_reenter got [{2}] want 2 error <nil>
+skip_decl_branch_assign got [{7}] want 7 error <nil>
+sibling_nondemand got [{3}] want 3 error <nil>
+param_out_mutation got [{8}] want 8 error <nil>
+dead_switch got [{9}] want 9 error <nil>
+backward_nested_types got [{7}] want 7 error <nil>
+skipped_init_used_else HIRREFUSE HIR f: goto a skips lexical binding x
+killed_before_jumpchain got [{7}] want 7 error <nil>
+enter_aftershadow_kill_outer got [{7}] want 7 error <nil>
+branchgotoandlabel got [{11}] want 11 error <nil>
+jump_chain got [{7}] want 7 error <nil>
+dead_both got [{11}] want 11 error <nil>

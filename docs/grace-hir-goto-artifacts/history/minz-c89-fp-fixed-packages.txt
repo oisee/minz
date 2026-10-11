@@ -1,0 +1,2 @@
+ok  	github.com/minz/minzc/pkg/hir	9.115s
+ok  	github.com/minz/minzc/pkg/c89	6.318s

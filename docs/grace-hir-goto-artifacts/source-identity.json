@@ -1,0 +1,6 @@
+{
+  "extraction": "Go AST: sole const src within TestGotoC89SourceVMZ80 only",
+  "filename": "goto-source.c",
+  "loop_locations": "C frontend has no automatic collector provenance. Explicit fixture wrapper maps the unique for(int i=0;i\u003c3;i++) token to the sole structured loop in loop_entry, with exact SHA, byte offset, line and column.",
+  "sha256": "2b12f12988a3526d983e4c26dd1b40f6b28dd7d9d20f4785cdecbebd339d5d84"
+}

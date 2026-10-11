@@ -1,0 +1,129 @@
+{
+  "schema": "minz.goto-c89-independent-artifact-verification/v1",
+  "rows": [
+    {
+      "grace": false,
+      "t_states": 434,
+      "bytes": 195,
+      "binary_sha256": "a6f8eb582ccc1762232455df6a15f8cc4d076b6a6e218e3522f4df6837c0fa93",
+      "source_sha256": "2b12f12988a3526d983e4c26dd1b40f6b28dd7d9d20f4785cdecbebd339d5d84",
+      "results": [
+        1,
+        7,
+        9,
+        7,
+        11,
+        7,
+        9,
+        7,
+        2,
+        2
+      ],
+      "calls": [
+        {
+          "function": "skip",
+          "arguments": null
+        },
+        {
+          "function": "outward",
+          "arguments": null
+        },
+        {
+          "function": "forward",
+          "arguments": null
+        },
+        {
+          "function": "static_shadow",
+          "arguments": null
+        },
+        {
+          "function": "dead_both",
+          "arguments": null
+        },
+        {
+          "function": "loop_entry",
+          "arguments": null
+        },
+        {
+          "function": "dead_switch",
+          "arguments": null
+        },
+        {
+          "function": "branch_assign",
+          "arguments": null
+        },
+        {
+          "function": "return_assign",
+          "arguments": null
+        },
+        {
+          "function": "assigned_before_shadow",
+          "arguments": null
+        }
+      ]
+    },
+    {
+      "grace": true,
+      "t_states": 434,
+      "bytes": 195,
+      "binary_sha256": "a6f8eb582ccc1762232455df6a15f8cc4d076b6a6e218e3522f4df6837c0fa93",
+      "source_sha256": "2b12f12988a3526d983e4c26dd1b40f6b28dd7d9d20f4785cdecbebd339d5d84",
+      "results": [
+        1,
+        7,
+        9,
+        7,
+        11,
+        7,
+        9,
+        7,
+        2,
+        2
+      ],
+      "calls": [
+        {
+          "function": "skip",
+          "arguments": null
+        },
+        {
+          "function": "outward",
+          "arguments": null
+        },
+        {
+          "function": "forward",
+          "arguments": null
+        },
+        {
+          "function": "static_shadow",
+          "arguments": null
+        },
+        {
+          "function": "dead_both",
+          "arguments": null
+        },
+        {
+          "function": "loop_entry",
+          "arguments": null
+        },
+        {
+          "function": "dead_switch",
+          "arguments": null
+        },
+        {
+          "function": "branch_assign",
+          "arguments": null
+        },
+        {
+          "function": "return_assign",
+          "arguments": null
+        },
+        {
+          "function": "assigned_before_shadow",
+          "arguments": null
+        }
+      ]
+    }
+  ],
+  "source_sha256": "2b12f12988a3526d983e4c26dd1b40f6b28dd7d9d20f4785cdecbebd339d5d84",
+  "state_and_data_access_match": true
+}

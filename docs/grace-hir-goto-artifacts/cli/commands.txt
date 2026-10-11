@@ -1,0 +1,4 @@
+Actual executions cwd: /tmp/minz-grace-pgo-resume/minzc
+Executable /tmp/minzc-hir-goto-final built after final mutable function-pointer verifier repair. Both actual commands terminated exit 0.
+/tmp/minzc-hir-goto-final ../examples/nanz/grace_tokenizer_checked.nanz --hir-grace --hir-profile-joint --hir-profile-forward-copy-sites --hir-profile-auto ../docs/grace-hir-goto-artifacts/cli/speed --hir-profile-auto-workload /tmp/minz-hir-goto-tokenizer-workload.json -o ../docs/grace-hir-goto-artifacts/cli/speed.a80 > /tmp/minz-hir-goto-tokenizer-speed-final-cli.txt 2>&1
+/tmp/minzc-hir-goto-final ../examples/nanz/grace_tokenizer_checked.nanz --hir-grace --Osize --hir-profile-joint --hir-profile-forward-copy-sites --hir-profile-auto ../docs/grace-hir-goto-artifacts/cli/size --hir-profile-auto-workload /tmp/minz-hir-goto-tokenizer-workload.json -o ../docs/grace-hir-goto-artifacts/cli/size.a80 > /tmp/minz-hir-goto-tokenizer-size-final-cli.txt 2>&1

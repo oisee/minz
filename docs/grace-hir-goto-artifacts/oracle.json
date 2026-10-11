@@ -1,0 +1,61 @@
+{
+  "calls": [
+    {
+      "function": "skip",
+      "reason": "The forward jump skips x=99, leaving initialized x=1.",
+      "want": 1
+    },
+    {
+      "function": "outward",
+      "reason": "The backward jump restores the outer x=7; both inner x=99 bindings leave scope.",
+      "want": 7
+    },
+    {
+      "function": "forward",
+      "reason": "The assignment before the inner declaration updates outer x to 9; the jump exits the shadow and skips x=88.",
+      "want": 9
+    },
+    {
+      "function": "static_shadow",
+      "reason": "The inner automatic x increments 99 to 100; outer static x remains 7.",
+      "want": 7
+    },
+    {
+      "function": "dead_both",
+      "reason": "The jump enters the else label directly, writes outer x=11 and jumps to out; dead condition and then arm do not execute.",
+      "want": 11
+    },
+    {
+      "function": "loop_entry",
+      "reason": "The jump enters the for body at label a, skipping induction initialization and immediately returning 7.",
+      "want": 7
+    },
+    {
+      "function": "dead_switch",
+      "reason": "The jump directly enters case label a, writes outer x=9 and exits the switch; skipped dispatch does not execute.",
+      "want": 9
+    },
+    {
+      "function": "branch_assign",
+      "reason": "The initializer is skipped; the true branch initializes x to 7 before its first read.",
+      "want": 7
+    },
+    {
+      "function": "return_assign",
+      "reason": "The initializer is skipped; the false branch initializes x to 2 before its first read.",
+      "want": 2
+    },
+    {
+      "function": "assigned_before_shadow",
+      "reason": "The true branch first initializes outer x to 2, then declares and changes inner x; outer x returns 2.",
+      "want": 2
+    }
+  ],
+  "snapshot_each_call": {
+    "globals": {
+      "static_shadow__x": "BwA="
+    },
+    "resources": {}
+  },
+  "traffic": "Static x: two byte reads only in static_shadow; zero reads in other calls, zero writes in every call; no input resources."
+}

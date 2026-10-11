@@ -1,0 +1,21 @@
+{
+  "schema": "minz.hir-loop-sites/v1",
+  "stage": "input-hir",
+  "sites": [
+    {
+      "id": "4712dd5625934deef301932cffba47fcda93cc65a779c8a06fb455bfad744a38",
+      "function": "loop_entry",
+      "kind": "while",
+      "ordinal": 0,
+      "hir_path": "body/s3",
+      "origin": {
+        "unit": "goto-source.c",
+        "byte_offset": 467,
+        "line": 6,
+        "byte_column": 40,
+        "source_sha256": "2b12f12988a3526d983e4c26dd1b40f6b28dd7d9d20f4785cdecbebd339d5d84"
+      }
+    }
+  ],
+  "unmapped_loops": 0
+}

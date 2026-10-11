@@ -1,0 +1,51 @@
+{
+  "exact_data_access": true,
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 1000000,
+  "max_memory": 65536,
+  "resources": {},
+  "globals": {},
+  "calls": [
+    {
+      "function": "skip",
+      "arguments": null
+    },
+    {
+      "function": "outward",
+      "arguments": null
+    },
+    {
+      "function": "forward",
+      "arguments": null
+    },
+    {
+      "function": "static_shadow",
+      "arguments": null
+    },
+    {
+      "function": "dead_both",
+      "arguments": null
+    },
+    {
+      "function": "loop_entry",
+      "arguments": null
+    },
+    {
+      "function": "dead_switch",
+      "arguments": null
+    },
+    {
+      "function": "branch_assign",
+      "arguments": null
+    },
+    {
+      "function": "return_assign",
+      "arguments": null
+    },
+    {
+      "function": "assigned_before_shadow",
+      "arguments": null
+    }
+  ]
+}

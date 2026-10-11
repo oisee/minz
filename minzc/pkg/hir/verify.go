@@ -63,11 +63,16 @@ func verifyHIRModule(m *Module, annotate bool) error {
 			env[c.Name] = c.Ty
 		}
 		v.aliases = map[string]*Func{}
+		v.immutableAliases = map[string]bool{}
+		v.mutableNames = mutableHIRNames(f.Body)
 		if f.IsExtern {
 			continue
 		}
 		if err := v.block(f.Body, env, 0); err != nil {
 			return err
+		}
+		if err := verifyGotoBindings(f); err != nil {
+			return v.fail("%s", err)
 		}
 		for _, name := range v.gotos {
 			if !v.labels[name] {
@@ -79,16 +84,18 @@ func verifyHIRModule(m *Module, annotate bool) error {
 }
 
 type hirVerifier struct {
-	funcs         map[string]*Func
-	globals       map[string]bool
-	fn            *Func
-	labels        map[string]bool
-	gotos         []string
-	active        map[any]bool
-	aliases       map[string]*Func
-	captureOuter  map[string]mir2.Ty
-	collected     map[string]mir2.Ty
-	annotateCalls bool
+	funcs            map[string]*Func
+	globals          map[string]bool
+	fn               *Func
+	labels           map[string]bool
+	gotos            []string
+	active           map[any]bool
+	aliases          map[string]*Func
+	immutableAliases map[string]bool
+	mutableNames     map[string]bool
+	captureOuter     map[string]mir2.Ty
+	collected        map[string]mir2.Ty
+	annotateCalls    bool
 }
 
 func nilHIR(x any) bool {
@@ -119,13 +126,21 @@ func (v *hirVerifier) block(b *Block, outer map[string]mir2.Ty, loops int) error
 		return err
 	}
 	defer delete(v.active, b)
+	if v.mutableNames == nil {
+		v.mutableNames = mutableHIRNames(b) // InferCaptures also enters through block.
+	}
 	env := copyHIRScope(outer)
 	oldAliases := v.aliases
+	oldImmutable := v.immutableAliases
+	v.immutableAliases = map[string]bool{}
+	for n, immutable := range oldImmutable {
+		v.immutableAliases[n] = immutable
+	}
 	v.aliases = map[string]*Func{}
 	for n, f := range oldAliases {
 		v.aliases[n] = f
 	}
-	defer func() { v.aliases = oldAliases }()
+	defer func() { v.aliases = oldAliases; v.immutableAliases = oldImmutable }()
 	for i, s := range b.Body {
 		if err := v.stmt(s, env, loops); err != nil {
 			return fmt.Errorf("statement %d: %w", i, err)
@@ -265,10 +280,22 @@ func (v *hirVerifier) stmt(s Stmt, env map[string]mir2.Ty, loops int) error {
 				}
 			}
 		}
-		if f := v.functionValue(s.Init); f != nil {
+		f := v.functionValue(s.Init)
+		immutable := false
+		if ref, ok := s.Init.(*VarRefExpr); ok {
+			// These are the NoReg aliases recognized by lowering. An
+			// address-of initializer instead creates a mutable pointer register.
+			immutable = v.funcs[ref.Name] != nil || v.immutableAliases[ref.Name]
+		}
+		if f != nil && (immutable || !v.mutableNames[s.Name]) {
 			v.aliases[s.Name] = f
+			v.immutableAliases[s.Name] = immutable
 		} else {
+			if f != nil && len(f.Captures) > 0 && v.captureOuter == nil {
+				return v.fail("capturing callable %s cannot escape through a mutable pointer", f.Name)
+			}
 			delete(v.aliases, s.Name)
+			delete(v.immutableAliases, s.Name)
 		}
 		ty := s.Ty
 		if s.ArrayLen > 0 {
@@ -286,8 +313,11 @@ func (v *hirVerifier) stmt(s Stmt, env map[string]mir2.Ty, loops int) error {
 				return v.fail("bit assignment requires an addressable scalar base")
 			}
 		}
-		if vr, ok := s.Target.(*VarRefExpr); ok && v.aliases[vr.Name] != nil {
+		if vr, ok := s.Target.(*VarRefExpr); ok && v.immutableAliases[vr.Name] {
 			return v.fail("reassignment of callable alias %q is unsupported", vr.Name)
+		}
+		if f := v.functionValue(s.Val); f != nil && len(f.Captures) > 0 && v.captureOuter == nil {
+			return v.fail("capturing callable %s cannot escape through assignment", f.Name)
 		}
 		switch s.Target.(type) {
 		case *VarRefExpr, *DerefExpr, *FieldExpr, *IndexExpr, *BitExpr:
@@ -625,4 +655,65 @@ func verifyGraceModule(m *Module) error {
 		return err
 	}
 	return mir2.Verify(LowerModule(m))
+}
+
+// mutableHIRNames deliberately merges lexical names conservatively. A pointer
+// assigned on any path (including a loop/backward goto) must never acquire a
+// declaration-target signature. Taking its address also permits indirect writes.
+// This is not flow-sensitive pointer analysis; unmodified pointers retain the
+// existing known-target checks while ambiguous pointers remain unresolved.
+func mutableHIRNames(root *Block) map[string]bool {
+	out := map[string]bool{}
+	seen := map[any]bool{}
+	var walk func(reflect.Value)
+	walk = func(value reflect.Value) {
+		if !value.IsValid() {
+			return
+		}
+		switch value.Kind() {
+		case reflect.Interface:
+			if !value.IsNil() {
+				walk(value.Elem())
+			}
+		case reflect.Ptr:
+			if value.IsNil() {
+				return
+			}
+			node := value.Interface()
+			if seen[node] {
+				return
+			}
+			seen[node] = true
+			switch x := node.(type) {
+			case *AssignStmt:
+				if ref, ok := x.Target.(*VarRefExpr); ok && ref != nil {
+					out[ref.Name] = true
+				}
+			case *ForRangeStmt:
+				out[x.Var] = true
+			case *ForEachStmt:
+				out[x.Var] = true
+			case *AddrOfExpr:
+				out[x.Sym] = true
+				if ref, ok := x.X.(*VarRefExpr); ok && ref != nil {
+					out[ref.Name] = true
+				}
+			}
+			walk(value.Elem())
+		case reflect.Struct:
+			for i := 0; i < value.NumField(); i++ {
+				if value.Field(i).CanInterface() {
+					walk(value.Field(i))
+				}
+			}
+		case reflect.Slice:
+			for i := 0; i < value.Len(); i++ {
+				walk(value.Index(i))
+			}
+		}
+	}
+	// Visit the AST graph with a cycle guard before structural verification.
+	// Malformed cyclic nodes must reach Verify's diagnostic, never recurse here.
+	walk(reflect.ValueOf(root))
+	return out
 }

@@ -1,0 +1,18 @@
+enter_loop_break PANIC hir/lower: undefined variable "i"
+skip_decl_branch_assign HIRREFUSE HIR f: goto a skips lexical binding x
+dead_switch MIRREFUSE mir2: func @f: block @if_else4 has no terminator
+enter_aftershadow_kill_outer got [{7}] want 7 error <nil>
+jump_chain got [{7}] want 7 error <nil>
+after_decl_shadow_chain got [{3}] want 3 error <nil>
+backward_nested_types got [{7}] want 7 error <nil>
+jumpbeforedeclaration_reenter got [{2}] want 2 error <nil>
+branchgotoandlabel got [{11}] want 11 error <nil>
+dead_both MIRREFUSE mir2: func @f: block @label_a has no terminator
+skip_then_assign got [{7}] want 7 error <nil>
+sibling_nondemand got [{3}] want 3 error <nil>
+skipped_init_used_else HIRREFUSE HIR f: goto a skips lexical binding x
+killed_before_jumpchain got [{7}] want 7 error <nil>
+cross_sibling_return got [{7}] want 7 error <nil>
+param_out_mutation got [{8}] want 8 error <nil>
+loop_entry_return PANIC hir/lower: undefined variable "i"
+forward_loop_label got [{9}] want 9 error <nil>

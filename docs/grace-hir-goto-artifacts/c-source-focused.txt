@@ -1,0 +1,8 @@
+=== RUN   TestGotoC89SourceVMZ80
+--- PASS: TestGotoC89SourceVMZ80 (0.07s)
+=== RUN   TestGotoC89SkippedInitializationBranchRejected
+--- PASS: TestGotoC89SkippedInitializationBranchRejected (0.00s)
+=== RUN   TestGotoC89ShadowDoesNotInitializeOuter
+--- PASS: TestGotoC89ShadowDoesNotInitializeOuter (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	0.073s

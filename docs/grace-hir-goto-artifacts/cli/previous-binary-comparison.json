@@ -1,0 +1,22 @@
+[
+  {
+    "objective": "speed",
+    "current_binary_sha256": "9755ac65f59ed3ee83d28316a85de378edb50e381c6d18c2103786927c2a79f8",
+    "pre_final_verifier_binary_sha256": "9755ac65f59ed3ee83d28316a85de378edb50e381c6d18c2103786927c2a79f8",
+    "previous_tsmc_binary_sha256": "9755ac65f59ed3ee83d28316a85de378edb50e381c6d18c2103786927c2a79f8",
+    "bytes": 4475,
+    "exact_bytes_equal": true,
+    "old_compiler_or_emulator_repeated": false,
+    "current_executable": "/tmp/minzc-hir-goto-final"
+  },
+  {
+    "objective": "size",
+    "current_binary_sha256": "048b95267b15d26a4a71d0a7051a16dd12f5f66c36e9ce1c922b45d109babc33",
+    "pre_final_verifier_binary_sha256": "048b95267b15d26a4a71d0a7051a16dd12f5f66c36e9ce1c922b45d109babc33",
+    "previous_tsmc_binary_sha256": "048b95267b15d26a4a71d0a7051a16dd12f5f66c36e9ce1c922b45d109babc33",
+    "bytes": 4346,
+    "exact_bytes_equal": true,
+    "old_compiler_or_emulator_repeated": false,
+    "current_executable": "/tmp/minzc-hir-goto-final"
+  }
+]

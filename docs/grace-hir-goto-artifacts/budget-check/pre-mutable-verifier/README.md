@@ -1,0 +1,9 @@
+# Current budget compilation compared with the previous TSMC stage
+
+`compile.go` reparses the unchanged byte-first budget fixture independently for four constant-if/invariant-base masks. Each candidate follows the real two-Grace-pass path: an explicit `RunGraceWithOptions`, then `CompileHIRSteps` with `UseHIRGrace: true`. Only the current compiler runs; no old compiler or long VM/Z80 workload is repeated.
+
+`audit.go` compares source bytes, exact assembly, and newly assembled binaries against `../../grace-tsmc-const-artifacts/budget-check/`. It accepts lossless gzip for historical source/assembly. `commands.txt` records exact invocations. Final result is recorded in `compile.txt` and `audit.txt`.
+
+Only `OptSize: false` is compiled for these four masks. This is the previously justified budget-specific deduplication, not a claim of eight executed comparisons: the explicit rule map admits only constant-if/invariant-base, the empty pointer policy excludes versioned pointer walking, and forward copy is absent from the rule map. Here the only `OptSize` effect is HIR Grace size policy (`pipeline.go:166`; line 490 belongs to the other entry point, `hir/grace.go` pointer/copy predicates); it cannot enable a distinct candidate. The previous 722.080-second machine gate may be carried forward only if all four exact source/assembly/binary comparisons pass. This does not replace target checks for the new goto fixtures.
+
+Terminal results: current compilation exited 0; all four source/exact-assembly/newly-assembled-binary comparisons PASS. Binary sizes by mask are 344, 344, 232, and 344 bytes. Per-mask elapsed times were 0.389s, 130.376s, 5.811s, and 124.908s (261.484s total). Source SHA256 is `3e52eaec62f9e9f9cb5034340f230935495f656ff91672ede5e71848615f83c7`. The prior machine budget gate is therefore preserved for this identical fixture and its four binaries. No eight size-dependent compilations or fresh long workload are claimed.
