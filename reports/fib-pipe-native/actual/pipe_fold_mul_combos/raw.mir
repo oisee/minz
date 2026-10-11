@@ -1,0 +1,119 @@
+; MIR2 module: examples/tests/pipe_fold_mul_combos.nanz
+global @data : [4]u8
+
+fun @double(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = add %r1, %r1 : u8 [acc]
+    ret %r2
+
+fun @triple(%r3: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r4 = add %r3, %r3 : u8 [acc]
+    %r5 = add %r4, %r3 : u8 [acc]
+    ret %r5
+
+fun @inc(%r6: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r7 = const 1 : u8 [general]
+    %r8 = add %r6, %r7 : u8 [acc]
+    ret %r8
+
+fun @add_acc(%r9: u8 [acc], %r10: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r11 = add %r9, %r10 : u8 [acc]
+    ret %r11
+
+fun @pipe1() -> u8 [acc]
+  block @entry:
+    %r12 = const 5 : u8 [general]
+    %r13 = move %r12 : u8 [acc]
+    %r14 = call @double(%r13) : u8 [acc]
+    %r15 = move %r14 : u8 [acc]
+    %r16 = call @inc(%r15) : u8 [acc]
+    ret %r16
+
+fun @pipe2() -> u8 [acc]
+  block @entry:
+    %r17 = const 4 : u8 [general]
+    %r18 = move %r17 : u8 [acc]
+    %r19 = call @triple(%r18) : u8 [acc]
+    %r20 = move %r19 : u8 [acc]
+    %r21 = call @double(%r20) : u8 [acc]
+    ret %r21
+
+fun @pipe3() -> u8 [acc]
+  block @entry:
+    %r22 = const 1 : u8 [general]
+    %r23 = move %r22 : u8 [acc]
+    %r24 = call @inc(%r23) : u8 [acc]
+    %r25 = move %r24 : u8 [acc]
+    %r26 = call @inc(%r25) : u8 [acc]
+    %r27 = move %r26 : u8 [acc]
+    %r28 = call @inc(%r27) : u8 [acc]
+    ret %r28
+
+fun @sum_data() -> u8 [acc]
+  block @entry:
+    %r29 = const 0 : u8 [general]
+    %r30 = addr_of @data : ptr [pointer]
+    %r31 = const 0 : u8 [general]
+    %r32 = ptr_add %r30, %r31 : ptr [pointer]
+    %r33 = const 4 : u8 [general]
+    %r34 = const 0 : u8 [acc]
+    %r35 = cmp.ne %r33, %r34 : bool [flag]
+    br_if %r35, @fe_body1(%r33, %r32, %r29), @fe_exit2(%r29)
+  block @fe_body1(%r36: u8 [counter], %r37: ptr [pointer], %r38: u8 [general]):
+    %r39 = load %r37 : u8 [general]
+    %r40 = add %r38, %r39 : u8 [general]
+    %r41 = ptr_bump %r37, +1 : ptr [pointer]
+    djnz %r36, @fe_body1(%r41, %r40), @fe_exit2(%r40)
+  block @fe_exit2(%r42: u8 [general]):
+    ret %r42
+
+fun @sum_from_100() -> u8 [acc]
+  block @entry:
+    %r43 = const 100 : u8 [general]
+    %r44 = addr_of @data : ptr [pointer]
+    %r45 = const 0 : u8 [general]
+    %r46 = ptr_add %r44, %r45 : ptr [pointer]
+    %r47 = const 4 : u8 [general]
+    %r48 = const 0 : u8 [acc]
+    %r49 = cmp.ne %r47, %r48 : bool [flag]
+    br_if %r49, @fe_body1(%r47, %r46, %r43), @fe_exit2(%r43)
+  block @fe_body1(%r50: u8 [counter], %r51: ptr [pointer], %r52: u8 [general]):
+    %r53 = load %r51 : u8 [general]
+    %r54 = add %r52, %r53 : u8 [general]
+    %r55 = ptr_bump %r51, +1 : ptr [pointer]
+    djnz %r50, @fe_body1(%r55, %r54), @fe_exit2(%r54)
+  block @fe_exit2(%r56: u8 [general]):
+    ret %r56
+
+fun @sum_let() -> u8 [acc]
+  block @entry:
+    %r57 = const 0 : u8 [general]
+    %r58 = addr_of @data : ptr [pointer]
+    %r59 = const 0 : u8 [general]
+    %r60 = ptr_add %r58, %r59 : ptr [pointer]
+    %r61 = const 4 : u8 [general]
+    %r62 = const 0 : u8 [acc]
+    %r63 = cmp.ne %r61, %r62 : bool [flag]
+    br_if %r63, @fe_body1(%r61, %r60, %r57), @fe_exit2(%r57)
+  block @fe_body1(%r64: u8 [counter], %r65: ptr [pointer], %r66: u8 [general]):
+    %r67 = load %r65 : u8 [general]
+    %r68 = add %r66, %r67 : u8 [general]
+    %r69 = ptr_bump %r65, +1 : ptr [pointer]
+    djnz %r64, @fe_body1(%r69, %r68), @fe_exit2(%r68)
+  block @fe_exit2(%r70: u8 [general]):
+    ret %r70
+
+fun @board_idx(%r71: u8 [acc], %r72: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r73 = const 10 : u8 [general]
+    %r74 = mul %r72, %r73 : u8 [general]
+    %r75 = add %r74, %r71 : u8 [acc]
+    ret %r75
+
+fun @main()
+  block @entry:
+    ret void
+

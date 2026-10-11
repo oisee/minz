@@ -1,0 +1,17 @@
+{
+  "calls": {
+    "fib": 256
+  },
+  "cycles_including_CALL": {
+    "fib": 4455680
+  },
+  "execution_sha256": "b88d2977508fc7091045d078b1b96f8e90e58ac7724061d8250ec880930be13a",
+  "module_bytes": 29,
+  "raw_only_lifted": {},
+  "source_assertions": 8,
+  "source_sha256": "1816bdacb6be551b42edfb83365149d00b7ce9dfa0193ade4beed24ca3479671",
+  "spill_bytes": {},
+  "stack_depths": {
+    "fib": 6
+  }
+}

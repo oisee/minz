@@ -1,0 +1,6 @@
+{
+  "base_commit": "29df08bb",
+  "freeze_commit": "d38b4f23",
+  "executable_sha256": "ec07afb72161743d66fbdf614ae6a9205388fb9781f15d411f81068b6b3f8ac9",
+  "command": "from minzc/pkg/pipeline: MINZ_FIB_PIPE_ARTIFACTS=<packet>/actual <frozen-exe> -test.run ^TestOriginalFibPipeNative$ -test.count=1 -test.v"
+}
