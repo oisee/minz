@@ -1,0 +1,4 @@
+=== RUN   TestNativeDWordParallelCycles
+--- PASS: TestNativeDWordParallelCycles (0.06s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.067s

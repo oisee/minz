@@ -16,3 +16,7 @@ the retained executable; no historical packet overwritten.
 Three dword source/ASM/BIN and15 retained executable/evidence payload hashes
 verified and copied to share. Larger mixedwidth edge audit, error semantics
 and sequential-byte fusion still ongoing; overall goal remains active.
+
+Follow-up mixed narrow/wide aliases:54 forced sets root PASS0.067s.
+Original D-byte snapshot into A, narrow H destinations alongside wide
+spill writes, both banks, coalesced BC, exact F and balanced SP checked.
