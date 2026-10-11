@@ -1,0 +1,23 @@
+// ex16: Hello World — full showcase loop
+// nanz source → Z80 asm → binary → mze console output
+//
+// Run:
+//   mzc ex16_hello_mze.nanz -o ex16_hello_mze.bin
+//   mze ex16_hello_mze.bin --console-io
+
+fun abs_diff(a: u8, b: u8) -> u8 {
+    if a >= b { return a - b }
+    return b - a
+}
+
+fun main() -> void {
+    @print("=== Nanz Z80 ===\n")
+    @print("abs_diff(10, 3) = ")
+    @print_dec(abs_diff(10, 3))
+    @print_nl()
+    @print("abs_diff(200, 55) = ")
+    @print_dec(abs_diff(200, 55))
+    @print_nl()
+    @print("Done!\n")
+    return
+}

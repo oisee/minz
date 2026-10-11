@@ -1,0 +1,104 @@
+{
+  "native_calls": 50725719,
+  "rows": [
+    {
+      "artifact": "ex12_assert/grace-size-results.json",
+      "allowed_spill_bytes": {},
+      "entries": {
+        "abs_diff": 65536,
+        "clamp": 16777216,
+        "double": 256
+      },
+      "module_bytes": 19,
+      "source_sha256": "4972461eba6fb194fd5a844dd9e10a25ae800b92bf2c64709070f7df590f9ad1",
+      "stack_depths": {
+        "abs_diff": 2,
+        "clamp": 2,
+        "double": 2
+      },
+      "terminating_workload_tstates": 844774912
+    },
+    {
+      "artifact": "ex12_assert/grace-speed-results.json",
+      "allowed_spill_bytes": {},
+      "entries": {
+        "abs_diff": 65536,
+        "clamp": 16777216,
+        "double": 256
+      },
+      "module_bytes": 19,
+      "source_sha256": "4972461eba6fb194fd5a844dd9e10a25ae800b92bf2c64709070f7df590f9ad1",
+      "stack_depths": {
+        "abs_diff": 2,
+        "clamp": 2,
+        "double": 2
+      },
+      "terminating_workload_tstates": 844774912
+    },
+    {
+      "artifact": "ex12_assert/ordinary-results.json",
+      "allowed_spill_bytes": {},
+      "entries": {
+        "abs_diff": 65536,
+        "clamp": 16777216,
+        "double": 256
+      },
+      "module_bytes": 19,
+      "source_sha256": "4972461eba6fb194fd5a844dd9e10a25ae800b92bf2c64709070f7df590f9ad1",
+      "stack_depths": {
+        "abs_diff": 2,
+        "clamp": 2,
+        "double": 2
+      },
+      "terminating_workload_tstates": 844774912
+    },
+    {
+      "artifact": "ex15_smc_sprite/grace-size-results.json",
+      "max_stack_bytes": 2,
+      "model": "SMC explicit patcher/bytes or console OUT23; no CP/M runtime claim",
+      "module_bytes": 42,
+      "native_calls": 28,
+      "source_sha256": "ebf231db98b4ec793a186188138b8b7a3202e0d749e079cd3914877e44d22781"
+    },
+    {
+      "artifact": "ex15_smc_sprite/grace-speed-results.json",
+      "max_stack_bytes": 2,
+      "model": "SMC explicit patcher/bytes or console OUT23; no CP/M runtime claim",
+      "module_bytes": 42,
+      "native_calls": 28,
+      "source_sha256": "ebf231db98b4ec793a186188138b8b7a3202e0d749e079cd3914877e44d22781"
+    },
+    {
+      "artifact": "ex15_smc_sprite/ordinary-results.json",
+      "max_stack_bytes": 2,
+      "model": "SMC explicit patcher/bytes or console OUT23; no CP/M runtime claim",
+      "module_bytes": 42,
+      "native_calls": 28,
+      "source_sha256": "ebf231db98b4ec793a186188138b8b7a3202e0d749e079cd3914877e44d22781"
+    },
+    {
+      "artifact": "ex16_hello_mze/grace-size-results.json",
+      "max_stack_bytes": 4,
+      "model": "SMC explicit patcher/bytes or console OUT23; no CP/M runtime claim",
+      "module_bytes": 297,
+      "native_calls": 65537,
+      "source_sha256": "adacf7829f2a7b20db2d9d5e1a8701826633e6e0de6ac1e22bcd62e5a5526082"
+    },
+    {
+      "artifact": "ex16_hello_mze/grace-speed-results.json",
+      "max_stack_bytes": 4,
+      "model": "SMC explicit patcher/bytes or console OUT23; no CP/M runtime claim",
+      "module_bytes": 297,
+      "native_calls": 65537,
+      "source_sha256": "adacf7829f2a7b20db2d9d5e1a8701826633e6e0de6ac1e22bcd62e5a5526082"
+    },
+    {
+      "artifact": "ex16_hello_mze/ordinary-results.json",
+      "max_stack_bytes": 4,
+      "model": "SMC explicit patcher/bytes or console OUT23; no CP/M runtime claim",
+      "module_bytes": 297,
+      "native_calls": 65537,
+      "source_sha256": "adacf7829f2a7b20db2d9d5e1a8701826633e6e0de6ac1e22bcd62e5a5526082"
+    }
+  ]
+}

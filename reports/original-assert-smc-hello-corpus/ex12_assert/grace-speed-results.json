@@ -1,0 +1,16 @@
+{
+  "allowed_spill_bytes": {},
+  "entries": {
+    "abs_diff": 65536,
+    "clamp": 16777216,
+    "double": 256
+  },
+  "module_bytes": 19,
+  "source_sha256": "4972461eba6fb194fd5a844dd9e10a25ae800b92bf2c64709070f7df590f9ad1",
+  "stack_depths": {
+    "abs_diff": 2,
+    "clamp": 2,
+    "double": 2
+  },
+  "terminating_workload_tstates": 844774912
+}

@@ -1,0 +1,7 @@
+{
+  "max_stack_bytes": 2,
+  "model": "SMC explicit patcher/bytes or console OUT23; no CP/M runtime claim",
+  "module_bytes": 42,
+  "native_calls": 28,
+  "source_sha256": "ebf231db98b4ec793a186188138b8b7a3202e0d749e079cd3914877e44d22781"
+}

@@ -1,0 +1,53 @@
+{
+  "schema": "original-assert-smc-hello-domain-v1",
+  "sources": [
+    {
+      "path": "reports/showcase-src/2026-03-11/ex12_assert.nanz",
+      "sha256": "4972461eba6fb194fd5a844dd9e10a25ae800b92bf2c64709070f7df590f9ad1"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex12_assert.nanz",
+      "sha256": "4972461eba6fb194fd5a844dd9e10a25ae800b92bf2c64709070f7df590f9ad1"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-11/ex15_smc_sprite.nanz",
+      "sha256": "ebf231db98b4ec793a186188138b8b7a3202e0d749e079cd3914877e44d22781"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex15_smc_sprite.nanz",
+      "sha256": "ebf231db98b4ec793a186188138b8b7a3202e0d749e079cd3914877e44d22781"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-11/ex16_hello_mze.nanz",
+      "sha256": "adacf7829f2a7b20db2d9d5e1a8701826633e6e0de6ac1e22bcd62e5a5526082"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex16_hello_mze.nanz",
+      "sha256": "adacf7829f2a7b20db2d9d5e1a8701826633e6e0de6ac1e22bcd62e5a5526082"
+    }
+  ],
+  "domains": {
+    "ex12": {
+      "double": "all256",
+      "abs_diff": "all256x256",
+      "clamp": "all256x256x256 includinglo>hi, first if v<lo thenlo else if v>hi thenhi elsev"
+    },
+    "ex15": {
+      "native": "actual generatedpatcher CALL HLptr thenoriginaldraw CALL; PTR0/1/4000/fffc/fffd/fffe/ffff; exact2/4 stores wrapmod65536; patchonlyactualimmediate2bytes allowed",
+      "VM": "physicalSMC unsupported; observe exact OpPatchSlot model outcome separately without claimequivalent"
+    },
+    "ex16": {
+      "abs_diff": "all256x256bytepairs",
+      "main": "expected exact === Nanz Z80 ===\nabs_diff(10, 3) = 7\nabs_diff(200, 55) = 145\nDone!\n",
+      "VM": "capturebuiltin printstdout",
+      "native": "originalrawconsoleOUT23 model bytes; trueCALLPC/SP/RAM, notCP/M claim"
+    }
+  },
+  "modes": [
+    "ordinary",
+    "grace-size",
+    "grace-speed"
+  ],
+  "spec": "Bookv7assert chapter11/SMCchapter12/controlflow2.5, unsigned8 arithmetic; generatedpatcher canonicalHL perBook12.2",
+  "limits": "native bounded200000instructions percall; VM cumulativeunlimited only finite inputs"
+}
