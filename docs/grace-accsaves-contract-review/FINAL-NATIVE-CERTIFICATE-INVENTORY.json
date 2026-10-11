@@ -1,0 +1,17 @@
+{
+  "core_commit": "6da01f84",
+  "test_commit": "eea0e625",
+  "native_runs_by_reviewer": 0,
+  "files": {
+    "minzc/pkg/mir2/native_call_spill.go": "ad659b0ba03a51a65336b227927b3e866d5c3e459edc2876670888df4b440fca",
+    "minzc/pkg/mir2/native_memory_access.go": "9cc5a555b0768b0bb6a00f67d1efccba182735bef5b50fcfb2ad923ab46081e5",
+    "minzc/pkg/mir2/z80codegen.go": "383bd82102724be6449c2038943ca3c1246adfa1f70b3b7436026f4161949fdd",
+    "minzc/pkg/mir2/z80codegen_call.go": "f3a5c1b48f9e541f596e9ca8fe5259004bfa4cb43051948fc1cef77e3d4df0f8",
+    "minzc/pkg/mir2/z80codegen_call_spill.go": "7eca59d2e088b732e3e0d2faca0df5c5944e266ee8d1eaf18ae5677746952e49",
+    "minzc/pkg/pipeline/memory_host_access_recipe.go": "db927af6f8c6ec39b4be24fda35b273c8127ede0495515fae453459407da16a1",
+    "minzc/pkg/pipeline/memory_host_call_spill.go": "cfc468344123391db04db55bf522a3bda7b6454e18381d8b15404c353b8a43bc",
+    "minzc/pkg/pipeline/memory_host_call_spill_test.go": "22aaa20a6bb261ba78b2c198ffac1ba5bc895d60b131402ee4a35acbb08fb6fe",
+    "minzc/pkg/pipeline/memory_host_sidecar.go": "25e3d1d45ca190b3eb2080a8cd2d8dbb9cedcbb2c36989082215bdc80cafd697",
+    "minzc/pkg/pipeline/memory_host_z80_memory.go": "4939112e028fe781ea98ec479ccde6ed881c3e9c5b7c7a0cc7fc6208b2662030"
+  }
+}

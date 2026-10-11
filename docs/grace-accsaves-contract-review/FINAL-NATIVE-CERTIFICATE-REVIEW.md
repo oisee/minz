@@ -1,0 +1,9 @@
+# Final narrow native certificate source review
+
+Core 6da01f84 plus test-only eea0e625 close the identified source admission gaps. The exact ten-path inventory is retained alongside this report. The marked direct CALL is checked against actual BIN bounds and bytes, canonical original MIR call identity and target. Finite save/restore stage markers are exact tokens and all opcodes/contiguous PCs match independently derived byte/word sequences; stage order surrounds that actual call.
+
+Runtime requires an initialized HL-owned stack word outside return frames, correct activation depth/home/callPC and intact saved value. DidCall establishes execution of the bound call before restore. E3 uses exact ordered reads/writes and preserves F/HL/SP. Restore retires the matching top record. Owner target plumbing rejects leftover state before invocation and on success, hashes the resolved typed descriptor array, and retains infrastructure failure semantics. Generic frame permission remains unchanged.
+
+The corrected CALL-binary negative computes the bound listing PC and mutates its actual target byte. It now tests the intended BIN/listing trust boundary. Binder controls also cover missing/prefix markers, wrong MIR call/index, result/dead home, wide-type width, allocation and pairing. Their scanner/native-binding scope does not imply executable validity for every synthetic negative fixture.
+
+No remaining blocking source issue was found in this private direct-call certificate. Cleared for root-authorized bounded runtime and two CLI gates; no native CPU executed by this reviewer. Indirect/RST call forms and dynamic non-LocMem home certificates remain explicitly unsupported rather than acquiring generic stack or numeric-memory authority. Actual full-program snapshots and fresh profile/executable contexts must be audited from the new saved payloads; historical evidence remains unchanged.
