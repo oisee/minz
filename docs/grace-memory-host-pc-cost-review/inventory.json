@@ -1,10 +1,30 @@
 [
   {
+    "path": "docs/grace-memory-host-pc-cost-review/FINAL-AUDIT.md",
+    "sha256": "29bfbbc71f1be4e185e04139ad4b646fef480865d1c238d76f9786ff8dfc5083"
+  },
+  {
     "path": "docs/grace-memory-host-pc-cost-review/PLAN.md",
     "sha256": "d355d887d3b00d5f875bf589924e6162f096892042d5b43c5ff5d235661dffef"
   },
   {
     "path": "docs/grace-memory-host-pc-cost-review/REVIEW-09185744.md",
     "sha256": "70e5d316372c652f6c8b67ef20f0e36b41988874265149d74ec2ecb1b1d1593b"
+  },
+  {
+    "path": "docs/grace-memory-host-pc-cost-review/audit_pc_pack.py",
+    "sha256": "2c81bb75ce4a5bcd7dd9074c3c0f8d4c11ef01f1965dba1a2470585b977be326"
+  },
+  {
+    "path": "docs/grace-memory-host-pc-cost-review/final-audit.json",
+    "sha256": "971638dd5a4a6ded7731c5e8ca6fc9c0eea763add940fac4f4d65319b65c91c9"
+  },
+  {
+    "path": "docs/grace-memory-host-pc-cost-review/final-audit.txt",
+    "sha256": "c495bf3dff6dbb3efede4e1673dc15d84bce9b21cf32993bfd412fd868599b18"
+  },
+  {
+    "path": "docs/grace-memory-host-pc-cost-review/model/verify_corpus.py",
+    "sha256": "133ca68609f7b7c326efbfc55c91b5fbe2269555051f6aebd5b9817a7b8165ed"
   }
 ]
