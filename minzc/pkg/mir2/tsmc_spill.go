@@ -38,11 +38,47 @@ type tsmcSpillPair struct {
 // scanTSMCSpillPairs identifies spill-reload pairs eligible for TSMC optimization.
 // Returns nil if the function is recursive or has no eligible spills.
 func scanTSMCSpillPairs(f *Func, ar *AllocResult) []tsmcSpillPair {
+	// Patched immediates are shared by activations, whereas ordinary spill
+	// homes can be snapshotted by caller-save. Keep values live across calls in
+	// data homes, including indirect and mutual reentry whose target is unknown
+	// to this local scan.
+	liveAcrossCall := make(map[Reg]bool)
+	lr := ComputeLiveness(f)
+	for _, b := range f.Blocks {
+		live := make(map[Reg]bool)
+		if out := lr.LiveOutOf(f, b); out != nil {
+			for _, r := range out.Slice() {
+				live[r] = true
+			}
+		}
+		if b.Term != nil {
+			for _, r := range b.Term.termUses() {
+				live[r] = true
+			}
+		}
+		for ii := len(b.Insts) - 1; ii >= 0; ii-- {
+			i := b.Insts[ii]
+			delete(live, i.Dst)
+			for _, r := range i.ExtraRets {
+				delete(live, r)
+			}
+			if i.Op == OpCall || i.Op == OpCallIndirect || i.Op == OpCallCond || i.Op == OpAsm {
+				for r := range live {
+					liveAcrossCall[r] = true
+				}
+			}
+			for _, r := range i.Uses() {
+				if r != NoReg {
+					live[r] = true
+				}
+			}
+		}
+	}
 	// Collect all LocMem-allocated registers.
 	var spillRegs []Reg
 	spillWidth := make(map[Reg]int)
 	for r, loc := range ar.Locs {
-		if loc.Kind == LocMem {
+		if loc.Kind == LocMem && !liveAcrossCall[r] {
 			spillRegs = append(spillRegs, r)
 			w := 8
 			if info, ok := collectRegInfo(f)[r]; ok {

@@ -392,11 +392,7 @@ func pickAccSaveScratch(f *Func, blk *Block, idx int, ar *AllocResult, accOwner 
 			return synth
 		}
 	}
-	// Absolute spill homes are not activation-local; decline recursive functions
-	// rather than silently omit a required save.
-	if f.Attrs.IsRecursive || isRecursive(f) {
-		return NoReg
-	}
+	// Live spill homes are snapshotted by codegen around calls, including reentry.
 	synth := f.AllocReg()
 	for {
 		if _, exists := ar.Locs[synth]; !exists {

@@ -52,7 +52,7 @@ func TestAccSaveRenameLifetimeAndCanonicalOperands(t *testing.T) {
 	}
 }
 
-func TestAccSaveNoFreeByteSpillsOrRefusesRecursive(t *testing.T) {
+func TestAccSaveNoFreeByteSpillsIncludingRecursive(t *testing.T) {
 	for _, recursive := range []bool{false, true} {
 		m := &Module{Name: "full_bytes"}
 		f := m.AddFunc("save")
@@ -73,12 +73,6 @@ func TestAccSaveNoFreeByteSpillsOrRefusesRecursive(t *testing.T) {
 			t.Fatal(e)
 		}
 		err := InsertAccSaves(f, ar)
-		if recursive {
-			if err == nil {
-				t.Fatal("recursive absolute spill accepted")
-			}
-			continue
-		}
 		if err != nil {
 			t.Fatal(err)
 		}
