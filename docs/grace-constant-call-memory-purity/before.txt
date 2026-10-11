@@ -1,0 +1,17 @@
+=== RUN   TestConstantCallRetainsLocalAllocationLifetime
+    consteval_memory_effect_test.go:27: returned object lost after folding [] block @entry: load: out-of-bounds address 13 (heap size 13)
+--- FAIL: TestConstantCallRetainsLocalAllocationLifetime (0.00s)
+=== RUN   TestConstantCallRetainsCallerMemoryEffects
+=== RUN   TestConstantCallRetainsCallerMemoryEffects/store
+    consteval_memory_effect_test.go:80: memory contract after fold [{9}] <nil> [73] 9 9
+=== RUN   TestConstantCallRetainsCallerMemoryEffects/load
+    consteval_memory_effect_test.go:80: memory contract after fold [{0}] <nil> [73] 73 73
+=== RUN   TestConstantCallRetainsCallerMemoryEffects/transitive_store
+    consteval_memory_effect_test.go:80: memory contract after fold [{9}] <nil> [73] 9 9
+--- FAIL: TestConstantCallRetainsCallerMemoryEffects (0.00s)
+    --- FAIL: TestConstantCallRetainsCallerMemoryEffects/store (0.00s)
+    --- FAIL: TestConstantCallRetainsCallerMemoryEffects/load (0.00s)
+    --- FAIL: TestConstantCallRetainsCallerMemoryEffects/transitive_store (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/mir2	0.007s
+FAIL

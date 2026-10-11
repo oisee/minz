@@ -1,0 +1,37 @@
+{
+  "base": "82da91c7",
+  "files": [
+    {
+      "path": "docs/grace-constant-call-memory-purity/REPORT.md",
+      "sha256": "f1982c7ae7a85d51d542116899cd5b6d85cb85897c5c04816a39adf2ee73f0b2"
+    },
+    {
+      "path": "docs/grace-constant-call-memory-purity/after.txt",
+      "sha256": "574468ba356cf50ba4264ef23aa3b4fccf35fb208acf05bd66d7f153b03960e4"
+    },
+    {
+      "path": "docs/grace-constant-call-memory-purity/before.txt",
+      "sha256": "6a76f0407131e79cc43bc1d9887c322a437c198efe899cf50baee9904ffb5646"
+    },
+    {
+      "path": "docs/grace-constant-call-memory-purity/mir2.txt",
+      "sha256": "21bdc527cac8100ba4ddcea1136b08027b2b81b0cf070f9430bc7ee0f27376e8"
+    },
+    {
+      "path": "docs/grace-constant-call-memory-purity/source.txt",
+      "sha256": "5e02e7cf018ddda7e7b607352586a658230d3b620d97b9b2cc27f67af0916a41"
+    },
+    {
+      "path": "minzc/pkg/mir2/consteval.go",
+      "sha256": "4c54e46775c023c90e0725cda9f0a1231ea03e0827f23f55c1214407faa99981"
+    },
+    {
+      "path": "minzc/pkg/mir2/consteval_memory_effect_test.go",
+      "sha256": "d112a47c955beef2018306819efcb5ecbfd1f6248f3ae000b03128fec46ee442"
+    },
+    {
+      "path": "minzc/pkg/pipeline/constant_call_memory_purity_test.go",
+      "sha256": "564deb3774e85cc1fc6c04514ea918496b5b156bf7450a38eb4567c8cc210489"
+    }
+  ]
+}
