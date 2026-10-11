@@ -1,0 +1,24 @@
+--- FAIL: TestBoolStructAddressableFieldsNative (0.00s)
+panic: runtime error: slice bounds out of range [:3] with capacity 2 [recovered, repanicked]
+
+goroutine 51 [running]:
+testing.tRunner.func1.2({0xdd30c0, 0xcaade96a4c8})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:1974 +0x232
+testing.tRunner.func1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:1977 +0x349
+panic({0xdd30c0?, 0xcaade96a4c8?})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/panic.go:860 +0x13a
+github.com/minz/minzc/pkg/mir2.emitTypedGlobalData(0xcaadeba7360, {0xe7be38, 0xcaadea25350}, {0x0?, 0x19?, 0xffffffffffffffff?})
+	/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/mir2/z80codegen.go:71 +0x32a
+github.com/minz/minzc/pkg/mir2.Z80Codegen(0xcaadeba4dc0, 0xcaadeba6400, {0xcaadef1fc38, 0x1, 0x0?})
+	/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/mir2/z80codegen.go:320 +0x3525
+github.com/minz/minzc/pkg/pipeline.CompileHIRSteps(0xcaadeaf8160, {0x0?, 0xf?, 0x0?})
+	/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/pipeline/pipeline.go:372 +0x16df
+github.com/minz/minzc/pkg/pipeline.TestBoolStructAddressableFieldsNative(0xcaadeafa488)
+	/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/pipeline/bool_struct_native_test.go:26 +0xdf
+testing.tRunner(0xcaadeafa488, 0xe6a3e8)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2036 +0xea
+created by testing.(*T).Run in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2101 +0x4c5
+FAIL	github.com/minz/minzc/pkg/pipeline	0.011s
+FAIL

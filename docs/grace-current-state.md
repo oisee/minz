@@ -6,7 +6,7 @@
 
 ## Новый этап: единый backend без LIR
 
-Проверенная сводка на `eb3bfb88`; результаты прежних сборок ниже сохраняют
+Проверенная сводка на `131b32f8`; результаты прежних сборок ниже сохраняют
 свой исходный контекст. Общая цель из [плана](../reports/2026-10-11-017-unified-backend-roadmap.md)
 ещё активна: корректность заявленного корпуса, проверенные контракты и таблицы,
 выигрыш Grace на разных программах и заранее отложенных нагрузках.
@@ -59,6 +59,15 @@
   и сохранениями 238 → 142 T, все 256 входов VM/native PASS. ABI/return/clobbers входят в проверку, inadmissible
   запись сохраняет PBQP. Пока только pure leaf single-block функции;
   CFG/островные назначения остаются впереди.
+- **Третье семейство имеет prospective heldout** (`131b32f8`): PFCCO packet,
+  5 новых training и 12 heldout pairs. Speed выбрал ContractOpt: 6252 → 5568 T
+  на heldout при 52 B. Size сохраняет original. Tail-recursion эксперимент
+  отверг Grace как более медленный и большой; отрицательные артефакты сохранены.
+- **Bool-поля struct исправлены** (`1e3b1bdd`): storage и parser offsets
+  отдельно округляются к byte; full MIR2/Nanz/HIR и native fields+guard PASS.
+- **Таблицы v3** (`a9f21893`) отвергают непривязанные inputs и hard classes,
+  исправляют IX/IY costs и ограничивают host solver deadline. API measured modes
+  проходит тесты; дополнительный аудит поздней мутации MIR ещё в работе.
 - **Полный pipeline на `cb587fe4` ещё работает**. Terminal PASS не заявляется.
   Повторные проверки интегрированного NOT: MIR2/pipeline/Nanz PASS; полный MIR2
   агента также PASS. Они не заменяют полный pipeline gate.
