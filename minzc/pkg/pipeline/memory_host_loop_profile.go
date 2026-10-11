@@ -20,6 +20,10 @@ type MemoryHostLoopProfileEvidence struct {
 // RunZ80MemoryHostLoopProfile owns inputs before any factory code. Counting
 // hooks are confined to a separate VM run; native costs exclude instrumentation.
 func RunZ80MemoryHostLoopProfile(factory func() (*hir.Module, error), workload hir.MemoryHostWorkload) (*MemoryHostLoopProfileEvidence, error) {
+	return runZ80MemoryHostLoopProfile(factory, workload, MemoryHostBaselineOptions{})
+}
+
+func runZ80MemoryHostLoopProfile(factory func() (*hir.Module, error), workload hir.MemoryHostWorkload, options MemoryHostBaselineOptions) (*MemoryHostLoopProfileEvidence, error) {
 	fail := func(err error) (*MemoryHostLoopProfileEvidence, error) {
 		return nil, fmt.Errorf("memory host loop association: %w", err)
 	}
@@ -46,7 +50,7 @@ func RunZ80MemoryHostLoopProfile(factory func() (*hir.Module, error), workload h
 		retained = append(retained, m)
 		return m, nil
 	}
-	baseline, err := RunZ80MemoryHostBaseline(fresh, owned)
+	baseline, err := runZ80MemoryHostBaseline(fresh, owned, options)
 	if err != nil {
 		return fail(err)
 	}
