@@ -1,0 +1,59 @@
+{
+  "base": "9fda572a",
+  "workloads": "81c20f7c",
+  "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+  "files": [
+    {
+      "path": "docs/grace-memory-host-choice-oracle/PLAN.md",
+      "sha256": "4e4b5eb277823ee61a8e5db627afcea87ebce91e6c95ae08dd3b251a24178c18"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/expected.json.gz",
+      "sha256": "721a02af176c4c7b5f2cdf2213e69f55d11f17629013cf69ef0187d8e07cf748"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/model/verify_corpus.py",
+      "sha256": "133ca68609f7b7c326efbfc55c91b5fbe2269555051f6aebd5b9817a7b8165ed"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/model-review.txt",
+      "sha256": "faaf438182b4a137ee95e25e96a4418193b3898566b5b9bba183a39c2d179326"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/model_choices.py",
+      "sha256": "6609764d284742030db2dad86974b70b485f9d23e145173a4c237eb6dfa520ed"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/workloads/destination-tail-denial.json",
+      "sha256": "3f62cee980987bdc8ac8d272a11080ff4cda60f88dc31b4846655f3819b9eef6"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/workloads/first-equal.json",
+      "sha256": "63c8150fb26d185691578e9523cd441a6b45b776c6ef765c2d8d1033b7577192"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/workloads/first-mismatch.json",
+      "sha256": "6b808a7761fef4e6aa84a19da66e36fde9572f5387a436b0ec35d3ef920c52ed"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/workloads/instruction-budget.json",
+      "sha256": "0e85276dd185e47a959d81e4fa336573a192efc245ec172fe4cd33693dad7739"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/workloads/read-only-header-denial.json",
+      "sha256": "2198fe2871da54731c9aff8cad243742d4ca75397beb8762c0e2673acb3ae3e1"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/workloads/source-tail-denial.json",
+      "sha256": "010508ae1005a94f2dd87c7cd2cebf94a1a7b94306fac28334883b3052d372b2"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/workloads/unobserved-append.json",
+      "sha256": "088a00010cd455568db02ec40ed1d4f9510b69d60c30309d1387772416ac7df5"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/workloads/zero-body.json",
+      "sha256": "c8da8c3ab15ddf69bfc7b6d9205ab603403505e13b81b273b2d97f4a0c66f8d3"
+    }
+  ]
+}
