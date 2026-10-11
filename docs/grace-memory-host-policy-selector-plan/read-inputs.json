@@ -1,0 +1,18 @@
+{
+  "parent_checkpoint": "1155fc66",
+  "inputs": [
+    {
+      "path": "minzc/pkg/pipeline/memory_host_arena_append_selector.go",
+      "sha256": "049e6d5547ab33905673001890e2d9a74b041ec91ef08b6264ff24560f9299c4"
+    },
+    {
+      "path": "minzc/pkg/pipeline/memory_host_loop_profile.go",
+      "sha256": "eee0d489ed1d6bd5659dead4b0ee0fa2967bdf63406777eb154a149b7a16e083"
+    },
+    {
+      "path": "minzc/pkg/pipeline/unsigned_pair_policy.go",
+      "sha256": "51827170455e7f841959e1dd14735e024468e0ea9a99e9d2d64ccb9d8be62360"
+    }
+  ],
+  "read_only": true
+}
