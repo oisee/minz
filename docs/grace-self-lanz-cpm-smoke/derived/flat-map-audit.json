@@ -1,0 +1,11 @@
+{
+  "binary_sha256": "ec09f333c363f249ae6fc5e9c2d109227e98056b1046d38f5eff0303a9b91e4a",
+  "com_bytes": 2294,
+  "origin": 256,
+  "image_end": 2550,
+  "listing_bytes_checked": 2187,
+  "listing_agrees": true,
+  "image_end_below_stack": true,
+  "execution_performed": false,
+  "listing_scope": "printed first four bytes per listing row; remaining long DB row bytes require assembler structured listing audit"
+}
