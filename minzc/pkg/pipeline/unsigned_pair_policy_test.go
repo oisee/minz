@@ -1,7 +1,10 @@
 package pipeline
 
 import (
+	"bytes"
+	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
@@ -27,6 +30,20 @@ func TestUnsignedPairPolicyAdmission(t *testing.T) {
 	legacy, e := ProfileCompilationID(Options{}, "default")
 	if e != nil {
 		t.Fatal(e)
+	}
+	// Reconstruct the exact former Options object by removing the single new
+	// field from its ordered JSON before hashing the existing wrapper.
+	encodedOptions, e := json.Marshal(Options{})
+	if e != nil {
+		t.Fatal(e)
+	}
+	if bytes.Contains(encodedOptions, []byte("UnsignedPairComparePolicy")) {
+		t.Fatal("Legacy config gained an optional field")
+	}
+	oldConfig := append([]byte(`{"Options":`), encodedOptions...)
+	oldConfig = append(oldConfig, []byte(`,"AssemblerMode":"default"}`)...)
+	if legacy != fmt.Sprintf("%x", sha256.Sum256(oldConfig)) {
+		t.Fatal("Legacy compilation ID changed")
 	}
 	changed, e := ProfileCompilationID(Options{UnsignedPairComparePolicy: mir2.UnsignedPairComparePreserveForSpeed}, "default")
 	if e != nil || legacy == changed {

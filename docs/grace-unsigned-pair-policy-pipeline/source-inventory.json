@@ -25,7 +25,7 @@
   },
   {
     "path": "minzc/pkg/pipeline/pipeline.go",
-    "sha256": "76cdefb44c1c7523623d48a5b7803d63a8548cafe7734575c487be783d273565"
+    "sha256": "67c76109cf922f18082eaf7a7d52e97c9ddde7b53c4aea233161ce3ae1b59a94"
   },
   {
     "path": "minzc/pkg/pipeline/memory_host_baseline.go",
@@ -41,6 +41,6 @@
   },
   {
     "path": "minzc/pkg/pipeline/unsigned_pair_policy_test.go",
-    "sha256": "f5720b142c39f534928aab20f8e07eadf759c9d88a9e74a4d175f419a2fd3fc8"
+    "sha256": "f3a869fff632caed8b5d3a44d4b43692f13fc2297abd6f1325827c21b8e33d30"
   }
 ]
