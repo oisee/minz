@@ -1,0 +1,3 @@
+Working directory: /home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc
+go run /home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-arena-selector-budget-evidence/compile.go /home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-arena-selector-budget-evidence/current
+go run /home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-arena-selector-budget-evidence/audit.go /home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-arena-selector-budget-evidence /home/alice/dev/minz-artifacts/grace-workspaces/compiler/docs/grace-memory-host-loop-artifacts/budget-check
