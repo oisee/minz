@@ -26,3 +26,8 @@ Before CPU owner supplies exactworkload fixtures; independentmodel validates
 wholeprefix and helpercounts. After owner run, review savedprofile/baseline records,
 selectedmask actualgoalminimization and no output artifacts onrefusal. No native
 execution duplicated; failedprefix semantics separate from gas/errorstring text.
+
+Raw owner diagnostics8files independently match all11 source counters and semantic
+states/events. Gasprofile has zero completedcalls and failedinvocation with no
+TypedFailure, so is infrastructurediagnostic only. Failedprofile loader/CLI refusal
+must retaindiagnostic but emit no measuredselection. OwnerCLI execution is separate.

@@ -5,7 +5,11 @@
   "files": [
     {
       "path": "docs/grace-memory-host-choice-oracle/PLAN.md",
-      "sha256": "4e4b5eb277823ee61a8e5db627afcea87ebce91e6c95ae08dd3b251a24178c18"
+      "sha256": "8a13831644d71fbe8c73d50e1ddb73d4a7f573bb7223f6458b1f67b1cf4f2208"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/audit_raw_profiles.py",
+      "sha256": "b802e68164570d184262e886f22da0ea9b6e91fa5deec4874ac268946bea8621"
     },
     {
       "path": "docs/grace-memory-host-choice-oracle/expected.json.gz",
@@ -22,6 +26,14 @@
     {
       "path": "docs/grace-memory-host-choice-oracle/model_choices.py",
       "sha256": "6609764d284742030db2dad86974b70b485f9d23e145173a4c237eb6dfa520ed"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/raw-audit.json",
+      "sha256": "81d075804858614b9d4818450b20582faaf5acac4012c3e49a4732cd04667cc6"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/raw-audit.txt",
+      "sha256": "f69941d65558fcfe474e287f5a7ff0d947ab82700cb8cc65402fa86c17d37ba1"
     },
     {
       "path": "docs/grace-memory-host-choice-oracle/workloads/destination-tail-denial.json",
