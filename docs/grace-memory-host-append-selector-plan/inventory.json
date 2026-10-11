@@ -1,0 +1,10 @@
+{
+  "base": "57322d1779300d2a29ddd5030a2351d64c9e4ced",
+  "scope": "read-only design",
+  "files": [
+    {
+      "path": "docs/grace-memory-host-append-selector-plan/PLAN.md",
+      "sha256": "06b37d22046ef2c6f844bdaa85ae53c1208caeee8b7dd2adf054df63f3d7cfb5"
+    }
+  ]
+}
