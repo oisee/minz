@@ -1,0 +1,7 @@
+import mathlib.ops
+
+fun compute() -> u8 {
+    return mathlib.ops.add(mathlib.ops.double(10), 5)
+}
+
+assert compute() == 25

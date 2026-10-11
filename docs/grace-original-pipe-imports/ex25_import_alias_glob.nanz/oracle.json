@@ -1,0 +1,13 @@
+{
+  "calls": [
+    {
+      "Entry": "compute",
+      "Expected": 10,
+      "Args": null
+    }
+  ],
+  "native_results": "Cg==",
+  "source_assertions": 1,
+  "source_path": "../../../reports/showcase-src/2026-03-14/ex25_import_alias_glob.nanz",
+  "source_sha256": "3cde5e96496c6ca925ae2410043df8abeac49040e2e8262f25c20bd9584cd805"
+}

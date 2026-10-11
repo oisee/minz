@@ -1,0 +1,18 @@
+{
+  "calls": [
+    {
+      "Entry": "sum_doubled",
+      "Expected": 30,
+      "Args": null
+    },
+    {
+      "Entry": "sum_tripled",
+      "Expected": 15,
+      "Args": null
+    }
+  ],
+  "native_results": "Hg8=",
+  "source_assertions": 2,
+  "source_path": "../../../reports/showcase-src/2026-03-14/ex28_pipe.nanz",
+  "source_sha256": "f1c25c6f70c1e5105813fe3a84ddef5f7b6fd54aa1915383cc2859d29c0101e4"
+}
