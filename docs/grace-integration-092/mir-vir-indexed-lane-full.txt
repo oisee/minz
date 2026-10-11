@@ -1,0 +1,3 @@
+ok  	github.com/minz/minzc/pkg/mir2	12.391s
+ok  	github.com/minz/minzc/pkg/vir	2.178s
+?   	github.com/minz/minzc/cmd/import-enrt	[no test files]

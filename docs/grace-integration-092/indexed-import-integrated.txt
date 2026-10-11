@@ -1,0 +1,37 @@
+=== RUN   TestIndexedLegacyShapeSimultaneousValues
+=== RUN   TestIndexedLegacyShapeSimultaneousValues/dying_tied_input
+=== RUN   TestIndexedLegacyShapeSimultaneousValues/live_input_and_new_result
+=== RUN   TestIndexedLegacyShapeSimultaneousValues/equal_move_coalescing
+=== RUN   TestIndexedLegacyShapeSimultaneousValues/simultaneous_parameters
+=== RUN   TestIndexedLegacyShapeSimultaneousValues/definition_across_liveout
+--- PASS: TestIndexedLegacyShapeSimultaneousValues (0.00s)
+    --- PASS: TestIndexedLegacyShapeSimultaneousValues/dying_tied_input (0.00s)
+    --- PASS: TestIndexedLegacyShapeSimultaneousValues/live_input_and_new_result (0.00s)
+    --- PASS: TestIndexedLegacyShapeSimultaneousValues/equal_move_coalescing (0.00s)
+    --- PASS: TestIndexedLegacyShapeSimultaneousValues/simultaneous_parameters (0.00s)
+    --- PASS: TestIndexedLegacyShapeSimultaneousValues/definition_across_liveout (0.00s)
+=== RUN   TestIndexedENRTReaderAndCurrentBinding
+=== RUN   TestIndexedENRTReaderAndCurrentBinding/record_size
+=== RUN   TestIndexedENRTReaderAndCurrentBinding/magic
+=== RUN   TestIndexedENRTReaderAndCurrentBinding/version
+=== RUN   TestIndexedENRTReaderAndCurrentBinding/dense_count
+=== RUN   TestIndexedENRTReaderAndCurrentBinding/metrics
+=== RUN   TestIndexedENRTReaderAndCurrentBinding/truncated
+--- PASS: TestIndexedENRTReaderAndCurrentBinding (0.00s)
+    --- PASS: TestIndexedENRTReaderAndCurrentBinding/record_size (0.00s)
+    --- PASS: TestIndexedENRTReaderAndCurrentBinding/magic (0.00s)
+    --- PASS: TestIndexedENRTReaderAndCurrentBinding/version (0.00s)
+    --- PASS: TestIndexedENRTReaderAndCurrentBinding/dense_count (0.00s)
+    --- PASS: TestIndexedENRTReaderAndCurrentBinding/metrics (0.00s)
+    --- PASS: TestIndexedENRTReaderAndCurrentBinding/truncated (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.014s
+=== RUN   TestIndexedHistoricalTripleNative
+    table_indexed_native_test.go:44: historical record158626 prefix4107216B 01d4052fc585d721b9027d3927ab14efa28c38dfe15fd0ddba7e36e81de6d925
+    table_indexed_native_test.go:135: existing indirect apply triple all256 123T/34B
+    table_indexed_native_test.go:135: existing indirect apply triple all256 111T/31B
+    table_indexed_native_test.go:158: module 34B triple66T→54T
+    table_indexed_native_test.go:158: module 31B triple66T→54T
+--- PASS: TestIndexedHistoricalTripleNative (0.59s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.602s

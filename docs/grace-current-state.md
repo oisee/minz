@@ -6,7 +6,7 @@
 
 ## Новый этап: единый backend без LIR
 
-Сводка дополнена на `f918ccd9`; результаты прежних сборок ниже сохраняют
+Сводка дополнена на `f5c7a09e`; результаты прежних сборок ниже сохраняют
 свой исходный контекст. Общая цель из [плана](../reports/2026-10-11-017-unified-backend-roadmap.md)
 ещё активна: корректность заявленного корпуса, проверенные контракты и таблицы,
 выигрыш Grace на разных программах и заранее отложенных нагрузках.
@@ -365,3 +365,5 @@ Root independent ABI/memory/wrap/zero/fault-prefix проверки проход
 Исторические assignments теперь можно импортировать через независимую повторную проверку; пять модулей на ENRT4v sample сохранили baseline размер. CUDA partial evaluator проверен на 512 случаях и сохранён на шаре. [Интеграция091](grace-integration-091/README.md).
 
 Полный CLI snapshot0cbfeff7 прошёл тремя отдельными процессами: 71/71 PASS, 0 SKIP, 279.75 с включая сборку. Root независимо сверил discovery, partitions, run и terminal events. Самый тяжёлый отдельный SearchCLI тест — 270.36 с; текущая сумма времен тестов 399.51 с не является повторным serial benchmark. [Runner и замеры](grace-cli-process-shards.md).
+
+Indexed ENRT5v conversion даёт triple module34→31B/direct66→54T/indirect123→111T. Pure byte-lane identity ускоряет FAT st_word220→93T и уменьшает модуль на23B, сохраняя byte-store эффекты. Свежие fullMIR2/VIR PASS12.391/2.178с. [Пакет092](grace-integration-092/README.md). Sites64 опубликован на snapshot2d09774a и целиком сохранён на шаре; indexed+lane опубликованы в repo/share позднее.
