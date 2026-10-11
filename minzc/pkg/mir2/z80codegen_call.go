@@ -333,7 +333,6 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 
 	// IX addresses snapshots and the caller-save image. Its original value
 	// is restored separately, including when IX itself is a result destination.
-	g.emit("    PUSH IX")
 	pairs := []string{"AF"}
 	for _, r := range results {
 		p := regToPairMap[r.srcName]
@@ -341,6 +340,9 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 			pairs = append(pairs, p)
 		}
 	}
+	g.beginNativeCallFrame(saved, pairs, results)
+	defer g.endNativeCallFrame()
+	g.emit("    PUSH IX")
 	for _, p := range pairs {
 		g.emitf("    PUSH %s", p)
 	}

@@ -11,6 +11,10 @@ import (
 // instruction extent; reading the same code byte again is a data access.
 type memoryHostZ80Memory struct {
 	cpu                                                  *z80.Z80
+	snapshots                                            map[uint16]memoryHostSnapshotStep
+	activeSnapshot                                       *memoryHostActiveSnapshot
+	snapshotData                                         bool
+	stackPair                                            [65536]string
 	data                                                 [65536]byte
 	readable, writable, executable, global, stack, spill [65536]bool
 	region                                               [65536]string
@@ -49,6 +53,7 @@ func (m *memoryHostZ80Memory) begin(pc uint16) {
 	m.frameWrites = nil
 	m.expectedReturn = nil
 	m.expectedSP = nil
+	m.snapshotData = false
 	if memoryHostFrameOpcode(m, pc) {
 		recipe, e := memoryHostMemoryRecipe(m, pc)
 		if e != nil {
@@ -80,6 +85,7 @@ func (m *memoryHostZ80Memory) begin(pc uint16) {
 		m.expectedSP = &v
 	}
 	m.prepareFrame(pc)
+	m.beginSnapshot(pc)
 	m.fetchNext = int(pc)
 	m.fetchEnd = int(pc) + n
 }
@@ -97,7 +103,9 @@ func (m *memoryHostZ80Memory) read(a uint16) byte {
 			if !m.stackInitialized[a] {
 				panic(memoryHostNativeTrap{"uninitialized stack read"})
 			}
-			m.stackInitialized[a] = false
+			if !m.snapshotData {
+				m.stackInitialized[a] = false
+			}
 		}
 	}
 	if !m.readable[a] {
@@ -197,6 +205,15 @@ func memoryHostNativeStep(m *memoryHostZ80Memory) (cycles int, err error) {
 	}
 	if len(m.pending) != 0 {
 		return 0, fmt.Errorf("protected memory recipe not consumed at %04x", m.instructionPC)
+	}
+	if e := m.finishSnapshot(); e != nil {
+		return 0, e
+	}
+	if pair, ok := snapshotPushPair(m.data[m.instructionPC : int(m.instructionPC)+m.lengths[m.instructionPC]]); ok {
+		m.stackPair[m.cpu.SP()] = pair
+	}
+	if snapshotPop(m.data[m.instructionPC : int(m.instructionPC)+m.lengths[m.instructionPC]]) {
+		m.stackPair[m.instructionSP] = ""
 	}
 	return m.cpu.Tstates - start, nil
 }
