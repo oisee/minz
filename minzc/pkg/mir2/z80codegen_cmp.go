@@ -174,6 +174,18 @@ func (g *z80cg) saveAccForCondRet(cmpInst *Inst) {
 	if g.fn == nil || g.curBlock == nil || g.loc(cmpInst.Src[0]) == "A" {
 		return
 	}
+	// A byte comparison with a nonconstant RHS in A uses CP lhs below,
+	// swapping the predicate instead of loading lhs into A. CP preserves A,
+	// so relocating it would needlessly consume a scratch register (and the
+	// exhausted-register fallback can overwrite a live word's high byte).
+	lhs := g.loc(cmpInst.Src[0])
+	_, rhsConstant := g.constVals[cmpInst.Src[1]]
+	if g.loc(cmpInst.Src[1]) == "A" && !rhsConstant &&
+		(isSimpleReg(lhs) || isIXYReg(lhs)) && !isPairReg(lhs) && lhs != "F" &&
+		!g.isDWord(cmpInst.Src[0]) && !g.isDWord(cmpInst.Src[1]) &&
+		(cmpInst.SrcTy == nil || cmpInst.SrcTy.Width() <= 8) {
+		return
+	}
 	for r := range g.regsLiveAfterInst(cmpInst) {
 		if r == cmpInst.Dst || g.loc(r) != "A" {
 			continue

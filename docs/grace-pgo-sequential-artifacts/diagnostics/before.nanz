@@ -1,0 +1,15 @@
+fun two_loops(a:u16,b:u16,n:u8,m:u8)->u16 {
+ var s:u16=0
+ var i:u8=0
+ var hot_base:u16=a+b
+while i<n {
+ s=s+(hot_base)
+ i=i+1
+ }
+ var j:u8=0
+ while j<m {
+ s=s+(a+b)
+ j=j+1
+ }
+ return s
+}

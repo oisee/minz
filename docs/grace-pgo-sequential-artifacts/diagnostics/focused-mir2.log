@@ -1,0 +1,398 @@
+=== RUN   TestFix2SelectedScratchSaves
+=== RUN   TestFix2SelectedScratchSaves/add_does_not_write_live_DE
+=== RUN   TestFix2SelectedScratchSaves/carry_clear_does_not_overwrite_live_accumulator
+=== RUN   TestFix2SelectedScratchSaves/later_definitions_do_not_require_saves
+=== RUN   TestFix2SelectedScratchSaves/power_of_two_does_not_write_live_pairs
+=== RUN   TestFix2SelectedScratchSaves/compare_does_not_write_live_DE_or_BC
+=== RUN   TestFix2SelectedScratchSaves/dead_comparison_lhs_needs_no_restoration
+=== RUN   TestFix2SelectedScratchSaves/cross_block_live_HL_still_saved
+--- PASS: TestFix2SelectedScratchSaves (0.00s)
+    --- PASS: TestFix2SelectedScratchSaves/add_does_not_write_live_DE (0.00s)
+    --- PASS: TestFix2SelectedScratchSaves/carry_clear_does_not_overwrite_live_accumulator (0.00s)
+    --- PASS: TestFix2SelectedScratchSaves/later_definitions_do_not_require_saves (0.00s)
+    --- PASS: TestFix2SelectedScratchSaves/power_of_two_does_not_write_live_pairs (0.00s)
+    --- PASS: TestFix2SelectedScratchSaves/compare_does_not_write_live_DE_or_BC (0.00s)
+    --- PASS: TestFix2SelectedScratchSaves/dead_comparison_lhs_needs_no_restoration (0.00s)
+    --- PASS: TestFix2SelectedScratchSaves/cross_block_live_HL_still_saved (0.00s)
+=== RUN   TestZ80ByteLoadPreservesAccumulator
+=== RUN   TestZ80ByteLoadPreservesAccumulator/BC_to_A
+=== RUN   TestZ80ByteLoadPreservesAccumulator/BC_to_B
+=== RUN   TestZ80ByteLoadPreservesAccumulator/BC_to_C
+=== RUN   TestZ80ByteLoadPreservesAccumulator/BC_to_D
+=== RUN   TestZ80ByteLoadPreservesAccumulator/BC_to_E
+=== RUN   TestZ80ByteLoadPreservesAccumulator/BC_to_H
+=== RUN   TestZ80ByteLoadPreservesAccumulator/BC_to_L
+=== RUN   TestZ80ByteLoadPreservesAccumulator/BC_to_IXH
+=== RUN   TestZ80ByteLoadPreservesAccumulator/BC_to_IXL
+=== RUN   TestZ80ByteLoadPreservesAccumulator/BC_to_IYH
+=== RUN   TestZ80ByteLoadPreservesAccumulator/BC_to_IYL
+=== RUN   TestZ80ByteLoadPreservesAccumulator/DE_to_A
+=== RUN   TestZ80ByteLoadPreservesAccumulator/DE_to_B
+=== RUN   TestZ80ByteLoadPreservesAccumulator/DE_to_C
+=== RUN   TestZ80ByteLoadPreservesAccumulator/DE_to_D
+=== RUN   TestZ80ByteLoadPreservesAccumulator/DE_to_E
+=== RUN   TestZ80ByteLoadPreservesAccumulator/DE_to_H
+=== RUN   TestZ80ByteLoadPreservesAccumulator/DE_to_L
+=== RUN   TestZ80ByteLoadPreservesAccumulator/DE_to_IXH
+=== RUN   TestZ80ByteLoadPreservesAccumulator/DE_to_IXL
+=== RUN   TestZ80ByteLoadPreservesAccumulator/DE_to_IYH
+=== RUN   TestZ80ByteLoadPreservesAccumulator/DE_to_IYL
+=== RUN   TestZ80ByteLoadPreservesAccumulator/HL_to_A
+=== RUN   TestZ80ByteLoadPreservesAccumulator/HL_to_B
+=== RUN   TestZ80ByteLoadPreservesAccumulator/HL_to_C
+=== RUN   TestZ80ByteLoadPreservesAccumulator/HL_to_D
+=== RUN   TestZ80ByteLoadPreservesAccumulator/HL_to_E
+=== RUN   TestZ80ByteLoadPreservesAccumulator/HL_to_H
+=== RUN   TestZ80ByteLoadPreservesAccumulator/HL_to_L
+=== RUN   TestZ80ByteLoadPreservesAccumulator/HL_to_IXH
+=== RUN   TestZ80ByteLoadPreservesAccumulator/HL_to_IXL
+=== RUN   TestZ80ByteLoadPreservesAccumulator/HL_to_IYH
+=== RUN   TestZ80ByteLoadPreservesAccumulator/HL_to_IYL
+=== RUN   TestZ80ByteLoadPreservesAccumulator/IX_to_A
+=== RUN   TestZ80ByteLoadPreservesAccumulator/IX_to_B
+=== RUN   TestZ80ByteLoadPreservesAccumulator/IX_to_C
+=== RUN   TestZ80ByteLoadPreservesAccumulator/IX_to_D
+=== RUN   TestZ80ByteLoadPreservesAccumulator/IX_to_E
+=== RUN   TestZ80ByteLoadPreservesAccumulator/IX_to_H
+=== RUN   TestZ80ByteLoadPreservesAccumulator/IX_to_L
+=== RUN   TestZ80ByteLoadPreservesAccumulator/IX_to_IXH
+=== RUN   TestZ80ByteLoadPreservesAccumulator/IX_to_IXL
+=== RUN   TestZ80ByteLoadPreservesAccumulator/IX_to_IYH
+=== RUN   TestZ80ByteLoadPreservesAccumulator/IX_to_IYL
+=== RUN   TestZ80ByteLoadPreservesAccumulator/IY_to_A
+=== RUN   TestZ80ByteLoadPreservesAccumulator/IY_to_B
+=== RUN   TestZ80ByteLoadPreservesAccumulator/IY_to_C
+=== RUN   TestZ80ByteLoadPreservesAccumulator/IY_to_D
+=== RUN   TestZ80ByteLoadPreservesAccumulator/IY_to_E
+=== RUN   TestZ80ByteLoadPreservesAccumulator/IY_to_H
+=== RUN   TestZ80ByteLoadPreservesAccumulator/IY_to_L
+=== RUN   TestZ80ByteLoadPreservesAccumulator/IY_to_IXH
+=== RUN   TestZ80ByteLoadPreservesAccumulator/IY_to_IXL
+=== RUN   TestZ80ByteLoadPreservesAccumulator/IY_to_IYH
+=== RUN   TestZ80ByteLoadPreservesAccumulator/IY_to_IYL
+--- PASS: TestZ80ByteLoadPreservesAccumulator (0.01s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/BC_to_A (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/BC_to_B (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/BC_to_C (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/BC_to_D (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/BC_to_E (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/BC_to_H (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/BC_to_L (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/BC_to_IXH (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/BC_to_IXL (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/BC_to_IYH (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/BC_to_IYL (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/DE_to_A (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/DE_to_B (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/DE_to_C (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/DE_to_D (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/DE_to_E (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/DE_to_H (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/DE_to_L (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/DE_to_IXH (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/DE_to_IXL (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/DE_to_IYH (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/DE_to_IYL (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/HL_to_A (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/HL_to_B (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/HL_to_C (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/HL_to_D (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/HL_to_E (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/HL_to_H (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/HL_to_L (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/HL_to_IXH (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/HL_to_IXL (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/HL_to_IYH (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/HL_to_IYL (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/IX_to_A (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/IX_to_B (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/IX_to_C (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/IX_to_D (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/IX_to_E (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/IX_to_H (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/IX_to_L (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/IX_to_IXH (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/IX_to_IXL (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/IX_to_IYH (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/IX_to_IYL (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/IY_to_A (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/IY_to_B (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/IY_to_C (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/IY_to_D (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/IY_to_E (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/IY_to_H (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/IY_to_L (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/IY_to_IXH (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/IY_to_IXL (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/IY_to_IYH (0.00s)
+    --- PASS: TestZ80ByteLoadPreservesAccumulator/IY_to_IYL (0.00s)
+=== RUN   TestZ80ByteSpillCopyPreservesAccumulator
+=== RUN   TestZ80ByteSpillCopyPreservesAccumulator/C_to_$E000
+=== RUN   TestZ80ByteSpillCopyPreservesAccumulator/$E000_to_D
+--- PASS: TestZ80ByteSpillCopyPreservesAccumulator (0.00s)
+    --- PASS: TestZ80ByteSpillCopyPreservesAccumulator/C_to_$E000 (0.00s)
+    --- PASS: TestZ80ByteSpillCopyPreservesAccumulator/$E000_to_D (0.00s)
+=== RUN   TestMax2CondRetZ80
+    examples_test.go:857: 
+        ; generated by MIR2 Z80 codegen
+        
+        ; fun max2(a: u8 = A, b: u8 = B) -> u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+        max2:
+            CP B
+            RET NC
+            LD A, B
+            RET
+        
+        
+    examples_test.go:880: max2(10,2) = 10 ✓
+    examples_test.go:880: max2(2,10) = 10 ✓
+    examples_test.go:880: max2(5,5) = 5 ✓
+    examples_test.go:880: max2(255,0) = 255 ✓
+    examples_test.go:880: max2(0,255) = 255 ✓
+    examples_test.go:880: max2(100,100) = 100 ✓
+    examples_test.go:880: max2(0,0) = 0 ✓
+    examples_test.go:880: max2(1,0) = 1 ✓
+    examples_test.go:880: max2(0,1) = 1 ✓
+--- PASS: TestMax2CondRetZ80 (0.00s)
+=== RUN   TestMax2CmpAccCondRetZ80
+    examples_test.go:910: 
+        ; generated by MIR2 Z80 codegen
+        
+        ; fun max2acc(a: u8 = A, b: u8 = B) -> u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+        max2acc:
+            CP B
+            JRS Z, .max2acc_cret0
+            JRS C, .max2acc_cret0
+        .max2acc_ret_a:
+            RET
+        .max2acc_cret0:
+            LD A, B
+            RET
+        
+        
+    examples_test.go:931: max2acc(10,2) = 10 ✓
+    examples_test.go:931: max2acc(2,10) = 10 ✓
+    examples_test.go:931: max2acc(5,5) = 5 ✓
+    examples_test.go:931: max2acc(255,0) = 255 ✓
+    examples_test.go:931: max2acc(0,255) = 255 ✓
+    examples_test.go:931: max2acc(1,0) = 1 ✓
+    examples_test.go:931: max2acc(0,1) = 1 ✓
+--- PASS: TestMax2CmpAccCondRetZ80 (0.00s)
+=== RUN   TestMax2MoveCondRetZ80
+    examples_test.go:962: 
+        ; generated by MIR2 Z80 codegen
+        
+        ; fun max2mv(a: u8 = A, b: u8 = B) -> u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+        max2mv:
+            CP B
+            RET NC
+            LD A, B
+            RET
+        
+        
+    examples_test.go:983: max2mv(10,2) = 10 ✓
+    examples_test.go:983: max2mv(2,10) = 10 ✓
+    examples_test.go:983: max2mv(5,5) = 5 ✓
+    examples_test.go:983: max2mv(255,0) = 255 ✓
+    examples_test.go:983: max2mv(0,255) = 255 ✓
+    examples_test.go:983: max2mv(128,1) = 128 ✓
+    examples_test.go:983: max2mv(1,128) = 128 ✓
+--- PASS: TestMax2MoveCondRetZ80 (0.00s)
+=== RUN   TestMax2GtCondRetZ80
+    examples_test.go:1023: 
+        ; generated by MIR2 Z80 codegen
+        
+        ; fun max2gt(a: u8 = A, b: u8 = B) -> u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+        max2gt:
+            CP B
+            JRS Z, .max2gt_cret0
+            JRS C, .max2gt_cret0
+        .max2gt_ret_a:
+            RET
+        .max2gt_cret0:
+            LD A, B
+            RET
+        
+        
+    examples_test.go:1044: max2gt(10,2) = 10 ✓
+    examples_test.go:1044: max2gt(2,10) = 10 ✓
+    examples_test.go:1044: max2gt(5,5) = 5 ✓
+    examples_test.go:1044: max2gt(255,0) = 255 ✓
+    examples_test.go:1044: max2gt(0,255) = 255 ✓
+    examples_test.go:1044: max2gt(1,0) = 1 ✓
+    examples_test.go:1044: max2gt(0,1) = 1 ✓
+--- PASS: TestMax2GtCondRetZ80 (0.00s)
+=== RUN   TestGcdCondRetZ80
+    examples_test.go:1231: 
+        ; generated by MIR2 Z80 codegen
+        
+        ; fun gcd(a: u8 = A, b: u8 = C) -> u8 = A [recursive] ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+        gcd:
+            LD E, A    ; materialize r1 (pendingAcc)
+            LD A, C
+            AND A
+            LD A, E
+            ; restore live-out r1 from scratch
+            RET Z
+        .gcd_recursive:
+            LD B, A
+            XOR A
+            LD D, 8
+        .div8_0:
+            SLA B
+            RLA
+            CP C
+            JR C, .div8_skip_0
+            SUB C
+            INC B
+        .div8_skip_0:
+            DEC D
+            JR NZ, .div8_0
+            ; genCall: gcd dst=6
+            PUSH AF
+            EX AF, AF'
+            POP AF
+            EX AF, AF'
+            EX AF, AF'
+            LD A, C
+            PUSH AF
+            EX AF, AF'
+            PUSH AF
+            EX AF, AF'
+            POP AF
+            LD C, A
+            EX AF, AF'
+            POP AF
+            JP gcd
+        
+        
+    examples_test.go:1258: gcd(12,0) = 12 ✓
+    examples_test.go:1258: gcd(8,0) = 8 ✓
+    examples_test.go:1258: gcd(0,0) = 0 ✓
+    examples_test.go:1258: gcd(255,0) = 255 ✓
+--- PASS: TestGcdCondRetZ80 (0.00s)
+=== RUN   TestFix1NarrowWordCompare
+--- PASS: TestFix1NarrowWordCompare (0.01s)
+=== RUN   TestFix1ByteResultWithLiveA
+--- PASS: TestFix1ByteResultWithLiveA (0.00s)
+=== RUN   TestZ80CodegenConstantReplacesAccumulatorAlias
+=== RUN   TestZ80CodegenConstantReplacesAccumulatorAlias/add
+=== RUN   TestZ80CodegenConstantReplacesAccumulatorAlias/sub
+=== RUN   TestZ80CodegenConstantReplacesAccumulatorAlias/and
+=== RUN   TestZ80CodegenConstantReplacesAccumulatorAlias/or
+=== RUN   TestZ80CodegenConstantReplacesAccumulatorAlias/xor
+--- PASS: TestZ80CodegenConstantReplacesAccumulatorAlias (0.00s)
+    --- PASS: TestZ80CodegenConstantReplacesAccumulatorAlias/add (0.00s)
+    --- PASS: TestZ80CodegenConstantReplacesAccumulatorAlias/sub (0.00s)
+    --- PASS: TestZ80CodegenConstantReplacesAccumulatorAlias/and (0.00s)
+    --- PASS: TestZ80CodegenConstantReplacesAccumulatorAlias/or (0.00s)
+    --- PASS: TestZ80CodegenConstantReplacesAccumulatorAlias/xor (0.00s)
+=== RUN   TestZ80Codegen_IXYHalvesCompareAsNormal8BitRegs
+    z80codegen_test.go:230: 
+        ; generated by MIR2 Z80 codegen
+        
+        ; fun half_cmp_zero(x: u8 = IYH) -> u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+        half_cmp_zero:
+            LD A, IYH
+            AND A
+            JRS NZ, .half_cmp_zero_ret0
+        .half_cmp_zero_ret1:
+            LD A, 1
+            RET
+        .half_cmp_zero_ret0:
+            LD A, 0
+            RET
+        
+        
+--- PASS: TestZ80Codegen_IXYHalvesCompareAsNormal8BitRegs (0.00s)
+=== RUN   TestBitCmpPattern_DirectBitGet_U16_IXRegPair
+    z80codegen_test.go:664: 
+        ; generated by MIR2 Z80 codegen
+        
+        ; fun test_bit11_direct(val: u16 = IX) -> u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+        test_bit11_direct:
+            LD A, C
+            CP D
+            JRS Z, .test_bit11_direct_ret0
+        .test_bit11_direct_ret1:
+            LD A, 1
+            RET
+        .test_bit11_direct_ret0:
+            LD A, 0
+            RET
+        
+        
+--- PASS: TestBitCmpPattern_DirectBitGet_U16_IXRegPair (0.00s)
+=== RUN   TestBitCmpPattern_MaskAndZero_HL
+    z80codegen_test.go:748: 
+        ; generated by MIR2 Z80 codegen
+        
+        ; fun test_bit5(ptr: ptr = HL) -> u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+        test_bit5:
+            BIT 5, (HL)
+            JRS Z, .test_bit5_ret0
+        .test_bit5_ret1:
+            LD A, 1
+            RET
+        .test_bit5_ret0:
+            LD A, 0
+            RET
+        
+        
+--- PASS: TestBitCmpPattern_MaskAndZero_HL (0.00s)
+=== RUN   TestBitCmpPattern_MaskAndZero_U16_HLHighByte
+    z80codegen_test.go:781: 
+        ; generated by MIR2 Z80 codegen
+        
+        ; fun test_bit12(ptr: ptr = HL) -> u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+        test_bit12:
+            INC HL
+            BIT 4, (HL)
+            DEC HL
+            JRS Z, .test_bit12_ret0
+        .test_bit12_ret1:
+            LD A, 1
+            RET
+        .test_bit12_ret0:
+            LD A, 0
+            RET
+        
+        
+--- PASS: TestBitCmpPattern_MaskAndZero_U16_HLHighByte (0.00s)
+=== RUN   TestBitCmpPattern_ShiftedBitRead_HL
+    z80codegen_test.go:816: 
+        ; generated by MIR2 Z80 codegen
+        
+        ; fun test_bit7(ptr: ptr = HL) -> u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+        test_bit7:
+            BIT 7, (HL)
+            JRS NZ, .test_bit7_ret1
+        .test_bit7_ret0:
+            LD A, 0
+            RET
+        .test_bit7_ret1:
+            LD A, 1
+            RET
+        
+        
+--- PASS: TestBitCmpPattern_ShiftedBitRead_HL (0.00s)
+=== RUN   TestBitCmpPattern_ShiftedBitRead_U16_IXRegPair
+    z80codegen_test.go:854: 
+        ; generated by MIR2 Z80 codegen
+        
+        ; fun test_bit13(val: u16 = IX) -> u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+        test_bit13:
+            OR A
+            SBC HL, DE
+            JRS NZ, .test_bit13_ret1
+        .test_bit13_ret0:
+            LD A, 0
+            RET
+        .test_bit13_ret1:
+            LD A, 1
+            RET
+        
+        
+--- PASS: TestBitCmpPattern_ShiftedBitRead_U16_IXRegPair (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.041s

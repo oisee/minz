@@ -1,0 +1,60 @@
+; MIR2 module: two_loops.nanz
+fun @two_loops(%r1: u16 [pointer], %r2: u16 [index], %r3: u8 [counter], %r4: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r5 = const 0 : u8 [general]
+    %r6 = const 0 : u8 [general]
+    %r7 = add %r1, %r2 : u16 [pointer]
+    jmp @loop_head1(%r7, %r6, %r3, %r5)
+  block @loop_head1(%r8: u16 [pointer], %r9: u8 [general], %r10: u8 [general], %r11: u16 [pointer]):
+    %r12 = cmp.ult %r9, %r10 : bool [flag]
+    br_if %r12, @loop_body2(), @loop_exit3(%r8, %r9, %r10, %r11)
+  block @loop_body2:
+    %r13 = add %r11, %r8 : u16 [pointer]
+    %r14 = const 1 : u8 [general]
+    %r15 = add %r9, %r14 : u8 [general]
+    jmp @loop_head1(%r8, %r15, %r10, %r13)
+  block @loop_exit3(%r16: u16 [pointer], %r17: u8 [general], %r18: u8 [general], %r19: u16 [pointer]):
+    %r20 = const 0 : u8 [general]
+    %r21 = add %r1, %r2 : u16 [pointer]
+    jmp @loop_head4(%r21, %r20, %r4, %r19)
+  block @loop_head4(%r22: u16 [pointer], %r23: u8 [general], %r24: u8 [general], %r25: u16 [pointer]):
+    %r26 = cmp.ult %r23, %r24 : bool [flag]
+    br_if %r26, @loop_body5(), @loop_exit6(%r22, %r23, %r24, %r25)
+  block @loop_body5:
+    %r27 = add %r25, %r22 : u16 [pointer]
+    %r28 = const 1 : u8 [general]
+    %r29 = add %r23, %r28 : u8 [general]
+    jmp @loop_head4(%r22, %r29, %r24, %r27)
+  block @loop_exit6(%r30: u16 [pointer], %r31: u8 [general], %r32: u8 [general], %r33: u16 [pointer]):
+    ret %r33
+
+
+OPT:
+; MIR2 module: two_loops.nanz
+fun @two_loops(%r1: u16 [pointer], %r2: u16 [index], %r3: u8 [counter], %r4: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r5 = const 0 : u8 [general]
+    %r6 = const 0 : u8 [general]
+    %r7 = add %r1, %r2 : u16 [pointer]
+    jmp @loop_head1(%r7, %r6, %r3, %r5)
+  block @loop_head1(%r8: u16 [pointer], %r9: u8 [general], %r10: u8 [general], %r11: u16 [pointer]):
+    %r12 = cmp.ult %r9, %r10 : bool [flag]
+    br_if %r12, @loop_body2(), @loop_exit3(%r11)
+  block @loop_body2:
+    %r13 = add %r11, %r8 : u16 [pointer]
+    %r14 = const 1 : u8 [general]
+    %r15 = add %r9, %r14 : u8 [general]
+    jmp @loop_head1(%r8, %r15, %r10, %r13)
+  block @loop_exit3(%r19: u16 [pointer]):
+    %r20 = const 0 : u8 [general]
+    %r21 = add %r1, %r2 : u16 [pointer]
+    jmp @loop_head4(%r21, %r20, %r4, %r19)
+  block @loop_head4(%r22: u16 [pointer], %r23: u8 [general], %r24: u8 [general], %r25: u16 [pointer]):
+    %r26 = cmp.ult %r23, %r24 : bool [flag]
+    cond_ret %r26, [%r25], @loop_body5()
+  block @loop_body5:
+    %r27 = add %r25, %r22 : u16 [pointer]
+    %r28 = const 1 : u8 [general]
+    %r29 = add %r23, %r28 : u8 [general]
+    jmp @loop_head4(%r22, %r29, %r24, %r27)
+

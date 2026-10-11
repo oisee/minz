@@ -1,0 +1,154 @@
+{
+  "files": [
+    {
+      "path": "diagnostics/after-hirfalse-mirfalse.a80",
+      "bytes": 1457,
+      "sha256": "8f0243fd008e040e1518011563977e6804647351a68db278ec1ec7a75e4bc3c8"
+    },
+    {
+      "path": "diagnostics/after-hirfalse-mirfalse.mir",
+      "bytes": 2720,
+      "sha256": "b9402d29c5e5c4032e372a980aae5d3d3f960e0cf36dab5b4c3b218122435c1d"
+    },
+    {
+      "path": "diagnostics/after-hirfalse-mirtrue.a80",
+      "bytes": 1451,
+      "sha256": "6f7e64161d000bfabd601af3e669bb66925fabc5cc559fc8e7936a0a98bd5c34"
+    },
+    {
+      "path": "diagnostics/after-hirfalse-mirtrue.mir",
+      "bytes": 2720,
+      "sha256": "b9402d29c5e5c4032e372a980aae5d3d3f960e0cf36dab5b4c3b218122435c1d"
+    },
+    {
+      "path": "diagnostics/after-hirtrue-mirfalse.a80",
+      "bytes": 1417,
+      "sha256": "8e560975aebbc36a1de3bc44dfbbb63340ee4db545f72f4114efa79a83bb4c4c"
+    },
+    {
+      "path": "diagnostics/after-hirtrue-mirfalse.mir",
+      "bytes": 2627,
+      "sha256": "862c629faaf1114f46b7dead2a327a3e13bcf8177816208d004e3a816d1d305c"
+    },
+    {
+      "path": "diagnostics/after-hirtrue-mirtrue.a80",
+      "bytes": 1411,
+      "sha256": "d2c2df04c854b933df077e95f1b62a6cf8ed8af86cd3e36b6825db064b615d5f"
+    },
+    {
+      "path": "diagnostics/after-hirtrue-mirtrue.mir",
+      "bytes": 2627,
+      "sha256": "862c629faaf1114f46b7dead2a327a3e13bcf8177816208d004e3a816d1d305c"
+    },
+    {
+      "path": "diagnostics/after-test.log",
+      "bytes": 44528,
+      "sha256": "0e4b7673441fe76d9fe1b07f724ff0c4894bef5d164f61d8f584135d462ff0ac"
+    },
+    {
+      "path": "diagnostics/after.log",
+      "bytes": 3572,
+      "sha256": "1ef6e5822eeed6280e93726ed9bc67588288e21f63d70e853b88402df38d1bc4"
+    },
+    {
+      "path": "diagnostics/before-hirfalse-mirfalse.a80",
+      "bytes": 1547,
+      "sha256": "8d77681a80562f2027d02780b78fedbbf1227e0d251707eb574ada4c5b1e24d8"
+    },
+    {
+      "path": "diagnostics/before-hirfalse-mirfalse.mir",
+      "bytes": 2720,
+      "sha256": "b9402d29c5e5c4032e372a980aae5d3d3f960e0cf36dab5b4c3b218122435c1d"
+    },
+    {
+      "path": "diagnostics/before-hirfalse-mirtrue.a80",
+      "bytes": 1541,
+      "sha256": "ed4283853ed63cb81847b4cfa7b3e6def6d66d85b868ba7c6c15a649e46569d5"
+    },
+    {
+      "path": "diagnostics/before-hirfalse-mirtrue.mir",
+      "bytes": 2720,
+      "sha256": "b9402d29c5e5c4032e372a980aae5d3d3f960e0cf36dab5b4c3b218122435c1d"
+    },
+    {
+      "path": "diagnostics/before-hirtrue-mirfalse.a80",
+      "bytes": 1507,
+      "sha256": "792e5fa16ed4770cabf4eece2860280e5db6a9496b2235bbc797bdfc4caf3586"
+    },
+    {
+      "path": "diagnostics/before-hirtrue-mirfalse.mir",
+      "bytes": 2627,
+      "sha256": "862c629faaf1114f46b7dead2a327a3e13bcf8177816208d004e3a816d1d305c"
+    },
+    {
+      "path": "diagnostics/before-hirtrue-mirtrue.a80",
+      "bytes": 1501,
+      "sha256": "16dc72a05a4c5e0d6c35e719803d522fdac421eedf4d158d2e81d08aba510ae8"
+    },
+    {
+      "path": "diagnostics/before-hirtrue-mirtrue.mir",
+      "bytes": 2627,
+      "sha256": "862c629faaf1114f46b7dead2a327a3e13bcf8177816208d004e3a816d1d305c"
+    },
+    {
+      "path": "diagnostics/before-original.a80",
+      "bytes": 1547,
+      "sha256": "8d77681a80562f2027d02780b78fedbbf1227e0d251707eb574ada4c5b1e24d8"
+    },
+    {
+      "path": "diagnostics/before-test.log",
+      "bytes": 3066,
+      "sha256": "1724863203e447f7288874787f188a922a5a25817bc181194cd35711aba94ab5"
+    },
+    {
+      "path": "diagnostics/before.log",
+      "bytes": 6744,
+      "sha256": "2ffa51ded6f1663b04bd10cc1e577710cb469a3477f2c0302f4d8cc59b03e78d"
+    },
+    {
+      "path": "diagnostics/before.nanz",
+      "bytes": 186,
+      "sha256": "c1f8a0ffb80d0e989a3bd716321151256b5c47c14765f6d71c00da0bae782769"
+    },
+    {
+      "path": "diagnostics/diagnose.go",
+      "bytes": 1492,
+      "sha256": "5697db06e2971062f1bc537f4c10d20b9f65c2da0ae1869d9037456b88bfff58"
+    },
+    {
+      "path": "diagnostics/focused-mir2.log",
+      "bytes": 17241,
+      "sha256": "d7a37edc86118544dc163796334bd9060f6b21abb9e5b918a8435b18360ec461"
+    },
+    {
+      "path": "minz-pgo-budget-backend-packages.txt",
+      "bytes": 85,
+      "sha256": "c68127dec29092c4cf646f0f7c0ee48bc94516f455a5a1c9b4f6fbb5cdf8ae85"
+    },
+    {
+      "path": "minz-pgo-budget-cli-tests.txt",
+      "bytes": 45,
+      "sha256": "9a4b3825ba9017c8a5ba02a98488014e09d75a16f139c8531f04f0a0a0ab3fb2"
+    },
+    {
+      "path": "minz-pgo-budget-cost-check.txt",
+      "bytes": 1316,
+      "sha256": "76a42cb4231a2001a0dfa7edf23100fb7d849fea33c6741ed83569e429b23a40"
+    },
+    {
+      "path": "minz-pgo-budget-showcase.txt",
+      "bytes": 39297,
+      "sha256": "a020a05c8741bd3e15f4f02fed47d5e7bdff534f1908dad6872a5466c9410c15"
+    },
+    {
+      "path": "pipeline-excluding-separate-budget.txt",
+      "bytes": 49,
+      "sha256": "c95332354aaa69c613e4f2a871744078b386906b544da405e863e38dc36ac039"
+    },
+    {
+      "path": "review.md",
+      "bytes": 7656,
+      "sha256": "54012f284b14d0586ecbfd6fd19ad3888046de5c107f7d5378501774401a834f"
+    }
+  ]
+}

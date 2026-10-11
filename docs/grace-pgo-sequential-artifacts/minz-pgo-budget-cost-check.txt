@@ -1,0 +1,14 @@
+=== RUN   TestMeasureLoopCostModel
+--- PASS: TestMeasureLoopCostModel (12.34s)
+=== RUN   TestIndependentGraceRulesChecksum
+    profile_rule_choices_test.go:80: size=false candidate=0 policy=map[hir-constant-if:false hir-invariant-base:false] cost=1166563T/168B
+    profile_rule_choices_test.go:80: size=false candidate=1 policy=map[hir-constant-if:true hir-invariant-base:false] cost=1166563T/168B
+    profile_rule_choices_test.go:80: size=false candidate=2 policy=map[hir-constant-if:false hir-invariant-base:true] cost=475239T/116B
+    profile_rule_choices_test.go:80: size=false candidate=3 policy=map[hir-constant-if:true hir-invariant-base:true] cost=475239T/116B
+    profile_rule_choices_test.go:80: size=true candidate=0 policy=map[hir-constant-if:false hir-invariant-base:false] cost=1166563T/168B
+    profile_rule_choices_test.go:80: size=true candidate=1 policy=map[hir-constant-if:true hir-invariant-base:false] cost=1166563T/168B
+    profile_rule_choices_test.go:80: size=true candidate=2 policy=map[hir-constant-if:false hir-invariant-base:true] cost=475239T/116B
+    profile_rule_choices_test.go:80: size=true candidate=3 policy=map[hir-constant-if:true hir-invariant-base:true] cost=475239T/116B
+--- PASS: TestIndependentGraceRulesChecksum (1.41s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	13.769s
