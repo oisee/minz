@@ -1,0 +1,4 @@
+PASS saved original 1135370T/2000B/109829steps SHA1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941; 73 exactnative records, fullraw/target state/order unchanged, currentreference original exact
+PASS saved reuse 1137339T/1998B/111323steps SHA7ad97647523b39d42188c7cfb806c2fe2ac6a8639e142ba59b2e665d510ddcf4; 72 exactnative records, fullraw/target state/order unchanged, currentreference original exact
+PASS exactownedwholepreallocationMIR delta1 onlycur repeatedpos load→sameDstMove; sourcecompatibility unchanged diagnostic only
+PASS observeddelta 1969T/+1494steps; curcode algebra consistent entries1469/inbounds1444, inferredonly notfreshPC measurement; -2B. Negative speed preserved.

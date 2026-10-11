@@ -1,0 +1,13 @@
+# Negative normal-global diamond native experiment
+
+Saved-only independent audit complete; owner63743 actualtwofull30 terminalPASS2.143. Original1135370T2000B109829steps exactcurrentdbaCLIreferenceBIN/ASM/percallT/Steps/state/allnativehashes. Reuse1137339T1998B111323steps: +1969T (+0.1734%), -2B. Negativeprofitability preserved; thisdoesnotjustifydefaultoptimizer orgeneralCSE. NoCPUreplayedbyreviewer.
+
+OriginalBIN1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941; reuse7ad97647523b39d42188c7cfb806c2fe2ac6a8639e142ba59b2e665d510ddcf4. Execontext eca67eca6dd0a4c09c7ff3b5d2317f8ec08e9938b0a8577fd5f0768086fc0539 ishonestisolatedGo-test executable, distinctproductiondba, neitherprofilepatched. WholeRaw/compat/functionmaps identicaloriginal/reuse; targetresults10globals3regions and3017orderedresources independentlymatchunchangedsourcehostoracle. Internalglobalreadcounts/VMsteps maydiffer explicitly; noexactglobaltraffic claim.
+
+Ownedpreallocationmir-experiment verifiesexactwholebefore=originalafter=reusebefore andsingleline%r57 load%r56→move%r49 in cur only; sourceHIRunchanged. Actualpostopt MIR allocationregnumbers shift dueeliminationdeadAddrOf; do not compare rawReg49 tootherglobalregsbyarbitrarymapidentity. Curfirstpos remainsDE, src_lenHL; reusefirstposDEmustsurvivecomparison. Finalsrc_bufchangesDE→HL tocombinewithretainedposDE, removedposreloadHL.
+
+ExactcurASM cause: added PUSH DE(11T) + POP DE(10T) beforeguardbranch onallcurcalls; removedinbounds LDHL,(pos)(16T) andDEsrc_bufwordload20T→HL16T saves4T. Delta21*entries−20*inbounds; steps2*entries−inbounds. ActualwholeT+steps constraints yield1469/1444, matchingoldledgercounts butnotnewPCmeasurement. Algebraexplains1969T withoutinventedhotspotcounts. Existingcomparecodeconservativelypreserveslivepos usingstack; instructioncost dominatesremovedread. No freshperPCledger wasexported, inferenceexplicit.
+
+TypedGo sidecar/frame/allocation/MIR SHA, embeddedsavedBIN/ASM, root-symboloffsetwidthreadwriteactualbytes allPASS. 73→72memoryrecords, noframes. Privatehook pipeline.go exists onlyisolatedbranch beforeallocation; itisnotproductionbaseline admission. Factory-baseline/v1 payload isdiagnosticcontainer, notpublicsourcefactory certificate fortransformedMIR. No inheritedselector/precompileproof/serializedprofileclaim. Roothas no mergepermissionimpliedbysemanticPASS; preserveexperimentalnegative.
+
+Potentialnextstep mustbe measured separately: cheapestcomparison preservinglhs withoutstack, orbranch-specificvalueforwardingcostmodel. Do notforcephysicalallocation orerasepreserve semantics justtohidecost. Currentactualbaseline/ref remainsstable; source/model constraints unchanged.
