@@ -1,0 +1,31 @@
+=== RUN   TestMemoryHostArenaSelectorOriginal30Objectives
+=== RUN   TestMemoryHostArenaSelectorOriginal30Objectives/speed
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_arena_selector_e2e_test.go:88: goalspeed selected1 original1221494T/2091B peeled1218395T/2212B
+=== RUN   TestMemoryHostArenaSelectorOriginal30Objectives/size
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_arena_selector_e2e_test.go:88: goalsize selected0 original1221494T/2091B peeled1218395T/2212B
+--- PASS: TestMemoryHostArenaSelectorOriginal30Objectives (12.63s)
+    --- PASS: TestMemoryHostArenaSelectorOriginal30Objectives/speed (6.20s)
+    --- PASS: TestMemoryHostArenaSelectorOriginal30Objectives/size (6.36s)
+=== RUN   TestMemoryHostArenaSelectorUnobservedRefusal
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostArenaSelectorUnobservedRefusal (2.52s)
+=== RUN   TestMemoryHostArenaSelectorZeroLengthObjective
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_arena_selector_e2e_test.go:124: zero-length actual original53T peeled32T selected1
+--- PASS: TestMemoryHostArenaSelectorZeroLengthObjective (6.74s)
+=== RUN   TestMemoryHostArenaSelectorEqualCostRetainsOriginal
+--- PASS: TestMemoryHostArenaSelectorEqualCostRetainsOriginal (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	21.898s

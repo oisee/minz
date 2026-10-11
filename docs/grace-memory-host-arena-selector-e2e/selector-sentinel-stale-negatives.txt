@@ -1,0 +1,24 @@
+=== RUN   TestMemoryHostArenaSelectorSentinelOriginMutation
+=== RUN   TestMemoryHostArenaSelectorSentinelOriginMutation/3
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostArenaSelectorSentinelOriginMutation/6
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostArenaSelectorSentinelOriginMutation/12
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostArenaSelectorSentinelOriginMutation (9.83s)
+    --- PASS: TestMemoryHostArenaSelectorSentinelOriginMutation/3 (2.21s)
+    --- PASS: TestMemoryHostArenaSelectorSentinelOriginMutation/6 (2.14s)
+    --- PASS: TestMemoryHostArenaSelectorSentinelOriginMutation/12 (5.43s)
+=== RUN   TestMemoryHostArenaSelectorStaleHostsAndWorkload
+=== RUN   TestMemoryHostArenaSelectorStaleHostsAndWorkload/host
+=== RUN   TestMemoryHostArenaSelectorStaleHostsAndWorkload/workload
+--- PASS: TestMemoryHostArenaSelectorStaleHostsAndWorkload (0.17s)
+    --- PASS: TestMemoryHostArenaSelectorStaleHostsAndWorkload/host (0.01s)
+    --- PASS: TestMemoryHostArenaSelectorStaleHostsAndWorkload/workload (0.07s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	10.007s

@@ -1,0 +1,8 @@
+=== RUN   TestMemoryHostArenaSelectorLateFactoryMutation
+=== RUN   TestMemoryHostArenaSelectorLateFactoryMutation/candidate_shared
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostArenaSelectorLateFactoryMutation (2.53s)
+    --- PASS: TestMemoryHostArenaSelectorLateFactoryMutation/candidate_shared (2.47s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.539s

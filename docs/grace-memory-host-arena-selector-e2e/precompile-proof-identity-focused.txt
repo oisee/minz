@@ -1,0 +1,4 @@
+=== RUN   TestMemoryHostArenaPrecompileProofIdentity
+--- PASS: TestMemoryHostArenaPrecompileProofIdentity (0.18s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.191s
