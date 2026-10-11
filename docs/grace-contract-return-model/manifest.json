@@ -1,0 +1,21 @@
+{
+  "base_commit": "33146966",
+  "files": {
+    "REPORT.md": {
+      "bytes": 3234,
+      "sha256": "2c3c569dbc17366e9fd070251ed42fad7f8258213a4e0d1b5b5f954c4ae780bc"
+    },
+    "before.txt": {
+      "bytes": 761,
+      "sha256": "c721fce7dc2b73d0a4488489fe5128e9176a18184e2bb011347ab68daf7aa0bb"
+    },
+    "final.txt": {
+      "bytes": 785,
+      "sha256": "66cf20bcc09f33a1f9fb3ea37e28d8c98e771dc344da6640d29372100022cc51"
+    },
+    "mir2-package.txt": {
+      "bytes": 43,
+      "sha256": "c37b633952f696cbe3828663b70bda58b3417d77f6c7d2dd638c11edf7d3b9c1"
+    }
+  }
+}
