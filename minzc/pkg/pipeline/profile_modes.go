@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/z80asm"
+	"reflect"
 	"runtime"
 )
 
@@ -123,6 +124,10 @@ func MeasureCompilerModeVariants(factory func() (*hir.Module, error), workload h
 	if e != nil {
 		return fail(e)
 	}
+	compiled := []Steps{}
+	allocations := [][]byte{}
+	postHIR := []*hir.ProfileCompatibility{}
+	fullMIR := [][]byte{}
 	evidence := &MeasuredModeEvidence{Schema: "minz.measured-compiler-modes/v1", Goal: goal, Compatibility: key, FunctionSites: sites, Oracle: oracle}
 	result := &MeasuredModeResult{Evidence: evidence}
 	// Compiled copies may change during legitimate preparation; unchanged source
@@ -154,6 +159,26 @@ func MeasureCompilerModeVariants(factory func() (*hir.Module, error), workload h
 		}
 		candidate := MeasuredModeCandidate{Options: opts, CompilationID: id, Assembly: steps.Assembly, Binary: bin.Binary, FinalMIR: steps.MIR2Module.Dump(), Run: run}
 		evidence.Candidates = append(evidence.Candidates, candidate)
+		allocation, e := json.Marshal(steps.Allocation)
+		if e != nil {
+			return fail(e)
+		}
+		compiled = append(compiled, steps)
+		allocations = append(allocations, allocation)
+		ctx, e := hir.BuildWorkloadProfileContext(m, workload)
+		if e != nil {
+			return fail(e)
+		}
+		key, e := hir.BuildProfileCompatibility(m, ctx)
+		if e != nil {
+			return fail(e)
+		}
+		postHIR = append(postHIR, key)
+		mirBytes, e := json.Marshal(steps.MIR2Module)
+		if e != nil {
+			return fail(e)
+		}
+		fullMIR = append(fullMIR, mirBytes)
 		better := i == 0
 		if i > 0 {
 			best := evidence.Candidates[evidence.Selected]
@@ -180,6 +205,40 @@ func MeasureCompilerModeVariants(factory func() (*hir.Module, error), workload h
 	}
 	if e = check(); e != nil {
 		return fail(e)
+	}
+	// Factory callbacks may retain mutable semantic type objects shared with
+	// the compiled graph. Revalidate every measured Steps after the sentinel;
+	// comparing only the retained input HIR cannot protect the returned winner.
+	for i, steps := range compiled {
+		c := evidence.Candidates[i]
+		ctx, e := hir.BuildWorkloadProfileContext(modules[i], workload)
+		if e != nil {
+			return fail(e)
+		}
+		key, e := hir.BuildProfileCompatibility(modules[i], ctx)
+		if e != nil {
+			return fail(e)
+		}
+		if !jointEqual(key, postHIR[i]) {
+			return fail(fmt.Errorf("postcompile HIR semantics changed after execution"))
+		}
+		mirBytes, e := json.Marshal(steps.MIR2Module)
+		if e != nil {
+			return fail(e)
+		}
+		if !reflect.DeepEqual(mirBytes, fullMIR[i]) {
+			return fail(fmt.Errorf("compiled MIR semantic metadata changed after execution"))
+		}
+		if steps.MIR2Module == nil || steps.MIR2Module.Dump() != c.FinalMIR || steps.Assembly != c.Assembly {
+			return fail(fmt.Errorf("measured compiled MIR/ABI/assembly changed after execution"))
+		}
+		a, e := json.Marshal(steps.Allocation)
+		if e != nil {
+			return fail(e)
+		}
+		if !reflect.DeepEqual(a, allocations[i]) {
+			return fail(fmt.Errorf("measured allocation changed after execution"))
+		}
 	}
 	b, e := json.Marshal(evidence)
 	if e != nil {

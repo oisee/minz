@@ -1,0 +1,18 @@
+=== RUN   TestMeasuredCompilerModesAdmission
+=== RUN   TestMeasuredCompilerModesAdmission/shared
+=== RUN   TestMeasuredCompilerModesAdmission/mutated-source
+=== RUN   TestMeasuredCompilerModesAdmission/changed-ABI
+=== RUN   TestMeasuredCompilerModesAdmission/sticky-policy
+=== RUN   TestMeasuredCompilerModesAdmission/late-failure
+--- PASS: TestMeasuredCompilerModesAdmission (0.38s)
+    --- PASS: TestMeasuredCompilerModesAdmission/shared (0.02s)
+    --- PASS: TestMeasuredCompilerModesAdmission/mutated-source (0.05s)
+    --- PASS: TestMeasuredCompilerModesAdmission/changed-ABI (0.02s)
+    --- PASS: TestMeasuredCompilerModesAdmission/sticky-policy (0.00s)
+    --- PASS: TestMeasuredCompilerModesAdmission/late-failure (0.29s)
+=== RUN   TestMeasuredCompilerModesCompleteAndTie
+--- PASS: TestMeasuredCompilerModesCompleteAndTie (0.75s)
+=== RUN   TestMeasuredModesRejectsLateCompiledTypeMutation
+--- PASS: TestMeasuredModesRejectsLateCompiledTypeMutation (0.33s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.477s

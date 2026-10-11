@@ -1,0 +1,6 @@
+=== RUN   TestMeasuredModesRejectsLateCompiledTypeMutation
+    profile_modes_test.go:101: late compiled semantic mutation admitted
+--- FAIL: TestMeasuredModesRejectsLateCompiledTypeMutation (0.30s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.304s
+FAIL

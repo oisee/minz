@@ -3,6 +3,7 @@ package pipeline
 import (
 	"errors"
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 	"reflect"
 	"testing"
@@ -69,5 +70,34 @@ func TestMeasuredCompilerModesCompleteAndTie(t *testing.T) {
 				t.Fatal("mode/oracle mismatch")
 			}
 		}
+	}
+}
+
+func TestMeasuredModesRejectsLateCompiledTypeMutation(t *testing.T) {
+	// Separate mutable range objects share the same initial semantic identity.
+	// The factory retains the candidate type and mutates it at the final sentinel.
+	_, w := modeFixture()
+	fresh := func() (*hir.Module, error) {
+		return nanz.Parse(`fun arithmetic(n:u8<0..255>)->u8{return n+7}`, "mode.nanz")
+	}
+	calls := 0
+	var candidateType *mir2.RangedTy
+	factory := func() (*hir.Module, error) {
+		calls++
+		m, e := fresh()
+		if e != nil {
+			return nil, e
+		}
+		if calls == 2 {
+			candidateType = m.FuncByName("arithmetic").Params[0].Ty.(*mir2.RangedTy)
+		}
+		if calls == 6 && candidateType != nil {
+			candidateType.Hi = 8
+		}
+		return m, nil
+	}
+	r, e := MeasureCompilerModeVariants(factory, w, "speed", false)
+	if e == nil || r != nil {
+		t.Fatal("late compiled semantic mutation admitted")
 	}
 }
