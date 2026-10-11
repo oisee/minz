@@ -142,7 +142,7 @@ class Model:
 
 def audit(e,source):
     assert e['schema']=='minz.memory-host-baseline/v1'
-    sha=hashlib.sha256(Path(source).read_bytes()).hexdigest()
+    sha=hashlib.sha256(Path(source).read_bytes() if Path(source).exists() else gzip.decompress(Path(str(source)+'.gz').read_bytes())).hexdigest()
     assert sha==KNOWN_SOURCE_SHA256, 'independent model is scoped to exact original SelfLanz source'
     assert set(e['function_sites']['source_units'].values())=={sha}
     w=e['workload'];model=Model(w);raw=e['raw']['invocations'];target=e['target']['invocations']

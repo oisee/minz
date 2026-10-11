@@ -2,10 +2,11 @@
 """Independent original source counts; VM hook gas/native costs not inferred."""
 import sys,json,hashlib
 from verify_corpus import Model,read_json,KNOWN_SOURCE_SHA256
+import gzip
 from pathlib import Path
 
 def audit_profile(profile,source):
-    assert hashlib.sha256(Path(source).read_bytes()).hexdigest()==KNOWN_SOURCE_SHA256
+    assert hashlib.sha256(Path(source).read_bytes() if Path(source).exists() else gzip.decompress(Path(str(source)+'.gz').read_bytes())).hexdigest()==KNOWN_SOURCE_SHA256
     assert profile['schema']=='minz.memory-host-loop-observations/v1'
     assert profile['stage']=='input-hir-instrumented-mir2-vm'
     w=profile['workload'];sites=profile['sites']['sites'];model=Model(w)
