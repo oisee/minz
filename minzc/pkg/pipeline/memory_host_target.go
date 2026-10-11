@@ -24,6 +24,10 @@ type MemoryHostTargetEvidence struct {
 	InvocationTStates []int64                     `json:"invocation_t_states"`
 	TotalTStates      int64                       `json:"total_t_states"`
 	ExecutedSteps     int64                       `json:"executed_steps"`
+	Accesses          []MemoryHostResolvedAccess  `json:"accesses"`
+	SidecarSHA256     string                      `json:"sidecar_sha256"`
+	MIRSHA256         string                      `json:"mir_dump_sha256"`
+	AllocationSHA256  string                      `json:"allocation_sha256"`
 }
 
 // runZ80MemoryHostWorkload consumes only privately compiled steps and an internally
@@ -53,7 +57,23 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
 	if e = hir.ValidateMemoryHostMIR(source, steps.MIR2Module, w); e != nil {
 		return fail(e)
 	}
-	assembly := steps.Assembly
+	origins := hir.MemoryHostGlobalOrigins(steps.MIR2Module)
+	records := []mir2.NativeMemoryAccess{}
+	captured, e := mir2.Z80Codegen(steps.MIR2Module, steps.Allocation, mir2.Z80CodegenOptions{NativeMemoryAccessOrigins: origins, NativeMemoryAccesses: &records})
+	if e != nil {
+		return fail(e)
+	}
+	captured = emitExternStubs(captured, steps.MIR2Module)
+	// Regenerated optional annotations may alter text, but never baseline bytes.
+	plain, e := z80asm.NewAssembler().AssembleString(fmt.Sprintf("ORG 0x%04x\n", w.Layout.CodeOrigin) + steps.Assembly)
+	if e != nil || len(plain.Errors) != 0 {
+		return fail(fmt.Errorf("private baseline assembly failed"))
+	}
+	capturedProgram, e := z80asm.NewAssembler().AssembleString(fmt.Sprintf("ORG 0x%04x\n", w.Layout.CodeOrigin) + captured)
+	if e != nil || len(capturedProgram.Errors) != 0 || !reflect.DeepEqual(plain.Binary, capturedProgram.Binary) {
+		return fail(fmt.Errorf("native annotation changed private baseline binary"))
+	}
+	assembly := captured
 	adapters := map[string]string{}
 	hosts := make([]string, 0, len(w.Hosts))
 	for n := range w.Hosts {
@@ -211,10 +231,22 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
 				if address >= 0 && address < 65536 && !m.executable[address] && m.region[address] == "" && !m.stack[address] {
 					m.readable[address] = true
 					m.writable[address] = true
+					m.spill[address] = true
 				}
 			}
 		}
 	}
+	protected, resolved, e := resolveMemoryHostSidecar(a, records)
+	if e != nil {
+		return fail(e)
+	}
+	m.protected = protected
+	out.Accesses = resolved
+	sidecar, _ := json.Marshal(resolved)
+	out.SidecarSHA256 = fmt.Sprintf("%x", sha256.Sum256(sidecar))
+	out.MIRSHA256 = fmt.Sprintf("%x", sha256.Sum256([]byte(steps.MIR2Module.Dump())))
+	allocation, _ := json.Marshal(steps.Allocation)
+	out.AllocationSHA256 = fmt.Sprintf("%x", sha256.Sum256(allocation))
 	m.cpu = z80.NewZ80(m, memoryHostNoPorts{})
 	for i, call := range w.Calls {
 		m.active = false
@@ -236,6 +268,10 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
 		}
 		m.cpu.SetPC(uint16(entry))
 		m.cpu.SetSP(w.Layout.StackHigh - 2)
+		m.callFrames = []memoryHostCallFrame{{w.Layout.StackHigh - 2, w.Layout.ReturnPC}}
+		clear(m.stackInitialized[:])
+		m.stackInitialized[w.Layout.StackHigh-2] = true
+		m.stackInitialized[w.Layout.StackHigh-1] = true
 		m.data[w.Layout.StackHigh-2] = byte(w.Layout.ReturnPC)
 		m.data[w.Layout.StackHigh-1] = byte(w.Layout.ReturnPC >> 8)
 		for j, v := range call.Arguments {
