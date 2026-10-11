@@ -1,0 +1,7 @@
+# Isolated arena and append composition
+
+Base dc4a65dd contains reviewed independent arena peel and append hoist paths. Parent production is untouched. Fixed candidates: original, arena only, append only, both. These are actual whole-caller alternatives; individual historical costs are comparison labels and cannot establish additive gain.
+
+Preserve unchanged original SelfLanz source dependencies and distinct actual HIR identities. Keep original loop origins/IDs at source region_match/body/s1 and intern_region/body/s5; transformed paths are body/s4 and body/s7. The exact combined precompile validator must independently accept both kernels and the whole-module union of origins, rather than invoking a standalone validator which rightly rejects the other function change. Existing standalone acceptance must remain strict.
+
+First measure the combined transformed candidate only after independent aggregate proof availability, with original30 controlled raw/native observations and portable independent host/payload audits. Private source construction may apply existing two helpers because each checks its own exact source function; source factories still parse original input. Closed host effects remain sequential and modular; eliminated internal global reads have their scoped invariant authorization. No inherited counters, postcompile HIR certificate, rule/default activation or parent integration is claimed.
