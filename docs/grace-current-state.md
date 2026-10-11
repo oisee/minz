@@ -6,10 +6,10 @@
 
 ## Сводка последнего проверенного состояния
 
-Последние root code checkpoints: signed comparison `0e34e351`, aggregate pointer
-classes `e49054af`, known consumed callback ABI `8c9fa926`, constant-call purity `4f58692b`
-и direct MIR call shape `240db2ea`. Исторические результаты ниже сохраняют
-свои исходники и режимы. Общая цель не закрыта.
+Последние code checkpoints: caller-owned struct ABI и owning locals `bbe17da0`,
+несколько результатов `161e47b2`, nested value copies `d0fc2059`, точное
+клонирование метаданных `cfaa7777`. Подробный [отчёт ABI](../reports/2026-10-11-083-caller-owned-struct-abi.md)
+сохраняет выполненные проверки и ограничения. Общая цель не закрыта.
 
 | Требование | Что доказано | Что ещё не доказано |
 |---|---|---|
@@ -19,18 +19,22 @@ classes `e49054af`, known consumed callback ABI `8c9fa926`, constant-call purity
 | Полное удаление LIR и перенос пользы | Пакет/consumers удалены; shared engines/native тесты сохранены; word ×10/12, byte fusion и K11 перенесены с native пользой | Полнота общих physical constraints/pattern choices требует предметного аудита |
 | Воспроизводимость | Исходники, workloads, решения, ASM/BIN и логи на `/mnt/safe/minz/grace/2026-10-11/`; v67 сайт: 9 860 файлов целиком проверены по SHA | Новые ABI и purity изменения требуют полного gate на новом checkpoint |
 
-Свежий full core `4587e753`: HIR/MIR2/Nanz/VIR **PASS**
-([пакет144](grace-integration-144/README.md)); включает signed/unsigned/bool widening,
-unsigned promotion и aggregate-address corrections.
-Исторический full CLI c69e350e завершился **FAIL 351,983 с**: один тест фиксировал
-исторические такты. Проверка исправлена и focused PASS 19,153 с
-([пакет138](grace-integration-138/README.md)). Последующий полный CLI4587e753
-**PASS342,878 с** ([пакет147](grace-integration-147/README.md)).
-Fresh showcase после widening **PASS 11,547 с**
-([пакет140](grace-integration-140/README.md)).
-Полный pipeline `a7954042` завершился **PASS за 3705,100 с**
-([пакет154](grace-integration-154/README.md)); он предшествует plasma, widening и новым ABI изменениям.
-Эти результаты нельзя объединять в один общий current fullsuite PASS.
+Последний root full core `0f0953d9` — HIR/MIR2/Nanz/VIR **PASS**;
+full CLI `568b7d08` — **PASS 384,240 с**. Оба предшествуют struct-buffer ABI
+([core163](grace-integration-163/README.md), [CLI164](grace-integration-164/README.md)).
+Агентский post-clone core прошёл на своём точном checkpoint; его лог сохранён в ABI отчёте.
+
+Новый ABI проходит 180 struct native cases, 256 typed indirect multi-result inputs,
+cross-result overlap/wrap и исходный Widemath expanded workload **PASS 68,401 с**
+([пакет170](grace-integration-170/README.md)). Четыре прежних frozen heldout
+семейства после ABI прошли **PASS 33,374 с** ([пакет168](grace-integration-168/README.md)).
+Полный pipeline `cfaa7777` сейчас выполняется с заранее сохранённым исполняемым
+файлом ([пакет169](grace-integration-169/README.md)); его общий результат ещё неизвестен.
+
+Исторический полный pipeline `a7954042` — **PASS 3705,100 с**, до новых ABI изменений.
+Последний compile/assemble корпус: **193 PASS / 1 capacity SKIP**, 14,165 с;
+исполнение всех 194 программ этим не доказано. Текущий каталог —
+[пакет160](grace-integration-160/catalog.json). Эти проверки нельзя объединять в один current fullsuite PASS.
 
 Чистый Speed сохранён без штрафа за байты; Size — отдельная цель.
 Физическое железо остаётся следующим уровнем.

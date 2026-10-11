@@ -1,0 +1,10 @@
+{
+  "compiler_commit": "44d8952b",
+  "code_checkpoint": "afca2aa5",
+  "command": "cli-44d8952b-abi.test -test.count=1 -test.timeout=20m",
+  "required_cwd": "compiler/minzc/cmd/minzc",
+  "sha256": "e0d1e2b2221282cecbcc62bb4ab2e0d6072e0e5ce9df1876c8a4cef833e4da35",
+  "local": "/home/alice/dev/minz-artifacts/grace-checkpoints/cli-44d8952b-abi.test",
+  "share": "/mnt/safe/minz/grace/2026-10-11/compiler-checkpoints/cli-44d8952b-abi.test",
+  "status": "started; no terminalresult yet"
+}
