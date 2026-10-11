@@ -1,0 +1,15 @@
+{
+  "call": {
+    "Entry": "safe_sub",
+    "Args": [
+      0,
+      1
+    ],
+    "Expected": 3,
+    "ExpectedMulti": [
+      3
+    ]
+  },
+  "error": "block @if_then1: mir2.VM: unknown function @error",
+  "results": null
+}

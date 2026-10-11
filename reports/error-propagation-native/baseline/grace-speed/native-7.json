@@ -1,0 +1,16 @@
+{
+  "A": 4,
+  "SP": 61426,
+  "call": {
+    "Entry": "array_get",
+    "Args": [
+      4
+    ],
+    "Expected": 4,
+    "ExpectedMulti": [
+      4
+    ]
+  },
+  "carry": 1,
+  "expected_carry": 1
+}

@@ -1,0 +1,19 @@
+{
+  "call": {
+    "Entry": "safe_div",
+    "Args": [
+      10,
+      2
+    ],
+    "Expected": 5,
+    "ExpectedMulti": [
+      5
+    ]
+  },
+  "error": "\u003cnil\u003e",
+  "results": [
+    {
+      "I": 5
+    }
+  ]
+}

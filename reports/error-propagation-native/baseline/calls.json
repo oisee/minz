@@ -1,0 +1,89 @@
+[
+  {
+    "Entry": "safe_div",
+    "Args": [
+      10,
+      0
+    ],
+    "Expected": 1,
+    "ExpectedMulti": [
+      1
+    ]
+  },
+  {
+    "Entry": "safe_div",
+    "Args": [
+      10,
+      2
+    ],
+    "Expected": 5,
+    "ExpectedMulti": [
+      5
+    ]
+  },
+  {
+    "Entry": "safe_add",
+    "Args": [
+      200,
+      200
+    ],
+    "Expected": 2,
+    "ExpectedMulti": [
+      2
+    ]
+  },
+  {
+    "Entry": "safe_sub",
+    "Args": [
+      0,
+      1
+    ],
+    "Expected": 3,
+    "ExpectedMulti": [
+      3
+    ]
+  },
+  {
+    "Entry": "compute",
+    "Args": [
+      10,
+      0
+    ],
+    "Expected": 1,
+    "ExpectedMulti": [
+      1
+    ]
+  },
+  {
+    "Entry": "compute",
+    "Args": [
+      255,
+      1
+    ],
+    "Expected": 0,
+    "ExpectedMulti": [
+      0
+    ]
+  },
+  {
+    "Entry": "chain",
+    "Args": [
+      255,
+      1
+    ],
+    "Expected": 2,
+    "ExpectedMulti": [
+      2
+    ]
+  },
+  {
+    "Entry": "array_get",
+    "Args": [
+      4
+    ],
+    "Expected": 4,
+    "ExpectedMulti": [
+      4
+    ]
+  }
+]

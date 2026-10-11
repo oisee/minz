@@ -1,0 +1,15 @@
+{
+  "call": {
+    "Entry": "chain",
+    "Args": [
+      255,
+      1
+    ],
+    "Expected": 2,
+    "ExpectedMulti": [
+      2
+    ]
+  },
+  "error": "block @entry: mir2.VM: unknown function @propagate",
+  "results": null
+}

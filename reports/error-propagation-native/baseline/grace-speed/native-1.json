@@ -1,0 +1,17 @@
+{
+  "A": 5,
+  "SP": 61426,
+  "call": {
+    "Entry": "safe_div",
+    "Args": [
+      10,
+      2
+    ],
+    "Expected": 5,
+    "ExpectedMulti": [
+      5
+    ]
+  },
+  "carry": 0,
+  "expected_carry": 0
+}

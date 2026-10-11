@@ -1,0 +1,17 @@
+{
+  "A": 255,
+  "SP": 61426,
+  "call": {
+    "Entry": "chain",
+    "Args": [
+      255,
+      1
+    ],
+    "Expected": 2,
+    "ExpectedMulti": [
+      2
+    ]
+  },
+  "carry": 1,
+  "expected_carry": 1
+}

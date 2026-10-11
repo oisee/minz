@@ -1,0 +1,14 @@
+{
+  "call": {
+    "Entry": "array_get",
+    "Args": [
+      4
+    ],
+    "Expected": 4,
+    "ExpectedMulti": [
+      4
+    ]
+  },
+  "error": "block @if_then1: mir2.VM: unknown function @error",
+  "results": null
+}

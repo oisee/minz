@@ -1,0 +1,9 @@
+{
+  "A": 42,
+  "SP": 61426,
+  "carry": 1,
+  "expected_output": "5250",
+  "initialcarry": 1,
+  "output": "",
+  "returned": true
+}
