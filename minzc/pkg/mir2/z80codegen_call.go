@@ -41,7 +41,30 @@ func (g *z80cg) genCall(inst *Inst) error {
 		return nil
 
 	case "@mir.io.print.char":
-		// Print ASCII character in A via OUT ($23).
+		if len(inst.Args) != 1 {
+			return fmt.Errorf("print.char requires one byte argument")
+		}
+		// The allocator may coalesce the ABI move into another byte register.
+		// LD A and OUT preserve flags and every other register. Snapshot AF
+		// only when materialization would overwrite another live value in A.
+		src := g.loc(inst.Args[0])
+		if src == "F" {
+			return fmt.Errorf("print.char requires a byte value, not an unmaterialized flag")
+		}
+		if src != "A" {
+			saveA := false
+			for r := range g.scratchLiveAfter(inst) {
+				if r != inst.Dst && g.loc(r) == "A" {
+					saveA = true
+					break
+				}
+			}
+			if saveA {
+				g.emit("    PUSH AF")
+				defer func() { g.emit("    POP AF"); g.invalidate("A") }()
+			}
+			g.emitLDA(src)
+		}
 		g.emit("    OUT (0x23), A")
 		g.invalidate("A")
 		return nil

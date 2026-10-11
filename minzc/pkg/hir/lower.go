@@ -2213,6 +2213,9 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 		return l.lowerUnaryExpr(ex)
 
 	case *CallExpr:
+		if ex.Fn == "@mir.io.print.sstr" || ex.Fn == "@mir.io.print.lstr" {
+			return l.lowerCountedStringPrint(ex)
+		}
 		// @target() intrinsic — returns compile-time platform constant
 		if ex.Fn == "@target" {
 			return l.bld.Const(int64(l.target), mir2.TyU8, mir2.ClassGeneral)

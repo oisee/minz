@@ -952,8 +952,37 @@ func (vm *VM) resolveSymbol(sym string) (int64, error) {
 		}
 		s := vm.Module.Strings.At(idx)
 		offset := int64(len(vm.heap))
+		kind := vm.Module.Strings.Kind(idx)
+		overhead := 1
+		if kind == StrLString {
+			overhead = 2
+		}
+		limit := vm.MaxMemory
+		if limit <= 0 {
+			limit = 65536
+		}
+		if len(vm.heap) > limit || len(s)+overhead > limit-len(vm.heap) {
+			return 0, fmt.Errorf("mir2.VM: string storage exceeds %d byte memory limit", limit)
+		}
+		switch kind {
+		case StrSString:
+			if len(s) > 255 {
+				return 0, fmt.Errorf("mir2.VM: SString exceeds 255 bytes")
+			}
+			vm.heap = append(vm.heap, byte(len(s)))
+		case StrLString:
+			if len(s) > 65535 {
+				return 0, fmt.Errorf("mir2.VM: LString exceeds 65535 bytes")
+			}
+			vm.heap = append(vm.heap, byte(len(s)), byte(len(s)>>8))
+		case StrCString:
+		default:
+			return 0, fmt.Errorf("mir2.VM: invalid string kind %d", kind)
+		}
 		vm.heap = append(vm.heap, []byte(s)...)
-		vm.heap = append(vm.heap, 0) // NUL terminator
+		if kind == StrCString {
+			vm.heap = append(vm.heap, 0)
+		}
 		// Cache so repeated references get the same address.
 		vm.globalSyms[sym] = offset
 		return offset, nil
@@ -969,7 +998,10 @@ func (vm *VM) registerBuiltinHosts() {
 		if len(args) < 1 {
 			return nil, nil
 		}
-		fmt.Printf("%c", rune(args[0].I))
+		_, err := os.Stdout.Write([]byte{byte(args[0].I)})
+		if err != nil {
+			return nil, err
+		}
 		return nil, nil
 	}
 	vm.Hosts["@mir.io.print.u8"] = func(args []Value) ([]Value, error) {

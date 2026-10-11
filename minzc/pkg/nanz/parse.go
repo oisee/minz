@@ -5302,6 +5302,12 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		}
 
 		s := processStringEscapes(raw)
+		if kind == mir2.StrSString && len(s) > 255 {
+			return nil, fmt.Errorf("line %d: SString has %d bytes; maximum is 255", t.line, len(s))
+		}
+		if kind == mir2.StrLString && len(s) > 65535 {
+			return nil, fmt.Errorf("line %d: LString has %d bytes; maximum is 65535", t.line, len(s))
+		}
 
 		// Deduplicate and intern with kind
 		idx := -1
@@ -5340,7 +5346,19 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			if _, err := p.l.eat(tokRParen); err != nil {
 				return nil, err
 			}
-			return &hir.CallExpr{Fn: "@mir.io.print.str", Args: []hir.Expr{arg}, Ty: mir2.TyVoid}, nil
+			fn := "@mir.io.print.str" // Opaque pointers retain the CString contract.
+			if a, ok := arg.(*hir.AddrOfExpr); ok {
+				var i int
+				if n, _ := fmt.Sscanf(a.Sym, "@mir2.str.%d", &i); n == 1 && i >= 0 && i < len(p.module.StrKinds) {
+					switch p.module.StrKinds[i] {
+					case mir2.StrSString:
+						fn = "@mir.io.print.sstr"
+					case mir2.StrLString:
+						fn = "@mir.io.print.lstr"
+					}
+				}
+			}
+			return &hir.CallExpr{Fn: fn, Args: []hir.Expr{arg}, Ty: mir2.TyVoid}, nil
 		}
 		if p.l.isIdent("print_nl") {
 			p.l.next()
