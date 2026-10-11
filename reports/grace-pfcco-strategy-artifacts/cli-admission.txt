@@ -1,0 +1,18 @@
+--contract-strategy pbqp --asserts none -o /tmp/pfcco-cli.a80
+exit=0
+
+--contract-strategy nonsense
+exit=1
+Error: unsupported contract strategy "nonsense"
+
+--contract-strategy pbqp -b ez80
+exit=1
+Error: PBQP contract strategy is verified only for Z80
+
+--contract-strategy pbqp --hir-profile-auto /tmp/ignored-profile
+exit=1
+Error: explicit contract strategy cannot be combined with profile search, collection or replay
+
+--contract-strategy pbqp --hir-profile-compiler-modes-replay missing
+exit=1
+Error: explicit contract strategy cannot be combined with profile search, collection or replay

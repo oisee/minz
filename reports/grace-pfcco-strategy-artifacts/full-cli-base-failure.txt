@@ -1,0 +1,21 @@
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayActualFrozenHeldout3127425784/002/training
+[compiler-modes replay] fixed mode 1: 5568 T / 52 B; saved BIN 23a46320f4d5adaf3a706457cf721145f0ff0df85efcd4c8e0e2b0f0d83642f0
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayRejectsMutatedTraining2766749926/002/training
+[compiler-modes] speed selected mode 0: 24 T / 10 B; artifacts /tmp/TestCompilerModeReplayChangedImportedSource3677646755/002/training
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayRejectsHeldoutDiskMutation2785565741/002/training
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts3954789256/002/evidence
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts3954789256/003/evidence
+[compiler-modes] size selected mode 0: 2605 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts3954789256/004/evidence
+[compiler-modes] size selected mode 0: 2605 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts3954789256/005/evidence
+[compiler-modes] speed selected mode 0: 24 T / 10 B; artifacts /tmp/TestCompilerModeCLIImportedSource2819686107/001/evidence
+warning: Z80 output skipped because of the unsupported indirect-call ABI: Z80: indirect call in test_reassign_fp has live values across it; caller preservation for the indirect ABI is unsupported
+warning: Z80 output skipped because of the unsupported indirect-call ABI: Z80: indirect call in test_reassign_fp has live values across it; caller preservation for the indirect ABI is unsupported
+Closed memory-host policy preserve-speed speed selected mask1: 701T / 2532B; evidence /tmp/TestPolicyCLICollectReplay513726469/001/policy-artifacts
+Closed memory-host policy preserve-speed speed selected mask1: 701T / 2532B; evidence /tmp/TestPolicyCLICollectReplay513726469/001/replay
+--- FAIL: TestSearchCLICollectAndPairedReplay (0.10s)
+    memory_host_search_cli_test.go:242: memory host search CLI: exact original SelfLanz source required
+Closed memory-host speed selected mask1: 718T / 2531B; evidence /tmp/TestMemoryHostLegacySelectedOutputCollectReplay2377802850/001/legacy-collect
+Closed memory-host speed selected mask1: 718T / 2531B; evidence /tmp/TestMemoryHostLegacySelectedOutputCollectReplay2377802850/001/legacy-replay
+FAIL
+FAIL	github.com/minz/minzc/cmd/minzc	117.500s
+FAIL

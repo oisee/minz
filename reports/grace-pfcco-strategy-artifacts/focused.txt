@@ -1,0 +1,40 @@
+=== RUN   TestContractStrategyPinnedNativeSource
+    contract_strategy_native_test.go:123: strategy="" full-source 87387 T/63 B
+    contract_strategy_native_test.go:123: strategy="pbqp" full-source 85343 T/61 B
+--- PASS: TestContractStrategyPinnedNativeSource (0.05s)
+=== RUN   TestContractStrategyAdmissionAndIdentity
+--- PASS: TestContractStrategyAdmissionAndIdentity (0.00s)
+=== RUN   TestPFCCOMeasuredNativePacket
+    pfcco_native_workload_test.go:150: off: 8857T/52B choices=map[]
+    pfcco_native_workload_test.go:150: greedy: 7888T/52B choices=map[displacement:0x1464680490e0 weighted_packet:0x146468049170]
+    pfcco_native_workload_test.go:150: pbqp: 7888T/52B choices=map[displacement:0x146468130930 weighted_packet:0x146468130960]
+    pfcco_native_workload_test.go:152: independent displacement arithmetic and global state verified
+--- PASS: TestPFCCOMeasuredNativePacket (0.07s)
+=== RUN   TestMultiFunctionProfileVMZ80
+=== RUN   TestMultiFunctionProfileVMZ80/stale_first_config
+=== RUN   TestMultiFunctionProfileVMZ80/stale_second_config
+=== RUN   TestMultiFunctionProfileVMZ80/duplicate
+=== RUN   TestMultiFunctionProfileVMZ80/stale_hir
+=== RUN   TestMultiFunctionProfileVMZ80/stale_compiler
+=== RUN   TestMultiFunctionProfileVMZ80/missing_function
+=== RUN   TestMultiFunctionProfileVMZ80/both
+=== RUN   TestMultiFunctionProfileVMZ80/empty
+=== RUN   TestMultiFunctionProfileVMZ80/missing
+=== RUN   TestMultiFunctionProfileVMZ80/stale_profile
+=== RUN   TestMultiFunctionProfileVMZ80/size_config
+=== RUN   TestMultiFunctionProfileVMZ80/contract_strategy
+--- PASS: TestMultiFunctionProfileVMZ80 (0.18s)
+    --- PASS: TestMultiFunctionProfileVMZ80/stale_first_config (0.00s)
+    --- PASS: TestMultiFunctionProfileVMZ80/stale_second_config (0.00s)
+    --- PASS: TestMultiFunctionProfileVMZ80/duplicate (0.01s)
+    --- PASS: TestMultiFunctionProfileVMZ80/stale_hir (0.01s)
+    --- PASS: TestMultiFunctionProfileVMZ80/stale_compiler (0.01s)
+    --- PASS: TestMultiFunctionProfileVMZ80/missing_function (0.01s)
+    --- PASS: TestMultiFunctionProfileVMZ80/both (0.00s)
+    --- PASS: TestMultiFunctionProfileVMZ80/empty (0.01s)
+    --- PASS: TestMultiFunctionProfileVMZ80/missing (0.00s)
+    --- PASS: TestMultiFunctionProfileVMZ80/stale_profile (0.01s)
+    --- PASS: TestMultiFunctionProfileVMZ80/size_config (0.00s)
+    --- PASS: TestMultiFunctionProfileVMZ80/contract_strategy (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.311s
