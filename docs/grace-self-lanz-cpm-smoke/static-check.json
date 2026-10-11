@@ -1,0 +1,15 @@
+{
+  "root_base": "7a4820ad",
+  "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+  "ordinary_assembly_sha256": "2459fdd8e4f699b3e1e48fe017d06024cbf62214b818512739657d82716194b3",
+  "ordinary_compiler_sha256": "0d6df9fbf769bdcca6969717449f587ff856b0c7d38d525b78129811abe0de12",
+  "native_execution_performed": false,
+  "extern_contracts": {
+    "peek": "HL -> A",
+    "poke": "HL,C -> void"
+  },
+  "print_out_instructions": 16,
+  "main_literal_length": 45,
+  "main_literal_kind": "SString u8-prefix; source loop assumes CString",
+  "main_exit": "XOR A; DI; HALT"
+}

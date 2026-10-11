@@ -1,0 +1,27 @@
+[
+  {
+    "path": "CPM_SMOKE_PLAN.md",
+    "bytes": 2724,
+    "sha256": "a8e456c98347d45769c8292f881ab32bb419028ca33bf09154da5ec0ec7737f3"
+  },
+  {
+    "path": "README.md",
+    "bytes": 1952,
+    "sha256": "14c226faa50d8c44fb963e7099218cf5382506f9e817d73ca07e7623e9a10aae"
+  },
+  {
+    "path": "ordinary-0d6.a80",
+    "bytes": 28195,
+    "sha256": "2459fdd8e4f699b3e1e48fe017d06024cbf62214b818512739657d82716194b3"
+  },
+  {
+    "path": "source-original.nanz",
+    "bytes": 7164,
+    "sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "path": "static-check.json",
+    "bytes": 599,
+    "sha256": "1253031a09205e92961c1d398e8a6880dfd3837a4f30359cdde6707a25636815"
+  }
+]
