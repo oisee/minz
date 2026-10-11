@@ -1,0 +1,11 @@
+# Search CLI draft source read review
+
+Reviewed owner62595c06 in permanent memory-host-search-cli, basec096. 4productioncmdpaths(main, oldCLI sharedaliasextract, fixedpolicyvalidatorsearchconflict, newsearchCLI) plusnewtests. No reviewer CPU/default/nativecode edits.
+
+Priorroot findings nowclosed: sourceknownSHA/sourceunitprecheckedbeforeanycollection; decision includesSourceName/SHA; all50 artifactpayloads marshal/prebuilt andcompleteinventorycheckedbeforefirstmkdir/write. Allsemanticadmission andserializationfailures beforefilesystemmutation; IOpartialhonest. NewmodeChangedincludingempty/orphans, fixed/oldemptyChangedconflicts enforced, sharedworkloadonly. Oldrunners executionunchanged. Pairbothorneither, each32cap/total64, no implicitcollectmissingpolicy. Suppliedbuffers passedAPIbothstrictpreflightbeforefactory; factorycachedsourceinput, nanzParsecompleteoneunit; independentsearchoriginalAST gate remainsauthority.
+
+Directselectedtargetindexedpolicy/mask nestedbaseline, SearchSHAexactprettyencodedbytes and2associationSHAexactsubmittedbuffers, nativeBinarySHA/T/B/choices/sourcefields. result.SHA inputs boundbyproducer; savedsource/workload/2assocs/search/2nestedselections/8nativev2complete50inventory. No regeneratedASM/profiledecisions/privateCSE/newpermission. ActualGoalSize viaAPIgoal only, no inferredOptSize.
+
+Extractedgenericaliaschecks exactoldalgorithm, pairinputlist addsbothassoc andall50outputs+o; tests covereachinput throughhard/symlink nestedsecondpolicyartifact plusassociationoutput andexternal-o. Repeatbeforewrites. FilesystemhostileconcurrentTOCTOU notclaimed.
+
+Initialadmissiontests meaningfulChanged/50inventory/knownsourcebeforecollect/suppliedmalformed/nooutputs. Finalfreeze stillneedsownerterminalshortcollectpairedreplay/actualSize/decisionSHA/selected-o binding andolddefault/fixedroutecontrols, asplan. Finalallnativeexports remainrootreleaseaftergates+tworeviews. No acceptancehole foundcurrentboundedsource; thisisearlyread notfullactualevidence.
