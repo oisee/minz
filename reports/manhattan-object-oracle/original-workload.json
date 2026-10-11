@@ -1,0 +1,26 @@
+{
+  "schema": "minz.showcase-manhattan/v1",
+  "source_path": "reports/showcase-src/2026-03-13/ex19_assert_forms.nanz",
+  "source_sha256": "1f4349338f02fbe8eaa253bc9033115ebf4bcaace3d675222fcab4c140224567",
+  "coords": [
+    0,
+    1,
+    127,
+    128,
+    254,
+    255
+  ],
+  "accessor_other_args": [
+    0,
+    1,
+    127,
+    128,
+    255
+  ],
+  "entries": [
+    "manhattan",
+    "get_x",
+    "get_y"
+  ],
+  "oracle": "unsigned byte absolute differences, sum reduced modulo 256; accessors return named field; Book v7 2.7,3.1,4.1"
+}

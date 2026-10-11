@@ -1,0 +1,15 @@
+=== RUN   TestOriginalManhattanNativeModel
+    showcase_manhattan_native_test.go:359: default {Entry:manhattan Args:[0 0 0 0] Expected:0} 626T native/raw/final model code/SP/RAM PASS
+    showcase_manhattan_native_test.go:359: default {Entry:manhattan Args:[0 0 0 1] Expected:1} 639T native/raw/final model code/SP/RAM PASS
+    showcase_manhattan_native_test.go:359: default {Entry:manhattan Args:[0 0 0 127] Expected:127} 639T native/raw/final model code/SP/RAM PASS
+    showcase_manhattan_native_test.go:362: default 3856 original calls PASS; 40 source assertions retained
+    showcase_manhattan_native_test.go:359: grace-size {Entry:manhattan Args:[0 0 0 0] Expected:0} 626T native/raw/final model code/SP/RAM PASS
+    showcase_manhattan_native_test.go:359: grace-size {Entry:manhattan Args:[0 0 0 1] Expected:1} 639T native/raw/final model code/SP/RAM PASS
+    showcase_manhattan_native_test.go:359: grace-size {Entry:manhattan Args:[0 0 0 127] Expected:127} 639T native/raw/final model code/SP/RAM PASS
+    showcase_manhattan_native_test.go:362: grace-size 3856 original calls PASS; 40 source assertions retained
+    showcase_manhattan_native_test.go:359: grace-speed {Entry:manhattan Args:[0 0 0 0] Expected:0} 626T native/raw/final model code/SP/RAM PASS
+    showcase_manhattan_native_test.go:359: grace-speed {Entry:manhattan Args:[0 0 0 1] Expected:1} 639T native/raw/final model code/SP/RAM PASS
+    showcase_manhattan_native_test.go:359: grace-speed {Entry:manhattan Args:[0 0 0 127] Expected:127} 639T native/raw/final model code/SP/RAM PASS
+    showcase_manhattan_native_test.go:362: grace-speed 3856 original calls PASS; 40 source assertions retained
+--- PASS: TestOriginalManhattanNativeModel (3.93s)
+PASS

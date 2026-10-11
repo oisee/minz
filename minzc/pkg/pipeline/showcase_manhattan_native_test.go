@@ -11,6 +11,7 @@ import (
 	"github.com/minz/minzc/pkg/z80asm"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -225,6 +226,9 @@ func TestOriginalManhattanNativeModel(t *testing.T) {
 			minSP := uint16(0xeff0)
 			start := z.GetCycles()
 			done := false
+			var objectTimeline []map[string]any
+			var dataEvents []mir2.VMDataAccess
+			stackReads, stackWrites := map[uint16]uint32{}, map[uint16]uint32{}
 			for j := 0; j < 10000; j++ {
 				if z.GetPC() == 0x7000 && z.GetSP() == 0xeff2 {
 					done = true
@@ -233,7 +237,60 @@ func TestOriginalManhattanNativeModel(t *testing.T) {
 				if z.GetSP() <= 0xe000 || z.GetSP() > 0xeff2 {
 					t.Fatal("stack bounds", c)
 				}
+				pc, op := z.GetPC(), mem[z.GetPC()]
+				r := z.GetRegisters()
+				dataEvents = append(dataEvents, widemathNativeByteAccess(mem, pc, r)...)
+				stackOp := op
+				if op == 0xdd || op == 0xfd {
+					stackOp = mem[pc+1]
+				}
+				switch stackOp {
+				case 0xc5, 0xd5, 0xe5, 0xf5, 0xcd:
+					stackWrites[r.SP-2]++
+					stackWrites[r.SP-1]++
+				case 0xc1, 0xd1, 0xe1, 0xf1, 0xc9:
+					stackReads[r.SP]++
+					stackReads[r.SP+1]++
+				}
+
+				oldReads, oldWrites := map[uint16]uint32{}, map[uint16]uint32{}
+				for _, addr := range []uint16{0xefea, 0xefeb, 0xefec, 0xefed} {
+					oldReads[addr], oldWrites[addr] = prof.ReadCount[addr], prof.WriteCount[addr]
+				}
+				// Validate scratch saves before later writes can reuse their bytes.
+				if stackOp == 0xc1 || stackOp == 0xd1 || stackOp == 0xe1 || stackOp == 0xf1 || stackOp == 0xc9 {
+					if r.SP < minSP || r.SP > 0xeff0 {
+						t.Fatal("stack read outside live frame", mode, i, r.SP)
+					}
+				}
 				z.Step()
+				if stackOp == 0xc5 || stackOp == 0xd5 || stackOp == 0xe5 || stackOp == 0xf5 || stackOp == 0xcd {
+					word := r.BC
+					switch stackOp {
+					case 0xd5:
+						word = r.DE
+					case 0xe5:
+						word = r.HL
+						if op == 0xdd {
+							word = r.IX
+						}
+						if op == 0xfd {
+							word = r.IY
+						}
+					case 0xf5:
+						word = uint16(r.A)<<8 | uint16(r.F)
+					case 0xcd:
+						word = pc + 3
+					}
+					if z.GetSP() != r.SP-2 || mem[r.SP-2] != byte(word) || mem[r.SP-1] != byte(word>>8) {
+						t.Fatal("native scratch push bytes", mode, i, pc, stackOp, word)
+					}
+				}
+				for _, addr := range []uint16{0xefea, 0xefeb, 0xefec, 0xefed} {
+					if prof.ReadCount[addr] != oldReads[addr] || prof.WriteCount[addr] != oldWrites[addr] {
+						objectTimeline = append(objectTimeline, map[string]any{"pc": pc, "opcode": op, "addr": addr, "reads": prof.ReadCount[addr] - oldReads[addr], "writes": prof.WriteCount[addr] - oldWrites[addr], "value": mem[addr]})
+					}
+				}
 				if z.GetSP() < minSP {
 					minSP = z.GetSP()
 				}
@@ -241,22 +298,44 @@ func TestOriginalManhattanNativeModel(t *testing.T) {
 			if !done {
 				t.Fatal("native did not return", c)
 			}
+			if i == 0 {
+				save(mode+"/first-object-timeline.json", objectTimeline)
+			}
 			addresses := []uint16{0xefec, 0xefed}
 			if c.Entry == "manhattan" {
 				addresses = append(addresses, 0xefea, 0xefeb)
 			}
-			for j, p := range addresses {
-				wantReads := uint32(1)
-				if c.Entry == "get_x" && j == 1 || c.Entry == "get_y" && j == 0 {
-					wantReads = 0
+
+			var wantEvents []mir2.VMDataAccess
+			for j, addr := range addresses {
+				wantEvents = append(wantEvents, mir2.VMDataAccess{Op: mir2.OpStore, Addr: int64(addr), Value: byte(c.Args[j])})
+			}
+			readOrder := []int{0}
+			if c.Entry == "get_y" {
+				readOrder = []int{1}
+			}
+			if c.Entry == "manhattan" {
+				readOrder = []int{0, 2, 1, 3}
+			}
+			for _, j := range readOrder {
+				wantEvents = append(wantEvents, mir2.VMDataAccess{Op: mir2.OpLoad, Addr: int64(addresses[j]), Value: byte(c.Args[j])})
+			}
+			if !reflect.DeepEqual(dataEvents, wantEvents) {
+				t.Fatalf("native object data order/value %s call%d got%+v want%+v", mode, i, dataEvents, wantEvents)
+			}
+			for j, addr := range addresses {
+				dataReads, dataWrites := uint32(0), uint32(0)
+				for _, event := range wantEvents {
+					if uint16(event.Addr) == addr {
+						if event.Op == mir2.OpStore {
+							dataWrites++
+						} else {
+							dataReads++
+						}
+					}
 				}
-				wantWrites := uint32(1)
-				if c.Entry == "manhattan" && j >= 2 {
-					wantWrites++
-					wantReads++
-				} // earlier PUSH/POP AF temporarily occupies future q storage
-				if prof.WriteCount[p] != wantWrites || prof.ReadCount[p] != wantReads || mem[p] != byte(c.Args[j]) {
-					t.Fatalf("native struct byte %s call%d addr%x writes%d reads%d value%d want%d", mode, i, p, prof.WriteCount[p], prof.ReadCount[p], mem[p], c.Args[j])
+				if prof.ReadCount[addr] != dataReads+stackReads[addr] || prof.WriteCount[addr] != dataWrites+stackWrites[addr] || mem[addr] != byte(c.Args[j]) {
+					t.Fatalf("native object and stack accesses %s call%d addr%x R%d/W%d stackR%d/W%d byte%d want%d", mode, i, addr, prof.ReadCount[addr], prof.WriteCount[addr], stackReads[addr], stackWrites[addr], mem[addr], c.Args[j])
 				}
 			}
 

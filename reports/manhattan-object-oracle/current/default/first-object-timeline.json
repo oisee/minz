@@ -1,0 +1,130 @@
+[
+  {
+    "addr": 61418,
+    "opcode": 245,
+    "pc": 32908,
+    "reads": 0,
+    "value": 0,
+    "writes": 1
+  },
+  {
+    "addr": 61419,
+    "opcode": 245,
+    "pc": 32908,
+    "reads": 0,
+    "value": 0,
+    "writes": 1
+  },
+  {
+    "addr": 61418,
+    "opcode": 241,
+    "pc": 32917,
+    "reads": 1,
+    "value": 0,
+    "writes": 0
+  },
+  {
+    "addr": 61419,
+    "opcode": 241,
+    "pc": 32917,
+    "reads": 1,
+    "value": 0,
+    "writes": 0
+  },
+  {
+    "addr": 61418,
+    "opcode": 245,
+    "pc": 32918,
+    "reads": 0,
+    "value": 0,
+    "writes": 1
+  },
+  {
+    "addr": 61419,
+    "opcode": 245,
+    "pc": 32918,
+    "reads": 0,
+    "value": 0,
+    "writes": 1
+  },
+  {
+    "addr": 61420,
+    "opcode": 18,
+    "pc": 32920,
+    "reads": 0,
+    "value": 0,
+    "writes": 1
+  },
+  {
+    "addr": 61418,
+    "opcode": 241,
+    "pc": 32921,
+    "reads": 1,
+    "value": 0,
+    "writes": 0
+  },
+  {
+    "addr": 61419,
+    "opcode": 241,
+    "pc": 32921,
+    "reads": 1,
+    "value": 0,
+    "writes": 0
+  },
+  {
+    "addr": 61421,
+    "opcode": 119,
+    "pc": 32925,
+    "reads": 0,
+    "value": 0,
+    "writes": 1
+  },
+  {
+    "addr": 61418,
+    "opcode": 2,
+    "pc": 32940,
+    "reads": 0,
+    "value": 0,
+    "writes": 1
+  },
+  {
+    "addr": 61419,
+    "opcode": 119,
+    "pc": 32947,
+    "reads": 0,
+    "value": 0,
+    "writes": 1
+  },
+  {
+    "addr": 61420,
+    "opcode": 26,
+    "pc": 32950,
+    "reads": 1,
+    "value": 0,
+    "writes": 0
+  },
+  {
+    "addr": 61418,
+    "opcode": 10,
+    "pc": 32955,
+    "reads": 1,
+    "value": 0,
+    "writes": 0
+  },
+  {
+    "addr": 61421,
+    "opcode": 86,
+    "pc": 32971,
+    "reads": 1,
+    "value": 0,
+    "writes": 0
+  },
+  {
+    "addr": 61419,
+    "opcode": 78,
+    "pc": 32975,
+    "reads": 1,
+    "value": 0,
+    "writes": 0
+  }
+]
