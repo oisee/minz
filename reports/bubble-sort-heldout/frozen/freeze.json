@@ -1,0 +1,13 @@
+{
+  "source_path": "examples/pascal/bubble_sort.pas",
+  "source_sha256": "f461d9d23e9b78c841999d3867db1d1d028353b80ce94354d7a1b89c70280732",
+  "inputs_sha256": {
+    "heldout-inputs.json": "c1f1b358ddbd00a3d818da48c22d8216d22c6e3c6213b454effa93cf93c4d9e4",
+    "training-inputs.json": "707fc861dcd4d8d81d889d70eadd81e559b0447250922032770743bb7ec0fb55"
+  },
+  "entry": "SORT",
+  "freeze_before_selection": true,
+  "oracle": "unsigned byte ascending order; preserve permutation, ARR length10, original global state and exact byte access order compared raw VM/native",
+  "prior_known_workloads_excluded": "original InitArray vector and read-only admission diagnostic vector",
+  "candidate_domain": "public MeasureCompilerModeVariants: ContractOpt off/on x MIR Grace off/on; pure speed and size separate; optSize false"
+}
