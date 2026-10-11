@@ -1,0 +1,5 @@
+=== RUN   TestOriginalResultGeneratedHelpersRaw
+    showcase_result_error_native_test.go:317: 131072 generated helper calls PASS raw VM; native meaning checked via unchanged is_ok/unwrap/wrappers
+--- PASS: TestOriginalResultGeneratedHelpersRaw (0.06s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.065s

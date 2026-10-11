@@ -1,0 +1,24 @@
+{
+  "files": [
+    {
+      "path": "docs/grace-integration-115/catalog-44-vm-native.json",
+      "bytes": 407989,
+      "sha256": "cf01d3625e5290361c3dbeb8861a4f4d01d5a32ca5faf4cd4bfb82ba9c347299"
+    },
+    {
+      "path": "docs/grace-integration-115/result-error-root.txt",
+      "bytes": 1959,
+      "sha256": "01e60d2e5e40df5798d1540373d0d0f509bf463630ced016f8eda094a9b2eea7"
+    },
+    {
+      "path": "docs/grace-integration-115/result-error-helpers-root.txt",
+      "bytes": 304,
+      "sha256": "7febbbc569d69b18aa1c62fec24c84f5831bd6e2857b1654f123afaee9dfc7f7"
+    },
+    {
+      "path": "docs/grace-integration-115/README.md",
+      "bytes": 1189,
+      "sha256": "9c621cda0449ac6b674bd99a5178fb8808c592e1715b14ed5baf5f1d519b1189"
+    }
+  ]
+}

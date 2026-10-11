@@ -20,8 +20,8 @@
   Поддержка native u32 memory/caller/spill уже исправлена и проверена отдельно;
   это не делает host interpreter подходящим для обычного Z80.
   Сборка корпуса не доказывает правильность исполнения. Новый
-  [актуальный каталог](grace-integration-112/catalog-43-vm-native.json) фиксирует все
-  194 точных пути: 43 имеют ограниченное independent VM/native покрытие; новый fib_iter, ранее пропущенная ссылка18tail и исходные local struct вызовы подтверждены отдельно. Новый CP/M demo
+  [актуальный каталог](grace-integration-115/catalog-44-vm-native.json) фиксирует все
+  194 точных пути: 44 имеют ограниченное independent VM/native покрытие; новый fib_iter, ранее пропущенная ссылка18tail и исходные local struct вызовы подтверждены отдельно. Новый CP/M demo
   имеет отдельный native CALL5-hook proof. Все прочие пути сохраняют явные
   pending/ASM/runtime/host ограничения.
 - **Pascal bubble sort: исправлен реальный native miscompile** (`ff11ba69`).
@@ -395,3 +395,5 @@ Checked word multiply69566578 rootnativeall65536PASS1.681с/fullVIR2.356с: orig
 Каталогexistingtableproofs reconciled: weighted/hash3/wordMUL больше неpending.42boundedVM/nativepaths95pending; не новыйimplementedcorpus. [Пакет110](grace-integration-110/README.md).
 
 Originalboolmodule all12entries596736native+raw/finalVM rootPASS43.376с. ActualreturnA, notselectedF. Catalog43boundedpaths94pending. [Пакет112](grace-integration-112/README.md).
+
+OriginalResult nineentries589842native/raw/finalrootPASS43.165с; taghelpersraw-only.44boundedpaths93pending. u32bitwisemiscompileunderrepair. [Пакет115](grace-integration-115/README.md).
