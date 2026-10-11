@@ -235,6 +235,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&hirProfileSiteRules, "hir-profile-site-rules", false, "Cross constant-if choices with --hir-profile-invariant-sites (up to 32 measured variants)")
 	rootCmd.Flags().BoolVar(&hirProfileJointSites, "hir-profile-joint-sites", false, "Jointly measure pointer-walk, scalar source-site hoists and constant-if (up to 32 variants)")
 	rootCmd.Flags().BoolVar(&hirProfileMixedCopyRegionSites, "hir-profile-mixed-copy-region-sites", false, "Measure exact copy and byte-region choices with --hir-profile-joint (up to 16 variants)")
+	rootCmd.Flags().BoolVar(&hirProfileOrderedByteFunctions, "hir-profile-ordered-byte-functions", false, "Measure exact ordered-byte helper functions with --hir-profile-joint (up to 16 variants)")
 	rootCmd.Flags().BoolVar(&hirProfileRegionCompareSites, "hir-profile-region-compare-sites", false, "Measure exact byte-region comparison sites with --hir-profile-joint (up to 16 variants)")
 	rootCmd.Flags().BoolVar(&hirProfileForwardCopySites, "hir-profile-forward-copy-sites", false, "Measure exact forward byte-copy sites with --hir-profile-joint (up to 16 variants)")
 	rootCmd.Flags().BoolVar(&hirProfileMixedCopyWeightedSites, "hir-profile-mixed-copy-weighted-sites", false, "Measure exact copy and weighted checksum choices with --hir-profile-joint (up to 16 variants)")
@@ -1112,7 +1113,7 @@ func compileViaHIR(sourceFile string) error {
 				return err
 			}
 		}
-		if !hirProfileMixedCopyRegionSites && !hirProfileRegionCompareSites && !hirProfileForwardCopySites && !hirProfileMixedCopyWeightedSites {
+		if !hirProfileOrderedByteFunctions && !hirProfileMixedCopyRegionSites && !hirProfileRegionCompareSites && !hirProfileForwardCopySites && !hirProfileMixedCopyWeightedSites {
 			if err := writeHIRProfileJSON(filepath.Join(hirProfileAutoDirectory, "decisions.json"), steps.ProfileDecisions); err != nil {
 				return err
 			}

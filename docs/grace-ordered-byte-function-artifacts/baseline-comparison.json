@@ -1,0 +1,9 @@
+{
+  "baseline_binary_exact_previous_byte_repair": true,
+  "baseline_t_states": 133994,
+  "baseline_bytes": 984,
+  "selected_t_states": 126680,
+  "selected_bytes": 980,
+  "saved_t_states": 7314,
+  "saved_bytes": 4
+}

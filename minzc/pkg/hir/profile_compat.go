@@ -61,6 +61,7 @@ func BuildProfileCompatibility(m *Module, c ProfileContext) (*ProfileCompatibili
 		return nil, err
 	}
 	semantic := *m
+	semantic.OrderedBytePolicy = nil
 	semantic.RegionComparePolicy = nil
 	semantic.SourceLocations = nil
 	semantic.LoopLineage = nil

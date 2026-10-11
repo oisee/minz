@@ -1,0 +1,4 @@
+=== RUN   TestHashmapRD16PrototypeTargetBoundaries
+--- PASS: TestHashmapRD16PrototypeTargetBoundaries (0.03s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.034s

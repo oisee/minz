@@ -67,7 +67,7 @@ func mixedCopyRegionKeys(m *Module, choices MixedCopyRegionChoices) ([]string, [
 	return copies, regions, nil
 }
 func ApplyMixedCopyRegionChoices(m *Module, c *ProfileCompatibility, choices MixedCopyRegionChoices) error {
-	if m == nil || c == nil || m.LoopLineage != nil || m.ForwardCopyPolicy != nil || m.RegionComparePolicy != nil || m.PointerWalkPolicy != nil || m.InvariantBasePolicy != nil || m.GraceRulePolicy != nil {
+	if m == nil || c == nil || m.LoopLineage != nil || m.ForwardCopyPolicy != nil || m.RegionComparePolicy != nil || m.OrderedBytePolicy != nil || m.PointerWalkPolicy != nil || m.InvariantBasePolicy != nil || m.GraceRulePolicy != nil {
 		return fmt.Errorf("copy region: fresh original required")
 	}
 	current, e := BuildProfileCompatibility(m, c.Context)

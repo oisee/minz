@@ -1,0 +1,7 @@
+=== RUN   TestHashmapRD16PrototypeRawDomain
+    hashmap_rd16_prototype_test.go:272: independent ordered-byte oracle 131612 cases, both variants; exhaustive u16 indices at bases 0/65535, plus tiny heap first/second traps
+--- PASS: TestHashmapRD16PrototypeRawDomain (0.51s)
+=== RUN   TestHashmapRD16PrototypeSourceRefusals
+--- PASS: TestHashmapRD16PrototypeSourceRefusals (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.521s

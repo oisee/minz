@@ -1,0 +1,34 @@
+[
+  {
+    "binary_sha256": "0390aa22f7b028216e55bca731f3ca1bb4e91ab06e70ddead41e756235034860",
+    "bytes": 984,
+    "candidate": 0,
+    "evidence_sha256": "e42a4cd2500c6a283ef5cc96e710539cff1605efac7883e6aa6a696ca2108f62",
+    "mode": "speed",
+    "t_states": 133994
+  },
+  {
+    "binary_sha256": "31e686b05d328346cd092ee65a310c111de010c53c775d3c3cd8b92ccd016f11",
+    "bytes": 980,
+    "candidate": 1,
+    "evidence_sha256": "e42a4cd2500c6a283ef5cc96e710539cff1605efac7883e6aa6a696ca2108f62",
+    "mode": "speed",
+    "t_states": 126680
+  },
+  {
+    "binary_sha256": "0390aa22f7b028216e55bca731f3ca1bb4e91ab06e70ddead41e756235034860",
+    "bytes": 984,
+    "candidate": 0,
+    "evidence_sha256": "8548caf8e3fe8cc1f5cde892bf323a3f758b45cc48c744b21daaf4ff2a0b1d20",
+    "mode": "size",
+    "t_states": 133994
+  },
+  {
+    "binary_sha256": "31e686b05d328346cd092ee65a310c111de010c53c775d3c3cd8b92ccd016f11",
+    "bytes": 980,
+    "candidate": 1,
+    "evidence_sha256": "8548caf8e3fe8cc1f5cde892bf323a3f758b45cc48c744b21daaf4ff2a0b1d20",
+    "mode": "size",
+    "t_states": 126680
+  }
+]

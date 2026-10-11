@@ -1,0 +1,8 @@
+=== RUN   TestOrderedByteFactoryCannotLaunderOrigins
+=== RUN   TestOrderedByteFactoryCannotLaunderOrigins/fresh_and_prior
+=== RUN   TestOrderedByteFactoryCannotLaunderOrigins/prior_only
+--- PASS: TestOrderedByteFactoryCannotLaunderOrigins (0.05s)
+    --- PASS: TestOrderedByteFactoryCannotLaunderOrigins/fresh_and_prior (0.02s)
+    --- PASS: TestOrderedByteFactoryCannotLaunderOrigins/prior_only (0.03s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.058s

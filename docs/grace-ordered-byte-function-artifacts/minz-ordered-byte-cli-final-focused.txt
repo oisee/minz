@@ -1,0 +1,32 @@
+=== RUN   TestHIRProfileOrderedByteValidation
+=== RUN   TestHIRProfileOrderedByteValidation/joint
+=== RUN   TestHIRProfileOrderedByteValidation/region
+=== RUN   TestHIRProfileOrderedByteValidation/composition
+=== RUN   TestHIRProfileOrderedByteValidation/copy
+=== RUN   TestHIRProfileOrderedByteValidation/mixed
+=== RUN   TestHIRProfileOrderedByteValidation/invariant
+=== RUN   TestHIRProfileOrderedByteValidation/site
+=== RUN   TestHIRProfileOrderedByteValidation/jointsites
+=== RUN   TestHIRProfileOrderedByteValidation/weighted
+=== RUN   TestHIRProfileOrderedByteValidation/independent
+=== RUN   TestHIRProfileOrderedByteValidation/auto
+=== RUN   TestHIRProfileOrderedByteValidation/workload
+=== RUN   TestHIRProfileOrderedByteValidation/restriction
+=== RUN   TestHIRProfileOrderedByteValidation/separate
+--- PASS: TestHIRProfileOrderedByteValidation (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/joint (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/region (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/composition (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/copy (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/mixed (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/invariant (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/site (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/jointsites (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/weighted (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/independent (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/auto (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/workload (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/restriction (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/separate (0.00s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	0.007s

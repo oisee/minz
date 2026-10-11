@@ -1,0 +1,10 @@
+{
+  "executable": "/tmp/minzc-ordered-byte-final",
+  "sha256": "b33d5c39cd64179d3655a86b1ff5dc14601f2c7760a101d2f50b2c680ff926a9",
+  "bytes": 40902753,
+  "build_flags": [
+    "-buildvcs=false"
+  ],
+  "base_commit": "a0e8d2bf1b98e328b847b0bb557beaa50901128d",
+  "production_source": "final ordered-byte worktree files integrated unchanged into parent; parent inventory retained separately"
+}

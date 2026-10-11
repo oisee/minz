@@ -1,0 +1,7 @@
+{
+  "pkg/hir/function_sites.go": "9abf82f0692b03678b2e1da489c21c12549bff5373440696df5d12c9069cc56f",
+  "pkg/hir/ordered_byte_helper.go": "f09c53224bf90582e0fb1fd5a3ff0d529198c61e516e6c22a4984f3099848a7e",
+  "pkg/hir/ordered_byte_profile.go": "0ed46eb0d8b2ed7b49e57db25b10be23d65137ad7c00db9d395301c2b8fb5d61",
+  "pkg/hir/region_compare_split.go": "078852214fcca2b620936ddb75d46bff0fa8b8bc1815abb440cda8f99b8a06bb",
+  "pkg/pipeline/profile_ordered_byte.go": "21faa81bbf955578bf26696535c8a722037a7bbaf54c3f42ab336200e94a9149"
+}

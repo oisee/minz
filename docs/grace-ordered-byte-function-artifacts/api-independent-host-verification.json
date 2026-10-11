@@ -1,0 +1,16 @@
+[
+  {
+    "size": false,
+    "t_states": 126680,
+    "bytes": 980,
+    "binary_sha256": "31e686b05d328346cd092ee65a310c111de010c53c775d3c3cd8b92ccd016f11",
+    "all_36_calls_global_state_and_traffic": true
+  },
+  {
+    "size": true,
+    "t_states": 126680,
+    "bytes": 980,
+    "binary_sha256": "31e686b05d328346cd092ee65a310c111de010c53c775d3c3cd8b92ccd016f11",
+    "all_36_calls_global_state_and_traffic": true
+  }
+]

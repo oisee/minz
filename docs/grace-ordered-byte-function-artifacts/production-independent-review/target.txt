@@ -1,0 +1,3 @@
+variant0 bytes38 SHA256832775cdf225f724e5b72e4bc339e689fdfe34a10dc95200f16f8a61ab6cce41 (harness included)
+variant1 bytes34 SHA25642cb540f8068eefea0fbd428966d288838ebf20e43b6d4900571f5fdacde9e47 (harness included)
+PASS 72 actual Z80 calls: per-instruction dataread sequence exactly [low,high], no extra byte read, full RAM unchanged except explicit stack; both variants modulo/u16 boundary inputs

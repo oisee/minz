@@ -1,0 +1,9 @@
+package main
+import("encoding/json";"fmt";"github.com/minz/minzc/pkg/hir";"github.com/minz/minzc/pkg/nanz";"github.com/minz/minzc/pkg/pipeline")
+func main(){src:=`fun read_word(arr:^u8,idx:u16)->u16 {var base:u16=idx*2
+return u16(arr[base])+u16(arr[base+1])*256}
+fun same_a()->u16{return 7}
+fun same_b()->u16{return 7}`;parse:=func()(*hir.Module,error){m,e:=nanz.Parse(src,"factory.nanz");if e==nil{h:=m.SourceUnits["factory.nanz"];m.SourceLocations[m.FuncByName("same_a").Body.Body[0]]=hir.SourceLocation{Unit:"factory.nanz",SourceSHA256:h,ByteOffset:122,Line:3,Column:1};m.SourceLocations[m.FuncByName("same_b").Body.Body[0]]=hir.SourceLocation{Unit:"factory.nanz",SourceSHA256:h,ByteOffset:145,Line:4,Column:1}};return m,e};w:=hir.ProfileWorkload{Schema:"minz.profile-workload/v1",TargetModel:"cpm-z80-v1",MaxSteps:1000000,MaxMemory:65536,ExactDataAccess:true,Resources:map[string][]byte{"data":{1,2}},Globals:map[string][]byte{},Calls:[]hir.ProfileInvocation{{Function:"read_word",Arguments:[]hir.ProfileArgument{{Resource:"data"},{Value:ptr(0)}}},{Function:"same_a"},{Function:"same_b"}}};m,e:=parse();must(e);raw,e:=hir.RunLoopProfile(m,w);must(e);obs,_:=json.Marshal(raw.Profile);retained:=[]*hir.Module{};calls:=0;swap:=func(m *hir.Module){a:=m.FuncByName("same_a").Body.Body[0];b:=m.FuncByName("same_b").Body.Body[0];m.SourceLocations[a],m.SourceLocations[b]=m.SourceLocations[b],m.SourceLocations[a]};factory:=func()(*hir.Module,error){m,e:=parse();calls++;if calls==2{for _,old:=range retained{swap(old)}};if calls>=2{swap(m)};retained=append(retained,m);return m,e};r,e:=pipeline.MeasureOrderedByteFunctionVariantSets(factory,obs,w,pipeline.Options{AssertMode:"none",UseHIRGrace:true},4);fmt.Printf("factoryOriginSwap accepted=%t calls=%d err=%v\n",r!=nil&&e==nil,calls,e)}
+func must(e error){if e!=nil{panic(e)}}
+
+func ptr(v int64)*int64{return &v}

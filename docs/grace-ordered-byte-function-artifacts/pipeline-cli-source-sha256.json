@@ -1,0 +1,22 @@
+[
+  {
+    "path": "minzc/pkg/pipeline/profile_ordered_byte.go",
+    "sha256": "21faa81bbf955578bf26696535c8a722037a7bbaf54c3f42ab336200e94a9149"
+  },
+  {
+    "path": "minzc/pkg/pipeline/profile_ordered_byte_test.go",
+    "sha256": "3862cf70f38c1b3434187bf0e078f68848db26b29b5a0748adc3d8122432f341"
+  },
+  {
+    "path": "minzc/cmd/minzc/main.go",
+    "sha256": "d51f0894b8a1ec86f4628ad0691f6e15ad188155af354836dd4dc383445486c9"
+  },
+  {
+    "path": "minzc/cmd/minzc/hir_profile_auto.go",
+    "sha256": "8e960d4a3924de49be5d0d6b0f98f2b3b8e571b3f5d4b8d339cbb00688c66bc9"
+  },
+  {
+    "path": "minzc/cmd/minzc/hir_profile_ordered_byte_test.go",
+    "sha256": "d8e3b44065f7d0645a31ae9206ac45d25e5978a84d4cececdffceadf049cb4a5"
+  }
+]
