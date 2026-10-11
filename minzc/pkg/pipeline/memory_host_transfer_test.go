@@ -9,8 +9,11 @@ import (
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
+	"os"
 	"reflect"
 	"runtime"
+	"strings"
+	"testing"
 )
 
 const frozenTransferPreregSHA = "66188c3e7d91c86d3dc50fde3a0e52ac58908f4d43039d4db7d17cac1976454d"
@@ -251,4 +254,84 @@ func runFrozenTransfer(factory func() (*hir.Module, error), input frozenTransfer
 		return nil, err
 	}
 	return out, nil
+}
+
+func TestFrozenTransferAdmission(t *testing.T) {
+	input := frozenTransferFixture(t, "short-reuse")
+	if _, _, err := prepareFrozenTransfer(input); err != nil {
+		t.Fatal(err)
+	}
+	for _, kind := range []string{"plan", "source", "name", "workload", "unknown"} {
+		t.Run(kind, func(t *testing.T) {
+			x := input
+			switch kind {
+			case "plan":
+				x.Preregistration = append(append([]byte{}, x.Preregistration...), '\n')
+			case "source":
+				x.Source = append(append([]byte{}, x.Source...), '\n')
+			case "name":
+				x.SourceName = "other.nanz"
+			case "workload":
+				x.Workload = append(append([]byte{}, x.Workload...), '\n')
+			case "unknown":
+				x.WorkloadName = "unregistered"
+			}
+			calls := 0
+			e, err := runFrozenTransfer(func() (*hir.Module, error) { calls++; return nil, fmt.Errorf("must not run") }, x)
+			if e != nil || err == nil || calls != 0 {
+				t.Fatal("changed preregistration reached factory", kind, calls, err)
+			}
+		})
+	}
+}
+func TestFrozenTransferExpectedSourceGate(t *testing.T) {
+	input := frozenTransferFixture(t, "short-reuse")
+	for _, kind := range []string{"body", "assert", "origin"} {
+		t.Run(kind, func(t *testing.T) {
+			calls := 0
+			factory := func() (*hir.Module, error) {
+				calls++
+				m, err := nanz.Parse(string(input.Source), input.SourceName)
+				if err != nil {
+					return nil, err
+				}
+				m.Target = hir.TargetCPM
+				switch kind {
+				case "body":
+					f := m.FuncByName("is_space")
+					f.Body.Body[len(f.Body.Body)-1].(*hir.ReturnStmt).Val.(*hir.IntLitExpr).Val = 1
+					if err = hir.Verify(m); err != nil {
+						t.Fatal(err)
+					}
+				case "assert":
+					m.Asserts = append(m.Asserts, hir.Assert{FuncName: "cur", Expected: 123})
+				case "origin":
+					stmt := m.FuncByName("intern_region").Body.Body[5]
+					loc := m.SourceLocations[stmt]
+					loc.ByteOffset++
+					m.SourceLocations[stmt] = loc
+				}
+				if m.SourceUnits[input.SourceName] != memoryHostSearchSourceSHA {
+					t.Fatal("negative must retain declared source SHA")
+				}
+				return m, nil
+			}
+			e, err := runFrozenTransfer(factory, input)
+			if e != nil || err == nil || calls != 1 || !strings.Contains(err.Error(), "independent original") {
+				t.Fatal("altered original admitted", kind, calls, err)
+			}
+		})
+	}
+}
+func frozenTransferFixture(t *testing.T, name string) frozenTransferInput {
+	t.Helper()
+	read := func(name string) []byte {
+		t.Helper()
+		b, err := os.ReadFile("../../../docs/grace-memory-host-transfer-plan/" + name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return b
+	}
+	return frozenTransferInput{Preregistration: read("PREREGISTRATION.json"), Source: read("inputs/source.nanz"), Workload: read("inputs/" + name + ".json"), WorkloadName: name, SourceName: "../examples/nanz/self_lanz_parser.nanz"}
 }
