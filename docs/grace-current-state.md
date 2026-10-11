@@ -367,3 +367,5 @@ Root independent ABI/memory/wrap/zero/fault-prefix проверки проход
 Полный CLI snapshot0cbfeff7 прошёл тремя отдельными процессами: 71/71 PASS, 0 SKIP, 279.75 с включая сборку. Root независимо сверил discovery, partitions, run и terminal events. Самый тяжёлый отдельный SearchCLI тест — 270.36 с; текущая сумма времен тестов 399.51 с не является повторным serial benchmark. [Runner и замеры](grace-cli-process-shards.md).
 
 Indexed ENRT5v conversion даёт triple module34→31B/direct66→54T/indirect123→111T. Pure byte-lane identity ускоряет FAT st_word220→93T и уменьшает модуль на23B, сохраняя byte-store эффекты. Свежие fullMIR2/VIR PASS12.391/2.178с. [Пакет092](grace-integration-092/README.md). Sites64 опубликован на snapshot2d09774a и целиком сохранён на шаре; indexed+lane опубликованы в repo/share позднее.
+
+Compatibility внутри одного admission boundary теперь вычисляется один раз; все callback boundaries и executable hash сохранены. Root fullHIR PASS28.209с, equivalence PASS0.055с и factory/preflight pipeline PASS20.574с. [Пакет093](grace-integration-093/README.md).
