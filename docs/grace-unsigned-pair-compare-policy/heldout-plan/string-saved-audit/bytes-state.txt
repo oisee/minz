@@ -1,0 +1,16 @@
+PASS c: independent bytes, actual globals and HALT PC/SP, 314 modelT/58B
+PASS empty_c: independent bytes, actual globals and HALT PC/SP, 220 modelT/56B
+PASS empty_l: independent bytes, actual globals and HALT PC/SP, 485 modelT/107B
+PASS empty_s: independent bytes, actual globals and HALT PC/SP, 257 modelT/77B
+PASS l: independent bytes, actual globals and HALT PC/SP, 715 modelT/109B
+PASS l256: independent bytes, actual globals and HALT PC/SP, 29925 modelT/363B
+PASS nul_c: independent bytes, actual globals and HALT PC/SP, 267 modelT/59B
+PASS nul_l: independent bytes, actual globals and HALT PC/SP, 830 modelT/110B
+PASS nul_s: independent bytes, actual globals and HALT PC/SP, 590 modelT/80B
+PASS s: independent bytes, actual globals and HALT PC/SP, 479 modelT/79B
+PASS s255: independent bytes, actual globals and HALT PC/SP, 28562 modelT/332B
+PASS storage-c: independent bytes, actual globals and HALT PC/SP, 79 modelT/21B
+PASS storage-l: independent bytes, actual globals and HALT PC/SP, 79 modelT/22B
+PASS storage-s: independent bytes, actual globals and HALT PC/SP, 79 modelT/21B
+PASS utf8: independent bytes, actual globals and HALT PC/SP, 479 modelT/79B
+PASS corrected15 saved fixtures; no CPU replay; ordinary native smoke, no closed-host or CP/M certificate claim.

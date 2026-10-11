@@ -1,0 +1,8 @@
+{
+  "source_checkpoint": "9eb88b7c",
+  "inventory_checkpoint": "4b5d3a35",
+  "executable_path": "/home/alice/dev/minz-artifacts/grace-checkpoints/string-representation-evidence/nanz-strings-repaired.test",
+  "executable_sha256": "8d60ea6b6a80a76e89046cde9bbeacd9946ea5abc85a6883f469e5821f8801db",
+  "command": "MINZ_STRING_NATIVE_ARTIFACTS=.../repaired nanz-strings-repaired.test -test.run '^TestLiteralPrintingNative$|^TestLiteralStorageNative$' -test.v -test.timeout 5m",
+  "working_directory": "/home/alice/dev/minz-artifacts/grace-workspaces/string-representation/minzc/pkg/nanz"
+}
