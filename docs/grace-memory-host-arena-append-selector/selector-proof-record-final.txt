@@ -1,0 +1,16 @@
+=== RUN   TestMemoryHostArenaAppendSelectorProofChoices
+--- PASS: TestMemoryHostArenaAppendSelectorProofChoices (1.22s)
+=== RUN   TestMemoryHostArenaAppendSelectorProofRecordForgery
+=== RUN   TestMemoryHostArenaAppendSelectorProofRecordForgery/schema
+=== RUN   TestMemoryHostArenaAppendSelectorProofRecordForgery/function
+=== RUN   TestMemoryHostArenaAppendSelectorProofRecordForgery/actualpath
+=== RUN   TestMemoryHostArenaAppendSelectorProofRecordForgery/duplicate
+=== RUN   TestMemoryHostArenaAppendSelectorProofRecordForgery/missing
+--- PASS: TestMemoryHostArenaAppendSelectorProofRecordForgery (0.45s)
+    --- PASS: TestMemoryHostArenaAppendSelectorProofRecordForgery/schema (0.00s)
+    --- PASS: TestMemoryHostArenaAppendSelectorProofRecordForgery/function (0.00s)
+    --- PASS: TestMemoryHostArenaAppendSelectorProofRecordForgery/actualpath (0.00s)
+    --- PASS: TestMemoryHostArenaAppendSelectorProofRecordForgery/duplicate (0.00s)
+    --- PASS: TestMemoryHostArenaAppendSelectorProofRecordForgery/missing (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.676s

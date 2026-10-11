@@ -1,0 +1,48 @@
+=== RUN   TestMemoryHostArenaAppendSelectorForgedReplay
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostArenaAppendSelectorForgedReplay (2.55s)
+=== RUN   TestMemoryHostArenaAppendSelectorLateCrossMask
+=== RUN   TestMemoryHostArenaAppendSelectorLateCrossMask/6
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostArenaAppendSelectorLateCrossMask/12
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostArenaAppendSelectorLateCrossMask/18
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostArenaAppendSelectorLateCrossMask/24
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostArenaAppendSelectorLateCrossMask (33.50s)
+    --- PASS: TestMemoryHostArenaAppendSelectorLateCrossMask/6 (2.17s)
+    --- PASS: TestMemoryHostArenaAppendSelectorLateCrossMask/12 (5.69s)
+    --- PASS: TestMemoryHostArenaAppendSelectorLateCrossMask/18 (10.40s)
+    --- PASS: TestMemoryHostArenaAppendSelectorLateCrossMask/24 (15.14s)
+=== RUN   TestMemoryHostArenaAppendSelectorAcrossMaskSharing
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostArenaAppendSelectorAcrossMaskSharing (6.36s)
+=== RUN   TestMemoryHostArenaAppendSelectorBoundsAndUnobserved
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostArenaAppendSelectorBoundsAndUnobserved (2.45s)
+=== RUN   TestMemoryHostArenaAppendSelectorProofChoices
+--- PASS: TestMemoryHostArenaAppendSelectorProofChoices (0.86s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	45.721s
