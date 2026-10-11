@@ -17,6 +17,7 @@ func TestMemoryHostLoopAssociationOriginalParser(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	exportMemoryHostReferenceBeforeAssert(t, "association", r.Baseline.Target, map[string]any{"loop-baseline-association.json": r})
 	if r.Profile.CompletedCalls != 30 || r.Profile.FailedCalls != 0 || len(r.Profile.Counts) != 11 {
 		t.Fatal("wrong invocation/site boundary")
 	}

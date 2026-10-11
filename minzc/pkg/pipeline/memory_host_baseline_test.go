@@ -17,6 +17,7 @@ func TestMemoryHostFactoryOriginalParser(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
+	exportMemoryHostReferenceBeforeAssert(t, "factory", r.Target, map[string]any{"factory-baseline.json": r})
 	// This fixture binds the current known adapter binary and cycle reference.
 	// A legitimate backend change must remeasure this reference while keeping
 	// the independent parser state/event oracle; production has no fixed cost.

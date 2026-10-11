@@ -1,0 +1,5 @@
+# Current Steps-route native reference refresh
+
+Base5b44c0d6. Three original parser fixtures currently retain historical fixed1135370T/SHA1f0 assertions. A test-only opt-in exporter now retains each native target, exactASM/BIN/finalMIR/allocation/source plus factory evidence/association or directraw oracle BEFORE any fixed reference assertion. No production code, native permission, source, fixture workload or independent parser/event/count guard is changed.
+
+Freeze and retain this exporter executable first. Root must release one focused invocation of exactly the three named tests. The old reference remains intentionally unchanged during that first diagnostic run: a legitimate current drift fails while preserving data. Review each source/Steps route/context, independent full parser globals/resources/events and11profile counts, assembled BIN hash and actual timing. Only then update three test constants to the measured current Steps values and perform root-reviewed focused verification. Do not substitute CLI baseline: its logical source unit and/or route differ. No CPU has been executed at this checkpoint.

@@ -45,6 +45,7 @@ func TestMemoryHostOriginalSelfLanzTarget(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
+	exportMemoryHostReferenceBeforeAssert(t, "target", target, map[string]any{"workload.json": w, "raw.json": raw})
 	host := newLanzHost()
 	for i, input := range lanzBaselineInputs() {
 		clear(host.ram[0xc000:0xd000])
