@@ -1,11 +1,14 @@
 package pipeline
 
 import (
+	"compress/gzip"
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
+	"io"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -120,5 +123,101 @@ func TestNormalDiamondActualSourceStatic(t *testing.T) {
 				t.Fatal(e)
 			}
 		}
+	}
+}
+
+func TestUnsignedPairActualNative30(t *testing.T) {
+	dir := os.Getenv("MINZ_UNSIGNED_PAIR_NATIVE_ARTIFACTS")
+	if dir == "" {
+		t.Skip("explicit bounded isolated native experiment")
+	}
+	source, parse := normalDiamondSource(t)
+	_, w := memoryHostParserFixture(t)
+	if unsignedPairExperimentMIRHook != nil {
+		t.Fatal("diagnostic hook already installed")
+	}
+	t.Cleanup(func() { unsignedPairExperimentMIRHook = nil; unsignedPairExperimentEnabled = false })
+	referencePath := os.Getenv("MINZ_UNSIGNED_PAIR_REFERENCE")
+	if referencePath == "" {
+		t.Fatal("explicit current production reference required")
+	}
+	readReference := func() []byte {
+		b, e := os.ReadFile(referencePath)
+		if e == nil {
+			return b
+		}
+		f, e := os.Open(referencePath + ".gz")
+		if e != nil {
+			t.Fatal(e)
+		}
+		defer f.Close()
+		z, e := gzip.NewReader(f)
+		if e != nil {
+			t.Fatal(e)
+		}
+		defer z.Close()
+		b, e = io.ReadAll(z)
+		if e != nil {
+			t.Fatal(e)
+		}
+		return b
+	}
+	var previous MemoryHostBaselineEvidence
+	if e := json.Unmarshal(readReference(), &previous); e != nil {
+		t.Fatal(e)
+	}
+	var original *MemoryHostBaselineEvidence
+	for _, option := range []struct {
+		name           string
+		compare, reuse bool
+	}{{"original", false, false}, {"compare", true, false}, {"reuse-compare", true, true}} {
+		apply := option.reuse
+		unsignedPairExperimentEnabled = option.compare
+		captures := []map[string]any{}
+		unsignedPairExperimentMIRHook = func(m *mir2.Module) error {
+			before, after, count := assertNormalDiamondDelta(t, m, apply)
+			captures = append(captures, map[string]any{"before": before, "after": after, "edits": count, "compare_option": option.compare, "reuse_option": option.reuse})
+			return nil
+		}
+		evidence, e := RunZ80MemoryHostBaseline(parse, w)
+		if e != nil {
+			t.Fatal(apply, e)
+		}
+		if len(captures) != 1 {
+			t.Fatalf("compile hook invocations%d", len(captures))
+		}
+		name := option.name
+		out := filepath.Join(dir, name)
+		if e = os.MkdirAll(out, 0755); e != nil {
+			t.Fatal(e)
+		}
+		b, e := json.MarshalIndent(evidence, "", "  ")
+		if e != nil {
+			t.Fatal(e)
+		}
+		capture, e := json.MarshalIndent(captures, "", "  ")
+		if e != nil {
+			t.Fatal(e)
+		}
+		for n, data := range map[string][]byte{"factory-baseline.json": b, "mir-experiment.json": capture, "source.nanz": source, "target.bin": evidence.Target.Binary, "target.a80": []byte(evidence.Target.Assembly), "final.mir2": []byte(evidence.Target.FinalMIRDump), "allocation.json": evidence.Target.AllocationJSON} {
+			if e = os.WriteFile(filepath.Join(out, n), data, 0644); e != nil {
+				t.Fatal(e)
+			}
+		}
+		if option.name == "original" {
+			a, b := evidence.Target, previous.Target
+			if a.BinarySHA256 != b.BinarySHA256 || a.Assembly != b.Assembly || a.AdapterSHA256 != b.AdapterSHA256 || a.TotalTStates != b.TotalTStates || a.ExecutedSteps != b.ExecutedSteps || a.MIRSHA256 != b.MIRSHA256 || a.AllocationSHA256 != b.AllocationSHA256 || a.SidecarSHA256 != b.SidecarSHA256 || a.CallFramesSHA256 != b.CallFramesSHA256 || !reflect.DeepEqual(a.InvocationTStates, b.InvocationTStates) || !reflect.DeepEqual(a.Invocations, b.Invocations) {
+				t.Fatal("original disagrees with current production native reference")
+			}
+			original = evidence
+		} else {
+			if !reflect.DeepEqual(original.Raw, evidence.Raw) || !reflect.DeepEqual(original.Compatibility, evidence.Compatibility) || !reflect.DeepEqual(original.FunctionSites, evidence.FunctionSites) {
+				t.Fatal("original source oracle/binding changed")
+			}
+			if e := arenaSameObservations(original.Target.Invocations, evidence.Target.Invocations); e != nil {
+				t.Fatal("source/reuse state", e)
+			}
+		}
+		t.Logf("%s actual%dT/%dB steps%d BIN%s context%s", name, evidence.Target.TotalTStates, len(evidence.Target.Binary), evidence.Target.ExecutedSteps, evidence.Target.BinarySHA256, evidence.Compatibility.Context.CompilerID)
 	}
 }

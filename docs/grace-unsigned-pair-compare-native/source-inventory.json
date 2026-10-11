@@ -1,0 +1,34 @@
+[
+  {
+    "path": "minzc/pkg/mir2/z80codegen.go",
+    "sha256": "4b830e971c67caa9b9a49b7cac2bfcf972184b5d87b259e30fb030d298e01e8c"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen_cmp.go",
+    "sha256": "105946d745da731766e4df3a810fe1a60755c865cc861d1501d1f1f3110a3d85"
+  },
+  {
+    "path": "minzc/pkg/mir2/unsigned_pair_compare_experiment.go",
+    "sha256": "6ef20b02694950c1dd3620d6538d1857e8dc6908a2b150913e27037affb9053a"
+  },
+  {
+    "path": "minzc/pkg/mir2/unsigned_pair_compare_experiment_test.go",
+    "sha256": "8ffc2b7ed7ca52fbcfdfd2cb3a3854dc4977c4185f37c731c1363be9da76be86"
+  },
+  {
+    "path": "minzc/pkg/pipeline/pipeline.go",
+    "sha256": "c07eb684700bc8883f1abaa049bf1317be7b27f70ab5c3c3b1361900a0e5f577"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_target.go",
+    "sha256": "74deadfa342a9e3e76d43c7d1f07350ba47e40ba155b1902384369f1fb79c016"
+  },
+  {
+    "path": "minzc/pkg/pipeline/unsigned_pair_compare_diagnostic.go",
+    "sha256": "8153dc018100f6a5b17233c6d65937670087eccb3f3526da1c5af61222682556"
+  },
+  {
+    "path": "minzc/pkg/pipeline/unsigned_pair_compare_diagnostic_test.go",
+    "sha256": "f16cd7f2c0916f52826d8cdb6d07338d8213ebd46a852538c22576a4073b1d56"
+  }
+]

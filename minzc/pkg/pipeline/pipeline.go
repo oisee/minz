@@ -186,6 +186,11 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	// Lower HIR → MIR2 (raw, before optimisation).
 	m := hir.LowerModule(hm)
 	s.MIR2Raw = m.Dump()
+	if unsignedPairExperimentMIRHook != nil {
+		if err := unsignedPairExperimentMIRHook(m); err != nil {
+			return s, err
+		}
+	}
 
 	// Initialize per-function traces.
 	for _, f := range m.Funcs {
@@ -379,7 +384,8 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		}
 		var codegenErr error
 		s.Assembly, codegenErr = mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
-			AnnotateTStates: opt.AnnotateTStates,
+			AnnotateTStates:                  opt.AnnotateTStates,
+			ExperimentalUnsignedPreservePair: unsignedPairExperimentEnabled,
 		})
 		if codegenErr != nil {
 			return s, codegenErr
