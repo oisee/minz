@@ -46,6 +46,11 @@
       "bytes": 1336
     },
     {
+      "path": "artifacts/overflow-memory-proof.txt",
+      "sha256": "5c5c6a761eec942b917e601993d9da38dfd7783bd2ec7183a5a1aa89db5035dc",
+      "bytes": 163
+    },
+    {
       "path": "artifacts/overflow.a80",
       "sha256": "9a956bec8dc40f4aa82bae5ba516d9ea04a50a0a46796462a3c4ab5669dd8c16",
       "bytes": 2541

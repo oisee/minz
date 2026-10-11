@@ -1,0 +1,4 @@
+=== RUN   TestCPMRuntimeGuardedStackOverflowAndFlags
+--- PASS: TestCPMRuntimeGuardedStackOverflowAndFlags (0.01s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	0.015s

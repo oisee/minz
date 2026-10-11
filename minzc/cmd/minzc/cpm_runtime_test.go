@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/minz/minzc/pkg/emulator"
@@ -204,6 +205,10 @@ func TestCPMRuntimeGuardedStackOverflowAndFlags(t *testing.T) {
 	z.SetMemory(0xfdfe, 0)
 	z.SetMemory(0xfdff, 0)
 	z.SetRegisters(emulator.Registers{PC: 0x100, SP: 0xfdfe})
+	var initial [65536]byte
+	for p := range initial {
+		initial[p] = z.GetMemory(uint16(p))
+	}
 	if e := z.Run(); e != nil {
 		t.Fatal(e)
 	}
@@ -217,6 +222,27 @@ func TestCPMRuntimeGuardedStackOverflowAndFlags(t *testing.T) {
 		capture, _ := json.MarshalIndent(map[string]any{"registers": z.GetRegisters(), "status": z.GetMemory(uint16(a.Symbols["__cpm_status"])), "guard": z.GetMemory(uint16(a.Symbols["__cpm_stack_guard"])), "result": z.GetMemory(uint16(a.Symbols["result"]))}, "", "  ")
 		os.WriteFile(filepath.Join(dir, "overflow.json"), capture, 0644)
 	}
+	allowed := map[uint16]bool{}
+	for _, name := range []string{"depth", "result", "__cpm_status", "__cpm_saved_sp"} {
+		for i := 0; i < 2; i++ {
+			allowed[uint16(a.Symbols[name]+i)] = true
+		}
+	}
+	for p := a.Symbols["__cpm_stack"]; p < a.Symbols["__cpm_stack_top"]; p++ {
+		allowed[uint16(p)] = true
+	}
+	for _, line := range a.Listing {
+		if strings.HasPrefix(line.Label, "_spill_") {
+			for i := range line.Bytes {
+				allowed[uint16(line.Address+i)] = true
+			}
+		}
+	}
+	for p, b := range initial {
+		if !allowed[uint16(p)] && z.GetMemory(uint16(p)) != b {
+			t.Fatalf("overflow unexpected memory write %04x", p)
+		}
+	}
 	// Guard uses six temporary bytes. Accepted check retains eight bytes of
 	// slack after those pushes, so the next guarded growth can safely check.
 	for _, space := range []uint16{6, 8, 10, 12, 14, 16, 64} {
@@ -226,6 +252,14 @@ func TestCPMRuntimeGuardedStackOverflowAndFlags(t *testing.T) {
 		z.SetMemory(sp, 0)
 		z.SetMemory(sp+1, 0)
 		keep := emulator.Registers{PC: uint16(a.Symbols["__cpm_stack_check"]), SP: sp, A: 0x9b, F: 0xa5, BC: 0x1234, DE: 0x5678, HL: 0x9abc, IX: 0x2468, IY: 0x1357}
+		z.SetMemory(uint16(a.Symbols["__cpm_saved_sp"]), 0xfe)
+		z.SetMemory(uint16(a.Symbols["__cpm_saved_sp"])+1, 0xfd)
+		z.SetMemory(0xfdfe, 0)
+		z.SetMemory(0xfdff, 0)
+		below := make([]byte, int(base))
+		for p := range below {
+			below[p] = z.GetMemory(uint16(p))
+		}
 		z.SetRegisters(keep)
 		z.Unhalt()
 		if e := z.Run(); e != nil {
@@ -236,8 +270,16 @@ func TestCPMRuntimeGuardedStackOverflowAndFlags(t *testing.T) {
 			if got.A != keep.A || got.F != keep.F || got.BC != keep.BC || got.DE != keep.DE || got.HL != keep.HL || got.IX != keep.IX || got.IY != keep.IY || got.SP != sp+2 || got.PC != 0 {
 				t.Fatalf("check preservation space%d %+v", space, got)
 			}
-		} else if z.GetMemory(uint16(a.Symbols["__cpm_status"])) != 1 {
+		} else if z.GetMemory(uint16(a.Symbols["__cpm_status"])) != 1 || got.PC != 0 || got.SP != 0xfe00 {
 			t.Fatal("overflow threshold", space)
+		}
+		for p, b := range below {
+			if uint16(p) == uint16(a.Symbols["__cpm_status"]) {
+				continue
+			}
+			if z.GetMemory(uint16(p)) != b {
+				t.Fatalf("checker below-floor write %04x space%d", p, space)
+			}
 		}
 		if z.GetMemory(base-1) != 0xa5 {
 			t.Fatal("guard write", space)
