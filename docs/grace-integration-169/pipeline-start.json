@@ -1,0 +1,9 @@
+{
+  "compiler_commit": "cfaa7777",
+  "command": "pipeline-cfaa7777-full.test -test.count=1 -test.timeout=90m",
+  "required_cwd": "compiler/minzc/pkg/pipeline",
+  "sha256": "851a3ba1446251768b0911235ded1907f538f49ee8df8fe34c81717a5effa5a4",
+  "local": "/home/alice/dev/minz-artifacts/grace-checkpoints/pipeline-cfaa7777-full.test",
+  "share": "/mnt/safe/minz/grace/2026-10-11/compiler-checkpoints/pipeline-cfaa7777-full.test",
+  "status": "started; no terminal result yet"
+}
