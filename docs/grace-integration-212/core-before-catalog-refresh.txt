@@ -1,0 +1,13 @@
+ok  	github.com/minz/minzc/pkg/hir	28.651s
+ok  	github.com/minz/minzc/pkg/mir2	70.579s
+score=65535 game=Game(7)
+[Z80-VALIDATE] set_border: 2 invalid instruction(s)
+  line 3: >>> LD A, col <<<
+--- FAIL: TestShowcaseExecutableOracleCatalog (1.91s)
+    showcase_oracle_catalog_test.go:226: reviewed evidence changed: minzc/pkg/pipeline/original_strings_pointer_plm_native_test.go
+[Z80-VALIDATE] terminate: 1 invalid instruction(s)
+  line 3: >>> LD HL, _inbuf+2 <<<
+FAIL
+FAIL	github.com/minz/minzc/pkg/nanz	16.176s
+ok  	github.com/minz/minzc/pkg/vir	2.470s
+FAIL
