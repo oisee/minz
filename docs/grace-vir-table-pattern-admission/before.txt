@@ -1,0 +1,11 @@
+=== RUN   TestTableScratchMustPreserveLiveAccumulator
+    table_scratch_test.go:35: accepted miscompile A=5 want37 ASM=; fun scratch() ; clobbers: F
+        scratch:
+            LD A, 37
+            LD A, 5
+            RET
+         BIN=3e253e05c9
+--- FAIL: TestTableScratchMustPreserveLiveAccumulator (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/vir	0.007s
+FAIL

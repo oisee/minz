@@ -1,0 +1,6 @@
+=== RUN   TestLocSets8IXDefinitions
+    solver_test.go:768: locSets8IX[5] should have 11 entries, got 9
+--- FAIL: TestLocSets8IXDefinitions (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/vir	0.007s
+FAIL

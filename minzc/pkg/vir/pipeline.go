@@ -9,12 +9,14 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"reflect"
 	"strings"
 	"time"
 
 	"github.com/minz/minzc/pkg/asmutil"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/rewrite/datalog"
+	"github.com/minz/minzc/pkg/z80validate"
 )
 
 // FuncResult tracks per-function codegen outcome.
@@ -2228,6 +2230,9 @@ func validateNoClobber(asm string) string {
 // emitFromTable generates assembly directly from a GPU table assignment.
 // No Z3 solver needed — just pattern selection + PIR emit.
 func emitFromTable(f *mir2.Func, vf *Func, allOps []VIROp, assignment map[int]int, desc *MachineDesc, opts SolverOptions) (string, error) {
+	if desc == nil || len(vf.Blocks) != 1 || !reflect.DeepEqual(vf.Blocks[0].Ops, allOps) {
+		return "", fmt.Errorf("table admission: requires one complete linear block")
+	}
 	if err := validateTableAssignment(allOps, assignment, desc); err != nil {
 		return "", fmt.Errorf("table admission: %w", err)
 	}
@@ -2290,45 +2295,9 @@ func emitFromTable(f *mir2.Func, vf *Func, allOps []VIROp, assignment map[int]in
 			// then try with src0 moved to A (accumulator ops).
 			pat := findBestPattern(op, dstPhys, srcPhys, desc)
 
-			if pat == nil {
-				// Try moving src0 to where the pattern needs it.
-				// Most Z80 ALU ops need src0 in A (tied dst=src0=A).
-				aLoc := desc.LocByName("A")
-				candidates := []int{dstPhys, aLoc} // try dst first, then A
-				for _, tryLoc := range candidates {
-					if tryLoc < 0 {
-						continue
-					}
-					trySrc := [2]int{tryLoc, srcPhys[1]}
-					tryPat := findBestPattern(op, dstPhys, trySrc, desc)
-					if tryPat == nil {
-						// Also try with dst=tryLoc for non-CMP ops
-						tryPat = findBestPattern(op, tryLoc, trySrc, desc)
-						if tryPat != nil {
-							dstPhys = tryLoc
-						}
-					}
-					if tryPat != nil && srcPhys[0] >= 0 && srcPhys[0] != tryLoc {
-						movePat := findMovePattern(desc, srcPhys[0], tryLoc)
-						if movePat != nil {
-							remSrc, mp := findMovePatternRemap(desc, srcPhys[0], tryLoc)
-							if mp != nil {
-								movePir := PIROp{Pat: mp, DstPhys: tryLoc, SrcPhys: [2]int{remSrc, -1}}
-								line := movePir.Emit(desc)
-								if !isSelfMove(line) {
-									emitLine(&sb, line)
-								}
-							}
-						}
-						srcPhys[0] = tryLoc
-						pat = tryPat
-						break
-					} else if tryPat != nil {
-						pat = tryPat
-						break
-					}
-				}
-			}
+			// A cached assignment does not certify inserted repair moves. They
+			// can overwrite another operand or a live accumulator. Require a
+			// direct legal pattern; the normal solver handles rejected hits.
 
 			if pat == nil {
 				return "", fmt.Errorf("no pattern for op %d (%v) dst=%d src=%v", opIdx, op.Op, dstPhys, srcPhys)
@@ -2343,28 +2312,13 @@ func emitFromTable(f *mir2.Func, vf *Func, allOps []VIROp, assignment map[int]in
 			}
 
 			line := pir.Emit(desc)
+			if err := validateTablePatternWrites(allOps, opIdx, assignment, desc, pir); err != nil {
+				return "", fmt.Errorf("table pattern admission: %w", err)
+			}
 			if !isSelfMove(line) {
 				emitLine(&sb, line)
 			}
 
-			// Post-op move: if pattern produced result in dstPhys but vreg
-			// is assigned to a different location, move result there.
-			if op.Dst > 0 && op.Op != OpCmp && op.Op != OpCmpImm && op.Op != OpBitTest {
-				assignedLoc := -1
-				if loc, ok := assignment[op.Dst]; ok {
-					assignedLoc = loc
-				}
-				if assignedLoc >= 0 && assignedLoc != dstPhys {
-					_, mp := findMovePatternRemap(desc, dstPhys, assignedLoc)
-					if mp != nil {
-						movePir := PIROp{Pat: mp, DstPhys: assignedLoc, SrcPhys: [2]int{dstPhys, -1}}
-						mline := movePir.Emit(desc)
-						if !isSelfMove(mline) {
-							emitLine(&sb, mline)
-						}
-					}
-				}
-			}
 			opIdx++
 		}
 
@@ -2373,7 +2327,11 @@ func emitFromTable(f *mir2.Func, vf *Func, allOps []VIROp, assignment map[int]in
 		}
 	}
 
-	return peepholeCleanup(sb.String()), nil
+	result := peepholeCleanup(sb.String())
+	if errors := z80validate.Validate(result); len(errors) > 0 {
+		return "", fmt.Errorf("table instruction admission: %v", errors[0])
+	}
+	return result, nil
 }
 
 // verifyABICompat checks if a GPU table assignment is compatible with ABI constraints.
