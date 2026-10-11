@@ -113,16 +113,24 @@ func memoryHostGlobalSizes(m *Module) map[string]int {
 
 // PrepareMemoryHostWorkload owns the exact bytes hashed and validates the closed builtin model.
 func PrepareMemoryHostWorkload(m *Module, w MemoryHostWorkload) (MemoryHostWorkload, ProfileContext, error) {
+	owned, ctx, _, err := PrepareMemoryHostWorkloadCompatibility(m, w)
+	return owned, ctx, err
+}
+
+// PrepareMemoryHostWorkloadCompatibility returns the complete compatibility key
+// already validated at this same admission boundary. It does not reuse data
+// across calls, callbacks or source mutation; each call hashes the executable.
+func PrepareMemoryHostWorkloadCompatibility(m *Module, w MemoryHostWorkload) (MemoryHostWorkload, ProfileContext, *ProfileCompatibility, error) {
 	var owned MemoryHostWorkload
 	b, e := json.Marshal(w)
 	if e != nil {
-		return owned, ProfileContext{}, e
+		return owned, ProfileContext{}, nil, e
 	}
 	if e = json.Unmarshal(b, &owned); e != nil {
-		return owned, ProfileContext{}, e
+		return owned, ProfileContext{}, nil, e
 	}
-	fail := func(s string) (MemoryHostWorkload, ProfileContext, error) {
-		return owned, ProfileContext{}, fmt.Errorf("memory host: %s", s)
+	fail := func(s string) (MemoryHostWorkload, ProfileContext, *ProfileCompatibility, error) {
+		return owned, ProfileContext{}, nil, fmt.Errorf("memory host: %s", s)
 	}
 	if m == nil || owned.Schema != "minz.memory-host-workload/v1" || owned.TargetModel != "cpm-z80-v1" || owned.MaxSteps <= 0 || owned.MaxSteps > 100000000 || owned.MaxMemory != 65536 || len(owned.Hosts) == 0 || len(owned.Regions) == 0 || len(owned.Calls) == 0 {
 		return fail("invalid schema/model/limits/hosts/regions/calls")
@@ -254,12 +262,13 @@ func PrepareMemoryHostWorkload(m *Module, w MemoryHostWorkload) (MemoryHostWorkl
 	for name, r := range owned.Regions {
 		resources["memory-region:"+name] = r.Bytes
 	}
-	ctx, e := BuildAutomaticProfileContext(m, ProfileInputs{Workload: b, Hosts: descriptor, Resources: resources, TargetModel: owned.TargetModel})
+	ctx, key, e := buildAutomaticProfileContextCompatibility(m, ProfileInputs{Workload: b, Hosts: descriptor, Resources: resources, TargetModel: owned.TargetModel})
 	if e != nil {
 		return fail(e.Error())
 	}
 	ctx.SemanticsID += "/" + MemoryHostSemantics
-	return owned, ctx, nil
+	key.Context.SemanticsID = ctx.SemanticsID
+	return owned, ctx, key, nil
 }
 
 // ValidateMemoryHostMIR rejects undeclared effects and checks actual host signatures.

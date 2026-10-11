@@ -1,0 +1,14 @@
+=== RUN   TestMemoryHostPreparedCompatibilityExactAndOwned
+=== RUN   TestMemoryHostPreparedCompatibilityExactAndOwned/abi
+=== RUN   TestMemoryHostPreparedCompatibilityExactAndOwned/manifest
+=== RUN   TestMemoryHostPreparedCompatibilityExactAndOwned/origin
+=== RUN   TestMemoryHostPreparedCompatibilityExactAndOwned/host
+=== RUN   TestMemoryHostPreparedCompatibilityExactAndOwned/target
+--- PASS: TestMemoryHostPreparedCompatibilityExactAndOwned (0.07s)
+    --- PASS: TestMemoryHostPreparedCompatibilityExactAndOwned/abi (0.00s)
+    --- PASS: TestMemoryHostPreparedCompatibilityExactAndOwned/manifest (0.00s)
+    --- PASS: TestMemoryHostPreparedCompatibilityExactAndOwned/origin (0.02s)
+    --- PASS: TestMemoryHostPreparedCompatibilityExactAndOwned/host (0.00s)
+    --- PASS: TestMemoryHostPreparedCompatibilityExactAndOwned/target (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	0.079s

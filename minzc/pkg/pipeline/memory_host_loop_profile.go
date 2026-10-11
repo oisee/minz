@@ -66,14 +66,11 @@ func runZ80MemoryHostLoopProfile(factory func() (*hir.Module, error), workload h
 		return fail(err)
 	}
 	identity := func(m *hir.Module) error {
-		_, ctx, err := hir.PrepareMemoryHostWorkload(m, owned)
+		_, _, key, err := hir.PrepareMemoryHostWorkloadCompatibility(m, owned)
 		if err != nil {
 			return err
 		}
-		key, err := hir.BuildProfileCompatibility(m, ctx)
-		if err != nil {
-			return err
-		}
+
 		sites, err := hir.BuildFunctionSiteMap(m)
 		if err != nil {
 			return err

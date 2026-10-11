@@ -84,11 +84,7 @@ func MeasureMemoryHostArenaAppendPolicySearch(factory func() (*hir.Module, error
 	if !expected.SourceUnitsComplete || len(expected.SourceUnits) != 1 || expected.SourceUnits[inputs.SourceName] != memoryHostSearchSourceSHA {
 		return nil, fmt.Errorf("policy search: expected source units differ")
 	}
-	_, ctx, e := hir.PrepareMemoryHostWorkload(expected, owned)
-	if e != nil {
-		return nil, e
-	}
-	compatibility, e := hir.BuildProfileCompatibility(expected, ctx)
+	_, _, compatibility, e := hir.PrepareMemoryHostWorkloadCompatibility(expected, owned)
 	if e != nil {
 		return nil, e
 	}
@@ -108,11 +104,7 @@ func MeasureMemoryHostArenaAppendPolicySearch(factory func() (*hir.Module, error
 	originals := []*hir.Module{}
 	defer func() { runtime.KeepAlive(roots); runtime.KeepAlive(originals) }()
 	identity := func(m *hir.Module) error {
-		_, c, e := hir.PrepareMemoryHostWorkload(m, owned)
-		if e != nil {
-			return e
-		}
-		k, e := hir.BuildProfileCompatibility(m, c)
+		_, _, k, e := hir.PrepareMemoryHostWorkloadCompatibility(m, owned)
 		if e != nil {
 			return e
 		}

@@ -41,15 +41,11 @@ type MemoryHostTargetEvidence struct {
 // produced raw oracle. It is not a public assembly or oracle admission path.
 func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostWorkload, oracle hir.MemoryHostRun) (*MemoryHostTargetEvidence, error) {
 	fail := func(e error) (*MemoryHostTargetEvidence, error) { return nil, fmt.Errorf("memory host target: %w", e) }
-	owned, ctx, e := hir.PrepareMemoryHostWorkload(source, w)
+	owned, ctx, compat, e := hir.PrepareMemoryHostWorkloadCompatibility(source, w)
 	if e != nil {
 		return fail(e)
 	}
 	w = owned
-	compat, e := hir.BuildProfileCompatibility(source, ctx)
-	if e != nil {
-		return fail(e)
-	}
 	b, e := json.Marshal(oracle)
 	if e != nil {
 		return fail(e)

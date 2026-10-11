@@ -1,0 +1,228 @@
+File: pipeline.test
+Build ID: 5fc2760c078a1565a9b4d2508402e6eeca762454
+Type: cpu
+Time: 2026-10-11 19:09:53 UTC
+Duration: 17.77s, Total samples = 22.15s (124.66%)
+Showing nodes accounting for 17.73s, 80.05% of 22.15s total
+Dropped 488 nodes (cum <= 0.11s)
+      flat  flat%   sum%        cum   cum%
+         0     0%     0%     17.91s 80.86%  github.com/minz/minzc/pkg/pipeline.TestSearchBoundedStageTiming
+         0     0%     0%     17.91s 80.86%  testing.tRunner
+         0     0%     0%     17.90s 80.81%  github.com/minz/minzc/pkg/pipeline.TestSearchBoundedStageTiming.func2
+         0     0%     0%     15.84s 71.51%  github.com/minz/minzc/pkg/pipeline.MeasureMemoryHostArenaAppendWithOptions
+         0     0%     0%     15.83s 71.47%  github.com/minz/minzc/pkg/pipeline.TestSearchBoundedStageTiming.func8
+         0     0%     0%     13.76s 62.12%  github.com/minz/minzc/pkg/pipeline.runZ80MemoryHostBaseline
+         0     0%     0%     13.20s 59.59%  github.com/minz/minzc/pkg/hir.PrepareMemoryHostWorkloadCompatibility
+         0     0%     0%     11.76s 53.09%  github.com/minz/minzc/pkg/pipeline.RunZ80MemoryHostBaselineWithOptions
+         0     0%     0%      9.90s 44.70%  github.com/minz/minzc/pkg/pipeline.runZ80MemoryHostBaseline.func3
+         0     0%     0%      9.54s 43.07%  github.com/minz/minzc/pkg/hir.buildAutomaticProfileContextCompatibility
+         0     0%     0%      9.27s 41.85%  github.com/minz/minzc/pkg/pipeline.MeasureMemoryHostArenaAppendWithOptions.func5
+         0     0%     0%      6.16s 27.81%  github.com/minz/minzc/pkg/pipeline.MeasureMemoryHostArenaAppendWithOptions.func3
+         0     0%     0%      5.82s 26.28%  io.Copy (inline)
+     0.01s 0.045% 0.045%      5.82s 26.28%  io.copyBuffer
+         0     0% 0.045%      5.82s 26.28%  os.(*File).WriteTo
+         0     0% 0.045%      5.82s 26.28%  os.genericWriteTo
+         0     0% 0.045%      5.44s 24.56%  github.com/minz/minzc/pkg/pipeline.MeasureMemoryHostArenaAppendWithOptions.func4 (partial-inline)
+         0     0% 0.045%      4.87s 21.99%  github.com/minz/minzc/pkg/hir.PrepareMemoryHostWorkload (inline)
+         0     0% 0.045%      4.48s 20.23%  crypto/internal/fips140/sha256.(*Digest).Write
+     0.01s 0.045%  0.09%      4.48s 20.23%  crypto/internal/fips140/sha256.block
+     4.47s 20.18% 20.27%      4.47s 20.18%  crypto/internal/fips140/sha256.blockSHANI
+     0.12s  0.54% 20.81%      4.27s 19.28%  github.com/minz/minzc/pkg/hir.fingerprintValue
+         0     0% 20.81%      4.11s 18.56%  github.com/minz/minzc/pkg/hir.BuildProfileCompatibility
+         0     0% 20.81%      3.96s 17.88%  github.com/minz/minzc/pkg/hir.LowerModule
+         0     0% 20.81%      3.95s 17.83%  github.com/minz/minzc/pkg/hir.lowerFuncWithFuncNames
+         0     0% 20.81%      3.89s 17.56%  github.com/minz/minzc/pkg/hir.(*lowerer).lowerBlock (inline)
+     0.02s  0.09% 20.90%      3.89s 17.56%  github.com/minz/minzc/pkg/hir.(*lowerer).lowerBlockEntry
+     0.02s  0.09% 20.99%      3.87s 17.47%  github.com/minz/minzc/pkg/hir.(*lowerer).lowerStmt
+         0     0% 20.99%      3.82s 17.25%  github.com/minz/minzc/pkg/hir.ValidateMemoryHostArenaAppendChoices
+         0     0% 20.99%      3.76s 16.98%  runtime.systemstack
+         0     0% 20.99%      3.73s 16.84%  github.com/minz/minzc/pkg/hir.(*lowerer).lowerExpr
+         0     0% 20.99%      3.71s 16.75%  github.com/minz/minzc/pkg/hir.(*lowerer).lowerCountedStringPrint
+     0.01s 0.045% 21.04%      3.58s 16.16%  github.com/minz/minzc/pkg/hir.(*lowerer).freshStringPrintName
+     0.55s  2.48% 23.52%      3.56s 16.07%  github.com/minz/minzc/pkg/hir.(*lowerer).freshStringPrintName.func1
+         0     0% 23.52%      3.29s 14.85%  github.com/minz/minzc/pkg/pipeline.RunZ80MemoryHostLoopProfileWithOptions
+         0     0% 23.52%      3.29s 14.85%  github.com/minz/minzc/pkg/pipeline.runZ80MemoryHostLoopProfile
+         0     0% 23.52%      3.28s 14.81%  runtime.gcBgMarkWorker
+     0.09s  0.41% 23.93%      3.20s 14.45%  fmt.Fprintf
+     0.01s 0.045% 23.97%      2.92s 13.18%  runtime.gcBgMarkWorker.func2
+         0     0% 23.97%      2.91s 13.14%  runtime.gcDrain
+         0     0% 23.97%      2.83s 12.78%  github.com/minz/minzc/pkg/pipeline.buildMemoryHostArenaAppendPrecompileProof
+     0.25s  1.13% 25.10%      2.61s 11.78%  fmt.(*pp).doPrintf
+         0     0% 25.10%      2.44s 11.02%  runtime.gcDrainMarkWorkerDedicated (inline)
+     0.12s  0.54% 25.64%      2.38s 10.74%  runtime.mallocgc
+     0.14s  0.63% 26.28%      2.20s  9.93%  fmt.(*pp).printArg
+         0     0% 26.28%      2.04s  9.21%  github.com/minz/minzc/pkg/pipeline.runZ80MemoryHostWorkload
+     0.01s 0.045% 26.32%      1.99s  8.98%  fmt.(*pp).fmtString
+         0     0% 26.32%      1.97s  8.89%  fmt.(*fmt).fmtQ
+         0     0% 26.32%      1.85s  8.35%  github.com/minz/minzc/pkg/pipeline.runZ80MemoryHostBaseline.func2
+     0.01s 0.045% 26.37%      1.75s  7.90%  github.com/minz/minzc/pkg/hir.ValidateMemoryHostMIR
+         0     0% 26.37%      1.71s  7.72%  github.com/minz/minzc/pkg/z80asm.(*Assembler).AssembleString
+         0     0% 26.37%      1.68s  7.58%  github.com/minz/minzc/pkg/z80asm.(*Assembler).performPass
+         0     0% 26.37%      1.68s  7.58%  github.com/minz/minzc/pkg/z80asm.(*Assembler).processInstruction
+         0     0% 26.37%      1.68s  7.58%  github.com/minz/minzc/pkg/z80asm.(*Assembler).processLine
+     0.01s 0.045% 26.41%      1.68s  7.58%  strconv.AppendQuote (inline)
+     0.57s  2.57% 28.98%      1.67s  7.54%  strconv.appendQuotedWith
+     0.14s  0.63% 29.62%      1.65s  7.45%  github.com/minz/minzc/pkg/z80asm.(*Assembler).encodeInstructionTable
+         0     0% 29.62%      1.55s  7.00%  github.com/minz/minzc/pkg/pipeline.TestSearchBoundedStageTiming.func7
+     0.43s  1.94% 31.56%      1.54s  6.95%  runtime.mallocgcSmallScanNoHeader
+     0.01s 0.045% 31.60%      1.52s  6.86%  runtime.scanSpan
+         0     0% 31.60%      1.43s  6.46%  internal/poll.(*FD).Read
+     1.43s  6.46% 38.06%      1.43s  6.46%  internal/runtime/syscall/linux.Syscall6
+         0     0% 38.06%      1.43s  6.46%  os.(*File).Read
+         0     0% 38.06%      1.43s  6.46%  os.(*File).read (inline)
+         0     0% 38.06%      1.42s  6.41%  syscall.RawSyscall6
+         0     0% 38.06%      1.41s  6.37%  github.com/minz/minzc/pkg/hir.BuildFunctionSiteMap
+         0     0% 38.06%      1.41s  6.37%  internal/poll.ignoringEINTRIO (inline)
+         0     0% 38.06%      1.41s  6.37%  syscall.Read (inline)
+         0     0% 38.06%      1.41s  6.37%  syscall.Syscall
+         0     0% 38.06%      1.41s  6.37%  syscall.read
+         0     0% 38.06%      1.37s  6.19%  github.com/minz/minzc/pkg/hir.(*lowerer).lowerIf
+     0.57s  2.57% 40.63%      1.37s  6.19%  runtime.scanObjectsSmall
+     0.81s  3.66% 44.29%      1.32s  5.96%  runtime.tryDeferToSpanScan
+         0     0% 44.29%      1.22s  5.51%  github.com/minz/minzc/pkg/pipeline.runZ80MemoryHostBaseline.func4
+         0     0% 44.29%      1.20s  5.42%  github.com/minz/minzc/pkg/hir.orderedByteDigest
+     0.30s  1.35% 45.64%      1.16s  5.24%  runtime.scanObject
+         0     0% 45.64%      1.11s  5.01%  reflect.Value.Interface (inline)
+     0.05s  0.23% 45.87%      1.11s  5.01%  reflect.valueInterface
+         0     0% 45.87%      1.09s  4.92%  github.com/minz/minzc/pkg/hir.ValidateMemoryHostAppendCopyHoist
+         0     0% 45.87%      1.08s  4.88%  github.com/minz/minzc/pkg/pipeline.runZ80MemoryHostLoopProfile.func3
+     0.46s  2.08% 47.95%      0.97s  4.38%  strconv.appendEscapedRune
+         0     0% 47.95%      0.96s  4.33%  github.com/minz/minzc/pkg/hir.ValidateMemoryHostArenaPeel
+         0     0% 47.95%      0.96s  4.33%  github.com/minz/minzc/pkg/mir2.Z80Codegen
+         0     0% 47.95%      0.95s  4.29%  reflect.packEface (inline)
+     0.09s  0.41% 48.35%      0.95s  4.29%  reflect.packEfaceData
+         0     0% 48.35%      0.79s  3.57%  encoding/json.Marshal
+         0     0% 48.35%      0.77s  3.48%  github.com/minz/minzc/pkg/pipeline.runZ80MemoryHostLoopProfile.func4 (inline)
+     0.23s  1.04% 49.39%      0.73s  3.30%  github.com/minz/minzc/pkg/z80asm.GetInstructionPatterns
+     0.49s  2.21% 51.60%      0.72s  3.25%  reflect.(*rtype).Field
+         0     0% 51.60%      0.68s  3.07%  encoding/json.(*encodeState).marshal
+     0.01s 0.045% 51.65%      0.68s  3.07%  encoding/json.(*encodeState).reflectValue
+     0.05s  0.23% 51.87%      0.67s  3.02%  reflect.unsafe_New
+         0     0% 51.87%      0.65s  2.93%  encoding/json.arrayEncoder.encode
+         0     0% 51.87%      0.65s  2.93%  encoding/json.sliceEncoder.encode
+         0     0% 51.87%      0.62s  2.80%  encoding/json.stringEncoder
+     0.01s 0.045% 51.92%      0.61s  2.75%  runtime.growslice
+         0     0% 51.92%      0.60s  2.71%  github.com/minz/minzc/pkg/hir.RunMemoryHostBaseline
+         0     0% 51.92%      0.58s  2.62%  github.com/minz/minzc/pkg/z80validate.Validate
+     0.06s  0.27% 52.19%      0.58s  2.62%  runtime.mapassign_fast64
+         0     0% 52.19%      0.53s  2.39%  github.com/minz/minzc/pkg/pipeline.CompileHIRSteps
+         0     0% 52.19%      0.51s  2.30%  github.com/minz/minzc/pkg/hir.(*lowerer).lowerWhile (inline)
+         0     0% 52.19%      0.51s  2.30%  github.com/minz/minzc/pkg/hir.(*lowerer).lowerWhileWithContinue
+     0.04s  0.18% 52.37%      0.51s  2.30%  runtime.convTstring
+     0.05s  0.23% 52.60%      0.50s  2.26%  github.com/minz/minzc/pkg/z80asm.(*Assembler).matchPattern
+     0.40s  1.81% 54.40%      0.48s  2.17%  encoding/json.appendString[go.shape.string]
+         0     0% 54.40%      0.47s  2.12%  github.com/minz/minzc/pkg/pipeline.constructMemoryHostArenaAppend
+         0     0% 54.40%      0.47s  2.12%  runtime.gcDrainMarkWorkerIdle (inline)
+     0.47s  2.12% 56.52%      0.47s  2.12%  runtime.memclrNoHeapPointers
+     0.47s  2.12% 58.65%      0.47s  2.12%  runtime.memmove
+     0.07s  0.32% 58.96%      0.46s  2.08%  internal/runtime/maps.(*table).grow
+         0     0% 58.96%      0.46s  2.08%  internal/runtime/maps.(*table).rehash
+     0.01s 0.045% 59.01%      0.41s  1.85%  github.com/minz/minzc/pkg/hir.verifyHIRModule
+         0     0% 59.01%      0.40s  1.81%  github.com/minz/minzc/pkg/hir.Verify (inline)
+     0.01s 0.045% 59.05%      0.40s  1.81%  runtime.schedule
+     0.08s  0.36% 59.41%      0.39s  1.76%  bytes.(*Buffer).Write
+         0     0% 59.41%      0.38s  1.72%  github.com/minz/minzc/pkg/pipeline.TestSearchBoundedStageTiming.func6
+         0     0% 59.41%      0.38s  1.72%  runtime.mcall
+     0.38s  1.72% 61.13%      0.38s  1.72%  strconv.IsPrint
+     0.33s  1.49% 62.62%      0.37s  1.67%  runtime.heapArenaOf (inline)
+     0.03s  0.14% 62.75%      0.37s  1.67%  runtime.makeslice
+     0.16s  0.72% 63.48%      0.37s  1.67%  runtime.mapaccess1_fast64
+         0     0% 63.48%      0.37s  1.67%  runtime.park_m
+         0     0% 63.48%      0.36s  1.63%  runtime.bgsweep
+     0.36s  1.63% 65.10%      0.36s  1.63%  runtime.nextFreeFast (inline)
+         0     0% 65.10%      0.35s  1.58%  github.com/minz/minzc/pkg/hir.RunMemoryHostMIRBaseline
+         0     0% 65.10%      0.35s  1.58%  runtime.gcMarkDone
+     0.02s  0.09% 65.19%      0.34s  1.53%  runtime.newobject
+     0.01s 0.045% 65.24%      0.31s  1.40%  runtime.gcMarkTermination
+     0.02s  0.09% 65.33%      0.30s  1.35%  bytes.(*Buffer).grow
+     0.01s 0.045% 65.37%      0.30s  1.35%  runtime.findRunnable
+     0.10s  0.45% 65.82%      0.29s  1.31%  fmt.(*fmt).pad
+     0.03s  0.14% 65.96%      0.29s  1.31%  github.com/minz/minzc/pkg/z80asm.(*Assembler).parseOperandAs
+     0.29s  1.31% 67.27%      0.29s  1.31%  runtime.futex
+     0.19s  0.86% 68.13%      0.29s  1.31%  runtime.typePointers.next
+     0.02s  0.09% 68.22%      0.28s  1.26%  bytes.growSlice
+         0     0% 68.22%      0.28s  1.26%  runtime.(*mcache).nextFree
+         0     0% 68.22%      0.27s  1.22%  runtime.(*mcache).refill
+     0.01s 0.045% 68.26%      0.27s  1.22%  runtime.mallocgcSmallScanHeader
+         0     0% 68.26%      0.26s  1.17%  runtime.mProf_Flush
+     0.05s  0.23% 68.49%      0.26s  1.17%  runtime.mProf_FlushLocked
+     0.04s  0.18% 68.67%      0.26s  1.17%  runtime.sweepone
+         0     0% 68.67%      0.24s  1.08%  github.com/minz/minzc/pkg/mir2.(*z80cg).genFunc
+     0.01s 0.045% 68.71%      0.24s  1.08%  github.com/minz/minzc/pkg/mir2.NativeAnnotationCount
+         0     0% 68.71%      0.24s  1.08%  github.com/minz/minzc/pkg/pipeline.hoistMemoryHostAppendBases
+         0     0% 68.71%      0.23s  1.04%  github.com/minz/minzc/pkg/pipeline.peelMemoryHostArenaFirstByte
+     0.02s  0.09% 68.80%      0.23s  1.04%  runtime.(*mcentral).cacheSpan
+         0     0% 68.80%      0.23s  1.04%  runtime.markroot
+     0.09s  0.41% 69.21%      0.23s  1.04%  runtime.typedmemmove
+     0.03s  0.14% 69.35%      0.22s  0.99%  runtime.heapSetTypeNoHeader (inline)
+     0.04s  0.18% 69.53%      0.22s  0.99%  runtime.mallocgcSmallNoscan
+     0.22s  0.99% 70.52%      0.22s  0.99%  runtime.memhash64
+         0     0% 70.52%      0.21s  0.95%  github.com/minz/minzc/pkg/mir2.(*z80cg).genBlock
+         0     0% 70.52%      0.21s  0.95%  github.com/minz/minzc/pkg/mir2.(*z80cg).genInst
+     0.07s  0.32% 70.84%      0.21s  0.95%  internal/runtime/maps.(*table).uncheckedPutSlot
+         0     0% 70.84%      0.21s  0.95%  runtime.(*mcentral).grow
+     0.06s  0.27% 71.11%      0.20s   0.9%  reflect.(*structType).Field
+     0.06s  0.27% 71.38%      0.20s   0.9%  runtime.(*sweepLocked).sweep
+         0     0% 71.38%      0.20s   0.9%  strings.genSplit
+         0     0% 71.38%      0.19s  0.86%  encoding/json.interfaceEncoder
+     0.07s  0.32% 71.69%      0.19s  0.86%  fmt.(*buffer).write (inline)
+         0     0% 71.69%      0.19s  0.86%  github.com/minz/minzc/pkg/hir.RunMemoryHostLoopProfile
+         0     0% 71.69%      0.19s  0.86%  github.com/minz/minzc/pkg/mir2.(*z80cg).regsLiveAfterInst
+     0.03s  0.14% 71.83%      0.19s  0.86%  reflect.typedmemmove
+     0.18s  0.81% 72.64%      0.19s  0.86%  runtime.(*bucket).mp
+     0.16s  0.72% 73.36%      0.19s  0.86%  runtime.(*mspan).writeHeapBitsSmall
+         0     0% 73.36%      0.18s  0.81%  github.com/minz/minzc/pkg/hir.(*hirVerifier).block
+     0.01s 0.045% 73.41%      0.18s  0.81%  github.com/minz/minzc/pkg/mir2.ComputeLiveness
+         0     0% 73.41%      0.18s  0.81%  runtime.(*mheap).alloc
+         0     0% 73.41%      0.18s  0.81%  runtime.(*mheap).alloc.func1
+     0.07s  0.32% 73.72%      0.18s  0.81%  runtime.scanblock
+     0.04s  0.18% 73.91%      0.18s  0.81%  runtime.wbBufFlush1
+     0.12s  0.54% 74.45%      0.17s  0.77%  fmt.(*buffer).writeString (inline)
+     0.01s 0.045% 74.49%      0.17s  0.77%  github.com/minz/minzc/pkg/hir.(*hirVerifier).stmt
+         0     0% 74.49%      0.17s  0.77%  runtime.(*mheap).allocSpan
+     0.04s  0.18% 74.67%      0.17s  0.77%  runtime.mapassign_faststr
+         0     0% 74.67%      0.17s  0.77%  runtime.wbBufFlush
+         0     0% 74.67%      0.17s  0.77%  runtime.wbBufFlush.func1
+     0.01s 0.045% 74.72%      0.16s  0.72%  fmt.newPrinter
+     0.02s  0.09% 74.81%      0.16s  0.72%  github.com/minz/minzc/pkg/hir.(*hirVerifier).expr
+     0.06s  0.27% 75.08%      0.16s  0.72%  reflect.Value.Elem
+     0.10s  0.45% 75.53%      0.16s  0.72%  reflect.Value.Field
+         0     0% 75.53%      0.16s  0.72%  runtime.futexsleep
+         0     0% 75.53%      0.16s  0.72%  runtime.markrootBlock
+         0     0% 75.53%      0.15s  0.68%  github.com/minz/minzc/pkg/hir.mutableHIRNames
+     0.02s  0.09% 75.62%      0.15s  0.68%  github.com/minz/minzc/pkg/hir.mutableHIRNames.func1
+     0.05s  0.23% 75.85%      0.15s  0.68%  reflect.packIfaceValueIntoEmptyIface (inline)
+     0.03s  0.14% 75.98%      0.15s  0.68%  runtime.bulkBarrierPreWrite
+     0.01s 0.045% 76.03%      0.15s  0.68%  runtime.mapassign
+         0     0% 76.03%      0.15s  0.68%  runtime.stopm
+         0     0% 76.03%      0.15s  0.68%  strings.SplitN (inline)
+     0.14s  0.63% 76.66%      0.14s  0.63%  internal/runtime/maps.ctrlGroup.matchH2 (inline)
+     0.14s  0.63% 77.29%      0.14s  0.63%  runtime.extractHeapBitsSmall
+     0.01s 0.045% 77.34%      0.14s  0.63%  runtime.notewakeup
+     0.14s  0.63% 77.97%      0.14s  0.63%  runtime.typePointers.nextFast (inline)
+     0.06s  0.27% 78.24%      0.14s  0.63%  sync.(*Pool).Get
+         0     0% 78.24%      0.13s  0.59%  github.com/minz/minzc/pkg/pipeline.LoadMemoryHostLoopProfileEvidenceV2
+     0.04s  0.18% 78.42%      0.13s  0.59%  runtime.findObject
+         0     0% 78.42%      0.13s  0.59%  runtime.futexwakeup
+         0     0% 78.42%      0.13s  0.59%  runtime.mPark (inline)
+         0     0% 78.42%      0.13s  0.59%  runtime.notesleep
+         0     0% 78.42%      0.13s  0.59%  runtime.wbMove
+     0.05s  0.23% 78.65%      0.13s  0.59%  sync.(*Pool).pin
+     0.13s  0.59% 79.23%      0.13s  0.59%  unicode/utf8.AppendRune (inline)
+     0.13s  0.59% 79.82%      0.13s  0.59%  unicode/utf8.DecodeRuneInString (inline)
+     0.02s  0.09% 79.91%      0.12s  0.54%  fmt.(*pp).free
+         0     0% 79.91%      0.12s  0.54%  github.com/minz/minzc/pkg/hir.runPreparedMemoryHost
+     0.02s  0.09% 80.00%      0.12s  0.54%  github.com/minz/minzc/pkg/z80asm.parseReg8
+         0     0% 80.00%      0.12s  0.54%  internal/runtime/maps.(*table).reset
+         0     0% 80.00%      0.12s  0.54%  internal/runtime/maps.newGroups (inline)
+         0     0% 80.00%      0.12s  0.54%  internal/runtime/maps.newTable
+         0     0% 80.00%      0.12s  0.54%  internal/runtime/maps.newarray
+         0     0% 80.00%      0.12s  0.54%  runtime.(*pageAlloc).scavenge
+         0     0% 80.00%      0.12s  0.54%  runtime.(*pageAlloc).scavenge.func1
+         0     0% 80.00%      0.12s  0.54%  runtime.(*pageAlloc).scavengeOne
+         0     0% 80.00%      0.12s  0.54%  runtime.(*scavengerState).init.func2
+         0     0% 80.00%      0.12s  0.54%  runtime.(*scavengerState).run
+         0     0% 80.00%      0.12s  0.54%  runtime.bgscavenge
+     0.01s 0.045% 80.05%      0.12s  0.54%  runtime.newarray
+         0     0% 80.05%      0.12s  0.54%  runtime.startm
+         0     0% 80.05%      0.12s  0.54%  runtime.wakep
