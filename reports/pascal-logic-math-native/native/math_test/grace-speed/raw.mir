@@ -1,0 +1,86 @@
+; MIR2 module: ../../../examples/pascal/math_test.pas
+fun @DOUBLE(%r1: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r2 = const 0 : i16 [pointer]
+    %r3 = add %r1, %r1 : i16 [pointer]
+    ret %r3
+
+fun @ADDONE(%r4: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r5 = const 0 : u8 [general]
+    %r6 = const 1 : u8 [general]
+    %r7 = add %r4, %r6 : u8 [acc]
+    ret %r7
+
+fun @SQUARE(%r8: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r9 = const 0 : u8 [general]
+    %r10 = mul %r8, %r8 : u8 [general]
+    ret %r10
+
+fun @TRIPLE(%r11: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r12 = const 0 : u8 [general]
+    %r13 = add %r11, %r11 : u8 [acc]
+    %r14 = add %r13, %r11 : u8 [acc]
+    ret %r14
+
+fun @MAX(%r15: u8 [acc], %r16: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r17 = const 0 : u8 [general]
+    %r18 = cmp.ugt %r15, %r16 : bool [flag]
+    br_if %r18, @if_then1(), @if_else3()
+  block @if_then1:
+    jmp @if_join2(%r15)
+  block @if_else3:
+    jmp @if_join2(%r16)
+  block @if_join2(%r19: u8 [general]):
+    ret %r19
+
+fun @MIN(%r20: u8 [acc], %r21: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r22 = const 0 : u8 [general]
+    %r23 = cmp.ult %r20, %r21 : bool [flag]
+    br_if %r23, @if_then1(), @if_else3()
+  block @if_then1:
+    jmp @if_join2(%r20)
+  block @if_else3:
+    jmp @if_join2(%r21)
+  block @if_join2(%r24: u8 [general]):
+    ret %r24
+
+fun @ISEVEN(%r25: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r26 = const 0 : u8 [general]
+    %r27 = const 2 : u8 [general]
+    %r28 = mod %r25, %r27 : u8 [general]
+    %r29 = const 0 : u8 [general]
+    %r30 = cmp.eq %r28, %r29 : bool [flag]
+    br_if %r30, @if_then1(), @if_else3()
+  block @if_then1:
+    %r31 = const 1 : u8 [general]
+    jmp @if_join2(%r31)
+  block @if_else3:
+    %r32 = const 0 : u8 [general]
+    jmp @if_join2(%r32)
+  block @if_join2(%r33: u8 [general]):
+    ret %r33
+
+fun @ABSDIFF(%r34: u8 [acc], %r35: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r36 = const 0 : u8 [general]
+    %r37 = cmp.ugt %r34, %r35 : bool [flag]
+    br_if %r37, @if_then1(), @if_else3()
+  block @if_then1:
+    %r38 = sub %r34, %r35 : u8 [acc]
+    jmp @if_join2(%r38)
+  block @if_else3:
+    %r39 = sub %r35, %r34 : u8 [acc]
+    jmp @if_join2(%r39)
+  block @if_join2(%r40: u8 [general]):
+    ret %r40
+
+fun @main()
+  block @entry:
+    ret void
+

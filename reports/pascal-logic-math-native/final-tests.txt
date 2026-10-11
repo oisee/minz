@@ -1,0 +1,10 @@
+=== RUN   TestOriginalPascalLogicMathDomains
+    original_pascal_logic_math_native_test.go:256: logic_test ordinary 1114895 native/raw/final independent fullstate PASS
+    original_pascal_logic_math_native_test.go:256: logic_test grace-size 1114895 native/raw/final independent fullstate PASS
+    original_pascal_logic_math_native_test.go:256: logic_test grace-speed 1114895 native/raw/final independent fullstate PASS
+    original_pascal_logic_math_native_test.go:256: math_test ordinary 263193 native/raw/final independent fullstate PASS
+    original_pascal_logic_math_native_test.go:256: math_test grace-size 263193 native/raw/final independent fullstate PASS
+    original_pascal_logic_math_native_test.go:256: math_test grace-speed 263193 native/raw/final independent fullstate PASS
+--- PASS: TestOriginalPascalLogicMathDomains (52.50s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	52.513s

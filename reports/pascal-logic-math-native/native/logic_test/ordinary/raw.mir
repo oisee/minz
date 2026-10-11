@@ -1,0 +1,39 @@
+; MIR2 module: ../../../examples/pascal/logic_test.pas
+fun @MULBY3(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = const 0 : u8 [general]
+    %r3 = const 3 : u8 [general]
+    %r4 = mul %r1, %r3 : u8 [general]
+    ret %r4
+
+fun @MULBY5(%r5: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r6 = const 0 : u8 [general]
+    %r7 = const 5 : u8 [general]
+    %r8 = mul %r5, %r7 : u8 [general]
+    ret %r8
+
+fun @HALVE(%r9: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r10 = const 0 : u8 [general]
+    %r11 = const 2 : u8 [general]
+    %r12 = div %r9, %r11 : u8 [general]
+    ret %r12
+
+fun @ADD3(%r13: u8 [acc], %r14: u8 [general], %r15: u8 [counter]) -> u8 [acc]
+  block @entry:
+    %r16 = const 0 : u8 [general]
+    %r17 = add %r13, %r14 : u8 [acc]
+    %r18 = add %r17, %r15 : u8 [acc]
+    ret %r18
+
+fun @DIFF(%r19: u8 [acc], %r20: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r21 = const 0 : u8 [general]
+    %r22 = sub %r19, %r20 : u8 [acc]
+    ret %r22
+
+fun @main()
+  block @entry:
+    ret void
+
