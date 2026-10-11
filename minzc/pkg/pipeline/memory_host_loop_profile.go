@@ -132,7 +132,13 @@ func RunZ80MemoryHostLoopProfile(factory func() (*hir.Module, error), workload h
 	}
 	for i, invocation := range profile.Invocations {
 		actual, expected := invocation.Observation, baseline.Raw.Invocations[i]
+		if (actual.Error != "") != (expected.Error != "") || (actual.Error != "" && actual.Failure == nil) {
+			return fail(fmt.Errorf("instrumented failure boundary differs at call %d", i))
+		}
 		actual.Steps, expected.Steps = 0, 0
+		// Diagnostic VM stack text includes instrumentation-specific blocks.
+		// Failure identity remains the exact typed builtin denial above/below.
+		actual.Error, expected.Error = "", ""
 		if !reflect.DeepEqual(actual, expected) || invocation.Completed != (expected.Error == "") {
 			return fail(fmt.Errorf("instrumentation changed observation at call %d", i))
 		}
