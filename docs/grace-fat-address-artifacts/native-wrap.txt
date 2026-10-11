@@ -1,0 +1,4 @@
+=== RUN   TestInvariantAddressReassociationNativeWrap
+--- PASS: TestInvariantAddressReassociationNativeWrap (0.05s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.058s
