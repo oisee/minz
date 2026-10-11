@@ -1,0 +1,18 @@
+{
+  "schema": "minz.original-corpus-frozen-domain/v1",
+  "base_commit": "8db01ae2",
+  "source": "examples/nanz/51_impl_cpm_demo.nanz",
+  "source_sha256": "9440fd4e4347fd871edacdd02588e7b5198e60fd32eef55bb88f59ae040161ac",
+  "domain": {
+    "Circle_area": "radiusall256 at6000andffff expected(3*r*r)&255",
+    "Rect_area": "all65536width,height at6000andffff expected(w*h)&255; twoinlinebytes wrapffff\u21920000"
+  },
+  "authority": "Bookv7\u00a74.1 layout/\u00a74.4 implimplicitself/\u00a73.1 u8",
+  "modes": [
+    "ordinary",
+    "grace-size",
+    "grace-speed"
+  ],
+  "runtime_scope": "wholemoduleincludingBDOSprint/mainretained; onlytwooriginalpuremethods executed; nativefetchmustnotenterprint/main/BDOS",
+  "memory": "wholeobjectunchanged, datareadaddressesvalues, guard/full64KiB/PC/SP"
+}
