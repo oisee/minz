@@ -1,0 +1,375 @@
+{
+  "files": [
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/actual/word-false-n-0/assembled.a80.gz",
+      "original_sha256": "fc87b2fa95f3ef542685e7c725f92c83a05c49d8070e5a7dd0a66cf3b35b8245",
+      "original_bytes": 873,
+      "stored_sha256": "e91038c615c695a119ac2c4a41baf35bc8ef56a3f7209738824e17f9289ee558"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/actual/word-false-n-0/execution.json.gz",
+      "original_sha256": "52ad88fa1a02faccbda610022b274fe12ecb4577029feb06c4474bbbc72b67a3",
+      "original_bytes": 280,
+      "stored_sha256": "9bbbca83d9c8e37ee7c89ab745bd34107a72175cddc1ed98c519eeb7c6f67a27"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/actual/word-false-n-0/source.mir.json.gz",
+      "original_sha256": "2a8c2c87240602daf651ce8be88f53933a7741c4d511622ac61ae21352846fda",
+      "original_bytes": 6607,
+      "stored_sha256": "717cfd0d5655ec812be30426a9bb85e55ae525fdae06319e0cb4df95d6a9d9c7"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/actual/word-false-n-0/target.bin",
+      "original_sha256": "e15e9b6b453ea7501968cd9d9f338d6d1e980fe905a3714e99b265bbde7ccdaa",
+      "original_bytes": 50,
+      "stored_sha256": "e15e9b6b453ea7501968cd9d9f338d6d1e980fe905a3714e99b265bbde7ccdaa"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/actual/word-true-n-0/assembled.a80.gz",
+      "original_sha256": "284120df92ab27a830cf52629cfa5d80f95ea88fc76da2cc0ce6e4d87a084afb",
+      "original_bytes": 817,
+      "stored_sha256": "811bf4ccf79a57e6b6a73a7c0e5d2f9734acfca3078416359cfb9c39b2f60422"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/actual/word-true-n-0/execution.json.gz",
+      "original_sha256": "e71ba73f3f06d8d989bd1d572330bacd7407db235a821e5f7c35310535feec4a",
+      "original_bytes": 281,
+      "stored_sha256": "e9e311c2891358e30daae5286c28d8e3dbc60ef98e3a31483b22d9adabeb05a4"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/actual/word-true-n-0/source.mir.json.gz",
+      "original_sha256": "5096467dd00a2b774796270843d9ffb9acaee65414913ecb4ba4a23728762d63",
+      "original_bytes": 6607,
+      "stored_sha256": "7ea5528d9d49329e35fb7e618e855f10981aa68b408edc41e9bbf43f9f2557a1"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/actual/word-true-n-0/target.bin",
+      "original_sha256": "6dacf8431323decbccb8cfbbdcbf1942b99e2141a25afd6e42f323687a78adcb",
+      "original_bytes": 50,
+      "stored_sha256": "6dacf8431323decbccb8cfbbdcbf1942b99e2141a25afd6e42f323687a78adcb"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-false-n-0/assembled.a80.gz",
+      "original_sha256": "fc87b2fa95f3ef542685e7c725f92c83a05c49d8070e5a7dd0a66cf3b35b8245",
+      "original_bytes": 873,
+      "stored_sha256": "e91038c615c695a119ac2c4a41baf35bc8ef56a3f7209738824e17f9289ee558"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-false-n-0/execution.json.gz",
+      "original_sha256": "df59e663c3b7b1e23fef01bcd7ce064c808130144e7c10ca29b596340971e52b",
+      "original_bytes": 280,
+      "stored_sha256": "a45a2acb9426ae64567c64b793c772e6c9b2798db6501cc650c964946a851278"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-false-n-0/source.mir.json.gz",
+      "original_sha256": "2a8c2c87240602daf651ce8be88f53933a7741c4d511622ac61ae21352846fda",
+      "original_bytes": 6607,
+      "stored_sha256": "717cfd0d5655ec812be30426a9bb85e55ae525fdae06319e0cb4df95d6a9d9c7"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-false-n-0/target.bin",
+      "original_sha256": "e15e9b6b453ea7501968cd9d9f338d6d1e980fe905a3714e99b265bbde7ccdaa",
+      "original_bytes": 50,
+      "stored_sha256": "e15e9b6b453ea7501968cd9d9f338d6d1e980fe905a3714e99b265bbde7ccdaa"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-false-n-1/assembled.a80.gz",
+      "original_sha256": "82ba2451253fa6c9b485858210625ceb39ef51c78a1dee72eb94a2cd87bd2422",
+      "original_bytes": 873,
+      "stored_sha256": "2347516f3b3c3a1b6238e094c4a9f7d751c2e8e6b5a76275674d7513f58470c9"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-false-n-1/execution.json.gz",
+      "original_sha256": "7d078f30c5eb7628ea182b21d2917294bcada8a78d25512fbfc0416eee5a593a",
+      "original_bytes": 280,
+      "stored_sha256": "6302740d9677de8d2eff3cbedb55842e0f391ac27cf78c8169e173a2ea56b368"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-false-n-1/source.mir.json.gz",
+      "original_sha256": "2a8c2c87240602daf651ce8be88f53933a7741c4d511622ac61ae21352846fda",
+      "original_bytes": 6607,
+      "stored_sha256": "717cfd0d5655ec812be30426a9bb85e55ae525fdae06319e0cb4df95d6a9d9c7"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-false-n-1/target.bin",
+      "original_sha256": "9eeaaecaba3f8a7ded3597347e45991b6db6cf8bdd905fe39734bfdfcc09e561",
+      "original_bytes": 50,
+      "stored_sha256": "9eeaaecaba3f8a7ded3597347e45991b6db6cf8bdd905fe39734bfdfcc09e561"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-false-n-3/assembled.a80.gz",
+      "original_sha256": "7039e5df15af9e18256696d3e7bd7f7484f4d4100b216ae50f60dc6624d4cae6",
+      "original_bytes": 873,
+      "stored_sha256": "b4bcdd79cc4adfead6c24e0259cd18073644ac0e8ed8b4860248abe426cd36d6"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-false-n-3/execution.json.gz",
+      "original_sha256": "43e8d1ea4d149f7060cfbaf744e384cb7a4932feb0681da1df46eaa418a2c29d",
+      "original_bytes": 280,
+      "stored_sha256": "8bfb20dedc3e012de758a4f513406bf00e8eb56caca1c934582ada036a74dea4"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-false-n-3/source.mir.json.gz",
+      "original_sha256": "2a8c2c87240602daf651ce8be88f53933a7741c4d511622ac61ae21352846fda",
+      "original_bytes": 6607,
+      "stored_sha256": "717cfd0d5655ec812be30426a9bb85e55ae525fdae06319e0cb4df95d6a9d9c7"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-false-n-3/target.bin",
+      "original_sha256": "bfeba6289e2a6e159705c00bb8c905977c01bcbac0bceb172c411c51ef70755f",
+      "original_bytes": 50,
+      "stored_sha256": "bfeba6289e2a6e159705c00bb8c905977c01bcbac0bceb172c411c51ef70755f"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-false-n-7/assembled.a80.gz",
+      "original_sha256": "2dec0724fdf370383d70cb5217e88a7e3917e6ef9178e3ff20a4b5f8fb0479ad",
+      "original_bytes": 873,
+      "stored_sha256": "084d7e9a3b29307b46edcc032ade2b3f4a4984d794e30be60a99d3cc61b20660"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-false-n-7/execution.json.gz",
+      "original_sha256": "c3ad777e4527e4387366b3882d16238e0a11cf6d973fdd811c71ae11f9565878",
+      "original_bytes": 284,
+      "stored_sha256": "ca1eafb2eacff5a9fdaa268e862da8d07b31d8d221618043d59a913f90bb20b0"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-false-n-7/source.mir.json.gz",
+      "original_sha256": "2a8c2c87240602daf651ce8be88f53933a7741c4d511622ac61ae21352846fda",
+      "original_bytes": 6607,
+      "stored_sha256": "717cfd0d5655ec812be30426a9bb85e55ae525fdae06319e0cb4df95d6a9d9c7"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-false-n-7/target.bin",
+      "original_sha256": "6484eac425376cd4f0985c7e3d89a7dec528e332010118e2f4f20d86200373a6",
+      "original_bytes": 50,
+      "stored_sha256": "6484eac425376cd4f0985c7e3d89a7dec528e332010118e2f4f20d86200373a6"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-true-n-0/assembled.a80.gz",
+      "original_sha256": "284120df92ab27a830cf52629cfa5d80f95ea88fc76da2cc0ce6e4d87a084afb",
+      "original_bytes": 817,
+      "stored_sha256": "811bf4ccf79a57e6b6a73a7c0e5d2f9734acfca3078416359cfb9c39b2f60422"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-true-n-0/execution.json.gz",
+      "original_sha256": "5a8ab856a8693848f91952b7686167edd000b3a77f62053122b27b2cefdbbfae",
+      "original_bytes": 281,
+      "stored_sha256": "64e4ee8f291338dab6e84166b806bf9673f5303da47e6eb16c7efc6718c81a8f"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-true-n-0/source.mir.json.gz",
+      "original_sha256": "5096467dd00a2b774796270843d9ffb9acaee65414913ecb4ba4a23728762d63",
+      "original_bytes": 6607,
+      "stored_sha256": "7ea5528d9d49329e35fb7e618e855f10981aa68b408edc41e9bbf43f9f2557a1"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-true-n-0/target.bin",
+      "original_sha256": "6dacf8431323decbccb8cfbbdcbf1942b99e2141a25afd6e42f323687a78adcb",
+      "original_bytes": 50,
+      "stored_sha256": "6dacf8431323decbccb8cfbbdcbf1942b99e2141a25afd6e42f323687a78adcb"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-true-n-1/assembled.a80.gz",
+      "original_sha256": "335b72c852b0032f233d37d3f37a72ecaf41387c8c7917ae0e5c5107de9c95f8",
+      "original_bytes": 817,
+      "stored_sha256": "d378b3c698690d3efc44d24051329b34434391744ad021e1547b4053cb5ac896"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-true-n-1/execution.json.gz",
+      "original_sha256": "413641e62374634e9f39111b1632d32405748ade25116102d6be3f2a155b14d7",
+      "original_bytes": 281,
+      "stored_sha256": "72d8ed44b259d3fa2435a032326d140f09e1a08d4f0ce6ade8a847ac5471f310"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-true-n-1/source.mir.json.gz",
+      "original_sha256": "5096467dd00a2b774796270843d9ffb9acaee65414913ecb4ba4a23728762d63",
+      "original_bytes": 6607,
+      "stored_sha256": "7ea5528d9d49329e35fb7e618e855f10981aa68b408edc41e9bbf43f9f2557a1"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-true-n-1/target.bin",
+      "original_sha256": "cdbcb518a432f856191fce43cd791e4acf6a9cf3049a0d71a28e9b1d54b96f0f",
+      "original_bytes": 50,
+      "stored_sha256": "cdbcb518a432f856191fce43cd791e4acf6a9cf3049a0d71a28e9b1d54b96f0f"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-true-n-3/assembled.a80.gz",
+      "original_sha256": "abe77c63a2ea84e29e32ad97b30810a179fb71f0b58e1665e7a23e050a3e48db",
+      "original_bytes": 817,
+      "stored_sha256": "bf7b0ef537599cc5cefec4aebafe522f609158f1de0abefa68fb90c53e8a77e3"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-true-n-3/execution.json.gz",
+      "original_sha256": "9e9b2f648e60325545946e429c9d0ad288ab89130d849dc62ff6a3a35cdb817d",
+      "original_bytes": 281,
+      "stored_sha256": "0157e6502f5107862a909969237239536ffe3eff0c17d0aba47ec418c4f742a1"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-true-n-3/source.mir.json.gz",
+      "original_sha256": "5096467dd00a2b774796270843d9ffb9acaee65414913ecb4ba4a23728762d63",
+      "original_bytes": 6607,
+      "stored_sha256": "7ea5528d9d49329e35fb7e618e855f10981aa68b408edc41e9bbf43f9f2557a1"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-true-n-3/target.bin",
+      "original_sha256": "9dbdf2d19b4f4feecd6ca0fbc3c3215fa9509cdc8a10ae7632d5861f47597b81",
+      "original_bytes": 50,
+      "stored_sha256": "9dbdf2d19b4f4feecd6ca0fbc3c3215fa9509cdc8a10ae7632d5861f47597b81"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-true-n-7/assembled.a80.gz",
+      "original_sha256": "3249f4185aeff21d31e77b08a478b87da11f5b184a689c2cce26c506338d24da",
+      "original_bytes": 817,
+      "stored_sha256": "2965f956f048ab596fce7b6a26fc02d113ddd16a0b9bf5f1bd56b99c555eae45"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-true-n-7/execution.json.gz",
+      "original_sha256": "2c0fed67a1d97bf80976e52c4b2b3b9bcfb52db7534eedcd474b81952c2d354c",
+      "original_bytes": 285,
+      "stored_sha256": "2cf683c7e5238d2eb51cbe46d90f9d09007dd5465dc271d4598b564860f8d74d"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-true-n-7/source.mir.json.gz",
+      "original_sha256": "5096467dd00a2b774796270843d9ffb9acaee65414913ecb4ba4a23728762d63",
+      "original_bytes": 6607,
+      "stored_sha256": "7ea5528d9d49329e35fb7e618e855f10981aa68b408edc41e9bbf43f9f2557a1"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/corrected/word-true-n-7/target.bin",
+      "original_sha256": "4e38d40be0f64894d56f2a461644173241253c4bd2831940bb768ceeffd68130",
+      "original_bytes": 50,
+      "stored_sha256": "4e38d40be0f64894d56f2a461644173241253c4bd2831940bb768ceeffd68130"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/reentry/indirect-byte/allocation.json.gz",
+      "original_sha256": "5d09d4ce70b2b3d16d1afeb4dde5381253cd380222bd05095e7e67bd14348f7d",
+      "original_bytes": 692,
+      "stored_sha256": "7adc6c6a42ef1fd20c9dbccbed58ca0d7044ced175d4921c37dc97bec9468d90"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/reentry/indirect-byte/assembled.a80.gz",
+      "original_sha256": "7e05a954685963c7ef6b114eb9dad07eab1df554fff81ec59da0da008e26e19a",
+      "original_bytes": 937,
+      "stored_sha256": "1a104e978e7f34ed23cc9975ec6b652ceee4e0686e1169ac2d7414df1ce882f4"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/reentry/indirect-byte/execution.json.gz",
+      "original_sha256": "f7ffbb954be3ee996d7bbd6e0cfaa104c7b486d921eff0994921b8a3d1ba929f",
+      "original_bytes": 288,
+      "stored_sha256": "f6af693a311a5fb1114ad0630654d609be8e2ccf59a8a04e8f4a263c79968664"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/reentry/indirect-byte/source.mir.json.gz",
+      "original_sha256": "aace608ff7c73475c4804b81e6bd655ae2279c875ae5534fe8174e8cb74ed39a",
+      "original_bytes": 7347,
+      "stored_sha256": "7bb8f62b0f77b845e5a80cc38f5efefe1b44ca2be89febae0b057c962e22a05c"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/reentry/indirect-byte/symbols.json.gz",
+      "original_sha256": "4cab0a2752c9ea724e1d822a3215b3436adbecd58f6137dfee7b00957abd5772",
+      "original_bytes": 210,
+      "stored_sha256": "72c9a9847c447a0ffacb8eaa2e743b21e65bd2dcf11dc4acd2e2959d6b0a6296"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/reentry/indirect-byte/target.bin",
+      "original_sha256": "ac6a0b35d3ba92f7dfc1f1872d9de76d3836bc9fe2c6da5e6fd294d376666605",
+      "original_bytes": 57,
+      "stored_sha256": "ac6a0b35d3ba92f7dfc1f1872d9de76d3836bc9fe2c6da5e6fd294d376666605"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/reentry/mutual-byte/allocation.json.gz",
+      "original_sha256": "621e27563028a0bd89b35639f1fe77793888294ee43600371feddadb1dbd7705",
+      "original_bytes": 764,
+      "stored_sha256": "84b88d618e6eb6a1a89fbe855b33f5ef6136a19c63b91af9dd6ebd6af50ddead"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/reentry/mutual-byte/assembled.a80.gz",
+      "original_sha256": "859ebd8a907084476117cad5695aca305aa980056f4d5cd385fe082b2f06fd4f",
+      "original_bytes": 1010,
+      "stored_sha256": "fa6d06aabac0ad6e41842409acae7528c87b3ecf6835b0ad40d2f1a577837a62"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/reentry/mutual-byte/execution.json.gz",
+      "original_sha256": "43e8d1ea4d149f7060cfbaf744e384cb7a4932feb0681da1df46eaa418a2c29d",
+      "original_bytes": 280,
+      "stored_sha256": "8bfb20dedc3e012de758a4f513406bf00e8eb56caca1c934582ada036a74dea4"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/reentry/mutual-byte/source.mir.json.gz",
+      "original_sha256": "ea8bd4e4cc4658c2a94024db1ddfdc1996d9a77cb99eb6e50b3886b70c650897",
+      "original_bytes": 8225,
+      "stored_sha256": "d0124667eb5e11bacc7aee3760b270de1548df9cf3acdee4376ca1901be10788"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/reentry/mutual-byte/symbols.json.gz",
+      "original_sha256": "3e740ab933349540149a17118a5848d8c623cb4b210193972b7bf3727fa52248",
+      "original_bytes": 214,
+      "stored_sha256": "69cc226356f9c24ebdaf6b048cecc6306973df16bf5c11a0c80fadf666a6908e"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/reentry/mutual-byte/target.bin",
+      "original_sha256": "bfeba6289e2a6e159705c00bb8c905977c01bcbac0bceb172c411c51ef70755f",
+      "original_bytes": 50,
+      "stored_sha256": "bfeba6289e2a6e159705c00bb8c905977c01bcbac0bceb172c411c51ef70755f"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/reentry/mutual-word/allocation.json.gz",
+      "original_sha256": "ede23feb6443eb26dd8ba08f17c26282936a9e20e6aadc2358268e0a505c3c01",
+      "original_bytes": 772,
+      "stored_sha256": "33fcdcc992e4c6b40cfe602b8bed34d171b5bc5fb9a5d8d8897613ff80c64723"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/reentry/mutual-word/assembled.a80.gz",
+      "original_sha256": "19c92c2e81685bbcf9d4c8f428641d8c73217a845e271d5e0d573b6b8dd4506c",
+      "original_bytes": 958,
+      "stored_sha256": "0966d936491d8087b22594d5f08f5095b6f1670cbeefb1b15758a6ed9c8bf5c7"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/reentry/mutual-word/execution.json.gz",
+      "original_sha256": "9e9b2f648e60325545946e429c9d0ad288ab89130d849dc62ff6a3a35cdb817d",
+      "original_bytes": 281,
+      "stored_sha256": "0157e6502f5107862a909969237239536ffe3eff0c17d0aba47ec418c4f742a1"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/reentry/mutual-word/source.mir.json.gz",
+      "original_sha256": "22df3d57c4712f5cb7abbf97abd1f35e80976ae2b252203dd1b9a6a3d00cbadf",
+      "original_bytes": 8225,
+      "stored_sha256": "fa4afe6da81c1ebafa687301ec012a5d58cc994d4a2d8a613541292cb12291d9"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/reentry/mutual-word/symbols.json.gz",
+      "original_sha256": "2cd54765cb7b9e4b10d2dd89bb60fa50dcf97dfe6215eef35340e23d238411eb",
+      "original_bytes": 214,
+      "stored_sha256": "efa1290a375ba47292955d086c59881d626c5b70f2f97474c8f75081351ec34f"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/reentry/mutual-word/target.bin",
+      "original_sha256": "9dbdf2d19b4f4feecd6ca0fbc3c3215fa9509cdc8a10ae7632d5861f47597b81",
+      "original_bytes": 50,
+      "stored_sha256": "9dbdf2d19b4f4feecd6ca0fbc3c3215fa9509cdc8a10ae7632d5861f47597b81"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/reentry/result-preservation/assembled.a80.gz",
+      "original_sha256": "43a41ab494c21820fe40e707ba1d3148a99405f312a6345d93d52cd89db37808",
+      "original_bytes": 497,
+      "stored_sha256": "4d1f33487a9564ef2423e7540c03cabc832aeaf850766486e0db405ebef6e3f0"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/reentry/result-preservation/execution.json.gz",
+      "original_sha256": "e4819683933921381016093d5f180227acb2a388410d8ebfd96685e999a78708",
+      "original_bytes": 363,
+      "stored_sha256": "7f7ed08f463a48d9f0635f471eb61e3d59e1c24858a5284bd98e358eb11001d0"
+    },
+    {
+      "path": "docs/grace-recursive-spill-call-save/evidence/reentry/result-preservation/target.bin",
+      "original_sha256": "5255585930c259ad931155a6b951cc09feefd2aba203567eedd3a6b58443daef",
+      "original_bytes": 62,
+      "stored_sha256": "5255585930c259ad931155a6b951cc09feefd2aba203567eedd3a6b58443daef"
+    }
+  ],
+  "preserved_executables": {
+    "mir2-recursive-spill.test": "b1fc73af2588f9b4cb582bf13291dfb93056e1433a7da63368240772cefcac8f",
+    "mir2-recursive-spill-corrected.test": "73a92d99ed89f94d4fe6af077ee2266e4ce870efbb010cfc651f759130ebe33e",
+    "mir2-reentry-final.test": "bd0b74caec0912de0fde33537f8587ca0d854547f83319b782389e8ccb1b3417"
+  }
+}
