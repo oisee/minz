@@ -295,6 +295,13 @@ MIR, результаты и точный executable сохранены в
 `grace-sum-decimal-cost-refresh/`; прежние 1022-case артефакты сохранены
 со своим контекстом и не объявляются новым прогоном.
 
+Свежий refresh `3e143f9f`: parser/HashMap/PFCCO frozen heldout PASS;
+HashMap теперь258962→237948T/990→970B на этом compiler контексте.
+Явный Z3 weighted/caller/indirecttable gate PASS, поддерживаемые пакеты
+compile-only без LIR PASS. Это повторная проверка прежних входов,
+не новый unseen experiment. [Пакет083](grace-integration-083/README.md).
+Полный pipeline3e143f9f выполняется отдельно.
+
 ## Следующие шаги
 
 1. Проверять checked-local таблицы на дополнительных реальных случаях и
