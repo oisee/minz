@@ -1,0 +1,151 @@
+{
+  "assembled_binary_sha256": "0b9426420db8187ad13e3508324f5006be75083b8e7b14ed898a96a4eddd8781",
+  "entries": {
+    "abs16": {
+      "Calls": 15,
+      "TotalT": 2120,
+      "MinSP": 61420
+    },
+    "abs8": {
+      "Calls": 15,
+      "TotalT": 1515,
+      "MinSP": 61422
+    },
+    "abs_diff16": {
+      "Calls": 225,
+      "TotalT": 28110,
+      "MinSP": 61418
+    },
+    "abs_diff8": {
+      "Calls": 225,
+      "TotalT": 13065,
+      "MinSP": 61422
+    },
+    "area": {
+      "Calls": 225,
+      "TotalT": 152910,
+      "MinSP": 61420
+    },
+    "big_area": {
+      "Calls": 1,
+      "TotalT": 47,
+      "MinSP": 61422
+    },
+    "brightness_blend": {
+      "Calls": 3375,
+      "TotalT": 5817150,
+      "MinSP": 61414
+    },
+    "clamp16": {
+      "Calls": 1800,
+      "TotalT": 225040,
+      "MinSP": 61420
+    },
+    "clamp8": {
+      "Calls": 1800,
+      "TotalT": 111120,
+      "MinSP": 61422
+    },
+    "max16": {
+      "Calls": 225,
+      "TotalT": 21930,
+      "MinSP": 61420
+    },
+    "max8": {
+      "Calls": 225,
+      "TotalT": 13350,
+      "MinSP": 61422
+    },
+    "min16": {
+      "Calls": 225,
+      "TotalT": 18990,
+      "MinSP": 61420
+    },
+    "min8": {
+      "Calls": 225,
+      "TotalT": 10410,
+      "MinSP": 61422
+    },
+    "negate8": {
+      "Calls": 15,
+      "TotalT": 735,
+      "MinSP": 61422
+    },
+    "newtype_area": {
+      "Calls": 225,
+      "TotalT": 226485,
+      "MinSP": 61416
+    },
+    "op_add": {
+      "Calls": 225,
+      "TotalT": 55125,
+      "MinSP": 61417
+    },
+    "op_mul": {
+      "Calls": 225,
+      "TotalT": 172710,
+      "MinSP": 61420
+    },
+    "op_mul_u8_u8": {
+      "Calls": 225,
+      "TotalT": 152910,
+      "MinSP": 61420
+    },
+    "op_sub": {
+      "Calls": 225,
+      "TotalT": 56925,
+      "MinSP": 61417
+    },
+    "pixel_distance": {
+      "Calls": 1296,
+      "TotalT": 1116720,
+      "MinSP": 61416
+    },
+    "sat_add16": {
+      "Calls": 225,
+      "TotalT": 88227,
+      "MinSP": 61416
+    },
+    "sat_add8": {
+      "Calls": 225,
+      "TotalT": 52516,
+      "MinSP": 61416
+    },
+    "sat_sub16": {
+      "Calls": 225,
+      "TotalT": 15135,
+      "MinSP": 61422
+    },
+    "sat_sub8": {
+      "Calls": 225,
+      "TotalT": 10605,
+      "MinSP": 61422
+    },
+    "sign16": {
+      "Calls": 15,
+      "TotalT": 3788,
+      "MinSP": 61418
+    },
+    "sign8": {
+      "Calls": 15,
+      "TotalT": 2224,
+      "MinSP": 61422
+    }
+  },
+  "native_calls": 11947,
+  "options": {
+    "ProfileSelection": null,
+    "CollectHIRSites": false,
+    "ContractOpt": true,
+    "AnnotateTStates": false,
+    "UseGrace": true,
+    "GraceStats": null,
+    "UseHIRGrace": false,
+    "OptSize": true,
+    "Backend": "",
+    "AssertMode": "",
+    "SkipZ80Emission": false
+  },
+  "source_assertions_retained": 31,
+  "source_sha256": "f602875384794e55e4175961ddb822c3c45760a638b54eee90e13aeb27178ea8"
+}
