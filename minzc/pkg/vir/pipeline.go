@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/minz/minzc/pkg/lir"
+	"github.com/minz/minzc/pkg/asmutil"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/rewrite/datalog"
 )
@@ -326,7 +326,7 @@ func emitModuleGlobals(m *mir2.Module) string {
 		if len(g.Init) > w {
 			w = len(g.Init)
 		}
-		name := lir.SanitizeAsmLabel(g.Name)
+		name := asmutil.SanitizeZ80Label(g.Name)
 		if w == 0 {
 			sb.WriteString(name + ":\n")
 			continue

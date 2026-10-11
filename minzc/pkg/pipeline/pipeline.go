@@ -21,6 +21,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/minz/minzc/pkg/asmutil"
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/ez80"
 	"github.com/minz/minzc/pkg/hir"
@@ -1219,7 +1220,7 @@ func emitExternStubs(asm string, m *mir2.Module) string {
 		if len(f.Blocks) > 0 {
 			continue // not extern — has a body
 		}
-		label := lir.SanitizeAsmLabel(f.Name)
+		label := asmutil.SanitizeZ80Label(f.Name)
 		// Only emit stub if the label is referenced but not defined.
 		if strings.Contains(asm, label) && !strings.Contains(asm, label+":") {
 			fmt.Fprintf(&stubs, "; %s — extern stub\n%s:\n    RET\n\n", label, label)

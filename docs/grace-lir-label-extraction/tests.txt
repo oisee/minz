@@ -1,0 +1,29 @@
+=== RUN   TestSanitizeZ80Label
+--- PASS: TestSanitizeZ80Label (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/asmutil	0.002s
+=== RUN   TestExternStubSharedLabels
+--- PASS: TestExternStubSharedLabels (0.00s)
+=== RUN   TestLIRDisabledWholeModule
+=== RUN   TestLIRDisabledWholeModule/fun_add(a:_u8,_b:_u8)_->_u8_{_return_a_+_b_}
+=== RUN   TestLIRDisabledWholeModule/fun_sub(a:_u8,_b:_u8)_->_u8_{_return_a_-_b_}___fun_mul(a:_u8,_b:_u8)_->_u8_{_return_a_*_b_}
+=== RUN   TestLIRDisabledWholeModule/fun_choose(a:_u8,_b:_u8)_->_u8_{_if_a_<_b_{_return_a_}_return_b_}___fun_identity(a:_u8)_->_u8_{_return_a_}
+--- PASS: TestLIRDisabledWholeModule (0.00s)
+    --- PASS: TestLIRDisabledWholeModule/fun_add(a:_u8,_b:_u8)_->_u8_{_return_a_+_b_} (0.00s)
+    --- PASS: TestLIRDisabledWholeModule/fun_sub(a:_u8,_b:_u8)_->_u8_{_return_a_-_b_}___fun_mul(a:_u8,_b:_u8)_->_u8_{_return_a_*_b_} (0.00s)
+    --- PASS: TestLIRDisabledWholeModule/fun_choose(a:_u8,_b:_u8)_->_u8_{_if_a_<_b_{_return_a_}_return_b_}___fun_identity(a:_u8)_->_u8_{_return_a_} (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.011s
+=== RUN   TestModuleGlobalsSharedLabels
+--- PASS: TestModuleGlobalsSharedLabels (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.007s
+=== RUN   TestPipeline_LIRCodegen
+    pipeline_test.go:106: generated assembly:
+        ; double — LIR codegen (1 insts, attempt 0)
+        double:
+            ADD A, A
+            RET
+--- PASS: TestPipeline_LIRCodegen (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/lir	0.003s
