@@ -1,8 +1,10 @@
 package mir2
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -67,7 +69,7 @@ func TestRecursiveCallSpill(t *testing.T) {
 				if word {
 					param = "DE"
 				}
-				full := fmt.Sprintf("ORG 0x8000\nLD SP, 0xF000\nLD %s, %d\nCALL recursive_home\nDI\nHALT\n", param, n) + asm
+				full := fmt.Sprintf("ORG 0x8000\nLD SP, 0xF000\nLD %s, %d\nCALL recursive_home\nDI\nrecursive_done:\nHALT\n", param, n) + asm
 				a, e := z80asm.NewAssembler().AssembleString(full)
 				if e != nil || len(a.Errors) != 0 {
 					t.Fatalf("assembly %v %v\n%s", e, a.Errors, full)
@@ -78,22 +80,95 @@ func TestRecursiveCallSpill(t *testing.T) {
 					continue
 				}
 				z := emulator.NewRemogattoZ80()
+				z.MaxCycles = 1_000_000
 				if e := z.LoadMemory(0x8000, a.Binary); e != nil {
 					t.Fatal(e)
 				}
 				z.SetPC(0x8000)
-				if e := z.Run(); e != nil {
-					t.Fatal(e)
-				}
+				runErr := z.Run()
 				regs := z.GetRegisters()
 				got := uint16(regs.A)
 				if word {
 					got = regs.HL
 				}
-				if got != uint16(n*(n+1)/2) || regs.SP != 0xF000 {
+				wantPC := uint16(a.Symbols["recursive_done"] + 1)
+				if root := os.Getenv("MINZ_RECURSIVE_SPILL_ARTIFACTS"); root != "" {
+					dir := filepath.Join(root, fmt.Sprintf("word-%v-n-%d", word, n))
+					if e := os.MkdirAll(dir, 0755); e != nil {
+						t.Fatal(e)
+					}
+					mbytes, e := json.MarshalIndent(m, "", "  ")
+					if e != nil {
+						t.Fatal(e)
+					}
+					state := map[string]any{"registers": regs, "result": got, "expected_result": n * (n + 1) / 2, "expected_pc": wantPC, "expected_sp": 0xF000, "cycles": z.GetCycles(), "error": fmt.Sprint(runErr)}
+					stateBytes, e := json.MarshalIndent(state, "", "  ")
+					if e != nil {
+						t.Fatal(e)
+					}
+					for name, data := range map[string][]byte{"source.mir.json": mbytes, "assembled.a80": []byte(full), "target.bin": a.Binary, "execution.json": stateBytes} {
+						if e := os.WriteFile(filepath.Join(dir, name), data, 0644); e != nil {
+							t.Fatal(e)
+						}
+					}
+				}
+				if runErr != nil {
+					t.Fatal(runErr)
+				}
+				if got != uint16(n*(n+1)/2) || regs.SP != 0xF000 || regs.PC != wantPC {
 					t.Fatalf("n%d result%d SP%04x want%d\n%s", n, got, regs.SP, n*(n+1)/2, full)
 				}
 			}
 		})
+	}
+}
+
+// Result pickup is followed by home restoration. Protect both a flag result
+// and a multi-register result, including HL itself, from restoration scratch.
+func TestCallSpillRestorePreservesResults(t *testing.T) {
+	var sb strings.Builder
+	g := &z80cg{sb: &sb}
+	g.emit("ORG 0x8000")
+	g.emit("LD SP, 0xF000")
+	g.emit("LD HL, 0x1234")
+	g.emit("LD A, 0x56")
+	g.emit("SCF")
+	homes := []callSpillHome{{"byte_home", 1}, {"word_home", 2}}
+	g.pushCallSpillHomes(homes)
+	// Model the callee overwriting the shared homes and returning A/BC/DE/HL
+	// plus C/Z flag results. No permissive host or indirect-memory access.
+	g.emit("XOR A")
+	g.emit("LD (byte_home), A")
+	g.emit("LD HL, 0")
+	g.emit("LD (word_home), HL")
+	g.emit("LD HL, 0x9ABC")
+	g.emit("LD DE, 0xDEF0")
+	g.emit("LD BC, 0x3456")
+	g.emit("LD A, 0x78")
+	g.emit("CP A")
+	g.emit("SCF")
+	g.popCallSpillHomes(homes)
+	g.emit("restore_done: HALT")
+	g.emit("byte_home: DB 0xA5")
+	g.emit("word_home: DW 0xBEEF")
+	assembly := sb.String()
+	a, err := z80asm.NewAssembler().AssembleString(assembly)
+	if err != nil || len(a.Errors) != 0 {
+		t.Fatalf("assembly %v %v", err, a.Errors)
+	}
+	if os.Getenv("MINZ_RECURSIVE_SPILL_NATIVE") != "1" {
+		return
+	}
+	z := emulator.NewRemogattoZ80()
+	z.MaxCycles = 100_000
+	if err := z.LoadMemory(0x8000, a.Binary); err != nil {
+		t.Fatal(err)
+	}
+	z.SetPC(0x8000)
+	err = z.Run()
+	r := z.GetRegisters()
+	byteAddr, wordAddr := a.Symbols["byte_home"], a.Symbols["word_home"]
+	if err != nil || r.A != 0x78 || r.HL != 0x9ABC || r.DE != 0xDEF0 || r.BC != 0x3456 || r.F&0x41 != 0x41 || r.SP != 0xF000 || r.PC != uint16(a.Symbols["restore_done"]+1) || z.GetMemory(uint16(byteAddr)) != 0xA5 || z.GetMemory(uint16(wordAddr)) != 0xEF || z.GetMemory(uint16(wordAddr+1)) != 0xBE {
+		t.Fatalf("result/snapshot contract: %+v error %v", r, err)
 	}
 }

@@ -31,10 +31,10 @@ func (g *z80cg) callerSaveSpillHomes(inst *Inst) []callSpillHome {
 		info, ok := g.regInfo[r]
 		// Respect dynamic relocation: a spill home containing an obsolete value
 		// need not be restored over a newer call result.
-		if !ok || g.loc(r) != g.spillLabel(r) {
+		if !ok || g.loc(r) != g.spillLabel(r) || g.isTSMCSpill(r) {
 			continue
 		}
-		width := ByteWidth(info.Ty)
+		width := z80SpillBytes(info.Ty)
 		if width != 1 && width != 2 {
 			g.err = fmt.Errorf("caller spill save: unsupported width %d for r%d", width, r)
 			continue
