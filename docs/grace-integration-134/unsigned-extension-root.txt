@@ -1,0 +1,314 @@
+=== RUN   TestUnsignedExtensionNative
+=== RUN   TestUnsignedExtensionNative/8_16_A_HL
+=== RUN   TestUnsignedExtensionNative/8_16_A_DE
+=== RUN   TestUnsignedExtensionNative/8_16_A_BC
+=== RUN   TestUnsignedExtensionNative/8_16_A__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/8_16_C_HL
+=== RUN   TestUnsignedExtensionNative/8_16_C_DE
+=== RUN   TestUnsignedExtensionNative/8_16_C_BC
+=== RUN   TestUnsignedExtensionNative/8_16_C__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/8_16_H_HL
+=== RUN   TestUnsignedExtensionNative/8_16_H_DE
+=== RUN   TestUnsignedExtensionNative/8_16_H_BC
+=== RUN   TestUnsignedExtensionNative/8_16_H__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/8_16_IXL_HL
+=== RUN   TestUnsignedExtensionNative/8_16_IXL_DE
+=== RUN   TestUnsignedExtensionNative/8_16_IXL_BC
+=== RUN   TestUnsignedExtensionNative/8_16_IXL__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/8_16_IYH_HL
+=== RUN   TestUnsignedExtensionNative/8_16_IYH_DE
+=== RUN   TestUnsignedExtensionNative/8_16_IYH_BC
+=== RUN   TestUnsignedExtensionNative/8_16_IYH__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/8_16_B'_HL
+=== RUN   TestUnsignedExtensionNative/8_16_B'_DE
+=== RUN   TestUnsignedExtensionNative/8_16_B'_BC
+=== RUN   TestUnsignedExtensionNative/8_16_B'__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/8_16_A'_HL
+=== RUN   TestUnsignedExtensionNative/8_16_A'_DE
+=== RUN   TestUnsignedExtensionNative/8_16_A'_BC
+=== RUN   TestUnsignedExtensionNative/8_16_A'__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/8_16__spill_ext_r1_HL
+=== RUN   TestUnsignedExtensionNative/8_16__spill_ext_r1_DE
+=== RUN   TestUnsignedExtensionNative/8_16__spill_ext_r1_BC
+=== RUN   TestUnsignedExtensionNative/8_16__spill_ext_r1__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/8_24_A_HL
+=== RUN   TestUnsignedExtensionNative/8_24_A_DE
+=== RUN   TestUnsignedExtensionNative/8_24_A_BC
+=== RUN   TestUnsignedExtensionNative/8_24_A__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/8_24_C_HL
+=== RUN   TestUnsignedExtensionNative/8_24_C_DE
+=== RUN   TestUnsignedExtensionNative/8_24_C_BC
+=== RUN   TestUnsignedExtensionNative/8_24_C__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/8_24_H_HL
+=== RUN   TestUnsignedExtensionNative/8_24_H_DE
+=== RUN   TestUnsignedExtensionNative/8_24_H_BC
+=== RUN   TestUnsignedExtensionNative/8_24_H__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/8_24_IXL_HL
+=== RUN   TestUnsignedExtensionNative/8_24_IXL_DE
+=== RUN   TestUnsignedExtensionNative/8_24_IXL_BC
+=== RUN   TestUnsignedExtensionNative/8_24_IXL__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/8_24_IYH_HL
+=== RUN   TestUnsignedExtensionNative/8_24_IYH_DE
+=== RUN   TestUnsignedExtensionNative/8_24_IYH_BC
+=== RUN   TestUnsignedExtensionNative/8_24_IYH__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/8_24_B'_HL
+=== RUN   TestUnsignedExtensionNative/8_24_B'_DE
+=== RUN   TestUnsignedExtensionNative/8_24_B'_BC
+=== RUN   TestUnsignedExtensionNative/8_24_B'__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/8_24_A'_HL
+=== RUN   TestUnsignedExtensionNative/8_24_A'_DE
+=== RUN   TestUnsignedExtensionNative/8_24_A'_BC
+=== RUN   TestUnsignedExtensionNative/8_24_A'__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/8_24__spill_ext_r1_HL
+=== RUN   TestUnsignedExtensionNative/8_24__spill_ext_r1_DE
+=== RUN   TestUnsignedExtensionNative/8_24__spill_ext_r1_BC
+=== RUN   TestUnsignedExtensionNative/8_24__spill_ext_r1__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/8_32_A_HL
+=== RUN   TestUnsignedExtensionNative/8_32_A_DE
+=== RUN   TestUnsignedExtensionNative/8_32_A_BC
+=== RUN   TestUnsignedExtensionNative/8_32_A__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/8_32_C_HL
+=== RUN   TestUnsignedExtensionNative/8_32_C_DE
+=== RUN   TestUnsignedExtensionNative/8_32_C_BC
+=== RUN   TestUnsignedExtensionNative/8_32_C__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/8_32_H_HL
+=== RUN   TestUnsignedExtensionNative/8_32_H_DE
+=== RUN   TestUnsignedExtensionNative/8_32_H_BC
+=== RUN   TestUnsignedExtensionNative/8_32_H__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/8_32_IXL_HL
+=== RUN   TestUnsignedExtensionNative/8_32_IXL_DE
+=== RUN   TestUnsignedExtensionNative/8_32_IXL_BC
+=== RUN   TestUnsignedExtensionNative/8_32_IXL__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/8_32_IYH_HL
+=== RUN   TestUnsignedExtensionNative/8_32_IYH_DE
+=== RUN   TestUnsignedExtensionNative/8_32_IYH_BC
+=== RUN   TestUnsignedExtensionNative/8_32_IYH__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/8_32_B'_HL
+=== RUN   TestUnsignedExtensionNative/8_32_B'_DE
+=== RUN   TestUnsignedExtensionNative/8_32_B'_BC
+=== RUN   TestUnsignedExtensionNative/8_32_B'__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/8_32_A'_HL
+=== RUN   TestUnsignedExtensionNative/8_32_A'_DE
+=== RUN   TestUnsignedExtensionNative/8_32_A'_BC
+=== RUN   TestUnsignedExtensionNative/8_32_A'__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/8_32__spill_ext_r1_HL
+=== RUN   TestUnsignedExtensionNative/8_32__spill_ext_r1_DE
+=== RUN   TestUnsignedExtensionNative/8_32__spill_ext_r1_BC
+=== RUN   TestUnsignedExtensionNative/8_32__spill_ext_r1__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/16_24__spill_ext_r1_HL
+=== RUN   TestUnsignedExtensionNative/16_24__spill_ext_r1_DE
+=== RUN   TestUnsignedExtensionNative/16_24__spill_ext_r1_BC
+=== RUN   TestUnsignedExtensionNative/16_24__spill_ext_r1__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/16_24_HL_HL
+=== RUN   TestUnsignedExtensionNative/16_24_HL_DE
+=== RUN   TestUnsignedExtensionNative/16_24_HL_BC
+=== RUN   TestUnsignedExtensionNative/16_24_HL__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/16_24_DE_HL
+=== RUN   TestUnsignedExtensionNative/16_24_DE_DE
+=== RUN   TestUnsignedExtensionNative/16_24_DE_BC
+=== RUN   TestUnsignedExtensionNative/16_24_DE__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/16_24_IX_HL
+=== RUN   TestUnsignedExtensionNative/16_24_IX_DE
+=== RUN   TestUnsignedExtensionNative/16_24_IX_BC
+=== RUN   TestUnsignedExtensionNative/16_24_IX__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/16_24_IY_HL
+=== RUN   TestUnsignedExtensionNative/16_24_IY_DE
+=== RUN   TestUnsignedExtensionNative/16_24_IY_BC
+=== RUN   TestUnsignedExtensionNative/16_24_IY__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/16_32__spill_ext_r1_HL
+=== RUN   TestUnsignedExtensionNative/16_32__spill_ext_r1_DE
+=== RUN   TestUnsignedExtensionNative/16_32__spill_ext_r1_BC
+=== RUN   TestUnsignedExtensionNative/16_32__spill_ext_r1__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/16_32_HL_HL
+=== RUN   TestUnsignedExtensionNative/16_32_HL_DE
+=== RUN   TestUnsignedExtensionNative/16_32_HL_BC
+=== RUN   TestUnsignedExtensionNative/16_32_HL__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/16_32_DE_HL
+=== RUN   TestUnsignedExtensionNative/16_32_DE_DE
+=== RUN   TestUnsignedExtensionNative/16_32_DE_BC
+=== RUN   TestUnsignedExtensionNative/16_32_DE__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/16_32_IX_HL
+=== RUN   TestUnsignedExtensionNative/16_32_IX_DE
+=== RUN   TestUnsignedExtensionNative/16_32_IX_BC
+=== RUN   TestUnsignedExtensionNative/16_32_IX__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/16_32_IY_HL
+=== RUN   TestUnsignedExtensionNative/16_32_IY_DE
+=== RUN   TestUnsignedExtensionNative/16_32_IY_BC
+=== RUN   TestUnsignedExtensionNative/16_32_IY__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/24_32__spill_ext_r1_HL
+=== RUN   TestUnsignedExtensionNative/24_32__spill_ext_r1_DE
+=== RUN   TestUnsignedExtensionNative/24_32__spill_ext_r1_BC
+=== RUN   TestUnsignedExtensionNative/24_32__spill_ext_r1__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/24_32_HL_HL
+=== RUN   TestUnsignedExtensionNative/24_32_HL_DE
+=== RUN   TestUnsignedExtensionNative/24_32_HL_BC
+=== RUN   TestUnsignedExtensionNative/24_32_HL__spill_ext_r2
+=== RUN   TestUnsignedExtensionNative/24_32_DE_HL
+=== RUN   TestUnsignedExtensionNative/24_32_DE_DE
+=== RUN   TestUnsignedExtensionNative/24_32_DE_BC
+=== RUN   TestUnsignedExtensionNative/24_32_DE__spill_ext_r2
+--- PASS: TestUnsignedExtensionNative (20.99s)
+    --- PASS: TestUnsignedExtensionNative/8_16_A_HL (0.14s)
+    --- PASS: TestUnsignedExtensionNative/8_16_A_DE (0.12s)
+    --- PASS: TestUnsignedExtensionNative/8_16_A_BC (0.14s)
+    --- PASS: TestUnsignedExtensionNative/8_16_A__spill_ext_r2 (0.18s)
+    --- PASS: TestUnsignedExtensionNative/8_16_C_HL (0.14s)
+    --- PASS: TestUnsignedExtensionNative/8_16_C_DE (0.15s)
+    --- PASS: TestUnsignedExtensionNative/8_16_C_BC (0.16s)
+    --- PASS: TestUnsignedExtensionNative/8_16_C__spill_ext_r2 (0.17s)
+    --- PASS: TestUnsignedExtensionNative/8_16_H_HL (0.14s)
+    --- PASS: TestUnsignedExtensionNative/8_16_H_DE (0.14s)
+    --- PASS: TestUnsignedExtensionNative/8_16_H_BC (0.13s)
+    --- PASS: TestUnsignedExtensionNative/8_16_H__spill_ext_r2 (0.19s)
+    --- PASS: TestUnsignedExtensionNative/8_16_IXL_HL (0.20s)
+    --- PASS: TestUnsignedExtensionNative/8_16_IXL_DE (0.20s)
+    --- PASS: TestUnsignedExtensionNative/8_16_IXL_BC (0.21s)
+    --- PASS: TestUnsignedExtensionNative/8_16_IXL__spill_ext_r2 (0.30s)
+    --- PASS: TestUnsignedExtensionNative/8_16_IYH_HL (0.25s)
+    --- PASS: TestUnsignedExtensionNative/8_16_IYH_DE (0.15s)
+    --- PASS: TestUnsignedExtensionNative/8_16_IYH_BC (0.16s)
+    --- PASS: TestUnsignedExtensionNative/8_16_IYH__spill_ext_r2 (0.18s)
+    --- PASS: TestUnsignedExtensionNative/8_16_B'_HL (0.19s)
+    --- PASS: TestUnsignedExtensionNative/8_16_B'_DE (0.16s)
+    --- PASS: TestUnsignedExtensionNative/8_16_B'_BC (0.17s)
+    --- PASS: TestUnsignedExtensionNative/8_16_B'__spill_ext_r2 (0.30s)
+    --- PASS: TestUnsignedExtensionNative/8_16_A'_HL (0.24s)
+    --- PASS: TestUnsignedExtensionNative/8_16_A'_DE (0.19s)
+    --- PASS: TestUnsignedExtensionNative/8_16_A'_BC (0.23s)
+    --- PASS: TestUnsignedExtensionNative/8_16_A'__spill_ext_r2 (0.32s)
+    --- PASS: TestUnsignedExtensionNative/8_16__spill_ext_r1_HL (0.18s)
+    --- PASS: TestUnsignedExtensionNative/8_16__spill_ext_r1_DE (0.13s)
+    --- PASS: TestUnsignedExtensionNative/8_16__spill_ext_r1_BC (0.14s)
+    --- PASS: TestUnsignedExtensionNative/8_16__spill_ext_r1__spill_ext_r2 (0.21s)
+    --- PASS: TestUnsignedExtensionNative/8_24_A_HL (0.19s)
+    --- PASS: TestUnsignedExtensionNative/8_24_A_DE (0.25s)
+    --- PASS: TestUnsignedExtensionNative/8_24_A_BC (0.25s)
+    --- PASS: TestUnsignedExtensionNative/8_24_A__spill_ext_r2 (0.30s)
+    --- PASS: TestUnsignedExtensionNative/8_24_C_HL (0.27s)
+    --- PASS: TestUnsignedExtensionNative/8_24_C_DE (0.23s)
+    --- PASS: TestUnsignedExtensionNative/8_24_C_BC (0.20s)
+    --- PASS: TestUnsignedExtensionNative/8_24_C__spill_ext_r2 (0.16s)
+    --- PASS: TestUnsignedExtensionNative/8_24_H_HL (0.20s)
+    --- PASS: TestUnsignedExtensionNative/8_24_H_DE (0.13s)
+    --- PASS: TestUnsignedExtensionNative/8_24_H_BC (0.22s)
+    --- PASS: TestUnsignedExtensionNative/8_24_H__spill_ext_r2 (0.31s)
+    --- PASS: TestUnsignedExtensionNative/8_24_IXL_HL (0.23s)
+    --- PASS: TestUnsignedExtensionNative/8_24_IXL_DE (0.23s)
+    --- PASS: TestUnsignedExtensionNative/8_24_IXL_BC (0.23s)
+    --- PASS: TestUnsignedExtensionNative/8_24_IXL__spill_ext_r2 (0.31s)
+    --- PASS: TestUnsignedExtensionNative/8_24_IYH_HL (0.20s)
+    --- PASS: TestUnsignedExtensionNative/8_24_IYH_DE (0.24s)
+    --- PASS: TestUnsignedExtensionNative/8_24_IYH_BC (0.18s)
+    --- PASS: TestUnsignedExtensionNative/8_24_IYH__spill_ext_r2 (0.25s)
+    --- PASS: TestUnsignedExtensionNative/8_24_B'_HL (0.17s)
+    --- PASS: TestUnsignedExtensionNative/8_24_B'_DE (0.24s)
+    --- PASS: TestUnsignedExtensionNative/8_24_B'_BC (0.26s)
+    --- PASS: TestUnsignedExtensionNative/8_24_B'__spill_ext_r2 (0.29s)
+    --- PASS: TestUnsignedExtensionNative/8_24_A'_HL (0.24s)
+    --- PASS: TestUnsignedExtensionNative/8_24_A'_DE (0.24s)
+    --- PASS: TestUnsignedExtensionNative/8_24_A'_BC (0.23s)
+    --- PASS: TestUnsignedExtensionNative/8_24_A'__spill_ext_r2 (0.31s)
+    --- PASS: TestUnsignedExtensionNative/8_24__spill_ext_r1_HL (0.24s)
+    --- PASS: TestUnsignedExtensionNative/8_24__spill_ext_r1_DE (0.23s)
+    --- PASS: TestUnsignedExtensionNative/8_24__spill_ext_r1_BC (0.14s)
+    --- PASS: TestUnsignedExtensionNative/8_24__spill_ext_r1__spill_ext_r2 (0.28s)
+    --- PASS: TestUnsignedExtensionNative/8_32_A_HL (0.26s)
+    --- PASS: TestUnsignedExtensionNative/8_32_A_DE (0.24s)
+    --- PASS: TestUnsignedExtensionNative/8_32_A_BC (0.25s)
+    --- PASS: TestUnsignedExtensionNative/8_32_A__spill_ext_r2 (0.20s)
+    --- PASS: TestUnsignedExtensionNative/8_32_C_HL (0.14s)
+    --- PASS: TestUnsignedExtensionNative/8_32_C_DE (0.20s)
+    --- PASS: TestUnsignedExtensionNative/8_32_C_BC (0.21s)
+    --- PASS: TestUnsignedExtensionNative/8_32_C__spill_ext_r2 (0.19s)
+    --- PASS: TestUnsignedExtensionNative/8_32_H_HL (0.16s)
+    --- PASS: TestUnsignedExtensionNative/8_32_H_DE (0.18s)
+    --- PASS: TestUnsignedExtensionNative/8_32_H_BC (0.15s)
+    --- PASS: TestUnsignedExtensionNative/8_32_H__spill_ext_r2 (0.19s)
+    --- PASS: TestUnsignedExtensionNative/8_32_IXL_HL (0.14s)
+    --- PASS: TestUnsignedExtensionNative/8_32_IXL_DE (0.22s)
+    --- PASS: TestUnsignedExtensionNative/8_32_IXL_BC (0.23s)
+    --- PASS: TestUnsignedExtensionNative/8_32_IXL__spill_ext_r2 (0.30s)
+    --- PASS: TestUnsignedExtensionNative/8_32_IYH_HL (0.26s)
+    --- PASS: TestUnsignedExtensionNative/8_32_IYH_DE (0.24s)
+    --- PASS: TestUnsignedExtensionNative/8_32_IYH_BC (0.23s)
+    --- PASS: TestUnsignedExtensionNative/8_32_IYH__spill_ext_r2 (0.30s)
+    --- PASS: TestUnsignedExtensionNative/8_32_B'_HL (0.23s)
+    --- PASS: TestUnsignedExtensionNative/8_32_B'_DE (0.17s)
+    --- PASS: TestUnsignedExtensionNative/8_32_B'_BC (0.25s)
+    --- PASS: TestUnsignedExtensionNative/8_32_B'__spill_ext_r2 (0.31s)
+    --- PASS: TestUnsignedExtensionNative/8_32_A'_HL (0.25s)
+    --- PASS: TestUnsignedExtensionNative/8_32_A'_DE (0.25s)
+    --- PASS: TestUnsignedExtensionNative/8_32_A'_BC (0.24s)
+    --- PASS: TestUnsignedExtensionNative/8_32_A'__spill_ext_r2 (0.30s)
+    --- PASS: TestUnsignedExtensionNative/8_32__spill_ext_r1_HL (0.24s)
+    --- PASS: TestUnsignedExtensionNative/8_32__spill_ext_r1_DE (0.26s)
+    --- PASS: TestUnsignedExtensionNative/8_32__spill_ext_r1_BC (0.21s)
+    --- PASS: TestUnsignedExtensionNative/8_32__spill_ext_r1__spill_ext_r2 (0.21s)
+    --- PASS: TestUnsignedExtensionNative/16_24__spill_ext_r1_HL (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_24__spill_ext_r1_DE (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_24__spill_ext_r1_BC (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_24__spill_ext_r1__spill_ext_r2 (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_24_HL_HL (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_24_HL_DE (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_24_HL_BC (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_24_HL__spill_ext_r2 (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_24_DE_HL (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_24_DE_DE (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_24_DE_BC (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_24_DE__spill_ext_r2 (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_24_IX_HL (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_24_IX_DE (0.02s)
+    --- PASS: TestUnsignedExtensionNative/16_24_IX_BC (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_24_IX__spill_ext_r2 (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_24_IY_HL (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_24_IY_DE (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_24_IY_BC (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_24_IY__spill_ext_r2 (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_32__spill_ext_r1_HL (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_32__spill_ext_r1_DE (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_32__spill_ext_r1_BC (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_32__spill_ext_r1__spill_ext_r2 (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_32_HL_HL (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_32_HL_DE (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_32_HL_BC (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_32_HL__spill_ext_r2 (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_32_DE_HL (0.00s)
+    --- PASS: TestUnsignedExtensionNative/16_32_DE_DE (0.00s)
+    --- PASS: TestUnsignedExtensionNative/16_32_DE_BC (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_32_DE__spill_ext_r2 (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_32_IX_HL (0.00s)
+    --- PASS: TestUnsignedExtensionNative/16_32_IX_DE (0.00s)
+    --- PASS: TestUnsignedExtensionNative/16_32_IX_BC (0.00s)
+    --- PASS: TestUnsignedExtensionNative/16_32_IX__spill_ext_r2 (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_32_IY_HL (0.01s)
+    --- PASS: TestUnsignedExtensionNative/16_32_IY_DE (0.00s)
+    --- PASS: TestUnsignedExtensionNative/16_32_IY_BC (0.00s)
+    --- PASS: TestUnsignedExtensionNative/16_32_IY__spill_ext_r2 (0.01s)
+    --- PASS: TestUnsignedExtensionNative/24_32__spill_ext_r1_HL (0.01s)
+    --- PASS: TestUnsignedExtensionNative/24_32__spill_ext_r1_DE (0.01s)
+    --- PASS: TestUnsignedExtensionNative/24_32__spill_ext_r1_BC (0.01s)
+    --- PASS: TestUnsignedExtensionNative/24_32__spill_ext_r1__spill_ext_r2 (0.01s)
+    --- PASS: TestUnsignedExtensionNative/24_32_HL_HL (0.01s)
+    --- PASS: TestUnsignedExtensionNative/24_32_HL_DE (0.01s)
+    --- PASS: TestUnsignedExtensionNative/24_32_HL_BC (0.01s)
+    --- PASS: TestUnsignedExtensionNative/24_32_HL__spill_ext_r2 (0.01s)
+    --- PASS: TestUnsignedExtensionNative/24_32_DE_HL (0.01s)
+    --- PASS: TestUnsignedExtensionNative/24_32_DE_DE (0.01s)
+    --- PASS: TestUnsignedExtensionNative/24_32_DE_BC (0.01s)
+    --- PASS: TestUnsignedExtensionNative/24_32_DE__spill_ext_r2 (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	20.995s
+=== RUN   TestUnsignedExtensionSourceNative
+    unsigned_extension_source_test.go:64: full-module bytes=504 SHAa3e0120c610f88b154251ee9084e2a31e69b0a3626a8dd150bcfa5068fd1d176 Grace=false Size=false
+    unsigned_extension_source_test.go:64: full-module bytes=504 SHAa3e0120c610f88b154251ee9084e2a31e69b0a3626a8dd150bcfa5068fd1d176 Grace=true Size=true
+    unsigned_extension_source_test.go:64: full-module bytes=504 SHAa3e0120c610f88b154251ee9084e2a31e69b0a3626a8dd150bcfa5068fd1d176 Grace=true Size=false
+--- PASS: TestUnsignedExtensionSourceNative (0.83s)
+=== RUN   TestOriginalZVMFinishUnsignedEmbeddingVM
+[HIR-SPLIT] print_text → print_text$split_6 (1 inputs, pressure 10)
+[HIR-SPLIT] decode_input_utf8 → decode_input_utf8$split_2 (1 inputs, pressure 9)
+[HIR-SPLIT] print_text → print_text$split_6 (1 inputs, pressure 10)
+[HIR-SPLIT] decode_input_utf8 → decode_input_utf8$split_2 (1 inputs, pressure 9)
+    unsigned_extension_source_test.go:244: original whole-module native refusal: Z80 global "story" exceeds 16-bit address space (data before global: 18377 bytes, global: 131072 bytes)
+--- PASS: TestOriginalZVMFinishUnsignedEmbeddingVM (0.64s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.485s

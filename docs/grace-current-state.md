@@ -539,5 +539,6 @@ VIR можно перепроектировать вокруг MIR-native про
 эмиттер не имеет корректных joins и не допускается в productpath.
 
 Флаговые scalar writers и полноразрядные u32/i32 сравнения исправлены;
-unsigned widening extension ещё в работе. [Проверки интеграции133](grace-integration-133/README.md).
+unsigned widening extension также исправлено. [Проверки интеграции133](grace-integration-133/README.md)
+и [интеграции134](grace-integration-134/README.md). Signed widening physical homes проверяются отдельно.
 Полный pipelinea7954042 жив, currentfullPASS по нему не заявляется.
