@@ -22,6 +22,11 @@
       "sha256": "ca6d9a2b488bd271b90322933017a1d85d3f7760e8422614286ca6618e3bdbdc"
     },
     {
+      "path": "string-final-parent-pipeline.txt",
+      "bytes": 15445,
+      "sha256": "c53a2ac2f13faf5cb786130ed267891e7c74f30186a05500954bbfe4988ed37c"
+    },
+    {
       "path": "string-module-identity-mir2.txt",
       "bytes": 43,
       "sha256": "6ac026449b7425558aa0d22d02bbff190b995836b16b6d3b388f0f9b1f2ac858"
@@ -72,6 +77,6 @@
     "compiler_commit": "a4ac51bd",
     "packages": "HIR/MIR2/Lanz/Lizp/PLM/Pascal pass; Nanz only 26 existing showcase failures",
     "cli": "FAIL 27.832s: policy/search collect unproved protected stack read from new spill snapshot; closed descriptor/decoder extension required",
-    "pipeline": "Running session45232; no overall result"
+    "pipeline": "FAIL 978.573s: memory-host cases blocked by missing call-spill certificate; sum-array cost model 128 B disagrees with current 147 B and needs renewed measurement"
   }
 }

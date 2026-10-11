@@ -1,0 +1,301 @@
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[Z80-VALIDATE] main: 2 invalid instruction(s)
+  line 3: >>> LD A, <<<
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+lir: native LIR codegen disabled (wrong code found by exhaustive judges); module compiled with PBQP
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostAppendCopyTargetDomain (6.48s)
+    --- FAIL: TestMemoryHostAppendCopyTargetDomain/successful16 (1.12s)
+        memory_host_append_copy_domain_test.go:220: original memory host baseline: memory host target: unproved protected access at PC06e4 addressefec write=false
+    --- FAIL: TestMemoryHostAppendCopyTargetDomain/header_readonly (1.04s)
+        memory_host_append_copy_domain_test.go:220: original memory host baseline: memory host target: unproved protected access at PC06e4 addressefec write=false
+    --- FAIL: TestMemoryHostAppendCopyTargetDomain/first_source_denied (1.13s)
+        memory_host_append_copy_domain_test.go:220: original memory host baseline: memory host target: unproved protected access at PC06e4 addressefec write=false
+    --- FAIL: TestMemoryHostAppendCopyTargetDomain/tail_source_denied (1.06s)
+        memory_host_append_copy_domain_test.go:220: original memory host baseline: memory host target: unproved protected access at PC06e4 addressefec write=false
+    --- FAIL: TestMemoryHostAppendCopyTargetDomain/first_destination_readonly (1.12s)
+        memory_host_append_copy_domain_test.go:220: original memory host baseline: memory host target: unproved protected access at PC06e4 addressefec write=false
+    --- FAIL: TestMemoryHostAppendCopyTargetDomain/tail_destination_wrap_denied (1.02s)
+        memory_host_append_copy_domain_test.go:220: original memory host baseline: memory host target: unproved protected access at PC06e4 addressefec write=false
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostAppendCopyPrototypeOriginal30 (1.25s)
+    memory_host_append_copy_prototype_test.go:47: memory host baseline: memory host target: unproved protected access at PC06e4 addressefea write=false
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostAppendSelectorOriginal30Objectives (2.36s)
+    --- FAIL: TestMemoryHostAppendSelectorOriginal30Objectives/speed (1.08s)
+        memory_host_append_selector_test.go:24: memory host loop association: memory host baseline: memory host target: unproved protected access at PC06e4 addressefea write=false
+    --- FAIL: TestMemoryHostAppendSelectorOriginal30Objectives/size (1.16s)
+        memory_host_append_selector_test.go:24: memory host loop association: memory host baseline: memory host target: unproved protected access at PC06e4 addressefea write=false
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostAppendSelectorConsistentCountForgery (1.34s)
+    memory_host_append_selector_test.go:107: consistent forged counts not rejected by fresh replay memory host loop association: memory host baseline: memory host target: unproved protected access at PC06e4 addressefec write=false
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostAppendSelectorLateFactoryMutation (3.29s)
+    --- FAIL: TestMemoryHostAppendSelectorLateFactoryMutation/retained_global (1.08s)
+        memory_host_append_selector_test.go:140: test did not reach late original/candidate factory phase 3
+    --- FAIL: TestMemoryHostAppendSelectorLateFactoryMutation/candidate_global (1.15s)
+        memory_host_append_selector_test.go:140: test did not reach late original/candidate factory phase 3
+    --- FAIL: TestMemoryHostAppendSelectorLateFactoryMutation/candidate_shared (0.96s)
+        memory_host_append_selector_test.go:140: test did not reach late original/candidate factory phase 3
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostAppendSelectorSentinelOriginMutation (3.57s)
+    --- FAIL: TestMemoryHostAppendSelectorSentinelOriginMutation/6 (1.17s)
+        memory_host_append_selector_test.go:175: did not reach requested sentinel phase 3
+    --- FAIL: TestMemoryHostAppendSelectorSentinelOriginMutation/12 (1.15s)
+        memory_host_append_selector_test.go:175: did not reach requested sentinel phase 3
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostAppendSelectorObservedZeroBody (0.99s)
+    memory_host_append_selector_test.go:225: memory host loop association: memory host baseline: memory host target: unproved protected access at PC06e4 addressefec write=false
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostPolicySelectorPreflight (0.64s)
+    memory_host_arena_append_policy_selector_test.go:53: memory host loop association: memory host baseline: memory host target: unproved protected access at PC06e4 addressefec write=false
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostPolicySelectorFixedPolicy (0.67s)
+    memory_host_arena_append_policy_selector_test.go:92: memory host loop association: memory host baseline: memory host target: unproved protected access at PC06e4 addressefec write=false
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostPolicySelectorReplayAndPolicyRefusals (1.16s)
+    memory_host_arena_append_policy_selector_test.go:130: memory host loop association: memory host baseline: memory host target: unproved protected access at PC06e4 addressefec write=false
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostPolicySelectorLateMutationAndSharing (1.03s)
+    memory_host_arena_append_policy_selector_test.go:178: memory host loop association: memory host baseline: memory host target: unproved protected access at PC06e5 addressefec write=false
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostArenaAppendPrototypeOriginal30 (1.26s)
+    memory_host_arena_append_prototype_test.go:67: 0 memory host baseline: memory host target: unproved protected access at PC06e4 addressefea write=false
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostArenaAppendSelectorOriginal30 (2.37s)
+    --- FAIL: TestMemoryHostArenaAppendSelectorOriginal30/speed (1.11s)
+        memory_host_arena_append_selector_test.go:30: memory host loop association: memory host baseline: memory host target: unproved protected access at PC06e4 addressefea write=false
+    --- FAIL: TestMemoryHostArenaAppendSelectorOriginal30/size (1.12s)
+        memory_host_arena_append_selector_test.go:30: memory host loop association: memory host baseline: memory host target: unproved protected access at PC06e4 addressefea write=false
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostArenaAppendSelectorForgedReplay (1.29s)
+    memory_host_arena_append_selector_test.go:93: forgeryaccepted memory host loop association: memory host baseline: memory host target: unproved protected access at PC06e4 addressefec write=false
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostArenaAppendSelectorLateCrossMask (4.53s)
+    --- FAIL: TestMemoryHostArenaAppendSelectorLateCrossMask/6 (1.18s)
+        memory_host_arena_append_selector_test.go:121: phaseneverreached 3
+    --- FAIL: TestMemoryHostArenaAppendSelectorLateCrossMask/12 (1.09s)
+        memory_host_arena_append_selector_test.go:121: phaseneverreached 3
+    --- FAIL: TestMemoryHostArenaAppendSelectorLateCrossMask/18 (1.09s)
+        memory_host_arena_append_selector_test.go:121: phaseneverreached 3
+    --- FAIL: TestMemoryHostArenaAppendSelectorLateCrossMask/24 (1.06s)
+        memory_host_arena_append_selector_test.go:121: phaseneverreached 3
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostArenaAppendSelectorAcrossMaskSharing (1.29s)
+    memory_host_arena_append_selector_test.go:147: mask2sharingnotreached 3
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostArenaPeelPrototypeOriginal30 (1.20s)
+    memory_host_arena_peel_prototype_test.go:31: memory host baseline: memory host target: unproved protected access at PC06e4 addressefea write=false
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostArenaSelectorOriginal30Objectives (2.17s)
+    --- FAIL: TestMemoryHostArenaSelectorOriginal30Objectives/speed (1.19s)
+        memory_host_arena_selector_e2e_test.go:36: memory host loop association: memory host baseline: memory host target: unproved protected access at PC06e4 addressefea write=false
+    --- FAIL: TestMemoryHostArenaSelectorOriginal30Objectives/size (0.85s)
+        memory_host_arena_selector_e2e_test.go:36: memory host loop association: memory host baseline: memory host target: unproved protected access at PC06e4 addressefea write=false
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostFactoryOriginalParser (1.06s)
+    memory_host_baseline_test.go:18: memory host baseline: memory host target: unproved protected access at PC06e4 addressefea write=false
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostLoopAssociationOriginalParser (1.13s)
+    memory_host_loop_profile_test.go:18: memory host loop association: memory host baseline: memory host target: unproved protected access at PC06e4 addressefea write=false
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostPolicySearchPreflightAndExactOriginal (1.03s)
+    memory_host_policy_search_test.go:48: memory host loop association: memory host baseline: memory host target: unproved protected access at PC06e4 addressefec write=false
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostPolicySearchLifecycle (1.10s)
+    memory_host_policy_search_test.go:156: memory host loop association: memory host baseline: memory host target: unproved protected access at PC06e4 addressefec write=false
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostPolicySearchOwnedInputsAndSize (1.10s)
+    memory_host_policy_search_test.go:224: memory host loop association: memory host baseline: memory host target: unproved protected access at PC06e4 addressefec write=false
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostOriginalSelfLanzTarget (0.80s)
+    memory_host_target_test.go:46: memory host target: unproved protected access at PC06e4 addressefea write=false
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestProfileGuidedSumVMZ80 (0.28s)
+    profile_guided_sum_test.go:180: cost model disproved: original n=0 got=69/147 expected=69/128
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	978.573s
+FAIL
