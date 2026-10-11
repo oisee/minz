@@ -1,0 +1,16 @@
+=== RUN   TestOriginalBoolRetflagNativeModel
+    showcase_bool_retflag_native_test.go:279: default {Entry:is_zero_b Args:[0] Expected:1 ExpectedMulti:[1]} 58T native/raw/final model code/SP/RAM PASS
+    showcase_bool_retflag_native_test.go:279: default {Entry:is_ten_b Args:[0] Expected:0 ExpectedMulti:[0]} 71T native/raw/final model code/SP/RAM PASS
+    showcase_bool_retflag_native_test.go:279: default {Entry:is_small_b Args:[0] Expected:1 ExpectedMulti:[1]} 61T native/raw/final model code/SP/RAM PASS
+    showcase_bool_retflag_native_test.go:283: default 198912 original bool calls PASS; 6 source assertions retained
+    showcase_bool_retflag_native_test.go:279: grace-size {Entry:is_zero_b Args:[0] Expected:1 ExpectedMulti:[1]} 58T native/raw/final model code/SP/RAM PASS
+    showcase_bool_retflag_native_test.go:279: grace-size {Entry:is_ten_b Args:[0] Expected:0 ExpectedMulti:[0]} 71T native/raw/final model code/SP/RAM PASS
+    showcase_bool_retflag_native_test.go:279: grace-size {Entry:is_small_b Args:[0] Expected:1 ExpectedMulti:[1]} 61T native/raw/final model code/SP/RAM PASS
+    showcase_bool_retflag_native_test.go:283: grace-size 198912 original bool calls PASS; 6 source assertions retained
+    showcase_bool_retflag_native_test.go:279: grace-speed {Entry:is_zero_b Args:[0] Expected:1 ExpectedMulti:[1]} 58T native/raw/final model code/SP/RAM PASS
+    showcase_bool_retflag_native_test.go:279: grace-speed {Entry:is_ten_b Args:[0] Expected:0 ExpectedMulti:[0]} 71T native/raw/final model code/SP/RAM PASS
+    showcase_bool_retflag_native_test.go:279: grace-speed {Entry:is_small_b Args:[0] Expected:1 ExpectedMulti:[1]} 61T native/raw/final model code/SP/RAM PASS
+    showcase_bool_retflag_native_test.go:283: grace-speed 198912 original bool calls PASS; 6 source assertions retained
+--- PASS: TestOriginalBoolRetflagNativeModel (43.36s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	43.376s

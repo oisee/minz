@@ -1,0 +1,7 @@
+# Original bool module joins independent native corpus
+
+Root7d62a218 TestOriginalBoolRetflagNativeModel PASS43.376s. Exactoriginal17_bool_retflag.nanz withsixsourceassertions retained; all12sourceentries, nineunaryall256bytevalues andeq/lt/gtall65536orderedpairs,198912calls/mode ×3=596736nativecalls plusraw/finalVM. Independenthostpredicates, hostileinitialregisters, actualreturnABI decoder, CALL+RETdriver, exactspill/stackRAM exceptions, image/PC/SPguards. No newmiscompile.
+
+ActualcurrentproductionABI returns everyboolinA, ClassAcc. Thetestdoesnotartificiallyforceflagreturns. OlderretFlagcomments are notcurrentselectionevidence. This provides materializedbool/internalcomparisoncoverage, notnewflagreturnoptimization. Frozenworkload26a2376dprecedesmeasurement. All23packetpayloadSHAverified; deterministicgzipcontains198912exactexpectedcalls. Shared compiler-reports/bool-retflag-native.
+
+Catalognow43limitedindependentVM/nativepaths,94pendingoracle (plusseparateASM/runtimecategories andCPMproof),194total. NextoriginaltaggedResultmodule13_result_error isfrozenandundernativechecking. EXX/u32primitiveaudit separateafteruserinterest; SHA256 needs32bitoperations, nofullhash/u64claim. Fullpipeline8bf remainslive~27minutes. Goalactive.
