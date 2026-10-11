@@ -192,11 +192,11 @@ func measureProfileVariantSets(factory func() (*hir.Module, error), observations
 	for _, m := range retained {
 		c, err := hir.BuildWorkloadProfileContext(m, workload)
 		if err != nil {
-			return fail(err)
+			return fail(fmt.Errorf("factory mutated previously returned HIR/source: %w", err))
 		}
 		k, err := hir.BuildProfileCompatibility(m, c)
 		if err != nil {
-			return fail(err)
+			return fail(fmt.Errorf("factory mutated previously returned HIR/source: %w", err))
 		}
 		if !jointEqual(k, key) || m.OrderedByteRWPolicy != nil || m.OrderedBytePolicy != nil || m.RegionComparePolicy != nil || m.ForwardCopyPolicy != nil || m.PointerWalkPolicy != nil || m.LoopLineage != nil || m.GraceRulePolicy != nil || m.InvariantBasePolicy != nil {
 			return fail(fmt.Errorf("factory mutated previously returned HIR/source"))
