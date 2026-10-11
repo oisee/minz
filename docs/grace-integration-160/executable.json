@@ -1,0 +1,8 @@
+{
+  "compiler_commit": "cbcf2c7e",
+  "local": "/home/alice/dev/minz-artifacts/grace-checkpoints/plm-absdiff-fib-native.test",
+  "share": "/mnt/safe/minz/grace/2026-10-11/compiler-checkpoints/plm-absdiff-fib-cbcf2c7e.test",
+  "sha256": "69f2379b30a72ebcf1f988cfe4f2383c4d7aa88e693d07b998649d1bdddeae78",
+  "required_cwd": "compiler/minzc/pkg/pipeline",
+  "command": "plm-absdiff-fib-cbcf2c7e.test -test.run ^TestOriginalPLMAbsDiffFibComplete$ -test.count=1"
+}
