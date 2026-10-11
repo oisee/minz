@@ -12,6 +12,16 @@
       "sha256": "b98c091419a31d53f2304d131beee9e01b5651b61698166bd2e6034b9205cdff"
     },
     {
+      "path": "string-final-parent-cli.txt",
+      "bytes": 980,
+      "sha256": "3a88134807de02e1ec41b15bf1a7db21fd75ff1efe25c0e8b88b00f3babb76a9"
+    },
+    {
+      "path": "string-final-parent-packages.txt",
+      "bytes": 4931,
+      "sha256": "ca6d9a2b488bd271b90322933017a1d85d3f7760e8422614286ca6618e3bdbdc"
+    },
+    {
       "path": "string-module-identity-mir2.txt",
       "bytes": 43,
       "sha256": "6ac026449b7425558aa0d22d02bbff190b995836b16b6d3b388f0f9b1f2ac858"
@@ -57,5 +67,11 @@
     "compiler_commit": "92a7ca2d",
     "mir2": "PASS 6.529s",
     "showcase": "26 prior failures, 0 new, 5 historical resolved; native legacy string route pending"
+  },
+  "combined_repair_parent_gate": {
+    "compiler_commit": "a4ac51bd",
+    "packages": "HIR/MIR2/Lanz/Lizp/PLM/Pascal pass; Nanz only 26 existing showcase failures",
+    "cli": "FAIL 27.832s: policy/search collect unproved protected stack read from new spill snapshot; closed descriptor/decoder extension required",
+    "pipeline": "Running session45232; no overall result"
   }
 }

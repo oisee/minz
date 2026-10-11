@@ -1,0 +1,13 @@
+warning: Z80 output skipped because of the unsupported indirect-call ABI: Z80: indirect call in test_reassign_fp has live values across it; caller preservation for the indirect ABI is unsupported
+warning: Z80 output skipped because of the unsupported indirect-call ABI: Z80: indirect call in test_reassign_fp has live values across it; caller preservation for the indirect ABI is unsupported
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestPolicyCLICollectReplay (0.82s)
+    memory_host_policy_cli_test.go:126: memory host loop association: memory host baseline: memory host target: unproved protected access at PC06e5 addressefec write=false
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestSearchCLICollectAndPairedReplay (0.83s)
+    memory_host_search_cli_test.go:241: memory host loop association: memory host baseline: memory host target: unproved protected access at PC06e4 addressefec write=false
+FAIL
+FAIL	github.com/minz/minzc/cmd/minzc	27.832s
+FAIL

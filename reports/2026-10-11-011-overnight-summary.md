@@ -345,3 +345,17 @@ Exact executable 73a92d99ed89f94d4fe6af077ee2266e4ce870efbb010cfc651f759130ebe33
 Перед объединением остаётся покрыть OpCallCond при исключении TSMC
 для spill values, живущих через вызов, и проверить строковые 15
 на объединённом коде. Широкая generic готовность пока не заявлена.
+
+Объединённый код `a4ac51bd` включён и запушен. Corrected legacy
+15/15 PASS; два независимых saved-only аудита подтвердили вывод,
+pool, globals, PC/SP и пересборку всех BIN без повторного CPU.
+Final packet356 и recursive packet61 сохранены в root.
+
+Общий CLI gate нашёл реальный следующий разрыв: policy/search
+collect/replay отвергают новый EX(SP),HL как недоказанный доступ
+к защищённому стеку (27,832 s, два теста). Нужен отдельный typed
+spill-snapshot descriptor и точная проверка slot/activation/LIFO;
+числовое разрешение arbitrary stack access не добавляется.
+HIR/MIR2 и остальные frontends проходят; showcase остаётся26
+прежних, без новых. Полный pipeline45232 подтверждён исполняющимся.
+Строковый PGO этап остаётся открыт, Sites58 не изменён.
