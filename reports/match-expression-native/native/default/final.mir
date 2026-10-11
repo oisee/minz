@@ -1,0 +1,54 @@
+; MIR2 module: ../../../examples/nanz/11_match_expression.nanz
+fun @color_code(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = const 0 : u8 [general]
+    %r3 = cmp.eq %r1, %r2 : bool [flag]
+    br_if %r3, @cret_then1(), @cret_else2()
+  block @cret_then1:
+    %r4 = const 5 : u8 [general]
+    ret %r4
+  block @cret_else2:
+    %r5 = const 1 : u8 [general]
+    %r6 = cmp.eq %r1, %r5 : bool [flag]
+    br_if %r6, @cond_then3(), @cond_else4()
+  block @cond_then3:
+    %r7 = const 10 : u8 [general]
+    ret %r7
+  block @cond_else4:
+    %r8 = const 2 : u8 [general]
+    %r9 = cmp.eq %r1, %r8 : bool [flag]
+    %r10 = const 0 : u8 [general]
+    cond_ret %r9, [%r10], @cond_then6()
+  block @cond_then6:
+    %r11 = const 15 : u8 [general]
+    ret %r11
+
+fun @shape_sides(%r12: u8 [acc]) -> u8 [acc]
+  block @entry:
+    jmp @cret_else2()
+  block @cret_else2:
+    %r13 = const 1 : u8 [general]
+    %r14 = cmp.eq %r12, %r13 : bool [flag]
+    br_if %r14, @cond_then3(), @cond_else4()
+  block @cond_then3:
+    %r15 = const 4 : u8 [general]
+    ret %r15
+  block @cond_else4:
+    %r16 = const 2 : u8 [general]
+    %r17 = cmp.eq %r12, %r16 : bool [flag]
+    %r18 = const 0 : u8 [general]
+    cond_ret %r17, [%r18], @cond_then6()
+  block @cond_then6:
+    %r19 = const 3 : u8 [general]
+    ret %r19
+
+fun @is_warm(%r20: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r21 = const 0 : u8 [general]
+    %r22 = cmp.eq %r20, %r21 : bool [flag]
+    %r23 = const 0 : u8 [general]
+    cond_ret %r22, [%r23], @cret_then1()
+  block @cret_then1:
+    %r24 = const 1 : u8 [general]
+    ret %r24
+
