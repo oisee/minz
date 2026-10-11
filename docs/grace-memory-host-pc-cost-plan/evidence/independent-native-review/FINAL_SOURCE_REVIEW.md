@@ -1,0 +1,7 @@
+# Isolated PC hook final source review
+
+Frozen5fe9bba0 updates close earlierdiagnosticgaps. t.Cleanup registeredbeforehooks, so Fatal/panic cannotleaveactivecollectors. Pre-stepbytecapture immutableowned; firstobservedPC/bytes mustmatchprivateassembledlisting andBINextent. Positivecycles/checkedint64increments+sums refuseoverflow. Physicalentryhasactualinstruction, aliasEQUsymbolpresencevalidated, ownerendnextentry/finalcodeend; unknownPC/unowned handlingexplicit.
+
+pcListingInstruction filtersknownassemblerdata directives, notgeneralopcodecertificate. Thisisscopedknownlisting diagnostics: existingnative executable/fetch/protectedrecipes/framevalidator stillauthority. Sameassemblerresult captured beforeexecution andcomparedBIN; aliasfunction node_tag EQU peek doesn'taddphysicalrange. No inclusivecallchain/HIRloop lineage claim. Hookprivateglobal serial testonly, notparentmerge/publicAPI.
+
+No remainingmaterialsourcehole forcurrentfixture. Finalstaticowner test aftertinylistingfix required, thenonlytwooriginal/bothfull30actualruns ownerauthorized. Independent reviewerdoesnotrepeatCPU; savedperPC/step/T/byteledger andreferenceidentity audit follows.

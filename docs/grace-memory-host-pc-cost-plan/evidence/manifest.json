@@ -120,6 +120,36 @@
     "sha256": "554a3d0976e047f9994cabf1f9cea15c7522b1d31a4eaa1800ec7b7c7bddf372"
   },
   {
+    "path": "independent-native-review/DRAFT_FINDINGS.md",
+    "bytes": 1134,
+    "sha256": "0d2a85d50d84548b5311224cfed0ef0f63cae9d210a5c54a11f2bf12d8e45279"
+  },
+  {
+    "path": "independent-native-review/FINAL_SOURCE_REVIEW.md",
+    "bytes": 1164,
+    "sha256": "a89a27cdf6f85e125dcbf1775fee9331332124e61408c482bfdb2be95b12ee7a"
+  },
+  {
+    "path": "independent-native-review/OWNER_PLAN.md",
+    "bytes": 4061,
+    "sha256": "0480333bf5478ce62c0cb6012ed3a393f1967475dbda368ce9d49073791661b4"
+  },
+  {
+    "path": "independent-native-review/REVIEW.md",
+    "bytes": 1952,
+    "sha256": "433af9e37d7e34606e705af634795b3e1193c35315f531736e754c584d5db8b0"
+  },
+  {
+    "path": "independent-native-review/draft-inventory.json",
+    "bytes": 394,
+    "sha256": "da4b7c5d187dac5869d075bfe442a9051da5fdce22de174c9213b1e5aa23537f"
+  },
+  {
+    "path": "independent-native-review/final-source-inventory.json",
+    "bytes": 422,
+    "sha256": "ed6e95ddeabdfa15ee2d52ddcb8d24c893c556208663719c19b14f8795066bd8"
+  },
+  {
     "path": "independent-oracle-review/FINAL-AUDIT.md",
     "bytes": 2971,
     "sha256": "29bfbbc71f1be4e185e04139ad4b646fef480865d1c238d76f9786ff8dfc5083"
