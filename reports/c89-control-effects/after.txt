@@ -1,0 +1,7 @@
+=== RUN   TestC89ControlEffectsNative
+    c89_control_effects_native_test.go:262: ordinary 710 raw/final/native sequenced controls RAM/code/SP PASS
+    c89_control_effects_native_test.go:262: grace-size 710 raw/final/native sequenced controls RAM/code/SP PASS
+    c89_control_effects_native_test.go:262: grace-speed 710 raw/final/native sequenced controls RAM/code/SP PASS
+--- PASS: TestC89ControlEffectsNative (0.30s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.311s

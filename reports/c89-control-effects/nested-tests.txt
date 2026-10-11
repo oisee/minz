@@ -1,0 +1,4 @@
+=== RUN   TestControlEffectsNestedAndBreak
+--- PASS: TestControlEffectsNestedAndBreak (0.39s)
+PASS
+ok  	github.com/minz/minzc/pkg/c89	0.403s
