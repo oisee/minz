@@ -1,0 +1,65 @@
+=== RUN   TestShowcaseCompileAssemble
+    showcase_test.go:65: Found 192 showcase files
+=== RUN   TestShowcaseCompileAssemble/ex9a_factorial_rec.nanz
+    showcase_test.go:88: SOURCE_PATH reports/showcase-src/2026-03-11/ex9a_factorial_rec.nanz
+    showcase_test.go:171: OK: 857 bytes asm, 54 bytes binary
+    showcase_test.go:86: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-11/ex9a_factorial_rec.nanz","Case":"TestShowcaseCompileAssemble/ex9a_factorial_rec.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex9b_factorial_fold.nanz
+    showcase_test.go:88: SOURCE_PATH reports/showcase-src/2026-03-11/ex9b_factorial_fold.nanz
+    showcase_test.go:171: OK: 1153 bytes asm, 67 bytes binary
+    showcase_test.go:86: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-11/ex9b_factorial_fold.nanz","Case":"TestShowcaseCompileAssemble/ex9b_factorial_fold.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex9a_factorial_rec.nanz#01
+    showcase_test.go:88: SOURCE_PATH reports/showcase-src/2026-03-13/ex9a_factorial_rec.nanz
+    showcase_test.go:171: OK: 857 bytes asm, 54 bytes binary
+    showcase_test.go:86: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex9a_factorial_rec.nanz","Case":"TestShowcaseCompileAssemble/ex9a_factorial_rec.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex9b_factorial_fold.nanz#01
+    showcase_test.go:88: SOURCE_PATH reports/showcase-src/2026-03-13/ex9b_factorial_fold.nanz
+    showcase_test.go:171: OK: 1153 bytes asm, 67 bytes binary
+    showcase_test.go:86: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex9b_factorial_fold.nanz","Case":"TestShowcaseCompileAssemble/ex9b_factorial_fold.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/factorial.lizp
+    showcase_test.go:88: SOURCE_PATH examples/lizp/factorial.lizp
+    showcase_test.go:171: OK: 1047 bytes asm, 73 bytes binary
+    showcase_test.go:86: SHOWCASE_CASE {"Path":"examples/lizp/factorial.lizp","Case":"TestShowcaseCompileAssemble/factorial.lizp","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/showcase.lizp
+    showcase_test.go:88: SOURCE_PATH examples/lizp/showcase.lizp
+    showcase_test.go:90: known failure: pipeline: Lizp asm string treated as unknown HIR variable
+    showcase_test.go:86: SHOWCASE_CASE {"Path":"examples/lizp/showcase.lizp","Case":"TestShowcaseCompileAssemble/showcase.lizp","Status":"SKIP","Stage":"skip"}
+=== RUN   TestShowcaseCompileAssemble/01_sum_array.nanz
+    showcase_test.go:88: SOURCE_PATH examples/nanz/01_sum_array.nanz
+    showcase_test.go:171: OK: 2562 bytes asm, 205 bytes binary
+    showcase_test.go:86: SHOWCASE_CASE {"Path":"examples/nanz/01_sum_array.nanz","Case":"TestShowcaseCompileAssemble/01_sum_array.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/01_sum_array.plm
+    showcase_test.go:88: SOURCE_PATH examples/nanz/01_sum_array.plm
+    showcase_test.go:171: OK: 684 bytes asm, 32 bytes binary
+    showcase_test.go:86: SHOWCASE_CASE {"Path":"examples/nanz/01_sum_array.plm","Case":"TestShowcaseCompileAssemble/01_sum_array.plm","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/50_impl_showcase.nanz
+    showcase_test.go:88: SOURCE_PATH examples/nanz/50_impl_showcase.nanz
+    showcase_test.go:171: OK: 3793 bytes asm, 231 bytes binary
+    showcase_test.go:86: SHOWCASE_CASE {"Path":"examples/nanz/50_impl_showcase.nanz","Case":"TestShowcaseCompileAssemble/50_impl_showcase.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/factorial.pas
+    showcase_test.go:88: SOURCE_PATH examples/pascal/factorial.pas
+    showcase_test.go:171: OK: 2931 bytes asm, 242 bytes binary
+    showcase_test.go:86: SHOWCASE_CASE {"Path":"examples/pascal/factorial.pas","Case":"TestShowcaseCompileAssemble/factorial.pas","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/showcase.plm
+    showcase_test.go:88: SOURCE_PATH examples/plm/showcase.plm
+    showcase_test.go:171: OK: 2666 bytes asm, 98 bytes binary
+    showcase_test.go:86: SHOWCASE_CASE {"Path":"examples/plm/showcase.plm","Case":"TestShowcaseCompileAssemble/showcase.plm","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/nanz_advantage_showcase.nanz
+    showcase_test.go:88: SOURCE_PATH examples/tests/nanz_advantage_showcase.nanz
+    showcase_test.go:171: OK: 3511 bytes asm, 169 bytes binary
+    showcase_test.go:86: SHOWCASE_CASE {"Path":"examples/tests/nanz_advantage_showcase.nanz","Case":"TestShowcaseCompileAssemble/nanz_advantage_showcase.nanz","Status":"PASS","Stage":"complete"}
+--- PASS: TestShowcaseCompileAssemble (0.09s)
+    --- PASS: TestShowcaseCompileAssemble/ex9a_factorial_rec.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex9b_factorial_fold.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex9a_factorial_rec.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex9b_factorial_fold.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/factorial.lizp (0.00s)
+    --- SKIP: TestShowcaseCompileAssemble/showcase.lizp (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/01_sum_array.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/01_sum_array.plm (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/50_impl_showcase.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/factorial.pas (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/showcase.plm (0.04s)
+    --- PASS: TestShowcaseCompileAssemble/nanz_advantage_showcase.nanz (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/nanz	0.102s

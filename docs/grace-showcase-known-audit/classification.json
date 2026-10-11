@@ -1,0 +1,184 @@
+{
+  "base_commit": "fdb26b92",
+  "total": 192,
+  "known_before": 25,
+  "known_now_pass": 19,
+  "known_now_fail": 6,
+  "all_enabled": {
+    "PASS": 186,
+    "FAIL": 6,
+    "SKIP": 0
+  },
+  "removed_skip_cases": [
+    {
+      "Path": "reports/showcase-src/2026-03-11/ex14_fold_assert.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex14_fold_assert.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex14_fold_assert.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex14_fold_assert.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-14/ex20_arena_allocator.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex20_arena_allocator.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-14/ex23_import_unqualified.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex23_import_unqualified.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-14/ex24_import_qualified.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex24_import_qualified.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-14/ex25_import_alias_glob.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex25_import_alias_glob.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/lizp/cond_test.lizp",
+      "Case": "TestShowcaseCompileAssemble/cond_test.lizp",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/lizp/factorial.lizp",
+      "Case": "TestShowcaseCompileAssemble/factorial.lizp",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/01_sum_array.nanz",
+      "Case": "TestShowcaseCompileAssemble/01_sum_array.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/01_sum_array.plm",
+      "Case": "TestShowcaseCompileAssemble/01_sum_array.plm",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/01_sum_plm_origin.plm",
+      "Case": "TestShowcaseCompileAssemble/01_sum_plm_origin.plm",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/08_arena_allocator.nanz",
+      "Case": "TestShowcaseCompileAssemble/08_arena_allocator.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/nc.nanz",
+      "Case": "TestShowcaseCompileAssemble/nc.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/pascal/casetest.pas",
+      "Case": "TestShowcaseCompileAssemble/casetest.pas",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/pascal/factorial.pas",
+      "Case": "TestShowcaseCompileAssemble/factorial.pas",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/pascal/sieve.pas",
+      "Case": "TestShowcaseCompileAssemble/sieve.pas",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/plm/showcase.plm",
+      "Case": "TestShowcaseCompileAssemble/showcase.plm",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/zx/plasma.nanz",
+      "Case": "TestShowcaseCompileAssemble/plasma.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/zx/tetris.nanz",
+      "Case": "TestShowcaseCompileAssemble/tetris.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    }
+  ],
+  "remaining": [
+    {
+      "Path": "reports/showcase-src/2026-03-10/ex4a_abs_diff_iar.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex4a_abs_diff_iar.nanz",
+      "Status": "FAIL",
+      "Stage": "pipeline",
+      "classification": "MIR2 runtime assertion",
+      "cause": "Confirmed suspected language semantic miscompile; i8 signed comparison should follow Book v7 §3.2. Input20,-10 result226 expected30. Old IAR unsupported label was misleading.",
+      "specification": "docs/Nanz_Language_Book_v7.md §3.2"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-15/ex34_tetris.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex34_tetris.nanz",
+      "Status": "FAIL",
+      "Stage": "pipeline",
+      "classification": "HIR verification",
+      "cause": "Archived source still fails main non-address u8; pointer/array assignments are language-supported (§2.7/2.15/3.3); current examples/zx/tetris.nanz passes. Not an import error.",
+      "specification": "docs/Nanz_Language_Book_v7.md §2.15, §3.3"
+    },
+    {
+      "Path": "examples/lizp/showcase.lizp",
+      "Case": "TestShowcaseCompileAssemble/showcase.lizp",
+      "Status": "FAIL",
+      "Stage": "pipeline",
+      "classification": "HIR verification",
+      "cause": "Quoted Lizp asm instruction becomes unknown variable in zx_poke; frontend macro/ASM lowering gap, not MZA encoding. Nanz Book §2.14 specifies Nanz ASM and cannot alone serve as Lizp spec.",
+      "specification": "Lizp source (asm \"LD (HL), A\" (in addr val)); Nanz Book §2.14 only Nanz syntax"
+    },
+    {
+      "Path": "examples/lizp/zx_checkerboard.lizp",
+      "Case": "TestShowcaseCompileAssemble/zx_checkerboard.lizp",
+      "Status": "FAIL",
+      "Stage": "pipeline",
+      "classification": "HIR verification",
+      "cause": "Same quoted Lizp ASM gap, explicitly preserved for repair.",
+      "specification": "Lizp source zx-poke"
+    },
+    {
+      "Path": "examples/lizp/zx_rainbow.lizp",
+      "Case": "TestShowcaseCompileAssemble/zx_rainbow.lizp",
+      "Status": "FAIL",
+      "Stage": "pipeline",
+      "classification": "HIR verification",
+      "cause": "Same quoted Lizp ASM gap, explicitly preserved for repair.",
+      "specification": "Lizp source zx-poke"
+    },
+    {
+      "Path": "examples/zmachine/zork-west-demo/zvm.nanz",
+      "Case": "TestShowcaseCompileAssemble/zvm.nanz",
+      "Status": "FAIL",
+      "Stage": "pipeline",
+      "classification": "Native code generation",
+      "cause": "u32 caller spill save rejects width4; codegen also emits invalid 32-bit spill loads. Book §3.1 claims u32 via shadow pairs, so mark compiler support gap. External file/UTF8/line-input hosts separately need a native runtime; not evidence Z80 is impossible.",
+      "specification": "docs/Nanz_Language_Book_v7.md §3.1; source @extern declarations"
+    }
+  ]
+}

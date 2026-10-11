@@ -1,0 +1,39 @@
+{
+  "base_commit": "fdb26b92",
+  "bypass_exit": 1,
+  "default_exit": 0,
+  "files": {
+    "REPORT.md": {
+      "sha256": "b2fc69f431f0153d29dd5ad852b1eb84d5ba2fff2b3270aea4ca2f8ec58ea824",
+      "bytes": 3577
+    },
+    "all-cases.json": {
+      "sha256": "3f54edf0f3104fc060e5db4f06f454ff5eab08f3c111ae54e48f791ac915de36",
+      "bytes": 32984
+    },
+    "all-known-enabled.txt": {
+      "sha256": "fa0f4e333c6a76a0d85e682c5eac54cae7ec9ace6246c10326a19ab67c456885",
+      "bytes": 93715
+    },
+    "classification.json": {
+      "sha256": "257f61aa48621fc1ff0451b4fbd3920921a054126505344c53da5157fc7c53c4",
+      "bytes": 6498
+    },
+    "collision-cases.txt": {
+      "sha256": "02f80adf664ec2cf163113a22cd395e37c8dee3911af856d53295c37bb56b955",
+      "bytes": 5625
+    },
+    "default-after.txt": {
+      "sha256": "019de24f29a99d34e52eb7b1b88d065e2ee28c62b48b8b150e2723e540f10a6a",
+      "bytes": 86176
+    },
+    "default-cases.json": {
+      "sha256": "60c1591378d814865afcfbb319fe440adaeca364ecf2c9cc3e4936e5b68a7aed",
+      "bytes": 32960
+    },
+    "original-known.json": {
+      "sha256": "9c9a651ecf8410cfc6dbfaa01d27bdd186f21544c286ab81b1d172d89dad3d04",
+      "bytes": 4239
+    }
+  }
+}
