@@ -2420,5 +2420,75 @@
     "bytes": 831,
     "original_sha256": "216a96232db7cf5ea4ea239180dfcf58c99b4d70794dabd99d18dd76185fcb0a",
     "original_bytes": 831
+  },
+  {
+    "path": "independent-native/REVIEW.md",
+    "sha256": "e4f880a13f025aa65ed48e3cfc5dcec73986764d9cf7403e86ada547a948d641",
+    "bytes": 1246,
+    "original_sha256": "e4f880a13f025aa65ed48e3cfc5dcec73986764d9cf7403e86ada547a948d641",
+    "original_bytes": 1246
+  },
+  {
+    "path": "independent-native/assembly.txt",
+    "sha256": "f7c2dd29536d5a7ca1d5f17abb86a8243b6357bf5a48d3391ad446c6c7a33679",
+    "bytes": 1970,
+    "original_sha256": "f7c2dd29536d5a7ca1d5f17abb86a8243b6357bf5a48d3391ad446c6c7a33679",
+    "original_bytes": 1970
+  },
+  {
+    "path": "independent-native/audit_legacy.py",
+    "sha256": "4ab67a64180439efaa8c759fc2ae2c400bb5d02168765e1eefd81a6f9b0f0a3e",
+    "bytes": 2130,
+    "original_sha256": "4ab67a64180439efaa8c759fc2ae2c400bb5d02168765e1eefd81a6f9b0f0a3e",
+    "original_bytes": 2130
+  },
+  {
+    "path": "independent-native/bytes-state.txt",
+    "sha256": "3b3df3a0994fb4078234d669e631e4fd4fbe735b860435991cb8ac3139509130",
+    "bytes": 1374,
+    "original_sha256": "3b3df3a0994fb4078234d669e631e4fd4fbe735b860435991cb8ac3139509130",
+    "original_bytes": 1374
+  },
+  {
+    "path": "independent-native/reassemble.go.txt",
+    "sha256": "410c68c412c8b7ce3fc89311111d6dfc9668073de5715195aa152a3e7a741a2d",
+    "bytes": 1046,
+    "original_sha256": "410c68c412c8b7ce3fc89311111d6dfc9668073de5715195aa152a3e7a741a2d",
+    "original_bytes": 1046
+  },
+  {
+    "path": "independent-semantic/LEGACY-CORRECTED-AUDIT.md",
+    "sha256": "65456c47371be047af8c1da3333742c163633a7d813308947ec43694a74b4296",
+    "bytes": 1353,
+    "original_sha256": "65456c47371be047af8c1da3333742c163633a7d813308947ec43694a74b4296",
+    "original_bytes": 1353
+  },
+  {
+    "path": "independent-semantic/legacy-corrected-offline-reassembly.txt",
+    "sha256": "9ce83c27a0dfd5a286f6874e97755f457ed5776f97834e349c7094aceb85afb8",
+    "bytes": 472,
+    "original_sha256": "9ce83c27a0dfd5a286f6874e97755f457ed5776f97834e349c7094aceb85afb8",
+    "original_bytes": 472
+  },
+  {
+    "path": "independent-semantic/legacy-corrected-saved-audit.json",
+    "sha256": "05d515e7edde0648937f61276f38564c3f3f8659d21dbef0c25177d45f8f6abb",
+    "bytes": 7768,
+    "original_sha256": "05d515e7edde0648937f61276f38564c3f3f8659d21dbef0c25177d45f8f6abb",
+    "original_bytes": 7768
+  },
+  {
+    "path": "independent-semantic/tools/audit_strings_legacy.py",
+    "sha256": "eb4f67e7771641338dd9f6238144b23379c8c0678b0b2e38c76da6c2fa8b5969",
+    "bytes": 3576,
+    "original_sha256": "eb4f67e7771641338dd9f6238144b23379c8c0678b0b2e38c76da6c2fa8b5969",
+    "original_bytes": 3576
+  },
+  {
+    "path": "packaged-corrected-saved-audit.json",
+    "sha256": "05d515e7edde0648937f61276f38564c3f3f8659d21dbef0c25177d45f8f6abb",
+    "bytes": 7768,
+    "original_sha256": "05d515e7edde0648937f61276f38564c3f3f8659d21dbef0c25177d45f8f6abb",
+    "original_bytes": 7768
   }
 ]
