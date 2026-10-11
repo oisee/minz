@@ -34,7 +34,7 @@ func runZ80MemoryHostLoopProfile(factory func() (*hir.Module, error), workload h
 	if err != nil {
 		return fail(err)
 	}
-	seen := map[uintptr]bool{}
+	seen := map[uintptr]any{}
 	retained := []*hir.Module{}
 	fresh := func() (*hir.Module, error) {
 		m, err := factory()

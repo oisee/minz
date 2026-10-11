@@ -58,7 +58,7 @@ func MeasureContractStrategies(factory func() (*hir.Module, error), workload hir
 		return fail(e)
 	}
 	workload = owned
-	seen := map[uintptr]bool{}
+	seen := map[uintptr]any{}
 	retained := []*hir.Module{}
 	defer func() { runtime.KeepAlive(retained) }()
 	var key *hir.ProfileCompatibility

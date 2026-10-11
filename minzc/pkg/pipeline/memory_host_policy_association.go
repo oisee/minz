@@ -237,7 +237,7 @@ func ReplayMemoryHostLoopProfileEvidenceV2(factory func() (*hir.Module, error), 
 	if err = validatePolicyAssociationEnvelope(preflight, options); err != nil {
 		return nil, err
 	}
-	seen := map[uintptr]bool{}
+	seen := map[uintptr]any{}
 	retained := []*hir.Module{}
 	roots := []any{}
 	defer func() { runtime.KeepAlive(roots); runtime.KeepAlive(retained) }()

@@ -59,7 +59,7 @@ func MeasureLoopCostModel(factory func() (*hir.Module, error), function string, 
 		return fail(err)
 	}
 	modules := make([]*hir.Module, 3)
-	seen := map[uintptr]bool{}
+	seen := map[uintptr]any{}
 	var key *hir.ProfileCompatibility
 	var context hir.ProfileContext
 	for i := range modules {

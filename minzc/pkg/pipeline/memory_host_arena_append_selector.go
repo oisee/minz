@@ -60,7 +60,7 @@ func MeasureMemoryHostArenaAppend(factory func() (*hir.Module, error), w hir.Mem
 		return nil, e
 	}
 	payload := append([]byte{}, serialized...)
-	seen := map[uintptr]bool{}
+	seen := map[uintptr]any{}
 	retained := []*hir.Module{}
 	privateRoots := []any{}
 	defer func() { runtime.KeepAlive(privateRoots); runtime.KeepAlive(retained) }()

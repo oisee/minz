@@ -53,7 +53,7 @@ func MeasureMemoryHostArenaAppendWithOptions(factory func() (*hir.Module, error)
 	if e = validatePolicyAssociationEnvelope(preflight, ownedOptions); e != nil {
 		return nil, e
 	}
-	seen := map[uintptr]bool{}
+	seen := map[uintptr]any{}
 	retained := []*hir.Module{}
 	privateRoots := []any{}
 	defer func() { runtime.KeepAlive(privateRoots); runtime.KeepAlive(retained) }()
