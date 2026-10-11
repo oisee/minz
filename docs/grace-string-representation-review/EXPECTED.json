@@ -57,5 +57,51 @@
     ]
   },
   "output_port": 35,
-  "scope": "independent language representation and output contract; no VM-derived expected output"
+  "scope": "independent language representation and output contract; no VM-derived expected output",
+  "admission": {
+    "SString": {
+      "max_utf8_bytes": 255,
+      "accept_lengths": [
+        0,
+        255
+      ],
+      "reject_lengths": [
+        256
+      ]
+    },
+    "LString": {
+      "max_utf8_bytes": 65535,
+      "accept_lengths": [
+        0,
+        65535
+      ],
+      "reject_lengths": [
+        65536
+      ]
+    },
+    "UTF8_example": {
+      "text": "é",
+      "bytes": [
+        195,
+        169
+      ],
+      "S_encoding": [
+        2,
+        195,
+        169
+      ],
+      "L_encoding": [
+        2,
+        0,
+        195,
+        169
+      ],
+      "C_encoding": [
+        195,
+        169,
+        0
+      ]
+    }
+  },
+  "boundary_scope": "format-length admission is distinct from total native64K image/stack capacity; no executable65535payloadclaim"
 }
