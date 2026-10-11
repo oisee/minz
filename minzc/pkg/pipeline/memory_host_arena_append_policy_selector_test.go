@@ -1,8 +1,12 @@
 package pipeline
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"github.com/minz/minzc/pkg/nanz"
+	"os"
+	"path/filepath"
 	"reflect"
 	"runtime"
 	"strings"
@@ -286,5 +290,112 @@ func TestMemoryHostPolicySelectorUnobservedAndTies(t *testing.T) {
 	smaller := &MemoryHostTargetEvidence{TotalTStates: 20, Binary: make([]byte, 4)}
 	if selectMemoryHostArenaCandidate("size", a, smaller) != 1 || selectMemoryHostArenaCandidate("speed", a, smaller) != 0 {
 		t.Fatal("objective primary cost")
+	}
+}
+
+// Explicit artifact run: one speed-selector execution per policy. Size winners
+// are derived from the same actual candidates, not a second GoalSize execution.
+func TestMemoryHostPolicySelectorOriginalParserExport(t *testing.T) {
+	dir := os.Getenv("MINZ_MEMORY_HOST_POLICY_SELECTOR_ARTIFACTS")
+	if dir == "" {
+		t.Skip("explicit eight-candidate policy artifact export")
+	}
+	source, err := os.ReadFile("../../../examples/nanz/self_lanz_parser.nanz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if fmt.Sprintf("%x", sha256.Sum256(source)) != "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526" {
+		t.Fatal("source identity")
+	}
+	_, w := memoryHostParserFixture(t)
+	parse := func() (*hir.Module, error) {
+		m, e := nanz.Parse(string(source), "../examples/nanz/self_lanz_parser.nanz")
+		if e == nil {
+			m.Target = hir.TargetCPM
+		}
+		return m, e
+	}
+	var first *MemoryHostArenaAppendSelectionV2
+	for _, policy := range []mir2.UnsignedPairComparePolicy{mir2.UnsignedPairCompareLegacy, mir2.UnsignedPairComparePreserveForSpeed} {
+		name := []string{"legacy", "preserve-speed"}[int(policy)]
+		out := filepath.Join(dir, name)
+		if err = os.MkdirAll(out, 0755); err != nil {
+			t.Fatal(err)
+		}
+		options := MemoryHostBaselineOptions{UnsignedPairComparePolicy: policy}
+		association, err := RunZ80MemoryHostLoopProfileWithOptions(parse, w, options)
+		if err != nil {
+			os.WriteFile(filepath.Join(out, "error.txt"), []byte(err.Error()+"\n"), 0644)
+			t.Fatal(err)
+		}
+		profile, err := json.MarshalIndent(association, "", "  ")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err = os.WriteFile(filepath.Join(out, "input-association-v2.json"), profile, 0644); err != nil {
+			t.Fatal(err)
+		}
+		calls := 0
+		factory := func() (*hir.Module, error) { calls++; return parse() }
+		result, err := MeasureMemoryHostArenaAppendWithOptions(factory, w, profile, MemoryHostArenaAppendSelectorOptions{Goal: "speed", MaxSites: 2}, options)
+		if err != nil {
+			os.WriteFile(filepath.Join(out, "error.txt"), []byte(err.Error()+"\n"), 0644)
+			t.Fatal(err)
+		}
+		encoded, err := json.MarshalIndent(result, "", "  ")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err = os.WriteFile(filepath.Join(out, "selection-v2.json"), encoded, 0644); err != nil {
+			t.Fatal(err)
+		}
+		if calls != 24 || len(result.Candidates) != 4 {
+			t.Fatal("bounded lifecycle", calls)
+		}
+		sizeWinner := 0
+		for mask, c := range result.Candidates {
+			q := filepath.Join(out, []string{"original", "arena", "append", "both"}[mask])
+			if err = os.MkdirAll(q, 0755); err != nil {
+				t.Fatal(err)
+			}
+			payload, err := json.MarshalIndent(c.Evidence, "", "  ")
+			if err != nil {
+				t.Fatal(err)
+			}
+			target := c.Evidence.Baseline.Target
+			for n, b := range map[string][]byte{"baseline-v2.json": payload, "source.nanz": source, "target.bin": target.Binary, "target.a80": []byte(target.Assembly), "allocation.json": target.AllocationJSON, "final.mir2": []byte(target.FinalMIRDump)} {
+				if err = os.WriteFile(filepath.Join(q, n), b, 0644); err != nil {
+					t.Fatal(err)
+				}
+			}
+			choices := hir.MemoryHostArenaAppendChoices{ArenaPeel: mask&1 != 0, AppendHoist: mask&2 != 0}
+			if bindMemoryHostArenaAppendPolicyProof(c.PrecompileProof, result.SourceSites, choices, options, result.Candidates[0].Evidence, c.Evidence) != nil {
+				t.Fatal("measured proof envelope")
+			}
+			if selectMemoryHostArenaCandidate("size", result.Candidates[sizeWinner].Evidence.Baseline.Target, target) == 1 {
+				sizeWinner = mask
+			}
+			t.Logf("policy%d mask%d %dT/%dB BIN%s", policy, mask, target.TotalTStates, len(target.Binary), target.BinarySHA256)
+		}
+		summary, _ := json.MarshalIndent(map[string]any{"actual_selector_goal": "speed", "actual_selected": result.Selected, "derived_size_selected": sizeWinner, "factory_calls": calls, "size_scope": "calculated from the same saved actual four candidates; no second selector execution"}, "", "  ")
+		if err = os.WriteFile(filepath.Join(out, "derived-objectives.json"), summary, 0644); err != nil {
+			t.Fatal(err)
+		}
+		if first == nil {
+			first = result
+		} else {
+			if !reflect.DeepEqual(first.Profile, result.Profile) || !reflect.DeepEqual(first.SourceSites, result.SourceSites) {
+				t.Fatal("backend policy changed source profile")
+			}
+			for mask, c := range result.Candidates {
+				a, b := first.Candidates[mask].Evidence.Baseline, c.Evidence.Baseline
+				if !reflect.DeepEqual(a.Raw, b.Raw) || !reflect.DeepEqual(a.Compatibility, b.Compatibility) || !reflect.DeepEqual(a.FunctionSites, b.FunctionSites) {
+					t.Fatal("policy changed source identity", mask)
+				}
+				if err = arenaSameObservations(a.Target.Invocations, b.Target.Invocations); err != nil {
+					t.Fatal(err)
+				}
+			}
+		}
 	}
 }
