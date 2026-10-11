@@ -1,0 +1,18 @@
+=== RUN   TestMemoryHostPolicySelectorPreflight
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostPolicySelectorPreflight/malformed
+=== RUN   TestMemoryHostPolicySelectorPreflight/case
+=== RUN   TestMemoryHostPolicySelectorPreflight/duplicate
+=== RUN   TestMemoryHostPolicySelectorPreflight/wrong-policy
+=== RUN   TestMemoryHostPolicySelectorPreflight/nested-policy
+=== RUN   TestMemoryHostPolicySelectorPreflight/bare-profile
+--- PASS: TestMemoryHostPolicySelectorPreflight (1.55s)
+    --- PASS: TestMemoryHostPolicySelectorPreflight/malformed (0.00s)
+    --- PASS: TestMemoryHostPolicySelectorPreflight/case (0.01s)
+    --- PASS: TestMemoryHostPolicySelectorPreflight/duplicate (0.00s)
+    --- PASS: TestMemoryHostPolicySelectorPreflight/wrong-policy (0.02s)
+    --- PASS: TestMemoryHostPolicySelectorPreflight/nested-policy (0.02s)
+    --- PASS: TestMemoryHostPolicySelectorPreflight/bare-profile (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.557s

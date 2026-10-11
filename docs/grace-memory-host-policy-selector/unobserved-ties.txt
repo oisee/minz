@@ -1,0 +1,8 @@
+=== RUN   TestMemoryHostPolicySelectorUnobservedAndTies
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostPolicySelectorUnobservedAndTies (3.91s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.924s
