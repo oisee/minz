@@ -535,16 +535,6 @@
       "sha256": "6e6d03372179a4f1ada3d386440a8c818784a48f8892c06a45f90d9fc0e3630b"
     },
     {
-      "path": "independent-oracle/model/__pycache__/audit_profile.cpython-312.pyc",
-      "bytes": 3495,
-      "sha256": "98b0e16b625c7b73f348d589d4cd8d4abc2d4536c04e84d520b9d30e0ed5d971"
-    },
-    {
-      "path": "independent-oracle/model/__pycache__/verify_corpus.cpython-312.pyc",
-      "bytes": 18811,
-      "sha256": "79acadc1f29185369f89fb454c102f52d4b37b798b3c76b0fe47a5d59bc96b09"
-    },
-    {
       "path": "independent-oracle/model/audit_profile.py",
       "bytes": 1951,
       "sha256": "50814a6c4b56c341836bf58803cf14cb23918e74d92973b0bfb04d0217a37531"
