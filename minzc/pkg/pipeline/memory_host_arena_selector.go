@@ -43,6 +43,7 @@ func MeasureMemoryHostArenaPeel(factory func() (*hir.Module, error), w hir.Memor
 	seen := map[uintptr]bool{}
 	retained := []*hir.Module{}
 	privateRoots := []any{}
+	defer func() { runtime.KeepAlive(privateRoots); runtime.KeepAlive(retained) }()
 	fresh := func() (*hir.Module, error) {
 		m, e := factory()
 		if e != nil {
