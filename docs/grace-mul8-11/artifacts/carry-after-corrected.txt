@@ -1,0 +1,10 @@
+=== RUN   TestMulLivePredicateNative
+=== RUN   TestMulLivePredicateNative/coeff3
+=== RUN   TestMulLivePredicateNative/coeff11
+=== RUN   TestMulLivePredicateNative/coeff17
+--- PASS: TestMulLivePredicateNative (0.18s)
+    --- PASS: TestMulLivePredicateNative/coeff3 (0.06s)
+    --- PASS: TestMulLivePredicateNative/coeff11 (0.06s)
+    --- PASS: TestMulLivePredicateNative/coeff17 (0.06s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.186s
