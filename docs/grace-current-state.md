@@ -320,6 +320,12 @@ Memory-host теперь допускает действительно недо�
 [Интеграция087](grace-integration-087/README.md).
 Новый full core5fe165dd: HIR/MIR2/Nanz/VIR PASS, CLI пока выполняется.
 
+FAT12 address hoist интегрирован отдельно от correctness fix: Grace Speed
+13828→11202 T, +16 B полного модуля; default и Grace Size сохраняются.
+Root independent ABI/memory/wrap/zero/fault-prefix проверки проходят.
+Это cache-hit процедура с дисковыми адаптерами, не настоящий диск и не heldout PGO.
+[Интеграция088](grace-integration-088/README.md).
+
 ## Следующие шаги
 
 1. Проверять checked-local таблицы на дополнительных реальных случаях и

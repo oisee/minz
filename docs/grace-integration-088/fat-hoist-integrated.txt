@@ -1,0 +1,275 @@
+=== RUN   TestInvariantAddressReassociationEffects
+=== RUN   TestInvariantAddressReassociationEffects/ordinary
+=== RUN   TestInvariantAddressReassociationEffects/global
+=== RUN   TestInvariantAddressReassociationEffects/wrap
+=== RUN   TestInvariantAddressReassociationEffects/zero
+=== RUN   TestInvariantAddressReassociationEffects/alias-store
+=== RUN   TestInvariantAddressReassociationEffects/denied
+=== RUN   TestInvariantAddressReassociationEffects/short-heap
+=== RUN   TestInvariantAddressReassociationEffects/extra-use
+=== RUN   TestInvariantAddressReassociationEffects/unknown-global
+=== RUN   TestInvariantAddressReassociationEffects/variant-offset
+=== RUN   TestInvariantAddressReassociationEffects/hard-sum
+=== RUN   TestInvariantAddressReassociationEffects/wide-sum
+=== RUN   TestInvariantAddressReassociationEffects/mutating-call
+--- PASS: TestInvariantAddressReassociationEffects (0.00s)
+    --- PASS: TestInvariantAddressReassociationEffects/ordinary (0.00s)
+    --- PASS: TestInvariantAddressReassociationEffects/global (0.00s)
+    --- PASS: TestInvariantAddressReassociationEffects/wrap (0.00s)
+    --- PASS: TestInvariantAddressReassociationEffects/zero (0.00s)
+    --- PASS: TestInvariantAddressReassociationEffects/alias-store (0.00s)
+    --- PASS: TestInvariantAddressReassociationEffects/denied (0.00s)
+    --- PASS: TestInvariantAddressReassociationEffects/short-heap (0.00s)
+    --- PASS: TestInvariantAddressReassociationEffects/extra-use (0.00s)
+    --- PASS: TestInvariantAddressReassociationEffects/unknown-global (0.00s)
+    --- PASS: TestInvariantAddressReassociationEffects/variant-offset (0.00s)
+    --- PASS: TestInvariantAddressReassociationEffects/hard-sum (0.00s)
+    --- PASS: TestInvariantAddressReassociationEffects/wide-sum (0.00s)
+    --- PASS: TestInvariantAddressReassociationEffects/mutating-call (0.00s)
+=== RUN   TestInvariantAddressEffects
+=== RUN   TestInvariantAddressEffects/ordinary
+=== RUN   TestInvariantAddressEffects/wrap
+=== RUN   TestInvariantAddressEffects/zero
+=== RUN   TestInvariantAddressEffects/denied
+=== RUN   TestInvariantAddressEffects/mutating-call
+=== RUN   TestInvariantAddressEffects/alias-store
+=== RUN   TestInvariantAddressEffects/asm
+=== RUN   TestInvariantAddressEffects/variant-base
+=== RUN   TestInvariantAddressEffects/short-heap
+--- PASS: TestInvariantAddressEffects (0.00s)
+    --- PASS: TestInvariantAddressEffects/ordinary (0.00s)
+    --- PASS: TestInvariantAddressEffects/wrap (0.00s)
+    --- PASS: TestInvariantAddressEffects/zero (0.00s)
+    --- PASS: TestInvariantAddressEffects/denied (0.00s)
+    --- PASS: TestInvariantAddressEffects/mutating-call (0.00s)
+    --- PASS: TestInvariantAddressEffects/alias-store (0.00s)
+    --- PASS: TestInvariantAddressEffects/asm (0.00s)
+    --- PASS: TestInvariantAddressEffects/variant-base (0.00s)
+    --- PASS: TestInvariantAddressEffects/short-heap (0.00s)
+=== RUN   TestInvariantAddressRejectsEveryCallForm
+=== RUN   TestInvariantAddressRejectsEveryCallForm/call
+=== RUN   TestInvariantAddressRejectsEveryCallForm/call_indirect
+=== RUN   TestInvariantAddressRejectsEveryCallForm/call_cc
+--- PASS: TestInvariantAddressRejectsEveryCallForm (0.00s)
+    --- PASS: TestInvariantAddressRejectsEveryCallForm/call (0.00s)
+    --- PASS: TestInvariantAddressRejectsEveryCallForm/call_indirect (0.00s)
+    --- PASS: TestInvariantAddressRejectsEveryCallForm/call_cc (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.017s
+=== RUN   TestByteLoadSpillKeepsLiveAccumulator
+--- PASS: TestByteLoadSpillKeepsLiveAccumulator (0.13s)
+=== RUN   TestConditionalInvariantRegression
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=false/mask0
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=false/mask1
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=false/mask2
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=false/mask3
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=true/mask0
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=true/mask1
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=true/mask2
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=true/mask3
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=false/mask0
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=false/mask1
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=false/mask2
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=false/mask3
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=true/mask0
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=true/mask1
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=true/mask2
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=true/mask3
+--- PASS: TestConditionalInvariantRegression (1.29s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=false/mask0 (0.07s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=false/mask1 (0.07s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=false/mask2 (0.06s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=false/mask3 (0.07s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=true/mask0 (0.07s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=true/mask1 (0.08s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=true/mask2 (0.07s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=true/mask3 (0.07s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=false/mask0 (0.09s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=false/mask1 (0.08s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=false/mask2 (0.09s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=false/mask3 (0.08s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=true/mask0 (0.10s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=true/mask1 (0.09s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=true/mask2 (0.09s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=true/mask3 (0.09s)
+=== RUN   TestConditionalInvariantSiteCandidates
+--- PASS: TestConditionalInvariantSiteCandidates (0.43s)
+=== RUN   TestFATDirectoryWriteNativeState
+[HIR-SPLIT] write_fat12 → write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fat_cache_put → fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] find_file → find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] get_file_size → get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] file_read → file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] file_write_data → file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] update_dir_size → update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] delete_file → delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] overwrite_file → overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] count_dir_entries → count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] get_dir_entry → get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] get_dir_entry_full → get_dir_entry_full$split_4 (0 inputs, pressure 14)
+=== RUN   TestFATDirectoryWriteNativeState/default/slot0
+    fat_directory_native_test.go:225: default slot0 13828T 9691B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/default/slot1
+    fat_directory_native_test.go:225: default slot1 13828T 9691B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/default/slot5
+    fat_directory_native_test.go:225: default slot5 13828T 9691B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/default/slot15
+    fat_directory_native_test.go:225: default slot15 13828T 9691B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/default/slot16
+    fat_directory_native_test.go:225: default slot16 13828T 9691B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/default/slot255
+    fat_directory_native_test.go:225: default slot255 13828T 9691B rawVM/finalVM/native512+64KiB/SP PASS
+[HIR-SPLIT] write_fat12 → write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fat_cache_put → fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] find_file → find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] get_file_size → get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] file_read → file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] file_write_data → file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] update_dir_size → update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] delete_file → delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] overwrite_file → overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] count_dir_entries → count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] get_dir_entry → get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] get_dir_entry_full → get_dir_entry_full$split_4 (0 inputs, pressure 14)
+=== RUN   TestFATDirectoryWriteNativeState/grace-size/slot0
+    fat_directory_native_test.go:225: grace-size slot0 13828T 9869B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/grace-size/slot1
+    fat_directory_native_test.go:225: grace-size slot1 13828T 9869B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/grace-size/slot5
+    fat_directory_native_test.go:225: grace-size slot5 13828T 9869B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/grace-size/slot15
+    fat_directory_native_test.go:225: grace-size slot15 13828T 9869B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/grace-size/slot16
+    fat_directory_native_test.go:225: grace-size slot16 13828T 9869B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/grace-size/slot255
+    fat_directory_native_test.go:225: grace-size slot255 13828T 9869B rawVM/finalVM/native512+64KiB/SP PASS
+[HIR-SPLIT] write_fat12 → write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fat_cache_put → fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] find_file → find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] get_file_size → get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] file_read → file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] file_write_data → file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] update_dir_size → update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] delete_file → delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] overwrite_file → overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] count_dir_entries → count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] get_dir_entry → get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] get_dir_entry_full → get_dir_entry_full$split_4 (0 inputs, pressure 14)
+=== RUN   TestFATDirectoryWriteNativeState/grace-speed/slot0
+    fat_directory_native_test.go:225: grace-speed slot0 11202T 9885B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/grace-speed/slot1
+    fat_directory_native_test.go:225: grace-speed slot1 11202T 9885B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/grace-speed/slot5
+    fat_directory_native_test.go:225: grace-speed slot5 11202T 9885B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/grace-speed/slot15
+    fat_directory_native_test.go:225: grace-speed slot15 11202T 9885B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/grace-speed/slot16
+    fat_directory_native_test.go:225: grace-speed slot16 11202T 9885B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/grace-speed/slot255
+    fat_directory_native_test.go:225: grace-speed slot255 11202T 9885B rawVM/finalVM/native512+64KiB/SP PASS
+--- PASS: TestFATDirectoryWriteNativeState (7.55s)
+    --- PASS: TestFATDirectoryWriteNativeState/default/slot0 (0.31s)
+    --- PASS: TestFATDirectoryWriteNativeState/default/slot1 (0.31s)
+    --- PASS: TestFATDirectoryWriteNativeState/default/slot5 (0.31s)
+    --- PASS: TestFATDirectoryWriteNativeState/default/slot15 (0.32s)
+    --- PASS: TestFATDirectoryWriteNativeState/default/slot16 (0.33s)
+    --- PASS: TestFATDirectoryWriteNativeState/default/slot255 (0.31s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-size/slot0 (0.26s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-size/slot1 (0.26s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-size/slot5 (0.27s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-size/slot15 (0.26s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-size/slot16 (0.26s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-size/slot255 (0.26s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-speed/slot0 (0.26s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-speed/slot1 (0.25s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-speed/slot5 (0.25s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-speed/slot15 (0.26s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-speed/slot16 (0.25s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-speed/slot255 (0.26s)
+=== RUN   TestHIRGraceInvariantBaseDifferential
+=== RUN   TestHIRGraceInvariantBaseDifferential/final=false/mirGrace=false
+    hir_grace_hoist_test.go:101: 200-byte matching region VM instructions: 2203 -> 2004
+=== RUN   TestHIRGraceInvariantBaseDifferential/final=false/mirGrace=true
+    hir_grace_hoist_test.go:101: 200-byte matching region VM instructions: 2203 -> 2004
+=== RUN   TestHIRGraceInvariantBaseDifferential/final=true/mirGrace=false
+    hir_grace_hoist_test.go:101: 200-byte matching region VM instructions: 2403 -> 2204
+=== RUN   TestHIRGraceInvariantBaseDifferential/final=true/mirGrace=true
+    hir_grace_hoist_test.go:101: 200-byte matching region VM instructions: 2204 -> 2204
+    hir_grace_hoist_test.go:113: unhoisted final MIR: 2403 VM instructions
+--- PASS: TestHIRGraceInvariantBaseDifferential (0.02s)
+    --- PASS: TestHIRGraceInvariantBaseDifferential/final=false/mirGrace=false (0.00s)
+    --- PASS: TestHIRGraceInvariantBaseDifferential/final=false/mirGrace=true (0.00s)
+    --- PASS: TestHIRGraceInvariantBaseDifferential/final=true/mirGrace=false (0.00s)
+    --- PASS: TestHIRGraceInvariantBaseDifferential/final=true/mirGrace=true (0.01s)
+=== RUN   TestHIRGraceInvariantBaseMutationGuard
+--- PASS: TestHIRGraceInvariantBaseMutationGuard (0.00s)
+=== RUN   TestHIRGraceInvariantBaseFreshnessAndBudget
+--- PASS: TestHIRGraceInvariantBaseFreshnessAndBudget (0.00s)
+=== RUN   TestHIRInvariantSitePolicySkipsDisabledFirstLoop
+=== RUN   TestHIRInvariantSitePolicySkipsDisabledFirstLoop/0
+=== RUN   TestHIRInvariantSitePolicySkipsDisabledFirstLoop/1
+=== RUN   TestHIRInvariantSitePolicySkipsDisabledFirstLoop/2
+=== RUN   TestHIRInvariantSitePolicySkipsDisabledFirstLoop/3
+--- PASS: TestHIRInvariantSitePolicySkipsDisabledFirstLoop (0.59s)
+    --- PASS: TestHIRInvariantSitePolicySkipsDisabledFirstLoop/0 (0.14s)
+    --- PASS: TestHIRInvariantSitePolicySkipsDisabledFirstLoop/1 (0.15s)
+    --- PASS: TestHIRInvariantSitePolicySkipsDisabledFirstLoop/2 (0.14s)
+    --- PASS: TestHIRInvariantSitePolicySkipsDisabledFirstLoop/3 (0.16s)
+=== RUN   TestHIRInvariantSitePolicyRequiresAttribution
+--- PASS: TestHIRInvariantSitePolicyRequiresAttribution (0.00s)
+=== RUN   TestHIRScalarInvariantDiscoverySeesBothLoops
+--- PASS: TestHIRScalarInvariantDiscoverySeesBothLoops (0.00s)
+=== RUN   TestHIRInvariantPolicyCannotEnableMutation
+--- PASS: TestHIRInvariantPolicyCannotEnableMutation (0.00s)
+=== RUN   TestInvariantAddressRealInternProgram
+    invariant_address_program_test.go:106: default 1639669 T / 663 B hoists 0
+    invariant_address_program_test.go:106: grace-size 1639669 T / 663 B hoists 0
+    invariant_address_program_test.go:106: grace-speed 1546830 T / 677 B hoists 1
+--- PASS: TestInvariantAddressRealInternProgram (0.46s)
+=== RUN   TestInvariantAddressNativeWrap
+--- PASS: TestInvariantAddressNativeWrap (0.32s)
+=== RUN   TestInvariantAddressReassociationNativeWrap
+--- PASS: TestInvariantAddressReassociationNativeWrap (0.05s)
+=== RUN   TestMeasuredInvariantBaseGraceRule
+    profile_grace_variants_test.go:131: baseline 3066T/101B hoisted 1650T/54B selected 1
+--- PASS: TestMeasuredInvariantBaseGraceRule (0.14s)
+=== RUN   TestInvariantSiteRulesMeasuredChoices
+    profile_invariant_site_rules_test.go:104: sizefalse winner3 baseline124587T/107B selected33621T/61B
+    profile_invariant_site_rules_test.go:104: sizetrue winner3 baseline124587T/107B selected33621T/61B
+--- PASS: TestInvariantSiteRulesMeasuredChoices (0.98s)
+=== RUN   TestInvariantSiteRulesBudgetRefusal
+--- PASS: TestInvariantSiteRulesBudgetRefusal (11.40s)
+=== RUN   TestInvariantSiteRulesConditionalCandidates
+--- PASS: TestInvariantSiteRulesConditionalCandidates (1.72s)
+=== RUN   TestInvariantSiteRulesBoundary
+--- PASS: TestInvariantSiteRulesBoundary (2.02s)
+=== RUN   TestInvariantSiteRulesRealChecksum
+    profile_invariant_site_rules_test.go:293: checksum sizefalse selected1 1166563T/168B -> 546899T/99B
+    profile_invariant_site_rules_test.go:293: checksum sizetrue selected1 1166563T/168B -> 546899T/99B
+--- PASS: TestInvariantSiteRulesRealChecksum (0.93s)
+=== RUN   TestInvariantSiteRulesRefusals
+--- PASS: TestInvariantSiteRulesRefusals (0.36s)
+=== RUN   TestInvariantSiteVariantSets
+=== RUN   TestInvariantSiteVariantSets/sites0/zerofalse
+=== RUN   TestInvariantSiteVariantSets/sites0/zerotrue
+=== RUN   TestInvariantSiteVariantSets/sites1/zerofalse
+=== RUN   TestInvariantSiteVariantSets/sites1/zerotrue
+=== RUN   TestInvariantSiteVariantSets/sites2/zerofalse
+=== RUN   TestInvariantSiteVariantSets/sites2/zerotrue
+--- PASS: TestInvariantSiteVariantSets (1.86s)
+    --- PASS: TestInvariantSiteVariantSets/sites0/zerofalse (0.17s)
+    --- PASS: TestInvariantSiteVariantSets/sites0/zerotrue (0.17s)
+    --- PASS: TestInvariantSiteVariantSets/sites1/zerofalse (0.30s)
+    --- PASS: TestInvariantSiteVariantSets/sites1/zerotrue (0.27s)
+    --- PASS: TestInvariantSiteVariantSets/sites2/zerofalse (0.50s)
+    --- PASS: TestInvariantSiteVariantSets/sites2/zerotrue (0.44s)
+=== RUN   TestInvariantSiteVariantSetsRefusals
+--- PASS: TestInvariantSiteVariantSetsRefusals (0.33s)
+=== RUN   TestInvariantSiteVariantSetsCountBoundary
+--- PASS: TestInvariantSiteVariantSetsCountBoundary (1.09s)
+=== RUN   TestMeasuredScalarInvariantDomain
+    profile_scalar_domain_test.go:64: sizefalse baseline498336T/61B selected137922T/37B
+    profile_scalar_domain_test.go:64: sizetrue baseline498336T/61B selected137922T/37B
+--- PASS: TestMeasuredScalarInvariantDomain (0.32s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	31.999s
