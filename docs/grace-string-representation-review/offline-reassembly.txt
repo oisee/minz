@@ -1,0 +1,15 @@
+PASS offline assembly c 58
+PASS offline assembly empty_c 56
+PASS offline assembly empty_l 107
+PASS offline assembly empty_s 77
+PASS offline assembly l 109
+PASS offline assembly l256 363
+PASS offline assembly nul_c 59
+PASS offline assembly nul_l 110
+PASS offline assembly nul_s 80
+PASS offline assembly s 79
+PASS offline assembly s255 332
+PASS offline assembly storage-c 21
+PASS offline assembly storage-l 22
+PASS offline assembly storage-s 21
+PASS offline assembly utf8 79

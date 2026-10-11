@@ -16,6 +16,10 @@
     "sha256": "ac97d3171241a0f82ce72016b0a1e9302ca3f286c6590f763339cc4e984efd65"
   },
   {
+    "path": "FINAL-REPAIRED-AUDIT.md",
+    "sha256": "f61844c0f6f65577e5f6cf74e7d8a2d40f6921811c0c94c2f53657a66d98c1f5"
+  },
+  {
     "path": "FIRST-NATIVE-DIAGNOSIS.md",
     "sha256": "0c2b64c76410cc8a10144efdac824d7335e9d7d3c97a5d82beaaebb48dfaef7b"
   },
@@ -44,6 +48,14 @@
     "sha256": "aa727e57a5ec52df5accb29e18bf12e84b8c9bf62008d7968648755d2b506042"
   },
   {
+    "path": "offline-reassembly.txt",
+    "sha256": "ff133e9c76b1148f548425727ffe66345f97607bc1c863fe5006d97e3fbae242"
+  },
+  {
+    "path": "repaired-saved-audit.json",
+    "sha256": "966dd7d7161235f54bd19857903c47807b02966ffb9208512dd10d4cd388345f"
+  },
+  {
     "path": "repro/generated_name_collision.nanz",
     "sha256": "f4bf73ef81951f11b7cf362ca9c5ec24e23a5f9b706bcb6ed877f294ef769ee5"
   },
@@ -58,5 +70,17 @@
   {
     "path": "repro/representation.nanz",
     "sha256": "18d4593411374e15b259b07d880c0dab06a1d2255c177581b0f8f203270d7f97"
+  },
+  {
+    "path": "tools/.gitignore",
+    "sha256": "862263fa1f46c20f0d1e4dac5ffcc75abd55c08211b2c3864c5f8764b9d87793"
+  },
+  {
+    "path": "tools/audit_strings.py",
+    "sha256": "d61c93ea5988d935a14df8929e17340520ebb47bbb8ccf5b223967d452cee9aa"
+  },
+  {
+    "path": "tools/reassemble_strings.go",
+    "sha256": "f26832a952709b3fd5ec5e6eb9957f46e5660a6adca2cb8648625139545b31c1"
   }
 ]
