@@ -1,0 +1,27 @@
+{
+  "schema": "minz.match-expression-native/v1",
+  "source_path": "examples/nanz/11_match_expression.nanz",
+  "source_sha256": "e46d5979e2fe90f6e612bf303542370f58dc3df9e0e5b9822e5142352fe60261",
+  "declared_values": [
+    0,
+    1,
+    2
+  ],
+  "color_code": [
+    5,
+    10,
+    15
+  ],
+  "shape_sides": [
+    0,
+    4,
+    3
+  ],
+  "is_warm": [
+    1,
+    0,
+    0
+  ],
+  "invalid_enum_values": "not asserted; outside declared variant domain",
+  "model": "Bookv7\u00a716.1 auto incrementu8enum, \u00a716.3 armvalue/exhaustive/wildcard"
+}
