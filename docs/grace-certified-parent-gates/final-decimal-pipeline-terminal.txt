@@ -1,0 +1,412 @@
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[Z80-VALIDATE] main: 2 invalid instruction(s)
+  line 3: >>> LD A, <<<
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+lir: native LIR codegen disabled (wrong code found by exhaustive judges); module compiled with PBQP
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostFactoryOriginalParser (2.15s)
+    memory_host_baseline_test.go:24: original target drift
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostLoopAssociationOriginalParser (3.06s)
+    memory_host_loop_profile_test.go:36: instrumentation changed native baseline
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostOriginalSelfLanzTarget (4.19s)
+    memory_host_target_test.go:82: reference native cycle/binary drift 1291565 a9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	2560.907s
+FAIL

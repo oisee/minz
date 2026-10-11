@@ -1,0 +1,44 @@
+{
+  "schema": "minz.reconciled-pipeline-terminal/v1",
+  "raw_exit_code": 1,
+  "raw_seconds": 2560.907,
+  "raw_source_checkpoint": "bb1bbaf9",
+  "raw_executable_sha256": "85c8df0b053ff36d985c9568ebd1e4d2ad87c9b107d47148d9f29b4658da661e",
+  "raw_log_sha256": "d82ce1a9b0d53ec05f51cfe63024479db87b7c1f2ce8a9218c65002f963d93ae",
+  "listed_test_functions": 269,
+  "terminal_failed_tests": [
+    {
+      "test": "TestMemoryHostFactoryOriginalParser",
+      "seconds": "2.15s",
+      "assertion": "memory_host_baseline_test.go:24: original target drift"
+    },
+    {
+      "test": "TestMemoryHostLoopAssociationOriginalParser",
+      "seconds": "3.06s",
+      "assertion": "memory_host_loop_profile_test.go:36: instrumentation changed native baseline"
+    },
+    {
+      "test": "TestMemoryHostOriginalSelfLanzTarget",
+      "seconds": "4.19s",
+      "assertion": "memory_host_target_test.go:82: reference native cycle/binary drift 1291565 a9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73"
+    }
+  ],
+  "other_test_functions_without_failure": 266,
+  "current_reference_checkpoint": "71b75390",
+  "current_focused_executable_sha256": "7a1e1dd74f2cc832701338b237ab68c501f8b152639e0956cd32532054af19ac",
+  "current_focused_exit_code": 0,
+  "current_total_t_states": 1291565,
+  "current_binary_bytes": 2388,
+  "current_binary_sha256": "a9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73",
+  "production_source_unchanged_since_raw_freeze": true,
+  "evidence": [
+    "final-decimal-pipeline-terminal.txt",
+    "test-inventory.txt",
+    "current-reference-only.diff",
+    "../grace-memory-host-native-ref-refresh/verification.txt",
+    "../grace-native-reference-refresh-review/final-typed.txt"
+  ],
+  "status": "terminal_full_run_reconciled_with_current_focused_reference_pass",
+  "literal_whole_package_zero_exit_pass": false,
+  "limits": "Nonverbose terminal full run lists failures, not individual PASS/SKIP records. Inventory is exact frozen executable; no timeout/panic/early termination. Three obsolete T/SHA assertions reverified independently; no inferred per-test durations for other tests."
+}

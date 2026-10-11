@@ -1,0 +1,114 @@
+diff --git a/minzc/pkg/pipeline/memory_host_baseline_test.go b/minzc/pkg/pipeline/memory_host_baseline_test.go
+index 29d9d2a7..30a01e5a 100644
+--- a/minzc/pkg/pipeline/memory_host_baseline_test.go
++++ b/minzc/pkg/pipeline/memory_host_baseline_test.go
+@@ -17,10 +17,11 @@ func TestMemoryHostFactoryOriginalParser(t *testing.T) {
+ 	if e != nil {
+ 		t.Fatal(e)
+ 	}
++	exportMemoryHostReferenceBeforeAssert(t, "factory", r.Target, map[string]any{"factory-baseline.json": r})
+ 	// This fixture binds the current known adapter binary and cycle reference.
+ 	// A legitimate backend change must remeasure this reference while keeping
+ 	// the independent parser state/event oracle; production has no fixed cost.
+-	if r.Target.TotalTStates != 1135370 || r.Target.BinarySHA256 != "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941" {
++	if r.Target.TotalTStates != 1291565 || r.Target.BinarySHA256 != "a9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73" {
+ 		t.Fatal("original target drift")
+ 	}
+ 	if dir := os.Getenv("MINZ_MEMORY_HOST_ARTIFACTS"); dir != "" {
+diff --git a/minzc/pkg/pipeline/memory_host_loop_profile_test.go b/minzc/pkg/pipeline/memory_host_loop_profile_test.go
+index 6a4b34c2..67a36f2a 100644
+--- a/minzc/pkg/pipeline/memory_host_loop_profile_test.go
++++ b/minzc/pkg/pipeline/memory_host_loop_profile_test.go
+@@ -17,6 +17,7 @@ func TestMemoryHostLoopAssociationOriginalParser(t *testing.T) {
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
++	exportMemoryHostReferenceBeforeAssert(t, "association", r.Baseline.Target, map[string]any{"loop-baseline-association.json": r})
+ 	if r.Profile.CompletedCalls != 30 || r.Profile.FailedCalls != 0 || len(r.Profile.Counts) != 11 {
+ 		t.Fatal("wrong invocation/site boundary")
+ 	}
+@@ -32,7 +33,7 @@ func TestMemoryHostLoopAssociationOriginalParser(t *testing.T) {
+ 	if !found {
+ 		t.Fatal("region_match absent")
+ 	}
+-	if r.Baseline.Target.TotalTStates != 1135370 || r.Baseline.Target.BinarySHA256 != "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941" {
++	if r.Baseline.Target.TotalTStates != 1291565 || r.Baseline.Target.BinarySHA256 != "a9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73" {
+ 		t.Fatal("instrumentation changed native baseline")
+ 	}
+ 	if dir := os.Getenv("MINZ_MEMORY_HOST_LOOP_ARTIFACTS"); dir != "" {
+diff --git a/minzc/pkg/pipeline/memory_host_reference_export_test.go b/minzc/pkg/pipeline/memory_host_reference_export_test.go
+new file mode 100644
+index 00000000..666b3126
+--- /dev/null
++++ b/minzc/pkg/pipeline/memory_host_reference_export_test.go
+@@ -0,0 +1,49 @@
++package pipeline
++
++import (
++	"encoding/json"
++	"os"
++	"path/filepath"
++	"testing"
++)
++
++// Opt-in diagnostic only. Native payloads are retained before fixed historical
++// references are asserted, so a legitimate drift cannot erase its evidence.
++// This never changes production admission or the independent fixture oracle.
++func exportMemoryHostReferenceBeforeAssert(t *testing.T, name string, target *MemoryHostTargetEvidence, objects map[string]any) {
++	t.Helper()
++	root := os.Getenv("MINZ_MEMORY_HOST_REF_REFRESH")
++	if root == "" {
++		return
++	}
++	dir := filepath.Join(root, name)
++	if err := os.MkdirAll(dir, 0755); err != nil {
++		t.Fatal(err)
++	}
++	write := func(n string, b []byte) {
++		if err := os.WriteFile(filepath.Join(dir, n), b, 0644); err != nil {
++			t.Fatal(err)
++		}
++	}
++	source, err := os.ReadFile("../../../examples/nanz/self_lanz_parser.nanz")
++	if err != nil {
++		t.Fatal(err)
++	}
++	write("source.nanz", source)
++	write("target.bin", target.Binary)
++	write("target.a80", []byte(target.Assembly))
++	write("final.mir2", []byte(target.FinalMIRDump))
++	write("allocation.json", target.AllocationJSON)
++	data, err := json.MarshalIndent(target, "", "  ")
++	if err != nil {
++		t.Fatal(err)
++	}
++	write("target.json", data)
++	for n, obj := range objects {
++		data, err := json.MarshalIndent(obj, "", "  ")
++		if err != nil {
++			t.Fatal(err)
++		}
++		write(n, data)
++	}
++}
+diff --git a/minzc/pkg/pipeline/memory_host_target_test.go b/minzc/pkg/pipeline/memory_host_target_test.go
+index ff90f352..452edebc 100644
+--- a/minzc/pkg/pipeline/memory_host_target_test.go
++++ b/minzc/pkg/pipeline/memory_host_target_test.go
+@@ -45,6 +45,7 @@ func TestMemoryHostOriginalSelfLanzTarget(t *testing.T) {
+ 	if e != nil {
+ 		t.Fatal(e)
+ 	}
++	exportMemoryHostReferenceBeforeAssert(t, "target", target, map[string]any{"workload.json": w, "raw.json": raw})
+ 	host := newLanzHost()
+ 	for i, input := range lanzBaselineInputs() {
+ 		clear(host.ram[0xc000:0xd000])
+@@ -78,7 +79,7 @@ func TestMemoryHostOriginalSelfLanzTarget(t *testing.T) {
+ 	if fmt.Sprintf("%x", sha256.Sum256([]byte(target.FinalMIRDump))) != target.MIRSHA256 || fmt.Sprintf("%x", sha256.Sum256(target.AllocationJSON)) != target.AllocationSHA256 {
+ 		t.Fatal("diagnostic payload hash mismatch")
+ 	}
+-	if target.TotalTStates != 1135370 || target.BinarySHA256 != "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941" {
++	if target.TotalTStates != 1291565 || target.BinarySHA256 != "a9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73" {
+ 		t.Fatal("reference native cycle/binary drift", target.TotalTStates, target.BinarySHA256)
+ 	}
+ 	if dir := os.Getenv("MINZ_MEMORY_HOST_ARTIFACTS"); dir != "" {

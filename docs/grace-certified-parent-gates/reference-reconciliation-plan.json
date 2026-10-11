@@ -1,0 +1,15 @@
+{
+  "source_checkpoint": "bb1bbaf9",
+  "current_reference_checkpoint": "9490000a96101937da57b49fe49bb4c1f00f6cf9",
+  "executable_sha256": "85c8df0b053ff36d985c9568ebd1e4d2ad87c9b107d47148d9f29b4658da661e",
+  "test_functions": 269,
+  "benchmarks": 5,
+  "source_changes": [
+    "minzc/pkg/pipeline/memory_host_baseline_test.go",
+    "minzc/pkg/pipeline/memory_host_loop_profile_test.go",
+    "minzc/pkg/pipeline/memory_host_reference_export_test.go",
+    "minzc/pkg/pipeline/memory_host_target_test.go"
+  ],
+  "production_source_unchanged": true,
+  "scope": "Inventory only, no test execution; current full run still live. Final terminal failures must be reconciled individually."
+}

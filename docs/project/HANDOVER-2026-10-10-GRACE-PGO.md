@@ -476,3 +476,15 @@ Current CLI 35152 terminal PASS 306.414 s; MIR2 PASS 5.930 s; showcase same26.
 Night summary now leads with one current state, separating historical entries.
 Sites59 remains live; current gate/reference statuses need publication refresh
 after terminal pipeline and completion audit. No user decision/blocker.
+
+
+## Terminal current pipeline / reference reconciliation
+
+89426 completed exit1 after2560.907 s. Exact3failures only: factory/association
+oldT/SHA assertions and directtarget oldT/SHA assertion reporting1291565/a9f98.
+No panic/timeout; executable lists269tests. Root preserved rawlog/nonzeroexit,
+exactdiff and inventory in docs/grace-certified-parent-gates/final-decimal-*
+and current-reference-only.diff. Current71b focused3PASS+two saved-only audits
+reconcile those reference changes; production code unchanged sincebb1 freeze.
+Do not claim literalwholepackagezeroexit. Independentfinalaudit/publication
+refresh stillpending; no newCPU rerun justified by test-onlyconstants.
