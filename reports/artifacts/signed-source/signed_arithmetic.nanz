@@ -1,0 +1,47 @@
+// Signed arithmetic regression: VM and production PBQP Z80 must agree.
+// Assert results are stored bits: i8(-2)=254, i16(-4)=65532.
+fun sar(a: i8, k: u8) -> i8 { return a >> k }
+fun sar16(a: i16, k: u8) -> i16 { return a >> k }
+fun sar_one(a: i8) -> i8 { return a >> 1 }
+fun quotient(a: i8, b: i8) -> i8 { return a / b }
+fun remainder(a: i8, b: i8) -> i8 { return a % b }
+fun div_two(a: i8) -> i8 { return a / 2 }
+fun mod_two(a: i8) -> i8 { return a % 2 }
+fun widen(a: i8) -> i16 { return a as i16 }
+fun logical(a: u8, k: u8) -> u8 { return a >> k }
+assert sar(-4, 1) == 254 via mir2
+assert sar(-128, 7) == 255 via mir2
+assert sar(-7, 0) == 249 via mir2
+assert sar(127, 3) == 15 via mir2
+assert sar_one(-4) == 254 via mir2
+assert sar16(-32768, 1) == 49152 via mir2
+assert sar16(-1, 15) == 65535 via mir2
+assert sar16(32767, 8) == 127 via mir2
+assert quotient(-7, 2) == 253 via mir2
+assert quotient(7, -2) == 253 via mir2
+assert quotient(-7, -2) == 3 via mir2
+assert remainder(-7, 2) == 255 via mir2
+assert remainder(7, -2) == 1 via mir2
+assert remainder(-7, -2) == 255 via mir2
+assert div_two(-7) == 253 via mir2
+assert mod_two(-7) == 255 via mir2
+assert widen(-4) == 65532 via mir2
+assert logical(252, 1) == 126 via mir2
+assert sar(-4, 1) == 254 via z80
+assert sar(-128, 7) == 255 via z80
+assert sar(-7, 0) == 249 via z80
+assert sar(127, 3) == 15 via z80
+assert sar_one(-4) == 254 via z80
+assert sar16(-32768, 1) == 49152 via z80
+assert sar16(-1, 15) == 65535 via z80
+assert sar16(32767, 8) == 127 via z80
+assert quotient(-7, 2) == 253 via z80
+assert quotient(7, -2) == 253 via z80
+assert quotient(-7, -2) == 3 via z80
+assert remainder(-7, 2) == 255 via z80
+assert remainder(7, -2) == 1 via z80
+assert remainder(-7, -2) == 255 via z80
+assert div_two(-7) == 253 via z80
+assert mod_two(-7) == 255 via z80
+assert widen(-4) == 65532 via z80
+assert logical(252, 1) == 126 via z80

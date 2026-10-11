@@ -1,0 +1,5 @@
+=== RUN   TestOriginalSignedArithmeticNativeExhaustive
+    signed_source_native_test.go:136: 266240 source cases across raw/final VM/native; counts=map[div_two:256 logical:65536 mod_two:256 quotient:65280 remainder:65280 sar:65536 sar16:3584 sar_one:256 widen:256]
+--- PASS: TestOriginalSignedArithmeticNativeExhaustive (0.82s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.827s
