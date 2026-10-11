@@ -34,12 +34,6 @@ func (g *z80cg) genCall(inst *Inst) error {
 		g.invalidate("HL")
 		return nil
 
-	case "@mir.io.print.u8":
-		// Emit single OUT ($23), A.  The value must already be in A.
-		g.emit("    OUT (0x23), A")
-		g.invalidate("A")
-		return nil
-
 	case "@mir.io.print.char":
 		if len(inst.Args) != 1 {
 			return fmt.Errorf("print.char requires one byte argument")
@@ -76,10 +70,23 @@ func (g *z80cg) genCall(inst *Inst) error {
 		g.invalidate("A")
 		return nil
 
-	case "@mir.io.print.dec":
-		// Print u8 value in A as decimal ASCII digits via OUT ($23).
+	case "@mir.io.print.u8", "@mir.io.print.dec":
+		if len(inst.Args) != 1 {
+			return fmt.Errorf("%s requires one integer argument", inst.Sym)
+		}
+		src := g.loc(inst.Args[0])
+		if g.pendingAccReg == inst.Args[0] {
+			src = "A" // deferred accumulator values physically occupy A
+		}
+		if src == "F" || g.pendingFlagReg == inst.Args[0] {
+			return fmt.Errorf("%s requires an integer value, not an unmaterialized flag", inst.Sym)
+		}
+		restore := g.saveDecimalPrintScratch(inst)
+		defer restore()
+		g.emitLDA(src)
+		// Match the VM: decimal ASCII of uint8(argument), including word arguments.
 		// Inline: divide by 100, 10 (using repeated subtraction — small and fast
-		// enough for 0-255).  Clobbers A, B, C, D, H, L.
+		// enough for 0-255). Uses A, B, C, D and flags.
 		idx := g.trampIdx
 		g.trampIdx++
 		// Hundreds digit
