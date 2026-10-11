@@ -1,0 +1,128 @@
+; MIR2 module: scheme_r5rs.lizp
+fun @sum_loop(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = const 0 : u8 [general]
+    %r3 = const 0 : u8 [general]
+    jmp @loop_head1(%r3, %r2, %r1)
+  block @loop_head1(%r4: u8 [general], %r5: u8 [general], %r6: u8 [general]):
+    %r7 = cmp.ult %r5, %r6 : bool [flag]
+    br_if %r7, @loop_body2(), @loop_exit3(%r4, %r5, %r6)
+  block @loop_body2:
+    %r8 = add %r4, %r5 : u8 [general]
+    %r9 = const 1 : u8 [general]
+    %r10 = add %r5, %r9 : u8 [general]
+    jmp @loop_head1(%r8, %r10, %r6)
+  block @loop_exit3(%r11: u8 [general], %r12: u8 [general], %r13: u8 [general]):
+    ret %r11
+
+fun @fact_loop(%r14: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r15 = const 1 : u8 [general]
+    %r16 = const 1 : u8 [general]
+    jmp @loop_head1(%r16, %r15, %r14)
+  block @loop_head1(%r17: u8 [general], %r18: u8 [general], %r19: u8 [general]):
+    %r20 = cmp.ule %r18, %r19 : bool [flag]
+    br_if %r20, @loop_body2(), @loop_exit3(%r17, %r18, %r19)
+  block @loop_body2:
+    %r21 = mul %r17, %r18 : u8 [general]
+    %r22 = const 1 : u8 [general]
+    %r23 = add %r18, %r22 : u8 [general]
+    jmp @loop_head1(%r21, %r23, %r19)
+  block @loop_exit3(%r24: u8 [general], %r25: u8 [general], %r26: u8 [general]):
+    ret %r24
+
+fun @pow2_loop(%r27: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r28 = const 0 : u8 [general]
+    %r29 = const 1 : u8 [general]
+    jmp @loop_head1(%r29, %r28, %r27)
+  block @loop_head1(%r30: u8 [general], %r31: u8 [general], %r32: u8 [general]):
+    %r33 = cmp.ult %r31, %r32 : bool [flag]
+    br_if %r33, @loop_body2(), @loop_exit3(%r30, %r31, %r32)
+  block @loop_body2:
+    %r34 = add %r30, %r30 : u8 [general]
+    %r35 = const 1 : u8 [general]
+    %r36 = add %r31, %r35 : u8 [general]
+    jmp @loop_head1(%r34, %r36, %r32)
+  block @loop_exit3(%r37: u8 [general], %r38: u8 [general], %r39: u8 [general]):
+    ret %r37
+
+fun @triangle(%r40: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r41 = const 1 : u8 [general]
+    %r42 = add %r40, %r41 : u8 [acc]
+    %r43 = mul %r40, %r42 : u8 [general]
+    %r44 = const 2 : u8 [general]
+    %r45 = div %r43, %r44 : u8 [general]
+    ret %r45
+
+fun @is_divisible(%r46: u8 [acc], %r47: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r48 = mod %r46, %r47 : u8 [general]
+    %r49 = const 0 : u8 [general]
+    %r50 = cmp.eq %r48, %r49 : bool [flag]
+    br_if %r50, @if_then1(), @if_else3()
+  block @if_then1:
+    %r51 = const 1 : u8 [general]
+    ret %r51
+  block @if_else3:
+    %r52 = const 0 : u8 [general]
+    ret %r52
+
+fun @halve(%r53: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r54 = const 2 : u8 [general]
+    %r55 = div %r53, %r54 : u8 [general]
+    ret %r55
+
+fun @mod10(%r56: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r57 = const 10 : u8 [general]
+    %r58 = mod %r56, %r57 : u8 [general]
+    ret %r58
+
+fun @high_nibble(%r59: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r60 = const 240 : u8 [general]
+    %r61 = and %r59, %r60 : u8 [acc]
+    %r62 = const 16 : u8 [general]
+    %r63 = div %r61, %r62 : u8 [general]
+    ret %r63
+
+fun @low_nibble(%r64: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r65 = const 15 : u8 [general]
+    %r66 = and %r64, %r65 : u8 [acc]
+    ret %r66
+
+fun @set_bit(%r67: u8 [acc], %r68: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r69 = or %r67, %r68 : u8 [acc]
+    ret %r69
+
+fun @clear_bit(%r70: u8 [acc], %r71: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r72 = const 255 : u8 [general]
+    %r73 = xor %r71, %r72 : u8 [acc]
+    %r74 = and %r70, %r73 : u8 [acc]
+    ret %r74
+
+fun @toggle_bit(%r75: u8 [acc], %r76: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r77 = xor %r75, %r76 : u8 [acc]
+    ret %r77
+
+fun @clamp(%r78: u8 [acc], %r79: u8 [general], %r80: u8 [counter]) -> u8 [acc]
+  block @entry:
+    %r81 = cmp.ult %r78, %r79 : bool [flag]
+    br_if %r81, @if_then1(), @if_else3()
+  block @if_then1:
+    ret %r79
+  block @if_else3:
+    %r82 = cmp.ugt %r78, %r80 : bool [flag]
+    br_if %r82, @if_then4(), @if_else6()
+  block @if_then4:
+    ret %r80
+  block @if_else6:
+    ret %r78
+

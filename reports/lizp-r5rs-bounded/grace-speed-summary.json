@@ -1,0 +1,35 @@
+{
+  "allowed_generated_spill_bytes": {},
+  "bytes": 172,
+  "entries": {
+    "clamp": 25600,
+    "clear_bit": 65536,
+    "fact_loop": 255,
+    "halve": 256,
+    "high_nibble": 256,
+    "is_divisible": 65280,
+    "low_nibble": 256,
+    "mod10": 256,
+    "pow2_loop": 256,
+    "set_bit": 65536,
+    "sum_loop": 256,
+    "toggle_bit": 65536,
+    "triangle": 256
+  },
+  "stack_depth_per_entry": {
+    "clamp": 2,
+    "clear_bit": 2,
+    "fact_loop": 12,
+    "halve": 2,
+    "high_nibble": 2,
+    "is_divisible": 2,
+    "low_nibble": 2,
+    "mod10": 2,
+    "pow2_loop": 2,
+    "set_bit": 2,
+    "sum_loop": 2,
+    "toggle_bit": 2,
+    "triangle": 8
+  },
+  "stack_low": "eff4"
+}

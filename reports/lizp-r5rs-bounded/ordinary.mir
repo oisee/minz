@@ -1,0 +1,118 @@
+; MIR2 module: scheme_r5rs.lizp
+fun @sum_loop(%r1: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r2 = const 0 : u8 [general]
+    %r3 = const 0 : u8 [general]
+    jmp @loop_head1(%r3, %r2, %r1)
+  block @loop_head1(%r3: u8 [general], %r2: u8 [general], %r6: u8 [general]):
+    %r7 = cmp.ult %r2, %r6 : bool [flag]
+    cond_ret %r7, [%r3], @loop_body2()
+  block @loop_body2:
+    %r8 = add %r3, %r2 : u8 [general]
+    %r9 = const 1 : u8 [general]
+    %r10 = add %r2, %r9 : u8 [general]
+    jmp @loop_head1(%r8, %r10, %r6)
+
+fun @fact_loop(%r11: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r12 = const 1 : u8 [general]
+    %r13 = const 1 : u8 [general]
+    jmp @loop_head1(%r13, %r12, %r11)
+  block @loop_head1(%r13: u8 [general], %r12: u8 [general], %r16: u8 [general]):
+    %r17 = cmp.ule %r12, %r16 : bool [flag]
+    cond_ret %r17, [%r13], @loop_body2()
+  block @loop_body2:
+    %r18 = mul %r13, %r12 : u8 [general]
+    %r19 = const 1 : u8 [general]
+    %r20 = add %r12, %r19 : u8 [general]
+    jmp @loop_head1(%r18, %r20, %r16)
+
+fun @pow2_loop(%r21: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r22 = const 0 : u8 [general]
+    %r23 = const 1 : u8 [general]
+    jmp @loop_head1(%r23, %r22, %r21)
+  block @loop_head1(%r23: u8 [general], %r22: u8 [general], %r26: u8 [general]):
+    %r27 = cmp.ult %r22, %r26 : bool [flag]
+    cond_ret %r27, [%r23], @loop_body2()
+  block @loop_body2:
+    %r28 = add %r23, %r23 : u8 [general]
+    %r29 = const 1 : u8 [general]
+    %r30 = add %r22, %r29 : u8 [general]
+    jmp @loop_head1(%r28, %r30, %r26)
+
+fun @triangle(%r31: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r32 = const 1 : u8 [general]
+    %r33 = add %r31, %r32 : u8 [acc]
+    %r34 = mul %r31, %r33 : u8 [general]
+    %r35 = const 2 : u8 [general]
+    %r36 = div %r34, %r35 : u8 [general]
+    ret %r36
+
+fun @is_divisible(%r37: u8 [general], %r38: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r39 = mod %r37, %r38 : u8 [general]
+    %r40 = const 0 : u8 [general]
+    %r41 = cmp.eq %r39, %r40 : bool [flag]
+    %r42 = const 0 : u8 [general]
+    cond_ret %r41, [%r42], @if_then1()
+  block @if_then1:
+    %r43 = const 1 : u8 [general]
+    ret %r43
+
+fun @halve(%r44: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r45 = const 2 : u8 [general]
+    %r46 = div %r44, %r45 : u8 [general]
+    ret %r46
+
+fun @mod10(%r47: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r48 = const 10 : u8 [general]
+    %r49 = mod %r47, %r48 : u8 [general]
+    ret %r49
+
+fun @high_nibble(%r50: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r51 = const 240 : u8 [general]
+    %r52 = and %r50, %r51 : u8 [acc]
+    %r53 = const 16 : u8 [general]
+    %r54 = div %r52, %r53 : u8 [general]
+    ret %r54
+
+fun @low_nibble(%r55: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r56 = const 15 : u8 [general]
+    %r57 = and %r55, %r56 : u8 [acc]
+    ret %r57
+
+fun @set_bit(%r58: u8 [acc], %r59: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r60 = or %r58, %r59 : u8 [acc]
+    ret %r60
+
+fun @clear_bit(%r61: u8 [acc], %r62: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r63 = const 255 : u8 [general]
+    %r64 = xor %r62, %r63 : u8 [acc]
+    %r65 = and %r61, %r64 : u8 [acc]
+    ret %r65
+
+fun @toggle_bit(%r66: u8 [acc], %r67: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r68 = xor %r66, %r67 : u8 [acc]
+    ret %r68
+
+fun @clamp(%r69: u8 [acc], %r70: u8 [general], %r71: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r72 = cmp.ult %r69, %r70 : bool [flag]
+    br_if %r72, @if_then1(), @if_else3()
+  block @if_then1:
+    ret %r70
+  block @if_else3:
+    %r73 = cmp.ugt %r69, %r71 : bool [flag]
+    cond_ret %r73, [%r69], @if_then4()
+  block @if_then4:
+    ret %r71
+

@@ -1,0 +1,73 @@
+;; Scheme R5RS showcase on Z80
+
+;; ── Iteration ───────────────────────────────────────────
+(defun sum-loop ((n u8)) -> u8
+  (let ((i u8 0) (acc u8 0))
+    (while (< i n) (setq acc (+ acc i)) (setq i (+ i 1)))
+    (return acc)))
+
+(defun fact-loop ((n u8)) -> u8
+  (let ((i u8 1) (acc u8 1))
+    (while (<= i n) (setq acc (* acc i)) (setq i (+ i 1)))
+    (return acc)))
+
+(defun pow2-loop ((n u8)) -> u8
+  (let ((i u8 0) (acc u8 1))
+    (while (< i n) (setq acc (+ acc acc)) (setq i (+ i 1)))
+    (return acc)))
+
+;; ── Arithmetic ──────────────────────────────────────────
+(defun triangle ((n u8)) -> u8
+  (return (/ (* n (+ n 1)) 2)))
+
+(defun is-divisible ((a u8) (b u8)) -> u8
+  (return (if (= (modulo a b) 0) 1 0)))
+
+(defun halve ((x u8)) -> u8
+  (return (quotient x 2)))
+
+(defun mod10 ((x u8)) -> u8
+  (return (remainder x 10)))
+
+;; ── Bitwise ─────────────────────────────────────────────
+(defun high-nibble ((x u8)) -> u8
+  (return (quotient (bitwise-and x #xF0) 16)))
+
+(defun low-nibble ((x u8)) -> u8
+  (return (bitwise-and x #x0F)))
+
+(defun set-bit ((x u8) (mask u8)) -> u8
+  (return (bitwise-or x mask)))
+
+(defun clear-bit ((x u8) (mask u8)) -> u8
+  (return (bitwise-and x (bitwise-not mask))))
+
+(defun toggle-bit ((x u8) (mask u8)) -> u8
+  (return (bitwise-xor x mask)))
+
+;; ── Predicates ──────────────────────────────────────────
+(defun clamp ((x u8) (lo u8) (hi u8)) -> u8
+  (return (cond ((< x lo) lo) ((> x hi) hi) (t x))))
+
+;; ── Asserts ─────────────────────────────────────────────
+(assert sum-loop 0 == 0)
+(assert sum-loop 10 == 45)
+(assert fact-loop 0 == 1)
+(assert fact-loop 5 == 120)
+(assert pow2-loop 0 == 1)
+(assert pow2-loop 4 == 16)
+(assert pow2-loop 7 == 128)
+(assert triangle 0 == 0)
+(assert triangle 10 == 55)
+(assert is-divisible 10 5 == 1)
+(assert is-divisible 10 3 == 0)
+(assert halve 10 == 5)
+(assert mod10 42 == 2)
+(assert high-nibble #xAB == 10)
+(assert low-nibble #xAB == 11)
+(assert set-bit 0 #x80 == 128)
+(assert clear-bit #xFF #x0F == 240)
+(assert toggle-bit #xAA #xFF == 85)
+(assert clamp 50 10 200 == 50)
+(assert clamp 5 10 200 == 10)
+(assert clamp 250 10 200 == 200)
