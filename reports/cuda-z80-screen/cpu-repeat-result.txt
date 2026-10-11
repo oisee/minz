@@ -1,0 +1,1 @@
+PASS 512 modeled A/B/carry comparisons; authoritative CPU full primary register/memory/T checks; cpu_host_ms=10.377226
