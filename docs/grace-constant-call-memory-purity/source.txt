@@ -1,0 +1,4 @@
+=== RUN   TestConstantCallPreservesPointerMemorySource
+--- PASS: TestConstantCallPreservesPointerMemorySource (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.015s
