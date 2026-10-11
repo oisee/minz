@@ -1,0 +1,16 @@
+{
+  "allowed_spill_bytes": {},
+  "calls": {
+    "m10": 65536
+  },
+  "execution_sha256": "03999462427cb4e511f152578027fdedb5a42066d394bad509406d169ccc2989",
+  "module_bytes": 9,
+  "raw_and_final_vm_data_effects": 0,
+  "source_sha256": "a5ff9edb54a2fd290105b471ce6dc3e3937f5400ce9a90bdd1e5bb90f02e0d57",
+  "stack_depths": {
+    "m10": 6
+  },
+  "t_states_including_CALL": {
+    "m10": 7405568
+  }
+}

@@ -1,0 +1,7 @@
+; MIR2 module: examples/nanz/mul_const.nanz
+fun @m10(%r1: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r2 = const 10 : u16 [pointer]
+    %r3 = mul %r1, %r2 : u16 [pointer]
+    ret %r3
+
