@@ -114,3 +114,13 @@ func TestMemoryHostArenaSelectorZeroLengthObjective(t *testing.T) {
 	}
 	t.Logf("zero-length actual original%dT peeled%dT selected%d", a.TotalTStates, b.TotalTStates, selected.Selected)
 }
+
+func TestMemoryHostArenaSelectorEqualCostRetainsOriginal(t *testing.T) {
+	original := &MemoryHostTargetEvidence{TotalTStates: 100, Binary: make([]byte, 40)}
+	peeled := &MemoryHostTargetEvidence{TotalTStates: 100, Binary: make([]byte, 40)}
+	for _, goal := range []string{"speed", "size"} {
+		if selected := selectMemoryHostArenaCandidate(goal, original, peeled); selected != 0 {
+			t.Fatal("equal actual primary costs must retain original")
+		}
+	}
+}

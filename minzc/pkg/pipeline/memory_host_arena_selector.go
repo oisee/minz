@@ -43,6 +43,7 @@ func MeasureMemoryHostArenaPeel(factory func() (*hir.Module, error), w hir.Memor
 	seen := map[uintptr]bool{}
 	retained := []*hir.Module{}
 	privateRoots := []any{}
+	defer func() { runtime.KeepAlive(privateRoots); runtime.KeepAlive(retained) }()
 	fresh := func() (*hir.Module, error) {
 		m, e := factory()
 		if e != nil {
@@ -180,9 +181,7 @@ func MeasureMemoryHostArenaPeel(factory func() (*hir.Module, error), w hir.Memor
 	}
 	out := &MemoryHostArenaSelection{Schema: "minz.memory-host-arena-selection/v1", Options: o, Profile: loaded, Association: association, SiteID: site, Candidates: []MemoryHostArenaCandidate{{Evidence: association.Baseline}, {Peeled: true, PrecompileProof: "minz.exact-memory-host-arena-peel/v1", Evidence: variant}}}
 	a, b := association.Baseline.Target, variant.Target
-	if o.Goal == "speed" && b.TotalTStates < a.TotalTStates || o.Goal == "size" && len(b.Binary) < len(a.Binary) {
-		out.Selected = 1
-	}
+	out.Selected = selectMemoryHostArenaCandidate(o.Goal, a, b)
 	runtime.KeepAlive(privateRoots)
 	runtime.KeepAlive(retained)
 	return out, nil
@@ -258,4 +257,13 @@ func retainArenaSourceGraph(m *hir.Module, roots *[]any) {
 		}
 	}
 	walk(reflect.ValueOf(m))
+}
+
+// Equal primary measured costs retain original. This helper never constructs
+// evidence; callers of the public API always provide two actual target runs.
+func selectMemoryHostArenaCandidate(goal string, a, b *MemoryHostTargetEvidence) int {
+	if goal == "speed" && b.TotalTStates < a.TotalTStates || goal == "size" && len(b.Binary) < len(a.Binary) {
+		return 1
+	}
+	return 0
 }
