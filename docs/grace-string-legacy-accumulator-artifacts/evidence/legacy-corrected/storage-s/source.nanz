@@ -1,0 +1,5 @@
+global first:u8=0
+fun examine()->void {
+ let p:^u8="AB"
+ first=p^
+}

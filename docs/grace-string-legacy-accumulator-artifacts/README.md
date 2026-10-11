@@ -1,7 +1,9 @@
-# Legacy compiler accumulator diagnosis
+# Legacy compiler accumulator repair
 
-The module-register repair fixes four assembler failures. The first actual legacy-route 15-case run then found four SString output failures: only the first byte was printed. Eleven cases passed. The complete failing evidence and exact a623 executable are retained here; this is not a successful legacy output certificate.
+The module-register fix prevents an earlier function's synthetic byte save from replacing a later function's word-pointer allocation. The original regression demonstrates DE being replaced by D; the four assembler regressions are resolved.
 
-The original pass selected D while DE held a live pointer and a later definition overwrote the saved count. The separate lifetime/spill repair remains isolated pending activation-safe recursive spill preservation and reviewed native validation. No further native execution has been performed.
+The first legacy native run found four SString output failures: only the first byte printed. All initial evidence is preserved. The corrected lifetime/scratch rule protects pair halves and subsequent definitions, stops rewriting at redefinitions, covers inline-assembly operands and every terminator, and uses named spill storage when no byte is free. Live spill homes are saved on the activation stack around calls.
 
-Steps-only MIR/allocation metadata is unavailable through CompileHIR; saved legacy allocation.json is null and final.mir2 empty. Exact assembled wrapper, binary, output, expected bytes and final state are available.
+The corrected actual CompileHIR run passes all 15 cases: twelve byte-output fixtures with live globals and termination checks, plus three physical storage/load fixtures. The exact e041 executable, full assembled wrapper, binary, output, expected bytes, final state, exit0 and log are retained. Recursive execution is a separate backend lane; these fifteen fixtures alone do not prove every recursive/inline-assembly behavior.
+
+CompileHIR returns assembly only. Accordingly, legacy allocation.json is null and final.mir2 empty; no Steps metadata is substituted. The earlier Steps repair packet is unchanged.

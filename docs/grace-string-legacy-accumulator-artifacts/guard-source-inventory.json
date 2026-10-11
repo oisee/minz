@@ -1,0 +1,26 @@
+[
+  {
+    "path": "minzc/pkg/mir2/func.go",
+    "sha256": "eeffce6125cd4cdf39a7bb7dec1cacc2c329ba346a4f600268237f1c30a2f0a2"
+  },
+  {
+    "path": "minzc/pkg/mir2/accsaves.go",
+    "sha256": "0fd1a24a661417e53e4ee793fb933872776dd3046a78c72adc4d32aea46b6695"
+  },
+  {
+    "path": "minzc/pkg/mir2/accsaves_module_test.go",
+    "sha256": "2c870fc2bee8c7c135533f0e42afa6b5a4c5eeea3b60eb9a3b3ade62b3824ab9"
+  },
+  {
+    "path": "minzc/pkg/mir2/accsaves_lifetime_test.go",
+    "sha256": "d46372879440ac7ea24dec53dd9d32765267e53e93017ebbbcdd0e13f7594abb"
+  },
+  {
+    "path": "minzc/pkg/pipeline/pipeline.go",
+    "sha256": "4cb0bbd3d57c3caaf17b68157879a2cddf7af785aa0d0ba5c6d2879ea3cc0024"
+  },
+  {
+    "path": "minzc/pkg/nanz/string_native_test.go",
+    "sha256": "7f44320d598d9f452cd9e1468c69fc2cc662796d621c32013845cfd2bfeef594"
+  }
+]
