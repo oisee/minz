@@ -10,6 +10,7 @@ import (
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 	"os"
+	"path/filepath"
 	"reflect"
 	"runtime"
 	"strings"
@@ -428,6 +429,75 @@ func TestFrozenTransferPrivateShapes(t *testing.T) {
 		}
 		if _, err = buildMemoryHostArenaAppendPrecompileProof(expected, actual, w, choices); err != nil {
 			t.Fatal("fixed transfer shape", mask, err)
+		}
+	}
+}
+
+func TestFrozenTransferExport(t *testing.T) {
+	dir := os.Getenv("MINZ_FROZEN_TRANSFER_ARTIFACTS")
+	if dir == "" {
+		t.Skip("explicit preregistered16-native transfer evidence")
+	}
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"short-reuse", "long-atoms", "nested-mixed", "fresh-dominant"} {
+		input := frozenTransferFixture(t, name)
+		out := filepath.Join(dir, name)
+		if err := os.MkdirAll(out, 0755); err != nil {
+			t.Fatal(err)
+		}
+		write := func(n string, b []byte) {
+			t.Helper()
+			p := filepath.Join(out, n)
+			if err := os.MkdirAll(filepath.Dir(p), 0755); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(p, b, 0644); err != nil {
+				t.Fatal(err)
+			}
+		}
+		for n, b := range map[string][]byte{"source.nanz": input.Source, "workload.json": input.Workload, "preregistration.json": input.Preregistration, "training-speed-decision.json": input.TrainingSpeed, "training-size-decision.json": input.TrainingSize} {
+			write(n, b)
+		}
+		calls := 0
+		factory := func() (*hir.Module, error) {
+			calls++
+			m, err := nanz.Parse(string(input.Source), input.SourceName)
+			if err == nil {
+				m.Target = hir.TargetCPM
+			}
+			return m, err
+		}
+		evidence, err := runFrozenTransfer(factory, input)
+		if err != nil {
+			write("error.txt", []byte(err.Error()+"\n"))
+			t.Fatal(err)
+		}
+		b, err := json.MarshalIndent(evidence, "", "  ")
+		if err != nil {
+			write("error.txt", []byte(err.Error()+"\n"))
+			t.Fatal(err)
+		}
+		write("evaluation.json", b)
+		for _, entry := range evidence.Entries {
+			q := fmt.Sprintf("policy%d-mask%d", entry.Tuple.Policy, entry.Tuple.Mask)
+			b, err := json.MarshalIndent(entry.Candidate.Evidence, "", "  ")
+			if err != nil {
+				t.Fatal(err)
+			}
+			proof, err := json.MarshalIndent(entry.Candidate.PrecompileProof, "", "  ")
+			if err != nil {
+				t.Fatal(err)
+			}
+			target := entry.Candidate.Evidence.Baseline.Target
+			for n, b := range map[string][]byte{"baseline-v2.json": b, "precompile-proof.json": proof, "target.a80": []byte(target.Assembly), "target.bin": target.Binary, "allocation.json": target.AllocationJSON, "final.mir2": []byte(target.FinalMIRDump)} {
+				write(filepath.Join(q, n), b)
+			}
+			t.Logf("%s %s policy%d/mask%d %dT/%dB BIN%s", name, entry.Role, entry.Tuple.Policy, entry.Tuple.Mask, target.TotalTStates, len(target.Binary), target.BinarySHA256)
+		}
+		if calls != 18 || evidence.FactoryCalls != 18 || len(evidence.Entries) != 4 {
+			t.Fatal("fixed evaluator lifecycle", calls)
 		}
 	}
 }
