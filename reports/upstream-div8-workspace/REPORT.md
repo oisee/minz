@@ -25,7 +25,7 @@ both operations (4,096 cases), proving the existing scratch-save wrapper still
 protects a genuinely live division workspace byte.
 
 Zero is explicitly excluded from valid native quotient/remainder evidence. The
-Book v7 demonstrates quotient/remainder (`divmod(10,3)==(3,1)`, §12 (compile-time assertions)) but does
+Book v7 demonstrates quotient/remainder (`divmod(10,3)==(3,1)`, §7.4 (tuple assertions)) but does
 not declare native zero-divisor trapping. Current MIR VM `OpDiv`/`OpMod` explicitly
 error on zero; tests verify all 256 dividends error under both VM operations.
 The native restoring algorithm has no trap/zero check. This pre-existing target
