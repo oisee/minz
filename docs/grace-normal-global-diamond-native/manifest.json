@@ -170,11 +170,6 @@
     "sha256": "82450936db9ef20f3996c1bd40c44750f773601761296f2647dfbbb33b9f97fd"
   },
   {
-    "path": "independent-host-review/model/__pycache__/verify_corpus.cpython-312.pyc",
-    "bytes": 18818,
-    "sha256": "7d50da3ad03869e93bd28b688df8292ea2db4a1375672bc0476081b369477a7e"
-  },
-  {
     "path": "independent-host-review/model/verify_corpus.py",
     "bytes": 9529,
     "sha256": "133ca68609f7b7c326efbfc55c91b5fbe2269555051f6aebd5b9817a7b8165ed"
