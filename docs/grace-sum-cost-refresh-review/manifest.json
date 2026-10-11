@@ -148,5 +148,6 @@
   "actual/original/n16/execution.bin": "746e82a4ea30f394ac927fe2001de54abdbd465f90d2488680bef9c94618b5c0",
   "actual/original/n16/raw.mir": "c9192d010128d7c370e335077096ad393de6baaca975d5efe0f0e8fcf59d8503",
   "actual/original/n16/program.bin": "0e14cec889b93f6fd8fd31ab5efc599b582db83d32dc4e372068bd64c5620ea6",
-  "actual/original/n16/program.a80": "66c52c0288acf1edd484392b2e20696a591d298653a84328575046621d54f99b"
+  "actual/original/n16/program.a80": "66c52c0288acf1edd484392b2e20696a591d298653a84328575046621d54f99b",
+  "sum-cost-refresh-evidence.test.gz": "af42683539d2c05a6911a6b743a62b326ea936d81d60e1ac709c4c2428bcd445"
 }
