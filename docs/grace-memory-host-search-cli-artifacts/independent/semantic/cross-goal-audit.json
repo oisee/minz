@@ -1,0 +1,13 @@
+{
+  "actual_speed": {
+    "policy": 1,
+    "mask": 3
+  },
+  "actual_size": {
+    "policy": 0,
+    "mask": 2
+  },
+  "both_policy_candidates_associations_profiles_exact_equal": true,
+  "actual_native_observations": 600,
+  "scope": "two actual goals samefresh84context; noCPU or defaultchange"
+}

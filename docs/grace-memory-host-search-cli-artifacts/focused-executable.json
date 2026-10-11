@@ -1,0 +1,6 @@
+{
+  "sha256": "fa0082a7548880aae92b4a2d1c4c03aabefc5e452b87bb6355fcc0693040f60e",
+  "core_commit": "62595c06",
+  "test_commit": "cb055746",
+  "scope": "short two-call collect and paired replay; no full30 CLI measurements"
+}

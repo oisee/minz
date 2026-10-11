@@ -1,0 +1,41 @@
+=== RUN   TestSearchCLICollectAndPairedReplay
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+Closed memory-host search speed selected policy1/mask1: 566T / 2122B; evidence /tmp/TestSearchCLICollectAndPairedReplay1023000775/001/search-artifacts
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+Closed memory-host search size selected policy0/mask2: 663T / 1978B; evidence /tmp/TestSearchCLICollectAndPairedReplay1023000775/001/search-replay
+--- PASS: TestSearchCLICollectAndPairedReplay (251.97s)
+PASS

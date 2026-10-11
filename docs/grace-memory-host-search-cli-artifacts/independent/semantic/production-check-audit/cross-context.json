@@ -1,0 +1,20 @@
+{
+  "schema": "minz.production-search-cli-cross-context-audit/v1",
+  "executable_sha256": "0d6df9fbf769bdcca6969717449f587ff856b0c7d38d525b78129811abe0de12",
+  "native_observations": 600,
+  "same_mask_payloads_equal_to_84_except_compiler_id": true,
+  "same_mask_payloads_equal_across_actual_goals": true,
+  "actual_speed": {
+    "policy": 1,
+    "mask": 3,
+    "t_states": 1076715,
+    "bytes": 2100
+  },
+  "actual_size": {
+    "policy": 0,
+    "mask": 2,
+    "t_states": 1079795,
+    "bytes": 1978
+  },
+  "scope": "compiler_id removal is offline comparison only; each fresh payload independently verified against retained0d6 executable, no relabelled input replay"
+}

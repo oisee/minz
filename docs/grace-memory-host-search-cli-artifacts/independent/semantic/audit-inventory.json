@@ -1,0 +1,76 @@
+{
+  "files": [
+    {
+      "path": "ADDITIVITY-NOTE.md",
+      "sha256": "ed0eeece7f904ba0ed70b5c3fe0fce919e407749a1be36c4b1db2168c93ba0da"
+    },
+    {
+      "path": "FINAL-SOURCE-GATE.md",
+      "sha256": "79c83c57c732471f4809a01f0dd038b5072aa920516e699400628863fbb6551c"
+    },
+    {
+      "path": "FULL-CLI-AUDIT.md",
+      "sha256": "f785687980e246c40bb3c399c8d9d9acb8adb79be2e02ab6a9fa01dbecb1c63f"
+    },
+    {
+      "path": "PARETO-AND-HELDOUT.md",
+      "sha256": "0c88674ab669270083baa41967b580b69e2d43e55872f13ec787dac63d431ba7"
+    },
+    {
+      "path": "PLAN.md",
+      "sha256": "9ff5eac736901b7c9ce30295a0bc4cd97cdff34f65390142343b3f7e4b306cca"
+    },
+    {
+      "path": "SOURCE-REVIEW.md",
+      "sha256": "e08b80e1ebd4fd8f34a9f862fd68392760a4fdcdc7f5b186515edca80c6c4e9d"
+    },
+    {
+      "path": "additivity-full30.json",
+      "sha256": "dbb6c7f95a113da5c77793971f7238c519c3915f68c96240b2f8b451846f25f5"
+    },
+    {
+      "path": "audit_cli.py",
+      "sha256": "8e668bbd279fceb9b050f6a3d761c3fdfa263daa08576a67741eb72c3c258068"
+    },
+    {
+      "path": "audit_search.py",
+      "sha256": "01ea8561948c31e98a96b2cc3d8b152de904732fb3a3e988fc12d5b417fdd15c"
+    },
+    {
+      "path": "cross-goal-audit.json",
+      "sha256": "8e6e4bf0eadf26567ea572c8c0304ddf13e20dc26886c63961540636a2338a71"
+    },
+    {
+      "path": "focused-admission.txt",
+      "sha256": "2da1ab4377f4eabe9142315ad788aecbe808fd35c6db05940fcdedfa059d504a"
+    },
+    {
+      "path": "model/audit_profile.py",
+      "sha256": "50814a6c4b56c341836bf58803cf14cb23918e74d92973b0bfb04d0217a37531"
+    },
+    {
+      "path": "model/verify_corpus.py",
+      "sha256": "dd24ae1bfa38924b0b560f55d253084478e160647356f42e9aa23aa833e5b616"
+    },
+    {
+      "path": "pareto-full30.json",
+      "sha256": "bd3cfbdcd641e9a5af035ac5c6cf9e747772f738f3fb305057130461db580f73"
+    },
+    {
+      "path": "prior-native-audit.json",
+      "sha256": "7a37fbb11ac74303fa78912a3605e6fde1ca124fa9f05952a6df6249fcefe342"
+    },
+    {
+      "path": "size-audit.json",
+      "sha256": "9c2aed7e0dca130b3bca764a3270de9455e948731c3c011cd987170e3870d449"
+    },
+    {
+      "path": "source-inventory.json",
+      "sha256": "19e41ac2d2b51cadd65f6c307676462bb632f56cfa2935f6468fd10712bf0092"
+    },
+    {
+      "path": "speed-audit.json",
+      "sha256": "32d40a5285c4074917db69f7a971c0d7f356eb459c9f3bc493b0e5f288a9c135"
+    }
+  ]
+}

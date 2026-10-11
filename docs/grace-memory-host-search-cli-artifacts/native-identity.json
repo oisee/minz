@@ -1,0 +1,8 @@
+{
+  "executable_sha256": "84e22c775093f40a6949abf64978b42696d1d66974b0bec22a94a266b6acb19a",
+  "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+  "workload_sha256": "ac7d90cb3501e183a7fc9d45242259551e9cd260db53731704ef0a31ee6f933f",
+  "source_commit": "d6b2a33f",
+  "logical_source_unit": "../examples/nanz/self_lanz_parser.nanz",
+  "scope": "isolated new CLI; fresh wholeassociations, no oldcontext reused"
+}

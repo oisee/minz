@@ -1,0 +1,15 @@
+# Search CLI final frozen source review
+
+Ownerd6b2a33f frozen, core62595c06 unchanged; test939acd0 schemaassert, inventoryfe6f2f1f. Independentlyverifiedallfivecmdsource/test SHA. No reviewer CPU/core/default edits. Fullread625earlyreport applies; no remaining materialacceptancehole.
+
+Changed dispatchall3newflagsincludingempty, mode/orphanpair conflictsold/fixedexplicitChangedempty; sharedworkloadonly; normalroutesoldexecutionunchanged. Exactknownsource8MiB/SHA/unitbeforecollectcachedfactory; APIindependentASTidentity. Bothboundednamedassocs suppliedownedbeforestrictAPIpreflight; collectbothfreshwithsameexe, no partialpolicyfallback. ActualSize selectsall8binarybytes, pureSpeedTonly, noOptSize inference orbytessecondarytiebreak. Legacy-firstprimaryties.
+
+All50payloadfilesprebuilt/serialized/inventoryexactbeforewrites. Completealiascanonical/SameFileinputs2assoc+source/workload+all50+optional-o, repeatedbeforewrite. Decisionexactschema/sourceNameSHA/SearchSHAand2associationbyteSHA/currentnestedselectedBINASM/T/B/choices. Output fromauthoritative searchindexedcandidate directly, no ASMregen/ProfileDecision. IOpartialhonest; semanticrefusalnooutput.
+
+Ownerfocusednative shortcollect actualSpeed1/1 andpairedreplay actualSize0/2 passed251.97; submittedinputbytes/selectednative/-o/decision/source/searchschemaSHA checked; all8BINcosts unchangedacrossgoals. Exactschemas939assert reviewed againstsavedcollect (noheavyrepeat). Admission .524; extra cap/oldroutes .313. UnitstestChangedrestoration/exhaustive50inventory/casealias/futurepaths/sourcebeforecollect. Label-auditnode_tagdiagnostics preserved; outputnativepipeline usesknownEQU alias, notsilentlygrantednewauthority.
+
+Conditionalreadonlyrelease forpreservedbuiltCLI actualfull30Speed/Size pluspairedshortreplay afterparentgate/rootauthorization. ThesefutureCLIcosts/payloads notclaimedbeforeterminal. No broaderdefaultPreserve or genericaddresshoist promised.
+
+## Feedback precision
+
+Different sourceHIRsites areusefulproofseparation, notproofbackendcostindependence: registerallocation,liveness,jumpdistance/callABI cancouple transformedfunctions/policies. Exact−159/+121 arena, appenddelta and−2921/+1policy same-maskadditivity observedonthisparticularfull30 is measured, notgeneralalgebraiccontract. CorpusdifferentpolicyTdeltaalreadydemonstrated. Zero-bodylen0tests exerciseearlyexit, notdistributionofmismatchfrequency. Futuregenericinvariantaddresshoist needsactualeffect/globalresourcecontract; promotingPreservedefault wouldrequirebroadermeaningfulallocation/corpus evidence andsizepolicy, notonewinner. UserpureSpeed metric staysmeasuredTonly.
