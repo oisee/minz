@@ -1,0 +1,6 @@
+=== RUN   TestMemoryHostCheckpointNumericGlobalPermissionGap
+    memory_host_provenance_review_test.go:47: CONFIRMED store=false: numeric MIR pointer unproved; native numeric global8000 allowed and invisible to resource events
+    memory_host_provenance_review_test.go:47: CONFIRMED store=true: numeric MIR pointer unproved; native numeric global8000 allowed and invisible to resource events
+--- PASS: TestMemoryHostCheckpointNumericGlobalPermissionGap (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.007s
