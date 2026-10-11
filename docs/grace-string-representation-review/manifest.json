@@ -4,6 +4,10 @@
     "sha256": "b0ea5b33d2e90398f9869bd0ca30f85c86d6c0e62cdc06415ef95157f0658ed1"
   },
   {
+    "path": "C9C3-FINAL-SOURCE-REVIEW.md",
+    "sha256": "3345b4e1bce869be2a42fbfa697c5d704ea857e24c4713cd05a3f552b56ae87b"
+  },
+  {
     "path": "EXPECTED.json",
     "sha256": "ac97d3171241a0f82ce72016b0a1e9302ca3f286c6590f763339cc4e984efd65"
   },
@@ -18,6 +22,10 @@
   {
     "path": "REVIEW-GATE.md",
     "sha256": "0af04f566acc1143a25062d4759ab29335375b66db5e7250eacf48a7c287c0a3"
+  },
+  {
+    "path": "c9c3-reviewed-inventory.json",
+    "sha256": "aa727e57a5ec52df5accb29e18bf12e84b8c9bf62008d7968648755d2b506042"
   },
   {
     "path": "repro/generated_name_collision.nanz",
