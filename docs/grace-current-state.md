@@ -13,7 +13,7 @@ Checkpoint интеграции plasma — `00bab964`; исторические 
 |---|---|---|
 | Заявленный корпус | Все 194 пути имеют явный статус; 51 bounded independent VM/Z80 path | 86 ждут независимого оракула, остальные имеют отдельные ASM/runtime/host ограничения; bounded entry не означает всё приложение |
 | PFCCO/PBQP и таблицы | Реальные назначения, moves/saves и native польза на packet/weighted; bounded solver audit | Произвольные calls/CFG/islands и глобальная оптимальность |
-| Автоматический выбор и heldout | Self-Lanz и HashMap: неизменённый выбранный BIN быстрее на заранее отложенных входах; packet даёт отдельный PFCCO выигрыш | Более широкое алгоритмическое приложение: Pascal bubble sort в работе; новый stable replay предстоит |
+| Автоматический выбор и heldout | Self-Lanz и HashMap: неизменённый выбранный BIN быстрее на заранее отложенных входах; packet даёт отдельный PFCCO выигрыш | Pascal SORT теперь также прошёл prospective3train/8heldout; остальные runtime/corpus ограничения сохраняются |
 | Полное удаление LIR и перенос пользы | Пакет/consumers удалены; shared engines/native тесты сохранены; word ×10/12, byte fusion и K11 перенесены с native пользой | Полнота общих physical constraints/pattern choices требует предметного аудита |
 | Воспроизводимость | Исходники, workloads, решения, ASM/BIN и логи на `/mnt/safe/minz/grace/2026-10-11/`; v66 сайт целиком проверен по SHA | Текущие общие gates должны завершиться со своим точным checkpoint |
 
@@ -520,3 +520,23 @@ Original plasma_attr ускорился793332→331508 T на1024 независ
 
 Sites v66 опубликован приватно и предшествует plasma. CLI708e77c5
 завершился PASS365,129 с; новый pipelinea7954042 ещё работает.
+
+## Третье семейство и направление VIR
+
+Оригинальный Pascal SORT: выбор по трём frozen training-массивам;
+те же выбранные488→486 B на восьми heldout дают164671→164275 T.
+RootPASS8,110 с; полный исходник сохранён, BDOS main не исполнялся.
+[Пакет131](grace-integration-131/README.md). Последующий повтор прежних
+parser/HashMap/PFCCO heldout на currentкоде PASS25,262 с:
+[пакет132](grace-integration-132/README.md). Это replay, не новоеblindfreeze.
+
+Alice уточнила архитектуру: обычная компиляция без Z3, решатель только
+для исследований/офлайн-генерации. Готовые таблицы применяются без solver.
+VIR можно перепроектировать вокруг MIR-native проверяемых кандидатов;
+[ADR0047](adr/0047-mir-native-candidates-and-offline-vir.md). WFC может
+сокращать домены instructions/locations/flags/edges; его superiority
+пока не доказана и он не заменяет текущий PBQP. Старый researchisland
+эмиттер не имеет корректных joins и не допускается в productpath.
+
+Флаговые scalarwriters исправлены; wideCMP/extension ещё в работе.
+Полный pipelinea7954042 жив, currentfullPASS по нему не заявляется.
