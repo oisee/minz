@@ -87,7 +87,7 @@ func TestGlobalWordDirectPairNative(t *testing.T) {
 					if z.GetMemory(uint16(i)) != ram[i] || prof.WriteCount[i] != 0 {
 						t.Fatal("load wrote memory", i)
 					}
-					if i >= int(a.Origin) && i < int(a.Origin)+len(a.Binary) {
+					if i >= int(pc) && i < int(pc)+4 {
 						continue
 					}
 					want := uint32(0)
@@ -137,6 +137,23 @@ func TestGlobalWordDirectPairRefusals(t *testing.T) {
 					t.Fatalf("live address suppressed\n%s", text)
 				}
 			})
+		}
+	}
+}
+
+func TestGlobalWordDirectPairAsmUseRemains(t *testing.T) {
+	for _, pair := range []string{"DE", "BC"} {
+		m, ar := directPairModule(pair, false, false, false)
+		m.Funcs[0].Blocks[0].Insts = append(m.Funcs[0].Blocks[0].Insts, &mir2.Inst{Op: mir2.OpAsm, Asm: &mir2.AsmExtra{Template: "LD A,(HL)", Ins: []mir2.Reg{1}}})
+		if e := mir2.Verify(m); e != nil {
+			t.Fatal(e)
+		}
+		text, e := mir2.Z80Codegen(m, ar)
+		if e != nil {
+			t.Fatal(e)
+		}
+		if strings.Contains(text, "LD "+pair+", (word)") || !strings.Contains(text, "LD HL, word") {
+			t.Fatalf("asm input pointer lost\n%s", text)
 		}
 	}
 }
