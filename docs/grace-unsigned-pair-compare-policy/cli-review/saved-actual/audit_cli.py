@@ -43,7 +43,7 @@ for name,policy,goal in [('speed',1,'speed'),('size',1,'size'),('small-collect',
   q=out/name/variant;q.mkdir(parents=True,exist_ok=True);(q/'factory-baseline.json').write_text(json.dumps(e,indent=2)+'\n')
   for f in ('target.bin','target.a80','final.mir2','allocation.json'):(q/f).write_bytes(read(p/variant/f))
   (q/'source.nanz').write_bytes(source);costs.append(t['total_t_states']);sizes.append(len(binary))
- winner=min(range(4),key=lambda i:(costs[i],sizes[i],i) if goal=='speed' else (sizes[i],costs[i],i))
+ winner=min(range(4),key=lambda i:costs[i] if goal=='speed' else sizes[i])
  assert winner==s['selected'];chosen=s['candidates'][winner];t=chosen['evidence']['baseline']['target']
  assert d['choices']==chosen['choices'] and d['t_states']==t['total_t_states'] and d['bytes']==len(base64.b64decode(t['binary'])) and d['binary_sha256']==t['binary_sha256']
  assert read(p/'selected.bin')==base64.b64decode(t['binary']) and read(p/'selected.a80')==t['assembly'].encode()
