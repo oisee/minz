@@ -44,9 +44,10 @@ SHA256 `1bd95516f7b1ef1ba56c17822104936e2b73fe8bde5fe7368dd128811009f041`.
 
 ## Опубликовано и сохранено
 
-Приватный Sites, подтверждённая **версия 47**:
+Приватный Sites, подтверждённая **версия 48**:
 https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/
 
+- [Direct global word loads](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/global-word-load.html)
 - [Стоимость PC и функций](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-pc-cost.html)
 - [Совместный selector](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-composition-selection.html)
 - [CLI](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-cli-selection.html)
@@ -93,12 +94,12 @@ Final CLI saved-audit прошёл. Первый pipeline упёрся в 10m ti
 выявил три устаревших baseline T/SHA assertions. Их reference обновлён
 по независимо проверенному новому BIN; focused3tests4.173s PASS.
 Полный suite завершился1107.431s PASS; backend этап закрыт,
-итоговая публикация готовится. Логи первого отказа сохранены.
+итоговый2908f18f pushed, приватная Sites48 опубликована. Логи первого отказа сохранены.
 Final suite с timeout30m завершился: **1107.431 s PASS**. Отдельный
 artifact-only corpus refresh на dba завершён: все четыре speed-набора
 выбрали append-only вместо прежнего both;32candidate/8profiles/8decisions
 прошли два независимых аудита. Пакет7df6632e перенесён; savedgzip
-проверка после переноса PASS. Полный suite прошёл; публикация готовится.
+проверка после переноса PASS. Полный suite прошёл; corpus отчёт публикуется отдельно.
 Inputs и планы новых проверок committed/pushed в постоянных ветках.
 Production checkpoint сохраняется как WIP; аудитированные старые этапы
 остаются доступными. Диагностический PC hook в production не переносился.
