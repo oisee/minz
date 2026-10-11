@@ -1,0 +1,14 @@
+=== RUN   TestMeasuredModeWorkloadsOwnsAllInputsAndTies
+--- PASS: TestMeasuredModeWorkloadsOwnsAllInputsAndTies (1.71s)
+=== RUN   TestMeasuredModeWorkloadsRejectsCrossRunDriftAndFailure
+=== RUN   TestMeasuredModeWorkloadsRejectsCrossRunDriftAndFailure/source
+=== RUN   TestMeasuredModeWorkloadsRejectsCrossRunDriftAndFailure/ABI
+=== RUN   TestMeasuredModeWorkloadsRejectsCrossRunDriftAndFailure/failure
+--- PASS: TestMeasuredModeWorkloadsRejectsCrossRunDriftAndFailure (3.29s)
+    --- PASS: TestMeasuredModeWorkloadsRejectsCrossRunDriftAndFailure/source (1.17s)
+    --- PASS: TestMeasuredModeWorkloadsRejectsCrossRunDriftAndFailure/ABI (1.28s)
+    --- PASS: TestMeasuredModeWorkloadsRejectsCrossRunDriftAndFailure/failure (0.84s)
+=== RUN   TestMeasuredModeWorkloadsRejectsEarlierHIRMutation
+--- PASS: TestMeasuredModeWorkloadsRejectsEarlierHIRMutation (0.85s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	5.854s
