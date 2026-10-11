@@ -58,6 +58,17 @@ func (g *z80cg) emitSBCHL(rhs string) {
 // ── Binary operations ─────────────────────────────────────────────────────────
 
 func (g *z80cg) genBinOp(mnem string, inst *Inst) {
+	// A pending predicate may be assigned an ordinary byte register by PBQP,
+	// but that register has not received a value. Materialize it before ALU work.
+	if g.pendingFlagReg != NoReg && (inst.Src[0] == g.pendingFlagReg || inst.Src[1] == g.pendingFlagReg) {
+		home := g.freeScratch8(inst)
+		if home == "" {
+			home = g.spillLabel(g.pendingFlagReg)
+		}
+		g.emitKnownFlagCopy(home, 8)
+		g.physOverride[g.pendingFlagReg] = home
+		g.pendingFlagReg = NoReg
+	}
 	dst := g.loc(inst.Dst)
 	lhs := g.loc(inst.Src[0])
 	rhs := g.loc(inst.Src[1])

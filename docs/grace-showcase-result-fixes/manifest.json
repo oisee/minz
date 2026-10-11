@@ -1,0 +1,45 @@
+{
+  "base_commit": "4f556d23",
+  "files": {
+    "REPORT.md": {
+      "bytes": 4212,
+      "sha256": "974f56c326742ea488d71ea633a2a32c02a45e8a8e09e2eafb8986bcb619ce2b"
+    },
+    "crypto-before.txt": {
+      "bytes": 6746,
+      "sha256": "421af29275aca2a58a14a851f0b67a9e83755d0f43833e0a397cd67f5ec06214"
+    },
+    "diagnostic-live-bool.txt": {
+      "bytes": 292,
+      "sha256": "35b768886fd16aad4e6edfb18434e86a1948459a15664b412cbd2967d435b5a9"
+    },
+    "diagnostic-spill-staging.txt": {
+      "bytes": 51521,
+      "sha256": "2d345b7dc30646e42d5b4a7f53fc04257636405f3904847517a74b0a1e7fd1f3"
+    },
+    "dsp-before.txt": {
+      "bytes": 7104,
+      "sha256": "9b993b0544e4ef9f1118650d148f922fdb230ba5859484bbccbe71193618188e"
+    },
+    "iterator-lifetime-final.txt": {
+      "bytes": 11638,
+      "sha256": "9022fe4cbc10c406222af173f07bb8ba012445148ffcd7875f5f390f6d166664"
+    },
+    "lizp-final.txt": {
+      "bytes": 2411,
+      "sha256": "d315a43514e42a0fbdaafa86d829cfdd3a83b1668906381f613b3bc95cacfb5c"
+    },
+    "packages-final.txt": {
+      "bytes": 129,
+      "sha256": "7a181d20c3931de6710af4a2fef33a16eebce01ebb112dd9ab036b6720ab6bf7"
+    },
+    "showcase-final.txt": {
+      "bytes": 525,
+      "sha256": "a1b681a0da2ea3b20f597cf6af6f6273634cdf44eb68560ceab0947ebf51f5c4"
+    },
+    "showcase-intermediate.txt": {
+      "bytes": 526,
+      "sha256": "d6c3a6cb62938dce1ea80e3599cb0703c2223f64eeed95165e726ab430771e38"
+    }
+  }
+}
