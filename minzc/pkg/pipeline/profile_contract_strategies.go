@@ -178,6 +178,10 @@ func MeasureContractStrategies(factory func() (*hir.Module, error), workload hir
 		if len(bin.Errors) > 0 {
 			return fail(fmt.Errorf("candidate assembly errors: %v", bin.Errors))
 		}
+		digest := fmt.Sprintf("%x", sha256.Sum256(bin.Binary))
+		if run == nil || run.BinarySHA256 != digest || len(run.Invocations) != len(workload.Calls) {
+			return fail(fmt.Errorf("measured executable or invocation count differs from candidate"))
+		}
 		candidate := MeasuredModeCandidate{Options: opts, CompilationID: id, Assembly: steps.Assembly, Binary: bin.Binary, FinalMIR: steps.MIR2Module.Dump(), Run: run}
 		evidence.Candidates = append(evidence.Candidates, candidate)
 		allocation, e := json.Marshal(steps.Allocation)

@@ -1,8 +1,10 @@
 package pipeline
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/nanz"
 	"os"
@@ -18,6 +20,11 @@ func TestMeasuredContractStrategiesTieAndRefusals(t *testing.T) {
 	}
 	if len(r.Evidence.Candidates) != 3 || r.Evidence.Selected != 0 || r.Steps.Assembly != r.Evidence.Candidates[0].Assembly || !reflect.DeepEqual(r.Binary, r.Evidence.Candidates[0].Binary) {
 		t.Fatal("fixed tie/winner")
+	}
+	for _, candidate := range r.Evidence.Candidates {
+		if candidate.Run.BinarySHA256 != fmt.Sprintf("%x", sha256.Sum256(candidate.Binary)) || len(candidate.Run.Invocations) != len(w.Calls) {
+			t.Fatal("candidate differs from executed binary or workload")
+		}
 	}
 	for _, kind := range []string{"shared", "source", "latefailure", "lateABI", "metadata"} {
 		t.Run(kind, func(t *testing.T) {
