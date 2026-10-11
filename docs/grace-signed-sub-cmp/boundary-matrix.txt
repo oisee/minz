@@ -1,0 +1,10 @@
+=== RUN   TestSignedSubCmpBoundaryVMZ80
+=== RUN   TestSignedSubCmpBoundaryVMZ80/grace=false
+    signed_sub_cmp_regression_test.go:88: 405 cases PASS raw MIR2 + optimized MIR2 + assembled Z80
+=== RUN   TestSignedSubCmpBoundaryVMZ80/grace=true
+    signed_sub_cmp_regression_test.go:88: 405 cases PASS raw MIR2 + optimized MIR2 + assembled Z80
+--- PASS: TestSignedSubCmpBoundaryVMZ80 (1.76s)
+    --- PASS: TestSignedSubCmpBoundaryVMZ80/grace=false (0.78s)
+    --- PASS: TestSignedSubCmpBoundaryVMZ80/grace=true (0.98s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.778s

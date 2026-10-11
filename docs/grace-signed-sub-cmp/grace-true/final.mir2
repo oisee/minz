@@ -1,0 +1,50 @@
+; MIR2 module: signed_sub_cmp
+fun @abs_diff(%r1: i8 [acc], %r2: i8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = sub %r1, %r2 : i8 [acc]
+    %r4 = cmp.ge %r1, %r2 : bool [flag]
+    br_if %r4, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r3
+  block @if_join2:
+    %r5 = neg %r3 : u8 [acc]
+    ret %r5
+
+fun @less_sub(%r6: i8 [acc], %r7: i8 [general]) -> u8 [acc]
+  block @entry:
+    %r8 = cmp.lt %r6, %r7 : bool [flag]
+    %r9 = const 0 : u8 [general]
+    cond_ret %r8, [%r9], @if_then1()
+  block @if_then1:
+    %r10 = sub %r6, %r7 : i8 [acc]
+    ret %r10
+
+fun @equal_sub(%r11: i8 [acc], %r12: i8 [general]) -> u8 [acc]
+  block @entry:
+    %r13 = sub %r11, %r12 : i8 [acc]
+    %r14 = cmp.eq %r11, %r12 : bool [flag]
+    cond_ret %r14, [%r13], @if_then1()
+  block @if_then1:
+    %r15 = const 100 : u8 [general]
+    ret %r15
+
+fun @greater_sub(%r16: i8 [acc], %r17: i8 [general]) -> u8 [acc]
+  block @entry:
+    %r18 = sub %r16, %r17 : i8 [acc]
+    %r19 = cmp.gt %r16, %r17 : bool [flag]
+    %r20 = const 0 : u8 [general]
+    cond_ret %r19, [%r20], @if_then1()
+  block @if_then1:
+    ret %r18
+
+fun @unsigned_sub(%r21: u8 [acc], %r22: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r23 = sub %r21, %r22 : u8 [acc]
+    %r24 = cmp.sub_carry_not %r23, %r22 : bool [flag]
+    br_if %r24, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r23
+  block @if_join2:
+    %r25 = neg %r23 : u8 [acc]
+    ret %r25
+

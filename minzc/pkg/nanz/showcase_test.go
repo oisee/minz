@@ -21,7 +21,6 @@ import (
 // showcase.lizp must not hide showcase.plm, nor factorial.lizp factorial.pas.
 // MINZ_SHOWCASE_CHECK_KNOWN=1 executes these cases for an explicit failure audit.
 var knownFailures = map[string]string{
-	"reports/showcase-src/2026-03-10/ex4a_abs_diff_iar.nanz": "pipeline: signed abs_diff(20,-10) MIR2 result 226, want 30",
 	"reports/showcase-src/2026-03-15/ex34_tetris.nanz":       "pipeline: HIR main non-address type u8",
 	"examples/lizp/showcase.lizp":                            "pipeline: Lizp asm string treated as unknown HIR variable",
 	"examples/lizp/zx_checkerboard.lizp":                     "pipeline: Lizp asm string treated as unknown HIR variable",

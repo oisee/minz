@@ -1,0 +1,8 @@
+=== RUN   TestShowcaseCompileAssemble
+    showcase_test.go:85: Found 192 showcase files
+=== RUN   TestShowcaseCompileAssemble/ex4a_abs_diff_iar.nanz
+    showcase_test.go:168: OK: 530 bytes asm, 31 bytes binary
+--- PASS: TestShowcaseCompileAssemble (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/ex4a_abs_diff_iar.nanz (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/nanz	0.016s
