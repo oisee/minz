@@ -1,0 +1,98 @@
+[
+  {
+    "original": "actual/both/allocation.json",
+    "gzip": "actual/both/allocation.json.gz",
+    "bytes": 18007,
+    "sha256": "fcbbced5794f3a65155762f254a9287133a3842d009e70c158156dc322c7a068"
+  },
+  {
+    "original": "actual/both/factory-baseline.json",
+    "gzip": "actual/both/factory-baseline.json.gz",
+    "bytes": 2217509,
+    "sha256": "9b1c05a1c548e00a15b4096872d8992099f9d954b8b6057aca7de53b7a9b3154"
+  },
+  {
+    "original": "actual/both/final.mir2",
+    "gzip": "actual/both/final.mir2.gz",
+    "bytes": 26143,
+    "sha256": "936a8d9aca6f7ac80723e498fab2bc44ffacfe2b05037d470bb45938ceee9ef1"
+  },
+  {
+    "original": "actual/both/target.a80",
+    "gzip": "actual/both/target.a80.gz",
+    "bytes": 31089,
+    "sha256": "c7c331a30c417ac365bf87cbbc2cd7cbe0ece6fbe79e77384b02c12703223aa9"
+  },
+  {
+    "original": "actual/original/allocation.json",
+    "gzip": "actual/original/allocation.json.gz",
+    "bytes": 17418,
+    "sha256": "9af8fdfdeb8d341f6f28097323c96a5b59d1fee911045b363782e8e64e0d8976"
+  },
+  {
+    "original": "actual/original/factory-baseline.json",
+    "gzip": "actual/original/factory-baseline.json.gz",
+    "bytes": 2208565,
+    "sha256": "214a5a0562cc3317a520bbb5ad2f45248a7e805343360d824df36600f160dac3"
+  },
+  {
+    "original": "actual/original/final.mir2",
+    "gzip": "actual/original/final.mir2.gz",
+    "bytes": 25214,
+    "sha256": "7c6d066dba853d5612611b53a442e5a355d1480e31d0c0225feff75525fbd913"
+  },
+  {
+    "original": "actual/original/target.a80",
+    "gzip": "actual/original/target.a80.gz",
+    "bytes": 29352,
+    "sha256": "50adcc358a40137344cfeed0e6e6130864823a210037f7982187c2bc69fae74f"
+  },
+  {
+    "original": "previous/both/allocation.json",
+    "gzip": "previous/both/allocation.json.gz",
+    "bytes": 18007,
+    "sha256": "fcbbced5794f3a65155762f254a9287133a3842d009e70c158156dc322c7a068"
+  },
+  {
+    "original": "previous/both/factory-baseline.json",
+    "gzip": "previous/both/factory-baseline.json.gz",
+    "bytes": 2229533,
+    "sha256": "ddd25706527d2442b3921299f0cd89ebec778e6be63683eb1df77b0132ad7c29"
+  },
+  {
+    "original": "previous/both/final.mir2",
+    "gzip": "previous/both/final.mir2.gz",
+    "bytes": 26143,
+    "sha256": "936a8d9aca6f7ac80723e498fab2bc44ffacfe2b05037d470bb45938ceee9ef1"
+  },
+  {
+    "original": "previous/both/target.a80",
+    "gzip": "previous/both/target.a80.gz",
+    "bytes": 33808,
+    "sha256": "2f7bbab0b46fe75a94c4cd5ffe5e5a92f2ea3d2a490afa39d483838108291941"
+  },
+  {
+    "original": "previous/original/allocation.json",
+    "gzip": "previous/original/allocation.json.gz",
+    "bytes": 17418,
+    "sha256": "9af8fdfdeb8d341f6f28097323c96a5b59d1fee911045b363782e8e64e0d8976"
+  },
+  {
+    "original": "previous/original/factory-baseline.json",
+    "gzip": "previous/original/factory-baseline.json.gz",
+    "bytes": 2219878,
+    "sha256": "b6bfe824f820d627527c4bde0645abff996e20e14fee29116a44109271096999"
+  },
+  {
+    "original": "previous/original/final.mir2",
+    "gzip": "previous/original/final.mir2.gz",
+    "bytes": 25214,
+    "sha256": "7c6d066dba853d5612611b53a442e5a355d1480e31d0c0225feff75525fbd913"
+  },
+  {
+    "original": "previous/original/target.a80",
+    "gzip": "previous/original/target.a80.gz",
+    "bytes": 31887,
+    "sha256": "461d1ff70cd7bf140a5bea77df7b2948a1a069af35f2cd08b6fbffcaa8382414"
+  }
+]
