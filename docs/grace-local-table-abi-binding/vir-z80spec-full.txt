@@ -1,0 +1,2 @@
+ok  	github.com/minz/minzc/pkg/vir	2.131s
+ok  	github.com/minz/minzc/pkg/z80spec	(cached)
