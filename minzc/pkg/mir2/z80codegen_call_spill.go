@@ -21,7 +21,7 @@ func (g *z80cg) callerSaveSpillHomes(inst *Inst) []callSpillHome {
 	}
 	var regs []Reg
 	for r := range g.regsLiveAfterInst(inst) {
-		if !excluded[r] && g.ar.Loc(r).Kind == LocMem {
+		if !excluded[r] && g.loc(r) == g.spillLabel(r) {
 			regs = append(regs, r)
 		}
 	}

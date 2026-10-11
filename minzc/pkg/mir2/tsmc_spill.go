@@ -62,7 +62,7 @@ func scanTSMCSpillPairs(f *Func, ar *AllocResult) []tsmcSpillPair {
 			for _, r := range i.ExtraRets {
 				delete(live, r)
 			}
-			if i.Op == OpCall || i.Op == OpCallIndirect {
+			if i.Op == OpCall || i.Op == OpCallIndirect || i.Op == OpCallCond || i.Op == OpAsm {
 				for r := range live {
 					liveAcrossCall[r] = true
 				}
