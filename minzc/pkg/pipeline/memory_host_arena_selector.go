@@ -54,6 +54,7 @@ func MeasureMemoryHostArenaPeel(factory func() (*hir.Module, error), w hir.Memor
 		if e = jointCheckFreshHIR(m, seen); e != nil {
 			return nil, e
 		}
+		retainArenaSourceGraph(m, &privateRoots)
 		retained = append(retained, m)
 		return m, nil
 	}
@@ -152,71 +153,7 @@ func MeasureMemoryHostArenaPeel(factory func() (*hir.Module, error), w hir.Memor
 		if e = identity(actual); e != nil {
 			return nil, e
 		}
-		// Preserve the original pointer graph before transformation/compilation
-		// drops old bodies, expressions or backing slices. Address-only freshness
-		// sets must never encounter GC reuse of formerly owned source nodes.
-		root := *actual
-		root.Funcs = make([]*hir.Func, len(actual.Funcs))
-		for i, f := range actual.Funcs {
-			c := *f
-			root.Funcs[i] = &c
-		}
-		privateRoots = append(privateRoots, &root, actual)
-		var retainPointers func(reflect.Value)
-		visited := map[uintptr]bool{}
-		retainPointers = func(v reflect.Value) {
-			if !v.IsValid() {
-				return
-			}
-			if v.Kind() == reflect.Interface {
-				if !v.IsNil() {
-					retainPointers(v.Elem())
-				}
-				return
-			}
-			switch v.Kind() {
-			case reflect.Pointer:
-				if v.IsNil() || visited[v.Pointer()] {
-					return
-				}
-				visited[v.Pointer()] = true
-				if v.CanInterface() {
-					privateRoots = append(privateRoots, v.Interface())
-				}
-				retainPointers(v.Elem())
-			case reflect.Map:
-				if v.IsNil() || visited[v.Pointer()] {
-					return
-				}
-				visited[v.Pointer()] = true
-				if v.CanInterface() {
-					privateRoots = append(privateRoots, v.Interface())
-				}
-				it := v.MapRange()
-				for it.Next() {
-					retainPointers(it.Key())
-					retainPointers(it.Value())
-				}
-			case reflect.Slice:
-				if v.CanInterface() {
-					privateRoots = append(privateRoots, v.Interface())
-				}
-				for i := 0; i < v.Len(); i++ {
-					retainPointers(v.Index(i))
-				}
-			case reflect.Array:
-				for i := 0; i < v.Len(); i++ {
-					retainPointers(v.Index(i))
-				}
-			case reflect.Struct:
-				for i := 0; i < v.NumField(); i++ {
-					if v.Field(i).CanInterface() {
-						retainPointers(v.Field(i))
-					}
-				}
-			}
-		}
-		retainPointers(reflect.ValueOf(actual))
+		retainArenaSourceGraph(actual, &privateRoots)
 		if e = peelMemoryHostArenaFirstByte(actual, owned); e != nil {
 			return nil, e
 		}
@@ -266,4 +203,59 @@ func arenaSameObservations(a, b []hir.MemoryHostObservation) error {
 		}
 	}
 	return nil
+}
+
+// Keep every formerly owned node/backing allocation alive even if normal
+// compiler preparation overwrites the pointers in its original root object.
+func retainArenaSourceGraph(m *hir.Module, roots *[]any) {
+	visited := map[uintptr]bool{}
+	var walk func(reflect.Value)
+	walk = func(v reflect.Value) {
+		if !v.IsValid() {
+			return
+		}
+		if v.Kind() == reflect.Interface {
+			if !v.IsNil() {
+				walk(v.Elem())
+			}
+			return
+		}
+		switch v.Kind() {
+		case reflect.Pointer, reflect.Map:
+			if v.IsNil() || visited[v.Pointer()] {
+				return
+			}
+			visited[v.Pointer()] = true
+			if v.CanInterface() {
+				*roots = append(*roots, v.Interface())
+			}
+			if v.Kind() == reflect.Pointer {
+				walk(v.Elem())
+			} else {
+				it := v.MapRange()
+				for it.Next() {
+					walk(it.Key())
+					walk(it.Value())
+				}
+			}
+		case reflect.Slice:
+			if v.CanInterface() {
+				*roots = append(*roots, v.Interface())
+			}
+			for i := 0; i < v.Len(); i++ {
+				walk(v.Index(i))
+			}
+		case reflect.Array:
+			for i := 0; i < v.Len(); i++ {
+				walk(v.Index(i))
+			}
+		case reflect.Struct:
+			for i := 0; i < v.NumField(); i++ {
+				if v.Field(i).CanInterface() {
+					walk(v.Field(i))
+				}
+			}
+		}
+	}
+	walk(reflect.ValueOf(m))
 }
