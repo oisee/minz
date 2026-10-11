@@ -70,5 +70,9 @@
   {
     "path": "minzc/pkg/z80validate/annotations_test.go",
     "sha256": "86291bfad4a430eb60f3ddc3b855ef7faa78ec1ac0809a9884d566f2f19650ad"
+  },
+  {
+    "path": "minzc/pkg/z80validate/validate.go",
+    "sha256": "64c928d3d94807d0d1fa4322d6c4980453d600d7fda9c5a5fe2b578dedab579f"
   }
 ]
