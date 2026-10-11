@@ -1,0 +1,38 @@
+{
+  "schema": "minz.independent-terminal-reconciliation/v1",
+  "status": "technical_requirements_verified_by_reconciled_full_suite",
+  "raw_full_suite_exit": 1,
+  "raw_full_suite_elapsed_seconds": 2560.907,
+  "raw_full_suite_test_inventory": 269,
+  "benchmarks_listed_not_executed": 5,
+  "exact_failed_tests": [
+    "TestMemoryHostFactoryOriginalParser",
+    "TestMemoryHostLoopAssociationOriginalParser",
+    "TestMemoryHostOriginalSelfLanzTarget"
+  ],
+  "other_tests": "no additional failures in terminal complete ordinary Go test run",
+  "full_suite_checkpoint": "bb1bbaf9",
+  "current_reference_checkpoint": "9490000a",
+  "production_source_diff_empty": true,
+  "changed_source_files": [
+    "minzc/pkg/pipeline/memory_host_baseline_test.go",
+    "minzc/pkg/pipeline/memory_host_loop_profile_test.go",
+    "minzc/pkg/pipeline/memory_host_reference_export_test.go",
+    "minzc/pkg/pipeline/memory_host_target_test.go"
+  ],
+  "failure_mapping": "all three are precisely old1135370/SHA1f0 assertions; directtarget prints current1291565/a9f98",
+  "focused_current_test_status": "threePASS",
+  "focused_executable_sha256": "7a1e1dd74f2cc832701338b237ab68c501f8b152639e0956cd32532054af19ac",
+  "focused_native_observations": 90,
+  "full_executable_sha256": "85c8df0b053ff36d985c9568ebd1e4d2ad87c9b107d47148d9f29b4658da661e",
+  "full_log_sha256": "d82ce1a9b0d53ec05f51cfe63024479db87b7c1f2ce8a9218c65002f963d93ae",
+  "inventory_sha256": "94df7e37f55662589a55df576f19f1bf3f04d8d4b534b5e37df066247e5965d8",
+  "independent_reference_audit": "fullsource/state/events/proof/hash and11counts PASS",
+  "literal_full_zeroexit_claim": false,
+  "new_CPU_execution_by_auditor": false,
+  "remaining": [
+    "publication currentstatus refresh",
+    "final offline/archive manifest/status synchronization"
+  ],
+  "scope": "original bounded goal technical evidence verified; known26showcase failures/generalprograms/hardware remain explicitly scoped limitations"
+}

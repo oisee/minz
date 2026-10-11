@@ -1,7 +1,7 @@
 {
   "schema": "minz.independent-goal-completion-audit/v1",
-  "audit_source_checkpoint": "2a5cdb9d",
-  "overall_goal_status": "objective_evidence_passed_required_broad_pipeline_terminal_pending",
+  "audit_source_checkpoint": "9490000a",
+  "overall_goal_status": "technical_requirements_verified_publication_offline_closure_pending",
   "native_execution_by_auditor": false,
   "requirements": [
     {
@@ -140,15 +140,15 @@
     },
     {
       "id": "required_current_broad_pipeline_and_CLI_gates",
-      "status": "current_full_pipeline_terminal_pending",
-      "evidence": "2a5cdb9d reconciled current-state/overnight summary; certified gate logs",
+      "status": "verified_reconciled_terminal_suite",
+      "evidence": "terminal-reconciliation.json + raw fullsuite nonzero/269inventory + focused3PASS/current90saved audit",
       "sessions_at_last_parent_confirmed_state": {
-        "current_full_pipeline": "89426 LIVE PID1373019, frozen bb1bbaf9 before71b references",
-        "prior_717_pipeline": "86830 terminal FAIL2301.032 only three stale T/BIN references",
-        "current_full_CLI": "35152 terminal PASS306.414 exit0"
+        "current_full_pipeline": "89426 terminal exit1 2560.907 ONLY3obsolete refs, reconciled",
+        "prior_717_pipeline": "86830 terminal exit1 ONLYsame3oldrefs",
+        "current_full_CLI": "35152 terminalPASS306.414 exit0"
       },
       "current_pipeline_executable_sha256": "85c8df0b053ff36d985c9568ebd1e4d2ad87c9b107d47148d9f29b4658da661e",
-      "reason": "Need terminal 89426 inventory; its three pre-refresh reference failures, if present, must reconcile exactly to verified71b. Focused PASS is evidence for those corrections, not a claim of broad raw PASS.",
+      "reason": "All executable production source unchanged; exact3old assertion failures independently measured/currentfocusedPASS. Raw fullnonzero exit remains preserved, not rewritten as literalPASS.",
       "current_MIR2": "PASS5.930",
       "showcase": "same26 previous failures:19import-path5HIR2resultmismatch;0new"
     }
@@ -162,7 +162,7 @@
     "Frozen-choice retrospective corpus evaluation is not blind unseen heldout training.",
     "No source-to-target dynamic loop lineage or fresh per-PC counts inferred from these saved measurements."
   ],
-  "summary": "Original bounded objective evidence is complete and current: sum profile->economicGrace->VM/assembledZ80 at six lengths; realprogram behavior/proofs and separately measured pureSpeed/Size. Remaining closure is terminal inventory of current fullpipeline89426, reconciliation of any pre-refresh known references against verified71b, then publication/offline status refresh. No new general optimizer or allprogram/hardware/unknownextern requirement is inferred.",
+  "summary": "Original bounded technical goal verified by current sum/profile/Grace/VMZ80 evidence, realprogram Speed/Size/replay behavior and reconciled complete broad suite. No new CPU necessary for unchanged production/test bodies. Final user-facing publication and offline status/manifest synchronization remain before overall administrative closure.",
   "report_review": {
     "current_state": "No broadPASS/goalcomplete claim found. Correct branch/main distinction, current/historical costs, realSizeexecution and1200record/1080execution accounting.",
     "overnight_summary": "Current section explicitly leaves89426pending and explains compile-before-reference-update; history separated.",
