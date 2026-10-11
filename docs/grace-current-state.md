@@ -353,7 +353,7 @@ Root independent ABI/memory/wrap/zero/fault-prefix проверки проход
 - [Полный локальный пакет CLI](grace-memory-host-search-cli-artifacts/manifest.json).
 - [Ночная сводка](../reports/2026-10-11-011-overnight-summary.md).
 
-Последняя подтверждённая публикация — Sites 63, source `e15defb0`, compiler snapshot `e6cb41ef`. Она предшествует terminal core и новым four_ptrs/PFCCO arena доказательствам; они сохранены в repo/share. Новые runtime, main, PFCCO и исправления сохранены в архивных пакетах; policy-fixture `22e426de` следует после snapshot. Свежие sum_array, full30
+Последняя подтверждённая публикация — Sites 64, source `936cca8b`, compiler snapshot `2d09774a`. Она включает terminal core, four_ptrs, PFCCO arena, parallel CLI, C89 и CUDA audit. Indexed ENRT и byte-lane исправление появились позже и сохранены в repo/share. Новые runtime, main, PFCCO и исправления сохранены в архивных пакетах; policy-fixture `22e426de` следует после snapshot. Свежие sum_array, full30
 и CP/M main собраны на странице current-state.html. Перенос фиксированных
 вариантов опубликован; CLI gate, terminal pipeline и обновление трёх эталонов опубликованы
 с исходными exit-кодами и независимым итоговым аудитом. Все внешние страницы и
