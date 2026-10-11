@@ -1,0 +1,11 @@
+{
+  "path": "/mnt/safe/z80-compiler/tables/enriched_4v.enr",
+  "header_hex": "454e5254010000005a630200040c0000",
+  "entries": 156506,
+  "max_vregs": 4,
+  "metrics": 12,
+  "records_scanned": 4096,
+  "unique_assignment_proposals": 244,
+  "note": "Prefix sample, not full shape lookup; imported assignments remain untrusted GPU locations",
+  "source_sha256": "7b49113c8a885e4fbe6bf0154ff11fbf88426f0d3daacc7ac019408dd4617a58"
+}

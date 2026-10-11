@@ -1,0 +1,29 @@
+=== RUN   TestActualLegacyCandidateImportCorpus
+    table_legacy_import_test.go:49: 06_pbqp_weighted/weighted legacy-native-json compatible0 admitted0
+    table_legacy_import_test.go:49: 06_pbqp_weighted/weighted legacy-gpu-json compatible0 admitted0
+    table_legacy_import_test.go:62: 06_pbqp_weighted module36→36B importedentries0
+    table_legacy_import_test.go:49: 09_function_pointers/double legacy-native-json compatible2 admitted0
+    table_legacy_import_test.go:49: 09_function_pointers/double legacy-gpu-json compatible5 admitted0
+    table_legacy_import_test.go:49: 09_function_pointers/triple legacy-native-json compatible1 admitted0
+    table_legacy_import_test.go:49: 09_function_pointers/triple legacy-gpu-json compatible4 admitted0
+    table_legacy_import_test.go:62: 09_function_pointers module34→34B importedentries0
+    table_legacy_import_test.go:49: tiny/add legacy-native-json compatible2 admitted0
+    table_legacy_import_test.go:49: tiny/add legacy-gpu-json compatible9 admitted0
+    table_legacy_import_test.go:49: tiny/double legacy-gpu-json compatible5 admitted0
+    table_legacy_import_test.go:49: tiny/double legacy-native-json compatible2 admitted0
+    table_legacy_import_test.go:49: tiny/triple legacy-native-json compatible1 admitted0
+    table_legacy_import_test.go:49: tiny/triple legacy-gpu-json compatible4 admitted0
+    table_legacy_import_test.go:62: tiny module11→11B importedentries0
+    table_legacy_import_test.go:49: 20_strref_test/hash3 legacy-native-json compatible1 admitted0
+    table_legacy_import_test.go:49: 20_strref_test/hash3 legacy-gpu-json compatible6 admitted0
+    table_legacy_import_test.go:49: 20_strref_test/test_eq legacy-native-json compatible1 admitted0
+    table_legacy_import_test.go:49: 20_strref_test/test_eq legacy-gpu-json compatible9 admitted0
+    table_legacy_import_test.go:49: 20_strref_test/test_neq legacy-native-json compatible1 admitted0
+    table_legacy_import_test.go:49: 20_strref_test/test_neq legacy-gpu-json compatible9 admitted0
+    table_legacy_import_test.go:62: 20_strref_test module45→45B importedentries0
+    table_legacy_import_test.go:49: 16_rotate_sled/low_nibble legacy-native-json compatible2 admitted0
+    table_legacy_import_test.go:49: 16_rotate_sled/low_nibble legacy-gpu-json compatible5 admitted0
+    table_legacy_import_test.go:62: 16_rotate_sled module192→192B importedentries0
+--- PASS: TestActualLegacyCandidateImportCorpus (0.05s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.062s
