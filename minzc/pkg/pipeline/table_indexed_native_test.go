@@ -37,11 +37,24 @@ func TestIndexedHistoricalTripleNative(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	evidence, e := vir.ImportIndexedENRT(asset, problem, tab)
+	var evidence *vir.IndexedLegacyImportEvidence
+	if index := os.Getenv("INDEXED_ENRT_INDEX"); index != "" {
+		op, err := vir.OpenENRTOperation(asset, index)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer op.Close()
+		evidence, e = op.Import(problem, tab, false)
+		if err = op.Validate(); err != nil {
+			t.Fatal(err)
+		}
+	} else {
+		evidence, e = vir.ImportIndexedENRT(asset, problem, tab)
+	}
 	if e != nil || evidence.Import == nil || evidence.Import.Admitted != 1 {
 		t.Fatal(e, evidence)
 	}
-	t.Logf("historical record%d prefix%dB %s", evidence.RecordIndex, evidence.BytesRead, evidence.PrefixSHA256)
+	t.Logf("historical record%d bytes%dB prefixSHA=%s blockSHA=%s", evidence.RecordIndex, evidence.BytesRead, evidence.PrefixSHA256, evidence.BlockSHA256)
 	p := t.TempDir() + "/table.json"
 	if e = tab.Save(p); e != nil {
 		t.Fatal(e)

@@ -27,9 +27,25 @@ func run() error {
 	asset := flag.String("enrt", "", "canonical ENRT v1 table (4v or 5v)")
 	output := flag.String("out", "", "new checked JSON table")
 	evidence := flag.String("evidence", "", "JSON diagnostics, including rejections")
+	indexPath := flag.String("index", "", "optional checked checkpoint index; validates full ENRT once at open and final publication")
+	buildIndex := flag.String("build-index", "", "build new checkpoint index offline; requires only --enrt")
 	quotient := flag.Bool("quotient", false, "explicitly collapse nonoverlapping same-register allocation variables before historical lookup")
 	stdlib := flag.String("stdlib", "", "original source import search path")
 	flag.Parse()
+	if *buildIndex != "" {
+		if flag.NArg() != 0 || *asset == "" || *source != "" || *output != "" || *evidence != "" || *indexPath != "" || *quotient {
+			return fmt.Errorf("--build-index requires only --enrt and new index path")
+		}
+		idx, e := vir.BuildENRTIndex(*asset)
+		if e != nil {
+			return e
+		}
+		data, e := json.MarshalIndent(idx, "", "  ")
+		if e != nil {
+			return e
+		}
+		return writeNew(*buildIndex, data)
+	}
 	if flag.NArg() != 0 || *source == "" || *asset == "" || *output == "" || *evidence == "" {
 		return fmt.Errorf("requires --source --enrt --out --evidence; optional --stdlib")
 	}
@@ -65,12 +81,23 @@ func run() error {
 		Error    string                           `json:"error,omitempty"`
 	}
 	notes := []decision{}
+	var operation *vir.ENRTOperation
+	if *indexPath != "" {
+		operation, e = vir.OpenENRTOperation(*asset, *indexPath)
+		if e != nil {
+			return e
+		}
+		defer operation.Close()
+	}
+
 	start = time.Now()
 	for _, f := range base.MIR2Module.Funcs {
 		p, e := vir.PrepareLocalTableProblem(f, base.Allocation)
 		d := decision{Function: f.Name}
 		if e == nil {
-			if *quotient {
+			if operation != nil {
+				d.Evidence, e = operation.Import(p, table, *quotient)
+			} else if *quotient {
 				d.Evidence, e = vir.ImportIndexedENRTQuotient(*asset, p, table)
 			} else {
 				d.Evidence, e = vir.ImportIndexedENRT(*asset, p, table)
@@ -94,12 +121,51 @@ func run() error {
 	if e != nil {
 		return e
 	}
-	if e = table.Save(*output); e != nil {
+	tmp, e := os.CreateTemp(filepath.Dir(*output), ".enrt-table-*")
+	if e != nil {
 		return e
 	}
-	if e = os.WriteFile(*evidence, data, 0644); e != nil {
+	tmpPath := tmp.Name()
+	tmp.Close()
+	defer os.Remove(tmpPath)
+	if e = table.Save(tmpPath); e != nil {
+		return e
+	}
+	if operation != nil {
+		if e = operation.Validate(); e != nil {
+			return e
+		}
+	}
+	tableData, e := os.ReadFile(tmpPath)
+	if e != nil {
+		return e
+	}
+	if e = writeNew(*output, tableData); e != nil {
+		return e
+	}
+	if e = writeNew(*evidence, data); e != nil {
+		os.Remove(*output)
 		return e
 	}
 	fmt.Printf("%d independently checked entries; diagnostics %s\n", table.Size(), *evidence)
 	return nil
+}
+
+// Publish through a same-directory hard link: no overwriting existing files,
+// and readers see the complete written bytes. Pair publication is sequential.
+func writeNew(path string, data []byte) error {
+	f, e := os.CreateTemp(filepath.Dir(path), ".enrt-publish-*")
+	if e != nil {
+		return e
+	}
+	tmp := f.Name()
+	defer os.Remove(tmp)
+	if _, e = f.Write(data); e != nil {
+		f.Close()
+		return e
+	}
+	if e = f.Close(); e != nil {
+		return e
+	}
+	return os.Link(tmp, path)
 }
