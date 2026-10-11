@@ -1,0 +1,33 @@
+{
+  "schema": "minz.policy-cli-cross-goal-replay-byte-audit/v1",
+  "full_actual_speed_selected": 3,
+  "full_actual_size_selected": 2,
+  "cross_goal_candidates_and_association_equal": true,
+  "small_same_executable_replay_selection_and_association_exact_bytes": true,
+  "full_candidates": [
+    {
+      "mask": 0,
+      "t_states": 1132449,
+      "bytes": 2001,
+      "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd"
+    },
+    {
+      "mask": 1,
+      "t_states": 1132290,
+      "bytes": 2122,
+      "binary_sha256": "7cbed996d01495228965970dd379920288378f7d84de4b0743db9a3589cdca53"
+    },
+    {
+      "mask": 2,
+      "t_states": 1076874,
+      "bytes": 1979,
+      "binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835"
+    },
+    {
+      "mask": 3,
+      "t_states": 1076715,
+      "bytes": 2100,
+      "binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac"
+    }
+  ]
+}
