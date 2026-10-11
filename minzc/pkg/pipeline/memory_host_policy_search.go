@@ -120,7 +120,7 @@ func MeasureMemoryHostArenaAppendPolicySearch(factory func() (*hir.Module, error
 		if e != nil {
 			return e
 		}
-		if !reflect.DeepEqual(k, compatibility) || !reflect.DeepEqual(f, functions) {
+		if !reflect.DeepEqual(k, compatibility) || !reflect.DeepEqual(f, functions) || !reflect.DeepEqual(m.Asserts, expected.Asserts) || !reflect.DeepEqual(m.Sandboxes, expected.Sandboxes) || !reflect.DeepEqual(m.AssertStats, expected.AssertStats) || !reflect.DeepEqual(m.Warnings, expected.Warnings) {
 			return fmt.Errorf("policy search: source differs from independently parsed original")
 		}
 		return nil
@@ -193,7 +193,7 @@ func MeasureMemoryHostArenaAppendPolicySearch(factory func() (*hir.Module, error
 // Validate all authoritative nested records before constructing the index and
 // ranking it. References carry identity only; costs stay in baseline envelopes.
 func validateMemoryHostPolicySearch(out *MemoryHostPolicySearchEvidence) error {
-	if out == nil || out.Schema != "minz.memory-host-arena-append-policy-search/v1" {
+	if out == nil || out.Schema != "minz.memory-host-arena-append-policy-search/v1" || out.Options.MaxSites != 2 || (out.Options.Goal != "speed" && out.Options.Goal != "size") {
 		return fmt.Errorf("policy search: invalid evidence")
 	}
 	for policy, selection := range out.Selections {
@@ -225,12 +225,19 @@ func validateMemoryHostPolicySearch(out *MemoryHostPolicySearchEvidence) error {
 			if e := bindMemoryHostArenaAppendPolicyProof(candidate.PrecompileProof, selection.SourceSites, choices, options, original, candidate.Evidence); e != nil {
 				return e
 			}
+			for _, observations := range [][]hir.MemoryHostObservation{candidate.Evidence.Baseline.Raw.Invocations, candidate.Evidence.Baseline.Target.Invocations} {
+				for _, observation := range observations {
+					if observation.Error != "" || observation.Failure != nil {
+						return fmt.Errorf("policy search: failed candidate is inadmissible")
+					}
+				}
+			}
 			if policy == 1 {
 				a, b := out.Selections[0].Candidates[mask].Evidence.Baseline, candidate.Evidence.Baseline
 				if !reflect.DeepEqual(a.Raw, b.Raw) || !reflect.DeepEqual(a.Compatibility, b.Compatibility) || !reflect.DeepEqual(a.FunctionSites, b.FunctionSites) || !reflect.DeepEqual(a.Target.Context, b.Target.Context) {
 					return fmt.Errorf("policy search: same-mask source/context differs")
 				}
-				if e := arenaSameObservations(a.Target.Invocations, b.Target.Invocations); e != nil {
+				if e := policySearchSameObservations(a.Target.Invocations, b.Target.Invocations); e != nil {
 					return e
 				}
 			}
@@ -247,6 +254,23 @@ func validateMemoryHostPolicySearch(out *MemoryHostPolicySearchEvidence) error {
 				out.Selected = choice
 			}
 		}
+	}
+	return nil
+}
+
+// Compare every observable field, including error text and typed failure.
+// Steps differ legitimately between backend policies.
+func policySearchSameObservations(a, b []hir.MemoryHostObservation) error {
+	x := append([]hir.MemoryHostObservation(nil), a...)
+	y := append([]hir.MemoryHostObservation(nil), b...)
+	for i := range x {
+		x[i].Steps = 0
+	}
+	for i := range y {
+		y[i].Steps = 0
+	}
+	if !reflect.DeepEqual(x, y) {
+		return fmt.Errorf("policy search: cross-policy observations differ")
 	}
 	return nil
 }
