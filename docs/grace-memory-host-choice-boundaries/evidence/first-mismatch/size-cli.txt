@@ -1,0 +1,9 @@
+Closed memory-host size selected mask2: 1772T / 2076B; evidence /home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-choice-boundaries-evidence/first-mismatch/size
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
