@@ -162,6 +162,16 @@ func (g *z80cg) genCall(inst *Inst) error {
 		callee = &Func{}
 		for i, arg := range inst.Args {
 			ty := inferTyFromAlloc(g.ar, arg)
+			if i < len(inst.IndirectParamTys) {
+				ty = inst.IndirectParamTys[i]
+			} else if info, ok := g.regInfo[arg]; ok && info.Ty != nil {
+				ty = info.Ty
+			}
+			for _, slot := range inst.StructReturnBuffers {
+				if slot.ParamIndex == i {
+					ty = TyPtr
+				}
+			}
 			callee.Contract.Params = append(callee.Contract.Params, Param{Ty: ty, Class: standardParamClass(ty, i)})
 		}
 		callee.Contract.StructReturnBuffers = inst.StructReturnBuffers

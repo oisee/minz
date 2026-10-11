@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/hir"
@@ -9,6 +10,7 @@ import (
 	"github.com/minz/minzc/pkg/z80asm"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -19,7 +21,11 @@ func TestStructReturnLifetimeBufferedNative(t *testing.T) {
 	}
 	text := string(data)
 	save := func(mode, name string, v any) {
-		dir := "../../../reports/struct-return-lifetime/buffered/" + mode
+		root := os.Getenv("MINZ_STRUCT_BUFFER_ARTIFACT_DIR")
+		if root == "" {
+			return
+		}
+		dir := filepath.Join(root, "lifetime", mode)
 		os.MkdirAll(dir, 0755)
 		var b []byte
 		switch x := v.(type) {
@@ -155,7 +161,7 @@ fun indirect(f:fun(u8)->Outer,x:u8,y:u8)->u16 {let a:Outer=f(x)
 let q:u8=disturb(83)
 return a.inner.b+u16(a.inner.a)}
 fun invoke(x:u8,y:u8)->u16{return indirect(build,x,y)}`
-	for _, opt := range []Options{{ContractOpt: true}, {ContractOpt: true, UseGrace: true}, {ContractOpt: true, UseGrace: true, OptSize: true}} {
+	for modeIndex, opt := range []Options{{ContractOpt: true}, {ContractOpt: true, UseGrace: true}, {ContractOpt: true, UseGrace: true, OptSize: true}} {
 		h, e := nanz.Parse(source, "nested-result.nanz")
 		if e != nil {
 			t.Fatal(e)
@@ -169,16 +175,41 @@ fun invoke(x:u8,y:u8)->u16{return indirect(build,x,y)}`
 		if e != nil {
 			t.Fatal(e)
 		}
-		os.WriteFile("/tmp/struct-nested.a80", []byte(s.Assembly), 0644)
-		os.WriteFile("/tmp/struct-nested.mir", []byte(s.MIR2Module.Dump()), 0644)
 		a, e := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + s.Assembly)
 		if e != nil || len(a.Errors) > 0 {
 			t.Fatal(e, a.Errors)
+		}
+		if root := os.Getenv("MINZ_STRUCT_BUFFER_ARTIFACT_DIR"); root != "" {
+			dir := filepath.Join(root, "nested", []string{"default", "grace-speed", "grace-size"}[modeIndex])
+			if e := os.MkdirAll(dir, 0755); e != nil {
+				t.Fatal(e)
+			}
+			for name, payload := range map[string][]byte{"source.nanz": []byte(source), "raw.mir": []byte(raw.Dump()), "final.mir": []byte(s.MIR2Module.Dump()), "target.a80": []byte(s.Assembly), "target.bin": a.Binary} {
+				if e := os.WriteFile(filepath.Join(dir, name), payload, 0644); e != nil {
+					t.Fatal(e)
+				}
+			}
+		}
+		mutable := map[int]bool{}
+		scratchAddress, found := a.Symbols["scratch"]
+		if !found {
+			t.Fatal("missing declared scratch global")
+		}
+		mutable[scratchAddress] = true
+		for _, l := range a.Listing {
+			if strings.HasPrefix(l.Label, "_spill_") || l.Label == "scratch" {
+				for j := range l.Bytes {
+					mutable[l.Address+j] = true
+				}
+			}
 		}
 		z := emulator.NewRemogattoZ80()
 		z.LoadMemory(0x8000, a.Binary)
 		for _, x := range []uint16{0, 1, 2, 3, 7, 15, 127, 128, 255} {
 			for _, name := range []string{"nested", "invoke", "recursive"} {
+				if e = z.LoadMemory(0x8000, a.Binary); e != nil {
+					t.Fatal(e)
+				}
 				if name == "recursive" && x > 7 {
 					continue
 				}
@@ -220,28 +251,40 @@ fun invoke(x:u8,y:u8)->u16{return indirect(build,x,y)}`
 				z.Memory()[0xeff1] = 0x70
 				z.SetRegisters(r)
 				done := false
+				before := append([]byte(nil), z.Memory()...)
+				minSP := uint16(0xeff0)
 				for n := 0; n < 100000; n++ {
 					if z.GetPC() == 0x7000 && z.GetSP() == 0xeff2 {
 						done = true
 						break
 					}
-					pc := z.GetPC()
-					if name == "nested" && x == 1 && (z.Memory()[pc] == 0xc9||z.Memory()[pc]==0xcd) {
-						t.Logf("RET pc%x SP%x word%x HL%x", pc, z.GetSP(), uint16(z.Memory()[z.GetSP()])|uint16(z.Memory()[z.GetSP()+1])<<8, z.GetRegisters().HL)
-					}
-
-					op := z.Memory()[pc]
-					if op >= 0x70 && op <= 0x77 && op != 0x76 {
-						rr := z.GetRegisters()
-						if rr.HL >= 0xefee {
-							t.Fatalf("unexpected nestedstore %s %d pc%x opcode%x HL%x SP%x regs%+v", name, x, pc, op, rr.HL, rr.SP, rr)
-						}
+					if z.GetSP() < 0xe000 || z.GetSP() > 0xeff2 {
+						t.Fatal("stack bounds", name, x)
 					}
 					z.Step()
+					if z.GetSP() < minSP {
+						minSP = z.GetSP()
+					}
+
 				}
 				if !done {
 					t.Fatalf("native nested return %s %d pc%x SP%x regs%+v", name, x, z.GetPC(), z.GetSP(), z.GetRegisters())
 				}
+				if z.Memory()[scratchAddress] != 83 {
+					t.Fatalf("native scratch %s x%d: got %d want 83", name, x, z.Memory()[scratchAddress])
+				}
+				copy(before[int(minSP):0xeff0], z.Memory()[int(minSP):0xeff0])
+				for p := range mutable {
+					before[p] = z.Memory()[p]
+				}
+				if !bytes.Equal(before, z.Memory()) {
+					for p, v := range before {
+						if z.Memory()[p] != v {
+							t.Fatalf("unexpected native memory %s x%d addr%x old%x new%x", name, x, p, v, z.Memory()[p])
+						}
+					}
+				}
+
 				if e = checkAssertZ80Result(z, hir.Assert{FuncName: name, Expected: int64(want)}, f, map[string]*hir.Func{name: h.FuncByName(name)}); e != nil {
 					t.Fatal("native nested", name, x, e)
 				}

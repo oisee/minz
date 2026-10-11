@@ -2327,7 +2327,20 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 			args[i] = r
 		}
 		cls := classForRet(ex.Ty)
-		return l.bld.CallIndirect(fnPtrReg, args, ex.Ty, cls)
+		r := l.bld.CallIndirect(fnPtrReg, args, ex.Ty, cls)
+		inst := l.bld.Cur.Insts[len(l.bld.Cur.Insts)-1]
+		if ex.Signature != nil {
+			inst.IndirectParamTys = append([]mir2.Ty(nil), ex.Signature.Params...)
+			inst.IndirectReturnTys = append([]mir2.Ty(nil), ex.Signature.Returns...)
+		} else {
+			for _, arg := range ex.Args {
+				inst.IndirectParamTys = append(inst.IndirectParamTys, arg.ExprTy())
+			}
+			if ex.Ty != mir2.TyVoid {
+				inst.IndirectReturnTys = []mir2.Ty{ex.Ty}
+			}
+		}
+		return r
 
 	case *AddrOfExpr:
 		if ex.X != nil {

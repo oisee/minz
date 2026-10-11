@@ -1,0 +1,23 @@
+struct Inner {a:u8,b:u16}
+struct Outer {pad:u8,inner:Inner,tail:u8}
+global scratch:u8=0
+fun build(x:u8)->Outer {var r:Outer=Outer{pad:7,inner:Inner{a:x,b:u16(x)+256},tail:9}
+if x==0 {r.pad=8}else{r.pad=7}
+return r}
+fun disturb(y:u8)->u8 {let q:Outer=Outer{pad:y,inner:Inner{a:y,b:u16(y)+512},tail:y}
+scratch=q.inner.a
+return q.pad}
+fun nested(x:u8,y:u8)->u16 {let a:Outer=build(x)
+let q:u8=disturb(y)
+return a.inner.b+u16(a.inner.a)}
+fun recurse(n:u8)->Inner {var keep:Inner=Inner{a:n,b:u16(n)+256}
+if n>0 {let child:Inner=recurse(n-1)
+keep.b=keep.b+child.b}
+return keep}
+fun recursive(n:u8,y:u8)->u16 {let a:Inner=recurse(n)
+let q:u8=disturb(y)
+return a.b+u16(a.a)}
+fun indirect(f:fun(u8)->Outer,x:u8,y:u8)->u16 {let a:Outer=f(x)
+let q:u8=disturb(83)
+return a.inner.b+u16(a.inner.a)}
+fun invoke(x:u8,y:u8)->u16{return indirect(build,x,y)}

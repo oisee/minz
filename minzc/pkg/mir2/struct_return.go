@@ -46,8 +46,14 @@ func LowerStructReturnBuffers(m *Module) error {
 					}
 				}
 				if inst.Op == OpCallIndirect {
-					if ty, ok := BaseOf(inst.Ty).(*StructTy); ok {
-						slots = []StructReturnBuffer{{ReturnIndex: 0, ParamIndex: len(inst.Args), Ty: ty}}
+					returns := inst.IndirectReturnTys
+					if len(returns) == 0 && inst.Ty != TyVoid {
+						returns = []Ty{inst.Ty}
+					}
+					for ri, ret := range returns {
+						if ty, ok := BaseOf(ret).(*StructTy); ok {
+							slots = append(slots, StructReturnBuffer{ReturnIndex: ri, ParamIndex: len(inst.Args) + len(slots), Ty: ty})
+						}
 					}
 				}
 				if len(slots) > 0 {
@@ -63,6 +69,9 @@ func LowerStructReturnBuffers(m *Module) error {
 							return fmt.Errorf("struct call argument ABI mismatch: %s to %s", f.Name, inst.Sym)
 						}
 						inst.Args = append(inst.Args, ptr)
+						if inst.Op == OpCallIndirect {
+							inst.IndirectParamTys = append(inst.IndirectParamTys, TyPtr)
+						}
 					}
 				}
 				out = append(out, inst)
@@ -190,8 +199,23 @@ func VerifyStructReturnBuffers(m *Module) error {
 					}
 				}
 				if inst.Op == OpCallIndirect {
-					if ty, ok := BaseOf(inst.Ty).(*StructTy); ok {
-						slots = []StructReturnBuffer{{ReturnIndex: 0, ParamIndex: len(inst.Args) - 1, Ty: ty}}
+					returns := inst.IndirectReturnTys
+					if len(returns) == 0 && inst.Ty != TyVoid {
+						returns = []Ty{inst.Ty}
+					}
+					count := 0
+					for _, ret := range returns {
+						if _, ok := BaseOf(ret).(*StructTy); ok {
+							count++
+						}
+					}
+					for ri, ret := range returns {
+						if ty, ok := BaseOf(ret).(*StructTy); ok {
+							slots = append(slots, StructReturnBuffer{ReturnIndex: ri, ParamIndex: len(inst.Args) - count + len(slots), Ty: ty})
+						}
+					}
+					if len(slots) > 0 && len(inst.IndirectParamTys) != len(inst.Args) {
+						return fmt.Errorf("missing typed indirect buffer signature")
 					}
 				}
 				if len(slots) != len(inst.StructReturnBuffers) {
@@ -201,6 +225,9 @@ func VerifyStructReturnBuffers(m *Module) error {
 					a := inst.StructReturnBuffers[i]
 					if s.ReturnIndex != a.ReturnIndex || s.ParamIndex != a.ParamIndex || !sameStructLayout(s.Ty, a.Ty) || s.ParamIndex < 0 || s.ParamIndex >= len(inst.Args) {
 						return fmt.Errorf("invalid struct call buffer slot: %s", inst.Sym)
+					}
+					if inst.Op == OpCallIndirect && !IsPointer(inst.IndirectParamTys[s.ParamIndex]) {
+						return fmt.Errorf("indirect struct result parameter must be a pointer")
 					}
 				}
 			}

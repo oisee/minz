@@ -1,0 +1,194 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "79f59f307d858d181cb5d9e50866a8617c941c41b9a3178513579b52d9f690d4",
+      "size": 2300
+    },
+    {
+      "path": "lifetime/default/allocation.json",
+      "sha256": "c16304645ed3eaca2cda032f8bb89c3ba44b86089db4695f4a4f6a5881991f31",
+      "size": 2360
+    },
+    {
+      "path": "lifetime/default/final.mir",
+      "sha256": "e60e3ae261ea09fad91d38106784c3500b725188afd62e9c8a011727056821e2",
+      "size": 1637
+    },
+    {
+      "path": "lifetime/default/raw.mir",
+      "sha256": "123ee390e6ce44132b4f0139480bcf50e4ad679975cbe204e3fdc6ba9a80dd50",
+      "size": 1638
+    },
+    {
+      "path": "lifetime/default/results.json",
+      "sha256": "5cdeed768778eabcf0c7b05a8e28874c1832c04fc4dda280a6f80e56275183e4",
+      "size": 1200
+    },
+    {
+      "path": "lifetime/default/source-hir.json",
+      "sha256": "929e578f27f9d70e5fad447ca81b1d0203607b1680e1db97ca24a58ecfbb0e7f",
+      "size": 12057
+    },
+    {
+      "path": "lifetime/default/target.a80",
+      "sha256": "2e8492f66838e8401d386e2d89c110fad9ae29813a87b5ec9c113a858daa2cda",
+      "size": 3749
+    },
+    {
+      "path": "lifetime/default/target.bin",
+      "sha256": "6028d79cddb15c44088a8c7693191849bb4cb5b2161285f5ad0190448aa954fd",
+      "size": 177
+    },
+    {
+      "path": "lifetime/grace-size/allocation.json",
+      "sha256": "c16304645ed3eaca2cda032f8bb89c3ba44b86089db4695f4a4f6a5881991f31",
+      "size": 2360
+    },
+    {
+      "path": "lifetime/grace-size/final.mir",
+      "sha256": "e60e3ae261ea09fad91d38106784c3500b725188afd62e9c8a011727056821e2",
+      "size": 1637
+    },
+    {
+      "path": "lifetime/grace-size/raw.mir",
+      "sha256": "123ee390e6ce44132b4f0139480bcf50e4ad679975cbe204e3fdc6ba9a80dd50",
+      "size": 1638
+    },
+    {
+      "path": "lifetime/grace-size/results.json",
+      "sha256": "5cdeed768778eabcf0c7b05a8e28874c1832c04fc4dda280a6f80e56275183e4",
+      "size": 1200
+    },
+    {
+      "path": "lifetime/grace-size/source-hir.json",
+      "sha256": "929e578f27f9d70e5fad447ca81b1d0203607b1680e1db97ca24a58ecfbb0e7f",
+      "size": 12057
+    },
+    {
+      "path": "lifetime/grace-size/target.a80",
+      "sha256": "73bb0ddb109e889ba92dbffbdc5b167c3d2b01fe25efdc2cd0161459cfcabddb",
+      "size": 3689
+    },
+    {
+      "path": "lifetime/grace-size/target.bin",
+      "sha256": "6028d79cddb15c44088a8c7693191849bb4cb5b2161285f5ad0190448aa954fd",
+      "size": 177
+    },
+    {
+      "path": "lifetime/grace-speed/allocation.json",
+      "sha256": "c16304645ed3eaca2cda032f8bb89c3ba44b86089db4695f4a4f6a5881991f31",
+      "size": 2360
+    },
+    {
+      "path": "lifetime/grace-speed/final.mir",
+      "sha256": "e60e3ae261ea09fad91d38106784c3500b725188afd62e9c8a011727056821e2",
+      "size": 1637
+    },
+    {
+      "path": "lifetime/grace-speed/raw.mir",
+      "sha256": "123ee390e6ce44132b4f0139480bcf50e4ad679975cbe204e3fdc6ba9a80dd50",
+      "size": 1638
+    },
+    {
+      "path": "lifetime/grace-speed/results.json",
+      "sha256": "5cdeed768778eabcf0c7b05a8e28874c1832c04fc4dda280a6f80e56275183e4",
+      "size": 1200
+    },
+    {
+      "path": "lifetime/grace-speed/source-hir.json",
+      "sha256": "929e578f27f9d70e5fad447ca81b1d0203607b1680e1db97ca24a58ecfbb0e7f",
+      "size": 12057
+    },
+    {
+      "path": "lifetime/grace-speed/target.a80",
+      "sha256": "73bb0ddb109e889ba92dbffbdc5b167c3d2b01fe25efdc2cd0161459cfcabddb",
+      "size": 3689
+    },
+    {
+      "path": "lifetime/grace-speed/target.bin",
+      "sha256": "6028d79cddb15c44088a8c7693191849bb4cb5b2161285f5ad0190448aa954fd",
+      "size": 177
+    },
+    {
+      "path": "nested/default/final.mir",
+      "sha256": "a600582a049ff4112ed53ba38ace32c0130088f6766b48480dc65c68935f2ed5",
+      "size": 5767
+    },
+    {
+      "path": "nested/default/raw.mir",
+      "sha256": "03f2501deb2a4cf61751b7d92f992d22c5ade9face7123781830c0e268cadcb7",
+      "size": 5806
+    },
+    {
+      "path": "nested/default/source.nanz",
+      "sha256": "75fb9ab7b33458fec021b912ec9a4aa15e26c9941237fb22e8b157926e1b6651",
+      "size": 839
+    },
+    {
+      "path": "nested/default/target.a80",
+      "sha256": "aca8cc22cea5d1cb7568b72d1d38a9e31267cf410f9410e4a6b02f86fad7aa58",
+      "size": 10821
+    },
+    {
+      "path": "nested/default/target.bin",
+      "sha256": "e250ee0d08ba843f690996f9204dc0717e667dfa05234b0fdc83ee8b47af5a38",
+      "size": 656
+    },
+    {
+      "path": "nested/grace-size/final.mir",
+      "sha256": "a600582a049ff4112ed53ba38ace32c0130088f6766b48480dc65c68935f2ed5",
+      "size": 5767
+    },
+    {
+      "path": "nested/grace-size/raw.mir",
+      "sha256": "03f2501deb2a4cf61751b7d92f992d22c5ade9face7123781830c0e268cadcb7",
+      "size": 5806
+    },
+    {
+      "path": "nested/grace-size/source.nanz",
+      "sha256": "75fb9ab7b33458fec021b912ec9a4aa15e26c9941237fb22e8b157926e1b6651",
+      "size": 839
+    },
+    {
+      "path": "nested/grace-size/target.a80",
+      "sha256": "67732296eaa5c4991858ae564d26b18a8da0c203291162f11f8ed2d63ca39340",
+      "size": 10731
+    },
+    {
+      "path": "nested/grace-size/target.bin",
+      "sha256": "e250ee0d08ba843f690996f9204dc0717e667dfa05234b0fdc83ee8b47af5a38",
+      "size": 656
+    },
+    {
+      "path": "nested/grace-speed/final.mir",
+      "sha256": "a600582a049ff4112ed53ba38ace32c0130088f6766b48480dc65c68935f2ed5",
+      "size": 5767
+    },
+    {
+      "path": "nested/grace-speed/raw.mir",
+      "sha256": "03f2501deb2a4cf61751b7d92f992d22c5ade9face7123781830c0e268cadcb7",
+      "size": 5806
+    },
+    {
+      "path": "nested/grace-speed/source.nanz",
+      "sha256": "75fb9ab7b33458fec021b912ec9a4aa15e26c9941237fb22e8b157926e1b6651",
+      "size": 839
+    },
+    {
+      "path": "nested/grace-speed/target.a80",
+      "sha256": "67732296eaa5c4991858ae564d26b18a8da0c203291162f11f8ed2d63ca39340",
+      "size": 10731
+    },
+    {
+      "path": "nested/grace-speed/target.bin",
+      "sha256": "e250ee0d08ba843f690996f9204dc0717e667dfa05234b0fdc83ee8b47af5a38",
+      "size": 656
+    },
+    {
+      "path": "tests.txt",
+      "sha256": "4e11a8575eef854c9f609a8dffecb811ee3bcaa0f8999eab306a3289ccfe3442",
+      "size": 1644
+    }
+  ]
+}
