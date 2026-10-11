@@ -1,0 +1,98 @@
+[
+  {
+    "function": "fib",
+    "n": 17
+  },
+  {
+    "function": "fact",
+    "n": 17
+  },
+  {
+    "function": "sum_to",
+    "n": 17
+  },
+  {
+    "function": "pow2",
+    "n": 17
+  },
+  {
+    "function": "fib",
+    "n": 23
+  },
+  {
+    "function": "fact",
+    "n": 23
+  },
+  {
+    "function": "sum_to",
+    "n": 23
+  },
+  {
+    "function": "pow2",
+    "n": 23
+  },
+  {
+    "function": "fib",
+    "n": 31
+  },
+  {
+    "function": "fact",
+    "n": 31
+  },
+  {
+    "function": "sum_to",
+    "n": 31
+  },
+  {
+    "function": "pow2",
+    "n": 31
+  },
+  {
+    "function": "fib",
+    "n": 63
+  },
+  {
+    "function": "fact",
+    "n": 63
+  },
+  {
+    "function": "sum_to",
+    "n": 63
+  },
+  {
+    "function": "pow2",
+    "n": 63
+  },
+  {
+    "function": "fib",
+    "n": 127
+  },
+  {
+    "function": "fact",
+    "n": 127
+  },
+  {
+    "function": "sum_to",
+    "n": 127
+  },
+  {
+    "function": "pow2",
+    "n": 127
+  },
+  {
+    "function": "fib",
+    "n": 255
+  },
+  {
+    "function": "fact",
+    "n": 255
+  },
+  {
+    "function": "sum_to",
+    "n": 255
+  },
+  {
+    "function": "pow2",
+    "n": 255
+  }
+]

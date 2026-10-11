@@ -1,0 +1,66 @@
+[
+  {
+    "function": "fib",
+    "n": 3
+  },
+  {
+    "function": "fact",
+    "n": 3
+  },
+  {
+    "function": "sum_to",
+    "n": 3
+  },
+  {
+    "function": "pow2",
+    "n": 3
+  },
+  {
+    "function": "fib",
+    "n": 6
+  },
+  {
+    "function": "fact",
+    "n": 6
+  },
+  {
+    "function": "sum_to",
+    "n": 6
+  },
+  {
+    "function": "pow2",
+    "n": 6
+  },
+  {
+    "function": "fib",
+    "n": 9
+  },
+  {
+    "function": "fact",
+    "n": 9
+  },
+  {
+    "function": "sum_to",
+    "n": 9
+  },
+  {
+    "function": "pow2",
+    "n": 9
+  },
+  {
+    "function": "fib",
+    "n": 12
+  },
+  {
+    "function": "fact",
+    "n": 12
+  },
+  {
+    "function": "sum_to",
+    "n": 12
+  },
+  {
+    "function": "pow2",
+    "n": 12
+  }
+]
