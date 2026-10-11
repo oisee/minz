@@ -3,6 +3,7 @@ package mir2
 import (
 	"fmt"
 	"sort"
+	"strings"
 )
 
 // trampolineBlock is emitted after all regular blocks of a function.
@@ -248,31 +249,95 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		}
 
 	case *TermDJNZ:
-		// Emit body-edge copies for non-counter args.
-		// The counter (B) is handled implicitly by DJNZ.
-		// body.Params[0] = counter (gets decremented B); BodyArgs = params[1:].
-		bodyBlock := f.BlockByLabel(t.Body)
-		var bodyCopies []parallelCopy
-		if bodyBlock != nil {
-			for i, arg := range t.BodyArgs {
-				if i+1 >= len(bodyBlock.Params) {
-					break
-				}
-				param := bodyBlock.Params[i+1] // skip counter param[0]
-				src := g.loc(arg)
-				dst := g.loc(param.Dst)
-				if src != dst {
-					bodyCopies = append(bodyCopies, parallelCopy{srcName: src, dstName: dst, ty: param.Ty})
+		// ClassCounter prefers B but is not a hard pin. Coalescing and
+		// register pressure can put it elsewhere; decrement its actual home.
+		// The implicit body parameter receives that decremented value.
+		bodyArgs := append([]Reg{t.Counter}, t.BodyArgs...)
+		bodyCopies := g.buildBlockCopies(f, t.Body, bodyArgs)
+		exitCopies := g.buildBlockCopies(f, t.Exit, t.ExitArgs)
+		counter := g.loc(t.Counter)
+		// Explicit edge arguments read the pre-decrement SSA value. Preserve
+		// it separately from the implicit first parameter's decremented value.
+		oldCounter := ""
+		for _, args := range [][]Reg{t.BodyArgs, t.ExitArgs} {
+			for _, arg := range args {
+				if arg == t.Counter {
+					oldCounter = fmt.Sprintf("._call_result_%s_djnz_old%d", sanitizeIdent(f.Name), g.trampIdx)
 				}
 			}
 		}
-		g.emitParallelCopy(bodyCopies)
-		g.emitf("    DJNZ %s", blockLabel(f.Name, t.Body))
-		// Exit path.
-		exitCopies := g.buildBlockCopies(f, t.Exit, t.ExitArgs)
+		if oldCounter != "" {
+			g.trampIdx++
+			g.emit("    PUSH HL")
+			g.emit("    PUSH AF")
+			g.emitLD8("A", counter)
+			g.emitf("    LD (%s), A", oldCounter)
+			g.emit("    POP AF")
+			g.emit("    POP HL")
+			// buildBlockCopies retains identity copies, so even a coalesced
+			// explicit counter argument can be redirected to the snapshot.
+			for i, arg := range t.BodyArgs {
+				if arg == t.Counter && i+1 < len(bodyCopies) {
+					bodyCopies[i+1].srcName = oldCounter
+					bodyCopies[i+1].isImm = false
+				}
+			}
+			for i, arg := range t.ExitArgs {
+				if arg == t.Counter && i < len(exitCopies) {
+					exitCopies[i].srcName = oldCounter
+					exitCopies[i].isImm = false
+				}
+			}
+		}
+		needsBodyCopy := false
+		for _, c := range bodyCopies {
+			if c.isImm || c.srcName != c.dstName {
+				needsBodyCopy = true
+			}
+		}
+		bodyLabel := blockLabel(f.Name, t.Body)
+		if counter == "B" && (needsBodyCopy || !g.djnzTargetWithinRange(bodyLabel)) {
+			// DJNZ cannot be promoted to a long branch. Keep its taken
+			// label adjacent, even when edge copies need a distant target.
+			taken := fmt.Sprintf(".%s_djnz_taken%d", sanitizeIdent(f.Name), g.trampIdx)
+			fall := fmt.Sprintf(".%s_djnz_fall%d", sanitizeIdent(f.Name), g.trampIdx)
+			g.trampIdx++
+			g.emitf("    DJNZ %s", taken)
+			g.emitf("    JRS %s", fall)
+			g.emit(taken + ":")
+			g.emitParallelCopy(bodyCopies)
+			g.emitf("    JRS %s", bodyLabel)
+			g.emit(fall + ":")
+		} else if counter == "B" {
+			g.emitf("    DJNZ %s", bodyLabel)
+		} else {
+			if needsBodyCopy {
+				bodyLabel = g.branchLabel(f, t.Body, bodyCopies)
+			}
+			if isSpill(counter) {
+				// Preserve both A and HL while retaining DEC's branch flags.
+				g.emit("    PUSH HL")
+				g.emit("    PUSH AF")
+				g.emitLD8("A", counter)
+				g.emit("    DEC A")
+				g.emitLD8(counter, "A")
+				g.emit("    POP HL")
+				g.emit("    LD A, H")
+				g.emit("    POP HL")
+			} else {
+				g.emitf("    DEC %s", counter)
+			}
+			g.emitf("    JRS NZ, %s", bodyLabel)
+		}
+		// Body copies execute only on the taken edge. Otherwise they can
+		// overwrite a value needed by ExitArgs (or the counter itself).
 		g.emitParallelCopy(exitCopies)
-		if !g.isFallThrough(f, t.Exit) || len(exitCopies) != 0 {
+		if oldCounter != "" || !g.isFallThrough(f, t.Exit) || len(exitCopies) != 0 {
 			g.emitf("    JP %s", blockLabel(f.Name, t.Exit))
+		}
+
+		if oldCounter != "" {
+			g.emit(oldCounter + ": DB 0")
 		}
 
 	case *TermCondRet:
@@ -478,4 +543,38 @@ func (g *z80cg) detectDJNZPeephole(f *Func, b *Block) djnzPeepholeResult {
 		bodyLbl:   blockLabel(f.Name, brif.Then),
 		checkBrif: brif,
 	}
+}
+
+// A Z80 instruction occupies at most four bytes. This conservative bound
+// keeps small backwards DJNZ loops unchanged; uncertain or forward spans
+// use a nearby taken label and a relaxable JRS to the real body.
+func (g *z80cg) djnzTargetWithinRange(label string) bool {
+	text := g.sb.String()
+	at := strings.LastIndex(text, "\n"+label+":")
+	if at < 0 {
+		return false
+	}
+	bound := 2 // DJNZ itself
+	for _, line := range strings.Split(text[at+1:], "\n") {
+		line = strings.TrimSpace(strings.SplitN(line, ";", 2)[0])
+		if line == "" || strings.HasSuffix(line, ":") {
+			continue
+		}
+		if strings.Contains(line, ":") {
+			return false
+		}
+		// Inline assembly may contain data directives or macros; their
+		// expansion has no four-byte bound, so don't assume a short span.
+		op := strings.ToUpper(strings.Fields(line)[0])
+		switch op {
+		case "LD", "PUSH", "POP", "EX", "EXX", "INC", "DEC", "ADD", "ADC", "SUB", "SBC", "AND", "OR", "XOR", "CP", "NOP", "NEG", "CPL", "SCF", "CCF", "DAA", "JP", "JR", "JRS", "DJNZ", "CALL", "RET", "RETI", "RETN", "RST", "DI", "EI", "HALT", "IN", "OUT", "BIT", "SET", "RES", "RL", "RLC", "RR", "RRC", "RLA", "RLCA", "RRA", "RRCA", "SLA", "SRA", "SRL", "RLD", "RRD", "LDI", "LDIR", "LDD", "LDDR", "CPI", "CPIR", "CPD", "CPDR":
+		default:
+			return false
+		}
+		bound += 4
+		if bound > 128 {
+			return false
+		}
+	}
+	return true
 }

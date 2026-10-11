@@ -149,7 +149,7 @@ func TestMeasuredScalarChecksumProgram(t *testing.T) {
 		t.Fatal(err)
 	}
 	options := Options{AssertMode: "none", UseHIRGrace: true}
-	measured, measureErr := MeasureGraceVariantSets(factory, profile, w, options, 4)
+	measured, measureErr := MeasureWeightedJointSourceSiteVariantSets(factory, profile, w, options, 4)
 	// Selector failures discard partial evidence. Reproduce both exact policies
 	// independently and retain binaries/dumps/results without weakening workload.
 	failures := []string{}
@@ -259,7 +259,11 @@ func TestMeasuredScalarChecksumProgram(t *testing.T) {
 			}
 			cost["total_t_states"] = total
 			if measured != nil {
-				c := measured.Evidence.Candidates[i]
+				candidateIndex := 0
+				if i == 1 {
+					candidateIndex = 2
+				}
+				c := measured.Evidence.Candidates[candidateIndex]
 				checkRaw(c.RawRun)
 				if !bytes.Equal(c.Binary, assembled.Binary) || !reflect.DeepEqual(c.Run, target) || c.TotalTStates != total {
 					t.Fatal("exact measurement reproduction mismatch")
@@ -282,7 +286,7 @@ func TestMeasuredScalarChecksumProgram(t *testing.T) {
 	e := measured.Evidence
 	write("evidence.json", e)
 	write("decisions.json", measured.Decisions)
-	if len(e.EligibleSites) != 0 || len(e.Candidates) != 2 || e.Candidates[0].CommonGraceRules || !e.Candidates[1].CommonGraceRules {
+	if len(e.EligibleSites) != 1 || len(e.Candidates) != 8 || e.Schema != "minz.weighted-joint-source-site-variant-sets/v4" {
 		t.Fatal("expected scalar baseline/common comparison")
 	}
 	checkRaw(e.Oracle)
@@ -293,13 +297,15 @@ func TestMeasuredScalarChecksumProgram(t *testing.T) {
 				hoisted = true
 			}
 		}
-		if hoisted != (i == 1) || strings.Contains(c.HIR, "__grace_base_") != (i == 1) {
+		if hoisted != (i&2 != 0 && i&1 == 0) || strings.Contains(c.HIR, "__grace_base_") != (i&2 != 0) {
 			t.Fatal("measured candidate lacks actual rewrite")
 		}
 	}
 	best := 0
-	if e.Candidates[1].TotalTStates < e.Candidates[0].TotalTStates {
-		best = 1
+	for i, c := range e.Candidates {
+		if c.TotalTStates < e.Candidates[best].TotalTStates {
+			best = i
+		}
 	}
 	if e.Selected != best || !bytes.Equal(measured.Binary, e.Candidates[best].Binary) {
 		t.Fatal("winner is not exact minimum measured T candidate")
@@ -312,5 +318,5 @@ func TestMeasuredScalarChecksumProgram(t *testing.T) {
 	write("selected.a80", measured.Steps.Assembly)
 	write("selected.mir", measured.Steps.MIR2Opt)
 	write("results.json", map[string]any{"status": "verified", "calls": len(oracle), "selected": best})
-	t.Logf("%d calls: baseline %dT/%dB hoisted %dT/%dB selected %d", len(oracle), e.Candidates[0].TotalTStates, e.Candidates[0].ModuleBytes, e.Candidates[1].TotalTStates, e.Candidates[1].ModuleBytes, best)
+	t.Logf("%d calls: baseline %dT/%dB hoisted %dT/%dB selected %d", len(oracle), e.Candidates[0].TotalTStates, e.Candidates[0].ModuleBytes, e.Candidates[2].TotalTStates, e.Candidates[2].ModuleBytes, best)
 }

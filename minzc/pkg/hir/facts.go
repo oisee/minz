@@ -204,9 +204,9 @@ func AnalyzeFacts(m *Module) *Facts {
 	for i, f := range m.Funcs {
 		walkGraceBlocks(f.Body, fmt.Sprintf("f%d", i), func(path string, b *Block) {
 			if p := findGracePointerWalk(f, b, reserved); p != nil {
-				out.PointerWalks = append(out.PointerWalks, PointerWalkFact{Function: f.Name, Site: path + "/s2", Index: p.index, Bound: p.bound, Base: p.base, IndexMinimum: 0, IndexMaximum: 254, Stride: 1, AddressMaximum: 65535})
-				out.DB.Add("hir-index-range", path+"/s2", p.index, "0", p.bound, "exclusive")
-				out.DB.Add("hir-address-nowrap-guard", path+"/s2", p.base, p.bound, "1", "65535")
+				out.PointerWalks = append(out.PointerWalks, PointerWalkFact{Function: f.Name, Site: fmt.Sprintf("%s/s%d", path, p.loopIndex), Index: p.index, Bound: p.bound, Base: p.base, IndexMinimum: 0, IndexMaximum: 254, Stride: 1, AddressMaximum: 65535})
+				out.DB.Add("hir-index-range", fmt.Sprintf("%s/s%d", path, p.loopIndex), p.index, "0", p.bound, "exclusive")
+				out.DB.Add("hir-address-nowrap-guard", fmt.Sprintf("%s/s%d", path, p.loopIndex), p.base, p.bound, "1", "65535")
 				out.DB.Add("hir-guarded-pointer-walk", path)
 			}
 			if findGraceHoist(f, b, reserved) != nil {

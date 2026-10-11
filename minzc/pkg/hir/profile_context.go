@@ -61,7 +61,7 @@ func BuildAutomaticProfileContext(m *Module, in ProfileInputs) (ProfileContext, 
 		}
 		dependencies[name] = hash(data)
 	}
-	c := ProfileContext{CompilerID: fmt.Sprintf("executable-sha256:%x", digest.Sum(nil)), SemanticsID: "minz.unoptimised-mir2-vm-loop-events/v1", TargetID: fmt.Sprintf("module-target:%d/model:%s", m.Target, in.TargetModel), WorkloadSHA256: hash(in.Workload), HostsSHA256: hash(in.Hosts), Dependencies: dependencies}
+	c := ProfileContext{CompilerID: fmt.Sprintf("executable-sha256:%x", digest.Sum(nil)), SemanticsID: "minz.unoptimised-mir2-vm-loop-events/v2", TargetID: fmt.Sprintf("module-target:%d/model:%s", m.Target, in.TargetModel), WorkloadSHA256: hash(in.Workload), HostsSHA256: hash(in.Hosts), Dependencies: dependencies}
 	// Check source origins against the automatically recorded manifest as well.
 	if _, err := BuildProfileCompatibility(m, c); err != nil {
 		return ProfileContext{}, err

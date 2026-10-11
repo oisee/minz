@@ -145,26 +145,29 @@ func RunGraceWithOptions(m *Module, options GraceOptions) (*grace.RuleResult, er
 			if p == nil {
 				return false
 			}
-			original := b.block.Body[2]
+			original := b.block.Body[p.loopIndex]
+			previousOrigin, hadOrigin := m.LoopLineage[p.loop]
 			versioned := p.versionedLoop()
-			b.block.Body[2] = versioned
+			b.block.Body[p.loopIndex] = versioned
 			if origin, ok := m.LoopLineage[p.loop]; ok {
 				fast := origin
+				if origin.Rule == "hir-invariant-base" && p.weight != nil && p.loopIndex == 3 {
+					fast.PreviousRule = origin.Rule
+				}
 				fast.Role = "fast"
 				fast.Rule = "hir-guarded-pointer-walk"
 				fallback := origin
 				fallback.Role = "fallback"
 				fallback.Rule = fast.Rule
+				fallback.PreviousRule = fast.PreviousRule
 				m.LoopLineage[versioned.Then.Body[0]] = fast
 				m.LoopLineage[p.loop] = fallback
 			}
 			if err := verifyGraceModule(m); err != nil {
-				b.block.Body[2] = original
+				b.block.Body[p.loopIndex] = original
 				delete(m.LoopLineage, versioned.Then.Body[0])
-				if origin, ok := m.LoopLineage[p.loop]; ok {
-					origin.Role = "original"
-					origin.Rule = ""
-					m.LoopLineage[p.loop] = origin
+				if hadOrigin {
+					m.LoopLineage[p.loop] = previousOrigin
 				}
 				graph.err = fmt.Errorf("HIR Grace hir-guarded-pointer-walk: %w", err)
 				return false

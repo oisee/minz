@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/minz/minzc/pkg/hir"
@@ -19,6 +20,9 @@ func TestJointSourceSitesPersistentCaller(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// Keep this v3 regression disjoint: the exact weighted shape now belongs
+	// to explicit v4 overlap. Preserve its arithmetic and byte access sequence.
+	source = []byte(strings.Replace(string(source), "sum = sum + (a + b)\n        sum = sum + u16(ptr[i])", "sum = sum + u16(ptr[i])\n        sum = sum + (a + b)", 1))
 	source = append(source, []byte(`
 fun byte_sum(ptr:^u8,n:u8)->u8 {
  var s:u8=0

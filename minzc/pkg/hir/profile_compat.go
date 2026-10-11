@@ -236,7 +236,7 @@ func LoadLoopProfile(r io.Reader, m *Module, c ProfileContext) (*LoopProfile, er
 		return nil, err
 	}
 	for _, row := range guardRows {
-		for _, k := range []string{"site_id", "equal_entries", "fast_entries", "fallback_entries", "fast_body_entries", "fallback_body_entries"} {
+		for _, k := range []string{"site_id", "equal_entries", "fast_entries", "fast_zero_entries", "fallback_entries", "fast_body_entries", "fallback_body_entries"} {
 			v, ok := row[k]
 			if !ok || bytes.Equal(bytes.TrimSpace(v), []byte("null")) {
 				return nil, fmt.Errorf("loop profile: missing guard %s", k)
@@ -249,7 +249,7 @@ func LoadLoopProfile(r io.Reader, m *Module, c ProfileContext) (*LoopProfile, er
 	if err := dec.Decode(&p); err != nil {
 		return nil, fmt.Errorf("loop profile: %w", err)
 	}
-	if p.Schema != "minz.input-hir-loop-observations/v4" || p.Stage != "unoptimised-mir2-vm" {
+	if p.Schema != "minz.input-hir-loop-observations/v5" || p.Stage != "unoptimised-mir2-vm" {
 		return nil, fmt.Errorf("loop profile: unsupported schema or stage")
 	}
 	equalJSON := func(a, b any) bool { x, _ := json.Marshal(a); y, _ := json.Marshal(b); return bytes.Equal(x, y) }
@@ -289,7 +289,7 @@ func LoadLoopProfile(r io.Reader, m *Module, c ProfileContext) (*LoopProfile, er
 		reserved[global.Name] = true
 	}
 	for _, f := range m.Funcs {
-		if plan := findGracePointerWalk(f, f.Body, reserved); plan != nil {
+		if plan := findGracePointerWalk(f, f.Body, reserved); plan != nil && plan.loopIndex == 2 {
 			for _, site := range sites.Sites {
 				if site.Function == f.Name && site.HIRPath == "body/s2" {
 					eligible[site.ID] = true
@@ -306,6 +306,19 @@ func LoadLoopProfile(r io.Reader, m *Module, c ProfileContext) (*LoopProfile, er
 		guardSeen[g.SiteID] = true
 		if g.EqualEntries > g.FastEntries || g.FastEntries > count.Entries || g.FallbackEntries != count.Entries-g.FastEntries || g.FastBodyEntries > count.BodyEntries || g.FallbackBodyEntries != count.BodyEntries-g.FastBodyEntries {
 			return nil, fmt.Errorf("loop profile: incomplete or inconsistent guard observations")
+		}
+		if g.FastZeroEntries > g.FastEntries {
+			return nil, fmt.Errorf("loop profile: zero-trip observations exceed fast entries")
+		}
+		positive := g.FastEntries - g.FastZeroEntries
+		// Each admitted positive u8 loop contributes between 1 and 255 bodies.
+		// Division avoids overflow when validating untrusted counters.
+		minimumEntries := g.FastBodyEntries / 255
+		if g.FastBodyEntries%255 != 0 {
+			minimumEntries++
+		}
+		if g.FastBodyEntries < positive || minimumEntries > positive {
+			return nil, fmt.Errorf("loop profile: inconsistent fast zero-trip observations")
 		}
 		if (g.FastEntries == 0 && g.FastBodyEntries != 0) || (g.FallbackEntries == 0 && g.FallbackBodyEntries != 0) {
 			return nil, fmt.Errorf("loop profile: guard iterations without entry")

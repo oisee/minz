@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"runtime"
 	"sort"
+	"strings"
 
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/z80asm"
@@ -24,24 +25,27 @@ type InvariantSiteVariantSetResult struct {
 // addition to before/after HIR, lineage, semantic runs and exact target costs.
 type InvariantSiteVariantSetCandidate struct {
 	ProfileVariantSetCandidate
-	RequestedSitePolicy map[string]bool `json:"requested_site_policy"`
+	RequestedSitePolicy map[string]bool                 `json:"requested_site_policy"`
+	WeightedProof       []hir.WeightedCompositionRecord `json:"weighted_proof,omitempty"`
+	FinalWeightedProof  []hir.WeightedCompositionRecord `json:"final_weighted_proof,omitempty"`
 }
 
 // InvariantSiteVariantSetEvidence binds all candidates and the selected index.
 // SHA256 is the digest of its JSON with SHA256 omitted.
 type InvariantSiteVariantSetEvidence struct {
-	Schema               string                             `json:"schema"`
-	Compatibility        *hir.ProfileCompatibility          `json:"compatibility"`
-	CompilationID        string                             `json:"compilation_id"`
-	Options              Options                            `json:"options"`
-	AssemblerMode        string                             `json:"assembler_mode"`
-	MaxSites             int                                `json:"max_sites"`
-	EligibleSites        []string                           `json:"eligible_invariant_sites"`
-	Oracle               *hir.ProfileRun                    `json:"oracle"`
-	Candidates           []InvariantSiteVariantSetCandidate `json:"candidates"`
-	Selected             int                                `json:"selected"`
-	EligiblePointerSites []string                           `json:"eligible_pointer_sites,omitempty"`
-	SHA256               string                             `json:"sha256,omitempty"`
+	Schema                       string                             `json:"schema"`
+	Compatibility                *hir.ProfileCompatibility          `json:"compatibility"`
+	CompilationID                string                             `json:"compilation_id"`
+	Options                      Options                            `json:"options"`
+	AssemblerMode                string                             `json:"assembler_mode"`
+	MaxSites                     int                                `json:"max_sites"`
+	EligibleSites                []string                           `json:"eligible_invariant_sites"`
+	Oracle                       *hir.ProfileRun                    `json:"oracle"`
+	Candidates                   []InvariantSiteVariantSetCandidate `json:"candidates"`
+	Selected                     int                                `json:"selected"`
+	EligibleWeightedOverlapSites []string                           `json:"eligible_weighted_overlap_sites,omitempty"`
+	EligiblePointerSites         []string                           `json:"eligible_pointer_sites,omitempty"`
+	SHA256                       string                             `json:"sha256,omitempty"`
 }
 
 // MeasureInvariantSiteVariantSets independently enumerates observed legal scalar
@@ -54,7 +58,7 @@ type InvariantSiteVariantSetEvidence struct {
 // invocation costs (or module bytes for OptSize) choose the retained winner;
 // strict improvement is required, so the all-original baseline wins ties.
 func MeasureInvariantSiteVariantSets(factory func() (*hir.Module, error), observations []byte, workload hir.ProfileWorkload, options Options, maxSites int) (*InvariantSiteVariantSetResult, error) {
-	return measureInvariantSiteVariantSets(factory, observations, workload, options, maxSites, false, false)
+	return measureInvariantSiteVariantSets(factory, observations, workload, options, maxSites, false, false, false)
 }
 
 // MeasureInvariantSiteRuleVariantSets crosses per-source-loop scalar hoists with
@@ -62,17 +66,24 @@ func MeasureInvariantSiteVariantSets(factory func() (*hir.Module, error), observ
 // choices remain original; incomplete first-pass requests fail closed, including
 // requests deleted or starved by constant-if. The v1 API remains unchanged.
 func MeasureInvariantSiteRuleVariantSets(factory func() (*hir.Module, error), observations []byte, workload hir.ProfileWorkload, options Options, maxSites int) (*InvariantSiteVariantSetResult, error) {
-	return measureInvariantSiteVariantSets(factory, observations, workload, options, maxSites, true, false)
+	return measureInvariantSiteVariantSets(factory, observations, workload, options, maxSites, true, false, false)
 }
 
 // MeasureJointSourceSiteVariantSets crosses scalar source-loop hoists, pointer
 // walks and constant-if off/on. Four total source sites bound the search to32
 // candidates. Overlapping original sites are refused until composition is proved.
 func MeasureJointSourceSiteVariantSets(factory func() (*hir.Module, error), observations []byte, workload hir.ProfileWorkload, options Options, maxSites int) (*InvariantSiteVariantSetResult, error) {
-	return measureInvariantSiteVariantSets(factory, observations, workload, options, maxSites, true, true)
+	return measureInvariantSiteVariantSets(factory, observations, workload, options, maxSites, true, true, false)
 }
 
-func measureInvariantSiteVariantSets(factory func() (*hir.Module, error), observations []byte, workload hir.ProfileWorkload, options Options, maxSites int, independentRules, jointPointers bool) (*InvariantSiteVariantSetResult, error) {
+// MeasureWeightedJointSourceSiteVariantSets is the opt-in v4 contract: only
+// independently verified exact weighted source overlap is permitted. V3 keeps
+// refusing every overlap. Each scalar/pointer choice is a separate dimension.
+func MeasureWeightedJointSourceSiteVariantSets(factory func() (*hir.Module, error), observations []byte, workload hir.ProfileWorkload, options Options, maxSites int) (*InvariantSiteVariantSetResult, error) {
+	return measureInvariantSiteVariantSets(factory, observations, workload, options, maxSites, true, true, true)
+}
+
+func measureInvariantSiteVariantSets(factory func() (*hir.Module, error), observations []byte, workload hir.ProfileWorkload, options Options, maxSites int, independentRules, jointPointers, weightedComposition bool) (*InvariantSiteVariantSetResult, error) {
 	fail := func(err error) (*InvariantSiteVariantSetResult, error) {
 		return nil, fmt.Errorf("measure invariant site variant sets: %w", err)
 	}
@@ -103,6 +114,19 @@ func measureInvariantSiteVariantSets(factory func() (*hir.Module, error), observ
 		}
 		if m == nil || m.PointerWalkPolicy != nil || m.LoopLineage != nil || m.GraceRulePolicy != nil || m.InvariantBasePolicy != nil {
 			return nil, fmt.Errorf("factory must return fresh input HIR without policy/lineage")
+		}
+		if weightedComposition {
+			// Generated-prefix shapes belong to transformed HIR, never v4 input.
+			for _, f := range m.Funcs {
+				if f.Body != nil && len(f.Body.Body) == 5 {
+					facts := hir.AnalyzeFacts(m)
+					for _, p := range facts.PointerWalks {
+						if p.Function == f.Name && strings.HasSuffix(p.Site, "/s3") {
+							return nil, fmt.Errorf("factory supplied transformed weighted prefix")
+						}
+					}
+				}
+			}
 		}
 		if err := jointCheckFreshHIR(m, seen); err != nil {
 			return nil, err
@@ -155,6 +179,17 @@ func measureInvariantSiteVariantSets(factory func() (*hir.Module, error), observ
 		}
 	}
 	sort.Strings(eligible)
+	weightedLegal := map[string]bool{}
+	if weightedComposition {
+		ids, err := hir.EligibleWeightedCompositionSites(source)
+		if err != nil {
+			return fail(err)
+		}
+		for _, id := range ids {
+			weightedLegal[id] = true
+		}
+	}
+	weightedOverlap := []string{}
 	pointerSites := []string{}
 	if jointPointers {
 		guards := map[string]bool{}
@@ -164,7 +199,10 @@ func measureInvariantSiteVariantSets(factory func() (*hir.Module, error), observ
 		for _, site := range profile.Sites.Sites {
 			if observed[site.ID] && guards[site.ID] {
 				if seenLegal[site.ID] {
-					return fail(fmt.Errorf("overlapping pointer/invariant source site %s requires composition proof", site.ID))
+					if !weightedComposition || !weightedLegal[site.ID] {
+						return fail(fmt.Errorf("overlapping pointer/invariant source site %s requires composition proof", site.ID))
+					}
+					weightedOverlap = append(weightedOverlap, site.ID)
 				}
 				pointerSites = append(pointerSites, site.ID)
 			}
@@ -220,6 +258,10 @@ func measureInvariantSiteVariantSets(factory func() (*hir.Module, error), observ
 		e.Schema = "minz.joint-source-site-variant-sets/v3"
 		e.EligiblePointerSites = pointerSites
 	}
+	if weightedComposition {
+		e.Schema = "minz.weighted-joint-source-site-variant-sets/v4"
+		e.EligibleWeightedOverlapSites = weightedOverlap
+	}
 	e.Options.GraceStats = nil
 	compiled := make([]Steps, len(modules))
 	for mask, m := range modules {
@@ -248,8 +290,12 @@ func measureInvariantSiteVariantSets(factory func() (*hir.Module, error), observ
 		if err := hir.ApplyProfileDecisions(m, decisions); err != nil {
 			return fail(err)
 		}
+		proofs, err := checkWeightedCandidateStructure(source, m, weightedOverlap, choices, pointerChoices)
+		if err != nil {
+			return fail(fmt.Errorf("candidate %d: %w", mask, err))
+		}
 		lineage := hir.CurrentLoopLineage(m)
-		if err := jointSourceSitesFullyRealized(m, lineage, choices, pointerChoices); err != nil {
+		if err := weightedSourceSitesFullyRealized(m, lineage, choices, pointerChoices, proofs); err != nil {
 			return fail(fmt.Errorf("candidate %d: %w", mask, err))
 		}
 		hirDump := m.Dump()
@@ -271,7 +317,11 @@ func measureInvariantSiteVariantSets(factory func() (*hir.Module, error), observ
 		if err != nil || !jointSameState(finalRaw, oracle) {
 			return fail(fmt.Errorf("candidate %d postcompile raw semantic mismatch: %v", mask, err))
 		}
-		if err := jointSourceSitesFullyRealized(m, finalLineage, choices, pointerChoices); err != nil {
+		finalProofs, err := checkWeightedCandidateStructure(source, m, weightedOverlap, choices, pointerChoices)
+		if err != nil {
+			return fail(fmt.Errorf("candidate %d postcompile: %w", mask, err))
+		}
+		if err := weightedSourceSitesFullyRealized(m, finalLineage, choices, pointerChoices, finalProofs); err != nil {
 			return fail(fmt.Errorf("candidate %d postcompile: %w", mask, err))
 		}
 		assembled, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + steps.Assembly)
@@ -301,7 +351,7 @@ func measureInvariantSiteVariantSets(factory func() (*hir.Module, error), observ
 			}
 			total += invocation.TStates
 		}
-		e.Candidates = append(e.Candidates, InvariantSiteVariantSetCandidate{RequestedSitePolicy: choices, ProfileVariantSetCandidate: ProfileVariantSetCandidate{HIR: hirDump, Lineage: lineage, FinalHIR: finalHIR, FinalLineage: finalLineage, FinalRawRun: finalRaw, RulePolicy: map[string]bool{"hir-constant-if": constantIf, "hir-invariant-base": true}, CommonGraceRules: false, TotalTStates: total, Decisions: decisions, Binary: assembled.Binary, BinarySHA256: digest, ModuleBytes: len(assembled.Binary), RawRun: raw, Run: run}})
+		e.Candidates = append(e.Candidates, InvariantSiteVariantSetCandidate{RequestedSitePolicy: choices, WeightedProof: proofs, FinalWeightedProof: finalProofs, ProfileVariantSetCandidate: ProfileVariantSetCandidate{HIR: hirDump, Lineage: lineage, FinalHIR: finalHIR, FinalLineage: finalLineage, FinalRawRun: finalRaw, RulePolicy: map[string]bool{"hir-constant-if": constantIf, "hir-invariant-base": true}, CommonGraceRules: false, TotalTStates: total, Decisions: decisions, Binary: assembled.Binary, BinarySHA256: digest, ModuleBytes: len(assembled.Binary), RawRun: raw, Run: run}})
 		compiled[mask] = steps
 	}
 	for i := 1; i < len(e.Candidates); i++ {
@@ -387,4 +437,43 @@ func jointSourceSitesFullyRealized(m *hir.Module, lineage []hir.LoopLineageRecor
 		}
 	}
 	return nil
+}
+
+func checkWeightedCandidateStructure(source, actual *hir.Module, overlap []string, scalar, pointer map[string]bool) ([]hir.WeightedCompositionRecord, error) {
+	out := []hir.WeightedCompositionRecord{}
+	for _, id := range overlap {
+		record, err := hir.ValidateWeightedComposition(source, actual, id, scalar[id], pointer[id])
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, record)
+	}
+	return out, nil
+}
+
+// Attribution can be extended only by independently checked compound records.
+// Ordinary sites continue through the unchanged fully-realized validator.
+func weightedSourceSitesFullyRealized(m *hir.Module, lineage []hir.LoopLineageRecord, scalar, pointer map[string]bool, proofs []hir.WeightedCompositionRecord) error {
+	scalarRemaining := map[string]bool{}
+	for id, want := range scalar {
+		scalarRemaining[id] = want
+	}
+	compound := map[string]bool{}
+	for _, proof := range proofs {
+		if proof.Scalar && proof.Pointer {
+			compound[proof.SiteID] = true
+			delete(scalarRemaining, proof.SiteID)
+		}
+	}
+	ordinary := append([]hir.LoopLineageRecord(nil), lineage...)
+	for i := range ordinary {
+		l := &ordinary[i].Lineage
+		if l.PreviousRule != "" {
+			if !compound[l.SiteID] || l.PreviousRule != "hir-invariant-base" || l.Rule != "hir-guarded-pointer-walk" || (l.Role != "fast" && l.Role != "fallback") {
+				return fmt.Errorf("unproved compound attribution at %s", l.SiteID)
+			}
+			l.PreviousRule = ""
+		}
+	}
+	return jointSourceSitesFullyRealized(m, ordinary, scalarRemaining, pointer)
 }

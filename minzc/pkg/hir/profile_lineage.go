@@ -5,9 +5,10 @@ import "fmt"
 // LoopLineage records attribution, never legality or equivalence evidence.
 // Roles are original, invariant-base, fast, fallback; path is current HIR.
 type LoopLineage struct {
-	SiteID string `json:"site_id"`
-	Role   string `json:"role"`
-	Rule   string `json:"rule,omitempty"`
+	SiteID       string `json:"site_id"`
+	Role         string `json:"role"`
+	Rule         string `json:"rule,omitempty"`
+	PreviousRule string `json:"previous_rule,omitempty"`
 }
 
 type LoopLineageRecord struct {

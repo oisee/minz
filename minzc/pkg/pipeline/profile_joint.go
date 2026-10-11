@@ -157,6 +157,19 @@ func measureProfileVariantSets(factory func() (*hir.Module, error), observations
 			eligible = append(eligible, s.ID)
 		}
 	}
+	weighted, err := hir.EligibleWeightedCompositionSites(source)
+	if err != nil {
+		return fail(err)
+	}
+	weightedSet := map[string]bool{}
+	for _, id := range weighted {
+		weightedSet[id] = true
+	}
+	for _, id := range eligible {
+		if weightedSet[id] {
+			return fail(fmt.Errorf("weighted overlap requires explicit measured v4 composition contract"))
+		}
+	}
 	sort.Strings(eligible)
 	if len(eligible) > maxSites {
 		return fail(fmt.Errorf("%d observed eligible sites exceed cap %d (maximum 4 sites/16 sets)", len(eligible), maxSites))
