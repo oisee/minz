@@ -1,0 +1,272 @@
+[
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/derived-objectives.json",
+    "bytes": 217,
+    "sha256": "affcfc09450e4385b5d4f2d6c195b4e4a9a080ff1ce8d082904e2e1d46a4bbd3"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/input-association-v2.json",
+    "bytes": 3489466,
+    "sha256": "b5107ec13133457d484947493f4dd4c8abd906dc1971fcb22947ce66ab6a83cf"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/selection-v2.json",
+    "bytes": 14859821,
+    "sha256": "0e25b0c69d992dcbc215798c83855709151cccd2a45c829738b3f104c04dac8d"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/derived-objectives.json",
+    "bytes": 217,
+    "sha256": "affcfc09450e4385b5d4f2d6c195b4e4a9a080ff1ce8d082904e2e1d46a4bbd3"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/input-association-v2.json",
+    "bytes": 3489511,
+    "sha256": "8d264d87e28b3f964a645bdb19ec0257102174bda118319cb3bddffb3fbc7f3b"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/selection-v2.json",
+    "bytes": 14860050,
+    "sha256": "52b8c78cce0d4af43333a4c22594401f6c90f10f946a68adf59aab76a80e08f2"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/append/allocation.json",
+    "bytes": 17418,
+    "sha256": "86380f0420aa7269a1ddafb3c8f92f7b167c5a673c66a58d10730daab7cd9f81"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/append/baseline-v2.json",
+    "bytes": 2280658,
+    "sha256": "9befdeefaa1e355a3ee99cc47020be23d47cedc6b764e55913939b61a001c374"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/append/final.mir2",
+    "bytes": 25250,
+    "sha256": "a736f9e74df1ad18dc473e0e1b01f7785dc62e74f6932eabeaa3417307ebd49b"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/append/source.nanz",
+    "bytes": 7164,
+    "sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/append/target.a80",
+    "bytes": 29048,
+    "sha256": "a99a96155e5b6b0556f5142faa2019dde8244b3dcc9f33ce970772e816fc1e63"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/append/target.bin",
+    "bytes": 1978,
+    "sha256": "1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/arena/allocation.json",
+    "bytes": 18007,
+    "sha256": "e8aa144b006db6dce1c5d8df9f167a50aa6f03fb22074a2b63f503d90b450c91"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/arena/baseline-v2.json",
+    "bytes": 2291728,
+    "sha256": "25f82cdc112a4063620f8abde17e87ac9dd06603a8c3bbf571e64178cb0469da"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/arena/final.mir2",
+    "bytes": 26107,
+    "sha256": "c96af837dbdb84f7164c11e1c1e12e741c28ab8758a4eff1d428076150516383"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/arena/source.nanz",
+    "bytes": 7164,
+    "sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/arena/target.a80",
+    "bytes": 31393,
+    "sha256": "87a30404b363a21f31cec493d28162f4a42a6f4f2b2f1b57006c9805ba77fcb0"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/arena/target.bin",
+    "bytes": 2121,
+    "sha256": "2b5d02b0ba923a61604512e3b50e76ef3c6aa54b5cc13470c3f620d705a64fae"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/both/allocation.json",
+    "bytes": 18007,
+    "sha256": "fcbbced5794f3a65155762f254a9287133a3842d009e70c158156dc322c7a068"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/both/baseline-v2.json",
+    "bytes": 2290905,
+    "sha256": "a49ef59652638afad1a65a60c70be968fa16641ad67246adf615f63ca3d09437"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/both/final.mir2",
+    "bytes": 26143,
+    "sha256": "936a8d9aca6f7ac80723e498fab2bc44ffacfe2b05037d470bb45938ceee9ef1"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/both/source.nanz",
+    "bytes": 7164,
+    "sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/both/target.a80",
+    "bytes": 31089,
+    "sha256": "c7c331a30c417ac365bf87cbbc2cd7cbe0ece6fbe79e77384b02c12703223aa9"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/both/target.bin",
+    "bytes": 2099,
+    "sha256": "4bdce86bd7a724f34e7eee180e8a6530b07f33cadd39e7a1a93813df6c841c13"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/original/allocation.json",
+    "bytes": 17418,
+    "sha256": "9af8fdfdeb8d341f6f28097323c96a5b59d1fee911045b363782e8e64e0d8976"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/original/baseline-v2.json",
+    "bytes": 2281481,
+    "sha256": "1b75fa54fdbce2a2027c3a97f6f96991d6c268ec23404eec8803f764a74fd51a"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/original/final.mir2",
+    "bytes": 25214,
+    "sha256": "7c6d066dba853d5612611b53a442e5a355d1480e31d0c0225feff75525fbd913"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/original/source.nanz",
+    "bytes": 7164,
+    "sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/original/target.a80",
+    "bytes": 29352,
+    "sha256": "50adcc358a40137344cfeed0e6e6130864823a210037f7982187c2bc69fae74f"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/legacy/original/target.bin",
+    "bytes": 2000,
+    "sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/append/allocation.json",
+    "bytes": 17418,
+    "sha256": "86380f0420aa7269a1ddafb3c8f92f7b167c5a673c66a58d10730daab7cd9f81"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/append/baseline-v2.json",
+    "bytes": 2280703,
+    "sha256": "c8506493bc4113c2308da5ee840cad4d167e2461a17dc1fb68f960a12cd942c5"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/append/final.mir2",
+    "bytes": 25250,
+    "sha256": "a736f9e74df1ad18dc473e0e1b01f7785dc62e74f6932eabeaa3417307ebd49b"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/append/source.nanz",
+    "bytes": 7164,
+    "sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/append/target.a80",
+    "bytes": 29091,
+    "sha256": "8786eb82250d4d950ba7b50037c3a037f58a67b1c282c1ec248be5a578fc9daa"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/append/target.bin",
+    "bytes": 1979,
+    "sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/arena/allocation.json",
+    "bytes": 18007,
+    "sha256": "e8aa144b006db6dce1c5d8df9f167a50aa6f03fb22074a2b63f503d90b450c91"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/arena/baseline-v2.json",
+    "bytes": 2291777,
+    "sha256": "2358eb56c509f639071d8c83d6dcdb873951730c033ab600e1a92a9ffd952cde"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/arena/final.mir2",
+    "bytes": 26107,
+    "sha256": "c96af837dbdb84f7164c11e1c1e12e741c28ab8758a4eff1d428076150516383"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/arena/source.nanz",
+    "bytes": 7164,
+    "sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/arena/target.a80",
+    "bytes": 31436,
+    "sha256": "ed40409c46b916380ce5b3f45e2a3c4a355a85a3a42d1fd0b288d314486a8455"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/arena/target.bin",
+    "bytes": 2122,
+    "sha256": "7cbed996d01495228965970dd379920288378f7d84de4b0743db9a3589cdca53"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/both/allocation.json",
+    "bytes": 18007,
+    "sha256": "fcbbced5794f3a65155762f254a9287133a3842d009e70c158156dc322c7a068"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/both/baseline-v2.json",
+    "bytes": 2290950,
+    "sha256": "3082b75ca1d18b206225d5418a557110341a4e07a69e9855fbfab19b8504641a"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/both/final.mir2",
+    "bytes": 26143,
+    "sha256": "936a8d9aca6f7ac80723e498fab2bc44ffacfe2b05037d470bb45938ceee9ef1"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/both/source.nanz",
+    "bytes": 7164,
+    "sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/both/target.a80",
+    "bytes": 31132,
+    "sha256": "8b03791717ff5c8eb358b1b6143dd5ce8d2ca6a9272752a4903883968ce95f84"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/both/target.bin",
+    "bytes": 2100,
+    "sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/original/allocation.json",
+    "bytes": 17418,
+    "sha256": "9af8fdfdeb8d341f6f28097323c96a5b59d1fee911045b363782e8e64e0d8976"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/original/baseline-v2.json",
+    "bytes": 2281526,
+    "sha256": "1458a9f44c9040dac5af27b225a5c2820ab864ffd637e4f9067fa457b37e0f4c"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/original/final.mir2",
+    "bytes": 25214,
+    "sha256": "7c6d066dba853d5612611b53a442e5a355d1480e31d0c0225feff75525fbd913"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/original/source.nanz",
+    "bytes": 7164,
+    "sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/original/target.a80",
+    "bytes": 29395,
+    "sha256": "6f48757936c6ac0dd7404cfde78aad42c029ee4de7c4694d1bc92262facff081"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual/preserve-speed/original/target.bin",
+    "bytes": 2001,
+    "sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd"
+  }
+]

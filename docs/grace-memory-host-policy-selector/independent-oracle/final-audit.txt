@@ -1,0 +1,1 @@
+PASS300 saved independent native/source observations, 2×11 counters, 8 aggregateproof/v2policy/hash bindings; actualspeed3, derivedsize2 bothpolicies. NoCPU.
