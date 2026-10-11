@@ -241,6 +241,9 @@ func ValidateMemoryHostMIR(source *Module, m *mir2.Module, w MemoryHostWorkload)
 	if m == nil || source == nil {
 		return fmt.Errorf("memory host: missing source/MIR")
 	}
+	if m.Target != source.Target {
+		return fmt.Errorf("memory host: compiled target differs from source")
+	}
 	names := map[string]bool{}
 	for _, f := range m.Funcs {
 		if f == nil || f.Name == "" || names[f.Name] {
