@@ -7,7 +7,8 @@
 ## Сводка последнего проверенного состояния
 
 Последние root code checkpoints: signed comparison `0e34e351`, aggregate pointer
-classes `e49054af`, known consumed callback ABI `8c9fa926`. Исторические результаты ниже сохраняют
+classes `e49054af`, known consumed callback ABI `8c9fa926`, constant-call purity `4f58692b`
+и direct MIR call shape `240db2ea`. Исторические результаты ниже сохраняют
 свои исходники и режимы. Общая цель не закрыта.
 
 | Требование | Что доказано | Что ещё не доказано |
@@ -616,3 +617,7 @@ MIR direct-call shape checks интегрированы `240db2ea`; оригин
 Исходный scheme_test.lizp прошёл полные byte-домены всех 11 callable entries: 595 968 VM/native CALL, три режима. [Пакет159](grace-integration-159/README.md). Актуальный каталог: 57 independent/bounded, pending80.
 
 Исходный PL/M abs_diff_fib.plm проверен полностью по byte-входам: 197 376 CALL в трёх режимах. [Пакет160](grace-integration-160/README.md), каталог58independent/bounded и pending79.
+
+На исходном PL/M ABS_DIFF/FIB Grace уменьшает модуль 47→38 байт; полная нагрузка FIB(all256) 5 208 960→4 453 888 T (−14,50%). ABS_DIFF(all65536) остаётся 3 637 120 T. [Пакет161](grace-integration-161/README.md); это сравнение режимов, не новый training/heldout selector эксперимент.
+
+Свежий compile/assemble gate9858face PASS14,165с:193PASS/1capacitySKIP. [Пакет162](grace-integration-162/README.md). General struct-return ownership/indirect canonical ABI ещё не интегрированы.
