@@ -1,0 +1,5 @@
+--- FAIL: TestInsertAccSavesModuleRegisterIdentity (0.00s)
+    accsaves_module_test.go:47: alternating allocations collide
+FAIL
+FAIL	github.com/minz/minzc/pkg/mir2	0.007s
+FAIL
