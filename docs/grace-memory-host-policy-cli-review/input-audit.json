@@ -1,0 +1,38 @@
+{
+  "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+  "executable_sha256": "795f69cea3ed2cc2301a0a70aeabd29c70c3f0065273597e59cbdc58fc712c72",
+  "independent_inputs": {
+    "full-workload.json": {
+      "calls": 30,
+      "ordered_events": 3017,
+      "final_globals": {
+        "src_buf": 49152,
+        "src_len": 9,
+        "pos": 9,
+        "node_arena": 32768,
+        "node_bump": 32808,
+        "str_arena": 36864,
+        "str_bump": 37163,
+        "SEXP_ATOM": 1,
+        "SEXP_LIST": 2,
+        "SEXP_INT": 3
+      }
+    },
+    "small-workload.json": {
+      "calls": 2,
+      "ordered_events": 1,
+      "final_globals": {
+        "src_buf": 49152,
+        "src_len": 0,
+        "pos": 0,
+        "node_arena": 32768,
+        "node_bump": 32768,
+        "str_arena": 32768,
+        "str_bump": 32769,
+        "SEXP_ATOM": 1,
+        "SEXP_LIST": 2,
+        "SEXP_INT": 3
+      }
+    }
+  }
+}
