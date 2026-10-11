@@ -1,0 +1,118 @@
+=== RUN   TestParse_BasicRules
+--- PASS: TestParse_BasicRules (0.00s)
+=== RUN   TestMatch_Variables
+--- PASS: TestMatch_Variables (0.00s)
+=== RUN   TestMatch_Nested
+--- PASS: TestMatch_Nested (0.00s)
+=== RUN   TestRewrite_Priority
+--- PASS: TestRewrite_Priority (0.00s)
+=== RUN   TestRewriteAll_Recursive
+--- PASS: TestRewriteAll_Recursive (0.00s)
+=== RUN   TestGuard_IntComparison
+--- PASS: TestGuard_IntComparison (0.00s)
+=== RUN   TestExtern_Constructor
+--- PASS: TestExtern_Constructor (0.00s)
+=== RUN   TestLegacyCombineDeclarations
+--- PASS: TestLegacyCombineDeclarations (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/rewrite/isle	0.002s
+=== RUN   TestEmulatorContainment
+=== RUN   TestEmulatorContainment/BC
+=== RUN   TestEmulatorContainment/DE
+=== RUN   TestEmulatorContainment/HL
+=== RUN   TestEmulatorContainment/IX
+=== RUN   TestEmulatorContainment/IY
+=== RUN   TestEmulatorContainment/AF
+--- PASS: TestEmulatorContainment (0.00s)
+    --- PASS: TestEmulatorContainment/BC (0.00s)
+    --- PASS: TestEmulatorContainment/DE (0.00s)
+    --- PASS: TestEmulatorContainment/HL (0.00s)
+    --- PASS: TestEmulatorContainment/IX (0.00s)
+    --- PASS: TestEmulatorContainment/IY (0.00s)
+    --- PASS: TestEmulatorContainment/AF (0.00s)
+=== RUN   TestEmulatorShadowContainment
+=== RUN   TestEmulatorShadowContainment/BC'
+=== RUN   TestEmulatorShadowContainment/DE'
+=== RUN   TestEmulatorShadowContainment/HL'
+=== RUN   TestEmulatorShadowContainment/AF'
+--- PASS: TestEmulatorShadowContainment (0.00s)
+    --- PASS: TestEmulatorShadowContainment/BC' (0.00s)
+    --- PASS: TestEmulatorShadowContainment/DE' (0.00s)
+    --- PASS: TestEmulatorShadowContainment/HL' (0.00s)
+    --- PASS: TestEmulatorShadowContainment/AF' (0.00s)
+=== RUN   TestEmulatorSpecialRegisters
+--- PASS: TestEmulatorSpecialRegisters (0.00s)
+=== RUN   TestNamespaceRoundTrips
+--- PASS: TestNamespaceRoundTrips (0.00s)
+=== RUN   TestOverlapProperties
+--- PASS: TestOverlapProperties (0.00s)
+=== RUN   TestGPUTables
+--- PASS: TestGPUTables (0.00s)
+=== RUN   TestVIRPairAliases
+--- PASS: TestVIRPairAliases (0.00s)
+=== RUN   TestMIR2KnownAliasGaps
+=== RUN   TestMIR2KnownAliasGaps/A
+=== RUN   TestMIR2KnownAliasGaps/B
+=== RUN   TestMIR2KnownAliasGaps/C
+=== RUN   TestMIR2KnownAliasGaps/D
+=== RUN   TestMIR2KnownAliasGaps/E
+=== RUN   TestMIR2KnownAliasGaps/H
+=== RUN   TestMIR2KnownAliasGaps/L
+=== RUN   TestMIR2KnownAliasGaps/HL
+=== RUN   TestMIR2KnownAliasGaps/DE
+=== RUN   TestMIR2KnownAliasGaps/BC
+=== RUN   TestMIR2KnownAliasGaps/IX
+=== RUN   TestMIR2KnownAliasGaps/IY
+=== RUN   TestMIR2KnownAliasGaps/IXH
+=== RUN   TestMIR2KnownAliasGaps/IXL
+=== RUN   TestMIR2KnownAliasGaps/IYH
+=== RUN   TestMIR2KnownAliasGaps/IYL
+=== RUN   TestMIR2KnownAliasGaps/B'
+=== RUN   TestMIR2KnownAliasGaps/C'
+=== RUN   TestMIR2KnownAliasGaps/D'
+=== RUN   TestMIR2KnownAliasGaps/E'
+=== RUN   TestMIR2KnownAliasGaps/H'
+=== RUN   TestMIR2KnownAliasGaps/L'
+=== RUN   TestMIR2KnownAliasGaps/A'
+=== RUN   TestMIR2KnownAliasGaps/stack
+=== RUN   TestMIR2KnownAliasGaps/mem
+=== RUN   TestMIR2KnownAliasGaps/F
+=== RUN   TestMIR2KnownAliasGaps/HL32
+=== RUN   TestMIR2KnownAliasGaps/DE32
+=== RUN   TestMIR2KnownAliasGaps/BC32
+--- PASS: TestMIR2KnownAliasGaps (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/A (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/B (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/C (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/D (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/E (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/H (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/L (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/HL (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/DE (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/BC (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/IX (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/IY (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/IXH (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/IXL (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/IYH (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/IYL (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/B' (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/C' (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/D' (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/E' (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/H' (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/L' (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/A' (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/stack (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/mem (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/F (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/HL32 (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/DE32 (0.00s)
+    --- PASS: TestMIR2KnownAliasGaps/BC32 (0.00s)
+=== RUN   TestDocumentedWidthsAndKinds
+--- PASS: TestDocumentedWidthsAndKinds (0.00s)
+=== RUN   TestContainmentAndAliases
+--- PASS: TestContainmentAndAliases (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/z80spec	0.006s

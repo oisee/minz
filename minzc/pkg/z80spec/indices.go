@@ -25,17 +25,11 @@ func toIndex(names []string, name string) (int, bool) {
 	return -1, false
 }
 
-// FromLIR maps one of the 37 LIR locations to canonical storage.
-func FromLIR(index int) (Location, bool) { return fromIndex(virNames[:37], index) }
-
-// ToLIR fails for locations with no LIR counterpart (including stack slots).
-func ToLIR(name string) (int, bool) { return toIndex(virNames[:37], name) }
-
 // FromVIR maps one of the 41 VIR locations; _vir_memN becomes memN.
 func FromVIR(index int) (Location, bool) { return fromIndex(virNames[:], index) }
 func ToVIR(name string) (int, bool)      { return toIndex(virNames[:], name) }
 
 // FromGPU maps the 15-location GPU namespace; slot 14 is the independent spill
-// sentinel gpu_mem, which has no direct LIR/VIR index.
+// sentinel gpu_mem, which has no direct VIR index.
 func FromGPU(index int) (Location, bool) { return fromIndex(gpuNames[:], index) }
 func ToGPU(name string) (int, bool)      { return toIndex(gpuNames[:], name) }

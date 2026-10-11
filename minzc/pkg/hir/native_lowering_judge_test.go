@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/hir"
-	"github.com/minz/minzc/pkg/lir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/minz/minzc/pkg/z80asm"
@@ -14,19 +13,12 @@ import (
 
 // Assemble once and reset memory for each case, using the production allocation
 // for parameters and the production return contract for results.
-func sweepCodegenJudge(t *testing.T, funcs []*hir.Func, name string, cases int, inputs func(int) []int64, model func([]int64) int64, research ...bool) (int, string) {
+func sweepCodegenJudge(t *testing.T, funcs []*hir.Func, name string, cases int, inputs func(int) []int64, model func([]int64) int64) (int, string) {
 	t.Helper()
 	opts := pipeline.DefaultOptions()
 	steps, err := pipeline.CompileHIRSteps(&hir.Module{Name: "allowlist_judge", Funcs: funcs}, opts)
 	if err != nil {
 		t.Fatal(err)
-	}
-	if len(research) > 0 && research[0] {
-		steps.Assembly, err = lir.LIRCodegenFunc(steps.MIR2Module.FuncByName(name), steps.MIR2Module, researchHints(steps))
-		if err != nil {
-			t.Fatal(err)
-		}
-		t.Logf("direct native LIR assembly:\n%s", steps.Assembly)
 	}
 	mf := steps.MIR2Module.FuncByName(name)
 	if len(mf.Blocks) != 1 {
