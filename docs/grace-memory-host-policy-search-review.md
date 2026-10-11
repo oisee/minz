@@ -28,3 +28,12 @@ retained-source-SHA altered-AST concern. Meaningful tests still need to prove
 that gate rejects changes in unrelated functions, late mutations across
 policy boundaries and shared graphs while accepting independent fresh graphs
 under forced GC. No new CPU result or completion claim follows from this read.
+
+Draft e0521c1f closes both source-review findings: metadata compares exactly
+to the independently parsed source; observations preserve Error/Failure and
+only clear Steps. Each of the eight candidate records rejects Error/Failure.
+Admission and valid retained-SHA altered-body checks passed 7.66 s in the
+preserved focused executable3e3547a4e09ab84f70efac00d0003f517a5432d43202ced78438cc3603f3d0fc.
+Lifecycle/GC/mutation tests are running, not yet claimed passing. The first
+negative fixture was malformed detached provenance; its failed test/executable
+are retained and the replacement mutation preserves valid typed HIR.
