@@ -1,0 +1,103 @@
+=== RUN   TestOriginalLizpFunctionalComplete
+=== RUN   TestOriginalLizpFunctionalComplete/ordinary
+    lizp_functional_complete_test.go:287: {
+          "allowed_generated_spill_bytes": {},
+          "bytes": 117,
+          "entries": {
+            "apply": 768,
+            "lambda_0": 256,
+            "lambda_1": 256,
+            "lambda_2": 256,
+            "pythag_sq": 65536,
+            "test_double": 1,
+            "transform": 65536,
+            "weekday": 256
+          },
+          "executed_indirect_entries": {
+            "apply": 1281,
+            "lambda_0": 513,
+            "lambda_1": 768,
+            "lambda_2": 768
+          },
+          "stack_depth_per_entry": {
+            "apply": 4,
+            "lambda_0": 2,
+            "lambda_1": 2,
+            "lambda_2": 2,
+            "pythag_sq": 10,
+            "test_double": 4,
+            "transform": 4,
+            "weekday": 2
+          },
+          "stack_low": "eff6"
+        }
+=== RUN   TestOriginalLizpFunctionalComplete/grace-size
+    lizp_functional_complete_test.go:287: {
+          "allowed_generated_spill_bytes": {},
+          "bytes": 117,
+          "entries": {
+            "apply": 768,
+            "lambda_0": 256,
+            "lambda_1": 256,
+            "lambda_2": 256,
+            "pythag_sq": 65536,
+            "test_double": 1,
+            "transform": 65536,
+            "weekday": 256
+          },
+          "executed_indirect_entries": {
+            "apply": 1281,
+            "lambda_0": 513,
+            "lambda_1": 768,
+            "lambda_2": 768
+          },
+          "stack_depth_per_entry": {
+            "apply": 4,
+            "lambda_0": 2,
+            "lambda_1": 2,
+            "lambda_2": 2,
+            "pythag_sq": 10,
+            "test_double": 4,
+            "transform": 4,
+            "weekday": 2
+          },
+          "stack_low": "eff6"
+        }
+=== RUN   TestOriginalLizpFunctionalComplete/grace-speed
+    lizp_functional_complete_test.go:287: {
+          "allowed_generated_spill_bytes": {},
+          "bytes": 117,
+          "entries": {
+            "apply": 768,
+            "lambda_0": 256,
+            "lambda_1": 256,
+            "lambda_2": 256,
+            "pythag_sq": 65536,
+            "test_double": 1,
+            "transform": 65536,
+            "weekday": 256
+          },
+          "executed_indirect_entries": {
+            "apply": 1281,
+            "lambda_0": 513,
+            "lambda_1": 768,
+            "lambda_2": 768
+          },
+          "stack_depth_per_entry": {
+            "apply": 4,
+            "lambda_0": 2,
+            "lambda_1": 2,
+            "lambda_2": 2,
+            "pythag_sq": 10,
+            "test_double": 4,
+            "transform": 4,
+            "weekday": 2
+          },
+          "stack_low": "eff6"
+        }
+--- PASS: TestOriginalLizpFunctionalComplete (3.63s)
+    --- PASS: TestOriginalLizpFunctionalComplete/ordinary (1.22s)
+    --- PASS: TestOriginalLizpFunctionalComplete/grace-size (1.20s)
+    --- PASS: TestOriginalLizpFunctionalComplete/grace-speed (1.21s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.642s

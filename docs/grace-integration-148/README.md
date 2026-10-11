@@ -1,0 +1,5 @@
+# Интеграция148: original Lizp functional callbacks
+
+Rootbddef5b3: unchangedfunctional.lizp all8entries/all10sourceasserts, **398 595 nativecalls** в трёхрежимах, independentraw/finalVM models; **rootPASS3,642 с** [лог](root.txt). ActualCallIndirect/JP__call_ix остаётся в image; nativePCtrace проверяет apply и exactlambda, pythagCALLmul8, trueCALLdrivers/PCSP/fullRAMguard. Полныеbytepair matrices pythag/transform, все256 unary/applytargetinputs. Original lambdas имеютzero captures, захваты этимproof не заявлены. [Полный отчёт](../../reports/2026-10-11-lizp-functional-complete.md);49manifestpayloads SHAverified/git-tracked, exactfrozenexecutable наshare.
+
+Отдельныйsyntheticcallbackdiagnostic: byteapply принимаетknownwordfunction без signaturevalidation; VM261/native5. ExactacceptedASM/BIN/MIR сохранён в lizp-functional-callback-gap, это admissionbug, а не обещание поддержать неявныйABIadapter. Исправление inferredcallbackcontract выполняется отдельно. Aggregateclass/lifetimecounterexamples также separatework; passingoriginalfunctional не снимаетих. FullCLI4587e753/corePASS, oldpipelinea7954042live. Общая цель не закрыта.
