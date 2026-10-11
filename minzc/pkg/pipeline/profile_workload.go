@@ -66,7 +66,7 @@ func RunZ80ProfileWorkload(steps Steps, source *hir.Module, workload hir.Profile
 	fail := func(err error) (*Z80ProfileWorkloadEvidence, error) {
 		return nil, fmt.Errorf("Z80 profile workload: %w", err)
 	}
-	if source == nil || source.OrderedBytePolicy != nil || source.RegionComparePolicy != nil || source.ForwardCopyPolicy != nil || source.PointerWalkPolicy != nil || source.LoopLineage != nil || source.GraceRulePolicy != nil || source.InvariantBasePolicy != nil || steps.MIR2Module == nil || steps.Allocation == nil || strings.TrimSpace(steps.Assembly) == "" {
+	if source == nil || source.OrderedByteRWPolicy != nil || source.OrderedBytePolicy != nil || source.RegionComparePolicy != nil || source.ForwardCopyPolicy != nil || source.PointerWalkPolicy != nil || source.LoopLineage != nil || source.GraceRulePolicy != nil || source.InvariantBasePolicy != nil || steps.MIR2Module == nil || steps.Allocation == nil || strings.TrimSpace(steps.Assembly) == "" {
 		return fail(fmt.Errorf("requires unmodified input HIR and compiled Z80 steps/allocation"))
 	}
 	owned, err := json.Marshal(workload)

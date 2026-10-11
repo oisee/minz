@@ -10,9 +10,12 @@ func orderedByteCLIState(t *testing.T) {
 	oldOrdered, oldRegion, oldCopy, oldMixed, oldJoint := hirProfileOrderedByteFunctions, hirProfileRegionCompareSites, hirProfileForwardCopySites, hirProfileMixedCopyWeightedSites, hirProfileJoint
 	oldInvariant, oldSite, oldJointSites, oldWeighted, oldIndependent := hirProfileInvariantSites, hirProfileSiteRules, hirProfileJointSites, hirProfileWeightedSites, hirProfileIndependentRules
 	oldComposition := hirProfileMixedCopyRegionSites
+	oldRW := hirProfileOrderedByteRWFunctions
+	hirProfileOrderedByteRWFunctions = false
 	oldDir, oldFn, oldWork := hirProfileAutoDirectory, hirProfileAutoFunction, hirProfileAutoWorkload
 	t.Cleanup(func() {
 		hirProfileMixedCopyRegionSites = oldComposition
+		hirProfileOrderedByteRWFunctions = oldRW
 		hirProfileOrderedByteFunctions, hirProfileRegionCompareSites, hirProfileForwardCopySites, hirProfileMixedCopyWeightedSites, hirProfileJoint = oldOrdered, oldRegion, oldCopy, oldMixed, oldJoint
 		hirProfileInvariantSites, hirProfileSiteRules, hirProfileJointSites, hirProfileWeightedSites, hirProfileIndependentRules = oldInvariant, oldSite, oldJointSites, oldWeighted, oldIndependent
 		hirProfileAutoDirectory, hirProfileAutoFunction, hirProfileAutoWorkload = oldDir, oldFn, oldWork

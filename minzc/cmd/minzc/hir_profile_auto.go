@@ -21,10 +21,15 @@ var hirProfileForwardCopySites bool
 var hirProfileMixedCopyWeightedSites bool
 var hirProfileRegionCompareSites bool
 var hirProfileOrderedByteFunctions bool
+var hirProfileOrderedByteRWFunctions bool
 var hirProfileMixedCopyRegionSites bool
 
 func validateHIRProfileAuto(source string) error {
-	if hirProfileOrderedByteFunctions && (!hirProfileJoint || hirProfileForwardCopySites || hirProfileMixedCopyWeightedSites || hirProfileRegionCompareSites || hirProfileMixedCopyRegionSites || hirProfileInvariantSites || hirProfileSiteRules || hirProfileJointSites || hirProfileWeightedSites || hirProfileIndependentRules) {
+	if hirProfileOrderedByteRWFunctions && (!hirProfileJoint || hirProfileOrderedByteFunctions || hirProfileForwardCopySites || hirProfileMixedCopyWeightedSites || hirProfileRegionCompareSites || hirProfileMixedCopyRegionSites || hirProfileInvariantSites || hirProfileSiteRules || hirProfileJointSites || hirProfileWeightedSites || hirProfileIndependentRules) {
+		return fmt.Errorf("HIR ordered byte read/write functions: requires --hir-profile-joint and cannot combine with other function, site or independent rule modes")
+	}
+
+	if hirProfileOrderedByteFunctions && (!hirProfileJoint || hirProfileOrderedByteRWFunctions || hirProfileForwardCopySites || hirProfileMixedCopyWeightedSites || hirProfileRegionCompareSites || hirProfileMixedCopyRegionSites || hirProfileInvariantSites || hirProfileSiteRules || hirProfileJointSites || hirProfileWeightedSites || hirProfileIndependentRules) {
 		return fmt.Errorf("HIR ordered byte functions: requires --hir-profile-joint and cannot combine with other site or independent rule modes")
 	}
 
@@ -171,7 +176,16 @@ func prepareHIRProfileJoint(m *hir.Module, factory func() (*hir.Module, error), 
 	var result *pipeline.ProfileVariantSetResult
 	var evidence any
 	var decisions any
-	if hirProfileOrderedByteFunctions {
+	if hirProfileOrderedByteRWFunctions {
+		ordered, err := pipeline.MeasureOrderedByteRWFunctionVariantSets(factory, observations, workload, options, 4)
+		if err != nil {
+			return nil, err
+		}
+		result = &pipeline.ProfileVariantSetResult{Steps: ordered.Steps, Binary: ordered.Binary}
+		evidence = ordered.Evidence
+		best := ordered.Evidence.Candidates[ordered.Evidence.Selected]
+		decisions = map[string]any{"schema": "minz.ordered-byte-rw-function-decisions/v1", "compatibility": ordered.Evidence.Compatibility, "function_sites": ordered.Evidence.FunctionSites, "selected": ordered.Evidence.Selected, "requested_functions": best.RequestedSites, "proofs": best.Proofs, "postcompile_proofs": best.FinalProofs, "binary_sha256": best.BinarySHA256, "evidence_sha256": ordered.Evidence.SHA256}
+	} else if hirProfileOrderedByteFunctions {
 		ordered, err := pipeline.MeasureOrderedByteFunctionVariantSets(factory, observations, workload, options, 4)
 		if err != nil {
 			return nil, err

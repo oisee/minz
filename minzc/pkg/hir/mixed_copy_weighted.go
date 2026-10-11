@@ -63,7 +63,7 @@ func validateMixedKeys(m *Module, choices MixedCopyWeightedChoices) ([]string, [
 // ApplyMixedCopyWeightedChoices installs owned maps together before seeding once
 // and applying Grace. Legality is exact copy/weighted source, never profile data.
 func ApplyMixedCopyWeightedChoices(m *Module, compatibility *ProfileCompatibility, choices MixedCopyWeightedChoices) error {
-	if m == nil || compatibility == nil || m.RegionComparePolicy != nil || m.OrderedBytePolicy != nil || m.LoopLineage != nil || m.ForwardCopyPolicy != nil || m.PointerWalkPolicy != nil || m.InvariantBasePolicy != nil || m.GraceRulePolicy != nil {
+	if m == nil || compatibility == nil || m.RegionComparePolicy != nil || m.OrderedBytePolicy != nil || m.OrderedByteRWPolicy != nil || m.LoopLineage != nil || m.ForwardCopyPolicy != nil || m.PointerWalkPolicy != nil || m.InvariantBasePolicy != nil || m.GraceRulePolicy != nil {
 		return fmt.Errorf("mixedcopyweighted: requires fresh original HIR")
 	}
 	current, err := BuildProfileCompatibility(m, compatibility.Context)

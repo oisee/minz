@@ -148,7 +148,7 @@ func SelectLoopVariantsWithModels(r io.Reader, m *Module, c ProfileContext, mode
 // ApplyProfileDecisions validates attribution before running ordinary Grace
 // legality predicates. The decisions do not bypass pointer/address guards.
 func ApplyProfileDecisions(m *Module, decisions []ProfileDecision) error {
-	if m != nil && (m.RegionComparePolicy != nil || m.OrderedBytePolicy != nil) {
+	if m != nil && (m.RegionComparePolicy != nil || m.OrderedBytePolicy != nil || m.OrderedByteRWPolicy != nil) {
 		return fmt.Errorf("loop policy: prior region policy")
 	}
 	sites, err := BuildLoopSiteMap(m)

@@ -102,7 +102,7 @@ func ValidateOrderedByteHelperChoices(source, actual *Module, choices map[string
 	if e = Verify(actual); e != nil {
 		return nil, e
 	}
-	if actual.OrderedBytePolicy == nil || len(actual.OrderedBytePolicy) != len(choices) || actual.GraceRulePolicy == nil || len(actual.GraceRulePolicy) != 0 || actual.PointerWalkPolicy == nil || len(actual.PointerWalkPolicy) != 0 || actual.InvariantBasePolicy == nil || len(actual.InvariantBasePolicy) != 0 || actual.ForwardCopyPolicy == nil || len(actual.ForwardCopyPolicy) != 0 || actual.RegionComparePolicy == nil || len(actual.RegionComparePolicy) != 0 {
+	if actual.OrderedByteRWPolicy != nil || actual.OrderedBytePolicy == nil || len(actual.OrderedBytePolicy) != len(choices) || actual.GraceRulePolicy == nil || len(actual.GraceRulePolicy) != 0 || actual.PointerWalkPolicy == nil || len(actual.PointerWalkPolicy) != 0 || actual.InvariantBasePolicy == nil || len(actual.InvariantBasePolicy) != 0 || actual.ForwardCopyPolicy == nil || len(actual.ForwardCopyPolicy) != 0 || actual.RegionComparePolicy == nil || len(actual.RegionComparePolicy) != 0 {
 		return nil, fmt.Errorf("ordered byte: unrequested policy")
 	}
 	known := map[string]bool{}
@@ -121,12 +121,59 @@ func ValidateOrderedByteHelperChoices(source, actual *Module, choices map[string
 			return nil, fmt.Errorf("ordered byte: missing selected policy")
 		}
 	}
+	originRemap := map[string]string{}
+	for _, site := range sites {
+		original := source.FuncByName(site.Function)
+		post := actual.FuncByName(site.Function)
+		p := findOrderedByteHelper(original, forwardCopyReserved(source))
+		if e = validateOrderedByteShape(original, post, p, choices[site.ID]); e != nil {
+			return nil, e
+		}
+		after, e := orderedByteDigest(post.Body)
+		if e != nil {
+			return nil, e
+		}
+		out = append(out, OrderedByteHelperProof{FunctionSiteID: site.ID, Function: site.Function, SourceSHA256: site.SourceUnitsSHA256, Enabled: choices[site.ID], BeforeBodySHA256: site.BodySHA256, AfterBodySHA256: after})
+		if choices[site.ID] {
+			originRemap[site.Function+"/body/s1"] = site.Function + "/body/s2"
+		}
+	}
+	if e = validateOrderedByteModule(source, actual, owned, originRemap); e != nil {
+		return nil, e
+	}
+	return out, nil
+}
+func ValidateOrderedByteHelperCompiledChoices(source, actual *Module, choices map[string]bool) ([]OrderedByteHelperProof, error) {
+	sites, err := orderedByteKeys(source, choices)
+	if err != nil {
+		return nil, err
+	}
+	if actual == nil {
+		return nil, fmt.Errorf("ordered byte: nil compiled actual")
+	}
+	for _, site := range sites {
+		for _, f := range actual.Funcs {
+			if f != nil && strings.HasPrefix(f.Name, site.Function+"$split_") {
+				return nil, fmt.Errorf("ordered byte: split target helper unsupported")
+			}
+		}
+	}
+	view, e := normalizeRegionCompareSplits(source, actual)
+	if e != nil {
+		return nil, e
+	}
+	return ValidateOrderedByteHelperChoices(source, view, choices)
+}
+
+func validateOrderedByteModule(source, actual *Module, owned map[string]bool, originRemap map[string]string) error {
 	x, y := *source, *actual
 	x.SourceLocations = nil
 	y.SourceLocations = nil
 	x.LoopLineage = nil
 	y.LoopLineage = nil
+	x.OrderedByteRWPolicy = nil
 	x.OrderedBytePolicy = nil
+	y.OrderedByteRWPolicy = nil
 	y.OrderedBytePolicy = nil
 	x.GraceRulePolicy = nil
 	y.GraceRulePolicy = nil
@@ -155,30 +202,15 @@ func ValidateOrderedByteHelperChoices(source, actual *Module, choices map[string
 		y.Funcs[j] = &c
 	}
 	if !reflect.DeepEqual(x, y) {
-		return nil, fmt.Errorf("ordered byte: unrelated semantic module changed")
+		return fmt.Errorf("ordered byte: unrelated semantic module changed")
 	}
 	paths, e := orderedByteStatements(source)
 	if e != nil {
-		return nil, e
+		return e
 	}
 	actualPaths, e := orderedByteStatements(actual)
 	if e != nil {
-		return nil, e
-	}
-	shifted := map[string]bool{}
-	for _, s := range sites {
-		original := source.FuncByName(s.Function)
-		post := actual.FuncByName(s.Function)
-		p := findOrderedByteHelper(original, forwardCopyReserved(source))
-		if e = validateOrderedByteShape(original, post, p, choices[s.ID]); e != nil {
-			return nil, e
-		}
-		after, e := orderedByteDigest(post.Body)
-		if e != nil {
-			return nil, e
-		}
-		out = append(out, OrderedByteHelperProof{FunctionSiteID: s.ID, Function: s.Function, SourceSHA256: s.SourceUnitsSHA256, Enabled: choices[s.ID], BeforeBodySHA256: s.BodySHA256, AfterBodySHA256: after})
-		shifted[s.Function] = choices[s.ID]
+		return e
 	}
 	expectedOrigins := map[string]SourceLocation{}
 	for path, s := range paths {
@@ -187,10 +219,8 @@ func ValidateOrderedByteHelperChoices(source, actual *Module, choices map[string
 			continue
 		}
 		newPath := path
-		for fn, enabled := range shifted {
-			if enabled && path == fn+"/body/s1" {
-				newPath = fn + "/body/s2"
-			}
+		if mapped, ok := originRemap[path]; ok {
+			newPath = mapped
 		}
 		expectedOrigins[newPath] = loc
 	}
@@ -201,57 +231,36 @@ func ValidateOrderedByteHelperChoices(source, actual *Module, choices map[string
 		if required {
 			matches++
 			if !present || got != want {
-				return nil, fmt.Errorf("ordered byte: exact origin path changed")
+				return fmt.Errorf("ordered byte: exact origin path changed")
 			}
 		} else if present {
-			return nil, fmt.Errorf("ordered byte: invented origin")
+			return fmt.Errorf("ordered byte: invented origin")
 		}
 	}
 	if matches != len(expectedOrigins) || len(actual.SourceLocations) != len(expectedOrigins) {
-		return nil, fmt.Errorf("ordered byte: missing origin")
+		return fmt.Errorf("ordered byte: missing origin")
 	}
 	loops, e := BuildLoopSiteMap(source)
 	if e != nil {
-		return nil, e
+		return e
 	}
 	expectedLoops := map[string]LoopSite{}
 	for _, s := range loops.Sites {
 		expectedLoops[s.Function+"/"+s.HIRPath] = s
 	}
 	if actual.LoopLineage == nil || len(actual.LoopLineage) != len(expectedLoops) {
-		return nil, fmt.Errorf("ordered byte: lineage cardinality")
+		return fmt.Errorf("ordered byte: lineage cardinality")
 	}
 	for path, s := range actualPaths {
 		marker, present := actual.LoopLineage[s]
 		want, required := expectedLoops[path]
 		if required {
 			if !present || marker.SiteID != want.ID || marker.Rule != "" || marker.Role != "original" || marker.PreviousRule != "" {
-				return nil, fmt.Errorf("ordered byte: original loop attribution")
+				return fmt.Errorf("ordered byte: original loop attribution")
 			}
 		} else if present {
-			return nil, fmt.Errorf("ordered byte: lineage on non-loop")
+			return fmt.Errorf("ordered byte: lineage on non-loop")
 		}
 	}
-	return out, nil
-}
-func ValidateOrderedByteHelperCompiledChoices(source, actual *Module, choices map[string]bool) ([]OrderedByteHelperProof, error) {
-	sites, err := orderedByteKeys(source, choices)
-	if err != nil {
-		return nil, err
-	}
-	if actual == nil {
-		return nil, fmt.Errorf("ordered byte: nil compiled actual")
-	}
-	for _, site := range sites {
-		for _, f := range actual.Funcs {
-			if f != nil && strings.HasPrefix(f.Name, site.Function+"$split_") {
-				return nil, fmt.Errorf("ordered byte: split target helper unsupported")
-			}
-		}
-	}
-	view, e := normalizeRegionCompareSplits(source, actual)
-	if e != nil {
-		return nil, e
-	}
-	return ValidateOrderedByteHelperChoices(source, view, choices)
+	return nil
 }
