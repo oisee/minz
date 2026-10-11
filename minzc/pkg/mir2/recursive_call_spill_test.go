@@ -172,3 +172,106 @@ func TestCallSpillRestorePreservesResults(t *testing.T) {
 		t.Fatalf("result/snapshot contract: %+v error %v", r, err)
 	}
 }
+
+func TestMutualAndIndirectCallSpill(t *testing.T) {
+	for _, mode := range []string{"mutual-byte", "mutual-word", "indirect-byte"} {
+		t.Run(mode, func(t *testing.T) {
+			word := mode == "mutual-word"
+			m, ar := recursiveCallSpillFixture(word)
+			f := m.Funcs[0]
+			var call *Inst
+			for _, i := range f.Blocks[2].Insts {
+				if i.Op == OpCall {
+					call = i
+				}
+			}
+			param := "C"
+			if word {
+				param = "DE"
+			}
+			if strings.HasPrefix(mode, "mutual") {
+				call.Sym = "mutual_bridge"
+				bridge := m.AddFunc("mutual_bridge")
+				bridge.Contract.Returns = append([]Return(nil), f.Contract.Returns...)
+				b := NewBuilder(bridge)
+				b.SwitchToNewBlock("entry")
+				p := b.Param("n", f.Contract.Params[0].Ty, f.Contract.Params[0].Class)
+				r := b.Call(f.Name, []Reg{p}, bridge.Contract.Returns[0].Ty, bridge.Contract.Returns[0].Class, CallAttrs{})
+				b.Ret(r)
+				ar.Locs[p] = PhysLoc{Kind: LocReg, Name: param}
+				result := "A"
+				if word {
+					result = "HL"
+				}
+				ar.Locs[r] = PhysLoc{Kind: LocReg, Name: result}
+			} else {
+				// Indirect ABI uses its standard byte parameter in A. The target's
+				// concrete contract and allocation agree with that same ABI.
+				f.Contract.Params[0].Class = ClassAcc
+				ar.Locs[f.Contract.Params[0].Reg] = PhysLoc{Kind: LocReg, Name: "A"}
+				ar.Locs[call.Args[0]] = PhysLoc{Kind: LocReg, Name: "A"}
+				ptr := f.AllocReg()
+				addr := &Inst{Op: OpAddrOf, Dst: ptr, Sym: f.Name, Ty: TyPtr, Cls: ClassPointer}
+				block := f.Blocks[2]
+				for j, i := range block.Insts {
+					if i == call {
+						block.Insts = append(block.Insts[:j], append([]*Inst{addr}, block.Insts[j:]...)...)
+						break
+					}
+				}
+				ar.Locs[ptr] = PhysLoc{Kind: LocReg, Name: "HL"}
+				call.Op, call.Sym, call.Src = OpCallIndirect, "", [2]Reg{ptr}
+				param = "A"
+			}
+			if err := Verify(m); err != nil {
+				t.Fatal(err)
+			}
+			v, err := NewVM(m).Call(f.Name, []Value{{I: 3}})
+			if err != nil || len(v) != 1 || v[0].I != 6 {
+				t.Fatalf("raw %v %v", v, err)
+			}
+			asm, err := Z80Codegen(m, ar)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if strings.Contains(asm, "_tsmc_recursive_home") {
+				t.Fatal("cross-call value must be ordinary data home")
+			}
+			full := fmt.Sprintf("ORG 0x8000\nLD SP, 0xF000\nLD %s, 3\nCALL recursive_home\nDI\nreentry_done:\nHALT\n", param) + asm
+			a, err := z80asm.NewAssembler().AssembleString(full)
+			if err != nil || len(a.Errors) != 0 {
+				t.Fatalf("assemble %v %v\n%s", err, a.Errors, full)
+			}
+			if os.Getenv("MINZ_RECURSIVE_SPILL_NATIVE") != "1" {
+				return
+			}
+			z := emulator.NewRemogattoZ80()
+			z.MaxCycles = 1_000_000
+			if err := z.LoadMemory(0x8000, a.Binary); err != nil {
+				t.Fatal(err)
+			}
+			z.SetPC(0x8000)
+			runErr := z.Run()
+			regs := z.GetRegisters()
+			got := uint16(regs.A)
+			if word {
+				got = regs.HL
+			}
+			if root := os.Getenv("MINZ_RECURSIVE_SPILL_ARTIFACTS"); root != "" {
+				dir := filepath.Join(root, mode)
+				if err := os.MkdirAll(dir, 0755); err != nil {
+					t.Fatal(err)
+				}
+				state, _ := json.MarshalIndent(map[string]any{"registers": regs, "result": got, "expected_result": 6, "cycles": z.GetCycles(), "error": fmt.Sprint(runErr)}, "", "  ")
+				for name, data := range map[string][]byte{"assembled.a80": []byte(full), "target.bin": a.Binary, "execution.json": state} {
+					if err := os.WriteFile(filepath.Join(dir, name), data, 0644); err != nil {
+						t.Fatal(err)
+					}
+				}
+			}
+			if runErr != nil || got != 6 || regs.SP != 0xF000 || regs.PC != uint16(a.Symbols["reentry_done"]) {
+				t.Fatalf("result %+v got%d error%v\n%s", regs, got, runErr, full)
+			}
+		})
+	}
+}
