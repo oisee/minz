@@ -1,0 +1,9 @@
+Closed memory-host speed selected mask1: 583T / 2121B; evidence /home/alice/dev/minz-artifacts/grace-checkpoints/global-word-load-cli-evidence/small-replay
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
