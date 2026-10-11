@@ -251,7 +251,7 @@ func init() {
 	rootCmd.Flags().StringVar(&hirProfileAutoWorkload, "hir-profile-auto-workload", "", "controlled workload JSON for --hir-profile-auto")
 	rootCmd.Flags().StringVar(&contractStrategy, "contract-strategy", "", "interprocedural contracts: greedy (default) or experimental pbqp")
 	rootCmd.Flags().StringVarP(&backend, "backend", "b", defaultBackend, "target backend (z80, ez80)")
-	rootCmd.Flags().StringVar(&runtimeMode, "runtime", "", "explicit application runtime: cpm (leaf console main, resident 256-byte stack)")
+	rootCmd.Flags().StringVar(&runtimeMode, "runtime", "", "explicit application runtime: cpm (console and byte-memory ABI, proven resident 256-byte stack)")
 	rootCmd.Flags().StringVarP(&target, "target", "t", "zxspectrum", "target platform (zxspectrum, cpm, msx, cpc, amstrad)")
 	rootCmd.Flags().StringVarP(&outputFormat, "format", "f", "", "output format: code (raw binary, default), sna, tap")
 	rootCmd.Flags().BoolVar(&forceOutput, "force", false, "overwrite existing implicit .generated.c output")

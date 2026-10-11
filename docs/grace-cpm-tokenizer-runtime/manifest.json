@@ -1,0 +1,64 @@
+{
+  "files": [
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalTokenizerMain/capture.json",
+      "sha256": "f117b780a7d8149e0df150d5578a95a25762c9c845963f464903063c792d809a",
+      "bytes": 23250
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalTokenizerMain/oracle.json",
+      "sha256": "e26dea83380f0e8ff3b9bf6c50ef1e61d78c8b62cd4f35208aa5e2cbe3ec3b61",
+      "bytes": 23224
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalTokenizerMain/source.nanz",
+      "sha256": "d893df00710b7f1105b8bfb58342aca1c1f8cce7eb674037a8d6ca41b91b0689",
+      "bytes": 16825
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalTokenizerMain/stdout.txt",
+      "sha256": "1c1dc59687f184eed7ff4fb9e1b79a66598b89aac3d0a0dce0378474763e1fd1",
+      "bytes": 146
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalTokenizerMain/target.a80",
+      "sha256": "a84b00db6ef7e55429775ddab841bca59d57b4711ded605525d5cb20806d0511",
+      "bytes": 77389
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalTokenizerMain/target.bin",
+      "sha256": "ff30ec8eb3ab19f9a81044256e14e7ed48c706daa832bfc89de9714d100bfea4",
+      "bytes": 5815
+    },
+    {
+      "path": "artifacts/focused.txt",
+      "sha256": "0210bca7246caf983a1a2cedfdafcfe1c6dbbc7fb8201aa1c4b4a9b6da5a3363",
+      "bytes": 1467
+    },
+    {
+      "path": "artifacts/mir2-full.txt",
+      "sha256": "581d3cb5450385e4fad8a026215d605f9994f62d50f8eb741e1815367ac9719d",
+      "bytes": 43
+    },
+    {
+      "path": "artifacts/native-cli-proof.txt",
+      "sha256": "d546d5991896013609510bc814877930ba5d4667327c19d244f3830bf4490675",
+      "bytes": 419
+    },
+    {
+      "path": "artifacts/source.nanz",
+      "sha256": "d893df00710b7f1105b8bfb58342aca1c1f8cce7eb674037a8d6ca41b91b0689",
+      "bytes": 16825
+    },
+    {
+      "path": "artifacts/tokenizer.a80",
+      "sha256": "a84b00db6ef7e55429775ddab841bca59d57b4711ded605525d5cb20806d0511",
+      "bytes": 77389
+    },
+    {
+      "path": "artifacts/tokenizer.com",
+      "sha256": "ff30ec8eb3ab19f9a81044256e14e7ed48c706daa832bfc89de9714d100bfea4",
+      "bytes": 5815
+    }
+  ]
+}

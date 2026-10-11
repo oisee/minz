@@ -1,0 +1,6 @@
+=== RUN   TestCPMRuntimeOriginalTokenizerMain
+    original_tokenizer_main_test.go:332: resident stack touched 28 bytes
+    original_tokenizer_main_test.go:334: exact main 146 stdout bytes all regions/globals/stack guards PASS 226178 T BIN 5815 SHA ff30ec8eb3ab19f9a81044256e14e7ed48c706daa832bfc89de9714d100bfea4
+--- PASS: TestCPMRuntimeOriginalTokenizerMain (0.68s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.687s

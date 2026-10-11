@@ -12,14 +12,19 @@ type Z80Runtime string
 
 const Z80RuntimeCPM Z80Runtime = "cpm"
 
-func validateCPMLeafRuntime(m *Module, ar *AllocResult) error {
+func validateCPMApplicationRuntime(m *Module, ar *AllocResult) error {
 	main := m.FuncByName("main")
 	if m.Target != 0 || main == nil || len(main.Contract.Params) != 0 || len(main.Contract.Returns) != 0 {
 		return fmt.Errorf("CP/M runtime requires target cpm and void main without arguments")
 	}
 	for _, f := range m.Funcs {
-		if f.Name != "main" || f.Attrs.IsExtern || f.Attrs.HasAsm {
-			return fmt.Errorf("CP/M runtime first slice supports one leaf main, no extern/ASM functions")
+		if f.Attrs.HasAsm || f.Attrs.ExternAddr != 0 {
+			return fmt.Errorf("CP/M runtime rejects ASM and fixed-address extern functions")
+		}
+		if f.Attrs.IsExtern {
+			if err := validateCPMBytePrimitive(f, ar); err != nil {
+				return err
+			}
 		}
 		defs := map[Reg]*Inst{}
 		for _, b := range f.Blocks {
@@ -36,29 +41,26 @@ func validateCPMLeafRuntime(m *Module, ar *AllocResult) error {
 					switch i.Sym {
 					case "@mir.io.print.str", "@mir.io.print.sstr", "@mir.io.print.lstr", "@mir.io.print.char", "@mir.io.print.nl", "@mir.io.print.u8", "@mir.io.print.dec", "console_log":
 					default:
-						return fmt.Errorf("CP/M runtime first slice rejects non-console calls")
+						if m.FuncByName(i.Sym) == nil {
+							return fmt.Errorf("CP/M runtime rejects unbound call %s", i.Sym)
+						}
 					}
 				case OpStore:
 					def := defs[i.Src[0]]
 					if def == nil || def.Op != OpAddrOf || !cpmRuntimeGlobal(m, def.Sym) {
-						return fmt.Errorf("CP/M runtime first slice only supports direct module-global memory accesses")
+						return fmt.Errorf("CP/M runtime only supports direct module-global memory accesses")
 					}
 				case OpAlloca, OpPush, OpPop:
-					return fmt.Errorf("CP/M runtime first slice rejects explicit stack operations")
+					return fmt.Errorf("CP/M runtime rejects explicit stack operations")
 				case OpCallCond, OpCallIndirect, OpAsm, OpIn8, OpIn16, OpOut8, OpOut16, OpPatchSlot, OpLoadPatched, OpPatch:
-					return fmt.Errorf("CP/M runtime first slice rejects calls/ASM/ports/SMC")
+					return fmt.Errorf("CP/M runtime rejects calls/ASM/ports/SMC")
 				}
 			}
 		}
 	}
-	for _, loc := range ar.Locs {
-		if loc.Kind == LocMem {
-			return fmt.Errorf("CP/M runtime first slice rejects absolute allocator spill storage")
-		}
-	}
 	for _, g := range m.Globals {
 		if g.Storage != StorageNormal || g.At != nil || len(g.VtableSyms) != 0 {
-			return fmt.Errorf("CP/M runtime first slice rejects fixed-address globals")
+			return fmt.Errorf("CP/M runtime rejects fixed-address globals")
 		}
 	}
 	return nil
@@ -110,7 +112,8 @@ func (g *z80cg) emitConsoleA() {
 }
 
 // Check actual emitted stack paths, including runtime pushes/call return words.
-// This leaf slice has no recursive/user calls and no dynamic stack adjustments.
+// Analyze each direct call body and require balanced returns on every path.
+// Recursion and dynamic stack adjustments need a different bounded runtime.
 func validateCPMRuntimeAssembly(assembly string) error {
 	a, err := z80asm.NewAssembler().AssembleString(assembly)
 	if err != nil {
@@ -145,31 +148,37 @@ func validateCPMRuntimeAssembly(assembly string) error {
 		}
 		code[line.Address] = item{text, line.Address + len(line.Bytes)}
 	}
-	type state struct{ pc, depth int }
-	seen := map[state]bool{}
-	queue := []state{{int(a.Symbols["main"]), 2}}
-	maxDepth := 0
+	type frame struct{ next, base, entry int }
+	type state struct {
+		pc, depth int
+		frames    []frame
+	}
+	seen := map[string]bool{}
+	mainPC := int(a.Symbols["main"])
+	queue := []state{{pc: mainPC, depth: 2}}
 	for len(queue) > 0 {
 		s := queue[len(queue)-1]
 		queue = queue[:len(queue)-1]
-		if seen[s] {
+		key := fmt.Sprintf("%d/%d/%v", s.pc, s.depth, s.frames)
+		if seen[key] {
 			continue
 		}
-		seen[s] = true
-		if len(seen) > 100000 || s.depth < 2 || s.depth > 256 {
-			return fmt.Errorf("CP/M runtime stack proof failed")
+		seen[key] = true
+		floor := 2
+		if len(s.frames) > 0 {
+			floor = s.frames[len(s.frames)-1].base + 2
 		}
-		if s.depth > maxDepth {
-			maxDepth = s.depth
+		if len(seen) > 1000000 || s.depth < floor || s.depth > 256 {
+			return fmt.Errorf("CP/M runtime stack proof failed at %04x depth %d", s.pc, s.depth)
 		}
 		i, ok := code[s.pc]
 		if !ok {
-			return fmt.Errorf("CP/M runtime stack proof: instruction missing")
+			return fmt.Errorf("CP/M runtime stack proof: instruction missing at %04x", s.pc)
 		}
 		fields := strings.Fields(i.text)
 		op := strings.ToUpper(fields[0])
 		rest := strings.TrimSpace(strings.TrimPrefix(i.text, fields[0]))
-		next := state{i.next, s.depth}
+		next := state{pc: i.next, depth: s.depth, frames: s.frames}
 		target := func(name string) (int, error) {
 			v, ok := a.Symbols[strings.TrimSpace(name)]
 			if !ok {
@@ -178,44 +187,67 @@ func validateCPMRuntimeAssembly(assembly string) error {
 			return int(v), nil
 		}
 		switch op {
+		case "RST":
+			return fmt.Errorf("CP/M runtime unproved RST call")
+		case "EX":
+			if strings.Contains(strings.ToUpper(rest), "(SP)") && s.depth < floor+2 {
+				return fmt.Errorf("CP/M runtime stack-content exchange unsupported")
+			}
 		case "PUSH":
 			next.depth += 2
 		case "POP":
 			next.depth -= 2
 		case "CALL":
-			if strings.Contains(rest, ",") {
-				return fmt.Errorf("CP/M runtime conditional call unsupported")
+			parts := strings.Split(rest, ",")
+			name := strings.TrimSpace(parts[len(parts)-1])
+			if name == "5" && s.pc >= int(a.Symbols["__cpm_putchar"]) && s.pc < int(a.Symbols["__cpm_saved_sp"]) {
+				// Only the return word is application-owned; BDOS internal
+				// stack requirements remain an operating-system precondition.
+				if s.depth+2 > 256 {
+					return fmt.Errorf("CP/M runtime stack exceeds 256 bytes")
+				}
+				break
 			}
-			// BDOS has its own OS stack usage; the wrapper's six pushes and both
-			// return words consume 16 bytes in the resident application stack.
-			extra := 2
-			if rest == "__cpm_putchar" {
-				extra = 16
-			} else if rest == "5" && s.pc >= int(a.Symbols["__cpm_putchar"]) && s.pc < int(a.Symbols["__cpm_saved_sp"]) {
-				extra = 2
-			} else if !strings.HasPrefix(rest, "__rotate_") {
-				return fmt.Errorf("CP/M runtime unproved generated call %s", rest)
+			pc, e := target(name)
+			if e != nil {
+				return e
 			}
-			if s.depth+extra > 256 {
-				return fmt.Errorf("CP/M runtime stack exceeds 256 bytes")
+			if pc == mainPC {
+				return fmt.Errorf("CP/M runtime recursive call requires a bounded recursive runtime")
+			}
+			for _, f := range s.frames {
+				if f.entry == pc {
+					return fmt.Errorf("CP/M runtime recursive call requires a bounded recursive runtime")
+				}
+			}
+			frames := append(append([]frame(nil), s.frames...), frame{i.next, s.depth, pc})
+			queue = append(queue, state{pc: pc, depth: s.depth + 2, frames: frames})
+			if len(parts) == 1 {
+				continue
 			}
 		case "RET":
-			if s.depth != 2 {
-				return fmt.Errorf("CP/M runtime unbalanced return stack")
+			if s.depth != floor {
+				return fmt.Errorf("CP/M runtime unbalanced return stack at %04x", s.pc)
 			}
-			continue
-		case "JP", "JR", "DJNZ":
+			if len(s.frames) > 0 {
+				f := s.frames[len(s.frames)-1]
+				queue = append(queue, state{pc: f.next, depth: f.base, frames: s.frames[:len(s.frames)-1]})
+			}
+			if rest == "" {
+				continue
+			}
+		case "JP", "JR", "JRS", "DJNZ":
 			parts := strings.Split(rest, ",")
+			name := strings.TrimSpace(parts[len(parts)-1])
 			conditional := len(parts) == 2 || op == "DJNZ"
-			name := parts[len(parts)-1]
-			if strings.HasPrefix(strings.TrimSpace(name), "(") {
+			if strings.HasPrefix(name, "(") {
 				return fmt.Errorf("CP/M runtime indirect branch unsupported")
 			}
-			pc, err := target(name)
-			if err != nil {
-				return err
+			pc, e := target(name)
+			if e != nil {
+				return e
 			}
-			queue = append(queue, state{pc, s.depth})
+			queue = append(queue, state{pc: pc, depth: s.depth, frames: s.frames})
 			if !conditional {
 				continue
 			}
@@ -230,7 +262,6 @@ func validateCPMRuntimeAssembly(assembly string) error {
 		}
 		queue = append(queue, next)
 	}
-	_ = maxDepth
 	return nil
 }
 
@@ -241,4 +272,24 @@ func cpmRuntimeGlobal(m *Module, name string) bool {
 		}
 	}
 	return false
+}
+
+// The runtime binds only these byte primitives, with their declared native ABI.
+// They have no private state and never consume additional stack beyond CALL.
+func validateCPMBytePrimitive(f *Func, ar *AllocResult) error {
+	c := f.Contract
+	param := func(i int, ty Ty, loc string) bool {
+		return i < len(c.Params) && c.Params[i].Ty == ty && ar.Loc(c.Params[i].Reg).Name == loc
+	}
+	switch f.Name {
+	case "peek":
+		if len(c.Params) == 1 && param(0, TyU16, "HL") && len(c.Returns) == 1 && c.Returns[0].Ty == TyU8 && canonicalReturnLoc(c.Returns[0].Class, c.Returns[0].Ty) == "A" {
+			return nil
+		}
+	case "poke":
+		if len(c.Params) == 2 && param(0, TyU16, "HL") && param(1, TyU8, "C") && len(c.Returns) == 0 {
+			return nil
+		}
+	}
+	return fmt.Errorf("CP/M runtime unsupported extern or byte primitive ABI: %s", f.Name)
 }

@@ -108,7 +108,7 @@ func TestCPMRuntimeRejectsUnsupported(t *testing.T) {
 	old := runtimeMode
 	t.Cleanup(func() { runtimeMode = old })
 	runtimeMode = "cpm"
-	for _, src := range []string{"fun helper()->u8{return 1}\nfun main()->void{@print_u8(helper())}", "fun main()->void{main()}", "@extern fun peek(a:u16)->u8\nfun main()->void{@print_u8(peek(0))}"} {
+	for _, src := range []string{"@extern fun foreign()->u8\nfun main()->void{@print_u8(foreign())}", "global depth:u8=4\nfun recurse(n:u8)->u8{if n<2{return n}\nreturn recurse(n-1)+recurse(n-2)}\nfun main()->void{@print_u8(recurse(depth))}", "@extern fun peek(a:u8)->u8\nfun main()->void{@print_u8(peek(0))}"} {
 		path := filepath.Join(t.TempDir(), "bad.nanz")
 		os.WriteFile(path, []byte(src), 0644)
 		outputFile = filepath.Join(t.TempDir(), "bad.com")
@@ -116,8 +116,61 @@ func TestCPMRuntimeRejectsUnsupported(t *testing.T) {
 			t.Fatal("unsupportedruntime accepted", src)
 		}
 	}
+	oldAuto := hirProfileAutoDirectory
+	t.Cleanup(func() { hirProfileAutoDirectory = oldAuto })
 	hirProfileAutoDirectory = "evidence"
 	if err := validateCLIRuntime("source.nanz"); err == nil {
 		t.Fatal("measurement context accepted")
+	}
+}
+
+func TestCPMRuntimeBytePrimitiveABIAndBoundary(t *testing.T) {
+	hirProfileTestState(t)
+	old := runtimeMode
+	t.Cleanup(func() { runtimeMode = old })
+	runtimeMode = "cpm"
+	dir := t.TempDir()
+	source := filepath.Join(dir, "memory.nanz")
+	os.WriteFile(source, []byte("@extern fun peek(a:u16)->u8\n@extern fun poke(a:u16,v:u8)->void\nfun main()->void{poke(65535,165)\n@print_u8(peek(65535))}"), 0644)
+	outputFile = filepath.Join(dir, "memory.a80")
+	if e := compile(source); e != nil {
+		t.Fatal(e)
+	}
+	text, e := os.ReadFile(outputFile)
+	if e != nil {
+		t.Fatal(e)
+	}
+	a, e := z80asm.NewAssembler().AssembleString(string(text))
+	if e != nil || len(a.Errors) > 0 {
+		t.Fatal(e, a.Errors)
+	}
+	for _, addr := range []uint16{0, 1, 0x7fff, 0x8000, 0xfffe, 0xffff} {
+		for _, value := range []byte{0, 1, 127, 128, 255} {
+			z := emulator.NewRemogattoZ80WithScreen()
+			z.SetROMEnd(0)
+			z.MaxCycles = 10000
+			z.LoadMemory(0x100, a.Binary)
+			z.SetMemory(0xfefe, 0)
+			z.SetMemory(0xfeff, 0)
+			keep := emulator.Registers{PC: uint16(a.Symbols["poke"]), SP: 0xfefe, A: 0x9b, F: 0xa5, BC: 0x3400 | uint16(value), DE: 0x5678, HL: addr, IX: 0x9abc, IY: 0xdef0}
+			z.SetRegisters(keep)
+			if e := z.Run(); e != nil {
+				t.Fatal(e)
+			}
+			got := z.GetRegisters()
+			if z.GetMemory(addr) != value || got.A != keep.A || got.F != keep.F || got.BC != keep.BC || got.DE != keep.DE || got.HL != keep.HL || got.IX != keep.IX || got.IY != keep.IY || got.PC != 0 || got.SP != 0xff00 {
+				t.Fatalf("poke addr%x value%d regs%+v", addr, value, got)
+			}
+			keep.PC = uint16(a.Symbols["peek"])
+			z.SetRegisters(keep)
+			z.Unhalt()
+			if e := z.Run(); e != nil {
+				t.Fatal(e)
+			}
+			got = z.GetRegisters()
+			if got.A != value || got.F != keep.F || got.BC != keep.BC || got.DE != keep.DE || got.HL != keep.HL || got.IX != keep.IX || got.IY != keep.IY || got.PC != 0 || got.SP != 0xff00 {
+				t.Fatalf("peek addr%x value%d regs%+v", addr, value, got)
+			}
+		}
 	}
 }

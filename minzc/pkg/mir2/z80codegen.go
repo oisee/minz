@@ -249,7 +249,7 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 		return "", fmt.Errorf("unsupported Z80 runtime %q", opt.Runtime)
 	}
 	if opt.Runtime == Z80RuntimeCPM {
-		if err := validateCPMLeafRuntime(m, ar); err != nil {
+		if err := validateCPMApplicationRuntime(m, ar); err != nil {
 			return "", err
 		}
 	}
@@ -789,7 +789,7 @@ func (g *z80cg) genFunc(f *Func) {
 	g.deadConsts = computeDeadConsts(f, g.ar)
 	// TSMC spill: scan for spill-reload pairs in non-recursive functions.
 	g.tsmcPairs = nil
-	if !isRecursive(f) {
+	if !isRecursive(f) && g.runtime != Z80RuntimeCPM {
 		g.tsmcPairs = scanTSMCSpillPairs(f, g.ar)
 	}
 	g.holdsPhys = make(map[string]string)
@@ -814,6 +814,15 @@ func (g *z80cg) genFunc(f *Func) {
 	label := sanitizeIdent(f.Name)
 	g.emitf("; %s", funcAnnotation(f, g.ar))
 	g.emitf("%s:", label)
+	if g.runtime == Z80RuntimeCPM && f.Attrs.IsExtern {
+		if f.Name == "peek" {
+			g.emit("    LD A, (HL)")
+		} else {
+			g.emit("    LD (HL), C")
+		}
+		g.emit("    RET")
+		return
+	}
 
 	for i, b := range f.Blocks {
 		g.blockIdx = i
