@@ -1,0 +1,36 @@
+; MIR2 module: reports/showcase-src/2026-03-15/ex32_value_pipe.nanz
+fun @double(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = add %r1, %r1 : u8 [acc]
+    ret %r2
+
+fun @inc(%r3: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r4 = const 1 : u8 [general]
+    %r5 = add %r3, %r4 : u8 [acc]
+    ret %r5
+
+fun @add(%r6: u8 [acc], %r7: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r8 = add %r6, %r7 : u8 [acc]
+    ret %r8
+
+fun @piped() -> u8 [acc]
+  block @entry:
+    %r9 = const 5 : u8 [general]
+    %r10 = move %r9 : u8 [acc]
+    %r11 = call @double(%r10) : u8 [acc]
+    %r12 = move %r11 : u8 [acc]
+    %r13 = call @inc(%r12) : u8 [acc]
+    ret %r13
+
+fun @piped_args() -> u8 [acc]
+  block @entry:
+    %r14 = const 5 : u8 [general]
+    %r15 = move %r14 : u8 [acc]
+    %r16 = const 3 : u8 [general]
+    %r17 = call @add(%r15, %r16) : u8 [acc]
+    %r18 = move %r17 : u8 [acc]
+    %r19 = call @double(%r18) : u8 [acc]
+    ret %r19
+

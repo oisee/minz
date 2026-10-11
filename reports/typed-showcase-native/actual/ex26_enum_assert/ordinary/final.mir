@@ -1,0 +1,10 @@
+; MIR2 module: reports/showcase-src/2026-03-14/ex26_enum_assert.nanz
+fun @identity(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    ret %r1
+
+fun @add_prio(%r2: u8 [acc], %r3: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r4 = add %r2, %r3 : u8 [acc]
+    ret %r4
+

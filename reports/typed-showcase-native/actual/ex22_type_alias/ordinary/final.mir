@@ -1,0 +1,10 @@
+; MIR2 module: reports/showcase-src/2026-03-14/ex22_type_alias.nanz
+fun @damage(%r1: u8 [general], %r2: u8 [acc]) -> u8 [acc]
+  block @entry:
+    ret %r2
+
+fun @double_score(%r3: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r4 = add %r3, %r3 : u16 [pointer]
+    ret %r4
+

@@ -1,0 +1,30 @@
+{
+  "calls": {
+    "add": 65536,
+    "double": 256,
+    "inc": 256,
+    "piped": 1,
+    "piped_args": 1
+  },
+  "cycles_including_CALL": {
+    "add": 2031616,
+    "double": 7936,
+    "inc": 7936,
+    "piped": 34,
+    "piped_args": 34
+  },
+  "execution_sha256": "01f6dff31149c6f366b3c0471c2b090683082dda62f0d613dadfb36a4b02d8b3",
+  "module_bytes": 12,
+  "raw_only_lifted": {},
+  "source_assertions": 0,
+  "source_sha256": "964819c2d6e3247f690256818d80625cd87ba1b4da8e3e91d5e300af4a44a24a",
+  "spill_bytes": {},
+  "stack_depths": {
+    "add": 2,
+    "double": 2,
+    "inc": 2,
+    "piped": 2,
+    "piped_args": 2
+  },
+  "vm_data_effects": 0
+}

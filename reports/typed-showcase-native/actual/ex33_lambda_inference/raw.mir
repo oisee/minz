@@ -1,0 +1,27 @@
+; MIR2 module: reports/showcase-src/2026-03-15/ex33_lambda_inference.nanz
+fun @add_acc(%r1: u8 [acc], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = add %r1, %r2 : u8 [acc]
+    ret %r3
+
+fun @sum_doubled() -> u8 [acc]
+  block @entry:
+    %r4 = const 0 : u8 [general]
+    %r5 = const 5 : u8 [general]
+    %r6 = const 0 : u8 [general]
+    %r7 = const 0 : u8 [acc]
+    %r8 = cmp.ne %r5, %r7 : bool [flag]
+    br_if %r8, @rng_body1(%r5, %r4), @rng_exit2(%r4)
+  block @rng_body1(%r9: u8 [counter], %r10: u8 [acc]):
+    %r11 = move %r9 : u8 [acc]
+    %r12 = call @lambda_0(%r11) : u8 [acc]
+    %r13 = add %r10, %r12 : u8 [acc]
+    djnz %r9, @rng_body1(%r13), @rng_exit2(%r13)
+  block @rng_exit2(%r14: u8 [acc]):
+    ret %r14
+
+fun @lambda_0(%r15: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r16 = add %r15, %r15 : u8 [acc]
+    ret %r16
+

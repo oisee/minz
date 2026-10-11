@@ -1,0 +1,6 @@
+{
+  "base_commit": "11105fb3",
+  "freeze_commit": "08d2595a",
+  "executable_sha256": "f6755274e495fb59aa412a171c17f3962ec3fcfef4f40f9477e6767311d9f31c",
+  "command": "from minzc/pkg/pipeline: MINZ_TYPED_SHOWCASE_ARTIFACTS=<packet>/actual <frozen-exe> -test.run ^TestOriginalTypedShowcaseNative$ -test.count=1 -test.v"
+}

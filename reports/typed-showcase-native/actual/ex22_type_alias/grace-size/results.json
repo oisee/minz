@@ -1,0 +1,21 @@
+{
+  "calls": {
+    "damage": 65536,
+    "double_score": 65536
+  },
+  "cycles_including_CALL": {
+    "damage": 1769472,
+    "double_score": 2490368
+  },
+  "execution_sha256": "fde6593798b6510cf9760d4d20ad9e0440276ddb95cbdc19e03cf4ed7f643254",
+  "module_bytes": 3,
+  "raw_only_lifted": {},
+  "source_assertions": 1,
+  "source_sha256": "fb8fc372fdac128656855ab78db9548fb2c25e46fcf458ce43b0357b8ddd912a",
+  "spill_bytes": {},
+  "stack_depths": {
+    "damage": 2,
+    "double_score": 2
+  },
+  "vm_data_effects": 0
+}

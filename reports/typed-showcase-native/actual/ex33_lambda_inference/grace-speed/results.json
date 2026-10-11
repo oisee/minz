@@ -1,0 +1,23 @@
+{
+  "calls": {
+    "add_acc": 65536,
+    "sum_doubled": 1
+  },
+  "cycles_including_CALL": {
+    "add_acc": 2031616,
+    "sum_doubled": 238
+  },
+  "execution_sha256": "91a164ee617c7eaa245c8b0ecc9c6da0e2d342b80b19c84aa8279514eff12df0",
+  "module_bytes": 20,
+  "raw_only_lifted": {
+    "lambda_0": 256
+  },
+  "source_assertions": 0,
+  "source_sha256": "6c48b03a21410afc4b346f115839a8488d9cb66308af2842810cb12f9186c94f",
+  "spill_bytes": {},
+  "stack_depths": {
+    "add_acc": 2,
+    "sum_doubled": 2
+  },
+  "vm_data_effects": 0
+}
