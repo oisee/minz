@@ -1,0 +1,13 @@
+{
+  "compiler_commit": "29df08bb3e907990188788b612fd2c23597502e3",
+  "executable": "/home/alice/dev/minz-artifacts/grace-checkpoints/pipeline-current-after-manhattan.test",
+  "sha256": "9cbc723e398944d794d295dfdfb7afb5c311196702eb4395bba2e07a990af1c2",
+  "share_executable": "/mnt/safe/minz/grace/2026-10-11/compiler-checkpoints/pipeline-29df08bb-full.test",
+  "command": [
+    "/home/alice/dev/minz-artifacts/grace-checkpoints/pipeline-current-after-manhattan.test",
+    "-test.count=1",
+    "-test.timeout=90m"
+  ],
+  "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/pipeline",
+  "state": "prepared before execution; terminal outcome pending"
+}
