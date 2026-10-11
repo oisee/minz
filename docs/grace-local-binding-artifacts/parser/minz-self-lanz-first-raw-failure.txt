@@ -1,0 +1,6 @@
+=== RUN   TestOriginalSelfLanzParserBaseline
+    self_lanz_baseline_test.go:250: raw call27 "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq" root[{32768}] err<nil> want0 traffic=false nodes=false strings=true
+--- FAIL: TestOriginalSelfLanzParserBaseline (0.08s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.084s
+FAIL

@@ -998,7 +998,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			// Check for fold/reduce: let result = fold(ptr, init, cb, n)
 			if foldReg, ok := l.tryLowerFold(st.Init); ok {
 				chain, _ := l.recognizeIterChain(st.Init)
-				l.bind(st.Name, foldReg, chain.foldAccTy)
+				l.bind(st.Name, l.coerceLocalInteger(foldReg, chain.foldAccTy, st.Ty), st.Ty)
 				return false
 			}
 			r = l.lowerExpr(st.Init)
@@ -1084,6 +1084,9 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		} else {
 			r = l.bld.Const(0, st.Ty, classForExpr(st.Ty))
 		}
+		if st.Init != nil && st.ArrayLen == 0 {
+			r = l.coerceLocalInteger(r, st.Init.ExprTy(), st.Ty)
+		}
 		delete(l.fnAliases, st.Name) // a scalar declaration hides a callable alias
 		l.bind(st.Name, r, st.Ty)
 		if st.ArrayLen > 0 {
@@ -1095,7 +1098,8 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		// Check for fold/reduce: x = fold(ptr, init, cb, n)
 		if foldReg, ok := l.tryLowerFold(st.Val); ok {
 			if tgt, ok2 := st.Target.(*VarRefExpr); ok2 {
-				l.env[tgt.Name] = foldReg
+				chain, _ := l.recognizeIterChain(st.Val)
+				l.env[tgt.Name] = l.coerceLocalInteger(foldReg, chain.foldAccTy, tgt.Ty)
 				l.envTy[tgt.Name] = tgt.Ty
 				return false
 			}
@@ -1136,7 +1140,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			// Re-bind the local variable to the new vreg (SSA-style rename).
 			// A goto may skip the declaration initializer and reach a full
 			// assignment. The verified target still supplies its lexical type.
-			l.env[tgt.Name] = val
+			l.env[tgt.Name] = l.coerceLocalInteger(val, st.Val.ExprTy(), tgt.Ty)
 			l.envTy[tgt.Name] = tgt.Ty
 		case *DerefExpr:
 			ptr := l.lowerExpr(tgt.Ptr)
@@ -2121,6 +2125,25 @@ func (l *lowerer) lowerSwitch(st *SwitchStmt) {
 
 // ── Expression lowering ───────────────────────────────────────────────────────
 
+// coerceLocalInteger respects the declared scalar binding after evaluating its
+// source once. HIR accepts implicit integer width conversion at declarations
+// and assignments; the SSA register must carry that converted value too.
+func (l *lowerer) coerceLocalInteger(src mir2.Reg, from, to mir2.Ty) mir2.Reg {
+	if src == mir2.NoReg || !mir2.IsInt(from) || !mir2.IsInt(to) {
+		return src
+	}
+	if from.Width() > to.Width() {
+		return l.bld.Trunc(src, from, to, classForExpr(to))
+	}
+	if from.Width() < to.Width() {
+		if mir2.IsSigned(from) {
+			return l.bld.Sext(src, from, to, classForExpr(to))
+		}
+		return l.bld.Ext(src, from, to, classForExpr(to))
+	}
+	return src
+}
+
 // lowerExprAs promotes narrow literals and sign-extends signed operands
 // to the expression width. This also handles C integer promotions.
 func (l *lowerer) lowerExprAs(e Expr, wantTy mir2.Ty) mir2.Reg {
@@ -2308,9 +2331,33 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 	case *LetInExpr:
 		// Lower init, bind the result to the variable name, then lower body.
 		initReg := l.lowerExpr(ex.Init)
-		l.env[ex.Name] = initReg
-		l.envTy[ex.Name] = ex.Ty
-		return l.lowerExpr(ex.Body)
+		savedReg, hadReg := l.env[ex.Name]
+		savedTy, hadTy := l.envTy[ex.Name]
+		savedAlias, hadAlias := l.fnAliases[ex.Name]
+		savedArray, hadArray := l.localArrays[ex.Name]
+		l.bind(ex.Name, l.coerceLocalInteger(initReg, ex.Init.ExprTy(), ex.Ty), ex.Ty)
+		result := l.lowerExpr(ex.Body)
+		if hadReg {
+			l.env[ex.Name] = savedReg
+		} else {
+			delete(l.env, ex.Name)
+		}
+		if hadTy {
+			l.envTy[ex.Name] = savedTy
+		} else {
+			delete(l.envTy, ex.Name)
+		}
+		if hadAlias {
+			l.fnAliases[ex.Name] = savedAlias
+		} else {
+			delete(l.fnAliases, ex.Name)
+		}
+		if hadArray {
+			l.localArrays[ex.Name] = savedArray
+		} else {
+			delete(l.localArrays, ex.Name)
+		}
+		return result
 
 	default:
 		panic(fmt.Sprintf("hir/lower: unhandled expression type %T", e))

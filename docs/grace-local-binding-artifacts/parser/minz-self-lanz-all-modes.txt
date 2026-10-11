@@ -1,0 +1,27 @@
+=== RUN   TestOriginalSelfLanzParserBaseline
+    self_lanz_baseline_test.go:250: raw call27 "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq" root[{32768}] err<nil> want0 traffic=false nodes=false strings=true
+    self_lanz_baseline_test.go:255: raw 27 global node_bump [8 128] 32768
+    self_lanz_baseline_test.go:255: raw 27 global str_bump [42 145] 37161
+    self_lanz_baseline_test.go:250: raw call28 "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr" root[{32768}] err<nil> want32768 traffic=false nodes=false strings=false
+    self_lanz_baseline_test.go:255: raw 28 global str_bump [44 145] 37163
+    self_lanz_baseline_test.go:250: raw call29 "(a a a a)" root[{32776}] err<nil> want32776 traffic=true nodes=true strings=false
+    self_lanz_baseline_test.go:255: raw 29 global str_bump [44 145] 37163
+[label-audit] 1 undefined labels:
+  node_tag
+    self_lanz_baseline_test.go:250: optimized-mir call27 "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq" root[{32768}] err<nil> want0 traffic=false nodes=false strings=true
+    self_lanz_baseline_test.go:255: optimized-mir 27 global node_bump [8 128] 32768
+    self_lanz_baseline_test.go:255: optimized-mir 27 global str_bump [42 145] 37161
+    self_lanz_baseline_test.go:250: optimized-mir call28 "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr" root[{32768}] err<nil> want32768 traffic=false nodes=false strings=false
+    self_lanz_baseline_test.go:255: optimized-mir 28 global str_bump [44 145] 37163
+    self_lanz_baseline_test.go:250: optimized-mir call29 "(a a a a)" root[{32776}] err<nil> want32776 traffic=true nodes=true strings=false
+    self_lanz_baseline_test.go:255: optimized-mir 29 global str_bump [44 145] 37163
+    self_lanz_baseline_test.go:278: peek {[{addr 1 u16 pointer}] [{u8 acc eq}] [] 0}
+    self_lanz_baseline_test.go:278: poke {[{addr 2 u16 pointer} {val 3 u8 general}] [] [] 0}
+    self_lanz_baseline_test.go:356: actualZ80 27 qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq 32768 0 traffic false nodes false strings true
+    self_lanz_baseline_test.go:356: actualZ80 28 rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr 32768 32768 traffic false nodes false strings false
+    self_lanz_baseline_test.go:356: actualZ80 29 (a a a a) 32776 32776 traffic true nodes true strings false
+    self_lanz_baseline_test.go:360: unchangedoriginalSelfLanz30 calls 1216790T/2096B
+--- FAIL: TestOriginalSelfLanzParserBaseline (0.39s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.402s
+FAIL

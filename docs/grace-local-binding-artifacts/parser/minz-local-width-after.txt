@@ -1,0 +1,88 @@
+=== RUN   TestLocalIntegerBindingWidths
+=== RUN   TestLocalIntegerBindingWidths/decl_0
+=== RUN   TestLocalIntegerBindingWidths/decl_255
+=== RUN   TestLocalIntegerBindingWidths/decl_256
+=== RUN   TestLocalIntegerBindingWidths/decl_511
+=== RUN   TestLocalIntegerBindingWidths/decl_65535
+=== RUN   TestLocalIntegerBindingWidths/variable_0
+=== RUN   TestLocalIntegerBindingWidths/variable_255
+=== RUN   TestLocalIntegerBindingWidths/variable_256
+=== RUN   TestLocalIntegerBindingWidths/variable_511
+=== RUN   TestLocalIntegerBindingWidths/variable_65535
+=== RUN   TestLocalIntegerBindingWidths/assign_0
+=== RUN   TestLocalIntegerBindingWidths/assign_255
+=== RUN   TestLocalIntegerBindingWidths/assign_256
+=== RUN   TestLocalIntegerBindingWidths/assign_511
+=== RUN   TestLocalIntegerBindingWidths/assign_65535
+=== RUN   TestLocalIntegerBindingWidths/caller_0
+=== RUN   TestLocalIntegerBindingWidths/caller_255
+=== RUN   TestLocalIntegerBindingWidths/caller_256
+=== RUN   TestLocalIntegerBindingWidths/caller_511
+=== RUN   TestLocalIntegerBindingWidths/caller_65535
+=== RUN   TestLocalIntegerBindingWidths/once_0
+=== RUN   TestLocalIntegerBindingWidths/once_255
+=== RUN   TestLocalIntegerBindingWidths/once_256
+=== RUN   TestLocalIntegerBindingWidths/once_511
+=== RUN   TestLocalIntegerBindingWidths/once_65535
+=== RUN   TestLocalIntegerBindingWidths/wide_0
+=== RUN   TestLocalIntegerBindingWidths/wide_1
+=== RUN   TestLocalIntegerBindingWidths/wide_127
+=== RUN   TestLocalIntegerBindingWidths/wide_128
+=== RUN   TestLocalIntegerBindingWidths/wide_255
+=== RUN   TestLocalIntegerBindingWidths/signed_-128
+=== RUN   TestLocalIntegerBindingWidths/signed_-1
+=== RUN   TestLocalIntegerBindingWidths/signed_0
+=== RUN   TestLocalIntegerBindingWidths/signed_1
+=== RUN   TestLocalIntegerBindingWidths/signed_127
+=== RUN   TestLocalIntegerBindingWidths/signedassign_-128
+=== RUN   TestLocalIntegerBindingWidths/signedassign_-1
+=== RUN   TestLocalIntegerBindingWidths/signedassign_0
+=== RUN   TestLocalIntegerBindingWidths/signedassign_1
+=== RUN   TestLocalIntegerBindingWidths/signedassign_127
+--- PASS: TestLocalIntegerBindingWidths (1.84s)
+    --- PASS: TestLocalIntegerBindingWidths/decl_0 (0.03s)
+    --- PASS: TestLocalIntegerBindingWidths/decl_255 (0.03s)
+    --- PASS: TestLocalIntegerBindingWidths/decl_256 (0.04s)
+    --- PASS: TestLocalIntegerBindingWidths/decl_511 (0.04s)
+    --- PASS: TestLocalIntegerBindingWidths/decl_65535 (0.04s)
+    --- PASS: TestLocalIntegerBindingWidths/variable_0 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/variable_255 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/variable_256 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/variable_511 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/variable_65535 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/assign_0 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/assign_255 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/assign_256 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/assign_511 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/assign_65535 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/caller_0 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/caller_255 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/caller_256 (0.04s)
+    --- PASS: TestLocalIntegerBindingWidths/caller_511 (0.04s)
+    --- PASS: TestLocalIntegerBindingWidths/caller_65535 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/once_0 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/once_255 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/once_256 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/once_511 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/once_65535 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/wide_0 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/wide_1 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/wide_127 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/wide_128 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/wide_255 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/signed_-128 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/signed_-1 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/signed_0 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/signed_1 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/signed_127 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/signedassign_-128 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/signedassign_-1 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/signedassign_0 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/signedassign_1 (0.05s)
+    --- PASS: TestLocalIntegerBindingWidths/signedassign_127 (0.05s)
+=== RUN   TestLetInDeclaredWidthAndFoldBindings
+--- PASS: TestLetInDeclaredWidthAndFoldBindings (0.26s)
+=== RUN   TestLetInShadowRestoresOuterBinding
+--- PASS: TestLetInShadowRestoresOuterBinding (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.112s
