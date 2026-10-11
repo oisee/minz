@@ -102,3 +102,10 @@ func TestAccSaveNoFreeByteSpillsOrRefusesRecursive(t *testing.T) {
 		}
 	}
 }
+
+func TestAccSaveConditionalCallClobber(t *testing.T) {
+	ar := &AllocResult{Locs: map[Reg]PhysLoc{}}
+	if !instClobbersA(&Inst{Op: OpCallCond}, ar) {
+		t.Fatal("conditional call escaped accumulator save")
+	}
+}

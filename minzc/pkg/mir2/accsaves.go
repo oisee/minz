@@ -182,7 +182,7 @@ func instClobbersA(inst *Inst, ar *AllocResult) bool {
 	case OpCmp:
 		// CMP loads operand into A for CP instruction
 		return true
-	case OpCall, OpCallIndirect:
+	case OpCall, OpCallIndirect, OpCallCond:
 		// CALL clobbers A (return value register)
 		return true
 	case OpMove:
