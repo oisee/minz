@@ -1,0 +1,6 @@
+=== RUN   TestPascalBubbleSortProspectiveHeldout
+    bubble_sort_heldout_test.go:209: map[baseline_bytes:488 goal:speed heldout_arrays:8 heldout_baseline_t:164671 heldout_selected_t:164275 same_binary_sha256:ad33cb3741e279aa6c53f6daa55eea627e512025f9b32912155f42a871d5fba5 selected:2 selected_bytes:486 training_baseline_t:24306 training_selected_t:24237]
+    bubble_sort_heldout_test.go:209: map[baseline_bytes:488 goal:size heldout_arrays:8 heldout_baseline_t:164671 heldout_selected_t:164275 same_binary_sha256:ad33cb3741e279aa6c53f6daa55eea627e512025f9b32912155f42a871d5fba5 selected:2 selected_bytes:486 training_baseline_t:24306 training_selected_t:24237]
+--- PASS: TestPascalBubbleSortProspectiveHeldout (4.12s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.134s

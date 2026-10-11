@@ -1,0 +1,178 @@
+{
+  "accesses": [
+    {
+      "globals": {
+        "ARR": {
+          "reads": [
+            9,
+            19,
+            20,
+            19,
+            19,
+            20,
+            19,
+            18,
+            17,
+            8
+          ],
+          "writes": [
+            2,
+            5,
+            6,
+            5,
+            5,
+            6,
+            5,
+            4,
+            3,
+            1
+          ]
+        },
+        "I": {
+          "reads": [
+            343
+          ],
+          "writes": [
+            70
+          ]
+        },
+        "J": {
+          "reads": [
+            0
+          ],
+          "writes": [
+            0
+          ]
+        },
+        "SWAPPED": {
+          "reads": [
+            7
+          ],
+          "writes": [
+            28
+          ]
+        },
+        "TEMP": {
+          "reads": [
+            21
+          ],
+          "writes": [
+            21
+          ]
+        }
+      },
+      "resources": {}
+    }
+  ],
+  "profile": {
+    "guards": [],
+    "compatibility": {
+      "schema": "minz.loop-profile-compatibility/v1",
+      "context": {
+        "compiler_id": "executable-sha256:c8ce2e979f3726a4e83b71617fb51a82ddc41c26fbaf4888609874b76e4d75be",
+        "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+        "target_id": "module-target:0/model:cpm-z80-v1",
+        "workload_sha256": "daece0122ff10815ead630f7ae55f7f5750f84d6511ef8fc8a0ca17d00050e70",
+        "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+        "dependencies": {
+          "../../../examples/pascal/bubble_sort.pas": "f461d9d23e9b78c841999d3867db1d1d028353b80ce94354d7a1b89c70280732"
+        }
+      },
+      "hir_sha256": "8c9088ec81dcc5a121d7e39413d8a7f050f4d646f4f8f0015779379bda14c5ff",
+      "origins_sha256": "87d3aa2143e41a69ba5c9c8993eed0feb44076b747774f8421b1bacf40ff861f"
+    },
+    "schema": "minz.input-hir-loop-observations/v5",
+    "stage": "unoptimised-mir2-vm",
+    "sites": {
+      "schema": "minz.hir-loop-sites/v1",
+      "stage": "input-hir",
+      "sites": [
+        {
+          "id": "10e00c87096253e9acb97a68f08b0580071883d0b49951c420966514ef75e38a",
+          "function": "PRINTARRAY",
+          "kind": "while",
+          "ordinal": 0,
+          "hir_path": "body/s1",
+          "origin": {
+            "unit": "../../../examples/pascal/bubble_sort.pas",
+            "byte_offset": 794,
+            "line": 48,
+            "byte_column": 3,
+            "source_sha256": "f461d9d23e9b78c841999d3867db1d1d028353b80ce94354d7a1b89c70280732"
+          }
+        },
+        {
+          "id": "ac787b95816f1a4fe757f5cb96031247b2494ffcb22ffe3547be76ba57022a9b",
+          "function": "SORT",
+          "kind": "while",
+          "ordinal": 0,
+          "hir_path": "body/s0/while/s2",
+          "origin": {
+            "unit": "../../../examples/pascal/bubble_sort.pas",
+            "byte_offset": 515,
+            "line": 32,
+            "byte_column": 5,
+            "source_sha256": "f461d9d23e9b78c841999d3867db1d1d028353b80ce94354d7a1b89c70280732"
+          }
+        },
+        {
+          "id": "c0dcbe14339ba143508820309786e1f40cda1c76728544f916c79291ea0912c8",
+          "function": "SORT",
+          "kind": "while",
+          "ordinal": 0,
+          "hir_path": "body/s0",
+          "origin": {
+            "unit": "../../../examples/pascal/bubble_sort.pas",
+            "byte_offset": 482,
+            "line": 30,
+            "byte_column": 3,
+            "source_sha256": "f461d9d23e9b78c841999d3867db1d1d028353b80ce94354d7a1b89c70280732"
+          }
+        }
+      ],
+      "unmapped_loops": 0
+    },
+    "counts": [
+      {
+        "site_id": "10e00c87096253e9acb97a68f08b0580071883d0b49951c420966514ef75e38a",
+        "entries": 0,
+        "body_entries": 0
+      },
+      {
+        "site_id": "ac787b95816f1a4fe757f5cb96031247b2494ffcb22ffe3547be76ba57022a9b",
+        "entries": 7,
+        "body_entries": 63
+      },
+      {
+        "site_id": "c0dcbe14339ba143508820309786e1f40cda1c76728544f916c79291ea0912c8",
+        "entries": 1,
+        "body_entries": 7
+      }
+    ],
+    "completed_calls": 1,
+    "failed_calls": 0
+  },
+  "results": [
+    []
+  ],
+  "snapshots": [
+    {
+      "globals": {
+        "ARR": "AAMDEipATVuB+g==",
+        "I": "CQ==",
+        "J": "AA==",
+        "SWAPPED": "AA==",
+        "TEMP": "Aw=="
+      },
+      "resources": {}
+    }
+  ],
+  "globals": {
+    "ARR": "AAMDEipATVuB+g==",
+    "I": "CQ==",
+    "J": "AA==",
+    "SWAPPED": "AA==",
+    "TEMP": "Aw=="
+  },
+  "resources": {}
+}

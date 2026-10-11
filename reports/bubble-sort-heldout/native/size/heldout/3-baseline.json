@@ -1,0 +1,120 @@
+{
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:9d01cf60b8a0e5ad246ad3a654dc4b510ceff7a3c34d66a114088338cda0ef8a",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+      "target_id": "module-target:0/model:cpm-z80-v1",
+      "workload_sha256": "f3e973dd17517c09d5930869d5e4e56e6dff04c9fec44e0b4b9723242d163a49",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "../../../examples/pascal/bubble_sort.pas": "f461d9d23e9b78c841999d3867db1d1d028353b80ce94354d7a1b89c70280732"
+      }
+    },
+    "hir_sha256": "8c9088ec81dcc5a121d7e39413d8a7f050f4d646f4f8f0015779379bda14c5ff",
+    "origins_sha256": "87d3aa2143e41a69ba5c9c8993eed0feb44076b747774f8421b1bacf40ff861f"
+  },
+  "binary_sha256": "10ddaf25af539a7132acc16c31409ac819207825a90085a08cb6292f9a6b71bd",
+  "bootstrap_sha256": [
+    "bad76450ef3fdb30522d43c5491542b989d923e38d4c53e188eecfcb82ac6699"
+  ],
+  "invocations": [
+    {
+      "access": {
+        "globals": {
+          "ARR": {
+            "reads": [
+              1,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              1
+            ],
+            "writes": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          "I": {
+            "reads": [
+              37
+            ],
+            "writes": [
+              10
+            ]
+          },
+          "J": {
+            "reads": [
+              0
+            ],
+            "writes": [
+              0
+            ]
+          },
+          "SWAPPED": {
+            "reads": [
+              1
+            ],
+            "writes": [
+              1
+            ]
+          },
+          "TEMP": {
+            "reads": [
+              0
+            ],
+            "writes": [
+              0
+            ]
+          }
+        },
+        "resources": {}
+      },
+      "function": "SORT",
+      "t_states": 2370,
+      "results": [],
+      "snapshot": {
+        "globals": {
+          "ARR": "AAABAYCA/v7//w==",
+          "I": "CQ==",
+          "J": "AA==",
+          "SWAPPED": "AA==",
+          "TEMP": "AA=="
+        },
+        "resources": {}
+      }
+    }
+  ],
+  "globals": {
+    "ARR": "AAABAYCA/v7//w==",
+    "I": "CQ==",
+    "J": "AA==",
+    "SWAPPED": "AA==",
+    "TEMP": "AA=="
+  },
+  "resources": {},
+  "resource_addresses": {},
+  "global_addresses": {
+    "ARR": 33223,
+    "I": 33233,
+    "J": 33234,
+    "SWAPPED": 33236,
+    "TEMP": 33235
+  },
+  "bootstrap_t_states": 27,
+  "total_t_states": 2370,
+  "executed_steps": 337
+}

@@ -1,0 +1,120 @@
+{
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:c8ce2e979f3726a4e83b71617fb51a82ddc41c26fbaf4888609874b76e4d75be",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+      "target_id": "module-target:0/model:cpm-z80-v1",
+      "workload_sha256": "04485c597bd31a7b4c13512d84c6b7727485ada0434c6601d14df6cd93f5aea3",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "../../../examples/pascal/bubble_sort.pas": "f461d9d23e9b78c841999d3867db1d1d028353b80ce94354d7a1b89c70280732"
+      }
+    },
+    "hir_sha256": "8c9088ec81dcc5a121d7e39413d8a7f050f4d646f4f8f0015779379bda14c5ff",
+    "origins_sha256": "87d3aa2143e41a69ba5c9c8993eed0feb44076b747774f8421b1bacf40ff861f"
+  },
+  "binary_sha256": "10ddaf25af539a7132acc16c31409ac819207825a90085a08cb6292f9a6b71bd",
+  "bootstrap_sha256": [
+    "bad76450ef3fdb30522d43c5491542b989d923e38d4c53e188eecfcb82ac6699"
+  ],
+  "invocations": [
+    {
+      "access": {
+        "globals": {
+          "ARR": {
+            "reads": [
+              5,
+              11,
+              13,
+              15,
+              17,
+              18,
+              17,
+              15,
+              13,
+              6
+            ],
+            "writes": [
+              0,
+              1,
+              3,
+              5,
+              7,
+              8,
+              7,
+              5,
+              3,
+              1
+            ]
+          },
+          "I": {
+            "reads": [
+              265
+            ],
+            "writes": [
+              50
+            ]
+          },
+          "J": {
+            "reads": [
+              0
+            ],
+            "writes": [
+              0
+            ]
+          },
+          "SWAPPED": {
+            "reads": [
+              5
+            ],
+            "writes": [
+              25
+            ]
+          },
+          "TEMP": {
+            "reads": [
+              20
+            ],
+            "writes": [
+              20
+            ]
+          }
+        },
+        "resources": {}
+      },
+      "function": "SORT",
+      "t_states": 19190,
+      "results": [],
+      "snapshot": {
+        "globals": {
+          "ARR": "Ey87SVl2jKG2yw==",
+          "I": "CQ==",
+          "J": "AA==",
+          "SWAPPED": "AA==",
+          "TEMP": "jA=="
+        },
+        "resources": {}
+      }
+    }
+  ],
+  "globals": {
+    "ARR": "Ey87SVl2jKG2yw==",
+    "I": "CQ==",
+    "J": "AA==",
+    "SWAPPED": "AA==",
+    "TEMP": "jA=="
+  },
+  "resources": {},
+  "resource_addresses": {},
+  "global_addresses": {
+    "ARR": 33223,
+    "I": 33233,
+    "J": 33234,
+    "SWAPPED": 33236,
+    "TEMP": 33235
+  },
+  "bootstrap_t_states": 27,
+  "total_t_states": 19190,
+  "executed_steps": 2757
+}
