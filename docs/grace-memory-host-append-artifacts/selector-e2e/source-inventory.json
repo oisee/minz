@@ -1,0 +1,14 @@
+{
+  "executed_source": "7a67aa80",
+  "final_test_checkpoint": "0595773b",
+  "base": "57322d17",
+  "files": {
+    "minzc/pkg/hir/append_copy_proof.go": "2f23b9ea81ebec532a7534a9e295439f97c0a737a8217983b800761c957fc2b0",
+    "minzc/pkg/hir/append_copy_proof_test.go": "5c3fc9de899529cd8bce71a7aa864a4b05835429503f476a3e1b35d55deed509",
+    "minzc/pkg/pipeline/memory_host_append_copy_domain_test.go": "3fbcaf7486c056f796883b78466bc56c1675ec98dce8269448192dd3d0eeaf20",
+    "minzc/pkg/pipeline/memory_host_append_copy_prototype.go": "e99ba8167e072a316fa78e61a6ddbc84a7b86d48e22ad86cc7ba9160af7d866a",
+    "minzc/pkg/pipeline/memory_host_append_copy_prototype_test.go": "21315505c7fd46a05c282ec22d459480b1fa52ebe8fe818794ed3b9229c233da",
+    "minzc/pkg/pipeline/memory_host_append_selector.go": "251f443e7fa80d877d1acdf69b66c1bf1466dc017eea91860bd1be09908c9945",
+    "minzc/pkg/pipeline/memory_host_append_selector_test.go": "8d790edf17103a721b1b5c4abdfeda53cd026ab52a8ebebc8476a2643c5842bb"
+  }
+}

@@ -1,0 +1,4 @@
+# github.com/minz/minzc/pkg/pipeline [github.com/minz/minzc/pkg/pipeline.test]
+pkg/pipeline/memory_host_append_selector.go:220:17: undefined: selectMemoryHostAppendCandidate
+FAIL	github.com/minz/minzc/pkg/pipeline [build failed]
+FAIL

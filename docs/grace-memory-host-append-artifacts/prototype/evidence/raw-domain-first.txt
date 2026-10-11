@@ -1,0 +1,5 @@
+=== RUN   TestMemoryHostAppendCopyRawDomain
+    memory_host_append_copy_domain_test.go:170: raw append domain cases1286 verifiedInvocations2572 exactEvents655388 typedDenials6
+--- PASS: TestMemoryHostAppendCopyRawDomain (1.67s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.677s

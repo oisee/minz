@@ -154,3 +154,16 @@ https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-arena-se
 Append-copy: независимый validator исключает ресурсы, перекрывающие VM globals;
 1286 rawVM случаев и42 actual-target запуска прошли. До measured selector
 и production-интеграции остаётся отдельный шаг. Цель продолжается.
+
+## Текущий шаг: append selector интегрирован для общего прогона
+
+Семь новых compiler-файлов заморожены и перенесены в постоянную основную ветку.
+Public selector подтвердил −5,84% T и −15 B для полного30-call workload;
+оба goals выбирают hoist. Zero-body отдельный вызов сохраняет original731 T
+вместо895 T. Независимые proofs/host/typedpayload аудиты и GC/cap/refusal gates
+прошли. HIR/MIR/Nanz/C89/CLI зелёные; showcase31same0new; полный pipeline
+выполняется. Исходники и194+ evidence файла сохранены локально.
+
+Следующая изолированная работа — четыре actual-кандидата arena+append,
+с отдельным proof ровно двух изменений и проверкой взаимодействия.
+Решений Alice не требуется; текущая публикация40 остаётся подтверждённой.

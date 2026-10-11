@@ -1,0 +1,9 @@
+=== RUN   TestMemoryHostAppendCopyPrototypeOriginal30
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_append_copy_prototype_test.go:100: actual original 1221494T/2091B variant 1150124T/2076B
+--- PASS: TestMemoryHostAppendCopyPrototypeOriginal30 (2.54s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.548s

@@ -1,0 +1,25 @@
+=== RUN   TestMemoryHostAppendSelectorOriginal30Objectives
+=== RUN   TestMemoryHostAppendSelectorOriginal30Objectives/speed
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_append_selector_test.go:75: goalspeed selected1 original1221494T/2091B hoisted1150124T/2076B
+=== RUN   TestMemoryHostAppendSelectorOriginal30Objectives/size
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_append_selector_test.go:75: goalsize selected1 original1221494T/2091B hoisted1150124T/2076B
+--- PASS: TestMemoryHostAppendSelectorOriginal30Objectives (8.89s)
+    --- PASS: TestMemoryHostAppendSelectorOriginal30Objectives/speed (4.84s)
+    --- PASS: TestMemoryHostAppendSelectorOriginal30Objectives/size (3.98s)
+=== RUN   TestMemoryHostAppendSelectorObservedZeroBody
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_append_selector_test.go:243: zero-body original731T hoisted895T selected0
+--- PASS: TestMemoryHostAppendSelectorObservedZeroBody (4.40s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	13.294s

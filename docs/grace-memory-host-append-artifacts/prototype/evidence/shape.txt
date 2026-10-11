@@ -1,0 +1,4 @@
+=== RUN   TestMemoryHostAppendCopyPrototypeShape
+--- PASS: TestMemoryHostAppendCopyPrototypeShape (0.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.026s

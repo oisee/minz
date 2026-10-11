@@ -1,0 +1,48 @@
+=== RUN   TestMemoryHostAppendCopyIndependentProof
+=== RUN   TestMemoryHostAppendCopyIndependentProof/valid
+=== RUN   TestMemoryHostAppendCopyIndependentProof/swappedbases
+=== RUN   TestMemoryHostAppendCopyIndependentProof/widepeek
+=== RUN   TestMemoryHostAppendCopyIndependentProof/hoistbeforeheader
+=== RUN   TestMemoryHostAppendCopyIndependentProof/counter
+=== RUN   TestMemoryHostAppendCopyIndependentProof/search
+=== RUN   TestMemoryHostAppendCopyIndependentProof/bump
+=== RUN   TestMemoryHostAppendCopyIndependentProof/origin
+=== RUN   TestMemoryHostAppendCopyIndependentProof/orphan
+=== RUN   TestMemoryHostAppendCopyIndependentProof/sticky
+=== RUN   TestMemoryHostAppendCopyIndependentProof/wronghost
+=== RUN   TestMemoryHostAppendCopyIndependentProof/vmstorage
+=== RUN   TestMemoryHostAppendCopyIndependentProof/otherfunc
+=== RUN   TestMemoryHostAppendCopyIndependentProof/global
+=== RUN   TestMemoryHostAppendCopyIndependentProof/nil
+--- PASS: TestMemoryHostAppendCopyIndependentProof (0.85s)
+    --- PASS: TestMemoryHostAppendCopyIndependentProof/valid (0.04s)
+    --- PASS: TestMemoryHostAppendCopyIndependentProof/swappedbases (0.05s)
+    --- PASS: TestMemoryHostAppendCopyIndependentProof/widepeek (0.06s)
+    --- PASS: TestMemoryHostAppendCopyIndependentProof/hoistbeforeheader (0.08s)
+    --- PASS: TestMemoryHostAppendCopyIndependentProof/counter (0.08s)
+    --- PASS: TestMemoryHostAppendCopyIndependentProof/search (0.08s)
+    --- PASS: TestMemoryHostAppendCopyIndependentProof/bump (0.08s)
+    --- PASS: TestMemoryHostAppendCopyIndependentProof/origin (0.08s)
+    --- PASS: TestMemoryHostAppendCopyIndependentProof/orphan (0.08s)
+    --- PASS: TestMemoryHostAppendCopyIndependentProof/sticky (0.04s)
+    --- PASS: TestMemoryHostAppendCopyIndependentProof/wronghost (0.00s)
+    --- PASS: TestMemoryHostAppendCopyIndependentProof/vmstorage (0.00s)
+    --- PASS: TestMemoryHostAppendCopyIndependentProof/otherfunc (0.07s)
+    --- PASS: TestMemoryHostAppendCopyIndependentProof/global (0.08s)
+    --- PASS: TestMemoryHostAppendCopyIndependentProof/nil (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	0.853s
+=== RUN   TestMemoryHostAppendSelectorProofBinding
+=== RUN   TestMemoryHostAppendSelectorProofBinding/valid
+=== RUN   TestMemoryHostAppendSelectorProofBinding/search_site
+=== RUN   TestMemoryHostAppendSelectorProofBinding/actual_origin
+=== RUN   TestMemoryHostAppendSelectorProofBinding/actual_shape
+--- PASS: TestMemoryHostAppendSelectorProofBinding (0.64s)
+    --- PASS: TestMemoryHostAppendSelectorProofBinding/valid (0.15s)
+    --- PASS: TestMemoryHostAppendSelectorProofBinding/search_site (0.24s)
+    --- PASS: TestMemoryHostAppendSelectorProofBinding/actual_origin (0.13s)
+    --- PASS: TestMemoryHostAppendSelectorProofBinding/actual_shape (0.13s)
+=== RUN   TestMemoryHostAppendSelectorCapAndGC
+--- PASS: TestMemoryHostAppendSelectorCapAndGC (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.664s
