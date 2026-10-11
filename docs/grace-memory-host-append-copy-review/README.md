@@ -1,0 +1,54 @@
+# Independent append-copy base-hoist review
+
+Reviewed prototype source checkpoint a15cb422 / worktree58428373 and HIR proof
+draft saved by exact file SHA. No parent or owner production source edits. A
+bounded independent overlap probe was executed only; completed full30 actual
+workload was not replayed.
+
+Concrete finding: original public HIR proof called PrepareMemoryHostWorkload but
+assumed compiler-global/storage exclusion. Prepare validates layout/regions but
+only RunMemoryHostMIRBaseline establishes module heap extent. A declared writable
+region at address0 passed the old proof while the closed runner refused overlap.
+This made the proof's invariant-global precondition unstated. The fixed owner
+validator now lowers/verifies both source and actual, obtains actual NewVM symbol/
+global storage extent and refuses each region below that extent before execution.
+Before probe: proofErrnil / runneroverlaperror. Fixed probe: proofoverlaperror and
+runneroverlaperror, PASS0.070s. Native measured evidence was already safe because
+its public runner refused overlap independently.
+
+The exact transformation hoists src_buf+start and str_bump+1 AFTER header poke and
+before j=0. Both sums and subsequent +j remain typedu16 modulo65536; same u8 j
+increment/loop condition preserves0..255 semantics. It does not reorder host
+operations: each source peek occurs before destination poke; previous iteration
+writes precede following reads. Source==destination and forward overlap are
+sequential copying, not memmove. A denied source read yields no current write;
+a denied destination write retains the successful current source read. Equal-
+value writes still occur. Header poke executes before source base is loaded,
+retaining the original effect if header aliases source bytes. New local reads
+on len0 introduce no resource events; VM instruction gas may differ and is not
+claimed equal by the proof.
+
+Global bases are invariant within the exact append body because it contains only
+closed byte hosts, j-local assignment and no global write. Under newly established
+resource exclusion, neither host can mutate src_buf/str_bump. Scan and region_match
+execute BEFORE the bases are captured; arbitrary changes there do not undermine
+within-loop invariance. The proof preserves the whole search/header prefix and
+final bump assignment/return. Mutations of unrelated helpers/globals/function
+metadata and exact origin paths are independently rejected. Reserved binding
+collisions and original p/j global collisions refuse rather than relying on
+lowerer name precedence.
+
+Remaining gating is domain evidence, not another legality hole: owner is testing
+all lengths, alias ±1, header/source aliases, wrap and each partial permission
+prefix on raw/native runners. A future measured selector must bind the exact
+intern_region/body/s5 source site to actualbody/s7; two loops in intern_region
+make a function-name wildcard insufficient. No transformed counts or postcompiler
+proof should be inherited. Candidate raw/native full observations must remain
+compared against original on the same closed workload.
+
+Independent saved-evidence audit (noCPU): all30 raw and30 target observations
+match after Steps are ignored; global/region bytes, results, events and failure
+fields remain exact. BinarySHA and invocationTStates sums verified directly:
+original1221494T2091Bfed98; hoisted1150124T2076B7c244d. Improvement is71370T
+(5.84%) and15B on this workload, not a general speed guarantee. TypedGo payload
+SHA audits remain owner's separate evidence, not Python reserialization claims.

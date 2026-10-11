@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 3572,
+      "sha256": "2a4886c187a25fb82fc923a0d8c523cd01360122ea0e258918ca3a5fe0521049"
+    },
+    {
+      "path": "before-probe.txt",
+      "bytes": 398,
+      "sha256": "5953e95a12e5375f273f623a05c53cced4366de7fc2ad9d7885e45ecc3cf7c38"
+    },
+    {
+      "path": "before-proof.go.txt",
+      "bytes": 6675,
+      "sha256": "c770875f241a8d7abcb4c51753015a1d892fe0c0c95ece0d76aacf1bd2b05cb5"
+    },
+    {
+      "path": "fixed-probe.txt",
+      "bytes": 329,
+      "sha256": "315b1487537235e52621df99619307f230a8edd847c69b72300bf7a2a2cb5214"
+    },
+    {
+      "path": "fixed-proof.go.txt",
+      "bytes": 7142,
+      "sha256": "2f23b9ea81ebec532a7534a9e295439f97c0a737a8217983b800761c957fc2b0"
+    },
+    {
+      "path": "probe.go.txt",
+      "bytes": 1802,
+      "sha256": "e1f50af5e8b7c701ab9426dda8e6eaeb4e4911086820488d698cab74c09125ce"
+    },
+    {
+      "path": "prototype-source.go.txt",
+      "bytes": 3756,
+      "sha256": "e99ba8167e072a316fa78e61a6ddbc84a7b86d48e22ad86cc7ba9160af7d866a"
+    },
+    {
+      "path": "saved-evidence-audit.txt",
+      "bytes": 262,
+      "sha256": "8198cc886384cb2fafd468703cf0cf1ab5017e4fb09ca8ba5c4267bf50f21524"
+    }
+  ]
+}

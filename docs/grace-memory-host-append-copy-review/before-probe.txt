@@ -1,0 +1,7 @@
+=== RUN   TestIndependentAppendProofGlobalOverlap
+    append_copy_independent_review_test.go:24: proof_err=<nil> closed_run_err=memory host: region overlaps VM module storage
+    append_copy_independent_review_test.go:25: public proof accepted region overlapping compiler globals/symbols
+--- FAIL: TestIndependentAppendProofGlobalOverlap (0.10s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/hir	0.108s
+FAIL

@@ -1,0 +1,27 @@
+package hir_test
+
+import (
+ "os"
+ "testing"
+ . "github.com/minz/minzc/pkg/hir"
+ "github.com/minz/minzc/pkg/mir2"
+ "github.com/minz/minzc/pkg/nanz"
+)
+func TestIndependentAppendProofGlobalOverlap(t *testing.T){
+ b,e:=os.ReadFile("../../../examples/nanz/self_lanz_parser.nanz");if e!=nil{t.Fatal(e)}
+ source,e:=nanz.Parse(string(b),"self_lanz_parser.nanz");if e!=nil{t.Fatal(e)}
+ actual,e:=nanz.Parse(string(b),"self_lanz_parser.nanz");if e!=nil{t.Fatal(e)}
+ f:=actual.FuncByName("intern_region");old:=f.Body.Body
+ src:=Decl("__append_src_base",mir2.TyU16,Add(Var("src_buf",mir2.TyU16),Var("start",mir2.TyU16),mir2.TyU16))
+ dst:=Decl("__append_dst_base",mir2.TyU16,Add(Var("str_bump",mir2.TyU16),U8(1),mir2.TyU16))
+ call:=old[5].(*WhileStmt).Body.Body[0].(*ExprStmt).Expr.(*CallExpr)
+ call.Args[0]=Add(Var(dst.Name,mir2.TyU16),Var("j",mir2.TyU8),mir2.TyU16)
+ call.Args[1].(*CallExpr).Args[0]=Add(Var(src.Name,mir2.TyU16),Var("j",mir2.TyU8),mir2.TyU16)
+ f.Body=Blk(old[0],old[1],old[2],old[3],src,dst,old[4],old[5],old[6],old[7])
+ w:=MemoryHostWorkload{Schema:"minz.memory-host-workload/v1",TargetModel:"cpm-z80-v1",MaxSteps:100000,MaxMemory:65536,Layout:MemoryHostLayout{CodeOrigin:0x400,StackLow:0xe000,StackHigh:0xeff0,ReturnPC:0x100},Hosts:map[string]string{"peek":MemoryHostReadU8,"poke":MemoryHostWriteU8},Regions:map[string]MemoryHostRegion{"r":{Address:0,Bytes:make([]byte,256),Writable:true}},Calls:[]MemoryHostInvocation{{Function:"intern_region",Arguments:[]int64{0,0}}}}
+ proofErr:=ValidateMemoryHostAppendCopyHoist(source,actual,w)
+ _,runErr:=RunMemoryHostBaseline(source,w)
+ t.Logf("proof_err=%v closed_run_err=%v",proofErr,runErr)
+ if proofErr==nil{t.Fatal("public proof accepted region overlapping compiler globals/symbols")}
+ if runErr==nil{t.Fatal("closed runner must refuse overlap")}
+}

@@ -1,0 +1,5 @@
+=== RUN   TestIndependentAppendProofGlobalOverlap
+    append_copy_independent_review_test.go:24: proof_err=append copy proof: resource overlaps VM module storage closed_run_err=memory host: region overlaps VM module storage
+--- PASS: TestIndependentAppendProofGlobalOverlap (0.06s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	0.070s
