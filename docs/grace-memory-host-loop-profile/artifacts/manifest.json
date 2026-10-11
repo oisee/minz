@@ -2,6 +2,16 @@
   "compiler_commit": "dcca4fc853e4d0e43a50087e16f827ed0116b62a",
   "files": [
     {
+      "path": "association-review-snapshot.json",
+      "bytes": 870,
+      "sha256": "1bc3f8576dbbadcd4820ba810279998c624ac87246a99625b028968a1ad1df35"
+    },
+    {
+      "path": "association-review.md",
+      "bytes": 2655,
+      "sha256": "a45efbddb2f35f459707adb606f12eeb6969971d412512bbba33d43f29932149"
+    },
+    {
       "path": "final-focused.txt",
       "bytes": 42,
       "sha256": "b42a329e8fc5a4f74826f1ab2e19d8010bbde41d5b79aed4a6743e6173a66e58"
