@@ -1,0 +1,6 @@
+{
+  "base_commit": "49888ebc",
+  "source_sha256": "50a8ca601da047bde2975df0a833e625efa89d0a08204dfac562f75b4afd4c00",
+  "observation_command": "go test ./pkg/pipeline -run ^TestOriginalLizpCondMissingReturnObservation$ -count=1 -v",
+  "status": "language-policy-gap; no behavior PASS; no production changes"
+}

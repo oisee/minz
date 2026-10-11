@@ -1,0 +1,23 @@
+;; Test cond, when, unless, defstruct, defextern, hex literals.
+
+(defstruct Point
+  (x u8)
+  (y u8))
+
+(defglobal score u8 0)
+
+(defun classify ((n u8)) -> u8
+  (cond
+    ((= n 0) #x00)
+    ((< n 10) #x01)
+    ((< n 100) #x02)
+    (t #xFF)))
+
+(defun main () -> void
+  (let ((val u8 42))
+    (setq score (call classify val))
+    (when (= score #x02)
+      (setq score (1+ score)))
+    (unless (= score 0)
+      (setq score (- score 1))))
+  (return))
