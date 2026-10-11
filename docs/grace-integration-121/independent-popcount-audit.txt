@@ -1,0 +1,1 @@
+Independent Python saved-artifact audit: all256 popcount values, both BIN SHA256, summed7168T/512B PASS. Baseline and selected match; no optimization gain claimed.
