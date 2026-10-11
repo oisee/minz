@@ -1,0 +1,4 @@
+=== RUN   TestStructReturnTypedIndirectMultiNative
+--- PASS: TestStructReturnTypedIndirectMultiNative (0.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.029s
