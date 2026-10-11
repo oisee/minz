@@ -1,0 +1,7 @@
+# Module-register identity fix review:bcd40b6b
+
+Read-onlyfour-lineproductionpatch is consistent with the observedlegacyroutefailure. AddFunc establishesf.mod and a sharedmodulecounter; RenumberRegs updateseveryfunctioncounterandthemodulemaximum. AllocReg nowraisesitslocalnextReg tothatsharedmaximum beforeallocation, preservingotherfunctions' globallyrenumbered IDs. Subsequentallocationadvancesthesharedcounter asbefore. No sourceCPU wasrunbythisreviewer.
+
+TestInsertAccSavesModuleRegisterIdentity creates two realmodulefunctions, Renumbers/Verifies, forcesanAsaveinfirstwitha foreignDEpointerinsecond, checksforeignallocationunchanged, saveidentityfresh, renamedreturnandMIRVerify. Alternatingfirst/second/first allocations muststrictlyincrease. Thisis a meaningful regression for the actualmodule-backedpremise, not a compilerimplementationmirrorassertiononly.
+
+Recommendoneownerlegacystring15 assembly/nativegate toconfirmtheinitialinvalidassemblyroute closes whileallindependentoutput/storage/stateoracles remainfixed. Preservefirstfailure. Additionalaccsaves scratchpair/liveinterval andcanonicalrename gaps from37f0aaef were not changed; they remainseparateplanitems. ThispatchdoesnotpromisefreshIDs againstarbitrarycallerAllocResult entries unrelatedtomodulecounter orstandalonefunctions withoutmod.

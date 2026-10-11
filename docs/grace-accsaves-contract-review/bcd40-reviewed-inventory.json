@@ -1,0 +1,10 @@
+[
+  {
+    "path": "minzc/pkg/mir2/func.go",
+    "sha256": "eeffce6125cd4cdf39a7bb7dec1cacc2c329ba346a4f600268237f1c30a2f0a2"
+  },
+  {
+    "path": "minzc/pkg/mir2/accsaves_module_test.go",
+    "sha256": "2c870fc2bee8c7c135533f0e42afa6b5a4c5eeea3b60eb9a3b3ade62b3824ab9"
+  }
+]
