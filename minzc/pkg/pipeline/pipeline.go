@@ -76,7 +76,7 @@ type FuncTrace struct {
 	LUTReplaced  bool // function was replaced by LUTGen
 
 	// Codegen provenance
-	Backend    string // "LIR", "VIR", "PBQP", "checked-local-table", "LIR+PBQP-fallback", "VIR+PBQP-fallback"
+	Backend    string // "VIR", "PBQP", "checked-local-table", "VIR+PBQP-fallback"
 	BackendErr string // error message if primary backend failed (before fallback)
 	WFCAttempt int    // WFC retry attempt (0 = first try)
 	CondRets   int    // number of cond_ret terminators
@@ -1209,8 +1209,7 @@ func isInstruction(s string) bool {
 }
 
 // emitExternStubs appends label stubs for @extern functions that are called
-// in the assembly but have no label definition. This happens when hybrid
-// LIR+PBQP splicing loses LIR's empty-function stubs.
+// in the assembly but have no label definition after function emission.
 func emitExternStubs(asm string, m *mir2.Module) string {
 	var stubs strings.Builder
 	for _, f := range m.Funcs {
@@ -1260,7 +1259,7 @@ func injectModuleSummary(asm string, traces map[string]*FuncTrace, labelWarnings
 	}
 	sb.WriteString("; ── compilation summary ──────────────────────────────────────\n")
 	sb.WriteString(fmt.Sprintf("; functions: %d", total))
-	for _, be := range []string{"LIR", "VIR", "PBQP", "checked-local-table", "LIR+PBQP-fallback", "VIR+PBQP-fallback"} {
+	for _, be := range []string{"VIR", "PBQP", "checked-local-table", "VIR+PBQP-fallback"} {
 		if n := counts[be]; n > 0 {
 			sb.WriteString(fmt.Sprintf("  %s=%d", be, n))
 		}
@@ -1441,8 +1440,7 @@ func formatTrace(tr *FuncTrace) string {
 }
 
 // dedupAsmLabels removes duplicate label definitions from assembly text.
-// When hybrid LIR+PBQP output contains the same label twice (e.g. globals
-// emitted by both paths), keep only the first definition.
+// When combined function output defines a label twice, keep the first definition.
 func dedupAsmLabels(asm string) string {
 	lines := strings.Split(asm, "\n")
 	seen := make(map[string]bool)
