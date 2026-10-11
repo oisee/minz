@@ -311,5 +311,8 @@ func decodeMemoryHostCLIWorkload(path string, out *hir.MemoryHostWorkload) error
 	if e = d.Decode(&value); e != nil {
 		return e
 	}
+	if _, ok := value.(map[string]any); !ok {
+		return fmt.Errorf("memory host CLI: workload must be a JSON object")
+	}
 	return checkMemoryHostCLIKeys(value, reflect.TypeOf(*out))
 }

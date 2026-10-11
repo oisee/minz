@@ -99,7 +99,7 @@ func TestMemoryHostCLIPathAliases(t *testing.T) {
 }
 func TestMemoryHostCLIWorkloadKeys(t *testing.T) {
 	_, path := withMemoryHostCLITest(t)
-	for _, text := range []string{`{"Schema":"x"}`, `{"schema":"x","schema":"y"}`, `{"schema":"x","calls":[{"Function":"main"}]}`, `{"schema":"x","regions":{"r":{"Address":1}}}`} {
+	for _, text := range []string{`null`, `[]`, `{"Schema":"x"}`, `{"schema":"x","schema":"y"}`, `{"schema":"x","calls":[{"Function":"main"}]}`, `{"schema":"x","regions":{"r":{"Address":1}}}`} {
 		os.WriteFile(path, []byte(text), 0644)
 		var w hir.MemoryHostWorkload
 		if e := decodeMemoryHostCLIWorkload(path, &w); e == nil {
