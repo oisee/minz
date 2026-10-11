@@ -1,0 +1,2 @@
+command: ['/home/alice/dev/minz-artifacts/grace-workspaces/checked-word-xor/reports/artifacts/checked-word-xor/minzc', '/home/alice/dev/minz-artifacts/grace-workspaces/checked-word-xor/examples/nanz/21_hashmap_test.nanz', '--Osize', '--asserts', 'none', '-o', '/home/alice/dev/minz-artifacts/grace-workspaces/checked-word-xor/reports/artifacts/checked-word-xor/cli-baseline.a80']
+exit: 0

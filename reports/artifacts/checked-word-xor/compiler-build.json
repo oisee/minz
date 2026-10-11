@@ -1,0 +1,6 @@
+{
+  "base": "85773cf6",
+  "compiler_sha256": "7bfff09bea943a9f6de6ad1744decc987092fade75237659e01d29d1866d3429",
+  "go": "go1.26.8",
+  "note": "compiled unchanged production Go source; experimental descriptor reverted"
+}
