@@ -166,11 +166,13 @@ func TestZ80ProfileWorkloadCumulativeLimit(t *testing.T) {
 
 func TestZ80ProfileWorkloadRefusals(t *testing.T) {
 	const text = `fun id(n:u8)->u8 {return n}`
-	for _, kind := range []string{"region-compare-policy", "forward-copy-policy", "schema", "limits", "ceiling", "memory", "context", "failed-oracle", "missing-ABI", "SMC", "ASM", "ports", "hosts", "numeric-pointer", "range", "program-stack", "bounds", "code-write", "same-code-write", "compiled-SMC"} {
+	for _, kind := range []string{"ordered-byte-policy", "region-compare-policy", "forward-copy-policy", "schema", "limits", "ceiling", "memory", "context", "failed-oracle", "missing-ABI", "SMC", "ASM", "ports", "hosts", "numeric-pointer", "range", "program-stack", "bounds", "code-write", "same-code-write", "compiled-SMC"} {
 		t.Run(kind, func(t *testing.T) {
 			w := workloadSpec(hir.ProfileInvocation{Function: "id", Arguments: []hir.ProfileArgument{workloadLiteral(3)}})
 			steps, source, oracle := workloadFixture(t, text, w)
 			switch kind {
+			case "ordered-byte-policy":
+				source.OrderedBytePolicy = map[string]bool{}
 			case "region-compare-policy":
 				source.RegionComparePolicy = map[string]bool{}
 			case "forward-copy-policy":

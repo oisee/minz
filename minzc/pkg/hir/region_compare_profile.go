@@ -14,7 +14,7 @@ type RegionCompareProof struct {
 }
 
 func EligibleRegionCompareSites(m *Module) ([]string, error) {
-	if m != nil && (m.LoopLineage != nil || m.RegionComparePolicy != nil || m.PointerWalkPolicy != nil || m.InvariantBasePolicy != nil || m.ForwardCopyPolicy != nil || m.GraceRulePolicy != nil) {
+	if m != nil && (m.LoopLineage != nil || m.RegionComparePolicy != nil || m.OrderedBytePolicy != nil || m.PointerWalkPolicy != nil || m.InvariantBasePolicy != nil || m.ForwardCopyPolicy != nil || m.GraceRulePolicy != nil) {
 		return nil, fmt.Errorf("region compare: original source already has policy/lineage")
 	}
 	if m == nil || !m.SourceUnitsComplete {
@@ -43,7 +43,7 @@ func EligibleRegionCompareSites(m *Module) ([]string, error) {
 // The rule requires both its named opt-in and a seeded selected-site policy.
 // Missing/false choices keep source loops; all other HIR rules are disabled.
 func ApplyRegionCompareSiteChoices(m *Module, c *ProfileCompatibility, choices map[string]bool) error {
-	if m == nil || c == nil || m.LoopLineage != nil || m.GraceRulePolicy != nil || m.PointerWalkPolicy != nil || m.InvariantBasePolicy != nil || m.ForwardCopyPolicy != nil || m.RegionComparePolicy != nil {
+	if m == nil || c == nil || m.LoopLineage != nil || m.GraceRulePolicy != nil || m.PointerWalkPolicy != nil || m.InvariantBasePolicy != nil || m.ForwardCopyPolicy != nil || m.RegionComparePolicy != nil || m.OrderedBytePolicy != nil {
 		return fmt.Errorf("region compare: fresh original required")
 	}
 	current, e := BuildProfileCompatibility(m, c.Context)

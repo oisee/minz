@@ -20,9 +20,14 @@ var hirProfileWeightedSites bool
 var hirProfileForwardCopySites bool
 var hirProfileMixedCopyWeightedSites bool
 var hirProfileRegionCompareSites bool
+var hirProfileOrderedByteFunctions bool
 var hirProfileMixedCopyRegionSites bool
 
 func validateHIRProfileAuto(source string) error {
+	if hirProfileOrderedByteFunctions && (!hirProfileJoint || hirProfileForwardCopySites || hirProfileMixedCopyWeightedSites || hirProfileRegionCompareSites || hirProfileMixedCopyRegionSites || hirProfileInvariantSites || hirProfileSiteRules || hirProfileJointSites || hirProfileWeightedSites || hirProfileIndependentRules) {
+		return fmt.Errorf("HIR ordered byte functions: requires --hir-profile-joint and cannot combine with other site or independent rule modes")
+	}
+
 	if hirProfileMixedCopyRegionSites && (!hirProfileJoint || hirProfileRegionCompareSites || hirProfileForwardCopySites || hirProfileMixedCopyWeightedSites || hirProfileInvariantSites || hirProfileSiteRules || hirProfileJointSites || hirProfileWeightedSites || hirProfileIndependentRules) {
 		return fmt.Errorf("HIR mixed copy region sites: requires --hir-profile-joint and cannot combine with other site or independent rule modes")
 	}
@@ -166,7 +171,16 @@ func prepareHIRProfileJoint(m *hir.Module, factory func() (*hir.Module, error), 
 	var result *pipeline.ProfileVariantSetResult
 	var evidence any
 	var decisions any
-	if hirProfileMixedCopyRegionSites {
+	if hirProfileOrderedByteFunctions {
+		ordered, err := pipeline.MeasureOrderedByteFunctionVariantSets(factory, observations, workload, options, 4)
+		if err != nil {
+			return nil, err
+		}
+		result = &pipeline.ProfileVariantSetResult{Steps: ordered.Steps, Binary: ordered.Binary}
+		evidence = ordered.Evidence
+		best := ordered.Evidence.Candidates[ordered.Evidence.Selected]
+		decisions = map[string]any{"schema": "minz.ordered-byte-function-decisions/v1", "compatibility": ordered.Evidence.Compatibility, "function_sites": ordered.Evidence.FunctionSites, "selected": ordered.Evidence.Selected, "requested_functions": best.RequestedSites, "proofs": best.Proofs, "postcompile_proofs": best.FinalProofs, "binary_sha256": best.BinarySHA256, "evidence_sha256": ordered.Evidence.SHA256}
+	} else if hirProfileMixedCopyRegionSites {
 		mixed, err := pipeline.MeasureMixedCopyRegionSiteVariantSets(factory, observations, workload, options, 4)
 		if err != nil {
 			return nil, err
