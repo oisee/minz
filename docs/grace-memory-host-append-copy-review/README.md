@@ -64,3 +64,28 @@ HIR Verify before LowerModule; the exact accepted source shape contains no
 unsupported dynamic/indirect control or undefined binding. Arbitrary malformed
 HIR is not a newly admitted shape here; existing typed verifier/lowerer failures
 are not presented as solved by this proof.
+
+Final selector evidence audit at frozen7a67aa80: saved speed/size payloads each
+contain two genuinely measured30-call baselines. Both goals choose hoisted;
+original1221494T2091Bfed98 and hoisted1150124T2076B7c244d. Exacttypedprecompile
+proof original/actual compatibility and FunctionSiteMaps bind those two baseline
+evidences. Source site is intern_region/body/s5, actualtailbody/s7 with sameOrigin;
+source13statemententries/286bodies match per-invocation sums and retained profile.
+All30raw/native global/region/result/event observations agree after instruction
+Steps only are ignored. No transformedbodycounts or postcompileproof claimed.
+
+Each target carries90 exact global/spill descriptors. Every saved descriptor PC
+opcode is present in its saved binary, direction/bytebudget fits its typed root,
+and global symbol+offset resolves to the saved bounded address. These variants
+emit no call-snapshot descriptors (emptylistSHA verified); ordinaryCALL/PUSH/POP/
+RET remain checked by the existing finiteframe runtime, initializedbytes and
+exactreturn/SP rules. This audit does not claim a dynamicstacktrace export absent
+from payload. Source/runtime reviewed unchanged protectedrecipe semantics.
+
+Four typedGo payload checks confirm exact sidecarSHA, allocation rawbytesSHA,
+MIRdumpSHA, embedded/savedBIN and ASMidentity, invocationcostsums and30-success
+boundaries. Python audits separately verify typedJSON content/state/proof without
+claiming identical typedGo reserialization. Scripts support raw/gzip artifacts.
+No measuredCPU replay was performed. Observedzero-body reversal (original731T,
+hoisted895T) is owner test evidence outside the30call artifact audit; it retains
+original, showing the selector follows measuredprofit rather than forcedrewrite.

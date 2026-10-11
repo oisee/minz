@@ -1,0 +1,7 @@
+PASS speed/original 1221494T/2091B SHA=fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51 accesses=90 snapshots=0
+PASS speed/hoisted 1150124T/2076B SHA=7c244dd469683c8bb1505061c3d9eda5162f3b36219efba1418a240b781f7751 accesses=90 snapshots=0
+PASS speed selected1, source13entries/286bodies, all30 full raw/native observations and precompile identities
+PASS size/original 1221494T/2091B SHA=fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51 accesses=90 snapshots=0
+PASS size/hoisted 1150124T/2076B SHA=7c244dd469683c8bb1505061c3d9eda5162f3b36219efba1418a240b781f7751 accesses=90 snapshots=0
+PASS size selected1, source13entries/286bodies, all30 full raw/native observations and precompile identities
+No CPU replay; no Python reserialization claim for typed Go allocation/sidecar digests.
