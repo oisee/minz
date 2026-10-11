@@ -1,0 +1,3 @@
+--- FAIL: TestOriginalLizpDSPComplete (0.00s)
+    lizp_dsp_complete_test.go:24: open ../../../examples/lizp/dsp.lizp: no such file or directory
+FAIL

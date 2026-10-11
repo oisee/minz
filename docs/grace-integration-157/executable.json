@@ -1,0 +1,10 @@
+{
+  "compiler_commit": "f173e52e",
+  "test_binary_sha256": "9bd3fb577280b634a0ddee714b437c1ff47c519611d94fb470848f6c7eddf506",
+  "local": "/home/alice/dev/minz-artifacts/grace-checkpoints/lizp-dsp-f173e52e.test",
+  "share": "/mnt/safe/minz/grace/2026-10-11/compiler-checkpoints/lizp-dsp-f173e52e.test",
+  "command": "./lizp-dsp-f173e52e.test -test.run ^TestOriginalLizpDSPComplete$ -test.count=1",
+  "required_cwd": "compiler/minzc/pkg/pipeline; source ../../../examples/lizp/dsp.lizp relative to package",
+  "first_replay": "FAIL from module cwd: missing relative source; repeated from package cwd",
+  "package_cwd_replay": "PASS"
+}
