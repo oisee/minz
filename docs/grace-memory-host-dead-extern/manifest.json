@@ -1,0 +1,101 @@
+{
+  "schema": "minz.artifact-manifest/v1",
+  "base_commit": "fa5bff53",
+  "files": [
+    {
+      "path": "admission-negative.txt",
+      "bytes": 2483,
+      "sha256": "cf78ce7c09ef6843893ba3a4091173de028fd34e9f6ec21ce1865aea49113b83"
+    },
+    {
+      "path": "catalog-test.txt",
+      "bytes": 727,
+      "sha256": "7877d5bd5a53d66e5e46af910bbb5ffd25714fe7336a5fb8cfb2b84e1f8a7bb5"
+    },
+    {
+      "path": "catalog.json.gz",
+      "bytes": 41459,
+      "sha256": "4c42a7b603b0ec335179991b378d927bdf8b66901e4979e3653efe2fb9e4bd5e"
+    },
+    {
+      "path": "compiled-source.nanz",
+      "bytes": 1169,
+      "sha256": "48fb1c469b34da96ad7b49e9bf0bf7982d7fb7c7e11f602d41ec5f2e5384fde3"
+    },
+    {
+      "path": "development-first-hook-test.txt",
+      "bytes": 1994,
+      "sha256": "553b517a810d4e82ec33cc0dc11a3c9d9fcf9e50df3d0463a085f2e265614590"
+    },
+    {
+      "path": "final.mir2.gz",
+      "bytes": 519,
+      "sha256": "d66c28d1ffc988392b2dbabec48eda8d50f4fa5c6d2a7b9d188edafeb3238acc"
+    },
+    {
+      "path": "hir-full.txt",
+      "bytes": 43,
+      "sha256": "c9aaed373752be19bc5917a1bd2cc22146199371e8311037a3c9f05b8e91b19c"
+    },
+    {
+      "path": "independent-model.json.gz",
+      "bytes": 694236,
+      "sha256": "ef6b25c7dbc1819f22ce70deba67201117b162dd948f0702065bf38bedb7da32"
+    },
+    {
+      "path": "native-focused.txt",
+      "bytes": 2029,
+      "sha256": "9d27ba032132454af3242584bc95ff77e4a56039a7682f4f90656db87afac8da"
+    },
+    {
+      "path": "native.json.gz",
+      "bytes": 741630,
+      "sha256": "4ae2fd4349ed7d8e59ae737672aa1f5a90c8e172a33f380e38019dbf1693adba"
+    },
+    {
+      "path": "original-full.mir2.gz",
+      "bytes": 488,
+      "sha256": "9664c8b3505097ab05bf2e1bf07f9d9b93e4b83572fe99cf5435752d34b30ce8"
+    },
+    {
+      "path": "pre-host-link.a80",
+      "bytes": 2330,
+      "sha256": "5b7c621c16b67dd9dcd465a952ba638c2695e6ad45b526c89270649224ad8c60"
+    },
+    {
+      "path": "raw.json.gz",
+      "bytes": 738567,
+      "sha256": "c7e8340f7a541958cbbf9b4630d59dfb0a3cf5d94cd6770da5587c6dfd9c7909"
+    },
+    {
+      "path": "runtime-adapter.nanz",
+      "bytes": 84,
+      "sha256": "74002c4b922c58f7bd6c39f88f940d8709b8a27f66f457c74ad9e55db5f13be7"
+    },
+    {
+      "path": "source-provenance.json",
+      "bytes": 284,
+      "sha256": "3e83fc63e3d44abc9fd933c9e1f430512321c1bab52e444f7fcdfb570cc67289"
+    },
+    {
+      "path": "source.nanz",
+      "bytes": 1084,
+      "sha256": "50790226cca46747ab48bb542a204e90419fa7632b32ab38572376e5e84dc6b5"
+    },
+    {
+      "path": "target.a80",
+      "bytes": 1645,
+      "sha256": "69db5a7da148629f0c7f10d319c74be699618bc5eb0a542179e155e3fe389416"
+    },
+    {
+      "path": "target.bin",
+      "bytes": 46,
+      "sha256": "82a1e4e76f5d3deebf9f53b6045c8fec39c5168dc3b3796b47148eff679f2d66"
+    },
+    {
+      "path": "workload.json.gz",
+      "bytes": 13475,
+      "sha256": "1128d1940dcaa508e206e6ce6d296edb15834484cb41b9195c68254cf2ed2177"
+    }
+  ]
+}

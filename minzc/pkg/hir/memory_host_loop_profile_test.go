@@ -142,9 +142,20 @@ func TestMemoryHostLoopProfileUserHookNamespaceIsNotAuthority(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	if r, e := hir.RunMemoryHostLoopProfile(forged, w); e == nil || r != nil {
-		t.Fatal("user hook prefix accepted")
+	// A dead user extern has no authority, even if its name resembles a hook.
+	w.Calls = w.Calls[:2]
+	if r, e := hir.RunMemoryHostLoopProfile(forged, w); e != nil || r == nil || r.Counts[0].Entries != 4 || r.Counts[0].BodyEntries != 4 {
+		t.Fatal("dead hook changed owned counters", r, e)
 	}
+	reachable, e := nanz.Parse(memoryLoopSrc+"\n@extern fun __minz_loop_profile_0_entry()->void\nfun user_hook()->u8 {__minz_loop_profile_0_entry()\nreturn 0}\n", "memory-loop.nanz")
+	if e != nil {
+		t.Fatal(e)
+	}
+	w.Calls = append(w.Calls, hir.MemoryHostInvocation{Function: "user_hook"})
+	if r, e := hir.RunMemoryHostLoopProfile(reachable, w); e == nil || r != nil {
+		t.Fatal("reachable user hook prefix accepted")
+	}
+	w.Calls = w.Calls[:len(w.Calls)-1]
 	// A normal same-named function is harmless: instrumentation must pick fresh
 	// names, not replace its definition or give it counter authority.
 	legal, e := nanz.Parse(memoryLoopSrc+"\nfun __minz_loop_profile_0_entry()->u8{return 7}\n", "memory-loop.nanz")

@@ -1,0 +1,33 @@
+// Nanz — idiomatic version using for-each + forEach iterator.
+//
+// The key insight: instead of managing an index variable,
+// we describe WHAT to do with each element, not HOW to traverse.
+//
+// HIR lowers this to a ForEachStmt; the MIR2 lowerer emits:
+//   - B = counter (DJNZ)
+//   - HL = pointer (INC HL or keep in HL across iterations)
+//   - A = current element
+//
+// No index variable. No ptr[i] random-access load pattern.
+// The compiler knows this is a sequential forward scan.
+
+// Callback — called per element (will be inlined by future inliner)
+@extern fun add_to_acc(x: u8) -> void
+
+fun sum_array_idiomatic(ptr: u16, n: u8) -> u8 {
+    var s: u8 = 0
+    // for x: u8 in ptr[0..n] — ForEachStmt in HIR
+    for x: u8 in ptr[0..n] {
+        s = s + x
+    }
+    return s
+}
+
+// With lambdas + forEach (iterator chain style):
+// This compiles identically to the for-each loop above.
+// The forEach fuses with the lambda body — zero CALL overhead.
+fun sum_array_chain(ptr: u16, n: u8) -> u8 {
+    var s: u8 = 0
+    ptr.forEach(|x: u8| { s = s + x }, n)
+    return s
+}

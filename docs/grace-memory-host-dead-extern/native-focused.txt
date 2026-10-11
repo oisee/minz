@@ -1,0 +1,29 @@
+=== RUN   TestMemoryHostUnboundDeadExternNativeFetchDenied
+--- PASS: TestMemoryHostUnboundDeadExternNativeFetchDenied (0.03s)
+=== RUN   TestMemoryHostReachableAliasAndUnreachableNextFunction
+--- PASS: TestMemoryHostReachableAliasAndUnreachableNextFunction (0.00s)
+=== RUN   TestMemoryHostTargetLayoutRefusals
+=== RUN   TestMemoryHostTargetLayoutRefusals/code_region
+=== RUN   TestMemoryHostTargetLayoutRefusals/stack_region
+=== RUN   TestMemoryHostTargetLayoutRefusals/read_only
+=== RUN   TestMemoryHostTargetLayoutRefusals/oracle
+=== RUN   TestMemoryHostTargetLayoutRefusals/hostABI
+--- PASS: TestMemoryHostTargetLayoutRefusals (1.89s)
+    --- PASS: TestMemoryHostTargetLayoutRefusals/code_region (0.20s)
+    --- PASS: TestMemoryHostTargetLayoutRefusals/stack_region (0.16s)
+    --- PASS: TestMemoryHostTargetLayoutRefusals/read_only (0.21s)
+    --- PASS: TestMemoryHostTargetLayoutRefusals/oracle (0.88s)
+    --- PASS: TestMemoryHostTargetLayoutRefusals/hostABI (0.44s)
+=== RUN   TestMemoryHostTargetPartialFailureAndPersistence
+=== RUN   TestMemoryHostTargetPartialFailureAndPersistence/forged_denial_kind
+=== RUN   TestMemoryHostTargetPartialFailureAndPersistence/forged_denial_address
+=== RUN   TestMemoryHostTargetPartialFailureAndPersistence/forged_denial_direction
+--- PASS: TestMemoryHostTargetPartialFailureAndPersistence (0.32s)
+    --- PASS: TestMemoryHostTargetPartialFailureAndPersistence/forged_denial_kind (0.01s)
+    --- PASS: TestMemoryHostTargetPartialFailureAndPersistence/forged_denial_address (0.01s)
+    --- PASS: TestMemoryHostTargetPartialFailureAndPersistence/forged_denial_direction (0.01s)
+=== RUN   TestOriginalIdiomaticSumReadOrderVMZ80
+    showcase_idiomatic_sum_oracle_test.go:168: exact original idiomatic/chain sum:1024 calls + observer, full514RAM/all256lengths/orderedreads/raw-finalVM+nativeSPcode; 3984313 T/46 B SHA 82a1e4e76f5d3deebf9f53b6045c8fec39c5168dc3b3796b47148eff679f2d66
+--- PASS: TestOriginalIdiomaticSumReadOrderVMZ80 (1.05s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.317s
