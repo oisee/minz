@@ -1,0 +1,127 @@
+--- historical-27a7/target.a80
++++ current-5939/target.a80
+@@ -537,11 +537,14 @@
+     PUSH HL
+     POP BC
+     POP HL
+-    EX AF, AF'
++    PUSH AF
+     LD A, IYH
++    PUSH AF
++    LD A, 0
++    LD IXH, A
++    POP AF
+     LD IXL, A
+-    EX AF, AF'
+-    LD IXH, 0
++    POP AF
+     PUSH HL
+     PUSH DE
+     PUSH BC
+@@ -573,11 +576,14 @@
+     PUSH HL
+     POP BC
+     POP HL
+-    EX AF, AF'
++    PUSH AF
+     LD A, IYH
++    PUSH AF
++    LD A, 0
++    LD IXH, A
++    POP AF
+     LD IXL, A
+-    EX AF, AF'
+-    LD IXH, 0
++    POP AF
+     PUSH HL
+     PUSH DE
+     PUSH BC
+@@ -713,11 +719,14 @@
+ .intern_region_loop_body9:
+     LD BC, (str_bump)    ; u16 direct load, no scratch clobber ; @minz-memory-access:f8_b9_i1_a0
+     INC BC
+-    EX AF, AF'
++    PUSH AF
+     LD A, (_spill_intern_region_r141) ; @minz-memory-access:f8_b9_s6
++    PUSH AF
++    LD A, 0
++    LD IXH, A
++    POP AF
+     LD IXL, A
+-    EX AF, AF'
+-    LD IXH, 0
++    POP AF
+     PUSH HL
+     PUSH DE
+     PUSH BC
+@@ -751,11 +760,14 @@
+     POP IX
+     POP DE
+     POP HL
+-    EX AF, AF'
++    PUSH AF
+     LD A, (_spill_intern_region_r141) ; @minz-memory-access:f8_b9_s7
++    PUSH AF
++    LD A, 0
++    LD IYH, A
++    POP AF
+     LD IYL, A
+-    EX AF, AF'
+-    LD IYH, 0
++    POP AF
+     PUSH HL
+     PUSH DE
+     PUSH IX
+@@ -844,11 +856,14 @@
+ .intern_region_loop_exit10:
+     LD HL, (str_bump)    ; u16 direct load (20T, no A clobber) ; @minz-memory-access:f8_b10_i1_a0
+     INC HL
+-    EX AF, AF'
++    PUSH AF
+     LD A, (_spill_intern_region_r160) ; @minz-memory-access:f8_b10_s18
+-    LD C, A
+-    EX AF, AF'
+-    LD B, 0
++    PUSH AF
++    LD A, 0
++    LD B, A
++    POP AF
++    LD C, A
++    POP AF
+     ADD HL, BC
+     LD BC, str_bump
+     LD (str_bump), HL    ; u16 direct store (16T, no A clobber) ; @minz-memory-access:f8_b10_i7_a0
+@@ -1403,8 +1418,14 @@
+     POP BC
+     EX DE, HL
+     POP HL
+-    LD C, IYL
+-    LD B, 0
++    PUSH AF
++    LD A, IYL
++    PUSH AF
++    LD A, 0
++    LD B, A
++    POP AF
++    LD C, A
++    POP AF
+     PUSH HL
+     EX DE, HL
+     ADD HL, BC
+@@ -1496,8 +1517,14 @@
+     LD D, H
+     LD E, L
+     POP HL
+-    LD C, IXH
+-    LD B, 0
++    PUSH AF
++    LD A, IXH
++    PUSH AF
++    LD A, 0
++    LD B, A
++    POP AF
++    LD C, A
++    POP AF
+     PUSH HL
+     EX DE, HL
+     ADD HL, BC

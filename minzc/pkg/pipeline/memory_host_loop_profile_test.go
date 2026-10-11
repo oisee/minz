@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	"github.com/minz/minzc/pkg/hir"
@@ -33,9 +34,16 @@ func TestMemoryHostLoopAssociationOriginalParser(t *testing.T) {
 	if !found {
 		t.Fatal("region_match absent")
 	}
-	if r.Baseline.Target.TotalTStates != 1269009 || r.Baseline.Target.BinarySHA256 != "27a7c8ea7b77725ee5f61e9f4be625bd1b582b1b03e1013021e0ab3766ee8545" {
-		t.Fatal("instrumentation changed native baseline")
+	assertMemoryHostParserIndependentOracle(t, r.Baseline.Raw.Invocations, r.Baseline.Target.Invocations)
+	assertCurrentMemoryHostParserReference(t, r.Baseline.Target)
+	direct, err := RunZ80MemoryHostBaseline(factory, w)
+	if err != nil {
+		t.Fatal(err)
 	}
+	if !reflect.DeepEqual(direct.Target, r.Baseline.Target) {
+		t.Fatal("instrumentation changed native artifact/state/cost")
+	}
+	assertMemoryHostParserIndependentOracle(t, direct.Raw.Invocations, direct.Target.Invocations)
 	if dir := os.Getenv("MINZ_MEMORY_HOST_LOOP_ARTIFACTS"); dir != "" {
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			t.Fatal(err)

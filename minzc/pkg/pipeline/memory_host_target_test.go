@@ -51,42 +51,12 @@ func TestMemoryHostOriginalSelfLanzTarget(t *testing.T) {
 		t.Fatal(e)
 	}
 	exportMemoryHostReferenceBeforeAssert(t, "target", target, map[string]any{"workload.json": w, "raw.json": raw})
-	host := newLanzHost()
-	for i, input := range lanzBaselineInputs() {
-		clear(host.ram[0xc000:0xd000])
-		copy(host.ram[0xc000:], []byte(input))
-		host.pos = 0
-		host.len = uint16(len(input))
-		host.node = 0x8000
-		host.events = []lanzAccess{}
-		root := host.parse()
-		events := []hir.MemoryHostAccess{}
-		for _, v := range host.events {
-			events = append(events, hir.MemoryHostAccess{Kind: v.Op, Address: v.Address, Value: v.Value})
-		}
-		for _, run := range [][]hir.MemoryHostObservation{raw.Invocations, target.Invocations} {
-			o := run[i]
-			if len(o.Results) != 1 || o.Results[0].I != int64(root) || !reflect.DeepEqual(o.Events, events) || !reflect.DeepEqual(o.Regions["nodes"], host.ram[0x8000:0x9000]) || !reflect.DeepEqual(o.Regions["strings"], host.ram[0x9000:0xb000]) || !reflect.DeepEqual(o.Regions["source"], host.ram[0xc000:0xd000]) {
-				t.Fatal("independent original parser", i)
-			}
-			for n, v := range map[string]uint16{"pos": host.pos, "src_len": host.len, "node_bump": host.node, "str_bump": host.str, "src_buf": 0xc000, "node_arena": 0x8000, "str_arena": 0x9000, "SEXP_ATOM": 1, "SEXP_LIST": 2, "SEXP_INT": 3} {
-				b := o.Globals[n]
-				got := uint16(b[0])
-				if len(b) > 1 {
-					got |= uint16(b[1]) << 8
-				}
-				if got != v {
-					t.Fatal("independent parser global", i, n, got, v)
-				}
-			}
-		}
-	}
+	assertMemoryHostParserIndependentOracle(t, raw.Invocations, target.Invocations)
+
 	if fmt.Sprintf("%x", sha256.Sum256([]byte(target.FinalMIRDump))) != target.MIRSHA256 || fmt.Sprintf("%x", sha256.Sum256(target.AllocationJSON)) != target.AllocationSHA256 {
 		t.Fatal("diagnostic payload hash mismatch")
 	}
-	if target.TotalTStates != 1269009 || target.BinarySHA256 != "27a7c8ea7b77725ee5f61e9f4be625bd1b582b1b03e1013021e0ab3766ee8545" {
-		t.Fatal("reference native cycle/binary drift", target.TotalTStates, target.BinarySHA256)
-	}
+	assertCurrentMemoryHostParserReference(t, target)
 	if dir := os.Getenv("MINZ_MEMORY_HOST_ARTIFACTS"); dir != "" {
 		os.MkdirAll(dir, 0755)
 		for n, v := range map[string]any{"workload.json": w, "raw.json": raw, "target.json": target} {
@@ -222,6 +192,40 @@ fun load(addr:u16)->u8{return peek(addr)}
 		} else {
 			if target.Invocations[1].Results[0].I != 255 {
 				t.Fatal("two-call RAM persistence")
+			}
+		}
+	}
+}
+
+func assertMemoryHostParserIndependentOracle(t *testing.T, runs ...[]hir.MemoryHostObservation) {
+	t.Helper()
+	host := newLanzHost()
+	for i, input := range lanzBaselineInputs() {
+		clear(host.ram[0xc000:0xd000])
+		copy(host.ram[0xc000:], []byte(input))
+		host.pos = 0
+		host.len = uint16(len(input))
+		host.node = 0x8000
+		host.events = []lanzAccess{}
+		root := host.parse()
+		events := []hir.MemoryHostAccess{}
+		for _, v := range host.events {
+			events = append(events, hir.MemoryHostAccess{Kind: v.Op, Address: v.Address, Value: v.Value})
+		}
+		for _, run := range runs {
+			o := run[i]
+			if len(o.Results) != 1 || o.Results[0].I != int64(root) || !reflect.DeepEqual(o.Events, events) || !reflect.DeepEqual(o.Regions["nodes"], host.ram[0x8000:0x9000]) || !reflect.DeepEqual(o.Regions["strings"], host.ram[0x9000:0xb000]) || !reflect.DeepEqual(o.Regions["source"], host.ram[0xc000:0xd000]) {
+				t.Fatal("independent original parser", i)
+			}
+			for n, v := range map[string]uint16{"pos": host.pos, "src_len": host.len, "node_bump": host.node, "str_bump": host.str, "src_buf": 0xc000, "node_arena": 0x8000, "str_arena": 0x9000, "SEXP_ATOM": 1, "SEXP_LIST": 2, "SEXP_INT": 3} {
+				b := o.Globals[n]
+				got := uint16(b[0])
+				if len(b) > 1 {
+					got |= uint16(b[1]) << 8
+				}
+				if got != v {
+					t.Fatal("independent parser global", i, n, got, v)
+				}
 			}
 		}
 	}

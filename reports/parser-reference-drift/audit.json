@@ -1,0 +1,17 @@
+{
+  "compiler_checkpoint": "17b018db",
+  "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+  "current_T": 1296873,
+  "current_bytes": 2391,
+  "current_binary_sha256": "59392b014d66b82221122a57119836f66d762ad66a7304fa46b4fd2bb8c12cef",
+  "old_asserted_T": 1269009,
+  "old_asserted_binary_sha256": "27a7c8ea7b77725ee5f61e9f4be625bd1b582b1b03e1013021e0ab3766ee8545",
+  "old_binary_bytes": 2364,
+  "three_path_full_target_equality": true,
+  "before_after_target_equality_excluding_compiler_context": true,
+  "context_change_reason": "Modified test sources change compiler executable identity; target/ABI/ASM/BIN/state/cost remain equal.",
+  "independent_host_cases": 30,
+  "prior_saved_30_case_semantic_equality_excluding_steps": true,
+  "prior_saved_30_case_T": 1291565,
+  "prior_saved_30_case_SHA": "a9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73"
+}

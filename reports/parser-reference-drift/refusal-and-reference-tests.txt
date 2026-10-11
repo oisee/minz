@@ -1,0 +1,34 @@
+=== RUN   TestMemoryHostFactoryOriginalParser
+--- PASS: TestMemoryHostFactoryOriginalParser (0.93s)
+=== RUN   TestMemoryHostFactoryRefusals
+=== RUN   TestMemoryHostFactoryRefusals/nil
+=== RUN   TestMemoryHostFactoryRefusals/shared
+=== RUN   TestMemoryHostFactoryRefusals/shared_ast
+=== RUN   TestMemoryHostFactoryRefusals/source_changed
+=== RUN   TestMemoryHostFactoryRefusals/prior_only_origin
+=== RUN   TestMemoryHostFactoryRefusals/fresh_and_prior_origin
+=== RUN   TestMemoryHostFactoryRefusals/prior_policy
+=== RUN   TestMemoryHostFactoryRefusals/third_call_origin
+=== RUN   TestMemoryHostFactoryRefusals/caller_bytes_mutated
+--- PASS: TestMemoryHostFactoryRefusals (0.50s)
+    --- PASS: TestMemoryHostFactoryRefusals/nil (0.00s)
+    --- PASS: TestMemoryHostFactoryRefusals/shared (0.03s)
+    --- PASS: TestMemoryHostFactoryRefusals/shared_ast (0.01s)
+    --- PASS: TestMemoryHostFactoryRefusals/source_changed (0.04s)
+    --- PASS: TestMemoryHostFactoryRefusals/prior_only_origin (0.05s)
+    --- PASS: TestMemoryHostFactoryRefusals/fresh_and_prior_origin (0.04s)
+    --- PASS: TestMemoryHostFactoryRefusals/prior_policy (0.04s)
+    --- PASS: TestMemoryHostFactoryRefusals/third_call_origin (0.14s)
+    --- PASS: TestMemoryHostFactoryRefusals/caller_bytes_mutated (0.14s)
+=== RUN   TestMemoryHostLoopAssociationOriginalParser
+--- PASS: TestMemoryHostLoopAssociationOriginalParser (2.46s)
+=== RUN   TestMemoryHostLoopAssociationFailureAndGas
+--- PASS: TestMemoryHostLoopAssociationFailureAndGas (0.40s)
+=== RUN   TestMemoryHostLoopAssociationRejectsDelayedSourceMutation
+=== RUN   TestMemoryHostLoopAssociationRejectsDelayedSourceMutation/4
+=== RUN   TestMemoryHostLoopAssociationRejectsDelayedSourceMutation/5
+--- PASS: TestMemoryHostLoopAssociationRejectsDelayedSourceMutation (2.47s)
+    --- PASS: TestMemoryHostLoopAssociationRejectsDelayedSourceMutation/4 (1.03s)
+    --- PASS: TestMemoryHostLoopAssociationRejectsDelayedSourceMutation/5 (1.44s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	6.777s

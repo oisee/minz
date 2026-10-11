@@ -1,0 +1,12 @@
+=== RUN   TestMemoryHostFactoryOriginalParser
+    memory_host_baseline_test.go:25: original target drift
+--- FAIL: TestMemoryHostFactoryOriginalParser (0.99s)
+=== RUN   TestMemoryHostLoopAssociationOriginalParser
+    memory_host_loop_profile_test.go:37: instrumentation changed native baseline
+--- FAIL: TestMemoryHostLoopAssociationOriginalParser (1.76s)
+=== RUN   TestMemoryHostOriginalSelfLanzTarget
+    memory_host_target_test.go:88: reference native cycle/binary drift 1296873 59392b014d66b82221122a57119836f66d762ad66a7304fa46b4fd2bb8c12cef
+--- FAIL: TestMemoryHostOriginalSelfLanzTarget (0.64s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	3.403s
+FAIL

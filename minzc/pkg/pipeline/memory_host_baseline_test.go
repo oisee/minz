@@ -1,7 +1,9 @@
 package pipeline
 
 import (
+	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/nanz"
 	"os"
@@ -21,9 +23,8 @@ func TestMemoryHostFactoryOriginalParser(t *testing.T) {
 	// This fixture binds the current known adapter binary and cycle reference.
 	// A legitimate backend change must remeasure this reference while keeping
 	// the independent parser state/event oracle; production has no fixed cost.
-	if r.Target.TotalTStates != 1269009 || r.Target.BinarySHA256 != "27a7c8ea7b77725ee5f61e9f4be625bd1b582b1b03e1013021e0ab3766ee8545" {
-		t.Fatal("original target drift")
-	}
+	assertMemoryHostParserIndependentOracle(t, r.Raw.Invocations, r.Target.Invocations)
+	assertCurrentMemoryHostParserReference(t, r.Target)
 	if dir := os.Getenv("MINZ_MEMORY_HOST_ARTIFACTS"); dir != "" {
 		os.MkdirAll(dir, 0755)
 		b, e := json.MarshalIndent(r, "", "  ")
@@ -116,5 +117,17 @@ fun same_two()->u16{return 7}`
 				t.Fatal("unsafe factory accepted", mode)
 			}
 		})
+	}
+}
+
+// This checkpoint was refreshed only after exact source/host state/event
+// equivalence and factory/instrumented native artifact equality were proven.
+func assertCurrentMemoryHostParserReference(t *testing.T, target *MemoryHostTargetEvidence) {
+	t.Helper()
+	if target.TotalTStates != 1296873 || len(target.Binary) != 2391 || target.BinarySHA256 != "59392b014d66b82221122a57119836f66d762ad66a7304fa46b4fd2bb8c12cef" {
+		t.Fatal("current parser target drift", target.TotalTStates, len(target.Binary), target.BinarySHA256)
+	}
+	if fmt.Sprintf("%x", sha256.Sum256(target.Binary)) != target.BinarySHA256 {
+		t.Fatal("parser binary payload hash mismatch")
 	}
 }
