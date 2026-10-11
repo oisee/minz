@@ -12,7 +12,7 @@ classes `e49054af`, known consumed callback ABI `8c9fa926`. Историческ
 
 | Требование | Что доказано | Что ещё не доказано |
 |---|---|---|
-| Заявленный корпус | Все 194 пути имеют явный статус; 55 independent VM/Z80 paths | 82 ждут независимого оракула, остальные имеют отдельные ASM/runtime/host ограничения; bounded entry не означает всё приложение |
+| Заявленный корпус | Все 194 пути имеют явный статус; 56 independent VM/Z80 paths | 81 ждут независимого оракула, остальные имеют отдельные ASM/runtime/host ограничения; bounded entry не означает всё приложение |
 | PFCCO/PBQP и таблицы | Реальные назначения, moves/saves и native польза на packet/weighted; bounded solver audit | Произвольные calls/CFG/islands и глобальная оптимальность |
 | Автоматический выбор и heldout | Self-Lanz, HashMap и Pascal SORT: training-selected BIN проверен на заранее отложенных входах; packet даёт отдельный PFCCO выигрыш | Остальные runtime/corpus ограничения сохраняются; это не универсальный выигрыш на всех программах |
 | Полное удаление LIR и перенос пользы | Пакет/consumers удалены; shared engines/native тесты сохранены; word ×10/12, byte fusion и K11 перенесены с native пользой | Полнота общих physical constraints/pattern choices требует предметного аудита |
@@ -610,3 +610,5 @@ root gate проходит ([пакет155](grace-integration-155/README.md)). G
 struct-return buffers остаются незавершёнными.
 
 Исходный Lizp DSP теперь имеет bounded независимую проверку всех пяти entry: 847 104 VM/native CALL в трёх режимах, без period0 и полного clamp domain. [Пакет157](grace-integration-157/README.md); актуальный каталог сохраняет все 194 пути.
+
+MIR direct-call shape checks интегрированы `240db2ea`; оригинальные cellular функции имеют bounded VM/native proof всех трёх entries. [Пакет158](grace-integration-158/README.md), актуальный каталог: 56 independent/bounded, pending81.

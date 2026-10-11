@@ -1,0 +1,12 @@
+{
+  "compiler_checkpoint": "240db2ea",
+  "source_sha256": "f050567d1b8694ee5ea3a745b9568f21dac8d7c54649635affeaa1a59993fd2e",
+  "entries": {
+    "xor_rule": "all65536 byte pairs: host XOR",
+    "popcount": "all256: count independently tested bits",
+    "rule30": "all8 bit patterns: bit from truth-table integer30"
+  },
+  "excluded": "nonbit rule30 parameters; no cellular-grid or game runtime in original source",
+  "calls_per_mode": 65800,
+  "calls_total": 197400
+}

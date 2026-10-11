@@ -1,0 +1,7 @@
+# Интеграция 158: MIR call shape и исходные cellular функции
+
+Root `240db2ea` интегрирует donor `9c6649db`: объявленные ordinary direct calls проверяются на физическое число аргументов, существование значений, совместимые представления типов и реально объявленные потребляемые результаты. Существующие integer/pointer coercions и игнорирование результатов сохранены. Независимый full MIR2 агента PASS 85,624 с; первый FAIL неполной тестовой ABI декларации сохранён, fixture исправлен без изменения поведения. Root совместный [gate](root-call-gate.txt) включает malformed/valid calls, lineage, original DSP/functional и constant-memory регрессии; PASS, не full current pipeline.
+
+Неизменённый `game_of_life.lizp`: три функции, raw/final VM и собранный Z80 против независимого host-оракула. XOR — все 65 536 byte pairs, popcount — все 256 x, Rule 30 — все восемь битовых конфигураций по truth table 30. На режим 65 800 CALL, всего 197 400; три режима PASS 0,447 с. Полные 64 KiB RAM/код неизменны за исключением реальных 6 байт стека, PC/SP восстановлены, spills нет. Все режимы 64 байта BIN; выигрыша не заявляем. Nonbit rule30 inputs и игра/поле не проверены; исходник содержит только три функции.
+
+[Полный artifact manifest](../../reports/lizp-cellular-native/manifest.json). Каталог сохраняет 194 пути: 48 independent + 8 bounded = 56, pending 81. General struct-return ABI остаётся в работе отдельно.
