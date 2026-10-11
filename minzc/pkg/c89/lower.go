@@ -590,6 +590,17 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 			continue
 		}
 
+		// Give a shadowing object a distinct HIR identity; outer loop-control
+		// references must not become the inner object's name at continue.
+		sourceName := name
+		if _, shadowed := fl.locals[name]; shadowed {
+			name = fmt.Sprintf("__local_%s_%d", name, fl.tmpCounter())
+			if fl.staticRenames == nil {
+				fl.staticRenames = make(map[string]string)
+			}
+			fl.staticRenames[sourceName] = name
+		}
+		fl.locals[sourceName] = ty
 		fl.locals[name] = ty
 
 		var init hir.Expr
@@ -682,6 +693,18 @@ func (fl *funcLow) lowerControlExpr(e cc.ExpressionNode) (hir.Expr, []hir.Stmt, 
 	effects := fl.pendingStmts
 	fl.pendingStmts = outer
 	return value, effects, err
+}
+
+// Re-lowered continue effects retain the lexical environment of the loop
+// header, while generated temporaries remain unique in the function.
+func (fl *funcLow) captureControlPrelude(fn func() ([]hir.Stmt, error)) func() ([]hir.Stmt, error) {
+	locals, renames := maps.Clone(fl.locals), maps.Clone(fl.staticRenames)
+	return func() ([]hir.Stmt, error) {
+		oldLocals, oldRenames := fl.locals, fl.staticRenames
+		fl.locals, fl.staticRenames = maps.Clone(locals), maps.Clone(renames)
+		defer func() { fl.locals, fl.staticRenames = oldLocals, oldRenames }()
+		return fn()
+	}
 }
 
 func (fl *funcLow) lowerLoopBody(s *cc.Statement, prelude func() ([]hir.Stmt, error)) ([]hir.Stmt, error) {
@@ -986,7 +1009,7 @@ func (fl *funcLow) lowerIteration(is *cc.IterationStatement) ([]hir.Stmt, error)
 			}
 			return append(effects, hir.If(&hir.UnaryExpr{Op: "!", X: cond, Ty: mir2.TyBool}, hir.Blk(hir.Break()), nil)), nil
 		}
-		body, err := fl.lowerLoopBody(is.Statement, test)
+		body, err := fl.lowerLoopBody(is.Statement, fl.captureControlPrelude(test))
 		if err != nil {
 			return nil, err
 		}
@@ -1077,7 +1100,7 @@ func (fl *funcLow) lowerForLoop(is *cc.IterationStatement, isForDecl bool) ([]hi
 		}
 		return effects, nil
 	}
-	body, err := fl.lowerLoopBody(is.Statement, post)
+	body, err := fl.lowerLoopBody(is.Statement, fl.captureControlPrelude(post))
 	if err != nil {
 		return nil, err
 	}

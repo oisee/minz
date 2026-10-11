@@ -1,0 +1,6 @@
+{
+  "reports/c89-control-shadowing/c89-tests.txt": "1dc9aed844610f81080535de56af03788d56dc33baab72c6d3007c3ffa103f20",
+  "reports/c89-control-shadowing/after.txt": "091e2dc3a0f33389ebe6f5fd7e633ed5c3110a10f8c6aa501f3490e4220a5b21",
+  "reports/c89-control-shadowing/before.txt": "53d79b80cc9270371cb92ab3a55a1f05e14ff17ebc97f5da6373f4f9a259585b",
+  "reports/c89-control-shadowing/REPORT.md": "fc4ab3ffca3c919d2261d7a41b5bcdf9b2ac640e21900f890dae8635c0ce2606"
+}

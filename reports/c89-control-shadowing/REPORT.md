@@ -1,0 +1,5 @@
+# Continue control lexical binding
+
+Follow-up to statement-scope fix 1c1ad6d1, kept separate from short-circuit expressions. Parent review requested a valid C89 body that shadows a loop-control variable. Frozen failing source/log in before.txt: for body `unsigned char i=99` with continue ran forever; do body shadow gave99 instead809. Ordinary nested shadowed while without continue already gave809.
+
+Continue post/test re-lowering must use the header's lexical environment, not the inner block. The helper now captures that environment; shadowed ordinary local objects get distinct HIR names, so the restored header name cannot select the inner storage. Models: three iterations of local99 yield sum297 mod256=41, outeri3; result3*256+41=809. Raw/final VM and native assertions pass in ordinary/Grace Speed/Size for for/do/while cases, and all C89 tests pass. Independent condition-expression tests not yet integrated are excluded explicitly from this intermediate full-package run; the production short-circuit patch is not part of this donor.
