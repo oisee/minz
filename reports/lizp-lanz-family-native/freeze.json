@@ -1,0 +1,16 @@
+{
+  "sources": {
+    "examples/lizp/cond_test.lizp": "50a8ca601da047bde2975df0a833e625efa89d0a08204dfac562f75b4afd4c00",
+    "examples/lizp/factorial.lizp": "93598adbb7279b487c78750024e0e4624885b004fe559117bc4b15fa949cf156",
+    "examples/lizp/hello.lizp": "35c508dab177413c9caf5aae931463f403d83f04d5268ef7033ee22c9968837f",
+    "reports/showcase-src/2026-03-15/ex29_lanz.lanz": "cb1b2a4b97fb4724926d4377a77024b0268009eb844059bf63097064f0f4e660"
+  },
+  "classify": "all256n:0ifn0,1ifn<10,2ifn<100,255otherwise",
+  "factorial": "all256n:product1..n modulo65536; Lizpdotimes maps ForRange ascending0..n-1, notNanziteratorrange countdown",
+  "factorial_main": "resultu16=120 littleendian",
+  "cond_main": "scoreu8=2 afterclassify42/whenincrement/unlessdecrement",
+  "hello_main": "void/nooutput/noeffects",
+  "ex29": "doubleall256mod256;abs_diffall65536orderedpairs;sum_to0..254triangularmod256;sum_to255 nonterminates becausebytei wraps0and i<=255 alwaystrue",
+  "nontermination_probe": "boundedindependentstepbudget raw/final/native denyreturn forsum_to255; sourceunchanged",
+  "range_spec": "Bookv7chapter6countdown appliesrangeiterator; sourceex29usesexplicitwhile, LizpdotimesForRange ascending. No incorrectcountdownoracle"
+}
