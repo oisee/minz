@@ -448,6 +448,12 @@ func (g *z80cg) genExt(inst *Inst) {
 		srcW = 8
 	}
 
+	if (srcW == 8 || srcW == 16 || srcW == 24) && dstW > srcW && dstW <= 32 &&
+		(dstW >= 24 || isSpill(dst) || isSpill(src) || isIXYReg(src) || strings.HasSuffix(src, "'")) {
+		g.genUnsignedExtBytes(dst, src, srcW, dstW)
+		return
+	}
+
 	if srcW == 8 && dstW == 16 {
 		// Zero-extend u8 → u16.
 		// dst should be a 16-bit reg (HL/DE/BC/IX/IY).
@@ -467,6 +473,74 @@ func (g *z80cg) genExt(inst *Inst) {
 	}
 	// Fallback.
 	g.comment(fmt.Sprintf("TODO: ext %s→%s %s→%s", inst.SrcTy, inst.Ty, src, dst))
+}
+
+// Snapshot every source byte before touching the destination: an allocated
+// destination may overlap either bank of its narrow operand. LD and EXX do not
+// change flags; the outer AF save also preserves an unrelated accumulator.
+func (g *z80cg) genUnsignedExtBytes(dst, src string, srcW, dstW int) {
+	byteLoc := func(loc string, width, i int) string {
+		if isSpill(loc) {
+			if i == 0 {
+				return loc
+			}
+			return fmt.Sprintf("%s+%d", loc, i)
+		}
+		if width <= 8 {
+			return loc
+		}
+		b := lowByte(loc)
+		if i%2 == 1 {
+			b = highByte(loc)
+		}
+		if i >= 2 {
+			b += "'"
+		}
+		return b
+	}
+	load := func(loc string) {
+		if loc == "A'" {
+			g.emit("    EX AF, AF'")
+			g.emit("    PUSH AF")
+			g.emit("    EX AF, AF'")
+			g.emit("    POP AF")
+		} else if strings.HasSuffix(loc, "'") {
+			g.emit("    EXX")
+			g.emitLD8("A", strings.TrimSuffix(loc, "'"))
+			g.emit("    EXX")
+		} else {
+			g.emitLD8("A", loc)
+		}
+	}
+	store := func(loc string) {
+		if strings.HasSuffix(loc, "'") {
+			g.emit("    EXX")
+			g.emitLD8(strings.TrimSuffix(loc, "'"), "A")
+			g.emit("    EXX")
+		} else {
+			g.emitLD8(loc, "A")
+		}
+	}
+	g.emit("    PUSH AF")
+	for i := 0; i < srcW/8; i++ {
+		load(byteLoc(src, srcW, i))
+		g.emit("    PUSH AF")
+	}
+	g.emit("    LD A, 0")
+	storageBytes := dstW / 8
+	// DWord registers reserve both halves of the shadow pair for u24 too.
+	if dstW == 24 && !isSpill(dst) {
+		storageBytes = 4
+	}
+	for i := srcW / 8; i < storageBytes; i++ {
+		store(byteLoc(dst, dstW, i))
+	}
+	for i := srcW/8 - 1; i >= 0; i-- {
+		g.emit("    POP AF")
+		store(byteLoc(dst, dstW, i))
+	}
+	g.emit("    POP AF")
+	g.invalidate(dst)
 }
 
 func (g *z80cg) genSext(inst *Inst) {

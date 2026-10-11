@@ -1,0 +1,14 @@
+=== RUN   TestUnsignedExtensionSourceNative
+    unsigned_extension_source_test.go:64: full-module bytes=504 SHAa3e0120c610f88b154251ee9084e2a31e69b0a3626a8dd150bcfa5068fd1d176 Grace=false Size=false
+    unsigned_extension_source_test.go:64: full-module bytes=504 SHAa3e0120c610f88b154251ee9084e2a31e69b0a3626a8dd150bcfa5068fd1d176 Grace=true Size=true
+    unsigned_extension_source_test.go:64: full-module bytes=504 SHAa3e0120c610f88b154251ee9084e2a31e69b0a3626a8dd150bcfa5068fd1d176 Grace=true Size=false
+--- PASS: TestUnsignedExtensionSourceNative (0.80s)
+=== RUN   TestOriginalZVMFinishUnsignedEmbeddingVM
+[HIR-SPLIT] print_text → print_text$split_6 (1 inputs, pressure 10)
+[HIR-SPLIT] decode_input_utf8 → decode_input_utf8$split_2 (1 inputs, pressure 9)
+[HIR-SPLIT] print_text → print_text$split_6 (1 inputs, pressure 10)
+[HIR-SPLIT] decode_input_utf8 → decode_input_utf8$split_2 (1 inputs, pressure 9)
+    unsigned_extension_source_test.go:244: original whole-module native refusal: Z80 global "story" exceeds 16-bit address space (data before global: 18377 bytes, global: 131072 bytes)
+--- PASS: TestOriginalZVMFinishUnsignedEmbeddingVM (0.85s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.657s
