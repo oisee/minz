@@ -1,0 +1,3 @@
+# Full-memory CP/M capture (test only)
+
+The gated cmd/mze test uses the existing setupCPMBDOS, RemogattoZ80WithScreen and setExecutionLimit from e51846f1. It loads the exact reviewed COM SHA087a9c7376591a82169b963891493ab6389cf26ebab728ef08a63e7664c73112 at0100, entry0100 and standard CCP stackFDFE. No replacement BDOS behavior or instruction hooks. The production BDOS2 handler writes stdout; the test captures stdout with a concurrently drained pipe so the10million-cycle budget remains effective for a runaway printer. It saves all65536bytesRAM/output/registers/cycles/error and COM before assertions. Independent saved audit resolves image symbols and verifies status1/canaries/arena counts. Native execution has not occurred.
