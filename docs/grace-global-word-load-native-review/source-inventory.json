@@ -1,0 +1,12 @@
+{
+  "review_base": "3474194b10c769c2f13a2706309929226df0f5de",
+  "executor_snapshot": "af4ced956bb63d7f6eab059febb6bd0af9a15277",
+  "files": {
+    "minzc/pkg/mir2/z80codegen_patterns.go": "da6c29a34d867aaec66f0b47cb70a552ec0d7ab9694057c1793cdbb881592e05",
+    "minzc/pkg/mir2/z80codegen_inst.go": "5f87ca15796dd46864a39aca749225cc5319b23abbdb8fd7a6a447e92a24cb29",
+    "minzc/pkg/mir2/z80codegen_move.go": "197f968cea9c9e4f781af308243355199328315c798a1fba44c7221b76c4eed4",
+    "minzc/pkg/pipeline/memory_host_access_recipe.go": "fa516ca9e88168b79b5e4475cfc8846b713f62c05112fc9171c72b28fcfbc59c",
+    "minzc/pkg/pipeline/memory_host_sidecar.go": "92eeff7281ef17fb2e5c1eb93fcabcc30d4c74886b7a258df5654b0a92facebe"
+  },
+  "cpu_rerun": false
+}
