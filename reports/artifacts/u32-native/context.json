@@ -1,0 +1,44 @@
+{
+  "base": "7d62a218",
+  "options": {
+    "ContractOpt": true,
+    "AssertMode": "none"
+  },
+  "ordinary_source_cases": 17,
+  "inputs_per_source": 6084,
+  "total_source_pairs": 103428,
+  "paths": [
+    "raw MIR VM",
+    "final MIR VM",
+    "native Z80"
+  ],
+  "forced_logic_cases": 735,
+  "native_origin": 32768,
+  "native_return_PC": 61696,
+  "native_return_SP": 61440,
+  "boundary_values": [
+    0,
+    1,
+    2,
+    255,
+    256,
+    65535,
+    65536,
+    65537,
+    2147483647,
+    2147483648,
+    4294967294,
+    4294967295,
+    305419896,
+    2882400001
+  ],
+  "extra_values": "1<<bit and ~(1<<bit), bit=0..31; duplicates retained",
+  "rotate_counts": [
+    0,
+    1,
+    7,
+    16,
+    31,
+    32
+  ]
+}
