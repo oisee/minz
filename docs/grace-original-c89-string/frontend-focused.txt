@@ -1,0 +1,161 @@
+=== RUN   TestCorpus_AllExamples
+=== RUN   TestCorpus_AllExamples/assert_test.c
+    c89_test.go:446:   5 funcs, 13 asserts, 0 sandboxes
+=== RUN   TestCorpus_AllExamples/bench.c
+    c89_test.go:446:   6 funcs, 0 asserts, 0 sandboxes
+=== RUN   TestCorpus_AllExamples/bench_extended.c
+    c89_test.go:446:   29 funcs, 27 asserts, 0 sandboxes
+    c89_test.go:464:   27/27 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/bitops.c
+    c89_test.go:446:   8 funcs, 6 asserts, 0 sandboxes
+    c89_test.go:464:   6/6 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/c99_c11.c
+    c89_test.go:446:   13 funcs, 14 asserts, 0 sandboxes
+    c89_test.go:464:   14/14 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/c99_compound.c
+    c89_test.go:446:   17 funcs, 21 asserts, 0 sandboxes
+    c89_test.go:464:   21/21 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/c99_control.c
+    c89_test.go:446:   5 funcs, 17 asserts, 0 sandboxes
+    c89_test.go:464:   17/17 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/c99_designated.c
+    c89_test.go:446:   13 funcs, 9 asserts, 0 sandboxes
+    c89_test.go:461:   pipeline: statement 1: HIR desig_basic_a: call desig_basic return type ptr, declared void
+=== RUN   TestCorpus_AllExamples/c99_preproc.c
+    c89_test.go:446:   10 funcs, 19 asserts, 0 sandboxes
+    c89_test.go:464:   19/19 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/c99_types.c
+    c89_test.go:446:   7 funcs, 18 asserts, 0 sandboxes
+    c89_test.go:464:   18/18 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/cast_test.c
+    c89_test.go:446:   4 funcs, 4 asserts, 0 sandboxes
+    c89_test.go:464:   4/4 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/compound_lit.c
+    c89_test.go:446:   7 funcs, 5 asserts, 0 sandboxes
+    c89_test.go:461:   pipeline: statement 1: HIR test_div_q: call make_div return type ptr, declared void
+=== RUN   TestCorpus_AllExamples/constfold_showcase.c
+    c89_test.go:446:   6 funcs, 3 asserts, 0 sandboxes
+    c89_test.go:464:   3/3 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/cpm_io.c
+    c89_test.go:446:   7 funcs, 14 asserts, 0 sandboxes
+    c89_test.go:464:   14/14 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/dowhile_break.c
+    c89_test.go:446:   7 funcs, 19 asserts, 0 sandboxes
+    c89_test.go:464:   19/19 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/enum_test.c
+    c89_test.go:446:   5 funcs, 5 asserts, 0 sandboxes
+    c89_test.go:464:   5/5 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/fatfs_constructs.c
+    c89_test.go:446:   24 funcs, 24 asserts, 0 sandboxes
+    c89_test.go:464:   24/24 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/fatfs_lowlevel.c
+    c89_test.go:446:   25 funcs, 33 asserts, 0 sandboxes
+    c89_test.go:464:   33/33 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/flex_array.c
+    c89_test.go:446:   1 funcs, 1 asserts, 0 sandboxes
+    c89_test.go:464:   1/1 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/func_ptr.c
+    c89_test.go:446:   11 funcs, 6 asserts, 0 sandboxes
+    c89_test.go:461:   pipeline: Z80: indirect call in test_reassign_fp has live values across it; caller preservation for the indirect ABI is unsupported
+=== RUN   TestCorpus_AllExamples/game_helpers.c
+    c89_test.go:446:   5 funcs, 14 asserts, 0 sandboxes
+    c89_test.go:464:   14/14 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/goto_test.c
+    c89_test.go:446:   2 funcs, 3 asserts, 0 sandboxes
+    c89_test.go:464:   3/3 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/hello.c
+    c89_test.go:446:   4 funcs, 0 asserts, 0 sandboxes
+=== RUN   TestCorpus_AllExamples/import_test.c
+    c89_test.go:446:   6 funcs, 7 asserts, 0 sandboxes
+    c89_test.go:464:   7/7 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/imported_math.c
+    c89_test.go:446:   4 funcs, 0 asserts, 0 sandboxes
+=== RUN   TestCorpus_AllExamples/logical.c
+    c89_test.go:446:   5 funcs, 18 asserts, 0 sandboxes
+    c89_test.go:464:   18/18 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/math16.c
+    c89_test.go:446:   7 funcs, 10 asserts, 0 sandboxes
+    c89_test.go:464:   10/10 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/math8.c
+    c89_test.go:446:   5 funcs, 11 asserts, 0 sandboxes
+    c89_test.go:464:   11/11 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/minmax_pair.c
+    c89_test.go:446:   3 funcs, 6 asserts, 0 sandboxes
+    c89_test.go:461:   pipeline: statement 1: statement 0: statement 1: HIR minmax: value type ptr incompatible with void
+=== RUN   TestCorpus_AllExamples/nested_struct.c
+    c89_test.go:446:   6 funcs, 6 asserts, 0 sandboxes
+    c89_test.go:464:   6/6 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/sdcc_benchmark.c
+    c89_test.go:446:   15 funcs, 0 asserts, 0 sandboxes
+=== RUN   TestCorpus_AllExamples/sizeof_test.c
+    c89_test.go:446:   6 funcs, 6 asserts, 0 sandboxes
+    c89_test.go:464:   6/6 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/static_local.c
+    c89_test.go:446:   5 funcs, 2 asserts, 0 sandboxes
+    c89_test.go:464:   2/2 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/string8.c
+    c89_test.go:446:   4 funcs, 0 asserts, 0 sandboxes
+=== RUN   TestCorpus_AllExamples/struct_promote.c
+    c89_test.go:446:   9 funcs, 3 asserts, 0 sandboxes
+=== RUN   TestCorpus_AllExamples/switch.c
+    c89_test.go:446:   3 funcs, 16 asserts, 0 sandboxes
+    c89_test.go:464:   16/16 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/ternary.c
+    c89_test.go:446:   6 funcs, 6 asserts, 0 sandboxes
+    c89_test.go:464:   6/6 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/typeof_test.c
+    c89_test.go:446:   2 funcs, 2 asserts, 0 sandboxes
+    c89_test.go:464:   2/2 mir2 asserts passed
+=== RUN   TestCorpus_AllExamples/union_test.c
+    c89_test.go:446:   1 funcs, 1 asserts, 0 sandboxes
+    c89_test.go:464:   1/1 mir2 asserts passed
+=== NAME  TestCorpus_AllExamples
+    c89_test.go:468: TOTAL: 327/353 mir2 asserts passed across corpus
+--- PASS: TestCorpus_AllExamples (0.24s)
+    --- PASS: TestCorpus_AllExamples/assert_test.c (0.00s)
+    --- PASS: TestCorpus_AllExamples/bench.c (0.00s)
+    --- PASS: TestCorpus_AllExamples/bench_extended.c (0.02s)
+    --- PASS: TestCorpus_AllExamples/bitops.c (0.01s)
+    --- PASS: TestCorpus_AllExamples/c99_c11.c (0.01s)
+    --- PASS: TestCorpus_AllExamples/c99_compound.c (0.00s)
+    --- PASS: TestCorpus_AllExamples/c99_control.c (0.00s)
+    --- PASS: TestCorpus_AllExamples/c99_designated.c (0.00s)
+    --- PASS: TestCorpus_AllExamples/c99_preproc.c (0.01s)
+    --- PASS: TestCorpus_AllExamples/c99_types.c (0.01s)
+    --- PASS: TestCorpus_AllExamples/cast_test.c (0.00s)
+    --- PASS: TestCorpus_AllExamples/compound_lit.c (0.00s)
+    --- PASS: TestCorpus_AllExamples/constfold_showcase.c (0.00s)
+    --- PASS: TestCorpus_AllExamples/cpm_io.c (0.01s)
+    --- PASS: TestCorpus_AllExamples/dowhile_break.c (0.02s)
+    --- PASS: TestCorpus_AllExamples/enum_test.c (0.00s)
+    --- PASS: TestCorpus_AllExamples/fatfs_constructs.c (0.02s)
+    --- PASS: TestCorpus_AllExamples/fatfs_lowlevel.c (0.04s)
+    --- PASS: TestCorpus_AllExamples/flex_array.c (0.00s)
+    --- PASS: TestCorpus_AllExamples/func_ptr.c (0.00s)
+    --- PASS: TestCorpus_AllExamples/game_helpers.c (0.01s)
+    --- PASS: TestCorpus_AllExamples/goto_test.c (0.00s)
+    --- PASS: TestCorpus_AllExamples/hello.c (0.00s)
+    --- PASS: TestCorpus_AllExamples/import_test.c (0.01s)
+    --- PASS: TestCorpus_AllExamples/imported_math.c (0.00s)
+    --- PASS: TestCorpus_AllExamples/logical.c (0.01s)
+    --- PASS: TestCorpus_AllExamples/math16.c (0.00s)
+    --- PASS: TestCorpus_AllExamples/math8.c (0.00s)
+    --- PASS: TestCorpus_AllExamples/minmax_pair.c (0.00s)
+    --- PASS: TestCorpus_AllExamples/nested_struct.c (0.02s)
+    --- PASS: TestCorpus_AllExamples/sdcc_benchmark.c (0.00s)
+    --- PASS: TestCorpus_AllExamples/sizeof_test.c (0.00s)
+    --- PASS: TestCorpus_AllExamples/static_local.c (0.00s)
+    --- PASS: TestCorpus_AllExamples/string8.c (0.00s)
+    --- PASS: TestCorpus_AllExamples/struct_promote.c (0.00s)
+    --- PASS: TestCorpus_AllExamples/switch.c (0.02s)
+    --- PASS: TestCorpus_AllExamples/ternary.c (0.01s)
+    --- PASS: TestCorpus_AllExamples/typeof_test.c (0.00s)
+    --- PASS: TestCorpus_AllExamples/union_test.c (0.00s)
+=== RUN   TestStructFallbackDeterministic
+=== RUN   TestStructFallbackDeterministic/union=false
+=== RUN   TestStructFallbackDeterministic/union=true
+--- PASS: TestStructFallbackDeterministic (0.00s)
+    --- PASS: TestStructFallbackDeterministic/union=false (0.00s)
+    --- PASS: TestStructFallbackDeterministic/union=true (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/c89	0.253s

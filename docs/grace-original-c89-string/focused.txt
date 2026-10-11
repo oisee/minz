@@ -1,0 +1,5 @@
+=== RUN   TestOriginalC89StringMemoryVMZ80
+    showcase_c89_string_oracle_test.go:236: exact original C89 string four entries:303 calls + observer/full1030RAM/orderedreads-writes/raw-finalVM/nativeSPcode; 8701614 T/342 B SHA 34da23e0ecce27a556390fc4058451bc33585e567b30b343be2e4cf80cbfc3af
+--- PASS: TestOriginalC89StringMemoryVMZ80 (1.12s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.127s
