@@ -1,0 +1,34 @@
+=== RUN   TestProfileLUTGlobalsRequireExactSourceRegeneration
+=== RUN   TestProfileLUTGlobalsRequireExactSourceRegeneration/init
+=== RUN   TestProfileLUTGlobalsRequireExactSourceRegeneration/type
+=== RUN   TestProfileLUTGlobalsRequireExactSourceRegeneration/alignment
+=== RUN   TestProfileLUTGlobalsRequireExactSourceRegeneration/const
+=== RUN   TestProfileLUTGlobalsRequireExactSourceRegeneration/order
+=== RUN   TestProfileLUTGlobalsRequireExactSourceRegeneration/name
+=== RUN   TestProfileLUTGlobalsRequireExactSourceRegeneration/storage
+=== RUN   TestProfileLUTGlobalsRequireExactSourceRegeneration/at
+=== RUN   TestProfileLUTGlobalsRequireExactSourceRegeneration/vtable
+=== RUN   TestProfileLUTGlobalsRequireExactSourceRegeneration/extra
+=== RUN   TestProfileLUTGlobalsRequireExactSourceRegeneration/missing
+=== RUN   TestProfileLUTGlobalsRequireExactSourceRegeneration/source-init
+=== RUN   TestProfileLUTGlobalsRequireExactSourceRegeneration/source-type
+=== RUN   TestProfileLUTGlobalsRequireExactSourceRegeneration/source-const
+=== RUN   TestProfileLUTGlobalsRequireExactSourceRegeneration/source-name
+--- PASS: TestProfileLUTGlobalsRequireExactSourceRegeneration (0.00s)
+    --- PASS: TestProfileLUTGlobalsRequireExactSourceRegeneration/init (0.00s)
+    --- PASS: TestProfileLUTGlobalsRequireExactSourceRegeneration/type (0.00s)
+    --- PASS: TestProfileLUTGlobalsRequireExactSourceRegeneration/alignment (0.00s)
+    --- PASS: TestProfileLUTGlobalsRequireExactSourceRegeneration/const (0.00s)
+    --- PASS: TestProfileLUTGlobalsRequireExactSourceRegeneration/order (0.00s)
+    --- PASS: TestProfileLUTGlobalsRequireExactSourceRegeneration/name (0.00s)
+    --- PASS: TestProfileLUTGlobalsRequireExactSourceRegeneration/storage (0.00s)
+    --- PASS: TestProfileLUTGlobalsRequireExactSourceRegeneration/at (0.00s)
+    --- PASS: TestProfileLUTGlobalsRequireExactSourceRegeneration/vtable (0.00s)
+    --- PASS: TestProfileLUTGlobalsRequireExactSourceRegeneration/extra (0.00s)
+    --- PASS: TestProfileLUTGlobalsRequireExactSourceRegeneration/missing (0.00s)
+    --- PASS: TestProfileLUTGlobalsRequireExactSourceRegeneration/source-init (0.00s)
+    --- PASS: TestProfileLUTGlobalsRequireExactSourceRegeneration/source-type (0.00s)
+    --- PASS: TestProfileLUTGlobalsRequireExactSourceRegeneration/source-const (0.00s)
+    --- PASS: TestProfileLUTGlobalsRequireExactSourceRegeneration/source-name (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	0.012s

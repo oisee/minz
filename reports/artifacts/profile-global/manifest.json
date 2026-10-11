@@ -1,0 +1,72 @@
+[
+  {
+    "path": "real-source-corpus/popcount/baseline-results.json",
+    "bytes": 72065,
+    "sha256": "25547c395cdc5734126a809e385cc969e5ea33b214bcb6bf07301e283029eb3f"
+  },
+  {
+    "path": "real-source-corpus/popcount/baseline.a80",
+    "bytes": 1528,
+    "sha256": "34b232fe68dc18067b466f753f32a9603326b100e05ebaa39e01061fff970985"
+  },
+  {
+    "path": "real-source-corpus/popcount/baseline.bin",
+    "bytes": 512,
+    "sha256": "23e9ad546766d0d92fec1ac88fae5a34836bac0f12745daee97875806ca2b6a5"
+  },
+  {
+    "path": "real-source-corpus/popcount/evidence.json",
+    "bytes": 170791,
+    "sha256": "49934f8d3372ffae3c2b94b2b345ab879792a1629b10e48dce095b55ceff0fa7"
+  },
+  {
+    "path": "real-source-corpus/popcount/expected.json",
+    "bytes": 1282,
+    "sha256": "914a99f02eb0645b1d047b4d428fb7af5cb87a3e2f8046be86d686f97307151e"
+  },
+  {
+    "path": "real-source-corpus/popcount/oracle-run.json",
+    "bytes": 27554,
+    "sha256": "bac6447bb8dceeede0f9bc555bd0e76e998197b7c1fff7ff3b4fb7e69165963f"
+  },
+  {
+    "path": "real-source-corpus/popcount/profile.json",
+    "bytes": 1421,
+    "sha256": "7280870e2ba2c5106315ae2fb9fcdb4bcf797f244c37cb3419c38d5d6a192bb4"
+  },
+  {
+    "path": "real-source-corpus/popcount/results.json",
+    "bytes": 1881,
+    "sha256": "3f970208cc2a871da0b0443b92a36d4ea603ce0f6e5b857d79e4f1ffbdfd9c22"
+  },
+  {
+    "path": "real-source-corpus/popcount/selected-results.json",
+    "bytes": 72065,
+    "sha256": "25547c395cdc5734126a809e385cc969e5ea33b214bcb6bf07301e283029eb3f"
+  },
+  {
+    "path": "real-source-corpus/popcount/selected.a80",
+    "bytes": 1528,
+    "sha256": "34b232fe68dc18067b466f753f32a9603326b100e05ebaa39e01061fff970985"
+  },
+  {
+    "path": "real-source-corpus/popcount/selected.bin",
+    "bytes": 512,
+    "sha256": "23e9ad546766d0d92fec1ac88fae5a34836bac0f12745daee97875806ca2b6a5"
+  },
+  {
+    "path": "real-source-corpus/popcount/source-manifest.json",
+    "bytes": 119,
+    "sha256": "b360a85e67d935b80559643357396c97dc1fbc3d74dc85442cd5e80445954d3a"
+  },
+  {
+    "path": "real-source-corpus/popcount/source.nanz",
+    "bytes": 1014,
+    "sha256": "6409fd03c4157e228871f5497f5da168c2b6d70e4d3e28f45874cb7019b15101"
+  },
+  {
+    "path": "real-source-corpus/popcount/workload.json",
+    "bytes": 29506,
+    "sha256": "ef8af080ef0a538508f62b456bc39af41ec4df3fc1d32c98504171f507ce683f"
+  }
+]
