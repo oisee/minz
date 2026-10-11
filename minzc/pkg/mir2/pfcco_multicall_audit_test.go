@@ -155,16 +155,8 @@ func TestPFCCOMultiCallMeasuredAudit(t *testing.T) {
 			if pb["twice"].ParamClasses[0] != ClassRegC {
 				t.Fatal("asm pin changed")
 			}
-			if doubleOffset {
-				if pt != bestT || pbsize != bestB || pt >= gt || pbsize >= gb {
-					t.Fatalf("expected measured improvement %d/%d greedy%d/%d best%d/%d", pt, pbsize, gt, gb, bestT, bestB)
-				}
-			} else {
-				// An explicit residual negative control: first-use/static class costs do
-				// not account for all saves across calls. Do not call this native optimal.
-				if pt <= bestT || pbsize <= bestB {
-					t.Fatal("update residual limitation when the model improves")
-				}
+			if pt != bestT || pbsize != bestB || pt >= gt || pbsize >= gb {
+				t.Fatalf("expected measured improvement %d/%d greedy%d/%d best%d/%d", pt, pbsize, gt, gb, bestT, bestB)
 			}
 			t.Logf("doubleOffset=%v conditional=%v PBQP=%d T/%d B greedy=%d T/%d B exhaustive-native=%d T/%d B", doubleOffset, conditional, pt, pbsize, gt, gb, bestT, bestB)
 		}
@@ -266,5 +258,68 @@ func TestPFCCOBodyDemandAndFixedCallee(t *testing.T) {
 	f.Blocks[0].Insts = append(f.Blocks[0].Insts, &Inst{Op: OpAdd, Dst: Reg(100), Src: [2]Reg{x, x}, Ty: TyU8, Cls: ClassAcc})
 	if got := pfccoBodyUnaryCost(f, ch, Z80CostTable{}); got != 4 {
 		t.Fatalf("ALU adapter lost: %d", got)
+	}
+}
+
+func TestPFCCOLiteralAccumulatorDemandBoundaries(t *testing.T) {
+	for _, op := range []Op{OpAdd, OpAnd, OpOr, OpXor, OpSub, OpCmp} {
+		for _, width := range []Ty{TyU8, TyI8, TyU16} {
+			for _, reuse := range []bool{false, true} {
+				m := &Module{}
+				f := m.AddFunc("leaf")
+				b := NewBuilder(f)
+				b.SwitchToNewBlock("entry")
+				x := b.Param("x", width, ClassGeneral)
+				k := b.Const(3, width, ClassGeneral)
+				r := b.BinOp(op, k, x, width, ClassAcc)
+				if reuse {
+					r = b.Add(r, x, width, ClassAcc)
+				}
+				b.Ret(r)
+				want := (op == OpAdd || op == OpAnd || op == OpOr || op == OpXor) && width != TyU16 && !reuse
+				if got := pfccoLiteralAccumulatorDemand(f, x); got != want {
+					t.Fatalf("op%v width%v reuse%v got%v want%v", op, width, reuse, got, want)
+				}
+			}
+		}
+	}
+	// A runtime lhs is not a literal, and a cycle of copies must terminate.
+	m := &Module{}
+	f := m.AddFunc("runtime")
+	b := NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	x := b.Param("x", TyU8, ClassGeneral)
+	y := b.Param("y", TyU8, ClassGeneral)
+	r := b.Add(y, x, TyU8, ClassAcc)
+	b.Ret(r)
+	if pfccoLiteralAccumulatorDemand(f, x) {
+		t.Fatal("runtime lhs promoted")
+	}
+	f.Blocks[0].Insts = []*Inst{{Op: OpMove, Dst: x, Src: [2]Reg{y, NoReg}}, {Op: OpMove, Dst: y, Src: [2]Reg{x, NoReg}}}
+	f.Blocks[0].Term = &TermUnreachable{}
+	if pfccoLiteralAccumulatorDemand(f, x) {
+		t.Fatal("cyclic copy promoted")
+	}
+}
+
+func TestPFCCOLiteralRHSLiveAcrossBranchRefuses(t *testing.T) {
+	m := &Module{}
+	f := m.AddFunc("branch_live")
+	b := NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	x := b.Param("x", TyU8, ClassGeneral)
+	k := b.Const(3, TyU8, ClassGeneral)
+	r := b.Add(k, x, TyU8, ClassAcc)
+	exit := f.NewBlock("exit")
+	b.Jmp(exit.Label)
+	b.SwitchTo(exit)
+	b.Ret(x)
+	if pfccoLiteralAccumulatorDemand(f, x) {
+		t.Fatal("successor-live rhs promoted")
+	}
+	// Remove the extra live use; a dead-rhs copy feeding literal ADD is supported.
+	f.Blocks[1].Term = &TermRet{Vals: []Reg{r}}
+	if !pfccoLiteralAccumulatorDemand(f, x) {
+		t.Fatal("dead rhs lost")
 	}
 }

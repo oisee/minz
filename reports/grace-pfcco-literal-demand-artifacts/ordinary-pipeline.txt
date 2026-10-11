@@ -1,0 +1,12 @@
+=== RUN   TestContractStrategyPinnedNativeSource
+    contract_strategy_native_test.go:136: strategy="" full-source 87387 T/63 B
+    contract_strategy_native_test.go:136: strategy="pbqp" full-source 85343 T/61 B
+--- PASS: TestContractStrategyPinnedNativeSource (0.05s)
+=== RUN   TestContractStrategyLiteralRHSNativeSource
+    contract_strategy_native_test.go:136: strategy="" full-source 84327 T/60 B
+    contract_strategy_native_test.go:136: strategy="pbqp" full-source 82283 T/58 B
+--- PASS: TestContractStrategyLiteralRHSNativeSource (0.05s)
+=== RUN   TestContractStrategyAdmissionAndIdentity
+--- PASS: TestContractStrategyAdmissionAndIdentity (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.113s

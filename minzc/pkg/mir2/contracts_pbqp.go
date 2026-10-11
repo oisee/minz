@@ -21,7 +21,7 @@ package mir2
 //
 // Call demands belong to edges; node costs infer only non-call body demands.
 // Z80 A/B/C transfers use instruction costs rather than placement constraints.
-// Static first-use costs still omit call-save pressure and execution frequency;
+// Static first-use costs still omit general call-save pressure and execution frequency;
 // even exact forest reduction does not establish a native-code optimum.
 //
 // Status: NOT the default. OptimizeContracts remains unchanged.
@@ -531,6 +531,9 @@ func pfccoBodyUnaryCost(f *Func, choice *ContractChoice, ct CostTable) int {
 			continue
 		}
 		natural := inferNaturalClass(&body, p.Reg, nil)
+		if _, z80 := ct.(Z80CostTable); z80 && pfccoLiteralAccumulatorDemand(&body, p.Reg) {
+			natural = ClassAcc
+		}
 		total += pfccoAdapterCost(choice.ParamClasses[i], natural, ct)
 	}
 	for i, r := range f.Contract.Returns {
@@ -589,4 +592,78 @@ func pfccoAdapterCost(from, to RegClass, ct CostTable) int {
 		return 0
 	}
 	return 4 // LD r,r: one byte, four T-states, no flags modified.
+}
+
+// A byte commutative operation with a literal lhs can consume its rhs directly
+// in A, by commuting operands. Do not charge an adapter to an arbitrary general
+// register when codegen emits ADD/AND/OR/XOR A, literal instead. Other operands,
+// noncommutative operations and wider types retain the existing demand model.
+func pfccoLiteralAccumulatorDemand(f *Func, r Reg) bool {
+	// Overwriting a still-live rhs requires a save; do not assume a free A reuse.
+	liveAfter := make(map[*Inst]*RegSet)
+	lr := ComputeLiveness(f)
+	for bi, b := range f.Blocks {
+		live := lr.LiveOut[bi].Clone()
+		if b.Term != nil {
+			for _, r := range b.Term.termUses() {
+				live.Add(r)
+			}
+		}
+		for ii := len(b.Insts) - 1; ii >= 0; ii-- {
+			inst := b.Insts[ii]
+			liveAfter[inst] = live.Clone()
+			live.Remove(inst.Dst)
+			for _, r := range inst.ExtraRets {
+				live.Remove(r)
+			}
+			for _, r := range inst.Uses() {
+				live.Add(r)
+			}
+		}
+	}
+	defs := make(map[Reg]*Inst)
+	for _, b := range f.Blocks {
+		for _, i := range b.Insts {
+			if i.Dst != NoReg {
+				defs[i.Dst] = i
+			}
+		}
+	}
+	var visit func(Reg, map[Reg]bool) bool
+	visit = func(r Reg, seen map[Reg]bool) bool {
+		if seen[r] {
+			return false
+		}
+		seen[r] = true
+		for _, b := range f.Blocks {
+			for _, i := range b.Insts {
+				if i.Src[0] != r && i.Src[1] != r {
+					continue
+				}
+				if i.Op == OpMove {
+					return visit(i.Dst, seen)
+				}
+				if i.Ty != TyU8 && i.Ty != TyI8 {
+					return false
+				}
+				switch i.Op {
+				case OpAdd, OpAnd, OpOr, OpXor:
+				default:
+					return false
+				}
+				lhs := defs[i.Src[0]]
+				return i.Src[1] == r && lhs != nil && lhs.Op == OpConst && !liveAfter[i].Has(r)
+			}
+			// A return/branch use precedes a later-block ALU demand.
+			if b.Term != nil {
+				for _, use := range b.Term.termUses() {
+					if use == r {
+						return false
+					}
+				}
+			}
+		}
+		return false
+	}
+	return visit(r, map[Reg]bool{})
 }
