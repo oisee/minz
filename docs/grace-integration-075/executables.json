@@ -1,0 +1,21 @@
+{
+  "inventory_files": 16,
+  "new_executables": [
+    {
+      "path": "mz-cpm-control-flow-final",
+      "bytes": 42397633,
+      "sha256": "87dfff29999f25ecdaf9848200ea7a7986735362601707d0ad122253238b20a6"
+    },
+    {
+      "path": "mz-cpm-recursive-final",
+      "bytes": 42397913,
+      "sha256": "384b644a8fdf39446e2ccccff71497a267280a8e40bdad29b4a7852387730ad0"
+    },
+    {
+      "path": "mze-cpm-517ecb",
+      "bytes": 14619813,
+      "sha256": "0ce2d244936d134f17ca5acd816b8e17dc48da4ae5e0e4142d17a72110ff03f6"
+    }
+  ],
+  "scope": "Historical source contexts, not all current HEAD; public MZE+COM stdout evidence in integration074"
+}
