@@ -1,0 +1,1 @@
+64 original assertions; default CompileHIRSteps executes active via-z80 assertions
