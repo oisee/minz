@@ -1,0 +1,7 @@
+# Независимый повтор assert-frontends и abs-diff/GCD
+
+Root совместный replay на8182ff31 завершился **PASS,25,601с**. Шесть точных assert-путей разных frontend проверены по полным заранее зафиксированным byte-доменам и signed16PascalDouble;все исходныеassertsсохранены. Абсолютнаяразность иисходныйGCDпровереныraw/finalVMиZ80сactualCALLPC/SP/fullRAM. Дляwordabsdiffуказан boundedpairdomain.
+
+GCDимеет65026возвращающихbyteпар;510смешанныхнулевыхпарпроверяютсяотдельноподлимитомшагов,ихневыдаютза математическийgcd(x,0). Невозвратсоответствует subtract-zero алгоритмуисходника. GraceуменьшаетGCD21→15байт и96 153 077→58 563 703Tнавозвращающемконечномдомене. Этоmodecomparison,неprospectiveheldoutselector.
+
+Все119assertи73absdiff/GCDmanifestpayloadпровереныrootlocal/canonicalshare. Typedshowcase5источниковинтегрированeaed65eb,all120payloadverified,rootreplayвработе. Каталогобновитсяпослетерминаларезультата. FullCLI11105fb3/fullpipelinecfaa7777по-прежнемуlive,неPASSавансом.
