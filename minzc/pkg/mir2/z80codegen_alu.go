@@ -585,7 +585,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 	}
 }
 
-// genBinOp32 emits 32-bit ADD or SUB using the Z80 EXX / shadow-pair technique.
+// genBinOp32 emits 32-bit arithmetic or logic using the Z80 EXX / shadow-pair technique.
 //
 // The 32-bit value is split across main and shadow register banks:
 //
@@ -616,6 +616,29 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 // Limitation: Z80 only provides ADD/ADC/SBC with HL as destination.
 // When dst≠HL, we temporarily use HL via emitMov32 (TODO: optimise).
 func (g *z80cg) genBinOp32(mnem, dst, lhs, rhs string) {
+	if mnem == "AND" || mnem == "OR" || mnem == "XOR" {
+		// Logical operations are commutative; reuse an allocated rhs destination
+		// before moving lhs so neither main nor shadow rhs is overwritten.
+		if rhs == dst && lhs != dst {
+			lhs, rhs = rhs, lhs
+		}
+		g.emit("    PUSH AF")
+		if lhs != dst {
+			g.emitMov32(dst, lhs)
+		}
+		for bank := 0; bank < 2; bank++ {
+			for _, bytePart := range []func(string) string{lowByte, highByte} {
+				d, r := bytePart(dst), bytePart(rhs)
+				g.emitf("    LD A, %s", d)
+				g.emitf("    %s %s", mnem, r)
+				g.emitf("    LD %s, A", d)
+			}
+			g.emit("    EXX")
+		}
+		g.emit("    POP AF")
+		return
+	}
+
 	// ADD is commutative: if rhs == dst and lhs != dst, swap so we don't clobber rhs.
 	if mnem == "ADD" && rhs == dst && lhs != dst {
 		lhs, rhs = rhs, lhs

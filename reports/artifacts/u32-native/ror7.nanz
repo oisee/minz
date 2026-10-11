@@ -1,0 +1,4 @@
+global a:u32
+global b:u32
+global result:u32
+fun execute(){result=(a>>7)|(a<<25)}
