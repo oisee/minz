@@ -1,0 +1,36 @@
+{
+  "schema": "minz.unsigned-pair-public-independent-audit/v1",
+  "candidates": {
+    "legacy": {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941",
+      "t_states": 1135370,
+      "bytes": 2000,
+      "str_bump": 37163,
+      "node_bump": 32808,
+      "policy": 0,
+      "compiler_id": "executable-sha256:e64597309250ac45b88ac9b31bd2b01c3e3ed05536cea761eb41f6fa9ae9b1a8",
+      "steps": 109829,
+      "envelope_sha256": "17da077881f763896435d2c0d174735434c3349041727df4a10f3c51618b497b"
+    },
+    "preserve-speed": {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+      "t_states": 1132449,
+      "bytes": 2001,
+      "str_bump": 37163,
+      "node_bump": 32808,
+      "policy": 1,
+      "compiler_id": "executable-sha256:e64597309250ac45b88ac9b31bd2b01c3e3ed05536cea761eb41f6fa9ae9b1a8",
+      "steps": 109966,
+      "envelope_sha256": "a9868fc6a6d104817c0341d349e328ceaddc4345e618deadf4f26161dc2c3cff"
+    }
+  },
+  "delta_t_states": -2921,
+  "delta_bytes": 1,
+  "scope": "60 saved independent source/native observations; full v2 policy envelope; existing selectors/CLI remain Legacy; no CPU replay or profile counts"
+}

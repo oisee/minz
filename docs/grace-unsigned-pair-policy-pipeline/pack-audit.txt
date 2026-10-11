@@ -1,0 +1,1 @@
+PASS60 publicv2 source-model/raw/native fullstate/events and mandatory0/1policies; exactpriorBIN/ASM/cost/steps/nativehashes; freshcontext; speed -2921T/+1B

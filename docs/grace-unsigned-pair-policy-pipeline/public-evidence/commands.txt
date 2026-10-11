@@ -1,0 +1,7 @@
+Build from isolated minzc directory:
+go test -c -buildvcs=false -o /home/alice/dev/minz-artifacts/grace-checkpoints/unsigned-pair-policy-evidence/pipeline-public-baseline.test ./pkg/pipeline
+
+Run from isolated minzc/pkg/pipeline directory:
+MINZ_UNSIGNED_PAIR_POLICY_ARTIFACTS=/home/alice/dev/minz-artifacts/grace-checkpoints/unsigned-pair-policy-evidence/public-baselines MINZ_UNSIGNED_PAIR_POLICY_REFERENCE=/home/alice/dev/minz-artifacts/grace-checkpoints/global-word-load-cli-evidence/speed/original/factory-baseline.json /home/alice/dev/minz-artifacts/grace-checkpoints/unsigned-pair-policy-evidence/pipeline-public-baseline.test -test.run ^TestUnsignedPairPolicyOriginalParserExport$ -test.v
+
+Exactly two full30 actual baselines completed. Earlier wrong working-directory launch failed before parsing/CPU; its separate history log is retained.
