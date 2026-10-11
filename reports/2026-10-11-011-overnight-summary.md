@@ -295,3 +295,12 @@ CompileHIRWithOptions; CompileHIRSteps собирает те же програм
 регистров между функциями после allocation. Исправление и native
 проверка второго пути ещё впереди. Логи успеха и ошибок сохранены
 отдельно в docs/grace-string-parent-gate-artifacts с SHA256.
+
+12:26 UTC: `92a7ca2d` исправляет module-wide свежесть регистров после
+renumbering; проверка с двумя функциями прошла, независимое ревью
+82ec4379 подтверждает узкий fix. Полный MIR2 PASS 6.529s. Showcase:
+26 прежних падений, 0 новых, пять старых устранены (51_impl_cpm_demo,
+ex19_assert_forms, promoted_arithmetic, scheme_r5rs, tetris_tui).
+Четыре свежие ASM-регрессии также исчезли. Native-проверка строк через
+legacy route ещё впереди; общий строковый этап пока не закрыт.
+Все логи/сравнения сохранены с SHA, цель активна.

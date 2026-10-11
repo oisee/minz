@@ -1,0 +1,13 @@
+{
+  "compiler_commit": "92a7ca2d",
+  "baseline_failures": 31,
+  "current_failures": 26,
+  "new": [],
+  "resolved": [
+    "51_impl_cpm_demo.nanz",
+    "ex19_assert_forms.nanz",
+    "promoted_arithmetic.nanz",
+    "scheme_r5rs.lizp",
+    "tetris_tui.nanz"
+  ]
+}

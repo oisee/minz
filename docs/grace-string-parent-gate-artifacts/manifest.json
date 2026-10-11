@@ -7,6 +7,21 @@
   "showcase": "35 failures vs 31 baseline: 4 new invalid ASM; open regression gate",
   "files": [
     {
+      "path": "string-module-identity-mir2.txt",
+      "bytes": 43,
+      "sha256": "6ac026449b7425558aa0d22d02bbff190b995836b16b6d3b388f0f9b1f2ac858"
+    },
+    {
+      "path": "string-module-identity-showcase-comparison.json",
+      "bytes": 260,
+      "sha256": "de62db9c70690e82b6d101fdc4dfd465638ca93383a667359862f9e4c3a53fd4"
+    },
+    {
+      "path": "string-module-identity-showcase.txt",
+      "bytes": 38172,
+      "sha256": "4115bc03e1c7d4dba48e61cd1432119b7c7b317b77018ce1f71a49372b629416"
+    },
+    {
       "path": "string-parent-cli.txt",
       "bytes": 46,
       "sha256": "dd95dcb9f2fe6b78c498dd24196bf5c0033b66b171c1132cdfa382ab561846de"
@@ -32,5 +47,10 @@
       "sha256": "7be4f1a5c08d645056ab1e5146cfd625e7c050672e79845fe2124ae5871739db"
     }
   ],
-  "corrected_frontends": "Full Lanz PASS .011s; full Nanz fails only showcase (35 failures already recorded), no other test failure; run after 9329251d fixture corrections"
+  "corrected_frontends": "Full Lanz PASS .011s; full Nanz fails only showcase (35 failures already recorded), no other test failure; run after 9329251d fixture corrections",
+  "module_identity_repair": {
+    "compiler_commit": "92a7ca2d",
+    "mir2": "PASS 6.529s",
+    "showcase": "26 prior failures, 0 new, 5 historical resolved; native legacy string route pending"
+  }
 }

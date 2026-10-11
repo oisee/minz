@@ -424,3 +424,12 @@ Diamondnegative7cc84260+native6091+host4dedallPASS rootcopy docs/grace-normal-gl
 12:20 UTC: root964cb29f integrated exact10 string files/pushed. Repaired native15 PASS, cost0cb/backendbed8 saved audits PASS including reassembly; first failed15 retained. Parent HIR26.864/MIR2 4.738 PASS, old Nanz print expectation and Lanz meta CString fixture corrected9329251d/pushed, focused .009/.007 PASS. Parent CLI session80012 confirmed LIVE; no restart. Showcase35 vs31 baseline: FOUR NEW invalid ASM ex27/sap_mara/self_parser/self_tokenizer. Review confirms CompileHIRSteps route assembles, legacy CompileHIRWithOptions fails with byte-register pointer loads/stores. Owner investigating postallocation InsertAccSaves global vreg collision; no source reencoding workaround. Stage NOTclosed/published; Sites58 remains latest. All work permanent. Goalactive, no Alice decision.
 
 12:22 UTC: parentCLI80012 TERMINAL PASS335.963s, exact2f24production executable/log retained. Legacy4invalidASM rootcauseconfirmed by source review: RenumberRegs leaves eachfunction nextReg at nextfunction start, AllocReg ignoreslargermodulecounter; postallocationInsertAccSaves overwrites laterfunction combined.Locs withD/E. Ownerimplementingglobaluniqueness fix/regression, nativelegacyroute stillrequired. Costreviewalso flags scratchlivepair/renameDJNZ/definition omissions; separate boundedvalidation underway. Parentlogs including failures copied docs/grace-string-parent-gate-artifacts withSHA. Goalactive.
+
+12:26 UTC: `92a7ca2d` исправляет module-wide свежесть регистров после
+renumbering; проверка с двумя функциями прошла, независимое ревью
+82ec4379 подтверждает узкий fix. Полный MIR2 PASS 6.529s. Showcase:
+26 прежних падений, 0 новых, пять старых устранены (51_impl_cpm_demo,
+ex19_assert_forms, promoted_arithmetic, scheme_r5rs, tetris_tui).
+Четыре свежие ASM-регрессии также исчезли. Native-проверка строк через
+legacy route ещё впереди; общий строковый этап пока не закрыт.
+Все логи/сравнения сохранены с SHA, цель активна.
