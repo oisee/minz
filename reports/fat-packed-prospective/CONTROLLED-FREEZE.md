@@ -1,0 +1,3 @@
+# Controlled API workload freeze
+
+Frozen before selector measurement. Current RunZ80ProfileWorkload refuses numeric pointers; this is correct admission. Training/heldout controlled JSON uses declared 256-byte opaque resources per case, initialized byte(offset*29+17), original cluster/value pairs from workload.json. Exact prescribed read→write→read calls permit independent before/after packed-word and shared-nibble oracle. No literal-address/wrap test is relabeled as controlled selection; ffff cases remain separate native validation. Full source unchanged and disk externs not called. Two mode goals Speed/Size will choose only on training; exact selected BIN runs unchanged on heldout resources.
