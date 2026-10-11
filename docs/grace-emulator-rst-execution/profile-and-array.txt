@@ -1,0 +1,44 @@
+=== RUN   TestMeasureLoopCostModel
+--- PASS: TestMeasureLoopCostModel (13.19s)
+=== RUN   TestMeasureLoopCostModelRefusals
+=== RUN   TestMeasureLoopCostModelRefusals/nil_factory
+=== RUN   TestMeasureLoopCostModelRefusals/factory_error
+=== RUN   TestMeasureLoopCostModelRefusals/nil_module
+=== RUN   TestMeasureLoopCostModelRefusals/backend
+=== RUN   TestMeasureLoopCostModelRefusals/unknown_backend
+=== RUN   TestMeasureLoopCostModelRefusals/skipped_emission
+=== RUN   TestMeasureLoopCostModelRefusals/profile_already_selected
+=== RUN   TestMeasureLoopCostModelRefusals/wrong_function
+=== RUN   TestMeasureLoopCostModelRefusals/shared_module
+=== RUN   TestMeasureLoopCostModelRefusals/shared_AST
+=== RUN   TestMeasureLoopCostModelRefusals/different_HIR
+=== RUN   TestMeasureLoopCostModelRefusals/non_u8
+=== RUN   TestMeasureLoopCostModelRefusals/different_return
+=== RUN   TestMeasureLoopCostModelRefusals/sticky_input
+=== RUN   TestMeasureLoopCostModelRefusals/source_manifest_missing
+=== RUN   TestMeasureLoopCostModelRefusals/missing_target
+--- PASS: TestMeasureLoopCostModelRefusals (0.26s)
+    --- PASS: TestMeasureLoopCostModelRefusals/nil_factory (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/factory_error (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/nil_module (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/backend (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/unknown_backend (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/skipped_emission (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/profile_already_selected (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/wrong_function (0.07s)
+    --- PASS: TestMeasureLoopCostModelRefusals/shared_module (0.01s)
+    --- PASS: TestMeasureLoopCostModelRefusals/shared_AST (0.01s)
+    --- PASS: TestMeasureLoopCostModelRefusals/different_HIR (0.02s)
+    --- PASS: TestMeasureLoopCostModelRefusals/non_u8 (0.07s)
+    --- PASS: TestMeasureLoopCostModelRefusals/different_return (0.07s)
+    --- PASS: TestMeasureLoopCostModelRefusals/sticky_input (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/source_manifest_missing (0.00s)
+    --- PASS: TestMeasureLoopCostModelRefusals/missing_target (0.00s)
+=== RUN   TestOriginalMapInPlaceCumulativeVMZ80
+    showcase_mapinplace_oracle_test.go:158: exact original mapInPlace:20 persistent calls + separate observer, full1030RAM/order/stack/code; wrap separately; 118329 T/22 B SHA3644107cb1297e339a418ac0a545d5a9aa7392870115b80fad9e57df2ea453ee
+--- PASS: TestOriginalMapInPlaceCumulativeVMZ80 (0.05s)
+=== RUN   TestOriginalMapInPlaceAddressWrapVMZ80
+    showcase_mapinplace_oracle_test.go:268: 9 cumulative exact original add2 calls via constant-address drivers, ffff→0000; raw ordered events + native full516 RAM/guards/SP/immutable image PASS; 92 B SHA4a0b9b1458eb0d205434e6daeaac0f98a6999bb23352ca65f1b06942975159b7
+--- PASS: TestOriginalMapInPlaceAddressWrapVMZ80 (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	13.515s

@@ -1,0 +1,60 @@
+=== RUN   TestScreenRAMStoresDoNotDispatchRST
+=== RUN   TestScreenRAMStoresDoNotDispatchRST/oldc7
+=== RUN   TestScreenRAMStoresDoNotDispatchRST/oldcf
+=== RUN   TestScreenRAMStoresDoNotDispatchRST/oldd7
+=== RUN   TestScreenRAMStoresDoNotDispatchRST/olddf
+=== RUN   TestScreenRAMStoresDoNotDispatchRST/olde7
+=== RUN   TestScreenRAMStoresDoNotDispatchRST/oldef
+=== RUN   TestScreenRAMStoresDoNotDispatchRST/oldf7
+=== RUN   TestScreenRAMStoresDoNotDispatchRST/oldff
+--- PASS: TestScreenRAMStoresDoNotDispatchRST (0.00s)
+    --- PASS: TestScreenRAMStoresDoNotDispatchRST/oldc7 (0.00s)
+    --- PASS: TestScreenRAMStoresDoNotDispatchRST/oldcf (0.00s)
+    --- PASS: TestScreenRAMStoresDoNotDispatchRST/oldd7 (0.00s)
+    --- PASS: TestScreenRAMStoresDoNotDispatchRST/olddf (0.00s)
+    --- PASS: TestScreenRAMStoresDoNotDispatchRST/olde7 (0.00s)
+    --- PASS: TestScreenRAMStoresDoNotDispatchRST/oldef (0.00s)
+    --- PASS: TestScreenRAMStoresDoNotDispatchRST/oldf7 (0.00s)
+    --- PASS: TestScreenRAMStoresDoNotDispatchRST/oldff (0.00s)
+=== RUN   TestScreenRSTExecutedHooksStepAndRun
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opc7/runfalse
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opcf/runfalse
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opd7/runfalse
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opdf/runfalse
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/ope7/runfalse
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opef/runfalse
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opf7/runfalse
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opff/runfalse
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opc7/runtrue
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opcf/runtrue
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opd7/runtrue
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opdf/runtrue
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/ope7/runtrue
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opef/runtrue
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opf7/runtrue
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opff/runtrue
+--- PASS: TestScreenRSTExecutedHooksStepAndRun (0.00s)
+    --- PASS: TestScreenRSTExecutedHooksStepAndRun/opc7/runfalse (0.00s)
+    --- PASS: TestScreenRSTExecutedHooksStepAndRun/opcf/runfalse (0.00s)
+    --- PASS: TestScreenRSTExecutedHooksStepAndRun/opd7/runfalse (0.00s)
+    --- PASS: TestScreenRSTExecutedHooksStepAndRun/opdf/runfalse (0.00s)
+    --- PASS: TestScreenRSTExecutedHooksStepAndRun/ope7/runfalse (0.00s)
+    --- PASS: TestScreenRSTExecutedHooksStepAndRun/opef/runfalse (0.00s)
+    --- PASS: TestScreenRSTExecutedHooksStepAndRun/opf7/runfalse (0.00s)
+    --- PASS: TestScreenRSTExecutedHooksStepAndRun/opff/runfalse (0.00s)
+    --- PASS: TestScreenRSTExecutedHooksStepAndRun/opc7/runtrue (0.00s)
+    --- PASS: TestScreenRSTExecutedHooksStepAndRun/opcf/runtrue (0.00s)
+    --- PASS: TestScreenRSTExecutedHooksStepAndRun/opd7/runtrue (0.00s)
+    --- PASS: TestScreenRSTExecutedHooksStepAndRun/opdf/runtrue (0.00s)
+    --- PASS: TestScreenRSTExecutedHooksStepAndRun/ope7/runtrue (0.00s)
+    --- PASS: TestScreenRSTExecutedHooksStepAndRun/opef/runtrue (0.00s)
+    --- PASS: TestScreenRSTExecutedHooksStepAndRun/opf7/runtrue (0.00s)
+    --- PASS: TestScreenRSTExecutedHooksStepAndRun/opff/runtrue (0.00s)
+=== RUN   TestScreenUnhandledRSTUsesCPUStack
+--- PASS: TestScreenUnhandledRSTUsesCPUStack (0.00s)
+=== RUN   TestScreenRSTPatchOnlyDispatchesOnExecution
+--- PASS: TestScreenRSTPatchOnlyDispatchesOnExecution (0.00s)
+=== RUN   TestScreenPrefixedRSTKeepsHardwareExecution
+--- PASS: TestScreenPrefixedRSTKeepsHardwareExecution (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/emulator	0.002s

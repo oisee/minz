@@ -1,0 +1,84 @@
+=== RUN   TestScreenRAMStoresDoNotDispatchRST
+=== RUN   TestScreenRAMStoresDoNotDispatchRST/oldc7
+    rst_execution_test.go:30: store got{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} want{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} callbacks1 data=58 ffff=6b
+=== RUN   TestScreenRAMStoresDoNotDispatchRST/oldcf
+    rst_execution_test.go:30: store got{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} want{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} callbacks1 data=58 ffff=6b
+=== RUN   TestScreenRAMStoresDoNotDispatchRST/oldd7
+    rst_execution_test.go:30: store got{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} want{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} callbacks1 data=58 ffff=6b
+=== RUN   TestScreenRAMStoresDoNotDispatchRST/olddf
+    rst_execution_test.go:30: store got{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} want{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} callbacks1 data=58 ffff=12
+=== RUN   TestScreenRAMStoresDoNotDispatchRST/olde7
+    rst_execution_test.go:30: store got{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} want{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} callbacks1 data=58 ffff=34
+=== RUN   TestScreenRAMStoresDoNotDispatchRST/oldef
+    rst_execution_test.go:30: store got{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} want{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} callbacks1 data=58 ffff=6b
+=== RUN   TestScreenRAMStoresDoNotDispatchRST/oldf7
+    rst_execution_test.go:30: store got{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} want{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} callbacks1 data=58 ffff=6b
+=== RUN   TestScreenRAMStoresDoNotDispatchRST/oldff
+    rst_execution_test.go:30: store got{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} want{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} callbacks1 data=58 ffff=6b
+--- FAIL: TestScreenRAMStoresDoNotDispatchRST (0.00s)
+    --- FAIL: TestScreenRAMStoresDoNotDispatchRST/oldc7 (0.00s)
+    --- FAIL: TestScreenRAMStoresDoNotDispatchRST/oldcf (0.00s)
+    --- FAIL: TestScreenRAMStoresDoNotDispatchRST/oldd7 (0.00s)
+    --- FAIL: TestScreenRAMStoresDoNotDispatchRST/olddf (0.00s)
+    --- FAIL: TestScreenRAMStoresDoNotDispatchRST/olde7 (0.00s)
+    --- FAIL: TestScreenRAMStoresDoNotDispatchRST/oldef (0.00s)
+    --- FAIL: TestScreenRAMStoresDoNotDispatchRST/oldf7 (0.00s)
+    --- FAIL: TestScreenRAMStoresDoNotDispatchRST/oldff (0.00s)
+=== RUN   TestScreenRSTExecutedHooksStepAndRun
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opc7/runfalse
+    rst_execution_test.go:89: hook got{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61422 PC:0} want{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} calls0 ffff6b
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opcf/runfalse
+    rst_execution_test.go:89: hook got{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61422 PC:8} want{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} calls0 ffff6b
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opd7/runfalse
+    rst_execution_test.go:89: hook got{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61422 PC:16} want{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} calls0 ffff6b
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opdf/runfalse
+    rst_execution_test.go:89: hook got{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61422 PC:24} want{A:18 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} calls0 ffff6b
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/ope7/runfalse
+    rst_execution_test.go:89: hook got{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61422 PC:32} want{A:52 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} calls0 ffff6b
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opef/runfalse
+    rst_execution_test.go:89: hook got{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61422 PC:40} want{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} calls0 ffff6b
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opf7/runfalse
+    rst_execution_test.go:89: hook got{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61422 PC:48} want{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} calls0 ffff6b
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opff/runfalse
+    rst_execution_test.go:89: hook got{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61422 PC:56} want{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} calls0 ffff6b
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opc7/runtrue
+    rst_execution_test.go:81: run cycles11
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opcf/runtrue
+    rst_execution_test.go:72: execution limit exceeded
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opd7/runtrue
+    rst_execution_test.go:72: execution limit exceeded
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opdf/runtrue
+    rst_execution_test.go:72: execution limit exceeded
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/ope7/runtrue
+    rst_execution_test.go:72: execution limit exceeded
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opef/runtrue
+    rst_execution_test.go:72: execution limit exceeded
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opf7/runtrue
+    rst_execution_test.go:72: execution limit exceeded
+=== RUN   TestScreenRSTExecutedHooksStepAndRun/opff/runtrue
+    rst_execution_test.go:89: hook got{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61422 PC:56} want{A:88 F:165 BC:4660 DE:22136 HL:36864 IX:9320 IY:13980 SP:61424 PC:32769} calls0 ffff6b
+--- FAIL: TestScreenRSTExecutedHooksStepAndRun (0.17s)
+    --- FAIL: TestScreenRSTExecutedHooksStepAndRun/opc7/runfalse (0.00s)
+    --- FAIL: TestScreenRSTExecutedHooksStepAndRun/opcf/runfalse (0.00s)
+    --- FAIL: TestScreenRSTExecutedHooksStepAndRun/opd7/runfalse (0.00s)
+    --- FAIL: TestScreenRSTExecutedHooksStepAndRun/opdf/runfalse (0.00s)
+    --- FAIL: TestScreenRSTExecutedHooksStepAndRun/ope7/runfalse (0.00s)
+    --- FAIL: TestScreenRSTExecutedHooksStepAndRun/opef/runfalse (0.00s)
+    --- FAIL: TestScreenRSTExecutedHooksStepAndRun/opf7/runfalse (0.00s)
+    --- FAIL: TestScreenRSTExecutedHooksStepAndRun/opff/runfalse (0.00s)
+    --- FAIL: TestScreenRSTExecutedHooksStepAndRun/opc7/runtrue (0.00s)
+    --- FAIL: TestScreenRSTExecutedHooksStepAndRun/opcf/runtrue (0.03s)
+    --- FAIL: TestScreenRSTExecutedHooksStepAndRun/opd7/runtrue (0.03s)
+    --- FAIL: TestScreenRSTExecutedHooksStepAndRun/opdf/runtrue (0.03s)
+    --- FAIL: TestScreenRSTExecutedHooksStepAndRun/ope7/runtrue (0.03s)
+    --- FAIL: TestScreenRSTExecutedHooksStepAndRun/opef/runtrue (0.03s)
+    --- FAIL: TestScreenRSTExecutedHooksStepAndRun/opf7/runtrue (0.03s)
+    --- FAIL: TestScreenRSTExecutedHooksStepAndRun/opff/runtrue (0.00s)
+=== RUN   TestScreenUnhandledRSTUsesCPUStack
+--- PASS: TestScreenUnhandledRSTUsesCPUStack (0.00s)
+=== RUN   TestScreenRSTPatchOnlyDispatchesOnExecution
+    rst_execution_test.go:127: patch triggeredRST
+--- FAIL: TestScreenRSTPatchOnlyDispatchesOnExecution (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/emulator	0.175s
+FAIL
