@@ -1,6 +1,6 @@
 # Ночной итог Grace / PGO — 11 октября 2026
 
-Актуально на 11:15 UTC. Цель продолжается: выбирать оптимизации по проверенному
+Актуально на 11:25 UTC. Цель продолжается: выбирать оптимизации по проверенному
 профилю, от исходника через HIR/MIR до собранного Z80-бинарника. MIR VM служит
 промежуточным oracle; итоговые варианты исполняются в Z80-эмуляторе с проверкой
 результатов, памяти, порядка host events, размера и T-states. Проверка на
@@ -38,7 +38,7 @@ collection baseline сохранены. Независимые аудиты пр
 
 ## Опубликовано и локально сохранено
 
-Подтверждённая приватная публикация Sites — **версия 55**:
+Подтверждённая приватная публикация Sites — **версия 56**:
 https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/
 
 - [Совместный policy×mask поиск](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-policy-search.html)
@@ -129,12 +129,14 @@ Legacy/mask2 663T/1978B. Zero-body не доказывает dynamic compareacti
 Общий pipeline TERMINAL PASS (exit0), exactexecutable/log сохранены; HIR/MIR/C89/CLI/Nanz PASS, showcase31same0new.
 Broad gate нашёл цикл зависимостей frontend same-package tests→pipeline→Nanz→
 frontend. Test-only исправление перенесено be43274d и pushed; Lanz/Lizp/PLM/Pascal
-в рабочей ветке PASS .012/.012/.020/.011s. Независимая проверка полного HIR неизменна. Новый поиск опубликован в приватном Sites55; пакет292payloads сохранён
+в рабочей ветке PASS .012/.012/.020/.011s. Независимая проверка полного HIR неизменна. Новый поиск с пояснениями и итоговым PASS опубликован в приватном Sites56; пакет292payloads сохранён
 и trackedSHA проверен, relocatedauditsPASS320. Whole offline sync версии55
 TERMINAL PASS:18570files66pages, всеSHA/архивы проверены,0missing/external.
 Пакет и публикация завершены; общий pipeline прошёл. API-этап закрыт. Следующий
-явный search CLI начат в изолированной постоянной ветке; короткий collect/replay/actualSize тест выполняется; перенос и full native
-прогоны ждут финальных тестов и двух независимых source reviews.
+явный search CLI начат в изолированной постоянной ветке; короткий collect/replay/actualSize тест PASS251.97s; две финальные
+source reviews прошли. Два full30 actual CLI запуска на сохранённом84e22
+завершились: Speedpolicy1/mask3 1076715T/2100B, Sizepolicy0/mask2
+1079795T/1978B. Независимые saved audits продолжаются; CLI ещё не перенесён.
 
 ## Сохранение веток и решения
 
@@ -152,3 +154,10 @@ SHA перечислены в [манифесте](2026-10-11-011-archived-branc
 `minzc/cmd/mzx/BUILD` не тронуто.
 
 **Блокеров и решений Alice сейчас нет. Цель остаётся активной.**
+
+Уточнения коллег проверены по коду: arena-first — первое byte compare peeling,
+append-copy — вынос src/dst баз, PreserveForSpeed — регистровое unsigned16
+сравнение; смены heap нет. Точные три эффекта аддитивны на этом workload,
+но независимость backend стоимости не доказана. Pure Speed сохраняется
+как минимум T без штрафа за байты; Pareto/byte-budget — отдельные режимы.
+Публикация56 включает пояснения; wholeoffline sync56 выполняется.
