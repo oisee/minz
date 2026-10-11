@@ -1,0 +1,8 @@
+{
+  "checkpoint": "5fe9bba0",
+  "files_sha256": {
+    "minzc/pkg/pipeline/memory_host_target.go": "a95a86fd671f68ecdab6cf0e0bee8db200d0c6e8178111050b5ba7e8971b5a29",
+    "minzc/pkg/pipeline/memory_host_pc_diagnostic.go": "827fff063ad18433fc35bfe387bf3e1dbfebc4e8b1e7fb0a20100592cd19fa50",
+    "minzc/pkg/pipeline/memory_host_pc_diagnostic_test.go": "9de8d9299ee022eac0a135f32d04725937e858f81273e110668d6a206feb4f72"
+  }
+}
