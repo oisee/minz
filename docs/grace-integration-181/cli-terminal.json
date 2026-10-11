@@ -1,0 +1,11 @@
+{
+  "compiler_commit": "2612a266",
+  "command": "cli-2612a266.test -test.count=1 -test.timeout=20m",
+  "required_cwd": "compiler/minzc/cmd/minzc",
+  "exit_code": 0,
+  "terminal": "PASS",
+  "log_sha256": "9918ef8566f72634d3b457ce1babfdd74e2d3d4cbc17bae0520d277f438e33bb",
+  "binary_sha256": "2555bbc115467b087aa499abc9fa809a1c805f6824bf24447d1a12dc85333129",
+  "elapsed_seconds": null,
+  "elapsed_note": "Retained nonverbose binary did not emit elapsed time."
+}
