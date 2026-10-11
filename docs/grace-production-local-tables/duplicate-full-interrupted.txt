@@ -1,0 +1,126 @@
+ok  	github.com/minz/minzc/pkg/vir	0.129s
+--- FAIL: TestConditionalInvariantRegression (0.72s)
+    --- FAIL: TestConditionalInvariantRegression/four/MIRGrace=false/mask1 (0.04s)
+        conditional_invariant_regression_test.go:162: Z80 profile workload: invocation 2: line 0: assert "" [z80]: return[0] got 257, want 1
+    --- FAIL: TestConditionalInvariantRegression/four/MIRGrace=false/mask3 (0.04s)
+        conditional_invariant_regression_test.go:162: Z80 profile workload: invocation 2: line 0: assert "" [z80]: return[0] got 257, want 1
+    --- FAIL: TestConditionalInvariantRegression/four/MIRGrace=true/mask1 (0.04s)
+        conditional_invariant_regression_test.go:162: Z80 profile workload: invocation 2: line 0: assert "" [z80]: return[0] got 257, want 1
+    --- FAIL: TestConditionalInvariantRegression/four/MIRGrace=true/mask3 (0.04s)
+        conditional_invariant_regression_test.go:162: Z80 profile workload: invocation 2: line 0: assert "" [z80]: return[0] got 257, want 1
+    --- FAIL: TestConditionalInvariantRegression/six/MIRGrace=false/mask0 (0.05s)
+        conditional_invariant_regression_test.go:162: Z80 profile workload: invocation 2: line 0: assert "" [z80]: return[0] got 513, want 1
+    --- FAIL: TestConditionalInvariantRegression/six/MIRGrace=false/mask2 (0.05s)
+        conditional_invariant_regression_test.go:162: Z80 profile workload: invocation 2: line 0: assert "" [z80]: return[0] got 513, want 1
+    --- FAIL: TestConditionalInvariantRegression/six/MIRGrace=true/mask0 (0.05s)
+        conditional_invariant_regression_test.go:162: Z80 profile workload: invocation 2: line 0: assert "" [z80]: return[0] got 513, want 1
+    --- FAIL: TestConditionalInvariantRegression/six/MIRGrace=true/mask2 (0.05s)
+        conditional_invariant_regression_test.go:162: Z80 profile workload: invocation 2: line 0: assert "" [z80]: return[0] got 513, want 1
+--- FAIL: TestConditionalInvariantSiteCandidates (0.23s)
+    conditional_invariant_regression_test.go:201: measure invariant site variant sets: candidate 2 target workload: Z80 profile workload: invocation 2: line 0: assert "" [z80]: return[0] got 257, want 1
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[Z80-VALIDATE] main: 2 invalid instruction(s)
+  line 3: >>> LD A, <<<
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+signal: interrupt
+FAIL	github.com/minz/minzc/pkg/pipeline	105.627s

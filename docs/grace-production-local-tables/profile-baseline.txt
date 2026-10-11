@@ -1,0 +1,6 @@
+=== RUN   TestMultiFunctionProfileVMZ80
+    profile_test.go:98: long_sum cycles=1690 want=1455
+--- FAIL: TestMultiFunctionProfileVMZ80 (0.08s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.083s
+FAIL

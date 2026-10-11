@@ -1,0 +1,26 @@
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+Closed memory-host policy preserve-speed speed selected mask1: 701T / 2486B; evidence /tmp/TestPolicyCLICollectReplay2660653553/001/policy-artifacts
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+Closed memory-host policy preserve-speed speed selected mask1: 701T / 2486B; evidence /tmp/TestPolicyCLICollectReplay2660653553/001/replay
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+signal: interrupt
+FAIL	github.com/minz/minzc/cmd/minzc	53.002s

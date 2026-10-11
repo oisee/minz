@@ -1,0 +1,2 @@
+fun add5(x: u8) -> u8 { return x + 5 }
+fun main() -> u8 { return add5(7) }
