@@ -51,3 +51,25 @@ are ranking tests only. Preserved executableac88bd7d11cb6f81b2567e4251c051d17be3
 Full30 harnessc11dd4d1 reviewed by both agents (backendfc42b9c8); it independently
 collects both policy baselines, exports all eight actual Speed candidates and
 labels Size ordering derived. Full30 execution now released; no result yet.
+
+
+Integration update44739f77: parent copied exactly two reviewed source files,
+SHA6357dd5931480ae6baac0daeaadd0c7f19aeb18bed9b337313733f19e50bea77
+and a8eed3f8129b0bdbdd0de46b1b9a588c8277a7e52503a96e59a753356e08fcc9.
+Full30 actual search terminal PASS83.79s; short control PASS113.95s,
+each48callbacks. Preserved executable2955420de33c6ce620f2298b0712ab537f0b66cd7fc540c545d344bff1b55966.
+Independent cost65167c16 and backend66824fbc/2842284c audits passed320
+observations (full300 plus short20) including typed bindings, proofs, native
+bytes/costs, exact state/events and all11 profile counters. Full actual Speed
+selects policy1/mask3 1076715T/2100B; short policy1/mask1 566T/2122B.
+Derived Size selects Legacy/mask2 1978B in both. Full30 actual GoalSize
+was not executed; successful focused994 short actual GoalSize remains separate.
+Zero-body short control does not establish dynamic compare activation.
+
+The broader parent gate exposed a test import cycle: same-package frontend
+tests import pipeline, whose independently parsed source admission now
+imports Nanz, which imports these frontends. The exact independent source
+gate remains unchanged. Integration tests are being moved to external test
+packages; all assertions remain. Initial failed gate log is preserved.
+HIR/MIR/C89/CLI/Nanz passed; showcase31same0new. Full pipeline remains running
+on the unchanged reviewed implementation; no overall PASS claimed yet.
