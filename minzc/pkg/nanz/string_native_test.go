@@ -31,7 +31,8 @@ func TestLiteralPrintingNative(t *testing.T) {
 			if e != nil {
 				t.Fatal(e)
 			}
-			a, e := z80asm.NewAssembler().AssembleString("ORG 0x0100\n LD SP,0xF000\n CALL show\n test_done:\n DI\n HALT\n" + steps.Assembly)
+			assembled := "ORG 0x0100\n LD SP,0xF000\n CALL show\n test_done:\n DI\n HALT\n" + steps.Assembly
+			a, e := z80asm.NewAssembler().AssembleString(assembled)
 			if e != nil {
 				t.Fatal(e)
 			}
@@ -51,11 +52,12 @@ func TestLiteralPrintingNative(t *testing.T) {
 				out = append(out, v)
 			})
 			z.SetPC(0x100)
-			if e = z.Run(); e != nil {
-				t.Fatal(e)
-			}
+			runErr := z.Run()
 			regs := z.GetRegisters()
-			saveStringNative(t, c.name, source, steps, a, out, append(append([]byte{}, c.want...), byte('!')), regs)
+			saveStringNative(t, c.name, source, assembled, steps, a, out, append(append([]byte{}, c.want...), byte('!')), regs, z, runErr)
+			if runErr != nil {
+				t.Fatal(runErr)
+			}
 			if regs.SP != 0xF000 || int(regs.PC) != a.Symbols["test_done"]+2 {
 				t.Fatalf("termination PC/SP %x/%x", regs.PC, regs.SP)
 			}
@@ -97,7 +99,8 @@ func TestLiteralStorageNative(t *testing.T) {
 			if e != nil {
 				t.Fatal(e)
 			}
-			a, e := z80asm.NewAssembler().AssembleString("ORG 0x0100\n LD SP,0xF000\n CALL examine\n storage_done:\n DI\n HALT\n" + steps.Assembly)
+			assembled := "ORG 0x0100\n LD SP,0xF000\n CALL examine\n storage_done:\n DI\n HALT\n" + steps.Assembly
+			a, e := z80asm.NewAssembler().AssembleString(assembled)
 			if e != nil {
 				t.Fatal(e)
 			}
@@ -118,11 +121,12 @@ func TestLiteralStorageNative(t *testing.T) {
 				t.Fatal(e)
 			}
 			z.SetPC(0x100)
-			if e = z.Run(); e != nil {
-				t.Fatal(e)
-			}
+			runErr := z.Run()
 			r := z.GetRegisters()
-			saveStringNative(t, "storage-"+c.name, source, steps, a, nil, c.want, r)
+			saveStringNative(t, "storage-"+c.name, source, assembled, steps, a, nil, c.want, r, z, runErr)
+			if runErr != nil {
+				t.Fatal(runErr)
+			}
 			if r.SP != 0xF000 || int(r.PC) != a.Symbols["storage_done"]+2 {
 				t.Fatal("termination", r)
 			}
@@ -133,7 +137,7 @@ func TestLiteralStorageNative(t *testing.T) {
 	}
 }
 
-func saveStringNative(t *testing.T, name, source string, steps pipeline.Steps, a *z80asm.Result, output, expected []byte, regs emulator.Registers) {
+func saveStringNative(t *testing.T, name, source, assembled string, steps pipeline.Steps, a *z80asm.Result, output, expected []byte, regs emulator.Registers, z *emulator.RemogattoZ80, runErr error) {
 	t.Helper()
 	dir := os.Getenv("MINZ_STRING_NATIVE_ARTIFACTS")
 	if dir == "" {
@@ -143,8 +147,26 @@ func saveStringNative(t *testing.T, name, source string, steps pipeline.Steps, a
 	if e := os.MkdirAll(dir, 0755); e != nil {
 		t.Fatal(e)
 	}
-	files := map[string][]byte{"source.nanz": []byte(source), "target.a80": []byte(steps.Assembly), "binary.bin": a.Binary, "output.bin": output, "expected.bin": expected, "final.mir2": []byte(steps.MIR2Opt)}
-	for name, v := range map[string]any{"registers.json": regs, "allocation.json": steps.Allocation, "symbols.json": a.Symbols} {
+	files := map[string][]byte{"source.nanz": []byte(source), "target.a80": []byte(steps.Assembly), "assembled.a80": []byte(assembled), "binary.bin": a.Binary, "output.bin": output, "expected.bin": expected, "final.mir2": []byte(steps.MIR2Opt)}
+	state := map[string]uint16{}
+	for _, n := range []string{"answer", "first", "__print_ptr_1", "__print_count_2"} {
+		if addr, ok := a.Symbols[n]; ok {
+			v := uint16(z.GetMemory(uint16(addr)))
+			if n != "first" {
+				v |= uint16(z.GetMemory(uint16(addr+1))) << 8
+			}
+			state[n] = v
+		}
+	}
+	errorText := ""
+	if runErr != nil {
+		errorText = runErr.Error()
+	}
+	expectedKind := "stdout"
+	if strings.HasPrefix(name, "storage-") {
+		expectedKind = "pool_bytes"
+	}
+	for name, v := range map[string]any{"execution.json": map[string]any{"cycles": z.GetCycles(), "error": errorText, "expected_kind": expectedKind, "globals": state}, "registers.json": regs, "allocation.json": steps.Allocation, "symbols.json": a.Symbols} {
 		b, e := json.MarshalIndent(v, "", "  ")
 		if e != nil {
 			t.Fatal(e)
