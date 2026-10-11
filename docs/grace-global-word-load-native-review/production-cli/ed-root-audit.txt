@@ -1,0 +1,16 @@
+PASS speed/original exact symbol-bound ED4B/5B records 17
+PASS speed/arena exact symbol-bound ED4B/5B records 17
+PASS speed/append exact symbol-bound ED4B/5B records 18
+PASS speed/both exact symbol-bound ED4B/5B records 18
+PASS size/original exact symbol-bound ED4B/5B records 17
+PASS size/arena exact symbol-bound ED4B/5B records 17
+PASS size/append exact symbol-bound ED4B/5B records 18
+PASS size/both exact symbol-bound ED4B/5B records 18
+PASS small-collect/original exact symbol-bound ED4B/5B records 17
+PASS small-collect/arena exact symbol-bound ED4B/5B records 17
+PASS small-collect/append exact symbol-bound ED4B/5B records 18
+PASS small-collect/both exact symbol-bound ED4B/5B records 18
+PASS small-replay/original exact symbol-bound ED4B/5B records 17
+PASS small-replay/arena exact symbol-bound ED4B/5B records 17
+PASS small-replay/append exact symbol-bound ED4B/5B records 18
+PASS small-replay/both exact symbol-bound ED4B/5B records 18
