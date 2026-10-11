@@ -22,6 +22,9 @@ func TestMemoryHostArenaPeelPrototypeOriginal30(t *testing.T) {
 		t.Fatal(e)
 	}
 	afterHIR := shape.Dump()
+	if e := hir.ValidateMemoryHostArenaPeel(source, shape, w); e != nil {
+		t.Fatal(e)
+	}
 	originalFactory := func() (*hir.Module, error) { m, _ := memoryHostParserFixture(t); return m, nil }
 	original, e := RunZ80MemoryHostBaseline(originalFactory, w)
 	if e != nil {
@@ -149,5 +152,16 @@ func TestMemoryHostArenaPeelShapeExport(t *testing.T) {
 		if e := os.WriteFile(filepath.Join(dir, n), b, 0644); e != nil {
 			t.Fatal(e)
 		}
+	}
+}
+
+func TestMemoryHostArenaPeelIndependentProof(t *testing.T) {
+	source, w := memoryHostParserFixture(t)
+	actual, _ := memoryHostParserFixture(t)
+	if e := peelMemoryHostArenaFirstByte(actual, w); e != nil {
+		t.Fatal(e)
+	}
+	if e := hir.ValidateMemoryHostArenaPeel(source, actual, w); e != nil {
+		t.Fatal(e)
 	}
 }
