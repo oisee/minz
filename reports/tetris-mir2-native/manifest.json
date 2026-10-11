@@ -1,0 +1,27 @@
+{
+  "files": {
+    "REPORT.md": "2558b0a1dd9640a250615a09294275abb2ec927772419d46144bab5c11e69b99",
+    "final-tests.txt": "63ff5d7f094207994b1f5ef885c09e98c0fdcf6ef949fe8a98030a055d333ecd",
+    "freeze.json": "1af9d806d0dcd62a6b7de1086df86be57399ce32937a3027459b41527cfce56a",
+    "native/tetris_mir2_test/grace-size/allocation.json": "30c58e5692087c027fd61ec0d8e6045f4ebe8a0d6e12b12ce75227965990bbd8",
+    "native/tetris_mir2_test/grace-size/evidence.json": "8eec1e27aba11acbdfbcde2dc8bf71d531c98dd806ea5fd74f4795ff1b6685a1",
+    "native/tetris_mir2_test/grace-size/final.mir": "3dce596391165be36383fb7c890fb842dafa703ae9b592286be076efa72d806b",
+    "native/tetris_mir2_test/grace-size/raw.mir": "3dce596391165be36383fb7c890fb842dafa703ae9b592286be076efa72d806b",
+    "native/tetris_mir2_test/grace-size/target.a80": "3e9d75a0578f894bc436050606c1550a5f466b94e61e19f3a7dc07018a098541",
+    "native/tetris_mir2_test/grace-size/target.bin": "019ba61a046247a9ffcc468b9f91294856f1242455983eccd841dbd629cb3564",
+    "native/tetris_mir2_test/grace-speed/allocation.json": "30c58e5692087c027fd61ec0d8e6045f4ebe8a0d6e12b12ce75227965990bbd8",
+    "native/tetris_mir2_test/grace-speed/evidence.json": "8eec1e27aba11acbdfbcde2dc8bf71d531c98dd806ea5fd74f4795ff1b6685a1",
+    "native/tetris_mir2_test/grace-speed/final.mir": "3dce596391165be36383fb7c890fb842dafa703ae9b592286be076efa72d806b",
+    "native/tetris_mir2_test/grace-speed/raw.mir": "3dce596391165be36383fb7c890fb842dafa703ae9b592286be076efa72d806b",
+    "native/tetris_mir2_test/grace-speed/target.a80": "3e9d75a0578f894bc436050606c1550a5f466b94e61e19f3a7dc07018a098541",
+    "native/tetris_mir2_test/grace-speed/target.bin": "019ba61a046247a9ffcc468b9f91294856f1242455983eccd841dbd629cb3564",
+    "native/tetris_mir2_test/ordinary/allocation.json": "30c58e5692087c027fd61ec0d8e6045f4ebe8a0d6e12b12ce75227965990bbd8",
+    "native/tetris_mir2_test/ordinary/evidence.json": "8eec1e27aba11acbdfbcde2dc8bf71d531c98dd806ea5fd74f4795ff1b6685a1",
+    "native/tetris_mir2_test/ordinary/final.mir": "3dce596391165be36383fb7c890fb842dafa703ae9b592286be076efa72d806b",
+    "native/tetris_mir2_test/ordinary/raw.mir": "3dce596391165be36383fb7c890fb842dafa703ae9b592286be076efa72d806b",
+    "native/tetris_mir2_test/ordinary/target.a80": "760301ca669a61f5ad50fe553455d265b00750ffb03dba3dc9f238c9a835d16f",
+    "native/tetris_mir2_test/ordinary/target.bin": "019ba61a046247a9ffcc468b9f91294856f1242455983eccd841dbd629cb3564",
+    "source.nanz": "2db9d65b5ef5bf23d4b32ccce1904caaff38b4a9cff0cb2d191bce9f60e1ca37",
+    "tests.txt": "1e1ef07f822de9159bdad4534581b97347c680990ab9a7f48d00dc015d08e9d8"
+  }
+}
