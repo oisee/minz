@@ -1,0 +1,12 @@
+=== RUN   TestSequentialByteMetadataSurvivesRenumber
+--- PASS: TestSequentialByteMetadataSurvivesRenumber (0.00s)
+=== RUN   TestRenumberRegsKeepsAsmInputOutputIdentity
+--- PASS: TestRenumberRegsKeepsAsmInputOutputIdentity (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.008s
+=== RUN   TestFreshHIRZeroSizeNodesHaveNoMutableStorage
+--- PASS: TestFreshHIRZeroSizeNodesHaveNoMutableStorage (0.00s)
+=== RUN   TestMeasureProfileVariantSetsFactoryMutatesPrevious
+--- PASS: TestMeasureProfileVariantSetsFactoryMutatesPrevious (0.08s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.092s
