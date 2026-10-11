@@ -1,0 +1,8 @@
+=== RUN   TestMemoryHostCheckpointNumericStackSpillPermissionGap
+    memory_host_provenance_review_test.go:85: CONFIRMED stack store=false: numeric HL access permitted, no verified frame/spill operation and no resource event
+    memory_host_provenance_review_test.go:85: CONFIRMED stack store=true: numeric HL access permitted, no verified frame/spill operation and no resource event
+    memory_host_provenance_review_test.go:85: CONFIRMED spill store=false: numeric HL access permitted, no verified frame/spill operation and no resource event
+    memory_host_provenance_review_test.go:85: CONFIRMED spill store=true: numeric HL access permitted, no verified frame/spill operation and no resource event
+--- PASS: TestMemoryHostCheckpointNumericStackSpillPermissionGap (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.009s

@@ -47,3 +47,42 @@ func TestMemoryHostCheckpointNumericGlobalPermissionGap(t *testing.T) {
 		t.Logf("CONFIRMED store=%v: numeric MIR pointer unproved; native numeric global8000 allowed and invisible to resource events", store)
 	}
 }
+
+// Diagnostic: stack/spill permission bits also accept arbitrary numeric LD,
+// irrespective of the instruction being a verified frame/spill operation.
+func TestMemoryHostCheckpointNumericStackSpillPermissionGap(t *testing.T) {
+	for _, storage := range []string{"stack", "spill"} {
+		for _, store := range []bool{false, true} {
+			m := &memoryHostZ80Memory{lengths: map[uint16]int{0x400: 3, 0x403: 1}, active: true}
+			copy(m.data[0x400:], []byte{0x21, 0, 0xe0, 0x7e})
+			if store {
+				m.data[0x403] = 0x77
+			}
+			for p := 0x400; p < 0x404; p++ {
+				m.executable[p] = true
+			}
+			m.data[0xe000] = 42
+			m.readable[0xe000] = true
+			m.writable[0xe000] = true
+			if storage == "stack" {
+				m.stack[0xe000] = true
+			}
+			m.cpu = z80.NewZ80(m, memoryHostNoPorts{})
+			m.cpu.SetPC(0x400)
+			m.cpu.A = 9
+			m.cpu.SetSP(0xeff0)
+			for i := 0; i < 2; i++ {
+				if _, err := memoryHostNativeStep(m); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if len(m.events) != 0 || m.cpu.SP() != 0xeff0 {
+				t.Fatal("unexpected event/frame effect")
+			}
+			if store && m.data[0xe000] != 9 || !store && m.cpu.A != 42 {
+				t.Fatal("target behavior")
+			}
+			t.Logf("CONFIRMED %s store=%v: numeric HL access permitted, no verified frame/spill operation and no resource event", storage, store)
+		}
+	}
+}
