@@ -625,3 +625,5 @@ MIR direct-call shape checks интегрированы `240db2ea`; оригин
 Полный core0f0953d9 завершился PASS: HIR/MIR2/Nanz/VIR, включая callback/purity/directcall fixes. [Пакет163](grace-integration-163/README.md). Struct-return WIP не включён.
 
 Промежуточный caller-owned struct ABI и owning local copies интегрированы до58759553; callback metadata согласованы отдельно. Совместный focused gate PASS ([пакет165](grace-integration-165/README.md)). General multi-return/object adapter scope пока не закрыт.
+
+FullCLI568b7d08 terminal PASS384,240с ([пакет164](grace-integration-164/README.md)); предшествуетstructbuffers. Current checked table focused gate9a3e38a3 PASS0,091с ([пакет168](grace-integration-168/README.md)).
