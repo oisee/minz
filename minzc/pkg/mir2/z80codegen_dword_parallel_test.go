@@ -16,6 +16,10 @@ func TestNativeDWordParallelCycles(t *testing.T) {
 			{{srcName: "HL", dstName: "_spill_copy_1", ty: TyU32}, {srcName: "_spill_copy_1", dstName: "HL", ty: TyU32}},
 			{{srcName: "_spill_copy_1", dstName: "_spill_copy_2", ty: TyU32}, {srcName: "_spill_copy_2", dstName: "_spill_copy_1", ty: TyU32}},
 			{{srcName: "HL", dstName: "DE", ty: TyU32}, {dstName: "HL", ty: TyU32, isImm: true, immVal: 0x98765432}},
+			{{srcName: "HL", dstName: "DE", ty: TyU32}, {srcName: "D", dstName: "A", ty: TyU8}},
+			{{srcName: "A", dstName: "H", ty: TyU8}, {srcName: "HL", dstName: "DE", ty: TyU32}},
+			{{srcName: "HL", dstName: "_spill_copy_1", ty: TyU32}, {srcName: "A", dstName: "H", ty: TyU8}},
+			{{srcName: "HL", dstName: "DE", ty: TyU32}, {srcName: "BC", dstName: "BC", ty: TyU32}},
 		} {
 			var sb strings.Builder
 			g := &z80cg{sb: &sb, holdsPhys: map[string]string{}}
@@ -65,7 +69,16 @@ func TestNativeDWordParallelCycles(t *testing.T) {
 			for k, v := range originals {
 				want[k] = v
 			}
+			wantA := byte(0x5a)
 			for _, c := range copies {
+				if c.dstName == "A" {
+					wantA = byte(originals["DE"] >> 8)
+					continue
+				}
+				if c.dstName == "H" {
+					want["HL"] = (want["HL"] & 0xffff00ff) | (0x5a << 8)
+					continue
+				}
 				if c.isImm {
 					want[c.dstName] = uint32(c.immVal)
 				} else {
@@ -84,7 +97,7 @@ func TestNativeDWordParallelCycles(t *testing.T) {
 					t.Fatalf("%s got=%08x want=%08x\n%s", label, got, want[label], sb.String())
 				}
 			}
-			if r := z.GetRegisters(); r.SP != 0xfff0 || r.A != 0x5a || r.F&1 == 0 || r.IX != r.IY {
+			if r := z.GetRegisters(); r.SP != 0xfff0 || r.A != wantA || r.F&1 == 0 || byte(r.IX) != byte(r.IY) {
 				t.Fatal(r)
 			}
 		}

@@ -31,3 +31,9 @@ Base `c2b9a77f`. Read-only сравнение архивного LIR (`docs/grac
 - Full MIR2 PASS 30.622 s. Full pipeline здесь не запускался.
 
 Точные ordinary source/ASM/BIN и SHA256 — `artifacts/dword-cycle/manifest.json`. Полезная миграция — реальная корректность wide edge movement; архив LIR не включён в Go build и не объявлен оракулом.
+
+## Follow-up: valid mixed narrow/wide copies
+
+Добавлены четыре раскладки на каждый из шести input masks (теперь 54 forced sets): HL32→DE32 + D8→A8; A8→H8 + HL32→DE32; A8→H8 + HL32→spill32; HL32→DE32 + coalesced BC32→BC32. Проверяются original-source reads до wide writes, narrow destination H при spill restore через HL, coalesced live BC, оба банка и F/stack. Когда A — явный destination, его новое значение сверяется с исходным D; F остаётся точным. PASS 0.071 s (`dword-cycle-mixed.txt`). Destination overlaps между двумя разными живыми outputs не считаются допустимой allocation.
+
+u24 snapshot в register homes сохраняет полный физический pair, а memory payload имеет три байта; неиспользуемая четвёртая memory byte не становится частью значения. Отдельный u24 live-alias proof этим u32 packet не заявлен.
