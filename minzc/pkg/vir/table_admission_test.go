@@ -140,3 +140,83 @@ func TestTableRejectsDefinedValueWidthMismatch(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestTableRejectsLiveThroughClobbers(t *testing.T) {
+	for _, tc := range []struct {
+		name, value, clobber string
+		width                int
+		asm                  bool
+	}{
+		{"call", "A", "A", 8, false},
+		{"pair-half", "HL", "L", 16, false},
+		{"half-pair", "H", "HL", 8, false},
+		{"asm-input-still-live", "A", "A", 8, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			barrier := VIROp{Op: OpCall, Sym: "helper", Clobbers: Z80.LocSetByNames(tc.clobber)}
+			if tc.asm {
+				barrier.Op = OpAsmBlock
+				barrier.AsmIns = []int{1}
+				barrier.AsmTemplate = "XOR A"
+			}
+			ops := []VIROp{{Op: OpConst, Dst: 1, Width: tc.width, Imm: 37}, barrier, {Op: OpRet, Src: [2]int{1, -1}, Width: tc.width}}
+			assignment := map[int]int{1: Z80.LocByName(tc.value)}
+			if err := validateTableAssignment(ops, assignment, Z80); err == nil {
+				t.Fatal("live-through clobbered value admitted")
+			}
+			var table RegAllocTable
+			table.Init()
+			sig := ComputeSignature(ops, Z80)
+			table.Add(sig, &RegAllocEntry{Signature: sig, Assignment: []int{assignment[1]}})
+			if _, _, ok := table.Lookup(ops, Z80); ok {
+				t.Fatal("unsafe table hit admitted")
+			}
+		})
+	}
+}
+
+func TestTableAllowsDeadInputsAndDefinedOutputsAtClobber(t *testing.T) {
+	ops := []VIROp{
+		{Op: OpConst, Dst: 1, Width: 8, Imm: 37},
+		{Op: OpAsmBlock, AsmIns: []int{1}, AsmOuts: []int{2}, Clobbers: Z80.LocSetByNames("A")},
+		{Op: OpRet, Src: [2]int{2, -1}, Width: 8},
+	}
+	if err := validateTableAssignment(ops, map[int]int{1: 0, 2: 0}, Z80); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestTableLiveThroughValueExecutesWithSafeAssignment(t *testing.T) {
+	ops := []VIROp{{Op: OpConst, Dst: 1, Width: 8, Imm: 37},
+		{Op: OpAsmBlock, AsmTemplate: "XOR A", Clobbers: Z80.LocSetByNames("A")},
+		{Op: OpMove, Dst: 2, Src: [2]int{1, -1}, Width: 8},
+		{Op: OpRet, Src: [2]int{2, -1}, Width: 8}}
+	f := &mir2.Func{Name: "keep"}
+	vf := &Func{Name: "keep", Blocks: []Block{{Ops: ops}}}
+	if asm, err := emitFromTable(f, vf, ops, map[int]int{1: Z80.LocByName("A"), 2: Z80.LocByName("A")}, Z80, SolverOptions{}); err == nil || asm != "" {
+		t.Fatal("unsafe final emission admitted")
+	}
+	asm, err := emitFromTable(f, vf, ops, map[int]int{1: Z80.LocByName("B"), 2: Z80.LocByName("A")}, Z80, SolverOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	result, err := z80asm.NewAssembler().AssembleString(asm)
+	if err != nil || len(result.Errors) > 0 {
+		t.Fatalf("assembly err=%v diagnostics=%v", err, result.Errors)
+	}
+	z := emulator.NewRemogattoZ80()
+	z.MaxCycles = 1000
+	if err := z.LoadMemory(0x8000, append([]byte{0xcd, 5, 0x80, 0xf3, 0x76}, result.Binary...)); err != nil {
+		t.Fatal(err)
+	}
+	z.SetPC(0x8000)
+	z.SetSP(0xf000)
+	if err := z.Run(); err != nil {
+		t.Fatal(err)
+	}
+	regs := z.GetRegisters()
+	if regs.A != 37 || regs.SP != 0xf000 {
+		t.Fatalf("A=%d SP=%04x want37/f000", regs.A, regs.SP)
+	}
+	t.Logf("Safe live-through assignment ASM/BIN %x: A=%d SP=%04x T=%d", result.Binary, regs.A, regs.SP, z.GetCycles())
+}

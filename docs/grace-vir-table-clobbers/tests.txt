@@ -1,0 +1,77 @@
+=== RUN   TestBinaryOnlyTableCountsAsAvailable
+[regalloc] loaded 1 binary entries from /tmp/TestBinaryOnlyTableCountsAsAvailable4050844602/001/enrt_one.bin
+--- PASS: TestBinaryOnlyTableCountsAsAvailable (0.00s)
+=== RUN   TestBinaryOnlyTableLookup
+--- PASS: TestBinaryOnlyTableLookup (0.00s)
+=== RUN   TestZ80Tv2RejectsPartialEnumerationBeforeReadingBody
+--- PASS: TestZ80Tv2RejectsPartialEnumerationBeforeReadingBody (0.00s)
+=== RUN   TestZ80Tv2RejectsTruncatedRecords
+--- PASS: TestZ80Tv2RejectsTruncatedRecords (0.00s)
+=== RUN   TestLoadEnrichedBinary_RejectsZ80Tv1
+--- PASS: TestLoadEnrichedBinary_RejectsZ80Tv1 (0.00s)
+=== RUN   TestLoadEnrichedBinary_RejectsCountMismatch
+--- PASS: TestLoadEnrichedBinary_RejectsCountMismatch (0.00s)
+=== RUN   TestLoadEnrichedBinary_AcceptsWellFormed
+--- PASS: TestLoadEnrichedBinary_AcceptsWellFormed (0.00s)
+=== RUN   TestDependsOnEntryCarry
+=== RUN   TestDependsOnEntryCarry/k23_rla_after_ld
+=== RUN   TestDependsOnEntryCarry/bare_rla
+=== RUN   TestDependsOnEntryCarry/rra
+=== RUN   TestDependsOnEntryCarry/adc_first
+=== RUN   TestDependsOnEntryCarry/sbc_first
+=== RUN   TestDependsOnEntryCarry/add_defines_before_rla
+=== RUN   TestDependsOnEntryCarry/rlca_defines_before_rra
+=== RUN   TestDependsOnEntryCarry/neg_defines
+=== RUN   TestDependsOnEntryCarry/srl_defines
+=== RUN   TestDependsOnEntryCarry/sub_defines
+=== RUN   TestDependsOnEntryCarry/ld_chain_then_adc
+=== RUN   TestDependsOnEntryCarry/ld_only
+=== RUN   TestDependsOnEntryCarry/empty
+=== RUN   TestDependsOnEntryCarry/unknown_mnemonic
+=== RUN   TestDependsOnEntryCarry/lowercase
+--- PASS: TestDependsOnEntryCarry (0.00s)
+    --- PASS: TestDependsOnEntryCarry/k23_rla_after_ld (0.00s)
+    --- PASS: TestDependsOnEntryCarry/bare_rla (0.00s)
+    --- PASS: TestDependsOnEntryCarry/rra (0.00s)
+    --- PASS: TestDependsOnEntryCarry/adc_first (0.00s)
+    --- PASS: TestDependsOnEntryCarry/sbc_first (0.00s)
+    --- PASS: TestDependsOnEntryCarry/add_defines_before_rla (0.00s)
+    --- PASS: TestDependsOnEntryCarry/rlca_defines_before_rra (0.00s)
+    --- PASS: TestDependsOnEntryCarry/neg_defines (0.00s)
+    --- PASS: TestDependsOnEntryCarry/srl_defines (0.00s)
+    --- PASS: TestDependsOnEntryCarry/sub_defines (0.00s)
+    --- PASS: TestDependsOnEntryCarry/ld_chain_then_adc (0.00s)
+    --- PASS: TestDependsOnEntryCarry/ld_only (0.00s)
+    --- PASS: TestDependsOnEntryCarry/empty (0.00s)
+    --- PASS: TestDependsOnEntryCarry/unknown_mnemonic (0.00s)
+    --- PASS: TestDependsOnEntryCarry/lowercase (0.00s)
+=== RUN   TestTableRejectsMissingAssignments
+--- PASS: TestTableRejectsMissingAssignments (0.00s)
+=== RUN   TestTableEmitterRejectsMissingAssignment
+--- PASS: TestTableEmitterRejectsMissingAssignment (0.00s)
+=== RUN   TestTableCompleteAssignmentAssembles
+    table_admission_test.go:75: Complete assignment emitted assembled binary 3e07060580c9; actual Z80 A=12 SP=f000 T=53
+--- PASS: TestTableCompleteAssignmentAssembles (0.00s)
+=== RUN   TestTableLookupRejectsMalformedLocationsAndBinaryTruncation
+--- PASS: TestTableLookupRejectsMalformedLocationsAndBinaryTruncation (0.00s)
+=== RUN   TestTableABIAndHintsRemainMandatory
+--- PASS: TestTableABIAndHintsRemainMandatory (0.00s)
+=== RUN   TestTableRejectsDefinedValueWidthMismatch
+--- PASS: TestTableRejectsDefinedValueWidthMismatch (0.00s)
+=== RUN   TestTableRejectsLiveThroughClobbers
+=== RUN   TestTableRejectsLiveThroughClobbers/call
+=== RUN   TestTableRejectsLiveThroughClobbers/pair-half
+=== RUN   TestTableRejectsLiveThroughClobbers/half-pair
+=== RUN   TestTableRejectsLiveThroughClobbers/asm-input-still-live
+--- PASS: TestTableRejectsLiveThroughClobbers (0.00s)
+    --- PASS: TestTableRejectsLiveThroughClobbers/call (0.00s)
+    --- PASS: TestTableRejectsLiveThroughClobbers/pair-half (0.00s)
+    --- PASS: TestTableRejectsLiveThroughClobbers/half-pair (0.00s)
+    --- PASS: TestTableRejectsLiveThroughClobbers/asm-input-still-live (0.00s)
+=== RUN   TestTableAllowsDeadInputsAndDefinedOutputsAtClobber
+--- PASS: TestTableAllowsDeadInputsAndDefinedOutputsAtClobber (0.00s)
+=== RUN   TestTableLiveThroughValueExecutesWithSafeAssignment
+    table_admission_test.go:221: Safe live-through assignment ASM/BIN 0625af78c9: A=37 SP=f000 T=50
+--- PASS: TestTableLiveThroughValueExecutesWithSafeAssignment (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.012s

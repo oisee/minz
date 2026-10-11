@@ -1,6 +1,9 @@
 package vir
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/minz/minzc/pkg/z80spec"
+)
 
 // validateTableAssignment checks the input contract independently of table
 // metadata and pattern selection. An absent vreg must never become loc -1
@@ -46,6 +49,48 @@ func validateTableAssignment(ops []VIROp, assignment map[int]int, desc *MachineD
 		for _, v := range op.AsmOuts {
 			if err := require(v); err != nil {
 				return err
+			}
+		}
+	}
+	if desc != nil {
+		// Walk backwards independently of the solver's range approximation.
+		// Inputs consumed here may still be needed later; outputs are produced
+		// after the clobber and must not be mistaken for live-through values.
+		live := make(map[int]bool)
+		for i := len(ops) - 1; i >= 0; i-- {
+			op := ops[i]
+			delete(live, op.Dst)
+			for _, v := range op.AsmOuts {
+				delete(live, v)
+			}
+			for v := range live {
+				loc := assignment[v]
+				var conflict bool
+				op.Clobbers.ForEach(func(clobber int) bool {
+					if clobber >= len(desc.Locs) {
+						conflict = true
+						return false
+					}
+					if loc == clobber || desc.Locs[loc].Alias.Has(clobber) || desc.Locs[clobber].Alias.Has(loc) ||
+						(desc.Name == "z80" && z80spec.Overlaps(desc.Locs[loc].Name, desc.Locs[clobber].Name)) {
+						conflict = true
+						return false
+					}
+					return true
+				})
+				if conflict {
+					return fmt.Errorf("op %d clobbers live-through vreg %d at %s", i, v, desc.Locs[loc].Name)
+				}
+			}
+			for _, v := range op.Src {
+				if v > 0 {
+					live[v] = true
+				}
+			}
+			for _, v := range op.AsmIns {
+				if v > 0 {
+					live[v] = true
+				}
 			}
 		}
 	}
