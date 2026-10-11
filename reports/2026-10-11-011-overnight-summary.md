@@ -231,3 +231,9 @@ https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-cli-sele
 Производственный компилятор иhostpermissions не меняются. Независимая
 workload-driven модель fullstate/events создаётся в отдельной постоянной
 ветке; реальные замерыпослепроверкиworkloads. РешенийAlice не требуется.
+
+Офлайн Sites43 проверена:11302 файлов,53 страницы,0 потерянных ссылок
+и внешних зависимостей; архивы читаются. Локальнаяглавная:
+/home/alice/dev/minz/artifacts/grace-reports/2026-10-10-resume/site/index.html
+МанифестSHA256:
+/home/alice/dev/minz/artifacts/grace-reports/2026-10-10-resume/manifest.json
