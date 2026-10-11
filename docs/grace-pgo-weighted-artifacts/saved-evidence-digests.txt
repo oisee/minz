@@ -1,0 +1,6 @@
+verified size-false-evidence.json.gz 16 candidates
+verified size-true-evidence.json.gz 16 candidates
+verified joint-evidence.json.gz 8 candidates
+verified v4-size-false-evidence.json.gz 8 candidates
+verified v4-size-true-evidence.json.gz 8 candidates
+Verified saved Go evidence digests 5

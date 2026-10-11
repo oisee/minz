@@ -1,0 +1,26 @@
+[
+  {
+    "bytes": 168,
+    "sha256": "761352371cd0910ffc73893445f5d069f82051b42b19f81c91fdabd53eb12219",
+    "total_t_states": 1166563,
+    "variant": "original"
+  },
+  {
+    "bytes": 116,
+    "sha256": "2b21efca5f301cc65edf82338d6fbebf6761a1ee9f7a0b75c7f6db7680b095f7",
+    "total_t_states": 475239,
+    "variant": "scalar-only"
+  },
+  {
+    "bytes": 311,
+    "sha256": "0f49ff79d73e4b8a14aa54004ff43695ad2125b0096fffdd23644607e56eb96f",
+    "total_t_states": 717457,
+    "variant": "pointer-only"
+  },
+  {
+    "bytes": 243,
+    "sha256": "9541e143ee33a699298d8b239bca43aaeeb1f31686bab58b76457a106d8c82c3",
+    "total_t_states": 347888,
+    "variant": "both"
+  }
+]

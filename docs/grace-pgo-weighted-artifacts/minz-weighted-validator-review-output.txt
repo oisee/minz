@@ -1,0 +1,4 @@
+rewrite &{1 map[hir-guarded-pointer-walk:1] 2} <nil>
+validator {99e7c289b4b91a63c03502c1f703fa19023a5bb7048f53879d712c00ec67561e weighted false true } <nil>
+result [{11}] <nil> memory [11 99]
+result [{11}] <nil> memory [0 99]

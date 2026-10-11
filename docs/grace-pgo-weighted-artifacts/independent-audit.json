@@ -1,0 +1,32 @@
+[
+  {
+    "file": "checked-caller/size-true-evidence.json.gz",
+    "candidates": 16,
+    "selected": 4,
+    "binary_and_costs_verified": true
+  },
+  {
+    "file": "checked-caller/size-false-evidence.json.gz",
+    "candidates": 16,
+    "selected": 7,
+    "binary_and_costs_verified": true
+  },
+  {
+    "file": "cli/joint-evidence.json.gz",
+    "candidates": 8,
+    "selected": 3,
+    "binary_and_costs_verified": true
+  },
+  {
+    "file": "weighted-caller/v4-size-true-evidence.json.gz",
+    "candidates": 8,
+    "selected": 2,
+    "binary_and_costs_verified": true
+  },
+  {
+    "file": "weighted-caller/v4-size-false-evidence.json.gz",
+    "candidates": 8,
+    "selected": 3,
+    "binary_and_costs_verified": true
+  }
+]

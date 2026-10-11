@@ -234,6 +234,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&hirProfileInvariantSites, "hir-profile-invariant-sites", false, "measure scalar invariant-base choices by source site with --hir-profile-joint")
 	rootCmd.Flags().BoolVar(&hirProfileSiteRules, "hir-profile-site-rules", false, "Cross constant-if choices with --hir-profile-invariant-sites (up to 32 measured variants)")
 	rootCmd.Flags().BoolVar(&hirProfileJointSites, "hir-profile-joint-sites", false, "Jointly measure pointer-walk, scalar source-site hoists and constant-if (up to 32 variants)")
+	rootCmd.Flags().BoolVar(&hirProfileWeightedSites, "hir-profile-weighted-sites", false, "Permit verified weighted checksum composition with --hir-profile-joint-sites")
 	rootCmd.Flags().StringVar(&hirProfileAutoDirectory, "hir-profile-auto", "", "collect, measure full u8 sum domain and compile; save evidence in directory")
 	rootCmd.Flags().StringVar(&hirProfileAutoFunction, "hir-profile-function", "", "exact sum function to measure with --hir-profile-auto")
 	rootCmd.Flags().StringVar(&hirProfileAutoWorkload, "hir-profile-auto-workload", "", "controlled workload JSON for --hir-profile-auto")

@@ -1,0 +1,6 @@
+=== RUN   TestHIRProfileWeightedSitesCompilation
+--- PASS: TestHIRProfileWeightedSitesCompilation (1.89s)
+=== RUN   TestHIRProfileWeightedSitesValidation
+--- PASS: TestHIRProfileWeightedSitesValidation (0.00s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	1.913s

@@ -147,6 +147,35 @@ func testIndependentChecksum(t *testing.T, budget bool) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if !budget {
+		// The real checksum now has overlapping pointer/scalar opportunities;
+		// legacy module searches must require the explicit structural v4 proof.
+		for _, size := range []bool{false, true} {
+			options := Options{AssertMode: "none", UseHIRGrace: true, OptSize: size}
+			if r, err := MeasureGraceRuleVariantSets(factory, p, w, options, 4); err == nil || r != nil {
+				t.Fatal("legacy weighted overlap accepted")
+			}
+			r, err := MeasureWeightedJointSourceSiteVariantSets(factory, p, w, options, 4)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, c := range r.Evidence.Candidates {
+				for j, inv := range c.Run.Invocations {
+					if inv.Results[0].I != expected[j] || !reflect.DeepEqual(inv.Snapshot, snapshots[j]) {
+						t.Fatal("weighted independent host oracle", j)
+					}
+				}
+			}
+			want := 3
+			if size {
+				want = 2
+			}
+			if r.Evidence.Selected != want || !bytes.Equal(r.Binary, r.Evidence.Candidates[want].Binary) {
+				t.Fatal("weighted winner", r.Evidence.Selected)
+			}
+		}
+		return
+	}
 	for _, size := range []bool{false, true} {
 		r, err := MeasureGraceRuleVariantSets(factory, p, w, Options{AssertMode: "none", UseHIRGrace: true, OptSize: size}, 4)
 		if err != nil {

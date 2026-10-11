@@ -63,7 +63,7 @@ func NewLoopProfiler(m *Module) (*LoopProfiler, error) {
 		reserved[g.Name] = true
 	}
 	for _, f := range m.Funcs {
-		if plan := findGracePointerWalk(f, f.Body, reserved); plan != nil {
+		if plan := findGracePointerWalk(f, f.Body, reserved); plan != nil && plan.loopIndex == 2 {
 			for _, site := range sites.Sites {
 				if site.Function == f.Name && site.HIRPath == "body/s2" {
 					p.guardFunctions[f.Name] = len(p.guards)

@@ -1,0 +1,10 @@
+=== RUN   TestWeightedPointerPrototypeMeasuredCaller
+    weighted_pointer_measured_prototype_test.go:237: original1166563T/168B
+    weighted_pointer_measured_prototype_test.go:237: scalar-only475239T/116B
+    weighted_pointer_measured_prototype_test.go:237: pointer-only717457T/311B
+    weighted_pointer_measured_prototype_test.go:237: both347888T/243B
+    weighted_pointer_measured_prototype_test.go:284: v4 sizefalse selected3 347888T/243B
+    weighted_pointer_measured_prototype_test.go:284: v4 sizetrue selected2 475239T/116B
+--- PASS: TestWeightedPointerPrototypeMeasuredCaller (2.55s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.575s

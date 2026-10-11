@@ -1,0 +1,38 @@
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[Z80-VALIDATE] main: 2 invalid instruction(s)
+  line 3: >>> LD A, <<<
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+lir: native LIR codegen disabled (wrong code found by exhaustive judges); module compiled with PBQP
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+--- FAIL: TestIndependentGraceRulesChecksum (0.04s)
+    profile_rule_choices_test.go:80: measure profile variant sets: weighted overlap requires explicit measured v4 composition contract
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	203.303s
+FAIL

@@ -1,0 +1,4 @@
+package main
+import("compress/gzip";"crypto/sha256";"encoding/json";"fmt";"os";"path/filepath";"strings";"github.com/minz/minzc/pkg/pipeline")
+func main(){root:="/tmp/minz-grace-pgo-resume/docs/grace-pgo-weighted-artifacts";n:=0
+err:=filepath.Walk(root,func(p string,i os.FileInfo,err error)error{if err!=nil{return err};if i.IsDir()||!strings.HasSuffix(p,"evidence.json.gz"){return nil};f,err:=os.Open(p);if err!=nil{return err};defer f.Close();g,err:=gzip.NewReader(f);if err!=nil{return err};defer g.Close();var e pipeline.InvariantSiteVariantSetEvidence;if err=json.NewDecoder(g).Decode(&e);err!=nil{return err};want:=e.SHA256;e.SHA256="";b,err:=json.Marshal(e);if err!=nil{return err};if fmt.Sprintf("%x",sha256.Sum256(b))!=want{return fmt.Errorf("digest mismatch %s",p)};n++;fmt.Println("verified",filepath.Base(p),len(e.Candidates),"candidates");return nil});if err!=nil{panic(err)};fmt.Println("Verified saved Go evidence digests",n)}

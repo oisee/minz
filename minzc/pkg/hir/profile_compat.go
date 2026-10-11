@@ -289,7 +289,7 @@ func LoadLoopProfile(r io.Reader, m *Module, c ProfileContext) (*LoopProfile, er
 		reserved[global.Name] = true
 	}
 	for _, f := range m.Funcs {
-		if plan := findGracePointerWalk(f, f.Body, reserved); plan != nil {
+		if plan := findGracePointerWalk(f, f.Body, reserved); plan != nil && plan.loopIndex == 2 {
 			for _, site := range sites.Sites {
 				if site.Function == f.Name && site.HIRPath == "body/s2" {
 					eligible[site.ID] = true

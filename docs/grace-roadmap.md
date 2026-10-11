@@ -137,3 +137,6 @@ pointer-walk, оставляя invariant-base. На sum_array выбирает 3
 
 
 [Byte countdown и точный zero-trip model](grace-pgo-djnz.md): ForEach/DJNZ исправлен до actual Z80, seeded caller148452→139581T; sum_array48495→13879T. Новая модель fast n0=212, n>0=210+37n, module128/183B; fallback231+143n, equality+7. Profile observations/v5 требуют fast_zero_entries и measured zero cost. Следующая очередь — новые реальные формы циклов и проверка выигрыша на корпусе; hardware остаётся дальнейшим этапом.
+
+
+[Weighted composition v4](grace-pgo-weighted-composition.md): exactscalarpreheader плюс guardedpointerbyteiteration даёт weightedcaller475239→347888T; mixedcaller553520→345795T. НовыйexplicitAPI/CLI проверяетsourceproof и actualpre/postshape; genericoverlapнеразрешён. Следующиеэтапы — дополнительныеформы/эффекты реальныхциклов и снижениеcodegrowth; hardwareещёпредстоит.

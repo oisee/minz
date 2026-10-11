@@ -1,0 +1,49 @@
+[
+  {
+    "compatibility": {
+      "schema": "minz.loop-profile-compatibility/v1",
+      "context": {
+        "compiler_id": "executable-sha256:1d6f587a6c2c3e3799e322a1a96c2de5855fca6f98990e164127395133605f1a",
+        "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+        "target_id": "module-target:1/model:cpm-z80-v1",
+        "workload_sha256": "c2e845c4a3c8c0e79056cdaf5603bacd39fd9a62b509bb88528e94022b530639",
+        "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+        "dependencies": {
+          "alternating": "31f045af3774d02af7c8ba47a6ce102a042cd91c15db0cee54684615946aff2f",
+          "examples/nanz/grace_weighted_checksum.nanz": "b350e4307d9134ebdefbc5c1485b52d9529b8fcb6abfe37fd62eae728d2f6423",
+          "ff": "a601fb0d5ab33a2306d7d8be16896d12e9c9037e5e7b0559227d85e33f5e85ae",
+          "mismatch": "9ab8f84577f5ec1d5ca66a3ce53052889b1041ea6c77998f9a9f4a728f72a208",
+          "ramp": "37c09723e453af7a4473059e201b8ebcbc39e26049ed552ef19a5acab8130d6e",
+          "zero": "c9fa15b359ed57a35045306aa8aea60dc46a9777e9fc02e7f61724d739df2753"
+        }
+      },
+      "hir_sha256": "8eada864bf0cf8e90a18529a166512328a9a9266d5e6f92364622a6a58689846",
+      "origins_sha256": "e811fd8c80b4f55940dd2af6d984be85b6466ad77f3df2f76de5f6e5b9d6f20d"
+    },
+    "site_id": "3752f02cb9701f3f72d1e5e1abc7c1ace2060776133e33bb1331c75c4ef83dca",
+    "variant": "pointer-walk",
+    "reason": "jointly measured source-site choices",
+    "original_t_states": "",
+    "model": {
+      "compiler_id": "",
+      "semantics_id": "",
+      "function": "",
+      "hir_sha256": "",
+      "target_id": "",
+      "compilation_id": "",
+      "evidence_id": "",
+      "original_bytes": 0,
+      "pointer_bytes": 0,
+      "original_entry_t_states": 0,
+      "original_iteration_t_states": 0,
+      "equal_entry_extra_t_states": 0,
+      "fast_entry_t_states": 0,
+      "fast_zero_entry_t_states": 0,
+      "fast_zero_measured": false,
+      "fallback_entry_t_states": 0,
+      "fallback_iteration_t_states": 0,
+      "fallback_measured": false,
+      "fast_iteration_t_states": 0
+    }
+  }
+]

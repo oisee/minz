@@ -1,0 +1,69 @@
+; MIR2 module: examples/nanz/grace_weighted_checksum.nanz
+global @checksum_calls : u8
+global @checksum_last : u16
+
+fun @weighted_checksum(%r1: ptr [pointer], %r2: u8 [general], %r3: u16 [index], %r4: u16 [index], %r5: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r6 = const 0 : u8 [general]
+    %r7 = add %r3, %r4 : u16 [pointer]
+    %r8 = const 65535 : u16 [pointer]
+    %r9 = ext %r2 : u8 -> u16 [pointer]
+    %r10 = sub %r8, %r9 : u16 [pointer]
+    %r11 = cmp.ule %r1, %r10 : bool [flag]
+    br_if %r11, @if_then1(), @if_else3()
+  block @if_then1:
+    %r12 = const 0 : u8 [general]
+    %r13 = ptr_add %r1, %r12 : ptr [pointer]
+    %r14 = const 0 : u8 [acc]
+    %r15 = cmp.ne %r2, %r14 : bool [flag]
+    br_if %r15, @fe_body4(%r2, %r13, %r7, %r5), @fe_exit5(%r7, %r5)
+  block @fe_body4(%r16: u8 [counter], %r17: ptr [pointer], %r18: u16 [pointer], %r19: u16 [pointer]):
+    %r20 = add %r19, %r18 : u16 [pointer]
+    %r21 = load %r17 : u8 [general]
+    %r22 = ext %r21 : u8 -> u16 [pointer]
+    %r23 = add %r20, %r22 : u16 [pointer]
+    %r24 = ptr_bump %r17, +1 : ptr [pointer]
+    djnz %r16, @fe_body4(%r24, %r18, %r23), @fe_exit5(%r18, %r23)
+  block @fe_exit5(%r25: u16 [pointer], %r26: u16 [pointer]):
+    jmp @if_join2(%r2, %r26)
+  block @if_else3:
+    jmp @loop_head6(%r7, %r6, %r2, %r1, %r5)
+  block @loop_head6(%r27: u16 [pointer], %r28: u8 [general], %r29: u8 [general], %r30: ptr [general], %r31: u16 [pointer]):
+    %r32 = cmp.ult %r28, %r29 : bool [flag]
+    br_if %r32, @loop_body7(), @loop_exit8(%r27, %r28, %r29, %r30, %r31)
+  block @loop_body7:
+    %r33 = add %r31, %r27 : u16 [pointer]
+    %r34 = ext %r28 : u8 -> u16 [index]
+    %r35 = ptr_add %r30, %r34 : ptr [pointer]
+    %r36 = load %r35 : u8 [general]
+    %r37 = ext %r36 : u8 -> u16 [pointer]
+    %r38 = add %r33, %r37 : u16 [pointer]
+    %r39 = const 1 : u8 [general]
+    %r40 = add %r28, %r39 : u8 [general]
+    jmp @loop_head6(%r27, %r40, %r29, %r30, %r38)
+  block @loop_exit8(%r41: u16 [pointer], %r42: u8 [general], %r43: u8 [general], %r44: ptr [general], %r45: u16 [pointer]):
+    jmp @if_join2(%r42, %r45)
+  block @if_join2(%r46: u8 [general], %r47: u16 [pointer]):
+    ret %r47
+
+fun @record_checksum(%r48: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r49 = addr_of @checksum_calls : ptr [pointer]
+    %r50 = load %r49 : u8 [general]
+    %r51 = const 1 : u8 [general]
+    %r52 = add %r50, %r51 : u8 [acc]
+    %r53 = addr_of @checksum_calls : ptr [pointer]
+    store %r53, %r52 : u8
+    %r54 = addr_of @checksum_last : ptr [pointer]
+    store %r54, %r48 : u16
+    ret %r48
+
+fun @checksum_packet(%r55: ptr [pointer], %r56: u8 [general], %r57: u16 [index], %r58: u16 [index], %r59: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r60 = move %r55 : ptr [pointer]
+    %r61 = move %r57 : u16 [index]
+    %r62 = move %r58 : u16 [index]
+    %r63 = move %r59 : u16 [index]
+    %r64 = call @weighted_checksum(%r60, %r56, %r61, %r62, %r63) : u16 [pointer]
+    %r65 = call @record_checksum(%r64) : u16 [pointer]
+    ret %r65
