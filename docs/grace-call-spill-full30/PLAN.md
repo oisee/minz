@@ -1,6 +1,6 @@
 # Fresh production full30 checks after caller-spill certificate repair
 
-Preparatory artifact-only branch based on a02a3cca. No compiler build, native execution or CP/M execution has been performed in this stage. Final executable identity will be captured only after the pending ordinary print.u8 ABI work is reviewed and the production source is frozen.
+Artifact-only execution branch based on reviewed production e51846f1, after the print.u8/print.dec ABI repair. The CLI was built with go build -buildvcs=false and retained at SHA256 9ec48c5f2eaa42e786be9adddc0b824c374d5c39a599a8d2dd0ef3181a2b65d1. Compiler/source inventory contains 575 files and there are no minzc or source changes relative to e51846f1. No native or CP/M execution has been performed in this stage. Root selected the full four-invocation scope (1080 observations); actual release waits for identity review.
 
 Inputs are exact prior full30 bytes: unchanged SelfLanz source SHA256 `0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526`; workload SHA256 `ac7d90cb3501e183a7fc9d45242259551e9cd260db53731704ef0a31ee6f933f`, with 30 calls. The logical source argument remains `../examples/nanz/self_lanz_parser.nanz`, executed from the frozen compiler's minzc directory. Local copied source is an inventory record, not a substituted logical unit.
 

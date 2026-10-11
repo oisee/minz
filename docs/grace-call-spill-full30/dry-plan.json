@@ -1,0 +1,96 @@
+[
+  {
+    "goal": "speed",
+    "mode": "collect",
+    "command": [
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-final-full30-build/minzc-production",
+      "../examples/nanz/self_lanz_parser.nanz",
+      "-b",
+      "z80",
+      "-t",
+      "cpm",
+      "--memory-host-arena-append-search",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-final-full30-evidence/speed-collect",
+      "--memory-host-workload",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/memory-host-final-full30/docs/grace-call-spill-full30/inputs/workload.json",
+      "-o",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-final-full30-evidence/speed-collect-selected.a80"
+    ],
+    "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/memory-host-final-full30/minzc",
+    "timeout_seconds": 1200,
+    "candidate_count": 8
+  },
+  {
+    "goal": "speed",
+    "mode": "replay",
+    "command": [
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-final-full30-build/minzc-production",
+      "../examples/nanz/self_lanz_parser.nanz",
+      "-b",
+      "z80",
+      "-t",
+      "cpm",
+      "--memory-host-arena-append-search",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-final-full30-evidence/speed-replay",
+      "--memory-host-workload",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/memory-host-final-full30/docs/grace-call-spill-full30/inputs/workload.json",
+      "-o",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-final-full30-evidence/speed-replay-selected.a80",
+      "--memory-host-search-legacy-association",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-final-full30-evidence/speed-collect/association-legacy-v2.json",
+      "--memory-host-search-preserve-association",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-final-full30-evidence/speed-collect/association-preserve-v2.json"
+    ],
+    "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/memory-host-final-full30/minzc",
+    "timeout_seconds": 1200,
+    "candidate_count": 8
+  },
+  {
+    "goal": "size",
+    "mode": "collect",
+    "command": [
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-final-full30-build/minzc-production",
+      "../examples/nanz/self_lanz_parser.nanz",
+      "-b",
+      "z80",
+      "-t",
+      "cpm",
+      "--memory-host-arena-append-search",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-final-full30-evidence/size-collect",
+      "--memory-host-workload",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/memory-host-final-full30/docs/grace-call-spill-full30/inputs/workload.json",
+      "-o",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-final-full30-evidence/size-collect-selected.a80",
+      "--Osize"
+    ],
+    "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/memory-host-final-full30/minzc",
+    "timeout_seconds": 1200,
+    "candidate_count": 8
+  },
+  {
+    "goal": "size",
+    "mode": "replay",
+    "command": [
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-final-full30-build/minzc-production",
+      "../examples/nanz/self_lanz_parser.nanz",
+      "-b",
+      "z80",
+      "-t",
+      "cpm",
+      "--memory-host-arena-append-search",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-final-full30-evidence/size-replay",
+      "--memory-host-workload",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/memory-host-final-full30/docs/grace-call-spill-full30/inputs/workload.json",
+      "-o",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-final-full30-evidence/size-replay-selected.a80",
+      "--Osize",
+      "--memory-host-search-legacy-association",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-final-full30-evidence/size-collect/association-legacy-v2.json",
+      "--memory-host-search-preserve-association",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-final-full30-evidence/size-collect/association-preserve-v2.json"
+    ],
+    "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/memory-host-final-full30/minzc",
+    "timeout_seconds": 1200,
+    "candidate_count": 8
+  }
+]

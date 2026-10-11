@@ -1,0 +1,2302 @@
+[
+  {
+    "path": "examples/nanz/self_lanz_parser.nanz",
+    "sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "path": "minzc/cmd/ast-gen/main.go",
+    "sha256": "0e732edb2245f8e762beca6b164127db58bd9883b1fec767bd5e8f482ca57d2d"
+  },
+  {
+    "path": "minzc/cmd/backend-devkit/main.go",
+    "sha256": "1d04568348ff744b6442a97c269fcdba9d2014ad593d8ddb53015e3693ca39e3"
+  },
+  {
+    "path": "minzc/cmd/backend-info/main.go",
+    "sha256": "c0ca3517e7ea3199864372660e171a24124e4147359a89f801fc37dee5a440ef"
+  },
+  {
+    "path": "minzc/cmd/gpu-bench/main.go",
+    "sha256": "aebd716f9095b63be26c1ae35d165f2af1a7c2c278b861d302194d2dc28d3cb1"
+  },
+  {
+    "path": "minzc/cmd/mcp-ai-colleague/main.go",
+    "sha256": "37b61a2a0f77e649e9170c968b86706fb266e4335f8d192b40a4c28fa5cf9bcb"
+  },
+  {
+    "path": "minzc/cmd/minzc/assert_filter.go",
+    "sha256": "cd8f08c1b7de8f7383dd053aef1f98ae5f6ebd298f93793f4c7d10fefef0e251"
+  },
+  {
+    "path": "minzc/cmd/minzc/hir_profile.go",
+    "sha256": "d409ebe811a3bfe7fbe5967f267476df80ef000d0ebff69bc1e1282c054a38e0"
+  },
+  {
+    "path": "minzc/cmd/minzc/hir_profile_auto.go",
+    "sha256": "ed578eb322da5a4b0f19fc9dad7fd4219abd33a99f83edf2e3f24deec37419b5"
+  },
+  {
+    "path": "minzc/cmd/minzc/main.go",
+    "sha256": "ee4779a5fda60f7ebb0b8bb1a141be188f49124c96ea4d35672f07f59eafd4de"
+  },
+  {
+    "path": "minzc/cmd/minzc/memory_host_cli.go",
+    "sha256": "b9ae18131165487c8c294cc1820122f451b88e39cc4405718c80755d7817f0c5"
+  },
+  {
+    "path": "minzc/cmd/minzc/memory_host_policy_cli.go",
+    "sha256": "d0a9c17e261b003b8ebb156fc370ee0a78ae430de4c38401afb1c33f6e2d9828"
+  },
+  {
+    "path": "minzc/cmd/minzc/memory_host_search_cli.go",
+    "sha256": "ada4260da5b28278837577f3597336c22d7a4d7591ed420d0cbea82305f77bd2"
+  },
+  {
+    "path": "minzc/cmd/mir2asm/main.go",
+    "sha256": "a6ca9b85fceb225672c2fd0a4b54ddeaa58eda37dad392897ed7404565ad4a98"
+  },
+  {
+    "path": "minzc/cmd/mza/main.go",
+    "sha256": "a579d401b5086acd28135fd49cdb32672b0a44f332b0751b7def604c45b93c65"
+  },
+  {
+    "path": "minzc/cmd/mzd/main.go",
+    "sha256": "28190e08b265ac51225f387f998c0f3df548c72f2eedfdf1fa2fef1eaf9a69cf"
+  },
+  {
+    "path": "minzc/cmd/mze/main.go",
+    "sha256": "3836befef139dd69b3879f93878c7aebf490add730a56a80b9292b3a30d05003"
+  },
+  {
+    "path": "minzc/cmd/mze/sqlite_ports.go",
+    "sha256": "41ff572d381f29d5c24aa85fb3615952ea4c2c2d266f1f550b9485389c2edd1c"
+  },
+  {
+    "path": "minzc/cmd/mzlsp/main.go",
+    "sha256": "aa5f3b7c9d8af552e6c9eea5d09101d62b8ec82e3753f9bbcc798bb870a1bec3"
+  },
+  {
+    "path": "minzc/cmd/mzn/main.go",
+    "sha256": "5b3f69abddd24f5135cf6211731113e0762211f55dffcd1dfffe1b9b3cab9d8a"
+  },
+  {
+    "path": "minzc/cmd/mzr-simple/main.go",
+    "sha256": "033b625dd4528d28b9889568a5db361559541a74ffb7649b454c1f9b340b4dae"
+  },
+  {
+    "path": "minzc/cmd/mzr/main.go",
+    "sha256": "371403d9354da5647136931858c059e4b4cfd64acef82a2ac7bac766bd35b9e0"
+  },
+  {
+    "path": "minzc/cmd/mzrun/debugger.go",
+    "sha256": "c32aa271140f66ba4a432cebca7c75e884bdb5385a6fb1ac0006c4ef05031673"
+  },
+  {
+    "path": "minzc/cmd/mzrun/main.go",
+    "sha256": "829c4de3a8d0a0d2cdf442d9b4c43f260f764789f39bd5992d19d521f8a18aaa"
+  },
+  {
+    "path": "minzc/cmd/mztap/main.go",
+    "sha256": "fb25f019a4a0f571567e1f6e497dbd08bd3938895a60f83df3787e2b33862fd2"
+  },
+  {
+    "path": "minzc/cmd/mzv-test/main.go",
+    "sha256": "58ffafba989e40f0891a20843720fc07c31e9ef44bbd3d1328168951950ab437"
+  },
+  {
+    "path": "minzc/cmd/mzv/disk_host.go",
+    "sha256": "385cf42c149fc411a5c20dbb12b8930c6e044ebec755d7d94fb00f887e6f5660"
+  },
+  {
+    "path": "minzc/cmd/mzv/file_host.go",
+    "sha256": "c0c378d0fc08ce48f4dc1f6488f8ee641b9c5686a7962102855d354852a94667"
+  },
+  {
+    "path": "minzc/cmd/mzv/font.go",
+    "sha256": "30795e86802b9da460b6cd626506761889a5c94e6c8f88fb5b56aa81c1daca42"
+  },
+  {
+    "path": "minzc/cmd/mzv/main.go",
+    "sha256": "d52e3f1ccc920cd3847529e7d089dab554d8683fe43fe6d1adc5f07361310a64"
+  },
+  {
+    "path": "minzc/cmd/mzv/net_host.go",
+    "sha256": "3047695bde3d24b374178935b7a0193e513246e73660f238b85e76f23c7a7fce"
+  },
+  {
+    "path": "minzc/cmd/mzv/port_host.go",
+    "sha256": "874bc9dda5dc7d6c01ab22ad031f161d358e7fb524b23308eb77ad6b13735115"
+  },
+  {
+    "path": "minzc/cmd/mzv/screen_host.go",
+    "sha256": "a562175f136f6693003ffb0dcfc83bfa1349b51968d26a34c3e2f464e973ced8"
+  },
+  {
+    "path": "minzc/cmd/mzv/tui_host.go",
+    "sha256": "8d3fe8aaf13adf2f933a123a37bf847350205d9c933a180f675b761de4407ec1"
+  },
+  {
+    "path": "minzc/cmd/mzv1/main.go",
+    "sha256": "103129ce65d7df1db1a0f44c2417c84b0f60f4f97492dc430936c9c23614ba10"
+  },
+  {
+    "path": "minzc/cmd/mzx/main.go",
+    "sha256": "c4265fd1ff2f6582a85bad7e43092cf83fef05ccc39e84bf989173062cc7e27c"
+  },
+  {
+    "path": "minzc/cmd/mzx/main_headless.go",
+    "sha256": "3fe20901fb692dab9771216481feae3a562f25176428579017b09e3b554cba6a"
+  },
+  {
+    "path": "minzc/cmd/mzx/sqlite_ports.go",
+    "sha256": "5e872b82b4c5eb3267c6efc4be7b89d551a51d763e85829725f1a8a40a47da51"
+  },
+  {
+    "path": "minzc/cmd/mzx/stderr_darwin.go",
+    "sha256": "3396fa57b2bda57e5f738242316d7c99dba1e725fcc958ad02e091e829794c23"
+  },
+  {
+    "path": "minzc/cmd/mzx/stderr_other.go",
+    "sha256": "a25f81b3c1e922183859b0f9f93cda4d0b4458261edc526903fd75d14e681380"
+  },
+  {
+    "path": "minzc/cmd/repl/compiler.go",
+    "sha256": "2c5b6ed0f2e8f9a85b5f7753883c0cd1595d99456d25c6fa01e4c98bea3c1d4a"
+  },
+  {
+    "path": "minzc/cmd/repl/main.go",
+    "sha256": "0d6c3fdeace30ca7b93b317844941b20a869b0b47d8a9d93c3c529e9039a7244"
+  },
+  {
+    "path": "minzc/cmd/vir-enumerate/main.go",
+    "sha256": "bd534404c835ed2e200d97a2afae6664a4b1a99e821cca1a6169f8d12beb5c47"
+  },
+  {
+    "path": "minzc/cmd/vir-oracle/main.go",
+    "sha256": "6e6b01bcb10c79214773d974536dc605e8cb0c52283ccac82b729ad4084e5c6c"
+  },
+  {
+    "path": "minzc/go.mod",
+    "sha256": "87e6c85d1aae4298b2990be9d57908d88124991d5155527b4dc576a9ed731b47"
+  },
+  {
+    "path": "minzc/go.sum",
+    "sha256": "66925ebd498eb4e7783926307e83213d0e3520938453627f2ae4a81643a9048a"
+  },
+  {
+    "path": "minzc/internal/mcp/handler.go",
+    "sha256": "2b3be8e71ddb14985cd251d06f3da130ecba6ee07f44410c3f1c21c7cbf1c052"
+  },
+  {
+    "path": "minzc/internal/mcp/multi_model_handler.go",
+    "sha256": "1916b8de5bcfba6de99b287bf021edfc1ca3c522e70321383f27657906086289"
+  },
+  {
+    "path": "minzc/internal/mcp/server.go",
+    "sha256": "61e6db2322daf5dfca4c533443c41668784a6f23cf8aef17e73274911d524cdb"
+  },
+  {
+    "path": "minzc/internal/mcp/tools.go",
+    "sha256": "a8799ff699a1d4cad3796599f47c9d690e9c16b3e468c6d2c8943d4863408420"
+  },
+  {
+    "path": "minzc/pkg/_archive/mir1_deprecated/interpreter.go",
+    "sha256": "e157d06d845df0db40be8bffa08256d1e97ad6b44d5eebee5d931cb73cec3266"
+  },
+  {
+    "path": "minzc/pkg/_archive/mir1_deprecated/parser.go",
+    "sha256": "15ca30be0dacb72e5705d737aaedb82d4f3010d775e2feca0058bd673f5feb76"
+  },
+  {
+    "path": "minzc/pkg/_archive/mir1_deprecated/visualizer.go",
+    "sha256": "d224fdf22498576c30b5513c151a62c00002f77727e1ad0eb01793b481e08206"
+  },
+  {
+    "path": "minzc/pkg/abap/ast.go",
+    "sha256": "21ba04e37ed59757f11ae2c89f6cd44d0c0fe3d74d611a9ad02353eb4b109d7a"
+  },
+  {
+    "path": "minzc/pkg/abap/lower.go",
+    "sha256": "25e7c652445cab790c760e88fe35fac57d4f343e3e498f4764d76d5590429aa6"
+  },
+  {
+    "path": "minzc/pkg/abap/parse.go",
+    "sha256": "925685e1c26d8b2d756a731d75498aae8507edd94359e75fcb66b7fdc13ccbc1"
+  },
+  {
+    "path": "minzc/pkg/abap/wasm.go",
+    "sha256": "047493912b45c8f7cd98e712ea91217280ce3f141b71b53b28190849bf4af892"
+  },
+  {
+    "path": "minzc/pkg/ast/ast.go",
+    "sha256": "4c372a45d12818171f254630f65e9cbea4aeb7b4ebc608102beec983b87719e1"
+  },
+  {
+    "path": "minzc/pkg/ast/iterator.go",
+    "sha256": "4ff7525a3471d16a18ba267a691b88b2a849853a3a63d7ac95a411b41c284732"
+  },
+  {
+    "path": "minzc/pkg/ast/minz_block.go",
+    "sha256": "bf7daa70e161a511eb5e2fa9b5e49679cbc9d18f3b6c40be9c5b94b9b2cfedea"
+  },
+  {
+    "path": "minzc/pkg/c89/c89.go",
+    "sha256": "3a6245e21e85e42dd5b7bf2e8fad44c4895d96f0873ecef65c02d661f6600034"
+  },
+  {
+    "path": "minzc/pkg/c89/libc.go",
+    "sha256": "68724051158b091650b9d2e5b556b04615b3f0c5a9d5415c6bd2ec7a011809e8"
+  },
+  {
+    "path": "minzc/pkg/c89/lower.go",
+    "sha256": "8311a75e579033e1c9693db72a3cac5dff6c5d7fc1f45065487f36fa08587229"
+  },
+  {
+    "path": "minzc/pkg/c89/objc_lower.go",
+    "sha256": "f5a08411b19d18a3ed56e0be02a63c42313b09e113be6f4a2f35edcb6c85dce2"
+  },
+  {
+    "path": "minzc/pkg/c89/promote.go",
+    "sha256": "0122d0d86479d7371537815ba01c48379dbd2224efcf762649115781f557ea9b"
+  },
+  {
+    "path": "minzc/pkg/codegen/_deprecated/c.go",
+    "sha256": "ddd4fb2cc540a6c9185ee48a86fbb3e2b1aabf45e70352d8797f9f2e3d2f6c5f"
+  },
+  {
+    "path": "minzc/pkg/codegen/_deprecated/c_backend.go",
+    "sha256": "4599aa89d398cf437c465a469303d6cfce8fa86296525ac55140bb236949217c"
+  },
+  {
+    "path": "minzc/pkg/codegen/_deprecated/crystal.go",
+    "sha256": "050c443b59712226cf0c1ade943b7e4eb8f698370fb266229df1d729ba15be45"
+  },
+  {
+    "path": "minzc/pkg/codegen/_deprecated/example_backend.go",
+    "sha256": "b81f15cceed8b42b598321c2184d382eae74964de79921307406e3e21aef7ce2"
+  },
+  {
+    "path": "minzc/pkg/codegen/_deprecated/gb.go",
+    "sha256": "cfae2580359017fd66a8aac7d8bd2f92a8fa124aa5321d32238c3a20a45d8c00"
+  },
+  {
+    "path": "minzc/pkg/codegen/_deprecated/gb_backend.go",
+    "sha256": "72829e1adb70cbdd8315d7be0e8ba30a4128081f06051d0bfd38a3c975f16245"
+  },
+  {
+    "path": "minzc/pkg/codegen/_deprecated/html_wrapper.go",
+    "sha256": "4bcb116f0138dfbe471705e54464a0b46336cf9e16251db447f8554848bcd103"
+  },
+  {
+    "path": "minzc/pkg/codegen/_deprecated/i8080.go",
+    "sha256": "114bdb5211ed6a611c585dee64407a7979a2207ccdbf35ba7aaea9edb01da3a2"
+  },
+  {
+    "path": "minzc/pkg/codegen/_deprecated/i8080_backend.go",
+    "sha256": "c49fa2559490f4ca1e9909d453c4c0b9d20c8df495ddcc8d1411496ca0e146db"
+  },
+  {
+    "path": "minzc/pkg/codegen/_deprecated/llvm_backend.go",
+    "sha256": "cba8203149efddda08137f564218b9d7fd88299484f0e19bafc9d3c2b641f67c"
+  },
+  {
+    "path": "minzc/pkg/codegen/_deprecated/m6502_backend.go",
+    "sha256": "7af32c96b2fb891ee26730bc91813283394b801134e3456e1510c7607b337664"
+  },
+  {
+    "path": "minzc/pkg/codegen/_deprecated/m6502_gen.go",
+    "sha256": "1c313f9d63c363bfc405eac8dfed60c6c4756ea0e876737f5c4e01787cb88990"
+  },
+  {
+    "path": "minzc/pkg/codegen/_deprecated/m6502_smc.go",
+    "sha256": "d41a51a99e2d1d4adb3173340ce19029fdc38ecf28b79b0fb753d41604bea12a"
+  },
+  {
+    "path": "minzc/pkg/codegen/_deprecated/m6502_smc_enhanced.go",
+    "sha256": "4daa583808bcc6dc8dbf2a04e34ba7f4fbcb286b12ae36250bf8139450efd857"
+  },
+  {
+    "path": "minzc/pkg/codegen/_deprecated/m68k.go",
+    "sha256": "d528ac095131381a9cd7b1a71a14a246d1c87ce134c8ad6aa327eb826cbf26c0"
+  },
+  {
+    "path": "minzc/pkg/codegen/_deprecated/m68k_backend.go",
+    "sha256": "8b9ab8dd8ff153c34b6885c19d9ff528f7c6c238c2e00d46febdfd9cd47bb922"
+  },
+  {
+    "path": "minzc/pkg/codegen/_deprecated/mir_backend.go",
+    "sha256": "92c260c8bb1330c0cf748eeb7a2beaa4ea03caab5520b9832f2823057db7aeda"
+  },
+  {
+    "path": "minzc/pkg/codegen/_deprecated/wasm_backend.go",
+    "sha256": "4a49f46afc0d1df4eec3e6468f1b0c318afe134ca4c281a40378fcea65c49c5b"
+  },
+  {
+    "path": "minzc/pkg/codegen/backend.go",
+    "sha256": "e61b4527fe0a3d27f0e68cb7941b361ecb0ce0a5676d33f22e3eeecbdad08cd9"
+  },
+  {
+    "path": "minzc/pkg/codegen/backend_devkit.go",
+    "sha256": "2a83a816b6b832a56b2584d1e05f199f220b945c4682f5fd6180a8e05e2a484b"
+  },
+  {
+    "path": "minzc/pkg/codegen/backend_toolkit.go",
+    "sha256": "b6662a56364bd86191fd1cb18d0bb5ee486f50216f76379db6df2e4ce39e5fc8"
+  },
+  {
+    "path": "minzc/pkg/codegen/base_backend.go",
+    "sha256": "3934bc4a73df2e2676bc1d7f74e191a5b896ea049a85652069e4860bf7f14c1b"
+  },
+  {
+    "path": "minzc/pkg/codegen/register_allocator.go",
+    "sha256": "bce36b44a52e31eca6aea88b8741bfbcca086920e3cc75497e459f8be51079fe"
+  },
+  {
+    "path": "minzc/pkg/codegen/sld.go",
+    "sha256": "bc5ee8366b054b290e17f9580a0b4a64027438189720f40e9887196f2a4bda94"
+  },
+  {
+    "path": "minzc/pkg/codegen/target_info.go",
+    "sha256": "abdf557f9c719f45bbc49d51bb82563d37afd9e1cb11bfa1dd8f518c028798fc"
+  },
+  {
+    "path": "minzc/pkg/codegen/z80.go",
+    "sha256": "b270b59525c80aa9cc2fa1868b0769b3da1199b43bf262badb4b5c4c2b03dd38"
+  },
+  {
+    "path": "minzc/pkg/codegen/z80_backend.go",
+    "sha256": "dd743f23b25b57f6fda1397b9002074a72fe185cb4e667253ed1f918212e8cbd"
+  },
+  {
+    "path": "minzc/pkg/codegen/z80_stdlib.go",
+    "sha256": "7be66c1c6ddf560f6f2f7f34beb29109ac169c009d076591d8a018b67a0e9471"
+  },
+  {
+    "path": "minzc/pkg/cparse/abi.go",
+    "sha256": "1c8311983b0c34bc868deffdb7ecaeddd3db9590fdcc7de37d54ffc622b54c50"
+  },
+  {
+    "path": "minzc/pkg/cparse/ast.go",
+    "sha256": "d3577ae7154c180c7675aba607b96e9bac5fb4716dafb52065e5ef27e3066a4e"
+  },
+  {
+    "path": "minzc/pkg/cparse/ast2.go",
+    "sha256": "4fbca79b80a8480b01490fd86a161124b88f7876d4adf8ac203540cad1acf9d3"
+  },
+  {
+    "path": "minzc/pkg/cparse/cc.go",
+    "sha256": "b3cbe5889515b7d5ff94c528d132c6e2981effc22074d6c8867636b9d9e3839e"
+  },
+  {
+    "path": "minzc/pkg/cparse/check.go",
+    "sha256": "da03dba54d61795dd6c1d57a18bc8be6fb4c65d6965f81f215957d4e762a9508"
+  },
+  {
+    "path": "minzc/pkg/cparse/cpp.go",
+    "sha256": "a3094afefe0a8d32f9619ea2fc662cb067cea7cfbfc749d060924836061723bf"
+  },
+  {
+    "path": "minzc/pkg/cparse/dmesg.go",
+    "sha256": "f9438680e26750e835b7aeee8a8a2a3109ea9c52cab4b0a635d04e77513ae16d"
+  },
+  {
+    "path": "minzc/pkg/cparse/etc.go",
+    "sha256": "c9d4915d3f5615a8634b000df1a8f99d6da2222f52b3e3b15864baaf81818c36"
+  },
+  {
+    "path": "minzc/pkg/cparse/nodmesg.go",
+    "sha256": "7b36801eb46c5361d37e9509bfdd5479c361156b22849f117078fd08528c9a4b"
+  },
+  {
+    "path": "minzc/pkg/cparse/objc_ast.go",
+    "sha256": "b08afe10521341ecf4db63c38223c9c4c152e44f894d02cf7a3eccfde0566cb4"
+  },
+  {
+    "path": "minzc/pkg/cparse/objc_parser.go",
+    "sha256": "ca4a29e5ed92cb1e96145162fe824a32a6e9be17f181ca71579d4934da844c2a"
+  },
+  {
+    "path": "minzc/pkg/cparse/parser.go",
+    "sha256": "06a1738f8856da1f08e6392a08ea91d912ce4ff45f71e887f928c577fc5be90a"
+  },
+  {
+    "path": "minzc/pkg/cparse/scanner.go",
+    "sha256": "9eae0f6becc205fc5513deadd4d29c4a50f5b803a616ffa4fa37dfc2aa4dba5c"
+  },
+  {
+    "path": "minzc/pkg/cparse/stringer.go",
+    "sha256": "65f4aa85ccafd697fea4968d2fc42f9cc53e07ba4210bf472628b953be79fa98"
+  },
+  {
+    "path": "minzc/pkg/cparse/type.go",
+    "sha256": "973ed9bdffa533d1cea4038bc2a2114d535f29922451f974069a394715e3a2c6"
+  },
+  {
+    "path": "minzc/pkg/cparse/value.go",
+    "sha256": "de5f7492ff980bb0ba1906b851c193802829c65d76ed0b7138d10b44080beb45"
+  },
+  {
+    "path": "minzc/pkg/ctie/const_tracker.go",
+    "sha256": "eb08756dd2538c8fa2b4a1fd1e182920d47b5560dd58d2740c160bf35d1ccf20"
+  },
+  {
+    "path": "minzc/pkg/ctie/ctie.go",
+    "sha256": "7d6d4edf5cb8e157e5f7da0293d673d966d29dfdb0cff82cbfef6a44560c1c23"
+  },
+  {
+    "path": "minzc/pkg/ctie/executor.go",
+    "sha256": "b8b0217971b197c79dcb62be0063c8a18e28113c3155c4bfbcd5f09142e13b68"
+  },
+  {
+    "path": "minzc/pkg/ctie/purity.go",
+    "sha256": "31e198b1f84be1732c3958e879a33a2d26605ec770d49d08125b1f029057f349"
+  },
+  {
+    "path": "minzc/pkg/dap/messages.go",
+    "sha256": "01df79d0225cb8cfb95f559696bb88646738bbb5a3a6d63d84da5b6dd242a296"
+  },
+  {
+    "path": "minzc/pkg/dap/server.go",
+    "sha256": "1e68e9641d259d0d849c76aaf3ec86dfdfb7c447d7ca29561c7f69ae777a60e4"
+  },
+  {
+    "path": "minzc/pkg/debugger/debugger.go",
+    "sha256": "15394f412d26792a9e855f275f4bd3b3497c7746043dd2ec86116f181d95b7d1"
+  },
+  {
+    "path": "minzc/pkg/disasm/analysis/abi.go",
+    "sha256": "35380ff7e36cdcce8a68ae5672ebab29babe9dca61815e0c59bb6d948f73e4bb"
+  },
+  {
+    "path": "minzc/pkg/disasm/analysis/abi_format.go",
+    "sha256": "5ae006fb71b2cde995dc565dcdafb3f392628fdf1725f696b8398cb173a37320"
+  },
+  {
+    "path": "minzc/pkg/disasm/analysis/abi_verify.go",
+    "sha256": "685d40628426efa64fd1823132ee7b7dadae49811627bc030caac7fefcf2f806"
+  },
+  {
+    "path": "minzc/pkg/disasm/analysis/analysis.go",
+    "sha256": "e17b2ad24fe6aa91d91cd2599623be3d6f412ed09946e71dad117ba623c1f527"
+  },
+  {
+    "path": "minzc/pkg/disasm/analysis/cycles.go",
+    "sha256": "4b2e04684804643a68efbf255ce6ae6f28f646be0f76b9d5e7e85eb76d0ee126"
+  },
+  {
+    "path": "minzc/pkg/disasm/analysis/data.go",
+    "sha256": "a690723cef5cebda9920e3f4ae54d5944b1592ba018e782887a1b230121bb52a"
+  },
+  {
+    "path": "minzc/pkg/disasm/analysis/engine.go",
+    "sha256": "2291cbdf17c06f035c21d86f690869d5b996a1cb4ec78bc0a6f2edbe3d017412"
+  },
+  {
+    "path": "minzc/pkg/disasm/analysis/labels.go",
+    "sha256": "65c695ac169fde5cf3da3a5a3030db5bb92408d155957b4205c06ddf5bd67e00"
+  },
+  {
+    "path": "minzc/pkg/disasm/analysis/project.go",
+    "sha256": "577c73a5ba2e7f6f70fb06c1cd398ba7c1f5811b21423a282c35834a472eed55"
+  },
+  {
+    "path": "minzc/pkg/disasm/analysis/regtrack.go",
+    "sha256": "05825d7fbadbe898a04386662519df4ac483c2c9d408d8ef13567768196e6e24"
+  },
+  {
+    "path": "minzc/pkg/disasm/analysis/symbols.go",
+    "sha256": "4fecf5b6ac09fbc7cb478d1e710c9376a5aa88b58eee27f066f0c8cfce3131ad"
+  },
+  {
+    "path": "minzc/pkg/disasm/disasm.go",
+    "sha256": "9f8ecadf9fded11404a1b1f4a9b177fc84c43eedb7f77a9e6f8a193f3eac60fb"
+  },
+  {
+    "path": "minzc/pkg/dzrp/adapter.go",
+    "sha256": "61aa0aa616a37458198989f35559d87696b0e6bf9dafb52ab1be2790702f4c91"
+  },
+  {
+    "path": "minzc/pkg/dzrp/protocol.go",
+    "sha256": "a00c2c53f9e3a4b3524d77f6396241febb2e4ee3833dd92c92ca8f13dff1dbc8"
+  },
+  {
+    "path": "minzc/pkg/dzrp/server.go",
+    "sha256": "302b0d4b36a748d9c683d7c1fc0674748b37a8c61be99d858774f04c02679da4"
+  },
+  {
+    "path": "minzc/pkg/emulator/io_interceptor.go",
+    "sha256": "e3db09b806b61cd9579cb2a5a1ace6fc82c89e0aa145fd92172ce3e3c96710b1"
+  },
+  {
+    "path": "minzc/pkg/emulator/migration.go",
+    "sha256": "4a0511a182dba9c72bc33e1be3ed0236e958a4fc3c0e033b9a3bb8647ac26f76"
+  },
+  {
+    "path": "minzc/pkg/emulator/profiler.go",
+    "sha256": "86048ee1ff1f20a62d2e3a3c638b9f8b26b2143896af4677f25eac4abbd3a3bd"
+  },
+  {
+    "path": "minzc/pkg/emulator/z80.go",
+    "sha256": "d68f6f8fbc0656f527ab07fab3b852d6ff9b82dc3de92fd44f951c05a30acc79"
+  },
+  {
+    "path": "minzc/pkg/emulator/z80_hooks.go",
+    "sha256": "bd1aaba4b600ec2eaa4a77373251849b71c524db955bf110f7bacb38d2350c14"
+  },
+  {
+    "path": "minzc/pkg/emulator/z80_hooks_remogatto.go",
+    "sha256": "a1fc148a8866e54b5c70b91b1334fd5c3d288d18fc695349bfd5c4256f827157"
+  },
+  {
+    "path": "minzc/pkg/emulator/z80_remogatto.go",
+    "sha256": "a335c517274fb045bf1d52c02c53243f3731e0a5c94f7477c9a85a3ad3cdcb82"
+  },
+  {
+    "path": "minzc/pkg/emulator/z80_repl_compat.go",
+    "sha256": "91cb7df4c29fba19b77516dacdfc127429b9911d5a5fcd2bc2ddf51628459f40"
+  },
+  {
+    "path": "minzc/pkg/emulator/zx_screen.go",
+    "sha256": "a4c7ad358f5a43ac1967dd79869bcc26821da93627d275715d85173bf5bb76f1"
+  },
+  {
+    "path": "minzc/pkg/ez80/codegen.go",
+    "sha256": "135ed46368f656a18a913a5b864f83048e16391674f2f50da9816491104906f6"
+  },
+  {
+    "path": "minzc/pkg/ez80/cost.go",
+    "sha256": "c8f2d29653a04133a04411a568b64b6c1e899e35fb18a947f67e8e939799866b"
+  },
+  {
+    "path": "minzc/pkg/ez80/mir2codegen.go",
+    "sha256": "d67b2ea15c90f1e4f0c67884f5a45806b614d9491d327e83b8da170d7d37ae12"
+  },
+  {
+    "path": "minzc/pkg/frill/frill.go",
+    "sha256": "cc30b7d6908b6e4d254d388fc0378db02476251891715e4346777b398369b760"
+  },
+  {
+    "path": "minzc/pkg/hir/append_copy_proof.go",
+    "sha256": "2f23b9ea81ebec532a7534a9e295439f97c0a737a8217983b800761c957fc2b0"
+  },
+  {
+    "path": "minzc/pkg/hir/arena_append_proof.go",
+    "sha256": "b012adcd65b11c0c6dde507a6f69aa7aa500aed3d803f3de36a7ab4baf38f882"
+  },
+  {
+    "path": "minzc/pkg/hir/arena_peel_proof.go",
+    "sha256": "a04c76c69517f5c87409557a065575b94ee835b5f3e45adbc1fd89958d97daae"
+  },
+  {
+    "path": "minzc/pkg/hir/captures.go",
+    "sha256": "47925f902d656b3bb29091a36e4661e5f3339e71c49f0881320dd1cdd45fe546"
+  },
+  {
+    "path": "minzc/pkg/hir/dump.go",
+    "sha256": "8110570dca78a6da5b58de05805985696b507e68b82b3319fb5d9590c3bd3edb"
+  },
+  {
+    "path": "minzc/pkg/hir/facts.go",
+    "sha256": "a460f5d70e407ad01cc2950131c4c3b7090e2b1fc73677bec88b1e79501d7fba"
+  },
+  {
+    "path": "minzc/pkg/hir/forward_copy_profile.go",
+    "sha256": "6b37eee11f00823dfe296b4e800a19e167753b9b209e02bfeba339750d198935"
+  },
+  {
+    "path": "minzc/pkg/hir/function_sites.go",
+    "sha256": "9abf82f0692b03678b2e1da489c21c12549bff5373440696df5d12c9069cc56f"
+  },
+  {
+    "path": "minzc/pkg/hir/goto_bindings.go",
+    "sha256": "e0f3070f83b0a3f22d94828e9688c9686c3c3c03eff2a878a1a11dae394ed470"
+  },
+  {
+    "path": "minzc/pkg/hir/grace.go",
+    "sha256": "b7278a6b383edd0c6858f8c6b8e1831f527d1aa7063ced14fa3d88e623eef235"
+  },
+  {
+    "path": "minzc/pkg/hir/grace_forward_copy.go",
+    "sha256": "bee92755032f4c3e1c58f51886ec180a4ff5571990f09956e6c48a23bf7b230e"
+  },
+  {
+    "path": "minzc/pkg/hir/grace_hoist.go",
+    "sha256": "b3d46445851388fad4ae004ea4149de143750fb8f656f96806742cdb23f6bcff"
+  },
+  {
+    "path": "minzc/pkg/hir/grace_pointer_walk.go",
+    "sha256": "e91f1edd4fe349abb78140abac4701b4b2b3cadac55c788a237fbabc86c25b5a"
+  },
+  {
+    "path": "minzc/pkg/hir/grace_weighted_composition.go",
+    "sha256": "fb207af1665597953850a359f59ae54664377b55477348a273cdfa3ad90c4855"
+  },
+  {
+    "path": "minzc/pkg/hir/hir.go",
+    "sha256": "378dbcde1819c57d01227b6dab73160094a1197aa18b92d2c77209e06865d74c"
+  },
+  {
+    "path": "minzc/pkg/hir/lower.go",
+    "sha256": "f0a974b033cd977f8617017bef3ab78e46e4c566daed21520144b086aea2523a"
+  },
+  {
+    "path": "minzc/pkg/hir/lower_string_print.go",
+    "sha256": "7be591ddbc40c50d408669ac3bd780d0de5b41896f73a7a7eec46c00e88ca069"
+  },
+  {
+    "path": "minzc/pkg/hir/memory_host_loop_profile.go",
+    "sha256": "b83ae428cc262ba6951d8be9aa652dcd4676cb71252243f2b574e65a6cb2a8a5"
+  },
+  {
+    "path": "minzc/pkg/hir/memory_host_loop_profile_load.go",
+    "sha256": "7240c109bd354673cd520d0884cbf527de7b187769acf23a168b8ce89d72c5ea"
+  },
+  {
+    "path": "minzc/pkg/hir/memory_host_workload.go",
+    "sha256": "5250dc76b8f188ca66508f02f9462df34cc048cbbc1f2b06b36a5ff1e7e46d01"
+  },
+  {
+    "path": "minzc/pkg/hir/mixed_copy_region.go",
+    "sha256": "ff314dfd6f2cb0d0d9f5a7854db3eb3b4ffb4ff39bde6c5567ebdbca4c12ca22"
+  },
+  {
+    "path": "minzc/pkg/hir/mixed_copy_weighted.go",
+    "sha256": "a79698e1745fd5f77f94fcbc0ae6c83f3d55b4187e180a60a79955bb2298a161"
+  },
+  {
+    "path": "minzc/pkg/hir/ordered_byte_helper.go",
+    "sha256": "cd245cf208d3324a7a4364447d4684027db4cd98ff3edc96026605d4d827452b"
+  },
+  {
+    "path": "minzc/pkg/hir/ordered_byte_profile.go",
+    "sha256": "783ab8324f554b28af7e2f2ffb60de2e338ebb73176c0bd22d862b8ee1c7cff7"
+  },
+  {
+    "path": "minzc/pkg/hir/ordered_byte_rw.go",
+    "sha256": "ee515f02e194634a5d05fad78a4d74a628edc375af579914f5cbba1fd3a5faab"
+  },
+  {
+    "path": "minzc/pkg/hir/parse.go",
+    "sha256": "e46115b50130220ed3cb7f5b1d2c9503a7de5e9906417db2065ed6186eccd9df"
+  },
+  {
+    "path": "minzc/pkg/hir/profile.go",
+    "sha256": "60eddbdd241ac508972fb98033056350a25ee1e563fba4053e0c9b7168f47caf"
+  },
+  {
+    "path": "minzc/pkg/hir/profile_access.go",
+    "sha256": "b90f90fa043043fcec83c27e1ac6794c90bf03f8a0e6d411d20bf50f1d3b614f"
+  },
+  {
+    "path": "minzc/pkg/hir/profile_compat.go",
+    "sha256": "dec09a84b643e59a80c19ee10c5c2e3b50fbab5440048cbcdfd891e3e2d6596d"
+  },
+  {
+    "path": "minzc/pkg/hir/profile_context.go",
+    "sha256": "72018ade73f56c9d765be09d2b7994a79deaee0e8c7ccdbb8ae6d72a405f393c"
+  },
+  {
+    "path": "minzc/pkg/hir/profile_lineage.go",
+    "sha256": "537f32a789445777ea4dd1c5009615a29ac5936dc5f4b851ceba6cf0c4a5ca52"
+  },
+  {
+    "path": "minzc/pkg/hir/profile_policy.go",
+    "sha256": "ea8cffaed2d784d9e7c112a5b7ca36737dba2586b5d3887b3b853c6477406621"
+  },
+  {
+    "path": "minzc/pkg/hir/profile_run.go",
+    "sha256": "b7b078074c230fd902aa2bcc9f393c24252fc1c57078dd2476e9e584ac61ed2d"
+  },
+  {
+    "path": "minzc/pkg/hir/region_compare.go",
+    "sha256": "228400c3906c5df12c280c7f30d246d687de0a9f6d25925eceb62b71f36a1ed5"
+  },
+  {
+    "path": "minzc/pkg/hir/region_compare_profile.go",
+    "sha256": "1a02c8fa1e8f47f022311f6984dadf94a93276241f1ea65c19badfadb0bf0fd5"
+  },
+  {
+    "path": "minzc/pkg/hir/region_compare_split.go",
+    "sha256": "078852214fcca2b620936ddb75d46bff0fa8b8bc1815abb440cda8f99b8a06bb"
+  },
+  {
+    "path": "minzc/pkg/hir/sites.go",
+    "sha256": "08a767b58e71526c237a9192259117f608a16f868e16f8643d3a578d6a6b4e99"
+  },
+  {
+    "path": "minzc/pkg/hir/split.go",
+    "sha256": "fdeebaae7cf97d063dee66f286af017a5b058e7081b6d79d78b39f8c471d10b2"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/indirect.nanz",
+    "sha256": "7cff3f5d7e5eeb244f2d62715d59dbbc35b6eb2a7de5c0fefd35df5f446dec7a"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/multi.nanz",
+    "sha256": "50c0a74d2512fc638735950ab3338e144925074fdab6dbcd7eaa23d4320b4eda"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/multiply_word_live.nanz",
+    "sha256": "11945f2f8a92214af560bad0f2f8ccc11f2358b0f84428aca960d27eb11fb031"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s00039.nanz",
+    "sha256": "f51e06382d5cd8664bf8cb17e1a465a73a9ddcd39b472f0c301ed95c64c77476"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s00046.nanz",
+    "sha256": "29b53b18a6770d624e22ca81c9ef463df6510810b64e65a0cca7f3d33ca77e92"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s00143.nanz",
+    "sha256": "26e2f8e7c35042842f9142b75d75573c9447da3e8f2f28ac07de298af1ebf6ba"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s00167.nanz",
+    "sha256": "de73e896af99c1af8b7ee5638bbebc8f17d8d0b503195e17f1d51848859283ca"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s00254.nanz",
+    "sha256": "dd2738c6bb402eb1ee4c8016f6c1f98028a0eccf3320e7d5a52d1f5a547d23e7"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s00360.nanz",
+    "sha256": "5cf42e01261d13411b09253ac1233b7a5b909846ef3907fe2e5b13021a80d490"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s00404.nanz",
+    "sha256": "00237755317f6cf4f4e6c0ffbc2d912a979881b8cee82d96cf08879ab1a7edcf"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s00595.nanz",
+    "sha256": "4f7168809b31ecef8dfe3d4a142ff12a3eb2dc021071a18d3c06ce906bf281df"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s00656.nanz",
+    "sha256": "f13011eb4d58674d40a5e8be3c817f48ab9b8ab62b4d35075b87fed7487e4d15"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s00726.nanz",
+    "sha256": "169bfa7491d95c4b12c4537230bd3b29c6939a83267709fa574fe1ae491f4c26"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s00742.nanz",
+    "sha256": "7fb61afecb8358bf083169cd87de254132f3b1f1d1e8a09bc02609bc96c25e47"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s00766.nanz",
+    "sha256": "65de4e6a416bb500a1a839fab89e19a2ad6223eabee26afc5d01066b4a8325f1"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s00784.nanz",
+    "sha256": "287f315aff68235f0b1a6fcee724d28e7e9a8051f8909c4556cca2b41214ccff"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s00806.nanz",
+    "sha256": "c4e185bc6885af428c3e3a70a08a5c7a145bf18db9cd474b0de3d53147bf71a4"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s00852.nanz",
+    "sha256": "e32216c542e535d05ac72d6225a40cc825e26018a7db9c4bfbe739ec5d868592"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s00905.nanz",
+    "sha256": "678a89f5f87eaf9e4a3e19199f7ae6ad025206c7bc08e07ad3e32f17f4eb8ce5"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s00934.nanz",
+    "sha256": "bb55ef754647cadbcc4415e093bf49a0d208c52d68e213dce7d6c51185aad1c7"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s00963.nanz",
+    "sha256": "a6bb43cc94dd8f9fe758d5e920c76e4cb9305d1c21dce9d3a0e584a2c6c70672"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s00966.nanz",
+    "sha256": "0ed402b827925c399515d0d1a37697af1eefdc7627ad2abae25dcacecd8e31fc"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s00976.nanz",
+    "sha256": "94346aa44b761916f27d00901e456544346dc568808828fd793d2d0d06046c17"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s01034.nanz",
+    "sha256": "93294383d65ea9cd8a4ad6dc3340480c833f27ee6b7f7923e1511761b2b8815f"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s01098.nanz",
+    "sha256": "9c9e9350a8fa5962baace68d1256935dce72c4a42c3c1b188fd5380dc7c66fe9"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s01128.nanz",
+    "sha256": "e5cc3b27457737a4b9640239bb54fc24069df9a46692b949d6a7d1a90a924289"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s01176.nanz",
+    "sha256": "40daea0607041c30597efcdcc40cdad138354cd7970078c914e497e3ee49298c"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s01204.nanz",
+    "sha256": "73a3f364aaa1ba4e7c13bfaf4d7c26b0f8a2255f1813c3ddd9b1d5fd44733efa"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s01328.nanz",
+    "sha256": "1a38d7b570e12a5cb64ee6bba80d3219726157842f934bc89183e64f3371b4a9"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s01435.nanz",
+    "sha256": "c1f90f6ac9d76fbfe0e93bfe62bd0caf9428532dc84fa4076f6540e718c10453"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s01488.nanz",
+    "sha256": "58cb1c18f49ce4c07f862e6e0ac733bfe3eb0c14eb47dd7a8db1ac74eb0f1fd5"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s01505.nanz",
+    "sha256": "ba52312e8623df293c1788dd670236c3b73057034cf76048d0a7e84611aebc22"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s01608.nanz",
+    "sha256": "056d6eebdf9a3d826bd72f9f2746330049ff6704737b496c4a9096b64402273f"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s01715.nanz",
+    "sha256": "857f594a46c71fd17d6d59df5a09c5f490fde8f6e562574136db10160e280884"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s01788.nanz",
+    "sha256": "e36f5e56622b3131125d4a67e2cf5e76057aaf9841dde73f43b8907e5d330739"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s01858.nanz",
+    "sha256": "7e2e76a291619ef28a87ed93a2a9423af288e71d32e3f959348fb6cca629cf01"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s01944.nanz",
+    "sha256": "02ebedd669766a20b55bcd28f3f68aabcbb7ba2a34ffd810d31e809f8915b2a5"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s10006.nanz",
+    "sha256": "bf54aa4fec615e34cc0715ceaf73f2f5273778496b9c5a340e90e5dbaa4bb5c9"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s10635.nanz",
+    "sha256": "35cc1eda52a984a690dc4236b42b88a1c3e06dabd384f96f8a3bd2badb773bfa"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/s10983.nanz",
+    "sha256": "f9d49e824502eb022ea3ef2509435841617496f823d07c0d41908a3b11dca98b"
+  },
+  {
+    "path": "minzc/pkg/hir/testdata/call_fix1/tail_multiply.nanz",
+    "sha256": "37ada38ec1d9c74e97f5a790a6f459055b8d5ce4acc5c97be1bdf417ef8d05f3"
+  },
+  {
+    "path": "minzc/pkg/hir/verify.go",
+    "sha256": "4a2f389b5412888bfe29f9ea335ebd72bbc126ccb494d513ecbc0397cb46d172"
+  },
+  {
+    "path": "minzc/pkg/hirwat/codegen.go",
+    "sha256": "aaa4dbd41092b8277ee7f9bbc0fa1a24821a09698b140cd4d749c9fac978e39d"
+  },
+  {
+    "path": "minzc/pkg/ide/ide.go",
+    "sha256": "9201570e5b76d08df0615f8a841fc268ee82fb3ce3e0cb34c066624b2805f40a"
+  },
+  {
+    "path": "minzc/pkg/interop/interop.go",
+    "sha256": "381a49864699365cf0246a89c78d02016c0b1c49cb64a195963aa2eca23427e4"
+  },
+  {
+    "path": "minzc/pkg/interpreter/mir_interpreter.go",
+    "sha256": "9b702aaca8a819d7bc1daf2ad76fd9c5d7856007365508d2e2eb31044170b28f"
+  },
+  {
+    "path": "minzc/pkg/ir/ir.go",
+    "sha256": "dcedfb7469f438b9519a00fa23a4dc4ba396be59f3c0132a0a91bc3d580b79f7"
+  },
+  {
+    "path": "minzc/pkg/ir/mir_parser.go",
+    "sha256": "d5728251224e9f1716407728fe215c7e1d1b75f829f7b47d33972589c48ceac0"
+  },
+  {
+    "path": "minzc/pkg/lanz/dump.go",
+    "sha256": "e38e00809fb8e8b2c0b314390b76f61e0a6c807b312b08aae029bffe61ced33a"
+  },
+  {
+    "path": "minzc/pkg/lanz/lower.go",
+    "sha256": "4a9facf17cafe04aa6a0723890a7e1715d1e6ea69c69f7d4fc43cbc061247a1f"
+  },
+  {
+    "path": "minzc/pkg/lanz/meta.go",
+    "sha256": "1f993d4a0ed653d357bd70e853e02d313464463397b8310229c63203a7bf2610"
+  },
+  {
+    "path": "minzc/pkg/lanz/metafunc.go",
+    "sha256": "4dd6c1f4e305eb107ff1280072b4d2b67a62525a66f9bfe3cf11e095aa8a22b2"
+  },
+  {
+    "path": "minzc/pkg/lanz/parse.go",
+    "sha256": "292e02a9712c3ca9f2c4eb417077a1ed6be62f778bdc4381a25b56bf697c5ac2"
+  },
+  {
+    "path": "minzc/pkg/lir/bridge.go",
+    "sha256": "b24ae108d17c02d3f56dde301c61e445bc2a09b9aa96095257a95ecae9a21044"
+  },
+  {
+    "path": "minzc/pkg/lir/bridge_egraph.go",
+    "sha256": "7a8ee4cc4f0e97fad0d47acdc5297d00a9d58c33e278751cfa409b826a9182c1"
+  },
+  {
+    "path": "minzc/pkg/lir/cfgengine.go",
+    "sha256": "98556d41f6bc5ecad4366d7471b5093b97760b9f83f1ecbc13b3452879dd733f"
+  },
+  {
+    "path": "minzc/pkg/lir/cfgrules.go",
+    "sha256": "ae5f399f822f8b23bbc5f850d8926435853ac1368d948570781b7ce5de9b34ea"
+  },
+  {
+    "path": "minzc/pkg/lir/combine.go",
+    "sha256": "20dd2a4a23e1e07e0924c4f4af86ddb0e9531b19af9acd1c8942b39a2d7b9a3f"
+  },
+  {
+    "path": "minzc/pkg/lir/egraph.go",
+    "sha256": "42dd4ab0347dacefba853f55f422f59fe43b631a99f9fa496b278bfaf7f54628"
+  },
+  {
+    "path": "minzc/pkg/lir/isel.go",
+    "sha256": "b1415c740aa1c62ab5ca54fb0ce19eada550b1009f5db81e812fa624f709b643"
+  },
+  {
+    "path": "minzc/pkg/lir/isle/isle.go",
+    "sha256": "daba9ce927282cdf30d29dbe9f6cccd93d627a9061b0021ed7eb28dd0877078d"
+  },
+  {
+    "path": "minzc/pkg/lir/isle/sexpr.go",
+    "sha256": "5e64347c711e8905ef3fa2eed78b8171d475791423b2f2d997fc7870da997fc4"
+  },
+  {
+    "path": "minzc/pkg/lir/lir.go",
+    "sha256": "1344a39e71dc7bbd21d795a40ad946ce4fca5423f4ab511ff4e64094be567883"
+  },
+  {
+    "path": "minzc/pkg/lir/looprot.go",
+    "sha256": "e3e95a5745c091cf71663413f66c92880db4ef12dd43b381db151795d5bf6f50"
+  },
+  {
+    "path": "minzc/pkg/lir/machines.go",
+    "sha256": "0f6cbb948bd1cae9307bfa313f223bc043327a509561ffea9be4efd6a1d7ffb7"
+  },
+  {
+    "path": "minzc/pkg/lir/outparam_promote.go",
+    "sha256": "898cf7e9c1509408d824354d602a9bf73f879f7e4fa4b300c2761d0884e7935a"
+  },
+  {
+    "path": "minzc/pkg/lir/pipeline.go",
+    "sha256": "b5d0e9089d2b65158f02cfb177a55d1ee141a7fa9c97ff743597177c31b40753"
+  },
+  {
+    "path": "minzc/pkg/lir/rules.go",
+    "sha256": "5c30f5a0197912e6150f1bcfbdf6f21d99cae2773947eaf4c2fe73050f357f3b"
+  },
+  {
+    "path": "minzc/pkg/lir/saturate.go",
+    "sha256": "551721c90d4e00c835d3fa543b7ca05636c2ff5f7eae7cc5830422ca9ed86218"
+  },
+  {
+    "path": "minzc/pkg/lir/spill_reload.go",
+    "sha256": "344011c3b2980d576f7ffc6912270f5f4841e44e9c1e6d640fa625daed5bc2bb"
+  },
+  {
+    "path": "minzc/pkg/lir/vm.go",
+    "sha256": "45ec4c378d3deebc9d7c6d7f900cd371e3219ca9e0f39ea5200521ebea9a752b"
+  },
+  {
+    "path": "minzc/pkg/lir/wfc.go",
+    "sha256": "0e8f55d4ced694ab37fba4440375dc3c555e9bba528262bc4bcf7f2ce2bf6ff1"
+  },
+  {
+    "path": "minzc/pkg/lir/wfc_interblock.go",
+    "sha256": "bf80cf01bb1e8e89632829f8bcd8d4ccfead0220a099200f881e2f67f6b629d9"
+  },
+  {
+    "path": "minzc/pkg/lir/z3_joint.go",
+    "sha256": "a766663b47bd417eecc97c6d9681b1c09cf703167cd07eae4101717f067e8b1d"
+  },
+  {
+    "path": "minzc/pkg/lir/z3solve.go",
+    "sha256": "d802455a61dafb449aca2a3f43938de29d0c9f868d2f7a640e0e6311bf083a06"
+  },
+  {
+    "path": "minzc/pkg/lir/z3validate.go",
+    "sha256": "1f8f24482bf5357ddfdf51d5cbf2f2ba296ba80f7c43dfb66f55e42cfb82e834"
+  },
+  {
+    "path": "minzc/pkg/lir/z80.go",
+    "sha256": "7e0d81b683cc66a9b9d22f1870e98d8089016b13887fd3dd33e7605530d2e607"
+  },
+  {
+    "path": "minzc/pkg/lir/z80peephole.go",
+    "sha256": "d8af14766253906791a1aaa1d02f81994bee461d89822e3a15e19cb67c6dcb7f"
+  },
+  {
+    "path": "minzc/pkg/lir/z80validate.go",
+    "sha256": "9c5138cb955e745147f759d0f9ff12c22fa40ceceb58fdc48c94684584315475"
+  },
+  {
+    "path": "minzc/pkg/lir/z80validate_inst.go",
+    "sha256": "4b7bfb9d8eecf5a8641e73a674331b3fc2a3a34c843b4faa2f654142927a6c85"
+  },
+  {
+    "path": "minzc/pkg/lizp/lizp.go",
+    "sha256": "1f37758ddc174487f4bb963f8f37c3c43fe2cb8f1332e5e5e01f6da4faa672be"
+  },
+  {
+    "path": "minzc/pkg/lsp/protocol.go",
+    "sha256": "fec18d212efe2d3628dcbdf8675bc0daea91ab5137b2d2fd6a7d2f7f13c358bb"
+  },
+  {
+    "path": "minzc/pkg/lsp/server.go",
+    "sha256": "9711f179077a788e8f94364708d261dd7d42efedc9e5110cef1dc05164bb847a"
+  },
+  {
+    "path": "minzc/pkg/meta/evaluator.go",
+    "sha256": "9c7373383c3a68b02eca265d18c1111c29290f4142accd6a970b5c8a5e582f2a"
+  },
+  {
+    "path": "minzc/pkg/meta/lua_evaluator.go",
+    "sha256": "1aefad7a0ab9bf2ed62029d87cb4f328e80b05ec71871e1a2ed06bbca5f4bc8e"
+  },
+  {
+    "path": "minzc/pkg/metafunction/metafunction.go",
+    "sha256": "5962c9c1e96585995b584ded41a0880d919d1f8bd7642d26eff705934a947ca2"
+  },
+  {
+    "path": "minzc/pkg/mir2/absdiff.go",
+    "sha256": "fbd007daf234525e7a7184847db1fbe79dceb0fee1b8bf6a8add7cdde47aab5d"
+  },
+  {
+    "path": "minzc/pkg/mir2/accsaves.go",
+    "sha256": "8e8e2a4872921d461cca3d6b37198f29a14e307c98079c2e3bd5b61a9220fa7b"
+  },
+  {
+    "path": "minzc/pkg/mir2/alloc.go",
+    "sha256": "f1f7d6c96b2b38e100de6df871ed6c6b6f5097f6350ff801af4dbb5de4a0b833"
+  },
+  {
+    "path": "minzc/pkg/mir2/backend_support.go",
+    "sha256": "d833b3eec6ce127746ecc06d0f73d6434521734c16e1b930f093a6a95048530f"
+  },
+  {
+    "path": "minzc/pkg/mir2/block.go",
+    "sha256": "0aa8b59dcc0a2ee3db2bf8f61f6c5b8e45584825e337b6203a742fe394099ae9"
+  },
+  {
+    "path": "minzc/pkg/mir2/branchequiv.go",
+    "sha256": "27131ee4f5da3f107b54ce75d457dd094038309415be49c0afe6adfce69f8499"
+  },
+  {
+    "path": "minzc/pkg/mir2/builder.go",
+    "sha256": "44bab518ceb33b869d9694ff6de8f5e71011154fdfbc8ad604343108a4a2f97a"
+  },
+  {
+    "path": "minzc/pkg/mir2/callgraph.go",
+    "sha256": "e3444adac3896672c4b6ad2144a33521830a88c83fa885665353d61790ea993b"
+  },
+  {
+    "path": "minzc/pkg/mir2/canvas.go",
+    "sha256": "ccd9c47cd9027df23fdaba7240a8cdbfd875c980214c5a4f7dc2c70f772fceb9"
+  },
+  {
+    "path": "minzc/pkg/mir2/coalesce.go",
+    "sha256": "dae25827732c91860aa51a6d47fcce7644e4f0e0e16255bade06116e9c5b755f"
+  },
+  {
+    "path": "minzc/pkg/mir2/condcall.go",
+    "sha256": "81d05ac4e934b50c6d703b3d592bb241e7775dcc3513bc717b14b571bb229851"
+  },
+  {
+    "path": "minzc/pkg/mir2/condret.go",
+    "sha256": "b365ae7e3a1510957c89ea2a87c61155608ef126288e35480403bfe6ca4e2ca5"
+  },
+  {
+    "path": "minzc/pkg/mir2/consteval.go",
+    "sha256": "fb1627a080841a55b67aa152a4fe493ccaf55b6d6586dadec29f2e74d8b49a55"
+  },
+  {
+    "path": "minzc/pkg/mir2/constprop.go",
+    "sha256": "0fb5d52b6f6cae1fdd54a573e1994f35c5cff146367fc0c14424203643673bd7"
+  },
+  {
+    "path": "minzc/pkg/mir2/contracts.go",
+    "sha256": "024e106d71ee7d1b5af48039b05f99cf33eb084b6c97d6f6484c298377bfb618"
+  },
+  {
+    "path": "minzc/pkg/mir2/contracts_pbqp.go",
+    "sha256": "2b66ec8fd7615714238deb393d65fbbf7048c1201b03458bd633f2916aef1c11"
+  },
+  {
+    "path": "minzc/pkg/mir2/deadblockarg.go",
+    "sha256": "6dd2deac4c55c322e044ab093926d73434fe64f9c7f376872484217e5e07d518"
+  },
+  {
+    "path": "minzc/pkg/mir2/dse.go",
+    "sha256": "82197b4cc43639c597169362e1eeb83a38ce7aa9f25ad6d3371365255459dadd"
+  },
+  {
+    "path": "minzc/pkg/mir2/dump.go",
+    "sha256": "ddd82af358712eff655b2672fbb97b0814bb965fe611453f2f0d6b426eb5e0ad"
+  },
+  {
+    "path": "minzc/pkg/mir2/eval.go",
+    "sha256": "539b9c20495c8877030e9b27d666a4943c5372179c1aefe97a1c910ec33249f4"
+  },
+  {
+    "path": "minzc/pkg/mir2/func.go",
+    "sha256": "eeffce6125cd4cdf39a7bb7dec1cacc2c329ba346a4f600268237f1c30a2f0a2"
+  },
+  {
+    "path": "minzc/pkg/mir2/funcprune.go",
+    "sha256": "e8ca3770d5a4cf3f7e8bd11e80f40f1154659154f8780cbbc022ffa4ed2ce302"
+  },
+  {
+    "path": "minzc/pkg/mir2/grace_runner.go",
+    "sha256": "fa071a1b17100260d1a11550f3c5f63b09650272f265911a79a6a25000d080af"
+  },
+  {
+    "path": "minzc/pkg/mir2/graph_adapter.go",
+    "sha256": "fc4a93374f44b815a36025abb1e700fef8ae3ad4c3129c77c5eaf3b3993f3bbc"
+  },
+  {
+    "path": "minzc/pkg/mir2/indirect_validate.go",
+    "sha256": "56bb68b8a925a196158edb14d122f642a60c2743e6b23a4de315c964eac35313"
+  },
+  {
+    "path": "minzc/pkg/mir2/inline.go",
+    "sha256": "fd1a1c4b85f8c4fbdf479254199224b86b7e9d6661f4897b544c661d665f9a41"
+  },
+  {
+    "path": "minzc/pkg/mir2/inst.go",
+    "sha256": "d826bf8c9d68cb377b6b669aeda764194919af818846f034bbb4ece986afd525"
+  },
+  {
+    "path": "minzc/pkg/mir2/joinret.go",
+    "sha256": "211b32fb4bfd3ebb0389f11eb438999d0d6bdf77fa06b5cd78e5849f4d9a2bc9"
+  },
+  {
+    "path": "minzc/pkg/mir2/layout.go",
+    "sha256": "ca8632a2bda6b4c5c2ca2b577dffa3ed950891725410ee0a59cdaf57dd66e791"
+  },
+  {
+    "path": "minzc/pkg/mir2/liveness.go",
+    "sha256": "8667dbe901c6552b1073135a3ffea2c13e3a45aa83de35d88f3872aef1501e1b"
+  },
+  {
+    "path": "minzc/pkg/mir2/loop_origin.go",
+    "sha256": "4b813de5156679d3e00cfe2430e565fe635416a49d0c27b0152316a4477cd6ad"
+  },
+  {
+    "path": "minzc/pkg/mir2/lutgen.go",
+    "sha256": "f2cd93821138265a9c2a3ccb522d167f515ddd2894511ccfb970402723f84754"
+  },
+  {
+    "path": "minzc/pkg/mir2/m6502codegen.go",
+    "sha256": "05ceae0249b5678c99befed25acaf837114e9a7bd86ab5c82c33701e7db1a3f7"
+  },
+  {
+    "path": "minzc/pkg/mir2/m6502cost.go",
+    "sha256": "94f4577242df6c76e7701e29497433cd5b5f0c90fa1c7646426590724d5852f5"
+  },
+  {
+    "path": "minzc/pkg/mir2/module.go",
+    "sha256": "d4b3f6c1796b30994dbef45e268f5f4fa3f0a0b303007162c275b0a42a53e001"
+  },
+  {
+    "path": "minzc/pkg/mir2/native_call_frame.go",
+    "sha256": "06d6ba17282ae06e1ad6c758961456f3dde738b6f48be9d9c99e0e4127d293be"
+  },
+  {
+    "path": "minzc/pkg/mir2/native_call_spill.go",
+    "sha256": "ad659b0ba03a51a65336b227927b3e866d5c3e459edc2876670888df4b440fca"
+  },
+  {
+    "path": "minzc/pkg/mir2/native_memory_access.go",
+    "sha256": "9cc5a555b0768b0bb6a00f67d1efccba182735bef5b50fcfb2ad923ab46081e5"
+  },
+  {
+    "path": "minzc/pkg/mir2/ops.go",
+    "sha256": "9169d2448118483b6fd3857d671d5bc557dea37344151c0cd0d9a3d87b736bf1"
+  },
+  {
+    "path": "minzc/pkg/mir2/pbqp.go",
+    "sha256": "fe703716f9ffc2872f7c135384d5e7dc8ec3b938765f16324bfa82ceb236610f"
+  },
+  {
+    "path": "minzc/pkg/mir2/pbqp_affinity.go",
+    "sha256": "d486a8c534b170f2203dd57fcc34180372fe7f24214a7a7a2ad27447f3177972"
+  },
+  {
+    "path": "minzc/pkg/mir2/pointer_threading.go",
+    "sha256": "de91d29ab2696da3e34a806c9c762fe1ee6dd49a50eba1863321c33d1db00295"
+  },
+  {
+    "path": "minzc/pkg/mir2/pointer_walk.go",
+    "sha256": "aa8f08b0c476a503a6d28c8620b70dfcab7045a3b4690064f95264547a5c4427"
+  },
+  {
+    "path": "minzc/pkg/mir2/precoalesce.go",
+    "sha256": "afa3d153e4c6d1b1de2b7746b9fed091f0e8c8423001ca1efb4710348e1ef868"
+  },
+  {
+    "path": "minzc/pkg/mir2/regs.go",
+    "sha256": "472d8274495c18d4d84ade2cdd687d65e092cb26022c3847909ea8afd66a71fd"
+  },
+  {
+    "path": "minzc/pkg/mir2/renumber.go",
+    "sha256": "be5d899e1140ee4a59908d69cde16674a1e4ce42b21c0d40a06bab86e3d75314"
+  },
+  {
+    "path": "minzc/pkg/mir2/shape_facts.go",
+    "sha256": "61616684447de2ee3fc8d5ef461c08128448c6216416d6448f79f53de39f4724"
+  },
+  {
+    "path": "minzc/pkg/mir2/tsmc_spill.go",
+    "sha256": "a0f519190a5057913380aa8f8b9a8b01a4143da9f024a996d6d2d23038058994"
+  },
+  {
+    "path": "minzc/pkg/mir2/types.go",
+    "sha256": "6351add8537753214bc1ed7232015f7181a666fba83dfcd0877e6deb86dfa8df"
+  },
+  {
+    "path": "minzc/pkg/mir2/unsigned_pair_compare.go",
+    "sha256": "2fa3a2c744079a692c82beb2a04099d8af12cb04111bf3e57d864ade0cff6fd3"
+  },
+  {
+    "path": "minzc/pkg/mir2/verify.go",
+    "sha256": "2509aa9d09ecb060e8c27e94c664b79c1e6fa4937ee6e788b44d7bc4312f0acf"
+  },
+  {
+    "path": "minzc/pkg/mir2/vm.go",
+    "sha256": "b437c8af2931782c6ebd4f6df9fdda7a92c656482114c5403b357df9d773a0fc"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen.go",
+    "sha256": "383bd82102724be6449c2038943ca3c1246adfa1f70b3b7436026f4161949fdd"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen_alu.go",
+    "sha256": "3879772ecdb88d83d27391183677b85ab3789f8fb73770dc02640c9e3e3bf271"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen_call.go",
+    "sha256": "ad2aa74f159071c5a065acafc24dfb6ff56743aaf2e902d16cd1ebba993165b1"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen_call_spill.go",
+    "sha256": "7eca59d2e088b732e3e0d2faca0df5c5944e266ee8d1eaf18ae5677746952e49"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen_cmp.go",
+    "sha256": "c15446b9198741de626e02036fa6446e7200aaaf5545debe34c5bc64860711f6"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen_copy.go",
+    "sha256": "7bc5b6088bf1bda199c7ce664888db272df6f1c2c300ea4c6f9a9f3fda657119"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen_inst.go",
+    "sha256": "005d87f575ccf1bd62fa6f0f1752bebfcb59842eb3ff261d668c15de09d80cde"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen_move.go",
+    "sha256": "197f968cea9c9e4f781af308243355199328315c798a1fba44c7221b76c4eed4"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen_muldiv.go",
+    "sha256": "bf48797c341fc63fadcd8630384c01f35ca4633714efb849723fdae5659d4912"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen_patterns.go",
+    "sha256": "43a9d8827fa8c7530d94107a9a4e7598c3e746a3f6fdb4ed8eba61a3c0178246"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen_peephole.go",
+    "sha256": "d10d3072fb6d5c63c6f51ef8b9c5b412952ac8b097415352278830365c905a1f"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen_print.go",
+    "sha256": "964a65a66f4c1c66d8e71c8d550f9355012621c85afe8f6527fc4cd90cbc7d06"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen_spill.go",
+    "sha256": "3c7fa683bda5c115e02f4620097cc92cf447062e8bebdb11f208c515a50a7efc"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen_term.go",
+    "sha256": "69b37f42505184f03cb29e29270a8776d0d37d275aba3ff95472cf61b29a5cf4"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80cost.go",
+    "sha256": "d32505a0648456f0a819f6281a4f5c4a823716a1a640c098680a047283661622"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80tstates.go",
+    "sha256": "801c362f5afa3f84ebcdb9703ab6a7d85cc6deeee576ebee4018aa6b11c0131e"
+  },
+  {
+    "path": "minzc/pkg/mir2abap/codegen.go",
+    "sha256": "5fae88fcedde343139f7ac447f16ef4324254b45e10f6fa5e31ac73f0817f086"
+  },
+  {
+    "path": "minzc/pkg/mir2c/codegen.go",
+    "sha256": "757b779d54a0f72b82a35b927087e5c9302bae9cf462338bd4ecebd24e4f5d95"
+  },
+  {
+    "path": "minzc/pkg/mir2go/codegen.go",
+    "sha256": "45398fe4e35f04ce0a512c92ba1642b0d5f50c3936ccd077de7d3a40c6456110"
+  },
+  {
+    "path": "minzc/pkg/mir2gpu/codegen.go",
+    "sha256": "45203bf3e6e1c8a84cf99c0f203692241b9f2098c9ad40fcc9250efeab17284d"
+  },
+  {
+    "path": "minzc/pkg/mir2gpu/detect.go",
+    "sha256": "1c446d5d15d547d3518a8c5abf5d8c0909af01e443b22c6946cf404d240105b8"
+  },
+  {
+    "path": "minzc/pkg/mir2gpu/dispatch.go",
+    "sha256": "e26a8f1180107a7f37791bfb532e2383d72e319cd1f05bd9a6917c27e734c1d4"
+  },
+  {
+    "path": "minzc/pkg/mir2gpu/runner.go",
+    "sha256": "4929120a3a196afbbbde2a8444bb2b8e46d7a0d7ee383aaa852fd544113ca74e"
+  },
+  {
+    "path": "minzc/pkg/mir2gpu/standalone_cuda.go",
+    "sha256": "8cb0e7e0fc39e8c4826e97e796efdeba20cb9f9d448d6d448237f4da81fd5447"
+  },
+  {
+    "path": "minzc/pkg/mir2gpu/standalone_metal.go",
+    "sha256": "ee91310ca52be124917a3ae6b55232bec8db61a3e57b5a0dc4fcaf992d16f82e"
+  },
+  {
+    "path": "minzc/pkg/mir2gpu/standalone_opencl.go",
+    "sha256": "151b8f18a5a06a806179b6792ee136594337c96199b2111a87ba237d05f361d1"
+  },
+  {
+    "path": "minzc/pkg/mir2gpu/testdata/gpu_test.nanz",
+    "sha256": "1460ce8b1cf986ead16bc984539748b6f87d79b4bd2d9e98abd256a81285123c"
+  },
+  {
+    "path": "minzc/pkg/mir2llvm/codegen.go",
+    "sha256": "7a9f20481e0aac221809c9f55327e696fccc3be62c9b04bbdd86b280894d1d93"
+  },
+  {
+    "path": "minzc/pkg/mir2llvm/runner.go",
+    "sha256": "48246771693161bae5c8bbf17e0a7b186866eff7ba49d467e6fcb9a140bfd0ac"
+  },
+  {
+    "path": "minzc/pkg/mir2qbe/codegen.go",
+    "sha256": "f83cc039f3305c877d318d705ccbedf99eac5314d7a93db1b9bad3dcd58acd00"
+  },
+  {
+    "path": "minzc/pkg/mir2wasm/binary.go",
+    "sha256": "d9d87abe4b2ce80543161f6b3d7f46f3830003c482ecfbbd904b43cd87724c27"
+  },
+  {
+    "path": "minzc/pkg/mir2wasm/codegen.go",
+    "sha256": "766b1e5929b5373740be1ad9cbe9d8e371be296bec397164e2fa437b77a18753"
+  },
+  {
+    "path": "minzc/pkg/mir2wasm/runner.go",
+    "sha256": "ba52e639f5c0ab47a7300d4f90f30b4e7211b02c81e187c4e188be6c2d98d536"
+  },
+  {
+    "path": "minzc/pkg/mirvm/debugger.go",
+    "sha256": "d6f8b89c1e3346466adb5d982327eb4fdf07c5f6fe630db5c5e53a950945ee6b"
+  },
+  {
+    "path": "minzc/pkg/mirvm/platform.go",
+    "sha256": "338e8773e070094fb415d8e655917d6964e83836bedd24472dac43d7310a4dde"
+  },
+  {
+    "path": "minzc/pkg/mirvm/vm.go",
+    "sha256": "95bab32985a5a11793370bda91b8f3ce644a942cb1a8b79869e0da5360728f46"
+  },
+  {
+    "path": "minzc/pkg/module/module.go",
+    "sha256": "415c91988fd57b1efa98afbfad1b15b25786535104fd24a0f73f626f71d9fb49"
+  },
+  {
+    "path": "minzc/pkg/nanz/meta.go",
+    "sha256": "13552d1dedc4bfbf63ce89c4b771da3599d371804359d83eb4af92de7e86a1b2"
+  },
+  {
+    "path": "minzc/pkg/nanz/parse.go",
+    "sha256": "b75b4aea23f9806fe889543ab1c87f5f788d2d094242db55df543bd9da46efa0"
+  },
+  {
+    "path": "minzc/pkg/nanz/print.go",
+    "sha256": "6bcbf57f10c4656fe43825800140d92809ee5362cb315e3a413fe40392e5fc3e"
+  },
+  {
+    "path": "minzc/pkg/nanz/screen_gen.go",
+    "sha256": "14d655cdc870297591a3ff44096221b5e58352f5ebb046e2d117e72430a1f1bc"
+  },
+  {
+    "path": "minzc/pkg/objc/abi.go",
+    "sha256": "bcb9488bc8fba801b996dbd34e9aab8bd5e8cc1764622325f2880aadf2e8b97a"
+  },
+  {
+    "path": "minzc/pkg/objc/lower.go",
+    "sha256": "1ae30c54f33936b3dbd030b65c085d79c92ada0c68c8e5d5771ccb0bfef0593e"
+  },
+  {
+    "path": "minzc/pkg/optimizer/asm_passes.go",
+    "sha256": "64b89771beedcc4e0ae38af059668fa2aee11fcfc379a16dd43f5a2a627b7dc4"
+  },
+  {
+    "path": "minzc/pkg/optimizer/asm_reordering.go",
+    "sha256": "6786ed90e73e2f31b87d5b27b6ffee65c77a1f78a3ecd7b6dabd021acefad2d3"
+  },
+  {
+    "path": "minzc/pkg/optimizer/assembly_peephole.go",
+    "sha256": "07b228b4574df0f5c0b923521abaa398b69b6bf481aae8d5846df71cc6322894"
+  },
+  {
+    "path": "minzc/pkg/optimizer/assembly_reordering.go",
+    "sha256": "8e83f19acf3242f05fa3bc3ddb9dc0dd12577f162b0eb2290281d0b1e930fcfc"
+  },
+  {
+    "path": "minzc/pkg/optimizer/call_return_optimization.go",
+    "sha256": "c2bf75643d7b350ce26a14dccb160b12186a4a182a5615eeaf5b89a14e7fc26a"
+  },
+  {
+    "path": "minzc/pkg/optimizer/calling_convention_heuristics.go",
+    "sha256": "291f26d456d403d8bcb413713dd2e51123e682884a15a8b4a89d2982be37f8b6"
+  },
+  {
+    "path": "minzc/pkg/optimizer/constant_folding.go",
+    "sha256": "d174342a3e84ce6cb97293ca122630e7f421d207c45431cb029e0adb88fe47da"
+  },
+  {
+    "path": "minzc/pkg/optimizer/dead_code_elimination.go",
+    "sha256": "44cf91f6dae824492ac31601d093a48f2ed069c199139c2b0442c6a051ed3ff2"
+  },
+  {
+    "path": "minzc/pkg/optimizer/diagnostic.go",
+    "sha256": "543866c9ee86a90921cf82037ebb0557ead03ab63afec4b536a57218c9463756"
+  },
+  {
+    "path": "minzc/pkg/optimizer/frontend_optimizations.go",
+    "sha256": "64aef14c6217aff040304a4a69cd293f1494c1eb477770e12828b04416a56495"
+  },
+  {
+    "path": "minzc/pkg/optimizer/fusion.go",
+    "sha256": "044dcc01e75a7c3b09c97bdfcf67abaf651c4d3f2af4a9c8d68331b8a99e4766"
+  },
+  {
+    "path": "minzc/pkg/optimizer/inc_dec_optimizer.go",
+    "sha256": "c654ca4b4faf8be84bee38ad9276cc946976d0f3d0d5bc53f3b0c22efd7557c3"
+  },
+  {
+    "path": "minzc/pkg/optimizer/inlining.go",
+    "sha256": "5a33d15148f3e9218c733ecfb1e2c0caf8b8b2b18b496b2d0c4efbd7b9ca362e"
+  },
+  {
+    "path": "minzc/pkg/optimizer/layout_optimizer.go",
+    "sha256": "bdbbdbb49f7e3f833a63f4f04bbf8ee937518171a30baa6095fd0b231d84749f"
+  },
+  {
+    "path": "minzc/pkg/optimizer/loop_reroll.go",
+    "sha256": "a2a84e91fcb72f7518fdc10b09000155d65998a92a57704aff68f452f1448ad9"
+  },
+  {
+    "path": "minzc/pkg/optimizer/loop_var_hinter.go",
+    "sha256": "4b70740acf69268eca2e575a47c992da7a9548ac2965db1d162ae2d665a2996f"
+  },
+  {
+    "path": "minzc/pkg/optimizer/mir_combined.go",
+    "sha256": "08c86dd81b28cb686340a07eee0cf2c402045bd28d911c3b0a6c6f23639a6789"
+  },
+  {
+    "path": "minzc/pkg/optimizer/mir_peephole.go",
+    "sha256": "5ebea714a2e7594809427e99bd40210e2106ae270e6edc3c79ec72cac030dbfd"
+  },
+  {
+    "path": "minzc/pkg/optimizer/mir_reordering.go",
+    "sha256": "8608409dc4bf555d91f7d6fb071454929a9781377e74d1b07f3adb15846626fe"
+  },
+  {
+    "path": "minzc/pkg/optimizer/mir_value_tracking.go",
+    "sha256": "1e735ab6a0932a5b0b0904cc093e0223f76b7f17d9105d905ae2864885cb9f81"
+  },
+  {
+    "path": "minzc/pkg/optimizer/multi_level.go",
+    "sha256": "3a979d3895ee62a90b54c62fa23fb54c06061d63c820a37eb10d470d74d9e913"
+  },
+  {
+    "path": "minzc/pkg/optimizer/optimizer.go",
+    "sha256": "2618ab3cbbdf620d22eab047933c8ffff880e3459944edefff7b024f1b9555e2"
+  },
+  {
+    "path": "minzc/pkg/optimizer/peephole.go",
+    "sha256": "4ffa9ce54c59d39dac9e01bbb4c72dd0ce4d4342b1a741d31b63648fa08e94f5"
+  },
+  {
+    "path": "minzc/pkg/optimizer/pgo_basic.go",
+    "sha256": "06fad768afde5d0747e9132190370107dcd1cc5901af0b8a03740fcf417e2971"
+  },
+  {
+    "path": "minzc/pkg/optimizer/recursion_detector.go",
+    "sha256": "7fa2eed4621dd8d3c9e4cf65de1b04e3bb8671bf529a241e66de619a9e8c964f"
+  },
+  {
+    "path": "minzc/pkg/optimizer/register_allocation.go",
+    "sha256": "f2d0a6cb49ca8566a15751e71df72c238290b03e10c76abdd8c287317a19ab8b"
+  },
+  {
+    "path": "minzc/pkg/optimizer/register_analysis.go",
+    "sha256": "ba3452a3a36044683139e3d55c70cd6dc3ae4d91ee625c1c978e2908b07a1484"
+  },
+  {
+    "path": "minzc/pkg/optimizer/semantic_passes.go",
+    "sha256": "c8bf130fd234d65375b77abe458382f6a0381638169f9a879db2172cc6c9695f"
+  },
+  {
+    "path": "minzc/pkg/optimizer/simple_optimizer.go",
+    "sha256": "f74da33aa732b4723593f9819ebd243a5fe97a86dae159704a0af4fa799438a8"
+  },
+  {
+    "path": "minzc/pkg/optimizer/smart_peephole.go",
+    "sha256": "54cd99dfd7548740dd8754adaa48569660a3ffe8d8b07365c239c0693c809f47"
+  },
+  {
+    "path": "minzc/pkg/optimizer/smc_optimization.go",
+    "sha256": "45ab465c7ea7d6e3629e32e40c1a6dbccb472cf6fa5593e5bc25314a3aea9f60"
+  },
+  {
+    "path": "minzc/pkg/optimizer/string_intent.go",
+    "sha256": "a05e629752a1f0fc3ed8f38fcc15050f9c60811d64e1c4b151ad96aa6eebb2a6"
+  },
+  {
+    "path": "minzc/pkg/optimizer/superopt_peephole.go",
+    "sha256": "49de7d00da59f2491b5d9b40ffeb11bead2abb1c8e516eddb27904022581ea4e"
+  },
+  {
+    "path": "minzc/pkg/optimizer/tail_recursion.go",
+    "sha256": "77847549144b006731f3180b2e7678de9dece8acbcb0a774402eab5d8c1a6e3e"
+  },
+  {
+    "path": "minzc/pkg/optimizer/true_smc.go",
+    "sha256": "3ea7ed06ae1564f26e7905794c17b91bdfda7c0c5aa34858685584c38b534d52"
+  },
+  {
+    "path": "minzc/pkg/optimizer/tsmc_patterns.go",
+    "sha256": "3d06b74420b85d83f3f3173a88c7c75c83df1cfd8d092c23772ee20540d26e92"
+  },
+  {
+    "path": "minzc/pkg/parser/parser.go",
+    "sha256": "710bd86312c95f4606a67d6944cec24c81a1a703430481bfe0151fe08410d9ed"
+  },
+  {
+    "path": "minzc/pkg/parser/participle/convert.go",
+    "sha256": "ae21f3d833e2070d0b2bfc1952bfd81e3cc8fad1582cfbe48a2fb82a14a3033a"
+  },
+  {
+    "path": "minzc/pkg/parser/participle/decl.go",
+    "sha256": "b314c3bf1153414f9cb8375097b1e6f73ae7c245607511186ee7d9e46d6111a2"
+  },
+  {
+    "path": "minzc/pkg/parser/participle/expr.go",
+    "sha256": "54ffd3f5538aca0ed78c7c445fa62669a53511cfd75be52ca9c7685d459f34f5"
+  },
+  {
+    "path": "minzc/pkg/parser/participle/lexer.go",
+    "sha256": "0b682e3b2bc17837112320ca518ec8f2564b9200a09b88d5c7ed80908e794863"
+  },
+  {
+    "path": "minzc/pkg/parser/participle/parser.go",
+    "sha256": "5c4d1e66ae3514b4271faa7b8cc242e68ed8c2f1617d52b7954c182afe551d0c"
+  },
+  {
+    "path": "minzc/pkg/parser/participle/stmt.go",
+    "sha256": "6c783d223d933f25d889e00d25bc943db6484b1dcb1d34267b4058fdbcf466d4"
+  },
+  {
+    "path": "minzc/pkg/pascal/ast.go",
+    "sha256": "3b42344a49e8e70ba1faabd9287f36544d3bdd144748115326614635ffc066ad"
+  },
+  {
+    "path": "minzc/pkg/pascal/lex.go",
+    "sha256": "9e57f5e1d8bbbc862767d4e55692348128e9ecf7e9fdfd16f83f892c8e213b3d"
+  },
+  {
+    "path": "minzc/pkg/pascal/lower.go",
+    "sha256": "0428ef28b55489c528b21e8150fd09d333fd4f470f31a11f1b0b9a96d48c8e4e"
+  },
+  {
+    "path": "minzc/pkg/pascal/parse.go",
+    "sha256": "8b1f03008dbc2435338f18715815291cf3eae794fc6563f1419e7ce8f5eb691d"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_access_recipe.go",
+    "sha256": "db927af6f8c6ec39b4be24fda35b273c8127ede0495515fae453459407da16a1"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_append_copy_prototype.go",
+    "sha256": "e99ba8167e072a316fa78e61a6ddbc84a7b86d48e22ad86cc7ba9160af7d866a"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_append_selector.go",
+    "sha256": "251f443e7fa80d877d1acdf69b66c1bf1466dc017eea91860bd1be09908c9945"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_arena_append_policy_selector.go",
+    "sha256": "56ac328bf6f9ae68e533370ef113d108e5c7a22e34b696d52c5b6f6fde1b586e"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_arena_append_prototype.go",
+    "sha256": "c0c4ebce4d253a0550bdb32bc57e739300e8de63bb7024a8d73f806822b233f6"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_arena_append_selector.go",
+    "sha256": "049e6d5547ab33905673001890e2d9a74b041ec91ef08b6264ff24560f9299c4"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_arena_peel_prototype.go",
+    "sha256": "258b4472e5b5a6c2872af459f5d44cec0415fb5c20cf2dacac0cfafa6c2d6cad"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_arena_selector.go",
+    "sha256": "513d163449346ef8cd96a0652ca580a58cb5a58defbae8c1fecf31d302601ad5"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_baseline.go",
+    "sha256": "54e2c67e531ddc0e5838cdfe1943a983c2bcf3dcb4354e9b25d0bd79b2ab9459"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_call_frame.go",
+    "sha256": "3286d05301ed2bc494f82eb6437c01f525c44fb7543ed7042890d5374c92860a"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_call_spill.go",
+    "sha256": "cfc468344123391db04db55bf522a3bda7b6454e18381d8b15404c353b8a43bc"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_loop_profile.go",
+    "sha256": "862bddf030f4057951f2c9e60f9cc9baba6c40deecddaa0042dbea65d41b3424"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_policy_association.go",
+    "sha256": "6d1c3d71d13f16ab4a5b66991dcc73f21eca120b7dc9fc92ec1ae105908dc8d4"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_policy_search.go",
+    "sha256": "6357dd5931480ae6baac0daeaadd0c7f19aeb18bed9b337313733f19e50bea77"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_sidecar.go",
+    "sha256": "25e3d1d45ca190b3eb2080a8cd2d8dbb9cedcbb2c36989082215bdc80cafd697"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_target.go",
+    "sha256": "ca254e6701e3ad9a1b5fcdb5abef5cea4c8c717612d7d1f961830b88dcba1571"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_z80_memory.go",
+    "sha256": "4939112e028fe781ea98ec479ccde6ed881c3e9c5b7c7a0cc7fc6208b2662030"
+  },
+  {
+    "path": "minzc/pkg/pipeline/pipeline.go",
+    "sha256": "4cb0bbd3d57c3caaf17b68157879a2cddf7af785aa0d0ba5c6d2879ea3cc0024"
+  },
+  {
+    "path": "minzc/pkg/pipeline/profile.go",
+    "sha256": "a823ca6c05cbaac1d09a3ea268f39e753b83120544ddb037206aee8886712aa1"
+  },
+  {
+    "path": "minzc/pkg/pipeline/profile_forward_copy.go",
+    "sha256": "b7b4d64de33940f440105bf38100e5b039e26d71a5485d8d443b06f7232966e6"
+  },
+  {
+    "path": "minzc/pkg/pipeline/profile_invariant_sites.go",
+    "sha256": "d913c6af4c32f41bacf82943a25c122fee74e4d0130b93998ea2214b2ff7fca1"
+  },
+  {
+    "path": "minzc/pkg/pipeline/profile_joint.go",
+    "sha256": "96f71b5d9e39e7c5954f82f2a65d1a229aef4036e83ee733da2d36bb69d0ce78"
+  },
+  {
+    "path": "minzc/pkg/pipeline/profile_measure.go",
+    "sha256": "91960fe8b3c3e14edd70876e5e11678ae714dedb04052f0b36dffadb26c4e685"
+  },
+  {
+    "path": "minzc/pkg/pipeline/profile_mixed_copy_region.go",
+    "sha256": "1b8212b326e725aee8d25ad52774ce201cd0bff3feae96d2c532757d77716487"
+  },
+  {
+    "path": "minzc/pkg/pipeline/profile_mixed_copy_weighted.go",
+    "sha256": "260d3faa9717183bbc1cad701dfc69c4a25dea3240d24e2dbdf4b028dc4c7901"
+  },
+  {
+    "path": "minzc/pkg/pipeline/profile_ordered_byte.go",
+    "sha256": "d5f7a9b9f92f3f4cb7dd95209cf2ee9eff9a0286123ad3699266541aee473aa3"
+  },
+  {
+    "path": "minzc/pkg/pipeline/profile_ordered_byte_rw.go",
+    "sha256": "905f86961ad07dedcd54af760d9ee9f8e6bcb7418e5db2f356c979211e673124"
+  },
+  {
+    "path": "minzc/pkg/pipeline/profile_region_compare.go",
+    "sha256": "aac7968e754d3d54e7b66d2ef55b527276e1f2461b7ebe38bffd59ed949d1100"
+  },
+  {
+    "path": "minzc/pkg/pipeline/profile_workload.go",
+    "sha256": "24898931726560d7b3c6b98d1bbaa3fceaa6aa2b9b35b62147550c4ce554215e"
+  },
+  {
+    "path": "minzc/pkg/pipeline/testdata/grace_rule_budget.nanz",
+    "sha256": "3e52eaec62f9e9f9cb5034340f230935495f656ff91672ede5e71848615f83c7"
+  },
+  {
+    "path": "minzc/pkg/pipeline/unsigned_pair_policy.go",
+    "sha256": "51827170455e7f841959e1dd14735e024468e0ea9a99e9d2d64ccb9d8be62360"
+  },
+  {
+    "path": "minzc/pkg/platform/timing.go",
+    "sha256": "5f2a6c5663616c5ab2fbbf9b0aaa8e449a27b01eb3600f4b312e6910f2bd860b"
+  },
+  {
+    "path": "minzc/pkg/plm/ast.go",
+    "sha256": "8761eecdcc8cdc38b96c9a15b1f5697dcfff7a3e95276e0c41cd3212527ff799"
+  },
+  {
+    "path": "minzc/pkg/plm/lex.go",
+    "sha256": "e8defc76c4daa63476909acdf95ea9da403dbdc3687af4aeb564662420b3892a"
+  },
+  {
+    "path": "minzc/pkg/plm/lower.go",
+    "sha256": "07c29247d4c323813451cd4a38974e4b940ba829b0f551a919d933d04de51589"
+  },
+  {
+    "path": "minzc/pkg/plm/parser.go",
+    "sha256": "ee9c9df5e382a58fa06f693d8c5575264f8b80654d258a79aa88212569c3811c"
+  },
+  {
+    "path": "minzc/pkg/plm/preprocess.go",
+    "sha256": "8da2534d573f7a523b6d6dcd8c031736580ca8087d5725345dfd5cfa25060c77"
+  },
+  {
+    "path": "minzc/pkg/qbe2mir2/parse.go",
+    "sha256": "3e9f68b285194ae518057032e2f21c714eed0b53ffb759dd4ef834954bf1654f"
+  },
+  {
+    "path": "minzc/pkg/readline/readline.go",
+    "sha256": "b0644c7ccb42648aec29c162e260c80222b37b3879091e8c0ee22d4c95ad70b5"
+  },
+  {
+    "path": "minzc/pkg/rewrite/datalog/datalog.go",
+    "sha256": "b6ccf9b66155d4e8d45b880b43b2a4c9e305d9e7092d1eba15d45caee8cbdc12"
+  },
+  {
+    "path": "minzc/pkg/rewrite/datalog/parser.go",
+    "sha256": "775dec6aab44a7035c74b8c10fdd4896cb1866da07c642740043160c2077edbb"
+  },
+  {
+    "path": "minzc/pkg/rewrite/grace/actions.go",
+    "sha256": "50b57ef34eb1d628c9f28080be8809b14b174a228b3c4775216a9be42dff6f66"
+  },
+  {
+    "path": "minzc/pkg/rewrite/grace/grace.go",
+    "sha256": "62799a4eba51e726910fccc656f69660ea60e008c5f3e6d229c3f67586aae320"
+  },
+  {
+    "path": "minzc/pkg/rewrite/grace/matcher.go",
+    "sha256": "1bb80b8daba9d9f0808d1341f33c3652ba715198c460c8ee8b15c714954b1f3a"
+  },
+  {
+    "path": "minzc/pkg/rewrite/grace/parser.go",
+    "sha256": "3603c2ee5e0969cfd0416bb698828b2a73f7e8deeeef386d242f184d213dc9d4"
+  },
+  {
+    "path": "minzc/pkg/rewrite/grace/predicates.go",
+    "sha256": "69bae8021af9a0c3fd4ab86fbdcc427dcf8c66662b4273c5caffedeb62b48163"
+  },
+  {
+    "path": "minzc/pkg/rewrite/irgraph.go",
+    "sha256": "a4b6a20681ac0a56bab69cc305ab0810c2c19007a0700efb17590c019ea03633"
+  },
+  {
+    "path": "minzc/pkg/rewrite/isle/externs.go",
+    "sha256": "4ff2bfbc8bb0412e78c7abd7edbd7e13e93006a6a332edf6e1e0bac627f4707b"
+  },
+  {
+    "path": "minzc/pkg/rewrite/isle/guards.go",
+    "sha256": "624b396022ecf0e829a21929899d741abc735ac95e6bde1a9234cec9fe4d3afc"
+  },
+  {
+    "path": "minzc/pkg/rewrite/isle/isle.go",
+    "sha256": "c40e7a575ac342b2410e54b10f20a85d3dccdce7220539db00751c1db58de8d8"
+  },
+  {
+    "path": "minzc/pkg/rewrite/sexpr/sexpr.go",
+    "sha256": "5b74b9f49de3d53dc14fee477e0615afc97c32724ce17dd03b944bbef87a192e"
+  },
+  {
+    "path": "minzc/pkg/semantic/analyzer.go",
+    "sha256": "f46fa0384648634d41a4684431610f25acfb88acdb7e0f517fedee347b1e3155"
+  },
+  {
+    "path": "minzc/pkg/semantic/cast_interface_simple.go",
+    "sha256": "c1ff9dbf117f5773ee7098c4643f55dd8184d8590304479a3b5a85d11a2c6fa0"
+  },
+  {
+    "path": "minzc/pkg/semantic/enhanced_interpolation.go",
+    "sha256": "9fadd2c1a5f0f9d473b3d1c375492a3f7d1c04a747c35229377f5383b001c571"
+  },
+  {
+    "path": "minzc/pkg/semantic/error_handling.go",
+    "sha256": "46fca6ccdd8ccc8ebba98043ada15688692a38fb866693055043a1132f96270d"
+  },
+  {
+    "path": "minzc/pkg/semantic/error_position.go",
+    "sha256": "9380e9229ea2d00ecfe09fd6b2deb64fe8eb228d973d7ee9df322d62b3d34833"
+  },
+  {
+    "path": "minzc/pkg/semantic/interface_monomorphization.go",
+    "sha256": "a178ceb7a47ef1afb961c2b53b878cd5def33d303ca52dce63ad587ab558f693"
+  },
+  {
+    "path": "minzc/pkg/semantic/iterator.go",
+    "sha256": "3a91c9475a38e6562c88e092af46c5a75dfc8fc177151b7ccb8dcdc01ba28430"
+  },
+  {
+    "path": "minzc/pkg/semantic/iterator_chain.go",
+    "sha256": "107181479107f9469ac1ad728de793a878980b32d38263fa7fafbc21368c06fe"
+  },
+  {
+    "path": "minzc/pkg/semantic/iterator_enhanced.go",
+    "sha256": "2b266f9b9e7bbe508d83d1afd798c3fc91a1758ecaea80a9b873c20328a2ede4"
+  },
+  {
+    "path": "minzc/pkg/semantic/iterator_overload_fix.go",
+    "sha256": "3da4999c646b47112c3571c348eb84357ec65b809eca4b1bcdfd98d463ed3c65"
+  },
+  {
+    "path": "minzc/pkg/semantic/log_metafunctions.go",
+    "sha256": "69b2aeb5f45a4fb0c2323984c20d9352cf9b9734c2d773b903ce0e54d69a6f90"
+  },
+  {
+    "path": "minzc/pkg/semantic/mangling.go",
+    "sha256": "19aba606e1e76885c28b7e36c1a029f9d0213d7588a78911b64ea0aee95f58d5"
+  },
+  {
+    "path": "minzc/pkg/semantic/minz_interpreter.go",
+    "sha256": "e9c87958c5db6c115bbd181c1e9dd74a94450039490726e549efc15f4f56e449"
+  },
+  {
+    "path": "minzc/pkg/semantic/module_loader.go",
+    "sha256": "2ce518ab8e55600a2aa337f274aae64fb0f3afd75b79676da9d4772940d6b3f1"
+  },
+  {
+    "path": "minzc/pkg/semantic/modules.go",
+    "sha256": "aa35e683a9039a188850e37523fb7d4364f0de3869b7c3a50d1697d05d0b29b7"
+  },
+  {
+    "path": "minzc/pkg/semantic/overload_resolution.go",
+    "sha256": "8e5c65c1b4c11b01972ff1e4479ba5fc17df688eff1fb713936b4042ed8fc5d6"
+  },
+  {
+    "path": "minzc/pkg/semantic/scope.go",
+    "sha256": "2afb5cd5bd56c8097656dc127e28b54fb644f4f01c5d369ec9f62aa887216836"
+  },
+  {
+    "path": "minzc/pkg/semantic/template_expander.go",
+    "sha256": "05977a91de737354389060b427bf9cf3f465d15198c6a59b261b1dd3cded4597"
+  },
+  {
+    "path": "minzc/pkg/sim6502run/sim6502run.go",
+    "sha256": "81be05a0628daac830f6a829e092280ba1f02d625440f8cdee81ac2b1bdae5e3"
+  },
+  {
+    "path": "minzc/pkg/spectrum/ay.go",
+    "sha256": "720951bb577ace67ccb2c7049b3daeb1d678a611c6f419930bcf38721ba62fd4"
+  },
+  {
+    "path": "minzc/pkg/spectrum/beeper.go",
+    "sha256": "6a9a2eda94e0d2af537d51639bb67f18d627ce705e504164d971d15c8aa84bbb"
+  },
+  {
+    "path": "minzc/pkg/spectrum/covox.go",
+    "sha256": "3ee1e17f8477dcb19efa7b205f496fda0acea2c79a5154b05f706d6ba63ceb61"
+  },
+  {
+    "path": "minzc/pkg/spectrum/cpu.go",
+    "sha256": "8e101506b3507135cf21c1d1030b6efdf8f5e2c44cd0746523b8dffe62b3f691"
+  },
+  {
+    "path": "minzc/pkg/spectrum/formats/autoexec.go",
+    "sha256": "5466b38309fc70a2619a75fff899ae9780d37752bfa84f8547b2afd233722849"
+  },
+  {
+    "path": "minzc/pkg/spectrum/formats/console.go",
+    "sha256": "59ef2d0e0e381a014ef1188becd560776e5da3d2582242bc3499631e5ef0c503"
+  },
+  {
+    "path": "minzc/pkg/spectrum/formats/scl.go",
+    "sha256": "93f279b3855a05f3709e7a55a4d1ecc10f162901ee923a61e48fad54d0a4a4eb"
+  },
+  {
+    "path": "minzc/pkg/spectrum/formats/sna.go",
+    "sha256": "6f0f8cf32bf678dd58655434343a3423cc82603f02bf4120c2b54d3fdbf693f7"
+  },
+  {
+    "path": "minzc/pkg/spectrum/formats/tap.go",
+    "sha256": "5865ad488f3f49640783edfa457b320cd2e06a7cb6e7d4c0830bafa298a869ac"
+  },
+  {
+    "path": "minzc/pkg/spectrum/formats/tokenizer.go",
+    "sha256": "cfd3c3168781439c7f07814decb3484310cf7052498e8702a40dceca826ac2f7"
+  },
+  {
+    "path": "minzc/pkg/spectrum/formats/trd.go",
+    "sha256": "9bcbb86744e9da61798baaf0c72d838e3e1d921e0441b589ae4381789d5f5ff5"
+  },
+  {
+    "path": "minzc/pkg/spectrum/keyboard.go",
+    "sha256": "3bc3a38b6b96ef15add0be6d569c3d35406c0844dafa20ecce8d522d26202ac4"
+  },
+  {
+    "path": "minzc/pkg/spectrum/machine.go",
+    "sha256": "bd60df4ffd1d874038add23765565bbb91319ee116a4875c8a9ca4fc62a33ed7"
+  },
+  {
+    "path": "minzc/pkg/spectrum/memory.go",
+    "sha256": "2480fff3e484728b89be7b8c14e36e14a88d461e77d40936ee38297dfe5d49bb"
+  },
+  {
+    "path": "minzc/pkg/spectrum/ports.go",
+    "sha256": "aca0a444d5adb7fea4b5c98021e9b9fca0ae6f35054df708868f16e6fec39dfd"
+  },
+  {
+    "path": "minzc/pkg/spectrum/profiler.go",
+    "sha256": "382716c2246b0755132066a8641cd8155977f257c0ffbb3bfcc7af0b44d95905"
+  },
+  {
+    "path": "minzc/pkg/spectrum/rzx/replay.go",
+    "sha256": "e8747943caf14ecc0994c626e0b599be40e23a30c12e9df37c3fe23474d2a9c0"
+  },
+  {
+    "path": "minzc/pkg/spectrum/rzx/rzx.go",
+    "sha256": "03323eae7c755ea5da92cee934422949e6a5316d2543ef691b1807a12a76d84a"
+  },
+  {
+    "path": "minzc/pkg/spectrum/tape_signal.go",
+    "sha256": "6acdced592304367a8711eab075a498770f4429b33a3ca764d54793fa1762db8"
+  },
+  {
+    "path": "minzc/pkg/spectrum/ula.go",
+    "sha256": "6e1c6f7b525624e39d4f37402982d380caf883a4a2f6bdb96d20ef19a644b613"
+  },
+  {
+    "path": "minzc/pkg/spectrum/ula_timing.go",
+    "sha256": "1bb87241cef9fc0ba86831cc11bc836237bec1b3570d4da63cd093e206e0b8b1"
+  },
+  {
+    "path": "minzc/pkg/tas/cycle_perfect.go",
+    "sha256": "d0948543b5a3307cdb336694bc2630eb9c213d2beae5eb16afb3cdd1385f62eb"
+  },
+  {
+    "path": "minzc/pkg/tas/determinism.go",
+    "sha256": "36f995f9a7d5f98ade95240addaa94ed72fdf1b7b1cb22f607c7c3ea5844c9ab"
+  },
+  {
+    "path": "minzc/pkg/tas/hybrid_recorder.go",
+    "sha256": "29b2139d3a5927cd34cc26a1e310ccc4fd6f01aa326f92daf740a8be17b30eee"
+  },
+  {
+    "path": "minzc/pkg/tas/performance_profiler.go",
+    "sha256": "b9a5f0bd94e64ccc93f046f3818346fb9772887e477d4286112c23a4d8d1020a"
+  },
+  {
+    "path": "minzc/pkg/tas/profile_loader.go",
+    "sha256": "a3e77b9a225397e2739f374f7056a209630ee688acddc74facd1ea7817e4bdf2"
+  },
+  {
+    "path": "minzc/pkg/tas/tas_analyzer.go",
+    "sha256": "8684a2643d402ddfecc09af5786481f6e37ee98ecf67f3f004ae95c1e7852fc3"
+  },
+  {
+    "path": "minzc/pkg/tas/tas_compression.go",
+    "sha256": "2f6dbe22c6b6ebadf21da72a7a172c2304870afb68326b3ac96a3504b7b41429"
+  },
+  {
+    "path": "minzc/pkg/tas/tas_debugger.go",
+    "sha256": "9dbd4f68284eb0689e202577f2b5cbaf2e9acecae3699480a7a51c6415ae67bd"
+  },
+  {
+    "path": "minzc/pkg/tas/tas_format.go",
+    "sha256": "847c1637e3078a193b7e49641bc5a7ab4b386c43624dc9ed4cecd8984cb10929"
+  },
+  {
+    "path": "minzc/pkg/tas/tas_ui.go",
+    "sha256": "95a0bfb71a9ddde11d252c3e3c0093b36778fb4b58195d471b58feb41b3463e5"
+  },
+  {
+    "path": "minzc/pkg/trace/trace.go",
+    "sha256": "9f98e8b4203b1e67eb383c79ad3dc84d351d4fb2b99d53191b58bb94217a8df3"
+  },
+  {
+    "path": "minzc/pkg/version/version.go",
+    "sha256": "bcf6d385fb818f7db6e5b17e6146c23d775267300362caff9d8402fd4c3d141e"
+  },
+  {
+    "path": "minzc/pkg/vir/bridge.go",
+    "sha256": "a4b73389c68398d5ab75834aba2ea9d37f808b32ad53b1b5202665a80aba7892"
+  },
+  {
+    "path": "minzc/pkg/vir/cfgsolver.go",
+    "sha256": "f43ad3a872489e213096f63a4a6ed76ecc490c7594f3767a426fbbb784f2da63"
+  },
+  {
+    "path": "minzc/pkg/vir/enriched_index.go",
+    "sha256": "278fbc7b77546f0a3af2187baf589c1e9bafba7e900ab394a6090a2ce55e0056"
+  },
+  {
+    "path": "minzc/pkg/vir/enriched_reader.go",
+    "sha256": "61c18726c9cf0af24e491d46b3f847c073a530cb8d84e5b380b58e42fd7079a6"
+  },
+  {
+    "path": "minzc/pkg/vir/gpu.go",
+    "sha256": "908b69422899479d01b4bde90411b6831e156ef8fc60dbc493a8f94fce9ab5c7"
+  },
+  {
+    "path": "minzc/pkg/vir/inliner.go",
+    "sha256": "cc959168c5f9f200e8d23340c1881225d214f2d897c13c7011106bb5b8e0924d"
+  },
+  {
+    "path": "minzc/pkg/vir/intrinsics.go",
+    "sha256": "56bbb201fcafc3b8bc1fa4cd5e1a96a48af4ba34fd539c21cf02ad5cc1fce706"
+  },
+  {
+    "path": "minzc/pkg/vir/isle.go",
+    "sha256": "bfea8420b787bcfdaadc8c3010ed5238cf559d7d8c9fd7b7588fde3480d3f965"
+  },
+  {
+    "path": "minzc/pkg/vir/mul_table.go",
+    "sha256": "a0c02bf6d29b7ab1a8e37eef3764cf9f7cd9630177c7a8a05a547471182fd85a"
+  },
+  {
+    "path": "minzc/pkg/vir/mulopt.go",
+    "sha256": "b5bf0d41f8f7cbb3295c1491025f0aaea6d0ba66c86a36b1d8f499d632b21d16"
+  },
+  {
+    "path": "minzc/pkg/vir/peephole_rules.go",
+    "sha256": "53dadaa658e2d30d594883bdd2d26b623acf53c9e572fd8ab22af16c99d2ba4e"
+  },
+  {
+    "path": "minzc/pkg/vir/pfcco.go",
+    "sha256": "dd3120ce903efc044f3763d756ef28e647e3f381f2f96822cb4d31b53696e5cf"
+  },
+  {
+    "path": "minzc/pkg/vir/pipeline.go",
+    "sha256": "97ec544f995b8c2ca42ae2346f2c679098b535d65376397fb380e772b99b1a16"
+  },
+  {
+    "path": "minzc/pkg/vir/regalloc_table.go",
+    "sha256": "66512a0e9ba8668046d00c4dc75a32dc162c19d245d9514940679b79b914a779"
+  },
+  {
+    "path": "minzc/pkg/vir/solver.go",
+    "sha256": "2fd2b053b6ce64cfc512db7e02a44cf5db95be808ef97b50f59b247218daa192"
+  },
+  {
+    "path": "minzc/pkg/vir/vir.go",
+    "sha256": "4456a93d8b25e9370ed94dddc18a623268377c81982a225586d7ea3970ca05dd"
+  },
+  {
+    "path": "minzc/pkg/vir/vir_graph.go",
+    "sha256": "08170a465c3e008a5e3d595f3b90a2e0e6dd6c8299d767dd274178345ee3ce8a"
+  },
+  {
+    "path": "minzc/pkg/vir/z80.go",
+    "sha256": "e13f3f51f37469143e189cef659e6055d3a0d9aeff645bd216b45e83864a2b41"
+  },
+  {
+    "path": "minzc/pkg/z3alloc/z3alloc.go",
+    "sha256": "b4ee88ef515ef23ccdb5aa2a55acb891c11987099895c84c0f8b20952c17baa7"
+  },
+  {
+    "path": "minzc/pkg/z80asm/assembler.go",
+    "sha256": "607f71b5f0bc1b36e7fb80a871184776c96064e221304060592a59ef3dba8ca0"
+  },
+  {
+    "path": "minzc/pkg/z80asm/directives.go",
+    "sha256": "908f81a5f9ec34f85f4f9109c456d9e34b2b22c9da12fa17699de9859d57c9bb"
+  },
+  {
+    "path": "minzc/pkg/z80asm/expression.go",
+    "sha256": "ecab5d3ee3786731580ce479237145b2261bc8e4ac05c39a35dbdf35f15e26e3"
+  },
+  {
+    "path": "minzc/pkg/z80asm/ez80_instructions.go",
+    "sha256": "1b3e8bd77b5c917d0be2b43926d7c12cbd5f47b3537924345bed7b7545a643aa"
+  },
+  {
+    "path": "minzc/pkg/z80asm/fake_instructions.go",
+    "sha256": "2d3fcffd150636fa381625c0bd109367371781a2b9092b631bea9e0e456c8f12"
+  },
+  {
+    "path": "minzc/pkg/z80asm/instruction_table.go",
+    "sha256": "989d37292d04a6191c7b343b9c4b6cd8c3182276b107770f0c69a238697604f6"
+  },
+  {
+    "path": "minzc/pkg/z80asm/local_labels.go",
+    "sha256": "1f875fe41869706acee2baa928ba0acc0838b5500c41b7ff989bf8a316af5a1f"
+  },
+  {
+    "path": "minzc/pkg/z80asm/macro.go",
+    "sha256": "75bf19d79fe93f16992a55d96f8ed273cb07432da5492c55af95ff5f6dca45b3"
+  },
+  {
+    "path": "minzc/pkg/z80asm/minz_integration.go",
+    "sha256": "bd413b70a7a815f4cbdb3e2f6d04e01c016e95054c951a6654eb7ee69ccfe990"
+  },
+  {
+    "path": "minzc/pkg/z80asm/multiarg.go",
+    "sha256": "e8fd0c3a447b46d64bb380448ff945dcd590b84670bfbf2ab417b9a50b0afb8e"
+  },
+  {
+    "path": "minzc/pkg/z80asm/opcodes.go",
+    "sha256": "88f69591ee0a93d3085aab16be9fd8e851e9db193c454d078972599d882270c3"
+  },
+  {
+    "path": "minzc/pkg/z80asm/parser.go",
+    "sha256": "b5841868e5a019bb7bf5faa63dc656732297182cf4ae2d5a93425abd23839df4"
+  },
+  {
+    "path": "minzc/pkg/z80asm/pattern_matcher.go",
+    "sha256": "f4a8cfb2296fe8158222597940b5294cf79e9e153810043350c469625ca7808e"
+  },
+  {
+    "path": "minzc/pkg/z80asm/targets.go",
+    "sha256": "92d0208e146d1455edc39957921aa20c152ed90bc4fc1de5739634e4cc9b3e90"
+  },
+  {
+    "path": "minzc/pkg/z80asm/types.go",
+    "sha256": "b03e4fe85a6f531d2aaa67853cd82582b1c7f894e915600c3792919bc85adad5"
+  },
+  {
+    "path": "minzc/pkg/z80spec/indices.go",
+    "sha256": "dee2abe39d8616392a8a8f13ddcca661a7cb768847bb53d4b519798bdd65b827"
+  },
+  {
+    "path": "minzc/pkg/z80spec/locations.go",
+    "sha256": "f7e17219f69301f5514b7b8bf52a921bdf90f860f0ebded0cf694cd3a7e0cc8f"
+  },
+  {
+    "path": "minzc/pkg/z80spec/mir2loc/convert.go",
+    "sha256": "be3cf571b6cb708f734d0efc383c8866ec11c7e4bae95c952b919d0287a53039"
+  },
+  {
+    "path": "minzc/pkg/z80testing/assembler.go",
+    "sha256": "d2f05c73e37b5fbb8544a514381b6936f64fdfe9780914b6d05cc5d78d1afd3e"
+  },
+  {
+    "path": "minzc/pkg/z80testing/e2e_harness.go",
+    "sha256": "0d691aef503796e818e7d9e8e1f85fa3cd682f29a94764bfbee22d77563b6610"
+  },
+  {
+    "path": "minzc/pkg/z80testing/minz_integration.go",
+    "sha256": "bdb6b702eec973ddda40181968af5adafce9ce04fc7bb6d58cbd8ea74e80de9d"
+  },
+  {
+    "path": "minzc/pkg/z80testing/minz_test_example.go",
+    "sha256": "074e766686d4fd6609483344475768141259083c2b2b37d8775dffe7612a30a4"
+  },
+  {
+    "path": "minzc/pkg/z80testing/smc_memory.go",
+    "sha256": "7f8906288e10fe455df7d5a1ec30f61a2ec53535a760e06779e9922750c039a1"
+  },
+  {
+    "path": "minzc/pkg/z80testing/smc_tracker.go",
+    "sha256": "1d8e0827f504719f4dbbeba1fc797dae5c29ab7d0309374f9e3745a68ea3fbac"
+  },
+  {
+    "path": "minzc/pkg/z80testing/tsmc_benchmarks.go",
+    "sha256": "6600827f986bb76ca0115fc753f140669e03d658bec835119c13e99cecbb8f3e"
+  },
+  {
+    "path": "minzc/pkg/z80testing/z80_test_framework.go",
+    "sha256": "175bb654cd5ab5d4d41e862fbeeae7e694be0688f87d4a5b1d7a80f031144f41"
+  },
+  {
+    "path": "minzc/pkg/z80timing/table.go",
+    "sha256": "39da44e30f47b6f451c09b3f149826cdd1f92f85c5032bfe69e443c309a6f64c"
+  },
+  {
+    "path": "minzc/pkg/z80timing/z80timing.go",
+    "sha256": "c57702d3459a5c1713677ef53d4b5b22db035815c2fcc3aacbee281c505dab7d"
+  },
+  {
+    "path": "minzc/pkg/z80validate/validate.go",
+    "sha256": "64c928d3d94807d0d1fa4322d6c4980453d600d7fda9c5a5fe2b578dedab579f"
+  },
+  {
+    "path": "minzc/scripts/analysis/check_opcode.go",
+    "sha256": "8903921f016150fcd92b1f0b14c351e85f743ed6dca6adc0c8c63ff5b88c6acb"
+  },
+  {
+    "path": "minzc/scripts/analysis/performance_verification.go",
+    "sha256": "93391e95e2821a80c7c8bf5023fa1cbb9ca9c20d5ee68f49c7d21f962b2e1925"
+  },
+  {
+    "path": "minzc/scripts/analysis/test_debug_types.go",
+    "sha256": "a500e2c6f934e2273ff51b42884cf93425aef4747ec55a5a8e825a448f8846bd"
+  },
+  {
+    "path": "minzc/scripts/analysis/test_opcode.go",
+    "sha256": "d8c456e0b7546c6ec038f9ab3cf6c4e60b561f476f625130523490ac4a864252"
+  },
+  {
+    "path": "minzc/scripts/analysis/test_opcodes.go",
+    "sha256": "0f08c33bda7f5878ccb76473bb735d52293284c02ec2b05de18e8eccc6680d6b"
+  },
+  {
+    "path": "minzc/scripts/analysis/test_parser_debug.go",
+    "sha256": "09298769b8cc86eabd4096f55f26c2fee9fe5fa188c7d84a64a1054f0a8ce582"
+  },
+  {
+    "path": "minzc/scripts/analysis/test_print.go",
+    "sha256": "585dead35ce3ced64de4f69c6157078ef3651008421633b1e55da8450d3d1c78"
+  },
+  {
+    "path": "minzc/scripts/analysis/test_token_simple.go",
+    "sha256": "fd9302387c6ecbb30a2c03c1aa8bc436b39c442c4b3115e7d0ebab6e7d744212"
+  },
+  {
+    "path": "minzc/scripts/analysis/test_tokenize.go",
+    "sha256": "31aef390873821663416f59ded366d5e05865f9941f7ffcbd6985e02da52dbfc"
+  },
+  {
+    "path": "minzc/scripts/analyze_codebase.go",
+    "sha256": "0852feaf30c6eb61f292f23a890f5f355f80d34004bff4cfe2293c268a21b1a2"
+  },
+  {
+    "path": "minzc/scripts/generate_performance_report.go",
+    "sha256": "b83d056b9b7c9edbfef9c867387db412ff97e96dac42062bc7e37c0f43769d71"
+  },
+  {
+    "path": "minzc/scripts/new_backend_template.go",
+    "sha256": "3d4b4eb94db490fb2cf80ab0db4ad09db947f2d90276176bcf6bc43707cae38f"
+  },
+  {
+    "path": "minzc/tests/corpus/interop/caller.nanz",
+    "sha256": "ccaeda39956a6c70bf27ffba0020dcbc3fa2e4431484ac9102607b3bcb5e62ca"
+  },
+  {
+    "path": "minzc/tests/corpus/interop/lizp_caller.nanz",
+    "sha256": "46998619aa0ed1cfd259ef0072696378add695565b146ba0a9d1dc350c7dd4c3"
+  }
+]
