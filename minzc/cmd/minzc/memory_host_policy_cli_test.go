@@ -185,3 +185,50 @@ func TestPolicyCLICollectReplay(t *testing.T) {
 		t.Fatal("refusal wrote files")
 	}
 }
+
+func TestPolicyCLIMalformedAssociationAndImports(t *testing.T) {
+	source, _ := policySmallFixture(t)
+	input := filepath.Join(filepath.Dir(source), "supplied.json")
+	memoryHostPolicyCLI.Association = input
+	for _, text := range []string{"null", "{}", `{"Schema":"v2"}`, `{"schema":"x","schema":"y"}`, `{"schema":"minz.memory-host-loop-baseline-association/v1"}`} {
+		if e := os.WriteFile(input, []byte(text), 0644); e != nil {
+			t.Fatal(e)
+		}
+		if e := runMemoryHostPolicyCLI(source); e == nil {
+			t.Fatal("malformed input accepted")
+		}
+		if _, e := os.Stat(memoryHostPolicyCLI.Directory); !os.IsNotExist(e) {
+			t.Fatal("refusal wrote outputs")
+		}
+	}
+	// Parse may refuse an unresolved import before the one-unit check; both are
+	// admission refusals and must preserve the source/dependency namespace.
+	if e := os.WriteFile(source, []byte("import dep\nfun main()->u8{return 0}"), 0644); e != nil {
+		t.Fatal(e)
+	}
+	memoryHostPolicyCLI.Association = ""
+	if e := runMemoryHostPolicyCLI(source); e == nil {
+		t.Fatal("imported source admitted")
+	}
+	if _, e := os.Stat(memoryHostPolicyCLI.Directory); !os.IsNotExist(e) {
+		t.Fatal("import refusal wrote outputs")
+	}
+}
+
+func TestPolicyCLILegacyRouteUnchanged(t *testing.T) {
+	source, _ := withPolicyCLI(t)
+	memoryHostPolicyCLI = memoryHostPolicyCLIFlags{}
+	memoryHostCLI.Directory = filepath.Join(filepath.Dir(source), "old-artifacts")
+	if memoryHostPolicyCLIRequested() {
+		t.Fatal("no new flags changed ordinary/legacy route")
+	}
+	if e := validateMemoryHostCLI(source); e != nil {
+		t.Fatal("legacy admission changed", e)
+	}
+	old := memoryHostCLI
+	memoryHostCLI = memoryHostCLIFlags{}
+	if e := validateMemoryHostCLI("ordinary.nanz"); e != nil {
+		t.Fatal("ordinary empty mode changed", e)
+	}
+	memoryHostCLI = old
+}
