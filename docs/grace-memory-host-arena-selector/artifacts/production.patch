@@ -1,0 +1,915 @@
+diff --git a/minzc/pkg/hir/arena_peel_proof.go b/minzc/pkg/hir/arena_peel_proof.go
+new file mode 100644
+index 00000000..54ca3cd0
+--- /dev/null
++++ b/minzc/pkg/hir/arena_peel_proof.go
+@@ -0,0 +1,151 @@
++package hir
++
++import (
++	"fmt"
++	"github.com/minz/minzc/pkg/mir2"
++	"reflect"
++	"strings"
++)
++
++// ValidateMemoryHostArenaPeel proves the exact isolated first-byte peeling
++// before compiler splitting/lowering. It grants no optimization/default policy
++// and no inherited input-loop counts; actual HIR compatibility differs.
++func ValidateMemoryHostArenaPeel(source, actual *Module, w MemoryHostWorkload) error {
++	fail := func(s string) error { return fmt.Errorf("arena peel proof: %s", s) }
++	if source == nil || actual == nil {
++		return fail("nil module")
++	}
++	if _, _, e := PrepareMemoryHostWorkload(source, w); e != nil {
++		return e
++	}
++	if _, _, e := PrepareMemoryHostWorkload(actual, w); e != nil {
++		return e
++	}
++	if w.Hosts["peek"] != MemoryHostReadU8 {
++		return fail("closed read host required")
++	}
++	for _, m := range []*Module{source, actual} {
++		if m.LoopLineage != nil || m.PointerWalkPolicy != nil || m.GraceRulePolicy != nil || m.InvariantBasePolicy != nil || m.ForwardCopyPolicy != nil || m.RegionComparePolicy != nil || m.OrderedBytePolicy != nil || m.OrderedByteRWPolicy != nil {
++			return fail("prior policy/lineage")
++		}
++		if _, e := BuildFunctionSiteMap(m); e != nil {
++			return e
++		}
++	}
++	for _, g := range source.Globals {
++		if g.Name == "i" {
++			return fail("local/global collision")
++		}
++	}
++	f, g := source.FuncByName("region_match"), actual.FuncByName("region_match")
++	if f == nil || g == nil {
++		return fail("missing function")
++	}
++	expected := arenaPeelOriginalShape()
++	if !reflect.DeepEqual(f, expected) {
++		return fail("original whole function shape")
++	}
++	sf, af := *f, *g
++	sf.Body = nil
++	af.Body = nil
++	if !reflect.DeepEqual(sf, af) {
++		return fail("function metadata")
++	}
++	if g.Body == nil || len(g.Body.Body) != 6 {
++		return fail("post cardinality")
++	}
++	v := Var
++	i, n := v("i", mir2.TyU8), v("len", mir2.TyU8)
++	_ = i
++	peek := func(x Expr) Expr { return &CallExpr{Fn: "peek", Args: []Expr{x}, Ty: mir2.TyU8} }
++	left := Add(v("arena_p", mir2.TyU16), U8(1), mir2.TyU16)
++	right := Add(v("src_buf", mir2.TyU16), v("src_start", mir2.TyU16), mir2.TyU16)
++	prefix := []Stmt{If(Eq(n, U8(0)), Blk(&ReturnStmt{Val: U8(1)}), nil), If(Ne(peek(left), peek(right)), Blk(&ReturnStmt{Val: U8(0)}), nil), If(Eq(n, U8(1)), Blk(&ReturnStmt{Val: U8(1)}), nil)}
++	for j, s := range prefix {
++		if !reflect.DeepEqual(g.Body.Body[j], s) {
++			return fail("ordered prefix")
++		}
++	}
++	d, ok := g.Body.Body[3].(*VarDeclStmt)
++	if !ok {
++		return fail("post declaration")
++	}
++	decl := *f.Body.Body[0].(*VarDeclStmt)
++	decl.Init = U8(1)
++	if !reflect.DeepEqual(d, &decl) {
++		return fail("declaration delta")
++	}
++	if !reflect.DeepEqual(g.Body.Body[4], f.Body.Body[1]) || !reflect.DeepEqual(g.Body.Body[5], f.Body.Body[2]) {
++		return fail("tail/final return")
++	}
++	x, y := *source, *actual
++	x.SourceLocations = nil
++	y.SourceLocations = nil
++	x.Funcs = make([]*Func, len(source.Funcs))
++	y.Funcs = make([]*Func, len(actual.Funcs))
++	for j, h := range source.Funcs {
++		c := *h
++		if h.Name == f.Name {
++			c.Body = nil
++		}
++		x.Funcs[j] = &c
++	}
++	for j, h := range actual.Funcs {
++		c := *h
++		if h.Name == f.Name {
++			c.Body = nil
++		}
++		y.Funcs[j] = &c
++	}
++	if !reflect.DeepEqual(x, y) {
++		return fail("unrelated whole module content")
++	}
++	sp, e := orderedByteStatements(source)
++	if e != nil {
++		return e
++	}
++	ap, e := orderedByteStatements(actual)
++	if e != nil {
++		return e
++	}
++	wanted := map[string]SourceLocation{}
++	for p, s := range sp {
++		loc, ok := source.SourceLocations[s]
++		if !ok {
++			continue
++		}
++		q := p
++		for j, k := range []int{3, 4, 5} {
++			root := fmt.Sprintf("region_match/body/s%d", j)
++			if p == root || strings.HasPrefix(p, root+"/") {
++				q = fmt.Sprintf("region_match/body/s%d", k) + strings.TrimPrefix(p, root)
++				break
++			}
++		}
++		wanted[q] = loc
++	}
++	if len(wanted) != len(source.SourceLocations) || len(actual.SourceLocations) != len(wanted) {
++		return fail("origin cardinality")
++	}
++	for p, s := range ap {
++		loc, has := actual.SourceLocations[s]
++		want, need := wanted[p]
++		if has != need || has && loc != want {
++			return fail("exact origin path")
++		}
++	}
++	for p := range wanted {
++		if ap[p] == nil {
++			return fail("missing mapped origin")
++		}
++	}
++	return nil
++}
++func arenaPeelOriginalShape() *Func {
++	v := Var
++	i, n := v("i", mir2.TyU8), v("len", mir2.TyU8)
++	peek := func(x Expr) Expr { return &CallExpr{Fn: "peek", Args: []Expr{x}, Ty: mir2.TyU8} }
++	left := Add(v("arena_p", mir2.TyU16), U8(1), mir2.TyU16)
++	right := Add(v("src_buf", mir2.TyU16), v("src_start", mir2.TyU16), mir2.TyU16)
++	return &Func{Name: "region_match", Params: []Param{{Name: "arena_p", Ty: mir2.TyU16}, {Name: "src_start", Ty: mir2.TyU16}, {Name: "len", Ty: mir2.TyU8}}, RetTy: mir2.TyU8, Body: Blk(Decl("i", mir2.TyU8, U8(0)), While(Lt(i, n), Blk(If(Ne(peek(Add(left, i, mir2.TyU16)), peek(Add(right, i, mir2.TyU16))), Blk(&ReturnStmt{Val: U8(0)}), nil), Assign(i, Add(i, U8(1), mir2.TyU8)))), &ReturnStmt{Val: U8(1)})}
++}
+diff --git a/minzc/pkg/hir/arena_peel_proof_test.go b/minzc/pkg/hir/arena_peel_proof_test.go
+new file mode 100644
+index 00000000..9a16b116
+--- /dev/null
++++ b/minzc/pkg/hir/arena_peel_proof_test.go
+@@ -0,0 +1,66 @@
++package hir_test
++
++import (
++	. "github.com/minz/minzc/pkg/hir"
++	"github.com/minz/minzc/pkg/mir2"
++	"github.com/minz/minzc/pkg/nanz"
++	"os"
++	"testing"
++)
++
++func TestArenaPeelIndependentProof(t *testing.T) {
++	for _, mutant := range []string{"valid", "swap", "len1beforepair", "tailzero", "otherfunc", "global", "origin", "orphan", "sticky", "nil"} {
++		t.Run(mutant, func(t *testing.T) {
++			parse := func() *Module {
++				src, e := os.ReadFile("../../../examples/nanz/self_lanz_parser.nanz")
++				if e != nil {
++					t.Fatal(e)
++				}
++				m, e := nanz.Parse(string(src), "self_lanz_parser.nanz")
++				if e != nil {
++					t.Fatal(e)
++				}
++				return m
++			}
++			source, actual := parse(), parse()
++			f := actual.FuncByName("region_match")
++			i, n := Var("i", mir2.TyU8), Var("len", mir2.TyU8)
++			_ = i
++			peek := func(e Expr) Expr { return &CallExpr{Fn: "peek", Args: []Expr{e}, Ty: mir2.TyU8} }
++			d := f.Body.Body[0].(*VarDeclStmt)
++			d.Init = U8(1)
++			old := f.Body.Body
++			f.Body = Blk(If(Eq(n, U8(0)), Blk(&ReturnStmt{Val: U8(1)}), nil), If(Ne(peek(Add(Var("arena_p", mir2.TyU16), U8(1), mir2.TyU16)), peek(Add(Var("src_buf", mir2.TyU16), Var("src_start", mir2.TyU16), mir2.TyU16))), Blk(&ReturnStmt{Val: U8(0)}), nil), If(Eq(n, U8(1)), Blk(&ReturnStmt{Val: U8(1)}), nil), d, old[1], old[2])
++			w := MemoryHostWorkload{Schema: "minz.memory-host-workload/v1", TargetModel: "cpm-z80-v1", MaxSteps: 100000, MaxMemory: 65536, Layout: MemoryHostLayout{CodeOrigin: 0x400, StackLow: 0xe000, StackHigh: 0xeff0, ReturnPC: 0x100}, Hosts: map[string]string{"peek": MemoryHostReadU8, "poke": MemoryHostWriteU8}, Regions: map[string]MemoryHostRegion{"r": {Address: 0x8000, Bytes: make([]byte, 4096), Writable: true}}, Calls: []MemoryHostInvocation{{Function: "region_match", Arguments: []int64{0x8000, 0, 0}}}}
++			switch mutant {
++			case "swap":
++				b := f.Body.Body[1].(*IfStmt).Cond.(*BinExpr)
++				b.L, b.R = b.R, b.L
++			case "len1beforepair":
++				f.Body.Body[1], f.Body.Body[2] = f.Body.Body[2], f.Body.Body[1]
++			case "tailzero":
++				d.Init = U8(0)
++			case "otherfunc":
++				actual.FuncByName("node_tag").Body.Body[0] = &ReturnStmt{Val: U8(0)}
++			case "global":
++				actual.Globals[0].Init = []byte{0, 0x80}
++			case "origin":
++				for s, l := range actual.SourceLocations {
++					l.ByteOffset++
++					actual.SourceLocations[s] = l
++					break
++				}
++			case "orphan":
++				actual.SourceLocations[&ReturnStmt{Val: U8(1)}] = SourceLocation{Unit: "self_lanz_parser.nanz", Line: 1, Column: 1, SourceSHA256: actual.SourceUnits["self_lanz_parser.nanz"]}
++			case "sticky":
++				actual.PointerWalkPolicy = map[string]bool{}
++			case "nil":
++				actual = nil
++			}
++			e := ValidateMemoryHostArenaPeel(source, actual, w)
++			if (e == nil) != (mutant == "valid") {
++				t.Fatal(mutant, e)
++			}
++		})
++	}
++}
+diff --git a/minzc/pkg/hir/memory_host_loop_profile_load.go b/minzc/pkg/hir/memory_host_loop_profile_load.go
+new file mode 100644
+index 00000000..5596eb8c
+--- /dev/null
++++ b/minzc/pkg/hir/memory_host_loop_profile_load.go
+@@ -0,0 +1,100 @@
++package hir
++
++import (
++	"bytes"
++	"encoding/json"
++	"fmt"
++	"io"
++	"reflect"
++)
++
++const MaxMemoryHostLoopProfileBytes = 8 << 20
++
++// LoadMemoryHostLoopProfile accepts only this closed family, with all typed
++// fields present, exact current source/workload context and complete calls.
++// Measurements must additionally compare it with a newly observed run; JSON
++// identity alone is not provenance for caller-supplied counts.
++func LoadMemoryHostLoopProfile(r io.Reader, source *Module, w MemoryHostWorkload) (*MemoryHostLoopProfileRun, error) {
++	data, e := io.ReadAll(io.LimitReader(r, MaxMemoryHostLoopProfileBytes+1))
++	if e != nil {
++		return nil, e
++	}
++	if len(data) > MaxMemoryHostLoopProfileBytes {
++		return nil, fmt.Errorf("memory loop profile: size limit")
++	}
++	d := json.NewDecoder(bytes.NewReader(data))
++	if e = checkJSONValue(d); e != nil {
++		return nil, e
++	}
++	if _, e = d.Token(); e != io.EOF {
++		return nil, fmt.Errorf("memory loop profile: trailing JSON")
++	}
++	var p MemoryHostLoopProfileRun
++	d = json.NewDecoder(bytes.NewReader(data))
++	d.DisallowUnknownFields()
++	if e = d.Decode(&p); e != nil {
++		return nil, e
++	}
++	// Canonical typed shape equality also refuses omitted zero-valued fields and
++	// null count arrays instead of silently synthesizing a complete profile.
++	var got, want any
++	shapeDecoder := json.NewDecoder(bytes.NewReader(data))
++	shapeDecoder.UseNumber()
++	if e = shapeDecoder.Decode(&got); e != nil {
++		return nil, e
++	}
++	canonical, e := json.Marshal(p)
++	if e != nil {
++		return nil, e
++	}
++	shapeDecoder = json.NewDecoder(bytes.NewReader(canonical))
++	shapeDecoder.UseNumber()
++	if e = shapeDecoder.Decode(&want); e != nil {
++		return nil, e
++	}
++	if !reflect.DeepEqual(got, want) {
++		return nil, fmt.Errorf("memory loop profile: incomplete typed fields")
++	}
++	owned, ctx, e := PrepareMemoryHostWorkload(source, w)
++	if e != nil {
++		return nil, e
++	}
++	if _, e = BuildFunctionSiteMap(source); e != nil {
++		return nil, e
++	}
++	ctx.SemanticsID += ":" + MemoryHostLoopProfileSemantics
++	key, e := BuildProfileCompatibility(source, ctx)
++	if e != nil {
++		return nil, e
++	}
++	sites, e := BuildLoopSiteMap(source)
++	if e != nil {
++		return nil, e
++	}
++	if sites.UnmappedLoops != 0 || p.Schema != "minz.memory-host-loop-observations/v1" || p.Stage != "input-hir-instrumented-mir2-vm" || !reflect.DeepEqual(p.Workload, owned) || !reflect.DeepEqual(p.Context, ctx) || !reflect.DeepEqual(p.Compatibility, key) || !reflect.DeepEqual(p.Sites, sites) {
++		return nil, fmt.Errorf("memory loop profile: incompatible family/source/workload")
++	}
++	if p.FailedCalls != 0 || p.CompletedCalls == 0 || p.CompletedCalls != uint64(len(owned.Calls)) || len(p.Invocations) != len(owned.Calls) || len(p.Counts) != len(sites.Sites) {
++		return nil, fmt.Errorf("memory loop profile: incomplete or failed sample")
++	}
++	sums := make([]LoopCounts, len(sites.Sites))
++	for i, s := range sites.Sites {
++		sums[i].SiteID = s.ID
++	}
++	for _, inv := range p.Invocations {
++		if !inv.Completed || inv.Observation.Error != "" || inv.Observation.Failure != nil || len(inv.Counts) != len(sums) {
++			return nil, fmt.Errorf("memory loop profile: failed invocation")
++		}
++		for i, c := range inv.Counts {
++			if c.SiteID != sums[i].SiteID || c.Entries == 0 && c.BodyEntries != 0 || c.Entries > ^uint64(0)-sums[i].Entries || c.BodyEntries > ^uint64(0)-sums[i].BodyEntries {
++				return nil, fmt.Errorf("memory loop profile: invalid count delta")
++			}
++			sums[i].Entries += c.Entries
++			sums[i].BodyEntries += c.BodyEntries
++		}
++	}
++	if !reflect.DeepEqual(sums, p.Counts) {
++		return nil, fmt.Errorf("memory loop profile: cumulative count mismatch")
++	}
++	return &p, nil
++}
+diff --git a/minzc/pkg/pipeline/memory_host_arena_peel_construct.go b/minzc/pkg/pipeline/memory_host_arena_peel_construct.go
+new file mode 100644
+index 00000000..fc73339e
+--- /dev/null
++++ b/minzc/pkg/pipeline/memory_host_arena_peel_construct.go
+@@ -0,0 +1,47 @@
++package pipeline
++
++import (
++	"fmt"
++	"github.com/minz/minzc/pkg/hir"
++	"github.com/minz/minzc/pkg/mir2"
++	"reflect"
++)
++
++// peelMemoryHostArenaFirstByte is an isolated experiment, not a registered rule
++// or optimization certificate. The caller must retain original input identity.
++func peelMemoryHostArenaFirstByte(m *hir.Module, w hir.MemoryHostWorkload) error {
++	if _, _, e := hir.PrepareMemoryHostWorkload(m, w); e != nil {
++		return e
++	}
++	if w.Hosts["peek"] != hir.MemoryHostReadU8 {
++		return fmt.Errorf("closed peek descriptor required")
++	}
++	f := m.FuncByName("region_match")
++	if f == nil {
++		return fmt.Errorf("missing region_match")
++	}
++	for _, g := range m.Globals {
++		if g.Name == "i" {
++			return fmt.Errorf("local/global collision")
++		}
++	}
++	// Parse this independent exact-shape template rather than accepting merely a
++	// matching function name. No purity or nowrap assumption is introduced.
++	expected := &hir.Func{Name: "region_match", Params: []hir.Param{{Name: "arena_p", Ty: mir2.TyU16}, {Name: "src_start", Ty: mir2.TyU16}, {Name: "len", Ty: mir2.TyU8}}, RetTy: mir2.TyU8}
++	v := hir.Var
++	peek := func(x hir.Expr) hir.Expr { return &hir.CallExpr{Fn: "peek", Args: []hir.Expr{x}, Ty: mir2.TyU8} }
++	left := hir.Add(v("arena_p", mir2.TyU16), hir.U8(1), mir2.TyU16)
++	right := hir.Add(v("src_buf", mir2.TyU16), v("src_start", mir2.TyU16), mir2.TyU16)
++	i, n := v("i", mir2.TyU8), v("len", mir2.TyU8)
++	expected.Body = hir.Blk(hir.Decl("i", mir2.TyU8, hir.U8(0)), hir.While(hir.Lt(i, n), hir.Blk(hir.If(hir.Ne(peek(hir.Add(left, i, mir2.TyU16)), peek(hir.Add(right, i, mir2.TyU16))), hir.Blk(&hir.ReturnStmt{Val: hir.U8(0)}), nil), hir.Assign(i, hir.Add(i, hir.U8(1), mir2.TyU8)))), &hir.ReturnStmt{Val: hir.U8(1)})
++	if !reflect.DeepEqual(f, expected) {
++		return fmt.Errorf("region_match exact source shape refused")
++	}
++	loop := f.Body.Body[1].(*hir.WhileStmt)
++	// Preserve the original tail node and its attached source origin. New prefix
++	// nodes have no manufactured source coordinates or loop observations.
++	declaration := f.Body.Body[0].(*hir.VarDeclStmt)
++	declaration.Init = hir.U8(1)
++	f.Body = hir.Blk(hir.If(hir.Eq(n, hir.U8(0)), hir.Blk(&hir.ReturnStmt{Val: hir.U8(1)}), nil), hir.If(hir.Ne(peek(left), peek(right)), hir.Blk(&hir.ReturnStmt{Val: hir.U8(0)}), nil), hir.If(hir.Eq(n, hir.U8(1)), hir.Blk(&hir.ReturnStmt{Val: hir.U8(1)}), nil), declaration, loop, f.Body.Body[2])
++	return nil
++}
+diff --git a/minzc/pkg/pipeline/memory_host_arena_precompile_proof_test.go b/minzc/pkg/pipeline/memory_host_arena_precompile_proof_test.go
+new file mode 100644
+index 00000000..182b53da
+--- /dev/null
++++ b/minzc/pkg/pipeline/memory_host_arena_precompile_proof_test.go
+@@ -0,0 +1,33 @@
++package pipeline
++
++import (
++	"github.com/minz/minzc/pkg/hir"
++	"testing"
++)
++
++// Independently validate the privately constructed source delta before any
++// compiler preparation or observed target execution.
++func TestMemoryHostArenaPeelIndependentProof(t *testing.T) {
++	source, w := memoryHostParserFixture(t)
++	actual, _ := memoryHostParserFixture(t)
++	if e := peelMemoryHostArenaFirstByte(actual, w); e != nil {
++		t.Fatal(e)
++	}
++	sites, e := hir.BuildLoopSiteMap(source)
++	if e != nil {
++		t.Fatal(e)
++	}
++	site := ""
++	for _, s := range sites.Sites {
++		if s.Function == "region_match" {
++			site = s.ID
++		}
++	}
++	proof, e := buildMemoryHostArenaPrecompileProof(source, actual, w, site)
++	if e != nil {
++		t.Fatal(e)
++	}
++	if proof.SourceSite.HIRPath != "body/s1" || proof.OriginalCompatibility.HIRSHA256 == proof.ActualCompatibility.HIRSHA256 {
++		t.Fatal("proof identity missing")
++	}
++}
+diff --git a/minzc/pkg/pipeline/memory_host_arena_selector.go b/minzc/pkg/pipeline/memory_host_arena_selector.go
+new file mode 100644
+index 00000000..fe3a9a04
+--- /dev/null
++++ b/minzc/pkg/pipeline/memory_host_arena_selector.go
+@@ -0,0 +1,369 @@
++package pipeline
++
++import (
++	"bytes"
++	"fmt"
++	"reflect"
++	"runtime"
++
++	"github.com/minz/minzc/pkg/hir"
++)
++
++type MemoryHostArenaSelectorOptions struct {
++	Goal     string `json:"goal"`
++	MaxSites int    `json:"max_sites"`
++}
++type MemoryHostArenaPrecompileProof struct {
++	Schema                string                    `json:"schema"`
++	Function              string                    `json:"function"`
++	SourceSite            hir.LoopSite              `json:"source_site"`
++	OriginalCompatibility *hir.ProfileCompatibility `json:"original_compatibility"`
++	ActualCompatibility   *hir.ProfileCompatibility `json:"actual_compatibility"`
++	OriginalFunctions     *hir.FunctionSiteMap      `json:"original_functions"`
++	ActualFunctions       *hir.FunctionSiteMap      `json:"actual_functions"`
++	ActualSites           *hir.LoopSiteMap          `json:"actual_sites"`
++}
++
++type MemoryHostArenaCandidate struct {
++	Peeled          bool                            `json:"peeled"`
++	PrecompileProof *MemoryHostArenaPrecompileProof `json:"precompile_proof"`
++	Evidence        *MemoryHostBaselineEvidence     `json:"evidence"`
++}
++type MemoryHostArenaSelection struct {
++	Schema      string                         `json:"schema"`
++	Options     MemoryHostArenaSelectorOptions `json:"options"`
++	Profile     *hir.MemoryHostLoopProfileRun  `json:"profile"`
++	Association *MemoryHostLoopProfileEvidence `json:"association"`
++	SiteID      string                         `json:"site_id"`
++	Candidates  []MemoryHostArenaCandidate     `json:"candidates"`
++	Selected    int                            `json:"selected"`
++}
++
++// MeasureMemoryHostArenaPeel is bounded to one exact source helper/two variants.
++// Goal compares measured costs; it does not change compiler options. Candidate
++// construction is private and its proof applies before compiler preparation.
++func MeasureMemoryHostArenaPeel(factory func() (*hir.Module, error), w hir.MemoryHostWorkload, serialized []byte, o MemoryHostArenaSelectorOptions) (*MemoryHostArenaSelection, error) {
++	if factory == nil || o.MaxSites != 1 || (o.Goal != "speed" && o.Goal != "size") {
++		return nil, fmt.Errorf("arena selector: invalid bounded options/factory")
++	}
++	if len(serialized) > hir.MaxMemoryHostLoopProfileBytes {
++		return nil, fmt.Errorf("arena selector: profile size limit")
++	}
++	owned, e := ownMemoryHostWorkload(w)
++	if e != nil {
++		return nil, e
++	}
++	payload := append([]byte{}, serialized...)
++	seen := map[uintptr]bool{}
++	retained := []*hir.Module{}
++	privateRoots := []any{}
++	defer func() { runtime.KeepAlive(privateRoots); runtime.KeepAlive(retained) }()
++	fresh := func() (*hir.Module, error) {
++		m, e := factory()
++		if e != nil {
++			return nil, e
++		}
++		if m == nil {
++			return nil, fmt.Errorf("arena selector: nil source")
++		}
++		if e = jointCheckFreshHIR(m, seen); e != nil {
++			return nil, e
++		}
++		retainArenaSourceGraph(m, &privateRoots)
++		retained = append(retained, m)
++		return m, nil
++	}
++	source, e := fresh()
++	if e != nil {
++		return nil, e
++	}
++	loaded, e := hir.LoadMemoryHostLoopProfile(bytes.NewReader(payload), source, owned)
++	if e != nil {
++		return nil, e
++	}
++	expectedFunctions, e := hir.BuildFunctionSiteMap(source)
++	if e != nil {
++		return nil, e
++	}
++	excludedCompiled := map[*hir.Module]bool{}
++	identity := func(m *hir.Module) error {
++		_, ctx, e := hir.PrepareMemoryHostWorkload(m, owned)
++		if e != nil {
++			return e
++		}
++		ctx.SemanticsID += ":" + hir.MemoryHostLoopProfileSemantics
++		k, e := hir.BuildProfileCompatibility(m, ctx)
++		if e != nil {
++			return e
++		}
++		if !reflect.DeepEqual(k, loaded.Compatibility) {
++			return fmt.Errorf("arena selector: retained source identity changed")
++		}
++		fs, e := hir.BuildFunctionSiteMap(m)
++		if e != nil {
++			return e
++		}
++		if !reflect.DeepEqual(fs, expectedFunctions) {
++			return fmt.Errorf("arena selector: function/origin identity changed")
++		}
++		return nil
++	}
++	check := func() error {
++		for _, m := range retained {
++			if excludedCompiled[m] {
++				continue
++			}
++			if e := identity(m); e != nil {
++				return e
++			}
++		}
++		return nil
++	}
++	association, e := RunZ80MemoryHostLoopProfile(fresh, owned)
++	if e != nil {
++		return nil, e
++	}
++	if len(retained) != 6 {
++		return nil, fmt.Errorf("arena selector: association factory lifecycle changed")
++	}
++	excludedCompiled[retained[2]] = true
++	if e = check(); e != nil {
++		return nil, e
++	}
++	if !reflect.DeepEqual(loaded, association.Profile) {
++		return nil, fmt.Errorf("arena selector: serialized counts/observations differ from fresh closed run")
++	}
++	site := ""
++	for i, s := range loaded.Sites.Sites {
++		if s.Function == "region_match" {
++			if site != "" || loaded.Counts[i].Entries == 0 {
++				return nil, fmt.Errorf("arena selector: unique observed helper required")
++			}
++			site = s.ID
++		}
++	}
++	if site == "" {
++		return nil, fmt.Errorf("arena selector: helper site absent")
++	}
++	// Candidate runner remains private: caller factory only returns originals.
++	// Each original is checked and retained separately from the mutated candidate.
++	var precompileProof *MemoryHostArenaPrecompileProof
++	variantFactory := func() (*hir.Module, error) {
++		original, e := fresh()
++		if e != nil {
++			return nil, e
++		}
++		if e = identity(original); e != nil {
++			return nil, e
++		}
++		actual, e := factory()
++		if e != nil {
++			return nil, e
++		}
++		if actual == nil {
++			return nil, fmt.Errorf("arena selector: nil candidate source")
++		}
++		if e = jointCheckFreshHIR(actual, seen); e != nil {
++			return nil, e
++		}
++		if e = identity(actual); e != nil {
++			return nil, e
++		}
++		retainArenaSourceGraph(actual, &privateRoots)
++		if e = peelMemoryHostArenaFirstByte(actual, owned); e != nil {
++			return nil, e
++		}
++		if e = hir.ValidateMemoryHostArenaPeel(original, actual, owned); e != nil {
++			return nil, e
++		}
++		proof, e := buildMemoryHostArenaPrecompileProof(original, actual, owned, site)
++		if e != nil {
++			return nil, e
++		}
++		if precompileProof == nil {
++			precompileProof = proof
++		} else if !reflect.DeepEqual(precompileProof, proof) {
++			return nil, fmt.Errorf("arena selector: precompile proof drift")
++		}
++		if e = check(); e != nil {
++			return nil, e
++		}
++		return actual, nil
++	}
++	variant, e := RunZ80MemoryHostBaseline(variantFactory, owned)
++	if e != nil {
++		return nil, e
++	}
++	if e = check(); e != nil {
++		return nil, e
++	}
++	if precompileProof == nil || !reflect.DeepEqual(precompileProof.OriginalCompatibility, association.Baseline.Compatibility) || !reflect.DeepEqual(precompileProof.ActualCompatibility, variant.Compatibility) || !reflect.DeepEqual(precompileProof.OriginalFunctions, association.Baseline.FunctionSites) || !reflect.DeepEqual(precompileProof.ActualFunctions, variant.FunctionSites) {
++		return nil, fmt.Errorf("arena selector: measured baseline differs from precompile proof")
++	}
++	var selectedSource hir.LoopSite
++	for _, s := range loaded.Sites.Sites {
++		if s.ID == site {
++			selectedSource = s
++		}
++	}
++	if !reflect.DeepEqual(precompileProof.SourceSite, selectedSource) {
++		return nil, fmt.Errorf("arena selector: loaded source site differs from proof")
++	}
++	if e = arenaSameObservations(association.Baseline.Raw.Invocations, variant.Raw.Invocations); e != nil {
++		return nil, e
++	}
++	if e = arenaSameObservations(association.Baseline.Target.Invocations, variant.Target.Invocations); e != nil {
++		return nil, e
++	}
++	out := &MemoryHostArenaSelection{Schema: "minz.memory-host-arena-selection/v1", Options: o, Profile: loaded, Association: association, SiteID: site, Candidates: []MemoryHostArenaCandidate{{Evidence: association.Baseline}, {Peeled: true, PrecompileProof: precompileProof, Evidence: variant}}}
++	a, b := association.Baseline.Target, variant.Target
++	out.Selected = selectMemoryHostArenaCandidate(o.Goal, a, b)
++	runtime.KeepAlive(privateRoots)
++	runtime.KeepAlive(retained)
++	return out, nil
++}
++func arenaSameObservations(a, b []hir.MemoryHostObservation) error {
++	if len(a) != len(b) {
++		return fmt.Errorf("arena selector: invocation mismatch")
++	}
++	for i := range a {
++		x, y := a[i], b[i]
++		x.Steps, y.Steps = 0, 0
++		if (x.Error == "") != (y.Error == "") {
++			return fmt.Errorf("arena selector: failure mismatch")
++		}
++		x.Error, y.Error = "", ""
++		if !reflect.DeepEqual(x, y) {
++			return fmt.Errorf("arena selector: observation mismatch %d", i)
++		}
++	}
++	return nil
++}
++
++// Keep every formerly owned node/backing allocation alive even if normal
++// compiler preparation overwrites the pointers in its original root object.
++func retainArenaSourceGraph(m *hir.Module, roots *[]any) {
++	visited := map[uintptr]bool{}
++	var walk func(reflect.Value)
++	walk = func(v reflect.Value) {
++		if !v.IsValid() {
++			return
++		}
++		if v.Kind() == reflect.Interface {
++			if !v.IsNil() {
++				walk(v.Elem())
++			}
++			return
++		}
++		switch v.Kind() {
++		case reflect.Pointer, reflect.Map:
++			if v.IsNil() || visited[v.Pointer()] {
++				return
++			}
++			visited[v.Pointer()] = true
++			if v.CanInterface() {
++				*roots = append(*roots, v.Interface())
++			}
++			if v.Kind() == reflect.Pointer {
++				walk(v.Elem())
++			} else {
++				it := v.MapRange()
++				for it.Next() {
++					walk(it.Key())
++					walk(it.Value())
++				}
++			}
++		case reflect.Slice:
++			if v.CanInterface() {
++				*roots = append(*roots, v.Interface())
++			}
++			for i := 0; i < v.Len(); i++ {
++				walk(v.Index(i))
++			}
++		case reflect.Array:
++			for i := 0; i < v.Len(); i++ {
++				walk(v.Index(i))
++			}
++		case reflect.Struct:
++			for i := 0; i < v.NumField(); i++ {
++				if v.Field(i).CanInterface() {
++					walk(v.Field(i))
++				}
++			}
++		}
++	}
++	walk(reflect.ValueOf(m))
++}
++
++// Equal primary measured costs retain original. This helper never constructs
++// evidence; callers of the public API always provide two actual target runs.
++func selectMemoryHostArenaCandidate(goal string, a, b *MemoryHostTargetEvidence) int {
++	if goal == "speed" && b.TotalTStates < a.TotalTStates || goal == "size" && len(b.Binary) < len(a.Binary) {
++		return 1
++	}
++	return 0
++}
++
++// Captured independently validated precompile identities. This record contains
++// no claim that the same HIR shape survives compiler splitting or lowering.
++func buildMemoryHostArenaPrecompileProof(source, actual *hir.Module, w hir.MemoryHostWorkload, siteID string) (*MemoryHostArenaPrecompileProof, error) {
++	if e := hir.ValidateMemoryHostArenaPeel(source, actual, w); e != nil {
++		return nil, e
++	}
++	_, sourceContext, e := hir.PrepareMemoryHostWorkload(source, w)
++	if e != nil {
++		return nil, e
++	}
++	_, actualContext, e := hir.PrepareMemoryHostWorkload(actual, w)
++	if e != nil {
++		return nil, e
++	}
++	sk, e := hir.BuildProfileCompatibility(source, sourceContext)
++	if e != nil {
++		return nil, e
++	}
++	ak, e := hir.BuildProfileCompatibility(actual, actualContext)
++	if e != nil {
++		return nil, e
++	}
++	sf, e := hir.BuildFunctionSiteMap(source)
++	if e != nil {
++		return nil, e
++	}
++	af, e := hir.BuildFunctionSiteMap(actual)
++	if e != nil {
++		return nil, e
++	}
++	ss, e := hir.BuildLoopSiteMap(source)
++	if e != nil {
++		return nil, e
++	}
++	as, e := hir.BuildLoopSiteMap(actual)
++	if e != nil {
++		return nil, e
++	}
++	var sourceSite hir.LoopSite
++	found := false
++	for _, s := range ss.Sites {
++		if s.ID == siteID {
++			sourceSite = s
++			found = true
++		}
++	}
++	if !found || sourceSite.Function != "region_match" || sourceSite.HIRPath != "body/s1" {
++		return nil, fmt.Errorf("arena selector: unexpected source proof site")
++	}
++	tailFound := false
++	for _, s := range as.Sites {
++		if s.ID == siteID {
++			if s.Function != "region_match" || s.HIRPath != "body/s4" || !reflect.DeepEqual(s.Origin, sourceSite.Origin) {
++				return nil, fmt.Errorf("arena selector: actual tail site differs")
++			}
++			tailFound = true
++		}
++	}
++	if !tailFound {
++		return nil, fmt.Errorf("arena selector: missing actual tail site")
++	}
++	return &MemoryHostArenaPrecompileProof{Schema: "minz.exact-memory-host-arena-peel-precompile/v1", Function: "region_match", SourceSite: sourceSite, OriginalCompatibility: sk, ActualCompatibility: ak, OriginalFunctions: sf, ActualFunctions: af, ActualSites: as}, nil
++}
+diff --git a/minzc/pkg/pipeline/memory_host_arena_selector_test.go b/minzc/pkg/pipeline/memory_host_arena_selector_test.go
+new file mode 100644
+index 00000000..0acd54e0
+--- /dev/null
++++ b/minzc/pkg/pipeline/memory_host_arena_selector_test.go
+@@ -0,0 +1,107 @@
++package pipeline
++
++import (
++	"encoding/json"
++	"github.com/minz/minzc/pkg/hir"
++	"github.com/minz/minzc/pkg/nanz"
++	"runtime"
++	"strings"
++	"testing"
++)
++
++func TestMemoryHostArenaSelectorOriginal30(t *testing.T) {
++	_, w := memoryHostParserFixture(t)
++	factory := func() (*hir.Module, error) { m, _ := memoryHostParserFixture(t); return m, nil }
++	original, e := RunZ80MemoryHostLoopProfile(factory, w)
++	if e != nil {
++		t.Fatal(e)
++	}
++	data, e := json.Marshal(original.Profile)
++	if e != nil {
++		t.Fatal(e)
++	}
++	for _, goal := range []string{"speed", "size"} {
++		r, e := MeasureMemoryHostArenaPeel(factory, w, data, MemoryHostArenaSelectorOptions{Goal: goal, MaxSites: 1})
++		if e != nil {
++			t.Fatal(goal, e)
++		}
++		if len(r.Candidates) != 2 || r.Candidates[0].Evidence.Target.TotalTStates != 1221494 {
++			t.Fatal("baseline changed", r)
++		}
++		t.Logf("%s selected%d original%dT/%dB peeled%dT/%dB", goal, r.Selected, r.Candidates[0].Evidence.Target.TotalTStates, len(r.Candidates[0].Evidence.Target.Binary), r.Candidates[1].Evidence.Target.TotalTStates, len(r.Candidates[1].Evidence.Target.Binary))
++		if goal == "speed" && r.Selected != 1 || goal == "size" && r.Selected != 0 {
++			t.Fatal("wrong winner", goal, r.Selected)
++		}
++	}
++}
++func TestMemoryHostArenaProfileLoaderStrict(t *testing.T) {
++	const src = `@extern fun peek(addr:u16)->u8
++fun run()->u8{var i:u8=0 while i<1{i=i+1} return i}`
++	m, e := nanz.Parse(src, "loader.nanz")
++	if e != nil {
++		t.Fatal(e)
++	}
++	w := hir.MemoryHostWorkload{Schema: "minz.memory-host-workload/v1", TargetModel: "cpm-z80-v1", MaxSteps: 1000, MaxMemory: 65536, Layout: hir.MemoryHostLayout{CodeOrigin: 0x400, StackLow: 0xe000, StackHigh: 0xeff0, ReturnPC: 0x100}, Hosts: map[string]string{"peek": hir.MemoryHostReadU8}, Regions: map[string]hir.MemoryHostRegion{"r": {Address: 0x8000, Bytes: []byte{1}}}, Calls: []hir.MemoryHostInvocation{{Function: "run"}}}
++	p, e := hir.RunMemoryHostLoopProfile(m, w)
++	if e != nil {
++		t.Fatal(e)
++	}
++	b, e := json.Marshal(p)
++	if e != nil {
++		t.Fatal(e)
++	}
++	if _, e = hir.LoadMemoryHostLoopProfile(strings.NewReader(string(b)), m, w); e != nil {
++		t.Fatal(e)
++	}
++	for name, data := range map[string]string{"duplicate": strings.Replace(string(b), `"failed_calls":0`, `"failed_calls":0,"failed_calls":0`, 1), "missingzero": strings.Replace(string(b), `"failed_calls":0,`, "", 1), "alias": strings.Replace(string(b), `"failed_calls"`, `"Failed_Calls"`, 1), "unknown": strings.Replace(string(b), `"schema":`, `"unknown":0,"schema":`, 1), "v5": strings.Replace(string(b), "minz.memory-host-loop-observations/v1", "minz.input-hir-loop-observations/v5", 1)} {
++		t.Run(name, func(t *testing.T) {
++			if _, e := hir.LoadMemoryHostLoopProfile(strings.NewReader(data), m, w); e == nil {
++				t.Fatal("forged JSON accepted")
++			}
++		})
++	}
++}
++
++func TestMemoryHostArenaSourceGraphRetention(t *testing.T) {
++	m, e := nanz.Parse("fun run()->u8{return 7}", "retention.nanz")
++	if e != nil {
++		t.Fatal(e)
++	}
++	seen := map[uintptr]bool{}
++	if e = jointCheckFreshHIR(m, seen); e != nil {
++		t.Fatal(e)
++	}
++	roots := []any{}
++	retainArenaSourceGraph(m, &roots)
++	old := m.Funcs[0].Body.Body[0]
++	m.Funcs[0].Body = nil
++	runtime.GC()
++	for i := 0; i < 32; i++ {
++		fresh, e := nanz.Parse("fun run()->u8{return 7}", "retention.nanz")
++		if e != nil {
++			t.Fatal(e)
++		}
++		runtime.GC()
++		if e = jointCheckFreshHIR(fresh, seen); e != nil {
++			t.Fatal("GC address reuse escaped retention", e)
++		}
++		retainArenaSourceGraph(fresh, &roots)
++	}
++	shared, e := nanz.Parse("fun run()->u8{return 7}", "retention.nanz")
++	if e != nil {
++		t.Fatal(e)
++	}
++	shared.Funcs[0].Body.Body[0] = old
++	if e = jointCheckFreshHIR(shared, seen); e == nil {
++		t.Fatal("real shared statement accepted")
++	}
++	runtime.KeepAlive(roots)
++}
++
++func TestMemoryHostArenaSelectorOversizeBeforeFactory(t *testing.T) {
++	called := false
++	factory := func() (*hir.Module, error) { called = true; return nil, nil }
++	if r, e := MeasureMemoryHostArenaPeel(factory, hir.MemoryHostWorkload{}, make([]byte, hir.MaxMemoryHostLoopProfileBytes+1), MemoryHostArenaSelectorOptions{Goal: "speed", MaxSites: 1}); e == nil || r != nil || called {
++		t.Fatal("oversize payload entered factory")
++	}
++}

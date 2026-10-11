@@ -1,0 +1,41 @@
+{
+  "production_base": "2537b1e0701de448c0d17ff5d5c252fde7525005",
+  "core_checkpoint": "04a3e6bc",
+  "files": [
+    {
+      "path": "minzc/pkg/hir/arena_peel_proof.go",
+      "bytes": 4882,
+      "sha256": "a04c76c69517f5c87409557a065575b94ee835b5f3e45adbc1fd89958d97daae"
+    },
+    {
+      "path": "minzc/pkg/hir/arena_peel_proof_test.go",
+      "bytes": 2758,
+      "sha256": "7cfbc0f8232329be5f153d7bc3e9bda065a37c8f0a9dca258bc475c497f48068"
+    },
+    {
+      "path": "minzc/pkg/hir/memory_host_loop_profile_load.go",
+      "bytes": 3604,
+      "sha256": "7240c109bd354673cd520d0884cbf527de7b187769acf23a168b8ce89d72c5ea"
+    },
+    {
+      "path": "minzc/pkg/pipeline/memory_host_arena_peel_construct.go",
+      "bytes": 2401,
+      "sha256": "258b4472e5b5a6c2872af459f5d44cec0415fb5c20cf2dacac0cfafa6c2d6cad"
+    },
+    {
+      "path": "minzc/pkg/pipeline/memory_host_arena_selector.go",
+      "bytes": 11804,
+      "sha256": "513d163449346ef8cd96a0652ca580a58cb5a58defbae8c1fecf31d302601ad5"
+    },
+    {
+      "path": "minzc/pkg/pipeline/memory_host_arena_selector_test.go",
+      "bytes": 4138,
+      "sha256": "a126bf64dc2030763d21863635deb4dac7e44d8293e0dc8e5a18eb076b58a27a"
+    },
+    {
+      "path": "minzc/pkg/pipeline/memory_host_arena_precompile_proof_test.go",
+      "bytes": 870,
+      "sha256": "2f1046217f030693ccb2e018d5244d3d77fcb27d586f93b485bbe94524d0c101"
+    }
+  ]
+}
