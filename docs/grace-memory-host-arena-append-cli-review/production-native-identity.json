@@ -1,0 +1,8 @@
+{
+  "source": "parent frozenCLI9d29 overlay",
+  "binary_sha256": "1bd95516f7b1ef1ba56c17822104936e2b73fe8bde5fe7368dd128811009f041",
+  "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/minzc-memory-host-cli-production",
+  "isolated_path": "/home/alice/dev/minz-artifacts/grace-checkpoints/minzc-memory-host-cli-isolated",
+  "isolated_sha256": "852cf9a5e47c4440bf1d10b286a6f49f702ab2f5bb1cf7765dd84871b2da6c3a",
+  "buildvcs": false
+}

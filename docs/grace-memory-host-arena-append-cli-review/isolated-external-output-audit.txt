@@ -1,0 +1,2 @@
+PASS isolated852cf small-output actual-o exactselectedEvidenceASM/existing2callreplay selection/output bytes; SHA2fb6a4e4693e905584f0f7f78667b52b33099b968f1ab61356bfbf4d14e8111d
+Oldisolatedexecutable preserved at minzc-memory-host-cli-isolated; authoritative new1bd955 audit pending separately.
