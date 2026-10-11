@@ -1,0 +1,1680 @@
+{
+  "schema": "minz.measured-compiler-modes/v1",
+  "goal": "size",
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:3f2e6050a2f78d3152da074105e456f595bca88831f53d39fcacb266ed989d3e",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+      "target_id": "module-target:0/model:cpm-z80-v1",
+      "workload_sha256": "37c7121eeacacf72a6f6a496d963376d9bcfadae5a85a22ffbe020604ec83b86",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "../../../examples/nanz/18_tail_recursion.nanz": "e88d580c3ce9499cdea28a05794e6c6146f88a0e67967d148933b17c969e9540"
+      }
+    },
+    "hir_sha256": "80abb18494601ce6189fae270e30ba227bdfce296022427e73c3bbc98fbe7e55",
+    "origins_sha256": "30daf5c519638c92cf044383a30e4b75384be59700e53314cf7164b2fdef61cd"
+  },
+  "function_sites": {
+    "origins_sha256": "b6d26270d03869098243fbd3312e7cf07b7ff4dad280bdd9e4ea75f1493c9983",
+    "schema": "minz.function-sites/v1",
+    "stage": "input-hir",
+    "source_units": {
+      "../../../examples/nanz/18_tail_recursion.nanz": "e88d580c3ce9499cdea28a05794e6c6146f88a0e67967d148933b17c969e9540"
+    },
+    "sites": [
+      {
+        "id": "14695fca1c23dbcf2f8b4ccf66d0695a869fb7d02901729a173e2650f74874c1",
+        "function": "sum_to",
+        "source_units_sha256": "e7cf7c247b4cd8e6d4ef214e6f5f37749b4abd003ca2a03e4b5b897c8d3fda33",
+        "abi_sha256": "92ae8ddad30620fb79fb273627cf4e130ebbafaca54cda61b4b91ad92cb93987",
+        "body_sha256": "978b64ab3c0b377ceae9077d5fffeddac508a78dd593411406cde83ba0b16e8e"
+      },
+      {
+        "id": "1cd76605d81f24a9d9b5694faca8fa56f614a7aef677ef496c80bf906b6108b6",
+        "function": "fib_tail",
+        "source_units_sha256": "e7cf7c247b4cd8e6d4ef214e6f5f37749b4abd003ca2a03e4b5b897c8d3fda33",
+        "abi_sha256": "b4c8d8d9106aacd8e263eac8b7e598aef3f17419659020b36178360962e49659",
+        "body_sha256": "07245e809f0dfc02392678e37aad4dd774d8d5a7bd9eb28d5a00c06a7525f0ab"
+      },
+      {
+        "id": "6a0b19b95cd0aff2194402bf4608e0738e8b0898e950f5ce2e0b129574f78c10",
+        "function": "pow2",
+        "source_units_sha256": "e7cf7c247b4cd8e6d4ef214e6f5f37749b4abd003ca2a03e4b5b897c8d3fda33",
+        "abi_sha256": "731a0b1a0e96ee1b6d258bcf6eddf591873fae7de7d3e352f11548eed9d21964",
+        "body_sha256": "90fe2af9a12b47ca7a577cb96171ac3d5ae12e0f3dd19c9e0614d71b89f2f870"
+      },
+      {
+        "id": "cb942d876efe87b6809e1d14b0703484080a194ec24cb9e58be7d3ab81961072",
+        "function": "fib",
+        "source_units_sha256": "e7cf7c247b4cd8e6d4ef214e6f5f37749b4abd003ca2a03e4b5b897c8d3fda33",
+        "abi_sha256": "aba1a3120992a15dfd16da5b72803126e49b1a9d62b4b5f4bc271af942051f00",
+        "body_sha256": "7b30fe3174599e5eaf6c96716b80accb0da4d37942c5b8b8e2ddbc49053839ad"
+      },
+      {
+        "id": "e0eb355da9a955a8147e37e9aef6bbbb0e258eb9986afe5950077d5e26abe395",
+        "function": "fact",
+        "source_units_sha256": "e7cf7c247b4cd8e6d4ef214e6f5f37749b4abd003ca2a03e4b5b897c8d3fda33",
+        "abi_sha256": "5ac5ff9a4fe7c4812ffafb9c98d7fbfe10e4f646825d975f136669e9c823a7b4",
+        "body_sha256": "6579af2791136f478ab305c3706429d544a7db16801730a56a844ac636595238"
+      },
+      {
+        "id": "f4b9bc434637b8933abae85b1d0e90a795248f245bf545f02660558b7561b0e1",
+        "function": "sum_tail",
+        "source_units_sha256": "e7cf7c247b4cd8e6d4ef214e6f5f37749b4abd003ca2a03e4b5b897c8d3fda33",
+        "abi_sha256": "80c97c2b849f33523f60dcd003206d40f4867350b6b6364a6b51cb282ebaba96",
+        "body_sha256": "37e3257df549efb294f787d89319309de813ee056dcefa74ba503ccc788e3511"
+      },
+      {
+        "id": "f96c162cbb03d80b91b4f887c9b2434033e85758f018b7f59cd52a93dbfbfc31",
+        "function": "pow2_tail",
+        "source_units_sha256": "e7cf7c247b4cd8e6d4ef214e6f5f37749b4abd003ca2a03e4b5b897c8d3fda33",
+        "abi_sha256": "c222229f9297753e6e999001708b40bd61f195f6f16976cffb68d0e381782feb",
+        "body_sha256": "f5f0d730a9fc3430e0058dbdc42f2ef44a4889a4463489711fe707d96f3238c2"
+      },
+      {
+        "id": "fd04b5c93056abba978d001610a5d3252524c07d3116ccf9255d37d90b531487",
+        "function": "fact_tail",
+        "source_units_sha256": "e7cf7c247b4cd8e6d4ef214e6f5f37749b4abd003ca2a03e4b5b897c8d3fda33",
+        "abi_sha256": "05049d6f68e7518c9141d823655c18c7ad1a470b99be427d3a2acc5c86bb8389",
+        "body_sha256": "2a253749855604a001d8c3392b9079c47ae9e493dd706084431465d7d2f98f6c"
+      }
+    ]
+  },
+  "oracle": {
+    "accesses": [
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      }
+    ],
+    "profile": {
+      "guards": [],
+      "compatibility": {
+        "schema": "minz.loop-profile-compatibility/v1",
+        "context": {
+          "compiler_id": "executable-sha256:3f2e6050a2f78d3152da074105e456f595bca88831f53d39fcacb266ed989d3e",
+          "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+          "target_id": "module-target:0/model:cpm-z80-v1",
+          "workload_sha256": "37c7121eeacacf72a6f6a496d963376d9bcfadae5a85a22ffbe020604ec83b86",
+          "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+          "dependencies": {
+            "../../../examples/nanz/18_tail_recursion.nanz": "e88d580c3ce9499cdea28a05794e6c6146f88a0e67967d148933b17c969e9540"
+          }
+        },
+        "hir_sha256": "80abb18494601ce6189fae270e30ba227bdfce296022427e73c3bbc98fbe7e55",
+        "origins_sha256": "30daf5c519638c92cf044383a30e4b75384be59700e53314cf7164b2fdef61cd"
+      },
+      "schema": "minz.input-hir-loop-observations/v5",
+      "stage": "unoptimised-mir2-vm",
+      "sites": {
+        "schema": "minz.hir-loop-sites/v1",
+        "stage": "input-hir",
+        "sites": [],
+        "unmapped_loops": 0
+      },
+      "counts": [],
+      "completed_calls": 16,
+      "failed_calls": 0
+    },
+    "results": [
+      [
+        {
+          "I": 2
+        }
+      ],
+      [
+        {
+          "I": 6
+        }
+      ],
+      [
+        {
+          "I": 6
+        }
+      ],
+      [
+        {
+          "I": 8
+        }
+      ],
+      [
+        {
+          "I": 8
+        }
+      ],
+      [
+        {
+          "I": 208
+        }
+      ],
+      [
+        {
+          "I": 21
+        }
+      ],
+      [
+        {
+          "I": 64
+        }
+      ],
+      [
+        {
+          "I": 34
+        }
+      ],
+      [
+        {
+          "I": 128
+        }
+      ],
+      [
+        {
+          "I": 45
+        }
+      ],
+      [
+        {
+          "I": 0
+        }
+      ],
+      [
+        {
+          "I": 144
+        }
+      ],
+      [
+        {
+          "I": 0
+        }
+      ],
+      [
+        {
+          "I": 78
+        }
+      ],
+      [
+        {
+          "I": 0
+        }
+      ]
+    ],
+    "snapshots": [
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      },
+      {
+        "globals": {},
+        "resources": {}
+      }
+    ],
+    "globals": {},
+    "resources": {}
+  },
+  "candidates": [
+    {
+      "options": {
+        "ProfileSelection": null,
+        "CollectHIRSites": false,
+        "ContractOpt": false,
+        "AnnotateTStates": false,
+        "UseGrace": false,
+        "GraceStats": null,
+        "UseHIRGrace": false,
+        "OptSize": false,
+        "Backend": "",
+        "AssertMode": "none",
+        "SkipZ80Emission": false
+      },
+      "compilation_id": "91a87d2e1b427fa933ddb9da13e078e5debf9649eecc0ec0bb9ace44872d96f5",
+      "assembly": "; ── compilation summary ──────────────────────────────────────\n; functions: 8  PBQP=8\n; optimization passes fired: 9\n; label audit: OK\n; ─────────────────────────────────────────────────────────────\n; generated by MIR2 Z80 codegen\n\n; fun fib_tail(n: u8 = A, a: u8 = B, b: u8 = C) -\u003e u8 = A [recursive] ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP passes=[dse=1]\nfib_tail:\n    AND A\n    JRS NZ, .fib_tail_if_join2\n.fib_tail_if_then1:\n    LD A, B\n    RET\n.fib_tail_if_join2:\n    DEC A\n    LD E, A    ; save r8 before A overwrite\n    LD A, B\n    ADD A, C\n    LD B, A\n    LD A, E\n    ; genCall: fib_tail dst=11\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, C\n    PUSH AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, B\n    PUSH AF\n    EX AF, AF'\n    EX AF, AF'\n    POP AF\n    LD C, A\n    EX AF, AF'\n    EX AF, AF'\n    POP AF\n    LD B, A\n    EX AF, AF'\n    JP fib_tail\n\n; fun fib(n: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP passes=[const-fold=1,dse=1]\nfib:\n    LD C, 0\n    LD B, 1\n    ; genCall: fib_tail dst=16\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, C\n    PUSH AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, B\n    PUSH AF\n    EX AF, AF'\n    EX AF, AF'\n    POP AF\n    LD C, A\n    EX AF, AF'\n    EX AF, AF'\n    POP AF\n    LD B, A\n    EX AF, AF'\n    JP fib_tail\n\n; fun fact_tail(n: u8 = A, acc: u8 = B) -\u003e u8 = A [recursive] ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP passes=[dse=1]\nfact_tail:\n    CP 1\n    JRS C, .fact_tail_if_then1\n    JRS Z, .fact_tail_if_then1\n    JRS .fact_tail_if_join2\n.fact_tail_if_then1:\n    LD A, B\n    RET\n.fact_tail_if_join2:\n    LD C, 1\n    LD E, A    ; save r17 before ALU overwrite\n    SUB 1\n    LD C, A\n    LD A, E\n    PUSH BC\n    PUSH DE\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, B\n    PUSH AF\n    EX AF, AF'\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    LD B, A\n    EX AF, AF'\n    POP AF\n    CALL __mul8\n    POP DE\n    POP BC\n    LD D, A\n    ; genCall: fact_tail dst=25\n    LD A, C\n    LD B, D\n    JP fact_tail\n\n; fun fact(n: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP passes=[dse=1]\nfact:\n    LD C, 1\n    ; genCall: fact_tail dst=29\n    LD B, C\n    JP fact_tail\n\n; fun sum_tail(n: u8 = A, acc: u8 = B) -\u003e u8 = A [recursive] ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP passes=[dse=1]\nsum_tail:\n    AND A\n    JRS NZ, .sum_tail_if_join2\n.sum_tail_if_then1:\n    LD A, B\n    RET\n.sum_tail_if_join2:\n    LD C, 1\n    LD E, A    ; save r30 before ALU overwrite\n    SUB 1\n    LD C, A\n    LD A, E\n    ADD A, B\n    ; genCall: sum_tail dst=38\n    LD B, A\n    LD A, C\n    JP sum_tail\n\n; fun sum_to(n: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP passes=[dse=1]\nsum_to:\n    LD C, 0\n    ; genCall: sum_tail dst=42\n    LD B, C\n    JP sum_tail\n\n; fun pow2_tail(n: u8 = A, acc: u8 = B) -\u003e u8 = A [recursive] ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP passes=[dse=1]\npow2_tail:\n    AND A\n    JRS NZ, .pow2_tail_if_join2\n.pow2_tail_if_then1:\n    LD A, B\n    RET\n.pow2_tail_if_join2:\n    DEC A\n    LD E, A    ; save r49 before A overwrite\n    LD A, B\n    ADD A, B\n    LD B, A\n    LD A, E\n    ; genCall: pow2_tail dst=51\n    JP pow2_tail\n\n; fun pow2(n: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP passes=[dse=1]\npow2:\n    LD C, 1\n    ; genCall: pow2_tail dst=55\n    LD B, C\n    JP pow2_tail\n\n\n; runtime: 8-bit multiply A*B → A (~80T)\n__mul8:\n    LD C, 0\n    LD D, 8\n.__mul8_loop:\n    SRL B\n    JR NC, .__mul8_noadd\n    LD E, A\n    LD A, C\n    ADD A, E\n    LD C, A\n    LD A, E\n.__mul8_noadd:\n    ADD A, A\n    DEC D\n    JR NZ, .__mul8_loop\n    LD A, C\n    RET\n",
+      "binary": "pyACeMk9X3iBR3v1CPEICHn1CAh49QgI8U8ICPFHCMMAgA4ABgH1CPEICHn1CAh49QgI8U8ICPFHCMMAgP4BOAQoAhgCeMkOAV/WAU97xdX1CPEICHj1CPUI8UcI8c2bgNHBV3lCwz2ADgFBwz2ApyACeMkOAV/WAU97gEd5w2+ADgBBw2+ApyACeMk9X3iAR3vDh4AOAUHDh4AOABYIyzgwBV95g097hxUg83nJ",
+      "final_mir": "; MIR2 module: ../../../examples/nanz/18_tail_recursion.nanz\nfun @fib_tail(%r1: u8 [acc], %r2: u8 [general], %r3: u8 [counter]) -\u003e u8 [acc]\n  block @entry:\n    %r4 = const 0 : u8 [general]\n    %r5 = cmp.eq %r1, %r4 : bool [flag]\n    br_if %r5, @if_then1(), @if_join2()\n  block @if_then1:\n    ret %r2\n  block @if_join2:\n    %r6 = const 1 : u8 [general]\n    %r7 = sub %r1, %r6 : u8 [acc]\n    %r8 = move %r7 : u8 [acc]\n    %r9 = add %r2, %r3 : u8 [acc]\n    %r10 = move %r9 : u8 [counter]\n    %r11 = call @fib_tail(%r8, %r3, %r10) : u8 [acc]\n    ret %r11\n\nfun @fib(%r12: u8 [acc]) -\u003e u8 [acc]\n  block @entry:\n    %r13 = move %r12 : u8 [acc]\n    %r14 = const 0 : u8 [general]\n    %r15 = const 1 : u8 [counter]\n    %r16 = call @fib_tail(%r13, %r14, %r15) : u8 [acc]\n    ret %r16\n\nfun @fact_tail(%r17: u8 [acc], %r18: u8 [general]) -\u003e u8 [acc]\n  block @entry:\n    %r19 = const 1 : u8 [general]\n    %r20 = cmp.ule %r17, %r19 : bool [flag]\n    br_if %r20, @if_then1(), @if_join2()\n  block @if_then1:\n    ret %r18\n  block @if_join2:\n    %r21 = const 1 : u8 [general]\n    %r22 = sub %r17, %r21 : u8 [acc]\n    %r23 = move %r22 : u8 [acc]\n    %r24 = mul %r18, %r17 : u8 [general]\n    %r25 = call @fact_tail(%r23, %r24) : u8 [acc]\n    ret %r25\n\nfun @fact(%r26: u8 [acc]) -\u003e u8 [acc]\n  block @entry:\n    %r27 = move %r26 : u8 [acc]\n    %r28 = const 1 : u8 [general]\n    %r29 = call @fact_tail(%r27, %r28) : u8 [acc]\n    ret %r29\n\nfun @sum_tail(%r30: u8 [acc], %r31: u8 [general]) -\u003e u8 [acc]\n  block @entry:\n    %r32 = const 0 : u8 [general]\n    %r33 = cmp.eq %r30, %r32 : bool [flag]\n    br_if %r33, @if_then1(), @if_join2()\n  block @if_then1:\n    ret %r31\n  block @if_join2:\n    %r34 = const 1 : u8 [general]\n    %r35 = sub %r30, %r34 : u8 [acc]\n    %r36 = move %r35 : u8 [acc]\n    %r37 = add %r31, %r30 : u8 [acc]\n    %r38 = call @sum_tail(%r36, %r37) : u8 [acc]\n    ret %r38\n\nfun @sum_to(%r39: u8 [acc]) -\u003e u8 [acc]\n  block @entry:\n    %r40 = move %r39 : u8 [acc]\n    %r41 = const 0 : u8 [general]\n    %r42 = call @sum_tail(%r40, %r41) : u8 [acc]\n    ret %r42\n\nfun @pow2_tail(%r43: u8 [acc], %r44: u8 [general]) -\u003e u8 [acc]\n  block @entry:\n    %r45 = const 0 : u8 [general]\n    %r46 = cmp.eq %r43, %r45 : bool [flag]\n    br_if %r46, @if_then1(), @if_join2()\n  block @if_then1:\n    ret %r44\n  block @if_join2:\n    %r47 = const 1 : u8 [general]\n    %r48 = sub %r43, %r47 : u8 [acc]\n    %r49 = move %r48 : u8 [acc]\n    %r50 = add %r44, %r44 : u8 [acc]\n    %r51 = call @pow2_tail(%r49, %r50) : u8 [acc]\n    ret %r51\n\nfun @pow2(%r52: u8 [acc]) -\u003e u8 [acc]\n  block @entry:\n    %r53 = move %r52 : u8 [acc]\n    %r54 = const 1 : u8 [general]\n    %r55 = call @pow2_tail(%r53, %r54) : u8 [acc]\n    ret %r55\n\n",
+      "run": {
+        "compatibility": {
+          "schema": "minz.loop-profile-compatibility/v1",
+          "context": {
+            "compiler_id": "executable-sha256:3f2e6050a2f78d3152da074105e456f595bca88831f53d39fcacb266ed989d3e",
+            "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+            "target_id": "module-target:0/model:cpm-z80-v1",
+            "workload_sha256": "37c7121eeacacf72a6f6a496d963376d9bcfadae5a85a22ffbe020604ec83b86",
+            "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+            "dependencies": {
+              "../../../examples/nanz/18_tail_recursion.nanz": "e88d580c3ce9499cdea28a05794e6c6146f88a0e67967d148933b17c969e9540"
+            }
+          },
+          "hir_sha256": "80abb18494601ce6189fae270e30ba227bdfce296022427e73c3bbc98fbe7e55",
+          "origins_sha256": "30daf5c519638c92cf044383a30e4b75384be59700e53314cf7164b2fdef61cd"
+        },
+        "binary_sha256": "c71861b96c509632943a78bc439596f6d1d35a3116eb760420b386f19a01a960",
+        "bootstrap_sha256": [
+          "73ad32185a94e51709e9633c3c7d8c0e4ca5ad53667d0e1da045809cbb79e3fe",
+          "b6428c9187dbb38a4be256f05c12b6dde3b38f651064db90979784f71a3b7cd2",
+          "52487874de721c352cb5a56020ba5551066c5cd9aaf9eb54c7b5eb132b7b1dea",
+          "03c88656d2d75d7962cd082787eda457b03da49dbe182a7b0c89138b83c7aa4e",
+          "3acfa558e06dbe7ac267cfbbfb97a2e249df58f02326a4bac208f43972b553e8",
+          "916e891044b1c361ffcc655f79a22e8f5a41af35bada50fd4c0ec2cc69aaa4ab",
+          "cbbc20c981c270e114b45a6aa75abda6dc9968b2423c8d0c9103b3fd34bf4c67",
+          "bc57c3bcc0ee953e406a92ed48a72ffa99287d8873a3f7788a7654f16837987b",
+          "1af18adcfc8d21a36628b4a464987e1649ff8878c5c587d115a79cfba6a4d8ee",
+          "e357cfaa9cd4d5af1f4b4c370f5bb27f248dcfc34020a03b6bf9af81f6c38cff",
+          "a0a12265fddd320a792e9ad94b44f5bdcfa372fa8caf2be67f7a93821ecce072",
+          "7f415f7e88c1420b58fd9173f5b76ff1848c4244528c2ff8a27831d0e6b4b55d",
+          "2197d2d098de0c5e6dee4e8aa4eecd658c7627b96bab4d414f33cbdafa342a04",
+          "aeeedd41138a625d97b02e8cc81bcfe6b9ce72206245e54b909d43f4f83afae3",
+          "3ce0c4e4d1ddde0a90add47a26112bb387b3d42c4be8b52be3993501d7cd6833",
+          "3b6da5279781e335cbdc23af9b18ac6ed26ed2a535cc5a8633fc68c50181253c"
+        ],
+        "invocations": [
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fib",
+            "t_states": 675,
+            "results": [
+              {
+                "I": 2
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fact",
+            "t_states": 1262,
+            "results": [
+              {
+                "I": 6
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "sum_to",
+            "t_states": 238,
+            "results": [
+              {
+                "I": 6
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "pow2",
+            "t_states": 196,
+            "results": [
+              {
+                "I": 8
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fib",
+            "t_states": 1182,
+            "results": [
+              {
+                "I": 8
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fact",
+            "t_states": 3071,
+            "results": [
+              {
+                "I": 208
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "sum_to",
+            "t_states": 430,
+            "results": [
+              {
+                "I": 21
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "pow2",
+            "t_states": 346,
+            "results": [
+              {
+                "I": 64
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fib",
+            "t_states": 1689,
+            "results": [
+              {
+                "I": 34
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fact",
+            "t_states": 4895,
+            "results": [
+              {
+                "I": 128
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "sum_to",
+            "t_states": 622,
+            "results": [
+              {
+                "I": 45
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "pow2",
+            "t_states": 496,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fib",
+            "t_states": 2196,
+            "results": [
+              {
+                "I": 144
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fact",
+            "t_states": 6734,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "sum_to",
+            "t_states": 814,
+            "results": [
+              {
+                "I": 78
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "pow2",
+            "t_states": 646,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          }
+        ],
+        "globals": {},
+        "resources": {},
+        "resource_addresses": {},
+        "global_addresses": {},
+        "bootstrap_t_states": 544,
+        "total_t_states": 25492,
+        "executed_steps": 3920
+      }
+    },
+    {
+      "options": {
+        "ProfileSelection": null,
+        "CollectHIRSites": false,
+        "ContractOpt": true,
+        "AnnotateTStates": false,
+        "UseGrace": false,
+        "GraceStats": null,
+        "UseHIRGrace": false,
+        "OptSize": false,
+        "Backend": "",
+        "AssertMode": "none",
+        "SkipZ80Emission": false
+      },
+      "compilation_id": "6444837028126bf972122e81190937b8f613dd5b6ca25f0b47219d8d9ec10155",
+      "assembly": "; ── compilation summary ──────────────────────────────────────\n; functions: 8  PBQP=8\n; optimization passes fired: 9\n; label audit: OK\n; ─────────────────────────────────────────────────────────────\n; generated by MIR2 Z80 codegen\n\n; fun fib_tail(n: u8 = A, a: u8 = B, b: u8 = C) -\u003e u8 = A [recursive] ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP passes=[dse=1]\nfib_tail:\n    AND A\n    JRS NZ, .fib_tail_if_join2\n.fib_tail_if_then1:\n    LD A, B\n    RET\n.fib_tail_if_join2:\n    DEC A\n    LD E, A    ; save r8 before A overwrite\n    LD A, B\n    ADD A, C\n    LD B, A\n    LD A, E\n    ; genCall: fib_tail dst=11\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, C\n    PUSH AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, B\n    PUSH AF\n    EX AF, AF'\n    EX AF, AF'\n    POP AF\n    LD C, A\n    EX AF, AF'\n    EX AF, AF'\n    POP AF\n    LD B, A\n    EX AF, AF'\n    JP fib_tail\n\n; fun fib(n: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP passes=[const-fold=1,dse=1]\nfib:\n    LD C, 0\n    LD B, 1\n    ; genCall: fib_tail dst=16\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, C\n    PUSH AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, B\n    PUSH AF\n    EX AF, AF'\n    EX AF, AF'\n    POP AF\n    LD C, A\n    EX AF, AF'\n    EX AF, AF'\n    POP AF\n    LD B, A\n    EX AF, AF'\n    JP fib_tail\n\n; fun fact_tail(n: u8 = A, acc: u8 = B) -\u003e u8 = A [recursive] ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP passes=[dse=1]\nfact_tail:\n    CP 1\n    JRS C, .fact_tail_if_then1\n    JRS Z, .fact_tail_if_then1\n    JRS .fact_tail_if_join2\n.fact_tail_if_then1:\n    LD A, B\n    RET\n.fact_tail_if_join2:\n    LD C, 1\n    LD E, A    ; save r17 before ALU overwrite\n    SUB 1\n    LD C, A\n    LD A, E\n    PUSH BC\n    PUSH DE\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, B\n    PUSH AF\n    EX AF, AF'\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    LD B, A\n    EX AF, AF'\n    POP AF\n    CALL __mul8\n    POP DE\n    POP BC\n    LD D, A\n    ; genCall: fact_tail dst=25\n    LD A, C\n    LD B, D\n    JP fact_tail\n\n; fun fact(n: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP passes=[dse=1]\nfact:\n    LD C, 1\n    ; genCall: fact_tail dst=29\n    LD B, C\n    JP fact_tail\n\n; fun sum_tail(n: u8 = A, acc: u8 = B) -\u003e u8 = A [recursive] ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP passes=[dse=1]\nsum_tail:\n    AND A\n    JRS NZ, .sum_tail_if_join2\n.sum_tail_if_then1:\n    LD A, B\n    RET\n.sum_tail_if_join2:\n    LD C, 1\n    LD E, A    ; save r30 before ALU overwrite\n    SUB 1\n    LD C, A\n    LD A, E\n    ADD A, B\n    ; genCall: sum_tail dst=38\n    LD B, A\n    LD A, C\n    JP sum_tail\n\n; fun sum_to(n: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP passes=[dse=1]\nsum_to:\n    LD C, 0\n    ; genCall: sum_tail dst=42\n    LD B, C\n    JP sum_tail\n\n; fun pow2_tail(n: u8 = A, acc: u8 = B) -\u003e u8 = A [recursive] ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP passes=[dse=1]\npow2_tail:\n    AND A\n    JRS NZ, .pow2_tail_if_join2\n.pow2_tail_if_then1:\n    LD A, B\n    RET\n.pow2_tail_if_join2:\n    DEC A\n    LD E, A    ; save r49 before A overwrite\n    LD A, B\n    ADD A, B\n    LD B, A\n    LD A, E\n    ; genCall: pow2_tail dst=51\n    JP pow2_tail\n\n; fun pow2(n: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP passes=[dse=1]\npow2:\n    LD C, 1\n    ; genCall: pow2_tail dst=55\n    LD B, C\n    JP pow2_tail\n\n\n; runtime: 8-bit multiply A*B → A (~80T)\n__mul8:\n    LD C, 0\n    LD D, 8\n.__mul8_loop:\n    SRL B\n    JR NC, .__mul8_noadd\n    LD E, A\n    LD A, C\n    ADD A, E\n    LD C, A\n    LD A, E\n.__mul8_noadd:\n    ADD A, A\n    DEC D\n    JR NZ, .__mul8_loop\n    LD A, C\n    RET\n",
+      "binary": "pyACeMk9X3iBR3v1CPEICHn1CAh49QgI8U8ICPFHCMMAgA4ABgH1CPEICHn1CAh49QgI8U8ICPFHCMMAgP4BOAQoAhgCeMkOAV/WAU97xdX1CPEICHj1CPUI8UcI8c2bgNHBV3lCwz2ADgFBwz2ApyACeMkOAV/WAU97gEd5w2+ADgBBw2+ApyACeMk9X3iAR3vDh4AOAUHDh4AOABYIyzgwBV95g097hxUg83nJ",
+      "final_mir": "; MIR2 module: ../../../examples/nanz/18_tail_recursion.nanz\nfun @fib_tail(%r1: u8 [acc], %r2: u8 [general], %r3: u8 [general]) -\u003e u8 [acc]\n  block @entry:\n    %r4 = const 0 : u8 [general]\n    %r5 = cmp.eq %r1, %r4 : bool [flag]\n    br_if %r5, @if_then1(), @if_join2()\n  block @if_then1:\n    ret %r2\n  block @if_join2:\n    %r6 = const 1 : u8 [general]\n    %r7 = sub %r1, %r6 : u8 [acc]\n    %r8 = move %r7 : u8 [acc]\n    %r9 = add %r2, %r3 : u8 [acc]\n    %r10 = move %r9 : u8 [counter]\n    %r11 = call @fib_tail(%r8, %r3, %r10) : u8 [acc]\n    ret %r11\n\nfun @fib(%r12: u8 [acc]) -\u003e u8 [acc]\n  block @entry:\n    %r13 = move %r12 : u8 [acc]\n    %r14 = const 0 : u8 [general]\n    %r15 = const 1 : u8 [counter]\n    %r16 = call @fib_tail(%r13, %r14, %r15) : u8 [acc]\n    ret %r16\n\nfun @fact_tail(%r17: u8 [acc], %r18: u8 [general]) -\u003e u8 [acc]\n  block @entry:\n    %r19 = const 1 : u8 [general]\n    %r20 = cmp.ule %r17, %r19 : bool [flag]\n    br_if %r20, @if_then1(), @if_join2()\n  block @if_then1:\n    ret %r18\n  block @if_join2:\n    %r21 = const 1 : u8 [general]\n    %r22 = sub %r17, %r21 : u8 [acc]\n    %r23 = move %r22 : u8 [acc]\n    %r24 = mul %r18, %r17 : u8 [general]\n    %r25 = call @fact_tail(%r23, %r24) : u8 [acc]\n    ret %r25\n\nfun @fact(%r26: u8 [acc]) -\u003e u8 [acc]\n  block @entry:\n    %r27 = move %r26 : u8 [acc]\n    %r28 = const 1 : u8 [general]\n    %r29 = call @fact_tail(%r27, %r28) : u8 [acc]\n    ret %r29\n\nfun @sum_tail(%r30: u8 [acc], %r31: u8 [general]) -\u003e u8 [acc]\n  block @entry:\n    %r32 = const 0 : u8 [general]\n    %r33 = cmp.eq %r30, %r32 : bool [flag]\n    br_if %r33, @if_then1(), @if_join2()\n  block @if_then1:\n    ret %r31\n  block @if_join2:\n    %r34 = const 1 : u8 [general]\n    %r35 = sub %r30, %r34 : u8 [acc]\n    %r36 = move %r35 : u8 [acc]\n    %r37 = add %r31, %r30 : u8 [acc]\n    %r38 = call @sum_tail(%r36, %r37) : u8 [acc]\n    ret %r38\n\nfun @sum_to(%r39: u8 [acc]) -\u003e u8 [acc]\n  block @entry:\n    %r40 = move %r39 : u8 [acc]\n    %r41 = const 0 : u8 [general]\n    %r42 = call @sum_tail(%r40, %r41) : u8 [acc]\n    ret %r42\n\nfun @pow2_tail(%r43: u8 [acc], %r44: u8 [general]) -\u003e u8 [acc]\n  block @entry:\n    %r45 = const 0 : u8 [general]\n    %r46 = cmp.eq %r43, %r45 : bool [flag]\n    br_if %r46, @if_then1(), @if_join2()\n  block @if_then1:\n    ret %r44\n  block @if_join2:\n    %r47 = const 1 : u8 [general]\n    %r48 = sub %r43, %r47 : u8 [acc]\n    %r49 = move %r48 : u8 [acc]\n    %r50 = add %r44, %r44 : u8 [acc]\n    %r51 = call @pow2_tail(%r49, %r50) : u8 [acc]\n    ret %r51\n\nfun @pow2(%r52: u8 [acc]) -\u003e u8 [acc]\n  block @entry:\n    %r53 = move %r52 : u8 [acc]\n    %r54 = const 1 : u8 [general]\n    %r55 = call @pow2_tail(%r53, %r54) : u8 [acc]\n    ret %r55\n\n",
+      "run": {
+        "compatibility": {
+          "schema": "minz.loop-profile-compatibility/v1",
+          "context": {
+            "compiler_id": "executable-sha256:3f2e6050a2f78d3152da074105e456f595bca88831f53d39fcacb266ed989d3e",
+            "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+            "target_id": "module-target:0/model:cpm-z80-v1",
+            "workload_sha256": "37c7121eeacacf72a6f6a496d963376d9bcfadae5a85a22ffbe020604ec83b86",
+            "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+            "dependencies": {
+              "../../../examples/nanz/18_tail_recursion.nanz": "e88d580c3ce9499cdea28a05794e6c6146f88a0e67967d148933b17c969e9540"
+            }
+          },
+          "hir_sha256": "80abb18494601ce6189fae270e30ba227bdfce296022427e73c3bbc98fbe7e55",
+          "origins_sha256": "30daf5c519638c92cf044383a30e4b75384be59700e53314cf7164b2fdef61cd"
+        },
+        "binary_sha256": "c71861b96c509632943a78bc439596f6d1d35a3116eb760420b386f19a01a960",
+        "bootstrap_sha256": [
+          "73ad32185a94e51709e9633c3c7d8c0e4ca5ad53667d0e1da045809cbb79e3fe",
+          "b6428c9187dbb38a4be256f05c12b6dde3b38f651064db90979784f71a3b7cd2",
+          "52487874de721c352cb5a56020ba5551066c5cd9aaf9eb54c7b5eb132b7b1dea",
+          "03c88656d2d75d7962cd082787eda457b03da49dbe182a7b0c89138b83c7aa4e",
+          "3acfa558e06dbe7ac267cfbbfb97a2e249df58f02326a4bac208f43972b553e8",
+          "916e891044b1c361ffcc655f79a22e8f5a41af35bada50fd4c0ec2cc69aaa4ab",
+          "cbbc20c981c270e114b45a6aa75abda6dc9968b2423c8d0c9103b3fd34bf4c67",
+          "bc57c3bcc0ee953e406a92ed48a72ffa99287d8873a3f7788a7654f16837987b",
+          "1af18adcfc8d21a36628b4a464987e1649ff8878c5c587d115a79cfba6a4d8ee",
+          "e357cfaa9cd4d5af1f4b4c370f5bb27f248dcfc34020a03b6bf9af81f6c38cff",
+          "a0a12265fddd320a792e9ad94b44f5bdcfa372fa8caf2be67f7a93821ecce072",
+          "7f415f7e88c1420b58fd9173f5b76ff1848c4244528c2ff8a27831d0e6b4b55d",
+          "2197d2d098de0c5e6dee4e8aa4eecd658c7627b96bab4d414f33cbdafa342a04",
+          "aeeedd41138a625d97b02e8cc81bcfe6b9ce72206245e54b909d43f4f83afae3",
+          "3ce0c4e4d1ddde0a90add47a26112bb387b3d42c4be8b52be3993501d7cd6833",
+          "3b6da5279781e335cbdc23af9b18ac6ed26ed2a535cc5a8633fc68c50181253c"
+        ],
+        "invocations": [
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fib",
+            "t_states": 675,
+            "results": [
+              {
+                "I": 2
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fact",
+            "t_states": 1262,
+            "results": [
+              {
+                "I": 6
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "sum_to",
+            "t_states": 238,
+            "results": [
+              {
+                "I": 6
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "pow2",
+            "t_states": 196,
+            "results": [
+              {
+                "I": 8
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fib",
+            "t_states": 1182,
+            "results": [
+              {
+                "I": 8
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fact",
+            "t_states": 3071,
+            "results": [
+              {
+                "I": 208
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "sum_to",
+            "t_states": 430,
+            "results": [
+              {
+                "I": 21
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "pow2",
+            "t_states": 346,
+            "results": [
+              {
+                "I": 64
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fib",
+            "t_states": 1689,
+            "results": [
+              {
+                "I": 34
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fact",
+            "t_states": 4895,
+            "results": [
+              {
+                "I": 128
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "sum_to",
+            "t_states": 622,
+            "results": [
+              {
+                "I": 45
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "pow2",
+            "t_states": 496,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fib",
+            "t_states": 2196,
+            "results": [
+              {
+                "I": 144
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fact",
+            "t_states": 6734,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "sum_to",
+            "t_states": 814,
+            "results": [
+              {
+                "I": 78
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "pow2",
+            "t_states": 646,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          }
+        ],
+        "globals": {},
+        "resources": {},
+        "resource_addresses": {},
+        "global_addresses": {},
+        "bootstrap_t_states": 544,
+        "total_t_states": 25492,
+        "executed_steps": 3920
+      }
+    },
+    {
+      "options": {
+        "ProfileSelection": null,
+        "CollectHIRSites": false,
+        "ContractOpt": false,
+        "AnnotateTStates": false,
+        "UseGrace": true,
+        "GraceStats": null,
+        "UseHIRGrace": false,
+        "OptSize": false,
+        "Backend": "",
+        "AssertMode": "none",
+        "SkipZ80Emission": false
+      },
+      "compilation_id": "e42380956ecb77eed7039e150f9200f8af024d270dfda24002d5cac8d3aceb70",
+      "assembly": "; ── compilation summary ──────────────────────────────────────\n; functions: 8  PBQP=8\n; optimization passes fired: 2\n; label audit: OK\n; ─────────────────────────────────────────────────────────────\n; generated by MIR2 Z80 codegen\n\n; fun fib_tail(n: u8 = A, a: u8 = B, b: u8 = C) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP\nfib_tail:\n.fib_tail_fib_tail_tail_loop:\n    AND A\n    JRS NZ, .fib_tail_if_join2\n.fib_tail_if_then1:\n    LD A, B\n    RET\n.fib_tail_if_join2:\n    DEC A\n    LD E, A    ; save r11 before A overwrite\n    LD A, B\n    ADD A, C\n    LD B, A\n    LD A, E\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, C\n    PUSH AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, B\n    PUSH AF\n    EX AF, AF'\n    EX AF, AF'\n    POP AF\n    LD C, A\n    EX AF, AF'\n    EX AF, AF'\n    POP AF\n    LD B, A\n    EX AF, AF'\n    JRS .fib_tail_fib_tail_tail_loop\n\n; fun fib(n: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP passes=[const-fold=1,dse=1]\nfib:\n    LD C, 0\n    LD B, 1\n    ; genCall: fib_tail dst=18\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, C\n    PUSH AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, B\n    PUSH AF\n    EX AF, AF'\n    EX AF, AF'\n    POP AF\n    LD C, A\n    EX AF, AF'\n    EX AF, AF'\n    POP AF\n    LD B, A\n    EX AF, AF'\n    JP fib_tail\n\n; fun fact_tail(n: u8 = B, acc: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP\nfact_tail:\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, B\n    PUSH AF\n    EX AF, AF'\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    LD B, A\n    EX AF, AF'\n    POP AF\n.fact_tail_fact_tail_tail_loop:\n    CP 1\n    JRS C, .fact_tail_if_then1\n    JRS Z, .fact_tail_if_then1\n    JRS .fact_tail_if_join2\n.fact_tail_if_then1:\n    LD A, B\n    RET\n.fact_tail_if_join2:\n    LD C, 1\n    LD E, A    ; save r21 before ALU overwrite\n    SUB 1\n    LD C, A\n    LD A, E\n    PUSH BC\n    PUSH DE\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, B\n    PUSH AF\n    EX AF, AF'\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    LD B, A\n    EX AF, AF'\n    POP AF\n    CALL __mul8\n    POP DE\n    POP BC\n    LD B, A\n    LD A, C\n    JRS .fact_tail_fact_tail_tail_loop\n\n; fun fact(n: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP\nfact:\n    LD C, 1\n    ; genCall: fact_tail dst=32\n    LD B, A\n    LD A, C\n    JP fact_tail\n\n; fun sum_tail(n: u8 = B, acc: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP\nsum_tail:\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, B\n    PUSH AF\n    EX AF, AF'\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    LD B, A\n    EX AF, AF'\n    POP AF\n.sum_tail_sum_tail_tail_loop:\n    AND A\n    JRS NZ, .sum_tail_if_join2\n.sum_tail_if_then1:\n    LD A, B\n    RET\n.sum_tail_if_join2:\n    LD C, 1\n    LD E, A    ; save r35 before ALU overwrite\n    SUB 1\n    LD C, A\n    LD A, E\n    ADD A, B\n    LD B, A\n    LD A, C\n    JRS .sum_tail_sum_tail_tail_loop\n\n; fun sum_to(n: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP\nsum_to:\n    LD C, 0\n    ; genCall: sum_tail dst=46\n    LD B, A\n    LD A, C\n    JP sum_tail\n\n; fun pow2_tail(n: u8 = B, acc: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP\npow2_tail:\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, B\n    PUSH AF\n    EX AF, AF'\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    LD B, A\n    EX AF, AF'\n    POP AF\n.pow2_tail_pow2_tail_tail_loop:\n    AND A\n    JRS NZ, .pow2_tail_if_join2\n.pow2_tail_if_then1:\n    LD A, B\n    RET\n.pow2_tail_if_join2:\n    DEC A\n    LD E, A    ; save r55 before A overwrite\n    LD A, B\n    ADD A, B\n    LD B, A\n    LD A, E\n    JRS .pow2_tail_pow2_tail_tail_loop\n\n; fun pow2(n: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP\npow2:\n    LD C, 1\n    ; genCall: pow2_tail dst=60\n    LD B, A\n    LD A, C\n    JP pow2_tail\n\n\n; runtime: 8-bit multiply A*B → A (~80T)\n__mul8:\n    LD C, 0\n    LD D, 8\n.__mul8_loop:\n    SRL B\n    JR NC, .__mul8_noadd\n    LD E, A\n    LD A, C\n    ADD A, E\n    LD C, A\n    LD A, E\n.__mul8_noadd:\n    ADD A, A\n    DEC D\n    JR NZ, .__mul8_loop\n    LD A, C\n    RET\n",
+      "binary": "pyACeMk9X3iBR3v1CPEICHn1CAh49QgI8U8ICPFHCBjfDgAGAfUI8QgIefUICHj1CAjxTwgI8UcIwwCA9QjxCAh49Qj1CPFHCPH+ATgEKAIYAnjJDgFf1gFPe8XV9QjxCAh49Qj1CPFHCPHNw4DRwUd5GNYOAUd5wzyA9QjxCAh49Qj1CPFHCPGnIAJ4yQ4BX9YBT3uAR3kY7w4AR3nDe4D1CPEICHj1CPUI8UcI8acgAnjJPV94gEd7GPMOAUd5w6GADgAWCMs4MAVfeYNPe4cVIPN5yQ==",
+      "final_mir": "; MIR2 module: ../../../examples/nanz/18_tail_recursion.nanz\nfun @fib_tail(%r1: u8 [acc], %r2: u8 [general], %r3: u8 [counter]) -\u003e u8 [acc]\n  block @entry:\n    jmp @fib_tail_tail_loop(%r1, %r2, %r3)\n  block @fib_tail_tail_loop(%r4: u8 [acc], %r5: u8 [general], %r6: u8 [counter]):\n    %r7 = const 0 : u8 [general]\n    %r8 = cmp.eq %r4, %r7 : bool [flag]\n    br_if %r8, @if_then1(), @if_join2()\n  block @if_then1:\n    ret %r5\n  block @if_join2:\n    %r9 = const 1 : u8 [general]\n    %r10 = sub %r4, %r9 : u8 [acc]\n    %r11 = move %r10 : u8 [acc]\n    %r12 = add %r5, %r6 : u8 [acc]\n    %r13 = move %r12 : u8 [counter]\n    jmp @fib_tail_tail_loop(%r11, %r6, %r13)\n\nfun @fib(%r14: u8 [acc]) -\u003e u8 [acc]\n  block @entry:\n    %r15 = move %r14 : u8 [acc]\n    %r16 = const 0 : u8 [general]\n    %r17 = const 1 : u8 [counter]\n    %r18 = call @fib_tail(%r15, %r16, %r17) : u8 [acc]\n    ret %r18\n\nfun @fact_tail(%r19: u8 [acc], %r20: u8 [general]) -\u003e u8 [acc]\n  block @entry:\n    jmp @fact_tail_tail_loop(%r19, %r20)\n  block @fact_tail_tail_loop(%r21: u8 [acc], %r22: u8 [general]):\n    %r23 = const 1 : u8 [general]\n    %r24 = cmp.ule %r21, %r23 : bool [flag]\n    br_if %r24, @if_then1(), @if_join2()\n  block @if_then1:\n    ret %r22\n  block @if_join2:\n    %r25 = const 1 : u8 [general]\n    %r26 = sub %r21, %r25 : u8 [acc]\n    %r27 = move %r26 : u8 [acc]\n    %r28 = mul %r22, %r21 : u8 [general]\n    jmp @fact_tail_tail_loop(%r27, %r28)\n\nfun @fact(%r29: u8 [acc]) -\u003e u8 [acc]\n  block @entry:\n    %r30 = move %r29 : u8 [acc]\n    %r31 = const 1 : u8 [general]\n    %r32 = call @fact_tail(%r30, %r31) : u8 [acc]\n    ret %r32\n\nfun @sum_tail(%r33: u8 [acc], %r34: u8 [general]) -\u003e u8 [acc]\n  block @entry:\n    jmp @sum_tail_tail_loop(%r33, %r34)\n  block @sum_tail_tail_loop(%r35: u8 [acc], %r36: u8 [general]):\n    %r37 = const 0 : u8 [general]\n    %r38 = cmp.eq %r35, %r37 : bool [flag]\n    br_if %r38, @if_then1(), @if_join2()\n  block @if_then1:\n    ret %r36\n  block @if_join2:\n    %r39 = const 1 : u8 [general]\n    %r40 = sub %r35, %r39 : u8 [acc]\n    %r41 = move %r40 : u8 [acc]\n    %r42 = add %r36, %r35 : u8 [acc]\n    jmp @sum_tail_tail_loop(%r41, %r42)\n\nfun @sum_to(%r43: u8 [acc]) -\u003e u8 [acc]\n  block @entry:\n    %r44 = move %r43 : u8 [acc]\n    %r45 = const 0 : u8 [general]\n    %r46 = call @sum_tail(%r44, %r45) : u8 [acc]\n    ret %r46\n\nfun @pow2_tail(%r47: u8 [acc], %r48: u8 [general]) -\u003e u8 [acc]\n  block @entry:\n    jmp @pow2_tail_tail_loop(%r47, %r48)\n  block @pow2_tail_tail_loop(%r49: u8 [acc], %r50: u8 [general]):\n    %r51 = const 0 : u8 [general]\n    %r52 = cmp.eq %r49, %r51 : bool [flag]\n    br_if %r52, @if_then1(), @if_join2()\n  block @if_then1:\n    ret %r50\n  block @if_join2:\n    %r53 = const 1 : u8 [general]\n    %r54 = sub %r49, %r53 : u8 [acc]\n    %r55 = move %r54 : u8 [acc]\n    %r56 = add %r50, %r50 : u8 [acc]\n    jmp @pow2_tail_tail_loop(%r55, %r56)\n\nfun @pow2(%r57: u8 [acc]) -\u003e u8 [acc]\n  block @entry:\n    %r58 = move %r57 : u8 [acc]\n    %r59 = const 1 : u8 [general]\n    %r60 = call @pow2_tail(%r58, %r59) : u8 [acc]\n    ret %r60\n\n",
+      "run": {
+        "compatibility": {
+          "schema": "minz.loop-profile-compatibility/v1",
+          "context": {
+            "compiler_id": "executable-sha256:3f2e6050a2f78d3152da074105e456f595bca88831f53d39fcacb266ed989d3e",
+            "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+            "target_id": "module-target:0/model:cpm-z80-v1",
+            "workload_sha256": "37c7121eeacacf72a6f6a496d963376d9bcfadae5a85a22ffbe020604ec83b86",
+            "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+            "dependencies": {
+              "../../../examples/nanz/18_tail_recursion.nanz": "e88d580c3ce9499cdea28a05794e6c6146f88a0e67967d148933b17c969e9540"
+            }
+          },
+          "hir_sha256": "80abb18494601ce6189fae270e30ba227bdfce296022427e73c3bbc98fbe7e55",
+          "origins_sha256": "30daf5c519638c92cf044383a30e4b75384be59700e53314cf7164b2fdef61cd"
+        },
+        "binary_sha256": "8eedb3de9c5e4953730e38f894f34b54a28bfcccdd125968a888956b8f1c72fd",
+        "bootstrap_sha256": [
+          "4509decd9ea2af23b3fff4c682920e2fb5ec0f68f5659bb944b075e38499fb0c",
+          "74abba5f64f3d2be0bd6a3bb0c21bb433024daaf84e766f0e070dfc61fa3ed2d",
+          "4c6b532d30ec64655f5e09d89a06f03b4b90a7e480db6a32ca6c3d834617bbc3",
+          "9500471ee6280cc1634bd30d69a8758710126f39ef3ac2d8957c972e45543e44",
+          "e3f4f3d68ef2bd8b2256b87d1010022a1092625cfc74b0a938d7d2dac85bcb73",
+          "09116a5b04cda5c0630e2923d0cec9bc8d42e964430ba530c57e0aebc7e889ca",
+          "08dbda1b921f068b2dc8e65b516c52dfb9167bb46c471028a186355dc5b87fb4",
+          "df85cc2b6154fddcf0e427e8ac5241b102e4849e8d1d95f5a57fb9ef9bacb18f",
+          "bab076b9cbd0daea27017c7ed1c76f517f18994052ae5e9affd58db078e7b8d1",
+          "4fe5923a8d2fcece89de9c2acc47ff98f8cc1cdfdd55a87515c409311ae31866",
+          "44933ab71ebb6bfcefccce6d7f0da2dd0d1d525d56bbc0602bc5986ce44fe07e",
+          "b13ecd8ad2c2d13cf6ac0a5d612042350c5397747752fce27493a0be70ff8b76",
+          "73344a5827938d2bef061a45c8cf4b6efa4fdfae321e63163b513225f79e1c88",
+          "7b24446c504193f102d220a3a9103e2e45f3ff0884d71c3f455044dfa8a21545",
+          "fb27659f2a64ab056a1b6b6353f9bc5da3b7f1e9e628daf34d56e7c79512b8aa",
+          "8ea7011f51fada53cbca64ef4404fc314d0c68f410efbc24aa2427852273925d"
+        ],
+        "invocations": [
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fib",
+            "t_states": 681,
+            "results": [
+              {
+                "I": 2
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fact",
+            "t_states": 1357,
+            "results": [
+              {
+                "I": 6
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "sum_to",
+            "t_states": 343,
+            "results": [
+              {
+                "I": 6
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "pow2",
+            "t_states": 301,
+            "results": [
+              {
+                "I": 8
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fib",
+            "t_states": 1194,
+            "results": [
+              {
+                "I": 8
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fact",
+            "t_states": 3160,
+            "results": [
+              {
+                "I": 208
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "sum_to",
+            "t_states": 541,
+            "results": [
+              {
+                "I": 21
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "pow2",
+            "t_states": 457,
+            "results": [
+              {
+                "I": 64
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fib",
+            "t_states": 1707,
+            "results": [
+              {
+                "I": 34
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fact",
+            "t_states": 4978,
+            "results": [
+              {
+                "I": 128
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "sum_to",
+            "t_states": 739,
+            "results": [
+              {
+                "I": 45
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "pow2",
+            "t_states": 613,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fib",
+            "t_states": 2220,
+            "results": [
+              {
+                "I": 144
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fact",
+            "t_states": 6811,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "sum_to",
+            "t_states": 937,
+            "results": [
+              {
+                "I": 78
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "pow2",
+            "t_states": 769,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          }
+        ],
+        "globals": {},
+        "resources": {},
+        "resource_addresses": {},
+        "global_addresses": {},
+        "bootstrap_t_states": 544,
+        "total_t_states": 26808,
+        "executed_steps": 4074
+      }
+    },
+    {
+      "options": {
+        "ProfileSelection": null,
+        "CollectHIRSites": false,
+        "ContractOpt": true,
+        "AnnotateTStates": false,
+        "UseGrace": true,
+        "GraceStats": null,
+        "UseHIRGrace": false,
+        "OptSize": false,
+        "Backend": "",
+        "AssertMode": "none",
+        "SkipZ80Emission": false
+      },
+      "compilation_id": "fb26d5d434813a58a1e8444d0e7c3441e50aa45380b86a166a24f078aa7b8efb",
+      "assembly": "; ── compilation summary ──────────────────────────────────────\n; functions: 8  PBQP=8\n; optimization passes fired: 2\n; label audit: OK\n; ─────────────────────────────────────────────────────────────\n; generated by MIR2 Z80 codegen\n\n; fun fib_tail(n: u8 = A, a: u8 = B, b: u8 = C) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP\nfib_tail:\n.fib_tail_fib_tail_tail_loop:\n    AND A\n    JRS NZ, .fib_tail_if_join2\n.fib_tail_if_then1:\n    LD A, B\n    RET\n.fib_tail_if_join2:\n    DEC A\n    LD E, A    ; save r11 before A overwrite\n    LD A, B\n    ADD A, C\n    LD B, A\n    LD A, E\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, C\n    PUSH AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, B\n    PUSH AF\n    EX AF, AF'\n    EX AF, AF'\n    POP AF\n    LD C, A\n    EX AF, AF'\n    EX AF, AF'\n    POP AF\n    LD B, A\n    EX AF, AF'\n    JRS .fib_tail_fib_tail_tail_loop\n\n; fun fib(n: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP passes=[const-fold=1,dse=1]\nfib:\n    LD C, 0\n    LD B, 1\n    ; genCall: fib_tail dst=18\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, C\n    PUSH AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, B\n    PUSH AF\n    EX AF, AF'\n    EX AF, AF'\n    POP AF\n    LD C, A\n    EX AF, AF'\n    EX AF, AF'\n    POP AF\n    LD B, A\n    EX AF, AF'\n    JP fib_tail\n\n; fun fact_tail(n: u8 = B, acc: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP\nfact_tail:\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, B\n    PUSH AF\n    EX AF, AF'\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    LD B, A\n    EX AF, AF'\n    POP AF\n.fact_tail_fact_tail_tail_loop:\n    CP 1\n    JRS C, .fact_tail_if_then1\n    JRS Z, .fact_tail_if_then1\n    JRS .fact_tail_if_join2\n.fact_tail_if_then1:\n    LD A, B\n    RET\n.fact_tail_if_join2:\n    LD C, 1\n    LD E, A    ; save r21 before ALU overwrite\n    SUB 1\n    LD C, A\n    LD A, E\n    PUSH BC\n    PUSH DE\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, B\n    PUSH AF\n    EX AF, AF'\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    LD B, A\n    EX AF, AF'\n    POP AF\n    CALL __mul8\n    POP DE\n    POP BC\n    LD B, A\n    LD A, C\n    JRS .fact_tail_fact_tail_tail_loop\n\n; fun fact(n: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP\nfact:\n    LD C, 1\n    ; genCall: fact_tail dst=32\n    LD B, A\n    LD A, C\n    JP fact_tail\n\n; fun sum_tail(n: u8 = B, acc: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP\nsum_tail:\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, B\n    PUSH AF\n    EX AF, AF'\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    LD B, A\n    EX AF, AF'\n    POP AF\n.sum_tail_sum_tail_tail_loop:\n    AND A\n    JRS NZ, .sum_tail_if_join2\n.sum_tail_if_then1:\n    LD A, B\n    RET\n.sum_tail_if_join2:\n    LD C, 1\n    LD E, A    ; save r35 before ALU overwrite\n    SUB 1\n    LD C, A\n    LD A, E\n    ADD A, B\n    LD B, A\n    LD A, C\n    JRS .sum_tail_sum_tail_tail_loop\n\n; fun sum_to(n: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP\nsum_to:\n    LD C, 0\n    ; genCall: sum_tail dst=46\n    LD B, A\n    LD A, C\n    JP sum_tail\n\n; fun pow2_tail(n: u8 = B, acc: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP\npow2_tail:\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    EX AF, AF'\n    EX AF, AF'\n    LD A, B\n    PUSH AF\n    EX AF, AF'\n    PUSH AF\n    EX AF, AF'\n    POP AF\n    LD B, A\n    EX AF, AF'\n    POP AF\n.pow2_tail_pow2_tail_tail_loop:\n    AND A\n    JRS NZ, .pow2_tail_if_join2\n.pow2_tail_if_then1:\n    LD A, B\n    RET\n.pow2_tail_if_join2:\n    DEC A\n    LD E, A    ; save r55 before A overwrite\n    LD A, B\n    ADD A, B\n    LD B, A\n    LD A, E\n    JRS .pow2_tail_pow2_tail_tail_loop\n\n; fun pow2(n: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP\npow2:\n    LD C, 1\n    ; genCall: pow2_tail dst=60\n    LD B, A\n    LD A, C\n    JP pow2_tail\n\n\n; runtime: 8-bit multiply A*B → A (~80T)\n__mul8:\n    LD C, 0\n    LD D, 8\n.__mul8_loop:\n    SRL B\n    JR NC, .__mul8_noadd\n    LD E, A\n    LD A, C\n    ADD A, E\n    LD C, A\n    LD A, E\n.__mul8_noadd:\n    ADD A, A\n    DEC D\n    JR NZ, .__mul8_loop\n    LD A, C\n    RET\n",
+      "binary": "pyACeMk9X3iBR3v1CPEICHn1CAh49QgI8U8ICPFHCBjfDgAGAfUI8QgIefUICHj1CAjxTwgI8UcIwwCA9QjxCAh49Qj1CPFHCPH+ATgEKAIYAnjJDgFf1gFPe8XV9QjxCAh49Qj1CPFHCPHNw4DRwUd5GNYOAUd5wzyA9QjxCAh49Qj1CPFHCPGnIAJ4yQ4BX9YBT3uAR3kY7w4AR3nDe4D1CPEICHj1CPUI8UcI8acgAnjJPV94gEd7GPMOAUd5w6GADgAWCMs4MAVfeYNPe4cVIPN5yQ==",
+      "final_mir": "; MIR2 module: ../../../examples/nanz/18_tail_recursion.nanz\nfun @fib_tail(%r1: u8 [acc], %r2: u8 [general], %r3: u8 [counter]) -\u003e u8 [acc]\n  block @entry:\n    jmp @fib_tail_tail_loop(%r1, %r2, %r3)\n  block @fib_tail_tail_loop(%r4: u8 [acc], %r5: u8 [general], %r6: u8 [counter]):\n    %r7 = const 0 : u8 [general]\n    %r8 = cmp.eq %r4, %r7 : bool [flag]\n    br_if %r8, @if_then1(), @if_join2()\n  block @if_then1:\n    ret %r5\n  block @if_join2:\n    %r9 = const 1 : u8 [general]\n    %r10 = sub %r4, %r9 : u8 [acc]\n    %r11 = move %r10 : u8 [acc]\n    %r12 = add %r5, %r6 : u8 [acc]\n    %r13 = move %r12 : u8 [counter]\n    jmp @fib_tail_tail_loop(%r11, %r6, %r13)\n\nfun @fib(%r14: u8 [acc]) -\u003e u8 [acc]\n  block @entry:\n    %r15 = move %r14 : u8 [acc]\n    %r16 = const 0 : u8 [general]\n    %r17 = const 1 : u8 [counter]\n    %r18 = call @fib_tail(%r15, %r16, %r17) : u8 [acc]\n    ret %r18\n\nfun @fact_tail(%r19: u8 [acc], %r20: u8 [general]) -\u003e u8 [acc]\n  block @entry:\n    jmp @fact_tail_tail_loop(%r19, %r20)\n  block @fact_tail_tail_loop(%r21: u8 [acc], %r22: u8 [general]):\n    %r23 = const 1 : u8 [general]\n    %r24 = cmp.ule %r21, %r23 : bool [flag]\n    br_if %r24, @if_then1(), @if_join2()\n  block @if_then1:\n    ret %r22\n  block @if_join2:\n    %r25 = const 1 : u8 [general]\n    %r26 = sub %r21, %r25 : u8 [acc]\n    %r27 = move %r26 : u8 [acc]\n    %r28 = mul %r22, %r21 : u8 [general]\n    jmp @fact_tail_tail_loop(%r27, %r28)\n\nfun @fact(%r29: u8 [acc]) -\u003e u8 [acc]\n  block @entry:\n    %r30 = move %r29 : u8 [acc]\n    %r31 = const 1 : u8 [general]\n    %r32 = call @fact_tail(%r30, %r31) : u8 [acc]\n    ret %r32\n\nfun @sum_tail(%r33: u8 [acc], %r34: u8 [general]) -\u003e u8 [acc]\n  block @entry:\n    jmp @sum_tail_tail_loop(%r33, %r34)\n  block @sum_tail_tail_loop(%r35: u8 [acc], %r36: u8 [general]):\n    %r37 = const 0 : u8 [general]\n    %r38 = cmp.eq %r35, %r37 : bool [flag]\n    br_if %r38, @if_then1(), @if_join2()\n  block @if_then1:\n    ret %r36\n  block @if_join2:\n    %r39 = const 1 : u8 [general]\n    %r40 = sub %r35, %r39 : u8 [acc]\n    %r41 = move %r40 : u8 [acc]\n    %r42 = add %r36, %r35 : u8 [acc]\n    jmp @sum_tail_tail_loop(%r41, %r42)\n\nfun @sum_to(%r43: u8 [acc]) -\u003e u8 [acc]\n  block @entry:\n    %r44 = move %r43 : u8 [acc]\n    %r45 = const 0 : u8 [general]\n    %r46 = call @sum_tail(%r44, %r45) : u8 [acc]\n    ret %r46\n\nfun @pow2_tail(%r47: u8 [acc], %r48: u8 [general]) -\u003e u8 [acc]\n  block @entry:\n    jmp @pow2_tail_tail_loop(%r47, %r48)\n  block @pow2_tail_tail_loop(%r49: u8 [acc], %r50: u8 [general]):\n    %r51 = const 0 : u8 [general]\n    %r52 = cmp.eq %r49, %r51 : bool [flag]\n    br_if %r52, @if_then1(), @if_join2()\n  block @if_then1:\n    ret %r50\n  block @if_join2:\n    %r53 = const 1 : u8 [general]\n    %r54 = sub %r49, %r53 : u8 [acc]\n    %r55 = move %r54 : u8 [acc]\n    %r56 = add %r50, %r50 : u8 [acc]\n    jmp @pow2_tail_tail_loop(%r55, %r56)\n\nfun @pow2(%r57: u8 [acc]) -\u003e u8 [acc]\n  block @entry:\n    %r58 = move %r57 : u8 [acc]\n    %r59 = const 1 : u8 [general]\n    %r60 = call @pow2_tail(%r58, %r59) : u8 [acc]\n    ret %r60\n\n",
+      "run": {
+        "compatibility": {
+          "schema": "minz.loop-profile-compatibility/v1",
+          "context": {
+            "compiler_id": "executable-sha256:3f2e6050a2f78d3152da074105e456f595bca88831f53d39fcacb266ed989d3e",
+            "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+            "target_id": "module-target:0/model:cpm-z80-v1",
+            "workload_sha256": "37c7121eeacacf72a6f6a496d963376d9bcfadae5a85a22ffbe020604ec83b86",
+            "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+            "dependencies": {
+              "../../../examples/nanz/18_tail_recursion.nanz": "e88d580c3ce9499cdea28a05794e6c6146f88a0e67967d148933b17c969e9540"
+            }
+          },
+          "hir_sha256": "80abb18494601ce6189fae270e30ba227bdfce296022427e73c3bbc98fbe7e55",
+          "origins_sha256": "30daf5c519638c92cf044383a30e4b75384be59700e53314cf7164b2fdef61cd"
+        },
+        "binary_sha256": "8eedb3de9c5e4953730e38f894f34b54a28bfcccdd125968a888956b8f1c72fd",
+        "bootstrap_sha256": [
+          "4509decd9ea2af23b3fff4c682920e2fb5ec0f68f5659bb944b075e38499fb0c",
+          "74abba5f64f3d2be0bd6a3bb0c21bb433024daaf84e766f0e070dfc61fa3ed2d",
+          "4c6b532d30ec64655f5e09d89a06f03b4b90a7e480db6a32ca6c3d834617bbc3",
+          "9500471ee6280cc1634bd30d69a8758710126f39ef3ac2d8957c972e45543e44",
+          "e3f4f3d68ef2bd8b2256b87d1010022a1092625cfc74b0a938d7d2dac85bcb73",
+          "09116a5b04cda5c0630e2923d0cec9bc8d42e964430ba530c57e0aebc7e889ca",
+          "08dbda1b921f068b2dc8e65b516c52dfb9167bb46c471028a186355dc5b87fb4",
+          "df85cc2b6154fddcf0e427e8ac5241b102e4849e8d1d95f5a57fb9ef9bacb18f",
+          "bab076b9cbd0daea27017c7ed1c76f517f18994052ae5e9affd58db078e7b8d1",
+          "4fe5923a8d2fcece89de9c2acc47ff98f8cc1cdfdd55a87515c409311ae31866",
+          "44933ab71ebb6bfcefccce6d7f0da2dd0d1d525d56bbc0602bc5986ce44fe07e",
+          "b13ecd8ad2c2d13cf6ac0a5d612042350c5397747752fce27493a0be70ff8b76",
+          "73344a5827938d2bef061a45c8cf4b6efa4fdfae321e63163b513225f79e1c88",
+          "7b24446c504193f102d220a3a9103e2e45f3ff0884d71c3f455044dfa8a21545",
+          "fb27659f2a64ab056a1b6b6353f9bc5da3b7f1e9e628daf34d56e7c79512b8aa",
+          "8ea7011f51fada53cbca64ef4404fc314d0c68f410efbc24aa2427852273925d"
+        ],
+        "invocations": [
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fib",
+            "t_states": 681,
+            "results": [
+              {
+                "I": 2
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fact",
+            "t_states": 1357,
+            "results": [
+              {
+                "I": 6
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "sum_to",
+            "t_states": 343,
+            "results": [
+              {
+                "I": 6
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "pow2",
+            "t_states": 301,
+            "results": [
+              {
+                "I": 8
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fib",
+            "t_states": 1194,
+            "results": [
+              {
+                "I": 8
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fact",
+            "t_states": 3160,
+            "results": [
+              {
+                "I": 208
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "sum_to",
+            "t_states": 541,
+            "results": [
+              {
+                "I": 21
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "pow2",
+            "t_states": 457,
+            "results": [
+              {
+                "I": 64
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fib",
+            "t_states": 1707,
+            "results": [
+              {
+                "I": 34
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fact",
+            "t_states": 4978,
+            "results": [
+              {
+                "I": 128
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "sum_to",
+            "t_states": 739,
+            "results": [
+              {
+                "I": 45
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "pow2",
+            "t_states": 613,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fib",
+            "t_states": 2220,
+            "results": [
+              {
+                "I": 144
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "fact",
+            "t_states": 6811,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "sum_to",
+            "t_states": 937,
+            "results": [
+              {
+                "I": 78
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {},
+              "resources": {}
+            },
+            "function": "pow2",
+            "t_states": 769,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {},
+              "resources": {}
+            }
+          }
+        ],
+        "globals": {},
+        "resources": {},
+        "resource_addresses": {},
+        "global_addresses": {},
+        "bootstrap_t_states": 544,
+        "total_t_states": 26808,
+        "executed_steps": 4074
+      }
+    }
+  ],
+  "selected": 0,
+  "sha256": "d73b0600116448cc15fde4f62657d03fc7e543c93a4019bcac74741eb6dfd42f"
+}

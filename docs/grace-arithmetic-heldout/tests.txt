@@ -1,0 +1,27 @@
+=== RUN   TestArithmeticProspectiveHeldout
+    arithmetic_heldout_test.go:142: speed mask0: 25492 T / 174 B
+    arithmetic_heldout_test.go:142: speed mask1: 25492 T / 174 B
+    arithmetic_heldout_test.go:142: speed mask2: 26808 T / 214 B
+    arithmetic_heldout_test.go:142: speed mask3: 26808 T / 214 B
+    arithmetic_heldout_test.go:163: speed selected0 heldout 470109 T / 174 B
+    arithmetic_heldout_test.go:142: size mask0: 25492 T / 174 B
+    arithmetic_heldout_test.go:142: size mask1: 25492 T / 174 B
+    arithmetic_heldout_test.go:142: size mask2: 26808 T / 214 B
+    arithmetic_heldout_test.go:142: size mask3: 26808 T / 214 B
+    arithmetic_heldout_test.go:163: size selected0 heldout 470109 T / 174 B
+--- PASS: TestArithmeticProspectiveHeldout (1.29s)
+=== RUN   TestMeasuredCompilerModesAdmission
+=== RUN   TestMeasuredCompilerModesAdmission/shared
+=== RUN   TestMeasuredCompilerModesAdmission/mutated-source
+=== RUN   TestMeasuredCompilerModesAdmission/changed-ABI
+=== RUN   TestMeasuredCompilerModesAdmission/sticky-policy
+=== RUN   TestMeasuredCompilerModesAdmission/late-failure
+--- PASS: TestMeasuredCompilerModesAdmission (0.48s)
+    --- PASS: TestMeasuredCompilerModesAdmission/shared (0.03s)
+    --- PASS: TestMeasuredCompilerModesAdmission/mutated-source (0.08s)
+    --- PASS: TestMeasuredCompilerModesAdmission/changed-ABI (0.03s)
+    --- PASS: TestMeasuredCompilerModesAdmission/sticky-policy (0.00s)
+    --- PASS: TestMeasuredCompilerModesAdmission/late-failure (0.35s)
+=== RUN   TestMeasuredCompilerModesCompleteAndTie
+--- PASS: TestMeasuredCompilerModesCompleteAndTie (0.79s)
+PASS

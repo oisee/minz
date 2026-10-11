@@ -1,0 +1,91 @@
+; MIR2 module: ../../../examples/nanz/18_tail_recursion.nanz
+fun @fib_tail(%r1: u8 [acc], %r2: u8 [general], %r3: u8 [counter]) -> u8 [acc]
+  block @entry:
+    %r4 = const 0 : u8 [general]
+    %r5 = cmp.eq %r1, %r4 : bool [flag]
+    br_if %r5, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r2
+  block @if_join2:
+    %r6 = const 1 : u8 [general]
+    %r7 = sub %r1, %r6 : u8 [acc]
+    %r8 = move %r7 : u8 [acc]
+    %r9 = add %r2, %r3 : u8 [acc]
+    %r10 = move %r9 : u8 [counter]
+    %r11 = call @fib_tail(%r8, %r3, %r10) : u8 [acc]
+    ret %r11
+
+fun @fib(%r12: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r13 = move %r12 : u8 [acc]
+    %r14 = const 0 : u8 [general]
+    %r15 = const 1 : u8 [counter]
+    %r16 = call @fib_tail(%r13, %r14, %r15) : u8 [acc]
+    ret %r16
+
+fun @fact_tail(%r17: u8 [acc], %r18: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r19 = const 1 : u8 [general]
+    %r20 = cmp.ule %r17, %r19 : bool [flag]
+    br_if %r20, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r18
+  block @if_join2:
+    %r21 = const 1 : u8 [general]
+    %r22 = sub %r17, %r21 : u8 [acc]
+    %r23 = move %r22 : u8 [acc]
+    %r24 = mul %r18, %r17 : u8 [general]
+    %r25 = call @fact_tail(%r23, %r24) : u8 [acc]
+    ret %r25
+
+fun @fact(%r26: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r27 = move %r26 : u8 [acc]
+    %r28 = const 1 : u8 [general]
+    %r29 = call @fact_tail(%r27, %r28) : u8 [acc]
+    ret %r29
+
+fun @sum_tail(%r30: u8 [acc], %r31: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r32 = const 0 : u8 [general]
+    %r33 = cmp.eq %r30, %r32 : bool [flag]
+    br_if %r33, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r31
+  block @if_join2:
+    %r34 = const 1 : u8 [general]
+    %r35 = sub %r30, %r34 : u8 [acc]
+    %r36 = move %r35 : u8 [acc]
+    %r37 = add %r31, %r30 : u8 [acc]
+    %r38 = call @sum_tail(%r36, %r37) : u8 [acc]
+    ret %r38
+
+fun @sum_to(%r39: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r40 = move %r39 : u8 [acc]
+    %r41 = const 0 : u8 [general]
+    %r42 = call @sum_tail(%r40, %r41) : u8 [acc]
+    ret %r42
+
+fun @pow2_tail(%r43: u8 [acc], %r44: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r45 = const 0 : u8 [general]
+    %r46 = cmp.eq %r43, %r45 : bool [flag]
+    br_if %r46, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r44
+  block @if_join2:
+    %r47 = const 1 : u8 [general]
+    %r48 = sub %r43, %r47 : u8 [acc]
+    %r49 = move %r48 : u8 [acc]
+    %r50 = add %r44, %r44 : u8 [acc]
+    %r51 = call @pow2_tail(%r49, %r50) : u8 [acc]
+    ret %r51
+
+fun @pow2(%r52: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r53 = move %r52 : u8 [acc]
+    %r54 = const 1 : u8 [general]
+    %r55 = call @pow2_tail(%r53, %r54) : u8 [acc]
+    ret %r55
+
