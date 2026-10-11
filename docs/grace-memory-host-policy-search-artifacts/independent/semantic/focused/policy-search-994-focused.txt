@@ -1,0 +1,31 @@
+=== RUN   TestMemoryHostPolicySearchOwnedInputsAndSize
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostPolicySearchOwnedInputsAndSize/error
+=== RUN   TestMemoryHostPolicySearchOwnedInputsAndSize/failure
+=== RUN   TestMemoryHostPolicySearchOwnedInputsAndSize/choices
+=== RUN   TestMemoryHostPolicySearchOwnedInputsAndSize/policy
+--- PASS: TestMemoryHostPolicySearchOwnedInputsAndSize (118.45s)
+    --- PASS: TestMemoryHostPolicySearchOwnedInputsAndSize/error (0.04s)
+    --- PASS: TestMemoryHostPolicySearchOwnedInputsAndSize/failure (0.02s)
+    --- PASS: TestMemoryHostPolicySearchOwnedInputsAndSize/choices (0.04s)
+    --- PASS: TestMemoryHostPolicySearchOwnedInputsAndSize/policy (0.02s)
+PASS

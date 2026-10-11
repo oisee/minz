@@ -1,0 +1,22 @@
+[
+  {
+    "path": "minzc/pkg/pipeline/memory_host_policy_search.go",
+    "sha256": "6357dd5931480ae6baac0daeaadd0c7f19aeb18bed9b337313733f19e50bea77"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_policy_search_test.go",
+    "sha256": "a8eed3f8129b0bdbdd0de46b1b9a588c8277a7e52503a96e59a753356e08fcc9"
+  },
+  {
+    "path": "minzc/pkg/lanz/lanz_test.go",
+    "sha256": "5cbd9d42ce45ecd91924382ffc45d92d010ab38632648dee3337c9ccd4cd4c4a"
+  },
+  {
+    "path": "minzc/pkg/lizp/lizp_test.go",
+    "sha256": "c6af6b437e5becd2cd71cd471f4a50072de1bb1de8b7f4495e16a67effd66d1c"
+  },
+  {
+    "path": "minzc/pkg/pascal/pascal_test.go",
+    "sha256": "72c81d38e48998e95bd5eadac66dd07a775e97e88e44d277aafb10d3009d7ee9"
+  }
+]

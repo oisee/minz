@@ -1,0 +1,27 @@
+{
+  "owner_head": "c11dd4d1",
+  "paths": [
+    {
+      "path": "minzc/pkg/pipeline/memory_host_policy_search.go",
+      "sha256": "6357dd5931480ae6baac0daeaadd0c7f19aeb18bed9b337313733f19e50bea77"
+    },
+    {
+      "path": "minzc/pkg/pipeline/memory_host_policy_search_test.go",
+      "sha256": "a8eed3f8129b0bdbdd0de46b1b9a588c8277a7e52503a96e59a753356e08fcc9"
+    }
+  ],
+  "logs": [
+    {
+      "path": "focused/policy-search-994-focused.txt",
+      "sha256": "92e67a748cf324bce1912d6530777ab110d0c18c8395ce1b8d14809a8ab248be"
+    },
+    {
+      "path": "focused/policy-search-994-preflight.txt",
+      "sha256": "cf6a62a53d03285a13bc73d34cdac17c2e6ecf2099cd35c492b88058b4819fc3"
+    },
+    {
+      "path": "focused/policy-search-e052-focused.txt",
+      "sha256": "30a82b2ee2d3e27b52f09cc7e73ab297519ad16b5ef3aed2ec8f266691ce8bd5"
+    }
+  ]
+}

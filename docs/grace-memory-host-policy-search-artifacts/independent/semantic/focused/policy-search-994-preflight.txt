@@ -1,0 +1,15 @@
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/missing-first
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/missing-second
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/goal
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/sites
+--- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal (4.37s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/missing-first (0.00s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/missing-second (0.00s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/goal (0.00s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/sites (0.00s)
+PASS

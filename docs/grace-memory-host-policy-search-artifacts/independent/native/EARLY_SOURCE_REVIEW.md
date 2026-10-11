@@ -1,0 +1,11 @@
+# Eight-candidate draft source review
+
+Read draft4af821fe, new memory_host_policy_search.go only, permanent memory-host-policy-search. No CPU/owner/parent edits. Own sourcebytes/associationbuffers/options/workload, two exact namedpolicycaps and both strictpreflight/fullsource-bound loaders before factory sound. Expected exactknownsource independently nanz.Parse (ordinary Parse noimportresolution), soleSourceUnits/complete/sourceSHA checks pluscompat/fullFunctionSiteMap before anycallerAST admission. SHA spoofing unrelatedbody gap from5d994 addressed for typedsemanticbody/ABI/origins.
+
+Outer single seenmap and retainArenaSourceGraph on everyactualfactoryreturn before inner mutation, originals list known24lifecycle, rechecks before and aftereachcallback thenafterbothinnerpolicies/return sound. Crosspolicy candidate Raw/compat/functions/nativecontext exact; target fullsemantic observation matched. TargetSteps/T are expecteddifferent. No arbitrarycallbacktransformation or omittedpolicy; all-or-nil; privatebinder builds8indexmechanically andstrictprimaryties.
+
+Remaining exactscope precision independently found by costmodeld293: BuildProfileCompatibility deliberately clears Asserts/Sandboxes/AssertStats; fullFunctionSiteMap cannot cover moduleassertmetadata. Therefore unchangedknownSource assertion/sandboxmetadata must compare explicitly against expectedoriginal duringidentity. Add mutatedAsserts/Sandboxes negative; no workloadwrongcode claim, this closes declaredexactsource scope. Other derivedcachemetadata needs deliberate contract, not accidental broadDeepEqual overmutatedcompilerrecords.
+
+Additional binderprecision sentowner: existing arenaSameObservations normalizes Error string aftermatchingpresence as well asSteps. Admittedsuccessfulsearch shouldallraw/native Error empty andFailure nil; initialstrictassociationload confirmsit. Explicitcandidatecompleteinvocation check in newprivatebinder giveshonest onlySteps semanticcomparison and catches malformedcandidatefixture, withoutchangingoldhelper behavior. Futurepublicserializedsearch loader is not implemented/claimed; thisprivatebinder relies onfreshproducer records anddoesnotauthenticateexternaledits.
+
+Awaitowner meaningfulfocusedtests/freeze resolvingassertmetadata and failedcandidate checks beforefullnative release. No CPU authorizedbythisread report.
