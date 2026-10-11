@@ -1,0 +1,169 @@
+{
+  "files": [
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/run.txt",
+      "bytes": 7162,
+      "sha256": "0e08a9e5bec8e62d3c76a4fe75a2ced38748377c14ab04ef563c02ecd0a09759"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/source.nanz",
+      "bytes": 29913,
+      "sha256": "6c11a845959df00dc01471e273f0196e7939121eaa9cb6e1f6206cc492ffbbb5"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/README.md",
+      "bytes": 592,
+      "sha256": "d891eff8e749825408405de426c981db7c937eff820af27144fd19ad3f013075"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/grace-size/slot255.json",
+      "bytes": 1481,
+      "sha256": "9cf40684e18221c5d2c2bd567b17faae39d20453264a3483ffd97f4fbab48ea9"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/grace-size/final.mir2",
+      "bytes": 81376,
+      "sha256": "5137acb8d3147f2de31b64b646e2fce9e705bbc011f522184ca5815b5bde4a89"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/grace-size/target.a80",
+      "bytes": 129838,
+      "sha256": "772c64879e6d73f3abc69e9f0b5e8330b62548ac82cfa3d60ad0affe2e749ac5"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/grace-size/slot1.json",
+      "bytes": 1481,
+      "sha256": "c97b3eaa8ddd65ed74752b53da57f473b01e082ebb9267df277af82d14b55973"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/grace-size/slot0.json",
+      "bytes": 1481,
+      "sha256": "bd2928a13b763257c4229d4e514d1894776a2a433792c80406dd7285d561d851"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/grace-size/slot15.json",
+      "bytes": 1481,
+      "sha256": "9cf40684e18221c5d2c2bd567b17faae39d20453264a3483ffd97f4fbab48ea9"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/grace-size/slot5.json",
+      "bytes": 1481,
+      "sha256": "adb2c06444affc2039bd4e530cf072f9c809b0653cec326b296886f10dd2ef94"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/grace-size/target.bin",
+      "bytes": 9871,
+      "sha256": "483c95c432ec6d62eab1b7687df73a91cdce555c1d6a492ea666a93ae2199596"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/grace-size/slot16.json",
+      "bytes": 1481,
+      "sha256": "bd2928a13b763257c4229d4e514d1894776a2a433792c80406dd7285d561d851"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/grace-size/allocation.json",
+      "bytes": 104977,
+      "sha256": "50107a29b64981b37410648d5e2c2d0201df4dc89bea1046df941c37522aa0e4"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/grace-speed/slot255.json",
+      "bytes": 1481,
+      "sha256": "982ea6e9fd67e3a76b3ef2b20d528f3fccded932d15467052a2d98811346f03d"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/grace-speed/final.mir2",
+      "bytes": 81392,
+      "sha256": "4aa5839a495761a364daf7d8823c339f86ac6ed2f0da28aecc685de374e33a07"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/grace-speed/target.a80",
+      "bytes": 129904,
+      "sha256": "52e71d3d036707ee58d63e6d2647fd0879ef19663c2efa0b071c2d91d0b70f44"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/grace-speed/slot1.json",
+      "bytes": 1481,
+      "sha256": "79a1fe7c00e2bd98f045cbe257949d21d1d66134a82568533c3c5b60313fe605"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/grace-speed/slot0.json",
+      "bytes": 1481,
+      "sha256": "bac90152b0b808e4b5332e96ee963386f3eae0d0f55dc35fad18aad3b8545d61"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/grace-speed/slot15.json",
+      "bytes": 1481,
+      "sha256": "982ea6e9fd67e3a76b3ef2b20d528f3fccded932d15467052a2d98811346f03d"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/grace-speed/slot5.json",
+      "bytes": 1481,
+      "sha256": "a304e2e7babc1b25d5195534cf65d0147e4d7c8e83d89fda7146b03b3c028ac9"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/grace-speed/target.bin",
+      "bytes": 9887,
+      "sha256": "5cd4ee57698fdd01e4e5cdf9ad6df38fce6845d5826db09be8dd11b5ffa4aa1c"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/grace-speed/slot16.json",
+      "bytes": 1481,
+      "sha256": "bac90152b0b808e4b5332e96ee963386f3eae0d0f55dc35fad18aad3b8545d61"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/grace-speed/allocation.json",
+      "bytes": 104987,
+      "sha256": "9f68863741a5fe3497817674b0795fd0e88223607b639eddcfda55dfa71b3d5f"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/default/slot255.json",
+      "bytes": 1481,
+      "sha256": "f27ff0ac03a4910bf2b1e03ecf8501d42bc71a3aa7d8cc6904fe3d3e7c860274"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/default/final.mir2",
+      "bytes": 82661,
+      "sha256": "6252d68506667b8d3f23a3ddb03ce0ecbddf74dff66d41d26cb5ebcdc160f136"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/default/target.a80",
+      "bytes": 129329,
+      "sha256": "4bb21d4218f225d169b8dac3fcd7ec508c0e2dd940034a227069089cd63203a0"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/default/slot1.json",
+      "bytes": 1481,
+      "sha256": "19f3931b9adab03e8482fc100938f3c4b2027d6e72fc2b6778beb5fd90af3102"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/default/slot0.json",
+      "bytes": 1481,
+      "sha256": "b0cf80a6202f4f30dc6fc9fd477eedb79e2a02278606b5258758b420d23a31cb"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/default/slot15.json",
+      "bytes": 1481,
+      "sha256": "f27ff0ac03a4910bf2b1e03ecf8501d42bc71a3aa7d8cc6904fe3d3e7c860274"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/default/slot5.json",
+      "bytes": 1481,
+      "sha256": "ce328cf8f85b869c443706d47b6014903f2328cdc536384d59d50789b9f3d587"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/default/target.bin",
+      "bytes": 9694,
+      "sha256": "757bb0a0315267e38a660c8d496c0ec5145a274f9ebb7418dc20d7e2e98ba6bc"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/default/slot16.json",
+      "bytes": 1481,
+      "sha256": "b0cf80a6202f4f30dc6fc9fd477eedb79e2a02278606b5258758b420d23a31cb"
+    },
+    {
+      "path": "reports/fat-packed-prospective/directory-corrected/default/allocation.json",
+      "bytes": 104199,
+      "sha256": "c0fb9e4d2ffc23dc055da0136b85a3d0d62638673c31c3562148d414246ed6f1"
+    }
+  ]
+}
