@@ -20,8 +20,8 @@
   Поддержка native u32 memory/caller/spill уже исправлена и проверена отдельно;
   это не делает host interpreter подходящим для обычного Z80.
   Сборка корпуса не доказывает правильность исполнения. Новый
-  [актуальный каталог](grace-integration-115/catalog-44-vm-native.json) фиксирует все
-  194 точных пути: 44 имеют ограниченное independent VM/native покрытие; новый fib_iter, ранее пропущенная ссылка18tail и исходные local struct вызовы подтверждены отдельно. Новый CP/M demo
+  [актуальный каталог](grace-integration-116/catalog-46-vm-native.json) фиксирует все
+  194 точных пути: 46 имеют ограниченное independent VM/native покрытие; новый fib_iter, ранее пропущенная ссылка18tail и исходные local struct вызовы подтверждены отдельно. Новый CP/M demo
   имеет отдельный native CALL5-hook proof. Все прочие пути сохраняют явные
   pending/ASM/runtime/host ограничения.
 - **Pascal bubble sort: исправлен реальный native miscompile** (`ff11ba69`).
@@ -397,3 +397,17 @@ Checked word multiply69566578 rootnativeall65536PASS1.681с/fullVIR2.356с: orig
 Originalboolmodule all12entries596736native+raw/finalVM rootPASS43.376с. ActualreturnA, notselectedF. Catalog43boundedpaths94pending. [Пакет112](grace-integration-112/README.md).
 
 OriginalResult nineentries589842native/raw/finalrootPASS43.165с; taghelpersraw-only.44boundedpaths93pending. u32bitwisemiscompileunderrepair. [Пакет115](grace-integration-115/README.md).
+
+## Проверки Option, SHA helpers и исправление u32
+
+На `951c3ef9` интегрированы оригинальный Option (восемь исходных функций,
+394 770 native вызовов в трёх режимах) и все 15 split-u16 SHA helpers
+(69 480 входов, три режима). Root повторил raw/final VM и Z80: PASS за
+29,276 с. SHA пакет проверяет арифметику, а не полный digest.
+
+Исправлен реальный u32 AND/OR/XOR miscompile: операции теперь работают
+по четырём байтам в обоих банках, сохраняют AF и восстанавливают банк.
+Root проверки обычных исходников и принудительных размещений: PASS
+(MIR2 0,977 с; pipeline 1,106 с). Подтверждённый динамический сдвиг
+`1 << 256` всё ещё неверен на native и исправляется отдельным коммитом.
+[Пакет интеграции](grace-integration-116/README.md).
