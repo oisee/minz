@@ -173,7 +173,7 @@ func Z80SpillLabel(funcName string, r Reg) string {
 // spillWidth returns the byte width of a spilled register (1, 2, or 3 for eZ80).
 func (g *z80cg) spillWidth(r Reg) int {
 	if info, ok := collectRegInfo(g.fn)[r]; ok {
-		return (info.Ty.Width() + 7) / 8
+		return z80SpillBytes(info.Ty)
 	}
 	return 1
 }
