@@ -302,6 +302,10 @@ compile-only без LIR PASS. Это повторная проверка пре�
 не новый unseen experiment. [Пакет083](grace-integration-083/README.md).
 Полный pipeline3e143f9f выполняется отдельно.
 
+Tokenizer ordinary PFCCO tradeoff теперь подтверждён:5474→5462B,
+319166→319442T нафиксированной полной нагрузке. Greedy сохраняется поумолчанию;
+измеренный selectorstrategies пока разрабатывается отдельно. [Интеграция084](grace-integration-084/README.md).
+
 ## Следующие шаги
 
 1. Проверять checked-local таблицы на дополнительных реальных случаях и
