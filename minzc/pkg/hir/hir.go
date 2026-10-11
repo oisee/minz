@@ -418,6 +418,21 @@ type CallSignature struct {
 	Returns             []mir2.Ty
 }
 
+func (s *CallSignature) Clone() *CallSignature {
+	if s == nil {
+		return nil
+	}
+	out := &CallSignature{}
+	for _, t := range s.Params {
+		out.Params = append(out.Params, mir2.CloneSemanticType(t))
+	}
+	for _, t := range s.Returns {
+		out.Returns = append(out.Returns, mir2.CloneSemanticType(t))
+	}
+	out.ResolveStructReturnABI()
+	return out
+}
+
 func (f *Func) Signature() *CallSignature {
 	s := &CallSignature{}
 	for _, p := range f.Params {
