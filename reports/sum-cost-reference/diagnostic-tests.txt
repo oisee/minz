@@ -1,0 +1,5 @@
+=== RUN   TestSumCurrentCostReferenceDiagnostic
+    sum_cost_reference_refresh_test.go:40: current measured model {CompilerID:executable-sha256:fa0f27d1fed0e8317cbfa97c4b1c0f6195865058d82c79336fe193316921a96d SemanticsID:minz.unoptimised-mir2-vm-loop-events/v2 Function:sum_array HIRSHA256:846c32ad8bfa6acb4aa40c7c2aa4bb0109c5e0ae641ea8bf9d4e8139f7a08091 TargetID:module-target:0/model:z80-pbqp-default-jrs/v1 CompilationID:984f9eebbe53cc92bbe8a6e8886ef3e0793be4aa530287af9a78846f62459c62 EvidenceID:sha256:3172daa228d3dfdc45b58798d5c384abbe6782ad6533121f17e4b01521c281ab OriginalBytes:201 PointerBytes:262 OriginalEntry:69 OriginalIteration:191 EqualEntryExtra:7 FastEntry:260 FastZeroEntry:262 FastZeroMeasured:true FallbackEntry:281 FallbackIteration:193 FallbackMeasured:true FastIteration:37} rows1022
+--- PASS: TestSumCurrentCostReferenceDiagnostic (19.18s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	19.194s

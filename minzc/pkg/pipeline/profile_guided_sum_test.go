@@ -47,7 +47,7 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 		t.Fatal(e)
 	}
 	profileJSON, _ := json.MarshalIndent(profileRun.Profile, "", "  ")
-	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-all-six-lengths-decimal-print-v3", OriginalBytes: 195, PointerBytes: 250, OriginalEntry: 69, OriginalIteration: 141, EqualEntryExtra: 7, FastEntry: 210, FastIteration: 37, FastZeroEntry: 212, FastZeroMeasured: true, FallbackEntry: 231, FallbackIteration: 143, FallbackMeasured: true}
+	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-full-u8-safe-extension-v4", OriginalBytes: 201, PointerBytes: 262, OriginalEntry: 69, OriginalIteration: 191, EqualEntryExtra: 7, FastEntry: 260, FastIteration: 37, FastZeroEntry: 262, FastZeroMeasured: true, FallbackEntry: 281, FallbackIteration: 193, FallbackMeasured: true}
 	decisions, e := hir.SelectLoopVariants(bytes.NewReader(profileJSON), input, context, model, false)
 	if e != nil {
 		t.Fatal(e)
@@ -167,12 +167,12 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 				dir = filepath.Join(output, variant, fmt.Sprintf("n%d", n))
 			}
 			cycles, size := measureProfileZ80(t, h, "sum_array", Options{AssertMode: "none"}, []int64{0x4000, n}, memory, want, dir)
-			expected := 69 + 141*int(n)
+			expected := 69 + 191*int(n)
 			expectedSize := int(model.OriginalBytes)
 			if variant != "original" {
-				expected = 210 + 37*int(n)
+				expected = 260 + 37*int(n)
 				if n == 0 {
-					expected = 212
+					expected = 262
 				}
 				expectedSize = int(model.PointerBytes)
 			}
@@ -242,12 +242,12 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 				t.Fatal(e)
 			}
 			cycles, codeBytes := measureProfileZ80(t, h, "sum_array", Options{UseHIRGrace: true, AssertMode: "none"}, []int64{0x4000, n}, memory, n*(n+1)/2&255, "")
-			wantCycles := 69 + 141*int(n)
+			wantCycles := 69 + 191*int(n)
 			wantBytes := int(model.OriginalBytes)
 			if expectedVariant == "pointer-walk" {
-				wantCycles = 210 + 37*int(n)
+				wantCycles = 260 + 37*int(n)
 				if n == 0 {
-					wantCycles = 212
+					wantCycles = 262
 				}
 				wantBytes = int(model.PointerBytes)
 			}
