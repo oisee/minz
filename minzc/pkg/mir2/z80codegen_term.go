@@ -134,7 +134,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		// main() is the program entry point: use XOR A / DI / HALT instead of
 		// RET so mze/mzx can detect program termination cleanly.  XOR A zeroes
 		// A for a clean exit code 0.
-		if f.Name == "main" && len(t.Vals) == 0 {
+		if f.Name == "main" && len(t.Vals) == 0 && g.runtime != Z80RuntimeCPM {
 			g.emit("    XOR A")
 			g.emit("    DI")
 			g.emit("    HALT")

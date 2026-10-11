@@ -87,6 +87,7 @@ type FuncTrace struct {
 
 // Options configures optional pipeline passes.
 type Options struct {
+	Runtime mir2.Z80Runtime `json:",omitempty"`
 	// CheckedLocalTablePath opts into admitted leaf function replacements under
 	// OptSize. The selected function must assemble smaller than PBQP baseline.
 	CheckedLocalTablePath string `json:",omitempty"`
@@ -139,6 +140,12 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	policy, err := resolveUnsignedPairComparePolicy(opt)
 	if err != nil {
 		return s, err
+	}
+	if opt.Runtime != "" && opt.AssertMode != "none" && len(hm.Asserts) > 0 {
+		return s, fmt.Errorf("CP/M application runtime assertions require a separate workload; use AssertMode none")
+	}
+	if opt.Runtime != "" && (opt.Runtime != mir2.Z80RuntimeCPM || hm.Target != hir.TargetCPM || opt.Backend != "" && opt.Backend != "z80" || opt.ProfileSelection != nil || opt.SkipZ80Emission) {
+		return s, fmt.Errorf("CP/M runtime requires emitted CPM Z80 without measured profile selection")
 	}
 	if opt.CheckedLocalTablePath != "" && (!opt.OptSize || opt.Backend != "" && opt.Backend != "z80" || opt.SkipZ80Emission || opt.ProfileSelection != nil) {
 		return s, fmt.Errorf("checked local tables require emitted Z80 OptSize without PGO")
@@ -370,6 +377,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		}
 		var codegenErr error
 		s.Assembly, codegenErr = mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
+			Runtime:                   opt.Runtime,
 			AnnotateTStates:           opt.AnnotateTStates,
 			UnsignedPairComparePolicy: s.UnsignedPairComparePolicy,
 		})
@@ -471,7 +479,7 @@ func CompileHIR(hm *hir.Module) (string, error) {
 func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	// MIR Grace has one implementation and one option/size policy in the steps
 	// pipeline. Do not silently run the legacy passes for an explicit request.
-	if opts.UseGrace {
+	if opts.UseGrace || opts.Runtime != "" {
 		steps, err := CompileHIRSteps(hm, opts)
 		return steps.Assembly, err
 	}
