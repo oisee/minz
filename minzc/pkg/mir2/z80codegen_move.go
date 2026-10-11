@@ -129,7 +129,7 @@ func (g *z80cg) emitLDA(src string) {
 		return
 	}
 	if isSpill(src) {
-		g.emitf("    LD A, (%s)", src)
+		g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
 	} else if isPairReg(src) {
 		// Width mismatch: pair→8bit. Take low byte.
 		g.emitf("    LD A, %s", lowByte(src))
@@ -673,13 +673,13 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 			if pair := g.tsmcPairByAddr(src); pair != nil {
 				g.emitTSMCReload(g.tsmcReloadLabel(pair.reg, g.blockIdx, g.curInstIdx, 0), "A", 8)
 			} else {
-				g.emitf("    LD A, (%s)", src)
+				g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
 			}
 		case isSpill(src):
 			if pair := g.tsmcPairByAddr(src); pair != nil {
 				g.emitTSMCReload(g.tsmcReloadLabel(pair.reg, g.blockIdx, g.curInstIdx, 0), dst, 8)
 			} else {
-				g.emitf("    LD A, (%s)", src)
+				g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
 				g.emitLD8(dst, "A")
 				g.invalidate("A")
 			}
@@ -687,7 +687,7 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 			if pair := g.tsmcPairByAddr(dst); pair != nil {
 				g.emitTSMCSpill(pair, "A")
 			} else {
-				g.emitf("    LD (%s), A", dst)
+				g.emitNativeSpillf(dst, 0, 1, true, "    LD (%s), A", dst)
 			}
 		case isSpill(dst):
 			if pair := g.tsmcPairByAddr(dst); pair != nil {
@@ -695,7 +695,7 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 				g.emitTSMCSpill(pair, "A")
 			} else {
 				g.emitLDA(src)
-				g.emitf("    LD (%s), A", dst)
+				g.emitNativeSpillf(dst, 0, 1, true, "    LD (%s), A", dst)
 			}
 		default:
 			// Width mismatch: 8-bit move but one operand is a register pair.
@@ -790,14 +790,14 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 			// HL is implicit scratch, not a defined MIR destination. Preserve
 			// a live pointer (including a later argument shuffle source).
 			g.emit("    PUSH HL")
-			g.emitf("    LD HL, (%s)", src)
-			g.emitf("    LD (%s), HL", dst)
+			g.emitNativeSpillf(src, 0, 2, false, "    LD HL, (%s)", src)
+			g.emitNativeSpillf(dst, 0, 2, true, "    LD (%s), HL", dst)
 			g.emit("    POP HL")
 			break
 		}
 		// LocMem spill slot → register pair: use LD rr, (nn).
 		if isSpill(src) {
-			g.emitf("    LD %s, (%s)", dst, src)
+			g.emitNativeSpillf(src, 0, 2, false, "    LD %s, (%s)", dst, src)
 			break
 		}
 		// register pair → LocMem spill slot: use LD (nn), rr.
@@ -807,7 +807,7 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 				g.emitLD8(highByte(dst), "0")
 				break
 			}
-			g.emitf("    LD (%s), %s", dst, src)
+			g.emitNativeSpillf(dst, 0, 2, true, "    LD (%s), %s", dst, src)
 			break
 		}
 		// 16-bit pair → 8-bit: truncate (take low byte).
