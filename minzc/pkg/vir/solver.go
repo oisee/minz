@@ -32,6 +32,12 @@ import (
 
 // SolverOptions controls the unified solver.
 type SolverOptions struct {
+	// Checked local emission domain: production candidates bind complete MIR
+	// context and actual return ABI, and bypass unverified text peepholes.
+	CheckedContext        string
+	CheckedReturnLocation string
+	CheckedRawEmission    bool
+
 	Timeout time.Duration // Z3 timeout (default 5s)
 	Z3Path  string        // path to z3 binary (default: "z3")
 	Verbose bool          // print SMT-LIB2 and model

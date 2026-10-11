@@ -23,6 +23,9 @@ type ProfileSelection struct {
 // the entire ProfileSelection request are excluded. Only measured default JRS
 // policy is supported.
 func ProfileCompilationID(options Options, mode string) (string, error) {
+	if options.CheckedLocalTablePath != "" {
+		return "", fmt.Errorf("PGO: external local tables are not bound by profile evidence")
+	}
 	if mode != "default" {
 		return "", fmt.Errorf("PGO: unsupported assembler configuration")
 	}

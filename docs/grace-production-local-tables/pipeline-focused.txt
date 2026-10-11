@@ -1,0 +1,14 @@
+=== RUN   TestCheckedLocalTableOrdinaryHIRSelectsSmallerNativeFunction
+    checked_local_tables_test.go:110: ordinary add5 all 256 byte inputs: module 8→6 bytes fixture 56→49 T; result/SP pass
+--- PASS: TestCheckedLocalTableOrdinaryHIRSelectsSmallerNativeFunction (0.06s)
+=== RUN   TestCheckedLocalTableTamperFallsBackAndProfileRefuses
+--- PASS: TestCheckedLocalTableTamperFallsBackAndProfileRefuses (0.00s)
+=== RUN   TestRetiredLIRConfigurationRefused
+    lir_retirement_config_test.go:37: legacy_config_id=4ada88316c49dcab114118447a4c5d1e5d18e1ffed84a4a9c80375e7ebc7750b current_config_id=0478cefaf67edd54bf36efc90fafaa27da51661c2f0c3294e27f6c941d02860c
+--- PASS: TestRetiredLIRConfigurationRefused (0.00s)
+=== RUN   TestMultiFunctionProfileVMZ80
+    profile_test.go:98: long_sum cycles=1690 want=1455
+--- FAIL: TestMultiFunctionProfileVMZ80 (0.09s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.164s
+FAIL

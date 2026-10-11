@@ -75,9 +75,10 @@ var (
 	pgoDebug   bool   // Debug PGO decisions
 
 	// Backend selection
-	optSize     bool // -Osize: optimize for code size (Grace reroll, DJNZ loops)
-	useGrace    bool // --grace: run all Grace MIR2 passes before VIR lowering
-	useHIRGrace bool // --hir-grace: run structural Grace rules before HIR lowering
+	checkedLocalTablePath string // --checked-local-table: admitted leaf OptSize candidates
+	optSize               bool   // -Osize: optimize for code size (Grace reroll, DJNZ loops)
+	useGrace              bool   // --grace: run all Grace MIR2 passes before VIR lowering
+	useHIRGrace           bool   // --hir-grace: run structural Grace rules before HIR lowering
 
 	// Assert control
 	listAsserts          bool
@@ -254,6 +255,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&ctieDebug, "ctie-debug", false, "show CTIE optimization decisions and statistics")
 	rootCmd.Flags().BoolVar(&compileTrace, "compile-trace", false, "show all optimization decisions and transformations")
 	rootCmd.Flags().StringVar(&superoptRules, "superopt-rules", "", "path to z80-optimizer rules.json[.gz] for superoptimizer peephole pass")
+	rootCmd.Flags().StringVar(&checkedLocalTablePath, "checked-local-table", "", "use checked local register table for smaller leaf Z80 functions (requires --Osize)")
 	rootCmd.Flags().BoolVar(&optSize, "Osize", false, "optimize for code size: Grace reroll; skip HIR Grace's versioned pointer loops")
 	rootCmd.Flags().BoolVar(&useGrace, "grace", false, "run all Grace MIR2 passes before VIR lowering (DSE, CondRetSink, BlockMerge, etc.)")
 	rootCmd.Flags().BoolVar(&useHIRGrace, "hir-grace", false, "run structural Grace HIR rules before lowering (experimental)")
@@ -1051,14 +1053,15 @@ func compileViaHIR(sourceFile string) error {
 		((am == "" || am == "all") && (len(hirMod.Asserts) > 0 || len(hirMod.Sandboxes) > 0) && !pipeline.NeedsZ80Asserts(hirMod, am))
 
 	opts := pipeline.Options{
-		ContractOpt:     true,
-		AnnotateTStates: annotateTStates,
-		OptSize:         optSize,  // --Osize enables Grace reroll
-		UseGrace:        useGrace, // --grace enables full Grace MIR2 pass suite
-		UseHIRGrace:     useHIRGrace,
-		Backend:         backend,
-		AssertMode:      am,
-		SkipZ80Emission: skipZ80,
+		CheckedLocalTablePath: checkedLocalTablePath,
+		ContractOpt:           true,
+		AnnotateTStates:       annotateTStates,
+		OptSize:               optSize,  // --Osize enables Grace reroll
+		UseGrace:              useGrace, // --grace enables full Grace MIR2 pass suite
+		UseHIRGrace:           useHIRGrace,
+		Backend:               backend,
+		AssertMode:            am,
+		SkipZ80Emission:       skipZ80,
 	}
 	if hirProfile.profile != "" {
 		selection, err := loadHIRProfileSelection()

@@ -1,0 +1,25 @@
+{
+  "base": "6be9d4d4",
+  "sha256": {
+    "README.md": "5240797b69d89b6c2d2d6676ea0380ef5b97dc3ea9ac989c46aca9f05a9bab40",
+    "audit-native.txt": "7d02b5d297bff62205030efc98cccbf5e47f3cadce2bd4405b0c8588188fcabb",
+    "baseline.a80": "303029cbb8987022fb15537921b92fb8b753720973b570d7c2dc8393f78f888f",
+    "baseline.a80.bin": "cab8bef17325d4e0462bcf47f8255d7f21a09ed5930813ddc87038c6ed63816d",
+    "binaries.txt": "c80b9f895b763e2da4c078b288330b73f2ce8207bdc931f21067ae0937ed7fda",
+    "cli-focused.txt": "63b86b369b889508dc9eabbda868f4317c39be5ca3273ed210c539a1f28776fa",
+    "cli.a80": "38525a7ed28ad6ae1852dd03c7197d27b2ad06540cca4e32967b59b72a1943ff",
+    "cli.a80.bin": "adf9d77c9d4b7f047e1ed359bca0daed1eb530d1362a87baae3aaab539f31030",
+    "cli.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "compile.txt": "432d944fc601d2af72399c5d48c6291b39bffe5371816c68b0998738bd796609",
+    "duplicate-cli-full-interrupted.txt": "c6d3dd548d10149c068d8adc0d0590659ccea3b9bdfd89e0b9fb4569cca9bcd4",
+    "duplicate-full-interrupted.txt": "ce59e992af592ae5f5bc434a79332624968e822bfb9f7ce35db00c97a8b65dbc",
+    "pipeline-focused.txt": "bb5017e61e9d60de1b090ae800c9ac1c6f1f4336cf9e93f183af1ae0823425ec",
+    "pipeline-positive.txt": "6a286024a75fac85dba3cdfaabd6a222b889c17ccebc48b269c922e7c288cfec",
+    "profile-baseline.txt": "effc5e80546da5cff2fc9ee618ba70a27536eada8cae6dc4b5274ea64176588e",
+    "selected.a80": "38525a7ed28ad6ae1852dd03c7197d27b2ad06540cca4e32967b59b72a1943ff",
+    "selected.a80.bin": "adf9d77c9d4b7f047e1ed359bca0daed1eb530d1362a87baae3aaab539f31030",
+    "source.nanz": "145c0ec012298624d1b4b93a98ccdc7eae591546683b728ffb15d2a3c802c02e",
+    "table.json": "00991f7ff625ca04b5f6bed50c513f29837cd0d3af63b1315c2915b3593f364a",
+    "vir-full.txt": "8da3c8971ab23ccc506d2c7bef323b1259e7bf8b54cf343887964374ac441786"
+  }
+}

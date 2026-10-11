@@ -76,7 +76,7 @@ type FuncTrace struct {
 	LUTReplaced  bool // function was replaced by LUTGen
 
 	// Codegen provenance
-	Backend    string // "LIR", "VIR", "PBQP", "LIR+PBQP-fallback", "VIR+PBQP-fallback"
+	Backend    string // "LIR", "VIR", "PBQP", "checked-local-table", "LIR+PBQP-fallback", "VIR+PBQP-fallback"
 	BackendErr string // error message if primary backend failed (before fallback)
 	WFCAttempt int    // WFC retry attempt (0 = first try)
 	CondRets   int    // number of cond_ret terminators
@@ -87,6 +87,10 @@ type FuncTrace struct {
 
 // Options configures optional pipeline passes.
 type Options struct {
+	// CheckedLocalTablePath opts into admitted leaf function replacements under
+	// OptSize. The selected function must assemble smaller than PBQP baseline.
+	CheckedLocalTablePath string `json:",omitempty"`
+
 	UnsignedPairComparePolicy mir2.UnsignedPairComparePolicy `json:",omitempty"` // explicit opt-in; zero preserves Legacy
 	ProfileSelection          *ProfileSelection              // opt-in refusing PGO input
 	CollectHIRSites           bool                           // diagnostic loop sites; does not enable PGO
@@ -122,7 +126,7 @@ type Options struct {
 }
 
 // DefaultOptions returns the default pipeline options.
-// Production default stays on PBQP; VIR remains an explicit opt-in.
+// Production defaults to PBQP; checked local table replacements are opt-in.
 func DefaultOptions() Options { return Options{ContractOpt: true} }
 
 // CompileHIRSteps runs the full HIR→MIR2→Z80 pipeline and returns all intermediate outputs.
@@ -135,6 +139,9 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	policy, err := resolveUnsignedPairComparePolicy(opt)
 	if err != nil {
 		return s, err
+	}
+	if opt.CheckedLocalTablePath != "" && (!opt.OptSize || opt.Backend != "" && opt.Backend != "z80" || opt.SkipZ80Emission || opt.ProfileSelection != nil) {
+		return s, fmt.Errorf("checked local tables require emitted Z80 OptSize without PGO")
 	}
 	s.UnsignedPairComparePolicy = policy
 	s.Traces = make(map[string]*FuncTrace)
@@ -370,6 +377,13 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 			return s, codegenErr
 		}
 
+		if opt.CheckedLocalTablePath != "" {
+			s.Assembly, err = applyCheckedLocalTables(s.Assembly, m, combined, opt, s.Traces)
+			if err != nil {
+				return s, err
+			}
+		}
+
 		// Emit stubs for @extern functions not already defined in the assembly.
 		// Ensure CALL targets for extern functions resolve.
 		s.Assembly = emitExternStubs(s.Assembly, m)
@@ -571,6 +585,16 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	asm, err := mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{UnsignedPairComparePolicy: policy})
 	if err != nil {
 		return "", err
+	}
+
+	if opts.CheckedLocalTablePath != "" {
+		if !opts.OptSize || opts.Backend != "" && opts.Backend != "z80" || opts.ProfileSelection != nil {
+			return "", fmt.Errorf("checked local tables require Z80 OptSize without PGO")
+		}
+		asm, err = applyCheckedLocalTables(asm, m, combined, opts, nil)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	// Z80 binary assertion checks (skip "mir2"-only asserts).
@@ -1236,7 +1260,7 @@ func injectModuleSummary(asm string, traces map[string]*FuncTrace, labelWarnings
 	}
 	sb.WriteString("; ── compilation summary ──────────────────────────────────────\n")
 	sb.WriteString(fmt.Sprintf("; functions: %d", total))
-	for _, be := range []string{"LIR", "VIR", "PBQP", "LIR+PBQP-fallback", "VIR+PBQP-fallback"} {
+	for _, be := range []string{"LIR", "VIR", "PBQP", "checked-local-table", "LIR+PBQP-fallback", "VIR+PBQP-fallback"} {
 		if n := counts[be]; n > 0 {
 			sb.WriteString(fmt.Sprintf("  %s=%d", be, n))
 		}

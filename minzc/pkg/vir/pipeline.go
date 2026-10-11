@@ -2336,7 +2336,10 @@ func emitFromTable(f *mir2.Func, vf *Func, allOps []VIROp, assignment map[int]in
 		}
 	}
 
-	result := peepholeCleanup(sb.String())
+	result := sb.String()
+	if !opts.CheckedRawEmission {
+		result = peepholeCleanup(result)
+	}
 	if errors := z80validate.Validate(result); len(errors) > 0 {
 		return "", fmt.Errorf("table instruction admission: %v", errors[0])
 	}

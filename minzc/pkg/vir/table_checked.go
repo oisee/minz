@@ -79,13 +79,15 @@ func CheckedTableKey(ops []VIROp, desc *MachineDesc, opts SolverOptions) (string
 		}
 	}
 	payload := struct {
-		Schema, CostModel string
-		Machine           *MachineDesc
-		Ops               []VIROp
-		Params            map[int]int
-		Overlaps          [][2]int
-		OptSize           bool
-	}{checkedTableSchema, checkedTableCostModel, desc, canonical, params, overlaps, opts.OptSize}
+		Schema, CostModel       string
+		Machine                 *MachineDesc
+		Ops                     []VIROp
+		Params                  map[int]int
+		Overlaps                [][2]int
+		OptSize                 bool
+		Context, ReturnLocation string
+		RawEmission             bool
+	}{checkedTableSchema, checkedTableCostModel, desc, canonical, params, overlaps, opts.OptSize, opts.CheckedContext, opts.CheckedReturnLocation, opts.CheckedRawEmission}
 	// pairAlias fields are private: encode their values explicitly below.
 	pairs := make([][3]int, len(pairAliases))
 	for i, p := range pairAliases {
@@ -113,6 +115,11 @@ func checkedLocalCost(ops []VIROp, assignment map[int]int, desc *MachineDesc, op
 		}
 	}
 	for _, op := range ops {
+		if !opts.CheckedRawEmission && (op.Op == OpCmp || op.Op == OpCmpImm || op.Op == OpBitTest || op.Op == OpRet && op.Width == 1) {
+			return 0, fmt.Errorf("flag certificate requires raw emission")
+		}
+	}
+	for _, op := range ops {
 		if op.Op == OpRet && op.Src[0] > 0 {
 			required := "A"
 			if op.Width > 8 {
@@ -120,6 +127,9 @@ func checkedLocalCost(ops []VIROp, assignment map[int]int, desc *MachineDesc, op
 			}
 			if op.Width == 1 {
 				required = "F"
+			}
+			if opts.CheckedReturnLocation != "" {
+				required = opts.CheckedReturnLocation
 			}
 			if assignment[op.Src[0]] != desc.LocByName(required) {
 				return 0, fmt.Errorf("return value must be in %s", required)
