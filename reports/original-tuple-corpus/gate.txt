@@ -1,0 +1,162 @@
+=== RUN   TestOriginalTupleCorpusComplete
+=== RUN   TestOriginalTupleCorpusComplete/tuple
+=== RUN   TestOriginalTupleCorpusComplete/tuple/ordinary
+    original_tuple_corpus_test.go:301: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "divmod": 65280
+          },
+          "module_bytes": 20,
+          "source_sha256": "4d4456e75beb9dcb43df6bc1483a3b8c9fa2b3c8dfe9d4f68c3b6679abcde6d8",
+          "stack_depths": {
+            "divmod": 2
+          }
+        }
+=== RUN   TestOriginalTupleCorpusComplete/tuple/grace-size
+    original_tuple_corpus_test.go:301: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "divmod": 65280
+          },
+          "module_bytes": 20,
+          "source_sha256": "4d4456e75beb9dcb43df6bc1483a3b8c9fa2b3c8dfe9d4f68c3b6679abcde6d8",
+          "stack_depths": {
+            "divmod": 2
+          }
+        }
+=== RUN   TestOriginalTupleCorpusComplete/tuple/grace-speed
+    original_tuple_corpus_test.go:301: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "divmod": 65280
+          },
+          "module_bytes": 20,
+          "source_sha256": "4d4456e75beb9dcb43df6bc1483a3b8c9fa2b3c8dfe9d4f68c3b6679abcde6d8",
+          "stack_depths": {
+            "divmod": 2
+          }
+        }
+=== RUN   TestOriginalTupleCorpusComplete/ex11
+=== RUN   TestOriginalTupleCorpusComplete/ex11/ordinary
+    original_tuple_corpus_test.go:301: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "larger": 65732,
+            "minmax": 65732,
+            "smaller": 65732,
+            "swap": 65732
+          },
+          "module_bytes": 26,
+          "source_sha256": "f7f3be929afe1d2ce0b4212b46b004bfeb9a562780ff9b54b9eef2a7efcf7326",
+          "stack_depths": {
+            "larger": 6,
+            "minmax": 4,
+            "smaller": 4,
+            "swap": 2
+          }
+        }
+=== RUN   TestOriginalTupleCorpusComplete/ex11/grace-size
+    original_tuple_corpus_test.go:301: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "larger": 65732,
+            "minmax": 65732,
+            "smaller": 65732,
+            "swap": 65732
+          },
+          "module_bytes": 26,
+          "source_sha256": "f7f3be929afe1d2ce0b4212b46b004bfeb9a562780ff9b54b9eef2a7efcf7326",
+          "stack_depths": {
+            "larger": 6,
+            "minmax": 4,
+            "smaller": 4,
+            "swap": 2
+          }
+        }
+=== RUN   TestOriginalTupleCorpusComplete/ex11/grace-speed
+    original_tuple_corpus_test.go:301: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "larger": 65732,
+            "minmax": 65732,
+            "smaller": 65732,
+            "swap": 65732
+          },
+          "module_bytes": 26,
+          "source_sha256": "f7f3be929afe1d2ce0b4212b46b004bfeb9a562780ff9b54b9eef2a7efcf7326",
+          "stack_depths": {
+            "larger": 6,
+            "minmax": 4,
+            "smaller": 4,
+            "swap": 2
+          }
+        }
+=== RUN   TestOriginalTupleCorpusComplete/ex13
+=== RUN   TestOriginalTupleCorpusComplete/ex13/ordinary
+    original_tuple_corpus_test.go:301: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "max_of": 65732,
+            "min_of": 65732,
+            "minmax": 65732,
+            "swap": 65732
+          },
+          "module_bytes": 26,
+          "source_sha256": "6677d09ec89a8489a9691bd4caa184ef88149c370b87fe543dc4b3e1432270b7",
+          "stack_depths": {
+            "max_of": 6,
+            "min_of": 4,
+            "minmax": 4,
+            "swap": 2
+          }
+        }
+=== RUN   TestOriginalTupleCorpusComplete/ex13/grace-size
+    original_tuple_corpus_test.go:301: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "max_of": 65732,
+            "min_of": 65732,
+            "minmax": 65732,
+            "swap": 65732
+          },
+          "module_bytes": 26,
+          "source_sha256": "6677d09ec89a8489a9691bd4caa184ef88149c370b87fe543dc4b3e1432270b7",
+          "stack_depths": {
+            "max_of": 6,
+            "min_of": 4,
+            "minmax": 4,
+            "swap": 2
+          }
+        }
+=== RUN   TestOriginalTupleCorpusComplete/ex13/grace-speed
+    original_tuple_corpus_test.go:301: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "max_of": 65732,
+            "min_of": 65732,
+            "minmax": 65732,
+            "swap": 65732
+          },
+          "module_bytes": 26,
+          "source_sha256": "6677d09ec89a8489a9691bd4caa184ef88149c370b87fe543dc4b3e1432270b7",
+          "stack_depths": {
+            "max_of": 6,
+            "min_of": 4,
+            "minmax": 4,
+            "swap": 2
+          }
+        }
+--- PASS: TestOriginalTupleCorpusComplete (4.99s)
+    --- PASS: TestOriginalTupleCorpusComplete/tuple (0.79s)
+        --- PASS: TestOriginalTupleCorpusComplete/tuple/ordinary (0.27s)
+        --- PASS: TestOriginalTupleCorpusComplete/tuple/grace-size (0.26s)
+        --- PASS: TestOriginalTupleCorpusComplete/tuple/grace-speed (0.26s)
+    --- PASS: TestOriginalTupleCorpusComplete/ex11 (2.08s)
+        --- PASS: TestOriginalTupleCorpusComplete/ex11/ordinary (0.71s)
+        --- PASS: TestOriginalTupleCorpusComplete/ex11/grace-size (0.68s)
+        --- PASS: TestOriginalTupleCorpusComplete/ex11/grace-speed (0.68s)
+    --- PASS: TestOriginalTupleCorpusComplete/ex13 (2.12s)
+        --- PASS: TestOriginalTupleCorpusComplete/ex13/ordinary (0.72s)
+        --- PASS: TestOriginalTupleCorpusComplete/ex13/grace-size (0.70s)
+        --- PASS: TestOriginalTupleCorpusComplete/ex13/grace-speed (0.70s)
+PASS

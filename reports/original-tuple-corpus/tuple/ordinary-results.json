@@ -1,0 +1,11 @@
+{
+  "allowed_spill_bytes": {},
+  "entries": {
+    "divmod": 65280
+  },
+  "module_bytes": 20,
+  "source_sha256": "4d4456e75beb9dcb43df6bc1483a3b8c9fa2b3c8dfe9d4f68c3b6679abcde6d8",
+  "stack_depths": {
+    "divmod": 2
+  }
+}

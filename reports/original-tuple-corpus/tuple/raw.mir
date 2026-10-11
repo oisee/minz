@@ -1,0 +1,18 @@
+; MIR2 module: examples/nanz/tuple_assert_gate.nanz
+fun @divmod(%r1: u8 [acc], %r2: u8 [general]) -> (u8 [acc], u8 [counter])
+  block @entry:
+    %r3 = const 0 : u8 [general]
+    jmp @loop_head1(%r2, %r3, %r1)
+  block @loop_head1(%r4: u8 [general], %r5: u8 [general], %r6: u8 [general]):
+    %r7 = cmp.uge %r6, %r4 : bool [flag]
+    br_if %r7, @loop_body2(), @loop_exit3(%r4, %r5, %r6)
+  block @loop_body2:
+    %r8 = sub %r6, %r4 : u8 [general]
+    %r9 = const 1 : u8 [general]
+    %r10 = add %r5, %r9 : u8 [general]
+    jmp @loop_head1(%r4, %r10, %r8)
+  block @loop_exit3(%r11: u8 [general], %r12: u8 [general], %r13: u8 [general]):
+    %r14 = move %r12 : u8 [acc]
+    %r15 = move %r13 : u8 [counter]
+    ret %r14, %r15
+

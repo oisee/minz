@@ -1,0 +1,30 @@
+; MIR2 module: reports/showcase-src/2026-03-11/ex11_minmax_multiret.nanz
+fun @minmax(%r1: u16 [pointer], %r2: u16 [index]) -> (u16 [pointer], u16 [index])
+  block @entry:
+    %r3 = cmp.ule %r1, %r2 : bool [flag]
+    %r4 = move %r2 : u16 [pointer]
+    %r5 = move %r1 : u16 [index]
+    cond_ret %r3, [%r4, %r5], @if_then1()
+  block @if_then1:
+    %r6 = move %r1 : u16 [pointer]
+    %r7 = move %r2 : u16 [index]
+    ret %r6, %r7
+
+fun @swap(%r8: u16 [index], %r9: u16 [pointer]) -> (u16 [pointer], u16 [index])
+  block @entry:
+    %r10 = move %r9 : u16 [pointer]
+    %r11 = move %r8 : u16 [index]
+    ret %r10, %r11
+
+fun @smaller(%r12: u16 [pointer], %r13: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r14 = move %r13 : u16 [index]
+    %r15 = call @minmax(%r12, %r14) : u16 [pointer]
+    ret %r15
+
+fun @larger(%r17: u16 [pointer], %r18: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r19 = move %r18 : u16 [index]
+    %r20 = call @minmax(%r17, %r19) : u16 [pointer]
+    ret %r21
+
