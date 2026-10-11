@@ -221,3 +221,13 @@ sameexeprofile/external-o PASS. Independenthost/native/proof auditsPASS.
 Пакетыisolated иproduction раздельны, обеexe сохранены сSHA; freshproduction
 211files сохранены локально. Cmdtests30.102 s PASS. Итоговыйкоммит и
 публикацияготовятся; никакихрешенийAlice илиблокеровнет.
+
+CLI stageb770f3be запушен. Приватная Sites версия43 опубликована:
+https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-cli-selection.html
+Полная офлайн-копия синхронизируется; итоговые553+artifactpayload сохранены.
+
+Продолжаем цель: новые persistent SelfLanzworkloads для проверки выбора
+на коротких повторных атомах, длинных атомах и смешанных вложенных формах.
+Производственный компилятор иhostpermissions не меняются. Независимая
+workload-driven модель fullstate/events создаётся в отдельной постоянной
+ветке; реальные замерыпослепроверкиworkloads. РешенийAlice не требуется.
