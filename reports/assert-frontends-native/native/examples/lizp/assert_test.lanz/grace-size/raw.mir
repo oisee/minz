@@ -1,0 +1,20 @@
+; MIR2 module: ../../../examples/lizp/assert_test.lanz
+fun @double(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = add %r1, %r1 : u8 [acc]
+    ret %r2
+
+fun @add(%r3: u8 [acc], %r4: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r5 = add %r3, %r4 : u8 [acc]
+    ret %r5
+
+fun @max_byte(%r6: u8 [acc], %r7: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r8 = cmp.ugt %r6, %r7 : bool [flag]
+    br_if %r8, @if_then1(), @if_else3()
+  block @if_then1:
+    ret %r6
+  block @if_else3:
+    ret %r7
+

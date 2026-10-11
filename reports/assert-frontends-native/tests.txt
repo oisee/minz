@@ -1,0 +1,15 @@
+=== RUN   TestOriginalAssertFrontendDomains
+    original_assert_frontends_native_test.go:272: examples/lizp/assert_test.lanz ordinary 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:272: examples/lizp/assert_test.lanz grace-size 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:272: examples/lizp/assert_test.lanz grace-speed 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:272: examples/lizp/assert_test.lizp ordinary 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:272: examples/lizp/assert_test.lizp grace-size 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:272: examples/lizp/assert_test.lizp grace-speed 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:272: examples/nanz/assert_test.nanz ordinary 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:272: examples/nanz/assert_test.nanz grace-size 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:272: examples/nanz/assert_test.nanz grace-speed 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:140: examples/nanz/assert_test.plm ordinary raw ADD$BYTES [0 0] mir2.VM: function @ADD$BYTES not found
+--- FAIL: TestOriginalAssertFrontendDomains (12.37s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	12.382s
+FAIL

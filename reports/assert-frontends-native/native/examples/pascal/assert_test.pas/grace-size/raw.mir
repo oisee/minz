@@ -1,0 +1,18 @@
+; MIR2 module: ../../../examples/pascal/assert_test.pas
+fun @DOUBLE(%r1: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r2 = const 0 : i16 [pointer]
+    %r3 = add %r1, %r1 : i16 [pointer]
+    ret %r3
+
+fun @ADDONE(%r4: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r5 = const 0 : u8 [general]
+    %r6 = const 1 : u8 [general]
+    %r7 = add %r4, %r6 : u8 [acc]
+    ret %r7
+
+fun @main()
+  block @entry:
+    ret void
+
