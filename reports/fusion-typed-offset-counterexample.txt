@@ -1,0 +1,9 @@
+=== RUN   TestFusionIndependentTypedOffsetCounterexample
+    fusion_independent_audit_test.go:5: false [{4660}] <nil>
+    fusion_independent_audit_test.go:5: fused 1
+    fusion_independent_audit_test.go:5: true [{22068}] <nil>
+    fusion_independent_audit_test.go:5: typed constant truncation lost fused=true got=[{22068}] err=<nil>
+--- FAIL: TestFusionIndependentTypedOffsetCounterexample (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/mir2	0.008s
+FAIL

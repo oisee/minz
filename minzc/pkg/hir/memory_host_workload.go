@@ -747,7 +747,7 @@ func MemoryHostGlobalOrigins(m *mir2.Module) map[*mir2.Inst]mir2.GlobalMemoryOri
 									}
 									switch d.Op {
 									case mir2.OpConst:
-										return value{constant: true, number: d.Imm}, true
+										return value{constant: true, number: memoryHostTypedConstant(d)}, true
 									case mir2.OpMove:
 										return resolve(d.Src[0], seen)
 									case mir2.OpPtrAdd:
@@ -780,7 +780,7 @@ func MemoryHostGlobalOrigins(m *mir2.Module) map[*mir2.Inst]mir2.GlobalMemoryOri
 						current[i.Dst] = value{symbol: i.Sym}
 					}
 				case mir2.OpConst:
-					current[i.Dst] = value{constant: true, number: i.Imm}
+					current[i.Dst] = value{constant: true, number: memoryHostTypedConstant(i)}
 				case mir2.OpMove:
 					if aok {
 						current[i.Dst] = a
@@ -872,4 +872,16 @@ func memoryHostPointerStorage(t mir2.Ty) bool {
 		return true
 	}
 	return false
+}
+
+// Mirror MIR OpConst stored bits before using a constant as address authority.
+func memoryHostTypedConstant(i *mir2.Inst) int64 {
+	if i.Ty == nil || i.Ty == mir2.TyVoid {
+		return 0
+	}
+	width := i.Ty.Width()
+	if width <= 0 || width >= 64 {
+		return i.Imm
+	}
+	return int64(uint64(i.Imm) & ((uint64(1) << width) - 1))
 }

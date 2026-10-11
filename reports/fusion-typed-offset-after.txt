@@ -1,0 +1,7 @@
+=== RUN   TestFusionIndependentTypedOffsetCounterexample
+    fusion_independent_audit_test.go:40: false [{4660}] <nil>
+    fusion_independent_audit_test.go:29: fused 0
+    fusion_independent_audit_test.go:40: true [{4660}] <nil>
+--- PASS: TestFusionIndependentTypedOffsetCounterexample (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.009s

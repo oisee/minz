@@ -45,7 +45,7 @@ func FuseSequentialByteWords(f *Func) int {
 			}
 			constant := func(r Reg, n int64) bool {
 				i, ok := defs[r]
-				return ok && b.Insts[i].Op == OpConst && b.Insts[i].Imm == n
+				return ok && b.Insts[i].Op == OpConst && truncate(Value{I: b.Insts[i].Imm}, b.Insts[i].Ty).I == n
 			}
 			// Pointer offset chains must dominate the access and consist of total
 			// pointer/constant arithmetic, with the original pointer width retained.
@@ -75,7 +75,7 @@ func FuseSequentialByteWords(f *Func) int {
 						return 0, 0, false
 					}
 					root, off, ok := pointer(x.Src[0], i)
-					return root, off + c.Imm, ok
+					return root, off + truncate(Value{I: c.Imm}, c.Ty).I, ok
 				}
 				return r, 0, true
 			}
@@ -358,7 +358,7 @@ func sequentialByteOriginsValid(f *Func, x *Inst) bool {
 				return 0, 0, false
 			}
 			root, off, ok := address(i.Src[0], seen)
-			return root, off + uint16(c.Imm), ok
+			return root, off + uint16(truncate(Value{I: c.Imm}, c.Ty).I), ok
 		}
 		return r, 0, true
 	}
