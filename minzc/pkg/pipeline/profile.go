@@ -26,6 +26,9 @@ func ProfileCompilationID(options Options, mode string) (string, error) {
 	if err := ValidateContractStrategy(options); err != nil {
 		return "", err
 	}
+	if options.Runtime != "" {
+		return "", fmt.Errorf("PGO: application runtimes are unsupported by the measured workload model")
+	}
 	if options.CheckedLocalTablePath != "" {
 		return "", fmt.Errorf("PGO: external local tables are not bound by profile evidence")
 	}
