@@ -44,12 +44,13 @@ SHA256 `1bd95516f7b1ef1ba56c17822104936e2b73fe8bde5fe7368dd128811009f041`.
 
 ## Опубликовано и сохранено
 
-Приватный Sites, подтверждённая **версия 45**:
+Приватный Sites, подтверждённая **версия 46**:
 https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/
 
 - [Совместный selector](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-composition-selection.html)
 - [CLI](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-cli-selection.html)
 - [Корпус workloads](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-corpus.html)
+- [Сохранённые профили и точные отказы](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-supplied-profiles.html)
 - [Смена выбора и отказы](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-choice-boundaries.html)
 
 Весь сайт сохранён офлайн: [локальная главная](../artifacts/grace-reports/2026-10-10-resume/site/index.html).
@@ -66,7 +67,9 @@ completion/count mutations отклонены с точными причинам
 каталога. Четыре accepted кандидата прошли независимые state/event/count/
 proof/native SHA audits и проверку сохранённых файлов после переноса.
 Это не failed-profile exporter; production code/exe не менялись.
-Пакет committed/pushed публикуется следующим обновлением Sites.
+Пакет `716a6c87` committed/pushed; приватная Sites версия 46 опубликована.
+Полная офлайн-копия версии 46 синхронизируется; предыдущая полная проверка
+12757 файлов относится к версии 45.
 
 Следующий этап в работе: actual per-PC Z80 стоимость функций Self-Lanz при
 неизменённых проверенных бинарниках. Два агента проверяют план владельца;
