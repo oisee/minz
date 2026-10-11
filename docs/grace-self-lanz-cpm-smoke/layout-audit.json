@@ -1,0 +1,27 @@
+{
+  "symbols": {
+    "src_len": 2180,
+    "__cpm_smoke_entry": 256,
+    "__cpm_smoke_image_end": 28676,
+    "__cpm_smoke_stack_top": 28674,
+    "poke": 518,
+    "__cpm_smoke_putchar": 2290,
+    "main": 275,
+    "str_arena": 2188,
+    "node_arena": 2184,
+    "__cpm_smoke_stack_low": 24578,
+    "peek": 516,
+    "__cpm_smoke_code_end": 2313,
+    "__cpm_smoke_stack_high_canary": 28674,
+    "__cpm_smoke_saved_sp": 273,
+    "__cpm_smoke_stack_low_canary": 24576,
+    "src_buf": 2178
+  },
+  "com_bytes": 6157,
+  "com_sha256": "2b3de3f23186a0f2503732552a59244592f410dca7cb1f7d06f230dd55b7eb73",
+  "assembled_only": true,
+  "execution_performed": false,
+  "logical_image_end": 28676,
+  "required_code_end_max": 24576,
+  "note": "Multiple ORG COM serialization must be audited before loading: file size does not cover declared 0100..7004 span; no execution permitted."
+}

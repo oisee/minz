@@ -1,0 +1,24 @@
+{
+  "ordinary_sha256": "2459fdd8e4f699b3e1e48fe017d06024cbf62214b818512739657d82716194b3",
+  "derived_assembly_sha256": "cdab71cb1f6143f755c29f9ebb15a0265b203d1e21da84a50073d83c9e6a25c0",
+  "print_out_replacements": 16,
+  "extern_bodies_supplied": [
+    "peek HL->A",
+    "poke HL,C->void"
+  ],
+  "main_terminal_replacement": "exact XOR A; DI; HALT before .main_trmp0 -> XOR A; RET",
+  "string_pool_unchanged": true,
+  "print_loop_instructions_unchanged_except_output_call": true,
+  "origin": 256,
+  "stack_low_canary": 24576,
+  "stack_low": 24578,
+  "stack_top": 28674,
+  "stack_high_canary": 28674,
+  "node_arena": 32768,
+  "string_arena": 36864,
+  "source_buffer": 49152,
+  "source_capacity": 4096,
+  "modeled_bdos_boundary": 57344,
+  "execution_performed": false,
+  "known_blocker": "SString/CString source mismatch and representation-blind @print remain diagnostic defects"
+}

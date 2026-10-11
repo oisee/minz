@@ -6,8 +6,38 @@
   },
   {
     "path": "README.md",
-    "bytes": 1952,
-    "sha256": "14c226faa50d8c44fb963e7099218cf5382506f9e817d73ca07e7623e9a10aae"
+    "bytes": 2451,
+    "sha256": "5b9375a9e91630c749d1b27683198e9d195a295d546b4a80fe79baa994748d66"
+  },
+  {
+    "path": "assembly.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "diagnostic-wrapper.a80",
+    "bytes": 29212,
+    "sha256": "cdab71cb1f6143f755c29f9ebb15a0265b203d1e21da84a50073d83c9e6a25c0"
+  },
+  {
+    "path": "diagnostic.com",
+    "bytes": 6157,
+    "sha256": "2b3de3f23186a0f2503732552a59244592f410dca7cb1f7d06f230dd55b7eb73"
+  },
+  {
+    "path": "diagnostic.lst",
+    "bytes": 50887,
+    "sha256": "4b85750076908911f1e5ac357ac7b4ede6960ebff71029e1ad685814f072ad78"
+  },
+  {
+    "path": "diagnostic.sym",
+    "bytes": 7264,
+    "sha256": "052319ebb057537f198bfc9c0243298f7fa292721e28f852ce513bf0ad683bf3"
+  },
+  {
+    "path": "layout-audit.json",
+    "bytes": 865,
+    "sha256": "5534fd5bd0a18999ef45e38af8480587be93c345a3f206687841219c97c70a96"
   },
   {
     "path": "ordinary-0d6.a80",
@@ -23,5 +53,15 @@
     "path": "static-check.json",
     "bytes": 599,
     "sha256": "1253031a09205e92961c1d398e8a6880dfd3837a4f30359cdde6707a25636815"
+  },
+  {
+    "path": "tools/build_wrapper.py",
+    "bytes": 2870,
+    "sha256": "93bb252df716cb0a1f4aee15a8fe2818ce9b5e9fe49e23ae4ab782e935c27e03"
+  },
+  {
+    "path": "wrapper-changes.json",
+    "bytes": 881,
+    "sha256": "9d01ac9e1fa14d0d947400a63bbe4ee08992656a8b6e37e534737e644a5e9656"
   }
 ]
