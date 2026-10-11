@@ -253,6 +253,15 @@ func (m *memoryHostZ80Memory) prepareFrame(pc uint16) {
 	if recipe[0].Write {
 		value := uint16(0)
 		if isCall {
+			for j := range m.savedCallSpills {
+				s := &m.savedCallSpills[j]
+				if s.CallPC == pc && s.Depth == len(m.callFrames) {
+					if s.DidCall {
+						panic(memoryHostNativeTrap{"spill snapshot reused call"})
+					}
+					s.DidCall = true
+				}
+			}
 			value = pc + uint16(m.lengths[pc])
 			m.callFrames = append(m.callFrames, memoryHostCallFrame{m.instructionSP - 2, value})
 		} else {

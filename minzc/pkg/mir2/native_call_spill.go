@@ -81,7 +81,7 @@ func CheckNativeCallSpillMarkers(assembly string, ds []NativeCallSpillSnapshot) 
 	for _, d := range ds {
 		for _, i := range d.Instructions {
 			n++
-			if i.ID == "" || strings.Count(assembly, "@minz-call-spill:"+i.ID+"\n") != 1 {
+			if i.ID == "" || NativeAnnotationCount(assembly, "@minz-call-spill:"+i.ID) != 1 {
 				return fmt.Errorf("missing/duplicate call-spill marker %q", i.ID)
 			}
 		}
@@ -90,4 +90,47 @@ func CheckNativeCallSpillMarkers(assembly string, ds []NativeCallSpillSnapshot) 
 		return fmt.Errorf("orphan call-spill marker")
 	}
 	return nil
+}
+
+func (g *z80cg) emitNativeSpillCall(inst *Inst, s string) {
+	if g.nativeCallSpillSink != nil {
+		ii := -1
+		for j, i := range g.curBlock.Insts {
+			if i == inst {
+				ii = j
+				break
+			}
+		}
+		id := fmt.Sprintf("f%d_b%d_i%d", g.nativeFunctionIndex, g.nativeBlockIndex, ii)
+		found := false
+		for _, d := range *g.nativeCallSpillSink {
+			if d.CallID == id {
+				found = true
+				break
+			}
+		}
+		if found {
+			s += " ; @minz-spill-call:" + id
+		}
+	}
+	g.emit(s)
+}
+
+// NativeAnnotationCount recognizes exact standalone annotation tokens after the
+// instruction's first comment delimiter. It permits composed annotations while
+// rejecting prefix IDs and annotations in executable text.
+func NativeAnnotationCount(assembly, marker string) int {
+	n := 0
+	for _, line := range strings.Split(assembly, "\n") {
+		parts := strings.SplitN(line, ";", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		for _, token := range strings.Fields(strings.ReplaceAll(parts[1], ";", " ")) {
+			if token == marker {
+				n++
+			}
+		}
+	}
+	return n
 }

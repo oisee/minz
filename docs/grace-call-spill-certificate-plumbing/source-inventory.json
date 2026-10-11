@@ -1,0 +1,18 @@
+[
+  {
+    "path": "minzc/pkg/pipeline/memory_host_call_spill_lifecycle_test.go",
+    "sha256": "0ffb644f97ab706d3d1e7fd7bf8a186665627b8f61e50f3830271c28ea6741f5"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_policy_association.go",
+    "sha256": "6d1c3d71d13f16ab4a5b66991dcc73f21eca120b7dc9fc92ec1ae105908dc8d4"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_policy_association_test.go",
+    "sha256": "20a57281832b158b0fe3202e953e7ce6dcd5c93e2720e40e67331e09638384d0"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_target.go",
+    "sha256": "ca254e6701e3ad9a1b5fcdb5abef5cea4c8c717612d7d1f961830b88dcba1571"
+  }
+]

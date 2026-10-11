@@ -10,7 +10,7 @@ import (
 // These controls call the permission preflight without executing a CPU step.
 // Invalid activation metadata must refuse before any RAM effect.
 func TestCallSpillLifecycleRefusals(t *testing.T) {
-	for _, name := range []string{"middle", "wrong_sp", "uninitialized", "return_overlap", "wrong_call", "wrong_depth", "wrong_slot", "corrupt_value", "no_call", "no_saved"} {
+	for _, name := range []string{"positive", "middle", "wrong_sp", "uninitialized", "return_overlap", "wrong_call", "wrong_depth", "wrong_slot", "corrupt_value", "no_call", "no_saved"} {
 		t.Run(name, func(t *testing.T) {
 			m := &memoryHostZ80Memory{}
 			m.cpu = z80.NewZ80(m, memoryHostNoPorts{})
@@ -25,6 +25,10 @@ func TestCallSpillLifecycleRefusals(t *testing.T) {
 			m.stackInitialized[sp+1] = true
 			m.stackPair[sp] = "HL"
 			m.data[sp] = 7
+			m.data[pc] = 0xe3
+			m.cpu.SetPC(pc)
+			m.instructionPC = pc
+			m.instructionSP = sp
 			// Bind only fields common to the current final runtime; explicit new
 			// activation-call fields are set by the fixture helper below.
 			m.savedCallSpills = []memoryHostSavedCallSpill{{CallID: "call", Symbol: "home", Width: 1, Depth: 1, Slot: sp}}
@@ -33,7 +37,7 @@ func TestCallSpillLifecycleRefusals(t *testing.T) {
 			case "middle":
 				m.callSpills[pc] = memoryHostCallSpillStep{Frame: f, Index: 1}
 			case "wrong_sp":
-				m.activeCallSpill = &memoryHostActiveCallSpill{Frame: f, Entry: sp + 2}
+				m.activeCallSpill = &memoryHostActiveCallSpill{Frame: f, Entry: sp + 2, Next: 1}
 				m.callSpills[pc] = memoryHostCallSpillStep{Frame: f, Index: 1, Delta: 0}
 			case "uninitialized":
 				m.stackInitialized[sp+1] = false
@@ -65,7 +69,14 @@ func TestCallSpillLifecycleRefusals(t *testing.T) {
 				}()
 				m.beginCallSpill(pc)
 			}()
-			if !rejected {
+			if name == "positive" {
+				if rejected {
+					t.Fatal("valid preflight refused")
+				}
+				if m.activeCallSpill == nil || len(m.pending) != 4 {
+					t.Fatal("valid recipe not installed")
+				}
+			} else if !rejected {
 				t.Fatal("invalid activation accepted")
 			}
 			if !reflect.DeepEqual(before, m.data) {

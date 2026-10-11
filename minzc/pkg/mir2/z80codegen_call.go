@@ -239,10 +239,10 @@ func (g *z80cg) genCall(inst *Inst) error {
 		if addr <= 0x38 && addr%8 == 0 {
 			g.emitf("    RST 0x%02X", addr)
 		} else {
-			g.emitf("    CALL 0x%04X", addr)
+			g.emitNativeSpillCall(inst, fmt.Sprintf("    CALL 0x%04X", addr))
 		}
 	} else {
-		g.emitf("    CALL %s", sym)
+		g.emitNativeSpillCall(inst, fmt.Sprintf("    CALL %s", sym))
 	}
 
 	// Pick up every result without letting caller restores destroy it. If a
