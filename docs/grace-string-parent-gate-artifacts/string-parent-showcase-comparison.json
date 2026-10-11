@@ -1,0 +1,12 @@
+{
+  "baseline": "docs/grace-memory-host-policy-search-artifacts/parent-gates/showcase.txt",
+  "before": 31,
+  "current": 35,
+  "new": [
+    "ex27_strings.nanz",
+    "sap_mara_demo.nanz",
+    "self_parser.nanz",
+    "self_tokenizer.nanz"
+  ],
+  "resolved": []
+}

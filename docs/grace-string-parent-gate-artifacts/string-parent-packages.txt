@@ -1,0 +1,19 @@
+ok  	github.com/minz/minzc/pkg/hir	26.864s
+ok  	github.com/minz/minzc/pkg/mir2	4.738s
+score=65535 game=Game(7)
+--- FAIL: TestHelloWorldASM (0.00s)
+    nanz_test.go:2043: @print fn: want @mir.io.print.str, got "@mir.io.print.sstr"
+[Z80-VALIDATE] set_border: 2 invalid instruction(s)
+  line 3: >>> LD A, col <<<
+FAIL
+FAIL	github.com/minz/minzc/pkg/nanz	1.500s
+--- FAIL: TestMetaE2E_NanzToVM (0.00s)
+    meta_e2e_test.go:80: Emitted Lanz:
+        !(fun Color_size () u8 (return 3))
+    meta_e2e_test.go:85: CompileEmitted: line 1: expected top-level form, got atom "!"
+FAIL
+FAIL	github.com/minz/minzc/pkg/lanz	0.014s
+ok  	github.com/minz/minzc/pkg/lizp	0.016s
+ok  	github.com/minz/minzc/pkg/plm	0.025s
+ok  	github.com/minz/minzc/pkg/pascal	0.013s
+FAIL

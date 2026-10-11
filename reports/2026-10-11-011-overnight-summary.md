@@ -289,3 +289,9 @@ CompileHIRWithOptions; CompileHIRSteps собирает те же програм
 на https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/.
 Новый строковый этап ещё не опубликован. Блокеров и решений Alice нет;
 после закрытия общего gate продолжаем полный CP/M main.
+
+Полный CLI gate завершился успешно за 335,963 s. Четыре новых ASM
+падения связаны с подтверждённым столкновением номеров временных
+регистров между функциями после allocation. Исправление и native
+проверка второго пути ещё впереди. Логи успеха и ошибок сохранены
+отдельно в docs/grace-string-parent-gate-artifacts с SHA256.

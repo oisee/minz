@@ -1,0 +1,30 @@
+{
+  "compiler_commit": "964cb29f",
+  "cli_executable_sha256": "2f24c7bfe84e3db93bbc3203c5d242c3d178adf5cc11c874a9c20221fdcdf446",
+  "scope": "Parent checks before legacy postallocation repair; preserve failures as failures.",
+  "cli": "PASS 335.963s",
+  "packages": "HIR/MIR2/Lizp/PLM/Pascal pass; Nanz/Lanz obsolete CString expectations subsequently corrected in 9329251d",
+  "showcase": "35 failures vs 31 baseline: 4 new invalid ASM; open regression gate",
+  "files": [
+    {
+      "path": "string-parent-cli.txt",
+      "bytes": 46,
+      "sha256": "dd95dcb9f2fe6b78c498dd24196bf5c0033b66b171c1132cdfa382ab561846de"
+    },
+    {
+      "path": "string-parent-packages.txt",
+      "bytes": 749,
+      "sha256": "b6ea17e13b0a719392e79085498147f681b4a34d36d530a3727961e4e4193468"
+    },
+    {
+      "path": "string-parent-showcase-comparison.json",
+      "bytes": 261,
+      "sha256": "16864ef180f415e42c67f7beb020d30ff543fa475638de0c23d511bd69bcc104"
+    },
+    {
+      "path": "string-parent-showcase.txt",
+      "bytes": 12268,
+      "sha256": "7be4f1a5c08d645056ab1e5146cfd625e7c050672e79845fe2124ae5871739db"
+    }
+  ]
+}
