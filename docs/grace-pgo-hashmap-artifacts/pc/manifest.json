@@ -1,0 +1,54 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 1401,
+      "sha256": "b22f539addd3b5a9ce5375859b8a7f5efa97936a1fd77ba903d9fb8fbb06e565"
+    },
+    {
+      "path": "attribute.py",
+      "bytes": 1627,
+      "sha256": "e6334f3bc82e23f0ebca0ab1cf8ec749938ed88e30ac08fcce9cb98f1bd3367c"
+    },
+    {
+      "path": "audit.go",
+      "bytes": 2315,
+      "sha256": "6ca76ebfa499027c00c8555ecfad14b19ad4a6b3f3bb26167cc9812ab80ac4bb"
+    },
+    {
+      "path": "block-costs.json",
+      "bytes": 3526,
+      "sha256": "6c8e387d8a38b081a5ca59f2c6706a91ab5e42401b63aa3ed420c551fb47993a"
+    },
+    {
+      "path": "function-costs.json",
+      "bytes": 8837,
+      "sha256": "95231674902a74c516d627e78a1d974a53814121ce93ef140a42f524ed820bde"
+    },
+    {
+      "path": "profile_workload_overlay.go.txt",
+      "bytes": 23929,
+      "sha256": "0bbdf21384d2e36b91fdc13322277883d32a7f3f9b50570afbd2a96634c907a0"
+    },
+    {
+      "path": "replay.log",
+      "bytes": 94,
+      "sha256": "d010109a94e270caf952244aedd8c286912a2015231bff45dc7181436ed9d89e"
+    },
+    {
+      "path": "report.md",
+      "bytes": 2870,
+      "sha256": "fef5bf33b3e5ac3204f601af33fa59d61bf8693237d22cd5ba2c5a484d0b6da4"
+    },
+    {
+      "path": "reproduce.sh",
+      "bytes": 835,
+      "sha256": "c9bdab79498b3dd66a42773cc7ca500ed449b4b11f09107fb8159f30748842c6"
+    },
+    {
+      "path": "reproduced-pc-records.json.gz",
+      "bytes": 19209,
+      "sha256": "1caac4f135c8beaa1cb93a1f0fd9208809bb54c656c2d8cb8c964c3b1ea837c1"
+    }
+  ]
+}

@@ -1,0 +1,537 @@
+{
+  "binary_sha256": "aefde17ab12e824e4d790cc7147f0974329faf5dded51f032643eb316d56ba86",
+  "total_t_states": 138440,
+  "method": "Instruction start PC, exclusive physical function range, bootstrap excluded; generated split separately counted",
+  "functions": [
+    {
+      "function": "map_put",
+      "t_states": 74633,
+      "percent": 53.90999711066166,
+      "hottest_pcs": [
+        {
+          "pc": 32943,
+          "t_states": 2641
+        },
+        {
+          "pc": 32934,
+          "t_states": 2085
+        },
+        {
+          "pc": 33033,
+          "t_states": 2057
+        },
+        {
+          "pc": 32926,
+          "t_states": 1946
+        },
+        {
+          "pc": 32939,
+          "t_states": 1946
+        }
+      ]
+    },
+    {
+      "function": "rd16",
+      "t_states": 33390,
+      "percent": 24.118751805836464,
+      "hottest_pcs": [
+        {
+          "pc": 32768,
+          "t_states": 1749
+        },
+        {
+          "pc": 32771,
+          "t_states": 1749
+        },
+        {
+          "pc": 32775,
+          "t_states": 1749
+        },
+        {
+          "pc": 32776,
+          "t_states": 1749
+        },
+        {
+          "pc": 32781,
+          "t_states": 1749
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "t_states": 14426,
+      "percent": 10.42039872869113,
+      "hottest_pcs": [
+        {
+          "pc": 33158,
+          "t_states": 476
+        },
+        {
+          "pc": 33172,
+          "t_states": 420
+        },
+        {
+          "pc": 33113,
+          "t_states": 367
+        },
+        {
+          "pc": 33142,
+          "t_states": 350
+        },
+        {
+          "pc": 33121,
+          "t_states": 330
+        }
+      ]
+    },
+    {
+      "function": "wr16",
+      "t_states": 12464,
+      "percent": 9.003178272175672,
+      "hottest_pcs": [
+        {
+          "pc": 32815,
+          "t_states": 570
+        },
+        {
+          "pc": 32801,
+          "t_states": 418
+        },
+        {
+          "pc": 32804,
+          "t_states": 418
+        },
+        {
+          "pc": 32810,
+          "t_states": 418
+        },
+        {
+          "pc": 32811,
+          "t_states": 418
+        }
+      ]
+    },
+    {
+      "function": "map_clear",
+      "t_states": 3054,
+      "percent": 2.206009823750361,
+      "hottest_pcs": [
+        {
+          "pc": 32896,
+          "t_states": 384
+        },
+        {
+          "pc": 32887,
+          "t_states": 352
+        },
+        {
+          "pc": 32891,
+          "t_states": 352
+        },
+        {
+          "pc": 32884,
+          "t_states": 320
+        },
+        {
+          "pc": 32892,
+          "t_states": 320
+        }
+      ]
+    },
+    {
+      "function": "map_has",
+      "t_states": 473,
+      "percent": 0.3416642588847154,
+      "hottest_pcs": [
+        {
+          "pc": 33205,
+          "t_states": 85
+        },
+        {
+          "pc": 33215,
+          "t_states": 75
+        },
+        {
+          "pc": 33210,
+          "t_states": 50
+        },
+        {
+          "pc": 33220,
+          "t_states": 37
+        },
+        {
+          "pc": 33218,
+          "t_states": 35
+        }
+      ]
+    }
+  ],
+  "per_call": [
+    {
+      "call": 0,
+      "t_states": 1527,
+      "functions": {
+        "map_clear": 1527
+      }
+    },
+    {
+      "call": 1,
+      "t_states": 302,
+      "functions": {
+        "map_get": 302
+      }
+    },
+    {
+      "call": 2,
+      "t_states": 1332,
+      "functions": {
+        "wr16": 656,
+        "map_put": 676
+      }
+    },
+    {
+      "call": 3,
+      "t_states": 2056,
+      "functions": {
+        "rd16": 210,
+        "wr16": 656,
+        "map_put": 1190
+      }
+    },
+    {
+      "call": 4,
+      "t_states": 1611,
+      "functions": {
+        "rd16": 630,
+        "map_get": 981
+      }
+    },
+    {
+      "call": 5,
+      "t_states": 1128,
+      "functions": {
+        "rd16": 210,
+        "wr16": 328,
+        "map_put": 590
+      }
+    },
+    {
+      "call": 6,
+      "t_states": 1004,
+      "functions": {
+        "rd16": 420,
+        "map_get": 496,
+        "map_has": 88
+      }
+    },
+    {
+      "call": 7,
+      "t_states": 1332,
+      "functions": {
+        "wr16": 656,
+        "map_put": 676
+      }
+    },
+    {
+      "call": 8,
+      "t_states": 1332,
+      "functions": {
+        "wr16": 656,
+        "map_put": 676
+      }
+    },
+    {
+      "call": 9,
+      "t_states": 1015,
+      "functions": {
+        "rd16": 420,
+        "map_get": 496,
+        "map_has": 99
+      }
+    },
+    {
+      "call": 10,
+      "t_states": 916,
+      "functions": {
+        "rd16": 420,
+        "map_get": 496
+      }
+    },
+    {
+      "call": 11,
+      "t_states": 2780,
+      "functions": {
+        "rd16": 420,
+        "wr16": 656,
+        "map_put": 1704
+      }
+    },
+    {
+      "call": 12,
+      "t_states": 3504,
+      "functions": {
+        "rd16": 630,
+        "wr16": 656,
+        "map_put": 2218
+      }
+    },
+    {
+      "call": 13,
+      "t_states": 4228,
+      "functions": {
+        "rd16": 840,
+        "wr16": 656,
+        "map_put": 2732
+      }
+    },
+    {
+      "call": 14,
+      "t_states": 4952,
+      "functions": {
+        "rd16": 1050,
+        "wr16": 656,
+        "map_put": 3246
+      }
+    },
+    {
+      "call": 15,
+      "t_states": 6400,
+      "functions": {
+        "rd16": 1470,
+        "wr16": 656,
+        "map_put": 4274
+      }
+    },
+    {
+      "call": 16,
+      "t_states": 7124,
+      "functions": {
+        "rd16": 1680,
+        "wr16": 656,
+        "map_put": 4788
+      }
+    },
+    {
+      "call": 17,
+      "t_states": 7848,
+      "functions": {
+        "rd16": 1890,
+        "wr16": 656,
+        "map_put": 5302
+      }
+    },
+    {
+      "call": 18,
+      "t_states": 8572,
+      "functions": {
+        "rd16": 2100,
+        "wr16": 656,
+        "map_put": 5816
+      }
+    },
+    {
+      "call": 19,
+      "t_states": 9296,
+      "functions": {
+        "rd16": 2310,
+        "wr16": 656,
+        "map_put": 6330
+      }
+    },
+    {
+      "call": 20,
+      "t_states": 10744,
+      "functions": {
+        "rd16": 2730,
+        "wr16": 656,
+        "map_put": 7358
+      }
+    },
+    {
+      "call": 21,
+      "t_states": 11468,
+      "functions": {
+        "rd16": 2940,
+        "wr16": 656,
+        "map_put": 7872
+      }
+    },
+    {
+      "call": 22,
+      "t_states": 12192,
+      "functions": {
+        "rd16": 3150,
+        "wr16": 656,
+        "map_put": 8386
+      }
+    },
+    {
+      "call": 23,
+      "t_states": 11703,
+      "functions": {
+        "rd16": 3360,
+        "map_put": 8343
+      }
+    },
+    {
+      "call": 24,
+      "t_states": 11252,
+      "functions": {
+        "rd16": 3360,
+        "map_get": 7892
+      }
+    },
+    {
+      "call": 25,
+      "t_states": 1852,
+      "functions": {
+        "rd16": 420,
+        "wr16": 328,
+        "map_put": 1104
+      }
+    },
+    {
+      "call": 26,
+      "t_states": 1710,
+      "functions": {
+        "rd16": 630,
+        "map_get": 981,
+        "map_has": 99
+      }
+    },
+    {
+      "call": 27,
+      "t_states": 916,
+      "functions": {
+        "rd16": 420,
+        "map_get": 496
+      }
+    },
+    {
+      "call": 28,
+      "t_states": 1527,
+      "functions": {
+        "map_clear": 1527
+      }
+    },
+    {
+      "call": 29,
+      "t_states": 302,
+      "functions": {
+        "map_get": 302
+      }
+    },
+    {
+      "call": 30,
+      "t_states": 1332,
+      "functions": {
+        "wr16": 656,
+        "map_put": 676
+      }
+    },
+    {
+      "call": 31,
+      "t_states": 916,
+      "functions": {
+        "rd16": 420,
+        "map_get": 496
+      }
+    },
+    {
+      "call": 32,
+      "t_states": 1004,
+      "functions": {
+        "rd16": 420,
+        "map_get": 496,
+        "map_has": 88
+      }
+    },
+    {
+      "call": 33,
+      "t_states": 1332,
+      "functions": {
+        "wr16": 656,
+        "map_put": 676
+      }
+    },
+    {
+      "call": 34,
+      "t_states": 1015,
+      "functions": {
+        "rd16": 420,
+        "map_get": 496,
+        "map_has": 99
+      }
+    },
+    {
+      "call": 35,
+      "t_states": 916,
+      "functions": {
+        "rd16": 420,
+        "map_get": 496
+      }
+    }
+  ],
+  "ranges": [
+    [
+      32768,
+      "rd16"
+    ],
+    [
+      32801,
+      "wr16"
+    ],
+    [
+      32858,
+      "hash16"
+    ],
+    [
+      32869,
+      "map_clear"
+    ],
+    [
+      32898,
+      "map_put"
+    ],
+    [
+      33086,
+      "map_get"
+    ],
+    [
+      33203,
+      "map_has"
+    ],
+    [
+      33224,
+      "test_put_get"
+    ],
+    [
+      33260,
+      "test_missing"
+    ],
+    [
+      33287,
+      "test_overwrite"
+    ],
+    [
+      33339,
+      "test_two_keys"
+    ],
+    [
+      33412,
+      "test_has"
+    ],
+    [
+      33462,
+      "test_count"
+    ],
+    [
+      33517,
+      "test_zero_key"
+    ],
+    [
+      33557,
+      "test_many"
+    ]
+  ]
+}

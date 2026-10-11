@@ -1,0 +1,21 @@
+{
+  "history_compiler": "ef2703333843c3261e1f26b51b66ffde5dffa295",
+  "current_compiler": "1d4d3d10bdc0ea51609a3d695bd626f2294e3d07",
+  "files": [
+    {
+      "file": "source.nanz",
+      "exact_bytes_equal": true,
+      "sha256": "2caa7c16db7371f6f1ef6eecfa8c767e58d9d961c5bdfdbfccda1fb6e613c3f8"
+    },
+    {
+      "file": "baseline.a80",
+      "exact_bytes_equal": true,
+      "sha256": "c517859934d0b72927a762956a1f366a13398db16905e555d99d6167923a24f2"
+    },
+    {
+      "file": "baseline.bin",
+      "exact_bytes_equal": true,
+      "sha256": "aefde17ab12e824e4d790cc7147f0974329faf5dded51f032643eb316d56ba86"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "source": "examples/nanz/21_hashmap_test.nanz",
+  "sha256": "2caa7c16db7371f6f1ef6eecfa8c767e58d9d961c5bdfdbfccda1fb6e613c3f8",
+  "history_compiler_commit": "ef2703333843c3261e1f26b51b66ffde5dffa295",
+  "current_parent_gate": "PASS focused TestOriginalHashmapPersistentProgram 0.304s, parent1d4d3d10"
+}

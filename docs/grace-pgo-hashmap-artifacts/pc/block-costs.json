@@ -1,0 +1,199 @@
+{
+  "total_t_states": 138440,
+  "binary_sha256": "aefde17ab12e824e4d790cc7147f0974329faf5dded51f032643eb316d56ba86",
+  "blocks": [
+    {
+      "block": "rd16 whole",
+      "t_states": 33390,
+      "instructions": 4134,
+      "range": [
+        32768,
+        32801
+      ]
+    },
+    {
+      "block": "wr16 whole",
+      "t_states": 12464,
+      "instructions": 1482,
+      "range": [
+        32801,
+        32858
+      ]
+    },
+    {
+      "block": "hash16 standalone",
+      "t_states": 0,
+      "instructions": 0,
+      "range": [
+        32858,
+        32869
+      ]
+    },
+    {
+      "block": "clear count/setup",
+      "t_states": 106,
+      "instructions": 14,
+      "range": [
+        32869,
+        32881
+      ]
+    },
+    {
+      "block": "clear loop guard",
+      "t_states": 420,
+      "instructions": 68,
+      "range": [
+        32881,
+        32884
+      ]
+    },
+    {
+      "block": "clear byte store/address/bump",
+      "t_states": 2528,
+      "instructions": 288,
+      "range": [
+        32884,
+        32898
+      ]
+    },
+    {
+      "block": "put hash/setup",
+      "t_states": 1806,
+      "instructions": 315,
+      "range": [
+        32898,
+        32919
+      ]
+    },
+    {
+      "block": "put probe count guard",
+      "t_states": 3786,
+      "instructions": 560,
+      "range": [
+        32919,
+        32926
+      ]
+    },
+    {
+      "block": "put occupancy address/read/test",
+      "t_states": 22150,
+      "instructions": 2085,
+      "range": [
+        32926,
+        32949
+      ]
+    },
+    {
+      "block": "put insert caller+count",
+      "t_states": 7344,
+      "instructions": 774,
+      "range": [
+        32949,
+        33019
+      ]
+    },
+    {
+      "block": "put key-read call/compare",
+      "t_states": 31208,
+      "instructions": 2783,
+      "range": [
+        33019,
+        33054
+      ]
+    },
+    {
+      "block": "put overwrite caller",
+      "t_states": 128,
+      "instructions": 14,
+      "range": [
+        33054,
+        33068
+      ]
+    },
+    {
+      "block": "put slot/probe bump",
+      "t_states": 8211,
+      "instructions": 1309,
+      "range": [
+        33068,
+        33086
+      ]
+    },
+    {
+      "block": "get hash/setup",
+      "t_states": 1170,
+      "instructions": 221,
+      "range": [
+        33086,
+        33108
+      ]
+    },
+    {
+      "block": "get probe count guard",
+      "t_states": 912,
+      "instructions": 96,
+      "range": [
+        33108,
+        33118
+      ]
+    },
+    {
+      "block": "get occupancy address/read/test",
+      "t_states": 5030,
+      "instructions": 630,
+      "range": [
+        33118,
+        33144
+      ]
+    },
+    {
+      "block": "get empty miss return",
+      "t_states": 40,
+      "instructions": 4,
+      "range": [
+        33144,
+        33148
+      ]
+    },
+    {
+      "block": "get key-read call/compare",
+      "t_states": 5270,
+      "instructions": 644,
+      "range": [
+        33148,
+        33179
+      ]
+    },
+    {
+      "block": "get value tailcall",
+      "t_states": 240,
+      "instructions": 30,
+      "range": [
+        33179,
+        33186
+      ]
+    },
+    {
+      "block": "get slot/probe bump",
+      "t_states": 1764,
+      "instructions": 252,
+      "range": [
+        33186,
+        33203
+      ]
+    },
+    {
+      "block": "has caller",
+      "t_states": 473,
+      "instructions": 66,
+      "range": [
+        33203,
+        33224
+      ]
+    }
+  ],
+  "rd16_entry_count": 159,
+  "wr16_entry_count": 38,
+  "put_probe_iterations": 139,
+  "get_probe_iterations": 30
+}
