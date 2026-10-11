@@ -1,0 +1,11 @@
+# Final full30 saved native review
+
+PASS, saved-only. Four fresh CLI directories speed-collect/replay and size-collect/replay bind the preserved e518 compiler executable SHA9ec48c5f2eaa42e786be9adddc0b824c374d5c39a599a8d2dd0ef3181a2b65d1. All32 candidate envelopes and eight serialized input-association baselines bind the exact source/workload/current context, policy0/1, mask0..3 and typed precompile proof source/actual compatibility plus complete function origins. Association native baselines equal their corresponding original candidate envelopes.
+
+Every32 saved ASM independently assembled at its declared code origin matches exact BIN. Embedded/saved ASM/BIN, typed sidecar/CallSpills/CallFrames hashes, compact allocation hash and final MIR hash passed. All images contain ten call-spill stages, five exact save/restore pairs: function/call/home/width identity, marked CALL and finite opcode PCs bind actual BIN; protected spill descriptors bind the same home bytes and direction. Ordered E3 behavior is covered by the frozen native certificate/runtime tests; this saved review does not replay CPU or infer extra dynamic memory accesses.
+
+All candidate raw/target observations match except execution steps, and all masks share original semantic state/resource events. Source workload has30calls. Four search bundles retain1200 invocation records:960candidate records plus240input-association records. Of these1080 represent actual executions;120 are supplied replay inputs copied from collection. Paired replay associations are byte-identical and the candidates/native payloads are identical across goals. Independent source semantics were separately checked by cost-model audit2360.
+
+Speed selected policy1/mask3,1233170 modelT/2490B. Size selected policy0/mask2,1236250 modelT/2368B. Both decisions hash exact stored search/two associations/source and match chosen ASM/BIN; external -o files equal selected ASM. Goal-specific selection is preserved. This is the closed full30 resource workload, not ordinary fullmain/BDOS or a physical-machine timing claim.
+
+Portable helpers read raw or deterministic gzip copies. audit_typed.go.txt rebuilds the typed hash auditor against current integrated compiler types; audit_assembly.go.txt uses fresh assembler code with explicit workload origin. No CPU measurement was repeated.
