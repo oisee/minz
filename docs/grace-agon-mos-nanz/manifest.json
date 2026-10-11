@@ -1,0 +1,58 @@
+{
+  "base_commit": "0717d100",
+  "scope": "Nanz console migration; encoded ADL product; Z80 caller with explicit MOS mock; no eZ80 execution claim",
+  "files": {
+    "REPORT.md": {
+      "sha256": "22c23db41f50864eaa80f1bdb73ae9daddc93cf66b2bf9d6ca5c31d99180b61a",
+      "bytes": 3833
+    },
+    "agon-adl.asm": {
+      "sha256": "a397e78e5e6d0ac7af02605c74b19bc21c78c03907ffa1992389acd639460401",
+      "bytes": 2890
+    },
+    "agon-adl.bin": {
+      "sha256": "67ade7d62a304b183856a78573cda3ed4318f30d1e8745dbc166da1c4db9eb70",
+      "bytes": 197
+    },
+    "assembler-ez80-packages.txt": {
+      "sha256": "4eb4ca570d694c611e818b0943d078cab1b1320e9607ccb2ef683183f5b33112",
+      "bytes": 88
+    },
+    "boundary-and-showcase.txt": {
+      "sha256": "8c5c98db48265fd1e89006fe2878a02cfc6136cf61fad24941aae4e69347804b",
+      "bytes": 684
+    },
+    "caller.a80": {
+      "sha256": "7498596305c283334c2485629c139ed9ee49288f5e9b86752f4b71f1589dd6e3",
+      "bytes": 2765
+    },
+    "caller.bin": {
+      "sha256": "374d7e0a44ea0e8362d3973c301ce624e59c85bd515d1523dc425fa33d230eba",
+      "bytes": 181
+    },
+    "focused-showcase.txt": {
+      "sha256": "6bd2cd1eb44c7af8f7adc3e56ab4a9b5531a28cc42ef07e13337a19c361e0fae",
+      "bytes": 367
+    },
+    "nanz-short.txt": {
+      "sha256": "ad5269ef6bce94362cf95c1737f09f616b159cf83b3f2e37c906663b54524120",
+      "bytes": 812
+    },
+    "result.txt": {
+      "sha256": "9987d5d7397ca0561344eb9977ba17be7d7eadffdc94ff744490bdd1a76c0eb4",
+      "bytes": 39
+    },
+    "stdout.bin": {
+      "sha256": "33395b5c19e99f88d7fa85bc7025e245162cdb229230dc6a375366b6f365e83d",
+      "bytes": 114
+    },
+    "upstream-mos_api.inc": {
+      "sha256": "ce730789707db6aa444be5e055b86acd9aec864ad56e36b8b6c6be905a2c7b36",
+      "bytes": 7977
+    },
+    "upstream-vectors16.asm": {
+      "sha256": "adaa93009bb5e874731ca2bf9e5a1cfe5f4ee8203134d52e1cf9da8c2cf8c326",
+      "bytes": 8580
+    }
+  }
+}
