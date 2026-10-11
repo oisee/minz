@@ -1,0 +1,13 @@
+{
+  "compiler_sha256": "112ae772c0d2ca4f552620388b6261c9fa20908af64abc19ccdd898b6e39ef93",
+  "ordinary_assembly_sha256": "8085bdee473e1a719c2cb0843c9148d7a683fcf1d6d14b64a60af0432eb70bdd",
+  "wrapper_sha256": "aafd17b6df2d26b71b5ebace0d17360face843bba2496d1c97ba33db90b262de",
+  "print_replacements": 16,
+  "execution_performed": false,
+  "pending_before_execution": [
+    "incoming SP owned-region guard",
+    "post-main canary verification",
+    "independent wrapper review",
+    "closed string/activation gates"
+  ]
+}
