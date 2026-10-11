@@ -28,6 +28,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/minz/minzc/pkg/asmutil"
 	"github.com/minz/minzc/pkg/mir2"
 )
 
@@ -657,26 +658,8 @@ func emitSpillLabels(sb *strings.Builder, desc *MachineDesc, funcName string) {
 	}
 }
 
-// z80Reserved are Z80 register names that cannot be used as asm labels.
-var z80Reserved = map[string]bool{
-	"A": true, "B": true, "C": true, "D": true, "E": true, "F": true,
-	"H": true, "L": true, "I": true, "R": true,
-	"AF": true, "BC": true, "DE": true, "HL": true, "SP": true,
-	"IX": true, "IY": true, "IXH": true, "IXL": true, "IYH": true, "IYL": true,
-}
-
-// SanitizeAsmLabel makes a symbol safe for use as a Z80 assembly label.
-// Replaces @/. with _, prefixes with v_ if it collides with a register name.
-func SanitizeAsmLabel(s string) string {
-	s = strings.ReplaceAll(s, "@", "_")
-	s = strings.ReplaceAll(s, ".", "_")
-	s = strings.ReplaceAll(s, "-", "_")
-	s = strings.ReplaceAll(s, "$", "_")
-	if z80Reserved[strings.ToUpper(s)] {
-		return "v_" + s
-	}
-	return s
-}
+// SanitizeAsmLabel preserves the research LIR API while label handling is shared.
+func SanitizeAsmLabel(s string) string { return asmutil.SanitizeZ80Label(s) }
 
 // EmitStringPool emits string constant labels from the MIR2 module.
 // Sanitizes symbol names: @mir2.str.0 → _mir2_str_0 (matching bridge.go).
