@@ -1,0 +1,4 @@
+=== RUN   TestGraceCondRetRejectsFlagClobberingHoistNative
+--- PASS: TestGraceCondRetRejectsFlagClobberingHoistNative (0.40s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.412s
