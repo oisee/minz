@@ -1,0 +1,9 @@
+# Allocated print-byte retry source review
+
+Read-only9eb88b7c/4b5d3a35 exact10-file inventory verified. The narrowprint.charfix addresses the savedactualargument mismatch without changingrepresentation lowering ororacle. NoCPU bythisreviewer.
+
+Theintrinsic checksoneargument andrefusesunmaterializedF. Itsphysicalsourceusesg.loc, respectingoverrides andspilllabels. emitLDA loadsbyte, pairlowbyte orspillbyte; thespillpath emits itsnormalcompiler-owned memorydescriptor. TheseLDforms andOUT preserveflags. Canonical scratchLiveAfter findsotherliveAvalues; PUSHAF/POP restoresloopcountA andflags afteroutput. Cacheclear/invalidate is conservative evenwhenArestored. IfargisalreadyA, noextra transfer/save isneeded. Thisreviewfoundno materialgapfor the honestallocatedbyte sourcefixture.
+
+Thetestharness nowselectsCPMallRAM andexpectsHALTaddressdone+1. Thisrepairs the twoindependentfixture failures; previous15cases remainnegativehistory. Recommendoneboundedrepeatof12printand3storagecases afterrootrelease. RetainactualASM/BIN/output/state/source/allocation beforeassertions.
+
+Thisdoesnotcertifyallintrinsiccallboundaries, allAFaliases/pendingcachecases, orgeneralcompiler effectpermissions. The15actualfixturesexerciseH/Dcoalescedsource/livecount andnormalallocatedregisterpaths; a forcedspill/liveA/flagtypedmachinecontrol canfollowifneededfor productionreview. No broadPASSclaim beforeactualterminal.

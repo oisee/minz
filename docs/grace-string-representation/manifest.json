@@ -1,8 +1,13 @@
 [
   {
     "path": "README.md",
-    "bytes": 2268,
-    "sha256": "13ef64e77bf058f72b063f86d81ee4a20c5b9103bd07f2f7ce9e7783e2b8bc50"
+    "bytes": 2447,
+    "sha256": "7c3dd1739f88521d087bfbf92e4e851335a04f753e866f79acbe2c46106e11a5"
+  },
+  {
+    "path": "compat-corrected-focused.txt",
+    "bytes": 86,
+    "sha256": "4d7d3c733f09ae0feb38fe3fa88825f5a54597b947d7909e58f432396cbe2094"
   },
   {
     "path": "evidence/actual/c/allocation.json",
@@ -1726,6 +1731,141 @@
     "path": "evidence/repaired-native.log",
     "bytes": 1555,
     "sha256": "1ac94b35b2c4104c6d653069325f62b68a9e2bec8f648ed237a3888b43ff44d0"
+  },
+  {
+    "path": "independent-native/FINAL_REVIEW.md",
+    "bytes": 1951,
+    "sha256": "b5e6cdc10a382a93117906eea3cba589ea44a939ba64c6f7d0dc51e342d2ae9f"
+  },
+  {
+    "path": "independent-native/assembly.txt",
+    "bytes": 1970,
+    "sha256": "b0e9311ccdf0f79b8dd0a7b35b75ee977ee00a56f0332f627f3d00d36aaa021e"
+  },
+  {
+    "path": "independent-native/bytes-state.txt",
+    "bytes": 1277,
+    "sha256": "a70e1be95bc32463c8b4fb350b2595dbac4c10fe0edf198b6a61afaae9c1d965"
+  },
+  {
+    "path": "independent-native/identity.json",
+    "bytes": 586,
+    "sha256": "413ce7834205b9169d0d9965f87129f3eec16d96ccbb3974fefdb763eeb2226b"
+  },
+  {
+    "path": "independent-native/raw-inventory.json",
+    "bytes": 23425,
+    "sha256": "7ce527fb7bb4219d06b1d478edc3f83c4b68cd5dd425078ecde5acc3be85977d"
+  },
+  {
+    "path": "independent-semantic/ALLOCATED-PRINT-RETRY-REVIEW.md",
+    "bytes": 1404,
+    "sha256": "ed59128dff6a975a13842c7da2405e14f9f7cd069451d9ec47465d3bcd51d575"
+  },
+  {
+    "path": "independent-semantic/B989-SOURCE-REVIEW.md",
+    "bytes": 1975,
+    "sha256": "b0ea5b33d2e90398f9869bd0ca30f85c86d6c0e62cdc06415ef95157f0658ed1"
+  },
+  {
+    "path": "independent-semantic/C9C3-FINAL-SOURCE-REVIEW.md",
+    "bytes": 2000,
+    "sha256": "3345b4e1bce869be2a42fbfa697c5d704ea857e24c4713cd05a3f552b56ae87b"
+  },
+  {
+    "path": "independent-semantic/EXPECTED.json",
+    "bytes": 1842,
+    "sha256": "ac97d3171241a0f82ce72016b0a1e9302ca3f286c6590f763339cc4e984efd65"
+  },
+  {
+    "path": "independent-semantic/FINAL-REPAIRED-AUDIT.md",
+    "bytes": 1237,
+    "sha256": "f61844c0f6f65577e5f6cf74e7d8a2d40f6921811c0c94c2f53657a66d98c1f5"
+  },
+  {
+    "path": "independent-semantic/FIRST-NATIVE-DIAGNOSIS.md",
+    "bytes": 1696,
+    "sha256": "0c2b64c76410cc8a10144efdac824d7335e9d7d3c97a5d82beaaebb48dfaef7b"
+  },
+  {
+    "path": "independent-semantic/FIRST-NATIVE-FAILURE.json",
+    "bytes": 6281,
+    "sha256": "642a7c1a2dfdf7e71614d8a7241903e843ccb5c0e5eb18e6169747ed56ed8b16"
+  },
+  {
+    "path": "independent-semantic/FIX-5BD9-REVIEW.md",
+    "bytes": 1499,
+    "sha256": "3cc9fbd394907dc228748d75bbc2b01a11f706c33cbc9ebe76136a1c3119dfdf"
+  },
+  {
+    "path": "independent-semantic/PLAN.md",
+    "bytes": 5117,
+    "sha256": "dae90177e0d44ee8ab8f73fbd6919ca75ec1cd49ebb12145f0dcec7321891649"
+  },
+  {
+    "path": "independent-semantic/REVIEW-GATE.md",
+    "bytes": 1721,
+    "sha256": "0af04f566acc1143a25062d4759ab29335375b66db5e7250eacf48a7c287c0a3"
+  },
+  {
+    "path": "independent-semantic/allocated-print-reviewed-inventory.json",
+    "bytes": 1383,
+    "sha256": "cde291615c2b09486b276c8e117ef9f12fbf6bb769d9f33b42f0e9a5eb67b470"
+  },
+  {
+    "path": "independent-semantic/c9c3-reviewed-inventory.json",
+    "bytes": 1244,
+    "sha256": "aa727e57a5ec52df5accb29e18bf12e84b8c9bf62008d7968648755d2b506042"
+  },
+  {
+    "path": "independent-semantic/offline-reassembly.txt",
+    "bytes": 473,
+    "sha256": "ff133e9c76b1148f548425727ffe66345f97607bc1c863fe5006d97e3fbae242"
+  },
+  {
+    "path": "independent-semantic/repaired-saved-audit.json",
+    "bytes": 7695,
+    "sha256": "966dd7d7161235f54bd19857903c47807b02966ffb9208512dd10d4cd388345f"
+  },
+  {
+    "path": "independent-semantic/repro/generated_name_collision.nanz",
+    "bytes": 99,
+    "sha256": "f4bf73ef81951f11b7cf362ca9c5ec24e23a5f9b706bcb6ed877f294ef769ee5"
+  },
+  {
+    "path": "independent-semantic/repro/main_source_boundary.nanz",
+    "bytes": 277,
+    "sha256": "e9f0a83d60294fa3f04db182f5a676e0f09587abe05fd101e967b57c68cbbc2f"
+  },
+  {
+    "path": "independent-semantic/repro/print_formats.nanz",
+    "bytes": 402,
+    "sha256": "29d0034a0949baf0189f86771f5bd469c742dc785edf0255c04245753869df9f"
+  },
+  {
+    "path": "independent-semantic/repro/representation.nanz",
+    "bytes": 247,
+    "sha256": "18d4593411374e15b259b07d880c0dab06a1d2255c177581b0f8f203270d7f97"
+  },
+  {
+    "path": "independent-semantic/tools/.gitignore",
+    "bytes": 19,
+    "sha256": "862263fa1f46c20f0d1e4dac5ffcc75abd55c08211b2c3864c5f8764b9d87793"
+  },
+  {
+    "path": "independent-semantic/tools/audit_strings.py",
+    "bytes": 3287,
+    "sha256": "d61c93ea5988d935a14df8929e17340520ebb47bbb8ccf5b223967d452cee9aa"
+  },
+  {
+    "path": "independent-semantic/tools/reassemble_strings.go",
+    "bytes": 737,
+    "sha256": "f26832a952709b3fd5ec5e6eb9957f46e5660a6adca2cb8648625139545b31c1"
+  },
+  {
+    "path": "packaged-saved-audit.json",
+    "bytes": 7695,
+    "sha256": "966dd7d7161235f54bd19857903c47807b02966ffb9208512dd10d4cd388345f"
   },
   {
     "path": "source/minzc/pkg/hir/lower.go",
