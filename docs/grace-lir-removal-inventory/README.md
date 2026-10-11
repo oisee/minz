@@ -63,3 +63,20 @@
 - CLI/Options/Steps/provenance приведены к конечной архитектуре, old profile/configuration IDs не маскируются.
 - Shared z80spec остаётся единой моделью physical overlap; проверенные таблицы VIR сохраняют versioned constraint/cost namespace.
 - Исторические отчёты и raw artifacts сохранены на шаре; архив research LIR не входит в build graph.
+
+## Актуализация после удаления пакета, 11 октября
+
+Таблица выше описывает исторический snapshot `ea4039e7`. Она не является
+списком всё ещё отсутствующих возможностей. На `80c3dba3`:
+
+| Возможность | Текущий результат | Доказательство и оставшаяся граница |
+|---|---|---|
+| Удаление LIR и consumers | Завершено, `47127a27` | [Архив и build audit](../grace-lir-final-removal/README.md); архив не входит в build graph |
+| u16 ×10/12 | Перенесено в обычный backend | [Native операция](../grace-mul16-10-12/REPORT.md): HL 1079→96 T, 32→9 B; source и physical preservation проверки. Прежняя строка «уходят в runtime» больше не актуальна |
+| Общий invariant address hoist | Реализован под Grace, исключён для Size | [FAT12](../grace-fat-directory-invariant-address.md): 13828→11202 T, +16 B модуля; wrap, zero, alias и fault-prefix проверки. Это измерение cache-hit workload с дисковыми адаптерами |
+| Проверенные локальные register assignments | Реализованы exact checked cache и offline revalidation старых предложений | [Аудит](../../reports/2026-10-11-table-no-benefit-audit.md), [импорт](../../reports/2026-10-11-legacy-candidate-import.md). Calls/CFG/islands вне нынешнего допуска; prefix ENRT sample не доказывает полный shape lookup |
+| Effect-safe byte load/store fusion | Ещё не завершено | Наличие shared ISLE declarations не доказывает легальность. Нужно сохранить эффекты, byte order, wrap, fault prefix и контракт наблюдения доступа. Исследуется реальная FAT12 форма |
+| Общие ISA/ABI ограничения | Несколько конкретных ошибок исправлены; полнота переноса не доказана | Canonical overlap и проверки checked assignments действуют; произвольные islands, edge moves и effects нельзя считать покрытыми по одному local certificate |
+
+Никакая зелёная проверка архива или удаления imports не заменяет доказательство
+последних двух строк. Общая цель остаётся активной.
