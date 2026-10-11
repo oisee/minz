@@ -11,7 +11,6 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"strings"
 	"testing"
 )
 
@@ -27,30 +26,9 @@ func TestOriginalIdiomaticSumReadOrderVMZ80(t *testing.T) {
 	const adapter = `@extern fun peek(addr:u16)->u8
 fun oracle_observe(addr:u16)->u8 {return peek(addr)}
 `
-	const deadDeclaration = "@extern fun add_to_acc(x: u8) -> void"
-	if strings.Count(string(source), deadDeclaration) != 1 {
-		t.Fatal("unused extern declaration changed")
-	}
-	compiledSource := strings.Replace(string(source), deadDeclaration, "", 1) + "\n" + adapter
+	compiledSource := string(source) + "\n" + adapter
 	factory := func() *hir.Module {
-		h, e := nanz.Parse(string(source), path)
-		if e != nil {
-			t.Fatal(e)
-		}
-		// The historical example declares an unused external callback whose ABI
-		// has no bounded-memory host equivalent. Audit the COMPLETE lowered source
-		// before omitting only that dead linker declaration; no body is edited.
-		full := hir.LowerModule(h)
-		for _, f := range full.Funcs {
-			for _, b := range f.Blocks {
-				for _, i := range b.Insts {
-					if i.Sym == "add_to_acc" || i.Op == mir2.OpCallIndirect {
-						t.Fatal("original source now depends on unsupported add_to_acc runtime")
-					}
-				}
-			}
-		}
-		h, e = nanz.Parse(compiledSource, path+"+explicit-linker-adapter")
+		h, e := nanz.Parse(compiledSource, path)
 		if e != nil {
 			t.Fatal(e)
 		}
@@ -74,7 +52,7 @@ fun oracle_observe(addr:u16)->u8 {return peek(addr)}
 		}
 	}
 	w.Calls = append(w.Calls, hir.MemoryHostInvocation{Function: "oracle_observe", Arguments: []int64{0x9000}})
-	dir := os.Getenv("MINZ_IDIOMATIC_SUM_ORACLE_ARTIFACTS")
+	dir := os.Getenv("MINZ_IDIOMATIC_SUM_EXACT_ARTIFACTS")
 	save := func(name string, v any) {
 		if dir == "" {
 			return
@@ -106,7 +84,7 @@ fun oracle_observe(addr:u16)->u8 {return peek(addr)}
 		t.Fatal(e)
 	}
 	save("original-full.mir2", hir.LowerModule(originalFull).Dump())
-	save("linker-boundary.json", map[string]any{"removed_declaration": deadDeclaration, "original_source_sha256": fmt.Sprintf("%x", sha256.Sum256(source)), "compiled_source_sha256": fmt.Sprintf("%x", sha256.Sum256([]byte(compiledSource))), "original_callback_references": 0, "original_indirect_calls": 0, "algorithm_source_edits": 0})
+	save("source-provenance.json", map[string]any{"original_source_sha256": fmt.Sprintf("%x", sha256.Sum256(source)), "compiled_source_sha256": fmt.Sprintf("%x", sha256.Sum256([]byte(compiledSource))), "removed_declarations": 0, "algorithm_source_edits": 0, "adapter": "observer only"})
 	save("workload.json", w)
 	original := factory()
 	raw, e := hir.RunMemoryHostBaseline(original, w)

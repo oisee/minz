@@ -155,6 +155,11 @@ func PrepareMemoryHostWorkload(m *Module, w MemoryHostWorkload) (MemoryHostWorkl
 			}
 		}
 	}
+	raw := LowerModule(m)
+	reachable, e := MemoryHostReachableFunctions(raw, owned)
+	if e != nil {
+		return fail(e.Error())
+	}
 	seen := map[string]bool{}
 	for _, f := range m.Funcs {
 		kind, ok := owned.Hosts[f.Name]
@@ -165,6 +170,9 @@ func PrepareMemoryHostWorkload(m *Module, w MemoryHostWorkload) (MemoryHostWorkl
 			if ok {
 				return fail("host names non-extern function")
 			}
+			continue
+		}
+		if !ok && !reachable[f.Name] {
 			continue
 		}
 		if !ok || f.Body != nil || len(f.Captures) != 0 || len(f.RetTys) != 0 || f.ExternAddr != 0 || f.ExternClobbers != nil {
@@ -234,7 +242,6 @@ func PrepareMemoryHostWorkload(m *Module, w MemoryHostWorkload) (MemoryHostWorkl
 			}
 		}
 	}
-	raw := LowerModule(m)
 	if e = ValidateMemoryHostMIR(m, raw, owned); e != nil {
 		return fail(e.Error())
 	}
@@ -284,6 +291,38 @@ func ValidateMemoryHostMIR(source *Module, m *mir2.Module, w MemoryHostWorkload)
 	if err != nil {
 		return err
 	}
+	// Reachability cannot erase source obligations: a rewritten constant branch
+	// must not turn a source-reachable unbound host into an admitted candidate.
+	sourceRaw := LowerModule(source)
+	for _, f := range sourceRaw.Funcs {
+		for _, b := range f.Blocks {
+			for _, i := range b.Insts {
+				if i.Op == mir2.OpCallIndirect || i.Op == mir2.OpAddrOf && source.FuncByName(i.Sym) != nil {
+					return fmt.Errorf("memory host: source function address/indirect escape unsupported")
+				}
+			}
+		}
+	}
+	sourceReachable, err := MemoryHostReachableFunctions(sourceRaw, w)
+	if err != nil {
+		return err
+	}
+	for _, f := range sourceRaw.Funcs {
+		for _, b := range f.Blocks {
+			for _, i := range b.Insts {
+				if i.Op == mir2.OpCall && sourceRaw.FuncByName(i.Sym) == nil && (sourceReachable[f.Name] || !strings.HasPrefix(strings.TrimPrefix(i.Sym, "@"), "mir.io.print.")) {
+					return fmt.Errorf("memory host: source undeclared call %q", i.Sym)
+				}
+			}
+		}
+	}
+	for _, f := range source.Funcs {
+		if f.IsExtern && (sourceReachable[f.Name] || reachable[f.Name]) {
+			if _, ok := w.Hosts[f.Name]; !ok {
+				return fmt.Errorf("memory host: reachable unregistered extern %q", f.Name)
+			}
+		}
+	}
 	seen := map[string]bool{}
 	for _, g := range m.Globals {
 		if g.Storage != mir2.StorageNormal || g.At != nil || len(g.VtableSyms) != 0 || memoryHostPointerStorage(g.Ty) {
@@ -294,32 +333,35 @@ func ValidateMemoryHostMIR(source *Module, m *mir2.Module, w MemoryHostWorkload)
 		if f.Attrs.HasAsm {
 			return fmt.Errorf("memory host: ASM function unsupported")
 		}
-		if f.Attrs.IsExtern {
+		sf := source.FuncByName(f.Name)
+		if f.Attrs.IsExtern || sf != nil && sf.IsExtern {
+			// Dead declarations still carry a callable identity. Never admit a retained
+			// extern changed into a body or a changed parameter/return/address contract.
+			baseline := sourceRaw.FuncByName(f.Name)
+			if sf == nil || !sf.IsExtern || !f.Attrs.IsExtern || baseline == nil || len(f.Blocks) != 0 ||
+				!memoryHostExternIdentityEqual(baseline, f) {
+				return fmt.Errorf("memory host: compiled extern identity mismatch %q", f.Name)
+			}
 			kind, ok := w.Hosts[f.Name]
-			sf := source.FuncByName(f.Name)
-			if !ok || sf == nil || !sf.IsExtern || len(f.Blocks) != 0 || len(f.Contract.Params) != len(sf.Params) {
-				return fmt.Errorf("memory host: compiled extern mismatch %q", f.Name)
-			}
-			for i, p := range f.Contract.Params {
-				if p.Ty != sf.Params[i].Ty {
-					return fmt.Errorf("memory host: compiled parameter mismatch")
+			if !ok {
+				if reachable[f.Name] || sourceReachable[f.Name] {
+					return fmt.Errorf("memory host: reachable unregistered extern %q", f.Name)
 				}
+			} else {
+				if kind != MemoryHostReadU8 && kind != MemoryHostWriteU8 {
+					return fmt.Errorf("memory host: unknown host")
+				}
+				seen[f.Name] = true
 			}
-			if kind != MemoryHostReadU8 && kind != MemoryHostWriteU8 {
-				return fmt.Errorf("memory host: unknown host")
-			}
-			nr := 0
-			if sf.RetTy != mir2.TyVoid {
-				nr = 1
-			}
-			if len(f.Contract.Returns) != nr || nr == 1 && f.Contract.Returns[0].Ty != sf.RetTy || f.Attrs.ExternAddr != 0 || f.Contract.ExternClobbers != nil {
-				return fmt.Errorf("memory host: compiled return/ABI mismatch")
-			}
-			seen[f.Name] = true
 		}
+
 		for _, b := range f.Blocks {
 			for _, i := range b.Insts {
 				switch i.Op {
+				case mir2.OpAddrOf:
+					if m.FuncByName(i.Sym) != nil || source.FuncByName(i.Sym) != nil {
+						return fmt.Errorf("memory host: function address escape unsupported %q", i.Sym)
+					}
 				case mir2.OpAsm, mir2.OpIn8, mir2.OpIn16, mir2.OpOut8, mir2.OpOut16, mir2.OpPatchSlot, mir2.OpLoadPatched, mir2.OpPatch, mir2.OpCallIndirect:
 					return fmt.Errorf("memory host: ASM/ports/SMC/indirect unsupported")
 				case mir2.OpCall:
@@ -334,6 +376,22 @@ func ValidateMemoryHostMIR(source *Module, m *mir2.Module, w MemoryHostWorkload)
 		return fmt.Errorf("memory host: compiled host set mismatch")
 	}
 	return nil
+}
+
+// Register IDs and inferred clobber classes may change under allocation. The
+// extern's declared callable type, hard parameter classes, and external address
+// and clobber contract must retain the complete source identity.
+func memoryHostExternIdentityEqual(a, b *mir2.Func) bool {
+	if a.Attrs.ExternAddr != b.Attrs.ExternAddr || !reflect.DeepEqual(a.Contract.ExternClobbers, b.Contract.ExternClobbers) || len(a.Contract.Params) != len(b.Contract.Params) || !reflect.DeepEqual(a.Contract.Returns, b.Contract.Returns) {
+		return false
+	}
+	for i, p := range a.Contract.Params {
+		q := b.Contract.Params[i]
+		if p.Name != q.Name || p.Ty != q.Ty || p.Class != q.Class {
+			return false
+		}
+	}
+	return true
 }
 
 func RunMemoryHostBaseline(source *Module, w MemoryHostWorkload) (*MemoryHostRun, error) {
@@ -361,6 +419,26 @@ func RunMemoryHostMIRBaseline(source *Module, m *mir2.Module, w MemoryHostWorklo
 	return runPreparedMemoryHost(source, m, owned, ctx, mir2.NewVM(m), nil, nil)
 }
 
+// Only privately owned instrumentation hooks bypass an unbound extern denial.
+func installMemoryHostDeniedExternHooks(vm *mir2.VM, m *mir2.Module, owned MemoryHostWorkload, hooks map[string]mir2.HostFunc) {
+	// No dummy implementation for dead externs: if a bug ever reaches one,
+	// terminate before giving it effects or a fabricated return value.
+	for _, f := range m.Funcs {
+		if f.Attrs.IsExtern {
+			_, private := hooks[f.Name]
+			_, privateAt := hooks["@"+f.Name]
+			if _, bound := owned.Hosts[f.Name]; !bound && !private && !privateAt {
+				name := f.Name
+				deny := func([]mir2.Value) ([]mir2.Value, error) {
+					return nil, fmt.Errorf("memory host: executed unbound extern %q", name)
+				}
+				vm.Hosts["@"+name] = deny
+				vm.Hosts[name] = deny
+			}
+		}
+	}
+}
+
 // Internal-only hook and observation plumbing; public baseline callers never
 // supply a VM, host callback, or counter observer.
 func runPreparedMemoryHost(source *Module, m *mir2.Module, owned MemoryHostWorkload, ctx ProfileContext, vm *mir2.VM, hooks map[string]mir2.HostFunc, observed func(MemoryHostObservation)) (*MemoryHostRun, error) {
@@ -377,6 +455,7 @@ func runPreparedMemoryHost(source *Module, m *mir2.Module, owned MemoryHostWorkl
 	for name, hook := range hooks {
 		vm.Hosts[name] = hook
 	}
+	installMemoryHostDeniedExternHooks(vm, m, owned, hooks)
 	events := []MemoryHostAccess{}
 	checkRegion := func(op mir2.Op, addr int64) error {
 		if addr < 0 || addr > 65535 {
