@@ -1,0 +1,26 @@
+=== RUN   TestParserProspectiveHeldout
+    parser_prospective_heldout_test.go:149: training mask 0: 1016414 T / 2364 B
+    parser_prospective_heldout_test.go:149: training mask 1: 1017340 T / 2485 B
+    parser_prospective_heldout_test.go:149: training mask 2: 992049 T / 2344 B
+    parser_prospective_heldout_test.go:149: training mask 3: 992975 T / 2465 B
+    parser_prospective_heldout_test.go:185: heldout mask 0: 2141572 T / 2364 B SHA 27a7c8ea7b77725ee5f61e9f4be625bd1b582b1b03e1013021e0ab3766ee8545
+    parser_prospective_heldout_test.go:185: heldout mask 2: 2093170 T / 2344 B SHA 24f6b56e2960ff965275cba73bb842b12651c82c1548a898032e07d6979b2a0a
+--- PASS: TestParserProspectiveHeldout (21.01s)
+=== RUN   TestPFCCOProspectiveHeldout
+    pfcco_prospective_heldout_test.go:119: speed mask0: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask1: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask2: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask3: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:153: speed selected1 heldout 5568 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask0: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask1: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask2: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask3: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:153: size selected0 heldout 6252 T / 52 B
+--- PASS: TestPFCCOProspectiveHeldout (1.30s)
+=== RUN   TestHashmapMeasuredTrainingAndUnseenWorkload
+    profile_hashmap_heldout_test.go:211: speed selected3 training 26346→23437T 990→970B; heldout 258962→237948T calls48
+    profile_hashmap_heldout_test.go:211: size selected3 training 26346→23437T 990→970B; heldout 258962→237948T calls48
+--- PASS: TestHashmapMeasuredTrainingAndUnseenWorkload (2.94s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	25.262s

@@ -177,6 +177,9 @@ func applyReviewedCatalogEvidence(t *testing.T, root string, row *oracleCatalogE
 		add("docs/grace-cpm-memory-capture/independent-review/README.md", "derived CString main; separate saved COM execution", "One actual MZE CP/M capture, exact 135-byte stdout, 17 nodes/24 intern bytes/10 globals/canaries/image integrity; COM SHA 087a9c7376591a82169b963891493ab6389cf26ebab728ef08a63e7664c73112. Auditor checks saved capture, does not rerun CPU; no real-hardware OS claim.")
 	case "examples/nanz/21_hashmap_test.nanz":
 		add("minzc/pkg/pipeline/profile_hashmap_heldout_test.go::TestHashmapMeasuredTrainingAndUnseenWorkload", "original functions; frozen unseen workload", "Independent host hashmap model, heldout results/full memory/exact effects for baseline and selected candidates.")
+	case "examples/zx/plasma.nanz":
+		add("minzc/pkg/pipeline/plasma_mul11_test.go::TestOriginalPlasmaAttributeMul11", "exact complete source/module retained; bounded pure helper inside ZX ASM application", "Original plasma_attr: 768 grid plus256 cy-boundary calls, independent raw/final VM/native byte quarter-wave model, no heapwrites, fullnonstackRAM/code/PC/SP.793332→331508T,fullBIN1555B. Does not execute main/fullscreen/device/interrupts; ASM/runtime status retained.")
+		row.Requirement += " Pure plasma_attr helper has independent native proof; whole ZX ASM application remains unaudited."
 	case "examples/nanz/canvas_house.nanz", "examples/nanz/rotozoomer.nanz":
 		row.Requirement += " Existing canvas/rotozoomer VM host-render tests are not native Z80 output evidence."
 	case "examples/nanz/sha256.nanz":
