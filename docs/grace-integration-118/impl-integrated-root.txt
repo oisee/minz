@@ -1,0 +1,7 @@
+=== RUN   TestOriginalImplShowcaseVMZ80
+    showcase_impl_oracle_test.go:258: ordinary 4612calls/fulloriginal8functions/4asserts 3698639T 254B SHA7b856426327354a498180f67827b6c0ce03ee16be2a004b905346f3ecb0e054c
+    showcase_impl_oracle_test.go:258: grace-speed 4612calls/fulloriginal8functions/4asserts 3698639T 254B SHA7b856426327354a498180f67827b6c0ce03ee16be2a004b905346f3ecb0e054c
+    showcase_impl_oracle_test.go:258: grace-size 4612calls/fulloriginal8functions/4asserts 3698639T 254B SHA7b856426327354a498180f67827b6c0ce03ee16be2a004b905346f3ecb0e054c
+--- PASS: TestOriginalImplShowcaseVMZ80 (3.20s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.206s
