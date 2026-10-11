@@ -1,0 +1,128 @@
+=== RUN   TestZ80ProfileWorkloadInvocationMemoryBoundaries
+=== RUN   TestZ80ProfileWorkloadInvocationMemoryBoundaries/global
+=== RUN   TestZ80ProfileWorkloadInvocationMemoryBoundaries/resource
+--- PASS: TestZ80ProfileWorkloadInvocationMemoryBoundaries (0.06s)
+    --- PASS: TestZ80ProfileWorkloadInvocationMemoryBoundaries/global (0.03s)
+    --- PASS: TestZ80ProfileWorkloadInvocationMemoryBoundaries/resource (0.03s)
+=== RUN   TestZ80ProfileWorkloadSnapshotSerialization
+=== RUN   TestZ80ProfileWorkloadSnapshotSerialization/unchanged
+=== RUN   TestZ80ProfileWorkloadSnapshotSerialization/legacy
+=== RUN   TestZ80ProfileWorkloadSnapshotSerialization/null
+=== RUN   TestZ80ProfileWorkloadSnapshotSerialization/short
+=== RUN   TestZ80ProfileWorkloadSnapshotSerialization/extra
+=== RUN   TestZ80ProfileWorkloadSnapshotSerialization/reordered
+=== RUN   TestZ80ProfileWorkloadSnapshotSerialization/missing-global
+=== RUN   TestZ80ProfileWorkloadSnapshotSerialization/extra-global
+=== RUN   TestZ80ProfileWorkloadSnapshotSerialization/global-width
+=== RUN   TestZ80ProfileWorkloadSnapshotSerialization/missing-resource
+=== RUN   TestZ80ProfileWorkloadSnapshotSerialization/extra-resource
+=== RUN   TestZ80ProfileWorkloadSnapshotSerialization/resource-width
+=== RUN   TestZ80ProfileWorkloadSnapshotSerialization/missing-empty-resource
+=== RUN   TestZ80ProfileWorkloadSnapshotSerialization/null-empty-resource
+=== RUN   TestZ80ProfileWorkloadSnapshotSerialization/null-globals
+=== RUN   TestZ80ProfileWorkloadSnapshotSerialization/null-resources
+--- PASS: TestZ80ProfileWorkloadSnapshotSerialization (0.23s)
+    --- PASS: TestZ80ProfileWorkloadSnapshotSerialization/unchanged (0.02s)
+    --- PASS: TestZ80ProfileWorkloadSnapshotSerialization/legacy (0.01s)
+    --- PASS: TestZ80ProfileWorkloadSnapshotSerialization/null (0.01s)
+    --- PASS: TestZ80ProfileWorkloadSnapshotSerialization/short (0.01s)
+    --- PASS: TestZ80ProfileWorkloadSnapshotSerialization/extra (0.01s)
+    --- PASS: TestZ80ProfileWorkloadSnapshotSerialization/reordered (0.01s)
+    --- PASS: TestZ80ProfileWorkloadSnapshotSerialization/missing-global (0.02s)
+    --- PASS: TestZ80ProfileWorkloadSnapshotSerialization/extra-global (0.02s)
+    --- PASS: TestZ80ProfileWorkloadSnapshotSerialization/global-width (0.02s)
+    --- PASS: TestZ80ProfileWorkloadSnapshotSerialization/missing-resource (0.01s)
+    --- PASS: TestZ80ProfileWorkloadSnapshotSerialization/extra-resource (0.01s)
+    --- PASS: TestZ80ProfileWorkloadSnapshotSerialization/resource-width (0.01s)
+    --- PASS: TestZ80ProfileWorkloadSnapshotSerialization/missing-empty-resource (0.01s)
+    --- PASS: TestZ80ProfileWorkloadSnapshotSerialization/null-empty-resource (0.02s)
+    --- PASS: TestZ80ProfileWorkloadSnapshotSerialization/null-globals (0.02s)
+    --- PASS: TestZ80ProfileWorkloadSnapshotSerialization/null-resources (0.02s)
+=== RUN   TestZ80ProfileWorkloadEmptyMemorySnapshots
+--- PASS: TestZ80ProfileWorkloadEmptyMemorySnapshots (0.04s)
+=== RUN   TestZ80ProfileWorkloadDeadExternAndFetchDenial
+--- PASS: TestZ80ProfileWorkloadDeadExternAndFetchDenial (0.05s)
+=== RUN   TestZ80ProfileWorkloadPersistentMutations
+--- PASS: TestZ80ProfileWorkloadPersistentMutations (0.09s)
+=== RUN   TestZ80ProfileWorkloadOracleMismatch
+=== RUN   TestZ80ProfileWorkloadOracleMismatch/result
+=== RUN   TestZ80ProfileWorkloadOracleMismatch/global
+=== RUN   TestZ80ProfileWorkloadOracleMismatch/resource
+=== RUN   TestZ80ProfileWorkloadOracleMismatch/actual-binary
+=== RUN   TestZ80ProfileWorkloadOracleMismatch/missing-global
+=== RUN   TestZ80ProfileWorkloadOracleMismatch/missing-resource
+--- PASS: TestZ80ProfileWorkloadOracleMismatch (0.27s)
+    --- PASS: TestZ80ProfileWorkloadOracleMismatch/result (0.04s)
+    --- PASS: TestZ80ProfileWorkloadOracleMismatch/global (0.05s)
+    --- PASS: TestZ80ProfileWorkloadOracleMismatch/resource (0.04s)
+    --- PASS: TestZ80ProfileWorkloadOracleMismatch/actual-binary (0.04s)
+    --- PASS: TestZ80ProfileWorkloadOracleMismatch/missing-global (0.04s)
+    --- PASS: TestZ80ProfileWorkloadOracleMismatch/missing-resource (0.04s)
+=== RUN   TestZ80ProfileWorkloadCumulativeLimit
+--- PASS: TestZ80ProfileWorkloadCumulativeLimit (0.09s)
+=== RUN   TestZ80ProfileWorkloadRefusals
+=== RUN   TestZ80ProfileWorkloadRefusals/ordered-byte-policy
+=== RUN   TestZ80ProfileWorkloadRefusals/region-compare-policy
+=== RUN   TestZ80ProfileWorkloadRefusals/forward-copy-policy
+=== RUN   TestZ80ProfileWorkloadRefusals/schema
+=== RUN   TestZ80ProfileWorkloadRefusals/limits
+=== RUN   TestZ80ProfileWorkloadRefusals/ceiling
+=== RUN   TestZ80ProfileWorkloadRefusals/memory
+=== RUN   TestZ80ProfileWorkloadRefusals/context
+=== RUN   TestZ80ProfileWorkloadRefusals/failed-oracle
+=== RUN   TestZ80ProfileWorkloadRefusals/missing-ABI
+=== RUN   TestZ80ProfileWorkloadRefusals/SMC
+=== RUN   TestZ80ProfileWorkloadRefusals/ASM
+=== RUN   TestZ80ProfileWorkloadRefusals/ports
+=== RUN   TestZ80ProfileWorkloadRefusals/hosts
+=== RUN   TestZ80ProfileWorkloadRefusals/numeric-pointer
+=== RUN   TestZ80ProfileWorkloadRefusals/range
+=== RUN   TestZ80ProfileWorkloadRefusals/program-stack
+=== RUN   TestZ80ProfileWorkloadRefusals/bounds
+=== RUN   TestZ80ProfileWorkloadRefusals/code-write
+=== RUN   TestZ80ProfileWorkloadRefusals/same-code-write
+=== RUN   TestZ80ProfileWorkloadRefusals/compiled-SMC
+--- PASS: TestZ80ProfileWorkloadRefusals (0.41s)
+    --- PASS: TestZ80ProfileWorkloadRefusals/ordered-byte-policy (0.01s)
+    --- PASS: TestZ80ProfileWorkloadRefusals/region-compare-policy (0.02s)
+    --- PASS: TestZ80ProfileWorkloadRefusals/forward-copy-policy (0.01s)
+    --- PASS: TestZ80ProfileWorkloadRefusals/schema (0.01s)
+    --- PASS: TestZ80ProfileWorkloadRefusals/limits (0.01s)
+    --- PASS: TestZ80ProfileWorkloadRefusals/ceiling (0.02s)
+    --- PASS: TestZ80ProfileWorkloadRefusals/memory (0.03s)
+    --- PASS: TestZ80ProfileWorkloadRefusals/context (0.02s)
+    --- PASS: TestZ80ProfileWorkloadRefusals/failed-oracle (0.02s)
+    --- PASS: TestZ80ProfileWorkloadRefusals/missing-ABI (0.01s)
+    --- PASS: TestZ80ProfileWorkloadRefusals/SMC (0.02s)
+    --- PASS: TestZ80ProfileWorkloadRefusals/ASM (0.02s)
+    --- PASS: TestZ80ProfileWorkloadRefusals/ports (0.02s)
+    --- PASS: TestZ80ProfileWorkloadRefusals/hosts (0.02s)
+    --- PASS: TestZ80ProfileWorkloadRefusals/numeric-pointer (0.03s)
+    --- PASS: TestZ80ProfileWorkloadRefusals/range (0.02s)
+    --- PASS: TestZ80ProfileWorkloadRefusals/program-stack (0.02s)
+    --- PASS: TestZ80ProfileWorkloadRefusals/bounds (0.02s)
+    --- PASS: TestZ80ProfileWorkloadRefusals/code-write (0.03s)
+    --- PASS: TestZ80ProfileWorkloadRefusals/same-code-write (0.02s)
+    --- PASS: TestZ80ProfileWorkloadRefusals/compiled-SMC (0.04s)
+=== RUN   TestZ80ProfileWorkloadPointerReturnRefused
+--- PASS: TestZ80ProfileWorkloadPointerReturnRefused (0.02s)
+=== RUN   TestZ80ProfileWorkloadStorageBudgets
+=== RUN   TestZ80ProfileWorkloadStorageBudgets/memory
+=== RUN   TestZ80ProfileWorkloadStorageBudgets/resource-code-overlap
+=== RUN   TestZ80ProfileWorkloadStorageBudgets/resource-pointer-literal
+=== RUN   TestZ80ProfileWorkloadStorageBudgets/literal-range
+=== RUN   TestZ80ProfileWorkloadStorageBudgets/pointer-global
+=== RUN   TestZ80ProfileWorkloadStorageBudgets/global-code-overlap
+=== RUN   TestZ80ProfileWorkloadStorageBudgets/infinite
+=== RUN   TestZ80ProfileWorkloadStorageBudgets/resource-bounds
+--- PASS: TestZ80ProfileWorkloadStorageBudgets (0.25s)
+    --- PASS: TestZ80ProfileWorkloadStorageBudgets/memory (0.03s)
+    --- PASS: TestZ80ProfileWorkloadStorageBudgets/resource-code-overlap (0.04s)
+    --- PASS: TestZ80ProfileWorkloadStorageBudgets/resource-pointer-literal (0.03s)
+    --- PASS: TestZ80ProfileWorkloadStorageBudgets/literal-range (0.03s)
+    --- PASS: TestZ80ProfileWorkloadStorageBudgets/pointer-global (0.03s)
+    --- PASS: TestZ80ProfileWorkloadStorageBudgets/global-code-overlap (0.03s)
+    --- PASS: TestZ80ProfileWorkloadStorageBudgets/infinite (0.03s)
+    --- PASS: TestZ80ProfileWorkloadStorageBudgets/resource-bounds (0.03s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.513s

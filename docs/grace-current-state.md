@@ -442,3 +442,11 @@ VM/native случаев в ordinary ContractOpt режиме; root PASS0,884 с
 случая; диагностика отказа мутированного HIR исправлена отдельно. Два
 отказа корректных workloads из-за generated LUT globals ещё исправляются.
 Общий current fullsuite PASS не заявляется.
+
+## Допуск generated LUT
+
+Корректные popcount/ranged workloads снова проходят после точного
+воспроизведения LUT из исходного MIR. Все пять прежних fullsuite failures
+прошли root focused replay23,127 с; metadata tamper controls и native
+workload guards сохранены. [Пакет121](grace-integration-121/README.md).
+Это не новый общий fullsuite PASS.
