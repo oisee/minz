@@ -1,0 +1,30 @@
+{
+  "schema": "minz.original-corpus-frozen-domain/v1",
+  "base_commit": "6d583fc7",
+  "source": "examples/tests/nanz_advantage_showcase.nanz",
+  "source_sha256": "04f3b01dc1126dae71b4b1152716df7e9e1f1225e747c3150f4ad5b0b9850875",
+  "models": {
+    "double/inc/square": "all256 modularbyte",
+    "pipeline_demo": "square(inc(double(3)))=49",
+    "add_acc/board_idx": "all65536pairs modularbyte",
+    "sum_all/sum_plus_offset": "5bytevals sum/sum+5; original+1280singlelane variedbytes+7776boundary[0,1,127,128,254,255]^5, exactorderedreads/no writes",
+    "fib": "0..254 Fibonacci modulo256; n255 intentionallydoesnotreturn sinceu8i wraps andi<=255always",
+    "fib8/fib12": "21/144",
+    "opposite": "declaredenum0\u21921,1\u21920,2\u21923,3\u21922; invalidtagsoutsidepromisedenumdomain",
+    "main": "void startupXORA DIHALT directentry noeffects"
+  },
+  "authority": [
+    "Bookv7\u00a72.5controlflow",
+    "\u00a73.1bytewidth",
+    "\u00a72.16valuepipe",
+    "\u00a716.1enums",
+    "Chapter5fold"
+  ],
+  "modes": [
+    "ordinary",
+    "grace-size",
+    "grace-speed"
+  ],
+  "nontermination": "VMstepbudget andnative boundedloop statecycle prove sameoriginalbehavior, no fabricatedreturnvalue",
+  "assertions": "all9sourceviaMir2 retained, separateindependentnativedomain"
+}
