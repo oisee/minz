@@ -1,0 +1,11 @@
+{
+  "schema": "minz.result-error-workload/v1",
+  "source_path": "examples/nanz/13_result_error.nanz",
+  "source_sha256": "4721bf61952713a54d53f64748cd4503f92d0d26ce73ff9240bd4e562183650c",
+  "safe_add": "all256x256 unsignedbytepairs",
+  "is_ok_unwrap": "all65536 u16encodedvalues; includes everyhighbyte/tag",
+  "original_wrappers": "all6 unchanged parameterfreewrappers",
+  "generated_helpers": "__tag/__payload if retained actualproduction; report rawonlyifpruned",
+  "oracle": "Bookv7\u00a716.2 taghigh/payloadlow: sum<=255 Ok(sum), else Err1=0x0101; is_ok iffhighbyte0; unwraplowbyte",
+  "no_selection": true
+}
