@@ -1,0 +1,37 @@
+{
+  "code_commit": "354a47efb3b734e5ef0d1a9c9f1eb20a6f8a3393",
+  "files": {
+    "cfgrules.go.archived.txt": {
+      "sha256": "ae5f399f822f8b23bbc5f850d8926435853ac1368d948570781b7ce5de9b34ea",
+      "bytes": 9294
+    },
+    "combine.go.archived.txt": {
+      "sha256": "20dd2a4a23e1e07e0924c4f4af86ddb0e9531b19af9acd1c8942b39a2d7b9a3f",
+      "bytes": 10107
+    },
+    "lir_research_judge_test.go.archived.txt": {
+      "sha256": "6f78ad3d20fae6d9a58cc6ba6111e3a7685fc230e290dc72ad86187e0617e925",
+      "bytes": 5955
+    },
+    "outparam_promote.go.archived.txt": {
+      "sha256": "898cf7e9c1509408d824354d602a9bf73f879f7e4fa4b300c2761d0884e7935a",
+      "bytes": 3504
+    },
+    "rules.go.archived.txt": {
+      "sha256": "5c30f5a0197912e6150f1bcfbdf6f21d99cae2773947eaf4c2fe73050f357f3b",
+      "bytes": 11425
+    },
+    "verification.json": {
+      "sha256": "ab4c8322b91bb8295fccf40a16cee7f4a8f4450b8f78077f40111fe63b7a196f",
+      "bytes": 2976
+    },
+    "wfc.go.archived.txt": {
+      "sha256": "0e8f55d4ced694ab37fba4440375dc3c555e9bba528262bc4bcf7f2ce2bf6ff1",
+      "bytes": 30587
+    },
+    "z80peephole.go.archived.txt": {
+      "sha256": "d8af14766253906791a1aaa1d02f81994bee461d89822e3a15e19cb67c6dcb7f",
+      "bytes": 7358
+    }
+  }
+}
