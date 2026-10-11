@@ -1,0 +1,12 @@
+short-reuse intern_region body/s1 entries25 body50
+short-reuse region_match body/s1 entries35 body114
+short-reuse intern_region body/s5 entries4 body19
+long-atoms intern_region body/s1 entries11 body17
+long-atoms region_match body/s1 entries17 body2646
+long-atoms intern_region body/s5 entries3 body720
+nested-mixed intern_region body/s1 entries83 body655
+nested-mixed region_match body/s1 entries157 body226
+nested-mixed intern_region body/s5 entries27 body90
+fresh-dominant intern_region body/s1 entries20 body143
+fresh-dominant region_match body/s1 entries3 body32
+fresh-dominant intern_region body/s5 entries17 body460

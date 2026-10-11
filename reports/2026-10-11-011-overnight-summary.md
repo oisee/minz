@@ -243,3 +243,9 @@ workload-driven модель fullstate/events создаётся в отдель
 483байтаисходногоinput; обе sourceпетли наблюдаются.8actualCLIruns
 четырёхкорпусов×speed/size сейчас выполняются тойже сохранённой1bd955
 сборкой. Productioncode не меняется; решенияAlice не нужны.
+
+Корпус закрыт:4workloads/50calls/32candidateZ80/8CLIdecisions прошли
+независимые fullstate/byteevents/11sourcecounts/typednativeSHA audits.
+Для четырёхкорпусов speedboth1,62–13,60%, sizeappend2076 B. Весьпакет
+сохранён и проверенпослепереноса; productioncode/exe не менялись.
+Artifact-only итоговыйкоммит ипубликацияготовятся; цельпродолжается.

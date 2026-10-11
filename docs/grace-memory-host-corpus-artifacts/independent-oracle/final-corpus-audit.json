@@ -1,0 +1,672 @@
+{
+  "independent_candidate_audits": [
+    {
+      "calls": 12,
+      "ordered_events": 963,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51",
+      "t_states": 355595,
+      "bytes": 2091,
+      "str_bump": 36887,
+      "node_bump": 32776,
+      "corpus": "short-reuse",
+      "goal": "speed",
+      "candidate": "original"
+    },
+    {
+      "calls": 12,
+      "ordered_events": 963,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "34958078e521d824b3df65ad8f31c4bb586c86c19332222294a4a8258bda8ea5",
+      "t_states": 354055,
+      "bytes": 2212,
+      "str_bump": 36887,
+      "node_bump": 32776,
+      "corpus": "short-reuse",
+      "goal": "speed",
+      "candidate": "arena"
+    },
+    {
+      "calls": 12,
+      "ordered_events": 963,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "7c244dd469683c8bb1505061c3d9eda5162f3b36219efba1418a240b781f7751",
+      "t_states": 351368,
+      "bytes": 2076,
+      "str_bump": 36887,
+      "node_bump": 32776,
+      "corpus": "short-reuse",
+      "goal": "speed",
+      "candidate": "append"
+    },
+    {
+      "calls": 12,
+      "ordered_events": 963,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "2ed1a44a51fa41196191a8fad9429a5b97040aefa5f9fc90257c2fa7921d93cc",
+      "t_states": 349828,
+      "bytes": 2197,
+      "str_bump": 36887,
+      "node_bump": 32776,
+      "corpus": "short-reuse",
+      "goal": "speed",
+      "candidate": "both"
+    },
+    {
+      "calls": 12,
+      "ordered_events": 963,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51",
+      "t_states": 355595,
+      "bytes": 2091,
+      "str_bump": 36887,
+      "node_bump": 32776,
+      "corpus": "short-reuse",
+      "goal": "size",
+      "candidate": "original"
+    },
+    {
+      "calls": 12,
+      "ordered_events": 963,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "34958078e521d824b3df65ad8f31c4bb586c86c19332222294a4a8258bda8ea5",
+      "t_states": 354055,
+      "bytes": 2212,
+      "str_bump": 36887,
+      "node_bump": 32776,
+      "corpus": "short-reuse",
+      "goal": "size",
+      "candidate": "arena"
+    },
+    {
+      "calls": 12,
+      "ordered_events": 963,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "7c244dd469683c8bb1505061c3d9eda5162f3b36219efba1418a240b781f7751",
+      "t_states": 351368,
+      "bytes": 2076,
+      "str_bump": 36887,
+      "node_bump": 32776,
+      "corpus": "short-reuse",
+      "goal": "size",
+      "candidate": "append"
+    },
+    {
+      "calls": 12,
+      "ordered_events": 963,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "2ed1a44a51fa41196191a8fad9429a5b97040aefa5f9fc90257c2fa7921d93cc",
+      "t_states": 349828,
+      "bytes": 2197,
+      "str_bump": 36887,
+      "node_bump": 32776,
+      "corpus": "short-reuse",
+      "goal": "size",
+      "candidate": "both"
+    },
+    {
+      "calls": 9,
+      "ordered_events": 9576,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51",
+      "t_states": 4401641,
+      "bytes": 2091,
+      "str_bump": 37587,
+      "node_bump": 32776,
+      "corpus": "long-atoms",
+      "goal": "speed",
+      "candidate": "original"
+    },
+    {
+      "calls": 9,
+      "ordered_events": 9576,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "34958078e521d824b3df65ad8f31c4bb586c86c19332222294a4a8258bda8ea5",
+      "t_states": 4400893,
+      "bytes": 2212,
+      "str_bump": 37587,
+      "node_bump": 32776,
+      "corpus": "long-atoms",
+      "goal": "speed",
+      "candidate": "arena"
+    },
+    {
+      "calls": 9,
+      "ordered_events": 9576,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "7c244dd469683c8bb1505061c3d9eda5162f3b36219efba1418a240b781f7751",
+      "t_states": 4217093,
+      "bytes": 2076,
+      "str_bump": 37587,
+      "node_bump": 32776,
+      "corpus": "long-atoms",
+      "goal": "speed",
+      "candidate": "append"
+    },
+    {
+      "calls": 9,
+      "ordered_events": 9576,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "2ed1a44a51fa41196191a8fad9429a5b97040aefa5f9fc90257c2fa7921d93cc",
+      "t_states": 4216345,
+      "bytes": 2197,
+      "str_bump": 37587,
+      "node_bump": 32776,
+      "corpus": "long-atoms",
+      "goal": "speed",
+      "candidate": "both"
+    },
+    {
+      "calls": 9,
+      "ordered_events": 9576,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51",
+      "t_states": 4401641,
+      "bytes": 2091,
+      "str_bump": 37587,
+      "node_bump": 32776,
+      "corpus": "long-atoms",
+      "goal": "size",
+      "candidate": "original"
+    },
+    {
+      "calls": 9,
+      "ordered_events": 9576,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "34958078e521d824b3df65ad8f31c4bb586c86c19332222294a4a8258bda8ea5",
+      "t_states": 4400893,
+      "bytes": 2212,
+      "str_bump": 37587,
+      "node_bump": 32776,
+      "corpus": "long-atoms",
+      "goal": "size",
+      "candidate": "arena"
+    },
+    {
+      "calls": 9,
+      "ordered_events": 9576,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "7c244dd469683c8bb1505061c3d9eda5162f3b36219efba1418a240b781f7751",
+      "t_states": 4217093,
+      "bytes": 2076,
+      "str_bump": 37587,
+      "node_bump": 32776,
+      "corpus": "long-atoms",
+      "goal": "size",
+      "candidate": "append"
+    },
+    {
+      "calls": 9,
+      "ordered_events": 9576,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "2ed1a44a51fa41196191a8fad9429a5b97040aefa5f9fc90257c2fa7921d93cc",
+      "t_states": 4216345,
+      "bytes": 2197,
+      "str_bump": 37587,
+      "node_bump": 32776,
+      "corpus": "long-atoms",
+      "goal": "size",
+      "candidate": "both"
+    },
+    {
+      "calls": 9,
+      "ordered_events": 4150,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51",
+      "t_states": 1419255,
+      "bytes": 2091,
+      "str_bump": 36981,
+      "node_bump": 32904,
+      "corpus": "nested-mixed",
+      "goal": "speed",
+      "candidate": "original"
+    },
+    {
+      "calls": 9,
+      "ordered_events": 4150,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "34958078e521d824b3df65ad8f31c4bb586c86c19332222294a4a8258bda8ea5",
+      "t_states": 1411486,
+      "bytes": 2212,
+      "str_bump": 36981,
+      "node_bump": 32904,
+      "corpus": "nested-mixed",
+      "goal": "speed",
+      "candidate": "arena"
+    },
+    {
+      "calls": 9,
+      "ordered_events": 4150,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "7c244dd469683c8bb1505061c3d9eda5162f3b36219efba1418a240b781f7751",
+      "t_states": 1400553,
+      "bytes": 2076,
+      "str_bump": 36981,
+      "node_bump": 32904,
+      "corpus": "nested-mixed",
+      "goal": "speed",
+      "candidate": "append"
+    },
+    {
+      "calls": 9,
+      "ordered_events": 4150,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "2ed1a44a51fa41196191a8fad9429a5b97040aefa5f9fc90257c2fa7921d93cc",
+      "t_states": 1392784,
+      "bytes": 2197,
+      "str_bump": 36981,
+      "node_bump": 32904,
+      "corpus": "nested-mixed",
+      "goal": "speed",
+      "candidate": "both"
+    },
+    {
+      "calls": 9,
+      "ordered_events": 4150,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51",
+      "t_states": 1419255,
+      "bytes": 2091,
+      "str_bump": 36981,
+      "node_bump": 32904,
+      "corpus": "nested-mixed",
+      "goal": "size",
+      "candidate": "original"
+    },
+    {
+      "calls": 9,
+      "ordered_events": 4150,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "34958078e521d824b3df65ad8f31c4bb586c86c19332222294a4a8258bda8ea5",
+      "t_states": 1411486,
+      "bytes": 2212,
+      "str_bump": 36981,
+      "node_bump": 32904,
+      "corpus": "nested-mixed",
+      "goal": "size",
+      "candidate": "arena"
+    },
+    {
+      "calls": 9,
+      "ordered_events": 4150,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "7c244dd469683c8bb1505061c3d9eda5162f3b36219efba1418a240b781f7751",
+      "t_states": 1400553,
+      "bytes": 2076,
+      "str_bump": 36981,
+      "node_bump": 32904,
+      "corpus": "nested-mixed",
+      "goal": "size",
+      "candidate": "append"
+    },
+    {
+      "calls": 9,
+      "ordered_events": 4150,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "2ed1a44a51fa41196191a8fad9429a5b97040aefa5f9fc90257c2fa7921d93cc",
+      "t_states": 1392784,
+      "bytes": 2197,
+      "str_bump": 36981,
+      "node_bump": 32904,
+      "corpus": "nested-mixed",
+      "goal": "size",
+      "candidate": "both"
+    },
+    {
+      "calls": 20,
+      "ordered_events": 1876,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51",
+      "t_states": 849806,
+      "bytes": 2091,
+      "str_bump": 37341,
+      "node_bump": 32776,
+      "corpus": "fresh-dominant",
+      "goal": "speed",
+      "candidate": "original"
+    },
+    {
+      "calls": 20,
+      "ordered_events": 1876,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "34958078e521d824b3df65ad8f31c4bb586c86c19332222294a4a8258bda8ea5",
+      "t_states": 849674,
+      "bytes": 2212,
+      "str_bump": 37341,
+      "node_bump": 32776,
+      "corpus": "fresh-dominant",
+      "goal": "speed",
+      "candidate": "arena"
+    },
+    {
+      "calls": 20,
+      "ordered_events": 1876,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "7c244dd469683c8bb1505061c3d9eda5162f3b36219efba1418a240b781f7751",
+      "t_states": 734374,
+      "bytes": 2076,
+      "str_bump": 37341,
+      "node_bump": 32776,
+      "corpus": "fresh-dominant",
+      "goal": "speed",
+      "candidate": "append"
+    },
+    {
+      "calls": 20,
+      "ordered_events": 1876,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "2ed1a44a51fa41196191a8fad9429a5b97040aefa5f9fc90257c2fa7921d93cc",
+      "t_states": 734242,
+      "bytes": 2197,
+      "str_bump": 37341,
+      "node_bump": 32776,
+      "corpus": "fresh-dominant",
+      "goal": "speed",
+      "candidate": "both"
+    },
+    {
+      "calls": 20,
+      "ordered_events": 1876,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51",
+      "t_states": 849806,
+      "bytes": 2091,
+      "str_bump": 37341,
+      "node_bump": 32776,
+      "corpus": "fresh-dominant",
+      "goal": "size",
+      "candidate": "original"
+    },
+    {
+      "calls": 20,
+      "ordered_events": 1876,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "34958078e521d824b3df65ad8f31c4bb586c86c19332222294a4a8258bda8ea5",
+      "t_states": 849674,
+      "bytes": 2212,
+      "str_bump": 37341,
+      "node_bump": 32776,
+      "corpus": "fresh-dominant",
+      "goal": "size",
+      "candidate": "arena"
+    },
+    {
+      "calls": 20,
+      "ordered_events": 1876,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "7c244dd469683c8bb1505061c3d9eda5162f3b36219efba1418a240b781f7751",
+      "t_states": 734374,
+      "bytes": 2076,
+      "str_bump": 37341,
+      "node_bump": 32776,
+      "corpus": "fresh-dominant",
+      "goal": "size",
+      "candidate": "append"
+    },
+    {
+      "calls": 20,
+      "ordered_events": 1876,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "2ed1a44a51fa41196191a8fad9429a5b97040aefa5f9fc90257c2fa7921d93cc",
+      "t_states": 734242,
+      "bytes": 2197,
+      "str_bump": 37341,
+      "node_bump": 32776,
+      "corpus": "fresh-dominant",
+      "goal": "size",
+      "candidate": "both"
+    }
+  ],
+  "actual_decisions": [
+    {
+      "corpus": "short-reuse",
+      "goal": "speed",
+      "selected": 3,
+      "candidate": "both",
+      "t_states": 349828,
+      "bytes": 2197
+    },
+    {
+      "corpus": "short-reuse",
+      "goal": "size",
+      "selected": 2,
+      "candidate": "append",
+      "t_states": 351368,
+      "bytes": 2076
+    },
+    {
+      "corpus": "long-atoms",
+      "goal": "speed",
+      "selected": 3,
+      "candidate": "both",
+      "t_states": 4216345,
+      "bytes": 2197
+    },
+    {
+      "corpus": "long-atoms",
+      "goal": "size",
+      "selected": 2,
+      "candidate": "append",
+      "t_states": 4217093,
+      "bytes": 2076
+    },
+    {
+      "corpus": "nested-mixed",
+      "goal": "speed",
+      "selected": 3,
+      "candidate": "both",
+      "t_states": 1392784,
+      "bytes": 2197
+    },
+    {
+      "corpus": "nested-mixed",
+      "goal": "size",
+      "selected": 2,
+      "candidate": "append",
+      "t_states": 1400553,
+      "bytes": 2076
+    },
+    {
+      "corpus": "fresh-dominant",
+      "goal": "speed",
+      "selected": 3,
+      "candidate": "both",
+      "t_states": 734242,
+      "bytes": 2197
+    },
+    {
+      "corpus": "fresh-dominant",
+      "goal": "size",
+      "selected": 2,
+      "candidate": "append",
+      "t_states": 734374,
+      "bytes": 2076
+    }
+  ],
+  "independent_source_counts": {
+    "short-reuse": {
+      "intern_region/body/s1": [
+        25,
+        50
+      ],
+      "skip_ws/body/s1/then/s0": [
+        1,
+        5
+      ],
+      "main/body/s2": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s8/then/s2": [
+        0,
+        0
+      ],
+      "region_match/body/s1": [
+        35,
+        114
+      ],
+      "skip_ws/body/s0": [
+        57,
+        13
+      ],
+      "parse_sexpr/body/s5": [
+        25,
+        119
+      ],
+      "parse_sexpr/body/s3/then/s7": [
+        6,
+        13
+      ],
+      "intern_region/body/s5": [
+        4,
+        19
+      ],
+      "print_node/body/s4/then/s3": [
+        0,
+        0
+      ],
+      "print_str/body/s2": [
+        0,
+        0
+      ]
+    },
+    "long-atoms": {
+      "intern_region/body/s1": [
+        11,
+        17
+      ],
+      "skip_ws/body/s1/then/s0": [
+        0,
+        0
+      ],
+      "main/body/s2": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s8/then/s2": [
+        0,
+        0
+      ],
+      "region_match/body/s1": [
+        17,
+        2646
+      ],
+      "skip_ws/body/s0": [
+        19,
+        2
+      ],
+      "parse_sexpr/body/s5": [
+        11,
+        2640
+      ],
+      "parse_sexpr/body/s3/then/s7": [
+        2,
+        2
+      ],
+      "intern_region/body/s5": [
+        3,
+        720
+      ],
+      "print_node/body/s4/then/s3": [
+        0,
+        0
+      ],
+      "print_str/body/s2": [
+        0,
+        0
+      ]
+    },
+    "nested-mixed": {
+      "intern_region/body/s1": [
+        83,
+        655
+      ],
+      "skip_ws/body/s1/then/s0": [
+        1,
+        9
+      ],
+      "main/body/s2": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s8/then/s2": [
+        8,
+        19
+      ],
+      "region_match/body/s1": [
+        157,
+        226
+      ],
+      "skip_ws/body/s0": [
+        315,
+        84
+      ],
+      "parse_sexpr/body/s5": [
+        91,
+        232
+      ],
+      "parse_sexpr/body/s3/then/s7": [
+        45,
+        84
+      ],
+      "intern_region/body/s5": [
+        27,
+        90
+      ],
+      "print_node/body/s4/then/s3": [
+        0,
+        0
+      ],
+      "print_str/body/s2": [
+        0,
+        0
+      ]
+    },
+    "fresh-dominant": {
+      "intern_region/body/s1": [
+        20,
+        143
+      ],
+      "skip_ws/body/s1/then/s0": [
+        0,
+        0
+      ],
+      "main/body/s2": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s8/then/s2": [
+        0,
+        0
+      ],
+      "region_match/body/s1": [
+        3,
+        32
+      ],
+      "skip_ws/body/s0": [
+        20,
+        0
+      ],
+      "parse_sexpr/body/s5": [
+        20,
+        492
+      ],
+      "parse_sexpr/body/s3/then/s7": [
+        0,
+        0
+      ],
+      "intern_region/body/s5": [
+        17,
+        460
+      ],
+      "print_node/body/s4/then/s3": [
+        0,
+        0
+      ],
+      "print_str/body/s2": [
+        0,
+        0
+      ]
+    }
+  }
+}

@@ -1,0 +1,1 @@
+PASS independent 32 candidate raw/native full state/events/source counts and 8 CLI decisions, from saved gzip payloads.

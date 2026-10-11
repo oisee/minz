@@ -1,0 +1,34 @@
+[
+  {
+    "corpus": "fresh-dominant",
+    "calls": 20,
+    "events": 1876,
+    "string_bytes": 477,
+    "max_node_bytes": 8,
+    "max_source_bytes": 36
+  },
+  {
+    "corpus": "long-atoms",
+    "calls": 9,
+    "events": 9576,
+    "string_bytes": 723,
+    "max_node_bytes": 24,
+    "max_source_bytes": 483
+  },
+  {
+    "corpus": "nested-mixed",
+    "calls": 9,
+    "events": 4150,
+    "string_bytes": 117,
+    "max_node_bytes": 144,
+    "max_source_bytes": 56
+  },
+  {
+    "corpus": "short-reuse",
+    "calls": 12,
+    "events": 963,
+    "string_bytes": 23,
+    "max_node_bytes": 48,
+    "max_source_bytes": 26
+  }
+]

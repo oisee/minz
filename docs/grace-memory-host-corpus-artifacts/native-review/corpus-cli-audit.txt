@@ -1,0 +1,9 @@
+PASS short-reuse/speed: 12calls selected3 349828T/2197B; exactstoredselectionSHA/selectedASM/BIN/executable/source/workload
+PASS short-reuse/size: 12calls selected2 351368T/2076B; exactstoredselectionSHA/selectedASM/BIN/executable/source/workload
+PASS long-atoms/speed: 9calls selected3 4216345T/2197B; exactstoredselectionSHA/selectedASM/BIN/executable/source/workload
+PASS long-atoms/size: 9calls selected2 4217093T/2076B; exactstoredselectionSHA/selectedASM/BIN/executable/source/workload
+PASS nested-mixed/speed: 9calls selected3 1392784T/2197B; exactstoredselectionSHA/selectedASM/BIN/executable/source/workload
+PASS nested-mixed/size: 9calls selected2 1400553T/2076B; exactstoredselectionSHA/selectedASM/BIN/executable/source/workload
+PASS fresh-dominant/speed: 20calls selected3 734242T/2197B; exactstoredselectionSHA/selectedASM/BIN/executable/source/workload
+PASS fresh-dominant/size: 20calls selected2 734374T/2076B; exactstoredselectionSHA/selectedASM/BIN/executable/source/workload
+PASS fourdistinctworkloadcontexts; allmaskcosts retained; no universalwinner or CPUreplay

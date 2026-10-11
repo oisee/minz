@@ -1,0 +1,186 @@
+{
+  "short-reuse": {
+    "intern_region/body/s1": [
+      25,
+      50
+    ],
+    "skip_ws/body/s1/then/s0": [
+      1,
+      5
+    ],
+    "main/body/s2": [
+      0,
+      0
+    ],
+    "parse_sexpr/body/s8/then/s2": [
+      0,
+      0
+    ],
+    "region_match/body/s1": [
+      35,
+      114
+    ],
+    "skip_ws/body/s0": [
+      57,
+      13
+    ],
+    "parse_sexpr/body/s5": [
+      25,
+      119
+    ],
+    "parse_sexpr/body/s3/then/s7": [
+      6,
+      13
+    ],
+    "intern_region/body/s5": [
+      4,
+      19
+    ],
+    "print_node/body/s4/then/s3": [
+      0,
+      0
+    ],
+    "print_str/body/s2": [
+      0,
+      0
+    ]
+  },
+  "long-atoms": {
+    "intern_region/body/s1": [
+      11,
+      17
+    ],
+    "skip_ws/body/s1/then/s0": [
+      0,
+      0
+    ],
+    "main/body/s2": [
+      0,
+      0
+    ],
+    "parse_sexpr/body/s8/then/s2": [
+      0,
+      0
+    ],
+    "region_match/body/s1": [
+      17,
+      2646
+    ],
+    "skip_ws/body/s0": [
+      19,
+      2
+    ],
+    "parse_sexpr/body/s5": [
+      11,
+      2640
+    ],
+    "parse_sexpr/body/s3/then/s7": [
+      2,
+      2
+    ],
+    "intern_region/body/s5": [
+      3,
+      720
+    ],
+    "print_node/body/s4/then/s3": [
+      0,
+      0
+    ],
+    "print_str/body/s2": [
+      0,
+      0
+    ]
+  },
+  "nested-mixed": {
+    "intern_region/body/s1": [
+      83,
+      655
+    ],
+    "skip_ws/body/s1/then/s0": [
+      1,
+      9
+    ],
+    "main/body/s2": [
+      0,
+      0
+    ],
+    "parse_sexpr/body/s8/then/s2": [
+      8,
+      19
+    ],
+    "region_match/body/s1": [
+      157,
+      226
+    ],
+    "skip_ws/body/s0": [
+      315,
+      84
+    ],
+    "parse_sexpr/body/s5": [
+      91,
+      232
+    ],
+    "parse_sexpr/body/s3/then/s7": [
+      45,
+      84
+    ],
+    "intern_region/body/s5": [
+      27,
+      90
+    ],
+    "print_node/body/s4/then/s3": [
+      0,
+      0
+    ],
+    "print_str/body/s2": [
+      0,
+      0
+    ]
+  },
+  "fresh-dominant": {
+    "intern_region/body/s1": [
+      20,
+      143
+    ],
+    "skip_ws/body/s1/then/s0": [
+      0,
+      0
+    ],
+    "main/body/s2": [
+      0,
+      0
+    ],
+    "parse_sexpr/body/s8/then/s2": [
+      0,
+      0
+    ],
+    "region_match/body/s1": [
+      3,
+      32
+    ],
+    "skip_ws/body/s0": [
+      20,
+      0
+    ],
+    "parse_sexpr/body/s5": [
+      20,
+      492
+    ],
+    "parse_sexpr/body/s3/then/s7": [
+      0,
+      0
+    ],
+    "intern_region/body/s5": [
+      17,
+      460
+    ],
+    "print_node/body/s4/then/s3": [
+      0,
+      0
+    ],
+    "print_str/body/s2": [
+      0,
+      0
+    ]
+  }
+}
