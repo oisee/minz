@@ -1,0 +1,356 @@
+[
+  {
+    "source": "actual/legacy/append/allocation.json",
+    "saved": "evidence/actual/legacy/append/allocation.json.gz",
+    "raw_bytes": 17418,
+    "raw_sha256": "86380f0420aa7269a1ddafb3c8f92f7b167c5a673c66a58d10730daab7cd9f81"
+  },
+  {
+    "source": "actual/legacy/append/baseline-v2.json",
+    "saved": "evidence/actual/legacy/append/baseline-v2.json.gz",
+    "raw_bytes": 2280658,
+    "raw_sha256": "9befdeefaa1e355a3ee99cc47020be23d47cedc6b764e55913939b61a001c374"
+  },
+  {
+    "source": "actual/legacy/append/final.mir2",
+    "saved": "evidence/actual/legacy/append/final.mir2.gz",
+    "raw_bytes": 25250,
+    "raw_sha256": "a736f9e74df1ad18dc473e0e1b01f7785dc62e74f6932eabeaa3417307ebd49b"
+  },
+  {
+    "source": "actual/legacy/append/source.nanz",
+    "saved": "evidence/actual/legacy/append/source.nanz",
+    "raw_bytes": 7164,
+    "raw_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "source": "actual/legacy/append/target.a80",
+    "saved": "evidence/actual/legacy/append/target.a80.gz",
+    "raw_bytes": 29048,
+    "raw_sha256": "a99a96155e5b6b0556f5142faa2019dde8244b3dcc9f33ce970772e816fc1e63"
+  },
+  {
+    "source": "actual/legacy/append/target.bin",
+    "saved": "evidence/actual/legacy/append/target.bin",
+    "raw_bytes": 1978,
+    "raw_sha256": "1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975"
+  },
+  {
+    "source": "actual/legacy/arena/allocation.json",
+    "saved": "evidence/actual/legacy/arena/allocation.json.gz",
+    "raw_bytes": 18007,
+    "raw_sha256": "e8aa144b006db6dce1c5d8df9f167a50aa6f03fb22074a2b63f503d90b450c91"
+  },
+  {
+    "source": "actual/legacy/arena/baseline-v2.json",
+    "saved": "evidence/actual/legacy/arena/baseline-v2.json.gz",
+    "raw_bytes": 2291728,
+    "raw_sha256": "25f82cdc112a4063620f8abde17e87ac9dd06603a8c3bbf571e64178cb0469da"
+  },
+  {
+    "source": "actual/legacy/arena/final.mir2",
+    "saved": "evidence/actual/legacy/arena/final.mir2.gz",
+    "raw_bytes": 26107,
+    "raw_sha256": "c96af837dbdb84f7164c11e1c1e12e741c28ab8758a4eff1d428076150516383"
+  },
+  {
+    "source": "actual/legacy/arena/source.nanz",
+    "saved": "evidence/actual/legacy/arena/source.nanz",
+    "raw_bytes": 7164,
+    "raw_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "source": "actual/legacy/arena/target.a80",
+    "saved": "evidence/actual/legacy/arena/target.a80.gz",
+    "raw_bytes": 31393,
+    "raw_sha256": "87a30404b363a21f31cec493d28162f4a42a6f4f2b2f1b57006c9805ba77fcb0"
+  },
+  {
+    "source": "actual/legacy/arena/target.bin",
+    "saved": "evidence/actual/legacy/arena/target.bin",
+    "raw_bytes": 2121,
+    "raw_sha256": "2b5d02b0ba923a61604512e3b50e76ef3c6aa54b5cc13470c3f620d705a64fae"
+  },
+  {
+    "source": "actual/legacy/both/allocation.json",
+    "saved": "evidence/actual/legacy/both/allocation.json.gz",
+    "raw_bytes": 18007,
+    "raw_sha256": "fcbbced5794f3a65155762f254a9287133a3842d009e70c158156dc322c7a068"
+  },
+  {
+    "source": "actual/legacy/both/baseline-v2.json",
+    "saved": "evidence/actual/legacy/both/baseline-v2.json.gz",
+    "raw_bytes": 2290905,
+    "raw_sha256": "a49ef59652638afad1a65a60c70be968fa16641ad67246adf615f63ca3d09437"
+  },
+  {
+    "source": "actual/legacy/both/final.mir2",
+    "saved": "evidence/actual/legacy/both/final.mir2.gz",
+    "raw_bytes": 26143,
+    "raw_sha256": "936a8d9aca6f7ac80723e498fab2bc44ffacfe2b05037d470bb45938ceee9ef1"
+  },
+  {
+    "source": "actual/legacy/both/source.nanz",
+    "saved": "evidence/actual/legacy/both/source.nanz",
+    "raw_bytes": 7164,
+    "raw_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "source": "actual/legacy/both/target.a80",
+    "saved": "evidence/actual/legacy/both/target.a80.gz",
+    "raw_bytes": 31089,
+    "raw_sha256": "c7c331a30c417ac365bf87cbbc2cd7cbe0ece6fbe79e77384b02c12703223aa9"
+  },
+  {
+    "source": "actual/legacy/both/target.bin",
+    "saved": "evidence/actual/legacy/both/target.bin",
+    "raw_bytes": 2099,
+    "raw_sha256": "4bdce86bd7a724f34e7eee180e8a6530b07f33cadd39e7a1a93813df6c841c13"
+  },
+  {
+    "source": "actual/legacy/derived-objectives.json",
+    "saved": "evidence/actual/legacy/derived-objectives.json.gz",
+    "raw_bytes": 217,
+    "raw_sha256": "affcfc09450e4385b5d4f2d6c195b4e4a9a080ff1ce8d082904e2e1d46a4bbd3"
+  },
+  {
+    "source": "actual/legacy/input-association-v2.json",
+    "saved": "evidence/actual/legacy/input-association-v2.json.gz",
+    "raw_bytes": 3489466,
+    "raw_sha256": "b5107ec13133457d484947493f4dd4c8abd906dc1971fcb22947ce66ab6a83cf"
+  },
+  {
+    "source": "actual/legacy/original/allocation.json",
+    "saved": "evidence/actual/legacy/original/allocation.json.gz",
+    "raw_bytes": 17418,
+    "raw_sha256": "9af8fdfdeb8d341f6f28097323c96a5b59d1fee911045b363782e8e64e0d8976"
+  },
+  {
+    "source": "actual/legacy/original/baseline-v2.json",
+    "saved": "evidence/actual/legacy/original/baseline-v2.json.gz",
+    "raw_bytes": 2281481,
+    "raw_sha256": "1b75fa54fdbce2a2027c3a97f6f96991d6c268ec23404eec8803f764a74fd51a"
+  },
+  {
+    "source": "actual/legacy/original/final.mir2",
+    "saved": "evidence/actual/legacy/original/final.mir2.gz",
+    "raw_bytes": 25214,
+    "raw_sha256": "7c6d066dba853d5612611b53a442e5a355d1480e31d0c0225feff75525fbd913"
+  },
+  {
+    "source": "actual/legacy/original/source.nanz",
+    "saved": "evidence/actual/legacy/original/source.nanz",
+    "raw_bytes": 7164,
+    "raw_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "source": "actual/legacy/original/target.a80",
+    "saved": "evidence/actual/legacy/original/target.a80.gz",
+    "raw_bytes": 29352,
+    "raw_sha256": "50adcc358a40137344cfeed0e6e6130864823a210037f7982187c2bc69fae74f"
+  },
+  {
+    "source": "actual/legacy/original/target.bin",
+    "saved": "evidence/actual/legacy/original/target.bin",
+    "raw_bytes": 2000,
+    "raw_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941"
+  },
+  {
+    "source": "actual/legacy/selection-v2.json",
+    "saved": "evidence/actual/legacy/selection-v2.json.gz",
+    "raw_bytes": 14859821,
+    "raw_sha256": "0e25b0c69d992dcbc215798c83855709151cccd2a45c829738b3f104c04dac8d"
+  },
+  {
+    "source": "actual/preserve-speed/append/allocation.json",
+    "saved": "evidence/actual/preserve-speed/append/allocation.json.gz",
+    "raw_bytes": 17418,
+    "raw_sha256": "86380f0420aa7269a1ddafb3c8f92f7b167c5a673c66a58d10730daab7cd9f81"
+  },
+  {
+    "source": "actual/preserve-speed/append/baseline-v2.json",
+    "saved": "evidence/actual/preserve-speed/append/baseline-v2.json.gz",
+    "raw_bytes": 2280703,
+    "raw_sha256": "c8506493bc4113c2308da5ee840cad4d167e2461a17dc1fb68f960a12cd942c5"
+  },
+  {
+    "source": "actual/preserve-speed/append/final.mir2",
+    "saved": "evidence/actual/preserve-speed/append/final.mir2.gz",
+    "raw_bytes": 25250,
+    "raw_sha256": "a736f9e74df1ad18dc473e0e1b01f7785dc62e74f6932eabeaa3417307ebd49b"
+  },
+  {
+    "source": "actual/preserve-speed/append/source.nanz",
+    "saved": "evidence/actual/preserve-speed/append/source.nanz",
+    "raw_bytes": 7164,
+    "raw_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "source": "actual/preserve-speed/append/target.a80",
+    "saved": "evidence/actual/preserve-speed/append/target.a80.gz",
+    "raw_bytes": 29091,
+    "raw_sha256": "8786eb82250d4d950ba7b50037c3a037f58a67b1c282c1ec248be5a578fc9daa"
+  },
+  {
+    "source": "actual/preserve-speed/append/target.bin",
+    "saved": "evidence/actual/preserve-speed/append/target.bin",
+    "raw_bytes": 1979,
+    "raw_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835"
+  },
+  {
+    "source": "actual/preserve-speed/arena/allocation.json",
+    "saved": "evidence/actual/preserve-speed/arena/allocation.json.gz",
+    "raw_bytes": 18007,
+    "raw_sha256": "e8aa144b006db6dce1c5d8df9f167a50aa6f03fb22074a2b63f503d90b450c91"
+  },
+  {
+    "source": "actual/preserve-speed/arena/baseline-v2.json",
+    "saved": "evidence/actual/preserve-speed/arena/baseline-v2.json.gz",
+    "raw_bytes": 2291777,
+    "raw_sha256": "2358eb56c509f639071d8c83d6dcdb873951730c033ab600e1a92a9ffd952cde"
+  },
+  {
+    "source": "actual/preserve-speed/arena/final.mir2",
+    "saved": "evidence/actual/preserve-speed/arena/final.mir2.gz",
+    "raw_bytes": 26107,
+    "raw_sha256": "c96af837dbdb84f7164c11e1c1e12e741c28ab8758a4eff1d428076150516383"
+  },
+  {
+    "source": "actual/preserve-speed/arena/source.nanz",
+    "saved": "evidence/actual/preserve-speed/arena/source.nanz",
+    "raw_bytes": 7164,
+    "raw_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "source": "actual/preserve-speed/arena/target.a80",
+    "saved": "evidence/actual/preserve-speed/arena/target.a80.gz",
+    "raw_bytes": 31436,
+    "raw_sha256": "ed40409c46b916380ce5b3f45e2a3c4a355a85a3a42d1fd0b288d314486a8455"
+  },
+  {
+    "source": "actual/preserve-speed/arena/target.bin",
+    "saved": "evidence/actual/preserve-speed/arena/target.bin",
+    "raw_bytes": 2122,
+    "raw_sha256": "7cbed996d01495228965970dd379920288378f7d84de4b0743db9a3589cdca53"
+  },
+  {
+    "source": "actual/preserve-speed/both/allocation.json",
+    "saved": "evidence/actual/preserve-speed/both/allocation.json.gz",
+    "raw_bytes": 18007,
+    "raw_sha256": "fcbbced5794f3a65155762f254a9287133a3842d009e70c158156dc322c7a068"
+  },
+  {
+    "source": "actual/preserve-speed/both/baseline-v2.json",
+    "saved": "evidence/actual/preserve-speed/both/baseline-v2.json.gz",
+    "raw_bytes": 2290950,
+    "raw_sha256": "3082b75ca1d18b206225d5418a557110341a4e07a69e9855fbfab19b8504641a"
+  },
+  {
+    "source": "actual/preserve-speed/both/final.mir2",
+    "saved": "evidence/actual/preserve-speed/both/final.mir2.gz",
+    "raw_bytes": 26143,
+    "raw_sha256": "936a8d9aca6f7ac80723e498fab2bc44ffacfe2b05037d470bb45938ceee9ef1"
+  },
+  {
+    "source": "actual/preserve-speed/both/source.nanz",
+    "saved": "evidence/actual/preserve-speed/both/source.nanz",
+    "raw_bytes": 7164,
+    "raw_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "source": "actual/preserve-speed/both/target.a80",
+    "saved": "evidence/actual/preserve-speed/both/target.a80.gz",
+    "raw_bytes": 31132,
+    "raw_sha256": "8b03791717ff5c8eb358b1b6143dd5ce8d2ca6a9272752a4903883968ce95f84"
+  },
+  {
+    "source": "actual/preserve-speed/both/target.bin",
+    "saved": "evidence/actual/preserve-speed/both/target.bin",
+    "raw_bytes": 2100,
+    "raw_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac"
+  },
+  {
+    "source": "actual/preserve-speed/derived-objectives.json",
+    "saved": "evidence/actual/preserve-speed/derived-objectives.json.gz",
+    "raw_bytes": 217,
+    "raw_sha256": "affcfc09450e4385b5d4f2d6c195b4e4a9a080ff1ce8d082904e2e1d46a4bbd3"
+  },
+  {
+    "source": "actual/preserve-speed/input-association-v2.json",
+    "saved": "evidence/actual/preserve-speed/input-association-v2.json.gz",
+    "raw_bytes": 3489511,
+    "raw_sha256": "8d264d87e28b3f964a645bdb19ec0257102174bda118319cb3bddffb3fbc7f3b"
+  },
+  {
+    "source": "actual/preserve-speed/original/allocation.json",
+    "saved": "evidence/actual/preserve-speed/original/allocation.json.gz",
+    "raw_bytes": 17418,
+    "raw_sha256": "9af8fdfdeb8d341f6f28097323c96a5b59d1fee911045b363782e8e64e0d8976"
+  },
+  {
+    "source": "actual/preserve-speed/original/baseline-v2.json",
+    "saved": "evidence/actual/preserve-speed/original/baseline-v2.json.gz",
+    "raw_bytes": 2281526,
+    "raw_sha256": "1458a9f44c9040dac5af27b225a5c2820ab864ffd637e4f9067fa457b37e0f4c"
+  },
+  {
+    "source": "actual/preserve-speed/original/final.mir2",
+    "saved": "evidence/actual/preserve-speed/original/final.mir2.gz",
+    "raw_bytes": 25214,
+    "raw_sha256": "7c6d066dba853d5612611b53a442e5a355d1480e31d0c0225feff75525fbd913"
+  },
+  {
+    "source": "actual/preserve-speed/original/source.nanz",
+    "saved": "evidence/actual/preserve-speed/original/source.nanz",
+    "raw_bytes": 7164,
+    "raw_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "source": "actual/preserve-speed/original/target.a80",
+    "saved": "evidence/actual/preserve-speed/original/target.a80.gz",
+    "raw_bytes": 29395,
+    "raw_sha256": "6f48757936c6ac0dd7404cfde78aad42c029ee4de7c4694d1bc92262facff081"
+  },
+  {
+    "source": "actual/preserve-speed/original/target.bin",
+    "saved": "evidence/actual/preserve-speed/original/target.bin",
+    "raw_bytes": 2001,
+    "raw_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd"
+  },
+  {
+    "source": "actual/preserve-speed/selection-v2.json",
+    "saved": "evidence/actual/preserve-speed/selection-v2.json.gz",
+    "raw_bytes": 14860050,
+    "raw_sha256": "52b8c78cce0d4af43333a4c22594401f6c90f10f946a68adf59aab76a80e08f2"
+  },
+  {
+    "source": "history-indented-replay/actual/legacy/error.txt",
+    "saved": "evidence/history-indented-replay/actual/legacy/error.txt",
+    "raw_bytes": 83,
+    "raw_sha256": "11322bc0454391705e53eb846a5fbc1a557884eb7da00599372916315f11b096"
+  },
+  {
+    "source": "history-indented-replay/actual/legacy/input-association-v2.json",
+    "saved": "evidence/history-indented-replay/actual/legacy/input-association-v2.json.gz",
+    "raw_bytes": 3489466,
+    "raw_sha256": "374b153bed6911788c834a0e616dfcbdcbad7d7b4924563c74323a74b5585865"
+  },
+  {
+    "source": "history-indented-replay/actual-full30.txt",
+    "saved": "evidence/history-indented-replay/actual-full30.txt",
+    "raw_bytes": 362,
+    "raw_sha256": "d79a448d982bf0ef6d6217b51dbdcd4d7ed25ffa2d8b8aae552027eb01171af7"
+  },
+  {
+    "source": "history-indented-replay/native-identity.json",
+    "saved": "evidence/history-indented-replay/native-identity.json.gz",
+    "raw_bytes": 302,
+    "raw_sha256": "21da9481cf28abee4719c9ea78b7aa5951e11dd84daa6d21f78bc0d5b3bce611"
+  },
+  {
+    "source": "history-indented-replay/pipeline-policy-selector.test",
+    "saved": "evidence/history-indented-replay/pipeline-policy-selector.test.gz",
+    "raw_bytes": 22577790,
+    "raw_sha256": "134c1776968b27417bf3eac22fa1a65c4dfacfbe2b070bae2a019842f2a466e4"
+  }
+]

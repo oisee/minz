@@ -1,0 +1,8 @@
+=== RUN   TestMemoryHostPolicySelectorOriginalParserExport
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_arena_append_policy_selector_test.go:351: arena append selector: serialized counts/observations differ from fresh closed run
+--- FAIL: TestMemoryHostPolicySelectorOriginalParserExport (5.43s)
+FAIL

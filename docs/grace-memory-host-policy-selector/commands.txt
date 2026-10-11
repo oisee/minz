@@ -1,0 +1,5 @@
+Build from isolated minzc:
+go test -c -buildvcs=false -o /home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/pipeline-policy-selector-final.test ./pkg/pipeline
+
+Run from isolated minzc/pkg/pipeline:
+MINZ_MEMORY_HOST_POLICY_SELECTOR_ARTIFACTS=/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/actual MINZ_MEMORY_HOST_POLICY_SELECTOR_REFERENCE=/home/alice/dev/minz-artifacts/grace-checkpoints/unsigned-pair-policy-evidence/public-baselines /home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/pipeline-policy-selector-final.test -test.run ^TestMemoryHostPolicySelectorOriginalParserExport$ -test.v
