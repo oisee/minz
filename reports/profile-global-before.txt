@@ -1,0 +1,20 @@
+=== RUN   TestProfileRealSourceCorpusPopcount
+    profile_corpus_test.go:150: corpus failures: [direct target: Z80 profile workload: loop profile: compiled global metadata differs from source measurement: measure profile variant sets: candidate 0 target workload: Z80 profile workload: loop profile: compiled global metadata differs from source]; artifacts /tmp/TestProfileRealSourceCorpusPopcount2015123575/001/real-source-corpus/popcount
+--- FAIL: TestProfileRealSourceCorpusPopcount (0.10s)
+=== RUN   TestProfileRangedScalarBoundsAndABI
+=== RUN   TestProfileRangedScalarBoundsAndABI/value=4
+=== RUN   TestProfileRangedScalarBoundsAndABI/value=5
+    profile_range_test.go:38: Z80 profile workload: loop profile: compiled global metadata differs from source
+=== RUN   TestProfileRangedScalarBoundsAndABI/value=10
+    profile_range_test.go:38: Z80 profile workload: loop profile: compiled global metadata differs from source
+=== RUN   TestProfileRangedScalarBoundsAndABI/value=11
+=== RUN   TestProfileRangedScalarBoundsAndABI/value=255
+--- FAIL: TestProfileRangedScalarBoundsAndABI (0.10s)
+    --- PASS: TestProfileRangedScalarBoundsAndABI/value=4 (0.01s)
+    --- FAIL: TestProfileRangedScalarBoundsAndABI/value=5 (0.03s)
+    --- FAIL: TestProfileRangedScalarBoundsAndABI/value=10 (0.04s)
+    --- PASS: TestProfileRangedScalarBoundsAndABI/value=11 (0.01s)
+    --- PASS: TestProfileRangedScalarBoundsAndABI/value=255 (0.01s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.208s
+FAIL

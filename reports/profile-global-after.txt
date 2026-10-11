@@ -1,0 +1,17 @@
+=== RUN   TestProfileRealSourceCorpusPopcount
+    profile_corpus_test.go:150: 04_lut_popcount.nanz: 256 calls, one baseline, 7168 T-states, 512 module bytes; artifacts /home/alice/dev/minz-artifacts/grace-workspaces/profile-global-admission/reports/artifacts/profile-global/real-source-corpus/popcount
+--- PASS: TestProfileRealSourceCorpusPopcount (0.31s)
+=== RUN   TestProfileRangedScalarBoundsAndABI
+=== RUN   TestProfileRangedScalarBoundsAndABI/value=4
+=== RUN   TestProfileRangedScalarBoundsAndABI/value=5
+=== RUN   TestProfileRangedScalarBoundsAndABI/value=10
+=== RUN   TestProfileRangedScalarBoundsAndABI/value=11
+=== RUN   TestProfileRangedScalarBoundsAndABI/value=255
+--- PASS: TestProfileRangedScalarBoundsAndABI (0.10s)
+    --- PASS: TestProfileRangedScalarBoundsAndABI/value=4 (0.02s)
+    --- PASS: TestProfileRangedScalarBoundsAndABI/value=5 (0.03s)
+    --- PASS: TestProfileRangedScalarBoundsAndABI/value=10 (0.03s)
+    --- PASS: TestProfileRangedScalarBoundsAndABI/value=11 (0.01s)
+    --- PASS: TestProfileRangedScalarBoundsAndABI/value=255 (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.427s

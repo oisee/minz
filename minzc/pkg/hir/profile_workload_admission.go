@@ -81,7 +81,7 @@ func ValidateProfileWorkloadMIR(source *Module, candidate *mir2.Module, w Profil
 			}
 		}
 	}
-	if !reflect.DeepEqual(raw.Globals, candidate.Globals) {
+	if !profileCompiledGlobalsEqual(source, raw.Globals, candidate.Globals) {
 		return fmt.Errorf("loop profile: compiled global metadata differs from source")
 	}
 	for _, f := range source.Funcs {
@@ -158,4 +158,21 @@ func installProfileDeniedExternHooks(vm *mir2.VM, source *Module) {
 			vm.Hosts["@"+name] = deny
 		}
 	}
+}
+
+// Source globals stay byte-for-byte identical. The sole permitted extension is
+// the complete read-only LUT output independently regenerated from source MIR.
+// Names or IsConst alone never grant a compiler-created global authority.
+func profileCompiledGlobalsEqual(source *Module, baseline, candidate []mir2.Global) bool {
+	if reflect.DeepEqual(baseline, candidate) {
+		return true
+	}
+	if len(candidate) <= len(baseline) || len(baseline) > 0 && !reflect.DeepEqual(baseline, candidate[:len(baseline)]) {
+		return false
+	}
+	regenerated := LowerModule(source)
+	if !mir2.LUTGen(regenerated) {
+		return false
+	}
+	return reflect.DeepEqual(regenerated.Globals, candidate)
 }
