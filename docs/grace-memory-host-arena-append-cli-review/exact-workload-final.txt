@@ -1,0 +1,4 @@
+=== RUN   TestMemoryHostCLIWorkloadKeys
+--- PASS: TestMemoryHostCLIWorkloadKeys (0.00s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	0.011s
