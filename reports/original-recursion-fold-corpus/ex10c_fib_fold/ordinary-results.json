@@ -1,0 +1,12 @@
+{
+  "allowed_spill_bytes": {},
+  "entries": {
+    "fib_fold": 256
+  },
+  "module_bytes": 19,
+  "source_sha256": "14fe7eed3447aa6928d72411cb91b1f56ffc55bd87cd61d9e49f52d24435a26a",
+  "stack_depths": {
+    "fib_fold": 4
+  },
+  "terminating_workload_tstates": 2249669
+}

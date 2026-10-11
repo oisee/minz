@@ -1,0 +1,9 @@
+// Classic recursive Fibonacci: fib(n) = fib(n-1) + fib(n-2)
+// Exponential time, but shows recursive call convention on Z80.
+// Practical limit: n ≤ 20 (fib(20)=6765, fits u16)
+fun fib(n: u8) -> u16 {
+    if n <= 1 {
+        return n
+    }
+    return fib(n - 1) + fib(n - 2)
+}

@@ -1,0 +1,20 @@
+; MIR2 module: reports/showcase-src/2026-03-11/ex10c_fib_fold.nanz
+fun @fib_fold(%r1: u8 [acc]) -> u16 [pointer]
+  block @entry:
+    %r2 = const 0 : u8 [general]
+    %r3 = ext %r2 : u8 -> u16 [pointer]
+    %r4 = const 1 : u8 [general]
+    %r5 = ext %r4 : u8 -> u16 [pointer]
+    %r6 = const 1 : u8 [general]
+    jmp @loop_head2(%r1, %r3, %r5, %r6)
+  block @loop_head2(%r7: u8 [general], %r8: u16 [pointer], %r9: u16 [pointer], %r10: u8 [general]):
+    %r11 = cmp.ult %r10, %r7 : bool [flag]
+    br_if %r11, @loop_body3(), @loop_exit4(%r7, %r8, %r9, %r10)
+  block @loop_body3:
+    %r12 = add %r8, %r9 : u16 [pointer]
+    %r13 = const 1 : u8 [general]
+    %r14 = add %r10, %r13 : u8 [general]
+    jmp @loop_head2(%r7, %r9, %r12, %r14)
+  block @loop_exit4(%r15: u8 [general], %r16: u16 [pointer], %r17: u16 [pointer], %r18: u8 [general]):
+    ret %r17
+

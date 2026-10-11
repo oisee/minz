@@ -1,0 +1,300 @@
+=== RUN   TestOriginalRecursionFoldCorpusComplete
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex9a_factorial_rec
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex9a_factorial_rec/ordinary
+    original_recursion_fold_corpus_test.go:469: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "factorial": 256
+          },
+          "module_bytes": 54,
+          "source_sha256": "49418af6de858d7388edf81bb74eadd2beb608b15c6f45c0b0d5eeae34f663f1",
+          "stack_depths": {
+            "factorial": 1020
+          },
+          "terminating_workload_tstates": 37375924
+        }
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex9a_factorial_rec/grace-size
+    original_recursion_fold_corpus_test.go:469: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "factorial": 256
+          },
+          "module_bytes": 54,
+          "source_sha256": "49418af6de858d7388edf81bb74eadd2beb608b15c6f45c0b0d5eeae34f663f1",
+          "stack_depths": {
+            "factorial": 1020
+          },
+          "terminating_workload_tstates": 37375924
+        }
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex9a_factorial_rec/grace-speed
+    original_recursion_fold_corpus_test.go:469: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "factorial": 256
+          },
+          "module_bytes": 54,
+          "source_sha256": "49418af6de858d7388edf81bb74eadd2beb608b15c6f45c0b0d5eeae34f663f1",
+          "stack_depths": {
+            "factorial": 1020
+          },
+          "terminating_workload_tstates": 37375924
+        }
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex9b_factorial_fold
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex9b_factorial_fold/ordinary
+    original_recursion_fold_corpus_test.go:469: {
+          "allowed_spill_bytes": {
+            "32833": true,
+            "32834": true
+          },
+          "entries": {
+            "factorial_fold": 256
+          },
+          "module_bytes": 67,
+          "source_sha256": "d3dad2dc322fc522c86d14cf5fdb87897b0e5a102c594c686c19ae76357846de",
+          "stack_depths": {
+            "factorial_fold": 8
+          },
+          "terminating_workload_tstates": 37439733
+        }
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex9b_factorial_fold/grace-size
+    original_recursion_fold_corpus_test.go:469: {
+          "allowed_spill_bytes": {
+            "32833": true,
+            "32834": true
+          },
+          "entries": {
+            "factorial_fold": 256
+          },
+          "module_bytes": 67,
+          "source_sha256": "d3dad2dc322fc522c86d14cf5fdb87897b0e5a102c594c686c19ae76357846de",
+          "stack_depths": {
+            "factorial_fold": 8
+          },
+          "terminating_workload_tstates": 37439733
+        }
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex9b_factorial_fold/grace-speed
+    original_recursion_fold_corpus_test.go:469: {
+          "allowed_spill_bytes": {
+            "32833": true,
+            "32834": true
+          },
+          "entries": {
+            "factorial_fold": 256
+          },
+          "module_bytes": 67,
+          "source_sha256": "d3dad2dc322fc522c86d14cf5fdb87897b0e5a102c594c686c19ae76357846de",
+          "stack_depths": {
+            "factorial_fold": 8
+          },
+          "terminating_workload_tstates": 37439733
+        }
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex10a_fib_rec
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex10a_fib_rec/ordinary
+    original_recursion_fold_corpus_test.go:469: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "fib": 21
+          },
+          "module_bytes": 38,
+          "source_sha256": "396e859e7c49c19cd59d95354672582ffe9d99046c1f87c81dea5ac738b9670c",
+          "stack_depths": {
+            "fib": 78
+          },
+          "terminating_workload_tstates": 6510772
+        }
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex10a_fib_rec/grace-size
+    original_recursion_fold_corpus_test.go:469: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "fib": 21
+          },
+          "module_bytes": 38,
+          "source_sha256": "396e859e7c49c19cd59d95354672582ffe9d99046c1f87c81dea5ac738b9670c",
+          "stack_depths": {
+            "fib": 78
+          },
+          "terminating_workload_tstates": 6510772
+        }
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex10a_fib_rec/grace-speed
+    original_recursion_fold_corpus_test.go:469: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "fib": 21
+          },
+          "module_bytes": 38,
+          "source_sha256": "396e859e7c49c19cd59d95354672582ffe9d99046c1f87c81dea5ac738b9670c",
+          "stack_depths": {
+            "fib": 78
+          },
+          "terminating_workload_tstates": 6510772
+        }
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex10b_fib_iter
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex10b_fib_iter/ordinary
+    original_recursion_fold_corpus_test.go:469: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "fib_iter": 256
+          },
+          "module_bytes": 32,
+          "source_sha256": "afb172839734878c9697ecc295e20a62ff1e658bcc7be994c38b1b8962fa9615",
+          "stack_depths": {
+            "fib_iter": 4
+          },
+          "terminating_workload_tstates": 2419979
+        }
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex10b_fib_iter/grace-size
+    original_recursion_fold_corpus_test.go:469: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "fib_iter": 256
+          },
+          "module_bytes": 32,
+          "source_sha256": "afb172839734878c9697ecc295e20a62ff1e658bcc7be994c38b1b8962fa9615",
+          "stack_depths": {
+            "fib_iter": 4
+          },
+          "terminating_workload_tstates": 2419979
+        }
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex10b_fib_iter/grace-speed
+    original_recursion_fold_corpus_test.go:469: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "fib_iter": 256
+          },
+          "module_bytes": 32,
+          "source_sha256": "afb172839734878c9697ecc295e20a62ff1e658bcc7be994c38b1b8962fa9615",
+          "stack_depths": {
+            "fib_iter": 4
+          },
+          "terminating_workload_tstates": 2419979
+        }
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex10c_fib_fold
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex10c_fib_fold/ordinary
+    original_recursion_fold_corpus_test.go:469: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "fib_fold": 256
+          },
+          "module_bytes": 19,
+          "source_sha256": "14fe7eed3447aa6928d72411cb91b1f56ffc55bd87cd61d9e49f52d24435a26a",
+          "stack_depths": {
+            "fib_fold": 4
+          },
+          "terminating_workload_tstates": 2249669
+        }
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex10c_fib_fold/grace-size
+    original_recursion_fold_corpus_test.go:469: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "fib_fold": 256
+          },
+          "module_bytes": 19,
+          "source_sha256": "14fe7eed3447aa6928d72411cb91b1f56ffc55bd87cd61d9e49f52d24435a26a",
+          "stack_depths": {
+            "fib_fold": 4
+          },
+          "terminating_workload_tstates": 2249669
+        }
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex10c_fib_fold/grace-speed
+    original_recursion_fold_corpus_test.go:469: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "fib_fold": 256
+          },
+          "module_bytes": 19,
+          "source_sha256": "14fe7eed3447aa6928d72411cb91b1f56ffc55bd87cd61d9e49f52d24435a26a",
+          "stack_depths": {
+            "fib_fold": 4
+          },
+          "terminating_workload_tstates": 2249669
+        }
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex14_fold_assert
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex14_fold_assert/ordinary
+    original_recursion_fold_corpus_test.go:469: {
+          "allowed_spill_bytes": {
+            "32948": true,
+            "32949": true,
+            "32950": true
+          },
+          "entries": {
+            "count_in_range": 10240,
+            "factorial": 256,
+            "sum_to": 256
+          },
+          "module_bytes": 183,
+          "source_sha256": "362b9106276974042e33936b02203f10a48cf726d24bd5e48eec1d4f75bae1a7",
+          "stack_depths": {
+            "count_in_range": 6,
+            "factorial": 8,
+            "sum_to": 2
+          },
+          "terminating_workload_tstates": 353266714
+        }
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex14_fold_assert/grace-size
+    original_recursion_fold_corpus_test.go:469: {
+          "allowed_spill_bytes": {
+            "32948": true,
+            "32949": true,
+            "32950": true
+          },
+          "entries": {
+            "count_in_range": 10240,
+            "factorial": 256,
+            "sum_to": 256
+          },
+          "module_bytes": 183,
+          "source_sha256": "362b9106276974042e33936b02203f10a48cf726d24bd5e48eec1d4f75bae1a7",
+          "stack_depths": {
+            "count_in_range": 6,
+            "factorial": 8,
+            "sum_to": 2
+          },
+          "terminating_workload_tstates": 353266714
+        }
+=== RUN   TestOriginalRecursionFoldCorpusComplete/ex14_fold_assert/grace-speed
+    original_recursion_fold_corpus_test.go:469: {
+          "allowed_spill_bytes": {
+            "32948": true,
+            "32949": true,
+            "32950": true
+          },
+          "entries": {
+            "count_in_range": 10240,
+            "factorial": 256,
+            "sum_to": 256
+          },
+          "module_bytes": 183,
+          "source_sha256": "362b9106276974042e33936b02203f10a48cf726d24bd5e48eec1d4f75bae1a7",
+          "stack_depths": {
+            "count_in_range": 6,
+            "factorial": 8,
+            "sum_to": 2
+          },
+          "terminating_workload_tstates": 353266714
+        }
+--- PASS: TestOriginalRecursionFoldCorpusComplete (17.54s)
+    --- PASS: TestOriginalRecursionFoldCorpusComplete/ex9a_factorial_rec (0.77s)
+        --- PASS: TestOriginalRecursionFoldCorpusComplete/ex9a_factorial_rec/ordinary (0.22s)
+        --- PASS: TestOriginalRecursionFoldCorpusComplete/ex9a_factorial_rec/grace-size (0.23s)
+        --- PASS: TestOriginalRecursionFoldCorpusComplete/ex9a_factorial_rec/grace-speed (0.33s)
+    --- PASS: TestOriginalRecursionFoldCorpusComplete/ex9b_factorial_fold (0.94s)
+        --- PASS: TestOriginalRecursionFoldCorpusComplete/ex9b_factorial_fold/ordinary (0.32s)
+        --- PASS: TestOriginalRecursionFoldCorpusComplete/ex9b_factorial_fold/grace-size (0.34s)
+        --- PASS: TestOriginalRecursionFoldCorpusComplete/ex9b_factorial_fold/grace-speed (0.27s)
+    --- PASS: TestOriginalRecursionFoldCorpusComplete/ex10a_fib_rec (0.41s)
+        --- PASS: TestOriginalRecursionFoldCorpusComplete/ex10a_fib_rec/ordinary (0.13s)
+        --- PASS: TestOriginalRecursionFoldCorpusComplete/ex10a_fib_rec/grace-size (0.14s)
+        --- PASS: TestOriginalRecursionFoldCorpusComplete/ex10a_fib_rec/grace-speed (0.14s)
+    --- PASS: TestOriginalRecursionFoldCorpusComplete/ex10b_fib_iter (0.11s)
+        --- PASS: TestOriginalRecursionFoldCorpusComplete/ex10b_fib_iter/ordinary (0.03s)
+        --- PASS: TestOriginalRecursionFoldCorpusComplete/ex10b_fib_iter/grace-size (0.04s)
+        --- PASS: TestOriginalRecursionFoldCorpusComplete/ex10b_fib_iter/grace-speed (0.03s)
+    --- PASS: TestOriginalRecursionFoldCorpusComplete/ex10c_fib_fold (0.11s)
+        --- PASS: TestOriginalRecursionFoldCorpusComplete/ex10c_fib_fold/ordinary (0.03s)
+        --- PASS: TestOriginalRecursionFoldCorpusComplete/ex10c_fib_fold/grace-size (0.05s)
+        --- PASS: TestOriginalRecursionFoldCorpusComplete/ex10c_fib_fold/grace-speed (0.03s)
+    --- PASS: TestOriginalRecursionFoldCorpusComplete/ex14_fold_assert (15.20s)
+        --- PASS: TestOriginalRecursionFoldCorpusComplete/ex14_fold_assert/ordinary (4.68s)
+        --- PASS: TestOriginalRecursionFoldCorpusComplete/ex14_fold_assert/grace-size (5.19s)
+        --- PASS: TestOriginalRecursionFoldCorpusComplete/ex14_fold_assert/grace-speed (5.33s)
+PASS

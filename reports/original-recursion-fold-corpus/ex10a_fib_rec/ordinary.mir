@@ -1,0 +1,20 @@
+; MIR2 module: reports/showcase-src/2026-03-11/ex10a_fib_rec.nanz
+fun @fib(%r1: u8 [acc]) -> u16 [pointer]
+  block @entry:
+    %r2 = const 1 : u8 [general]
+    %r3 = cmp.ule %r1, %r2 : bool [flag]
+    br_if %r3, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r1
+  block @if_join2:
+    %r4 = const 1 : u8 [general]
+    %r5 = sub %r1, %r4 : u8 [acc]
+    %r6 = move %r5 : u8 [acc]
+    %r7 = call @fib(%r6) : u16 [pointer]
+    %r8 = const 2 : u8 [general]
+    %r9 = sub %r1, %r8 : u8 [acc]
+    %r10 = move %r9 : u8 [acc]
+    %r11 = call @fib(%r10) : u16 [pointer]
+    %r12 = add %r7, %r11 : u16 [pointer]
+    ret %r12
+

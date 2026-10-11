@@ -1,0 +1,51 @@
+// ex14 — Fold/accumulate pattern with compile-time assert
+//
+// Nanz doesn't have a fold() iterator method yet; the idiomatic pattern
+// is a for-range loop with a global accumulator.
+// The assert keyword verifies the results at compile time — no test binary needed.
+
+global acc_u8: u8 = 0
+global acc_u16: u16 = 0
+
+// Sum of 0..n (inclusive) via accumulator loop.
+fun sum_to(n: u8) -> u8 {
+    acc_u8 = 0
+    for i in 0..n+1 {
+        acc_u8 = acc_u8 + i
+    }
+    return acc_u8
+}
+
+// Product of 1..n (factorial) via accumulator loop.
+fun factorial(n: u8) -> u16 {
+    acc_u16 = 1
+    for i in 1..n+1 {
+        acc_u16 = acc_u16 * i
+    }
+    return acc_u16
+}
+
+// Count elements matching a predicate (u8 in range [lo, hi]).
+fun count_in_range(arr_ptr: ^u8, len: u8, lo: u8, hi: u8) -> u8 {
+    acc_u8 = 0
+    for i in 0..len {
+        v = arr_ptr[i]
+        if v >= lo {
+            if v <= hi {
+                acc_u8 = acc_u8 + 1
+            }
+        }
+    }
+    return acc_u8
+}
+
+// Compile-time checks.
+assert sum_to(0) == 0
+assert sum_to(1) == 1
+assert sum_to(4) == 10
+assert sum_to(10) == 55
+
+assert factorial(0) == 1
+assert factorial(1) == 1
+assert factorial(5) == 120
+assert factorial(7) == 5040

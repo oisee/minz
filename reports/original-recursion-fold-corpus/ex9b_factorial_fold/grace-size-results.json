@@ -1,0 +1,15 @@
+{
+  "allowed_spill_bytes": {
+    "32833": true,
+    "32834": true
+  },
+  "entries": {
+    "factorial_fold": 256
+  },
+  "module_bytes": 67,
+  "source_sha256": "d3dad2dc322fc522c86d14cf5fdb87897b0e5a102c594c686c19ae76357846de",
+  "stack_depths": {
+    "factorial_fold": 8
+  },
+  "terminating_workload_tstates": 37439733
+}

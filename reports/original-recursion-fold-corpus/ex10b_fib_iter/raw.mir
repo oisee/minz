@@ -1,0 +1,26 @@
+; MIR2 module: reports/showcase-src/2026-03-11/ex10b_fib_iter.nanz
+fun @fib_iter(%r1: u8 [acc]) -> u16 [pointer]
+  block @entry:
+    %r2 = const 1 : u8 [general]
+    %r3 = cmp.ule %r1, %r2 : bool [flag]
+    br_if %r3, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r1
+  block @if_join2:
+    %r4 = const 0 : u8 [general]
+    %r5 = ext %r4 : u8 -> u16 [pointer]
+    %r6 = const 1 : u8 [general]
+    %r7 = ext %r6 : u8 -> u16 [pointer]
+    %r8 = const 1 : u8 [general]
+    jmp @loop_head4(%r1, %r5, %r7, %r8)
+  block @loop_head4(%r9: u8 [general], %r10: u16 [pointer], %r11: u16 [pointer], %r12: u8 [general]):
+    %r13 = cmp.ult %r12, %r9 : bool [flag]
+    br_if %r13, @loop_body5(), @loop_exit6(%r9, %r10, %r11, %r12)
+  block @loop_body5:
+    %r14 = add %r10, %r11 : u16 [pointer]
+    %r15 = const 1 : u8 [general]
+    %r16 = add %r12, %r15 : u8 [general]
+    jmp @loop_head4(%r9, %r11, %r14, %r16)
+  block @loop_exit6(%r17: u8 [general], %r18: u16 [pointer], %r19: u16 [pointer], %r20: u8 [general]):
+    ret %r19
+

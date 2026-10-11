@@ -1,0 +1,95 @@
+; MIR2 module: reports/showcase-src/2026-03-11/ex14_fold_assert.nanz
+global @acc_u8 : u8
+global @acc_u16 : u16
+
+fun @sum_to(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = const 0 : u8 [general]
+    %r3 = addr_of @acc_u8 : ptr [pointer]
+    store %r3, %r2 : u8
+    %r4 = const 0 : u8 [general]
+    %r5 = const 1 : u8 [general]
+    %r6 = add %r1, %r5 : u8 [acc]
+    jmp @loop_head2(%r6, %r4)
+  block @loop_head2(%r7: u8 [general], %r8: u8 [general]):
+    %r9 = cmp.ult %r8, %r7 : bool [flag]
+    br_if %r9, @loop_body3(), @loop_exit4(%r7, %r8)
+  block @loop_body3:
+    %r10 = addr_of @acc_u8 : ptr [pointer]
+    %r11 = load %r10 : u8 [general]
+    %r12 = add %r11, %r8 : u8 [general]
+    %r13 = addr_of @acc_u8 : ptr [pointer]
+    store %r13, %r12 : u8
+    %r14 = const 1 : u8 [general]
+    %r15 = add %r8, %r14 : u8 [general]
+    jmp @loop_head2(%r7, %r15)
+  block @loop_exit4(%r16: u8 [general], %r17: u8 [general]):
+    %r18 = addr_of @acc_u8 : ptr [pointer]
+    %r19 = load %r18 : u8 [general]
+    ret %r19
+
+fun @factorial(%r20: u8 [acc]) -> u16 [pointer]
+  block @entry:
+    %r21 = const 1 : u8 [general]
+    %r22 = addr_of @acc_u16 : ptr [pointer]
+    store %r22, %r21 : u16
+    %r23 = const 1 : u8 [general]
+    %r24 = const 1 : u8 [general]
+    %r25 = add %r20, %r24 : u8 [acc]
+    jmp @loop_head2(%r25, %r23)
+  block @loop_head2(%r26: u8 [general], %r27: u8 [general]):
+    %r28 = cmp.ult %r27, %r26 : bool [flag]
+    br_if %r28, @loop_body3(), @loop_exit4(%r26, %r27)
+  block @loop_body3:
+    %r29 = addr_of @acc_u16 : ptr [pointer]
+    %r30 = load %r29 : u16 [pointer]
+    %r31 = ext %r27 : u8 -> u16 [pointer]
+    %r32 = mul %r30, %r31 : u16 [pointer]
+    %r33 = addr_of @acc_u16 : ptr [pointer]
+    store %r33, %r32 : u16
+    %r34 = const 1 : u8 [general]
+    %r35 = add %r27, %r34 : u8 [general]
+    jmp @loop_head2(%r26, %r35)
+  block @loop_exit4(%r36: u8 [general], %r37: u8 [general]):
+    %r38 = addr_of @acc_u16 : ptr [pointer]
+    %r39 = load %r38 : u16 [pointer]
+    ret %r39
+
+fun @count_in_range(%r40: ptr [pointer], %r41: u8 [general], %r42: u8 [counter], %r43: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r44 = const 0 : u8 [general]
+    %r45 = addr_of @acc_u8 : ptr [pointer]
+    store %r45, %r44 : u8
+    %r46 = const 0 : u8 [general]
+    jmp @loop_head2(%r41, %r40, %r43, %r46, %r42)
+  block @loop_head2(%r47: u8 [general], %r48: ptr [general], %r49: u8 [general], %r50: u8 [general], %r51: u8 [general]):
+    %r52 = cmp.ult %r50, %r47 : bool [flag]
+    br_if %r52, @loop_body3(), @loop_exit4(%r47, %r48, %r49, %r50, %r51)
+  block @loop_body3:
+    %r53 = ext %r50 : u8 -> u16 [index]
+    %r54 = ptr_add %r48, %r53 : ptr [pointer]
+    %r55 = load %r54 : u8 [general]
+    %r56 = cmp.uge %r55, %r51 : bool [flag]
+    br_if %r56, @if_then5(), @if_join6()
+  block @if_then5:
+    %r57 = cmp.ule %r55, %r49 : bool [flag]
+    br_if %r57, @if_then7(), @if_join8()
+  block @if_then7:
+    %r58 = addr_of @acc_u8 : ptr [pointer]
+    %r59 = load %r58 : u8 [general]
+    %r60 = const 1 : u8 [general]
+    %r61 = add %r59, %r60 : u8 [general]
+    %r62 = addr_of @acc_u8 : ptr [pointer]
+    store %r62, %r61 : u8
+    jmp @if_join8()
+  block @if_join8:
+    jmp @if_join6()
+  block @if_join6:
+    %r63 = const 1 : u8 [general]
+    %r64 = add %r50, %r63 : u8 [general]
+    jmp @loop_head2(%r47, %r48, %r49, %r64, %r51)
+  block @loop_exit4(%r65: u8 [general], %r66: ptr [general], %r67: u8 [general], %r68: u8 [general], %r69: u8 [general]):
+    %r70 = addr_of @acc_u8 : ptr [pointer]
+    %r71 = load %r70 : u8 [general]
+    ret %r71
+

@@ -1,0 +1,20 @@
+{
+  "allowed_spill_bytes": {
+    "32948": true,
+    "32949": true,
+    "32950": true
+  },
+  "entries": {
+    "count_in_range": 10240,
+    "factorial": 256,
+    "sum_to": 256
+  },
+  "module_bytes": 183,
+  "source_sha256": "362b9106276974042e33936b02203f10a48cf726d24bd5e48eec1d4f75bae1a7",
+  "stack_depths": {
+    "count_in_range": 6,
+    "factorial": 8,
+    "sum_to": 2
+  },
+  "terminating_workload_tstates": 353266714
+}

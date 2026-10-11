@@ -1,0 +1,30 @@
+; MIR2 module: reports/showcase-src/2026-03-11/ex9b_factorial_fold.nanz
+global @acc : u16
+
+fun @factorial_fold(%r1: u8 [acc]) -> u16 [pointer]
+  block @entry:
+    %r2 = const 1 : u8 [general]
+    %r3 = addr_of @acc : ptr [pointer]
+    store %r3, %r2 : u16
+    %r4 = const 1 : u8 [general]
+    %r5 = const 1 : u8 [general]
+    %r6 = add %r1, %r5 : u8 [acc]
+    jmp @loop_head2(%r6, %r4)
+  block @loop_head2(%r7: u8 [general], %r4: u8 [general]):
+    %r9 = cmp.ult %r4, %r7 : bool [flag]
+    br_if %r9, @loop_body3(), @loop_exit4()
+  block @loop_body3:
+    %r10 = addr_of @acc : ptr [pointer]
+    %r11 = load %r10 : u16 [pointer]
+    %r12 = ext %r4 : u8 -> u16 [pointer]
+    %r13 = mul %r11, %r12 : u16 [pointer]
+    %r14 = addr_of @acc : ptr [pointer]
+    store %r14, %r13 : u16
+    %r15 = const 1 : u8 [general]
+    %r16 = add %r4, %r15 : u8 [general]
+    jmp @loop_head2(%r7, %r16)
+  block @loop_exit4:
+    %r17 = addr_of @acc : ptr [pointer]
+    %r18 = load %r17 : u16 [pointer]
+    ret %r18
+
