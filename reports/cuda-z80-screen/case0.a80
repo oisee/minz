@@ -1,0 +1,4 @@
+ORG 0x8000
+LD B,A
+ADD A,A
+ADD A,B

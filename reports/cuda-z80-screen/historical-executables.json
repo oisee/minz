@@ -1,0 +1,87 @@
+[
+  {
+    "path": "/home/alice/z80_arith16",
+    "bytes": 866288,
+    "sha256": "e217d8f7c1dccd8a7eb659dc0737b7ddf0e198ad2ad47e074fad2e9e2c3eaf49"
+  },
+  {
+    "path": "/home/alice/z80_common.h",
+    "bytes": 22069,
+    "sha256": "b455b45e471b6622fbf049d6ee2c085f8a8977a3954dc3c569454c587a481c02"
+  },
+  {
+    "path": "/home/alice/z80_divmod",
+    "bytes": 907624,
+    "sha256": "a456613813f0d36ded6dec67409c513741983b29e86de208bafe07fd0b3dfbee"
+  },
+  {
+    "path": "/home/alice/z80_divmod.cu",
+    "bytes": 13807,
+    "sha256": "f0b0a38e12efd6dc16013b0031d7597c927cb92f371d1320bf459832eb11da93"
+  },
+  {
+    "path": "/home/alice/z80_divmod_fast",
+    "bytes": 903528,
+    "sha256": "92ebdeb75e8f3147ec6043370ce463d4322ef4bdd8855562b67caa31d0eea937"
+  },
+  {
+    "path": "/home/alice/z80_divmod_fast.cu",
+    "bytes": 13767,
+    "sha256": "52a5f634e24217d8f4a35008de04db0f04a4793f4c3b958920e439b828ecba9e"
+  },
+  {
+    "path": "/home/alice/z80_focused",
+    "bytes": 887416,
+    "sha256": "8ef02ecf4c151fe327f39bc6d10ef7e0a268c1cab2e5f8869dfbd86617c58971"
+  },
+  {
+    "path": "/home/alice/z80_idiom_search",
+    "bytes": 870432,
+    "sha256": "0f1449086053719dce0964f03fc838a214b4b6cb8f16212cb5b005996fad30d4"
+  },
+  {
+    "path": "/home/alice/z80_mulopt.c",
+    "bytes": 11040,
+    "sha256": "57e91de53ced699baccb26e9c23571ee5acdff83ec9c007f0daa1f3a1073891f"
+  },
+  {
+    "path": "/home/alice/z80_mulopt16",
+    "bytes": 862424,
+    "sha256": "a3630bd571fca499ae3b82bc6618ef2b34ba3274a6318484a9ac5a7688e1b820"
+  },
+  {
+    "path": "/home/alice/z80_mulopt16.cu",
+    "bytes": 12449,
+    "sha256": "5b90c9b922a48d3cb3748edf32ddcbcc0f328cd8f4aec52dc0f3808856eeba4c"
+  },
+  {
+    "path": "/home/alice/z80_mulopt_fast",
+    "bytes": 899248,
+    "sha256": "f53b001dde1273ea25dbd22218f0be23336202eef439f3eb8895f5caa1d40010"
+  },
+  {
+    "path": "/home/alice/z80_mulopt_fast.cu",
+    "bytes": 12845,
+    "sha256": "b020416513cba1f0a7d0f27613cda04ae98b8a541aaafeac11f3d15c25559bf9"
+  },
+  {
+    "path": "/home/alice/z80_multitarget_13",
+    "bytes": 862576,
+    "sha256": "bf4fff8696515a252e212a72c37fb13d307c2e077258ac39afa773f2e87fba71"
+  },
+  {
+    "path": "/home/alice/z80_partition_opt",
+    "bytes": 862384,
+    "sha256": "93b4d095f538473c81207f2820ed93e38da99eccee2b181bd1b96397f1b86a79"
+  },
+  {
+    "path": "/home/alice/z80_universal21",
+    "bytes": 858184,
+    "sha256": "cd7260674e196e80e60369743e7a8de9df1c885bf695b7c7d2271bcfd1393329"
+  },
+  {
+    "path": "/home/alice/z80search_v2",
+    "bytes": 1134304,
+    "sha256": "5ac2831ce9c7161cfc59316fbe3fc1cb40b3b8202ec6a4cae8c55342d846c1f8"
+  }
+]

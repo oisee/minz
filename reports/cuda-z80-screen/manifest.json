@@ -1,0 +1,110 @@
+{
+  "compiler_context": "def2b8a4",
+  "smoke": "bounded recovered CUDA evaluator vs assembled native CPU, notproductionintegration",
+  "files": {
+    "build.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "case0.a80": {
+      "sha256": "6ea24f656b3b6d0fe1adcf4365e8644fdac44c1577b641bbf4343c663b92ce31",
+      "bytes": 34
+    },
+    "case1.a80": {
+      "sha256": "4ded6b2200b864d0ce13d76b0ac4f0a684d482ad7ce93f33f1ee764833718233",
+      "bytes": 29
+    },
+    "cpu-repeat-result.txt": {
+      "sha256": "455a5d045040f892e18ff62ae53d590c6ca1ab6fb16819de919a6bff088e47f1",
+      "bytes": 119
+    },
+    "cpu-repeat.csv": {
+      "sha256": "50f29e112ba3d4870871a845034ea9ab4052e8096d6bbc8685f585df0a50b2d0",
+      "bytes": 9307
+    },
+    "cpu-result.txt": {
+      "sha256": "539e1ac7618768cc17c071718dfdab46de48e3785d22913123bc5dbd6f7560f7",
+      "bytes": 118
+    },
+    "cpu.csv": {
+      "sha256": "50f29e112ba3d4870871a845034ea9ab4052e8096d6bbc8685f585df0a50b2d0",
+      "bytes": 9307
+    },
+    "cpu.go": {
+      "sha256": "e9151a80cc95784cfa0c22d4c361c107244874546ef991cacacfb661f2957f89",
+      "bytes": 2702
+    },
+    "exhaustive_4v.bin.zst.prefix256": {
+      "sha256": "f2abdaec55ba5f32a819b780735d9fc6a87da5878f20ef58e5ee22491e39649d",
+      "bytes": 256
+    },
+    "exhaustive_5v.bin.zst.prefix256": {
+      "sha256": "1c5679aaed68fa93a94f1556d07a9519b92f363d4574cda7072b168bf67fb980",
+      "bytes": 256
+    },
+    "exhaustive_6v_dense.bin.zst.prefix256": {
+      "sha256": "107a23fdb840bbbac94bda9ca480dd411f3ae0365568a4fcc91dc5ec8764f346",
+      "bytes": 256
+    },
+    "gpu-timing.txt": {
+      "sha256": "8480d945ccd407d4057f68a27f20082177b6fc2ab0400993cd398636f7b5a220",
+      "bytes": 101
+    },
+    "gpu.csv": {
+      "sha256": "7f79592d46545ae390babfef4bc847514fd2fe22d2752cccc4c49153b73a83fe",
+      "bytes": 7093
+    },
+    "historical-executables.json": {
+      "sha256": "e3dbce3c6c893009b30ac0d94bf9ec5c482466074f92b247bcbae4101ea12aea",
+      "bytes": 2601
+    },
+    "historical-inventory.json": {
+      "sha256": "6e5bbe1cc3b6b6458da68f556b69da930c90b2207010f6d217325b7be88ef82b",
+      "bytes": 34727
+    },
+    "historical-tables-README.md": {
+      "sha256": "39687347e0980cc4527fbe907da0be95f16d9c95d982e4cd5b580670741480d3",
+      "bytes": 2236
+    },
+    "nvcc.txt": {
+      "sha256": "4cee3ff19a1cc7a240aa2e6546d570ccb2fcdbabed204c66d72b9bb8ab0fdf0a",
+      "bytes": 209
+    },
+    "nvidia-smi.txt": {
+      "sha256": "e4658b9989ab6dc0a56ad70c35fd5673aabd997e85cf4df2f40a93618343177f",
+      "bytes": 1778
+    },
+    "smoke-gpu": {
+      "sha256": "5fb351c9a3b4a7e5d52cb89af41f9a7d780461dbb0649a43dfd0febe6cc94462",
+      "bytes": 920128
+    },
+    "smoke.cu": {
+      "sha256": "c2f31f2dbcccbe945cfa3465e561da4fbb911faa5af07b06cb33928dbf6abf03",
+      "bytes": 1689
+    },
+    "source/ORIGINS.txt": {
+      "sha256": "4fa1055e0cdd553cd920bf86c3c11de867a47e3a4015831727c8cf4caa1c1a9f",
+      "bytes": 133
+    },
+    "source/gen_z80.cu": {
+      "sha256": "8d0e6ef676773aca6e0c4a1c34ba2f2207edfa9423545112011ff0ffeb079269",
+      "bytes": 3037
+    },
+    "source/z80_common.h": {
+      "sha256": "b455b45e471b6622fbf049d6ee2c085f8a8977a3954dc3c569454c587a481c02",
+      "bytes": 22069
+    },
+    "source/z80_divmod.cu": {
+      "sha256": "f0b0a38e12efd6dc16013b0031d7597c927cb92f371d1320bf459832eb11da93",
+      "bytes": 13807
+    },
+    "source/z80_mulopt16.cu": {
+      "sha256": "5b90c9b922a48d3cb3748edf32ddcbcc0f328cd8f4aec52dc0f3808856eeba4c",
+      "bytes": 12449
+    },
+    "source/z80_mulopt_fast.cu": {
+      "sha256": "b020416513cba1f0a7d0f27613cda04ae98b8a541aaafeac11f3d15c25559bf9",
+      "bytes": 12845
+    }
+  }
+}
