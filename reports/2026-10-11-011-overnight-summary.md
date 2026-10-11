@@ -1,6 +1,6 @@
 # Ночной итог Grace / PGO — 11 октября 2026
 
-Актуально на 10:39 UTC. Цель продолжается: выбирать оптимизации по проверенному
+Актуально на 10:41 UTC. Цель продолжается: выбирать оптимизации по проверенному
 профилю, от исходника через HIR/MIR до собранного Z80-бинарника. MIR VM служит
 промежуточным oracle; итоговые варианты исполняются в Z80-эмуляторе с проверкой
 результатов, памяти, порядка host events, размера и T-states. Проверка на
@@ -120,10 +120,16 @@ Size, вычисленный из этих же сохранённых данн�
 Точный executable2955420de33c6ce620f2298b0712ab537f0b66cd7fc540c545d344bff1b55966
 и все inputs/search/objectives/ASM/BIN сохранены в
 `/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-search-evidence/`.
-Короткий zero-body crossover контроль выполняется на том же executable;
-backend audit полного сохранённого прогона продолжается. Следом: заморозить
-пакет, перенести API в рабочую ветку и пройти общие проверки.
-Новый поиск пока не перенесён и не опубликован.
+Короткий zero-body crossover контроль TERMINAL PASS113.95s на том же
+executable,48callbacks. ActualSpeedpolicy1/mask1 566T/2122B; derivedSize
+Legacy/mask2 663T/1978B. Zero-body не доказывает dynamic compareactivation.
+Оба независимых аудита65167c16/66824fbc/2842284c прошли320observations
+(full300+short20). API перенесён exact2files в44739f77 и pushed.
+Общий pipeline выполняется; HIR/MIR/C89/CLI/Nanz PASS, showcase31same0new.
+Broad gate нашёл цикл зависимостей frontend same-package tests→pipeline→Nanz→
+frontend. Исправление только тестовых пакетов выполняется отдельно;
+независимая проверка полного HIR неизменна. Новый поиск пока не опубликован.
+Следом: завершить gates/пакет и публикацию, затем отдельный явный search CLI.
 
 ## Сохранение веток и решения
 
