@@ -1,0 +1,13 @@
+=== RUN   TestOriginalErrorEnforcementNative
+    showcase_error_enforcement_native_test.go:330: main initial CY=0 output="105" success CY=0 restored SP PASS
+    showcase_error_enforcement_native_test.go:330: main initial CY=1 output="105" success CY=0 restored SP PASS
+    showcase_error_enforcement_native_test.go:333: default 262144 native + raw/final VM outcome/SP/RAM calls PASS; 0 source assertions retained
+    showcase_error_enforcement_native_test.go:330: main initial CY=0 output="105" success CY=0 restored SP PASS
+    showcase_error_enforcement_native_test.go:330: main initial CY=1 output="105" success CY=0 restored SP PASS
+    showcase_error_enforcement_native_test.go:333: grace-size 262144 native + raw/final VM outcome/SP/RAM calls PASS; 0 source assertions retained
+    showcase_error_enforcement_native_test.go:330: main initial CY=0 output="105" success CY=0 restored SP PASS
+    showcase_error_enforcement_native_test.go:330: main initial CY=1 output="105" success CY=0 restored SP PASS
+    showcase_error_enforcement_native_test.go:333: grace-speed 262144 native + raw/final VM outcome/SP/RAM calls PASS; 0 source assertions retained
+--- PASS: TestOriginalErrorEnforcementNative (42.30s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	42.309s

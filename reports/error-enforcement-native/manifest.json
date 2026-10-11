@@ -1,0 +1,174 @@
+{
+  "schema": "minz.error-enforcement-native/v1",
+  "freeze_commit": "658273f4",
+  "validation_commit": "1f54c1e5",
+  "base": "35e5f469",
+  "verdict": "original15-bounded-vm-native-pass",
+  "files": [
+    {
+      "path": "reports/2026-10-11-078-error-enforcement-native.md",
+      "bytes": 3155,
+      "sha256": "2131ca20b3fee9a92d813b0f05e8b2d148811cc04d3008b0a93618a02ee706dc"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/api.txt",
+      "bytes": 180,
+      "sha256": "de88c4f097eb396c5f62c96b2351182134663898959438a1f044ee0f304a64be"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/arguments.txt",
+      "bytes": 690,
+      "sha256": "b2b6cfb20cc0d6056e1a65656d31b165ec6041c263b7f0c9b46f7a8aa5947647"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/calls.json.gz",
+      "bytes": 1022297,
+      "sha256": "2977a5e3763ee8614eaada78182870b24af86a90a5f50c8be9bada850aa10d5d"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/default/allocation.json",
+      "bytes": 3973,
+      "sha256": "af3e7eff8ee960090a419eca53eeda810b6af83485a4956ad02d0bceb18a93f8"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/default/evidence.json",
+      "bytes": 942,
+      "sha256": "ce65c600bbcbb7dc5a095d744cd73ce248f09927d6ea9905e168941fd68571f5"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/default/final.mir",
+      "bytes": 2764,
+      "sha256": "991e405f8cf74684ec603834cf7707fad03650fa6fab3251a5d0ea9d7132d30c"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/default/main-carry0.json",
+      "bytes": 130,
+      "sha256": "57be0fb68f5db5caff0136c4722bbf470964680a8bde6af202ec6f5e57150d8d"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/default/main-carry1.json",
+      "bytes": 130,
+      "sha256": "23116ad2da934e03c2f71239cb436014ed2567eef19f0b198ead612ca3240b29"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/default/raw.mir",
+      "bytes": 2836,
+      "sha256": "351afe013c5133f7fe8209d8fb928ef2fd1f7bfd3e42fd96758fbe7ce4e26617"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/default/target.a80",
+      "bytes": 5973,
+      "sha256": "66c231fc289dd54d01ffbafe7e84c21f010f061893352b16d266caff55b06f11"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/default/target.bin",
+      "bytes": 447,
+      "sha256": "3fe1ca02516ae490429c17ea593f1b5ecdc2bca54d769d77be7ceec426012903"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/grace-size/allocation.json",
+      "bytes": 3973,
+      "sha256": "af3e7eff8ee960090a419eca53eeda810b6af83485a4956ad02d0bceb18a93f8"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/grace-size/evidence.json",
+      "bytes": 940,
+      "sha256": "c35813428b6354301d37d45ad6f3ca4f6eaccb9163f14134c76f4e849a19cce1"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/grace-size/final.mir",
+      "bytes": 2764,
+      "sha256": "991e405f8cf74684ec603834cf7707fad03650fa6fab3251a5d0ea9d7132d30c"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/grace-size/main-carry0.json",
+      "bytes": 130,
+      "sha256": "57be0fb68f5db5caff0136c4722bbf470964680a8bde6af202ec6f5e57150d8d"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/grace-size/main-carry1.json",
+      "bytes": 130,
+      "sha256": "23116ad2da934e03c2f71239cb436014ed2567eef19f0b198ead612ca3240b29"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/grace-size/raw.mir",
+      "bytes": 2836,
+      "sha256": "351afe013c5133f7fe8209d8fb928ef2fd1f7bfd3e42fd96758fbe7ce4e26617"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/grace-size/target.a80",
+      "bytes": 5913,
+      "sha256": "e01d8036701b727b4032f382f7ae5c262741702631012a3b79b4937bff70745f"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/grace-size/target.bin",
+      "bytes": 447,
+      "sha256": "3fe1ca02516ae490429c17ea593f1b5ecdc2bca54d769d77be7ceec426012903"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/grace-speed/allocation.json",
+      "bytes": 3973,
+      "sha256": "af3e7eff8ee960090a419eca53eeda810b6af83485a4956ad02d0bceb18a93f8"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/grace-speed/evidence.json",
+      "bytes": 941,
+      "sha256": "37f6d42de5281d6c2c2efcd0fc159af78b2f60c9597fd341da03274457b2203f"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/grace-speed/final.mir",
+      "bytes": 2764,
+      "sha256": "991e405f8cf74684ec603834cf7707fad03650fa6fab3251a5d0ea9d7132d30c"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/grace-speed/main-carry0.json",
+      "bytes": 130,
+      "sha256": "57be0fb68f5db5caff0136c4722bbf470964680a8bde6af202ec6f5e57150d8d"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/grace-speed/main-carry1.json",
+      "bytes": 130,
+      "sha256": "23116ad2da934e03c2f71239cb436014ed2567eef19f0b198ead612ca3240b29"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/grace-speed/raw.mir",
+      "bytes": 2836,
+      "sha256": "351afe013c5133f7fe8209d8fb928ef2fd1f7bfd3e42fd96758fbe7ce4e26617"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/grace-speed/target.a80",
+      "bytes": 5913,
+      "sha256": "e01d8036701b727b4032f382f7ae5c262741702631012a3b79b4937bff70745f"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/grace-speed/target.bin",
+      "bytes": 447,
+      "sha256": "3fe1ca02516ae490429c17ea593f1b5ecdc2bca54d769d77be7ceec426012903"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/native.txt",
+      "bytes": 1263,
+      "sha256": "bd3d47315f226c411e5bb41ff3647e1727125b1403e300888fe11ee45d369770"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/packages.txt",
+      "bytes": 131,
+      "sha256": "48558b2d45b10b4bb8c359092365d3ce388dea950a7d0d53e76d6fb4bb35eb74"
+    },
+    {
+      "path": "reports/error-enforcement-native/native/source.nanz",
+      "bytes": 1200,
+      "sha256": "0fea7e236116054f0da14859393df4cf272f8461ca812186b44a28ac7d26d51b"
+    },
+    {
+      "path": "reports/error-enforcement-native/source.nanz",
+      "bytes": 1200,
+      "sha256": "0fea7e236116054f0da14859393df4cf272f8461ca812186b44a28ac7d26d51b"
+    },
+    {
+      "path": "reports/error-enforcement-native/workload.json",
+      "bytes": 600,
+      "sha256": "758db0f11eeca0128bf12c0fac6ab47c49704e4d9d68e513c36bfee568ee82d7"
+    }
+  ]
+}
