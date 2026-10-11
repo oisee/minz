@@ -32,7 +32,7 @@ func TestMemoryHostCallSnapshotBinding(t *testing.T) {
 	if e != nil || len(r) != 1 {
 		t.Fatal(e)
 	}
-	for _, name := range []string{"missing", "duplicate", "slot", "return_escape", "wrong_opcode", "saved_pair", "orphan", "in_bounds_wrong_slot", "anchor_marker", "consistent_wrong_source"} {
+	for _, name := range []string{"missing", "duplicate", "slot", "return_escape", "wrong_opcode", "saved_pair", "orphan", "in_bounds_wrong_slot", "anchor_marker", "consistent_wrong_source", "consistent_wrong_flags"} {
 		t.Run(name, func(t *testing.T) {
 			a, assembly, d := snapshotTestFixture(t)
 			switch name {
@@ -40,6 +40,11 @@ func TestMemoryHostCallSnapshotBinding(t *testing.T) {
 				d.Instructions[4].ID = "missing"
 			case "duplicate":
 				d.Instructions[4].ID = d.Instructions[3].ID
+			case "consistent_wrong_flags":
+				a.Listing[7].Bytes[2] = 1
+				a.Listing[7].SourceLine = strings.Replace(a.Listing[7].SourceLine, "IX+0", "IX+1", 1)
+				d.Instructions[7].Assembly = "LD L, (IX+1)"
+				assembly = strings.Replace(assembly, "LD L, (IX+0)", "LD L, (IX+1)", 1)
 			case "consistent_wrong_source":
 				a.Listing[4].Bytes[2] = 0
 				a.Listing[4].SourceLine = strings.Replace(a.Listing[4].SourceLine, "IX+1", "IX+0", 1)

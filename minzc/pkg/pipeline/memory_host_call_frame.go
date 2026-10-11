@@ -83,6 +83,9 @@ func resolveMemoryHostCallFrames(a *z80asm.Result, assembly string, descriptors 
 			return nil, nil, fmt.Errorf("invalid call snapshot")
 		}
 		seen[d.ID] = true
+		if len(d.SnapshotPairs) != 1 || len(d.Results) != 1 || d.Results[0].Source != "A" || d.Results[0].Width != 8 || d.Results[0].Destination == "A" || d.Results[0].Destination == "F" {
+			return nil, nil, fmt.Errorf("unsupported call snapshot result ABI")
+		}
 		snapshots, restores := map[string]int{}, map[string]int{}
 		base := 2 * len(d.SnapshotPairs)
 		snapshotSeen := map[string]bool{}
@@ -100,6 +103,9 @@ func resolveMemoryHostCallFrames(a *z80asm.Result, assembly string, descriptors 
 			}
 			pairseen[p] = true
 			restores[p] = base + 2 + 2*(len(d.CallerSaved)-1-j)
+		}
+		if !pairseen[snapshotPair(d.Results[0].Destination)] {
+			return nil, nil, fmt.Errorf("snapshot result destination not caller saved")
 		}
 		writes := map[int]bool{}
 		transfers := map[int]int{}
@@ -206,6 +212,26 @@ func resolveMemoryHostCallFrames(a *z80asm.Result, assembly string, descriptors 
 		anchorIndex := len(prologue) + 1
 		if len(lines) <= anchorIndex || !bytes.Equal(lines[len(prologue)].Bytes, []byte{0xdd, 0x21, 0, 0}) || !bytes.Equal(lines[anchorIndex].Bytes, []byte{0xdd, 0x39}) {
 			return nil, nil, fmt.Errorf("missing IX stack anchor")
+		}
+		// First supported capability is the exact A-byte saved-destination
+		// patch plus the fixed AF/IX restoration epilogue. Derive it from typed
+		// destination byte geometry instead of accepting arbitrary stack reads.
+		destination := d.Results[0].Destination
+		slot := restores[snapshotPair(destination)]
+		if snapshotHigh(destination) {
+			slot++
+		}
+		expectedOps := []string{"PUSH IX", "PUSH AF", "LD IX, 0", "ADD IX, SP", "LD A, (IX+1)", fmt.Sprintf("LD (IX+%d), A", slot), "PUSH HL", "LD L, (IX+0)", "LD H, (IX+1)", "PUSH HL", "POP AF", "POP HL", "INC SP", "INC SP", "POP IX"}
+		for _, pair := range reverseSnapshotPairs(d.CallerSaved) {
+			expectedOps = append(expectedOps, "POP "+pair)
+		}
+		if len(expectedOps) != len(d.Instructions) {
+			return nil, nil, fmt.Errorf("snapshot sequence differs from supported typed ABI")
+		}
+		for j, op := range expectedOps {
+			if d.Instructions[j].Assembly != op {
+				return nil, nil, fmt.Errorf("snapshot operation differs from typed return restoration")
+			}
 		}
 		anchorDelta := -base - 2
 		delta := 0
