@@ -10,5 +10,9 @@
   {
     "path": "docs/grace-normal-global-diamond-prototype/README.md",
     "sha256": "93d0b4ae92d3d6cb70efd7cb296a1d4077047f0a832cb5e2d3f411e5fa514e73"
+  },
+  {
+    "path": "docs/grace-normal-global-diamond-prototype/focused-final.txt",
+    "sha256": "80e955937a78a7c87be6309e08bf43c51ba3576b4441ccf963d239b41a7b1888"
   }
 ]
