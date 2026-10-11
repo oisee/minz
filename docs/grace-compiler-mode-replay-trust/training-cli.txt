@@ -1,0 +1,1 @@
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /home/alice/dev/minz-artifacts/grace-checkpoints/compiler-mode-replay-trust-final/training

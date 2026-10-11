@@ -3,8 +3,10 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/minz/minzc/pkg/nanz"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/minz/minzc/pkg/hir"
@@ -89,7 +91,7 @@ func TestCompilerModeReplayRejectsMutatedTraining(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, kind := range []string{"binary", "missing-manifest-entry", "selected-index", "selected-flags", "source"} {
+	for _, kind := range []string{"binary", "missing-manifest-entry", "selected-index", "selected-flags", "source", "negative-total", "forged-positive-total", "forged-result", "wrong-run-context", "corrupt-manifest"} {
 		t.Run(kind, func(t *testing.T) {
 			mutated := filepath.Join(dir, kind)
 			os.Mkdir(mutated, 0755)
@@ -105,15 +107,27 @@ func TestCompilerModeReplayRejectsMutatedTraining(t *testing.T) {
 				json.Unmarshal(files["manifest.json"], &m)
 				delete(m, "mode-3/final.mir2")
 				files["manifest.json"], _ = json.Marshal(m)
+			case "corrupt-manifest":
+				files["manifest.json"] = []byte("{broken")
 			case "source":
 				files["source.nanz"] = []byte("fun changed()->u8{return 7}")
 			default:
 				var e pipeline.MeasuredModeEvidence
 				json.Unmarshal(files["selection.json"], &e)
-				if kind == "selected-index" {
+				switch kind {
+				case "selected-index":
 					e.Selected = 99
-				} else {
+				case "selected-flags":
 					e.Candidates[e.Selected].Options.UseHIRGrace = true
+				case "negative-total":
+					e.Candidates[e.Selected].Run.TotalTStates = -1
+				case "forged-positive-total":
+					e.Candidates[e.Selected].Run.Invocations[0].TStates--
+					e.Candidates[e.Selected].Run.TotalTStates--
+				case "forged-result":
+					e.Candidates[e.Selected].Run.Invocations[0].Results[0].I++
+				case "wrong-run-context":
+					e.Candidates[e.Selected].Run.Compatibility.Context.TargetID = "other"
 				}
 				e.SHA256 = ""
 				raw, _ := json.Marshal(e)
@@ -135,6 +149,8 @@ func TestCompilerModeReplayRejectsMutatedTraining(t *testing.T) {
 			hirProfileAutoWorkload = "../../../docs/grace-pfcco-prospective-heldout/artifacts/heldout-workload.json"
 			if err := compile(source); err == nil {
 				t.Fatal("mutated training accepted", kind)
+			} else if kind == "forged-positive-total" && !strings.Contains(err.Error(), "training execution was not reproduced") {
+				t.Fatal("consistent forged timing did not reach independent reproduction", err)
 			}
 			if _, err := os.Lstat(hirProfileAutoDirectory); !os.IsNotExist(err) {
 				t.Fatal("failure published output", err)
@@ -198,5 +214,48 @@ func TestCompilerModeReplayFlagAndPathAdmission(t *testing.T) {
 	outputFile = filepath.Join(hirProfileCompilerModesReplay, "custom.bin")
 	if err := validateHIRProfileAuto(source); err == nil {
 		t.Fatal("training output overwrite accepted")
+	}
+}
+
+func TestCompilerModeReplayRejectsHeldoutDiskMutation(t *testing.T) {
+	compilerModeReplayTestState(t)
+	source := "../../../examples/nanz/pfcco_weighted_packet.nanz"
+	dir := t.TempDir()
+	train := filepath.Join(dir, "training")
+	hirProfileAutoDirectory = train
+	hirProfileAutoWorkload = "../../../docs/grace-pfcco-prospective-heldout/artifacts/training-workload.json"
+	if err := compile(source); err != nil {
+		t.Fatal(err)
+	}
+	hirProfileCompilerModes = false
+	hirProfileCompilerModesReplay = train
+	hirProfileAutoDirectory = filepath.Join(dir, "heldout")
+	held, err := os.ReadFile("../../../docs/grace-pfcco-prospective-heldout/artifacts/heldout-workload.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	hirProfileAutoWorkload = filepath.Join(dir, "heldout.json")
+	os.WriteFile(hirProfileAutoWorkload, held, 0644)
+	sourceBytes, err := os.ReadFile(source)
+	if err != nil {
+		t.Fatal(err)
+	}
+	calls := 0
+	factory := func() (*hir.Module, error) {
+		calls++
+		if calls == 3 {
+			os.WriteFile(hirProfileAutoWorkload, append(held, ' '), 0644)
+		}
+		m, e := nanz.ParseWithOpts(string(sourceBytes), source, nanz.ParseOpts{BaseDir: filepath.Dir(source)})
+		if e == nil {
+			m.Target = hir.TargetCPM
+		}
+		return m, e
+	}
+	if err := runHIRCompilerModesReplay(source, "", sourceBytes, factory); err == nil || !strings.Contains(err.Error(), "heldout workload changed") {
+		t.Fatal("heldout disk mutation not rejected", err)
+	}
+	if _, err := os.Stat(hirProfileAutoDirectory); !os.IsNotExist(err) {
+		t.Fatal("mutation published", err)
 	}
 }

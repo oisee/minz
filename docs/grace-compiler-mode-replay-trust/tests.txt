@@ -1,0 +1,37 @@
+=== RUN   TestCompilerModeReplayActualFrozenHeldout
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayActualFrozenHeldout3506583464/002/training
+[compiler-modes replay] fixed mode 1: 5568 T / 52 B; saved BIN 23a46320f4d5adaf3a706457cf721145f0ff0df85efcd4c8e0e2b0f0d83642f0
+--- PASS: TestCompilerModeReplayActualFrozenHeldout (1.11s)
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayRejectsMutatedTraining809554435/002/training
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/binary
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/missing-manifest-entry
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/selected-index
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/selected-flags
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/source
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/negative-total
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/forged-positive-total
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/forged-result
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/wrong-run-context
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/corrupt-manifest
+--- PASS: TestCompilerModeReplayRejectsMutatedTraining (1.30s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/binary (0.01s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/missing-manifest-entry (0.02s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/selected-index (0.01s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/selected-flags (0.02s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/source (0.02s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/negative-total (0.03s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/forged-positive-total (0.21s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/forged-result (0.02s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/wrong-run-context (0.01s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/corrupt-manifest (0.01s)
+=== RUN   TestCompilerModeReplayChangedImportedSource
+[compiler-modes] speed selected mode 0: 24 T / 10 B; artifacts /tmp/TestCompilerModeReplayChangedImportedSource3455343996/002/training
+--- PASS: TestCompilerModeReplayChangedImportedSource (0.83s)
+=== RUN   TestCompilerModeReplayFlagAndPathAdmission
+--- PASS: TestCompilerModeReplayFlagAndPathAdmission (0.02s)
+=== RUN   TestCompilerModeReplayRejectsHeldoutDiskMutation
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayRejectsHeldoutDiskMutation1296546377/002/training
+--- PASS: TestCompilerModeReplayRejectsHeldoutDiskMutation (1.26s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	4.531s
