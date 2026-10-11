@@ -467,3 +467,17 @@ HIR/MIR2/Nanz PASS. Code/status не теряются через CALL и cleanup
 [Пакет124](grace-integration-124/README.md). Поддержаны прямые проверяемые
 u8/void вызовы; word/tuple/extern/nested CY формы и value-only profiles
 пока явно отвергаются. Это не универсальная обработка ошибок.
+
+## Error enforcement и аудит byte fusion
+
+Исходный15_error_enforcement прошёл786432 raw/final VM/native исходов
+в трёх режимах; полный main печатает105 и возвращает NC. Повтор14+15
+на объединённом коде PASS88,975 с; HIR/MIR2/Nanz также PASS.
+Каталог теперь51 bounded VM/native path,86 pending.
+[Пакет125](grace-integration-125/README.md).
+
+Byte-word fusion опционально даёт FAT helpers115200→89088 T и−146 B,
+но независимый аудит выявил неверное доказательство смежности для
+константы, усечённой по типу. Исправление в работе; текущие проверки
+не позволяют объявить эту оптимизацию полностью проверенной.
+Полные pipeline/CLI запущены на checkpoint до исправления.

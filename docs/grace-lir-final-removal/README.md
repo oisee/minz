@@ -35,8 +35,9 @@ fixtures воспроизводимы в архивном checkout; не выд�
 Это завершение **удаления пакета**, а не всей цели переноса оптимизационной
 пользы. Инвентарь `docs/grace-lir-removal-inventory` остаётся основанием следующих
 работ. Byte multiply coefficients уже дублируются native backend. Word10/12 после этого snapshot перенесены с измеренной native пользой;
-[результат](../grace-mul16-10-12/REPORT.md). Effect-safe load/store16 fusion
-и полнота constraint/pattern переноса ещё не доказаны.
+[результат](../grace-mul16-10-12/REPORT.md). Effect-safe load/store16 fusion теперь перенесена для проверяемой same-block
+формы: [FAT12 и ограничения](../grace-fat-word-fusion.md). Полнота
+constraint/pattern переноса ещё не доказана.
 [Актуальный статус инвентаря](../grace-lir-removal-inventory/README.md).
 
 ## Проверки

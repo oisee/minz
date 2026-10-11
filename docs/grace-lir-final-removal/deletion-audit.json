@@ -5,11 +5,19 @@
   "archive_members_verified": 53,
   "archive_sha256": "7c68901fcbb4e319b1ed4380e8a1e73fa2270e8e72180bc8778d8330c73adfc4",
   "native_coverage": "full HIR package PASS; full byte/word/cast/negative controls kept; compositions exhaust two bytes with additional args3/4; original research full Cartesian domains archived",
-  "remaining_transfer_gaps": [
+  "raw_module_compile_only": "FAIL historical scripts mixed packages / relative imports; all supported pkg/cmd/internal/tests compile",
+  "shared_validation": "PASS full rewrite/isle + z80spec",
+  "historical_remaining_transfer_gaps": [
     "word constant multiply10/12",
     "effect-safe load/store16 fusion",
     "physical constraints and cost-aware pattern choices requiring measured production benefit"
   ],
-  "raw_module_compile_only": "FAIL historical scripts mixed packages / relative imports; all supported pkg/cmd/internal/tests compile",
-  "shared_validation": "PASS full rewrite/isle + z80spec"
+  "current_transfer_checkpoint": "708e77c5",
+  "remaining_transfer_gaps": [
+    "physical constraints and cost-aware pattern choices requiring measured production benefit"
+  ],
+  "subsequent_transfers": {
+    "word constant multiply10/12": "docs/grace-mul16-10-12/REPORT.md",
+    "effect-safe load/store16 fusion": "docs/grace-fat-word-fusion.md; optional same-block domain and documented barriers"
+  }
 }
