@@ -1,0 +1,3 @@
+HashMap: all native outputs, 82-byte state, access counts and exact selected output PASS
+Legacy parser -o .bin before fix contains ASM: reproduced mismatch retained
+Parser memory-host CLI: all syntax/state/ordered events and selected BIN PASS
