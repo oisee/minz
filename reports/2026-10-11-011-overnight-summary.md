@@ -105,7 +105,11 @@ Corpus опубликован в приватном Sites54; wholeoffline sync �
 кандидатов, строгий Legacy-first tie. Реализация начата в изолированной постоянной ветке после ревью5d9941a7.
 Дополнительно обязательна независимая сверка полного исходного HIR по
 неизменяемым source bytes: retained SHA недостаточен. Код нового этапа
-ещё не перенесён; новых CPU измерений по нему нет.
+ещё не перенесён. Draft4af821fe исправлен e0521c1f: independent full AST +
+metadata equality, exact Error/Failure identity и failedcandidate refusal.
+Admission/validretainedSHA подмена PASS7.66s; focused48callbackGC/lifecycle
+ещё выполняется. Дополнительные owned-input/Size/tie проверки committed994280a2.
+Новый full30 поиск ещё не запускался.
 
 ## Сохранение веток и решения
 
