@@ -1,0 +1,62 @@
+[
+  {
+    "source": "reports/showcase-src/2026-03-14/ex27_strings.nanz",
+    "sha256": "d78bc089145ca00510fece9723c4881f3247206f2dadedbe549bffcbc350ef37",
+    "command": [
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/minzc-string-representation-production",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/showcase-src/2026-03-14/ex27_strings.nanz",
+      "-b",
+      "z80",
+      "--asserts",
+      "none",
+      "-o",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/string-showcase-native-review/ex27_strings/current.a80"
+    ],
+    "exit": 0
+  },
+  {
+    "source": "examples/nanz/sap_mara_demo.nanz",
+    "sha256": "eadc8f2f1094245a695a9690aca74ec20d6dde3c6cf7fd00c8d40f7403af732c",
+    "command": [
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/minzc-string-representation-production",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/nanz/sap_mara_demo.nanz",
+      "-b",
+      "z80",
+      "--asserts",
+      "none",
+      "-o",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/string-showcase-native-review/sap_mara_demo/current.a80"
+    ],
+    "exit": 0
+  },
+  {
+    "source": "examples/nanz/self_parser.nanz",
+    "sha256": "28863725e98bad22584c5656c9f791b7f2673e4bb327921619d2025ea53406a4",
+    "command": [
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/minzc-string-representation-production",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/nanz/self_parser.nanz",
+      "-b",
+      "z80",
+      "--asserts",
+      "none",
+      "-o",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/string-showcase-native-review/self_parser/current.a80"
+    ],
+    "exit": 0
+  },
+  {
+    "source": "examples/nanz/self_tokenizer.nanz",
+    "sha256": "d893df00710b7f1105b8bfb58342aca1c1f8cce7eb674037a8d6ca41b91b0689",
+    "command": [
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/minzc-string-representation-production",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/nanz/self_tokenizer.nanz",
+      "-b",
+      "z80",
+      "--asserts",
+      "none",
+      "-o",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/string-showcase-native-review/self_tokenizer/current.a80"
+    ],
+    "exit": 0
+  }
+]

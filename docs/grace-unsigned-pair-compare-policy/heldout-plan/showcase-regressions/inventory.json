@@ -1,0 +1,90 @@
+[
+  {
+    "path": "capture.go.txt",
+    "sha256": "87aa69310616e70848b1695df12e3cbaf65dd8777345557e918e7a1be2da87da"
+  },
+  {
+    "path": "commands.json",
+    "sha256": "534bebbe6a4de2874946c894cf7fd334fc7fa6370c48b388cc3c6a730820aa54"
+  },
+  {
+    "path": "ex27_strings/assemble.txt",
+    "sha256": "60ccbe29e43b44296984c1441c26eee9d8641d805d07f88280fda5130cfa36ae"
+  },
+  {
+    "path": "ex27_strings/compile.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "ex27_strings/current.a80",
+    "sha256": "491b23483fff72680393e999240e9d599f7d4d76b83aa50cec7489839594847e"
+  },
+  {
+    "path": "ex27_strings/showcase-route.a80",
+    "sha256": "6950cf61c85ef457c036218cd10587d56df7cbfb9f47189d11c1bce5b4ce6db5"
+  },
+  {
+    "path": "ex27_strings/source.nanz",
+    "sha256": "d78bc089145ca00510fece9723c4881f3247206f2dadedbe549bffcbc350ef37"
+  },
+  {
+    "path": "sap_mara_demo/assemble.txt",
+    "sha256": "1054231c6d4b0fb49c4b3215d7cffe43a8145da19ec2423a934e5d68ebf5499a"
+  },
+  {
+    "path": "sap_mara_demo/compile.txt",
+    "sha256": "dcd646760a243198d6e770f7afd2d7b5c8cf4d58bc8c62c2746a428c96dcbec3"
+  },
+  {
+    "path": "sap_mara_demo/current.a80",
+    "sha256": "937e7d8a5da5cf5a8f550817df669b1275f984e67811a6d170a02744695cb630"
+  },
+  {
+    "path": "sap_mara_demo/showcase-route.a80",
+    "sha256": "8c74d9d99025b5bbfe60620693a4461ed9def084961026c9716d2bd1324c8b0d"
+  },
+  {
+    "path": "sap_mara_demo/source.nanz",
+    "sha256": "eadc8f2f1094245a695a9690aca74ec20d6dde3c6cf7fd00c8d40f7403af732c"
+  },
+  {
+    "path": "self_parser/assemble.txt",
+    "sha256": "4e1bc93ae082b034782d178e0505389c1974d501ef2e32b8665e48f5ddd70783"
+  },
+  {
+    "path": "self_parser/compile.txt",
+    "sha256": "6f7f1ec4450d9b3dd394479f556775f59212e85e485bcfe1049dc9acac0bf9af"
+  },
+  {
+    "path": "self_parser/current.a80",
+    "sha256": "d22f1204573792e93eafb7bbae54517dfe6bc574170947e08ec12de8747fdb41"
+  },
+  {
+    "path": "self_parser/showcase-route.a80",
+    "sha256": "e786b6920ecd41b6141abd18593be3f70f519a7b747d7357058c7a2866a43b66"
+  },
+  {
+    "path": "self_parser/source.nanz",
+    "sha256": "28863725e98bad22584c5656c9f791b7f2673e4bb327921619d2025ea53406a4"
+  },
+  {
+    "path": "self_tokenizer/assemble.txt",
+    "sha256": "09c655326c7cad04e724ce459d663ddd597fe96ae5c70803b79438ad5b6a6c83"
+  },
+  {
+    "path": "self_tokenizer/compile.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "self_tokenizer/current.a80",
+    "sha256": "bf81cb31509ba6cdbaa7ce5a77e1b5b1d37b315169fe576933e205ffd128c555"
+  },
+  {
+    "path": "self_tokenizer/showcase-route.a80",
+    "sha256": "e556cd491cdbf08e3998b8bbab64fe5fa65824e18d248a5e437405a848a3144f"
+  },
+  {
+    "path": "self_tokenizer/source.nanz",
+    "sha256": "d893df00710b7f1105b8bfb58342aca1c1f8cce7eb674037a8d6ca41b91b0689"
+  }
+]

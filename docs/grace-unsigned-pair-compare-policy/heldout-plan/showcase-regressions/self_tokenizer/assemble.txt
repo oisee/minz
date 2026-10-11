@@ -1,0 +1,7 @@
+assemble error: <nil>
+line 10: unknown instruction or invalid operands: LD
+line 12: unknown instruction or invalid operands: LD
+line 10: unknown instruction or invalid operands: LD
+line 12: unknown instruction or invalid operands: LD
+line 10: unknown instruction or invalid operands: LD
+line 12: unknown instruction or invalid operands: LD
