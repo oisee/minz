@@ -3,3 +3,5 @@
 Rootafca2aa5 typed indirect multi-struct native proofPASS0,031с: все256 runtimeinputs, два distinct caller buffers/результата, VM+assembledZ80/fullRAM/code/SP. Это новый MIR module proof, не обещание frontend tuple syntax.
 
 Исчерпывающий существующий Widemath workload запущен отдельно на том жеcheckpoint: 26originalcallables, fullbytepairs/unaryworddomains где defined by frozen workload и boundedwordpair/clamp domains. Не переименовываем boundedчасти в exhaustive allpossiblearguments. Saved exactexecutable +SHA/share до завершения. Fullpipelinecfaa7777 тоже confirmedlive process2310356; он предшествует только дополнительному testtypedmulti, productionABI совпадает.
+
+Root Widemath expanded frozen workload terminalPASS ([лог](widemath-terminal.txt)): все26callables с прежними fullbyte/unaryword и boundedword/clamp domains, новый bufferABI и observer. Не повторяется claim полного2^32 wordpairdomain. Exactexecutable сохранён заранее; fullpipeline остаётся running. Consolidated ABI58payload manifest root05a6edf3 source/share сверены в canonicalcompiler-reports/struct-return-lifetime.
