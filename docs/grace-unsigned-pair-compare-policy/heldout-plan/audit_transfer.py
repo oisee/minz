@@ -9,6 +9,7 @@ load=lambda p:json.loads(p.read_bytes())
 expected_exe='2ce28f20ed167885c845ecbfbbb8a94c446ced9f96d521efebaf5cb5632e1cc1'
 assert sha(exe.read_bytes())==expected_exe
 tuples=[(0,0),(1,0),(1,3),(0,2)]
+images={(0,0):'1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941',(1,0):'ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd',(1,3):'987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac',(0,2):'1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975'}
 calls={'short-reuse':12,'long-atoms':9,'nested-mixed':9,'fresh-dominant':20}
 def same(a,b):
  assert len(a)==len(b)
@@ -54,7 +55,7 @@ for name,n in calls.items():
   changed={f for f in x if x[f]['body_sha256']!=y[f]['body_sha256']}
   assert changed==({'region_match'} if mask&1 else set())|({'intern_region'} if mask&2 else set())
   for f in x:assert x[f]['abi_sha256']==y[f]['abi_sha256'] and x[f]['source_units_sha256']==y[f]['source_units_sha256']
-  binary=base64.b64decode(t['binary']);assert binary==(q/'target.bin').read_bytes() and sha(binary)==t['binary_sha256']
+  binary=base64.b64decode(t['binary']);assert binary==(q/'target.bin').read_bytes() and sha(binary)==t['binary_sha256']==images[(policy,mask)]
   assert t['assembly'].encode()==(q/'target.a80').read_bytes() and t['final_mir_dump_diagnostic'].encode()==(q/'final.mir2').read_bytes()
   assert len(t['invocation_t_states'])==n and sum(t['invocation_t_states'])==t['total_t_states']
   ids=set()
@@ -67,8 +68,11 @@ for name,n in calls.items():
   assert len(t['call_frames'])==int(bool(mask&1))
   for f in t['call_frames']:
    d=f['descriptor'];assert d['snapshot_pairs']==['AF'] and d['caller_saved']==['AF','BC','DE','HL'] and d['results']==[{'Source':'A','Destination':'C','Width':8}]
+   opcodes=['dde5','f5','dd210000','dd39','dd7e01','dd7708','e5','dd6e00','dd6601','e5','f1','e1','33','33','dde1','e1','d1','c1','f1']
+   assert len(f['pcs'])==19 and [base64.b64decode(op).hex() for op in f['opcodes']]==opcodes
    for pc,op in zip(f['pcs'],f['opcodes']):
     op=base64.b64decode(op);assert binary[pc-1024:pc-1024+len(op)]==op
+   for i in range(18):assert f['pcs'][i]+len(base64.b64decode(f['opcodes'][i]))==f['pcs'][i+1]
   out=derived/name/q.name;out.mkdir(parents=True,exist_ok=True)
   (out/'factory-baseline.json').write_text(json.dumps(b))
   for file in ('target.a80','target.bin','allocation.json','final.mir2'):(out/file).write_bytes((q/file).read_bytes())

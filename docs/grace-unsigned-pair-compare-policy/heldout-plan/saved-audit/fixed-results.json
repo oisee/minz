@@ -1,0 +1,86 @@
+[
+  {
+    "workload": "short-reuse",
+    "control": [
+      330515,
+      2000
+    ],
+    "support": [
+      329597,
+      2001
+    ],
+    "frozen_speed": [
+      326650,
+      2100
+    ],
+    "frozen_size": [
+      327008,
+      1978
+    ],
+    "speed_gain_percent": 1.1693871685097499,
+    "size_choice_speed_gain_percent": 1.06107135833472
+  },
+  {
+    "workload": "long-atoms",
+    "control": [
+      4110605,
+      2000
+    ],
+    "support": [
+      4110217,
+      2001
+    ],
+    "frozen_speed": [
+      3968826,
+      2100
+    ],
+    "frozen_size": [
+      3968942,
+      1978
+    ],
+    "speed_gain_percent": 3.449102990922261,
+    "size_choice_speed_gain_percent": 3.446281021893371
+  },
+  {
+    "workload": "nested-mixed",
+    "control": [
+      1297899,
+      2000
+    ],
+    "support": [
+      1286305,
+      2001
+    ],
+    "frozen_speed": [
+      1271819,
+      2100
+    ],
+    "frozen_size": [
+      1281762,
+      1978
+    ],
+    "speed_gain_percent": 2.009401347870674,
+    "size_choice_speed_gain_percent": 1.2433170839949796
+  },
+  {
+    "workload": "fresh-dominant",
+    "control": [
+      789462,
+      2000
+    ],
+    "support": [
+      786526,
+      2001
+    ],
+    "frozen_speed": [
+      696957,
+      2100
+    ],
+    "frozen_size": [
+      699845,
+      1978
+    ],
+    "speed_gain_percent": 11.717473418606595,
+    "size_choice_speed_gain_percent": 11.3516546711558
+  }
+]
