@@ -1,0 +1,19 @@
+{
+  "files": [
+    {
+      "path": "docs/grace-integration-109/cli-plan.json",
+      "bytes": 6891,
+      "sha256": "0aee3f75784a628df485d74259920ff9869d60a05be4dcdb467bc75ea33bd0d7"
+    },
+    {
+      "path": "docs/grace-integration-109/cli-summary.json",
+      "bytes": 20353,
+      "sha256": "fce8799847ca5903c37031528a7986315bbc2ea627a4089939c3f15c2c02dbc5"
+    },
+    {
+      "path": "docs/grace-integration-109/README.md",
+      "bytes": 808,
+      "sha256": "ada489fc735e4d421873104d9bd18379e8ad477bac7a3adc9d901cb7bccbd8a9"
+    }
+  ]
+}

@@ -1,0 +1,630 @@
+{
+  "source_commit": "d44c84b1bd4ad0956e1f9f19aba4ed9b5c619004",
+  "working_tree_status": "",
+  "runner_sha256": "0cc047fd63ac5f64d58b291fdba1ab63fbd581aaaa31b534bf88be896d40a7fb",
+  "binary_sha256": "01d2e33cd9b157fc6646aa01b011ad68ffa940402c8c8b966fb536ca925a821f",
+  "go_version": "go version go1.26.8 linux/amd64",
+  "workers": 3,
+  "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/cmd/minzc",
+  "build_wall_seconds": 1.5643767630681396,
+  "cleared_artifact_environment_names": [],
+  "cleared_GOFLAGS": false,
+  "discovered_tests": [
+    "TestJudgeOptionsRequireExplicitFlags",
+    "TestTupleControlsMutateEachElementWithoutAliasing",
+    "TestContractStrategyCLIAdmission",
+    "TestCPMRuntimeOrdinaryCLI",
+    "TestCPMRuntimeRejectsUnsupported",
+    "TestCPMRuntimeBytePrimitiveABIAndBoundary",
+    "TestCPMRuntimeGuardedStackOverflowAndFlags",
+    "TestDefaultMIR2AssertAssembly",
+    "TestIndirectMIR2DefaultWarning",
+    "TestCDefaultOutputProtection",
+    "TestHIRProfileAutoMeasuredCompilation",
+    "TestHIRProfileForwardCopyValidation",
+    "TestHIRProfileForwardCopyCompilation",
+    "TestHIRProfileMixedCopyWeightedValidation",
+    "TestHIRProfileMixedCopyWeightedCompilation",
+    "TestHIRProfileInvariantSitesCompilation",
+    "TestHIRProfileInvariantSiteRulesCompilation",
+    "TestHIRProfileInvariantSitesValidation",
+    "TestHIRProfileInvariantSiteRulesValidation",
+    "TestHIRProfileJointSitesCompilation",
+    "TestHIRProfileJointSitesValidation",
+    "TestHIRProfileJointCallerCompilation",
+    "TestHIRProfileIndependentRulesCallerCompilation",
+    "TestHIRProfileIndependentRulesRequiresJoint",
+    "TestHIRProfileMixedCopyRegionValidation",
+    "TestHIRProfileMixedCopyRegionCompilation",
+    "TestCompilerModeArtifactPublication",
+    "TestCompilerModeDirectoryNoReplace",
+    "TestCompilerModeDirectoryPathAliases",
+    "TestCompilerModeReplayActualFrozenHeldout",
+    "TestCompilerModeReplayRejectsMutatedTraining",
+    "TestCompilerModeReplayChangedImportedSource",
+    "TestCompilerModeReplayFlagAndPathAdmission",
+    "TestCompilerModeReplayRejectsHeldoutDiskMutation",
+    "TestCompilerModeCLIPathsAndFlags",
+    "TestCompilerModeCLIActualSelectedArtifacts",
+    "TestCompilerModeCLIImportedSource",
+    "TestCompilerModeCLIImportedOutputAlias",
+    "TestHIRProfileOrderedByteRWValidation",
+    "TestHIRProfileOrderedByteRWCompilation",
+    "TestHIRProfileOrderedByteValidation",
+    "TestHIRProfileRegionCompareValidation",
+    "TestHIRProfileRegionCompareCompilation",
+    "TestHIRProfileStrictJSON",
+    "TestHIRProfileFlagValidation",
+    "TestHIRProfileCollectionAndApplication",
+    "TestHIRProfileIncompleteManifest",
+    "TestHIRProfileFailedRun",
+    "TestHIRProfileWeightedSitesCompilation",
+    "TestHIRProfileWeightedSitesValidation",
+    "TestIndirectCallEmissionScope",
+    "TestIndirectIntermediateAsserts",
+    "TestMemoryHostCLIValidation",
+    "TestMemoryHostCLIPathAliases",
+    "TestMemoryHostCLIWorkloadKeys",
+    "TestPolicyCLIAdmission",
+    "TestPolicyCLIPathAliases",
+    "TestPolicyCLICollectReplay",
+    "TestPolicyCLIMalformedAssociationAndImports",
+    "TestPolicyCLILegacyRouteUnchanged",
+    "TestSearchCLIAdmission",
+    "TestSearchCLIPathAliases",
+    "TestSearchCLIKnownSourceBeforeCollection",
+    "TestSearchCLISuppliedPreflight",
+    "TestSearchCLIOrdinaryRoutesUnaffected",
+    "TestSearchCLIAssociationCaps",
+    "TestSearchCLICollectAndPairedReplay",
+    "TestMemoryHostSelectedOutputExtensions",
+    "TestMemoryHostSelectedOutputBytes",
+    "TestMemoryHostLegacySelectedOutputCollectReplay",
+    "TestRetiredLIRFlagsRejected"
+  ],
+  "shards": [
+    [
+      "TestSearchCLIAdmission",
+      "TestSearchCLIPathAliases",
+      "TestSearchCLIKnownSourceBeforeCollection",
+      "TestSearchCLISuppliedPreflight",
+      "TestSearchCLIOrdinaryRoutesUnaffected",
+      "TestSearchCLIAssociationCaps",
+      "TestSearchCLICollectAndPairedReplay"
+    ],
+    [
+      "TestMemoryHostCLIValidation",
+      "TestMemoryHostCLIPathAliases",
+      "TestMemoryHostCLIWorkloadKeys",
+      "TestPolicyCLIAdmission",
+      "TestPolicyCLIPathAliases",
+      "TestPolicyCLICollectReplay",
+      "TestPolicyCLIMalformedAssociationAndImports",
+      "TestPolicyCLILegacyRouteUnchanged",
+      "TestMemoryHostSelectedOutputExtensions",
+      "TestMemoryHostSelectedOutputBytes",
+      "TestMemoryHostLegacySelectedOutputCollectReplay"
+    ],
+    [
+      "TestJudgeOptionsRequireExplicitFlags",
+      "TestTupleControlsMutateEachElementWithoutAliasing",
+      "TestContractStrategyCLIAdmission",
+      "TestCPMRuntimeOrdinaryCLI",
+      "TestCPMRuntimeRejectsUnsupported",
+      "TestCPMRuntimeBytePrimitiveABIAndBoundary",
+      "TestCPMRuntimeGuardedStackOverflowAndFlags",
+      "TestDefaultMIR2AssertAssembly",
+      "TestIndirectMIR2DefaultWarning",
+      "TestCDefaultOutputProtection",
+      "TestHIRProfileAutoMeasuredCompilation",
+      "TestHIRProfileForwardCopyValidation",
+      "TestHIRProfileForwardCopyCompilation",
+      "TestHIRProfileMixedCopyWeightedValidation",
+      "TestHIRProfileMixedCopyWeightedCompilation",
+      "TestHIRProfileInvariantSitesCompilation",
+      "TestHIRProfileInvariantSiteRulesCompilation",
+      "TestHIRProfileInvariantSitesValidation",
+      "TestHIRProfileInvariantSiteRulesValidation",
+      "TestHIRProfileJointSitesCompilation",
+      "TestHIRProfileJointSitesValidation",
+      "TestHIRProfileJointCallerCompilation",
+      "TestHIRProfileIndependentRulesCallerCompilation",
+      "TestHIRProfileIndependentRulesRequiresJoint",
+      "TestHIRProfileMixedCopyRegionValidation",
+      "TestHIRProfileMixedCopyRegionCompilation",
+      "TestCompilerModeArtifactPublication",
+      "TestCompilerModeDirectoryNoReplace",
+      "TestCompilerModeDirectoryPathAliases",
+      "TestCompilerModeReplayActualFrozenHeldout",
+      "TestCompilerModeReplayRejectsMutatedTraining",
+      "TestCompilerModeReplayChangedImportedSource",
+      "TestCompilerModeReplayFlagAndPathAdmission",
+      "TestCompilerModeReplayRejectsHeldoutDiskMutation",
+      "TestCompilerModeCLIPathsAndFlags",
+      "TestCompilerModeCLIActualSelectedArtifacts",
+      "TestCompilerModeCLIImportedSource",
+      "TestCompilerModeCLIImportedOutputAlias",
+      "TestHIRProfileOrderedByteRWValidation",
+      "TestHIRProfileOrderedByteRWCompilation",
+      "TestHIRProfileOrderedByteValidation",
+      "TestHIRProfileRegionCompareValidation",
+      "TestHIRProfileRegionCompareCompilation",
+      "TestHIRProfileStrictJSON",
+      "TestHIRProfileFlagValidation",
+      "TestHIRProfileCollectionAndApplication",
+      "TestHIRProfileIncompleteManifest",
+      "TestHIRProfileFailedRun",
+      "TestHIRProfileWeightedSitesCompilation",
+      "TestHIRProfileWeightedSitesValidation",
+      "TestIndirectCallEmissionScope",
+      "TestIndirectIntermediateAsserts",
+      "TestRetiredLIRFlagsRejected"
+    ]
+  ],
+  "wall_seconds_including_build": 228.9748040768318,
+  "results": [
+    {
+      "shard": 0,
+      "tests": [
+        "TestSearchCLIAdmission",
+        "TestSearchCLIPathAliases",
+        "TestSearchCLIKnownSourceBeforeCollection",
+        "TestSearchCLISuppliedPreflight",
+        "TestSearchCLIOrdinaryRoutesUnaffected",
+        "TestSearchCLIAssociationCaps",
+        "TestSearchCLICollectAndPairedReplay"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 227.28867367981002,
+      "complete_exactly_once": true,
+      "passed": true,
+      "durations": [
+        {
+          "test": "TestSearchCLIAdmission",
+          "status": "pass",
+          "seconds": 0.08
+        },
+        {
+          "test": "TestSearchCLIPathAliases",
+          "status": "pass",
+          "seconds": 0.13
+        },
+        {
+          "test": "TestSearchCLIKnownSourceBeforeCollection",
+          "status": "pass",
+          "seconds": 0.09
+        },
+        {
+          "test": "TestSearchCLISuppliedPreflight",
+          "status": "pass",
+          "seconds": 0.09
+        },
+        {
+          "test": "TestSearchCLIOrdinaryRoutesUnaffected",
+          "status": "pass",
+          "seconds": 0.03
+        },
+        {
+          "test": "TestSearchCLIAssociationCaps",
+          "status": "pass",
+          "seconds": 0.18
+        },
+        {
+          "test": "TestSearchCLICollectAndPairedReplay",
+          "status": "pass",
+          "seconds": 226.62
+        }
+      ],
+      "invalid_json_lines": []
+    },
+    {
+      "shard": 1,
+      "tests": [
+        "TestMemoryHostCLIValidation",
+        "TestMemoryHostCLIPathAliases",
+        "TestMemoryHostCLIWorkloadKeys",
+        "TestPolicyCLIAdmission",
+        "TestPolicyCLIPathAliases",
+        "TestPolicyCLICollectReplay",
+        "TestPolicyCLIMalformedAssociationAndImports",
+        "TestPolicyCLILegacyRouteUnchanged",
+        "TestMemoryHostSelectedOutputExtensions",
+        "TestMemoryHostSelectedOutputBytes",
+        "TestMemoryHostLegacySelectedOutputCollectReplay"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 78.65279183676466,
+      "complete_exactly_once": true,
+      "passed": true,
+      "durations": [
+        {
+          "test": "TestMemoryHostCLIValidation",
+          "status": "pass",
+          "seconds": 0.01
+        },
+        {
+          "test": "TestMemoryHostCLIPathAliases",
+          "status": "pass",
+          "seconds": 0.01
+        },
+        {
+          "test": "TestMemoryHostCLIWorkloadKeys",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestPolicyCLIAdmission",
+          "status": "pass",
+          "seconds": 0.01
+        },
+        {
+          "test": "TestPolicyCLIPathAliases",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestPolicyCLICollectReplay",
+          "status": "pass",
+          "seconds": 39.63
+        },
+        {
+          "test": "TestPolicyCLIMalformedAssociationAndImports",
+          "status": "pass",
+          "seconds": 0.08
+        },
+        {
+          "test": "TestPolicyCLILegacyRouteUnchanged",
+          "status": "pass",
+          "seconds": 0.02
+        },
+        {
+          "test": "TestMemoryHostSelectedOutputExtensions",
+          "status": "pass",
+          "seconds": 0.06
+        },
+        {
+          "test": "TestMemoryHostSelectedOutputBytes",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestMemoryHostLegacySelectedOutputCollectReplay",
+          "status": "pass",
+          "seconds": 38.74
+        }
+      ],
+      "invalid_json_lines": []
+    },
+    {
+      "shard": 2,
+      "tests": [
+        "TestJudgeOptionsRequireExplicitFlags",
+        "TestTupleControlsMutateEachElementWithoutAliasing",
+        "TestContractStrategyCLIAdmission",
+        "TestCPMRuntimeOrdinaryCLI",
+        "TestCPMRuntimeRejectsUnsupported",
+        "TestCPMRuntimeBytePrimitiveABIAndBoundary",
+        "TestCPMRuntimeGuardedStackOverflowAndFlags",
+        "TestDefaultMIR2AssertAssembly",
+        "TestIndirectMIR2DefaultWarning",
+        "TestCDefaultOutputProtection",
+        "TestHIRProfileAutoMeasuredCompilation",
+        "TestHIRProfileForwardCopyValidation",
+        "TestHIRProfileForwardCopyCompilation",
+        "TestHIRProfileMixedCopyWeightedValidation",
+        "TestHIRProfileMixedCopyWeightedCompilation",
+        "TestHIRProfileInvariantSitesCompilation",
+        "TestHIRProfileInvariantSiteRulesCompilation",
+        "TestHIRProfileInvariantSitesValidation",
+        "TestHIRProfileInvariantSiteRulesValidation",
+        "TestHIRProfileJointSitesCompilation",
+        "TestHIRProfileJointSitesValidation",
+        "TestHIRProfileJointCallerCompilation",
+        "TestHIRProfileIndependentRulesCallerCompilation",
+        "TestHIRProfileIndependentRulesRequiresJoint",
+        "TestHIRProfileMixedCopyRegionValidation",
+        "TestHIRProfileMixedCopyRegionCompilation",
+        "TestCompilerModeArtifactPublication",
+        "TestCompilerModeDirectoryNoReplace",
+        "TestCompilerModeDirectoryPathAliases",
+        "TestCompilerModeReplayActualFrozenHeldout",
+        "TestCompilerModeReplayRejectsMutatedTraining",
+        "TestCompilerModeReplayChangedImportedSource",
+        "TestCompilerModeReplayFlagAndPathAdmission",
+        "TestCompilerModeReplayRejectsHeldoutDiskMutation",
+        "TestCompilerModeCLIPathsAndFlags",
+        "TestCompilerModeCLIActualSelectedArtifacts",
+        "TestCompilerModeCLIImportedSource",
+        "TestCompilerModeCLIImportedOutputAlias",
+        "TestHIRProfileOrderedByteRWValidation",
+        "TestHIRProfileOrderedByteRWCompilation",
+        "TestHIRProfileOrderedByteValidation",
+        "TestHIRProfileRegionCompareValidation",
+        "TestHIRProfileRegionCompareCompilation",
+        "TestHIRProfileStrictJSON",
+        "TestHIRProfileFlagValidation",
+        "TestHIRProfileCollectionAndApplication",
+        "TestHIRProfileIncompleteManifest",
+        "TestHIRProfileFailedRun",
+        "TestHIRProfileWeightedSitesCompilation",
+        "TestHIRProfileWeightedSitesValidation",
+        "TestIndirectCallEmissionScope",
+        "TestIndirectIntermediateAsserts",
+        "TestRetiredLIRFlagsRejected"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 41.16046737181023,
+      "complete_exactly_once": true,
+      "passed": true,
+      "durations": [
+        {
+          "test": "TestJudgeOptionsRequireExplicitFlags",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestTupleControlsMutateEachElementWithoutAliasing",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestContractStrategyCLIAdmission",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestCPMRuntimeOrdinaryCLI",
+          "status": "pass",
+          "seconds": 0.03
+        },
+        {
+          "test": "TestCPMRuntimeRejectsUnsupported",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestCPMRuntimeBytePrimitiveABIAndBoundary",
+          "status": "pass",
+          "seconds": 0.01
+        },
+        {
+          "test": "TestCPMRuntimeGuardedStackOverflowAndFlags",
+          "status": "pass",
+          "seconds": 0.01
+        },
+        {
+          "test": "TestDefaultMIR2AssertAssembly",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestIndirectMIR2DefaultWarning",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestCDefaultOutputProtection",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestHIRProfileAutoMeasuredCompilation",
+          "status": "pass",
+          "seconds": 14.52
+        },
+        {
+          "test": "TestHIRProfileForwardCopyValidation",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestHIRProfileForwardCopyCompilation",
+          "status": "pass",
+          "seconds": 0.56
+        },
+        {
+          "test": "TestHIRProfileMixedCopyWeightedValidation",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestHIRProfileMixedCopyWeightedCompilation",
+          "status": "pass",
+          "seconds": 2.12
+        },
+        {
+          "test": "TestHIRProfileInvariantSitesCompilation",
+          "status": "pass",
+          "seconds": 0.29
+        },
+        {
+          "test": "TestHIRProfileInvariantSiteRulesCompilation",
+          "status": "pass",
+          "seconds": 0.45
+        },
+        {
+          "test": "TestHIRProfileInvariantSitesValidation",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestHIRProfileInvariantSiteRulesValidation",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestHIRProfileJointSitesCompilation",
+          "status": "pass",
+          "seconds": 0.46
+        },
+        {
+          "test": "TestHIRProfileJointSitesValidation",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestHIRProfileJointCallerCompilation",
+          "status": "pass",
+          "seconds": 0.93
+        },
+        {
+          "test": "TestHIRProfileIndependentRulesCallerCompilation",
+          "status": "pass",
+          "seconds": 1.63
+        },
+        {
+          "test": "TestHIRProfileIndependentRulesRequiresJoint",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestHIRProfileMixedCopyRegionValidation",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestHIRProfileMixedCopyRegionCompilation",
+          "status": "pass",
+          "seconds": 1.32
+        },
+        {
+          "test": "TestCompilerModeArtifactPublication",
+          "status": "pass",
+          "seconds": 2.56
+        },
+        {
+          "test": "TestCompilerModeDirectoryNoReplace",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestCompilerModeDirectoryPathAliases",
+          "status": "pass",
+          "seconds": 0.02
+        },
+        {
+          "test": "TestCompilerModeReplayActualFrozenHeldout",
+          "status": "pass",
+          "seconds": 3.67
+        },
+        {
+          "test": "TestCompilerModeReplayRejectsMutatedTraining",
+          "status": "pass",
+          "seconds": 1.35
+        },
+        {
+          "test": "TestCompilerModeReplayChangedImportedSource",
+          "status": "pass",
+          "seconds": 0.99
+        },
+        {
+          "test": "TestCompilerModeReplayFlagAndPathAdmission",
+          "status": "pass",
+          "seconds": 0.01
+        },
+        {
+          "test": "TestCompilerModeReplayRejectsHeldoutDiskMutation",
+          "status": "pass",
+          "seconds": 1.29
+        },
+        {
+          "test": "TestCompilerModeCLIPathsAndFlags",
+          "status": "pass",
+          "seconds": 0.01
+        },
+        {
+          "test": "TestCompilerModeCLIActualSelectedArtifacts",
+          "status": "pass",
+          "seconds": 4.04
+        },
+        {
+          "test": "TestCompilerModeCLIImportedSource",
+          "status": "pass",
+          "seconds": 0.97
+        },
+        {
+          "test": "TestCompilerModeCLIImportedOutputAlias",
+          "status": "pass",
+          "seconds": 0.02
+        },
+        {
+          "test": "TestHIRProfileOrderedByteRWValidation",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestHIRProfileOrderedByteRWCompilation",
+          "status": "pass",
+          "seconds": 0.94
+        },
+        {
+          "test": "TestHIRProfileOrderedByteValidation",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestHIRProfileRegionCompareValidation",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestHIRProfileRegionCompareCompilation",
+          "status": "pass",
+          "seconds": 0.69
+        },
+        {
+          "test": "TestHIRProfileStrictJSON",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestHIRProfileFlagValidation",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestHIRProfileCollectionAndApplication",
+          "status": "pass",
+          "seconds": 0.14
+        },
+        {
+          "test": "TestHIRProfileIncompleteManifest",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestHIRProfileFailedRun",
+          "status": "pass",
+          "seconds": 0.03
+        },
+        {
+          "test": "TestHIRProfileWeightedSitesCompilation",
+          "status": "pass",
+          "seconds": 1.95
+        },
+        {
+          "test": "TestHIRProfileWeightedSitesValidation",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestIndirectCallEmissionScope",
+          "status": "pass",
+          "seconds": 0.02
+        },
+        {
+          "test": "TestIndirectIntermediateAsserts",
+          "status": "pass",
+          "seconds": 0
+        },
+        {
+          "test": "TestRetiredLIRFlagsRejected",
+          "status": "pass",
+          "seconds": 0
+        }
+      ],
+      "invalid_json_lines": []
+    }
+  ],
+  "passed": true
+}
