@@ -1,0 +1,23 @@
+--- FAIL: TestHIRProfileAutoMeasuredCompilation (17.20s)
+    hir_profile_auto_test.go:56: [{0x37e1cc6e4120 1381697ee1a68d1bc10d9eded5fdd11723c6274c962e882a4a022504d14ed2c3 pointer-walk lower measured workload T-states 1024 445 {executable-sha256:9705e567f25162d48af96acc38b0f0bffeb91efc7178bf88d591b2fcd9c4ef6c minz.unoptimised-mir2-vm-loop-events/v2 sum_array 79b36154fa87fdf4620da86d8df532966518488b0b5162a6acca1c0e61d5dadd module-target:0/model:cpm-z80-v1 4cb0cc6deb75d7e64dbeb4fbb28c6efdf71449f4f380a989a897ed595c73a1c8 sha256:e57989a733a1d0119b2360d0edae4728a21ee13ab6d9ca184a4246391cbd8dd6 201 262 69 191 7 260 262 true 281 193 true 37}}]
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayActualFrozenHeldout3171648412/002/training
+[compiler-modes replay] fixed mode 1: 5568 T / 52 B; saved BIN 23a46320f4d5adaf3a706457cf721145f0ff0df85efcd4c8e0e2b0f0d83642f0
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayRejectsMutatedTraining3779255810/002/training
+[compiler-modes] speed selected mode 0: 24 T / 10 B; artifacts /tmp/TestCompilerModeReplayChangedImportedSource3385829296/002/training
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayRejectsHeldoutDiskMutation360740259/002/training
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts2222979864/002/evidence
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts2222979864/003/evidence
+[compiler-modes] size selected mode 0: 2605 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts2222979864/004/evidence
+[compiler-modes] size selected mode 0: 2605 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts2222979864/005/evidence
+[compiler-modes] speed selected mode 0: 24 T / 10 B; artifacts /tmp/TestCompilerModeCLIImportedSource3459715235/001/evidence
+warning: Z80 output skipped because of the unsupported indirect-call ABI: Z80: indirect call in test_reassign_fp has live values across it; caller preservation for the indirect ABI is unsupported
+warning: Z80 output skipped because of the unsupported indirect-call ABI: Z80: indirect call in test_reassign_fp has live values across it; caller preservation for the indirect ABI is unsupported
+Closed memory-host policy preserve-speed speed selected mask1: 739T / 2559B; evidence /tmp/TestPolicyCLICollectReplay2797776530/001/policy-artifacts
+Closed memory-host policy preserve-speed speed selected mask1: 739T / 2559B; evidence /tmp/TestPolicyCLICollectReplay2797776530/001/replay
+Closed memory-host search speed selected policy1/mask1: 739T / 2513B; evidence /tmp/TestSearchCLICollectAndPairedReplay2769694245/001/search-artifacts
+Closed memory-host search size selected policy0/mask2: 834T / 2371B; evidence /tmp/TestSearchCLICollectAndPairedReplay2769694245/001/search-replay
+Closed memory-host speed selected mask1: 756T / 2558B; evidence /tmp/TestMemoryHostLegacySelectedOutputCollectReplay729597576/001/legacy-collect
+Closed memory-host speed selected mask1: 756T / 2558B; evidence /tmp/TestMemoryHostLegacySelectedOutputCollectReplay729597576/001/legacy-replay
+FAIL
+FAIL	github.com/minz/minzc/cmd/minzc	351.983s
+FAIL

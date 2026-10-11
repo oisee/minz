@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
 
 	"github.com/minz/minzc/pkg/hir"
@@ -52,8 +53,26 @@ func TestHIRProfileAutoMeasuredCompilation(t *testing.T) {
 	if err := json.Unmarshal(data, &decisions); err != nil {
 		t.Fatal(err)
 	}
-	if len(decisions) != 1 || decisions[0].Variant != "pointer-walk" || decisions[0].OriginalTStates != "774" || decisions[0].PointerTStates != "395" {
+	if len(decisions) != 1 || decisions[0].Variant != "pointer-walk" {
 		t.Fatal(decisions)
+	}
+	// Costs belong to the current assembled output, not a historical backend.
+	// The measured fast-path row for this workload must equal both decision totals.
+	matched := 0
+	for _, row := range evidence.Rows {
+		if row.Path != "fast" || row.N != int(n) || row.Base != 0x4000 {
+			continue
+		}
+		matched++
+		if row.Original <= row.Pointer ||
+			decisions[0].OriginalTStates != strconv.Itoa(row.Original) ||
+			decisions[0].PointerTStates != strconv.Itoa(row.Pointer) ||
+			row.OriginalExecutionSHA256 == "" || row.PointerExecutionSHA256 == "" {
+			t.Fatalf("decision does not match measured native execution: decision=%+v row=%+v", decisions[0], row)
+		}
+	}
+	if matched != 1 {
+		t.Fatalf("workload native evidence rows=%d", matched)
 	}
 	// Saved profile/model must work with the same binary and compilation settings.
 	hirProfile = hirProfileFlags{profile: filepath.Join(hirProfileAutoDirectory, "profile.json"), workload: hirProfileAutoWorkload, model: filepath.Join(hirProfileAutoDirectory, "model.json"), decisions: filepath.Join(dir, "reused.json")}
