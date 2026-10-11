@@ -1,0 +1,119 @@
+{
+  "files": [
+    {
+      "path": "reports/result-error-native/run.txt",
+      "bytes": 2211,
+      "sha256": "dd90a0cadf2cd94c79224766bbfe11ec000cbc9778dba6d990b446a76cd9236c"
+    },
+    {
+      "path": "reports/result-error-native/workload.json",
+      "bytes": 615,
+      "sha256": "eebcc214a8c7655496c51157be2a4a1693af2eaa8ac9c8874cb8920e6bcb44fa"
+    },
+    {
+      "path": "reports/result-error-native/native/calls.json.gz",
+      "bytes": 1044106,
+      "sha256": "6803294aa421a613fbc85a3a981aeed44ea2e18342faf259fd9f0df801620ab7"
+    },
+    {
+      "path": "reports/result-error-native/native/source.nanz",
+      "bytes": 1135,
+      "sha256": "4721bf61952713a54d53f64748cd4503f92d0d26ce73ff9240bd4e562183650c"
+    },
+    {
+      "path": "reports/result-error-native/native/grace-size/evidence.json",
+      "bytes": 1398,
+      "sha256": "395933fa1e477c0bad67e576d63045c83c1a25ef931af71188a279a1bac2d0a8"
+    },
+    {
+      "path": "reports/result-error-native/native/grace-size/raw.mir",
+      "bytes": 3206,
+      "sha256": "9af5ac32bef35c42c699e98c024fd4e57d9fc5476af8dce1e64ae62eb4ef0d0a"
+    },
+    {
+      "path": "reports/result-error-native/native/grace-size/final.mir",
+      "bytes": 1732,
+      "sha256": "0ee526e140bced85a1e3b612c4a60c868b0df9d16b75d6a897749f7420cfb185"
+    },
+    {
+      "path": "reports/result-error-native/native/grace-size/target.a80",
+      "bytes": 2970,
+      "sha256": "d9f4fa5e0f82a5f98661018fbe0aafd37aa22556e7d3d62eb122bc14b0610805"
+    },
+    {
+      "path": "reports/result-error-native/native/grace-size/target.bin",
+      "bytes": 113,
+      "sha256": "a989a8b2eda7113c46e8e6ebf5cbf835475f2eec67e51e15711cca2b3eb47874"
+    },
+    {
+      "path": "reports/result-error-native/native/grace-size/allocation.json",
+      "bytes": 2083,
+      "sha256": "e798912b803f3163d3fdcd4bf135deb598eeec22622e03053c7c1265c5d264c8"
+    },
+    {
+      "path": "reports/result-error-native/native/grace-speed/evidence.json",
+      "bytes": 1399,
+      "sha256": "9b276d73c8ea4e53f1168f419010abb67d499b07b007240f5786027ce65fd225"
+    },
+    {
+      "path": "reports/result-error-native/native/grace-speed/raw.mir",
+      "bytes": 3206,
+      "sha256": "9af5ac32bef35c42c699e98c024fd4e57d9fc5476af8dce1e64ae62eb4ef0d0a"
+    },
+    {
+      "path": "reports/result-error-native/native/grace-speed/final.mir",
+      "bytes": 1732,
+      "sha256": "0ee526e140bced85a1e3b612c4a60c868b0df9d16b75d6a897749f7420cfb185"
+    },
+    {
+      "path": "reports/result-error-native/native/grace-speed/target.a80",
+      "bytes": 2970,
+      "sha256": "d9f4fa5e0f82a5f98661018fbe0aafd37aa22556e7d3d62eb122bc14b0610805"
+    },
+    {
+      "path": "reports/result-error-native/native/grace-speed/target.bin",
+      "bytes": 113,
+      "sha256": "a989a8b2eda7113c46e8e6ebf5cbf835475f2eec67e51e15711cca2b3eb47874"
+    },
+    {
+      "path": "reports/result-error-native/native/grace-speed/allocation.json",
+      "bytes": 2083,
+      "sha256": "e798912b803f3163d3fdcd4bf135deb598eeec22622e03053c7c1265c5d264c8"
+    },
+    {
+      "path": "reports/result-error-native/native/default/evidence.json",
+      "bytes": 1400,
+      "sha256": "a1ca61559f8723dbbda6ef80b29e2c27c573bf7c406432edd9cfb5fb9a3414a1"
+    },
+    {
+      "path": "reports/result-error-native/native/default/raw.mir",
+      "bytes": 3206,
+      "sha256": "9af5ac32bef35c42c699e98c024fd4e57d9fc5476af8dce1e64ae62eb4ef0d0a"
+    },
+    {
+      "path": "reports/result-error-native/native/default/final.mir",
+      "bytes": 1732,
+      "sha256": "0ee526e140bced85a1e3b612c4a60c868b0df9d16b75d6a897749f7420cfb185"
+    },
+    {
+      "path": "reports/result-error-native/native/default/target.a80",
+      "bytes": 2991,
+      "sha256": "5b2060cad689ac2e00a7586650217f1d9b9d6c1b32b41a9475d6deaca0b52ecd"
+    },
+    {
+      "path": "reports/result-error-native/native/default/target.bin",
+      "bytes": 113,
+      "sha256": "a989a8b2eda7113c46e8e6ebf5cbf835475f2eec67e51e15711cca2b3eb47874"
+    },
+    {
+      "path": "reports/result-error-native/native/default/allocation.json",
+      "bytes": 2083,
+      "sha256": "e798912b803f3163d3fdcd4bf135deb598eeec22622e03053c7c1265c5d264c8"
+    },
+    {
+      "path": "reports/2026-10-11-073-original-result-error-native.md",
+      "bytes": 2253,
+      "sha256": "2a261799028e240a038a55c6fe3a2a98d38d22ef83a26ab4189248c3f9b4e45d"
+    }
+  ]
+}

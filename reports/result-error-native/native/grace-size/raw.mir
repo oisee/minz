@@ -1,0 +1,108 @@
+; MIR2 module: ../../../examples/nanz/13_result_error.nanz
+fun @safe_add(%r1: u8 [acc], %r2: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r3 = ext %r1 : u8 -> u16 [pointer]
+    %r4 = ext %r2 : u8 -> u16 [pointer]
+    %r5 = add %r3, %r4 : u16 [pointer]
+    %r6 = const 255 : u8 [general]
+    %r7 = cmp.ugt %r5, %r6 : bool [flag]
+    br_if %r7, @if_then1(), @if_join2()
+  block @if_then1:
+    %r8 = const 256 : u16 [pointer]
+    %r9 = const 1 : u8 [general]
+    %r10 = ext %r9 : u8 -> u16 [pointer]
+    %r11 = add %r8, %r10 : u16 [pointer]
+    ret %r11
+  block @if_join2:
+    %r12 = const 0 : u16 [pointer]
+    %r13 = add %r1, %r2 : u8 [acc]
+    %r14 = ext %r13 : u8 -> u16 [pointer]
+    %r15 = add %r12, %r14 : u16 [pointer]
+    ret %r15
+
+fun @is_ok(%r16: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    %r17 = call @__tag(%r16) : u8 [acc]
+    %r18 = const 0 : u8 [general]
+    %r19 = cmp.eq %r17, %r18 : bool [flag]
+    br_if %r19, @if_then1(), @if_join2()
+  block @if_then1:
+    %r20 = const 1 : u8 [general]
+    ret %r20
+  block @if_join2:
+    %r21 = const 0 : u8 [general]
+    ret %r21
+
+fun @unwrap(%r22: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    %r23 = call @__payload(%r22) : u8 [acc]
+    ret %r23
+
+fun @test_add_ok_tag() -> u8 [acc]
+  block @entry:
+    %r24 = const 10 : u8 [general]
+    %r25 = move %r24 : u8 [acc]
+    %r26 = const 20 : u8 [general]
+    %r27 = call @safe_add(%r25, %r26) : u16 [pointer]
+    %r28 = call @__tag(%r27) : u8 [acc]
+    ret %r28
+
+fun @test_add_ok_val() -> u8 [acc]
+  block @entry:
+    %r29 = const 10 : u8 [general]
+    %r30 = move %r29 : u8 [acc]
+    %r31 = const 20 : u8 [general]
+    %r32 = call @safe_add(%r30, %r31) : u16 [pointer]
+    %r33 = call @__payload(%r32) : u8 [acc]
+    ret %r33
+
+fun @test_add_overflow_tag() -> u8 [acc]
+  block @entry:
+    %r34 = const 200 : u8 [general]
+    %r35 = move %r34 : u8 [acc]
+    %r36 = const 200 : u8 [general]
+    %r37 = call @safe_add(%r35, %r36) : u16 [pointer]
+    %r38 = call @__tag(%r37) : u8 [acc]
+    ret %r38
+
+fun @test_add_overflow_code() -> u8 [acc]
+  block @entry:
+    %r39 = const 200 : u8 [general]
+    %r40 = move %r39 : u8 [acc]
+    %r41 = const 200 : u8 [general]
+    %r42 = call @safe_add(%r40, %r41) : u16 [pointer]
+    %r43 = call @__payload(%r42) : u8 [acc]
+    ret %r43
+
+fun @test_is_ok_pass() -> u8 [acc]
+  block @entry:
+    %r44 = const 10 : u8 [general]
+    %r45 = move %r44 : u8 [acc]
+    %r46 = const 20 : u8 [general]
+    %r47 = call @safe_add(%r45, %r46) : u16 [pointer]
+    %r48 = call @is_ok(%r47) : u8 [acc]
+    ret %r48
+
+fun @test_is_ok_fail() -> u8 [acc]
+  block @entry:
+    %r49 = const 200 : u8 [general]
+    %r50 = move %r49 : u8 [acc]
+    %r51 = const 200 : u8 [general]
+    %r52 = call @safe_add(%r50, %r51) : u16 [pointer]
+    %r53 = call @is_ok(%r52) : u8 [acc]
+    ret %r53
+
+fun @__tag(%r54: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    %r55 = const 256 : u16 [pointer]
+    %r56 = div %r54, %r55 : u16 [pointer]
+    %r57 = trunc %r56 : u16 -> u8 [general]
+    ret %r57
+
+fun @__payload(%r58: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    %r59 = const 256 : u16 [pointer]
+    %r60 = mod %r58, %r59 : u16 [pointer]
+    %r61 = trunc %r60 : u16 -> u8 [general]
+    ret %r61
+

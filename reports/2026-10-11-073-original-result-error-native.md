@@ -1,0 +1,11 @@
+# Original Result module: exhaustive tag, payload and overflow behavior
+
+Exact examples/nanz/13_result_error.nanz source and workload were frozen ined009dd0 before measurement at compiler7d62a218. Book v7 §16.2 explicitly defines ADT encoding: tag in the high byte, payload in the low byte; Ok(v)=v and Err(1)=0x0101. Independent host arithmetic returns Ok(a+b) only when widened unsigned sum≤255, otherwise Err(1). is_ok tests highbyte0; unwrap extracts lowbyte.
+
+All nine original source-defined functions pass raw VM, final VM and actual assembled Z80 under default, GraceSize and GraceSpeed. Per mode196614 calls: all65536 safe_add byte pairs; all65536 encoded words each for is_ok and unwrap (including tags other than0/1); six unchanged original parameter-free wrappers exercising success/overflow tag, payload/code and composed is_ok behavior. Total589842 native calls with matching raw/final VM calls. Both word and byte results are decoded from the production return contract; entry ABI uses actual allocation with hostile initial registers.
+
+Each invocation checks the independent result, absence of raw/final VM data-access events for pure functions, returned PC/SP, stack bounds/guards and all64KiB state outside the actual used stack and exact emitted spill-slot bytes. The original whole module and six source assertions are retained. Deterministic final combined native/raw-helper tests PASS; no new miscompile was found.
+
+Generated __tag/__payload are inlined and pruned from final native module. They separately pass131072 raw-VM calls across all encoded words, bound to the same frozen source. Their native effect is checked through unchanged is_ok/unwrap/wrappers; this is not a claim of separately exported helper native calls. No source or contract override keeps them alive.
+
+Saved per-entry native T-state totals/minSP and binary SHA, source, raw/final MIR, actualASM/BIN, allocations and logs are under reports/result-error-native. The exact196614-call expected workload is retained as lossless deterministic native/calls.json.gz. This evidence covers this one complete source module and finite input spaces; no optimizer benefit or all-corpus claim. Canonical dated share /mnt/safe/minz/grace/2026-10-11/result-error-native.

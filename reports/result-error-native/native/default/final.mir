@@ -1,0 +1,67 @@
+; MIR2 module: ../../../examples/nanz/13_result_error.nanz
+fun @safe_add(%r1: u8 [acc], %r2: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r3 = ext %r1 : u8 -> u16 [pointer]
+    %r4 = ext %r2 : u8 -> u16 [pointer]
+    %r5 = add %r3, %r4 : u16 [pointer]
+    %r6 = const 255 : u8 [general]
+    %r7 = cmp.ugt %r5, %r6 : bool [flag]
+    br_if %r7, @if_then1(), @if_join2()
+  block @if_then1:
+    %r8 = const 257 : u16 [pointer]
+    ret %r8
+  block @if_join2:
+    %r9 = add %r1, %r2 : u8 [acc]
+    %r10 = ext %r9 : u8 -> u16 [pointer]
+    ret %r10
+
+fun @is_ok(%r11: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    %r12 = const 256 : u16 [pointer]
+    %r13 = div %r11, %r12 : u16 [pointer]
+    %r14 = trunc %r13 : u16 -> u8 [general]
+    %r15 = const 0 : u8 [general]
+    %r16 = cmp.eq %r14, %r15 : bool [flag]
+    %r17 = const 0 : u8 [general]
+    cond_ret %r16, [%r17], @if_then1()
+  block @if_then1:
+    %r18 = const 1 : u8 [general]
+    ret %r18
+
+fun @unwrap(%r19: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    %r20 = const 256 : u16 [pointer]
+    %r21 = mod %r19, %r20 : u16 [pointer]
+    %r22 = trunc %r21 : u16 -> u8 [general]
+    ret %r22
+
+fun @test_add_ok_tag() -> u8 [acc]
+  block @entry:
+    %r23 = const 0 : u8 [acc]
+    ret %r23
+
+fun @test_add_ok_val() -> u8 [acc]
+  block @entry:
+    %r24 = const 30 : u8 [acc]
+    ret %r24
+
+fun @test_add_overflow_tag() -> u8 [acc]
+  block @entry:
+    %r25 = const 1 : u8 [acc]
+    ret %r25
+
+fun @test_add_overflow_code() -> u8 [acc]
+  block @entry:
+    %r26 = const 1 : u8 [acc]
+    ret %r26
+
+fun @test_is_ok_pass() -> u8 [acc]
+  block @entry:
+    %r27 = const 1 : u8 [acc]
+    ret %r27
+
+fun @test_is_ok_fail() -> u8 [acc]
+  block @entry:
+    %r28 = const 0 : u8 [acc]
+    ret %r28
+
