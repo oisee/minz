@@ -217,6 +217,12 @@ func TestShowcaseExecutableOracleCatalog(t *testing.T) {
 			row.Model = "All 6912 ZX screen bytes from independent row/col/color formula; macro counter 3"
 			row.Requirement = "pkg/lizp TestZXExamplesFullScreenVMZ80; no ULA/contention/hardware claim"
 		}
+		if row.Path == "examples/nanz/cpm_leaf_console.nanz" {
+			row.NativeBehavior = "executed-native-cpm-runtime"
+			row.Workload = "Whole public CLI COM; BDOS2 output with primary-register corruption"
+			row.Model = "Independent CP/M 53 OK LF output and persistent result54; PC/SP and stack guard"
+			row.Requirement = "cmd/minzc TestCPMRuntimeOrdinaryCLI; native CALL5 hook only, no raw VM or actual OS claim"
+		}
 		applyReviewedCatalogEvidence(t, root, &row)
 		if len(row.Entries) == 0 {
 			row.Intent = "declaration-only/library; importing caller required"
@@ -225,7 +231,7 @@ func TestShowcaseExecutableOracleCatalog(t *testing.T) {
 		counts[row.NativeBehavior]++
 		catalog = append(catalog, row)
 	}
-	if len(catalog) != 193 {
+	if len(catalog) != 194 {
 		t.Fatalf("corpus changed: %d paths; refresh catalog intentionally", len(catalog))
 	}
 	for name, count := range counts {
@@ -236,7 +242,7 @@ func TestShowcaseExecutableOracleCatalog(t *testing.T) {
 			Base    string               `json:"base_commit"`
 			Scope   string               `json:"scope"`
 			Entries []oracleCatalogEntry `json:"entries"`
-		}{"ee21cae8", "All 193 paths retained. Reviewed evidence proves only named entries/workloads; discovered test references, source assertions and main declarations are not native execution proofs. Derived CP/M main is separate evidence, never transferred to original source.", catalog}, "", "  ")
+		}{"ee21cae8", "All 194 paths retained (193 original paths plus the explicit CP/M leaf demo). Reviewed evidence proves only named entries/workloads; discovered test references, source assertions and main declarations are not native execution proofs. Derived CP/M main is separate evidence, never transferred to original source.", catalog}, "", "  ")
 		if e != nil {
 			t.Fatal(e)
 		}

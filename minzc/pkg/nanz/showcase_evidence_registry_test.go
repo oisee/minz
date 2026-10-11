@@ -74,6 +74,9 @@ func applyReviewedCatalogEvidence(t *testing.T, root string, row *oracleCatalogE
 		sum := sha256.Sum256(b)
 		row.Evidence = append(row.Evidence, catalogEvidence{reference, hex.EncodeToString(sum[:]), relation, scope})
 	}
+	if row.Path == "examples/nanz/cpm_leaf_console.nanz" {
+		add("minzc/cmd/minzc/cpm_runtime_test.go::TestCPMRuntimeOrdinaryCLI", "exact original source through public CP/M CLI", "Whole linked COM output/result/registers/SP/guard checked by independent native CALL5 hook; VM not checked")
+	}
 	oldTests := map[string]string{
 		"examples/nanz/04_lut_popcount.nanz":    "minzc/pkg/pipeline/showcase_algorithm_oracles_test.go::TestShowcasePopcountAllBytesNativeModel",
 		"examples/nanz/12_state_machine.nanz":   "minzc/pkg/pipeline/showcase_algorithm_oracles_test.go::TestShowcaseStateMachineNativeTransitionModel",

@@ -1,0 +1,66 @@
+--- FAIL: TestDefaultMIR2AssertAssembly (0.00s)
+    default_output_test.go:29: HIR profile auto: --hir-profile-function and --hir-profile-auto-workload are required
+--- FAIL: TestIndirectMIR2DefaultWarning (0.00s)
+    default_output_test.go:69: HIR profile auto: --hir-profile-function and --hir-profile-auto-workload are required
+--- FAIL: TestCDefaultOutputProtection (0.00s)
+    default_output_test.go:100: HIR profile auto: --hir-profile-function and --hir-profile-auto-workload are required
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayActualFrozenHeldout3523407260/002/training
+[compiler-modes replay] fixed mode 1: 5568 T / 52 B; saved BIN 23a46320f4d5adaf3a706457cf721145f0ff0df85efcd4c8e0e2b0f0d83642f0
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayRejectsMutatedTraining780984416/002/training
+[compiler-modes] speed selected mode 0: 24 T / 10 B; artifacts /tmp/TestCompilerModeReplayChangedImportedSource3902777492/002/training
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayRejectsHeldoutDiskMutation2572106725/002/training
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts2032342954/002/evidence
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts2032342954/003/evidence
+[compiler-modes] size selected mode 0: 2605 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts2032342954/004/evidence
+[compiler-modes] size selected mode 0: 2605 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts2032342954/005/evidence
+[compiler-modes] speed selected mode 0: 24 T / 10 B; artifacts /tmp/TestCompilerModeCLIImportedSource1389326719/001/evidence
+--- FAIL: TestHIRProfileFlagValidation (0.00s)
+    hir_profile_test.go:102: old frontend not refused: HIR profile auto: separate collection/application flags cannot be combined
+--- FAIL: TestHIRProfileCollectionAndApplication (0.00s)
+    hir_profile_test.go:132: HIR profile auto: separate collection/application flags cannot be combined
+--- FAIL: TestHIRProfileFailedRun (0.00s)
+    hir_profile_test.go:257: HIR profile auto: separate collection/application flags cannot be combined
+    hir_profile_test.go:261: HIR profile: read /tmp/TestHIRProfileFailedRun3504410834/001/p.json: open /tmp/TestHIRProfileFailedRun3504410834/001/p.json: no such file or directory
+--- FAIL: TestIndirectCallEmissionScope (0.00s)
+    --- FAIL: TestIndirectCallEmissionScope/mir2 (0.00s)
+        indirect_emission_test.go:65: HIR profile auto: --hir-profile-function and --hir-profile-auto-workload are required
+    --- FAIL: TestIndirectCallEmissionScope/all_mir2_annotations (0.00s)
+        indirect_emission_test.go:65: HIR profile auto: --hir-profile-function and --hir-profile-auto-workload are required
+    --- FAIL: TestIndirectCallEmissionScope/c (0.00s)
+        indirect_emission_test.go:65: HIR profile auto: --hir-profile-function and --hir-profile-auto-workload are required
+    --- FAIL: TestIndirectCallEmissionScope/mir2_dump (0.00s)
+        indirect_emission_test.go:65: HIR profile auto: --hir-profile-function and --hir-profile-auto-workload are required
+    --- FAIL: TestIndirectCallEmissionScope/hir_dump (0.00s)
+        indirect_emission_test.go:65: HIR profile auto: --hir-profile-function and --hir-profile-auto-workload are required
+    --- FAIL: TestIndirectCallEmissionScope/z80_assembly (0.00s)
+        indirect_emission_test.go:56: want explicit Z80 rejection, got HIR profile auto: --hir-profile-function and --hir-profile-auto-workload are required
+    --- FAIL: TestIndirectCallEmissionScope/z80_binary (0.00s)
+        indirect_emission_test.go:56: want explicit Z80 rejection, got HIR profile auto: --hir-profile-function and --hir-profile-auto-workload are required
+    --- FAIL: TestIndirectCallEmissionScope/default_z80_product (0.00s)
+        indirect_emission_test.go:56: want explicit Z80 rejection, got HIR profile auto: --hir-profile-function and --hir-profile-auto-workload are required
+    --- FAIL: TestIndirectCallEmissionScope/z80_assert (0.00s)
+        indirect_emission_test.go:56: want explicit Z80 rejection, got HIR profile auto: --hir-profile-function and --hir-profile-auto-workload are required
+--- FAIL: TestMemoryHostCLIValidation (0.00s)
+    memory_host_cli_test.go:33: memory host CLI: cannot combine with ordinary HIR or legacy profile modes
+--- FAIL: TestPolicyCLIAdmission (0.00s)
+    memory_host_policy_cli_test.go:42: memory host CLI: cannot combine with ordinary HIR or legacy profile modes
+--- FAIL: TestPolicyCLICollectReplay (0.00s)
+    memory_host_policy_cli_test.go:127: memory host CLI: cannot combine with ordinary HIR or legacy profile modes
+--- FAIL: TestPolicyCLILegacyRouteUnchanged (0.00s)
+    memory_host_policy_cli_test.go:227: legacy admission changed memory host CLI: cannot combine with ordinary HIR or legacy profile modes
+--- FAIL: TestSearchCLIAdmission (0.00s)
+    memory_host_search_cli_test.go:42: memory host CLI: cannot combine with ordinary HIR or legacy profile modes
+--- FAIL: TestSearchCLIKnownSourceBeforeCollection (0.00s)
+    memory_host_search_cli_test.go:139: substituted source reached collection memory host CLI: cannot combine with ordinary HIR or legacy profile modes
+--- FAIL: TestSearchCLIOrdinaryRoutesUnaffected (0.00s)
+    memory_host_search_cli_test.go:177: legacy admission changed memory host CLI: cannot combine with ordinary HIR or legacy profile modes
+--- FAIL: TestSearchCLICollectAndPairedReplay (0.00s)
+    memory_host_search_cli_test.go:247: memory host CLI: cannot combine with ordinary HIR or legacy profile modes
+--- FAIL: TestMemoryHostSelectedOutputExtensions (0.00s)
+    memory_host_selected_output_test.go:33: .bin memory host CLI: cannot combine with ordinary HIR or legacy profile modes
+--- FAIL: TestMemoryHostLegacySelectedOutputCollectReplay (0.00s)
+    memory_host_selected_output_test.go:66: memory host CLI: cannot combine with ordinary HIR or legacy profile modes
+FAIL
+FAIL	github.com/minz/minzc/cmd/minzc	36.265s
+ok  	github.com/minz/minzc/pkg/mir2	8.093s
+FAIL

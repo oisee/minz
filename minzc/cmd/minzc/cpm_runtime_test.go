@@ -103,6 +103,8 @@ func TestCPMRuntimeOrdinaryCLI(t *testing.T) {
 
 func TestCPMRuntimeRejectsUnsupported(t *testing.T) {
 	hirProfileTestState(t)
+	oldAutoDirectory := hirProfileAutoDirectory
+	t.Cleanup(func() { hirProfileAutoDirectory = oldAutoDirectory })
 	old := runtimeMode
 	t.Cleanup(func() { runtimeMode = old })
 	runtimeMode = "cpm"
