@@ -1,0 +1,10 @@
+typed ordinary -> fallible target validation: <nil>
+different-width target validation: indirect target parameter ABI mismatch: fallible
+; MIR2 module: zeroarg typed ABI
+fun @caller() -> u8 [general]
+  block @entry:
+    %r1 = addr_of @external : ptr [pointer]
+    %r2 = call_indirect %r1() : u8 [acc]
+    ret %r2
+
+
