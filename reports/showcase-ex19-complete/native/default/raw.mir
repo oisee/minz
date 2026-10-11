@@ -1,0 +1,124 @@
+; MIR2 module: ../../../reports/showcase-src/2026-03-13/ex19_assert_forms.nanz
+fun @abs_diff(%r1: u8 [acc], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = sub %r1, %r2 : u8 [acc]
+    %r4 = cmp.uge %r1, %r2 : bool [flag]
+    br_if %r4, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r3
+  block @if_join2:
+    %r5 = neg %r3 : u8 [acc]
+    ret %r5
+
+fun @clamp(%r6: u8 [acc], %r7: u8 [general], %r8: u8 [counter]) -> u8 [acc]
+  block @entry:
+    %r9 = cmp.ult %r6, %r7 : bool [flag]
+    br_if %r9, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r7
+  block @if_join2:
+    %r10 = cmp.ugt %r6, %r8 : bool [flag]
+    br_if %r10, @if_then3(), @if_join4()
+  block @if_then3:
+    ret %r8
+  block @if_join4:
+    ret %r6
+
+fun @fib(%r11: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r12 = const 1 : u8 [general]
+    %r13 = cmp.ule %r11, %r12 : bool [flag]
+    br_if %r13, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r11
+  block @if_join2:
+    %r14 = const 1 : u8 [general]
+    %r15 = sub %r11, %r14 : u8 [acc]
+    %r16 = move %r15 : u8 [acc]
+    %r17 = call @fib(%r16) : u8 [acc]
+    %r18 = const 2 : u8 [general]
+    %r19 = sub %r11, %r18 : u8 [acc]
+    %r20 = move %r19 : u8 [acc]
+    %r21 = call @fib(%r20) : u8 [acc]
+    %r22 = add %r17, %r21 : u8 [acc]
+    ret %r22
+
+fun @sum_range(%r23: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r24 = const 0 : u8 [general]
+    %r25 = const 0 : u8 [general]
+    %r26 = const 0 : u8 [acc]
+    %r27 = cmp.ne %r23, %r26 : bool [flag]
+    br_if %r27, @rng_body1(%r23, %r24), @rng_exit2(%r24)
+  block @rng_body1(%r28: u8 [counter], %r29: u8 [acc]):
+    %r30 = add %r29, %r28 : u8 [acc]
+    djnz %r28, @rng_body1(%r30), @rng_exit2(%r30)
+  block @rng_exit2(%r31: u8 [acc]):
+    ret %r31
+
+fun @minmax(%r32: u8 [acc], %r33: u8 [general]) -> (u8 [acc], u8 [counter])
+  block @entry:
+    %r34 = cmp.ule %r32, %r33 : bool [flag]
+    br_if %r34, @if_then1(), @if_join2()
+  block @if_then1:
+    %r35 = move %r32 : u8 [acc]
+    %r36 = move %r33 : u8 [counter]
+    ret %r35, %r36
+  block @if_join2:
+    %r37 = move %r33 : u8 [acc]
+    %r38 = move %r32 : u8 [counter]
+    ret %r37, %r38
+
+fun @swap(%r39: u8 [acc], %r40: u8 [general]) -> (u8 [acc], u8 [counter])
+  block @entry:
+    %r41 = move %r40 : u8 [acc]
+    %r42 = move %r39 : u8 [counter]
+    ret %r41, %r42
+
+fun @get_x(%r43: u8 [acc], %r44: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r45 = alloca 2 : ptr
+    store %r45, %r43 : u8
+    %r46 = field %r45, +1 : ptr [pointer]
+    store %r46, %r44 : u8
+    %r47 = load %r45 : u8 [acc]
+    ret %r47
+
+fun @get_y(%r48: u8 [acc], %r49: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r50 = alloca 2 : ptr
+    store %r50, %r48 : u8
+    %r51 = field %r50, +1 : ptr [pointer]
+    store %r51, %r49 : u8
+    %r52 = field %r50, +1 : ptr [pointer]
+    %r53 = load %r52 : u8 [acc]
+    ret %r53
+
+fun @manhattan(%r54: u8 [acc], %r55: u8 [general], %r56: u8 [counter], %r57: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r58 = alloca 2 : ptr
+    store %r58, %r54 : u8
+    %r59 = field %r58, +1 : ptr [pointer]
+    store %r59, %r55 : u8
+    %r60 = alloca 2 : ptr
+    store %r60, %r56 : u8
+    %r61 = field %r60, +1 : ptr [pointer]
+    store %r61, %r57 : u8
+    %r62 = load %r58 : u8 [general]
+    %r63 = move %r62 : u8 [acc]
+    %r64 = load %r60 : u8 [general]
+    %r65 = call @abs_diff(%r63, %r64) : u8 [acc]
+    %r66 = field %r58, +1 : ptr [pointer]
+    %r67 = load %r66 : u8 [general]
+    %r68 = move %r67 : u8 [acc]
+    %r69 = field %r60, +1 : ptr [pointer]
+    %r70 = load %r69 : u8 [general]
+    %r71 = call @abs_diff(%r68, %r70) : u8 [acc]
+    %r72 = add %r65, %r71 : u8 [acc]
+    ret %r72
+
+fun @lambda_0(%r73: u8 [acc], %r74: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r75 = add %r73, %r74 : u8 [acc]
+    ret %r75
+

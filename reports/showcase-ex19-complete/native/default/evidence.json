@@ -1,0 +1,52 @@
+{
+  "assembled_binary_sha256": "596c3c705f96230898b91cd1ae0ea2dd8d01f0121bde2217dc1e1b43319062fc",
+  "entries": {
+    "abs_diff": {
+      "Calls": 1536,
+      "TotalT": 83673,
+      "MinSP": 61422
+    },
+    "clamp": {
+      "Calls": 5376,
+      "TotalT": 333603,
+      "MinSP": 61422
+    },
+    "fib": {
+      "Calls": 15,
+      "TotalT": 299671,
+      "MinSP": 61370
+    },
+    "minmax": {
+      "Calls": 1536,
+      "TotalT": 117507,
+      "MinSP": 61422
+    },
+    "sum_range": {
+      "Calls": 256,
+      "TotalT": 580462,
+      "MinSP": 61422
+    },
+    "swap": {
+      "Calls": 1536,
+      "TotalT": 56832,
+      "MinSP": 61422
+    }
+  },
+  "native_calls": 10255,
+  "options": {
+    "ProfileSelection": null,
+    "CollectHIRSites": false,
+    "ContractOpt": true,
+    "AnnotateTStates": false,
+    "UseGrace": false,
+    "GraceStats": null,
+    "UseHIRGrace": false,
+    "OptSize": false,
+    "Backend": "",
+    "AssertMode": "",
+    "SkipZ80Emission": false
+  },
+  "raw_only_callback_calls": 1536,
+  "source_assertions_retained": 40,
+  "source_sha256": "1f4349338f02fbe8eaa253bc9033115ebf4bcaace3d675222fcab4c140224567"
+}

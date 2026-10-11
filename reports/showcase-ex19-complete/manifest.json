@@ -1,0 +1,119 @@
+{
+  "files": [
+    {
+      "path": "reports/showcase-ex19-complete/run.txt",
+      "bytes": 3738,
+      "sha256": "19b4d0d6b8afbe762220325bd0d3a039249424c8345eb21ee0f0ac3b647aafc2"
+    },
+    {
+      "path": "reports/showcase-ex19-complete/workload.json",
+      "bytes": 864,
+      "sha256": "4577f09fc10cdaca63d7b0976c1f8f9b088a1921912b7d531f8de50cf994f6cf"
+    },
+    {
+      "path": "reports/showcase-ex19-complete/native/calls.json",
+      "bytes": 1525069,
+      "sha256": "c6b4a6fd8690298f4958581bf27805ce034780a467b5bd5ea1a5b0b381973837"
+    },
+    {
+      "path": "reports/showcase-ex19-complete/native/source.nanz",
+      "bytes": 6818,
+      "sha256": "1f4349338f02fbe8eaa253bc9033115ebf4bcaace3d675222fcab4c140224567"
+    },
+    {
+      "path": "reports/showcase-ex19-complete/native/grace-size/evidence.json",
+      "bytes": 1127,
+      "sha256": "eec6bebf410f8c7b0c09264823a9b57adbb49635844caa8375d0faa83f26ae89"
+    },
+    {
+      "path": "reports/showcase-ex19-complete/native/grace-size/raw.mir",
+      "bytes": 3758,
+      "sha256": "d845f4b905fe8b380c4c2919eed35b19357d96763ad889be0de41518bab97a79"
+    },
+    {
+      "path": "reports/showcase-ex19-complete/native/grace-size/final.mir",
+      "bytes": 3542,
+      "sha256": "f94e663ae3a04dba6470d7ec591b5f5cd44b630ddef2187579d9230e4567e675"
+    },
+    {
+      "path": "reports/showcase-ex19-complete/native/grace-size/target.a80",
+      "bytes": 5019,
+      "sha256": "001040f79f9dced562687a3c1ca212b1836f6198e061fdd3b70915f7d1f7b4e7"
+    },
+    {
+      "path": "reports/showcase-ex19-complete/native/grace-size/target.bin",
+      "bytes": 228,
+      "sha256": "596c3c705f96230898b91cd1ae0ea2dd8d01f0121bde2217dc1e1b43319062fc"
+    },
+    {
+      "path": "reports/showcase-ex19-complete/native/grace-size/allocation.json",
+      "bytes": 5155,
+      "sha256": "cdf0a12ee484956e77d4febebda39ae562552627a5720be24e76aebd7eeae08f"
+    },
+    {
+      "path": "reports/showcase-ex19-complete/native/grace-speed/evidence.json",
+      "bytes": 1128,
+      "sha256": "83a9d126fbcef778827427051341124cbcc97dfd077050c84512910ff4edfcfb"
+    },
+    {
+      "path": "reports/showcase-ex19-complete/native/grace-speed/raw.mir",
+      "bytes": 3758,
+      "sha256": "d845f4b905fe8b380c4c2919eed35b19357d96763ad889be0de41518bab97a79"
+    },
+    {
+      "path": "reports/showcase-ex19-complete/native/grace-speed/final.mir",
+      "bytes": 3542,
+      "sha256": "f94e663ae3a04dba6470d7ec591b5f5cd44b630ddef2187579d9230e4567e675"
+    },
+    {
+      "path": "reports/showcase-ex19-complete/native/grace-speed/target.a80",
+      "bytes": 5019,
+      "sha256": "001040f79f9dced562687a3c1ca212b1836f6198e061fdd3b70915f7d1f7b4e7"
+    },
+    {
+      "path": "reports/showcase-ex19-complete/native/grace-speed/target.bin",
+      "bytes": 228,
+      "sha256": "596c3c705f96230898b91cd1ae0ea2dd8d01f0121bde2217dc1e1b43319062fc"
+    },
+    {
+      "path": "reports/showcase-ex19-complete/native/grace-speed/allocation.json",
+      "bytes": 5155,
+      "sha256": "cdf0a12ee484956e77d4febebda39ae562552627a5720be24e76aebd7eeae08f"
+    },
+    {
+      "path": "reports/showcase-ex19-complete/native/default/evidence.json",
+      "bytes": 1129,
+      "sha256": "59218907de0850145a04f8f4ccc8dbcd3fb8844929073dfbfea931355fe83011"
+    },
+    {
+      "path": "reports/showcase-ex19-complete/native/default/raw.mir",
+      "bytes": 3758,
+      "sha256": "d845f4b905fe8b380c4c2919eed35b19357d96763ad889be0de41518bab97a79"
+    },
+    {
+      "path": "reports/showcase-ex19-complete/native/default/final.mir",
+      "bytes": 3542,
+      "sha256": "f94e663ae3a04dba6470d7ec591b5f5cd44b630ddef2187579d9230e4567e675"
+    },
+    {
+      "path": "reports/showcase-ex19-complete/native/default/target.a80",
+      "bytes": 5122,
+      "sha256": "6b070de18740bda513a70a6986f09d91d46e85dd12526d83a62327498585ccd5"
+    },
+    {
+      "path": "reports/showcase-ex19-complete/native/default/target.bin",
+      "bytes": 228,
+      "sha256": "596c3c705f96230898b91cd1ae0ea2dd8d01f0121bde2217dc1e1b43319062fc"
+    },
+    {
+      "path": "reports/showcase-ex19-complete/native/default/allocation.json",
+      "bytes": 5155,
+      "sha256": "cdf0a12ee484956e77d4febebda39ae562552627a5720be24e76aebd7eeae08f"
+    },
+    {
+      "path": "reports/2026-10-11-070-original-ex19-complete-entry-evidence.md",
+      "bytes": 2562,
+      "sha256": "73e7f6f1898980f17a1814929a665d86b3802f950b67054ced86025ca85fcb2e"
+    }
+  ]
+}
