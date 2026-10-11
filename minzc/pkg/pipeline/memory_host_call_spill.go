@@ -3,7 +3,6 @@ package pipeline
 import (
 	"bytes"
 	"fmt"
-	"strings"
 
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/z80asm"
@@ -150,7 +149,7 @@ func resolveMemoryHostCallSpills(a *z80asm.Result, assembly string, ds []mir2.Na
 		var callLine *z80asm.ListingLine
 		for li := range a.Listing {
 			l := &a.Listing[li]
-			if strings.Contains(l.SourceLine, "@minz-spill-call:"+d.CallID) {
+			if mir2.NativeAnnotationCount(l.SourceLine, "@minz-spill-call:"+d.CallID) == 1 {
 				if callLine != nil {
 					return nil, nil, fmt.Errorf("duplicate spill call marker")
 				}
@@ -159,6 +158,10 @@ func resolveMemoryHostCallSpills(a *z80asm.Result, assembly string, ds []mir2.Na
 		}
 		if callLine == nil || len(callLine.Bytes) != 3 || callLine.Bytes[0] != 0xcd {
 			return nil, nil, fmt.Errorf("missing direct spill call opcode")
+		}
+		callOffset := callLine.Address - a.Origin
+		if callOffset < 0 || callOffset+3 > len(a.Binary) || !bytes.Equal(a.Binary[callOffset:callOffset+3], callLine.Bytes) {
+			return nil, nil, fmt.Errorf("call-spill call listing differs binary")
 		}
 		target, ok := workloadSymbol(a.Symbols, call.Sym)
 		if !ok || target < 0 || target > 65535 || int(callLine.Bytes[1])|int(callLine.Bytes[2])<<8 != target {
@@ -171,7 +174,7 @@ func resolveMemoryHostCallSpills(a *z80asm.Result, assembly string, ds []mir2.Na
 			var line *z80asm.ListingLine
 			for li := range a.Listing {
 				l := &a.Listing[li]
-				if strings.Contains(l.SourceLine, "@minz-call-spill:"+i.ID) && len(l.Bytes) > 0 {
+				if mir2.NativeAnnotationCount(l.SourceLine, "@minz-call-spill:"+i.ID) == 1 && len(l.Bytes) > 0 {
 					if line != nil {
 						return nil, nil, fmt.Errorf("duplicate call-spill listing")
 					}
