@@ -10,6 +10,11 @@
     "sha256": "c539f8e55aea666d1f773711791222dbc9ebfe6ae809a993799315775b1f8db5"
   },
   {
+    "path": "audit_profile.py",
+    "bytes": 1951,
+    "sha256": "50814a6c4b56c341836bf58803cf14cb23918e74d92973b0bfb04d0217a37531"
+  },
+  {
     "path": "commands.json",
     "bytes": 1901,
     "sha256": "045e3599a763bcff11e65831a9e3ac8aa5243e510f628e648f040a080dac87a1"
@@ -108,6 +113,11 @@
     "path": "independent-native-review/speed-native-audit.txt",
     "bytes": 959,
     "sha256": "4054194a5d409822f6025bb4decee0983d63e9037145425941258eb9b9a6b2e8"
+  },
+  {
+    "path": "independent-source-count-audit.json",
+    "bytes": 2529,
+    "sha256": "62a65e3f12b5095bcf3490c40289f1ffef45917c16a004980a04ada8ad9a40a5"
   },
   {
     "path": "native-identity.json",
@@ -555,6 +565,11 @@
     "sha256": "bec5f8684b845fa87019b21add94bb770abb0864e95f08fd2b59e5f04b0f0601"
   },
   {
+    "path": "source-count-audit.txt",
+    "bytes": 146,
+    "sha256": "894c16669da9131d74775f49c28ccf9332cf2369fa92ea10d6a60e35cdef5307"
+  },
+  {
     "path": "speed/append/allocation.json.gz",
     "bytes": 1411,
     "sha256": "f7cdd986583aaac009964147149bb0a34c814bb67e60eebae5c7864b47958a78"
@@ -698,6 +713,11 @@
     "path": "typed-audit.txt",
     "bytes": 6364,
     "sha256": "588608d73ae1baeeb6ea7f1db68ac681a63cb63821e874b2b1268730cb929dbc"
+  },
+  {
+    "path": "verify_corpus.py",
+    "bytes": 9576,
+    "sha256": "dd24ae1bfa38924b0b560f55d253084478e160647356f42e9aa23aa833e5b616"
   },
   {
     "path": "verify_host.py",
