@@ -377,3 +377,5 @@ Historical ENRT4v record5 теперь покрывает weighted13 SSA values 
 Первый packed FAT12 BIT-pattern fix интегрирован, root native parity PASS3.553с. Frozen odd write_fat12 остаётся FAIL: сдвиг черезHL затирает живое значение; workload не изменён. [Контекст096](grace-integration-096/README.md).
 
 Новый exactfib_iter all256/u16 и reconciliation18tail: root pipeline PASS3.090с/catalogPASS2.143с;38limited VM/native paths,1nativeCPM. [Пакет097](grace-integration-097/README.md).
+
+Root historicalcoverage118 functions PASS19.091с:9admitted,3smaller/4equal/2larger; largerневыбираются. Второй FAT indexedshift/liveHL fix проходит180native cases. GraceSize flags mismatch остаётся следующейcorrectnessзадачей. [Пакет098](grace-integration-098/README.md).

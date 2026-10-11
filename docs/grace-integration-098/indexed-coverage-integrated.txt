@@ -1,0 +1,25 @@
+=== RUN   TestIndexedShapeCorpusCoverage
+    indexed_shape_coverage_test.go:116: native weighted 256samples 150→54T
+    indexed_shape_coverage_test.go:147: 06_pbqp_weighted 36→12B entries1
+    indexed_shape_coverage_test.go:116: native double 256samples 14→14T
+    indexed_shape_coverage_test.go:116: native triple 256samples 34→22T
+    indexed_shape_coverage_test.go:147: 09_function_pointers 34→31B entries2
+    indexed_shape_coverage_test.go:116: native add 65536samples 14→14T
+    indexed_shape_coverage_test.go:116: native double 256samples 14→14T
+    indexed_shape_coverage_test.go:116: native triple 256samples 34→22T
+    indexed_shape_coverage_test.go:147: tiny 11→8B entries3
+    indexed_shape_coverage_test.go:116: native test_eq 1samples 17→21T
+    indexed_shape_coverage_test.go:116: native test_neq 1samples 17→21T
+    indexed_shape_coverage_test.go:147: 20_strref_test 45→45B entries2
+    indexed_shape_coverage_test.go:147: 21_hashmap_test 981→981B entries0
+    indexed_shape_coverage_test.go:147: 17_bool_retflag 172→172B entries0
+    indexed_shape_coverage_test.go:116: native low_nibble 256samples 17→17T
+    indexed_shape_coverage_test.go:147: 16_rotate_sled 192→192B entries1
+    indexed_shape_coverage_test.go:147: promoted_arithmetic 342→342B entries0
+    indexed_shape_coverage_test.go:147: signed_arithmetic 221→221B entries0
+    indexed_shape_coverage_test.go:147: 08_arena_allocator 1193→1193B entries0
+    indexed_shape_coverage_test.go:147: 50_impl_showcase 237→237B entries0
+    indexed_shape_coverage_test.go:147: self_tokenizer 5474→5474B entries0
+--- PASS: TestIndexedShapeCorpusCoverage (19.08s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	19.091s

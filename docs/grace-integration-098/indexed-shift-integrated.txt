@@ -1,0 +1,4 @@
+=== RUN   TestIndexedWordShiftPreservesLiveHLNative
+--- PASS: TestIndexedWordShiftPreservesLiveHLNative (0.20s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.211s

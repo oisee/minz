@@ -1,0 +1,10 @@
+=== RUN   TestIndexedParametricSourceAndRegisterIdentity
+--- PASS: TestIndexedParametricSourceAndRegisterIdentity (0.02s)
+=== RUN   TestIndexedReadBudgetDistinctFromTruncation
+--- PASS: TestIndexedReadBudgetDistinctFromTruncation (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.026s
+=== RUN   TestIndexedSourceCloneProposalReuse
+--- PASS: TestIndexedSourceCloneProposalReuse (0.14s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.147s
