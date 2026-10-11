@@ -1,0 +1,10 @@
+{
+  "short-reuse/speed": 0,
+  "short-reuse/size": 0,
+  "long-atoms/speed": 0,
+  "long-atoms/size": 0,
+  "nested-mixed/speed": 0,
+  "nested-mixed/size": 0,
+  "fresh-dominant/speed": 0,
+  "fresh-dominant/size": 0
+}

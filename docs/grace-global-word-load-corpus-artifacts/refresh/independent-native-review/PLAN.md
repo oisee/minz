@@ -1,0 +1,5 @@
+# Saved-only corpus refresh audit scope
+
+Input review: four original owned typed workload objects match prior speed andsize outputs exactly;50calls (12/9/9/20). JSON serialization byte hashes recorded independently; no claim pretty CLI output equals original fixture bytes. ExactoriginalSelfLanz source SHA0e926... unchanged, productiondba34 executable SHA verified. Owner must copy fixtures losslessly andpreflight hashes before8CLIruns (fourworkloads ×twoobjectives), no oldprofile reused acrosscompiler identities. EachCLIcollects its own currentprofile.
+
+Readonly release for root-authorized artifact-onlyrefresh. No production source/permissions/host/API changed; noCPU executed here. Audit32saved candidates: full independenthoststate/orderedevents,typedSHA/BIN/ASM/nativeglobalroots/finiteframes,source/profile/precompile11sites/context andwinner exactstoreddecisionSHA. Compare allpriorcosts perunchangedinputs/mask withdistinct1bd→dba compiler identity. Keepnegativeperformancechanges andwinner changes; nouniversalaggregate winner. Defaultfreshbudget/rootpipeline gates separate.

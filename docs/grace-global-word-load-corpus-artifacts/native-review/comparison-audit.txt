@@ -1,0 +1,5 @@
+PASS short-reuse allfourprior-state/source/site/counts same; executable context changed; oldspeed3 -> newspeed2, size2 unchanged; currentT [330515, 331075, 327008, 327568]
+PASS long-atoms allfourprior-state/source/site/counts same; executable context changed; oldspeed3 -> newspeed2, size2 unchanged; currentT [4110605, 4110877, 3968942, 3969214]
+PASS nested-mixed allfourprior-state/source/site/counts same; executable context changed; oldspeed3 -> newspeed2, size2 unchanged; currentT [1297899, 1299550, 1281762, 1283413]
+PASS fresh-dominant allfourprior-state/source/site/counts same; executable context changed; oldspeed3 -> newspeed2, size2 unchanged; currentT [789462, 789510, 699845, 699893]
+PASS32 same-input candidate/native prior comparisons; keep all costs. No universalwinner claim/noCPU.

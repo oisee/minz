@@ -1,0 +1,82 @@
+[
+  {
+    "corpus": "short-reuse",
+    "current_costs": [
+      330515,
+      331075,
+      327008,
+      327568
+    ],
+    "previous_costs": [
+      355595,
+      354055,
+      351368,
+      349828
+    ],
+    "current_speed_selected": 2,
+    "previous_speed_selected": 3,
+    "current_size_selected": 2,
+    "selected_gain_vs_current_original_percent": 1.06107135833472,
+    "arena_marginal_T_vs_append": 560
+  },
+  {
+    "corpus": "long-atoms",
+    "current_costs": [
+      4110605,
+      4110877,
+      3968942,
+      3969214
+    ],
+    "previous_costs": [
+      4401641,
+      4400893,
+      4217093,
+      4216345
+    ],
+    "current_speed_selected": 2,
+    "previous_speed_selected": 3,
+    "current_size_selected": 2,
+    "selected_gain_vs_current_original_percent": 3.446281021893371,
+    "arena_marginal_T_vs_append": 272
+  },
+  {
+    "corpus": "nested-mixed",
+    "current_costs": [
+      1297899,
+      1299550,
+      1281762,
+      1283413
+    ],
+    "previous_costs": [
+      1419255,
+      1411486,
+      1400553,
+      1392784
+    ],
+    "current_speed_selected": 2,
+    "previous_speed_selected": 3,
+    "current_size_selected": 2,
+    "selected_gain_vs_current_original_percent": 1.2433170839949796,
+    "arena_marginal_T_vs_append": 1651
+  },
+  {
+    "corpus": "fresh-dominant",
+    "current_costs": [
+      789462,
+      789510,
+      699845,
+      699893
+    ],
+    "previous_costs": [
+      849806,
+      849674,
+      734374,
+      734242
+    ],
+    "current_speed_selected": 2,
+    "previous_speed_selected": 3,
+    "current_size_selected": 2,
+    "selected_gain_vs_current_original_percent": 11.3516546711558,
+    "arena_marginal_T_vs_append": 48
+  }
+]
