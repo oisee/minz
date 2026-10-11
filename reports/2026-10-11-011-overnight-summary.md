@@ -136,7 +136,7 @@ TERMINAL PASS:18570files66pages, всеSHA/архивы проверены,0miss
 явный search CLI начат в изолированной постоянной ветке; короткий collect/replay/actualSize тест PASS251.97s; две финальные
 source reviews прошли. Два full30 actual CLI запуска на сохранённом84e22
 завершились: Speedpolicy1/mask3 1076715T/2100B, Sizepolicy0/mask2
-1079795T/1978B. Независимые saved audits продолжаются; CLI ещё не перенесён.
+1079795T/1978B. Cost saved audit PASS600; backend audit продолжается. CLI ещё не перенесён.
 
 ## Сохранение веток и решения
 
@@ -160,4 +160,5 @@ append-copy — вынос src/dst баз, PreserveForSpeed — регистро
 сравнение; смены heap нет. Точные три эффекта аддитивны на этом workload,
 но независимость backend стоимости не доказана. Pure Speed сохраняется
 как минимум T без штрафа за байты; Pareto/byte-budget — отдельные режимы.
-Публикация56 включает пояснения; wholeoffline sync56 выполняется.
+Публикация56 включает пояснения; wholeoffline sync56 PASS18973files66pages,
+всеSHA/архивы проверены,0missing/external.
