@@ -1,0 +1,116 @@
+=== RUN   TestZ80TSMCWordConstantPreservesAccumulatorAndFlags
+=== RUN   TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphanfalse/0001
+    z80codegen_tsmc_const_live_test.go:49: A0 HLc007 F21 SPff00 word1 want1
+        ORG 0x8000
+        LD SP,0xff00
+        LD HL,49159
+        LD A,103
+        SCF
+            PUSH HL
+            LD HL, 1
+            LD A, L
+            LD (_tsmc_const_live_r1_0+1), A
+            LD A, H
+            LD (_tsmc_const_live_r1_0+2), A
+            POP HL
+        _tsmc_const_live_r1_0:
+        LD BC,0
+        DI
+        HALT
+=== RUN   TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphanfalse/abcd
+    z80codegen_tsmc_const_live_test.go:49: Aab HLc007 F21 SPff00 wordabcd wantabcd
+        ORG 0x8000
+        LD SP,0xff00
+        LD HL,49159
+        LD A,103
+        SCF
+            PUSH HL
+            LD HL, 43981
+            LD A, L
+            LD (_tsmc_const_live_r1_0+1), A
+            LD A, H
+            LD (_tsmc_const_live_r1_0+2), A
+            POP HL
+        _tsmc_const_live_r1_0:
+        LD BC,0
+        DI
+        HALT
+=== RUN   TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphanfalse/ffff
+    z80codegen_tsmc_const_live_test.go:49: Aff HLc007 F21 SPff00 wordffff wantffff
+        ORG 0x8000
+        LD SP,0xff00
+        LD HL,49159
+        LD A,103
+        SCF
+            PUSH HL
+            LD HL, 65535
+            LD A, L
+            LD (_tsmc_const_live_r1_0+1), A
+            LD A, H
+            LD (_tsmc_const_live_r1_0+2), A
+            POP HL
+        _tsmc_const_live_r1_0:
+        LD BC,0
+        DI
+        HALT
+=== RUN   TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphantrue/0001
+    z80codegen_tsmc_const_live_test.go:49: A0 HLc007 F21 SPff00 word1 want1
+        ORG 0x8000
+        LD SP,0xff00
+        LD HL,49159
+        LD A,103
+        SCF
+            PUSH HL
+            LD HL, 1
+            LD A, L
+            LD (_spill_const_live_r1), A
+            LD A, H
+            LD (_spill_const_live_r1+1), A
+            POP HL
+        DI
+        HALT
+        _spill_const_live_r1:DW 0
+=== RUN   TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphantrue/abcd
+    z80codegen_tsmc_const_live_test.go:49: Aab HLc007 F21 SPff00 wordabcd wantabcd
+        ORG 0x8000
+        LD SP,0xff00
+        LD HL,49159
+        LD A,103
+        SCF
+            PUSH HL
+            LD HL, 43981
+            LD A, L
+            LD (_spill_const_live_r1), A
+            LD A, H
+            LD (_spill_const_live_r1+1), A
+            POP HL
+        DI
+        HALT
+        _spill_const_live_r1:DW 0
+=== RUN   TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphantrue/ffff
+    z80codegen_tsmc_const_live_test.go:49: Aff HLc007 F21 SPff00 wordffff wantffff
+        ORG 0x8000
+        LD SP,0xff00
+        LD HL,49159
+        LD A,103
+        SCF
+            PUSH HL
+            LD HL, 65535
+            LD A, L
+            LD (_spill_const_live_r1), A
+            LD A, H
+            LD (_spill_const_live_r1+1), A
+            POP HL
+        DI
+        HALT
+        _spill_const_live_r1:DW 0
+--- FAIL: TestZ80TSMCWordConstantPreservesAccumulatorAndFlags (0.00s)
+    --- FAIL: TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphanfalse/0001 (0.00s)
+    --- FAIL: TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphanfalse/abcd (0.00s)
+    --- FAIL: TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphanfalse/ffff (0.00s)
+    --- FAIL: TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphantrue/0001 (0.00s)
+    --- FAIL: TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphantrue/abcd (0.00s)
+    --- FAIL: TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphantrue/ffff (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/mir2	0.010s
+FAIL

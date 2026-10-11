@@ -1,0 +1,10 @@
+{
+  "calls": 30,
+  "arena_bump": 432,
+  "t_states": 2341065,
+  "bytes": 4644,
+  "binary_sha256": "ce86c571b48941b53ac452fc9ad24f13d1e5ac4db3b4e7a4d0cf36827f42fa55",
+  "profitability": "slower than original2270286T4346B; not selected",
+  "independent_resource_traffic": "all bytes reads/writes",
+  "global_traffic": "VM/target agreement only; host independently checks all global values"
+}

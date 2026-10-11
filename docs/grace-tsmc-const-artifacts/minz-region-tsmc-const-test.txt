@@ -1,0 +1,16 @@
+=== RUN   TestZ80TSMCWordConstantPreservesAccumulatorAndFlags
+=== RUN   TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphanfalse/0001
+=== RUN   TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphanfalse/abcd
+=== RUN   TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphanfalse/ffff
+=== RUN   TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphantrue/0001
+=== RUN   TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphantrue/abcd
+=== RUN   TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphantrue/ffff
+--- PASS: TestZ80TSMCWordConstantPreservesAccumulatorAndFlags (0.00s)
+    --- PASS: TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphanfalse/0001 (0.00s)
+    --- PASS: TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphanfalse/abcd (0.00s)
+    --- PASS: TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphanfalse/ffff (0.00s)
+    --- PASS: TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphantrue/0001 (0.00s)
+    --- PASS: TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphantrue/abcd (0.00s)
+    --- PASS: TestZ80TSMCWordConstantPreservesAccumulatorAndFlags/orphantrue/ffff (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.010s

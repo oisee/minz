@@ -1,0 +1,9 @@
+=== RUN   TestRegionComparePrototypeRaw
+    region_compare_prototype_test.go:86: raw domain 6144
+--- PASS: TestRegionComparePrototypeRaw (1.08s)
+=== RUN   TestRegionComparePrototypeWholeTokenizer
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    region_compare_prototype_test.go:267: tokenizer30calls 2341065T/4644B arena432
+--- PASS: TestRegionComparePrototypeWholeTokenizer (1.34s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.440s

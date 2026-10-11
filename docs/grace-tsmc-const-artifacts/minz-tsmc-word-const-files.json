@@ -1,0 +1,10 @@
+[
+  {
+    "path": "minzc/pkg/mir2/z80codegen_inst.go",
+    "sha256": "e83a3f76116b9e937f3434010412b3676c1434ee79736b87000ad93887e69ee8"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen_tsmc_const_live_test.go",
+    "sha256": "c45c9cc76d48c91eab92b6f7a680fc7d8d34ab519d27d4ddcca495c59b976b7c"
+  }
+]
