@@ -1,0 +1,101 @@
+; MIR2 module: ../../../examples/nanz/14_error_propagation.nanz
+global @data : u8
+global @data1 : u8
+global @data2 : u8
+global @data3 : u8
+global @data_len : u8
+
+fun @safe_div(%r1: u8 [acc], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = const 0 : u8 [general]
+    %r4 = cmp.eq %r2, %r3 : bool [flag]
+    br_if %r4, @if_then1(), @if_join2()
+  block @if_then1:
+    %r5 = const 1 : u8 [acc]
+    call @@error(%r5)
+    jmp @if_join2()
+  block @if_join2:
+    %r6 = div %r1, %r2 : u8 [general]
+    ret %r6
+
+fun @compute(%r7: u8 [acc], %r8: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r9 = move %r7 : u8 [acc]
+    %r10 = call @safe_div(%r9, %r8) : u8 [acc]
+    call @@propagate()
+    %r11 = const 1 : u8 [general]
+    %r12 = add %r10, %r11 : u8 [acc]
+    ret %r12
+
+fun @safe_add(%r13: u8 [acc], %r14: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r15 = ext %r13 : u8 -> u16 [pointer]
+    %r16 = ext %r14 : u8 -> u16 [pointer]
+    %r17 = add %r15, %r16 : u16 [pointer]
+    %r18 = const 255 : u8 [general]
+    %r19 = cmp.ugt %r17, %r18 : bool [flag]
+    br_if %r19, @if_then1(), @if_join2()
+  block @if_then1:
+    %r20 = const 2 : u8 [acc]
+    call @@error(%r20)
+    jmp @if_join2()
+  block @if_join2:
+    %r21 = add %r13, %r14 : u8 [acc]
+    ret %r21
+
+fun @safe_sub(%r22: u8 [acc], %r23: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r24 = cmp.ult %r22, %r23 : bool [flag]
+    br_if %r24, @if_then1(), @if_join2()
+  block @if_then1:
+    %r25 = const 3 : u8 [acc]
+    call @@error(%r25)
+    jmp @if_join2()
+  block @if_join2:
+    %r26 = sub %r22, %r23 : u8 [acc]
+    ret %r26
+
+fun @array_get(%r27: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r28 = addr_of @data_len : ptr [pointer]
+    %r29 = load %r28 : u8 [general]
+    %r30 = cmp.uge %r27, %r29 : bool [flag]
+    br_if %r30, @if_then1(), @if_join2()
+  block @if_then1:
+    %r31 = const 4 : u8 [acc]
+    call @@error(%r31)
+    jmp @if_join2()
+  block @if_join2:
+    %r32 = addr_of @data : ptr [pointer]
+    %r33 = ext %r27 : u8 -> u16 [index]
+    %r34 = ptr_add %r32, %r33 : ptr [pointer]
+    %r35 = load %r34 : u8 [general]
+    ret %r35
+
+fun @chain(%r36: u8 [acc], %r37: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r38 = move %r36 : u8 [acc]
+    %r39 = call @safe_div(%r38, %r37) : u8 [acc]
+    call @@propagate()
+    %r40 = move %r39 : u8 [acc]
+    %r41 = const 5 : u8 [general]
+    %r42 = call @safe_add(%r40, %r41) : u8 [acc]
+    call @@propagate()
+    ret %r42
+
+fun @main()
+  block @entry:
+    call @@propagate()
+    %r43 = const 5 : u8 [acc]
+    call @@mir.io.print.u8(%r43)
+    call @@propagate()
+    %r44 = const 250 : u8 [acc]
+    call @@mir.io.print.u8(%r44)
+    %r45 = const 10 : u8 [acc]
+    %r46 = const 0 : u8 [general]
+    %r47 = call @safe_div(%r45, %r46) : u8 [acc]
+    call @@check()
+    %r48 = move %r47 : u8 [acc]
+    call @@mir.io.print.u8(%r48)
+    ret void
+

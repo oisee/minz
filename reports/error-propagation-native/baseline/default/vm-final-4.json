@@ -1,0 +1,15 @@
+{
+  "call": {
+    "Entry": "compute",
+    "Args": [
+      10,
+      0
+    ],
+    "Expected": 1,
+    "ExpectedMulti": [
+      1
+    ]
+  },
+  "error": "block @entry: block @if_then1: mir2.VM: unknown function @error",
+  "results": null
+}

@@ -1,0 +1,15 @@
+{
+  "call": {
+    "Entry": "compute",
+    "Args": [
+      255,
+      1
+    ],
+    "Expected": 0,
+    "ExpectedMulti": [
+      0
+    ]
+  },
+  "error": "block @entry: mir2.VM: unknown function @propagate",
+  "results": null
+}
