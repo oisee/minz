@@ -56,7 +56,8 @@ const (
 // the 10M-instruction harness ceiling are refused, never silently capped.
 // MaxMemory charges program, resources, and reserved bootstrap/stack storage.
 // Numeric pointers, pointer-bearing globals/results, hosts, ports, ASM and SMC
-// are unsupported. Resources are opaque byte buffers, not pointer tables.
+// are unsupported. Unreachable extern declarations retain their full source ABI;
+// only the exact direct-call closure has native instruction-fetch authority. Resources are opaque byte buffers, not pointer tables.
 // The supplied expected run is a caller-owned VM oracle, not an attestation;
 // callers must obtain it from RunLoopProfile for the same input HIR/workload.
 // A complete memory snapshot is required for every call, including void calls;
@@ -112,6 +113,9 @@ func RunZ80ProfileWorkload(steps Steps, source *hir.Module, workload hir.Profile
 	if len(expected.Snapshots) != len(workload.Calls) {
 		return fail(fmt.Errorf("incomplete oracle invocation snapshots"))
 	}
+	if err := hir.ValidateProfileWorkloadMIR(source, steps.MIR2Module, workload); err != nil {
+		return fail(err)
+	}
 	for _, module := range []*mir2.Module{hir.LowerModule(source), steps.MIR2Module} {
 		for _, g := range module.Globals {
 			if g.Storage != mir2.StorageNormal || g.At != nil || len(g.VtableSyms) != 0 || workloadPointerStorage(g.Ty) {
@@ -119,7 +123,7 @@ func RunZ80ProfileWorkload(steps Steps, source *hir.Module, workload hir.Profile
 			}
 		}
 		for _, f := range module.Funcs {
-			if f.Attrs.IsExtern || f.Attrs.HasAsm {
+			if f.Attrs.HasAsm {
 				return fail(fmt.Errorf("hosts/ASM unsupported: %s", f.Name))
 			}
 			for _, b := range f.Blocks {
@@ -151,6 +155,22 @@ func RunZ80ProfileWorkload(steps Steps, source *hir.Module, workload hir.Profile
 		return fail(fmt.Errorf("assembly failed or program overlaps stack: %v", program.Errors))
 	}
 	out := &Z80ProfileWorkloadEvidence{Compatibility: profile.Compatibility, BinarySHA256: fmt.Sprintf("%x", sha256.Sum256(program.Binary)), Globals: map[string][]byte{}, Resources: map[string][]byte{}, ResourceAddresses: map[string]int{}, GlobalAddresses: map[string]int{}}
+	reachable, err := hir.ProfileWorkloadReachableFunctions(steps.MIR2Module, workload)
+	if err != nil {
+		return fail(err)
+	}
+	ranges := []memoryHostFunctionRange{}
+	for _, f := range steps.MIR2Module.Funcs {
+		addr, ok := workloadSymbol(program.Symbols, f.Name)
+		if !ok {
+			if reachable[f.Name] {
+				return fail(fmt.Errorf("reachable function symbol missing: %s", f.Name))
+			}
+			continue
+		}
+		ranges = append(ranges, memoryHostFunctionRange{f.Name, addr})
+	}
+	sort.Slice(ranges, func(i, j int) bool { return ranges[i].start < ranges[j].start })
 	var readable, writable, executable, codeBytes [65536]bool
 	mark := func(dst *[65536]bool, start, size int) {
 		for a := start; a < start+size; a++ {
@@ -179,7 +199,7 @@ func RunZ80ProfileWorkload(steps Steps, source *hir.Module, workload hir.Profile
 		if line.Address < workloadProgram || line.Address+len(line.Bytes) > workloadProgram+len(program.Binary) {
 			return fail(fmt.Errorf("noncontiguous assembly layout"))
 		}
-		executable[line.Address] = true
+		executable[line.Address] = memoryHostReachableInstruction(ranges, reachable, line.Address)
 		mark(&codeBytes, line.Address, len(line.Bytes))
 	}
 	for name, addr := range program.Symbols {
