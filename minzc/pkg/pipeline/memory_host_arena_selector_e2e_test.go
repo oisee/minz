@@ -1,10 +1,12 @@
 package pipeline
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/minz/minzc/pkg/hir"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -122,5 +124,71 @@ func TestMemoryHostArenaSelectorEqualCostRetainsOriginal(t *testing.T) {
 		if selected := selectMemoryHostArenaCandidate(goal, original, peeled); selected != 0 {
 			t.Fatal("equal actual primary costs must retain original")
 		}
+	}
+}
+
+func TestMemoryHostArenaSelectorConsistentCountForgery(t *testing.T) {
+	source, w := memoryHostParserFixture(t)
+	w.Calls = []hir.MemoryHostInvocation{{Function: "region_match", Arguments: []int64{0x8fff, 0, 0}}}
+	profile, e := hir.RunMemoryHostLoopProfile(source, w)
+	if e != nil {
+		t.Fatal(e)
+	}
+	changed := false
+	for i, s := range profile.Sites.Sites {
+		if s.Function == "region_match" {
+			profile.Counts[i].Entries++
+			profile.Invocations[0].Counts[i].Entries++
+			changed = true
+		}
+	}
+	if !changed {
+		t.Fatal("missing source helper loop")
+	}
+	serialized, e := json.Marshal(profile)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if _, e = hir.LoadMemoryHostLoopProfile(bytes.NewReader(serialized), source, w); e != nil {
+		t.Fatal("self-consistent forged counts failed loader before replay", e)
+	}
+	factory := func() (*hir.Module, error) { m, _ := memoryHostParserFixture(t); return m, nil }
+	if evidence, e := MeasureMemoryHostArenaPeel(factory, w, serialized, MemoryHostArenaSelectorOptions{Goal: "speed", MaxSites: 1}); e == nil || evidence != nil || !strings.Contains(e.Error(), "serialized counts/observations differ") {
+		t.Fatal("consistent forged counts not rejected by fresh replay", e)
+	}
+}
+func TestMemoryHostArenaSelectorLateFactoryMutation(t *testing.T) {
+	_, w := memoryHostParserFixture(t)
+	w.Calls = []hir.MemoryHostInvocation{{Function: "region_match", Arguments: []int64{0x8fff, 0, 0}}}
+	serialized := arenaSelectorProfile(t, w)
+	for _, mode := range []string{"retained_global", "candidate_global", "candidate_shared"} {
+		t.Run(mode, func(t *testing.T) {
+			calls := 0
+			var first *hir.Module
+			factory := func() (*hir.Module, error) {
+				m, _ := memoryHostParserFixture(t)
+				calls++
+				if calls == 1 {
+					first = m
+				}
+				if calls == 8 {
+					switch mode {
+					case "retained_global":
+						first.Globals[0].Init[0] ^= 1
+					case "candidate_global":
+						m.Globals[0].Init[0] ^= 1
+					case "candidate_shared":
+						m.Funcs[0].Body = first.Funcs[0].Body
+					}
+				}
+				return m, nil
+			}
+			if evidence, e := MeasureMemoryHostArenaPeel(factory, w, serialized, MemoryHostArenaSelectorOptions{Goal: "speed", MaxSites: 1}); e == nil || evidence != nil {
+				t.Fatal("late factory mutation accepted", mode)
+			}
+			if calls < 8 {
+				t.Fatal("test did not reach late original/candidate factory phase", calls)
+			}
+		})
 	}
 }
