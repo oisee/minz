@@ -324,3 +324,13 @@ caller-owned spill homes до argument setup и restore после result
 pickup. Произвольное расширение native certificate не выполняется.
 Полный строковый этап остаётся открыт, CP/M adapter готовится
 статически; исполнения COM пока нет. Блокеров Alice нет.
+
+CP/M подготовка продвинулась без исполнения CPU: производный main
+отличается ровно одним `c` у CString исходника (SHA 574cef717965dbe6fcf6937ae35935b7b7e26f2051e49e7862d1826cff76f42d).
+Новый compiler executable 112ae772... собрал single-ORG вариант:
+2 294 B, image_end 09F6, SHA ec09f333c363f249ae6fc5e9c2d109227e98056b1046d38f5eff0303a9b91e4a.
+Независимая структурная проверка каждого из 2 294 байтов listing
+подтвердила плоскую карту COM без дыр и перекрытий. Коммит e7dc0671
+в постоянной CP/M ветке запушен; прежний неверный multi-ORG сохранён.
+До запуска нужны guards incoming SP, проверка canaries после main
+и закрытый строковый/recursive spill gate. Полный COM успех не заявлен.
