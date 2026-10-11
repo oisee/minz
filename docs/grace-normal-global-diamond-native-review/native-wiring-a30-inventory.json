@@ -1,0 +1,10 @@
+{
+  "head": "a30a2fcbc1b8cded8a278ede6f714b4d4bd65bc2",
+  "files": {
+    "minzc/pkg/pipeline/pipeline.go": "01e0186c707bee26e68c8621264614417fc55f1b3c747923d8a3077dcd56c9fe",
+    "minzc/pkg/pipeline/normal_global_diamond_diagnostic.go": "45cd300486dbb331e020d4b55cc7fa4b19b95989f87be36f13292fa9b3d3c200",
+    "minzc/pkg/pipeline/normal_global_diamond_diagnostic_test.go": "fe5fd694f47b0eb870dbe2ae2be76a328a28eb32611881dacfb1d2cd700b2d07",
+    "minzc/pkg/mir2/normal_global_diamond_prototype.go": "eb98c7c917124c524453ca46ee5bdec1ad4a920b24b81da8fde948bacd120658"
+  },
+  "reviewer_native_runs": 0
+}

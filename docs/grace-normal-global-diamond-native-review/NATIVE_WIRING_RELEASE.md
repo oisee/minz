@@ -1,0 +1,7 @@
+# Finalnativewiring releasea30a2fcb
+
+Exactprivatehook/defaultnilmechanism previouslyreviewed unchanged. Newtestrequires explicitcurrentproduction reference (dbaCLI speed/original), comparesBIN/ASM/adapter/MIR/alloc/sidecar/frame hashes/percallT/Steps/fulltargetobservations beforeacceptingoriginal. Exporthappensbeforeassert, so historicalmismatchdiagnostics are retainedwithoutnormalizinghashes. ReusecomparescompleteRawsourceoracle/compatibility/fullFunctionSites andtargetwholeobservations; onlytargetStepsdifferenceignoredbyexistingsemanticcomparison.
+
+Staticactualsource remains1instructioncur directposload→sameDstMove; completeexpectedreplacement metadata compared, oldloadroot confirmeddirectpos. OwnerstaticPASS0.011; verifiedhelper exact7bac. No sourceHIR transform, no inheritedpostcompilecertificate. Thisprivatechangedcompiler branchbaselinecontainer isdiagnostic, notordinarypublicfactorycertificate orproductionselector.
+
+Readonlyrelease root-authorized twofull30original/reuseonce, existingclosedruntime/permissions unchanged. Profitabilityunknown, resultsmatter. NoCPUreviewer. Mandatorysavedartifactaudit afterwards: currentoriginalreference exact, wholehostsourceevents/state/raw, typedSHA/nativeglobalroots/frame/opcode bounds, preallocationownedcapturecount1/wholeMIRbeforeafter, distincttestexecontexts honest.
