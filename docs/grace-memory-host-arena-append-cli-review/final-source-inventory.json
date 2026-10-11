@@ -1,0 +1,8 @@
+{
+  "commit": "9d29c7bc",
+  "files_sha256": {
+    "minzc/cmd/minzc/main.go": "25e185fcda0c8e05874ed51fc25d51f9090e115e82a498381736b4bd3c82ebaf",
+    "minzc/cmd/minzc/memory_host_cli.go": "07742ea63e985a0d81de746ea08f9a90456cb28a4aa68333d35d82b25c28c80d",
+    "minzc/cmd/minzc/memory_host_cli_test.go": "2bade3cb2647d038213d93d5d9fbccdd7272a9e2fb7388d0129829b1aa82132e"
+  }
+}
