@@ -6,7 +6,7 @@
 
 ## Новый этап: единый backend без LIR
 
-Проверенная сводка на `f3105f48`; результаты прежних сборок ниже сохраняют
+Проверенная сводка на `cad80340`; результаты прежних сборок ниже сохраняют
 свой исходный контекст. Общая цель из [плана](../reports/2026-10-11-017-unified-backend-roadmap.md)
 ещё активна: корректность заявленного корпуса, проверенные контракты и таблицы,
 выигрыш Grace на разных программах и заранее отложенных нагрузках.
@@ -20,9 +20,10 @@
   Поддержка native u32 memory/caller/spill уже исправлена и проверена отдельно;
   это не делает host interpreter подходящим для обычного Z80.
   Сборка корпуса не доказывает правильность исполнения. Новый
-  [карту независимых оракулов](grace-native-coverage-map/README.md) фиксирует все
-  193 точных пути и ограниченное behavioral покрытие 30 точных файлов из исходных 193. Новый CP/M demo
-  расширяет текущий каталог до 194 и имеет отдельный native CALL5-hook proof.
+  [актуальный каталог](grace-integration-077/catalog-33-vm-native.json) фиксирует все
+  194 точных пути: 33 имеют ограниченное independent VM/native покрытие. Новый CP/M demo
+  имеет отдельный native CALL5-hook proof. Все прочие пути сохраняют явные
+  pending/ASM/runtime/host ограничения.
 - **Pascal bubble sort: исправлен реальный native miscompile** (`ff11ba69`).
   Typed NOT теперь читает и записывает назначенные регистры/spill, bool использует
   XOR 1. 744 прямых VM/native случая и четыре реальные нагрузки прошли;
@@ -169,6 +170,25 @@ Nanz 84327 → 82283 T, 60 → 58 B; independent native назначения и
 Полный CLI `89fff011` после cleanup: PASS за 383,376 с. Он предшествует
 новым tokenizer/PFCCO изменениям. Full pipeline `22e426de` выполняется.
 
+
+Последний полный core gate `a3cc555f`: HIR/MIR2/Nanz/VIR/CLI PASS; CLI 384,168 с.
+Это контекст после runtime, typed_print и callable signature fixes; следующий
+test-only coverage не меняет production. [Полный лог](grace-integration-077/core-a3cc555-full.txt).
+
+Рекурсивный selfLanz теперь собирается обычным CLI (`ecda27e1`, `5f5c7c52`,
+`c23ba0cc`): COM 4727 B, 983310 T, 17 AST nodes/135 stdout bytes.
+Guard проверяется по реальному CFG-пути; forced recursive shared spill и
+controlled overflow проходят. Публичный MZE вывод совпал побайтно.
+Это BDOS hook, не настоящая CP/M OS. [Runtime](grace-cpm-recursive-runtime.md).
+
+Исправлены field scratch и struct pointer ABI (`42817543`), callable return
+signature (`4ba526a3`) и live accumulator scratch relocation (`ee5621ac`).
+MultiCall formal integer widening сохранён (`a3cc555f`).
+Typed print проверяет настоящий text.print import и persistent buffer;
+function-pointer consumer проверен с measured table: 34 → 31 B,
+apply(triple,x) 123 → 111 T. Compile/generation/miss overhead сохранён,
+не выдаётся за нулевую стоимость. [Интеграция](grace-integration-074/README.md).
+
 ## Что уже работает
 
 | Возможность | Состояние | Как включается |
@@ -181,8 +201,8 @@ Nanz 84327 → 82283 T, 60 → 58 B; independent native назначения и
 | Чистая цель Speed | Минимум реальных тактов, без штрафа за размер | Speed в специальном поиске |
 | Цель Size | Минимум размера BIN | `--Osize` в специальном поиске |
 | Общий invariant address hoist | Ограниченные pure 16-bit DAG, single-latch loop без calls/ASM/ports; interning −1,63% T за +8 B | `--grace`, выключен при `--Osize` |
-| Публичный CP/M runtime | Оригинальный tokenizer COM прошёл native full-state CALL5-hook проверку; рекурсивный parser впереди | `--runtime cpm -t cpm` |
-| Self-Lanz: полный CP/M main | Один вход прошёл явный тестовый BDOS-адаптер; публичный runtime ещё требует поддержки рекурсивных CALL | Отдельная тестовая COM-сборка |
+| Публичный CP/M runtime | Оригинальные tokenizer и recursive selfLanz COM прошли native full-state и публичный MZE | `--runtime cpm -t cpm`, для recursion `--runtime-stack 1024` |
+| Self-Lanz: полный CP/M main | 17 AST nodes, 135 stdout bytes, все RAM/SP/code; guarded runtime overflow проверен | Обычная CLI `.com`, MZE BDOS эмуляция |
 
 ## Свежий полный парсер: collect/replay
 
