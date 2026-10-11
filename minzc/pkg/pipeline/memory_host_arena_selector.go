@@ -42,6 +42,7 @@ func MeasureMemoryHostArenaPeel(factory func() (*hir.Module, error), w hir.Memor
 	payload := append([]byte{}, serialized...)
 	seen := map[uintptr]bool{}
 	retained := []*hir.Module{}
+	privateRoots := []any{}
 	fresh := func() (*hir.Module, error) {
 		m, e := factory()
 		if e != nil {
@@ -53,6 +54,7 @@ func MeasureMemoryHostArenaPeel(factory func() (*hir.Module, error), w hir.Memor
 		if e = jointCheckFreshHIR(m, seen); e != nil {
 			return nil, e
 		}
+		retainArenaSourceGraph(m, &privateRoots)
 		retained = append(retained, m)
 		return m, nil
 	}
@@ -151,6 +153,7 @@ func MeasureMemoryHostArenaPeel(factory func() (*hir.Module, error), w hir.Memor
 		if e = identity(actual); e != nil {
 			return nil, e
 		}
+		retainArenaSourceGraph(actual, &privateRoots)
 		if e = peelMemoryHostArenaFirstByte(actual, owned); e != nil {
 			return nil, e
 		}
@@ -180,6 +183,7 @@ func MeasureMemoryHostArenaPeel(factory func() (*hir.Module, error), w hir.Memor
 	if o.Goal == "speed" && b.TotalTStates < a.TotalTStates || o.Goal == "size" && len(b.Binary) < len(a.Binary) {
 		out.Selected = 1
 	}
+	runtime.KeepAlive(privateRoots)
 	runtime.KeepAlive(retained)
 	return out, nil
 }
@@ -199,4 +203,59 @@ func arenaSameObservations(a, b []hir.MemoryHostObservation) error {
 		}
 	}
 	return nil
+}
+
+// Keep every formerly owned node/backing allocation alive even if normal
+// compiler preparation overwrites the pointers in its original root object.
+func retainArenaSourceGraph(m *hir.Module, roots *[]any) {
+	visited := map[uintptr]bool{}
+	var walk func(reflect.Value)
+	walk = func(v reflect.Value) {
+		if !v.IsValid() {
+			return
+		}
+		if v.Kind() == reflect.Interface {
+			if !v.IsNil() {
+				walk(v.Elem())
+			}
+			return
+		}
+		switch v.Kind() {
+		case reflect.Pointer, reflect.Map:
+			if v.IsNil() || visited[v.Pointer()] {
+				return
+			}
+			visited[v.Pointer()] = true
+			if v.CanInterface() {
+				*roots = append(*roots, v.Interface())
+			}
+			if v.Kind() == reflect.Pointer {
+				walk(v.Elem())
+			} else {
+				it := v.MapRange()
+				for it.Next() {
+					walk(it.Key())
+					walk(it.Value())
+				}
+			}
+		case reflect.Slice:
+			if v.CanInterface() {
+				*roots = append(*roots, v.Interface())
+			}
+			for i := 0; i < v.Len(); i++ {
+				walk(v.Index(i))
+			}
+		case reflect.Array:
+			for i := 0; i < v.Len(); i++ {
+				walk(v.Index(i))
+			}
+		case reflect.Struct:
+			for i := 0; i < v.NumField(); i++ {
+				if v.Field(i).CanInterface() {
+					walk(v.Field(i))
+				}
+			}
+		}
+	}
+	walk(reflect.ValueOf(m))
 }
