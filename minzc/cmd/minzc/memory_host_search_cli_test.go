@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/minz/minzc/pkg/pipeline"
 	"os"
 	"path/filepath"
 	"strings"
@@ -157,5 +158,58 @@ func TestSearchCLISuppliedPreflight(t *testing.T) {
 	}
 	if _, err = os.Stat(memoryHostSearchCLI.Directory); !os.IsNotExist(err) {
 		t.Fatal("admission refusal created output")
+	}
+}
+
+func TestSearchCLIOrdinaryRoutesUnaffected(t *testing.T) {
+	source, _ := withSearchCLI(t)
+	memoryHostSearchCLI = memoryHostSearchCLIFlags{}
+	if memoryHostSearchCLIRequested() {
+		t.Fatal("new mode enabled without flags")
+	}
+	memoryHostCLI.Directory = filepath.Join(filepath.Dir(source), "legacy")
+	if err := validateMemoryHostCLI(source); err != nil {
+		t.Fatal("legacy admission changed", err)
+	}
+	memoryHostCLI.Directory = ""
+	memoryHostPolicyCLI = memoryHostPolicyCLIFlags{Directory: filepath.Join(filepath.Dir(source), "fixed"), Policy: "legacy"}
+	if err := validateMemoryHostPolicyCLI(source); err != nil {
+		t.Fatal("fixed admission changed", err)
+	}
+}
+func TestSearchCLIAssociationCaps(t *testing.T) {
+	source, _ := withSearchCLI(t)
+	b, err := os.ReadFile("../../../examples/nanz/self_lanz_parser.nanz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = os.WriteFile(source, b, 0644); err != nil {
+		t.Fatal(err)
+	}
+	memoryHostSearchCLI.LegacyAssociation = filepath.Join(filepath.Dir(source), "legacy.json")
+	memoryHostSearchCLI.PreserveAssociation = filepath.Join(filepath.Dir(source), "preserve.json")
+	for _, p := range []string{memoryHostSearchCLI.LegacyAssociation, memoryHostSearchCLI.PreserveAssociation} {
+		if err = os.WriteFile(p, []byte("{}"), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, p := range []string{memoryHostSearchCLI.LegacyAssociation, memoryHostSearchCLI.PreserveAssociation} {
+		f, err := os.OpenFile(p, os.O_WRONLY, 0644)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err = f.Truncate(int64(pipeline.MaxMemoryHostPolicyAssociationBytes + 1)); err != nil {
+			t.Fatal(err)
+		}
+		f.Close()
+		if err = runMemoryHostSearchCLI(source); err == nil {
+			t.Fatal("oversized named input accepted")
+		}
+		if _, err = os.Stat(memoryHostSearchCLI.Directory); !os.IsNotExist(err) {
+			t.Fatal("oversized refusal created output")
+		}
+		if err = os.WriteFile(p, []byte("{}"), 0644); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
