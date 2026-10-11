@@ -1,0 +1,28 @@
+[
+  {
+    "binary_sha256": "e51976d5abffe55eaa5fe2c05268b1f9eba09e889b382086e8300241bf541467",
+    "bytes": 100,
+    "grace": false,
+    "results": [
+      8,
+      10,
+      10,
+      12,
+      16
+    ],
+    "t_states": 4296
+  },
+  {
+    "binary_sha256": "e51976d5abffe55eaa5fe2c05268b1f9eba09e889b382086e8300241bf541467",
+    "bytes": 100,
+    "grace": true,
+    "results": [
+      8,
+      10,
+      10,
+      12,
+      16
+    ],
+    "t_states": 4296
+  }
+]

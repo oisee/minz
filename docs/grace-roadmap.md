@@ -146,3 +146,5 @@ pointer-walk, оставляя invariant-base. На sum_array выбирает 3
 [Typed interning mixed PGO](grace-pgo-mixed-intern.md): целый caller поиска/переиспользования/размещения строк и checksum,8измеренных вариантов; speed1635072→962137T, size626→539B. Следующая очередь — расширение tokenizer program coverage и контроль proof/target ABI.
 
 [Полный typed tokenizer](grace-pgo-tokenizer.md): весь scanner/intern/token-record caller проходит независимый state/resource-traffic oracle и assembled Z80;30 persistent calls. Copy PGO 2270286→2259865T (−0,459%), 4346→4475B; size оставляет original. Исправлена lexical interface зависимость HIR splitter. Следующий этап — standalone Block shadowing в HIR lowerer, затем доминирующие scanner/search loops; original extern ABI и hardware ещё впереди.
+
+[Lexical HIR lowering](grace-hir-scope.md): восстановление scalar/type/alias/array bindings, break/continue edge values и range/ForEach binders проверяетсяVM/Z80. ExactPCaudit tokenizer: intern23,12%,scan20,19%,peek_char13,26%,region_eq9,87%. Следующая очередь — backwardgoto lexicaledges, затем отдельный проверенный Pascal search PGO; hardwareвпереди.

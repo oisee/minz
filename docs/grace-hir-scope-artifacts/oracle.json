@@ -1,0 +1,22 @@
+{
+  "globals": "no user globals; compiler generated read-only storage follows raw snapshots",
+  "reads_per_call": [
+    1,
+    1,
+    1
+  ],
+  "resource": "buf",
+  "results": [
+    8,
+    10,
+    10,
+    12,
+    16
+  ],
+  "snapshot": "AQID",
+  "writes_per_call": [
+    0,
+    0,
+    0
+  ]
+}

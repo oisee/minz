@@ -1,0 +1,42 @@
+[
+  {
+    "binary_sha256": "048b95267b15d26a4a71d0a7051a16dd12f5f66c36e9ce1c922b45d109babc33",
+    "bytes": 4346,
+    "candidate": 0,
+    "evidence_sha256": "e21a6fee3729802ed6586769e15ff57d10abdd46e7959c0f946ca19f303b0876",
+    "group": "cli",
+    "selected": false,
+    "size": false,
+    "t_states": 2270286
+  },
+  {
+    "binary_sha256": "9755ac65f59ed3ee83d28316a85de378edb50e381c6d18c2103786927c2a79f8",
+    "bytes": 4475,
+    "candidate": 1,
+    "evidence_sha256": "e21a6fee3729802ed6586769e15ff57d10abdd46e7959c0f946ca19f303b0876",
+    "group": "cli",
+    "selected": true,
+    "size": false,
+    "t_states": 2259865
+  },
+  {
+    "binary_sha256": "048b95267b15d26a4a71d0a7051a16dd12f5f66c36e9ce1c922b45d109babc33",
+    "bytes": 4346,
+    "candidate": 0,
+    "evidence_sha256": "71dfab0ccc58889c48f88b213b0bf28d3b8f39a5db0925cafd913e82553c1d05",
+    "group": "cli",
+    "selected": true,
+    "size": true,
+    "t_states": 2270286
+  },
+  {
+    "binary_sha256": "9755ac65f59ed3ee83d28316a85de378edb50e381c6d18c2103786927c2a79f8",
+    "bytes": 4475,
+    "candidate": 1,
+    "evidence_sha256": "71dfab0ccc58889c48f88b213b0bf28d3b8f39a5db0925cafd913e82553c1d05",
+    "group": "cli",
+    "selected": false,
+    "size": true,
+    "t_states": 2259865
+  }
+]

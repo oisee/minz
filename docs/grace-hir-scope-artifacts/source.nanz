@@ -1,0 +1,15 @@
+fun plus_one(v:u16)->u16{return v+1}
+ fun plus_two(v:u16)->u16{return v+2}
+ fun scoped(x:u16,n:u8,buf:^u8)->u16 {
+ if n>0 {var temp:u16=plus_two(x)}
+ var i:u8=0
+ while i<n {if i==1 {var x:u8=99
+ i=i+1
+ continue}
+ x=x+2
+ i=i+1}
+ var length:u16=3
+ for x in buf[0..length] {var inner:u8=x}
+ for x in 0..3 {var x:u8=99}
+ return plus_one(x)
+ }

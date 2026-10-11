@@ -1,0 +1,83 @@
+{
+  "exact_data_access": true,
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 1000000,
+  "max_memory": 65536,
+  "resources": {
+    "buf": "AQID"
+  },
+  "globals": {},
+  "calls": [
+    {
+      "function": "scoped",
+      "arguments": [
+        {
+          "value": 7
+        },
+        {
+          "value": 0
+        },
+        {
+          "resource": "buf"
+        }
+      ]
+    },
+    {
+      "function": "scoped",
+      "arguments": [
+        {
+          "value": 7
+        },
+        {
+          "value": 1
+        },
+        {
+          "resource": "buf"
+        }
+      ]
+    },
+    {
+      "function": "scoped",
+      "arguments": [
+        {
+          "value": 7
+        },
+        {
+          "value": 2
+        },
+        {
+          "resource": "buf"
+        }
+      ]
+    },
+    {
+      "function": "scoped",
+      "arguments": [
+        {
+          "value": 7
+        },
+        {
+          "value": 3
+        },
+        {
+          "resource": "buf"
+        }
+      ]
+    },
+    {
+      "function": "scoped",
+      "arguments": [
+        {
+          "value": 7
+        },
+        {
+          "value": 5
+        },
+        {
+          "resource": "buf"
+        }
+      ]
+    }
+  ]
+}

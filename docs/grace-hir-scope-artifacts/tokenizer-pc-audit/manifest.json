@@ -1,0 +1,66 @@
+{
+  "schema": "minz.local-artifact-manifest/v1",
+  "baseline_binary_sha256": "048b95267b15d26a4a71d0a7051a16dd12f5f66c36e9ce1c922b45d109babc33",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 2816,
+      "sha256": "aca789fea6499e449a9b9a56e5c387cca20165ab08127b973705dffafe0fa691"
+    },
+    {
+      "path": "attribute.py",
+      "bytes": 1629,
+      "sha256": "9e5f5d0884f1f8495aa2fd2d02ddf59feb59da2ca722413fb647e5b64697f7b8"
+    },
+    {
+      "path": "audit.go",
+      "bytes": 2251,
+      "sha256": "d83b8d2e455d3b2258eded85de4b82033c41213adeb7e89dfdb8364008f8253e"
+    },
+    {
+      "path": "function-costs.json",
+      "bytes": 25184,
+      "sha256": "c9316e88999ad91e49b73b5eb62d2c4fb40a8edbab85ff70b29436429e21325a"
+    },
+    {
+      "path": "pc-records.json.gz",
+      "bytes": 167993,
+      "sha256": "70b99ddec6ed34df2b37d21e26b088459945eac85b07de1345e7a2a5f6f78a1b"
+    },
+    {
+      "path": "profile_workload_overlay.go.txt",
+      "bytes": 23892,
+      "sha256": "5d94919bf7cc84a0876b92a2effa590e12dfcd06c1161e6537436b6923f18ffa"
+    },
+    {
+      "path": "replay.log",
+      "bytes": 153,
+      "sha256": "198a3a8fe46c78f786755ce80d01c6b443300787f145fabab14123bed0be1ff4"
+    },
+    {
+      "path": "report.md",
+      "bytes": 3041,
+      "sha256": "b94fd222c296aad95e90eb3d2535b02143e1f6d72ee24128a6231bfaaf7d2efa"
+    },
+    {
+      "path": "reproduce.sh",
+      "bytes": 837,
+      "sha256": "c22b5292bf5a19d1f631eb7112c5ae587580e531ce24d60574ceae45ee9f60fb"
+    },
+    {
+      "path": "reproduced-function-costs.json",
+      "bytes": 25184,
+      "sha256": "c9316e88999ad91e49b73b5eb62d2c4fb40a8edbab85ff70b29436429e21325a"
+    },
+    {
+      "path": "reproduced-pc-records.json.gz",
+      "bytes": 168004,
+      "sha256": "d0b12b1c97905dcc24639221ff364e6d9fb62e2b37123fbcfeb413fd366da9d6"
+    },
+    {
+      "path": "reproduction.log",
+      "bytes": 153,
+      "sha256": "198a3a8fe46c78f786755ce80d01c6b443300787f145fabab14123bed0be1ff4"
+    }
+  ]
+}

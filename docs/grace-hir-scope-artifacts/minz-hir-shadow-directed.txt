@@ -1,0 +1,48 @@
+=== RUN   TestLexicalBlocksVMZ80
+=== RUN   TestLexicalBlocksVMZ80/shadow
+=== RUN   TestLexicalBlocksVMZ80/outer_assignment
+=== RUN   TestLexicalBlocksVMZ80/assignment_before_shadow
+=== RUN   TestLexicalBlocksVMZ80/nested
+=== RUN   TestLexicalBlocksVMZ80/if_shadow
+=== RUN   TestLexicalBlocksVMZ80/if_assignment
+=== RUN   TestLexicalBlocksVMZ80/loop_shadow
+=== RUN   TestLexicalBlocksVMZ80/loop_assignment
+=== RUN   TestLexicalBlocksVMZ80/alias_shadow
+=== RUN   TestLexicalBlocksVMZ80/alias_initializer
+=== RUN   TestLexicalBlocksVMZ80/break_shadow
+=== RUN   TestLexicalBlocksVMZ80/range_shadow
+=== RUN   TestLexicalBlocksVMZ80/range_continue_shadow
+=== RUN   TestLexicalBlocksVMZ80/range_outer_bound
+=== RUN   TestLexicalBlocksVMZ80/foreach_shadow_byte
+=== RUN   TestLexicalBlocksVMZ80/foreach_shadow_word
+=== RUN   TestLexicalBlocksVMZ80/return_shadow
+=== RUN   TestLexicalBlocksVMZ80/scalar_hides_alias
+=== RUN   TestLexicalBlocksVMZ80/tuple_shadow
+=== RUN   TestLexicalBlocksVMZ80/array_shadow_array
+=== RUN   TestLexicalBlocksVMZ80/array_shadow_scalar
+--- PASS: TestLexicalBlocksVMZ80 (0.03s)
+    --- PASS: TestLexicalBlocksVMZ80/shadow (0.00s)
+    --- PASS: TestLexicalBlocksVMZ80/outer_assignment (0.00s)
+    --- PASS: TestLexicalBlocksVMZ80/assignment_before_shadow (0.00s)
+    --- PASS: TestLexicalBlocksVMZ80/nested (0.00s)
+    --- PASS: TestLexicalBlocksVMZ80/if_shadow (0.00s)
+    --- PASS: TestLexicalBlocksVMZ80/if_assignment (0.00s)
+    --- PASS: TestLexicalBlocksVMZ80/loop_shadow (0.00s)
+    --- PASS: TestLexicalBlocksVMZ80/loop_assignment (0.00s)
+    --- PASS: TestLexicalBlocksVMZ80/alias_shadow (0.00s)
+    --- PASS: TestLexicalBlocksVMZ80/alias_initializer (0.00s)
+    --- PASS: TestLexicalBlocksVMZ80/break_shadow (0.00s)
+    --- PASS: TestLexicalBlocksVMZ80/range_shadow (0.00s)
+    --- PASS: TestLexicalBlocksVMZ80/range_continue_shadow (0.00s)
+    --- PASS: TestLexicalBlocksVMZ80/range_outer_bound (0.00s)
+    --- PASS: TestLexicalBlocksVMZ80/foreach_shadow_byte (0.00s)
+    --- PASS: TestLexicalBlocksVMZ80/foreach_shadow_word (0.00s)
+    --- PASS: TestLexicalBlocksVMZ80/return_shadow (0.00s)
+    --- PASS: TestLexicalBlocksVMZ80/scalar_hides_alias (0.00s)
+    --- PASS: TestLexicalBlocksVMZ80/tuple_shadow (0.00s)
+    --- PASS: TestLexicalBlocksVMZ80/array_shadow_array (0.00s)
+    --- PASS: TestLexicalBlocksVMZ80/array_shadow_scalar (0.00s)
+=== RUN   TestLexicalSourcePersistentVMZ80
+--- PASS: TestLexicalSourcePersistentVMZ80 (0.06s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	0.090s

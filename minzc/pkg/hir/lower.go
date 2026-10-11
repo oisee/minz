@@ -33,6 +33,7 @@ package hir
 
 import (
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/minz/minzc/pkg/mir2"
@@ -253,16 +254,18 @@ type loopCtx struct {
 	exitLabel    string     // break    → jump here (with exitMutated args)
 	mutated      []string   // loop-carried variable names (same set for both)
 	exitPrefix   []mir2.Reg // ForEach exit also receives its pointer and counter
-	continueStep Stmt       // ForRange advances its induction variable before continue
+	scopeDepth   int
+	continueStep Stmt // ForRange advances its induction variable before continue
 }
 
 type lowerer struct {
-	lineage map[Stmt]LoopLineage
-	hf      *Func
-	m       *mir2.Module
-	mf      *mir2.Func
-	bld     *mir2.Builder
-	target  uint8 // platform target from hir.Module.Target
+	scopeRestores []func()
+	lineage       map[Stmt]LoopLineage
+	hf            *Func
+	m             *mir2.Module
+	mf            *mir2.Func
+	bld           *mir2.Builder
+	target        uint8 // platform target from hir.Module.Target
 
 	// env maps variable names to their current virtual register.
 	// envTy maps variable names to their type (stable: set once, never changed).
@@ -313,8 +316,11 @@ type lowerer struct {
 	backwardGotoVars map[string][]string
 }
 
-func (l *lowerer) pushLoop(ctx loopCtx) { l.loopStack = append(l.loopStack, ctx) }
-func (l *lowerer) popLoop()             { l.loopStack = l.loopStack[:len(l.loopStack)-1] }
+func (l *lowerer) pushLoop(ctx loopCtx) {
+	ctx.scopeDepth = len(l.scopeRestores)
+	l.loopStack = append(l.loopStack, ctx)
+}
+func (l *lowerer) popLoop() { l.loopStack = l.loopStack[:len(l.loopStack)-1] }
 func (l *lowerer) curLoop() *loopCtx {
 	if len(l.loopStack) == 0 {
 		panic("hir/lower: break/continue outside loop")
@@ -331,6 +337,8 @@ func (l *lowerer) fresh(prefix string) string {
 func (l *lowerer) bind(name string, r mir2.Reg, ty mir2.Ty) {
 	l.env[name] = r
 	l.envTy[name] = ty
+	delete(l.fnAliases, name)
+	delete(l.localArrays, name)
 }
 
 // findGlobal looks up a global by name in the MIR2 module.
@@ -738,6 +746,52 @@ func classForLoop(ty mir2.Ty, _ string) mir2.RegClass {
 // lowerBlock lowers a HIR block (list of statements).
 // Returns true if the block already ends with a terminator.
 func (l *lowerer) lowerBlock(blk *Block) bool {
+	// Each lexical declaration hides a binding only for this block. Snapshot
+	// when the declaration executes, so earlier assignments to outer variables
+	// survive. Restore metadata together with the SSA register on every exit.
+	type binding struct {
+		reg                     mir2.Reg
+		ty                      mir2.Ty
+		alias                   string
+		hasReg, hasTy, hasAlias bool
+		array                   bool
+	}
+	locals := map[string]binding{}
+	save := func(name string) {
+		if _, saved := locals[name]; saved {
+			return
+		}
+		r, rok := l.env[name]
+		ty, tok := l.envTy[name]
+		alias, aok := l.fnAliases[name]
+		locals[name] = binding{r, ty, alias, rok, tok, aok, l.localArrays[name]}
+	}
+	restore := func() {
+		for name, b := range locals {
+			if b.hasReg {
+				l.env[name] = b.reg
+			} else {
+				delete(l.env, name)
+			}
+			if b.hasTy {
+				l.envTy[name] = b.ty
+			} else {
+				delete(l.envTy, name)
+			}
+			if b.array {
+				l.localArrays[name] = true
+			} else {
+				delete(l.localArrays, name)
+			}
+			if b.hasAlias {
+				l.fnAliases[name] = b.alias
+			} else {
+				delete(l.fnAliases, name)
+			}
+		}
+	}
+	l.scopeRestores = append(l.scopeRestores, restore)
+	defer func() { restore(); l.scopeRestores = l.scopeRestores[:len(l.scopeRestores)-1] }()
 	terminated := false
 	for _, s := range blk.Body {
 		if terminated {
@@ -749,6 +803,16 @@ func (l *lowerer) lowerBlock(blk *Block) bool {
 			}
 			// Skip dead code after terminator.
 			continue
+		}
+		switch decl := s.(type) {
+		case *VarDeclStmt:
+			save(decl.Name)
+		case *TupleLetStmt:
+			for _, name := range decl.Names {
+				if name != "_" {
+					save(name)
+				}
+			}
 		}
 		if l.lowerStmt(s) {
 			terminated = true
@@ -782,6 +846,9 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 					if alias, isAlias := l.fnAliases[vr.Name]; isAlias {
 						funcName = alias
 					}
+					delete(l.env, st.Name)
+					delete(l.envTy, st.Name)
+					delete(l.localArrays, st.Name)
 					l.fnAliases[st.Name] = funcName
 				}
 				return false
@@ -803,6 +870,13 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			}
 			totalBytes := st.ArrayLen * elemBytes
 			globalName := l.mf.Name + "$" + st.Name
+			baseName := globalName
+			for {
+				if _, exists := l.findGlobal(globalName); !exists {
+					break
+				}
+				globalName = baseName + "$" + l.fresh("scope_")
+			}
 			initBytes := make([]byte, totalBytes)
 			// Pre-populate from Initial (array designated/positional init)
 			for i, expr := range st.Initial {
@@ -846,7 +920,11 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		} else {
 			r = l.bld.Const(0, st.Ty, classForExpr(st.Ty))
 		}
+		delete(l.fnAliases, st.Name) // a scalar declaration hides a callable alias
 		l.bind(st.Name, r, st.Ty)
+		if st.ArrayLen > 0 {
+			l.localArrays[st.Name] = true
+		}
 		return false
 
 	case *AssignStmt:
@@ -1110,12 +1188,30 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 
 	case *BreakStmt:
 		ctx := l.curLoop()
+		oldEnv, oldTy, oldAlias, oldArrays := l.env, l.envTy, l.fnAliases, l.localArrays
+		l.env = cloneMap(l.env)
+		l.envTy = maps.Clone(l.envTy)
+		l.fnAliases = maps.Clone(l.fnAliases)
+		l.localArrays = maps.Clone(l.localArrays)
+		for i := len(l.scopeRestores) - 1; i >= ctx.scopeDepth; i-- {
+			l.scopeRestores[i]()
+		}
+		defer func() { l.env = oldEnv; l.envTy = oldTy; l.fnAliases = oldAlias; l.localArrays = oldArrays }()
 		args := append(append([]mir2.Reg{}, ctx.exitPrefix...), l.collectArgs(ctx.mutated)...)
 		l.bld.Jmp(ctx.exitLabel, args...)
 		return true // break is a terminator
 
 	case *ContinueStmt:
 		ctx := l.curLoop()
+		oldEnv, oldTy, oldAlias, oldArrays := l.env, l.envTy, l.fnAliases, l.localArrays
+		l.env = cloneMap(l.env)
+		l.envTy = maps.Clone(l.envTy)
+		l.fnAliases = maps.Clone(l.fnAliases)
+		l.localArrays = maps.Clone(l.localArrays)
+		for i := len(l.scopeRestores) - 1; i >= ctx.scopeDepth; i-- {
+			l.scopeRestores[i]()
+		}
+		defer func() { l.env = oldEnv; l.envTy = oldTy; l.fnAliases = oldAlias; l.localArrays = oldArrays }()
 		if ctx.continueStep != nil {
 			l.lowerStmt(ctx.continueStep)
 		}
@@ -1405,6 +1501,36 @@ func (l *lowerer) lowerWhileWithContinue(st *WhileStmt, continueStep Stmt) {
 	l.env = exitEnv
 }
 
+// saveLexicalName restores one loop binder without discarding outer mutations.
+func (l *lowerer) saveLexicalName(name string) func() {
+	r, rok := l.env[name]
+	ty, tok := l.envTy[name]
+	a, aok := l.fnAliases[name]
+	arr := l.localArrays[name]
+	return func() {
+		if rok {
+			l.env[name] = r
+		} else {
+			delete(l.env, name)
+		}
+		if tok {
+			l.envTy[name] = ty
+		} else {
+			delete(l.envTy, name)
+		}
+		if aok {
+			l.fnAliases[name] = a
+		} else {
+			delete(l.fnAliases, name)
+		}
+		if arr {
+			l.localArrays[name] = true
+		} else {
+			delete(l.localArrays, name)
+		}
+	}
+}
+
 // lowerForRange desugars a ForRangeStmt to a while-equivalent.
 // for v in start..end → v = start; hi = end; while v < hi { body; v++ }
 //
@@ -1414,16 +1540,18 @@ func (l *lowerer) lowerWhileWithContinue(st *WhileStmt, continueStep Stmt) {
 // would force 'n' into the A register as the ADD lhs and corrupt it via
 // the body's scratch uses of A (loads, mul16 counter, etc.).
 func (l *lowerer) lowerForRange(st *ForRangeStmt) {
+	defer l.saveLexicalName(st.Var)()
 	var ty mir2.Ty = mir2.TyU8
 	if st.End != nil {
 		ty = st.End.ExprTy()
 	}
 	initReg := l.lowerExpr(st.Start)
-	l.bind(st.Var, initReg, ty)
 
 	// Precompute the loop upper bound once, outside the loop.
 	endReg := l.lowerExpr(st.End)
+	l.bind(st.Var, initReg, ty)
 	endName := l.fresh("__for_hi_")
+	defer l.saveLexicalName(endName)()
 	l.bind(endName, endReg, ty)
 
 	// Synthesise a WhileStmt: while v < hi { body; v = v + 1 }
@@ -1433,7 +1561,7 @@ func (l *lowerer) lowerForRange(st *ForRangeStmt) {
 		Val:    &BinExpr{Op: "+", L: &VarRefExpr{Name: st.Var, Ty: ty}, R: one, Ty: ty},
 	}
 	// Copy the slice: lowering must not overwrite the source HIR backing array.
-	whileBody := &Block{Body: append(append([]Stmt{}, st.Body.Body...), increment)}
+	whileBody := &Block{Body: []Stmt{st.Body, increment}}
 	synthetic := &WhileStmt{
 		Cond: &BinExpr{Op: "<", L: &VarRefExpr{Name: st.Var, Ty: ty}, R: &VarRefExpr{Name: endName, Ty: ty}, Ty: mir2.TyBool},
 		Body: whileBody,
@@ -1467,6 +1595,7 @@ func (l *lowerer) lowerForRange(st *ForRangeStmt) {
 //	fe_exit(ptr, cnt, ...mutated...):   -- ptr/cnt discarded
 //	    [continue]
 func (l *lowerer) lowerForEach(st *ForEachStmt) {
+	defer l.saveLexicalName(st.Var)()
 	envBefore := cloneMap(l.env)
 	needsTrampoline := false
 	walkGraceBlocks(st.Body, "", func(_ string, b *Block) {
@@ -1626,7 +1755,6 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 		exitEnv[name] = r
 	}
 	// Element var goes out of scope.
-	delete(exitEnv, st.Var)
 	l.env = exitEnv
 }
 
@@ -1683,7 +1811,6 @@ func (l *lowerer) lowerForEachByteCountdown(st *ForEachStmt, envBefore map[strin
 	for _, name := range mutated {
 		env[name] = l.bld.BlockParam(exit, l.envTy[name], classForExpr(l.envTy[name]))
 	}
-	delete(env, st.Var)
 	l.env = env
 }
 
