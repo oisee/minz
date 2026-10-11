@@ -1,0 +1,885 @@
+{
+  "schema": "minz.local-artifact-manifest/v1",
+  "files": [
+    {
+      "path": "REPORT.md",
+      "bytes": 5147,
+      "sha256": "93b2a68c1d05abcf2eff3d6eb5ab3a35c036526d95bed56b3d486f94f2a491ae"
+    },
+    {
+      "path": "before-native/decision.json",
+      "bytes": 2086,
+      "sha256": "0738a761b7286548ffb1d26b080bbfcc47bf973309de813a2d9d58bc32a0d9ca"
+    },
+    {
+      "path": "before-native/original/n0/execution.a80",
+      "bytes": 3261,
+      "sha256": "75194e91e94b9b6faa28da06574882fa736d560f76fca898502c2dad53e8749f"
+    },
+    {
+      "path": "before-native/original/n0/execution.bin",
+      "bytes": 214,
+      "sha256": "342de306573872b521e2d544982c8c74556f61fbb69cc702894b6a56b051389c"
+    },
+    {
+      "path": "before-native/original/n0/input.hir",
+      "bytes": 656,
+      "sha256": "0e9e817136e37b73d5ac41ea2ea4a40c949a3c6781d375b38b6ac8afeb77f302"
+    },
+    {
+      "path": "before-native/original/n0/optimized.mir",
+      "bytes": 2618,
+      "sha256": "b6456ea79eec67fab17210e719911353b02eca2db46b8fdecf1b716dd4e06060"
+    },
+    {
+      "path": "before-native/original/n0/program.a80",
+      "bytes": 3163,
+      "sha256": "66f261bd52ee527bacd5f419c8883648d836f23452e687853e4b9e8ac75e0161"
+    },
+    {
+      "path": "before-native/original/n0/program.bin",
+      "bytes": 201,
+      "sha256": "583162b6acd75510b43fc419fbb9f60d27c17f9fd2a52a2bdc4d21842acf43a5"
+    },
+    {
+      "path": "before-native/original/n0/raw.mir",
+      "bytes": 2850,
+      "sha256": "c9192d010128d7c370e335077096ad393de6baaca975d5efe0f0e8fcf59d8503"
+    },
+    {
+      "path": "before-native/profile.json",
+      "bytes": 2096,
+      "sha256": "ae579da29dc2df9c782b61a50343682d4530c3143fa7c63a3cac3c240a7dad7d"
+    },
+    {
+      "path": "before-native/sum-array.nanz",
+      "bytes": 555,
+      "sha256": "fa0ad7d685c31aeb52b91b323bcef46e5c86c0e4390b2fd41ecd69ecfef58694"
+    },
+    {
+      "path": "before-native/workload.json",
+      "bytes": 1529,
+      "sha256": "afea400080aed8b5af1506ad00456f45c3d9e5e0a0613af018af92b4524dc0a6"
+    },
+    {
+      "path": "before-reference-tests.txt",
+      "bytes": 1065,
+      "sha256": "35811a93c0e79d75206d6bba34ff0f065ffb88101bb3d107124df1cc7f6b3e12"
+    },
+    {
+      "path": "before-tests.txt",
+      "bytes": 384,
+      "sha256": "94bec4becbb090504ec32f446d4a2609ee7be26dff371e86a89a21fac809fb39"
+    },
+    {
+      "path": "current-native/decision.json",
+      "bytes": 2079,
+      "sha256": "70113aff3af13f7b77f3658653134585110a0744467ade6e7b612af81c3cbe5b"
+    },
+    {
+      "path": "current-native/full-u8-cost-domain.json",
+      "bytes": 146645,
+      "sha256": "56dc8867643627dd61a11e613bcba5fe07132e008c710d1828c263c93e1a40f2"
+    },
+    {
+      "path": "current-native/loop-cost-evidence.json",
+      "bytes": 374433,
+      "sha256": "bfa9e7ff445054b88a83be796c438b757e334cdcb52e5ed3a4fc8ec3f6a3a8cb"
+    },
+    {
+      "path": "current-native/loop-cost-model.json",
+      "bytes": 906,
+      "sha256": "1f464789f0005d84ad95339a6bce6ca28652fd4526c295815f2f7a1554ff2dd3"
+    },
+    {
+      "path": "current-native/measurements.json",
+      "bytes": 9672,
+      "sha256": "dac7ba604099a98944cd2fc384f698242da53037ce544a976166ac70a11469ac"
+    },
+    {
+      "path": "current-native/original/n0/execution.a80",
+      "bytes": 3261,
+      "sha256": "75194e91e94b9b6faa28da06574882fa736d560f76fca898502c2dad53e8749f"
+    },
+    {
+      "path": "current-native/original/n0/execution.bin",
+      "bytes": 214,
+      "sha256": "342de306573872b521e2d544982c8c74556f61fbb69cc702894b6a56b051389c"
+    },
+    {
+      "path": "current-native/original/n0/input.hir",
+      "bytes": 656,
+      "sha256": "0e9e817136e37b73d5ac41ea2ea4a40c949a3c6781d375b38b6ac8afeb77f302"
+    },
+    {
+      "path": "current-native/original/n0/optimized.mir",
+      "bytes": 2618,
+      "sha256": "b6456ea79eec67fab17210e719911353b02eca2db46b8fdecf1b716dd4e06060"
+    },
+    {
+      "path": "current-native/original/n0/program.a80",
+      "bytes": 3163,
+      "sha256": "66f261bd52ee527bacd5f419c8883648d836f23452e687853e4b9e8ac75e0161"
+    },
+    {
+      "path": "current-native/original/n0/program.bin",
+      "bytes": 201,
+      "sha256": "583162b6acd75510b43fc419fbb9f60d27c17f9fd2a52a2bdc4d21842acf43a5"
+    },
+    {
+      "path": "current-native/original/n0/raw.mir",
+      "bytes": 2850,
+      "sha256": "c9192d010128d7c370e335077096ad393de6baaca975d5efe0f0e8fcf59d8503"
+    },
+    {
+      "path": "current-native/original/n1/execution.a80",
+      "bytes": 3261,
+      "sha256": "6051ff2d15a9affe9f4b004f6485fb1c865fbf98f4baf18b14539d36abe652ae"
+    },
+    {
+      "path": "current-native/original/n1/execution.bin",
+      "bytes": 214,
+      "sha256": "84bd705dadb0e24d1eb4601beb4d5d5585a09b2ad8288d4e85226d626649e20e"
+    },
+    {
+      "path": "current-native/original/n1/input.hir",
+      "bytes": 656,
+      "sha256": "0e9e817136e37b73d5ac41ea2ea4a40c949a3c6781d375b38b6ac8afeb77f302"
+    },
+    {
+      "path": "current-native/original/n1/optimized.mir",
+      "bytes": 2618,
+      "sha256": "b6456ea79eec67fab17210e719911353b02eca2db46b8fdecf1b716dd4e06060"
+    },
+    {
+      "path": "current-native/original/n1/program.a80",
+      "bytes": 3163,
+      "sha256": "66f261bd52ee527bacd5f419c8883648d836f23452e687853e4b9e8ac75e0161"
+    },
+    {
+      "path": "current-native/original/n1/program.bin",
+      "bytes": 201,
+      "sha256": "583162b6acd75510b43fc419fbb9f60d27c17f9fd2a52a2bdc4d21842acf43a5"
+    },
+    {
+      "path": "current-native/original/n1/raw.mir",
+      "bytes": 2850,
+      "sha256": "c9192d010128d7c370e335077096ad393de6baaca975d5efe0f0e8fcf59d8503"
+    },
+    {
+      "path": "current-native/original/n16/execution.a80",
+      "bytes": 3262,
+      "sha256": "a02f0826613c1594323ccfdfb95ad0b16b8df7665f9b427384061c7d04e28854"
+    },
+    {
+      "path": "current-native/original/n16/execution.bin",
+      "bytes": 214,
+      "sha256": "6a73f9196d5de3d85ab03cad9ab776a23a01182049c0882db2add639aac248cf"
+    },
+    {
+      "path": "current-native/original/n16/input.hir",
+      "bytes": 656,
+      "sha256": "0e9e817136e37b73d5ac41ea2ea4a40c949a3c6781d375b38b6ac8afeb77f302"
+    },
+    {
+      "path": "current-native/original/n16/optimized.mir",
+      "bytes": 2618,
+      "sha256": "b6456ea79eec67fab17210e719911353b02eca2db46b8fdecf1b716dd4e06060"
+    },
+    {
+      "path": "current-native/original/n16/program.a80",
+      "bytes": 3163,
+      "sha256": "66f261bd52ee527bacd5f419c8883648d836f23452e687853e4b9e8ac75e0161"
+    },
+    {
+      "path": "current-native/original/n16/program.bin",
+      "bytes": 201,
+      "sha256": "583162b6acd75510b43fc419fbb9f60d27c17f9fd2a52a2bdc4d21842acf43a5"
+    },
+    {
+      "path": "current-native/original/n16/raw.mir",
+      "bytes": 2850,
+      "sha256": "c9192d010128d7c370e335077096ad393de6baaca975d5efe0f0e8fcf59d8503"
+    },
+    {
+      "path": "current-native/original/n255/execution.a80",
+      "bytes": 3263,
+      "sha256": "2bb5e28c8e8b74b940163f8b2c5edc7a898c120bb6827a2b95bf7c981b7bcf1c"
+    },
+    {
+      "path": "current-native/original/n255/execution.bin",
+      "bytes": 214,
+      "sha256": "14b474032fa1e158f7fd34c25306fe94c5f068e34992a8bd902dabb308a92538"
+    },
+    {
+      "path": "current-native/original/n255/input.hir",
+      "bytes": 656,
+      "sha256": "0e9e817136e37b73d5ac41ea2ea4a40c949a3c6781d375b38b6ac8afeb77f302"
+    },
+    {
+      "path": "current-native/original/n255/optimized.mir",
+      "bytes": 2618,
+      "sha256": "b6456ea79eec67fab17210e719911353b02eca2db46b8fdecf1b716dd4e06060"
+    },
+    {
+      "path": "current-native/original/n255/program.a80",
+      "bytes": 3163,
+      "sha256": "66f261bd52ee527bacd5f419c8883648d836f23452e687853e4b9e8ac75e0161"
+    },
+    {
+      "path": "current-native/original/n255/program.bin",
+      "bytes": 201,
+      "sha256": "583162b6acd75510b43fc419fbb9f60d27c17f9fd2a52a2bdc4d21842acf43a5"
+    },
+    {
+      "path": "current-native/original/n255/raw.mir",
+      "bytes": 2850,
+      "sha256": "c9192d010128d7c370e335077096ad393de6baaca975d5efe0f0e8fcf59d8503"
+    },
+    {
+      "path": "current-native/original/n5/execution.a80",
+      "bytes": 3261,
+      "sha256": "f36b32f674f425d996d9db4095a29c97282e58a8e3d627d277efd54b5570dc15"
+    },
+    {
+      "path": "current-native/original/n5/execution.bin",
+      "bytes": 214,
+      "sha256": "509f2417352c2a3e068eed5e06341c5caff02f12b656209b22100dc9125b79b6"
+    },
+    {
+      "path": "current-native/original/n5/input.hir",
+      "bytes": 656,
+      "sha256": "0e9e817136e37b73d5ac41ea2ea4a40c949a3c6781d375b38b6ac8afeb77f302"
+    },
+    {
+      "path": "current-native/original/n5/optimized.mir",
+      "bytes": 2618,
+      "sha256": "b6456ea79eec67fab17210e719911353b02eca2db46b8fdecf1b716dd4e06060"
+    },
+    {
+      "path": "current-native/original/n5/program.a80",
+      "bytes": 3163,
+      "sha256": "66f261bd52ee527bacd5f419c8883648d836f23452e687853e4b9e8ac75e0161"
+    },
+    {
+      "path": "current-native/original/n5/program.bin",
+      "bytes": 201,
+      "sha256": "583162b6acd75510b43fc419fbb9f60d27c17f9fd2a52a2bdc4d21842acf43a5"
+    },
+    {
+      "path": "current-native/original/n5/raw.mir",
+      "bytes": 2850,
+      "sha256": "c9192d010128d7c370e335077096ad393de6baaca975d5efe0f0e8fcf59d8503"
+    },
+    {
+      "path": "current-native/original/n64/execution.a80",
+      "bytes": 3262,
+      "sha256": "c3db3f4b384e20a3acc399d53555dac9bad0d65b72003544dc033259def3c776"
+    },
+    {
+      "path": "current-native/original/n64/execution.bin",
+      "bytes": 214,
+      "sha256": "aac6457813711fe37324088a36d050e687660699fb603c5a4fcea6dcc11bc5e8"
+    },
+    {
+      "path": "current-native/original/n64/input.hir",
+      "bytes": 656,
+      "sha256": "0e9e817136e37b73d5ac41ea2ea4a40c949a3c6781d375b38b6ac8afeb77f302"
+    },
+    {
+      "path": "current-native/original/n64/optimized.mir",
+      "bytes": 2618,
+      "sha256": "b6456ea79eec67fab17210e719911353b02eca2db46b8fdecf1b716dd4e06060"
+    },
+    {
+      "path": "current-native/original/n64/program.a80",
+      "bytes": 3163,
+      "sha256": "66f261bd52ee527bacd5f419c8883648d836f23452e687853e4b9e8ac75e0161"
+    },
+    {
+      "path": "current-native/original/n64/program.bin",
+      "bytes": 201,
+      "sha256": "583162b6acd75510b43fc419fbb9f60d27c17f9fd2a52a2bdc4d21842acf43a5"
+    },
+    {
+      "path": "current-native/original/n64/raw.mir",
+      "bytes": 2850,
+      "sha256": "c9192d010128d7c370e335077096ad393de6baaca975d5efe0f0e8fcf59d8503"
+    },
+    {
+      "path": "current-native/pointer-walk/n0/execution.a80",
+      "bytes": 4255,
+      "sha256": "df6f963fa80674c207f91a2a77fe98a9f2505c963d5c07e150a4042c203dee82"
+    },
+    {
+      "path": "current-native/pointer-walk/n0/execution.bin",
+      "bytes": 276,
+      "sha256": "f2a0f752b21e5e6cb018ada9b0d3b0b852b8c5605f4bbd6ffad4e81984f11014"
+    },
+    {
+      "path": "current-native/pointer-walk/n0/input.hir",
+      "bytes": 872,
+      "sha256": "46e3e4cff1c06ca72c522b4e0f4150bd2b39f1a5e5c74a5150d01d7f6ab7c9c3"
+    },
+    {
+      "path": "current-native/pointer-walk/n0/optimized.mir",
+      "bytes": 3431,
+      "sha256": "a90beb47dff7a9a1ac5f1259f376b0869c592c6a04f075f084a3c1b5ce69911d"
+    },
+    {
+      "path": "current-native/pointer-walk/n0/program.a80",
+      "bytes": 4155,
+      "sha256": "e714b770036be27d84a5b4911bc9fd5f933208d546230daf5974201da235518c"
+    },
+    {
+      "path": "current-native/pointer-walk/n0/program.bin",
+      "bytes": 262,
+      "sha256": "d76ca64fc7b324633b206d215149530a441936bafce806cc63b083c47061f6ab"
+    },
+    {
+      "path": "current-native/pointer-walk/n0/raw.mir",
+      "bytes": 3724,
+      "sha256": "344db5a2aea5b1db06154fac1f128d4dd6a225bc7909b2901f476d30cbdd945c"
+    },
+    {
+      "path": "current-native/pointer-walk/n1/execution.a80",
+      "bytes": 4255,
+      "sha256": "582c36023daf37d4fb481699eb4eb80772afe9fe874d627bca56b7927d12a55c"
+    },
+    {
+      "path": "current-native/pointer-walk/n1/execution.bin",
+      "bytes": 276,
+      "sha256": "0d1ad50a1eadbe3e0ede75577333c0f60ec9f3be170066690ecfbd0a2d13d8b5"
+    },
+    {
+      "path": "current-native/pointer-walk/n1/input.hir",
+      "bytes": 872,
+      "sha256": "46e3e4cff1c06ca72c522b4e0f4150bd2b39f1a5e5c74a5150d01d7f6ab7c9c3"
+    },
+    {
+      "path": "current-native/pointer-walk/n1/optimized.mir",
+      "bytes": 3431,
+      "sha256": "a90beb47dff7a9a1ac5f1259f376b0869c592c6a04f075f084a3c1b5ce69911d"
+    },
+    {
+      "path": "current-native/pointer-walk/n1/program.a80",
+      "bytes": 4155,
+      "sha256": "e714b770036be27d84a5b4911bc9fd5f933208d546230daf5974201da235518c"
+    },
+    {
+      "path": "current-native/pointer-walk/n1/program.bin",
+      "bytes": 262,
+      "sha256": "d76ca64fc7b324633b206d215149530a441936bafce806cc63b083c47061f6ab"
+    },
+    {
+      "path": "current-native/pointer-walk/n1/raw.mir",
+      "bytes": 3724,
+      "sha256": "344db5a2aea5b1db06154fac1f128d4dd6a225bc7909b2901f476d30cbdd945c"
+    },
+    {
+      "path": "current-native/pointer-walk/n16/execution.a80",
+      "bytes": 4256,
+      "sha256": "ab96561f35aac19c7d0aaaac80db4dbd3557542f76aae9709f304b859f397538"
+    },
+    {
+      "path": "current-native/pointer-walk/n16/execution.bin",
+      "bytes": 276,
+      "sha256": "33ef3dda860124b4f8bae72cde217d5ad94dd44a5cb42290c92a8d5da29fe2ac"
+    },
+    {
+      "path": "current-native/pointer-walk/n16/input.hir",
+      "bytes": 872,
+      "sha256": "46e3e4cff1c06ca72c522b4e0f4150bd2b39f1a5e5c74a5150d01d7f6ab7c9c3"
+    },
+    {
+      "path": "current-native/pointer-walk/n16/optimized.mir",
+      "bytes": 3431,
+      "sha256": "a90beb47dff7a9a1ac5f1259f376b0869c592c6a04f075f084a3c1b5ce69911d"
+    },
+    {
+      "path": "current-native/pointer-walk/n16/program.a80",
+      "bytes": 4155,
+      "sha256": "e714b770036be27d84a5b4911bc9fd5f933208d546230daf5974201da235518c"
+    },
+    {
+      "path": "current-native/pointer-walk/n16/program.bin",
+      "bytes": 262,
+      "sha256": "d76ca64fc7b324633b206d215149530a441936bafce806cc63b083c47061f6ab"
+    },
+    {
+      "path": "current-native/pointer-walk/n16/raw.mir",
+      "bytes": 3724,
+      "sha256": "344db5a2aea5b1db06154fac1f128d4dd6a225bc7909b2901f476d30cbdd945c"
+    },
+    {
+      "path": "current-native/pointer-walk/n255/execution.a80",
+      "bytes": 4257,
+      "sha256": "5daaff0077dd584b5ef0c902502334701d15d86ec8a2a7861d6a1c2d16be48a6"
+    },
+    {
+      "path": "current-native/pointer-walk/n255/execution.bin",
+      "bytes": 276,
+      "sha256": "f7de2afab653a9633fa8524dfe24550973bab4c50fad7caa5d8ed3ef1c394edf"
+    },
+    {
+      "path": "current-native/pointer-walk/n255/input.hir",
+      "bytes": 872,
+      "sha256": "46e3e4cff1c06ca72c522b4e0f4150bd2b39f1a5e5c74a5150d01d7f6ab7c9c3"
+    },
+    {
+      "path": "current-native/pointer-walk/n255/optimized.mir",
+      "bytes": 3431,
+      "sha256": "a90beb47dff7a9a1ac5f1259f376b0869c592c6a04f075f084a3c1b5ce69911d"
+    },
+    {
+      "path": "current-native/pointer-walk/n255/program.a80",
+      "bytes": 4155,
+      "sha256": "e714b770036be27d84a5b4911bc9fd5f933208d546230daf5974201da235518c"
+    },
+    {
+      "path": "current-native/pointer-walk/n255/program.bin",
+      "bytes": 262,
+      "sha256": "d76ca64fc7b324633b206d215149530a441936bafce806cc63b083c47061f6ab"
+    },
+    {
+      "path": "current-native/pointer-walk/n255/raw.mir",
+      "bytes": 3724,
+      "sha256": "344db5a2aea5b1db06154fac1f128d4dd6a225bc7909b2901f476d30cbdd945c"
+    },
+    {
+      "path": "current-native/pointer-walk/n5/execution.a80",
+      "bytes": 4255,
+      "sha256": "6143bfe711d96484ef6640ff331b1e4cbf8142385e2466ca40ddd5252c411174"
+    },
+    {
+      "path": "current-native/pointer-walk/n5/execution.bin",
+      "bytes": 276,
+      "sha256": "e2100a7139a3abdcb0ba446b008e489d5cfa62066a36f23bebf4d27ca0653051"
+    },
+    {
+      "path": "current-native/pointer-walk/n5/input.hir",
+      "bytes": 872,
+      "sha256": "46e3e4cff1c06ca72c522b4e0f4150bd2b39f1a5e5c74a5150d01d7f6ab7c9c3"
+    },
+    {
+      "path": "current-native/pointer-walk/n5/optimized.mir",
+      "bytes": 3431,
+      "sha256": "a90beb47dff7a9a1ac5f1259f376b0869c592c6a04f075f084a3c1b5ce69911d"
+    },
+    {
+      "path": "current-native/pointer-walk/n5/program.a80",
+      "bytes": 4155,
+      "sha256": "e714b770036be27d84a5b4911bc9fd5f933208d546230daf5974201da235518c"
+    },
+    {
+      "path": "current-native/pointer-walk/n5/program.bin",
+      "bytes": 262,
+      "sha256": "d76ca64fc7b324633b206d215149530a441936bafce806cc63b083c47061f6ab"
+    },
+    {
+      "path": "current-native/pointer-walk/n5/raw.mir",
+      "bytes": 3724,
+      "sha256": "344db5a2aea5b1db06154fac1f128d4dd6a225bc7909b2901f476d30cbdd945c"
+    },
+    {
+      "path": "current-native/pointer-walk/n64/execution.a80",
+      "bytes": 4256,
+      "sha256": "d0bf1b15fd93bcad4f2955c612c0b75b1b04869ffe1a55902710f87c4a19a741"
+    },
+    {
+      "path": "current-native/pointer-walk/n64/execution.bin",
+      "bytes": 276,
+      "sha256": "4ec75a5cd7e539db1aa3394613440866a5ada6414047d6cc4d642016b22a0ba4"
+    },
+    {
+      "path": "current-native/pointer-walk/n64/input.hir",
+      "bytes": 872,
+      "sha256": "46e3e4cff1c06ca72c522b4e0f4150bd2b39f1a5e5c74a5150d01d7f6ab7c9c3"
+    },
+    {
+      "path": "current-native/pointer-walk/n64/optimized.mir",
+      "bytes": 3431,
+      "sha256": "a90beb47dff7a9a1ac5f1259f376b0869c592c6a04f075f084a3c1b5ce69911d"
+    },
+    {
+      "path": "current-native/pointer-walk/n64/program.a80",
+      "bytes": 4155,
+      "sha256": "e714b770036be27d84a5b4911bc9fd5f933208d546230daf5974201da235518c"
+    },
+    {
+      "path": "current-native/pointer-walk/n64/program.bin",
+      "bytes": 262,
+      "sha256": "d76ca64fc7b324633b206d215149530a441936bafce806cc63b083c47061f6ab"
+    },
+    {
+      "path": "current-native/pointer-walk/n64/raw.mir",
+      "bytes": 3724,
+      "sha256": "344db5a2aea5b1db06154fac1f128d4dd6a225bc7909b2901f476d30cbdd945c"
+    },
+    {
+      "path": "current-native/profile.json",
+      "bytes": 2096,
+      "sha256": "f75e6baa352091c54bf276459312cfe3800b77fb400979d5bb7588ba7a60786e"
+    },
+    {
+      "path": "current-native/selected/n0/execution.a80",
+      "bytes": 4255,
+      "sha256": "df6f963fa80674c207f91a2a77fe98a9f2505c963d5c07e150a4042c203dee82"
+    },
+    {
+      "path": "current-native/selected/n0/execution.bin",
+      "bytes": 276,
+      "sha256": "f2a0f752b21e5e6cb018ada9b0d3b0b852b8c5605f4bbd6ffad4e81984f11014"
+    },
+    {
+      "path": "current-native/selected/n0/input.hir",
+      "bytes": 872,
+      "sha256": "46e3e4cff1c06ca72c522b4e0f4150bd2b39f1a5e5c74a5150d01d7f6ab7c9c3"
+    },
+    {
+      "path": "current-native/selected/n0/optimized.mir",
+      "bytes": 3431,
+      "sha256": "a90beb47dff7a9a1ac5f1259f376b0869c592c6a04f075f084a3c1b5ce69911d"
+    },
+    {
+      "path": "current-native/selected/n0/program.a80",
+      "bytes": 4155,
+      "sha256": "e714b770036be27d84a5b4911bc9fd5f933208d546230daf5974201da235518c"
+    },
+    {
+      "path": "current-native/selected/n0/program.bin",
+      "bytes": 262,
+      "sha256": "d76ca64fc7b324633b206d215149530a441936bafce806cc63b083c47061f6ab"
+    },
+    {
+      "path": "current-native/selected/n0/raw.mir",
+      "bytes": 3724,
+      "sha256": "344db5a2aea5b1db06154fac1f128d4dd6a225bc7909b2901f476d30cbdd945c"
+    },
+    {
+      "path": "current-native/selected/n1/execution.a80",
+      "bytes": 4255,
+      "sha256": "582c36023daf37d4fb481699eb4eb80772afe9fe874d627bca56b7927d12a55c"
+    },
+    {
+      "path": "current-native/selected/n1/execution.bin",
+      "bytes": 276,
+      "sha256": "0d1ad50a1eadbe3e0ede75577333c0f60ec9f3be170066690ecfbd0a2d13d8b5"
+    },
+    {
+      "path": "current-native/selected/n1/input.hir",
+      "bytes": 872,
+      "sha256": "46e3e4cff1c06ca72c522b4e0f4150bd2b39f1a5e5c74a5150d01d7f6ab7c9c3"
+    },
+    {
+      "path": "current-native/selected/n1/optimized.mir",
+      "bytes": 3431,
+      "sha256": "a90beb47dff7a9a1ac5f1259f376b0869c592c6a04f075f084a3c1b5ce69911d"
+    },
+    {
+      "path": "current-native/selected/n1/program.a80",
+      "bytes": 4155,
+      "sha256": "e714b770036be27d84a5b4911bc9fd5f933208d546230daf5974201da235518c"
+    },
+    {
+      "path": "current-native/selected/n1/program.bin",
+      "bytes": 262,
+      "sha256": "d76ca64fc7b324633b206d215149530a441936bafce806cc63b083c47061f6ab"
+    },
+    {
+      "path": "current-native/selected/n1/raw.mir",
+      "bytes": 3724,
+      "sha256": "344db5a2aea5b1db06154fac1f128d4dd6a225bc7909b2901f476d30cbdd945c"
+    },
+    {
+      "path": "current-native/selected/n16/execution.a80",
+      "bytes": 4256,
+      "sha256": "ab96561f35aac19c7d0aaaac80db4dbd3557542f76aae9709f304b859f397538"
+    },
+    {
+      "path": "current-native/selected/n16/execution.bin",
+      "bytes": 276,
+      "sha256": "33ef3dda860124b4f8bae72cde217d5ad94dd44a5cb42290c92a8d5da29fe2ac"
+    },
+    {
+      "path": "current-native/selected/n16/input.hir",
+      "bytes": 872,
+      "sha256": "46e3e4cff1c06ca72c522b4e0f4150bd2b39f1a5e5c74a5150d01d7f6ab7c9c3"
+    },
+    {
+      "path": "current-native/selected/n16/optimized.mir",
+      "bytes": 3431,
+      "sha256": "a90beb47dff7a9a1ac5f1259f376b0869c592c6a04f075f084a3c1b5ce69911d"
+    },
+    {
+      "path": "current-native/selected/n16/program.a80",
+      "bytes": 4155,
+      "sha256": "e714b770036be27d84a5b4911bc9fd5f933208d546230daf5974201da235518c"
+    },
+    {
+      "path": "current-native/selected/n16/program.bin",
+      "bytes": 262,
+      "sha256": "d76ca64fc7b324633b206d215149530a441936bafce806cc63b083c47061f6ab"
+    },
+    {
+      "path": "current-native/selected/n16/raw.mir",
+      "bytes": 3724,
+      "sha256": "344db5a2aea5b1db06154fac1f128d4dd6a225bc7909b2901f476d30cbdd945c"
+    },
+    {
+      "path": "current-native/selected/n255/execution.a80",
+      "bytes": 4257,
+      "sha256": "5daaff0077dd584b5ef0c902502334701d15d86ec8a2a7861d6a1c2d16be48a6"
+    },
+    {
+      "path": "current-native/selected/n255/execution.bin",
+      "bytes": 276,
+      "sha256": "f7de2afab653a9633fa8524dfe24550973bab4c50fad7caa5d8ed3ef1c394edf"
+    },
+    {
+      "path": "current-native/selected/n255/input.hir",
+      "bytes": 872,
+      "sha256": "46e3e4cff1c06ca72c522b4e0f4150bd2b39f1a5e5c74a5150d01d7f6ab7c9c3"
+    },
+    {
+      "path": "current-native/selected/n255/optimized.mir",
+      "bytes": 3431,
+      "sha256": "a90beb47dff7a9a1ac5f1259f376b0869c592c6a04f075f084a3c1b5ce69911d"
+    },
+    {
+      "path": "current-native/selected/n255/program.a80",
+      "bytes": 4155,
+      "sha256": "e714b770036be27d84a5b4911bc9fd5f933208d546230daf5974201da235518c"
+    },
+    {
+      "path": "current-native/selected/n255/program.bin",
+      "bytes": 262,
+      "sha256": "d76ca64fc7b324633b206d215149530a441936bafce806cc63b083c47061f6ab"
+    },
+    {
+      "path": "current-native/selected/n255/raw.mir",
+      "bytes": 3724,
+      "sha256": "344db5a2aea5b1db06154fac1f128d4dd6a225bc7909b2901f476d30cbdd945c"
+    },
+    {
+      "path": "current-native/selected/n5/execution.a80",
+      "bytes": 4255,
+      "sha256": "6143bfe711d96484ef6640ff331b1e4cbf8142385e2466ca40ddd5252c411174"
+    },
+    {
+      "path": "current-native/selected/n5/execution.bin",
+      "bytes": 276,
+      "sha256": "e2100a7139a3abdcb0ba446b008e489d5cfa62066a36f23bebf4d27ca0653051"
+    },
+    {
+      "path": "current-native/selected/n5/input.hir",
+      "bytes": 872,
+      "sha256": "46e3e4cff1c06ca72c522b4e0f4150bd2b39f1a5e5c74a5150d01d7f6ab7c9c3"
+    },
+    {
+      "path": "current-native/selected/n5/optimized.mir",
+      "bytes": 3431,
+      "sha256": "a90beb47dff7a9a1ac5f1259f376b0869c592c6a04f075f084a3c1b5ce69911d"
+    },
+    {
+      "path": "current-native/selected/n5/program.a80",
+      "bytes": 4155,
+      "sha256": "e714b770036be27d84a5b4911bc9fd5f933208d546230daf5974201da235518c"
+    },
+    {
+      "path": "current-native/selected/n5/program.bin",
+      "bytes": 262,
+      "sha256": "d76ca64fc7b324633b206d215149530a441936bafce806cc63b083c47061f6ab"
+    },
+    {
+      "path": "current-native/selected/n5/raw.mir",
+      "bytes": 3724,
+      "sha256": "344db5a2aea5b1db06154fac1f128d4dd6a225bc7909b2901f476d30cbdd945c"
+    },
+    {
+      "path": "current-native/selected/n64/execution.a80",
+      "bytes": 4256,
+      "sha256": "d0bf1b15fd93bcad4f2955c612c0b75b1b04869ffe1a55902710f87c4a19a741"
+    },
+    {
+      "path": "current-native/selected/n64/execution.bin",
+      "bytes": 276,
+      "sha256": "4ec75a5cd7e539db1aa3394613440866a5ada6414047d6cc4d642016b22a0ba4"
+    },
+    {
+      "path": "current-native/selected/n64/input.hir",
+      "bytes": 872,
+      "sha256": "46e3e4cff1c06ca72c522b4e0f4150bd2b39f1a5e5c74a5150d01d7f6ab7c9c3"
+    },
+    {
+      "path": "current-native/selected/n64/optimized.mir",
+      "bytes": 3431,
+      "sha256": "a90beb47dff7a9a1ac5f1259f376b0869c592c6a04f075f084a3c1b5ce69911d"
+    },
+    {
+      "path": "current-native/selected/n64/program.a80",
+      "bytes": 4155,
+      "sha256": "e714b770036be27d84a5b4911bc9fd5f933208d546230daf5974201da235518c"
+    },
+    {
+      "path": "current-native/selected/n64/program.bin",
+      "bytes": 262,
+      "sha256": "d76ca64fc7b324633b206d215149530a441936bafce806cc63b083c47061f6ab"
+    },
+    {
+      "path": "current-native/selected/n64/raw.mir",
+      "bytes": 3724,
+      "sha256": "344db5a2aea5b1db06154fac1f128d4dd6a225bc7909b2901f476d30cbdd945c"
+    },
+    {
+      "path": "current-native/short-size-false-decision.json",
+      "bytes": 2077,
+      "sha256": "31cccb3d9d354d2b008ff38025139c3b32b1d8284d79025e718815dbef72f60b"
+    },
+    {
+      "path": "current-native/short-size-true-decision.json",
+      "bytes": 2060,
+      "sha256": "8dd02aa5fc586d3c14b59d04a368880bfc06e90c64e71bbe2e6f4dc84885fa80"
+    },
+    {
+      "path": "current-native/size-decision.json",
+      "bytes": 2064,
+      "sha256": "8faeb6df8b281d54cddfa6dd62c05f0bac690509afb0f7d4d5db26997e45fd7b"
+    },
+    {
+      "path": "current-native/sum-array.nanz",
+      "bytes": 555,
+      "sha256": "fa0ad7d685c31aeb52b91b323bcef46e5c86c0e4390b2fd41ecd69ecfef58694"
+    },
+    {
+      "path": "current-native/workload.json",
+      "bytes": 1529,
+      "sha256": "afea400080aed8b5af1506ad00456f45c3d9e5e0a0613af018af92b4524dc0a6"
+    },
+    {
+      "path": "current-original/allocation.json",
+      "bytes": 3706,
+      "sha256": "da32b0937d09d9f9950692b7df73b5b009a319914a895475065a7790efed8bad"
+    },
+    {
+      "path": "current-original/optimized.mir",
+      "bytes": 2618,
+      "sha256": "b6456ea79eec67fab17210e719911353b02eca2db46b8fdecf1b716dd4e06060"
+    },
+    {
+      "path": "current-original/program.a80",
+      "bytes": 3163,
+      "sha256": "66f261bd52ee527bacd5f419c8883648d836f23452e687853e4b9e8ac75e0161"
+    },
+    {
+      "path": "current-original/program.bin",
+      "bytes": 201,
+      "sha256": "583162b6acd75510b43fc419fbb9f60d27c17f9fd2a52a2bdc4d21842acf43a5"
+    },
+    {
+      "path": "current-original/raw.mir",
+      "bytes": 2850,
+      "sha256": "c9192d010128d7c370e335077096ad393de6baaca975d5efe0f0e8fcf59d8503"
+    },
+    {
+      "path": "current-pointer/allocation.json",
+      "bytes": 4811,
+      "sha256": "8746a462cbd5a2ae7d9188dc21472bd5cf36774756608571114c7930fc550c7d"
+    },
+    {
+      "path": "current-pointer/optimized.mir",
+      "bytes": 3431,
+      "sha256": "a90beb47dff7a9a1ac5f1259f376b0869c592c6a04f075f084a3c1b5ce69911d"
+    },
+    {
+      "path": "current-pointer/program.a80",
+      "bytes": 4155,
+      "sha256": "e714b770036be27d84a5b4911bc9fd5f933208d546230daf5974201da235518c"
+    },
+    {
+      "path": "current-pointer/program.bin",
+      "bytes": 262,
+      "sha256": "d76ca64fc7b324633b206d215149530a441936bafce806cc63b083c47061f6ab"
+    },
+    {
+      "path": "current-pointer/raw.mir",
+      "bytes": 3724,
+      "sha256": "344db5a2aea5b1db06154fac1f128d4dd6a225bc7909b2901f476d30cbdd945c"
+    },
+    {
+      "path": "current-tests.txt",
+      "bytes": 3236,
+      "sha256": "e5e8351f4a6973097c8515bd3b311a42917549e0406891c4e540d1dd11241597"
+    },
+    {
+      "path": "diagnostic/evidence.json",
+      "bytes": 374432,
+      "sha256": "17162894ea327af658dcf89f16662661469ede122567f3a17928010e92821b88"
+    },
+    {
+      "path": "diagnostic/model.json",
+      "bytes": 905,
+      "sha256": "fb4168962318cbadb5ae19733a263491870296adf276d49035bca8eccb11ba9e"
+    },
+    {
+      "path": "diagnostic/original.bin",
+      "bytes": 201,
+      "sha256": "583162b6acd75510b43fc419fbb9f60d27c17f9fd2a52a2bdc4d21842acf43a5"
+    },
+    {
+      "path": "diagnostic/pointer.bin",
+      "bytes": 262,
+      "sha256": "d76ca64fc7b324633b206d215149530a441936bafce806cc63b083c47061f6ab"
+    },
+    {
+      "path": "diagnostic-test.go.txt",
+      "bytes": 1296,
+      "sha256": "f0615841e09014898c07b4d71601d7bf3b2c7be1e29b59580277425c7088f9ec"
+    },
+    {
+      "path": "diagnostic-tests.txt",
+      "bytes": 917,
+      "sha256": "7c9e8d483539c14b4d04d974b0018c467e71dfe977360ff52ac0ffc45502b4e8"
+    },
+    {
+      "path": "historical-original/program.a80",
+      "bytes": 3091,
+      "sha256": "17a4956bc4f65642848079b71b4ad7d641793422f09aa2bdad44d6439695ef65"
+    },
+    {
+      "path": "historical-original/program.bin",
+      "bytes": 195,
+      "sha256": "299f4e5f38eeb93548a24d1d0cced47c73ad5052a400021187c8ae5a528c232c"
+    },
+    {
+      "path": "historical-pointer/program.a80",
+      "bytes": 4013,
+      "sha256": "474e69e15949db09efc35381610b07ecec4903c9ac87b71f50d525a6547c72e0"
+    },
+    {
+      "path": "historical-pointer/program.bin",
+      "bytes": 250,
+      "sha256": "1fce33d6ef72067e5be110baab513847487c0accd5b36756cba48ec093984d2f"
+    },
+    {
+      "path": "identity.json",
+      "bytes": 541,
+      "sha256": "ce71848a37d773388538e3b5a93bfb804ccb8bd794ae729613aa6cdd93723d23"
+    },
+    {
+      "path": "original-asm-diff.txt",
+      "bytes": 683,
+      "sha256": "f39d8a08adfa8c1427610133cba404ac1bc34795301dd37a799a3d5cc5af6607"
+    },
+    {
+      "path": "pointer-asm-diff.txt",
+      "bytes": 938,
+      "sha256": "aceaa52d2738ca9cc99b3f201b2166cbdca5c4ee1d49be4a7cda81adf70f56d2"
+    },
+    {
+      "path": "sum-cost-reference.test.gz",
+      "bytes": 7149604,
+      "sha256": "40265744a1d81db975e9cdaea61e7bc12112b243f1a09ac48f52c9aa69d54de9"
+    }
+  ]
+}

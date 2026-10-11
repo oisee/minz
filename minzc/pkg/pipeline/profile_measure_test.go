@@ -38,12 +38,28 @@ func TestMeasureLoopCostModel(t *testing.T) {
 	if factoryCalls != 3 {
 		t.Fatalf("factory called %d times, want 3 independent inputs", factoryCalls)
 	}
+	// Current instruction costs were independently reconciled against the saved
+	// ASM delta; every row must satisfy these costs, not just the fitted samples.
 	for _, row := range evidence.Rows {
+		wantOriginal := 69 + 191*row.N
+		wantPointer := 260 + 37*row.N
+		if row.N == 0 {
+			wantPointer = 262
+		}
+		if row.Path == "equality" {
+			wantPointer += 7
+		}
+		if row.Path == "fallback" || row.Path == "wrap" {
+			wantPointer = 281 + 193*row.N
+		}
+		if row.Original != wantOriginal || row.Pointer != wantPointer {
+			t.Fatalf("independent ASM cost disagrees: %+v want %d/%d", row, wantOriginal, wantPointer)
+		}
 		if len(row.OriginalExecutionSHA256) != 64 || len(row.PointerExecutionSHA256) != 64 {
 			t.Fatal("execution binaries not bound to evidence")
 		}
 	}
-	if model.OriginalEntry != 69 || model.OriginalIteration != 141 || model.FastEntry != 210 || model.FastIteration != 37 || model.FastZeroEntry != 212 || !model.FastZeroMeasured || model.EqualEntryExtra != 7 || model.FallbackEntry != 231 || model.FallbackIteration != 143 || !model.FallbackMeasured {
+	if model.OriginalEntry != 69 || model.OriginalIteration != 191 || model.FastEntry != 260 || model.FastIteration != 37 || model.FastZeroEntry != 262 || !model.FastZeroMeasured || model.EqualEntryExtra != 7 || model.FallbackEntry != 281 || model.FallbackIteration != 193 || !model.FallbackMeasured {
 		t.Fatalf("unexpected measured coefficients: %+v", model)
 	}
 	if len(evidence.Rows) != 1022 || model.OriginalBytes != uint64(len(evidence.OriginalBinary)) || model.PointerBytes != uint64(len(evidence.PointerBinary)) {

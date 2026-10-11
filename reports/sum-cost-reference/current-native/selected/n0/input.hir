@@ -1,0 +1,28 @@
+; HIR module: examples/nanz/01_sum_array.nanz
+global @arr : [5]u8
+string #0 = "sum = "
+
+fun @sum_array(ptr: ptr, n: u8) -> u8
+  var s: u8 = 0:u8
+  var i: u8 = 0:u8
+  if (cast((ptr:ptr)):u16 <= (65535:u16 - cast((n:u8)):u16):u16):bool
+    foreach __grace_element_0: u8 in *((ptr:ptr))[0..(n:u8)]
+      (s:u8) = ((s:u8) + (__grace_element_0:u8)):u8
+    (i:u8) = (n:u8)
+  else
+    while ((i:u8) < (n:u8)):bool
+      (s:u8) = ((s:u8) + ((ptr:ptr))[(i:u8)]:u8):u8
+      (i:u8) = ((i:u8) + 1:u8):u8
+  return (s:u8)
+
+fun @main()
+  ((arr:[5]u8))[0:u8]:u8 = 1:u8
+  ((arr:[5]u8))[1:u8]:u8 = 2:u8
+  ((arr:[5]u8))[2:u8]:u8 = 3:u8
+  ((arr:[5]u8))[3:u8]:u8 = 4:u8
+  ((arr:[5]u8))[4:u8]:u8 = 5:u8
+  var result: u8 = call @sum_array(addr @arr:ptr, 5:u8):u8
+  call @@mir.io.print.sstr(addr @@mir2.str.0:ptr):void
+  call @@mir.io.print.u8((result:u8)):void
+  call @@mir.io.print.nl():void
+

@@ -1,0 +1,31 @@
+=== RUN   TestSumProfileCostFullU8Domain
+    profile_cost_domain_test.go:103: fallback n=1 original=260 pointer=474 overhead=214
+    profile_cost_domain_test.go:103: fallback n=2 original=451 pointer=667 overhead=216
+    profile_cost_domain_test.go:103: fallback n=255 original=48774 pointer=49496 overhead=722
+    profile_cost_domain_test.go:119: Verified 1022 address/length scenarios on original and pointer VM + assembled Z80
+--- PASS: TestSumProfileCostFullU8Domain (29.81s)
+=== RUN   TestProfileGuidedSumVMZ80
+    profile_guided_sum_test.go:184: original n=0 result=0 T-states=69 module_bytes=201
+    profile_guided_sum_test.go:184: original n=1 result=1 T-states=260 module_bytes=201
+    profile_guided_sum_test.go:184: original n=5 result=15 T-states=1024 module_bytes=201
+    profile_guided_sum_test.go:184: original n=16 result=136 T-states=3125 module_bytes=201
+    profile_guided_sum_test.go:184: original n=64 result=32 T-states=12293 module_bytes=201
+    profile_guided_sum_test.go:184: original n=255 result=128 T-states=48774 module_bytes=201
+    profile_guided_sum_test.go:184: pointer-walk n=0 result=0 T-states=262 module_bytes=262
+    profile_guided_sum_test.go:184: pointer-walk n=1 result=1 T-states=297 module_bytes=262
+    profile_guided_sum_test.go:184: pointer-walk n=5 result=15 T-states=445 module_bytes=262
+    profile_guided_sum_test.go:184: pointer-walk n=16 result=136 T-states=852 module_bytes=262
+    profile_guided_sum_test.go:184: pointer-walk n=64 result=32 T-states=2628 module_bytes=262
+    profile_guided_sum_test.go:184: pointer-walk n=255 result=128 T-states=9695 module_bytes=262
+    profile_guided_sum_test.go:184: selected n=0 result=0 T-states=262 module_bytes=262
+    profile_guided_sum_test.go:184: selected n=1 result=1 T-states=297 module_bytes=262
+    profile_guided_sum_test.go:184: selected n=5 result=15 T-states=445 module_bytes=262
+    profile_guided_sum_test.go:184: selected n=16 result=136 T-states=852 module_bytes=262
+    profile_guided_sum_test.go:184: selected n=64 result=32 T-states=2628 module_bytes=262
+    profile_guided_sum_test.go:184: selected n=255 result=128 T-states=9695 module_bytes=262
+    profile_guided_sum_test.go:259: totals=map[original:65545 pointer-walk:14179 selected:14179] decisions=[{Compatibility:0x2ea93811fb00 SiteID:413717c0664c475bf9c67ee592bac740dccdcf0b002c75bd2dfb19155938ed2f Variant:pointer-walk Reason:lower measured workload T-states OriginalTStates:65545 PointerTStates:14179 Model:{CompilerID:executable-sha256:f67a6d4afeae9a40f65d91a7b4b623b5a5d0b7d499bf8436c67bf1ad69b4c4f4 SemanticsID:minz.unoptimised-mir2-vm-loop-events/v2 Function:sum_array HIRSHA256:846c32ad8bfa6acb4aa40c7c2aa4bb0109c5e0ae641ea8bf9d4e8139f7a08091 TargetID:module-target:0/model:cpm-z80-v1 CompilationID: EvidenceID:sum-array-z80-full-u8-safe-extension-v4 OriginalBytes:201 PointerBytes:262 OriginalEntry:69 OriginalIteration:191 EqualEntryExtra:7 FastEntry:260 FastZeroEntry:262 FastZeroMeasured:true FallbackEntry:281 FallbackIteration:193 FallbackMeasured:true FastIteration:37}}]
+--- PASS: TestProfileGuidedSumVMZ80 (0.91s)
+=== RUN   TestMeasureLoopCostModel
+--- PASS: TestMeasureLoopCostModel (17.18s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	47.916s

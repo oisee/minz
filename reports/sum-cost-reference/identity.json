@@ -1,0 +1,8 @@
+{
+  "base_commit": "e5989412",
+  "source": "examples/nanz/01_sum_array.nanz",
+  "source_sha256": "fa0ad7d685c31aeb52b91b323bcef46e5c86c0e4390b2fd41ecd69ecfef58694",
+  "executable_sha256": "f67a6d4afeae9a40f65d91a7b4b623b5a5d0b7d499bf8436c67bf1ad69b4c4f4",
+  "command": "MINZ_PGO_ARTIFACT_DIR=<packet>/current-native GOCACHE=/tmp/minz-grace-gocache go test ./pkg/pipeline -run ^(TestMeasureLoopCostModel|TestProfileGuidedSumVMZ80|TestSumProfileCostFullU8Domain)$ -count=1 -v",
+  "model_reference": "sum-array-z80-full-u8-safe-extension-v4"
+}

@@ -1,0 +1,37 @@
+--- historical-decimal-v3
++++ current-e5989412
+@@ -122,22 +122,30 @@
+     LD B, H
+     LD C, L
+ .sum_array_loop_head1:
+-    LD E, A    ; materialize r3 (pendingAcc)
++    LD E, A
++    ; materialize r3 (pendingAcc)
+     LD A, IXH
+     CP IXL
+     LD A, E
+     ; restore block param from scratch
+     RET NC
+ .sum_array_loop_body2:
+-    LD E, IXH
+-    LD D, 0
++    PUSH AF
++    LD A, IXH
++    PUSH AF
++    LD A, 0
++    LD D, A
++    POP AF
++    LD E, A
++    POP AF
+     PUSH BC
+     POP HL
+     ADD HL, DE
+     LD D, (HL)
+     ADD A, D
+     LD D, 1
+-    LD E, A    ; materialize r13 (pendingAcc)
++    LD E, A
++    ; materialize r13 (pendingAcc)
+     LD A, IXH
+     ADD A, 1
+     LD D, A

@@ -1,0 +1,41 @@
+package pipeline
+
+import (
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"testing"
+)
+
+// Diagnostic runs the production full-domain measurement before any reference
+// comparison, retaining the actual result without weakening its own semantic,
+// memory, guard and model-fit checks.
+func TestSumCurrentCostReferenceDiagnostic(t *testing.T) {
+	if os.Getenv("MINZ_SUM_COST_REFERENCE_DIAGNOSTIC") == "" {
+		t.Skip("explicit reference audit")
+	}
+	factory, w := measuredSumFixture(t)
+	model, evidence, e := MeasureLoopCostModel(factory, "sum_array", w, Options{AssertMode: "none", UseHIRGrace: true})
+	if e != nil {
+		t.Fatal(e)
+	}
+	root := os.Getenv("MINZ_SUM_COST_REFERENCE_DIAGNOSTIC")
+	if e = os.MkdirAll(root, 0755); e != nil {
+		t.Fatal(e)
+	}
+	for name, obj := range map[string]any{"model.json": model, "evidence.json": evidence} {
+		data, e := json.MarshalIndent(obj, "", "  ")
+		if e != nil {
+			t.Fatal(e)
+		}
+		if e = os.WriteFile(filepath.Join(root, name), data, 0644); e != nil {
+			t.Fatal(e)
+		}
+	}
+	for name, data := range map[string][]byte{"original.bin": evidence.OriginalBinary, "pointer.bin": evidence.PointerBinary} {
+		if e = os.WriteFile(filepath.Join(root, name), data, 0644); e != nil {
+			t.Fatal(e)
+		}
+	}
+	t.Logf("current measured model %+v rows%d", model, len(evidence.Rows))
+}

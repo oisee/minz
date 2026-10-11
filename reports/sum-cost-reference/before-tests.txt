@@ -1,0 +1,9 @@
+=== RUN   TestSumProfileCostFullU8Domain
+    profile_cost_domain_test.go:96: fast model n=0 got=262
+--- FAIL: TestSumProfileCostFullU8Domain (0.03s)
+=== RUN   TestProfileGuidedSumVMZ80
+    profile_guided_sum_test.go:180: cost model disproved: original n=0 got=69/201 expected=69/195
+--- FAIL: TestProfileGuidedSumVMZ80 (0.27s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.304s
+FAIL
