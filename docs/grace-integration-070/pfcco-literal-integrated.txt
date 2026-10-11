@@ -1,0 +1,36 @@
+=== RUN   TestPFCCOMultiCallMeasuredAudit
+    pfcco_multicall_audit_test.go:161: doubleOffset=false conditional=false PBQP=43264 T/21 B greedy=44288 T/22 B exhaustive-native=43264 T/21 B
+    pfcco_multicall_audit_test.go:161: doubleOffset=false conditional=true PBQP=46026 T/26 B greedy=49585 T/27 B exhaustive-native=46026 T/26 B
+    pfcco_multicall_audit_test.go:161: doubleOffset=true conditional=false PBQP=46336 T/24 B greedy=47360 T/25 B exhaustive-native=46336 T/24 B
+    pfcco_multicall_audit_test.go:161: doubleOffset=true conditional=true PBQP=49086 T/29 B greedy=52645 T/30 B exhaustive-native=49086 T/29 B
+--- PASS: TestPFCCOMultiCallMeasuredAudit (0.92s)
+=== RUN   TestPFCCOLiteralAccumulatorDemandBoundaries
+--- PASS: TestPFCCOLiteralAccumulatorDemandBoundaries (0.00s)
+=== RUN   TestPFCCOLiteralRHSLiveAcrossBranchRefuses
+--- PASS: TestPFCCOLiteralRHSLiveAcrossBranchRefuses (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.936s
+=== RUN   TestContractStrategyPinnedNativeSource
+    contract_strategy_native_test.go:136: strategy="" full-source 87387 T/63 B
+    contract_strategy_native_test.go:136: strategy="pbqp" full-source 85343 T/61 B
+--- PASS: TestContractStrategyPinnedNativeSource (0.05s)
+=== RUN   TestPFCCOMeasuredNativePacket
+    pfcco_native_workload_test.go:150: off: 8857T/52B choices=map[]
+    pfcco_native_workload_test.go:150: greedy: 7888T/52B choices=map[displacement:0x1d541b848900 weighted_packet:0x1d541b848990]
+    pfcco_native_workload_test.go:150: pbqp: 7888T/52B choices=map[displacement:0x1d541b95c6c0 weighted_packet:0x1d541b95c6f0]
+    pfcco_native_workload_test.go:152: independent displacement arithmetic and global state verified
+--- PASS: TestPFCCOMeasuredNativePacket (0.07s)
+=== RUN   TestPFCCOProspectiveHeldout
+    pfcco_prospective_heldout_test.go:119: speed mask0: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask1: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask2: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask3: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:153: speed selected1 heldout 5568 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask0: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask1: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask2: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask3: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:153: size selected0 heldout 6252 T / 52 B
+--- PASS: TestPFCCOProspectiveHeldout (0.97s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.100s

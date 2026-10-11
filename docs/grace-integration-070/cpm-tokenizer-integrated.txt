@@ -1,0 +1,35 @@
+=== RUN   TestCPMRuntimeStackChecksCalledBodies
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/balanced_nested
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/unbalanced_rotate
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/conditional_return_imbalance
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/callee_steals_return_word
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/recursive_callee
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/dynamic_stack
+--- PASS: TestCPMRuntimeStackChecksCalledBodies (0.01s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/balanced_nested (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/unbalanced_rotate (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/conditional_return_imbalance (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/callee_steals_return_word (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/recursive_callee (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/dynamic_stack (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.019s
+=== RUN   TestCPMRuntimeOriginalTokenizerMain
+    original_tokenizer_main_test.go:332: resident stack touched 28 bytes
+    original_tokenizer_main_test.go:334: exact main 146 stdout bytes all regions/globals/stack guards PASS 226178 T BIN 5815 SHA ff30ec8eb3ab19f9a81044256e14e7ed48c706daa832bfc89de9714d100bfea4
+--- PASS: TestCPMRuntimeOriginalTokenizerMain (0.77s)
+=== RUN   TestMeasuredRuntimeRejectedBeforeFactory
+--- PASS: TestMeasuredRuntimeRejectedBeforeFactory (0.00s)
+=== RUN   TestDefaultRuntimeKeepsProfileIdentity
+--- PASS: TestDefaultRuntimeKeepsProfileIdentity (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.782s
+=== RUN   TestCPMRuntimeOrdinaryCLI
+    cpm_runtime_test.go:101: COM 524 bytes, BDOS chars12, resident stack touched≤19 bytes
+--- PASS: TestCPMRuntimeOrdinaryCLI (0.03s)
+=== RUN   TestCPMRuntimeRejectsUnsupported
+--- PASS: TestCPMRuntimeRejectsUnsupported (0.01s)
+=== RUN   TestCPMRuntimeBytePrimitiveABIAndBoundary
+--- PASS: TestCPMRuntimeBytePrimitiveABIAndBoundary (0.00s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	0.054s
