@@ -489,3 +489,13 @@ Byte-word fusion опционально даёт FAT helpers115200→89088 T и�
 смежности fusion исправленаa7954042 в matcher, verifier и MemoryHost.
 Root focused native/safety PASS7,151 с; новый полный pipeline запущен.
 [Пакет126](grace-integration-126/README.md).
+
+## Plasma: исходный helper и общий флаговый fix
+
+Original plasma_attr ускорился793332→331508 T на1024 независимых вызовах;
+полный BIN1555 B без роста. Это helper, не fullscreen renderer. Отдельно
+исправлена потеря живого сравнения при умножении. Root native проверки
+пройдены; [пакет127](grace-integration-127/README.md).
+
+Sites v66 опубликован приватно и предшествует plasma. CLI708e77c5
+завершился PASS365,129 с; новый pipelinea7954042 ещё работает.
