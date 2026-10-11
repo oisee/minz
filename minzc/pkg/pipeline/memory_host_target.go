@@ -3,6 +3,7 @@ package pipeline
 import (
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
@@ -305,6 +306,10 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
 				break
 			}
 			_, runErr = memoryHostNativeStep(m)
+			var cpuFailure memoryHostCPUFailure
+			if errors.As(runErr, &cpuFailure) {
+				return fail(runErr)
+			}
 			out.ExecutedSteps++
 			if runErr != nil || m.cpu.Halted {
 				if runErr == nil {

@@ -1,0 +1,13 @@
+Independent final permission review at239793c5 plus exact copied native target/runtime drafts. Existing production files were copied into this isolated review worktree only; native owner retains implementation ownership. Separate new test file exercises permission properties, not old expected-unsafe tests.
+
+Material issue found: PUSH HL with SP=e000 (lower stack bound), adjacent declared writable resource dffe/dfff. Original runtime filtered decoded frame bytes by stack membership, leaving no protected recipe, then allowed resource writes12/34 with SPdffe and no error. Before log preserves this real failure. Native owner changed begin to require every taken frame byte be stack before CPU dispatch. Fresh copied runtime passes before-resource-effect refusal. It does not merely detect bad SP after mutation.
+
+Additional independent test verifies valid same-PC sidecar operations can execute repeatedly with a fresh bounded budget; a two-byte store with low permitted/high denied preserves exactly the first valid byte, leaving high unchanged. These focused tests passed; no general suite rerun by this reviewer.
+
+Code review: actual source-global origins now use conservative reaching symbolic states (kills on register definition, incomingintersection, phi refused); final opcode recipes and marker identity bind internal regenerating codegen output and exact byte address/direction; nonsemantic infrastructure failure must not attest an expected host-denial just because both errors are nonempty (parent/nativeowner separately repairing this). Sidecar is generated backend attestation plus independent raw/source oracle, not an independent compiler equivalence certificate. Stack frame permission is decoded operation based; compiler spill permission is internally generated identity based. Native tested resource accesses do not prove arbitrary unvisited program behavior.
+
+No remaining concrete acceptance hole identified in bounded read beyond stack-boundary failure reported and repaired; final failure-category change needs owner focused checks, and copied target snapshot here precedes that change. Public factory privately compiles actual source, so forging MIR/sidecar is outside its accepted inputs. Tests use private runtime to independently probe permission boundaries; do not overstate a complete public exploit.
+
+Reproduce from minzc with Go1.26.8:
+go test ./pkg/pipeline -run '^TestMemoryHostIndependent(StackBoundaryBeforeResourceWrite|DynamicBudgetAndPartialStore)$' -count=1 -v
+Old failure log stack-boundary-before.txt and repaired independent-after.txt retained. Parent owns originalSelfLanz30/fulltarget gate. Source snapshot hashes/inventory bind this review, not future source revisions.
