@@ -1,0 +1,10 @@
+=== RUN   TestSearchCLIAdmission
+--- PASS: TestSearchCLIAdmission (0.06s)
+=== RUN   TestSearchCLIKnownSourceBeforeCollection
+--- PASS: TestSearchCLIKnownSourceBeforeCollection (0.07s)
+=== RUN   TestSearchCLICollectAndPairedReplay
+Closed memory-host search speed selected policy1/mask1: 701T / 2486B; evidence /tmp/TestSearchCLICollectAndPairedReplay3370602699/001/search-artifacts
+Closed memory-host search size selected policy0/mask2: 796T / 2344B; evidence /tmp/TestSearchCLICollectAndPairedReplay3370602699/001/search-replay
+--- PASS: TestSearchCLICollectAndPairedReplay (245.23s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	245.382s
