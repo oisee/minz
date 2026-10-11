@@ -1,0 +1,7 @@
+    PUSH DE
+    ADD A, A
+    LD D, A
+    ADD A, A
+    ADD A, A
+    ADD A, D
+    POP DE

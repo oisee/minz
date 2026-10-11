@@ -1,0 +1,36 @@
+=== RUN   TestConstantByteMulExhaustedScratchNative
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff3-liveAfalse
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff3-liveAtrue
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff5-liveAfalse
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff5-liveAtrue
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff6-liveAfalse
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff6-liveAtrue
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff7-liveAfalse
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff7-liveAtrue
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff9-liveAfalse
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff9-liveAtrue
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff10-liveAfalse
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff10-liveAtrue
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff12-liveAfalse
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff12-liveAtrue
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff15-liveAfalse
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff15-liveAtrue
+--- PASS: TestConstantByteMulExhaustedScratchNative (0.29s)
+    --- PASS: TestConstantByteMulExhaustedScratchNative/coeff3-liveAfalse (0.02s)
+    --- PASS: TestConstantByteMulExhaustedScratchNative/coeff3-liveAtrue (0.02s)
+    --- PASS: TestConstantByteMulExhaustedScratchNative/coeff5-liveAfalse (0.02s)
+    --- PASS: TestConstantByteMulExhaustedScratchNative/coeff5-liveAtrue (0.02s)
+    --- PASS: TestConstantByteMulExhaustedScratchNative/coeff6-liveAfalse (0.02s)
+    --- PASS: TestConstantByteMulExhaustedScratchNative/coeff6-liveAtrue (0.02s)
+    --- PASS: TestConstantByteMulExhaustedScratchNative/coeff7-liveAfalse (0.02s)
+    --- PASS: TestConstantByteMulExhaustedScratchNative/coeff7-liveAtrue (0.02s)
+    --- PASS: TestConstantByteMulExhaustedScratchNative/coeff9-liveAfalse (0.02s)
+    --- PASS: TestConstantByteMulExhaustedScratchNative/coeff9-liveAtrue (0.02s)
+    --- PASS: TestConstantByteMulExhaustedScratchNative/coeff10-liveAfalse (0.02s)
+    --- PASS: TestConstantByteMulExhaustedScratchNative/coeff10-liveAtrue (0.02s)
+    --- PASS: TestConstantByteMulExhaustedScratchNative/coeff12-liveAfalse (0.02s)
+    --- PASS: TestConstantByteMulExhaustedScratchNative/coeff12-liveAtrue (0.02s)
+    --- PASS: TestConstantByteMulExhaustedScratchNative/coeff15-liveAfalse (0.02s)
+    --- PASS: TestConstantByteMulExhaustedScratchNative/coeff15-liveAtrue (0.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.300s

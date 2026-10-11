@@ -1,0 +1,207 @@
+=== RUN   TestConstantByteMulExhaustedScratchNative
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff3-liveAfalse
+    constant_mul_exhaustion_test.go:65: coeff3 x0 F00 got00 want00 regs{A:0 F:64 BC:17767 DE:52 HL:35243 IX:39612 IY:43981 SP:61440 PC:61700} ASMORG 32768
+            LD D, A
+            ADD A, A
+            ADD A, D
+        RET
+        _spill_multiply_busy_r1: DB 0
+        _spill_multiply_busy_r2: DB 0
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff3-liveAtrue
+    constant_mul_exhaustion_test.go:65: coeff3 x0 F00 got00 want00 regs{A:0 F:64 BC:17767 DE:52 HL:35243 IX:39612 IY:43981 SP:61440 PC:61700} ASMORG 32768
+            LD (_spill_multiply_busy_r1), A
+            ; save r1 before ALU overwrite
+            LD A, (_spill_multiply_busy_r1)
+            LD D, A
+            ADD A, A
+            ADD A, D
+            LD (_spill_multiply_busy_r2), A
+        RET
+        _spill_multiply_busy_r1: DB 0
+        _spill_multiply_busy_r2: DB 0
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff5-liveAfalse
+    constant_mul_exhaustion_test.go:65: coeff5 x0 F00 got00 want00 regs{A:0 F:64 BC:17767 DE:52 HL:35243 IX:39612 IY:43981 SP:61440 PC:61700} ASMORG 32768
+            LD D, A
+            ADD A, A
+            ADD A, A
+            ADD A, D
+        RET
+        _spill_multiply_busy_r1: DB 0
+        _spill_multiply_busy_r2: DB 0
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff5-liveAtrue
+    constant_mul_exhaustion_test.go:65: coeff5 x0 F00 got00 want00 regs{A:0 F:64 BC:17767 DE:52 HL:35243 IX:39612 IY:43981 SP:61440 PC:61700} ASMORG 32768
+            LD (_spill_multiply_busy_r1), A
+            ; save r1 before ALU overwrite
+            LD A, (_spill_multiply_busy_r1)
+            LD D, A
+            ADD A, A
+            ADD A, A
+            ADD A, D
+            LD (_spill_multiply_busy_r2), A
+        RET
+        _spill_multiply_busy_r1: DB 0
+        _spill_multiply_busy_r2: DB 0
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff6-liveAfalse
+    constant_mul_exhaustion_test.go:65: coeff6 x0 F00 got00 want00 regs{A:0 F:64 BC:17767 DE:52 HL:35243 IX:39612 IY:43981 SP:61440 PC:61700} ASMORG 32768
+            ADD A, A
+            LD D, A
+            ADD A, A
+            ADD A, D
+        RET
+        _spill_multiply_busy_r1: DB 0
+        _spill_multiply_busy_r2: DB 0
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff6-liveAtrue
+    constant_mul_exhaustion_test.go:65: coeff6 x0 F00 got00 want00 regs{A:0 F:64 BC:17767 DE:52 HL:35243 IX:39612 IY:43981 SP:61440 PC:61700} ASMORG 32768
+            LD (_spill_multiply_busy_r1), A
+            ; save r1 before ALU overwrite
+            LD A, (_spill_multiply_busy_r1)
+            ADD A, A
+            LD D, A
+            ADD A, A
+            ADD A, D
+            LD (_spill_multiply_busy_r2), A
+        RET
+        _spill_multiply_busy_r1: DB 0
+        _spill_multiply_busy_r2: DB 0
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff7-liveAfalse
+    constant_mul_exhaustion_test.go:65: coeff7 x0 F00 got00 want00 regs{A:0 F:66 BC:17767 DE:52 HL:35243 IX:39612 IY:43981 SP:61440 PC:61700} ASMORG 32768
+            LD D, A
+            ADD A, A
+            ADD A, A
+            ADD A, A
+            SUB D
+        RET
+        _spill_multiply_busy_r1: DB 0
+        _spill_multiply_busy_r2: DB 0
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff7-liveAtrue
+    constant_mul_exhaustion_test.go:65: coeff7 x0 F00 got00 want00 regs{A:0 F:66 BC:17767 DE:52 HL:35243 IX:39612 IY:43981 SP:61440 PC:61700} ASMORG 32768
+            LD (_spill_multiply_busy_r1), A
+            ; save r1 before ALU overwrite
+            LD A, (_spill_multiply_busy_r1)
+            LD D, A
+            ADD A, A
+            ADD A, A
+            ADD A, A
+            SUB D
+            LD (_spill_multiply_busy_r2), A
+        RET
+        _spill_multiply_busy_r1: DB 0
+        _spill_multiply_busy_r2: DB 0
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff9-liveAfalse
+    constant_mul_exhaustion_test.go:65: coeff9 x0 F00 got00 want00 regs{A:0 F:64 BC:17767 DE:52 HL:35243 IX:39612 IY:43981 SP:61440 PC:61700} ASMORG 32768
+            LD D, A
+            ADD A, A
+            ADD A, A
+            ADD A, A
+            ADD A, D
+        RET
+        _spill_multiply_busy_r1: DB 0
+        _spill_multiply_busy_r2: DB 0
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff9-liveAtrue
+    constant_mul_exhaustion_test.go:65: coeff9 x0 F00 got00 want00 regs{A:0 F:64 BC:17767 DE:52 HL:35243 IX:39612 IY:43981 SP:61440 PC:61700} ASMORG 32768
+            LD (_spill_multiply_busy_r1), A
+            ; save r1 before ALU overwrite
+            LD A, (_spill_multiply_busy_r1)
+            LD D, A
+            ADD A, A
+            ADD A, A
+            ADD A, A
+            ADD A, D
+            LD (_spill_multiply_busy_r2), A
+        RET
+        _spill_multiply_busy_r1: DB 0
+        _spill_multiply_busy_r2: DB 0
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff10-liveAfalse
+    constant_mul_exhaustion_test.go:65: coeff10 x0 F00 got00 want00 regs{A:0 F:64 BC:17767 DE:52 HL:35243 IX:39612 IY:43981 SP:61440 PC:61700} ASMORG 32768
+            ADD A, A
+            LD D, A
+            ADD A, A
+            ADD A, A
+            ADD A, D
+        RET
+        _spill_multiply_busy_r1: DB 0
+        _spill_multiply_busy_r2: DB 0
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff10-liveAtrue
+    constant_mul_exhaustion_test.go:65: coeff10 x0 F00 got00 want00 regs{A:0 F:64 BC:17767 DE:52 HL:35243 IX:39612 IY:43981 SP:61440 PC:61700} ASMORG 32768
+            LD (_spill_multiply_busy_r1), A
+            ; save r1 before ALU overwrite
+            LD A, (_spill_multiply_busy_r1)
+            ADD A, A
+            LD D, A
+            ADD A, A
+            ADD A, A
+            ADD A, D
+            LD (_spill_multiply_busy_r2), A
+        RET
+        _spill_multiply_busy_r1: DB 0
+        _spill_multiply_busy_r2: DB 0
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff12-liveAfalse
+    constant_mul_exhaustion_test.go:65: coeff12 x0 F00 got00 want00 regs{A:0 F:64 BC:17767 DE:52 HL:35243 IX:39612 IY:43981 SP:61440 PC:61700} ASMORG 32768
+            ADD A, A
+            ADD A, A
+            LD D, A
+            ADD A, A
+            ADD A, D
+        RET
+        _spill_multiply_busy_r1: DB 0
+        _spill_multiply_busy_r2: DB 0
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff12-liveAtrue
+    constant_mul_exhaustion_test.go:65: coeff12 x0 F00 got00 want00 regs{A:0 F:64 BC:17767 DE:52 HL:35243 IX:39612 IY:43981 SP:61440 PC:61700} ASMORG 32768
+            LD (_spill_multiply_busy_r1), A
+            ; save r1 before ALU overwrite
+            LD A, (_spill_multiply_busy_r1)
+            ADD A, A
+            ADD A, A
+            LD D, A
+            ADD A, A
+            ADD A, D
+            LD (_spill_multiply_busy_r2), A
+        RET
+        _spill_multiply_busy_r1: DB 0
+        _spill_multiply_busy_r2: DB 0
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff15-liveAfalse
+    constant_mul_exhaustion_test.go:65: coeff15 x0 F00 got00 want00 regs{A:0 F:66 BC:17767 DE:52 HL:35243 IX:39612 IY:43981 SP:61440 PC:61700} ASMORG 32768
+            LD D, A
+            ADD A, A
+            ADD A, A
+            ADD A, A
+            ADD A, A
+            SUB D
+        RET
+        _spill_multiply_busy_r1: DB 0
+        _spill_multiply_busy_r2: DB 0
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff15-liveAtrue
+    constant_mul_exhaustion_test.go:65: coeff15 x0 F00 got00 want00 regs{A:0 F:66 BC:17767 DE:52 HL:35243 IX:39612 IY:43981 SP:61440 PC:61700} ASMORG 32768
+            LD (_spill_multiply_busy_r1), A
+            ; save r1 before ALU overwrite
+            LD A, (_spill_multiply_busy_r1)
+            LD D, A
+            ADD A, A
+            ADD A, A
+            ADD A, A
+            ADD A, A
+            SUB D
+            LD (_spill_multiply_busy_r2), A
+        RET
+        _spill_multiply_busy_r1: DB 0
+        _spill_multiply_busy_r2: DB 0
+--- FAIL: TestConstantByteMulExhaustedScratchNative (0.01s)
+    --- FAIL: TestConstantByteMulExhaustedScratchNative/coeff3-liveAfalse (0.00s)
+    --- FAIL: TestConstantByteMulExhaustedScratchNative/coeff3-liveAtrue (0.00s)
+    --- FAIL: TestConstantByteMulExhaustedScratchNative/coeff5-liveAfalse (0.00s)
+    --- FAIL: TestConstantByteMulExhaustedScratchNative/coeff5-liveAtrue (0.00s)
+    --- FAIL: TestConstantByteMulExhaustedScratchNative/coeff6-liveAfalse (0.00s)
+    --- FAIL: TestConstantByteMulExhaustedScratchNative/coeff6-liveAtrue (0.00s)
+    --- FAIL: TestConstantByteMulExhaustedScratchNative/coeff7-liveAfalse (0.00s)
+    --- FAIL: TestConstantByteMulExhaustedScratchNative/coeff7-liveAtrue (0.00s)
+    --- FAIL: TestConstantByteMulExhaustedScratchNative/coeff9-liveAfalse (0.00s)
+    --- FAIL: TestConstantByteMulExhaustedScratchNative/coeff9-liveAtrue (0.00s)
+    --- FAIL: TestConstantByteMulExhaustedScratchNative/coeff10-liveAfalse (0.00s)
+    --- FAIL: TestConstantByteMulExhaustedScratchNative/coeff10-liveAtrue (0.00s)
+    --- FAIL: TestConstantByteMulExhaustedScratchNative/coeff12-liveAfalse (0.00s)
+    --- FAIL: TestConstantByteMulExhaustedScratchNative/coeff12-liveAtrue (0.00s)
+    --- FAIL: TestConstantByteMulExhaustedScratchNative/coeff15-liveAfalse (0.00s)
+    --- FAIL: TestConstantByteMulExhaustedScratchNative/coeff15-liveAtrue (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/mir2	0.013s
+FAIL
