@@ -168,13 +168,13 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 			}
 			cycles, size := measureProfileZ80(t, h, "sum_array", Options{AssertMode: "none"}, []int64{0x4000, n}, memory, want, dir)
 			expected := 69 + 141*int(n)
-			expectedSize := model.OriginalBytes
+			expectedSize := int(model.OriginalBytes)
 			if variant != "original" {
 				expected = 210 + 37*int(n)
 				if n == 0 {
 					expected = 212
 				}
-				expectedSize = model.PointerBytes
+				expectedSize = int(model.PointerBytes)
 			}
 			if cycles != expected || size != expectedSize {
 				t.Fatalf("cost model disproved: %s n=%d got=%d/%d expected=%d/%d", variant, n, cycles, size, expected, expectedSize)
@@ -243,13 +243,13 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 			}
 			cycles, codeBytes := measureProfileZ80(t, h, "sum_array", Options{UseHIRGrace: true, AssertMode: "none"}, []int64{0x4000, n}, memory, n*(n+1)/2&255, "")
 			wantCycles := 69 + 141*int(n)
-			wantBytes := model.OriginalBytes
+			wantBytes := int(model.OriginalBytes)
 			if expectedVariant == "pointer-walk" {
 				wantCycles = 210 + 37*int(n)
 				if n == 0 {
 					wantCycles = 212
 				}
-				wantBytes = model.PointerBytes
+				wantBytes = int(model.PointerBytes)
 			}
 			if cycles != wantCycles || codeBytes != wantBytes {
 				t.Fatalf("retained decision not executed correctly: n=%d size=%v cycles=%d bytes=%d", n, size, cycles, codeBytes)
