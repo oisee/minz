@@ -145,3 +145,10 @@ Sites выполняется после коммита. Рабочие ветк�
 30 вызовов дал1150124 T /2076 B: −5,84% времени и −15 B кода. Память и
 ordered host events совпадают с независимой моделью. До интеграции остаются
 независимый proof/domain и общий прогон. Решений Alice не требуется.
+
+Arena stage57322d17 отправлен на GitHub. Приватная Sites версия40 опубликована:
+https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-arena-selection.html
+Полная офлайн-копия обновляется и проверяется по SHA256.
+Append-copy: независимый validator исключает ресурсы, перекрывающие VM globals;
+1286 rawVM случаев и42 actual-target запуска прошли. До measured selector
+и production-интеграции остаётся отдельный шаг. Цель продолжается.
