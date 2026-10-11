@@ -1,0 +1,65 @@
+{
+  "schema": "minz.fat-packed-frozen/v1",
+  "source_path": "stdlib/fs/fat12.nanz",
+  "source_sha256": "6c11a845959df00dc01471e273f0196e7939121eaa9cb6e1f6206cc492ffbbb5",
+  "frozen_before_measurement": true,
+  "compiler_context": "f5c7a09e",
+  "entries": [
+    "read_fat12",
+    "write_fat12",
+    "read_fat16",
+    "write_fat16"
+  ],
+  "no_disk_adapter": "no extern call legal; all selected entrypoints only access supplied buffer",
+  "initial_byte_formula": "byte(address*29+17)",
+  "oracle": "FAT12 ofs=(cluster+floor(cluster/2)) mod65536; even replacement(old&f000)|(val&0fff); odd replacement(old&000f)|((val<<4)&ffff); FAT16 ofs=(cluster<<1)&ffff, plain LE16; every other address preserved",
+  "training": [
+    {
+      "cluster": 4,
+      "base": 16384,
+      "value": 683
+    },
+    {
+      "cluster": 9,
+      "base": 17408,
+      "value": 3445
+    },
+    {
+      "cluster": 18,
+      "base": 18432,
+      "value": 65535
+    }
+  ],
+  "heldout": [
+    {
+      "cluster": 3,
+      "base": 19456,
+      "value": 0
+    },
+    {
+      "cluster": 14,
+      "base": 20480,
+      "value": 32769
+    },
+    {
+      "cluster": 31,
+      "base": 65489,
+      "value": 4660
+    },
+    {
+      "cluster": 34,
+      "base": 65484,
+      "value": 65535
+    },
+    {
+      "cluster": 37,
+      "base": 21472,
+      "value": 1
+    },
+    {
+      "cluster": 62,
+      "base": 22704,
+      "value": 43981
+    }
+  ]
+}

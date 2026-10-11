@@ -1,0 +1,5 @@
+# Prospective FAT packed-buffer workload
+
+Frozen before any candidate measurement in this branch. Full unchanged FAT12 source SHA is in workload.json. Entrypoints are original read_fat12/write_fat12 and read_fat16/write_fat16 controls. Independent oracle follows the source's declared 12-bit packed even/odd layout (shared nibble preserved) and LE16 layout, modulo65536 per ADR0045. Buffer begins with byte(address*29+17); only calculated two bytes may change. No disk/cache adapter is required or admitted. These inputs are new for this experiment; earlier helper/directory slot tests are not relabeled heldout.
+
+Training and heldout sets are declared separately. This is a prospective validation set, **not proof of automatic selection**: selection only counts if a current public measured-mode API admits this full source and workload, freezes one selected executable on training and reuses those exact bytes on heldout. Ordinary manually compiled mode comparison is labeled comparison. Never reinterpret malformed packed values, nibble neighbors or native errors to obtain a winner.
