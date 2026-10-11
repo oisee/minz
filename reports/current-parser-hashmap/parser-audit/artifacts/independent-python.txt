@@ -1,0 +1,3 @@
+heldout mask 0 2141572 T: independent syntax, full state, exact events, same BIN PASS
+heldout mask 2 2093170 T: independent syntax, full state, exact events, same BIN PASS
+training selector choice independently verified
