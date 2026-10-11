@@ -50,26 +50,38 @@ class Model:
         raise Denial({'kind':'undeclared','address':addr,'write':write})
     def rd(self,a):return self.access(a)
     def wr(self,a,v):return self.access(a,True,v)
+    def count(self,key,body=False):
+        pair=self.counts.setdefault(key,[0,0]);pair[1 if body else 0]+=1
     def cur(self):return 0 if self.g['pos']>=self.g['src_len'] else self.rd(self.g['src_buf']+self.g['pos'])
     def skip(self):
-        while self.cur() in (32,9,10,13):self.g['pos']=(self.g['pos']+1)&65535
+        self.count('skip_ws/body/s0')
+        while self.cur() in (32,9,10,13):
+            self.count('skip_ws/body/s0',True);self.g['pos']=(self.g['pos']+1)&65535
         if self.cur()==59:
+            self.count('skip_ws/body/s1/then/s0')
             while self.cur()!=10:
+                self.count('skip_ws/body/s1/then/s0',True)
                 if self.cur()==0:return
                 self.g['pos']=(self.g['pos']+1)&65535
             self.g['pos']=(self.g['pos']+1)&65535;self.skip()
     def region(self,p,start,n):
+        self.count('region_match/body/s1')
         for i in range(n&255):
+            self.count('region_match/body/s1',True)
             if self.rd(p+1+i)!=self.rd(self.g['src_buf']+start+i):return 0
         return 1
     def intern(self,start,n):
         n&=255;p=self.g['str_arena']
+        self.count('intern_region/body/s1')
         while p<self.g['str_bump']:
+            self.count('intern_region/body/s1',True)
             k=self.rd(p)
             if k==n and self.region(p,start,n)==1:return p
             p=(p+1+k)&65535
         result=self.g['str_bump'];self.wr(self.g['str_bump'],n)
+        self.count('intern_region/body/s5')
         for j in range(n):
+            self.count('intern_region/body/s5',True)
             dest=(self.g['str_bump']+1+j)&65535
             value=self.rd(self.g['src_buf']+start+j);self.wr(dest,value)
         self.g['str_bump']=(self.g['str_bump']+1+n)&65535;return result
@@ -86,17 +98,23 @@ class Model:
             if self.cur()==41:
                 self.g['pos']=(self.g['pos']+1)&65535;return self.make(self.g['SEXP_LIST'],0,0,0)
             first=self.parse();out=self.make(self.g['SEXP_LIST'],first,0,0);prev=first;self.skip()
+            self.count('parse_sexpr/body/s3/then/s7')
             while self.cur()!=41:
+                self.count('parse_sexpr/body/s3/then/s7',True)
                 if self.cur()==0:return out
                 nxt=self.parse();self.wr(prev+3,nxt%256);self.wr(prev+4,nxt//256);prev=nxt;self.skip()
             self.g['pos']=(self.g['pos']+1)&65535;return out
         start=self.g['pos']
-        while self.cur() not in (0,32,9,10,13,40,41):self.g['pos']=(self.g['pos']+1)&65535
+        self.count('parse_sexpr/body/s5')
+        while self.cur() not in (0,32,9,10,13,40,41):
+            self.count('parse_sexpr/body/s5',True);self.g['pos']=(self.g['pos']+1)&65535
         n=(self.g['pos']-start)&255
         if n==0:return 0
         if 48<=self.rd(self.g['src_buf']+start)<=57:
             value=0
-            for k in range(n):value=(value*10+self.rd(self.g['src_buf']+start+k)-48)&65535
+            self.count('parse_sexpr/body/s8/then/s2')
+            for k in range(n):
+                self.count('parse_sexpr/body/s8/then/s2',True);value=(value*10+self.rd(self.g['src_buf']+start+k)-48)&65535
             return self.make(self.g['SEXP_INT'],value,0,0)
         return self.make(self.g['SEXP_ATOM'],self.intern(start,n),0,0)
     def call(self,c):
@@ -107,7 +125,7 @@ class Model:
             if patch.get('clear'):
                 assert off==0;r['data'][:]=bytes(len(r['data']))
             r['data'][off:off+len(data)]=data
-        self.events=[];self.ops=0;failure=None;result=[]
+        self.events=[];self.ops=0;self.counts={};failure=None;result=[]
         args=c.get('arguments') or [];name=c['function']
         # Narrow explicit source entrypoints; no print/main or arbitrary host.
         try:
@@ -119,7 +137,8 @@ class Model:
             else:raise ValueError('unsupported independent caller '+name)
         except Denial as e:failure=e.args[0]
         return {'results':result,'globals':{k:b64(v.to_bytes(WIDTHS[k],'little')) for k,v in self.g.items()},
-                'regions':{k:b64(r['data']) for k,r in self.r.items()},'events':self.events,'failure':failure}
+                'regions':{k:b64(r['data']) for k,r in self.r.items()},'events':self.events,'failure':failure,
+                'independent_loop_counts':dict(self.counts)}
 
 def audit(e,source):
     assert e['schema']=='minz.memory-host-baseline/v1'

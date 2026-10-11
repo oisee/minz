@@ -7,6 +7,14 @@
       "sha256": "0726d06a89f66672532b669c79e85fc38f51355f1bd944c973861546cb77398a"
     },
     {
+      "path": "docs/grace-memory-host-corpus-oracle/audit_corpus_pack.py",
+      "sha256": "ce0d519f2d3c75268c7589235f37de09836067b567ab0cb1f2a753692800d9bf"
+    },
+    {
+      "path": "docs/grace-memory-host-corpus-oracle/audit_profile.py",
+      "sha256": "50814a6c4b56c341836bf58803cf14cb23918e74d92973b0bfb04d0217a37531"
+    },
+    {
       "path": "docs/grace-memory-host-corpus-oracle/capacity-review.json",
       "sha256": "554687c87f53fa1f1b863ee4fdee70fd202365200960d64aed83180cd517395d"
     },
@@ -15,8 +23,16 @@
       "sha256": "b33e279d61be3f865b62a8acd7f7be375024121552813a996fc761789f567a82"
     },
     {
+      "path": "docs/grace-memory-host-corpus-oracle/independent-counts.json",
+      "sha256": "cb9e189bc8e8f927c1a7cf39d115adfabb10363ff30c5463af363a361dd71161"
+    },
+    {
       "path": "docs/grace-memory-host-corpus-oracle/long-atoms-expected.json.gz",
       "sha256": "f25d33548c44ef83a8836c591b0de6c7616cf6041bf92b7c06d9b0593003d169"
+    },
+    {
+      "path": "docs/grace-memory-host-corpus-oracle/native-candidate-audit-progress.json",
+      "sha256": "bfa0b8c2195d45b659bdf76098c295ef69d12ec44e8a2c078334494103d8afd5"
     },
     {
       "path": "docs/grace-memory-host-corpus-oracle/nested-mixed-expected.json.gz",
@@ -40,7 +56,7 @@
     },
     {
       "path": "docs/grace-memory-host-corpus-oracle/verify_corpus.py",
-      "sha256": "110b4334fb33a41ea9665ed8209bc28f5440aa173c9efe1135c248d3a3081076"
+      "sha256": "133ca68609f7b7c326efbfc55c91b5fbe2269555051f6aebd5b9817a7b8165ed"
     },
     {
       "path": "docs/grace-memory-host-corpus-oracle/workloads/fresh-dominant.json",
