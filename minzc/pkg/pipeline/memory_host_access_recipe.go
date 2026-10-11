@@ -73,6 +73,9 @@ func memoryHostMemoryRecipe(m *memoryHostZ80Memory, pc uint16) ([]memoryHostByte
 		return nil, nil
 	}
 	switch b {
+	case 0xe3:
+		sp := m.cpu.SP()
+		return []memoryHostByteRecipe{{sp, false}, {sp + 1, false}, {sp + 1, true}, {sp, true}}, nil
 	case 0x0a:
 		return bytes(m.cpu.BC(), 1, false), nil
 	case 0x1a:

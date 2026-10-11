@@ -13,6 +13,9 @@ type memoryHostZ80Memory struct {
 	cpu                                                  *z80.Z80
 	snapshots                                            map[uint16]memoryHostSnapshotStep
 	activeSnapshot                                       *memoryHostActiveSnapshot
+	callSpills                                           map[uint16]memoryHostCallSpillStep
+	activeCallSpill                                      *memoryHostActiveCallSpill
+	savedCallSpills                                      []memoryHostSavedCallSpill
 	snapshotData                                         bool
 	stackPair                                            [65536]string
 	data                                                 [65536]byte
@@ -86,6 +89,7 @@ func (m *memoryHostZ80Memory) begin(pc uint16) {
 	}
 	m.prepareFrame(pc)
 	m.beginSnapshot(pc)
+	m.beginCallSpill(pc)
 	m.fetchNext = int(pc)
 	m.fetchEnd = int(pc) + n
 }
@@ -207,6 +211,9 @@ func memoryHostNativeStep(m *memoryHostZ80Memory) (cycles int, err error) {
 		return 0, fmt.Errorf("protected memory recipe not consumed at %04x", m.instructionPC)
 	}
 	if e := m.finishSnapshot(); e != nil {
+		return 0, e
+	}
+	if e := m.finishCallSpill(); e != nil {
 		return 0, e
 	}
 	if pair, ok := snapshotPushPair(m.data[m.instructionPC : int(m.instructionPC)+m.lengths[m.instructionPC]]); ok {
