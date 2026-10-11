@@ -305,6 +305,8 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
 		m.cpu.SetPC(uint16(entry))
 		m.cpu.SetSP(w.Layout.StackHigh - 2)
 		m.callFrames = []memoryHostCallFrame{{w.Layout.StackHigh - 2, w.Layout.ReturnPC}}
+		m.savedCallSpills = nil
+		m.activeCallSpill = nil
 		clear(m.stackInitialized[:])
 		m.stackInitialized[w.Layout.StackHigh-2] = true
 		m.stackInitialized[w.Layout.StackHigh-1] = true
@@ -372,6 +374,8 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
 			copied := *denied
 			obs.Failure = &copied
 			obs.Error = runErr.Error()
+		} else if m.activeCallSpill != nil || len(m.savedCallSpills) != 0 {
+			return fail(fmt.Errorf("unretired native call-spill snapshot"))
 		} else if m.cpu.SP() != w.Layout.StackHigh {
 			return fail(fmt.Errorf("return stack mismatch"))
 		} else {
