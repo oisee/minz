@@ -1,0 +1,18 @@
+{
+  "original": {
+    "final.mir2": "7c6d066dba853d5612611b53a442e5a355d1480e31d0c0225feff75525fbd913",
+    "target.a80": "50adcc358a40137344cfeed0e6e6130864823a210037f7982187c2bc69fae74f",
+    "target.bin": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941",
+    "source.nanz": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+    "factory-baseline.json": "214a5a0562cc3317a520bbb5ad2f45248a7e805343360d824df36600f160dac3",
+    "allocation.json": "9af8fdfdeb8d341f6f28097323c96a5b59d1fee911045b363782e8e64e0d8976"
+  },
+  "both": {
+    "final.mir2": "936a8d9aca6f7ac80723e498fab2bc44ffacfe2b05037d470bb45938ceee9ef1",
+    "target.a80": "c7c331a30c417ac365bf87cbbc2cd7cbe0ece6fbe79e77384b02c12703223aa9",
+    "target.bin": "4bdce86bd7a724f34e7eee180e8a6530b07f33cadd39e7a1a93813df6c841c13",
+    "source.nanz": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+    "factory-baseline.json": "9b1c05a1c548e00a15b4096872d8992099f9d954b8b6057aca7de53b7a9b3154",
+    "allocation.json": "fcbbced5794f3a65155762f254a9287133a3842d009e70c158156dc322c7a068"
+  }
+}

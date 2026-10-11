@@ -786,16 +786,17 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 	}
 
 	// ── u16 direct-address load detection ────────────────────────────────────
-	// Pattern: OpLoad(w=16, addrReg=AddrOf(sym)) → dst (u16, must be HL)
-	// Enables LD HL, (sym) (20T, no A clobber) instead of INC/DEC trick via A.
+	// Pattern: OpLoad(w=16, addrReg=AddrOf(sym)) → dst (u16, must be HL/DE/BC)
+	// Enables direct LD rr, (sym) without scratch-register clobbers.
 	// Only fires when addrReg is used solely by this load (useCount==1) so we
 	// can safely skip the AddrOf instruction (suppress LD HL,sym).
 	for _, inst := range b.Insts {
 		if inst.Op != OpLoad || inst.Ty.Width() != 16 || inst.Dst == NoReg {
 			continue
 		}
-		if g.ar.Loc(inst.Dst).Name != "HL" {
-			continue // only LD HL,(nn) exists for direct u16 load
+		dst := g.ar.Loc(inst.Dst).Name
+		if dst != "HL" && dst != "DE" && dst != "BC" {
+			continue
 		}
 		addrReg := inst.Src[0]
 		def, ok := defInst[addrReg]
@@ -804,6 +805,22 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 		}
 		if useCount[addrReg] != 1 {
 			continue // addr reg used by other instructions too
+		}
+		// The DE/BC extension requires the address to have one use across
+		// the whole function, including direct successor and terminator uses.
+		if dst != "HL" {
+			if g.fn == nil || countRegUses(g.fn)[addrReg] != 1 {
+				continue
+			}
+			storage := false
+			for _, global := range g.mod.Globals {
+				if global.Name == def.Sym && ByteWidth(global.Ty) >= 2 {
+					storage = true
+				}
+			}
+			if !storage {
+				continue
+			}
 		}
 		g.globalU16LoadSym[addrReg] = def.Sym
 		g.globalFieldSkip[addrReg] = true // suppress LD HL, sym from OpAddrOf

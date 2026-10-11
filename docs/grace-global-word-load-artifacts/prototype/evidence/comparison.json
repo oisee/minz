@@ -1,0 +1,24 @@
+[
+  {
+    "variant": "original",
+    "previous_t_states": 1221494,
+    "current_t_states": 1135370,
+    "previous_bytes": 2091,
+    "current_bytes": 2000,
+    "previous_binary_sha256": "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51",
+    "current_binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941",
+    "current_compiler_id": "executable-sha256:ea9b0791f3c9cf57280e3ba6a578c40b36482aec2c92361e5ffdbc925b2d23f7",
+    "previous_compiler_id": "executable-sha256:1bd95516f7b1ef1ba56c17822104936e2b73fe8bde5fe7368dd128811009f041"
+  },
+  {
+    "variant": "both",
+    "previous_t_states": 1147025,
+    "current_t_states": 1079636,
+    "previous_bytes": 2197,
+    "current_bytes": 2099,
+    "previous_binary_sha256": "2ed1a44a51fa41196191a8fad9429a5b97040aefa5f9fc90257c2fa7921d93cc",
+    "current_binary_sha256": "4bdce86bd7a724f34e7eee180e8a6530b07f33cadd39e7a1a93813df6c841c13",
+    "current_compiler_id": "executable-sha256:ea9b0791f3c9cf57280e3ba6a578c40b36482aec2c92361e5ffdbc925b2d23f7",
+    "previous_compiler_id": "executable-sha256:1bd95516f7b1ef1ba56c17822104936e2b73fe8bde5fe7368dd128811009f041"
+  }
+]

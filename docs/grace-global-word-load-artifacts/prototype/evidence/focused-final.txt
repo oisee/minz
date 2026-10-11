@@ -1,0 +1,48 @@
+=== RUN   TestGlobalWordDirectPairNative
+=== RUN   TestGlobalWordDirectPairNative/DE_0000
+=== RUN   TestGlobalWordDirectPairNative/DE_00ff
+=== RUN   TestGlobalWordDirectPairNative/DE_0100
+=== RUN   TestGlobalWordDirectPairNative/DE_ffff
+=== RUN   TestGlobalWordDirectPairNative/DE_1234
+=== RUN   TestGlobalWordDirectPairNative/DE_90ff
+=== RUN   TestGlobalWordDirectPairNative/BC_0000
+=== RUN   TestGlobalWordDirectPairNative/BC_00ff
+=== RUN   TestGlobalWordDirectPairNative/BC_0100
+=== RUN   TestGlobalWordDirectPairNative/BC_ffff
+=== RUN   TestGlobalWordDirectPairNative/BC_1234
+=== RUN   TestGlobalWordDirectPairNative/BC_90ff
+--- PASS: TestGlobalWordDirectPairNative (0.01s)
+    --- PASS: TestGlobalWordDirectPairNative/DE_0000 (0.00s)
+    --- PASS: TestGlobalWordDirectPairNative/DE_00ff (0.00s)
+    --- PASS: TestGlobalWordDirectPairNative/DE_0100 (0.00s)
+    --- PASS: TestGlobalWordDirectPairNative/DE_ffff (0.00s)
+    --- PASS: TestGlobalWordDirectPairNative/DE_1234 (0.00s)
+    --- PASS: TestGlobalWordDirectPairNative/DE_90ff (0.00s)
+    --- PASS: TestGlobalWordDirectPairNative/BC_0000 (0.00s)
+    --- PASS: TestGlobalWordDirectPairNative/BC_00ff (0.00s)
+    --- PASS: TestGlobalWordDirectPairNative/BC_0100 (0.00s)
+    --- PASS: TestGlobalWordDirectPairNative/BC_ffff (0.00s)
+    --- PASS: TestGlobalWordDirectPairNative/BC_1234 (0.00s)
+    --- PASS: TestGlobalWordDirectPairNative/BC_90ff (0.00s)
+=== RUN   TestGlobalWordDirectPairRefusals
+=== RUN   TestGlobalWordDirectPairRefusals/DE_shared
+=== RUN   TestGlobalWordDirectPairRefusals/DE_numeric
+=== RUN   TestGlobalWordDirectPairRefusals/DE_successor
+=== RUN   TestGlobalWordDirectPairRefusals/BC_shared
+=== RUN   TestGlobalWordDirectPairRefusals/BC_numeric
+=== RUN   TestGlobalWordDirectPairRefusals/BC_successor
+--- PASS: TestGlobalWordDirectPairRefusals (0.00s)
+    --- PASS: TestGlobalWordDirectPairRefusals/DE_shared (0.00s)
+    --- PASS: TestGlobalWordDirectPairRefusals/DE_numeric (0.00s)
+    --- PASS: TestGlobalWordDirectPairRefusals/DE_successor (0.00s)
+    --- PASS: TestGlobalWordDirectPairRefusals/BC_shared (0.00s)
+    --- PASS: TestGlobalWordDirectPairRefusals/BC_numeric (0.00s)
+    --- PASS: TestGlobalWordDirectPairRefusals/BC_successor (0.00s)
+=== RUN   TestGlobalWordDirectPairAsmUseRemains
+--- PASS: TestGlobalWordDirectPairAsmUseRemains (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.020s
+=== RUN   TestGlobalWordDirectEDClosedRecipe
+--- PASS: TestGlobalWordDirectEDClosedRecipe (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.012s
