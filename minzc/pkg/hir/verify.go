@@ -619,6 +619,7 @@ func (v *hirVerifier) expr(e Expr, env map[string]mir2.Ty) error {
 				if e.Ty != mir2.TyVoid {
 					consumed.Returns = []mir2.Ty{e.Ty}
 				}
+				consumed.ResolveStructReturnABI()
 				if sig != nil && len(sig.Params) != len(e.Args) {
 					return v.fail("call arity %d, want %d", len(e.Args), len(sig.Params))
 				}

@@ -1,0 +1,22 @@
+ok  	github.com/minz/minzc/pkg/hir	0.015s
+ok  	github.com/minz/minzc/pkg/mir2	0.014s
+--- FAIL: TestStructReturnNestedAndRecursiveNative (0.00s)
+panic: statement 0: HIR indirect: callback invocation disagrees with explicit signature; ABI adapter required [recovered, repanicked]
+
+goroutine 67 [running]:
+testing.tRunner.func1.2({0xea7fa0, 0xaaffa7ca60})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:1974 +0x232
+testing.tRunner.func1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:1977 +0x349
+panic({0xea7fa0?, 0xaaffa7ca60?})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/panic.go:860 +0x13a
+github.com/minz/minzc/pkg/hir.LowerModule(0xaafffb6c60)
+	/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/hir/lower.go:48 +0x659
+github.com/minz/minzc/pkg/pipeline.TestStructReturnNestedAndRecursiveNative(0xaaffb786c8)
+	/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/pipeline/struct_return_lifetime_test.go:193 +0x1d2
+testing.tRunner(0xaaffb786c8, 0xfc6058)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2036 +0xea
+created by testing.(*T).Run in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2101 +0x4c5
+FAIL	github.com/minz/minzc/pkg/pipeline	4.509s
+FAIL
