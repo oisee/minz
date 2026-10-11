@@ -538,5 +538,6 @@ VIR можно перепроектировать вокруг MIR-native про
 пока не доказана и он не заменяет текущий PBQP. Старый researchisland
 эмиттер не имеет корректных joins и не допускается в productpath.
 
-Флаговые scalarwriters исправлены; wideCMP/extension ещё в работе.
+Флаговые scalar writers и полноразрядные u32/i32 сравнения исправлены;
+unsigned widening extension ещё в работе. [Проверки интеграции133](grace-integration-133/README.md).
 Полный pipelinea7954042 жив, currentfullPASS по нему не заявляется.

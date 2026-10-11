@@ -1,0 +1,182 @@
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shl0
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shl1
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shl7
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shl16
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shl31
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shl32
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shr0
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shr1
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shr7
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shr16
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shr31
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shr32
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/sar0
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/sar1
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/sar7
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/sar16
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/sar31
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/sar32
+--- PASS: TestWideShiftRetainsLiveFlagAndAccumulator (0.02s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shl0 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shl1 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shl7 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shl16 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shl31 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shl32 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shr0 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shr1 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shr7 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shr16 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shr31 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shr32 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/sar0 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/sar1 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/sar7 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/sar16 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/sar31 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/sar32 (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.027s
+=== RUN   TestFlagWriterRetainsComparisonValue
+=== RUN   TestFlagWriterRetainsComparisonValue/shr8
+=== RUN   TestFlagWriterRetainsComparisonValue/shr16
+=== RUN   TestFlagWriterRetainsComparisonValue/shl8
+=== RUN   TestFlagWriterRetainsComparisonValue/shl16
+=== RUN   TestFlagWriterRetainsComparisonValue/sar8
+=== RUN   TestFlagWriterRetainsComparisonValue/sar16
+=== RUN   TestFlagWriterRetainsComparisonValue/add8
+=== RUN   TestFlagWriterRetainsComparisonValue/add16
+=== RUN   TestFlagWriterRetainsComparisonValue/sub8
+=== RUN   TestFlagWriterRetainsComparisonValue/sub16
+=== RUN   TestFlagWriterRetainsComparisonValue/and8
+=== RUN   TestFlagWriterRetainsComparisonValue/and16
+=== RUN   TestFlagWriterRetainsComparisonValue/or8
+=== RUN   TestFlagWriterRetainsComparisonValue/or16
+=== RUN   TestFlagWriterRetainsComparisonValue/xor8
+=== RUN   TestFlagWriterRetainsComparisonValue/xor16
+=== RUN   TestFlagWriterRetainsComparisonValue/div8
+=== RUN   TestFlagWriterRetainsComparisonValue/div16
+=== RUN   TestFlagWriterRetainsComparisonValue/mod8
+=== RUN   TestFlagWriterRetainsComparisonValue/mod16
+=== RUN   TestFlagWriterRetainsComparisonValue/neg8
+=== RUN   TestFlagWriterRetainsComparisonValue/neg16
+--- PASS: TestFlagWriterRetainsComparisonValue (0.60s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/shr8 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/shr16 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/shl8 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/shl16 (0.03s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/sar8 (0.03s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/sar16 (0.04s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/add8 (0.03s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/add16 (0.03s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/sub8 (0.03s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/sub16 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/and8 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/and16 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/or8 (0.03s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/or16 (0.04s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/xor8 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/xor16 (0.03s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/div8 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/div16 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/mod8 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/mod16 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/neg8 (0.03s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/neg16 (0.04s)
+=== RUN   TestFlagWriterRetainsBranchPredicate
+--- PASS: TestFlagWriterRetainsBranchPredicate (0.01s)
+=== RUN   TestU32ActualOperationsNative
+=== RUN   TestU32ActualOperationsNative/dynamic_shl
+=== RUN   TestU32ActualOperationsNative/dynamic_shr
+=== RUN   TestU32ActualOperationsNative/callxor
+=== RUN   TestU32ActualOperationsNative/add
+=== RUN   TestU32ActualOperationsNative/sub
+=== RUN   TestU32ActualOperationsNative/shl1
+=== RUN   TestU32ActualOperationsNative/shl16
+=== RUN   TestU32ActualOperationsNative/shr1
+=== RUN   TestU32ActualOperationsNative/shr16
+=== RUN   TestU32ActualOperationsNative/xor
+=== RUN   TestU32ActualOperationsNative/and
+=== RUN   TestU32ActualOperationsNative/or
+=== RUN   TestU32ActualOperationsNative/ror7
+=== RUN   TestU32ActualOperationsNative/rotate0
+=== RUN   TestU32ActualOperationsNative/rotate1
+=== RUN   TestU32ActualOperationsNative/rotate7
+=== RUN   TestU32ActualOperationsNative/rotate16
+=== RUN   TestU32ActualOperationsNative/rotate31
+=== RUN   TestU32ActualOperationsNative/rotate32
+--- PASS: TestU32ActualOperationsNative (1.87s)
+    --- PASS: TestU32ActualOperationsNative/dynamic_shl (0.15s)
+    --- PASS: TestU32ActualOperationsNative/dynamic_shr (0.14s)
+    --- PASS: TestU32ActualOperationsNative/callxor (0.18s)
+    --- PASS: TestU32ActualOperationsNative/add (0.07s)
+    --- PASS: TestU32ActualOperationsNative/sub (0.06s)
+    --- PASS: TestU32ActualOperationsNative/shl1 (0.06s)
+    --- PASS: TestU32ActualOperationsNative/shl16 (0.08s)
+    --- PASS: TestU32ActualOperationsNative/shr1 (0.06s)
+    --- PASS: TestU32ActualOperationsNative/shr16 (0.11s)
+    --- PASS: TestU32ActualOperationsNative/xor (0.04s)
+    --- PASS: TestU32ActualOperationsNative/and (0.04s)
+    --- PASS: TestU32ActualOperationsNative/or (0.05s)
+    --- PASS: TestU32ActualOperationsNative/ror7 (0.14s)
+    --- PASS: TestU32ActualOperationsNative/rotate0 (0.11s)
+    --- PASS: TestU32ActualOperationsNative/rotate1 (0.10s)
+    --- PASS: TestU32ActualOperationsNative/rotate7 (0.10s)
+    --- PASS: TestU32ActualOperationsNative/rotate16 (0.11s)
+    --- PASS: TestU32ActualOperationsNative/rotate31 (0.14s)
+    --- PASS: TestU32ActualOperationsNative/rotate32 (0.12s)
+=== RUN   TestU32MemoryAcrossCallProductionVMZ80
+--- PASS: TestU32MemoryAcrossCallProductionVMZ80 (0.01s)
+=== RUN   TestU32ComparisonSourceNative
+=== RUN   TestU32ComparisonSourceNative/u32==/helperfalse
+=== RUN   TestU32ComparisonSourceNative/u32!=/helperfalse
+=== RUN   TestU32ComparisonSourceNative/u32</helperfalse
+=== RUN   TestU32ComparisonSourceNative/u32<=/helperfalse
+=== RUN   TestU32ComparisonSourceNative/u32>/helperfalse
+=== RUN   TestU32ComparisonSourceNative/u32>=/helperfalse
+=== RUN   TestU32ComparisonSourceNative/i32==/helperfalse
+=== RUN   TestU32ComparisonSourceNative/i32!=/helperfalse
+=== RUN   TestU32ComparisonSourceNative/i32</helperfalse
+=== RUN   TestU32ComparisonSourceNative/i32<=/helperfalse
+=== RUN   TestU32ComparisonSourceNative/i32>/helperfalse
+=== RUN   TestU32ComparisonSourceNative/i32>=/helperfalse
+=== RUN   TestU32ComparisonSourceNative/u32==/helpertrue
+=== RUN   TestU32ComparisonSourceNative/u32!=/helpertrue
+=== RUN   TestU32ComparisonSourceNative/u32</helpertrue
+=== RUN   TestU32ComparisonSourceNative/u32<=/helpertrue
+=== RUN   TestU32ComparisonSourceNative/u32>/helpertrue
+=== RUN   TestU32ComparisonSourceNative/u32>=/helpertrue
+=== RUN   TestU32ComparisonSourceNative/i32==/helpertrue
+=== RUN   TestU32ComparisonSourceNative/i32!=/helpertrue
+=== RUN   TestU32ComparisonSourceNative/i32</helpertrue
+=== RUN   TestU32ComparisonSourceNative/i32<=/helpertrue
+=== RUN   TestU32ComparisonSourceNative/i32>/helpertrue
+=== RUN   TestU32ComparisonSourceNative/i32>=/helpertrue
+--- PASS: TestU32ComparisonSourceNative (1.41s)
+    --- PASS: TestU32ComparisonSourceNative/u32==/helperfalse (0.03s)
+    --- PASS: TestU32ComparisonSourceNative/u32!=/helperfalse (0.03s)
+    --- PASS: TestU32ComparisonSourceNative/u32</helperfalse (0.03s)
+    --- PASS: TestU32ComparisonSourceNative/u32<=/helperfalse (0.03s)
+    --- PASS: TestU32ComparisonSourceNative/u32>/helperfalse (0.04s)
+    --- PASS: TestU32ComparisonSourceNative/u32>=/helperfalse (0.04s)
+    --- PASS: TestU32ComparisonSourceNative/i32==/helperfalse (0.03s)
+    --- PASS: TestU32ComparisonSourceNative/i32!=/helperfalse (0.03s)
+    --- PASS: TestU32ComparisonSourceNative/i32</helperfalse (0.03s)
+    --- PASS: TestU32ComparisonSourceNative/i32<=/helperfalse (0.03s)
+    --- PASS: TestU32ComparisonSourceNative/i32>/helperfalse (0.04s)
+    --- PASS: TestU32ComparisonSourceNative/i32>=/helperfalse (0.04s)
+    --- PASS: TestU32ComparisonSourceNative/u32==/helpertrue (0.07s)
+    --- PASS: TestU32ComparisonSourceNative/u32!=/helpertrue (0.08s)
+    --- PASS: TestU32ComparisonSourceNative/u32</helpertrue (0.09s)
+    --- PASS: TestU32ComparisonSourceNative/u32<=/helpertrue (0.08s)
+    --- PASS: TestU32ComparisonSourceNative/u32>/helpertrue (0.09s)
+    --- PASS: TestU32ComparisonSourceNative/u32>=/helpertrue (0.09s)
+    --- PASS: TestU32ComparisonSourceNative/i32==/helpertrue (0.08s)
+    --- PASS: TestU32ComparisonSourceNative/i32!=/helpertrue (0.08s)
+    --- PASS: TestU32ComparisonSourceNative/i32</helpertrue (0.09s)
+    --- PASS: TestU32ComparisonSourceNative/i32<=/helpertrue (0.09s)
+    --- PASS: TestU32ComparisonSourceNative/i32>/helpertrue (0.09s)
+    --- PASS: TestU32ComparisonSourceNative/i32>=/helpertrue (0.08s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.924s

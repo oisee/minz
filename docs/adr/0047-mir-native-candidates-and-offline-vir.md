@@ -62,6 +62,6 @@ Weighted full CALL workload retains 238→142T,44→20B joint matrix benefit;
 K11 plasma and effect-safe byte fusion give independent native benefits.
 These examples do not prove arbitrary CFG/island capability.
 
-Live-F scalar writer correction is integrated; u32 comparison and extension
-counterexamples are being repaired independently. Correctness of the base
+Live-F scalar writer and full-width u32/i32 comparison corrections are
+integrated; unsigned extension counterexamples are being repaired independently. Correctness of the base
 compiler remains a prerequisite for evaluating additional allocation methods.
