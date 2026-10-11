@@ -1151,11 +1151,6 @@
     "sha256": "862263fa1f46c20f0d1e4dac5ffcc75abd55c08211b2c3864c5f8764b9d87793"
   },
   {
-    "path": "independent-semantic/tools/__pycache__/audit_search.cpython-312.pyc",
-    "bytes": 12413,
-    "sha256": "5d6177bb576b0e92d8fd00d22238b2fa51c0d2a47e63656aba837898da82e17f"
-  },
-  {
     "path": "independent-semantic/tools/audit_search.py",
     "bytes": 6539,
     "sha256": "01ea8561948c31e98a96b2cc3d8b152de904732fb3a3e988fc12d5b417fdd15c"
@@ -1164,16 +1159,6 @@
     "path": "independent-semantic/tools/audit_transfer.py",
     "bytes": 5178,
     "sha256": "683a7cc48710eac700e0d5687b2e6cd2c9ca0950eb5861f8ff9eb80e30f7b638"
-  },
-  {
-    "path": "independent-semantic/tools/model/__pycache__/audit_profile.cpython-312.pyc",
-    "bytes": 3505,
-    "sha256": "9d5fa1015382f6b13ca0aa92727616dd6beda76888dc9f124de2bca048848cba"
-  },
-  {
-    "path": "independent-semantic/tools/model/__pycache__/verify_corpus.cpython-312.pyc",
-    "bytes": 19213,
-    "sha256": "bd13f955c8226797afee81ba1856e3fc8ed6548bbed294de1f50d236105f82b7"
   },
   {
     "path": "independent-semantic/tools/model/audit_profile.py",
