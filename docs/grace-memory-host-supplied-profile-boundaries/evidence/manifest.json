@@ -25,6 +25,196 @@
     "sha256": "3c21bb61555a4f37dd309eca671f7720cb62410d883ee25606ab3bd2de49a038"
   },
   {
+    "path": "independent-native-review/FINAL_AUDIT.md",
+    "bytes": 1524,
+    "sha256": "72aefc6dfb1bf8bf71ae10bd9231bb281517f44cf0712f234e68e83564b8d028"
+  },
+  {
+    "path": "independent-native-review/INPUT_REVIEW.md",
+    "bytes": 1200,
+    "sha256": "5292c0b9a2175d20967455811a76dec077a7b3097f20a9b1b897770e873d3d01"
+  },
+  {
+    "path": "independent-native-review/PLAN.md",
+    "bytes": 1731,
+    "sha256": "c8b24419f254be3cebdde5f8b1a8e1ff8c08d36db3a8394e68c9e1e74c234ffb"
+  },
+  {
+    "path": "independent-native-review/append-oracle.txt",
+    "bytes": 317,
+    "sha256": "4d4ea5f829c16cbbc71d898fd0fee47875968746a178be917d25e825fc3f8ba3"
+  },
+  {
+    "path": "independent-native-review/append-typed.txt",
+    "bytes": 379,
+    "sha256": "f81d2c96c83908de5ecf116e57225142087f35f4bb175d3411bed08283a70f2e"
+  },
+  {
+    "path": "independent-native-review/arena-oracle.txt",
+    "bytes": 317,
+    "sha256": "a596a158e4c921f97792ac2a2cae203955089e8d3ca8e5be16691261fad57187"
+  },
+  {
+    "path": "independent-native-review/arena-typed.txt",
+    "bytes": 379,
+    "sha256": "46c8360d9e5e8dcdc38cae6be81ee727e08f2dbcc782679e3ca7c8a5342b9994"
+  },
+  {
+    "path": "independent-native-review/audit_native_dynamic.py",
+    "bytes": 4118,
+    "sha256": "a4cd2f30e7af9b3809eea5155b8d527a55aed3b38da7f6eca36551af7b2096c9"
+  },
+  {
+    "path": "independent-native-review/audit_saved.py",
+    "bytes": 2448,
+    "sha256": "5d3fbd89b49d8647b725826f6bd3f21dd4a6529755ee7c3ea69fe2983b1a123d"
+  },
+  {
+    "path": "independent-native-review/audit_typed_dynamic.go.txt",
+    "bytes": 2140,
+    "sha256": "ec427538c90d0232e4066b9881e26f9b74ef298f3f335216446bad6088b21703"
+  },
+  {
+    "path": "independent-native-review/both-oracle.txt",
+    "bytes": 317,
+    "sha256": "3f2b2bb96b58cdecac30a5d046c57205715f350662e9cd630cf01af6cc17cf03"
+  },
+  {
+    "path": "independent-native-review/both-typed.txt",
+    "bytes": 379,
+    "sha256": "37ab567f671ceb819ae1b97fca6c860c865d4ba85b60767041ba54e99001b49b"
+  },
+  {
+    "path": "independent-native-review/commands.json",
+    "bytes": 3694,
+    "sha256": "245f2b458628676b9d5c4495d848d891450157e059f0d0fd02857ea8c0394840"
+  },
+  {
+    "path": "independent-native-review/exit-codes.json",
+    "bytes": 940,
+    "sha256": "3c21bb61555a4f37dd309eca671f7720cb62410d883ee25606ab3bd2de49a038"
+  },
+  {
+    "path": "independent-native-review/final-payload-inventory.json",
+    "bytes": 4960,
+    "sha256": "bff2eb94318b9212c0f74b1bcfff695561d90be5f76aabe40ba718672eda68db"
+  },
+  {
+    "path": "independent-native-review/input-inventory.json",
+    "bytes": 657,
+    "sha256": "af310fe88f7b44fa540fb6e6730ee46d10cffea5cec9a31aca5693f98ae2a9f3"
+  },
+  {
+    "path": "independent-native-review/input-mutations.json",
+    "bytes": 1469,
+    "sha256": "9a09c576621f9368301bf447767ec984ced401e07c71d60270973cd00999692b"
+  },
+  {
+    "path": "independent-native-review/native-audit.txt",
+    "bytes": 939,
+    "sha256": "9d9c20017100b890cc4fdc80b33c6ea78b0e5dfad89f69be6445c9668a6beb5a"
+  },
+  {
+    "path": "independent-native-review/native-identity.json",
+    "bytes": 507,
+    "sha256": "fd8a85d9ec11aa9d8b27b37e462eeb9afc18c0cec29a472a3bca9571cfa4165d"
+  },
+  {
+    "path": "independent-native-review/original-oracle.txt",
+    "bytes": 317,
+    "sha256": "5867a2ae89dcf4dafa7a4c46e7b6676e56e004c5d45c764d90849666c756b027"
+  },
+  {
+    "path": "independent-native-review/original-typed.txt",
+    "bytes": 379,
+    "sha256": "20f04aca0a0b0e505afaaa1cb4b09e45f7bfed918c663c22fd347b8227a97cd4"
+  },
+  {
+    "path": "independent-native-review/run_cli.py",
+    "bytes": 1638,
+    "sha256": "f7c128f62c33d58ce3d57b576e248d87ce1c59929c7bd15d1c1ac37267283989"
+  },
+  {
+    "path": "independent-native-review/saved-audit.txt",
+    "bytes": 455,
+    "sha256": "1d1fb7cb96b8b1e1b2b9e5319b448a8374cf3089041be400a32d13e089a0b396"
+  },
+  {
+    "path": "independent-native-review/stale-executable-cli.txt",
+    "bytes": 64,
+    "sha256": "21d937937663a0c4e8a577be5ec13d4cf1bd882ef0c9138a174248969b34c932"
+  },
+  {
+    "path": "independent-native-review/synthetic-cumulative-mismatch-cli.txt",
+    "bytes": 54,
+    "sha256": "2190e3827081c2d705ada5cd490f420fb29d24a8858dfe0bd57b823f26dc41eb"
+  },
+  {
+    "path": "independent-native-review/synthetic-failed-invocation-cli.txt",
+    "bytes": 46,
+    "sha256": "de8bfb20e351c93ded877e199438127752b26e55402708314e79fe1e859034b7"
+  },
+  {
+    "path": "independent-native-review/synthetic-failed-sample-cli.txt",
+    "bytes": 56,
+    "sha256": "c8fa42d90baf368feeb37d10933887cbb587ef42f20dc4c837b111f2edc1980f"
+  },
+  {
+    "path": "independent-native-review/verify_corpus.py",
+    "bytes": 8531,
+    "sha256": "110b4334fb33a41ea9665ed8209bc28f5440aa173c9efe1135c248d3a3081076"
+  },
+  {
+    "path": "independent-oracle-review/FINAL-AUDIT.md",
+    "bytes": 2144,
+    "sha256": "4236f91011b41cac743df01c2bc91bc09dad8ee15b3b5630b5542913be87454c"
+  },
+  {
+    "path": "independent-oracle-review/PLAN.md",
+    "bytes": 2425,
+    "sha256": "114a449936e8b674d3e1459c72c326a79182b05f2e0a3898ed12e2d478d0a333"
+  },
+  {
+    "path": "independent-oracle-review/audit_supplied.py",
+    "bytes": 5737,
+    "sha256": "8dee7769579f7450ba3dcbe39ef07e3c320991c771abcc57d4693a78f0ba3561"
+  },
+  {
+    "path": "independent-oracle-review/final-audit.json",
+    "bytes": 2502,
+    "sha256": "15fe5fee467db09c9c56618a7b6357d52e469977db31da8940ce0ca754256f3b"
+  },
+  {
+    "path": "independent-oracle-review/final-audit.txt",
+    "bytes": 173,
+    "sha256": "74bead9f8a9a6ec22f489f664b17442f83769e8f4e71f1c63b7ff4ae13d089f6"
+  },
+  {
+    "path": "independent-oracle-review/input-identities.json",
+    "bytes": 1369,
+    "sha256": "c0eb2d9792b0ea2eaf23caadf7dbf3d7b98c7a39d01bfdeaec6758cac376b395"
+  },
+  {
+    "path": "independent-oracle-review/inventory.json",
+    "bytes": 1361,
+    "sha256": "6e6d03372179a4f1ada3d386440a8c818784a48f8892c06a45f90d9fc0e3630b"
+  },
+  {
+    "path": "independent-oracle-review/model/audit_profile.py",
+    "bytes": 1951,
+    "sha256": "50814a6c4b56c341836bf58803cf14cb23918e74d92973b0bfb04d0217a37531"
+  },
+  {
+    "path": "independent-oracle-review/model/verify_corpus.py",
+    "bytes": 9576,
+    "sha256": "dd24ae1bfa38924b0b560f55d253084478e160647356f42e9aa23aa833e5b616"
+  },
+  {
+    "path": "independent-oracle-review/portable-gzip-audit.json",
+    "bytes": 2502,
+    "sha256": "15fe5fee467db09c9c56618a7b6357d52e469977db31da8940ce0ca754256f3b"
+  },
+  {
     "path": "inputs/stale-executable.json.gz",
     "bytes": 2688,
     "sha256": "c979304bdd4ac7da3e6e3f7de8eabc2224e5cfdb3d47bc8d3fdc8ff935ce52ff"

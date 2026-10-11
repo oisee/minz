@@ -1,0 +1,34 @@
+[
+  {
+    "path": "docs/grace-memory-host-supplied-profile-review/FINAL-AUDIT.md",
+    "sha256": "4236f91011b41cac743df01c2bc91bc09dad8ee15b3b5630b5542913be87454c"
+  },
+  {
+    "path": "docs/grace-memory-host-supplied-profile-review/PLAN.md",
+    "sha256": "114a449936e8b674d3e1459c72c326a79182b05f2e0a3898ed12e2d478d0a333"
+  },
+  {
+    "path": "docs/grace-memory-host-supplied-profile-review/audit_supplied.py",
+    "sha256": "bb9809225791f3c7cbbefa5dd53850303aecd39604b30b37812e1286d63c4193"
+  },
+  {
+    "path": "docs/grace-memory-host-supplied-profile-review/final-audit.json",
+    "sha256": "15fe5fee467db09c9c56618a7b6357d52e469977db31da8940ce0ca754256f3b"
+  },
+  {
+    "path": "docs/grace-memory-host-supplied-profile-review/final-audit.txt",
+    "sha256": "74bead9f8a9a6ec22f489f664b17442f83769e8f4e71f1c63b7ff4ae13d089f6"
+  },
+  {
+    "path": "docs/grace-memory-host-supplied-profile-review/input-identities.json",
+    "sha256": "c0eb2d9792b0ea2eaf23caadf7dbf3d7b98c7a39d01bfdeaec6758cac376b395"
+  },
+  {
+    "path": "docs/grace-memory-host-supplied-profile-review/model/audit_profile.py",
+    "sha256": "50814a6c4b56c341836bf58803cf14cb23918e74d92973b0bfb04d0217a37531"
+  },
+  {
+    "path": "docs/grace-memory-host-supplied-profile-review/model/verify_corpus.py",
+    "sha256": "133ca68609f7b7c326efbfc55c91b5fbe2269555051f6aebd5b9817a7b8165ed"
+  }
+]

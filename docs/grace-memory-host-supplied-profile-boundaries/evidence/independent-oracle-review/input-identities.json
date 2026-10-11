@@ -1,0 +1,30 @@
+[
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-arena-append-cli-evidence/small-collect/source-profile.json",
+    "sha256": "66b315648b68590a750e6f9e9cddb84cfb04cc6e6c17ab6b09e9d83cb6d702e4",
+    "compiler_id": "executable-sha256:852cf9a5e47c4440bf1d10b286a6f49f702ab2f5bb1cf7765dd84871b2da6c3a",
+    "completed_calls": 2,
+    "failed_calls": 0
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-arena-append-cli-evidence/small-collect/workload.json",
+    "sha256": "1e6d2b0640ce68ae98014ca93458730a27214f501d5e05ef7950e629d9934968",
+    "compiler_id": null,
+    "completed_calls": null,
+    "failed_calls": null
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-choice-boundaries-evidence/zero-body/speed/source-profile.json",
+    "sha256": "bfc9fe165721e5d02d03a1660574422f70f8d8f3b95f1961dd1d59c75e7d3b64",
+    "compiler_id": "executable-sha256:1bd95516f7b1ef1ba56c17822104936e2b73fe8bde5fe7368dd128811009f041",
+    "completed_calls": 2,
+    "failed_calls": 0
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-choice-boundaries-evidence/zero-body/speed/workload.json",
+    "sha256": "b0e61bb838e401b7fdfef2140035e2dbc103357059529bfce894d508bb2e339d",
+    "compiler_id": null,
+    "completed_calls": null,
+    "failed_calls": null
+  }
+]
