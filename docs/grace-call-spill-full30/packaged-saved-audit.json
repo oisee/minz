@@ -1,0 +1,1048 @@
+{
+  "saved_records": 1200,
+  "actual_execution_observations": 1080,
+  "duplicate_records": 120,
+  "scope": "saved-only compressedpacket audit; noCPU",
+  "runs": [
+    {
+      "schema": "minz.independent-policy-search-saved-audit/v1",
+      "executable_sha256": "9ec48c5f2eaa42e786be9adddc0b824c374d5c39a599a8d2dd0ef3181a2b65d1",
+      "native_observations": 300,
+      "actual_speed_selected": {
+        "policy": 1,
+        "mask": 3
+      },
+      "derived_size_selected": {
+        "policy": 0,
+        "mask": 2
+      },
+      "candidates": [
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "a9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73",
+          "t_states": 1291565,
+          "bytes": 2388,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 0,
+          "mask": 0
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef129d64d88f6ce578d4a6c1463e12f8d3206d33d3da99c9ec9e537cc9ca476a",
+          "t_states": 1291406,
+          "bytes": 2509,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 0,
+          "mask": 1
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "5d8588a4a3ecada3a5bcbb067f4aa1fb3d60e8b14214c5cb39addaa5ce286d8b",
+          "t_states": 1236250,
+          "bytes": 2368,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 0,
+          "mask": 2
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "cb53d40e0116197490039b790be0cf999cac64c2307815763dbc9b9c75d54802",
+          "t_states": 1236091,
+          "bytes": 2489,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 0,
+          "mask": 3
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "47791ef78aab433663b8339a06dedd7a7dc329a8d1f85a83f1f24dd60dd57ffc",
+          "t_states": 1288644,
+          "bytes": 2389,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 1,
+          "mask": 0
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "6e78a70976e9427b9314dfc7f2a2c49ffbac9ca5f82808aa335def9ef0e37e84",
+          "t_states": 1288485,
+          "bytes": 2510,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 1,
+          "mask": 1
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "a874b250df9ae8097b8efbae58395d49058fd0f53ee4f099ecb794172675d24d",
+          "t_states": 1233329,
+          "bytes": 2369,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 1,
+          "mask": 2
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "e27bcef5adc5db0cb598bd32c0b0c9984bd032553cfbb7e6f48bf4057e51acdd",
+          "t_states": 1233170,
+          "bytes": 2490,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 1,
+          "mask": 3
+        }
+      ],
+      "input_baselines": [
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "a9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73",
+          "t_states": 1291565,
+          "bytes": 2388,
+          "str_bump": 37163,
+          "node_bump": 32808
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "47791ef78aab433663b8339a06dedd7a7dc329a8d1f85a83f1f24dd60dd57ffc",
+          "t_states": 1288644,
+          "bytes": 2389,
+          "str_bump": 37163,
+          "node_bump": 32808
+        }
+      ],
+      "source_counts": [
+        {
+          "intern_region/body/s1": [
+            40,
+            156
+          ],
+          "skip_ws/body/s1/then/s0": [
+            4,
+            25
+          ],
+          "main/body/s2": [
+            0,
+            0
+          ],
+          "parse_sexpr/body/s8/then/s2": [
+            9,
+            23
+          ],
+          "region_match/body/s1": [
+            49,
+            59
+          ],
+          "skip_ws/body/s0": [
+            153,
+            24
+          ],
+          "parse_sexpr/body/s5": [
+            51,
+            858
+          ],
+          "parse_sexpr/body/s3/then/s7": [
+            22,
+            27
+          ],
+          "intern_region/body/s5": [
+            13,
+            286
+          ],
+          "print_node/body/s4/then/s3": [
+            0,
+            0
+          ],
+          "print_str/body/s2": [
+            0,
+            0
+          ]
+        },
+        {
+          "intern_region/body/s1": [
+            40,
+            156
+          ],
+          "skip_ws/body/s1/then/s0": [
+            4,
+            25
+          ],
+          "main/body/s2": [
+            0,
+            0
+          ],
+          "parse_sexpr/body/s8/then/s2": [
+            9,
+            23
+          ],
+          "region_match/body/s1": [
+            49,
+            59
+          ],
+          "skip_ws/body/s0": [
+            153,
+            24
+          ],
+          "parse_sexpr/body/s5": [
+            51,
+            858
+          ],
+          "parse_sexpr/body/s3/then/s7": [
+            22,
+            27
+          ],
+          "intern_region/body/s5": [
+            13,
+            286
+          ],
+          "print_node/body/s4/then/s3": [
+            0,
+            0
+          ],
+          "print_str/body/s2": [
+            0,
+            0
+          ]
+        }
+      ],
+      "search_file_sha256": "17d93f354be7a48c0c2ed28357aacd8cbb91bca12c186c723289bbd7298478c5",
+      "input_sha256": [
+        "bdc771e80b4504f361b236d0843d91c93b96d51aece86df9bcd8f72f4a069cf5",
+        "01b8680d4d4aa67b0d512c1f58647dc399dca94c1fbec63b62f0475ca04cee68"
+      ],
+      "actual_goal": "speed",
+      "actual_selected": {
+        "policy": 1,
+        "mask": 3
+      },
+      "scope": "independent exact-source native/state/event/count/proof plus exact CLI decision/file bindings; actual goal, no CPU or target lineage",
+      "decision": {
+        "source_name": "../examples/nanz/self_lanz_parser.nanz",
+        "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+        "schema": "minz.memory-host-arena-append-policy-search-cli-decision/v1",
+        "goal": "speed",
+        "selected": {
+          "policy": 1,
+          "mask": 3
+        },
+        "choices": {
+          "arena_peel": true,
+          "append_hoist": true
+        },
+        "search_sha256": "17d93f354be7a48c0c2ed28357aacd8cbb91bca12c186c723289bbd7298478c5",
+        "association_sha256": [
+          "bdc771e80b4504f361b236d0843d91c93b96d51aece86df9bcd8f72f4a069cf5",
+          "01b8680d4d4aa67b0d512c1f58647dc399dca94c1fbec63b62f0475ca04cee68"
+        ],
+        "binary_sha256": "e27bcef5adc5db0cb598bd32c0b0c9984bd032553cfbb7e6f48bf4057e51acdd",
+        "t_states": 1233170,
+        "bytes": 2490
+      }
+    },
+    {
+      "schema": "minz.independent-policy-search-saved-audit/v1",
+      "executable_sha256": "9ec48c5f2eaa42e786be9adddc0b824c374d5c39a599a8d2dd0ef3181a2b65d1",
+      "native_observations": 300,
+      "actual_speed_selected": {
+        "policy": 1,
+        "mask": 3
+      },
+      "derived_size_selected": {
+        "policy": 0,
+        "mask": 2
+      },
+      "candidates": [
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "a9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73",
+          "t_states": 1291565,
+          "bytes": 2388,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 0,
+          "mask": 0
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef129d64d88f6ce578d4a6c1463e12f8d3206d33d3da99c9ec9e537cc9ca476a",
+          "t_states": 1291406,
+          "bytes": 2509,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 0,
+          "mask": 1
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "5d8588a4a3ecada3a5bcbb067f4aa1fb3d60e8b14214c5cb39addaa5ce286d8b",
+          "t_states": 1236250,
+          "bytes": 2368,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 0,
+          "mask": 2
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "cb53d40e0116197490039b790be0cf999cac64c2307815763dbc9b9c75d54802",
+          "t_states": 1236091,
+          "bytes": 2489,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 0,
+          "mask": 3
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "47791ef78aab433663b8339a06dedd7a7dc329a8d1f85a83f1f24dd60dd57ffc",
+          "t_states": 1288644,
+          "bytes": 2389,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 1,
+          "mask": 0
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "6e78a70976e9427b9314dfc7f2a2c49ffbac9ca5f82808aa335def9ef0e37e84",
+          "t_states": 1288485,
+          "bytes": 2510,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 1,
+          "mask": 1
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "a874b250df9ae8097b8efbae58395d49058fd0f53ee4f099ecb794172675d24d",
+          "t_states": 1233329,
+          "bytes": 2369,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 1,
+          "mask": 2
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "e27bcef5adc5db0cb598bd32c0b0c9984bd032553cfbb7e6f48bf4057e51acdd",
+          "t_states": 1233170,
+          "bytes": 2490,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 1,
+          "mask": 3
+        }
+      ],
+      "input_baselines": [
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "a9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73",
+          "t_states": 1291565,
+          "bytes": 2388,
+          "str_bump": 37163,
+          "node_bump": 32808
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "47791ef78aab433663b8339a06dedd7a7dc329a8d1f85a83f1f24dd60dd57ffc",
+          "t_states": 1288644,
+          "bytes": 2389,
+          "str_bump": 37163,
+          "node_bump": 32808
+        }
+      ],
+      "source_counts": [
+        {
+          "intern_region/body/s1": [
+            40,
+            156
+          ],
+          "skip_ws/body/s1/then/s0": [
+            4,
+            25
+          ],
+          "main/body/s2": [
+            0,
+            0
+          ],
+          "parse_sexpr/body/s8/then/s2": [
+            9,
+            23
+          ],
+          "region_match/body/s1": [
+            49,
+            59
+          ],
+          "skip_ws/body/s0": [
+            153,
+            24
+          ],
+          "parse_sexpr/body/s5": [
+            51,
+            858
+          ],
+          "parse_sexpr/body/s3/then/s7": [
+            22,
+            27
+          ],
+          "intern_region/body/s5": [
+            13,
+            286
+          ],
+          "print_node/body/s4/then/s3": [
+            0,
+            0
+          ],
+          "print_str/body/s2": [
+            0,
+            0
+          ]
+        },
+        {
+          "intern_region/body/s1": [
+            40,
+            156
+          ],
+          "skip_ws/body/s1/then/s0": [
+            4,
+            25
+          ],
+          "main/body/s2": [
+            0,
+            0
+          ],
+          "parse_sexpr/body/s8/then/s2": [
+            9,
+            23
+          ],
+          "region_match/body/s1": [
+            49,
+            59
+          ],
+          "skip_ws/body/s0": [
+            153,
+            24
+          ],
+          "parse_sexpr/body/s5": [
+            51,
+            858
+          ],
+          "parse_sexpr/body/s3/then/s7": [
+            22,
+            27
+          ],
+          "intern_region/body/s5": [
+            13,
+            286
+          ],
+          "print_node/body/s4/then/s3": [
+            0,
+            0
+          ],
+          "print_str/body/s2": [
+            0,
+            0
+          ]
+        }
+      ],
+      "search_file_sha256": "17d93f354be7a48c0c2ed28357aacd8cbb91bca12c186c723289bbd7298478c5",
+      "input_sha256": [
+        "bdc771e80b4504f361b236d0843d91c93b96d51aece86df9bcd8f72f4a069cf5",
+        "01b8680d4d4aa67b0d512c1f58647dc399dca94c1fbec63b62f0475ca04cee68"
+      ],
+      "actual_goal": "speed",
+      "actual_selected": {
+        "policy": 1,
+        "mask": 3
+      },
+      "scope": "independent exact-source native/state/event/count/proof plus exact CLI decision/file bindings; actual goal, no CPU or target lineage",
+      "decision": {
+        "source_name": "../examples/nanz/self_lanz_parser.nanz",
+        "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+        "schema": "minz.memory-host-arena-append-policy-search-cli-decision/v1",
+        "goal": "speed",
+        "selected": {
+          "policy": 1,
+          "mask": 3
+        },
+        "choices": {
+          "arena_peel": true,
+          "append_hoist": true
+        },
+        "search_sha256": "17d93f354be7a48c0c2ed28357aacd8cbb91bca12c186c723289bbd7298478c5",
+        "association_sha256": [
+          "bdc771e80b4504f361b236d0843d91c93b96d51aece86df9bcd8f72f4a069cf5",
+          "01b8680d4d4aa67b0d512c1f58647dc399dca94c1fbec63b62f0475ca04cee68"
+        ],
+        "binary_sha256": "e27bcef5adc5db0cb598bd32c0b0c9984bd032553cfbb7e6f48bf4057e51acdd",
+        "t_states": 1233170,
+        "bytes": 2490
+      }
+    },
+    {
+      "schema": "minz.independent-policy-search-saved-audit/v1",
+      "executable_sha256": "9ec48c5f2eaa42e786be9adddc0b824c374d5c39a599a8d2dd0ef3181a2b65d1",
+      "native_observations": 300,
+      "actual_speed_selected": {
+        "policy": 1,
+        "mask": 3
+      },
+      "derived_size_selected": {
+        "policy": 0,
+        "mask": 2
+      },
+      "candidates": [
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "a9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73",
+          "t_states": 1291565,
+          "bytes": 2388,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 0,
+          "mask": 0
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef129d64d88f6ce578d4a6c1463e12f8d3206d33d3da99c9ec9e537cc9ca476a",
+          "t_states": 1291406,
+          "bytes": 2509,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 0,
+          "mask": 1
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "5d8588a4a3ecada3a5bcbb067f4aa1fb3d60e8b14214c5cb39addaa5ce286d8b",
+          "t_states": 1236250,
+          "bytes": 2368,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 0,
+          "mask": 2
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "cb53d40e0116197490039b790be0cf999cac64c2307815763dbc9b9c75d54802",
+          "t_states": 1236091,
+          "bytes": 2489,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 0,
+          "mask": 3
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "47791ef78aab433663b8339a06dedd7a7dc329a8d1f85a83f1f24dd60dd57ffc",
+          "t_states": 1288644,
+          "bytes": 2389,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 1,
+          "mask": 0
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "6e78a70976e9427b9314dfc7f2a2c49ffbac9ca5f82808aa335def9ef0e37e84",
+          "t_states": 1288485,
+          "bytes": 2510,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 1,
+          "mask": 1
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "a874b250df9ae8097b8efbae58395d49058fd0f53ee4f099ecb794172675d24d",
+          "t_states": 1233329,
+          "bytes": 2369,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 1,
+          "mask": 2
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "e27bcef5adc5db0cb598bd32c0b0c9984bd032553cfbb7e6f48bf4057e51acdd",
+          "t_states": 1233170,
+          "bytes": 2490,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 1,
+          "mask": 3
+        }
+      ],
+      "input_baselines": [
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "a9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73",
+          "t_states": 1291565,
+          "bytes": 2388,
+          "str_bump": 37163,
+          "node_bump": 32808
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "47791ef78aab433663b8339a06dedd7a7dc329a8d1f85a83f1f24dd60dd57ffc",
+          "t_states": 1288644,
+          "bytes": 2389,
+          "str_bump": 37163,
+          "node_bump": 32808
+        }
+      ],
+      "source_counts": [
+        {
+          "intern_region/body/s1": [
+            40,
+            156
+          ],
+          "skip_ws/body/s1/then/s0": [
+            4,
+            25
+          ],
+          "main/body/s2": [
+            0,
+            0
+          ],
+          "parse_sexpr/body/s8/then/s2": [
+            9,
+            23
+          ],
+          "region_match/body/s1": [
+            49,
+            59
+          ],
+          "skip_ws/body/s0": [
+            153,
+            24
+          ],
+          "parse_sexpr/body/s5": [
+            51,
+            858
+          ],
+          "parse_sexpr/body/s3/then/s7": [
+            22,
+            27
+          ],
+          "intern_region/body/s5": [
+            13,
+            286
+          ],
+          "print_node/body/s4/then/s3": [
+            0,
+            0
+          ],
+          "print_str/body/s2": [
+            0,
+            0
+          ]
+        },
+        {
+          "intern_region/body/s1": [
+            40,
+            156
+          ],
+          "skip_ws/body/s1/then/s0": [
+            4,
+            25
+          ],
+          "main/body/s2": [
+            0,
+            0
+          ],
+          "parse_sexpr/body/s8/then/s2": [
+            9,
+            23
+          ],
+          "region_match/body/s1": [
+            49,
+            59
+          ],
+          "skip_ws/body/s0": [
+            153,
+            24
+          ],
+          "parse_sexpr/body/s5": [
+            51,
+            858
+          ],
+          "parse_sexpr/body/s3/then/s7": [
+            22,
+            27
+          ],
+          "intern_region/body/s5": [
+            13,
+            286
+          ],
+          "print_node/body/s4/then/s3": [
+            0,
+            0
+          ],
+          "print_str/body/s2": [
+            0,
+            0
+          ]
+        }
+      ],
+      "search_file_sha256": "40f89e42d5c750141c56800f0f63af7b4778b588f56565165651aa7d33e70fa5",
+      "input_sha256": [
+        "bdc771e80b4504f361b236d0843d91c93b96d51aece86df9bcd8f72f4a069cf5",
+        "01b8680d4d4aa67b0d512c1f58647dc399dca94c1fbec63b62f0475ca04cee68"
+      ],
+      "actual_goal": "size",
+      "actual_selected": {
+        "policy": 0,
+        "mask": 2
+      },
+      "scope": "independent exact-source native/state/event/count/proof plus exact CLI decision/file bindings; actual goal, no CPU or target lineage",
+      "decision": {
+        "source_name": "../examples/nanz/self_lanz_parser.nanz",
+        "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+        "schema": "minz.memory-host-arena-append-policy-search-cli-decision/v1",
+        "goal": "size",
+        "selected": {
+          "policy": 0,
+          "mask": 2
+        },
+        "choices": {
+          "arena_peel": false,
+          "append_hoist": true
+        },
+        "search_sha256": "40f89e42d5c750141c56800f0f63af7b4778b588f56565165651aa7d33e70fa5",
+        "association_sha256": [
+          "bdc771e80b4504f361b236d0843d91c93b96d51aece86df9bcd8f72f4a069cf5",
+          "01b8680d4d4aa67b0d512c1f58647dc399dca94c1fbec63b62f0475ca04cee68"
+        ],
+        "binary_sha256": "5d8588a4a3ecada3a5bcbb067f4aa1fb3d60e8b14214c5cb39addaa5ce286d8b",
+        "t_states": 1236250,
+        "bytes": 2368
+      }
+    },
+    {
+      "schema": "minz.independent-policy-search-saved-audit/v1",
+      "executable_sha256": "9ec48c5f2eaa42e786be9adddc0b824c374d5c39a599a8d2dd0ef3181a2b65d1",
+      "native_observations": 300,
+      "actual_speed_selected": {
+        "policy": 1,
+        "mask": 3
+      },
+      "derived_size_selected": {
+        "policy": 0,
+        "mask": 2
+      },
+      "candidates": [
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "a9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73",
+          "t_states": 1291565,
+          "bytes": 2388,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 0,
+          "mask": 0
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef129d64d88f6ce578d4a6c1463e12f8d3206d33d3da99c9ec9e537cc9ca476a",
+          "t_states": 1291406,
+          "bytes": 2509,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 0,
+          "mask": 1
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "5d8588a4a3ecada3a5bcbb067f4aa1fb3d60e8b14214c5cb39addaa5ce286d8b",
+          "t_states": 1236250,
+          "bytes": 2368,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 0,
+          "mask": 2
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "cb53d40e0116197490039b790be0cf999cac64c2307815763dbc9b9c75d54802",
+          "t_states": 1236091,
+          "bytes": 2489,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 0,
+          "mask": 3
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "47791ef78aab433663b8339a06dedd7a7dc329a8d1f85a83f1f24dd60dd57ffc",
+          "t_states": 1288644,
+          "bytes": 2389,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 1,
+          "mask": 0
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "6e78a70976e9427b9314dfc7f2a2c49ffbac9ca5f82808aa335def9ef0e37e84",
+          "t_states": 1288485,
+          "bytes": 2510,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 1,
+          "mask": 1
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "a874b250df9ae8097b8efbae58395d49058fd0f53ee4f099ecb794172675d24d",
+          "t_states": 1233329,
+          "bytes": 2369,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 1,
+          "mask": 2
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "e27bcef5adc5db0cb598bd32c0b0c9984bd032553cfbb7e6f48bf4057e51acdd",
+          "t_states": 1233170,
+          "bytes": 2490,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "policy": 1,
+          "mask": 3
+        }
+      ],
+      "input_baselines": [
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "a9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73",
+          "t_states": 1291565,
+          "bytes": 2388,
+          "str_bump": 37163,
+          "node_bump": 32808
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "47791ef78aab433663b8339a06dedd7a7dc329a8d1f85a83f1f24dd60dd57ffc",
+          "t_states": 1288644,
+          "bytes": 2389,
+          "str_bump": 37163,
+          "node_bump": 32808
+        }
+      ],
+      "source_counts": [
+        {
+          "intern_region/body/s1": [
+            40,
+            156
+          ],
+          "skip_ws/body/s1/then/s0": [
+            4,
+            25
+          ],
+          "main/body/s2": [
+            0,
+            0
+          ],
+          "parse_sexpr/body/s8/then/s2": [
+            9,
+            23
+          ],
+          "region_match/body/s1": [
+            49,
+            59
+          ],
+          "skip_ws/body/s0": [
+            153,
+            24
+          ],
+          "parse_sexpr/body/s5": [
+            51,
+            858
+          ],
+          "parse_sexpr/body/s3/then/s7": [
+            22,
+            27
+          ],
+          "intern_region/body/s5": [
+            13,
+            286
+          ],
+          "print_node/body/s4/then/s3": [
+            0,
+            0
+          ],
+          "print_str/body/s2": [
+            0,
+            0
+          ]
+        },
+        {
+          "intern_region/body/s1": [
+            40,
+            156
+          ],
+          "skip_ws/body/s1/then/s0": [
+            4,
+            25
+          ],
+          "main/body/s2": [
+            0,
+            0
+          ],
+          "parse_sexpr/body/s8/then/s2": [
+            9,
+            23
+          ],
+          "region_match/body/s1": [
+            49,
+            59
+          ],
+          "skip_ws/body/s0": [
+            153,
+            24
+          ],
+          "parse_sexpr/body/s5": [
+            51,
+            858
+          ],
+          "parse_sexpr/body/s3/then/s7": [
+            22,
+            27
+          ],
+          "intern_region/body/s5": [
+            13,
+            286
+          ],
+          "print_node/body/s4/then/s3": [
+            0,
+            0
+          ],
+          "print_str/body/s2": [
+            0,
+            0
+          ]
+        }
+      ],
+      "search_file_sha256": "40f89e42d5c750141c56800f0f63af7b4778b588f56565165651aa7d33e70fa5",
+      "input_sha256": [
+        "bdc771e80b4504f361b236d0843d91c93b96d51aece86df9bcd8f72f4a069cf5",
+        "01b8680d4d4aa67b0d512c1f58647dc399dca94c1fbec63b62f0475ca04cee68"
+      ],
+      "actual_goal": "size",
+      "actual_selected": {
+        "policy": 0,
+        "mask": 2
+      },
+      "scope": "independent exact-source native/state/event/count/proof plus exact CLI decision/file bindings; actual goal, no CPU or target lineage",
+      "decision": {
+        "source_name": "../examples/nanz/self_lanz_parser.nanz",
+        "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+        "schema": "minz.memory-host-arena-append-policy-search-cli-decision/v1",
+        "goal": "size",
+        "selected": {
+          "policy": 0,
+          "mask": 2
+        },
+        "choices": {
+          "arena_peel": false,
+          "append_hoist": true
+        },
+        "search_sha256": "40f89e42d5c750141c56800f0f63af7b4778b588f56565165651aa7d33e70fa5",
+        "association_sha256": [
+          "bdc771e80b4504f361b236d0843d91c93b96d51aece86df9bcd8f72f4a069cf5",
+          "01b8680d4d4aa67b0d512c1f58647dc399dca94c1fbec63b62f0475ca04cee68"
+        ],
+        "binary_sha256": "5d8588a4a3ecada3a5bcbb067f4aa1fb3d60e8b14214c5cb39addaa5ce286d8b",
+        "t_states": 1236250,
+        "bytes": 2368
+      }
+    }
+  ]
+}
