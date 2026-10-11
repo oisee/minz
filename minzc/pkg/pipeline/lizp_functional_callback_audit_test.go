@@ -8,6 +8,7 @@ import (
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/z80asm"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -24,11 +25,17 @@ func TestLizpErasedCallbackSignatureDiagnostic(t *testing.T) {
 		t.Fatal(e)
 	}
 	if e = hir.Verify(h); e != nil {
+		if !strings.Contains(e.Error(), "callback") {
+			t.Fatal(e)
+		}
 		t.Log("HIR rejects", e)
 		return
 	}
 	s, e := CompileHIRSteps(h, Options{ContractOpt: true, AssertMode: "none"})
 	if e != nil {
+		if !strings.Contains(e.Error(), "callback") {
+			t.Fatal(e)
+		}
 		t.Log("pipeline rejects", e)
 		return
 	}

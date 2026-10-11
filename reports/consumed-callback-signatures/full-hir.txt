@@ -1,0 +1,7 @@
+--- FAIL: TestExplicitRawIndirectSignatureRejectsWrongArguments (0.00s)
+    captures_test.go:63: got statement 0: HIR test: callback invocation disagrees with explicit signature; ABI adapter required
+[Z80-VALIDATE] get_inner_y_gep: 1 invalid instruction(s)
+  line 3: >>> LD A, (obj + 2) <<<
+FAIL
+FAIL	github.com/minz/minzc/pkg/hir	27.406s
+FAIL

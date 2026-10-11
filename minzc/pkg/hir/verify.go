@@ -37,47 +37,62 @@ func verifyHIRModule(m *Module, annotate bool) error {
 		}
 		v.funcs[f.Name] = f
 	}
-	for _, f := range m.Funcs {
-		v.fn = f
-		v.labels = map[string]bool{}
-		v.gotos = nil
-		env := map[string]mir2.Ty{}
-		if nilHIR(f.RetTy) {
-			return v.fail("missing return type")
-		}
-		for _, ty := range f.RetTys {
-			if nilHIR(ty) {
-				return v.fail("missing tuple return type")
+	// Iterate to propagate consumed callback contracts through forwarding wrappers.
+	v.callbackParams = map[*Func]map[int]*CallSignature{}
+	for {
+		v.callbackChanged = false
+		for _, f := range m.Funcs {
+			v.callbackOrigins = map[string]int{}
+			parameterMutations := mutableHIRNames(f.Body)
+			for i, p := range f.Params {
+				if !parameterMutations[p.Name] && mir2.IsPointer(p.Ty) {
+					v.callbackOrigins[p.Name] = i
+				}
+			}
+			v.fn = f
+			v.labels = map[string]bool{}
+			v.gotos = nil
+			env := map[string]mir2.Ty{}
+			if nilHIR(f.RetTy) {
+				return v.fail("missing return type")
+			}
+			for _, ty := range f.RetTys {
+				if nilHIR(ty) {
+					return v.fail("missing tuple return type")
+				}
+			}
+			for _, p := range f.Params {
+				if p.Name == "" || env[p.Name] != nil || nilHIR(p.Ty) || p.Ty == mir2.TyVoid {
+					return v.fail("invalid or duplicate parameter %q", p.Name)
+				}
+				env[p.Name] = p.Ty
+			}
+			for _, c := range f.Captures {
+				if c.Name == "" || env[c.Name] != nil || nilHIR(c.Ty) || c.Ty == mir2.TyVoid || v.globals[c.Name] || v.funcs[c.Name] != nil {
+					return v.fail("invalid or duplicate capture %q", c.Name)
+				}
+				env[c.Name] = c.Ty
+			}
+			v.aliases = map[string]*Func{}
+			v.immutableAliases = map[string]bool{}
+			v.mutableNames = mutableHIRNames(f.Body)
+			if f.IsExtern {
+				continue
+			}
+			if err := v.block(f.Body, env, 0); err != nil {
+				return err
+			}
+			if err := verifyGotoBindings(f); err != nil {
+				return v.fail("%s", err)
+			}
+			for _, name := range v.gotos {
+				if !v.labels[name] {
+					return v.fail("unknown label %q", name)
+				}
 			}
 		}
-		for _, p := range f.Params {
-			if p.Name == "" || env[p.Name] != nil || nilHIR(p.Ty) || p.Ty == mir2.TyVoid {
-				return v.fail("invalid or duplicate parameter %q", p.Name)
-			}
-			env[p.Name] = p.Ty
-		}
-		for _, c := range f.Captures {
-			if c.Name == "" || env[c.Name] != nil || nilHIR(c.Ty) || c.Ty == mir2.TyVoid || v.globals[c.Name] || v.funcs[c.Name] != nil {
-				return v.fail("invalid or duplicate capture %q", c.Name)
-			}
-			env[c.Name] = c.Ty
-		}
-		v.aliases = map[string]*Func{}
-		v.immutableAliases = map[string]bool{}
-		v.mutableNames = mutableHIRNames(f.Body)
-		if f.IsExtern {
-			continue
-		}
-		if err := v.block(f.Body, env, 0); err != nil {
-			return err
-		}
-		if err := verifyGotoBindings(f); err != nil {
-			return v.fail("%s", err)
-		}
-		for _, name := range v.gotos {
-			if !v.labels[name] {
-				return v.fail("unknown label %q", name)
-			}
+		if !v.callbackChanged {
+			break
 		}
 	}
 	return nil
@@ -96,6 +111,9 @@ type hirVerifier struct {
 	captureOuter     map[string]mir2.Ty
 	collected        map[string]mir2.Ty
 	annotateCalls    bool
+	callbackParams   map[*Func]map[int]*CallSignature
+	callbackOrigins  map[string]int
+	callbackChanged  bool
 }
 
 func nilHIR(x any) bool {
@@ -130,6 +148,12 @@ func (v *hirVerifier) block(b *Block, outer map[string]mir2.Ty, loops int) error
 		v.mutableNames = mutableHIRNames(b) // InferCaptures also enters through block.
 	}
 	env := copyHIRScope(outer)
+	oldOrigins := v.callbackOrigins
+	v.callbackOrigins = map[string]int{}
+	for n, i := range oldOrigins {
+		v.callbackOrigins[n] = i
+	}
+	defer func() { v.callbackOrigins = oldOrigins }()
 	oldAliases := v.aliases
 	oldImmutable := v.immutableAliases
 	v.immutableAliases = map[string]bool{}
@@ -160,6 +184,7 @@ func (v *hirVerifier) bind(env map[string]mir2.Ty, n string, ty mir2.Ty) error {
 	if n == "" || nilHIR(ty) || ty == mir2.TyVoid {
 		return v.fail("invalid binding %q", n)
 	}
+	delete(v.callbackOrigins, n)
 	env[n] = ty
 	return nil
 }
@@ -304,7 +329,17 @@ func (v *hirVerifier) stmt(s Stmt, env map[string]mir2.Ty, loops int) error {
 			}
 			ty = &mir2.ArrayTy{Elem: ty, Len: s.ArrayLen}
 		}
-		return v.bind(env, s.Name, ty)
+		origin, callbackAlias := -1, false
+		if ref, ok := s.Init.(*VarRefExpr); ok && !v.mutableNames[s.Name] {
+			origin, callbackAlias = v.callbackOrigins[ref.Name]
+		}
+		if err := v.bind(env, s.Name, ty); err != nil {
+			return err
+		}
+		if callbackAlias && mir2.IsPointer(ty) {
+			v.callbackOrigins[s.Name] = origin
+		}
+		return nil
 	case *AssignStmt:
 		if bit, ok := s.Target.(*BitExpr); ok {
 			switch bit.X.(type) {
@@ -475,9 +510,22 @@ func (v *hirVerifier) expr(e Expr, env map[string]mir2.Ty) error {
 		if err := v.expr(x.Init, env); err != nil {
 			return err
 		}
+		oldOrigins := v.callbackOrigins
+		v.callbackOrigins = map[string]int{}
+		for name, index := range oldOrigins {
+			v.callbackOrigins[name] = index
+		}
+		defer func() { v.callbackOrigins = oldOrigins }()
+		origin, exists := -1, false
+		if ref, ok := x.Init.(*VarRefExpr); ok {
+			origin, exists = v.callbackOrigins[ref.Name]
+		}
 		scope := copyHIRScope(env)
 		if err := v.bind(scope, x.Name, x.Ty); err != nil {
 			return err
+		}
+		if exists && mir2.IsPointer(x.Ty) {
+			v.callbackOrigins[x.Name] = origin
 		}
 		return v.expr(x.Body, scope)
 	}
@@ -545,6 +593,9 @@ func (v *hirVerifier) expr(e Expr, env map[string]mir2.Ty) error {
 			if err := v.checkCaptureUse(f, env); err != nil {
 				return err
 			}
+			if err := v.checkConsumedCallbacks(f, e.Args); err != nil {
+				return err
+			}
 			return v.checkSignature(f.Signature(), e.Args, e.Ty, env)
 		}
 		return nil
@@ -556,9 +607,32 @@ func (v *hirVerifier) expr(e Expr, env map[string]mir2.Ty) error {
 			return err
 		}
 		sig := e.Signature
+		if ref, ok := e.FnPtr.(*VarRefExpr); ok {
+			if index, exists := v.callbackOrigins[ref.Name]; exists && v.callbackParams != nil {
+				consumed := &CallSignature{}
+				for _, a := range e.Args {
+					consumed.Params = append(consumed.Params, a.ExprTy())
+				}
+				if e.Ty != mir2.TyVoid {
+					consumed.Returns = []mir2.Ty{e.Ty}
+				}
+				if sig != nil && len(sig.Params) != len(e.Args) {
+					return v.fail("call arity %d, want %d", len(e.Args), len(sig.Params))
+				}
+				if sig != nil && !sameHIRSignature(sig, consumed) {
+					return v.fail("callback invocation disagrees with explicit signature; ABI adapter required")
+				}
+				if err := v.requireCallback(v.fn, index, consumed); err != nil {
+					return err
+				}
+			}
+		}
 		if f := v.functionValue(e.FnPtr); f != nil {
 			if len(f.Captures) > 0 && v.captureOuter == nil {
 				return v.fail("capturing callable %s requires an inlined iterator context", f.Name)
+			}
+			if err := v.checkConsumedCallbacks(f, e.Args); err != nil {
+				return err
 			}
 			resolved := f.Signature()
 			if sig != nil && !sameHIRSignature(sig, resolved) {
