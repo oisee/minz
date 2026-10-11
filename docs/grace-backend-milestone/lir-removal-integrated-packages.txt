@@ -1,0 +1,4 @@
+ok  	github.com/minz/minzc/pkg/hir	29.620s
+ok  	github.com/minz/minzc/pkg/mir2	6.864s
+ok  	github.com/minz/minzc/pkg/rewrite/isle	0.003s
+ok  	github.com/minz/minzc/pkg/z80spec	0.010s
