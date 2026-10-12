@@ -1,0 +1,16 @@
+{
+  "files": {
+    "heldout.txt": {
+      "sha256": "6129ba846a59f2f1e705060e9c020c332c79f4bc46e044d9af2d5373ee116199",
+      "bytes": 48
+    },
+    "showcase.txt": {
+      "sha256": "57ce7eb04181d9f10b57efe9490553974f5ba195721293e1046f8d0463b42f69",
+      "bytes": 86969
+    },
+    "README.md": {
+      "sha256": "72a1827b30e7b0729ebdc7b3debc339089c45e38153fed45c8b2a5a3dbd0865d",
+      "bytes": 1069
+    }
+  }
+}
