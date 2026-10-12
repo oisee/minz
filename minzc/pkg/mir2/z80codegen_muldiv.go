@@ -1013,7 +1013,9 @@ func (g *z80cg) saveLiveScratch(inst *Inst, pairs ...string) func() {
 		overlaps := func(loc string) bool {
 			return loc == pair || loc == highByte(pair) || loc == lowByte(pair) || (pair == "AF" && (loc == "A"))
 		}
-		if overlaps(dst) {
+		// A byte result may share a pair with an unrelated live byte.
+		// Preserve that neighbour rather than skipping the whole pair.
+		if dst == pair || (pair == "AF" && dst == "A") {
 			continue
 		}
 		needed := false
@@ -1039,8 +1041,17 @@ func (g *z80cg) saveLiveScratch(inst *Inst, pairs ...string) func() {
 				g.emitf("    POP %s", accPair)
 				g.invalidate("A")
 			} else {
-				g.emitf("    POP %s", saved[i])
-				g.invalidate(saved[i])
+				pair := saved[i]
+				byteResult := dst == highByte(pair) || dst == lowByte(pair)
+				if byteResult {
+					g.emitf("    LD A, %s", dst)
+				}
+				g.emitf("    POP %s", pair)
+				if byteResult {
+					g.emitf("    LD %s, A", dst)
+					g.invalidate("A")
+				}
+				g.invalidate(pair)
 			}
 		}
 	}

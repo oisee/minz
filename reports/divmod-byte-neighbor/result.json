@@ -1,0 +1,15 @@
+{
+  "native_calls": 130560,
+  "nonzero_divisors": 255,
+  "result_locations": [
+    "B",
+    "C"
+  ],
+  "focused_native": "PASS",
+  "GCD_VM_native": "PASS",
+  "full_MIR2": {
+    "state": "running",
+    "session": 57081
+  },
+  "Lookup": "still failing"
+}
