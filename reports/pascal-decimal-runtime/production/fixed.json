@@ -1,0 +1,1445 @@
+{
+  "calls": 262144,
+  "samples": [
+    {
+      "clobber": false,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "0",
+      "registers": {
+        "A": 48,
+        "F": 32,
+        "BC": 2,
+        "DE": 48,
+        "HL": 0,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 0,
+      "stdout": "0",
+      "word": 0
+    },
+    {
+      "clobber": true,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "0",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 0,
+      "stdout": "0",
+      "word": 0
+    },
+    {
+      "clobber": false,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "4096",
+      "registers": {
+        "A": 54,
+        "F": 32,
+        "BC": 2,
+        "DE": 310,
+        "HL": 6,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 4096,
+      "stdout": "4096",
+      "word": 4096
+    },
+    {
+      "clobber": true,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "4096",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 4096,
+      "stdout": "4096",
+      "word": 4096
+    },
+    {
+      "clobber": false,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "8192",
+      "registers": {
+        "A": 50,
+        "F": 32,
+        "BC": 2,
+        "DE": 306,
+        "HL": 2,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 8192,
+      "stdout": "8192",
+      "word": 8192
+    },
+    {
+      "clobber": true,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "8192",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 8192,
+      "stdout": "8192",
+      "word": 8192
+    },
+    {
+      "clobber": false,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "12288",
+      "registers": {
+        "A": 56,
+        "F": 40,
+        "BC": 2,
+        "DE": 312,
+        "HL": 8,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 12288,
+      "stdout": "12288",
+      "word": 12288
+    },
+    {
+      "clobber": true,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "12288",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 12288,
+      "stdout": "12288",
+      "word": 12288
+    },
+    {
+      "clobber": false,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "16384",
+      "registers": {
+        "A": 52,
+        "F": 32,
+        "BC": 2,
+        "DE": 308,
+        "HL": 4,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 16384,
+      "stdout": "16384",
+      "word": 16384
+    },
+    {
+      "clobber": true,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "16384",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 16384,
+      "stdout": "16384",
+      "word": 16384
+    },
+    {
+      "clobber": false,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "20480",
+      "registers": {
+        "A": 48,
+        "F": 32,
+        "BC": 2,
+        "DE": 304,
+        "HL": 0,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 20480,
+      "stdout": "20480",
+      "word": 20480
+    },
+    {
+      "clobber": true,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "20480",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 20480,
+      "stdout": "20480",
+      "word": 20480
+    },
+    {
+      "clobber": false,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "24576",
+      "registers": {
+        "A": 54,
+        "F": 32,
+        "BC": 2,
+        "DE": 310,
+        "HL": 6,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 24576,
+      "stdout": "24576",
+      "word": 24576
+    },
+    {
+      "clobber": true,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "24576",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 24576,
+      "stdout": "24576",
+      "word": 24576
+    },
+    {
+      "clobber": false,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "28672",
+      "registers": {
+        "A": 50,
+        "F": 32,
+        "BC": 2,
+        "DE": 306,
+        "HL": 2,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 28672,
+      "stdout": "28672",
+      "word": 28672
+    },
+    {
+      "clobber": true,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "28672",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 28672,
+      "stdout": "28672",
+      "word": 28672
+    },
+    {
+      "clobber": false,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "32767",
+      "registers": {
+        "A": 55,
+        "F": 32,
+        "BC": 2,
+        "DE": 311,
+        "HL": 7,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 32767,
+      "stdout": "32767",
+      "word": 32767
+    },
+    {
+      "clobber": true,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "32767",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 32767,
+      "stdout": "32767",
+      "word": 32767
+    },
+    {
+      "clobber": false,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "-32768",
+      "registers": {
+        "A": 56,
+        "F": 40,
+        "BC": 2,
+        "DE": 312,
+        "HL": 8,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -32768,
+      "stdout": "-32768",
+      "word": 32768
+    },
+    {
+      "clobber": true,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "-32768",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -32768,
+      "stdout": "-32768",
+      "word": 32768
+    },
+    {
+      "clobber": false,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "-28672",
+      "registers": {
+        "A": 50,
+        "F": 32,
+        "BC": 2,
+        "DE": 306,
+        "HL": 2,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -28672,
+      "stdout": "-28672",
+      "word": 36864
+    },
+    {
+      "clobber": true,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "-28672",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -28672,
+      "stdout": "-28672",
+      "word": 36864
+    },
+    {
+      "clobber": false,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "-24576",
+      "registers": {
+        "A": 54,
+        "F": 32,
+        "BC": 2,
+        "DE": 310,
+        "HL": 6,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -24576,
+      "stdout": "-24576",
+      "word": 40960
+    },
+    {
+      "clobber": true,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "-24576",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -24576,
+      "stdout": "-24576",
+      "word": 40960
+    },
+    {
+      "clobber": false,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "-20480",
+      "registers": {
+        "A": 48,
+        "F": 32,
+        "BC": 2,
+        "DE": 304,
+        "HL": 0,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -20480,
+      "stdout": "-20480",
+      "word": 45056
+    },
+    {
+      "clobber": true,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "-20480",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -20480,
+      "stdout": "-20480",
+      "word": 45056
+    },
+    {
+      "clobber": false,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "-16384",
+      "registers": {
+        "A": 52,
+        "F": 32,
+        "BC": 2,
+        "DE": 308,
+        "HL": 4,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -16384,
+      "stdout": "-16384",
+      "word": 49152
+    },
+    {
+      "clobber": true,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "-16384",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -16384,
+      "stdout": "-16384",
+      "word": 49152
+    },
+    {
+      "clobber": false,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "-12288",
+      "registers": {
+        "A": 56,
+        "F": 40,
+        "BC": 2,
+        "DE": 312,
+        "HL": 8,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -12288,
+      "stdout": "-12288",
+      "word": 53248
+    },
+    {
+      "clobber": true,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "-12288",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -12288,
+      "stdout": "-12288",
+      "word": 53248
+    },
+    {
+      "clobber": false,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "-8192",
+      "registers": {
+        "A": 50,
+        "F": 32,
+        "BC": 2,
+        "DE": 306,
+        "HL": 2,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -8192,
+      "stdout": "-8192",
+      "word": 57344
+    },
+    {
+      "clobber": true,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "-8192",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -8192,
+      "stdout": "-8192",
+      "word": 57344
+    },
+    {
+      "clobber": false,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "-4096",
+      "registers": {
+        "A": 54,
+        "F": 32,
+        "BC": 2,
+        "DE": 310,
+        "HL": 6,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -4096,
+      "stdout": "-4096",
+      "word": 61440
+    },
+    {
+      "clobber": true,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "-4096",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -4096,
+      "stdout": "-4096",
+      "word": 61440
+    },
+    {
+      "clobber": false,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "-1",
+      "registers": {
+        "A": 49,
+        "F": 32,
+        "BC": 2,
+        "DE": 49,
+        "HL": 1,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -1,
+      "stdout": "-1",
+      "word": 65535
+    },
+    {
+      "clobber": true,
+      "entry": "WriteI16",
+      "error": "",
+      "expected": "-1",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -1,
+      "stdout": "-1",
+      "word": 65535
+    },
+    {
+      "clobber": false,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "0",
+      "registers": {
+        "A": 48,
+        "F": 32,
+        "BC": 2,
+        "DE": 48,
+        "HL": 0,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 0,
+      "stdout": "0",
+      "word": 0
+    },
+    {
+      "clobber": true,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "0",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 0,
+      "stdout": "0",
+      "word": 0
+    },
+    {
+      "clobber": false,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "4096",
+      "registers": {
+        "A": 54,
+        "F": 32,
+        "BC": 2,
+        "DE": 310,
+        "HL": 6,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 4096,
+      "stdout": "4096",
+      "word": 4096
+    },
+    {
+      "clobber": true,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "4096",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 4096,
+      "stdout": "4096",
+      "word": 4096
+    },
+    {
+      "clobber": false,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "8192",
+      "registers": {
+        "A": 50,
+        "F": 32,
+        "BC": 2,
+        "DE": 306,
+        "HL": 2,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 8192,
+      "stdout": "8192",
+      "word": 8192
+    },
+    {
+      "clobber": true,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "8192",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 8192,
+      "stdout": "8192",
+      "word": 8192
+    },
+    {
+      "clobber": false,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "12288",
+      "registers": {
+        "A": 56,
+        "F": 40,
+        "BC": 2,
+        "DE": 312,
+        "HL": 8,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 12288,
+      "stdout": "12288",
+      "word": 12288
+    },
+    {
+      "clobber": true,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "12288",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 12288,
+      "stdout": "12288",
+      "word": 12288
+    },
+    {
+      "clobber": false,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "16384",
+      "registers": {
+        "A": 52,
+        "F": 32,
+        "BC": 2,
+        "DE": 308,
+        "HL": 4,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 16384,
+      "stdout": "16384",
+      "word": 16384
+    },
+    {
+      "clobber": true,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "16384",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 16384,
+      "stdout": "16384",
+      "word": 16384
+    },
+    {
+      "clobber": false,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "20480",
+      "registers": {
+        "A": 48,
+        "F": 32,
+        "BC": 2,
+        "DE": 304,
+        "HL": 0,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 20480,
+      "stdout": "20480",
+      "word": 20480
+    },
+    {
+      "clobber": true,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "20480",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 20480,
+      "stdout": "20480",
+      "word": 20480
+    },
+    {
+      "clobber": false,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "24576",
+      "registers": {
+        "A": 54,
+        "F": 32,
+        "BC": 2,
+        "DE": 310,
+        "HL": 6,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 24576,
+      "stdout": "24576",
+      "word": 24576
+    },
+    {
+      "clobber": true,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "24576",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 24576,
+      "stdout": "24576",
+      "word": 24576
+    },
+    {
+      "clobber": false,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "28672",
+      "registers": {
+        "A": 50,
+        "F": 32,
+        "BC": 2,
+        "DE": 306,
+        "HL": 2,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 28672,
+      "stdout": "28672",
+      "word": 28672
+    },
+    {
+      "clobber": true,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "28672",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 28672,
+      "stdout": "28672",
+      "word": 28672
+    },
+    {
+      "clobber": false,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "32767",
+      "registers": {
+        "A": 55,
+        "F": 32,
+        "BC": 2,
+        "DE": 311,
+        "HL": 7,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 32767,
+      "stdout": "32767",
+      "word": 32767
+    },
+    {
+      "clobber": true,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "32767",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": 32767,
+      "stdout": "32767",
+      "word": 32767
+    },
+    {
+      "clobber": false,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "32768",
+      "registers": {
+        "A": 56,
+        "F": 40,
+        "BC": 2,
+        "DE": 312,
+        "HL": 8,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -32768,
+      "stdout": "32768",
+      "word": 32768
+    },
+    {
+      "clobber": true,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "32768",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -32768,
+      "stdout": "32768",
+      "word": 32768
+    },
+    {
+      "clobber": false,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "36864",
+      "registers": {
+        "A": 52,
+        "F": 32,
+        "BC": 2,
+        "DE": 308,
+        "HL": 4,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -28672,
+      "stdout": "36864",
+      "word": 36864
+    },
+    {
+      "clobber": true,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "36864",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -28672,
+      "stdout": "36864",
+      "word": 36864
+    },
+    {
+      "clobber": false,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "40960",
+      "registers": {
+        "A": 48,
+        "F": 32,
+        "BC": 2,
+        "DE": 304,
+        "HL": 0,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -24576,
+      "stdout": "40960",
+      "word": 40960
+    },
+    {
+      "clobber": true,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "40960",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -24576,
+      "stdout": "40960",
+      "word": 40960
+    },
+    {
+      "clobber": false,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "45056",
+      "registers": {
+        "A": 54,
+        "F": 32,
+        "BC": 2,
+        "DE": 310,
+        "HL": 6,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -20480,
+      "stdout": "45056",
+      "word": 45056
+    },
+    {
+      "clobber": true,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "45056",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -20480,
+      "stdout": "45056",
+      "word": 45056
+    },
+    {
+      "clobber": false,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "49152",
+      "registers": {
+        "A": 50,
+        "F": 32,
+        "BC": 2,
+        "DE": 306,
+        "HL": 2,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -16384,
+      "stdout": "49152",
+      "word": 49152
+    },
+    {
+      "clobber": true,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "49152",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -16384,
+      "stdout": "49152",
+      "word": 49152
+    },
+    {
+      "clobber": false,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "53248",
+      "registers": {
+        "A": 56,
+        "F": 40,
+        "BC": 2,
+        "DE": 312,
+        "HL": 8,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -12288,
+      "stdout": "53248",
+      "word": 53248
+    },
+    {
+      "clobber": true,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "53248",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -12288,
+      "stdout": "53248",
+      "word": 53248
+    },
+    {
+      "clobber": false,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "57344",
+      "registers": {
+        "A": 52,
+        "F": 32,
+        "BC": 2,
+        "DE": 308,
+        "HL": 4,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -8192,
+      "stdout": "57344",
+      "word": 57344
+    },
+    {
+      "clobber": true,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "57344",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -8192,
+      "stdout": "57344",
+      "word": 57344
+    },
+    {
+      "clobber": false,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "61440",
+      "registers": {
+        "A": 48,
+        "F": 32,
+        "BC": 2,
+        "DE": 304,
+        "HL": 0,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -4096,
+      "stdout": "61440",
+      "word": 61440
+    },
+    {
+      "clobber": true,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "61440",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -4096,
+      "stdout": "61440",
+      "word": 61440
+    },
+    {
+      "clobber": false,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "65535",
+      "registers": {
+        "A": 53,
+        "F": 32,
+        "BC": 2,
+        "DE": 309,
+        "HL": 5,
+        "IX": 0,
+        "IY": 0,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -1,
+      "stdout": "65535",
+      "word": 65535
+    },
+    {
+      "clobber": true,
+      "entry": "WriteU16",
+      "error": "",
+      "expected": "65535",
+      "registers": {
+        "A": 165,
+        "F": 255,
+        "BC": 4660,
+        "DE": 22136,
+        "HL": 50115,
+        "IX": 0,
+        "IY": 4951,
+        "SP": 1742,
+        "PC": 0
+      },
+      "signed": -1,
+      "stdout": "65535",
+      "word": 65535
+    }
+  ]
+}

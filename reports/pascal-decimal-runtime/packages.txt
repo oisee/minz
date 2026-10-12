@@ -1,0 +1,76 @@
+=== RUN   TestPascalCPMOrdinaryCLI
+--- PASS: TestPascalCPMOrdinaryCLI (0.01s)
+=== RUN   TestCPMRuntimeOrdinaryCLI
+    cpm_runtime_test.go:103: COM 524 bytes, BDOS chars12, resident stack touched≤19 bytes
+--- PASS: TestCPMRuntimeOrdinaryCLI (0.04s)
+=== RUN   TestCPMRuntimeRejectsUnsupported
+--- PASS: TestCPMRuntimeRejectsUnsupported (0.01s)
+=== RUN   TestCPMRuntimeBytePrimitiveABIAndBoundary
+--- PASS: TestCPMRuntimeBytePrimitiveABIAndBoundary (0.01s)
+=== RUN   TestCPMRuntimeGuardedStackOverflowAndFlags
+--- PASS: TestCPMRuntimeGuardedStackOverflowAndFlags (0.01s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	0.081s
+=== RUN   TestDecimalSignedUnsignedTypedSelection
+--- PASS: TestDecimalSignedUnsignedTypedSelection (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pascal	0.007s
+=== RUN   TestCPMRejectsNarrowedLocalPointerNativePlacement
+--- PASS: TestCPMRejectsNarrowedLocalPointerNativePlacement (0.00s)
+=== RUN   TestCPMLocalAddressTypedAuthority
+=== RUN   TestCPMLocalAddressTypedAuthority/narrow-move
+=== RUN   TestCPMLocalAddressTypedAuthority/field-type
+=== RUN   TestCPMLocalAddressTypedAuthority/address-metadata
+=== RUN   TestCPMLocalAddressTypedAuthority/constant-metadata
+=== RUN   TestCPMLocalAddressTypedAuthority/bool-offset
+--- PASS: TestCPMLocalAddressTypedAuthority (0.00s)
+    --- PASS: TestCPMLocalAddressTypedAuthority/narrow-move (0.00s)
+    --- PASS: TestCPMLocalAddressTypedAuthority/field-type (0.00s)
+    --- PASS: TestCPMLocalAddressTypedAuthority/address-metadata (0.00s)
+    --- PASS: TestCPMLocalAddressTypedAuthority/constant-metadata (0.00s)
+    --- PASS: TestCPMLocalAddressTypedAuthority/bool-offset (0.00s)
+=== RUN   TestCPMReadOnlyPointerCannotNarrow
+--- PASS: TestCPMReadOnlyPointerCannotNarrow (0.00s)
+=== RUN   TestCPMLocalStoredTypedOffsetNative
+--- PASS: TestCPMLocalStoredTypedOffsetNative (0.00s)
+=== RUN   TestCPMPascalNamedMachineBodyAuthority
+--- PASS: TestCPMPascalNamedMachineBodyAuthority (0.00s)
+=== RUN   TestCPMBDOSAdapterLiteralAuthority
+--- PASS: TestCPMBDOSAdapterLiteralAuthority (0.00s)
+=== RUN   TestCPMRuntimeStackChecksCalledBodies
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/balanced_nested
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/unbalanced_rotate
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/conditional_return_imbalance
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/callee_steals_return_word
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/recursive_callee
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/dynamic_stack
+--- PASS: TestCPMRuntimeStackChecksCalledBodies (0.01s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/balanced_nested (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/unbalanced_rotate (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/conditional_return_imbalance (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/callee_steals_return_word (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/recursive_callee (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/dynamic_stack (0.00s)
+=== RUN   TestCPMRuntimeGuardedAdmission
+--- PASS: TestCPMRuntimeGuardedAdmission (0.00s)
+=== RUN   TestCPMRuntimeRejectsBranchBypassOfGuard
+--- PASS: TestCPMRuntimeRejectsBranchBypassOfGuard (0.00s)
+=== RUN   TestCPMRuntimeConditionalCallGuardPaths
+--- PASS: TestCPMRuntimeConditionalCallGuardPaths (0.00s)
+=== RUN   TestCPMRuntimeReservePathAdmission
+--- PASS: TestCPMRuntimeReservePathAdmission (0.01s)
+=== RUN   TestCPMRuntimeRejectsForgedReserveLimit
+--- PASS: TestCPMRuntimeRejectsForgedReserveLimit (0.00s)
+=== RUN   TestCPMRuntimeLocalStackAndNamedBDOSProof
+--- PASS: TestCPMRuntimeLocalStackAndNamedBDOSProof (0.00s)
+=== RUN   TestDecimalPrintVMContract
+--- PASS: TestDecimalPrintVMContract (0.00s)
+=== RUN   TestDecimalPrintCompileAndGuards
+--- PASS: TestDecimalPrintCompileAndGuards (0.02s)
+=== RUN   TestDecimalPrintPendingState
+--- PASS: TestDecimalPrintPendingState (0.00s)
+=== RUN   TestDecimalPrintNative
+    z80codegen_print_test.go:178: native artifact export not requested
+--- SKIP: TestDecimalPrintNative (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.061s

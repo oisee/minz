@@ -1,0 +1,4 @@
+=== RUN   TestPascalDecimalProductionFullDomain
+--- PASS: TestPascalDecimalProductionFullDomain (31.60s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	31.617s
