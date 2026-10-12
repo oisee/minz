@@ -116,17 +116,11 @@ func sweepCodegenJudgeOptions(t *testing.T, funcs []*hir.Func, name string, case
 				}
 			}
 		}
-		n := 0
-		for ; !z.IsHalted() && n < judgeStepBudget; n++ {
-			z.Step()
-		}
-		if checkReturn {
+		n, returned := compositionRunToReturn(z, testLoadAddr+3, 0xFF00, judgeStepBudget)
+		if checkReturn && !returned {
 			state := z.GetRegisters()
-			// Boot CALL is three bytes; stop only at its returned DI/HALT path.
-			if !z.IsHalted() || state.SP != 0xFF00 || (state.PC != testLoadAddr+4 && state.PC != testLoadAddr+5) {
-				results[i] = fmt.Sprintf("%s%v bad return PC=%04x SP=%04x halted=%v", name, args, state.PC, state.SP, z.IsHalted())
-				return
-			}
+			results[i] = fmt.Sprintf("%s%v bad return PC=%04x SP=%04x halted=%v", name, args, state.PC, state.SP, z.IsHalted())
+			return
 		}
 		got, err := hirReturnValue(mf, z.GetRegisters())
 		want := model(args)
@@ -144,4 +138,49 @@ func sweepCodegenJudgeOptions(t *testing.T, funcs []*hir.Func, name string, case
 		}
 	}
 	return bad, first
+}
+
+// Observe the original CALL continuation before executing its DI/HALT bytes.
+func compositionRunToReturn(z *emulator.RemogattoZ80, pc, sp uint16, budget int) (int, bool) {
+	for n := 0; n < budget; n++ {
+		state := z.GetRegisters()
+		if n > 0 && state.PC == pc && state.SP == sp {
+			return n, true
+		}
+		if z.IsHalted() {
+			return n, false
+		}
+		z.Step()
+	}
+	return budget, false
+}
+
+func TestCompositionReturnOracleRejectsWrongMachineCode(t *testing.T) {
+	cases := []struct {
+		name, body string
+		want       bool
+	}{
+		{"valid", "LD A, 42\n RET", true},
+		{"halt_in_function", "LD A, 42\n HALT", false},
+		{"skip_di", "POP HL\n INC HL\n JP (HL)", false},
+		{"bad_sp", "POP HL\n DEC SP\n JP (HL)", false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			asm := fmt.Sprintf("ORG 0x%04x\n CALL probe\n DI\n HALT\nprobe:\n%s\n", testLoadAddr, tc.body)
+			res, err := z80asm.NewAssembler().AssembleString(asm)
+			if err != nil || len(res.Errors) > 0 {
+				t.Fatalf("assemble %v %v", err, res.Errors)
+			}
+			z := emulator.NewRemogattoZ80()
+			if err := z.LoadMemory(testLoadAddr, res.Binary); err != nil {
+				t.Fatal(err)
+			}
+			z.SetRegisters(emulator.Registers{PC: testLoadAddr, SP: 0xFF00})
+			_, got := compositionRunToReturn(z, testLoadAddr+3, 0xFF00, 100)
+			if got != tc.want {
+				t.Fatalf("return oracle accepted=%v want=%v", got, tc.want)
+			}
+		})
+	}
 }

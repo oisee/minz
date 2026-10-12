@@ -1,0 +1,13 @@
+{
+  "domains": 162,
+  "native_calls": 10616832,
+  "exact_return_pc": 32771,
+  "restored_sp": 65280,
+  "negative_programs_rejected": [
+    "halt-in-function",
+    "skip-continuation",
+    "bad-SP"
+  ],
+  "positive_RET_accepted": true,
+  "test_sha256": "795570548e5cc0a3484ae1b2f9ff08b69411861f9108d88a47bff10085ae57ce"
+}
