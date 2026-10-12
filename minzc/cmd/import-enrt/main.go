@@ -25,6 +25,8 @@ func main() {
 func run() error {
 	source := flag.String("source", "", "original Nanz source")
 	asset := flag.String("enrt", "", "canonical ENRT v1 table (4v or 5v)")
+	checked := flag.String("checked-proposals", "", "saved checked JSON assignments to readmit without ENRT or solver")
+	limit := flag.Int("proposal-limit", 1024, "maximum saved assignments for readmission (1..1024)")
 	output := flag.String("out", "", "new checked JSON table")
 	evidence := flag.String("evidence", "", "JSON diagnostics, including rejections")
 	indexPath := flag.String("index", "", "optional checked checkpoint index; validates full ENRT once at open and final publication")
@@ -32,6 +34,12 @@ func run() error {
 	quotient := flag.Bool("quotient", false, "explicitly collapse nonoverlapping same-register allocation variables before historical lookup")
 	stdlib := flag.String("stdlib", "", "original source import search path")
 	flag.Parse()
+	if *checked != "" {
+		if flag.NArg() != 0 || *asset != "" || *indexPath != "" || *buildIndex != "" || *quotient {
+			return fmt.Errorf("--checked-proposals cannot combine with ENRT/index/quotient modes")
+		}
+		return readmitFile(*source, *checked, *output, *evidence, *stdlib, *limit)
+	}
 	if *buildIndex != "" {
 		if flag.NArg() != 0 || *asset == "" || *source != "" || *output != "" || *evidence != "" || *indexPath != "" || *quotient {
 			return fmt.Errorf("--build-index requires only --enrt and new index path")

@@ -1,0 +1,7 @@
+# Повторный допуск таблицы через офлайн CLI
+
+cmd/import-enrt получил отдельный режим --checked-proposals: принимает Nanz source и saved JSON, вызывает текущую подготовку MIR/ABI и bounded readmission без ENRT и Z3. Выходная таблица — точный текущий сертификат. Evidence содержит SHA256 source/proposals/output, предел и per-function notes. Существующие output файлы и совпадающие пути отвергаются; pair publication не перезаписывает входы. ENRT/index/quotient не комбинируются с этим режимом.
+
+Реальный executable importer подготовил weighted из saved caller-table:1entry, caller CALL пропущен. Затем сохранённый compiler mz-profile-table собрал original caller-harness с --Osize --checked-local-table current.json и его content pin. Compilation summary подтверждает PBQP=1/checked-local-table=1; mza собрал BIN. Native all256caller correctness и238→142T подтверждены соседним weighted-table-readmission пакетом для того же текущего назначения; CLI отдельно проверяет preparation→table→compiler→assembler, не исполняет повторно256inputs.
+
+Команда подготовки: go run ./cmd/import-enrt --source ../docs/grace-real-leaf-local-tables/caller-harness.nanz --checked-proposals ../docs/grace-real-leaf-local-tables/caller-table.json --proposal-limit1 --out /new/current.json --evidence /new/evidence.json (пробел между --proposal-limit и1 обязателен). Из minzc. Test cmd/import-enrt PASS0,008с. Exact files лежат в executed и на шаре. Production solver dependency не добавлена.

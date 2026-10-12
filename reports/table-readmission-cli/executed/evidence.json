@@ -1,0 +1,12 @@
+{
+  "schema": "offline-checked-readmission/v1",
+  "source_sha256": "4d067e803b071517a62fd10f114386d76115009c49b23b089c612775ba597762",
+  "proposals_sha256": "dd4016043eea23b533a4c5fbd906be39ae80788aa20daf78847f0ef0915a38fc",
+  "table_sha256": "1bfb4392b108636ee9d56f867a190abd72fcd66c331711b24a356098aeea0b90",
+  "proposal_limit": 1,
+  "entries": 1,
+  "notes": [
+    "weighted: 1 admitted proposals",
+    "weighted_caller: skipped: unsupported local opcode call"
+  ]
+}
