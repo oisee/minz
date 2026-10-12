@@ -1,0 +1,45 @@
+=== RUN   TestArithmeticProspectiveHeldout
+    arithmetic_heldout_test.go:142: speed mask0: 21426 T / 136 B
+    arithmetic_heldout_test.go:142: speed mask1: 21426 T / 136 B
+    arithmetic_heldout_test.go:142: speed mask2: 21998 T / 149 B
+    arithmetic_heldout_test.go:142: speed mask3: 21998 T / 149 B
+    arithmetic_heldout_test.go:163: speed selected0 heldout 404193 T / 136 B
+    arithmetic_heldout_test.go:142: size mask0: 21426 T / 136 B
+    arithmetic_heldout_test.go:142: size mask1: 21426 T / 136 B
+    arithmetic_heldout_test.go:142: size mask2: 21998 T / 149 B
+    arithmetic_heldout_test.go:142: size mask3: 21998 T / 149 B
+    arithmetic_heldout_test.go:163: size selected0 heldout 404193 T / 136 B
+--- PASS: TestArithmeticProspectiveHeldout (1.83s)
+=== RUN   TestPascalBubbleSortProspectiveHeldout
+    bubble_sort_heldout_test.go:209: map[baseline_bytes:488 goal:speed heldout_arrays:8 heldout_baseline_t:164671 heldout_selected_t:164275 same_binary_sha256:ad33cb3741e279aa6c53f6daa55eea627e512025f9b32912155f42a871d5fba5 selected:2 selected_bytes:486 training_baseline_t:66891 training_selected_t:66720]
+    bubble_sort_heldout_test.go:209: map[baseline_bytes:488 goal:size heldout_arrays:8 heldout_baseline_t:164671 heldout_selected_t:164275 same_binary_sha256:ad33cb3741e279aa6c53f6daa55eea627e512025f9b32912155f42a871d5fba5 selected:2 selected_bytes:486 training_baseline_t:66891 training_selected_t:66720]
+--- PASS: TestPascalBubbleSortProspectiveHeldout (9.39s)
+=== RUN   TestCombinedContractTableGraceNative
+    combined_contract_table_grace_test.go:18: set VIR_TEST_Z3 for offline local solver integration
+--- SKIP: TestCombinedContractTableGraceNative (0.00s)
+=== RUN   TestParserProspectiveHeldout
+    parser_prospective_heldout_test.go:149: training mask 0: 1041370 T / 2377 B
+    parser_prospective_heldout_test.go:149: training mask 1: 1037508 T / 2498 B
+    parser_prospective_heldout_test.go:149: training mask 2: 1017005 T / 2357 B
+    parser_prospective_heldout_test.go:149: training mask 3: 1013143 T / 2478 B
+    parser_prospective_heldout_test.go:185: heldout mask 0: 2195027 T / 2377 B SHA a08a6d9ddb64bce02ad56ad492506e97ef647496184e48c57aa17ebf328a9de5
+    parser_prospective_heldout_test.go:185: heldout mask 3: 2137641 T / 2478 B SHA 1578c9566043c9d072d872c6b36294a43922d18ab6a39322714bcf191b4f8c74
+--- PASS: TestParserProspectiveHeldout (23.64s)
+=== RUN   TestPFCCOProspectiveHeldout
+    pfcco_prospective_heldout_test.go:119: speed mask0: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask1: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask2: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask3: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:153: speed selected1 heldout 5568 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask0: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask1: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask2: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask3: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:153: size selected0 heldout 6252 T / 52 B
+--- PASS: TestPFCCOProspectiveHeldout (1.65s)
+=== RUN   TestHashmapMeasuredTrainingAndUnseenWorkload
+    profile_hashmap_heldout_test.go:211: speed selected3 training 26346→23437T 996→976B; heldout 258962→237948T calls48
+    profile_hashmap_heldout_test.go:211: size selected3 training 26346→23437T 996→976B; heldout 258962→237948T calls48
+--- PASS: TestHashmapMeasuredTrainingAndUnseenWorkload (3.54s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	40.065s

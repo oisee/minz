@@ -1,0 +1,20 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "e410d84732cbf116838acc2df17d3d4ba5cb766ff047b347aec31c130b19b09f"
+    },
+    {
+      "path": "heldout.txt",
+      "sha256": "b1461bc25d8283c0cc806e5a7fccc8b73eeb36f27c685e2909a36401d4171591"
+    },
+    {
+      "path": "mir.txt",
+      "sha256": "ddcf275c01c69f763f343974aae4e6206b6e054e126fb29b6b898d89c07389bf"
+    },
+    {
+      "path": "tables.txt",
+      "sha256": "ef5ebf0f07feacc4cc3e6229c33aee0cce62a5cdd7cc337332baa72e2d47c02e"
+    }
+  ]
+}

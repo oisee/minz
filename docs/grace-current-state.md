@@ -1,5 +1,7 @@
 # Grace / PGO: текущее состояние
 
+Backend897e7646: рёбра без реальных копирований обходятся без trampoline. Полный MIR2 PASS88,822 с; прежние heldout PASS40,065 с; таблицы/PFCCO/Grace PASS7,373 с. [Checkpoint317](grace-integration-317/README.md).
+
 Rotozoomer: полный main и все 32 кадра прошли raw/final VM и Z80 во всех трёх режимах. Выигрыша Grace нет. Каталог: 153/194 пути с независимым или ограниченным покрытием. [Checkpoint 313](grace-integration-313/README.md).
 
 IRC client: три отказа подключения и рабочий участок main проходят VM/Z80. Рабочий обмен: 68 602 → 65 401 такт, BIN 4496 → 4471 байт. Каталог: 152/194 пути с независимым или ограниченным покрытием. [Checkpoint 312](grace-integration-312/README.md).
