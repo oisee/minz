@@ -315,6 +315,62 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 			scratch := "A"
 
 			if cycleRegs[scratch] {
+				// A main-bank byte cycle can borrow an entire disjoint pair.
+				// Saving that pair preserves values live outside the copy list;
+				// checking every original operand (including identities, completed
+				// copies and immediates) protects values within the list too.
+				var cycle []int
+				cur := m.src
+				mainByte := func(name string) bool {
+					return name == "A" || name == "B" || name == "C" || name == "D" || name == "E" || name == "H" || name == "L"
+				}
+				closed := mainByte(m.src) && mainByte(m.dst)
+				cycle = append(cycle, first)
+				for closed && cur != m.dst {
+					found := -1
+					for i := range moves {
+						if !moves[i].done && i != first && moves[i].dst == cur {
+							found = i
+							break
+						}
+					}
+					if found < 0 || len(cycle) >= len(moves) || z80ValueWidth(moves[found].ty) > 8 ||
+						!mainByte(moves[found].src) || !mainByte(moves[found].dst) {
+						closed = false
+						break
+					}
+					cycle = append(cycle, found)
+					cur = moves[found].src
+				}
+				if closed {
+					for _, pair := range []string{"BC", "DE", "HL"} {
+						free := true
+						for _, c := range copies {
+							if z80spec.Overlaps(pair, c.dstName) || (!c.isImm && z80spec.Overlaps(pair, c.srcName)) {
+								free = false
+								break
+							}
+						}
+						if !free {
+							continue
+						}
+						tmp := highByte(pair)
+						g.emitf("    PUSH %s", pair)
+						g.emitLD8(tmp, m.src)
+						for _, i := range cycle[1:] {
+							g.emitLD8(moves[i].dst, moves[i].src)
+						}
+						g.emitLD8(m.dst, tmp)
+						g.emitf("    POP %s", pair)
+						for _, i := range cycle {
+							moves[i].done = true
+						}
+						break
+					}
+				}
+				if m.done {
+					continue
+				}
 				// A participates in the shuffle. Snapshot the pending sources on
 				// the stack; shadow AF protects the main accumulator.
 				// Give shadow F the original flags too: a snapshot read through
