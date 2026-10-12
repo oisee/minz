@@ -1,0 +1,1266 @@
+[
+  {
+    "Name": "tui_clear",
+    "Args": []
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "  Mini Commander v0.1                                                           "
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      1
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      3,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Name          Size   Date"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      2
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      0,
+      6,
+      1
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "README.MD     1024   2026-03-18"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      3
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "MAIN.NZ        947   2026-03-17"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      4
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "FAT12.NZ       603   2026-03-16"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      5
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "TETRIS.NZ      853   2026-03-15"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      6
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "HELLO.COM      128   2026-03-14"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      7
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "SCREEN.NZ      492   2026-03-13"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      0,
+      6,
+      0
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      23
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      " F5=View  F3=Quit  UP/DOWN=Navigate                                            "
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      20
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "6 files, 4047 bytes"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_read_key",
+    "Args": [
+      129
+    ]
+  },
+  {
+    "Name": "tui_clear",
+    "Args": []
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "  Mini Commander v0.1                                                           "
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      1
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      3,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Name          Size   Date"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      2
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "README.MD     1024   2026-03-18"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      3
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      0,
+      6,
+      1
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "MAIN.NZ        947   2026-03-17"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      4
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "FAT12.NZ       603   2026-03-16"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      5
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "TETRIS.NZ      853   2026-03-15"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      6
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "HELLO.COM      128   2026-03-14"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      7
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "SCREEN.NZ      492   2026-03-13"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      0,
+      6,
+      0
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      23
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      " F5=View  F3=Quit  UP/DOWN=Navigate                                            "
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      20
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "6 files, 4047 bytes"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_read_key",
+    "Args": [
+      144
+    ]
+  },
+  {
+    "Name": "tui_clear",
+    "Args": []
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      2,
+      1
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "  File Details                                                                  "
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      2,
+      2
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      0,
+      1
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Filename: "
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      1
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "MAIN.NZ"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      2,
+      4
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Type:     "
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Nanz source"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      2,
+      5
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Target:   "
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Universal (MZV + CP/M + ZX)"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      2,
+      7
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Status:   "
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      2,
+      0,
+      1
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "OK"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      0,
+      2,
+      0
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      23
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      " F3=Back to file list                                                          "
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_read_key",
+    "Args": [
+      142
+    ]
+  },
+  {
+    "Name": "tui_clear",
+    "Args": []
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "  Mini Commander v0.1                                                           "
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      1
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      3,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Name          Size   Date"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      2
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "README.MD     1024   2026-03-18"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      3
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      0,
+      6,
+      1
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "MAIN.NZ        947   2026-03-17"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      4
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "FAT12.NZ       603   2026-03-16"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      5
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "TETRIS.NZ      853   2026-03-15"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      6
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "HELLO.COM      128   2026-03-14"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      7
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "SCREEN.NZ      492   2026-03-13"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      0,
+      6,
+      0
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      23
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      " F5=View  F3=Quit  UP/DOWN=Navigate                                            "
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      20
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "6 files, 4047 bytes"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_read_key",
+    "Args": [
+      128
+    ]
+  },
+  {
+    "Name": "tui_clear",
+    "Args": []
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "  Mini Commander v0.1                                                           "
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      1
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      3,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Name          Size   Date"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      2
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      0,
+      6,
+      1
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "README.MD     1024   2026-03-18"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      3
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "MAIN.NZ        947   2026-03-17"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      4
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "FAT12.NZ       603   2026-03-16"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      5
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "TETRIS.NZ      853   2026-03-15"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      6
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "HELLO.COM      128   2026-03-14"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      7
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "SCREEN.NZ      492   2026-03-13"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      0,
+      6,
+      0
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      23
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      " F5=View  F3=Quit  UP/DOWN=Navigate                                            "
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      20
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "6 files, 4047 bytes"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_read_key",
+    "Args": [
+      27
+    ]
+  },
+  {
+    "Name": "tui_clear",
+    "Args": []
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  }
+]
