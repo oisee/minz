@@ -436,7 +436,7 @@ func (pl *procLow) lowerWrite(args []Expr) ([]hir.Stmt, error) {
 				})
 			} else {
 				stmts = append(stmts, &hir.ExprStmt{
-					Expr: hir.Call("WriteI16", mir2.TyVoid, he),
+					Expr: hir.Call(pascalWordPrinter(ty), mir2.TyVoid, he),
 				})
 			}
 		}
@@ -1126,55 +1126,16 @@ func emitRuntimeFuncs(hm *hir.Module) {
 		defined["WriteU8"] = true
 	}
 
-	// WriteI16(val: u16) -> void — print i16 as decimal via BDOS 2
-	if need("WriteI16") {
-		if !defined["ConOut"] {
-			hm.Funcs = append(hm.Funcs, hir.CanonicalPascalProfileRuntime("ConOut"))
-			defined["ConOut"] = true
+	// Signed and unsigned source values have distinct decimal contracts.
+	for _, name := range []string{"WriteI16", "WriteU16"} {
+		if need(name) {
+			hm.Funcs = append(hm.Funcs, hir.CanonicalPascalDecimalRuntime(name))
+			defined[name] = true
+			if !defined["_wr16_dig"] {
+				hm.Funcs = append(hm.Funcs, hir.CanonicalPascalDecimalRuntime("_wr16_dig"))
+				defined["_wr16_dig"] = true
+			}
 		}
-		hm.Funcs = append(hm.Funcs, &hir.Func{
-			Name:   "WriteI16",
-			Params: []hir.Param{{Name: "val", Ty: mir2.TyU16}},
-			RetTy:  mir2.TyVoid,
-			Body: &hir.Block{Body: []hir.Stmt{
-				&hir.AsmStmt{
-					Target: "z80",
-					// HL = val. Print decimal via subtract-and-count.
-					Code: "PUSH IX / PUSH HL / POP IX / LD D, 0" +
-						" / PUSH IX / POP HL / LD BC, 10000 / CALL _wr16_dig / PUSH HL / POP IX" +
-						" / PUSH IX / POP HL / LD BC, 1000 / CALL _wr16_dig / PUSH HL / POP IX" +
-						" / PUSH IX / POP HL / LD BC, 100 / CALL _wr16_dig / PUSH HL / POP IX" +
-						" / PUSH IX / POP HL / LD BC, 10 / CALL _wr16_dig / PUSH HL / POP IX" +
-						" / LD A, IXL / ADD A, 48 / LD E, A / LD C, 2 / CALL 5" +
-						" / POP IX",
-					ClobberAll: true,
-					Ins:        []hir.AsmOperand{{Name: "val"}},
-				},
-				&hir.ReturnStmt{},
-			}},
-		})
-		// Helper: _wr16_dig — same as ABAP's _abap_wr_dig
-		if !defined["_wr16_dig"] {
-			hm.Funcs = append(hm.Funcs, &hir.Func{
-				Name:  "_wr16_dig",
-				RetTy: mir2.TyVoid,
-				Body: &hir.Block{Body: []hir.Stmt{
-					&hir.AsmStmt{
-						Target: "z80",
-						Code: "LD A, 48" +
-							" / _w16_sub: OR A / SBC HL, BC / JR NC, _w16_cont" +
-							" / ADD HL, BC / CP 48 / JR NZ, _w16_pr" +
-							" / LD A, D / OR A / RET Z / LD A, 48" +
-							" / _w16_pr: LD D, 1 / LD E, A / PUSH HL / PUSH DE / PUSH BC / LD C, 2 / CALL 5 / POP BC / POP DE / POP HL / RET" +
-							" / _w16_cont: INC A / JR _w16_sub",
-						ClobberAll: true,
-					},
-					&hir.ReturnStmt{},
-				}},
-			})
-			defined["_wr16_dig"] = true
-		}
-		defined["WriteI16"] = true
 	}
 
 	// PascalHalt() -> void — BDOS 0
@@ -1222,4 +1183,11 @@ func (pl *procLow) recordLoop(stmt hir.Stmt, t Token) {
 	if t.Line > 0 {
 		pl.low.hm.SourceLocations[stmt] = hir.SourceLocation{ByteOffset: t.Offset, Line: t.Line}
 	}
+}
+
+func pascalWordPrinter(ty mir2.Ty) string {
+	if ty == mir2.TyU16 {
+		return "WriteU16"
+	}
+	return "WriteI16"
 }
