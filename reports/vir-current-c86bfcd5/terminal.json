@@ -1,0 +1,14 @@
+{
+  "checkpoint": "c86bfcd5",
+  "session": 85341,
+  "exit_code": 1,
+  "counts": {
+    "PASS": 105,
+    "FAIL": 1,
+    "SKIP": 4
+  },
+  "top_level_failures": [
+    "--- FAIL: TestCodegenModule_Double16ThenDec (0.03s)"
+  ],
+  "scope": "Full research Z3-enabled checkpoint, includes C89 promotion fixes; later island corrections excluded."
+}

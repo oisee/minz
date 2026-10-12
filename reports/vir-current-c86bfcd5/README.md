@@ -1,0 +1,1 @@
+Full research VIR c86bfcd5 is terminal, exit1. Only top-level failure is Double16ThenDec quality expectation; no C89 HIR panic. Corpus solver-admission totals and skipped tests remain explicit in full.txt: top-level PASS is not a native behavioral proof for every corpus function. Later island work excluded from this executable.
