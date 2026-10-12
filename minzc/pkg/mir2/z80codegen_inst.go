@@ -691,6 +691,9 @@ func (g *z80cg) genInst(inst *Inst) {
 		}
 
 	case OpStore:
+		if g.runtime == Z80RuntimeCPM {
+			g.genCPMGlobalStoreGuard(inst)
+		}
 		if isSpill(g.loc(inst.Src[0])) {
 			defer g.saveWrittenScratch(inst)()
 		}
