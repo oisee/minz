@@ -69,7 +69,7 @@
         },
         {
           "test_or_artifact": "minzc/pkg/pipeline/original_zx_apps_test.go",
-          "evidence_file_sha256": "17f021935a45c1e3243c64875fce829f362afe77112e2587a1b1557ba282b526",
+          "evidence_file_sha256": "c1f72cd5d37d423296aba69a95b58ec34185dfa4bd6019e7796e1a1378ec7a6d",
           "source_relation": "reviewed exact-source root replay",
           "scope": "Wholemain3modes, independent exact screen/attrs/termination/RAM; Hello correctedCString source and frozen17keyboard input.; Injected device only, frozen scenario not fullkeyboard/font API or hardware. SAP source unchanged, Hello CString source corrected explicitly."
         },
@@ -87,7 +87,7 @@
         }
       ],
       "test_source_references_not_execution_claim": [
-        "minzc/pkg/pipeline/original_zx_apps_test.go:17"
+        "minzc/pkg/pipeline/original_zx_apps_test.go:15"
       ]
     },
     {
@@ -129,7 +129,7 @@
         },
         {
           "test_or_artifact": "minzc/pkg/pipeline/original_zx_apps_test.go",
-          "evidence_file_sha256": "17f021935a45c1e3243c64875fce829f362afe77112e2587a1b1557ba282b526",
+          "evidence_file_sha256": "c1f72cd5d37d423296aba69a95b58ec34185dfa4bd6019e7796e1a1378ec7a6d",
           "source_relation": "reviewed exact-source root replay",
           "scope": "Wholemain3modes, independent exact screen/attrs/termination/RAM; Hello correctedCString source and frozen17keyboard input.; Injected device only, frozen scenario not fullkeyboard/font API or hardware. SAP source unchanged, Hello CString source corrected explicitly."
         },
@@ -147,7 +147,7 @@
         }
       ],
       "test_source_references_not_execution_claim": [
-        "minzc/pkg/pipeline/original_zx_apps_test.go:17"
+        "minzc/pkg/pipeline/original_zx_apps_test.go:15"
       ]
     },
     {
@@ -202,7 +202,7 @@
       "test_source_references_not_execution_claim": [
         "minzc/pkg/pipeline/original_zsql_mara_color_main_test.go:20",
         "minzc/pkg/pipeline/original_zsql_mara_color_main_test.go:77",
-        "minzc/pkg/pipeline/original_zx_apps_test.go:17"
+        "minzc/pkg/pipeline/original_zx_apps_test.go:15"
       ]
     },
     {
@@ -1459,6 +1459,7 @@
         }
       ],
       "test_source_references_not_execution_claim": [
+        "minzc/pkg/pipeline/checked_local_readmission_weighted_test.go:12",
         "minzc/pkg/pipeline/checked_local_real_test.go:83",
         "minzc/pkg/pipeline/combined_contract_table_grace_test.go:19",
         "minzc/pkg/pipeline/grace_showcase_test.go:30",
@@ -4870,7 +4871,7 @@
         "minzc/pkg/pipeline/cpm_tui_adversarial_test.go:17",
         "minzc/pkg/pipeline/original_tetris_family_test.go:182",
         "minzc/pkg/pipeline/original_tetris_family_test.go:183",
-        "minzc/pkg/pipeline/original_tetris_main_negative_test.go:128",
+        "minzc/pkg/pipeline/original_tetris_main_negative_test.go:127",
         "minzc/pkg/pipeline/original_tetris_main_negative_test.go:146",
         "minzc/pkg/pipeline/original_tetris_main_test.go:128",
         "minzc/pkg/pipeline/original_tetris_main_test.go:147",
@@ -5736,7 +5737,7 @@
         }
       ],
       "test_source_references_not_execution_claim": [
-        "minzc/pkg/pipeline/original_zx_apps_test.go:17"
+        "minzc/pkg/pipeline/original_zx_apps_test.go:15"
       ]
     },
     {
@@ -5839,7 +5840,7 @@
         }
       ],
       "test_source_references_not_execution_claim": [
-        "minzc/pkg/pipeline/original_zx_apps_test.go:17"
+        "minzc/pkg/pipeline/original_zx_apps_test.go:15"
       ]
     },
     {
