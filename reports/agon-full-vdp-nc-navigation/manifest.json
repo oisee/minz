@@ -1,0 +1,38 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "a73894d33c610c260c94c5caa0cf39dfc74603b258490b66c12db24ad393c2ba"
+  },
+  {
+    "path": "capture.c",
+    "sha256": "314bef6ca141109cfdce30d9e851db8c9d36827e3c5d8ba13c36f13047627b3c"
+  },
+  {
+    "path": "emulator.log",
+    "sha256": "aa045f77ff90a45fc4643d4170d6d2ee05dfa13638244b456a57a504eb6c5437"
+  },
+  {
+    "path": "program.bin",
+    "sha256": "33e9482d01c8f17111aac455691601f8845e258fa20c4d2e4128f28cb12b67ae"
+  },
+  {
+    "path": "result.json",
+    "sha256": "11f3c355a7e63a838354d4f167512cad6a516e91b7a9d4ace0fac7d7c9cdfa33"
+  },
+  {
+    "path": "returned.png",
+    "sha256": "bfa09fac2436bb6187897da6169a92810154bc6ce9722a6393a577bfac15123d"
+  },
+  {
+    "path": "returned.ppm",
+    "sha256": "a584d732a16d025a2ca87100f16fcd49442e35676aaa81bce29cb8592aa6b3ca"
+  },
+  {
+    "path": "selected.png",
+    "sha256": "c3f617f6a9ce2ee8e222aa90e61cc67b8dec9abcdddd5bdd49c8e5f3ad0c96a7"
+  },
+  {
+    "path": "selected.ppm",
+    "sha256": "c5e0444bc5a4fe51ebfb97c0059bdc0456d4fbbf996bb977653378c99012cf47"
+  }
+]

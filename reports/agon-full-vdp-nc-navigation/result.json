@@ -1,0 +1,12 @@
+{
+  "scope": "single ordinary fulldevice visual sequence",
+  "keys": [
+    "Down",
+    "Enter",
+    "Escape"
+  ],
+  "selected_index_observed": 1,
+  "selected_text_observed": "NC_AGON.BIN",
+  "following_mos_echo_observed": true,
+  "cutoff_exit": 124
+}

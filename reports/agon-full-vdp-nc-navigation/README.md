@@ -1,0 +1,5 @@
+# Mini NC: actual Down/Enter/Escape on full VDP
+
+Same ordinary public CLI BIN as reports/agon-full-vdp-demo-nc. Real SDL Down at updates270/272 moves selection0→1; Enter300/302 prints Selected: NC_AGON.BIN. Capture330 shows second row highlighted and selected text. Escape360/362 clears UI; capture420 shows MINZ_FULL_RETURNED and MOS prompt. All through normal Fab SDL→PS2→MOS path, no fake CLI keyboard substitution. Visual observation only, no independent pixel or fullRAM-SP oracle. Single navigation sequence, not all indices/arbitrary inputs or hardware proof.
+
+Capture C and exact BIN/framebuffers/log retained. Reproduce using previous full-device report SD setup and this capture.so built with cc -shared -fPIC -I <SDL3>/include capture.c -ldl -o capture.so. Environment MINZ_AGON_FRAME=<selected.ppm>, MINZ_AGON_RETURN_FRAME=<returned.ppm>; dummy SDL, local SDL3, LD_PRELOAD capture.so. timeout10s stops ongoing MOS(exit124); following echo proves app completion. Source/library/tool pins are retained in the predecessor full-device package.
