@@ -1381,8 +1381,8 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		code := strings.Join(lines, "\n    ")
 		// Resolve input operands to virtual registers.
 		// If no explicit (in ...) clause, auto-infer from @z80_X-annotated params.
-		// If explicit, (in REG, ...) names physical registers; we reverse-map
-		// each to the @z80_X parameter that occupies that register.
+		// Explicit inputs name in-scope values first; legacy physical aliases
+		// resolve to the corresponding @z80_X-annotated parameter.
 		var ins []mir2.Reg
 		if len(st.Ins) == 0 {
 			for _, p := range l.hf.Params {
