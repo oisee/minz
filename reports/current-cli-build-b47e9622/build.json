@@ -1,0 +1,8 @@
+{
+  "source_commit": "b47e9622",
+  "binary": "/home/alice/dev/minz-artifacts/grace-tools/minzc-b47e9622",
+  "binary_sha256": "c290cfbbf70f1047ec0bb7a6d358783f7a9abe32b0d2a2839d67f46c1fb8e62f",
+  "build_command": "GOCACHE=/tmp/minz-grace-gocache go build -o /home/alice/dev/minz-artifacts/grace-tools/minzc-b47e9622 ./cmd/minzc",
+  "go": "go1.26.8",
+  "binary_size": 42928755
+}
