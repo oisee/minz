@@ -1,0 +1,4 @@
+=== RUN   TestOriginalTUICommanderWholeMain
+--- PASS: TestOriginalTUICommanderWholeMain (0.22s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.226s
