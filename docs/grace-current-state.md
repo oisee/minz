@@ -1,5 +1,7 @@
 # Grace / PGO: текущее состояние
 
+FullMIR0cc467f7 PASS98,850с; selectedartifactCLIcccddb02 collect/replay/publicationPASS47,578с ([296](grace-integration-296/README.md)). Новые ALV/SQL/TUI runtimefamilies вработе.
+
 Selfparser+canvas whole main proof интегрирован: rootPASS7,818с ([295](grace-integration-295/README.md)),143/194independent/boundedVM/native paths. RootfullMIR0cc467f7 ещёlive; conditionalfix теперьвключён.
 
 Root fullMIR57a7cc36 PASS80,768с (externABI+wordstore). Болеепоздний conditionalcallUses fix0da59af4 native/VM regressionPASS0,022с ([294](grace-integration-294/README.md)); полныйselfparserproof ожидается.

@@ -1,0 +1,32 @@
+=== RUN   TestCompilerModeArtifactPublication
+=== RUN   TestCompilerModeArtifactPublication/complete-and-exact
+=== RUN   TestCompilerModeArtifactPublication/stage-failure
+=== RUN   TestCompilerModeArtifactPublication/output-stage-failure
+--- PASS: TestCompilerModeArtifactPublication (0.01s)
+    --- PASS: TestCompilerModeArtifactPublication/complete-and-exact (0.01s)
+    --- PASS: TestCompilerModeArtifactPublication/stage-failure (0.00s)
+    --- PASS: TestCompilerModeArtifactPublication/output-stage-failure (0.00s)
+=== RUN   TestCompilerModeDirectoryNoReplace
+--- PASS: TestCompilerModeDirectoryNoReplace (0.00s)
+=== RUN   TestCompilerModeDirectoryPathAliases
+=== RUN   TestCompilerModeDirectoryPathAliases/output-inside
+=== RUN   TestCompilerModeDirectoryPathAliases/output-parent
+=== RUN   TestCompilerModeDirectoryPathAliases/source-parent
+=== RUN   TestCompilerModeDirectoryPathAliases/existing-empty
+=== RUN   TestCompilerModeDirectoryPathAliases/symlink-parent
+--- PASS: TestCompilerModeDirectoryPathAliases (0.02s)
+    --- PASS: TestCompilerModeDirectoryPathAliases/output-inside (0.00s)
+    --- PASS: TestCompilerModeDirectoryPathAliases/output-parent (0.00s)
+    --- PASS: TestCompilerModeDirectoryPathAliases/source-parent (0.00s)
+    --- PASS: TestCompilerModeDirectoryPathAliases/existing-empty (0.00s)
+    --- PASS: TestCompilerModeDirectoryPathAliases/symlink-parent (0.01s)
+=== RUN   TestMemoryHostSelectedOutputExtensions
+--- PASS: TestMemoryHostSelectedOutputExtensions (0.04s)
+=== RUN   TestMemoryHostSelectedOutputBytes
+--- PASS: TestMemoryHostSelectedOutputBytes (0.00s)
+=== RUN   TestMemoryHostLegacySelectedOutputCollectReplay
+Closed memory-host speed selected mask1: 756T / 2547B; evidence /tmp/TestMemoryHostLegacySelectedOutputCollectReplay3231658042/001/legacy-collect
+Closed memory-host speed selected mask1: 756T / 2547B; evidence /tmp/TestMemoryHostLegacySelectedOutputCollectReplay3231658042/001/legacy-replay
+--- PASS: TestMemoryHostLegacySelectedOutputCollectReplay (47.50s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	47.578s
