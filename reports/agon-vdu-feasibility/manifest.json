@@ -1,0 +1,38 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "8b38c36562f0b12d44d51b090b93407f6d99365f912703922bab278dde0cdbaa"
+  },
+  {
+    "path": "candidate-vdu.bin",
+    "sha256": "a5ecc700d8a861f45b03102f5219bbbf34896dc6e69582d6a2120484bdecd78c"
+  },
+  {
+    "path": "render/frame.png",
+    "sha256": "6f791af5087fed55f29ccc6feb466eb0392713eb7ed3667a2fce8e1a27f25bda"
+  },
+  {
+    "path": "render/frame.ppm",
+    "sha256": "15e2616770559b6eca92979d6b7c8a2022ba61a0a4a0894366355e0eea0c0018"
+  },
+  {
+    "path": "render/initialization.bin",
+    "sha256": "f920612e096546629d9015cfd2f0c17574cd7bbb514c153ff4ce4e4f274f57e3"
+  },
+  {
+    "path": "render/result.json",
+    "sha256": "6b8fa0f3a2be0f49464259a9437f108dc2951c1ad1df144858f1cde1836f73fa"
+  },
+  {
+    "path": "render/stream.bin",
+    "sha256": "a5ecc700d8a861f45b03102f5219bbbf34896dc6e69582d6a2120484bdecd78c"
+  },
+  {
+    "path": "source-ansi.bin",
+    "sha256": "fa9e321aefb1529f8ab01a0ea9c8812f6c3838982c4f374c447c6735c4444139"
+  },
+  {
+    "path": "translate.py",
+    "sha256": "65143e9d1a70ed3866c862059deacd01d159a37f7d13cd315267870c52d0b5d6"
+  }
+]
