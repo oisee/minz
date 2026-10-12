@@ -1,0 +1,11 @@
+{
+  "checkpoint": "00335b76",
+  "root_suite_exit": 0,
+  "root_suite_seconds": 6.44,
+  "runtime_verifier_exit": 0,
+  "runtime_verifier_seconds": 0.229,
+  "verified_production_manifest_files": 36,
+  "verified_executables": 2,
+  "production_COM_SHA256": "199d968289be627478633709f5130b9113cea6f7a1244d4062e16746b8b1b46d",
+  "bytes": 1419
+}
