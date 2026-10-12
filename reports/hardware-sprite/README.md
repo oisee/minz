@@ -18,11 +18,12 @@ Caller owns destination writable RAM disjoint from code/stack.
 | Strided | 74 / 313 | 69 / 398 |
 | Opaque | 21 / 90 | 19 / 120 |
 | Fully transparent | 1 / 10 | 1 / 10 |
+| Patterned 128×16 pixels | 1601 / 6666 | 1241 / 6458 |
 
 The compiled strategy saves size on these examples but loses time because it
 preserves registers. This is an explicit choice, not an automatic selector or a
 claimed universal speed win. Timing includes preservation and RET, excludes
-external CALL and physical ULA/IRQ costs. Larger scenes need their own measures.
+external CALL and physical ULA/IRQ costs. The larger 128×16-pixel case saves 22.5% bytes and 3.12% T in all three modes.
 
 Tests compare two changing backgrounds with independent masks/address oracle,
 whole native RAM, exact PC/SP, compiled primary register/flags preservation.
@@ -34,3 +35,6 @@ missing/duplicate fields and arity. Native/source/ASM/BIN/result packets retaine
 Current limitations: byte-aligned, known position and mask/data. Dynamic-position
 sprites, pixel shifts and clipping are not yet promised by this API. Those can
 be added as specializations while preserving the explicit mask semantics.
+
+Final suite: 162 native matrix executions, 168 raw/final VM checks, 27 invalid
+descriptions and 30 live-value native checks across two compiled blocks: PASS 2.502 s.

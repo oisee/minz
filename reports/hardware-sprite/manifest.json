@@ -2,7 +2,7 @@
   "files": [
     {
       "path": "README.md",
-      "sha256": "92b511befc74223f083c2de30c1a85fb663c5e54b59ad733dcc14123378936de"
+      "sha256": "c7350e526746895f3fca3598c4302ee3f30b7fe2f4519fe122ef617e34dc66e8"
     },
     {
       "path": "native/compiled/last-byte/grace-size/program.a80",
