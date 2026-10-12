@@ -1,0 +1,7 @@
+{
+  "budget_steps": 100000,
+  "input_reads": 0,
+  "output_bytes": 8845,
+  "source_sha256": "444a07777a59a5fd57e1d57f364232ae7c87eeba9430e665ef170a64b7d3793f",
+  "wholemain_result": "FAIL source/API"
+}
