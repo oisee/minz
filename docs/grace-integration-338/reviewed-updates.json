@@ -1108,7 +1108,7 @@
     "boundary": "Explicit test-owned terminal bindings match mzv host contract; unlinked public ASM has unresolved extern slots. No public mze/runtime/hardware claim; fixed finite scenario only.",
     "evidence": {
       "minzc/pkg/pipeline/original_tetris_tui_main_test.go": "4b516f485025df7ac151b2558eb169a9b582e88bc513defcf2a1a260ef75fdbb",
-      "reports/tetris-tui-main/freeze.json": "ecf2e55fbd2977e8f94b8d7e2d1a9a73545e863b4f961a692669303d5d73e4ac",
+      "reports/tetris-tui-main/freeze.json": "af7ee5f92f7135c10e3fd34c337ff4241bcbb0bfb406d6f1d2a3607ffe255314",
       "reports/tetris-tui-main/manifest.json": "6e88ac17b8d3cfe41ca0181834bbd2f39f97fad719089e678a8163f6a90d559c",
       "reports/tetris-tui-main/LINKER.md": "8133b24677280951f68cae559079d7d14b83db841484d483f0680a9b071f4512",
       "docs/grace-integration-275/tui-root.txt": "10ccc3e877b317ecc386d409c24c6922df1f6d708e2d1f107b51739d45b9bec8"
