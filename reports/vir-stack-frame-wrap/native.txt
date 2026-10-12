@@ -1,0 +1,22 @@
+=== RUN   TestAdapterStackFrameWrapNative
+=== RUN   TestAdapterStackFrameWrapNative/sp_0000
+=== RUN   TestAdapterStackFrameWrapNative/sp_0001
+=== RUN   TestAdapterStackFrameWrapNative/sp_0002
+=== RUN   TestAdapterStackFrameWrapNative/sp_0017
+=== RUN   TestAdapterStackFrameWrapNative/sp_0018
+=== RUN   TestAdapterStackFrameWrapNative/sp_0019
+=== RUN   TestAdapterStackFrameWrapNative/sp_4000
+=== RUN   TestAdapterStackFrameWrapNative/sp_fffe
+=== RUN   TestAdapterStackFrameWrapNative/sp_ffff
+--- PASS: TestAdapterStackFrameWrapNative (0.01s)
+    --- PASS: TestAdapterStackFrameWrapNative/sp_0000 (0.00s)
+    --- PASS: TestAdapterStackFrameWrapNative/sp_0001 (0.00s)
+    --- PASS: TestAdapterStackFrameWrapNative/sp_0002 (0.00s)
+    --- PASS: TestAdapterStackFrameWrapNative/sp_0017 (0.00s)
+    --- PASS: TestAdapterStackFrameWrapNative/sp_0018 (0.00s)
+    --- PASS: TestAdapterStackFrameWrapNative/sp_0019 (0.00s)
+    --- PASS: TestAdapterStackFrameWrapNative/sp_4000 (0.00s)
+    --- PASS: TestAdapterStackFrameWrapNative/sp_fffe (0.00s)
+    --- PASS: TestAdapterStackFrameWrapNative/sp_ffff (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.018s
