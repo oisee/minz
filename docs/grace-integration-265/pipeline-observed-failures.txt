@@ -1,0 +1,4 @@
+--- FAIL: TestMemoryHostFactoryOriginalParser (2.63s)
+    memory_host_baseline_test.go:27: current parser target drift 1296385 2380 6d80d6ec7c8a1a00b1d70d88cedbb7cc0e345cb9234de9772ea710acb019efe5
+--- FAIL: TestMemoryHostLoopAssociationOriginalParser (3.36s)
+    memory_host_loop_profile_test.go:38: current parser target drift 1296385 2380 6d80d6ec7c8a1a00b1d70d88cedbb7cc0e345cb9234de9772ea710acb019efe5
