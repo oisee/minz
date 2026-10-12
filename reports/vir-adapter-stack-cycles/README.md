@@ -1,0 +1,5 @@
+# Adapter cycles preserve simultaneous inputs
+
+Replaced destructive temporary-register cycle swaps with snapshots before destination writes. Dependency ordering includes pair/half overlaps. Word-pair cycles snapshot each complete source directly on the stack. Byte cycles use a saved pair outside all source/destination locations to snapshot bytes; that pair is restored. If no safe scratch pair exists, adapter emission propagates an error instead of emitting invalid byte PUSH or corrupting another parameter. Such dense/mixed-width cases still need dedicated lowering; not certified here.
+
+Native checks: all six A/B/C permutations each cover65536 x/y combinations with C=3*x+7*y modulo256 (393216 calls); separate three-cycle regression65536 calls; HL→DE→BC→HL covers65536 x with other words affine permutations. Preserved registers, flags in the permutation/pair tests and exactPC/SP checked. Not full256³/65536³ Cartesian domains. All PASS. Broad existing asserts, codegen, islands and indexed-call regressions PASS6.323s. Source expectations unchanged. Full earlier VIR and production gates remain independent running checkpoints.

@@ -1,0 +1,8 @@
+=== RUN   TestAdapterThreeCycleNative
+--- PASS: TestAdapterThreeCycleNative (0.03s)
+=== RUN   TestAdapterWordPairCycleNative
+--- PASS: TestAdapterWordPairCycleNative (0.01s)
+=== RUN   TestAdapterAllBytePermutationsNative
+--- PASS: TestAdapterAllBytePermutationsNative (0.12s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.163s
