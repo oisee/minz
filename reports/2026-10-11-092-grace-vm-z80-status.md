@@ -48,9 +48,9 @@
 | TUI Hello | Окно и приветствие; клавиша A; возврат в MOS | [Кадры, исходник и BIN](https://github.com/oisee/minz/tree/77e0bffb/reports/agon-native-vdu-fix) |
 | TUI Demo и Mini NC | Отрисовка обоих интерфейсов; выход A / Escape | [Полный пакет](https://github.com/oisee/minz/tree/9084e512/reports/agon-full-vdp-demo-nc) |
 | Mini NC: Down, Enter, Escape | Выделение второй строки; `Selected: NC_AGON.BIN`; возврат в MOS | [Последовательность и кадры](https://github.com/oisee/minz/tree/21770ce7/reports/agon-full-vdp-nc-navigation) |
-| Mini NC: нижняя граница списка и Up | Девять Down оставляют выбор на последней, восьмой строке; Enter показывает PLASMA.BIN; Up выбирает каталог EXAMPLES; Escape возвращает в MOS | [Кадры и точный ввод](https://github.com/oisee/minz/tree/431500f0/reports/agon-full-vdp-nc-boundary) |
+| Mini NC: нижняя граница списка и Up | Девять Down оставляют выбор на последней, восьмой строке; Enter показывает PLASMA.BIN; Up выбирает каталог EXAMPLES; Escape возвращает в MOS | [Кадры и точный ввод](https://github.com/oisee/minz/tree/7ba37c5c/reports/agon-full-vdp-nc-boundary) |
 
-![Mini NC на полном VDP: выбрана последняя строка PLASMA.BIN](https://raw.githubusercontent.com/oisee/minz/431500f0/reports/agon-full-vdp-nc-boundary/last.png)
+![Mini NC на полном VDP: выбрана последняя строка PLASMA.BIN](https://raw.githubusercontent.com/oisee/minz/7ba37c5c/reports/agon-full-vdp-nc-boundary/last.png)
 
 **Проверки нашли два настоящих препятствия.** Во-первых, приложение могло затереть IY, используемый MOS, а void main заканчивался HALT. Agon entry теперь сохраняет и восстанавливает IY, вызывает main и возвращает status 0 в MOS. [Исправление и регрессии](https://github.com/oisee/minz/tree/31030f07/reports/agon-entry-fix). Во-вторых, прежняя TUI-библиотека отправляла ANSI escape sequences, которые обычный графический VDP показывал как текст. Библиотека теперь использует собственные VDU-команды Agon для позиции курсора, цветов, очистки и видимости курсора; сами примеры не переписаны. [Исправление VDU](https://github.com/oisee/minz/tree/77e0bffb/reports/agon-native-vdu-fix).
 
