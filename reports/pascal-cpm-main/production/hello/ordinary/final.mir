@@ -1,0 +1,21 @@
+; MIR2 module: examples/pascal/hello.pas
+string @mir2.str.0 = "Hello from Pascal on Z80!$"
+
+fun @main()
+  block @entry:
+    %r1 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r2 = move %r1 : ptr [pointer]
+    call @WriteStr(%r2)
+    call @WriteCrLf()
+    ret void
+
+fun @WriteCrLf()
+  block @entry:
+    asm "LD E, 13\n    LD C, 2\n    CALL 5\n    LD E, 10\n    LD C, 2\n    CALL 5"
+    ret void
+
+fun @WriteStr(%r3: u16 [pointer])
+  block @entry:
+    asm "EX DE, HL\n    LD C, 9\n    CALL 0x0005"
+    ret void
+
