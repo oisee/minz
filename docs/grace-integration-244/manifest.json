@@ -23,6 +23,10 @@
     "pascal-private-label-root.txt": {
       "sha256": "2a2661cd0de0552b7f1e128183a243176491f888050a6138a5068a39846f8e0b",
       "bytes": 108
+    },
+    "pascal-private-mir2-root.txt": {
+      "sha256": "a96a910a0285b7fd68f47a36039ac539a4e087be9f5354981499ee73640ec30a",
+      "bytes": 43
     }
   }
 }
