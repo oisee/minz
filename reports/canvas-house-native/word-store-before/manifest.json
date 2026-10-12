@@ -1,0 +1,13 @@
+{
+  "compiler_commit": "065217c4",
+  "files": [
+    {
+      "path": "native-failure.txt",
+      "sha256": "b93d67a760c3d555c6c22b1c071c1543563158e7f5f4cac4278266490a627fd1"
+    },
+    {
+      "path": "unlinked.a80",
+      "sha256": "d3dd2ce45b28878b6165b492cf6919c66ee63bba3348258d7aa0963313cd55de"
+    }
+  ]
+}
