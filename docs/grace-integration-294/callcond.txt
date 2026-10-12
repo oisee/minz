@@ -1,0 +1,4 @@
+=== RUN   TestConditionalCallArgumentAcrossWordCompare
+--- PASS: TestConditionalCallArgumentAcrossWordCompare (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.022s
