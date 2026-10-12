@@ -1,0 +1,9 @@
+# Исходный Nanz self-parser: символьные классификаторы
+
+Полный неизменный `examples/nanz/self_parser.nanz` сохранён. Проспективно замороженная модель всех 256 байтов для is_digit/is_alpha/is_alnum/is_space: ASCII интервалы цифр/букв, underscore и space/tab/CR/LF. Nanz Book v7 главы 2/3/5 определяют byte/comparison/return семантику.
+
+Три режима дают 3 072 native-вызова и по 3 072 raw/final VM проверки. Старый executable на базе31161121 (test c382bf49) завершился PASS 516,227 с. Его bootstrap делает настоящий CALL; fullRAM и PC/SP проверены. Exact executable SHA сохранён отдельно и на шаре.
+
+Ускоренный стенд на базеa1957835 собирает полный модуль один раз за режим, передаёт аргумент через фактическое allocation/ABI и входит в исходную функцию с подготовленным return word. Вложенные source CALL сохраняются; внешние функции не исполняются. PASS 2,943 с с дополнительным guard instruction PC только четырьмя чистыми функциями. RAM сравнивается полностью кроме наблюдённого private stack; raw/final VM memory accesses запрещены. Домены/ожидания не уменьшены. Это изменение стенда, не ускорение программы или компилятора.
+
+Файловые peek/poke/file_read/file_write, вывод и полный main не проверены. Поэтому исходный external-runtime статус сохраняется: классификаторы не доказывают работу всего self-hosting парсера. Старые/новые ASM/BIN/raw/final MIR/options/allocation и логи сохранены раздельно.

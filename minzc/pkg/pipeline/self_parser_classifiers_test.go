@@ -81,6 +81,34 @@ func TestOriginalSelfParserCharacterClassifiers(t *testing.T) {
 			for _, vm := range []*mir2.VM{rawVM, finalVM} {
 				vm.ObserveDataAccess = func(a mir2.VMDataAccess) { t.Fatalf("pure classifier memory effect: %+v", a) }
 			}
+			image, e := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + s.Assembly)
+			if e != nil || image == nil || len(image.Errors) > 0 {
+				t.Fatal("assemble", e)
+			}
+			save(mode.Name+"/program.bin", image.Binary)
+			z := emulator.NewRemogattoZ80()
+			base := make([]byte, 65536)
+			for i := range base {
+				base[i] = byte(i*73 + 29)
+			}
+			copy(base[0x8000:], image.Binary)
+			allowedPC := map[uint16]bool{}
+			for _, name := range []string{"is_digit", "is_alpha", "is_alnum", "is_space"} {
+				start, ok := image.Symbols[name]
+				if !ok {
+					t.Fatal("missing original entry", name)
+				}
+				end := 0x8000 + len(image.Binary)
+				for _, fn := range s.MIR2Module.Funcs {
+					if other, ok := image.Symbols[fn.Name]; ok && other > start && other < end {
+						end = other
+					}
+				}
+				for pc := start; pc < end; pc++ {
+					allowedPC[uint16(pc)] = true
+				}
+			}
+			base[0xfef0], base[0xfef1] = 0, 0x70
 			for _, c := range model.Calls {
 				for _, vm := range []*mir2.VM{rawVM, finalVM} {
 					v, e := vm.Call(c.Entry, []mir2.Value{{I: int64(c.Input)}})
@@ -90,27 +118,41 @@ func TestOriginalSelfParserCharacterClassifiers(t *testing.T) {
 				}
 				f := s.MIR2Module.FuncByName(c.Entry)
 				a := hir.Assert{FuncName: c.Entry, Args: []int64{int64(c.Input)}, Expected: int64(c.Expected)}
-				boot := buildAssertBootstrap(0x8000, a, f, s.Allocation)
-				image, e := z80asm.NewAssembler().AssembleString(boot + s.Assembly)
-				if e != nil || image == nil || len(image.Errors) > 0 {
-					t.Fatal("assemble", e)
+				if len(f.Contract.Params) != 1 || f.Contract.Params[0].Ty != mir2.TyU8 {
+					t.Fatal("unexpected classifier ABI", f.Contract)
 				}
-				z := emulator.NewRemogattoZ80()
-				for i := range z.Memory() {
-					z.Memory()[i] = byte(i*73 + 29)
+				copy(z.Memory(), base)
+				regs := emulator.Registers{PC: uint16(image.Symbols[c.Entry]), SP: 0xfef0, A: 0x91, F: 0x85, BC: 0x2134, DE: 0x5678, HL: 0x9abc, IX: 0x1234, IY: 0x5678}
+				input := uint16(c.Input)
+				switch home := assertParamLocation(f.Contract.Params[0], s.Allocation); home.Name {
+				case "A":
+					regs.A = byte(input)
+				case "B":
+					regs.BC = (input << 8) | (regs.BC & 255)
+				case "C":
+					regs.BC = (regs.BC & 0xff00) | input
+				case "D":
+					regs.DE = (input << 8) | (regs.DE & 255)
+				case "E":
+					regs.DE = (regs.DE & 0xff00) | input
+				case "H":
+					regs.HL = (input << 8) | (regs.HL & 255)
+				case "L":
+					regs.HL = (regs.HL & 0xff00) | input
+				default:
+					t.Fatal("unsupported input home", home)
 				}
-				if e = z.LoadMemory(0x8000, image.Binary); e != nil {
-					t.Fatal(e)
-				}
-				before := append([]byte(nil), z.Memory()...)
-				z.SetPC(0x8000)
-				stop := uint16(0x8000 + trampolineSize(a, f, s.Allocation) - 2)
+				z.SetRegisters(regs)
+				stop := uint16(0x7000)
 				done := false
-				minSP := uint16(0xff00)
+				minSP := uint16(0xfef0)
 				for steps := 0; steps < 20000; steps++ {
-					if z.GetPC() == stop && z.GetSP() == 0xff00 {
+					if z.GetPC() == stop && z.GetSP() == 0xfef2 {
 						done = true
 						break
+					}
+					if !allowedPC[z.GetPC()] {
+						t.Fatalf("out-of-scope execution %v at %04x", c, z.GetPC())
 					}
 					z.Step()
 					if sp := z.GetSP(); sp < minSP {
@@ -123,16 +165,13 @@ func TestOriginalSelfParserCharacterClassifiers(t *testing.T) {
 				if minSP < 0xfe80 {
 					t.Fatal("unexpected stack depth", minSP)
 				}
-				for i, b := range before {
-					if z.Memory()[i] != b && !(i >= int(minSP) && i < 0xff00) {
+				for i, b := range base {
+					if z.Memory()[i] != b && !(i >= int(minSP) && i < 0xfef0) {
 						t.Fatalf("unexpected native write %v at %04x", c, i)
 					}
 				}
 				if e = checkAssertZ80Result(z, a, f, map[string]*hir.Func{c.Entry: h.FuncByName(c.Entry)}); e != nil {
 					t.Fatal(c, e)
-				}
-				if c.Input == 0 {
-					save(mode.Name+"/"+c.Entry+".bin", image.Binary)
 				}
 			}
 			save(mode.Name+"/result.txt", []byte(fmt.Sprintf("PASS: 1024 native CALLs, 1024 raw VM and 1024 final VM; exact frozen byte domain; PC/SP and RAM checked. Original main/externs unexecuted.\n")))

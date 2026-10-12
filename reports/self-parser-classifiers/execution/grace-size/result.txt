@@ -1,0 +1,1 @@
+PASS: 1024 native CALLs, 1024 raw VM and 1024 final VM; exact frozen byte domain; PC/SP and RAM checked. Original main/externs unexecuted.
