@@ -1,0 +1,15 @@
+=== RUN   TestShowcaseExecutableOracleCatalog
+    showcase_oracle_catalog_test.go:238: bounded-independent-vm-native: 82 exact paths
+    showcase_oracle_catalog_test.go:238: host-only-memory-model: 1 exact paths
+    showcase_oracle_catalog_test.go:238: executed-native-asm-bounded: 21 exact paths
+    showcase_oracle_catalog_test.go:238: agon-mos-runtime: 5 exact paths
+    showcase_oracle_catalog_test.go:238: executed-independent-bounded: 2 exact paths
+    showcase_oracle_catalog_test.go:238: executed-native-cpm-runtime: 10 exact paths
+    showcase_oracle_catalog_test.go:238: executed-native-smc-bounded: 2 exact paths
+    showcase_oracle_catalog_test.go:238: executed-independent-vm-z80: 69 exact paths
+    showcase_oracle_catalog_test.go:238: pending-independent-oracle: 2 exact paths
+    showcase_oracle_catalog_test.go:250: open /home/alice/dev/minz-artifacts/grace-checkpoints/catalog-20e80776/catalog.json: no such file or directory
+--- FAIL: TestShowcaseExecutableOracleCatalog (2.19s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/nanz	2.196s
+FAIL

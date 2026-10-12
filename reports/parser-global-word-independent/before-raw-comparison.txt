@@ -1,0 +1,5 @@
+=== RUN   TestGlobalWordDirectOriginalBoth30
+    global_word_direct_target_test.go:65: mask0 actual1296226T/2423B steps123137 BIN90817d539c3874374c2e9151090c1e5b3ee9c40c441df52e3fddc3e654506ef8
+    global_word_direct_target_test.go:65: mask3 actual1237028T/2524B steps117402 BIN9aaf19d0a33528b1174d6db961d6f1cec7195e250acfa6704c42f062f5eece2f
+--- PASS: TestGlobalWordDirectOriginalBoth30 (5.60s)
+PASS

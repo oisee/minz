@@ -48,6 +48,7 @@ func TestGlobalWordDirectOriginalBoth30(t *testing.T) {
 		if e != nil {
 			t.Fatal(mask, e)
 		}
+		assertMemoryHostParserIndependentOracle(t, evidence.Raw.Invocations, evidence.Target.Invocations)
 		name := map[int]string{0: "original", 3: "both"}[mask]
 		out := filepath.Join(dir, name)
 		if e = os.MkdirAll(out, 0755); e != nil {

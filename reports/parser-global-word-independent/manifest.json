@@ -1,0 +1,19 @@
+{
+  "catalog-export-path-error.txt": "0298c6936ee0fa2c6e11c267cf4bf6856e067eb6cc957840140858d4ec2ec53d",
+  "catalog-replay.txt": "5094d401322540cb44e2370275050121a01747fc117887c1ef9810f8e30b5a7f",
+  "independent-check.txt": "32c7e8c4ae22fe3c229f096f44386aca1e69acea9a74d39d382db95b76ebaf84",
+  "README.md": "73ac53600542a6e19dbf117bba32605c39431dd11a12bcff6c865b88bd71db0b",
+  "before-raw-comparison.txt": "789b806259391a5845771308166041efc096df4f2b6b4aaaab084a9f529cce54",
+  "artifacts/both/final.mir2": "b546acd02a955b345283bef839594df044f844b155691ea8c271c2fbc9ca1607",
+  "artifacts/both/target.a80": "2160e9a82f9d9db4942abc20415aa669ed8f49a2be399a26944a3f18b4274ae3",
+  "artifacts/both/target.bin": "9aaf19d0a33528b1174d6db961d6f1cec7195e250acfa6704c42f062f5eece2f",
+  "artifacts/both/source.nanz": "763d9f369e3bbbdbcb84dee2627aff5ee90e57d99ad8d0f69e7db0c8325a6b51",
+  "artifacts/both/factory-baseline.json": "1b18b43ba397eea30ba4b5bdc6ff3c5644acc3d05836e0d49030b0882b1b0fb1",
+  "artifacts/both/allocation.json": "3b2457ec6a48fb5d94741616e26ff9d3cee8b0507e0177039cce803d9f7e05e1",
+  "artifacts/original/final.mir2": "3178686206d83e3b140bd81998069f0db0c170e705c94006547f5853f4e8b131",
+  "artifacts/original/target.a80": "bb4cc5eec81bce2e1977751f1287927e95f995ac9fdb68b37560cebf0afa9d6e",
+  "artifacts/original/target.bin": "90817d539c3874374c2e9151090c1e5b3ee9c40c441df52e3fddc3e654506ef8",
+  "artifacts/original/source.nanz": "763d9f369e3bbbdbcb84dee2627aff5ee90e57d99ad8d0f69e7db0c8325a6b51",
+  "artifacts/original/factory-baseline.json": "966be2e6978d86bb6e7550a6b8f21eb2ec4c87b2527f255d54d8a69a1306dce4",
+  "artifacts/original/allocation.json": "3a5e5e1fd7f23f854888334f5341c35658c4c2cd6810124c246bfa496fbfd843"
+}
