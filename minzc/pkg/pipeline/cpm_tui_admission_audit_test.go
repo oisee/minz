@@ -1,11 +1,9 @@
 package pipeline
 
 import (
-	"encoding/json"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 	"os"
-	"path/filepath"
 	"testing"
 )
 
@@ -38,17 +36,11 @@ func TestCPMTUIAdmissionAudit(t *testing.T) {
 		t.Fatal(e)
 	}
 	_, e = CompileHIRSteps(h, Options{ContractOpt: true, AssertMode: "none", Runtime: mir2.Z80RuntimeCPM, RuntimeStackBytes: 1024})
-	if e == nil {
-		t.Fatal("expected refusal before admission implementation")
+	if e != nil {
+		t.Fatal("canonical guarded runtime", e)
 	}
-	if d := os.Getenv("CPM_TUI_EXPORT"); d != "" {
-		os.MkdirAll(d, 0755)
-		j, _ := json.MarshalIndent(rows, "", "  ")
-		os.WriteFile(filepath.Join(d, "asm-contracts.json"), j, 0644)
-		os.WriteFile(filepath.Join(d, "refusal.txt"), []byte(e.Error()), 0644)
-		os.WriteFile(filepath.Join(d, "source.nanz"), b, 0644)
-		os.WriteFile(filepath.Join(d, "target.a80"), []byte(s.Assembly), 0644)
-		os.WriteFile(filepath.Join(d, "final.mir"), []byte(s.MIR2Module.Dump()), 0644)
+	if os.Getenv("CPM_TUI_EXPORT") != "" {
+		t.Fatal("historical before-export is immutable; use MINZ_CPM_TETRIS_ARTIFACTS for new evidence")
 	}
-	t.Log(e)
+	_ = rows
 }

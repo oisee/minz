@@ -95,6 +95,7 @@ func cpmTUIBody(f *Func, ar *AllocResult) []string {
 	for _, line := range strings.Split(expected, "\n") {
 		line = strings.TrimSpace(strings.SplitN(line, ";", 2)[0])
 		if line != "" {
+			line = strings.ReplaceAll(line, ".", sanitizeIdent(f.Name)+".")
 			body = append(body, line)
 		}
 	}
@@ -112,7 +113,16 @@ func cpmTUIAdapter(f *Func, ar *AllocResult) []string {
 // by its caller and is never modified.
 func cpmRuntimeClosure(m *Module, ar *AllocResult) (*Module, error) {
 	for _, f := range m.Funcs {
-		if f.Attrs.HasAsm && cpmTUIBody(f, ar) == nil && !cpmSourceBDOS2(f, ar) && cpmPascalOutputAdapter(f, ar) == nil {
+		if f.Attrs.IsExtern || f.Attrs.ExternAddr != 0 {
+			return nil, fmt.Errorf("CP/M runtime rejects fixed/external function %s", f.Name)
+		}
+		hasAsm := f.Attrs.HasAsm
+		for _, b := range f.Blocks {
+			for _, i := range b.Insts {
+				hasAsm = hasAsm || i.Op == OpAsm
+			}
+		}
+		if hasAsm && cpmTUIBody(f, ar) == nil && !cpmSourceBDOS2(f, ar) && cpmPascalOutputAdapter(f, ar) == nil {
 			return nil, fmt.Errorf("CP/M runtime rejects ASM without canonical body: %s", f.Name)
 		}
 	}

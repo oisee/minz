@@ -17,6 +17,7 @@ func validateCPMApplicationRuntime(m *Module, ar *AllocResult) error {
 	if m.Target != 0 || main == nil || len(main.Contract.Params) != 0 || len(main.Contract.Returns) != 0 {
 		return fmt.Errorf("CP/M runtime requires target cpm and void main without arguments")
 	}
+	globalStores := cpmGlobalStoreRoots(m)
 	for _, f := range m.Funcs {
 		trustedBDOS := cpmSourceBDOS2(f, ar) || cpmPascalOutputAdapter(f, ar) != nil || cpmTUIAdapter(f, ar) != nil
 		if (f.Attrs.HasAsm && !trustedBDOS) || f.Attrs.ExternAddr != 0 {
@@ -88,8 +89,15 @@ func validateCPMApplicationRuntime(m *Module, ar *AllocResult) error {
 						continue
 					}
 					def := defs[i.Src[0]]
+					if globalStores[i] != nil {
+						loc := ar.Loc(i.Src[0])
+						if !locCompatible(TyPtr, loc) || !(loc.Kind == LocMem || loc.Kind == LocReg && (loc.Name == "HL" || loc.Name == "DE" || loc.Name == "BC" || loc.Name == "IX" || loc.Name == "IY")) {
+							return fmt.Errorf("CP/M guarded store unsupported pointer home")
+						}
+						continue
+					}
 					if def == nil || def.Op != OpAddrOf || !cpmRuntimeGlobal(m, def.Sym) {
-						return fmt.Errorf("CP/M runtime only supports direct module-global memory accesses: %s block %s reg %d def %v",f.Name,b.Label,i.Src[0],def)
+						return fmt.Errorf("CP/M runtime only supports direct module-global memory accesses: %s block %s reg %d def %v", f.Name, b.Label, i.Src[0], def)
 					}
 				case OpAlloca:
 					continue
@@ -101,7 +109,7 @@ func validateCPMApplicationRuntime(m *Module, ar *AllocResult) error {
 				case OpPush, OpPop:
 					return fmt.Errorf("CP/M runtime rejects explicit stack operations")
 				case OpCallIndirect, OpIn8, OpIn16, OpOut8, OpOut16, OpPatchSlot, OpLoadPatched, OpPatch:
-					return fmt.Errorf("CP/M runtime rejects calls/ASM/ports/SMC")
+					return fmt.Errorf("CP/M runtime rejects calls/ASM/ports/SMC: %s block %s op %s", f.Name, b.Label, i.Op)
 				}
 			}
 		}
@@ -215,6 +223,14 @@ func validateCPMRuntimeAssemblyAdapters(assembly string, guarded bool, adapters 
 			continue
 		}
 		code[line.Address] = item{text, line.Address + len(line.Bytes)}
+	}
+	if cpmMemoryGuardPresent(assembly) {
+		adaptersCopy := map[string][]string{}
+		for name, body := range adapters {
+			adaptersCopy[name] = body
+		}
+		adaptersCopy["__cpm_memory_failure"] = []string{"LD A,2", "LD (__cpm_status),A", "LD SP,(__cpm_saved_sp)", "RET"}
+		adapters = adaptersCopy
 	}
 	trustedCalls := map[int]bool{}
 	for name, body := range adapters {
@@ -336,6 +352,7 @@ func validateCPMRuntimeAssemblyAdapters(assembly string, guarded bool, adapters 
 				}
 				break
 			}
+
 			pc, e := target(name)
 			if e != nil {
 				return e
@@ -380,6 +397,12 @@ func validateCPMRuntimeAssemblyAdapters(assembly string, guarded bool, adapters 
 			conditional := len(parts) == 2 || op == "DJNZ"
 			if strings.HasPrefix(name, "(") {
 				return fmt.Errorf("CP/M runtime indirect branch unsupported")
+			}
+			if name == "__cpm_memory_failure" && cpmMemoryGuardPresent(assembly) {
+				if conditional {
+					queue = append(queue, next)
+				}
+				continue
 			}
 			pc, e := target(name)
 			if e != nil {
