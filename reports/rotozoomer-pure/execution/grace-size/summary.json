@@ -1,0 +1,9 @@
+{
+  "TStates": 8828094,
+  "calls": 66788,
+  "full_module_bytes": 2600,
+  "native": "PASS",
+  "raw_final_vm": "PASS",
+  "scope": "4purefunctions only; no canvas/render/main",
+  "source_sha256": "df38ac3b0eca81e67432c4032bfcfb5c2ae44af3ca32fbdcc673de863d0cf06f"
+}
