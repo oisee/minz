@@ -1,0 +1,22 @@
+=== RUN   TestMemoryHostLoopAssociationRejectsDelayedSourceMutation
+=== RUN   TestMemoryHostLoopAssociationRejectsDelayedSourceMutation/4
+=== RUN   TestMemoryHostLoopAssociationRejectsDelayedSourceMutation/5
+--- PASS: TestMemoryHostLoopAssociationRejectsDelayedSourceMutation (2.45s)
+    --- PASS: TestMemoryHostLoopAssociationRejectsDelayedSourceMutation/4 (0.96s)
+    --- PASS: TestMemoryHostLoopAssociationRejectsDelayedSourceMutation/5 (1.48s)
+=== RUN   TestMemoryHostPolicyAssociationFreshReplayRefusals
+--- PASS: TestMemoryHostPolicyAssociationFreshReplayRefusals (1.49s)
+=== RUN   TestMemoryHostTargetLayoutRefusals
+=== RUN   TestMemoryHostTargetLayoutRefusals/code_region
+=== RUN   TestMemoryHostTargetLayoutRefusals/stack_region
+=== RUN   TestMemoryHostTargetLayoutRefusals/read_only
+=== RUN   TestMemoryHostTargetLayoutRefusals/oracle
+=== RUN   TestMemoryHostTargetLayoutRefusals/hostABI
+--- PASS: TestMemoryHostTargetLayoutRefusals (1.54s)
+    --- PASS: TestMemoryHostTargetLayoutRefusals/code_region (0.22s)
+    --- PASS: TestMemoryHostTargetLayoutRefusals/stack_region (0.19s)
+    --- PASS: TestMemoryHostTargetLayoutRefusals/read_only (0.23s)
+    --- PASS: TestMemoryHostTargetLayoutRefusals/oracle (0.48s)
+    --- PASS: TestMemoryHostTargetLayoutRefusals/hostABI (0.42s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	5.488s

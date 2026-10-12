@@ -1,0 +1,202 @@
+--- old5939
++++ current6d80
+@@ -29,29 +29,29 @@
+     %r6 = cmp.eq %r4, %r5 : bool [flag]
+     br_if %r6, @if_then1(), @if_join2()
+   block @if_then1:
+-    %r7 = const 1 : u8 [general]
++    %r7 = const 1 : u8 [acc]
+     ret %r7
+   block @if_join2:
+     %r8 = const 9 : u8 [general]
+     %r9 = cmp.eq %r4, %r8 : bool [flag]
+     br_if %r9, @if_then3(), @if_join4()
+   block @if_then3:
+-    %r10 = const 1 : u8 [general]
++    %r10 = const 1 : u8 [acc]
+     ret %r10
+   block @if_join4:
+     %r11 = const 10 : u8 [general]
+     %r12 = cmp.eq %r4, %r11 : bool [flag]
+     br_if %r12, @if_then5(), @if_join6()
+   block @if_then5:
+-    %r13 = const 1 : u8 [general]
++    %r13 = const 1 : u8 [acc]
+     ret %r13
+   block @if_join6:
+     %r14 = const 13 : u8 [general]
+     %r15 = cmp.eq %r4, %r14 : bool [flag]
+-    %r16 = const 0 : u8 [general]
++    %r16 = const 0 : u8 [acc]
+     cond_ret %r15, [%r16], @if_then7()
+   block @if_then7:
+-    %r17 = const 1 : u8 [general]
++    %r17 = const 1 : u8 [acc]
+     ret %r17
+ 
+ fun @is_digit(%r18: u8 [acc]) -> u8 [acc]
+@@ -64,12 +64,12 @@
+     %r22 = cmp.ule %r18, %r21 : bool [flag]
+     br_if %r22, @if_then3(), @if_join4()
+   block @if_then3:
+-    %r23 = const 1 : u8 [general]
++    %r23 = const 1 : u8 [acc]
+     ret %r23
+   block @if_join4:
+     jmp @if_join2()
+   block @if_join2:
+-    %r24 = const 0 : u8 [general]
++    %r24 = const 0 : u8 [acc]
+     ret %r24
+ 
+ fun @is_atom_char(%r25: u8 [acc]) -> u8 [acc]
+@@ -78,50 +78,50 @@
+     %r27 = cmp.eq %r25, %r26 : bool [flag]
+     br_if %r27, @if_then1(), @if_join2()
+   block @if_then1:
+-    %r28 = const 0 : u8 [general]
++    %r28 = const 0 : u8 [acc]
+     ret %r28
+   block @if_join2:
+     %r29 = const 32 : u8 [general]
+     %r30 = cmp.eq %r25, %r29 : bool [flag]
+     br_if %r30, @if_then3(), @if_join4()
+   block @if_then3:
+-    %r31 = const 0 : u8 [general]
++    %r31 = const 0 : u8 [acc]
+     ret %r31
+   block @if_join4:
+     %r32 = const 9 : u8 [general]
+     %r33 = cmp.eq %r25, %r32 : bool [flag]
+     br_if %r33, @if_then5(), @if_join6()
+   block @if_then5:
+-    %r34 = const 0 : u8 [general]
++    %r34 = const 0 : u8 [acc]
+     ret %r34
+   block @if_join6:
+     %r35 = const 10 : u8 [general]
+     %r36 = cmp.eq %r25, %r35 : bool [flag]
+     br_if %r36, @if_then7(), @if_join8()
+   block @if_then7:
+-    %r37 = const 0 : u8 [general]
++    %r37 = const 0 : u8 [acc]
+     ret %r37
+   block @if_join8:
+     %r38 = const 13 : u8 [general]
+     %r39 = cmp.eq %r25, %r38 : bool [flag]
+     br_if %r39, @if_then9(), @if_join10()
+   block @if_then9:
+-    %r40 = const 0 : u8 [general]
++    %r40 = const 0 : u8 [acc]
+     ret %r40
+   block @if_join10:
+     %r41 = const 40 : u8 [general]
+     %r42 = cmp.eq %r25, %r41 : bool [flag]
+     br_if %r42, @if_then11(), @if_join12()
+   block @if_then11:
+-    %r43 = const 0 : u8 [general]
++    %r43 = const 0 : u8 [acc]
+     ret %r43
+   block @if_join12:
+     %r44 = const 41 : u8 [general]
+     %r45 = cmp.eq %r25, %r44 : bool [flag]
+-    %r46 = const 1 : u8 [general]
++    %r46 = const 1 : u8 [acc]
+     cond_ret %r45, [%r46], @if_then13()
+   block @if_then13:
+-    %r47 = const 0 : u8 [general]
++    %r47 = const 0 : u8 [acc]
+     ret %r47
+ 
+ fun @cur() -> u8 [acc]
+@@ -133,7 +133,7 @@
+     %r52 = cmp.uge %r49, %r51 : bool [flag]
+     br_if %r52, @if_then1(), @if_join2()
+   block @if_then1:
+-    %r53 = const 0 : u8 [general]
++    %r53 = const 0 : u8 [acc]
+     ret %r53
+   block @if_join2:
+     %r54 = addr_of @src_buf : ptr [pointer]
+@@ -207,7 +207,7 @@
+     jmp @loop_head1(%r89, %r92, %r91, %r90)
+   block @loop_head1(%r93: u16 [pointer], %r92: u8 [general], %r95: u8 [general], %r96: u16 [pointer]):
+     %r97 = cmp.ult %r92, %r95 : bool [flag]
+-    %r98 = const 1 : u8 [general]
++    %r98 = const 1 : u8 [acc]
+     cond_ret %r97, [%r98], @loop_body2()
+   block @loop_body2:
+     %r99 = const 1 : u16 [pointer]
+@@ -224,7 +224,7 @@
+     %r110 = cmp.ne %r103, %r109 : bool [flag]
+     br_if %r110, @if_then4(), @if_join5()
+   block @if_then4:
+-    %r111 = const 0 : u8 [general]
++    %r111 = const 0 : u8 [acc]
+     ret %r111
+   block @if_join5:
+     %r112 = const 1 : u8 [general]
+@@ -413,7 +413,7 @@
+     %r252 = cmp.eq %r250, %r251 : bool [flag]
+     br_if %r252, @if_then1(), @if_join2()
+   block @if_then1:
+-    %r253 = const 0 : u8 [general]
++    %r253 = const 0 : u16 [pointer]
+     ret %r253
+   block @if_join2:
+     %r254 = const 40 : u8 [general]
+@@ -441,9 +441,9 @@
+     %r269 = addr_of @SEXP_LIST : ptr [pointer]
+     %r270 = load %r269 : u8 [general]
+     %r271 = move %r270 : u8 [acc]
+-    %r272 = const 0 : u8 [general]
+-    %r273 = const 0 : u8 [counter]
+-    %r274 = const 0 : u8 [general]
++    %r272 = const 0 : u16 [index]
++    %r273 = const 0 : u16 [index]
++    %r274 = const 0 : u16 [index]
+     %r275 = call @make_node(%r271, %r272, %r273, %r274) : u16 [pointer]
+     ret %r275
+   block @if_join6:
+@@ -452,8 +452,8 @@
+     %r278 = load %r277 : u8 [general]
+     %r279 = move %r278 : u8 [acc]
+     %r280 = move %r276 : u16 [index]
+-    %r281 = const 0 : u8 [counter]
+-    %r282 = const 0 : u8 [general]
++    %r281 = const 0 : u16 [index]
++    %r282 = const 0 : u16 [index]
+     %r283 = call @make_node(%r279, %r280, %r281, %r282) : u16 [pointer]
+     call @skip_ws()
+     jmp @loop_head7(%r283, %r276)
+@@ -511,7 +511,7 @@
+     %r317 = cmp.eq %r315, %r316 : bool [flag]
+     br_if %r317, @if_then15(), @if_join16()
+   block @if_then15:
+-    %r318 = const 0 : u8 [general]
++    %r318 = const 0 : u16 [pointer]
+     ret %r318
+   block @if_join16:
+     %r319 = addr_of @src_buf : ptr [pointer]
+@@ -551,8 +551,8 @@
+     %r350 = load %r349 : u8 [general]
+     %r351 = move %r350 : u8 [acc]
+     %r352 = move %r348 : u16 [index]
+-    %r353 = const 0 : u8 [counter]
+-    %r354 = const 0 : u8 [general]
++    %r353 = const 0 : u16 [index]
++    %r354 = const 0 : u16 [index]
+     %r355 = call @make_node(%r351, %r352, %r353, %r354) : u16 [pointer]
+     ret %r355
+   block @if_join18:
+@@ -561,8 +561,8 @@
+     %r358 = load %r357 : u8 [general]
+     %r359 = move %r358 : u8 [acc]
+     %r360 = move %r356 : u16 [index]
+-    %r361 = const 0 : u8 [counter]
+-    %r362 = const 0 : u8 [general]
++    %r361 = const 0 : u16 [index]
++    %r362 = const 0 : u16 [index]
+     %r363 = call @make_node(%r359, %r360, %r361, %r362) : u16 [pointer]
+     ret %r363
+ 

@@ -1,0 +1,11 @@
+# Parser memory-host: объяснённый drift, сохранённый oracle
+
+Базаdeb3f675. Три проверки падали только на fixed test reference:1296385T/2380B/SHA6d80d6ec7c8a1a00b1d70d88cedbb7cc0e345cb9234de9772ea710acb019efe5 вместо1296873T/2391B/SHA59392b014d66b82221122a57119836f66d762ad66a7304fa46b4fd2bb8c12cef. Сначала exportMemoryHostReferenceBeforeAssert сохранил terminalFAIL и exact sources/ASM/BIN/MIR/allocation/fulltarget evidence всех3paths, до обновления числа. Независимый host/state/event oracle уже предшествовал cost assertion и прошёл все30входов.
+
+Historical5939 exactsource/ASM/BIN/evidence скопирован из прежнего reports/parser-reference-drift/after/factory, не восстановлен по похожему filename. SHA source совпадает; все30 observations совпали по results/globals/regions/events/error (steps — диагностический показатель). ASM-delta содержит только parse_sexpr: нулевые u16 returns теперь LDHL0 и make_node literalargs теперь fullword zeros/pair staging. MIR types в техже sites изменились u8→u16. Это contextual literal HIR lowering из1f87d7b7 (lowerExprForRet/knownCall), не rotatepolicy и не coalescing ASM delta. Итог−11B/−488T, а не случайная смена хэша.
+
+Association проверка fresh-direct fullTargetEvidence раньше стояла после fixed reference и не достигалась при drift. Теперь numeric assertion стоит после fresh-direct DeepEqual и обоих independent oracles. Fresh factory/association/target evidence совпадают целиком (ASM/BIN/MIR/alloc/context/callspills/state/cost), не только SHA или числа. Обновлён исключительно shared test checkpoint. Production admission/guards/selector и исторические manifests не изменены.
+
+Targeted3tests+factoryrefusalsPASS5.463s. Дополнительно delayed factory source mutation, fresh association replay refusals и targetlayoutrefusals проверены отдельно (logrefusals). Полный текущий pipeline1f2365be остаётся независимым live/frozen checkpoint root; не перезапускали его и не заявляем fullPASS.
+
+Пакет reports/parser-reference-drift-2026-10-12 содержит beforeFAIL, old5939, before/after3paths, ASM/MIR diffs, audit.json, retained current executable и SHAmanifest. Oldpayload immutable; корректировка oracle сделана после semantic/effect/artifact parity, не вместо неё.
