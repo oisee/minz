@@ -5,3 +5,5 @@ Root4b474f09 интегрирует065217c4: внешние параметры �
 Root extern/CPM MIR subset PASS0,129с; HIR metadata refusals PASS0,009с. Whole generatedscreens/currentruntime joint gate запущен отдельно. Это не proof всех ширин/hostruntime; unsupportedwide отказ. Canvas wordspill-store отдельный fix ещёнеинтегрирован. Selfparser послеABI обнаружил serializernative70vs76 приправильномAST; расследуется отдельно.
 
 CPMclosure byteprimitive regression исправлена705c139c: используется прежний validateCPMBytePrimitive, неизвестныеexternнеполучилиauthority; [CLIbefore/after](../grace-integration-291/README.md).
+
+Root whole generatedscreens+associationcontrol+CPMTetris+IRC joint PASS7,091с; все четыреfamiliesисполнены. Generatedscreens36raw/final/native runs исходникинеизменены; packet212SHA verified.
