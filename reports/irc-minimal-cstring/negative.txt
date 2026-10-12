@@ -1,0 +1,16 @@
+=== RUN   TestIRCMinimalWireCString
+=== RUN   TestIRCMinimalWireCString/old=true/ordinary
+    irc_minimal_cstring_test.go:167: old=true wire="\x0fNICK minztest\r\n\x15USER minz 0 * :test\r\n\x0fSent NICK+USER\n\a\nDone.\n"
+    irc_minimal_cstring_test.go:167: old=true wire="\x15USER minz 0 * :test\r\n\x0fSent NICK+USER\n\a\nDone.\n"
+=== RUN   TestIRCMinimalWireCString/old=true/grace-size
+    irc_minimal_cstring_test.go:167: old=true wire="\x0fNICK minztest\r\n\x15USER minz 0 * :test\r\n\x0fSent NICK+USER\n\a\nDone.\n"
+    irc_minimal_cstring_test.go:167: old=true wire="\x15USER minz 0 * :test\r\n\x0fSent NICK+USER\n\a\nDone.\n"
+=== RUN   TestIRCMinimalWireCString/old=true/grace-speed
+    irc_minimal_cstring_test.go:167: old=true wire="\x0fNICK minztest\r\n\x15USER minz 0 * :test\r\n\x0fSent NICK+USER\n\a\nDone.\n"
+    irc_minimal_cstring_test.go:167: old=true wire="\x15USER minz 0 * :test\r\n\x0fSent NICK+USER\n\a\nDone.\n"
+--- PASS: TestIRCMinimalWireCString (0.05s)
+    --- PASS: TestIRCMinimalWireCString/old=true/ordinary (0.01s)
+    --- PASS: TestIRCMinimalWireCString/old=true/grace-size (0.02s)
+    --- PASS: TestIRCMinimalWireCString/old=true/grace-speed (0.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.061s

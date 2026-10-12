@@ -1,0 +1,5 @@
+str0="Starting...\n" ptr52 err<nil> kind0
+str1="NICK minztest\r\n" ptr65 err<nil> kind0
+str2="USER minz 0 * :test\r\n" ptr81 err<nil> kind0
+str3="Sent NICK+USER\n" ptr103 err<nil> kind0
+str4="\nDone.\n" ptr119 err<nil> kind0
