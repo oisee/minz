@@ -15,7 +15,7 @@ def manifest_rows(document):
     return rows
 
 
-def audit(root):
+def audit(root, shared_root=None):
     catalog = json.loads((root/'docs/grace-integration-338/catalog.json').read_text())
     tracked = set(subprocess.check_output(['git', 'ls-files'], cwd=root, text=True).splitlines())
     failures = []; checked = {}; manifests = set(); payload_count = 0
@@ -31,6 +31,12 @@ def audit(root):
             failures.append({'path': str(path), 'reason': 'SHA256 mismatch'})
         if str(path) not in tracked:
             failures.append({'path': str(path), 'reason': 'not tracked in Git'})
+        if str(path) in checked and checked[str(path)] != digest:
+            raise ValueError('conflicting expected digest: '+str(path))
+        if shared_root is not None:
+            shared = shared_root/path
+            if not shared.is_file() or hashlib.sha256(shared.read_bytes()).hexdigest() != digest:
+                failures.append({'path': str(path), 'reason': 'shared copy missing or SHA256 mismatch'})
         checked[str(path)] = digest
 
     for row in catalog['entries']:
@@ -55,9 +61,11 @@ def audit(root):
                 raise ValueError('duplicate manifest payload: '+str(path))
             seen.add(str(path)); payload_count += 1
             check(path, row['sha256'])
-    return {'scope': 'catalog source/evidence SHA256 and listed manifest payloads tracked in Git; not behavior, unlisted-file completeness, shared-copy or hardware proof',
+    return {'scope': 'catalog source/evidence SHA256 and listed manifest payloads tracked in Git; optional shared-copy SHA256; not behavior, unlisted-file completeness or hardware proof',
             'catalog_entries': len(catalog['entries']), 'manifests': len(manifests),
             'payload_entries': payload_count, 'unique_files': len(checked),
+            'files': [{'path': path, 'sha256': digest} for path, digest in sorted(checked.items())],
+            'shared_root': str(shared_root) if shared_root else None,
             'failures': failures, 'verified': not failures}
 
 
@@ -65,7 +73,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument('--output', type=Path, required=True)
-    args = parser.parse_args(); result = audit(args.root.resolve())
+    parser.add_argument('--shared-root', type=Path)
+    args = parser.parse_args(); result = audit(args.root.resolve(), args.shared_root.resolve() if args.shared_root else None)
     args.output.write_text(json.dumps(result, indent=2)+'\n')
     print(f"Corpus artifact audit: {result['catalog_entries']} sources, {result['manifests']} manifests, {result['payload_entries']} payload entries, {len(result['failures'])} failures")
     raise SystemExit(0 if result['verified'] else 1)

@@ -1,0 +1,18 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "fd2f266d0fc7e03c5ffa8ab9e6b1a0fdec49b69b27993d648e7855d508948f00"
+  },
+  {
+    "path": "audit_corpus_artifacts.py",
+    "sha256": "5f8b8362fe07aac62e8e7cd03b9d8b68e4ed7113a0285efab9fc63a1c278ddb1"
+  },
+  {
+    "path": "job.json",
+    "sha256": "79bb786ac32b0d3b62a86c018a6b576557ab6098e83e1538caa922816913c4f0"
+  },
+  {
+    "path": "test_corpus_artifact_audit.py",
+    "sha256": "e13ad2b8ff99fd98d7d44bc14c85d5e0d308379385163b3aad59c8d233a843f0"
+  }
+]
