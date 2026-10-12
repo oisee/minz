@@ -1,0 +1,43 @@
+{
+  "checkpoint": "6729c9e15903732cdd5cf6ae2068fa52fed2bd08",
+  "objective_sha256": "429e44b78c0923347837c46b172bbf0b849bce5adf5416eed958517847f31dba",
+  "overall": "incomplete",
+  "requirements": [
+    {
+      "requirement": "Every corpus case explicit; promised independent VM and Z80",
+      "state": "partial",
+      "evidence": "216 catalog194;133independent/bounded;2nativeSMC separate",
+      "remaining": "2 language/runtime pending,32inlineASM,18externalruntime,5Agon,1host; exact list retained"
+    },
+    {
+      "requirement": "PFCCO/PBQP checked tables measured incl moves/saves",
+      "state": "proved in declared bounded domain",
+      "evidence": "combined weighted44to20B,238to142T;205 allocation independent audits",
+      "boundary": "No arbitrary CFG/shape/global optimality claim"
+    },
+    {
+      "requirement": "Grace gains several real programs and prospective heldout",
+      "state": "proved for frozen workloads;fresh root replay PASS30.037s",
+      "evidence": "205 heldout-root, test names unchanged",
+      "boundary": "6729c9e1 replay exit0; unchanged four frozen heldout tests; no new freeze invented"
+    },
+    {
+      "requirement": "LIR fully removed; useful features/tests transferred",
+      "state": "removed; bounded feature mapping audited",
+      "evidence": "6729c9e1 archive53payloadSHA+exactproductiontestmapping; typedidentity native proof",
+      "boundary": "No generalISA completeness claim; researchVIR explicitly retained"
+    },
+    {
+      "requirement": "Source/profiles/decisions/ASM/BIN/cost reproducible on share",
+      "state": "named packets verified, currentsource copy live",
+      "evidence": "214,215,216; archiveexecutables/manifests",
+      "remaining": "currentcopy session86837 pending; sitev68 older snapshot not latestpublication"
+    },
+    {
+      "requirement": "Speed no byte penalty; Size separate",
+      "state": "preserved",
+      "evidence": "policy selectors separate primarymetrics and exactties; existingCLI replay",
+      "boundary": "No weighted penalty substituted"
+    }
+  ]
+}

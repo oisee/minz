@@ -1,0 +1,24 @@
+{
+  "files": {
+    "heldout-root.txt": {
+      "sha256": "70b6bdc3ae8dfa0ec8ff367f468df8bed55ae44a084cfc477fb810bb51f9027e",
+      "bytes": 48
+    },
+    "objective.txt": {
+      "sha256": "429e44b78c0923347837c46b172bbf0b849bce5adf5416eed958517847f31dba",
+      "bytes": 1870
+    },
+    "audit.json": {
+      "sha256": "2c224eb4b34e95b0e6917605c8514f43a878d736834fb2af60f7509745177388",
+      "bytes": 2066
+    },
+    "remaining-corpus.json": {
+      "sha256": "56d9e04e7021e9db34745a4af1823cf6dffbd30a8e177d8237052b5d4394c003",
+      "bytes": 237793
+    },
+    "README.md": {
+      "sha256": "432c37828619ac692eb812c47f211b99bca5f25f6685d7fff8f8e55d7408d37e",
+      "bytes": 1842
+    }
+  }
+}
