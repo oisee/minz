@@ -1,0 +1,341 @@
+// ZSQL — Interactive SQLite client for CP/M
+// A sqlite3-like REPL running on Z80 CP/M hardware.
+//
+// Build & run:
+//   mz zsql.nanz --target=cpm -o zsql.a80
+//   mza zsql.a80 -o ZSQL.COM
+//   echo ".help" | mze ZSQL.COM -t cpm
+//
+// With SQL:
+//   printf "CREATE TABLE t(name TEXT, val INT)\nINSERT INTO t VALUES('hello',42)\nSELECT * FROM t\n.quit\n" | mze ZSQL.COM -t cpm
+
+import sql.sqlite
+
+// ── BDOS wrappers ──────────────────────────────────────────────
+
+fun puts(s: ^u8) -> void {
+    asm z80 (in s) {
+        .lp: LD A, (HL) / OR A / RET Z
+        LD E, A / PUSH HL / LD C, 2 / CALL 5 / POP HL / INC HL / JR .lp
+    }
+}
+
+fun putch(ch: u8) -> void {
+    asm z80 (in ch) { LD E, A / LD C, 2 / CALL 5 }
+}
+
+fun newline() -> void { putch(13) putch(10) }
+
+fun readline() -> u8 {
+    asm z80 (ret A) {
+        LD HL, _inbuf / LD (HL), 78 / INC HL / LD (HL), 0 / DEC HL
+        EX DE, HL / LD C, 10 / CALL 5
+        LD E, 13 / LD C, 2 / CALL 5
+        LD E, 10 / LD C, 2 / CALL 5
+        LD A, (_inbuf+1)
+    }
+}
+
+// Return pointer to input text (2 bytes past _inbuf header)
+fun getinput() -> ^u8 {
+    asm z80 (ret HL) { LD HL, _inbuf / INC HL / INC HL }
+}
+
+fun terminate(len: u8) -> void {
+    asm z80 (in len) {
+        LD HL, _inbuf+2 / LD D, 0 / LD E, A / ADD HL, DE / LD (HL), 0
+    }
+}
+
+fun print_u16(val: u16) -> void {
+    asm z80 (in val) {
+        PUSH IX / PUSH HL / POP IX / LD D, 0
+        PUSH IX / POP HL / LD BC, 10000 / CALL _wr_dig / PUSH HL / POP IX
+        PUSH IX / POP HL / LD BC, 1000 / CALL _wr_dig / PUSH HL / POP IX
+        PUSH IX / POP HL / LD BC, 100 / CALL _wr_dig / PUSH HL / POP IX
+        PUSH IX / POP HL / LD BC, 10 / CALL _wr_dig / PUSH HL / POP IX
+        LD A, IXL / ADD A, 48 / LD E, A / LD C, 2 / CALL 5
+        POP IX
+    }
+}
+
+fun _wr_dig() -> void {
+    asm z80 {
+        LD A, 48
+        ._s: OR A / SBC HL, BC / JR NC, ._c
+        ADD HL, BC / CP 48 / JR NZ, ._p
+        LD A, D / OR A / RET Z / LD A, 48
+        ._p: LD D, 1 / LD E, A
+        PUSH HL / PUSH DE / PUSH BC / LD C, 2 / CALL 5 / POP BC / POP DE / POP HL / RET
+        ._c: INC A / JR ._s
+    }
+}
+
+fun puts_pad(s: ^u8, width: u8) -> void {
+    asm z80 (in s, width) {
+        LD B, C
+        .lp: LD A, (HL) / OR A / JR Z, .pd
+        LD E, A / PUSH HL / PUSH BC / LD C, 2 / CALL 5 / POP BC / POP HL
+        INC HL / DJNZ .lp / RET
+        .pd: LD E, 32 / PUSH HL / PUSH BC / LD C, 2 / CALL 5 / POP BC / POP HL
+        DJNZ .pd
+    }
+}
+
+// Check first byte of string
+fun first_char(s: ^u8) -> u8 {
+    asm z80 (in s) (ret A) { LD A, (HL) }
+}
+
+// ── REPL ───────────────────────────────────────────────────────
+
+global db: u16 = 0
+
+// Input buffer: 80 bytes as 40 u16 globals (contiguous in memory)
+global _inbuf: u16 = 0
+global _inbuf2: u16 = 0
+global _inbuf3: u16 = 0
+global _inbuf4: u16 = 0
+global _inbuf5: u16 = 0
+global _inbuf6: u16 = 0
+global _inbuf7: u16 = 0
+global _inbuf8: u16 = 0
+global _inbuf9: u16 = 0
+global _inbufa: u16 = 0
+global _inbufb: u16 = 0
+global _inbufc: u16 = 0
+global _inbufd: u16 = 0
+global _inbufe: u16 = 0
+global _inbuff: u16 = 0
+global _inbufg: u16 = 0
+global _inbufh: u16 = 0
+global _inbufi: u16 = 0
+global _inbufj: u16 = 0
+global _inbufk: u16 = 0
+global _inbufl: u16 = 0
+global _inbufm: u16 = 0
+global _inbufn: u16 = 0
+global _inbufo: u16 = 0
+global _inbufp: u16 = 0
+global _inbufq: u16 = 0
+global _inbufr: u16 = 0
+global _inbufs: u16 = 0
+global _inbuft: u16 = 0
+global _inbufu: u16 = 0
+global _inbufv: u16 = 0
+global _inbufw: u16 = 0
+global _inbufx: u16 = 0
+global _inbufy: u16 = 0
+global _inbufz: u16 = 0
+global _inbuf_35: u16 = 0
+global _inbuf_36: u16 = 0
+global _inbuf_37: u16 = 0
+global _inbuf_38: u16 = 0
+global _inbuf_39: u16 = 0
+
+fun _prompt() -> void {
+    puts(c"zsql> ")
+    var len: u8 = readline()
+    if len == 0 { return }
+    terminate(len)
+    var sql: ^u8 = getinput()
+    var ch: u8 = first_char(sql)
+
+    // .quit / .exit
+    if ch == 46 {  // '.'
+        puts(c".help .quit")
+        newline()
+        return
+    }
+
+    // SELECT → query with results
+    if ch == 83 { _do_select(sql) return }   // 'S'
+    if ch == 115 { _do_select(sql) return }  // 's'
+
+    // Everything else → exec
+    _do_exec(sql)
+}
+
+// Exec SQL via asm wrapper — hardcodes register setup to avoid regalloc issues.
+// PFCCO for sqlite_exec(db: u16, sql: ^u8): HL=db, DE=sql
+fun _do_exec(sql: ^u8) -> void {
+    asm z80 (in sql) {
+        ; HL = sql pointer (from param)
+        EX DE, HL           ; DE = sql
+        LD HL, (db)         ; HL = db handle
+        CALL sql__sqlite__sqlite_exec
+    }
+    if _last_rc() == 0 {
+        puts(c"OK")
+    } else {
+        puts(c"ERR")
+    }
+    newline()
+}
+
+// Get result of last sqlite call (A register after CALL)
+fun _last_rc() -> u8 {
+    asm z80 (ret A) { NOP }
+}
+
+// SELECT via asm — query + step loop with hardcoded registers
+fun _do_select(sql: ^u8) -> void {
+    // sqlite_query(db, sql) → stmt handle in HL
+    _sql_query(sql)
+    // Step + print rows — hardcoded handle 1 (first query)
+    _sel_rows()
+}
+
+// Query wrapper: PFCCO sqlite_query(db: u16, sql: ^u8) → HL=db, DE=sql
+fun _sql_query(sql: ^u8) -> void {
+    asm z80 (in sql) {
+        EX DE, HL           ; DE = sql
+        LD HL, (db)         ; HL = db handle
+        CALL sql__sqlite__sqlite_query
+        ; result handle in HL — store for later use
+        LD (_sel_stmt), HL
+    }
+}
+
+// Step through rows and print — uses stored stmt handle
+// Row counter as global to avoid vreg drift across 16 CALLs in 1 block
+global _sel_n: u8 = 0
+fun _sel_rows() -> void {
+    _sel_n = 0
+    if _step1() == 1 { _prow1() _sel_n = _sel_n + 1 }
+    if _step1() == 1 { _prow1() _sel_n = _sel_n + 1 }
+    if _step1() == 1 { _prow1() _sel_n = _sel_n + 1 }
+    if _step1() == 1 { _prow1() _sel_n = _sel_n + 1 }
+    if _step1() == 1 { _prow1() _sel_n = _sel_n + 1 }
+    if _step1() == 1 { _prow1() _sel_n = _sel_n + 1 }
+    if _step1() == 1 { _prow1() _sel_n = _sel_n + 1 }
+    if _step1() == 1 { _prow1() _sel_n = _sel_n + 1 }
+    _finalize1()
+    putch(48 + _sel_n)
+    puts(c" rows")
+    newline()
+}
+
+// Step with hardcoded stmt handle from _sel_stmt
+fun _step1() -> u8 {
+    asm z80 (ret A) {
+        LD HL, (_sel_stmt)
+        CALL sql__sqlite__sqlite_step
+    }
+}
+
+// Print row: column 0, then " | ", then column 1 (if exists)
+// All in one asm block to keep register state across calls
+fun _prow1() -> void {
+    asm z80 {
+        ; Print column 0 (col index in A for PFCCO)
+        LD HL, (_sel_stmt)
+        LD A, 0
+        CALL sql__sqlite__sqlite_column_text
+        ; HL = text ptr for col 0 — print it
+        .c0: LD A, (HL)
+        OR A
+        JR Z, .sep
+        LD E, A
+        PUSH HL
+        LD C, 2
+        CALL 5
+        POP HL
+        INC HL
+        JR .c0
+        ; Print separator " | "
+        .sep:
+        LD E, 32
+        LD C, 2
+        CALL 5
+        LD E, 124
+        LD C, 2
+        CALL 5
+        LD E, 32
+        LD C, 2
+        CALL 5
+        ; Print column 1 — inline port protocol for col=1
+        LD HL, (_sel_stmt)
+        LD A, L
+        OUT (0x45), A       ; stmt handle
+        LD A, 1
+        OUT (0x47), A       ; col index = 1
+        LD A, 5
+        OUT (0x41), A       ; command: column_text
+        ; Read result string
+        LD HL, sql__sqlite___sql_buf
+        CALL sql__sqlite___sql_recv_str
+        .c1: LD A, (HL)
+        OR A
+        JR Z, .nl
+        LD E, A
+        PUSH HL
+        LD C, 2
+        CALL 5
+        POP HL
+        INC HL
+        JR .c1
+        ; Newline
+        .nl:
+        LD E, 13
+        LD C, 2
+        CALL 5
+        LD E, 10
+        LD C, 2
+        CALL 5
+    }
+}
+
+// Finalize with hardcoded stmt handle
+fun _finalize1() -> void {
+    asm z80 {
+        LD HL, (_sel_stmt)
+        CALL sql__sqlite__sqlite_finalize
+    }
+}
+
+// Stored stmt handle for SELECT operations
+global _sel_stmt: u16 = 0
+
+fun _prow(stmt: u16) -> void {
+    // Print columns 0-3 pipe-separated
+    var c0: ^u8 = sqlite_column_text(stmt, 0)
+    puts_pad(c0, 14)
+
+    var c1: ^u8 = sqlite_column_text(stmt, 1)
+    if c1 != 0 { putch(124) puts_pad(c1, 14) }
+
+    var c2: ^u8 = sqlite_column_text(stmt, 2)
+    if c2 != 0 { putch(124) puts_pad(c2, 14) }
+
+    var c3: ^u8 = sqlite_column_text(stmt, 3)
+    if c3 != 0 { putch(124) puts_pad(c3, 14) }
+
+    newline()
+}
+
+fun main() -> void {
+    puts(c"ZSQL - Z80 SQLite Client v1.0")
+    newline()
+    puts(c"Connected to :memory:")
+    newline()
+    puts(c"Type SQL or .help")
+    newline()
+    newline()
+
+    db = sqlite_open(c":memory:")
+
+    // Unrolled REPL — 32 iterations
+    _prompt() _prompt() _prompt() _prompt()
+    _prompt() _prompt() _prompt() _prompt()
+    _prompt() _prompt() _prompt() _prompt()
+    _prompt() _prompt() _prompt() _prompt()
+    _prompt() _prompt() _prompt() _prompt()
+    _prompt() _prompt() _prompt() _prompt()
+    _prompt() _prompt() _prompt() _prompt()
+    _prompt() _prompt() _prompt() _prompt()
+
+    sqlite_close(db)
+    puts(c"Session ended.")
+    newline()
+}

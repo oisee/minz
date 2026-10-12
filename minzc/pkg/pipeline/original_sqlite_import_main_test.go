@@ -25,6 +25,10 @@ func TestOriginalSAPMaraPortMainNative(t *testing.T) {
 	testOriginalSQLitePortMain(t, "sap_mara_cpm.nanz", "sap-mara-port-main", "MINZ_SAP_MARA_PORT_EXPORT")
 }
 
+func TestOriginalZSQLPortMainNative(t *testing.T) {
+	testOriginalSQLitePortMain(t, "zsql.nanz", "zsql-port-main", "MINZ_ZSQL_PORT_EXPORT")
+}
+
 func testOriginalSQLitePortMain(t *testing.T, sourceName, packetName, exportEnv string) {
 	t.Helper()
 	packet := "../../../reports/" + packetName + "/frozen/"
@@ -37,9 +41,11 @@ func testOriginalSQLitePortMain(t *testing.T, sourceName, packetName, exportEnv 
 	}
 	var f struct {
 		Sources  map[string]string
-		SHA      string   `json:"stdout_sha256"`
-		Texts    []string `json:"column_texts"`
-		Commands []int    `json:"commands"`
+		SHA      string            `json:"stdout_sha256"`
+		Texts    []string          `json:"column_texts"`
+		Commands []int             `json:"commands"`
+		Inputs   []string          `json:"input_lines"`
+		Globals  map[string][]byte `json:"final_globals"`
 	}
 	if e := json.Unmarshal(read("freeze.json"), &f); e != nil {
 		t.Fatal(e)
@@ -111,6 +117,24 @@ func testOriginalSQLitePortMain(t *testing.T, sourceName, packetName, exportEnv 
 				p := sym("main")
 				copy(mem[0x7000:], []byte{0xcd, byte(p), byte(p >> 8), 0})
 				want := append([]byte(nil), mem...)
+				for name, b := range f.Globals {
+					copy(want[sym(name):], b)
+				}
+				inputIndex := 0
+				var inputWant []byte
+				if len(f.Inputs) > 0 {
+					inputWant = make([]byte, 80)
+					for _, line := range f.Inputs {
+						inputWant[0] = 78
+						inputWant[1] = byte(len(line))
+						copy(inputWant[2:], []byte(line))
+						inputWant[2+len(line)] = 13
+						if len(line) > 0 {
+							inputWant[2+len(line)] = 0
+						}
+					}
+					copy(want[sym("_inbuf"):], inputWant)
+				}
 				host := &sqliteNativeHost{t: t}
 				defer func() {
 					if host.rows != nil {
@@ -145,16 +169,46 @@ func testOriginalSQLitePortMain(t *testing.T, sourceName, packetName, exportEnv 
 						r := z.GetRegisters()
 						sp := r.SP
 						ret := uint16(mem[sp]) | uint16(mem[sp+1])<<8
-						puts := sym("tui__render__tui_puts")
-						if ret < puts || ret >= puts+32 || mem[ret-3] != 0xcd || mem[ret-2] != 5 || mem[ret-1] != 0 || byte(r.BC) != 2 {
-							t.Fatal("BDOS authority", ret, r)
+						if mem[ret-3] != 0xcd || mem[ret-2] != 5 || mem[ret-1] != 0 {
+							t.Fatal("BDOS CALL authority", ret)
 						}
-						v := byte(r.DE)
-						if len(output) >= len(wantOutput) || v != wantOutput[len(output)] {
-							save(prefix+"/wrong-stdout.bin", output)
-							t.Fatalf("stdout byte%d got%02x want%02x", len(output), v, wantOutput[len(output)])
+						authorized := false
+						if len(f.Inputs) == 0 {
+							puts := sym("tui__render__tui_puts")
+							authorized = ret >= puts && ret < puts+32 && byte(r.BC) == 2
+						} else {
+							for _, l := range a.Listing {
+								if l.Address == int(ret)-3 && len(l.Bytes) == 3 && l.Bytes[0] == 0xcd {
+									authorized = true
+								}
+							}
 						}
-						output = append(output, v)
+						if !authorized {
+							t.Fatal("BDOS caller authority", ret, r)
+						}
+						switch byte(r.BC) {
+						case 10:
+							if inputIndex >= len(f.Inputs) || r.DE != sym("_inbuf") || mem[r.DE] != 78 {
+								t.Fatal("input authority", r, inputIndex)
+							}
+							line := []byte(f.Inputs[inputIndex])
+							inputIndex++
+							mem[r.DE+1] = byte(len(line))
+							copy(mem[r.DE+2:], line)
+							mem[int(r.DE)+2+len(line)] = 13
+						case 2:
+							v := byte(r.DE)
+							if len(output) >= len(wantOutput) {
+								t.Fatal("extra stdout", v)
+							}
+							if v != wantOutput[len(output)] {
+								save(prefix+"/wrong-stdout.bin", output)
+								t.Fatalf("stdout byte%d got%02x want%02x", len(output), v, wantOutput[len(output)])
+							}
+							output = append(output, v)
+						default:
+							t.Fatal("BDOS function", r.BC)
+						}
 						if clobber {
 							r.A = 0xa5
 							r.F = 0xff
@@ -205,6 +259,9 @@ func testOriginalSQLitePortMain(t *testing.T, sourceName, packetName, exportEnv 
 				save(prefix+"/stdout.bin", output)
 				save(prefix+"/ram.bin", mem)
 				save(prefix+"/registers.json", z.GetRegisters())
+				if inputIndex != len(f.Inputs) {
+					t.Fatal("input count", inputIndex)
+				}
 				if z.GetPC() != 0x7003 || z.GetSP() != 0xf000 || !bytes.Equal(output, wantOutput) || columnIndex != len(f.Texts) || offset != 0 || len(host.commands) != len(f.Commands) || host.db != nil || host.rows != nil {
 					t.Fatal("incomplete main", z.GetRegisters(), columnIndex, len(host.commands))
 				}
