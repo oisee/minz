@@ -1,0 +1,38 @@
+=== RUN   TestOriginalZXTetrisMainInitialization
+=== RUN   TestOriginalZXTetrisMainInitialization/current
+=== RUN   TestOriginalZXTetrisMainInitialization/current/ordinary
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:288: first keyboard-free frame/full RAM PASS
+    original_zx_tetris_main_test.go:291: 4548 2936471 initial main prefix/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainInitialization/current/grace-size
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:288: first keyboard-free frame/full RAM PASS
+    original_zx_tetris_main_test.go:291: 4557 2936452 initial main prefix/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainInitialization/current/grace-speed
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:288: first keyboard-free frame/full RAM PASS
+    original_zx_tetris_main_test.go:291: 4557 2936452 initial main prefix/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainInitialization/historical
+=== RUN   TestOriginalZXTetrisMainInitialization/historical/ordinary
+[HIR-SPLIT] main → main$split_7 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:288: first keyboard-free frame/full RAM PASS
+    original_zx_tetris_main_test.go:291: 4979 1987741 initial main prefix/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainInitialization/historical/grace-size
+[HIR-SPLIT] main → main$split_7 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:288: first keyboard-free frame/full RAM PASS
+    original_zx_tetris_main_test.go:291: 4988 1987722 initial main prefix/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainInitialization/historical/grace-speed
+[HIR-SPLIT] main → main$split_7 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:288: first keyboard-free frame/full RAM PASS
+    original_zx_tetris_main_test.go:291: 4988 1987722 initial main prefix/full RAM PASS
+--- PASS: TestOriginalZXTetrisMainInitialization (7.67s)
+    --- PASS: TestOriginalZXTetrisMainInitialization/current (2.02s)
+        --- PASS: TestOriginalZXTetrisMainInitialization/current/ordinary (0.45s)
+        --- PASS: TestOriginalZXTetrisMainInitialization/current/grace-size (0.88s)
+        --- PASS: TestOriginalZXTetrisMainInitialization/current/grace-speed (0.69s)
+    --- PASS: TestOriginalZXTetrisMainInitialization/historical (5.65s)
+        --- PASS: TestOriginalZXTetrisMainInitialization/historical/ordinary (0.68s)
+        --- PASS: TestOriginalZXTetrisMainInitialization/historical/grace-size (2.43s)
+        --- PASS: TestOriginalZXTetrisMainInitialization/historical/grace-speed (2.53s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	7.679s

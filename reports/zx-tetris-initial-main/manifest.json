@@ -1,0 +1,20 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "4903186f837ba76ece43975b003e872b124af1595602303d1fe7bb5e3b31ca43"
+    },
+    {
+      "path": "frozen/current.nanz",
+      "sha256": "66826d441f3d1ff2c50bdef6d5b466113c6694fc21728f7e842e32a7ea04f134"
+    },
+    {
+      "path": "frozen/historical.nanz",
+      "sha256": "d27bc60573b403edf80d0a362e6d86b72702f4fd08c446488bffca2014c550ae"
+    },
+    {
+      "path": "root.txt",
+      "sha256": "d53a66bcbf58863cafa316ecd981b82d595b2375b9d86146553de48ab6a05340"
+    }
+  ]
+}
