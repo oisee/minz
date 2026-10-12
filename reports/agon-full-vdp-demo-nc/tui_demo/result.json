@@ -1,0 +1,22 @@
+{
+  "cutoff_exit": 124,
+  "command": [
+    "timeout",
+    "10",
+    "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/fab-agon-emulator",
+    "--renderer",
+    "sw",
+    "--firmware",
+    "console8",
+    "--sdcard",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-full-vdp-demo-nc/tui_demo/sdcard",
+    "--zero",
+    "--verbose"
+  ],
+  "key": "A",
+  "scope": "whole CPU/MOS/VDP captured before/after input; screenshots require inspection",
+  "source_sha256": "afcadba573f924da7fcaf74574a8ec451be8ffb37eb0b3aa8567a6757d2957bd",
+  "bin_sha256": "bbf9fd32a1b1f6b46e77e7c1b9f42e6585037808c4279b3b6037d13d5c697059",
+  "visual_observation": "source UI visible before key; cleared screen, MINZ_FULL_RETURNED and MOS prompt after key",
+  "admission": "bounded ordinary whole-device observation only"
+}

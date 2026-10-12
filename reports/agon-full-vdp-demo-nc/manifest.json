@@ -1,0 +1,126 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "a4593827df8c3c7f639758ca4f4aab650b6e43c69e0c30da7280be02304cfc1d"
+  },
+  {
+    "path": "capture.c",
+    "sha256": "100530626d508295bde7ff9114b1d5f7a7a8f47deb6561e1ed71d74c3a0d55e1"
+  },
+  {
+    "path": "nc_agon/after.png",
+    "sha256": "583d1dedd626e5a77593f00e5ca49e0303fd54b31b5e2388758be1e6ff90eb29"
+  },
+  {
+    "path": "nc_agon/after.ppm",
+    "sha256": "30e0e67068adf9af22ca8237d54207b96f1752933a168325e5269d51ec61463b"
+  },
+  {
+    "path": "nc_agon/asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "nc_agon/before.png",
+    "sha256": "8fb61452738593634d2eb395aebf4cc83005ebb31f959d0840192df067dac0b0"
+  },
+  {
+    "path": "nc_agon/before.ppm",
+    "sha256": "e19532781f234266957d7cb56205ba83bcc40adf2d100e701917544f1f06169b"
+  },
+  {
+    "path": "nc_agon/bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "nc_agon/program.asm",
+    "sha256": "c1e79e8ed60428835ae6e5402cdeb8a75914aa8c9a8a26157b0ea2d999a7facb"
+  },
+  {
+    "path": "nc_agon/program.bin",
+    "sha256": "33e9482d01c8f17111aac455691601f8845e258fa20c4d2e4128f28cb12b67ae"
+  },
+  {
+    "path": "nc_agon/result.json",
+    "sha256": "344f09641d62f611dfa6af9adc3f480c4976951481cc4fb0a70bdfe04773123f"
+  },
+  {
+    "path": "nc_agon/sdcard/autoexec.txt",
+    "sha256": "21729aa38b3dbd35d95a21052f5c59a291c1b6f4a49d8285b1e11e955c264944"
+  },
+  {
+    "path": "nc_agon/sdcard/program.bin",
+    "sha256": "33e9482d01c8f17111aac455691601f8845e258fa20c4d2e4128f28cb12b67ae"
+  },
+  {
+    "path": "nc_agon/source.nanz",
+    "sha256": "8063ebaf25ab5faff632017874a06d1db25019fa7efe559c4d0cfc6f3b3e9b38"
+  },
+  {
+    "path": "nc_agon/stderr.log",
+    "sha256": "acef83e4200d3fa5e8874d8a4a932aa6c30cfe5dd8754111115deba6eee2833b"
+  },
+  {
+    "path": "nc_agon/stdout.log",
+    "sha256": "6b0b1282e03cfaa381238c15fc335b6c8533f8ed5c86441f245c5476bd73adbd"
+  },
+  {
+    "path": "tui_demo/after.png",
+    "sha256": "583d1dedd626e5a77593f00e5ca49e0303fd54b31b5e2388758be1e6ff90eb29"
+  },
+  {
+    "path": "tui_demo/after.ppm",
+    "sha256": "30e0e67068adf9af22ca8237d54207b96f1752933a168325e5269d51ec61463b"
+  },
+  {
+    "path": "tui_demo/asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_demo/before.png",
+    "sha256": "ee74796da9ce33a8254e0bc5c744d1afb3d631d7399f368d117fc6d5ac298536"
+  },
+  {
+    "path": "tui_demo/before.ppm",
+    "sha256": "6030945959436adaa3beaac44370cc4a06127ada8703edd4a0d61e81b568498a"
+  },
+  {
+    "path": "tui_demo/bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_demo/program.asm",
+    "sha256": "511ad9ad7c355a97c06fb0230381cc9070570c6c36566c8e85d2ebed616fc675"
+  },
+  {
+    "path": "tui_demo/program.bin",
+    "sha256": "bbf9fd32a1b1f6b46e77e7c1b9f42e6585037808c4279b3b6037d13d5c697059"
+  },
+  {
+    "path": "tui_demo/result.json",
+    "sha256": "570319f614ce4ed113ca0be2f2c27a65cddf0b3e4c39c4c1e5b5b83528890ee1"
+  },
+  {
+    "path": "tui_demo/sdcard/autoexec.txt",
+    "sha256": "21729aa38b3dbd35d95a21052f5c59a291c1b6f4a49d8285b1e11e955c264944"
+  },
+  {
+    "path": "tui_demo/sdcard/program.bin",
+    "sha256": "bbf9fd32a1b1f6b46e77e7c1b9f42e6585037808c4279b3b6037d13d5c697059"
+  },
+  {
+    "path": "tui_demo/source.nanz",
+    "sha256": "afcadba573f924da7fcaf74574a8ec451be8ffb37eb0b3aa8567a6757d2957bd"
+  },
+  {
+    "path": "tui_demo/stderr.log",
+    "sha256": "73063bfff388a5aada4ca1d9f59df8682f0ad5ed00d56ecb745aef11cbd34d00"
+  },
+  {
+    "path": "tui_demo/stdout.log",
+    "sha256": "825f1568d73caadcea398583d5b70f9cbde2ab428c381190b97a6fa83f0f9de0"
+  },
+  {
+    "path": "tui_render.nanz",
+    "sha256": "df324615b171bed89dc29a768d826551123604867bc3279fb20020fd784046f8"
+  }
+]

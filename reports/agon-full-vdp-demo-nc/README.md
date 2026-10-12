@@ -1,0 +1,7 @@
+# Whole CPU/MOS/full VDP: TUI Demo and Mini NC
+
+Both unchanged public programs compile with native VDU library77e0bffb and execute through MOS autoexec load/run. Full shipped VDP displays Demo title/panel/content/status bar and NC title/eight-file list/selection0/status bar. A normal SDL key event (A for Demo, Escape for NC) reaches MOS input. Cleanup clears the screen; following autoexec echo MINZ_FULL_RETURNED and MOS prompt appear in both after-key frames. Frames visually inspected. Ordinary configuration only; no independent pixel oracle/fullRAM-SP/hardware claim. NC navigation not tested here.
+
+Outer timeout10s ends the still-running MOS(exit124), not an application timeout. Input delivered at SDL texture update300, key up302; capture before240/after420. capture.c interposes SDL_UpdateTexture, delegates it unchanged, and SDL_PushEvent goes through Fab normal keyboard-to-PS2 path. All source/ASM/BIN/input setup/framebuffers/logs retained. No example source modifications or fake VDP. Native color pane background covers printed glyph cells, not unprinted panel interior; screenshots show this limitation rather than hiding it.
+
+Reproduce as reports/agon-native-vdu-fix, set MINZ_AGON_ESCAPE=1 for NC. SD directory contains retained program.bin/autoexec.txt. Run Fab release1.2.5 with --renderer sw --firmware console8 --sdcard <dir> --zero --verbose and dummy SDL video/audio. Tool pins are the prior full-device report; library exact copy retained here.

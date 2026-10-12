@@ -1,0 +1,3 @@
+load program.bin
+run
+echo MINZ_FULL_RETURNED
