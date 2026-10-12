@@ -1,0 +1,10 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "3fdd6899b84fdebc02761b217472e7959095dc9816c8b12da48e3631115a0bbd"
+  },
+  {
+    "path": "test.txt",
+    "sha256": "26fc76f85e6acd1eb78c2c70ff4e23921cbbf23abde63453ce6a1553d14b4d16"
+  }
+]

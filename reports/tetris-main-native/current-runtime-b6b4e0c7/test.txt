@@ -1,0 +1,7 @@
+=== RUN   TestOriginalTetrisCPMMainNative
+    original_tetris_main_test.go:259: ordinary whole original main exactstdout/state/HALT/SP PASS
+    original_tetris_main_test.go:259: grace-size whole original main exactstdout/state/HALT/SP PASS
+    original_tetris_main_test.go:259: grace-speed whole original main exactstdout/state/HALT/SP PASS
+--- PASS: TestOriginalTetrisCPMMainNative (2.54s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.553s
