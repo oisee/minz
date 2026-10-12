@@ -348,6 +348,14 @@ func TestOriginalNCWholeMainNative(t *testing.T) {
 			if !bytes.Equal(mem[sym("fs__fat12__win"):int(sym("fs__fat12__win"))+512], disk[1024:1536]) {
 				t.Fatal("native window")
 			}
+			// Compiler-created spill cells are precise assembler listing spans.
+			for _, line := range a.Listing {
+				if strings.HasPrefix(line.Label, "_spill_") {
+					for i := 0; i < len(line.Bytes); i++ {
+						mutable[uint16(line.Address+i)] = true
+					}
+				}
+			}
 			// Initial checkpoint checks every byte outside precise mutable globals and observed stack.
 			// Final independent per-global memory oracle will replace this bounded write-region check.
 			for p := range mem {

@@ -267,27 +267,12 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 	clear(g.bitCmpSkip)
 
 	defInst := make(map[Reg]*Inst, len(b.Insts))
-	useCount := make(map[Reg]int, len(b.Insts))
+	// Definitions may be used in successor blocks; skipping a load requires
+	// a function-wide single-use proof, not merely a count in this block.
+	useCount := countRegUses(g.fn)
 	for _, inst := range b.Insts {
 		if inst.Dst != NoReg {
 			defInst[inst.Dst] = inst
-		}
-		for _, src := range inst.Src {
-			if src != NoReg {
-				useCount[src]++
-			}
-		}
-		for _, arg := range inst.Args {
-			if arg != NoReg {
-				useCount[arg]++
-			}
-		}
-	}
-	if b.Term != nil {
-		for _, src := range b.Term.termUses() {
-			if src != NoReg {
-				useCount[src]++
-			}
 		}
 	}
 
@@ -336,7 +321,7 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 				matched = true
 			}
 		}
-		if matched && g.canEmitBitCmpPattern(pat) {
+		if matched && g.canEmitBitCmpPattern(pat) && bitCmpMemoryAdjacent(b, inst, pat, skipRegs, zeroReg) {
 			g.bitCmpPat[inst.Dst] = pat
 			g.bitCmpSkip[zeroReg] = true
 			for _, r := range skipRegs {
@@ -395,7 +380,7 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 			}
 		}
 
-		if matched && g.canEmitBitCmpPattern(pat) {
+		if matched && g.canEmitBitCmpPattern(pat) && bitCmpMemoryAdjacent(b, inst, pat, skipRegs, zeroReg) {
 			g.bitCmpPat[inst.Dst] = pat
 			g.bitCmpSkip[zeroReg] = true
 			for _, r := range skipRegs {
@@ -403,6 +388,33 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 			}
 		}
 	}
+}
+
+// A memory BIT reads at the compare, so moving a prior load across unrelated
+// work can change memory or lose the allocated pointer. Fuse only the exact
+// contiguous expression (constants and the definitions being eliminated).
+func bitCmpMemoryAdjacent(b *Block, cmp *Inst, pat bitCmpPat, skipped []Reg, zero Reg) bool {
+	if !pat.useMem {
+		return true
+	}
+	allowed := map[Reg]bool{zero: true}
+	for _, r := range skipped {
+		allowed[r] = true
+	}
+	started := false
+	for _, i := range b.Insts {
+		if i == cmp {
+			return started
+		}
+		if i.Op == OpLoad && i.Src[0] == pat.ptrReg && allowed[i.Dst] {
+			started = true
+			continue
+		}
+		if started && !allowed[i.Dst] && i.Op != OpConst {
+			return false
+		}
+	}
+	return false
 }
 
 // isGlobalPageAligned reports whether the named global in the current module
