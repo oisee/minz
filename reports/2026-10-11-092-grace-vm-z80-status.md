@@ -1,6 +1,31 @@
 # MinZ сегодня: языки, компилятор и проверенный Z80
 
-**Состояние на 11 октября 2026 года.** Работа ведётся в исследовательской ветке [`feat/grace-hir-vm`](https://github.com/oisee/minz/tree/feat/grace-hir-vm). Этот отчёт публикуется отдельно в `main`: он не означает, что исследовательские изменения уже интегрированы в основной компилятор.
+**Обзор от 11 октября, обновлён 12 октября 2026 года.** Работа ведётся в исследовательской ветке [`feat/grace-hir-vm`](https://github.com/oisee/minz/tree/feat/grace-hir-vm). Этот отчёт публикуется отдельно в `main`: он не означает, что исследовательские изменения уже интегрированы в основной компилятор.
+
+## Обновление 12 октября: насколько приблизились к цели
+
+Общая цель ещё открыта, но доказательства стали заметно шире: теперь это несколько реальных программ, заранее отложенные входы и исполнение собранного Z80 с проверкой памяти, вывода и стека. Все результаты ниже относятся к исследовательской ветке; публикация отчёта в main не включает её compiler changes в main.
+
+**Корпус сохраняет все 194 пути.** У 153 есть независимое или ограниченное VM/Z80 покрытие, у 21 — native ASM bounded, у 10 — CP/M runtime, у 2 — SMC bounded. Отдельно остаются 5 Agon MOS runtime, 1 host-only memory model и 2 случая без независимого оракула. Это разные уровни проверки, поэтому 153/194 не является процентом готовности всего компилятора. [Точный каталог](https://github.com/oisee/minz/blob/b6b4e0c7/docs/grace-integration-338/catalog.json).
+
+| Новое подтверждение | Измеренный результат | Что именно доказано |
+|---|---:|---|
+| Frozen self-Lanz parser, Speed heldout | 2 195 027 → 2 137 641 T (−2,61%); 2377 → 2478 B | Тот же выбранный BIN на train/heldout, независимая модель событий и памяти |
+| Hashmap, 48 отложенных вызовов | 258 962 → 237 948 T (−8,11%); 996 → 976 B | Польза сохраняется на входах вне выбора; Speed и Size выбирают оба преобразования |
+| Checked allocation table × PFCCO × Grace | 44 → 20 B; caller 238 → 142 T | Все 12 сочетаний и все byte inputs; стоимость пересылок и сохранений включена |
+| Self-tokenizer, PBQP Size | 5533 → 5513 B после удаления перезаписанных literal loads | −20 B, но greedy всё ещё меньше: 5465 B; здесь нет нового измерения T |
+
+[Полный пакет heldout, решения, ASM/BIN и независимые проверки](https://github.com/oisee/minz/blob/3ebed86e/reports/heldout-after-literal-overwrite/README.md). Таблицы полезны на подходящих формах, но PBQP пока не лучше greedy на tokenizer по Size. Инвентаризация охватывает 981 запись по 72 Nanz-исходникам; текущий checked bridge допускает 36 локальных задач. Это граница admission, а не размер исторической ENRT базы. [Разбор](https://github.com/oisee/minz/blob/55c8f222/reports/table-inventory-5d90b7aa/README.md).
+
+**Исходные parser/tokenizer main выполняются в защищённом CP/M runtime.** При резерве стека 1024 B: parser — 419 878 T / 3984 B, tokenizer — 411 987 T / 7051 B; фактически затронуто 46 и 30 B resident stack. Проверены stdout, области памяти, globals, stack guards и завершение. Это абсолютные показатели текущей конфигурации, не дополнительный выигрыш Grace и не аппаратный замер. [Артефакты](https://github.com/oisee/minz/blob/95fb99ec/reports/cpm-main-after-literal-overwrite/README.md).
+
+После последней production правки прошли полный MIR2, HIR и 11 пакетов фронтендов/инструментов, полный CLI (74 PASS, 0 FAIL, 0 SKIP) и showcase compile/assemble (193 PASS, 1 capacity SKIP). Compile/assemble не заменяет проверку поведения. [Свежий checkpoint с логами](https://github.com/oisee/minz/blob/b6b4e0c7/reports/2026-10-12-grace-current-checkpoint.md).
+
+**Полный pipeline ещё выполняется.** В наблюдении 12 октября после двух часов работы: 322 верхнеуровневых теста PASS, 0 FAIL, 11 SKIP; выполняется полный 16-битный домен десятичной печати Pascal. Уже завершились большой assert-домен, Tetris mechanics (CP/M и TUI, три режима, по 238 456 вызовов), spawn/hold sequences, полный rotozoomer main (32 кадра во всех трёх режимах), ZX Tetris сценарии и parser heldout. Это промежуточный результат живого процесса, не общий PASS. Бинарник 5d90b7aa собран до последней literal-overwrite правки; после него требуется полный gate актуального backend. [Команда, checkpoint и SHA256](https://github.com/oisee/minz/blob/541db881/reports/pipeline-5d90b7aa-checkpoint/job.json).
+
+Оставшиеся условия закрытия: полный gate актуального кода, явная политика Lizp return и исправление учебного PL/M Hello с пустым PRINTCHAR/чтением за literal bytes, проверка обещанных runtime границ Agon. Top-level entry PL/M уже исправлен, но это не исправляет семантику Hello целиком. Живой LIR удалён; VIR остаётся исследовательским путём, обычная компиляция не требует Z3. Speed по-прежнему выбирает минимум T без штрафа за байты; Size — самостоятельная цель.
+
+Свежие пакеты сохранены на шаре в `/mnt/safe/minz/grace/2026-10-12/compiler-updates/<commit>/` с manifests SHA256. Полная копия сайта: `/mnt/safe/minz/grace/2026-10-12/site-and-artifacts/site/index.html`; опубликованный сайт старше этого обновления. Разделы ниже сохраняют исторический контекст 11 октября, включая прежние размеры каталога и checkpoints.
 
 ## Что такое MinZ сейчас
 
