@@ -231,6 +231,29 @@ func (g *z80cg) genCmp(inst *Inst) {
 	// Relocated values use a free scratch register through physOverride; on
 	// exhaustion, stack restoration preserves A and the new comparison flags.
 	g.materializePendingFlag(inst)
+	// A byte comparison against a right operand already in A can retain A:
+	// CP lhs sets the reversed predicate without writing either operand.
+	// Decide before relocating a live accumulator, otherwise the relocation
+	// itself hides this opportunity and introduces save/restore moves.
+	lhsBeforeSave, rhsBeforeSave := g.loc(inst.Src[0]), g.loc(inst.Src[1])
+	_, lhsConstant := g.constVals[inst.Src[0]]
+	_, rhsConstant := g.constVals[inst.Src[1]]
+	_, bitPattern := g.bitCmpPat[inst.Dst]
+	if rhsBeforeSave == "A" && lhsBeforeSave != "A" &&
+		!lhsConstant && !rhsConstant && !bitPattern &&
+		isSimpleReg(lhsBeforeSave) && lhsBeforeSave != "F" && !isPairReg(lhsBeforeSave) &&
+		!isSignedOrdering(inst) && !g.wideComparisonOperand(inst, inst.Src[0]) &&
+		!g.wideComparisonOperand(inst, inst.Src[1]) && (inst.SrcTy == nil || inst.SrcTy.Width() <= 8) {
+		g.lastFlagsLhs, g.lastFlagsRhs = "", ""
+		g.emit8ALU("CP", lhsBeforeSave)
+		g.cmpSwapped[inst.Dst] = true
+		swapped := inst.Cond.Swap()
+		if swapped == CmpGt || swapped == CmpUgt || swapped == CmpLe || swapped == CmpUle {
+			g.cmpNeedsTwo[inst.Dst] = true
+		}
+		g.pendingFlagReg = inst.Dst
+		return
+	}
 	g.materializePendingAcc(inst)
 	if restore := g.saveAccForCondRet(inst); restore != nil {
 		defer restore()
