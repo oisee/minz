@@ -1,0 +1,6 @@
+{
+  "reports/module-table-readmission/test.txt": "54a0d001bf0516e4715330595fa54b45c02e3d2b7251551a9b341b6a47af4710",
+  "reports/module-table-readmission/README.md": "e6ce7e160a40c97162c9dd0862381900b550ca793fef399008f4c10004b9d332",
+  "minzc/pkg/pipeline/checked_local_readmission.go": "61d50244dc569618641828194ca396c946a81c5587879856c0eaa6177b7c7483",
+  "minzc/pkg/pipeline/checked_local_readmission_test.go": "998c625d022a4ba2a81876c6cfa9a5e705534f06ec3c1373551e8b5073eaaa17"
+}

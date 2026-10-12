@@ -1,0 +1,5 @@
+=== RUN   TestModuleTableReadmissionWithoutSolver
+    checked_local_readmission_test.go:40: [left_sum: skipped: local table requires single-result leaf block right_sum: skipped: local table requires single-result leaf block caller: skipped: invalid or duplicate contract parameter add5: 1 admitted proposals main: 0 admitted proposals]
+--- PASS: TestModuleTableReadmissionWithoutSolver (0.62s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.630s
