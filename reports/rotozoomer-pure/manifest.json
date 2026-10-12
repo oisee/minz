@@ -1,0 +1,23 @@
+{
+  "reports/rotozoomer-pure/REPORT.md": "ef2423879b30fcc367fac535f6fe9b9bba20d7993e2a83cc604d90d4bc41f151",
+  "reports/rotozoomer-pure/execution/grace-size/final.mir": "8a3cf840de0531d820ab794276dcd08541f8a23f04a8958f93656c3d13657bd1",
+  "reports/rotozoomer-pure/execution/grace-size/raw.mir": "652948f6469bdc44ce223f496dac807f5b90e94a433dbcbfe7604bab046d2c12",
+  "reports/rotozoomer-pure/execution/grace-size/summary.json": "d4fb74ad356f6568f720da7bac07ccf3627d58071fade7354a9e76b3f9b8ce89",
+  "reports/rotozoomer-pure/execution/grace-size/target.a80": "78060b3bc5945332d4d0618808fe1e9484f55d5516eacc544657b5c13e03290e",
+  "reports/rotozoomer-pure/execution/grace-size/target.bin": "6333a90697a15ebccbddf08d23f4649839eb54f23a5e911465c947fa9ea6be1b",
+  "reports/rotozoomer-pure/execution/grace-speed/final.mir": "8a3cf840de0531d820ab794276dcd08541f8a23f04a8958f93656c3d13657bd1",
+  "reports/rotozoomer-pure/execution/grace-speed/raw.mir": "652948f6469bdc44ce223f496dac807f5b90e94a433dbcbfe7604bab046d2c12",
+  "reports/rotozoomer-pure/execution/grace-speed/summary.json": "d4fb74ad356f6568f720da7bac07ccf3627d58071fade7354a9e76b3f9b8ce89",
+  "reports/rotozoomer-pure/execution/grace-speed/target.a80": "78060b3bc5945332d4d0618808fe1e9484f55d5516eacc544657b5c13e03290e",
+  "reports/rotozoomer-pure/execution/grace-speed/target.bin": "6333a90697a15ebccbddf08d23f4649839eb54f23a5e911465c947fa9ea6be1b",
+  "reports/rotozoomer-pure/execution/ordinary/final.mir": "67f6a675178e5e45e5630fad280f44990da3df2f2b79bf2ee2ff430245ca299a",
+  "reports/rotozoomer-pure/execution/ordinary/raw.mir": "652948f6469bdc44ce223f496dac807f5b90e94a433dbcbfe7604bab046d2c12",
+  "reports/rotozoomer-pure/execution/ordinary/summary.json": "d4fb74ad356f6568f720da7bac07ccf3627d58071fade7354a9e76b3f9b8ce89",
+  "reports/rotozoomer-pure/execution/ordinary/target.a80": "d4dab887426a621c265818dd759758b5445278062c4b2e90b111431047f2883a",
+  "reports/rotozoomer-pure/execution/ordinary/target.bin": "6333a90697a15ebccbddf08d23f4649839eb54f23a5e911465c947fa9ea6be1b",
+  "reports/rotozoomer-pure/execution/workload.json": "7b9b6a8abc261614340dbeb1e14cde219c1fd5fed393c4d53de717c049993f00",
+  "reports/rotozoomer-pure/freeze.json": "dae5fd35fd8cc3d02560532eead53ed856c14427058f7484f43e1eca7f2c75c8",
+  "reports/rotozoomer-pure/result-after.txt": "6c254e34cb630c5d7b28049f2c62107f3d3442a73fe32dd2000909291ea7d6ee",
+  "reports/rotozoomer-pure/result.txt": "338e83056eb26f69db2d6c3676ff0e90e809e1a3d47c060d8b0fd52eb74f90be",
+  "reports/rotozoomer-pure/source.nanz": "df38ac3b0eca81e67432c4032bfcfb5c2ae44af3ca32fbdcc673de863d0cf06f"
+}

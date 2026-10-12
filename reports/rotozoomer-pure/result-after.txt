@@ -1,0 +1,7 @@
+=== RUN   TestOriginalRotozoomerPureFunctions
+    original_rotozoomer_pure_test.go:245: ordinary 66788 originalpurefunctions raw/final/native RAM/code/PCSP PASS
+    original_rotozoomer_pure_test.go:245: grace-size 66788 originalpurefunctions raw/final/native RAM/code/PCSP PASS
+    original_rotozoomer_pure_test.go:245: grace-speed 66788 originalpurefunctions raw/final/native RAM/code/PCSP PASS
+--- PASS: TestOriginalRotozoomerPureFunctions (4.75s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.759s

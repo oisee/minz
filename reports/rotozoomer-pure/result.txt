@@ -1,0 +1,6 @@
+=== RUN   TestOriginalRotozoomerPureFunctions
+    original_rotozoomer_pure_test.go:163: VM ordinary {axis_a [9] 65525} [{245}] <nil>
+--- FAIL: TestOriginalRotozoomerPureFunctions (1.83s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	1.841s
+FAIL
