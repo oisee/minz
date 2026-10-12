@@ -20,6 +20,7 @@ func TestOriginalZXTetrisMainInitialization(t *testing.T) { testOriginalZXTetris
 func TestOriginalZXTetrisMainMovement(t *testing.T)       { testOriginalZXTetrisMainFrames(t, "movement") }
 func TestOriginalZXTetrisMainRotation(t *testing.T)       { testOriginalZXTetrisMainFrames(t, "rotation") }
 func TestOriginalZXTetrisMainSoftDrop(t *testing.T)       { testOriginalZXTetrisMainFrames(t, "soft-drop") }
+func TestOriginalZXTetrisMainHardDrop(t *testing.T)       { testOriginalZXTetrisMainFrames(t, "hard-drop") }
 func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 	for _, source := range []struct{ name, path string }{{"current", "examples/zx/tetris.nanz"}, {"historical", "reports/showcase-src/2026-03-15/ex34_tetris.nanz"}} {
 		t.Run(source.name, func(t *testing.T) {
@@ -162,6 +163,12 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 					borders := 0
 					keyReads := 0
 					keysAt := func(frame int) byte {
+						if scenario == "hard-drop" {
+							if frame == 1 || frame == 2 || frame == 4 {
+								return 16
+							}
+							return 0
+						}
 						if scenario == "soft-drop" {
 							if frame <= 3 || (frame >= 20 && frame <= 22) {
 								return 8
@@ -199,6 +206,32 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 					expectedX := 3
 					expectedRotation := 0
 					expectedY, expectedTimer := 0, 0
+					expectedType, expectedNext := typ, queued
+					expectedScore := 0
+					var board [200]byte
+					colors := []byte{0x28, 0x30, 0x18, 0x20, 0x10, 0x70, 0x08}
+					// Independent literal cell layouts, matched to both source definitions.
+					shape := func(t byte, rot int) [4][2]int {
+						if t == 0 {
+							if rot&1 == 0 {
+								return [4][2]int{{0, 0}, {1, 0}, {2, 0}, {3, 0}}
+							}
+							return [4][2]int{{0, 0}, {0, 1}, {0, 2}, {0, 3}}
+						}
+						if rot != 0 {
+							panic("non-I rotation outside workload")
+						}
+						return [7][4][2]int{{{0, 0}, {1, 0}, {2, 0}, {3, 0}}, {{0, 0}, {1, 0}, {0, 1}, {1, 1}}, {{1, 0}, {0, 1}, {1, 1}, {2, 1}}, {{1, 0}, {2, 0}, {0, 1}, {1, 1}}, {{0, 0}, {1, 0}, {1, 1}, {2, 1}}, {{2, 0}, {0, 1}, {1, 1}, {2, 1}}, {{0, 0}, {0, 1}, {1, 1}, {2, 1}}}[t]
+					}
+					fits := func(y int) bool {
+						for _, c := range shape(expectedType, expectedRotation) {
+							x, cy := expectedX+c[0], y+c[1]
+							if x < 0 || x >= 10 || cy < 0 || cy >= 20 || board[cy*10+x] != 0 {
+								return false
+							}
+						}
+						return true
+					}
 					previousKeys := byte(0)
 					awake := false
 					z.SetIOHandlers(func(p uint16) byte {
@@ -217,6 +250,9 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 							if keys&2 != 0 {
 								v &^= 1
 							}
+						}
+						if row == 3 && keys&16 != 0 {
+							v &^= 1
 						}
 						if row == 2 && keys&8 != 0 {
 							v &^= 1
@@ -294,6 +330,36 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 						if pressed&4 != 0 {
 							expectedRotation = (expectedRotation + 1) & 3
 						}
+						if pressed&16 != 0 {
+							for fits(expectedY + 1) {
+								expectedY++
+								expectedScore += 2
+							}
+							for _, c := range shape(expectedType, expectedRotation) {
+								board[(expectedY+c[1])*10+expectedX+c[0]] = expectedType + 1
+							}
+							// This workload stacks two I pieces; explicitly reject a full row
+							// instead of silently substituting a no-clear oracle.
+							for y := 0; y < 20; y++ {
+								full := true
+								for x := 0; x < 10; x++ {
+									if board[y*10+x] == 0 {
+										full = false
+									}
+								}
+								if full {
+									t.Fatal("model requires line-clear support", frame, y)
+								}
+							}
+							expectedType = expectedNext
+							expectedNext = next()
+							expectedRotation = 0
+							expectedX = 3
+							expectedY = 0
+							expectedTimer = 0
+							want[sym("rng_state")] = byte(rng)
+							want[sym("rng_state")+1] = byte(rng >> 8)
+						}
 						previousKeys = keys
 						// A is level-triggered. Timer reset precedes the same-frame gravity tick.
 						if keys&8 != 0 {
@@ -302,8 +368,16 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 						expectedTimer++
 						if expectedTimer >= 30 {
 							expectedTimer = 0
+							if !fits(expectedY + 1) {
+								t.Fatal("model requires gravity-lock support", frame)
+							}
 							expectedY++
 						}
+						want[sym("cur_type")] = expectedType
+						want[sym("next_type")] = expectedNext
+						want[sym("score")] = byte(expectedScore)
+						want[sym("score")+1] = byte(expectedScore >> 8)
+						copy(want[int(sym("board")):int(sym("board"))+200], board[:])
 						want[sym("cur_rot")] = byte(expectedRotation)
 						want[sym("cur_x")] = byte(expectedX)
 						want[sym("prev_keys")] = keys
@@ -312,18 +386,24 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 						z.SetRegisters(r)
 						for y := 0; y < 20; y++ {
 							for x := 0; x < 10; x++ {
-								want[0x5800+(2+y)*32+11+x] = 0
+								cell := board[y*10+x]
+								attr := byte(0)
+								if cell != 0 {
+									attr = colors[cell-1]
+								}
+								want[0x5800+(2+y)*32+11+x] = attr
 							}
 						}
-						for cell := 0; cell < 4; cell++ {
-							dx, dy := cell, 0
-							ghost := 19
-							if expectedRotation&1 != 0 {
-								dx, dy = 0, cell
-								ghost = 16
+						ghost := expectedY
+						for fits(ghost + 1) {
+							ghost++
+						}
+						for _, c := range shape(expectedType, expectedRotation) {
+							dx, dy := c[0], c[1]
+							if ghost != expectedY && board[(ghost+dy)*10+expectedX+dx] == 0 {
+								want[0x5800+(2+ghost+dy)*32+11+expectedX+dx] = (colors[expectedType] >> 3) & 7
 							}
-							want[0x5800+(2+ghost+dy)*32+11+expectedX+dx] = 5
-							want[0x5800+(2+expectedY+dy)*32+11+expectedX+dx] = 0x28
+							want[0x5800+(2+expectedY+dy)*32+11+expectedX+dx] = colors[expectedType]
 						}
 						for _, sx := range []int{23, 5} {
 							for y := 0; y < 4; y++ {
@@ -332,8 +412,8 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 								}
 							}
 						}
-						for x := 0; x < 4; x++ {
-							want[0x5800+3*32+23+x] = 0x28
+						for _, c := range shape(expectedNext, 0) {
+							want[0x5800+(3+c[1])*32+23+c[0]] = colors[expectedNext]
 						}
 						want[sym("frame_count")] = byte(frame)
 						want[sym("frame_count")+1] = 0
@@ -382,7 +462,7 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 					}
 					t.Log("31 frames including input edges and gravity/full RAM PASS")
 					save(mode+"/screen.bin", mem[0x4000:0x5b00])
-					save(mode+"/summary.json", map[string]any{"bytes": len(a.Binary), "T_states": z.GetCycles(), "source_sha256": fmt.Sprintf("%x", sha256.Sum256(src)), "rng": rng, "type": typ, "next": queued, "minimum_sp": minSP, "full_ram": true, "scenario": scenario, "final_y": expectedY, "final_timer": expectedTimer, "termination": "bounded before frame32 game HALT"})
+					save(mode+"/summary.json", map[string]any{"bytes": len(a.Binary), "T_states": z.GetCycles(), "source_sha256": fmt.Sprintf("%x", sha256.Sum256(src)), "rng": rng, "type": typ, "next": queued, "minimum_sp": minSP, "full_ram": true, "scenario": scenario, "final_score": expectedScore, "final_type": expectedType, "final_next": expectedNext, "final_y": expectedY, "final_timer": expectedTimer, "termination": "bounded before frame32 game HALT"})
 					t.Log(len(a.Binary), z.GetCycles(), "initial main and31frames/full RAM PASS")
 				})
 			}
