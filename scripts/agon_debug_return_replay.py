@@ -88,13 +88,16 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     for name in ['emulator','mos','vdp','sdl','matrix','output']:
         parser.add_argument('--'+name,type=Path,required=True)
+    parser.add_argument("--programs",choices=["graphics","console","all"],default="graphics")
     args=parser.parse_args();out=args.output.resolve();out.mkdir(parents=True,exist_ok=False)
     repo=Path(__file__).resolve().parents[1]
     capture=repo/'reports/agon-debug-return-hello/capture.c';shutil.copy2(capture,out/'capture.c');shutil.copy2(__file__,out/'agon_debug_return_replay.py')
     subprocess.run(['cc','-shared','-fPIC','-I',str(args.sdl.resolve()/'include'),str(out/'capture.c'),'-ldl','-o',str(out/'capture.so')],check=True,capture_output=True)
     results=[]
     try:
-        for name in ['tui_hello','tui_demo','nc_agon']:
+        names = ['hello_agon','hello_world'] if args.programs=='console' else ['tui_hello','tui_demo','nc_agon']
+        if args.programs=='all': names += ['hello_agon','hello_world']
+        for name in names:
             for mode in ['ordinary','size','speed']:
                 source=args.matrix.resolve()/name/mode;case=out/name/mode;case.mkdir(parents=True)
                 shutil.copy2(source/'program.bin',case/'program.bin');shutil.copy2(source/'source.nanz',case/'source.nanz')
@@ -125,7 +128,7 @@ def main():
                     dbg.close();(case/'debugger.raw').write_bytes(dbg.log);(case/'debugger.txt').write_text(clean(dbg.log))
     finally:
         pins={name:{'path':str(getattr(args,name).resolve()),'sha256':digest(getattr(args,name))} for name in ['emulator','mos','vdp']}
-        summary={'scope':'fixed early-exit scenarios, three examples x three modes; exact return/SP/IY/IX/24-byte caller-frame, no full RAM/pixel/hardware proof','tools':pins,'results':results}
+        summary={'scope':'selected fixed early-exit scenarios in three modes; exact return/SP/IY/IX/24-byte caller-frame, no full RAM/pixel/hardware proof','tools':pins,'results':results}
         (out/'summary.json').write_text(json.dumps(summary,indent=2)+'\n')
         (out/'manifest.json').write_text(json.dumps([{'path':str(p.relative_to(out)),'sha256':digest(p)} for p in sorted(out.rglob('*')) if p.is_file() and p.name!='manifest.json'],indent=2)+'\n')
 

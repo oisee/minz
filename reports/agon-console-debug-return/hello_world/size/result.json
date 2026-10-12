@@ -1,0 +1,52 @@
+{
+  "source": "hello_world",
+  "mode": "size",
+  "bin_sha256": "89e840b7e79fe2f35e544dce2aa7411db8fe0185d2c35d429834b6aca265f6a2",
+  "entry": {
+    "pc": "040045",
+    "hl": "0bc370",
+    "sp": "0bfe66",
+    "ix": "0bc32e",
+    "iy": "0bfe75",
+    "adl": "1"
+  },
+  "before_ret": {
+    "pc": "040051",
+    "hl": "000000",
+    "sp": "0bfe66",
+    "ix": "0bc32e",
+    "iy": "0bfe75",
+    "adl": "1"
+  },
+  "after_ret": {
+    "pc": "000874",
+    "hl": "000000",
+    "sp": "0bfe69",
+    "ix": "0bc32e",
+    "iy": "0bfe75",
+    "adl": "1"
+  },
+  "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004",
+  "caller_frame_24_bytes_unchanged": true,
+  "exact_return_contract": true,
+  "keys": "repeated A",
+  "command": [
+    "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/fab-agon-emulator",
+    "--renderer",
+    "sw",
+    "--firmware",
+    "console8",
+    "--mos",
+    "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+    "--vdp",
+    "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/vdp_console8.so",
+    "--sdcard",
+    "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-console-debug-return-cd326f57/hello_world/size/sdcard",
+    "--zero",
+    "--debugger",
+    "--breakpoint",
+    "0x40045",
+    "--breakpoint",
+    "0x40051"
+  ]
+}

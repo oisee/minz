@@ -1,0 +1,52 @@
+
+Agon EZ80 Debugger
+
+br[eak] <address>             Set a breakpoint at the hex address
+c[ontinue]                    Resume (un-pause) Agon CPU
+delete <address>              Delete a breakpoint
+dis[assemble] [start] [end]   Disassemble in current ADL mode
+dis16 [start] [end]           Disassemble in ADL=0 (Z80) mode
+dis24 [start] [end]           Disassemble in ADL=1 (24-bit) mode
+exit                          Quit from Agon Light Emulator
+info breakpoints              List breakpoints
+[mem]ory <start> [len]        Dump memory. <start> can be a register
+n[ext]                        Step over function calls
+pause                         Pause execution and enter debugger
+state                         Show CPU state
+.                             Show CPU state
+s[tep]                        Execute one instuction
+trace on                      Enable logging every instruction
+trace off                     Disable logging every instruction
+trigger <address> cmd1 : cmd2 : ...
+    Perform debugger commands when <address> is reached
+    eg: break $123 is equivalent to:
+        trigger $123 pause:"CPU paused at breakpoint":state
+
+triggers                      List triggers
+
+The previous command can be repeated by pressing return.
+
+CPU running. Press <CTRL-C> to pause
+
+Video driver: dummy (can override with SDL_VIDEO_DRIVER environment variable)
+CPU paused (breakpoint)
+* 040045: PUSH IY              AF:0448 BC:040000 DE:040000 HL:0bc370 SPS:0000 SPL:0bfe66 IX:0bc32e IY:0bfe75 ADL:1
+>> registers
+PC=040045 AF:0448 BC:040000 DE:040000 HL:0bc370 SPS:0000 SPL:0bfe66 IX:0bc32e IY:0bfe75 IR:01a6 MB:00 ADL:1 MADL:1 IFF1:1
+>> mem SP 24
+0bfe66: 74 08 00 48 00 00 82 fe 0b 81 fe 0b 48 01 00 00 | t  H        H   
+0bfe76: 00 04 51 1d 00 00 00 04 |   Q     
+>> c
+CPU running
+CPU paused (breakpoint)
+* 040051: RET                  AF:0044 BC:040000 DE:040000 HL:000000 SPS:0000 SPL:0bfe66 IX:0bc32e IY:0bfe75 ADL:1
+>> registers
+PC=040051 AF:0044 BC:040000 DE:040000 HL:000000 SPS:0000 SPL:0bfe66 IX:0bc32e IY:0bfe75 IR:0148 MB:00 ADL:1 MADL:1 IFF1:1
+>> mem SP 24
+0bfe66: 74 08 00 48 00 00 82 fe 0b 81 fe 0b 48 01 00 00 | t  H        H   
+0bfe76: 00 04 51 1d 00 00 00 04 |   Q     
+>> s
+* 000874: POP AF               AF:0044 BC:040000 DE:040000 HL:000000 SPS:0000 SPL:0bfe69 IX:0bc32e IY:0bfe75 ADL:1
+>> registers
+PC=000874 AF:0044 BC:040000 DE:040000 HL:000000 SPS:0000 SPL:0bfe69 IX:0bc32e IY:0bfe75 IR:0149 MB:00 ADL:1 MADL:1 IFF1:1
+>> 

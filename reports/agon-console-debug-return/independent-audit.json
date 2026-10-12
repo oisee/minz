@@ -1,0 +1,204 @@
+{
+  "scope": "independent reparse of6 raw debugger logs plus exact saved console stream, identicalBIN crosscheck; no newCPU execution",
+  "rows": [
+    {
+      "source": "hello_agon",
+      "mode": "ordinary",
+      "bin_sha256": "2069e2a4b068f56d1426c2d842fe11ae982ed1b6ed20091fec977dfae8cd7e32",
+      "application_bytes": 71,
+      "return_snapshot": {
+        "entry": {
+          "PC": 262213,
+          "HL": 770928,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "before": {
+          "PC": 262225,
+          "HL": 0,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "after": {
+          "PC": 2164,
+          "HL": 0,
+          "SPL": 786025,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004"
+      }
+    },
+    {
+      "source": "hello_agon",
+      "mode": "size",
+      "bin_sha256": "2069e2a4b068f56d1426c2d842fe11ae982ed1b6ed20091fec977dfae8cd7e32",
+      "application_bytes": 71,
+      "return_snapshot": {
+        "entry": {
+          "PC": 262213,
+          "HL": 770928,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "before": {
+          "PC": 262225,
+          "HL": 0,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "after": {
+          "PC": 2164,
+          "HL": 0,
+          "SPL": 786025,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004"
+      }
+    },
+    {
+      "source": "hello_agon",
+      "mode": "speed",
+      "bin_sha256": "2069e2a4b068f56d1426c2d842fe11ae982ed1b6ed20091fec977dfae8cd7e32",
+      "application_bytes": 71,
+      "return_snapshot": {
+        "entry": {
+          "PC": 262213,
+          "HL": 770928,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "before": {
+          "PC": 262225,
+          "HL": 0,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "after": {
+          "PC": 2164,
+          "HL": 0,
+          "SPL": 786025,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004"
+      }
+    },
+    {
+      "source": "hello_world",
+      "mode": "ordinary",
+      "bin_sha256": "89e840b7e79fe2f35e544dce2aa7411db8fe0185d2c35d429834b6aca265f6a2",
+      "application_bytes": 114,
+      "return_snapshot": {
+        "entry": {
+          "PC": 262213,
+          "HL": 770928,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "before": {
+          "PC": 262225,
+          "HL": 0,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "after": {
+          "PC": 2164,
+          "HL": 0,
+          "SPL": 786025,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004"
+      }
+    },
+    {
+      "source": "hello_world",
+      "mode": "size",
+      "bin_sha256": "89e840b7e79fe2f35e544dce2aa7411db8fe0185d2c35d429834b6aca265f6a2",
+      "application_bytes": 114,
+      "return_snapshot": {
+        "entry": {
+          "PC": 262213,
+          "HL": 770928,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "before": {
+          "PC": 262225,
+          "HL": 0,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "after": {
+          "PC": 2164,
+          "HL": 0,
+          "SPL": 786025,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004"
+      }
+    },
+    {
+      "source": "hello_world",
+      "mode": "speed",
+      "bin_sha256": "89e840b7e79fe2f35e544dce2aa7411db8fe0185d2c35d429834b6aca265f6a2",
+      "application_bytes": 114,
+      "return_snapshot": {
+        "entry": {
+          "PC": 262213,
+          "HL": 770928,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "before": {
+          "PC": 262225,
+          "HL": 0,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "after": {
+          "PC": 2164,
+          "HL": 0,
+          "SPL": 786025,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004"
+      }
+    }
+  ],
+  "verified": true
+}
