@@ -1,0 +1,39 @@
+{
+  "sha256": "3441c6175026a46bddc5a2b6ab95bfc5d462dccd320fed8c517187d233742e80",
+  "authority": "Bookv7\u00a73.1 signed widths,\u00a73.2storedbitsemantics,\u00a72.9casts; negative literal must preserve numericvalue before typedconversion; nonliteralu8unary retainsbytewrap",
+  "original_rotozoomer_sha256": "df38ac3b0eca81e67432c4032bfcfb5c2ae44af3ca32fbdcc673de863d0cf06f",
+  "old_gif_sha256": "9c3f3bb46559fe4b34d8d5c46f5f4bdf21473cab1ec8d98157ed6cdc064c4113",
+  "new_gif_sha256": "d975ec156a816b67ebc4a2f63715413772361c7d1ff8510f50d8c93f6d24d5d7",
+  "palette": [
+    [
+      8,
+      9,
+      30
+    ],
+    [
+      27,
+      41,
+      83
+    ],
+    [
+      27,
+      123,
+      137
+    ],
+    [
+      229,
+      64,
+      117
+    ],
+    [
+      255,
+      166,
+      95
+    ],
+    [
+      255,
+      240,
+      178
+    ]
+  ]
+}

@@ -1,0 +1,73 @@
+; MIR2 module: negative-literals.nanz
+fun @literal() -> i16 [pointer]
+  block @entry:
+    %r1 = const -11 : i16 [pointer]
+    ret %r1
+
+fun @boundary128() -> i16 [pointer]
+  block @entry:
+    %r2 = const -128 : i16 [pointer]
+    ret %r2
+
+fun @boundary129() -> i16 [pointer]
+  block @entry:
+    %r3 = const -129 : i16 [pointer]
+    ret %r3
+
+fun @boundary32768() -> i16 [pointer]
+  block @entry:
+    %r4 = const -32768 : i16 [pointer]
+    ret %r4
+
+fun @explicit() -> i16 [pointer]
+  block @entry:
+    %r5 = const -11 : i8 [general]
+    %r6 = sext %r5 : i8 -> i16 [pointer]
+    ret %r6
+
+fun @assigned() -> i16 [pointer]
+  block @entry:
+    %r7 = const -11 : i8 [general]
+    %r8 = sext %r7 : i8 -> i16 [pointer]
+    ret %r8
+
+fun @assigned_u() -> u16 [pointer]
+  block @entry:
+    %r9 = const -11 : i8 [general]
+    %r10 = sext %r9 : i8 -> u16 [pointer]
+    ret %r10
+
+fun @identity(%r11: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    ret %r11
+
+fun @argument() -> i16 [pointer]
+  block @entry:
+    %r12 = const -11 : i16 [pointer]
+    %r13 = call @identity(%r12) : i16 [pointer]
+    ret %r13
+
+fun @conditional(%r14: u8 [acc]) -> i16 [pointer]
+  block @entry:
+    %r15 = const 0 : u8 [general]
+    %r16 = cmp.ne %r14, %r15 : bool [flag]
+    br_if %r16, @cret_then1(), @cret_else2()
+  block @cret_then1:
+    %r17 = const -11 : i16 [pointer]
+    ret %r17
+  block @cret_else2:
+    %r18 = const -129 : i16 [pointer]
+    ret %r18
+
+fun @variable(%r19: u8 [acc]) -> i16 [pointer]
+  block @entry:
+    %r20 = const 0 : u8 [general]
+    %r21 = sub %r20, %r19 : u8 [acc]
+    ret %r21
+
+fun @neg_variable(%r22: u8 [acc]) -> i16 [pointer]
+  block @entry:
+    %r23 = neg %r22 : u8 [acc]
+    %r24 = ext %r23 : u8 -> i16 [pointer]
+    ret %r24
+

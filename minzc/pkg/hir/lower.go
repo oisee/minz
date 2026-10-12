@@ -699,6 +699,12 @@ func classForRetPos(ty mir2.Ty, pos int) mir2.RegClass {
 // instead of classForExpr (ClassGeneral), so the load goes directly into A and
 // avoids the redundant LD C,(HL); LD A,C sequence.
 func (l *lowerer) lowerExprForRet(e Expr) mir2.Reg {
+	if literal, ok := e.(*IntLitExpr); ok && len(l.bld.F.Contract.Returns) > 0 {
+		ty := l.bld.F.Contract.Returns[0].Ty
+		if mir2.IsInt(literal.Ty) && mir2.IsInt(ty) {
+			return l.bld.Const(literal.Val, ty, classForRet(ty))
+		}
+	}
 	switch ex := e.(type) {
 	case *LoadExpr:
 		if ex.Ty.Width() <= 8 && !aggregateAddressType(ex.Ty) {
@@ -725,12 +731,16 @@ func (l *lowerer) lowerExprForRet(e Expr) mir2.Reg {
 		l.bld.BrIf(cond, thenLabel, nil, elseLabel, nil)
 
 		l.bld.SwitchToNewBlock(thenLabel)
-		thenVal := l.lowerExpr(ex.Then)
-		l.bld.Ret(thenVal)
+		thenVal := l.lowerExprForRet(ex.Then)
+		if thenVal != mir2.NoReg {
+			l.bld.Ret(thenVal)
+		}
 
 		l.bld.SwitchToNewBlock(elseLabel)
-		elseVal := l.lowerExpr(ex.Else)
-		l.bld.Ret(elseVal)
+		elseVal := l.lowerExprForRet(ex.Else)
+		if elseVal != mir2.NoReg {
+			l.bld.Ret(elseVal)
+		}
 
 		// Return a dummy — the Ret instructions are already emitted.
 		// The caller (ReturnStmt handler) will see that the block is
@@ -2317,7 +2327,13 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 			if _, isStruct := a.ExprTy().(*mir2.StructTy); isStruct && i < len(calleeParams) && mir2.IsPointer(calleeParams[i].Ty) {
 				paramTy = calleeParams[i].Ty
 			}
-			r := l.lowerExpr(a)
+			var r mir2.Reg
+			if _, literal := a.(*IntLitExpr); literal && i < len(calleeParams) && mir2.IsInt(paramTy) && mir2.IsInt(calleeParams[i].Ty) {
+				paramTy = calleeParams[i].Ty
+				r = l.lowerExprAs(a, paramTy)
+			} else {
+				r = l.lowerExpr(a)
+			}
 			tgtCls := classForParam(paramTy, i)
 			if tgtCls != classForExpr(paramTy) {
 				r = l.bld.Move(r, paramTy, tgtCls)
