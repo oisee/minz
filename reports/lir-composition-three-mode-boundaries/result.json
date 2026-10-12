@@ -1,0 +1,25 @@
+{
+  "domains": 162,
+  "cases_per_domain": 65536,
+  "native_calls": 10616832,
+  "modes": [
+    "ordinary",
+    "hir-grace-size",
+    "hir-grace-speed"
+  ],
+  "additional_values": [
+    0,
+    1,
+    127,
+    128,
+    254,
+    255
+  ],
+  "value_and_return_checked": true,
+  "full_ram_or_flags_checked": false,
+  "source_hashes": {
+    "minzc/pkg/hir/native_composition_boundary_test.go": "0e7e7143b0c950968a6d21d31ae8e49900c4880b10e52785822ba66bb0337ce5",
+    "minzc/pkg/hir/native_composition_test.go": "066148c0957f2bcde8f9aa1f41fa0b1a793955e07839ec15355b557d87fc517f",
+    "minzc/pkg/hir/native_lowering_judge_test.go": "0c039d2f6d4aaf172df26958f8ebba6acb09921a114a86f26c1ac5716866d031"
+  }
+}

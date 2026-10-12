@@ -5,7 +5,11 @@ import (
 	"sync/atomic"
 	"testing"
 
+	"github.com/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/nanz"
+	"github.com/minz/minzc/pkg/pipeline"
+	"github.com/minz/minzc/pkg/z80asm"
 )
 
 // Frozen before execution: unsigned zero/one, sign-bit transition and upper
@@ -19,34 +23,125 @@ func TestNativeCompositionAdditionalArgumentBoundaries(t *testing.T) {
 			continue
 		}
 		fixture := fixture
-		t.Run(fixture.name, func(t *testing.T) {
-			t.Parallel()
-			hm, err := nanz.Parse(fixture.src, "critic-boundary.nanz")
-			if err != nil {
-				t.Fatal(err)
-			}
-			for _, c := range boundaries {
-				domainD := []int64{0}
-				if fixture.arity == 4 {
-					domainD = boundaries
+		for _, mode := range []string{"ordinary", "size", "speed"} {
+			t.Run(fixture.name+"/"+mode, func(t *testing.T) {
+				t.Parallel()
+				hm, err := nanz.Parse(fixture.src, "critic-boundary.nanz")
+				if err != nil {
+					t.Fatal(err)
 				}
-				for _, d := range domainD {
-					t.Run(fmt.Sprintf("c%d_d%d", c, d), func(t *testing.T) {
-						var completed atomic.Int64
-						inputs := func(i int) []int64 {
-							completed.Add(1)
-							return []int64{int64(i & 255), int64(i >> 8), c, d}[:fixture.arity]
-						}
-						bad, first := sweepCodegenJudge(t, hm.Funcs, fixture.name, 65536, inputs, fixture.model)
-						if completed.Load() != 65536 {
-							t.Fatalf("executed %d/65536 cases", completed.Load())
-						}
-						if bad != 0 {
-							t.Fatalf("native %d/65536 mismatches (%s)", bad, first)
-						}
-					})
+				for _, c := range boundaries {
+					domainD := []int64{0}
+					if fixture.arity == 4 {
+						domainD = boundaries
+					}
+					for _, d := range domainD {
+						t.Run(fmt.Sprintf("c%d_d%d", c, d), func(t *testing.T) {
+							var completed atomic.Int64
+							inputs := func(i int) []int64 {
+								completed.Add(1)
+								return []int64{int64(i & 255), int64(i >> 8), c, d}[:fixture.arity]
+							}
+							opts := pipeline.DefaultOptions()
+							opts.UseHIRGrace = mode != "ordinary"
+							opts.OptSize = mode == "size"
+							bad, first := sweepCodegenJudgeOptions(t, hm.Funcs, fixture.name, 65536, inputs, fixture.model, opts, true)
+							if completed.Load() != 65536 {
+								t.Fatalf("executed %d/65536 cases", completed.Load())
+							}
+							if bad != 0 {
+								t.Fatalf("native %d/65536 mismatches (%s)", bad, first)
+							}
+						})
+					}
 				}
-			}
-		})
+			})
+		}
 	}
+}
+
+func sweepCodegenJudgeOptions(t *testing.T, funcs []*hir.Func, name string, cases int, inputs func(int) []int64, model func([]int64) int64, opts pipeline.Options, checkReturn bool) (int, string) {
+	t.Helper()
+	steps, err := pipeline.CompileHIRSteps(&hir.Module{Name: "allowlist_judge", Funcs: funcs}, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	mf := steps.MIR2Module.FuncByName(name)
+	if len(mf.Blocks) != 1 {
+		t.Fatalf("%s must exercise the single-block bridge", name)
+	}
+	boot := fmt.Sprintf("ORG 0x%04X\n CALL %s\n DI\n HALT\n", testLoadAddr, name)
+	res, err := z80asm.NewAssembler().AssembleString(boot + steps.Assembly)
+	if err != nil || len(res.Errors) > 0 {
+		t.Fatalf("assemble: %v %v", err, res.Errors)
+	}
+	// Validate the ABI before starting workers: Fatal must run on the test goroutine.
+	for _, p := range mf.Contract.Params {
+		if p.Ty.Width() == 16 {
+			loc := steps.Allocation.Locs[p.Reg]
+			if loc.Name != "HL" && loc.Name != "DE" && loc.Name != "BC" {
+				t.Fatalf("word ABI: %+v", loc)
+			}
+		}
+	}
+	results := make([]string, cases)
+	judgeWorkers(cases, res.Binary, func(z *emulator.RemogattoZ80, image []byte, i int) {
+		args := inputs(i)
+		z.Reset()
+		if err := z.LoadMemory(testLoadAddr, image); err != nil {
+			results[i] = fmt.Sprintf("load image: %v", err)
+			return
+		}
+		regs := emulator.Registers{PC: testLoadAddr, SP: 0xFF00}
+		for k, p := range mf.Contract.Params {
+			if p.Ty.Width() != 16 {
+				continue
+			}
+			loc := steps.Allocation.Locs[p.Reg]
+			switch loc.Name {
+			case "HL":
+				regs.HL = uint16(args[k])
+			case "DE":
+				regs.DE = uint16(args[k])
+			case "BC":
+				regs.BC = uint16(args[k])
+			}
+		}
+		z.SetRegisters(regs)
+		for k, p := range mf.Contract.Params {
+			if p.Ty.Width() == 8 {
+				if err := z.SetRegister8(steps.Allocation.Locs[p.Reg].Name, uint8(args[k])); err != nil {
+					results[i] = fmt.Sprintf("byte ABI: %v", err)
+					return
+				}
+			}
+		}
+		n := 0
+		for ; !z.IsHalted() && n < judgeStepBudget; n++ {
+			z.Step()
+		}
+		if checkReturn {
+			state := z.GetRegisters()
+			// Boot CALL is three bytes; stop only at its returned DI/HALT path.
+			if !z.IsHalted() || state.SP != 0xFF00 || (state.PC != testLoadAddr+4 && state.PC != testLoadAddr+5) {
+				results[i] = fmt.Sprintf("%s%v bad return PC=%04x SP=%04x halted=%v", name, args, state.PC, state.SP, z.IsHalted())
+				return
+			}
+		}
+		got, err := hirReturnValue(mf, z.GetRegisters())
+		want := model(args)
+		if err != nil || n == judgeStepBudget || got != want {
+			results[i] = fmt.Sprintf("%s%v got %d want %d err %v steps %d", name, args, got, want, err, n)
+		}
+	})
+	bad, first := 0, ""
+	for _, result := range results {
+		if result != "" {
+			bad++
+			if first == "" {
+				first = result
+			}
+		}
+	}
+	return bad, first
 }
