@@ -1,0 +1,19 @@
+=== Material Master Report ===
+Selection: MTART = FERT (Finished Products)
+
+MATNR      MTART MEINS  BRGEW  NTGEW  MAKTX
+------------------------------------------------------
+      250  230  
+      180  165  
+      244  224  
+------------------------------------------------------
+10 materials found.
+
+=== Weight Summary by Material Type ===
+: 1 materials, weight=0
+: 3 materials, weight=162
+: 1 materials, weight=50
+: 1 materials, weight=100
+: 1 materials, weight=10
+
+Report complete.
