@@ -1,0 +1,1 @@
+ok  	github.com/minz/minzc/pkg/pascal	0.006s

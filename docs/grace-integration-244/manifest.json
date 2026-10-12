@@ -1,0 +1,28 @@
+{
+  "files": {
+    "pascal-decimal-typed-root.txt": {
+      "sha256": "6adfd008f520ae5ccb33b9d536f95303cba0c170b4243832e15afa1577897a5e",
+      "bytes": 45
+    },
+    "pascal-factorial-whole-root.txt": {
+      "sha256": "31bb6f23cb2b65d3f19e1045e619529a10373e0a3d59ae0a7df5d20725bdef25",
+      "bytes": 47
+    },
+    "pascal-decimal-admission-root.txt": {
+      "sha256": "ab69c90a342af070279976b2f5e420ace0b560da4b85c335beb79b4dc40e2c57",
+      "bytes": 150
+    },
+    "pascal-decimal-root.txt": {
+      "sha256": "8576ee429fef8cf16501a4a3fc70e490fa01f0c647d95383a0174036ca9ecc76",
+      "bytes": 48
+    },
+    "README.md": {
+      "sha256": "d5c947a5c0cc83259741e8d215a9c507c7a895b7e73aedb5595a49a859c1f594",
+      "bytes": 1583
+    },
+    "pascal-private-label-root.txt": {
+      "sha256": "2a2661cd0de0552b7f1e128183a243176491f888050a6138a5068a39846f8e0b",
+      "bytes": 108
+    }
+  }
+}
