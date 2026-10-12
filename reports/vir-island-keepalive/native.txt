@@ -1,0 +1,4 @@
+=== RUN   TestIslandKeepAlivePreservesWordPastClobber
+--- PASS: TestIslandKeepAlivePreservesWordPastClobber (0.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.023s

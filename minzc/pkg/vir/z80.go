@@ -150,6 +150,7 @@ func init() {
 		Or(Z80_TSMC).Or(Z80_Mem).Or(Z80_Stack)
 
 	m.Patterns = generateZ80Patterns(m)
+	m.Patterns = append(m.Patterns, Pattern{Name: "keep_alive", Op: OpKeepAlive, Template: "", Cost: 0, Bytes: 0})
 	m.Rules = generateZ80Rules(m)
 }
 

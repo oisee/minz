@@ -66,6 +66,7 @@ const (
 	OpBitSet                    // dst = bit_set(src0, imm=bit)
 	OpBitReset                  // dst = bit_reset(src0, imm=bit)
 	OpAsmBlock                  // inline asm: emit AsmTemplate verbatim, pinned ins/outs
+	OpKeepAlive                 // scheduling-only use: preserve src0 through this point
 )
 
 // ── VIROp ────────────────────────────────────────────────────────────────────
