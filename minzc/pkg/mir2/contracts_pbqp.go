@@ -71,7 +71,7 @@ func OptimizeContractsPBQP(m *Module, ct CostTable) ContractSet {
 			// Only vary param classes; keep return classes fixed.
 			// ApplyContracts never overrides return classes, so varying
 			// them in PBQP adds noise that skews param selection.
-			choices = candidateParamOnlyChoices(f, ct)
+			choices = candidatePFCCOWordChoices(f, ct)
 			if len(choices) == 0 {
 				choices = []*ContractChoice{currentChoice(f)}
 			}
@@ -195,6 +195,40 @@ func candidateParamOnlyChoices(f *Func, ct CostTable) []*ContractChoice {
 	}
 	recurse(0, base)
 	return results
+}
+
+// candidatePFCCOWordChoices distinguishes soft primary-pair preferences from
+// hard ABI pins. At most three ordinary word parameters can occupy HL/DE/BC;
+// equal zero-cost preferences are not a physical infeasibility proof.
+func candidatePFCCOWordChoices(f *Func, ct CostTable) []*ContractChoice {
+	if _, z80 := ct.(Z80CostTable); !z80 || len(f.Contract.Params) > 3 {
+		return candidateParamOnlyChoices(f, ct)
+	}
+	for _, p := range f.Contract.Params {
+		if p.ClassHard || (p.Ty != TyU16 && p.Ty != TyI16 && !IsPointer(p.Ty)) {
+			return candidateParamOnlyChoices(f, ct)
+		}
+	}
+	candidates := make([][]RegClass, len(f.Contract.Params))
+	for i, p := range f.Contract.Params {
+		candidates[i] = plausibleClasses(p.Ty, p.Class)
+	}
+	base := currentChoice(f)
+	var result []*ContractChoice
+	var walk func(int, *ContractChoice)
+	walk = func(i int, c *ContractChoice) {
+		if i == len(candidates) {
+			result = append(result, c)
+			return
+		}
+		for _, cls := range candidates[i] {
+			q := c.clone()
+			q.ParamClasses[i] = cls
+			walk(i+1, q)
+		}
+	}
+	walk(0, base)
+	return result
 }
 
 // pfccoEdgeCost computes the adapter move cost at call sites from caller to
