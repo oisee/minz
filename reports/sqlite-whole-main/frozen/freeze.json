@@ -1,0 +1,104 @@
+{
+  "base": "869fb6cb",
+  "source_dependencies": {
+    "examples/nanz/sql_test6.nanz": "1300b30eb66c72c1f5cb5aeef778abe3c5cfc6dcc29a809c628e995159cea18f",
+    "stdlib/sql/sqlite.nanz": "bc177e0dc25ad2f36f3694b115439356efbfb3d956b46b2701afe82bde277fc8",
+    "stdlib/tui/render.nanz": "4711dbee908a2271f02d1fbb4720942604e23322d7745f32311f6b2c17c6d4a8",
+    "minzc/cmd/mze/sqlite_ports.go": "41ff572d381f29d5c24aa85fb3615952ea4c2c2d266f1f550b9485389c2edd1c",
+    "minzc/cmd/mzx/sqlite_ports.go": "5e872b82b4c5eb3267c6efc4be7b89d551a51d763e85829725f1a8a40a47da51"
+  },
+  "stdout": "Open...\nExec...\nQuery...\nStep1...\nAlice\nStep2...\nBob\nDone.\n",
+  "commands": [
+    {
+      "command": 1,
+      "string": ":memory:",
+      "result": 1
+    },
+    {
+      "command": 8,
+      "handle": 1,
+      "string": "CREATE TABLE t(name TEXT)",
+      "result": 0
+    },
+    {
+      "command": 8,
+      "handle": 1,
+      "string": "INSERT INTO t VALUES('Alice')",
+      "result": 0
+    },
+    {
+      "command": 8,
+      "handle": 1,
+      "string": "INSERT INTO t VALUES('Bob')",
+      "result": 0
+    },
+    {
+      "command": 3,
+      "handle": 1,
+      "string": "SELECT name FROM t",
+      "result": 1
+    },
+    {
+      "command": 4,
+      "handle": 1,
+      "result": 1
+    },
+    {
+      "command": 5,
+      "handle": 1,
+      "column": 0,
+      "text": "Alice"
+    },
+    {
+      "command": 4,
+      "handle": 1,
+      "result": 1
+    },
+    {
+      "command": 5,
+      "handle": 1,
+      "column": 0,
+      "text": "Bob"
+    },
+    {
+      "command": 7,
+      "handle": 1,
+      "result": 0
+    },
+    {
+      "command": 2,
+      "handle": 1,
+      "result": 0
+    }
+  ],
+  "variant_text_lengths": [
+    0,
+    1,
+    17,
+    255
+  ],
+  "variant_integer_values": [
+    0,
+    1,
+    255,
+    256,
+    32767,
+    32768,
+    65535,
+    -1,
+    -32768
+  ],
+  "variant_handles": [
+    1,
+    255
+  ],
+  "variant_columns": [
+    0,
+    1,
+    255
+  ],
+  "buffer_contract": "_sql_recv_str requires NUL within 256 bytes; 255 bytes + NUL accepted; >255 unsupported and negative audited, not trusted memory-safe",
+  "native_loader": "test-owned CALL main / HALT at 7000, assembly ORG 0100, SP F000; actual termination inspected before asserting, no production RuntimeCPM admission bypass claim",
+  "provider": "real modernc.org/sqlite via database/sql if available; test-owned strict port protocol adapter, distinct from production mze/mzx implementations",
+  "VM": "ASM bodies are not evaluated by fake no-op VM hosts"
+}
