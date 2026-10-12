@@ -1,5 +1,7 @@
 # Grace / PGO: текущее состояние
 
+MIR shared-argument miscompile исправлен c778c135. Совместные runtime families PASS3,251с; каталожные экраны получили bounded VM/native proof ([287](grace-integration-287/README.md)). Root fullMIR1d9c76c9 ещё работает; общий retained pipeline1f2365be тоже.
+
 Публичный guarded CP/M Tetris интегрирован: [root286](grace-integration-286/README.md), native/adversaries PASS6,409с; CPM MIR PASS0,127с; old-main admission transition PASS2,256с. Полный minimal IRC теперь raw/finalVM/native PASS0,070с ([285](grace-integration-285/README.md)); public network/hardware не заявляются.
 
 MZX SQLite provider protocol исправлен (a484224a), root headless/native consumer PASS 0,181 с; minimal IRC два CString literals исправлены с raw/finalVM/native entry proof PASS 0,123 с. [Пакет284](grace-integration-284/README.md). Полный network main ещё не доказан. Новое screen-family GraceSize падение пока расследуется отдельно и не интегрировано.
