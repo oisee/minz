@@ -1,0 +1,10 @@
+=== RUN   TestCPMRuntimeOriginalSelfLanzMain
+    original_lanz_main_test.go:324: resident stack touched 46 bytes
+    original_lanz_main_test.go:336: exact main 135 stdout bytes all regions/globals/stack guards PASS 419878 T BIN 3984 SHA b87c14b1de059c9109994aff068d2c9dca720a4d29bf4bf9f81426f7f76cae7a
+--- PASS: TestCPMRuntimeOriginalSelfLanzMain (0.22s)
+=== RUN   TestCPMRuntimeGuardedTokenizerMain
+    original_tokenizer_main_test.go:350: resident stack touched 30 bytes
+    original_tokenizer_main_test.go:352: exact main 146 stdout bytes all regions/globals/stack guards PASS 411987 T BIN 7051 SHA c4d8472dc710af35c55dfb849badc77556a17cffbc80cd093b2f7e6884f96aba
+--- PASS: TestCPMRuntimeGuardedTokenizerMain (0.68s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.907s

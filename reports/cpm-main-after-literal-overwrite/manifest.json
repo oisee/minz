@@ -1,0 +1,17 @@
+{
+  "result.json": "177d832cf777c0bee1592ca879bccca77e5433c2f46fe62ba6b965c47be59458",
+  "tests.txt": "05203f442cc2d5ba12dbc6b3c89612852c727dd8102b7026e38cfc6f70de16db",
+  "README.md": "535bc3be86d58b1d7174365a9c147dbdf326435a4b6d860f9585efbea35f6fe3",
+  "artifacts/parser/TestCPMRuntimeOriginalSelfLanzMain/capture.json": "f6badcb66534187987110926ec245ee97dfa360012c79afcf7cbfbd88083f8a5",
+  "artifacts/parser/TestCPMRuntimeOriginalSelfLanzMain/oracle.json": "b608ad12398db25a082812618a40dd4cb545b09ea14342cadcf96af6f1a1ccfa",
+  "artifacts/parser/TestCPMRuntimeOriginalSelfLanzMain/target.a80": "35c45aa5bb2678fb31ea125ffc6022864ee9f8d410ea8240bbd474d20c75a6f2",
+  "artifacts/parser/TestCPMRuntimeOriginalSelfLanzMain/stdout.txt": "884543244d67393e4b942d6ce4b74a389a1904365bd0505d8c6e497d3fc292e5",
+  "artifacts/parser/TestCPMRuntimeOriginalSelfLanzMain/target.bin": "b87c14b1de059c9109994aff068d2c9dca720a4d29bf4bf9f81426f7f76cae7a",
+  "artifacts/parser/TestCPMRuntimeOriginalSelfLanzMain/source.nanz": "763d9f369e3bbbdbcb84dee2627aff5ee90e57d99ad8d0f69e7db0c8325a6b51",
+  "artifacts/tokenizer/TestCPMRuntimeGuardedTokenizerMain/capture.json": "4616266aa31434a305b5570ab2ebd6b03e19a3001a3ee99fe49dff8464e616d5",
+  "artifacts/tokenizer/TestCPMRuntimeGuardedTokenizerMain/oracle.json": "e26dea83380f0e8ff3b9bf6c50ef1e61d78c8b62cd4f35208aa5e2cbe3ec3b61",
+  "artifacts/tokenizer/TestCPMRuntimeGuardedTokenizerMain/target.a80": "411ac2e4e385b3c205d557ff1f46875f24f261f572fed3c22dfb902a434c954b",
+  "artifacts/tokenizer/TestCPMRuntimeGuardedTokenizerMain/stdout.txt": "1c1dc59687f184eed7ff4fb9e1b79a66598b89aac3d0a0dce0378474763e1fd1",
+  "artifacts/tokenizer/TestCPMRuntimeGuardedTokenizerMain/target.bin": "c4d8472dc710af35c55dfb849badc77556a17cffbc80cd093b2f7e6884f96aba",
+  "artifacts/tokenizer/TestCPMRuntimeGuardedTokenizerMain/source.nanz": "d893df00710b7f1105b8bfb58342aca1c1f8cce7eb674037a8d6ca41b91b0689"
+}

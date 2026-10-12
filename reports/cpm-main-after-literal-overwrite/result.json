@@ -1,0 +1,24 @@
+{
+  "checkpoint": "e8a326fc",
+  "production_change": "5183e540",
+  "scope": "two original main programs, guarded CP/M runtime, 1024-byte reserve, test-owned extern bindings; emulator execution, not hardware",
+  "exit_code": 0,
+  "programs": [
+    {
+      "path": "parser/TestCPMRuntimeOriginalSelfLanzMain",
+      "t_states": 419878,
+      "binary_bytes": 3984,
+      "resident_stack_touched": 46,
+      "stdout_bytes": 135,
+      "binary_sha256": "b87c14b1de059c9109994aff068d2c9dca720a4d29bf4bf9f81426f7f76cae7a"
+    },
+    {
+      "path": "tokenizer/TestCPMRuntimeGuardedTokenizerMain",
+      "t_states": 411987,
+      "binary_bytes": 7051,
+      "resident_stack_touched": 30,
+      "stdout_bytes": 146,
+      "binary_sha256": "c4d8472dc710af35c55dfb849badc77556a17cffbc80cd093b2f7e6884f96aba"
+    }
+  ]
+}
