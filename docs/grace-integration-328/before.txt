@@ -1,0 +1,6 @@
+=== RUN   TestCPMSourceBDOSCallerLiveState
+    original_impl_cpm_admission_test.go:133: unexpected BDOS 0 0
+--- FAIL: TestCPMSourceBDOSCallerLiveState (0.02s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.025s
+FAIL
