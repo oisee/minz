@@ -1,0 +1,24 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "be929d5a5dd2d96d15bf682431bafb0c20e377998d1adee1807cc0ff970d5ae1"
+    },
+    {
+      "path": "hir-mir-array-print.txt",
+      "sha256": "cd791345e2ad58344e6b7b61f658152fe70719c503fbf1a0cece9b8b9bfbce67"
+    },
+    {
+      "path": "nc-native-diagnostic.txt",
+      "sha256": "f3fd2bb8f8878a4b77a5986d00c6ba10dab37f6d5583d9668a5187575a6ccb09"
+    },
+    {
+      "path": "nc-native-first.txt",
+      "sha256": "6bc7da05dfaa02d9db6aacdcfe73ea183be18dfe8e1fc9daf2250a0d39eb19ba"
+    },
+    {
+      "path": "nc-native-second.txt",
+      "sha256": "8e931bf5ecf74a0a6d73bfff5f652db4daa5c82f5d5a1a52dfb3715bc3a672cc"
+    }
+  ]
+}
