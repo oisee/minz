@@ -1,0 +1,6 @@
+=== RUN   TestDouble16ThenDecFullDomainNative
+[regalloc] loaded 56 exhaustive entries from regalloc_exhaustive.json
+    word_return_native_test.go:67: all 65536 word inputs, native HL and exact return PC/SP PASS; 6 bytes
+--- PASS: TestDouble16ThenDecFullDomainNative (0.05s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.057s
