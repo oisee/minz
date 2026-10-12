@@ -1,0 +1,42 @@
+=== RUN   TestCPMGlobalGuardNativeBounds
+=== RUN   TestCPMGlobalGuardNativeBounds/u8/0
+=== RUN   TestCPMGlobalGuardNativeBounds/u8/1
+=== RUN   TestCPMGlobalGuardNativeBounds/u8/2
+=== RUN   TestCPMGlobalGuardNativeBounds/u8/3
+=== RUN   TestCPMGlobalGuardNativeBounds/u8/4
+=== RUN   TestCPMGlobalGuardNativeBounds/u8/65535
+=== RUN   TestCPMGlobalGuardNativeBounds/u16/0
+=== RUN   TestCPMGlobalGuardNativeBounds/u16/1
+=== RUN   TestCPMGlobalGuardNativeBounds/u16/2
+=== RUN   TestCPMGlobalGuardNativeBounds/u16/3
+=== RUN   TestCPMGlobalGuardNativeBounds/u16/4
+=== RUN   TestCPMGlobalGuardNativeBounds/u16/65535
+--- PASS: TestCPMGlobalGuardNativeBounds (0.06s)
+    --- PASS: TestCPMGlobalGuardNativeBounds/u8/0 (0.01s)
+    --- PASS: TestCPMGlobalGuardNativeBounds/u8/1 (0.00s)
+    --- PASS: TestCPMGlobalGuardNativeBounds/u8/2 (0.00s)
+    --- PASS: TestCPMGlobalGuardNativeBounds/u8/3 (0.00s)
+    --- PASS: TestCPMGlobalGuardNativeBounds/u8/4 (0.01s)
+    --- PASS: TestCPMGlobalGuardNativeBounds/u8/65535 (0.01s)
+    --- PASS: TestCPMGlobalGuardNativeBounds/u16/0 (0.00s)
+    --- PASS: TestCPMGlobalGuardNativeBounds/u16/1 (0.00s)
+    --- PASS: TestCPMGlobalGuardNativeBounds/u16/2 (0.00s)
+    --- PASS: TestCPMGlobalGuardNativeBounds/u16/3 (0.01s)
+    --- PASS: TestCPMGlobalGuardNativeBounds/u16/4 (0.01s)
+    --- PASS: TestCPMGlobalGuardNativeBounds/u16/65535 (0.01s)
+=== RUN   TestCPMGlobalGuardProvenanceRefusals
+=== RUN   TestCPMGlobalGuardProvenanceRefusals/narrow
+=== RUN   TestCPMGlobalGuardProvenanceRefusals/metadata
+=== RUN   TestCPMGlobalGuardProvenanceRefusals/paramtype
+=== RUN   TestCPMGlobalGuardProvenanceRefusals/ambiguous
+=== RUN   TestCPMGlobalGuardProvenanceRefusals/no-stack
+=== RUN   TestCPMGlobalGuardProvenanceRefusals/bad-home
+--- PASS: TestCPMGlobalGuardProvenanceRefusals (0.00s)
+    --- PASS: TestCPMGlobalGuardProvenanceRefusals/narrow (0.00s)
+    --- PASS: TestCPMGlobalGuardProvenanceRefusals/metadata (0.00s)
+    --- PASS: TestCPMGlobalGuardProvenanceRefusals/paramtype (0.00s)
+    --- PASS: TestCPMGlobalGuardProvenanceRefusals/ambiguous (0.00s)
+    --- PASS: TestCPMGlobalGuardProvenanceRefusals/no-stack (0.00s)
+    --- PASS: TestCPMGlobalGuardProvenanceRefusals/bad-home (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.068s
