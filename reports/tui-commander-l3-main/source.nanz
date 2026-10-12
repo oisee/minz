@@ -1,0 +1,92 @@
+// tui_commander_l3.nanz — Mini Norton Commander using Level 3 @screen
+//
+// Two screens defined declaratively via @screen metafunction.
+// The metafunction generates render functions at compile time.
+//
+// Run: echo "" | mzv -H examples/nanz/tui_commander_l3.nanz
+
+@extern fun tui_goto(x: u8, y: u8) -> void
+@extern fun tui_color(fg: u8, bg: u8, bright: u8) -> void
+@extern fun tui_reset() -> void
+@extern fun tui_clear() -> void
+@extern fun tui_putch(ch: u8) -> void
+@extern fun tui_puts(str: ^u8) -> void
+@extern fun tui_read_key() -> u8
+@extern fun tui_width() -> u8
+@extern fun tui_height() -> u8
+
+struct BlockNode {
+    keyword: ^u8
+    label:   ^u8
+    value:   ^u8
+    length:  u8
+    fkey:    u8
+}
+
+// ── @screen metafunction (generates a render function) ────────
+
+fun @screen(title: ^u8) -> void {
+    // Generate function name from title (simplified: use _screen_N)
+    emit(c"fun _render_screen() -> void {")
+    emit(c"    tui_clear()")
+
+    emit_tui_color(7, 4, 1)
+    emit_tui_goto(0, 0)
+    emit_tui_puts(str_concat(c"  ", title))
+    emit(c"    tui_reset()")
+
+    for i in 0..block_len() {
+        var kw: ^u8 = node_keyword(i)
+        var label: ^u8 = node_arg_str(i, 0)
+
+        if str_eq(kw, c"field") == 1 {
+            emit_tui_goto(2, i + 2)
+            emit_tui_color(6, 0, 0)
+            emit_tui_puts(str_concat(label, c"    "))
+            emit_tui_color(7, 0, 0)
+            emit_tui_puts(c"[__________]")
+            emit(c"    tui_reset()")
+        }
+        if str_eq(kw, c"label") == 1 {
+            emit_tui_goto(2, i + 2)
+            emit_tui_color(7, 0, 0)
+            emit_tui_puts(label)
+            emit(c"    tui_reset()")
+        }
+        if str_eq(kw, c"button") == 1 {
+            emit_tui_goto(2, i + 2)
+            emit_tui_color(0, 7, 1)
+            emit_tui_puts(str_concat(c"[", str_concat(label, c"]")))
+            emit(c"    tui_reset()")
+        }
+        if str_eq(kw, c"status") == 1 {
+            emit_tui_color(0, 6, 0)
+            emit_tui_goto(0, 23)
+            emit_tui_puts(label)
+            emit(c"    tui_reset()")
+        }
+    }
+
+    emit(c"}")
+}
+
+// ── Define the main screen ────────────────────────────────────
+
+@screen("Mini Commander v0.1") {
+    label "Name          Size   Date"
+    label "README.MD     1024   2026-03-18"
+    label "MAIN.NZ        947   2026-03-17"
+    label "FAT12.NZ       603   2026-03-16"
+    label "TETRIS.NZ      853   2026-03-15"
+    label "HELLO.COM      128   2026-03-14"
+    status "F5=View  F3=Quit  UP/DOWN=Navigate"
+}
+
+// ── Main ──────────────────────────────────────────────────────
+
+fun main() -> void {
+    _render_screen()
+    var key: u8 = tui_read_key()
+    tui_clear()
+    tui_reset()
+}
