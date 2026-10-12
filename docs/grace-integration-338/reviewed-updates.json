@@ -802,11 +802,12 @@
     "native_behavior": "bounded-independent-vm-native",
     "workload": "Whole unchanged main, three modes; one key a, exact stdout 422/236 bytes; raw/final VM and assembled Z80.",
     "independent_model": "Pre-execution frozen output/model; explicit low-level ASM host bindings in VM and original native ASM.",
-    "boundary": "Finite scenario; RAM/code/PC/SP checked. Test-owned runtime, not public CP/M.",
+    "boundary": "Finite scenario; RAM/code/PC/SP checked. Test-owned runtime, not public CP/M.; historical compiler provenance retained separately; current compiler frozen stdout/BDOS/RAM/PCSP gate PASS0.217s",
     "evidence": {
       "docs/grace-integration-283/root.txt": "1d4443af9676dceace698eee90359dac4e83c43d3ac3b339768eb54eb5d09563",
-      "minzc/pkg/pipeline/original_cpm_screen_main_test.go": "4a783f6f8cb63e8d265d74734d01c8150b6de4b0f7ec64a104f90251c308e143",
-      "reports/cpm-screen-main/manifest.json": "50fb1ff5fd58ba30265eaa813cb3ce1ea15e039af72e7c1c9e093e94677edb49"
+      "minzc/pkg/pipeline/original_cpm_screen_main_test.go": "b66d78c971904b42a498d048e39e6cfbf8324ce82fe02b53e9e3b1739c08f68a",
+      "reports/cpm-screen-main/manifest.json": "50fb1ff5fd58ba30265eaa813cb3ce1ea15e039af72e7c1c9e093e94677edb49",
+      "reports/cpm-screen-compiler-boundary/manifest.json": "8b79c6c0772cd7c62816e461a77d15c3f817fab1ce2aad227a88e2236a54a8f1"
     }
   },
   {
@@ -1163,11 +1164,12 @@
     "native_behavior": "bounded-independent-vm-native",
     "workload": "Whole unchanged main, three modes; one key a, exact stdout 422/236 bytes; raw/final VM and assembled Z80.",
     "independent_model": "Pre-execution frozen output/model; explicit low-level ASM host bindings in VM and original native ASM.",
-    "boundary": "Finite scenario; RAM/code/PC/SP checked. Test-owned runtime, not public CP/M.",
+    "boundary": "Finite scenario; RAM/code/PC/SP checked. Test-owned runtime, not public CP/M.; historical compiler provenance retained separately; current compiler frozen stdout/BDOS/RAM/PCSP gate PASS0.217s",
     "evidence": {
       "docs/grace-integration-283/root.txt": "1d4443af9676dceace698eee90359dac4e83c43d3ac3b339768eb54eb5d09563",
-      "minzc/pkg/pipeline/original_cpm_screen_main_test.go": "4a783f6f8cb63e8d265d74734d01c8150b6de4b0f7ec64a104f90251c308e143",
-      "reports/cpm-screen-main/manifest.json": "50fb1ff5fd58ba30265eaa813cb3ce1ea15e039af72e7c1c9e093e94677edb49"
+      "minzc/pkg/pipeline/original_cpm_screen_main_test.go": "b66d78c971904b42a498d048e39e6cfbf8324ce82fe02b53e9e3b1739c08f68a",
+      "reports/cpm-screen-main/manifest.json": "50fb1ff5fd58ba30265eaa813cb3ce1ea15e039af72e7c1c9e093e94677edb49",
+      "reports/cpm-screen-compiler-boundary/manifest.json": "8b79c6c0772cd7c62816e461a77d15c3f817fab1ce2aad227a88e2236a54a8f1"
     }
   },
   {
