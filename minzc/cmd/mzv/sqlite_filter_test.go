@@ -37,6 +37,9 @@ func TestSQLiteFilteredQueryRealOrderedRows(t *testing.T) {
 			}
 			got = append(got, v)
 		}
+		if e := rows.Err(); e != nil {
+			t.Fatal(e)
+		}
 		rows.Close()
 		if len(got) != len(c.want) {
 			t.Fatalf("%q got%v want%v", c.filter, got, c.want)
@@ -59,12 +62,42 @@ func TestSQLiteFilteredQueryRealOrderedRows(t *testing.T) {
 	var got []string
 	for rows.Next() {
 		var v string
-		rows.Scan(&v)
+		if e := rows.Scan(&v); e != nil {
+			t.Fatal(e)
+		}
 		got = append(got, v)
 	}
 	if len(got) != 2 || got[0] != "LH" || got[1] != "O'H" {
 		t.Fatal(got)
 	}
+	if e := rows.Err(); e != nil {
+		t.Fatal(e)
+	}
+	rows.Close()
+	q, args, e = sqliteFilteredQuery("SELECT carrid FROM scarr ORDER BY carrid LIMIT 1", "carrid", "LH")
+	if e != nil {
+		t.Fatal(e)
+	}
+	limited, e := db.Query(q, args...)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if limited.Next() {
+		t.Fatal("filter applied before LIMIT")
+	}
+	if e := limited.Err(); e != nil {
+		t.Fatal(e)
+	}
+	limited.Close()
+	q, args, e = sqliteFilteredQuery(base, "unknown", "LH")
+	if e != nil {
+		t.Fatal(e)
+	}
+	if unknown, e := db.Query(q, args...); e == nil {
+		unknown.Close()
+		t.Fatal("unknown outputcolumn became DQS literal")
+	}
+
 	for _, column := range []string{"", "carrid) OR 1=1--", "schema.carrid"} {
 		if _, _, e := sqliteFilteredQuery(base, column, "LH"); e == nil {
 			t.Fatal("accepted executable column", column)

@@ -31,5 +31,5 @@ func sqliteFilteredQuery(base, column, filter string) (string, []any, error) {
 	if strings.Contains(filter, "%") {
 		op = "LIKE"
 	}
-	return fmt.Sprintf("SELECT * FROM (%s) AS _minz_filtered WHERE \"%s\" %s ?", base, column, op), []any{filter}, nil
+	return fmt.Sprintf("SELECT * FROM (%s) AS _minz_filtered WHERE _minz_filtered.\"%s\" %s ?", base, column, op), []any{filter}, nil
 }
