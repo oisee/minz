@@ -185,7 +185,7 @@ func applyReviewedCatalogEvidence(t *testing.T, root string, row *oracleCatalogE
 		add("minzc/pkg/pipeline/plasma_mul11_test.go::TestOriginalPlasmaAttributeMul11", "exact complete source/module retained; bounded pure helper inside ZX ASM application", "Original plasma_attr: 768 grid plus256 cy-boundary calls, independent raw/final VM/native byte quarter-wave model, no heapwrites, fullnonstackRAM/code/PC/SP.793332→331508T,fullBIN1555B. Does not execute main/fullscreen/device/interrupts; ASM/runtime status retained.")
 		row.Requirement += " Pure plasma_attr helper has independent native proof; whole ZX ASM application remains unaudited."
 	case "examples/nanz/canvas_house.nanz", "examples/nanz/rotozoomer.nanz":
-		row.Requirement += " Existing canvas/rotozoomer VM host-render tests are not native Z80 output evidence."
+		row.Requirement += " VM gallery rendering alone is not native evidence; current whole-main native scope is recorded separately in reviewed evidence."
 	case "examples/nanz/sha256.nanz":
 		row.Requirement += " Current source implements only arithmetic/bit helpers; no complete SHA256 compression, digest or block vectors. Whole-hash promise remains unimplemented."
 	}
@@ -208,7 +208,7 @@ func applyLatestCorpusReview(t *testing.T, root string, row *oracleCatalogEntry)
 		Boundary string            `json:"boundary"`
 		Evidence map[string]string `json:"evidence"`
 	}
-	b, err := os.ReadFile(filepath.Join(root, "docs/grace-integration-312/reviewed-updates.json"))
+	b, err := os.ReadFile(filepath.Join(root, "docs/grace-integration-313/reviewed-updates.json"))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,5 +1,7 @@
 # Grace / PGO: текущее состояние
 
+Rotozoomer: полный main и все 32 кадра прошли raw/final VM и Z80 во всех трёх режимах. Выигрыша Grace нет. Каталог: 153/194 пути с независимым или ограниченным покрытием. [Checkpoint 313](grace-integration-313/README.md).
+
 IRC client: три отказа подключения и рабочий участок main проходят VM/Z80. Рабочий обмен: 68 602 → 65 401 такт, BIN 4496 → 4471 байт. Каталог: 152/194 пути с независимым или ограниченным покрытием. [Checkpoint 312](grace-integration-312/README.md).
 
 NCwholemain raw/finalVM+native3modes **PASS7,036с**, independentlyfinalglobals/fullnativeRAM; finiteDown/Up/Esc diskworkload. FullMIRBITcd39c680 PASS84,903с. [Пакет310](grace-integration-310/README.md).
