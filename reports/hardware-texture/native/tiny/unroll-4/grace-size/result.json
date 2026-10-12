@@ -1,0 +1,46 @@
+{
+  "PASS": true,
+  "bytes": 371,
+  "columns": 4,
+  "destination": 27153,
+  "layout": "tiny",
+  "mode": "grace-size",
+  "observations": [
+    {
+      "seed": 0,
+      "T_states": 3577
+    },
+    {
+      "seed": 1,
+      "T_states": 3577
+    },
+    {
+      "seed": 2,
+      "T_states": 3577
+    },
+    {
+      "seed": 3,
+      "T_states": 3577
+    },
+    {
+      "seed": 4,
+      "T_states": 3577
+    },
+    {
+      "seed": 5,
+      "T_states": 3577
+    },
+    {
+      "seed": 6,
+      "T_states": 3577
+    },
+    {
+      "seed": 7,
+      "T_states": 3577
+    }
+  ],
+  "rows": 2,
+  "scope": "independent wrapped affine pixel oracle; runtime setup and texture mutations; exact PC/SP; full RAM unchanged outside destination and bounded kernel/rotate-helper stack; ASM path has no VM oracle",
+  "texture_page": 49408,
+  "unroll": 4
+}
