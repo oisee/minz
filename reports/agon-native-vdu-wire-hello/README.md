@@ -1,0 +1,7 @@
+# Independent native VDU stream: Agon TUI Hello
+
+Unchanged example, ordinary public CLI BIN, native-VDU library. A C proxy forwards every VDP entry point to the pinned original full VDP library. z80_send_to_vdp records each byte then forwards it unchanged. Real eZ80/MOS and VDP execute simultaneously; SDL A from the framebuffer capture harness supplies normal keyboard input.
+
+The 218-byte application stream matches scripts/agon_native_vdu_model.py exactly. Expected text/layout comes from the independent source-level demo model, translated to documented VDU12/17/23/31, never from compiled output. A single MOS banner and following MINZ_FULL_RETURNED plus prompt are required. Complete wire is 315 bytes including firmware traffic. This proves command/text agreement for this scenario; no independent framebuffer, RAM/SP oracle, other programs/modes or hardware proof.
+
+Build: cc -shared -fPIC vdp-tee.c -ldl -o vdp-tee.so. Same Fab/SDL/compiler/library pins and Hello SD as reports/agon-native-vdu-fix. Run Fab with --vdp <vdp-tee.so>, MINZ_REAL_VDP=<original vdp_console8.so>, MINZ_VDP_STREAM=<wire.bin>. Other flags and SDL key capture environment follow the predecessor. timeout10 stops continuing MOS(exit124); exact following echo verifies app completion. Application range begins immediately after firmware boot CR/LF pairs and bell, ends immediately before following echo. Entire range is compared, not a subsequence. A raw search for byte12 would incorrectly start at a firmware color argument; delimiters must respect firmware scope.
