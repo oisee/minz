@@ -16,7 +16,7 @@ Completion requires all of these, not merely successful operation-level tests:
 | Independent bounds/memory/PC/SP | Fill matrix proven; copy and dedicated full-main roto proven; library full-main demo proven; reusable texture matrix PASS |
 | Speed and size alternatives | Fill pointer/LDIR measured; copy pointer/LDIR measured; mask pointer/compiled measured; texture unroll costs measured; 60-variant / 480-runtime-data native matrix PASS |
 | Full Spectrum display+IRQ execution | Both dedicated and shared-library main proven: ROM/ULA/IRQ, 64 screens per mode |
-| Main integration | Design reports merged PR86; compiler/library still research branch; PR85 foundation gate repairs in progress |
+| Main integration | Design reports merged PR86; Library and prerequisites staged in PR85; local integrated gates PASS; GitHub required checks pending |
 | Shared artifacts | Fill, preserving LDIR and roto packets copied and checksummed |
 
 Work order: copy semantics and measured primitives, masks/compiled constants,
