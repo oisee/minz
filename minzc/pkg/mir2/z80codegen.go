@@ -119,6 +119,7 @@ func emitTypedGlobalData(sb *strings.Builder, ty Ty, init []byte) {
 
 // Z80CodegenOptions controls optional codegen features.
 type Z80CodegenOptions struct {
+	OptimizeForSize   bool
 	Runtime           Z80Runtime
 	RuntimeStackBytes int
 	// UnsignedPairComparePolicy explicitly selects a register-only
@@ -437,7 +438,7 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 	// Guarded growth sites must remain adjacent to their checks. The legacy
 	// peephole pass can introduce calls and inline wrappers after emission.
 	if opt.RuntimeStackBytes == 0 {
-		result = asmPeepholePass(result)
+		result = asmPeepholePassWithSize(result, opt.OptimizeForSize)
 	}
 
 	// Emit __rotate runtime: multi-entry RLCA sled (barrel shifter).
