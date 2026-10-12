@@ -1,0 +1,10 @@
+{
+  "base_commit": "01fa1142",
+  "sources": {
+    "stdlib/sql/sqlite.nanz": "8ffac000fc19328312a66c9249aee352caa08b3073df201958a0abb905756326",
+    "examples/nanz/sql_test6.nanz": "1300b30eb66c72c1f5cb5aeef778abe3c5cfc6dcc29a809c628e995159cea18f"
+  },
+  "contract": "actual allocated db=HL and sql=named LocMem spill, typed u16 pointer c000; unrelated DE=d000 WRONG sentinel",
+  "expected_sql": "CREATE TABLE t(x)\u0000",
+  "scope": "actual CALL of two original compiled helpers, all three modes; no SQLite engine/main proof"
+}
