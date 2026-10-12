@@ -1,0 +1,23 @@
+{
+  "core": {
+    "checkpoint": "166103ff",
+    "session_id": 8116,
+    "exit_code": 0,
+    "hir_seconds": 27.483,
+    "mir2_seconds": 72.771,
+    "nanz_seconds": 14.49,
+    "vir_seconds": 2.365
+  },
+  "composition": {
+    "checkpoint": "982c9e2c",
+    "session_id": 80349,
+    "exit_code": 0,
+    "seconds": 14.989,
+    "native_calls": 10616832
+  },
+  "full_pipeline": {
+    "checkpoint": "29df08bb",
+    "pid": 2392127,
+    "state": "live at observation, terminal pending"
+  }
+}

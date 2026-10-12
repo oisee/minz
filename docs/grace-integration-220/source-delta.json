@@ -1,0 +1,39 @@
+{
+  "base": "3fcb7b0b",
+  "checkpoint": "982c9e2c",
+  "share": "/mnt/safe/minz/grace/2026-10-12/compiler-source-evidence/delta-3fcb7b0b-to-982c9e2c",
+  "files": [
+    {
+      "path": "minzc/pkg/c89/conditional_effects_test.go",
+      "sha256": "c202aac47e9a306486fdaaf58d274921ba7bc00332b59f77b962d4b5e6f9f9f1"
+    },
+    {
+      "path": "minzc/pkg/c89/lower.go",
+      "sha256": "069d87848e8763ccd876833bd2d29514e6f7e83ef627458861b62394c7e88488"
+    },
+    {
+      "path": "minzc/pkg/mir2/bool_trunc_codegen_test.go",
+      "sha256": "d9ea10b0fe0f243c33293a422e5e264644b625407aa2bc83000a010bcdbf4013"
+    },
+    {
+      "path": "minzc/pkg/mir2/z80codegen_inst.go",
+      "sha256": "99b3185be240dbb2f0ed622c1bd9426d9a43415b419ab584c8e043114fdabd92"
+    },
+    {
+      "path": "minzc/pkg/mir2/z80codegen_move.go",
+      "sha256": "c75b98b68597974da7da813515f394609467e1ee6d8eb25276408950a334660c"
+    },
+    {
+      "path": "minzc/pkg/pipeline/c89_expression_effects_native_test.go",
+      "sha256": "39a7b579c600cc8b82f419ed1f19c251487fce493288ea64160900b0f94329bc"
+    },
+    {
+      "path": "minzc/pkg/pipeline/native_composition_boundaries_test.go",
+      "sha256": "faa8c399d5d62ce42abf51dd392561972777607f7db8df1613787f34749cdd38"
+    },
+    {
+      "path": "minzc/pkg/pipeline/original_impl_cpm_main_test.go",
+      "sha256": "11b18cb5835d8f01c65faf1feebcdc2ece8ff8373357b5f76af9d84d4e27b873"
+    }
+  ]
+}

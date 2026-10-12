@@ -1,6 +1,6 @@
 # Grace / PGO: текущее состояние
 
-11 октября 2026. Рабочая ветка — `feat/grace-hir-vm`.
+12 октября 2026. Рабочая ветка — `feat/grace-hir-vm`.
 «Production path» в исследовательских отчётах означает основной путь этой
 ветки; это не утверждение, что изменения вошли в GitHub main.
 
@@ -8,7 +8,9 @@
 
 Каталог [216](grace-integration-216/README.md) сохраняет все 194 точных пути: **133 independent/bounded VM/native**, два отдельных bounded native SMC и два pending семантических/runtime пробела. Остальные имеют явные ASM/runtime/Agon/CPM/host ограничения. Архивные SHA-идентичные копии считаются путями, не новыми независимыми приложениями.
 
-После каталога отдельно подтверждены два чистых метода исходного CP/M-примера: 394 752 вызова в трёх режимах, включая объекты через границу адресов. Полный модуль сохранён, но его `main` и BDOS ещё не исполнялись. Поэтому общий статус этого пути не повышен до whole-program успеха. Повтор и артефакты: [214](grace-integration-214/README.md).
+После каталога отдельно подтверждены два чистых метода исходного CP/M-примера: 394 752 вызова в трёх режимах, включая объекты через границу адресов. Полный модуль сохранён. Позднее исходный main и print_u8 всех256значений прошли под явно тестовым COM-загрузчиком и двумя BDOS2-контрактами. Рабочий CP/M runtime пока отвергает этот ASM/локальный стек; допуск разрабатывается отдельно. Поэтому whole-runtime статус не повышен. [Методы214](grace-integration-214/README.md), [main219](grace-integration-219/README.md).
+
+Свежий единый core `166103ff` после C89 и Z80 predicate-truncation исправлений завершился **PASS, exit0**: HIR27,483 с, MIR2 72,771 с, Nanz14,490 с, VIR2,365 с ([220](grace-integration-220/README.md)).
 
 Полный CLI `31d6abd0` завершился **PASS, exit 0** после C89 switch и PL/M исправлений. Core `40041bd4`: HIR, MIR2 и VIR PASS; Nanz первоначально FAIL из-за устаревшего SHA проверочного файла. После подтверждённого обновления evidence полный Nanz **PASS 15,002 с**. Исходный failed gate сохранён, а не переписан. [CLI и повторы](grace-integration-214/README.md), [core](grace-integration-211/README.md), [Nanz](grace-integration-213/README.md).
 
@@ -16,9 +18,9 @@
 
 Полезная группа нулевых identities перенесена из LIR в обычный MIR до allocation. Проверены типы, значения и отказы при flag/ASM/hard-constraint контекстах. На новой проверочной программе: 175 → 86 байт и 158 812 → 145 384 такта. Это результат fixture, не новый прикладной Grace выигрыш. [Полный отчёт](../reports/2026-10-11-lir-typed-zero-identities.md).
 
-Pending: Lizp `cond_test` не имеет определённой документированной политики implicit return; решение Alice запрошено. PL/M top-level statements и сохранение регистра строк исправлены, но исходный Hello не получает тайный PRINTCHAR intrinsic или недокументированный NUL. C89 ошибки порядка эффектов в циклах и if исправлены: полный C89 PASS 5,675 с, независимый VM/Z80 повтор PASS 0,317 с ([215](grace-integration-215/README.md)). Lexical binding continue исправлен отдельным follow-up, полный C89 PASS 5,556 с ([216](grace-integration-216/README.md)); условные выражения &&/||/?: ещё в работе.
+Pending: Lizp `cond_test` не имеет определённой документированной политики implicit return; решение Alice запрошено. PL/M top-level statements и сохранение регистра строк исправлены, но исходный Hello не получает тайный PRINTCHAR intrinsic или недокументированный NUL. C89 ошибки порядка эффектов в циклах и if исправлены: полный C89 PASS 5,675 с, независимый VM/Z80 повтор PASS 0,317 с ([215](grace-integration-215/README.md)). Lexical binding continue исправлен отдельным follow-up, полный C89 PASS 5,556 с ([216](grace-integration-216/README.md)); условные выражения &&/||/?: исправлены, root986112nativeCALL+raw/finalVM PASS23,630 с и полныйC89 PASS6,323 с ([219](grace-integration-219/README.md)).
 
-[Общий обзор языков, слоёв и новых возможностей](../reports/2026-10-11-092-grace-vm-z80-status.md) вошёл в GitHub **main** через [PR #74](https://github.com/oisee/minz/pull/74), commit `d378fccd`, и представлен ссылкой в README. Это docs-only интеграция: исследовательский compiler туда ещё не влит. Сайт v68 старше текущего отчёта; актуальные доказательства сохранены в compiler-docs/compiler-reports на `/mnt/safe/minz/grace/2026-10-11/`.
+[Общий обзор языков, слоёв и новых возможностей](../reports/2026-10-11-092-grace-vm-z80-status.md) вошёл в GitHub **main** через [PR #74](https://github.com/oisee/minz/pull/74), commit `d378fccd`, и представлен ссылкой в README. Это docs-only интеграция: исследовательский compiler туда ещё не влит. Сайт v68 старше текущего отчёта; актуальные доказательства сохранены в compiler-docs/compiler-reports на `/mnt/safe/minz/grace/2026-10-11/` и `/mnt/safe/minz/grace/2026-10-12/`.
 
 Ниже сохранена история предыдущих checkpoints; её цифры относятся к датированному состоянию, а не заменяют актуальную сводку.
 
