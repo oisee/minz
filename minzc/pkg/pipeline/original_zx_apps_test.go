@@ -8,8 +8,6 @@ import (
 	"github.com/minz/minzc/pkg/z80asm"
 	"os"
 	"path/filepath"
-	"regexp"
-	"strconv"
 	"testing"
 )
 
@@ -198,57 +196,7 @@ func TestOriginalZXAppsNative(t *testing.T) {
 					}
 					fill(7, 2, 10)
 					fill(7, 12, 17)
-				case 2:
-					for n := range want {
-						want[n] = 0
-					}
-					for n := 0x1800; n < len(want); n++ {
-						want[n] = 7
-					}
-					// Source-level font model: declared u16 globals encoded little-endian, not generated code.
-					reFont := regexp.MustCompile(`global (?:_zx_font|_f[0-9a-z]+): u16 = (0x[0-9A-Fa-f]+)`)
-					font := []byte{}
-					for _, m := range reFont.FindAllStringSubmatch(string(b), -1) {
-						v, _ := strconv.ParseUint(m[1], 0, 16)
-						font = append(font, byte(v), byte(v>>8))
-					}
-					row, col := 0, 0
-					main := string(b)
-					main = main[regexp.MustCompile(`fun main\(\)`).FindStringIndex(main)[0]:]
-					main = main[:regexp.MustCompile(`// ZX font data`).FindStringIndex(main)[0]]
-					actions := regexp.MustCompile(`zx_attr_row\((\d+), (0x[0-9A-Fa-f]+)\)|zx_puts\(c"([^"]*)"\)`)
-					for _, m := range actions.FindAllStringSubmatch(main, -1) {
-						if m[1] != "" {
-							r, _ := strconv.Atoi(m[1])
-							v, _ := strconv.ParseUint(m[2], 0, 8)
-							for c := 0; c < 32; c++ {
-								want[0x1800+r*32+c] = byte(v)
-							}
-						} else {
-							for _, ch := range []byte(m[3]) {
-								for line := 0; line < 8; line++ {
-									idx := (int(ch)-32)*8 + line
-									if idx < 0 || idx >= len(font) {
-										result["missing_source_font_bytes"] = len(font)
-										result["first_unbacked_char"] = ch
-										result["native_scope"] = "incomplete source font, no complete text oracle"
-										t.Logf("source font has %d bytes; character %q outside font", len(font), ch)
-										return
-									}
-									want[((row&0x18)<<8)|(line<<8)|((row&7)<<5)|col] = font[idx]
-								}
-								col++
-								if col == 32 {
-									row++
-									col = 0
-								}
-							}
-							row++
-							col = 0
-						}
-					}
-					result["expected_row"] = row
-					result["expected_col"] = col
+
 				}
 				export(prefix+".screen", z.Memory()[0x4000:0x5b00])
 				export(prefix+".expected-screen", want)
@@ -266,9 +214,7 @@ func TestOriginalZXAppsNative(t *testing.T) {
 					if i == 0 && (n == int(a.Symbols["zx__console__con_col"]) || n == int(a.Symbols["zx__console__con_row"]) || n == int(a.Symbols["zx__console__con_attr"])) {
 						allowed = true
 					}
-					if i == 2 && (n == int(a.Symbols["_zx_row"]) || n == int(a.Symbols["_zx_col"])) {
-						allowed = true
-					}
+
 					if !allowed && (z.Memory()[n] != before[n] || prof.WriteCount[n] != 0) {
 						outside = append(outside, n)
 					}
