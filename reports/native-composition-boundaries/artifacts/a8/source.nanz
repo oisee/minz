@@ -1,0 +1,1 @@
+fun a8(a: u8, b: u8, c: u8) -> u8 { return b - a + (c << 1) }

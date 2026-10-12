@@ -1,0 +1,2 @@
+fun a2(a: u8, b: u8, c: u8, d: u8) -> u8 { let p: u8 = a - b
+ return p + (c - d) }

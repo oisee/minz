@@ -1,0 +1,47 @@
+=== RUN   TestNativeCompositionBoundaryLattice
+=== RUN   TestNativeCompositionBoundaryLattice/a1
+=== RUN   TestNativeCompositionBoundaryLattice/a1/ordinary
+    native_composition_boundaries_test.go:221: calls=393216 T=24772608 bytes=10 stack=2
+=== RUN   TestNativeCompositionBoundaryLattice/a1/grace-size
+    native_composition_boundaries_test.go:221: calls=393216 T=24772608 bytes=10 stack=2
+=== RUN   TestNativeCompositionBoundaryLattice/a1/grace-speed
+    native_composition_boundaries_test.go:221: calls=393216 T=24772608 bytes=10 stack=2
+=== RUN   TestNativeCompositionBoundaryLattice/a2
+=== RUN   TestNativeCompositionBoundaryLattice/a2/ordinary
+    native_composition_boundaries_test.go:221: calls=2359296 T=129761280 bytes=8 stack=2
+=== RUN   TestNativeCompositionBoundaryLattice/a2/grace-size
+    native_composition_boundaries_test.go:221: calls=2359296 T=129761280 bytes=8 stack=2
+=== RUN   TestNativeCompositionBoundaryLattice/a2/grace-speed
+    native_composition_boundaries_test.go:221: calls=2359296 T=129761280 bytes=8 stack=2
+=== RUN   TestNativeCompositionBoundaryLattice/a4
+=== RUN   TestNativeCompositionBoundaryLattice/a4/ordinary
+    native_composition_boundaries_test.go:221: calls=393216 T=26345472 bytes=11 stack=2
+=== RUN   TestNativeCompositionBoundaryLattice/a4/grace-size
+    native_composition_boundaries_test.go:221: calls=393216 T=26345472 bytes=11 stack=2
+=== RUN   TestNativeCompositionBoundaryLattice/a4/grace-speed
+    native_composition_boundaries_test.go:221: calls=393216 T=26345472 bytes=11 stack=2
+=== RUN   TestNativeCompositionBoundaryLattice/a8
+=== RUN   TestNativeCompositionBoundaryLattice/a8/ordinary
+    native_composition_boundaries_test.go:221: calls=393216 T=18481152 bytes=6 stack=2
+=== RUN   TestNativeCompositionBoundaryLattice/a8/grace-size
+    native_composition_boundaries_test.go:221: calls=393216 T=18481152 bytes=6 stack=2
+=== RUN   TestNativeCompositionBoundaryLattice/a8/grace-speed
+    native_composition_boundaries_test.go:221: calls=393216 T=18481152 bytes=6 stack=2
+--- PASS: TestNativeCompositionBoundaryLattice (15.18s)
+    --- PASS: TestNativeCompositionBoundaryLattice/a1 (1.59s)
+        --- PASS: TestNativeCompositionBoundaryLattice/a1/ordinary (0.52s)
+        --- PASS: TestNativeCompositionBoundaryLattice/a1/grace-size (0.54s)
+        --- PASS: TestNativeCompositionBoundaryLattice/a1/grace-speed (0.53s)
+    --- PASS: TestNativeCompositionBoundaryLattice/a2 (9.56s)
+        --- PASS: TestNativeCompositionBoundaryLattice/a2/ordinary (3.15s)
+        --- PASS: TestNativeCompositionBoundaryLattice/a2/grace-size (3.21s)
+        --- PASS: TestNativeCompositionBoundaryLattice/a2/grace-speed (3.20s)
+    --- PASS: TestNativeCompositionBoundaryLattice/a4 (2.00s)
+        --- PASS: TestNativeCompositionBoundaryLattice/a4/ordinary (0.63s)
+        --- PASS: TestNativeCompositionBoundaryLattice/a4/grace-size (0.59s)
+        --- PASS: TestNativeCompositionBoundaryLattice/a4/grace-speed (0.78s)
+    --- PASS: TestNativeCompositionBoundaryLattice/a8 (2.03s)
+        --- PASS: TestNativeCompositionBoundaryLattice/a8/ordinary (0.69s)
+        --- PASS: TestNativeCompositionBoundaryLattice/a8/grace-size (0.82s)
+        --- PASS: TestNativeCompositionBoundaryLattice/a8/grace-speed (0.52s)
+PASS
