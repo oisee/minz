@@ -14,4 +14,4 @@
 
 Low/rol1 неизменны. Все256входов пятиhelpers+mainstdout1861011 прошли native3modes, helperPC/SP, mainHALT/SP, fullRAM/profilerwrites, IX/IY. Size в этом original не выбирает sled, потому что savings2B не покрывает8B runtime. Дополнительный native nine-site testcase доказывает положительную Size-ветвь: fullBIN37→36B включаяruntime, все256x и registers/SP. Synthetic testcase — только правило выбора, не новое приложение.
 
-Focused originalPASS0.028s; targeted existing ASMpeepholes+policytestsPASS0.011s. Baseline/selected artifacts сохранены отдельно, broad pipeline/fullMIR не повторяли. Нет universal оптимальности и нет новогоABI. Profile Options уже включает OptSize; новый CodegenOptions переносит существующую цель, не добавляет пользовательский searchmode.
+Focused originalPASS0.028s; targeted policytestsPASS0.011s (old ASM tests are rerun by explicit names in separate followup). Baseline/selected artifacts сохранены отдельно, broad pipeline/fullMIR не повторяли. Нет universal оптимальности и нет новогоABI. Profile Options уже включает OptSize; новый CodegenOptions переносит существующую цель, не добавляет пользовательский searchmode.
