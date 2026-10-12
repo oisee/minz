@@ -1,0 +1,14 @@
+{
+  "by_entry": {
+    "do_lock_and_clear": 896,
+    "ghost_y": 112,
+    "hold_piece": 3024,
+    "spawn_piece": 448,
+    "try_rotate": 112
+  },
+  "calls": 4592,
+  "result": "PASS",
+  "scope": "spawn/hold/composed plus 8entry persistent sequences, no device/main",
+  "sequences": 112,
+  "source_sha256": "444a07777a59a5fd57e1d57f364232ae7c87eeba9430e665ef170a64b7d3793f"
+}

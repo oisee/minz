@@ -1,0 +1,12 @@
+=== RUN   TestOriginalTetrisSpawnHoldAndSequences
+    original_tetris_sequences_test.go:420: tetris_cpm ordinary 4592 fullstate orderedboard VM/native PASS
+    original_tetris_sequences_test.go:420: tetris_cpm grace-size 4592 fullstate orderedboard VM/native PASS
+    original_tetris_sequences_test.go:420: tetris_cpm grace-speed 4592 fullstate orderedboard VM/native PASS
+    original_tetris_sequences_test.go:420: tetris_tui ordinary 4592 fullstate orderedboard VM/native PASS
+    original_tetris_sequences_test.go:420: tetris_tui grace-size 4592 fullstate orderedboard VM/native PASS
+    original_tetris_sequences_test.go:420: tetris_tui grace-speed 4592 fullstate orderedboard VM/native PASS
+--- PASS: TestOriginalTetrisSpawnHoldAndSequences (46.13s)
+=== RUN   TestTetrisSequenceIndependentModelControls
+--- PASS: TestTetrisSequenceIndependentModelControls (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	46.146s
