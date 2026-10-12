@@ -1,0 +1,16 @@
+=== RUN   TestOriginalZXTetrisUnusedPeekNative
+=== RUN   TestOriginalZXTetrisUnusedPeekNative/ordinary
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_peek_test.go:83: 1024 native byte reads, HL/A ABI, PC/SP and full RAM PASS
+=== RUN   TestOriginalZXTetrisUnusedPeekNative/grace-size
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_peek_test.go:83: 1024 native byte reads, HL/A ABI, PC/SP and full RAM PASS
+=== RUN   TestOriginalZXTetrisUnusedPeekNative/grace-speed
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_peek_test.go:83: 1024 native byte reads, HL/A ABI, PC/SP and full RAM PASS
+--- PASS: TestOriginalZXTetrisUnusedPeekNative (2.05s)
+    --- PASS: TestOriginalZXTetrisUnusedPeekNative/ordinary (0.42s)
+    --- PASS: TestOriginalZXTetrisUnusedPeekNative/grace-size (0.87s)
+    --- PASS: TestOriginalZXTetrisUnusedPeekNative/grace-speed (0.76s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.060s
