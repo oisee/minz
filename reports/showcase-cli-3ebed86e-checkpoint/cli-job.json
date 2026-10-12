@@ -1,0 +1,21 @@
+{
+  "checkpoint": "3ebed86e289943f1ab0d3bbb1b1339271691d89c",
+  "recorded_at_utc": "2026-10-12T08:10:18.855034+00:00",
+  "session": 42573,
+  "pid": 2929643,
+  "binary": "/home/alice/dev/minz-artifacts/grace-checkpoints/cli-3ebed86e.test",
+  "binary_sha256": "6678d81d6d6d0e3f75a02594e4981c4420dc9e784822e4371f1b79374617142f",
+  "shared_binary": "/mnt/safe/minz/grace/2026-10-12/compiler-checkpoints/cli-3ebed86e.test",
+  "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/cmd/minzc",
+  "args": [
+    "-test.count=1",
+    "-test.timeout=30m",
+    "-test.v"
+  ],
+  "environment": {
+    "VIR_TEST_Z3": "/home/alice/dev/minz-artifacts/grace-tools/z3-python/bin/z3",
+    "PATH_go_bin": "/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/bin"
+  },
+  "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/cli-3ebed86e-full.txt",
+  "status_at_recording": "running; not PASS"
+}

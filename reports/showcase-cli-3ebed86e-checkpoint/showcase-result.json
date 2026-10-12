@@ -1,0 +1,18 @@
+{
+  "checkpoint": "3ebed86e",
+  "exit_code": 0,
+  "counts": {
+    "PASS": 193,
+    "SKIP": 1
+  },
+  "seconds": 10.871,
+  "scope": "compile and assemble; not native execution",
+  "nonpassing": [
+    {
+      "Path": "examples/zmachine/zork-west-demo/zvm.nanz",
+      "Case": "TestShowcaseCompileAssemble/zvm.nanz",
+      "Status": "SKIP",
+      "Stage": "skip"
+    }
+  ]
+}
