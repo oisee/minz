@@ -1,0 +1,14 @@
+{
+  "checkpoint": "dd100284",
+  "exit_code": 2,
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "30e4960cf4d908ec09f2a3991ae86ecd8eaff4ad6554496396f7917e5032af6f"
+    },
+    {
+      "path": "full.txt",
+      "sha256": "a974180d78d6f154d3ecd378909d30d414a737c89cdfbe6eee06c213755ef9f5"
+    }
+  ]
+}
