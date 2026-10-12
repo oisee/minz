@@ -1,0 +1,5 @@
+--- FAIL: TestShowcaseExecutableOracleCatalog (2.08s)
+    showcase_oracle_catalog_test.go:226: reviewed evidence changed: minzc/pkg/pipeline/checked_table_practical_audit_test.go
+FAIL
+FAIL	github.com/minz/minzc/pkg/nanz	2.085s
+FAIL

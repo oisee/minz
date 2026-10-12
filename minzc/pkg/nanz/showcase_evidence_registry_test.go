@@ -208,7 +208,7 @@ func applyLatestCorpusReview(t *testing.T, root string, row *oracleCatalogEntry)
 		Boundary string            `json:"boundary"`
 		Evidence map[string]string `json:"evidence"`
 	}
-	b, err := os.ReadFile(filepath.Join(root, "docs/grace-integration-247/reviewed-updates.json"))
+	b, err := os.ReadFile(filepath.Join(root, "docs/grace-integration-255/reviewed-updates.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
