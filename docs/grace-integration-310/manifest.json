@@ -1,0 +1,32 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "39d55f38b72ef0a9460ba54a05ecb9d3b98db5df8efeca432026a53f5373cb45"
+    },
+    {
+      "path": "catalog.json",
+      "sha256": "376c160ee1c1c54ace736204da062e7d3e30484d8fedeae40c1fcac09a68f680"
+    },
+    {
+      "path": "catalog.txt",
+      "sha256": "dc501aec96ae0d947075959acaed0032027bbd8793feb269cb3da0a9587c4027"
+    },
+    {
+      "path": "full-mir.txt",
+      "sha256": "12e77bc5084928f390e9f6f3ffa9d40b007150dc2e5b12926abe0039bc7af10b"
+    },
+    {
+      "path": "native-first-full-memory.txt",
+      "sha256": "074c858c036e4256b1f544fecc3ac48cd5f4622f83eb5e72b0d0bda3827c74c6"
+    },
+    {
+      "path": "reviewed-updates.json",
+      "sha256": "4806b3918120d6e5b0dd23c96e8f313f21dcbad3290d7b87c43559beae719b5b"
+    },
+    {
+      "path": "root.txt",
+      "sha256": "8fc3179c118f639f95957dc0f4abbae44f1fa31de1d8b121ac4a525861e4ffea"
+    }
+  ]
+}
