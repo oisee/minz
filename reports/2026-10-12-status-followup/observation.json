@@ -1,0 +1,15 @@
+{
+  "observed_at_utc": "2026-10-12T13:19:51.447908+00:00",
+  "research_checkpoint": "1ccc1d8c",
+  "pipeline_checkpoint": "b6b4e0c7",
+  "pipeline_pid": 2953041,
+  "pipeline_terminal": false,
+  "counts": {
+    "PASS": 380,
+    "FAIL": 0,
+    "SKIP": 12
+  },
+  "last_log_line": "=== RUN   TestMeasureLoopCostModel",
+  "log_sha256_at_observation": "7ef306fd2c5d6a9ef10c02e5f8154b065f4c3f1399e14bb3331b5c9e4da07f19",
+  "scope": "Observation only; immutable pipeline predates late Agon and divmod production fixes. No overall PASS claimed."
+}
