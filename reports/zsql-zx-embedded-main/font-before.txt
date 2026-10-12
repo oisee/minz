@@ -1,0 +1,14 @@
+=== RUN   TestOriginalZSQLZXEmbeddedMainNative
+=== RUN   TestOriginalZSQLZXEmbeddedMainNative/ordinary
+    original_zsql_zx_real_main_test.go:170: font character 124
+=== RUN   TestOriginalZSQLZXEmbeddedMainNative/grace-size
+    original_zsql_zx_real_main_test.go:170: font character 124
+=== RUN   TestOriginalZSQLZXEmbeddedMainNative/grace-speed
+    original_zsql_zx_real_main_test.go:170: font character 124
+--- FAIL: TestOriginalZSQLZXEmbeddedMainNative (0.10s)
+    --- FAIL: TestOriginalZSQLZXEmbeddedMainNative/ordinary (0.03s)
+    --- FAIL: TestOriginalZSQLZXEmbeddedMainNative/grace-size (0.03s)
+    --- FAIL: TestOriginalZSQLZXEmbeddedMainNative/grace-speed (0.03s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.110s
+FAIL

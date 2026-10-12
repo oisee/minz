@@ -1,0 +1,36 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "23469e5315c7620b35cf8f5dbf953b2abe6ee34791c7407e556b9d1ec3bbb672"
+    },
+    {
+      "path": "font-before.txt",
+      "sha256": "429630f810484f1aef7bd6cc0a1280d596dedef0b4df4172e1e82873d1ab8948"
+    },
+    {
+      "path": "frozen/freeze.json",
+      "sha256": "255c4387841cf64bb41593527d770427e6484664a340ef5ccbd9093754643f7c"
+    },
+    {
+      "path": "frozen/output.bin",
+      "sha256": "eb84a7919a800b44dc8b7c8c4137acd216e2a146fb0b08758626e763b645a417"
+    },
+    {
+      "path": "frozen/source-before-font.nanz",
+      "sha256": "17f6020b9b6625aa34ef518e4eb10fe54d0f15b8d6fa3f0269f76f045cc7b320"
+    },
+    {
+      "path": "frozen/source.nanz",
+      "sha256": "595671078ccf55f0bb3ab1c7ae51290fd9110ddce0bb4f7c91138b27ff6f693d"
+    },
+    {
+      "path": "frozen/sqlite.nanz",
+      "sha256": "bc177e0dc25ad2f36f3694b115439356efbfb3d956b46b2701afe82bde277fc8"
+    },
+    {
+      "path": "root.txt",
+      "sha256": "9784c2e494c3d0454126a10ce4c9fbe7b09624274bf7a1430002f55bef6bcc1f"
+    }
+  ]
+}

@@ -283,7 +283,7 @@ fun main() -> void {
 // 60 input characters plus the NUL written by zx_readline.
 global _zx_inbuf: [u8; 61]
 
-// ZX font: inject via asm data block (91 chars × 8 bytes)
+// ZX font: inject via asm data block (95 printable ASCII chars × 8 bytes)
 fun _font_anchor() -> void {
     asm z80 {
     DB $00, $00, $00, $00, $00, $00, $00, $00
@@ -377,5 +377,9 @@ fun _font_anchor() -> void {
     DB $00, $00, $44, $28, $10, $28, $44, $00
     DB $00, $00, $44, $44, $44, $3C, $04, $38
     DB $00, $00, $7C, $08, $10, $20, $7C, $00
+    DB $00, $0C, $10, $10, $20, $10, $10, $0C
+    DB $00, $08, $08, $08, $08, $08, $08, $00
+    DB $00, $30, $08, $08, $04, $08, $08, $30
+    DB $00, $00, $32, $4C, $00, $00, $00, $00
     }
 }

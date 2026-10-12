@@ -6,17 +6,30 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/z80asm"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 )
 
 // Original ASM executes; only console input and SQLite port services are modeled.
 func TestOriginalZSQLZXRealMainNative(t *testing.T) {
-	const packet = "../../../reports/zsql-zx-capacity/frozen/"
+	testOriginalZSQLZXMain(t, "zsql_zx_real", "zsql-zx-capacity", "MINZ_ZSQL_ZX_REAL_EXPORT", false)
+}
+func TestOriginalZSQLZXEmbeddedMainNative(t *testing.T) {
+	testOriginalZSQLZXMain(t, "zsql_zx", "zsql-zx-embedded-main", "MINZ_ZSQL_ZX_EMBEDDED_EXPORT", true)
+}
+func testOriginalZSQLZXMain(t *testing.T, sourceName, packetName, exportEnv string, embedded bool) {
+	packet := "../../../reports/" + packetName + "/frozen/"
+	bufferName := "_inbuf"
+	if embedded {
+		bufferName = "_zx_inbuf"
+	}
 	read := func(n string) []byte {
 		b, e := os.ReadFile(packet + n)
 		if e != nil {
@@ -25,7 +38,7 @@ func TestOriginalZSQLZXRealMainNative(t *testing.T) {
 		return b
 	}
 	src := read("source.nanz")
-	current, e := os.ReadFile("../../../examples/nanz/zsql_zx_real.nanz")
+	current, e := os.ReadFile("../../../examples/nanz/" + sourceName + ".nanz")
 	if e != nil || !bytes.Equal(src, current) {
 		t.Fatal("source", e)
 	}
@@ -46,7 +59,7 @@ func TestOriginalZSQLZXRealMainNative(t *testing.T) {
 		t.Fatal("freeze", e)
 	}
 	save := func(n string, v any) {
-		if d := os.Getenv("MINZ_ZSQL_ZX_REAL_EXPORT"); d != "" {
+		if d := os.Getenv(exportEnv); d != "" {
 			var b []byte
 			switch x := v.(type) {
 			case []byte:
@@ -71,7 +84,7 @@ func TestOriginalZSQLZXRealMainNative(t *testing.T) {
 	}
 	for _, mode := range []string{"ordinary", "grace-size", "grace-speed"} {
 		t.Run(mode, func(t *testing.T) {
-			h, e := nanz.ParseWithOpts(string(src), "zsql_zx_real.nanz", nanz.ParseOpts{BaseDir: "../../../examples/nanz", StdlibDir: "../../../stdlib"})
+			h, e := nanz.ParseWithOpts(string(src), sourceName+".nanz", nanz.ParseOpts{BaseDir: "../../../examples/nanz", StdlibDir: "../../../stdlib"})
 			if e != nil {
 				t.Fatal(e)
 			}
@@ -106,6 +119,27 @@ func TestOriginalZSQLZXRealMainNative(t *testing.T) {
 					mem[0x3d00+(ch-32)*8+line] = byte((ch*17 + line*29) ^ 0x5a)
 				}
 			}
+			font := append([]byte(nil), mem[0x3d00:0x4000]...)
+			if embedded {
+				start := strings.Index(string(src), "fun _font_anchor()")
+				if start < 0 {
+					t.Fatal("font source")
+				}
+				font = nil
+				for _, m := range regexp.MustCompile(`(?m)^\s*DB (.+)$`).FindAllStringSubmatch(string(src)[start:], -1) {
+					for _, literal := range strings.Split(m[1], ",") {
+						v, err := strconv.ParseUint(strings.TrimPrefix(strings.TrimSpace(literal), "$"), 16, 8)
+						if err != nil {
+							t.Fatal(err)
+						}
+						font = append(font, byte(v))
+					}
+				}
+				base := sym("_font_anchor")
+				if !bytes.Equal(mem[base:int(base)+len(font)], font) {
+					t.Fatal("assembled font")
+				}
+			}
 			p := sym("main")
 			copy(mem[0x7000:], []byte{0xcd, byte(p), byte(p >> 8), 0})
 			want := append([]byte(nil), mem...)
@@ -118,6 +152,11 @@ func TestOriginalZSQLZXRealMainNative(t *testing.T) {
 			for p := 0x5800; p < 0x5840; p++ {
 				want[p] = 0x4f
 			}
+			if embedded {
+				for p := 0x5820; p < 0x5840; p++ {
+					want[p] = 0x4e
+				}
+			}
 			row, col := 0, 0
 			for _, ch := range out {
 				if ch == 13 || ch == 10 {
@@ -127,7 +166,10 @@ func TestOriginalZSQLZXRealMainNative(t *testing.T) {
 				}
 				for line := 0; line < 8; line++ {
 					p := 0x4000 | ((row & 0x18) << 8) | (line << 8) | ((row & 7) << 5) | col
-					want[p] = byte((int(ch)*17 + line*29) ^ 0x5a)
+					if int(ch) < 32 || (int(ch)-32)*8+line >= len(font) {
+						t.Fatal("font character", ch)
+					}
+					want[p] = font[(int(ch)-32)*8+line]
 				}
 				col++
 				if col == 32 {
@@ -144,7 +186,15 @@ func TestOriginalZSQLZXRealMainNative(t *testing.T) {
 			if len(f.Inputs) != 16 || len(f.Inputs[0]) == 0 || len(f.Inputs[1]) == 0 || len(f.Inputs[2]) == 0 {
 				t.Fatal("frozen dialogue")
 			}
-			if len(h.Globals) == 0 {
+			capacity := 0
+			for _, g := range h.Globals {
+				if g.Name == bufferName {
+					if a, ok := g.Ty.(*mir2.ArrayTy); ok {
+						capacity = a.Len
+					}
+				}
+			}
+			if capacity != 61 {
 				t.Fatal("source input storage layout")
 			}
 			for _, line := range f.Inputs {
@@ -160,7 +210,7 @@ func TestOriginalZSQLZXRealMainNative(t *testing.T) {
 				copy(inputWant, line)
 				inputWant[len(line)] = 0
 			}
-			copy(want[sym("_inbuf"):], inputWant)
+			copy(want[sym(bufferName):], inputWant)
 			buf := sym("sql__sqlite___sql_buf")
 			for _, text := range f.Texts {
 				copy(want[buf:], append([]byte(text), 0))
