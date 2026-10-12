@@ -1,0 +1,2 @@
+import agon.tui_render
+fun main() { asm z80 { PUSH IY } draw_box(5,3,40,7) tui_puts(c"DONE\r\n") asm z80 { POP IY } }

@@ -1,0 +1,290 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "bfcc5b0e987ec59a8691702eb2a244314e26e3ea2f0f74462c387bf8ddfe895c"
+  },
+  {
+    "path": "box_save_iy/asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "box_save_iy/bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "box_save_iy/program.asm",
+    "sha256": "75a561b42631433c8d9e0df873a5125646ecc1e6040bc385c71b6d652161926b"
+  },
+  {
+    "path": "box_save_iy/program.bin",
+    "sha256": "2b76f4344b7d8224fa96bd449a88e09762120b0ee989871bd23e5a9d450d7947"
+  },
+  {
+    "path": "box_save_iy/result.json",
+    "sha256": "84e148216483090e19106473dd4eade461fbb8ed6ab6783c7b01919210e5756c"
+  },
+  {
+    "path": "box_save_iy/sdcard/program.bin",
+    "sha256": "2b76f4344b7d8224fa96bd449a88e09762120b0ee989871bd23e5a9d450d7947"
+  },
+  {
+    "path": "box_save_iy/source.nanz",
+    "sha256": "d30fe82da9a817b5f22e842dc6c25901e8a10adbf783d207d6eaec0cb620a886"
+  },
+  {
+    "path": "box_save_iy/stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "box_save_iy/stdin.txt",
+    "sha256": "c25bb3a8c17d4b0a44c6cea64b72d977e6e91093a05d4df88979b8649493ed53"
+  },
+  {
+    "path": "box_save_iy/stdout.txt",
+    "sha256": "56f4c2dfab62e03dce9051dd73c9aa005fa74e9b67cf06d06c09dedda70e1af6"
+  },
+  {
+    "path": "header_iy_only/program.bin",
+    "sha256": "7bbe8d6296d42b40209eb448eb902454e6e8219229c314575b3fefe66e0ba00f"
+  },
+  {
+    "path": "header_iy_only/result.json",
+    "sha256": "85ad77cbdb1c73b9c11d4e06e290c04733133ee031334fdb9892de4f27d0b9f1"
+  },
+  {
+    "path": "header_iy_only/sdcard/program.bin",
+    "sha256": "7bbe8d6296d42b40209eb448eb902454e6e8219229c314575b3fefe66e0ba00f"
+  },
+  {
+    "path": "header_iy_only/stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "header_iy_only/stdin.txt",
+    "sha256": "c25bb3a8c17d4b0a44c6cea64b72d977e6e91093a05d4df88979b8649493ed53"
+  },
+  {
+    "path": "header_iy_only/stdout.txt",
+    "sha256": "afd98847527b84fdc8baf4df7db6b956ff2f8643d876e92969e8a7ebe3fc4490"
+  },
+  {
+    "path": "header_iy_only/wrapper.hex",
+    "sha256": "a7d98221d6e709cf524c67e9e3e174ad032d15fddf006246646b405abd5f7c84"
+  },
+  {
+    "path": "header_save_iy/program.bin",
+    "sha256": "3a4308dcabbc3276540367b92f045be33250b03ce1a4a44f6551ccac1e65bb38"
+  },
+  {
+    "path": "header_save_iy/result.json",
+    "sha256": "85ad77cbdb1c73b9c11d4e06e290c04733133ee031334fdb9892de4f27d0b9f1"
+  },
+  {
+    "path": "header_save_iy/sdcard/program.bin",
+    "sha256": "3a4308dcabbc3276540367b92f045be33250b03ce1a4a44f6551ccac1e65bb38"
+  },
+  {
+    "path": "header_save_iy/stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "header_save_iy/stdin.txt",
+    "sha256": "c25bb3a8c17d4b0a44c6cea64b72d977e6e91093a05d4df88979b8649493ed53"
+  },
+  {
+    "path": "header_save_iy/stdout.txt",
+    "sha256": "afd98847527b84fdc8baf4df7db6b956ff2f8643d876e92969e8a7ebe3fc4490"
+  },
+  {
+    "path": "header_save_iy/wrapper.hex",
+    "sha256": "e3e5e2c56d7c21778c8e66dfb087892269bd7c55175b0dbc2e6ced28a993b35f"
+  },
+  {
+    "path": "header_status_only/program.bin",
+    "sha256": "1dfe170c712a9e2fbf4542a3e79a322e75a4fa07fe04784767f9830200356068"
+  },
+  {
+    "path": "header_status_only/result.json",
+    "sha256": "698d46d45fa07b40129ba079c2a7b33fb16d21cb0e410a5af16e2627497953a8"
+  },
+  {
+    "path": "header_status_only/sdcard/program.bin",
+    "sha256": "1dfe170c712a9e2fbf4542a3e79a322e75a4fa07fe04784767f9830200356068"
+  },
+  {
+    "path": "header_status_only/stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "header_status_only/stdin.txt",
+    "sha256": "c25bb3a8c17d4b0a44c6cea64b72d977e6e91093a05d4df88979b8649493ed53"
+  },
+  {
+    "path": "header_status_only/stdout.txt",
+    "sha256": "238dd4df8870ce8e4200dcfa0dc1b6de6f8c8008e2c1db81f68495694f0dcbfe"
+  },
+  {
+    "path": "header_status_only/wrapper.hex",
+    "sha256": "d70cd84b55c924d25e2b3c9d740418c26aa0a4dd720b24f2682208dfa8a2c29c"
+  },
+  {
+    "path": "key_then_text/asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "key_then_text/bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "key_then_text/program.asm",
+    "sha256": "5fa31d41e9b84cd804dcf3998ecaa5e056e74386be34f0bfe0a26db9555d0937"
+  },
+  {
+    "path": "key_then_text/program.bin",
+    "sha256": "2498fd9ecb19e1330bd66b8f2386e27efb4a3b2c83365e200766585c35de966f"
+  },
+  {
+    "path": "key_then_text/result.json",
+    "sha256": "85ad77cbdb1c73b9c11d4e06e290c04733133ee031334fdb9892de4f27d0b9f1"
+  },
+  {
+    "path": "key_then_text/sdcard/program.bin",
+    "sha256": "2498fd9ecb19e1330bd66b8f2386e27efb4a3b2c83365e200766585c35de966f"
+  },
+  {
+    "path": "key_then_text/source.nanz",
+    "sha256": "0aba60d0d7c5266fc26c09ca195a5bf04e93b092fcfa0ed1c3f5b7a212211ff7"
+  },
+  {
+    "path": "key_then_text/stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "key_then_text/stdin.txt",
+    "sha256": "c25bb3a8c17d4b0a44c6cea64b72d977e6e91093a05d4df88979b8649493ed53"
+  },
+  {
+    "path": "key_then_text/stdout.txt",
+    "sha256": "56f20c00f2a207ec10ddcad6cd2d3eb4838c5010f06bfffabb94facfc5ab3bcb"
+  },
+  {
+    "path": "tail_key/asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tail_key/bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tail_key/program.asm",
+    "sha256": "cfd27edf195f64b184338d7584307864c24fd030956891a92a87dc1e48263f61"
+  },
+  {
+    "path": "tail_key/program.bin",
+    "sha256": "af59b5693bf2e0595089615134b6da994387590e98a556147fe0d6f07e9662a1"
+  },
+  {
+    "path": "tail_key/result.json",
+    "sha256": "85ad77cbdb1c73b9c11d4e06e290c04733133ee031334fdb9892de4f27d0b9f1"
+  },
+  {
+    "path": "tail_key/sdcard/program.bin",
+    "sha256": "af59b5693bf2e0595089615134b6da994387590e98a556147fe0d6f07e9662a1"
+  },
+  {
+    "path": "tail_key/source.nanz",
+    "sha256": "368391bf021a1751d0bd083300546a89bfdf161cbfb48ef98c78c10fd9185195"
+  },
+  {
+    "path": "tail_key/stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tail_key/stdin.txt",
+    "sha256": "c25bb3a8c17d4b0a44c6cea64b72d977e6e91093a05d4df88979b8649493ed53"
+  },
+  {
+    "path": "tail_key/stdout.txt",
+    "sha256": "24678986b4ad2754c23fb47f81f4919c8988502cb2a303fa96e7888c7e62eef1"
+  },
+  {
+    "path": "tui_save_iy/asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_save_iy/bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_save_iy/program.asm",
+    "sha256": "b602d7c35ac4f5bf0f3b539943495549f21e2f5000723f258651d071c681f6c9"
+  },
+  {
+    "path": "tui_save_iy/program.bin",
+    "sha256": "7329b2740edfdd6f89d5a3e077bd737732542b11589f1beb0d1079954aea4f5d"
+  },
+  {
+    "path": "tui_save_iy/result.json",
+    "sha256": "84e148216483090e19106473dd4eade461fbb8ed6ab6783c7b01919210e5756c"
+  },
+  {
+    "path": "tui_save_iy/sdcard/program.bin",
+    "sha256": "7329b2740edfdd6f89d5a3e077bd737732542b11589f1beb0d1079954aea4f5d"
+  },
+  {
+    "path": "tui_save_iy/source.nanz",
+    "sha256": "4aaa7d476cdae9cc3b5705c7a09722bd799c271ec441c358d9cf01f4ad429d0d"
+  },
+  {
+    "path": "tui_save_iy/stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_save_iy/stdin.txt",
+    "sha256": "c25bb3a8c17d4b0a44c6cea64b72d977e6e91093a05d4df88979b8649493ed53"
+  },
+  {
+    "path": "tui_save_iy/stdout.txt",
+    "sha256": "bd521ad10c768cf6b068f2c5d491e5745b6d434583bfe11afb9284a6a5d76a51"
+  },
+  {
+    "path": "tui_then_text/asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_then_text/bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_then_text/program.asm",
+    "sha256": "62fb71831c7a56ef508c9240d263a77290c7bafcee440505a81ae32e57f7d5ec"
+  },
+  {
+    "path": "tui_then_text/program.bin",
+    "sha256": "d45054e953bcd5ecbad0b6f4779d1471cf431c431d97cfaeb1260ccb7d0fd1bf"
+  },
+  {
+    "path": "tui_then_text/result.json",
+    "sha256": "698d46d45fa07b40129ba079c2a7b33fb16d21cb0e410a5af16e2627497953a8"
+  },
+  {
+    "path": "tui_then_text/sdcard/program.bin",
+    "sha256": "d45054e953bcd5ecbad0b6f4779d1471cf431c431d97cfaeb1260ccb7d0fd1bf"
+  },
+  {
+    "path": "tui_then_text/source.nanz",
+    "sha256": "f1f2cae1a7f3df1294281e06a132d40271997fa290189d217ff815a874c2d639"
+  },
+  {
+    "path": "tui_then_text/stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_then_text/stdin.txt",
+    "sha256": "c25bb3a8c17d4b0a44c6cea64b72d977e6e91093a05d4df88979b8649493ed53"
+  },
+  {
+    "path": "tui_then_text/stdout.txt",
+    "sha256": "34afd9b63593d3f9c7ec359bbbe8e96340844b1898f284d403875781769c3f23"
+  }
+]

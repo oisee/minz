@@ -1,0 +1,2 @@
+import stdlib.agon.mos
+fun main() { getkey() mos_puts(c"DONE\r\n") }

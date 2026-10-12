@@ -1,0 +1,13 @@
+Tom's Fake VDP Version 1.03
+unknown packet VDU 0x17, 0, 0x94
+
+Agon Console8 MOS Version 2.3.3 Rainbow
+
+/ *load program.bin
+/ *run
+Hello from MinZ on Agon Light 2!
+Press any key: 
+You pressed a key!
+/ *echo MINZ_RETURNED
+MINZ_RETURNED
+/ *

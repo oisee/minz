@@ -1,0 +1,1 @@
+Agon entry fix runtime replay. Real eZ80/MOS firmware, fake VDP. Console oracles and clean subsequent MOS echo only; no graphical/full RAM-SP/hardware proof. Sources, products and transcripts retained. See reports/agon-return-reductions/README.md and scripts/agon_mos_console_smoke.py.

@@ -412,6 +412,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		var codegenErr error
 		s.Assembly, codegenErr = mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
 			OptimizeForSize:           opt.OptSize,
+			CalledMain:                opt.Backend == "ez80",
 			Runtime:                   opt.Runtime,
 			RuntimeStackBytes:         opt.RuntimeStackBytes,
 			AnnotateTStates:           opt.AnnotateTStates,
@@ -456,7 +457,8 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 				"; Target: Agon Light 2 (eZ80 @ 18.432 MHz)\n\n" +
 				"    .ASSUME ADL=1\n" +
 				"    ORG $040045\n\n" +
-				s.Assembly
+				"; MOS entry preserves IY (firmware frame) and returns status in HL.\n" +
+				"__agon_entry:\n    PUSH IY\n    CALL main\n    POP IY\n    LD HL, 0\n    RET\n\n" + s.Assembly
 		}
 
 		// Z80 binary assertion checks (skip for eZ80 — different encoding).

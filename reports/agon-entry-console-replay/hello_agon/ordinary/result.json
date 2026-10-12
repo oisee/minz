@@ -1,0 +1,37 @@
+{
+  "source": "examples/agon/hello_agon.nanz",
+  "mode": "ordinary",
+  "source_sha256": "4684218e7110368e2122eff39a16dd792dea3bd335383cec6000507505831f77",
+  "bin_bytes": 201,
+  "bin_sha256": "2069e2a4b068f56d1426c2d842fe11ae982ed1b6ed20091fec977dfae8cd7e32",
+  "compile_commands": [
+    [
+      "/home/alice/dev/minz-artifacts/grace-tools/minzc-agon-entry",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/hello_agon.nanz",
+      "-b",
+      "ez80",
+      "-o",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-entry-console-replay/hello_agon/ordinary/program.bin"
+    ],
+    [
+      "/home/alice/dev/minz-artifacts/grace-tools/minzc-agon-entry",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/hello_agon.nanz",
+      "-b",
+      "ez80",
+      "-o",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-entry-console-replay/hello_agon/ordinary/program.asm"
+    ]
+  ],
+  "run_command": [
+    "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/agon-cli-emulator",
+    "--mos",
+    "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+    "--sdcard",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-entry-console-replay/hello_agon/ordinary/sdcard",
+    "--unlimited-cpu",
+    "--zero"
+  ],
+  "expected_body": "Hello from MinZ on Agon Light 2!\nPress any key: \nYou pressed a key!\n",
+  "exit_code": 0,
+  "exact_body_and_mos_return": true
+}

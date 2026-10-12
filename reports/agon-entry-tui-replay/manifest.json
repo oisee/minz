@@ -1,0 +1,70 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "434df3cf21280b9ee237cc99147adb08ff79645da40759c4077b2257101c1a91"
+  },
+  {
+    "path": "explicit_void/program.asm",
+    "sha256": "3c368f0f67de44541bdab4ba0cddbe4b461fce304d454be1ce598018067d7163"
+  },
+  {
+    "path": "explicit_void/program.bin",
+    "sha256": "73453d16cfb839ee7d8bed418a2c323dee313b0522b62fe0413302c93ed5bd25"
+  },
+  {
+    "path": "explicit_void/result.json",
+    "sha256": "85ad77cbdb1c73b9c11d4e06e290c04733133ee031334fdb9892de4f27d0b9f1"
+  },
+  {
+    "path": "explicit_void/sdcard/program.bin",
+    "sha256": "73453d16cfb839ee7d8bed418a2c323dee313b0522b62fe0413302c93ed5bd25"
+  },
+  {
+    "path": "explicit_void/source.nanz",
+    "sha256": "4aaa7d476cdae9cc3b5705c7a09722bd799c271ec441c358d9cf01f4ad429d0d"
+  },
+  {
+    "path": "explicit_void/stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "explicit_void/stdin.txt",
+    "sha256": "c25bb3a8c17d4b0a44c6cea64b72d977e6e91093a05d4df88979b8649493ed53"
+  },
+  {
+    "path": "explicit_void/stdout.txt",
+    "sha256": "afd98847527b84fdc8baf4df7db6b956ff2f8643d876e92969e8a7ebe3fc4490"
+  },
+  {
+    "path": "original_tui/program.asm",
+    "sha256": "10c1034aacdd55caf306d63c0e4f15158635a2ab4fbb7d93097e17ee37d0fa40"
+  },
+  {
+    "path": "original_tui/program.bin",
+    "sha256": "b8dcc47cd9d158918c45691b35d601397e42d88c6acec2b3c2ed5b98392dc02e"
+  },
+  {
+    "path": "original_tui/result.json",
+    "sha256": "85ad77cbdb1c73b9c11d4e06e290c04733133ee031334fdb9892de4f27d0b9f1"
+  },
+  {
+    "path": "original_tui/sdcard/program.bin",
+    "sha256": "b8dcc47cd9d158918c45691b35d601397e42d88c6acec2b3c2ed5b98392dc02e"
+  },
+  {
+    "path": "original_tui/source.nanz",
+    "sha256": "44f505b14ac4c5c674db470d9f81684aeaf078498c03ad267e81a05d13d25f90"
+  },
+  {
+    "path": "original_tui/stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "original_tui/stdin.txt",
+    "sha256": "c25bb3a8c17d4b0a44c6cea64b72d977e6e91093a05d4df88979b8649493ed53"
+  },
+  {
+    "path": "original_tui/stdout.txt",
+    "sha256": "afd98847527b84fdc8baf4df7db6b956ff2f8643d876e92969e8a7ebe3fc4490"
+  }
+]

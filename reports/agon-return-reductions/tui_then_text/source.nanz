@@ -1,0 +1,2 @@
+import agon.tui_render
+fun main() { draw_box(5,3,40,7) tui_puts(c"DONE\r\n") }

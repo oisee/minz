@@ -1,0 +1,6 @@
+{
+  "binary": "/home/alice/dev/minz-artifacts/grace-tools/minzc-agon-entry",
+  "sha256": "cd362d962ea7ca35fe971763ec7c8f423d66d87cccb18b8b36195011853580cf",
+  "command": "GOCACHE=/tmp/minz-grace-gocache go build -o <binary> ./cmd/minzc",
+  "base_commit": "fc9c8a356521e2416602e613f12ff0684bcc2e39"
+}

@@ -1,0 +1,2 @@
+ok  	github.com/minz/minzc/pkg/mir2	95.400s
+ok  	github.com/minz/minzc/pkg/z80asm	0.049s
