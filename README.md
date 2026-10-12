@@ -10,7 +10,7 @@ The project is active research: examples and targets have different levels of ma
 
 ## Compiler progress — October 2026
 
-[**Full report: MinZ today — Nanz, the other frontends, compiler layers, and verified Z80**](reports/2026-10-11-092-grace-vm-z80-status.md) (Russian). A readable tour of the shared pipeline, Grace, PFCCO/PBQP and register-allocation tables, with measured results and remaining gaps. Research-branch results are identified separately from what is available in `main`.
+[**Full report: MinZ today — Nanz, the other frontends, compiler layers, and verified Z80**](reports/2026-10-11-092-grace-vm-z80-status.md) (Russian). A readable tour of the shared pipeline, Grace, PFCCO/PBQP and register-allocation tables, with measured results and remaining gaps. Research-branch results are identified separately from what is available in `main`. Updated October 12: playable CP/M Tetris, Agon TUI on the full VDP with keyboard navigation and return to MOS, and the latest full-pipeline checkpoint.
 
 ## Run a program
 
