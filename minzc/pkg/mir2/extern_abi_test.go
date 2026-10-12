@@ -45,10 +45,13 @@ func TestZ80ExternalParameterStorage(t *testing.T) {
 	if _, e = Z80ExternParamLocations(f); e == nil {
 		t.Fatal("overlap explicitHL/H")
 	}
-	b, _ := json.Marshal(f.Contract.Params[0].ClassHard)
-	var clone bool
-	if json.Unmarshal(b, &clone) != nil || !clone {
+	b, _ := json.Marshal(f.Contract.Params[0])
+	var clone map[string]any
+	if json.Unmarshal(b, &clone) != nil || clone["ClassHard"] != true {
 		t.Fatal("ClassHard serialization")
+	}
+	if !strings.Contains((&Module{Funcs: []*Func{f}}).Dump(), "[pointer]!") {
+		t.Fatal("ClassHard dump")
 	}
 }
 func TestZ80ExternalFiveWordsAndSpillNative(t *testing.T) {
