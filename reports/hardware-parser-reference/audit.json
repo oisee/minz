@@ -1,0 +1,47 @@
+{
+  "schema": "minz.parser-reference-refresh/v1",
+  "compiler_checkpoint": "93cd3248",
+  "backend_change": "2dbe4355 (research 59f88d33)",
+  "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+  "before": {
+    "t_states": 1296226,
+    "bytes": 2377,
+    "binary_sha256": "a08a6d9ddb64bce02ad56ad492506e97ef647496184e48c57aa17ebf328a9de5"
+  },
+  "routes": [
+    {
+      "route": "target",
+      "calls": 30,
+      "ordered_events": 3017,
+      "t_states": 1288772,
+      "bytes": 2368,
+      "binary_sha256": "18fc65418c08440f3ae13a514b1bdeaf1b38f9774bb55a6076630a067672a241",
+      "source_mir_allocation_unchanged": true,
+      "all_observations_equal_except_steps": true
+    },
+    {
+      "route": "factory",
+      "calls": 30,
+      "ordered_events": 3017,
+      "t_states": 1288772,
+      "bytes": 2368,
+      "binary_sha256": "18fc65418c08440f3ae13a514b1bdeaf1b38f9774bb55a6076630a067672a241",
+      "source_mir_allocation_unchanged": true,
+      "all_observations_equal_except_steps": true
+    },
+    {
+      "route": "association",
+      "calls": 30,
+      "ordered_events": 3017,
+      "t_states": 1288772,
+      "bytes": 2368,
+      "binary_sha256": "18fc65418c08440f3ae13a514b1bdeaf1b38f9774bb55a6076630a067672a241",
+      "source_mir_allocation_unchanged": true,
+      "all_observations_equal_except_steps": true
+    }
+  ],
+  "independent_oracle": "assertMemoryHostParserIndependentOracle (Go source model); executes before fixed-cost assertion on all three routes",
+  "state_equality_exclusions": [
+    "steps (executed instruction count; not semantic state)"
+  ]
+}

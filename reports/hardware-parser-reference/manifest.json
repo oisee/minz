@@ -1,0 +1,84 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 3459,
+      "sha256": "b9f90a44d4e48441173dadaa5379d9bc0ea68e667d3fca32189f64d6a7bd458c"
+    },
+    {
+      "path": "after/allocation.json",
+      "bytes": 21286,
+      "sha256": "3a5e5e1fd7f23f854888334f5341c35658c4c2cd6810124c246bfa496fbfd843"
+    },
+    {
+      "path": "after/final.mir2",
+      "bytes": 30650,
+      "sha256": "40922d27adaa1e529f57ab7a9124d70c4e888a66b05d0708753326ab21642e64"
+    },
+    {
+      "path": "after/source.nanz",
+      "bytes": 7164,
+      "sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+    },
+    {
+      "path": "after/target.a80",
+      "bytes": 36424,
+      "sha256": "76ded80a814acc092c57682224c59dee8b26b1e9c232aea0307f0ed5056cd251"
+    },
+    {
+      "path": "after/target.bin",
+      "bytes": 2368,
+      "sha256": "18fc65418c08440f3ae13a514b1bdeaf1b38f9774bb55a6076630a067672a241"
+    },
+    {
+      "path": "assembly.diff",
+      "bytes": 2808,
+      "sha256": "b364dd9ec48cc806db0592611e0b6a7a0f8142980329917d6e1676f623898c41"
+    },
+    {
+      "path": "audit.json",
+      "bytes": 1613,
+      "sha256": "14fe2bc2b530f6b65a3308c15c3b105840c43b6a4bb08c41313eee0fc826eb31"
+    },
+    {
+      "path": "before/allocation.json",
+      "bytes": 21286,
+      "sha256": "3a5e5e1fd7f23f854888334f5341c35658c4c2cd6810124c246bfa496fbfd843"
+    },
+    {
+      "path": "before/final.mir2",
+      "bytes": 30650,
+      "sha256": "40922d27adaa1e529f57ab7a9124d70c4e888a66b05d0708753326ab21642e64"
+    },
+    {
+      "path": "before/source.nanz",
+      "bytes": 7164,
+      "sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+    },
+    {
+      "path": "before/target.a80",
+      "bytes": 36573,
+      "sha256": "138fd65ae51ee03c970c3d94ab26336c4ddda5ec9a1229baae126b702c1d48ca"
+    },
+    {
+      "path": "before/target.bin",
+      "bytes": 2377,
+      "sha256": "a08a6d9ddb64bce02ad56ad492506e97ef647496184e48c57aa17ebf328a9de5"
+    },
+    {
+      "path": "reference-after.txt",
+      "bytes": 522,
+      "sha256": "258f428316ca67c8e6734a0c9731e38b176d17f0dfefa6f98d509ba16e25dd2c"
+    },
+    {
+      "path": "reference-before.txt",
+      "bytes": 806,
+      "sha256": "5000e4898713c35ef3913061b4410e3ebed4d73f448ce06c0628072a175e782e"
+    },
+    {
+      "path": "unit-native.txt",
+      "bytes": 2476,
+      "sha256": "44c5b3996e1a152564e80181d7b5e9b4a774f5b1a0de39db4892bec12dc48fdd"
+    }
+  ]
+}

@@ -1,0 +1,187 @@
+--- before/target.a80
++++ after/target.a80
+@@ -85,7 +85,9 @@
+     OUT (0x23), A
+     POP AF
+     LD HL, 1
+-    ADD HL, DE
++    LD H, D
++    LD L, E
++    INC HL
+     DEC A
+     LD D, H
+     LD E, L
+@@ -110,7 +112,9 @@
+     OUT (0x23), A
+     POP AF
+     LD HL, 1
+-    ADD HL, DE
++    LD H, D
++    LD L, E
++    INC HL
+     DEC A
+     LD D, H
+     LD E, L
+@@ -142,7 +146,9 @@
+     OUT (0x23), A
+     POP AF
+     LD HL, 1
+-    ADD HL, BC
++    PUSH BC
++    POP HL
++    INC HL
+     DEC A
+     LD B, H
+     LD C, L
+@@ -174,7 +180,9 @@
+     OUT (0x23), A
+     POP AF
+     LD HL, 1
+-    ADD HL, DE
++    LD H, D
++    LD L, E
++    INC HL
+     DEC A
+     LD D, H
+     LD E, L
+@@ -256,7 +264,9 @@
+     OUT (0x23), A
+     POP AF
+     LD HL, 1
+-    ADD HL, DE
++    LD H, D
++    LD L, E
++    INC HL
+     DEC A
+     LD D, H
+     LD E, L
+@@ -328,7 +338,9 @@
+     OUT (0x23), A
+     POP AF
+     LD HL, 1
+-    ADD HL, DE
++    LD H, D
++    LD L, E
++    INC HL
+     DEC A
+     LD D, H
+     LD E, L
+@@ -531,10 +543,8 @@
+ .region_match_loop_body2:
+     LD BC, 1
+     PUSH HL
+-    ADD HL, BC
+-    PUSH HL
+-    POP BC
+-    POP HL
++    POP BC
++    INC BC
+     PUSH AF
+     LD A, IYH
+     PUSH AF
+@@ -904,16 +914,8 @@
+     POP BC
+     LD IY, 1
+     PUSH HL
+-    PUSH DE
+-    PUSH DE
+-    LD D, IYH
+-    LD E, IYL
+-    ADD HL, DE
+-    POP DE
+-    PUSH HL
+     POP IY
+-    POP DE
+-    POP HL
++    INC IY
+     PUSH HL
+     PUSH DE
+     POP HL
+@@ -1099,7 +1101,9 @@
+ ; fun node_d0(n: u16 = DE) -> u16 = HL ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+ node_d0:
+     LD HL, 1
+-    ADD HL, DE
++    LD H, D
++    LD L, E
++    INC HL
+     ; genCall: peek dst=217
+     PUSH DE
+     CALL peek
+@@ -1498,11 +1502,9 @@
+     RET NC
+ .print_str_loop_body2:
+     LD DE, 1
+-    PUSH HL
+-    ADD HL, DE
+-    LD D, H
+-    LD E, L
+-    POP HL
++    LD D, H
++    LD E, L
++    INC DE
+     PUSH AF
+     LD A, IXH
+     PUSH AF
+@@ -1643,13 +1645,9 @@
+     OUT (0x23), A
+     POP AF
+     LD DE, 1
+-    PUSH HL
+-    PUSH BC
+-    POP HL
+-    ADD HL, DE
+-    LD D, H
+-    LD E, L
+-    POP HL
++    PUSH BC
++    POP DE
++    INC DE
+     DEC A
+     LD B, D
+     LD C, E
+@@ -1677,13 +1675,9 @@
+     LD DE, _mir2_str_1
+     LD A, (DE)
+     LD BC, 1
+-    PUSH HL
+-    LD H, D
+-    LD L, E
+-    ADD HL, BC
+-    PUSH HL
+-    POP BC
+-    POP HL
++    PUSH DE
++    POP BC
++    INC BC
+ .print_node_loop_head21:
+     AND A
+     JRS Z, .print_node_loop_exit23
+@@ -1698,13 +1692,9 @@
+     OUT (0x23), A
+     POP AF
+     LD DE, 1
+-    PUSH HL
+-    PUSH BC
+-    POP HL
+-    ADD HL, DE
+-    LD D, H
+-    LD E, L
+-    POP HL
++    PUSH BC
++    POP DE
++    INC DE
+     DEC A
+     LD B, D
+     LD C, E
+@@ -1745,7 +1735,9 @@
+     OUT (0x23), A
+     POP AF
+     LD HL, 1
+-    ADD HL, DE
++    LD H, D
++    LD L, E
++    INC HL
+     DEC A
+     LD D, H
+     LD E, L

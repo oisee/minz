@@ -1,0 +1,9 @@
+=== RUN   TestMemoryHostFactoryOriginalParser
+--- PASS: TestMemoryHostFactoryOriginalParser (1.53s)
+=== RUN   TestMemoryHostLoopAssociationOriginalParser
+--- PASS: TestMemoryHostLoopAssociationOriginalParser (3.61s)
+=== RUN   TestMemoryHostOriginalSelfLanzTarget
+    memory_host_target_test.go:76: production memory host original30 1288772T/2368B SHA18fc65418c08440f3ae13a514b1bdeaf1b38f9774bb55a6076630a067672a241
+--- PASS: TestMemoryHostOriginalSelfLanzTarget (0.93s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	6.071s

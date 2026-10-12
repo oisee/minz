@@ -199,8 +199,14 @@ fun load(addr:u16)->u8{return peek(addr)}
 
 func assertMemoryHostParserIndependentOracle(t *testing.T, runs ...[]hir.MemoryHostObservation) {
 	t.Helper()
+	inputs := lanzBaselineInputs()
+	for _, run := range runs {
+		if len(run) != len(inputs) {
+			t.Fatalf("independent parser invocation count %d, want %d", len(run), len(inputs))
+		}
+	}
 	host := newLanzHost()
-	for i, input := range lanzBaselineInputs() {
+	for i, input := range inputs {
 		clear(host.ram[0xc000:0xd000])
 		copy(host.ram[0xc000:], []byte(input))
 		host.pos = 0

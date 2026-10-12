@@ -122,9 +122,12 @@ fun same_two()->u16{return 7}`
 
 // This checkpoint was refreshed only after exact source/host state/event
 // equivalence and factory/instrumented native artifact equality were proven.
+// The relocated unit-RHS correction (2dbe4355) changes only native emission;
+// reports/hardware-parser-reference retains unchanged source/MIR/allocation,
+// old/new ASM/BIN, and all three route comparisons.
 func assertCurrentMemoryHostParserReference(t *testing.T, target *MemoryHostTargetEvidence) {
 	t.Helper()
-	if target.TotalTStates != 1296226 || len(target.Binary) != 2377 || target.BinarySHA256 != "a08a6d9ddb64bce02ad56ad492506e97ef647496184e48c57aa17ebf328a9de5" {
+	if target.TotalTStates != 1288772 || len(target.Binary) != 2368 || target.BinarySHA256 != "18fc65418c08440f3ae13a514b1bdeaf1b38f9774bb55a6076630a067672a241" {
 		t.Fatal("current parser target drift", target.TotalTStates, len(target.Binary), target.BinarySHA256)
 	}
 	if fmt.Sprintf("%x", sha256.Sum256(target.Binary)) != target.BinarySHA256 {
