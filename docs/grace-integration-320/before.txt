@@ -1,0 +1,10 @@
+--- FAIL: TestExternalWordAddressOffset (0.00s)
+    address_offset_test.go:9: valid external address "_inbuf+2" rejected: [line 2: LD HL, _inbuf+2 — unknown instruction or invalid operands: LD]
+    address_offset_test.go:14: address "_inbuf+2" collected as labels map[_inbuf+2:true]
+    address_offset_test.go:9: valid external address "_inbuf + 2" rejected: [line 2: LD HL, _inbuf + 2 — unknown instruction or invalid operands: LD]
+    address_offset_test.go:14: address "_inbuf + 2" collected as labels map[_inbuf + 2:true]
+    address_offset_test.go:9: valid external address "_inbuf^H" rejected: [line 2: LD HL, _inbuf^H — unknown instruction or invalid operands: LD]
+    address_offset_test.go:14: address "_inbuf^H" collected as labels map[_inbuf^H:true]
+FAIL
+FAIL	github.com/minz/minzc/pkg/z80validate	0.003s
+FAIL

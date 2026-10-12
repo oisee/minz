@@ -1,0 +1,2 @@
+ok  	github.com/minz/minzc/pkg/z80validate	0.003s
+ok  	github.com/minz/minzc/pkg/z80asm	0.043s

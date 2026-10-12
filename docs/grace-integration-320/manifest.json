@@ -1,0 +1,20 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "90f43205f8dc1fecd59cd2a11f926e6a725449da5e6b0907045cf00ab2ea922f"
+    },
+    {
+      "path": "assembler-validator.txt",
+      "sha256": "5476afc6ec10b031ba8d3e3da2441f038f481768a844073df95daa2656bd30fb"
+    },
+    {
+      "path": "before.txt",
+      "sha256": "2d4f371638f9aa4b7dcfa319f0feeb2f3621a58b211e5f719bacc075eb8e877f"
+    },
+    {
+      "path": "sql-root.txt",
+      "sha256": "cc910881d671a3bf677c79ce7d65af249a68ea7ef2ba5d49d78893fcd696f9ab"
+    }
+  ]
+}

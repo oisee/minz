@@ -273,7 +273,10 @@ func CollectBranchTargets(line string, refs map[string]bool) {
 				}
 			} else if !strings.HasPrefix(rest, "$") && !strings.HasPrefix(rest, "0") &&
 				(rest[0] < '0' || rest[0] > '9') {
-				refs[rest] = true
+				label := stripLabelModifiers(rest)
+				if label != "" && !strings.ContainsAny(label, " \t()") {
+					refs[label] = true
+				}
 			}
 			return
 		}
