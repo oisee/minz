@@ -1,0 +1,10 @@
+=== RUN   TestReadmeCPMRuntimeAdmission
+=== RUN   TestReadmeCPMRuntimeAdmission/hello_cpm
+    readme_cpm_runtime_test.go:37: CP/M runtime rejects ASM and fixed-address extern functions
+=== RUN   TestReadmeCPMRuntimeAdmission/hello_cpm_fib
+    readme_cpm_runtime_test.go:37: CP/M runtime rejects ASM and fixed-address extern functions
+--- PASS: TestReadmeCPMRuntimeAdmission (0.00s)
+    --- PASS: TestReadmeCPMRuntimeAdmission/hello_cpm (0.00s)
+    --- PASS: TestReadmeCPMRuntimeAdmission/hello_cpm_fib (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.011s
