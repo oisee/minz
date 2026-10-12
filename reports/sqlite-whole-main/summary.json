@@ -1,0 +1,44 @@
+[
+  {
+    "path": "native/grace-size/false/result.json",
+    "bytes": 1670,
+    "native_t_states_excluding_test_bdos": 12173,
+    "stdout": "Open...\nExec...\nQuery...\nStep1...\nAlice\nStep2...\nBob\nDone.\n",
+    "min_sp": 61432
+  },
+  {
+    "path": "native/grace-size/true/result.json",
+    "bytes": 1670,
+    "native_t_states_excluding_test_bdos": 12173,
+    "stdout": "Open...\nExec...\nQuery...\nStep1...\nAlice\nStep2...\nBob\nDone.\n",
+    "min_sp": 61432
+  },
+  {
+    "path": "native/grace-speed/false/result.json",
+    "bytes": 1670,
+    "native_t_states_excluding_test_bdos": 12173,
+    "stdout": "Open...\nExec...\nQuery...\nStep1...\nAlice\nStep2...\nBob\nDone.\n",
+    "min_sp": 61432
+  },
+  {
+    "path": "native/grace-speed/true/result.json",
+    "bytes": 1670,
+    "native_t_states_excluding_test_bdos": 12173,
+    "stdout": "Open...\nExec...\nQuery...\nStep1...\nAlice\nStep2...\nBob\nDone.\n",
+    "min_sp": 61432
+  },
+  {
+    "path": "native/ordinary/false/result.json",
+    "bytes": 1670,
+    "native_t_states_excluding_test_bdos": 12173,
+    "stdout": "Open...\nExec...\nQuery...\nStep1...\nAlice\nStep2...\nBob\nDone.\n",
+    "min_sp": 61432
+  },
+  {
+    "path": "native/ordinary/true/result.json",
+    "bytes": 1670,
+    "native_t_states_excluding_test_bdos": 12173,
+    "stdout": "Open...\nExec...\nQuery...\nStep1...\nAlice\nStep2...\nBob\nDone.\n",
+    "min_sp": 61432
+  }
+]
