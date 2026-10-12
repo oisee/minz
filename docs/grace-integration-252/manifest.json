@@ -1,0 +1,12 @@
+{
+  "files": {
+    "pipeline-full.txt": {
+      "sha256": "25d5b3039236b02c727ea7a925792adf26cc11b16c04f187706b940d03a4c3d5",
+      "bytes": 25451
+    },
+    "README.md": {
+      "sha256": "a9262f296f768d6df47db6c3e8907a061008c25ff67e9b3d59bd1036cd5984a2",
+      "bytes": 1448
+    }
+  }
+}
