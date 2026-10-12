@@ -1,0 +1,732 @@
+[
+  {
+    "Name": "peek",
+    "Bytes": 70,
+    "Contract": {
+      "Params": [
+        {
+          "Name": "addr",
+          "Reg": 1,
+          "Ty": {},
+          "Class": 8
+        }
+      ],
+      "Returns": [
+        {
+          "Ty": {},
+          "Class": 1,
+          "FlagCond": 0
+        }
+      ],
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": [
+      "HL"
+    ]
+  },
+  {
+    "Name": "poke",
+    "Bytes": 70,
+    "Contract": {
+      "Params": [
+        {
+          "Name": "addr",
+          "Reg": 2,
+          "Ty": {},
+          "Class": 8
+        },
+        {
+          "Name": "val",
+          "Reg": 3,
+          "Ty": {},
+          "Class": 0
+        }
+      ],
+      "Returns": null,
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": [
+      "HL",
+      "C"
+    ]
+  },
+  {
+    "Name": "str_alloc_2",
+    "Bytes": 70,
+    "Contract": {
+      "Params": [
+        {
+          "Name": "a",
+          "Reg": 4,
+          "Ty": {},
+          "Class": 1
+        },
+        {
+          "Name": "b",
+          "Reg": 5,
+          "Ty": {},
+          "Class": 0
+        }
+      ],
+      "Returns": [
+        {
+          "Ty": {},
+          "Class": 8,
+          "FlagCond": 0
+        }
+      ],
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": [
+      "A",
+      "C"
+    ]
+  },
+  {
+    "Name": "str_alloc_3",
+    "Bytes": 88,
+    "Contract": {
+      "Params": [
+        {
+          "Name": "a",
+          "Reg": 18,
+          "Ty": {},
+          "Class": 1
+        },
+        {
+          "Name": "b",
+          "Reg": 19,
+          "Ty": {},
+          "Class": 0
+        },
+        {
+          "Name": "c",
+          "Reg": 20,
+          "Ty": {},
+          "Class": 2
+        }
+      ],
+      "Returns": [
+        {
+          "Ty": {},
+          "Class": 8,
+          "FlagCond": 0
+        }
+      ],
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": [
+      "A",
+      "C",
+      "B"
+    ]
+  },
+  {
+    "Name": "str_alloc_4",
+    "Bytes": 121,
+    "Contract": {
+      "Params": [
+        {
+          "Name": "a",
+          "Reg": 35,
+          "Ty": {},
+          "Class": 1
+        },
+        {
+          "Name": "b",
+          "Reg": 36,
+          "Ty": {},
+          "Class": 0
+        },
+        {
+          "Name": "c",
+          "Reg": 37,
+          "Ty": {},
+          "Class": 2
+        },
+        {
+          "Name": "d",
+          "Reg": 38,
+          "Ty": {},
+          "Class": 0
+        }
+      ],
+      "Returns": [
+        {
+          "Ty": {},
+          "Class": 8,
+          "FlagCond": 0
+        }
+      ],
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": [
+      "A",
+      "C",
+      "B",
+      "IXH"
+    ]
+  },
+  {
+    "Name": "str_alloc_5",
+    "Bytes": 142,
+    "Contract": {
+      "Params": [
+        {
+          "Name": "a",
+          "Reg": 55,
+          "Ty": {},
+          "Class": 1
+        },
+        {
+          "Name": "b",
+          "Reg": 56,
+          "Ty": {},
+          "Class": 0
+        },
+        {
+          "Name": "c",
+          "Reg": 57,
+          "Ty": {},
+          "Class": 2
+        },
+        {
+          "Name": "d",
+          "Reg": 58,
+          "Ty": {},
+          "Class": 0
+        },
+        {
+          "Name": "e",
+          "Reg": 59,
+          "Ty": {},
+          "Class": 0
+        }
+      ],
+      "Returns": [
+        {
+          "Ty": {},
+          "Class": 8,
+          "FlagCond": 0
+        }
+      ],
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": [
+      "A",
+      "C",
+      "B",
+      "IXH",
+      "IXL"
+    ]
+  },
+  {
+    "Name": "str_alloc_6",
+    "Bytes": 183,
+    "Contract": {
+      "Params": [
+        {
+          "Name": "a",
+          "Reg": 78,
+          "Ty": {},
+          "Class": 1
+        },
+        {
+          "Name": "b",
+          "Reg": 79,
+          "Ty": {},
+          "Class": 0
+        },
+        {
+          "Name": "c",
+          "Reg": 80,
+          "Ty": {},
+          "Class": 2
+        },
+        {
+          "Name": "d",
+          "Reg": 81,
+          "Ty": {},
+          "Class": 0
+        },
+        {
+          "Name": "e",
+          "Reg": 82,
+          "Ty": {},
+          "Class": 0
+        },
+        {
+          "Name": "f",
+          "Reg": 83,
+          "Ty": {},
+          "Class": 0
+        }
+      ],
+      "Returns": [
+        {
+          "Ty": {},
+          "Class": 8,
+          "FlagCond": 0
+        }
+      ],
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": [
+      "A",
+      "C",
+      "B",
+      "IXH",
+      "IXL",
+      "IYH"
+    ]
+  },
+  {
+    "Name": "str_len",
+    "Bytes": 70,
+    "Contract": {
+      "Params": [
+        {
+          "Name": "s",
+          "Reg": 104,
+          "Ty": {},
+          "Class": 8
+        }
+      ],
+      "Returns": [
+        {
+          "Ty": {},
+          "Class": 1,
+          "FlagCond": 0
+        }
+      ],
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": [
+      "HL"
+    ]
+  },
+  {
+    "Name": "str_eq",
+    "Bytes": 164,
+    "Contract": {
+      "Params": [
+        {
+          "Name": "a",
+          "Reg": 106,
+          "Ty": {},
+          "Class": 8
+        },
+        {
+          "Name": "b",
+          "Reg": 107,
+          "Ty": {},
+          "Class": 10
+        }
+      ],
+      "Returns": [
+        {
+          "Ty": {},
+          "Class": 1,
+          "FlagCond": 0
+        }
+      ],
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": [
+      "HL",
+      "DE"
+    ]
+  },
+  {
+    "Name": "region_eq",
+    "Bytes": 131,
+    "Contract": {
+      "Params": [
+        {
+          "Name": "src_start",
+          "Reg": 135,
+          "Ty": {},
+          "Class": 8
+        },
+        {
+          "Name": "arena_ptr",
+          "Reg": 136,
+          "Ty": {},
+          "Class": 9
+        },
+        {
+          "Name": "len",
+          "Reg": 137,
+          "Ty": {},
+          "Class": 2
+        }
+      ],
+      "Returns": [
+        {
+          "Ty": {},
+          "Class": 1,
+          "FlagCond": 0
+        }
+      ],
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": [
+      "HL",
+      "DE",
+      "B"
+    ]
+  },
+  {
+    "Name": "intern",
+    "Bytes": 376,
+    "Contract": {
+      "Params": [
+        {
+          "Name": "start",
+          "Reg": 160,
+          "Ty": {},
+          "Class": 8
+        },
+        {
+          "Name": "len",
+          "Reg": 161,
+          "Ty": {},
+          "Class": 0
+        }
+      ],
+      "Returns": [
+        {
+          "Ty": {},
+          "Class": 8,
+          "FlagCond": 0
+        }
+      ],
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": [
+      "DE",
+      "C"
+    ]
+  },
+  {
+    "Name": "is_digit",
+    "Bytes": 18,
+    "Contract": {
+      "Params": [
+        {
+          "Name": "c",
+          "Reg": 214,
+          "Ty": {},
+          "Class": 1
+        }
+      ],
+      "Returns": [
+        {
+          "Ty": {},
+          "Class": 1,
+          "FlagCond": 0
+        }
+      ],
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": [
+      "A"
+    ]
+  },
+  {
+    "Name": "is_alpha",
+    "Bytes": 38,
+    "Contract": {
+      "Params": [
+        {
+          "Name": "c",
+          "Reg": 221,
+          "Ty": {},
+          "Class": 1
+        }
+      ],
+      "Returns": [
+        {
+          "Ty": {},
+          "Class": 1,
+          "FlagCond": 0
+        }
+      ],
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": [
+      "A"
+    ]
+  },
+  {
+    "Name": "is_alnum",
+    "Bytes": 17,
+    "Contract": {
+      "Params": [
+        {
+          "Name": "c",
+          "Reg": 236,
+          "Ty": {},
+          "Class": 1
+        }
+      ],
+      "Returns": [
+        {
+          "Ty": {},
+          "Class": 1,
+          "FlagCond": 0
+        }
+      ],
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": [
+      "B"
+    ]
+  },
+  {
+    "Name": "is_space",
+    "Bytes": 29,
+    "Contract": {
+      "Params": [
+        {
+          "Name": "c",
+          "Reg": 244,
+          "Ty": {},
+          "Class": 1
+        }
+      ],
+      "Returns": [
+        {
+          "Ty": {},
+          "Class": 1,
+          "FlagCond": 0
+        }
+      ],
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": [
+      "A"
+    ]
+  },
+  {
+    "Name": "peek_char",
+    "Bytes": 28,
+    "Contract": {
+      "Params": null,
+      "Returns": [
+        {
+          "Ty": {},
+          "Class": 1,
+          "FlagCond": 0
+        }
+      ],
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": null
+  },
+  {
+    "Name": "skip_ws",
+    "Bytes": 23,
+    "Contract": {
+      "Params": null,
+      "Returns": null,
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": null
+  },
+  {
+    "Name": "skip_comment",
+    "Bytes": 41,
+    "Contract": {
+      "Params": null,
+      "Returns": null,
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": null
+  },
+  {
+    "Name": "emit",
+    "Bytes": 103,
+    "Contract": {
+      "Params": [
+        {
+          "Name": "typ",
+          "Reg": 296,
+          "Ty": {},
+          "Class": 1
+        },
+        {
+          "Name": "str_ptr",
+          "Reg": 297,
+          "Ty": {},
+          "Class": 9
+        }
+      ],
+      "Returns": null,
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": [
+      "A",
+      "DE"
+    ]
+  },
+  {
+    "Name": "classify",
+    "Bytes": 162,
+    "Contract": {
+      "Params": [
+        {
+          "Name": "str_ptr",
+          "Reg": 323,
+          "Ty": {},
+          "Class": 8
+        }
+      ],
+      "Returns": [
+        {
+          "Ty": {},
+          "Class": 1,
+          "FlagCond": 0
+        }
+      ],
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": [
+      "DE"
+    ]
+  },
+  {
+    "Name": "scan",
+    "Bytes": 1004,
+    "Contract": {
+      "Params": null,
+      "Returns": [
+        {
+          "Ty": {},
+          "Class": 1,
+          "FlagCond": 0
+        }
+      ],
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": null
+  },
+  {
+    "Name": "init_keywords",
+    "Bytes": 370,
+    "Contract": {
+      "Params": null,
+      "Returns": null,
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": null
+  },
+  {
+    "Name": "tokenize_all",
+    "Bytes": 39,
+    "Contract": {
+      "Params": null,
+      "Returns": [
+        {
+          "Ty": {},
+          "Class": 8,
+          "FlagCond": 0
+        }
+      ],
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": null
+  },
+  {
+    "Name": "print_str",
+    "Bytes": 109,
+    "Contract": {
+      "Params": [
+        {
+          "Name": "s",
+          "Reg": 883,
+          "Ty": {},
+          "Class": 8
+        }
+      ],
+      "Returns": null,
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": [
+      "HL"
+    ]
+  },
+  {
+    "Name": "tok_name",
+    "Bytes": 985,
+    "Contract": {
+      "Params": [
+        {
+          "Name": "typ",
+          "Reg": 898,
+          "Ty": {},
+          "Class": 1
+        },
+        {
+          "Name": "str_ptr",
+          "Reg": 899,
+          "Ty": {},
+          "Class": 10
+        }
+      ],
+      "Returns": null,
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": [
+      "A",
+      "BC"
+    ]
+  },
+  {
+    "Name": "print_all_tokens",
+    "Bytes": 378,
+    "Contract": {
+      "Params": null,
+      "Returns": null,
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": null
+  },
+  {
+    "Name": "main",
+    "Bytes": 846,
+    "Contract": {
+      "Params": null,
+      "Returns": null,
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "ParamHomes": null
+  }
+]

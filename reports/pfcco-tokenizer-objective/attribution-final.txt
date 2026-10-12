@@ -1,0 +1,4 @@
+=== RUN   TestTokenizerContractObjectiveAttribution
+--- PASS: TestTokenizerContractObjectiveAttribution (1.14s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.153s

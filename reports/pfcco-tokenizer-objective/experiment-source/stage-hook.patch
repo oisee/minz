@@ -1,0 +1,47 @@
+diff --git a/minzc/pkg/pipeline/pipeline.go b/minzc/pkg/pipeline/pipeline.go
+index 37031076..f5bf52f8 100644
+--- a/minzc/pkg/pipeline/pipeline.go
++++ b/minzc/pkg/pipeline/pipeline.go
+@@ -101,6 +101,8 @@ type Options struct {
+ 	ContractOpt bool
+ 	// ContractStrategy opts into joint PFCCO choices; empty keeps greedy.
+ 	ContractStrategy string `json:",omitempty"`
++	// Internal bounded ABI experiment; no public mutation callback/default.
++	contractRefinement *contractRefinement
+ 	// AnnotateTStates adds T-state cost comments to every Z80 instruction line.
+ 	AnnotateTStates bool
+ 	// FuseByteWords opts into effect-safe sequential little-endian byte fusion.
+@@ -363,6 +365,9 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
+ 		cs := optimizePipelineContracts(m, ct, opt.ContractStrategy)
+ 		mir2.ApplyContracts(m, cs)
+ 	}
++	if err := applyContractRefinement(m, opt); err != nil {
++		return s, err
++	}
+ 
+ 	// Module-level: replace ranged-param pure functions with LUTs.
+ 	// Must run AFTER contract optimisation — LUT synthesis inherits the
+@@ -506,6 +511,9 @@ func CompileHIR(hm *hir.Module) (string, error) {
+ // CompileHIRWithOptions runs the HIR→MIR2→Z80 pipeline with explicit options.
+ // Use this to compare output with/without specific optimisation passes.
+ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
++	if opts.contractRefinement != nil {
++		return "", fmt.Errorf("experimental contract refinement requires CompileHIRSteps")
++	}
+ 	if err := hir.ResolveErrorABI(hm); err != nil {
+ 		return "", err
+ 	}
+diff --git a/minzc/pkg/pipeline/profile.go b/minzc/pkg/pipeline/profile.go
+index 3d07f5ea..b6cd8303 100644
+--- a/minzc/pkg/pipeline/profile.go
++++ b/minzc/pkg/pipeline/profile.go
+@@ -23,6 +23,9 @@ type ProfileSelection struct {
+ // the entire ProfileSelection request are excluded. Only measured default JRS
+ // policy is supported.
+ func ProfileCompilationID(options Options, mode string) (string, error) {
++	if options.contractRefinement != nil {
++		return "", fmt.Errorf("experimental contract refinement is not a public profile mode")
++	}
+ 	if err := ValidateContractStrategy(options); err != nil {
+ 		return "", err
+ 	}

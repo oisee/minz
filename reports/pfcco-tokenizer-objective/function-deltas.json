@@ -1,0 +1,116 @@
+[
+  {
+    "name": "str_alloc_2",
+    "greedy_bytes": 70,
+    "pbqp_bytes": 70,
+    "delta": 0,
+    "greedy_homes": [
+      "A",
+      "C"
+    ],
+    "pbqp_homes": [
+      "C",
+      "A"
+    ]
+  },
+  {
+    "name": "str_alloc_3",
+    "greedy_bytes": 88,
+    "pbqp_bytes": 90,
+    "delta": 2,
+    "greedy_homes": [
+      "A",
+      "C",
+      "B"
+    ],
+    "pbqp_homes": [
+      "C",
+      "A",
+      "B"
+    ]
+  },
+  {
+    "name": "str_alloc_4",
+    "greedy_bytes": 121,
+    "pbqp_bytes": 123,
+    "delta": 2,
+    "greedy_homes": [
+      "A",
+      "C",
+      "B",
+      "IXH"
+    ],
+    "pbqp_homes": [
+      "C",
+      "A",
+      "B",
+      "IXH"
+    ]
+  },
+  {
+    "name": "str_alloc_5",
+    "greedy_bytes": 142,
+    "pbqp_bytes": 144,
+    "delta": 2,
+    "greedy_homes": [
+      "A",
+      "C",
+      "B",
+      "IXH",
+      "IXL"
+    ],
+    "pbqp_homes": [
+      "C",
+      "A",
+      "B",
+      "IXH",
+      "IXL"
+    ]
+  },
+  {
+    "name": "str_alloc_6",
+    "greedy_bytes": 183,
+    "pbqp_bytes": 185,
+    "delta": 2,
+    "greedy_homes": [
+      "A",
+      "C",
+      "B",
+      "IXH",
+      "IXL",
+      "IYH"
+    ],
+    "pbqp_homes": [
+      "C",
+      "A",
+      "B",
+      "IXH",
+      "IXL",
+      "IYH"
+    ]
+  },
+  {
+    "name": "region_eq",
+    "greedy_bytes": 131,
+    "pbqp_bytes": 131,
+    "delta": 0,
+    "greedy_homes": [
+      "HL",
+      "DE",
+      "B"
+    ],
+    "pbqp_homes": [
+      "HL",
+      "DE",
+      "C"
+    ]
+  },
+  {
+    "name": "init_keywords",
+    "greedy_bytes": 370,
+    "pbqp_bytes": 490,
+    "delta": 120,
+    "greedy_homes": null,
+    "pbqp_homes": null
+  }
+]
