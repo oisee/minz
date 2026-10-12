@@ -1,0 +1,437 @@
+; HIR module: screen_alv.nanz
+global const @SCREEN_NONE : u8
+global const @SCREEN_EXECUTE : u8
+global const @SCREEN_BACK : u8
+global @_scr_title : ptr
+global @_scr_nfields : u8
+global @_scr_focus : u8
+global @_buf_filter : [12]u8
+global @_tbl_data : [184]u8
+global @_tbl_nrows : u8
+global const @TBL_OFF_MATNR : u16
+global const @TBL_OFF_MTART : u16
+global const @TBL_OFF_MEINS : u16
+global const @TBL_ROW_SIZE : u16
+global const @TBL_MAX_ROWS : u8
+string #0 = "Material List"
+string #1 = "  "
+string #2 = "Filter"
+string #3 = "F8=Execute"
+string #4 = "F3=Back"
+string #5 = "  TAB=Next  Enter=Edit  F8=Execute  F3=Back"
+string #6 = "MATNR"
+string #7 = "MTART"
+string #8 = "MEINS"
+string #9 = "MAT-001"
+string #10 = "FERT"
+string #11 = "ST"
+string #12 = "MAT-002"
+string #13 = "HALB"
+string #14 = "KG"
+string #15 = "MAT-003"
+string #16 = "ROH"
+string #17 = "L"
+string #18 = "MAT-004"
+string #19 = "MAT-005"
+string #20 = "VERP"
+string #21 = "PC"
+string #22 = "Filter: "
+string #23 = "\nRows: "
+string #24 = "\n"
+
+fun @tui__render___tui_bdos_putchar(ch: u8)
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render___tui_esc()
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render___tui_print_dec(val: u8)
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render__tui_goto(x: u8, y: u8)
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render__tui_color(fg: u8, bg: u8, bright: u8)
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render__tui_reset()
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render__tui_clear()
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render__tui_putch(ch: u8)
+  if ((ch:u8) == 1:u8):bool
+    call @tui__render___tui_bdos_putchar(43:u8):void
+    return
+  if ((ch:u8) == 2:u8):bool
+    call @tui__render___tui_bdos_putchar(43:u8):void
+    return
+  if ((ch:u8) == 3:u8):bool
+    call @tui__render___tui_bdos_putchar(43:u8):void
+    return
+  if ((ch:u8) == 4:u8):bool
+    call @tui__render___tui_bdos_putchar(43:u8):void
+    return
+  if ((ch:u8) == 5:u8):bool
+    call @tui__render___tui_bdos_putchar(45:u8):void
+    return
+  if ((ch:u8) == 6:u8):bool
+    call @tui__render___tui_bdos_putchar(124:u8):void
+    return
+  call @tui__render___tui_bdos_putchar((ch:u8)):void
+
+fun @tui__render__tui_puts(str: ptr)
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render__tui_read_key() -> u8
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render__tui_read_line(buf: ptr, maxlen: u8) -> u8
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render__tui_width() -> u8
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render__tui_height() -> u8
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render__draw_box(x: u8, y: u8, w: u8, h: u8)
+  call @tui__render__tui_goto((x:u8), (y:u8)):void
+  call @tui__render__tui_putch(1:u8):void
+  var i: u8 = 0:u8
+  while ((i:u8) < ((w:u8) - 2:u8):u8):bool
+    call @tui__render__tui_putch(5:u8):void
+    (i:u8) = ((i:u8) + 1:u8):u8
+  call @tui__render__tui_putch(2:u8):void
+  var row: u8 = 1:u8
+  while ((row:u8) < ((h:u8) - 1:u8):u8):bool
+    call @tui__render__tui_goto((x:u8), ((y:u8) + (row:u8)):u8):void
+    call @tui__render__tui_putch(6:u8):void
+    call @tui__render__tui_goto((((x:u8) + (w:u8)):u8 - 1:u8):u8, ((y:u8) + (row:u8)):u8):void
+    call @tui__render__tui_putch(6:u8):void
+    (row:u8) = ((row:u8) + 1:u8):u8
+  call @tui__render__tui_goto((x:u8), (((y:u8) + (h:u8)):u8 - 1:u8):u8):void
+  call @tui__render__tui_putch(3:u8):void
+  (i:u8) = 0:u8
+  while ((i:u8) < ((w:u8) - 2:u8):u8):bool
+    call @tui__render__tui_putch(5:u8):void
+    (i:u8) = ((i:u8) + 1:u8):u8
+  call @tui__render__tui_putch(4:u8):void
+
+fun @tui__render__clear_rect(x: u8, y: u8, w: u8, h: u8)
+  var row: u8 = 0:u8
+  while ((row:u8) < (h:u8)):bool
+    call @tui__render__tui_goto((x:u8), ((y:u8) + (row:u8)):u8):void
+    var col: u8 = 0:u8
+    while ((col:u8) < (w:u8)):bool
+      call @tui__render__tui_putch(32:u8):void
+      (col:u8) = ((col:u8) + 1:u8):u8
+    (row:u8) = ((row:u8) + 1:u8):u8
+
+fun @tui__render__puts_padded(str: ptr, width: u8)
+  <unknown stmt *hir.AsmStmt>
+
+extern fun @tui_clear()
+
+extern fun @tui_goto(x: u8, y: u8)
+
+extern fun @tui_color(fg: u8, bg: u8, bright: u8)
+
+extern fun @tui_reset()
+
+extern fun @tui_putch(ch: u8)
+
+extern fun @tui_puts(str: ptr)
+
+extern fun @tui_read_key() -> u8
+
+extern fun @tui_width() -> u8
+
+extern fun @tui_height() -> u8
+
+extern fun @tui_read_line(buf: ptr, maxlen: u8) -> u8
+
+fun @_scr_puts_padded(str: ptr, width: u8)
+  <unknown stmt *hir.AsmStmt>
+
+fun @_scr_print_u16(n: u16)
+  var started: u8 = 0:u8
+  var d: u16 = ((n:u16) / 10000:u16):u16
+  if ((d:u16) > 0:u8):bool
+    call @tui__render__tui_putch((48:u8 + (d:u16)):u16):void
+    (n:u16) = ((n:u16) - ((d:u16) * 10000:u16):u16):u16
+    (started:u8) = 1:u8
+  (d:u16) = ((n:u16) / 1000:u16):u16
+  if ((d:u16) > 0:u8):bool
+    call @tui__render__tui_putch((48:u8 + (d:u16)):u16):void
+    (n:u16) = ((n:u16) - ((d:u16) * 1000:u16):u16):u16
+    (started:u8) = 1:u8
+  else
+    if ((started:u8) == 1:u8):bool
+      call @tui__render__tui_putch(48:u8):void
+  (d:u16) = ((n:u16) / 100:u8):u16
+  if ((d:u16) > 0:u8):bool
+    call @tui__render__tui_putch((48:u8 + (d:u16)):u16):void
+    (n:u16) = ((n:u16) - ((d:u16) * 100:u8):u16):u16
+    (started:u8) = 1:u8
+  else
+    if ((started:u8) == 1:u8):bool
+      call @tui__render__tui_putch(48:u8):void
+  (d:u16) = ((n:u16) / 10:u8):u16
+  if ((d:u16) > 0:u8):bool
+    call @tui__render__tui_putch((48:u8 + (d:u16)):u16):void
+    (n:u16) = ((n:u16) - ((d:u16) * 10:u8):u16):u16
+  else
+    if ((started:u8) == 1:u8):bool
+      call @tui__render__tui_putch(48:u8):void
+  call @tui__render__tui_putch((48:u8 + (n:u16)):u16):void
+
+fun @_scr_atoi(str: ptr) -> u16
+  var result: u16 = 0:u8
+  var ptr: ptr = (str:ptr)
+  while (load((ptr:ptr)):u8 >= 48:u8):bool
+    if (load((ptr:ptr)):u8 > 57:u8):bool
+      return (result:u16)
+    (result:u16) = ((((result:u16) * 10:u8):u16 + load((ptr:ptr)):u8):u16 - 48:u8):u16
+    (ptr:ptr) = ((ptr:ptr) + 1:u8):ptr
+  return (result:u16)
+
+fun @screen_init()
+  (_scr_title:ptr) = addr @@mir2.str.0:ptr
+  (_scr_nfields:u8) = 3:u8
+  (_scr_focus:u8) = 0:u8
+  ((_buf_filter:[12]u8))[0:u8]:u8 = 42:u8
+  ((_buf_filter:[12]u8))[1:u8]:u8 = 0:u8
+
+fun @table_init()
+  (_tbl_nrows:u8) = 0:u8
+
+fun @table_set_str(val: ptr, row: u8, col_off: u8)
+  <unknown stmt *hir.AsmStmt>
+
+fun @table_set_nrows(n: u8)
+  (_tbl_nrows:u8) = (n:u8)
+
+fun @table_nrows() -> u8
+  return (_tbl_nrows:u8)
+
+fun @screen_render()
+  call @tui__render__tui_clear():void
+  call @tui__render__tui_color(7:u8, 4:u8, 1:u8):void
+  call @tui__render__tui_goto(0:u8, 0:u8):void
+  call @tui__render__tui_puts(addr @@mir2.str.1:ptr):void
+  call @tui__render__tui_puts((_scr_title:ptr)):void
+  var _tw: u8 = call @tui__render__tui_width():u8
+  var _pad: u8 = 20:u8
+  while ((_pad:u8) < (_tw:u8)):bool
+    call @tui__render__tui_putch(32:u8):void
+    (_pad:u8) = ((_pad:u8) + 1:u8):u8
+  call @tui__render__tui_reset():void
+  var _f0: u8 = 0:u8
+  if ((_scr_focus:u8) == 0:u8):bool
+    (_f0:u8) = 1:u8
+  call @tui__render__tui_goto(2:u8, 2:u8):void
+  call @tui__render__tui_color(6:u8, 0:u8, 0:u8):void
+  call @_scr_puts_padded(addr @@mir2.str.2:ptr, 12:u8):void
+  if ((_f0:u8) == 1:u8):bool
+    call @tui__render__tui_color(7:u8, 4:u8, 1:u8):void
+  else
+    call @tui__render__tui_color(7:u8, 0:u8, 0:u8):void
+  call @tui__render__tui_putch(91:u8):void
+  call @_scr_puts_padded(addr @_buf_filter:ptr, 10:u8):void
+  call @tui__render__tui_putch(93:u8):void
+  call @tui__render__tui_reset():void
+  var _f1: u8 = 0:u8
+  if ((_scr_focus:u8) == 1:u8):bool
+    (_f1:u8) = 1:u8
+  call @tui__render__tui_goto(2:u8, 14:u8):void
+  if ((_f1:u8) == 1:u8):bool
+    call @tui__render__tui_color(0:u8, 7:u8, 1:u8):void
+  else
+    call @tui__render__tui_color(7:u8, 0:u8, 1:u8):void
+  call @tui__render__tui_putch(91:u8):void
+  call @tui__render__tui_puts(addr @@mir2.str.3:ptr):void
+  call @tui__render__tui_putch(93:u8):void
+  call @tui__render__tui_reset():void
+  var _f2: u8 = 0:u8
+  if ((_scr_focus:u8) == 2:u8):bool
+    (_f2:u8) = 1:u8
+  call @tui__render__tui_puts(addr @@mir2.str.1:ptr):void
+  if ((_f2:u8) == 1:u8):bool
+    call @tui__render__tui_color(0:u8, 7:u8, 1:u8):void
+  else
+    call @tui__render__tui_color(7:u8, 0:u8, 1:u8):void
+  call @tui__render__tui_putch(91:u8):void
+  call @tui__render__tui_puts(addr @@mir2.str.4:ptr):void
+  call @tui__render__tui_putch(93:u8):void
+  call @tui__render__tui_reset():void
+  call @_tbl_render():void
+  var _th: u8 = call @tui__render__tui_height():u8
+  call @tui__render__tui_color(7:u8, 4:u8, 0:u8):void
+  call @tui__render__tui_goto(0:u8, ((_th:u8) - 1:u8):u8):void
+  call @tui__render__tui_puts(addr @@mir2.str.5:ptr):void
+  (_pad:u8) = 43:u8
+  while ((_pad:u8) < (_tw:u8)):bool
+    call @tui__render__tui_putch(32:u8):void
+    (_pad:u8) = ((_pad:u8) + 1:u8):u8
+  call @tui__render__tui_reset():void
+
+fun @_tbl_render()
+  call @tui__render__tui_goto(2:u8, 3:u8):void
+  call @tui__render__tui_color(7:u8, 0:u8, 1:u8):void
+  call @_scr_puts_padded(addr @@mir2.str.6:ptr, 11:u8):void
+  call @_scr_puts_padded(addr @@mir2.str.7:ptr, 7:u8):void
+  call @_scr_puts_padded(addr @@mir2.str.8:ptr, 5:u8):void
+  call @tui__render__tui_reset():void
+  call @tui__render__tui_goto(2:u8, 4:u8):void
+  call @tui__render__tui_color(7:u8, 0:u8, 0:u8):void
+  var _si: u8 = 0:u8
+  while ((_si:u8) < 23:u8):bool
+    call @tui__render__tui_putch(45:u8):void
+    (_si:u8) = ((_si:u8) + 1:u8):u8
+  call @tui__render__tui_reset():void
+  var _ri: u8 = 0:u8
+  if ((_ri:u8) < (_tbl_nrows:u8)):bool
+    call @tui__render__tui_goto(2:u8, 5:u8):void
+    call @tui__render__tui_color(7:u8, 0:u8, 0:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 0:u8):ptr, 11:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 11:u8):ptr, 7:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 18:u8):ptr, 5:u8):void
+    call @tui__render__tui_reset():void
+    (_ri:u8) = ((_ri:u8) + 1:u8):u8
+  if ((_ri:u8) < (_tbl_nrows:u8)):bool
+    call @tui__render__tui_goto(2:u8, 6:u8):void
+    call @tui__render__tui_color(7:u8, 0:u8, 0:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 23:u8):ptr, 11:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 34:u8):ptr, 7:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 41:u8):ptr, 5:u8):void
+    call @tui__render__tui_reset():void
+    (_ri:u8) = ((_ri:u8) + 1:u8):u8
+  if ((_ri:u8) < (_tbl_nrows:u8)):bool
+    call @tui__render__tui_goto(2:u8, 7:u8):void
+    call @tui__render__tui_color(7:u8, 0:u8, 0:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 46:u8):ptr, 11:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 57:u8):ptr, 7:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 64:u8):ptr, 5:u8):void
+    call @tui__render__tui_reset():void
+    (_ri:u8) = ((_ri:u8) + 1:u8):u8
+  if ((_ri:u8) < (_tbl_nrows:u8)):bool
+    call @tui__render__tui_goto(2:u8, 8:u8):void
+    call @tui__render__tui_color(7:u8, 0:u8, 0:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 69:u8):ptr, 11:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 80:u8):ptr, 7:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 87:u8):ptr, 5:u8):void
+    call @tui__render__tui_reset():void
+    (_ri:u8) = ((_ri:u8) + 1:u8):u8
+  if ((_ri:u8) < (_tbl_nrows:u8)):bool
+    call @tui__render__tui_goto(2:u8, 9:u8):void
+    call @tui__render__tui_color(7:u8, 0:u8, 0:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 92:u8):ptr, 11:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 103:u8):ptr, 7:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 110:u8):ptr, 5:u8):void
+    call @tui__render__tui_reset():void
+    (_ri:u8) = ((_ri:u8) + 1:u8):u8
+  if ((_ri:u8) < (_tbl_nrows:u8)):bool
+    call @tui__render__tui_goto(2:u8, 10:u8):void
+    call @tui__render__tui_color(7:u8, 0:u8, 0:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 115:u8):ptr, 11:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 126:u8):ptr, 7:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 133:u8):ptr, 5:u8):void
+    call @tui__render__tui_reset():void
+    (_ri:u8) = ((_ri:u8) + 1:u8):u8
+  if ((_ri:u8) < (_tbl_nrows:u8)):bool
+    call @tui__render__tui_goto(2:u8, 11:u8):void
+    call @tui__render__tui_color(7:u8, 0:u8, 0:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 138:u8):ptr, 11:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 149:u8):ptr, 7:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 156:u8):ptr, 5:u8):void
+    call @tui__render__tui_reset():void
+    (_ri:u8) = ((_ri:u8) + 1:u8):u8
+  if ((_ri:u8) < (_tbl_nrows:u8)):bool
+    call @tui__render__tui_goto(2:u8, 12:u8):void
+    call @tui__render__tui_color(7:u8, 0:u8, 0:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 161:u8):ptr, 11:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 172:u8):ptr, 7:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 179:u8):ptr, 5:u8):void
+    call @tui__render__tui_reset():void
+    (_ri:u8) = ((_ri:u8) + 1:u8):u8
+
+fun @screen_handle_key(key: u8) -> u8
+  if ((key:u8) == 147:u8):bool
+    return (SCREEN_EXECUTE:u8)
+  if ((key:u8) == 142:u8):bool
+    return (SCREEN_BACK:u8)
+  if ((key:u8) == 27:u8):bool
+    return (SCREEN_BACK:u8)
+  if ((key:u8) == 9:u8):bool
+    (_scr_focus:u8) = ((_scr_focus:u8) + 1:u8):u8
+    if ((_scr_focus:u8) >= 3:u8):bool
+      (_scr_focus:u8) = 0:u8
+    return (SCREEN_NONE:u8)
+  if ((key:u8) == 13:u8):bool
+    if ((_scr_focus:u8) == 0:u8):bool
+      call @tui__render__tui_goto(15:u8, 2:u8):void
+      call @tui__render__tui_color(7:u8, 4:u8, 1:u8):void
+      var _len: u8 = call @tui__render__tui_read_line(addr @_buf_filter:ptr, 10:u8):u8
+      call @tui__render__tui_reset():void
+    if ((_scr_focus:u8) == 1:u8):bool
+      return (SCREEN_EXECUTE:u8)
+    if ((_scr_focus:u8) == 2:u8):bool
+      return (SCREEN_BACK:u8)
+    return (SCREEN_NONE:u8)
+  return (SCREEN_NONE:u8)
+
+fun @screen_show() -> u8
+  var action: u8 = (SCREEN_NONE:u8)
+  while ((action:u8) == (SCREEN_NONE:u8)):bool
+    call @screen_render():void
+    var key: u8 = call @tui__render__tui_read_key():u8
+    (action:u8) = call @screen_handle_key((key:u8)):u8
+  call @tui__render__tui_clear():void
+  call @tui__render__tui_goto(0:u8, 0:u8):void
+  call @tui__render__tui_reset():void
+  return (action:u8)
+
+fun @screen_filter() -> ptr
+  return addr @_buf_filter:ptr
+
+fun @table_set_matnr(row: u8, val: ptr)
+  <unknown stmt *hir.AsmStmt>
+
+fun @table_set_mtart(row: u8, val: ptr)
+  <unknown stmt *hir.AsmStmt>
+
+fun @table_set_meins(row: u8, val: ptr)
+  <unknown stmt *hir.AsmStmt>
+
+fun @load_materials()
+  call @table_init():void
+  call @table_set_matnr(0:u8, addr @@mir2.str.9:ptr):void
+  call @table_set_mtart(0:u8, addr @@mir2.str.10:ptr):void
+  call @table_set_meins(0:u8, addr @@mir2.str.11:ptr):void
+  call @table_set_matnr(1:u8, addr @@mir2.str.12:ptr):void
+  call @table_set_mtart(1:u8, addr @@mir2.str.13:ptr):void
+  call @table_set_meins(1:u8, addr @@mir2.str.14:ptr):void
+  call @table_set_matnr(2:u8, addr @@mir2.str.15:ptr):void
+  call @table_set_mtart(2:u8, addr @@mir2.str.16:ptr):void
+  call @table_set_meins(2:u8, addr @@mir2.str.17:ptr):void
+  call @table_set_matnr(3:u8, addr @@mir2.str.18:ptr):void
+  call @table_set_mtart(3:u8, addr @@mir2.str.10:ptr):void
+  call @table_set_meins(3:u8, addr @@mir2.str.11:ptr):void
+  call @table_set_matnr(4:u8, addr @@mir2.str.19:ptr):void
+  call @table_set_mtart(4:u8, addr @@mir2.str.20:ptr):void
+  call @table_set_meins(4:u8, addr @@mir2.str.21:ptr):void
+  call @table_set_nrows(5:u8):void
+
+fun @main()
+  call @screen_init():void
+  call @load_materials():void
+  var result: u8 = call @screen_show():u8
+  if ((result:u8) == (SCREEN_EXECUTE:u8)):bool
+    call @tui__render__tui_puts(addr @@mir2.str.22:ptr):void
+    call @tui__render__tui_puts(call @screen_filter():ptr):void
+    call @tui__render__tui_puts(addr @@mir2.str.23:ptr):void
+    call @_scr_print_u16(call @table_nrows():u8):void
+    call @tui__render__tui_puts(addr @@mir2.str.24:ptr):void
+

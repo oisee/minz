@@ -1,0 +1,9 @@
+{
+  "events": 200,
+  "image_bytes": 3701,
+  "minimum_sp": 61406,
+  "result": "PASS",
+  "scope": "whole generated source main, real paddedASM, linkedterminalhost",
+  "source_sha256": "d6d74b99f7ce5aa97110f9f5cbe5fe6f1e3f85d00a56f442575d32b0661a7dc2",
+  "stdout_bytes": 631
+}
