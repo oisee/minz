@@ -1,0 +1,18 @@
+=== RUN   TestMeasuredContractStrategiesOriginalArena
+    profile_contract_strategies_test.go:99: size candidate0 B1121 T3818
+    profile_contract_strategies_test.go:99: size candidate1 B1130 T3906
+    profile_contract_strategies_test.go:99: size candidate2 B1122 T3766
+    profile_contract_strategies_test.go:115: size selected0 heldout7133T
+    profile_contract_strategies_test.go:99: speed candidate0 B1121 T3818
+    profile_contract_strategies_test.go:99: speed candidate1 B1130 T3906
+    profile_contract_strategies_test.go:99: speed candidate2 B1122 T3766
+    profile_contract_strategies_test.go:115: speed selected2 heldout7133T
+--- PASS: TestMeasuredContractStrategiesOriginalArena (2.77s)
+=== RUN   TestSumProfileCostFullU8Domain
+    profile_cost_domain_test.go:103: fallback n=1 original=260 pointer=449 overhead=189
+    profile_cost_domain_test.go:103: fallback n=2 original=451 pointer=640 overhead=189
+    profile_cost_domain_test.go:103: fallback n=255 original=48774 pointer=48963 overhead=189
+    profile_cost_domain_test.go:119: Verified 1022 address/length scenarios on original and pointer VM + assembled Z80
+--- PASS: TestSumProfileCostFullU8Domain (38.05s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	40.832s

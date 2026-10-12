@@ -1,0 +1,13 @@
+=== RUN   TestMeasuredContractStrategiesOriginalArena
+    profile_contract_strategies_test.go:95: size candidate0 B1121 T3818
+    profile_contract_strategies_test.go:95: size candidate1 B1130 T3906
+    profile_contract_strategies_test.go:95: size candidate2 B1122 T3766
+    profile_contract_strategies_test.go:111: size selected0 heldout7133T
+    profile_contract_strategies_test.go:89: off/PBQP tie must retain first candidate
+--- FAIL: TestMeasuredContractStrategiesOriginalArena (3.19s)
+=== RUN   TestSumProfileCostFullU8Domain
+    profile_cost_domain_test.go:96: fast model n=0 got=232
+--- FAIL: TestSumProfileCostFullU8Domain (0.05s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	3.261s
+FAIL

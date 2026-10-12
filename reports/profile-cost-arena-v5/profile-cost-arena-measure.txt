@@ -1,0 +1,40 @@
+=== RUN   TestMeasuredContractStrategiesOriginalArena
+    profile_contract_strategies_test.go:99: size candidate0 B1121 T3818
+    profile_contract_strategies_test.go:99: size candidate1 B1130 T3906
+    profile_contract_strategies_test.go:99: size candidate2 B1122 T3766
+    profile_contract_strategies_test.go:115: size selected0 heldout7133T
+    profile_contract_strategies_test.go:99: speed candidate0 B1121 T3818
+    profile_contract_strategies_test.go:99: speed candidate1 B1130 T3906
+    profile_contract_strategies_test.go:99: speed candidate2 B1122 T3766
+    profile_contract_strategies_test.go:115: speed selected2 heldout7133T
+--- PASS: TestMeasuredContractStrategiesOriginalArena (3.36s)
+=== RUN   TestSumProfileCostFullU8Domain
+    profile_cost_domain_test.go:86: cost path=fast n=0 original=69 pointer=232
+    profile_cost_domain_test.go:86: cost path=fast n=1 original=260 pointer=278
+    profile_cost_domain_test.go:86: cost path=fast n=2 original=451 pointer=315
+    profile_cost_domain_test.go:86: cost path=fast n=3 original=642 pointer=352
+    profile_cost_domain_test.go:86: cost path=fast n=254 original=48583 pointer=9639
+    profile_cost_domain_test.go:86: cost path=fast n=255 original=48774 pointer=9676
+    profile_cost_domain_test.go:86: cost path=last-fast n=0 original=69 pointer=239
+    profile_cost_domain_test.go:86: cost path=last-fast n=1 original=260 pointer=285
+    profile_cost_domain_test.go:86: cost path=last-fast n=2 original=451 pointer=322
+    profile_cost_domain_test.go:86: cost path=last-fast n=3 original=642 pointer=359
+    profile_cost_domain_test.go:86: cost path=last-fast n=254 original=48583 pointer=9646
+    profile_cost_domain_test.go:86: cost path=last-fast n=255 original=48774 pointer=9683
+    profile_cost_domain_test.go:86: cost path=fallback n=1 original=260 pointer=449
+    profile_cost_domain_test.go:90: fallback n=1 original=260 pointer=449 overhead=189
+    profile_cost_domain_test.go:86: cost path=fallback n=2 original=451 pointer=640
+    profile_cost_domain_test.go:90: fallback n=2 original=451 pointer=640 overhead=189
+    profile_cost_domain_test.go:86: cost path=fallback n=3 original=642 pointer=831
+    profile_cost_domain_test.go:86: cost path=fallback n=254 original=48583 pointer=48772
+    profile_cost_domain_test.go:86: cost path=fallback n=255 original=48774 pointer=48963
+    profile_cost_domain_test.go:90: fallback n=255 original=48774 pointer=48963 overhead=189
+    profile_cost_domain_test.go:86: cost path=wrap n=1 original=260 pointer=449
+    profile_cost_domain_test.go:86: cost path=wrap n=2 original=451 pointer=640
+    profile_cost_domain_test.go:86: cost path=wrap n=3 original=642 pointer=831
+    profile_cost_domain_test.go:86: cost path=wrap n=254 original=48583 pointer=48772
+    profile_cost_domain_test.go:86: cost path=wrap n=255 original=48774 pointer=48963
+    profile_cost_domain_test.go:106: Verified 1022 address/length scenarios on original and pointer VM + assembled Z80
+--- PASS: TestSumProfileCostFullU8Domain (41.51s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	44.891s

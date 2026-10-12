@@ -1,0 +1,24 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "64d45527e5e61e6dc5e4e2548d0c4481a2886ca0799e93ca131a06b47dd6fa50"
+    },
+    {
+      "path": "full-u8-cost-domain.json",
+      "sha256": "2bac656c11ea4a47eae53a672e9fdac3ddddb07581a8a8e2eae7c85ce21b0192"
+    },
+    {
+      "path": "profile-cost-arena-current.txt",
+      "sha256": "b4e722b3e9c15b90922e85ae9089abf9f897c4018714bf76758c3d795d4aee4d"
+    },
+    {
+      "path": "profile-cost-arena-final.txt",
+      "sha256": "d19d8f561a4c616399962f96a85a243a1cf1c62bad59622449bc66cc5f2114f3"
+    },
+    {
+      "path": "profile-cost-arena-measure.txt",
+      "sha256": "15a918eab024172940ccda3b9a2656f5ff3c26c3bace3300a0ca91372882eac7"
+    }
+  ]
+}

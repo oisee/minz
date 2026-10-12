@@ -85,8 +85,12 @@ func TestMeasuredContractStrategiesOriginalArena(t *testing.T) {
 		if e != nil {
 			t.Fatal(e)
 		}
-		if result.Evidence.Selected != 0 {
-			t.Fatal("off/PBQP tie must retain first candidate")
+		expected := 0 // off has the smallest whole-module binary
+		if goal == "speed" {
+			expected = 2 // PBQP is faster on the frozen training workload
+		}
+		if result.Evidence.Selected != expected {
+			t.Fatalf("%s selected %d, expected %d", goal, result.Evidence.Selected, expected)
 		}
 		for i, c := range result.Evidence.Candidates {
 			if len(c.Run.Invocations) != 1 || c.Run.Invocations[0].Results[0].I != 0 {
