@@ -1,7 +1,10 @@
 package pipeline
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/minz/minzc/pkg/mir2"
@@ -39,13 +42,42 @@ func checkedAsmSize(asm string) (int, error) {
 	return len(result.Binary), nil
 }
 
+// readCheckedLocalTableSnapshot reads once and validates an optional content pin.
+func readCheckedLocalTableSnapshot(options Options) ([]byte, error) {
+	if options.CheckedLocalTablePath == "" {
+		if options.CheckedLocalTableSHA256 != "" {
+			return nil, fmt.Errorf("checked local table: SHA256 requires a path")
+		}
+		return nil, nil
+	}
+	data, err := os.ReadFile(options.CheckedLocalTablePath)
+	if err != nil {
+		return nil, fmt.Errorf("checked local table: %w", err)
+	}
+	if options.CheckedLocalTableSHA256 != "" {
+		pin, err := hex.DecodeString(options.CheckedLocalTableSHA256)
+		if err != nil || len(pin) != sha256.Size {
+			return nil, fmt.Errorf("checked local table: invalid SHA256")
+		}
+		sum := sha256.Sum256(data)
+		if !strings.EqualFold(options.CheckedLocalTableSHA256, hex.EncodeToString(sum[:])) {
+			return nil, fmt.Errorf("checked local table: SHA256 mismatch")
+		}
+	}
+	return data, nil
+}
+
 func applyCheckedLocalTables(asm string, m *mir2.Module, allocation *mir2.AllocResult, options Options, traces map[string]*FuncTrace) (string, error) {
 	var table vir.RegAllocTable
 	table.Init()
 	// Load once, not through the environment/global research table singleton.
 	// Unreadable/malformed explicit input is a user error; inadmissible entries
 	// are normal misses and preserve the complete baseline assembly.
-	if err := table.Load(options.CheckedLocalTablePath); err != nil {
+	data, err := readCheckedLocalTableSnapshot(options)
+	if err != nil {
+		return "", err
+	}
+	if err := table.LoadJSON(data); err != nil {
 		return "", fmt.Errorf("checked local table: %w", err)
 	}
 	for _, f := range m.Funcs {

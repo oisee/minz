@@ -92,6 +92,9 @@ type Options struct {
 	// CheckedLocalTablePath opts into admitted leaf function replacements under
 	// OptSize. The selected function must assemble smaller than PBQP baseline.
 	CheckedLocalTablePath string `json:",omitempty"`
+	// CheckedLocalTableSHA256 optionally pins the exact JSON bytes. A mismatch is
+	// an input error; it must never silently use another table or fallback.
+	CheckedLocalTableSHA256 string `json:",omitempty"`
 
 	UnsignedPairComparePolicy mir2.UnsignedPairComparePolicy `json:",omitempty"` // explicit opt-in; zero preserves Legacy
 	ProfileSelection          *ProfileSelection              // opt-in refusing PGO input
@@ -146,6 +149,9 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		opt = opts[0]
 	}
 	var s Steps
+	if opt.CheckedLocalTableSHA256 != "" && opt.CheckedLocalTablePath == "" {
+		return s, fmt.Errorf("checked local table: SHA256 requires a path")
+	}
 	if err := ValidateContractStrategy(opt); err != nil {
 		return s, err
 	}
@@ -507,6 +513,9 @@ func CompileHIR(hm *hir.Module) (string, error) {
 // CompileHIRWithOptions runs the HIR→MIR2→Z80 pipeline with explicit options.
 // Use this to compare output with/without specific optimisation passes.
 func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
+	if opts.CheckedLocalTableSHA256 != "" && opts.CheckedLocalTablePath == "" {
+		return "", fmt.Errorf("checked local table: SHA256 requires a path")
+	}
 	if err := hir.ResolveErrorABI(hm); err != nil {
 		return "", err
 	}

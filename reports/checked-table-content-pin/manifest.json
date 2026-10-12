@@ -1,0 +1,16 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "b8cf3745751774286f026c14269ee3aab89963d1243b646f56d3cef248bb9a4e"
+    },
+    {
+      "path": "root.txt",
+      "sha256": "3ae9b6d897b8381510c2ecca2e66623ce0e92b78d30930453a4b2f1280b4fa9b"
+    },
+    {
+      "path": "vir-full.txt",
+      "sha256": "15cedf10785eb19238d15e863bc514d629430f34e33ad1c2c9654d6b0ed724f0"
+    }
+  ]
+}

@@ -230,9 +230,20 @@ func (t *RegAllocTable) Load(path string) error {
 	if err != nil {
 		return err
 	}
+	return t.LoadJSON(data)
+}
+
+// LoadJSON merges an owned JSON snapshot; callers may bind these exact bytes
+// to evidence without rereading a mutable file during candidate selection.
+func (t *RegAllocTable) LoadJSON(data []byte) error {
 	var entries []*RegAllocEntry
 	if err := json.Unmarshal(data, &entries); err != nil {
 		return err
+	}
+	for _, e := range entries {
+		if e == nil {
+			return fmt.Errorf("nil register-allocation entry")
+		}
 	}
 	for _, e := range entries {
 		t.Add(e.Signature, e)
