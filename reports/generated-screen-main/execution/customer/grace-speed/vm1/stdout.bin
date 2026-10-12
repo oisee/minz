@@ -1,0 +1,5 @@
+[2J[H[97;104m[1;1H  Create Customer                                                            [0m[3;3H[36;40mName        [97;104m[ACME Corp           ][0m[4;3H[36;40mCity        [37;40m[               ][0m[5;3H[36;40mCountry     [37;40m[DE ][0m[6;3H[36;40mCredit      [37;40m[5000][0m[8;3H[97;100m[F8=Execute][0m  [97;100m[F3=Back][0m[37;44m[24;1H  TAB=Next  Enter=Edit  F8=Execute  F3=Back                                     [0m[2J[H[1;1H[0mCustomer created:
+  Name:    ACME Corp
+  City:    
+  Country: DE
+  Credit:  5000

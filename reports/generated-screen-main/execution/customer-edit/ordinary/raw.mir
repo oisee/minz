@@ -1,0 +1,910 @@
+; MIR2 module: screen_customer.nanz
+string @mir2.str.0 = "Create Customer"
+string @mir2.str.1 = "  "
+string @mir2.str.2 = "Name"
+string @mir2.str.3 = "City"
+string @mir2.str.4 = "Country"
+string @mir2.str.5 = "Credit"
+string @mir2.str.6 = "F8=Execute"
+string @mir2.str.7 = "F3=Back"
+string @mir2.str.8 = "  TAB=Next  Enter=Edit  F8=Execute  F3=Back"
+string @mir2.str.9 = "Customer created:\n"
+string @mir2.str.10 = "  Name:    "
+string @mir2.str.11 = "\n  City:    "
+string @mir2.str.12 = "\n  Country: "
+string @mir2.str.13 = "\n  Credit:  "
+string @mir2.str.14 = "\n"
+global const @SCREEN_NONE : u8
+global const @SCREEN_EXECUTE : u8
+global const @SCREEN_BACK : u8
+global @_scr_title : ptr
+global @_scr_nfields : u8
+global @_scr_focus : u8
+global @_buf_name : [22]u8
+global @_buf_city : [17]u8
+global @_buf_country : [5]u8
+global @_val_credit : u16
+global @_buf_credit : [8]u8
+
+extern fun @tui_clear()
+
+extern fun @tui_goto(%r1: u8 [acc], %r2: u8 [general])
+
+extern fun @tui_color(%r3: u8 [acc], %r4: u8 [general], %r5: u8 [counter])
+
+extern fun @tui_reset()
+
+extern fun @tui_putch(%r6: u8 [acc])
+
+extern fun @tui_puts(%r7: ptr [pointer])
+
+extern fun @tui_read_key() -> u8 [acc]
+
+extern fun @tui_width() -> u8 [acc]
+
+extern fun @tui_height() -> u8 [acc]
+
+extern fun @tui_read_line(%r8: ptr [pointer], %r9: u8 [general]) -> u8 [acc]
+
+fun @_scr_puts_padded(%r10: ptr [pointer], %r11: u8 [general])
+  block @entry:
+    asm "; HL = str, width = C (PFCCO: ptr→HL, u8→C)\n        LD B, C\n        LD A, C\n        OR A\n        RET Z\n        .loop:\n        LD A, (HL)\n        OR A\n        JR Z, .pad\n        LD E, A\n        PUSH HL\n        PUSH BC\n        LD C, 2\n        CALL 5\n        POP BC\n        POP HL\n        INC HL\n        DJNZ .loop\n        RET\n        .pad:\n        LD E, 32\n        PUSH HL\n        PUSH BC\n        LD C, 2\n        CALL 5\n        POP BC\n        POP HL\n        DJNZ .pad"
+    ret void
+
+fun @_scr_print_u16(%r12: u16 [pointer])
+  block @entry:
+    %r13 = const 0 : u8 [general]
+    %r14 = const 10000 : u16 [pointer]
+    %r15 = div %r12, %r14 : u16 [pointer]
+    %r16 = const 0 : u8 [general]
+    %r17 = cmp.ugt %r15, %r16 : bool [flag]
+    br_if %r17, @if_then1(), @if_join2(%r12, %r13)
+  block @if_then1:
+    %r18 = const 48 : u16 [pointer]
+    %r19 = add %r18, %r15 : u16 [pointer]
+    call @tui_putch(%r19)
+    %r20 = const 10000 : u16 [pointer]
+    %r21 = mul %r15, %r20 : u16 [pointer]
+    %r22 = sub %r12, %r21 : u16 [pointer]
+    %r23 = const 1 : u8 [general]
+    jmp @if_join2(%r22, %r23)
+  block @if_join2(%r24: u16 [pointer], %r25: u8 [general]):
+    %r26 = const 1000 : u16 [pointer]
+    %r27 = div %r24, %r26 : u16 [pointer]
+    %r28 = const 0 : u8 [general]
+    %r29 = cmp.ugt %r27, %r28 : bool [flag]
+    br_if %r29, @if_then3(), @if_else5()
+  block @if_then3:
+    %r30 = const 48 : u16 [pointer]
+    %r31 = add %r30, %r27 : u16 [pointer]
+    call @tui_putch(%r31)
+    %r32 = const 1000 : u16 [pointer]
+    %r33 = mul %r27, %r32 : u16 [pointer]
+    %r34 = sub %r24, %r33 : u16 [pointer]
+    %r35 = const 1 : u8 [general]
+    jmp @if_join4(%r34, %r35)
+  block @if_else5:
+    %r36 = const 1 : u8 [general]
+    %r37 = cmp.eq %r25, %r36 : bool [flag]
+    br_if %r37, @if_then6(), @if_join7()
+  block @if_then6:
+    %r38 = const 48 : u8 [general]
+    %r39 = move %r38 : u8 [acc]
+    call @tui_putch(%r39)
+    jmp @if_join7()
+  block @if_join7:
+    jmp @if_join4(%r24, %r25)
+  block @if_join4(%r40: u16 [pointer], %r41: u8 [general]):
+    %r42 = const 100 : u16 [pointer]
+    %r43 = div %r40, %r42 : u16 [pointer]
+    %r44 = const 0 : u8 [general]
+    %r45 = cmp.ugt %r43, %r44 : bool [flag]
+    br_if %r45, @if_then8(), @if_else10()
+  block @if_then8:
+    %r46 = const 48 : u16 [pointer]
+    %r47 = add %r46, %r43 : u16 [pointer]
+    call @tui_putch(%r47)
+    %r48 = const 100 : u16 [pointer]
+    %r49 = mul %r43, %r48 : u16 [pointer]
+    %r50 = sub %r40, %r49 : u16 [pointer]
+    %r51 = const 1 : u8 [general]
+    jmp @if_join9(%r50, %r51)
+  block @if_else10:
+    %r52 = const 1 : u8 [general]
+    %r53 = cmp.eq %r41, %r52 : bool [flag]
+    br_if %r53, @if_then11(), @if_join12()
+  block @if_then11:
+    %r54 = const 48 : u8 [general]
+    %r55 = move %r54 : u8 [acc]
+    call @tui_putch(%r55)
+    jmp @if_join12()
+  block @if_join12:
+    jmp @if_join9(%r40, %r41)
+  block @if_join9(%r56: u16 [pointer], %r57: u8 [general]):
+    %r58 = const 10 : u16 [pointer]
+    %r59 = div %r56, %r58 : u16 [pointer]
+    %r60 = const 0 : u8 [general]
+    %r61 = cmp.ugt %r59, %r60 : bool [flag]
+    br_if %r61, @if_then13(), @if_else15()
+  block @if_then13:
+    %r62 = const 48 : u16 [pointer]
+    %r63 = add %r62, %r59 : u16 [pointer]
+    call @tui_putch(%r63)
+    %r64 = const 10 : u16 [pointer]
+    %r65 = mul %r59, %r64 : u16 [pointer]
+    %r66 = sub %r56, %r65 : u16 [pointer]
+    jmp @if_join14(%r66)
+  block @if_else15:
+    %r67 = const 1 : u8 [general]
+    %r68 = cmp.eq %r57, %r67 : bool [flag]
+    br_if %r68, @if_then16(), @if_join17()
+  block @if_then16:
+    %r69 = const 48 : u8 [general]
+    %r70 = move %r69 : u8 [acc]
+    call @tui_putch(%r70)
+    jmp @if_join17()
+  block @if_join17:
+    jmp @if_join14(%r56)
+  block @if_join14(%r71: u16 [pointer]):
+    %r72 = const 48 : u16 [pointer]
+    %r73 = add %r72, %r71 : u16 [pointer]
+    call @tui_putch(%r73)
+    ret void
+
+fun @_scr_atoi(%r74: ptr [pointer]) -> u16 [pointer]
+  block @entry:
+    %r75 = const 0 : u8 [general]
+    %r76 = ext %r75 : u8 -> u16 [pointer]
+    jmp @loop_head1(%r74, %r76)
+  block @loop_head1(%r77: ptr [general], %r78: u16 [pointer]):
+    %r79 = load %r77 : u8 [general]
+    %r80 = const 48 : u8 [general]
+    %r81 = cmp.uge %r79, %r80 : bool [flag]
+    br_if %r81, @loop_body2(), @loop_exit3(%r77, %r78)
+  block @loop_body2:
+    %r82 = load %r77 : u8 [general]
+    %r83 = const 57 : u8 [general]
+    %r84 = cmp.ugt %r82, %r83 : bool [flag]
+    br_if %r84, @if_then4(), @if_join5()
+  block @if_then4:
+    ret %r78
+  block @if_join5:
+    %r85 = const 10 : u16 [pointer]
+    %r86 = mul %r78, %r85 : u16 [pointer]
+    %r87 = load %r77 : u8 [general]
+    %r88 = ext %r87 : u8 -> u16 [pointer]
+    %r89 = add %r86, %r88 : u16 [pointer]
+    %r90 = const 48 : u16 [pointer]
+    %r91 = sub %r89, %r90 : u16 [pointer]
+    %r92 = const 1 : ptr [general]
+    %r93 = add %r77, %r92 : ptr [general]
+    jmp @loop_head1(%r93, %r91)
+  block @loop_exit3(%r94: ptr [general], %r95: u16 [pointer]):
+    ret %r95
+
+fun @screen_init()
+  block @entry:
+    %r96 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r97 = addr_of @_scr_title : ptr [pointer]
+    store %r97, %r96 : ptr
+    %r98 = const 6 : u8 [general]
+    %r99 = addr_of @_scr_nfields : ptr [pointer]
+    store %r99, %r98 : u8
+    %r100 = const 0 : u8 [general]
+    %r101 = addr_of @_scr_focus : ptr [pointer]
+    store %r101, %r100 : u8
+    %r102 = const 65 : u8 [general]
+    %r103 = addr_of @_buf_name : ptr [pointer]
+    %r104 = const 0 : u8 [general]
+    %r105 = ptr_add %r103, %r104 : ptr [pointer]
+    store %r105, %r102 : u8
+    %r106 = const 67 : u8 [general]
+    %r107 = addr_of @_buf_name : ptr [pointer]
+    %r108 = const 1 : u8 [general]
+    %r109 = ptr_add %r107, %r108 : ptr [pointer]
+    store %r109, %r106 : u8
+    %r110 = const 77 : u8 [general]
+    %r111 = addr_of @_buf_name : ptr [pointer]
+    %r112 = const 2 : u8 [general]
+    %r113 = ptr_add %r111, %r112 : ptr [pointer]
+    store %r113, %r110 : u8
+    %r114 = const 69 : u8 [general]
+    %r115 = addr_of @_buf_name : ptr [pointer]
+    %r116 = const 3 : u8 [general]
+    %r117 = ptr_add %r115, %r116 : ptr [pointer]
+    store %r117, %r114 : u8
+    %r118 = const 32 : u8 [general]
+    %r119 = addr_of @_buf_name : ptr [pointer]
+    %r120 = const 4 : u8 [general]
+    %r121 = ptr_add %r119, %r120 : ptr [pointer]
+    store %r121, %r118 : u8
+    %r122 = const 67 : u8 [general]
+    %r123 = addr_of @_buf_name : ptr [pointer]
+    %r124 = const 5 : u8 [general]
+    %r125 = ptr_add %r123, %r124 : ptr [pointer]
+    store %r125, %r122 : u8
+    %r126 = const 111 : u8 [general]
+    %r127 = addr_of @_buf_name : ptr [pointer]
+    %r128 = const 6 : u8 [general]
+    %r129 = ptr_add %r127, %r128 : ptr [pointer]
+    store %r129, %r126 : u8
+    %r130 = const 114 : u8 [general]
+    %r131 = addr_of @_buf_name : ptr [pointer]
+    %r132 = const 7 : u8 [general]
+    %r133 = ptr_add %r131, %r132 : ptr [pointer]
+    store %r133, %r130 : u8
+    %r134 = const 112 : u8 [general]
+    %r135 = addr_of @_buf_name : ptr [pointer]
+    %r136 = const 8 : u8 [general]
+    %r137 = ptr_add %r135, %r136 : ptr [pointer]
+    store %r137, %r134 : u8
+    %r138 = const 0 : u8 [general]
+    %r139 = addr_of @_buf_name : ptr [pointer]
+    %r140 = const 9 : u8 [general]
+    %r141 = ptr_add %r139, %r140 : ptr [pointer]
+    store %r141, %r138 : u8
+    %r142 = const 0 : u8 [general]
+    %r143 = addr_of @_buf_city : ptr [pointer]
+    %r144 = const 0 : u8 [general]
+    %r145 = ptr_add %r143, %r144 : ptr [pointer]
+    store %r145, %r142 : u8
+    %r146 = const 68 : u8 [general]
+    %r147 = addr_of @_buf_country : ptr [pointer]
+    %r148 = const 0 : u8 [general]
+    %r149 = ptr_add %r147, %r148 : ptr [pointer]
+    store %r149, %r146 : u8
+    %r150 = const 69 : u8 [general]
+    %r151 = addr_of @_buf_country : ptr [pointer]
+    %r152 = const 1 : u8 [general]
+    %r153 = ptr_add %r151, %r152 : ptr [pointer]
+    store %r153, %r150 : u8
+    %r154 = const 0 : u8 [general]
+    %r155 = addr_of @_buf_country : ptr [pointer]
+    %r156 = const 2 : u8 [general]
+    %r157 = ptr_add %r155, %r156 : ptr [pointer]
+    store %r157, %r154 : u8
+    %r158 = const 5000 : u16 [pointer]
+    %r159 = addr_of @_val_credit : ptr [pointer]
+    store %r159, %r158 : u16
+    ret void
+
+fun @screen_render()
+  block @entry:
+    call @tui_clear()
+    %r160 = const 7 : u8 [general]
+    %r161 = move %r160 : u8 [acc]
+    %r162 = const 4 : u8 [general]
+    %r163 = const 1 : u8 [general]
+    %r164 = move %r163 : u8 [counter]
+    call @tui_color(%r161, %r162, %r164)
+    %r165 = const 0 : u8 [general]
+    %r166 = move %r165 : u8 [acc]
+    %r167 = const 0 : u8 [general]
+    call @tui_goto(%r166, %r167)
+    %r168 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r169 = move %r168 : ptr [pointer]
+    call @tui_puts(%r169)
+    %r170 = addr_of @_scr_title : ptr [pointer]
+    %r171 = load %r170 : ptr [general]
+    %r172 = move %r171 : ptr [pointer]
+    call @tui_puts(%r172)
+    %r173 = call @tui_width() : u8 [acc]
+    %r174 = const 20 : u8 [general]
+    jmp @loop_head1(%r174, %r173)
+  block @loop_head1(%r175: u8 [general], %r176: u8 [general]):
+    %r177 = cmp.ult %r175, %r176 : bool [flag]
+    br_if %r177, @loop_body2(), @loop_exit3(%r175, %r176)
+  block @loop_body2:
+    %r178 = const 32 : u8 [general]
+    %r179 = move %r178 : u8 [acc]
+    call @tui_putch(%r179)
+    %r180 = const 1 : u8 [general]
+    %r181 = add %r175, %r180 : u8 [general]
+    jmp @loop_head1(%r181, %r176)
+  block @loop_exit3(%r182: u8 [general], %r183: u8 [general]):
+    call @tui_reset()
+    %r184 = const 0 : u8 [general]
+    %r185 = addr_of @_scr_focus : ptr [pointer]
+    %r186 = load %r185 : u8 [general]
+    %r187 = const 0 : u8 [general]
+    %r188 = cmp.eq %r186, %r187 : bool [flag]
+    br_if %r188, @if_then4(), @if_join5(%r184)
+  block @if_then4:
+    %r189 = const 1 : u8 [general]
+    jmp @if_join5(%r189)
+  block @if_join5(%r190: u8 [general]):
+    %r191 = const 2 : u8 [general]
+    %r192 = move %r191 : u8 [acc]
+    %r193 = const 2 : u8 [general]
+    call @tui_goto(%r192, %r193)
+    %r194 = const 6 : u8 [general]
+    %r195 = move %r194 : u8 [acc]
+    %r196 = const 0 : u8 [general]
+    %r197 = const 0 : u8 [general]
+    %r198 = move %r197 : u8 [counter]
+    call @tui_color(%r195, %r196, %r198)
+    %r199 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r200 = move %r199 : ptr [pointer]
+    %r201 = const 12 : u8 [general]
+    call @_scr_puts_padded(%r200, %r201)
+    %r202 = const 1 : u8 [general]
+    %r203 = cmp.eq %r190, %r202 : bool [flag]
+    br_if %r203, @if_then6(), @if_else8()
+  block @if_then6:
+    %r204 = const 7 : u8 [general]
+    %r205 = move %r204 : u8 [acc]
+    %r206 = const 4 : u8 [general]
+    %r207 = const 1 : u8 [general]
+    %r208 = move %r207 : u8 [counter]
+    call @tui_color(%r205, %r206, %r208)
+    jmp @if_join7()
+  block @if_else8:
+    %r209 = const 7 : u8 [general]
+    %r210 = move %r209 : u8 [acc]
+    %r211 = const 0 : u8 [general]
+    %r212 = const 0 : u8 [general]
+    %r213 = move %r212 : u8 [counter]
+    call @tui_color(%r210, %r211, %r213)
+    jmp @if_join7()
+  block @if_join7:
+    %r214 = const 91 : u8 [general]
+    %r215 = move %r214 : u8 [acc]
+    call @tui_putch(%r215)
+    %r216 = addr_of @_buf_name : ptr [pointer]
+    %r217 = move %r216 : ptr [pointer]
+    %r218 = const 20 : u8 [general]
+    call @_scr_puts_padded(%r217, %r218)
+    %r219 = const 93 : u8 [general]
+    %r220 = move %r219 : u8 [acc]
+    call @tui_putch(%r220)
+    call @tui_reset()
+    %r221 = const 0 : u8 [general]
+    %r222 = addr_of @_scr_focus : ptr [pointer]
+    %r223 = load %r222 : u8 [general]
+    %r224 = const 1 : u8 [general]
+    %r225 = cmp.eq %r223, %r224 : bool [flag]
+    br_if %r225, @if_then9(), @if_join10(%r221)
+  block @if_then9:
+    %r226 = const 1 : u8 [general]
+    jmp @if_join10(%r226)
+  block @if_join10(%r227: u8 [general]):
+    %r228 = const 2 : u8 [general]
+    %r229 = move %r228 : u8 [acc]
+    %r230 = const 3 : u8 [general]
+    call @tui_goto(%r229, %r230)
+    %r231 = const 6 : u8 [general]
+    %r232 = move %r231 : u8 [acc]
+    %r233 = const 0 : u8 [general]
+    %r234 = const 0 : u8 [general]
+    %r235 = move %r234 : u8 [counter]
+    call @tui_color(%r232, %r233, %r235)
+    %r236 = addr_of @@mir2.str.3 : ptr [pointer]
+    %r237 = move %r236 : ptr [pointer]
+    %r238 = const 12 : u8 [general]
+    call @_scr_puts_padded(%r237, %r238)
+    %r239 = const 1 : u8 [general]
+    %r240 = cmp.eq %r227, %r239 : bool [flag]
+    br_if %r240, @if_then11(), @if_else13()
+  block @if_then11:
+    %r241 = const 7 : u8 [general]
+    %r242 = move %r241 : u8 [acc]
+    %r243 = const 4 : u8 [general]
+    %r244 = const 1 : u8 [general]
+    %r245 = move %r244 : u8 [counter]
+    call @tui_color(%r242, %r243, %r245)
+    jmp @if_join12()
+  block @if_else13:
+    %r246 = const 7 : u8 [general]
+    %r247 = move %r246 : u8 [acc]
+    %r248 = const 0 : u8 [general]
+    %r249 = const 0 : u8 [general]
+    %r250 = move %r249 : u8 [counter]
+    call @tui_color(%r247, %r248, %r250)
+    jmp @if_join12()
+  block @if_join12:
+    %r251 = const 91 : u8 [general]
+    %r252 = move %r251 : u8 [acc]
+    call @tui_putch(%r252)
+    %r253 = addr_of @_buf_city : ptr [pointer]
+    %r254 = move %r253 : ptr [pointer]
+    %r255 = const 15 : u8 [general]
+    call @_scr_puts_padded(%r254, %r255)
+    %r256 = const 93 : u8 [general]
+    %r257 = move %r256 : u8 [acc]
+    call @tui_putch(%r257)
+    call @tui_reset()
+    %r258 = const 0 : u8 [general]
+    %r259 = addr_of @_scr_focus : ptr [pointer]
+    %r260 = load %r259 : u8 [general]
+    %r261 = const 2 : u8 [general]
+    %r262 = cmp.eq %r260, %r261 : bool [flag]
+    br_if %r262, @if_then14(), @if_join15(%r258)
+  block @if_then14:
+    %r263 = const 1 : u8 [general]
+    jmp @if_join15(%r263)
+  block @if_join15(%r264: u8 [general]):
+    %r265 = const 2 : u8 [general]
+    %r266 = move %r265 : u8 [acc]
+    %r267 = const 4 : u8 [general]
+    call @tui_goto(%r266, %r267)
+    %r268 = const 6 : u8 [general]
+    %r269 = move %r268 : u8 [acc]
+    %r270 = const 0 : u8 [general]
+    %r271 = const 0 : u8 [general]
+    %r272 = move %r271 : u8 [counter]
+    call @tui_color(%r269, %r270, %r272)
+    %r273 = addr_of @@mir2.str.4 : ptr [pointer]
+    %r274 = move %r273 : ptr [pointer]
+    %r275 = const 12 : u8 [general]
+    call @_scr_puts_padded(%r274, %r275)
+    %r276 = const 1 : u8 [general]
+    %r277 = cmp.eq %r264, %r276 : bool [flag]
+    br_if %r277, @if_then16(), @if_else18()
+  block @if_then16:
+    %r278 = const 7 : u8 [general]
+    %r279 = move %r278 : u8 [acc]
+    %r280 = const 4 : u8 [general]
+    %r281 = const 1 : u8 [general]
+    %r282 = move %r281 : u8 [counter]
+    call @tui_color(%r279, %r280, %r282)
+    jmp @if_join17()
+  block @if_else18:
+    %r283 = const 7 : u8 [general]
+    %r284 = move %r283 : u8 [acc]
+    %r285 = const 0 : u8 [general]
+    %r286 = const 0 : u8 [general]
+    %r287 = move %r286 : u8 [counter]
+    call @tui_color(%r284, %r285, %r287)
+    jmp @if_join17()
+  block @if_join17:
+    %r288 = const 91 : u8 [general]
+    %r289 = move %r288 : u8 [acc]
+    call @tui_putch(%r289)
+    %r290 = addr_of @_buf_country : ptr [pointer]
+    %r291 = move %r290 : ptr [pointer]
+    %r292 = const 3 : u8 [general]
+    call @_scr_puts_padded(%r291, %r292)
+    %r293 = const 93 : u8 [general]
+    %r294 = move %r293 : u8 [acc]
+    call @tui_putch(%r294)
+    call @tui_reset()
+    %r295 = const 0 : u8 [general]
+    %r296 = addr_of @_scr_focus : ptr [pointer]
+    %r297 = load %r296 : u8 [general]
+    %r298 = const 3 : u8 [general]
+    %r299 = cmp.eq %r297, %r298 : bool [flag]
+    br_if %r299, @if_then19(), @if_join20(%r295)
+  block @if_then19:
+    %r300 = const 1 : u8 [general]
+    jmp @if_join20(%r300)
+  block @if_join20(%r301: u8 [general]):
+    %r302 = const 2 : u8 [general]
+    %r303 = move %r302 : u8 [acc]
+    %r304 = const 5 : u8 [general]
+    call @tui_goto(%r303, %r304)
+    %r305 = const 6 : u8 [general]
+    %r306 = move %r305 : u8 [acc]
+    %r307 = const 0 : u8 [general]
+    %r308 = const 0 : u8 [general]
+    %r309 = move %r308 : u8 [counter]
+    call @tui_color(%r306, %r307, %r309)
+    %r310 = addr_of @@mir2.str.5 : ptr [pointer]
+    %r311 = move %r310 : ptr [pointer]
+    %r312 = const 12 : u8 [general]
+    call @_scr_puts_padded(%r311, %r312)
+    %r313 = const 1 : u8 [general]
+    %r314 = cmp.eq %r301, %r313 : bool [flag]
+    br_if %r314, @if_then21(), @if_else23()
+  block @if_then21:
+    %r315 = const 7 : u8 [general]
+    %r316 = move %r315 : u8 [acc]
+    %r317 = const 4 : u8 [general]
+    %r318 = const 1 : u8 [general]
+    %r319 = move %r318 : u8 [counter]
+    call @tui_color(%r316, %r317, %r319)
+    jmp @if_join22()
+  block @if_else23:
+    %r320 = const 7 : u8 [general]
+    %r321 = move %r320 : u8 [acc]
+    %r322 = const 0 : u8 [general]
+    %r323 = const 0 : u8 [general]
+    %r324 = move %r323 : u8 [counter]
+    call @tui_color(%r321, %r322, %r324)
+    jmp @if_join22()
+  block @if_join22:
+    %r325 = const 91 : u8 [general]
+    %r326 = move %r325 : u8 [acc]
+    call @tui_putch(%r326)
+    %r327 = addr_of @_val_credit : ptr [pointer]
+    %r328 = load %r327 : u16 [pointer]
+    call @_scr_print_u16(%r328)
+    %r329 = const 93 : u8 [general]
+    %r330 = move %r329 : u8 [acc]
+    call @tui_putch(%r330)
+    call @tui_reset()
+    %r331 = const 0 : u8 [general]
+    %r332 = addr_of @_scr_focus : ptr [pointer]
+    %r333 = load %r332 : u8 [general]
+    %r334 = const 4 : u8 [general]
+    %r335 = cmp.eq %r333, %r334 : bool [flag]
+    br_if %r335, @if_then24(), @if_join25(%r331)
+  block @if_then24:
+    %r336 = const 1 : u8 [general]
+    jmp @if_join25(%r336)
+  block @if_join25(%r337: u8 [general]):
+    %r338 = const 2 : u8 [general]
+    %r339 = move %r338 : u8 [acc]
+    %r340 = const 7 : u8 [general]
+    call @tui_goto(%r339, %r340)
+    %r341 = const 1 : u8 [general]
+    %r342 = cmp.eq %r337, %r341 : bool [flag]
+    br_if %r342, @if_then26(), @if_else28()
+  block @if_then26:
+    %r343 = const 0 : u8 [general]
+    %r344 = move %r343 : u8 [acc]
+    %r345 = const 7 : u8 [general]
+    %r346 = const 1 : u8 [general]
+    %r347 = move %r346 : u8 [counter]
+    call @tui_color(%r344, %r345, %r347)
+    jmp @if_join27()
+  block @if_else28:
+    %r348 = const 7 : u8 [general]
+    %r349 = move %r348 : u8 [acc]
+    %r350 = const 0 : u8 [general]
+    %r351 = const 1 : u8 [general]
+    %r352 = move %r351 : u8 [counter]
+    call @tui_color(%r349, %r350, %r352)
+    jmp @if_join27()
+  block @if_join27:
+    %r353 = const 91 : u8 [general]
+    %r354 = move %r353 : u8 [acc]
+    call @tui_putch(%r354)
+    %r355 = addr_of @@mir2.str.6 : ptr [pointer]
+    %r356 = move %r355 : ptr [pointer]
+    call @tui_puts(%r356)
+    %r357 = const 93 : u8 [general]
+    %r358 = move %r357 : u8 [acc]
+    call @tui_putch(%r358)
+    call @tui_reset()
+    %r359 = const 0 : u8 [general]
+    %r360 = addr_of @_scr_focus : ptr [pointer]
+    %r361 = load %r360 : u8 [general]
+    %r362 = const 5 : u8 [general]
+    %r363 = cmp.eq %r361, %r362 : bool [flag]
+    br_if %r363, @if_then29(), @if_join30(%r359)
+  block @if_then29:
+    %r364 = const 1 : u8 [general]
+    jmp @if_join30(%r364)
+  block @if_join30(%r365: u8 [general]):
+    %r366 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r367 = move %r366 : ptr [pointer]
+    call @tui_puts(%r367)
+    %r368 = const 1 : u8 [general]
+    %r369 = cmp.eq %r365, %r368 : bool [flag]
+    br_if %r369, @if_then31(), @if_else33()
+  block @if_then31:
+    %r370 = const 0 : u8 [general]
+    %r371 = move %r370 : u8 [acc]
+    %r372 = const 7 : u8 [general]
+    %r373 = const 1 : u8 [general]
+    %r374 = move %r373 : u8 [counter]
+    call @tui_color(%r371, %r372, %r374)
+    jmp @if_join32()
+  block @if_else33:
+    %r375 = const 7 : u8 [general]
+    %r376 = move %r375 : u8 [acc]
+    %r377 = const 0 : u8 [general]
+    %r378 = const 1 : u8 [general]
+    %r379 = move %r378 : u8 [counter]
+    call @tui_color(%r376, %r377, %r379)
+    jmp @if_join32()
+  block @if_join32:
+    %r380 = const 91 : u8 [general]
+    %r381 = move %r380 : u8 [acc]
+    call @tui_putch(%r381)
+    %r382 = addr_of @@mir2.str.7 : ptr [pointer]
+    %r383 = move %r382 : ptr [pointer]
+    call @tui_puts(%r383)
+    %r384 = const 93 : u8 [general]
+    %r385 = move %r384 : u8 [acc]
+    call @tui_putch(%r385)
+    call @tui_reset()
+    %r386 = call @tui_height() : u8 [acc]
+    %r387 = const 7 : u8 [general]
+    %r388 = move %r387 : u8 [acc]
+    %r389 = const 4 : u8 [general]
+    %r390 = const 0 : u8 [general]
+    %r391 = move %r390 : u8 [counter]
+    call @tui_color(%r388, %r389, %r391)
+    %r392 = const 0 : u8 [general]
+    %r393 = move %r392 : u8 [acc]
+    %r394 = const 1 : u8 [general]
+    %r395 = sub %r386, %r394 : u8 [acc]
+    call @tui_goto(%r393, %r395)
+    %r396 = addr_of @@mir2.str.8 : ptr [pointer]
+    %r397 = move %r396 : ptr [pointer]
+    call @tui_puts(%r397)
+    %r398 = const 43 : u8 [general]
+    jmp @loop_head34(%r398, %r183)
+  block @loop_head34(%r399: u8 [general], %r400: u8 [general]):
+    %r401 = cmp.ult %r399, %r400 : bool [flag]
+    br_if %r401, @loop_body35(), @loop_exit36(%r399, %r400)
+  block @loop_body35:
+    %r402 = const 32 : u8 [general]
+    %r403 = move %r402 : u8 [acc]
+    call @tui_putch(%r403)
+    %r404 = const 1 : u8 [general]
+    %r405 = add %r399, %r404 : u8 [general]
+    jmp @loop_head34(%r405, %r400)
+  block @loop_exit36(%r406: u8 [general], %r407: u8 [general]):
+    call @tui_reset()
+    ret void
+
+fun @screen_handle_key(%r408: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r409 = const 147 : u8 [general]
+    %r410 = cmp.eq %r408, %r409 : bool [flag]
+    br_if %r410, @if_then1(), @if_join2()
+  block @if_then1:
+    %r411 = addr_of @SCREEN_EXECUTE : ptr [pointer]
+    %r412 = load %r411 : u8 [general]
+    ret %r412
+  block @if_join2:
+    %r413 = const 142 : u8 [general]
+    %r414 = cmp.eq %r408, %r413 : bool [flag]
+    br_if %r414, @if_then3(), @if_join4()
+  block @if_then3:
+    %r415 = addr_of @SCREEN_BACK : ptr [pointer]
+    %r416 = load %r415 : u8 [general]
+    ret %r416
+  block @if_join4:
+    %r417 = const 27 : u8 [general]
+    %r418 = cmp.eq %r408, %r417 : bool [flag]
+    br_if %r418, @if_then5(), @if_join6()
+  block @if_then5:
+    %r419 = addr_of @SCREEN_BACK : ptr [pointer]
+    %r420 = load %r419 : u8 [general]
+    ret %r420
+  block @if_join6:
+    %r421 = const 9 : u8 [general]
+    %r422 = cmp.eq %r408, %r421 : bool [flag]
+    br_if %r422, @if_then7(), @if_join8()
+  block @if_then7:
+    %r423 = addr_of @_scr_focus : ptr [pointer]
+    %r424 = load %r423 : u8 [general]
+    %r425 = const 1 : u8 [general]
+    %r426 = add %r424, %r425 : u8 [acc]
+    %r427 = addr_of @_scr_focus : ptr [pointer]
+    store %r427, %r426 : u8
+    %r428 = addr_of @_scr_focus : ptr [pointer]
+    %r429 = load %r428 : u8 [general]
+    %r430 = const 6 : u8 [general]
+    %r431 = cmp.uge %r429, %r430 : bool [flag]
+    br_if %r431, @if_then9(), @if_join10()
+  block @if_then9:
+    %r432 = const 0 : u8 [general]
+    %r433 = addr_of @_scr_focus : ptr [pointer]
+    store %r433, %r432 : u8
+    jmp @if_join10()
+  block @if_join10:
+    %r434 = addr_of @SCREEN_NONE : ptr [pointer]
+    %r435 = load %r434 : u8 [general]
+    ret %r435
+  block @if_join8:
+    %r436 = const 13 : u8 [general]
+    %r437 = cmp.eq %r408, %r436 : bool [flag]
+    br_if %r437, @if_then11(), @if_join12()
+  block @if_then11:
+    %r438 = addr_of @_scr_focus : ptr [pointer]
+    %r439 = load %r438 : u8 [general]
+    %r440 = const 0 : u8 [general]
+    %r441 = cmp.eq %r439, %r440 : bool [flag]
+    br_if %r441, @if_then13(), @if_join14()
+  block @if_then13:
+    %r442 = const 15 : u8 [general]
+    %r443 = move %r442 : u8 [acc]
+    %r444 = const 2 : u8 [general]
+    call @tui_goto(%r443, %r444)
+    %r445 = const 7 : u8 [general]
+    %r446 = move %r445 : u8 [acc]
+    %r447 = const 4 : u8 [general]
+    %r448 = const 1 : u8 [general]
+    %r449 = move %r448 : u8 [counter]
+    call @tui_color(%r446, %r447, %r449)
+    %r450 = addr_of @_buf_name : ptr [pointer]
+    %r451 = move %r450 : ptr [pointer]
+    %r452 = const 20 : u8 [general]
+    %r453 = call @tui_read_line(%r451, %r452) : u8 [acc]
+    call @tui_reset()
+    jmp @if_join14()
+  block @if_join14:
+    %r454 = addr_of @_scr_focus : ptr [pointer]
+    %r455 = load %r454 : u8 [general]
+    %r456 = const 1 : u8 [general]
+    %r457 = cmp.eq %r455, %r456 : bool [flag]
+    br_if %r457, @if_then15(), @if_join16()
+  block @if_then15:
+    %r458 = const 15 : u8 [general]
+    %r459 = move %r458 : u8 [acc]
+    %r460 = const 3 : u8 [general]
+    call @tui_goto(%r459, %r460)
+    %r461 = const 7 : u8 [general]
+    %r462 = move %r461 : u8 [acc]
+    %r463 = const 4 : u8 [general]
+    %r464 = const 1 : u8 [general]
+    %r465 = move %r464 : u8 [counter]
+    call @tui_color(%r462, %r463, %r465)
+    %r466 = addr_of @_buf_city : ptr [pointer]
+    %r467 = move %r466 : ptr [pointer]
+    %r468 = const 15 : u8 [general]
+    %r469 = call @tui_read_line(%r467, %r468) : u8 [acc]
+    call @tui_reset()
+    jmp @if_join16()
+  block @if_join16:
+    %r470 = addr_of @_scr_focus : ptr [pointer]
+    %r471 = load %r470 : u8 [general]
+    %r472 = const 2 : u8 [general]
+    %r473 = cmp.eq %r471, %r472 : bool [flag]
+    br_if %r473, @if_then17(), @if_join18()
+  block @if_then17:
+    %r474 = const 15 : u8 [general]
+    %r475 = move %r474 : u8 [acc]
+    %r476 = const 4 : u8 [general]
+    call @tui_goto(%r475, %r476)
+    %r477 = const 7 : u8 [general]
+    %r478 = move %r477 : u8 [acc]
+    %r479 = const 4 : u8 [general]
+    %r480 = const 1 : u8 [general]
+    %r481 = move %r480 : u8 [counter]
+    call @tui_color(%r478, %r479, %r481)
+    %r482 = addr_of @_buf_country : ptr [pointer]
+    %r483 = move %r482 : ptr [pointer]
+    %r484 = const 3 : u8 [general]
+    %r485 = call @tui_read_line(%r483, %r484) : u8 [acc]
+    call @tui_reset()
+    jmp @if_join18()
+  block @if_join18:
+    %r486 = addr_of @_scr_focus : ptr [pointer]
+    %r487 = load %r486 : u8 [general]
+    %r488 = const 3 : u8 [general]
+    %r489 = cmp.eq %r487, %r488 : bool [flag]
+    br_if %r489, @if_then19(), @if_join20()
+  block @if_then19:
+    %r490 = const 15 : u8 [general]
+    %r491 = move %r490 : u8 [acc]
+    %r492 = const 5 : u8 [general]
+    call @tui_goto(%r491, %r492)
+    %r493 = const 7 : u8 [general]
+    %r494 = move %r493 : u8 [acc]
+    %r495 = const 4 : u8 [general]
+    %r496 = const 1 : u8 [general]
+    %r497 = move %r496 : u8 [counter]
+    call @tui_color(%r494, %r495, %r497)
+    %r498 = addr_of @_buf_credit : ptr [pointer]
+    %r499 = move %r498 : ptr [pointer]
+    %r500 = const 6 : u8 [general]
+    %r501 = call @tui_read_line(%r499, %r500) : u8 [acc]
+    call @tui_reset()
+    %r502 = addr_of @_buf_credit : ptr [pointer]
+    %r503 = move %r502 : ptr [pointer]
+    %r504 = call @_scr_atoi(%r503) : u16 [pointer]
+    %r505 = addr_of @_val_credit : ptr [pointer]
+    store %r505, %r504 : u16
+    jmp @if_join20()
+  block @if_join20:
+    %r506 = addr_of @_scr_focus : ptr [pointer]
+    %r507 = load %r506 : u8 [general]
+    %r508 = const 4 : u8 [general]
+    %r509 = cmp.eq %r507, %r508 : bool [flag]
+    br_if %r509, @if_then21(), @if_join22()
+  block @if_then21:
+    %r510 = addr_of @SCREEN_EXECUTE : ptr [pointer]
+    %r511 = load %r510 : u8 [general]
+    ret %r511
+  block @if_join22:
+    %r512 = addr_of @_scr_focus : ptr [pointer]
+    %r513 = load %r512 : u8 [general]
+    %r514 = const 5 : u8 [general]
+    %r515 = cmp.eq %r513, %r514 : bool [flag]
+    br_if %r515, @if_then23(), @if_join24()
+  block @if_then23:
+    %r516 = addr_of @SCREEN_BACK : ptr [pointer]
+    %r517 = load %r516 : u8 [general]
+    ret %r517
+  block @if_join24:
+    %r518 = addr_of @SCREEN_NONE : ptr [pointer]
+    %r519 = load %r518 : u8 [general]
+    ret %r519
+  block @if_join12:
+    %r520 = addr_of @SCREEN_NONE : ptr [pointer]
+    %r521 = load %r520 : u8 [general]
+    ret %r521
+
+fun @screen_show() -> u8 [acc]
+  block @entry:
+    %r522 = addr_of @SCREEN_NONE : ptr [pointer]
+    %r523 = load %r522 : u8 [general]
+    jmp @loop_head1(%r523)
+  block @loop_head1(%r524: u8 [general]):
+    %r525 = addr_of @SCREEN_NONE : ptr [pointer]
+    %r526 = load %r525 : u8 [general]
+    %r527 = cmp.eq %r524, %r526 : bool [flag]
+    br_if %r527, @loop_body2(), @loop_exit3(%r524)
+  block @loop_body2:
+    call @screen_render()
+    %r528 = call @tui_read_key() : u8 [acc]
+    %r529 = move %r528 : u8 [acc]
+    %r530 = call @screen_handle_key(%r529) : u8 [acc]
+    jmp @loop_head1(%r530)
+  block @loop_exit3(%r531: u8 [general]):
+    call @tui_clear()
+    %r532 = const 0 : u8 [general]
+    %r533 = move %r532 : u8 [acc]
+    %r534 = const 0 : u8 [general]
+    call @tui_goto(%r533, %r534)
+    call @tui_reset()
+    ret %r531
+
+fun @screen_name() -> ptr [pointer]
+  block @entry:
+    %r535 = addr_of @_buf_name : ptr [pointer]
+    ret %r535
+
+fun @screen_city() -> ptr [pointer]
+  block @entry:
+    %r536 = addr_of @_buf_city : ptr [pointer]
+    ret %r536
+
+fun @screen_country() -> ptr [pointer]
+  block @entry:
+    %r537 = addr_of @_buf_country : ptr [pointer]
+    ret %r537
+
+fun @screen_credit() -> u16 [pointer]
+  block @entry:
+    %r538 = addr_of @_val_credit : ptr [pointer]
+    %r539 = load %r538 : u16 [pointer]
+    ret %r539
+
+fun @main()
+  block @entry:
+    call @screen_init()
+    %r540 = call @screen_show() : u8 [acc]
+    %r541 = addr_of @SCREEN_EXECUTE : ptr [pointer]
+    %r542 = load %r541 : u8 [general]
+    %r543 = cmp.eq %r540, %r542 : bool [flag]
+    br_if %r543, @if_then1(), @if_join2()
+  block @if_then1:
+    %r544 = addr_of @@mir2.str.9 : ptr [pointer]
+    %r545 = move %r544 : ptr [pointer]
+    call @tui_puts(%r545)
+    %r546 = addr_of @@mir2.str.10 : ptr [pointer]
+    %r547 = move %r546 : ptr [pointer]
+    call @tui_puts(%r547)
+    %r548 = call @screen_name() : ptr [pointer]
+    %r549 = move %r548 : ptr [pointer]
+    call @tui_puts(%r549)
+    %r550 = addr_of @@mir2.str.11 : ptr [pointer]
+    %r551 = move %r550 : ptr [pointer]
+    call @tui_puts(%r551)
+    %r552 = call @screen_city() : ptr [pointer]
+    %r553 = move %r552 : ptr [pointer]
+    call @tui_puts(%r553)
+    %r554 = addr_of @@mir2.str.12 : ptr [pointer]
+    %r555 = move %r554 : ptr [pointer]
+    call @tui_puts(%r555)
+    %r556 = call @screen_country() : ptr [pointer]
+    %r557 = move %r556 : ptr [pointer]
+    call @tui_puts(%r557)
+    %r558 = addr_of @@mir2.str.13 : ptr [pointer]
+    %r559 = move %r558 : ptr [pointer]
+    call @tui_puts(%r559)
+    %r560 = call @screen_credit() : u16 [pointer]
+    call @_scr_print_u16(%r560)
+    %r561 = addr_of @@mir2.str.14 : ptr [pointer]
+    %r562 = move %r561 : ptr [pointer]
+    call @tui_puts(%r562)
+    jmp @if_join2()
+  block @if_join2:
+    ret void
+

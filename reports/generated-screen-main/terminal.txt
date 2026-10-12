@@ -1,0 +1,16 @@
+=== RUN   TestOriginalGeneratedScreenWholeMain
+    original_generated_screen_main_test.go:623: customer ordinary wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:623: customer grace-size wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:623: customer grace-speed wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:623: customer-edit ordinary wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:623: customer-edit grace-size wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:623: customer-edit grace-speed wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:623: declarative ordinary wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:623: declarative grace-size wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:623: declarative grace-speed wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:623: declarative-cancel ordinary wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:623: declarative-cancel grace-size wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:623: declarative-cancel grace-speed wholemain raw/final/native PASS
+--- PASS: TestOriginalGeneratedScreenWholeMain (3.29s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.297s

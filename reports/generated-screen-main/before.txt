@@ -1,0 +1,9 @@
+=== RUN   TestOriginalGeneratedScreenWholeMain
+    original_generated_screen_main_test.go:548: customer ordinary wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:548: customer grace-size wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:548: customer grace-speed wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:311: customer-edit VM RAMc got67 want0
+--- FAIL: TestOriginalGeneratedScreenWholeMain (0.61s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.618s
+FAIL
