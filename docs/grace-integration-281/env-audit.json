@@ -1,0 +1,36 @@
+{
+  "checkpoint": "d8f03dac",
+  "files": [
+    {
+      "path": "minzc/pkg/pipeline/parser_prospective_heldout_test.go",
+      "sha256": "c4fee5e8fb1ba0e56cfcd4c29e8720bca069d114c17bcea646bd8dabe7503e9e",
+      "export_required_for_execution": false
+    },
+    {
+      "path": "minzc/pkg/pipeline/pfcco_prospective_heldout_test.go",
+      "sha256": "8cd5a585dd2e5e38a1988e50320e3ac335a8258d123d87969bb773755a9d9bf9",
+      "export_required_for_execution": false
+    },
+    {
+      "path": "minzc/pkg/pipeline/arithmetic_heldout_test.go",
+      "sha256": "117aea52977c260c45ce865340c759b5c08ee09e1e63f8237e18067423273511",
+      "export_required_for_execution": false
+    },
+    {
+      "path": "minzc/pkg/pipeline/bubble_sort_heldout_test.go",
+      "sha256": "1593d90c8f1d85e49d968fe4b9aba05bf3070f43ed78f8099083e2ac3d649990",
+      "export_required_for_execution": false
+    },
+    {
+      "path": "minzc/pkg/pipeline/profile_hashmap_heldout_test.go",
+      "sha256": "257e563b1b39a1b465b0e195ccbb1c3069940958c2e4d4c50bb271bac78ef364",
+      "export_required_for_execution": false
+    },
+    {
+      "path": "minzc/pkg/pipeline/call_literal_tokenizer_prospective_test.go",
+      "sha256": "94d4bc22b9e1fc5c02c791a4084801b0849dffee89452d06e8f767bd2111cff1",
+      "export_required_for_execution": true
+    }
+  ],
+  "finding": "Five earlier heldout tests only omit save operations without env, and still execute. Literal-call test requires env and skips otherwise; corrected root exported proof280."
+}
