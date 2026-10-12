@@ -1,0 +1,6 @@
+=== RUN   TestOriginalTetrisTUIWholeMain
+    original_tetris_tui_main_test.go:253: extern stub tui_goto
+--- FAIL: TestOriginalTetrisTUIWholeMain (0.35s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.358s
+FAIL
