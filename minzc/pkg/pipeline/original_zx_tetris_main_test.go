@@ -16,9 +16,10 @@ import (
 
 // Initialization prefix of unchanged main, bounded before the first game HALT.
 // No interrupt or keyboard/game-frame claim is made by this test.
-func TestOriginalZXTetrisMainInitialization(t *testing.T) { testOriginalZXTetrisMainFrames(t, false) }
-func TestOriginalZXTetrisMainMovement(t *testing.T)       { testOriginalZXTetrisMainFrames(t, true) }
-func testOriginalZXTetrisMainFrames(t *testing.T, movement bool) {
+func TestOriginalZXTetrisMainInitialization(t *testing.T) { testOriginalZXTetrisMainFrames(t, "idle") }
+func TestOriginalZXTetrisMainMovement(t *testing.T)       { testOriginalZXTetrisMainFrames(t, "movement") }
+func TestOriginalZXTetrisMainRotation(t *testing.T)       { testOriginalZXTetrisMainFrames(t, "rotation") }
+func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 	for _, source := range []struct{ name, path string }{{"current", "examples/zx/tetris.nanz"}, {"historical", "reports/showcase-src/2026-03-15/ex34_tetris.nanz"}} {
 		t.Run(source.name, func(t *testing.T) {
 			src, e := os.ReadFile("../../../" + source.path)
@@ -160,7 +161,13 @@ func testOriginalZXTetrisMainFrames(t *testing.T, movement bool) {
 					borders := 0
 					keyReads := 0
 					keysAt := func(frame int) byte {
-						if !movement {
+						if scenario == "rotation" {
+							if frame == 1 || frame == 2 || frame == 4 || frame == 6 || frame == 8 || frame == 10 {
+								return 4
+							}
+							return 0
+						}
+						if scenario != "movement" {
 							return 0
 						}
 						switch frame {
@@ -180,6 +187,7 @@ func testOriginalZXTetrisMainFrames(t *testing.T, movement bool) {
 						return 0
 					}
 					expectedX := 3
+					expectedRotation := 0
 					previousKeys := byte(0)
 					awake := false
 					z.SetIOHandlers(func(p uint16) byte {
@@ -198,6 +206,9 @@ func testOriginalZXTetrisMainFrames(t *testing.T, movement bool) {
 							if keys&2 != 0 {
 								v &^= 1
 							}
+						}
+						if row == 1 && keys&4 != 0 {
+							v &^= 1
 						}
 						return v
 					}, func(p uint16, v byte) {
@@ -266,7 +277,11 @@ func testOriginalZXTetrisMainFrames(t *testing.T, movement bool) {
 						if pressed&2 != 0 && expectedX+4 < 10 {
 							expectedX++
 						}
+						if pressed&4 != 0 {
+							expectedRotation = (expectedRotation + 1) & 3
+						}
 						previousKeys = keys
+						want[sym("cur_rot")] = byte(expectedRotation)
 						want[sym("cur_x")] = byte(expectedX)
 						want[sym("prev_keys")] = keys
 						r := z.GetRegisters()
@@ -277,9 +292,15 @@ func testOriginalZXTetrisMainFrames(t *testing.T, movement bool) {
 								want[0x5800+(2+y)*32+11+x] = 0
 							}
 						}
-						for x := expectedX; x < expectedX+4; x++ {
-							want[0x5800+21*32+11+x] = 5
-							want[0x5800+(2+frame/30)*32+11+x] = 0x28
+						for cell := 0; cell < 4; cell++ {
+							dx, dy := cell, 0
+							ghost := 19
+							if expectedRotation&1 != 0 {
+								dx, dy = 0, cell
+								ghost = 16
+							}
+							want[0x5800+(2+ghost+dy)*32+11+expectedX+dx] = 5
+							want[0x5800+(2+frame/30+dy)*32+11+expectedX+dx] = 0x28
 						}
 						for _, sx := range []int{23, 5} {
 							for y := 0; y < 4; y++ {

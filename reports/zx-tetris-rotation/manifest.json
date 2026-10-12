@@ -1,0 +1,16 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "99a37db94341d0d03d799e060af841cb2db0c5482754d8ee7ef963b6184a762a"
+    },
+    {
+      "path": "regression.txt",
+      "sha256": "cb7f2f8bb1176177d768de69a3e33e5cecc624e35f77ccea2f99015a1b297a8c"
+    },
+    {
+      "path": "root.txt",
+      "sha256": "fa435f53926bd07e842ce321b93deb8d247003686e68df578b9b294fd346cdf7"
+    }
+  ]
+}
