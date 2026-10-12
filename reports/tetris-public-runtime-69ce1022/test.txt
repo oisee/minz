@@ -1,0 +1,7 @@
+=== RUN   TestPublicCPMTetrisNative
+    cpm_tetris_native_test.go:256: ordinary public runtime exact stdout/state/OSreturn/SP PASS
+    cpm_tetris_native_test.go:256: grace-size public runtime exact stdout/state/OSreturn/SP PASS
+    cpm_tetris_native_test.go:256: grace-speed public runtime exact stdout/state/OSreturn/SP PASS
+--- PASS: TestPublicCPMTetrisNative (1.73s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.742s

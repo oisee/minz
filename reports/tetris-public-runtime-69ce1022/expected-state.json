@@ -1,0 +1,19 @@
+{
+  "Board": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+  "Globals": {
+    "cur_rot": 1,
+    "cur_type": 0,
+    "cur_x": 3,
+    "cur_y": 0,
+    "drop_speed": 8,
+    "drop_timer": 2,
+    "game_over": 1,
+    "hold_type": 255,
+    "hold_used": 0,
+    "lines_cleared": 0,
+    "next_type": 0,
+    "rng_state": 28984,
+    "score": 0,
+    "tick": 2
+  }
+}
