@@ -1,0 +1,16 @@
+{
+  "files": {
+    "mir2.txt": {
+      "sha256": "0e8f3d3ba288f207673762536e8142799bc95f8bccf9979c65423451192e7f25",
+      "bytes": 43
+    },
+    "pipeline.txt": {
+      "sha256": "52415245faddf0120647e5ca1186cb15bc9ddae3e5044588f7974aa83ed85849",
+      "bytes": 47
+    },
+    "README.md": {
+      "sha256": "71b6707e1f11be9358e5d65c83730767a4a90b669083fe53a78cd33a192afa50",
+      "bytes": 1301
+    }
+  }
+}

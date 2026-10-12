@@ -6,11 +6,11 @@
 
 ## Актуальный checkpoint: корпус и проверки
 
-Каталог [224](grace-integration-224/README.md) сохраняет все 194 точных пути: **133 independent/bounded VM/native**, два отдельных bounded native SMC и два pending семантических/runtime пробела. Остальные имеют явные ASM/runtime/Agon/CPM/host ограничения. Архивные SHA-идентичные копии считаются путями, не новыми независимыми приложениями.
+Каталог [232](grace-integration-232/README.md) сохраняет все 194 точных пути: **133 independent/bounded VM/native**, два отдельных bounded native SMC и два pending семантических/runtime пробела. Остальные имеют явные ASM/runtime/Agon/CPM/host ограничения. Архивные SHA-идентичные копии считаются путями, не новыми независимыми приложениями.
 
-После каталога отдельно подтверждены два чистых метода исходного CP/M-примера: 394 752 вызова в трёх режимах, включая объекты через границу адресов. Полный модуль сохранён. Позднее исходный main и print_u8 всех256значений прошли под явно тестовым COM-загрузчиком и двумя BDOS2-контрактами. Позднее рабочий CP/M runtime получил узкий допуск exact BDOS2 adapter и bounded local objects. Original COM проходит CLI и native OS RET в трёх режимах; полный native runtime статус подтверждён отдельно от VM вывода. Независимый аудит допуска продолжается. [Методы214](grace-integration-214/README.md), [main219](grace-integration-219/README.md), [production221](grace-integration-221/README.md).
+После каталога отдельно подтверждены два чистых метода исходного CP/M-примера: 394 752 вызова в трёх режимах, включая объекты через границу адресов. Полный модуль сохранён. Позднее исходный main и print_u8 всех 256 значений прошли под явно тестовым COM-загрузчиком и двумя BDOS2-контрактами. Позднее рабочий CP/M runtime получил узкий допуск exact BDOS2 adapter и bounded local objects. Original COM проходит CLI и native OS RET в трёх режимах; полный native runtime статус подтверждён отдельно от VM вывода. Аудит нашёл narrowed-pointer ошибку допуска: byte spill терял старшую половину адреса. Проверка требует native TyPtr и чистую metadata; контрпример и положительные runtime случаи сохранены в [233](grace-integration-233/README.md). Два исходных README-примера также прошли native COM/output/OS RET, без правок исходников ([232](grace-integration-232/README.md)). [Методы214](grace-integration-214/README.md), [main219](grace-integration-219/README.md), [production221](grace-integration-221/README.md).
 
-Последние полные HIR/MIR на `c3129387`: **PASS 24,829 / 64,484 с**, exit0 ([227](grace-integration-227/README.md)); Nanz65a018eb **PASS 21,771 с** после negative literals и gallery ([222](grace-integration-222/README.md)). Свежий CLI ещё выполняется ([226](grace-integration-226/README.md)).
+Последние полные HIR/MIR на `c3129387`: **PASS 24,829 / 64,484 с**, exit0 ([227](grace-integration-227/README.md)); Nanz65a018eb **PASS 21,771 с** после negative literals и gallery ([222](grace-integration-222/README.md)). Полный CLI `2a3f6662` завершился **PASS 354,362 с**, exit 0 ([226](grace-integration-226/README.md)). Он предшествует расширению README BDOS adapter и исправлению типов локальных адресов; последние изменения имеют отдельные проверки [231](grace-integration-231/README.md) и [233](grace-integration-233/README.md).
 
 Свежий единый core `166103ff` после C89 и Z80 predicate-truncation исправлений завершился **PASS, exit0**: HIR27,483 с, MIR2 72,771 с, Nanz14,490 с, VIR2,365 с ([220](grace-integration-220/README.md)).
 
@@ -42,11 +42,11 @@ Pending: Lizp `cond_test` не имеет определённой докуме�
 
 | Требование | Что доказано | Что ещё не доказано |
 |---|---|---|
-| Заявленный корпус | Все 194 пути имеют явный статус; 73 independent/bounded VM/Z80 paths | 64 ждут независимого оракула, остальные имеют отдельные ASM/runtime/host ограничения; bounded entry не означает всё приложение |
+| Заявленный корпус | Все 194 пути имеют явный статус; 133 independent/bounded VM/native, четыре native CP/M и два native SMC пути | Два pending; 29 inline ASM, 18 external runtime, пять Agon/MOS и один host-only путь требуют отдельного допуска; bounded entry не означает всё приложение |
 | PFCCO/PBQP и таблицы | Реальные назначения, moves/saves и native польза на packet/weighted; bounded solver audit | Произвольные calls/CFG/islands и глобальная оптимальность |
 | Автоматический выбор и heldout | Self-Lanz, HashMap и Pascal SORT: training-selected BIN проверен на заранее отложенных входах; packet даёт отдельный PFCCO выигрыш | Остальные runtime/corpus ограничения сохраняются; это не универсальный выигрыш на всех программах |
-| Полное удаление LIR и перенос пользы | Пакет/consumers удалены; shared engines/native тесты сохранены; word ×10/12, byte fusion и K11 перенесены с native пользой | Полнота общих physical constraints/pattern choices требует предметного аудита |
-| Воспроизводимость | Исходники, workloads, решения, ASM/BIN и логи на `/mnt/safe/minz/grace/2026-10-11/`; v67 сайт: 9 860 файлов целиком проверены по SHA | Новые ABI и purity изменения требуют полного gate на новом checkpoint |
+| Полное удаление LIR и перенос пользы | Пакет/consumers удалены; shared engines/native тесты сохранены; word ×10/12, byte fusion и K11 перенесены с native пользой | 53 архивных файла предметно проверены; WFC и незавершённые VIR/CFG islands остаются исследованием, не обещанием полного переноса произвольных physical constraints |
+| Воспроизводимость | Исходники, workloads, решения, ASM/BIN и логи на `/mnt/safe/minz/grace/`; полный сайт на 12 октября: 9 908 файлов проверены по SHA ([223](grace-integration-223/README.md)) | Новые ABI и purity изменения требуют полного gate на новом checkpoint |
 
 Последний root full core `0f0953d9` — HIR/MIR2/Nanz/VIR **PASS**;
 full CLI `568b7d08` — **PASS 384,240 с**. Оба предшествуют struct-buffer ABI
