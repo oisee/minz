@@ -1,0 +1,39 @@
+=== RUN   TestCombinedContractTableGraceNative
+    combined_contract_table_grace_test.go:98: mode=off grace=false table=false fullBIN=44 helper256=46592T caller256=60928T entries=1
+    combined_contract_table_grace_test.go:98: mode=off grace=false table=true fullBIN=20 helper256=22016T caller256=36352T entries=1
+    combined_contract_table_grace_test.go:98: mode=off grace=true table=false fullBIN=44 helper256=46592T caller256=60928T entries=1
+    combined_contract_table_grace_test.go:98: mode=off grace=true table=true fullBIN=20 helper256=22016T caller256=36352T entries=1
+    combined_contract_table_grace_test.go:98: mode=greedy grace=false table=false fullBIN=44 helper256=46592T caller256=60928T entries=1
+    combined_contract_table_grace_test.go:98: mode=greedy grace=false table=true fullBIN=20 helper256=22016T caller256=36352T entries=1
+    combined_contract_table_grace_test.go:98: mode=greedy grace=true table=false fullBIN=44 helper256=46592T caller256=60928T entries=1
+    combined_contract_table_grace_test.go:98: mode=greedy grace=true table=true fullBIN=20 helper256=22016T caller256=36352T entries=1
+    combined_contract_table_grace_test.go:98: mode=pbqp grace=false table=false fullBIN=44 helper256=46592T caller256=60928T entries=1
+    combined_contract_table_grace_test.go:98: mode=pbqp grace=false table=true fullBIN=20 helper256=22016T caller256=36352T entries=1
+    combined_contract_table_grace_test.go:98: mode=pbqp grace=true table=false fullBIN=44 helper256=46592T caller256=60928T entries=1
+    combined_contract_table_grace_test.go:98: mode=pbqp grace=true table=true fullBIN=20 helper256=22016T caller256=36352T entries=1
+--- PASS: TestCombinedContractTableGraceNative (6.12s)
+=== RUN   TestCheckedTableNegativeCorpusAudit
+[regalloc] loaded 56 exhaustive entries from ../vir/regalloc_exhaustive.json
+    table_negative_audit_test.go:159: 06_pbqp_weighted module36→12 entries1 compile2.70ms generate28.08ms selected5.40ms
+    table_negative_audit_test.go:159: 09_function_pointers module34→34 entries0 compile1.10ms generate1.31ms selected1.15ms
+    table_negative_audit_test.go:159: tiny module11→8 entries3 compile0.51ms generate49.34ms selected3.46ms
+    table_negative_audit_test.go:159: 20_strref_test module45→45 entries3 compile3.19ms generate51.70ms selected5.77ms
+    table_negative_audit_test.go:159: 21_hashmap_test module987→987 entries0 compile26.57ms generate27.98ms selected30.29ms
+    table_negative_audit_test.go:159: 17_bool_retflag module172→172 entries0 compile4.18ms generate4.02ms selected3.84ms
+    table_negative_audit_test.go:159: 16_rotate_sled module186→186 entries1 compile3.46ms generate17.94ms selected4.38ms
+    table_negative_audit_test.go:159: promoted_arithmetic module342→342 entries0 compile10.89ms generate10.20ms selected9.51ms
+    table_negative_audit_test.go:159: signed_arithmetic module255→255 entries0 compile6.00ms generate5.66ms selected5.48ms
+    table_negative_audit_test.go:159: 08_arena_allocator module1130→1130 entries0 compile32.78ms generate30.37ms selected29.12ms
+    table_negative_audit_test.go:159: 50_impl_showcase module256→256 entries0 compile6.79ms generate7.00ms selected6.21ms
+    table_negative_audit_test.go:159: self_tokenizer module5465→5465 entries0 compile551.66ms generate453.42ms selected530.84ms
+    table_negative_audit_test.go:169: 06_pbqp_weighted/weighted baseline36 candidate12 cost54 admitted: smaller
+    table_negative_audit_test.go:169: tiny/add baseline2 candidate2 cost14 admitted: not strictly smaller
+    table_negative_audit_test.go:169: tiny/double baseline2 candidate2 cost14 admitted: not strictly smaller
+    table_negative_audit_test.go:169: tiny/triple baseline7 candidate4 cost22 admitted: smaller
+    table_negative_audit_test.go:169: 20_strref_test/hash3 baseline6 candidate6 cost30 admitted: not strictly smaller
+    table_negative_audit_test.go:169: 20_strref_test/test_eq baseline3 candidate3 cost17 admitted: not strictly smaller
+    table_negative_audit_test.go:169: 20_strref_test/test_neq baseline3 candidate3 cost17 admitted: not strictly smaller
+    table_negative_audit_test.go:169: 16_rotate_sled/low_nibble baseline3 candidate3 cost17 admitted: not strictly smaller
+--- PASS: TestCheckedTableNegativeCorpusAudit (2.67s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	8.797s
