@@ -1,0 +1,317 @@
+{
+  "scope": "offline independent reparse of 9 graphics streams and 9 debugger return runs; no CPU execution by auditor; bounded command/text and caller-frame proofs, no global RAM/pixel/hardware proof",
+  "manifest_files": {
+    "wire": 160,
+    "returns": 68
+  },
+  "rows": [
+    {
+      "source": "tui_hello",
+      "mode": "ordinary",
+      "bin_sha256": "7753540a53c8d7de37bed5d92c3baee4206a90035765b1e6d0d9183eadab6a3b",
+      "source_sha256": "44f505b14ac4c5c674db470d9f81684aeaf078498c03ad267e81a05d13d25f90",
+      "application_bytes": 218,
+      "return_snapshot": {
+        "entry": {
+          "PC": 262213,
+          "HL": 770928,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "before": {
+          "PC": 262225,
+          "HL": 0,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "after": {
+          "PC": 2164,
+          "HL": 0,
+          "SPL": 786025,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004"
+      }
+    },
+    {
+      "source": "tui_hello",
+      "mode": "size",
+      "bin_sha256": "7753540a53c8d7de37bed5d92c3baee4206a90035765b1e6d0d9183eadab6a3b",
+      "source_sha256": "44f505b14ac4c5c674db470d9f81684aeaf078498c03ad267e81a05d13d25f90",
+      "application_bytes": 218,
+      "return_snapshot": {
+        "entry": {
+          "PC": 262213,
+          "HL": 770928,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "before": {
+          "PC": 262225,
+          "HL": 0,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "after": {
+          "PC": 2164,
+          "HL": 0,
+          "SPL": 786025,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004"
+      }
+    },
+    {
+      "source": "tui_hello",
+      "mode": "speed",
+      "bin_sha256": "7753540a53c8d7de37bed5d92c3baee4206a90035765b1e6d0d9183eadab6a3b",
+      "source_sha256": "44f505b14ac4c5c674db470d9f81684aeaf078498c03ad267e81a05d13d25f90",
+      "application_bytes": 218,
+      "return_snapshot": {
+        "entry": {
+          "PC": 262213,
+          "HL": 770928,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "before": {
+          "PC": 262225,
+          "HL": 0,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "after": {
+          "PC": 2164,
+          "HL": 0,
+          "SPL": 786025,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004"
+      }
+    },
+    {
+      "source": "tui_demo",
+      "mode": "ordinary",
+      "bin_sha256": "bbf9fd32a1b1f6b46e77e7c1b9f42e6585037808c4279b3b6037d13d5c697059",
+      "source_sha256": "afcadba573f924da7fcaf74574a8ec451be8ffb37eb0b3aa8567a6757d2957bd",
+      "application_bytes": 489,
+      "return_snapshot": {
+        "entry": {
+          "PC": 262213,
+          "HL": 770928,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "before": {
+          "PC": 262225,
+          "HL": 0,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "after": {
+          "PC": 2164,
+          "HL": 0,
+          "SPL": 786025,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004"
+      }
+    },
+    {
+      "source": "tui_demo",
+      "mode": "size",
+      "bin_sha256": "bbf9fd32a1b1f6b46e77e7c1b9f42e6585037808c4279b3b6037d13d5c697059",
+      "source_sha256": "afcadba573f924da7fcaf74574a8ec451be8ffb37eb0b3aa8567a6757d2957bd",
+      "application_bytes": 489,
+      "return_snapshot": {
+        "entry": {
+          "PC": 262213,
+          "HL": 770928,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "before": {
+          "PC": 262225,
+          "HL": 0,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "after": {
+          "PC": 2164,
+          "HL": 0,
+          "SPL": 786025,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004"
+      }
+    },
+    {
+      "source": "tui_demo",
+      "mode": "speed",
+      "bin_sha256": "bbf9fd32a1b1f6b46e77e7c1b9f42e6585037808c4279b3b6037d13d5c697059",
+      "source_sha256": "afcadba573f924da7fcaf74574a8ec451be8ffb37eb0b3aa8567a6757d2957bd",
+      "application_bytes": 489,
+      "return_snapshot": {
+        "entry": {
+          "PC": 262213,
+          "HL": 770928,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "before": {
+          "PC": 262225,
+          "HL": 0,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "after": {
+          "PC": 2164,
+          "HL": 0,
+          "SPL": 786025,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004"
+      }
+    },
+    {
+      "source": "nc_agon",
+      "mode": "ordinary",
+      "bin_sha256": "33e9482d01c8f17111aac455691601f8845e258fa20c4d2e4128f28cb12b67ae",
+      "source_sha256": "8063ebaf25ab5faff632017874a06d1db25019fa7efe559c4d0cfc6f3b3e9b38",
+      "application_bytes": 3151,
+      "return_snapshot": {
+        "entry": {
+          "PC": 262213,
+          "HL": 770928,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "before": {
+          "PC": 262225,
+          "HL": 0,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "after": {
+          "PC": 2164,
+          "HL": 0,
+          "SPL": 786025,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004"
+      }
+    },
+    {
+      "source": "nc_agon",
+      "mode": "size",
+      "bin_sha256": "33e9482d01c8f17111aac455691601f8845e258fa20c4d2e4128f28cb12b67ae",
+      "source_sha256": "8063ebaf25ab5faff632017874a06d1db25019fa7efe559c4d0cfc6f3b3e9b38",
+      "application_bytes": 3151,
+      "return_snapshot": {
+        "entry": {
+          "PC": 262213,
+          "HL": 770928,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "before": {
+          "PC": 262225,
+          "HL": 0,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "after": {
+          "PC": 2164,
+          "HL": 0,
+          "SPL": 786025,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004"
+      }
+    },
+    {
+      "source": "nc_agon",
+      "mode": "speed",
+      "bin_sha256": "33e9482d01c8f17111aac455691601f8845e258fa20c4d2e4128f28cb12b67ae",
+      "source_sha256": "8063ebaf25ab5faff632017874a06d1db25019fa7efe559c4d0cfc6f3b3e9b38",
+      "application_bytes": 3151,
+      "return_snapshot": {
+        "entry": {
+          "PC": 262213,
+          "HL": 770928,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "before": {
+          "PC": 262225,
+          "HL": 0,
+          "SPL": 786022,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "after": {
+          "PC": 2164,
+          "HL": 0,
+          "SPL": 786025,
+          "IX": 770862,
+          "IY": 786037,
+          "ADL": 1
+        },
+        "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004"
+      }
+    }
+  ],
+  "negative_controls": 6,
+  "verified": true
+}

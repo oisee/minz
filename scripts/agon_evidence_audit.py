@@ -91,16 +91,36 @@ def rejected(call):
     raise ValueError('audit negative control accepted')
 
 
+CONSOLE_EXPECTED = {
+    'hello_agon': b'Hello from MinZ on Agon Light 2!\r\nPress any key: \r\nYou pressed a key!\r\n',
+    'hello_world': b'Hello, Agon Light 2!\r\nMinZ running on eZ80 at 18.432 MHz\r\nPress any key to continue...\r\nYou pressed: a\r\nGoodbye!\r\n',
+}
+
+
+def matrix_records(summary, names):
+    required = {(name, mode) for name in names for mode in ['ordinary', 'size', 'speed']}
+    records = {}
+    for row in summary['results']:
+        key = (row['source'].split('/')[-1].removesuffix('.nanz'), row['mode'])
+        if key in records:
+            raise ValueError('duplicate matrix case')
+        records[key] = row
+    if set(records) != required:
+        raise ValueError('matrix labels are incomplete or unexpected')
+    return records
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--wire',type=Path,required=True)
     parser.add_argument('--returns',type=Path,required=True)
     parser.add_argument('--output',type=Path,required=True)
+    parser.add_argument('--programs', choices=['graphics', 'console'], default='graphics')
     args=parser.parse_args();wire=args.wire.resolve();returns=args.returns.resolve()
     counts={'wire':manifest(wire),'returns':manifest(returns)}
     ws=json.loads((wire/'summary.json').read_text());rs=json.loads((returns/'summary.json').read_text())
-    if len(ws['results'])!=9 or len(rs['results'])!=9:
-        raise ValueError('incomplete matrices')
+    names = list(CONSOLE_EXPECTED) if args.programs == 'console' else ['tui_hello', 'tui_demo', 'nc_agon']
+    wm = matrix_records(ws, names); rm = matrix_records(rs, names)
     for name in ['emulator','mos','vdp']:
         if ws['tools'][name]['sha256']!=rs['tools'][name]['sha256']:
             raise ValueError('different firmware/tool identity')
@@ -108,21 +128,21 @@ def main():
     for filename in ['agon_native_vdu_model.py','agon_tui_stream_model.py']:
         if (wire/filename).read_bytes()!=(repo/'scripts'/filename).read_bytes():
             raise ValueError('retained model differs from audited model')
-    for summary in [ws,rs]:
-        observed={(x['source'].split('/')[-1].removesuffix('.nanz'),x['mode']) for x in summary['results']}
-        required={(name,mode) for name in ['tui_hello','tui_demo','nc_agon'] for mode in ['ordinary','size','speed']}
-        if observed!=required:
-            raise ValueError('matrix labels are incomplete or duplicated')
     rows=[]
-    for name in ['tui_hello','tui_demo','nc_agon']:
+    for name in names:
         for mode in ['ordinary','size','speed']:
             w=wire/name/mode;r=returns/name/mode
             if (w/'source.nanz').read_bytes()!=(r/'source.nanz').read_bytes() or (w/'program.bin').read_bytes()!=(r/'program.bin').read_bytes():
                 raise ValueError('source/BIN differs between evidence runs')
             keys=(10,)*9+(13,11,13,27) if name=='nc_agon' else ()
-            wanted=expected(name,keys)
+            wanted=CONSOLE_EXPECTED[name] if name in CONSOLE_EXPECTED else expected(name,keys)
             if (w/'expected.bin').read_bytes()!=wanted:
                 raise ValueError('saved oracle differs from source-level model')
+            for saved in [wm[(name, mode)], rm[(name, mode)]]:
+                if saved['bin_sha256'] != sha(w/'program.bin'):
+                    raise ValueError('matrix BIN identity differs from retained image')
+            if wm[(name, mode)]['source_sha256'] != sha(w/'source.nanz'):
+                raise ValueError('matrix source identity differs')
             stream=stream_snapshot((w/'wire.bin').read_bytes(),wanted)
             snapshot=return_snapshot((r/'debugger.raw').read_bytes())
             record=json.loads((r/'result.json').read_text())
@@ -137,17 +157,18 @@ def main():
                 raise ValueError('saved BIN identity differs')
             rows.append({'source':name,'mode':mode,'bin_sha256':sha(w/'program.bin'),'source_sha256':sha(w/'source.nanz'),'application_bytes':stream,'return_snapshot':snapshot})
     # Mutations exercise the independent audit, not the producer's passed flags.
-    r=returns/'tui_hello/ordinary';raw=(r/'debugger.raw').read_bytes()
+    name=names[0]
+    r=returns/name/'ordinary';raw=(r/'debugger.raw').read_bytes()
     rejected(lambda:return_snapshot(raw.replace(b'PC=000874',b'PC=000875')))
     rejected(lambda:return_snapshot(raw.replace(b'SPL:0bfe69',b'SPL:0bfe68')))
     rejected(lambda:return_snapshot(raw.replace(b'HL:000000',b'HL:000001')))
     rejected(lambda:return_snapshot(raw.replace(b'74 08 00',b'75 08 00',1)))
-    w=wire/'tui_hello/ordinary';data=(w/'wire.bin').read_bytes();want=expected('tui_hello')
+    w=wire/name/'ordinary';data=(w/'wire.bin').read_bytes();want=CONSOLE_EXPECTED[name] if name in CONSOLE_EXPECTED else expected(name)
     rejected(lambda:stream_snapshot(data.replace(b'Hello from MinZ',b'Hallo from MinZ'),want))
     rejected(lambda:stream_snapshot(data.replace(b'MINZ_FULL_RETURNED',b'NO_RETURN'),want))
-    output={'scope':'offline independent reparse of 9 VDU runs and 9 debugger return runs; no CPU execution by auditor; bounded command/text and caller-frame proofs, no global RAM/pixel/hardware proof','manifest_files':counts,'rows':rows,'negative_controls':6,'verified':True}
+    output={'scope':f'offline independent reparse of {len(rows)} {args.programs} streams and {len(rows)} debugger return runs; no CPU execution by auditor; bounded command/text and caller-frame proofs, no global RAM/pixel/hardware proof','manifest_files':counts,'rows':rows,'negative_controls':6,'verified':True}
     args.output.write_text(json.dumps(output,indent=2)+'\n')
-    print('Independent retained-evidence audit PASS: 18 runs, 6 rejection controls')
+    print(f'Independent retained-evidence audit PASS: {2*len(rows)} runs, 6 rejection controls')
 
 
 if __name__=='__main__':main()
