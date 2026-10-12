@@ -1,0 +1,36 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "7e0d7db712a2d07785208f307bf79629c653ac83a38dc3d662c6582489b62f65"
+    },
+    {
+      "path": "baseline.a80",
+      "sha256": "e4bacd9e4c312b90f2e7c26f53020928e9a46e0b4d1c2c95ebc5d32bb27f8c86"
+    },
+    {
+      "path": "baseline.txt",
+      "sha256": "f2682f2ff5eb0ed57dd7d7f5bb5f4ca98c8a72126d292668b420e0826e526be2"
+    },
+    {
+      "path": "costed-same-pair.txt",
+      "sha256": "7e53c8224709ee97f5032d97858570185a61fabdd12b14aff64ac7f15683bdd1"
+    },
+    {
+      "path": "regression_test.go.txt",
+      "sha256": "3a460977891958870978d2e1524130d27d1ebc52ba01af2d0de06d1d1bbf127c"
+    },
+    {
+      "path": "rejected-costed-same-pair.patch",
+      "sha256": "cb5a43aaa2e9078efa31d58b5bfa382cf3121e1f12125c39426efaf5cb29f853"
+    },
+    {
+      "path": "rejected-width-scratch.patch",
+      "sha256": "fc1d840511b310d4b67fa9d88515eab22c76b4de6fa0698ff1c660d1bfb9fb1e"
+    },
+    {
+      "path": "width-scratch.txt",
+      "sha256": "729748106e007f70d3f24d28a6e164399e5ce7ea25180e65192fa91b6c98939e"
+    }
+  ]
+}

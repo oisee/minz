@@ -1,0 +1,7 @@
+# Indexed helpers: stronger native address oracle
+
+A standalone native regression is retained as a probe, not admitted to the passing suite yet. It checks each of 25 cells and all 256 byte values: store address and untouched surrounding bytes independently of the getter, plus exact PC/SP. Parameter registers come from the supplied per-function allocation, not informational Z3-PFCCO comments. The immutable baseline already fails the first store (0,0,0); therefore the planned 6400 stores/6400 reads have NOT all executed successfully.
+
+Actual baseline ASM saves x in IXH then copies the board pointer into IX, destroying x. The previous mixed scenario test still passes on this baseline; its two asserted reads did not prove independent stores or every cell. The single-function composition changes solver allocation and exposes this overlapping pair/half lifetime error. This research VIR failure does not establish a failure of production MIR2→Z80.
+
+Costed AF-preserving prefix transfer patterns, alone and with word-width constraints, did not close the failure. A free same-pair candidate with these costs also failed the old mixed scenario. All experimental compiler changes reverted; quality expectation remains unchanged. Next step is to trace solver interference and inserted moves for simultaneously live word/half-register values, using this independent memory oracle. Retained test source is an executable reproduction to copy into pkg/vir, using research Z3 on PATH; baseline.txt records its failing terminal result.

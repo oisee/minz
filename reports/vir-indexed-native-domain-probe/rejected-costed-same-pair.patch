@@ -1,0 +1,98 @@
+diff --git a/minzc/pkg/vir/cfgsolver.go b/minzc/pkg/vir/cfgsolver.go
+index 9b0bf30b..a4686ada 100644
+--- a/minzc/pkg/vir/cfgsolver.go
++++ b/minzc/pkg/vir/cfgsolver.go
+@@ -511,6 +511,14 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
+ 		}
+ 	}
+ 
++	valueWidths := make(map[int]int)
++	for _, bp := range blocks {
++		for _, op := range bp.ops {
++			if op.Dst > 0 && op.Width > 0 {
++				valueWidths[op.Dst] = op.Width
++			}
++		}
++	}
+ 	ensureVar := func(vreg, block, inst int) string {
+ 		name := fmt.Sprintf("lv%d_b%d_i%d", vreg, block, inst)
+ 		key := varKey{vreg, block, inst}
+@@ -518,6 +526,9 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
+ 			vars[key] = true
+ 			b.WriteString(fmt.Sprintf("(declare-const %s Int)\n", name))
+ 			b.WriteString(fmt.Sprintf("(assert (and (>= %s 0) (< %s %d)))\n", name, name, nLocs))
++			if width := valueWidths[vreg]; width == 16 {
++				b.WriteString(fmt.Sprintf("(assert %s) ; value width\n", locSetToSMT(name, desc.LocsOfWidth(width))))
++			}
+ 			// Exclude non-allocatable locations (F, SP) from general vreg storage.
+ 			// Exception: if a forced single-choice pattern requires this vreg to be
+ 			// at a NonAllocatable loc (e.g. CMP destination → F register), skip that
+@@ -1087,10 +1098,11 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
+ 				// Sort pending moves: reads from R must come before writes to R
+ 				pendingMoves = sortParallelMoves(desc, pendingMoves)
+ 				for _, pm := range pendingMoves {
+-					pirOps = append(pirOps, PIROp{
++					move := PIROp{
+ 						Pat: pm.movePat, DstPhys: pm.currLoc,
+ 						SrcPhys: [2]int{pm.remSrc, -1},
+-					})
++					}
++					pirOps = append(pirOps, move)
+ 				}
+ 			}
+ 
+diff --git a/minzc/pkg/vir/solver.go b/minzc/pkg/vir/solver.go
+index 749588be..ecde8d25 100644
+--- a/minzc/pkg/vir/solver.go
++++ b/minzc/pkg/vir/solver.go
+@@ -2076,6 +2076,9 @@ func findMovePatternDirect(desc *MachineDesc, srcPhys, dstPhys int) *Pattern {
+ 		if pat.Op != OpMove || pat.Width != dstWidth {
+ 			continue
+ 		}
++		if pat.TiedDstSrc && srcPhys != dstPhys {
++			continue
++		}
+ 		if strings.Contains(pat.Template, "EX ") {
+ 			continue
+ 		}
+@@ -2089,6 +2092,9 @@ func findMovePatternDirect(desc *MachineDesc, srcPhys, dstPhys int) *Pattern {
+ 		if pat.Op != OpMove || pat.Width == dstWidth {
+ 			continue // already tried
+ 		}
++		if pat.TiedDstSrc && srcPhys != dstPhys {
++			continue
++		}
+ 		if strings.Contains(pat.Template, "EX ") {
+ 			continue
+ 		}
+diff --git a/minzc/pkg/vir/z80.go b/minzc/pkg/vir/z80.go
+index 25b7529f..3373660d 100644
+--- a/minzc/pkg/vir/z80.go
++++ b/minzc/pkg/vir/z80.go
+@@ -282,6 +282,8 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
+ 			Template: "LD E, {src0}\n    LD D, 0", Cost: 11, Bytes: 3},
+ 
+ 		// 16-bit moves
++		{Name: "same_pair", Op: OpMove, Width: 16, DstLocs: Z80_Pairs,
++			SrcLocs: [2]LocSet{Z80_Pairs}, TiedDstSrc: true, Template: "", Cost: 0, Bytes: 0},
+ 		{Name: "push_pop", Op: OpMove, Width: 16, DstLocs: Z80_Pairs,
+ 			SrcLocs:  [2]LocSet{Z80_Pairs},
+ 			Template: "PUSH {src0}\n    POP {dst}", Cost: 21, Bytes: 2},
+@@ -639,6 +641,17 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
+ 			Template: "", Cost: 10, Bytes: 0,
+ 			Flags: PatCall}, // treated like a call (has clobbers)
+ 	}
++	// Prefix-conflicting transfers use A internally, although A is neither
++	// endpoint. Preserve AF in the pattern so all emission paths share its
++	// semantics and the solver accounts for the scratch save.
++	for i := range pats {
++		p := &pats[i]
++		if p.Op == OpMove && strings.Contains(p.Template, "LD A,") && !p.DstLocs.Has(m.LocByName("A")) && !p.SrcLocs[0].Has(m.LocByName("A")) {
++			p.Template = "PUSH AF\n    " + p.Template + "\n    POP AF"
++			p.Cost += 21
++			p.Bytes += 2
++		}
++	}
+ 	pats = append(pats, generateBitPatterns()...)
+ 	return pats
+ }

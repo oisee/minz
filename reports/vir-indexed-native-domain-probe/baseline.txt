@@ -1,0 +1,7 @@
+=== RUN   TestVIRIndexedHelpersNativeDomain
+[regalloc] loaded 56 exhaustive entries from regalloc_exhaustive.json
+    indexed_helpers_native_test.go:119: set(0,0,0) offset 0: got 40 want 0
+--- FAIL: TestVIRIndexedHelpersNativeDomain (0.34s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/vir	0.348s
+FAIL

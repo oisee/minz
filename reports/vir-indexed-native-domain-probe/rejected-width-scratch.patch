@@ -1,0 +1,49 @@
+diff --git a/minzc/pkg/vir/cfgsolver.go b/minzc/pkg/vir/cfgsolver.go
+index 9b0bf30b..ad64c844 100644
+--- a/minzc/pkg/vir/cfgsolver.go
++++ b/minzc/pkg/vir/cfgsolver.go
+@@ -511,6 +511,12 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
+ 		}
+ 	}
+ 
++	valueWidths := make(map[int]int)
++	for _, bp := range blocks {
++		for _, op := range bp.ops {
++			if op.Dst > 0 && op.Width == 16 { valueWidths[op.Dst] = 16 }
++		}
++	}
+ 	ensureVar := func(vreg, block, inst int) string {
+ 		name := fmt.Sprintf("lv%d_b%d_i%d", vreg, block, inst)
+ 		key := varKey{vreg, block, inst}
+@@ -518,6 +524,9 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
+ 			vars[key] = true
+ 			b.WriteString(fmt.Sprintf("(declare-const %s Int)\n", name))
+ 			b.WriteString(fmt.Sprintf("(assert (and (>= %s 0) (< %s %d)))\n", name, name, nLocs))
++			if valueWidths[vreg] == 16 {
++				b.WriteString(fmt.Sprintf("(assert %s) ; word value width\n", locSetToSMT(name, desc.LocsOfWidth(16))))
++			}
+ 			// Exclude non-allocatable locations (F, SP) from general vreg storage.
+ 			// Exception: if a forced single-choice pattern requires this vreg to be
+ 			// at a NonAllocatable loc (e.g. CMP destination → F register), skip that
+diff --git a/minzc/pkg/vir/z80.go b/minzc/pkg/vir/z80.go
+index 25b7529f..0562611b 100644
+--- a/minzc/pkg/vir/z80.go
++++ b/minzc/pkg/vir/z80.go
+@@ -639,6 +639,17 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
+ 			Template: "", Cost: 10, Bytes: 0,
+ 			Flags: PatCall}, // treated like a call (has clobbers)
+ 	}
++	// Prefix-conflicting transfers use A internally, although A is neither
++	// endpoint. Preserve AF in the pattern so all emission paths share its
++	// semantics and the solver accounts for the scratch save.
++	for i := range pats {
++		p := &pats[i]
++		if p.Op == OpMove && strings.Contains(p.Template, "LD A,") && !p.DstLocs.Has(m.LocByName("A")) && !p.SrcLocs[0].Has(m.LocByName("A")) {
++			p.Template = "PUSH AF\n    " + p.Template + "\n    POP AF"
++			p.Cost += 21
++			p.Bytes += 2
++		}
++	}
+ 	pats = append(pats, generateBitPatterns()...)
+ 	return pats
+ }
