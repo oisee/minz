@@ -1,0 +1,25 @@
+; MIR2 module: tui_demo.nanz
+string @mir2.str.0 = "COUNT"
+
+extern fun @sel_register_int(%r1: ptr [pointer], %r2: u16 [index])
+
+extern fun @sel_show() -> u8 [acc]
+
+extern fun @sel_get_int(%r3: u8 [acc]) -> u16 [pointer]
+
+fun @main()
+  block @entry:
+    %r4 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r5 = move %r4 : ptr [pointer]
+    %r6 = const 42 : u16 [pointer]
+    %r7 = move %r6 : u16 [index]
+    call @sel_register_int(%r5, %r7)
+    %r8 = call @sel_show() : u8 [acc]
+    %r9 = const 0 : u8 [general]
+    %r10 = move %r9 : u8 [acc]
+    %r11 = call @sel_get_int(%r10) : u16 [pointer]
+    %r12 = trunc %r11 : u16 -> u8 [general]
+    %r13 = move %r12 : u8 [acc]
+    call @@mir.io.print.u8(%r13)
+    ret void
+

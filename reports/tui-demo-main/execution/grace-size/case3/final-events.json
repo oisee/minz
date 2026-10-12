@@ -1,0 +1,5 @@
+[
+  "register COUNT=42",
+  "show-\u003e1",
+  "get0-\u003e65535"
+]

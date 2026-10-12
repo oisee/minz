@@ -1,0 +1,4 @@
+=== RUN   TestOriginalTUIDemoWholeMain
+--- PASS: TestOriginalTUIDemoWholeMain (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.022s
