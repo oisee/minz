@@ -1,0 +1,26 @@
+{
+  "BDOS9_reads": [
+    427,
+    428,
+    429,
+    430,
+    431
+  ],
+  "cycles": 1140,
+  "done": true,
+  "expected": "Beta\r\n",
+  "min_sp": 1522,
+  "registers": {
+    "A": 1,
+    "F": 16,
+    "BC": 2,
+    "DE": 266,
+    "HL": 419,
+    "IX": 0,
+    "IY": 0,
+    "SP": 65024,
+    "PC": 0
+  },
+  "stdout": "Beta\r\n",
+  "unexpected_RAM_changes": []
+}

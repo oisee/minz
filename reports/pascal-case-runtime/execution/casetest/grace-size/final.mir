@@ -1,0 +1,77 @@
+; MIR2 module: examples/pascal/casetest.pas
+string @mir2.str.0 = "Alpha$"
+string @mir2.str.1 = "Beta$"
+string @mir2.str.2 = "Gamma$"
+string @mir2.str.3 = "Other$"
+global @CH : u8
+global @DONE : bool
+
+fun @main()
+  block @entry:
+    %r1 = const 0 : u8 [general]
+    %r2 = addr_of @DONE : ptr [pointer]
+    store %r2, %r1 : bool
+    jmp @loop_body2()
+  block @loop_body2:
+    %r3 = const 66 : u8 [general]
+    %r4 = addr_of @CH : ptr [pointer]
+    store %r4, %r3 : u8
+    %r5 = addr_of @CH : ptr [pointer]
+    %r6 = load %r5 : u8 [general]
+    %r7 = const 65 : u8 [general]
+    %r8 = cmp.eq %r6, %r7 : bool [flag]
+    br_if %r8, @sw_case6(), @sw_next9()
+  block @sw_case6:
+    %r9 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r10 = move %r9 : ptr [pointer]
+    call @WriteStr(%r10)
+    call @WriteCrLf()
+    jmp @sw_join4()
+  block @sw_join4:
+    %r11 = const 1 : u8 [general]
+    %r12 = addr_of @DONE : ptr [pointer]
+    store %r12, %r11 : bool
+    %r13 = addr_of @DONE : ptr [pointer]
+    %r14 = load %r13 : bool [general]
+    %r15 = const 0 : bool [general]
+    %r16 = cmp.ne %r14, %r15 : bool [flag]
+    br_if %r16, @loop_exit3(), @loop_body2()
+  block @loop_exit3:
+    ret void
+  block @sw_next9:
+    %r17 = const 66 : u8 [general]
+    %r18 = cmp.eq %r6, %r17 : bool [flag]
+    br_if %r18, @sw_case7(), @sw_next10()
+  block @sw_case7:
+    %r19 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r20 = move %r19 : ptr [pointer]
+    call @WriteStr(%r20)
+    call @WriteCrLf()
+    jmp @sw_join4()
+  block @sw_next10:
+    %r21 = const 67 : u8 [general]
+    %r22 = cmp.eq %r6, %r21 : bool [flag]
+    br_if %r22, @sw_case8(), @sw_default5()
+  block @sw_case8:
+    %r23 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r24 = move %r23 : ptr [pointer]
+    call @WriteStr(%r24)
+    call @WriteCrLf()
+    jmp @sw_join4()
+  block @sw_default5:
+    %r25 = addr_of @@mir2.str.3 : ptr [pointer]
+    %r26 = move %r25 : ptr [pointer]
+    call @WriteStr(%r26)
+    call @WriteCrLf()
+    jmp @sw_join4()
+
+fun @WriteCrLf()
+  block @entry:
+    asm "LD E, 13\n    LD C, 2\n    CALL 5\n    LD E, 10\n    LD C, 2\n    CALL 5"
+    ret void
+
+fun @WriteStr(%r27: u16 [pointer])
+  block @entry:
+    asm "EX DE, HL\n    LD C, 9\n    CALL 0x0005"
+    ret void
+

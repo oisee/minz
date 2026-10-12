@@ -1,0 +1,86 @@
+; MIR2 module: examples/pascal/casetest.pas
+string @mir2.str.0 = "Alpha$"
+string @mir2.str.1 = "Beta$"
+string @mir2.str.2 = "Gamma$"
+string @mir2.str.3 = "Other$"
+global @CH : u8
+global @DONE : bool
+
+fun @main()
+  block @entry:
+    %r1 = const 0 : u8 [general]
+    %r2 = addr_of @DONE : ptr [pointer]
+    store %r2, %r1 : bool
+    jmp @loop_head1()
+  block @loop_head1:
+    %r3 = const 1 : bool [general]
+    %r4 = const 0 : bool [general]
+    %r5 = cmp.ne %r3, %r4 : bool [flag]
+    br_if %r5, @loop_body2(), @loop_exit3()
+  block @loop_body2:
+    %r6 = const 66 : u8 [general]
+    %r7 = addr_of @CH : ptr [pointer]
+    store %r7, %r6 : u8
+    %r8 = addr_of @CH : ptr [pointer]
+    %r9 = load %r8 : u8 [general]
+    %r10 = const 65 : u8 [general]
+    %r11 = cmp.eq %r9, %r10 : bool [flag]
+    br_if %r11, @sw_case6(), @sw_next9()
+  block @sw_next9:
+    %r12 = const 66 : u8 [general]
+    %r13 = cmp.eq %r9, %r12 : bool [flag]
+    br_if %r13, @sw_case7(), @sw_next10()
+  block @sw_next10:
+    %r14 = const 67 : u8 [general]
+    %r15 = cmp.eq %r9, %r14 : bool [flag]
+    br_if %r15, @sw_case8(), @sw_default5()
+  block @sw_case6:
+    %r16 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r17 = move %r16 : ptr [pointer]
+    call @WriteStr(%r17)
+    call @WriteCrLf()
+    jmp @sw_join4()
+  block @sw_case7:
+    %r18 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r19 = move %r18 : ptr [pointer]
+    call @WriteStr(%r19)
+    call @WriteCrLf()
+    jmp @sw_join4()
+  block @sw_case8:
+    %r20 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r21 = move %r20 : ptr [pointer]
+    call @WriteStr(%r21)
+    call @WriteCrLf()
+    jmp @sw_join4()
+  block @sw_default5:
+    %r22 = addr_of @@mir2.str.3 : ptr [pointer]
+    %r23 = move %r22 : ptr [pointer]
+    call @WriteStr(%r23)
+    call @WriteCrLf()
+    jmp @sw_join4()
+  block @sw_join4:
+    %r24 = const 1 : u8 [general]
+    %r25 = addr_of @DONE : ptr [pointer]
+    store %r25, %r24 : bool
+    %r26 = addr_of @DONE : ptr [pointer]
+    %r27 = load %r26 : bool [general]
+    %r28 = const 0 : bool [general]
+    %r29 = cmp.ne %r27, %r28 : bool [flag]
+    br_if %r29, @if_then11(), @if_join12()
+  block @if_then11:
+    jmp @loop_exit3()
+  block @if_join12:
+    jmp @loop_head1()
+  block @loop_exit3:
+    ret void
+
+fun @WriteCrLf()
+  block @entry:
+    asm "LD E, 13\n    LD C, 2\n    CALL 5\n    LD E, 10\n    LD C, 2\n    CALL 5"
+    ret void
+
+fun @WriteStr(%r30: u16 [pointer])
+  block @entry:
+    asm "EX DE, HL\n    LD C, 9\n    CALL 0x0005"
+    ret void
+
