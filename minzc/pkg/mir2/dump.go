@@ -61,6 +61,9 @@ func dumpFunc(sb *strings.Builder, f *Func) {
 			sb.WriteString(", ")
 		}
 		fmt.Fprintf(sb, "%%r%d: %s [%s]", p.Reg, p.Ty, p.Class)
+		if p.ClassHard {
+			sb.WriteString("!")
+		}
 	}
 	sb.WriteString(")")
 
