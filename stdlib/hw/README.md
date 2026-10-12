@@ -101,3 +101,31 @@ bounding extents, including stride gaps: this conservative rule rejects overlap
 rather than silently promising memmove semantics. Destination and source must
 also be disjoint from the executing code and active stack; writable RAM ownership
 is the caller's responsibility.
+
+# Known masked sprites
+
+`import hw.sprite` specializes constant mask/data into runtime writes:
+
+```nanz
+@sprite() {
+    destination "zx_bitmap_bytes" 0x4000
+    region 10 63 3 2
+    row "ff00f0" "007f05"
+    row "00ff0f" "aa0050"
+    via "compiled"
+}
+```
+
+Each row has two hex strings with exactly width bytes. The operation is
+`new = (old & keep_mask) | graphics`. Both lowercase and uppercase hex work.
+Transparent `ff/00` bytes are skipped; mask `00` emits a direct opaque store;
+mixed bytes read, AND, OR and write. The destination uses existing linear or
+ZX layouts; region is x-byte/y-row/width/height, entirely within bounds. This
+first API is byte-aligned, with known destination and mask/data. Pixel shifts,
+clipping, dynamic destinations and runtime sprite buffers are future extensions.
+
+`via "pointer"` emits specialized ordinary Nanz writes. `via "compiled"` emits
+one closed ASM region for each nontransparent row, with precomputed address and
+sequential INC HL advances. AF/HL are saved/restored in four normal stack bytes;
+other registers and IFF are unchanged. Caller owns writable RAM disjoint from
+code and stack. Empty and fully transparent regions produce no writes.

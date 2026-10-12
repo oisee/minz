@@ -1,0 +1,8 @@
+import hw.sprite
+fun sprite_test() { @sprite() {
+destination "zx_bitmap_bytes" 16384
+region 30 191 2 1
+row "aa00" "1188"
+via "compiled"
+
+} }
