@@ -1,0 +1,6 @@
+=== RUN   TestOriginalTetrisFamilyMechanics
+    original_tetris_family_test.go:339: tetris_cpm ordinary VM 1 clear_lines [] [{1}] 4 <nil>
+--- FAIL: TestOriginalTetrisFamilyMechanics (0.32s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.332s
+FAIL

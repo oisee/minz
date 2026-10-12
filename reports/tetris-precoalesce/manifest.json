@@ -1,0 +1,38 @@
+[
+  {
+    "path": "reports/tetris-precoalesce/REPORT.md",
+    "sha256": "cc612a6cb3d57e87570d64a31bea6dbaf958df4521cb68d6890086405688fd47"
+  },
+  {
+    "path": "reports/tetris-precoalesce/final-before.mir",
+    "sha256": "1fbccc922e44f1c4a5116b587ed33b9659a0cb3bd2914b630deca814af56496d"
+  },
+  {
+    "path": "reports/tetris-precoalesce/mir2.txt",
+    "sha256": "2af80e719af6879adbe76c09d88d69bfa3bf1402c8b7c2fe783421cf8cec018f"
+  },
+  {
+    "path": "reports/tetris-precoalesce/original-before.txt",
+    "sha256": "edd2a7a3d4cab568ac8b9ae145a4b8992e3a6a77bba37b5bde6f7fc9addae24b"
+  },
+  {
+    "path": "reports/tetris-precoalesce/raw-before.mir",
+    "sha256": "1d580f3d0d354ba952b9115d599caf77dfb93b1273a330a7f6f0bed7d538fef3"
+  },
+  {
+    "path": "reports/tetris-precoalesce/reduced-before.txt",
+    "sha256": "652d6511e244f994b7070d07b08a5f3ee4f6dabe9ec4083b03363a7b529c4b38"
+  },
+  {
+    "path": "reports/tetris-precoalesce/semantic-input.json",
+    "sha256": "f0a804650a1adc9795c0d5af9daf2b16be9cfce05d52e4c2b3dfad516a375ff9"
+  },
+  {
+    "path": "reports/tetris-precoalesce/targeted.txt",
+    "sha256": "bce21d58a3a5cbf2737e67c95b4ff09ad3d4e373e215fb0a4f8f37e3db9cc829"
+  },
+  {
+    "path": "reports/tetris-precoalesce/trace-before.json",
+    "sha256": "580fa046306fb5b757f0c47d3e1d2ba233640512feb87c0cdf726a5f38f1a561"
+  }
+]
