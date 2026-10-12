@@ -1,0 +1,14 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "801546d0630851cf3b7a8b7a9b2fea9c1f2b3aa7f1d21df6978e9edc6d7fe897"
+  },
+  {
+    "path": "vir-direct-return-definition.txt",
+    "sha256": "7ebd4dc821827d2a2d5aca9e2e005afd8099f5eabec64974eee9a52fbea2b5a1"
+  },
+  {
+    "path": "vir-word-dec-return.txt",
+    "sha256": "a6c1eb486e0793c4782a89f5739348bff10583b718c9b5facabfd95d1ee4a3db"
+  }
+]

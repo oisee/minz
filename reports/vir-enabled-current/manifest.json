@@ -1,0 +1,18 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "b141d19b1b44a55e40308af452c48f17a371417c7aa9fbfdb10e842119ed5ec4"
+  },
+  {
+    "path": "frontends.txt",
+    "sha256": "a067b77dd71d940ffedb5f2976065dc75f10fe7521a0a1d6486574a24dba4da1"
+  },
+  {
+    "path": "full-pre-fix.txt",
+    "sha256": "1c8a53e792b8e5f24e8bb388c172c19c6789850e3c01d1fee95f924a416ac1dc"
+  },
+  {
+    "path": "terminal.json",
+    "sha256": "cb6820916d6558c02ceab7420d6883e328bc9ae6025a17bd7ab894a4cb8d58c3"
+  }
+]

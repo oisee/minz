@@ -1,0 +1,13 @@
+{
+  "checkpoint": "17c84bf8",
+  "session": 88197,
+  "exit_code": 1,
+  "seconds": 983.018,
+  "counts": {
+    "PASS": 99,
+    "FAIL": 4,
+    "SKIP": 3
+  },
+  "terminal_reason": "panic in HIR lowering: C89 desig_basic declared void but call expression ptr",
+  "scope": "pre-fix Z3-enabled full VIR; later return, neighbor and PHI fixes not included"
+}
