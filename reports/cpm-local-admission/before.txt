@@ -1,0 +1,5 @@
+=== RUN   TestCPMLocalReviewNarrowAddress
+    cpm_local_review_test.go:65: accepted illegal writes map[359:0 52583:42]
+counterexample reproduced
+--- PASS: TestCPMLocalReviewNarrowAddress (0.00s)
+PASS

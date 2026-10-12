@@ -1,0 +1,9 @@
+; MIR2 module: 
+fun @main()
+  block @entry:
+    %r1 = alloca 2 : ptr
+    %r2 = move %r1 : u8 [general]
+    %r3 = const 42 : u8 [acc]
+    store %r2, %r3 : u8
+    ret void
+

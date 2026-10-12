@@ -1,0 +1,46 @@
+{
+  "allocation": {
+    "Locs": {
+      "1": {
+        "Kind": 0,
+        "Name": "HL",
+        "Offset": 0
+      },
+      "2": {
+        "Kind": 5,
+        "Name": "_spill_main_r2",
+        "Offset": 0
+      },
+      "3": {
+        "Kind": 0,
+        "Name": "A",
+        "Offset": 0
+      }
+    },
+    "Spilled": null
+  },
+  "illegal_writes": {
+    "359": 0,
+    "52583": 42
+  },
+  "return": {
+    "A": 103,
+    "F": 68,
+    "BC": 0,
+    "DE": 0,
+    "HL": 52583,
+    "IX": 0,
+    "IY": 0,
+    "SP": 61440,
+    "PC": 0
+  },
+  "spill": 301,
+  "stack_bottom": 363,
+  "stack_top": 1387,
+  "verified_illegal_store": {
+    "address": 52583,
+    "hex": "0xcd67",
+    "value": 42
+  },
+  "other_writes_not_classified_as_violations": "saved SP/runtime writes remain in raw observation"
+}
