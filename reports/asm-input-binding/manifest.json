@@ -1,0 +1,15 @@
+{
+  "production": "355c467c",
+  "files": [
+    {
+      "path": "before-asm-contracts.json",
+      "bytes": 21121,
+      "sha256": "793b8005f717214a2ad04c536beb6d5246eecac83871ab474cfc3e058df80417"
+    },
+    {
+      "path": "targeted.txt",
+      "bytes": 42,
+      "sha256": "feb8562d25e8a98b7c5802efe87ed524fc220b260dd25b907571c7040205903b"
+    }
+  ]
+}

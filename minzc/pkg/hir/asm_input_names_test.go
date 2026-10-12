@@ -36,3 +36,10 @@ func TestASMInputNamesBeforePhysicalAliases(t *testing.T) {
 		})
 	}
 }
+
+func TestUnknownASMInputRejectedByVerifier(t *testing.T) {
+	m := &hir.Module{Funcs: []*hir.Func{{Name: "probe", RetTy: mir2.TyVoid, Body: &hir.Block{Body: []hir.Stmt{&hir.AsmStmt{Code: "NOP", Ins: []hir.AsmOperand{{Name: "unknown"}}, ClobberAll: true}, &hir.ReturnStmt{}}}}}}
+	if e := hir.Verify(m); e == nil {
+		t.Fatal("unknown ASM input accepted")
+	}
+}
