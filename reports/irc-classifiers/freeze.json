@@ -1,0 +1,35 @@
+{
+  "source_sha256": "2836abd4f06db6a7ae777459e56c9ad35e42aa2ec87c479125685c7d9cdacc96",
+  "dependencies": {
+    "examples/nanz/irc_client.nanz": "2836abd4f06db6a7ae777459e56c9ad35e42aa2ec87c479125685c7d9cdacc96",
+    "stdlib/tui/render.nanz": "4711dbee908a2271f02d1fbb4720942604e23322d7745f32311f6b2c17c6d4a8"
+  },
+  "scope": [
+    "classify_irc",
+    "classify_user_cmd",
+    "buf_starts_with",
+    "region_match dependency"
+  ],
+  "usr_domain": "all65536orderedfirst2bytepairs; remainder256byteusr_buf sentinel preserved",
+  "irc_lines": [
+    "PING :server",
+    "PONG :server",
+    ":nick PRIVMSG #c :hello",
+    ":nick JOIN #c",
+    ":nick PART #c",
+    ":nick QUIT :bye",
+    ":s 001 nick :welcome",
+    ":s 999 nick :error",
+    ":s 000",
+    "NOTICE :hi",
+    "XJOIN",
+    "JOINING",
+    "QUITX",
+    "",
+    "0",
+    "/JOIN"
+  ],
+  "prefix_domain": "empty/length1,4,127,255; all256first mismatch bytes; earlyzero",
+  "authority": "Bookv7 \u00a73.3 pointer/byte access and \u00a718.1 string encodings; original enumcodes/prefix matching are published protocolparser behavior",
+  "remaining": "wholemain,networkports30/31,terminalBDOS not executed"
+}
