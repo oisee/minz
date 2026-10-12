@@ -1,0 +1,4 @@
+{
+  "stdlib/sql/sqlite.nanz": "bc177e0dc25ad2f36f3694b115439356efbfb3d956b46b2701afe82bde277fc8",
+  "minzc/pkg/pipeline/sqlite_asm_abi_test.go": "e29c7d30acc657a17c03b19e1313b613d35df985e899f188eb86c1309f6a0392"
+}
