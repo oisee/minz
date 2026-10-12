@@ -136,3 +136,24 @@ func TestNativeByteCyclePermutationsAndFallback(t *testing.T) {
 		t.Fatalf("shadow/live preservation %+v", got)
 	}
 }
+
+func TestNativeByteCycleMeasuredBeforeAfter(t *testing.T) {
+	// Retained exact old A/C snapshot sequence, measured with the same emulator.
+	old := "PUSH AF\nEX AF,AF'\nPOP AF\nEX AF,AF'\nPUSH AF\nEX AF,AF'\nLD A,C\nPUSH AF\nEX AF,AF'\nPOP AF\nEX AF,AF'\nPOP AF\nLD C,A\nEX AF,AF'\n"
+	current := byteCycleAssembly([]parallelCopy{{srcName: "A", dstName: "C", ty: TyU8}, {srcName: "C", dstName: "A", ty: TyU8}})
+	for _, tc := range []struct {
+		name, asm  string
+		cost, size int
+	}{{"old", old, 95, 14}, {"saved-pair", current, 33, 5}} {
+		bin, e := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + tc.asm + "DI\nHALT\n")
+		if e != nil || len(bin.Errors) > 0 {
+			t.Fatal(e, bin.Errors)
+		}
+		z := runChecksumCopyAsm(t, tc.asm, checksumCopyRegisters())
+		r := z.GetRegisters()
+		if r.A != 0x34 || r.BC != 0x1297 || r.F != 0x45 || r.SP != 0xff00 || z.GetCycles()-8 != tc.cost || len(bin.Binary)-2 != tc.size {
+			t.Fatalf("%s cost%d bytes%d regs%+v", tc.name, z.GetCycles()-8, len(bin.Binary)-2, r)
+		}
+		t.Logf("%s exact emitted A/C shuffle %dT/%dB", tc.name, tc.cost, tc.size)
+	}
+}
