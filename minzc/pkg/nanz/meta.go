@@ -181,7 +181,7 @@ func (mr *metaRuntime) registerHosts(vm *mir2.VM, block []metaBlockNode) {
 		if i < 0 || i >= len(block) || j < 0 || j >= len(block[i].args) {
 			return nil, fmt.Errorf("node_arg_int: argument %d of node %d is missing", j, i)
 		}
-		value, err := strconv.ParseInt(block[i].args[j], 0, 64)
+		value, err := strconv.ParseInt(block[i].args[j], 0, 32)
 		if err != nil {
 			return nil, fmt.Errorf("node_arg_int: node %d argument %d: %w", i, j, err)
 		}
