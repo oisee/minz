@@ -347,6 +347,10 @@ type PIROp struct {
 	Sym     string   // symbol name
 	Comment string   // debug annotation (optional)
 
+	// ExitLocations records the solver's value locations after this schedule.
+	// Attached only to the final PIR op; emission does not interpret it.
+	ExitLocations map[int]int
+
 	// Inline asm (OpAsmBlock): emit verbatim, bypass pattern template
 	AsmText string
 }

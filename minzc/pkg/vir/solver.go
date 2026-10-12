@@ -1546,6 +1546,15 @@ func (p *problem) parseSolution(model string, desc *MachineDesc) ([]PIROp, error
 		result = append(result, pir)
 	}
 
+	if len(result) > 0 {
+		exit := make(map[int]int)
+		for vreg := range p.vregs {
+			if loc, ok := vals[fmt.Sprintf("loc_v%d", vreg)]; ok {
+				exit[vreg] = loc
+			}
+		}
+		result[len(result)-1].ExitLocations = exit
+	}
 	return result, nil
 }
 
@@ -1998,6 +2007,15 @@ func parsePerInstSolution(p *problem, model string, desc *MachineDesc) ([]PIROp,
 	}
 
 	final := insertPerInstMoves(raw, p, vals, desc)
+	if len(final) > 0 {
+		exit := make(map[int]int)
+		for vreg := range p.vregs {
+			if loc, ok := vals[fmt.Sprintf("lv%d_i%d", vreg, len(p.ops)-1)]; ok {
+				exit[vreg] = loc
+			}
+		}
+		final[len(final)-1].ExitLocations = exit
+	}
 	return final, nil
 }
 
