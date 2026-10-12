@@ -994,7 +994,7 @@
     "boundary": "Finite restricted grammar, test-ownedmemory/filesystem adapters; originalmainHALT noRETpromise.",
     "evidence": {
       "docs/grace-integration-295/root.txt": "99314b765221b1176fe4c9d7e11d7046d835d6e29e6ffbd33434d97f3bb0bc5a",
-      "minzc/pkg/pipeline/self_parser_whole_main_test.go": "02ab6ea9a81f886d5002630ce682d0dc68e7e742cf07a3cfb599c6e0f6efc34d"
+      "minzc/pkg/pipeline/self_parser_whole_main_test.go": "c5035241b373ecd0271906bcd7eb6f4ee4dedd672a01c1e3694435c1c595f7af"
     }
   },
   {
