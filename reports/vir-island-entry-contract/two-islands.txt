@@ -1,0 +1,4 @@
+=== RUN   TestTwoSolvedIslandsNativeByteDomain
+--- PASS: TestTwoSolvedIslandsNativeByteDomain (0.05s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.054s

@@ -1,0 +1,84 @@
+=== RUN   TestIslandContinuationDoesNotReturnMidBlock
+--- PASS: TestIslandContinuationDoesNotReturnMidBlock (0.00s)
+=== RUN   TestIslandEntryContractNativeByteDomain
+--- PASS: TestIslandEntryContractNativeByteDomain (0.01s)
+=== RUN   TestIslandEntryContractRejectsMissingAndInvalidInputs
+--- PASS: TestIslandEntryContractRejectsMissingAndInvalidInputs (0.00s)
+=== RUN   TestTwoSolvedIslandsNativeByteDomain
+    island_contract_test.go:85: z3 per-inst solve: z3 rejected part of the query, so the model does not answer the question asked: (error "line 78 column 20: unknown constant assert (Bool) ")
+--- FAIL: TestTwoSolvedIslandsNativeByteDomain (0.04s)
+=== RUN   TestIslandSolverRetainsExitLocations
+=== RUN   TestIslandSolverRetainsExitLocations/global
+=== RUN   TestIslandSolverRetainsExitLocations/per_instruction
+--- PASS: TestIslandSolverRetainsExitLocations (0.03s)
+    --- PASS: TestIslandSolverRetainsExitLocations/global (0.01s)
+    --- PASS: TestIslandSolverRetainsExitLocations/per_instruction (0.02s)
+=== RUN   TestIslandKeepAlivePreservesWordPastClobber
+--- PASS: TestIslandKeepAlivePreservesWordPastClobber (0.02s)
+=== RUN   TestVIR_Assert_File
+[regalloc] loaded 56 exhaustive entries from regalloc_exhaustive.json
+    assert_test.go:120: assert_test: 9 asserts passed ✓ (MIR2-VM + Z80)
+--- PASS: TestVIR_Assert_File (0.07s)
+=== RUN   TestVIR_Assert_Arithmetic
+    assert_test.go:124: arithmetic: 16 asserts passed ✓ (MIR2-VM + Z80)
+--- PASS: TestVIR_Assert_Arithmetic (0.12s)
+=== RUN   TestVIR_Assert_Bitwise
+    assert_test.go:152: bitwise: 6 asserts passed ✓ (MIR2-VM + Z80)
+--- PASS: TestVIR_Assert_Bitwise (0.05s)
+=== RUN   TestVIR_Assert_Max
+    assert_test.go:166: max: 5 asserts passed ✓ (MIR2-VM + Z80)
+--- PASS: TestVIR_Assert_Max (0.03s)
+=== RUN   TestVIR_Assert_Min
+    assert_test.go:180: min: 4 asserts passed ✓ (MIR2-VM + Z80)
+--- PASS: TestVIR_Assert_Min (0.04s)
+=== RUN   TestVIR_Assert_AbsDiff
+    assert_test.go:193: abs_diff: 5 asserts passed ✓ (MIR2-VM + Z80)
+--- PASS: TestVIR_Assert_AbsDiff (0.04s)
+=== RUN   TestVIR_Assert_ReturnABI
+    assert_test.go:207: return_abi: 6 asserts passed ✓ (MIR2-VM + Z80)
+--- PASS: TestVIR_Assert_ReturnABI (0.06s)
+=== RUN   TestVIR_Assert_MultiExpr
+    assert_test.go:225: multi_expr: 4 asserts passed ✓ (MIR2-VM + Z80)
+--- PASS: TestVIR_Assert_MultiExpr (0.05s)
+=== RUN   TestVIR_Assert_ForCallLoopRegression
+[vir] count5: PBQP fallback (timeout=30s, err=all VIR solvers failed: CFG solve: z3 rejected part of the query, so the model does not answer the question asked: (error "line 1283 column 10: model is not available"))
+    assert_test.go:241: for_call_loop_regression: 1 asserts passed ✓ (MIR2-VM + Z80)
+--- PASS: TestVIR_Assert_ForCallLoopRegression (0.16s)
+=== RUN   TestVIR_Assert_IndexedArrayBaseRegression
+[vir] scenario: skip island decomposition (call-heavy)
+[vir] scenario: PBQP fallback (timeout=30s, err=all VIR solvers failed: CFG solve: unexpected z3 output: timeout
+)
+    assert_test.go:261: indexed_array_base_regression: 1 asserts passed ✓ (MIR2-VM + Z80)
+--- PASS: TestVIR_Assert_IndexedArrayBaseRegression (5.49s)
+=== RUN   TestVIR_Assert_NestedCalls
+[vir] triple: PBQP fallback (timeout=30s, err=[call-args] CALL inc without arg setup (callee expects 1 params))
+[vir] double_inc: PBQP fallback (timeout=30s, err=[call-args] CALL inc without arg setup (callee expects 1 params))
+    assert_test.go:285: nested_calls: 4 asserts passed ✓ (MIR2-VM + Z80)
+--- PASS: TestVIR_Assert_NestedCalls (0.12s)
+=== RUN   TestVIR_Assert_MultiReturn
+[vir] abs_val: constrained unsat, using standalone+adapter (2 adapters)
+    assert_test.go:298: multi_return: 5 asserts passed ✓ (MIR2-VM + Z80)
+--- PASS: TestVIR_Assert_MultiReturn (0.07s)
+=== RUN   TestVIR_Assert_Clamp
+    assert_test.go:317: clamp: 5 asserts passed ✓ (MIR2-VM + Z80)
+--- PASS: TestVIR_Assert_Clamp (0.04s)
+=== RUN   TestVIR_Assert_ChainedCalls
+    assert_test.go:333: chained_calls: 3 asserts passed ✓ (MIR2-VM + Z80)
+--- PASS: TestVIR_Assert_ChainedCalls (0.09s)
+=== RUN   TestVIR_Assert_Div8
+    assert_test.go:345: div8: 6 asserts passed ✓ (MIR2-VM + Z80)
+--- PASS: TestVIR_Assert_Div8 (0.05s)
+=== RUN   TestVIR_Assert_GCD
+[vir] gcd: skip island decomposition (self-recursive)
+[vir] gcd: PBQP fallback (timeout=30s, err=all VIR solvers failed: CFG solve: z3 rejected part of the query, so the model does not answer the question asked: (error "line 1408 column 10: model is not available"))
+    assert_test.go:359: gcd: 5 asserts passed ✓ (MIR2-VM + Z80)
+--- PASS: TestVIR_Assert_GCD (0.12s)
+=== RUN   TestVIR_Assert_LookupLoopHeader
+    assert_test.go:378: lookup_loop_header: 8 asserts passed ✓ (MIR2-VM + Z80)
+--- PASS: TestVIR_Assert_LookupLoopHeader (0.13s)
+=== RUN   TestVIR_Assert_CountedLoop
+    assert_test.go:407: counted_loop: 4 asserts passed ✓ (MIR2-VM + Z80)
+--- PASS: TestVIR_Assert_CountedLoop (0.03s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/vir	6.881s
+FAIL

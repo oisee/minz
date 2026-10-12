@@ -1,0 +1,6 @@
+=== RUN   TestIslandEntryContractNativeByteDomain
+--- PASS: TestIslandEntryContractNativeByteDomain (0.01s)
+=== RUN   TestIslandEntryContractRejectsMissingAndInvalidInputs
+--- PASS: TestIslandEntryContractRejectsMissingAndInvalidInputs (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.022s
