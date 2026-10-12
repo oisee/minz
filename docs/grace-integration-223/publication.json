@@ -1,0 +1,12 @@
+{
+  "project_id": "appgprj_6aca41311f188191b08d000f04498106",
+  "site_source_commit": "3672e46728aadf337d3dc972e769bca499510d73",
+  "compiler_snapshot": "293e292a",
+  "deployment_id": "appgdep_6acc253aa6788191891fc50ac745251a",
+  "version_id": "appgprj_6aca41311f188191b08d000f04498106~appgver_ff32882c2f848191ae910178ad653f56",
+  "status": "succeeded",
+  "url": "https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site",
+  "updated_at": "2026-10-12T00:09:55.048027+00:00",
+  "full_site_copy_session": 53356,
+  "full_copy_state": "running, pending finalSHAverification"
+}
