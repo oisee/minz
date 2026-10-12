@@ -1,0 +1,7 @@
+{
+  "reports/weighted-table-readmission/test.txt": "d90d0a49d8f518fc98f83291dc900b2e10b77093a9656ce9333f1ff86d5bc228",
+  "reports/weighted-table-readmission/README.md": "a62dd8c52b36e062ad986d7e76b5c4900472707f07348ecac7a22e19588c4fc7",
+  "minzc/pkg/pipeline/checked_local_readmission_weighted_test.go": "370b9e9b9f509c62831b6e93af9ea5d8d95a6e426cd5d7aa343d381820dac2c4",
+  "docs/grace-real-leaf-local-tables/caller-table.json": "dd4016043eea23b533a4c5fbd906be39ae80788aa20daf78847f0ef0915a38fc",
+  "examples/nanz/06_pbqp_weighted.nanz": "d09334848a213973143c24f5ac165081d24c175693995febf40e552bb5ae66c5"
+}

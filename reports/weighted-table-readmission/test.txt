@@ -1,0 +1,5 @@
+=== RUN   TestSavedWeightedTableReadmissionNativeCaller
+    checked_local_readmission_weighted_test.go:65: saved proposal without solver: module 44 -> 20 B; all256caller 60928 -> 36352 T; [weighted: 1 admitted proposals weighted_caller: skipped: unsupported local opcode call]
+--- PASS: TestSavedWeightedTableReadmissionNativeCaller (0.44s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.451s
