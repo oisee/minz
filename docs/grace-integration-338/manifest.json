@@ -6,15 +6,15 @@
     },
     {
       "path": "catalog.json",
-      "sha256": "2cff0aa20ed2bb8904a127341454e2baa74ac404de00b9f3af1056946bb382c5"
+      "sha256": "3c10acd80ef69243f2c975b99c69e8ca0cae69c25f716e0cac6be925e3f4858c"
     },
     {
       "path": "catalog.txt",
-      "sha256": "da99d4202b25f6fd93b756ba9047f9359fe314718eb7d65bbb7cc54f3292900d"
+      "sha256": "4356c0136a2e59f9beb590f0f89b15de5fd3e178d00c1ed282bd492b12aa5388"
     },
     {
       "path": "reviewed-updates.json",
-      "sha256": "19aaa26c69a7fe6ed3edf123edb356193ddd5687d57c1183585cdf2039e61891"
+      "sha256": "cab4475234df035341392dac28834533cd8aa6b15949204a773cb9908bc371be"
     }
   ]
 }

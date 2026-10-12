@@ -1,0 +1,8 @@
+=== RUN   TestPFCCOMeasuredNativePacket
+    pfcco_native_workload_test.go:150: off: 8857T/52B choices=map[]
+    pfcco_native_workload_test.go:150: greedy: 7888T/52B choices=map[displacement:0x19bd454ccbd0 weighted_packet:0x19bd454ccc00]
+    pfcco_native_workload_test.go:141: pbqp lost measured speed/size benefit: 7735T/53B against 8857T/52B; choices=map[displacement:0x19bd45448a50 weighted_packet:0x19bd45448ae0]
+--- FAIL: TestPFCCOMeasuredNativePacket (0.10s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.111s
+FAIL

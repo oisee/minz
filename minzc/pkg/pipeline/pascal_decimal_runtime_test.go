@@ -26,6 +26,15 @@ func pascalDecimalFullDomain(t *testing.T, production bool) {
 	}
 	if production {
 		h.Funcs = append(h.Funcs, hir.CanonicalPascalDecimalRuntime("WriteU16"))
+		// The CP/M product keeps only main's reachable runtime closure.
+		// Give the unsigned formatter a real source-level caller before
+		// exercising its complete input domain through its native entry.
+		for _, f := range h.Funcs {
+			if f.Name == "main" {
+				call := &hir.ExprStmt{Expr: &hir.CallExpr{Fn: "WriteU16", Ty: mir2.TyVoid, Args: []hir.Expr{&hir.IntLitExpr{Val: 0, Ty: mir2.TyU16}}}}
+				f.Body.Body = append([]hir.Stmt{call}, f.Body.Body...)
+			}
+		}
 	}
 	opt := Options{ContractOpt: true}
 	if production {
@@ -92,7 +101,7 @@ func pascalDecimalFullDomain(t *testing.T, production bool) {
 				out := []byte{}
 				z.SetBDOSHandler(func(fn byte, de uint16) (byte, uint16, bool) {
 					if fn != 2 {
-						t.Fatal("BDOS", fn)
+						t.Fatal("BDOS", fn, "entry", entry, "input", input, "clobber", clobber)
 					}
 					out = append(out, byte(de))
 					r := z.GetRegisters()

@@ -3455,13 +3455,13 @@
       "reviewed_evidence": [
         {
           "test_or_artifact": "minzc/pkg/pipeline/pfcco_native_workload_test.go::TestPFCCOMeasuredNativePacket",
-          "evidence_file_sha256": "f382a27619d0f671bea0ff5b754ada900d6f0705930f15ba3841ff8d753bae19",
+          "evidence_file_sha256": "61893a9895ace71ce06473cebb6c4c20edab22ce374ea2ea89929598fba33df8",
           "source_relation": "original functions; explicit driver/runtime where stated",
           "scope": "17 ordered u16 boundary pairs; contract off/greedy/PBQP; Original weighted_packet/helper calls; bounded model, all modes independently checked."
         },
         {
           "test_or_artifact": "minzc/pkg/pipeline/pfcco_native_workload_test.go",
-          "evidence_file_sha256": "f382a27619d0f671bea0ff5b754ada900d6f0705930f15ba3841ff8d753bae19",
+          "evidence_file_sha256": "61893a9895ace71ce06473cebb6c4c20edab22ce374ea2ea89929598fba33df8",
           "source_relation": "reviewed exact-source root replay",
           "scope": "17 ordered u16 boundary pairs; contract off/greedy/PBQP; Original weighted_packet/helper calls; bounded model, all modes independently checked."
         }
@@ -6170,7 +6170,7 @@
         },
         {
           "test_or_artifact": "minzc/pkg/pipeline/pascal_decimal_runtime_test.go",
-          "evidence_file_sha256": "2e3498c98cb279a6c8afe9338d18b92bf180e83b49f770602296c4206ee4bbfc",
+          "evidence_file_sha256": "a43d07a46b534520cfcb65bcda8edb37ff54e12bfeddb7e8d9d4fce249e47cf4",
           "source_relation": "reviewed exact-source root replay",
           "scope": "Unchanged original whole-main production COM/public CLI, 3modes x2BDOS hosts, exact stdout/OSRET/PC/SP/RAM/stack. FACT0..12 raw/finalVM/native separately.; Injected BDOS only, no hardware or VM ASM stdout claim. Formatter model module includes explicit unsigned helper; unchanged original Factorial wholemain separate. Signed beforefailure frozen."
         },
@@ -6235,7 +6235,7 @@
         },
         {
           "test_or_artifact": "minzc/pkg/pipeline/pascal_decimal_runtime_test.go",
-          "evidence_file_sha256": "2e3498c98cb279a6c8afe9338d18b92bf180e83b49f770602296c4206ee4bbfc",
+          "evidence_file_sha256": "a43d07a46b534520cfcb65bcda8edb37ff54e12bfeddb7e8d9d4fce249e47cf4",
           "source_relation": "reviewed exact-source root replay",
           "scope": "Unchanged original whole-main production COM/public CLI, 3modes x2BDOS hosts, exact stdout/OSRET/PC/SP/RAM/stack. FACT0..12 raw/finalVM/native separately.; Injected BDOS only, no hardware or VM ASM stdout claim. Formatter model module includes explicit unsigned helper; unchanged original Factorial wholemain separate. Signed beforefailure frozen."
         },

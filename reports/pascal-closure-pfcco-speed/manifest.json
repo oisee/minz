@@ -1,0 +1,32 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "e9239da213c6a2ef7d8420a9dd68930a5f7b717a31c514892ae69367fc0f124b"
+    },
+    {
+      "path": "mir2-cpm.txt",
+      "sha256": "51a03427f8bb02b651922aa918f65f986b93659c8e0111c15dcfcde90c78b0af"
+    },
+    {
+      "path": "pascal-cpm-call-diagnostic.txt",
+      "sha256": "d39bb840ae1ed0a0b58f754be34693c2c429ee41767c32e2f04003fb670b9aed"
+    },
+    {
+      "path": "pascal-cpm-closure-after.txt",
+      "sha256": "1d1f814ee5b3ebd800bdb87a8254e8825d4d4ca9fcb9470f56e29caa1d7b4d94"
+    },
+    {
+      "path": "pascal-cpm-closure-final.txt",
+      "sha256": "e62c994f46f37ccd4daff39224df2a686f12ed8b47759cc75c89d2b0cae8a61b"
+    },
+    {
+      "path": "pfcco-packet-failure-current.txt",
+      "sha256": "3aca252244ccab57feb28822d0829281fe069c77a7439d3c2d9d55c1da80ff5d"
+    },
+    {
+      "path": "pfcco-packet-speed-final.txt",
+      "sha256": "97420494f784774a47aee7b8c8613c7ed42d72c443734f99bfa9eb1ea3ef3a55"
+    }
+  ]
+}

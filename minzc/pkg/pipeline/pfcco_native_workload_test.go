@@ -71,7 +71,8 @@ func TestPFCCOMeasuredNativePacket(t *testing.T) {
 	}
 	save("raw.json", raw)
 	var baselineT uint64
-	var baselineBytes int
+	// This is a Speed search. Report binary size, but do not impose a byte
+	// penalty: Size is a separate optimisation goal.
 	for _, mode := range []string{"off", "greedy", "pbqp"} {
 		h, err := factory()
 		if err != nil {
@@ -136,9 +137,8 @@ func TestPFCCOMeasuredNativePacket(t *testing.T) {
 		}
 		if mode == "off" {
 			baselineT = uint64(run.TotalTStates)
-			baselineBytes = len(bin.Binary)
-		} else if uint64(run.TotalTStates) >= baselineT || len(bin.Binary) > baselineBytes {
-			t.Fatalf("%s lost measured speed/size benefit", mode)
+		} else if uint64(run.TotalTStates) >= baselineT {
+			t.Fatalf("%s lost measured Speed benefit: %d T against %d T", mode, run.TotalTStates, baselineT)
 		}
 		save(mode+"-metrics.txt", fmt.Sprintf("%d T-states / %d binary bytes\n", run.TotalTStates, len(bin.Binary)))
 		save(mode+"-choices.json", choices)

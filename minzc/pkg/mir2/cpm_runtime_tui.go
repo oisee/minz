@@ -156,6 +156,15 @@ func cpmRuntimeClosure(m *Module, ar *AllocResult) (*Module, error) {
 		if f == nil {
 			continue
 		}
+		// Certified decimal output contains ASM calls to its private digit
+		// helper. These edges are absent from the ordinary MIR call graph.
+		if (f.Name == "WriteI16" || f.Name == "WriteU16") && cpmPascalOutputAdapter(f, ar) != nil {
+			helper := m.FuncByName("_wr16_dig")
+			if helper == nil || cpmPascalOutputAdapter(helper, ar) == nil {
+				return nil, fmt.Errorf("CP/M decimal output requires canonical private digit helper")
+			}
+			enqueue(helper.Name)
+		}
 		if f.Name == "tui__render__tui_read_line" {
 			return nil, fmt.Errorf("CP/M runtime rejects reachable writable TUI read_line")
 		}

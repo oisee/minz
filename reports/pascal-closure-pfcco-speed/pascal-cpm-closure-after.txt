@@ -1,0 +1,46 @@
+=== RUN   TestPascalCPMMainAdmission
+=== RUN   TestPascalCPMMainAdmission/hello
+    pascal_cpm_main_test.go:46: <nil>
+=== RUN   TestPascalCPMMainAdmission/factorial
+    pascal_cpm_main_test.go:46: <nil>
+--- PASS: TestPascalCPMMainAdmission (0.01s)
+    --- PASS: TestPascalCPMMainAdmission/hello (0.00s)
+    --- PASS: TestPascalCPMMainAdmission/factorial (0.01s)
+=== RUN   TestPascalHelloProductionCPM
+=== RUN   TestPascalHelloProductionCPM/ordinary
+=== RUN   TestPascalHelloProductionCPM/ordinary/hello
+    pascal_cpm_main_test.go:281: clobberfalse stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+    pascal_cpm_main_test.go:281: clobbertrue stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+=== RUN   TestPascalHelloProductionCPM/ordinary/factorial
+    pascal_cpm_main_test.go:281: clobberfalse stdout"5040\r\n" expected"5040\r\n" donetrue SPfe00
+    pascal_cpm_main_test.go:281: clobbertrue stdout"5040\r\n" expected"5040\r\n" donetrue SPfe00
+=== RUN   TestPascalHelloProductionCPM/grace-size
+=== RUN   TestPascalHelloProductionCPM/grace-size/hello
+    pascal_cpm_main_test.go:281: clobberfalse stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+    pascal_cpm_main_test.go:281: clobbertrue stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+=== RUN   TestPascalHelloProductionCPM/grace-size/factorial
+    pascal_cpm_main_test.go:281: clobberfalse stdout"5040\r\n" expected"5040\r\n" donetrue SPfe00
+    pascal_cpm_main_test.go:281: clobbertrue stdout"5040\r\n" expected"5040\r\n" donetrue SPfe00
+=== RUN   TestPascalHelloProductionCPM/grace-speed
+=== RUN   TestPascalHelloProductionCPM/grace-speed/hello
+    pascal_cpm_main_test.go:281: clobberfalse stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+    pascal_cpm_main_test.go:281: clobbertrue stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+=== RUN   TestPascalHelloProductionCPM/grace-speed/factorial
+    pascal_cpm_main_test.go:281: clobberfalse stdout"5040\r\n" expected"5040\r\n" donetrue SPfe00
+    pascal_cpm_main_test.go:281: clobbertrue stdout"5040\r\n" expected"5040\r\n" donetrue SPfe00
+--- PASS: TestPascalHelloProductionCPM (0.05s)
+    --- PASS: TestPascalHelloProductionCPM/ordinary (0.02s)
+        --- PASS: TestPascalHelloProductionCPM/ordinary/hello (0.01s)
+        --- PASS: TestPascalHelloProductionCPM/ordinary/factorial (0.01s)
+    --- PASS: TestPascalHelloProductionCPM/grace-size (0.02s)
+        --- PASS: TestPascalHelloProductionCPM/grace-size/hello (0.01s)
+        --- PASS: TestPascalHelloProductionCPM/grace-size/factorial (0.01s)
+    --- PASS: TestPascalHelloProductionCPM/grace-speed (0.02s)
+        --- PASS: TestPascalHelloProductionCPM/grace-speed/hello (0.01s)
+        --- PASS: TestPascalHelloProductionCPM/grace-speed/factorial (0.01s)
+=== RUN   TestPascalDecimalProductionFullDomain
+    pascal_decimal_runtime_test.go:95: BDOS 0
+--- FAIL: TestPascalDecimalProductionFullDomain (19.54s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	19.624s
+FAIL
