@@ -1,0 +1,40 @@
+{
+  "base": "7c4ce479",
+  "sources": {
+    "minzc/cmd/mzx/sqlite_ports.go": "5e872b82b4c5eb3267c6efc4be7b89d551a51d763e85829725f1a8a40a47da51",
+    "minzc/cmd/mze/sqlite_ports.go": "41ff572d381f29d5c24aa85fb3615952ea4c2c2d266f1f550b9485389c2edd1c",
+    "stdlib/sql/sqlite.nanz": "bc177e0dc25ad2f36f3694b115439356efbfb3d956b46b2701afe82bde277fc8"
+  },
+  "status43": {
+    "open_success": "allocated handle1,2\u2026",
+    "open_or_query_error": 0,
+    "query_success": "allocated stmt1,2\u2026",
+    "step_row": 1,
+    "step_done": 0,
+    "exec_success": 0,
+    "exec_error": 1,
+    "finalize_close": 0
+  },
+  "column_text": "port45 NUL terminated, invalid stmt/column empty NUL",
+  "column_int": "ports45/47 low/high modulo65536; invalid zero",
+  "buffer": "reset string bytes after every command; handle writes must not contaminate next SQL/path",
+  "frozen_sql": [
+    "CREATE TABLE t(name TEXT,n INTEGER)",
+    "INSERT INTO t VALUES('Alice',-32768),('Bob',65535)",
+    "SELECT name,n FROM t ORDER BY rowid",
+    "SELECT 256",
+    "SELECT 32767",
+    "SELECT 32768",
+    "SELECT -1"
+  ],
+  "expected_rows": [
+    [
+      "Alice",
+      -32768
+    ],
+    [
+      "Bob",
+      65535
+    ]
+  ]
+}
