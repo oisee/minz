@@ -1,0 +1,12 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "4278ff975bcbb9705e08cf56c83614c6e17e2a98fa2b73d00d5ddebc544f00e2"
+    },
+    {
+      "path": "classifiers.txt",
+      "sha256": "fa29c9f2544bef987d07e66e1292e9a30f19f0de71e824ba62219c89ecf46be7"
+    }
+  ]
+}

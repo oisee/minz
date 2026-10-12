@@ -1,0 +1,10 @@
+=== RUN   TestOriginalSelfParserCharacterClassifiers
+=== RUN   TestOriginalSelfParserCharacterClassifiers/ordinary
+=== RUN   TestOriginalSelfParserCharacterClassifiers/grace-speed
+=== RUN   TestOriginalSelfParserCharacterClassifiers/grace-size
+--- PASS: TestOriginalSelfParserCharacterClassifiers (4.49s)
+    --- PASS: TestOriginalSelfParserCharacterClassifiers/ordinary (0.83s)
+    --- PASS: TestOriginalSelfParserCharacterClassifiers/grace-speed (1.76s)
+    --- PASS: TestOriginalSelfParserCharacterClassifiers/grace-size (1.84s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.500s
