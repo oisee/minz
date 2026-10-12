@@ -1,0 +1,4 @@
+=== RUN   TestCPMSourceBDOSCallerLiveState
+--- PASS: TestCPMSourceBDOSCallerLiveState (0.05s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.054s

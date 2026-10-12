@@ -1,0 +1,28 @@
+=== RUN   TestCPMRuntimeStackChecksCalledBodies
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/balanced_nested
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/unbalanced_rotate
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/conditional_return_imbalance
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/callee_steals_return_word
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/recursive_callee
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/dynamic_stack
+--- PASS: TestCPMRuntimeStackChecksCalledBodies (0.01s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/balanced_nested (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/unbalanced_rotate (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/conditional_return_imbalance (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/callee_steals_return_word (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/recursive_callee (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/dynamic_stack (0.00s)
+=== RUN   TestCPMRuntimeGuardedAdmission
+--- PASS: TestCPMRuntimeGuardedAdmission (0.00s)
+=== RUN   TestCPMRuntimeRejectsBranchBypassOfGuard
+--- PASS: TestCPMRuntimeRejectsBranchBypassOfGuard (0.00s)
+=== RUN   TestCPMRuntimeConditionalCallGuardPaths
+--- PASS: TestCPMRuntimeConditionalCallGuardPaths (0.00s)
+=== RUN   TestCPMRuntimeReservePathAdmission
+--- PASS: TestCPMRuntimeReservePathAdmission (0.01s)
+=== RUN   TestCPMRuntimeRejectsForgedReserveLimit
+--- PASS: TestCPMRuntimeRejectsForgedReserveLimit (0.00s)
+=== RUN   TestCPMRuntimeLocalStackAndNamedBDOSProof
+--- PASS: TestCPMRuntimeLocalStackAndNamedBDOSProof (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.036s
