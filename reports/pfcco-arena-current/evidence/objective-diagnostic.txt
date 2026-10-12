@@ -1,0 +1,20 @@
+greedy 1130
+Arena_init attrs{FixedIndirectABI:false FallibleCY:false IsExtern:false ExternAddr:0 IsComptime:false HasAsm:false IsLeaf:false IsRecursive:false} params[{ClassHard:false Name:self Reg:1 Ty:ptr Class:pointer} {ClassHard:false Name:base Reg:2 Ty:u16 Class:pair} {ClassHard:false Name:size Reg:3 Ty:u16 Class:index}]
+arena_split attrs{FixedIndirectABI:false FallibleCY:false IsExtern:false ExternAddr:0 IsComptime:false HasAsm:false IsLeaf:false IsRecursive:false} params[{ClassHard:false Name:a Reg:25 Ty:ptr Class:pointer} {ClassHard:false Name:start Reg:26 Ty:u16 Class:pair} {ClassHard:false Name:size Reg:27 Ty:u16 Class:index}]
+DEBUG current objective 12
+DEBUG unary Arena_init [pointer index pair] 10
+DEBUG unary Arena_init [pointer pair index] 4
+DEBUG unary Arena_init [pointer pair pair] 8
+DEBUG unary Arena_init [index pointer pair] 12
+DEBUG unary Arena_init [index pair pointer] 12
+DEBUG unary Arena_init [index pair pair] 12
+DEBUG unary arena_split [pointer index pair] 10
+DEBUG unary arena_split [pointer pair index] 4
+DEBUG unary arena_split [pointer pair pair] 8
+DEBUG unary arena_split [index pointer pair] 12
+DEBUG unary arena_split [index pair pointer] 12
+DEBUG unary arena_split [index pair pair] 12
+DEBUG alternative objective 24
+pbqp 1128
+Arena_init attrs{FixedIndirectABI:false FallibleCY:false IsExtern:false ExternAddr:0 IsComptime:false HasAsm:false IsLeaf:false IsRecursive:false} params[{ClassHard:false Name:self Reg:1 Ty:ptr Class:pointer} {ClassHard:false Name:base Reg:2 Ty:u16 Class:pair} {ClassHard:false Name:size Reg:3 Ty:u16 Class:index}]
+arena_split attrs{FixedIndirectABI:false FallibleCY:false IsExtern:false ExternAddr:0 IsComptime:false HasAsm:false IsLeaf:false IsRecursive:false} params[{ClassHard:false Name:a Reg:25 Ty:ptr Class:pointer} {ClassHard:false Name:start Reg:26 Ty:u16 Class:pair} {ClassHard:false Name:size Reg:27 Ty:u16 Class:index}]

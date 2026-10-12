@@ -91,3 +91,27 @@ func TestPFCCOCallWordLiteralPlacementRefusals(t *testing.T) {
 		})
 	}
 }
+
+func TestPFCCOWordSoftPreferencesAreNotHardABIConflicts(t *testing.T) {
+	m := &Module{Name: "soft-word-ABI"}
+	f := m.AddFunc("three")
+	for i, ty := range []Ty{TyPtr, TyU16, TyU16} {
+		r := f.AllocReg()
+		f.Contract.Params = append(f.Contract.Params, Param{Reg: r, Ty: ty, Class: []RegClass{ClassPointer, ClassIndex, ClassIndex}[i]})
+	}
+	found := false
+	for _, c := range candidatePFCCOWordChoices(f, Z80CostTable{}) {
+		if reflect.DeepEqual(c.ParamClasses, []RegClass{ClassPointer, ClassIndex, ClassIndex}) {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("valid soft DE/BC alternatives pruned as hard ABI conflict")
+	}
+	f.Contract.Params[1].ClassHard = true
+	for _, c := range candidatePFCCOWordChoices(f, Z80CostTable{}) {
+		if reflect.DeepEqual(c.ParamClasses, []RegClass{ClassPointer, ClassIndex, ClassIndex}) {
+			t.Fatal("hard-pinned duplicate class relaxed")
+		}
+	}
+}
