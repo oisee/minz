@@ -358,6 +358,13 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.genSext(inst)
 
 	case OpTrunc:
+		if g.loc(inst.Src[0]) == "F" || inst.Src[0] == g.pendingFlagReg {
+			// A predicate has no byte register to copy. Its truncation keeps
+			// the canonical 0/1 value and uses the same live-safe materializer
+			// as boolean extension (including allocated flag aliases).
+			g.genExt(inst)
+			break
+		}
 		src := g.loc(inst.Src[0])
 		// Truncate 16-bit → 8-bit: take low byte.
 		lo := lowByte(src)

@@ -397,7 +397,7 @@ func (g *z80cg) genExt(inst *Inst) {
 	src := g.loc(inst.Src[0])
 	srcW := inst.SrcTy.Width()
 	dstW := inst.Ty.Width()
-	if inst.SrcTy == TyBool && (dstW == 8 || dstW == 16 || dstW == 24 || dstW == 32) {
+	if (inst.SrcTy == TyBool || src == "F" || inst.Src[0] == g.pendingFlagReg) && (dstW == 1 || dstW == 8 || dstW == 16 || dstW == 24 || dstW == 32) {
 		if src == "F" || inst.Src[0] == g.pendingFlagReg {
 			// F carries a predicate, not a byte; materialize the full condition.
 			// A may hold an unrelated live value, so preserve it until the
