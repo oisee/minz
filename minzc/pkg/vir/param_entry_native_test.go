@@ -76,3 +76,43 @@ func TestAdapterEntryRejectsInvalidABI(t *testing.T) {
 		}
 	}
 }
+
+func TestCodegenGlobalParamLocsNative(t *testing.T) {
+	if _, err := exec.LookPath("z3"); err != nil {
+		t.Skip("research Z3 unavailable")
+	}
+	m := &mir2.Module{}
+	f := m.AddFunc("double_word")
+	b := f.NewBlock("entry")
+	in := f.AllocReg()
+	b.Params = []mir2.BlockParam{{Dst: in, Ty: mir2.TyU16}}
+	f.Contract.Params = []mir2.Param{{Reg: in, Ty: mir2.TyU16, Class: mir2.ClassPointer}}
+	out := f.AllocReg()
+	b.Append(&mir2.Inst{Op: mir2.OpAdd, Dst: out, Src: [2]mir2.Reg{in, in}, Ty: mir2.TyU16})
+	b.Seal(&mir2.TermRet{Vals: []mir2.Reg{out}})
+	asm, err := CodegenFunc(f, m, SolverOptions{ParamLocs: map[int]int{int(in): Z80.LocByName("DE")}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ar, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + asm)
+	if err != nil || len(ar.Errors) > 0 {
+		t.Fatalf("assembly %v %v", err, ar.Errors)
+	}
+	z := emulator.NewRemogattoZ80()
+	if err := z.LoadMemory(0x8000, ar.Binary); err != nil {
+		t.Fatal(err)
+	}
+	for x := 0; x < 65536; x++ {
+		if err := z.LoadMemory(0xeffe, []byte{0, 0xf1}); err != nil {
+			t.Fatal(err)
+		}
+		z.SetRegisters(emulator.Registers{DE: uint16(x), HL: 0x9172, PC: 0x8000, SP: 0xeffe})
+		for i := 0; i < 64 && z.GetRegisters().PC != 0xf100; i++ {
+			z.Step()
+		}
+		r := z.GetRegisters()
+		if r.HL != uint16(2*x) || r.PC != 0xf100 || r.SP != 0xf000 {
+			t.Fatalf("x=%d: %+v ASM=%s", x, r, asm)
+		}
+	}
+}

@@ -1,0 +1,6 @@
+=== RUN   TestCodegenGlobalParamLocsNative
+[regalloc] loaded 56 exhaustive entries from regalloc_exhaustive.json
+[vir] double_word: constrained unsat, using standalone+adapter (1 adapters)
+--- PASS: TestCodegenGlobalParamLocsNative (0.04s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.052s

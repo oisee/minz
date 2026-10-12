@@ -693,14 +693,19 @@ skipTable:
 	}
 
 	// Check if we have caller-imposed param constraints
-	hasConstraints := false
-	var callerParamLocs map[int]int
+	callerParamLocs := make(map[int]int)
+	for v, loc := range opts.ParamLocs {
+		callerParamLocs[v] = loc
+	}
 	if opts.FuncParamLocs != nil {
 		if pl, ok := opts.FuncParamLocs[f.Name]; ok && len(pl) > 0 {
-			hasConstraints = true
-			callerParamLocs = pl
+			for v, loc := range pl {
+				callerParamLocs[v] = loc
+			}
 		}
 	}
+
+	hasConstraints := len(callerParamLocs) > 0
 
 	// --- Mode 1: Constrained solve (ABI-compatible) ---
 	// When caller provides param locations, try constrained first.
