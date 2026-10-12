@@ -18,7 +18,7 @@ global seed: u16 = 0xACE1
 fun random_u8() -> u8 {
     let bit: u8 = ((seed >> 0) ^ (seed >> 2) ^ (seed >> 3) ^ (seed >> 5)) as u8 & 1
     seed = (seed >> 1) | ((bit as u16) << 15)
-    (seed >> 8) as u8
+    return ((seed >> 8) as u8)
 }
 
 // Seed bottom row
@@ -62,7 +62,7 @@ fun palette(h: u8) -> u8 {
     if h == 3 { return PALETTE_3 }
     if h == 4 { return PALETTE_4 }
     if h == 5 { return PALETTE_5 }
-    PALETTE_6
+    return PALETTE_6
 }
 
 // Main fire loop

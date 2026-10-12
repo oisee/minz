@@ -5120,6 +5120,11 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 				base = p.makeFieldExpr(base, fieldTok.val)
 			}
 		case tokLParen:
+			// A newline starts a separate parenthesized expression statement.
+			// Arguments may still span lines after the opening call parenthesis.
+			if p.l.cur > 0 && t.line > p.l.tokens[p.l.cur-1].line {
+				return base, nil
+			}
 			// call: base must be VarRefExpr (function name)
 			p.l.next()
 			var args []hir.Expr
@@ -5612,6 +5617,9 @@ func (p *parser) resolveCall(base hir.Expr, args []hir.Expr) (hir.Expr, error) {
 	name := ""
 	if vr, ok := base.(*hir.VarRefExpr); ok {
 		name = vr.Name
+	}
+	if name == "" {
+		return nil, fmt.Errorf("line %d: call target must be a function name or callable variable", p.l.peek().line)
 	}
 	// Resolve import alias: "tui_puts" → "tui__render__tui_puts"
 	if resolved, ok := p.funcAliases[name]; ok {

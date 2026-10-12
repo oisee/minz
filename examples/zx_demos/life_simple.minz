@@ -14,7 +14,7 @@ global seed: u16 = 0xACE1
 fun random_u8() -> u8 {
     let bit: u8 = ((seed >> 0) ^ (seed >> 2) ^ (seed >> 3) ^ (seed >> 5)) as u8 & 1
     seed = (seed >> 1) | ((bit as u16) << 15)
-    (seed >> 8) as u8
+    return ((seed >> 8) as u8)
 }
 
 // Initialize with random pattern
@@ -50,7 +50,7 @@ fun count_neighbors(idx: u16) -> u8 {
         }
     }
 
-    count
+    return count
 }
 
 // Compute next generation
