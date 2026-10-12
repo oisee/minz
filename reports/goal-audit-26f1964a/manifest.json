@@ -1,0 +1,20 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "19fcc9060b8836c48674c4a1b5fd658929d7f4de6220d568b0173593f70081f6"
+    },
+    {
+      "path": "audit.json",
+      "sha256": "d4ad72861f0ab8e59ad62b2fc53ff0828f6070596b969c2b6ac81dde0b9712f5"
+    },
+    {
+      "path": "showcase.txt",
+      "sha256": "4c9f2d5e5b6608d25aed43f2cc549b7ecc74d788264f6b6e27471dd126d5860c"
+    },
+    {
+      "path": "zvm-capacity.txt",
+      "sha256": "64fd2f2ecb2c51eea901e28b3ad4ea0f9c96e1b308435d041fe644cfb50dbc83"
+    }
+  ]
+}
