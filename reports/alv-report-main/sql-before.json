@@ -1,0 +1,96 @@
+{
+  "seed_rows": [
+    [
+      "AA",
+      "American Airlines",
+      "http://www.aa.com"
+    ],
+    [
+      "BA",
+      "British Airways",
+      "http://www.ba.com"
+    ],
+    [
+      "LH",
+      "Lufthansa",
+      "http://www.lufthansa.com"
+    ],
+    [
+      "SQ",
+      "Singapore Airlines",
+      "http://www.singaporeair.com"
+    ],
+    [
+      "UA",
+      "United Airlines",
+      "http://www.united.com"
+    ],
+    [
+      "QF",
+      "Qantas",
+      "http://www.qantas.com.au"
+    ],
+    [
+      "EK",
+      "Emirates",
+      "http://www.emirates.com"
+    ],
+    [
+      "AF",
+      "Air France",
+      "http://www.airfrance.com"
+    ]
+  ],
+  "initial_all": [
+    [
+      "AA",
+      "American Airlines",
+      "http://www.aa.com"
+    ],
+    [
+      "AF",
+      "Air France",
+      "http://www.airfrance.com"
+    ],
+    [
+      "BA",
+      "British Airways",
+      "http://www.ba.com"
+    ],
+    [
+      "EK",
+      "Emirates",
+      "http://www.emirates.com"
+    ],
+    [
+      "LH",
+      "Lufthansa",
+      "http://www.lufthansa.com"
+    ],
+    [
+      "QF",
+      "Qantas",
+      "http://www.qantas.com.au"
+    ],
+    [
+      "SQ",
+      "Singapore Airlines",
+      "http://www.singaporeair.com"
+    ],
+    [
+      "UA",
+      "United Airlines",
+      "http://www.united.com"
+    ]
+  ],
+  "held_filter": "LH",
+  "current_host_sql": "SELECT carrid, carrname, url FROM scarr ORDER BY carrid WHERE carrid = 'LH'",
+  "error": "near \"WHERE\": syntax error",
+  "independent_intended_filtered": [
+    [
+      "LH",
+      "Lufthansa",
+      "http://www.lufthansa.com"
+    ]
+  ]
+}
