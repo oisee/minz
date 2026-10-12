@@ -2,7 +2,7 @@
   "compatibility": {
     "schema": "minz.loop-profile-compatibility/v1",
     "context": {
-      "compiler_id": "executable-sha256:6f6f8ae3ae836ff3e05561313873c3a9455715d9552607914dcced588f8cffee",
+      "compiler_id": "executable-sha256:284a2966d44069e5713bcbe70ea7887bd16d7dae83464fc29b3ed620a167e399",
       "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2/minz.memory-host/bounded-byte-effects/v1",
       "target_id": "module-target:0/model:cpm-z80-v1",
       "workload_sha256": "af586890d59a4a10dfd69e6d92d816c1f13dd99d7d3fc146badea3fba289270d",
@@ -14,11 +14,11 @@
         "memory-region:strings": "9f1dcbc35c350d6027f98be0f5c8b43b42ca52b7604459c0c42be3aa88913d47"
       }
     },
-    "hir_sha256": "cb86e80f458bf224126c34888b3626db69b2dcf09e512c9903ec7025982f1862",
+    "hir_sha256": "75bbd9966cd5374be50092f72fd5eaf91e545a3c450b78fdf1281b9f3e5d30dd",
     "origins_sha256": "6ccba39df72805c4edeacbc52da2da2cc08f78c83bc101d77853453d217eb01d"
   },
   "context": {
-    "compiler_id": "executable-sha256:6f6f8ae3ae836ff3e05561313873c3a9455715d9552607914dcced588f8cffee",
+    "compiler_id": "executable-sha256:284a2966d44069e5713bcbe70ea7887bd16d7dae83464fc29b3ed620a167e399",
     "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2/minz.memory-host/bounded-byte-effects/v1",
     "target_id": "module-target:0/model:cpm-z80-v1",
     "workload_sha256": "af586890d59a4a10dfd69e6d92d816c1f13dd99d7d3fc146badea3fba289270d",
@@ -2722,7 +2722,7 @@
         }
       ],
       "error": "",
-      "steps": 7735
+      "steps": 7752
     },
     {
       "results": [
@@ -8960,7 +8960,7 @@
         }
       ],
       "error": "",
-      "steps": 17171
+      "steps": 17204
     },
     {
       "results": [
@@ -14613,7 +14613,7 @@
         }
       ],
       "error": "",
-      "steps": 15492
+      "steps": 15520
     }
   ]
 }

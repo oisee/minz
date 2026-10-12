@@ -345,12 +345,10 @@ main:
     LD E, L
     JRS .main_loop_exit3
 
-; fun peek(addr: u16 = HL) -> u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
 peek:
     LD A,(HL)
     RET
 
-; fun poke(addr: u16 = HL, val: u8 = C) ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
 poke:
     LD (HL),C
     RET
@@ -622,11 +620,14 @@ region_match:
     PUSH HL
     POP BC
     POP HL
-    EX AF, AF'
+    PUSH AF
     LD A, IYH
+    PUSH AF
+    LD A, 0
+    LD IXH, A
+    POP AF
     LD IXL, A
-    EX AF, AF'
-    LD IXH, 0
+    POP AF
     PUSH HL
     PUSH DE
     PUSH BC
@@ -658,11 +659,14 @@ region_match:
     PUSH HL
     POP BC
     POP HL
-    EX AF, AF'
+    PUSH AF
     LD A, IYH
+    PUSH AF
+    LD A, 0
+    LD IXH, A
+    POP AF
     LD IXL, A
-    EX AF, AF'
-    LD IXH, 0
+    POP AF
     PUSH HL
     PUSH DE
     PUSH BC
@@ -800,11 +804,14 @@ intern_region:
     POP HL
     JRS NC, .intern_region_trmp1
 .intern_region_loop_body9:
-    EX AF, AF'
+    PUSH AF
     LD A, (_spill_intern_region_r163) ; @minz-memory-access:f8_b9_s6
+    PUSH AF
+    LD A, 0
+    LD IXH, A
+    POP AF
     LD IXL, A
-    EX AF, AF'
-    LD IXH, 0
+    POP AF
     PUSH HL
     PUSH DE
     LD H, D
@@ -818,11 +825,14 @@ intern_region:
     POP IX
     POP DE
     POP HL
-    EX AF, AF'
+    PUSH AF
     LD A, (_spill_intern_region_r163) ; @minz-memory-access:f8_b9_s7
+    PUSH AF
+    LD A, 0
+    LD IYH, A
+    POP AF
     LD IYL, A
-    EX AF, AF'
-    LD IYH, 0
+    POP AF
     PUSH HL
     PUSH DE
     PUSH DE
@@ -916,11 +926,14 @@ intern_region:
 .intern_region_loop_exit10:
     LD HL, (str_bump)    ; u16 direct load (20T, no A clobber) ; @minz-memory-access:f8_b10_i1_a0
     INC HL
-    EX AF, AF'
+    PUSH AF
     LD A, (_spill_intern_region_r176) ; @minz-memory-access:f8_b10_s18
+    PUSH AF
+    LD A, 0
+    LD D, A
+    POP AF
     LD E, A
-    EX AF, AF'
-    LD D, 0
+    POP AF
     ADD HL, DE
     LD DE, str_bump
     LD (str_bump), HL    ; u16 direct store (16T, no A clobber) ; @minz-memory-access:f8_b10_i7_a0
@@ -1254,9 +1267,7 @@ parse_sexpr:
     AND A
     JRS NZ, .parse_sexpr_if_join2
 .parse_sexpr_if_then1:
-    LD A, 0
-    LD L, A
-    LD H, 0
+    LD HL, 0
     RET
 .parse_sexpr_if_join2:
     CP 40
@@ -1286,16 +1297,14 @@ parse_sexpr:
     LD HL, SEXP_LIST
     LD C, (HL) ; @minz-memory-access:f14_b4_i7_a0
     LD A, C
-    LD C, 0
-    LD B, 0
-    LD D, 0
+    LD DE, 0
+    LD HL, 0
+    LD BC, 0
     ; genCall: make_node dst=291
-    LD E, C
-    LD C, B
-    LD IXL, D
-    LD D, 0
-    LD B, 0
-    LD IXH, 0
+    LD IXH, B
+    LD IXL, C
+    LD B, H
+    LD C, L
     JP make_node
 .parse_sexpr_if_join6:
     ; genCall: parse_sexpr dst=292
@@ -1307,16 +1316,12 @@ parse_sexpr:
     LD A, C
     LD H, D
     LD L, E
-    LD B, 0
-    LD C, 0
+    LD BC, 0
+    LD IX, 0
     ; genCall: make_node dst=299
     PUSH DE
     LD D, H
     LD E, L
-    LD IXL, C
-    LD C, B
-    LD B, 0
-    LD IXH, 0
     CALL make_node
     POP DE
     ; genCall: skip_ws dst=0
@@ -1424,9 +1429,7 @@ parse_sexpr:
     AND A
     JRS NZ, .parse_sexpr_if_join16
 .parse_sexpr_if_then15:
-    LD A, 0
-    LD L, A
-    LD H, 0
+    LD HL, 0
     RET
 .parse_sexpr_if_join16:
     LD HL, (src_buf)    ; u16 direct load (20T, no A clobber) ; @minz-memory-access:f14_b16_i1_a0
@@ -1455,7 +1458,7 @@ parse_sexpr:
 .parse_sexpr_loop_head19:
     LD A, IYL
     CP IYH
-    JRS NC, .parse_sexpr_trmp1
+    JRS NC, .parse_sexpr_loop_exit21
 .parse_sexpr_loop_body20:
     PUSH BC
     PUSH HL
@@ -1475,8 +1478,14 @@ parse_sexpr:
     POP BC
     EX DE, HL
     POP HL
-    LD C, IYL
-    LD B, 0
+    PUSH AF
+    LD A, IYL
+    PUSH AF
+    LD A, 0
+    LD B, A
+    POP AF
+    LD C, A
+    POP AF
     PUSH HL
     EX DE, HL
     ADD HL, BC
@@ -1510,15 +1519,15 @@ parse_sexpr:
     LD C, A
     EX AF, AF'      ; restore byte-load scratch
     LD A, C
-    LD B, 0
-    LD C, 0
-    ; genCall: make_node dst=371
     LD D, H
     LD E, L
+    LD HL, 0
+    LD BC, 0
+    ; genCall: make_node dst=371
+    LD IXH, B
     LD IXL, C
-    LD C, B
-    LD B, 0
-    LD IXH, 0
+    LD B, H
+    LD C, L
     JP make_node
 .parse_sexpr_if_join18:
     ; genCall: intern_region dst=372
@@ -1532,22 +1541,20 @@ parse_sexpr:
     LD C, A
     EX AF, AF'      ; restore byte-load scratch
     LD A, C
-    LD B, 0
-    LD C, 0
-    ; genCall: make_node dst=379
     LD D, H
     LD E, L
+    LD HL, 0
+    LD BC, 0
+    ; genCall: make_node dst=379
+    LD IXH, B
     LD IXL, C
-    LD C, B
-    LD B, 0
-    LD IXH, 0
+    LD B, H
+    LD C, L
     JP make_node
 .parse_sexpr_trmp0:
     LD B, H
     LD C, L
     JRS .parse_sexpr_loop_exit9
-.parse_sexpr_trmp1:
-    JRS .parse_sexpr_loop_exit21
 
 ; fun print_str(s: u16 = HL) ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
 print_str:
@@ -1568,8 +1575,14 @@ print_str:
     LD D, H
     LD E, L
     POP HL
-    LD C, IXH
-    LD B, 0
+    PUSH AF
+    LD A, IXH
+    PUSH AF
+    LD A, 0
+    LD B, A
+    POP AF
+    LD C, A
+    POP AF
     PUSH HL
     EX DE, HL
     ADD HL, BC

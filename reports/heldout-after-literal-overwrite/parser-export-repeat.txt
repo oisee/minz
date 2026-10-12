@@ -1,0 +1,10 @@
+=== RUN   TestParserProspectiveHeldout
+    parser_prospective_heldout_test.go:149: training mask 0: 1041370 T / 2377 B
+    parser_prospective_heldout_test.go:149: training mask 1: 1037508 T / 2498 B
+    parser_prospective_heldout_test.go:149: training mask 2: 1017005 T / 2357 B
+    parser_prospective_heldout_test.go:149: training mask 3: 1013143 T / 2478 B
+    parser_prospective_heldout_test.go:185: heldout mask 0: 2195027 T / 2377 B SHA a08a6d9ddb64bce02ad56ad492506e97ef647496184e48c57aa17ebf328a9de5
+    parser_prospective_heldout_test.go:185: heldout mask 3: 2137641 T / 2478 B SHA 1578c9566043c9d072d872c6b36294a43922d18ab6a39322714bcf191b4f8c74
+--- PASS: TestParserProspectiveHeldout (24.11s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	24.122s

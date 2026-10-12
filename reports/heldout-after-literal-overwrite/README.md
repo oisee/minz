@@ -11,3 +11,7 @@ Hashmap выбирает mask3 в Speed и Size: training 26 346 → 23 437 T; �
 Команды: `MINZ_HASHMAP_HELDOUT_EVIDENCE=<hashmap> go test ./pkg/pipeline -run '^(TestParserProspectiveHeldout|TestHashmapMeasuredTrainingAndUnseenWorkload)$' -count=1 -timeout=20m -v`; затем `VIR_TEST_Z3=<offline-z3> go test ./pkg/pipeline -run '^(TestCombinedContractTableGraceNative|TestCheckedExactBindingMissAndRevalidatedTransfer)$' -count=1 -timeout=10m -v`.
 
 Источники, frozen inputs, профили, decisions, allocations, ASM/BIN и наблюдения рядом. Полный pipeline 5d90b7aa продолжает отдельный прогон до этой правки; его успех ещё не объявлен. Эти focused проверки не доказывают полный корпус нового checkpoint.
+
+## Исправление пакета артефактов
+
+Первоначальный коммит c081eaa7 ошибочно приложил старые parser файлы из docs к свежему PASS логу. Они заменены свежим экспортом из пустой папки после повторного PASS 24,122 s. Проверены decision selected=3, точные heldout T-states и SHA256 каждого baseline/selected BIN; устаревший heldout-mask-2 удалён. Для экспорта parser требуется `MINZ_PARSER_PROSPECTIVE_EVIDENCE=<output>`. Hashmap пакет первоначального запуска был экспортирован правильно.

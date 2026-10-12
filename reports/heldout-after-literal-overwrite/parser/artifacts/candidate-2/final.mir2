@@ -29,29 +29,29 @@ fun @is_space(%r4: u8 [acc]) -> u8 [acc]
     %r6 = cmp.eq %r4, %r5 : bool [flag]
     br_if %r6, @if_then1(), @if_join2()
   block @if_then1:
-    %r7 = const 1 : u8 [general]
+    %r7 = const 1 : u8 [acc]
     ret %r7
   block @if_join2:
     %r8 = const 9 : u8 [general]
     %r9 = cmp.eq %r4, %r8 : bool [flag]
     br_if %r9, @if_then3(), @if_join4()
   block @if_then3:
-    %r10 = const 1 : u8 [general]
+    %r10 = const 1 : u8 [acc]
     ret %r10
   block @if_join4:
     %r11 = const 10 : u8 [general]
     %r12 = cmp.eq %r4, %r11 : bool [flag]
     br_if %r12, @if_then5(), @if_join6()
   block @if_then5:
-    %r13 = const 1 : u8 [general]
+    %r13 = const 1 : u8 [acc]
     ret %r13
   block @if_join6:
     %r14 = const 13 : u8 [general]
     %r15 = cmp.eq %r4, %r14 : bool [flag]
-    %r16 = const 0 : u8 [general]
+    %r16 = const 0 : u8 [acc]
     cond_ret %r15, [%r16], @if_then7()
   block @if_then7:
-    %r17 = const 1 : u8 [general]
+    %r17 = const 1 : u8 [acc]
     ret %r17
 
 fun @is_digit(%r18: u8 [acc]) -> u8 [acc]
@@ -64,12 +64,12 @@ fun @is_digit(%r18: u8 [acc]) -> u8 [acc]
     %r22 = cmp.ule %r18, %r21 : bool [flag]
     br_if %r22, @if_then3(), @if_join4()
   block @if_then3:
-    %r23 = const 1 : u8 [general]
+    %r23 = const 1 : u8 [acc]
     ret %r23
   block @if_join4:
     jmp @if_join2()
   block @if_join2:
-    %r24 = const 0 : u8 [general]
+    %r24 = const 0 : u8 [acc]
     ret %r24
 
 fun @is_atom_char(%r25: u8 [acc]) -> u8 [acc]
@@ -78,50 +78,50 @@ fun @is_atom_char(%r25: u8 [acc]) -> u8 [acc]
     %r27 = cmp.eq %r25, %r26 : bool [flag]
     br_if %r27, @if_then1(), @if_join2()
   block @if_then1:
-    %r28 = const 0 : u8 [general]
+    %r28 = const 0 : u8 [acc]
     ret %r28
   block @if_join2:
     %r29 = const 32 : u8 [general]
     %r30 = cmp.eq %r25, %r29 : bool [flag]
     br_if %r30, @if_then3(), @if_join4()
   block @if_then3:
-    %r31 = const 0 : u8 [general]
+    %r31 = const 0 : u8 [acc]
     ret %r31
   block @if_join4:
     %r32 = const 9 : u8 [general]
     %r33 = cmp.eq %r25, %r32 : bool [flag]
     br_if %r33, @if_then5(), @if_join6()
   block @if_then5:
-    %r34 = const 0 : u8 [general]
+    %r34 = const 0 : u8 [acc]
     ret %r34
   block @if_join6:
     %r35 = const 10 : u8 [general]
     %r36 = cmp.eq %r25, %r35 : bool [flag]
     br_if %r36, @if_then7(), @if_join8()
   block @if_then7:
-    %r37 = const 0 : u8 [general]
+    %r37 = const 0 : u8 [acc]
     ret %r37
   block @if_join8:
     %r38 = const 13 : u8 [general]
     %r39 = cmp.eq %r25, %r38 : bool [flag]
     br_if %r39, @if_then9(), @if_join10()
   block @if_then9:
-    %r40 = const 0 : u8 [general]
+    %r40 = const 0 : u8 [acc]
     ret %r40
   block @if_join10:
     %r41 = const 40 : u8 [general]
     %r42 = cmp.eq %r25, %r41 : bool [flag]
     br_if %r42, @if_then11(), @if_join12()
   block @if_then11:
-    %r43 = const 0 : u8 [general]
+    %r43 = const 0 : u8 [acc]
     ret %r43
   block @if_join12:
     %r44 = const 41 : u8 [general]
     %r45 = cmp.eq %r25, %r44 : bool [flag]
-    %r46 = const 1 : u8 [general]
+    %r46 = const 1 : u8 [acc]
     cond_ret %r45, [%r46], @if_then13()
   block @if_then13:
-    %r47 = const 0 : u8 [general]
+    %r47 = const 0 : u8 [acc]
     ret %r47
 
 fun @cur() -> u8 [acc]
@@ -133,7 +133,7 @@ fun @cur() -> u8 [acc]
     %r52 = cmp.uge %r49, %r51 : bool [flag]
     br_if %r52, @if_then1(), @if_join2()
   block @if_then1:
-    %r53 = const 0 : u8 [general]
+    %r53 = const 0 : u8 [acc]
     ret %r53
   block @if_join2:
     %r54 = addr_of @src_buf : ptr [pointer]
@@ -207,7 +207,7 @@ fun @region_match(%r89: u16 [pointer], %r90: u16 [index], %r91: u8 [counter]) ->
     jmp @loop_head1(%r89, %r92, %r91, %r90)
   block @loop_head1(%r93: u16 [pointer], %r92: u8 [general], %r95: u8 [general], %r96: u16 [pointer]):
     %r97 = cmp.ult %r92, %r95 : bool [flag]
-    %r98 = const 1 : u8 [general]
+    %r98 = const 1 : u8 [acc]
     cond_ret %r97, [%r98], @loop_body2()
   block @loop_body2:
     %r99 = const 1 : u16 [pointer]
@@ -224,7 +224,7 @@ fun @region_match(%r89: u16 [pointer], %r90: u16 [index], %r91: u8 [counter]) ->
     %r110 = cmp.ne %r103, %r109 : bool [flag]
     br_if %r110, @if_then4(), @if_join5()
   block @if_then4:
-    %r111 = const 0 : u8 [general]
+    %r111 = const 0 : u8 [acc]
     ret %r111
   block @if_join5:
     %r112 = const 1 : u8 [general]
@@ -413,7 +413,7 @@ fun @parse_sexpr() -> u16 [pointer]
     %r253 = cmp.eq %r251, %r252 : bool [flag]
     br_if %r253, @if_then1(), @if_join2()
   block @if_then1:
-    %r254 = const 0 : u8 [general]
+    %r254 = const 0 : u16 [pointer]
     ret %r254
   block @if_join2:
     %r255 = const 40 : u8 [general]
@@ -441,9 +441,9 @@ fun @parse_sexpr() -> u16 [pointer]
     %r270 = addr_of @SEXP_LIST : ptr [pointer]
     %r271 = load %r270 : u8 [general]
     %r272 = move %r271 : u8 [acc]
-    %r273 = const 0 : u8 [general]
-    %r274 = const 0 : u8 [counter]
-    %r275 = const 0 : u8 [general]
+    %r273 = const 0 : u16 [index]
+    %r274 = const 0 : u16 [index]
+    %r275 = const 0 : u16 [index]
     %r276 = call @make_node(%r272, %r273, %r274, %r275) : u16 [pointer]
     ret %r276
   block @if_join6:
@@ -452,8 +452,8 @@ fun @parse_sexpr() -> u16 [pointer]
     %r279 = load %r278 : u8 [general]
     %r280 = move %r279 : u8 [acc]
     %r281 = move %r277 : u16 [index]
-    %r282 = const 0 : u8 [counter]
-    %r283 = const 0 : u8 [general]
+    %r282 = const 0 : u16 [index]
+    %r283 = const 0 : u16 [index]
     %r284 = call @make_node(%r280, %r281, %r282, %r283) : u16 [pointer]
     call @skip_ws()
     jmp @loop_head7(%r284, %r277)
@@ -511,7 +511,7 @@ fun @parse_sexpr() -> u16 [pointer]
     %r318 = cmp.eq %r316, %r317 : bool [flag]
     br_if %r318, @if_then15(), @if_join16()
   block @if_then15:
-    %r319 = const 0 : u8 [general]
+    %r319 = const 0 : u16 [pointer]
     ret %r319
   block @if_join16:
     %r320 = addr_of @src_buf : ptr [pointer]
@@ -551,8 +551,8 @@ fun @parse_sexpr() -> u16 [pointer]
     %r351 = load %r350 : u8 [general]
     %r352 = move %r351 : u8 [acc]
     %r353 = move %r349 : u16 [index]
-    %r354 = const 0 : u8 [counter]
-    %r355 = const 0 : u8 [general]
+    %r354 = const 0 : u16 [index]
+    %r355 = const 0 : u16 [index]
     %r356 = call @make_node(%r352, %r353, %r354, %r355) : u16 [pointer]
     ret %r356
   block @if_join18:
@@ -561,8 +561,8 @@ fun @parse_sexpr() -> u16 [pointer]
     %r359 = load %r358 : u8 [general]
     %r360 = move %r359 : u8 [acc]
     %r361 = move %r357 : u16 [index]
-    %r362 = const 0 : u8 [counter]
-    %r363 = const 0 : u8 [general]
+    %r362 = const 0 : u16 [index]
+    %r363 = const 0 : u16 [index]
     %r364 = call @make_node(%r360, %r361, %r362, %r363) : u16 [pointer]
     ret %r364
 
