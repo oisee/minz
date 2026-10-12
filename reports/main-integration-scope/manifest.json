@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 7289,
+      "sha256": "b91715c2fee91277f0f7969c6982a15ee9c4fe61af523087ec14229841ca28f3"
+    },
+    {
+      "path": "build_inventory.py",
+      "bytes": 5667,
+      "sha256": "85bc25de5d7912a46fca9f5ec357c83925029a9443350c663b7dbb3a0533c95b"
+    },
+    {
+      "path": "candidate-fixture-paths.txt",
+      "bytes": 35981,
+      "sha256": "55ceda109123ffa144d8d4493da05a513e57891fcaa83337163f94dc50f9f711"
+    },
+    {
+      "path": "direct-fixture-paths.txt",
+      "bytes": 9330,
+      "sha256": "733dc1b0b824ec02bfc3456e2fefea54fa89364781e2a5f122f10dd24de65cba"
+    },
+    {
+      "path": "embedded-assets.txt",
+      "bytes": 198,
+      "sha256": "04a7721a7096cb9f438bbe1b3204788bb7110976e382433eeb2e82e76409e5aa"
+    },
+    {
+      "path": "first-pr-source-paths.txt",
+      "bytes": 37320,
+      "sha256": "af7fe3656a5333e62b29bbfa1aa3be1c686b84462432e628f69a675705af326e"
+    },
+    {
+      "path": "fixture-paths.txt",
+      "bytes": 435638,
+      "sha256": "464e21487208942fc82f4348ef6b5e494c456ef4f3924db99b1468a85748cdbe"
+    },
+    {
+      "path": "inventory.json",
+      "bytes": 3780909,
+      "sha256": "66eb2205584968de35991abc2ab18c2c40c6de393ef7fc38f16f6f5e0196abbc"
+    }
+  ]
+}

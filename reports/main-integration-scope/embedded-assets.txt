@@ -1,0 +1,5 @@
+minzc/pkg/hir/rules/constant_if.grace
+minzc/pkg/hir/rules/forward_copy.grace
+minzc/pkg/hir/rules/invariant_base.grace
+minzc/pkg/hir/rules/pointer_walk.grace
+minzc/pkg/hir/rules/region_compare.grace
