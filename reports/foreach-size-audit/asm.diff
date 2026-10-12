@@ -1,0 +1,39 @@
+--- reports/foreach-size-audit/0.a80	2026-10-12 05:43:08.306487124 +0000
++++ reports/foreach-size-audit/7.a80	2026-10-12 05:43:08.347486873 +0000
+@@ -45,25 +45,30 @@
+     LD A, B
+     RET
+ .max_chain_fe_body1:
+-    LD A, (HL)
++    LD B, (HL)
++    LD E, A
++    ; materialize r22 (pendingAcc)
++    LD A, E
+     CP B
+-    JRS Z, .max_chain_trmp1
+-    JRS C, .max_chain_trmp1
+-.max_chain_if_then3:
++    LD A, E
++    ; restore block param from scratch
++    JRS NC, .max_chain_trmp1
+ .max_chain_if_join4:
+     INC HL
+     DEC C
+     JRS NZ, .max_chain_trmp2
+     JP .max_chain_fe_exit2
+ .max_chain_fe_exit2:
++    LD A, B
+     RET
+ .max_chain_trmp0:
+     LD C, A
++    LD A, 0
+     JRS .max_chain_fe_body1
+ .max_chain_trmp1:
+-    LD A, B
++    LD B, A
+     JRS .max_chain_if_join4
+ .max_chain_trmp2:
+-    LD B, A
++    LD A, B
+     JRS .max_chain_fe_body1
+ 

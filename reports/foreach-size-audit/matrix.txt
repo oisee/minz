@@ -1,0 +1,8 @@
+mask0 HIR=false MIR=false Size=false bytes57
+mask1 HIR=true MIR=false Size=false bytes57
+mask2 HIR=false MIR=true Size=false bytes61
+mask3 HIR=true MIR=true Size=false bytes61
+mask4 HIR=false MIR=false Size=true bytes57
+mask5 HIR=true MIR=false Size=true bytes57
+mask6 HIR=false MIR=true Size=true bytes61
+mask7 HIR=true MIR=true Size=true bytes61
