@@ -1,0 +1,30 @@
+=== RUN   TestOriginalSAPMaraWholeMain
+=== RUN   TestOriginalSAPMaraWholeMain/ordinary
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+=== RUN   TestOriginalSAPMaraWholeMain/ordinary/raw
+=== RUN   TestOriginalSAPMaraWholeMain/ordinary/final
+=== NAME  TestOriginalSAPMaraWholeMain/ordinary
+    sap_mara_main_test.go:469: original SAP MARA 3352 B, SQL text lifetime/fullRAM/SP PASS
+=== RUN   TestOriginalSAPMaraWholeMain/grace-size
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+=== RUN   TestOriginalSAPMaraWholeMain/grace-size/raw
+=== RUN   TestOriginalSAPMaraWholeMain/grace-size/final
+=== NAME  TestOriginalSAPMaraWholeMain/grace-size
+    sap_mara_main_test.go:469: original SAP MARA 3352 B, SQL text lifetime/fullRAM/SP PASS
+=== RUN   TestOriginalSAPMaraWholeMain/grace-speed
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+=== RUN   TestOriginalSAPMaraWholeMain/grace-speed/raw
+=== RUN   TestOriginalSAPMaraWholeMain/grace-speed/final
+=== NAME  TestOriginalSAPMaraWholeMain/grace-speed
+    sap_mara_main_test.go:469: original SAP MARA 3352 B, SQL text lifetime/fullRAM/SP PASS
+--- PASS: TestOriginalSAPMaraWholeMain (0.39s)
+    --- PASS: TestOriginalSAPMaraWholeMain/ordinary (0.11s)
+        --- PASS: TestOriginalSAPMaraWholeMain/ordinary/raw (0.01s)
+        --- PASS: TestOriginalSAPMaraWholeMain/ordinary/final (0.00s)
+    --- PASS: TestOriginalSAPMaraWholeMain/grace-size (0.14s)
+        --- PASS: TestOriginalSAPMaraWholeMain/grace-size/raw (0.01s)
+        --- PASS: TestOriginalSAPMaraWholeMain/grace-size/final (0.00s)
+    --- PASS: TestOriginalSAPMaraWholeMain/grace-speed (0.14s)
+        --- PASS: TestOriginalSAPMaraWholeMain/grace-speed/raw (0.01s)
+        --- PASS: TestOriginalSAPMaraWholeMain/grace-speed/final (0.00s)
+PASS

@@ -1,0 +1,89 @@
+--- FAIL: TestStringAndNewlinePhysicalLiveValues (0.00s)
+    --- FAIL: TestStringAndNewlinePhysicalLiveValues/@mir.io.print.str/BC (0.00s)
+        z80codegen_string_live_test.go:97: @mir.io.print.str BC v0 ptr6000 SPe000 output"" want"" regs{A:0 F:84 BC:24576 DE:22136 HL:39612 IX:4951 IY:9320 SP:57344 PC:32768} want{A:0 F:0 BC:24576 DE:22136 HL:39612 IX:4951 IY:9320 SP:57344 PC:32768} asmORG 0x8000
+            decimal_fixture:
+            .print_str_0:
+                LD A, (HL)
+                AND A
+                JR Z, .print_str_done_0
+                OUT (0x23), A
+                INC HL
+                JR .print_str_0
+            .print_str_done_0:
+            done: HALT
+            _spill_decimal_fixture_r1: DW 0
+    --- FAIL: TestStringAndNewlinePhysicalLiveValues/@mir.io.print.str/DE (0.00s)
+        z80codegen_string_live_test.go:97: @mir.io.print.str DE v0 ptr6000 SPe000 output"" want"" regs{A:0 F:84 BC:4660 DE:24576 HL:39612 IX:4951 IY:9320 SP:57344 PC:32768} want{A:0 F:0 BC:4660 DE:24576 HL:39612 IX:4951 IY:9320 SP:57344 PC:32768} asmORG 0x8000
+            decimal_fixture:
+            .print_str_0:
+                LD A, (HL)
+                AND A
+                JR Z, .print_str_done_0
+                OUT (0x23), A
+                INC HL
+                JR .print_str_0
+            .print_str_done_0:
+            done: HALT
+            _spill_decimal_fixture_r1: DW 0
+    --- FAIL: TestStringAndNewlinePhysicalLiveValues/@mir.io.print.str/HL (0.00s)
+        z80codegen_string_live_test.go:97: @mir.io.print.str HL v0 ptr6000 SPe000 output"" want"" regs{A:0 F:84 BC:4660 DE:22136 HL:24576 IX:4951 IY:9320 SP:57344 PC:32768} want{A:0 F:0 BC:4660 DE:22136 HL:24576 IX:4951 IY:9320 SP:57344 PC:32768} asmORG 0x8000
+            decimal_fixture:
+            .print_str_0:
+                LD A, (HL)
+                AND A
+                JR Z, .print_str_done_0
+                OUT (0x23), A
+                INC HL
+                JR .print_str_0
+            .print_str_done_0:
+            done: HALT
+            _spill_decimal_fixture_r1: DW 0
+    --- FAIL: TestStringAndNewlinePhysicalLiveValues/@mir.io.print.str/IX (0.00s)
+        z80codegen_string_live_test.go:97: @mir.io.print.str IX v0 ptr6000 SPe000 output"" want"" regs{A:0 F:84 BC:4660 DE:22136 HL:39612 IX:24576 IY:9320 SP:57344 PC:32768} want{A:0 F:0 BC:4660 DE:22136 HL:39612 IX:24576 IY:9320 SP:57344 PC:32768} asmORG 0x8000
+            decimal_fixture:
+            .print_str_0:
+                LD A, (HL)
+                AND A
+                JR Z, .print_str_done_0
+                OUT (0x23), A
+                INC HL
+                JR .print_str_0
+            .print_str_done_0:
+            done: HALT
+            _spill_decimal_fixture_r1: DW 0
+    --- FAIL: TestStringAndNewlinePhysicalLiveValues/@mir.io.print.str/IY (0.00s)
+        z80codegen_string_live_test.go:97: @mir.io.print.str IY v0 ptr6000 SPe000 output"" want"" regs{A:0 F:84 BC:4660 DE:22136 HL:39612 IX:4951 IY:24576 SP:57344 PC:32768} want{A:0 F:0 BC:4660 DE:22136 HL:39612 IX:4951 IY:24576 SP:57344 PC:32768} asmORG 0x8000
+            decimal_fixture:
+            .print_str_0:
+                LD A, (HL)
+                AND A
+                JR Z, .print_str_done_0
+                OUT (0x23), A
+                INC HL
+                JR .print_str_0
+            .print_str_done_0:
+            done: HALT
+            _spill_decimal_fixture_r1: DW 0
+    --- FAIL: TestStringAndNewlinePhysicalLiveValues/@mir.io.print.str/spill (0.00s)
+        z80codegen_string_live_test.go:97: @mir.io.print.str spill v0 ptr6000 SPe000 output"" want"" regs{A:0 F:84 BC:4660 DE:22136 HL:39612 IX:4951 IY:9320 SP:57344 PC:32768} want{A:0 F:0 BC:4660 DE:22136 HL:39612 IX:4951 IY:9320 SP:57344 PC:32768} asmORG 0x8000
+            decimal_fixture:
+            .print_str_0:
+                LD A, (HL)
+                AND A
+                JR Z, .print_str_done_0
+                OUT (0x23), A
+                INC HL
+                JR .print_str_0
+            .print_str_done_0:
+            done: HALT
+            _spill_decimal_fixture_r1: DW 0
+    --- FAIL: TestStringAndNewlinePhysicalLiveValues/@mir.io.print.nl/HL (0.00s)
+        z80codegen_string_live_test.go:97: @mir.io.print.nl HL v0 ptr6000 SPe000 output"\n" want"\n" regs{A:10 F:0 BC:4660 DE:22136 HL:24576 IX:4951 IY:9320 SP:57344 PC:32768} want{A:0 F:0 BC:4660 DE:22136 HL:24576 IX:4951 IY:9320 SP:57344 PC:32768} asmORG 0x8000
+            decimal_fixture:
+                LD A, 0x0A
+                OUT (0x23), A
+            done: HALT
+            _spill_decimal_fixture_r1: DW 0
+FAIL
+FAIL	github.com/minz/minzc/pkg/mir2	0.009s
+FAIL
