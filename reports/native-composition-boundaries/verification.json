@@ -1,0 +1,13 @@
+{
+  "source_contract_matches_original_fixtures": true,
+  "source_hashes": {
+    "a1": "cf881a224c833a89fdd30d3636b5bb2217589b88db4eb3dcf239499476ac893f",
+    "a2": "f0a46b7c53abd289536fbe9dad18e1c9e23f8ad7654ebb3a134ff268c18383b8",
+    "a4": "639ca562d3d47649862b9322524c53bd9575c8ce0dd5e1402b10d0954c11a3ed",
+    "a8": "7c3c9cdce3fcc4dadac1caca18ba70834fb68f609641cf2027c4bd4eaee8eb41"
+  },
+  "production_code_changed": false,
+  "native_call_count": 10616832,
+  "raw_and_final_vm_each_same_count": 10616832,
+  "word_or_full3_4dimensional_cartesian_claim": false
+}

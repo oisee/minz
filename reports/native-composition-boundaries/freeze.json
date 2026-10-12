@@ -1,0 +1,46 @@
+{
+  "code_commit": "6729c9e1",
+  "before_execution": true,
+  "a_b": "all256x256",
+  "c": [
+    0,
+    1,
+    127,
+    128,
+    254,
+    255
+  ],
+  "a2_c_d": "all6x6boundarypairs",
+  "modes": [
+    "ordinary",
+    "GraceSize",
+    "GraceSpeed"
+  ],
+  "source_origin": "exactnativeCompositionFixtures, not new application",
+  "fixtures": [
+    {
+      "name": "a1",
+      "source": "fun a1(a: u8, b: u8, c: u8) -> u8 { let p: u8 = a + b\n return p - (c + a) }",
+      "sha256": "cf881a224c833a89fdd30d3636b5bb2217589b88db4eb3dcf239499476ac893f",
+      "model": "(b-c)&255"
+    },
+    {
+      "name": "a2",
+      "source": "fun a2(a: u8, b: u8, c: u8, d: u8) -> u8 { let p: u8 = a - b\n return p + (c - d) }",
+      "sha256": "f0a46b7c53abd289536fbe9dad18e1c9e23f8ad7654ebb3a134ff268c18383b8",
+      "model": "(a-b+c-d)&255"
+    },
+    {
+      "name": "a4",
+      "source": "fun a4(a: u8, b: u8, c: u8) -> u8 { return c - ((a >> 1) - (b << 1)) }",
+      "sha256": "639ca562d3d47649862b9322524c53bd9575c8ce0dd5e1402b10d0954c11a3ed",
+      "model": "(c-(a>>1)+(b<<1))&255"
+    },
+    {
+      "name": "a8",
+      "source": "fun a8(a: u8, b: u8, c: u8) -> u8 { return b - a + (c << 1) }",
+      "sha256": "7c3c9cdce3fcc4dadac1caca18ba70834fb68f609641cf2027c4bd4eaee8eb41",
+      "model": "(b-a+(c<<1))&255"
+    }
+  ]
+}

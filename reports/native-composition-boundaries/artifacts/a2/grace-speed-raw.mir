@@ -1,0 +1,8 @@
+; MIR2 module: critic.nanz
+fun @a2(%r1: u8 [acc], %r2: u8 [general], %r3: u8 [counter], %r4: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r5 = sub %r1, %r2 : u8 [acc]
+    %r6 = sub %r3, %r4 : u8 [acc]
+    %r7 = add %r5, %r6 : u8 [acc]
+    ret %r7
+

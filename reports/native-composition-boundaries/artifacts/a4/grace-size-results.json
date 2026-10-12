@@ -1,0 +1,66 @@
+{
+  "T_including_CALL": 26345472,
+  "calls": 393216,
+  "domains": [
+    {
+      "T": 4390912,
+      "c": 0,
+      "calls": 65536,
+      "d": 4
+    },
+    {
+      "T": 4390912,
+      "c": 1,
+      "calls": 65536,
+      "d": 4
+    },
+    {
+      "T": 4390912,
+      "c": 127,
+      "calls": 65536,
+      "d": 4
+    },
+    {
+      "T": 4390912,
+      "c": 128,
+      "calls": 65536,
+      "d": 4
+    },
+    {
+      "T": 4390912,
+      "c": 254,
+      "calls": 65536,
+      "d": 4
+    },
+    {
+      "T": 4390912,
+      "c": 255,
+      "calls": 65536,
+      "d": 4
+    }
+  ],
+  "module_bytes": 11,
+  "options": {
+    "ProfileSelection": null,
+    "CollectHIRSites": false,
+    "ContractOpt": true,
+    "AnnotateTStates": false,
+    "UseGrace": true,
+    "GraceStats": null,
+    "UseHIRGrace": true,
+    "OptSize": true,
+    "Backend": "",
+    "AssertMode": "none",
+    "SkipZ80Emission": false
+  },
+  "parameter_homes": [
+    "C",
+    "D",
+    "A"
+  ],
+  "register_output_sha256": "747c76c521d17f769d5c7c19e6a4b440ce439b5dcd5bdedbfd5a4a22516848aa",
+  "return_home": "A",
+  "source_sha256": "639ca562d3d47649862b9322524c53bd9575c8ce0dd5e1402b10d0954c11a3ed",
+  "spill_bytes": {},
+  "stack_bytes": 2
+}
