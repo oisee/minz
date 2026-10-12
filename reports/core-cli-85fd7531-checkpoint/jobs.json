@@ -1,0 +1,43 @@
+{
+  "checkpoint": "85fd753148abf21bc52f8aef1bc302a81cc103c1",
+  "recorded_at_utc": "2026-10-12T07:58:32.162842+00:00",
+  "jobs": [
+    {
+      "name": "core",
+      "session": 43457,
+      "pid": 2919511,
+      "status_at_recording": "running; command contains two setup failures for nonexistent paths",
+      "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc",
+      "command": "go test ./pkg/hir ./pkg/mir2 ./pkg/nanz ./pkg/lanz ./pkg/lizp ./pkg/plm ./pkg/pascal ./pkg/c89 ./pkg/frill ./pkg/vir ./pkg/z80asm ./pkg/validate ./pkg/importer -count=1 -timeout=30m",
+      "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/core-85fd7531-full.txt"
+    },
+    {
+      "name": "corrected core paths",
+      "session": 96007,
+      "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc",
+      "command": "go test ./pkg/z80validate ./cmd/import-enrt -count=1 -timeout=10m",
+      "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/core-85fd7531-path-correction.txt"
+    },
+    {
+      "name": "CLI",
+      "session": 14026,
+      "pid": 2920990,
+      "status_at_recording": "running; not PASS",
+      "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/cmd/minzc",
+      "binary": "/home/alice/dev/minz-artifacts/grace-checkpoints/cli-85fd7531.test",
+      "binary_sha256": "f17849d74a6de662add6f2949479320e2d27ce6875641c6ef02fbf1a872d990d",
+      "args": [
+        "-test.count=1",
+        "-test.timeout=30m",
+        "-test.v"
+      ],
+      "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/cli-85fd7531-full.txt",
+      "shared_binary": "/mnt/safe/minz/grace/2026-10-12/compiler-checkpoints/cli-85fd7531.test"
+    }
+  ],
+  "environment": {
+    "GOCACHE": "/tmp/minz-grace-gocache",
+    "VIR_TEST_Z3": "/home/alice/dev/minz-artifacts/grace-tools/z3-python/bin/z3",
+    "go_toolchain": "/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/bin/go"
+  }
+}
