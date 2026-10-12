@@ -1,0 +1,58 @@
+=== RUN   TestArithmeticProspectiveHeldout
+    arithmetic_heldout_test.go:142: speed mask0: 21426 T / 136 B
+    arithmetic_heldout_test.go:142: speed mask1: 21426 T / 136 B
+    arithmetic_heldout_test.go:142: speed mask2: 21998 T / 149 B
+    arithmetic_heldout_test.go:142: speed mask3: 21998 T / 149 B
+    arithmetic_heldout_test.go:163: speed selected0 heldout 404193 T / 136 B
+    arithmetic_heldout_test.go:142: size mask0: 21426 T / 136 B
+    arithmetic_heldout_test.go:142: size mask1: 21426 T / 136 B
+    arithmetic_heldout_test.go:142: size mask2: 21998 T / 149 B
+    arithmetic_heldout_test.go:142: size mask3: 21998 T / 149 B
+    arithmetic_heldout_test.go:163: size selected0 heldout 404193 T / 136 B
+--- PASS: TestArithmeticProspectiveHeldout (1.64s)
+=== RUN   TestPascalBubbleSortProspectiveHeldout
+    bubble_sort_heldout_test.go:209: map[baseline_bytes:488 goal:speed heldout_arrays:8 heldout_baseline_t:164671 heldout_selected_t:164275 same_binary_sha256:ad33cb3741e279aa6c53f6daa55eea627e512025f9b32912155f42a871d5fba5 selected:2 selected_bytes:486 training_baseline_t:66891 training_selected_t:66720]
+    bubble_sort_heldout_test.go:209: map[baseline_bytes:488 goal:size heldout_arrays:8 heldout_baseline_t:164671 heldout_selected_t:164275 same_binary_sha256:ad33cb3741e279aa6c53f6daa55eea627e512025f9b32912155f42a871d5fba5 selected:2 selected_bytes:486 training_baseline_t:66891 training_selected_t:66720]
+--- PASS: TestPascalBubbleSortProspectiveHeldout (8.62s)
+=== RUN   TestSavedWeightedReadmissionContractGraceMatrix
+=== RUN   TestSavedWeightedReadmissionContractGraceMatrix/off/plain
+    checked_local_readmission_weighted_test.go:27: saved proposal without solver: module 44 -> 20 B; all256caller 60928 -> 36352 T; [weighted: 1 admitted proposals weighted_caller: skipped: unsupported local opcode call]
+=== RUN   TestSavedWeightedReadmissionContractGraceMatrix/off/grace
+    checked_local_readmission_weighted_test.go:27: saved proposal without solver: module 44 -> 20 B; all256caller 60928 -> 36352 T; [weighted: 1 admitted proposals weighted_caller: skipped: unsupported local opcode call]
+=== RUN   TestSavedWeightedReadmissionContractGraceMatrix/greedy/plain
+    checked_local_readmission_weighted_test.go:27: saved proposal without solver: module 44 -> 20 B; all256caller 60928 -> 36352 T; [weighted: 1 admitted proposals weighted_caller: skipped: unsupported local opcode call]
+=== RUN   TestSavedWeightedReadmissionContractGraceMatrix/greedy/grace
+    checked_local_readmission_weighted_test.go:27: saved proposal without solver: module 44 -> 20 B; all256caller 60928 -> 36352 T; [weighted: 1 admitted proposals weighted_caller: skipped: unsupported local opcode call]
+=== RUN   TestSavedWeightedReadmissionContractGraceMatrix/pbqp/plain
+    checked_local_readmission_weighted_test.go:27: saved proposal without solver: module 44 -> 20 B; all256caller 60928 -> 36352 T; [weighted: 1 admitted proposals weighted_caller: skipped: unsupported local opcode call]
+=== RUN   TestSavedWeightedReadmissionContractGraceMatrix/pbqp/grace
+    checked_local_readmission_weighted_test.go:27: saved proposal without solver: module 44 -> 20 B; all256caller 60928 -> 36352 T; [weighted: 1 admitted proposals weighted_caller: skipped: unsupported local opcode call]
+--- PASS: TestSavedWeightedReadmissionContractGraceMatrix (2.89s)
+    --- PASS: TestSavedWeightedReadmissionContractGraceMatrix/off/plain (0.48s)
+    --- PASS: TestSavedWeightedReadmissionContractGraceMatrix/off/grace (0.47s)
+    --- PASS: TestSavedWeightedReadmissionContractGraceMatrix/greedy/plain (0.47s)
+    --- PASS: TestSavedWeightedReadmissionContractGraceMatrix/greedy/grace (0.49s)
+    --- PASS: TestSavedWeightedReadmissionContractGraceMatrix/pbqp/plain (0.48s)
+    --- PASS: TestSavedWeightedReadmissionContractGraceMatrix/pbqp/grace (0.49s)
+=== RUN   TestParserProspectiveHeldout
+    parser_prospective_heldout_test.go:149: training mask 0: 1041370 T / 2377 B
+    parser_prospective_heldout_test.go:149: training mask 1: 1037508 T / 2498 B
+    parser_prospective_heldout_test.go:149: training mask 2: 1017005 T / 2357 B
+    parser_prospective_heldout_test.go:149: training mask 3: 1013143 T / 2478 B
+    parser_prospective_heldout_test.go:185: heldout mask 0: 2195027 T / 2377 B SHA a08a6d9ddb64bce02ad56ad492506e97ef647496184e48c57aa17ebf328a9de5
+    parser_prospective_heldout_test.go:185: heldout mask 3: 2137641 T / 2478 B SHA 1578c9566043c9d072d872c6b36294a43922d18ab6a39322714bcf191b4f8c74
+--- PASS: TestParserProspectiveHeldout (19.60s)
+=== RUN   TestPFCCOProspectiveHeldout
+    pfcco_prospective_heldout_test.go:119: speed mask0: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask1: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask2: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask3: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:153: speed selected1 heldout 5568 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask0: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask1: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask2: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask3: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:153: size selected0 heldout 6252 T / 52 B
+--- PASS: TestPFCCOProspectiveHeldout (1.36s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	34.124s
