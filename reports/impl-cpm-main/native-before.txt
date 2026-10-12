@@ -1,0 +1,22 @@
+=== RUN   TestOriginalImplCPMMainNativeLoader
+=== RUN   TestOriginalImplCPMMainNativeLoader/ordinary
+=== RUN   TestOriginalImplCPMMainNativeLoader/ordinary/clobber-false
+=== RUN   TestOriginalImplCPMMainNativeLoader/ordinary/clobber-true
+=== RUN   TestOriginalImplCPMMainNativeLoader/grace-size
+=== RUN   TestOriginalImplCPMMainNativeLoader/grace-size/clobber-false
+=== RUN   TestOriginalImplCPMMainNativeLoader/grace-size/clobber-true
+=== RUN   TestOriginalImplCPMMainNativeLoader/grace-speed
+=== RUN   TestOriginalImplCPMMainNativeLoader/grace-speed/clobber-false
+=== RUN   TestOriginalImplCPMMainNativeLoader/grace-speed/clobber-true
+--- PASS: TestOriginalImplCPMMainNativeLoader (1.96s)
+    --- PASS: TestOriginalImplCPMMainNativeLoader/ordinary (0.65s)
+        --- PASS: TestOriginalImplCPMMainNativeLoader/ordinary/clobber-false (0.30s)
+        --- PASS: TestOriginalImplCPMMainNativeLoader/ordinary/clobber-true (0.29s)
+    --- PASS: TestOriginalImplCPMMainNativeLoader/grace-size (0.62s)
+        --- PASS: TestOriginalImplCPMMainNativeLoader/grace-size/clobber-false (0.30s)
+        --- PASS: TestOriginalImplCPMMainNativeLoader/grace-size/clobber-true (0.31s)
+    --- PASS: TestOriginalImplCPMMainNativeLoader/grace-speed (0.69s)
+        --- PASS: TestOriginalImplCPMMainNativeLoader/grace-speed/clobber-false (0.32s)
+        --- PASS: TestOriginalImplCPMMainNativeLoader/grace-speed/clobber-true (0.35s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.969s

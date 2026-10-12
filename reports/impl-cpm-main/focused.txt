@@ -1,0 +1,33 @@
+=== RUN   TestOriginalImplCPMRuntimeAdmission
+=== RUN   TestOriginalImplCPMRuntimeAdmission/ordinary
+    original_impl_cpm_main_test.go:67: CP/M runtime rejects ASM and fixed-address extern functions
+=== RUN   TestOriginalImplCPMRuntimeAdmission/grace-size
+    original_impl_cpm_main_test.go:67: CP/M runtime rejects ASM and fixed-address extern functions
+=== RUN   TestOriginalImplCPMRuntimeAdmission/grace-speed
+    original_impl_cpm_main_test.go:67: CP/M runtime rejects ASM and fixed-address extern functions
+--- PASS: TestOriginalImplCPMRuntimeAdmission (0.01s)
+    --- PASS: TestOriginalImplCPMRuntimeAdmission/ordinary (0.00s)
+    --- PASS: TestOriginalImplCPMRuntimeAdmission/grace-size (0.00s)
+    --- PASS: TestOriginalImplCPMRuntimeAdmission/grace-speed (0.00s)
+=== RUN   TestOriginalImplCPMMainNativeLoader
+=== RUN   TestOriginalImplCPMMainNativeLoader/ordinary
+=== RUN   TestOriginalImplCPMMainNativeLoader/ordinary/clobber-false
+=== RUN   TestOriginalImplCPMMainNativeLoader/ordinary/clobber-true
+=== RUN   TestOriginalImplCPMMainNativeLoader/grace-size
+=== RUN   TestOriginalImplCPMMainNativeLoader/grace-size/clobber-false
+=== RUN   TestOriginalImplCPMMainNativeLoader/grace-size/clobber-true
+=== RUN   TestOriginalImplCPMMainNativeLoader/grace-speed
+=== RUN   TestOriginalImplCPMMainNativeLoader/grace-speed/clobber-false
+=== RUN   TestOriginalImplCPMMainNativeLoader/grace-speed/clobber-true
+--- PASS: TestOriginalImplCPMMainNativeLoader (2.00s)
+    --- PASS: TestOriginalImplCPMMainNativeLoader/ordinary (0.59s)
+        --- PASS: TestOriginalImplCPMMainNativeLoader/ordinary/clobber-false (0.28s)
+        --- PASS: TestOriginalImplCPMMainNativeLoader/ordinary/clobber-true (0.30s)
+    --- PASS: TestOriginalImplCPMMainNativeLoader/grace-size (0.62s)
+        --- PASS: TestOriginalImplCPMMainNativeLoader/grace-size/clobber-false (0.29s)
+        --- PASS: TestOriginalImplCPMMainNativeLoader/grace-size/clobber-true (0.32s)
+    --- PASS: TestOriginalImplCPMMainNativeLoader/grace-speed (0.79s)
+        --- PASS: TestOriginalImplCPMMainNativeLoader/grace-speed/clobber-false (0.40s)
+        --- PASS: TestOriginalImplCPMMainNativeLoader/grace-speed/clobber-true (0.33s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.014s
