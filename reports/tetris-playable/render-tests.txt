@@ -1,0 +1,13 @@
+=== RUN   TestPlayableTetrisRenderErasesAndKeepsBoard
+=== RUN   TestPlayableTetrisRenderErasesAndKeepsBoard/ordinary
+    tetris_playable_render_test.go:109: second frame: old cells erased, current I and locked O cell retained; BDOS register clobbers, exact PC/SP PASS
+=== RUN   TestPlayableTetrisRenderErasesAndKeepsBoard/grace-size
+    tetris_playable_render_test.go:109: second frame: old cells erased, current I and locked O cell retained; BDOS register clobbers, exact PC/SP PASS
+=== RUN   TestPlayableTetrisRenderErasesAndKeepsBoard/grace-speed
+    tetris_playable_render_test.go:109: second frame: old cells erased, current I and locked O cell retained; BDOS register clobbers, exact PC/SP PASS
+--- PASS: TestPlayableTetrisRenderErasesAndKeepsBoard (2.23s)
+    --- PASS: TestPlayableTetrisRenderErasesAndKeepsBoard/ordinary (0.53s)
+    --- PASS: TestPlayableTetrisRenderErasesAndKeepsBoard/grace-size (0.85s)
+    --- PASS: TestPlayableTetrisRenderErasesAndKeepsBoard/grace-speed (0.86s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.238s

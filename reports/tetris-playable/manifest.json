@@ -1,0 +1,54 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 1944,
+      "sha256": "fb94c71498a1cceb9916a77826095edf0aa5f8d6c3b4df890bcc306c13bf7d8b"
+    },
+    {
+      "path": "idle-smoke.json",
+      "bytes": 395,
+      "sha256": "bf9e5552001a2d1b453ad5b4feb390ac6cefb3468ac210b8490ef8eb9ab99fb4"
+    },
+    {
+      "path": "idle-smoke.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "idle-smoke.stdout",
+      "bytes": 45704,
+      "sha256": "53410f644696655effd3346c3d3a68c7c38e125137c845ff264afd400253b0e1"
+    },
+    {
+      "path": "mze-tests.txt",
+      "bytes": 42,
+      "sha256": "3477f2c34c70c5a1616b2fe6d7f87e4566ad380e27aaa96a3c9eb71d5be40efd"
+    },
+    {
+      "path": "play.sh",
+      "bytes": 309,
+      "sha256": "6e311560783291dd3ee261a655870eb6e34b7535afc30aa7636ce50f40eb5c82"
+    },
+    {
+      "path": "render-tests.txt",
+      "bytes": 1045,
+      "sha256": "5d736619ab4eaf0dbf86b17a5fc3f17f8d4b3402b91845674c59bfa6c0cca9be"
+    },
+    {
+      "path": "source.nanz",
+      "bytes": 15232,
+      "sha256": "293b375ee9ab4d20951bc4c91aa77860597aa05ba8717b83cbe3e21a62423dae"
+    },
+    {
+      "path": "tetris.a80",
+      "bytes": 69108,
+      "sha256": "fa534335f32b5f8731952ddaa4c6aee6cd0eeb0053ee2566722311ec420ca732"
+    },
+    {
+      "path": "tetris.com",
+      "bytes": 6298,
+      "sha256": "ebdb94ba455205e36cef2c867aab5f1a1c6cc342752e64dd9bca269f7755e0f4"
+    }
+  ]
+}
