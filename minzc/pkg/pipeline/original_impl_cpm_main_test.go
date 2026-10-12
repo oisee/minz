@@ -16,8 +16,8 @@ import (
 	"github.com/minz/minzc/pkg/nanz"
 )
 
-// Preserve the whole original program, including its inline BDOS body. This
-// freezes the current public-runtime refusal rather than bypassing admission.
+// Preserve the whole original program and exercise its narrow runtime admission.
+// Historical refusal remains in the committed pre-extension evidence.
 func TestOriginalImplCPMRuntimeAdmission(t *testing.T) {
 	const path = "examples/nanz/51_impl_cpm_demo.nanz"
 	source, err := os.ReadFile("../../../" + path)
@@ -61,8 +61,8 @@ func TestOriginalImplCPMRuntimeAdmission(t *testing.T) {
 					}
 				}
 			}
-			if err == nil || !strings.Contains(err.Error(), "CP/M runtime") {
-				t.Fatalf("expected explicit runtime admission diagnostic, got %v", err)
+			if err != nil {
+				t.Fatal(err)
 			}
 			t.Log(err)
 		})
@@ -77,7 +77,9 @@ func implCPMErrorString(err error) string {
 
 // A separate test-owned loader retains ordinary emitted main (DI/HALT). It
 // does not make the rejected production RuntimeCPM path appear supported.
-func TestOriginalImplCPMMainNativeLoader(t *testing.T) {
+func TestOriginalImplCPMMainNativeLoader(t *testing.T) { originalImplCPMMain(t, false) }
+func TestOriginalImplCPMProductionMain(t *testing.T)   { originalImplCPMMain(t, true) }
+func originalImplCPMMain(t *testing.T, production bool) {
 	source, err := os.ReadFile("../../../reports/impl-cpm-main/source.nanz")
 	if err != nil {
 		t.Fatal(err)
@@ -109,30 +111,52 @@ func TestOriginalImplCPMMainNativeLoader(t *testing.T) {
 			if e != nil {
 				t.Fatal(e)
 			}
-			s, e := CompileHIRSteps(h, mode.o)
+			o := mode.o
+			if production {
+				o.Runtime = mir2.Z80RuntimeCPM
+				o.RuntimeStackBytes = 1024
+				o.AssertMode = "none"
+			}
+			s, e := CompileHIRSteps(h, o)
 			if e != nil {
 				t.Fatal(e)
 			}
 			asm := "ORG 0x100\n__test_loader:\n LD SP,0xfdfe\n JP main\n" + s.Assembly
+			if production {
+				asm = s.Assembly
+			}
 			image, e := z80asm.NewAssembler().AssembleString(asm)
 			if e != nil || len(image.Errors) > 0 {
 				t.Fatal("assemble", e, image.Errors)
 			}
-			save(mode.name+"/test-loader.a80", asm)
-			save(mode.name+"/test-loader.com", image.Binary)
-			save(mode.name+"/native-final.mir", s.MIR2Module.Dump())
-			save(mode.name+"/native-raw.mir", s.MIR2Raw)
-			save(mode.name+"/native-context.json", map[string]any{"options": mode.o, "allocation": s.Allocation, "symbols": image.Symbols, "functions": s.MIR2Module.Funcs, "COM_sha256": fmt.Sprintf("%x", sha256.Sum256(image.Binary))})
+			prefix := mode.name
+			if production {
+				prefix = "production/" + mode.name
+			}
+			name := "test-loader"
+			if production {
+				name = "program"
+			}
+			save(prefix+"/"+name+".a80", asm)
+			save(prefix+"/"+name+".com", image.Binary)
+			save(prefix+"/native-final.mir", s.MIR2Module.Dump())
+			save(prefix+"/native-raw.mir", s.MIR2Raw)
+			save(prefix+"/native-context.json", map[string]any{"options": o, "allocation": s.Allocation, "symbols": image.Symbols, "functions": s.MIR2Module.Funcs, "COM_sha256": fmt.Sprintf("%x", sha256.Sum256(image.Binary))})
 			for _, clobber := range []bool{false, true} {
 				t.Run(fmt.Sprintf("clobber-%v", clobber), func(t *testing.T) {
 					results := []map[string]any{}
 					run := func(entry string, n int, want string) {
-						z := emulator.NewRemogattoZ80()
+						z := emulator.NewRemogattoZ80WithScreen()
+						z.SetROMEnd(0)
 						mem := z.Memory()
 						for i := range mem {
 							mem[i] = byte(i*73 + 29)
 						}
 						z.LoadMemory(0x100, image.Binary)
+						if production {
+							mem[0xfdfe] = 0
+							mem[0xfdff] = 0
+						}
 						r := z.GetRegisters()
 						r.PC = 0x100
 						r.SP = 0xfdfe
@@ -203,7 +227,7 @@ func TestOriginalImplCPMMainNativeLoader(t *testing.T) {
 								continue
 							}
 
-							if entry != "main" && pc == 0 && z.GetSP() == 0xfe00 {
+							if (entry != "main" || production) && pc == 0 && z.GetSP() == 0xfe00 {
 								done = true
 								break
 							}
@@ -242,14 +266,24 @@ func TestOriginalImplCPMMainNativeLoader(t *testing.T) {
 							}
 							z.Step()
 							if push && (z.GetSP() != rr.SP-2 || mem[rr.SP-2] != byte(word) || mem[rr.SP-1] != byte(word>>8)) {
-								t.Fatal("native stack word", entry, n, pc)
+								t.Fatal("native stack word", entry, n, fmt.Sprintf("%04x op%02x want%04x before%+v after%+v bytes%02x%02x", pc, op, word, rr, z.GetRegisters(), mem[rr.SP-1], mem[rr.SP-2]))
 							}
 							if z.GetSP() < minSP {
 								minSP = z.GetSP()
 							}
 						}
 						mutable := map[uint16]bool{}
-						for p := minSP; p < 0xfe00; p++ {
+						if production {
+							for _, extent := range [][2]int{{image.Symbols["__cpm_saved_sp"], image.Symbols["__cpm_saved_sp"] + 2}, {image.Symbols["__cpm_status"], image.Symbols["__cpm_status"] + 1}, {image.Symbols["__cpm_stack"], image.Symbols["__cpm_stack_top"]}} {
+								for p := extent[0]; p < extent[1]; p++ {
+									mutable[uint16(p)] = true
+								}
+							}
+						}
+						if production && (minSP < uint16(image.Symbols["__cpm_stack"]) || mem[uint16(image.Symbols["__cpm_stack_guard"])] != 0xa5 || mem[uint16(image.Symbols["__cpm_status"])] != 0) {
+							t.Fatal("runtime stack guard/status")
+						}
+						for p := minSP; !production && p < 0xfe00; p++ {
 							mutable[p] = true
 						}
 						for _, line := range image.Listing {
@@ -265,21 +299,27 @@ func TestOriginalImplCPMMainNativeLoader(t *testing.T) {
 								changed = append(changed, p)
 							}
 						}
-						result := map[string]any{"entry": entry, "input": n, "stdout": string(output), "expected": want, "registers": z.GetRegisters(), "cycles": z.GetCycles(), "min_sp": minSP, "BDOS": ledger, "unexpected_RAM_changes": changed, "done": done, "termination": "ordinary main DI/HALT; print helper RET to sentinel; test-owned loader, not production RuntimeCPM"}
+						termination := "ordinary main DI/HALT; print helper RET to sentinel; test-owned loader"
+						if production {
+							termination = "production RuntimeCPM ORG0100 OS RET PC0000 SPfe00"
+						}
+						result := map[string]any{"entry": entry, "input": n, "stdout": string(output), "expected": want, "registers": z.GetRegisters(), "cycles": z.GetCycles(), "min_sp": minSP, "BDOS": ledger, "unexpected_RAM_changes": changed, "done": done, "termination": termination}
 						results = append(results, result)
 						expectedSP := uint16(0xfdfe)
-						if entry != "main" {
+						if entry != "main" || production {
 							expectedSP = 0xfe00
 						}
-						if !done || string(output) != want || z.GetSP() != expectedSP || minSP < 0xfd00 || len(changed) != 0 || mem[0xfdfe] != before[0xfdfe] || mem[0xfdff] != before[0xfdff] {
+						if !done || string(output) != want || z.GetSP() != expectedSP || (!production && minSP < 0xfd00) || len(changed) != 0 || mem[0xfdfe] != before[0xfdfe] || mem[0xfdff] != before[0xfdff] {
 							t.Fatalf("%s(%d) got%q want%q SP%04x want%04x changed%v done%v", entry, n, output, want, z.GetSP(), expectedSP, changed, done)
 						}
 					}
 					run("main", 0, "C:75\r\nR:50\r\n")
-					for n := 0; n < 256; n++ {
-						run("print_u8", n, fmt.Sprintf("%02d", n))
+					if !production {
+						for n := 0; n < 256; n++ {
+							run("print_u8", n, fmt.Sprintf("%02d", n))
+						}
 					}
-					save(fmt.Sprintf("%s/clobber-%v/ledger.json", mode.name, clobber), results)
+					save(fmt.Sprintf("%s/clobber-%v/ledger.json", prefix, clobber), results)
 				})
 			}
 		})

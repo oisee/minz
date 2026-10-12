@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"maps"
 	"slices"
+	"strings"
 )
 
 // ── Instructions ──────────────────────────────────────────────────────────────
@@ -1362,7 +1363,13 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
 		if inst.Asm != nil {
-			g.emitf("    %s", inst.Asm.Template)
+			if g.runtime == Z80RuntimeCPM {
+				for _, line := range strings.Split(inst.Asm.Template, "\n") {
+					g.emit("    " + strings.TrimSpace(line))
+				}
+			} else {
+				g.emitf("    %s", inst.Asm.Template)
+			}
 		}
 
 	default:

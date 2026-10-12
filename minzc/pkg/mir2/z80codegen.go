@@ -480,7 +480,13 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 		} else {
 			result += cpmRuntimeTail
 		}
-		if err := validateCPMRuntimeAssemblyMode(result, opt.RuntimeStackBytes != 0); err != nil {
+		adapters := map[string]bool{}
+		for _, f := range m.Funcs {
+			if cpmSourceBDOS2(f, ar) {
+				adapters[f.Name] = true
+			}
+		}
+		if err := validateCPMRuntimeAssemblyTrusted(result, opt.RuntimeStackBytes != 0, adapters); err != nil {
 			return "", err
 		}
 	}
@@ -646,7 +652,7 @@ type z80cg struct {
 func (g *z80cg) emit(s string) {
 	if g.runtimeStackBytes != 0 {
 		fields := strings.Fields(s)
-		if len(fields) > 0 && (fields[0] == "PUSH" || fields[0] == "CALL") {
+		if len(fields) > 0 && (fields[0] == "PUSH" || fields[0] == "CALL" || fields[0] == "DEC" && len(fields) > 1 && fields[1] == "SP") {
 			g.sb.WriteString("    CALL __cpm_stack_check\n")
 		}
 	}
