@@ -1,0 +1,37 @@
+{
+  "base": "cccddb02",
+  "source_sha256": "1371d729645b1a5bcd232b1f3a5155ff05a1c499598d5995a951f651dca16e9b",
+  "host_api_sha256": "a562175f136f6693003ffb0dcfc83bfa1349b51968d26a34c3e2f464e973ced8",
+  "entry": "main",
+  "input_mode": "piped one line per registered field, exact MZV selShowPiped contract (notinteractive ANSI screen)",
+  "cases": [
+    {
+      "input": "7\n",
+      "value": 7,
+      "stdout": "7"
+    },
+    {
+      "input": "\n",
+      "value": 42,
+      "stdout": "42"
+    },
+    {
+      "input": "256\n",
+      "value": 256,
+      "stdout": "0"
+    },
+    {
+      "input": "65535\n",
+      "value": 65535,
+      "stdout": "255"
+    }
+  ],
+  "events": [
+    "sel_register_int(COUNT,42)",
+    "sel_show()->1",
+    "sel_get_int(0)->parsed/default value",
+    "print_u8(lowbyte(value))"
+  ],
+  "memory": "hosts readonly CString COUNT; no globals; VM localaccesses bounded, native allRAM except stack/explicitspill; currentextern actualformalABI",
+  "scope": "unchanged originalmain raw/finalVM+linkedtestownedextern native; stdin pipe semantics; notreal terminalinteractive input"
+}
