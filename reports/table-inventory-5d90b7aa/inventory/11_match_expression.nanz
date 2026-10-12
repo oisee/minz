@@ -1,0 +1,41 @@
+// Match expressions — Rust-style pattern matching in Nanz
+//
+// match is an expression (returns a value), not a statement.
+// Exhaustive check: compiler errors if you miss a variant.
+
+enum Color { Red, Green, Blue }
+enum Shape { Circle, Square, Triangle }
+
+fun color_code(c: Color) -> u8 {
+    return match c {
+        Red   => 5,
+        Green => 10,
+        Blue  => 15,
+    }
+}
+
+fun shape_sides(s: Shape) -> u8 {
+    return match s {
+        Circle   => 0,
+        Square   => 4,
+        Triangle => 3,
+    }
+}
+
+// Wildcard pattern: _ matches anything (no exhaustive check needed)
+fun is_warm(c: Color) -> u8 {
+    return match c {
+        Red => 1,
+        _   => 0,
+    }
+}
+
+assert color_code(0) == 5
+assert color_code(1) == 10
+assert color_code(2) == 15
+assert shape_sides(0) == 0
+assert shape_sides(1) == 4
+assert shape_sides(2) == 3
+assert is_warm(0) == 1
+assert is_warm(1) == 0
+assert is_warm(2) == 0

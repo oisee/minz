@@ -1,0 +1,42 @@
+=== RUN   TestCompositionActualInventory
+    composition_inventory_test.go:76: 06_pbqp_weighted.nanz/weighted nv13 ops13 quotient:read completed
+    composition_inventory_test.go:76: 20_strref_test.nanz/hash3 nv9 ops7 quotient:quotient singleton ABI not representable
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    composition_inventory_test.go:76: mul16_gpu_test.nanz/mul_by_3 nv6 ops6 quotient:quotient currently byte-only
+    composition_inventory_test.go:76: mul16_gpu_test.nanz/mul_by_10 nv8 ops8 quotient:quotient currently byte-only
+    composition_inventory_test.go:76: mul16_gpu_test.nanz/mul_by_100 nv12 ops12 quotient:quotient currently byte-only
+    composition_inventory_test.go:76: mul16_gpu_test.nanz/mul_by_7 nv8 ops8 quotient:quotient currently byte-only
+    composition_inventory_test.go:76: mul16_gpu_test.nanz/mul_by_255 nv18 ops18 quotient:quotient currently byte-only
+    composition_inventory_test.go:76: mul_const.nanz/m10 nv8 ops8 quotient:quotient currently byte-only
+[HIR-SPLIT] fs__fat12__write_fat12 → fs__fat12__write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__fat_cache_put → fs__fat12__fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__find_file → fs__fat12__find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__get_file_size → fs__fat12__get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__file_read → fs__fat12__file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__file_write_data → fs__fat12__file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] fs__fat12__update_dir_size → fs__fat12__update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] fs__fat12__delete_file → fs__fat12__delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__overwrite_file → fs__fat12__overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] fs__fat12__count_dir_entries → fs__fat12__count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] fs__fat12__get_dir_entry → fs__fat12__get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] fs__fat12__get_dir_entry_full → fs__fat12__get_dir_entry_full$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] draw_panel → draw_panel$split_26 (4 inputs, pressure 10)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+--- PASS: TestCompositionActualInventory (4.62s)
+=== RUN   TestIndexedActualHistoricalENRT
+    table_indexed_import_test.go:43: 06_pbqp_weighted weighted nVregs=13 out of range [2,6]
+    table_indexed_import_test.go:43: 06_pbqp_weighted weighted nVregs=13 out of range [2,6]
+    table_indexed_import_test.go:64: 06_pbqp_weighted module36→36B entries0
+    table_indexed_import_test.go:64: 09_function_pointers module34→34B entries0
+    table_indexed_import_test.go:43: 20_strref_test hash3 nVregs=9 out of range [2,6]
+    table_indexed_import_test.go:43: 20_strref_test hash3 nVregs=9 out of range [2,6]
+    table_indexed_import_test.go:45: 20_strref_test test_eq 16 current problem independently admitted 483
+    table_indexed_import_test.go:45: 20_strref_test test_eq 16 current problem independently admitted 483
+    table_indexed_import_test.go:45: 20_strref_test test_neq 16 current problem independently admitted 483
+    table_indexed_import_test.go:45: 20_strref_test test_neq 16 current problem independently admitted 483
+    table_indexed_import_test.go:64: 20_strref_test module45→45B entries2
+    table_indexed_import_test.go:45: 16_rotate_sled low_nibble 98 current problem independently admitted 2966
+    table_indexed_import_test.go:45: 16_rotate_sled low_nibble 98 current problem independently admitted 2966
+    table_indexed_import_test.go:64: 16_rotate_sled module186→186B entries1
+--- PASS: TestIndexedActualHistoricalENRT (0.06s)
+PASS

@@ -1,0 +1,32 @@
+// mul16_gpu_test.nanz — test GPU-optimal mul16 constant sequences
+
+fun mul_by_3(x: u16) -> u16 {
+    return x * 3
+}
+
+fun mul_by_10(x: u16) -> u16 {
+    return x * 10
+}
+
+fun mul_by_100(x: u16) -> u16 {
+    return x * 100
+}
+
+fun mul_by_7(x: u16) -> u16 {
+    return x * 7
+}
+
+fun mul_by_255(x: u16) -> u16 {
+    return x * 255
+}
+
+assert mul_by_3(100) == 300 via mir2
+assert mul_by_3(100) == 300 via z80
+assert mul_by_10(50) == 500 via mir2
+assert mul_by_10(50) == 500 via z80
+assert mul_by_100(6) == 600 via mir2
+assert mul_by_100(6) == 600 via z80
+assert mul_by_7(1000) == 7000 via mir2
+assert mul_by_7(1000) == 7000 via z80
+assert mul_by_255(2) == 510 via mir2
+assert mul_by_255(2) == 510 via z80

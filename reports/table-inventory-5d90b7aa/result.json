@@ -1,0 +1,29 @@
+{
+  "checkpoint": "5d90b7aa",
+  "exit_code": 0,
+  "scope": "shape admission and selector diagnostics; not an independent execution oracle",
+  "source_files": 72,
+  "rows": 981,
+  "prepared": 36,
+  "rejection_reasons": {
+    "local table requires single-result leaf block": 710,
+    "unsupported local opcode ext": 8,
+    "invalid or duplicate contract parameter": 65,
+    "hard class or invalid local definition unsupported": 64,
+    "checked local table does not model the canonical indirect entry bridge": 2,
+    "unsupported local opcode mod": 4,
+    "unsupported local opcode call": 21,
+    "unsupported local opcode asm": 59,
+    "unsupported local opcode shr": 3,
+    "unsupported local opcode sdiv": 3,
+    "unsupported local opcode sar": 2,
+    "unsupported local opcode smod": 2,
+    "unsupported local opcode sext": 1,
+    "unsupported local opcode neg": 1
+  },
+  "quotient_results": {
+    "read completed": 1,
+    "quotient singleton ABI not representable": 1,
+    "quotient currently byte-only": 6
+  }
+}

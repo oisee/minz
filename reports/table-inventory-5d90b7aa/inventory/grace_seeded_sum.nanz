@@ -1,0 +1,20 @@
+// Seeded modulo-65536 checksum of bytes. Zero-length calls read no input.
+global seeded_calls: u8 = 0
+global seeded_last: u16 = 0
+
+fun seeded_sum(ptr: ^u8, n: u8, seed: u16) -> u16 {
+    var sum: u16 = seed
+    var i: u8 = 0
+    while i < n {
+        sum = sum + u16(ptr[i])
+        i = i + 1
+    }
+    return sum
+}
+
+fun seeded_packet(ptr: ^u8, n: u8, seed: u16) -> u16 {
+    var value: u16 = seeded_sum(ptr, n, seed)
+    seeded_calls = seeded_calls + 1
+    seeded_last = value
+    return value
+}

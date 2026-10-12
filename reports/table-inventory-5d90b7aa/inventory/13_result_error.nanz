@@ -1,0 +1,57 @@
+// Result pattern with ADT — typed error handling on Z80
+//
+// Result = Ok(value) | Err(error_code)
+// No exceptions, no runtime overhead — just u16 tag dispatch.
+
+enum Result { Ok(u8), Err(u8) }
+
+fun safe_add(a: u8, b: u8) -> u16 {
+    var sum: u16 = u16(a) + u16(b)
+    if (sum > 255) {
+        return Err(1)
+    }
+    return Ok(a + b)
+}
+
+fun is_ok(r: u16) -> u8 {
+    if (__tag(r) == 0) {
+        return 1
+    }
+    return 0
+}
+
+fun unwrap(r: u16) -> u8 {
+    return __payload(r)
+}
+
+// Test wrappers
+fun test_add_ok_tag() -> u8 {
+    return __tag(safe_add(10, 20))
+}
+
+fun test_add_ok_val() -> u8 {
+    return __payload(safe_add(10, 20))
+}
+
+fun test_add_overflow_tag() -> u8 {
+    return __tag(safe_add(200, 200))
+}
+
+fun test_add_overflow_code() -> u8 {
+    return __payload(safe_add(200, 200))
+}
+
+fun test_is_ok_pass() -> u8 {
+    return is_ok(safe_add(10, 20))
+}
+
+fun test_is_ok_fail() -> u8 {
+    return is_ok(safe_add(200, 200))
+}
+
+assert test_add_ok_tag() == 0
+assert test_add_ok_val() == 30
+assert test_add_overflow_tag() == 1
+assert test_add_overflow_code() == 1
+assert test_is_ok_pass() == 1
+assert test_is_ok_fail() == 0

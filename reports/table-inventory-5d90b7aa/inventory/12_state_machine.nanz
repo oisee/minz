@@ -1,0 +1,68 @@
+// State machine with enums — idiomatic Nanz pattern
+//
+// Game entity states: Idle, Walking, Jumping, Dead
+// Transitions via match expression.
+
+enum State { Idle, Walking, Jumping, Dead }
+
+fun next_state(s: State, input: u8) -> u8 {
+    // input: 0=nothing, 1=move, 2=jump, 3=hit
+    if (s == State.Idle) {
+        return match input {
+            1 => State.Walking,
+            2 => State.Jumping,
+            3 => State.Dead,
+            _ => State.Idle,
+        }
+    }
+    if (s == State.Walking) {
+        return match input {
+            0 => State.Idle,
+            2 => State.Jumping,
+            3 => State.Dead,
+            _ => State.Walking,
+        }
+    }
+    if (s == State.Jumping) {
+        return match input {
+            3 => State.Dead,
+            _ => State.Idle,
+        }
+    }
+    // Dead is absorbing
+    return State.Dead
+}
+
+fun is_alive(s: State) -> u8 {
+    return match s {
+        Dead => 0,
+        _    => 1,
+    }
+}
+
+fun state_speed(s: State) -> u8 {
+    return match s {
+        Idle    => 0,
+        Walking => 2,
+        Jumping => 4,
+        Dead    => 0,
+    }
+}
+
+// Idle transitions
+assert next_state(0, 1) == 1
+assert next_state(0, 2) == 2
+assert next_state(0, 3) == 3
+assert next_state(0, 0) == 0
+// Walking transitions
+assert next_state(1, 0) == 0
+assert next_state(1, 2) == 2
+assert next_state(1, 3) == 3
+// Dead is absorbing
+assert next_state(3, 1) == 3
+assert next_state(3, 0) == 3
+// Properties
+assert is_alive(0) == 1
+assert is_alive(3) == 0
+assert state_speed(1) == 2
+assert state_speed(2) == 4

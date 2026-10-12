@@ -1,0 +1,14 @@
+// First HIR Grace experiment: check width and overflow through MIR2 VM.
+fun wrap(x: u8) -> u8 {
+    if true { return x + 1 } else { return 99 }
+}
+
+fun choose(x: u8) -> u8 {
+    if false { return 99 }
+    return x
+}
+
+assert wrap(0) == 1 via mir2
+assert wrap(127) == 128 via mir2
+assert wrap(255) == 0 via mir2
+assert choose(42) == 42 via mir2

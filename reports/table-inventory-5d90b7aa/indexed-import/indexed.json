@@ -1,0 +1,294 @@
+[
+  {
+    "error": "nVregs=13 out of range [2,6]",
+    "evidence": null,
+    "file": "06_pbqp_weighted",
+    "function": "weighted"
+  },
+  {
+    "error": "nVregs=13 out of range [2,6]",
+    "evidence": null,
+    "file": "06_pbqp_weighted",
+    "function": "weighted"
+  },
+  {
+    "error": "nVregs=9 out of range [2,6]",
+    "evidence": null,
+    "file": "20_strref_test",
+    "function": "hash3"
+  },
+  {
+    "error": "nVregs=9 out of range [2,6]",
+    "evidence": null,
+    "file": "20_strref_test",
+    "function": "hash3"
+  },
+  {
+    "error": "",
+    "evidence": {
+      "schema": "vir-indexed-enrt-import/v1",
+      "path": "/mnt/safe/z80-compiler/tables/enriched_4v.enr",
+      "header_sha256": "533535a031b4b904d6a1df55e1254724041384a7302850036ac7e65f57482180",
+      "prefix_sha256": "1a142ca4eb36adbaaa1688d465829a99831e64d53af36f2ceeff363e565712ff",
+      "count": 156506,
+      "shape": {
+        "NVregs": 2,
+        "Widths": [
+          8,
+          8
+        ],
+        "LocSetIndex": [
+          2,
+          0
+        ],
+        "Interference": 0
+      },
+      "record_index": 16,
+      "bytes_read": 483,
+      "import": {
+        "remap_limit": 0,
+        "attempts": 1,
+        "schema": "vir-legacy-candidate-import/v1",
+        "format": "legacy-gpu-json",
+        "source_sha256": "10e27daf3e46314a50bcf80fdde1ff1277657e55aa7dfa51f14d31b0a651f903",
+        "entries": 1,
+        "compatible": 1,
+        "admitted": 1,
+        "decisions": [
+          {
+            "signature": "ENRT-record-16",
+            "claimed_cost": 8,
+            "reason": "independently admitted current problem"
+          }
+        ]
+      },
+      "reason": "current problem independently admitted"
+    },
+    "file": "20_strref_test",
+    "function": "test_eq"
+  },
+  {
+    "error": "",
+    "evidence": {
+      "schema": "vir-indexed-enrt-import/v1",
+      "path": "/mnt/safe/z80-compiler/tables/enriched_5v.enr",
+      "header_sha256": "6f3c7e40f773ae02b0337fc4cd28b440be44a52b48b660d4a53f4bc8de90eaf1",
+      "prefix_sha256": "a62427eea5ff0c1120be0366b4ee428055c96760d32a5f92cf9d254b170f10fe",
+      "count": 17366874,
+      "shape": {
+        "NVregs": 2,
+        "Widths": [
+          8,
+          8
+        ],
+        "LocSetIndex": [
+          2,
+          0
+        ],
+        "Interference": 0
+      },
+      "record_index": 16,
+      "bytes_read": 483,
+      "import": {
+        "remap_limit": 0,
+        "attempts": 1,
+        "schema": "vir-legacy-candidate-import/v1",
+        "format": "legacy-gpu-json",
+        "source_sha256": "10e27daf3e46314a50bcf80fdde1ff1277657e55aa7dfa51f14d31b0a651f903",
+        "entries": 1,
+        "compatible": 1,
+        "admitted": 1,
+        "decisions": [
+          {
+            "signature": "ENRT-record-16",
+            "claimed_cost": 8,
+            "reason": "independently admitted current problem"
+          }
+        ]
+      },
+      "reason": "current problem independently admitted"
+    },
+    "file": "20_strref_test",
+    "function": "test_eq"
+  },
+  {
+    "error": "",
+    "evidence": {
+      "schema": "vir-indexed-enrt-import/v1",
+      "path": "/mnt/safe/z80-compiler/tables/enriched_4v.enr",
+      "header_sha256": "533535a031b4b904d6a1df55e1254724041384a7302850036ac7e65f57482180",
+      "prefix_sha256": "1a142ca4eb36adbaaa1688d465829a99831e64d53af36f2ceeff363e565712ff",
+      "count": 156506,
+      "shape": {
+        "NVregs": 2,
+        "Widths": [
+          8,
+          8
+        ],
+        "LocSetIndex": [
+          2,
+          0
+        ],
+        "Interference": 0
+      },
+      "record_index": 16,
+      "bytes_read": 483,
+      "import": {
+        "remap_limit": 0,
+        "attempts": 1,
+        "schema": "vir-legacy-candidate-import/v1",
+        "format": "legacy-gpu-json",
+        "source_sha256": "10e27daf3e46314a50bcf80fdde1ff1277657e55aa7dfa51f14d31b0a651f903",
+        "entries": 1,
+        "compatible": 1,
+        "admitted": 1,
+        "decisions": [
+          {
+            "signature": "ENRT-record-16",
+            "claimed_cost": 8,
+            "reason": "independently admitted current problem"
+          }
+        ]
+      },
+      "reason": "current problem independently admitted"
+    },
+    "file": "20_strref_test",
+    "function": "test_neq"
+  },
+  {
+    "error": "",
+    "evidence": {
+      "schema": "vir-indexed-enrt-import/v1",
+      "path": "/mnt/safe/z80-compiler/tables/enriched_5v.enr",
+      "header_sha256": "6f3c7e40f773ae02b0337fc4cd28b440be44a52b48b660d4a53f4bc8de90eaf1",
+      "prefix_sha256": "a62427eea5ff0c1120be0366b4ee428055c96760d32a5f92cf9d254b170f10fe",
+      "count": 17366874,
+      "shape": {
+        "NVregs": 2,
+        "Widths": [
+          8,
+          8
+        ],
+        "LocSetIndex": [
+          2,
+          0
+        ],
+        "Interference": 0
+      },
+      "record_index": 16,
+      "bytes_read": 483,
+      "import": {
+        "remap_limit": 0,
+        "attempts": 1,
+        "schema": "vir-legacy-candidate-import/v1",
+        "format": "legacy-gpu-json",
+        "source_sha256": "10e27daf3e46314a50bcf80fdde1ff1277657e55aa7dfa51f14d31b0a651f903",
+        "entries": 1,
+        "compatible": 1,
+        "admitted": 1,
+        "decisions": [
+          {
+            "signature": "ENRT-record-16",
+            "claimed_cost": 8,
+            "reason": "independently admitted current problem"
+          }
+        ]
+      },
+      "reason": "current problem independently admitted"
+    },
+    "file": "20_strref_test",
+    "function": "test_neq"
+  },
+  {
+    "error": "",
+    "evidence": {
+      "schema": "vir-indexed-enrt-import/v1",
+      "path": "/mnt/safe/z80-compiler/tables/enriched_4v.enr",
+      "header_sha256": "533535a031b4b904d6a1df55e1254724041384a7302850036ac7e65f57482180",
+      "prefix_sha256": "d056078f958db93bc382d073352bb3688f07383ea0f88caf347623d56dc3711d",
+      "count": 156506,
+      "shape": {
+        "NVregs": 3,
+        "Widths": [
+          8,
+          8,
+          8
+        ],
+        "LocSetIndex": [
+          0,
+          0,
+          0
+        ],
+        "Interference": 0
+      },
+      "record_index": 98,
+      "bytes_read": 2966,
+      "import": {
+        "remap_limit": 0,
+        "attempts": 1,
+        "schema": "vir-legacy-candidate-import/v1",
+        "format": "legacy-gpu-json",
+        "source_sha256": "6ddf2aec82692adf7c1877fd52227f5d8f5a0d936e7988b5b6f9671b98759c9c",
+        "entries": 1,
+        "compatible": 1,
+        "admitted": 1,
+        "decisions": [
+          {
+            "signature": "ENRT-record-98",
+            "claimed_cost": 12,
+            "reason": "independently admitted current problem"
+          }
+        ]
+      },
+      "reason": "current problem independently admitted"
+    },
+    "file": "16_rotate_sled",
+    "function": "low_nibble"
+  },
+  {
+    "error": "",
+    "evidence": {
+      "schema": "vir-indexed-enrt-import/v1",
+      "path": "/mnt/safe/z80-compiler/tables/enriched_5v.enr",
+      "header_sha256": "6f3c7e40f773ae02b0337fc4cd28b440be44a52b48b660d4a53f4bc8de90eaf1",
+      "prefix_sha256": "acc1613c0800484a1ac5fd751c70b5996dc5d2778814a5aaa8d94245bdd21d0a",
+      "count": 17366874,
+      "shape": {
+        "NVregs": 3,
+        "Widths": [
+          8,
+          8,
+          8
+        ],
+        "LocSetIndex": [
+          0,
+          0,
+          0
+        ],
+        "Interference": 0
+      },
+      "record_index": 98,
+      "bytes_read": 2966,
+      "import": {
+        "remap_limit": 0,
+        "attempts": 1,
+        "schema": "vir-legacy-candidate-import/v1",
+        "format": "legacy-gpu-json",
+        "source_sha256": "6ddf2aec82692adf7c1877fd52227f5d8f5a0d936e7988b5b6f9671b98759c9c",
+        "entries": 1,
+        "compatible": 1,
+        "admitted": 1,
+        "decisions": [
+          {
+            "signature": "ENRT-record-98",
+            "claimed_cost": 12,
+            "reason": "independently admitted current problem"
+          }
+        ]
+      },
+      "reason": "current problem independently admitted"
+    },
+    "file": "16_rotate_sled",
+    "function": "low_nibble"
+  }
+]

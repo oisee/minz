@@ -1,0 +1,293 @@
+// abap_screen.nanz — ABAP-style selection screen with PBO/PAI event loop
+//
+// Demonstrates the full ABAP screen pattern on MZV:
+//   PBO (Process Before Output) — render screen with field values
+//   PAI (Process After Input)   — handle key events, update state
+//
+// Run:          mzv examples/nanz/abap_screen.nanz
+// Headless:     echo "" | mzv -H examples/nanz/abap_screen.nanz
+//
+// Design: individual field globals (struct arrays have a VM bug).
+// The @screen metafunction will generate these automatically.
+
+@extern fun tui_clear() -> void
+@extern fun tui_goto(x: u8, y: u8) -> void
+@extern fun tui_color(fg: u8, bg: u8, bright: u8) -> void
+@extern fun tui_reset() -> void
+@extern fun tui_putch(ch: u8) -> void
+@extern fun tui_puts(str: ^u8) -> void
+@extern fun tui_read_key() -> u8
+@extern fun tui_width() -> u8
+@extern fun tui_height() -> u8
+@extern fun tui_read_line(buf: ^u8, maxlen: u8) -> u8
+
+// ============================================================================
+// Enums
+// ============================================================================
+
+enum Action { None = 0, Execute = 1, Back = 2 }
+enum Key    { Enter = 13, Tab = 9, Esc = 27, F3 = 142, F8 = 147 }
+
+// ============================================================================
+// Screen state
+// ============================================================================
+
+global scr_title:   ^u8
+global scr_nfields: u8
+global scr_focus:   u8
+
+// Field value buffers
+global buf_material: [u8; 12]
+global buf_plant:    [u8; 8]
+global val_count:    u16
+
+// ============================================================================
+// Screen setup (ABAP: SELECTION-SCREEN)
+// ============================================================================
+
+fun screen_init() -> void {
+    scr_title = c"Material Report"
+    scr_nfields = 5
+    scr_focus = 0
+
+    // Defaults
+    buf_material[0] = 42   // '*'
+    buf_material[1] = 0
+    buf_plant[0] = 0
+    val_count = 10
+}
+
+// ============================================================================
+// Helpers
+// ============================================================================
+
+fun puts_padded(str: ^u8, width: u8) -> void {
+    var ptr: ^u8 = str
+    var i: u8 = 0
+    while i < width {
+        if ptr^ != 0 {
+            tui_putch(ptr^)
+            ptr = ptr + 1
+        } else {
+            tui_putch(32)
+        }
+        i = i + 1
+    }
+}
+
+fun print_u16_simple(n: u16) -> void {
+    var started: u8 = 0
+    var d: u16 = n / 10000
+    if d > 0 {
+        tui_putch(48 + d)
+        n = n - d * 10000
+        started = 1
+    }
+    d = n / 1000
+    if d > 0 {
+        tui_putch(48 + d)
+        n = n - d * 1000
+        started = 1
+    } else {
+        if started == 1 { tui_putch(48) }
+    }
+    d = n / 100
+    if d > 0 {
+        tui_putch(48 + d)
+        n = n - d * 100
+        started = 1
+    } else {
+        if started == 1 { tui_putch(48) }
+    }
+    d = n / 10
+    if d > 0 {
+        tui_putch(48 + d)
+        n = n - d * 10
+    } else {
+        if started == 1 { tui_putch(48) }
+    }
+    tui_putch(48 + n)
+}
+
+// ============================================================================
+// PBO — Process Before Output
+// ============================================================================
+
+fun render_text_field(row: u8, label: ^u8, buf: ^u8, length: u8, focused: u8) -> void {
+    tui_goto(2, row)
+    tui_color(6, 0, 0)
+    puts_padded(label, 12)
+
+    if focused == 1 {
+        tui_color(7, 4, 1)   // white on blue
+    } else {
+        tui_color(7, 0, 0)   // white on black
+    }
+    tui_putch(91)  // [
+    puts_padded(buf, length)
+    tui_putch(93)  // ]
+    tui_reset()
+}
+
+fun render_int_field(row: u8, label: ^u8, val: u16, focused: u8) -> void {
+    tui_goto(2, row)
+    tui_color(6, 0, 0)
+    puts_padded(label, 12)
+
+    if focused == 1 {
+        tui_color(7, 4, 1)
+    } else {
+        tui_color(7, 0, 0)
+    }
+    tui_putch(91)  // [
+    print_u16_simple(val)
+    tui_putch(93)  // ]
+    tui_reset()
+}
+
+fun render_button(label: ^u8, focused: u8) -> void {
+    if focused == 1 {
+        tui_color(0, 7, 1)   // black on white
+    } else {
+        tui_color(7, 0, 1)   // bright white on black
+    }
+    tui_putch(91)  // [
+    tui_puts(label)
+    tui_putch(93)  // ]
+    tui_reset()
+}
+
+fun screen_render() -> void {
+    tui_clear()
+
+    // Title bar
+    tui_color(7, 4, 1)
+    tui_goto(0, 0)
+    tui_puts(c"  ")
+    tui_puts(scr_title)
+    var tw: u8 = tui_width()
+    var pad: u8 = 20
+    while pad < tw {
+        tui_putch(32)
+        pad = pad + 1
+    }
+    tui_reset()
+
+    // Field 0: Material (text)
+    var f: u8 = 0
+    if scr_focus == 0 { f = 1 }
+    render_text_field(2, c"Material", &buf_material, 10, f)
+
+    // Field 1: Plant (text)
+    f = 0
+    if scr_focus == 1 { f = 1 }
+    render_text_field(3, c"Plant", &buf_plant, 6, f)
+
+    // Field 2: Count (int)
+    f = 0
+    if scr_focus == 2 { f = 1 }
+    render_int_field(4, c"Count", val_count, f)
+
+    // Buttons row
+    tui_goto(2, 6)
+    f = 0
+    if scr_focus == 3 { f = 1 }
+    render_button(c"F8=Execute", f)
+    tui_puts(c"  ")
+    f = 0
+    if scr_focus == 4 { f = 1 }
+    render_button(c"F3=Back", f)
+
+    // Status bar
+    var th: u8 = tui_height()
+    tui_color(7, 4, 0)
+    tui_goto(0, th - 1)
+    tui_puts(c"  TAB=Next  Enter=Edit  F8=Execute  F3=Back")
+    pad = 44
+    while pad < tw {
+        tui_putch(32)
+        pad = pad + 1
+    }
+    tui_reset()
+}
+
+// ============================================================================
+// PAI — Process After Input
+// ============================================================================
+
+fun screen_handle_key(key: u8) -> u8 {
+    // Function keys → direct action
+    if key == Key.F8 { return Action.Execute }
+    if key == Key.F3 { return Action.Back }
+    if key == Key.Esc { return Action.Back }
+
+    // TAB → cycle focus
+    if key == Key.Tab {
+        scr_focus = scr_focus + 1
+        if scr_focus >= scr_nfields { scr_focus = 0 }
+        return Action.None
+    }
+
+    // ENTER → activate focused element
+    if key == Key.Enter {
+        // Buttons
+        if scr_focus == 3 { return Action.Execute }
+        if scr_focus == 4 { return Action.Back }
+
+        // Text fields → inline edit
+        if scr_focus == 0 {
+            tui_goto(15, 2)
+            tui_color(7, 4, 1)
+            var len: u8 = tui_read_line(&buf_material, 10)
+            tui_reset()
+        }
+        if scr_focus == 1 {
+            tui_goto(15, 3)
+            tui_color(7, 4, 1)
+            var len: u8 = tui_read_line(&buf_plant, 6)
+            tui_reset()
+        }
+        return Action.None
+    }
+
+    return Action.None
+}
+
+// ============================================================================
+// Main screen loop (ABAP: CALL SCREEN)
+// ============================================================================
+
+fun screen_show() -> u8 {
+    var action: u8 = Action.None
+    while action == Action.None {
+        screen_render()
+        var key: u8 = tui_read_key()
+        action = screen_handle_key(key)
+    }
+    tui_clear()
+    tui_goto(0, 0)
+    tui_reset()
+    return action
+}
+
+// ============================================================================
+// Application logic (ABAP: START-OF-SELECTION)
+// ============================================================================
+
+fun main() -> void {
+    screen_init()
+    var result: u8 = screen_show()
+
+    if result == Action.Execute {
+        tui_puts(c"Report: Material=")
+        tui_puts(&buf_material)
+        tui_puts(c" Plant=")
+        tui_puts(&buf_plant)
+        tui_puts(c" Count=")
+        print_u16_simple(val_count)
+        tui_puts(c"\n")
+    }
+    if result == Action.Back {
+        tui_puts(c"Cancelled.\n")
+    }
+}
