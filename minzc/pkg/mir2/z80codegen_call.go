@@ -584,7 +584,7 @@ func (g *z80cg) emitCallArgsForInst(args []Reg, callee *Func, call *Inst) {
 	// removes a stack snapshot. Keep aliases/mixed halves on the old path.
 	original := append([]parallelCopy(nil), copies...)
 	for i, c := range original {
-		if c.srcName == c.dstName {
+		if c.srcName == c.dstName || c.ty.Width() > 8 {
 			continue
 		}
 		cur := c.dstName
@@ -597,7 +597,7 @@ func (g *z80cg) emitCallArgsForInst(args []Reg, callee *Func, call *Inst) {
 			}
 			next := ""
 			for j, other := range original {
-				if i != j && other.srcName == cur && other.srcName != other.dstName {
+				if i != j && other.ty.Width() <= 8 && other.srcName == cur && other.srcName != other.dstName {
 					next = other.dstName
 					break
 				}
