@@ -8,5 +8,10 @@
   "url": "https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site",
   "updated_at": "2026-10-12T00:09:55.048027+00:00",
   "full_site_copy_session": 53356,
-  "full_copy_state": "running, pending finalSHAverification"
+  "full_copy_state": "terminal exit0; local and share everyfile SHAverified",
+  "verified_site_files": 9908,
+  "verified_site_bytes": 255002825,
+  "site_manifest_sha256": "51dd4394d7115f7142ac47676e7cf834714b5545b67d07718dc8c031f7c999a5",
+  "local_site": "/home/alice/dev/minz-artifacts/grace-reports/2026-10-12/site/index.html",
+  "share_site": "/mnt/safe/minz/grace/2026-10-12/site-and-artifacts/site/index.html"
 }
