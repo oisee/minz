@@ -1,0 +1,12 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "38d7c39181cd2050c9d9fc004589ef467ba0572910e10d322d625265ed6f8ec1"
+    },
+    {
+      "path": "nc-format-entry.txt",
+      "sha256": "36496a70a2d910683b76752545f7f14bab7489cb2a8774b7653f6a47e36f2b0f"
+    }
+  ]
+}
