@@ -1,0 +1,20 @@
+=== RUN   TestMemoryHostCompiledMetadataRefusals
+=== RUN   TestMemoryHostCompiledMetadataRefusals/duplicate_function
+=== RUN   TestMemoryHostCompiledMetadataRefusals/changed_global
+=== RUN   TestMemoryHostCompiledMetadataRefusals/host_body
+=== RUN   TestMemoryHostCompiledMetadataRefusals/host_return
+=== RUN   TestMemoryHostCompiledMetadataRefusals/host_hard_pin
+=== RUN   TestMemoryHostCompiledMetadataRefusals/host_parameter
+=== RUN   TestMemoryHostCompiledMetadataRefusals/dynamic_call
+=== RUN   TestMemoryHostCompiledMetadataRefusals/target
+--- PASS: TestMemoryHostCompiledMetadataRefusals (0.00s)
+    --- PASS: TestMemoryHostCompiledMetadataRefusals/duplicate_function (0.00s)
+    --- PASS: TestMemoryHostCompiledMetadataRefusals/changed_global (0.00s)
+    --- PASS: TestMemoryHostCompiledMetadataRefusals/host_body (0.00s)
+    --- PASS: TestMemoryHostCompiledMetadataRefusals/host_return (0.00s)
+    --- PASS: TestMemoryHostCompiledMetadataRefusals/host_hard_pin (0.00s)
+    --- PASS: TestMemoryHostCompiledMetadataRefusals/host_parameter (0.00s)
+    --- PASS: TestMemoryHostCompiledMetadataRefusals/dynamic_call (0.00s)
+    --- PASS: TestMemoryHostCompiledMetadataRefusals/target (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	0.009s
