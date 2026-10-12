@@ -1,0 +1,13 @@
+{
+  "scope": "VIR assert-family only; production separate",
+  "exit_code": 1,
+  "counts": {
+    "PASS": 16,
+    "FAIL": 2,
+    "SKIP": 0
+  },
+  "remaining": [
+    "GCD",
+    "LookupLoopHeader"
+  ]
+}

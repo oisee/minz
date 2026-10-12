@@ -1,0 +1,70 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "e1e0734db28d57d474eebbde46b37e7da89256901eb16231b60804f62c5ee31f"
+  },
+  {
+    "path": "after.txt",
+    "sha256": "9fb20b8ca8e83ec25f6e468f51eaefce11a6c267a25918d5ab3608b5d05b7adc"
+  },
+  {
+    "path": "assert-family.txt",
+    "sha256": "12ca6bc34ccf69b620f32c85587db45c710eccbbd15dbd2c3141cd8f7011c4fd"
+  },
+  {
+    "path": "before.txt",
+    "sha256": "3a2602981327608117c65338f95e612fecefd0b7640becba423e3c74a9a32f67"
+  },
+  {
+    "path": "gcd/allocation.json",
+    "sha256": "f3138d9e9a3b76c4d8a675170018856c09b9e984c13e684ab3aab1e120ec9d86"
+  },
+  {
+    "path": "gcd/module.a80",
+    "sha256": "97a0249f25d1fc58b29785ecec6440ed5a1bd21ec275b9065e91f60bda7ccc6f"
+  },
+  {
+    "path": "gcd/module.mir",
+    "sha256": "8cc929666f8b63645704450257621e9fd8f1aeb8f333ddb6ac359b9060f45904"
+  },
+  {
+    "path": "gcd/source.nanz",
+    "sha256": "ccea468b9eba79f6268dcd18b98ff3bd8d3abd1e8c285e194773b0328b5fe82c"
+  },
+  {
+    "path": "lookup_loop_header/allocation.json",
+    "sha256": "5c9678e4f5aa941fdda9c7bfd3e621f9e3bba40f2441eaec8e5aeb4a3d9f89d4"
+  },
+  {
+    "path": "lookup_loop_header/module.a80",
+    "sha256": "a00c36ea30b326dc6b0466ab59a8f6e31b510c2562b1fa920de872255eb37095"
+  },
+  {
+    "path": "lookup_loop_header/module.mir",
+    "sha256": "bc8682fbd75abb42dc21c97f55227fc1da59d7f2018aa934ad705c9f3867a7e1"
+  },
+  {
+    "path": "lookup_loop_header/source.nanz",
+    "sha256": "f0d62a695540af40464c511eab9b03e61c037e65daaa18773f1e1134f6cd3cd5"
+  },
+  {
+    "path": "multi_return/allocation.json",
+    "sha256": "15a0429d4b7450772b76efde5499cf1c2e5e687893ad5b77afbfe552dbe6663c"
+  },
+  {
+    "path": "multi_return/module.a80",
+    "sha256": "e136ed27e8a3145ab1a69d070f9593720d383e7e23f21ef496312b4ce1796d2e"
+  },
+  {
+    "path": "multi_return/module.mir",
+    "sha256": "77514d887f6cc89efd5b099db2bcb2ef59ac777db67653c3c020583799f5fd50"
+  },
+  {
+    "path": "multi_return/source.nanz",
+    "sha256": "0aedc0ce903d1c22ffb54e828c4bca6f26bcaabb5c569b3e6e0c1d76451a83aa"
+  },
+  {
+    "path": "result.json",
+    "sha256": "08ba9a716e70d1353a86e5528216e1e6491037a4251528fe2e7e84c0b653141b"
+  }
+]

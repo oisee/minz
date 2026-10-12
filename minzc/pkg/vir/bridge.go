@@ -1390,50 +1390,9 @@ func appendReturnMove(ops []VIROp, b *mir2.Block, desc *MachineDesc, f ...*mir2.
 		}
 	}
 
-	// Check if the result vreg is already defined by an op that constrains
-	// it to A (8-bit ALU) or HL (16-bit ALU). If so, no move needed.
-	alreadyConstrained := false
-
-	// Check if result is a block param (function parameter already in correct register)
-	for _, bp := range b.Params {
-		if int(bp.Dst) == retReg {
-			alreadyConstrained = true
-			break
-		}
-	}
-	// Check function-level contract params: only skip move if the param's
-	// ABI register matches the return ABI register (A for u8, HL for u16).
-	if len(f) > 0 && f[0] != nil {
-		for _, cp := range f[0].Contract.Params {
-			if int(cp.Reg) == retReg {
-				if w <= 8 && cp.Class == mir2.ClassAcc {
-					alreadyConstrained = true // param already in A = return register
-				} else if w > 8 && cp.Class == mir2.ClassPointer {
-					alreadyConstrained = true // param already in HL = return register
-				}
-				break
-			}
-		}
-	}
-
-	for _, op := range ops {
-		if op.Dst == retReg {
-			switch op.Op {
-			case OpAdd, OpSub, OpAnd, OpOr, OpXor, OpNeg,
-				OpAddImm, OpSubImm, OpAndImm, OpOrImm, OpXorImm:
-				alreadyConstrained = true
-			case OpMove:
-				if !op.DstHint.IsEmpty() {
-					alreadyConstrained = true
-				}
-			}
-		}
-	}
-
-	if alreadyConstrained {
-		return ops
-	}
-
+	// Return placement is an explicit solver constraint. Entry ABI classes,
+	// block parameters and earlier ALU definitions do not prove that this
+	// value still occupies the return register at this terminator.
 	// Synthetic vreg for the return-ABI move
 	retABIReg := 9900 + retReg
 
@@ -1444,26 +1403,9 @@ func appendReturnMove(ops []VIROp, b *mir2.Block, desc *MachineDesc, f ...*mir2.
 		retHint = desc.LocSetByNames("HL")
 	}
 
-	// If the return vreg is a function param, set SrcHint to its PBQP-allocated
-	// register (not just the class). The assert bootstrap loads args based on
-	// PBQP allocation, so VIR must match.
-	var srcHint LocSet
-	if len(f) > 0 && f[0] != nil {
-		for _, cp := range f[0].Contract.Params {
-			if int(cp.Reg) == retReg {
-				// Use PBQP allocation if available (exact register).
-				// This is passed via a module-level allocResults map.
-				// For now, fall through to class-based hint.
-				// Fallback to class-based hint
-				srcHint = regClassToLocSet(desc, cp.Class, w)
-				break
-			}
-		}
-	}
-
 	ops = append(ops, VIROp{
 		Op: OpMove, Dst: retABIReg, Src: [2]int{retReg, -1},
-		Width: w, DstHint: retHint, SrcHint: [2]LocSet{srcHint},
+		Width: w, DstHint: retHint,
 	})
 
 	return ops

@@ -1,0 +1,82 @@
+=== RUN   TestVIR_Assert_MultiReturn
+[regalloc] loaded 56 exhaustive entries from regalloc_exhaustive.json
+[PARAMS] safe_sub: callerParamLocs=map[7:0 8:2]
+[PARAMS] abs_val: callerParamLocs=map[1:0 2:2]
+[ADAPTER] abs_val caller=map[1:0 2:2] standalone=map[1:1 2:0]
+[ADAPTER]   A -> B
+[ADAPTER]   C -> A
+[ADAPTER]   emit LD B, A
+[ADAPTER]   emit LD A, C
+[ADAPTER-ASM] abs_val:
+; fun abs_val(x: u8 = acc, is_neg: u8 = general) -> u8 = A ; clobbers: F
+abs_val:
+    ; adapter: caller→standalone convention
+    LD B, A
+    LD A, C
+    OR A
+    JR Z, .abs_val_if_join2
+    JR C, .abs_val_if_join2
+.abs_val_if_then1:
+    LD A, B
+    NEG
+    RET
+.abs_val_if_join2:
+    RET
+
+
+[vir] abs_val: constrained unsat, using standalone+adapter (2 adapters)
+    assert_test.go:280: Z80: line 11: assert "assert abs_val(5, 0) == 5" [z80]: got 0, want 5
+--- FAIL: TestVIR_Assert_MultiReturn (0.06s)
+=== RUN   TestVIR_Assert_GCD
+[fixCallArgHints] no param locs for callee __mod8
+[fixCallArgHints] CALL gcd: 2 arg-setup moves, calleeLocs=map[1:0 2:2]
+[fixCallArgHints]   param[0] vreg=1 → phys=0 (A)
+[fixCallArgHints]   param[1] vreg=2 → phys=2 (C)
+[PARAMS] gcd: callerParamLocs=map[1:0 2:2]
+[HINT] gcd b0 op0: src[0]=v2 → SrcHint loc 2
+[HINT] gcd b2 op0: src[0]=v2 → SrcHint loc 2
+[HINT] gcd b2 op1: src[0]=v1 → SrcHint loc 0
+[HINT] gcd b2 op2: src[0]=v2 → SrcHint loc 2
+[vir] gcd: skip island decomposition (self-recursive)
+[vir] gcd: PBQP fallback (timeout=30s, err=all VIR solvers failed: CFG solve: z3 rejected part of the query, so the model does not answer the question asked: (error "line 1259 column 10: model is not available"))
+[PBQP-ASM] gcd:
+; fun gcd(a: u8 = A, b: u8 = C) -> u8 = A [recursive] ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+gcd:
+    LD E, A    ; preserve live accumulator before CMP
+    LD A, C
+    AND A
+    LD A, E
+    ; restore live-out r1 from scratch
+    JRS NZ, .gcd_if_join2
+.gcd_if_then1:
+    RET
+.gcd_if_join2:
+    LD B, C
+    LD B, A
+    XOR A
+    LD D, 8
+.div8_0:
+    SLA B
+    RLA
+    CP C
+    JR C, .div8_skip_0
+    SUB C
+    INC B
+.div8_skip_0:
+    DEC D
+    JR NZ, .div8_0
+    LD C, A
+    ; genCall: gcd dst=7
+    LD A, B
+    JP gcd
+
+
+    assert_test.go:341: Z80: line 7: assert "assert gcd(12, 8) == 4" [z80]: got 0, want 4
+--- FAIL: TestVIR_Assert_GCD (0.12s)
+=== RUN   TestVIR_Assert_LookupLoopHeader
+[PARAMS] lookup: callerParamLocs=map[1:0]
+    assert_test.go:360: Z80: line 15: assert "assert lookup(1) == 20" [z80]: got 10, want 20
+--- FAIL: TestVIR_Assert_LookupLoopHeader (0.10s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/vir	0.290s
+FAIL

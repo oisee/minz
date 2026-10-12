@@ -1,0 +1,14 @@
+; MIR2 module: gcd.nanz
+fun @gcd(%r1: u8 [acc], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = const 0 : u8 [general]
+    %r4 = cmp.eq %r2, %r3 : bool [flag]
+    br_if %r4, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r1
+  block @if_join2:
+    %r5 = move %r2 : u8 [acc]
+    %r6 = mod %r1, %r2 : u8 [general]
+    %r7 = call @gcd(%r5, %r6) : u8 [acc]
+    ret %r7
+

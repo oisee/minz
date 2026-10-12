@@ -1,0 +1,15 @@
+
+fun abs_val(x: u8, is_neg: u8) -> u8 {
+    if is_neg > 0 { return 0 - x }
+    return x
+}
+fun safe_sub(a: u8, b: u8) -> u8 {
+    if a >= b { return a - b }
+    return 0
+}
+
+assert abs_val(5, 0) == 5
+assert abs_val(5, 1) == 251
+assert safe_sub(10, 3) == 7
+assert safe_sub(3, 10) == 0
+assert safe_sub(5, 5) == 0

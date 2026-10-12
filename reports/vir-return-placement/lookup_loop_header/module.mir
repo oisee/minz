@@ -1,0 +1,21 @@
+; MIR2 module: lookup_loop_header.nanz
+global @DATA : [8]u8
+
+fun @lookup(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = addr_of @DATA : ptr [pointer]
+    %r3 = const 0 : u8 [general]
+    jmp @loop_head1(%r3, %r1, %r2)
+  block @loop_head1(%r4: u8 [general], %r5: u8 [general], %r6: ptr [general]):
+    %r7 = cmp.ult %r4, %r5 : bool [flag]
+    br_if %r7, @loop_body2(), @loop_exit3(%r4, %r5, %r6)
+  block @loop_body2:
+    %r8 = const 1 : ptr [general]
+    %r9 = add %r6, %r8 : ptr [general]
+    %r10 = const 1 : u8 [general]
+    %r11 = add %r4, %r10 : u8 [general]
+    jmp @loop_head1(%r11, %r5, %r9)
+  block @loop_exit3(%r12: u8 [general], %r13: u8 [general], %r14: ptr [general]):
+    %r15 = load %r14 : u8 [acc]
+    ret %r15
+
