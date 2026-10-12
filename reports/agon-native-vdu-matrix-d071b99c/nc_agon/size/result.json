@@ -1,0 +1,65 @@
+{
+  "source": "examples/agon/nc_agon.nanz",
+  "source_sha256": "8063ebaf25ab5faff632017874a06d1db25019fa7efe559c4d0cfc6f3b3e9b38",
+  "mode": "size",
+  "keys": [
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    13,
+    11,
+    13,
+    27
+  ],
+  "bin_bytes": 1881,
+  "bin_sha256": "33e9482d01c8f17111aac455691601f8845e258fa20c4d2e4128f28cb12b67ae",
+  "application_bytes": 3151,
+  "exact_vdu_and_return": true,
+  "error": "",
+  "observer_exit": 124,
+  "compile_commands": [
+    [
+      "/home/alice/dev/minz-artifacts/grace-tools/minzc-d071b99c",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/nc_agon.nanz",
+      "-b",
+      "ez80",
+      "--hir-grace",
+      "--Osize",
+      "-o",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-native-vdu-matrix-d071b99c/nc_agon/size/program.bin"
+    ],
+    [
+      "/home/alice/dev/minz-artifacts/grace-tools/minzc-d071b99c",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/nc_agon.nanz",
+      "-b",
+      "ez80",
+      "--hir-grace",
+      "--Osize",
+      "-o",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-native-vdu-matrix-d071b99c/nc_agon/size/program.asm"
+    ]
+  ],
+  "run_command": [
+    "timeout",
+    "14",
+    "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/fab-agon-emulator",
+    "--renderer",
+    "sw",
+    "--firmware",
+    "console8",
+    "--mos",
+    "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+    "--vdp",
+    "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-native-vdu-matrix-d071b99c/vdp-tee.so",
+    "--sdcard",
+    "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-native-vdu-matrix-d071b99c/nc_agon/size/sdcard",
+    "--zero",
+    "--verbose"
+  ]
+}

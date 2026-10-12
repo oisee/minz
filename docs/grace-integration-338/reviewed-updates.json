@@ -76,9 +76,9 @@
     "path": "examples/agon/nc_agon.nanz",
     "source_sha256": "8063ebaf25ab5faff632017874a06d1db25019fa7efe559c4d0cfc6f3b3e9b38",
     "native_behavior": "agon-mos-runtime",
-    "workload": "Current native-VDU ordinary full-device: nine Down, Enter, Up, Enter, Escape; exact independent 3151-byte VDU/text stream, including every redraw and final MOS echo. Historical ANSI three-mode replay retains pre-VDU library.",
+    "workload": "Current native-VDU public CLI whole-device ordinary/HIR Grace Size/HIR Grace Speed: exact independent 3151-byte command/text stream and following MOS echo; NC nine Down/Enter/Up/Enter/Escape, Hello/Demo SDL A. Historical ANSI replay retains pre-VDU library.",
     "independent_model": "Independent source-level layout/text/navigation model translated to native VDU; entire application wire range matches, including upper boundary at index7 and Up to index6. Transparent proxy forwards original bytes to full VDP during real eZ80/MOS execution; single boot and following echo checked.",
-    "boundary": "Independent command/text oracle for a bounded ordinary navigation sequence; visual framebuffers, not independent pixel/RAM/SP, all modes, arbitrary inputs or hardware proof.",
+    "boundary": "Independent command/text oracle for fixed scenarios in three modes; visual framebuffers, not independent pixel/RAM/SP, arbitrary inputs or hardware proof. No timing improvement measured.",
     "evidence": {
       "minzc/pkg/pipeline/agon_corpus_product_test.go": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
       "reports/agon-product-audit/manifest.json": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
@@ -91,16 +91,18 @@
       "reports/agon-full-vdp-nc-boundary/manifest.json": "2c8e1587ad58c8057a6c65c00f89d3a0bd3406c33a1032b1578ae0265abf0ccf",
       "stdlib/agon/tui_render.nanz": "df324615b171bed89dc29a768d826551123604867bc3279fb20020fd784046f8",
       "reports/agon-native-vdu-wire-nc/manifest.json": "b58b119ab85baf0ae190221a029beec532f0e4b0dfb7e871a4e82cb10924eccf",
-      "scripts/agon_native_vdu_model.py": "d7a0fe831f8379b78d60851373e29fcf31d6c6d0b3cd4ff26c27197b49468662"
+      "scripts/agon_native_vdu_model.py": "d7a0fe831f8379b78d60851373e29fcf31d6c6d0b3cd4ff26c27197b49468662",
+      "reports/agon-native-vdu-matrix-d071b99c/manifest.json": "072d06b707e4be9704205dd5889ecf8e746fe5241f5e4567eaa745ad14900c3d",
+      "scripts/agon_native_vdu_replay.py": "eb3850fbfa2492daa19bda7b877eace13a38d4c9ee5e6b19b972ae4f37f170a2"
     }
   },
   {
     "path": "examples/agon/tui_demo.nanz",
     "source_sha256": "afcadba573f924da7fcaf74574a8ec451be8ffb37eb0b3aa8567a6757d2957bd",
     "native_behavior": "agon-mos-runtime",
-    "workload": "Current native-VDU ordinary full-device: exact independent 489-byte VDU/text stream, normal SDL A and clean MOS echo. Historical ANSI three-mode replay retains pre-VDU library.",
+    "workload": "Current native-VDU public CLI whole-device ordinary/HIR Grace Size/HIR Grace Speed: exact independent 489-byte command/text stream and following MOS echo; NC nine Down/Enter/Up/Enter/Escape, Hello/Demo SDL A. Historical ANSI replay retains pre-VDU library.",
     "independent_model": "Independent source-level text/layout model translated to native VDU; entire app wire equals expected. Transparent proxy forwards unchanged bytes to full VDP during real eZ80/MOS execution; single boot and following echo checked.",
-    "boundary": "Independent command/text oracle for bounded ordinary Demo sequence; visual framebuffers, not independent pixel/RAM/SP, all modes/inputs or hardware proof.",
+    "boundary": "Independent command/text oracle for fixed scenarios in three modes; visual framebuffers, not independent pixel/RAM/SP, arbitrary inputs or hardware proof. No timing improvement measured.",
     "evidence": {
       "minzc/pkg/pipeline/agon_corpus_product_test.go": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
       "reports/agon-product-audit/manifest.json": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
@@ -111,16 +113,18 @@
       "reports/agon-full-vdp-demo-nc/manifest.json": "a17513b4834048ec0f9e09c4f9093c5c09d9e31177b878f694e3f1b7fb5fb7ce",
       "stdlib/agon/tui_render.nanz": "df324615b171bed89dc29a768d826551123604867bc3279fb20020fd784046f8",
       "reports/agon-native-vdu-wire-demo/manifest.json": "5096a68b6a1b2b8f47f70fb0bb26bdcdd5c9e068b53f253db97a85c850b3f53c",
-      "scripts/agon_native_vdu_model.py": "d7a0fe831f8379b78d60851373e29fcf31d6c6d0b3cd4ff26c27197b49468662"
+      "scripts/agon_native_vdu_model.py": "d7a0fe831f8379b78d60851373e29fcf31d6c6d0b3cd4ff26c27197b49468662",
+      "reports/agon-native-vdu-matrix-d071b99c/manifest.json": "072d06b707e4be9704205dd5889ecf8e746fe5241f5e4567eaa745ad14900c3d",
+      "scripts/agon_native_vdu_replay.py": "eb3850fbfa2492daa19bda7b877eace13a38d4c9ee5e6b19b972ae4f37f170a2"
     }
   },
   {
     "path": "examples/agon/tui_hello.nanz",
     "source_sha256": "44f505b14ac4c5c674db470d9f81684aeaf078498c03ad267e81a05d13d25f90",
     "native_behavior": "agon-mos-runtime",
-    "workload": "Current native-VDU ordinary whole-device: greeting/box, SDL A, exact independent 218-byte native VDU/text stream and clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.",
+    "workload": "Current native-VDU public CLI whole-device ordinary/HIR Grace Size/HIR Grace Speed: exact independent 218-byte command/text stream and following MOS echo; NC nine Down/Enter/Up/Enter/Escape, Hello/Demo SDL A. Historical ANSI replay retains pre-VDU library.",
     "independent_model": "Source-level fixed-demo layout/text model translated to documented VDU commands; entire app wire range equals expected 218 bytes. Transparent proxy forwards unchanged bytes to actual full VDP during eZ80/MOS execution. Single firmware boot and following echo/prompt checked.",
-    "boundary": "Independent current native command/text stream for one ordinary Hello scenario, plus visually inspected framebuffer; not an independent pixel/RAM/SP oracle, other modes/inputs or hardware proof. Historical ANSI replay is not evidence for current library.",
+    "boundary": "Independent command/text oracle for fixed scenarios in three modes; visual framebuffers, not independent pixel/RAM/SP, arbitrary inputs or hardware proof. No timing improvement measured.",
     "evidence": {
       "minzc/pkg/pipeline/agon_corpus_product_test.go": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
       "reports/agon-product-audit/manifest.json": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
@@ -131,7 +135,9 @@
       "reports/agon-native-vdu-fix/manifest.json": "109279a77ab17245fb970690a4b435cf02bfcfeadc3ce5661db1e297bcd71e06",
       "stdlib/agon/tui_render.nanz": "df324615b171bed89dc29a768d826551123604867bc3279fb20020fd784046f8",
       "reports/agon-native-vdu-wire-hello/manifest.json": "e6b075b7f77cd833845664745964fc45fb4b0f74497b3b228fd5137103d3dd79",
-      "scripts/agon_native_vdu_model.py": "d7a0fe831f8379b78d60851373e29fcf31d6c6d0b3cd4ff26c27197b49468662"
+      "scripts/agon_native_vdu_model.py": "d7a0fe831f8379b78d60851373e29fcf31d6c6d0b3cd4ff26c27197b49468662",
+      "reports/agon-native-vdu-matrix-d071b99c/manifest.json": "072d06b707e4be9704205dd5889ecf8e746fe5241f5e4567eaa745ad14900c3d",
+      "scripts/agon_native_vdu_replay.py": "eb3850fbfa2492daa19bda7b877eace13a38d4c9ee5e6b19b972ae4f37f170a2"
     }
   },
   {

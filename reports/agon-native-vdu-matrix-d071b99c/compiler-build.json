@@ -1,0 +1,13 @@
+{
+  "compiler_commit": "d071b99c445fd1a1700255915648529607a55843",
+  "compiler_binary": "/home/alice/dev/minz-artifacts/grace-tools/minzc-d071b99c",
+  "sha256": "d7fdd8372f7d80262818248df79becec234b3b6b31f35b6062b8a4b93fbae20d",
+  "command": [
+    "go",
+    "build",
+    "-o",
+    "/home/alice/dev/minz-artifacts/grace-tools/minzc-d071b99c",
+    "./cmd/minzc"
+  ],
+  "note": "Compiler Go sources at d071b99c; only untracked research replay script added before build."
+}

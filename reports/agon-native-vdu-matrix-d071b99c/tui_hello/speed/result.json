@@ -1,0 +1,49 @@
+{
+  "source": "examples/agon/tui_hello.nanz",
+  "source_sha256": "44f505b14ac4c5c674db470d9f81684aeaf078498c03ad267e81a05d13d25f90",
+  "mode": "speed",
+  "keys": [],
+  "bin_bytes": 985,
+  "bin_sha256": "7753540a53c8d7de37bed5d92c3baee4206a90035765b1e6d0d9183eadab6a3b",
+  "application_bytes": 218,
+  "exact_vdu_and_return": true,
+  "error": "",
+  "observer_exit": 124,
+  "compile_commands": [
+    [
+      "/home/alice/dev/minz-artifacts/grace-tools/minzc-d071b99c",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/tui_hello.nanz",
+      "-b",
+      "ez80",
+      "--hir-grace",
+      "-o",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-native-vdu-matrix-d071b99c/tui_hello/speed/program.bin"
+    ],
+    [
+      "/home/alice/dev/minz-artifacts/grace-tools/minzc-d071b99c",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/tui_hello.nanz",
+      "-b",
+      "ez80",
+      "--hir-grace",
+      "-o",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-native-vdu-matrix-d071b99c/tui_hello/speed/program.asm"
+    ]
+  ],
+  "run_command": [
+    "timeout",
+    "10",
+    "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/fab-agon-emulator",
+    "--renderer",
+    "sw",
+    "--firmware",
+    "console8",
+    "--mos",
+    "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+    "--vdp",
+    "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-native-vdu-matrix-d071b99c/vdp-tee.so",
+    "--sdcard",
+    "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-native-vdu-matrix-d071b99c/tui_hello/speed/sdcard",
+    "--zero",
+    "--verbose"
+  ]
+}

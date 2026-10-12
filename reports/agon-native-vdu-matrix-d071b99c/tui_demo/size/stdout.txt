@@ -1,0 +1,92 @@
+Video driver: dummy (can override with SDL_VIDEO_DRIVER environment variable)
+ESP32 DBGSerial: after change of canvas...
+ESP32 DBGSerial:   free internal: 4194304
+  free 8bit: 4194304
+  free 32bit: 4194304
+ESP32 DBGSerial: changeMode: canvas(640,480), scale(2.000000,2.133333), mode 0, videoMode 0
+ESP32 DBGSerial: PSRAM Array Request for 344 bytes
+ESP32 DBGSerial: Deleting text cursor sprite and bitmap
+ESP32 DBGSerial: Deleting text cursor sprite and bitmap
+ESP32 DBGSerial: PSRAM Array Request for 40 bytes
+ESP32 DBGSerial: Created text cursor bitmap 8x8 with colour ff
+ESP32 DBGSerial: Created new text cursor sprite
+ESP32 DBGSerial: Updating text cursor sprite with new bitmap
+ESP32 DBGSerial: PSRAM Array Request for 40 bytes
+ESP32 DBGSerial: PSRAM Array Request for 32 bytes
+ESP32 DBGSerial: PSRAM Array Request for 104 bytes
+ESP32 DBGSerial: PSRAM Array Request for 16 bytes
+ESP32 DBGSerial: AudioChannel: init 0
+ESP32 DBGSerial: AudioChannel: setWaveform 0 on channel 0
+ESP32 DBGSerial: AudioChannel: setWaveform 0 done on channel 0
+ESP32 DBGSerial: free mem: 4194304
+ESP32 DBGSerial: AudioChannel: init 1
+ESP32 DBGSerial: AudioChannel: setWaveform 0 on channel 1
+ESP32 DBGSerial: AudioChannel: setWaveform 0 done on channel 1
+ESP32 DBGSerial: free mem: 4194304
+ESP32 DBGSerial: AudioChannel: init 2
+ESP32 DBGSerial: AudioChannel: setWaveform 0 on channel 2
+ESP32 DBGSerial: AudioChannel: setWaveform 0 done on channel 2
+ESP32 DBGSerial: free mem: 4194304
+ESP32 DBGSerial: wait_eZ80: Start
+ESP32 DBGSerial: wait_eZ80: End
+ESP32 DBGSerial: Setup ran on core 0, busy core is 1
+ESP32 DBGSerial: vdu_colour: tfg 2 = 08 : 00,AA,00
+ESP32 DBGSerial: Updated text cursor bitmap with colour c8
+ESP32 DBGSerial: vdu_colour: tfg 3 = 28 : AA,AA,00
+ESP32 DBGSerial: Updated text cursor bitmap with colour ca
+ESP32 DBGSerial: vdu_colour: tfg 4 = 02 : 00,00,AA
+ESP32 DBGSerial: Updated text cursor bitmap with colour e0
+ESP32 DBGSerial: vdu_colour: tfg 5 = 22 : AA,00,AA
+ESP32 DBGSerial: Updated text cursor bitmap with colour e2
+ESP32 DBGSerial: vdu_colour: tfg 6 = 0A : 00,AA,AA
+ESP32 DBGSerial: Updated text cursor bitmap with colour e8
+ESP32 DBGSerial: vdu_colour: tfg 7 = 2A : AA,AA,AA
+ESP32 DBGSerial: Updated text cursor bitmap with colour ea
+ESP32 DBGSerial: vdu_colour: tfg 8 = 15 : 55,55,55
+ESP32 DBGSerial: Updated text cursor bitmap with colour d5
+ESP32 DBGSerial: vdu_colour: tfg 15 = 3F : FF,FF,FF
+ESP32 DBGSerial: Updated text cursor bitmap with colour ff
+ESP32 DBGSerial: AudioChannel: playNote 0,100,750,125
+ESP32 DBGSerial: AudioChannel: play 0,100,750,125
+ESP32 DBGSerial: vdu_colour: tfg 0 = 00 : 00,00,00
+ESP32 DBGSerial: Updated text cursor bitmap with colour c0
+ESP32 DBGSerial: vdu_colour: tbg 134 = 0A : 00,AA,AA
+ESP32 DBGSerial: Updated text cursor bitmap with colour e8
+ESP32 DBGSerial: vdu_colour: tfg 15 = 3F : FF,FF,FF
+ESP32 DBGSerial: Updated text cursor bitmap with colour d7
+ESP32 DBGSerial: vdu_colour: tbg 140 = 03 : 00,00,FF
+ESP32 DBGSerial: Updated text cursor bitmap with colour cf
+ESP32 DBGSerial: vdu_colour: tfg 0 = 00 : 00,00,00
+ESP32 DBGSerial: Updated text cursor bitmap with colour f0
+ESP32 DBGSerial: vdu_colour: tbg 134 = 0A : 00,AA,AA
+ESP32 DBGSerial: Updated text cursor bitmap with colour e8
+ESP32 DBGSerial: vdu_colour: tfg 15 = 3F : FF,FF,FF
+ESP32 DBGSerial: Updated text cursor bitmap with colour d7
+ESP32 DBGSerial: vdu_colour: tbg 140 = 03 : 00,00,FF
+ESP32 DBGSerial: Updated text cursor bitmap with colour cf
+ESP32 DBGSerial: vdu_colour: tfg 11 = 3C : FF,FF,00
+ESP32 DBGSerial: Updated text cursor bitmap with colour ff
+ESP32 DBGSerial: vdu_colour: tbg 140 = 03 : 00,00,FF
+ESP32 DBGSerial: vdu_colour: tfg 10 = 0C : 00,FF,00
+ESP32 DBGSerial: Updated text cursor bitmap with colour fc
+ESP32 DBGSerial: vdu_colour: tbg 140 = 03 : 00,00,FF
+ESP32 DBGSerial: vdu_colour: tfg 1 = 20 : AA,00,00
+ESP32 DBGSerial: Updated text cursor bitmap with colour f2
+ESP32 DBGSerial: vdu_colour: tbg 132 = 02 : 00,00,AA
+ESP32 DBGSerial: Updated text cursor bitmap with colour e2
+ESP32 DBGSerial: vdu_colour: tfg 14 = 0F : 00,FF,FF
+ESP32 DBGSerial: Updated text cursor bitmap with colour dc
+ESP32 DBGSerial: vdu_colour: tbg 140 = 03 : 00,00,FF
+ESP32 DBGSerial: Updated text cursor bitmap with colour cc
+ESP32 DBGSerial: vdu_colour: tfg 7 = 2A : AA,AA,AA
+ESP32 DBGSerial: Updated text cursor bitmap with colour da
+ESP32 DBGSerial: vdu_colour: tbg 132 = 02 : 00,00,AA
+ESP32 DBGSerial: Updated text cursor bitmap with colour ca
+ESP32 DBGSerial: vdu_colour: tfg 0 = 00 : 00,00,00
+ESP32 DBGSerial: Updated text cursor bitmap with colour e0
+ESP32 DBGSerial: vdu_colour: tbg 134 = 0A : 00,AA,AA
+ESP32 DBGSerial: Updated text cursor bitmap with colour e8
+ESP32 DBGSerial: vdu_colour: tfg 7 = 2A : AA,AA,AA
+ESP32 DBGSerial: Updated text cursor bitmap with colour c2
+ESP32 DBGSerial: vdu_colour: tbg 128 = 00 : 00,00,00
+ESP32 DBGSerial: Updated text cursor bitmap with colour ea
