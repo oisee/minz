@@ -28,9 +28,9 @@ func TestGraceRunner_PointerThreadingRealLoopShape(t *testing.T) {
 			{Op: OpCmp, Dst: Reg(7), Src: [2]Reg{Reg(5), Reg(6)}, Ty: TyBool, Cond: CmpLt},
 		},
 		Term: &TermBrIf{
-			Cond: Reg(7),
-			Then: "loop_body2",
-			Else: "loop_exit3",
+			Cond:     Reg(7),
+			Then:     "loop_body2",
+			Else:     "loop_exit3",
 			ElseArgs: []Reg{Reg(4), Reg(5), Reg(6)},
 		},
 	}
@@ -75,8 +75,8 @@ func TestGraceRunner_DSE(t *testing.T) {
 	entry := &Block{
 		Label: "entry",
 		Insts: []*Inst{
-			{Op: OpConst, Dst: Reg(1), Imm: 42, Ty: TyU8},   // used
-			{Op: OpConst, Dst: Reg(2), Imm: 99, Ty: TyU8},   // dead — not used anywhere
+			{Op: OpConst, Dst: Reg(1), Imm: 42, Ty: TyU8},                   // used
+			{Op: OpConst, Dst: Reg(2), Imm: 99, Ty: TyU8},                   // dead — not used anywhere
 			{Op: OpAdd, Dst: Reg(3), Src: [2]Reg{Reg(1), Reg(1)}, Ty: TyU8}, // dead
 		},
 		Term: &TermRet{Vals: []Reg{Reg(1)}},
@@ -283,8 +283,8 @@ func TestGraceRunner_PointerWalkShapeA(t *testing.T) {
 	entry := &Block{
 		Label: "entry",
 		Insts: []*Inst{
-			{Op: OpConst, Dst: Reg(1), Imm: 0, Ty: TyU16},    // idx0
-			{Op: OpConst, Dst: Reg(2), Imm: 768, Ty: TyU16},   // limit
+			{Op: OpConst, Dst: Reg(1), Imm: 0, Ty: TyU16},   // idx0
+			{Op: OpConst, Dst: Reg(2), Imm: 768, Ty: TyU16}, // limit
 		},
 		Term: &TermJmp{Target: "header", Args: []Reg{Reg(1)}},
 	}
@@ -307,11 +307,11 @@ func TestGraceRunner_PointerWalkShapeA(t *testing.T) {
 		Label:  "body",
 		Params: []BlockParam{{Dst: Reg(20), Ty: TyU16}}, // %bidx
 		Insts: []*Inst{
-			{Op: OpConst, Dst: Reg(21), Imm: 0xC000, Ty: TyU16},          // base
+			{Op: OpConst, Dst: Reg(21), Imm: 0xC000, Ty: TyU16},                 // base
 			{Op: OpAdd, Dst: Reg(22), Src: [2]Reg{Reg(21), Reg(20)}, Ty: TyU16}, // addr = base + idx
-			{Op: OpConst, Dst: Reg(23), Imm: 1, Ty: TyU8},                // val
-			{Op: OpStore, Dst: NoReg, Src: [2]Reg{Reg(22), Reg(23)}, Ty: TyU8}, // store addr, val
-			{Op: OpConst, Dst: Reg(24), Imm: 1, Ty: TyU16},               // stride
+			{Op: OpConst, Dst: Reg(23), Imm: 1, Ty: TyU8},                       // val
+			{Op: OpStore, Dst: NoReg, Src: [2]Reg{Reg(22), Reg(23)}, Ty: TyU8},  // store addr, val
+			{Op: OpConst, Dst: Reg(24), Imm: 1, Ty: TyU16},                      // stride
 			{Op: OpAdd, Dst: Reg(25), Src: [2]Reg{Reg(20), Reg(24)}, Ty: TyU16}, // idx_next = idx + 1
 		},
 		Term: &TermJmp{Target: "header", Args: []Reg{Reg(25)}},

@@ -21,7 +21,7 @@ import (
 // showcase.lizp must not hide showcase.plm, nor factorial.lizp factorial.pas.
 // MINZ_SHOWCASE_CHECK_KNOWN=1 executes these cases for an explicit failure audit.
 var knownFailures = map[string]string{
-	"examples/zmachine/zork-west-demo/zvm.nanz":        "host-only ZVM: story[131072] exceeds ordinary Z80 16-bit address space; native u32 spills are supported",
+	"examples/zmachine/zork-west-demo/zvm.nanz": "host-only ZVM: story[131072] exceeds ordinary Z80 16-bit address space; native u32 spills are supported",
 }
 
 // TestShowcaseCompileAssemble compiles every .nanz/.lanz/.plm/.lizp/.pas file

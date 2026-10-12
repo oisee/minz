@@ -18,22 +18,22 @@ import (
 )
 
 var (
-	loadAddr     uint
-	startAddr    uint
-	target       string
-	verbose      bool
-	cycles       bool
-	timeout      uint
-	debugMode    bool
+	loadAddr  uint
+	startAddr uint
+	target    string
+	verbose   bool
+	cycles    bool
+	timeout   uint
+	debugMode bool
 
 	// New flags
-	profilePath    string
-	tracePath      string
-	consolePort    string
-	consoleIO      bool
-	warnOnHalt     bool
-	breakAtTstate  int64
-	diag           bool
+	profilePath   string
+	tracePath     string
+	consolePort   string
+	consoleIO     bool
+	warnOnHalt    bool
+	breakAtTstate int64
+	diag          bool
 
 	cpmInputTickMS uint
 	cpmNoEcho      bool
@@ -246,7 +246,7 @@ SUPPORTED PLATFORMS (-t/--target):
 		if target == "cpm" {
 			sp := uint16(0xFE00) // top of TPA (below BDOS)
 			sp -= 2
-			z80.WriteMemory(sp, 0x00) // return addr lo = 0x00
+			z80.WriteMemory(sp, 0x00)   // return addr lo = 0x00
 			z80.WriteMemory(sp+1, 0x00) // return addr hi = 0x00
 			z80.SetSP(sp)
 		}
@@ -387,13 +387,13 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 	getFCBName := func(fcbAddr uint16) string {
 		var name, ext []byte
 		for i := uint16(1); i <= 8; i++ {
-			b := z80.ReadMemory(fcbAddr + i) & 0x7F
+			b := z80.ReadMemory(fcbAddr+i) & 0x7F
 			if b > 0x20 {
 				name = append(name, b)
 			}
 		}
 		for i := uint16(9); i <= 11; i++ {
-			b := z80.ReadMemory(fcbAddr + i) & 0x7F
+			b := z80.ReadMemory(fcbAddr+i) & 0x7F
 			if b > 0x20 {
 				ext = append(ext, b)
 			}
@@ -636,7 +636,7 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 			}
 			// Calculate file position from FCB: (s2*4096 + ex*128 + cr) * 128
 			ex := z80.ReadMemory(fcbAddr + 12)
-			s2 := z80.ReadMemory(fcbAddr + 14) & 0x7F
+			s2 := z80.ReadMemory(fcbAddr+14) & 0x7F
 			cr := z80.ReadMemory(fcbAddr + 32) // We use cr for handle, so seek from current pos
 			_ = cr
 			fpos := int64(s2)*4096*128 + int64(ex)*128*128
@@ -775,7 +775,7 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 		case 0x24: // Set random record from sequential
 			fcbAddr := de
 			ex := z80.ReadMemory(fcbAddr + 12)
-			s2 := z80.ReadMemory(fcbAddr + 14) & 0x7F
+			s2 := z80.ReadMemory(fcbAddr+14) & 0x7F
 			cr := z80.ReadMemory(fcbAddr + 32)
 			rec := int(s2)*4096 + int(ex)*128 + int(cr)
 			z80.WriteMemory(fcbAddr+33, byte(rec&0xFF))

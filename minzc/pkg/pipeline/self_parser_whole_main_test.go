@@ -336,7 +336,14 @@ func selfParserWholeMainNative(t *testing.T, mode string) {
 	done := false
 	for i := 0; i < 3000000; i++ {
 		pc := z.GetPC()
-		if z.IsHalted(){if z.GetSP()!=0xeffe{t.Fatal("terminalHALTstack",z.GetSP())};done=true;break};if pc == 0x7003 && z.GetSP() == 0xf000 {
+		if z.IsHalted() {
+			if z.GetSP() != 0xeffe {
+				t.Fatal("terminalHALTstack", z.GetSP())
+			}
+			done = true
+			break
+		}
+		if pc == 0x7003 && z.GetSP() == 0xf000 {
 			done = true
 			break
 		}

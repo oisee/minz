@@ -92,7 +92,7 @@ func preprocessFunctions(src string) string {
 }
 
 // abapAssertRe matches ABAP comment asserts:
-//   * assert fn(1, 2) == 42 via mir2
+//   - assert fn(1, 2) == 42 via mir2
 var abapAssertRe = regexp.MustCompile(
 	`^\s*[*"]\s*assert\s+(\w+)\s*\(([^)]*)\)\s*==\s*(-?(?:0[xX][0-9a-fA-F]+|\d+))(?:\s+via\s+(mir2|z80))?\s*$`,
 )
