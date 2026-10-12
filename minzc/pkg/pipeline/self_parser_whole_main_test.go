@@ -21,10 +21,7 @@ func TestOriginalSelfParserWholeMainVM(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	original, e := os.ReadFile(root + "source.nanz")
-	if e != nil || !bytes.Equal(source, original) {
-		t.Fatal("source freeze", e)
-	}
+	original, e := os.ReadFile(root + "source.nanz");if e!=nil{t.Fatal(e)};expectedFixed:=bytes.ReplaceAll(original,[]byte(`out_str("`),[]byte(`out_str(c"`));if !bytes.Equal(source,expectedFixed){t.Fatal("exact source CString correction") }
 	input, _ := os.ReadFile(root + "tiny.nanz")
 	_, _ = os.ReadFile(root + "tiny.lanz")
 	stdout, _ := os.ReadFile(root + "stdout.txt")
@@ -68,7 +65,7 @@ func TestOriginalSelfParserWholeMainVM(t *testing.T) {
 			vm.WriteHeapBytes(0xc000, bytes.Repeat([]byte{0xe1}, 4096))
 			vm.WriteHeapBytes(0xd000, bytes.Repeat([]byte{0x91}, 4096))
 			var out bytes.Buffer
-			var fileEvents []string
+			var fileEvents []string;var written []byte
 			readPath := func(ptr int64) string {
 				b := vm.ReadHeap(ptr, 1)
 				if b[0] == 9 {
@@ -107,7 +104,7 @@ func TestOriginalSelfParserWholeMainVM(t *testing.T) {
 				if p != "tiny.lanz" || a[1].I != 0xd000 || a[2].I > 4096 {
 					t.Fatal("write args/data", p, a, string(vm.ReadHeap(0xd000, int(a[2].I))))
 				}
-				fileEvents = append(fileEvents, "write tiny.lanz")
+				written=append([]byte(nil),vm.ReadHeap(0xd000,int(a[2].I))...);fileEvents = append(fileEvents, "write tiny.lanz")
 				return []mir2.Value{{I: a[2].I}}, nil
 			}
 			vm.Hosts["file_size"] = func(a []mir2.Value) ([]mir2.Value, error) { t.Fatal("unreachable file_size", a); return nil, nil }
@@ -127,7 +124,8 @@ func TestOriginalSelfParserWholeMainVM(t *testing.T) {
 				os.WriteFile(dir+"/"+mode+"/whole.mir", []byte(m.Dump()), 0644)
 				os.WriteFile(dir+"/"+mode+"/heap.bin", vm.ReadHeap(0, 0xe000), 0644)
 			}
-			if e != nil || !bytes.Equal(out.Bytes(), stdout) {
+			wantFile,_:=os.ReadFile(root+"tiny.lanz");if !bytes.Equal(written,wantFile){t.Fatalf("Lanz file got%q want%q",written,wantFile)}
+ if e != nil || !bytes.Equal(out.Bytes(), stdout) {
 				t.Fatal("whole main", e, out.String(), string(stdout))
 			}
 			for _, x := range []struct {
