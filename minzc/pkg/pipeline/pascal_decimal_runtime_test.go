@@ -13,7 +13,7 @@ import (
 	"testing"
 )
 
-func TestPascalDecimalBaselineObservation(t *testing.T) {
+func TestPascalSignedDecimalFullWordDomain(t *testing.T) {
 	source, e := os.ReadFile("../../../reports/pascal-decimal-runtime/factorial.pas")
 	if e != nil {
 		t.Fatal(e)
@@ -47,11 +47,13 @@ func TestPascalDecimalBaselineObservation(t *testing.T) {
 			os.WriteFile(p, b, 0644)
 		}
 	}
-	save("baseline.a80", asm)
-	save("baseline.bin", image.Binary)
-	save("baseline.mir", steps.MIR2Module.Dump())
+	save("fixed.a80", asm)
+	save("fixed.bin", image.Binary)
+	save("fixed.mir", steps.MIR2Module.Dump())
 	observations := []map[string]any{}
-	for _, word := range []uint16{0, 1, 9, 10, 99, 100, 999, 1000, 32767, 32768, 65535} {
+	total := 0
+	for input := 0; input < 65536; input++ {
+		word := uint16(input)
 		for _, clobber := range []bool{false, true} {
 			z := emulator.NewRemogattoZ80WithScreen()
 			z.SetROMEnd(0)
@@ -79,13 +81,16 @@ func TestPascalDecimalBaselineObservation(t *testing.T) {
 				return r.A, r.HL, true
 			})
 			e := z.Run()
-			observations = append(observations, map[string]any{"word": word, "signed": int16(word), "clobber": clobber, "stdout": string(out), "expected": fmt.Sprint(int16(word)), "error": implCPMErrorString(e), "registers": z.GetRegisters()})
-			if word < 32768 && !clobber && string(out) != fmt.Sprint(word) {
-				t.Fatal("positivebaseline")
+			if input%4096 == 0 || input == 32767 || input == 32768 || input == 65535 {
+				observations = append(observations, map[string]any{"word": word, "signed": int16(word), "clobber": clobber, "stdout": string(out), "expected": fmt.Sprint(int16(word)), "error": implCPMErrorString(e), "registers": z.GetRegisters()})
+			}
+			total++
+			if e != nil || string(out) != fmt.Sprint(int16(word)) || z.GetSP() != 0xf000 {
+				t.Fatal("signed decimal", word, clobber, string(out), fmt.Sprint(int16(word)), e, z.GetRegisters())
 			}
 		}
 	}
-	save("before.json", observations)
+	save("fixed.json", map[string]any{"calls": total, "samples": observations})
 	_ = bytes.Equal
 	_ = mir2.TyI16
 }
