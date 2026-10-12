@@ -175,8 +175,8 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		elseLbl := g.branchLabel(f, t.Else, elseCopies)
 
 		// Fall-through is only possible when there are no copies for that edge.
-		thenFT := g.isFallThrough(f, t.Then) && len(thenCopies) == 0
-		elseFT := g.isFallThrough(f, t.Else) && len(elseCopies) == 0
+		thenFT := g.isFallThrough(f, t.Then) && !hasEffectiveBlockCopies(thenCopies)
+		elseFT := g.isFallThrough(f, t.Else) && !hasEffectiveBlockCopies(elseCopies)
 
 		// Two-condition sentinels: CmpGt/CmpLe with lhs in A (no operand swap).
 		// CGT = NC && NZ (a > b); CLE = C || Z (a ≤ b).
@@ -358,7 +358,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		copies := g.buildBlockCopies(f, t.Then, t.ThenArgs)
 		thenLbl := g.branchLabel(f, t.Then, copies)
 		retCopies := g.buildReturnCopies(t.Vals)
-		thenFT := g.isFallThrough(f, t.Then) && len(copies) == 0
+		thenFT := g.isFallThrough(f, t.Then) && !hasEffectiveBlockCopies(copies)
 		frameBytes := g.localFrameDepth[g.curBlock.Label]
 
 		switch cc {
@@ -423,7 +423,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 // label is returned instead of the real target label.
 func (g *z80cg) branchLabel(f *Func, target string, copies []parallelCopy) string {
 	realLbl := blockLabel(f.Name, target)
-	if len(copies) == 0 {
+	if !hasEffectiveBlockCopies(copies) {
 		return realLbl
 	}
 	tramLbl := fmt.Sprintf(".%s_trmp%d", sanitizeIdent(f.Name), g.trampIdx)
@@ -434,6 +434,17 @@ func (g *z80cg) branchLabel(f *Func, target string, copies []parallelCopy) strin
 		target: realLbl,
 	})
 	return tramLbl
+}
+
+// Coalesced copies reserve physical locations for scratch selection when
+// other copies execute, but an edge consisting only of them emits no moves.
+func hasEffectiveBlockCopies(copies []parallelCopy) bool {
+	for _, c := range copies {
+		if c.isImm || c.srcName != c.dstName {
+			return true
+		}
+	}
+	return false
 }
 
 // isFallThrough reports whether targetLabel is the next physical block after
