@@ -1,0 +1,11 @@
+{
+  "checkpoint": "1d56e49c",
+  "terminal": "PASS",
+  "counts": {
+    "PASS": 74,
+    "FAIL": 0,
+    "SKIP": 0
+  },
+  "binary_sha256": "f9fd7a40544a6f4377d7cee1c43c42eae14cb5bb8684fd2323c91926e7e6292a",
+  "scope": "Full CLI after latest backend/VIR changes; no elapsed-duration claim in direct binary log. Other full pipeline/research remain separate."
+}
