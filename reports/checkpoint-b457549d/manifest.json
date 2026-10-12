@@ -2,7 +2,11 @@
   "files": [
     {
       "path": "README.md",
-      "sha256": "530bd309013727a6fd364be40425aa99cb2d3d986a4788568408222c61cd49ec"
+      "sha256": "b139c66d8c40ae6870bbaa4f383d3a60fb0864508ce9176cdc4c3787053a3fa1"
+    },
+    {
+      "path": "cli-full.txt",
+      "sha256": "d627a642e50d474a43bcdeea1aee366a5a51096531a01f8acb364851752b376d"
     },
     {
       "path": "core-initial.txt",

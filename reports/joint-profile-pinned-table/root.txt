@@ -1,0 +1,9 @@
+=== RUN   TestJointProfilePinnedTableCallerAndMutation
+    profile_joint_table_test.go:84: mask0: 125 bytes / 2255 T
+    profile_joint_table_test.go:84: mask1: 177 bytes / 1665 T
+    profile_joint_table_test.go:84: mask2: 177 bytes / 1665 T
+    profile_joint_table_test.go:84: mask3: 227 bytes / 1075 T
+    profile_joint_table_test.go:128: four measured caller combinations and table-mutation rejection PASS
+--- PASS: TestJointProfilePinnedTableCallerAndMutation (0.63s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.643s
