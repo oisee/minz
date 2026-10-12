@@ -1,0 +1,575 @@
+{
+  "stdout": "=== Material Master Report ===\nSelection: MTART = FERT (Finished Products)\n\nMATNR      MTART MEINS  BRGEW  NTGEW  MAKTX\n------------------------------------------------------\n100-100  FERT  ST  250  230  Pump Assembly GRUNDFOS\n100-110  FERT  ST  180  165  Motor 3-Phase 5kW\n200-100  FERT  ST  244  224  Desktop PC Standard\n------------------------------------------------------\n3 materials found.\n\n=== Weight Summary by Material Type ===\nDIEN: 1 materials, weight=0\nFERT: 3 materials, weight=162\nHALB: 1 materials, weight=50\nHAWA: 1 materials, weight=100\nROH: 1 materials, weight=10\n\nReport complete.\n",
+  "events": [
+    {
+      "function": "sqlite_open",
+      "args": [
+        0
+      ],
+      "result": 1
+    },
+    {
+      "function": "sqlite_exec",
+      "args": [
+        1
+      ],
+      "result": 0,
+      "sql": "CREATE TABLE mara (matnr TEXT, mtart TEXT, mbrsh TEXT, meins TEXT, brgew INTEGER, ntgew INTEGER)"
+    },
+    {
+      "function": "sqlite_exec",
+      "args": [
+        1
+      ],
+      "result": 0,
+      "sql": "INSERT INTO mara VALUES ('100-100', 'FERT', 'M', 'ST', 250, 230)"
+    },
+    {
+      "function": "sqlite_exec",
+      "args": [
+        1
+      ],
+      "result": 0,
+      "sql": "INSERT INTO mara VALUES ('100-110', 'FERT', 'M', 'ST', 180, 165)"
+    },
+    {
+      "function": "sqlite_exec",
+      "args": [
+        1
+      ],
+      "result": 0,
+      "sql": "INSERT INTO mara VALUES ('100-200', 'HALB', 'M', 'KG', 50, 45)"
+    },
+    {
+      "function": "sqlite_exec",
+      "args": [
+        1
+      ],
+      "result": 0,
+      "sql": "INSERT INTO mara VALUES ('100-300', 'ROH',  'M', 'KG', 10, 10)"
+    },
+    {
+      "function": "sqlite_exec",
+      "args": [
+        1
+      ],
+      "result": 0,
+      "sql": "INSERT INTO mara VALUES ('200-100', 'FERT', 'E', 'ST', 500, 480)"
+    },
+    {
+      "function": "sqlite_exec",
+      "args": [
+        1
+      ],
+      "result": 0,
+      "sql": "INSERT INTO mara VALUES ('200-200', 'HAWA', 'E', 'ST', 100, 95)"
+    },
+    {
+      "function": "sqlite_exec",
+      "args": [
+        1
+      ],
+      "result": 0,
+      "sql": "INSERT INTO mara VALUES ('300-100', 'DIEN', 'D', 'AU', 0, 0)"
+    },
+    {
+      "function": "sqlite_exec",
+      "args": [
+        1
+      ],
+      "result": 0,
+      "sql": "CREATE TABLE makt (matnr TEXT, spras TEXT, maktx TEXT)"
+    },
+    {
+      "function": "sqlite_exec",
+      "args": [
+        1
+      ],
+      "result": 0,
+      "sql": "INSERT INTO makt VALUES ('100-100', 'E', 'Pump Assembly GRUNDFOS')"
+    },
+    {
+      "function": "sqlite_exec",
+      "args": [
+        1
+      ],
+      "result": 0,
+      "sql": "INSERT INTO makt VALUES ('100-100', 'D', 'Pumpenaggregat GRUNDFOS')"
+    },
+    {
+      "function": "sqlite_exec",
+      "args": [
+        1
+      ],
+      "result": 0,
+      "sql": "INSERT INTO makt VALUES ('100-110', 'E', 'Motor 3-Phase 5kW')"
+    },
+    {
+      "function": "sqlite_exec",
+      "args": [
+        1
+      ],
+      "result": 0,
+      "sql": "INSERT INTO makt VALUES ('100-200', 'E', 'Shaft Steel DIN 1.4301')"
+    },
+    {
+      "function": "sqlite_exec",
+      "args": [
+        1
+      ],
+      "result": 0,
+      "sql": "INSERT INTO makt VALUES ('100-300', 'E', 'Steel Rod Raw Material')"
+    },
+    {
+      "function": "sqlite_exec",
+      "args": [
+        1
+      ],
+      "result": 0,
+      "sql": "INSERT INTO makt VALUES ('200-100', 'E', 'Desktop PC Standard')"
+    },
+    {
+      "function": "sqlite_exec",
+      "args": [
+        1
+      ],
+      "result": 0,
+      "sql": "INSERT INTO makt VALUES ('200-200', 'E', 'Office Chair Ergonomic')"
+    },
+    {
+      "function": "sqlite_exec",
+      "args": [
+        1
+      ],
+      "result": 0,
+      "sql": "INSERT INTO makt VALUES ('300-100', 'E', 'Consulting Service')"
+    },
+    {
+      "function": "sqlite_query",
+      "args": [
+        1
+      ],
+      "result": 1,
+      "sql": "SELECT m.matnr, m.mtart, m.meins, m.brgew, m.ntgew, t.maktx FROM mara m LEFT JOIN makt t ON m.matnr = t.matnr AND t.spras = 'E' WHERE m.mtart = 'FERT' ORDER BY m.matnr"
+    },
+    {
+      "function": "sqlite_step",
+      "args": [
+        1
+      ],
+      "result": 1
+    },
+    {
+      "function": "sqlite_column_text",
+      "args": [
+        1,
+        0
+      ],
+      "result": 0,
+      "text": "100-100"
+    },
+    {
+      "function": "sqlite_column_text",
+      "args": [
+        1,
+        1
+      ],
+      "result": 0,
+      "text": "FERT"
+    },
+    {
+      "function": "sqlite_column_text",
+      "args": [
+        1,
+        2
+      ],
+      "result": 0,
+      "text": "ST"
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        1,
+        3
+      ],
+      "result": 250
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        1,
+        4
+      ],
+      "result": 230
+    },
+    {
+      "function": "sqlite_column_text",
+      "args": [
+        1,
+        5
+      ],
+      "result": 0,
+      "text": "Pump Assembly GRUNDFOS"
+    },
+    {
+      "function": "sqlite_step",
+      "args": [
+        1
+      ],
+      "result": 1
+    },
+    {
+      "function": "sqlite_column_text",
+      "args": [
+        1,
+        0
+      ],
+      "result": 0,
+      "text": "100-110"
+    },
+    {
+      "function": "sqlite_column_text",
+      "args": [
+        1,
+        1
+      ],
+      "result": 0,
+      "text": "FERT"
+    },
+    {
+      "function": "sqlite_column_text",
+      "args": [
+        1,
+        2
+      ],
+      "result": 0,
+      "text": "ST"
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        1,
+        3
+      ],
+      "result": 180
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        1,
+        4
+      ],
+      "result": 165
+    },
+    {
+      "function": "sqlite_column_text",
+      "args": [
+        1,
+        5
+      ],
+      "result": 0,
+      "text": "Motor 3-Phase 5kW"
+    },
+    {
+      "function": "sqlite_step",
+      "args": [
+        1
+      ],
+      "result": 1
+    },
+    {
+      "function": "sqlite_column_text",
+      "args": [
+        1,
+        0
+      ],
+      "result": 0,
+      "text": "200-100"
+    },
+    {
+      "function": "sqlite_column_text",
+      "args": [
+        1,
+        1
+      ],
+      "result": 0,
+      "text": "FERT"
+    },
+    {
+      "function": "sqlite_column_text",
+      "args": [
+        1,
+        2
+      ],
+      "result": 0,
+      "text": "ST"
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        1,
+        3
+      ],
+      "result": 500
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        1,
+        4
+      ],
+      "result": 480
+    },
+    {
+      "function": "sqlite_column_text",
+      "args": [
+        1,
+        5
+      ],
+      "result": 0,
+      "text": "Desktop PC Standard"
+    },
+    {
+      "function": "sqlite_step",
+      "args": [
+        1
+      ],
+      "result": 0
+    },
+    {
+      "function": "sqlite_query",
+      "args": [
+        1
+      ],
+      "result": 2,
+      "sql": "SELECT mtart, COUNT(*), SUM(brgew) FROM mara GROUP BY mtart ORDER BY mtart"
+    },
+    {
+      "function": "sqlite_step",
+      "args": [
+        2
+      ],
+      "result": 1
+    },
+    {
+      "function": "sqlite_column_text",
+      "args": [
+        2,
+        0
+      ],
+      "result": 0,
+      "text": "DIEN"
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        2,
+        1
+      ],
+      "result": 1
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        2,
+        2
+      ],
+      "result": 0
+    },
+    {
+      "function": "sqlite_step",
+      "args": [
+        2
+      ],
+      "result": 1
+    },
+    {
+      "function": "sqlite_column_text",
+      "args": [
+        2,
+        0
+      ],
+      "result": 0,
+      "text": "FERT"
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        2,
+        1
+      ],
+      "result": 3
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        2,
+        2
+      ],
+      "result": 930
+    },
+    {
+      "function": "sqlite_step",
+      "args": [
+        2
+      ],
+      "result": 1
+    },
+    {
+      "function": "sqlite_column_text",
+      "args": [
+        2,
+        0
+      ],
+      "result": 0,
+      "text": "HALB"
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        2,
+        1
+      ],
+      "result": 1
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        2,
+        2
+      ],
+      "result": 50
+    },
+    {
+      "function": "sqlite_step",
+      "args": [
+        2
+      ],
+      "result": 1
+    },
+    {
+      "function": "sqlite_column_text",
+      "args": [
+        2,
+        0
+      ],
+      "result": 0,
+      "text": "HAWA"
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        2,
+        1
+      ],
+      "result": 1
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        2,
+        2
+      ],
+      "result": 100
+    },
+    {
+      "function": "sqlite_step",
+      "args": [
+        2
+      ],
+      "result": 1
+    },
+    {
+      "function": "sqlite_column_text",
+      "args": [
+        2,
+        0
+      ],
+      "result": 0,
+      "text": "ROH"
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        2,
+        1
+      ],
+      "result": 1
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        2,
+        2
+      ],
+      "result": 10
+    },
+    {
+      "function": "sqlite_step",
+      "args": [
+        2
+      ],
+      "result": 0
+    },
+    {
+      "function": "sqlite_close",
+      "args": [
+        1
+      ],
+      "result": 0
+    }
+  ],
+  "rows": [
+    [
+      "100-100",
+      "FERT",
+      "ST",
+      250,
+      230,
+      "Pump Assembly GRUNDFOS"
+    ],
+    [
+      "100-110",
+      "FERT",
+      "ST",
+      180,
+      165,
+      "Motor 3-Phase 5kW"
+    ],
+    [
+      "200-100",
+      "FERT",
+      "ST",
+      500,
+      480,
+      "Desktop PC Standard"
+    ]
+  ],
+  "summary": [
+    [
+      "DIEN",
+      1,
+      0
+    ],
+    [
+      "FERT",
+      3,
+      930
+    ],
+    [
+      "HALB",
+      1,
+      50
+    ],
+    [
+      "HAWA",
+      1,
+      100
+    ],
+    [
+      "ROH",
+      1,
+      10
+    ]
+  ]
+}
