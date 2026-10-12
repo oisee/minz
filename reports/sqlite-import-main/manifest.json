@@ -1,0 +1,32 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "e3bcaee11f3c32b239562b8bdf85f005bac97995773258471da43fa39d85b7e8"
+    },
+    {
+      "path": "frozen/freeze.json",
+      "sha256": "ef19d8a0960258a381975b2e60b46cdaa725a28da0b4334b022ff7e6a4259790"
+    },
+    {
+      "path": "frozen/render.nanz",
+      "sha256": "4711dbee908a2271f02d1fbb4720942604e23322d7745f32311f6b2c17c6d4a8"
+    },
+    {
+      "path": "frozen/sqlite.nanz",
+      "sha256": "bc177e0dc25ad2f36f3694b115439356efbfb3d956b46b2701afe82bde277fc8"
+    },
+    {
+      "path": "frozen/sqlite_test.nanz",
+      "sha256": "1cb96794bf14cbb5c2e5affbf5f8d83828df601b42943118be9c0f48b9e0c15b"
+    },
+    {
+      "path": "frozen/stdout.bin",
+      "sha256": "eb55cc553c33de630e0553c40e90c33f0b2ca930635e5d50d749e1aa30ba2a98"
+    },
+    {
+      "path": "root.txt",
+      "sha256": "3a1baae905b1b621f894ee528080d9f37fed136432a5fa22aaaa9f7dc4fbb317"
+    }
+  ]
+}

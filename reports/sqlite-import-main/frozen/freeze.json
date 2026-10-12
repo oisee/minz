@@ -1,0 +1,43 @@
+{
+  "sources": {
+    "examples/nanz/sqlite_test.nanz": "1cb96794bf14cbb5c2e5affbf5f8d83828df601b42943118be9c0f48b9e0c15b",
+    "stdlib/sql/sqlite.nanz": "bc177e0dc25ad2f36f3694b115439356efbfb3d956b46b2701afe82bde277fc8",
+    "stdlib/tui/render.nanz": "4711dbee908a2271f02d1fbb4720942604e23322d7745f32311f6b2c17c6d4a8"
+  },
+  "stdout_sha256": "eb55cc553c33de630e0553c40e90c33f0b2ca930635e5d50d749e1aa30ba2a98",
+  "column_texts": [
+    "MAT-001",
+    "FERT",
+    "ST",
+    "MAT-002",
+    "HALB",
+    "KG",
+    "MAT-003",
+    "ROH",
+    "L"
+  ],
+  "commands": [
+    1,
+    8,
+    8,
+    8,
+    8,
+    3,
+    4,
+    5,
+    5,
+    5,
+    4,
+    5,
+    5,
+    5,
+    4,
+    5,
+    5,
+    5,
+    4,
+    7,
+    2
+  ],
+  "scope": "Original port/ASM source main on native; real SQLite, exact stdout and command/data protocol; no VM ASM emulation or physical CP/M claim"
+}

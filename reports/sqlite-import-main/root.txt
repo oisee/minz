@@ -1,0 +1,16 @@
+=== RUN   TestOriginalSQLiteImportedMainNative
+=== RUN   TestOriginalSQLiteImportedMainNative/ordinary
+    original_sqlite_import_main_test.go:221: false 1973 26137 92 original main native PASS
+    original_sqlite_import_main_test.go:221: true 1973 26137 92 original main native PASS
+=== RUN   TestOriginalSQLiteImportedMainNative/grace-size
+    original_sqlite_import_main_test.go:221: false 1977 26145 92 original main native PASS
+    original_sqlite_import_main_test.go:221: true 1977 26145 92 original main native PASS
+=== RUN   TestOriginalSQLiteImportedMainNative/grace-speed
+    original_sqlite_import_main_test.go:221: false 1977 26145 92 original main native PASS
+    original_sqlite_import_main_test.go:221: true 1977 26145 92 original main native PASS
+--- PASS: TestOriginalSQLiteImportedMainNative (0.21s)
+    --- PASS: TestOriginalSQLiteImportedMainNative/ordinary (0.06s)
+    --- PASS: TestOriginalSQLiteImportedMainNative/grace-size (0.07s)
+    --- PASS: TestOriginalSQLiteImportedMainNative/grace-speed (0.08s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.223s
