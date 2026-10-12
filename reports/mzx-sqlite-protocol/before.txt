@@ -1,0 +1,11 @@
+=== RUN   TestMZXSQLiteProviderPublicProtocol
+=== RUN   TestMZXSQLiteProviderPublicProtocol/handles_status_and_fresh_query
+    sqlite_ports_test.go:20: open status43 got0 want1
+=== RUN   TestMZXSQLiteProviderPublicProtocol/errors_invalid_columns_and_integer_bounds
+    sqlite_ports_test.go:31: query error must return handle0 1
+--- FAIL: TestMZXSQLiteProviderPublicProtocol (0.00s)
+    --- FAIL: TestMZXSQLiteProviderPublicProtocol/handles_status_and_fresh_query (0.00s)
+    --- FAIL: TestMZXSQLiteProviderPublicProtocol/errors_invalid_columns_and_integer_bounds (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/cmd/mzx	0.007s
+FAIL
