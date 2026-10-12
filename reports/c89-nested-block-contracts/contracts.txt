@@ -1,0 +1,82 @@
+=== RUN   TestC89ExampleHIRContracts
+=== RUN   TestC89ExampleHIRContracts/assert_test.c
+=== RUN   TestC89ExampleHIRContracts/bench.c
+=== RUN   TestC89ExampleHIRContracts/bench_extended.c
+=== RUN   TestC89ExampleHIRContracts/bitops.c
+=== RUN   TestC89ExampleHIRContracts/c99_c11.c
+=== RUN   TestC89ExampleHIRContracts/c99_compound.c
+=== RUN   TestC89ExampleHIRContracts/c99_control.c
+=== RUN   TestC89ExampleHIRContracts/c99_designated.c
+=== RUN   TestC89ExampleHIRContracts/c99_preproc.c
+=== RUN   TestC89ExampleHIRContracts/c99_types.c
+=== RUN   TestC89ExampleHIRContracts/cast_test.c
+=== RUN   TestC89ExampleHIRContracts/compound_lit.c
+=== RUN   TestC89ExampleHIRContracts/constfold_showcase.c
+=== RUN   TestC89ExampleHIRContracts/cpm_io.c
+=== RUN   TestC89ExampleHIRContracts/dowhile_break.c
+=== RUN   TestC89ExampleHIRContracts/enum_test.c
+=== RUN   TestC89ExampleHIRContracts/fatfs_constructs.c
+=== RUN   TestC89ExampleHIRContracts/fatfs_lowlevel.c
+=== RUN   TestC89ExampleHIRContracts/flex_array.c
+=== RUN   TestC89ExampleHIRContracts/func_ptr.c
+=== RUN   TestC89ExampleHIRContracts/game_helpers.c
+=== RUN   TestC89ExampleHIRContracts/goto_test.c
+=== RUN   TestC89ExampleHIRContracts/hello.c
+=== RUN   TestC89ExampleHIRContracts/import_test.c
+=== RUN   TestC89ExampleHIRContracts/imported_math.c
+=== RUN   TestC89ExampleHIRContracts/logical.c
+=== RUN   TestC89ExampleHIRContracts/math16.c
+=== RUN   TestC89ExampleHIRContracts/math8.c
+=== RUN   TestC89ExampleHIRContracts/minmax_pair.c
+=== RUN   TestC89ExampleHIRContracts/nested_struct.c
+=== RUN   TestC89ExampleHIRContracts/sdcc_benchmark.c
+=== RUN   TestC89ExampleHIRContracts/sizeof_test.c
+=== RUN   TestC89ExampleHIRContracts/static_local.c
+=== RUN   TestC89ExampleHIRContracts/string8.c
+=== RUN   TestC89ExampleHIRContracts/struct_promote.c
+=== RUN   TestC89ExampleHIRContracts/switch.c
+=== RUN   TestC89ExampleHIRContracts/ternary.c
+=== RUN   TestC89ExampleHIRContracts/typeof_test.c
+=== RUN   TestC89ExampleHIRContracts/union_test.c
+--- PASS: TestC89ExampleHIRContracts (0.03s)
+    --- PASS: TestC89ExampleHIRContracts/assert_test.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/bench.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/bench_extended.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/bitops.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/c99_c11.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/c99_compound.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/c99_control.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/c99_designated.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/c99_preproc.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/c99_types.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/cast_test.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/compound_lit.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/constfold_showcase.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/cpm_io.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/dowhile_break.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/enum_test.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/fatfs_constructs.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/fatfs_lowlevel.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/flex_array.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/func_ptr.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/game_helpers.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/goto_test.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/hello.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/import_test.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/imported_math.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/logical.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/math16.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/math8.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/minmax_pair.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/nested_struct.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/sdcc_benchmark.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/sizeof_test.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/static_local.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/string8.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/struct_promote.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/switch.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/ternary.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/typeof_test.c (0.00s)
+    --- PASS: TestC89ExampleHIRContracts/union_test.c (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/c89	0.037s

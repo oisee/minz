@@ -1,0 +1,11 @@
+{
+  "files": {
+    "README.md": "8372b5648db8d446d743204cb60075508395a30fb7f4cf767cee7aba614c4dea",
+    "after.jsonl": "d688792d4d9651e8b97a03ee6989b5b08d23c9fc467cee64710c1e54c8fc82ca",
+    "audit.go": "485c0e92957236b528c4062e6e2b53f01c81cf34f834613f10efd6cff874cb84",
+    "before.jsonl": "70360b352bb3bb0186b47da06d2eab933f5ba8de8d48acff9d928096b1caec32",
+    "c89-full.txt": "f2bfa58a5daea2aef6b9f59bc6a7d79a95e969e6cedd3fe0818f4324c568009b",
+    "contracts.txt": "2b193b7baf874465503651720f900203d8d51a192ecb662acce884e428433fe8",
+    "native-vm.txt": "728f64b2318a450894efc0f6dce0e1af1a8e132d8ac4ba5e119466d823106ad8"
+  }
+}

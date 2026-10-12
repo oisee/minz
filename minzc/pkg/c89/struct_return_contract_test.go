@@ -77,3 +77,81 @@ func TestDesignatedStructReturnContractVMZ80(t *testing.T) {
 		}
 	}
 }
+
+// Both lexical branches of the original function must return the ordered pair.
+func TestMinmaxNestedStructReturnVMZ80(t *testing.T) {
+	source, err := os.ReadFile("../../../examples/c89/minmax_pair.c")
+	if err != nil {
+		t.Fatal(err)
+	}
+	parse := func() *hir.Module {
+		h, err := Compile(string(source), "minmax_pair.c")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := hir.Verify(h); err != nil {
+			t.Fatal(err)
+		}
+		return h
+	}
+	check := func(vm *mir2.VM) {
+		for a := int64(0); a < 256; a++ {
+			for b := int64(0); b < 256; b++ {
+				lo, hi := a, b
+				if a > b {
+					lo, hi = b, a
+				}
+				for _, tc := range []struct {
+					name string
+					want int64
+				}{{"smaller", lo}, {"larger", hi}} {
+					got, err := vm.Call(tc.name, []mir2.Value{{I: a}, {I: b}})
+					if err != nil || len(got) != 1 || got[0].I != tc.want {
+						t.Fatalf("%s(%d,%d): %v, want %d, err %v", tc.name, a, b, got, tc.want, err)
+					}
+				}
+			}
+		}
+	}
+	check(mir2.NewVM(hir.LowerModule(parse())))
+	for _, opts := range []pipeline.Options{{ContractOpt: true}, {ContractOpt: true, UseHIRGrace: true, UseGrace: true}, {ContractOpt: true, UseHIRGrace: true, UseGrace: true, OptSize: true}} {
+		h := parse()
+		for _, a := range []int64{0, 1, 255, 256, 32767, 32768, 65535} {
+			for _, b := range []int64{0, 1, 255, 256, 32767, 32768, 65535} {
+				lo, hi := a, b
+				if a > b {
+					lo, hi = b, a
+				}
+				h.Asserts = append(h.Asserts, hir.Assert{FuncName: "smaller", Args: []int64{a, b}, Expected: lo, Via: "z80"}, hir.Assert{FuncName: "larger", Args: []int64{a, b}, Expected: hi, Via: "z80"})
+			}
+		}
+		steps, err := pipeline.CompileHIRSteps(h, opts)
+		if err != nil {
+			t.Fatal(err)
+		}
+		check(mir2.NewVM(steps.MIR2Module))
+	}
+}
+
+func TestC89ExampleHIRContracts(t *testing.T) {
+	paths, err := filepath.Glob("../../../examples/c89/*.c")
+	if err != nil || len(paths) == 0 {
+		t.Fatalf("C89 examples: %v, %d files", err, len(paths))
+	}
+	for _, path := range paths {
+		t.Run(filepath.Base(path), func(t *testing.T) {
+			source, err := os.ReadFile(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			h, err := CompileWithOpts(string(source), filepath.Base(path), CompileOpts{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := hir.Verify(h); err != nil {
+				t.Fatal(err)
+			}
+			hir.LowerModule(h)
+		})
+	}
+}

@@ -1,0 +1,6 @@
+=== RUN   TestDesignatedStructReturnContractVMZ80
+--- PASS: TestDesignatedStructReturnContractVMZ80 (0.06s)
+=== RUN   TestMinmaxNestedStructReturnVMZ80
+--- PASS: TestMinmaxNestedStructReturnVMZ80 (0.80s)
+PASS
+ok  	github.com/minz/minzc/pkg/c89	0.866s
