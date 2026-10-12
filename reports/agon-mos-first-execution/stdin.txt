@@ -1,0 +1,4 @@
+load hello.bin &40045
+run &40045
+a
+echo MINZ_RETURNED

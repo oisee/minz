@@ -1,0 +1,22 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "93266c436719606a0035ad9c659251d9b864722fb20e29329876b8022bd7dad2"
+  },
+  {
+    "path": "hello.bin",
+    "sha256": "0b2d206deaaeaaebb0f8a48f3e4ed99bdfda59b12f598e675b85d2ba778bbffd"
+  },
+  {
+    "path": "stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "stdin.txt",
+    "sha256": "66baca0002f97213e434a08ffa86f1787b37fd0350904ef53f253df8c2d39ad5"
+  },
+  {
+    "path": "stdout.txt",
+    "sha256": "7972d2ffab93a6e9735c2fff450c7ff695b71caa5206779e0e1f73b8b6ae356a"
+  }
+]
