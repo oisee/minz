@@ -62,10 +62,13 @@ func pascalCPMWhole(t *testing.T, production bool) {
 	}
 }
 func pascalCPMWholeMode(t *testing.T, production bool, mode string, opt Options) {
-	for _, program := range []struct{ name, want string }{{"hello", "Hello from Pascal on Z80!\r\n"}, {"factorial", "5040\r\n"}} {
+	pascalCPMProgramMode(t, production, mode, opt, "../../../reports/pascal-cpm-main", []struct{ name, want string }{{"hello", "Hello from Pascal on Z80!\r\n"}, {"factorial", "5040\r\n"}})
+}
+func pascalCPMProgramMode(t *testing.T, production bool, mode string, opt Options, frozenDir string, programs []struct{ name, want string }) {
+	for _, program := range programs {
 
 		t.Run(program.name, func(t *testing.T) {
-			source, e := os.ReadFile("../../../reports/pascal-cpm-main/" + program.name + ".pas")
+			source, e := os.ReadFile(frozenDir + "/" + program.name + ".pas")
 			if e != nil {
 				t.Fatal(e)
 			}
@@ -143,11 +146,11 @@ func pascalCPMWholeMode(t *testing.T, production bool, mode string, opt Options)
 					case 2:
 						out = append(out, byte(rr.DE))
 					case 9:
-						addr := rr.DE
-						if program.name != "hello" {
+						if program.name == "factorial" {
 							t.Fatal("unexpected BDOS9 on numeric program")
 						}
-						literal := []byte("Hello from Pascal on Z80!$")
+						addr := rr.DE
+						literal := []byte(strings.TrimSuffix(program.want, "\r\n") + "$")
 						if int(addr) < 0x100 || int(addr)+len(literal) > 0x100+len(image.Binary) || !bytes.Equal(mem[int(addr):int(addr)+len(literal)], literal) {
 							t.Fatal("BDOS9 not exact source literal")
 						}
