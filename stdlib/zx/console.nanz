@@ -180,9 +180,8 @@ fun con_putchar(ch: u8) -> void {
     }
 }
 
-fun con_draw_char(col: u8, row: u8, ch: u8) -> void {
-    // PBQP assigns: col=B, row=D, ch=C for this 3-param function
-    // (verified from generated signature)
+fun con_draw_char(@z80_b col: u8, @z80_d row: u8, @z80_c ch: u8) -> void {
+    // Explicit register ABI: the ASM body reads col=B, row=D, ch=C.
     asm z80 (in col, row, ch) {
         ; Entry: B=col, D=row, C=ch
         LD IYL, B           ; IYL = col
