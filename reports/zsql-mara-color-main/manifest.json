@@ -1,0 +1,36 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "8c23d9e2d420286c6c331e5a4e4ed5d44b995aeacf4a1ce0165348663a5c9ddf"
+    },
+    {
+      "path": "font-before.txt",
+      "sha256": "31f19829c2fc568b45545090ddd69efd9568895a3010a8e25069e5c97fdef076"
+    },
+    {
+      "path": "frozen/font.bin",
+      "sha256": "cfc6408b429f4374660042275e0ed00d2bec74ac31e3df4fdc986c3f61b73f11"
+    },
+    {
+      "path": "frozen/freeze.json",
+      "sha256": "bc3956c673987373bef9ec9da358952c2bbee236ceae044837729dd8239eead4"
+    },
+    {
+      "path": "frozen/output.bin",
+      "sha256": "0ef8fdfa73103694cb12f48125b3772a7c0fdbe7900f7ca257d13c59815fd744"
+    },
+    {
+      "path": "frozen/source-before-font.nanz",
+      "sha256": "c7e23b4a549b4627672bc37fcdbb75e15d32c6ad54e8604e225836dd07f4286f"
+    },
+    {
+      "path": "frozen/source.nanz",
+      "sha256": "276c8e88303743887f96c8cbcd840a615d5b6a5868cb44c88cc491d92ab7ff4a"
+    },
+    {
+      "path": "root.txt",
+      "sha256": "ed3c6d12311ad3bad1194abef9addcdec32a2018ef03e36f02abf56b79ea72fb"
+    }
+  ]
+}

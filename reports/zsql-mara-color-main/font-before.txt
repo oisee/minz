@@ -1,0 +1,14 @@
+=== RUN   TestOriginalZSQLMaraColorMainNative
+=== RUN   TestOriginalZSQLMaraColorMainNative/ordinary
+    original_zsql_mara_color_main_test.go:82: source font capacity 2 bytes, printable font needs 760
+=== RUN   TestOriginalZSQLMaraColorMainNative/grace-size
+    original_zsql_mara_color_main_test.go:82: source font capacity 2 bytes, printable font needs 760
+=== RUN   TestOriginalZSQLMaraColorMainNative/grace-speed
+    original_zsql_mara_color_main_test.go:82: source font capacity 2 bytes, printable font needs 760
+--- FAIL: TestOriginalZSQLMaraColorMainNative (0.00s)
+    --- FAIL: TestOriginalZSQLMaraColorMainNative/ordinary (0.00s)
+    --- FAIL: TestOriginalZSQLMaraColorMainNative/grace-size (0.00s)
+    --- FAIL: TestOriginalZSQLMaraColorMainNative/grace-speed (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.009s
+FAIL
