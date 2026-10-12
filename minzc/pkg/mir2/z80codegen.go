@@ -254,6 +254,11 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 		return "", err
 	}
 	if opt.Runtime == Z80RuntimeCPM {
+		var closureErr error
+		m, closureErr = cpmRuntimeClosure(m, ar)
+		if closureErr != nil {
+			return "", closureErr
+		}
 		if err := validateCPMApplicationRuntime(m, ar); err != nil {
 			return "", err
 		}
@@ -483,6 +488,9 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 		}
 		adapters := map[string][]string{}
 		for _, f := range m.Funcs {
+			if body := cpmTUIAdapter(f, ar); body != nil {
+				adapters[f.Name] = body
+			}
 			if body := cpmPascalOutputAdapter(f, ar); body != nil {
 				adapters[f.Name] = body
 			}
