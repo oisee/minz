@@ -1,0 +1,318 @@
+=== RUN   TestAdapterMixedCopiesNative
+=== RUN   TestAdapterMixedCopiesNative/A_to_BC
+=== RUN   TestAdapterMixedCopiesNative/BC_to_A
+=== RUN   TestAdapterMixedCopiesNative/A_to_DE
+=== RUN   TestAdapterMixedCopiesNative/DE_to_A
+=== RUN   TestAdapterMixedCopiesNative/A_to_HL
+=== RUN   TestAdapterMixedCopiesNative/HL_to_A
+=== RUN   TestAdapterMixedCopiesNative/A_to_IX
+=== RUN   TestAdapterMixedCopiesNative/IX_to_A
+=== RUN   TestAdapterMixedCopiesNative/A_to_IY
+=== RUN   TestAdapterMixedCopiesNative/IY_to_A
+=== RUN   TestAdapterMixedCopiesNative/B_to_BC
+=== RUN   TestAdapterMixedCopiesNative/BC_to_B
+=== RUN   TestAdapterMixedCopiesNative/B_to_DE
+=== RUN   TestAdapterMixedCopiesNative/DE_to_B
+=== RUN   TestAdapterMixedCopiesNative/B_to_HL
+=== RUN   TestAdapterMixedCopiesNative/HL_to_B
+=== RUN   TestAdapterMixedCopiesNative/B_to_IX
+=== RUN   TestAdapterMixedCopiesNative/IX_to_B
+=== RUN   TestAdapterMixedCopiesNative/B_to_IY
+=== RUN   TestAdapterMixedCopiesNative/IY_to_B
+=== RUN   TestAdapterMixedCopiesNative/C_to_BC
+=== RUN   TestAdapterMixedCopiesNative/BC_to_C
+=== RUN   TestAdapterMixedCopiesNative/C_to_DE
+=== RUN   TestAdapterMixedCopiesNative/DE_to_C
+=== RUN   TestAdapterMixedCopiesNative/C_to_HL
+=== RUN   TestAdapterMixedCopiesNative/HL_to_C
+=== RUN   TestAdapterMixedCopiesNative/C_to_IX
+=== RUN   TestAdapterMixedCopiesNative/IX_to_C
+=== RUN   TestAdapterMixedCopiesNative/C_to_IY
+=== RUN   TestAdapterMixedCopiesNative/IY_to_C
+=== RUN   TestAdapterMixedCopiesNative/D_to_BC
+=== RUN   TestAdapterMixedCopiesNative/BC_to_D
+=== RUN   TestAdapterMixedCopiesNative/D_to_DE
+=== RUN   TestAdapterMixedCopiesNative/DE_to_D
+=== RUN   TestAdapterMixedCopiesNative/D_to_HL
+=== RUN   TestAdapterMixedCopiesNative/HL_to_D
+=== RUN   TestAdapterMixedCopiesNative/D_to_IX
+=== RUN   TestAdapterMixedCopiesNative/IX_to_D
+=== RUN   TestAdapterMixedCopiesNative/D_to_IY
+=== RUN   TestAdapterMixedCopiesNative/IY_to_D
+=== RUN   TestAdapterMixedCopiesNative/E_to_BC
+=== RUN   TestAdapterMixedCopiesNative/BC_to_E
+=== RUN   TestAdapterMixedCopiesNative/E_to_DE
+=== RUN   TestAdapterMixedCopiesNative/DE_to_E
+=== RUN   TestAdapterMixedCopiesNative/E_to_HL
+=== RUN   TestAdapterMixedCopiesNative/HL_to_E
+=== RUN   TestAdapterMixedCopiesNative/E_to_IX
+=== RUN   TestAdapterMixedCopiesNative/IX_to_E
+=== RUN   TestAdapterMixedCopiesNative/E_to_IY
+=== RUN   TestAdapterMixedCopiesNative/IY_to_E
+=== RUN   TestAdapterMixedCopiesNative/H_to_BC
+=== RUN   TestAdapterMixedCopiesNative/BC_to_H
+=== RUN   TestAdapterMixedCopiesNative/H_to_DE
+=== RUN   TestAdapterMixedCopiesNative/DE_to_H
+=== RUN   TestAdapterMixedCopiesNative/H_to_HL
+=== RUN   TestAdapterMixedCopiesNative/HL_to_H
+=== RUN   TestAdapterMixedCopiesNative/H_to_IX
+=== RUN   TestAdapterMixedCopiesNative/IX_to_H
+=== RUN   TestAdapterMixedCopiesNative/H_to_IY
+=== RUN   TestAdapterMixedCopiesNative/IY_to_H
+=== RUN   TestAdapterMixedCopiesNative/L_to_BC
+=== RUN   TestAdapterMixedCopiesNative/BC_to_L
+=== RUN   TestAdapterMixedCopiesNative/L_to_DE
+=== RUN   TestAdapterMixedCopiesNative/DE_to_L
+=== RUN   TestAdapterMixedCopiesNative/L_to_HL
+=== RUN   TestAdapterMixedCopiesNative/HL_to_L
+=== RUN   TestAdapterMixedCopiesNative/L_to_IX
+=== RUN   TestAdapterMixedCopiesNative/IX_to_L
+=== RUN   TestAdapterMixedCopiesNative/L_to_IY
+=== RUN   TestAdapterMixedCopiesNative/IY_to_L
+=== RUN   TestAdapterMixedCopiesNative/IXH_to_BC
+=== RUN   TestAdapterMixedCopiesNative/BC_to_IXH
+=== RUN   TestAdapterMixedCopiesNative/IXH_to_DE
+=== RUN   TestAdapterMixedCopiesNative/DE_to_IXH
+=== RUN   TestAdapterMixedCopiesNative/IXH_to_HL
+=== RUN   TestAdapterMixedCopiesNative/HL_to_IXH
+=== RUN   TestAdapterMixedCopiesNative/IXH_to_IX
+=== RUN   TestAdapterMixedCopiesNative/IX_to_IXH
+=== RUN   TestAdapterMixedCopiesNative/IXH_to_IY
+=== RUN   TestAdapterMixedCopiesNative/IY_to_IXH
+=== RUN   TestAdapterMixedCopiesNative/IXL_to_BC
+=== RUN   TestAdapterMixedCopiesNative/BC_to_IXL
+=== RUN   TestAdapterMixedCopiesNative/IXL_to_DE
+=== RUN   TestAdapterMixedCopiesNative/DE_to_IXL
+=== RUN   TestAdapterMixedCopiesNative/IXL_to_HL
+=== RUN   TestAdapterMixedCopiesNative/HL_to_IXL
+=== RUN   TestAdapterMixedCopiesNative/IXL_to_IX
+=== RUN   TestAdapterMixedCopiesNative/IX_to_IXL
+=== RUN   TestAdapterMixedCopiesNative/IXL_to_IY
+=== RUN   TestAdapterMixedCopiesNative/IY_to_IXL
+=== RUN   TestAdapterMixedCopiesNative/IYH_to_BC
+=== RUN   TestAdapterMixedCopiesNative/BC_to_IYH
+=== RUN   TestAdapterMixedCopiesNative/IYH_to_DE
+=== RUN   TestAdapterMixedCopiesNative/DE_to_IYH
+=== RUN   TestAdapterMixedCopiesNative/IYH_to_HL
+=== RUN   TestAdapterMixedCopiesNative/HL_to_IYH
+=== RUN   TestAdapterMixedCopiesNative/IYH_to_IX
+=== RUN   TestAdapterMixedCopiesNative/IX_to_IYH
+=== RUN   TestAdapterMixedCopiesNative/IYH_to_IY
+=== RUN   TestAdapterMixedCopiesNative/IY_to_IYH
+=== RUN   TestAdapterMixedCopiesNative/IYL_to_BC
+=== RUN   TestAdapterMixedCopiesNative/BC_to_IYL
+=== RUN   TestAdapterMixedCopiesNative/IYL_to_DE
+=== RUN   TestAdapterMixedCopiesNative/DE_to_IYL
+=== RUN   TestAdapterMixedCopiesNative/IYL_to_HL
+=== RUN   TestAdapterMixedCopiesNative/HL_to_IYL
+=== RUN   TestAdapterMixedCopiesNative/IYL_to_IX
+=== RUN   TestAdapterMixedCopiesNative/IX_to_IYL
+=== RUN   TestAdapterMixedCopiesNative/IYL_to_IY
+=== RUN   TestAdapterMixedCopiesNative/IY_to_IYL
+--- PASS: TestAdapterMixedCopiesNative (0.38s)
+    --- PASS: TestAdapterMixedCopiesNative/A_to_BC (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/BC_to_A (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/A_to_DE (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/DE_to_A (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/A_to_HL (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/HL_to_A (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/A_to_IX (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IX_to_A (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/A_to_IY (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IY_to_A (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/B_to_BC (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/BC_to_B (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/B_to_DE (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/DE_to_B (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/B_to_HL (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/HL_to_B (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/B_to_IX (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IX_to_B (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/B_to_IY (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IY_to_B (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/C_to_BC (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/BC_to_C (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/C_to_DE (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/DE_to_C (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/C_to_HL (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/HL_to_C (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/C_to_IX (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IX_to_C (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/C_to_IY (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IY_to_C (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/D_to_BC (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/BC_to_D (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/D_to_DE (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/DE_to_D (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/D_to_HL (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/HL_to_D (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/D_to_IX (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IX_to_D (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/D_to_IY (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IY_to_D (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/E_to_BC (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/BC_to_E (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/E_to_DE (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/DE_to_E (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/E_to_HL (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/HL_to_E (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/E_to_IX (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IX_to_E (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/E_to_IY (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IY_to_E (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/H_to_BC (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/BC_to_H (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/H_to_DE (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/DE_to_H (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/H_to_HL (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/HL_to_H (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/H_to_IX (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IX_to_H (0.02s)
+    --- PASS: TestAdapterMixedCopiesNative/H_to_IY (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IY_to_H (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/L_to_BC (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/BC_to_L (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/L_to_DE (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/DE_to_L (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/L_to_HL (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/HL_to_L (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/L_to_IX (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IX_to_L (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/L_to_IY (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IY_to_L (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/IXH_to_BC (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/BC_to_IXH (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/IXH_to_DE (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/DE_to_IXH (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/IXH_to_HL (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/HL_to_IXH (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/IXH_to_IX (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IX_to_IXH (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IXH_to_IY (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IY_to_IXH (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/IXL_to_BC (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/BC_to_IXL (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/IXL_to_DE (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/DE_to_IXL (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/IXL_to_HL (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/HL_to_IXL (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/IXL_to_IX (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IX_to_IXL (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IXL_to_IY (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IY_to_IXL (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/IYH_to_BC (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/BC_to_IYH (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IYH_to_DE (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/DE_to_IYH (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/IYH_to_HL (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/HL_to_IYH (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/IYH_to_IX (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IX_to_IYH (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/IYH_to_IY (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IY_to_IYH (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/IYL_to_BC (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/BC_to_IYL (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/IYL_to_DE (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/DE_to_IYL (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/IYL_to_HL (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/HL_to_IYL (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/IYL_to_IX (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IX_to_IYL (0.01s)
+    --- PASS: TestAdapterMixedCopiesNative/IYL_to_IY (0.00s)
+    --- PASS: TestAdapterMixedCopiesNative/IY_to_IYL (0.00s)
+=== RUN   TestAdapterMixedCyclesNative
+=== RUN   TestAdapterMixedCyclesNative/A_with_BC
+=== RUN   TestAdapterMixedCyclesNative/A_with_DE
+=== RUN   TestAdapterMixedCyclesNative/A_with_HL
+=== RUN   TestAdapterMixedCyclesNative/A_with_IX
+=== RUN   TestAdapterMixedCyclesNative/A_with_IY
+=== RUN   TestAdapterMixedCyclesNative/B_with_DE
+=== RUN   TestAdapterMixedCyclesNative/B_with_HL
+=== RUN   TestAdapterMixedCyclesNative/B_with_IX
+=== RUN   TestAdapterMixedCyclesNative/B_with_IY
+=== RUN   TestAdapterMixedCyclesNative/C_with_DE
+=== RUN   TestAdapterMixedCyclesNative/C_with_HL
+=== RUN   TestAdapterMixedCyclesNative/C_with_IX
+=== RUN   TestAdapterMixedCyclesNative/C_with_IY
+=== RUN   TestAdapterMixedCyclesNative/D_with_BC
+=== RUN   TestAdapterMixedCyclesNative/D_with_HL
+=== RUN   TestAdapterMixedCyclesNative/D_with_IX
+=== RUN   TestAdapterMixedCyclesNative/D_with_IY
+=== RUN   TestAdapterMixedCyclesNative/E_with_BC
+=== RUN   TestAdapterMixedCyclesNative/E_with_HL
+=== RUN   TestAdapterMixedCyclesNative/E_with_IX
+=== RUN   TestAdapterMixedCyclesNative/E_with_IY
+=== RUN   TestAdapterMixedCyclesNative/H_with_BC
+=== RUN   TestAdapterMixedCyclesNative/H_with_DE
+=== RUN   TestAdapterMixedCyclesNative/H_with_IX
+=== RUN   TestAdapterMixedCyclesNative/H_with_IY
+=== RUN   TestAdapterMixedCyclesNative/L_with_BC
+=== RUN   TestAdapterMixedCyclesNative/L_with_DE
+=== RUN   TestAdapterMixedCyclesNative/L_with_IX
+=== RUN   TestAdapterMixedCyclesNative/L_with_IY
+=== RUN   TestAdapterMixedCyclesNative/IXH_with_BC
+=== RUN   TestAdapterMixedCyclesNative/IXH_with_DE
+=== RUN   TestAdapterMixedCyclesNative/IXH_with_HL
+=== RUN   TestAdapterMixedCyclesNative/IXH_with_IY
+=== RUN   TestAdapterMixedCyclesNative/IXL_with_BC
+=== RUN   TestAdapterMixedCyclesNative/IXL_with_DE
+=== RUN   TestAdapterMixedCyclesNative/IXL_with_HL
+=== RUN   TestAdapterMixedCyclesNative/IXL_with_IY
+=== RUN   TestAdapterMixedCyclesNative/IYH_with_BC
+=== RUN   TestAdapterMixedCyclesNative/IYH_with_DE
+=== RUN   TestAdapterMixedCyclesNative/IYH_with_HL
+=== RUN   TestAdapterMixedCyclesNative/IYH_with_IX
+=== RUN   TestAdapterMixedCyclesNative/IYL_with_BC
+=== RUN   TestAdapterMixedCyclesNative/IYL_with_DE
+=== RUN   TestAdapterMixedCyclesNative/IYL_with_HL
+=== RUN   TestAdapterMixedCyclesNative/IYL_with_IX
+=== NAME  TestAdapterMixedCyclesNative
+    adapter_mixed_copy_native_test.go:178: 45 mixed cycles, 2949120 native calls
+--- PASS: TestAdapterMixedCyclesNative (0.84s)
+    --- PASS: TestAdapterMixedCyclesNative/A_with_BC (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/A_with_DE (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/A_with_HL (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/A_with_IX (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/A_with_IY (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/B_with_DE (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/B_with_HL (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/B_with_IX (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/B_with_IY (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/C_with_DE (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/C_with_HL (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/C_with_IX (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/C_with_IY (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/D_with_BC (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/D_with_HL (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/D_with_IX (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/D_with_IY (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/E_with_BC (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/E_with_HL (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/E_with_IX (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/E_with_IY (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/H_with_BC (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/H_with_DE (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/H_with_IX (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/H_with_IY (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/L_with_BC (0.03s)
+    --- PASS: TestAdapterMixedCyclesNative/L_with_DE (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/L_with_IX (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/L_with_IY (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/IXH_with_BC (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/IXH_with_DE (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/IXH_with_HL (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/IXH_with_IY (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/IXL_with_BC (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/IXL_with_DE (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/IXL_with_HL (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/IXL_with_IY (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/IYH_with_BC (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/IYH_with_DE (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/IYH_with_HL (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/IYH_with_IX (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/IYL_with_BC (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/IYL_with_DE (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/IYL_with_HL (0.02s)
+    --- PASS: TestAdapterMixedCyclesNative/IYL_with_IX (0.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	1.228s
