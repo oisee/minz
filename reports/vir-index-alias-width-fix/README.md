@@ -1,0 +1,9 @@
+# VIR index aliases and storage width
+
+The shared solver interference list omitted IX=IXH+IXL and IY=IYH+IYL. CFG transfer ordering also omitted these overlaps. Add both index pairs to global/per-instruction/CFG interference and checked-table identity, and to transfer dependencies. CFG word values retain 16-bit storage; byte constants retain byte storage instead of acquiring uninitialized pair halves. Flags-producing byte operations continue to follow their pattern locations.
+
+Independent regression: unchanged row-major board[y*5+x] getter/setter, parameters derived from actual supplied allocation. Baseline fails set(0,0,0), leaving the expected cell unchanged. Corrected code passes all25 cells×256 values:6400 stores and6400 reads; stores independently checked against the expected address, all other board bytes and untouched adjacent bytes, exact PC/SP for every call. Separate compute(x)=2*(x+1) passes all256 byte inputs via MIR VM and assembled Z80. Broad assert/table/indexed/island/word-return family PASS3.003s, before adding the final exhaustive call test. Full VIR research gate started separately; not yet a claimed PASS.
+
+Correction to earlier probe: seeding board-1 had overwritten the preceding RET instruction. The permanent test seeds only the board and checks existing adjacent bytes without writing them. before.txt/before.a80 repeat the baseline with this corrected oracle and still demonstrate a real store failure. Older probe remains historical and does not substantiate full-domain results.
+
+Production full pipeline cbf01110 runs its unchanged immutable checkpoint separately. This fix affects research VIR; it does not certify arbitrary CFG/island combinations. Existing Double16ThenDec quality expectation remains unchanged. Checked table identities include the expanded aliases, so old assignments are not silently reused under changed constraints.

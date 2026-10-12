@@ -315,11 +315,13 @@ type pairAlias struct {
 	pair, hi, lo int
 }
 
-// Z80 pair aliasing: BC(7)=B(1)+C(2), DE(8)=D(3)+E(4), HL(9)=H(5)+L(6)
+// Z80 pair aliasing includes index registers and their undocumented halves.
 var pairAliases = []pairAlias{
-	{7, 1, 2}, // BC = B + C
-	{8, 3, 4}, // DE = D + E
-	{9, 5, 6}, // HL = H + L
+	{7, 1, 2},    // BC = B + C
+	{8, 3, 4},    // DE = D + E
+	{9, 5, 6},    // HL = H + L
+	{11, 14, 15}, // IX = IXH + IXL
+	{12, 16, 17}, // IY = IYH + IYL
 }
 
 // ── Constraint Rule ──────────────────────────────────────────────────────────

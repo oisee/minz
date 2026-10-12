@@ -1,0 +1,9 @@
+=== RUN   TestVIRIndexedHelpersNativeDomain
+[regalloc] loaded 56 exhaustive entries from regalloc_exhaustive.json
+    indexed_helpers_native_test.go:141: 6400 stores and 6400 reads; all 25 cells, all byte values, adjacent memory and exact PC/SP PASS
+--- PASS: TestVIRIndexedHelpersNativeDomain (0.49s)
+=== RUN   TestVIRChainedCallsFullByteDomain
+    indexed_helpers_native_test.go:154: chained_calls_full_byte: 256 asserts passed ✓ (MIR2-VM + Z80)
+--- PASS: TestVIRChainedCallsFullByteDomain (0.19s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.689s

@@ -57,6 +57,10 @@ func locsOverlap(desc *MachineDesc, w, r int) bool {
 		return rName == "D" || rName == "E"
 	case "BC":
 		return rName == "B" || rName == "C"
+	case "IX":
+		return rName == "IXH" || rName == "IXL"
+	case "IY":
+		return rName == "IYH" || rName == "IYL"
 	}
 	// Check if r (pair) subsumes w (half)
 	switch rName {
@@ -66,6 +70,10 @@ func locsOverlap(desc *MachineDesc, w, r int) bool {
 		return wName == "D" || wName == "E"
 	case "BC":
 		return wName == "B" || wName == "C"
+	case "IX":
+		return wName == "IXH" || wName == "IXL"
+	case "IY":
+		return wName == "IYH" || wName == "IYL"
 	}
 	return false
 }
@@ -511,6 +519,17 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 		}
 	}
 
+	// Word values must retain both bytes across location changes. Byte constants
+	// must not grow into a pair and later be read through an uninitialized half.
+	// Other byte operations can produce flags; their pattern constrains storage.
+	valueWidths := make(map[int]int)
+	for _, bp := range blocks {
+		for _, op := range bp.ops {
+			if op.Dst > 0 && (op.Width == 16 || op.Op == OpConst && op.Width == 8) {
+				valueWidths[op.Dst] = op.Width
+			}
+		}
+	}
 	ensureVar := func(vreg, block, inst int) string {
 		name := fmt.Sprintf("lv%d_b%d_i%d", vreg, block, inst)
 		key := varKey{vreg, block, inst}
@@ -518,6 +537,9 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 			vars[key] = true
 			b.WriteString(fmt.Sprintf("(declare-const %s Int)\n", name))
 			b.WriteString(fmt.Sprintf("(assert (and (>= %s 0) (< %s %d)))\n", name, name, nLocs))
+			if width := valueWidths[vreg]; width > 0 {
+				b.WriteString(fmt.Sprintf("(assert %s) ; stored value width\n", locSetToSMT(name, desc.LocsOfWidth(width))))
+			}
 			// Exclude non-allocatable locations (F, SP) from general vreg storage.
 			// Exception: if a forced single-choice pattern requires this vreg to be
 			// at a NonAllocatable loc (e.g. CMP destination → F register), skip that

@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "93f159cd9c52ba47cdd5d589d3b6a398cbe0a783cb12c562001eb77d529f16b6"
+    },
+    {
+      "path": "after.a80",
+      "sha256": "52275ed0e21d66f34c4930fb621ddae214378c68ed283b1d252379b7ab8ffbbe"
+    },
+    {
+      "path": "before.a80",
+      "sha256": "e4bacd9e4c312b90f2e7c26f53020928e9a46e0b4d1c2c95ebc5d32bb27f8c86"
+    },
+    {
+      "path": "before.txt",
+      "sha256": "780feb3e9706a1865e6849af7090d42db92dd7cc12b209a37e43bcd3a2514c63"
+    },
+    {
+      "path": "chained_calls_full_byte/allocation.json",
+      "sha256": "4cb4cb4f5a8a03ad2398622f6d70dd3bf04ac0511b9796d75c34263730b94913"
+    },
+    {
+      "path": "chained_calls_full_byte/module.a80",
+      "sha256": "b785b59ab0d8234f3bdceecbfaf1d67c897b71a5edc874820eb65ced8e0b9877"
+    },
+    {
+      "path": "chained_calls_full_byte/module.mir",
+      "sha256": "0ecaa219064008695030a1229642b494b756ea09b17b115fe7745d42ae5b3f74"
+    },
+    {
+      "path": "chained_calls_full_byte/source.nanz",
+      "sha256": "17ae80b19f6ada319f5f128bba8ec1690ff828362c40eb0a74fe10fbfdab659a"
+    },
+    {
+      "path": "family.txt",
+      "sha256": "89f592995bef502cc21e29b2ff97e379baa84074582691aac7f54afe1a092e93"
+    },
+    {
+      "path": "native.txt",
+      "sha256": "1a9b7cbddc5655b65275a33370c501f601bfa70f12eebdd4325cd03f9620e7f1"
+    }
+  ]
+}
