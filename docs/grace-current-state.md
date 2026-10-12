@@ -1,5 +1,7 @@
 # Grace / PGO: текущее состояние
 
+Неизменённый Commander whole main интегрирован: совместный VM/native gate **PASS 2,358 с** на `0d599b34`. [Пакет 300](grace-integration-300/README.md). Generated L3 имеет отдельный сценарий и пока не доказан.
+
 SQL result-filter followup `9ec0f503`: unknown-column refusal и LIMIT-before-filter на настоящей SQLite PASS; весь `cmd/mzv` PASS. [Пакет 299](grace-integration-299/README.md). Полный screen_report proof ещё в работе.
 
 Исходные ALV и piped `tui_demo` интегрированы: совместно с SQLite demo raw/final VM и native **PASS 2,216 с** на `34082988`. [Пакет 298](grace-integration-298/README.md). Screen report и commander остаются в работе.
