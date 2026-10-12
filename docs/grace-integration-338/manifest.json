@@ -6,7 +6,7 @@
     },
     {
       "path": "catalog.json",
-      "sha256": "ffcae51e1c3892742f9d57291127cdb04ecbe1257ca8fc1b449e60766562bbfe"
+      "sha256": "d91db330f7a5842c91d3fc9cc9ecff67ec04db33c2245e0f91f31aa3d76f8b20"
     },
     {
       "path": "catalog.txt",
@@ -14,7 +14,7 @@
     },
     {
       "path": "reviewed-updates.json",
-      "sha256": "c5503e74d8f67e35f3e202eb544f6c0bd40db8d0686bfd87422e6878a41c75e5"
+      "sha256": "320d90b11344e023b62beb409c1422e74b9d7b8408186623da16e23233a0a939"
     }
   ]
 }

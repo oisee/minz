@@ -1,0 +1,18 @@
+{
+  "emulator": {
+    "path": "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/fab-agon-emulator",
+    "sha256": "7dee136f9c44d1eceea38e30b26769d2c80ac11b1844e638eda45cd34b54e282"
+  },
+  "mos": {
+    "path": "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+    "sha256": "5fbacb749ee037f0428aeac39817b5a6d465adc020f92d4020bb7dcb046d39fe"
+  },
+  "vdp": {
+    "path": "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/vdp_console8.so",
+    "sha256": "7028583607b1d0b3f272dcd223d148a7ce58e4596b300c9c5eb455e3de7815dd"
+  },
+  "sdl": {
+    "path": "/home/alice/dev/minz-artifacts/grace-tools/sdl3/lib/libSDL3.so.0.4.18",
+    "sha256": "e898ed324edb03ad29d547c84e56b6397b3755c02f03c49b046fda90d50264fe"
+  }
+}

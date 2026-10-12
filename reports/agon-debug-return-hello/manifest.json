@@ -26,5 +26,13 @@
   {
     "path": "source.nanz",
     "sha256": "44f505b14ac4c5c674db470d9f81684aeaf078498c03ad267e81a05d13d25f90"
+  },
+  {
+    "path": "tools.json",
+    "sha256": "41d263c2d2066fc13ba3e55faa31f02b2993111d7c8f1d3d4521c1f14c145c95"
+  },
+  {
+    "path": "verify.py",
+    "sha256": "75e3e5257d140f2b2b6fb94e58b271354ad45ba3f32c1db6ed265c02e03fe9ee"
   }
 ]
