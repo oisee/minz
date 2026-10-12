@@ -1928,10 +1928,10 @@
     "native_behavior": "bounded-independent-vm-native",
     "workload": "All256\u00b3clamp andallbytepairsabs,unarydouble3modes",
     "independent_model": "Independent byte clamp/abs/double",
-    "boundary": "Allsourceasserts retained; exactsource March13 duplicate independently read; rootfullPASS111.521s",
+    "boundary": "Allsourceasserts retained; exactsource March13 duplicate independently read; rootfullPASS111.521s; unchanged full domain independently rerun after metadata reuse and isolated parallel modes: PASS44.835s",
     "evidence": {
       "reports/original-assert-smc-hello-corpus/manifest.json": "938fa58bbabadcbed80b3f9fa1d078575aca57029b9b7779025ec642441f7dfc",
-      "minzc/pkg/pipeline/original_assert_corpus_test.go": "10d3e75c0388edcc281a354c7b0963b28c7b25a7f75a21904628f8167a122a7e"
+      "minzc/pkg/pipeline/original_assert_corpus_test.go": "782c176b9a1d2b0d22e3d465b1b4c6792adaf6ec53b7417bef3d1e5229bc5381"
     }
   },
   {
@@ -2107,10 +2107,10 @@
     "native_behavior": "bounded-independent-vm-native",
     "workload": "All256\u00b3clamp andallbytepairsabs,unarydouble3modes",
     "independent_model": "Independent byte clamp/abs/double",
-    "boundary": "Allsourceasserts retained; exactsource March13 duplicate independently read; rootfullPASS111.521s",
+    "boundary": "Allsourceasserts retained; exactsource March13 duplicate independently read; rootfullPASS111.521s; unchanged full domain independently rerun after metadata reuse and isolated parallel modes: PASS44.835s",
     "evidence": {
       "reports/original-assert-smc-hello-corpus/manifest.json": "938fa58bbabadcbed80b3f9fa1d078575aca57029b9b7779025ec642441f7dfc",
-      "minzc/pkg/pipeline/original_assert_corpus_test.go": "10d3e75c0388edcc281a354c7b0963b28c7b25a7f75a21904628f8167a122a7e"
+      "minzc/pkg/pipeline/original_assert_corpus_test.go": "782c176b9a1d2b0d22e3d465b1b4c6792adaf6ec53b7417bef3d1e5229bc5381"
     }
   },
   {
