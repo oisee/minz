@@ -344,10 +344,8 @@
       "hir_target": 0,
       "inline_asm_contracts": [
         "target=\"z80\" ret=\"\" clobber_all=false clobber=[] code=\"RST.LIL $10\"",
-        "target=\"z80\" ret=\"\" clobber_all=false clobber=[] code=\"LD A, $1B\\n        RST.LIL $10\"",
         "target=\"z80\" ret=\"\" clobber_all=false clobber=[] code=\".loop: LD A, (HL) / OR A / RET Z\\n        RST.LIL $10\\n        INC HL\\n        JR .loop\"",
         "target=\"z80\" ret=\"\" clobber_all=false clobber=[] code=\"RST.LIL $10\"",
-        "target=\"z80\" ret=\"\" clobber_all=false clobber=[] code=\"; A = val (0-255)\\n        LD B, A\\n        ; Hundreds digit\\n        LD C, 0\\n        .hloop: CP 100 / JR C, .hdone / SUB 100 / INC C / JR .hloop\\n        .hdone:\\n        LD B, A\\n        LD A, C / OR A / JR Z, .skip_h\\n        ADD A, 48 / RST.LIL $10\\n        .skip_h:\\n        ; Tens digit\\n        LD A, B / LD C, 0\\n        .tloop: CP 10 / JR C, .tdone / SUB 10 / INC C / JR .tloop\\n        .tdone:\\n        LD B, A\\n        LD A, C / ADD A, 48 / RST.LIL $10\\n        ; Units digit\\n        LD A, B / ADD A, 48 / RST.LIL $10\"",
         "target=\"z80\" ret=\"A\" clobber_all=false clobber=[] code=\"LD A, $00     ; MOS_GETKEY\\n        RST.LIL $08\"",
         "target=\"z80\" ret=\"A\" clobber_all=false clobber=[] code=\"; HL = buf (from param 0), A = maxlen (from param 1)\\n        LD B, A        ; B = maxlen\\n        LD C, 1        ; C = 1 (clear buffer before use)\\n        LD A, $09      ; MOS_EDITLINE\\n        RST.LIL $08\\n        ; On return: A = length of string entered\"",
         "target=\"z80\" ret=\"A\" clobber_all=false clobber=[] code=\"LD A, 80\"",
@@ -357,10 +355,8 @@
       "source_sha256": "8063ebaf25ab5faff632017874a06d1db25019fa7efe559c4d0cfc6f3b3e9b38",
       "frontend": ".nanz",
       "entries": [
-        "agon__tui_render___tui_esc",
         "agon__tui_render___tui_mos_putchar",
         "agon__tui_render___tui_mos_puts",
-        "agon__tui_render___tui_print_dec",
         "agon__tui_render___tui_vdu",
         "agon__tui_render__clear_rect",
         "agon__tui_render__draw_box",
@@ -395,44 +391,44 @@
       "native_behavior": "agon-mos-runtime",
       "workload": "Three CLI modes: initial eight-file list, Up at zero, Enter selection0, ESC;1024-byte exact ANSI stream.",
       "independent_model": "Independent source/library-derived ANSI model; inverse only known fake VDP ESC diagnostic; reject repeated MOS boot or other unknown packets.",
-      "external_requirement_or_remaining_work": "Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof;no Down/arbitrary navigation proof.",
+      "external_requirement_or_remaining_work": "Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof;no Down/arbitrary navigation proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence.",
       "entry_structure_not_execution_claim": "declares main; whole-main execution not implied",
       "reviewed_evidence": [
         {
           "test_or_artifact": "minzc/pkg/pipeline/agon_corpus_product_test.go",
           "evidence_file_sha256": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Three CLI modes: initial eight-file list, Up at zero, Enter selection0, ESC;1024-byte exact ANSI stream.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof;no Down/arbitrary navigation proof."
+          "scope": "Three CLI modes: initial eight-file list, Up at zero, Enter selection0, ESC;1024-byte exact ANSI stream.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof;no Down/arbitrary navigation proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence."
         },
         {
           "test_or_artifact": "reports/agon-entry-fix/manifest.json",
           "evidence_file_sha256": "fcf4fb7aea98fe4ab3345713e7a1a8465ee43c91495b7cd52d7b7d921bf39ac6",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Three CLI modes: initial eight-file list, Up at zero, Enter selection0, ESC;1024-byte exact ANSI stream.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof;no Down/arbitrary navigation proof."
+          "scope": "Three CLI modes: initial eight-file list, Up at zero, Enter selection0, ESC;1024-byte exact ANSI stream.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof;no Down/arbitrary navigation proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence."
         },
         {
           "test_or_artifact": "reports/agon-nc-navigation/manifest.json",
           "evidence_file_sha256": "1037b25cfc62f82ed0ff8696b23af3485c5aad48f2b31134fc3b945281e71c5c",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Three CLI modes: initial eight-file list, Up at zero, Enter selection0, ESC;1024-byte exact ANSI stream.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof;no Down/arbitrary navigation proof."
+          "scope": "Three CLI modes: initial eight-file list, Up at zero, Enter selection0, ESC;1024-byte exact ANSI stream.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof;no Down/arbitrary navigation proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence."
         },
         {
           "test_or_artifact": "reports/agon-product-audit/manifest.json",
           "evidence_file_sha256": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Three CLI modes: initial eight-file list, Up at zero, Enter selection0, ESC;1024-byte exact ANSI stream.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof;no Down/arbitrary navigation proof."
+          "scope": "Three CLI modes: initial eight-file list, Up at zero, Enter selection0, ESC;1024-byte exact ANSI stream.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof;no Down/arbitrary navigation proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence."
         },
         {
           "test_or_artifact": "reports/agon-product-audit/root.txt",
           "evidence_file_sha256": "31936901fb106c4808aea698dfeee5cc7260a10d52c9a1866baeaaba76152bd4",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Three CLI modes: initial eight-file list, Up at zero, Enter selection0, ESC;1024-byte exact ANSI stream.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof;no Down/arbitrary navigation proof."
+          "scope": "Three CLI modes: initial eight-file list, Up at zero, Enter selection0, ESC;1024-byte exact ANSI stream.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof;no Down/arbitrary navigation proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence."
         },
         {
           "test_or_artifact": "scripts/agon_tui_stream_model.py",
           "evidence_file_sha256": "18e79aff84bf54ef1449321fd2392fc0c35befd56a6ffde1e43e0538b67357b8",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Three CLI modes: initial eight-file list, Up at zero, Enter selection0, ESC;1024-byte exact ANSI stream.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof;no Down/arbitrary navigation proof."
+          "scope": "Three CLI modes: initial eight-file list, Up at zero, Enter selection0, ESC;1024-byte exact ANSI stream.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof;no Down/arbitrary navigation proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence."
         }
       ],
       "test_source_references_not_execution_claim": []
@@ -441,10 +437,8 @@
       "hir_target": 0,
       "inline_asm_contracts": [
         "target=\"z80\" ret=\"\" clobber_all=false clobber=[] code=\"RST.LIL $10\"",
-        "target=\"z80\" ret=\"\" clobber_all=false clobber=[] code=\"LD A, $1B\\n        RST.LIL $10\"",
         "target=\"z80\" ret=\"\" clobber_all=false clobber=[] code=\".loop: LD A, (HL) / OR A / RET Z\\n        RST.LIL $10\\n        INC HL\\n        JR .loop\"",
         "target=\"z80\" ret=\"\" clobber_all=false clobber=[] code=\"RST.LIL $10\"",
-        "target=\"z80\" ret=\"\" clobber_all=false clobber=[] code=\"; A = val (0-255)\\n        LD B, A\\n        ; Hundreds digit\\n        LD C, 0\\n        .hloop: CP 100 / JR C, .hdone / SUB 100 / INC C / JR .hloop\\n        .hdone:\\n        LD B, A\\n        LD A, C / OR A / JR Z, .skip_h\\n        ADD A, 48 / RST.LIL $10\\n        .skip_h:\\n        ; Tens digit\\n        LD A, B / LD C, 0\\n        .tloop: CP 10 / JR C, .tdone / SUB 10 / INC C / JR .tloop\\n        .tdone:\\n        LD B, A\\n        LD A, C / ADD A, 48 / RST.LIL $10\\n        ; Units digit\\n        LD A, B / ADD A, 48 / RST.LIL $10\"",
         "target=\"z80\" ret=\"A\" clobber_all=false clobber=[] code=\"LD A, $00     ; MOS_GETKEY\\n        RST.LIL $08\"",
         "target=\"z80\" ret=\"A\" clobber_all=false clobber=[] code=\"; HL = buf (from param 0), A = maxlen (from param 1)\\n        LD B, A        ; B = maxlen\\n        LD C, 1        ; C = 1 (clear buffer before use)\\n        LD A, $09      ; MOS_EDITLINE\\n        RST.LIL $08\\n        ; On return: A = length of string entered\"",
         "target=\"z80\" ret=\"A\" clobber_all=false clobber=[] code=\"LD A, 80\"",
@@ -454,10 +448,8 @@
       "source_sha256": "afcadba573f924da7fcaf74574a8ec451be8ffb37eb0b3aa8567a6757d2957bd",
       "frontend": ".nanz",
       "entries": [
-        "agon__tui_render___tui_esc",
         "agon__tui_render___tui_mos_putchar",
         "agon__tui_render___tui_mos_puts",
-        "agon__tui_render___tui_print_dec",
         "agon__tui_render___tui_vdu",
         "agon__tui_render__clear_rect",
         "agon__tui_render__draw_box",
@@ -488,44 +480,44 @@
       "native_behavior": "agon-mos-runtime",
       "workload": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.",
       "independent_model": "Independent source/library-derived ANSI model; inverse only known fake VDP ESC diagnostic; reject repeated MOS boot or other unknown packets.",
-      "external_requirement_or_remaining_work": "Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof.",
+      "external_requirement_or_remaining_work": "Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence.",
       "entry_structure_not_execution_claim": "declares main; whole-main execution not implied",
       "reviewed_evidence": [
         {
           "test_or_artifact": "minzc/pkg/pipeline/agon_corpus_product_test.go",
           "evidence_file_sha256": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence."
         },
         {
           "test_or_artifact": "reports/agon-entry-fix/manifest.json",
           "evidence_file_sha256": "fcf4fb7aea98fe4ab3345713e7a1a8465ee43c91495b7cd52d7b7d921bf39ac6",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence."
         },
         {
           "test_or_artifact": "reports/agon-product-audit/manifest.json",
           "evidence_file_sha256": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence."
         },
         {
           "test_or_artifact": "reports/agon-product-audit/root.txt",
           "evidence_file_sha256": "31936901fb106c4808aea698dfeee5cc7260a10d52c9a1866baeaaba76152bd4",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence."
         },
         {
           "test_or_artifact": "reports/agon-tui-stream-matrix/manifest.json",
           "evidence_file_sha256": "331dd1e19c5bc3232f99ff1bb01b56999186996803c341ef4c7f719a30f22e20",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence."
         },
         {
           "test_or_artifact": "scripts/agon_tui_stream_model.py",
           "evidence_file_sha256": "18e79aff84bf54ef1449321fd2392fc0c35befd56a6ffde1e43e0538b67357b8",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence."
         }
       ],
       "test_source_references_not_execution_claim": [
@@ -537,10 +529,8 @@
       "hir_target": 0,
       "inline_asm_contracts": [
         "target=\"z80\" ret=\"\" clobber_all=false clobber=[] code=\"RST.LIL $10\"",
-        "target=\"z80\" ret=\"\" clobber_all=false clobber=[] code=\"LD A, $1B\\n        RST.LIL $10\"",
         "target=\"z80\" ret=\"\" clobber_all=false clobber=[] code=\".loop: LD A, (HL) / OR A / RET Z\\n        RST.LIL $10\\n        INC HL\\n        JR .loop\"",
         "target=\"z80\" ret=\"\" clobber_all=false clobber=[] code=\"RST.LIL $10\"",
-        "target=\"z80\" ret=\"\" clobber_all=false clobber=[] code=\"; A = val (0-255)\\n        LD B, A\\n        ; Hundreds digit\\n        LD C, 0\\n        .hloop: CP 100 / JR C, .hdone / SUB 100 / INC C / JR .hloop\\n        .hdone:\\n        LD B, A\\n        LD A, C / OR A / JR Z, .skip_h\\n        ADD A, 48 / RST.LIL $10\\n        .skip_h:\\n        ; Tens digit\\n        LD A, B / LD C, 0\\n        .tloop: CP 10 / JR C, .tdone / SUB 10 / INC C / JR .tloop\\n        .tdone:\\n        LD B, A\\n        LD A, C / ADD A, 48 / RST.LIL $10\\n        ; Units digit\\n        LD A, B / ADD A, 48 / RST.LIL $10\"",
         "target=\"z80\" ret=\"A\" clobber_all=false clobber=[] code=\"LD A, $00     ; MOS_GETKEY\\n        RST.LIL $08\"",
         "target=\"z80\" ret=\"A\" clobber_all=false clobber=[] code=\"; HL = buf (from param 0), A = maxlen (from param 1)\\n        LD B, A        ; B = maxlen\\n        LD C, 1        ; C = 1 (clear buffer before use)\\n        LD A, $09      ; MOS_EDITLINE\\n        RST.LIL $08\\n        ; On return: A = length of string entered\"",
         "target=\"z80\" ret=\"A\" clobber_all=false clobber=[] code=\"LD A, 80\"",
@@ -550,10 +540,8 @@
       "source_sha256": "44f505b14ac4c5c674db470d9f81684aeaf078498c03ad267e81a05d13d25f90",
       "frontend": ".nanz",
       "entries": [
-        "agon__tui_render___tui_esc",
         "agon__tui_render___tui_mos_putchar",
         "agon__tui_render___tui_mos_puts",
-        "agon__tui_render___tui_print_dec",
         "agon__tui_render___tui_vdu",
         "agon__tui_render__clear_rect",
         "agon__tui_render__draw_box",
@@ -584,44 +572,44 @@
       "native_behavior": "agon-mos-runtime",
       "workload": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.",
       "independent_model": "Independent source/library-derived ANSI model; inverse only known fake VDP ESC diagnostic; reject repeated MOS boot or other unknown packets.",
-      "external_requirement_or_remaining_work": "Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof.",
+      "external_requirement_or_remaining_work": "Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence.",
       "entry_structure_not_execution_claim": "declares main; whole-main execution not implied",
       "reviewed_evidence": [
         {
           "test_or_artifact": "minzc/pkg/pipeline/agon_corpus_product_test.go",
           "evidence_file_sha256": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence."
         },
         {
           "test_or_artifact": "reports/agon-entry-fix/manifest.json",
           "evidence_file_sha256": "fcf4fb7aea98fe4ab3345713e7a1a8465ee43c91495b7cd52d7b7d921bf39ac6",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence."
         },
         {
           "test_or_artifact": "reports/agon-product-audit/manifest.json",
           "evidence_file_sha256": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence."
         },
         {
           "test_or_artifact": "reports/agon-product-audit/root.txt",
           "evidence_file_sha256": "31936901fb106c4808aea698dfeee5cc7260a10d52c9a1866baeaaba76152bd4",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence."
         },
         {
           "test_or_artifact": "reports/agon-tui-stream-matrix/manifest.json",
           "evidence_file_sha256": "331dd1e19c5bc3232f99ff1bb01b56999186996803c341ef4c7f719a30f22e20",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence."
         },
         {
           "test_or_artifact": "scripts/agon_tui_stream_model.py",
           "evidence_file_sha256": "18e79aff84bf54ef1449321fd2392fc0c35befd56a6ffde1e43e0538b67357b8",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence."
         }
       ],
       "test_source_references_not_execution_claim": []

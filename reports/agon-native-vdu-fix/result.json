@@ -1,0 +1,6 @@
+{
+  "scope": "whole Hello CPU/MOS/VDP observed render/key/return; no pixel/RAM/SP oracle",
+  "cutoff_exit": 124,
+  "program_bytes": 985,
+  "normal_vdu_mode": true
+}

@@ -20,6 +20,8 @@ def main():
         parser.add_argument('--' + name, type=Path, required=True)
     args = parser.parse_args()
     repo = Path(__file__).resolve().parents[1]
+    if 'Native VDU' in (repo / 'stdlib/agon/tui_render.nanz').read_text():
+        raise RuntimeError('Historical ANSI replay requires the retained pre-VDU library; current library emits native VDU')
     out = args.output.resolve()
     out.mkdir(parents=True, exist_ok=False)
     pins = {name: {'path': str(path.resolve()), 'sha256': digest(path)}

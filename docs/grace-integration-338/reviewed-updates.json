@@ -78,7 +78,7 @@
     "native_behavior": "agon-mos-runtime",
     "workload": "Three CLI modes: initial eight-file list, Up at zero, Enter selection0, ESC;1024-byte exact ANSI stream.",
     "independent_model": "Independent source/library-derived ANSI model; inverse only known fake VDP ESC diagnostic; reject repeated MOS boot or other unknown packets.",
-    "boundary": "Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof;no Down/arbitrary navigation proof.",
+    "boundary": "Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof;no Down/arbitrary navigation proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence.",
     "evidence": {
       "minzc/pkg/pipeline/agon_corpus_product_test.go": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
       "reports/agon-product-audit/manifest.json": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
@@ -94,7 +94,7 @@
     "native_behavior": "agon-mos-runtime",
     "workload": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.",
     "independent_model": "Independent source/library-derived ANSI model; inverse only known fake VDP ESC diagnostic; reject repeated MOS boot or other unknown packets.",
-    "boundary": "Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof.",
+    "boundary": "Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence.",
     "evidence": {
       "minzc/pkg/pipeline/agon_corpus_product_test.go": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
       "reports/agon-product-audit/manifest.json": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
@@ -110,7 +110,7 @@
     "native_behavior": "agon-mos-runtime",
     "workload": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.",
     "independent_model": "Independent source/library-derived ANSI model; inverse only known fake VDP ESC diagnostic; reject repeated MOS boot or other unknown packets.",
-    "boundary": "Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof.",
+    "boundary": "Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence.",
     "evidence": {
       "minzc/pkg/pipeline/agon_corpus_product_test.go": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
       "reports/agon-product-audit/manifest.json": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
