@@ -822,6 +822,12 @@ func (g *z80cg) genInst(inst *Inst) {
 		ptr := g.loc(inst.Src[0])
 		val := g.loc(inst.Src[1])
 		w := inst.Ty.Width()
+		wordValue := isPairReg(val)
+		if isSpill(val) {
+			if info, ok := g.regInfo[inst.Src[1]]; ok && info.Ty != nil {
+				wordValue = info.Ty.Width() >= 16
+			}
+		}
 		// If ptr is spilled to a memory slot ($Fxxx), reload it into HL first.
 		if isSpill(ptr) {
 			// Loading the address into HL must not destroy the store value.
@@ -967,7 +973,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			} else {
 				g.emitNativeMemoryf(inst, 0, 1, "    LD %s, %s     ; lo", ptrIndirect(ptr, 0), lo)
 			}
-			if !isPairReg(val) {
+			if !wordValue {
 				g.emitNativeMemoryf(inst, 1, 1, "    LD %s, 0     ; hi (zero-extend)", ptrIndirect(ptr, 1))
 			} else if hi == "H" || hi == "L" || isIXYReg(hi) || isSpill(hi) {
 				g.emitLDA(hi)
@@ -994,7 +1000,7 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emitNativeMemoryf(inst, 0, 1, "    LD (HL), %s     ; lo", lo)
 			}
 			g.emitf("    INC %s", ptr)
-			if !isPairReg(val) {
+			if !wordValue {
 				g.emitNativeMemoryf(inst, 1, 1, "    LD (%s), 0     ; hi (zero-extend u8→u16)", ptr)
 			} else if isIXYReg(hi) || isSpill(hi) {
 				g.emit("    EX AF, AF'")
@@ -1018,7 +1024,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			}
 			g.emitNativeMemoryf(inst, 0, 1, "    LD (%s), A     ; lo", ptr)
 			g.emitf("    INC %s", ptr)
-			if !isPairReg(val) {
+			if !wordValue {
 				g.emitf("    XOR A          ; hi = 0 (zero-extend u8→u16)")
 				g.invalidate("A")
 			} else {
