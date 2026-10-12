@@ -1,0 +1,42 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "b4c1729ce5358ba734508490894c8e89f5a97b1878096df9afbabef61596f825"
+  },
+  {
+    "path": "autoexec.txt",
+    "sha256": "21729aa38b3dbd35d95a21052f5c59a291c1b6f4a49d8285b1e11e955c264944"
+  },
+  {
+    "path": "capture.c",
+    "sha256": "dac04e0d71ee18cce2254f66915a4a59cad138400aebd90b95069b97c9884edf"
+  },
+  {
+    "path": "emulator.log",
+    "sha256": "0ae4bd069daaa5d8aa59de5890fd826fc834d0aca906db6b4f9baca28555296a"
+  },
+  {
+    "path": "frame.png",
+    "sha256": "e98a210af2e192d53707a39d68853366cc8ce321202cba7d95bad19b1a6804c5"
+  },
+  {
+    "path": "frame.ppm",
+    "sha256": "b139c5111e40a9f0e72b7efded087b823c70dde1b84723925d2cd373a5f8414c"
+  },
+  {
+    "path": "program.bin",
+    "sha256": "b8dcc47cd9d158918c45691b35d601397e42d88c6acec2b3c2ed5b98392dc02e"
+  },
+  {
+    "path": "result.json",
+    "sha256": "7b041c1a33a3f8028d3d39bf969d397ce1f20c244af30fab5e25eb30051159e6"
+  },
+  {
+    "path": "source.nanz",
+    "sha256": "44f505b14ac4c5c674db470d9f81684aeaf078498c03ad267e81a05d13d25f90"
+  },
+  {
+    "path": "tui_render.nanz",
+    "sha256": "2ff895a91c046e6e8e8d09d50de70797105c1ba1755046b8bfbea3ee3a2b4676"
+  }
+]
