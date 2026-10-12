@@ -20,6 +20,26 @@ func cpmPascalOutputAdapter(f *Func, ar *AllocResult) []string {
 	}
 	var body []string
 	switch f.Name {
+	case "WriteI16", "WriteU16":
+		if len(f.Contract.Params) != 1 {
+			return nil
+		}
+		p := f.Contract.Params[0]
+		ty := TyU16
+		code := PascalUnsignedDecimalASM
+		if f.Name == "WriteI16" {
+			ty = TyI16
+			code = PascalSignedDecimalPrefix + " / " + strings.TrimPrefix(PascalUnsignedDecimalASM, "PUSH IX / ")
+		}
+		if p.Ty != ty || ar.Loc(p.Reg).Name != "HL" || len(i.Asm.Ins) != 1 || i.Asm.Ins[0] != p.Reg {
+			return nil
+		}
+		return cpmExactDecimalBody(i, code)
+	case "_wr16_dig":
+		if len(f.Contract.Params) != 0 || len(i.Asm.Ins) != 0 {
+			return nil
+		}
+		return cpmExactDecimalBody(i, PascalDecimalDigitASM)
 	case "WriteCrLf":
 		if len(f.Contract.Params) != 0 || len(i.Asm.Ins) != 0 {
 			return nil
@@ -44,6 +64,33 @@ func cpmPascalOutputAdapter(f *Func, ar *AllocResult) []string {
 	for n, line := range lines {
 		if strings.Join(strings.Fields(strings.ToUpper(line)), "") != body[n] {
 			return nil
+		}
+	}
+	return append(body, "RET")
+}
+
+func cpmExactDecimalBody(i *Inst, code string) []string {
+	expected := []string{}
+	for _, line := range strings.Split(code, "/") {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			expected = append(expected, line)
+		}
+	}
+	actual := strings.Split(i.Asm.Template, "\n")
+	if len(actual) != len(expected) {
+		return nil
+	}
+	body := []string{}
+	for n, line := range expected {
+		if strings.Join(strings.Fields(strings.ToUpper(actual[n])), "") != strings.Join(strings.Fields(strings.ToUpper(line)), "") {
+			return nil
+		}
+		if colon := strings.Index(line, ":"); colon >= 0 {
+			line = strings.TrimSpace(line[colon+1:])
+		}
+		if line != "" {
+			body = append(body, strings.Join(strings.Fields(strings.ToUpper(line)), ""))
 		}
 	}
 	return append(body, "RET")

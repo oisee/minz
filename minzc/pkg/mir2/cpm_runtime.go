@@ -60,6 +60,9 @@ func validateCPMApplicationRuntime(m *Module, ar *AllocResult) error {
 				}
 				switch i.Op {
 				case OpCall:
+					if i.Sym == "_wr16_dig" {
+						return fmt.Errorf("CP/M private decimal helper requires internal ABI")
+					}
 					for arg, r := range i.Args {
 						if local, ok := locals[r]; ok {
 							if !cpmReadOnlyPointerParam(m.FuncByName(i.Sym), arg, local.size-local.offset) {
