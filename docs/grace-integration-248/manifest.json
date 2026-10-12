@@ -1,0 +1,12 @@
+{
+  "files": {
+    "coalesce-root.txt": {
+      "sha256": "bce21d58a3a5cbf2737e67c95b4ff09ad3d4e373e215fb0a4f8f37e3db9cc829",
+      "bytes": 43
+    },
+    "README.md": {
+      "sha256": "b6b86555e54852cdaa17106c14a5a2b27ed90dca80b651ecada4dcf6985f7d9e",
+      "bytes": 1296
+    }
+  }
+}
