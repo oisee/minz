@@ -1,0 +1,5 @@
+=== Source (98 bytes) ===
+First chars: 225 225 225
+Tokens: 0
+=== Written 0 bytes to tiny.lanz ===
+Stats: 0 nodes, 35 string bytes

@@ -1,0 +1,6 @@
+=== RUN   TestOriginalSelfParserNativeCounterexample
+    self_parser_whole_main_test.go:265: file_read ABI 8039 8039
+--- FAIL: TestOriginalSelfParserNativeCounterexample (0.88s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.885s
+FAIL
