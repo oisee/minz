@@ -1,0 +1,24 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "eb19d9044c1f137f1353dcd332e51e02a2a258b70a0c764bc4d988fa4c4fe3e9"
+    },
+    {
+      "path": "bitcmp.txt",
+      "sha256": "7c214128e8df70f6df3ae172ae60a72156a446ddae6ad891d78da266e270174e"
+    },
+    {
+      "path": "full-mir-addrof.txt",
+      "sha256": "c5ea98235e21f7ff0140f53ac66fe6a5c8aa8e526e1a99502a5a46468224711d"
+    },
+    {
+      "path": "nc-native.txt",
+      "sha256": "393eaf1b51a0fd87957e46101e02470a47906f9e05efb673ed5fb9a5c07ab2eb"
+    },
+    {
+      "path": "nc-spill-observer-before.txt",
+      "sha256": "a36ff1fcc337b9fff25f5111963fecaa82655b7674fedd1778e5f305f911ef2a"
+    }
+  ]
+}

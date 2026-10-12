@@ -1,5 +1,7 @@
 # Grace / PGO: текущее состояние
 
+BITfusioncd39c680 сохраняет successorloads/readtiming. NCnativeevents1453 совпаливо3modes PASS4,499с; mutableglobalfinalmemoryoracleещёвработе, corpusstatusнеповышен. FullMIRaddr_of36caa041 PASS93,073с. [Пакет309](grace-integration-309/README.md).
+
 Spilledaddr_of36caa041 теперь сохраняетfull16bit/HL; independentnativePASS0,053с. NCnamescorrect, следующийattrmismatch ещёFAIL. FullMIRPFCCO4e70ff9e PASS81,158с. [Пакет308](grace-integration-308/README.md). НовыйfullMIRзапущен.
 
 PFCCO arena repair интегрирован4e70ff9e: root arena/heldout/arrayVMZ80 **PASS1,565с**,1130→1122B иsplit220→166T. [Пакет306](grace-integration-306/README.md). FullrootMIR повторяется; NCnative покаFAIL.
