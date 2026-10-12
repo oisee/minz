@@ -1,0 +1,14 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "49eb301b840d33f8b92d7d7f4857b1bda6d06cdb87c418d4c7b049fd4821fafc"
+  },
+  {
+    "path": "gate.txt",
+    "sha256": "44bd04dd5f6f886beaa64a56316a3b3584836ef5493ce87d74dd5967c3316f00"
+  },
+  {
+    "path": "result.json",
+    "sha256": "31cc2a867f5b112211b812dc1787daf30401229c21b89fa652df65b2bd16ef84"
+  }
+]

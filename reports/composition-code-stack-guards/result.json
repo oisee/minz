@@ -1,0 +1,22 @@
+{
+  "domains": 162,
+  "calls_per_layer": 10616832,
+  "immutable_code_image_checked": true,
+  "guard_ranges": [
+    [
+      65216,
+      65231
+    ],
+    [
+      65280,
+      65295
+    ]
+  ],
+  "native_write_controls_rejected": [
+    32768,
+    65216,
+    65280
+  ],
+  "full_ram_checked": false,
+  "test_sha256": "eb67a4976bad3dbe8d9dfc53107bca6ab76024f12f64971fab8ec201f26f5b45"
+}

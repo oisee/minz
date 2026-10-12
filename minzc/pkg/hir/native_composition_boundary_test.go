@@ -1,6 +1,7 @@
 package hir_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -124,6 +125,7 @@ func sweepCodegenJudgeOptions(t *testing.T, funcs []*hir.Func, name string, case
 			results[i] = fmt.Sprintf("load image: %v", err)
 			return
 		}
+		compositionSeedGuards(z)
 		regs := emulator.Registers{PC: testLoadAddr, SP: 0xFF00}
 		for k, p := range mf.Contract.Params {
 			if p.Ty.Width() != 16 {
@@ -152,6 +154,10 @@ func sweepCodegenJudgeOptions(t *testing.T, funcs []*hir.Func, name string, case
 		if checkReturn && !returned {
 			state := z.GetRegisters()
 			results[i] = fmt.Sprintf("%s%v bad return PC=%04x SP=%04x halted=%v", name, args, state.PC, state.SP, z.IsHalted())
+			return
+		}
+		if !compositionMemoryIntact(z, image) {
+			results[i] = fmt.Sprintf("%s%v code/stack guard corruption", name, args)
 			return
 		}
 		got, err := hirReturnValue(mf, z.GetRegisters())
@@ -212,6 +218,54 @@ func TestCompositionReturnOracleRejectsWrongMachineCode(t *testing.T) {
 			_, got := compositionRunToReturn(z, testLoadAddr+3, 0xFF00, 100)
 			if got != tc.want {
 				t.Fatalf("return oracle accepted=%v want=%v", got, tc.want)
+			}
+		})
+	}
+}
+
+// Bounded immutable code and stack guards; the private stack itself may change.
+func compositionSeedGuards(z *emulator.RemogattoZ80) {
+	for _, base := range []uint16{0xFEC0, 0xFF00} {
+		for i := uint16(0); i < 16; i++ {
+			z.SetMemory(base+i, byte(0xA5^i))
+		}
+	}
+}
+
+func compositionMemoryIntact(z *emulator.RemogattoZ80, image []byte) bool {
+	if !bytes.Equal(z.Memory()[testLoadAddr:testLoadAddr+len(image)], image) {
+		return false
+	}
+	for _, base := range []uint16{0xFEC0, 0xFF00} {
+		for i := uint16(0); i < 16; i++ {
+			if z.GetMemory(base+i) != byte(0xA5^i) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func TestCompositionMemoryOracleRejectsNativeWrites(t *testing.T) {
+	for _, target := range []uint16{testLoadAddr, 0xFEC0, 0xFF00} {
+		t.Run(fmt.Sprintf("write_%04x", target), func(t *testing.T) {
+			asm := fmt.Sprintf("ORG 0x%04x\n CALL probe\n DI\n HALT\nprobe:\n LD A,42\n LD (0x%04x),A\n RET\n", testLoadAddr, target)
+			res, err := z80asm.NewAssembler().AssembleString(asm)
+			if err != nil || len(res.Errors) > 0 {
+				t.Fatalf("assemble %v %v", err, res.Errors)
+			}
+			z := emulator.NewRemogattoZ80()
+			if err := z.LoadMemory(testLoadAddr, res.Binary); err != nil {
+				t.Fatal(err)
+			}
+			compositionSeedGuards(z)
+			z.SetRegisters(emulator.Registers{PC: testLoadAddr, SP: 0xFF00})
+			_, returned := compositionRunToReturn(z, testLoadAddr+3, 0xFF00, 100)
+			if !returned {
+				t.Fatal("negative program did not return")
+			}
+			if compositionMemoryIntact(z, res.Binary) {
+				t.Fatal("native memory corruption accepted")
 			}
 		})
 	}
