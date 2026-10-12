@@ -1,0 +1,24 @@
+{
+  "base": "9e56cef9",
+  "sources": {
+    "hello": {
+      "source_sha256": "d8788f16c919d3454fc59e045df8ea79673ee34e9e0da69d7a5c732d423d2dca",
+      "stdout": "Hello from Pascal on Z80!\r\n"
+    },
+    "factorial": {
+      "source_sha256": "094af24a48a5e849947fc97ce9ca4c08e5ffc1f1c939ed7db0aaad3b46df9625",
+      "stdout": "5040\r\n"
+    }
+  },
+  "selected_first": "hello",
+  "BDOS9": "DE points to dollar-terminated bytes, no output delimiter; complete source literal read exactly",
+  "BDOS2": "E byte character",
+  "Integer": "Pascal compiler TyI16;Fact7=5040 independent product1..7",
+  "runtime": "CPM ORG0100 OSRET vs ordinary DIHALT explicitly distinguish",
+  "vm": "pure Fact separately; no fakeASMstdout",
+  "modes": [
+    "ordinary",
+    "grace-size",
+    "grace-speed"
+  ]
+}
