@@ -1,5 +1,7 @@
 # Grace / PGO: текущее состояние
 
+Selfparser+canvas whole main proof интегрирован: rootPASS7,818с ([295](grace-integration-295/README.md)),143/194independent/boundedVM/native paths. RootfullMIR0cc467f7 ещёlive; conditionalfix теперьвключён.
+
 Root fullMIR57a7cc36 PASS80,768с (externABI+wordstore). Болеепоздний conditionalcallUses fix0da59af4 native/VM regressionPASS0,022с ([294](grace-integration-294/README.md)); полныйselfparserproof ожидается.
 
 Пять прежних frozenheldout после sharedargumentfix повторно PASS43,148с ([290](grace-integration-290/README.md)). ExternABI и exposed wordspill-store fixes пока в отдельной работе; новые canvas/selfparsernativeproof ещёpending.
