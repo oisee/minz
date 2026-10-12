@@ -1,0 +1,134 @@
+{
+  "actual_parameter_homes": {
+    "abap_write": {
+      "val": "HL"
+    },
+    "abap_write_str": {
+      "str": "HL"
+    },
+    "main": {},
+    "zx__console__any_key_pressed": {},
+    "zx__console__attr_addr": {
+      "col": "A",
+      "row": "B"
+    },
+    "zx__console__con_clear": {},
+    "zx__console__con_draw_char": {
+      "ch": "C",
+      "col": "B",
+      "row": "D"
+    },
+    "zx__console__con_getchar": {},
+    "zx__console__con_goto": {
+      "col": "C",
+      "row": "D"
+    },
+    "zx__console__con_hide_cursor": {},
+    "zx__console__con_init": {
+      "ink": "A",
+      "paper": "C"
+    },
+    "zx__console__con_input": {
+      "buf": "HL",
+      "maxlen": "IXH"
+    },
+    "zx__console__con_newline": {},
+    "zx__console__con_print": {
+      "str": "DE"
+    },
+    "zx__console__con_print_u16": {
+      "val": "HL"
+    },
+    "zx__console__con_print_u8": {
+      "val": "D"
+    },
+    "zx__console__con_putchar": {
+      "ch": "A"
+    },
+    "zx__console__con_scroll": {},
+    "zx__console__con_set_attr": {
+      "ink": "A",
+      "paper": "C"
+    },
+    "zx__console__con_set_bright": {
+      "on": "A"
+    },
+    "zx__console__con_show_cursor": {},
+    "zx__console__scan_row_key": {
+      "base_idx": "C",
+      "row_addr": "A"
+    },
+    "zx__console__screen_addr": {
+      "col": "A",
+      "line": "C",
+      "row": "B"
+    },
+    "zx__console__scroll_attrs": {
+      "row": "B"
+    },
+    "zx__console__scroll_line": {
+      "line": "D",
+      "row": "B"
+    },
+    "zx__console__scroll_row": {
+      "row": "A"
+    },
+    "zx__console__zx_border": {
+      "color": "A"
+    },
+    "zx__console__zx_in_fe": {
+      "high_byte": "A"
+    },
+    "zx__console__zx_peek": {
+      "addr": "HL"
+    },
+    "zx__console__zx_poke": {
+      "addr": "HL",
+      "val": "A"
+    }
+  },
+  "bytes": 2435,
+  "expected_col": 0,
+  "expected_row": 14,
+  "first_screen_mismatch": -1,
+  "halted": false,
+  "min_sp": 61424,
+  "mode": "grace-speed",
+  "native_pass": true,
+  "outside_allowed_writes": [],
+  "read_ports": [
+    65278,
+    65022,
+    64510,
+    63486,
+    61438,
+    57342,
+    49150,
+    32766,
+    65278,
+    65022,
+    64510,
+    63486,
+    61438,
+    57342,
+    49150,
+    32766,
+    65278
+  ],
+  "registers": {
+    "A": 14,
+    "F": 139,
+    "BC": 35086,
+    "DE": 6252,
+    "HL": 34922,
+    "IX": 2135,
+    "IY": 3349,
+    "SP": 61440,
+    "PC": 28675
+  },
+  "returned": true,
+  "source": "examples/abap/hello_zx.nanz",
+  "t_states_before_terminal": 564021,
+  "write_ports": [],
+  "write_values": ""
+}

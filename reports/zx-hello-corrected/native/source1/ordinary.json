@@ -1,0 +1,48 @@
+{
+  "actual_parameter_homes": {
+    "attr_row": {
+      "attr": "C",
+      "row": "A"
+    },
+    "fill_cell": {
+      "col": "C",
+      "row": "A"
+    },
+    "main": {},
+    "poke": {
+      "addr": "HL",
+      "val": "C"
+    },
+    "print_at": {
+      "col": "C",
+      "row": "A",
+      "str": "HL"
+    }
+  },
+  "bytes": 2103,
+  "first_screen_mismatch": -1,
+  "halted": true,
+  "min_sp": 61432,
+  "mode": "ordinary",
+  "native_pass": true,
+  "outside_allowed_writes": [],
+  "read_ports": [],
+  "registers": {
+    "A": 64,
+    "F": 8,
+    "BC": 17,
+    "DE": 1792,
+    "HL": 18673,
+    "IX": 4951,
+    "IY": 9320,
+    "SP": 61438,
+    "PC": 34603
+  },
+  "returned": false,
+  "source": "examples/abap/sap_report_zx.nanz",
+  "t_states_before_terminal": 80295,
+  "write_ports": [
+    510
+  ],
+  "write_values": "AQ=="
+}

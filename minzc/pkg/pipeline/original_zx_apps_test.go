@@ -128,9 +128,45 @@ func TestOriginalZXAppsNative(t *testing.T) {
 				want := append([]byte(nil), before[0x4000:0x5b00]...)
 				switch i {
 				case 0:
-					result["native_scope"] = "original counted literals passed to NUL-reading con_print; frozen failure, not success"
-					t.Logf("hello original returned=%v halt=%v reads=%d", done, halt, len(reads))
-					return
+					for n := range want {
+						want[n] = 0
+					}
+					for n := 0x1800; n < len(want); n++ {
+						want[n] = 15
+					}
+					row, col, attr := 0, 0, byte(15)
+					put := func(text string) {
+						for _, ch := range []byte(text) {
+							if ch == 10 {
+								row++
+								col = 0
+								continue
+							}
+							for line := 0; line < 8; line++ {
+								want[((row&0x18)<<8)|(line<<8)|((row&7)<<5)|col] = byte((int(ch)*17 + line*29) ^ 0x5a)
+							}
+							want[0x1800+row*32+col] = attr
+							col++
+						}
+					}
+					attr = 14
+					put("=== Z80 System Report ===\n\n")
+					for _, pair := range [][2]string{{"CPU:      ", "Z80A"}, {"Clock:    ", "3.5 MHz"}, {"RAM:      ", "48 KB"}, {"ROM:      ", "16 KB"}, {"Kernel:   ", "MinZ v0.21"}, {"Runtime:  ", "ABAP on Z80"}} {
+						attr = 15
+						put(pair[0])
+						attr = 11
+						put(pair[1] + "\n")
+					}
+					put("\n")
+					attr = 14
+					put("=========================\n")
+					attr = 10
+					put("STATUS: ALL SYSTEMS GO\n\n")
+					attr = 7
+					put("Press any key...\nHello from ABAP on ZX!\n")
+					result["expected_row"] = row
+					result["expected_col"] = col
+
 				case 1:
 					for n := 0x1800; n < len(want); n++ {
 						want[n] = 0
@@ -208,6 +244,8 @@ func TestOriginalZXAppsNative(t *testing.T) {
 					result["expected_row"] = row
 					result["expected_col"] = col
 				}
+				export(prefix+".screen", z.Memory()[0x4000:0x5b00])
+				export(prefix+".expected-screen", want)
 				mismatch := -1
 				for n, v := range want {
 					if z.Memory()[0x4000+n] != v {
@@ -219,6 +257,9 @@ func TestOriginalZXAppsNative(t *testing.T) {
 				outside := []int{}
 				for n := range z.Memory() {
 					allowed := (n >= 0x4000 && n <= 0x5aff) || (n >= int(depth) && n < 0xf000)
+					if i == 0 && (n == int(a.Symbols["zx__console__con_col"]) || n == int(a.Symbols["zx__console__con_row"]) || n == int(a.Symbols["zx__console__con_attr"])) {
+						allowed = true
+					}
 					if i == 2 && (n == int(a.Symbols["_zx_row"]) || n == int(a.Symbols["_zx_col"])) {
 						allowed = true
 					}
@@ -227,6 +268,14 @@ func TestOriginalZXAppsNative(t *testing.T) {
 					}
 				}
 				result["outside_allowed_writes"] = outside
+				if i == 0 {
+					expected := []uint16{0xfefe, 0xfdfe, 0xfbfe, 0xf7fe, 0xeffe, 0xdffe, 0xbffe, 0x7ffe, 0xfefe, 0xfdfe, 0xfbfe, 0xf7fe, 0xeffe, 0xdffe, 0xbffe, 0x7ffe, 0xfefe}
+					if !done || mismatch >= 0 || len(outside) > 0 || fmt.Sprint(reads) != fmt.Sprint(expected) || len(writes) > 0 {
+						t.Fatal("corrected hello model", result)
+					}
+					result["native_pass"] = true
+					return
+				}
 				result["native_pass"] = halt && z.GetSP() == 0xeffe && mismatch < 0 && len(outside) == 0 && fmt.Sprint(writes) == "[510]" && fmt.Sprint(values) == "[1]" && len(reads) == 0
 				t.Logf("original app halted=%v mismatch=%04x outside=%d SP=%04x", halt, mismatch, len(outside), z.GetSP())
 				if i == 1 && result["native_pass"] != true {

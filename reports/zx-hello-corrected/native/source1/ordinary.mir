@@ -1,0 +1,962 @@
+; MIR2 module: examples/abap/sap_report_zx.nanz
+fun @poke(%r1: u16 [pointer], %r2: u8 [general])
+  block @entry:
+    asm "; HL=addr, C=val (PFCCO: u16, u8)\n        LD (HL), C"
+    ret void
+
+fun @attr_row(%r3: u8 [acc], %r4: u8 [general])
+  block @entry:
+    asm "; A=row, C=attr\n        LD H, 0\n        LD L, A\n        ADD HL, HL\n        ADD HL, HL\n        ADD HL, HL\n        ADD HL, HL\n        ADD HL, HL\n        LD DE, 0x5800\n        ADD HL, DE\n        LD B, 32\n        .f: LD (HL), C\n        INC HL\n        DJNZ .f"
+    ret void
+
+fun @print_at(%r5: u8 [acc], %r6: u8 [general], %r7: ptr [pointer])
+  block @entry:
+    asm "; A=row, C=col, DE=str (PFCCO: u8, u8, ptr → A, C, DE... actually ptr→HL)\n        ; Wait — PFCCO for (u8, u8, ^u8): first u8→A, second u8→C, ptr→DE?\n        ; Actually for 3 params it depends. Let's handle manually.\n        ; For asm blocks with (in row, col, str): row=A, col=C, str=DE\n        ; But actually the calling convention may put str in HL (first ptr).\n        ; Let's use a simpler approach: pass row*32+col as u16, str as ptr\n        RET  ; stub — we'll use a different approach"
+    ret void
+
+fun @fill_cell(%r8: u8 [acc], %r9: u8 [general])
+  block @entry:
+    asm "PUSH BC\n        LD D, A\n        AND 0x07\n        LD L, A\n        LD H, 0\n        ADD HL, HL\n        ADD HL, HL\n        ADD HL, HL\n        ADD HL, HL\n        ADD HL, HL\n        POP BC\n        LD B, 0\n        ADD HL, BC\n        LD A, D\n        AND 0x18\n        OR 0x40\n        ADD A, H\n        LD H, A\n        LD B, 8\n        .sc: LD (HL), 0xFF\n        INC H\n        DJNZ .sc"
+    ret void
+
+fun @main()
+  block @entry:
+    asm "LD A, 1\n    OUT (0xFE), A"
+    asm "LD HL, 0x5800\n        LD DE, 0x5801\n        LD BC, 767\n        LD (HL), 0\n        LDIR"
+    %r10 = const 0 : u8 [acc]
+    %r11 = const 79 : u8 [general]
+    call @attr_row(%r10, %r11)
+    %r12 = const 1 : u8 [acc]
+    %r13 = const 78 : u8 [general]
+    call @attr_row(%r12, %r13)
+    %r14 = const 3 : u8 [acc]
+    %r15 = const 68 : u8 [general]
+    call @attr_row(%r14, %r15)
+    %r16 = const 4 : u8 [acc]
+    %r17 = const 68 : u8 [general]
+    call @attr_row(%r16, %r17)
+    %r18 = const 5 : u8 [acc]
+    %r19 = const 68 : u8 [general]
+    call @attr_row(%r18, %r19)
+    %r20 = const 7 : u8 [acc]
+    %r21 = const 71 : u8 [general]
+    call @attr_row(%r20, %r21)
+    %r22 = const 9 : u8 [acc]
+    %r23 = const 71 : u8 [general]
+    call @attr_row(%r22, %r23)
+    %r24 = const 10 : u8 [acc]
+    %r25 = const 69 : u8 [general]
+    call @attr_row(%r24, %r25)
+    %r26 = const 11 : u8 [acc]
+    %r27 = const 70 : u8 [general]
+    call @attr_row(%r26, %r27)
+    %r28 = const 12 : u8 [acc]
+    %r29 = const 70 : u8 [general]
+    call @attr_row(%r28, %r29)
+    %r30 = const 13 : u8 [acc]
+    %r31 = const 70 : u8 [general]
+    call @attr_row(%r30, %r31)
+    %r32 = const 15 : u8 [acc]
+    %r33 = const 71 : u8 [general]
+    call @attr_row(%r32, %r33)
+    %r34 = const 21 : u8 [acc]
+    %r35 = const 79 : u8 [general]
+    call @attr_row(%r34, %r35)
+    %r36 = const 2 : u8 [general]
+    jmp @if_then1()
+  block @if_then1:
+    %r37 = const 0 : u8 [acc]
+    call @fill_cell(%r37, %r36)
+    %r38 = const 3 : u8 [acc]
+    jmp @if_join2(%r38)
+  block @if_join2(%r39: u8 [general]):
+    jmp @if_then3()
+  block @if_then3:
+    %r40 = const 0 : u8 [acc]
+    call @fill_cell(%r40, %r39)
+    %r41 = const 1 : u8 [general]
+    %r42 = add %r39, %r41 : u8 [acc]
+    jmp @if_join4(%r42)
+  block @if_join4(%r43: u8 [general]):
+    %r44 = const 28 : u8 [general]
+    %r45 = cmp.ult %r43, %r44 : bool [flag]
+    br_if %r45, @if_then5(), @if_join6(%r43)
+  block @if_then5:
+    %r46 = const 0 : u8 [acc]
+    call @fill_cell(%r46, %r43)
+    %r47 = const 1 : u8 [general]
+    %r48 = add %r43, %r47 : u8 [acc]
+    jmp @if_join6(%r48)
+  block @if_join6(%r49: u8 [general]):
+    %r50 = const 28 : u8 [general]
+    %r51 = cmp.ult %r49, %r50 : bool [flag]
+    br_if %r51, @if_then7(), @if_join8(%r49)
+  block @if_then7:
+    %r52 = const 0 : u8 [acc]
+    call @fill_cell(%r52, %r49)
+    %r53 = const 1 : u8 [general]
+    %r54 = add %r49, %r53 : u8 [acc]
+    jmp @if_join8(%r54)
+  block @if_join8(%r55: u8 [general]):
+    %r56 = const 28 : u8 [general]
+    %r57 = cmp.ult %r55, %r56 : bool [flag]
+    br_if %r57, @if_then9(), @if_join10(%r55)
+  block @if_then9:
+    %r58 = const 0 : u8 [acc]
+    call @fill_cell(%r58, %r55)
+    %r59 = const 1 : u8 [general]
+    %r60 = add %r55, %r59 : u8 [acc]
+    jmp @if_join10(%r60)
+  block @if_join10(%r61: u8 [general]):
+    %r62 = const 28 : u8 [general]
+    %r63 = cmp.ult %r61, %r62 : bool [flag]
+    br_if %r63, @if_then11(), @if_join12(%r61)
+  block @if_then11:
+    %r64 = const 0 : u8 [acc]
+    call @fill_cell(%r64, %r61)
+    %r65 = const 1 : u8 [general]
+    %r66 = add %r61, %r65 : u8 [acc]
+    jmp @if_join12(%r66)
+  block @if_join12(%r67: u8 [general]):
+    %r68 = const 28 : u8 [general]
+    %r69 = cmp.ult %r67, %r68 : bool [flag]
+    br_if %r69, @if_then13(), @if_join14(%r67)
+  block @if_then13:
+    %r70 = const 0 : u8 [acc]
+    call @fill_cell(%r70, %r67)
+    %r71 = const 1 : u8 [general]
+    %r72 = add %r67, %r71 : u8 [acc]
+    jmp @if_join14(%r72)
+  block @if_join14(%r73: u8 [general]):
+    %r74 = const 28 : u8 [general]
+    %r75 = cmp.ult %r73, %r74 : bool [flag]
+    br_if %r75, @if_then15(), @if_join16(%r73)
+  block @if_then15:
+    %r76 = const 0 : u8 [acc]
+    call @fill_cell(%r76, %r73)
+    %r77 = const 1 : u8 [general]
+    %r78 = add %r73, %r77 : u8 [acc]
+    jmp @if_join16(%r78)
+  block @if_join16(%r79: u8 [general]):
+    %r80 = const 28 : u8 [general]
+    %r81 = cmp.ult %r79, %r80 : bool [flag]
+    br_if %r81, @if_then17(), @if_join18(%r79)
+  block @if_then17:
+    %r82 = const 0 : u8 [acc]
+    call @fill_cell(%r82, %r79)
+    %r83 = const 1 : u8 [general]
+    %r84 = add %r79, %r83 : u8 [acc]
+    jmp @if_join18(%r84)
+  block @if_join18(%r85: u8 [general]):
+    %r86 = const 28 : u8 [general]
+    %r87 = cmp.ult %r85, %r86 : bool [flag]
+    br_if %r87, @if_then19(), @if_join20(%r85)
+  block @if_then19:
+    %r88 = const 0 : u8 [acc]
+    call @fill_cell(%r88, %r85)
+    %r89 = const 1 : u8 [general]
+    %r90 = add %r85, %r89 : u8 [acc]
+    jmp @if_join20(%r90)
+  block @if_join20(%r91: u8 [general]):
+    %r92 = const 28 : u8 [general]
+    %r93 = cmp.ult %r91, %r92 : bool [flag]
+    br_if %r93, @if_then21(), @if_join22(%r91)
+  block @if_then21:
+    %r94 = const 0 : u8 [acc]
+    call @fill_cell(%r94, %r91)
+    %r95 = const 1 : u8 [general]
+    %r96 = add %r91, %r95 : u8 [acc]
+    jmp @if_join22(%r96)
+  block @if_join22(%r97: u8 [general]):
+    %r98 = const 28 : u8 [general]
+    %r99 = cmp.ult %r97, %r98 : bool [flag]
+    br_if %r99, @if_then23(), @if_join24(%r97)
+  block @if_then23:
+    %r100 = const 0 : u8 [acc]
+    call @fill_cell(%r100, %r97)
+    %r101 = const 1 : u8 [general]
+    %r102 = add %r97, %r101 : u8 [acc]
+    jmp @if_join24(%r102)
+  block @if_join24(%r103: u8 [general]):
+    %r104 = const 28 : u8 [general]
+    %r105 = cmp.ult %r103, %r104 : bool [flag]
+    br_if %r105, @if_then25(), @if_join26(%r103)
+  block @if_then25:
+    %r106 = const 0 : u8 [acc]
+    call @fill_cell(%r106, %r103)
+    %r107 = const 1 : u8 [general]
+    %r108 = add %r103, %r107 : u8 [acc]
+    jmp @if_join26(%r108)
+  block @if_join26(%r109: u8 [general]):
+    %r110 = const 28 : u8 [general]
+    %r111 = cmp.ult %r109, %r110 : bool [flag]
+    br_if %r111, @if_then27(), @if_join28(%r109)
+  block @if_then27:
+    %r112 = const 0 : u8 [acc]
+    call @fill_cell(%r112, %r109)
+    %r113 = const 1 : u8 [general]
+    %r114 = add %r109, %r113 : u8 [acc]
+    jmp @if_join28(%r114)
+  block @if_join28(%r115: u8 [general]):
+    %r116 = const 28 : u8 [general]
+    %r117 = cmp.ult %r115, %r116 : bool [flag]
+    br_if %r117, @if_then29(), @if_join30(%r115)
+  block @if_then29:
+    %r118 = const 0 : u8 [acc]
+    call @fill_cell(%r118, %r115)
+    %r119 = const 1 : u8 [general]
+    %r120 = add %r115, %r119 : u8 [acc]
+    jmp @if_join30(%r120)
+  block @if_join30(%r121: u8 [general]):
+    %r122 = const 28 : u8 [general]
+    %r123 = cmp.ult %r121, %r122 : bool [flag]
+    br_if %r123, @if_then31(), @if_join32(%r121)
+  block @if_then31:
+    %r124 = const 0 : u8 [acc]
+    call @fill_cell(%r124, %r121)
+    %r125 = const 1 : u8 [general]
+    %r126 = add %r121, %r125 : u8 [acc]
+    jmp @if_join32(%r126)
+  block @if_join32(%r127: u8 [general]):
+    %r128 = const 28 : u8 [general]
+    %r129 = cmp.ult %r127, %r128 : bool [flag]
+    br_if %r129, @if_then33(), @if_join34(%r127)
+  block @if_then33:
+    %r130 = const 0 : u8 [acc]
+    call @fill_cell(%r130, %r127)
+    %r131 = const 1 : u8 [general]
+    %r132 = add %r127, %r131 : u8 [acc]
+    jmp @if_join34(%r132)
+  block @if_join34(%r133: u8 [general]):
+    %r134 = const 28 : u8 [general]
+    %r135 = cmp.ult %r133, %r134 : bool [flag]
+    br_if %r135, @if_then35(), @if_join36(%r133)
+  block @if_then35:
+    %r136 = const 0 : u8 [acc]
+    call @fill_cell(%r136, %r133)
+    %r137 = const 1 : u8 [general]
+    %r138 = add %r133, %r137 : u8 [acc]
+    jmp @if_join36(%r138)
+  block @if_join36(%r139: u8 [general]):
+    %r140 = const 28 : u8 [general]
+    %r141 = cmp.ult %r139, %r140 : bool [flag]
+    br_if %r141, @if_then37(), @if_join38(%r139)
+  block @if_then37:
+    %r142 = const 0 : u8 [acc]
+    call @fill_cell(%r142, %r139)
+    %r143 = const 1 : u8 [general]
+    %r144 = add %r139, %r143 : u8 [acc]
+    jmp @if_join38(%r144)
+  block @if_join38(%r145: u8 [general]):
+    %r146 = const 28 : u8 [general]
+    %r147 = cmp.ult %r145, %r146 : bool [flag]
+    br_if %r147, @if_then39(), @if_join40(%r145)
+  block @if_then39:
+    %r148 = const 0 : u8 [acc]
+    call @fill_cell(%r148, %r145)
+    %r149 = const 1 : u8 [general]
+    %r150 = add %r145, %r149 : u8 [acc]
+    jmp @if_join40(%r150)
+  block @if_join40(%r151: u8 [general]):
+    %r152 = const 28 : u8 [general]
+    %r153 = cmp.ult %r151, %r152 : bool [flag]
+    br_if %r153, @if_then41(), @if_join42(%r151)
+  block @if_then41:
+    %r154 = const 0 : u8 [acc]
+    call @fill_cell(%r154, %r151)
+    %r155 = const 1 : u8 [general]
+    %r156 = add %r151, %r155 : u8 [acc]
+    jmp @if_join42(%r156)
+  block @if_join42(%r157: u8 [general]):
+    %r158 = const 28 : u8 [general]
+    %r159 = cmp.ult %r157, %r158 : bool [flag]
+    br_if %r159, @if_then43(), @if_join44(%r157)
+  block @if_then43:
+    %r160 = const 0 : u8 [acc]
+    call @fill_cell(%r160, %r157)
+    %r161 = const 1 : u8 [general]
+    %r162 = add %r157, %r161 : u8 [acc]
+    jmp @if_join44(%r162)
+  block @if_join44(%r163: u8 [general]):
+    %r164 = const 28 : u8 [general]
+    %r165 = cmp.ult %r163, %r164 : bool [flag]
+    br_if %r165, @if_then45(), @if_join46(%r163)
+  block @if_then45:
+    %r166 = const 0 : u8 [acc]
+    call @fill_cell(%r166, %r163)
+    %r167 = const 1 : u8 [general]
+    %r168 = add %r163, %r167 : u8 [acc]
+    jmp @if_join46(%r168)
+  block @if_join46(%r169: u8 [general]):
+    %r170 = const 28 : u8 [general]
+    %r171 = cmp.ult %r169, %r170 : bool [flag]
+    br_if %r171, @if_then47(), @if_join48(%r169)
+  block @if_then47:
+    %r172 = const 0 : u8 [acc]
+    call @fill_cell(%r172, %r169)
+    %r173 = const 1 : u8 [general]
+    %r174 = add %r169, %r173 : u8 [acc]
+    jmp @if_join48(%r174)
+  block @if_join48(%r175: u8 [general]):
+    %r176 = const 28 : u8 [general]
+    %r177 = cmp.ult %r175, %r176 : bool [flag]
+    br_if %r177, @if_then49(), @if_join50(%r175)
+  block @if_then49:
+    %r178 = const 0 : u8 [acc]
+    call @fill_cell(%r178, %r175)
+    %r179 = const 1 : u8 [general]
+    %r180 = add %r175, %r179 : u8 [acc]
+    jmp @if_join50(%r180)
+  block @if_join50(%r181: u8 [general]):
+    %r182 = const 28 : u8 [general]
+    %r183 = cmp.ult %r181, %r182 : bool [flag]
+    br_if %r183, @if_then51(), @if_join52()
+  block @if_then51:
+    %r184 = const 0 : u8 [acc]
+    call @fill_cell(%r184, %r181)
+    %r185 = const 1 : u8 [general]
+    %r186 = add %r181, %r185 : u8 [acc]
+    jmp @if_join52()
+  block @if_join52:
+    %r187 = const 2 : u8 [general]
+    jmp @if_then53()
+  block @if_then53:
+    %r188 = const 1 : u8 [acc]
+    call @fill_cell(%r188, %r187)
+    %r189 = const 3 : u8 [acc]
+    jmp @if_join54(%r189)
+  block @if_join54(%r190: u8 [general]):
+    jmp @if_then55()
+  block @if_then55:
+    %r191 = const 1 : u8 [acc]
+    call @fill_cell(%r191, %r190)
+    %r192 = const 1 : u8 [general]
+    %r193 = add %r190, %r192 : u8 [acc]
+    jmp @if_join56(%r193)
+  block @if_join56(%r194: u8 [general]):
+    %r195 = const 28 : u8 [general]
+    %r196 = cmp.ult %r194, %r195 : bool [flag]
+    br_if %r196, @if_then57(), @if_join58(%r194)
+  block @if_then57:
+    %r197 = const 1 : u8 [acc]
+    call @fill_cell(%r197, %r194)
+    %r198 = const 1 : u8 [general]
+    %r199 = add %r194, %r198 : u8 [acc]
+    jmp @if_join58(%r199)
+  block @if_join58(%r200: u8 [general]):
+    %r201 = const 28 : u8 [general]
+    %r202 = cmp.ult %r200, %r201 : bool [flag]
+    br_if %r202, @if_then59(), @if_join60(%r200)
+  block @if_then59:
+    %r203 = const 1 : u8 [acc]
+    call @fill_cell(%r203, %r200)
+    %r204 = const 1 : u8 [general]
+    %r205 = add %r200, %r204 : u8 [acc]
+    jmp @if_join60(%r205)
+  block @if_join60(%r206: u8 [general]):
+    %r207 = const 28 : u8 [general]
+    %r208 = cmp.ult %r206, %r207 : bool [flag]
+    br_if %r208, @if_then61(), @if_join62(%r206)
+  block @if_then61:
+    %r209 = const 1 : u8 [acc]
+    call @fill_cell(%r209, %r206)
+    %r210 = const 1 : u8 [general]
+    %r211 = add %r206, %r210 : u8 [acc]
+    jmp @if_join62(%r211)
+  block @if_join62(%r212: u8 [general]):
+    %r213 = const 28 : u8 [general]
+    %r214 = cmp.ult %r212, %r213 : bool [flag]
+    br_if %r214, @if_then63(), @if_join64(%r212)
+  block @if_then63:
+    %r215 = const 1 : u8 [acc]
+    call @fill_cell(%r215, %r212)
+    %r216 = const 1 : u8 [general]
+    %r217 = add %r212, %r216 : u8 [acc]
+    jmp @if_join64(%r217)
+  block @if_join64(%r218: u8 [general]):
+    %r219 = const 28 : u8 [general]
+    %r220 = cmp.ult %r218, %r219 : bool [flag]
+    br_if %r220, @if_then65(), @if_join66(%r218)
+  block @if_then65:
+    %r221 = const 1 : u8 [acc]
+    call @fill_cell(%r221, %r218)
+    %r222 = const 1 : u8 [general]
+    %r223 = add %r218, %r222 : u8 [acc]
+    jmp @if_join66(%r223)
+  block @if_join66(%r224: u8 [general]):
+    %r225 = const 28 : u8 [general]
+    %r226 = cmp.ult %r224, %r225 : bool [flag]
+    br_if %r226, @if_then67(), @if_join68(%r224)
+  block @if_then67:
+    %r227 = const 1 : u8 [acc]
+    call @fill_cell(%r227, %r224)
+    %r228 = const 1 : u8 [general]
+    %r229 = add %r224, %r228 : u8 [acc]
+    jmp @if_join68(%r229)
+  block @if_join68(%r230: u8 [general]):
+    %r231 = const 28 : u8 [general]
+    %r232 = cmp.ult %r230, %r231 : bool [flag]
+    br_if %r232, @if_then69(), @if_join70(%r230)
+  block @if_then69:
+    %r233 = const 1 : u8 [acc]
+    call @fill_cell(%r233, %r230)
+    %r234 = const 1 : u8 [general]
+    %r235 = add %r230, %r234 : u8 [acc]
+    jmp @if_join70(%r235)
+  block @if_join70(%r236: u8 [general]):
+    %r237 = const 28 : u8 [general]
+    %r238 = cmp.ult %r236, %r237 : bool [flag]
+    br_if %r238, @if_then71(), @if_join72(%r236)
+  block @if_then71:
+    %r239 = const 1 : u8 [acc]
+    call @fill_cell(%r239, %r236)
+    %r240 = const 1 : u8 [general]
+    %r241 = add %r236, %r240 : u8 [acc]
+    jmp @if_join72(%r241)
+  block @if_join72(%r242: u8 [general]):
+    %r243 = const 28 : u8 [general]
+    %r244 = cmp.ult %r242, %r243 : bool [flag]
+    br_if %r244, @if_then73(), @if_join74(%r242)
+  block @if_then73:
+    %r245 = const 1 : u8 [acc]
+    call @fill_cell(%r245, %r242)
+    %r246 = const 1 : u8 [general]
+    %r247 = add %r242, %r246 : u8 [acc]
+    jmp @if_join74(%r247)
+  block @if_join74(%r248: u8 [general]):
+    %r249 = const 28 : u8 [general]
+    %r250 = cmp.ult %r248, %r249 : bool [flag]
+    br_if %r250, @if_then75(), @if_join76(%r248)
+  block @if_then75:
+    %r251 = const 1 : u8 [acc]
+    call @fill_cell(%r251, %r248)
+    %r252 = const 1 : u8 [general]
+    %r253 = add %r248, %r252 : u8 [acc]
+    jmp @if_join76(%r253)
+  block @if_join76(%r254: u8 [general]):
+    %r255 = const 28 : u8 [general]
+    %r256 = cmp.ult %r254, %r255 : bool [flag]
+    br_if %r256, @if_then77(), @if_join78(%r254)
+  block @if_then77:
+    %r257 = const 1 : u8 [acc]
+    call @fill_cell(%r257, %r254)
+    %r258 = const 1 : u8 [general]
+    %r259 = add %r254, %r258 : u8 [acc]
+    jmp @if_join78(%r259)
+  block @if_join78(%r260: u8 [general]):
+    %r261 = const 28 : u8 [general]
+    %r262 = cmp.ult %r260, %r261 : bool [flag]
+    br_if %r262, @if_then79(), @if_join80(%r260)
+  block @if_then79:
+    %r263 = const 1 : u8 [acc]
+    call @fill_cell(%r263, %r260)
+    %r264 = const 1 : u8 [general]
+    %r265 = add %r260, %r264 : u8 [acc]
+    jmp @if_join80(%r265)
+  block @if_join80(%r266: u8 [general]):
+    %r267 = const 28 : u8 [general]
+    %r268 = cmp.ult %r266, %r267 : bool [flag]
+    br_if %r268, @if_then81(), @if_join82(%r266)
+  block @if_then81:
+    %r269 = const 1 : u8 [acc]
+    call @fill_cell(%r269, %r266)
+    %r270 = const 1 : u8 [general]
+    %r271 = add %r266, %r270 : u8 [acc]
+    jmp @if_join82(%r271)
+  block @if_join82(%r272: u8 [general]):
+    %r273 = const 28 : u8 [general]
+    %r274 = cmp.ult %r272, %r273 : bool [flag]
+    br_if %r274, @if_then83(), @if_join84(%r272)
+  block @if_then83:
+    %r275 = const 1 : u8 [acc]
+    call @fill_cell(%r275, %r272)
+    %r276 = const 1 : u8 [general]
+    %r277 = add %r272, %r276 : u8 [acc]
+    jmp @if_join84(%r277)
+  block @if_join84(%r278: u8 [general]):
+    %r279 = const 28 : u8 [general]
+    %r280 = cmp.ult %r278, %r279 : bool [flag]
+    br_if %r280, @if_then85(), @if_join86(%r278)
+  block @if_then85:
+    %r281 = const 1 : u8 [acc]
+    call @fill_cell(%r281, %r278)
+    %r282 = const 1 : u8 [general]
+    %r283 = add %r278, %r282 : u8 [acc]
+    jmp @if_join86(%r283)
+  block @if_join86(%r284: u8 [general]):
+    %r285 = const 28 : u8 [general]
+    %r286 = cmp.ult %r284, %r285 : bool [flag]
+    br_if %r286, @if_then87(), @if_join88(%r284)
+  block @if_then87:
+    %r287 = const 1 : u8 [acc]
+    call @fill_cell(%r287, %r284)
+    %r288 = const 1 : u8 [general]
+    %r289 = add %r284, %r288 : u8 [acc]
+    jmp @if_join88(%r289)
+  block @if_join88(%r290: u8 [general]):
+    %r291 = const 28 : u8 [general]
+    %r292 = cmp.ult %r290, %r291 : bool [flag]
+    br_if %r292, @if_then89(), @if_join90(%r290)
+  block @if_then89:
+    %r293 = const 1 : u8 [acc]
+    call @fill_cell(%r293, %r290)
+    %r294 = const 1 : u8 [general]
+    %r295 = add %r290, %r294 : u8 [acc]
+    jmp @if_join90(%r295)
+  block @if_join90(%r296: u8 [general]):
+    %r297 = const 28 : u8 [general]
+    %r298 = cmp.ult %r296, %r297 : bool [flag]
+    br_if %r298, @if_then91(), @if_join92(%r296)
+  block @if_then91:
+    %r299 = const 1 : u8 [acc]
+    call @fill_cell(%r299, %r296)
+    %r300 = const 1 : u8 [general]
+    %r301 = add %r296, %r300 : u8 [acc]
+    jmp @if_join92(%r301)
+  block @if_join92(%r302: u8 [general]):
+    %r303 = const 28 : u8 [general]
+    %r304 = cmp.ult %r302, %r303 : bool [flag]
+    br_if %r304, @if_then93(), @if_join94(%r302)
+  block @if_then93:
+    %r305 = const 1 : u8 [acc]
+    call @fill_cell(%r305, %r302)
+    %r306 = const 1 : u8 [general]
+    %r307 = add %r302, %r306 : u8 [acc]
+    jmp @if_join94(%r307)
+  block @if_join94(%r308: u8 [general]):
+    %r309 = const 28 : u8 [general]
+    %r310 = cmp.ult %r308, %r309 : bool [flag]
+    br_if %r310, @if_then95(), @if_join96(%r308)
+  block @if_then95:
+    %r311 = const 1 : u8 [acc]
+    call @fill_cell(%r311, %r308)
+    %r312 = const 1 : u8 [general]
+    %r313 = add %r308, %r312 : u8 [acc]
+    jmp @if_join96(%r313)
+  block @if_join96(%r314: u8 [general]):
+    %r315 = const 28 : u8 [general]
+    %r316 = cmp.ult %r314, %r315 : bool [flag]
+    br_if %r316, @if_then97(), @if_join98()
+  block @if_then97:
+    %r317 = const 1 : u8 [acc]
+    call @fill_cell(%r317, %r314)
+    %r318 = const 1 : u8 [general]
+    %r319 = add %r314, %r318 : u8 [acc]
+    jmp @if_join98()
+  block @if_join98:
+    %r320 = const 0 : u8 [general]
+    jmp @if_then99()
+  block @if_then99:
+    %r321 = const 21 : u8 [acc]
+    call @fill_cell(%r321, %r320)
+    %r322 = const 1 : u8 [acc]
+    jmp @if_join100(%r322)
+  block @if_join100(%r323: u8 [general]):
+    jmp @if_then101()
+  block @if_then101:
+    %r324 = const 21 : u8 [acc]
+    call @fill_cell(%r324, %r323)
+    %r325 = const 1 : u8 [general]
+    %r326 = add %r323, %r325 : u8 [acc]
+    jmp @if_join102(%r326)
+  block @if_join102(%r327: u8 [general]):
+    %r328 = const 30 : u8 [general]
+    %r329 = cmp.ult %r327, %r328 : bool [flag]
+    br_if %r329, @if_then103(), @if_join104(%r327)
+  block @if_then103:
+    %r330 = const 21 : u8 [acc]
+    call @fill_cell(%r330, %r327)
+    %r331 = const 1 : u8 [general]
+    %r332 = add %r327, %r331 : u8 [acc]
+    jmp @if_join104(%r332)
+  block @if_join104(%r333: u8 [general]):
+    %r334 = const 30 : u8 [general]
+    %r335 = cmp.ult %r333, %r334 : bool [flag]
+    br_if %r335, @if_then105(), @if_join106(%r333)
+  block @if_then105:
+    %r336 = const 21 : u8 [acc]
+    call @fill_cell(%r336, %r333)
+    %r337 = const 1 : u8 [general]
+    %r338 = add %r333, %r337 : u8 [acc]
+    jmp @if_join106(%r338)
+  block @if_join106(%r339: u8 [general]):
+    %r340 = const 30 : u8 [general]
+    %r341 = cmp.ult %r339, %r340 : bool [flag]
+    br_if %r341, @if_then107(), @if_join108(%r339)
+  block @if_then107:
+    %r342 = const 21 : u8 [acc]
+    call @fill_cell(%r342, %r339)
+    %r343 = const 1 : u8 [general]
+    %r344 = add %r339, %r343 : u8 [acc]
+    jmp @if_join108(%r344)
+  block @if_join108(%r345: u8 [general]):
+    %r346 = const 30 : u8 [general]
+    %r347 = cmp.ult %r345, %r346 : bool [flag]
+    br_if %r347, @if_then109(), @if_join110(%r345)
+  block @if_then109:
+    %r348 = const 21 : u8 [acc]
+    call @fill_cell(%r348, %r345)
+    %r349 = const 1 : u8 [general]
+    %r350 = add %r345, %r349 : u8 [acc]
+    jmp @if_join110(%r350)
+  block @if_join110(%r351: u8 [general]):
+    %r352 = const 30 : u8 [general]
+    %r353 = cmp.ult %r351, %r352 : bool [flag]
+    br_if %r353, @if_then111(), @if_join112(%r351)
+  block @if_then111:
+    %r354 = const 21 : u8 [acc]
+    call @fill_cell(%r354, %r351)
+    %r355 = const 1 : u8 [general]
+    %r356 = add %r351, %r355 : u8 [acc]
+    jmp @if_join112(%r356)
+  block @if_join112(%r357: u8 [general]):
+    %r358 = const 30 : u8 [general]
+    %r359 = cmp.ult %r357, %r358 : bool [flag]
+    br_if %r359, @if_then113(), @if_join114(%r357)
+  block @if_then113:
+    %r360 = const 21 : u8 [acc]
+    call @fill_cell(%r360, %r357)
+    %r361 = const 1 : u8 [general]
+    %r362 = add %r357, %r361 : u8 [acc]
+    jmp @if_join114(%r362)
+  block @if_join114(%r363: u8 [general]):
+    %r364 = const 30 : u8 [general]
+    %r365 = cmp.ult %r363, %r364 : bool [flag]
+    br_if %r365, @if_then115(), @if_join116(%r363)
+  block @if_then115:
+    %r366 = const 21 : u8 [acc]
+    call @fill_cell(%r366, %r363)
+    %r367 = const 1 : u8 [general]
+    %r368 = add %r363, %r367 : u8 [acc]
+    jmp @if_join116(%r368)
+  block @if_join116(%r369: u8 [general]):
+    %r370 = const 30 : u8 [general]
+    %r371 = cmp.ult %r369, %r370 : bool [flag]
+    br_if %r371, @if_then117(), @if_join118(%r369)
+  block @if_then117:
+    %r372 = const 21 : u8 [acc]
+    call @fill_cell(%r372, %r369)
+    %r373 = const 1 : u8 [general]
+    %r374 = add %r369, %r373 : u8 [acc]
+    jmp @if_join118(%r374)
+  block @if_join118(%r375: u8 [general]):
+    %r376 = const 30 : u8 [general]
+    %r377 = cmp.ult %r375, %r376 : bool [flag]
+    br_if %r377, @if_then119(), @if_join120(%r375)
+  block @if_then119:
+    %r378 = const 21 : u8 [acc]
+    call @fill_cell(%r378, %r375)
+    %r379 = const 1 : u8 [general]
+    %r380 = add %r375, %r379 : u8 [acc]
+    jmp @if_join120(%r380)
+  block @if_join120(%r381: u8 [general]):
+    %r382 = const 30 : u8 [general]
+    %r383 = cmp.ult %r381, %r382 : bool [flag]
+    br_if %r383, @if_then121(), @if_join122(%r381)
+  block @if_then121:
+    %r384 = const 21 : u8 [acc]
+    call @fill_cell(%r384, %r381)
+    %r385 = const 1 : u8 [general]
+    %r386 = add %r381, %r385 : u8 [acc]
+    jmp @if_join122(%r386)
+  block @if_join122(%r387: u8 [general]):
+    %r388 = const 30 : u8 [general]
+    %r389 = cmp.ult %r387, %r388 : bool [flag]
+    br_if %r389, @if_then123(), @if_join124(%r387)
+  block @if_then123:
+    %r390 = const 21 : u8 [acc]
+    call @fill_cell(%r390, %r387)
+    %r391 = const 1 : u8 [general]
+    %r392 = add %r387, %r391 : u8 [acc]
+    jmp @if_join124(%r392)
+  block @if_join124(%r393: u8 [general]):
+    %r394 = const 30 : u8 [general]
+    %r395 = cmp.ult %r393, %r394 : bool [flag]
+    br_if %r395, @if_then125(), @if_join126(%r393)
+  block @if_then125:
+    %r396 = const 21 : u8 [acc]
+    call @fill_cell(%r396, %r393)
+    %r397 = const 1 : u8 [general]
+    %r398 = add %r393, %r397 : u8 [acc]
+    jmp @if_join126(%r398)
+  block @if_join126(%r399: u8 [general]):
+    %r400 = const 30 : u8 [general]
+    %r401 = cmp.ult %r399, %r400 : bool [flag]
+    br_if %r401, @if_then127(), @if_join128(%r399)
+  block @if_then127:
+    %r402 = const 21 : u8 [acc]
+    call @fill_cell(%r402, %r399)
+    %r403 = const 1 : u8 [general]
+    %r404 = add %r399, %r403 : u8 [acc]
+    jmp @if_join128(%r404)
+  block @if_join128(%r405: u8 [general]):
+    %r406 = const 30 : u8 [general]
+    %r407 = cmp.ult %r405, %r406 : bool [flag]
+    br_if %r407, @if_then129(), @if_join130(%r405)
+  block @if_then129:
+    %r408 = const 21 : u8 [acc]
+    call @fill_cell(%r408, %r405)
+    %r409 = const 1 : u8 [general]
+    %r410 = add %r405, %r409 : u8 [acc]
+    jmp @if_join130(%r410)
+  block @if_join130(%r411: u8 [general]):
+    %r412 = const 30 : u8 [general]
+    %r413 = cmp.ult %r411, %r412 : bool [flag]
+    br_if %r413, @if_then131(), @if_join132(%r411)
+  block @if_then131:
+    %r414 = const 21 : u8 [acc]
+    call @fill_cell(%r414, %r411)
+    %r415 = const 1 : u8 [general]
+    %r416 = add %r411, %r415 : u8 [acc]
+    jmp @if_join132(%r416)
+  block @if_join132(%r417: u8 [general]):
+    %r418 = const 30 : u8 [general]
+    %r419 = cmp.ult %r417, %r418 : bool [flag]
+    br_if %r419, @if_then133(), @if_join134(%r417)
+  block @if_then133:
+    %r420 = const 21 : u8 [acc]
+    call @fill_cell(%r420, %r417)
+    %r421 = const 1 : u8 [general]
+    %r422 = add %r417, %r421 : u8 [acc]
+    jmp @if_join134(%r422)
+  block @if_join134(%r423: u8 [general]):
+    %r424 = const 30 : u8 [general]
+    %r425 = cmp.ult %r423, %r424 : bool [flag]
+    br_if %r425, @if_then135(), @if_join136(%r423)
+  block @if_then135:
+    %r426 = const 21 : u8 [acc]
+    call @fill_cell(%r426, %r423)
+    %r427 = const 1 : u8 [general]
+    %r428 = add %r423, %r427 : u8 [acc]
+    jmp @if_join136(%r428)
+  block @if_join136(%r429: u8 [general]):
+    %r430 = const 30 : u8 [general]
+    %r431 = cmp.ult %r429, %r430 : bool [flag]
+    br_if %r431, @if_then137(), @if_join138(%r429)
+  block @if_then137:
+    %r432 = const 21 : u8 [acc]
+    call @fill_cell(%r432, %r429)
+    %r433 = const 1 : u8 [general]
+    %r434 = add %r429, %r433 : u8 [acc]
+    jmp @if_join138(%r434)
+  block @if_join138(%r435: u8 [general]):
+    %r436 = const 30 : u8 [general]
+    %r437 = cmp.ult %r435, %r436 : bool [flag]
+    br_if %r437, @if_then139(), @if_join140(%r435)
+  block @if_then139:
+    %r438 = const 21 : u8 [acc]
+    call @fill_cell(%r438, %r435)
+    %r439 = const 1 : u8 [general]
+    %r440 = add %r435, %r439 : u8 [acc]
+    jmp @if_join140(%r440)
+  block @if_join140(%r441: u8 [general]):
+    %r442 = const 30 : u8 [general]
+    %r443 = cmp.ult %r441, %r442 : bool [flag]
+    br_if %r443, @if_then141(), @if_join142(%r441)
+  block @if_then141:
+    %r444 = const 21 : u8 [acc]
+    call @fill_cell(%r444, %r441)
+    %r445 = const 1 : u8 [general]
+    %r446 = add %r441, %r445 : u8 [acc]
+    jmp @if_join142(%r446)
+  block @if_join142(%r447: u8 [general]):
+    %r448 = const 30 : u8 [general]
+    %r449 = cmp.ult %r447, %r448 : bool [flag]
+    br_if %r449, @if_then143(), @if_join144(%r447)
+  block @if_then143:
+    %r450 = const 21 : u8 [acc]
+    call @fill_cell(%r450, %r447)
+    %r451 = const 1 : u8 [general]
+    %r452 = add %r447, %r451 : u8 [acc]
+    jmp @if_join144(%r452)
+  block @if_join144(%r453: u8 [general]):
+    %r454 = const 30 : u8 [general]
+    %r455 = cmp.ult %r453, %r454 : bool [flag]
+    br_if %r455, @if_then145(), @if_join146(%r453)
+  block @if_then145:
+    %r456 = const 21 : u8 [acc]
+    call @fill_cell(%r456, %r453)
+    %r457 = const 1 : u8 [general]
+    %r458 = add %r453, %r457 : u8 [acc]
+    jmp @if_join146(%r458)
+  block @if_join146(%r459: u8 [general]):
+    %r460 = const 30 : u8 [general]
+    %r461 = cmp.ult %r459, %r460 : bool [flag]
+    br_if %r461, @if_then147(), @if_join148(%r459)
+  block @if_then147:
+    %r462 = const 21 : u8 [acc]
+    call @fill_cell(%r462, %r459)
+    %r463 = const 1 : u8 [general]
+    %r464 = add %r459, %r463 : u8 [acc]
+    jmp @if_join148(%r464)
+  block @if_join148(%r465: u8 [general]):
+    %r466 = const 30 : u8 [general]
+    %r467 = cmp.ult %r465, %r466 : bool [flag]
+    br_if %r467, @if_then149(), @if_join150(%r465)
+  block @if_then149:
+    %r468 = const 21 : u8 [acc]
+    call @fill_cell(%r468, %r465)
+    %r469 = const 1 : u8 [general]
+    %r470 = add %r465, %r469 : u8 [acc]
+    jmp @if_join150(%r470)
+  block @if_join150(%r471: u8 [general]):
+    %r472 = const 30 : u8 [general]
+    %r473 = cmp.ult %r471, %r472 : bool [flag]
+    br_if %r473, @if_then151(), @if_join152(%r471)
+  block @if_then151:
+    %r474 = const 21 : u8 [acc]
+    call @fill_cell(%r474, %r471)
+    %r475 = const 1 : u8 [general]
+    %r476 = add %r471, %r475 : u8 [acc]
+    jmp @if_join152(%r476)
+  block @if_join152(%r477: u8 [general]):
+    %r478 = const 30 : u8 [general]
+    %r479 = cmp.ult %r477, %r478 : bool [flag]
+    br_if %r479, @if_then153(), @if_join154(%r477)
+  block @if_then153:
+    %r480 = const 21 : u8 [acc]
+    call @fill_cell(%r480, %r477)
+    %r481 = const 1 : u8 [general]
+    %r482 = add %r477, %r481 : u8 [acc]
+    jmp @if_join154(%r482)
+  block @if_join154(%r483: u8 [general]):
+    %r484 = const 30 : u8 [general]
+    %r485 = cmp.ult %r483, %r484 : bool [flag]
+    br_if %r485, @if_then155(), @if_join156(%r483)
+  block @if_then155:
+    %r486 = const 21 : u8 [acc]
+    call @fill_cell(%r486, %r483)
+    %r487 = const 1 : u8 [general]
+    %r488 = add %r483, %r487 : u8 [acc]
+    jmp @if_join156(%r488)
+  block @if_join156(%r489: u8 [general]):
+    %r490 = const 30 : u8 [general]
+    %r491 = cmp.ult %r489, %r490 : bool [flag]
+    br_if %r491, @if_then157(), @if_join158()
+  block @if_then157:
+    %r492 = const 21 : u8 [acc]
+    call @fill_cell(%r492, %r489)
+    %r493 = const 1 : u8 [general]
+    %r494 = add %r489, %r493 : u8 [acc]
+    jmp @if_join158()
+  block @if_join158:
+    %r495 = const 11 : u8 [acc]
+    %r496 = const 1 : u8 [general]
+    call @fill_cell(%r495, %r496)
+    %r497 = const 11 : u8 [acc]
+    %r498 = const 2 : u8 [general]
+    call @fill_cell(%r497, %r498)
+    %r499 = const 11 : u8 [acc]
+    %r500 = const 3 : u8 [general]
+    call @fill_cell(%r499, %r500)
+    %r501 = const 11 : u8 [acc]
+    %r502 = const 4 : u8 [general]
+    call @fill_cell(%r501, %r502)
+    %r503 = const 11 : u8 [acc]
+    %r504 = const 5 : u8 [general]
+    call @fill_cell(%r503, %r504)
+    %r505 = const 11 : u8 [acc]
+    %r506 = const 6 : u8 [general]
+    call @fill_cell(%r505, %r506)
+    %r507 = const 11 : u8 [acc]
+    %r508 = const 7 : u8 [general]
+    call @fill_cell(%r507, %r508)
+    %r509 = const 11 : u8 [acc]
+    %r510 = const 8 : u8 [general]
+    call @fill_cell(%r509, %r510)
+    %r511 = const 12 : u8 [acc]
+    %r512 = const 1 : u8 [general]
+    call @fill_cell(%r511, %r512)
+    %r513 = const 12 : u8 [acc]
+    %r514 = const 2 : u8 [general]
+    call @fill_cell(%r513, %r514)
+    %r515 = const 12 : u8 [acc]
+    %r516 = const 3 : u8 [general]
+    call @fill_cell(%r515, %r516)
+    %r517 = const 12 : u8 [acc]
+    %r518 = const 4 : u8 [general]
+    call @fill_cell(%r517, %r518)
+    %r519 = const 12 : u8 [acc]
+    %r520 = const 5 : u8 [general]
+    call @fill_cell(%r519, %r520)
+    %r521 = const 12 : u8 [acc]
+    %r522 = const 6 : u8 [general]
+    call @fill_cell(%r521, %r522)
+    %r523 = const 12 : u8 [acc]
+    %r524 = const 7 : u8 [general]
+    call @fill_cell(%r523, %r524)
+    %r525 = const 12 : u8 [acc]
+    %r526 = const 8 : u8 [general]
+    call @fill_cell(%r525, %r526)
+    %r527 = const 13 : u8 [acc]
+    %r528 = const 1 : u8 [general]
+    call @fill_cell(%r527, %r528)
+    %r529 = const 13 : u8 [acc]
+    %r530 = const 2 : u8 [general]
+    call @fill_cell(%r529, %r530)
+    %r531 = const 13 : u8 [acc]
+    %r532 = const 3 : u8 [general]
+    call @fill_cell(%r531, %r532)
+    %r533 = const 13 : u8 [acc]
+    %r534 = const 4 : u8 [general]
+    call @fill_cell(%r533, %r534)
+    %r535 = const 13 : u8 [acc]
+    %r536 = const 5 : u8 [general]
+    call @fill_cell(%r535, %r536)
+    %r537 = const 13 : u8 [acc]
+    %r538 = const 6 : u8 [general]
+    call @fill_cell(%r537, %r538)
+    %r539 = const 13 : u8 [acc]
+    %r540 = const 7 : u8 [general]
+    call @fill_cell(%r539, %r540)
+    %r541 = const 13 : u8 [acc]
+    %r542 = const 8 : u8 [general]
+    call @fill_cell(%r541, %r542)
+    %r543 = const 7 : u8 [acc]
+    %r544 = const 2 : u8 [general]
+    call @fill_cell(%r543, %r544)
+    %r545 = const 7 : u8 [acc]
+    %r546 = const 3 : u8 [general]
+    call @fill_cell(%r545, %r546)
+    %r547 = const 7 : u8 [acc]
+    %r548 = const 4 : u8 [general]
+    call @fill_cell(%r547, %r548)
+    %r549 = const 7 : u8 [acc]
+    %r550 = const 5 : u8 [general]
+    call @fill_cell(%r549, %r550)
+    %r551 = const 7 : u8 [acc]
+    %r552 = const 6 : u8 [general]
+    call @fill_cell(%r551, %r552)
+    %r553 = const 7 : u8 [acc]
+    %r554 = const 7 : u8 [general]
+    call @fill_cell(%r553, %r554)
+    %r555 = const 7 : u8 [acc]
+    %r556 = const 8 : u8 [general]
+    call @fill_cell(%r555, %r556)
+    %r557 = const 7 : u8 [acc]
+    %r558 = const 9 : u8 [general]
+    call @fill_cell(%r557, %r558)
+    %r559 = const 7 : u8 [acc]
+    %r560 = const 10 : u8 [general]
+    call @fill_cell(%r559, %r560)
+    %r561 = const 7 : u8 [acc]
+    %r562 = const 12 : u8 [general]
+    call @fill_cell(%r561, %r562)
+    %r563 = const 7 : u8 [acc]
+    %r564 = const 13 : u8 [general]
+    call @fill_cell(%r563, %r564)
+    %r565 = const 7 : u8 [acc]
+    %r566 = const 14 : u8 [general]
+    call @fill_cell(%r565, %r566)
+    %r567 = const 7 : u8 [acc]
+    %r568 = const 15 : u8 [general]
+    call @fill_cell(%r567, %r568)
+    %r569 = const 7 : u8 [acc]
+    %r570 = const 16 : u8 [general]
+    call @fill_cell(%r569, %r570)
+    %r571 = const 7 : u8 [acc]
+    %r572 = const 17 : u8 [general]
+    call @fill_cell(%r571, %r572)
+    asm "DI\n    HALT"
+    ret void
+
