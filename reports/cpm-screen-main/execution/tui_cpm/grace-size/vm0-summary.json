@@ -1,0 +1,6 @@
+{
+  "full_ram": true,
+  "result": "PASS",
+  "scope": "wholemain explicit CP/M-equivalent ASM-function host bindings, not VMASM execution",
+  "steps": 571
+}
