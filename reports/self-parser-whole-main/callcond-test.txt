@@ -1,0 +1,12 @@
+=== RUN   TestConditionalCallArgumentAcrossWordCompare
+--- PASS: TestConditionalCallArgumentAcrossWordCompare (0.01s)
+=== RUN   TestVMConditionalCallTakenAndInverted
+--- PASS: TestVMConditionalCallTakenAndInverted (0.00s)
+=== RUN   TestVMConditionalCallRejectsUnrelatedPredicate
+--- PASS: TestVMConditionalCallRejectsUnrelatedPredicate (0.00s)
+=== RUN   TestVMConditionalCallBooleanAndNonlocalComparator
+--- PASS: TestVMConditionalCallBooleanAndNonlocalComparator (0.00s)
+=== RUN   TestCPMDirectConditionalCallAdmissionNative
+--- PASS: TestCPMDirectConditionalCallAdmissionNative (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.028s

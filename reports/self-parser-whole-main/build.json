@@ -1,0 +1,12 @@
+{
+  "base": "1fd3d63f",
+  "source_freeze": "5eaa1249",
+  "source_fix": "2976ac66",
+  "extern_fix": "065217c4",
+  "conditional_call_fix": "e38a2f9b",
+  "typed_store_fix": "698e84db",
+  "test_checkpoint": "70921d5c",
+  "executable": "/home/alice/dev/minz-artifacts/grace-checkpoints/self-parser-whole-main.test",
+  "sha256": "a4f6ff8318da5266c77500a60976ffdb23c60c032728d636bce849eda3f84353",
+  "go": "go1.26.8"
+}

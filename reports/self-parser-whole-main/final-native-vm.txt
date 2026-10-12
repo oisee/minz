@@ -1,0 +1,27 @@
+=== RUN   TestOriginalSelfParserWholeMainVM
+=== RUN   TestOriginalSelfParserWholeMainVM/raw
+    self_parser_whole_main_test.go:222: wholemain independent files/AST/tokens/stdout PASS inputSHA f73e18cfe6ec36cd8ddda84d935e0b54549cb19f3b7c07d952e87dbcce96959d events[read tiny.nanz write tiny.lanz]
+=== RUN   TestOriginalSelfParserWholeMainVM/ordinary
+    self_parser_whole_main_test.go:222: wholemain independent files/AST/tokens/stdout PASS inputSHA f73e18cfe6ec36cd8ddda84d935e0b54549cb19f3b7c07d952e87dbcce96959d events[read tiny.nanz write tiny.lanz]
+=== RUN   TestOriginalSelfParserWholeMainVM/grace-size
+    self_parser_whole_main_test.go:222: wholemain independent files/AST/tokens/stdout PASS inputSHA f73e18cfe6ec36cd8ddda84d935e0b54549cb19f3b7c07d952e87dbcce96959d events[read tiny.nanz write tiny.lanz]
+=== RUN   TestOriginalSelfParserWholeMainVM/grace-speed
+    self_parser_whole_main_test.go:222: wholemain independent files/AST/tokens/stdout PASS inputSHA f73e18cfe6ec36cd8ddda84d935e0b54549cb19f3b7c07d952e87dbcce96959d events[read tiny.nanz write tiny.lanz]
+--- PASS: TestOriginalSelfParserWholeMainVM (3.21s)
+    --- PASS: TestOriginalSelfParserWholeMainVM/raw (0.05s)
+    --- PASS: TestOriginalSelfParserWholeMainVM/ordinary (0.71s)
+    --- PASS: TestOriginalSelfParserWholeMainVM/grace-size (0.90s)
+    --- PASS: TestOriginalSelfParserWholeMainVM/grace-speed (1.56s)
+=== RUN   TestOriginalSelfParserWholeMainNative
+=== RUN   TestOriginalSelfParserWholeMainNative/ordinary
+    self_parser_whole_main_test.go:483: whole native parser 7232 bytes file76/AST12/token29/stdout/SP memory PASS
+=== RUN   TestOriginalSelfParserWholeMainNative/grace-size
+    self_parser_whole_main_test.go:483: whole native parser 7231 bytes file76/AST12/token29/stdout/SP memory PASS
+=== RUN   TestOriginalSelfParserWholeMainNative/grace-speed
+    self_parser_whole_main_test.go:483: whole native parser 7231 bytes file76/AST12/token29/stdout/SP memory PASS
+--- PASS: TestOriginalSelfParserWholeMainNative (4.20s)
+    --- PASS: TestOriginalSelfParserWholeMainNative/ordinary (0.91s)
+    --- PASS: TestOriginalSelfParserWholeMainNative/grace-size (1.69s)
+    --- PASS: TestOriginalSelfParserWholeMainNative/grace-speed (1.60s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	7.426s

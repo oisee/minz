@@ -1,0 +1,13 @@
+=== RUN   TestOriginalSelfParserWholeMainNative
+=== RUN   TestOriginalSelfParserWholeMainNative/ordinary
+    self_parser_whole_main_test.go:483: whole native parser 7232 bytes file76/AST12/token29/stdout/SP memory PASS
+=== RUN   TestOriginalSelfParserWholeMainNative/grace-size
+    self_parser_whole_main_test.go:483: whole native parser 7231 bytes file76/AST12/token29/stdout/SP memory PASS
+=== RUN   TestOriginalSelfParserWholeMainNative/grace-speed
+    self_parser_whole_main_test.go:483: whole native parser 7231 bytes file76/AST12/token29/stdout/SP memory PASS
+--- PASS: TestOriginalSelfParserWholeMainNative (2.96s)
+    --- PASS: TestOriginalSelfParserWholeMainNative/ordinary (0.65s)
+    --- PASS: TestOriginalSelfParserWholeMainNative/grace-size (1.17s)
+    --- PASS: TestOriginalSelfParserWholeMainNative/grace-speed (1.14s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.968s

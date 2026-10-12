@@ -1,0 +1,6 @@
+=== RUN   TestConditionalCallArgumentAcrossWordCompare
+--- PASS: TestConditionalCallArgumentAcrossWordCompare (0.01s)
+=== RUN   TestConditionalCallUndefinedArgumentRejected
+--- PASS: TestConditionalCallUndefinedArgumentRejected (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.022s
