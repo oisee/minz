@@ -1,0 +1,10 @@
+{
+  "files": {
+    "README.md": "2ebf657578a4b875b010c8092798b98f5e7520d26ffcb302418a6493c6fd15ef",
+    "all-widths.txt": "322bec7e3343a5e7829f055cbdea49a409b04c3d8353ad1e9da8f710e6cf7077",
+    "rejected.patch": "d65a5c9052455e5c0cf5a8ee51257679b29dfdc132c3b74d660618f9a409a262",
+    "restored.txt": "c40c37b3739b22af9be74f250fe01a22a1b440645c2895732ba1877fb0fa0792",
+    "same-pair.txt": "4d13564274dd322f7ab427c1bed884cf4f6c361f4a01f1874f2dc901a14bf444",
+    "word-width.txt": "69d020206d020a806179001dfd588761f9841c6f1ed313bcc41908ada30fc05b"
+  }
+}
