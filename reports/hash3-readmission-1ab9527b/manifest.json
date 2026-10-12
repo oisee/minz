@@ -1,0 +1,30 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "58c331ef84d005b14857f4de1230971b8d1a85e5fd3ee2e8b192e7981a3c2b8e"
+  },
+  {
+    "path": "composition_native_test.go",
+    "sha256": "471ab1093869690362b590e9d4c1d465653f47d394519d4cc7b3a7e732fea53d"
+  },
+  {
+    "path": "gate.txt",
+    "sha256": "5a6922f7817538e50464d87964e5392e5d62a30a5cc1b1e6c733aa4ce9a30dd9"
+  },
+  {
+    "path": "hash3-baseline.a80",
+    "sha256": "c4a4b6348ffc2654b6d3cf2507a70c6145b89cf5670495c72fa34bead48012f1"
+  },
+  {
+    "path": "hash3-candidate.a80",
+    "sha256": "01158c04d5530c141256f34c2b0c53fd82381d4450dbb778aa28b332155ed97d"
+  },
+  {
+    "path": "hash3-proposal-table.json",
+    "sha256": "2e9a8bdf06df11282b333571feeb27da7fbc93ae0bb5663f6351b4b009ec6f55"
+  },
+  {
+    "path": "source.nanz",
+    "sha256": "23d92aa2d44e5d126dbe9f63a1f10edb283cc39d276656f3aaa3d57c96b02c10"
+  }
+]
