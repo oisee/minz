@@ -390,7 +390,11 @@ fun lookup(idx: u8) -> u8 {
 
 assert lookup(0) == 10
 assert lookup(1) == 20
+assert lookup(2) == 30
 assert lookup(3) == 40
+assert lookup(4) == 50
+assert lookup(5) == 60
+assert lookup(6) == 70
 assert lookup(7) == 80
 `)
 }

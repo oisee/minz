@@ -1,0 +1,11 @@
+{
+  "scope": "research VIR assert family; not full corpus or hardware",
+  "counts": {
+    "PASS": 18,
+    "FAIL": 0,
+    "SKIP": 0
+  },
+  "exit_code": 0,
+  "lookup_all_valid_indices": 8,
+  "full_VIR_pre_fix_session": 88197
+}

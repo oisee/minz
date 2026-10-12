@@ -7,8 +7,9 @@
 // - Cross-block register state (vreg locations flow along CFG edges)
 //
 // Encoding:
-//   lv{vreg}_b{block}_i{inst} — location of vreg at instruction i in block b
-//   Edge A→B: lv{vreg}_bA_i{last} = lv{vreg}_bB_i{0} (for all live vregs)
+//
+//	lv{vreg}_b{block}_i{inst} — location of vreg at instruction i in block b
+//	Edge A→B: lv{vreg}_bA_i{last} = lv{vreg}_bB_i{0} (for all live vregs)
 package vir
 
 import (
@@ -166,11 +167,15 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 	paramHintsEarly := make(map[int]int)
 	if opts.FuncParamLocs != nil {
 		if pl, ok := opts.FuncParamLocs[f.Name]; ok {
-			for v, p := range pl { paramHintsEarly[v] = p }
+			for v, p := range pl {
+				paramHintsEarly[v] = p
+			}
 		}
 	}
 	for v, p := range opts.ParamLocs {
-		if _, ok := paramHintsEarly[v]; !ok { paramHintsEarly[v] = p }
+		if _, ok := paramHintsEarly[v]; !ok {
+			paramHintsEarly[v] = p
+		}
 	}
 
 	for bi, block := range vf.Blocks {
@@ -286,8 +291,14 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 			if len(succ.args) > 0 && len(blocks[bi].prob.liveness) > 0 {
 				lastIdx := len(blocks[bi].prob.liveness) - 1
 				for _, arg := range succ.args {
-					blocks[bi].prob.liveness[lastIdx].live[int(arg)] = true
-					blocks[bi].prob.vregs[int(arg)] = true
+					vreg := int(arg)
+					for i := lastIdx; i >= 0; i-- {
+						blocks[bi].prob.liveness[i].live[vreg] = true
+						if blocks[bi].ops[i].Dst == vreg {
+							break
+						}
+					}
+					blocks[bi].prob.vregs[vreg] = true
 				}
 			}
 		}
@@ -310,7 +321,11 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 		}
 		for vreg := range fromBP.prob.liveness[fromLastIdx].live {
 			blockLiveOut[edge.fromBlock][vreg] = true
-			blockLiveIn[edge.toBlock][vreg] = true
+			toVreg := vreg
+			if mapped, ok := edge.phiMap[vreg]; ok {
+				toVreg = mapped
+			}
+			blockLiveIn[edge.toBlock][toVreg] = true
 		}
 	}
 
@@ -404,7 +419,11 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 			}
 			for vreg := range fromBP.prob.liveness[fromLastIdx].live {
 				blockLiveOut[edge.fromBlock][vreg] = true
-				blockLiveIn[edge.toBlock][vreg] = true
+				toVreg := vreg
+				if mapped, ok := edge.phiMap[vreg]; ok {
+					toVreg = mapped
+				}
+				blockLiveIn[edge.toBlock][toVreg] = true
 			}
 		}
 	}
@@ -553,7 +572,9 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 		if os.Getenv("VIR_DEBUG_LIVENESS") != "" {
 			for i, l := range p.liveness {
 				vs := make([]int, 0)
-				for v := range l.live { vs = append(vs, v) }
+				for v := range l.live {
+					vs = append(vs, v)
+				}
 				sort.Ints(vs)
 				if len(vs) > 0 {
 					fmt.Fprintf(os.Stderr, "[DEBUG] %s b%d i%d live: %v\n", f.Name, bi, i, vs)
@@ -760,9 +781,13 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 				}
 				for i, op := range bp.ops {
 					usesVreg := false
-					if op.Dst == vreg { usesVreg = true }
+					if op.Dst == vreg {
+						usesVreg = true
+					}
 					for _, s := range op.Src {
-						if s == vreg { usesVreg = true }
+						if s == vreg {
+							usesVreg = true
+						}
 					}
 					if usesVreg {
 						v := ensureVar(vreg, bi, i)
@@ -996,16 +1021,23 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 				moveVregs := make([]int, 0)
 				// Start with src operands (original behavior)
 				for _, s := range []int{op.Src[0], op.Src[1]} {
-					if s > 0 { moveVregs = append(moveVregs, s) }
+					if s > 0 {
+						moveVregs = append(moveVregs, s)
+					}
 				}
 				// Add all live vregs at this instruction (catches block params)
 				if i < len(bp.prob.liveness) {
 					for v := range bp.prob.liveness[i].live {
 						found := false
 						for _, mv := range moveVregs {
-							if mv == v { found = true; break }
+							if mv == v {
+								found = true
+								break
+							}
 						}
-						if !found && v > 0 { moveVregs = append(moveVregs, v) }
+						if !found && v > 0 {
+							moveVregs = append(moveVregs, v)
+						}
 					}
 					sort.Ints(moveVregs)
 				}
@@ -1138,6 +1170,9 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 			}
 		}
 		for v := range edgeVRegSet {
+			if mapped, ok := edge.phiMap[v]; ok && mapped != v {
+				continue
+			}
 			edgeVRegs = append(edgeVRegs, v)
 		}
 		sort.Ints(edgeVRegs)

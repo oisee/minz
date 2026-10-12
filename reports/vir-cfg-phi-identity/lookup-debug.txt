@@ -1,0 +1,14 @@
+=== RUN   TestVIR_Assert_LookupLoopHeader
+[regalloc] loaded 56 exhaustive entries from regalloc_exhaustive.json
+[PHI] lookup: edge b0→b1 phi=map[1:5 2:6 3:4]
+[PHI] lookup: edge b1→b3 phi=map[4:12 5:13 6:14]
+[PHI] lookup: edge b2→b1 phi=map[5:5 9:6 11:4]
+[INTRA-MOVE] v1: A(0)→D(3) at b0 i1
+[INTRA-MOVE] v4: A(0)→BC(7) at b2 i1
+[CFG-solver] lookup: 4 edges to check for moves
+[PHI-MOVE] v4→v12: A(0)→C(2) at b1→b3
+[PHI-MOVE] v11→v4: C(2)→A(0) at b2→b1
+    assert_test.go:378: lookup_loop_header: 4 asserts passed ✓ (MIR2-VM + Z80)
+--- PASS: TestVIR_Assert_LookupLoopHeader (0.14s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.146s

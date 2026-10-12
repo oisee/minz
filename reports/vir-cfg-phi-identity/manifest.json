@@ -1,0 +1,34 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "fdc4ff1282ac4ce257e3b4fad2c0fb4b15a14604d1dffff87b2900077ef425a8"
+  },
+  {
+    "path": "assert-family.txt",
+    "sha256": "35b811b5ec519d52b9e6752788e86c8741310a3b8408ded6df3b6afd637aa4fd"
+  },
+  {
+    "path": "lookup/allocation.json",
+    "sha256": "5c9678e4f5aa941fdda9c7bfd3e621f9e3bba40f2441eaec8e5aeb4a3d9f89d4"
+  },
+  {
+    "path": "lookup/module.a80",
+    "sha256": "856dc3b9e394804a204faaa0e187e66209dbe3d1bb494aa958e6490eddf61b4f"
+  },
+  {
+    "path": "lookup/module.mir",
+    "sha256": "bc8682fbd75abb42dc21c97f55227fc1da59d7f2018aa934ad705c9f3867a7e1"
+  },
+  {
+    "path": "lookup/source.nanz",
+    "sha256": "7a2bdb479befe733585e1a09dfbd3a0d27c433ababd144291934878c97238db4"
+  },
+  {
+    "path": "lookup-debug.txt",
+    "sha256": "92eb8da8f4c6b00e9b1dc534c959b19df811ec825413d5c2f469c887a58a63af"
+  },
+  {
+    "path": "result.json",
+    "sha256": "1da1af67be894ada8efc0ecee49773a21a3831a0a6b80746799e5f43fbf14682"
+  }
+]
