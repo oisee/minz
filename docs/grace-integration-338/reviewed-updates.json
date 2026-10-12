@@ -182,14 +182,14 @@
   {
     "path": "examples/lizp/cond_test.lizp",
     "source_sha256": "50a8ca601da047bde2975df0a833e625efa89d0a08204dfac562f75b4afd4c00",
-    "native_behavior": "pending-independent-oracle",
-    "workload": "",
-    "independent_model": "",
-    "boundary": "Unresolved language implicit return authority: classify(42) raw/final VM returns no result; native leaves stale A=42. Diagnostic PASS is not behavioral correctness proof.",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Original classify all256byteinputs and originalmain, ordinary/Grace Size/Grace Speed;771 native calls with raw/finalVM agreement.",
+    "independent_model": "Book v7 section21.4 last-form results; independent unsigned thresholds0,10,100, score2; native A, exactreturnPC/SP and code integrity; mainHALT/SP/score.",
+    "boundary": "Source unchanged. Main canonical HALT, not CP/M. Bounded state coverage, not fullRAM or optimization gain.",
     "evidence": {
-      "reports/lizp-lanz-family-native/REPORT.md": "acefcb8e799b19f97c1e8675a237e04457230c56e5feea285156ff6b276ba5b6",
-      "reports/lizp-lanz-family-native/before-cond-return.txt": "2fbe81855aec497b0e4cb732bb8be423eb99b1b59b3451b0640a5c71a53823d4",
-      "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go": "b1e030b72222c84a857c17cb7666b42f260da8117f9d442a9726426057d25eb9"
+      "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go": "1952fd3f9c44cb0596e5645f1a7fcf068bfbd70b0603561175cab6a5cd07ad73",
+      "reports/lizp-last-form/manifest.json": "ed61e1c78b4e34e20d14898eb40da959fbcccf42dad6a77ef3850161053768b1",
+      "docs/Nanz_Language_Book_v7.md": "812d7a1f939f976165ba99d764ecb73ee1ff44abe1eda5f85dee3333840a0087"
     }
   },
   {
@@ -225,7 +225,7 @@
     "evidence": {
       "reports/lizp-lanz-family-native/REPORT.md": "acefcb8e799b19f97c1e8675a237e04457230c56e5feea285156ff6b276ba5b6",
       "reports/lizp-lanz-family-native/manifest.json": "ad09aa3253465d54aa5c78e8900b6dd67e9e01bd15f7fb2ba22ff423d7941b17",
-      "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go": "b1e030b72222c84a857c17cb7666b42f260da8117f9d442a9726426057d25eb9",
+      "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go": "1952fd3f9c44cb0596e5645f1a7fcf068bfbd70b0603561175cab6a5cd07ad73",
       "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
       "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
     }
@@ -263,7 +263,7 @@
     "evidence": {
       "reports/lizp-lanz-family-native/REPORT.md": "acefcb8e799b19f97c1e8675a237e04457230c56e5feea285156ff6b276ba5b6",
       "reports/lizp-lanz-family-native/manifest.json": "ad09aa3253465d54aa5c78e8900b6dd67e9e01bd15f7fb2ba22ff423d7941b17",
-      "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go": "b1e030b72222c84a857c17cb7666b42f260da8117f9d442a9726426057d25eb9",
+      "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go": "1952fd3f9c44cb0596e5645f1a7fcf068bfbd70b0603561175cab6a5cd07ad73",
       "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
       "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
     }
@@ -1472,16 +1472,19 @@
   },
   {
     "path": "examples/plm/hello.plm",
-    "source_sha256": "fdb0a98768bdd5ad347c8220ed409e4f964230541712c8af9b0b4561d259b84c",
-    "native_behavior": "pending-independent-oracle",
-    "workload": "",
-    "independent_model": "",
-    "boundary": "Module entry and exact case-preserving byte literals fixed in d32d20d4. Original PRINTCHAR is empty; PRINTMSG termination beyond exact literal bytes still requires explicit trailing-zero memory convention. Bounded original-main proof is separate from portable/CPM runtime completion.",
+    "source_sha256": "7e7355a4973d8be721013ca6c329d0b152eec10741b7fde34d808edc14a53a7e",
+    "native_behavior": "executed-native-cpm-runtime",
+    "workload": "Current original main in ordinary, Grace Size and Grace Speed: raw/final MIR plus six assembled CP/M runs with preserving and all-register-clobbering BDOS2.",
+    "independent_model": "Exact source-derived Hello from PL/M-80! CR/LF output, each CALL5/BDOS2 byte, terminal PC=0/SP=fe00, stack guard/status and full RAM outside admitted stack/status/spill regions.",
+    "boundary": "Explicit undeclared BDOS(2,BYTE) compiler intrinsic and explicit addressed-list NUL; declared BDOS procedures are unchanged. Emulated CP/M service model, not physical OS or arbitrary BDOS ABI. Raw/final VM host models byte output. Previous historical adapter and trailing-zero evidence remains separate.",
     "evidence": {
-      "reports/plm-top-level-entry/manifest.json": "3a9148d205d72980ca8fbf8b063f3d47f98415472114e3b95ba9864ca3ec6161",
-      "reports/plm-top-level-entry/REPORT.md": "c4059283c3371099732e50c755476a874c2d2412be165a14b755c09a2863d2ce",
-      "minzc/pkg/pipeline/plm_module_entry_native_test.go": "d3108ccacd9abb02707ecdf9621e699c58a3665c32749bb749d7aa98ec3d41d3",
-      "docs/grace-integration-209/root-plm-entry.txt": "bdfc82ba18dfa827f3e240e215a0c910d60cc4077edc0d6ad2b92fadbef8f520"
+      "minzc/pkg/pipeline/plm_hello_cpm_native_test.go": "2a1999122f47f89d2530f10f90f069d06ccb46aa54aaf62c537fff48618d742a",
+      "minzc/pkg/plm/cpm_console_test.go": "671e8035704fcf93fc6ad2f67489c49849409da2cac2b2cffd272760298d22f9",
+      "docs/PLM_CPM_Console.md": "f6c734c2e72b5cc302896b9c04ea773f5e518b6980a044697f6a3caeb37e0d2b",
+      "reports/plm-hello-runtime/README.md": "613553cbc83ba6544af6ba1b0fd93761fce782764ad09b9a46e8877b97d2f641",
+      "reports/plm-hello-runtime/manifest.json": "dd9b3fb83ec77b1a244adf6b2825e8bf249266c811400f842e9fe9222a5a037a",
+      "reports/plm-hello-runtime/export.txt": "5118ce32cdf25335a1f33d84b20692eb9d314fa1934023cf0b1ea0bcf726fb93",
+      "reports/plm-hello-runtime/plm-full.txt": "d261dc73ad804a2b87f4dfabff656c1e91c81bcd639cf28fd793a28b5f311345"
     }
   },
   {
@@ -2464,7 +2467,7 @@
     "boundary": "Explicit output binding; no wholeCPM application claim",
     "evidence": {
       "reports/strings-pointer-plm-native/manifest.json": "596da59a6ca0342ad443ff3430946cc4ef2c181c0adeef0c3dbeebcd9012a2cc",
-      "minzc/pkg/pipeline/original_strings_pointer_plm_native_test.go": "c4bd9a18d4333325abca6edd48b66680f498aa85daa6589d2d52a1bf413a97a3",
+      "minzc/pkg/pipeline/original_strings_pointer_plm_native_test.go": "eeed97fa9133f8736c0076edf8abeddf6554f09fb60235b77edcd19fe4bcb0ef",
       "docs/grace-integration-209/root-plm-entry.txt": "bdfc82ba18dfa827f3e240e215a0c910d60cc4077edc0d6ad2b92fadbef8f520"
     }
   },
@@ -2500,7 +2503,7 @@
     "evidence": {
       "reports/lizp-lanz-family-native/REPORT.md": "acefcb8e799b19f97c1e8675a237e04457230c56e5feea285156ff6b276ba5b6",
       "reports/lizp-lanz-family-native/manifest.json": "ad09aa3253465d54aa5c78e8900b6dd67e9e01bd15f7fb2ba22ff423d7941b17",
-      "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go": "b1e030b72222c84a857c17cb7666b42f260da8117f9d442a9726426057d25eb9",
+      "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go": "1952fd3f9c44cb0596e5645f1a7fcf068bfbd70b0603561175cab6a5cd07ad73",
       "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
       "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
     }
@@ -2514,7 +2517,7 @@
     "boundary": "AllRAM native image4000 permits original main store8000; code/guards/ordered effects/SP checked",
     "evidence": {
       "reports/strings-pointer-plm-native/manifest.json": "596da59a6ca0342ad443ff3430946cc4ef2c181c0adeef0c3dbeebcd9012a2cc",
-      "minzc/pkg/pipeline/original_strings_pointer_plm_native_test.go": "c4bd9a18d4333325abca6edd48b66680f498aa85daa6589d2d52a1bf413a97a3",
+      "minzc/pkg/pipeline/original_strings_pointer_plm_native_test.go": "eeed97fa9133f8736c0076edf8abeddf6554f09fb60235b77edcd19fe4bcb0ef",
       "docs/grace-integration-209/root-plm-entry.txt": "bdfc82ba18dfa827f3e240e215a0c910d60cc4077edc0d6ad2b92fadbef8f520"
     }
   },

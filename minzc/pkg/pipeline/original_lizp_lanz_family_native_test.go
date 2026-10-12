@@ -328,42 +328,85 @@ func TestOriginalLizpLanzFamilyState(t *testing.T) {
 	}
 }
 
-// Exact cond_test missing-result observation, deliberately not an implicit-
-// return success claim. The source/spec decision is recorded separately.
-func TestOriginalLizpCondMissingReturnObservation(t *testing.T) {
+// Lizp value defun returns its final form (Book v7 §21.4).
+func TestOriginalLizpCondLastFormNative(t *testing.T) {
 	const path = "../../../examples/lizp/cond_test.lizp"
-	src, e := os.ReadFile(path)
-	if e != nil {
-		t.Fatal(e)
+	source, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
 	}
-	h, e := lizp.Compile(string(src), path)
-	if e != nil {
-		t.Fatal(e)
+	saveLizpTailArtifact(t, "original/source.lizp", source)
+	for _, mode := range []string{"ordinary", "grace-size", "grace-speed"} {
+		t.Run(mode, func(t *testing.T) {
+			parse := func() *hir.Module {
+				h, e := lizp.Compile(string(source), path)
+				if e != nil {
+					t.Fatal(e)
+				}
+				return h
+			}
+			raw := hir.LowerModule(parse())
+			steps, e := CompileHIRSteps(parse(), Options{AssertMode: "none", UseGrace: mode != "ordinary", UseHIRGrace: mode != "ordinary", OptSize: mode == "grace-size"})
+			if e != nil {
+				t.Fatal(e)
+			}
+			assembled, e := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + steps.Assembly)
+			if e != nil || len(assembled.Errors) > 0 {
+				t.Fatal(e, assembled.Errors)
+			}
+			saveLizpTailArtifact(t, "original/"+mode+"/program.a80", steps.Assembly)
+			saveLizpTailArtifact(t, "original/"+mode+"/program.bin", assembled.Binary)
+			saveLizpTailArtifact(t, "original/"+mode+"/raw.mir", raw.Dump())
+			saveLizpTailArtifact(t, "original/"+mode+"/final.mir", steps.MIR2Module.Dump())
+			for n := 0; n < 256; n++ {
+				want := byte(255)
+				if n == 0 {
+					want = 0
+				} else if n < 10 {
+					want = 1
+				} else if n < 100 {
+					want = 2
+				}
+				for _, m := range []*mir2.Module{raw, steps.MIR2Module} {
+					values, e := mir2.NewVM(m).Call("classify", []mir2.Value{{I: int64(n)}})
+					if e != nil || len(values) != 1 || values[0].I != int64(want) {
+						t.Fatal(n, values, want, e)
+					}
+				}
+				z := emulator.NewRemogattoZ80()
+				z.LoadMemory(0x8000, assembled.Binary)
+				z.Memory()[0xeff0], z.Memory()[0xeff1] = 0, 0x70
+				z.SetRegisters(emulator.Registers{PC: uint16(assembled.Symbols["classify"]), SP: 0xeff0, A: byte(n)})
+				for j := 0; j < 10000 && !(z.GetPC() == 0x7000 && z.GetSP() == 0xeff2); j++ {
+					z.Step()
+				}
+				if z.GetPC() != 0x7000 || z.GetSP() != 0xeff2 || z.GetRegisters().A != want {
+					t.Fatal(n, want, z.GetRegisters())
+				}
+				if !bytes.Equal(z.Memory()[0x8000:0x8000+len(assembled.Binary)], assembled.Binary) {
+					t.Fatal("code changed")
+				}
+			}
+			for _, m := range []*mir2.Module{raw, steps.MIR2Module} {
+				vm := mir2.NewVM(m)
+				if _, e := vm.Call("main", nil); e != nil {
+					t.Fatal(e)
+				}
+				if vm.ReadHeap(int64(vm.GlobalAddr("score")), 1)[0] != 2 {
+					t.Fatal("main score")
+				}
+			}
+			z := emulator.NewRemogattoZ80()
+			z.LoadMemory(0x8000, assembled.Binary)
+			z.Memory()[0xeff0], z.Memory()[0xeff1] = 0, 0x70
+			z.SetRegisters(emulator.Registers{PC: uint16(assembled.Symbols["main"]), SP: 0xeff0})
+			for j := 0; j < 10000 && !z.IsHalted(); j++ {
+				z.Step()
+			}
+			if !z.IsHalted() || z.GetSP() != 0xeff0 || z.Memory()[uint16(assembled.Symbols["score"])] != 2 {
+				t.Fatal("main", z.GetRegisters())
+			}
+			saveLizpTailArtifact(t, "original/"+mode+"/result.json", map[string]any{"native_classify_calls": 256, "native_main_calls": 1, "raw_vm_calls": 257, "final_vm_calls": 257, "checks": "classify independent thresholds; A, return PC/SP and code unchanged; main HALT, SP unchanged, score=2", "PASS": true})
+		})
 	}
-	s, e := CompileHIRSteps(h, Options{AssertMode: "none"})
-	if e != nil {
-		t.Fatal(e)
-	}
-	for label, m := range map[string]*mir2.Module{"raw": hir.LowerModule(h), "final": s.MIR2Module} {
-		vm := mir2.NewVM(m)
-		v, e := vm.Call("classify", []mir2.Value{{I: 42}})
-		if e != nil || len(v) != 0 {
-			t.Fatal("missing return observation changed", label, v, e)
-		}
-	}
-	a, e := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + s.Assembly)
-	if e != nil || len(a.Errors) > 0 {
-		t.Fatal(e, a.Errors)
-	}
-	z := emulator.NewRemogattoZ80()
-	z.LoadMemory(0x8000, a.Binary)
-	z.Memory()[0xeff0], z.Memory()[0xeff1] = 0, 0x70
-	z.SetRegisters(emulator.Registers{PC: uint16(a.Symbols["classify"]), SP: 0xeff0, A: 42})
-	for j := 0; j < 10000 && !(z.GetPC() == 0x7000 && z.GetSP() == 0xeff2); j++ {
-		z.Step()
-	}
-	if z.GetPC() != 0x7000 || z.GetSP() != 0xeff2 || z.GetRegisters().A != 42 {
-		t.Fatal("actual missing result native behavior changed", z.GetRegisters())
-	}
-	t.Log("NOT a behavior PASS: declared u8 classify42 returns no VM result and stale native A42; source language implicit return unresolved")
 }

@@ -1,0 +1,34 @@
+=== RUN   TestLizpLastFormEffectsNative
+=== RUN   TestLizpLastFormEffectsNative/ordinary
+=== RUN   TestLizpLastFormEffectsNative/grace-size
+=== RUN   TestLizpLastFormEffectsNative/grace-speed
+--- PASS: TestLizpLastFormEffectsNative (0.05s)
+    --- PASS: TestLizpLastFormEffectsNative/ordinary (0.02s)
+    --- PASS: TestLizpLastFormEffectsNative/grace-size (0.02s)
+    --- PASS: TestLizpLastFormEffectsNative/grace-speed (0.02s)
+=== RUN   TestOriginalLizpCondLastFormNative
+=== RUN   TestOriginalLizpCondLastFormNative/ordinary
+=== RUN   TestOriginalLizpCondLastFormNative/grace-size
+=== RUN   TestOriginalLizpCondLastFormNative/grace-speed
+--- PASS: TestOriginalLizpCondLastFormNative (0.03s)
+    --- PASS: TestOriginalLizpCondLastFormNative/ordinary (0.01s)
+    --- PASS: TestOriginalLizpCondLastFormNative/grace-size (0.01s)
+    --- PASS: TestOriginalLizpCondLastFormNative/grace-speed (0.01s)
+=== RUN   TestOriginalPLMHelloWholeCPM
+=== RUN   TestOriginalPLMHelloWholeCPM/ordinary
+    plm_hello_cpm_native_test.go:185: ordinary clobber=false COM=1183 bytes native=14135 T excluding host BDOS, stdout="Hello from PL/M-80!\r\n" PC=0 SP=fe00 full RAM guard PASS
+    plm_hello_cpm_native_test.go:185: ordinary clobber=true COM=1183 bytes native=14135 T excluding host BDOS, stdout="Hello from PL/M-80!\r\n" PC=0 SP=fe00 full RAM guard PASS
+=== RUN   TestOriginalPLMHelloWholeCPM/grace-size
+    plm_hello_cpm_native_test.go:185: grace-size clobber=false COM=1183 bytes native=14135 T excluding host BDOS, stdout="Hello from PL/M-80!\r\n" PC=0 SP=fe00 full RAM guard PASS
+    plm_hello_cpm_native_test.go:185: grace-size clobber=true COM=1183 bytes native=14135 T excluding host BDOS, stdout="Hello from PL/M-80!\r\n" PC=0 SP=fe00 full RAM guard PASS
+=== RUN   TestOriginalPLMHelloWholeCPM/grace-speed
+    plm_hello_cpm_native_test.go:185: grace-speed clobber=false COM=1183 bytes native=14135 T excluding host BDOS, stdout="Hello from PL/M-80!\r\n" PC=0 SP=fe00 full RAM guard PASS
+    plm_hello_cpm_native_test.go:185: grace-speed clobber=true COM=1183 bytes native=14135 T excluding host BDOS, stdout="Hello from PL/M-80!\r\n" PC=0 SP=fe00 full RAM guard PASS
+--- PASS: TestOriginalPLMHelloWholeCPM (0.03s)
+    --- PASS: TestOriginalPLMHelloWholeCPM/ordinary (0.01s)
+    --- PASS: TestOriginalPLMHelloWholeCPM/grace-size (0.01s)
+    --- PASS: TestOriginalPLMHelloWholeCPM/grace-speed (0.01s)
+=== RUN   TestPLMModuleEntryNative
+--- PASS: TestPLMModuleEntryNative (0.03s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.161s

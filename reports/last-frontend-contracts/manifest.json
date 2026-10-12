@@ -1,0 +1,24 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 1293,
+      "sha256": "313930553b1df4839db05ce2f9fa96285a842eb474dd105d73363905a1a6fba3"
+    },
+    {
+      "path": "catalog.txt",
+      "bytes": 811,
+      "sha256": "4ae5f3e44b3cdcd3fc3275656d82f9cc9c17bb443b3baba1ea9390fa495ab4da"
+    },
+    {
+      "path": "historical-adapter.txt",
+      "bytes": 1801,
+      "sha256": "7d06978cb150698f48031daf628dd7d954ccdf040cdcc3ea7838c7b2e72c324c"
+    },
+    {
+      "path": "native.txt",
+      "bytes": 2521,
+      "sha256": "9d4b15a03ff89fe8769f6d2ff02491b8015ab650fe1dca5086645f6f05124c91"
+    }
+  ]
+}

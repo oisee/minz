@@ -2794,6 +2794,21 @@ assert lizp_inc(3) == 4
 
 The Lizp desugarer expands macros, converts `defun` → `fun`, `1+` → `(+ x 1)`, and threading macros into nested calls — all before the Lanz parser sees it. The result is pure HIR, indistinguishable from Nanz-generated code.
 
+#### Lizp function results
+
+A non-void `defun` (and its `define` shorthand) returns the value of its last body form. Earlier forms execute in source order. In a final `let`, `progn` or `begin`, the final nested form supplies the result. Both branches of a final `if` must supply a value; `cond` executes the selected clause's prefix before its final form. A `cond` without a matching clause retains Lizp's zero default.
+
+An explicit `(return value)` exits immediately and remains valid inside branches and lexical blocks. Void functions receive no automatic value return. Empty result bodies, bare `(return)`, final assignments/loops/stores, and void-valued calls in value functions are diagnosed.
+
+```lisp
+(defun classify ((n u8)) -> u8
+  (cond ((= n 0) 0) ((< n 10) 1) (t 2)))
+(defun increment ((n u8)) -> u8
+  (let ((x u8 (+ n 1))) x))
+```
+
+This is a Lizp frontend rule; Lanz and Nanz keep their existing return syntax. Native tests cover the original `cond_test.lizp` across all 256 byte inputs and nested forms with explicit returns and prefix effects in ordinary, Grace Size and Grace Speed modes.
+
 ### 21.5 Importing PL/M-80 Modules
 
 PL/M-80 is Intel's language from the 1970s — used to write CP/M and early microcomputer software. Nanz can import PL/M procedures directly:

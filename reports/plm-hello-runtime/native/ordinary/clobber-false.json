@@ -1,0 +1,20 @@
+{
+  "cycles_excluding_host_bdos": 14135,
+  "done": true,
+  "exact_return_pc_sp": true,
+  "expected": "Hello from PL/M-80!\r\n",
+  "full_ram_guard": true,
+  "min_sp": 1415,
+  "registers": {
+    "A": 10,
+    "F": 84,
+    "BC": 4608,
+    "DE": 353,
+    "HL": 353,
+    "IX": 9320,
+    "IY": 4951,
+    "SP": 65024,
+    "PC": 0
+  },
+  "stdout": "Hello from PL/M-80!\r\n"
+}

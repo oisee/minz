@@ -1,0 +1,7 @@
+{
+  "PASS": true,
+  "checks": "A result, effects global, exact return PC=0x7000/SP=0xeff2",
+  "final_vm_calls": 768,
+  "native_calls": 768,
+  "raw_vm_calls": 768
+}

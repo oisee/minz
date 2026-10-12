@@ -368,6 +368,25 @@ func (pl *procLowerer) lowerStmt(s Stmt) ([]hir.Stmt, error) {
 		if rt, ok := pl.ml.fnRetTy[s.Fn]; ok {
 			retTy = plmToMIR2(rt)
 		}
+		// CP/M console intrinsic: BDOS(2, byte) is deliberately narrower than
+		// a generic fixed-address call. A declared BDOS procedure takes priority.
+		if _, declared := pl.ml.fnRetTy[s.Fn]; s.Fn == "BDOS" && !declared {
+			if len(s.Args) != 2 {
+				return nil, fmt.Errorf("BDOS console intrinsic requires function 2 and one BYTE argument")
+			}
+			function, ok := evalLit(s.Args[0])
+			if !ok || function != 2 {
+				return nil, fmt.Errorf("BDOS console intrinsic supports only literal function 2")
+			}
+			value, err := pl.lowerExpr(s.Args[1])
+			if err != nil {
+				return nil, err
+			}
+			if value.ExprTy() != mir2.TyU8 {
+				return nil, fmt.Errorf("BDOS console intrinsic requires a BYTE argument")
+			}
+			return []hir.Stmt{&hir.ExprStmt{Expr: hir.Call("@mir.io.print.char", mir2.TyVoid, value)}}, nil
+		}
 		args, err := pl.lowerExprs(s.Args)
 		if err != nil {
 			return nil, err

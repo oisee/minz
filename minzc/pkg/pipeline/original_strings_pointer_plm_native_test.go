@@ -54,7 +54,13 @@ func TestOriginalStringsPointerAndPLMAdapter(t *testing.T) {
 		}
 	}
 	for _, path := range []string{"reports/showcase-src/2026-03-15/ex30_ptr_cast.nanz", "reports/showcase-src/2026-03-14/ex27_strings.nanz", "examples/plm/hello.plm"} {
-		src, e := os.ReadFile("../../../" + path)
+		readPath := "../../../" + path
+		if filepath.Ext(path) == ".plm" {
+			// Retain the historical adapter evidence; the current source has
+			// a separate whole-program CP/M regression.
+			readPath = "../../../reports/strings-pointer-plm-native/source/" + path
+		}
+		src, e := os.ReadFile(readPath)
 		if e != nil || freeze.Sources[path] != fmt.Sprintf("%x", sha256.Sum256(src)) {
 			t.Fatal("freeze", path, e)
 		}
@@ -285,28 +291,4 @@ func TestOriginalStringsPointerAndPLMAdapter(t *testing.T) {
 			t.Log(path, mode, calls, "fullsourcecallables native/raw/final RAM/SP/output PASS; PLMadapter", isPLM)
 		}
 	}
-}
-
-func TestOriginalPLMHelloRuntimeGapObservation(t *testing.T) {
-	src, e := os.ReadFile("../../../examples/plm/hello.plm")
-	if e != nil {
-		t.Fatal(e)
-	}
-	h, e := plm.Compile(string(src))
-	if e != nil {
-		t.Fatal(e)
-	}
-	if h.FuncByName("main") == nil || len(h.Funcs) != 3 {
-		t.Fatal("original executable entry missing")
-	}
-	s, e := CompileHIRSteps(h, Options{AssertMode: "none"})
-	if e != nil {
-		t.Fatal(e)
-	}
-	vm := mir2.NewVM(s.MIR2Module)
-	v, e := vm.Call("PRINTCHAR", []mir2.Value{{I: 65}})
-	if e != nil || len(v) != 0 {
-		t.Fatal(e, v)
-	}
-	t.Log("NOT whole-program behavior PASS: original PRINTCHAR remains empty; literal bytes have no implicit NUL, so PRINTMSG termination needs an explicit memory convention; adapter proof is distinct")
 }

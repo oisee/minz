@@ -1,0 +1,4 @@
+=== RUN   TestPLMModuleEntryNative
+--- PASS: TestPLMModuleEntryNative (0.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.024s

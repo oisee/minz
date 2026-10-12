@@ -1,0 +1,10 @@
+(defglobal effects u8 0)
+ (defun choose ((n u8)) -> u8
+  (setq effects (+ effects 1))
+  (let ((x u8 (+ n 1)))
+   (cond ((= n 0) (setq effects (+ effects 2)) (return 7))
+         (t (setq effects (+ effects 3)) (+ x 2)))))
+ (defun explicit_let ((n u8)) -> u8
+  (return (let ((x u8 (+ n 4))) (progn (setq effects (+ effects 5)) x))))
+ (defun early ((n u8)) -> u8
+  (if (= n 0) (return 9)) (setq effects (+ effects 6)) (+ n 1))

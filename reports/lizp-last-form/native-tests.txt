@@ -1,0 +1,18 @@
+=== RUN   TestLizpLastFormEffectsNative
+=== RUN   TestLizpLastFormEffectsNative/ordinary
+=== RUN   TestLizpLastFormEffectsNative/grace-size
+=== RUN   TestLizpLastFormEffectsNative/grace-speed
+--- PASS: TestLizpLastFormEffectsNative (0.05s)
+    --- PASS: TestLizpLastFormEffectsNative/ordinary (0.02s)
+    --- PASS: TestLizpLastFormEffectsNative/grace-size (0.02s)
+    --- PASS: TestLizpLastFormEffectsNative/grace-speed (0.02s)
+=== RUN   TestOriginalLizpCondLastFormNative
+=== RUN   TestOriginalLizpCondLastFormNative/ordinary
+=== RUN   TestOriginalLizpCondLastFormNative/grace-size
+=== RUN   TestOriginalLizpCondLastFormNative/grace-speed
+--- PASS: TestOriginalLizpCondLastFormNative (0.04s)
+    --- PASS: TestOriginalLizpCondLastFormNative/ordinary (0.01s)
+    --- PASS: TestOriginalLizpCondLastFormNative/grace-size (0.01s)
+    --- PASS: TestOriginalLizpCondLastFormNative/grace-speed (0.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.103s

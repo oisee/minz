@@ -1397,10 +1397,25 @@ func (p *parser) parseUnaryExpr() (Expr, error) {
 			if err != nil {
 				return nil, err
 			}
+			// An addressed byte list may explicitly append bytes to the string,
+			// for example .('hello', 0). No terminator is ever implicit.
+			value := literal.Val
+			for p.l.IsKind(TokComma) {
+				p.l.Next()
+				b, err := p.l.ExpectKind(TokNumber)
+				if err != nil {
+					return nil, err
+				}
+				n, err := parseNumber(b.Val)
+				if err != nil || n > 255 {
+					return nil, fmt.Errorf("line %d: addressed byte list requires byte literals", b.Line)
+				}
+				value += string([]byte{byte(n)})
+			}
 			if _, err = p.l.ExpectKind(TokRParen); err != nil {
 				return nil, err
 			}
-			return &StringAddrExpr{Value: literal.Val}, nil
+			return &StringAddrExpr{Value: value}, nil
 		}
 		if kw.Kind == TokString {
 			p.l.Next()

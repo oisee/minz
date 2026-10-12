@@ -18,6 +18,7 @@ import (
 // PL/M module statements are executable; string constants contain their exact
 // character bytes, not an inferred C terminator. Original HELLO is run under
 // an explicit test-owned trailing-zero memory convention (not a CP/M claim).
+// Retain this historical source checkpoint; current Hello has a whole-CP/M gate.
 func TestPLMModuleEntryNative(t *testing.T) {
 	save := func(name string, v any) {
 		if dir := os.Getenv("MINZ_PLM_MODULE_ARTIFACTS"); dir != "" {
@@ -50,7 +51,7 @@ func TestPLMModuleEntryNative(t *testing.T) {
 	for _, fixture := range []string{"hello", "process"} {
 		path := "../../../reports/plm-top-level-entry/process.plm"
 		if fixture == "hello" {
-			path = "../../../examples/plm/hello.plm"
+			path = "../../../reports/plm-top-level-entry/source.plm"
 		}
 		src, e := os.ReadFile(path)
 		if e != nil {

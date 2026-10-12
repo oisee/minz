@@ -1,0 +1,139 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 1619,
+      "sha256": "613553cbc83ba6544af6ba1b0fd93761fce782764ad09b9a46e8877b97d2f641"
+    },
+    {
+      "path": "directed.txt",
+      "bytes": 3527,
+      "sha256": "3a9e5d5c6b581ac40c63334faafc08c37b92eac8f57df6ac053efbe24507261f"
+    },
+    {
+      "path": "export.txt",
+      "bytes": 1778,
+      "sha256": "5118ce32cdf25335a1f33d84b20692eb9d314fa1934023cf0b1ea0bcf726fb93"
+    },
+    {
+      "path": "historical-module-entry.txt",
+      "bytes": 130,
+      "sha256": "515d40df0ce1dab61fad093f4a971839d8a83f953e75f48e7a5f5d4b93b1553a"
+    },
+    {
+      "path": "native/grace-size/allocation.json",
+      "bytes": 1278,
+      "sha256": "c65213f485dd7c1b91ea13883e62343621be5391239196837a166837890ff0c7"
+    },
+    {
+      "path": "native/grace-size/clobber-false.json",
+      "bytes": 366,
+      "sha256": "0bacea001bd352feaf580e2e381bc38e55de6e1e9699b1fe44c83016183eae6e"
+    },
+    {
+      "path": "native/grace-size/clobber-true.json",
+      "bytes": 366,
+      "sha256": "0bacea001bd352feaf580e2e381bc38e55de6e1e9699b1fe44c83016183eae6e"
+    },
+    {
+      "path": "native/grace-size/final.mir",
+      "bytes": 1027,
+      "sha256": "5ea9c1b501f0e91c71cbd7c9acde00dd189ba1ebcc28b8692ceeb95cdcb7dbba"
+    },
+    {
+      "path": "native/grace-size/program.a80",
+      "bytes": 2935,
+      "sha256": "a91ea8edb3a4cfe96efb1e190ca5733af7909e0e930cc1e33c431a7f34757109"
+    },
+    {
+      "path": "native/grace-size/program.com",
+      "bytes": 1183,
+      "sha256": "88a67a35d368f8f3249b4385c15b436febab69d589f9765bc0ee656c6b491c2c"
+    },
+    {
+      "path": "native/grace-size/raw.mir",
+      "bytes": 1392,
+      "sha256": "ecf7e79b5150959121e7f7bb2403e2fb7c942a6e98e2b1a5552eca5b313b4a88"
+    },
+    {
+      "path": "native/grace-speed/allocation.json",
+      "bytes": 1278,
+      "sha256": "c65213f485dd7c1b91ea13883e62343621be5391239196837a166837890ff0c7"
+    },
+    {
+      "path": "native/grace-speed/clobber-false.json",
+      "bytes": 366,
+      "sha256": "0bacea001bd352feaf580e2e381bc38e55de6e1e9699b1fe44c83016183eae6e"
+    },
+    {
+      "path": "native/grace-speed/clobber-true.json",
+      "bytes": 366,
+      "sha256": "0bacea001bd352feaf580e2e381bc38e55de6e1e9699b1fe44c83016183eae6e"
+    },
+    {
+      "path": "native/grace-speed/final.mir",
+      "bytes": 1027,
+      "sha256": "5ea9c1b501f0e91c71cbd7c9acde00dd189ba1ebcc28b8692ceeb95cdcb7dbba"
+    },
+    {
+      "path": "native/grace-speed/program.a80",
+      "bytes": 2935,
+      "sha256": "a91ea8edb3a4cfe96efb1e190ca5733af7909e0e930cc1e33c431a7f34757109"
+    },
+    {
+      "path": "native/grace-speed/program.com",
+      "bytes": 1183,
+      "sha256": "88a67a35d368f8f3249b4385c15b436febab69d589f9765bc0ee656c6b491c2c"
+    },
+    {
+      "path": "native/grace-speed/raw.mir",
+      "bytes": 1392,
+      "sha256": "ecf7e79b5150959121e7f7bb2403e2fb7c942a6e98e2b1a5552eca5b313b4a88"
+    },
+    {
+      "path": "native/ordinary/allocation.json",
+      "bytes": 1278,
+      "sha256": "c65213f485dd7c1b91ea13883e62343621be5391239196837a166837890ff0c7"
+    },
+    {
+      "path": "native/ordinary/clobber-false.json",
+      "bytes": 366,
+      "sha256": "0bacea001bd352feaf580e2e381bc38e55de6e1e9699b1fe44c83016183eae6e"
+    },
+    {
+      "path": "native/ordinary/clobber-true.json",
+      "bytes": 366,
+      "sha256": "0bacea001bd352feaf580e2e381bc38e55de6e1e9699b1fe44c83016183eae6e"
+    },
+    {
+      "path": "native/ordinary/final.mir",
+      "bytes": 1027,
+      "sha256": "5ea9c1b501f0e91c71cbd7c9acde00dd189ba1ebcc28b8692ceeb95cdcb7dbba"
+    },
+    {
+      "path": "native/ordinary/program.a80",
+      "bytes": 2950,
+      "sha256": "0aa853094633f9a058b607d20452401b8d3421d292d76d93231d35dec800fa4a"
+    },
+    {
+      "path": "native/ordinary/program.com",
+      "bytes": 1183,
+      "sha256": "88a67a35d368f8f3249b4385c15b436febab69d589f9765bc0ee656c6b491c2c"
+    },
+    {
+      "path": "native/ordinary/raw.mir",
+      "bytes": 1392,
+      "sha256": "ecf7e79b5150959121e7f7bb2403e2fb7c942a6e98e2b1a5552eca5b313b4a88"
+    },
+    {
+      "path": "native/source/hello.plm",
+      "bytes": 703,
+      "sha256": "7e7355a4973d8be721013ca6c329d0b152eec10741b7fde34d808edc14a53a7e"
+    },
+    {
+      "path": "plm-full.txt",
+      "bytes": 42,
+      "sha256": "d261dc73ad804a2b87f4dfabff656c1e91c81bcd639cf28fd793a28b5f311345"
+    }
+  ]
+}

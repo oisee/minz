@@ -914,36 +914,36 @@
       "source_imports": [],
       "source_assertions": 0,
       "assertion_scope": "unexecuted source expectations",
-      "native_behavior": "pending-independent-oracle",
-      "workload": "",
-      "independent_model": "",
-      "external_requirement_or_remaining_work": "Unresolved language implicit return authority: classify(42) raw/final VM returns no result; native leaves stale A=42. Diagnostic PASS is not behavioral correctness proof.",
+      "native_behavior": "executed-independent-vm-z80",
+      "workload": "Original classify all256byteinputs and originalmain, ordinary/Grace Size/Grace Speed;771 native calls with raw/finalVM agreement.",
+      "independent_model": "Book v7 section21.4 last-form results; independent unsigned thresholds0,10,100, score2; native A, exactreturnPC/SP and code integrity; mainHALT/SP/score.",
+      "external_requirement_or_remaining_work": "Source unchanged. Main canonical HALT, not CP/M. Bounded state coverage, not fullRAM or optimization gain.",
       "entry_structure_not_execution_claim": "declares main; whole-main execution not implied",
       "reviewed_evidence": [
         {
+          "test_or_artifact": "docs/Nanz_Language_Book_v7.md",
+          "evidence_file_sha256": "812d7a1f939f976165ba99d764ecb73ee1ff44abe1eda5f85dee3333840a0087",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Original classify all256byteinputs and originalmain, ordinary/Grace Size/Grace Speed;771 native calls with raw/finalVM agreement.; Source unchanged. Main canonical HALT, not CP/M. Bounded state coverage, not fullRAM or optimization gain."
+        },
+        {
           "test_or_artifact": "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go",
-          "evidence_file_sha256": "b1e030b72222c84a857c17cb7666b42f260da8117f9d442a9726426057d25eb9",
+          "evidence_file_sha256": "1952fd3f9c44cb0596e5645f1a7fcf068bfbd70b0603561175cab6a5cd07ad73",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "; Unresolved language implicit return authority: classify(42) raw/final VM returns no result; native leaves stale A=42. Diagnostic PASS is not behavioral correctness proof."
+          "scope": "Original classify all256byteinputs and originalmain, ordinary/Grace Size/Grace Speed;771 native calls with raw/finalVM agreement.; Source unchanged. Main canonical HALT, not CP/M. Bounded state coverage, not fullRAM or optimization gain."
         },
         {
-          "test_or_artifact": "reports/lizp-lanz-family-native/REPORT.md",
-          "evidence_file_sha256": "acefcb8e799b19f97c1e8675a237e04457230c56e5feea285156ff6b276ba5b6",
+          "test_or_artifact": "reports/lizp-last-form/manifest.json",
+          "evidence_file_sha256": "ed61e1c78b4e34e20d14898eb40da959fbcccf42dad6a77ef3850161053768b1",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "; Unresolved language implicit return authority: classify(42) raw/final VM returns no result; native leaves stale A=42. Diagnostic PASS is not behavioral correctness proof."
-        },
-        {
-          "test_or_artifact": "reports/lizp-lanz-family-native/before-cond-return.txt",
-          "evidence_file_sha256": "2fbe81855aec497b0e4cb732bb8be423eb99b1b59b3451b0640a5c71a53823d4",
-          "source_relation": "reviewed exact-source root replay",
-          "scope": "; Unresolved language implicit return authority: classify(42) raw/final VM returns no result; native leaves stale A=42. Diagnostic PASS is not behavioral correctness proof."
+          "scope": "Original classify all256byteinputs and originalmain, ordinary/Grace Size/Grace Speed;771 native calls with raw/finalVM agreement.; Source unchanged. Main canonical HALT, not CP/M. Bounded state coverage, not fullRAM or optimization gain."
         }
       ],
       "test_source_references_not_execution_claim": [
         "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go:143",
         "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go:222",
         "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go:246",
-        "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go:334"
+        "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go:333"
       ]
     },
     {
@@ -1064,7 +1064,7 @@
         },
         {
           "test_or_artifact": "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go",
-          "evidence_file_sha256": "b1e030b72222c84a857c17cb7666b42f260da8117f9d442a9726426057d25eb9",
+          "evidence_file_sha256": "1952fd3f9c44cb0596e5645f1a7fcf068bfbd70b0603561175cab6a5cd07ad73",
           "source_relation": "reviewed exact-source root replay",
           "scope": "All actual original entries in three modes; 198915 native calls across this family, raw/final VM and full RAM/SP. Lanz sum_to(255) bounded nonreturn controls.; Lanz sum_to(255) source loops forever after byte counter wraps; explicit nonreturn rather than numerical expected value. cond_test excluded. No Grace gain."
         },
@@ -1205,7 +1205,7 @@
         },
         {
           "test_or_artifact": "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go",
-          "evidence_file_sha256": "b1e030b72222c84a857c17cb7666b42f260da8117f9d442a9726426057d25eb9",
+          "evidence_file_sha256": "1952fd3f9c44cb0596e5645f1a7fcf068bfbd70b0603561175cab6a5cd07ad73",
           "source_relation": "reviewed exact-source root replay",
           "scope": "All actual original entries in three modes; 198915 native calls across this family, raw/final VM and full RAM/SP. Lanz sum_to(255) bounded nonreturn controls.; Lanz sum_to(255) source loops forever after byte counter wraps; explicit nonreturn rather than numerical expected value. cond_test excluded. No Grace gain."
         },
@@ -1830,7 +1830,7 @@
         }
       ],
       "test_source_references_not_execution_claim": [
-        "minzc/pkg/pipeline/checked_local_readmission_weighted_test.go:35",
+        "minzc/pkg/pipeline/checked_local_readmission_weighted_test.go:38",
         "minzc/pkg/pipeline/checked_local_real_test.go:83",
         "minzc/pkg/pipeline/combined_contract_table_grace_test.go:19",
         "minzc/pkg/pipeline/grace_showcase_test.go:30",
@@ -2450,7 +2450,7 @@
         }
       ],
       "test_source_references_not_execution_claim": [
-        "minzc/pkg/pipeline/composition_native_test.go:22",
+        "minzc/pkg/pipeline/composition_native_test.go:24",
         "minzc/pkg/pipeline/table_negative_native_test.go:16"
       ]
     },
@@ -2797,8 +2797,8 @@
       ],
       "test_source_references_not_execution_claim": [
         "minzc/pkg/pipeline/original_assert_frontends_native_test.go:60",
-        "minzc/pkg/vir/assert_test.go:100",
-        "minzc/pkg/vir/assert_test.go:97"
+        "minzc/pkg/vir/assert_test.go:115",
+        "minzc/pkg/vir/assert_test.go:118"
       ]
     },
     {
@@ -6905,7 +6905,7 @@
       "hir_target": 0,
       "inline_asm_contracts": [],
       "path": "examples/plm/hello.plm",
-      "source_sha256": "fdb0a98768bdd5ad347c8220ed409e4f964230541712c8af9b0b4561d259b84c",
+      "source_sha256": "7e7355a4973d8be721013ca6c329d0b152eec10741b7fde34d808edc14a53a7e",
       "frontend": ".plm",
       "entries": [
         "PRINTCHAR",
@@ -6916,41 +6916,59 @@
       "source_imports": [],
       "source_assertions": 0,
       "assertion_scope": "unexecuted source expectations",
-      "native_behavior": "pending-independent-oracle",
-      "workload": "",
-      "independent_model": "",
-      "external_requirement_or_remaining_work": "Module entry and exact case-preserving byte literals fixed in d32d20d4. Original PRINTCHAR is empty; PRINTMSG termination beyond exact literal bytes still requires explicit trailing-zero memory convention. Bounded original-main proof is separate from portable/CPM runtime completion.",
+      "native_behavior": "executed-native-cpm-runtime",
+      "workload": "Current original main in ordinary, Grace Size and Grace Speed: raw/final MIR plus six assembled CP/M runs with preserving and all-register-clobbering BDOS2.",
+      "independent_model": "Exact source-derived Hello from PL/M-80! CR/LF output, each CALL5/BDOS2 byte, terminal PC=0/SP=fe00, stack guard/status and full RAM outside admitted stack/status/spill regions.",
+      "external_requirement_or_remaining_work": "Explicit undeclared BDOS(2,BYTE) compiler intrinsic and explicit addressed-list NUL; declared BDOS procedures are unchanged. Emulated CP/M service model, not physical OS or arbitrary BDOS ABI. Raw/final VM host models byte output. Previous historical adapter and trailing-zero evidence remains separate.",
       "entry_structure_not_execution_claim": "declares main; whole-main execution not implied",
       "reviewed_evidence": [
         {
-          "test_or_artifact": "docs/grace-integration-209/root-plm-entry.txt",
-          "evidence_file_sha256": "bdfc82ba18dfa827f3e240e215a0c910d60cc4077edc0d6ad2b92fadbef8f520",
+          "test_or_artifact": "docs/PLM_CPM_Console.md",
+          "evidence_file_sha256": "f6c734c2e72b5cc302896b9c04ea773f5e518b6980a044697f6a3caeb37e0d2b",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "; Module entry and exact case-preserving byte literals fixed in d32d20d4. Original PRINTCHAR is empty; PRINTMSG termination beyond exact literal bytes still requires explicit trailing-zero memory convention. Bounded original-main proof is separate from portable/CPM runtime completion."
+          "scope": "Current original main in ordinary, Grace Size and Grace Speed: raw/final MIR plus six assembled CP/M runs with preserving and all-register-clobbering BDOS2.; Explicit undeclared BDOS(2,BYTE) compiler intrinsic and explicit addressed-list NUL; declared BDOS procedures are unchanged. Emulated CP/M service model, not physical OS or arbitrary BDOS ABI. Raw/final VM host models byte output. Previous historical adapter and trailing-zero evidence remains separate."
         },
         {
-          "test_or_artifact": "minzc/pkg/pipeline/plm_module_entry_native_test.go",
-          "evidence_file_sha256": "d3108ccacd9abb02707ecdf9621e699c58a3665c32749bb749d7aa98ec3d41d3",
+          "test_or_artifact": "minzc/pkg/pipeline/plm_hello_cpm_native_test.go",
+          "evidence_file_sha256": "2a1999122f47f89d2530f10f90f069d06ccb46aa54aaf62c537fff48618d742a",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "; Module entry and exact case-preserving byte literals fixed in d32d20d4. Original PRINTCHAR is empty; PRINTMSG termination beyond exact literal bytes still requires explicit trailing-zero memory convention. Bounded original-main proof is separate from portable/CPM runtime completion."
+          "scope": "Current original main in ordinary, Grace Size and Grace Speed: raw/final MIR plus six assembled CP/M runs with preserving and all-register-clobbering BDOS2.; Explicit undeclared BDOS(2,BYTE) compiler intrinsic and explicit addressed-list NUL; declared BDOS procedures are unchanged. Emulated CP/M service model, not physical OS or arbitrary BDOS ABI. Raw/final VM host models byte output. Previous historical adapter and trailing-zero evidence remains separate."
         },
         {
-          "test_or_artifact": "reports/plm-top-level-entry/REPORT.md",
-          "evidence_file_sha256": "c4059283c3371099732e50c755476a874c2d2412be165a14b755c09a2863d2ce",
+          "test_or_artifact": "minzc/pkg/plm/cpm_console_test.go",
+          "evidence_file_sha256": "671e8035704fcf93fc6ad2f67489c49849409da2cac2b2cffd272760298d22f9",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "; Module entry and exact case-preserving byte literals fixed in d32d20d4. Original PRINTCHAR is empty; PRINTMSG termination beyond exact literal bytes still requires explicit trailing-zero memory convention. Bounded original-main proof is separate from portable/CPM runtime completion."
+          "scope": "Current original main in ordinary, Grace Size and Grace Speed: raw/final MIR plus six assembled CP/M runs with preserving and all-register-clobbering BDOS2.; Explicit undeclared BDOS(2,BYTE) compiler intrinsic and explicit addressed-list NUL; declared BDOS procedures are unchanged. Emulated CP/M service model, not physical OS or arbitrary BDOS ABI. Raw/final VM host models byte output. Previous historical adapter and trailing-zero evidence remains separate."
         },
         {
-          "test_or_artifact": "reports/plm-top-level-entry/manifest.json",
-          "evidence_file_sha256": "3a9148d205d72980ca8fbf8b063f3d47f98415472114e3b95ba9864ca3ec6161",
+          "test_or_artifact": "reports/plm-hello-runtime/README.md",
+          "evidence_file_sha256": "613553cbc83ba6544af6ba1b0fd93761fce782764ad09b9a46e8877b97d2f641",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "; Module entry and exact case-preserving byte literals fixed in d32d20d4. Original PRINTCHAR is empty; PRINTMSG termination beyond exact literal bytes still requires explicit trailing-zero memory convention. Bounded original-main proof is separate from portable/CPM runtime completion."
+          "scope": "Current original main in ordinary, Grace Size and Grace Speed: raw/final MIR plus six assembled CP/M runs with preserving and all-register-clobbering BDOS2.; Explicit undeclared BDOS(2,BYTE) compiler intrinsic and explicit addressed-list NUL; declared BDOS procedures are unchanged. Emulated CP/M service model, not physical OS or arbitrary BDOS ABI. Raw/final VM host models byte output. Previous historical adapter and trailing-zero evidence remains separate."
+        },
+        {
+          "test_or_artifact": "reports/plm-hello-runtime/export.txt",
+          "evidence_file_sha256": "5118ce32cdf25335a1f33d84b20692eb9d314fa1934023cf0b1ea0bcf726fb93",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Current original main in ordinary, Grace Size and Grace Speed: raw/final MIR plus six assembled CP/M runs with preserving and all-register-clobbering BDOS2.; Explicit undeclared BDOS(2,BYTE) compiler intrinsic and explicit addressed-list NUL; declared BDOS procedures are unchanged. Emulated CP/M service model, not physical OS or arbitrary BDOS ABI. Raw/final VM host models byte output. Previous historical adapter and trailing-zero evidence remains separate."
+        },
+        {
+          "test_or_artifact": "reports/plm-hello-runtime/manifest.json",
+          "evidence_file_sha256": "dd9b3fb83ec77b1a244adf6b2825e8bf249266c811400f842e9fe9222a5a037a",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Current original main in ordinary, Grace Size and Grace Speed: raw/final MIR plus six assembled CP/M runs with preserving and all-register-clobbering BDOS2.; Explicit undeclared BDOS(2,BYTE) compiler intrinsic and explicit addressed-list NUL; declared BDOS procedures are unchanged. Emulated CP/M service model, not physical OS or arbitrary BDOS ABI. Raw/final VM host models byte output. Previous historical adapter and trailing-zero evidence remains separate."
+        },
+        {
+          "test_or_artifact": "reports/plm-hello-runtime/plm-full.txt",
+          "evidence_file_sha256": "d261dc73ad804a2b87f4dfabff656c1e91c81bcd639cf28fd793a28b5f311345",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Current original main in ordinary, Grace Size and Grace Speed: raw/final MIR plus six assembled CP/M runs with preserving and all-register-clobbering BDOS2.; Explicit undeclared BDOS(2,BYTE) compiler intrinsic and explicit addressed-list NUL; declared BDOS procedures are unchanged. Emulated CP/M service model, not physical OS or arbitrary BDOS ABI. Raw/final VM host models byte output. Previous historical adapter and trailing-zero evidence remains separate."
         }
       ],
       "test_source_references_not_execution_claim": [
-        "minzc/pkg/pipeline/original_strings_pointer_plm_native_test.go:291",
         "minzc/pkg/pipeline/original_strings_pointer_plm_native_test.go:56",
-        "minzc/pkg/pipeline/plm_module_entry_native_test.go:53"
+        "minzc/pkg/pipeline/plm_hello_cpm_native_test.go:23",
+        "minzc/pkg/pipeline/plm_hello_cpm_native_test.go:51"
       ]
     },
     {
@@ -10774,7 +10792,7 @@
         },
         {
           "test_or_artifact": "minzc/pkg/pipeline/original_strings_pointer_plm_native_test.go",
-          "evidence_file_sha256": "c4bd9a18d4333325abca6edd48b66680f498aa85daa6589d2d52a1bf413a97a3",
+          "evidence_file_sha256": "eeed97fa9133f8736c0076edf8abeddf6554f09fb60235b77edcd19fe4bcb0ef",
           "source_relation": "reviewed exact-source root replay",
           "scope": "Allfour original entries raw/final/native3modes; Explicit output binding; no wholeCPM application claim"
         },
@@ -10905,7 +10923,7 @@
         },
         {
           "test_or_artifact": "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go",
-          "evidence_file_sha256": "b1e030b72222c84a857c17cb7666b42f260da8117f9d442a9726426057d25eb9",
+          "evidence_file_sha256": "1952fd3f9c44cb0596e5645f1a7fcf068bfbd70b0603561175cab6a5cd07ad73",
           "source_relation": "reviewed exact-source root replay",
           "scope": "All actual original entries in three modes; 198915 native calls across this family, raw/final VM and full RAM/SP. Lanz sum_to(255) bounded nonreturn controls.; Lanz sum_to(255) source loops forever after byte counter wraps; explicit nonreturn rather than numerical expected value. cond_test excluded. No Grace gain."
         },
@@ -10955,7 +10973,7 @@
         },
         {
           "test_or_artifact": "minzc/pkg/pipeline/original_strings_pointer_plm_native_test.go",
-          "evidence_file_sha256": "c4bd9a18d4333325abca6edd48b66680f498aa85daa6589d2d52a1bf413a97a3",
+          "evidence_file_sha256": "eeed97fa9133f8736c0076edf8abeddf6554f09fb60235b77edcd19fe4bcb0ef",
           "source_relation": "reviewed exact-source root replay",
           "scope": "all256valuesx7addresses incl0/ffff;allpeek/poke/main3modes; AllRAM native image4000 permits original main store8000; code/guards/ordered effects/SP checked"
         },
@@ -10967,7 +10985,7 @@
         }
       ],
       "test_source_references_not_execution_claim": [
-        "minzc/pkg/pipeline/original_strings_pointer_plm_native_test.go:259",
+        "minzc/pkg/pipeline/original_strings_pointer_plm_native_test.go:265",
         "minzc/pkg/pipeline/original_strings_pointer_plm_native_test.go:56"
       ]
     },

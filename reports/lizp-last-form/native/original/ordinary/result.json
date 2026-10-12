@@ -1,0 +1,8 @@
+{
+  "PASS": true,
+  "checks": "classify independent thresholds; A, return PC/SP and code unchanged; main HALT, SP unchanged, score=2",
+  "final_vm_calls": 257,
+  "native_classify_calls": 256,
+  "native_main_calls": 1,
+  "raw_vm_calls": 257
+}
