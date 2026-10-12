@@ -3,7 +3,7 @@
     "examples/nanz/tui_screen.nanz": "ffd82561eba30cf4673888d868e60cca0f48d2c2f0005d5a5aa012ff44ef49c5",
     "examples/nanz/abap_screen.nanz": "241483fe9a7ebbf7a6db1d9f7564935107a9fcf2a63b2c9e99cd7e0bff911b27",
     "minzc/cmd/mzv/tui_host.go": "8d3fe8aaf13adf2f933a123a37bf847350205d9c933a180f675b761de4407ec1",
-    "docs/Nanz_Language_Book_v7.md": "c78a79e60a35235efe1beeb4282ec117b7244ab1f0b437d3490c5912672aec34",
+    "reports/frozen-language-spec/Nanz_Language_Book_v7.md": "c78a79e60a35235efe1beeb4282ec117b7244ab1f0b437d3490c5912672aec34",
     "reports/terminal-screen-main/model.py": "46dfba109bad2749870538d55f3e6879de2d06d45651cb081afe5208932c23fd",
     "/home/alice/dev/minz-artifacts/grace-workspaces/original-terminal-screen-main/reports/terminal-screen-main/cancel-stdout.bin": "01575e37add128ea156a8cdcf0912f10659edfe3971a8b17413280229cb49d32",
     "/home/alice/dev/minz-artifacts/grace-workspaces/original-terminal-screen-main/reports/terminal-screen-main/edit-stdout.bin": "cb0c6d2b0e473105a4802f12389962206de929bb09f897a4c75ce5a1b88c1342",

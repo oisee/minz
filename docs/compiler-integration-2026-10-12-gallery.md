@@ -78,3 +78,27 @@ This recipe resets accumulated process state and the deadline for each test,
 records individual exit codes, and retains lifecycle and other expensive tests.
 A timeout in a fresh shard remains an unresolved check and should be reported
 with its log, rather than converted into a skip or a success.
+
+## Historical fixture audit
+
+The subsequent process shards at `3cd87942` recorded nine failures among 440
+finished tests. Their causes were missing fixture inputs and four historical
+book freezes bound to the evolving live documentation. The missing files were
+the ALV and report models, the CP/M, generated-screen, terminal-screen, and
+Tetris TUI models, two commander event lists, and the historical PL/M hello
+source. These inputs were restored byte-for-byte from research.
+
+The four book freezes now point to
+`reports/frozen-language-spec/Nanz_Language_Book_v7.md`. This snapshot was
+recovered from commit `e3eef4baf245fccd60dd0e0254aca62d2c67b95f`; its SHA-256
+matches the original frozen value
+`c78a79e60a35235efe1beeb4282ec117b7244ab1f0b437d3490c5912672aec34`.
+Only the resource paths changed. All original digests and semantic checks
+remain intact, and no compiler or test code changed.
+
+All nine failed tests passed together in a fresh focused run with
+`-short -count=1 -timeout=60m` (8.078s): ALV, CP/M screen, generated screen,
+report screen, strings/pointer/PLM adapter, terminal screen, Tetris TUI,
+commander L3, and commander. The source/model freeze maps also match all
+their referenced files. No recorded failure remains from this audit;
+the remaining full-shard validation is tracked separately.

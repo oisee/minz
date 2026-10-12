@@ -2,7 +2,7 @@
   "sources": {
     "examples/nanz/tetris_tui.nanz": "019ddfef02d2afe7e9c911bdf50e8f4ec95a341ef638bbd1b73b34130efb97e8",
     "minzc/cmd/mzv/tui_host.go": "8d3fe8aaf13adf2f933a123a37bf847350205d9c933a180f675b761de4407ec1",
-    "docs/Nanz_Language_Book_v7.md": "c78a79e60a35235efe1beeb4282ec117b7244ab1f0b437d3490c5912672aec34",
+    "reports/frozen-language-spec/Nanz_Language_Book_v7.md": "c78a79e60a35235efe1beeb4282ec117b7244ab1f0b437d3490c5912672aec34",
     "reports/tetris-tui-main/model.py": "6f8dfbf35d676ba9ce24379e8740f3e73f1dce5fee23426c535882f72a2c4681",
     "reports/tetris-tui-main/expected-events.json": "7fab0672e6fbc0a618ebe03d2978d258d2e973e8e4e3470c1984128545d83215",
     "reports/tetris-tui-main/expected-stdout.bin": "058ca10760eddb2f4e22df36a41ffb886d37b13ada3db0d76bae91da20cd8141",

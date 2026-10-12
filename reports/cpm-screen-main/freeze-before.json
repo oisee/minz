@@ -4,7 +4,7 @@
     "examples/nanz/meta_screen.nanz": "d9e13ac784d0ceb162047602bd6938d497e5138898bca391cea7fad708fe422c",
     "stdlib/tui/render.nanz": "4711dbee908a2271f02d1fbb4720942604e23322d7745f32311f6b2c17c6d4a8",
     "minzc/pkg/nanz/meta.go": "13552d1dedc4bfbf63ce89c4b771da3599d371804359d83eb4af92de7e86a1b2",
-    "docs/Nanz_Language_Book_v7.md": "c78a79e60a35235efe1beeb4282ec117b7244ab1f0b437d3490c5912672aec34",
+    "reports/frozen-language-spec/Nanz_Language_Book_v7.md": "c78a79e60a35235efe1beeb4282ec117b7244ab1f0b437d3490c5912672aec34",
     "reports/cpm-screen-main/model.py": "13015911e51204c531dcd3c822b8c902c6c13dd3a15746d03f342cd464e71013",
     "reports/cpm-screen-main/tui_cpm-expected-stdout.bin": "1eb52ec7e6f52c51993a08bff35c6284d88c51c0a9c846dd2b3b9945c016a5b4",
     "reports/cpm-screen-main/meta_screen-expected-stdout.bin": "37445849675991d56eecd6bb1ec217b1cf421ca93c5f32a8b26a417a6f268b1c"

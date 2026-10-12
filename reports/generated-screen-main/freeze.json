@@ -5,7 +5,7 @@
     "minzc/pkg/nanz/screen_gen.go": "14d655cdc870297591a3ff44096221b5e58352f5ebb046e2d117e72430a1f1bc",
     "minzc/cmd/mzv/tui_host.go": "8d3fe8aaf13adf2f933a123a37bf847350205d9c933a180f675b761de4407ec1",
     "stdlib/tui/render.nanz": "4711dbee908a2271f02d1fbb4720942604e23322d7745f32311f6b2c17c6d4a8",
-    "docs/Nanz_Language_Book_v7.md": "c78a79e60a35235efe1beeb4282ec117b7244ab1f0b437d3490c5912672aec34",
+    "reports/frozen-language-spec/Nanz_Language_Book_v7.md": "c78a79e60a35235efe1beeb4282ec117b7244ab1f0b437d3490c5912672aec34",
     "reports/generated-screen-main/model.py": "f0ddf9e8522e3c7dcff7f7bc30c5edb7d879f20854e4a05af5ed16362fec09bd",
     "reports/generated-screen-main/customer-edit-stdout.bin": "b8fdb265de1993def6ddebe74030c23bba76ea5a09cd658437f17036ce49a399",
     "reports/generated-screen-main/declarative-cancel-stdout.bin": "fa4600f372cd7b8706d1428ffc23cf657c761d5944bd4ee8e36c7e3cf533629c",
