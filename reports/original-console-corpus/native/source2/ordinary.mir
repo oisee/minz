@@ -1,0 +1,940 @@
+; MIR2 module: examples/zx/console_demo.nanz
+string @mir2.str.0 = "Hello from MinZ!"
+string @mir2.str.1 = "Standalone ZX console"
+string @mir2.str.2 = "No ROM calls, no IM1"
+string @mir2.str.3 = "Just font data at $3D00"
+string @mir2.str.4 = "Score: "
+string @mir2.str.5 = "Lives: "
+string @mir2.str.6 = "Press any key..."
+string @mir2.str.7 = "You pressed: "
+global const @zx__console__FONT_ADDR : u16
+global const @zx__console__SCREEN_BASE : u16
+global const @zx__console__ATTR_BASE : u16
+global const @zx__console__SCREEN_COLS : u8
+global const @zx__console__SCREEN_ROWS : u8
+global @zx__console__con_col : u8
+global @zx__console__con_row : u8
+global @zx__console__con_attr : u8
+global @zx__console__KBD_ROWS : [8]u8
+global @zx__console__KBD_KEYS : [40]u8
+
+fun @zx__console__zx_poke(%r1: u16 [pointer], %r2: u8 [acc])
+  block @entry:
+    asm "LD (HL), A"
+    ret void
+
+fun @zx__console__zx_peek(%r3: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    asm "LD A, (HL)"
+    ret void
+
+fun @zx__console__zx_in_fe(%r4: u8 [acc]) -> u8 [acc]
+  block @entry:
+    asm "IN A, (0xFE)"
+    ret void
+
+fun @zx__console__zx_border(%r5: u8 [acc])
+  block @entry:
+    asm "OUT (0xFE), A"
+    ret void
+
+fun @zx__console__screen_addr(%r6: u8 [acc], %r7: u8 [counter], %r8: u8 [regC]) -> u16 [pointer]
+  block @entry:
+    %r9 = asm "LD D, A         ; D = col\n        LD A, B         ; A = row\n        AND 0x18        ; TT bits\n        OR C            ; combine with line\n        OR 0x40         ; screen base\n        LD H, A\n        LD A, B         ; A = row\n        AND 0x07        ; sub-row\n        RRCA\n        RRCA\n        RRCA            ; shift left 5\n        OR D            ; combine with col\n        LD L, A"
+    ret void
+
+fun @zx__console__attr_addr(%r10: u8 [acc], %r11: u8 [counter]) -> u16 [pointer]
+  block @entry:
+    %r12 = asm "LD D, A         ; D = col\n        LD A, B         ; A = row\n        RRCA\n        RRCA\n        RRCA            ; row * 32\n        LD L, A\n        AND 0xE0\n        OR D\n        LD L, A\n        LD A, B         ; A = row again\n        RRCA\n        RRCA\n        RRCA\n        AND 0x03\n        OR 0x58         ; attr base\n        LD H, A"
+    ret void
+
+fun @zx__console__con_init(%r13: u8 [acc], %r14: u8 [general])
+  block @entry:
+    %r15 = const 3 : u8 [general]
+    %r16 = shl %r14, %r15 : u8 [general]
+    %r17 = or %r16, %r13 : u8 [acc]
+    %r18 = addr_of @zx__console__con_attr : ptr [pointer]
+    store %r18, %r17 : u8
+    %r19 = const 0 : u8 [general]
+    %r20 = addr_of @zx__console__con_col : ptr [pointer]
+    store %r20, %r19 : u8
+    %r21 = const 0 : u8 [general]
+    %r22 = addr_of @zx__console__con_row : ptr [pointer]
+    store %r22, %r21 : u8
+    ret void
+
+fun @zx__console__con_clear()
+  block @entry:
+    asm "; Clear pixel RAM: $4000-$57FF (6144 bytes) → 0\n        LD HL, 0x4000\n        LD DE, 0x4001\n        LD BC, 6143\n        LD (HL), 0\n        LDIR\n        ; Set attributes: $5800-$5AFF (768 bytes) → con_attr\n        LD HL, 0x5800\n        LD DE, 0x5801\n        LD BC, 767\n        LD A, (zx__console__con_attr)\n        LD (HL), A\n        LDIR\n        ; Reset cursor\n        XOR A\n        LD (zx__console__con_col), A\n        LD (zx__console__con_row), A"
+    ret void
+
+fun @zx__console__con_putchar(%r23: u8 [acc])
+  block @entry:
+    %r24 = const 13 : u8 [general]
+    %r25 = cmp.eq %r23, %r24 : bool [flag]
+    br_if %r25, @if_then1(), @if_join2()
+  block @if_then1:
+    %r26 = const 0 : u8 [general]
+    %r27 = addr_of @zx__console__con_col : ptr [pointer]
+    store %r27, %r26 : u8
+    %r28 = addr_of @zx__console__con_row : ptr [pointer]
+    %r29 = load %r28 : u8 [general]
+    %r30 = const 1 : u8 [general]
+    %r31 = add %r29, %r30 : u8 [acc]
+    %r32 = addr_of @zx__console__con_row : ptr [pointer]
+    store %r32, %r31 : u8
+    %r33 = addr_of @zx__console__con_row : ptr [pointer]
+    %r34 = load %r33 : u8 [general]
+    %r35 = addr_of @zx__console__SCREEN_ROWS : ptr [pointer]
+    %r36 = load %r35 : u8 [general]
+    %r37 = cmp.uge %r34, %r36 : bool [flag]
+    br_if %r37, @if_then3(), @if_join4()
+  block @if_then3:
+    call @zx__console__con_scroll()
+    %r38 = addr_of @zx__console__SCREEN_ROWS : ptr [pointer]
+    %r39 = load %r38 : u8 [general]
+    %r40 = const 1 : u8 [general]
+    %r41 = sub %r39, %r40 : u8 [acc]
+    %r42 = addr_of @zx__console__con_row : ptr [pointer]
+    store %r42, %r41 : u8
+    jmp @if_join4()
+  block @if_join4:
+    ret void
+  block @if_join2:
+    %r43 = const 10 : u8 [general]
+    %r44 = cmp.eq %r23, %r43 : bool [flag]
+    br_if %r44, @if_then5(), @if_join6()
+  block @if_then5:
+    %r45 = const 0 : u8 [general]
+    %r46 = addr_of @zx__console__con_col : ptr [pointer]
+    store %r46, %r45 : u8
+    %r47 = addr_of @zx__console__con_row : ptr [pointer]
+    %r48 = load %r47 : u8 [general]
+    %r49 = const 1 : u8 [general]
+    %r50 = add %r48, %r49 : u8 [acc]
+    %r51 = addr_of @zx__console__con_row : ptr [pointer]
+    store %r51, %r50 : u8
+    %r52 = addr_of @zx__console__con_row : ptr [pointer]
+    %r53 = load %r52 : u8 [general]
+    %r54 = addr_of @zx__console__SCREEN_ROWS : ptr [pointer]
+    %r55 = load %r54 : u8 [general]
+    %r56 = cmp.uge %r53, %r55 : bool [flag]
+    br_if %r56, @if_then7(), @if_join8()
+  block @if_then7:
+    call @zx__console__con_scroll()
+    %r57 = addr_of @zx__console__SCREEN_ROWS : ptr [pointer]
+    %r58 = load %r57 : u8 [general]
+    %r59 = const 1 : u8 [general]
+    %r60 = sub %r58, %r59 : u8 [acc]
+    %r61 = addr_of @zx__console__con_row : ptr [pointer]
+    store %r61, %r60 : u8
+    jmp @if_join8()
+  block @if_join8:
+    ret void
+  block @if_join6:
+    %r62 = const 8 : u8 [general]
+    %r63 = cmp.eq %r23, %r62 : bool [flag]
+    br_if %r63, @if_then9(), @if_join10()
+  block @if_then9:
+    %r64 = addr_of @zx__console__con_col : ptr [pointer]
+    %r65 = load %r64 : u8 [general]
+    %r66 = const 0 : u8 [general]
+    %r67 = cmp.ugt %r65, %r66 : bool [flag]
+    br_if %r67, @if_then11(), @if_join12()
+  block @if_then11:
+    %r68 = addr_of @zx__console__con_col : ptr [pointer]
+    %r69 = load %r68 : u8 [general]
+    %r70 = const 1 : u8 [general]
+    %r71 = sub %r69, %r70 : u8 [acc]
+    %r72 = addr_of @zx__console__con_col : ptr [pointer]
+    store %r72, %r71 : u8
+    %r73 = addr_of @zx__console__con_col : ptr [pointer]
+    %r74 = load %r73 : u8 [general]
+    %r75 = move %r74 : u8 [acc]
+    %r76 = addr_of @zx__console__con_row : ptr [pointer]
+    %r77 = load %r76 : u8 [general]
+    %r78 = const 32 : u8 [counter]
+    call @zx__console__con_draw_char(%r75, %r77, %r78)
+    jmp @if_join12()
+  block @if_join12:
+    ret void
+  block @if_join10:
+    %r79 = addr_of @zx__console__con_col : ptr [pointer]
+    %r80 = load %r79 : u8 [general]
+    %r81 = move %r80 : u8 [acc]
+    %r82 = addr_of @zx__console__con_row : ptr [pointer]
+    %r83 = load %r82 : u8 [general]
+    %r84 = move %r23 : u8 [counter]
+    call @zx__console__con_draw_char(%r81, %r83, %r84)
+    %r85 = addr_of @zx__console__con_col : ptr [pointer]
+    %r86 = load %r85 : u8 [general]
+    %r87 = const 1 : u8 [general]
+    %r88 = add %r86, %r87 : u8 [acc]
+    %r89 = addr_of @zx__console__con_col : ptr [pointer]
+    store %r89, %r88 : u8
+    %r90 = addr_of @zx__console__con_col : ptr [pointer]
+    %r91 = load %r90 : u8 [general]
+    %r92 = addr_of @zx__console__SCREEN_COLS : ptr [pointer]
+    %r93 = load %r92 : u8 [general]
+    %r94 = cmp.uge %r91, %r93 : bool [flag]
+    br_if %r94, @if_then13(), @if_join14()
+  block @if_then13:
+    %r95 = const 0 : u8 [general]
+    %r96 = addr_of @zx__console__con_col : ptr [pointer]
+    store %r96, %r95 : u8
+    %r97 = addr_of @zx__console__con_row : ptr [pointer]
+    %r98 = load %r97 : u8 [general]
+    %r99 = const 1 : u8 [general]
+    %r100 = add %r98, %r99 : u8 [acc]
+    %r101 = addr_of @zx__console__con_row : ptr [pointer]
+    store %r101, %r100 : u8
+    %r102 = addr_of @zx__console__con_row : ptr [pointer]
+    %r103 = load %r102 : u8 [general]
+    %r104 = addr_of @zx__console__SCREEN_ROWS : ptr [pointer]
+    %r105 = load %r104 : u8 [general]
+    %r106 = cmp.uge %r103, %r105 : bool [flag]
+    br_if %r106, @if_then15(), @if_join16()
+  block @if_then15:
+    call @zx__console__con_scroll()
+    %r107 = addr_of @zx__console__SCREEN_ROWS : ptr [pointer]
+    %r108 = load %r107 : u8 [general]
+    %r109 = const 1 : u8 [general]
+    %r110 = sub %r108, %r109 : u8 [acc]
+    %r111 = addr_of @zx__console__con_row : ptr [pointer]
+    store %r111, %r110 : u8
+    jmp @if_join16()
+  block @if_join16:
+    jmp @if_join14()
+  block @if_join14:
+    ret void
+
+fun @zx__console__con_draw_char(%r112: u8 [acc], %r113: u8 [general], %r114: u8 [counter])
+  block @entry:
+    asm "; Entry: B=col, D=row, C=ch\n        LD IYL, B           ; IYL = col\n        LD IYH, D           ; IYH = row\n\n        ; Compute font_ptr = $3D00 + (ch - 32) * 8\n        LD A, C             ; A = ch\n        SUB 32\n        LD L, A\n        LD H, 0\n        ADD HL, HL\n        ADD HL, HL\n        ADD HL, HL\n        LD DE, 0x3D00\n        ADD HL, DE\n        EX DE, HL           ; DE = font_ptr\n\n        ; Draw 8 pixel lines\n        LD B, 8\n        LD C, 0\n    .line_loop:\n        PUSH DE\n        PUSH BC\n        LD A, IYH\n        AND 0x18\n        OR C\n        OR 0x40\n        LD H, A\n        LD A, IYH\n        AND 0x07\n        RRCA\n        RRCA\n        RRCA\n        OR IYL\n        LD L, A\n        POP BC\n        POP DE\n        LD A, (DE)\n        LD (HL), A\n        INC DE\n        INC C\n        DJNZ .line_loop\n\n        ; Set attribute\n        LD A, IYH\n        RRCA\n        RRCA\n        RRCA\n        LD L, A\n        AND 0xE0\n        OR IYL\n        LD L, A\n        LD A, IYH\n        RRCA\n        RRCA\n        RRCA\n        AND 0x03\n        OR 0x58\n        LD H, A\n        LD A, (zx__console__con_attr)\n        LD (HL), A"
+    ret void
+
+fun @zx__console__con_print(%r115: ptr [pointer])
+  block @entry:
+    %r116 = const 0 : u16 [pointer]
+    jmp @loop_head1(%r116, %r115)
+  block @loop_head1(%r116: u16 [pointer], %r118: ptr [general]):
+    %r119 = ptr_add %r118, %r116 : ptr [pointer]
+    %r120 = load %r119 : u8 [general]
+    %r121 = const 0 : u8 [general]
+    %r122 = cmp.ne %r120, %r121 : bool [flag]
+    cond_ret %r122, [], @loop_body2()
+  block @loop_body2:
+    %r123 = ptr_add %r118, %r116 : ptr [pointer]
+    %r124 = load %r123 : u8 [general]
+    %r125 = move %r124 : u8 [acc]
+    call @zx__console__con_putchar(%r125)
+    %r126 = const 1 : u16 [pointer]
+    %r127 = add %r116, %r126 : u16 [pointer]
+    jmp @loop_head1(%r127, %r118)
+
+fun @zx__console__con_goto(%r128: u8 [general], %r129: u8 [general])
+  block @entry:
+    %r130 = addr_of @zx__console__con_col : ptr [pointer]
+    store %r130, %r128 : u8
+    %r131 = addr_of @zx__console__con_row : ptr [pointer]
+    store %r131, %r129 : u8
+    ret void
+
+fun @zx__console__con_set_attr(%r132: u8 [acc], %r133: u8 [general])
+  block @entry:
+    %r134 = const 3 : u8 [general]
+    %r135 = shl %r133, %r134 : u8 [general]
+    %r136 = or %r135, %r132 : u8 [acc]
+    %r137 = addr_of @zx__console__con_attr : ptr [pointer]
+    store %r137, %r136 : u8
+    ret void
+
+fun @zx__console__con_set_bright(%r138: u8 [acc])
+  block @entry:
+    %r139 = const 0 : u8 [general]
+    %r140 = cmp.ne %r138, %r139 : bool [flag]
+    br_if %r140, @if_then1(), @if_else3()
+  block @if_then1:
+    %r141 = addr_of @zx__console__con_attr : ptr [pointer]
+    %r142 = load %r141 : u8 [general]
+    %r143 = const 64 : u8 [general]
+    %r144 = or %r142, %r143 : u8 [acc]
+    %r145 = addr_of @zx__console__con_attr : ptr [pointer]
+    store %r145, %r144 : u8
+    jmp @if_join2()
+  block @if_join2:
+    ret void
+  block @if_else3:
+    %r146 = addr_of @zx__console__con_attr : ptr [pointer]
+    %r147 = load %r146 : u8 [general]
+    %r148 = const 191 : u8 [general]
+    %r149 = and %r147, %r148 : u8 [acc]
+    %r150 = addr_of @zx__console__con_attr : ptr [pointer]
+    store %r150, %r149 : u8
+    jmp @if_join2()
+
+fun @zx__console__scroll_line(%r151: u8 [counter], %r152: u8 [general])
+  block @entry:
+    %r153 = const 0 : u8 [acc]
+    %r154 = move %r152 : u8 [counter]
+    %r155 = call @zx__console__screen_addr(%r153, %r151, %r154) : u16 [pointer]
+    %r156 = const 0 : u8 [acc]
+    %r157 = const 1 : u8 [general]
+    %r158 = add %r151, %r157 : u8 [acc]
+    %r159 = move %r152 : u8 [counter]
+    %r160 = call @zx__console__screen_addr(%r156, %r158, %r159) : u16 [pointer]
+    %r161 = const 0 : u8 [general]
+    %r162 = const 32 : u8 [general]
+    jmp @loop_head2(%r162, %r161, %r155, %r160)
+  block @loop_head2(%r162: u8 [general], %r161: u8 [general], %r155: u16 [pointer], %r160: u16 [pointer]):
+    %r167 = cmp.ult %r161, %r162 : bool [flag]
+    cond_ret %r167, [], @loop_body3()
+  block @loop_body3:
+    %r168 = ext %r161 : u8 -> u16 [pointer]
+    %r169 = add %r155, %r168 : u16 [pointer]
+    %r170 = ext %r161 : u8 -> u16 [pointer]
+    %r171 = add %r160, %r170 : u16 [pointer]
+    %r172 = call @zx__console__zx_peek(%r171) : u8 [acc]
+    call @zx__console__zx_poke(%r169, %r172)
+    %r173 = const 1 : u8 [general]
+    %r174 = add %r161, %r173 : u8 [general]
+    jmp @loop_head2(%r162, %r174, %r155, %r160)
+
+fun @zx__console__scroll_row(%r175: u8 [acc])
+  block @entry:
+    %r176 = const 0 : u8 [general]
+    %r177 = const 8 : u8 [general]
+    jmp @loop_head2(%r177, %r176, %r175)
+  block @loop_head2(%r177: u8 [general], %r176: u8 [general], %r180: u8 [general]):
+    %r181 = cmp.ult %r176, %r177 : bool [flag]
+    cond_ret %r181, [], @loop_body3()
+  block @loop_body3:
+    %r182 = move %r180 : u8 [acc]
+    call @zx__console__scroll_line(%r182, %r176)
+    %r183 = const 1 : u8 [general]
+    %r184 = add %r176, %r183 : u8 [general]
+    jmp @loop_head2(%r177, %r184, %r180)
+
+fun @zx__console__scroll_attrs(%r185: u8 [counter])
+  block @entry:
+    %r186 = const 0 : u8 [acc]
+    %r187 = call @zx__console__attr_addr(%r186, %r185) : u16 [pointer]
+    %r188 = const 0 : u8 [acc]
+    %r189 = const 1 : u8 [general]
+    %r190 = add %r185, %r189 : u8 [acc]
+    %r191 = call @zx__console__attr_addr(%r188, %r190) : u16 [pointer]
+    %r192 = const 0 : u8 [general]
+    %r193 = const 32 : u8 [general]
+    jmp @loop_head2(%r193, %r192, %r187, %r191)
+  block @loop_head2(%r193: u8 [general], %r192: u8 [general], %r187: u16 [pointer], %r191: u16 [pointer]):
+    %r198 = cmp.ult %r192, %r193 : bool [flag]
+    cond_ret %r198, [], @loop_body3()
+  block @loop_body3:
+    %r199 = ext %r192 : u8 -> u16 [pointer]
+    %r200 = add %r187, %r199 : u16 [pointer]
+    %r201 = ext %r192 : u8 -> u16 [pointer]
+    %r202 = add %r191, %r201 : u16 [pointer]
+    %r203 = call @zx__console__zx_peek(%r202) : u8 [acc]
+    call @zx__console__zx_poke(%r200, %r203)
+    %r204 = const 1 : u8 [general]
+    %r205 = add %r192, %r204 : u8 [general]
+    jmp @loop_head2(%r193, %r205, %r187, %r191)
+
+fun @zx__console__con_scroll()
+  block @entry:
+    %r206 = const 0 : u8 [general]
+    %r207 = const 23 : u8 [general]
+    jmp @loop_head2(%r207, %r206)
+  block @loop_head2(%r207: u8 [general], %r206: u8 [general]):
+    %r210 = cmp.ult %r206, %r207 : bool [flag]
+    br_if %r210, @loop_body3(), @loop_exit4()
+  block @loop_body3:
+    %r211 = move %r206 : u8 [acc]
+    call @zx__console__scroll_row(%r211)
+    %r212 = const 1 : u8 [general]
+    %r213 = add %r206, %r212 : u8 [general]
+    jmp @loop_head2(%r207, %r213)
+  block @loop_exit4:
+    %r214 = const 0 : u8 [general]
+    %r215 = const 8 : u8 [general]
+    jmp @loop_head6(%r215, %r214)
+  block @loop_head6(%r215: u8 [general], %r214: u8 [general]):
+    %r218 = cmp.ult %r214, %r215 : bool [flag]
+    br_if %r218, @loop_body7(), @loop_exit8()
+  block @loop_body7:
+    %r219 = const 0 : u8 [acc]
+    %r220 = const 23 : u8 [general]
+    %r221 = move %r214 : u8 [counter]
+    %r222 = call @zx__console__screen_addr(%r219, %r220, %r221) : u16 [pointer]
+    %r223 = const 0 : u8 [general]
+    %r224 = const 32 : u8 [general]
+    jmp @loop_head10(%r224, %r223, %r222)
+  block @loop_head10(%r224: u8 [general], %r223: u8 [general], %r222: u16 [pointer]):
+    %r228 = cmp.ult %r223, %r224 : bool [flag]
+    br_if %r228, @loop_body11(), @loop_exit12()
+  block @loop_body11:
+    %r229 = ext %r223 : u8 -> u16 [pointer]
+    %r230 = add %r222, %r229 : u16 [pointer]
+    %r231 = const 0 : u8 [general]
+    call @zx__console__zx_poke(%r230, %r231)
+    %r232 = const 1 : u8 [general]
+    %r233 = add %r223, %r232 : u8 [general]
+    jmp @loop_head10(%r224, %r233, %r222)
+  block @loop_exit12:
+    %r234 = const 1 : u8 [general]
+    %r235 = add %r214, %r234 : u8 [general]
+    jmp @loop_head6(%r215, %r235)
+  block @loop_exit8:
+    %r236 = const 0 : u8 [general]
+    %r237 = const 23 : u8 [general]
+    jmp @loop_head14(%r237, %r236)
+  block @loop_head14(%r237: u8 [general], %r236: u8 [general]):
+    %r240 = cmp.ult %r236, %r237 : bool [flag]
+    br_if %r240, @loop_body15(), @loop_exit16()
+  block @loop_body15:
+    %r241 = move %r236 : u8 [acc]
+    call @zx__console__scroll_attrs(%r241)
+    %r242 = const 1 : u8 [general]
+    %r243 = add %r236, %r242 : u8 [general]
+    jmp @loop_head14(%r237, %r243)
+  block @loop_exit16:
+    %r244 = const 0 : u8 [acc]
+    %r245 = const 23 : u8 [general]
+    %r246 = call @zx__console__attr_addr(%r244, %r245) : u16 [pointer]
+    %r247 = const 0 : u8 [general]
+    %r248 = const 32 : u8 [general]
+    jmp @loop_head18(%r248, %r247, %r246)
+  block @loop_head18(%r248: u8 [general], %r247: u8 [general], %r246: u16 [pointer]):
+    %r252 = cmp.ult %r247, %r248 : bool [flag]
+    cond_ret %r252, [], @loop_body19()
+  block @loop_body19:
+    %r253 = ext %r247 : u8 -> u16 [pointer]
+    %r254 = add %r246, %r253 : u16 [pointer]
+    %r255 = addr_of @zx__console__con_attr : ptr [pointer]
+    %r256 = load %r255 : u8 [general]
+    call @zx__console__zx_poke(%r254, %r256)
+    %r257 = const 1 : u8 [general]
+    %r258 = add %r247, %r257 : u8 [general]
+    jmp @loop_head18(%r248, %r258, %r246)
+
+fun @zx__console__con_newline()
+  block @entry:
+    %r259 = const 10 : u8 [acc]
+    call @zx__console__con_putchar(%r259)
+    ret void
+
+fun @zx__console__con_print_u8(%r260: u8 [acc])
+  block @entry:
+    %r261 = const 0 : u8 [general]
+    jmp @loop_head1(%r261, %r260)
+  block @loop_head1(%r261: u8 [general], %r263: u8 [general]):
+    %r264 = const 100 : u8 [general]
+    %r265 = cmp.uge %r263, %r264 : bool [flag]
+    br_if %r265, @loop_body2(), @loop_exit3(%r261, %r263)
+  block @loop_body2:
+    %r266 = const 1 : u8 [general]
+    %r267 = add %r261, %r266 : u8 [general]
+    %r268 = const 100 : u8 [general]
+    %r269 = sub %r263, %r268 : u8 [general]
+    jmp @loop_head1(%r267, %r269)
+  block @loop_exit3(%r270: u8 [general], %r271: u8 [general]):
+    %r272 = const 0 : u8 [general]
+    jmp @loop_head4(%r272, %r271)
+  block @loop_head4(%r272: u8 [general], %r271: u8 [general]):
+    %r275 = const 10 : u8 [general]
+    %r276 = cmp.uge %r271, %r275 : bool [flag]
+    br_if %r276, @loop_body5(), @loop_exit6(%r272, %r271)
+  block @loop_body5:
+    %r277 = const 1 : u8 [general]
+    %r278 = add %r272, %r277 : u8 [general]
+    %r279 = const 10 : u8 [general]
+    %r280 = sub %r271, %r279 : u8 [general]
+    jmp @loop_head4(%r278, %r280)
+  block @loop_exit6(%r281: u8 [general], %r282: u8 [general]):
+    %r283 = const 0 : u8 [general]
+    %r284 = cmp.ugt %r270, %r283 : bool [flag]
+    br_if %r284, @if_then7(), @if_join8()
+  block @if_then7:
+    %r285 = const 48 : u8 [general]
+    %r286 = add %r285, %r270 : u8 [acc]
+    %r287 = move %r286 : u8 [acc]
+    call @zx__console__con_putchar(%r287)
+    jmp @if_join8()
+  block @if_join8:
+    %r288 = const 0 : u8 [general]
+    %r289 = cmp.ugt %r270, %r288 : bool [flag]
+    %r290 = const 0 : u8 [general]
+    %r291 = cmp.ugt %r281, %r290 : bool [flag]
+    %r292 = or %r289, %r291 : bool [acc]
+    %r293 = const 0 : bool [general]
+    %r294 = cmp.ne %r292, %r293 : bool [flag]
+    br_if %r294, @if_then9(), @if_join10()
+  block @if_then9:
+    %r295 = const 48 : u8 [general]
+    %r296 = add %r295, %r281 : u8 [acc]
+    %r297 = move %r296 : u8 [acc]
+    call @zx__console__con_putchar(%r297)
+    jmp @if_join10()
+  block @if_join10:
+    %r298 = const 48 : u8 [general]
+    %r299 = add %r298, %r282 : u8 [acc]
+    %r300 = move %r299 : u8 [acc]
+    call @zx__console__con_putchar(%r300)
+    ret void
+
+fun @zx__console__con_print_u16(%r301: u16 [pointer])
+  block @entry:
+    %r302 = const 0 : u8 [general]
+    jmp @loop_head1(%r302, %r301)
+  block @loop_head1(%r302: u8 [general], %r304: u16 [pointer]):
+    %r305 = const 10000 : u16 [pointer]
+    %r306 = cmp.uge %r304, %r305 : bool [flag]
+    br_if %r306, @loop_body2(), @loop_exit3(%r302, %r304)
+  block @loop_body2:
+    %r307 = const 1 : u8 [general]
+    %r308 = add %r302, %r307 : u8 [general]
+    %r309 = const 10000 : u16 [pointer]
+    %r310 = sub %r304, %r309 : u16 [pointer]
+    jmp @loop_head1(%r308, %r310)
+  block @loop_exit3(%r311: u8 [general], %r312: u16 [pointer]):
+    %r313 = const 0 : u8 [general]
+    jmp @loop_head4(%r313, %r312)
+  block @loop_head4(%r313: u8 [general], %r312: u16 [pointer]):
+    %r316 = const 1000 : u16 [pointer]
+    %r317 = cmp.uge %r312, %r316 : bool [flag]
+    br_if %r317, @loop_body5(), @loop_exit6(%r313, %r312)
+  block @loop_body5:
+    %r318 = const 1 : u8 [general]
+    %r319 = add %r313, %r318 : u8 [general]
+    %r320 = const 1000 : u16 [pointer]
+    %r321 = sub %r312, %r320 : u16 [pointer]
+    jmp @loop_head4(%r319, %r321)
+  block @loop_exit6(%r322: u8 [general], %r323: u16 [pointer]):
+    %r324 = const 0 : u8 [general]
+    jmp @loop_head7(%r324, %r323)
+  block @loop_head7(%r324: u8 [general], %r323: u16 [pointer]):
+    %r327 = const 100 : u8 [general]
+    %r328 = cmp.uge %r323, %r327 : bool [flag]
+    br_if %r328, @loop_body8(), @loop_exit9(%r324, %r323)
+  block @loop_body8:
+    %r329 = const 1 : u8 [general]
+    %r330 = add %r324, %r329 : u8 [general]
+    %r331 = const 100 : u16 [pointer]
+    %r332 = sub %r323, %r331 : u16 [pointer]
+    jmp @loop_head7(%r330, %r332)
+  block @loop_exit9(%r333: u8 [general], %r334: u16 [pointer]):
+    %r335 = const 0 : u8 [general]
+    jmp @loop_head10(%r335, %r334)
+  block @loop_head10(%r335: u8 [general], %r334: u16 [pointer]):
+    %r338 = const 10 : u8 [general]
+    %r339 = cmp.uge %r334, %r338 : bool [flag]
+    br_if %r339, @loop_body11(), @loop_exit12(%r335, %r334)
+  block @loop_body11:
+    %r340 = const 1 : u8 [general]
+    %r341 = add %r335, %r340 : u8 [general]
+    %r342 = const 10 : u16 [pointer]
+    %r343 = sub %r334, %r342 : u16 [pointer]
+    jmp @loop_head10(%r341, %r343)
+  block @loop_exit12(%r344: u8 [general], %r345: u16 [pointer]):
+    %r346 = trunc %r345 : u16 -> u8 [general]
+    %r347 = const 0 : u8 [general]
+    %r348 = const 0 : u8 [general]
+    %r349 = cmp.ugt %r311, %r348 : bool [flag]
+    br_if %r349, @if_then13(), @if_join14(%r347)
+  block @if_then13:
+    %r350 = const 48 : u8 [general]
+    %r351 = add %r350, %r311 : u8 [acc]
+    %r352 = move %r351 : u8 [acc]
+    call @zx__console__con_putchar(%r352)
+    %r353 = const 1 : u8 [general]
+    jmp @if_join14(%r353)
+  block @if_join14(%r353: u8 [general]):
+    %r355 = const 1 : u8 [general]
+    %r356 = cmp.eq %r353, %r355 : bool [flag]
+    %r357 = const 0 : u8 [general]
+    %r358 = cmp.ugt %r322, %r357 : bool [flag]
+    %r359 = or %r356, %r358 : bool [acc]
+    %r360 = const 0 : bool [general]
+    %r361 = cmp.ne %r359, %r360 : bool [flag]
+    br_if %r361, @if_then15(), @if_join16(%r353)
+  block @if_then15:
+    %r362 = const 48 : u8 [general]
+    %r363 = add %r362, %r322 : u8 [acc]
+    %r364 = move %r363 : u8 [acc]
+    call @zx__console__con_putchar(%r364)
+    %r365 = const 1 : u8 [general]
+    jmp @if_join16(%r365)
+  block @if_join16(%r365: u8 [general]):
+    %r367 = const 1 : u8 [general]
+    %r368 = cmp.eq %r365, %r367 : bool [flag]
+    %r369 = const 0 : u8 [general]
+    %r370 = cmp.ugt %r333, %r369 : bool [flag]
+    %r371 = or %r368, %r370 : bool [acc]
+    %r372 = const 0 : bool [general]
+    %r373 = cmp.ne %r371, %r372 : bool [flag]
+    br_if %r373, @if_then17(), @if_join18(%r365)
+  block @if_then17:
+    %r374 = const 48 : u8 [general]
+    %r375 = add %r374, %r333 : u8 [acc]
+    %r376 = move %r375 : u8 [acc]
+    call @zx__console__con_putchar(%r376)
+    %r377 = const 1 : u8 [general]
+    jmp @if_join18(%r377)
+  block @if_join18(%r377: u8 [general]):
+    %r379 = const 1 : u8 [general]
+    %r380 = cmp.eq %r377, %r379 : bool [flag]
+    %r381 = const 0 : u8 [general]
+    %r382 = cmp.ugt %r344, %r381 : bool [flag]
+    %r383 = or %r380, %r382 : bool [acc]
+    %r384 = const 0 : bool [general]
+    %r385 = cmp.ne %r383, %r384 : bool [flag]
+    br_if %r385, @if_then19(), @if_join20()
+  block @if_then19:
+    %r386 = const 48 : u8 [general]
+    %r387 = add %r386, %r344 : u8 [acc]
+    %r388 = move %r387 : u8 [acc]
+    call @zx__console__con_putchar(%r388)
+    jmp @if_join20()
+  block @if_join20:
+    %r389 = const 48 : u8 [general]
+    %r390 = add %r389, %r346 : u8 [acc]
+    %r391 = move %r390 : u8 [acc]
+    call @zx__console__con_putchar(%r391)
+    ret void
+
+fun @zx__console__scan_row_key(%r392: u8 [acc], %r393: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r394 = move %r392 : u8 [acc]
+    %r395 = call @zx__console__zx_in_fe(%r394) : u8 [acc]
+    %r396 = const 1 : u8 [general]
+    %r397 = and %r395, %r396 : u8 [acc]
+    %r398 = const 0 : u8 [general]
+    %r399 = cmp.eq %r397, %r398 : bool [flag]
+    br_if %r399, @if_then1(), @if_join2()
+  block @if_then1:
+    %r400 = addr_of @zx__console__KBD_KEYS : ptr [pointer]
+    %r401 = ext %r393 : u8 -> u16 [index]
+    %r402 = ptr_add %r400, %r401 : ptr [pointer]
+    %r403 = load %r402 : u8 [general]
+    ret %r403
+  block @if_join2:
+    %r404 = const 2 : u8 [general]
+    %r405 = and %r395, %r404 : u8 [acc]
+    %r406 = const 0 : u8 [general]
+    %r407 = cmp.eq %r405, %r406 : bool [flag]
+    br_if %r407, @if_then3(), @if_join4()
+  block @if_then3:
+    %r408 = addr_of @zx__console__KBD_KEYS : ptr [pointer]
+    %r409 = const 1 : u8 [general]
+    %r410 = add %r393, %r409 : u8 [acc]
+    %r411 = ext %r410 : u8 -> u16 [index]
+    %r412 = ptr_add %r408, %r411 : ptr [pointer]
+    %r413 = load %r412 : u8 [general]
+    ret %r413
+  block @if_join4:
+    %r414 = const 4 : u8 [general]
+    %r415 = and %r395, %r414 : u8 [acc]
+    %r416 = const 0 : u8 [general]
+    %r417 = cmp.eq %r415, %r416 : bool [flag]
+    br_if %r417, @if_then5(), @if_join6()
+  block @if_then5:
+    %r418 = addr_of @zx__console__KBD_KEYS : ptr [pointer]
+    %r419 = const 2 : u8 [general]
+    %r420 = add %r393, %r419 : u8 [acc]
+    %r421 = ext %r420 : u8 -> u16 [index]
+    %r422 = ptr_add %r418, %r421 : ptr [pointer]
+    %r423 = load %r422 : u8 [general]
+    ret %r423
+  block @if_join6:
+    %r424 = const 8 : u8 [general]
+    %r425 = and %r395, %r424 : u8 [acc]
+    %r426 = const 0 : u8 [general]
+    %r427 = cmp.eq %r425, %r426 : bool [flag]
+    br_if %r427, @if_then7(), @if_join8()
+  block @if_then7:
+    %r428 = addr_of @zx__console__KBD_KEYS : ptr [pointer]
+    %r429 = const 3 : u8 [general]
+    %r430 = add %r393, %r429 : u8 [acc]
+    %r431 = ext %r430 : u8 -> u16 [index]
+    %r432 = ptr_add %r428, %r431 : ptr [pointer]
+    %r433 = load %r432 : u8 [general]
+    ret %r433
+  block @if_join8:
+    %r434 = const 16 : u8 [general]
+    %r435 = and %r395, %r434 : u8 [acc]
+    %r436 = const 0 : u8 [general]
+    %r437 = cmp.eq %r435, %r436 : bool [flag]
+    %r438 = const 0 : u8 [acc]
+    cond_ret %r437, [%r438], @if_then9()
+  block @if_then9:
+    %r439 = addr_of @zx__console__KBD_KEYS : ptr [pointer]
+    %r440 = const 4 : u8 [general]
+    %r441 = add %r393, %r440 : u8 [acc]
+    %r442 = ext %r441 : u8 -> u16 [index]
+    %r443 = ptr_add %r439, %r442 : ptr [pointer]
+    %r444 = load %r443 : u8 [general]
+    ret %r444
+
+fun @zx__console__any_key_pressed() -> u8 [acc]
+  block @entry:
+    %r445 = const 0 : u8 [general]
+    %r446 = const 8 : u8 [general]
+    jmp @loop_head2(%r446, %r445)
+  block @loop_head2(%r446: u8 [general], %r445: u8 [general]):
+    %r449 = cmp.ult %r445, %r446 : bool [flag]
+    %r450 = const 0 : u8 [acc]
+    cond_ret %r449, [%r450], @loop_body3()
+  block @loop_body3:
+    %r451 = addr_of @zx__console__KBD_ROWS : ptr [pointer]
+    %r452 = ext %r445 : u8 -> u16 [index]
+    %r453 = ptr_add %r451, %r452 : ptr [pointer]
+    %r454 = load %r453 : u8 [general]
+    %r455 = move %r454 : u8 [acc]
+    %r456 = call @zx__console__zx_in_fe(%r455) : u8 [acc]
+    %r457 = const 31 : u8 [general]
+    %r458 = and %r456, %r457 : u8 [general]
+    %r459 = const 31 : u8 [general]
+    %r460 = cmp.ne %r458, %r459 : bool [flag]
+    br_if %r460, @if_then5(), @if_join6()
+  block @if_then5:
+    %r461 = const 1 : u8 [acc]
+    ret %r461
+  block @if_join6:
+    %r462 = const 1 : u8 [general]
+    %r463 = add %r445, %r462 : u8 [general]
+    jmp @loop_head2(%r446, %r463)
+
+fun @zx__console__con_getchar() -> u8 [acc]
+  block @entry:
+    jmp @loop_head1()
+  block @loop_head1:
+    %r464 = call @zx__console__any_key_pressed() : u8 [acc]
+    %r465 = const 0 : u8 [general]
+    %r466 = cmp.ne %r464, %r465 : bool [flag]
+    br_if %r466, @loop_body2(), @loop_exit3()
+  block @loop_body2:
+    jmp @loop_head1()
+  block @loop_exit3:
+    %r467 = const 0 : u8 [general]
+    jmp @loop_head4(%r467)
+  block @loop_head4(%r467: u8 [general]):
+    %r469 = const 0 : u8 [general]
+    %r470 = cmp.eq %r467, %r469 : bool [flag]
+    br_if %r470, @loop_body5(), @loop_exit6(%r467)
+  block @loop_body5:
+    %r471 = const 0 : u8 [general]
+    %r472 = const 8 : u8 [general]
+    jmp @loop_head8(%r472, %r471, %r467)
+  block @loop_head8(%r472: u8 [general], %r471: u8 [general], %r467: u8 [general]):
+    %r476 = cmp.ult %r471, %r472 : bool [flag]
+    br_if %r476, @loop_body9(), @loop_exit10(%r467)
+  block @loop_body9:
+    %r477 = addr_of @zx__console__KBD_ROWS : ptr [pointer]
+    %r478 = ext %r471 : u8 -> u16 [index]
+    %r479 = ptr_add %r477, %r478 : ptr [pointer]
+    %r480 = load %r479 : u8 [general]
+    %r481 = move %r480 : u8 [acc]
+    %r482 = const 5 : u8 [general]
+    %r483 = mul %r471, %r482 : u8 [general]
+    %r484 = call @zx__console__scan_row_key(%r481, %r483) : u8 [acc]
+    %r485 = const 0 : u8 [general]
+    %r486 = cmp.ne %r484, %r485 : bool [flag]
+    br_if %r486, @if_then11(), @if_join12(%r467)
+  block @if_then11:
+    jmp @if_join12(%r484)
+  block @if_join12(%r487: u8 [general]):
+    %r488 = const 1 : u8 [general]
+    %r489 = add %r471, %r488 : u8 [general]
+    jmp @loop_head8(%r472, %r489, %r487)
+  block @loop_exit10(%r490: u8 [general]):
+    jmp @loop_head4(%r490)
+  block @loop_exit6(%r491: u8 [general]):
+    %r492 = const 254 : u8 [acc]
+    %r493 = call @zx__console__zx_in_fe(%r492) : u8 [acc]
+    %r494 = const 1 : u8 [general]
+    %r495 = and %r493, %r494 : u8 [acc]
+    %r496 = const 0 : u8 [general]
+    %r497 = cmp.eq %r495, %r496 : bool [flag]
+    cond_ret %r497, [%r491], @if_then13()
+  block @if_then13:
+    %r498 = const 97 : u8 [general]
+    %r499 = cmp.uge %r491, %r498 : bool [flag]
+    br_if %r499, @if_then15(), @if_join16(%r491)
+  block @if_then15:
+    %r500 = const 122 : u8 [general]
+    %r501 = cmp.ule %r491, %r500 : bool [flag]
+    br_if %r501, @if_then17(), @if_join18(%r491)
+  block @if_then17:
+    %r502 = const 32 : u8 [general]
+    %r503 = sub %r491, %r502 : u8 [acc]
+    jmp @if_join18(%r503)
+  block @if_join18(%r504: u8 [general]):
+    jmp @if_join16(%r504)
+  block @if_join16(%r504: u8 [general]):
+    ret %r504
+
+fun @zx__console__con_input(%r506: ptr [pointer], %r507: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r508 = const 0 : u8 [general]
+    %r509 = const 0 : u8 [general]
+    %r510 = addr_of @zx__console__con_col : ptr [pointer]
+    %r511 = load %r510 : u8 [general]
+    %r512 = move %r511 : u8 [acc]
+    %r513 = addr_of @zx__console__con_row : ptr [pointer]
+    %r514 = load %r513 : u8 [general]
+    %r515 = const 95 : u8 [counter]
+    call @zx__console__con_draw_char(%r512, %r514, %r515)
+    jmp @loop_head1(%r509, %r507, %r508)
+  block @loop_head1(%r509: u8 [general], %r517: u8 [general], %r508: u8 [general]):
+    %r519 = const 0 : u8 [general]
+    %r520 = cmp.eq %r509, %r519 : bool [flag]
+    br_if %r520, @loop_body2(), @loop_exit3(%r508)
+  block @loop_body2:
+    %r521 = call @zx__console__con_getchar() : u8 [acc]
+    %r522 = const 13 : u8 [general]
+    %r523 = cmp.eq %r521, %r522 : bool [flag]
+    br_if %r523, @if_then4(), @if_else6()
+  block @if_then4:
+    %r524 = addr_of @zx__console__con_col : ptr [pointer]
+    %r525 = load %r524 : u8 [general]
+    %r526 = move %r525 : u8 [acc]
+    %r527 = addr_of @zx__console__con_row : ptr [pointer]
+    %r528 = load %r527 : u8 [general]
+    %r529 = const 32 : u8 [counter]
+    call @zx__console__con_draw_char(%r526, %r528, %r529)
+    %r530 = const 1 : u8 [general]
+    jmp @if_join5(%r530, %r508)
+  block @if_join5(%r530: u8 [general], %r508: u8 [general]):
+    jmp @loop_head1(%r530, %r517, %r508)
+  block @if_else6:
+    %r533 = const 8 : u8 [general]
+    %r534 = cmp.eq %r521, %r533 : bool [flag]
+    br_if %r534, @if_then7(), @if_else9()
+  block @if_then7:
+    %r535 = const 0 : u8 [general]
+    %r536 = cmp.ugt %r508, %r535 : bool [flag]
+    br_if %r536, @if_then10(), @if_join11(%r508)
+  block @if_then10:
+    %r537 = const 1 : u8 [general]
+    %r538 = sub %r508, %r537 : u8 [general]
+    %r539 = const 8 : u8 [acc]
+    call @zx__console__con_putchar(%r539)
+    %r540 = addr_of @zx__console__con_col : ptr [pointer]
+    %r541 = load %r540 : u8 [general]
+    %r542 = move %r541 : u8 [acc]
+    %r543 = addr_of @zx__console__con_row : ptr [pointer]
+    %r544 = load %r543 : u8 [general]
+    %r545 = const 95 : u8 [counter]
+    call @zx__console__con_draw_char(%r542, %r544, %r545)
+    jmp @if_join11(%r538)
+  block @if_join11(%r538: u8 [general]):
+    jmp @if_join8(%r538)
+  block @if_join8(%r538: u8 [general]):
+    jmp @if_join5(%r509, %r538)
+  block @if_else9:
+    %r548 = cmp.ult %r508, %r517 : bool [flag]
+    br_if %r548, @if_then12(), @if_join13(%r508)
+  block @if_then12:
+    %r549 = ptr_add %r506, %r508 : ptr [pointer]
+    store %r549, %r521 : u8
+    %r550 = const 1 : u8 [general]
+    %r551 = add %r508, %r550 : u8 [general]
+    %r552 = move %r521 : u8 [acc]
+    call @zx__console__con_putchar(%r552)
+    %r553 = addr_of @zx__console__con_col : ptr [pointer]
+    %r554 = load %r553 : u8 [general]
+    %r555 = move %r554 : u8 [acc]
+    %r556 = addr_of @zx__console__con_row : ptr [pointer]
+    %r557 = load %r556 : u8 [general]
+    %r558 = const 95 : u8 [counter]
+    call @zx__console__con_draw_char(%r555, %r557, %r558)
+    jmp @if_join13(%r551)
+  block @if_join13(%r551: u8 [general]):
+    jmp @if_join8(%r551)
+  block @loop_exit3(%r560: u8 [general]):
+    %r561 = const 0 : u8 [general]
+    %r562 = ptr_add %r506, %r560 : ptr [pointer]
+    store %r562, %r561 : u8
+    ret %r560
+
+fun @zx__console__con_show_cursor()
+  block @entry:
+    %r563 = addr_of @zx__console__con_col : ptr [pointer]
+    %r564 = load %r563 : u8 [general]
+    %r565 = move %r564 : u8 [acc]
+    %r566 = addr_of @zx__console__con_row : ptr [pointer]
+    %r567 = load %r566 : u8 [general]
+    %r568 = const 95 : u8 [counter]
+    call @zx__console__con_draw_char(%r565, %r567, %r568)
+    ret void
+
+fun @zx__console__con_hide_cursor()
+  block @entry:
+    %r569 = addr_of @zx__console__con_col : ptr [pointer]
+    %r570 = load %r569 : u8 [general]
+    %r571 = move %r570 : u8 [acc]
+    %r572 = addr_of @zx__console__con_row : ptr [pointer]
+    %r573 = load %r572 : u8 [general]
+    %r574 = const 32 : u8 [counter]
+    call @zx__console__con_draw_char(%r571, %r573, %r574)
+    ret void
+
+fun @main()
+  block @entry:
+    %r575 = const 7 : u8 [acc]
+    %r576 = const 1 : u8 [general]
+    call @zx__console__con_init(%r575, %r576)
+    call @zx__console__con_clear()
+    %r577 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r578 = move %r577 : ptr [pointer]
+    call @zx__console__con_print(%r578)
+    call @zx__console__con_newline()
+    call @zx__console__con_newline()
+    %r579 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r580 = move %r579 : ptr [pointer]
+    call @zx__console__con_print(%r580)
+    call @zx__console__con_newline()
+    %r581 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r582 = move %r581 : ptr [pointer]
+    call @zx__console__con_print(%r582)
+    call @zx__console__con_newline()
+    %r583 = addr_of @@mir2.str.3 : ptr [pointer]
+    %r584 = move %r583 : ptr [pointer]
+    call @zx__console__con_print(%r584)
+    call @zx__console__con_newline()
+    call @zx__console__con_newline()
+    %r585 = const 6 : u8 [acc]
+    %r586 = const 0 : u8 [general]
+    call @zx__console__con_set_attr(%r585, %r586)
+    %r587 = addr_of @@mir2.str.4 : ptr [pointer]
+    %r588 = move %r587 : ptr [pointer]
+    call @zx__console__con_print(%r588)
+    %r589 = const 12345 : u16 [pointer]
+    call @zx__console__con_print_u16(%r589)
+    call @zx__console__con_newline()
+    %r590 = const 3 : u8 [acc]
+    %r591 = const 0 : u8 [general]
+    call @zx__console__con_set_attr(%r590, %r591)
+    %r592 = addr_of @@mir2.str.5 : ptr [pointer]
+    %r593 = move %r592 : ptr [pointer]
+    call @zx__console__con_print(%r593)
+    %r594 = const 3 : u8 [acc]
+    call @zx__console__con_print_u8(%r594)
+    call @zx__console__con_newline()
+    call @zx__console__con_newline()
+    %r595 = const 7 : u8 [acc]
+    %r596 = const 1 : u8 [general]
+    call @zx__console__con_set_attr(%r595, %r596)
+    %r597 = addr_of @@mir2.str.6 : ptr [pointer]
+    %r598 = move %r597 : ptr [pointer]
+    call @zx__console__con_print(%r598)
+    %r599 = call @zx__console__con_getchar() : u8 [acc]
+    call @zx__console__con_newline()
+    %r600 = addr_of @@mir2.str.7 : ptr [pointer]
+    %r601 = move %r600 : ptr [pointer]
+    call @zx__console__con_print(%r601)
+    %r602 = move %r599 : u8 [acc]
+    call @zx__console__con_putchar(%r602)
+    call @zx__console__con_newline()
+    ret void
+
