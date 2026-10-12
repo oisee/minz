@@ -1,0 +1,7 @@
+# Agon Mini NC: upper boundary and Up through full VDP
+
+Same ordinary public CLI BIN as commit 9084e512, with unchanged example and native-VDU library. Nine separate SDL Down presses at updates 270+20*n (n=0..8), keyup two updates later, reach index 7 and attempt two further Down presses. Enter at 470/472; frame 490 shows PLASMA.BIN highlighted and Selected: PLASMA.BIN. Up at 510/512, Enter at 530/532; frame 550 shows index 6, EXAMPLES directory, highlighted and selected. Escape at 590/592; frame 660 shows MINZ_FULL_RETURNED and the MOS prompt.
+
+Images were visually inspected. This is one bounded ordinary-mode whole-device sequence through actual eZ80, MOS, full VDP and SDL→PS2→MOS input. It is not an independent pixel/RAM/SP oracle, proof of all inputs, or hardware execution. Outer timeout 14 seconds returned 124 because MOS remains running; the following echo and prompt demonstrate application completion.
+
+Reproduction: use the exact SD directory and source/library/tool pins from reports/agon-full-vdp-demo-nc at 9084e512. Build capture.c using cc -shared -fPIC -I <SDL3>/include capture.c -ldl -o capture.so. Run from the Fab release directory: timeout 14 ./fab-agon-emulator --renderer sw --firmware console8 --sdcard <retained nc_agon/sdcard> --zero --verbose. Set LD_LIBRARY_PATH=<SDL3>/lib, LD_PRELOAD=<capture.so>, SDL_VIDEODRIVER=dummy, SDL_AUDIODRIVER=dummy, MINZ_AGON_FRAME=<last.ppm>, MINZ_AGON_UP_FRAME=<up.ppm>, MINZ_AGON_RETURN_FRAME=<returned.ppm>.

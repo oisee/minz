@@ -1,0 +1,26 @@
+{
+  "scope": "single ordinary full-device visual boundary sequence",
+  "keys": [
+    "Down",
+    "Down",
+    "Down",
+    "Down",
+    "Down",
+    "Down",
+    "Down",
+    "Down",
+    "Down",
+    "Enter",
+    "Up",
+    "Enter",
+    "Escape"
+  ],
+  "last_index_observed": 7,
+  "last_text_observed": "PLASMA.BIN",
+  "up_index_observed": 6,
+  "up_text_observed": "EXAMPLES directory",
+  "following_mos_echo_observed": true,
+  "cutoff_exit": 124,
+  "predecessor_commit": "9084e512",
+  "bin_sha256": "33e9482d01c8f17111aac455691601f8845e258fa20c4d2e4128f28cb12b67ae"
+}
