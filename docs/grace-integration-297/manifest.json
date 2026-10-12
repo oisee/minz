@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "f871ea9f85e3a0a1c9d8e9c7f65bf9e9be9f7bb6a2cb75b5c1395797c9db34ba",
+      "bytes": 2955
+    },
+    {
+      "path": "arena-negative.txt",
+      "sha256": "d50cfdbed1d766946eebea342ff019b934c9b2c8e79888e7ce00026337218772",
+      "bytes": 2292
+    },
+    {
+      "path": "catalog-root.txt",
+      "sha256": "b4aa3e80f647a932d3e547b7f292b7762d7f973a2d536d0d7f4a406d0cbc71a2",
+      "bytes": 1065
+    },
+    {
+      "path": "catalog.json",
+      "sha256": "615e0dda0554551cc91f4ea73d592ad4fa45d035681e8ed9f62384084628d714",
+      "bytes": 747806
+    },
+    {
+      "path": "heldout-root.txt",
+      "sha256": "d8a097c947bda540d7acb032a6828f13c0b3d41402d3712ca38a33d5829c3d7b",
+      "bytes": 6084
+    },
+    {
+      "path": "reviewed-updates.json",
+      "sha256": "e03b72d358503716a27b9af8f041225a392171a09a19de276899220bf37595c7",
+      "bytes": 184405
+    },
+    {
+      "path": "sqlite-root.txt",
+      "sha256": "2634c8b88c0c0d8d3e6cb83f65549c73b8bdcb6fb3e65dd182c4a88b5ba10793",
+      "bytes": 1757
+    },
+    {
+      "path": "sqlite-wrong-regex.txt",
+      "sha256": "7c21343569907b64ef66be861ae6cb0a184f28b1f64dccf5320c351d7337632c",
+      "bytes": 104
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 # Grace / PGO: текущее состояние
 
+Повтор frozen heldout/associations `1b5cf5ca`: **PASS 48,256 с**. Неизменённый SQLite demo: raw/final VM и native в трёх режимах **PASS 0,066 с**. Arena consumer сохраняет правильное поведение, но строгий size-gain assertion FAIL (1130/1130 байт); расследование продолжается. [Пакет 297](grace-integration-297/README.md).
+
 FullMIR0cc467f7 PASS98,850с; selectedartifactCLIcccddb02 collect/replay/publicationPASS47,578с ([296](grace-integration-296/README.md)). Новые ALV/SQL/TUI runtimefamilies вработе.
 
 Selfparser+canvas whole main proof интегрирован: rootPASS7,818с ([295](grace-integration-295/README.md)),143/194independent/boundedVM/native paths. RootfullMIR0cc467f7 ещёlive; conditionalfix теперьвключён.
