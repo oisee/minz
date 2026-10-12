@@ -34,6 +34,8 @@ func TestOriginalNCWholeMainVM(t *testing.T) {
 		Globals   map[string]int64  `json:"final_globals"`
 		FS        map[string]int64  `json:"expected_filesystem"`
 		EventsSHA string            `json:"terminal_oracle_sha256"`
+		Buffers   map[string][]byte `json:"final_memory_buffers"`
+		Scalars   map[string]int64  `json:"final_memory_scalars"`
 	}
 	if e := json.Unmarshal(read("freeze.json"), &freeze); e != nil {
 		t.Fatal(e)
@@ -199,6 +201,25 @@ func TestOriginalNCWholeMainVM(t *testing.T) {
 				}
 				if !bytes.Equal(vm.ReadHeap(vm.GlobalAddr("fs__fat12__win"), 512), disk[1024:1536]) {
 					t.Fatal("sector window")
+				}
+				for _, gl := range engine.m.Globals {
+					width := mir2.ByteWidth(gl.Ty)
+					want := make([]byte, width)
+					copy(want, gl.Init)
+					if buf, ok := freeze.Buffers[gl.Name]; ok {
+						if len(buf) != width {
+							t.Fatal("buffer width", gl.Name)
+						}
+						copy(want, buf)
+					}
+					if value, ok := freeze.Scalars[gl.Name]; ok {
+						for i := 0; i < width; i++ {
+							want[i] = byte(uint64(value) >> uint(8*i))
+						}
+					}
+					if !bytes.Equal(vm.ReadHeap(vm.GlobalAddr(gl.Name), width), want) {
+						t.Fatal("VM global memory", gl.Name, vm.ReadHeap(vm.GlobalAddr(gl.Name), width), want)
+					}
 				}
 				t.Logf("whole main events%d, disk reads%v, independent filesystem/selection state PASS", len(events), reads)
 			})

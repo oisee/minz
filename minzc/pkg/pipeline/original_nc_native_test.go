@@ -33,6 +33,8 @@ func TestOriginalNCWholeMainNative(t *testing.T) {
 		Keys      []int64           `json:"input_keys"`
 		Globals   map[string]int64  `json:"final_globals"`
 		FS        map[string]int64  `json:"expected_filesystem"`
+		Buffers   map[string][]byte `json:"final_memory_buffers"`
+		Scalars   map[string]int64  `json:"final_memory_scalars"`
 	}
 	if e := json.Unmarshal(read("freeze.json"), &f); e != nil {
 		t.Fatal(e)
@@ -356,16 +358,41 @@ func TestOriginalNCWholeMainNative(t *testing.T) {
 					}
 				}
 			}
-			// Initial checkpoint checks every byte outside precise mutable globals and observed stack.
-			// Final independent per-global memory oracle will replace this bounded write-region check.
-			for p := range mem {
-				if mutable[uint16(p)] || p >= int(minSP) && p < 0xf000 {
-					continue
+			// Independent final bytes cover every module-global object. Unused
+			// objects retain declaration initialization; only actual compiler
+			// spill spans and observed stack bytes have operational contents.
+			for _, gl := range s.MIR2Module.Globals {
+				addr := int(sym(gl.Name))
+				width := mir2.ByteWidth(gl.Ty)
+				data := make([]byte, width)
+				copy(data, gl.Init)
+				if buf, ok := f.Buffers[gl.Name]; ok {
+					if len(buf) != width {
+						t.Fatal("buffer model width", gl.Name)
+					}
+					copy(data, buf)
 				}
-				if mem[p] != want[p] {
-					t.Fatalf("native image/guard %04x got%02x want%02x", p, mem[p], want[p])
+				if value, ok := f.Scalars[gl.Name]; ok {
+					for i := 0; i < width; i++ {
+						data[i] = byte(uint64(value) >> uint(8*i))
+					}
+				}
+				copy(want[addr:addr+width], data)
+			}
+			for _, line := range a.Listing {
+				if strings.HasPrefix(line.Label, "_spill_") {
+					copy(want[line.Address:line.Address+len(line.Bytes)], mem[line.Address:line.Address+len(line.Bytes)])
 				}
 			}
+			copy(want[minSP:0xf000], mem[minSP:0xf000])
+			if !bytes.Equal(mem, want) {
+				for p := range mem {
+					if mem[p] != want[p] {
+						t.Fatalf("native full RAM %04x got%02x want%02x", p, mem[p], want[p])
+					}
+				}
+			}
+
 			save(mode+"/ram.bin", mem)
 			save(mode+"/summary.json", map[string]any{"events": len(events), "image_bytes": len(a.Binary), "T_states": z.GetCycles(), "PC": z.GetPC(), "SP": z.GetSP(), "minimum_sp": minSP})
 			t.Logf("native whole main %dB %dT, events%d PC/SP restored", len(a.Binary), z.GetCycles(), len(events))
