@@ -17,8 +17,8 @@ func validateCLIRuntime(source string) error {
 	if runtimeMode == "" {
 		return nil
 	}
-	if runtimeMode != string(mir2.Z80RuntimeCPM) || target != "cpm" || backend != "z80" || filepath.Ext(source) != ".nanz" {
-		return fmt.Errorf("--runtime cpm requires ordinary Nanz, -t cpm and Z80 backend")
+	if runtimeMode != string(mir2.Z80RuntimeCPM) || target != "cpm" || backend != "z80" || (filepath.Ext(source) != ".nanz" && filepath.Ext(source) != ".pas") {
+		return fmt.Errorf("--runtime cpm requires ordinary Nanz or Pascal, -t cpm and Z80 backend")
 	}
 	if memoryHostCLI != (memoryHostCLIFlags{}) || memoryHostPolicyCLIRequested() || memoryHostSearchCLIRequested() || hirProfile != (hirProfileFlags{}) || hirProfileAutoDirectory != "" || hirProfileAutoWorkload != "" || hirProfileCompilerModes || hirProfileCompilerModesReplay != "" || pgoProfile != "" || pgoDebug || checkedLocalTablePath != "" || generateCheckedLocalTablePath != "" || emitFormat != "" || gpuRun != "" || listAsserts || outputFormat != "" {
 		return fmt.Errorf("--runtime cpm cannot combine with measured/profile or alternate output modes")
