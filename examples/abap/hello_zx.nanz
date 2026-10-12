@@ -28,60 +28,60 @@ fun main() -> void {
 
     // === Z80 System Report ===
     con_set_attr(6, 1)      // cyan on blue
-    con_print("=== Z80 System Report ===")
+    con_print(c"=== Z80 System Report ===")
     con_newline()
     con_newline()
 
     con_set_attr(7, 1)      // white on blue
-    con_print("CPU:      ")
+    con_print(c"CPU:      ")
     con_set_attr(3, 1)      // yellow
-    con_print("Z80A")
+    con_print(c"Z80A")
     con_newline()
 
     con_set_attr(7, 1)
-    con_print("Clock:    ")
+    con_print(c"Clock:    ")
     con_set_attr(3, 1)
-    con_print("3.5 MHz")
+    con_print(c"3.5 MHz")
     con_newline()
 
     con_set_attr(7, 1)
-    con_print("RAM:      ")
+    con_print(c"RAM:      ")
     con_set_attr(3, 1)
-    con_print("48 KB")
+    con_print(c"48 KB")
     con_newline()
 
     con_set_attr(7, 1)
-    con_print("ROM:      ")
+    con_print(c"ROM:      ")
     con_set_attr(3, 1)
-    con_print("16 KB")
+    con_print(c"16 KB")
     con_newline()
 
     con_set_attr(7, 1)
-    con_print("Kernel:   ")
+    con_print(c"Kernel:   ")
     con_set_attr(3, 1)
-    con_print("MinZ v0.21")
+    con_print(c"MinZ v0.21")
     con_newline()
 
     con_set_attr(7, 1)
-    con_print("Runtime:  ")
+    con_print(c"Runtime:  ")
     con_set_attr(3, 1)
-    con_print("ABAP on Z80")
+    con_print(c"ABAP on Z80")
     con_newline()
     con_newline()
 
     con_set_attr(6, 1)
-    con_print("=========================")
+    con_print(c"=========================")
     con_newline()
 
     con_set_attr(2, 1)      // green on blue
-    con_print("STATUS: ALL SYSTEMS GO")
+    con_print(c"STATUS: ALL SYSTEMS GO")
     con_newline()
     con_newline()
 
     con_set_attr(7, 0)      // white on black
-    con_print("Press any key...")
+    con_print(c"Press any key...")
     let ch: u8 = con_getchar()
     con_newline()
-    con_print("Hello from ABAP on ZX!")
+    con_print(c"Hello from ABAP on ZX!")
     con_newline()
 }
