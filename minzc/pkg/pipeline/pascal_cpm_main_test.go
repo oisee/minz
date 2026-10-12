@@ -40,8 +40,8 @@ func TestPascalCPMMainAdmission(t *testing.T) {
 			if name == "hello" && e != nil {
 				t.Fatal(e)
 			}
-			if name == "factorial" && e == nil {
-				t.Fatal("unsupported decimal runtime unexpectedly admitted")
+			if e != nil {
+				t.Fatal(e)
 			}
 			t.Log(e)
 		})
@@ -63,9 +63,7 @@ func pascalCPMWhole(t *testing.T, production bool) {
 }
 func pascalCPMWholeMode(t *testing.T, production bool, mode string, opt Options) {
 	for _, program := range []struct{ name, want string }{{"hello", "Hello from Pascal on Z80!\r\n"}, {"factorial", "5040\r\n"}} {
-		if production && program.name != "hello" {
-			continue
-		}
+
 		t.Run(program.name, func(t *testing.T) {
 			source, e := os.ReadFile("../../../reports/pascal-cpm-main/" + program.name + ".pas")
 			if e != nil {

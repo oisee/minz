@@ -39,8 +39,10 @@ func TestPascalCPMOrdinaryCLI(t *testing.T) {
 		t.Fatal("exact COM/ASM", e)
 	}
 	outputFile = filepath.Join(dir, "bad.com")
-	if e := compile("../../../examples/pascal/factorial.pas"); e == nil {
-		t.Fatal("unsupported decimal runtime admitted")
+	bad := filepath.Join(dir, "bad.pas")
+	os.WriteFile(bad, []byte("program Bad; begin Halt; end."), 0644)
+	if e := compile(bad); e == nil {
+		t.Fatal("unsupported termination helper admitted")
 	}
 	if _, e := os.Stat(outputFile); !os.IsNotExist(e) {
 		t.Fatal("refused runtime wrote output")
