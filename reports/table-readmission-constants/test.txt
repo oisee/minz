@@ -1,0 +1,8 @@
+=== RUN   TestReadmissionDifferentConstantsNative
+    table_readmission_constants_test.go:79: constant=5 binary=c605c9 all256inputs PASS
+    table_readmission_constants_test.go:79: constant=1 binary=3cc9 all256inputs PASS
+    table_readmission_constants_test.go:79: constant=17 binary=c611c9 all256inputs PASS
+    table_readmission_constants_test.go:79: constant=255 binary=c6ffc9 all256inputs PASS
+--- PASS: TestReadmissionDifferentConstantsNative (0.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.024s
