@@ -1,0 +1,11 @@
+{
+  "scope": "ordinary public CLI TUI Hello, fake VDP stdout observation only",
+  "host_exit": 0,
+  "stderr_bytes": 0,
+  "greeting_present": true,
+  "followup_echo": true,
+  "mos_banner_count": 2,
+  "unknown_escape_packets": 21,
+  "clean_console_return_oracle": false,
+  "status": "not admitted: ANSI graphics unsupported by fake VDP and MOS banner repeats after key"
+}

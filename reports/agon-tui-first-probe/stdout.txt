@@ -1,0 +1,36 @@
+Tom's Fake VDP Version 1.03
+unknown packet VDU 0x17, 0, 0x94
+
+Agon Console8 MOS Version 2.3.3 Rainbow
+
+/ *load tui.bin
+/ *run
+Unknown packet VDU 0x1b
+[2JUnknown packet VDU 0x1b
+[HUnknown packet VDU 0x1b
+[92;100mUnknown packet VDU 0x1b
+[04;06H+--------------------------------------+Unknown packet VDU 0x1b
+[05;06H|Unknown packet VDU 0x1b
+[05;45H|Unknown packet VDU 0x1b
+[06;06H|Unknown packet VDU 0x1b
+[06;45H|Unknown packet VDU 0x1b
+[07;06H|Unknown packet VDU 0x1b
+[07;45H|Unknown packet VDU 0x1b
+[08;06H|Unknown packet VDU 0x1b
+[08;45H|Unknown packet VDU 0x1b
+[09;06H|Unknown packet VDU 0x1b
+[09;45H|Unknown packet VDU 0x1b
+[10;06H+--------------------------------------+Unknown packet VDU 0x1b
+[06;09HUnknown packet VDU 0x1b
+[97;100mHello from MinZ on Agon!Unknown packet VDU 0x1b
+[08;09HUnknown packet VDU 0x1b
+[33;40meZ80 ADL mode @ 18.432 MHzUnknown packet VDU 0x1b
+[13;01HUnknown packet VDU 0x1b
+[0mPress any key...Unknown packet VDU 0xc
+unknown packet VDU 0x17, 0, 0x94
+
+Agon Console8 MOS Version 2.3.3 Rainbow
+
+/ *echo MINZ_RETURNED
+MINZ_RETURNED
+/ *

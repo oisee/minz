@@ -1,0 +1,4 @@
+load tui.bin
+run
+a
+echo MINZ_RETURNED
