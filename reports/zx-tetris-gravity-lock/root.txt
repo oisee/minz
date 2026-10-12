@@ -1,0 +1,38 @@
+=== RUN   TestOriginalZXTetrisMainGravityLock
+=== RUN   TestOriginalZXTetrisMainGravityLock/current
+=== RUN   TestOriginalZXTetrisMainGravityLock/current/ordinary
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:517: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:520: 4548 19842990 initial main and31frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainGravityLock/current/grace-size
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:517: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:520: 4557 19842201 initial main and31frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainGravityLock/current/grace-speed
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:517: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:520: 4557 19842201 initial main and31frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainGravityLock/historical
+=== RUN   TestOriginalZXTetrisMainGravityLock/historical/ordinary
+[HIR-SPLIT] main → main$split_7 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:517: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:520: 4979 9501936 initial main and31frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainGravityLock/historical/grace-size
+[HIR-SPLIT] main → main$split_7 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:517: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:520: 4988 9501147 initial main and31frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainGravityLock/historical/grace-speed
+[HIR-SPLIT] main → main$split_7 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:517: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:520: 4988 9501147 initial main and31frames/full RAM PASS
+--- PASS: TestOriginalZXTetrisMainGravityLock (7.35s)
+    --- PASS: TestOriginalZXTetrisMainGravityLock/current (2.15s)
+        --- PASS: TestOriginalZXTetrisMainGravityLock/current/ordinary (0.60s)
+        --- PASS: TestOriginalZXTetrisMainGravityLock/current/grace-size (0.78s)
+        --- PASS: TestOriginalZXTetrisMainGravityLock/current/grace-speed (0.76s)
+    --- PASS: TestOriginalZXTetrisMainGravityLock/historical (5.20s)
+        --- PASS: TestOriginalZXTetrisMainGravityLock/historical/ordinary (0.62s)
+        --- PASS: TestOriginalZXTetrisMainGravityLock/historical/grace-size (2.04s)
+        --- PASS: TestOriginalZXTetrisMainGravityLock/historical/grace-speed (2.54s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	7.355s

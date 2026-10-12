@@ -22,6 +22,9 @@ func TestOriginalZXTetrisMainRotation(t *testing.T)       { testOriginalZXTetris
 func TestOriginalZXTetrisMainSoftDrop(t *testing.T)       { testOriginalZXTetrisMainFrames(t, "soft-drop") }
 func TestOriginalZXTetrisMainHardDrop(t *testing.T)       { testOriginalZXTetrisMainFrames(t, "hard-drop") }
 func TestOriginalZXTetrisMainHold(t *testing.T)           { testOriginalZXTetrisMainFrames(t, "hold") }
+func TestOriginalZXTetrisMainGravityLock(t *testing.T) {
+	testOriginalZXTetrisMainFrames(t, "gravity-lock")
+}
 func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 	for _, source := range []struct{ name, path string }{{"current", "examples/zx/tetris.nanz"}, {"historical", "reports/showcase-src/2026-03-15/ex34_tetris.nanz"}} {
 		t.Run(source.name, func(t *testing.T) {
@@ -164,6 +167,12 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 					borders := 0
 					keyReads := 0
 					keysAt := func(frame int) byte {
+						if scenario == "gravity-lock" {
+							if frame <= 21 {
+								return 8
+							}
+							return 0
+						}
 						if scenario == "hold" {
 							switch frame {
 							case 1, 2, 4, 6, 10, 12:
@@ -242,6 +251,35 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 							}
 						}
 						return true
+					}
+					lockAndSpawn := func() {
+						for _, c := range shape(expectedType, expectedRotation) {
+							board[(expectedY+c[1])*10+expectedX+c[0]] = expectedType + 1
+						}
+						// Current workloads never clear a row; explicitly reject a full row
+						// instead of silently substituting a no-clear oracle.
+						for y := 0; y < 20; y++ {
+							full := true
+							for x := 0; x < 10; x++ {
+								if board[y*10+x] == 0 {
+									full = false
+								}
+							}
+							if full {
+								t.Fatal("model requires line-clear support", y)
+							}
+						}
+						expectedHoldUsed = 0
+						expectedType = expectedNext
+						expectedNext = next()
+						expectedRotation = 0
+						expectedX = 3
+						expectedY = 0
+						want[sym("rng_state")] = byte(rng)
+						want[sym("rng_state")+1] = byte(rng >> 8)
+						if !fits(0) {
+							t.Fatal("model requires game-over support")
+						}
 					}
 					previousKeys := byte(0)
 					awake := false
@@ -349,31 +387,8 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 								expectedY++
 								expectedScore += 2
 							}
-							for _, c := range shape(expectedType, expectedRotation) {
-								board[(expectedY+c[1])*10+expectedX+c[0]] = expectedType + 1
-							}
-							// This workload stacks two I pieces; explicitly reject a full row
-							// instead of silently substituting a no-clear oracle.
-							for y := 0; y < 20; y++ {
-								full := true
-								for x := 0; x < 10; x++ {
-									if board[y*10+x] == 0 {
-										full = false
-									}
-								}
-								if full {
-									t.Fatal("model requires line-clear support", frame, y)
-								}
-							}
-							expectedHoldUsed = 0
-							expectedType = expectedNext
-							expectedNext = next()
-							expectedRotation = 0
-							expectedX = 3
-							expectedY = 0
+							lockAndSpawn()
 							expectedTimer = 0
-							want[sym("rng_state")] = byte(rng)
-							want[sym("rng_state")+1] = byte(rng >> 8)
 						}
 						if pressed&32 != 0 && expectedHoldUsed == 0 {
 							expectedHoldUsed = 1
@@ -399,10 +414,11 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 						expectedTimer++
 						if expectedTimer >= 30 {
 							expectedTimer = 0
-							if !fits(expectedY + 1) {
-								t.Fatal("model requires gravity-lock support", frame)
+							if fits(expectedY + 1) {
+								expectedY++
+							} else {
+								lockAndSpawn()
 							}
-							expectedY++
 						}
 						want[sym("hold_type")] = expectedHold
 						want[sym("hold_used")] = expectedHoldUsed
