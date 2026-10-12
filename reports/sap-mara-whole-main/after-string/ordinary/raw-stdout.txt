@@ -1,0 +1,19 @@
+=== Material Master Report ===
+Selection: MTART = FERT (Finished Products)
+
+MATNR      MTART MEINS  BRGEW  NTGEW  MAKTX
+------------------------------------------------------
+100-100  FERT  ST  250  230  Pump Assembly GRUNDFOS
+100-110  FERT  ST  180  165  Motor 3-Phase 5kW
+200-100  FERT  ST  244  224  Desktop PC Standard
+------------------------------------------------------
+3 materials found.
+
+=== Weight Summary by Material Type ===
+DIEN: 1 materials, weight=0
+FERT: 3 materials, weight=162
+HALB: 1 materials, weight=50
+HAWA: 1 materials, weight=100
+ROH: 1 materials, weight=10
+
+Report complete.

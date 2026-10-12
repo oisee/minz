@@ -1,0 +1,479 @@
+; MIR2 module: sap_mara_demo.nanz
+string @mir2.str.0 = "CREATE TABLE mara (matnr TEXT, mtart TEXT, mbrsh TEXT, meins TEXT, brgew INTEGER, ntgew INTEGER)"
+string @mir2.str.1 = "INSERT INTO mara VALUES ('100-100', 'FERT', 'M', 'ST', 250, 230)"
+string @mir2.str.2 = "INSERT INTO mara VALUES ('100-110', 'FERT', 'M', 'ST', 180, 165)"
+string @mir2.str.3 = "INSERT INTO mara VALUES ('100-200', 'HALB', 'M', 'KG', 50, 45)"
+string @mir2.str.4 = "INSERT INTO mara VALUES ('100-300', 'ROH',  'M', 'KG', 10, 10)"
+string @mir2.str.5 = "INSERT INTO mara VALUES ('200-100', 'FERT', 'E', 'ST', 500, 480)"
+string @mir2.str.6 = "INSERT INTO mara VALUES ('200-200', 'HAWA', 'E', 'ST', 100, 95)"
+string @mir2.str.7 = "INSERT INTO mara VALUES ('300-100', 'DIEN', 'D', 'AU', 0, 0)"
+string @mir2.str.8 = "CREATE TABLE makt (matnr TEXT, spras TEXT, maktx TEXT)"
+string @mir2.str.9 = "INSERT INTO makt VALUES ('100-100', 'E', 'Pump Assembly GRUNDFOS')"
+string @mir2.str.10 = "INSERT INTO makt VALUES ('100-100', 'D', 'Pumpenaggregat GRUNDFOS')"
+string @mir2.str.11 = "INSERT INTO makt VALUES ('100-110', 'E', 'Motor 3-Phase 5kW')"
+string @mir2.str.12 = "INSERT INTO makt VALUES ('100-200', 'E', 'Shaft Steel DIN 1.4301')"
+string @mir2.str.13 = "INSERT INTO makt VALUES ('100-300', 'E', 'Steel Rod Raw Material')"
+string @mir2.str.14 = "INSERT INTO makt VALUES ('200-100', 'E', 'Desktop PC Standard')"
+string @mir2.str.15 = "INSERT INTO makt VALUES ('200-200', 'E', 'Office Chair Ergonomic')"
+string @mir2.str.16 = "INSERT INTO makt VALUES ('300-100', 'E', 'Consulting Service')"
+string @mir2.str.17 = "=== Material Master Report ==="
+string @mir2.str.18 = "Selection: MTART = FERT (Finished Products)"
+string @mir2.str.19 = "MATNR      MTART MEINS  BRGEW  NTGEW  MAKTX"
+string @mir2.str.20 = "------------------------------------------------------"
+string @mir2.str.21 = "SELECT m.matnr, m.mtart, m.meins, m.brgew, m.ntgew, t.maktx FROM mara m LEFT JOIN makt t ON m.matnr = t.matnr AND t.spras = 'E' WHERE m.mtart = 'FERT' ORDER BY m.matnr"
+string @mir2.str.22 = "  "
+string @mir2.str.23 = " materials found."
+string @mir2.str.24 = "=== Weight Summary by Material Type ==="
+string @mir2.str.25 = "SELECT mtart, COUNT(*), SUM(brgew) FROM mara GROUP BY mtart ORDER BY mtart"
+string @mir2.str.26 = ": "
+string @mir2.str.27 = " materials, weight="
+string @mir2.str.28 = "Report complete."
+
+extern fun @sqlite_open(%r1: ptr [pointer]) -> u16 [pointer]
+
+extern fun @sqlite_close(%r2: u16 [pointer]) -> u8 [acc]
+
+extern fun @sqlite_exec(%r3: u16 [pointer], %r4: ptr [pointer]) -> u8 [acc]
+
+extern fun @sqlite_query(%r5: u16 [pointer], %r6: ptr [pointer]) -> u16 [pointer]
+
+extern fun @sqlite_step(%r7: u16 [pointer]) -> u8 [acc]
+
+extern fun @sqlite_finalize(%r8: u16 [pointer]) -> u8 [acc]
+
+extern fun @sqlite_column_int(%r9: u16 [pointer], %r10: u8 [general]) -> u16 [pointer]
+
+extern fun @sqlite_column_text(%r11: u16 [pointer], %r12: u8 [general]) -> ptr [pointer]
+
+fun @main()
+  block @entry:
+    %r13 = const 0 : u8 [acc]
+    %r14 = call @sqlite_open(%r13) : u16 [pointer]
+    %r15 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r16 = move %r15 : ptr [pointer]
+    %r17 = call @sqlite_exec(%r14, %r16) : u8 [acc]
+    %r18 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r19 = move %r18 : ptr [pointer]
+    %r20 = call @sqlite_exec(%r14, %r19) : u8 [acc]
+    %r21 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r22 = move %r21 : ptr [pointer]
+    %r23 = call @sqlite_exec(%r14, %r22) : u8 [acc]
+    %r24 = addr_of @@mir2.str.3 : ptr [pointer]
+    %r25 = move %r24 : ptr [pointer]
+    %r26 = call @sqlite_exec(%r14, %r25) : u8 [acc]
+    %r27 = addr_of @@mir2.str.4 : ptr [pointer]
+    %r28 = move %r27 : ptr [pointer]
+    %r29 = call @sqlite_exec(%r14, %r28) : u8 [acc]
+    %r30 = addr_of @@mir2.str.5 : ptr [pointer]
+    %r31 = move %r30 : ptr [pointer]
+    %r32 = call @sqlite_exec(%r14, %r31) : u8 [acc]
+    %r33 = addr_of @@mir2.str.6 : ptr [pointer]
+    %r34 = move %r33 : ptr [pointer]
+    %r35 = call @sqlite_exec(%r14, %r34) : u8 [acc]
+    %r36 = addr_of @@mir2.str.7 : ptr [pointer]
+    %r37 = move %r36 : ptr [pointer]
+    %r38 = call @sqlite_exec(%r14, %r37) : u8 [acc]
+    %r39 = addr_of @@mir2.str.8 : ptr [pointer]
+    %r40 = move %r39 : ptr [pointer]
+    %r41 = call @sqlite_exec(%r14, %r40) : u8 [acc]
+    %r42 = addr_of @@mir2.str.9 : ptr [pointer]
+    %r43 = move %r42 : ptr [pointer]
+    %r44 = call @sqlite_exec(%r14, %r43) : u8 [acc]
+    %r45 = addr_of @@mir2.str.10 : ptr [pointer]
+    %r46 = move %r45 : ptr [pointer]
+    %r47 = call @sqlite_exec(%r14, %r46) : u8 [acc]
+    %r48 = addr_of @@mir2.str.11 : ptr [pointer]
+    %r49 = move %r48 : ptr [pointer]
+    %r50 = call @sqlite_exec(%r14, %r49) : u8 [acc]
+    %r51 = addr_of @@mir2.str.12 : ptr [pointer]
+    %r52 = move %r51 : ptr [pointer]
+    %r53 = call @sqlite_exec(%r14, %r52) : u8 [acc]
+    %r54 = addr_of @@mir2.str.13 : ptr [pointer]
+    %r55 = move %r54 : ptr [pointer]
+    %r56 = call @sqlite_exec(%r14, %r55) : u8 [acc]
+    %r57 = addr_of @@mir2.str.14 : ptr [pointer]
+    %r58 = move %r57 : ptr [pointer]
+    %r59 = call @sqlite_exec(%r14, %r58) : u8 [acc]
+    %r60 = addr_of @@mir2.str.15 : ptr [pointer]
+    %r61 = move %r60 : ptr [pointer]
+    %r62 = call @sqlite_exec(%r14, %r61) : u8 [acc]
+    %r63 = addr_of @@mir2.str.16 : ptr [pointer]
+    %r64 = move %r63 : ptr [pointer]
+    %r65 = call @sqlite_exec(%r14, %r64) : u8 [acc]
+    %r66 = addr_of @@mir2.str.17 : ptr [pointer]
+    %r67 = load %r66 : u8 [general]
+    %r68 = const 1 : u16 [pointer]
+    %r69 = add %r66, %r68 : ptr [acc]
+    jmp @loop_head3(%r67, %r69)
+  block @loop_head3(%r67: u8 [general], %r71: ptr [general]):
+    %r72 = const 0 : u8 [general]
+    %r73 = cmp.ne %r67, %r72 : bool [flag]
+    br_if %r73, @loop_body4(), @loop_exit5()
+  block @loop_body4:
+    %r74 = load %r71 : u8 [general]
+    %r75 = move %r74 : u8 [acc]
+    call @@mir.io.print.char(%r75)
+    %r76 = const 1 : u16 [pointer]
+    %r77 = add %r71, %r76 : ptr [general]
+    %r78 = const 1 : u8 [general]
+    %r79 = sub %r67, %r78 : u8 [general]
+    jmp @loop_head3(%r79, %r77)
+  block @loop_exit5:
+    call @@mir.io.print.nl()
+    %r80 = addr_of @@mir2.str.18 : ptr [pointer]
+    %r81 = load %r80 : u8 [general]
+    %r82 = const 1 : u16 [pointer]
+    %r83 = add %r80, %r82 : ptr [acc]
+    jmp @loop_head8(%r81, %r83)
+  block @loop_head8(%r81: u8 [general], %r85: ptr [general]):
+    %r86 = const 0 : u8 [general]
+    %r87 = cmp.ne %r81, %r86 : bool [flag]
+    br_if %r87, @loop_body9(), @loop_exit10()
+  block @loop_body9:
+    %r88 = load %r85 : u8 [general]
+    %r89 = move %r88 : u8 [acc]
+    call @@mir.io.print.char(%r89)
+    %r90 = const 1 : u16 [pointer]
+    %r91 = add %r85, %r90 : ptr [general]
+    %r92 = const 1 : u8 [general]
+    %r93 = sub %r81, %r92 : u8 [general]
+    jmp @loop_head8(%r93, %r91)
+  block @loop_exit10:
+    call @@mir.io.print.nl()
+    call @@mir.io.print.nl()
+    %r94 = addr_of @@mir2.str.19 : ptr [pointer]
+    %r95 = load %r94 : u8 [general]
+    %r96 = const 1 : u16 [pointer]
+    %r97 = add %r94, %r96 : ptr [acc]
+    jmp @loop_head13(%r95, %r97)
+  block @loop_head13(%r95: u8 [general], %r99: ptr [general]):
+    %r100 = const 0 : u8 [general]
+    %r101 = cmp.ne %r95, %r100 : bool [flag]
+    br_if %r101, @loop_body14(), @loop_exit15()
+  block @loop_body14:
+    %r102 = load %r99 : u8 [general]
+    %r103 = move %r102 : u8 [acc]
+    call @@mir.io.print.char(%r103)
+    %r104 = const 1 : u16 [pointer]
+    %r105 = add %r99, %r104 : ptr [general]
+    %r106 = const 1 : u8 [general]
+    %r107 = sub %r95, %r106 : u8 [general]
+    jmp @loop_head13(%r107, %r105)
+  block @loop_exit15:
+    call @@mir.io.print.nl()
+    %r108 = addr_of @@mir2.str.20 : ptr [pointer]
+    %r109 = load %r108 : u8 [general]
+    %r110 = const 1 : u16 [pointer]
+    %r111 = add %r108, %r110 : ptr [acc]
+    jmp @loop_head18(%r109, %r111)
+  block @loop_head18(%r109: u8 [general], %r113: ptr [general]):
+    %r114 = const 0 : u8 [general]
+    %r115 = cmp.ne %r109, %r114 : bool [flag]
+    br_if %r115, @loop_body19(), @loop_exit20()
+  block @loop_body19:
+    %r116 = load %r113 : u8 [general]
+    %r117 = move %r116 : u8 [acc]
+    call @@mir.io.print.char(%r117)
+    %r118 = const 1 : u16 [pointer]
+    %r119 = add %r113, %r118 : ptr [general]
+    %r120 = const 1 : u8 [general]
+    %r121 = sub %r109, %r120 : u8 [general]
+    jmp @loop_head18(%r121, %r119)
+  block @loop_exit20:
+    call @@mir.io.print.nl()
+    %r122 = addr_of @@mir2.str.21 : ptr [pointer]
+    %r123 = move %r122 : ptr [pointer]
+    %r124 = call @sqlite_query(%r14, %r123) : u16 [pointer]
+    %r125 = const 0 : u8 [general]
+    jmp @loop_head21(%r125, %r124)
+  block @loop_head21(%r125: u8 [general], %r124: u16 [pointer]):
+    %r128 = call @sqlite_step(%r124) : u8 [acc]
+    %r129 = const 1 : u8 [general]
+    %r130 = cmp.eq %r128, %r129 : bool [flag]
+    br_if %r130, @loop_body22(), @loop_exit23(%r125)
+  block @loop_body22:
+    %r131 = const 0 : u8 [general]
+    %r132 = call @sqlite_column_text(%r124, %r131) : ptr [pointer]
+    %r133 = const 1 : u8 [general]
+    %r134 = call @sqlite_column_text(%r124, %r133) : ptr [pointer]
+    %r135 = const 2 : u8 [general]
+    %r136 = call @sqlite_column_text(%r124, %r135) : ptr [pointer]
+    %r137 = const 3 : u8 [general]
+    %r138 = call @sqlite_column_int(%r124, %r137) : u16 [pointer]
+    %r139 = const 4 : u8 [general]
+    %r140 = call @sqlite_column_int(%r124, %r139) : u16 [pointer]
+    %r141 = const 5 : u8 [general]
+    %r142 = call @sqlite_column_text(%r124, %r141) : ptr [pointer]
+    %r143 = move %r132 : ptr [pointer]
+    call @@mir.io.print.str(%r143)
+    %r144 = addr_of @@mir2.str.22 : ptr [pointer]
+    %r145 = load %r144 : u8 [general]
+    %r146 = const 1 : u16 [pointer]
+    %r147 = add %r144, %r146 : ptr [general]
+    jmp @loop_head26(%r145, %r147)
+  block @loop_head26(%r145: u8 [general], %r147: ptr [general]):
+    %r150 = const 0 : u8 [general]
+    %r151 = cmp.ne %r145, %r150 : bool [flag]
+    br_if %r151, @loop_body27(), @loop_exit28()
+  block @loop_body27:
+    %r152 = load %r147 : u8 [general]
+    %r153 = move %r152 : u8 [acc]
+    call @@mir.io.print.char(%r153)
+    %r154 = const 1 : u16 [pointer]
+    %r155 = add %r147, %r154 : ptr [general]
+    %r156 = const 1 : u8 [general]
+    %r157 = sub %r145, %r156 : u8 [general]
+    jmp @loop_head26(%r157, %r155)
+  block @loop_exit28:
+    %r158 = move %r134 : ptr [pointer]
+    call @@mir.io.print.str(%r158)
+    %r159 = addr_of @@mir2.str.22 : ptr [pointer]
+    %r160 = load %r159 : u8 [general]
+    %r161 = const 1 : u16 [pointer]
+    %r162 = add %r159, %r161 : ptr [general]
+    jmp @loop_head31(%r160, %r162)
+  block @loop_head31(%r160: u8 [general], %r162: ptr [general]):
+    %r165 = const 0 : u8 [general]
+    %r166 = cmp.ne %r160, %r165 : bool [flag]
+    br_if %r166, @loop_body32(), @loop_exit33()
+  block @loop_body32:
+    %r167 = load %r162 : u8 [general]
+    %r168 = move %r167 : u8 [acc]
+    call @@mir.io.print.char(%r168)
+    %r169 = const 1 : u16 [pointer]
+    %r170 = add %r162, %r169 : ptr [general]
+    %r171 = const 1 : u8 [general]
+    %r172 = sub %r160, %r171 : u8 [general]
+    jmp @loop_head31(%r172, %r170)
+  block @loop_exit33:
+    %r173 = move %r136 : ptr [pointer]
+    call @@mir.io.print.str(%r173)
+    %r174 = addr_of @@mir2.str.22 : ptr [pointer]
+    %r175 = load %r174 : u8 [general]
+    %r176 = const 1 : u16 [pointer]
+    %r177 = add %r174, %r176 : ptr [general]
+    jmp @loop_head36(%r175, %r177)
+  block @loop_head36(%r175: u8 [general], %r177: ptr [general]):
+    %r180 = const 0 : u8 [general]
+    %r181 = cmp.ne %r175, %r180 : bool [flag]
+    br_if %r181, @loop_body37(), @loop_exit38()
+  block @loop_body37:
+    %r182 = load %r177 : u8 [general]
+    %r183 = move %r182 : u8 [acc]
+    call @@mir.io.print.char(%r183)
+    %r184 = const 1 : u16 [pointer]
+    %r185 = add %r177, %r184 : ptr [general]
+    %r186 = const 1 : u8 [general]
+    %r187 = sub %r175, %r186 : u8 [general]
+    jmp @loop_head36(%r187, %r185)
+  block @loop_exit38:
+    %r188 = trunc %r138 : u16 -> u8 [general]
+    %r189 = move %r188 : u8 [acc]
+    call @@mir.io.print.u8(%r189)
+    %r190 = addr_of @@mir2.str.22 : ptr [pointer]
+    %r191 = load %r190 : u8 [general]
+    %r192 = const 1 : u16 [pointer]
+    %r193 = add %r190, %r192 : ptr [general]
+    jmp @loop_head41(%r191, %r193)
+  block @loop_head41(%r191: u8 [general], %r193: ptr [general]):
+    %r196 = const 0 : u8 [general]
+    %r197 = cmp.ne %r191, %r196 : bool [flag]
+    br_if %r197, @loop_body42(), @loop_exit43()
+  block @loop_body42:
+    %r198 = load %r193 : u8 [general]
+    %r199 = move %r198 : u8 [acc]
+    call @@mir.io.print.char(%r199)
+    %r200 = const 1 : u16 [pointer]
+    %r201 = add %r193, %r200 : ptr [general]
+    %r202 = const 1 : u8 [general]
+    %r203 = sub %r191, %r202 : u8 [general]
+    jmp @loop_head41(%r203, %r201)
+  block @loop_exit43:
+    %r204 = trunc %r140 : u16 -> u8 [general]
+    %r205 = move %r204 : u8 [acc]
+    call @@mir.io.print.u8(%r205)
+    %r206 = addr_of @@mir2.str.22 : ptr [pointer]
+    %r207 = load %r206 : u8 [general]
+    %r208 = const 1 : u16 [pointer]
+    %r209 = add %r206, %r208 : ptr [general]
+    jmp @loop_head46(%r207, %r209)
+  block @loop_head46(%r207: u8 [general], %r209: ptr [general]):
+    %r212 = const 0 : u8 [general]
+    %r213 = cmp.ne %r207, %r212 : bool [flag]
+    br_if %r213, @loop_body47(), @loop_exit48()
+  block @loop_body47:
+    %r214 = load %r209 : u8 [general]
+    %r215 = move %r214 : u8 [acc]
+    call @@mir.io.print.char(%r215)
+    %r216 = const 1 : u16 [pointer]
+    %r217 = add %r209, %r216 : ptr [general]
+    %r218 = const 1 : u8 [general]
+    %r219 = sub %r207, %r218 : u8 [general]
+    jmp @loop_head46(%r219, %r217)
+  block @loop_exit48:
+    %r220 = move %r142 : ptr [pointer]
+    call @@mir.io.print.str(%r220)
+    call @@mir.io.print.nl()
+    %r221 = const 1 : u8 [general]
+    %r222 = add %r125, %r221 : u8 [general]
+    jmp @loop_head21(%r222, %r124)
+  block @loop_exit23(%r223: u8 [general]):
+    %r224 = move %r223 : u8 [acc]
+    %r225 = move %r14 : u16 [index]
+    call @main$split_29(%r224, %r225)
+    ret void
+
+fun @main$split_29(%r226: u8 [acc], %r227: u16 [pair])
+  block @entry:
+    %r228 = addr_of @@mir2.str.20 : ptr [pointer]
+    %r229 = load %r228 : u8 [general]
+    %r230 = const 1 : u16 [pointer]
+    %r231 = add %r228, %r230 : ptr [acc]
+    jmp @loop_head3(%r229, %r231)
+  block @loop_head3(%r229: u8 [general], %r233: ptr [general]):
+    %r234 = const 0 : u8 [general]
+    %r235 = cmp.ne %r229, %r234 : bool [flag]
+    br_if %r235, @loop_body4(), @loop_exit5()
+  block @loop_body4:
+    %r236 = load %r233 : u8 [general]
+    %r237 = move %r236 : u8 [acc]
+    call @@mir.io.print.char(%r237)
+    %r238 = const 1 : u16 [pointer]
+    %r239 = add %r233, %r238 : ptr [general]
+    %r240 = const 1 : u8 [general]
+    %r241 = sub %r229, %r240 : u8 [general]
+    jmp @loop_head3(%r241, %r239)
+  block @loop_exit5:
+    call @@mir.io.print.nl()
+    %r242 = move %r226 : u8 [acc]
+    call @@mir.io.print.u8(%r242)
+    %r243 = addr_of @@mir2.str.23 : ptr [pointer]
+    %r244 = load %r243 : u8 [general]
+    %r245 = const 1 : u16 [pointer]
+    %r246 = add %r243, %r245 : ptr [acc]
+    jmp @loop_head8(%r244, %r246)
+  block @loop_head8(%r244: u8 [general], %r248: ptr [general]):
+    %r249 = const 0 : u8 [general]
+    %r250 = cmp.ne %r244, %r249 : bool [flag]
+    br_if %r250, @loop_body9(), @loop_exit10()
+  block @loop_body9:
+    %r251 = load %r248 : u8 [general]
+    %r252 = move %r251 : u8 [acc]
+    call @@mir.io.print.char(%r252)
+    %r253 = const 1 : u16 [pointer]
+    %r254 = add %r248, %r253 : ptr [general]
+    %r255 = const 1 : u8 [general]
+    %r256 = sub %r244, %r255 : u8 [general]
+    jmp @loop_head8(%r256, %r254)
+  block @loop_exit10:
+    call @@mir.io.print.nl()
+    call @@mir.io.print.nl()
+    %r257 = addr_of @@mir2.str.24 : ptr [pointer]
+    %r258 = load %r257 : u8 [general]
+    %r259 = const 1 : u16 [pointer]
+    %r260 = add %r257, %r259 : ptr [acc]
+    jmp @loop_head13(%r258, %r260)
+  block @loop_head13(%r258: u8 [general], %r262: ptr [general]):
+    %r263 = const 0 : u8 [general]
+    %r264 = cmp.ne %r258, %r263 : bool [flag]
+    br_if %r264, @loop_body14(), @loop_exit15()
+  block @loop_body14:
+    %r265 = load %r262 : u8 [general]
+    %r266 = move %r265 : u8 [acc]
+    call @@mir.io.print.char(%r266)
+    %r267 = const 1 : u16 [pointer]
+    %r268 = add %r262, %r267 : ptr [general]
+    %r269 = const 1 : u8 [general]
+    %r270 = sub %r258, %r269 : u8 [general]
+    jmp @loop_head13(%r270, %r268)
+  block @loop_exit15:
+    call @@mir.io.print.nl()
+    %r271 = addr_of @@mir2.str.25 : ptr [pointer]
+    %r272 = move %r271 : ptr [pointer]
+    %r273 = call @sqlite_query(%r227, %r272) : u16 [pointer]
+    jmp @loop_head16(%r273)
+  block @loop_head16(%r273: u16 [pointer]):
+    %r275 = call @sqlite_step(%r273) : u8 [acc]
+    %r276 = const 1 : u8 [general]
+    %r277 = cmp.eq %r275, %r276 : bool [flag]
+    br_if %r277, @loop_body17(), @loop_exit18()
+  block @loop_body17:
+    %r278 = const 0 : u8 [general]
+    %r279 = call @sqlite_column_text(%r273, %r278) : ptr [pointer]
+    %r280 = const 1 : u8 [general]
+    %r281 = call @sqlite_column_int(%r273, %r280) : u16 [pointer]
+    %r282 = const 2 : u8 [general]
+    %r283 = call @sqlite_column_int(%r273, %r282) : u16 [pointer]
+    %r284 = move %r279 : ptr [pointer]
+    call @@mir.io.print.str(%r284)
+    %r285 = addr_of @@mir2.str.26 : ptr [pointer]
+    %r286 = load %r285 : u8 [general]
+    %r287 = const 1 : u16 [pointer]
+    %r288 = add %r285, %r287 : ptr [general]
+    jmp @loop_head21(%r286, %r288)
+  block @loop_head21(%r286: u8 [general], %r288: ptr [general]):
+    %r291 = const 0 : u8 [general]
+    %r292 = cmp.ne %r286, %r291 : bool [flag]
+    br_if %r292, @loop_body22(), @loop_exit23()
+  block @loop_body22:
+    %r293 = load %r288 : u8 [general]
+    %r294 = move %r293 : u8 [acc]
+    call @@mir.io.print.char(%r294)
+    %r295 = const 1 : u16 [pointer]
+    %r296 = add %r288, %r295 : ptr [general]
+    %r297 = const 1 : u8 [general]
+    %r298 = sub %r286, %r297 : u8 [general]
+    jmp @loop_head21(%r298, %r296)
+  block @loop_exit23:
+    %r299 = trunc %r281 : u16 -> u8 [general]
+    %r300 = move %r299 : u8 [acc]
+    call @@mir.io.print.u8(%r300)
+    %r301 = addr_of @@mir2.str.27 : ptr [pointer]
+    %r302 = load %r301 : u8 [general]
+    %r303 = const 1 : u16 [pointer]
+    %r304 = add %r301, %r303 : ptr [general]
+    jmp @loop_head26(%r302, %r304)
+  block @loop_head26(%r302: u8 [general], %r304: ptr [general]):
+    %r307 = const 0 : u8 [general]
+    %r308 = cmp.ne %r302, %r307 : bool [flag]
+    br_if %r308, @loop_body27(), @loop_exit28()
+  block @loop_body27:
+    %r309 = load %r304 : u8 [general]
+    %r310 = move %r309 : u8 [acc]
+    call @@mir.io.print.char(%r310)
+    %r311 = const 1 : u16 [pointer]
+    %r312 = add %r304, %r311 : ptr [general]
+    %r313 = const 1 : u8 [general]
+    %r314 = sub %r302, %r313 : u8 [general]
+    jmp @loop_head26(%r314, %r312)
+  block @loop_exit28:
+    %r315 = trunc %r283 : u16 -> u8 [general]
+    %r316 = move %r315 : u8 [acc]
+    call @@mir.io.print.u8(%r316)
+    call @@mir.io.print.nl()
+    jmp @loop_head16(%r273)
+  block @loop_exit18:
+    %r317 = call @sqlite_close(%r227) : u8 [acc]
+    call @@mir.io.print.nl()
+    %r318 = addr_of @@mir2.str.28 : ptr [pointer]
+    %r319 = load %r318 : u8 [general]
+    %r320 = const 1 : u16 [pointer]
+    %r321 = add %r318, %r320 : ptr [acc]
+    jmp @loop_head31(%r319, %r321)
+  block @loop_head31(%r319: u8 [general], %r323: ptr [general]):
+    %r324 = const 0 : u8 [general]
+    %r325 = cmp.ne %r319, %r324 : bool [flag]
+    br_if %r325, @loop_body32(), @loop_exit33()
+  block @loop_body32:
+    %r326 = load %r323 : u8 [general]
+    %r327 = move %r326 : u8 [acc]
+    call @@mir.io.print.char(%r327)
+    %r328 = const 1 : u16 [pointer]
+    %r329 = add %r323, %r328 : ptr [general]
+    %r330 = const 1 : u8 [general]
+    %r331 = sub %r319, %r330 : u8 [general]
+    jmp @loop_head31(%r331, %r329)
+  block @loop_exit33:
+    call @@mir.io.print.nl()
+    ret void
+
