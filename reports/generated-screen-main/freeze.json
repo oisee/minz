@@ -1,0 +1,25 @@
+{
+  "sources": {
+    "examples/nanz/screen_customer.nanz": "4fa8e46c784e9a4de942e2266bb5b186b7264d0335f93ce1139bb5182d8b1f55",
+    "examples/nanz/screen_declarative.nanz": "39c0bacea00ceddb3853a99e11a45e01f47361b971990c126f2efa4ad3a61c8d",
+    "minzc/pkg/nanz/screen_gen.go": "14d655cdc870297591a3ff44096221b5e58352f5ebb046e2d117e72430a1f1bc",
+    "minzc/cmd/mzv/tui_host.go": "8d3fe8aaf13adf2f933a123a37bf847350205d9c933a180f675b761de4407ec1",
+    "stdlib/tui/render.nanz": "4711dbee908a2271f02d1fbb4720942604e23322d7745f32311f6b2c17c6d4a8",
+    "docs/Nanz_Language_Book_v7.md": "c78a79e60a35235efe1beeb4282ec117b7244ab1f0b437d3490c5912672aec34",
+    "reports/generated-screen-main/model.py": "f0ddf9e8522e3c7dcff7f7bc30c5edb7d879f20854e4a05af5ed16362fec09bd",
+    "reports/generated-screen-main/customer-edit-stdout.bin": "b8fdb265de1993def6ddebe74030c23bba76ea5a09cd658437f17036ce49a399",
+    "reports/generated-screen-main/declarative-cancel-stdout.bin": "fa4600f372cd7b8706d1428ffc23cf657c761d5944bd4ee8e36c7e3cf533629c",
+    "reports/generated-screen-main/declarative-stdout.bin": "125ed133158bd261afdccc7005ed683cc0a5bd1451b30ee61cb0e35aa2c2a510",
+    "reports/generated-screen-main/customer-stdout.bin": "d7e591bbbcfdf8ca98a161e749598ecbf7b622a4fa3ec30755dd3236fdbba04c",
+    "reports/generated-screen-main/customer.json": "6e4a310194d5aea71092544800e352a133d0bb46079b830c092c04eb1fc9daf9",
+    "reports/generated-screen-main/customer-edit.json": "3c6049cd36ae19669ae27d094e7d466d55c5e20f2f55c3c4a5539d295cb8f049",
+    "reports/generated-screen-main/declarative.json": "2ca2e8d94b997e52b7898cb55ca19eb813f3428f886d388f864f163e6f6d5e17",
+    "reports/generated-screen-main/declarative-cancel.json": "a082cfcce548663b0ae85ab323d23625ce2ed82e4a78100d87b5eb4ac9d31e4d"
+  },
+  "authority": [
+    "source DSL fields/default/order and screen_gen.go source semantics",
+    "ASM padded string emitswidth chars then padspaces; nativeBDOS2real",
+    "mzv terminalANSI/runtime width80height24; interactivelineinput",
+    "Bookv7 globals/type/string semantics"
+  ]
+}
