@@ -1,0 +1,21 @@
+{
+  "checkpoint": "7bfe4476",
+  "binary": "/home/alice/dev/minz-artifacts/grace-checkpoints/vir-7bfe4476.test",
+  "binary_sha256": "39afe252805b313ec2e42be4608e8067c44a1422e77fb27e449227e5dad1c7d9",
+  "started_at_utc": "2026-10-12T14:54:38.497218+00:00",
+  "session_id": 64710,
+  "status": "running, not terminal PASS",
+  "command": [
+    "/home/alice/dev/minz-artifacts/grace-checkpoints/vir-7bfe4476.test",
+    "-test.count=1",
+    "-test.timeout=30m",
+    "-test.v"
+  ],
+  "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/vir",
+  "env": {
+    "PATH_prefix": "/home/alice/dev/minz-artifacts/grace-tools/z3-python/bin",
+    "VIR_TEST_Z3": "/home/alice/dev/minz-artifacts/grace-tools/z3-python/bin/z3"
+  },
+  "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/vir-7bfe4476-full.txt",
+  "scope": "Includes latest word/global ABI, dense stack, overlapping destinations and frame checks. External Z3 only in research suite."
+}
