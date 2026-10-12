@@ -1,0 +1,40 @@
+=== RUN   TestCallLiteralTokenizerProspective
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input0 init15790T tokenizer158470T render31405T count18 stdout"fn id ( id ) { return id + num } var id = id ( num ) "
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input1 init15790T tokenizer178215T render27940T count15 stdout"let id = false if id { return str } else { return str } "
+    call_literal_tokenizer_prospective_test.go:81: greedy entiretrain 411820T/5465B
+    call_literal_tokenizer_runner_test.go:196: tag"pbqp" input0 init16273T tokenizer158470T render31405T count18 stdout"fn id ( id ) { return id + num } var id = id ( num ) "
+    call_literal_tokenizer_runner_test.go:196: tag"pbqp" input1 init16273T tokenizer178215T render27940T count15 stdout"let id = false if id { return str } else { return str } "
+    call_literal_tokenizer_prospective_test.go:81: pbqp entiretrain 412303T/5533B
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input0 init15790T tokenizer217468T render48183T count28 stdout"fn id ( id , id , id ) { return id + id * id } var id = id ( num , num , num ) "
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input1 init15790T tokenizer140907T render22079T count12 stdout"while true { if id == num { return str } } "
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input2 init15790T tokenizer147589T render15857T count9 stdout"id id id  num  num return id "
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input3 init15790T tokenizer249435T render27809T count16 stdout"id id id id { var id = id + num } let id = str "
+    call_literal_tokenizer_prospective_test.go:99: speed selectedgreedy fixedBIN heldout 885117T/5465B
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input0 init15790T tokenizer217468T render48183T count28 stdout"fn id ( id , id , id ) { return id + id * id } var id = id ( num , num , num ) "
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input1 init15790T tokenizer140907T render22079T count12 stdout"while true { if id == num { return str } } "
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input2 init15790T tokenizer147589T render15857T count9 stdout"id id id  num  num return id "
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input3 init15790T tokenizer249435T render27809T count16 stdout"id id id id { var id = id + num } let id = str "
+    call_literal_tokenizer_prospective_test.go:99: size selectedgreedy fixedBIN heldout 885117T/5465B
+--- PASS: TestCallLiteralTokenizerProspective (2.17s)
+=== RUN   TestCPMRuntimeOriginalSelfLanzMain
+    original_lanz_main_test.go:324: resident stack touched 46 bytes
+    original_lanz_main_test.go:336: exact main 135 stdout bytes all regions/globals/stack guards PASS 419878 T BIN 3987 SHA de4d0cd1e8f1682c266d3732b3398b8a064b3e495b6f220fd8ab680aa18943fb
+--- PASS: TestCPMRuntimeOriginalSelfLanzMain (0.22s)
+=== RUN   TestCPMRuntimeGuardedTokenizerMain
+    original_tokenizer_main_test.go:350: resident stack touched 30 bytes
+    original_tokenizer_main_test.go:352: exact main 146 stdout bytes all regions/globals/stack guards PASS 411987 T BIN 7391 SHA e460190ff4fc895b7fb4e50d60452dcd3689504830d9402dbb086ae530ce0628
+--- PASS: TestCPMRuntimeGuardedTokenizerMain (0.75s)
+=== RUN   TestPFCCOMeasuredNativePacket
+    pfcco_native_workload_test.go:150: off: 8857T/52B choices=map[]
+    pfcco_native_workload_test.go:150: greedy: 7888T/52B choices=map[displacement:0x260307d4a330 weighted_packet:0x260307d4a360]
+    pfcco_native_workload_test.go:150: pbqp: 7888T/52B choices=map[displacement:0x260307e325a0 weighted_packet:0x260307e325d0]
+    pfcco_native_workload_test.go:152: independent displacement arithmetic and global state verified
+--- PASS: TestPFCCOMeasuredNativePacket (0.12s)
+=== RUN   TestPFCCOOriginalTokenizerRenderingConsumer
+    pfcco_tokenizer_consumer_test.go:217: strategy"" input0 init15790T tokenizer138371T render21896T count12 stdout"var id = num if true { return id + num } "
+    pfcco_tokenizer_consumer_test.go:217: strategy"" input1 init15790T tokenizer131639T render18512T count11 stdout"id id id + num  num  num  str "
+    pfcco_tokenizer_consumer_test.go:217: strategy"pbqp" input0 init16273T tokenizer138371T render21896T count12 stdout"var id = num if true { return id + num } "
+    pfcco_tokenizer_consumer_test.go:217: strategy"pbqp" input1 init16273T tokenizer131639T render18512T count11 stdout"id id id + num  num  num  str "
+    pfcco_tokenizer_consumer_test.go:246: ordinary fullBIN5465→5533B; renderer costs[21896 18512]→[21896 18512] (no assumed speed gain)
+--- PASS: TestPFCCOOriginalTokenizerRenderingConsumer (1.95s)
+PASS

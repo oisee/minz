@@ -1,0 +1,350 @@
+=== RUN   TestNativeCallLiteralCycleExhaustive
+--- PASS: TestNativeCallLiteralCycleExhaustive (0.14s)
+=== RUN   TestCallLiteralRefusesNoncanonicalDefinitions
+--- PASS: TestCallLiteralRefusesNoncanonicalDefinitions (0.00s)
+=== RUN   TestNativeCallLiteralMixedHalfOrdering
+--- PASS: TestNativeCallLiteralMixedHalfOrdering (0.05s)
+=== RUN   TestZ80ParallelCopyPairHalfOverlap
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_DE/B/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_DE/B/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_DE/B/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_DE/B/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_DE/C/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_DE/C/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_DE/C/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_DE/C/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_HL/B/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_HL/B/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_HL/B/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_HL/B/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_HL/C/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_HL/C/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_HL/C/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_HL/C/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_IX/B/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_IX/B/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_IX/B/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_IX/B/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_IX/C/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_IX/C/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_IX/C/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_IX/C/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_IY/B/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_IY/B/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_IY/B/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_IY/B/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_IY/C/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_IY/C/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_IY/C/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/BC_to_IY/C/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_BC/D/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_BC/D/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_BC/D/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_BC/D/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_BC/E/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_BC/E/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_BC/E/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_BC/E/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_HL/D/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_HL/D/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_HL/D/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_HL/D/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_HL/E/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_HL/E/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_HL/E/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_HL/E/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_IX/D/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_IX/D/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_IX/D/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_IX/D/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_IX/E/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_IX/E/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_IX/E/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_IX/E/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_IY/D/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_IY/D/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_IY/D/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_IY/D/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_IY/E/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_IY/E/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_IY/E/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/DE_to_IY/E/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_BC/H/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_BC/H/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_BC/H/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_BC/H/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_BC/L/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_BC/L/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_BC/L/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_BC/L/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_DE/H/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_DE/H/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_DE/H/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_DE/H/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_DE/L/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_DE/L/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_DE/L/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_DE/L/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_IX/H/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_IX/H/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_IX/H/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_IX/H/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_IX/L/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_IX/L/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_IX/L/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_IX/L/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_IY/H/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_IY/H/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_IY/H/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_IY/H/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_IY/L/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_IY/L/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_IY/L/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/HL_to_IY/L/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_BC/IXH/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_BC/IXH/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_BC/IXH/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_BC/IXH/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_BC/IXL/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_BC/IXL/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_BC/IXL/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_BC/IXL/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_DE/IXH/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_DE/IXH/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_DE/IXH/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_DE/IXH/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_DE/IXL/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_DE/IXL/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_DE/IXL/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_DE/IXL/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_HL/IXH/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_HL/IXH/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_HL/IXH/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_HL/IXH/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_HL/IXL/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_HL/IXL/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_HL/IXL/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_HL/IXL/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_IY/IXH/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_IY/IXH/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_IY/IXH/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_IY/IXH/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_IY/IXL/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_IY/IXL/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_IY/IXL/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IX_to_IY/IXL/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_BC/IYH/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_BC/IYH/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_BC/IYH/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_BC/IYH/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_BC/IYL/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_BC/IYL/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_BC/IYL/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_BC/IYL/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_DE/IYH/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_DE/IYH/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_DE/IYH/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_DE/IYH/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_DE/IYL/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_DE/IYL/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_DE/IYL/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_DE/IYL/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_HL/IYH/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_HL/IYH/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_HL/IYH/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_HL/IYH/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_HL/IYL/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_HL/IYL/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_HL/IYL/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_HL/IYL/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_IX/IYH/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_IX/IYH/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_IX/IYH/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_IX/IYH/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_IX/IYL/reverse_false/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_IX/IYL/reverse_false/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_IX/IYL/reverse_true/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/IY_to_IX/IYL/reverse_true/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/mixed_cycle/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/mixed_cycle/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/mixed_cycle_live_A/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/mixed_cycle_live_A/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/cycle_fanout/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/cycle_fanout/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/index_prefix_cycle/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/index_prefix_cycle/call
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/separate_byte_word_cycles/edge
+=== RUN   TestZ80ParallelCopyPairHalfOverlap/separate_byte_word_cycles/call
+--- PASS: TestZ80ParallelCopyPairHalfOverlap (0.03s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_DE/B/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_DE/B/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_DE/B/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_DE/B/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_DE/C/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_DE/C/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_DE/C/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_DE/C/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_HL/B/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_HL/B/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_HL/B/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_HL/B/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_HL/C/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_HL/C/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_HL/C/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_HL/C/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_IX/B/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_IX/B/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_IX/B/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_IX/B/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_IX/C/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_IX/C/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_IX/C/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_IX/C/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_IY/B/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_IY/B/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_IY/B/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_IY/B/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_IY/C/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_IY/C/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_IY/C/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/BC_to_IY/C/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_BC/D/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_BC/D/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_BC/D/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_BC/D/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_BC/E/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_BC/E/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_BC/E/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_BC/E/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_HL/D/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_HL/D/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_HL/D/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_HL/D/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_HL/E/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_HL/E/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_HL/E/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_HL/E/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_IX/D/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_IX/D/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_IX/D/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_IX/D/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_IX/E/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_IX/E/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_IX/E/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_IX/E/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_IY/D/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_IY/D/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_IY/D/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_IY/D/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_IY/E/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_IY/E/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_IY/E/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/DE_to_IY/E/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_BC/H/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_BC/H/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_BC/H/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_BC/H/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_BC/L/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_BC/L/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_BC/L/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_BC/L/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_DE/H/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_DE/H/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_DE/H/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_DE/H/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_DE/L/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_DE/L/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_DE/L/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_DE/L/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_IX/H/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_IX/H/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_IX/H/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_IX/H/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_IX/L/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_IX/L/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_IX/L/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_IX/L/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_IY/H/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_IY/H/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_IY/H/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_IY/H/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_IY/L/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_IY/L/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_IY/L/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/HL_to_IY/L/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_BC/IXH/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_BC/IXH/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_BC/IXH/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_BC/IXH/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_BC/IXL/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_BC/IXL/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_BC/IXL/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_BC/IXL/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_DE/IXH/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_DE/IXH/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_DE/IXH/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_DE/IXH/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_DE/IXL/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_DE/IXL/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_DE/IXL/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_DE/IXL/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_HL/IXH/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_HL/IXH/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_HL/IXH/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_HL/IXH/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_HL/IXL/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_HL/IXL/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_HL/IXL/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_HL/IXL/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_IY/IXH/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_IY/IXH/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_IY/IXH/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_IY/IXH/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_IY/IXL/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_IY/IXL/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_IY/IXL/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IX_to_IY/IXL/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_BC/IYH/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_BC/IYH/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_BC/IYH/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_BC/IYH/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_BC/IYL/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_BC/IYL/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_BC/IYL/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_BC/IYL/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_DE/IYH/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_DE/IYH/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_DE/IYH/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_DE/IYH/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_DE/IYL/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_DE/IYL/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_DE/IYL/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_DE/IYL/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_HL/IYH/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_HL/IYH/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_HL/IYH/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_HL/IYH/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_HL/IYL/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_HL/IYL/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_HL/IYL/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_HL/IYL/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_IX/IYH/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_IX/IYH/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_IX/IYH/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_IX/IYH/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_IX/IYL/reverse_false/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_IX/IYL/reverse_false/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_IX/IYL/reverse_true/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/IY_to_IX/IYL/reverse_true/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/mixed_cycle/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/mixed_cycle/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/mixed_cycle_live_A/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/mixed_cycle_live_A/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/cycle_fanout/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/cycle_fanout/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/index_prefix_cycle/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/index_prefix_cycle/call (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/separate_byte_word_cycles/edge (0.00s)
+    --- PASS: TestZ80ParallelCopyPairHalfOverlap/separate_byte_word_cycles/call (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.229s

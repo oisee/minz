@@ -1,0 +1,120 @@
+diff --git a/minzc/pkg/mir2/z80codegen_call.go b/minzc/pkg/mir2/z80codegen_call.go
+index 44d7a580..18e7103e 100644
+--- a/minzc/pkg/mir2/z80codegen_call.go
++++ b/minzc/pkg/mir2/z80codegen_call.go
+@@ -246,7 +246,7 @@ func (g *z80cg) genCall(inst *Inst) error {
+ 		g.pushWord(g.loc(inst.Src[0]))
+ 	}
+ 	if len(inst.Args) > 0 && callee != nil {
+-		g.emitCallArgs(inst.Args, callee)
++		g.emitCallArgsForInst(inst.Args, callee, inst)
+ 	}
+ 	if indirect {
+ 		g.emit("    POP IX")
+@@ -544,6 +544,10 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
+ // Argument locations are transient. Caller values keep their original locations
+ // after caller-save restoration, so argument setup does not change physOverride.
+ func (g *z80cg) emitCallArgs(args []Reg, callee *Func) {
++	g.emitCallArgsForInst(args, callee, nil)
++}
++
++func (g *z80cg) emitCallArgsForInst(args []Reg, callee *Func, call *Inst) {
+ 	var copies []parallelCopy
+ 	for i, arg := range args {
+ 		if i >= len(callee.Contract.Params) {
+@@ -575,10 +579,95 @@ func (g *z80cg) emitCallArgs(args []Reg, callee *Func) {
+ 	if len(copies) == 0 {
+ 		return
+ 	}
++	// An acyclic LD r,r costs less than a duplicate literal LD r,n. Only
++	// rematerialize edges in an exact-storage cycle, where breaking the cycle
++	// removes a stack snapshot. Keep aliases/mixed halves on the old path.
++	original := append([]parallelCopy(nil), copies...)
++	for i, c := range original {
++		if c.srcName == c.dstName || c.ty.Width() > 8 {
++			continue
++		}
++		cur := c.dstName
++		for steps := 0; steps < len(original); steps++ {
++			if cur == c.srcName {
++				if value, ok := g.callArgumentLiteral(args[i], c.ty, c.dstName, call); ok {
++					copies[i] = parallelCopy{dstName: c.dstName, ty: c.ty, isImm: true, immVal: value}
++				}
++				break
++			}
++			next := ""
++			for j, other := range original {
++				if i != j && other.ty.Width() <= 8 && other.srcName == cur && other.srcName != other.dstName {
++					next = other.dstName
++					break
++				}
++			}
++			if next == "" {
++				break
++			}
++			cur = next
++		}
++	}
+ 	g.emitParallelCopy(copies)
+ 
+ }
+ 
++// A unique same-block literal definition is not an assumed const propagated
++// through a phi/web. Keep the original producer LD; only avoid a boundary
++// shuffle, after all nonliteral source values have been copied.
++func (g *z80cg) callArgumentLiteral(arg Reg, ty Ty, dst string, call *Inst) (int64, bool) {
++	if call == nil || call.Op != OpCall || g.fn == nil || g.curBlock == nil || g.regsLiveAfterInst(call)[arg] {
++		return 0, false
++	}
++	if ty != TyU8 && ty != TyI8 && ty != TyU16 && ty != TyI16 {
++		return 0, false
++	}
++	if ty.Width() <= 8 {
++		if dst != "A" && dst != "B" && dst != "C" && dst != "D" && dst != "E" && dst != "H" && dst != "L" &&
++			dst != "IXH" && dst != "IXL" && dst != "IYH" && dst != "IYL" {
++			return 0, false
++		}
++	} else if !isPairReg(dst) {
++		return 0, false
++	}
++	for _, p := range g.fn.Contract.Params {
++		if p.Reg == arg {
++			return 0, false
++		}
++	}
++	var definition *Inst
++	for _, b := range g.fn.Blocks {
++		for _, p := range b.Params {
++			if p.Dst == arg {
++				return 0, false
++			}
++		}
++		for _, i := range b.Insts {
++			for _, r := range append([]Reg{i.Dst}, i.ExtraRets...) {
++				if r == arg {
++					if definition != nil || i.Op != OpConst || i.Ty != ty || b != g.curBlock {
++						return 0, false
++					}
++					definition = i
++				}
++			}
++		}
++	}
++	if definition == nil {
++		return 0, false
++	}
++	seen := false
++	for _, i := range g.curBlock.Insts {
++		if i == call {
++			return definition.Imm, seen
++		}
++		if i == definition {
++			seen = true
++		}
++	}
++	return 0, false
++}
++
+ // ReturnLocation exposes the physical return ABI to execution judges.
+ func ReturnLocation(cls RegClass, ty Ty) string {
+ 	return canonicalReturnLoc(cls, ty)
