@@ -1,0 +1,4 @@
+; fun test_neq() ; clobbers: F
+test_neq:
+    LD A, 0
+    RET

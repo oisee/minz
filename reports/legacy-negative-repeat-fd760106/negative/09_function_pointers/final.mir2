@@ -1,0 +1,34 @@
+; MIR2 module: grace_measure.nanz
+fun @double(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = add %r1, %r1 : u8 [acc]
+    ret %r2
+
+fun @triple(%r3: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r4 = add %r3, %r3 : u8 [acc]
+    %r5 = add %r4, %r3 : u8 [acc]
+    ret %r5
+
+fun @apply(%r6: ptr [pointer], %r7: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r8 = move %r7 : u8 [acc]
+    %r9 = call_indirect %r6(%r8) : u8 [acc] [indirect-abi [u8] -> [u8]]
+    ret %r9
+
+fun @test_apply_double() -> u8 [acc]
+  block @entry:
+    %r10 = addr_of @double : ptr [pointer]
+    %r11 = move %r10 : ptr [pointer]
+    %r12 = const 5 : u8 [general]
+    %r13 = call @apply(%r11, %r12) : u8 [acc]
+    ret %r13
+
+fun @test_apply_triple() -> u8 [acc]
+  block @entry:
+    %r14 = addr_of @triple : ptr [pointer]
+    %r15 = move %r14 : ptr [pointer]
+    %r16 = const 4 : u8 [general]
+    %r17 = call @apply(%r15, %r16) : u8 [acc]
+    ret %r17
+

@@ -1,0 +1,114 @@
+; MIR2 module: grace_measure.nanz
+fun @is_zero_b(%r1: u8 [acc]) -> bool [acc]
+  block @entry:
+    %r2 = const 0 : u8 [general]
+    %r3 = cmp.eq %r1, %r2 : bool [flag]
+    ret %r3
+
+fun @is_ten_b(%r4: u8 [acc]) -> bool [acc]
+  block @entry:
+    %r5 = const 10 : u8 [general]
+    %r6 = cmp.eq %r4, %r5 : bool [flag]
+    ret %r6
+
+fun @eq_b(%r7: u8 [acc], %r8: u8 [general]) -> bool [acc]
+  block @entry:
+    %r9 = cmp.eq %r7, %r8 : bool [flag]
+    ret %r9
+
+fun @is_small_b(%r10: u8 [acc]) -> bool [acc]
+  block @entry:
+    %r11 = const 10 : u8 [general]
+    %r12 = cmp.ult %r10, %r11 : bool [flag]
+    ret %r12
+
+fun @lt_b(%r13: u8 [acc], %r14: u8 [general]) -> bool [acc]
+  block @entry:
+    %r15 = cmp.ult %r13, %r14 : bool [flag]
+    ret %r15
+
+fun @is_big_b(%r16: u8 [acc]) -> bool [acc]
+  block @entry:
+    %r17 = const 200 : u8 [general]
+    %r18 = cmp.ugt %r16, %r17 : bool [flag]
+    ret %r18
+
+fun @gt_b(%r19: u8 [acc], %r20: u8 [general]) -> bool [acc]
+  block @entry:
+    %r21 = cmp.ugt %r19, %r20 : bool [flag]
+    ret %r21
+
+fun @is_digit_b(%r22: u8 [acc]) -> bool [acc]
+  block @entry:
+    %r23 = const 48 : u8 [general]
+    %r24 = cmp.uge %r22, %r23 : bool [flag]
+    br_if %r24, @if_then1(), @if_join2()
+  block @if_then1:
+    %r25 = const 57 : u8 [general]
+    %r26 = cmp.ule %r22, %r25 : bool [flag]
+    br_if %r26, @if_then3(), @if_join4()
+  block @if_then3:
+    %r27 = const 1 : bool [general]
+    ret %r27
+  block @if_join4:
+    jmp @if_join2()
+  block @if_join2:
+    %r28 = const 0 : bool [general]
+    ret %r28
+
+fun @is_upper_b(%r29: u8 [acc]) -> bool [acc]
+  block @entry:
+    %r30 = const 65 : u8 [general]
+    %r31 = cmp.uge %r29, %r30 : bool [flag]
+    br_if %r31, @if_then1(), @if_join2()
+  block @if_then1:
+    %r32 = const 90 : u8 [general]
+    %r33 = cmp.ule %r29, %r32 : bool [flag]
+    br_if %r33, @if_then3(), @if_join4()
+  block @if_then3:
+    %r34 = const 1 : bool [general]
+    ret %r34
+  block @if_join4:
+    jmp @if_join2()
+  block @if_join2:
+    %r35 = const 0 : bool [general]
+    ret %r35
+
+fun @is_zero(%r36: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r37 = const 0 : u8 [general]
+    %r38 = cmp.eq %r36, %r37 : bool [flag]
+    %r39 = const 0 : u8 [acc]
+    cond_ret %r38, [%r39], @if_then1()
+  block @if_then1:
+    %r40 = const 1 : u8 [acc]
+    ret %r40
+
+fun @is_small(%r41: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r42 = const 10 : u8 [general]
+    %r43 = cmp.ult %r41, %r42 : bool [flag]
+    %r44 = const 0 : u8 [acc]
+    cond_ret %r43, [%r44], @if_then1()
+  block @if_then1:
+    %r45 = const 1 : u8 [acc]
+    ret %r45
+
+fun @is_digit(%r46: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r47 = const 48 : u8 [general]
+    %r48 = cmp.uge %r46, %r47 : bool [flag]
+    br_if %r48, @if_then1(), @if_join2()
+  block @if_then1:
+    %r49 = const 57 : u8 [general]
+    %r50 = cmp.ule %r46, %r49 : bool [flag]
+    br_if %r50, @if_then3(), @if_join4()
+  block @if_then3:
+    %r51 = const 1 : u8 [acc]
+    ret %r51
+  block @if_join4:
+    jmp @if_join2()
+  block @if_join2:
+    %r52 = const 0 : u8 [acc]
+    ret %r52
+

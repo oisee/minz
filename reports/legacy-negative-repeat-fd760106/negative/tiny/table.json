@@ -1,0 +1,44 @@
+[
+  {
+    "schema": "vir-local-direct-v1",
+    "costModel": "expanded-pattern-tstates-v1",
+    "sig": "vir-local-direct-v1:51c90689a004666ac6a6369c90110f1b7e543174544960c546bcf4f5cc714f03",
+    "nVregs": 3,
+    "nOps": 3,
+    "cost": 14,
+    "assignment": [
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "schema": "vir-local-direct-v1",
+    "costModel": "expanded-pattern-tstates-v1",
+    "sig": "vir-local-direct-v1:bdcd53ac384af5c62ebfb423618d1e3cffe38ae50e15fbb101e5aa1b52da15b0",
+    "nVregs": 4,
+    "nOps": 3,
+    "cost": 14,
+    "assignment": [
+      0,
+      2,
+      0,
+      0
+    ]
+  },
+  {
+    "schema": "vir-local-direct-v1",
+    "costModel": "expanded-pattern-tstates-v1",
+    "sig": "vir-local-direct-v1:ec88e2e61cb10de37a81d428d01739410417f63a9b9889f9f60341a65e874210",
+    "nVregs": 5,
+    "nOps": 5,
+    "cost": 22,
+    "assignment": [
+      0,
+      0,
+      0,
+      0,
+      1
+    ]
+  }
+]

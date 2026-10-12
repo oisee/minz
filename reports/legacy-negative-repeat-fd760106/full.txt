@@ -1,0 +1,56 @@
+=== RUN   TestActualLegacyCandidateImportCorpus
+    table_legacy_import_test.go:54: 06_pbqp_weighted/weighted legacy-native-json compatible0 admitted0
+    table_legacy_import_test.go:54: 06_pbqp_weighted/weighted legacy-gpu-json compatible0 admitted0
+    table_legacy_import_test.go:67: 06_pbqp_weighted/weighted enrt4v-prefix compatible0 admitted0
+    table_legacy_import_test.go:80: 06_pbqp_weighted module36→36B importedentries0
+    table_legacy_import_test.go:80: 09_function_pointers module34→34B importedentries0
+    table_legacy_import_test.go:54: tiny/add legacy-native-json compatible2 admitted0
+    table_legacy_import_test.go:54: tiny/add legacy-gpu-json compatible9 admitted0
+    table_legacy_import_test.go:54: tiny/double legacy-native-json compatible2 admitted0
+    table_legacy_import_test.go:54: tiny/double legacy-gpu-json compatible5 admitted0
+    table_legacy_import_test.go:54: tiny/triple legacy-native-json compatible1 admitted0
+    table_legacy_import_test.go:54: tiny/triple legacy-gpu-json compatible4 admitted0
+    table_legacy_import_test.go:67: tiny/add enrt4v-prefix compatible19 admitted3
+    table_legacy_import_test.go:67: tiny/double enrt4v-prefix compatible193 admitted1
+    table_legacy_import_test.go:67: tiny/triple enrt4v-prefix compatible0 admitted0
+    table_legacy_import_test.go:80: tiny module11→11B importedentries2
+    table_legacy_import_test.go:54: 20_strref_test/hash3 legacy-native-json compatible1 admitted0
+    table_legacy_import_test.go:54: 20_strref_test/hash3 legacy-gpu-json compatible6 admitted0
+    table_legacy_import_test.go:54: 20_strref_test/test_eq legacy-native-json compatible1 admitted1
+    table_legacy_import_test.go:54: 20_strref_test/test_eq legacy-gpu-json compatible9 admitted1
+    table_legacy_import_test.go:54: 20_strref_test/test_neq legacy-native-json compatible1 admitted1
+    table_legacy_import_test.go:54: 20_strref_test/test_neq legacy-gpu-json compatible9 admitted1
+    table_legacy_import_test.go:67: 20_strref_test/hash3 enrt4v-prefix compatible0 admitted0
+    table_legacy_import_test.go:67: 20_strref_test/test_eq enrt4v-prefix compatible32 admitted6
+    table_legacy_import_test.go:67: 20_strref_test/test_neq enrt4v-prefix compatible32 admitted6
+    table_legacy_import_test.go:80: 20_strref_test module45→45B importedentries2
+    table_legacy_import_test.go:54: 16_rotate_sled/low_nibble legacy-gpu-json compatible5 admitted0
+    table_legacy_import_test.go:54: 16_rotate_sled/low_nibble legacy-native-json compatible2 admitted0
+    table_legacy_import_test.go:67: 16_rotate_sled/low_nibble enrt4v-prefix compatible193 admitted1
+    table_legacy_import_test.go:80: 16_rotate_sled module186→186B importedentries1
+--- PASS: TestActualLegacyCandidateImportCorpus (1.48s)
+=== RUN   TestCheckedTableNegativeCorpusAudit
+[regalloc] loaded 56 exhaustive entries from ../vir/regalloc_exhaustive.json
+    table_negative_audit_test.go:159: 06_pbqp_weighted module36→12 entries1 compile3.33ms generate28.32ms selected5.97ms
+    table_negative_audit_test.go:159: 09_function_pointers module34→34 entries0 compile1.70ms generate1.51ms selected1.40ms
+    table_negative_audit_test.go:159: tiny module11→8 entries3 compile0.65ms generate44.80ms selected3.81ms
+    table_negative_audit_test.go:159: 20_strref_test module45→45 entries3 compile3.92ms generate49.51ms selected7.00ms
+    table_negative_audit_test.go:159: 21_hashmap_test module987→987 entries0 compile44.51ms generate42.73ms selected39.67ms
+    table_negative_audit_test.go:159: 17_bool_retflag module172→172 entries0 compile7.01ms generate6.87ms selected6.22ms
+    table_negative_audit_test.go:159: 16_rotate_sled module186→186 entries1 compile5.42ms generate19.95ms selected4.71ms
+    table_negative_audit_test.go:159: promoted_arithmetic module342→342 entries0 compile11.56ms generate11.86ms selected13.98ms
+    table_negative_audit_test.go:159: signed_arithmetic module255→255 entries0 compile8.14ms generate8.23ms selected8.41ms
+    table_negative_audit_test.go:159: 08_arena_allocator module1130→1130 entries0 compile50.85ms generate53.40ms selected54.16ms
+    table_negative_audit_test.go:159: 50_impl_showcase module256→256 entries0 compile10.62ms generate6.26ms selected5.94ms
+    table_negative_audit_test.go:159: self_tokenizer module5465→5465 entries0 compile657.80ms generate654.98ms selected661.22ms
+    table_negative_audit_test.go:169: 06_pbqp_weighted/weighted baseline36 candidate12 cost54 admitted: smaller
+    table_negative_audit_test.go:169: tiny/add baseline2 candidate2 cost14 admitted: not strictly smaller
+    table_negative_audit_test.go:169: tiny/double baseline2 candidate2 cost14 admitted: not strictly smaller
+    table_negative_audit_test.go:169: tiny/triple baseline7 candidate4 cost22 admitted: smaller
+    table_negative_audit_test.go:169: 20_strref_test/hash3 baseline6 candidate6 cost30 admitted: not strictly smaller
+    table_negative_audit_test.go:169: 20_strref_test/test_eq baseline3 candidate3 cost17 admitted: not strictly smaller
+    table_negative_audit_test.go:169: 20_strref_test/test_neq baseline3 candidate3 cost17 admitted: not strictly smaller
+    table_negative_audit_test.go:169: 16_rotate_sled/low_nibble baseline3 candidate3 cost17 admitted: not strictly smaller
+--- PASS: TestCheckedTableNegativeCorpusAudit (3.46s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.949s

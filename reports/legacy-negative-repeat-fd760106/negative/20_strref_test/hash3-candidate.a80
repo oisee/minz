@@ -1,0 +1,8 @@
+; fun hash3() ; clobbers: F
+hash3:
+    ADD A, C
+    ADD A, C
+    ADD A, D
+    ADD A, D
+    ADD A, D
+    RET

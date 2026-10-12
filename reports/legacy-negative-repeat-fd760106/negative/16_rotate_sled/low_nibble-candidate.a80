@@ -1,0 +1,4 @@
+; fun low_nibble() ; clobbers: F
+low_nibble:
+    AND 15
+    RET
