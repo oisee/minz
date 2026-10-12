@@ -1,0 +1,8 @@
+=== RUN   TestOriginalConsoleReadScope
+    original_console_corpus_test.go:25: {[] [{col 112 u8 acc} {row 113 u8 general} {ch 114 u8 counter}] [] [] 0}
+    original_console_corpus_test.go:27: {col 112 u8 acc} {0 A 0}
+    original_console_corpus_test.go:27: {row 113 u8 general} {0 C 0}
+    original_console_corpus_test.go:27: {ch 114 u8 counter} {0 B 0}
+--- PASS: TestOriginalConsoleReadScope (0.08s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.088s
