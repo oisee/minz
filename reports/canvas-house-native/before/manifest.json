@@ -1,0 +1,40 @@
+{
+  "compiler_commit": "d0b667e1",
+  "files": [
+    {
+      "path": "allocation.json",
+      "sha256": "a7cf96bf4a64e16cc31d7d8b32dd01d4571f01f2cf64261ab0f870519809d3c8",
+      "bytes": 14023
+    },
+    {
+      "path": "final.mir",
+      "sha256": "06e50382f8b3dc11f9b63f94b80bd896f3bffce33f772e0c89a23b3ab76e2a85",
+      "bytes": 8541
+    },
+    {
+      "path": "native-events.json",
+      "sha256": "007d16fd1489250ba5cc5bfcd3fd8ac8d8d839ccc8b00da3cee4e0c0a780ba46",
+      "bytes": 1323
+    },
+    {
+      "path": "native-failure.txt",
+      "sha256": "90279c7d445d33f3186e9d39fb957c4725e8d2cae901687aa17cb0352e1d7ea7",
+      "bytes": 642
+    },
+    {
+      "path": "program.a80",
+      "sha256": "dc71a5cbba6e7abe3496b72b5aeba4f95ba7898ea1fc15c952395cd683a04766",
+      "bytes": 27492
+    },
+    {
+      "path": "program.bin",
+      "sha256": "026f46199f3841990b8fd012bfde92a5a3cf892b110ca204aadad8837ce3d272",
+      "bytes": 1903
+    },
+    {
+      "path": "unlinked.a80",
+      "sha256": "609b043b2cc6a1e69037a79473324c2bf1cd20aade5f5cac72fd5454c72b20c4",
+      "bytes": 27234
+    }
+  ]
+}

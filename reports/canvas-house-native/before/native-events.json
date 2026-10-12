@@ -1,0 +1,124 @@
+[
+  {
+    "Name": "canvas_init",
+    "Args": [
+      256,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "canvas_clear",
+    "Args": [
+      0
+    ]
+  },
+  {
+    "Name": "canvas_fill_rect",
+    "Args": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "canvas_fill_rect",
+    "Args": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "canvas_circle",
+    "Args": [
+      200,
+      200,
+      200,
+      200
+    ]
+  },
+  {
+    "Name": "canvas_fill_rect",
+    "Args": [
+      60,
+      60,
+      60,
+      60,
+      60
+    ]
+  },
+  {
+    "Name": "canvas_rect",
+    "Args": [
+      60,
+      15,
+      15,
+      15,
+      15
+    ]
+  },
+  {
+    "Name": "canvas_fill_rect",
+    "Args": [
+      80,
+      80,
+      80,
+      80,
+      80
+    ]
+  },
+  {
+    "Name": "canvas_line",
+    "Args": [
+      55,
+      15,
+      15,
+      15,
+      15
+    ]
+  },
+  {
+    "Name": "canvas_line",
+    "Args": [
+      90,
+      15,
+      15,
+      15,
+      15
+    ]
+  },
+  {
+    "Name": "canvas_fill_rect",
+    "Args": [
+      65,
+      65,
+      65,
+      65,
+      65
+    ]
+  },
+  {
+    "Name": "canvas_fill_rect",
+    "Args": [
+      170,
+      170,
+      170,
+      170,
+      170
+    ]
+  },
+  {
+    "Name": "canvas_circle",
+    "Args": [
+      173,
+      173,
+      173,
+      173
+    ]
+  }
+]

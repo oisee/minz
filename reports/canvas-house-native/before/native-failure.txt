@@ -1,0 +1,6 @@
+=== RUN   TestOriginalCanvasHouseWholeScene
+    original_canvas_house_test.go:254: nativeevents ordinary draw_scene [{canvas_init [256 0 0]} {canvas_clear [0]} {canvas_fill_rect [0 0 0 0 0]} {canvas_fill_rect [0 0 0 0 0]} {canvas_circle [200 200 200 200]} {canvas_fill_rect [60 60 60 60 60]} {canvas_rect [60 15 15 15 15]} {canvas_fill_rect [80 80 80 80 80]} {canvas_line [55 15 15 15 15]} {canvas_line [90 15 15 15 15]} {canvas_fill_rect [65 65 65 65 65]} {canvas_fill_rect [170 170 170 170 170]} {canvas_circle [173 173 173 173]}]
+--- FAIL: TestOriginalCanvasHouseWholeScene (0.07s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.078s
+FAIL
