@@ -1,0 +1,11 @@
+=== RUN   TestCodegenModule_Double16ThenDec
+[regalloc] loaded 56 exhaustive entries from regalloc_exhaustive.json
+[vir] cut-vertex? double_dec nv=4
+[CFG-solver] 1 blocks, 0 edges, 6 vars
+[CFG-solver] double_dec: 0 edges to check for moves
+--- PASS: TestCodegenModule_Double16ThenDec (0.03s)
+=== RUN   TestDouble16ThenDecFullDomainNative
+    word_return_native_test.go:67: all 65536 word inputs, native HL and exact return PC/SP PASS; 3 bytes
+--- PASS: TestDouble16ThenDecFullDomainNative (0.04s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.082s

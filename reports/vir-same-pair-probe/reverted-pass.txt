@@ -1,0 +1,9 @@
+=== RUN   TestVIR_Assert_IndexedArrayBaseRegression
+[regalloc] loaded 56 exhaustive entries from regalloc_exhaustive.json
+[vir] scenario: skip island decomposition (call-heavy)
+[vir] scenario: PBQP fallback (timeout=30s, err=all VIR solvers failed: CFG solve: unexpected z3 output: timeout
+)
+    assert_test.go:261: indexed_array_base_regression: 1 asserts passed ✓ (MIR2-VM + Z80)
+--- PASS: TestVIR_Assert_IndexedArrayBaseRegression (5.49s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	5.499s
