@@ -1,0 +1,30 @@
+=== RUN   TestArithmeticProspectiveHeldout
+    arithmetic_heldout_test.go:142: speed mask0: 21370 T / 132 B
+    arithmetic_heldout_test.go:142: speed mask1: 21370 T / 132 B
+    arithmetic_heldout_test.go:142: speed mask2: 21942 T / 145 B
+    arithmetic_heldout_test.go:142: speed mask3: 21942 T / 145 B
+    arithmetic_heldout_test.go:163: speed selected0 heldout 404109 T / 132 B
+    arithmetic_heldout_test.go:142: size mask0: 21370 T / 132 B
+    arithmetic_heldout_test.go:142: size mask1: 21370 T / 132 B
+    arithmetic_heldout_test.go:142: size mask2: 21942 T / 145 B
+    arithmetic_heldout_test.go:142: size mask3: 21942 T / 145 B
+    arithmetic_heldout_test.go:163: size selected0 heldout 404109 T / 132 B
+--- PASS: TestArithmeticProspectiveHeldout (1.74s)
+=== RUN   TestPFCCOProspectiveHeldout
+    pfcco_prospective_heldout_test.go:119: speed mask0: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask1: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask2: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask3: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:153: speed selected1 heldout 5568 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask0: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask1: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask2: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask3: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:153: size selected0 heldout 6252 T / 52 B
+--- PASS: TestPFCCOProspectiveHeldout (1.52s)
+=== RUN   TestTokenizerContractObjectiveAttribution
+    pfcco_tokenizer_objective_audit_test.go:83: greedy assembled module 5465 bytes; 27 function spans (last span may include trailing data)
+    pfcco_tokenizer_objective_audit_test.go:83: pbqp assembled module 5513 bytes; 27 function spans (last span may include trailing data)
+--- PASS: TestTokenizerContractObjectiveAttribution (1.11s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.384s

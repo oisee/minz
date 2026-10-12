@@ -2,6 +2,7 @@ package mir2
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -15,6 +16,7 @@ func asmPeepholePass(src string) string {
 
 func asmPeepholePassWithSize(src string, optimizeForSize bool) string {
 	lines := strings.Split(src, "\n")
+	lines = elimOverwrittenByteLiterals(lines)
 	lines = elimDoubleExDeHl(lines)
 	lines = elimSingleJpEqu(lines)
 	lines = elimCallRet(lines)
@@ -25,6 +27,47 @@ func asmPeepholePassWithSize(src string, optimizeForSize bool) string {
 		lines = foldRLCASled(lines)
 	}
 	return strings.Join(lines, "\n")
+}
+
+// Only a contiguous run of byte-register immediate loads may be folded.
+// These instructions read no registers and preserve flags; the last load of
+// each register determines its observable value. Labels and every other
+// instruction are barriers, including pair/half moves and calls.
+func elimOverwrittenByteLiterals(lines []string) []string {
+	dead := make(map[int]bool)
+	last := make(map[string]int)
+	for i, line := range lines {
+		code := strings.TrimSpace(strings.SplitN(line, ";", 2)[0])
+		if code == "" {
+			continue
+		}
+		parts := strings.SplitN(code, ",", 2)
+		if len(parts) != 2 {
+			clear(last)
+			continue
+		}
+		head := strings.Fields(parts[0])
+		if len(head) != 2 || head[0] != "LD" || !strings.Contains(" A B C D E H L ", " "+head[1]+" ") {
+			clear(last)
+			continue
+		}
+		value, err := strconv.ParseInt(strings.TrimSpace(parts[1]), 0, 64)
+		if err != nil || value < 0 || value > 255 {
+			clear(last)
+			continue
+		}
+		if previous, ok := last[head[1]]; ok {
+			dead[previous] = true
+		}
+		last[head[1]] = i
+	}
+	out := make([]string, 0, len(lines)-len(dead))
+	for i, line := range lines {
+		if !dead[i] {
+			out = append(out, line)
+		}
+	}
+	return out
 }
 
 // foldCondCall replaces JR cc, skip / CALL target / skip: with CALL cc, target.

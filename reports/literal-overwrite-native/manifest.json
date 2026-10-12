@@ -1,0 +1,17 @@
+{
+  "literal-overwrite-mir2-full.txt": "c362a1072b4f6f75187a866cb35d8563be6650ffd4fb150b8aee80b3c22be19b",
+  "literal-overwrite-native.txt": "0b544890e6948bed9455c990f6aeeb25dac225ce2f66296aa6500eef613c42d2",
+  "literal-overwrite-tokenizer-native.txt": "0fbc7d927927e0c7ba2be85be6705005d426c3b5ec1482919dbe6864584cbf50",
+  "literal-overwrite-pipeline.txt": "30bc13837951b79dc39a37102b19ecaff7a10ace7548abc51e18cf8cafbd5fe6",
+  "literal-overwrite-existing.txt": "44ca4a212bb864cbe07595ce2fa38295e8479af76371b948b5df99f0951dcfaf",
+  "README.md": "9a0ce04203917f71b6072df640e6a314e1ecba43c7344d79c318f8f0c7399045",
+  "tokenizer-after/greedy-functions.json": "33cdebd8d2203f2052a402a73457f86f5259ff6eb51c1bb9412952602140dc9b",
+  "tokenizer-after/pbqp-target.bin": "79823a46599185ab49a3c6ddea29629368c2a0735ce11b07071af4cbc1094e05",
+  "tokenizer-after/greedy-target.bin": "9539caefc60b8da3d06d1d47f8c84bfb187b2b422a58b95ed4bb67faa6fc149b",
+  "tokenizer-after/greedy-final.mir2": "6c6af3b79726b1825678223637f6d4546071ceb9f631d2db7007d606058312ec",
+  "tokenizer-after/pbqp-target.a80": "30eded62bd86ea4a6ba1afb62a388207141c9fdd4530e43380c04fad8402cf2b",
+  "tokenizer-after/source.nanz": "d893df00710b7f1105b8bfb58342aca1c1f8cce7eb674037a8d6ca41b91b0689",
+  "tokenizer-after/greedy-target.a80": "d0d819e5d2b8e5d1ddaff305ac0f220bb3822c64c911ea04e691f572450967f8",
+  "tokenizer-after/pbqp-functions.json": "bd513d182857c42f6807ff5ebb2c6d7ec41b1bd4527d6ecc0249148b5c2284df",
+  "tokenizer-after/pbqp-final.mir2": "6c6af3b79726b1825678223637f6d4546071ceb9f631d2db7007d606058312ec"
+}
