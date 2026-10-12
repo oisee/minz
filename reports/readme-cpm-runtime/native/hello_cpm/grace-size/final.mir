@@ -1,0 +1,26 @@
+; MIR2 module: examples/nanz/hello_cpm.nanz
+fun @putch(%r1: u8 [acc])
+  block @entry:
+    asm "LD E, A\n        LD C, 2\n        CALL 5"
+    ret void
+
+fun @main()
+  block @entry:
+    %r2 = const 72 : u8 [acc]
+    call @putch(%r2)
+    %r3 = const 101 : u8 [acc]
+    call @putch(%r3)
+    %r4 = const 108 : u8 [acc]
+    call @putch(%r4)
+    %r5 = const 108 : u8 [acc]
+    call @putch(%r5)
+    %r6 = const 111 : u8 [acc]
+    call @putch(%r6)
+    %r7 = const 33 : u8 [acc]
+    call @putch(%r7)
+    %r8 = const 13 : u8 [acc]
+    call @putch(%r8)
+    %r9 = const 10 : u8 [acc]
+    call @putch(%r9)
+    ret void
+

@@ -1,0 +1,20 @@
+=== RUN   TestReadmeCPMWholeMain
+=== RUN   TestReadmeCPMWholeMain/hello_cpm
+=== RUN   TestReadmeCPMWholeMain/hello_cpm/ordinary
+=== RUN   TestReadmeCPMWholeMain/hello_cpm/grace-size
+=== RUN   TestReadmeCPMWholeMain/hello_cpm/grace-speed
+=== RUN   TestReadmeCPMWholeMain/hello_cpm_fib
+=== RUN   TestReadmeCPMWholeMain/hello_cpm_fib/ordinary
+=== RUN   TestReadmeCPMWholeMain/hello_cpm_fib/grace-size
+=== RUN   TestReadmeCPMWholeMain/hello_cpm_fib/grace-speed
+--- PASS: TestReadmeCPMWholeMain (0.10s)
+    --- PASS: TestReadmeCPMWholeMain/hello_cpm (0.03s)
+        --- PASS: TestReadmeCPMWholeMain/hello_cpm/ordinary (0.01s)
+        --- PASS: TestReadmeCPMWholeMain/hello_cpm/grace-size (0.01s)
+        --- PASS: TestReadmeCPMWholeMain/hello_cpm/grace-speed (0.01s)
+    --- PASS: TestReadmeCPMWholeMain/hello_cpm_fib (0.07s)
+        --- PASS: TestReadmeCPMWholeMain/hello_cpm_fib/ordinary (0.02s)
+        --- PASS: TestReadmeCPMWholeMain/hello_cpm_fib/grace-size (0.02s)
+        --- PASS: TestReadmeCPMWholeMain/hello_cpm_fib/grace-speed (0.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.109s

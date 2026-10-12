@@ -1,0 +1,16 @@
+[
+  "/mnt/safe/minz/grace/2026-10-12/readme-cpm-runtime/executables/minzc",
+  "examples/nanz/hello_cpm.nanz",
+  "-t",
+  "cpm",
+  "--runtime",
+  "cpm",
+  "--runtime-stack",
+  "1024",
+  "--asserts",
+  "none",
+  "--grace",
+  "--hir-grace",
+  "-o",
+  "reports/readme-cpm-runtime/cli/hello_cpm/grace-speed/program.com"
+]
