@@ -2,6 +2,7 @@ package mir2
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -21,7 +22,7 @@ func cpmSourceBDOS2(f *Func, ar *AllocResult) bool {
 		return false
 	}
 	i := b.Insts[0]
-	if i.Op != OpAsm || i.Asm == nil || i.Dst != NoReg || len(i.Asm.Ins) != 1 || i.Asm.Ins[0] != p.Reg || len(i.Asm.Outs) != 0 || i.Asm.Clobbers != AllClasses {
+	if i.Op != OpAsm || i.Asm == nil || i.Dst != NoReg || len(i.Asm.Ins) > 1 || len(i.Asm.Ins) == 1 && i.Asm.Ins[0] != p.Reg || len(i.Asm.Outs) != 0 || i.Asm.Clobbers != AllClasses {
 		return false
 	}
 	lines := strings.Split(i.Asm.Template, "\n")
@@ -30,7 +31,7 @@ func cpmSourceBDOS2(f *Func, ar *AllocResult) bool {
 	}
 	want := []string{"LDE,A", "LDC,2", "CALL5"}
 	for n, line := range lines {
-		if strings.Join(strings.Fields(strings.ToUpper(line)), "") != want[n] {
+		if cpmBDOSInstruction(line) != want[n] {
 			return false
 		}
 	}
@@ -169,4 +170,16 @@ func cpmReadOnlyPointerParam(f *Func, index int, size int64) bool {
 		}
 	}
 	return true
+}
+
+// Normalize only the literal numeric spelling of the fixed BDOS entry.
+// Labels, arithmetic expressions, comments and other instructions remain out.
+func cpmBDOSInstruction(line string) string {
+	compact := strings.Join(strings.Fields(strings.ToUpper(line)), "")
+	if strings.HasPrefix(compact, "CALL") {
+		if n, e := strconv.ParseUint(strings.TrimPrefix(compact, "CALL"), 0, 16); e == nil && n == 5 {
+			return "CALL5"
+		}
+	}
+	return compact
 }
