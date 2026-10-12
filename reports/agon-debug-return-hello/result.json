@@ -1,0 +1,14 @@
+{
+  "scope": "single ordinary Hello real eZ80/MOS/fullVDP debugger; 24-byte caller frame, SP/IY/IX and exact RET target only",
+  "entry_pc": "040045",
+  "before_ret_pc": "040051",
+  "after_ret_pc": "000874",
+  "entry_sp": "0bfe66",
+  "before_ret_sp": "0bfe66",
+  "after_ret_sp": "0bfe69",
+  "iy_preserved": "0bfe75",
+  "ix_preserved": "0bc32e",
+  "status_hl": 0,
+  "caller_frame_24_bytes_unchanged": true,
+  "full_ram_proved": false
+}

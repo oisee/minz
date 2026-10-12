@@ -1,0 +1,21 @@
+registers
+mem SP 24
+c
+PC=040045 AF:0448 BC:040000 DE:040000 HL:0bc370 SPS:0000 SPL:0bfe66 IX:0bc32e IY:0bfe75 IR:01eb MB:00 ADL:1 MADL:1 IFF1:1
+>> 0bfe66: 74 08 00 48 00 00 82 fe 0b 81 fe 0b 48 01 00 00 | t  H        H   
+0bfe76: 00 04 51 1d 00 00 00 04 |   Q     
+>> CPU running
+
+registers
+mem SP 24
+s
+registers
+mem 0bfe66 24
+exit
+PC=040051 AF:6100 BC:040080 DE:040002 HL:000000 SPS:0000 SPL:0bfe66 IX:0bc32e IY:0bfe75 IR:01ae MB:00 ADL:1 MADL:1 IFF1:1
+>> 0bfe66: 74 08 00 48 00 00 82 fe 0b 81 fe 0b 48 01 00 00 | t  H        H   
+0bfe76: 00 04 51 1d 00 00 00 04 |   Q     
+>> * 000874: POP AF               AF:6100 BC:040080 DE:040002 HL:000000 SPS:0000 SPL:0bfe69 IX:0bc32e IY:0bfe75 ADL:1
+>> PC=000874 AF:6100 BC:040080 DE:040002 HL:000000 SPS:0000 SPL:0bfe69 IX:0bc32e IY:0bfe75 IR:01af MB:00 ADL:1 MADL:1 IFF1:1
+>> mem <start> [len]
+>> 

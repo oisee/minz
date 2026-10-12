@@ -1,0 +1,30 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "f8313230d46709b3b66a9f75772b18d4748f7dd16e6b10be5c2ad5a3d771533c"
+  },
+  {
+    "path": "capture.c",
+    "sha256": "13db77e088a3d07d1ce703e21946327c74c736d3078710a1395418fc8696b219"
+  },
+  {
+    "path": "debugger-clean.txt",
+    "sha256": "bd544ae7ad9471a74e10adb7cb1d64a4115939cad1ff63cdf8478a1a0d6f04f9"
+  },
+  {
+    "path": "debugger.txt",
+    "sha256": "329d5bac0904796b2c7297822888fcddc7dd040c175d9167f77e6967ff70a9ff"
+  },
+  {
+    "path": "program.bin",
+    "sha256": "7753540a53c8d7de37bed5d92c3baee4206a90035765b1e6d0d9183eadab6a3b"
+  },
+  {
+    "path": "result.json",
+    "sha256": "e01ebc898ffa388140995ecf98b76435bd71f051973ff31aaf4127c7a27e0cf0"
+  },
+  {
+    "path": "source.nanz",
+    "sha256": "44f505b14ac4c5c674db470d9f81684aeaf078498c03ad267e81a05d13d25f90"
+  }
+]
