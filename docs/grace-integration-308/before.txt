@@ -1,0 +1,6 @@
+=== RUN   TestNativeAddrOfSpillPreservesWordAndHL
+    addrof_spill_test.go:51: spilled address/live HL gotregs{113 133 4773 22136 32787 4951 9320 61440 28675} slot0013 want8013 output165
+--- FAIL: TestNativeAddrOfSpillPreservesWordAndHL (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/mir2	0.008s
+FAIL

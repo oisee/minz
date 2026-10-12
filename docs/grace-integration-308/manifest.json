@@ -1,0 +1,24 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "3b4348acd4765924f0de05899a2bfc20644d29989316c15cbf03c41ff3c2213a"
+    },
+    {
+      "path": "after.txt",
+      "sha256": "647e357836d798f42abef71a6b0e73e9f3f9daa7a7c64f398ae16aff8493b558"
+    },
+    {
+      "path": "before.txt",
+      "sha256": "56e609ae1759248bfd45d803a2ce045a4eaa3c5276c06b2b0d5b0f42bf7d9782"
+    },
+    {
+      "path": "full-mir-pfcco.txt",
+      "sha256": "6b8f3f0becce02f70e2a9bb02aa8e45621f75152be4e186161b3ccf4fb9ea391"
+    },
+    {
+      "path": "nc-next-failure.txt",
+      "sha256": "c555f1758a14ae1b318716dc9ac9d26a274dd32bf5ed81b663c006309020785a"
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 # Grace / PGO: текущее состояние
 
+Spilledaddr_of36caa041 теперь сохраняетfull16bit/HL; independentnativePASS0,053с. NCnamescorrect, следующийattrmismatch ещёFAIL. FullMIRPFCCO4e70ff9e PASS81,158с. [Пакет308](grace-integration-308/README.md). НовыйfullMIRзапущен.
+
 PFCCO arena repair интегрирован4e70ff9e: root arena/heldout/arrayVMZ80 **PASS1,565с**,1130→1122B иsplit220→166T. [Пакет306](grace-integration-306/README.md). FullrootMIR повторяется; NCnative покаFAIL.
 
 NC diagnosis уточнён: цикл вызван ROM-защитой стенда, tailcallreset также требовал точного разрешения. После коррекции main возвращается, но native output mismatch остаётся (blank вместо H). [Пакет305](grace-integration-305/README.md). NC nativeнеобъявленPASS.
