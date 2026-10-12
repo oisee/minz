@@ -1,0 +1,483 @@
+=== RUN   TestGrace_AllFrontends
+    grace_all_frontends_test.go:66: 
+    grace_all_frontends_test.go:67: ╔════════════════════════════════════════════════════════════════════════════╗
+    grace_all_frontends_test.go:68: ║          Grace vs Go — ALL Frontends Compilation Report                  ║
+    grace_all_frontends_test.go:69: ╚════════════════════════════════════════════════════════════════════════════╝
+    grace_all_frontends_test.go:78: 
+        ── NANZ (72 files) ──
+    grace_all_frontends_test.go:79: File                                    Go  Grace  Delta Status
+    grace_all_frontends_test.go:80: ─────────────────────────────────── ────── ────── ────── ──────
+    grace_all_frontends_test.go:145: 01_sum_array.nanz                      121    121      0 ≠ diverged
+    grace_all_frontends_test.go:145: 02_sum_array_idiomatic.nanz             34     34      0 ≠ diverged
+    grace_all_frontends_test.go:145: 03_filter_map_chain.nanz                58     58      0 ≠ diverged
+    grace_all_frontends_test.go:145: 04_lut_popcount.nanz                     5      5      0 ≠ diverged
+    grace_all_frontends_test.go:141: 05_four_pointers.nanz                   18     18      0 ✓ identical
+    grace_all_frontends_test.go:145: 06_pbqp_weighted.nanz                   36     36      0 ≠ diverged
+    grace_all_frontends_test.go:141: 07_ix_load_store.nanz                   24     24      0 ✓ identical
+    grace_all_frontends_test.go:145: 08_arena_allocator.nanz                728    728      0 ≠ diverged
+    grace_all_frontends_test.go:145: 09_function_pointers.nanz               20     20      0 ≠ diverged
+    grace_all_frontends_test.go:145: 10_adt_option.nanz                      86     86      0 ≠ diverged
+    grace_all_frontends_test.go:145: 11_match_expression.nanz                27     27      0 ≠ diverged
+    grace_all_frontends_test.go:145: 12_state_machine.nanz                   60     63     +3 ≠ diverged
+    grace_all_frontends_test.go:145: 13_result_error.nanz                    57     57      0 ≠ diverged
+    grace_all_frontends_test.go:145: 14_error_propagation.nanz              354    354      0 ≠ diverged
+    grace_all_frontends_test.go:145: 15_error_enforcement.nanz              267    267      0 ≠ diverged
+    grace_all_frontends_test.go:145: 16_rotate_sled.nanz                    123    123      0 ≠ diverged
+    grace_all_frontends_test.go:145: 17_bool_retflag.nanz                    90     90      0 ≠ diverged
+    grace_all_frontends_test.go:145: 18_tail_recursion.nanz                  95    112    +17 ≠ diverged
+    grace_all_frontends_test.go:145: 20_strref_test.nanz                     33     33      0 ≠ diverged
+    grace_all_frontends_test.go:145: 21_hashmap_test.nanz                   568    568      0 ≠ diverged
+    grace_all_frontends_test.go:145: 30_stream_test.nanz                    202    202      0 ≠ diverged
+    grace_all_frontends_test.go:145: 50_impl_showcase.nanz                  212    212      0 ≠ diverged
+    grace_all_frontends_test.go:145: 51_impl_cpm_demo.nanz                  179    179      0 ≠ diverged
+    grace_all_frontends_test.go:145: abap_screen.nanz                       855    855      0 ≠ diverged
+    grace_all_frontends_test.go:145: assert_test.nanz                        10     10      0 ≠ diverged
+    grace_all_frontends_test.go:145: canvas_house.nanz                     1228   1228      0 ≠ diverged
+    grace_all_frontends_test.go:145: cpm_leaf_console.nanz                  148    147     -1 ≠ diverged
+    grace_all_frontends_test.go:145: grace_hir_constant_if.nanz               3      3      0 ≠ diverged
+    grace_all_frontends_test.go:145: grace_intern_checked.nanz              444    454    +10 ≠ diverged
+    grace_all_frontends_test.go:145: grace_seeded_sum.nanz                   43     43      0 ≠ diverged
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    grace_all_frontends_test.go:145: grace_tokenizer_checked.nanz          2645   2664    +19 ≠ diverged
+    grace_all_frontends_test.go:145: grace_weighted_checksum.nanz           114    114      0 ≠ diverged
+    grace_all_frontends_test.go:145: hello_cpm.nanz                          20     20      0 ≠ diverged
+    grace_all_frontends_test.go:145: hello_cpm_fib.nanz                     134    134      0 ≠ diverged
+    grace_all_frontends_test.go:145: irc_client.nanz                       2044   2025    -19 ≠ diverged
+    grace_all_frontends_test.go:145: meta_screen.nanz                       651    651      0 ≠ diverged
+    grace_all_frontends_test.go:145: mul16_gpu_test.nanz                     79     79      0 ≠ diverged
+    grace_all_frontends_test.go:145: mul_const.nanz                           9      9      0 ≠ diverged
+[HIR-SPLIT] fs__fat12__write_fat12 → fs__fat12__write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__fat_cache_put → fs__fat12__fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__find_file → fs__fat12__find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__get_file_size → fs__fat12__get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__file_read → fs__fat12__file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__file_write_data → fs__fat12__file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] fs__fat12__update_dir_size → fs__fat12__update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] fs__fat12__delete_file → fs__fat12__delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__overwrite_file → fs__fat12__overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] fs__fat12__count_dir_entries → fs__fat12__count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] fs__fat12__get_dir_entry → fs__fat12__get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] fs__fat12__get_dir_entry_full → fs__fat12__get_dir_entry_full$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] draw_panel → draw_panel$split_26 (4 inputs, pressure 10)
+[HIR-SPLIT] fs__fat12__write_fat12 → fs__fat12__write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__fat_cache_put → fs__fat12__fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__find_file → fs__fat12__find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__get_file_size → fs__fat12__get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__file_read → fs__fat12__file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__file_write_data → fs__fat12__file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] fs__fat12__update_dir_size → fs__fat12__update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] fs__fat12__delete_file → fs__fat12__delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__overwrite_file → fs__fat12__overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] fs__fat12__count_dir_entries → fs__fat12__count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] fs__fat12__get_dir_entry → fs__fat12__get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] fs__fat12__get_dir_entry_full → fs__fat12__get_dir_entry_full$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] draw_panel → draw_panel$split_26 (4 inputs, pressure 10)
+    grace_all_frontends_test.go:145: nc.nanz                               6171   6198    +27 ≠ diverged
+    grace_all_frontends_test.go:145: pfcco_weighted_packet.nanz              35     35      0 ≠ diverged
+    grace_all_frontends_test.go:145: promoted_arithmetic.nanz               255    250     -5 ≠ diverged
+    grace_all_frontends_test.go:145: rotozoomer.nanz                       1072   1072      0 ≠ diverged
+    grace_all_frontends_test.go:145: sap_mara_cpm.nanz                      832    832      0 ≠ diverged
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+    grace_all_frontends_test.go:145: sap_mara_demo.nanz                    1090   1090      0 ≠ diverged
+    grace_all_frontends_test.go:145: screen_alv.nanz                       1917   1893    -24 ≠ diverged
+    grace_all_frontends_test.go:145: screen_customer.nanz                  1128   1124     -4 ≠ diverged
+    grace_all_frontends_test.go:145: screen_declarative.nanz               1576   1572     -4 ≠ diverged
+    grace_all_frontends_test.go:145: screen_report.nanz                    1457   1433    -24 ≠ diverged
+    grace_all_frontends_test.go:145: self_lanz_parser.nanz                 1476   1476      0 ≠ diverged
+    grace_all_frontends_test.go:145: self_parser.nanz                      4412   4412      0 ≠ diverged
+    grace_all_frontends_test.go:145: self_tokenizer.nanz                   3221   3219     -2 ≠ diverged
+    grace_all_frontends_test.go:145: sha256.nanz                            267    267      0 ≠ diverged
+    grace_all_frontends_test.go:145: signed_arithmetic.nanz                 194    194      0 ≠ diverged
+    grace_all_frontends_test.go:145: sql_test6.nanz                         720    720      0 ≠ diverged
+    grace_all_frontends_test.go:145: sqlite_demo.nanz                       250    250      0 ≠ diverged
+    grace_all_frontends_test.go:145: sqlite_test.nanz                       827    827      0 ≠ diverged
+    grace_all_frontends_test.go:145: test_irc_minimal.nanz                  120    120      0 ≠ diverged
+    grace_all_frontends_test.go:145: tetris_cpm.nanz                       2500   2501     +1 ≠ diverged
+    grace_all_frontends_test.go:145: tetris_tui.nanz                       2141   2142     +1 ≠ diverged
+    grace_all_frontends_test.go:145: tiny.nanz                               11     11      0 ≠ diverged
+    grace_all_frontends_test.go:145: tui_commander.nanz                     382    382      0 ≠ diverged
+    grace_all_frontends_test.go:145: tui_commander_l3.nanz                   85     85      0 ≠ diverged
+    grace_all_frontends_test.go:145: tui_cpm.nanz                           240    240      0 ≠ diverged
+    grace_all_frontends_test.go:145: tui_demo.nanz                           42     42      0 ≠ diverged
+    grace_all_frontends_test.go:145: tui_screen.nanz                        196    196      0 ≠ diverged
+    grace_all_frontends_test.go:145: tui_zx.nanz                            193    193      0 ≠ diverged
+    grace_all_frontends_test.go:145: tuple_assert_gate.nanz                  16     16      0 ≠ diverged
+    grace_all_frontends_test.go:145: typed_print.nanz                       607    607      0 ≠ diverged
+    grace_all_frontends_test.go:145: widemath.nanz                          435    435      0 ≠ diverged
+    grace_all_frontends_test.go:145: zsql.nanz                              552    552      0 ≠ diverged
+    grace_all_frontends_test.go:145: zsql_zx.nanz                           504    402   -102 ≠ diverged
+    grace_all_frontends_test.go:145: zsql_zx_real.nanz                      369    369      0 ≠ diverged
+    grace_all_frontends_test.go:151: nanz subtotal:                      Pass: 72  Identical: 2  Diverged: 70  Fail: 0
+    grace_all_frontends_test.go:78: 
+        ── LANZ (1 files) ──
+    grace_all_frontends_test.go:79: File                                    Go  Grace  Delta Status
+    grace_all_frontends_test.go:80: ─────────────────────────────────── ────── ────── ────── ──────
+    grace_all_frontends_test.go:145: assert_test.lanz                        10     10      0 ≠ diverged
+    grace_all_frontends_test.go:151: lanz subtotal:                      Pass: 1  Identical: 0  Diverged: 1  Fail: 0
+    grace_all_frontends_test.go:78: 
+        ── LIZP (14 files) ──
+    grace_all_frontends_test.go:79: File                                    Go  Grace  Delta Status
+    grace_all_frontends_test.go:80: ─────────────────────────────────── ────── ────── ────── ──────
+    grace_all_frontends_test.go:145: assert_test.lizp                        10     10      0 ≠ diverged
+[Z80-VALIDATE] main: 2 invalid instruction(s)
+  line 3: >>> LD A, <<<
+    grace_all_frontends_test.go:145: cond_test.lizp                          57     48     -9 ≠ diverged
+    grace_all_frontends_test.go:145: crypto.lizp                             73     73      0 ≠ diverged
+    grace_all_frontends_test.go:145: dsp.lizp                                89     89      0 ≠ diverged
+    grace_all_frontends_test.go:141: factorial.lizp                          45     45      0 ✓ identical
+    grace_all_frontends_test.go:145: functional.lizp                         79     79      0 ≠ diverged
+    grace_all_frontends_test.go:145: game_of_life.lizp                       48     48      0 ≠ diverged
+    grace_all_frontends_test.go:145: hello.lizp                               3      3      0 ≠ diverged
+    grace_all_frontends_test.go:145: scheme_r5rs.lizp                       131    131      0 ≠ diverged
+    grace_all_frontends_test.go:145: scheme_test.lizp                       107    107      0 ≠ diverged
+    grace_all_frontends_test.go:145: self_tokenizer.lizp                    419    419      0 ≠ diverged
+    grace_all_frontends_test.go:145: showcase.lizp                           95     95      0 ≠ diverged
+    grace_all_frontends_test.go:145: zx_checkerboard.lizp                    97     97      0 ≠ diverged
+    grace_all_frontends_test.go:145: zx_rainbow.lizp                         72     72      0 ≠ diverged
+    grace_all_frontends_test.go:151: lizp subtotal:                      Pass: 14  Identical: 1  Diverged: 13  Fail: 0
+    grace_all_frontends_test.go:78: 
+        ── PLM (5 files) ──
+    grace_all_frontends_test.go:79: File                                    Go  Grace  Delta Status
+    grace_all_frontends_test.go:80: ─────────────────────────────────── ────── ────── ────── ──────
+    grace_all_frontends_test.go:145: abs_diff_fib.plm                        30     23     -7 ≠ diverged
+    grace_all_frontends_test.go:145: assert_test.plm                         10     10      0 ≠ diverged
+    grace_all_frontends_test.go:145: hello.plm                               10     10      0 ≠ diverged
+    grace_all_frontends_test.go:145: showcase.plm                            82     75     -7 ≠ diverged
+    grace_all_frontends_test.go:141: sum_array.plm                           22     22      0 ✓ identical
+    grace_all_frontends_test.go:151: plm subtotal:                       Pass: 5  Identical: 1  Diverged: 4  Fail: 0
+    grace_all_frontends_test.go:78: 
+        ── PASCAL (11 files) ──
+    grace_all_frontends_test.go:79: File                                    Go  Grace  Delta Status
+    grace_all_frontends_test.go:80: ─────────────────────────────────── ────── ────── ────── ──────
+    grace_all_frontends_test.go:145: assert_test.pas                          7      7      0 ≠ diverged
+    grace_all_frontends_test.go:145: bubble_sort.pas                        256    255     -1 ≠ diverged
+    grace_all_frontends_test.go:145: casetest.pas                            52     51     -1 ≠ diverged
+    grace_all_frontends_test.go:145: factorial.pas                          152    152      0 ≠ diverged
+    grace_all_frontends_test.go:145: hello.pas                               14     14      0 ≠ diverged
+    grace_all_frontends_test.go:145: logic_test.pas                          20     20      0 ≠ diverged
+    grace_all_frontends_test.go:145: math_test.pas                           62     62      0 ≠ diverged
+    grace_all_frontends_test.go:145: records.pas                            130    122     -8 ≠ diverged
+    grace_all_frontends_test.go:145: recursive_test.pas                      73     73      0 ≠ diverged
+    grace_all_frontends_test.go:145: sieve.pas                              238    238      0 ≠ diverged
+    grace_all_frontends_test.go:145: string_test.pas                         42     39     -3 ≠ diverged
+    grace_all_frontends_test.go:151: pascal subtotal:                    Pass: 11  Identical: 0  Diverged: 11  Fail: 0
+    grace_all_frontends_test.go:78: 
+        ── C89 (39 files) ──
+    grace_all_frontends_test.go:79: File                                    Go  Grace  Delta Status
+    grace_all_frontends_test.go:80: ─────────────────────────────────── ────── ────── ────── ──────
+    grace_all_frontends_test.go:141: assert_test.c                           39     39      0 ✓ identical
+    grace_all_frontends_test.go:141: bench.c                                 64     64      0 ✓ identical
+    grace_all_frontends_test.go:145: bench_extended.c                       443    443      0 ≠ diverged
+    grace_all_frontends_test.go:145: bitops.c                               183    183      0 ≠ diverged
+    grace_all_frontends_test.go:141: c99_c11.c                              249    249      0 ✓ identical
+    grace_all_frontends_test.go:145: c99_compound.c                          76     76      0 ≠ diverged
+    grace_all_frontends_test.go:145: c99_control.c                          103    109     +6 ≠ diverged
+    grace_all_frontends_test.go:99: c99_designated.c                         -      -      - GO FAIL: statement 1: HIR desig_basic_a: call desig_basic return type ptr, declared void
+    grace_all_frontends_test.go:145: c99_preproc.c                          171    175     +4 ≠ diverged
+    grace_all_frontends_test.go:141: c99_types.c                            117    117      0 ✓ identical
+    grace_all_frontends_test.go:141: cast_test.c                             10     10      0 ✓ identical
+    grace_all_frontends_test.go:99: compound_lit.c                           -      -      - GO FAIL: statement 1: HIR test_div_q: call make_div return type ptr, declared void
+    grace_all_frontends_test.go:141: constfold_showcase.c                   105    105      0 ✓ identical
+    grace_all_frontends_test.go:145: cpm_io.c                               176    176      0 ≠ diverged
+    grace_all_frontends_test.go:145: dowhile_break.c                        506    500     -6 ≠ diverged
+    grace_all_frontends_test.go:145: enum_test.c                             13     13      0 ≠ diverged
+    grace_all_frontends_test.go:145: fatfs_constructs.c                     251    246     -5 ≠ diverged
+    grace_all_frontends_test.go:145: fatfs_lowlevel.c                       784    780     -4 ≠ diverged
+    grace_all_frontends_test.go:141: flex_array.c                             2      2      0 ✓ identical
+    grace_all_frontends_test.go:141: func_ptr.c                              81     81      0 ✓ identical
+    grace_all_frontends_test.go:145: game_helpers.c                         127    127      0 ≠ diverged
+    grace_all_frontends_test.go:145: goto_test.c                             20     20      0 ≠ diverged
+    grace_all_frontends_test.go:141: hello.c                                 30     30      0 ✓ identical
+    grace_all_frontends_test.go:99: import_test.c                            -      -      - GO FAIL: line 13: assert "// assert sum_of_squares(3, 4) == 25 via mir2" [mir2]: VM error: block @entry: mir2.VM: unknown function square
+    grace_all_frontends_test.go:141: imported_math.c                         81     81      0 ✓ identical
+    grace_all_frontends_test.go:141: logical.c                              317    317      0 ✓ identical
+    grace_all_frontends_test.go:145: math16.c                               174    171     -3 ≠ diverged
+    grace_all_frontends_test.go:141: math8.c                                 51     51      0 ✓ identical
+    grace_all_frontends_test.go:99: minmax_pair.c                            -      -      - GO FAIL: statement 1: statement 0: statement 1: HIR minmax: value type ptr incompatible with void
+    grace_all_frontends_test.go:141: nested_struct.c                        569    569      0 ✓ identical
+    grace_all_frontends_test.go:141: sdcc_benchmark.c                       158    158      0 ✓ identical
+    grace_all_frontends_test.go:141: sizeof_test.c                           12     12      0 ✓ identical
+    grace_all_frontends_test.go:141: static_local.c                          37     37      0 ✓ identical
+    grace_all_frontends_test.go:145: string8.c                              108    109     +1 ≠ diverged
+    grace_all_frontends_test.go:99: struct_promote.c                         -      -      - GO FAIL: statement 1: HIR get_quotient: call divmod return type ptr, declared void
+    grace_all_frontends_test.go:141: switch.c                               151    151      0 ✓ identical
+    grace_all_frontends_test.go:145: ternary.c                               12     12      0 ≠ diverged
+    grace_all_frontends_test.go:141: typeof_test.c                            4      4      0 ✓ identical
+    grace_all_frontends_test.go:141: union_test.c                             2      2      0 ✓ identical
+    grace_all_frontends_test.go:151: c89 subtotal:                       Pass: 34  Identical: 19  Diverged: 15  Fail: 0
+    grace_all_frontends_test.go:155: 
+    grace_all_frontends_test.go:156: ════════════════════════════════════════════════════════════════════════════
+    grace_all_frontends_test.go:157: TOTAL FILES: 137  Pass: 137  Identical: 23  Diverged: 114  Fail: 0
+    grace_all_frontends_test.go:159: TOTAL INSTRUCTIONS: Go=54878  Grace=54728  Delta=-150
+    grace_all_frontends_test.go:162: Convergence rate: 16.8%
+    grace_all_frontends_test.go:164: 
+    grace_all_frontends_test.go:165: Grace stats: Grace: 1485 funcs, 3024 rewrites (cond-call-fold=23, narrow-arith=1, cond-ret-sink=291, tail-recursion-elim=7, invariant-address-hoist=7, redundant-load=12, dead-block-arg=419, tail-call-opt=242, trivial-branch=3, dead-store-elim=1048, empty-block-elim=238, split-join-ret=79, flags-only-cmp=592, block-merge=30, param-forward-elim=32)
+    grace_all_frontends_test.go:166: 
+    grace_all_frontends_test.go:167: Rule fire counts:
+    grace_all_frontends_test.go:169:   trivial-branch            3
+    grace_all_frontends_test.go:169:   dead-store-elim           1048
+    grace_all_frontends_test.go:169:   empty-block-elim          238
+    grace_all_frontends_test.go:169:   split-join-ret            79
+    grace_all_frontends_test.go:169:   flags-only-cmp            592
+    grace_all_frontends_test.go:169:   block-merge               30
+    grace_all_frontends_test.go:169:   param-forward-elim        32
+    grace_all_frontends_test.go:169:   cond-call-fold            23
+    grace_all_frontends_test.go:169:   narrow-arith              1
+    grace_all_frontends_test.go:169:   cond-ret-sink             291
+    grace_all_frontends_test.go:169:   tail-recursion-elim       7
+    grace_all_frontends_test.go:169:   invariant-address-hoist   7
+    grace_all_frontends_test.go:169:   redundant-load            12
+    grace_all_frontends_test.go:169:   dead-block-arg            419
+    grace_all_frontends_test.go:169:   tail-call-opt             242
+--- PASS: TestGrace_AllFrontends (10.81s)
+=== RUN   TestGraceConvergence
+    grace_convergence_test.go:87: DIVERGE 01_sum_array.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 7
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 6
+    grace_convergence_test.go:87: DIVERGE 02_sum_array_idiomatic.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 9
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 8
+    grace_convergence_test.go:87: DIVERGE 03_filter_map_chain.nanz line 4:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 10
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 7
+    grace_convergence_test.go:87: DIVERGE 04_lut_popcount.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 4
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 3
+    grace_convergence_test.go:87: DIVERGE 06_pbqp_weighted.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 1
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 0
+    grace_convergence_test.go:87: DIVERGE 08_arena_allocator.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 29
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 32
+    grace_convergence_test.go:87: DIVERGE 09_function_pointers.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 5
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 0
+    grace_convergence_test.go:87: DIVERGE 10_adt_option.nanz line 4:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 22
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 15
+    grace_convergence_test.go:87: DIVERGE 11_match_expression.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 8
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 6
+    grace_convergence_test.go:87: DIVERGE 12_state_machine.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 7
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 9
+    grace_convergence_test.go:87: DIVERGE 13_result_error.nanz line 4:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 26
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 23
+    grace_convergence_test.go:87: DIVERGE 14_error_propagation.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 8
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 4
+    grace_convergence_test.go:87: DIVERGE 15_error_enforcement.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 6
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 3
+    grace_convergence_test.go:87: DIVERGE 16_rotate_sled.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 9
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 4
+    grace_convergence_test.go:87: DIVERGE 17_bool_retflag.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 14
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 2
+    grace_convergence_test.go:87: DIVERGE 18_tail_recursion.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 9
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 2
+    grace_convergence_test.go:87: DIVERGE 20_strref_test.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 25
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 23
+    grace_convergence_test.go:87: DIVERGE 21_hashmap_test.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 36
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 28
+    grace_convergence_test.go:87: DIVERGE 30_stream_test.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 17
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 18
+    grace_convergence_test.go:87: DIVERGE 50_impl_showcase.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 8
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 0
+    grace_convergence_test.go:87: DIVERGE 51_impl_cpm_demo.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 8
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 4
+    grace_convergence_test.go:87: DIVERGE abap_screen.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 33
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 40
+    grace_convergence_test.go:87: DIVERGE assert_test.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 4
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 1
+    grace_convergence_test.go:87: DIVERGE canvas_house.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 15
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 4
+    grace_convergence_test.go:87: DIVERGE cpm_leaf_console.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 2
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 4
+    grace_convergence_test.go:87: DIVERGE grace_hir_constant_if.nanz line 11:
+    grace_convergence_test.go:88:   Go:    .wrap_if_then1:
+    grace_convergence_test.go:89:   Grace:     INC A
+    grace_convergence_test.go:87: DIVERGE grace_intern_checked.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 15
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 11
+    grace_convergence_test.go:87: DIVERGE grace_seeded_sum.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 5
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 3
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    grace_convergence_test.go:87: DIVERGE grace_tokenizer_checked.nanz line 4:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 46
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 42
+    grace_convergence_test.go:87: DIVERGE grace_weighted_checksum.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 6
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 3
+    grace_convergence_test.go:87: DIVERGE hello_cpm.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 3
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 2
+    grace_convergence_test.go:87: DIVERGE hello_cpm_fib.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 11
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 7
+    grace_convergence_test.go:87: DIVERGE irc_client.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 91
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 86
+    grace_convergence_test.go:87: DIVERGE meta_screen.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 31
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 25
+    grace_convergence_test.go:87: DIVERGE mul16_gpu_test.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 5
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 0
+    grace_convergence_test.go:87: DIVERGE mul_const.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 1
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 0
+[HIR-SPLIT] fs__fat12__write_fat12 → fs__fat12__write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__fat_cache_put → fs__fat12__fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__find_file → fs__fat12__find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__get_file_size → fs__fat12__get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__file_read → fs__fat12__file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__file_write_data → fs__fat12__file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] fs__fat12__update_dir_size → fs__fat12__update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] fs__fat12__delete_file → fs__fat12__delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__overwrite_file → fs__fat12__overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] fs__fat12__count_dir_entries → fs__fat12__count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] fs__fat12__get_dir_entry → fs__fat12__get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] fs__fat12__get_dir_entry_full → fs__fat12__get_dir_entry_full$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] draw_panel → draw_panel$split_26 (4 inputs, pressure 10)
+[HIR-SPLIT] fs__fat12__write_fat12 → fs__fat12__write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__fat_cache_put → fs__fat12__fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__find_file → fs__fat12__find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__get_file_size → fs__fat12__get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__file_read → fs__fat12__file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__file_write_data → fs__fat12__file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] fs__fat12__update_dir_size → fs__fat12__update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] fs__fat12__delete_file → fs__fat12__delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__overwrite_file → fs__fat12__overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] fs__fat12__count_dir_entries → fs__fat12__count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] fs__fat12__get_dir_entry → fs__fat12__get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] fs__fat12__get_dir_entry_full → fs__fat12__get_dir_entry_full$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] draw_panel → draw_panel$split_26 (4 inputs, pressure 10)
+    grace_convergence_test.go:87: DIVERGE nc.nanz line 5:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 191
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 220
+    grace_convergence_test.go:87: DIVERGE pfcco_weighted_packet.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 2
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 0
+    grace_convergence_test.go:87: DIVERGE promoted_arithmetic.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 9
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 0
+    grace_convergence_test.go:87: DIVERGE rotozoomer.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 26
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 19
+    grace_convergence_test.go:87: DIVERGE sap_mara_cpm.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 33
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 23
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+    grace_convergence_test.go:87: DIVERGE sap_mara_demo.nanz line 4:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 13
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 19
+    grace_convergence_test.go:87: DIVERGE screen_alv.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 64
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 73
+    grace_convergence_test.go:87: DIVERGE screen_customer.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 32
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 47
+    grace_convergence_test.go:87: DIVERGE screen_declarative.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 53
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 65
+    grace_convergence_test.go:87: DIVERGE screen_report.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 54
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 52
+    grace_convergence_test.go:87: DIVERGE self_lanz_parser.nanz line 9:
+    grace_convergence_test.go:88:   Go:    ; [trace] backend=PBQP passes=[const-fold=1,dse=1,dead-block-arg=1]
+    grace_convergence_test.go:89:   Grace: ; [trace] backend=PBQP passes=[const-fold=1,dse=1,dead-block-arg=7]
+    grace_convergence_test.go:87: DIVERGE self_parser.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 76
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 102
+    grace_convergence_test.go:87: DIVERGE self_tokenizer.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 45
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 67
+    grace_convergence_test.go:87: DIVERGE sha256.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 33
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 26
+    grace_convergence_test.go:87: DIVERGE signed_arithmetic.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 9
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 0
+    grace_convergence_test.go:87: DIVERGE sql_test6.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 33
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 23
+    grace_convergence_test.go:87: DIVERGE sqlite_demo.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 10
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 3
+    grace_convergence_test.go:87: DIVERGE sqlite_test.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 33
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 23
+    grace_convergence_test.go:87: DIVERGE test_irc_minimal.nanz line 4:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 33
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 32
+    grace_convergence_test.go:87: DIVERGE tetris_cpm.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 64
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 72
+    grace_convergence_test.go:87: DIVERGE tetris_tui.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 53
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 48
+    grace_convergence_test.go:87: DIVERGE tiny.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 3
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 0
+    grace_convergence_test.go:87: DIVERGE tui_commander.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 15
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 12
+    grace_convergence_test.go:87: DIVERGE tui_commander_l3.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 12
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 2
+    grace_convergence_test.go:87: DIVERGE tui_cpm.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 15
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 10
+    grace_convergence_test.go:87: DIVERGE tui_demo.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 5
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 2
+    grace_convergence_test.go:87: DIVERGE tui_screen.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 12
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 8
+    grace_convergence_test.go:87: DIVERGE tui_zx.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 4
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 2
+    grace_convergence_test.go:87: DIVERGE tuple_assert_gate.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 2
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 1
+    grace_convergence_test.go:87: DIVERGE typed_print.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 18
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 12
+    grace_convergence_test.go:87: DIVERGE widemath.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 52
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 32
+    grace_convergence_test.go:87: DIVERGE zsql.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 33
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 6
+    grace_convergence_test.go:87: DIVERGE zsql_zx.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 31
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 37
+    grace_convergence_test.go:87: DIVERGE zsql_zx_real.nanz line 3:
+    grace_convergence_test.go:88:   Go:    ; optimization passes fired: 30
+    grace_convergence_test.go:89:   Grace: ; optimization passes fired: 4
+    grace_convergence_test.go:96: 
+        === Grace Convergence ===
+    grace_convergence_test.go:97: Files: 72, Matched: 2, Diverged: 70
+    grace_convergence_test.go:99: Rate: 2.8%
+    grace_convergence_test.go:101: Grace stats: Grace: 1044 funcs, 2172 rewrites (tail-recursion-elim=7, redundant-load=6, param-forward-elim=18, cond-call-fold=21, cond-ret-sink=165, dead-block-arg=358, tail-call-opt=209, flags-only-cmp=517, invariant-address-hoist=7, narrow-arith=1, split-join-ret=27, dead-store-elim=660, empty-block-elim=167, block-merge=9)
+--- PASS: TestGraceConvergence (9.32s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	20.147s
