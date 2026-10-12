@@ -487,6 +487,8 @@ var q: u16 = sqlite_query_like(db,
     screen_carrier())   // filter from @screen field
 ```
 
+`sqlite_query_like` filters the rows returned by `baseSQL`; the named column must be present in its result. Existing `WHERE`, `ORDER BY`, and `LIMIT` remain inside that base query. A base `LIMIT` therefore applies before filtering. Filter values are bound as parameters.
+
 ABAP wildcard conventions:
 | Filter | SQL | Matches |
 |--------|-----|---------|
