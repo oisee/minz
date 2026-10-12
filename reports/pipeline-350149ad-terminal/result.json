@@ -1,0 +1,49 @@
+{
+  "checkpoint": "350149ad",
+  "binary_sha256": "8b5f341a24e00d941ebca56068f5476cbe540e188c2e739572f120c766a19930",
+  "exit_code": 1,
+  "counts_top_level": {
+    "PASS": 528,
+    "FAIL": 6,
+    "SKIP": 29
+  },
+  "failures": [
+    "TestPascalCPMMainAdmission (0.16s)",
+    "TestPascalHelloProductionCPM (0.61s)",
+    "TestPascalDecimalProductionFullDomain (0.12s)",
+    "TestPFCCOMeasuredNativePacket (0.60s)",
+    "TestMeasuredContractStrategiesOriginalArena (11.74s)",
+    "TestSumProfileCostFullU8Domain (0.66s)"
+  ],
+  "skips": [
+    "TestCheckedRealWeightedSolverAndNativeCallers (0.00s)",
+    "TestCheckedRealAlreadyOptimalLeafKeepsBaseline (0.00s)",
+    "TestCheckedExistingFunctionPointerLeaf (0.00s)",
+    "TestCheckedActualWordMultiplication (0.00s)",
+    "TestCheckedExistingHash16GenerationEvidence (0.00s)",
+    "TestCombinedContractTableGraceNative (0.00s)",
+    "TestCompositionActualInventory (0.00s)",
+    "TestCompositionExactHashNative (0.00s)",
+    "TestDecimalPrintSourceNative (0.00s)",
+    "TestGlobalWordDirectOriginalBoth30 (0.00s)",
+    "TestIndexedShapeCorpusCoverage (0.00s)",
+    "TestIndexedSourceCloneProposalReuse (0.00s)",
+    "TestLizpErasedCallbackSignatureDiagnostic (0.00s)",
+    "TestMemoryHostPolicySelectorOriginalParserExport (0.00s)",
+    "TestMemoryHostArenaPeelDiagnostic (0.00s)",
+    "TestMemoryHostArenaPeelShapeExport (0.00s)",
+    "TestMemoryHostPolicySearchOriginalParserExport (0.00s)",
+    "TestMemoryHostPolicySearchShortCrossoverExport (0.00s)",
+    "TestTokenizerContractObjectiveAttribution (0.00s)",
+    "TestMeasuredCommonGraceArtifacts (0.00s)",
+    "TestSearchBoundedStageTiming (0.00s)",
+    "TestIndexedActualHistoricalENRT (0.00s)",
+    "TestIndexedHistoricalTripleNative (0.00s)",
+    "TestActualLegacyCandidateImportCorpus (0.00s)",
+    "TestCheckedTableNegativeCorpusAudit (0.00s)",
+    "TestCheckedStrRefEqualNative (0.00s)",
+    "TestCheckedExactBindingMissAndRevalidatedTransfer (0.00s)",
+    "TestUnsignedPairPolicyOriginalParserExport (0.00s)",
+    "TestIndexedQuotientWeightedNative (0.00s)"
+  ]
+}
