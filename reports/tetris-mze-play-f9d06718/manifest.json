@@ -1,0 +1,22 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "5bffd8bd6e244e731c692c6ee2b7d496074a0c29425742f789a63c87704bc4bf"
+  },
+  {
+    "path": "play.sh",
+    "sha256": "0b4ae72039063f6bebab86c4a1b3a2a8a8439804ce7b11dd06a5fd49d0ff68e7"
+  },
+  {
+    "path": "result.json",
+    "sha256": "122b6ddd9a500bd9eb395b9b6d25a6f5c0a0da291680a078df27a1aec86c6ff8"
+  },
+  {
+    "path": "smoke.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "smoke.stdout",
+    "sha256": "019c56043d6bd401467dbb9609bdb89aed56692ffe476d42ad27b7bdef727f19"
+  }
+]

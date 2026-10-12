@@ -1,0 +1,20 @@
+{
+  "compiler_checkpoint": "b6b4e0c7",
+  "emulator_checkpoint": "f9d06718",
+  "command": [
+    "mze",
+    "program.com",
+    "-t",
+    "cpm",
+    "--timeout",
+    "2000000"
+  ],
+  "stdin_hex": "7a7161",
+  "exit_code": 0,
+  "stdout_bytes": 329,
+  "stderr_bytes": 0,
+  "scope": "CLI emulation of public guarded CP/M COM; BDOS1 echoes keys; not hardware",
+  "shared_play_directory": "/mnt/safe/minz/grace/2026-10-12/play-tetris",
+  "mze_sha256": "d505594848a1a9d713ab2a67735b5ac7a39836039feaf3ffe58468a33bb4d09f",
+  "com_sha256": "879a74222ae191647c1a8461afc3031c586fd77560f55483a8cd566b80d4a568"
+}
