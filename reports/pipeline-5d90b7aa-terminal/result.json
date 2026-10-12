@@ -1,0 +1,18 @@
+{
+  "checkpoint": "5d90b7aa",
+  "exit_code": 2,
+  "outcome": "timeout, not PASS",
+  "timeout": "180m",
+  "counts": {
+    "PASS": 493,
+    "FAIL": 0,
+    "SKIP": 14
+  },
+  "timeout_message": [
+    "panic: test timed out after 3h0m0s"
+  ],
+  "active_at_timeout": "TestOriginalSHASplitHelpersVMZ80",
+  "command_metadata": "reports/pipeline-5d90b7aa-checkpoint/job.json",
+  "next_checkpoint": "b6b4e0c7",
+  "next_timeout": "360m"
+}

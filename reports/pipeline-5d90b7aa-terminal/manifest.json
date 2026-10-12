@@ -1,0 +1,14 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "897182238db726227bf69e16c17b55e5c61d2d86458e3d996e412d63880364dd"
+  },
+  {
+    "path": "full.txt",
+    "sha256": "66d50027b69fcef8da6d07d8c4dfb88a47a61490089269278b0b7b508e6525df"
+  },
+  {
+    "path": "result.json",
+    "sha256": "ab08f435d15d1f7b4aac9e4d1f69ab03bc2c9bce3c2f3cdab707b4f20d07998f"
+  }
+]
