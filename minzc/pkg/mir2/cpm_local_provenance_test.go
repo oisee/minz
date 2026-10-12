@@ -1,6 +1,10 @@
 package mir2
 
-import "testing"
+import (
+	"github.com/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/z80asm"
+	"testing"
+)
 
 func cpmNarrowFixture() (*Module, *AllocResult) {
 	m := &Module{}
@@ -62,13 +66,21 @@ func TestCPMLocalAddressTypedAuthority(t *testing.T) {
 	if e != nil || locals[2].size != 2 {
 		t.Fatal("valid move", locals, e)
 	}
-	c := &Inst{Op: OpConst, Dst: 4, Ty: TyU8, Imm: 257}
+	c := &Inst{Op: OpConst, Dst: 4, Ty: TyU8, Imm: 1}
 	f.Entry().Insts[1].Op = OpPtrAdd
 	f.Entry().Insts[1].Src[1] = 4
 	f.Entry().Insts = append([]*Inst{f.Entry().Insts[0], c}, f.Entry().Insts[1:]...)
 	locals, e = cpmLocalAddresses(f)
 	if e != nil || locals[2].offset != 1 {
-		t.Fatal("typed stored offset", locals, e)
+		t.Fatal("typed canonical offset", locals, e)
+	}
+	c.Imm = 257
+	locals, e = cpmLocalAddresses(f)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if _, ok := locals[2]; ok {
+		t.Fatal("noncanonical offset admitted")
 	}
 }
 func TestCPMReadOnlyPointerCannotNarrow(t *testing.T) {
@@ -79,5 +91,47 @@ func TestCPMReadOnlyPointerCannotNarrow(t *testing.T) {
 	f.Entry().Insts[0].Ty = TyPtr
 	if !cpmReadOnlyPointerParam(f, 0, 2) {
 		t.Fatal("valid readonly pointer rejected")
+	}
+}
+
+func TestCPMLocalStoredTypedOffsetNative(t *testing.T) {
+	m, ar := cpmNarrowFixture()
+	f := m.Funcs[0]
+	f.Entry().Insts[1].Op = OpPtrAdd
+	f.Entry().Insts[1].Ty = TyPtr
+	f.Entry().Insts[1].Src[1] = 4
+	c := &Inst{Op: OpConst, Dst: 4, Ty: TyU8, Imm: 1, Cls: ClassGeneral}
+	f.Entry().Insts = append([]*Inst{f.Entry().Insts[0], c}, f.Entry().Insts[1:]...)
+	ar.Locs[2] = PhysLoc{Kind: LocReg, Name: "DE"}
+	ar.Locs[4] = PhysLoc{Kind: LocReg, Name: "B"}
+	if e := Verify(m); e != nil {
+		t.Fatal(e)
+	}
+	text, e := Z80Codegen(m, ar, Z80CodegenOptions{Runtime: Z80RuntimeCPM, RuntimeStackBytes: 1024})
+	if e != nil {
+		t.Fatal(e)
+	}
+	a, e := z80asm.NewAssembler().AssembleString(text)
+	if e != nil || len(a.Errors) > 0 {
+		t.Fatal(e, a.Errors)
+	}
+	z := emulator.NewRemogattoZ80WithScreen()
+	z.SetROMEnd(0)
+	z.LoadMemory(0x100, a.Binary)
+	mem := z.Memory()
+	mem[0xeffe], mem[0xefff] = 0, 0
+	top := uint16(a.Symbols["__cpm_stack_top"])
+	mem[top-4], mem[top-3] = 0xaa, 0xbb
+	z.SetRegisters(emulator.Registers{PC: 0x100, SP: 0xeffe})
+	done := false
+	for n := 0; n < 1000; n++ {
+		if z.GetPC() == 0 && z.GetSP() == 0xf000 {
+			done = true
+			break
+		}
+		z.Step()
+	}
+	if !done || mem[top-3] != 42 {
+		t.Fatal("typed offset native", done, mem[top-4], mem[top-3], z.GetRegisters())
 	}
 }
