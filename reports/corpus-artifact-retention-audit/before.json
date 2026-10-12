@@ -1,0 +1,14 @@
+{
+  "scope": "catalog source/evidence SHA256 and listed manifest payloads tracked in Git; not behavior, unlisted-file completeness, shared-copy or hardware proof",
+  "catalog_entries": 194,
+  "manifests": 85,
+  "payload_entries": 4486,
+  "unique_files": 4952,
+  "failures": [
+    {
+      "path": "reports/agon-full-vdp-nc-boundary/program.bin",
+      "reason": "not tracked in Git"
+    }
+  ],
+  "verified": false
+}
