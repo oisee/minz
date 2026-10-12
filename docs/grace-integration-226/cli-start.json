@@ -6,8 +6,10 @@
   "sha256": "41334b7cc5ba4d5f50edea36a05d6bd5c713d6546d278d62432fd32056572f76",
   "session_id": 31257,
   "pid": 2481516,
-  "state": "confirmed live, terminal pending",
+  "state": "terminal PASS",
   "command": "go test ./cmd/minzc -count=1 -timeout=30m",
   "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc",
-  "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/cli-2a3f6662-current.txt"
+  "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/cli-2a3f6662-current.txt",
+  "terminal_exit_code": 0,
+  "duration_seconds": 354.362
 }
