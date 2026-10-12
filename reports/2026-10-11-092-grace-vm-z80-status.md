@@ -21,7 +21,9 @@
 
 После последней production правки прошли полный MIR2, HIR и 11 пакетов фронтендов/инструментов, полный CLI (74 PASS, 0 FAIL, 0 SKIP) и showcase compile/assemble (193 PASS, 1 capacity SKIP). Compile/assemble не заменяет проверку поведения. [Свежий checkpoint с логами](https://github.com/oisee/minz/blob/b6b4e0c7/reports/2026-10-12-grace-current-checkpoint.md).
 
-**Полный pipeline ещё выполняется.** В наблюдении 12 октября после двух часов работы: 322 верхнеуровневых теста PASS, 0 FAIL, 11 SKIP; выполняется полный 16-битный домен десятичной печати Pascal. Уже завершились большой assert-домен, Tetris mechanics (CP/M и TUI, три режима, по 238 456 вызовов), spawn/hold sequences, полный rotozoomer main (32 кадра во всех трёх режимах), ZX Tetris сценарии и parser heldout. Это промежуточный результат живого процесса, не общий PASS. Бинарник 5d90b7aa собран до последней literal-overwrite правки; после него требуется полный gate актуального backend. [Команда, checkpoint и SHA256](https://github.com/oisee/minz/blob/541db881/reports/pipeline-5d90b7aa-checkpoint/job.json).
+**Полный pipeline актуального backend выполняется.** Наблюдение 12 октября в 11:19 UTC: 226 верхнеуровневых PASS, 0 FAIL, 10 SKIP; выполняется матрица native composition boundaries. Это промежуточный результат, не общий PASS. Checkpoint b6b4e0c7 включает последнюю literal-overwrite правку, полный корпус и лимит 360 минут. [Команда, executable SHA256 и checkpoint](https://github.com/oisee/minz/blob/f0312aa0/reports/pipeline-b6b4e0c7-checkpoint/job.json).
+
+Предыдущий полный запуск 5d90b7aa завершился exit 2 по лимиту 180 минут во время SHA split helpers: 493 PASS, 0 верхнеуровневых FAIL, 14 SKIP. Он подтвердил большие семейства Tetris, графики, Pascal и self-parser, но timeout не означает общий PASS; оставшиеся тесты не подтверждены. [Терминальный результат и полный лог](https://github.com/oisee/minz/tree/514a54e9/reports/pipeline-5d90b7aa-terminal).
 
 Оставшиеся условия закрытия: полный gate актуального кода, явная политика Lizp return и исправление учебного PL/M Hello с пустым PRINTCHAR/чтением за literal bytes, проверка обещанных runtime границ Agon. Top-level entry PL/M уже исправлен, но это не исправляет семантику Hello целиком. Живой LIR удалён; VIR остаётся исследовательским путём, обычная компиляция не требует Z3. Speed по-прежнему выбирает минимум T без штрафа за байты; Size — самостоятельная цель.
 
@@ -35,9 +37,24 @@
 
 **Как попробовать на этой машине:** `bash /mnt/safe/minz/grace/2026-10-12/play-tetris/play.sh` в ANSI/VT100 терминале. Стрелки — движение, Z — поворот, X — сброс, C — hold, Q — выход, затем любая клавиша. Wrapper включает посимвольный ввод и восстанавливает терминал после выхода. Пока это пошаговая версия: игровое время продвигается по клавишам. Свежий `mze` с вводом `zqa` завершился exit 0; stdout 329 B включает три эха ввода BDOS. [Запускатель и воспроизведение](https://github.com/oisee/minz/tree/2dc6d47d/reports/tetris-mze-play-f9d06718).
 
-**Self-parser прошёл полный native main** во всех трёх режимах; отдельная whole-main VM проверяет независимую модель файлов, AST, токенов и stdout. Это другая программа, чем self-Lanz parser из таблицы heldout, и результаты не смешиваются. Полный pipeline-5d90b7aa всё ещё выполняется: в наблюдении после 2 ч 53 мин — 469 верхнеуровневых PASS, 0 FAIL, 14 SKIP. Уже завершились модель стоимости полного u8 domain, конкуренция правил за бюджет, bool/return-flags (198 912 вызовов на режим) и C89 string/memory. Это промежуточные результаты; полный gate актуального backend по-прежнему требуется. [Checkpoint и команда](https://github.com/oisee/minz/blob/541db881/reports/pipeline-5d90b7aa-checkpoint/job.json).
+**Self-parser прошёл полный native main** во всех трёх режимах; отдельная whole-main VM проверяет независимую модель файлов, AST, токенов и stdout. Это другая программа, чем self-Lanz parser из таблицы heldout, и результаты не смешиваются. В предыдущем полном запуске также завершились модель стоимости полного u8 domain, конкуренция правил за бюджет, bool/return-flags (198 912 вызовов на режим) и C89 string/memory. Итоги обоих gate приведены выше; старые промежуточные счётчики не используются как текущий статус.
 
-**Итог предыдущего gate:** pipeline-5d90b7aa достиг 493 PASS, 0 верхнеуровневых FAIL, 14 SKIP и завершился exit 2 по лимиту 180 минут во время SHA split helpers. Это timeout, не общий PASS; оставшиеся тесты не подтверждены. [Полный лог и итог](https://github.com/oisee/minz/tree/514a54e9/reports/pipeline-5d90b7aa-terminal). Подготовленный gate актуального backend b6b4e0c7 запущен с полным корпусом и лимитом 360 минут. [Новый checkpoint](https://github.com/oisee/minz/blob/f0312aa0/reports/pipeline-b6b4e0c7-checkpoint/job.json).
+## Новое: настоящий CLI Hello на Agon MOS
+
+**Первый Agon Hello уже выполнен в eZ80-эмуляторе под MOS.** Обычная команда `minzc examples/agon/hello_agon.nanz -b ez80 -o hellocli.bin` выпускает 188 B: MOS-заголовок и 119 B кода/данных. Fab Agon Emulator 1.2.5 с Console8 MOS 2.3.3 загрузил этот файл штатными `LOAD` и `RUN`. Проверено точное сообщение:
+
+```text
+Hello from MinZ on Agon Light 2!
+Press any key:
+You pressed a key!
+```
+
+Программа прочитала клавишу и вернулась к приглашению MOS; последующая команда `echo MINZ_RETURNED` тоже выполнилась. Одного exit 0 эмулятора недостаточно: оракул проверяет вывод программы и продолжение работы MOS. [Исходник, фактический BIN, ввод, вывод и SHA256](https://github.com/oisee/minz/tree/7ecf72e8/reports/agon-mos-cli-hello).
+
+Это ordinary-mode smoke для одного исходника: процессор eZ80 и firmware MOS исполняются, но CLI VDP — упрощённая модель. Графика, полный оракул RAM/SP, остальные четыре Agon-программы, все режимы оптимизации и аппаратный запуск ещё не подтверждены. Поэтому каталог не повышен целиком до «Agon работает».
+
+Ранний отказ MOS относился к исследовательскому BIN без заголовка. Публичная CLI уже правильно добавляла MOS-заголовок; исправление backend не потребовалось. [Сохранённая отрицательная проба и уточнение](https://github.com/oisee/minz/tree/99ab4b54/reports/agon-mos-first-execution). Новые артефакты целиком лежат на шаре в `/mnt/safe/minz/grace/2026-10-12/agon-mos-cli-hello/`.
+
 
 ## Что такое MinZ сейчас
 
@@ -55,7 +72,7 @@ MinZ — экспериментальный набор инструментов 
 | **Lanz** `.lanz` | S-expression представление, переводимое в общий HIR; удобно для генерации и анализа программ | Есть независимые проверки конкретных исходников; собственный Lanz-парсер на Nanz — отдельная программа, не замена всего compiler frontend |
 | **Lizp** `.lizp` | Lisp-подобный фронтенд с формами управления и макросами | Проверены арифметика, функции и отдельные приложения; implicit-return в cond_test остаётся пробелом |
 | **Pascal** `.pas` | Процедуры, функции, массивы, records и учебные алгоритмы | SORT и другие вычислительные примеры имеют native-доказательства; библиотечный вывод/CP/M проверяется отдельно |
-| **PL/M** `.plm` | Исторический системный язык: процедуры и byte-ориентированные программы | Арифметические примеры работают; Hello имеет пустой PRINTCHAR и проблему top-level entry |
+| **PL/M** `.plm` | Исторический системный язык: процедуры и byte-ориентированные программы | Арифметические примеры работают; top-level entry исправлен, но Hello имеет пустой PRINTCHAR и чтение за literal bytes |
 | **C89 / Objective-C** `.c`, `.m` | C-подмножество и ObjC-конструкции через общий HIR; реальные FAT12 и графические примеры | Это не полная совместимость с C/ObjC экосистемой. VM canvas render не означает native Z80 renderer |
 | **ABAP** `.abap` | ABAP-конструкции и сценарии с библиотечными/SQL связями | Parser bridge и runtime имеют свои зависимости; общий Z80-корпус не подтверждает весь ABAP/SQL |
 | **Frill** `.frl` | Дополнительный фронтенд общего HIR, с отдельным руководством и примерами | Его зрелость требует собственного корпуса; числа 121/194 нельзя распространять на все Frill программы |
@@ -175,9 +192,9 @@ Grace также проверяется на заранее отложенных
 
 ## Что ещё не закрыто
 
-- **Полный pipeline.** Старый запуск `cfaa7777` завершился с восемью падениями: семь устаревших эталонов стоимости и Manhattan observer. Они исправлены позже. Новый полный запуск на `29df08bb` выполняется; общего свежего PASS пока нет.
+- **Полный pipeline.** Актуальный b6b4e0c7 выполняется; предыдущий gate завершился timeout после 493 PASS. Свежего полного PASS пока нет.
 - **Lizp `cond_test`.** Объявленный результат отсутствует в VM, native оставляет прежний A. Правило implicit return не подтверждено спецификацией. Diagnostic PASS сохраняет этот пробел, не делает программу корректной.
-- **PL/M Hello.** Исходный `PRINTCHAR` пустой, а top-level calls не формируют `main`. Есть проверка библиотеки с явным адаптером; исходное приложение целиком не объявлено рабочим.
+- **PL/M Hello.** Top-level calls уже формируют entry, но исходный `PRINTCHAR` пустой, а PRINTMSG читает за literal bytes. Исходное приложение целиком не объявлено рабочим.
 - **Машинное окружение.** ASM, SMC, CP/M, ZX и Agon требуют собственных моделей. Проверка арифметического helper не доказывает работу устройства или целой игры.
 
 Следующая работа: закончить независимые проверки оставшихся исходников, получить свежий полный gate, затем пересмотреть итоговый каталог и готовность заявленных программ. LIR уже удалён из исследовательского рабочего пути; VIR остаётся офлайн-исследовательским механизмом. Обычная компиляция не требует Z3.
@@ -185,10 +202,10 @@ Grace также проверяется на заранее отложенных
 ## Где смотреть и воспроизводить
 
 - [Исследовательская ветка](https://github.com/oisee/minz/tree/feat/grace-hir-vm) — код, тесты и сохранённые доказательства.
-- [Каталог с точными статусами](https://github.com/oisee/minz/blob/45140dc0/docs/grace-integration-203/catalog.json) — состояние 121/194.
-- [Полный pipeline: executable SHA и команда](https://github.com/oisee/minz/blob/025ce7bb/docs/grace-integration-202/pipeline-start.json) — checkpoint отдельно от поздних проверок.
+- [Каталог с точными статусами](https://github.com/oisee/minz/blob/b6b4e0c7/docs/grace-integration-338/catalog.json) — текущие 194 пути; таблица 121/194 выше сохранена как история.
+- [Актуальный полный pipeline: executable SHA и команда](https://github.com/oisee/minz/blob/f0312aa0/reports/pipeline-b6b4e0c7-checkpoint/job.json) — checkpoint отдельно от поздних проверок.
 - [Приватный сайт](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/current-state.html) — опубликованная версия v68; она старше этого отчёта.
 
-Локальная полная копия опубликованного сайта: `/home/alice/dev/minz-artifacts/grace-reports/2026-10-11/site/index.html`.
+Локальная полная копия опубликованного сайта: `/home/alice/dev/minz-artifacts/grace-reports/2026-10-12/site/index.html`.
 
-На шаре сайт лежит в `/mnt/safe/minz/grace/2026-10-11/site-and-artifacts/site/index.html`. Новые пакеты доказательств — в соседних `compiler-reports/` и `compiler-docs/`; там сохранены исходники, профили/решения для соответствующих экспериментов, ASM/BIN, логи, manifests и SHA256. Retained test executables — в `compiler-checkpoints/` или внутри своего пакета. Каждый результат следует читать вместе с его исходником, входами и checkpoint: исторические числа разных сборок не смешиваются.
+На шаре сайт лежит в `/mnt/safe/minz/grace/2026-10-12/site-and-artifacts/site/index.html`. Новые пакеты доказательств — в соседних `compiler-reports/` и `compiler-docs/`; там сохранены исходники, профили/решения для соответствующих экспериментов, ASM/BIN, логи, manifests и SHA256. Retained test executables — в `compiler-checkpoints/` или внутри своего пакета. Каждый результат следует читать вместе с его исходником, входами и checkpoint: исторические числа разных сборок не смешиваются.
