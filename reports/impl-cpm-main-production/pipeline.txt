@@ -1,0 +1,147 @@
+=== RUN   TestOriginalImplCPMRejectsUntrustedVariants
+=== RUN   TestOriginalImplCPMRejectsUntrustedVariants/extra_ASM_call
+    original_impl_cpm_admission_test.go:65: CP/M runtime rejects ASM and fixed-address extern functions
+=== RUN   TestOriginalImplCPMRejectsUntrustedVariants/other_BDOS_function
+    original_impl_cpm_admission_test.go:65: CP/M runtime rejects ASM and fixed-address extern functions
+=== RUN   TestOriginalImplCPMRejectsUntrustedVariants/omitted_clobbers
+    original_impl_cpm_admission_test.go:65: CP/M runtime rejects ASM and fixed-address extern functions
+=== RUN   TestOriginalImplCPMRejectsUntrustedVariants/extra_ASM_output
+    original_impl_cpm_admission_test.go:65: CP/M runtime rejects ASM and fixed-address extern functions
+=== RUN   TestOriginalImplCPMRejectsUntrustedVariants/out_of_object_field
+    original_impl_cpm_admission_test.go:65: CP/M runtime invalid derived local address
+=== RUN   TestOriginalImplCPMRejectsUntrustedVariants/pointer_escape
+    original_impl_cpm_admission_test.go:65: CP/M runtime local pointer escapes through putchar
+=== RUN   TestOriginalImplCPMRejectsUntrustedVariants/dynamic_allocation
+    original_impl_cpm_admission_test.go:65: CP/M runtime requires bounded entry-local allocations
+=== RUN   TestOriginalImplCPMRejectsUntrustedVariants/allocation_loop
+    original_impl_cpm_admission_test.go:65: CP/M runtime requires bounded entry-local allocations
+--- PASS: TestOriginalImplCPMRejectsUntrustedVariants (0.04s)
+    --- PASS: TestOriginalImplCPMRejectsUntrustedVariants/extra_ASM_call (0.01s)
+    --- PASS: TestOriginalImplCPMRejectsUntrustedVariants/other_BDOS_function (0.01s)
+    --- PASS: TestOriginalImplCPMRejectsUntrustedVariants/omitted_clobbers (0.00s)
+    --- PASS: TestOriginalImplCPMRejectsUntrustedVariants/extra_ASM_output (0.01s)
+    --- PASS: TestOriginalImplCPMRejectsUntrustedVariants/out_of_object_field (0.01s)
+    --- PASS: TestOriginalImplCPMRejectsUntrustedVariants/pointer_escape (0.01s)
+    --- PASS: TestOriginalImplCPMRejectsUntrustedVariants/dynamic_allocation (0.01s)
+    --- PASS: TestOriginalImplCPMRejectsUntrustedVariants/allocation_loop (0.01s)
+=== RUN   TestOriginalImplCPMRuntimeAdmission
+=== RUN   TestOriginalImplCPMRuntimeAdmission/ordinary
+    original_impl_cpm_main_test.go:67: <nil>
+=== RUN   TestOriginalImplCPMRuntimeAdmission/grace-size
+    original_impl_cpm_main_test.go:67: <nil>
+=== RUN   TestOriginalImplCPMRuntimeAdmission/grace-speed
+    original_impl_cpm_main_test.go:67: <nil>
+--- PASS: TestOriginalImplCPMRuntimeAdmission (0.04s)
+    --- PASS: TestOriginalImplCPMRuntimeAdmission/ordinary (0.01s)
+    --- PASS: TestOriginalImplCPMRuntimeAdmission/grace-size (0.01s)
+    --- PASS: TestOriginalImplCPMRuntimeAdmission/grace-speed (0.01s)
+=== RUN   TestOriginalImplCPMMainNativeLoader
+=== RUN   TestOriginalImplCPMMainNativeLoader/ordinary
+=== RUN   TestOriginalImplCPMMainNativeLoader/ordinary/clobber-false
+=== RUN   TestOriginalImplCPMMainNativeLoader/ordinary/clobber-true
+=== RUN   TestOriginalImplCPMMainNativeLoader/grace-size
+=== RUN   TestOriginalImplCPMMainNativeLoader/grace-size/clobber-false
+=== RUN   TestOriginalImplCPMMainNativeLoader/grace-size/clobber-true
+=== RUN   TestOriginalImplCPMMainNativeLoader/grace-speed
+=== RUN   TestOriginalImplCPMMainNativeLoader/grace-speed/clobber-false
+=== RUN   TestOriginalImplCPMMainNativeLoader/grace-speed/clobber-true
+--- PASS: TestOriginalImplCPMMainNativeLoader (2.77s)
+    --- PASS: TestOriginalImplCPMMainNativeLoader/ordinary (0.74s)
+        --- PASS: TestOriginalImplCPMMainNativeLoader/ordinary/clobber-false (0.39s)
+        --- PASS: TestOriginalImplCPMMainNativeLoader/ordinary/clobber-true (0.34s)
+    --- PASS: TestOriginalImplCPMMainNativeLoader/grace-size (1.04s)
+        --- PASS: TestOriginalImplCPMMainNativeLoader/grace-size/clobber-false (0.51s)
+        --- PASS: TestOriginalImplCPMMainNativeLoader/grace-size/clobber-true (0.51s)
+    --- PASS: TestOriginalImplCPMMainNativeLoader/grace-speed (0.98s)
+        --- PASS: TestOriginalImplCPMMainNativeLoader/grace-speed/clobber-false (0.48s)
+        --- PASS: TestOriginalImplCPMMainNativeLoader/grace-speed/clobber-true (0.48s)
+=== RUN   TestOriginalImplCPMProductionMain
+=== RUN   TestOriginalImplCPMProductionMain/ordinary
+=== RUN   TestOriginalImplCPMProductionMain/ordinary/clobber-false
+=== RUN   TestOriginalImplCPMProductionMain/ordinary/clobber-true
+=== RUN   TestOriginalImplCPMProductionMain/grace-size
+=== RUN   TestOriginalImplCPMProductionMain/grace-size/clobber-false
+=== RUN   TestOriginalImplCPMProductionMain/grace-size/clobber-true
+=== RUN   TestOriginalImplCPMProductionMain/grace-speed
+=== RUN   TestOriginalImplCPMProductionMain/grace-speed/clobber-false
+=== RUN   TestOriginalImplCPMProductionMain/grace-speed/clobber-true
+--- PASS: TestOriginalImplCPMProductionMain (0.09s)
+    --- PASS: TestOriginalImplCPMProductionMain/ordinary (0.03s)
+        --- PASS: TestOriginalImplCPMProductionMain/ordinary/clobber-false (0.00s)
+        --- PASS: TestOriginalImplCPMProductionMain/ordinary/clobber-true (0.00s)
+    --- PASS: TestOriginalImplCPMProductionMain/grace-size (0.04s)
+        --- PASS: TestOriginalImplCPMProductionMain/grace-size/clobber-false (0.00s)
+        --- PASS: TestOriginalImplCPMProductionMain/grace-size/clobber-true (0.00s)
+    --- PASS: TestOriginalImplCPMProductionMain/grace-speed (0.02s)
+        --- PASS: TestOriginalImplCPMProductionMain/grace-speed/clobber-false (0.00s)
+        --- PASS: TestOriginalImplCPMProductionMain/grace-speed/clobber-true (0.00s)
+=== RUN   TestOriginalImplCPMPureMethods
+=== RUN   TestOriginalImplCPMPureMethods/ordinary
+    original_impl_cpm_methods_test.go:277: {
+          "calls": {
+            "Circle_area": 512,
+            "Rect_area": 131072
+          },
+          "cycles_including_CALL": {
+            "Circle_area": 518656,
+            "Rect_area": 67764224
+          },
+          "execution_sha256": "381c53e2212e4d16362e6784b17a69d482f9f9fa1bf16b67815dac5cd61b7b89",
+          "module_bytes": 260,
+          "source_sha256": "9440fd4e4347fd871edacdd02588e7b5198e60fd32eef55bb88f59ae040161ac",
+          "stack_depth": 10,
+          "whole_main_status": "not executed; BDOS/runtime still required",
+          "whole_module_functions_retained": 6
+        }
+=== RUN   TestOriginalImplCPMPureMethods/grace-size
+    original_impl_cpm_methods_test.go:277: {
+          "calls": {
+            "Circle_area": 512,
+            "Rect_area": 131072
+          },
+          "cycles_including_CALL": {
+            "Circle_area": 518656,
+            "Rect_area": 67764224
+          },
+          "execution_sha256": "381c53e2212e4d16362e6784b17a69d482f9f9fa1bf16b67815dac5cd61b7b89",
+          "module_bytes": 260,
+          "source_sha256": "9440fd4e4347fd871edacdd02588e7b5198e60fd32eef55bb88f59ae040161ac",
+          "stack_depth": 10,
+          "whole_main_status": "not executed; BDOS/runtime still required",
+          "whole_module_functions_retained": 6
+        }
+=== RUN   TestOriginalImplCPMPureMethods/grace-speed
+    original_impl_cpm_methods_test.go:277: {
+          "calls": {
+            "Circle_area": 512,
+            "Rect_area": 131072
+          },
+          "cycles_including_CALL": {
+            "Circle_area": 518656,
+            "Rect_area": 67764224
+          },
+          "execution_sha256": "381c53e2212e4d16362e6784b17a69d482f9f9fa1bf16b67815dac5cd61b7b89",
+          "module_bytes": 260,
+          "source_sha256": "9440fd4e4347fd871edacdd02588e7b5198e60fd32eef55bb88f59ae040161ac",
+          "stack_depth": 10,
+          "whole_main_status": "not executed; BDOS/runtime still required",
+          "whole_module_functions_retained": 6
+        }
+--- PASS: TestOriginalImplCPMPureMethods (4.05s)
+    --- PASS: TestOriginalImplCPMPureMethods/ordinary (1.31s)
+    --- PASS: TestOriginalImplCPMPureMethods/grace-size (1.33s)
+    --- PASS: TestOriginalImplCPMPureMethods/grace-speed (1.41s)
+=== RUN   TestCPMRuntimeOriginalSelfLanzMain
+    original_lanz_main_test.go:324: resident stack touched 46 bytes
+    original_lanz_main_test.go:336: exact main 135 stdout bytes all regions/globals/stack guards PASS 419998 T BIN 3998 SHA a77df7bfe58e38e34e021a429e4b4d8aa5cc0d72c6aab0a0af44d9b8fd932af3
+--- PASS: TestCPMRuntimeOriginalSelfLanzMain (0.37s)
+=== RUN   TestCPMRuntimeOriginalTokenizerMain
+    original_tokenizer_main_test.go:350: resident stack touched 28 bytes
+    original_tokenizer_main_test.go:352: exact main 146 stdout bytes all regions/globals/stack guards PASS 228838 T BIN 5842 SHA d78bbb7de280f434c91e33b293d7a5c32a071e1df539b267481c3bb9f4df05ea
+--- PASS: TestCPMRuntimeOriginalTokenizerMain (0.98s)
+=== RUN   TestCPMRuntimeGuardedTokenizerMain
+    original_tokenizer_main_test.go:350: resident stack touched 30 bytes
+    original_tokenizer_main_test.go:352: exact main 146 stdout bytes all regions/globals/stack guards PASS 412059 T BIN 7427 SHA 15858d9a5240d376af9948de8eb097d48a76380953f3b3f63c6edd2f15a54654
+--- PASS: TestCPMRuntimeGuardedTokenizerMain (1.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	9.364s
