@@ -1,0 +1,142 @@
+{
+  "objective": "Я бы поставил так:\n\n> Довести единый HIR → MIR2 → Z80 путь до надёжной компиляции заявленного корпуса и измеряемой пользы оптимизаций: согласовать контракты функций, подключить проверенные таблицы распределения регистров, перенести полезные возможности LIR/VIR и полностью удалить LIR. Подтвердить сохранение поведения и выигрыш Grace на нескольких реальных программах и заранее отложенных нагрузках.\n\nГотово, когда:\n\n- У каждого случая корпуса есть явный результат; обещанные программы проходят независимые проверки VM и собранного Z80.\n- PFCCO/PBQP и таблицы дают проверенные назначения и измеренную пользу, включая стоимость пересылок и сохранений.\n- Grace выбирает выгодные варианты на разных программах; выигрыш сохраняется на отложенных входах.\n- LIR полностью удалён, полезные возможности и тесты перенесены. VIR может остаться исследовательским решателем.\n- Исходники, профили, решения, ASM/BIN и замеры воспроизводимы и сохранены на шаре.\n\nSpeed остаётся без штрафа за байты; Size — отдельная цель. Настоящее железо — следующий уровень проверки",
+  "checkpoint": "c68ddb35",
+  "complete": false,
+  "requirements": [
+    {
+      "requirement": "explicit corpus results and independent VM/native promised behavior",
+      "verdict": "incomplete",
+      "catalog_paths": 194,
+      "categories": {
+        "executed-native-asm-bounded": 21,
+        "agon-mos-runtime": 5,
+        "executed-independent-vm-z80": 69,
+        "pending-independent-oracle": 2,
+        "bounded-independent-vm-native": 82,
+        "executed-independent-bounded": 2,
+        "executed-native-cpm-runtime": 10,
+        "host-only-memory-model": 1,
+        "executed-native-smc-bounded": 2
+      },
+      "pending": [
+        {
+          "path": "examples/lizp/cond_test.lizp",
+          "reason": "Unresolved language implicit return authority: classify(42) raw/final VM returns no result; native leaves stale A=42. Diagnostic PASS is not behavioral correctness proof."
+        },
+        {
+          "path": "examples/plm/hello.plm",
+          "reason": "Module entry and exact case-preserving byte literals fixed in d32d20d4. Original PRINTCHAR is empty; PRINTMSG termination beyond exact literal bytes still requires explicit trailing-zero memory convention. Bounded original-main proof is separate from portable/CPM runtime completion."
+        }
+      ],
+      "evidence": [
+        "docs/grace-integration-338/catalog.json",
+        "reports/core-and-vir-7bfe4476-terminal",
+        "reports/pipeline-cbf01110-terminal",
+        "reports/vir-c1744a23-terminal",
+        "reports/cli-1d56e49c-terminal"
+      ],
+      "remaining": "Lizp return policy and original PLM Hello output/literal contract. Latest production pipeline completed 548 PASS, 0 FAIL, 17 SKIP; skipped and bounded cases retain their limits."
+    },
+    {
+      "requirement": "PFCCO/PBQP/checked table assignments and gains including calls/saves",
+      "verdict": "evidence supports named workloads",
+      "evidence": [
+        "reports/production-table-exact-return",
+        "docs/grace-pfcco-prospective-heldout",
+        "reports/goal-audit-c1744a23/pfcco-heldout"
+      ],
+      "limitations": "PBQP is not universally superior; preserved negative results remain."
+    },
+    {
+      "requirement": "Grace useful on multiple real programs with frozen heldout",
+      "verdict": "evidence supports named workloads",
+      "evidence": [
+        "reports/heldout-current-1d56e49c",
+        "docs/grace-pfcco-prospective-heldout"
+      ],
+      "limitations": "Repeated original frozen protocols, not new blind workload or hardware study."
+    },
+    {
+      "requirement": "LIR removed and useful capabilities/tests transferred",
+      "verdict": "live removal and named transfers verified",
+      "evidence": [
+        "reports/transferred-engines-current",
+        "docs/grace-lir-final-removal",
+        "reports/lir-transfer-final-bounded",
+        "reports/lir-composition-three-mode-boundaries"
+      ],
+      "archive_payloads_verified": 53,
+      "limitations": "Research VIR remains; arbitrary CFG/island support not required as second production backend."
+    },
+    {
+      "requirement": "reproducible sources/profiles/decisions/ASM/BIN/measurements shared",
+      "verdict": "verified for listed corpus and latest named packages",
+      "evidence": [
+        "reports/corpus-share-current-40d8723f",
+        "reports/production-table-exact-return/manifest.json",
+        "reports/heldout-current-1d56e49c/manifest.json",
+        "reports/latest-evidence-shared-119dece1",
+        "reports/pipeline-cbf01110-terminal"
+      ],
+      "limitations": "Named packages and terminal logs are retained and shared; no claim covering unlisted future files."
+    }
+  ],
+  "policy": {
+    "speed_byte_penalty": false,
+    "size_separate": true,
+    "hardware_next_level": true
+  },
+  "observed_at_utc": "2026-10-12T16:52:39.812816+00:00",
+  "gates": {
+    "production": {
+      "result": {
+        "checkpoint": "cbf01110604aaa643db06574ef608d92ee3de899",
+        "session": 10262,
+        "exit_code": 0,
+        "terminal": "PASS",
+        "counts": {
+          "PASS": 548,
+          "FAIL": 0,
+          "SKIP": 17
+        },
+        "observed_at_utc": "2026-10-12T16:45:45.363444+00:00",
+        "log_sha256": "349df7fadd5b9f7b1982da79ed03927c0a6fb997bce884c390afdb2dea02e207",
+        "binary_sha256": "04b43fb97aae02b529e5503642b55a34a6a7aae9ef4c3e82119e80d20b8995a5",
+        "scope": "Immutable cbf01110 production pipeline, including late Agon/divmod/C89 fixes. Later VIR adapters and exact-return table replay test additions excluded. SKIP remains unverified; Lizp implicit-return and PLM Hello policies unresolved. Emulator evidence, not physical hardware."
+      },
+      "log_sha256": "349df7fadd5b9f7b1982da79ed03927c0a6fb997bce884c390afdb2dea02e207",
+      "evidence": "reports/pipeline-cbf01110-terminal"
+    },
+    "vir": {
+      "result": {
+        "checkpoint": "c1744a23",
+        "exit_code": 0,
+        "terminal": "PASS",
+        "counts": {
+          "PASS": 134,
+          "FAIL": 0,
+          "SKIP": 4
+        },
+        "binary_sha256": "d2b205ff047f0bc4649fee742027e81b4ba56ec749869a885ffa99b3d8c51fa3",
+        "scope": "Full research VIR including mixed copies/cycles and exact adapter entry. Later wrap-boundary test and independent audit tools not included; no compiler semantic changes since. Corpus admission not universal native proof."
+      },
+      "log_sha256": "7a8a1e6e2ae7e513ec84a98f81da19075bfda9ef2164e211c4ede3da15d44ee0",
+      "evidence": "reports/vir-c1744a23-terminal"
+    },
+    "cli": {
+      "result": {
+        "checkpoint": "1d56e49c",
+        "terminal": "PASS",
+        "counts": {
+          "PASS": 74,
+          "FAIL": 0,
+          "SKIP": 0
+        },
+        "binary_sha256": "f9fd7a40544a6f4377d7cee1c43c42eae14cb5bb8684fd2323c91926e7e6292a",
+        "scope": "Full CLI after latest backend/VIR changes; no elapsed-duration claim in direct binary log. Other full pipeline/research remain separate."
+      },
+      "log_sha256": "4593ce28df2ae17d6ab57995b6964f492fa4a124d8985f5656d9b034b6391e32",
+      "evidence": "reports/cli-1d56e49c-terminal"
+    }
+  }
+}
