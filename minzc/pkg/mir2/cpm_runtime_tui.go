@@ -68,12 +68,12 @@ func cpmTUIBody(f *Func, ar *AllocResult) []string {
 		return nil
 	}
 	for n, p := range f.Contract.Params {
-		if p.Ty != types[n] || ar.Loc(p.Reg).Name != homes[n] || i.Asm.Ins[n] != p.Reg {
+		if p.Ty != types[n] || (ar.Loc(p.Reg).Kind != LocReg || ar.Loc(p.Reg).Name != homes[n]) || i.Asm.Ins[n] != p.Reg {
 			return nil
 		}
 	}
 	if returns {
-		if len(f.Contract.Returns) != 1 || f.Contract.Returns[0].Ty != TyU8 || ReturnLocation(f.Contract.Returns[0].Class, TyU8) != "A" || i.Dst == NoReg || i.Ty != TyU8 || ar.Loc(i.Dst).Name != "A" {
+		if len(f.Contract.Returns) != 1 || f.Contract.Returns[0].Ty != TyU8 || ReturnLocation(f.Contract.Returns[0].Class, TyU8) != "A" || i.Dst == NoReg || i.Ty != TyU8 || (ar.Loc(i.Dst).Kind != LocReg || ar.Loc(i.Dst).Name != "A") {
 			return nil
 		}
 	} else if len(f.Contract.Returns) != 0 || i.Dst != NoReg {

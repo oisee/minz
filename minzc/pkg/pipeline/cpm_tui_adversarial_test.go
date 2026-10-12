@@ -25,7 +25,7 @@ func cpmTetrisSteps(t *testing.T) Steps {
 	return s
 }
 func TestCPMTUICanonicalHostileInputs(t *testing.T) {
-	for _, kind := range []string{"body", "injected-call", "clobber", "input-order", "return-width", "unused-unknown", "readline-call", "readline-address", "hidden-asm", "external"} {
+	for _, kind := range []string{"body", "injected-call", "clobber", "input-order", "return-width", "unused-unknown", "readline-call", "readline-address", "hidden-asm", "external", "physical-home", "physical-kind"} {
 		t.Run(kind, func(t *testing.T) {
 			s := cpmTetrisSteps(t)
 			m := s.MIR2Module
@@ -49,6 +49,16 @@ func TestCPMTUICanonicalHostileInputs(t *testing.T) {
 			case "hidden-asm":
 				i.Asm.Template += "\nCALL malicious"
 				f.Attrs.HasAsm = false
+			case "physical-home":
+				p := f.Contract.Params[0]
+				loc := s.Allocation.Locs[p.Reg]
+				loc.Name = "B"
+				s.Allocation.Locs[p.Reg] = loc
+			case "physical-kind":
+				p := f.Contract.Params[0]
+				loc := s.Allocation.Locs[p.Reg]
+				loc.Kind = mir2.LocMem
+				s.Allocation.Locs[p.Reg] = loc
 			case "external":
 				m.FuncByName("tui__render__tui_read_line").Attrs.IsExtern = true
 			case "readline-address":
