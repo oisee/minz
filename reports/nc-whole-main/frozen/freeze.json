@@ -1,0 +1,61 @@
+{
+  "base": "281bc52d",
+  "sources": {
+    "examples/nanz/nc.nanz": "d7b548c92645b8eb546c4f0495e67e506aafde433e915cd0b60e3fc24da2e0e5",
+    "stdlib/fs/fat12.nanz": "6c11a845959df00dc01471e273f0196e7939121eaa9cb6e1f6206cc492ffbbb5"
+  },
+  "disk_sha256": "7d1e95df016b5aa53fc07874536877c9c09f1615e22b9e17da7cfbfe3c2853d8",
+  "input_keys": [
+    129,
+    128,
+    27
+  ],
+  "terminal_dimensions": [
+    80,
+    10
+  ],
+  "frames_selected": [
+    0,
+    1,
+    0
+  ],
+  "rows": [
+    {
+      "sfn": "HELLO   TXT",
+      "attr": 32,
+      "cluster": 2,
+      "size": 5
+    },
+    {
+      "sfn": "DATA    BIN",
+      "attr": 33,
+      "cluster": 3,
+      "size": 256
+    },
+    {
+      "sfn": "DOCS       ",
+      "attr": 16,
+      "cluster": 4,
+      "size": 0
+    }
+  ],
+  "final_globals": {
+    "cursor": 0,
+    "top": 0,
+    "n_entries": 3,
+    "panel_h": 4
+  },
+  "expected_filesystem": {
+    "fs_type": 1,
+    "fs_csize": 1,
+    "fs_n_fats": 1,
+    "fs_n_rootdir": 16,
+    "fs_n_fatent": 7,
+    "fs_fatbase": 1,
+    "fs_dirbase": 2,
+    "fs_database": 3,
+    "fs_fsize": 1
+  },
+  "disk_authority": "Read-only image; successful disk_read drive0 count1, sector0 or2 into exact sector-window global. Any write or other read refused for navigation-only workload.",
+  "status": "Pre-execution independent input/state freeze; terminal event oracle and actual VM/native execution not yet completed."
+}
