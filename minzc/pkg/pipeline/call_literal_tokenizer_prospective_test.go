@@ -16,7 +16,9 @@ func TestCallLiteralTokenizerProspective(t *testing.T) {
 	const path = "../../../examples/nanz/self_tokenizer.nanz"
 	dir := os.Getenv("MINZ_CALL_LITERAL_TOKENIZER_EXPORT")
 	if dir == "" {
-		t.Skip("set explicit prospective evidence directory")
+		// Always exercise frozen training/heldout in the normal suite.
+		// An explicit directory retains exports beyond the test lifetime.
+		dir = t.TempDir()
 	}
 	src, e := os.ReadFile(path)
 	if e != nil {

@@ -1,0 +1,20 @@
+=== RUN   TestCallLiteralTokenizerProspective
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input0 init15790T tokenizer158470T render31405T count18 stdout"fn id ( id ) { return id + num } var id = id ( num ) "
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input1 init15790T tokenizer178215T render27940T count15 stdout"let id = false if id { return str } else { return str } "
+    call_literal_tokenizer_prospective_test.go:83: greedy entiretrain 411820T/5465B
+    call_literal_tokenizer_runner_test.go:196: tag"pbqp" input0 init16273T tokenizer158470T render31405T count18 stdout"fn id ( id ) { return id + num } var id = id ( num ) "
+    call_literal_tokenizer_runner_test.go:196: tag"pbqp" input1 init16273T tokenizer178215T render27940T count15 stdout"let id = false if id { return str } else { return str } "
+    call_literal_tokenizer_prospective_test.go:83: pbqp entiretrain 412303T/5533B
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input0 init15790T tokenizer217468T render48183T count28 stdout"fn id ( id , id , id ) { return id + id * id } var id = id ( num , num , num ) "
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input1 init15790T tokenizer140907T render22079T count12 stdout"while true { if id == num { return str } } "
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input2 init15790T tokenizer147589T render15857T count9 stdout"id id id  num  num return id "
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input3 init15790T tokenizer249435T render27809T count16 stdout"id id id id { var id = id + num } let id = str "
+    call_literal_tokenizer_prospective_test.go:101: speed selectedgreedy fixedBIN heldout 885117T/5465B
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input0 init15790T tokenizer217468T render48183T count28 stdout"fn id ( id , id , id ) { return id + id * id } var id = id ( num , num , num ) "
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input1 init15790T tokenizer140907T render22079T count12 stdout"while true { if id == num { return str } } "
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input2 init15790T tokenizer147589T render15857T count9 stdout"id id id  num  num return id "
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input3 init15790T tokenizer249435T render27809T count16 stdout"id id id id { var id = id + num } let id = str "
+    call_literal_tokenizer_prospective_test.go:101: size selectedgreedy fixedBIN heldout 885117T/5465B
+--- PASS: TestCallLiteralTokenizerProspective (2.10s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.110s
