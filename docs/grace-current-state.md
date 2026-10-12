@@ -1,5 +1,7 @@
 # Grace / PGO: текущее состояние
 
+Checkpoint292d140c full frontends PASS и showcase193PASS/1capacitySKIP; explicit audit193PASS/1capacityFAIL сохранён ([289](grace-integration-289/README.md)). Новые externmultiarg runtime коллизии обнаружены независимо и ещё в работе; broadcompilePASS не считается ихcorrectnessproof.
+
 Root fullMIR1d9c76c9 завершён PASS85,902с ([288](grace-integration-288/README.md)); PFCCO прежний prospective heldout повторно PASS. Offline table integration повторяется отдельно с доступным research solver; production Z3 dependency не вводится.
 
 MIR shared-argument miscompile исправлен c778c135. Совместные runtime families PASS3,251с; каталожные экраны получили bounded VM/native proof ([287](grace-integration-287/README.md)). Root fullMIR1d9c76c9 ещё работает; общий retained pipeline1f2365be тоже.
