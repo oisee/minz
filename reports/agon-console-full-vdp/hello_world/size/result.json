@@ -1,0 +1,51 @@
+{
+  "source": "examples/agon/hello_world.nanz",
+  "source_sha256": "f6d88281bb19c637b1dcde8ccdcbc6a26eaba47e09153d892f160f5177d3d6f5",
+  "mode": "size",
+  "keys": [],
+  "bin_bytes": 279,
+  "bin_sha256": "89e840b7e79fe2f35e544dce2aa7411db8fe0185d2c35d429834b6aca265f6a2",
+  "application_bytes": 114,
+  "exact_vdu_and_return": true,
+  "error": "",
+  "observer_exit": 124,
+  "compile_commands": [
+    [
+      "/home/alice/dev/minz-artifacts/grace-tools/minzc-d071b99c",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/hello_world.nanz",
+      "-b",
+      "ez80",
+      "--hir-grace",
+      "--Osize",
+      "-o",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-console-full-vdp-61c77abe/hello_world/size/program.bin"
+    ],
+    [
+      "/home/alice/dev/minz-artifacts/grace-tools/minzc-d071b99c",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/hello_world.nanz",
+      "-b",
+      "ez80",
+      "--hir-grace",
+      "--Osize",
+      "-o",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-console-full-vdp-61c77abe/hello_world/size/program.asm"
+    ]
+  ],
+  "run_command": [
+    "timeout",
+    "10",
+    "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/fab-agon-emulator",
+    "--renderer",
+    "sw",
+    "--firmware",
+    "console8",
+    "--mos",
+    "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+    "--vdp",
+    "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-console-full-vdp-61c77abe/vdp-tee.so",
+    "--sdcard",
+    "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-console-full-vdp-61c77abe/hello_world/size/sdcard",
+    "--zero",
+    "--verbose"
+  ]
+}

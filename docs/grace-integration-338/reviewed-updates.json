@@ -44,32 +44,34 @@
     "path": "examples/agon/hello_agon.nanz",
     "source_sha256": "4684218e7110368e2122eff39a16dd792dea3bd335383cec6000507505831f77",
     "native_behavior": "agon-mos-runtime",
-    "workload": "Exact public CLI MOS executable in ordinary/HIR-Grace Size/HIR-Grace Speed; exact literal output, input a, one MOS banner and subsequent echo.",
-    "independent_model": "Source-derived exact console body and clean MOS continuation, pinned real eZ80 CPU/MOS firmware.",
-    "boundary": "Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof.",
+    "workload": "Unchanged public CLI MOS BIN in ordinary/HIR Grace Size/HIR Grace Speed executed with real eZ80/MOS/full VDP; exact source-derived literal output, normal SDL A key and following MOS echo/prompt.",
+    "independent_model": "Independent literal text oracle with CR/LF and echo key; entire application UART output range compared. Transparent proxy forwards unchanged bytes to pinned full VDP while actual CPU/MOS execute.",
+    "boundary": "Fixed console scenario in three modes with full VDP; no full RAM/SP audit, arbitrary input or hardware execution. Earlier fake-VDP replay remains historical separate evidence.",
     "evidence": {
       "minzc/pkg/pipeline/agon_corpus_product_test.go": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
       "reports/agon-product-audit/manifest.json": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
       "reports/agon-product-audit/root.txt": "31936901fb106c4808aea698dfeee5cc7260a10d52c9a1866baeaaba76152bd4",
       "reports/agon-entry-console-replay/manifest.json": "0f4df8457e4cd8dec2995cfa0874416a93325c4f6272081fa61aad68732bfa6d",
       "scripts/agon_mos_console_smoke.py": "3bab3d641d499f24e4a9b5551c89b9a9e64c66e559a085a9256a644e6f72b820",
-      "reports/agon-entry-fix/manifest.json": "fcf4fb7aea98fe4ab3345713e7a1a8465ee43c91495b7cd52d7b7d921bf39ac6"
+      "reports/agon-entry-fix/manifest.json": "fcf4fb7aea98fe4ab3345713e7a1a8465ee43c91495b7cd52d7b7d921bf39ac6",
+      "reports/agon-console-full-vdp/manifest.json": "c6697011232957b2694d20f8261aa0637f22dbc61878eab4928121e9457214d1"
     }
   },
   {
     "path": "examples/agon/hello_world.nanz",
     "source_sha256": "f6d88281bb19c637b1dcde8ccdcbc6a26eaba47e09153d892f160f5177d3d6f5",
     "native_behavior": "agon-mos-runtime",
-    "workload": "Exact public CLI MOS executable in ordinary/HIR-Grace Size/HIR-Grace Speed; exact literal output, input a, one MOS banner and subsequent echo.",
-    "independent_model": "Source-derived exact console body and clean MOS continuation, pinned real eZ80 CPU/MOS firmware.",
-    "boundary": "Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof.",
+    "workload": "Unchanged public CLI MOS BIN in ordinary/HIR Grace Size/HIR Grace Speed executed with real eZ80/MOS/full VDP; exact source-derived literal output, normal SDL A key and following MOS echo/prompt.",
+    "independent_model": "Independent literal text oracle with CR/LF and echo key; entire application UART output range compared. Transparent proxy forwards unchanged bytes to pinned full VDP while actual CPU/MOS execute.",
+    "boundary": "Fixed console scenario in three modes with full VDP; no full RAM/SP audit, arbitrary input or hardware execution. Earlier fake-VDP replay remains historical separate evidence.",
     "evidence": {
       "minzc/pkg/pipeline/agon_corpus_product_test.go": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
       "reports/agon-product-audit/manifest.json": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
       "reports/agon-product-audit/root.txt": "31936901fb106c4808aea698dfeee5cc7260a10d52c9a1866baeaaba76152bd4",
       "reports/agon-entry-console-replay/manifest.json": "0f4df8457e4cd8dec2995cfa0874416a93325c4f6272081fa61aad68732bfa6d",
       "scripts/agon_mos_console_smoke.py": "3bab3d641d499f24e4a9b5551c89b9a9e64c66e559a085a9256a644e6f72b820",
-      "reports/agon-entry-fix/manifest.json": "fcf4fb7aea98fe4ab3345713e7a1a8465ee43c91495b7cd52d7b7d921bf39ac6"
+      "reports/agon-entry-fix/manifest.json": "fcf4fb7aea98fe4ab3345713e7a1a8465ee43c91495b7cd52d7b7d921bf39ac6",
+      "reports/agon-console-full-vdp/manifest.json": "c6697011232957b2694d20f8261aa0637f22dbc61878eab4928121e9457214d1"
     }
   },
   {
@@ -93,7 +95,7 @@
       "reports/agon-native-vdu-wire-nc/manifest.json": "b58b119ab85baf0ae190221a029beec532f0e4b0dfb7e871a4e82cb10924eccf",
       "scripts/agon_native_vdu_model.py": "d7a0fe831f8379b78d60851373e29fcf31d6c6d0b3cd4ff26c27197b49468662",
       "reports/agon-native-vdu-matrix-d071b99c/manifest.json": "072d06b707e4be9704205dd5889ecf8e746fe5241f5e4567eaa745ad14900c3d",
-      "scripts/agon_native_vdu_replay.py": "eb3850fbfa2492daa19bda7b877eace13a38d4c9ee5e6b19b972ae4f37f170a2",
+      "scripts/agon_native_vdu_replay.py": "be781ffda5935f21acc4ce9eb86d3c8673dc2d67c39cbec5a22f6d0a3d544678",
       "reports/agon-debug-return-matrix-d071b99c/manifest.json": "a2279dc492c15a26712358b567f389b6d841cee8272a120e728a06c0bfa012d0",
       "scripts/agon_debug_return_replay.py": "0c036d19f93344e9d85e1b5c69ec692533c122488c8dd8ea80e01acb2db6e4c2"
     }
@@ -117,7 +119,7 @@
       "reports/agon-native-vdu-wire-demo/manifest.json": "5096a68b6a1b2b8f47f70fb0bb26bdcdd5c9e068b53f253db97a85c850b3f53c",
       "scripts/agon_native_vdu_model.py": "d7a0fe831f8379b78d60851373e29fcf31d6c6d0b3cd4ff26c27197b49468662",
       "reports/agon-native-vdu-matrix-d071b99c/manifest.json": "072d06b707e4be9704205dd5889ecf8e746fe5241f5e4567eaa745ad14900c3d",
-      "scripts/agon_native_vdu_replay.py": "eb3850fbfa2492daa19bda7b877eace13a38d4c9ee5e6b19b972ae4f37f170a2",
+      "scripts/agon_native_vdu_replay.py": "be781ffda5935f21acc4ce9eb86d3c8673dc2d67c39cbec5a22f6d0a3d544678",
       "reports/agon-debug-return-matrix-d071b99c/manifest.json": "a2279dc492c15a26712358b567f389b6d841cee8272a120e728a06c0bfa012d0",
       "scripts/agon_debug_return_replay.py": "0c036d19f93344e9d85e1b5c69ec692533c122488c8dd8ea80e01acb2db6e4c2"
     }
@@ -141,7 +143,7 @@
       "reports/agon-native-vdu-wire-hello/manifest.json": "e6b075b7f77cd833845664745964fc45fb4b0f74497b3b228fd5137103d3dd79",
       "scripts/agon_native_vdu_model.py": "d7a0fe831f8379b78d60851373e29fcf31d6c6d0b3cd4ff26c27197b49468662",
       "reports/agon-native-vdu-matrix-d071b99c/manifest.json": "072d06b707e4be9704205dd5889ecf8e746fe5241f5e4567eaa745ad14900c3d",
-      "scripts/agon_native_vdu_replay.py": "eb3850fbfa2492daa19bda7b877eace13a38d4c9ee5e6b19b972ae4f37f170a2",
+      "scripts/agon_native_vdu_replay.py": "be781ffda5935f21acc4ce9eb86d3c8673dc2d67c39cbec5a22f6d0a3d544678",
       "reports/agon-debug-return-hello/manifest.json": "6a73c95b1b2ed03d251114c103b9044c56f5aecb267ed2325b7216ceee0c382a",
       "reports/agon-debug-return-matrix-d071b99c/manifest.json": "a2279dc492c15a26712358b567f389b6d841cee8272a120e728a06c0bfa012d0",
       "scripts/agon_debug_return_replay.py": "0c036d19f93344e9d85e1b5c69ec692533c122488c8dd8ea80e01acb2db6e4c2"

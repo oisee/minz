@@ -1,0 +1,49 @@
+{
+  "source": "examples/agon/hello_agon.nanz",
+  "source_sha256": "4684218e7110368e2122eff39a16dd792dea3bd335383cec6000507505831f77",
+  "mode": "speed",
+  "keys": [],
+  "bin_bytes": 201,
+  "bin_sha256": "2069e2a4b068f56d1426c2d842fe11ae982ed1b6ed20091fec977dfae8cd7e32",
+  "application_bytes": 71,
+  "exact_vdu_and_return": true,
+  "error": "",
+  "observer_exit": 124,
+  "compile_commands": [
+    [
+      "/home/alice/dev/minz-artifacts/grace-tools/minzc-d071b99c",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/hello_agon.nanz",
+      "-b",
+      "ez80",
+      "--hir-grace",
+      "-o",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-console-full-vdp-61c77abe/hello_agon/speed/program.bin"
+    ],
+    [
+      "/home/alice/dev/minz-artifacts/grace-tools/minzc-d071b99c",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/hello_agon.nanz",
+      "-b",
+      "ez80",
+      "--hir-grace",
+      "-o",
+      "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-console-full-vdp-61c77abe/hello_agon/speed/program.asm"
+    ]
+  ],
+  "run_command": [
+    "timeout",
+    "10",
+    "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/fab-agon-emulator",
+    "--renderer",
+    "sw",
+    "--firmware",
+    "console8",
+    "--mos",
+    "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+    "--vdp",
+    "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-console-full-vdp-61c77abe/vdp-tee.so",
+    "--sdcard",
+    "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-console-full-vdp-61c77abe/hello_agon/speed/sdcard",
+    "--zero",
+    "--verbose"
+  ]
+}

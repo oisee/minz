@@ -33,6 +33,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ['compiler', 'emulator', 'mos', 'vdp', 'sdl', 'output']:
         parser.add_argument('--' + name, type=Path, required=True)
+    parser.add_argument("--programs", choices=["graphics", "console", "all"], default="graphics")
     args = parser.parse_args()
     repo = Path(__file__).resolve().parents[1]
     out = args.output.resolve()
@@ -66,9 +67,15 @@ def main():
             raise RuntimeError('oracle negative control unexpectedly accepted')
     results = []
     try:
-        for name in ['tui_hello', 'tui_demo', 'nc_agon']:
+        console = {
+            'hello_agon': b'Hello from MinZ on Agon Light 2!\r\nPress any key: \r\nYou pressed a key!\r\n',
+            'hello_world': b'Hello, Agon Light 2!\r\nMinZ running on eZ80 at 18.432 MHz\r\nPress any key to continue...\r\nYou pressed: a\r\nGoodbye!\r\n',
+        }
+        names = list(console) if args.programs == 'console' else ['tui_hello', 'tui_demo', 'nc_agon']
+        if args.programs == 'all': names += list(console)
+        for name in names:
             keys = (10,)*9+(13,11,13,27) if name == 'nc_agon' else ()
-            wanted = expected(name, keys)
+            wanted = console[name] if name in console else expected(name, keys)
             source = repo / 'examples/agon' / (name+'.nanz')
             for mode, flags in [('ordinary', []), ('size', ['--hir-grace', '--Osize']), ('speed', ['--hir-grace'])]:
                 case = out / name / mode
@@ -112,7 +119,7 @@ def main():
                 if not passed:
                     raise RuntimeError(error)
     finally:
-        summary = {'scope':'three fixed graphics examples, three modes; real eZ80/MOS/full VDP, independent command/text oracle; no independent pixel/RAM/SP or hardware proof','tools':pins,'results':results,'oracle_negative_controls':4}
+        summary = {'scope':'selected fixed Agon examples, three modes; real eZ80/MOS/full VDP, independent command/text oracle; no independent pixel/RAM/SP or hardware proof','tools':pins,'results':results,'oracle_negative_controls':4}
         (out/'summary.json').write_text(json.dumps(summary,indent=2)+'\n')
         (out/'manifest.json').write_text(json.dumps([{'path':str(p.relative_to(out)),'sha256':digest(p)} for p in sorted(out.rglob('*')) if p.is_file() and p.name!='manifest.json'],indent=2)+'\n')
 

@@ -9,3 +9,5 @@
 Источники и SHA256 reviewed evidence проверяет `TestShowcaseExecutableOracleCatalog`; `reviewed-updates.json` задаёт точные workload/model/boundary. Новый pipeline продолжает работать отдельным immutable checkpoint и не подменяется каталогом.
 
 Дополнительно все три графических примера прошли отдельную матрицу точного возврата в MOS (9 запусков): SP/IY/IX, 24 байта caller frame, status HL0 и PC после RET из сохранённого трёхбайтного адреса. Это фиксированные early-exit сценарии, не аудит всех записей RAM.
+
+Оба консольных Agon Hello также прошли exact text/return в трёх режимах с полным VDP (6 запусков). Все пять Agon-путей имеют bounded full-device командный/текстовый replay; это не общая RAM/SP или аппаратная гарантия.

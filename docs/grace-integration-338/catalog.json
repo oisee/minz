@@ -226,46 +226,52 @@
       "source_assertions": 0,
       "assertion_scope": "unexecuted source expectations",
       "native_behavior": "agon-mos-runtime",
-      "workload": "Exact public CLI MOS executable in ordinary/HIR-Grace Size/HIR-Grace Speed; exact literal output, input a, one MOS banner and subsequent echo.",
-      "independent_model": "Source-derived exact console body and clean MOS continuation, pinned real eZ80 CPU/MOS firmware.",
-      "external_requirement_or_remaining_work": "Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof.",
+      "workload": "Unchanged public CLI MOS BIN in ordinary/HIR Grace Size/HIR Grace Speed executed with real eZ80/MOS/full VDP; exact source-derived literal output, normal SDL A key and following MOS echo/prompt.",
+      "independent_model": "Independent literal text oracle with CR/LF and echo key; entire application UART output range compared. Transparent proxy forwards unchanged bytes to pinned full VDP while actual CPU/MOS execute.",
+      "external_requirement_or_remaining_work": "Fixed console scenario in three modes with full VDP; no full RAM/SP audit, arbitrary input or hardware execution. Earlier fake-VDP replay remains historical separate evidence.",
       "entry_structure_not_execution_claim": "declares main; whole-main execution not implied",
       "reviewed_evidence": [
         {
           "test_or_artifact": "minzc/pkg/pipeline/agon_corpus_product_test.go",
           "evidence_file_sha256": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Exact public CLI MOS executable in ordinary/HIR-Grace Size/HIR-Grace Speed; exact literal output, input a, one MOS banner and subsequent echo.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Unchanged public CLI MOS BIN in ordinary/HIR Grace Size/HIR Grace Speed executed with real eZ80/MOS/full VDP; exact source-derived literal output, normal SDL A key and following MOS echo/prompt.; Fixed console scenario in three modes with full VDP; no full RAM/SP audit, arbitrary input or hardware execution. Earlier fake-VDP replay remains historical separate evidence."
+        },
+        {
+          "test_or_artifact": "reports/agon-console-full-vdp/manifest.json",
+          "evidence_file_sha256": "c6697011232957b2694d20f8261aa0637f22dbc61878eab4928121e9457214d1",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Unchanged public CLI MOS BIN in ordinary/HIR Grace Size/HIR Grace Speed executed with real eZ80/MOS/full VDP; exact source-derived literal output, normal SDL A key and following MOS echo/prompt.; Fixed console scenario in three modes with full VDP; no full RAM/SP audit, arbitrary input or hardware execution. Earlier fake-VDP replay remains historical separate evidence."
         },
         {
           "test_or_artifact": "reports/agon-entry-console-replay/manifest.json",
           "evidence_file_sha256": "0f4df8457e4cd8dec2995cfa0874416a93325c4f6272081fa61aad68732bfa6d",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Exact public CLI MOS executable in ordinary/HIR-Grace Size/HIR-Grace Speed; exact literal output, input a, one MOS banner and subsequent echo.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Unchanged public CLI MOS BIN in ordinary/HIR Grace Size/HIR Grace Speed executed with real eZ80/MOS/full VDP; exact source-derived literal output, normal SDL A key and following MOS echo/prompt.; Fixed console scenario in three modes with full VDP; no full RAM/SP audit, arbitrary input or hardware execution. Earlier fake-VDP replay remains historical separate evidence."
         },
         {
           "test_or_artifact": "reports/agon-entry-fix/manifest.json",
           "evidence_file_sha256": "fcf4fb7aea98fe4ab3345713e7a1a8465ee43c91495b7cd52d7b7d921bf39ac6",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Exact public CLI MOS executable in ordinary/HIR-Grace Size/HIR-Grace Speed; exact literal output, input a, one MOS banner and subsequent echo.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Unchanged public CLI MOS BIN in ordinary/HIR Grace Size/HIR Grace Speed executed with real eZ80/MOS/full VDP; exact source-derived literal output, normal SDL A key and following MOS echo/prompt.; Fixed console scenario in three modes with full VDP; no full RAM/SP audit, arbitrary input or hardware execution. Earlier fake-VDP replay remains historical separate evidence."
         },
         {
           "test_or_artifact": "reports/agon-product-audit/manifest.json",
           "evidence_file_sha256": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Exact public CLI MOS executable in ordinary/HIR-Grace Size/HIR-Grace Speed; exact literal output, input a, one MOS banner and subsequent echo.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Unchanged public CLI MOS BIN in ordinary/HIR Grace Size/HIR Grace Speed executed with real eZ80/MOS/full VDP; exact source-derived literal output, normal SDL A key and following MOS echo/prompt.; Fixed console scenario in three modes with full VDP; no full RAM/SP audit, arbitrary input or hardware execution. Earlier fake-VDP replay remains historical separate evidence."
         },
         {
           "test_or_artifact": "reports/agon-product-audit/root.txt",
           "evidence_file_sha256": "31936901fb106c4808aea698dfeee5cc7260a10d52c9a1866baeaaba76152bd4",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Exact public CLI MOS executable in ordinary/HIR-Grace Size/HIR-Grace Speed; exact literal output, input a, one MOS banner and subsequent echo.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Unchanged public CLI MOS BIN in ordinary/HIR Grace Size/HIR Grace Speed executed with real eZ80/MOS/full VDP; exact source-derived literal output, normal SDL A key and following MOS echo/prompt.; Fixed console scenario in three modes with full VDP; no full RAM/SP audit, arbitrary input or hardware execution. Earlier fake-VDP replay remains historical separate evidence."
         },
         {
           "test_or_artifact": "scripts/agon_mos_console_smoke.py",
           "evidence_file_sha256": "3bab3d641d499f24e4a9b5551c89b9a9e64c66e559a085a9256a644e6f72b820",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Exact public CLI MOS executable in ordinary/HIR-Grace Size/HIR-Grace Speed; exact literal output, input a, one MOS banner and subsequent echo.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Unchanged public CLI MOS BIN in ordinary/HIR Grace Size/HIR Grace Speed executed with real eZ80/MOS/full VDP; exact source-derived literal output, normal SDL A key and following MOS echo/prompt.; Fixed console scenario in three modes with full VDP; no full RAM/SP audit, arbitrary input or hardware execution. Earlier fake-VDP replay remains historical separate evidence."
         }
       ],
       "test_source_references_not_execution_claim": []
@@ -294,46 +300,52 @@
       "source_assertions": 0,
       "assertion_scope": "unexecuted source expectations",
       "native_behavior": "agon-mos-runtime",
-      "workload": "Exact public CLI MOS executable in ordinary/HIR-Grace Size/HIR-Grace Speed; exact literal output, input a, one MOS banner and subsequent echo.",
-      "independent_model": "Source-derived exact console body and clean MOS continuation, pinned real eZ80 CPU/MOS firmware.",
-      "external_requirement_or_remaining_work": "Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof.",
+      "workload": "Unchanged public CLI MOS BIN in ordinary/HIR Grace Size/HIR Grace Speed executed with real eZ80/MOS/full VDP; exact source-derived literal output, normal SDL A key and following MOS echo/prompt.",
+      "independent_model": "Independent literal text oracle with CR/LF and echo key; entire application UART output range compared. Transparent proxy forwards unchanged bytes to pinned full VDP while actual CPU/MOS execute.",
+      "external_requirement_or_remaining_work": "Fixed console scenario in three modes with full VDP; no full RAM/SP audit, arbitrary input or hardware execution. Earlier fake-VDP replay remains historical separate evidence.",
       "entry_structure_not_execution_claim": "declares main; whole-main execution not implied",
       "reviewed_evidence": [
         {
           "test_or_artifact": "minzc/pkg/pipeline/agon_corpus_product_test.go",
           "evidence_file_sha256": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Exact public CLI MOS executable in ordinary/HIR-Grace Size/HIR-Grace Speed; exact literal output, input a, one MOS banner and subsequent echo.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Unchanged public CLI MOS BIN in ordinary/HIR Grace Size/HIR Grace Speed executed with real eZ80/MOS/full VDP; exact source-derived literal output, normal SDL A key and following MOS echo/prompt.; Fixed console scenario in three modes with full VDP; no full RAM/SP audit, arbitrary input or hardware execution. Earlier fake-VDP replay remains historical separate evidence."
+        },
+        {
+          "test_or_artifact": "reports/agon-console-full-vdp/manifest.json",
+          "evidence_file_sha256": "c6697011232957b2694d20f8261aa0637f22dbc61878eab4928121e9457214d1",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Unchanged public CLI MOS BIN in ordinary/HIR Grace Size/HIR Grace Speed executed with real eZ80/MOS/full VDP; exact source-derived literal output, normal SDL A key and following MOS echo/prompt.; Fixed console scenario in three modes with full VDP; no full RAM/SP audit, arbitrary input or hardware execution. Earlier fake-VDP replay remains historical separate evidence."
         },
         {
           "test_or_artifact": "reports/agon-entry-console-replay/manifest.json",
           "evidence_file_sha256": "0f4df8457e4cd8dec2995cfa0874416a93325c4f6272081fa61aad68732bfa6d",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Exact public CLI MOS executable in ordinary/HIR-Grace Size/HIR-Grace Speed; exact literal output, input a, one MOS banner and subsequent echo.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Unchanged public CLI MOS BIN in ordinary/HIR Grace Size/HIR Grace Speed executed with real eZ80/MOS/full VDP; exact source-derived literal output, normal SDL A key and following MOS echo/prompt.; Fixed console scenario in three modes with full VDP; no full RAM/SP audit, arbitrary input or hardware execution. Earlier fake-VDP replay remains historical separate evidence."
         },
         {
           "test_or_artifact": "reports/agon-entry-fix/manifest.json",
           "evidence_file_sha256": "fcf4fb7aea98fe4ab3345713e7a1a8465ee43c91495b7cd52d7b7d921bf39ac6",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Exact public CLI MOS executable in ordinary/HIR-Grace Size/HIR-Grace Speed; exact literal output, input a, one MOS banner and subsequent echo.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Unchanged public CLI MOS BIN in ordinary/HIR Grace Size/HIR Grace Speed executed with real eZ80/MOS/full VDP; exact source-derived literal output, normal SDL A key and following MOS echo/prompt.; Fixed console scenario in three modes with full VDP; no full RAM/SP audit, arbitrary input or hardware execution. Earlier fake-VDP replay remains historical separate evidence."
         },
         {
           "test_or_artifact": "reports/agon-product-audit/manifest.json",
           "evidence_file_sha256": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Exact public CLI MOS executable in ordinary/HIR-Grace Size/HIR-Grace Speed; exact literal output, input a, one MOS banner and subsequent echo.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Unchanged public CLI MOS BIN in ordinary/HIR Grace Size/HIR Grace Speed executed with real eZ80/MOS/full VDP; exact source-derived literal output, normal SDL A key and following MOS echo/prompt.; Fixed console scenario in three modes with full VDP; no full RAM/SP audit, arbitrary input or hardware execution. Earlier fake-VDP replay remains historical separate evidence."
         },
         {
           "test_or_artifact": "reports/agon-product-audit/root.txt",
           "evidence_file_sha256": "31936901fb106c4808aea698dfeee5cc7260a10d52c9a1866baeaaba76152bd4",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Exact public CLI MOS executable in ordinary/HIR-Grace Size/HIR-Grace Speed; exact literal output, input a, one MOS banner and subsequent echo.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Unchanged public CLI MOS BIN in ordinary/HIR Grace Size/HIR Grace Speed executed with real eZ80/MOS/full VDP; exact source-derived literal output, normal SDL A key and following MOS echo/prompt.; Fixed console scenario in three modes with full VDP; no full RAM/SP audit, arbitrary input or hardware execution. Earlier fake-VDP replay remains historical separate evidence."
         },
         {
           "test_or_artifact": "scripts/agon_mos_console_smoke.py",
           "evidence_file_sha256": "3bab3d641d499f24e4a9b5551c89b9a9e64c66e559a085a9256a644e6f72b820",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Exact public CLI MOS executable in ordinary/HIR-Grace Size/HIR-Grace Speed; exact literal output, input a, one MOS banner and subsequent echo.; Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof."
+          "scope": "Unchanged public CLI MOS BIN in ordinary/HIR Grace Size/HIR Grace Speed executed with real eZ80/MOS/full VDP; exact source-derived literal output, normal SDL A key and following MOS echo/prompt.; Fixed console scenario in three modes with full VDP; no full RAM/SP audit, arbitrary input or hardware execution. Earlier fake-VDP replay remains historical separate evidence."
         }
       ],
       "test_source_references_not_execution_claim": [
@@ -474,7 +486,7 @@
         },
         {
           "test_or_artifact": "scripts/agon_native_vdu_replay.py",
-          "evidence_file_sha256": "eb3850fbfa2492daa19bda7b877eace13a38d4c9ee5e6b19b972ae4f37f170a2",
+          "evidence_file_sha256": "be781ffda5935f21acc4ce9eb86d3c8673dc2d67c39cbec5a22f6d0a3d544678",
           "source_relation": "reviewed exact-source root replay",
           "scope": "Current native-VDU public CLI whole-device ordinary/HIR Grace Size/HIR Grace Speed: exact independent 3151-byte command/text stream and following MOS echo; NC nine Down/Enter/Up/Enter/Escape, Hello/Demo SDL A. Historical ANSI replay retains pre-VDU library. Separate exact same-BIN early-exit debugger matrix in all three modes: matching SPL/IY/IX/24-byte caller frame and exact saved-PC RET with SPL+3.; Three-mode fixed command/text oracle plus separate three-mode early-exit SP/IY/IX/24-byte caller-frame and exact RET target proof. Not global RAM write audit, independent pixels, arbitrary inputs or hardware."
         },
@@ -611,7 +623,7 @@
         },
         {
           "test_or_artifact": "scripts/agon_native_vdu_replay.py",
-          "evidence_file_sha256": "eb3850fbfa2492daa19bda7b877eace13a38d4c9ee5e6b19b972ae4f37f170a2",
+          "evidence_file_sha256": "be781ffda5935f21acc4ce9eb86d3c8673dc2d67c39cbec5a22f6d0a3d544678",
           "source_relation": "reviewed exact-source root replay",
           "scope": "Current native-VDU public CLI whole-device ordinary/HIR Grace Size/HIR Grace Speed: exact independent 489-byte command/text stream and following MOS echo; NC nine Down/Enter/Up/Enter/Escape, Hello/Demo SDL A. Historical ANSI replay retains pre-VDU library. Separate exact same-BIN early-exit debugger matrix in all three modes: matching SPL/IY/IX/24-byte caller frame and exact saved-PC RET with SPL+3.; Three-mode fixed command/text oracle plus separate three-mode early-exit SP/IY/IX/24-byte caller-frame and exact RET target proof. Not global RAM write audit, independent pixels, arbitrary inputs or hardware."
         },
@@ -757,7 +769,7 @@
         },
         {
           "test_or_artifact": "scripts/agon_native_vdu_replay.py",
-          "evidence_file_sha256": "eb3850fbfa2492daa19bda7b877eace13a38d4c9ee5e6b19b972ae4f37f170a2",
+          "evidence_file_sha256": "be781ffda5935f21acc4ce9eb86d3c8673dc2d67c39cbec5a22f6d0a3d544678",
           "source_relation": "reviewed exact-source root replay",
           "scope": "Current native-VDU public CLI whole-device ordinary/HIR Grace Size/HIR Grace Speed: exact independent 218-byte command/text stream and following MOS echo; NC nine Down/Enter/Up/Enter/Escape, Hello/Demo SDL A. Historical ANSI replay retains pre-VDU library. Separate ordinary debugger run: matching SP/IY/IX and 24-byte caller frame before RET; single-step reaches stack-saved MOS PC with SP+3. Separate exact same-BIN early-exit debugger matrix in all three modes: matching SPL/IY/IX/24-byte caller frame and exact saved-PC RET with SPL+3.; Three-mode fixed command/text oracle plus separate three-mode early-exit SP/IY/IX/24-byte caller-frame and exact RET target proof. Not global RAM write audit, independent pixels, arbitrary inputs or hardware."
         },

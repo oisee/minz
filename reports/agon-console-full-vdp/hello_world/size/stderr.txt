@@ -1,0 +1,3 @@
+VDP firmware: ["/home/alice/dev/minz-artifacts/grace-checkpoints/agon-console-full-vdp-61c77abe/vdp-tee.so", "./firmware/vdp_console8.so", "./firmware/vdp_console8.so"]
+EZ80 firmware: "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin"
+Emulated SDCard: "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-console-full-vdp-61c77abe/hello_world/size/sdcard"
