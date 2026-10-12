@@ -1,0 +1,471 @@
+=== RUN   TestJudgeOptionsRequireExplicitFlags
+--- PASS: TestJudgeOptionsRequireExplicitFlags (0.00s)
+=== RUN   TestTupleControlsMutateEachElementWithoutAliasing
+--- PASS: TestTupleControlsMutateEachElementWithoutAliasing (0.00s)
+=== RUN   TestContractStrategyCLIAdmission
+--- PASS: TestContractStrategyCLIAdmission (0.00s)
+=== RUN   TestPascalCPMOrdinaryCLI
+--- PASS: TestPascalCPMOrdinaryCLI (0.01s)
+=== RUN   TestCPMRuntimeOrdinaryCLI
+    cpm_runtime_test.go:104: COM 524 bytes, BDOS chars12, resident stack touched≤19 bytes
+--- PASS: TestCPMRuntimeOrdinaryCLI (0.03s)
+=== RUN   TestCPMRuntimeRejectsUnsupported
+--- PASS: TestCPMRuntimeRejectsUnsupported (0.00s)
+=== RUN   TestCPMRuntimeBytePrimitiveABIAndBoundary
+--- PASS: TestCPMRuntimeBytePrimitiveABIAndBoundary (0.00s)
+=== RUN   TestCPMRuntimeGuardedStackOverflowAndFlags
+--- PASS: TestCPMRuntimeGuardedStackOverflowAndFlags (0.01s)
+=== RUN   TestDefaultMIR2AssertAssembly
+--- PASS: TestDefaultMIR2AssertAssembly (0.00s)
+=== RUN   TestIndirectMIR2DefaultAssembly
+--- PASS: TestIndirectMIR2DefaultAssembly (0.01s)
+=== RUN   TestCDefaultOutputProtection
+--- PASS: TestCDefaultOutputProtection (0.00s)
+=== RUN   TestHIRProfileAutoMeasuredCompilation
+--- PASS: TestHIRProfileAutoMeasuredCompilation (16.71s)
+=== RUN   TestHIRProfileForwardCopyValidation
+=== RUN   TestHIRProfileForwardCopyValidation/joint
+=== RUN   TestHIRProfileForwardCopyValidation/invariant
+=== RUN   TestHIRProfileForwardCopyValidation/site
+=== RUN   TestHIRProfileForwardCopyValidation/jointsites
+=== RUN   TestHIRProfileForwardCopyValidation/weighted
+=== RUN   TestHIRProfileForwardCopyValidation/independent
+--- PASS: TestHIRProfileForwardCopyValidation (0.00s)
+    --- PASS: TestHIRProfileForwardCopyValidation/joint (0.00s)
+    --- PASS: TestHIRProfileForwardCopyValidation/invariant (0.00s)
+    --- PASS: TestHIRProfileForwardCopyValidation/site (0.00s)
+    --- PASS: TestHIRProfileForwardCopyValidation/jointsites (0.00s)
+    --- PASS: TestHIRProfileForwardCopyValidation/weighted (0.00s)
+    --- PASS: TestHIRProfileForwardCopyValidation/independent (0.00s)
+=== RUN   TestHIRProfileForwardCopyCompilation
+--- PASS: TestHIRProfileForwardCopyCompilation (0.63s)
+=== RUN   TestHIRProfileMixedCopyWeightedValidation
+=== RUN   TestHIRProfileMixedCopyWeightedValidation/joint
+=== RUN   TestHIRProfileMixedCopyWeightedValidation/auto
+=== RUN   TestHIRProfileMixedCopyWeightedValidation/workload
+=== RUN   TestHIRProfileMixedCopyWeightedValidation/copy
+=== RUN   TestHIRProfileMixedCopyWeightedValidation/invariant
+=== RUN   TestHIRProfileMixedCopyWeightedValidation/site
+=== RUN   TestHIRProfileMixedCopyWeightedValidation/jointsites
+=== RUN   TestHIRProfileMixedCopyWeightedValidation/weighted
+=== RUN   TestHIRProfileMixedCopyWeightedValidation/independent
+=== RUN   TestHIRProfileMixedCopyWeightedValidation/separate
+--- PASS: TestHIRProfileMixedCopyWeightedValidation (0.00s)
+    --- PASS: TestHIRProfileMixedCopyWeightedValidation/joint (0.00s)
+    --- PASS: TestHIRProfileMixedCopyWeightedValidation/auto (0.00s)
+    --- PASS: TestHIRProfileMixedCopyWeightedValidation/workload (0.00s)
+    --- PASS: TestHIRProfileMixedCopyWeightedValidation/copy (0.00s)
+    --- PASS: TestHIRProfileMixedCopyWeightedValidation/invariant (0.00s)
+    --- PASS: TestHIRProfileMixedCopyWeightedValidation/site (0.00s)
+    --- PASS: TestHIRProfileMixedCopyWeightedValidation/jointsites (0.00s)
+    --- PASS: TestHIRProfileMixedCopyWeightedValidation/weighted (0.00s)
+    --- PASS: TestHIRProfileMixedCopyWeightedValidation/independent (0.00s)
+    --- PASS: TestHIRProfileMixedCopyWeightedValidation/separate (0.00s)
+=== RUN   TestHIRProfileMixedCopyWeightedCompilation
+--- PASS: TestHIRProfileMixedCopyWeightedCompilation (2.34s)
+=== RUN   TestHIRProfileInvariantSitesCompilation
+--- PASS: TestHIRProfileInvariantSitesCompilation (0.26s)
+=== RUN   TestHIRProfileInvariantSiteRulesCompilation
+--- PASS: TestHIRProfileInvariantSiteRulesCompilation (0.44s)
+=== RUN   TestHIRProfileInvariantSitesValidation
+--- PASS: TestHIRProfileInvariantSitesValidation (0.00s)
+=== RUN   TestHIRProfileInvariantSiteRulesValidation
+--- PASS: TestHIRProfileInvariantSiteRulesValidation (0.00s)
+=== RUN   TestHIRProfileJointSitesCompilation
+--- PASS: TestHIRProfileJointSitesCompilation (0.44s)
+=== RUN   TestHIRProfileJointSitesValidation
+--- PASS: TestHIRProfileJointSitesValidation (0.00s)
+=== RUN   TestHIRProfileJointCallerCompilation
+--- PASS: TestHIRProfileJointCallerCompilation (0.91s)
+=== RUN   TestHIRProfileIndependentRulesCallerCompilation
+--- PASS: TestHIRProfileIndependentRulesCallerCompilation (1.69s)
+=== RUN   TestHIRProfileIndependentRulesRequiresJoint
+--- PASS: TestHIRProfileIndependentRulesRequiresJoint (0.00s)
+=== RUN   TestHIRProfileMixedCopyRegionValidation
+=== RUN   TestHIRProfileMixedCopyRegionValidation/joint
+=== RUN   TestHIRProfileMixedCopyRegionValidation/region
+=== RUN   TestHIRProfileMixedCopyRegionValidation/copy
+=== RUN   TestHIRProfileMixedCopyRegionValidation/mixed
+=== RUN   TestHIRProfileMixedCopyRegionValidation/invariant
+=== RUN   TestHIRProfileMixedCopyRegionValidation/site
+=== RUN   TestHIRProfileMixedCopyRegionValidation/jointsites
+=== RUN   TestHIRProfileMixedCopyRegionValidation/weighted
+=== RUN   TestHIRProfileMixedCopyRegionValidation/independent
+=== RUN   TestHIRProfileMixedCopyRegionValidation/auto
+=== RUN   TestHIRProfileMixedCopyRegionValidation/workload
+=== RUN   TestHIRProfileMixedCopyRegionValidation/restriction
+=== RUN   TestHIRProfileMixedCopyRegionValidation/separate
+--- PASS: TestHIRProfileMixedCopyRegionValidation (0.00s)
+    --- PASS: TestHIRProfileMixedCopyRegionValidation/joint (0.00s)
+    --- PASS: TestHIRProfileMixedCopyRegionValidation/region (0.00s)
+    --- PASS: TestHIRProfileMixedCopyRegionValidation/copy (0.00s)
+    --- PASS: TestHIRProfileMixedCopyRegionValidation/mixed (0.00s)
+    --- PASS: TestHIRProfileMixedCopyRegionValidation/invariant (0.00s)
+    --- PASS: TestHIRProfileMixedCopyRegionValidation/site (0.00s)
+    --- PASS: TestHIRProfileMixedCopyRegionValidation/jointsites (0.00s)
+    --- PASS: TestHIRProfileMixedCopyRegionValidation/weighted (0.00s)
+    --- PASS: TestHIRProfileMixedCopyRegionValidation/independent (0.00s)
+    --- PASS: TestHIRProfileMixedCopyRegionValidation/auto (0.00s)
+    --- PASS: TestHIRProfileMixedCopyRegionValidation/workload (0.00s)
+    --- PASS: TestHIRProfileMixedCopyRegionValidation/restriction (0.00s)
+    --- PASS: TestHIRProfileMixedCopyRegionValidation/separate (0.00s)
+=== RUN   TestHIRProfileMixedCopyRegionCompilation
+    hir_profile_mixed_copy_region_test.go:257: mixed copy region CLI objective=speed selected3 87057T/657B sha64f5c584741f022660422f77692aac9b23ccfe3f5d733131c06fba734aaa21d4
+    hir_profile_mixed_copy_region_test.go:257: mixed copy region CLI objective=size selected0 260091T/183B shaa787850880ae4ce8704f144ae69b4fd3388d0967abd9f32d1811631fa419a5b8
+--- PASS: TestHIRProfileMixedCopyRegionCompilation (1.40s)
+=== RUN   TestCompilerModeArtifactPublication
+=== RUN   TestCompilerModeArtifactPublication/complete-and-exact
+=== RUN   TestCompilerModeArtifactPublication/stage-failure
+=== RUN   TestCompilerModeArtifactPublication/output-stage-failure
+--- PASS: TestCompilerModeArtifactPublication (0.01s)
+    --- PASS: TestCompilerModeArtifactPublication/complete-and-exact (0.01s)
+    --- PASS: TestCompilerModeArtifactPublication/stage-failure (0.00s)
+    --- PASS: TestCompilerModeArtifactPublication/output-stage-failure (0.00s)
+=== RUN   TestCompilerModeDirectoryNoReplace
+--- PASS: TestCompilerModeDirectoryNoReplace (0.00s)
+=== RUN   TestCompilerModeDirectoryPathAliases
+=== RUN   TestCompilerModeDirectoryPathAliases/output-inside
+=== RUN   TestCompilerModeDirectoryPathAliases/output-parent
+=== RUN   TestCompilerModeDirectoryPathAliases/source-parent
+=== RUN   TestCompilerModeDirectoryPathAliases/existing-empty
+=== RUN   TestCompilerModeDirectoryPathAliases/symlink-parent
+--- PASS: TestCompilerModeDirectoryPathAliases (0.03s)
+    --- PASS: TestCompilerModeDirectoryPathAliases/output-inside (0.01s)
+    --- PASS: TestCompilerModeDirectoryPathAliases/output-parent (0.01s)
+    --- PASS: TestCompilerModeDirectoryPathAliases/source-parent (0.00s)
+    --- PASS: TestCompilerModeDirectoryPathAliases/existing-empty (0.00s)
+    --- PASS: TestCompilerModeDirectoryPathAliases/symlink-parent (0.01s)
+=== RUN   TestCompilerModeReplayActualFrozenHeldout
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayActualFrozenHeldout3458537353/002/training
+[compiler-modes replay] fixed mode 1: 5568 T / 52 B; saved BIN 23a46320f4d5adaf3a706457cf721145f0ff0df85efcd4c8e0e2b0f0d83642f0
+--- PASS: TestCompilerModeReplayActualFrozenHeldout (1.37s)
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayRejectsMutatedTraining3976647731/002/training
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/binary
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/missing-manifest-entry
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/selected-index
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/selected-flags
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/source
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/negative-total
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/forged-positive-total
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/forged-result
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/wrong-run-context
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/corrupt-manifest
+--- PASS: TestCompilerModeReplayRejectsMutatedTraining (1.42s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/binary (0.01s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/missing-manifest-entry (0.01s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/selected-index (0.02s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/selected-flags (0.02s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/source (0.01s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/negative-total (0.01s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/forged-positive-total (0.24s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/forged-result (0.02s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/wrong-run-context (0.02s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/corrupt-manifest (0.02s)
+=== RUN   TestCompilerModeReplayChangedImportedSource
+[compiler-modes] speed selected mode 0: 24 T / 10 B; artifacts /tmp/TestCompilerModeReplayChangedImportedSource1709928054/002/training
+--- PASS: TestCompilerModeReplayChangedImportedSource (0.96s)
+=== RUN   TestCompilerModeReplayFlagAndPathAdmission
+--- PASS: TestCompilerModeReplayFlagAndPathAdmission (0.02s)
+=== RUN   TestCompilerModeReplayRejectsHeldoutDiskMutation
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayRejectsHeldoutDiskMutation234257157/002/training
+--- PASS: TestCompilerModeReplayRejectsHeldoutDiskMutation (1.30s)
+=== RUN   TestCompilerModeCLIPathsAndFlags
+=== RUN   TestCompilerModeCLIPathsAndFlags/missing-workload
+=== RUN   TestCompilerModeCLIPathsAndFlags/joint
+=== RUN   TestCompilerModeCLIPathsAndFlags/other-output
+=== RUN   TestCompilerModeCLIPathsAndFlags/hir-grace
+=== RUN   TestCompilerModeCLIPathsAndFlags/alias-input
+=== RUN   TestCompilerModeCLIPathsAndFlags/hardlink-input
+=== RUN   TestCompilerModeCLIPathsAndFlags/table-pin
+--- PASS: TestCompilerModeCLIPathsAndFlags (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/missing-workload (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/joint (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/other-output (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/hir-grace (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/alias-input (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/hardlink-input (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/table-pin (0.00s)
+=== RUN   TestCompilerModeCLIActualSelectedArtifacts
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts756366012/002/evidence
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts756366012/003/evidence
+[compiler-modes] size selected mode 0: 2605 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts756366012/004/evidence
+[compiler-modes] size selected mode 0: 2605 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts756366012/005/evidence
+--- PASS: TestCompilerModeCLIActualSelectedArtifacts (4.11s)
+=== RUN   TestCompilerModeCLIImportedSource
+[compiler-modes] speed selected mode 0: 24 T / 10 B; artifacts /tmp/TestCompilerModeCLIImportedSource2537153170/001/evidence
+--- PASS: TestCompilerModeCLIImportedSource (0.96s)
+=== RUN   TestCompilerModeCLIImportedOutputAlias
+--- PASS: TestCompilerModeCLIImportedOutputAlias (0.02s)
+=== RUN   TestHIRProfileOrderedByteRWValidation
+=== RUN   TestHIRProfileOrderedByteRWValidation/joint
+=== RUN   TestHIRProfileOrderedByteRWValidation/readonly
+=== RUN   TestHIRProfileOrderedByteRWValidation/region
+=== RUN   TestHIRProfileOrderedByteRWValidation/composition
+=== RUN   TestHIRProfileOrderedByteRWValidation/copy
+=== RUN   TestHIRProfileOrderedByteRWValidation/mixed
+=== RUN   TestHIRProfileOrderedByteRWValidation/invariant
+=== RUN   TestHIRProfileOrderedByteRWValidation/site
+=== RUN   TestHIRProfileOrderedByteRWValidation/jointsites
+=== RUN   TestHIRProfileOrderedByteRWValidation/weighted
+=== RUN   TestHIRProfileOrderedByteRWValidation/independent
+=== RUN   TestHIRProfileOrderedByteRWValidation/auto
+=== RUN   TestHIRProfileOrderedByteRWValidation/workload
+=== RUN   TestHIRProfileOrderedByteRWValidation/restriction
+=== RUN   TestHIRProfileOrderedByteRWValidation/separate
+--- PASS: TestHIRProfileOrderedByteRWValidation (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/joint (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/readonly (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/region (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/composition (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/copy (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/mixed (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/invariant (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/site (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/jointsites (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/weighted (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/independent (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/auto (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/workload (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/restriction (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/separate (0.00s)
+=== RUN   TestHIRProfileOrderedByteRWCompilation
+    hir_profile_ordered_byte_rw_test.go:209: read/write CLI objective=speed selected3 322T/52B SHAa6dfc2350e2b9f6dcf0630dd5fb8ed785dc5d571bcc4c5b3e680c6955cdb5956
+    hir_profile_ordered_byte_rw_test.go:209: read/write CLI objective=size selected3 322T/52B SHAa6dfc2350e2b9f6dcf0630dd5fb8ed785dc5d571bcc4c5b3e680c6955cdb5956
+--- PASS: TestHIRProfileOrderedByteRWCompilation (0.95s)
+=== RUN   TestHIRProfileOrderedByteValidation
+=== RUN   TestHIRProfileOrderedByteValidation/joint
+=== RUN   TestHIRProfileOrderedByteValidation/region
+=== RUN   TestHIRProfileOrderedByteValidation/composition
+=== RUN   TestHIRProfileOrderedByteValidation/copy
+=== RUN   TestHIRProfileOrderedByteValidation/mixed
+=== RUN   TestHIRProfileOrderedByteValidation/invariant
+=== RUN   TestHIRProfileOrderedByteValidation/site
+=== RUN   TestHIRProfileOrderedByteValidation/jointsites
+=== RUN   TestHIRProfileOrderedByteValidation/weighted
+=== RUN   TestHIRProfileOrderedByteValidation/independent
+=== RUN   TestHIRProfileOrderedByteValidation/auto
+=== RUN   TestHIRProfileOrderedByteValidation/workload
+=== RUN   TestHIRProfileOrderedByteValidation/restriction
+=== RUN   TestHIRProfileOrderedByteValidation/separate
+--- PASS: TestHIRProfileOrderedByteValidation (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/joint (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/region (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/composition (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/copy (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/mixed (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/invariant (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/site (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/jointsites (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/weighted (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/independent (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/auto (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/workload (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/restriction (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/separate (0.00s)
+=== RUN   TestHIRProfileRegionCompareValidation
+=== RUN   TestHIRProfileRegionCompareValidation/joint
+=== RUN   TestHIRProfileRegionCompareValidation/copy
+=== RUN   TestHIRProfileRegionCompareValidation/mixed
+=== RUN   TestHIRProfileRegionCompareValidation/invariant
+=== RUN   TestHIRProfileRegionCompareValidation/site
+=== RUN   TestHIRProfileRegionCompareValidation/jointsites
+=== RUN   TestHIRProfileRegionCompareValidation/weighted
+=== RUN   TestHIRProfileRegionCompareValidation/independent
+=== RUN   TestHIRProfileRegionCompareValidation/auto
+=== RUN   TestHIRProfileRegionCompareValidation/workload
+=== RUN   TestHIRProfileRegionCompareValidation/restriction
+=== RUN   TestHIRProfileRegionCompareValidation/separate
+--- PASS: TestHIRProfileRegionCompareValidation (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/joint (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/copy (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/mixed (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/invariant (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/site (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/jointsites (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/weighted (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/independent (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/auto (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/workload (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/restriction (0.00s)
+    --- PASS: TestHIRProfileRegionCompareValidation/separate (0.00s)
+=== RUN   TestHIRProfileRegionCompareCompilation
+    hir_profile_region_compare_test.go:205: region CLI objective=speed selected1 48694T/484B shabc519eeb88326c4d129d88115d0bda11506ae572d7819af34930b80403181cd5
+    hir_profile_region_compare_test.go:205: region CLI objective=size selected0 203172T/140B sha8ed343ebdcce85a1c3136095c50ed61a05ccc187832aefd96ed607bb77061a33
+--- PASS: TestHIRProfileRegionCompareCompilation (0.75s)
+=== RUN   TestHIRProfileTableInputAliases
+--- PASS: TestHIRProfileTableInputAliases (0.00s)
+=== RUN   TestHIRProfileStrictJSON
+=== RUN   TestHIRProfileStrictJSON/unknown
+=== RUN   TestHIRProfileStrictJSON/nested_unknown
+=== RUN   TestHIRProfileStrictJSON/trailing
+=== RUN   TestHIRProfileStrictJSON/trailing_garbage
+=== RUN   TestHIRProfileStrictJSON/duplicate
+=== RUN   TestHIRProfileStrictJSON/case_duplicate
+=== RUN   TestHIRProfileStrictJSON/nested_duplicate
+=== RUN   TestHIRProfileStrictJSON/null
+=== RUN   TestHIRProfileStrictJSON/oversized
+=== RUN   TestHIRProfileStrictJSON/model_unknown
+=== RUN   TestHIRProfileStrictJSON/model_trailing
+=== RUN   TestHIRProfileStrictJSON/model_overflow
+=== RUN   TestHIRProfileStrictJSON/model_null
+--- PASS: TestHIRProfileStrictJSON (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/unknown (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/nested_unknown (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/trailing (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/trailing_garbage (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/duplicate (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/case_duplicate (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/nested_duplicate (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/null (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/oversized (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/model_unknown (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/model_trailing (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/model_overflow (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/model_null (0.00s)
+=== RUN   TestHIRProfileFlagValidation
+=== RUN   TestHIRProfileFlagValidation/missing_mode
+=== RUN   TestHIRProfileFlagValidation/both_modes
+=== RUN   TestHIRProfileFlagValidation/missing_workload
+=== RUN   TestHIRProfileFlagValidation/collect_model
+=== RUN   TestHIRProfileFlagValidation/collect_output
+=== RUN   TestHIRProfileFlagValidation/apply_missing_model
+=== RUN   TestHIRProfileFlagValidation/apply_run
+=== RUN   TestHIRProfileFlagValidation/legacy
+=== RUN   TestHIRProfileFlagValidation/backend
+=== RUN   TestHIRProfileFlagValidation/emit
+=== RUN   TestHIRProfileFlagValidation/disabled
+=== RUN   TestHIRProfileFlagValidation/collision
+--- PASS: TestHIRProfileFlagValidation (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/missing_mode (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/both_modes (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/missing_workload (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/collect_model (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/collect_output (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/apply_missing_model (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/apply_run (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/legacy (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/backend (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/emit (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/disabled (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/collision (0.00s)
+=== RUN   TestHIRProfileCollectionAndApplication
+--- PASS: TestHIRProfileCollectionAndApplication (0.17s)
+=== RUN   TestHIRProfileIncompleteManifest
+--- PASS: TestHIRProfileIncompleteManifest (0.00s)
+=== RUN   TestHIRProfileFailedRun
+    hir_profile_test.go:257: loop profile: invocation 0 @loop: mir2.VM: gas limit reached (1 steps)
+--- PASS: TestHIRProfileFailedRun (0.02s)
+=== RUN   TestHIRProfileWeightedSitesCompilation
+--- PASS: TestHIRProfileWeightedSitesCompilation (1.98s)
+=== RUN   TestHIRProfileWeightedSitesValidation
+--- PASS: TestHIRProfileWeightedSitesValidation (0.00s)
+=== RUN   TestIndirectCallEmissionScope
+=== RUN   TestIndirectCallEmissionScope/mir2
+=== RUN   TestIndirectCallEmissionScope/all_mir2_annotations
+=== RUN   TestIndirectCallEmissionScope/c
+=== RUN   TestIndirectCallEmissionScope/mir2_dump
+=== RUN   TestIndirectCallEmissionScope/hir_dump
+=== RUN   TestIndirectCallEmissionScope/z80_assembly
+=== RUN   TestIndirectCallEmissionScope/z80_binary
+=== RUN   TestIndirectCallEmissionScope/default_z80_product
+=== RUN   TestIndirectCallEmissionScope/z80_assert
+--- PASS: TestIndirectCallEmissionScope (0.11s)
+    --- PASS: TestIndirectCallEmissionScope/mir2 (0.01s)
+    --- PASS: TestIndirectCallEmissionScope/all_mir2_annotations (0.01s)
+    --- PASS: TestIndirectCallEmissionScope/c (0.00s)
+    --- PASS: TestIndirectCallEmissionScope/mir2_dump (0.00s)
+    --- PASS: TestIndirectCallEmissionScope/hir_dump (0.00s)
+    --- PASS: TestIndirectCallEmissionScope/z80_assembly (0.02s)
+    --- PASS: TestIndirectCallEmissionScope/z80_binary (0.02s)
+    --- PASS: TestIndirectCallEmissionScope/default_z80_product (0.01s)
+    --- PASS: TestIndirectCallEmissionScope/z80_assert (0.04s)
+=== RUN   TestIndirectIntermediateAsserts
+=== RUN   TestIndirectIntermediateAsserts/mir2_sandbox
+=== RUN   TestIndirectIntermediateAsserts/bad_mir2_sandbox
+=== RUN   TestIndirectIntermediateAsserts/z80_sandbox
+=== RUN   TestIndirectIntermediateAsserts/bad_z80_sandbox
+--- PASS: TestIndirectIntermediateAsserts (0.03s)
+    --- PASS: TestIndirectIntermediateAsserts/mir2_sandbox (0.00s)
+    --- PASS: TestIndirectIntermediateAsserts/bad_mir2_sandbox (0.00s)
+    --- PASS: TestIndirectIntermediateAsserts/z80_sandbox (0.01s)
+    --- PASS: TestIndirectIntermediateAsserts/bad_z80_sandbox (0.01s)
+=== RUN   TestIndirectUnresolvedLiveCallerGuard
+--- PASS: TestIndirectUnresolvedLiveCallerGuard (0.01s)
+=== RUN   TestMemoryHostCLIValidation
+=== RUN   TestMemoryHostCLIValidation/target
+=== RUN   TestMemoryHostCLIValidation/format
+=== RUN   TestMemoryHostCLIValidation/profilemode
+=== RUN   TestMemoryHostCLIValidation/hirgrace
+=== RUN   TestMemoryHostCLIValidation/partialflags
+--- PASS: TestMemoryHostCLIValidation (0.01s)
+    --- PASS: TestMemoryHostCLIValidation/target (0.00s)
+    --- PASS: TestMemoryHostCLIValidation/format (0.00s)
+    --- PASS: TestMemoryHostCLIValidation/profilemode (0.00s)
+    --- PASS: TestMemoryHostCLIValidation/hirgrace (0.00s)
+    --- PASS: TestMemoryHostCLIValidation/partialflags (0.00s)
+=== RUN   TestMemoryHostCLIPathAliases
+=== RUN   TestMemoryHostCLIPathAliases/hardlink
+=== RUN   TestMemoryHostCLIPathAliases/symlink
+=== RUN   TestMemoryHostCLIPathAliases/output
+--- PASS: TestMemoryHostCLIPathAliases (0.01s)
+    --- PASS: TestMemoryHostCLIPathAliases/hardlink (0.00s)
+    --- PASS: TestMemoryHostCLIPathAliases/symlink (0.00s)
+    --- PASS: TestMemoryHostCLIPathAliases/output (0.00s)
+=== RUN   TestMemoryHostCLIWorkloadKeys
+--- PASS: TestMemoryHostCLIWorkloadKeys (0.00s)
+=== RUN   TestPolicyCLIAdmission
+--- PASS: TestPolicyCLIAdmission (0.01s)
+=== RUN   TestPolicyCLIPathAliases
+=== RUN   TestPolicyCLIPathAliases/source
+=== RUN   TestPolicyCLIPathAliases/workload
+=== RUN   TestPolicyCLIPathAliases/association
+=== RUN   TestPolicyCLIPathAliases/output
+--- PASS: TestPolicyCLIPathAliases (0.00s)
+    --- PASS: TestPolicyCLIPathAliases/source (0.00s)
+    --- PASS: TestPolicyCLIPathAliases/workload (0.00s)
+    --- PASS: TestPolicyCLIPathAliases/association (0.00s)
+    --- PASS: TestPolicyCLIPathAliases/output (0.00s)
+=== RUN   TestPolicyCLICollectReplay
+Closed memory-host policy preserve-speed speed selected mask1: 739T / 2545B; evidence /tmp/TestPolicyCLICollectReplay1868337573/001/policy-artifacts
+Closed memory-host policy preserve-speed speed selected mask1: 739T / 2545B; evidence /tmp/TestPolicyCLICollectReplay1868337573/001/replay
+--- PASS: TestPolicyCLICollectReplay (45.45s)
+=== RUN   TestPolicyCLIMalformedAssociationAndImports
+--- PASS: TestPolicyCLIMalformedAssociationAndImports (0.11s)
+=== RUN   TestPolicyCLILegacyRouteUnchanged
+--- PASS: TestPolicyCLILegacyRouteUnchanged (0.02s)
+=== RUN   TestSearchCLIAdmission
+--- PASS: TestSearchCLIAdmission (0.10s)
+=== RUN   TestSearchCLIPathAliases
+=== RUN   TestSearchCLIPathAliases/input.nanz
+=== RUN   TestSearchCLIPathAliases/input-workload.json
+=== RUN   TestSearchCLIPathAliases/legacy.json
+=== RUN   TestSearchCLIPathAliases/preserve.json
+--- PASS: TestSearchCLIPathAliases (0.14s)
+    --- PASS: TestSearchCLIPathAliases/input.nanz (0.00s)
+    --- PASS: TestSearchCLIPathAliases/input-workload.json (0.02s)
+    --- PASS: TestSearchCLIPathAliases/legacy.json (0.03s)
+    --- PASS: TestSearchCLIPathAliases/preserve.json (0.08s)
+=== RUN   TestSearchCLIKnownSourceBeforeCollection
+--- PASS: TestSearchCLIKnownSourceBeforeCollection (0.10s)
+=== RUN   TestSearchCLISuppliedPreflight
+--- PASS: TestSearchCLISuppliedPreflight (0.08s)
+=== RUN   TestSearchCLIOrdinaryRoutesUnaffected
+--- PASS: TestSearchCLIOrdinaryRoutesUnaffected (0.02s)
+=== RUN   TestSearchCLIAssociationCaps
+--- PASS: TestSearchCLIAssociationCaps (0.15s)
+=== RUN   TestSearchCLICollectAndPairedReplay
+Closed memory-host search speed selected policy1/mask1: 739T / 2499B; evidence /tmp/TestSearchCLICollectAndPairedReplay1201742731/001/search-artifacts
+Closed memory-host search size selected policy0/mask2: 834T / 2357B; evidence /tmp/TestSearchCLICollectAndPairedReplay1201742731/001/search-replay
+--- PASS: TestSearchCLICollectAndPairedReplay (240.01s)
+=== RUN   TestMemoryHostSelectedOutputExtensions
+--- PASS: TestMemoryHostSelectedOutputExtensions (0.06s)
+=== RUN   TestMemoryHostSelectedOutputBytes
+--- PASS: TestMemoryHostSelectedOutputBytes (0.00s)
+=== RUN   TestMemoryHostLegacySelectedOutputCollectReplay
+Closed memory-host speed selected mask1: 756T / 2544B; evidence /tmp/TestMemoryHostLegacySelectedOutputCollectReplay4082637671/001/legacy-collect
+Closed memory-host speed selected mask1: 756T / 2544B; evidence /tmp/TestMemoryHostLegacySelectedOutputCollectReplay4082637671/001/legacy-replay
+--- PASS: TestMemoryHostLegacySelectedOutputCollectReplay (50.88s)
+=== RUN   TestRetiredLIRFlagsRejected
+--- PASS: TestRetiredLIRFlagsRejected (0.00s)
+PASS
