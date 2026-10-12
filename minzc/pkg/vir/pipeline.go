@@ -494,9 +494,9 @@ __mod16:
 }
 
 // CodegenFunc runs the VIR solver on a single MIR2 function.
-// Dual-mode strategy: solves with ABI constraints AND standalone (unconstrained).
+// Constrained-first strategy: standalone (unconstrained) is a fallback.
 // Currently prefers constrained; falls back to standalone when constrained fails.
-// Logs potential savings from standalone+adapter for future optimization.
+// A successful constrained solve returns directly; no dual-mode cost comparison is performed.
 func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, error) {
 	desc := Z80
 
@@ -733,45 +733,15 @@ skipTable:
 	vfStand := deepCopyFunc(vf)
 	standParamLocs, standASM, standErr := codegenFuncCFGFull(f, vfStand, desc, optsStand)
 
-	// --- Pick winner ---
-	if constRan && constErr == nil && standErr == nil {
-		constInsts := countASMInstructions(constASM)
-		standInsts := countASMInstructions(standASM)
-
-		// Compute real adapter cost: only count params where registers differ
-		adapterCost := 0
-		for vreg, callerPhys := range callerParamLocs {
-			if standPhys, ok := standParamLocs[vreg]; ok && standPhys != callerPhys {
-				adapterCost++
-			}
-		}
-
-		if standInsts+adapterCost < constInsts {
-			// Standalone wins — emit adapter moves at function entry
-			adapted, adapterErr := emitAdapterEntry(standASM, f, callerParamLocs, standParamLocs, desc)
-			if adapterErr != nil {
-				return "", adapterErr
-			}
-			fmt.Fprintf(os.Stderr, "[vir] %s: standalone+adapter wins (%d+%d=%d vs %d constrained, saved %d)\n",
-				f.Name, standInsts, adapterCost, standInsts+adapterCost, constInsts,
-				constInsts-(standInsts+adapterCost))
-			return adapted, nil
-		}
-		return constASM, nil
-	}
-
-	// One mode succeeded
-	if constRan && constErr == nil {
-		return constASM, nil
-	}
+	// Use the standalone result only after the constrained solve failed.
 	if standErr == nil {
 		if constRan && hasConstraints {
 			// resolveParallelMoves handles dependency ordering (topological sort)
-			// and cycles (EX DE,HL or 3-move XOR swap). Just emit the adapter.
-			adapterCost := 0
+			// and cycles with preserved register/stack snapshots. Emit the adapter.
+			changedParams := 0
 			for vreg, callerPhys := range callerParamLocs {
 				if standPhys, ok := standParamLocs[vreg]; ok && standPhys != callerPhys {
-					adapterCost++
+					changedParams++
 				}
 			}
 			adapted, adapterErr := emitAdapterEntry(standASM, f, callerParamLocs, standParamLocs, desc)
@@ -779,7 +749,7 @@ skipTable:
 				return "", adapterErr
 			}
 			fmt.Fprintf(os.Stderr, "[vir] %s: constrained unsat, using standalone+adapter (%d adapters)\n",
-				f.Name, adapterCost)
+				f.Name, changedParams)
 			return adapted, nil
 		} else {
 			return standASM, nil
@@ -1130,16 +1100,22 @@ func emitAdapterEntry(asm string, f *mir2.Func, callerLocs, standLocs map[int]in
 	// Insert after function label line (funcname:)
 	lines := strings.SplitN(asm, "\n", -1)
 	var result strings.Builder
-	inserted := false
+	entry := f.Name + ":"
+	matches := 0
+	for _, line := range lines {
+		if strings.TrimSpace(strings.SplitN(line, ";", 2)[0]) == entry {
+			matches++
+		}
+	}
+	if matches != 1 {
+		return "", fmt.Errorf("adapter requires exactly one entry label %s, got %d", entry, matches)
+	}
 	for _, line := range lines {
 		result.WriteString(line)
 		result.WriteByte('\n')
-		if !inserted && strings.HasSuffix(strings.TrimSpace(line), ":") &&
-			!strings.HasPrefix(strings.TrimSpace(line), ";") &&
-			!strings.HasPrefix(strings.TrimSpace(line), ".") {
+		if strings.TrimSpace(strings.SplitN(line, ";", 2)[0]) == entry {
 			// This is the function label — insert adapters after it
 			result.WriteString(adapter.String())
-			inserted = true
 		}
 	}
 	fixed := fixDDPrefixConflict(result.String())

@@ -1,0 +1,15 @@
+--- FAIL: TestAdapterUsesExactFunctionEntryNative (0.00s)
+    adapter_entry_label_test.go:35: x=0 got={A:0 F:69 BC:37159 DE:0 HL:0 IX:0 IY:0 SP:61440 PC:61696} ASM=ORG 0x8000
+        other:
+            ; adapter: caller→standalone convention
+            LD B, A
+        RET
+        target:
+        LD A, B
+        RET
+        
+--- FAIL: TestAdapterRejectsMissingOrDuplicateEntry (0.00s)
+    adapter_entry_label_test.go:45: ambiguous entry accepted: "other:\n    ; adapter: caller→standalone convention\n    LD B, A\nRET\n\n" <nil>
+FAIL
+FAIL	github.com/minz/minzc/pkg/vir	0.007s
+FAIL
