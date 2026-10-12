@@ -14,11 +14,12 @@ import (
 	"testing"
 )
 
-// Initialization prefix of unchanged main, bounded before the first game HALT.
-// No interrupt or keyboard/game-frame claim is made by this test.
+// Unchanged main: initialization and 31 keyboard-driven frames, independently
+// modeled through gravity. HALT wake is controlled; interrupts are not modeled.
 func TestOriginalZXTetrisMainInitialization(t *testing.T) { testOriginalZXTetrisMainFrames(t, "idle") }
 func TestOriginalZXTetrisMainMovement(t *testing.T)       { testOriginalZXTetrisMainFrames(t, "movement") }
 func TestOriginalZXTetrisMainRotation(t *testing.T)       { testOriginalZXTetrisMainFrames(t, "rotation") }
+func TestOriginalZXTetrisMainSoftDrop(t *testing.T)       { testOriginalZXTetrisMainFrames(t, "soft-drop") }
 func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 	for _, source := range []struct{ name, path string }{{"current", "examples/zx/tetris.nanz"}, {"historical", "reports/showcase-src/2026-03-15/ex34_tetris.nanz"}} {
 		t.Run(source.name, func(t *testing.T) {
@@ -161,6 +162,15 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 					borders := 0
 					keyReads := 0
 					keysAt := func(frame int) byte {
+						if scenario == "soft-drop" {
+							if frame <= 3 || (frame >= 20 && frame <= 22) {
+								return 8
+							}
+							if frame == 4 {
+								return 4
+							}
+							return 0
+						}
 						if scenario == "rotation" {
 							if frame == 1 || frame == 2 || frame == 4 || frame == 6 || frame == 8 || frame == 10 {
 								return 4
@@ -188,6 +198,7 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 					}
 					expectedX := 3
 					expectedRotation := 0
+					expectedY, expectedTimer := 0, 0
 					previousKeys := byte(0)
 					awake := false
 					z.SetIOHandlers(func(p uint16) byte {
@@ -206,6 +217,9 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 							if keys&2 != 0 {
 								v &^= 1
 							}
+						}
+						if row == 2 && keys&8 != 0 {
+							v &^= 1
 						}
 						if row == 1 && keys&4 != 0 {
 							v &^= 1
@@ -281,6 +295,15 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 							expectedRotation = (expectedRotation + 1) & 3
 						}
 						previousKeys = keys
+						// A is level-triggered. Timer reset precedes the same-frame gravity tick.
+						if keys&8 != 0 {
+							expectedTimer = 30
+						}
+						expectedTimer++
+						if expectedTimer >= 30 {
+							expectedTimer = 0
+							expectedY++
+						}
 						want[sym("cur_rot")] = byte(expectedRotation)
 						want[sym("cur_x")] = byte(expectedX)
 						want[sym("prev_keys")] = keys
@@ -300,7 +323,7 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 								ghost = 16
 							}
 							want[0x5800+(2+ghost+dy)*32+11+expectedX+dx] = 5
-							want[0x5800+(2+frame/30+dy)*32+11+expectedX+dx] = 0x28
+							want[0x5800+(2+expectedY+dy)*32+11+expectedX+dx] = 0x28
 						}
 						for _, sx := range []int{23, 5} {
 							for y := 0; y < 4; y++ {
@@ -314,8 +337,8 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 						}
 						want[sym("frame_count")] = byte(frame)
 						want[sym("frame_count")+1] = 0
-						want[sym("drop_timer")] = byte(frame % 30)
-						want[sym("cur_y")] = byte(frame / 30)
+						want[sym("drop_timer")] = byte(expectedTimer)
+						want[sym("cur_y")] = byte(expectedY)
 						halt = false
 						for step := 0; step < 5000000; step++ {
 							pc := z.GetPC()
@@ -359,7 +382,7 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 					}
 					t.Log("31 frames including input edges and gravity/full RAM PASS")
 					save(mode+"/screen.bin", mem[0x4000:0x5b00])
-					save(mode+"/summary.json", map[string]any{"bytes": len(a.Binary), "T_states": z.GetCycles(), "source_sha256": fmt.Sprintf("%x", sha256.Sum256(src)), "rng": rng, "type": typ, "next": queued, "minimum_sp": minSP, "full_ram": true, "termination": "bounded before frame32 game HALT"})
+					save(mode+"/summary.json", map[string]any{"bytes": len(a.Binary), "T_states": z.GetCycles(), "source_sha256": fmt.Sprintf("%x", sha256.Sum256(src)), "rng": rng, "type": typ, "next": queued, "minimum_sp": minSP, "full_ram": true, "scenario": scenario, "final_y": expectedY, "final_timer": expectedTimer, "termination": "bounded before frame32 game HALT"})
 					t.Log(len(a.Binary), z.GetCycles(), "initial main and31frames/full RAM PASS")
 				})
 			}

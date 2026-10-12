@@ -1,0 +1,38 @@
+=== RUN   TestOriginalZXTetrisMainSoftDrop
+=== RUN   TestOriginalZXTetrisMainSoftDrop/current
+=== RUN   TestOriginalZXTetrisMainSoftDrop/current/ordinary
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:383: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:386: 4548 19618354 initial main and31frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainSoftDrop/current/grace-size
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:383: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:386: 4557 19617765 initial main and31frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainSoftDrop/current/grace-speed
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:383: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:386: 4557 19617765 initial main and31frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainSoftDrop/historical
+=== RUN   TestOriginalZXTetrisMainSoftDrop/historical/ordinary
+[HIR-SPLIT] main → main$split_7 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:383: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:386: 4979 9470456 initial main and31frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainSoftDrop/historical/grace-size
+[HIR-SPLIT] main → main$split_7 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:383: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:386: 4988 9469867 initial main and31frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainSoftDrop/historical/grace-speed
+[HIR-SPLIT] main → main$split_7 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:383: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:386: 4988 9469867 initial main and31frames/full RAM PASS
+--- PASS: TestOriginalZXTetrisMainSoftDrop (6.40s)
+    --- PASS: TestOriginalZXTetrisMainSoftDrop/current (1.53s)
+        --- PASS: TestOriginalZXTetrisMainSoftDrop/current/ordinary (0.40s)
+        --- PASS: TestOriginalZXTetrisMainSoftDrop/current/grace-size (0.56s)
+        --- PASS: TestOriginalZXTetrisMainSoftDrop/current/grace-speed (0.56s)
+    --- PASS: TestOriginalZXTetrisMainSoftDrop/historical (4.87s)
+        --- PASS: TestOriginalZXTetrisMainSoftDrop/historical/ordinary (0.59s)
+        --- PASS: TestOriginalZXTetrisMainSoftDrop/historical/grace-size (2.13s)
+        --- PASS: TestOriginalZXTetrisMainSoftDrop/historical/grace-speed (2.16s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	6.414s
