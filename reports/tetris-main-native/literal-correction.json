@@ -1,0 +1,72 @@
+[
+  {
+    "source": "examples/nanz/tetris_cpm.nanz",
+    "line": 415,
+    "call": "tui_puts(\"Arrows:Move Z:Rot X:Drop C:Hold Q:Quit\")",
+    "contract": "tui_puts scans NUL; CPM importedASM LD A,(HL)/OR A/RET Z; TUI mzv readStr untilzero",
+    "old_sha256": "444a07777a59a5fd57e1d57f364232ae7c87eeba9430e665ef170a64b7d3793f"
+  },
+  {
+    "source": "examples/nanz/tetris_cpm.nanz",
+    "line": 518,
+    "call": "tui_puts(\"GAME OVER!\")",
+    "contract": "tui_puts scans NUL; CPM importedASM LD A,(HL)/OR A/RET Z; TUI mzv readStr untilzero",
+    "old_sha256": "444a07777a59a5fd57e1d57f364232ae7c87eeba9430e665ef170a64b7d3793f"
+  },
+  {
+    "source": "examples/nanz/tetris_cpm.nanz",
+    "line": 520,
+    "call": "tui_puts(\"Score: \")",
+    "contract": "tui_puts scans NUL; CPM importedASM LD A,(HL)/OR A/RET Z; TUI mzv readStr untilzero",
+    "old_sha256": "444a07777a59a5fd57e1d57f364232ae7c87eeba9430e665ef170a64b7d3793f"
+  },
+  {
+    "source": "examples/nanz/tetris_tui.nanz",
+    "line": 361,
+    "call": "tui_puts(\"SCORE\")",
+    "contract": "tui_puts scans NUL; CPM importedASM LD A,(HL)/OR A/RET Z; TUI mzv readStr untilzero",
+    "old_sha256": "7198ad68d26c197296e8c9cc28dd253cb02b4f2b12835c5bcaf9c7348efe78cd"
+  },
+  {
+    "source": "examples/nanz/tetris_tui.nanz",
+    "line": 366,
+    "call": "tui_puts(\"LINES\")",
+    "contract": "tui_puts scans NUL; CPM importedASM LD A,(HL)/OR A/RET Z; TUI mzv readStr untilzero",
+    "old_sha256": "7198ad68d26c197296e8c9cc28dd253cb02b4f2b12835c5bcaf9c7348efe78cd"
+  },
+  {
+    "source": "examples/nanz/tetris_tui.nanz",
+    "line": 371,
+    "call": "tui_puts(\"NEXT\")",
+    "contract": "tui_puts scans NUL; CPM importedASM LD A,(HL)/OR A/RET Z; TUI mzv readStr untilzero",
+    "old_sha256": "7198ad68d26c197296e8c9cc28dd253cb02b4f2b12835c5bcaf9c7348efe78cd"
+  },
+  {
+    "source": "examples/nanz/tetris_tui.nanz",
+    "line": 397,
+    "call": "tui_puts(\"HOLD\")",
+    "contract": "tui_puts scans NUL; CPM importedASM LD A,(HL)/OR A/RET Z; TUI mzv readStr untilzero",
+    "old_sha256": "7198ad68d26c197296e8c9cc28dd253cb02b4f2b12835c5bcaf9c7348efe78cd"
+  },
+  {
+    "source": "examples/nanz/tetris_tui.nanz",
+    "line": 413,
+    "call": "tui_puts(\"Arrows:Move Z:Rot X:Drop C:Hold Q:Quit\")",
+    "contract": "tui_puts scans NUL; CPM importedASM LD A,(HL)/OR A/RET Z; TUI mzv readStr untilzero",
+    "old_sha256": "7198ad68d26c197296e8c9cc28dd253cb02b4f2b12835c5bcaf9c7348efe78cd"
+  },
+  {
+    "source": "examples/nanz/tetris_tui.nanz",
+    "line": 527,
+    "call": "tui_puts(\"GAME OVER!\")",
+    "contract": "tui_puts scans NUL; CPM importedASM LD A,(HL)/OR A/RET Z; TUI mzv readStr untilzero",
+    "old_sha256": "7198ad68d26c197296e8c9cc28dd253cb02b4f2b12835c5bcaf9c7348efe78cd"
+  },
+  {
+    "source": "examples/nanz/tetris_tui.nanz",
+    "line": 529,
+    "call": "tui_puts(\"Score: \")",
+    "contract": "tui_puts scans NUL; CPM importedASM LD A,(HL)/OR A/RET Z; TUI mzv readStr untilzero",
+    "old_sha256": "7198ad68d26c197296e8c9cc28dd253cb02b4f2b12835c5bcaf9c7348efe78cd"
+  }
+]
