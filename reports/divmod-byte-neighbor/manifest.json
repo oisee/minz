@@ -1,10 +1,14 @@
 [
   {
     "path": "README.md",
-    "sha256": "237738724ab27d5364dc0e56f30f746c461faa530d34f71d9c8974a182f955a1"
+    "sha256": "3f78e8c338de3605252f6038676833b4ee04aa6102d44c9087fd30564c295167"
+  },
+  {
+    "path": "full-mir2.txt",
+    "sha256": "e1f752641e1e3cf2d545fb1032990fddee010c9a0bb97897c36f08ee00ab0284"
   },
   {
     "path": "result.json",
-    "sha256": "3b2a54625e27fd94bda8efc1859de600864813dae16f93d39876e8051771f5fc"
+    "sha256": "07abbf56e388658c15a8d6f9fab2e7e92debe7f49ff855ef4ec0c00d15c3df76"
   }
 ]

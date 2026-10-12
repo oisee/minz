@@ -8,8 +8,10 @@
   "focused_native": "PASS",
   "GCD_VM_native": "PASS",
   "full_MIR2": {
-    "state": "running",
-    "session": 57081
+    "state": "terminal PASS",
+    "session": 57081,
+    "exit_code": 0,
+    "elapsed_seconds": 68.001
   },
   "Lookup": "still failing"
 }
