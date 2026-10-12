@@ -1,0 +1,16 @@
+{
+  "verified": true,
+  "results": {
+    "speed": {
+      "selected": 1,
+      "heldout_T": 5568,
+      "baseline_T": 6252
+    },
+    "size": {
+      "selected": 0,
+      "heldout_T": 6252,
+      "baseline_T": 6252
+    }
+  },
+  "scope": "Independent saved integer/counter/access/selection/BIN-hash audit; not CPU rerun, instruction legality or arbitrary workload proof."
+}
