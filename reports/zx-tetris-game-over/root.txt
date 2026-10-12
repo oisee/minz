@@ -1,0 +1,38 @@
+=== RUN   TestOriginalZXTetrisMainGameOver
+=== RUN   TestOriginalZXTetrisMainGameOver/current
+=== RUN   TestOriginalZXTetrisMainGameOver/current/ordinary
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:643: 23 frames/full RAM PASS; returned true
+    original_zx_tetris_main_test.go:646: 4548 19505118 initial main and 23 frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainGameOver/current/grace-size
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:643: 23 frames/full RAM PASS; returned true
+    original_zx_tetris_main_test.go:646: 4557 19502241 initial main and 23 frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainGameOver/current/grace-speed
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:643: 23 frames/full RAM PASS; returned true
+    original_zx_tetris_main_test.go:646: 4557 19502241 initial main and 23 frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainGameOver/historical
+=== RUN   TestOriginalZXTetrisMainGameOver/historical/ordinary
+[HIR-SPLIT] main → main$split_7 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:643: 23 frames/full RAM PASS; returned true
+    original_zx_tetris_main_test.go:646: 4979 8628947 initial main and 23 frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainGameOver/historical/grace-size
+[HIR-SPLIT] main → main$split_7 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:643: 23 frames/full RAM PASS; returned true
+    original_zx_tetris_main_test.go:646: 4988 8626070 initial main and 23 frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainGameOver/historical/grace-speed
+[HIR-SPLIT] main → main$split_7 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:643: 23 frames/full RAM PASS; returned true
+    original_zx_tetris_main_test.go:646: 4988 8626070 initial main and 23 frames/full RAM PASS
+--- PASS: TestOriginalZXTetrisMainGameOver (5.35s)
+    --- PASS: TestOriginalZXTetrisMainGameOver/current (1.61s)
+        --- PASS: TestOriginalZXTetrisMainGameOver/current/ordinary (0.52s)
+        --- PASS: TestOriginalZXTetrisMainGameOver/current/grace-size (0.55s)
+        --- PASS: TestOriginalZXTetrisMainGameOver/current/grace-speed (0.54s)
+    --- PASS: TestOriginalZXTetrisMainGameOver/historical (3.73s)
+        --- PASS: TestOriginalZXTetrisMainGameOver/historical/ordinary (0.53s)
+        --- PASS: TestOriginalZXTetrisMainGameOver/historical/grace-size (1.57s)
+        --- PASS: TestOriginalZXTetrisMainGameOver/historical/grace-speed (1.63s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	5.383s

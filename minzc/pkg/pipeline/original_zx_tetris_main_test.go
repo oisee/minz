@@ -14,8 +14,8 @@ import (
 	"testing"
 )
 
-// Unchanged main: initialization and 31 keyboard-driven frames, independently
-// modeled through gravity. HALT wake is controlled; interrupts are not modeled.
+// Unchanged main: independently modeled keyboard-driven frames and, for the
+// game-over workload, its flash sequence and return. HALT wake is controlled.
 func TestOriginalZXTetrisMainInitialization(t *testing.T) { testOriginalZXTetrisMainFrames(t, "idle") }
 func TestOriginalZXTetrisMainMovement(t *testing.T)       { testOriginalZXTetrisMainFrames(t, "movement") }
 func TestOriginalZXTetrisMainRotation(t *testing.T)       { testOriginalZXTetrisMainFrames(t, "rotation") }
@@ -26,6 +26,7 @@ func TestOriginalZXTetrisMainGravityLock(t *testing.T) {
 	testOriginalZXTetrisMainFrames(t, "gravity-lock")
 }
 func TestOriginalZXTetrisMainLineClear(t *testing.T) { testOriginalZXTetrisMainFrames(t, "line-clear") }
+func TestOriginalZXTetrisMainGameOver(t *testing.T)  { testOriginalZXTetrisMainFrames(t, "game-over") }
 func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 	for _, source := range []struct{ name, path string }{{"current", "examples/zx/tetris.nanz"}, {"historical", "reports/showcase-src/2026-03-15/ex34_tetris.nanz"}} {
 		t.Run(source.name, func(t *testing.T) {
@@ -168,6 +169,12 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 					borders := 0
 					keyReads := 0
 					keysAt := func(frame int) byte {
+						if scenario == "game-over" {
+							if frame%2 == 1 {
+								return 16
+							}
+							return 0
+						}
 						if scenario == "line-clear" {
 							switch frame {
 							case 1, 3, 5:
@@ -240,6 +247,10 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 					expectedType, expectedNext := typ, queued
 					expectedScore := 0
 					expectedLines := 0
+					expectedGameOver := false
+					completedFrames := 0
+					flashHalts := 0
+					returned := false
 					expectedHold, expectedHoldUsed := byte(255), byte(0)
 					var board [200]byte
 					colors := []byte{0x28, 0x30, 0x18, 0x20, 0x10, 0x70, 0x08}
@@ -310,7 +321,7 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 						want[sym("rng_state")] = byte(rng)
 						want[sym("rng_state")+1] = byte(rng >> 8)
 						if !fits(0) {
-							t.Fatal("model requires game-over support")
+							expectedGameOver = true
 						}
 					}
 					previousKeys := byte(0)
@@ -346,7 +357,14 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 						}
 						return v
 					}, func(p uint16, v byte) {
-						if byte(p) != 0xfe || byte(p>>8) != 0 || v != 0 || borders != 0 {
+						expectedBorder := byte(0)
+						if borders > 0 {
+							expectedBorder = 2
+							if borders%2 == 0 {
+								expectedBorder = 0
+							}
+						}
+						if byte(p) != 0xfe || byte(p>>8) != v || v != expectedBorder || (borders > 0 && !expectedGameOver) {
 							t.Fatal("border", p, v)
 						}
 						borders++
@@ -452,6 +470,9 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 								lockAndSpawn()
 							}
 						}
+						if expectedGameOver {
+							want[sym("game_over")] = 1
+						}
 						want[sym("hold_type")] = expectedHold
 						want[sym("hold_used")] = expectedHoldUsed
 						want[sym("cur_type")] = expectedType
@@ -528,7 +549,11 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 								t.Fatal("frame stack")
 							}
 						}
-						if !halt || keyReads != frame*5 || borders != 1 {
+						expectedBorders := 1
+						if expectedGameOver {
+							expectedBorders = 2
+						}
+						if !halt || keyReads != frame*5 || borders != expectedBorders {
 							t.Fatal("frame incomplete", frame, halt, keyReads, borders)
 						}
 						copy(want[minSP:0xf000], mem[minSP:0xf000])
@@ -544,9 +569,66 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 								}
 							}
 						}
-						if frame == 1 || frame == 30 || frame == 31 {
+						completedFrames = frame
+						if frame == 1 || frame == 30 || frame == 31 || expectedGameOver {
 							save(fmt.Sprintf("%s/frame-%d-ram.bin", mode, frame), mem)
 						}
+						if expectedGameOver {
+							break
+						}
+					}
+					if scenario == "game-over" {
+						if !expectedGameOver || completedFrames != 23 || expectedScore != 234 {
+							t.Fatal("game-over workload was not reached", completedFrames, expectedScore)
+						}
+						for step := 0; step < 5000000; step++ {
+							pc := z.GetPC()
+							if pc == 0x7003 && z.GetSP() == 0xf000 {
+								returned = true
+								break
+							}
+							if pc < 0x8000 || int(pc) >= 0x8000+len(a.Binary) {
+								t.Fatal("flash foreign fetch", pc)
+							}
+							if mem[pc] == 0x76 {
+								if pc != sym("zx_halt") {
+									t.Fatal("flash halt authority", pc)
+								}
+								flashHalts++
+								if flashHalts > 120 || borders != 2+(flashHalts-1)/3 {
+									t.Fatal("flash sequence", flashHalts, borders)
+								}
+								r := z.GetRegisters()
+								ret := uint16(mem[r.SP]) | uint16(mem[r.SP+1])<<8
+								if ret < 0x8003 || mem[ret-3] != 0xcd || uint16(mem[ret-2])|uint16(mem[ret-1])<<8 != pc {
+									t.Fatal("flash CALL authority", ret)
+								}
+								r.PC++
+								z.SetRegisters(r)
+							} else {
+								z.Step()
+							}
+							if z.GetSP() < minSP {
+								minSP = z.GetSP()
+							}
+							if minSP < 0xe000 || z.GetSP() > 0xf000 {
+								t.Fatal("flash stack")
+							}
+							copy(want[minSP:0xf000], mem[minSP:0xf000])
+							for _, l := range a.Listing {
+								if strings.HasPrefix(l.Label, "_spill_") {
+									copy(want[l.Address:l.Address+len(l.Bytes)], mem[l.Address:l.Address+len(l.Bytes)])
+								}
+							}
+							if !bytes.Equal(want, mem) {
+								t.Fatal("flash changed non-stack/non-spill RAM", flashHalts)
+							}
+						}
+						if !returned || flashHalts != 120 || borders != 41 || keyReads != completedFrames*5 {
+							t.Fatal("game return", returned, flashHalts, borders, keyReads)
+						}
+						save(mode+"/returned-ram.bin", mem)
+						save(mode+"/returned-registers.json", z.GetRegisters())
 					}
 					if scenario == "line-clear" {
 						if expectedLines != 1 || expectedScore != 212 || board[197] != 5 || board[198] != 5 {
@@ -558,10 +640,10 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 							}
 						}
 					}
-					t.Log("31 frames including input edges and gravity/full RAM PASS")
+					t.Log(completedFrames, "frames/full RAM PASS; returned", returned)
 					save(mode+"/screen.bin", mem[0x4000:0x5b00])
-					save(mode+"/summary.json", map[string]any{"bytes": len(a.Binary), "T_states": z.GetCycles(), "source_sha256": fmt.Sprintf("%x", sha256.Sum256(src)), "rng": rng, "type": typ, "next": queued, "minimum_sp": minSP, "full_ram": true, "scenario": scenario, "final_hold": expectedHold, "final_hold_used": expectedHoldUsed, "final_lines": expectedLines, "final_score": expectedScore, "final_type": expectedType, "final_next": expectedNext, "final_y": expectedY, "final_timer": expectedTimer, "termination": "bounded before frame32 game HALT"})
-					t.Log(len(a.Binary), z.GetCycles(), "initial main and31frames/full RAM PASS")
+					save(mode+"/summary.json", map[string]any{"bytes": len(a.Binary), "T_states": z.GetCycles(), "source_sha256": fmt.Sprintf("%x", sha256.Sum256(src)), "rng": rng, "type": typ, "next": queued, "minimum_sp": minSP, "full_ram": true, "scenario": scenario, "final_hold": expectedHold, "final_hold_used": expectedHoldUsed, "final_lines": expectedLines, "final_score": expectedScore, "final_type": expectedType, "final_next": expectedNext, "final_y": expectedY, "final_timer": expectedTimer, "frames": completedFrames, "flash_halts": flashHalts, "main_return": returned, "termination": map[bool]string{true: "main returned PC7003 SPf000", false: "bounded before frame32 game HALT"}[returned]})
+					t.Log(len(a.Binary), z.GetCycles(), "initial main and", completedFrames, "frames/full RAM PASS")
 				})
 			}
 		})
