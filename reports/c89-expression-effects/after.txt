@@ -1,0 +1,7 @@
+=== RUN   TestC89ExpressionEffectsNative
+    c89_expression_effects_native_test.go:333: ordinary 328704 raw/final/native whole RAM SP/code ordered trace PASS
+    c89_expression_effects_native_test.go:333: grace-size 328704 raw/final/native whole RAM SP/code ordered trace PASS
+    c89_expression_effects_native_test.go:333: grace-speed 328704 raw/final/native whole RAM SP/code ordered trace PASS
+--- PASS: TestC89ExpressionEffectsNative (24.46s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	24.466s

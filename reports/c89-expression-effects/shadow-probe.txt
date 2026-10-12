@@ -1,0 +1,10 @@
+=== RUN   TestControlContinueShadowProbe
+    control_shadow_probe_test.go:22: unsigned int probe(void) { unsigned char i=0,total=0; for(;i<3;i++) { unsigned char i=99; total+=i; continue; } return (unsigned int)i*256+total; } [] mir2.VM: gas limit reached (10000 steps)
+    control_shadow_probe_test.go:24: got[] errmir2.VM: gas limit reached (10000 steps) want809
+    control_shadow_probe_test.go:22: unsigned int probe(void) { unsigned char i=0,total=0; do { { unsigned char i=99; total+=i; continue; } } while(i++<2); return (unsigned int)i*256+total; } [{99}] <nil>
+    control_shadow_probe_test.go:24: got[{99}] err<nil> want809
+    control_shadow_probe_test.go:22: unsigned int probe(void) { unsigned char i=0,total=0; while(i<3) { { unsigned char i=99; total+=i; } i++; } return (unsigned int)i*256+total; } [{809}] <nil>
+--- FAIL: TestControlContinueShadowProbe (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/c89	0.009s
+FAIL

@@ -1,0 +1,5 @@
+{
+  "calls": 328704,
+  "domain": "5 two-unsigned-byte functions: all 65536 orderedpairs each; 4 unaryentries all256; mark called via trace entries",
+  "native_raw_final": "PASS"
+}
