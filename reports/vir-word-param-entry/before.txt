@@ -1,0 +1,6 @@
+=== RUN   TestLinearWordParamEntryFullDomainNative
+    param_entry_native_test.go:18: entry word ABI lost
+--- FAIL: TestLinearWordParamEntryFullDomainNative (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/vir	0.007s
+FAIL

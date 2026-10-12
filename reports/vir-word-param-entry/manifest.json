@@ -1,0 +1,28 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "d3f703ee76eab4e8c14aa83b6a3725e212c020591fe1eb86c21460c9c7c6874e"
+    },
+    {
+      "path": "before.txt",
+      "sha256": "36090ca037324f336d839c4c610ad87a6ea0282446e6c9a63282e67916f7484e"
+    },
+    {
+      "path": "entry.a80",
+      "sha256": "c409c1f8332581a485abe79e7d4016650846548212da544a843014a1f9084b17"
+    },
+    {
+      "path": "entry.bin",
+      "sha256": "b21d92d5134d40229a594fe724e8b270639cc63f5c570271226c2bf84e7a87a0"
+    },
+    {
+      "path": "family.txt",
+      "sha256": "7893815474de4935661510315ffaeddbe8bf5d7b9a1f0abe77dab04f78b3a6be"
+    },
+    {
+      "path": "native.txt",
+      "sha256": "3e8c2b2b488d4e3b8dcdf7f4c9d8eb20434b3a3b39d90c1973b7bffcb194c2eb"
+    }
+  ]
+}

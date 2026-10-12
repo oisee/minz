@@ -1,0 +1,4 @@
+=== RUN   TestLinearWordParamEntryFullDomainNative
+--- PASS: TestLinearWordParamEntryFullDomainNative (0.04s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.048s

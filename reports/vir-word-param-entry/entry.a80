@@ -1,0 +1,7 @@
+ORG 0x8000
+
+PUSH DE
+    POP HL
+ADD HL, HL
+
+RET

@@ -842,88 +842,51 @@ skipTable:
 	return "", fmt.Errorf("all VIR solvers failed: %v", errMsg)
 }
 
-// resolveParallelMoves orders adapter moves to avoid clobbering.
-// Uses topological sort; breaks cycles with EX DE,HL or temp via PUSH/POP.
-// insertParamMoves inserts OpMove instructions at the start of the flattened
-// ops for param vregs whose caller register (from paramHints) doesn't match
-// the register required by their first use pattern. This gives the solver
-// a "slot" to plan the move (e.g., LD A, C before OR A).
+// insertParamMoves preserves the caller ABI at entry while giving each
+// parameter a distinct internal copy that can move for instruction selection.
 func insertParamMoves(ops []VIROp, paramHints map[int]int, desc *MachineDesc) []VIROp {
-	// Find which param vregs need moves: their first use as Src is in
-	// a pattern that requires a different register than the caller convention.
-	nextVReg := 0
+	nextVReg := 1
 	for _, op := range ops {
-		if op.Dst > nextVReg {
-			nextVReg = op.Dst
-		}
-		for _, s := range op.Src {
-			if s > nextVReg {
-				nextVReg = s
+		for _, v := range append(append([]int{op.Dst}, op.Src[:]...), append(append([]int(nil), op.AsmIns...), op.AsmOuts...)...) {
+			if v >= nextVReg {
+				nextVReg = v + 1
 			}
 		}
 	}
-	nextVReg++
-
+	params := make([]int, 0, len(paramHints))
+	for v := range paramHints {
+		params = append(params, v)
+	}
+	sort.Ints(params)
 	var moves []VIROp
-	moved := make(map[int]int) // original vreg → copy vreg
-
-	for vreg, callerPhys := range paramHints {
-		// Insert: copy_vreg = move(vreg) with DstHint = caller's register
-		// Then rewrite all uses of vreg in ops to copy_vreg.
-		// The solver will place vreg at callerPhys (via DstHint on the move)
-		// and copy_vreg wherever the pattern needs it.
+	moved := make(map[int]int)
+	for _, vreg := range params {
+		callerPhys := paramHints[vreg]
 		copyVReg := nextVReg
 		nextVReg++
-		moves = append(moves, VIROp{
-			Op:      OpMove,
-			Dst:     copyVReg,
-			Src:     [2]int{vreg, -1},
-			Width:   8,
-			DstHint: Singleton(callerPhys), // copy starts in caller's register
-		})
+		width := desc.Locs[callerPhys].Width
+		moves = append(moves, VIROp{Op: OpMove, Dst: copyVReg, Src: [2]int{vreg, -1}, Width: width,
+			SrcHint: [2]LocSet{Singleton(callerPhys)}, DstHint: Singleton(callerPhys)})
 		moved[vreg] = copyVReg
 	}
-
 	if len(moves) == 0 {
 		return ops
 	}
-
-	// DON'T rewrite uses — the solver handles the move naturally.
-	// The move instruction copies vreg → copyVReg. The original vreg
-	// is defined by the move's Src and has DstHint=callerPhys.
-	// The pattern that needs A will get copyVReg (which starts at callerPhys
-	// and can move to A via the per-instruction solver).
-	//
-	// Actually: we DO need to rewrite. The CMP's Src is the original vreg.
-	// After the move, the CMP should use copyVReg (which has the value).
-	// But the original vreg is the function parameter — defined outside.
-	// The move creates a copy with a known starting location.
-	//
-	// Simplest: just prepend the moves. The solver sees:
-	//   i0: copy_v2 = move(v2)  ; DstHint=C (caller's convention)
-	//   i1: v4 = cmp(v2, 0)    ; pattern needs v2 in A
-	// The solver puts v2 at A (for the cmp) and copy_v2 at C.
-	// But that means the MOVE goes from A to C (wrong direction!).
-	//
-	// The correct approach: rewrite all Src references to use the copy,
-	// and let the move instruction handle the transition.
-
-	// Rewrite: every Src reference to a moved vreg → copy vreg
-	newOps := make([]VIROp, len(ops))
+	newOps := append([]VIROp(nil), ops...)
 	for i, op := range ops {
-		newOps[i] = op
-		for j, s := range op.Src {
-			if copyV, ok := moved[s]; ok {
-				newOps[i].Src[j] = copyV
+		for j, v := range op.Src {
+			if copy, ok := moved[v]; ok {
+				newOps[i].Src[j] = copy
+			}
+		}
+		newOps[i].AsmIns = append([]int(nil), op.AsmIns...)
+		for j, v := range op.AsmIns {
+			if copy, ok := moved[v]; ok {
+				newOps[i].AsmIns[j] = copy
 			}
 		}
 	}
-
-	// Prepend moves, then rewritten ops
-	result := make([]VIROp, 0, len(moves)+len(newOps))
-	result = append(result, moves...)
-	result = append(result, newOps...)
-	return result
+	return append(moves, newOps...)
 }
 
 type adapterMove struct {
