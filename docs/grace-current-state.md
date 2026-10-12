@@ -1,5 +1,7 @@
 # Grace / PGO: текущее состояние
 
+IRC client: три отказа подключения и рабочий участок main проходят VM/Z80. Рабочий обмен: 68 602 → 65 401 такт, BIN 4496 → 4471 байт. Каталог: 152/194 пути с независимым или ограниченным покрытием. [Checkpoint 312](grace-integration-312/README.md).
+
 NCwholemain raw/finalVM+native3modes **PASS7,036с**, independentlyfinalglobals/fullnativeRAM; finiteDown/Up/Esc diskworkload. FullMIRBITcd39c680 PASS84,903с. [Пакет310](grace-integration-310/README.md).
 
 BITfusioncd39c680 сохраняет successorloads/readtiming. NCnativeevents1453 совпаливо3modes PASS4,499с; mutableglobalfinalmemoryoracleещёвработе, corpusstatusнеповышен. FullMIRaddr_of36caa041 PASS93,073с. [Пакет309](grace-integration-309/README.md).

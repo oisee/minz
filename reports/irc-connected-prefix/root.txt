@@ -1,0 +1,18 @@
+=== RUN   TestOriginalIRCConnectedMainPrefix
+    original_irc_connected_prefix_test.go:437: ordinary 1 4496 68602 original main connected prefix PASS
+    original_irc_connected_prefix_test.go:437: grace-size 1 4471 65401 original main connected prefix PASS
+    original_irc_connected_prefix_test.go:437: grace-speed 1 4471 65401 original main connected prefix PASS
+--- PASS: TestOriginalIRCConnectedMainPrefix (1.31s)
+=== RUN   TestOriginalIRCConnectionFailureWholeMain
+    original_irc_connection_failure_test.go:381: ordinary 2 4496 50531 whole main failure-path PASS
+    original_irc_connection_failure_test.go:381: ordinary 3 4496 50554 whole main failure-path PASS
+    original_irc_connection_failure_test.go:381: ordinary 4 4496 50582 whole main failure-path PASS
+    original_irc_connection_failure_test.go:381: grace-size 2 4471 50531 whole main failure-path PASS
+    original_irc_connection_failure_test.go:381: grace-size 3 4471 50554 whole main failure-path PASS
+    original_irc_connection_failure_test.go:381: grace-size 4 4471 50582 whole main failure-path PASS
+    original_irc_connection_failure_test.go:381: grace-speed 2 4471 50531 whole main failure-path PASS
+    original_irc_connection_failure_test.go:381: grace-speed 3 4471 50554 whole main failure-path PASS
+    original_irc_connection_failure_test.go:381: grace-speed 4 4471 50582 whole main failure-path PASS
+--- PASS: TestOriginalIRCConnectionFailureWholeMain (2.18s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.500s
