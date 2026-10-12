@@ -1,0 +1,49 @@
+; MIR2 module: indexed_array_base_regression.nanz
+global @board : [25]u8
+
+fun @board_get(%r1: u8 [acc], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = addr_of @board : ptr [pointer]
+    %r4 = const 5 : u8 [general]
+    %r5 = mul %r2, %r4 : u8 [general]
+    %r6 = add %r5, %r1 : u8 [acc]
+    %r7 = ext %r6 : u8 -> u16 [index]
+    %r8 = ptr_add %r3, %r7 : ptr [pointer]
+    %r9 = load %r8 : u8 [general]
+    ret %r9
+
+fun @board_set(%r10: u8 [acc], %r11: u8 [general], %r12: u8 [counter])
+  block @entry:
+    %r13 = addr_of @board : ptr [pointer]
+    %r14 = const 5 : u8 [general]
+    %r15 = mul %r11, %r14 : u8 [general]
+    %r16 = add %r15, %r10 : u8 [acc]
+    %r17 = ptr_add %r13, %r16 : ptr [pointer]
+    store %r17, %r12 : u8
+    ret void
+
+fun @scenario() -> u8 [acc]
+  block @entry:
+    %r18 = const 0 : u8 [general]
+    %r19 = move %r18 : u8 [acc]
+    %r20 = const 0 : u8 [general]
+    %r21 = const 7 : u8 [general]
+    %r22 = move %r21 : u8 [counter]
+    call @board_set(%r19, %r20, %r22)
+    %r23 = const 3 : u8 [general]
+    %r24 = move %r23 : u8 [acc]
+    %r25 = const 2 : u8 [general]
+    %r26 = const 9 : u8 [general]
+    %r27 = move %r26 : u8 [counter]
+    call @board_set(%r24, %r25, %r27)
+    %r28 = const 0 : u8 [general]
+    %r29 = move %r28 : u8 [acc]
+    %r30 = const 0 : u8 [general]
+    %r31 = call @board_get(%r29, %r30) : u8 [acc]
+    %r32 = const 3 : u8 [general]
+    %r33 = move %r32 : u8 [acc]
+    %r34 = const 2 : u8 [general]
+    %r35 = call @board_get(%r33, %r34) : u8 [acc]
+    %r36 = add %r31, %r35 : u8 [acc]
+    ret %r36
+

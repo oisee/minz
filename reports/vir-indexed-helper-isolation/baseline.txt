@@ -1,0 +1,6 @@
+set(0,0,7) PC=f100 SP=f000
+get A=7 want=7 PC=f100 SP=f000
+set(3,2,9) PC=f100 SP=f000
+get A=9 want=9 PC=f100 SP=f000
+set(4,4,255) PC=f100 SP=f000
+get A=255 want=255 PC=f100 SP=f000

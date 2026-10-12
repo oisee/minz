@@ -1,0 +1,16 @@
+{
+  "files": {
+    "README.md": "3be47e1e1067a52cc9bf7db83757b723b4b9bc4e2a5e8c50cf529b8f75521005",
+    "baseline/allocation.json": "ded5775b8fc7d7ffe650732493d671cfe55d4e07509cab948148cc9652cbdd91",
+    "baseline/module.a80": "7a473115bd0f41f97c95b92a5025e213f4883b88ce4ef08a4dd2d727ede705bc",
+    "baseline/module.mir": "b286b39511026b44197be232f30960edc6f713f8b9b40fce5e61b419c508f782",
+    "baseline/source.nanz": "509005a9ecb7adc4934f1b8c4b7f29b0baecd2ba996615f500994dfb4ec9871c",
+    "baseline.txt": "952d383bda3a8608b5cb039606c2c64900a6aaa00fa57a99493bbf9a0326c6e5",
+    "candidate/allocation.json": "ded5775b8fc7d7ffe650732493d671cfe55d4e07509cab948148cc9652cbdd91",
+    "candidate/module.a80": "eebcfec40c76486ebb3dcf5e86df533bcbce15e1ad4faef9eb1370cbe5e03c2a",
+    "candidate/module.mir": "b286b39511026b44197be232f30960edc6f713f8b9b40fce5e61b419c508f782",
+    "candidate/source.nanz": "509005a9ecb7adc4934f1b8c4b7f29b0baecd2ba996615f500994dfb4ec9871c",
+    "candidate.txt": "35f1795b2a74bd55f939cae5ca9ead39ad040897791884d0786a5a604d509d94",
+    "probe.go": "7bd9e484fcd5a854b82e28769f4c3ab94f872ed43c99438193774f7dc4668e18"
+  }
+}

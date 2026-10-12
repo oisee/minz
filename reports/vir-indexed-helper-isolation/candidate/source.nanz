@@ -1,0 +1,18 @@
+
+global board: [u8; 25]
+
+fun board_get(x: u8, y: u8) -> u8 {
+    return board[y * 5 + x]
+}
+
+fun board_set(x: u8, y: u8, val: u8) -> void {
+    board[y * 5 + x] = val
+}
+
+fun scenario() -> u8 {
+    board_set(0, 0, 7)
+    board_set(3, 2, 9)
+    return board_get(0, 0) + board_get(3, 2)
+}
+
+assert scenario() == 16
