@@ -1,0 +1,8 @@
+{
+  "checkpoint": "c3129387",
+  "session_id": 2493,
+  "terminal_exit_code": 0,
+  "hir_seconds": 24.829,
+  "mir2_seconds": 64.484,
+  "scope": "CPM production and Nanz negative literals; predates later independent review fixes"
+}

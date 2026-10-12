@@ -6,9 +6,11 @@
 
 ## Актуальный checkpoint: корпус и проверки
 
-Каталог [216](grace-integration-216/README.md) сохраняет все 194 точных пути: **133 independent/bounded VM/native**, два отдельных bounded native SMC и два pending семантических/runtime пробела. Остальные имеют явные ASM/runtime/Agon/CPM/host ограничения. Архивные SHA-идентичные копии считаются путями, не новыми независимыми приложениями.
+Каталог [224](grace-integration-224/README.md) сохраняет все 194 точных пути: **133 independent/bounded VM/native**, два отдельных bounded native SMC и два pending семантических/runtime пробела. Остальные имеют явные ASM/runtime/Agon/CPM/host ограничения. Архивные SHA-идентичные копии считаются путями, не новыми независимыми приложениями.
 
-После каталога отдельно подтверждены два чистых метода исходного CP/M-примера: 394 752 вызова в трёх режимах, включая объекты через границу адресов. Полный модуль сохранён. Позднее исходный main и print_u8 всех256значений прошли под явно тестовым COM-загрузчиком и двумя BDOS2-контрактами. Рабочий CP/M runtime пока отвергает этот ASM/локальный стек; допуск разрабатывается отдельно. Поэтому whole-runtime статус не повышен. [Методы214](grace-integration-214/README.md), [main219](grace-integration-219/README.md).
+После каталога отдельно подтверждены два чистых метода исходного CP/M-примера: 394 752 вызова в трёх режимах, включая объекты через границу адресов. Полный модуль сохранён. Позднее исходный main и print_u8 всех256значений прошли под явно тестовым COM-загрузчиком и двумя BDOS2-контрактами. Позднее рабочий CP/M runtime получил узкий допуск exact BDOS2 adapter и bounded local objects. Original COM проходит CLI и native OS RET в трёх режимах; полный native runtime статус подтверждён отдельно от VM вывода. Независимый аудит допуска продолжается. [Методы214](grace-integration-214/README.md), [main219](grace-integration-219/README.md), [production221](grace-integration-221/README.md).
+
+Последние полные HIR/MIR на `c3129387`: **PASS 24,829 / 64,484 с**, exit0 ([227](grace-integration-227/README.md)); Nanz65a018eb **PASS 21,771 с** после negative literals и gallery ([222](grace-integration-222/README.md)). Свежий CLI ещё выполняется ([226](grace-integration-226/README.md)).
 
 Свежий единый core `166103ff` после C89 и Z80 predicate-truncation исправлений завершился **PASS, exit0**: HIR27,483 с, MIR2 72,771 с, Nanz14,490 с, VIR2,365 с ([220](grace-integration-220/README.md)).
 
@@ -20,7 +22,7 @@
 
 Pending: Lizp `cond_test` не имеет определённой документированной политики implicit return; решение Alice запрошено. PL/M top-level statements и сохранение регистра строк исправлены, но исходный Hello не получает тайный PRINTCHAR intrinsic или недокументированный NUL. C89 ошибки порядка эффектов в циклах и if исправлены: полный C89 PASS 5,675 с, независимый VM/Z80 повтор PASS 0,317 с ([215](grace-integration-215/README.md)). Lexical binding continue исправлен отдельным follow-up, полный C89 PASS 5,556 с ([216](grace-integration-216/README.md)); условные выражения &&/||/?: исправлены, root986112nativeCALL+raw/finalVM PASS23,630 с и полныйC89 PASS6,323 с ([219](grace-integration-219/README.md)).
 
-[Общий обзор языков, слоёв и новых возможностей](../reports/2026-10-11-092-grace-vm-z80-status.md) вошёл в GitHub **main** через [PR #74](https://github.com/oisee/minz/pull/74), commit `d378fccd`, и представлен ссылкой в README. Это docs-only интеграция: исследовательский compiler туда ещё не влит. Сайт v68 старше текущего отчёта; актуальные доказательства сохранены в compiler-docs/compiler-reports на `/mnt/safe/minz/grace/2026-10-11/` и `/mnt/safe/minz/grace/2026-10-12/`.
+[Общий обзор языков, слоёв и новых возможностей](../reports/2026-10-11-092-grace-vm-z80-status.md) вошёл в GitHub **main** через [PR #74](https://github.com/oisee/minz/pull/74), commit `d378fccd`, и представлен ссылкой в README. Это docs-only интеграция: исследовательский compiler туда ещё не влит. Сайт обновлён до snapshot293e292a, полная копия9908файлов SHAverified ([223](grace-integration-223/README.md)); он предшествует новым CP/M/negative-literal changes; актуальные доказательства сохранены в compiler-docs/compiler-reports на `/mnt/safe/minz/grace/2026-10-11/` и `/mnt/safe/minz/grace/2026-10-12/`.
 
 Ниже сохранена история предыдущих checkpoints; её цифры относятся к датированному состоянию, а не заменяют актуальную сводку.
 
