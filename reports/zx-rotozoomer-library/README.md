@@ -33,3 +33,15 @@ Running snapshot is in native/ordinary/running.sna. Build MZX then:
 
 This is full Spectrum emulator evidence, not physical hardware or tear-free output.
 The library and demo are still in research branch until curated main integration.
+
+Run from the repository with `scripts/play_zx_rotozoomer.sh`. SDL development
+libraries and a display are needed for the interactive window. For a reproducible
+windowless run:
+
+```sh
+scripts/play_zx_rotozoomer.sh --headless --frames 200 \
+    --dump-scr build/roto-screens --screenshot build/roto.png
+```
+
+This resumes the verified ROM-initialized snapshot. Frame dumps may capture a
+partly drawn next frame; independent completion checks use the full-machine test.
