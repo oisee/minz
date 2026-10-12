@@ -1,5 +1,7 @@
 # Grace / PGO: текущее состояние
 
+Original L3 meta-screen whole main интегрирован: L3/Commander/selection VM/native **PASS 0,330 с** на `1ed2d763`. [Пакет 301](grace-integration-301/README.md). Proof конечного декларативного блока, не всех metaprograms.
+
 Неизменённый Commander whole main интегрирован: совместный VM/native gate **PASS 2,358 с** на `0d599b34`. [Пакет 300](grace-integration-300/README.md). Generated L3 имеет отдельный сценарий и пока не доказан.
 
 SQL result-filter followup `9ec0f503`: unknown-column refusal и LIMIT-before-filter на настоящей SQLite PASS; весь `cmd/mzv` PASS. [Пакет 299](grace-integration-299/README.md). Полный screen_report proof ещё в работе.
