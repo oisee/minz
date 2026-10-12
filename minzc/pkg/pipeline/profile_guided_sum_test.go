@@ -47,7 +47,7 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 		t.Fatal(e)
 	}
 	profileJSON, _ := json.MarshalIndent(profileRun.Profile, "", "  ")
-	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-full-u8-safe-extension-v4", OriginalBytes: 201, PointerBytes: 262, OriginalEntry: 69, OriginalIteration: 191, EqualEntryExtra: 7, FastEntry: 260, FastIteration: 37, FastZeroEntry: 262, FastZeroMeasured: true, FallbackEntry: 281, FallbackIteration: 193, FallbackMeasured: true}
+	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-coalesced-edges-v5", OriginalBytes: 201, PointerBytes: 251, OriginalEntry: 69, OriginalIteration: 191, EqualEntryExtra: 7, FastEntry: 241, FastIteration: 37, FastZeroEntry: 232, FastZeroMeasured: true, FallbackEntry: 258, FallbackIteration: 191, FallbackMeasured: true}
 	decisions, e := hir.SelectLoopVariants(bytes.NewReader(profileJSON), input, context, model, false)
 	if e != nil {
 		t.Fatal(e)
@@ -170,9 +170,9 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 			expected := 69 + 191*int(n)
 			expectedSize := int(model.OriginalBytes)
 			if variant != "original" {
-				expected = 260 + 37*int(n)
+				expected = 241 + 37*int(n)
 				if n == 0 {
-					expected = 262
+					expected = 232
 				}
 				expectedSize = int(model.PointerBytes)
 			}
@@ -245,9 +245,9 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 			wantCycles := 69 + 191*int(n)
 			wantBytes := int(model.OriginalBytes)
 			if expectedVariant == "pointer-walk" {
-				wantCycles = 260 + 37*int(n)
+				wantCycles = 241 + 37*int(n)
 				if n == 0 {
-					wantCycles = 262
+					wantCycles = 232
 				}
 				wantBytes = int(model.PointerBytes)
 			}

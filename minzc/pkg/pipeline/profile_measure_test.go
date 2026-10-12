@@ -42,15 +42,15 @@ func TestMeasureLoopCostModel(t *testing.T) {
 	// ASM delta; every row must satisfy these costs, not just the fitted samples.
 	for _, row := range evidence.Rows {
 		wantOriginal := 69 + 191*row.N
-		wantPointer := 260 + 37*row.N
+		wantPointer := 241 + 37*row.N
 		if row.N == 0 {
-			wantPointer = 262
+			wantPointer = 232
 		}
 		if row.Path == "equality" {
 			wantPointer += 7
 		}
 		if row.Path == "fallback" || row.Path == "wrap" {
-			wantPointer = 281 + 193*row.N
+			wantPointer = 258 + 191*row.N
 		}
 		if row.Original != wantOriginal || row.Pointer != wantPointer {
 			t.Fatalf("independent ASM cost disagrees: %+v want %d/%d", row, wantOriginal, wantPointer)
@@ -59,7 +59,7 @@ func TestMeasureLoopCostModel(t *testing.T) {
 			t.Fatal("execution binaries not bound to evidence")
 		}
 	}
-	if model.OriginalEntry != 69 || model.OriginalIteration != 191 || model.FastEntry != 260 || model.FastIteration != 37 || model.FastZeroEntry != 262 || !model.FastZeroMeasured || model.EqualEntryExtra != 7 || model.FallbackEntry != 281 || model.FallbackIteration != 193 || !model.FallbackMeasured {
+	if model.OriginalEntry != 69 || model.OriginalIteration != 191 || model.FastEntry != 241 || model.FastIteration != 37 || model.FastZeroEntry != 232 || !model.FastZeroMeasured || model.EqualEntryExtra != 7 || model.FallbackEntry != 258 || model.FallbackIteration != 191 || !model.FallbackMeasured {
 		t.Fatalf("unexpected measured coefficients: %+v", model)
 	}
 	if len(evidence.Rows) != 1022 || model.OriginalBytes != uint64(len(evidence.OriginalBinary)) || model.PointerBytes != uint64(len(evidence.PointerBinary)) {

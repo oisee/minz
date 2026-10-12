@@ -1,0 +1,24 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "b807f53a9afdfbe6441efed81919328b51cea569fdb83c0e96956a95cbe92c5e"
+    },
+    {
+      "path": "asm-delta.diff",
+      "sha256": "4236121175cb138ed206071ca739fa75585bd2995881ecc006092d7c1d444812"
+    },
+    {
+      "path": "audit.txt",
+      "sha256": "2c5129f65a0162ab15ec18829031f905b4dc038b972bf9e112236c6df4b89cfb"
+    },
+    {
+      "path": "historic.txt",
+      "sha256": "6702050eae2bc74b09351b144e472e1804fa8ff946b253796c7ada03f8ec6263"
+    },
+    {
+      "path": "root.txt",
+      "sha256": "7685133d9d5ccb2e269f3b444ec9dfe4be6d6977348fcffe4fae6766fe9a3eb1"
+    }
+  ]
+}

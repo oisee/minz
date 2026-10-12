@@ -91,10 +91,11 @@ func TestMultiFunctionProfileVMZ80(t *testing.T) {
 		name   string
 		n      int64
 		cycles int
-	}{{"short_sum", 1, 260}, {"long_sum", 40, 1455}} {
+	}{{"short_sum", 1, 260}, {"long_sum", 40, 1436}} {
 		// short_sum: 69 + 191*n; the safe IX-half extension costs 50T
 		// per iteration above the retained old 141T baseline. Pointer long_sum
-		// stays unchanged; the test synthetic selector models remain intentional.
+		// saves 19T after coalesced-edge trampolines were removed in 897e7646;
+		// the synthetic selector coefficients remain intentional.
 		want := call.n * (call.n + 1) / 2 & 255
 		values, err := vm.Call(call.name, []mir2.Value{{I: 0x4000}, {I: call.n}})
 		if err != nil || len(values) != 1 || values[0].I != want {

@@ -1,0 +1,36 @@
+--- /home/alice/dev/minz-artifacts/grace-checkpoints/profile-cost-historic-calls/pointer-walk/n0/program.a80	2026-10-12 04:15:09.597352965 +0000
++++ /home/alice/dev/minz-artifacts/grace-checkpoints/profile-cost-current/pointer-n0/program.a80	2026-10-12 04:16:02.402006826 +0000
+@@ -150,8 +150,7 @@
+     AND A
+     LD A, E
+     ; restore live-out r3 from scratch
+-    JRS NZ, .sum_array_trmp0
+-    JRS .sum_array_trmp1
++    RET Z
+ .sum_array_fe_body4:
+     LD D, (HL)
+     ADD A, D
+@@ -171,7 +170,7 @@
+     CP IXH
+     LD A, E
+     ; restore block param from scratch
+-    JRS NC, .sum_array_trmp2
++    RET NC
+ .sum_array_loop_body7:
+     PUSH AF
+     LD A, IXL
+@@ -196,14 +195,6 @@
+     ; restore live-out r27 from scratch
+     LD IXL, D
+     JRS .sum_array_loop_head6
+-.sum_array_loop_exit8:
+-    RET
+-.sum_array_trmp0:
+-    JRS .sum_array_fe_body4
+-.sum_array_trmp1:
+-    JRS .sum_array_fe_exit5
+-.sum_array_trmp2:
+-    JRS .sum_array_loop_exit8
+ 
+ ; globals
+ arr:

@@ -1,0 +1,3 @@
+=== RUN   TestMeasureLoopCostModel
+--- PASS: TestMeasureLoopCostModel (13.86s)
+PASS
