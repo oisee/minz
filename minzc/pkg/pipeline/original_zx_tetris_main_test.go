@@ -16,7 +16,9 @@ import (
 
 // Initialization prefix of unchanged main, bounded before the first game HALT.
 // No interrupt or keyboard/game-frame claim is made by this test.
-func TestOriginalZXTetrisMainInitialization(t *testing.T) {
+func TestOriginalZXTetrisMainInitialization(t *testing.T) { testOriginalZXTetrisMainFrames(t, false) }
+func TestOriginalZXTetrisMainMovement(t *testing.T)       { testOriginalZXTetrisMainFrames(t, true) }
+func testOriginalZXTetrisMainFrames(t *testing.T, movement bool) {
 	for _, source := range []struct{ name, path string }{{"current", "examples/zx/tetris.nanz"}, {"historical", "reports/showcase-src/2026-03-15/ex34_tetris.nanz"}} {
 		t.Run(source.name, func(t *testing.T) {
 			src, e := os.ReadFile("../../../" + source.path)
@@ -157,14 +159,47 @@ func TestOriginalZXTetrisMainInitialization(t *testing.T) {
 					}
 					borders := 0
 					keyReads := 0
+					keysAt := func(frame int) byte {
+						if !movement {
+							return 0
+						}
+						switch frame {
+						case 1, 2:
+							return 1
+						case 4, 5:
+							return 2
+						case 7:
+							return 1
+						}
+						if frame >= 9 && frame <= 17 && frame%2 == 1 {
+							return 1
+						}
+						if frame >= 19 && frame <= 31 && frame%2 == 1 {
+							return 2
+						}
+						return 0
+					}
+					expectedX := 3
+					previousKeys := byte(0)
 					awake := false
 					z.SetIOHandlers(func(p uint16) byte {
 						rows := []byte{0xdf, 0xfb, 0xfd, 0x7f, 0xbf}
 						if !awake || byte(p) != 0xfe || keyReads >= 155 || byte(p>>8) != rows[keyReads%5] {
 							t.Fatal("keyboard", p, keyReads)
 						}
+						keys := keysAt(keyReads/5 + 1)
+						row := keyReads % 5
 						keyReads++
-						return 255
+						v := byte(255)
+						if row == 0 {
+							if keys&1 != 0 {
+								v &^= 2
+							}
+							if keys&2 != 0 {
+								v &^= 1
+							}
+						}
+						return v
 					}, func(p uint16, v byte) {
 						if byte(p) != 0xfe || byte(p>>8) != 0 || v != 0 || borders != 0 {
 							t.Fatal("border", p, v)
@@ -223,6 +258,17 @@ func TestOriginalZXTetrisMainInitialization(t *testing.T) {
 					}
 					for frame := 1; frame <= 31; frame++ {
 						awake = true
+						keys := keysAt(frame)
+						pressed := keys & (keys ^ previousKeys)
+						if pressed&1 != 0 && expectedX > 0 {
+							expectedX--
+						}
+						if pressed&2 != 0 && expectedX+4 < 10 {
+							expectedX++
+						}
+						previousKeys = keys
+						want[sym("cur_x")] = byte(expectedX)
+						want[sym("prev_keys")] = keys
 						r := z.GetRegisters()
 						r.PC++
 						z.SetRegisters(r)
@@ -231,7 +277,7 @@ func TestOriginalZXTetrisMainInitialization(t *testing.T) {
 								want[0x5800+(2+y)*32+11+x] = 0
 							}
 						}
-						for x := 3; x < 7; x++ {
+						for x := expectedX; x < expectedX+4; x++ {
 							want[0x5800+21*32+11+x] = 5
 							want[0x5800+(2+frame/30)*32+11+x] = 0x28
 						}
@@ -290,7 +336,7 @@ func TestOriginalZXTetrisMainInitialization(t *testing.T) {
 							save(fmt.Sprintf("%s/frame-%d-ram.bin", mode, frame), mem)
 						}
 					}
-					t.Log("31 no-key frames including gravity/full RAM PASS")
+					t.Log("31 frames including input edges and gravity/full RAM PASS")
 					save(mode+"/screen.bin", mem[0x4000:0x5b00])
 					save(mode+"/summary.json", map[string]any{"bytes": len(a.Binary), "T_states": z.GetCycles(), "source_sha256": fmt.Sprintf("%x", sha256.Sum256(src)), "rng": rng, "type": typ, "next": queued, "minimum_sp": minSP, "full_ram": true, "termination": "bounded before frame32 game HALT"})
 					t.Log(len(a.Binary), z.GetCycles(), "initial main and31frames/full RAM PASS")

@@ -1,0 +1,69 @@
+=== RUN   TestOriginalZXTetrisMainInitialization
+=== RUN   TestOriginalZXTetrisMainInitialization/current
+=== RUN   TestOriginalZXTetrisMainInitialization/current/ordinary
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:339: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:342: 4548 21269246 initial main and31frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainInitialization/current/grace-size
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:339: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:342: 4557 21268657 initial main and31frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainInitialization/current/grace-speed
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:339: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:342: 4557 21268657 initial main and31frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainInitialization/historical
+=== RUN   TestOriginalZXTetrisMainInitialization/historical/ordinary
+[HIR-SPLIT] main → main$split_7 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:339: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:342: 4979 10188058 initial main and31frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainInitialization/historical/grace-size
+[HIR-SPLIT] main → main$split_7 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:339: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:342: 4988 10187469 initial main and31frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainInitialization/historical/grace-speed
+[HIR-SPLIT] main → main$split_7 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:339: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:342: 4988 10187469 initial main and31frames/full RAM PASS
+--- PASS: TestOriginalZXTetrisMainInitialization (7.32s)
+    --- PASS: TestOriginalZXTetrisMainInitialization/current (1.78s)
+        --- PASS: TestOriginalZXTetrisMainInitialization/current/ordinary (0.40s)
+        --- PASS: TestOriginalZXTetrisMainInitialization/current/grace-size (0.81s)
+        --- PASS: TestOriginalZXTetrisMainInitialization/current/grace-speed (0.57s)
+    --- PASS: TestOriginalZXTetrisMainInitialization/historical (5.53s)
+        --- PASS: TestOriginalZXTetrisMainInitialization/historical/ordinary (0.80s)
+        --- PASS: TestOriginalZXTetrisMainInitialization/historical/grace-size (2.27s)
+        --- PASS: TestOriginalZXTetrisMainInitialization/historical/grace-speed (2.47s)
+=== RUN   TestOriginalZXTetrisMainMovement
+=== RUN   TestOriginalZXTetrisMainMovement/current
+=== RUN   TestOriginalZXTetrisMainMovement/current/ordinary
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:331: frame RAM 5871 got 28 want 00
+=== RUN   TestOriginalZXTetrisMainMovement/current/grace-size
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:331: frame RAM 5871 got 28 want 00
+=== RUN   TestOriginalZXTetrisMainMovement/current/grace-speed
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:331: frame RAM 5871 got 28 want 00
+=== RUN   TestOriginalZXTetrisMainMovement/historical
+=== RUN   TestOriginalZXTetrisMainMovement/historical/ordinary
+[HIR-SPLIT] main → main$split_7 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:331: frame RAM 5871 got 28 want 00
+=== RUN   TestOriginalZXTetrisMainMovement/historical/grace-size
+[HIR-SPLIT] main → main$split_7 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:331: frame RAM 5871 got 28 want 00
+=== RUN   TestOriginalZXTetrisMainMovement/historical/grace-speed
+[HIR-SPLIT] main → main$split_7 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:331: frame RAM 5871 got 28 want 00
+--- FAIL: TestOriginalZXTetrisMainMovement (8.01s)
+    --- FAIL: TestOriginalZXTetrisMainMovement/current (1.98s)
+        --- FAIL: TestOriginalZXTetrisMainMovement/current/ordinary (0.61s)
+        --- FAIL: TestOriginalZXTetrisMainMovement/current/grace-size (0.62s)
+        --- FAIL: TestOriginalZXTetrisMainMovement/current/grace-speed (0.75s)
+    --- FAIL: TestOriginalZXTetrisMainMovement/historical (6.03s)
+        --- FAIL: TestOriginalZXTetrisMainMovement/historical/ordinary (0.80s)
+        --- FAIL: TestOriginalZXTetrisMainMovement/historical/grace-size (2.68s)
+        --- FAIL: TestOriginalZXTetrisMainMovement/historical/grace-speed (2.54s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	15.338s
+FAIL
