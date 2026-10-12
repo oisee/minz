@@ -1,0 +1,208 @@
+[
+  {
+    "args": [
+      0
+    ],
+    "function": "sqlite_open",
+    "result": 1
+  },
+  {
+    "args": [
+      1
+    ],
+    "function": "sqlite_exec",
+    "result": 0,
+    "sql": "CREATE TABLE scores (id INTEGER, name TEXT, val INTEGER)"
+  },
+  {
+    "args": [
+      1
+    ],
+    "function": "sqlite_exec",
+    "result": 0,
+    "sql": "INSERT INTO scores VALUES (1, 'Alice', 95)"
+  },
+  {
+    "args": [
+      1
+    ],
+    "function": "sqlite_exec",
+    "result": 0,
+    "sql": "INSERT INTO scores VALUES (2, 'Bob', 87)"
+  },
+  {
+    "args": [
+      1
+    ],
+    "function": "sqlite_exec",
+    "result": 0,
+    "sql": "INSERT INTO scores VALUES (3, 'Charlie', 92)"
+  },
+  {
+    "args": [
+      1
+    ],
+    "function": "sqlite_exec",
+    "result": 0,
+    "sql": "INSERT INTO scores VALUES (4, 'Diana', 98)"
+  },
+  {
+    "args": [
+      1
+    ],
+    "function": "sqlite_exec",
+    "result": 0,
+    "sql": "INSERT INTO scores VALUES (5, 'Eve', 73)"
+  },
+  {
+    "args": [
+      1
+    ],
+    "function": "sqlite_query",
+    "result": 1,
+    "sql": "SELECT id, val FROM scores WHERE val \u003e= 90 ORDER BY val DESC"
+  },
+  {
+    "args": [
+      1
+    ],
+    "function": "sqlite_step",
+    "result": 1
+  },
+  {
+    "args": [
+      1,
+      0
+    ],
+    "function": "sqlite_column_int",
+    "result": 4
+  },
+  {
+    "args": [
+      1,
+      1
+    ],
+    "function": "sqlite_column_int",
+    "result": 98
+  },
+  {
+    "args": [
+      1
+    ],
+    "function": "sqlite_step",
+    "result": 1
+  },
+  {
+    "args": [
+      1,
+      0
+    ],
+    "function": "sqlite_column_int",
+    "result": 1
+  },
+  {
+    "args": [
+      1,
+      1
+    ],
+    "function": "sqlite_column_int",
+    "result": 95
+  },
+  {
+    "args": [
+      1
+    ],
+    "function": "sqlite_step",
+    "result": 1
+  },
+  {
+    "args": [
+      1,
+      0
+    ],
+    "function": "sqlite_column_int",
+    "result": 3
+  },
+  {
+    "args": [
+      1,
+      1
+    ],
+    "function": "sqlite_column_int",
+    "result": 92
+  },
+  {
+    "args": [
+      1
+    ],
+    "function": "sqlite_step",
+    "result": 0
+  },
+  {
+    "args": [
+      1
+    ],
+    "function": "sqlite_query",
+    "result": 2,
+    "sql": "SELECT COUNT(*) FROM scores"
+  },
+  {
+    "args": [
+      2
+    ],
+    "function": "sqlite_step",
+    "result": 1
+  },
+  {
+    "args": [
+      2,
+      0
+    ],
+    "function": "sqlite_column_int",
+    "result": 5
+  },
+  {
+    "args": [
+      2
+    ],
+    "function": "sqlite_finalize",
+    "result": 0
+  },
+  {
+    "args": [
+      1
+    ],
+    "function": "sqlite_query",
+    "result": 3,
+    "sql": "SELECT MAX(val) FROM scores"
+  },
+  {
+    "args": [
+      3
+    ],
+    "function": "sqlite_step",
+    "result": 1
+  },
+  {
+    "args": [
+      3,
+      0
+    ],
+    "function": "sqlite_column_int",
+    "result": 98
+  },
+  {
+    "args": [
+      3
+    ],
+    "function": "sqlite_finalize",
+    "result": 0
+  },
+  {
+    "args": [
+      1
+    ],
+    "function": "sqlite_close",
+    "result": 0
+  }
+]

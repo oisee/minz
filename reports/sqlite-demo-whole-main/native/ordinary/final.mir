@@ -1,0 +1,92 @@
+; MIR2 module: sqlite_demo.nanz
+string @mir2.str.0 = "CREATE TABLE scores (id INTEGER, name TEXT, val INTEGER)"
+string @mir2.str.1 = "INSERT INTO scores VALUES (1, 'Alice', 95)"
+string @mir2.str.2 = "INSERT INTO scores VALUES (2, 'Bob', 87)"
+string @mir2.str.3 = "INSERT INTO scores VALUES (3, 'Charlie', 92)"
+string @mir2.str.4 = "INSERT INTO scores VALUES (4, 'Diana', 98)"
+string @mir2.str.5 = "INSERT INTO scores VALUES (5, 'Eve', 73)"
+string @mir2.str.6 = "SELECT id, val FROM scores WHERE val >= 90 ORDER BY val DESC"
+string @mir2.str.7 = "SELECT COUNT(*) FROM scores"
+string @mir2.str.8 = "SELECT MAX(val) FROM scores"
+
+extern fun @sqlite_open(%r1: ptr [pointer]) -> u16 [pointer]
+
+extern fun @sqlite_close(%r2: u16 [pointer]) -> u8 [acc]
+
+extern fun @sqlite_exec(%r3: u16 [pointer], %r4: ptr [pointer]) -> u8 [acc]
+
+extern fun @sqlite_query(%r5: u16 [pointer], %r6: ptr [pointer]) -> u16 [pointer]
+
+extern fun @sqlite_step(%r7: u16 [pointer]) -> u8 [acc]
+
+extern fun @sqlite_finalize(%r8: u16 [pointer]) -> u8 [acc]
+
+extern fun @sqlite_column_int(%r9: u16 [pointer], %r10: u8 [general]) -> u16 [pointer]
+
+fun @main()
+  block @entry:
+    %r11 = const 0 : u8 [acc]
+    %r12 = call @sqlite_open(%r11) : u16 [pointer]
+    %r13 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r14 = move %r13 : ptr [pointer]
+    %r15 = call @sqlite_exec(%r12, %r14) : u8 [acc]
+    %r16 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r17 = move %r16 : ptr [pointer]
+    %r18 = call @sqlite_exec(%r12, %r17) : u8 [acc]
+    %r19 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r20 = move %r19 : ptr [pointer]
+    %r21 = call @sqlite_exec(%r12, %r20) : u8 [acc]
+    %r22 = addr_of @@mir2.str.3 : ptr [pointer]
+    %r23 = move %r22 : ptr [pointer]
+    %r24 = call @sqlite_exec(%r12, %r23) : u8 [acc]
+    %r25 = addr_of @@mir2.str.4 : ptr [pointer]
+    %r26 = move %r25 : ptr [pointer]
+    %r27 = call @sqlite_exec(%r12, %r26) : u8 [acc]
+    %r28 = addr_of @@mir2.str.5 : ptr [pointer]
+    %r29 = move %r28 : ptr [pointer]
+    %r30 = call @sqlite_exec(%r12, %r29) : u8 [acc]
+    %r31 = addr_of @@mir2.str.6 : ptr [pointer]
+    %r32 = move %r31 : ptr [pointer]
+    %r33 = call @sqlite_query(%r12, %r32) : u16 [pointer]
+    jmp @loop_head1(%r33)
+  block @loop_head1(%r33: u16 [pointer]):
+    %r35 = call @sqlite_step(%r33) : u8 [acc]
+    %r36 = const 1 : u8 [general]
+    %r37 = cmp.eq %r35, %r36 : bool [flag]
+    br_if %r37, @loop_body2(), @loop_exit3()
+  block @loop_body2:
+    %r38 = const 0 : u8 [general]
+    %r39 = call @sqlite_column_int(%r33, %r38) : u16 [pointer]
+    %r40 = const 1 : u8 [general]
+    %r41 = call @sqlite_column_int(%r33, %r40) : u16 [pointer]
+    %r42 = trunc %r39 : u16 -> u8 [general]
+    %r43 = move %r42 : u8 [acc]
+    call @@mir.io.print.u8(%r43)
+    %r44 = trunc %r41 : u16 -> u8 [general]
+    %r45 = move %r44 : u8 [acc]
+    call @@mir.io.print.u8(%r45)
+    jmp @loop_head1(%r33)
+  block @loop_exit3:
+    %r46 = addr_of @@mir2.str.7 : ptr [pointer]
+    %r47 = move %r46 : ptr [pointer]
+    %r48 = call @sqlite_query(%r12, %r47) : u16 [pointer]
+    %r49 = call @sqlite_step(%r48) : u8 [acc]
+    %r50 = const 0 : u8 [general]
+    %r51 = call @sqlite_column_int(%r48, %r50) : u16 [pointer]
+    %r52 = trunc %r51 : u16 -> u8 [general]
+    %r53 = move %r52 : u8 [acc]
+    call @@mir.io.print.u8(%r53)
+    %r54 = call @sqlite_finalize(%r48) : u8 [acc]
+    %r55 = addr_of @@mir2.str.8 : ptr [pointer]
+    %r56 = move %r55 : ptr [pointer]
+    %r57 = call @sqlite_query(%r12, %r56) : u16 [pointer]
+    %r58 = call @sqlite_step(%r57) : u8 [acc]
+    %r59 = const 0 : u8 [general]
+    %r60 = call @sqlite_column_int(%r57, %r59) : u16 [pointer]
+    %r61 = trunc %r60 : u16 -> u8 [general]
+    %r62 = move %r61 : u8 [acc]
+    call @@mir.io.print.u8(%r62)
+    %r63 = call @sqlite_finalize(%r57) : u8 [acc]
+    %r64 = call @sqlite_close(%r12) : u8 [acc]
+    ret void
+
