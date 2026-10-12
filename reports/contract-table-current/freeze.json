@@ -1,0 +1,30 @@
+{
+  "schema": "minz.current-native-regression-freeze/v1",
+  "compiler_checkpoint": "81649477dd714cfd0e921d5aa2bec44ffa3f7f81",
+  "purpose": "Re-run existing frozen domains after 35ee3d6f; no new prospective search or workload selection. No expected-cost changes.",
+  "sha256": {
+    "minzc/pkg/pipeline/combined_contract_table_grace_test.go": "1c82856910c47ea8a443d1fbfe2c0ace0187f97a923a6878ad8fcb460c7aaa0d",
+    "minzc/pkg/pipeline/checked_table_practical_audit_test.go": "91f2b6cf7a9da40e3e874189abffd3aa56f4935710b2a41b15cbb44278c9a917",
+    "minzc/pkg/pipeline/checked_word_xor_test.go": "bd4c2f713c70c78d0fed6ececefc992b774b2e35e5e8bdc93ff5d7c3711899f6",
+    "minzc/pkg/pipeline/pfcco_native_workload_test.go": "f382a27619d0f671bea0ff5b754ada900d6f0705930f15ba3841ff8d753bae19",
+    "minzc/pkg/pipeline/pfcco_tokenizer_consumer_test.go": "5c2dceed405d0baefbfece3b40b8ce7059c916eb6ba82dcfedbace8e452fb4f1",
+    "examples/nanz/06_pbqp_weighted.nanz": "d09334848a213973143c24f5ac165081d24c175693995febf40e552bb5ae66c5",
+    "examples/nanz/09_function_pointers.nanz": "aab9c0fd1dbafae2bf78ebbf18bb2a573b6a18a6f6f29b6170d6f34ca3849579",
+    "examples/nanz/21_hashmap_test.nanz": "2caa7c16db7371f6f1ef6eecfa8c767e58d9d961c5bdfdbfccda1fb6e613c3f8",
+    "examples/nanz/pfcco_weighted_packet.nanz": "6a8ecc8d50e41f5609cabb061b7a06474a7e72619295259d9e5aa4e3cc5bb4ab",
+    "examples/nanz/self_tokenizer.nanz": "d893df00710b7f1105b8bfb58342aca1c1f8cce7eb674037a8d6ca41b91b0689",
+    "docs/grace-combined-contract-table/artifacts/measurements.json": "e49e5338bca0f36c486c733f22df7ec9813999630c47e929c2569cc4caa0d93e",
+    "docs/grace-pfcco-native/artifacts/off-metrics.txt": "3508ce24365abd72350eaf31455e63324308f0e08e3e1cb468a174ceaabcce32",
+    "docs/grace-pfcco-native/artifacts/greedy-metrics.txt": "d9c102cfabd8ba5b997b21bd57b954c22e357d59d2b429ea63dd019d246be15f",
+    "reports/artifacts/pfcco-tokenizer/native.txt": "a1085b2af0f595f1c1e174fc052d90ab466e5599ac94bd9666ca9493f70c3e17",
+    "reports/artifacts/checked-word-xor/native-current.txt": "4eb5555d1b1585cfe6ab766a99304fd8ed619b2244d902a7374e469d8285d574"
+  },
+  "tests": [
+    "TestCombinedContractTableGraceNative",
+    "TestCheckedExistingFunctionPointerLeaf",
+    "TestCheckedExistingHash16Native",
+    "TestCheckedExistingHash16GenerationEvidence",
+    "TestPFCCOMeasuredNativePacket",
+    "TestPFCCOOriginalTokenizerRenderingConsumer"
+  ]
+}
