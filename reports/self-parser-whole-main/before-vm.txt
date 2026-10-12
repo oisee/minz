@@ -1,0 +1,81 @@
+=== RUN   TestOriginalSelfParserWholeMainVM
+=== RUN   TestOriginalSelfParserWholeMainVM/raw
+    self_parser_whole_main_test.go:127: whole main <nil> === Source (76 bytes) ===
+        First chars: 102 117 110
+        Tokens: 29
+        0
+        19 tok_count=29
+        (fun answer () u8 (return 7))
+        === Written 84 bytes to tiny.lanz ===
+        Stats: 12 nodes, 55 string bytes
+         === Source (76 bytes) ===
+        First chars: 102 117 110
+        Tokens: 29
+        0
+        19 tok_count=29
+        (fun answer () u8 (return 7))
+        === Written 76 bytes to tiny.lanz ===
+        Stats: 12 nodes, 55 string bytes
+        
+=== RUN   TestOriginalSelfParserWholeMainVM/ordinary
+    self_parser_whole_main_test.go:127: whole main <nil> === Source (76 bytes) ===
+        First chars: 102 117 110
+        Tokens: 29
+        0
+        19 tok_count=29
+        (fun answer () u8 (return 7))
+        === Written 84 bytes to tiny.lanz ===
+        Stats: 12 nodes, 55 string bytes
+         === Source (76 bytes) ===
+        First chars: 102 117 110
+        Tokens: 29
+        0
+        19 tok_count=29
+        (fun answer () u8 (return 7))
+        === Written 76 bytes to tiny.lanz ===
+        Stats: 12 nodes, 55 string bytes
+        
+=== RUN   TestOriginalSelfParserWholeMainVM/grace-size
+    self_parser_whole_main_test.go:127: whole main <nil> === Source (76 bytes) ===
+        First chars: 102 117 110
+        Tokens: 29
+        0
+        19 tok_count=29
+        (fun answer () u8 (return 7))
+        === Written 84 bytes to tiny.lanz ===
+        Stats: 12 nodes, 55 string bytes
+         === Source (76 bytes) ===
+        First chars: 102 117 110
+        Tokens: 29
+        0
+        19 tok_count=29
+        (fun answer () u8 (return 7))
+        === Written 76 bytes to tiny.lanz ===
+        Stats: 12 nodes, 55 string bytes
+        
+=== RUN   TestOriginalSelfParserWholeMainVM/grace-speed
+    self_parser_whole_main_test.go:127: whole main <nil> === Source (76 bytes) ===
+        First chars: 102 117 110
+        Tokens: 29
+        0
+        19 tok_count=29
+        (fun answer () u8 (return 7))
+        === Written 84 bytes to tiny.lanz ===
+        Stats: 12 nodes, 55 string bytes
+         === Source (76 bytes) ===
+        First chars: 102 117 110
+        Tokens: 29
+        0
+        19 tok_count=29
+        (fun answer () u8 (return 7))
+        === Written 76 bytes to tiny.lanz ===
+        Stats: 12 nodes, 55 string bytes
+        
+--- FAIL: TestOriginalSelfParserWholeMainVM (3.05s)
+    --- FAIL: TestOriginalSelfParserWholeMainVM/raw (0.05s)
+    --- FAIL: TestOriginalSelfParserWholeMainVM/ordinary (0.70s)
+    --- FAIL: TestOriginalSelfParserWholeMainVM/grace-size (1.09s)
+    --- FAIL: TestOriginalSelfParserWholeMainVM/grace-speed (1.21s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	3.061s
+FAIL

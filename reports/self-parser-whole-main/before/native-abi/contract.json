@@ -1,0 +1,25 @@
+{
+  "Params": [
+    {
+      "Name": "path",
+      "Reg": 4,
+      "Ty": {},
+      "Class": 8
+    },
+    {
+      "Name": "buf",
+      "Reg": 5,
+      "Ty": {},
+      "Class": 8
+    }
+  ],
+  "Returns": [
+    {
+      "Ty": {},
+      "Class": 8,
+      "FlagCond": 0
+    }
+  ],
+  "ExternClobbers": null,
+  "Clobbers": 0
+}
