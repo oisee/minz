@@ -76,9 +76,9 @@
     "path": "examples/agon/nc_agon.nanz",
     "source_sha256": "8063ebaf25ab5faff632017874a06d1db25019fa7efe559c4d0cfc6f3b3e9b38",
     "native_behavior": "agon-mos-runtime",
-    "workload": "Current native-VDU ordinary whole-device: initial list; Down/Enter/Escape at index 1; nine Down/Enter at index 7 without wrap; Up/Enter at index 6, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.",
-    "independent_model": "Historical independent source/library-derived ANSI model applies only to retained pre-VDU library. Current full-device images visually inspected; real eZ80 CPU, MOS and full VDP, normal SDL-to-PS2-to-MOS input and following echo/prompt.",
-    "boundary": "Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library.",
+    "workload": "Current native-VDU ordinary full-device: nine Down, Enter, Up, Enter, Escape; exact independent 3151-byte VDU/text stream, including every redraw and final MOS echo. Historical ANSI three-mode replay retains pre-VDU library.",
+    "independent_model": "Independent source-level layout/text/navigation model translated to native VDU; entire application wire range matches, including upper boundary at index7 and Up to index6. Transparent proxy forwards original bytes to full VDP during real eZ80/MOS execution; single boot and following echo checked.",
+    "boundary": "Independent command/text oracle for a bounded ordinary navigation sequence; visual framebuffers, not independent pixel/RAM/SP, all modes, arbitrary inputs or hardware proof.",
     "evidence": {
       "minzc/pkg/pipeline/agon_corpus_product_test.go": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
       "reports/agon-product-audit/manifest.json": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
@@ -89,16 +89,18 @@
       "reports/agon-full-vdp-demo-nc/manifest.json": "a17513b4834048ec0f9e09c4f9093c5c09d9e31177b878f694e3f1b7fb5fb7ce",
       "reports/agon-full-vdp-nc-navigation/manifest.json": "37c0764f81367cfa3d9152243b5d2280ed5527a4163e42e80e082f28e8de739b",
       "reports/agon-full-vdp-nc-boundary/manifest.json": "2c8e1587ad58c8057a6c65c00f89d3a0bd3406c33a1032b1578ae0265abf0ccf",
-      "stdlib/agon/tui_render.nanz": "df324615b171bed89dc29a768d826551123604867bc3279fb20020fd784046f8"
+      "stdlib/agon/tui_render.nanz": "df324615b171bed89dc29a768d826551123604867bc3279fb20020fd784046f8",
+      "reports/agon-native-vdu-wire-nc/manifest.json": "b58b119ab85baf0ae190221a029beec532f0e4b0dfb7e871a4e82cb10924eccf",
+      "scripts/agon_native_vdu_model.py": "d7a0fe831f8379b78d60851373e29fcf31d6c6d0b3cd4ff26c27197b49468662"
     }
   },
   {
     "path": "examples/agon/tui_demo.nanz",
     "source_sha256": "afcadba573f924da7fcaf74574a8ec451be8ffb37eb0b3aa8567a6757d2957bd",
     "native_behavior": "agon-mos-runtime",
-    "workload": "Current native-VDU ordinary whole-device: rendered Demo and SDL A, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.",
-    "independent_model": "Historical independent source/library-derived ANSI model applies only to retained pre-VDU library. Current full-device images visually inspected; real eZ80 CPU, MOS and full VDP, normal SDL-to-PS2-to-MOS input and following echo/prompt.",
-    "boundary": "Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library.",
+    "workload": "Current native-VDU ordinary full-device: exact independent 489-byte VDU/text stream, normal SDL A and clean MOS echo. Historical ANSI three-mode replay retains pre-VDU library.",
+    "independent_model": "Independent source-level text/layout model translated to native VDU; entire app wire equals expected. Transparent proxy forwards unchanged bytes to full VDP during real eZ80/MOS execution; single boot and following echo checked.",
+    "boundary": "Independent command/text oracle for bounded ordinary Demo sequence; visual framebuffers, not independent pixel/RAM/SP, all modes/inputs or hardware proof.",
     "evidence": {
       "minzc/pkg/pipeline/agon_corpus_product_test.go": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
       "reports/agon-product-audit/manifest.json": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
@@ -107,7 +109,9 @@
       "reports/agon-entry-fix/manifest.json": "fcf4fb7aea98fe4ab3345713e7a1a8465ee43c91495b7cd52d7b7d921bf39ac6",
       "reports/agon-tui-stream-matrix/manifest.json": "331dd1e19c5bc3232f99ff1bb01b56999186996803c341ef4c7f719a30f22e20",
       "reports/agon-full-vdp-demo-nc/manifest.json": "a17513b4834048ec0f9e09c4f9093c5c09d9e31177b878f694e3f1b7fb5fb7ce",
-      "stdlib/agon/tui_render.nanz": "df324615b171bed89dc29a768d826551123604867bc3279fb20020fd784046f8"
+      "stdlib/agon/tui_render.nanz": "df324615b171bed89dc29a768d826551123604867bc3279fb20020fd784046f8",
+      "reports/agon-native-vdu-wire-demo/manifest.json": "5096a68b6a1b2b8f47f70fb0bb26bdcdd5c9e068b53f253db97a85c850b3f53c",
+      "scripts/agon_native_vdu_model.py": "d7a0fe831f8379b78d60851373e29fcf31d6c6d0b3cd4ff26c27197b49468662"
     }
   },
   {

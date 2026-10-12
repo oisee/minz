@@ -389,70 +389,82 @@
       "source_assertions": 0,
       "assertion_scope": "unexecuted source expectations",
       "native_behavior": "agon-mos-runtime",
-      "workload": "Current native-VDU ordinary whole-device: initial list; Down/Enter/Escape at index 1; nine Down/Enter at index 7 without wrap; Up/Enter at index 6, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.",
-      "independent_model": "Historical independent source/library-derived ANSI model applies only to retained pre-VDU library. Current full-device images visually inspected; real eZ80 CPU, MOS and full VDP, normal SDL-to-PS2-to-MOS input and following echo/prompt.",
-      "external_requirement_or_remaining_work": "Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library.",
+      "workload": "Current native-VDU ordinary full-device: nine Down, Enter, Up, Enter, Escape; exact independent 3151-byte VDU/text stream, including every redraw and final MOS echo. Historical ANSI three-mode replay retains pre-VDU library.",
+      "independent_model": "Independent source-level layout/text/navigation model translated to native VDU; entire application wire range matches, including upper boundary at index7 and Up to index6. Transparent proxy forwards original bytes to full VDP during real eZ80/MOS execution; single boot and following echo checked.",
+      "external_requirement_or_remaining_work": "Independent command/text oracle for a bounded ordinary navigation sequence; visual framebuffers, not independent pixel/RAM/SP, all modes, arbitrary inputs or hardware proof.",
       "entry_structure_not_execution_claim": "declares main; whole-main execution not implied",
       "reviewed_evidence": [
         {
           "test_or_artifact": "minzc/pkg/pipeline/agon_corpus_product_test.go",
           "evidence_file_sha256": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Current native-VDU ordinary whole-device: initial list; Down/Enter/Escape at index 1; nine Down/Enter at index 7 without wrap; Up/Enter at index 6, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.; Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library."
+          "scope": "Current native-VDU ordinary full-device: nine Down, Enter, Up, Enter, Escape; exact independent 3151-byte VDU/text stream, including every redraw and final MOS echo. Historical ANSI three-mode replay retains pre-VDU library.; Independent command/text oracle for a bounded ordinary navigation sequence; visual framebuffers, not independent pixel/RAM/SP, all modes, arbitrary inputs or hardware proof."
         },
         {
           "test_or_artifact": "reports/agon-entry-fix/manifest.json",
           "evidence_file_sha256": "fcf4fb7aea98fe4ab3345713e7a1a8465ee43c91495b7cd52d7b7d921bf39ac6",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Current native-VDU ordinary whole-device: initial list; Down/Enter/Escape at index 1; nine Down/Enter at index 7 without wrap; Up/Enter at index 6, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.; Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library."
+          "scope": "Current native-VDU ordinary full-device: nine Down, Enter, Up, Enter, Escape; exact independent 3151-byte VDU/text stream, including every redraw and final MOS echo. Historical ANSI three-mode replay retains pre-VDU library.; Independent command/text oracle for a bounded ordinary navigation sequence; visual framebuffers, not independent pixel/RAM/SP, all modes, arbitrary inputs or hardware proof."
         },
         {
           "test_or_artifact": "reports/agon-full-vdp-demo-nc/manifest.json",
           "evidence_file_sha256": "a17513b4834048ec0f9e09c4f9093c5c09d9e31177b878f694e3f1b7fb5fb7ce",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Current native-VDU ordinary whole-device: initial list; Down/Enter/Escape at index 1; nine Down/Enter at index 7 without wrap; Up/Enter at index 6, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.; Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library."
+          "scope": "Current native-VDU ordinary full-device: nine Down, Enter, Up, Enter, Escape; exact independent 3151-byte VDU/text stream, including every redraw and final MOS echo. Historical ANSI three-mode replay retains pre-VDU library.; Independent command/text oracle for a bounded ordinary navigation sequence; visual framebuffers, not independent pixel/RAM/SP, all modes, arbitrary inputs or hardware proof."
         },
         {
           "test_or_artifact": "reports/agon-full-vdp-nc-boundary/manifest.json",
           "evidence_file_sha256": "2c8e1587ad58c8057a6c65c00f89d3a0bd3406c33a1032b1578ae0265abf0ccf",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Current native-VDU ordinary whole-device: initial list; Down/Enter/Escape at index 1; nine Down/Enter at index 7 without wrap; Up/Enter at index 6, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.; Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library."
+          "scope": "Current native-VDU ordinary full-device: nine Down, Enter, Up, Enter, Escape; exact independent 3151-byte VDU/text stream, including every redraw and final MOS echo. Historical ANSI three-mode replay retains pre-VDU library.; Independent command/text oracle for a bounded ordinary navigation sequence; visual framebuffers, not independent pixel/RAM/SP, all modes, arbitrary inputs or hardware proof."
         },
         {
           "test_or_artifact": "reports/agon-full-vdp-nc-navigation/manifest.json",
           "evidence_file_sha256": "37c0764f81367cfa3d9152243b5d2280ed5527a4163e42e80e082f28e8de739b",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Current native-VDU ordinary whole-device: initial list; Down/Enter/Escape at index 1; nine Down/Enter at index 7 without wrap; Up/Enter at index 6, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.; Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library."
+          "scope": "Current native-VDU ordinary full-device: nine Down, Enter, Up, Enter, Escape; exact independent 3151-byte VDU/text stream, including every redraw and final MOS echo. Historical ANSI three-mode replay retains pre-VDU library.; Independent command/text oracle for a bounded ordinary navigation sequence; visual framebuffers, not independent pixel/RAM/SP, all modes, arbitrary inputs or hardware proof."
+        },
+        {
+          "test_or_artifact": "reports/agon-native-vdu-wire-nc/manifest.json",
+          "evidence_file_sha256": "b58b119ab85baf0ae190221a029beec532f0e4b0dfb7e871a4e82cb10924eccf",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Current native-VDU ordinary full-device: nine Down, Enter, Up, Enter, Escape; exact independent 3151-byte VDU/text stream, including every redraw and final MOS echo. Historical ANSI three-mode replay retains pre-VDU library.; Independent command/text oracle for a bounded ordinary navigation sequence; visual framebuffers, not independent pixel/RAM/SP, all modes, arbitrary inputs or hardware proof."
         },
         {
           "test_or_artifact": "reports/agon-nc-navigation/manifest.json",
           "evidence_file_sha256": "1037b25cfc62f82ed0ff8696b23af3485c5aad48f2b31134fc3b945281e71c5c",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Current native-VDU ordinary whole-device: initial list; Down/Enter/Escape at index 1; nine Down/Enter at index 7 without wrap; Up/Enter at index 6, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.; Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library."
+          "scope": "Current native-VDU ordinary full-device: nine Down, Enter, Up, Enter, Escape; exact independent 3151-byte VDU/text stream, including every redraw and final MOS echo. Historical ANSI three-mode replay retains pre-VDU library.; Independent command/text oracle for a bounded ordinary navigation sequence; visual framebuffers, not independent pixel/RAM/SP, all modes, arbitrary inputs or hardware proof."
         },
         {
           "test_or_artifact": "reports/agon-product-audit/manifest.json",
           "evidence_file_sha256": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Current native-VDU ordinary whole-device: initial list; Down/Enter/Escape at index 1; nine Down/Enter at index 7 without wrap; Up/Enter at index 6, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.; Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library."
+          "scope": "Current native-VDU ordinary full-device: nine Down, Enter, Up, Enter, Escape; exact independent 3151-byte VDU/text stream, including every redraw and final MOS echo. Historical ANSI three-mode replay retains pre-VDU library.; Independent command/text oracle for a bounded ordinary navigation sequence; visual framebuffers, not independent pixel/RAM/SP, all modes, arbitrary inputs or hardware proof."
         },
         {
           "test_or_artifact": "reports/agon-product-audit/root.txt",
           "evidence_file_sha256": "31936901fb106c4808aea698dfeee5cc7260a10d52c9a1866baeaaba76152bd4",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Current native-VDU ordinary whole-device: initial list; Down/Enter/Escape at index 1; nine Down/Enter at index 7 without wrap; Up/Enter at index 6, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.; Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library."
+          "scope": "Current native-VDU ordinary full-device: nine Down, Enter, Up, Enter, Escape; exact independent 3151-byte VDU/text stream, including every redraw and final MOS echo. Historical ANSI three-mode replay retains pre-VDU library.; Independent command/text oracle for a bounded ordinary navigation sequence; visual framebuffers, not independent pixel/RAM/SP, all modes, arbitrary inputs or hardware proof."
+        },
+        {
+          "test_or_artifact": "scripts/agon_native_vdu_model.py",
+          "evidence_file_sha256": "d7a0fe831f8379b78d60851373e29fcf31d6c6d0b3cd4ff26c27197b49468662",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Current native-VDU ordinary full-device: nine Down, Enter, Up, Enter, Escape; exact independent 3151-byte VDU/text stream, including every redraw and final MOS echo. Historical ANSI three-mode replay retains pre-VDU library.; Independent command/text oracle for a bounded ordinary navigation sequence; visual framebuffers, not independent pixel/RAM/SP, all modes, arbitrary inputs or hardware proof."
         },
         {
           "test_or_artifact": "scripts/agon_tui_stream_model.py",
           "evidence_file_sha256": "18e79aff84bf54ef1449321fd2392fc0c35befd56a6ffde1e43e0538b67357b8",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Current native-VDU ordinary whole-device: initial list; Down/Enter/Escape at index 1; nine Down/Enter at index 7 without wrap; Up/Enter at index 6, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.; Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library."
+          "scope": "Current native-VDU ordinary full-device: nine Down, Enter, Up, Enter, Escape; exact independent 3151-byte VDU/text stream, including every redraw and final MOS echo. Historical ANSI three-mode replay retains pre-VDU library.; Independent command/text oracle for a bounded ordinary navigation sequence; visual framebuffers, not independent pixel/RAM/SP, all modes, arbitrary inputs or hardware proof."
         },
         {
           "test_or_artifact": "stdlib/agon/tui_render.nanz",
           "evidence_file_sha256": "df324615b171bed89dc29a768d826551123604867bc3279fb20020fd784046f8",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Current native-VDU ordinary whole-device: initial list; Down/Enter/Escape at index 1; nine Down/Enter at index 7 without wrap; Up/Enter at index 6, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.; Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library."
+          "scope": "Current native-VDU ordinary full-device: nine Down, Enter, Up, Enter, Escape; exact independent 3151-byte VDU/text stream, including every redraw and final MOS echo. Historical ANSI three-mode replay retains pre-VDU library.; Independent command/text oracle for a bounded ordinary navigation sequence; visual framebuffers, not independent pixel/RAM/SP, all modes, arbitrary inputs or hardware proof."
         }
       ],
       "test_source_references_not_execution_claim": []
@@ -502,58 +514,70 @@
       "source_assertions": 0,
       "assertion_scope": "unexecuted source expectations",
       "native_behavior": "agon-mos-runtime",
-      "workload": "Current native-VDU ordinary whole-device: rendered Demo and SDL A, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.",
-      "independent_model": "Historical independent source/library-derived ANSI model applies only to retained pre-VDU library. Current full-device images visually inspected; real eZ80 CPU, MOS and full VDP, normal SDL-to-PS2-to-MOS input and following echo/prompt.",
-      "external_requirement_or_remaining_work": "Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library.",
+      "workload": "Current native-VDU ordinary full-device: exact independent 489-byte VDU/text stream, normal SDL A and clean MOS echo. Historical ANSI three-mode replay retains pre-VDU library.",
+      "independent_model": "Independent source-level text/layout model translated to native VDU; entire app wire equals expected. Transparent proxy forwards unchanged bytes to full VDP during real eZ80/MOS execution; single boot and following echo checked.",
+      "external_requirement_or_remaining_work": "Independent command/text oracle for bounded ordinary Demo sequence; visual framebuffers, not independent pixel/RAM/SP, all modes/inputs or hardware proof.",
       "entry_structure_not_execution_claim": "declares main; whole-main execution not implied",
       "reviewed_evidence": [
         {
           "test_or_artifact": "minzc/pkg/pipeline/agon_corpus_product_test.go",
           "evidence_file_sha256": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Current native-VDU ordinary whole-device: rendered Demo and SDL A, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.; Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library."
+          "scope": "Current native-VDU ordinary full-device: exact independent 489-byte VDU/text stream, normal SDL A and clean MOS echo. Historical ANSI three-mode replay retains pre-VDU library.; Independent command/text oracle for bounded ordinary Demo sequence; visual framebuffers, not independent pixel/RAM/SP, all modes/inputs or hardware proof."
         },
         {
           "test_or_artifact": "reports/agon-entry-fix/manifest.json",
           "evidence_file_sha256": "fcf4fb7aea98fe4ab3345713e7a1a8465ee43c91495b7cd52d7b7d921bf39ac6",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Current native-VDU ordinary whole-device: rendered Demo and SDL A, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.; Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library."
+          "scope": "Current native-VDU ordinary full-device: exact independent 489-byte VDU/text stream, normal SDL A and clean MOS echo. Historical ANSI three-mode replay retains pre-VDU library.; Independent command/text oracle for bounded ordinary Demo sequence; visual framebuffers, not independent pixel/RAM/SP, all modes/inputs or hardware proof."
         },
         {
           "test_or_artifact": "reports/agon-full-vdp-demo-nc/manifest.json",
           "evidence_file_sha256": "a17513b4834048ec0f9e09c4f9093c5c09d9e31177b878f694e3f1b7fb5fb7ce",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Current native-VDU ordinary whole-device: rendered Demo and SDL A, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.; Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library."
+          "scope": "Current native-VDU ordinary full-device: exact independent 489-byte VDU/text stream, normal SDL A and clean MOS echo. Historical ANSI three-mode replay retains pre-VDU library.; Independent command/text oracle for bounded ordinary Demo sequence; visual framebuffers, not independent pixel/RAM/SP, all modes/inputs or hardware proof."
+        },
+        {
+          "test_or_artifact": "reports/agon-native-vdu-wire-demo/manifest.json",
+          "evidence_file_sha256": "5096a68b6a1b2b8f47f70fb0bb26bdcdd5c9e068b53f253db97a85c850b3f53c",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Current native-VDU ordinary full-device: exact independent 489-byte VDU/text stream, normal SDL A and clean MOS echo. Historical ANSI three-mode replay retains pre-VDU library.; Independent command/text oracle for bounded ordinary Demo sequence; visual framebuffers, not independent pixel/RAM/SP, all modes/inputs or hardware proof."
         },
         {
           "test_or_artifact": "reports/agon-product-audit/manifest.json",
           "evidence_file_sha256": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Current native-VDU ordinary whole-device: rendered Demo and SDL A, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.; Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library."
+          "scope": "Current native-VDU ordinary full-device: exact independent 489-byte VDU/text stream, normal SDL A and clean MOS echo. Historical ANSI three-mode replay retains pre-VDU library.; Independent command/text oracle for bounded ordinary Demo sequence; visual framebuffers, not independent pixel/RAM/SP, all modes/inputs or hardware proof."
         },
         {
           "test_or_artifact": "reports/agon-product-audit/root.txt",
           "evidence_file_sha256": "31936901fb106c4808aea698dfeee5cc7260a10d52c9a1866baeaaba76152bd4",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Current native-VDU ordinary whole-device: rendered Demo and SDL A, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.; Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library."
+          "scope": "Current native-VDU ordinary full-device: exact independent 489-byte VDU/text stream, normal SDL A and clean MOS echo. Historical ANSI three-mode replay retains pre-VDU library.; Independent command/text oracle for bounded ordinary Demo sequence; visual framebuffers, not independent pixel/RAM/SP, all modes/inputs or hardware proof."
         },
         {
           "test_or_artifact": "reports/agon-tui-stream-matrix/manifest.json",
           "evidence_file_sha256": "331dd1e19c5bc3232f99ff1bb01b56999186996803c341ef4c7f719a30f22e20",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Current native-VDU ordinary whole-device: rendered Demo and SDL A, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.; Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library."
+          "scope": "Current native-VDU ordinary full-device: exact independent 489-byte VDU/text stream, normal SDL A and clean MOS echo. Historical ANSI three-mode replay retains pre-VDU library.; Independent command/text oracle for bounded ordinary Demo sequence; visual framebuffers, not independent pixel/RAM/SP, all modes/inputs or hardware proof."
+        },
+        {
+          "test_or_artifact": "scripts/agon_native_vdu_model.py",
+          "evidence_file_sha256": "d7a0fe831f8379b78d60851373e29fcf31d6c6d0b3cd4ff26c27197b49468662",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Current native-VDU ordinary full-device: exact independent 489-byte VDU/text stream, normal SDL A and clean MOS echo. Historical ANSI three-mode replay retains pre-VDU library.; Independent command/text oracle for bounded ordinary Demo sequence; visual framebuffers, not independent pixel/RAM/SP, all modes/inputs or hardware proof."
         },
         {
           "test_or_artifact": "scripts/agon_tui_stream_model.py",
           "evidence_file_sha256": "18e79aff84bf54ef1449321fd2392fc0c35befd56a6ffde1e43e0538b67357b8",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Current native-VDU ordinary whole-device: rendered Demo and SDL A, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.; Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library."
+          "scope": "Current native-VDU ordinary full-device: exact independent 489-byte VDU/text stream, normal SDL A and clean MOS echo. Historical ANSI three-mode replay retains pre-VDU library.; Independent command/text oracle for bounded ordinary Demo sequence; visual framebuffers, not independent pixel/RAM/SP, all modes/inputs or hardware proof."
         },
         {
           "test_or_artifact": "stdlib/agon/tui_render.nanz",
           "evidence_file_sha256": "df324615b171bed89dc29a768d826551123604867bc3279fb20020fd784046f8",
           "source_relation": "reviewed exact-source root replay",
-          "scope": "Current native-VDU ordinary whole-device: rendered Demo and SDL A, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.; Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library."
+          "scope": "Current native-VDU ordinary full-device: exact independent 489-byte VDU/text stream, normal SDL A and clean MOS echo. Historical ANSI three-mode replay retains pre-VDU library.; Independent command/text oracle for bounded ordinary Demo sequence; visual framebuffers, not independent pixel/RAM/SP, all modes/inputs or hardware proof."
         }
       ],
       "test_source_references_not_execution_claim": [

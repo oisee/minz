@@ -1,0 +1,5 @@
+# TUI Demo: independent native VDU stream
+
+Unchanged ordinary public CLI program, real eZ80/MOS and full VDP. Transparent proxy captures and forwards bytes unchanged. Normal SDL A releases the demo. Entire 489-byte application stream equals the independent source-level text/layout model translated to native VDU, including cursor hide/show, colors, box, literal text, reset and clear. Single firmware boot and following MOS echo/prompt are required.
+
+Reproduce with the exact source/BIN, capture.c and vdp-tee.c here, using the tool pins, SD setup and environment from reports/agon-full-vdp-demo-nc and reports/agon-native-vdu-wire-hello. Set --vdp <tee.so>, MINZ_REAL_VDP=<pinned original library>, MINZ_VDP_STREAM=<wire.bin>; normal SDL A injection, timeout10 exit124 stops continuing MOS. Replay python3 reports/agon-native-vdu-wire-demo/verify.py. Entire application range after boot CR/LF/bell and before following echo is compared. This proves a bounded ordinary command/text sequence, not independent framebuffer/RAM/SP, all modes/inputs or hardware.

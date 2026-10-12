@@ -1,0 +1,58 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "89d98eeab59fc2badc9720d3444c9bf668ddd5c22fd74d5bf58c80b552181e7d"
+  },
+  {
+    "path": "before.ppm",
+    "sha256": "6030945959436adaa3beaac44370cc4a06127ada8703edd4a0d61e81b568498a"
+  },
+  {
+    "path": "capture.c",
+    "sha256": "100530626d508295bde7ff9114b1d5f7a7a8f47deb6561e1ed71d74c3a0d55e1"
+  },
+  {
+    "path": "emulator.log",
+    "sha256": "e1b17a426f37fd4f9c9ddda58d62d645dafe9aa856a92b8745c0f08410962cac"
+  },
+  {
+    "path": "expected.bin",
+    "sha256": "07840996205a28a743b200f75ea438228e1336c1448620b63f53ee6623df5bbf"
+  },
+  {
+    "path": "program.asm",
+    "sha256": "511ad9ad7c355a97c06fb0230381cc9070570c6c36566c8e85d2ebed616fc675"
+  },
+  {
+    "path": "program.bin",
+    "sha256": "bbf9fd32a1b1f6b46e77e7c1b9f42e6585037808c4279b3b6037d13d5c697059"
+  },
+  {
+    "path": "result.json",
+    "sha256": "31128704c1b5870c4c6bbe4a969a58518d9edbcb05d45a5e2a4aba1a49bdaa30"
+  },
+  {
+    "path": "returned.ppm",
+    "sha256": "30e0e67068adf9af22ca8237d54207b96f1752933a168325e5269d51ec61463b"
+  },
+  {
+    "path": "source.nanz",
+    "sha256": "afcadba573f924da7fcaf74574a8ec451be8ffb37eb0b3aa8567a6757d2957bd"
+  },
+  {
+    "path": "tui_render.nanz",
+    "sha256": "df324615b171bed89dc29a768d826551123604867bc3279fb20020fd784046f8"
+  },
+  {
+    "path": "vdp-tee.c",
+    "sha256": "ba5e4952c3139945ecab5a95187795e755f203817bc39a0de8873d4f1a64425f"
+  },
+  {
+    "path": "verify.py",
+    "sha256": "1872803e189f9a13d63b43cea112bd530ef2e63067b200c59f56d7b198497db9"
+  },
+  {
+    "path": "wire.bin",
+    "sha256": "69a3218c668501a5ce280c7d987a96642d857bd9b91868d248666730a44da483"
+  }
+]

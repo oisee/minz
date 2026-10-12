@@ -1,0 +1,9 @@
+{
+  "scope": "ordinary full eZ80/MOS/VDP, independent command/text oracle; no independent pixel/RAM/SP/hardware proof",
+  "application_bytes": 489,
+  "wire_bytes": 586,
+  "exact_application_vdu": true,
+  "single_mos_boot": true,
+  "following_echo_prompt": true,
+  "cutoff_exit": 124
+}
