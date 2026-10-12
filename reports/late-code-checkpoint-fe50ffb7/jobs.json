@@ -16,12 +16,13 @@
     "command": "GOCACHE=/tmp/minz-grace-gocache go test ./pkg/pipeline -run '^TestAgonCalledVoidMainEntry$' -count=1 -timeout=5m -v"
   },
   "backend": {
-    "state": "running, not PASS",
+    "state": "terminal PASS",
     "session": 27334,
     "go_pid": 2986027,
     "test_pid": 2986104,
     "command": "GOCACHE=/tmp/minz-grace-gocache go test ./pkg/mir2 ./pkg/z80asm -count=1 -timeout=20m",
-    "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/late-backend-fe50ffb7.txt"
+    "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/late-backend-fe50ffb7.txt",
+    "exit_code": 0
   },
   "full_pipeline": {
     "state": "running, not PASS",

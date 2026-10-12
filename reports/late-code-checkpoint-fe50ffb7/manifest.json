@@ -1,11 +1,15 @@
 [
   {
     "path": "README.md",
-    "sha256": "6724f0007587300f41289e04224e0b1419607c8f9d6eb18de7612473f3c5be0c"
+    "sha256": "a0139220c136a61bb3b92e713d86824d577cbfe371e5344c19aae9a8ba7c6ce1"
   },
   {
     "path": "artifact-audit.json",
     "sha256": "da62dbf61363e0f3b3c1b9df20fc41f10ee1aaf42fe48ad6f0cd33fa6a43484a"
+  },
+  {
+    "path": "backend.txt",
+    "sha256": "de1f5ed672523f766e5d11ba1a7db112bf6d5d970a906a1d0c9ffcb86c40b6f6"
   },
   {
     "path": "frontends.txt",
@@ -13,7 +17,7 @@
   },
   {
     "path": "jobs.json",
-    "sha256": "c1250efd32268b17c2e888e9aebc2c58483fabf0aaec8367d119176e5494b96d"
+    "sha256": "5609df8d49056a67910eca6abf78167b3c4500c7482da2edfb0e744c82c17cdc"
   },
   {
     "path": "scope.json",
