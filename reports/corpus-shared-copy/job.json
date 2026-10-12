@@ -1,9 +1,11 @@
 {
   "session": 54112,
-  "state": "running, not verified",
+  "state": "terminal PASS",
   "source_checkpoint": "4df8b2f9",
   "destination": "/mnt/safe/minz/grace/2026-10-12/corpus-evidence-4df8b2f9",
   "planned_unique_files": 4952,
   "observed_at_utc": "2026-10-12T12:50:06.814252+00:00",
-  "result_when_terminal": "/tmp/minz-corpus-shared-audit.json"
+  "result_when_terminal": "/tmp/minz-corpus-shared-audit.json",
+  "exit_code": 0,
+  "verified_at_utc": "2026-10-12T12:51:25.598541+00:00"
 }
