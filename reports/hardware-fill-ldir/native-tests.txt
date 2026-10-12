@@ -1,0 +1,155 @@
+=== RUN   TestHardwareFillLDIRNative
+=== RUN   TestHardwareFillLDIRNative/linear-two
+=== RUN   TestHardwareFillLDIRNative/linear-two/ordinary
+    hardware_fill_test.go:216: 22 bytes, 150 T-states; 2 target bytes
+=== RUN   TestHardwareFillLDIRNative/linear-two/grace-size
+    hardware_fill_test.go:216: 22 bytes, 150 T-states; 2 target bytes
+=== RUN   TestHardwareFillLDIRNative/linear-two/grace-speed
+    hardware_fill_test.go:216: 22 bytes, 150 T-states; 2 target bytes
+=== RUN   TestHardwareFillLDIRNative/linear-one
+=== RUN   TestHardwareFillLDIRNative/linear-one/ordinary
+    hardware_fill_test.go:216: 8 bytes, 51 T-states; 1 target bytes
+=== RUN   TestHardwareFillLDIRNative/linear-one/grace-size
+    hardware_fill_test.go:216: 8 bytes, 51 T-states; 1 target bytes
+=== RUN   TestHardwareFillLDIRNative/linear-one/grace-speed
+    hardware_fill_test.go:216: 8 bytes, 51 T-states; 1 target bytes
+=== RUN   TestHardwareFillLDIRNative/linear-strided
+=== RUN   TestHardwareFillLDIRNative/linear-strided/ordinary
+    hardware_fill_test.go:216: 64 bytes, 619 T-states; 15 target bytes
+=== RUN   TestHardwareFillLDIRNative/linear-strided/grace-size
+    hardware_fill_test.go:216: 64 bytes, 619 T-states; 15 target bytes
+=== RUN   TestHardwareFillLDIRNative/linear-strided/grace-speed
+    hardware_fill_test.go:216: 64 bytes, 619 T-states; 15 target bytes
+=== RUN   TestHardwareFillLDIRNative/linear-255
+=== RUN   TestHardwareFillLDIRNative/linear-255/ordinary
+    hardware_fill_test.go:216: 22 bytes, 5463 T-states; 255 target bytes
+=== RUN   TestHardwareFillLDIRNative/linear-255/grace-size
+    hardware_fill_test.go:216: 22 bytes, 5463 T-states; 255 target bytes
+=== RUN   TestHardwareFillLDIRNative/linear-255/grace-speed
+    hardware_fill_test.go:216: 22 bytes, 5463 T-states; 255 target bytes
+=== RUN   TestHardwareFillLDIRNative/linear-256
+=== RUN   TestHardwareFillLDIRNative/linear-256/ordinary
+    hardware_fill_test.go:216: 22 bytes, 5484 T-states; 256 target bytes
+=== RUN   TestHardwareFillLDIRNative/linear-256/grace-size
+    hardware_fill_test.go:216: 22 bytes, 5484 T-states; 256 target bytes
+=== RUN   TestHardwareFillLDIRNative/linear-256/grace-speed
+    hardware_fill_test.go:216: 22 bytes, 5484 T-states; 256 target bytes
+=== RUN   TestHardwareFillLDIRNative/linear-last-byte
+=== RUN   TestHardwareFillLDIRNative/linear-last-byte/ordinary
+    hardware_fill_test.go:216: 22 bytes, 192 T-states; 4 target bytes
+=== RUN   TestHardwareFillLDIRNative/linear-last-byte/grace-size
+    hardware_fill_test.go:216: 22 bytes, 192 T-states; 4 target bytes
+=== RUN   TestHardwareFillLDIRNative/linear-last-byte/grace-speed
+    hardware_fill_test.go:216: 22 bytes, 192 T-states; 4 target bytes
+=== RUN   TestHardwareFillLDIRNative/linear-zero-width
+=== RUN   TestHardwareFillLDIRNative/linear-zero-width/ordinary
+    hardware_fill_test.go:216: 1 bytes, 10 T-states; 0 target bytes
+=== RUN   TestHardwareFillLDIRNative/linear-zero-width/grace-size
+    hardware_fill_test.go:216: 1 bytes, 10 T-states; 0 target bytes
+=== RUN   TestHardwareFillLDIRNative/linear-zero-width/grace-speed
+    hardware_fill_test.go:216: 1 bytes, 10 T-states; 0 target bytes
+=== RUN   TestHardwareFillLDIRNative/linear-zero-height
+=== RUN   TestHardwareFillLDIRNative/linear-zero-height/ordinary
+    hardware_fill_test.go:216: 1 bytes, 10 T-states; 0 target bytes
+=== RUN   TestHardwareFillLDIRNative/linear-zero-height/grace-size
+    hardware_fill_test.go:216: 1 bytes, 10 T-states; 0 target bytes
+=== RUN   TestHardwareFillLDIRNative/linear-zero-height/grace-speed
+    hardware_fill_test.go:216: 1 bytes, 10 T-states; 0 target bytes
+=== RUN   TestHardwareFillLDIRNative/zx-row-7-8
+=== RUN   TestHardwareFillLDIRNative/zx-row-7-8/ordinary
+    hardware_fill_test.go:216: 43 bytes, 416 T-states; 10 target bytes
+=== RUN   TestHardwareFillLDIRNative/zx-row-7-8/grace-size
+    hardware_fill_test.go:216: 43 bytes, 416 T-states; 10 target bytes
+=== RUN   TestHardwareFillLDIRNative/zx-row-7-8/grace-speed
+    hardware_fill_test.go:216: 43 bytes, 416 T-states; 10 target bytes
+=== RUN   TestHardwareFillLDIRNative/zx-row-63-64
+=== RUN   TestHardwareFillLDIRNative/zx-row-63-64/ordinary
+    hardware_fill_test.go:216: 43 bytes, 332 T-states; 6 target bytes
+=== RUN   TestHardwareFillLDIRNative/zx-row-63-64/grace-size
+    hardware_fill_test.go:216: 43 bytes, 332 T-states; 6 target bytes
+=== RUN   TestHardwareFillLDIRNative/zx-row-63-64/grace-speed
+    hardware_fill_test.go:216: 43 bytes, 332 T-states; 6 target bytes
+=== RUN   TestHardwareFillLDIRNative/zx-last-byte
+=== RUN   TestHardwareFillLDIRNative/zx-last-byte/ordinary
+    hardware_fill_test.go:216: 8 bytes, 51 T-states; 1 target bytes
+=== RUN   TestHardwareFillLDIRNative/zx-last-byte/grace-size
+    hardware_fill_test.go:216: 8 bytes, 51 T-states; 1 target bytes
+=== RUN   TestHardwareFillLDIRNative/zx-last-byte/grace-speed
+    hardware_fill_test.go:216: 8 bytes, 51 T-states; 1 target bytes
+=== RUN   TestHardwareFillLDIRNative/zx-full-rows
+=== RUN   TestHardwareFillLDIRNative/zx-full-rows/ordinary
+    hardware_fill_test.go:216: 22 bytes, 129132 T-states; 6144 target bytes
+=== RUN   TestHardwareFillLDIRNative/zx-full-rows/grace-size
+    hardware_fill_test.go:216: 22 bytes, 129132 T-states; 6144 target bytes
+=== RUN   TestHardwareFillLDIRNative/zx-full-rows/grace-speed
+    hardware_fill_test.go:216: 22 bytes, 129132 T-states; 6144 target bytes
+=== RUN   TestHardwareFillLDIRNative/zx-full-storage
+=== RUN   TestHardwareFillLDIRNative/zx-full-storage/ordinary
+    hardware_fill_test.go:216: 22 bytes, 129132 T-states; 6144 target bytes
+=== RUN   TestHardwareFillLDIRNative/zx-full-storage/grace-size
+    hardware_fill_test.go:216: 22 bytes, 129132 T-states; 6144 target bytes
+=== RUN   TestHardwareFillLDIRNative/zx-full-storage/grace-speed
+    hardware_fill_test.go:216: 22 bytes, 129132 T-states; 6144 target bytes
+--- PASS: TestHardwareFillLDIRNative (0.42s)
+    --- PASS: TestHardwareFillLDIRNative/linear-two (0.09s)
+        --- PASS: TestHardwareFillLDIRNative/linear-two/ordinary (0.02s)
+        --- PASS: TestHardwareFillLDIRNative/linear-two/grace-size (0.04s)
+        --- PASS: TestHardwareFillLDIRNative/linear-two/grace-speed (0.04s)
+    --- PASS: TestHardwareFillLDIRNative/linear-one (0.08s)
+        --- PASS: TestHardwareFillLDIRNative/linear-one/ordinary (0.03s)
+        --- PASS: TestHardwareFillLDIRNative/linear-one/grace-size (0.02s)
+        --- PASS: TestHardwareFillLDIRNative/linear-one/grace-speed (0.03s)
+    --- PASS: TestHardwareFillLDIRNative/linear-strided (0.03s)
+        --- PASS: TestHardwareFillLDIRNative/linear-strided/ordinary (0.01s)
+        --- PASS: TestHardwareFillLDIRNative/linear-strided/grace-size (0.01s)
+        --- PASS: TestHardwareFillLDIRNative/linear-strided/grace-speed (0.01s)
+    --- PASS: TestHardwareFillLDIRNative/linear-255 (0.02s)
+        --- PASS: TestHardwareFillLDIRNative/linear-255/ordinary (0.01s)
+        --- PASS: TestHardwareFillLDIRNative/linear-255/grace-size (0.01s)
+        --- PASS: TestHardwareFillLDIRNative/linear-255/grace-speed (0.01s)
+    --- PASS: TestHardwareFillLDIRNative/linear-256 (0.02s)
+        --- PASS: TestHardwareFillLDIRNative/linear-256/ordinary (0.01s)
+        --- PASS: TestHardwareFillLDIRNative/linear-256/grace-size (0.01s)
+        --- PASS: TestHardwareFillLDIRNative/linear-256/grace-speed (0.01s)
+    --- PASS: TestHardwareFillLDIRNative/linear-last-byte (0.02s)
+        --- PASS: TestHardwareFillLDIRNative/linear-last-byte/ordinary (0.01s)
+        --- PASS: TestHardwareFillLDIRNative/linear-last-byte/grace-size (0.01s)
+        --- PASS: TestHardwareFillLDIRNative/linear-last-byte/grace-speed (0.01s)
+    --- PASS: TestHardwareFillLDIRNative/linear-zero-width (0.02s)
+        --- PASS: TestHardwareFillLDIRNative/linear-zero-width/ordinary (0.01s)
+        --- PASS: TestHardwareFillLDIRNative/linear-zero-width/grace-size (0.01s)
+        --- PASS: TestHardwareFillLDIRNative/linear-zero-width/grace-speed (0.01s)
+    --- PASS: TestHardwareFillLDIRNative/linear-zero-height (0.04s)
+        --- PASS: TestHardwareFillLDIRNative/linear-zero-height/ordinary (0.03s)
+        --- PASS: TestHardwareFillLDIRNative/linear-zero-height/grace-size (0.01s)
+        --- PASS: TestHardwareFillLDIRNative/linear-zero-height/grace-speed (0.01s)
+    --- PASS: TestHardwareFillLDIRNative/zx-row-7-8 (0.02s)
+        --- PASS: TestHardwareFillLDIRNative/zx-row-7-8/ordinary (0.01s)
+        --- PASS: TestHardwareFillLDIRNative/zx-row-7-8/grace-size (0.01s)
+        --- PASS: TestHardwareFillLDIRNative/zx-row-7-8/grace-speed (0.01s)
+    --- PASS: TestHardwareFillLDIRNative/zx-row-63-64 (0.02s)
+        --- PASS: TestHardwareFillLDIRNative/zx-row-63-64/ordinary (0.01s)
+        --- PASS: TestHardwareFillLDIRNative/zx-row-63-64/grace-size (0.01s)
+        --- PASS: TestHardwareFillLDIRNative/zx-row-63-64/grace-speed (0.01s)
+    --- PASS: TestHardwareFillLDIRNative/zx-last-byte (0.02s)
+        --- PASS: TestHardwareFillLDIRNative/zx-last-byte/ordinary (0.00s)
+        --- PASS: TestHardwareFillLDIRNative/zx-last-byte/grace-size (0.01s)
+        --- PASS: TestHardwareFillLDIRNative/zx-last-byte/grace-speed (0.01s)
+    --- PASS: TestHardwareFillLDIRNative/zx-full-rows (0.02s)
+        --- PASS: TestHardwareFillLDIRNative/zx-full-rows/ordinary (0.01s)
+        --- PASS: TestHardwareFillLDIRNative/zx-full-rows/grace-size (0.01s)
+        --- PASS: TestHardwareFillLDIRNative/zx-full-rows/grace-speed (0.01s)
+    --- PASS: TestHardwareFillLDIRNative/zx-full-storage (0.02s)
+        --- PASS: TestHardwareFillLDIRNative/zx-full-storage/ordinary (0.01s)
+        --- PASS: TestHardwareFillLDIRNative/zx-full-storage/grace-size (0.01s)
+        --- PASS: TestHardwareFillLDIRNative/zx-full-storage/grace-speed (0.01s)
+=== RUN   TestHardwareFillLDIRLiveValues
+=== RUN   TestHardwareFillLDIRLiveValues/ordinary
+=== RUN   TestHardwareFillLDIRLiveValues/grace-size
+=== RUN   TestHardwareFillLDIRLiveValues/grace-speed
+--- PASS: TestHardwareFillLDIRLiveValues (0.02s)
+    --- PASS: TestHardwareFillLDIRLiveValues/ordinary (0.01s)
+    --- PASS: TestHardwareFillLDIRLiveValues/grace-size (0.01s)
+    --- PASS: TestHardwareFillLDIRLiveValues/grace-speed (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.459s

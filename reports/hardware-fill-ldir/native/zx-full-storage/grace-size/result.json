@@ -1,0 +1,9 @@
+{
+  "PASS": true,
+  "T_states": 129132,
+  "bytes": 22,
+  "mode": "grace-size",
+  "primitive": "ldir",
+  "scope": "independent layout oracle; all native RAM except exact declared spill slots and bounded stack; return PC/SP; VM checked only for pointer primitive",
+  "written_bytes": 6144
+}

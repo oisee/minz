@@ -1,0 +1,17 @@
+import hw.fill
+global input: u16 = 0
+global answer: u16 = 0
+fun fill_test() {
+    let keep: u16 = input * 3 + 7
+    @fill() {
+        layout "linear" 0x6000 256 1 256
+        value 0x47
+        via "ldir"
+    }
+    @fill() {
+        layout "linear" 0x6200 1 1 1
+        value 0x93
+        via "ldir"
+    }
+    answer = keep ^ input
+}

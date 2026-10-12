@@ -3,6 +3,7 @@
 fun @fill() -> void {
     var layout: ^u8 = c""
     var order: ^u8 = c"rows"
+    var primitive: ^u8 = c"pointer"
     var base: i32 = 0
     var cols: i32 = 0
     var rows: i32 = 0
@@ -16,6 +17,7 @@ fun @fill() -> void {
     var seen_region: u8 = 0
     var seen_order: u8 = 0
     var seen_value: u8 = 0
+    var seen_via: u8 = 0
     var i: u16 = 0
     while i < block_len() {
         let key: ^u8 = node_keyword(i)
@@ -54,6 +56,11 @@ fun @fill() -> void {
             if node_arg_count(i) != 1 { meta_error(c"fill: value needs one byte") }
             seen_value = 1
             value = node_arg_int(i, 0)
+        } else if str_eq(key, c"via") == 1 {
+            if seen_via != 0 { meta_error(c"fill: duplicate via") }
+            if node_arg_count(i) != 1 { meta_error(c"fill: via needs one name") }
+            seen_via = 1
+            primitive = node_arg_str(i, 0)
         } else { meta_error(c"fill: unknown field") }
         i = i + 1
     }
@@ -88,6 +95,9 @@ fun @fill() -> void {
         if width != cols { meta_error(c"fill: storage needs whole layout") }
         if height != rows { meta_error(c"fill: storage needs whole layout") }
     }
+    if str_eq(primitive, c"pointer") == 0 {
+        if str_eq(primitive, c"ldir") == 0 { meta_error(c"fill: unknown primitive") }
+    }
     if width == 0 { return }
     if height == 0 { return }
     // A constant whole-screen fill may use storage order: all bytes equal.
@@ -113,19 +123,45 @@ fun @fill() -> void {
         }
         var length: i32 = width
         if contiguous == 1 { length = width * height }
-        emit(c"{")
-        emit(str_concat(c"var fill_ptr: ^u8 = ptr(", str_concat(str_from_int(address), c")")))
-        if length < 256 {
-            emit(str_concat(c"var fill_left: u8 = ", str_from_int(length)))
+        if str_eq(primitive, c"ldir") == 1 {
+            // Seed once, then copy the growing filled prefix into the next byte.
+            // Zero regions returned above; singleton must never execute BC=0 LDIR.
+            emit(c"asm z80 (clob) {")
+            if length > 1 {
+                emit(c"PUSH AF")
+                emit(c"PUSH BC")
+                emit(c"PUSH DE")
+            }
+            emit(c"PUSH HL")
+            emit(str_concat(c"LD HL, ", str_from_int(address)))
+            emit(str_concat(c"LD (HL), ", str_from_int(value)))
+            if length > 1 {
+                emit(str_concat(c"LD DE, ", str_from_int(address + 1)))
+                emit(str_concat(c"LD BC, ", str_from_int(length - 1)))
+                emit(c"LDIR")
+            }
+            emit(c"POP HL")
+            if length > 1 {
+                emit(c"POP DE")
+                emit(c"POP BC")
+                emit(c"POP AF")
+            }
+            emit(c"}")
         } else {
-            emit(str_concat(c"var fill_left: u16 = ", str_from_int(length)))
+            emit(c"{")
+            emit(str_concat(c"var fill_ptr: ^u8 = ptr(", str_concat(str_from_int(address), c")")))
+            if length < 256 {
+                emit(str_concat(c"var fill_left: u8 = ", str_from_int(length)))
+            } else {
+                emit(str_concat(c"var fill_left: u16 = ", str_from_int(length)))
+            }
+            emit(c"while fill_left != 0 {")
+            emit(str_concat(c"fill_ptr^ = ", str_from_int(value)))
+            emit(c"fill_ptr = fill_ptr + 1")
+            emit(c"fill_left = fill_left - 1")
+            emit(c"}")
+            emit(c"}")
         }
-        emit(c"while fill_left != 0 {")
-        emit(str_concat(c"fill_ptr^ = ", str_from_int(value)))
-        emit(c"fill_ptr = fill_ptr + 1")
-        emit(c"fill_left = fill_left - 1")
-        emit(c"}")
-        emit(c"}")
         if contiguous == 1 { return }
         row = row + 1
     }

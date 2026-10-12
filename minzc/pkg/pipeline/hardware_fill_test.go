@@ -74,8 +74,13 @@ func hardwareFillExport(t *testing.T, name string, data []byte) {
 	}
 }
 
-func TestHardwareFillMemoryNativeAndVM(t *testing.T) {
+func TestHardwareFillMemoryNativeAndVM(t *testing.T) { hardwareFillMatrix(t, "pointer") }
+
+func TestHardwareFillLDIRNative(t *testing.T) { hardwareFillMatrix(t, "ldir") }
+
+func hardwareFillMatrix(t *testing.T, primitive string) {
 	cases := []hardwareFillCase{
+		{"linear-two", "linear", "rows", 0x68ff, 2, 1, 2, 0, 0, 2, 1, 0x71},
 		{"linear-one", "linear", "rows", 0x6800, 1, 1, 1, 0, 0, 1, 1, 0xad},
 		{"linear-strided", "linear", "rows", 0x5ffe, 7, 4, 11, 1, 1, 5, 3, 0x53},
 		{"linear-255", "linear", "rows", 0x6000, 255, 1, 255, 0, 0, 255, 1, 0x80},
@@ -91,12 +96,12 @@ func TestHardwareFillMemoryNativeAndVM(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			hardwareFillExport(t, tc.name+"/source.nanz", []byte(hardwareFillSource(tc.body())))
+			hardwareFillExport(t, tc.name+"/source.nanz", []byte(hardwareFillSource(tc.body()+" via \""+primitive+"\";")))
 			writes := tc.addresses()
 			for _, mode := range []string{"ordinary", "grace-size", "grace-speed"} {
 				t.Run(mode, func(t *testing.T) {
-					raw := hir.LowerModule(hardwareFillParse(t, tc.body()))
-					steps, err := CompileHIRSteps(hardwareFillParse(t, tc.body()), Options{AssertMode: "none", UseGrace: mode != "ordinary", UseHIRGrace: mode != "ordinary", OptSize: mode == "grace-size"})
+					raw := hir.LowerModule(hardwareFillParse(t, tc.body()+" via \""+primitive+"\";"))
+					steps, err := CompileHIRSteps(hardwareFillParse(t, tc.body()+" via \""+primitive+"\";"), Options{AssertMode: "none", UseGrace: mode != "ordinary", UseHIRGrace: mode != "ordinary", OptSize: mode == "grace-size"})
 					if err != nil {
 						t.Fatal(err)
 					}
@@ -118,7 +123,13 @@ func TestHardwareFillMemoryNativeAndVM(t *testing.T) {
 							}
 						}
 					}
-					for index, module := range []*mir2.Module{raw, steps.MIR2Module} {
+					modules := []*mir2.Module{raw, steps.MIR2Module}
+					// ASM has no VM implementation: native memory is compared to
+					// the independent oracle, never to skipped ASM VM execution.
+					if primitive == "ldir" {
+						modules = nil
+					}
+					for index, module := range modules {
 						vm := mir2.NewVM(module)
 						vm.EnsureHeap(65536)
 						vm.WriteHeapSlice(0, seed)
@@ -146,7 +157,11 @@ func TestHardwareFillMemoryNativeAndVM(t *testing.T) {
 					allowed := make(map[int]bool)
 					// The native call may use a bounded stack and exact declared
 					// spill slots. Instruction bytes remain protected by the oracle.
-					for address := 0xef00; address < 0xeff2; address++ {
+					stackStart := 0xef00
+					if primitive == "ldir" {
+						stackStart = 0xefe8
+					}
+					for address := stackStart; address < 0xeff0; address++ {
 						allowed[address] = true
 					}
 					for _, line := range strings.Split(assembly, "\n") {
@@ -173,7 +188,8 @@ func TestHardwareFillMemoryNativeAndVM(t *testing.T) {
 					if !ok {
 						t.Fatal("missing fill_test symbol")
 					}
-					z.SetRegisters(emulator.Registers{PC: uint16(entry), SP: 0xeff0})
+					initial := emulator.Registers{PC: uint16(entry), SP: 0xeff0, A: 0xa5, F: 0xd7, HL: 0x1234, BC: 0x5678, DE: 0x9abc, IX: 0x1357, IY: 0x2468}
+					z.SetRegisters(initial)
 					returned := false
 					for count := 0; count < 2000000; count++ {
 						if z.GetPC() == 0x7000 && z.GetSP() == 0xeff2 {
@@ -186,7 +202,13 @@ func TestHardwareFillMemoryNativeAndVM(t *testing.T) {
 						t.Fatal("native did not restore return PC/SP", z.GetRegisters())
 					}
 					check("Z80", before, memory, allowed)
-					result, err := json.MarshalIndent(map[string]any{"PASS": true, "mode": mode, "bytes": len(assembled.Binary), "T_states": z.GetCycles(), "written_bytes": len(writes), "scope": "raw/final VM and native Z80; independent layout oracle; all RAM except exact declared native spill slots and bounded stack; return PC/SP"}, "", "  ")
+					if primitive == "ldir" {
+						got := z.GetRegisters()
+						if got.A != initial.A || got.F != initial.F || got.HL != initial.HL || got.BC != initial.BC || got.DE != initial.DE || got.IX != initial.IX || got.IY != initial.IY {
+							t.Fatalf("preservation: got %+v initial %+v", got, initial)
+						}
+					}
+					result, err := json.MarshalIndent(map[string]any{"PASS": true, "mode": mode, "bytes": len(assembled.Binary), "T_states": z.GetCycles(), "written_bytes": len(writes), "primitive": primitive, "scope": "independent layout oracle; all native RAM except exact declared spill slots and bounded stack; return PC/SP; VM checked only for pointer primitive"}, "", "  ")
 					if err != nil {
 						t.Fatal(err)
 					}
@@ -219,6 +241,9 @@ func TestHardwareFillRejectsInvalidDescriptions(t *testing.T) {
 		"layout-bad-arity":   strings.Replace(valid, "8192 8 4 10", "8192 8 4", 1),
 		"region-bad-arity":   strings.Replace(valid, "region 0 0 8 4", "region 0 0 8", 1),
 		"int32-overflow":     strings.Replace(valid, "8192", "2147483648", 1),
+		"unknown-primitive":  valid + ` via "magic";`,
+		"duplicate-via":      valid + ` via "ldir"; via "pointer";`,
+		"via-bad-arity":      valid + ` via "ldir" 4;`,
 		"unknown-field":      valid + " mystery 12;",
 		"zx-partial-storage": `layout "zx_bitmap_bytes" 16384; region 1 0 31 192; traversal "storage"; value 71;`,
 	}
@@ -233,6 +258,90 @@ func TestHardwareFillRejectsInvalidDescriptions(t *testing.T) {
 				}
 			} else if !strings.Contains(err.Error(), "fill:") {
 				t.Fatalf("expected fill contract diagnostic, got %v", err)
+			}
+		})
+	}
+}
+
+// Generated inline ASM must preserve values live across its declared clobbers.
+// Read a dynamic global, compute before the fill, and consume after two blocks.
+func TestHardwareFillLDIRLiveValues(t *testing.T) {
+	source := `import hw.fill
+global input: u16 = 0
+global answer: u16 = 0
+fun fill_test() {
+    let keep: u16 = input * 3 + 7
+    @fill() {
+        layout "linear" 0x6000 256 1 256
+        value 0x47
+        via "ldir"
+    }
+    @fill() {
+        layout "linear" 0x6200 1 1 1
+        value 0x93
+        via "ldir"
+    }
+    answer = keep ^ input
+}`
+	hardwareFillExport(t, "live-values/source.nanz", []byte(source))
+	for _, mode := range []string{"ordinary", "grace-size", "grace-speed"} {
+		t.Run(mode, func(t *testing.T) {
+			h, err := nanz.ParseWithOpts(source, "live_fill.nanz", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
+			if err != nil {
+				t.Fatal(err)
+			}
+			steps, err := CompileHIRSteps(h, Options{AssertMode: "none", UseGrace: mode != "ordinary", UseHIRGrace: mode != "ordinary", OptSize: mode == "grace-size"})
+			if err != nil {
+				t.Fatal(err)
+			}
+			assembly := "ORG 0x8000\n" + steps.Assembly
+			a, err := z80asm.NewAssembler().AssembleString(assembly)
+			if err != nil || len(a.Errors) != 0 {
+				t.Fatal(err, a.Errors)
+			}
+			hardwareFillExport(t, "live-values/"+mode+"/program.a80", []byte(assembly))
+			hardwareFillExport(t, "live-values/"+mode+"/program.bin", a.Binary)
+			var inputAddr, answerAddr int
+			for name, address := range a.Symbols {
+				if name == "input" {
+					inputAddr = address
+				}
+				if name == "answer" {
+					answerAddr = address
+				}
+			}
+			if inputAddr == 0 || answerAddr == 0 {
+				t.Fatal("missing globals", a.Symbols)
+			}
+			for _, v := range []uint16{0, 1, 2, 255, 256, 0x5555, 0x7fff, 0x8000, 0xfffe, 0xffff} {
+				z := emulator.NewRemogattoZ80()
+				z.LoadMemory(0x8000, a.Binary)
+				memory := z.Memory()
+				memory[inputAddr], memory[inputAddr+1] = byte(v), byte(v>>8)
+				memory[0xeff0], memory[0xeff1] = 0, 0x70
+				z.SetRegisters(emulator.Registers{PC: uint16(a.Symbols["fill_test"]), SP: 0xeff0, HL: 0xdead, BC: 0xbeef, DE: 0x1234, A: 0xa5})
+				for i := 0; i < 100000; i++ {
+					if z.GetPC() == 0x7000 && z.GetSP() == 0xeff2 {
+						break
+					}
+					z.Step()
+				}
+				if z.GetPC() != 0x7000 || z.GetSP() != 0xeff2 {
+					t.Fatal("return", z.GetRegisters())
+				}
+				got := uint16(memory[answerAddr]) | uint16(memory[answerAddr+1])<<8
+				want := (v*3 + 7) ^ v
+				if got != want {
+					t.Fatalf("input %04x: got %04x want %04x", v, got, want)
+				}
+				for addr := 0x6000; addr < 0x6100; addr++ {
+					if memory[addr] != 0x47 {
+						t.Fatal("fill", addr)
+					}
+				}
+				if memory[0x6200] != 0x93 {
+					t.Fatal("singleton fill")
+				}
 			}
 		})
 	}

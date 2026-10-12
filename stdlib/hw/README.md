@@ -43,7 +43,26 @@ Dimensions, addresses, region bounds and byte values are checked at compile
 time. Layouts must fit the 16-bit address space without wrapping. Unknown or
 duplicate fields are rejected. Metablock fields occupy separate lines.
 
-The implementation computes ZX row addresses before execution. It emits a byte
+Optional `via "ldir"` selects a native Z80 seeded fill for each contiguous span:
+
+```nanz
+@fill() {
+    layout "zx_bitmap_bytes" 0x4000
+    value 0
+    via "ldir"
+}
+```
+
+Zero regions emit nothing; one byte uses a single store. Larger spans seed the
+first byte and run LDIR with count length-1. The block preserves AF, BC, DE and HL
+using at most eight bytes of normal stack; SP is restored, IFF is unchanged,
+IX/IY and alternate registers are untouched. The caller must provide normal
+usable stack space disjoint from its destination. This does not borrow SP as a
+data pointer. The intentional overlap propagates the seeded value, rather than
+performing a generic memcpy. ASM execution is checked on native Z80 against the
+independent oracle; VM does not implement this ASM block.
+
+The default `via "pointer"` implementation computes ZX row addresses before execution. It emits a byte
 counter for spans up to 255 bytes and a word counter for larger spans. It does
 not borrow SP, change IFF, use SMC or invoke LDIR. This first implementation
 establishes semantics; native tests record size and cycles, rather than promising
