@@ -1,0 +1,7 @@
+# IRC string pointer correction
+
+The original source (SHA256 `2836abd4f06db6a7ae777459e56c9ad35e42aa2ec87c479125685c7d9cdacc96`) passed plain string expressions to byte-pointer APIs. Book v7 §18.1 explicitly defines plain expressions as length-prefixed SStrings and `c"..."` as NUL-terminated CStrings. The classifier compared the length byte instead of the first character: original `classify_irc("PING :server", 0)` returned Unknown (6), expected Ping (0). This is a source/API mismatch, not a change to the language's literal semantics.
+
+All 27 literal pointer arguments now explicitly use CString encoding. `literal-contracts.json` lists every original line, actual consumer, and source/API authority. `set_str`, `net_connect`, `net_send`, and `buf_starts_with` scan until zero; `status_msg` and `show_event` pass through to `tui_puts`, whose ASM stops at zero; `region_match` compares fixed character counts starting at byte zero. No algorithm or import changed. Corrected full source SHA256 is `240ecc56c7b35683c15801f20490f22033837dfafa1e4d991ed1ca26a66d6f53`.
+
+Only classifier computational entries are executed in the accompanying proof. The other 22 corrected runtime literals have audited API contracts, without network/terminal runtime execution. Complete original source is retained in `source.nanz`, corrected source in `corrected-source.nanz`; neither artifact is silently substituted for the other.
