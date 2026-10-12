@@ -1,0 +1,16 @@
+=== RUN   TestOriginalSelfParserWholeMainVM
+=== RUN   TestOriginalSelfParserWholeMainVM/raw
+    self_parser_whole_main_test.go:186: wholemain independent files/AST/tokens/stdout PASS inputSHA f73e18cfe6ec36cd8ddda84d935e0b54549cb19f3b7c07d952e87dbcce96959d events[read tiny.nanz write tiny.lanz]
+=== RUN   TestOriginalSelfParserWholeMainVM/ordinary
+    self_parser_whole_main_test.go:186: wholemain independent files/AST/tokens/stdout PASS inputSHA f73e18cfe6ec36cd8ddda84d935e0b54549cb19f3b7c07d952e87dbcce96959d events[read tiny.nanz write tiny.lanz]
+=== RUN   TestOriginalSelfParserWholeMainVM/grace-size
+    self_parser_whole_main_test.go:186: wholemain independent files/AST/tokens/stdout PASS inputSHA f73e18cfe6ec36cd8ddda84d935e0b54549cb19f3b7c07d952e87dbcce96959d events[read tiny.nanz write tiny.lanz]
+=== RUN   TestOriginalSelfParserWholeMainVM/grace-speed
+    self_parser_whole_main_test.go:186: wholemain independent files/AST/tokens/stdout PASS inputSHA f73e18cfe6ec36cd8ddda84d935e0b54549cb19f3b7c07d952e87dbcce96959d events[read tiny.nanz write tiny.lanz]
+--- PASS: TestOriginalSelfParserWholeMainVM (3.45s)
+    --- PASS: TestOriginalSelfParserWholeMainVM/raw (0.05s)
+    --- PASS: TestOriginalSelfParserWholeMainVM/ordinary (0.66s)
+    --- PASS: TestOriginalSelfParserWholeMainVM/grace-size (1.34s)
+    --- PASS: TestOriginalSelfParserWholeMainVM/grace-speed (1.40s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.457s
