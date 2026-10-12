@@ -1,0 +1,6 @@
+=== RUN   TestOriginalALVScreenWholeMain
+    original_alv_screen_main_test.go:365: alv ordinary/vm0 [] block @entry: block @loop_body2: block @entry: unboundASMtui__render__tui_clear
+--- FAIL: TestOriginalALVScreenWholeMain (0.13s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.139s
+FAIL

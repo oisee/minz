@@ -1,0 +1,10 @@
+=== RUN   TestOriginalALVScreenWholeMain
+    original_alv_screen_main_test.go:665: alv ordinary wholemain raw/final/native PASS
+    original_alv_screen_main_test.go:665: alv grace-size wholemain raw/final/native PASS
+    original_alv_screen_main_test.go:665: alv grace-speed wholemain raw/final/native PASS
+    original_alv_screen_main_test.go:665: alv-tab ordinary wholemain raw/final/native PASS
+    original_alv_screen_main_test.go:665: alv-tab grace-size wholemain raw/final/native PASS
+    original_alv_screen_main_test.go:665: alv-tab grace-speed wholemain raw/final/native PASS
+--- PASS: TestOriginalALVScreenWholeMain (2.09s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.101s
