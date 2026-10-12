@@ -1,0 +1,21 @@
+{
+  "checkpoint": "c1744a23",
+  "observed_at_utc": "2026-10-12T15:11:32.655312+00:00",
+  "lir_archive_verified_payloads": 53,
+  "archive_sha256": "7c68901fcbb4e319b1ed4380e8a1e73fa2270e8e72180bc8778d8330c73adfc4",
+  "vir_job": {
+    "session": 29655,
+    "status": "running",
+    "binary": "/home/alice/dev/minz-artifacts/grace-checkpoints/vir-c1744a23.test",
+    "binary_sha256": "d2b205ff047f0bc4649fee742027e81b4ba56ec749869a885ffa99b3d8c51fa3",
+    "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/vir",
+    "args": [
+      "-test.count=1",
+      "-test.timeout=30m",
+      "-test.v"
+    ],
+    "z3": "/home/alice/dev/minz-artifacts/grace-tools/z3-python/bin/z3",
+    "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/vir-c1744a23-full.txt"
+  },
+  "scope": "Read-only archive verification; newly launched full VIR includes latest mixed/entry fixes, not terminal proof."
+}

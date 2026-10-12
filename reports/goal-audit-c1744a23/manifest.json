@@ -1,0 +1,156 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "004a53377a07ff2485ec8bd8557a2265c52096ed9ed0e433c96775b0f3187d74"
+    },
+    {
+      "path": "jobs-and-archive.json",
+      "sha256": "8304f5365f8bf22a57fda950cf2cdfab8a58202caece8f6db48180c9a6c63224"
+    },
+    {
+      "path": "pfcco-heldout/full.txt",
+      "sha256": "28b22f94ff42c83c3ac3af9cdd555935f486d4933db6f923d947575b69e0ff77"
+    },
+    {
+      "path": "pfcco-heldout/heldout-oracle.json",
+      "sha256": "aada452400a85b77b67984fe98a0ef9d5ef34aa5bcb5d7c2da45ed4d731611e1"
+    },
+    {
+      "path": "pfcco-heldout/heldout-workload.json",
+      "sha256": "d036bb7ffcf92fb6cb6f4fce105292c3ac2b13234d7f490d467ed94ce42b45e3"
+    },
+    {
+      "path": "pfcco-heldout/size/candidate-0/final.mir2",
+      "sha256": "f9252db1193e75593066010edba7490a984e69271b5287d3e9ede2f4b6668bfd"
+    },
+    {
+      "path": "pfcco-heldout/size/candidate-0/target.a80",
+      "sha256": "13cd5257609c6876b577bfad35e34158508144f5ea7d1fbd3a05a1969b540467"
+    },
+    {
+      "path": "pfcco-heldout/size/candidate-0/target.bin",
+      "sha256": "6a4f4ecd6f60f6b82ffc420997363ccc32357e82cedc1a86beff451b5b9b9e54"
+    },
+    {
+      "path": "pfcco-heldout/size/candidate-1/final.mir2",
+      "sha256": "3110bca9ad4a3ac737797a44570cd60426e6ca7ccaa6c6aa0db4ef7ed17d0f6e"
+    },
+    {
+      "path": "pfcco-heldout/size/candidate-1/target.a80",
+      "sha256": "f0e57c0e76040c50e185e599ae53e351405bf5077f0648df7d41c784f8e3dcf1"
+    },
+    {
+      "path": "pfcco-heldout/size/candidate-1/target.bin",
+      "sha256": "23a46320f4d5adaf3a706457cf721145f0ff0df85efcd4c8e0e2b0f0d83642f0"
+    },
+    {
+      "path": "pfcco-heldout/size/candidate-2/final.mir2",
+      "sha256": "f9252db1193e75593066010edba7490a984e69271b5287d3e9ede2f4b6668bfd"
+    },
+    {
+      "path": "pfcco-heldout/size/candidate-2/target.a80",
+      "sha256": "b8d104cb5767a5a37b4b39b367a3f52f52b8c52b7f68e75afa4d9beef7ace3b5"
+    },
+    {
+      "path": "pfcco-heldout/size/candidate-2/target.bin",
+      "sha256": "6a4f4ecd6f60f6b82ffc420997363ccc32357e82cedc1a86beff451b5b9b9e54"
+    },
+    {
+      "path": "pfcco-heldout/size/candidate-3/final.mir2",
+      "sha256": "3110bca9ad4a3ac737797a44570cd60426e6ca7ccaa6c6aa0db4ef7ed17d0f6e"
+    },
+    {
+      "path": "pfcco-heldout/size/candidate-3/target.a80",
+      "sha256": "59f812a89cc1d4a25e67d865aeb1b9bd4261e8a4e5bbb14105ed4653d6c9be56"
+    },
+    {
+      "path": "pfcco-heldout/size/candidate-3/target.bin",
+      "sha256": "23a46320f4d5adaf3a706457cf721145f0ff0df85efcd4c8e0e2b0f0d83642f0"
+    },
+    {
+      "path": "pfcco-heldout/size/heldout-baseline.json",
+      "sha256": "a23f3335c4978176e816740bf0efea99323c417fbe45655cd24e370523fa6c6f"
+    },
+    {
+      "path": "pfcco-heldout/size/heldout.json",
+      "sha256": "a23f3335c4978176e816740bf0efea99323c417fbe45655cd24e370523fa6c6f"
+    },
+    {
+      "path": "pfcco-heldout/size/selection.json",
+      "sha256": "e0f860f4d0f6659b4ab0c5b62e6b66ac58e39e1808a67081c57c72b602dc81d9"
+    },
+    {
+      "path": "pfcco-heldout/source.nanz",
+      "sha256": "6a8ecc8d50e41f5609cabb061b7a06474a7e72619295259d9e5aa4e3cc5bb4ab"
+    },
+    {
+      "path": "pfcco-heldout/speed/candidate-0/final.mir2",
+      "sha256": "f9252db1193e75593066010edba7490a984e69271b5287d3e9ede2f4b6668bfd"
+    },
+    {
+      "path": "pfcco-heldout/speed/candidate-0/target.a80",
+      "sha256": "13cd5257609c6876b577bfad35e34158508144f5ea7d1fbd3a05a1969b540467"
+    },
+    {
+      "path": "pfcco-heldout/speed/candidate-0/target.bin",
+      "sha256": "6a4f4ecd6f60f6b82ffc420997363ccc32357e82cedc1a86beff451b5b9b9e54"
+    },
+    {
+      "path": "pfcco-heldout/speed/candidate-1/final.mir2",
+      "sha256": "3110bca9ad4a3ac737797a44570cd60426e6ca7ccaa6c6aa0db4ef7ed17d0f6e"
+    },
+    {
+      "path": "pfcco-heldout/speed/candidate-1/target.a80",
+      "sha256": "f0e57c0e76040c50e185e599ae53e351405bf5077f0648df7d41c784f8e3dcf1"
+    },
+    {
+      "path": "pfcco-heldout/speed/candidate-1/target.bin",
+      "sha256": "23a46320f4d5adaf3a706457cf721145f0ff0df85efcd4c8e0e2b0f0d83642f0"
+    },
+    {
+      "path": "pfcco-heldout/speed/candidate-2/final.mir2",
+      "sha256": "f9252db1193e75593066010edba7490a984e69271b5287d3e9ede2f4b6668bfd"
+    },
+    {
+      "path": "pfcco-heldout/speed/candidate-2/target.a80",
+      "sha256": "b8d104cb5767a5a37b4b39b367a3f52f52b8c52b7f68e75afa4d9beef7ace3b5"
+    },
+    {
+      "path": "pfcco-heldout/speed/candidate-2/target.bin",
+      "sha256": "6a4f4ecd6f60f6b82ffc420997363ccc32357e82cedc1a86beff451b5b9b9e54"
+    },
+    {
+      "path": "pfcco-heldout/speed/candidate-3/final.mir2",
+      "sha256": "3110bca9ad4a3ac737797a44570cd60426e6ca7ccaa6c6aa0db4ef7ed17d0f6e"
+    },
+    {
+      "path": "pfcco-heldout/speed/candidate-3/target.a80",
+      "sha256": "59f812a89cc1d4a25e67d865aeb1b9bd4261e8a4e5bbb14105ed4653d6c9be56"
+    },
+    {
+      "path": "pfcco-heldout/speed/candidate-3/target.bin",
+      "sha256": "23a46320f4d5adaf3a706457cf721145f0ff0df85efcd4c8e0e2b0f0d83642f0"
+    },
+    {
+      "path": "pfcco-heldout/speed/heldout-baseline.json",
+      "sha256": "a23f3335c4978176e816740bf0efea99323c417fbe45655cd24e370523fa6c6f"
+    },
+    {
+      "path": "pfcco-heldout/speed/heldout.json",
+      "sha256": "f9cfb8953502c3e334b81e92ca1186d660071e0c1a92584a918d587f43413b4c"
+    },
+    {
+      "path": "pfcco-heldout/speed/selection.json",
+      "sha256": "cb8305efd79cdd8e4c08ac132c41f0baf64455d32ea7bd6caf14b1321bd3ada0"
+    },
+    {
+      "path": "pfcco-heldout/training-workload.json",
+      "sha256": "b0de3c4cdec9a2a0476cab059f790275b70e08a6fc385b7c182b0f9e12c04273"
+    },
+    {
+      "path": "requirements.json",
+      "sha256": "175c3b23f173404420113917e6c947a80e67d4311270561b0324cbaeb395b7ce"
+    }
+  ]
+}
