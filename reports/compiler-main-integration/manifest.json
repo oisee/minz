@@ -1,0 +1,34 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "9203f46257f65eea0f7c8c97042c524eabddb502b00eaa585d440bcab33ec7c4",
+      "bytes": 1107
+    },
+    {
+      "path": "build.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "catalog.txt",
+      "sha256": "f669560829dac28b458232283fead3bb3233ddd287b6f708287a8d7a51dd37d1",
+      "bytes": 43
+    },
+    {
+      "path": "compile.txt",
+      "sha256": "2e0472026ee1f9f8967f234c797c0a34547177ec57bd45f7736358af2a37ec90",
+      "bytes": 241
+    },
+    {
+      "path": "core-short.txt",
+      "sha256": "ef0e2a3f582a63288e45833a83c68e4b615e07d7d0675c0d92f810a5683248fa",
+      "bytes": 171
+    },
+    {
+      "path": "showcases.txt",
+      "sha256": "d363eb5d290b57df41462a54813a0695275f733ffc7db59e50ce32de8fcbbe22",
+      "bytes": 3806
+    }
+  ]
+}

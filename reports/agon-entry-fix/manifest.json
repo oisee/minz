@@ -1,0 +1,18 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "98eb2169f2e3608e551a17a1fdcb4b70d83118af3235fa9414042ecd0b955dae"
+  },
+  {
+    "path": "compiler-build.json",
+    "sha256": "bf5e6523a49eee4498c5c5ad90758e6fdc8508b017b154a6412014e72f26dc24"
+  },
+  {
+    "path": "core.txt",
+    "sha256": "cde247d8cf0aaa4bb0b970e5d51ae3cad6ffa566f51e548e381a5e55fca1a4c1"
+  },
+  {
+    "path": "focused.txt",
+    "sha256": "72d068aa5870bb8d199e8997d190d4d5ba8e0c9d3ec0adc3df8e86f3d0c8cb5f"
+  }
+]

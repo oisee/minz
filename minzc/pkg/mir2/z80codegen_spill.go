@@ -13,10 +13,22 @@ func z80SpillBytes(ty Ty) int {
 	if isZ80WideInt(ty) {
 		return ByteWidth(ty)
 	}
-	if ty.Width() <= 8 {
+	if z80ValueWidth(ty) <= 8 {
 		return 1
 	}
 	return 2
+}
+
+// z80ValueWidth describes the register representation, rather than object
+// layout. HIR lowers struct/array values to addresses; even a one-byte object
+// therefore needs a full 16-bit address in copies, calls and spill homes.
+// Tuple and slice products are not single aggregate addresses.
+func z80ValueWidth(ty Ty) int {
+	switch BaseOf(ty).(type) {
+	case *StructTy, *ArrayTy:
+		return 16
+	}
+	return ty.Width()
 }
 
 // genWideSpills stages memory-backed wide operands in main/shadow register
@@ -27,7 +39,7 @@ func (g *z80cg) genWideSpills(inst *Inst) bool {
 		return false
 	}
 	switch inst.Op {
-	case OpConst, OpMove, OpAdd, OpSub, OpAnd, OpOr, OpXor, OpShl, OpShr, OpSar, OpMul, OpExt, OpSext, OpTrunc:
+	case OpConst, OpMove, OpNot, OpAdd, OpSub, OpAnd, OpOr, OpXor, OpShl, OpShr, OpSar, OpMul, OpExt, OpSext, OpTrunc:
 	default:
 		return false
 	}

@@ -53,7 +53,24 @@ func (ctx *LocalLabelContext) expandLocalLabelReferences(operand string) string 
 	// A local label starts with '.' followed by a letter/underscore, then alphanumeric/_
 	result := []byte(operand)
 	i := 0
+	var quote byte
 	for i < len(result) {
+		if quote != 0 {
+			if result[i] == '\\' && i+1 < len(result) {
+				i += 2
+				continue
+			}
+			if result[i] == quote {
+				quote = 0
+			}
+			i++
+			continue
+		}
+		if result[i] == '"' || result[i] == '\'' {
+			quote = result[i]
+			i++
+			continue
+		}
 		if result[i] == '.' && i+1 < len(result) {
 			// Check if preceded by a letter/digit/underscore (part of another symbol like "foo.bar")
 			if i > 0 {

@@ -476,14 +476,14 @@ fun emit_lanz(node: u16) -> void {
     if tag == AST_FUN {
         let params_blk: u16 = ast_d1(node)
         let ret_type: u16 = ast_d2(params_blk)
-        out_str("(fun ")
+        out_str(c"(fun ")
         out_arena_str(ast_d0(node))
-        out_str(" (")
+        out_str(c" (")
         let p0: u16 = ast_d0(params_blk)
         let p1: u16 = ast_d1(params_blk)
         if p0 != 0 { emit_lanz(p0) }
         if p1 != 0 { out_char(32) emit_lanz(p1) }
-        out_str(") ")
+        out_str(c") ")
         out_arena_str(ret_type)
         out_char(32)
         emit_lanz(ast_d2(node))
@@ -491,7 +491,7 @@ fun emit_lanz(node: u16) -> void {
         return
     }
     if tag == AST_RETURN {
-        out_str("(return ")
+        out_str(c"(return ")
         emit_lanz(ast_d0(node))
         out_char(41)
         return

@@ -458,3 +458,15 @@ func (b *Builder) Ret(vals ...Reg) { b.Cur.Seal(&TermRet{Vals: vals}) }
 
 // Unreachable seals the current block as dead code.
 func (b *Builder) Unreachable() { b.Cur.Seal(&TermUnreachable{}) }
+
+// CallFallible emits independently typed language outcome outputs.
+func (b *Builder) CallFallible(fn string, args []Reg, retTy Ty, cls RegClass) (Reg, Reg, Reg) {
+	var value Reg
+	if retTy != TyVoid {
+		value = b.reg()
+	}
+	failed, code := b.reg(), b.reg()
+	b.emit(&Inst{Op: OpCall, Dst: value, Sym: fn, Args: args, Ty: retTy, Cls: cls, FallibleCY: true, ExtraRets: []Reg{failed, code}, ExtraRetClasses: []RegClass{ClassGeneral, ClassGeneral}, ExtraRetTys: []Ty{TyBool, TyU8}})
+	return value, failed, code
+}
+func (b *Builder) ErrorRet(code Reg) { b.Cur.Seal(&TermErrorRet{Code: code}) }

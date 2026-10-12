@@ -15,7 +15,7 @@
 //  2. Parallel copy via tmp-and-assign.
 //     Jump args are assigned through temporaries so aliased registers (e.g.
 //     a loop that swaps a↔b) are handled correctly:
-//         { T _t0 = rA; T _t1 = rB; p0 = _t0; p1 = _t1; }
+//     { T _t0 = rA; T _t1 = rB; p0 = _t0; p1 = _t1; }
 //
 //  3. Pointer registers → uintptr_t.
 //     Registers used as memory addresses get C type uintptr_t (native ptr
@@ -703,6 +703,9 @@ func cBaseTy(ty mir2.Ty) string {
 	if r, ok := ty.(*mir2.RangedTy); ok {
 		return cBaseTy(r.Base)
 	}
+	if mir2.IsPointer(ty) {
+		return "uintptr_t"
+	}
 	switch ty {
 	case mir2.TyBool:
 		return "uint8_t"
@@ -808,13 +811,13 @@ func findPointerRegs(f *mir2.Func) map[mir2.Reg]bool {
 			case mir2.OpStore:
 				ptrs[inst.Src[0]] = true
 			}
-			if inst.Ty == mir2.TyPtr && inst.Dst != mir2.NoReg {
+			if mir2.IsPointer(inst.Ty) && inst.Dst != mir2.NoReg {
 				ptrs[inst.Dst] = true
 			}
 		}
 	}
 	for _, p := range f.Contract.Params {
-		if p.Ty == mir2.TyPtr {
+		if mir2.IsPointer(p.Ty) {
 			ptrs[p.Reg] = true
 		}
 	}

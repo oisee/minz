@@ -2,8 +2,8 @@ package mir2
 
 // Reg is a virtual register number.
 //
-//   0  (NoReg) — no result; used for void or side-effecting instructions
-//   1+ — virtual registers allocated monotonically per function
+//	0  (NoReg) — no result; used for void or side-effecting instructions
+//	1+ — virtual registers allocated monotonically per function
 type Reg int
 
 const NoReg Reg = 0
@@ -67,7 +67,7 @@ const (
 	ClassPointer                 // memory pointer: Z80=HL, x86/ARM=any GPR
 	ClassIndex                   // secondary pointer: Z80=DE, x86/ARM=any GPR
 	ClassPair                    // any 16-bit pair: Z80=HL/DE/BC
-	ClassDWord                  // 32-bit via shadow pair: Z80=HL+H'L' / DE+D'E' / BC+B'C'
+	ClassDWord                   // 32-bit via shadow pair: Z80=HL+H'L' / DE+D'E' / BC+B'C'
 
 	// ── Tier 1: index registers ────────────────────────────────────────────────
 	ClassIX   // Z80=IX (16-bit); spill cost ~16T vs 32T for $F0xx
@@ -147,12 +147,12 @@ func (c RegClass) IsPrimary() bool { return c.Tier() == 0 }
 // ClassSet is a bitset of RegClass values (fits in uint32 with current classCount=14).
 type ClassSet uint32
 
-func (s ClassSet) Has(c RegClass) bool        { return s&(1<<c) != 0 }
-func (s *ClassSet) Add(c RegClass)             { *s |= 1 << c }
-func (s *ClassSet) Remove(c RegClass)          { *s &^= 1 << c }
-func (s ClassSet) Union(o ClassSet) ClassSet   { return s | o }
+func (s ClassSet) Has(c RegClass) bool           { return s&(1<<c) != 0 }
+func (s *ClassSet) Add(c RegClass)               { *s |= 1 << c }
+func (s *ClassSet) Remove(c RegClass)            { *s &^= 1 << c }
+func (s ClassSet) Union(o ClassSet) ClassSet     { return s | o }
 func (s ClassSet) Intersect(o ClassSet) ClassSet { return s & o }
-func (s ClassSet) Empty() bool                 { return s == 0 }
+func (s ClassSet) Empty() bool                   { return s == 0 }
 
 // AllClasses contains every defined register class.
 var AllClasses = ClassSet((1 << classCount) - 1)
@@ -181,7 +181,7 @@ func ClassOf(ty Ty) RegClass {
 	if ty == TyBool {
 		return ClassFlag
 	}
-	if ty == TyPtr {
+	if IsPointer(ty) {
 		return ClassPointer
 	}
 	if ty == TyU32 || ty == TyI32 || ty == TyU24 || ty == TyI24 {
@@ -210,9 +210,9 @@ const InfCost = 1<<30 - 1
 // PhysLoc is one physical storage location for a value.
 // The allocator's output is a map[Reg]PhysLoc.
 type PhysLoc struct {
-	Kind    LocKind
-	Name    string // e.g. "B", "HL", "IX", "IXH", "$F001"
-	Offset  int    // for stack slots: frame offset; for memory: absolute address
+	Kind   LocKind
+	Name   string // e.g. "B", "HL", "IX", "IXH", "$F001"
+	Offset int    // for stack slots: frame offset; for memory: absolute address
 }
 
 // LocKind classifies a physical location by kind.

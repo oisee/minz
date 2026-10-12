@@ -1,0 +1,44 @@
+fun _p(ch: u8) -> void {
+    asm z80 (in ch) { RST 0x10 }
+}
+fun tui_puts(str: ^u8) -> void {
+    asm z80 (in str) {
+        .lp: LD A, (HL) / OR A / RET Z
+        RST 0x10 / INC HL / JR .lp
+    }
+}
+fun main() -> void {
+    asm z80 { LD A, 2 / CALL 0x1601 }
+    _p(22) _p(0) _p(0)
+    _p(16) _p(7) _p(17) _p(1) _p(19) _p(1)
+    tui_puts(c"  Material Report       ")
+    _p(16) _p(7) _p(17) _p(0) _p(19) _p(0)
+    _p(22) _p(2) _p(1)
+    _p(16) _p(5)
+    tui_puts(c"Material  ")
+    _p(16) _p(7)
+    tui_puts(c"[*         ]")
+    _p(22) _p(3) _p(1)
+    _p(16) _p(5)
+    tui_puts(c"Plant     ")
+    _p(16) _p(7)
+    tui_puts(c"[    ]")
+    _p(22) _p(4) _p(1)
+    _p(16) _p(5)
+    tui_puts(c"Count     ")
+    _p(16) _p(7)
+    tui_puts(c"[10]")
+    _p(22) _p(6) _p(1)
+    _p(16) _p(0) _p(17) _p(7) _p(19) _p(1)
+    tui_puts(c" Execute ")
+    _p(16) _p(7) _p(17) _p(0) _p(19) _p(0)
+    tui_puts(c" ")
+    _p(16) _p(7) _p(17) _p(0) _p(19) _p(1)
+    tui_puts(c" Back ")
+    _p(16) _p(7) _p(17) _p(0) _p(19) _p(0)
+    _p(22) _p(21) _p(0)
+    _p(16) _p(7) _p(17) _p(1) _p(19) _p(0)
+    tui_puts(c" 5=Exec 3=Back Enter=Ed ")
+    _p(16) _p(7) _p(17) _p(0) _p(19) _p(0)
+    asm z80 { DI / HALT }
+}

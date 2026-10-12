@@ -55,7 +55,7 @@ type Lexer struct {
 }
 
 func NewLexer(src string) (*Lexer, error) {
-	l := &Lexer{src: []byte(strings.ToUpper(src)), line: 1}
+	l := &Lexer{src: []byte(src), line: 1}
 	if err := l.tokenize(); err != nil {
 		return nil, err
 	}
@@ -203,12 +203,12 @@ func (l *Lexer) tokenize() error {
 				l.pos++
 			}
 			// Hex suffix H or binary suffix B?
-			if l.pos < len(l.src) && (l.src[l.pos] == 'H' || l.src[l.pos] == 'B') {
+			if l.pos < len(l.src) && (l.src[l.pos] == 'H' || l.src[l.pos] == 'B' || l.src[l.pos] == 'h' || l.src[l.pos] == 'b') {
 				l.pos++
 			}
 			// Emit with '$' separators stripped.
 			raw := string(l.src[start:l.pos])
-			raw = strings.ReplaceAll(raw, "$", "")
+			raw = strings.ToUpper(strings.ReplaceAll(raw, "$", ""))
 			l.emit(TokNumber, raw, line)
 			continue
 		}
@@ -220,7 +220,7 @@ func (l *Lexer) tokenize() error {
 				l.pos++
 			}
 			// PL/M-80: '$' is a separator in identifiers (ignored), so strip it.
-			val := strings.ReplaceAll(string(l.src[start:l.pos]), "$", "")
+			val := strings.ToUpper(strings.ReplaceAll(string(l.src[start:l.pos]), "$", ""))
 			l.emit(TokIdent, val, line)
 			continue
 		}

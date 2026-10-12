@@ -1,0 +1,40 @@
+{
+  "schema": "minz.saved-night-goal-evidence-audit/v1",
+  "scope": "saved evidence binding and independent arithmetic only; no new target execution or current-compiler replay",
+  "source_sha256": "fa0ad7d685c31aeb52b91b323bcef46e5c86c0e4390b2fd41ecd69ecfef58694",
+  "historical_compiler_id": "executable-sha256:977b9ad5bbb56fd5dcbf253cefc953799ab6de8e4b9943a9f5b6220627df939f",
+  "workload": [
+    {
+      "n": 0,
+      "result": 0
+    },
+    {
+      "n": 1,
+      "result": 1
+    },
+    {
+      "n": 5,
+      "result": 15
+    },
+    {
+      "n": 16,
+      "result": 136
+    },
+    {
+      "n": 64,
+      "result": 32
+    },
+    {
+      "n": 255,
+      "result": 128
+    }
+  ],
+  "measured_rows_checked": 1022,
+  "selected_binary_matches_measured_variant": true,
+  "profile_evidence_decision_compatibility_matches": true,
+  "selected": "pointer-walk",
+  "original_workload_t": "48495",
+  "selected_workload_t": "31483",
+  "original_bytes": 128,
+  "selected_bytes": 177
+}

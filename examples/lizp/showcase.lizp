@@ -27,15 +27,15 @@
 ;; ── Hardware primitives ──────────────────────────────────────
 
 (defun zx-poke ((addr u16) (val u8)) -> void
-  (asm "LD (HL), A" (in addr val)))
+  (poke addr val))
 
 ;; ── Pure functions ───────────────────────────────────────────
 
 (defun clamp ((val u8) (lo u8) (hi u8)) -> u8
-  (cond
+  (return (cond
     ((< val lo) lo)
     ((> val hi) hi)
-    (t val)))
+    (t val))))
 
 (defun attr-addr ((col u8) (row u8)) -> u16
   (return (+ #x5800 (+ (* (cast row u16) 32) (cast col u16)))))

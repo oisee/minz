@@ -1,0 +1,36 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "7d8859051479ba949a050d747b12202e775aa0fffe917f614299c8d2f54e290d"
+    },
+    {
+      "path": "assembler.txt",
+      "sha256": "e3a15b0132a7f61d726e3fa445ef0aef50e4a53e867df36acb9646618946325c"
+    },
+    {
+      "path": "frozen/freeze.json",
+      "sha256": "b533fb67b571b44a0b7722f93b767195717da4684b5db811642f3c267ce4ce61"
+    },
+    {
+      "path": "frozen/sqlite.nanz",
+      "sha256": "bc177e0dc25ad2f36f3694b115439356efbfb3d956b46b2701afe82bde277fc8"
+    },
+    {
+      "path": "frozen/stdout.bin",
+      "sha256": "3e09aa3d73bc530f1a8a5cbbc4724ef8f8538536c60dc4e7bc0650a91bf3a0ed"
+    },
+    {
+      "path": "frozen/zsql.nanz",
+      "sha256": "47ac542243680cad2f8165d0da07017c2788ab63815cad10fdcd66630c2b6530"
+    },
+    {
+      "path": "root.txt",
+      "sha256": "ed0f7d8bea84dacb3d8899952609af8ab4dbdcc105d1a2dc314405ca4de47b3e"
+    },
+    {
+      "path": "string-before.txt",
+      "sha256": "4b015daba1bab01b9921a53c15d077bf54eb5ea28ed2c35c79c0b0bc7a558b34"
+    }
+  ]
+}

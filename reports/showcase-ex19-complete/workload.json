@@ -1,0 +1,35 @@
+{
+  "schema": "minz.showcase-ex19-remaining/v1",
+  "source_path": "reports/showcase-src/2026-03-13/ex19_assert_forms.nanz",
+  "source_sha256": "1f4349338f02fbe8eaa253bc9033115ebf4bcaace3d675222fcab4c140224567",
+  "pair_inputs": "all256 first bytes \u00d7 [0,1,127,128,254,255] second bytes",
+  "clamp": "all256 v \u00d7 ordered lo/hi combinations of [0,1,127,128,254,255]",
+  "fib_inputs": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+  ],
+  "sum_range_inputs": "all256 bytes; n..1 per Book v7 chapter6",
+  "entries": [
+    "abs_diff",
+    "clamp",
+    "fib",
+    "sum_range",
+    "minmax",
+    "swap",
+    "lambda_0"
+  ],
+  "oracle": "host unsigned abs difference, ordered clamp, iterative byte Fibonacci, descending range byte sum, tuple minmax/swap, byte callback addition; Book v7 3.1,6,7.3"
+}

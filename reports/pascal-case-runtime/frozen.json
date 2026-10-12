@@ -1,0 +1,6 @@
+{
+  "source_sha256": "5957f24a6b6956e71e35ef71e8cdfdc50c3fd4149de9bce85e2437fc28038fb7",
+  "expected_stdout_hex": "426574610d0a",
+  "model": "Original repeat executes exactly once: Ch=66 selects case66 (Beta), Done=true terminates; Pascal CASE/REPEAT semantics. Native BDOS9 dollar string and BDOS2 CR/LF, return to OS.",
+  "code_before_test": "40e388c1"
+}

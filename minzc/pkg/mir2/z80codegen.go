@@ -3,6 +3,7 @@ package mir2
 import (
 	"fmt"
 	"github.com/minz/minzc/pkg/z80validate"
+	"sort"
 	"strings"
 )
 
@@ -119,6 +120,18 @@ func emitTypedGlobalData(sb *strings.Builder, ty Ty, init []byte) {
 
 // Z80CodegenOptions controls optional codegen features.
 type Z80CodegenOptions struct {
+	// CalledMain emits RET for a void main invoked by a platform wrapper.
+	CalledMain        bool
+	OptimizeForSize   bool
+	Runtime           Z80Runtime
+	RuntimeStackBytes int
+	// UnsignedPairComparePolicy explicitly selects a register-only
+	// unsigned comparison experiment. Legacy is the zero value; no pipeline enables this draft automatically.
+	UnsignedPairComparePolicy UnsignedPairComparePolicy
+	NativeMemoryAccessOrigins map[*Inst]GlobalMemoryOrigin
+	NativeMemoryAccesses      *[]NativeMemoryAccess
+	NativeCallFrames          *[]NativeCallFrameSnapshot
+	NativeCallSpills          *[]NativeCallSpillSnapshot
 	// AnnotateTStates adds T-state cost comments to every instruction line
 	// and emits per-block and per-function totals.  Useful for hand-optimisation.
 	AnnotateTStates bool
@@ -129,7 +142,7 @@ type Z80CodegenOptions struct {
 func ValidateZ80Symbols(m *Module) error {
 	seen := make(map[string]string)
 	// Runtime names and internal namespaces are reserved even when unused.
-	for _, name := range []string{"__mul8", "__mul16", "__call_ix"} {
+	for _, name := range []string{"__mul8", "__mul16", "__call_ix", "__agon_entry"} {
 		seen[name] = "compiler runtime"
 	}
 	for i := 0; i <= 7; i++ {
@@ -137,7 +150,7 @@ func ValidateZ80Symbols(m *Module) error {
 	}
 	add := func(name string) error {
 		sym := sanitizeIdent(name)
-		for _, prefix := range []string{"_mir2_str_", "_spill_", "_tsmc_"} {
+		for _, prefix := range []string{"_mir2_str_", "_spill_", "_tsmc_", "__cpm_"} {
 			if strings.HasPrefix(sym, prefix) {
 				return fmt.Errorf("reserved Z80 symbol %q: %q", sym, name)
 			}
@@ -207,17 +220,95 @@ func ValidateZ80Symbols(m *Module) error {
 // callers that don't need options can omit it entirely.
 // Invalid symbols return an error and no assembly.
 func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, error) {
+	for i := 0; i < m.Strings.Len(); i++ {
+		n, k := len(m.Strings.At(i)), m.Strings.Kind(i)
+		if (k == StrSString && n > 255) || (k == StrLString && n > 65535) {
+			return "", fmt.Errorf("string %d has %d bytes outside representation limit", i, n)
+		}
+		if k != StrSString && k != StrLString && k != StrCString {
+			return "", fmt.Errorf("string %d has invalid kind %d", i, k)
+		}
+	}
 	if err := ValidateZ80Symbols(m); err != nil {
 		return "", err
+	}
+	// Native Z80 addresses cannot represent a host-sized global allocation.
+	// This checks data alone; code, alignment and runtime storage can reduce
+	// the remaining capacity further and still require assembler/layout checks.
+	globalBytes := 0
+	for _, g := range m.Globals {
+		width := ByteWidth(g.Ty)
+		if len(g.Init) > width {
+			width = len(g.Init)
+		}
+		if width < 0 || width > 65536-globalBytes {
+			return "", fmt.Errorf("Z80 global %q exceeds 16-bit address space (data before global: %d bytes, global: %d bytes)", g.Name, globalBytes, width)
+		}
+		globalBytes += width
 	}
 	var opt Z80CodegenOptions
 	if len(opts) > 0 {
 		opt = opts[0]
 	}
+	if opt.Runtime != "" && opt.Runtime != Z80RuntimeCPM {
+		return "", fmt.Errorf("unsupported Z80 runtime %q", opt.Runtime)
+	}
+	if err := ValidateCPMRuntimeStack(opt.Runtime, opt.RuntimeStackBytes); err != nil {
+		return "", err
+	}
+	for _, f := range m.Funcs {
+		if f.Attrs.IsExtern {
+			locs, e := Z80ExternParamLocations(f)
+			if e != nil {
+				return "", e
+			}
+			for r, expected := range locs {
+				if actual, ok := ar.Locs[r]; ok && actual != expected {
+					return "", fmt.Errorf("external ABI %s inconsistent allocation for r%d", f.Name, r)
+				}
+			}
+		}
+	}
+	if opt.Runtime == Z80RuntimeCPM {
+		var closureErr error
+		m, closureErr = cpmRuntimeClosure(m, ar)
+		if closureErr != nil {
+			return "", closureErr
+		}
+		if opt.RuntimeStackBytes == 0 && len(cpmGlobalStoreRoots(m)) > 0 {
+			return "", fmt.Errorf("CP/M dynamic global stores require guarded runtime stack")
+		}
+		if err := validateCPMApplicationRuntime(m, ar); err != nil {
+			return "", err
+		}
+	}
+	if opt.UnsignedPairComparePolicy != UnsignedPairCompareLegacy && opt.UnsignedPairComparePolicy != UnsignedPairComparePreserveForSpeed {
+		return "", fmt.Errorf("unsupported unsigned pair compare policy %d", opt.UnsignedPairComparePolicy)
+	}
+	if err := validateNativeMemoryOrigins(m, opt.NativeMemoryAccessOrigins, opt.NativeMemoryAccesses); err != nil {
+		return "", err
+	}
+	if opt.NativeCallFrames != nil {
+		*opt.NativeCallFrames = (*opt.NativeCallFrames)[:0]
+	}
 	var sb strings.Builder
-	cg := &z80cg{ar: ar, sb: &sb, mod: m, annotateT: opt.AnnotateTStates}
+	if opt.NativeCallSpills != nil {
+		*opt.NativeCallSpills = (*opt.NativeCallSpills)[:0]
+	}
+	var guardedStores map[*Inst]*Global
+	if opt.Runtime == Z80RuntimeCPM {
+		guardedStores = cpmGlobalStoreRoots(m)
+	}
+	cg := &z80cg{calledMain: opt.CalledMain, cpmGlobalStores: guardedStores, runtimeStackBytes: opt.RuntimeStackBytes, runtime: opt.Runtime, nativeCallSpillSink: opt.NativeCallSpills, unsignedPairComparePolicy: opt.UnsignedPairComparePolicy, ar: ar, sb: &sb, mod: m, annotateT: opt.AnnotateTStates, nativeMemoryOrigins: opt.NativeMemoryAccessOrigins, nativeMemorySink: opt.NativeMemoryAccesses, nativeCallFrameSink: opt.NativeCallFrames, nativeAccessCount: map[*Inst]int{}, nativeOrphanLabels: map[string]string{}}
 
 	sb.WriteString("; generated by MIR2 Z80 codegen\n\n")
+	if opt.Runtime == Z80RuntimeCPM {
+		if opt.RuntimeStackBytes != 0 {
+			sb.WriteString(strings.Replace(cpmRuntimeEntry, "    CALL main", "    XOR A\n    LD (__cpm_status),A\n    CALL __cpm_stack_check\n    CALL main", 1))
+		} else {
+			sb.WriteString(cpmRuntimeEntry)
+		}
+	}
 
 	// Emit main first so the binary entry point is at address 0 — no JP needed.
 	funcs := m.Funcs
@@ -234,6 +325,12 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 
 	for _, f := range funcs {
 		startLen := sb.Len()
+		for fi, original := range m.Funcs {
+			if original == f {
+				cg.nativeFunctionIndex = fi
+				break
+			}
+		}
 		cg.genFunc(f)
 		if cg.err != nil {
 			return "", cg.err
@@ -306,21 +403,30 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 			switch kind {
 			case StrSString:
 				// SString: [len:u8][bytes...]
-				fmt.Fprintf(&sb, "    DB %d, ", len(s))
-				emitStringLiteral(&sb, []byte(s))
+				fmt.Fprintf(&sb, "    DB %d", len(s))
+				if len(s) > 0 {
+					sb.WriteString(", ")
+					emitStringLiteral(&sb, []byte(s))
+				}
 				sb.WriteByte('\n')
 			case StrLString:
 				// LString: [len_lo:u8][len_hi:u8][bytes...]
 				lo := len(s) & 0xFF
 				hi := (len(s) >> 8) & 0xFF
-				fmt.Fprintf(&sb, "    DB %d, %d, ", lo, hi)
-				emitStringLiteral(&sb, []byte(s))
+				fmt.Fprintf(&sb, "    DB %d, %d", lo, hi)
+				if len(s) > 0 {
+					sb.WriteString(", ")
+					emitStringLiteral(&sb, []byte(s))
+				}
 				sb.WriteByte('\n')
 			case StrCString:
 				// CString: [bytes...][0x00] — emit as DB "text", 0
 				sb.WriteString("    DB ")
-				emitStringLiteral(&sb, []byte(s))
-				sb.WriteString(", 0\n")
+				if len(s) > 0 {
+					emitStringLiteral(&sb, []byte(s))
+					sb.WriteString(", ")
+				}
+				sb.WriteString("0\n")
 			}
 		}
 	}
@@ -356,14 +462,19 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 	}
 
 	// Run peephole pass first (may introduce __rotate_N calls from RLCA folding).
-	result := asmPeepholePass(sb.String())
+	result := sb.String()
+	// Guarded growth sites must remain adjacent to their checks. The legacy
+	// peephole pass can introduce calls and inline wrappers after emission.
+	if opt.RuntimeStackBytes == 0 {
+		result = asmPeepholePassWithSize(result, opt.OptimizeForSize)
+	}
 
 	// Emit __rotate runtime: multi-entry RLCA sled (barrel shifter).
-	// CALL __rotate_N rotates A left by N bits. 9 bytes shared, zero overhead.
+	// CALL __rotate_N rotates A left by N bits. 8 bytes shared; each CALL adds 27 T-states.
 	// Nibble swap = CALL __rotate_4. No loop, no counter.
 	if cg.needsRotate || strings.Contains(result, "CALL __rotate_") {
 		var sled strings.Builder
-		sled.WriteString("\n; runtime: RLCA sled — multi-entry barrel shifter (9 bytes)\n")
+		sled.WriteString("\n; runtime: RLCA sled — multi-entry barrel shifter (8 bytes)\n")
 		sled.WriteString("; CALL __rotate_N rotates A left by N bits (N×4T + 27T)\n")
 		sled.WriteString("__rotate_7:  RLCA\n")
 		sled.WriteString("__rotate_6:  RLCA\n")
@@ -376,31 +487,101 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 		result += sled.String()
 	}
 
+	if opt.NativeMemoryAccesses != nil {
+		if err := CheckNativeMemoryAccessMarkers(result, *opt.NativeMemoryAccesses); err != nil {
+			return "", err
+		}
+	}
+	if opt.NativeCallFrames != nil {
+		if e := CheckNativeCallFrameMarkers(result, *opt.NativeCallFrames); e != nil {
+			return "", e
+		}
+	}
+	if opt.NativeCallSpills != nil {
+		if e := CheckNativeCallSpillMarkers(result, *opt.NativeCallSpills); e != nil {
+			return "", e
+		}
+	}
+	if opt.Runtime == Z80RuntimeCPM {
+		if opt.RuntimeStackBytes != 0 {
+			result += cpmRuntimeGuardedTail(opt.RuntimeStackBytes)
+			if len(cg.cpmGlobalStores) > 0 {
+				seenBounds := map[string]bool{}
+				boundsLines := []string{}
+				for inst, global := range cg.cpmGlobalStores {
+					width := ByteWidth(inst.Ty)
+					name := cpmGlobalBoundName(global, width)
+					if !seenBounds[name] {
+						boundsLines = append(boundsLines, fmt.Sprintf("\n%s EQU %s+%d\n", name, sanitizeIdent(global.Name), ByteWidth(global.Ty)-width))
+						seenBounds[name] = true
+					}
+				}
+				sort.Strings(boundsLines)
+				result += strings.Join(boundsLines, "")
+				result += cpmMemoryFailure
+			}
+			result = coalesceCPMStackGuards(result)
+		} else {
+			result += cpmRuntimeTail
+		}
+		adapters := map[string][]string{}
+		for _, f := range m.Funcs {
+			if body := cpmTUIAdapter(f, ar); body != nil {
+				adapters[f.Name] = body
+			}
+			if body := cpmPascalOutputAdapter(f, ar); body != nil {
+				adapters[f.Name] = body
+			}
+			if cpmSourceBDOS2(f, ar) {
+				adapters[f.Name] = []string{"LDE,A", "LDC,2", "CALL5", "RET"}
+			}
+		}
+		if err := validateCPMRuntimeAssemblyAdapters(result, opt.RuntimeStackBytes != 0, adapters); err != nil {
+			return "", err
+		}
+	}
 	return result, nil
 }
 
 // ── Internal codegen state ────────────────────────────────────────────────────
 
 type z80cg struct {
-	err            error // first emission error, returned by Z80Codegen
-	ar             *AllocResult
-	sb             *strings.Builder
-	mod            *Module                    // parent module (for callee contract lookup at call sites)
-	fn             *Func                      // current function
-	blockIdx       int                        // index of current block in fn.Blocks (for fall-through)
-	cmpSwapped     map[Reg]bool               // dst reg → operands were swapped in genCmp
-	cmpAndZero     map[Reg]bool               // dst reg → comparison used AND A (rhs=0), use NZ/Z not NC/C
-	cmpNeedsTwo    map[Reg]bool               // dst reg → CmpGt/CmpLe with lhs in A, needs two-JP in BrIf
-	callFlags      map[Reg]CmpCond            // dst reg of OpCall → FlagCond when callee returns ClassFlag
-	clobberCache   map[string]map[string]bool // func name → set of clobbered phys reg names
-	constVals      map[Reg]int64              // virtual reg → compile-time constant value (for peepholes)
-	blockParamRegs map[Reg]bool               // regs that are block parameters (loop-variant, not const)
-	deadConsts     map[Reg]bool               // OpConst dsts whose LD is suppressed by DSE
-	needsCallIX    bool                       // emit __call_ix trampoline (JP (IX)) at end of module
-	needsMul8      bool                       // emit __mul8 runtime (A*B→A) at end of module
-	needsRotate    bool                       // emit __rotate RLCA sled (multi-entry barrel shifter)
-	tsmcPairs      []tsmcSpillPair            // TSMC spill-reload pairs for current function
-	curInstIdx     int                        // current instruction index within block (for TSMC matching)
+	cpmGlobalStores                       map[*Inst]*Global
+	calledMain                            bool
+	runtime                               Z80Runtime
+	runtimeStackBytes                     int
+	unsignedPairComparePolicy             UnsignedPairComparePolicy
+	nativeCallFrameSink                   *[]NativeCallFrameSnapshot
+	nativeCallSpillSink                   *[]NativeCallSpillSnapshot
+	nativeCallSpillActive                 *NativeCallSpillSnapshot
+	nativeCallFrameActive                 *NativeCallFrameSnapshot
+	nativeMemoryOrigins                   map[*Inst]GlobalMemoryOrigin
+	nativeMemorySink                      *[]NativeMemoryAccess
+	nativeAccessCount                     map[*Inst]int
+	nativeFunctionIndex, nativeBlockIndex int
+	nativeSpillCount                      int
+	nativeOrphanLabels                    map[string]string
+	err                                   error // first emission error, returned by Z80Codegen
+	localFrameDepth                       map[string]int
+	hasLocalFrame                         bool
+	ar                                    *AllocResult
+	sb                                    *strings.Builder
+	mod                                   *Module                    // parent module (for callee contract lookup at call sites)
+	fn                                    *Func                      // current function
+	blockIdx                              int                        // index of current block in fn.Blocks (for fall-through)
+	cmpSwapped                            map[Reg]bool               // dst reg → operands were swapped in genCmp
+	cmpAndZero                            map[Reg]bool               // dst reg → comparison used AND A (rhs=0), use NZ/Z not NC/C
+	cmpNeedsTwo                           map[Reg]bool               // dst reg → CmpGt/CmpLe with lhs in A, needs two-JP in BrIf
+	callFlags                             map[Reg]CmpCond            // dst reg of OpCall → FlagCond when callee returns ClassFlag
+	clobberCache                          map[string]map[string]bool // func name → set of clobbered phys reg names
+	constVals                             map[Reg]int64              // virtual reg → compile-time constant value (for peepholes)
+	blockParamRegs                        map[Reg]bool               // regs that are block parameters (loop-variant, not const)
+	deadConsts                            map[Reg]bool               // OpConst dsts whose LD is suppressed by DSE
+	needsCallIX                           bool                       // emit __call_ix trampoline (JP (IX)) at end of module
+	needsMul8                             bool                       // emit __mul8 runtime (A*B→A) at end of module
+	needsRotate                           bool                       // emit __rotate RLCA sled (multi-entry barrel shifter)
+	tsmcPairs                             []tsmcSpillPair            // TSMC spill-reload pairs for current function
+	curInstIdx                            int                        // current instruction index within block (for TSMC matching)
 
 	// holdsPhys is a bidirectional alias map for local copy-propagation within a
 	// basic block.  holdsPhys[r] = s means physical register r currently holds the
@@ -521,6 +702,14 @@ type z80cg struct {
 }
 
 func (g *z80cg) emit(s string) {
+	if g.runtimeStackBytes != 0 {
+		fields := strings.Fields(s)
+		if len(fields) > 0 && (fields[0] == "PUSH" || fields[0] == "CALL" || fields[0] == "DEC" && len(fields) > 1 && fields[1] == "SP") {
+			g.sb.WriteString("    CALL __cpm_stack_check\n")
+		}
+	}
+	s = g.annotateNativeCallFrame(s)
+	s = g.annotateNativeCallSpill(s)
 	if g.annotateT && strings.HasPrefix(s, "    ") && !strings.HasPrefix(s, "    ;") {
 		ts, tsAlt := z80TStates(s)
 		if ts > 0 {
@@ -665,6 +854,26 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 }
 
 func (g *z80cg) genFunc(f *Func) {
+	if f.Attrs.IsExtern && g.runtime != Z80RuntimeCPM {
+		locs, e := Z80ExternParamLocations(f)
+		if e != nil {
+			g.err = e
+			return
+		}
+		g.emit(sanitizeIdent(f.Name) + ":")
+		for _, p := range f.Contract.Params {
+			if locs[p.Reg].Kind == LocMem {
+				g.emitf("%s: DS %d", locs[p.Reg].Name, ByteWidth(p.Ty))
+			}
+		}
+		return
+	}
+	var frameErr error
+	g.localFrameDepth, g.hasLocalFrame, frameErr = nativeAllocaDepths(f)
+	if frameErr != nil {
+		g.err = frameErr
+		return
+	}
 	g.fn = f
 	g.regInfo = collectRegInfo(f)
 	g.cmpSwapped = make(map[Reg]bool)
@@ -685,7 +894,7 @@ func (g *z80cg) genFunc(f *Func) {
 	g.deadConsts = computeDeadConsts(f, g.ar)
 	// TSMC spill: scan for spill-reload pairs in non-recursive functions.
 	g.tsmcPairs = nil
-	if !isRecursive(f) {
+	if !isRecursive(f) && g.runtime != Z80RuntimeCPM {
 		g.tsmcPairs = scanTSMCSpillPairs(f, g.ar)
 	}
 	g.holdsPhys = make(map[string]string)
@@ -710,9 +919,48 @@ func (g *z80cg) genFunc(f *Func) {
 	label := sanitizeIdent(f.Name)
 	g.emitf("; %s", funcAnnotation(f, g.ar))
 	g.emitf("%s:", label)
+	if g.runtime == Z80RuntimeCPM && f.Attrs.IsExtern {
+		if f.Name == "peek" {
+			g.emit("    LD A, (HL)")
+		} else {
+			g.emit("    LD (HL), C")
+		}
+		g.emit("    RET")
+		return
+	}
 
+	if f.Attrs.FixedIndirectABI {
+		g.curBlock = f.Entry()
+		g.pendingAccReg = NoReg
+		g.pendingFlagReg = NoReg
+		// The public indirect ABI is canonical; allocation may place a
+		// long-lived incoming pointer in a named spill slot. Bridge exactly
+		// once before body code clobbers the incoming physical registers.
+		var copies []parallelCopy
+		used := map[Reg]bool{}
+		for _, block := range f.Blocks {
+			for _, inst := range block.Insts {
+				for _, r := range inst.Uses() {
+					used[r] = true
+				}
+			}
+			if block.Term != nil {
+				for _, r := range block.Term.termUses() {
+					used[r] = true
+				}
+			}
+		}
+		for _, p := range f.Contract.Params {
+			if !used[p.Reg] {
+				continue
+			}
+			copies = append(copies, parallelCopy{srcName: canonicalReturnLoc(p.Class, p.Ty), dstName: g.loc(p.Reg), ty: p.Ty})
+		}
+		g.emitParallelCopy(copies)
+	}
 	for i, b := range f.Blocks {
 		g.blockIdx = i
+		g.nativeBlockIndex = i
 		g.genBlock(f, b)
 	}
 
@@ -722,6 +970,7 @@ func (g *z80cg) genFunc(f *Func) {
 		g.emitf("%s:", tramp.label)
 		g.emitParallelCopy(tramp.copies)
 		if tramp.isRet {
+			g.emitLocalFrameCleanup(tramp.frameBytes)
 			g.emit("    RET")
 		} else {
 			g.emitf("    JRS %s", tramp.target)
@@ -754,6 +1003,11 @@ func (g *z80cg) genFunc(f *Func) {
 
 	// Redirect orphaned TSMC stores before collecting spill references: the
 	// rewrite can introduce new spill slots that must also be defined.
+	if g.nativeMemorySink != nil {
+		if err := g.resolveNativeOrphanSpills(g.sb.String()); err != nil && g.err == nil {
+			g.err = err
+		}
+	}
 	fixOrphanedTSMCStores(g.sb, label)
 
 	// Emit named spill data section — one label per spilled register.
@@ -878,6 +1132,7 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	g.curBlock = b
 	g.pendingFlagReg = NoReg
 	g.pendingAccReg = NoReg
+
 	// If a block param is allocated to A, any compare instruction in this block
 	// would clobber it with "LD A, lhs". Mark it as pending so materializePendingAcc
 	// can save it to a scratch register before the clobber occurs.
@@ -923,10 +1178,10 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	// Detect tail call: last instruction is OpCall whose result feeds directly
 	// into TermRet. genCall will emit JP instead of CALL; genTerm skips RET.
 	g.tailCallInst = nil
-	if len(b.Insts) > 0 && peep.bodyLbl == "" {
+	if len(b.Insts) > 0 && peep.bodyLbl == "" && !g.hasLocalFrame {
 		last := b.Insts[len(b.Insts)-1]
-		if last.Op == OpCall && !isIntrinsic(last.Sym) {
-			if ret, ok := b.Term.(*TermRet); ok {
+		if len(last.StructReturnBuffers) == 0 && len(f.Contract.StructReturnBuffers) == 0 && last.Op == OpCall && !isIntrinsic(last.Sym) {
+			if ret, ok := b.Term.(*TermRet); ok && !f.Attrs.FallibleCY {
 				isTail := len(ret.Vals) == 0 ||
 					(len(ret.Vals) == 1 && ret.Vals[0] == last.Dst)
 				if isTail {

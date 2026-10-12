@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "docs/grace-integration-103/local-frame-integrated-original.txt",
+      "bytes": 1767,
+      "sha256": "2bd415b2b089f946d65435b2fa6e3d58f3fa15a2bee077bbcb37a2279810f75c"
+    },
+    {
+      "path": "docs/grace-integration-103/nanz-closed-admission-full.txt",
+      "bytes": 44,
+      "sha256": "ebcb94ac1a12c7b5badf81a6672de9f586f1e7b079a39b629525567869266d5b"
+    },
+    {
+      "path": "docs/grace-integration-103/profile-dead-output-admission.txt",
+      "bytes": 3247,
+      "sha256": "a5ba42cfa95620f7cc9ef5de0d9a71ff7747592ec45a7613dd79d2b458f47d38"
+    },
+    {
+      "path": "docs/grace-integration-103/profile-dead-output-cli.txt",
+      "bytes": 261,
+      "sha256": "5b651d9710f078ab7be650f54baaad9a8a36a242f01f8c816b2e27121d6eb6b0"
+    },
+    {
+      "path": "docs/grace-integration-103/local-frame-integrated-mir2.txt",
+      "bytes": 44,
+      "sha256": "086a7155e4271f83994052ddbb634098e4f94e67c10ddf42afc282e93a00acd6"
+    },
+    {
+      "path": "docs/grace-integration-103/catalog-39-vm-native.json",
+      "bytes": 406961,
+      "sha256": "6bbe51b7a3ac1c4f1e7ee719d7931f0735f4a11f9408f45b3cbc991be6cb9fb6"
+    },
+    {
+      "path": "docs/grace-integration-103/frontends-8bf75e92-full.txt",
+      "bytes": 524,
+      "sha256": "93f7e7f036863fc38594cabd0bff61d3baa02ae032a399b742a235c04050f6b1"
+    },
+    {
+      "path": "docs/grace-integration-103/README.md",
+      "bytes": 1900,
+      "sha256": "ba6737f9e0a0b4a509bf6c09d8c8242d29aeb5641979a377443b30dd699007c1"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+enum Direction {
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT
+}
+
+enum Priority {
+    LOW = 0,
+    NORMAL = 5,
+    HIGH,
+    CRITICAL
+}
+
+fun identity(x: u8) -> u8 {
+    return x
+}
+
+fun add_prio(a: u8, b: u8) -> u8 {
+    return (a + b)
+}
+
+assert identity(Direction.UP) == 0
+assert identity(Direction.RIGHT) == 3
+assert identity(Priority.NORMAL) == 5
+assert identity(Priority.HIGH) == 6
+assert identity(Priority.CRITICAL) == 7
+assert add_prio(Priority.NORMAL, Direction.RIGHT) == 8

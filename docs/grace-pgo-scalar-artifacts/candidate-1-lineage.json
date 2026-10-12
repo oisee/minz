@@ -1,0 +1,11 @@
+[
+  {
+    "function": "weighted_checksum",
+    "hir_path": "body/s3",
+    "lineage": {
+      "site_id": "6a9d5fc441408d35d5ce4193723c7574e4a02e7bc74fcd1ca1772e84b79d2786",
+      "role": "invariant-base",
+      "rule": "hir-invariant-base"
+    }
+  }
+]

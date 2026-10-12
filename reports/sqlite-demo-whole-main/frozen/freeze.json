@@ -1,0 +1,216 @@
+{
+  "base": "cccddb02",
+  "source_sha256": "76a2e02c058379fdb24240b2a72ccc1b70dc21ae6a4645ad2eb3ded318a94056",
+  "stdout": "498195392598",
+  "events": [
+    {
+      "function": "sqlite_open",
+      "args": [
+        0
+      ],
+      "result": 1
+    },
+    {
+      "function": "sqlite_exec",
+      "args": [
+        1
+      ],
+      "sql": "CREATE TABLE scores (id INTEGER, name TEXT, val INTEGER)",
+      "result": 0
+    },
+    {
+      "function": "sqlite_exec",
+      "args": [
+        1
+      ],
+      "sql": "INSERT INTO scores VALUES (1, 'Alice', 95)",
+      "result": 0
+    },
+    {
+      "function": "sqlite_exec",
+      "args": [
+        1
+      ],
+      "sql": "INSERT INTO scores VALUES (2, 'Bob', 87)",
+      "result": 0
+    },
+    {
+      "function": "sqlite_exec",
+      "args": [
+        1
+      ],
+      "sql": "INSERT INTO scores VALUES (3, 'Charlie', 92)",
+      "result": 0
+    },
+    {
+      "function": "sqlite_exec",
+      "args": [
+        1
+      ],
+      "sql": "INSERT INTO scores VALUES (4, 'Diana', 98)",
+      "result": 0
+    },
+    {
+      "function": "sqlite_exec",
+      "args": [
+        1
+      ],
+      "sql": "INSERT INTO scores VALUES (5, 'Eve', 73)",
+      "result": 0
+    },
+    {
+      "function": "sqlite_query",
+      "args": [
+        1
+      ],
+      "sql": "SELECT id, val FROM scores WHERE val >= 90 ORDER BY val DESC",
+      "result": 1
+    },
+    {
+      "function": "sqlite_step",
+      "args": [
+        1
+      ],
+      "result": 1
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        1,
+        0
+      ],
+      "result": 4
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        1,
+        1
+      ],
+      "result": 98
+    },
+    {
+      "function": "sqlite_step",
+      "args": [
+        1
+      ],
+      "result": 1
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        1,
+        0
+      ],
+      "result": 1
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        1,
+        1
+      ],
+      "result": 95
+    },
+    {
+      "function": "sqlite_step",
+      "args": [
+        1
+      ],
+      "result": 1
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        1,
+        0
+      ],
+      "result": 3
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        1,
+        1
+      ],
+      "result": 92
+    },
+    {
+      "function": "sqlite_step",
+      "args": [
+        1
+      ],
+      "result": 0
+    },
+    {
+      "function": "sqlite_query",
+      "args": [
+        1
+      ],
+      "sql": "SELECT COUNT(*) FROM scores",
+      "result": 2
+    },
+    {
+      "function": "sqlite_step",
+      "args": [
+        2
+      ],
+      "result": 1
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        2,
+        0
+      ],
+      "result": 5
+    },
+    {
+      "function": "sqlite_finalize",
+      "args": [
+        2
+      ],
+      "result": 0
+    },
+    {
+      "function": "sqlite_query",
+      "args": [
+        1
+      ],
+      "sql": "SELECT MAX(val) FROM scores",
+      "result": 3
+    },
+    {
+      "function": "sqlite_step",
+      "args": [
+        3
+      ],
+      "result": 1
+    },
+    {
+      "function": "sqlite_column_int",
+      "args": [
+        3,
+        0
+      ],
+      "result": 98
+    },
+    {
+      "function": "sqlite_finalize",
+      "args": [
+        3
+      ],
+      "result": 0
+    },
+    {
+      "function": "sqlite_close",
+      "args": [
+        1
+      ],
+      "result": 0
+    }
+  ],
+  "pointer_bound": 4096,
+  "host": "real moderncSQLite; sqlite_open(0) means :memory:, sourceargs1 notzero-arity",
+  "native": "test-owned namedRET externlinks, actualformalABI, defaultOUT23, mainDIHALT"
+}

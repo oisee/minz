@@ -1,0 +1,146 @@
+[
+  {
+    "path": "reports/tetris-sequences-native/REPORT.md",
+    "sha256": "dcc6e93dff36e13fe7bf4ca2bdafe259f1be0de5610b6c58e63da51546307758"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_cpm/grace-size/final.mir",
+    "sha256": "4e03e1294d77c6e4fac6ef0f7813c7fceb167427fbee9717009a3376293f4f70"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_cpm/grace-size/raw.mir",
+    "sha256": "1d580f3d0d354ba952b9115d599caf77dfb93b1273a330a7f6f0bed7d538fef3"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_cpm/grace-size/summary.json",
+    "sha256": "ff80624b58bc88dada4e2fb457c71358aaf5c3aea79b10a2f3d7253e2659a96e"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_cpm/grace-size/target.a80",
+    "sha256": "a221ba7fb2a61862925eb7b794ebf56c6dc684df1ed20946a73e42c487e255d9"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_cpm/grace-size/target.bin",
+    "sha256": "5b63632cc68942aac0a08a64763b267ec44cc6e1e05cf65fca82c6dc94cfe828"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_cpm/grace-speed/final.mir",
+    "sha256": "4e03e1294d77c6e4fac6ef0f7813c7fceb167427fbee9717009a3376293f4f70"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_cpm/grace-speed/raw.mir",
+    "sha256": "1d580f3d0d354ba952b9115d599caf77dfb93b1273a330a7f6f0bed7d538fef3"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_cpm/grace-speed/summary.json",
+    "sha256": "ff80624b58bc88dada4e2fb457c71358aaf5c3aea79b10a2f3d7253e2659a96e"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_cpm/grace-speed/target.a80",
+    "sha256": "a221ba7fb2a61862925eb7b794ebf56c6dc684df1ed20946a73e42c487e255d9"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_cpm/grace-speed/target.bin",
+    "sha256": "5b63632cc68942aac0a08a64763b267ec44cc6e1e05cf65fca82c6dc94cfe828"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_cpm/ordinary/final.mir",
+    "sha256": "3138588d48fa88928e09e9e90c5172b8891f3b63017f8affe74baba878155d68"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_cpm/ordinary/raw.mir",
+    "sha256": "1d580f3d0d354ba952b9115d599caf77dfb93b1273a330a7f6f0bed7d538fef3"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_cpm/ordinary/summary.json",
+    "sha256": "ff80624b58bc88dada4e2fb457c71358aaf5c3aea79b10a2f3d7253e2659a96e"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_cpm/ordinary/target.a80",
+    "sha256": "2c2c85e34c9bfd45cc1cd03258f6eade75d41460d3a3de557608116853fd929e"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_cpm/ordinary/target.bin",
+    "sha256": "79bc36f3b44d748448a4854624a1a0f9caa755adc6b923d5d4d8338db9d19ca4"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_tui/grace-size/final.mir",
+    "sha256": "13a282ab789ea08a2cf6803a2eee216649b58d6be9671a1f71c2ce36420973af"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_tui/grace-size/raw.mir",
+    "sha256": "67b4cf0551db3854454b9f489ffa04b0af406775de33601a90dcbb51b39639ef"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_tui/grace-size/summary.json",
+    "sha256": "cb59cd73f133d9de1c3f99295f66fe39f823b37592bde2296fa8538a76194d59"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_tui/grace-size/target.a80",
+    "sha256": "6323f7fabf713e76d42482fdc5d967c80131acbf2d9a29d8a6699abe8c40a3c1"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_tui/grace-size/target.bin",
+    "sha256": "907a0ca5fe8f3d6128254317c55ee5f106645f953332be2361ae00c7e46f8836"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_tui/grace-speed/final.mir",
+    "sha256": "13a282ab789ea08a2cf6803a2eee216649b58d6be9671a1f71c2ce36420973af"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_tui/grace-speed/raw.mir",
+    "sha256": "67b4cf0551db3854454b9f489ffa04b0af406775de33601a90dcbb51b39639ef"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_tui/grace-speed/summary.json",
+    "sha256": "cb59cd73f133d9de1c3f99295f66fe39f823b37592bde2296fa8538a76194d59"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_tui/grace-speed/target.a80",
+    "sha256": "6323f7fabf713e76d42482fdc5d967c80131acbf2d9a29d8a6699abe8c40a3c1"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_tui/grace-speed/target.bin",
+    "sha256": "907a0ca5fe8f3d6128254317c55ee5f106645f953332be2361ae00c7e46f8836"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_tui/ordinary/final.mir",
+    "sha256": "247e4b7461e636d2d51bcc3bd0ead312567df160fb0b56b6ac47fbe5aa7e24d6"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_tui/ordinary/raw.mir",
+    "sha256": "67b4cf0551db3854454b9f489ffa04b0af406775de33601a90dcbb51b39639ef"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_tui/ordinary/summary.json",
+    "sha256": "cb59cd73f133d9de1c3f99295f66fe39f823b37592bde2296fa8538a76194d59"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_tui/ordinary/target.a80",
+    "sha256": "15b8400174d594b64f698a047b33d917265d738e35ba1b17a137582509d77c46"
+  },
+  {
+    "path": "reports/tetris-sequences-native/execution/tetris_tui/ordinary/target.bin",
+    "sha256": "fb1a46cb620864480198731d27f807b22cd1d6be16dff3e4aecbea264bee8e8a"
+  },
+  {
+    "path": "reports/tetris-sequences-native/freeze.json",
+    "sha256": "322c9a680deb2337aad721f445c0544089f4b8503910db2c1b4f80f7ec1bbbfb"
+  },
+  {
+    "path": "reports/tetris-sequences-native/model-controls.txt",
+    "sha256": "d2449fb21db3e9906c1f38265eeea066eb3886ff12568fdc8ae1df279dea61fb"
+  },
+  {
+    "path": "reports/tetris-sequences-native/result.txt",
+    "sha256": "20b74a6372c1db643384917a3e52f2d1dd9c5e255b1dbeda94b298d00f842924"
+  },
+  {
+    "path": "reports/tetris-sequences-native/tetris_cpm.nanz",
+    "sha256": "444a07777a59a5fd57e1d57f364232ae7c87eeba9430e665ef170a64b7d3793f"
+  },
+  {
+    "path": "reports/tetris-sequences-native/tetris_tui.nanz",
+    "sha256": "7198ad68d26c197296e8c9cc28dd253cb02b4f2b12835c5bcaf9c7348efe78cd"
+  }
+]

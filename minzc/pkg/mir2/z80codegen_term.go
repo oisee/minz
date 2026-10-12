@@ -3,16 +3,18 @@ package mir2
 import (
 	"fmt"
 	"sort"
+	"strings"
 )
 
 // trampolineBlock is emitted after all regular blocks of a function.
 // It resolves block-argument copies for one outgoing BrIf edge.
 // If isRet is true, the block ends with RET instead of JRS target.
 type trampolineBlock struct {
-	label  string // local label for this trampoline
-	copies []parallelCopy
-	target string // real destination label (already formatted)
-	isRet  bool   // true → emit RET instead of JRS target
+	label      string // local label for this trampoline
+	copies     []parallelCopy
+	target     string // real destination label (already formatted)
+	isRet      bool   // true → emit RET instead of JRS target
+	frameBytes int
 }
 
 // restoreLiveOutOverrides moves every relocated vreg that is live out of the
@@ -101,7 +103,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			if canonLoc.Kind == LocReg || canonLoc.Kind == LocIXY8 {
 				canon := canonLoc.Name
 				if canon != "" && canon != scratch {
-					g.emitMov(canon, scratch, bp.Ty.Width())
+					g.emitMov(canon, scratch, z80ValueWidth(bp.Ty))
 					g.comment("restore block param from scratch")
 				}
 			}
@@ -110,6 +112,11 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 	g.restoreLiveOutOverrides(f, t)
 
 	switch t := t.(type) {
+	case *TermErrorRet:
+		g.emitLD8("A", g.loc(t.Code))
+		g.emitLocalFrameCleanup(g.localFrameDepth[g.curBlock.Label])
+		g.emit("    SCF")
+		g.emit("    RET")
 	case *TermRet:
 		// Tail call: JP was already emitted by genCall; skip all moves and RET.
 		if g.tailCallInst != nil {
@@ -121,7 +128,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		// values share the same physical register after constant folding/PBQP
 		// (e.g. both [acc]=A), causing write-after-write clobber.
 		if len(t.Vals) == 1 && len(f.Contract.Returns) == 1 &&
-			(f.Contract.Returns[0].Ty == TyBool || (f.Contract.Returns[0].Ty.Width() <= 8 && collectRegInfo(f)[t.Vals[0]].Ty == TyBool)) &&
+			(f.Contract.Returns[0].Ty == TyBool || (z80ValueWidth(f.Contract.Returns[0].Ty) <= 8 && collectRegInfo(f)[t.Vals[0]].Ty == TyBool)) &&
 			f.Contract.Returns[0].Class != ClassFlag && g.loc(t.Vals[0]) == "F" {
 			g.emitFlagPredicateByte(g.condCode(f, t.Vals[0]))
 			if dst := canonicalReturnLoc(f.Contract.Returns[0].Class, TyBool); dst != "A" {
@@ -130,10 +137,14 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		} else {
 			g.emitParallelCopy(g.buildReturnCopies(t.Vals))
 		}
+		g.emitLocalFrameCleanup(g.localFrameDepth[g.curBlock.Label])
+		if f.Attrs.FallibleCY {
+			g.emit("    OR A")
+		}
 		// main() is the program entry point: use XOR A / DI / HALT instead of
 		// RET so mze/mzx can detect program termination cleanly.  XOR A zeroes
 		// A for a clean exit code 0.
-		if f.Name == "main" && len(t.Vals) == 0 {
+		if f.Name == "main" && len(t.Vals) == 0 && g.runtime != Z80RuntimeCPM && !g.calledMain && !f.Attrs.FallibleCY {
 			g.emit("    XOR A")
 			g.emit("    DI")
 			g.emit("    HALT")
@@ -164,8 +175,8 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		elseLbl := g.branchLabel(f, t.Else, elseCopies)
 
 		// Fall-through is only possible when there are no copies for that edge.
-		thenFT := g.isFallThrough(f, t.Then) && len(thenCopies) == 0
-		elseFT := g.isFallThrough(f, t.Else) && len(elseCopies) == 0
+		thenFT := g.isFallThrough(f, t.Then) && !hasEffectiveBlockCopies(thenCopies)
+		elseFT := g.isFallThrough(f, t.Else) && !hasEffectiveBlockCopies(elseCopies)
 
 		// Two-condition sentinels: CmpGt/CmpLe with lhs in A (no operand swap).
 		// CGT = NC && NZ (a > b); CLE = C || Z (a ≤ b).
@@ -248,31 +259,95 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		}
 
 	case *TermDJNZ:
-		// Emit body-edge copies for non-counter args.
-		// The counter (B) is handled implicitly by DJNZ.
-		// body.Params[0] = counter (gets decremented B); BodyArgs = params[1:].
-		bodyBlock := f.BlockByLabel(t.Body)
-		var bodyCopies []parallelCopy
-		if bodyBlock != nil {
-			for i, arg := range t.BodyArgs {
-				if i+1 >= len(bodyBlock.Params) {
-					break
-				}
-				param := bodyBlock.Params[i+1] // skip counter param[0]
-				src := g.loc(arg)
-				dst := g.loc(param.Dst)
-				if src != dst {
-					bodyCopies = append(bodyCopies, parallelCopy{srcName: src, dstName: dst, ty: param.Ty})
+		// ClassCounter prefers B but is not a hard pin. Coalescing and
+		// register pressure can put it elsewhere; decrement its actual home.
+		// The implicit body parameter receives that decremented value.
+		bodyArgs := append([]Reg{t.Counter}, t.BodyArgs...)
+		bodyCopies := g.buildBlockCopies(f, t.Body, bodyArgs)
+		exitCopies := g.buildBlockCopies(f, t.Exit, t.ExitArgs)
+		counter := g.loc(t.Counter)
+		// Explicit edge arguments read the pre-decrement SSA value. Preserve
+		// it separately from the implicit first parameter's decremented value.
+		oldCounter := ""
+		for _, args := range [][]Reg{t.BodyArgs, t.ExitArgs} {
+			for _, arg := range args {
+				if arg == t.Counter {
+					oldCounter = fmt.Sprintf("._call_result_%s_djnz_old%d", sanitizeIdent(f.Name), g.trampIdx)
 				}
 			}
 		}
-		g.emitParallelCopy(bodyCopies)
-		g.emitf("    DJNZ %s", blockLabel(f.Name, t.Body))
-		// Exit path.
-		exitCopies := g.buildBlockCopies(f, t.Exit, t.ExitArgs)
+		if oldCounter != "" {
+			g.trampIdx++
+			g.emit("    PUSH HL")
+			g.emit("    PUSH AF")
+			g.emitLD8("A", counter)
+			g.emitf("    LD (%s), A", oldCounter)
+			g.emit("    POP AF")
+			g.emit("    POP HL")
+			// buildBlockCopies retains identity copies, so even a coalesced
+			// explicit counter argument can be redirected to the snapshot.
+			for i, arg := range t.BodyArgs {
+				if arg == t.Counter && i+1 < len(bodyCopies) {
+					bodyCopies[i+1].srcName = oldCounter
+					bodyCopies[i+1].isImm = false
+				}
+			}
+			for i, arg := range t.ExitArgs {
+				if arg == t.Counter && i < len(exitCopies) {
+					exitCopies[i].srcName = oldCounter
+					exitCopies[i].isImm = false
+				}
+			}
+		}
+		needsBodyCopy := false
+		for _, c := range bodyCopies {
+			if c.isImm || c.srcName != c.dstName {
+				needsBodyCopy = true
+			}
+		}
+		bodyLabel := blockLabel(f.Name, t.Body)
+		if counter == "B" && (needsBodyCopy || !g.djnzTargetWithinRange(bodyLabel)) {
+			// DJNZ cannot be promoted to a long branch. Keep its taken
+			// label adjacent, even when edge copies need a distant target.
+			taken := fmt.Sprintf(".%s_djnz_taken%d", sanitizeIdent(f.Name), g.trampIdx)
+			fall := fmt.Sprintf(".%s_djnz_fall%d", sanitizeIdent(f.Name), g.trampIdx)
+			g.trampIdx++
+			g.emitf("    DJNZ %s", taken)
+			g.emitf("    JRS %s", fall)
+			g.emit(taken + ":")
+			g.emitParallelCopy(bodyCopies)
+			g.emitf("    JRS %s", bodyLabel)
+			g.emit(fall + ":")
+		} else if counter == "B" {
+			g.emitf("    DJNZ %s", bodyLabel)
+		} else {
+			if needsBodyCopy {
+				bodyLabel = g.branchLabel(f, t.Body, bodyCopies)
+			}
+			if isSpill(counter) {
+				// Preserve both A and HL while retaining DEC's branch flags.
+				g.emit("    PUSH HL")
+				g.emit("    PUSH AF")
+				g.emitLD8("A", counter)
+				g.emit("    DEC A")
+				g.emitLD8(counter, "A")
+				g.emit("    POP HL")
+				g.emit("    LD A, H")
+				g.emit("    POP HL")
+			} else {
+				g.emitf("    DEC %s", counter)
+			}
+			g.emitf("    JRS NZ, %s", bodyLabel)
+		}
+		// Body copies execute only on the taken edge. Otherwise they can
+		// overwrite a value needed by ExitArgs (or the counter itself).
 		g.emitParallelCopy(exitCopies)
-		if !g.isFallThrough(f, t.Exit) || len(exitCopies) != 0 {
+		if oldCounter != "" || !g.isFallThrough(f, t.Exit) || len(exitCopies) != 0 {
 			g.emitf("    JP %s", blockLabel(f.Name, t.Exit))
+		}
+
+		if oldCounter != "" {
+			g.emit(oldCounter + ": DB 0")
 		}
 
 	case *TermCondRet:
@@ -283,7 +358,8 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		copies := g.buildBlockCopies(f, t.Then, t.ThenArgs)
 		thenLbl := g.branchLabel(f, t.Then, copies)
 		retCopies := g.buildReturnCopies(t.Vals)
-		thenFT := g.isFallThrough(f, t.Then) && len(copies) == 0
+		thenFT := g.isFallThrough(f, t.Then) && !hasEffectiveBlockCopies(copies)
+		frameBytes := g.localFrameDepth[g.curBlock.Label]
 
 		switch cc {
 		case "CLE":
@@ -292,6 +368,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			g.emitf("    JRS C, %s", thenLbl)
 			g.emitf("    JRS Z, %s", thenLbl)
 			g.emitParallelCopy(retCopies)
+			g.emitLocalFrameCleanup(frameBytes)
 			g.emit("    RET")
 		case "CGT":
 			// a > b: take Then if NC && NZ.
@@ -306,12 +383,13 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			// Register ret path as trampoline so it's emitted AFTER the fallthrough
 			// then-block (otherwise the inline label would block the fallthrough path).
 			g.trampolines = append(g.trampolines, trampolineBlock{
-				label:  retLbl,
-				copies: retCopies,
-				isRet:  true,
+				label:      retLbl,
+				copies:     retCopies,
+				isRet:      true,
+				frameBytes: frameBytes,
 			})
 		default:
-			if thenFT && len(retCopies) == 0 {
+			if thenFT && len(retCopies) == 0 && frameBytes == 0 {
 				// Then-block is the fallthrough AND return path is empty:
 				// use RET invertCC (1 byte, optimal). Only safe when retCopies is
 				// empty — otherwise retCopies would corrupt registers that @then
@@ -323,12 +401,14 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 				// then fall through to @then naturally.
 				g.emitf("    JRS %s, %s", cc, thenLbl)
 				g.emitParallelCopy(retCopies)
+				g.emitLocalFrameCleanup(frameBytes)
 				g.emit("    RET")
 			} else {
 				// General case: emit conditional jump to Then first, then return path.
 				g.emitf("    JRS %s, %s", cc, thenLbl)
-				g.emitParallelCopy(copies)
+				// Then copies belong to its branch trampoline, never the return path.
 				g.emitParallelCopy(retCopies)
+				g.emitLocalFrameCleanup(frameBytes)
 				g.emit("    RET")
 			}
 		}
@@ -343,7 +423,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 // label is returned instead of the real target label.
 func (g *z80cg) branchLabel(f *Func, target string, copies []parallelCopy) string {
 	realLbl := blockLabel(f.Name, target)
-	if len(copies) == 0 {
+	if !hasEffectiveBlockCopies(copies) {
 		return realLbl
 	}
 	tramLbl := fmt.Sprintf(".%s_trmp%d", sanitizeIdent(f.Name), g.trampIdx)
@@ -354,6 +434,17 @@ func (g *z80cg) branchLabel(f *Func, target string, copies []parallelCopy) strin
 		target: realLbl,
 	})
 	return tramLbl
+}
+
+// Coalesced copies reserve physical locations for scratch selection when
+// other copies execute, but an edge consisting only of them emits no moves.
+func hasEffectiveBlockCopies(copies []parallelCopy) bool {
+	for _, c := range copies {
+		if c.isImm || c.srcName != c.dstName {
+			return true
+		}
+	}
+	return false
 }
 
 // isFallThrough reports whether targetLabel is the next physical block after
@@ -478,4 +569,38 @@ func (g *z80cg) detectDJNZPeephole(f *Func, b *Block) djnzPeepholeResult {
 		bodyLbl:   blockLabel(f.Name, brif.Then),
 		checkBrif: brif,
 	}
+}
+
+// A Z80 instruction occupies at most four bytes. This conservative bound
+// keeps small backwards DJNZ loops unchanged; uncertain or forward spans
+// use a nearby taken label and a relaxable JRS to the real body.
+func (g *z80cg) djnzTargetWithinRange(label string) bool {
+	text := g.sb.String()
+	at := strings.LastIndex(text, "\n"+label+":")
+	if at < 0 {
+		return false
+	}
+	bound := 2 // DJNZ itself
+	for _, line := range strings.Split(text[at+1:], "\n") {
+		line = strings.TrimSpace(strings.SplitN(line, ";", 2)[0])
+		if line == "" || strings.HasSuffix(line, ":") {
+			continue
+		}
+		if strings.Contains(line, ":") {
+			return false
+		}
+		// Inline assembly may contain data directives or macros; their
+		// expansion has no four-byte bound, so don't assume a short span.
+		op := strings.ToUpper(strings.Fields(line)[0])
+		switch op {
+		case "LD", "PUSH", "POP", "EX", "EXX", "INC", "DEC", "ADD", "ADC", "SUB", "SBC", "AND", "OR", "XOR", "CP", "NOP", "NEG", "CPL", "SCF", "CCF", "DAA", "JP", "JR", "JRS", "DJNZ", "CALL", "RET", "RETI", "RETN", "RST", "DI", "EI", "HALT", "IN", "OUT", "BIT", "SET", "RES", "RL", "RLC", "RR", "RRC", "RLA", "RLCA", "RRA", "RRCA", "SLA", "SRA", "SRL", "RLD", "RRD", "LDI", "LDIR", "LDD", "LDDR", "CPI", "CPIR", "CPD", "CPDR":
+		default:
+			return false
+		}
+		bound += 4
+		if bound > 128 {
+			return false
+		}
+	}
+	return true
 }

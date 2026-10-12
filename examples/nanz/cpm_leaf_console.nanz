@@ -1,0 +1,12 @@
+// Explicit CP/M runtime demo: persistent arithmetic remains live across BDOS.
+global result: u8 = 17
+fun main() -> void {
+    var x: u8 = result
+    @print("CP/M ")
+    x = x * 3 + 2
+    @print_u8(x)
+    @print(" ")
+    if x > 50 { @print("OK") } else { @print("BAD") }
+    result = x + 1
+    @print_nl()
+}

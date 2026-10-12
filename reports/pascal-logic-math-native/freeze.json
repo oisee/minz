@@ -1,0 +1,46 @@
+{
+  "sources": {
+    "logic_test": "59a713bce212dd1b353e032bb6addeaf05875799e1a4e7f8d4094dfcfde24f1e",
+    "math_test": "407967b334035ccf1576b857d2953759d55c4ad4e117d7361544330b0d41c529"
+  },
+  "byte_unary": [
+    0,
+    255
+  ],
+  "byte_pairs": "all ordered pairs 0..255 x 0..255",
+  "add3_third_values": [
+    0,
+    1,
+    2,
+    3,
+    7,
+    15,
+    16,
+    31,
+    63,
+    64,
+    127,
+    128,
+    129,
+    200,
+    254,
+    255
+  ],
+  "double_integer": "all65536 signed16bit patterns, result interpreted signed16bit modulo65536",
+  "models": {
+    "MulBy3": "3*x mod256",
+    "MulBy5": "5*x mod256",
+    "Halve": "x//2",
+    "Add3": "(a+b+c) mod256",
+    "Diff": "(a-b) mod256",
+    "Double": "signed16(2*x mod65536)",
+    "AddOne": "x+1 mod256",
+    "Square": "x*x mod256",
+    "Triple": "3*x mod256",
+    "Max": "max(a,b)",
+    "Min": "min(a,b)",
+    "IsEven": "int(x%2==0)",
+    "AbsDiff": "abs(a-b)"
+  },
+  "scope": "alloriginalcallables/main/asserts; Add3thirdargument bounded16values, notall16777216triples"
+}

@@ -1,0 +1,5 @@
+fun add_acc(acc: u8, x: u8) -> u8 { return (acc + x) }
+
+fun sum_doubled() -> u8 {
+    return range(0..5).map(|x| x + x).fold(0, add_acc)
+}

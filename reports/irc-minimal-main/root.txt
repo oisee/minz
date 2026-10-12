@@ -1,0 +1,13 @@
+=== RUN   TestIRCMinimalWholeMain
+=== RUN   TestIRCMinimalWholeMain/ordinary
+    irc_minimal_main_test.go:176: whole main 253 B 109087 T,500 reads,36 wire,384 stdout,PC7003/SPf000
+=== RUN   TestIRCMinimalWholeMain/grace-size
+    irc_minimal_main_test.go:176: whole main 253 B 109087 T,500 reads,36 wire,384 stdout,PC7003/SPf000
+=== RUN   TestIRCMinimalWholeMain/grace-speed
+    irc_minimal_main_test.go:176: whole main 253 B 109087 T,500 reads,36 wire,384 stdout,PC7003/SPf000
+--- PASS: TestIRCMinimalWholeMain (0.06s)
+    --- PASS: TestIRCMinimalWholeMain/ordinary (0.02s)
+    --- PASS: TestIRCMinimalWholeMain/grace-size (0.02s)
+    --- PASS: TestIRCMinimalWholeMain/grace-speed (0.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.070s

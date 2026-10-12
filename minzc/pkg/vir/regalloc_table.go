@@ -13,7 +13,7 @@
 // vreg pairs conflict.
 //
 // This gives O(1) compile-time register allocation for functions that
-// match a precomputed entry — no Z3, no GPU, instant and provably optimal.
+// match a precomputed entry. Legacy research costs are not compiled certificates.
 package vir
 
 import (
@@ -27,6 +27,8 @@ import (
 
 // RegAllocEntry is one precomputed optimal assignment.
 type RegAllocEntry struct {
+	Schema     string `json:"schema,omitempty"`
+	CostModel  string `json:"costModel,omitempty"`
 	Signature  string `json:"sig"`
 	NVregs     int    `json:"nVregs"`
 	NOps       int    `json:"nOps"`
@@ -60,7 +62,8 @@ func GetRegAllocTable() *RegAllocTable {
 	return globalTable
 }
 
-// Lookup checks if a precomputed assignment exists for the given VIR ops.
+// Lookup is the legacy research lookup. Compiled admission uses LookupChecked.
+// It checks if a precomputed assignment exists for the given VIR ops.
 // Tries three signature formats in order:
 //  1. Original signature (legacy)
 //  2. Exhaustive GPU signature (56 entries)
@@ -126,6 +129,9 @@ func (t *RegAllocTable) Lookup(ops []VIROp, desc *MachineDesc) (map[int]int, int
 				assignment[vregList[i]] = gpuLocToZ80(int(loc))
 			}
 		}
+		if err := validateTableAssignment(ops, assignment, desc); err != nil {
+			return nil, 0, false
+		}
 		return assignment, binaryEntry.Cost, true
 	}
 
@@ -151,6 +157,9 @@ func (t *RegAllocTable) Lookup(ops []VIROp, desc *MachineDesc) (map[int]int, int
 		}
 	}
 
+	if err := validateTableAssignment(ops, assignment, desc); err != nil {
+		return nil, 0, false
+	}
 	return assignment, entry.Cost, true
 }
 
@@ -176,6 +185,7 @@ func (t *RegAllocTable) Add(sig string, entry *RegAllocEntry) {
 
 // LookupByKey looks up an entry by its raw signature key.
 // Used by MZV host functions that compute the key externally.
+// This is unchecked research data, never compiled admission.
 func (t *RegAllocTable) LookupByKey(key string) (*RegAllocEntry, bool) {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
@@ -220,9 +230,20 @@ func (t *RegAllocTable) Load(path string) error {
 	if err != nil {
 		return err
 	}
+	return t.LoadJSON(data)
+}
+
+// LoadJSON merges an owned JSON snapshot; callers may bind these exact bytes
+// to evidence without rereading a mutable file during candidate selection.
+func (t *RegAllocTable) LoadJSON(data []byte) error {
 	var entries []*RegAllocEntry
 	if err := json.Unmarshal(data, &entries); err != nil {
 		return err
+	}
+	for _, e := range entries {
+		if e == nil {
+			return fmt.Errorf("nil register-allocation entry")
+		}
 	}
 	for _, e := range entries {
 		t.Add(e.Signature, e)

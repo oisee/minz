@@ -1,0 +1,8835 @@
+[
+  {
+    "Name": "tui_height",
+    "Args": []
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      4,
+      0
+    ]
+  },
+  {
+    "Name": "tui_clear",
+    "Args": []
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      0,
+      6,
+      1
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      " File  View  Help"
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      " Mini NC "
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      2
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      2
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      3,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      78
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      97
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      109
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      83
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      105
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      122
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      84
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      121
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      112
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      3
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      4
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      0,
+      6,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      72
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      69
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      76
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      76
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      79
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      46
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      84
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      88
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      84
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      53
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      84
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      120
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      116
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      102
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      105
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      108
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      5
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      68
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      65
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      84
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      65
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      46
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      66
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      73
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      78
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      50
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      53
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      54
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      66
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      105
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      110
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      97
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      114
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      121
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      102
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      105
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      108
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      6
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      68
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      79
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      67
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      83
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      60
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      68
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      73
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      82
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      62
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      68
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      105
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      114
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      99
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      116
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      111
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      114
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      121
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      7
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      8
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      3
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      4
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      2,
+      8
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      3,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "3"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      " file(s) "
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      4,
+      0
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      42,
+      2
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Selected:"
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      42,
+      3
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      72
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      69
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      76
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      76
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      79
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      46
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      84
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      88
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      84
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      42,
+      5
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      4,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Size: "
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "5"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "     "
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      42,
+      6
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Clst: "
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "2"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "     "
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      42,
+      7
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Attr: "
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "-"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "A"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "-"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "-"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "-"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "     "
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_height",
+    "Args": []
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      0,
+      6,
+      1
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      9
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      " F3 View  F8 Delete  F9 Menu  F10 Quit "
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_read_key",
+    "Args": []
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      4,
+      0
+    ]
+  },
+  {
+    "Name": "tui_clear",
+    "Args": []
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      0,
+      6,
+      1
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      " File  View  Help"
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      " Mini NC "
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      2
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      2
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      3,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      78
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      97
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      109
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      83
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      105
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      122
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      84
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      121
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      112
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      3
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      4
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      72
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      69
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      76
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      76
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      79
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      46
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      84
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      88
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      84
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      53
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      84
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      120
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      116
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      102
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      105
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      108
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      5
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      0,
+      6,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      68
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      65
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      84
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      65
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      46
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      66
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      73
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      78
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      50
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      53
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      54
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      66
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      105
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      110
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      97
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      114
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      121
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      102
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      105
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      108
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      6
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      68
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      79
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      67
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      83
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      60
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      68
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      73
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      82
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      62
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      68
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      105
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      114
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      99
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      116
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      111
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      114
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      121
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      7
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      8
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      3
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      4
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      2,
+      8
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      3,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "3"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      " file(s) "
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      4,
+      0
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      42,
+      2
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Selected:"
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      42,
+      3
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      68
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      65
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      84
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      65
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      46
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      66
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      73
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      78
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      42,
+      5
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      4,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Size: "
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "256"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "     "
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      42,
+      6
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Clst: "
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "3"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "     "
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      42,
+      7
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Attr: "
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "-"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "A"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "R"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "-"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "-"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "     "
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_height",
+    "Args": []
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      0,
+      6,
+      1
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      9
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      " F3 View  F8 Delete  F9 Menu  F10 Quit "
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_read_key",
+    "Args": []
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      4,
+      0
+    ]
+  },
+  {
+    "Name": "tui_clear",
+    "Args": []
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      0,
+      6,
+      1
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      " File  View  Help"
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      " Mini NC "
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      2
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      2
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      3,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      78
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      97
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      109
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      83
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      105
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      122
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      84
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      121
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      112
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      3
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      4
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      0,
+      6,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      72
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      69
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      76
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      76
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      79
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      46
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      84
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      88
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      84
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      53
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      84
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      120
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      116
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      102
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      105
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      108
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      5
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      68
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      65
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      84
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      65
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      46
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      66
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      73
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      78
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      50
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      53
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      54
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      66
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      105
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      110
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      97
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      114
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      121
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      102
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      105
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      108
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      6
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      68
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      79
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      67
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      83
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      60
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      68
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      73
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      82
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      62
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      68
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      105
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      114
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      99
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      116
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      111
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      114
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      121
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      7
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      6
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      8
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      3
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      5
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      4
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      2,
+      8
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      3,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "3"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      " file(s) "
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      4,
+      0
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      42,
+      2
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Selected:"
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      42,
+      3
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      72
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      69
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      76
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      76
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      79
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      46
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      84
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      88
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      84
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      42,
+      5
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      4,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Size: "
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "5"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "     "
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      42,
+      6
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Clst: "
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "2"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "     "
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      42,
+      7
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Attr: "
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "-"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "A"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "-"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "-"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "-"
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "     "
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_height",
+    "Args": []
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      0,
+      6,
+      1
+    ]
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      9
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      " F3 View  F8 Delete  F9 Menu  F10 Quit "
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_read_key",
+    "Args": []
+  },
+  {
+    "Name": "tui_clear",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  }
+]

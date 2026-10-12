@@ -1,0 +1,34 @@
+=== RUN   TestPublicCPMTetrisNative
+    cpm_tetris_native_test.go:256: ordinary public runtime exact stdout/state/OSreturn/SP PASS
+    cpm_tetris_native_test.go:256: grace-size public runtime exact stdout/state/OSreturn/SP PASS
+    cpm_tetris_native_test.go:256: grace-speed public runtime exact stdout/state/OSreturn/SP PASS
+--- PASS: TestPublicCPMTetrisNative (1.87s)
+=== RUN   TestIRCMinimalWholeMain
+=== RUN   TestIRCMinimalWholeMain/ordinary
+    irc_minimal_main_test.go:176: whole main 253 B 109087 T,500 reads,36 wire,384 stdout,PC7003/SPf000
+=== RUN   TestIRCMinimalWholeMain/grace-size
+    irc_minimal_main_test.go:176: whole main 253 B 109087 T,500 reads,36 wire,384 stdout,PC7003/SPf000
+=== RUN   TestIRCMinimalWholeMain/grace-speed
+    irc_minimal_main_test.go:176: whole main 253 B 109087 T,500 reads,36 wire,384 stdout,PC7003/SPf000
+--- PASS: TestIRCMinimalWholeMain (0.11s)
+    --- PASS: TestIRCMinimalWholeMain/ordinary (0.04s)
+    --- PASS: TestIRCMinimalWholeMain/grace-size (0.04s)
+    --- PASS: TestIRCMinimalWholeMain/grace-speed (0.04s)
+=== RUN   TestMemoryHostPolicyAssociationControl
+--- PASS: TestMemoryHostPolicyAssociationControl (2.34s)
+=== RUN   TestOriginalGeneratedScreenWholeMain
+    original_generated_screen_main_test.go:623: customer ordinary wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:623: customer grace-size wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:623: customer grace-speed wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:623: customer-edit ordinary wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:623: customer-edit grace-size wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:623: customer-edit grace-speed wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:623: declarative ordinary wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:623: declarative grace-size wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:623: declarative grace-speed wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:623: declarative-cancel ordinary wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:623: declarative-cancel grace-size wholemain raw/final/native PASS
+    original_generated_screen_main_test.go:623: declarative-cancel grace-speed wholemain raw/final/native PASS
+--- PASS: TestOriginalGeneratedScreenWholeMain (2.76s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	7.091s

@@ -1,0 +1,16 @@
+struct S { v:u8 }
+global witness:u8=0
+fun make(x:u8)->S {
+ var r:S=S {v:x}
+ if x==0 {r.v=0} else {r.v=x}
+ return r
+}
+fun overwrite(y:u8)->u8 {let b:S=S {v:y}
+witness=b.v
+return b.v}
+fun delayed(x:u8,y:u8)->u8 {let a:S=make(x)
+let noise:u8=overwrite(y)
+return a.v}
+fun two_returns(x:u8,y:u8)->u8 {let a:S=make(x)
+let b:S=make(y)
+return a.v+b.v}

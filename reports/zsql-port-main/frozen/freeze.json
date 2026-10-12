@@ -1,0 +1,77 @@
+{
+  "sources": {
+    "examples/nanz/zsql.nanz": "47ac542243680cad2f8165d0da07017c2788ab63815cad10fdcd66630c2b6530",
+    "stdlib/sql/sqlite.nanz": "bc177e0dc25ad2f36f3694b115439356efbfb3d956b46b2701afe82bde277fc8"
+  },
+  "stdout_sha256": "3e09aa3d73bc530f1a8a5cbbc4724ef8f8538536c60dc4e7bc0650a91bf3a0ed",
+  "column_texts": [
+    "hello",
+    "42"
+  ],
+  "commands": [
+    1,
+    8,
+    8,
+    3,
+    4,
+    5,
+    5,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    7,
+    2
+  ],
+  "input_lines": [
+    "CREATE TABLE t(name TEXT, val INT)",
+    "INSERT INTO t VALUES('hello',42)",
+    "SELECT * FROM t",
+    ".quit",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+  ],
+  "final_globals": {
+    "db": [
+      1,
+      0
+    ],
+    "_sel_stmt": [
+      1,
+      0
+    ],
+    "_sel_n": [
+      1
+    ]
+  },
+  "scope": "Unchanged original32prompt main; .quit prints help and does not exit; test-owned BDOS10 input plus realSQLite port host."
+}

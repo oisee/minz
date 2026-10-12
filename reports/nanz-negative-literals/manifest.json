@@ -1,0 +1,21 @@
+{
+  "reports/nanz-negative-literals/REPORT.md": "df90690e8fb48cb62ca362aa1e0d1cf363bc1fbad72d47ce275edf1130548cfd",
+  "reports/nanz-negative-literals/after.txt": "f5cdfddbbeaecd3582a95d7d8a0b8734f062ffbce2d58a07de9c39db085d2d1f",
+  "reports/nanz-negative-literals/before.txt": "f566249d52b5909889ac841a921a79b7027c7c5389052516eb3f81572f2b1bf3",
+  "reports/nanz-negative-literals/execution/grace-size/final.mir": "bc827ad84e4cffcbe0cd1cd63d1165f4be97b0609115d4b585e7340ffedafac8",
+  "reports/nanz-negative-literals/execution/grace-size/raw.mir": "750edb0959faf3f6f0d2e783076b8330dcc9deada4386bfec067fee43650ef69",
+  "reports/nanz-negative-literals/execution/grace-size/target.a80": "d7c82d5fcfc34ba038092afe13f035ea42cac72cca9b018d1523f929a8338a39",
+  "reports/nanz-negative-literals/execution/grace-speed/final.mir": "bc827ad84e4cffcbe0cd1cd63d1165f4be97b0609115d4b585e7340ffedafac8",
+  "reports/nanz-negative-literals/execution/grace-speed/raw.mir": "750edb0959faf3f6f0d2e783076b8330dcc9deada4386bfec067fee43650ef69",
+  "reports/nanz-negative-literals/execution/grace-speed/target.a80": "d7c82d5fcfc34ba038092afe13f035ea42cac72cca9b018d1523f929a8338a39",
+  "reports/nanz-negative-literals/execution/ordinary/final.mir": "bc827ad84e4cffcbe0cd1cd63d1165f4be97b0609115d4b585e7340ffedafac8",
+  "reports/nanz-negative-literals/execution/ordinary/raw.mir": "750edb0959faf3f6f0d2e783076b8330dcc9deada4386bfec067fee43650ef69",
+  "reports/nanz-negative-literals/execution/ordinary/target.a80": "b6eb950acbe6b06dfc3362aa71c84cb6af11bd987e81418c0d09d70a44063280",
+  "reports/nanz-negative-literals/freeze.json": "a631f1b094ce76ca791ead08b4f1ca14a5691b8787b7bac4e94ced495966cff7",
+  "reports/nanz-negative-literals/frontend-tests.txt": "e8442695c8bcbc2c471dca38e6badfe5dd7252ed2d6cfbbd7c64e43071ced0c6",
+  "reports/nanz-negative-literals/gallery-tests.txt": "b2ec1f6e8369134b4242dcc94d5c4a2adceb069f0e694ed0eac665ec323c7708",
+  "reports/nanz-negative-literals/nanz-tests.txt": "8815ca9fdc94b0023db875339414159f98fc194a76aceb93f6437f5e82dc2b74",
+  "reports/nanz-negative-literals/render_model.py": "491570cb360703bbe0ba804d248102502dd80288ce8fe72aa5f81ff71eb2f924",
+  "reports/nanz-negative-literals/rotozoomer-before.gif": "9c3f3bb46559fe4b34d8d5c46f5f4bdf21473cab1ec8d98157ed6cdc064c4113",
+  "reports/nanz-negative-literals/source.nanz": "3441c6175026a46bddc5a2b6ab95bfc5d462dccd320fed8c517187d233742e80"
+}

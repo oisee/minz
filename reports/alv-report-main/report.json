@@ -1,0 +1,3152 @@
+{
+  "module": "screen_report",
+  "title": "SCARR Report",
+  "keys": [
+    147,
+    142
+  ],
+  "line": null,
+  "globals": {
+    "_scr_nfields": 3,
+    "_scr_focus": 0,
+    "_tbl_nrows": 8,
+    "db": 1
+  },
+  "buffers": {
+    "_buf_carrier": "*"
+  },
+  "rows": [
+    [
+      "AA",
+      "American Airlines",
+      "http://www.aa.com"
+    ],
+    [
+      "AF",
+      "Air France",
+      "http://www.airfrance.com"
+    ],
+    [
+      "BA",
+      "British Airways",
+      "http://www.ba.com"
+    ],
+    [
+      "EK",
+      "Emirates",
+      "http://www.emirates.com"
+    ],
+    [
+      "LH",
+      "Lufthansa",
+      "http://www.lufthansa.com"
+    ],
+    [
+      "QF",
+      "Qantas",
+      "http://www.qantas.com.au"
+    ],
+    [
+      "SQ",
+      "Singapore Airlines",
+      "http://www.singaporeair.com"
+    ],
+    [
+      "UA",
+      "United Airlines",
+      "http://www.united.com"
+    ]
+  ],
+  "events": [
+    {
+      "name": "tui_clear",
+      "args": []
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        4,
+        1
+      ]
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "  "
+      ]
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "SCARR Report"
+      ]
+    },
+    {
+      "name": "tui_width",
+      "args": []
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        2
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        6,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "Carrier",
+        12
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        4,
+        1
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        91
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "*",
+        3
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        93
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        14
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        91
+      ]
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "F8=Execute"
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        93
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "  "
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        91
+      ]
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "F3=Back"
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        93
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        3
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "ID",
+        5
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "Carrier Name",
+        23
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "URL",
+        31
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        4
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        5
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "AA",
+        5
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "American Airlines",
+        23
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "http://www.aa.com",
+        31
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        6
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "AF",
+        5
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "Air France",
+        23
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "http://www.airfrance.com",
+        31
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        7
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "BA",
+        5
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "British Airways",
+        23
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "http://www.ba.com",
+        31
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        8
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "EK",
+        5
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "Emirates",
+        23
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "http://www.emirates.com",
+        31
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        9
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "LH",
+        5
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "Lufthansa",
+        23
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "http://www.lufthansa.com",
+        31
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        10
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "QF",
+        5
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "Qantas",
+        23
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "http://www.qantas.com.au",
+        31
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        11
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "SQ",
+        5
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "Singapore Airlines",
+        23
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "http://www.singaporeair.com",
+        31
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        12
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "UA",
+        5
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "United Airlines",
+        23
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "http://www.united.com",
+        31
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_height",
+      "args": []
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        4,
+        0
+      ]
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        0,
+        23
+      ]
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "  TAB=Next  Enter=Edit  F8=Execute  F3=Back"
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_read_key",
+      "args": [
+        147
+      ]
+    },
+    {
+      "name": "tui_clear",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_clear",
+      "args": []
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        4,
+        1
+      ]
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "  "
+      ]
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "SCARR Report"
+      ]
+    },
+    {
+      "name": "tui_width",
+      "args": []
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        2
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        6,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "Carrier",
+        12
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        4,
+        1
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        91
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "*",
+        3
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        93
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        14
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        91
+      ]
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "F8=Execute"
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        93
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "  "
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        91
+      ]
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "F3=Back"
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        93
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        3
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "ID",
+        5
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "Carrier Name",
+        23
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "URL",
+        31
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        4
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        45
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        5
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "AA",
+        5
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "American Airlines",
+        23
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "http://www.aa.com",
+        31
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        6
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "AF",
+        5
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "Air France",
+        23
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "http://www.airfrance.com",
+        31
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        7
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "BA",
+        5
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "British Airways",
+        23
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "http://www.ba.com",
+        31
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        8
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "EK",
+        5
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "Emirates",
+        23
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "http://www.emirates.com",
+        31
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        9
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "LH",
+        5
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "Lufthansa",
+        23
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "http://www.lufthansa.com",
+        31
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        10
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "QF",
+        5
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "Qantas",
+        23
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "http://www.qantas.com.au",
+        31
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        11
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "SQ",
+        5
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "Singapore Airlines",
+        23
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "http://www.singaporeair.com",
+        31
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        12
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "UA",
+        5
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "United Airlines",
+        23
+      ]
+    },
+    {
+      "name": "_scr_puts_padded",
+      "args": [
+        "http://www.united.com",
+        31
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_height",
+      "args": []
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        4,
+        0
+      ]
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        0,
+        23
+      ]
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "  TAB=Next  Enter=Edit  F8=Execute  F3=Back"
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_read_key",
+      "args": [
+        142
+      ]
+    },
+    {
+      "name": "tui_clear",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "Filter: "
+      ]
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "*"
+      ]
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        " -> "
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        56
+      ]
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        " rows\n"
+      ]
+    }
+  ]
+}

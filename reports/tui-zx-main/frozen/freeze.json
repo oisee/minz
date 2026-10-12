@@ -1,0 +1,10 @@
+{
+  "source_sha256": "9f5b746bebc91c71488d2458a40aba316834f555c772afbeeec588d64642a4b8",
+  "output_sha256": "2407651104009f935ae3b4dae6ff1d0b6ca7b90c13dd39e19f0a2d39c786b2df",
+  "output_bytes": 194,
+  "rom_calls": {
+    "0x1601": "initial A=2, preserves registers, returns by exact CALL continuation",
+    "0x0010": "captures each A byte, preserves registers, returns by exact RST continuation"
+  },
+  "terminal_state": "DI/HALT from original main with loader return word still on stack; no main RET"
+}

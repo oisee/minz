@@ -1,0 +1,6 @@
+{
+  "base_commit": "8db01ae2",
+  "freeze_commit": "d276a089",
+  "executable_sha256": "98b9ff12cf1d870c95d8b196a35e8dd3775e6f28f063c30049421660c863fc0c",
+  "command": "from minzc/pkg/pipeline: MINZ_IMPL_CPM_METHODS_ARTIFACTS=<packet>/actual <frozen-exe> -test.run ^TestOriginalImplCPMPureMethods$ -test.count=1 -test.v"
+}

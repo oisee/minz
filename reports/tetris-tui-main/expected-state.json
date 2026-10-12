@@ -1,0 +1,16 @@
+{
+  "cur_type": 0,
+  "next_type": 0,
+  "cur_rot": 1,
+  "cur_x": 3,
+  "cur_y": 0,
+  "drop_timer": 2,
+  "drop_speed": 8,
+  "tick": 2,
+  "score": 0,
+  "lines_cleared": 0,
+  "game_over": 1,
+  "hold_type": 255,
+  "hold_used": 0,
+  "rng_state": 28984
+}

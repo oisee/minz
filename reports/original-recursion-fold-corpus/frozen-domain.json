@@ -1,0 +1,126 @@
+{
+  "schema": "original-recursion-fold-domain-v1",
+  "sources": [
+    {
+      "path": "reports/showcase-src/2026-03-11/ex9a_factorial_rec.nanz",
+      "sha256": "49418af6de858d7388edf81bb74eadd2beb608b15c6f45c0b0d5eeae34f663f1"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex9a_factorial_rec.nanz",
+      "sha256": "49418af6de858d7388edf81bb74eadd2beb608b15c6f45c0b0d5eeae34f663f1"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-11/ex9b_factorial_fold.nanz",
+      "sha256": "d3dad2dc322fc522c86d14cf5fdb87897b0e5a102c594c686c19ae76357846de"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex9b_factorial_fold.nanz",
+      "sha256": "d3dad2dc322fc522c86d14cf5fdb87897b0e5a102c594c686c19ae76357846de"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-11/ex10a_fib_rec.nanz",
+      "sha256": "396e859e7c49c19cd59d95354672582ffe9d99046c1f87c81dea5ac738b9670c"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex10a_fib_rec.nanz",
+      "sha256": "396e859e7c49c19cd59d95354672582ffe9d99046c1f87c81dea5ac738b9670c"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-11/ex10b_fib_iter.nanz",
+      "sha256": "afb172839734878c9697ecc295e20a62ff1e658bcc7be994c38b1b8962fa9615"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex10b_fib_iter.nanz",
+      "sha256": "afb172839734878c9697ecc295e20a62ff1e658bcc7be994c38b1b8962fa9615"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-11/ex10c_fib_fold.nanz",
+      "sha256": "14fe7eed3447aa6928d72411cb91b1f56ffc55bd87cd61d9e49f52d24435a26a"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex10c_fib_fold.nanz",
+      "sha256": "14fe7eed3447aa6928d72411cb91b1f56ffc55bd87cd61d9e49f52d24435a26a"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-11/ex14_fold_assert.nanz",
+      "sha256": "362b9106276974042e33936b02203f10a48cf726d24bd5e48eec1d4f75bae1a7"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex14_fold_assert.nanz",
+      "sha256": "362b9106276974042e33936b02203f10a48cf726d24bd5e48eec1d4f75bae1a7"
+    }
+  ],
+  "semantics": "Explicit for i in lo..hi is ascending half-open per lowerForRange/Book chapter4. range(lo..hi).fold is countdown per Book6; these originals use explicit for, not range iterator. u8 n+1 wraps to0 at n255.",
+  "domains": {
+    "factorial_rec": "alln0..255, arithmetic modulo65536",
+    "factorial_fold": "alln0..255, n255 endwrap means zero iterations returns1",
+    "fib_rec": "prefixn0..20 only, exponential largerinputs excluded explicitly",
+    "fib_iter": "alln0..255, modulo65536 fib(n)",
+    "fib_fold": "alln0..255; n0/n1 emptyloop returns1, otherwisefib(n)",
+    "sum_to": "alln0..255; n255 n+1wrap emptyloop returns0",
+    "count_in_range": {
+      "len": "all0..255",
+      "seeds": [
+        0,
+        1,
+        127,
+        255
+      ],
+      "byte_array": "byte(seed+73*i), i=-1..256 guard included",
+      "lo_hi_pairs": [
+        [
+          0,
+          255
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          255,
+          255
+        ],
+        [
+          127,
+          128
+        ],
+        [
+          128,
+          127
+        ],
+        [
+          1,
+          254
+        ],
+        [
+          254,
+          1
+        ],
+        [
+          73,
+          146
+        ],
+        [
+          146,
+          73
+        ],
+        [
+          255,
+          0
+        ]
+      ],
+      "pointer": 16384,
+      "oracle": "ascending i0..len-1; count lo<=v<=hi modulo256, exact ordered reads and global reset/update stores"
+    }
+  },
+  "modes": [
+    "ordinary",
+    "grace-size",
+    "grace-speed"
+  ],
+  "limits": {
+    "native_instructions_per_call": 20000000,
+    "VM": "unlimited cumulative only for finite bounded domains"
+  },
+  "scope": "No fullbytefibrec/noallarrays/noalllohi claim. Source comments factorialn12fitsu16 is false; arithmetic width rather than comment authoritative."
+}

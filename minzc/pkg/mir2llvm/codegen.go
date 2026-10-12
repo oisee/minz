@@ -11,11 +11,12 @@
 //   - Cross-compilation to targets MinZ doesn't have native backends for
 //
 // Type mapping:
-//   TyBool       → i1 (promoted to i8 in memory)
-//   TyU8, TyI8   → i8
-//   TyU16, TyI16  → i16
-//   TyPtr         → ptr (opaque pointer, LLVM 15+)
-//   TyVoid        → void
+//
+//	TyBool       → i1 (promoted to i8 in memory)
+//	TyU8, TyI8   → i8
+//	TyU16, TyI16  → i16
+//	TyPtr         → ptr (opaque pointer, LLVM 15+)
+//	TyVoid        → void
 //
 // MIR2 block params → LLVM phi nodes (same as QBE backend).
 // Registers use named format %vN to avoid LLVM's sequential numbering constraint.
@@ -43,14 +44,14 @@ type gen struct {
 	mod *mir2.Module
 
 	// Per-function state
-	preds   map[string][][]predEdge // block → param → [(predLabel, argReg)]
-	nextTmp int                     // counter for synthetic temp registers
-	regTy   map[mir2.Reg]string     // tracks LLVM type of each register
-	phiRegs  map[mir2.Reg]bool           // regs defined by phi nodes (block params)
-	instDefs map[string]map[mir2.Reg]bool // block label → set of regs defined by instructions
-	phiRemap  map[mir2.Reg]map[string]string // reg → block label → unique LLVM name (for multi-block phis)
-	reaching  map[string]map[mir2.Reg]string // block label → reg → visible LLVM name
-	curBlock  string                         // current block label being emitted
+	preds    map[string][][]predEdge        // block → param → [(predLabel, argReg)]
+	nextTmp  int                            // counter for synthetic temp registers
+	regTy    map[mir2.Reg]string            // tracks LLVM type of each register
+	phiRegs  map[mir2.Reg]bool              // regs defined by phi nodes (block params)
+	instDefs map[string]map[mir2.Reg]bool   // block label → set of regs defined by instructions
+	phiRemap map[mir2.Reg]map[string]string // reg → block label → unique LLVM name (for multi-block phis)
+	reaching map[string]map[mir2.Reg]string // block label → reg → visible LLVM name
+	curBlock string                         // current block label being emitted
 }
 
 type predEdge struct {
@@ -303,7 +304,7 @@ func (g *gen) emitFunc(f *mir2.Func) {
 				if inst.Op == mir2.OpAlloca || inst.Op == mir2.OpField || inst.Op == mir2.OpPtrAdd || inst.Op == mir2.OpPtrBump {
 					g.regTy[inst.Dst] = "ptr"
 				}
-				if inst.Op == mir2.OpAddrOf && inst.Ty == mir2.TyPtr {
+				if inst.Op == mir2.OpAddrOf && mir2.IsPointer(inst.Ty) {
 					g.regTy[inst.Dst] = "ptr"
 				}
 			}
@@ -384,7 +385,7 @@ func (g *gen) emitInst(inst *mir2.Inst) {
 
 	switch inst.Op {
 	case mir2.OpConst:
-		if inst.Ty == mir2.TyPtr || ty == "ptr" {
+		if mir2.IsPointer(inst.Ty) || ty == "ptr" {
 			// ptr constant: use inttoptr
 			g.sb.WriteString(fmt.Sprintf("  %s = inttoptr i64 %d to ptr\n", d, inst.Imm))
 		} else {
@@ -711,6 +712,9 @@ func buildPredMap(f *mir2.Func) map[string][][]predEdge {
 func llvmType(ty mir2.Ty) string {
 	if ty == nil {
 		return "i32"
+	}
+	if mir2.IsPointer(ty) {
+		return "ptr"
 	}
 	switch ty {
 	case mir2.TyVoid:

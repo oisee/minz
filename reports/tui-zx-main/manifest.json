@@ -1,0 +1,28 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "9e4fe1f59b1b36857c45a3d6e714eb1d252c10f4b1daf7589b48f83445b03d7d"
+    },
+    {
+      "path": "frozen/freeze.json",
+      "sha256": "a6f4dc088802133f68833038e46f85b1bbab87dc9b9768603fd5bb7d648355c4"
+    },
+    {
+      "path": "frozen/rom-output.bin",
+      "sha256": "2407651104009f935ae3b4dae6ff1d0b6ca7b90c13dd39e19f0a2d39c786b2df"
+    },
+    {
+      "path": "frozen/source.nanz",
+      "sha256": "9f5b746bebc91c71488d2458a40aba316834f555c772afbeeec588d64642a4b8"
+    },
+    {
+      "path": "observer-before.txt",
+      "sha256": "a797f6db4cdb51e1cde4fd5a990476f549de129ece0e5a2552da741c3298a7f5"
+    },
+    {
+      "path": "root.txt",
+      "sha256": "a238a70f33e3d6b01e890d06cc6e6b5f08dd8114a1481cd0408160a86efe9030"
+    }
+  ]
+}

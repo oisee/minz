@@ -1,0 +1,145 @@
+{
+  "schema": "minz.local-artifact-manifest/v1",
+  "files": [
+    {
+      "path": "REPORT.md",
+      "bytes": 2674,
+      "sha256": "dd785fbf8dd87fbed91dcbf7c77cff5e481be030390d209ef3cb4b46ae75e4f8"
+    },
+    {
+      "path": "actual/grace-size/abi.json",
+      "bytes": 64613,
+      "sha256": "6026e652f0066f14d4865b8474bf4c22c339c763209984f6b269ebd93a932028"
+    },
+    {
+      "path": "actual/grace-size/execution.a80",
+      "bytes": 4716,
+      "sha256": "0ab23fbd930a661d41582456444c6636431331273f8f32b909740448c471c5c4"
+    },
+    {
+      "path": "actual/grace-size/execution.bin",
+      "bytes": 268,
+      "sha256": "381c53e2212e4d16362e6784b17a69d482f9f9fa1bf16b67815dac5cd61b7b89"
+    },
+    {
+      "path": "actual/grace-size/final.mir",
+      "bytes": 3234,
+      "sha256": "9cc2e1ff92c9024c193a4424b46816b74b3e122696e2e6e81c081d5d2356fe75"
+    },
+    {
+      "path": "actual/grace-size/program.a80",
+      "bytes": 4630,
+      "sha256": "b9c7524e7bf631a7167d84d8c19c87a8ac75acef75fa3b7343fe6434d39cf60e"
+    },
+    {
+      "path": "actual/grace-size/program.bin",
+      "bytes": 260,
+      "sha256": "2be6a3db1636063b563e87948ea800282a2d87f9642ac373dc6b0382ff14a616"
+    },
+    {
+      "path": "actual/grace-size/results.json",
+      "bytes": 484,
+      "sha256": "996f1a41fc6112d173be76b71db2b1431e79fb6c2cddcbd579d295abcc475768"
+    },
+    {
+      "path": "actual/grace-speed/abi.json",
+      "bytes": 64614,
+      "sha256": "54ecc251ca1cfea4457e98c2488bec5c832ce7a2d8ec0ef6f80245bc2c49eb44"
+    },
+    {
+      "path": "actual/grace-speed/execution.a80",
+      "bytes": 4716,
+      "sha256": "0ab23fbd930a661d41582456444c6636431331273f8f32b909740448c471c5c4"
+    },
+    {
+      "path": "actual/grace-speed/execution.bin",
+      "bytes": 268,
+      "sha256": "381c53e2212e4d16362e6784b17a69d482f9f9fa1bf16b67815dac5cd61b7b89"
+    },
+    {
+      "path": "actual/grace-speed/final.mir",
+      "bytes": 3234,
+      "sha256": "9cc2e1ff92c9024c193a4424b46816b74b3e122696e2e6e81c081d5d2356fe75"
+    },
+    {
+      "path": "actual/grace-speed/program.a80",
+      "bytes": 4630,
+      "sha256": "b9c7524e7bf631a7167d84d8c19c87a8ac75acef75fa3b7343fe6434d39cf60e"
+    },
+    {
+      "path": "actual/grace-speed/program.bin",
+      "bytes": 260,
+      "sha256": "2be6a3db1636063b563e87948ea800282a2d87f9642ac373dc6b0382ff14a616"
+    },
+    {
+      "path": "actual/grace-speed/results.json",
+      "bytes": 484,
+      "sha256": "996f1a41fc6112d173be76b71db2b1431e79fb6c2cddcbd579d295abcc475768"
+    },
+    {
+      "path": "actual/ordinary/abi.json",
+      "bytes": 64619,
+      "sha256": "8f03a56670179af80e9a724d373774eb904d524c16f4b54da25ee8c858ff8f1f"
+    },
+    {
+      "path": "actual/ordinary/execution.a80",
+      "bytes": 4776,
+      "sha256": "13917573dc2eb0c93e448893bd3bcdbdcb31e664a733e971b8d3dba1a1e3f074"
+    },
+    {
+      "path": "actual/ordinary/execution.bin",
+      "bytes": 268,
+      "sha256": "381c53e2212e4d16362e6784b17a69d482f9f9fa1bf16b67815dac5cd61b7b89"
+    },
+    {
+      "path": "actual/ordinary/final.mir",
+      "bytes": 3234,
+      "sha256": "9cc2e1ff92c9024c193a4424b46816b74b3e122696e2e6e81c081d5d2356fe75"
+    },
+    {
+      "path": "actual/ordinary/program.a80",
+      "bytes": 4690,
+      "sha256": "0a2515920170b7b6626e422b325133bea8fcd2f3c2b8ea30d4fd11ed68a790ad"
+    },
+    {
+      "path": "actual/ordinary/program.bin",
+      "bytes": 260,
+      "sha256": "2be6a3db1636063b563e87948ea800282a2d87f9642ac373dc6b0382ff14a616"
+    },
+    {
+      "path": "actual/ordinary/results.json",
+      "bytes": 484,
+      "sha256": "996f1a41fc6112d173be76b71db2b1431e79fb6c2cddcbd579d295abcc475768"
+    },
+    {
+      "path": "actual/raw.mir",
+      "bytes": 3573,
+      "sha256": "a25bb99ea146c2e98a5588f1cda4d30f21c42527996eb5720b9311959dacf94e"
+    },
+    {
+      "path": "freeze.json",
+      "bytes": 795,
+      "sha256": "f482ea09cea801ed1d1849942e2dcafc225d8130a68ba52da3d0631b64a87d5c"
+    },
+    {
+      "path": "identity.json",
+      "bytes": 321,
+      "sha256": "3234e4084ae2035d0e5ea2e6953e907cc19e643b73102bdf0b4eaa8af21d30b5"
+    },
+    {
+      "path": "impl-methods.test.gz",
+      "bytes": 13712551,
+      "sha256": "610e1727e593b082ed27b6bb2f0b3f0934c0973d1d60d132e96f0b6b6aab2c3c"
+    },
+    {
+      "path": "native-tests.txt",
+      "bytes": 2385,
+      "sha256": "b3d43cd104a410a23e9be9e6c8fe6f59c346a500270a939c4275c62f54c9d19c"
+    },
+    {
+      "path": "source.nanz",
+      "bytes": 1258,
+      "sha256": "9440fd4e4347fd871edacdd02588e7b5198e60fd32eef55bb88f59ae040161ac"
+    }
+  ]
+}

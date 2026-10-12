@@ -1,0 +1,30 @@
+=== RUN   TestOriginalSQLiteImportedMainNative
+=== RUN   TestOriginalSQLiteImportedMainNative/ordinary
+    original_sqlite_import_main_test.go:230: false 1963 26125 92 original main native PASS
+    original_sqlite_import_main_test.go:230: true 1963 26125 92 original main native PASS
+=== RUN   TestOriginalSQLiteImportedMainNative/grace-size
+    original_sqlite_import_main_test.go:230: false 1963 26125 92 original main native PASS
+    original_sqlite_import_main_test.go:230: true 1963 26125 92 original main native PASS
+=== RUN   TestOriginalSQLiteImportedMainNative/grace-speed
+    original_sqlite_import_main_test.go:230: false 1963 26125 92 original main native PASS
+    original_sqlite_import_main_test.go:230: true 1963 26125 92 original main native PASS
+--- PASS: TestOriginalSQLiteImportedMainNative (0.18s)
+    --- PASS: TestOriginalSQLiteImportedMainNative/ordinary (0.05s)
+    --- PASS: TestOriginalSQLiteImportedMainNative/grace-size (0.06s)
+    --- PASS: TestOriginalSQLiteImportedMainNative/grace-speed (0.07s)
+=== RUN   TestOriginalSAPMaraPortMainNative
+=== RUN   TestOriginalSAPMaraPortMainNative/ordinary
+    original_sqlite_import_main_test.go:230: false 2820 78892 360 original main native PASS
+    original_sqlite_import_main_test.go:230: true 2820 78892 360 original main native PASS
+=== RUN   TestOriginalSAPMaraPortMainNative/grace-size
+    original_sqlite_import_main_test.go:230: false 2820 78892 360 original main native PASS
+    original_sqlite_import_main_test.go:230: true 2820 78892 360 original main native PASS
+=== RUN   TestOriginalSAPMaraPortMainNative/grace-speed
+    original_sqlite_import_main_test.go:230: false 2820 78892 360 original main native PASS
+    original_sqlite_import_main_test.go:230: true 2820 78892 360 original main native PASS
+--- PASS: TestOriginalSAPMaraPortMainNative (0.22s)
+    --- PASS: TestOriginalSAPMaraPortMainNative/ordinary (0.07s)
+    --- PASS: TestOriginalSAPMaraPortMainNative/grace-size (0.08s)
+    --- PASS: TestOriginalSAPMaraPortMainNative/grace-speed (0.08s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.408s

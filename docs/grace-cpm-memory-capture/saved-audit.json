@@ -1,0 +1,13 @@
+{
+  "success": true,
+  "program_bytes": 2574,
+  "cycles": 230029,
+  "stdout_bytes": 135,
+  "nodes": 17,
+  "intern_bytes": 24,
+  "source_bytes": 45,
+  "status": 1,
+  "systemSP": "FDFE",
+  "fullRAM_bytes": 65536,
+  "emulator_only": true
+}

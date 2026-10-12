@@ -2,6 +2,7 @@ package mir2
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -10,15 +11,63 @@ import (
 //  2. Single-JP function → EQU alias — a function whose entire body is one JP
 //     becomes a zero-byte/zero-T EQU alias (tail-call guaranteed by contract).
 func asmPeepholePass(src string) string {
+	return asmPeepholePassWithSize(src, false)
+}
+
+func asmPeepholePassWithSize(src string, optimizeForSize bool) string {
 	lines := strings.Split(src, "\n")
+	lines = elimOverwrittenByteLiterals(lines)
 	lines = elimDoubleExDeHl(lines)
 	lines = elimSingleJpEqu(lines)
 	lines = elimCallRet(lines)
 	lines = foldCondCall(lines)
 	lines = elimJrToRet(lines)
 	lines = elimDeadAfterRet(lines)
-	lines = foldRLCASled(lines)
+	if optimizeForSize {
+		lines = foldRLCASled(lines)
+	}
 	return strings.Join(lines, "\n")
+}
+
+// Only a contiguous run of byte-register immediate loads may be folded.
+// These instructions read no registers and preserve flags; the last load of
+// each register determines its observable value. Labels and every other
+// instruction are barriers, including pair/half moves and calls.
+func elimOverwrittenByteLiterals(lines []string) []string {
+	dead := make(map[int]bool)
+	last := make(map[string]int)
+	for i, line := range lines {
+		code := strings.TrimSpace(strings.SplitN(line, ";", 2)[0])
+		if code == "" {
+			continue
+		}
+		parts := strings.SplitN(code, ",", 2)
+		if len(parts) != 2 {
+			clear(last)
+			continue
+		}
+		head := strings.Fields(parts[0])
+		if len(head) != 2 || head[0] != "LD" || !strings.Contains(" A B C D E H L ", " "+head[1]+" ") {
+			clear(last)
+			continue
+		}
+		value, err := strconv.ParseInt(strings.TrimSpace(parts[1]), 0, 64)
+		if err != nil || value < 0 || value > 255 {
+			clear(last)
+			continue
+		}
+		if previous, ok := last[head[1]]; ok {
+			dead[previous] = true
+		}
+		last[head[1]] = i
+	}
+	out := make([]string, 0, len(lines)-len(dead))
+	for i, line := range lines {
+		if !dead[i] {
+			out = append(out, line)
+		}
+	}
+	return out
 }
 
 // foldCondCall replaces JR cc, skip / CALL target / skip: with CALL cc, target.
@@ -143,12 +192,33 @@ func foldCondCall(lines []string) []string {
 	return out
 }
 
-// foldRLCASled replaces consecutive RLCA sequences (3+) with CALL __rotate_N.
-// RLCA = 4T each. CALL __rotate_N = 17T + N×4T + 10T = 27 + N×4T.
-// Break-even at N=7 (inline=28T, sled=55T) — so sled is about code SIZE savings.
-// For N >= 3 inline RLCAs, fold to CALL to save code bytes (shared sled is 9 bytes).
-// Caller must ensure __rotate sled is emitted (needsRotate flag).
+// foldRLCASled is a size-only transformation. A CALL costs three bytes
+// and adds 27 T-states. The shared seven-RLCA/RET runtime costs eight
+// bytes, so fold only when total savings strictly exceed that overhead.
+// Runs outside the runtime's 0..7 domain remain inline.
 func foldRLCASled(lines []string) []string {
+	savings := 0
+	overhead := 8
+	for i := 0; i < len(lines); i++ {
+		if strings.HasPrefix(strings.TrimSpace(strings.SplitN(lines[i], ";", 2)[0]), "CALL __rotate_") {
+			overhead = 0
+		}
+		if strings.TrimSpace(lines[i]) != "RLCA" {
+			continue
+		}
+		j := i
+		for j < len(lines) && strings.TrimSpace(lines[j]) == "RLCA" {
+			j++
+		}
+		count := j - i
+		if count > 3 && count <= 7 {
+			savings += count - 3
+		}
+		i = j - 1
+	}
+	if savings <= overhead {
+		return lines
+	}
 	out := make([]string, 0, len(lines))
 	i := 0
 	needsSled := false
@@ -161,7 +231,7 @@ func foldRLCASled(lines []string) []string {
 				count++
 				j++
 			}
-			if count >= 3 {
+			if count > 3 && count <= 7 {
 				// Replace with CALL __rotate_N
 				indent := "    "
 				if idx := strings.Index(lines[i], "RLCA"); idx > 0 {

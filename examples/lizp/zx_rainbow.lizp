@@ -13,10 +13,10 @@
 ;; ── ZX Spectrum hardware primitives ──────────────────────────────────
 
 (defun zx-poke ((addr u16) (val u8)) -> void
-  (asm "LD (HL), A" (in addr val)))
+  (poke addr val))
 
 (defun zx-peek ((addr u16)) -> u8
-  (asm "LD A, (HL)" (in addr)))
+  (return (peek addr)))
 
 ;; ── Color constants (ZX Spectrum attributes) ─────────────────────────
 
@@ -35,7 +35,7 @@
 ;; ── Rainbow palette ──────────────────────────────────────────────────
 
 ;; 8 colors as paper (background), shifted left by 3
-(defglobal RAINBOW_COLORS  [u8 8]
+(defglobal RAINBOW_COLORS  (u8 8)
   (array 0 8 16 24 32 40 48 56))
 
 ;; ── Screen clear ─────────────────────────────────────────────────────

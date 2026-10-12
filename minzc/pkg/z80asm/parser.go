@@ -89,7 +89,7 @@ func ParseLine(line string, lineNum int) (*Line, error) {
 		result.Directive = strings.ToUpper(tokens[0])
 		if len(tokens) > 1 {
 			// Handle operands - could be comma-separated
-			operandStr := strings.Join(tokens[1:], " ")
+			operandStr := strings.TrimSpace(line[len(tokens[0]):])
 			result.Operands = parseOperands(operandStr)
 		}
 		return result, nil
@@ -99,7 +99,7 @@ func ParseLine(line string, lineNum int) (*Line, error) {
 	result.Mnemonic = strings.ToUpper(tokens[0])
 	if len(tokens) > 1 {
 		// Handle operands
-		operandStr := strings.Join(tokens[1:], " ")
+		operandStr := strings.TrimSpace(line[len(tokens[0]):])
 		result.Operands = parseOperands(operandStr)
 	}
 	

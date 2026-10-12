@@ -1,0 +1,39 @@
+{
+  "schema": "minz.original-corpus-frozen-domain/v1",
+  "base_commit": "29df08bb",
+  "sources": [
+    {
+      "path": "examples/tests/fib_parallel_copy.nanz",
+      "sha256": "1816bdacb6be551b42edfb83365149d00b7ce9dfa0193ade4beed24ca3479671"
+    },
+    {
+      "path": "examples/tests/pipe_fold_mul_combos.nanz",
+      "sha256": "db44d4f56184592498d612b86658823effb95f52b16c15de58dfe6c45a3fb76f"
+    }
+  ],
+  "models": {
+    "fib": "alln0..255 iterative a0,b1 updated simultaneouslya=b,b=(a+b)&255 niterations; expecteda",
+    "pipe": [
+      "double/ triple/ inc all256 wrapu8",
+      "add_acc all65536pairs modularsum",
+      "pipe1=11 pipe2=24 pipe3=4"
+    ],
+    "fold": "sum_data/sum_let=sum(data)&255; sum_from_100=(100+sum(data))&255; 4byteglobal unchanged; original[1,2,3,4], then all256valuesperlane withothers[17,91,203,7], boundaries[0,1,127,128,254,255]^4",
+    "board_idx": "all65536x,y (10*y+x)&255",
+    "main": "void source no effects actualCALLRET",
+    "lifted": "noinventedcallbacks; add_acc retained original function"
+  },
+  "authority": [
+    "Bookv7\u00a72.5loops",
+    "\u00a73.1u8",
+    "\u00a72.16valuepipe",
+    "Chapter5foldinitialandstageorder"
+  ],
+  "modes": [
+    "ordinary",
+    "grace-size",
+    "grace-speed"
+  ],
+  "source_assertions": "8nativefib+11VMpipe/fold/mul originalsretainqualifiers; independentcallsbothenginesregardlessqualifier",
+  "native": "PC/SP/allreturns/wholeglobaldata4bytes+fullRAMguards; readorder fold4bytes no writes"
+}

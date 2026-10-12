@@ -1,0 +1,31 @@
+// screen_customer.nanz — Customer master data screen (ABAP VA01-style)
+//
+// Demonstrates @screen with multiple fields and post-processing.
+// Run: echo "" | mzv -H examples/nanz/screen_customer.nanz
+
+@screen("Create Customer") {
+    field "Name" length 20 default "ACME Corp"
+    field "City" length 15
+    field "Country" length 3 default "DE"
+    int   "Credit" default 5000
+    button "Execute" key F8
+    button "Back" key F3
+}
+
+fun main() -> void {
+    screen_init()
+    var result: u8 = screen_show()
+
+    if result == SCREEN_EXECUTE {
+        tui_puts(c"Customer created:\n")
+        tui_puts(c"  Name:    ")
+        tui_puts(screen_name())
+        tui_puts(c"\n  City:    ")
+        tui_puts(screen_city())
+        tui_puts(c"\n  Country: ")
+        tui_puts(screen_country())
+        tui_puts(c"\n  Credit:  ")
+        _scr_print_u16(screen_credit())
+        tui_puts(c"\n")
+    }
+}

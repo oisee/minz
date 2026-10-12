@@ -11,6 +11,9 @@ import (
 // Power-of-2 constants use N×(ADD A,A); small constants use LD tmp,A + adds.
 // Variable or large constants use the __mul8 runtime.
 func (g *z80cg) genMul(inst *Inst) {
+	// Inline and runtime multiplication both replace physical flags. Capture
+	// a live comparison first; materialization preserves the current A operand.
+	g.materializePendingFlag(inst)
 	dst := g.loc(inst.Dst)
 	lhs := g.loc(inst.Src[0])
 
@@ -50,6 +53,10 @@ func (g *z80cg) genMul(inst *Inst) {
 			g.pendingAccReg = inst.Dst
 		}
 	}()
+	// Capture scratch preservation after relocating a live A operand. Otherwise
+	// restoring the old scratch pair discards the new home recorded in
+	// physOverride while later instructions still read that home.
+	defer g.saveWrittenScratch(inst)()
 	lhs = g.loc(inst.Src[0])
 	cv, isConst := g.constVals[inst.Src[1]]
 
@@ -91,7 +98,7 @@ func (g *z80cg) genMul(inst *Inst) {
 		// x*3  = x + x*2;  x*5  = x + x*4;   x*6 = x*2 + x*4
 		// x*7  = x*8 - x;  x*9  = x + x*8;   x*10 = x*2 + x*8
 		// x*12 = x*4 + x*8; x*15 = x*16 - x
-		if cv == 3 || cv == 5 || cv == 6 || cv == 7 || cv == 9 || cv == 10 || cv == 12 || cv == 15 {
+		if cv == 3 || cv == 5 || cv == 6 || cv == 7 || cv == 9 || cv == 10 || cv == 11 || cv == 12 || cv == 15 {
 			if !g.holdsValue("A", lhs) {
 				g.emitLDA(lhs)
 			}
@@ -129,6 +136,13 @@ func (g *z80cg) genMul(inst *Inst) {
 				g.emit("    ADD A, A")
 				g.emit("    ADD A, A")        // A  = x*8
 				g.emitf("    ADD A, %s", tmp) // A  = x*10
+			case 11: // ((x*2 + x)*2)*2 - x; one scratch, no incoming carry.
+				g.emitf("    LD %s, A", tmp)
+				g.emit("    ADD A, A")
+				g.emitf("    ADD A, %s", tmp)
+				g.emit("    ADD A, A")
+				g.emit("    ADD A, A")
+				g.emitf("    SUB %s", tmp)
 			case 12: // x*4 + x*8
 				g.emit("    ADD A, A")
 				g.emit("    ADD A, A")        // A  = x*4
@@ -311,10 +325,10 @@ func (g *z80cg) genMul16(inst *Inst) {
 			return
 		}
 		// Small multiples via PUSH/POP BC save + shift sequences.
-		if cv == 3 || cv == 5 || cv == 6 || cv == 9 {
+		if cv == 3 || cv == 5 || cv == 6 || cv == 9 || cv == 10 || cv == 12 {
 			g.emit("    PUSH BC") // preserve values live across the scratch pair
 			g.emit("    PUSH HL") // save x → BC
-			g.emit("    POP BC")  // BC = x (17T)
+			g.emit("    POP BC")  // BC = x (PUSH HL 11T + POP BC 10T)
 			switch cv {
 			case 3: // x*2 + x
 				g.emit("    ADD HL, HL")
@@ -334,6 +348,16 @@ func (g *z80cg) genMul16(inst *Inst) {
 				g.emit("    ADD HL, HL")
 				g.emit("    ADD HL, HL")
 				g.emit("    ADD HL, BC")
+			case 10: // (x*4 + x)*2; ADD HL,rr is 11T on Z80.
+				g.emit("    ADD HL, HL")
+				g.emit("    ADD HL, HL")
+				g.emit("    ADD HL, BC")
+				g.emit("    ADD HL, HL")
+			case 12: // (x*2 + x)*4.
+				g.emit("    ADD HL, HL")
+				g.emit("    ADD HL, BC")
+				g.emit("    ADD HL, HL")
+				g.emit("    ADD HL, HL")
 			}
 			g.emit("    POP BC")
 			mul16Epilogue()
@@ -542,6 +566,7 @@ func (g *z80cg) genMul32(inst *Inst) {
 // OpSDiv is signed: negate operands, unsigned div, fix sign.
 
 func (g *z80cg) genDivMod(inst *Inst) {
+	g.materializePendingFlag(inst)
 	w := inst.Ty.Width()
 	defer g.saveWrittenScratch(inst)()
 
@@ -603,28 +628,18 @@ func (g *z80cg) genDivMod8(inst *Inst) {
 			g.emit("    POP AF")
 		}
 	} else {
-		// Setup: B = dividend, C = divisor.
-		// Width guard: lhs/rhs might be a 16-bit pair (const allocated to HL/DE).
-		if lhs == "B" {
-			// already there
-		} else if isPairReg(lhs) {
-			g.emitf("    LD B, %s", lowByte(lhs))
-		} else if isSpill(lhs) {
-			g.loadSpill8("B", lhs)
-		} else if lhs == "A" {
-			g.emit("    LD B, A")
-		} else {
-			g.emitf("    LD B, %s", lhs)
+		// Assign the division workspace simultaneously: the divisor may be
+		// in B, so loading the dividend into B first would overwrite it.
+		if isPairReg(lhs) {
+			lhs = lowByte(lhs)
 		}
-		if rhs == "C" {
-			// already there
-		} else if isPairReg(rhs) {
-			g.emitf("    LD C, %s", lowByte(rhs))
-		} else if isSpill(rhs) {
-			g.loadSpill8("C", rhs)
-		} else {
-			g.emitf("    LD C, %s", rhs)
+		if isPairReg(rhs) {
+			rhs = lowByte(rhs)
 		}
+		g.emitParallelCopy([]parallelCopy{
+			{srcName: lhs, dstName: "B", ty: TyU8},
+			{srcName: rhs, dstName: "C", ty: TyU8},
+		})
 
 	}
 	if isSigned {
@@ -951,6 +966,10 @@ func (g *z80cg) genPow2DivMod(inst *Inst, k int64, signed bool) {
 				g.emit("    LD H, A")
 			}
 		}
+	} else if !signed && w == 16 && k == 256 {
+		// Logical division by 256 extracts the original high byte.
+		g.emit("    LD L, H")
+		g.emit("    LD H, 0")
 	} else {
 		for v := k; v > 1; v >>= 1 {
 			if w == 16 {
@@ -994,7 +1013,9 @@ func (g *z80cg) saveLiveScratch(inst *Inst, pairs ...string) func() {
 		overlaps := func(loc string) bool {
 			return loc == pair || loc == highByte(pair) || loc == lowByte(pair) || (pair == "AF" && (loc == "A"))
 		}
-		if overlaps(dst) {
+		// A byte result may share a pair with an unrelated live byte.
+		// Preserve that neighbour rather than skipping the whole pair.
+		if dst == pair || (pair == "AF" && dst == "A") {
 			continue
 		}
 		needed := false
@@ -1020,8 +1041,17 @@ func (g *z80cg) saveLiveScratch(inst *Inst, pairs ...string) func() {
 				g.emitf("    POP %s", accPair)
 				g.invalidate("A")
 			} else {
-				g.emitf("    POP %s", saved[i])
-				g.invalidate(saved[i])
+				pair := saved[i]
+				byteResult := dst == highByte(pair) || dst == lowByte(pair)
+				if byteResult {
+					g.emitf("    LD A, %s", dst)
+				}
+				g.emitf("    POP %s", pair)
+				if byteResult {
+					g.emitf("    LD %s, A", dst)
+					g.invalidate("A")
+				}
+				g.invalidate(pair)
 			}
 		}
 	}

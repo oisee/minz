@@ -16,9 +16,9 @@ package mir2
 
 // PointerThreadingStats tracks transform activity.
 type PointerThreadingStats struct {
-	FuncsVisited    int
-	LoopsThreaded   int
-	PtrAddsRemoved  int
+	FuncsVisited   int
+	LoopsThreaded  int
+	PtrAddsRemoved int
 }
 
 // ApplyPointerThreading scans f for eligible indexed loops and rewrites them
@@ -157,17 +157,17 @@ type ptrAddEntry struct {
 
 // threadingCandidate holds all the info needed to apply one pointer threading rewrite.
 type threadingCandidate struct {
-	paramIdx      int    // index of the loop-carried index param in header.Params
-	indexReg      Reg    // the header param reg holding the index
-	baseReg       Reg    // the loop-invariant base pointer reg
-	baseTy        Ty     // type of base
-	baseCls       RegClass
-	strideImm     int64  // constant stride value
-	strideOp      Op     // OpAdd or OpSub
-	ptrAddEntries []ptrAddEntry // ptr_add instructions to rewrite, with deltas
+	paramIdx        int // index of the loop-carried index param in header.Params
+	indexReg        Reg // the header param reg holding the index
+	baseReg         Reg // the loop-invariant base pointer reg
+	baseTy          Ty  // type of base
+	baseCls         RegClass
+	strideImm       int64         // constant stride value
+	strideOp        Op            // OpAdd or OpSub
+	ptrAddEntries   []ptrAddEntry // ptr_add instructions to rewrite, with deltas
 	ptrAddsToRemove int
 	// Where in latchJmp.Args the updated index is passed back
-	latchArgIdx   int
+	latchArgIdx int
 	// The reg holding the updated index value in the latch
 	updatedIndexReg Reg
 	// Byte width of memory accesses through the ptr_add (1 for u8, 2 for u16).
@@ -574,7 +574,7 @@ func computeInitialPointer(f *Func, b *Block, c *threadingCandidate) Reg {
 
 	// ext index to u16 if needed
 	wideIdx := initialIdx
-	if c.baseTy == TyPtr { // always widen for pointer arithmetic
+	if IsPointer(c.baseTy) { // always widen for pointer arithmetic
 		wideIdx = f.AllocReg()
 		b.Insts = append(b.Insts, &Inst{
 			Op:    OpExt,

@@ -1,0 +1,6 @@
+// Regression: production multiply must materialise the runtime multiplier.
+fun m10(x: u16) -> u16 { return x * 10 }
+assert m10(7) == 70 via mir2
+assert m10(7) == 70 via z80
+assert m10(1000) == 10000 via mir2
+assert m10(1000) == 10000 via z80

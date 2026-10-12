@@ -33,6 +33,8 @@ package hir
 
 import (
 	"fmt"
+	"maps"
+	"sort"
 	"strings"
 
 	"github.com/minz/minzc/pkg/mir2"
@@ -42,6 +44,9 @@ import (
 
 // LowerModule converts a HIR module to a MIR2 module.
 func LowerModule(hm *Module) *mir2.Module {
+	if err := ResolveErrorABI(hm); err != nil {
+		panic(err)
+	}
 	m := &mir2.Module{Name: hm.Name, Target: hm.Target}
 	for _, g := range hm.Globals {
 		m.AddGlobal(g)
@@ -75,7 +80,10 @@ func LowerModule(hm *Module) *mir2.Module {
 		if hasFreeVars(f, globalNames, funcNames) {
 			continue
 		}
-		lowerFuncWithFuncNames(m, f, funcNames, hirFuncs)
+		lowerFuncWithFuncNames(m, f, funcNames, hirFuncs, hm.LoopLineage)
+	}
+	if err := mir2.LowerStructReturnBuffers(m); err != nil {
+		panic(err)
 	}
 	return m
 }
@@ -85,6 +93,9 @@ func LowerModule(hm *Module) *mir2.Module {
 // Such functions are capture-lambdas that must be inlined rather than lowered
 // as standalone MIR2 functions.
 func hasFreeVars(f *Func, globalNames, funcNames map[string]bool) bool {
+	if len(f.Captures) > 0 {
+		return true
+	}
 	if f.Body == nil {
 		return false
 	}
@@ -246,17 +257,28 @@ func exprHasFreeRef(e Expr, bound, globals, funcs map[string]bool) bool {
 
 // loopCtx holds the context needed for break/continue inside a loop.
 type loopCtx struct {
-	headLabel string   // continue → jump here (with headMutated args)
-	exitLabel string   // break    → jump here (with exitMutated args)
-	mutated   []string // loop-carried variable names (same set for both)
+	headLabel    string     // continue → jump here (with headMutated args)
+	exitLabel    string     // break    → jump here (with exitMutated args)
+	mutated      []string   // loop-carried variable names (same set for both)
+	exitPrefix   []mir2.Reg // ForEach exit also receives its pointer and counter
+	scopeDepth   int
+	continueStep Stmt // ForRange advances its induction variable before continue
 }
 
 type lowerer struct {
-	hf     *Func
-	m      *mir2.Module
-	mf     *mir2.Func
-	bld    *mir2.Builder
-	target uint8 // platform target from hir.Module.Target
+	errorFlag, errorCode mir2.Reg
+	gotoDeadBodies       map[*Block]bool
+	gotoDemands          map[string]map[string]bool
+	gotoAncestors        map[string][]*Block
+	activeBlocks         []*Block
+	gotoPending          map[string][]gotoIncoming
+	scopeRestores        []func()
+	lineage              map[Stmt]LoopLineage
+	hf                   *Func
+	m                    *mir2.Module
+	mf                   *mir2.Func
+	bld                  *mir2.Builder
+	target               uint8 // platform target from hir.Module.Target
 
 	// env maps variable names to their current virtual register.
 	// envTy maps variable names to their type (stable: set once, never changed).
@@ -307,8 +329,16 @@ type lowerer struct {
 	backwardGotoVars map[string][]string
 }
 
-func (l *lowerer) pushLoop(ctx loopCtx) { l.loopStack = append(l.loopStack, ctx) }
-func (l *lowerer) popLoop()             { l.loopStack = l.loopStack[:len(l.loopStack)-1] }
+type gotoIncoming struct {
+	block *mir2.Block
+	env   map[string]mir2.Reg
+}
+
+func (l *lowerer) pushLoop(ctx loopCtx) {
+	ctx.scopeDepth = len(l.scopeRestores)
+	l.loopStack = append(l.loopStack, ctx)
+}
+func (l *lowerer) popLoop() { l.loopStack = l.loopStack[:len(l.loopStack)-1] }
 func (l *lowerer) curLoop() *loopCtx {
 	if len(l.loopStack) == 0 {
 		panic("hir/lower: break/continue outside loop")
@@ -325,6 +355,8 @@ func (l *lowerer) fresh(prefix string) string {
 func (l *lowerer) bind(name string, r mir2.Reg, ty mir2.Ty) {
 	l.env[name] = r
 	l.envTy[name] = ty
+	delete(l.fnAliases, name)
+	delete(l.localArrays, name)
 }
 
 // findGlobal looks up a global by name in the MIR2 module.
@@ -477,8 +509,9 @@ func lowerFunc(m *mir2.Module, f *Func) {
 	lowerFuncWithFuncNames(m, f, nil, nil)
 }
 
-func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, hirFuncs map[string]*Func) {
+func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, hirFuncs map[string]*Func, lineage ...map[Stmt]LoopLineage) {
 	mf := m.AddFunc(f.Name)
+	mf.Attrs.FallibleCY = f.FallibleCY
 	if f.IsExtern {
 		mf.Attrs.IsExtern = true
 		mf.Attrs.ExternAddr = f.ExternAddr
@@ -505,6 +538,7 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 				cls = p.RegClass
 			}
 			bld.Param(p.Name, p.Ty, cls)
+			mf.Contract.Params[len(mf.Contract.Params)-1].ClassHard = p.RegClass != 0
 		}
 		return
 	}
@@ -524,6 +558,12 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 		localArrays:  make(map[string]bool),
 	}
 
+	if len(lineage) > 0 {
+		l.lineage = map[Stmt]LoopLineage{}
+		for node, origin := range lineage[0] {
+			l.lineage[node] = origin
+		}
+	}
 	bld.SwitchToNewBlock("entry")
 
 	// Bind parameters to virtual registers.
@@ -557,6 +597,11 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 	// Detect backward gotos (loop-via-goto) — these need variable threading.
 	l.backwardGotoLabels = detectBackwardGotos(f.Body)
 	l.backwardGotoVars = make(map[string][]string)
+	l.gotoDeadBodies = map[*Block]bool{}
+	l.gotoDemands = gotoLabelDemands(f.Body)
+	l.gotoAncestors = map[string][]*Block{}
+	l.gotoPending = map[string][]gotoIncoming{}
+	collectGotoAncestors(f.Body, nil, l.gotoAncestors)
 
 	// Lower body.
 	l.lowerBlock(f.Body)
@@ -564,6 +609,12 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 	// Implicit return for void functions that fall off the end of the current block.
 	if !bld.Cur.IsSealed() {
 		bld.Ret()
+	}
+	// Function-wide labels in unreachable lexical branches were precreated.
+	for _, block := range bld.F.Blocks {
+		if !block.IsSealed() {
+			block.Term = &mir2.TermUnreachable{}
+		}
 	}
 }
 
@@ -574,10 +625,10 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 //	pos 1 → ClassGeneral (C/D/E)
 //	pos 2 → ClassCounter (B) — common for a count/length 3rd arg
 func classForParam(ty mir2.Ty, pos int) mir2.RegClass {
-	if ty == mir2.TyPtr {
+	if mir2.IsPointer(ty) {
 		return mir2.ClassPointer
 	}
-	if _, isStruct := ty.(*mir2.StructTy); isStruct {
+	if aggregateAddressType(ty) {
 		// Struct params are passed as pointers (address in HL on Z80).
 		return mir2.ClassPointer
 	}
@@ -599,9 +650,19 @@ func classForParam(ty mir2.Ty, pos int) mir2.RegClass {
 	}
 }
 
+// aggregateAddressType distinguishes storage layout from the current MIR
+// value representation: structs and arrays are passed as object addresses.
+func aggregateAddressType(ty mir2.Ty) bool {
+	switch mir2.BaseOf(ty).(type) {
+	case *mir2.StructTy, *mir2.ArrayTy:
+		return true
+	}
+	return false
+}
+
 // classForRet chooses the return class for a single-return function.
 func classForRet(ty mir2.Ty) mir2.RegClass {
-	if ty == mir2.TyU16 || ty == mir2.TyI16 {
+	if aggregateAddressType(ty) || mir2.IsPointer(ty) || ty == mir2.TyU16 || ty == mir2.TyI16 {
 		return mir2.ClassPointer // HL
 	}
 	return mir2.ClassAcc // A
@@ -618,6 +679,9 @@ func classForRet(ty mir2.Ty) mir2.RegClass {
 // Use ClassCounter (B) for the second u8 return instead.
 func classForRetPos(ty mir2.Ty, pos int) mir2.RegClass {
 	w := ty.Width()
+	if aggregateAddressType(ty) {
+		w = 16
+	}
 	switch pos {
 	case 0:
 		return classForRet(ty)
@@ -636,14 +700,20 @@ func classForRetPos(ty mir2.Ty, pos int) mir2.RegClass {
 // instead of classForExpr (ClassGeneral), so the load goes directly into A and
 // avoids the redundant LD C,(HL); LD A,C sequence.
 func (l *lowerer) lowerExprForRet(e Expr) mir2.Reg {
+	if literal, ok := e.(*IntLitExpr); ok && len(l.bld.F.Contract.Returns) > 0 {
+		ty := l.bld.F.Contract.Returns[0].Ty
+		if mir2.IsInt(literal.Ty) && mir2.IsInt(ty) {
+			return l.bld.Const(literal.Val, ty, classForRet(ty))
+		}
+	}
 	switch ex := e.(type) {
 	case *LoadExpr:
-		if ex.Ty.Width() <= 8 {
+		if ex.Ty.Width() <= 8 && !aggregateAddressType(ex.Ty) {
 			ptr := l.lowerExpr(ex.Ptr)
 			return l.bld.Load(ptr, ex.Ty, classForRet(ex.Ty))
 		}
 	case *FieldExpr:
-		if ex.Ty.Width() <= 8 {
+		if ex.Ty.Width() <= 8 && !aggregateAddressType(ex.Ty) {
 			base := l.lowerExpr(ex.X)
 			if ex.Offset > 0 {
 				base = l.bld.Field(base, int64(ex.Offset), mir2.ClassPointer)
@@ -662,12 +732,16 @@ func (l *lowerer) lowerExprForRet(e Expr) mir2.Reg {
 		l.bld.BrIf(cond, thenLabel, nil, elseLabel, nil)
 
 		l.bld.SwitchToNewBlock(thenLabel)
-		thenVal := l.lowerExpr(ex.Then)
-		l.bld.Ret(thenVal)
+		thenVal := l.lowerExprForRet(ex.Then)
+		if thenVal != mir2.NoReg {
+			l.bld.Ret(thenVal)
+		}
 
 		l.bld.SwitchToNewBlock(elseLabel)
-		elseVal := l.lowerExpr(ex.Else)
-		l.bld.Ret(elseVal)
+		elseVal := l.lowerExprForRet(ex.Else)
+		if elseVal != mir2.NoReg {
+			l.bld.Ret(elseVal)
+		}
 
 		// Return a dummy — the Ret instructions are already emitted.
 		// The caller (ReturnStmt handler) will see that the block is
@@ -690,7 +764,7 @@ func (l *lowerer) lowerExprForRet(e Expr) mir2.Reg {
 // Explicit "must be in A" values (function return values, call returns) still
 // use ClassAcc via classForRet; parameters use classForParam.
 func classForExpr(ty mir2.Ty) mir2.RegClass {
-	if ty == mir2.TyU16 || ty == mir2.TyI16 {
+	if aggregateAddressType(ty) || (mir2.IsPointer(ty) && mir2.PointerElem(ty) != mir2.TyU8) || ty == mir2.TyU16 || ty == mir2.TyI16 {
 		return mir2.ClassPointer
 	}
 	return mir2.ClassGeneral
@@ -702,7 +776,7 @@ func classForExpr(ty mir2.Ty) mir2.RegClass {
 // 16-bit variants write to HL → ClassPointer.
 // Other ops (MUL, shifts) are not pure A-writes → ClassGeneral.
 func classForALUResult(op string, ty mir2.Ty) mir2.RegClass {
-	if ty == mir2.TyU16 || ty == mir2.TyI16 {
+	if aggregateAddressType(ty) || (mir2.IsPointer(ty) && mir2.PointerElem(ty) != mir2.TyU8) || ty == mir2.TyU16 || ty == mir2.TyI16 {
 		return mir2.ClassPointer
 	}
 	switch op {
@@ -714,7 +788,7 @@ func classForALUResult(op string, ty mir2.Ty) mir2.RegClass {
 
 // classForLoop chooses a good class for a loop-carried variable.
 func classForLoop(ty mir2.Ty, _ string) mir2.RegClass {
-	if ty == mir2.TyU16 || ty == mir2.TyI16 {
+	if aggregateAddressType(ty) || (mir2.IsPointer(ty) && mir2.PointerElem(ty) != mir2.TyU8) || ty == mir2.TyU16 || ty == mir2.TyI16 {
 		return mir2.ClassPointer
 	}
 	// ClassGeneral keeps loop vars out of A (which comparisons need).
@@ -726,21 +800,219 @@ func classForLoop(ty mir2.Ty, _ string) mir2.RegClass {
 // lowerBlock lowers a HIR block (list of statements).
 // Returns true if the block already ends with a terminator.
 func (l *lowerer) lowerBlock(blk *Block) bool {
-	terminated := false
+	dead := l.gotoDeadBodies[blk]
+	delete(l.gotoDeadBodies, blk)
+	return l.lowerBlockEntry(blk, dead)
+}
+func (l *lowerer) lowerBlockEntry(blk *Block, dead bool) bool {
+	l.activeBlocks = append(l.activeBlocks, blk)
+	defer func() { l.activeBlocks = l.activeBlocks[:len(l.activeBlocks)-1] }()
+	// Each lexical declaration hides a binding only for this block. Snapshot
+	// when the declaration executes, so earlier assignments to outer variables
+	// survive. Restore metadata together with the SSA register on every exit.
+	type binding struct {
+		reg                     mir2.Reg
+		ty                      mir2.Ty
+		alias                   string
+		hasReg, hasTy, hasAlias bool
+		array                   bool
+	}
+	locals := map[string]binding{}
+	save := func(name string) {
+		if _, saved := locals[name]; saved {
+			return
+		}
+		r, rok := l.env[name]
+		ty, tok := l.envTy[name]
+		alias, aok := l.fnAliases[name]
+		locals[name] = binding{r, ty, alias, rok, tok, aok, l.localArrays[name]}
+	}
+	restore := func() {
+		for name, b := range locals {
+			if b.hasReg {
+				l.env[name] = b.reg
+			} else {
+				delete(l.env, name)
+			}
+			if b.hasTy {
+				l.envTy[name] = b.ty
+			} else {
+				delete(l.envTy, name)
+			}
+			if b.array {
+				l.localArrays[name] = true
+			} else {
+				delete(l.localArrays, name)
+			}
+			if b.hasAlias {
+				l.fnAliases[name] = b.alias
+			} else {
+				delete(l.fnAliases, name)
+			}
+		}
+	}
+	l.scopeRestores = append(l.scopeRestores, restore)
+	defer func() { restore(); l.scopeRestores = l.scopeRestores[:len(l.scopeRestores)-1] }()
+	terminated := dead
 	for _, s := range blk.Body {
 		if terminated {
 			// After a terminator (goto/break/return), only labels are reachable.
+			var targetBlocks []*Block
+			switch x := s.(type) {
+			case *Block:
+				targetBlocks = []*Block{x}
+			case *IfStmt:
+				targetBlocks = []*Block{x.Then, x.Else}
+			case *WhileStmt:
+				targetBlocks = []*Block{x.Body}
+			case *ForRangeStmt:
+				targetBlocks = []*Block{x.Body}
+			case *ForEachStmt:
+				targetBlocks = []*Block{x.Body}
+			}
+			if conditional, ok := s.(*IfStmt); ok {
+				found := false
+				for _, body := range []*Block{conditional.Then, conditional.Else} {
+					collectLabels(body, func(name string) {
+						if len(l.gotoPending[name]) > 0 {
+							found = true
+						}
+					})
+				}
+				if found {
+					unreachable := l.bld.SwitchToNewBlock(l.fresh("goto_unreachable"))
+					l.gotoDeadBodies[conditional.Then] = true
+					l.gotoDeadBodies[conditional.Else] = true
+					terminated = l.lowerIf(conditional)
+					unreachable.Term = &mir2.TermUnreachable{}
+				}
+				continue
+			}
+			if rng, ok := s.(*ForRangeStmt); ok {
+				found := false
+				collectLabels(rng.Body, func(name string) {
+					if len(l.gotoPending[name]) > 0 {
+						found = true
+					}
+				})
+				if found {
+					l.bld.SwitchToNewBlock(l.fresh("goto_unreachable"))
+					l.gotoDeadBodies[rng.Body] = true
+					l.lowerForRange(rng)
+					terminated = false
+				}
+				continue
+			}
+			if sw, ok := s.(*SwitchStmt); ok {
+				found := false
+				bodies := []*Block{sw.Default}
+				for _, c := range sw.Cases {
+					bodies = append(bodies, c.Body)
+				}
+				for _, body := range bodies {
+					collectLabels(body, func(name string) {
+						if len(l.gotoPending[name]) > 0 {
+							found = true
+						}
+					})
+				}
+				if found {
+					unreachable := l.bld.SwitchToNewBlock(l.fresh("goto_unreachable"))
+					for _, body := range bodies {
+						l.gotoDeadBodies[body] = true
+					}
+					l.lowerSwitch(sw)
+					unreachable.Term = &mir2.TermUnreachable{}
+					terminated = l.bld.Cur.IsSealed()
+				}
+				continue
+			}
+			if loop, ok := s.(*WhileStmt); ok {
+				found := false
+				collectLabels(loop.Body, func(name string) {
+					if len(l.gotoPending[name]) > 0 {
+						found = true
+					}
+				})
+				if found {
+					refs := map[string]bool{}
+					collectExprRefs(loop.Cond, refs)
+					missing := false
+					for name := range refs {
+						if _, ok := l.envTy[name]; ok && l.env[name] == mir2.NoReg {
+							missing = true
+						}
+					}
+					if missing {
+						// Verify only permits continuations which escape before
+						// reading this skipped condition binding.
+						terminated = l.lowerBlockEntry(loop.Body, true)
+					} else {
+						l.bld.SwitchToNewBlock(l.fresh("goto_unreachable"))
+						l.gotoDeadBodies[loop.Body] = true
+						l.lowerWhile(loop)
+						terminated = false
+					}
+				}
+				continue
+			}
+			for _, nested := range targetBlocks {
+				found := false
+				collectLabels(nested, func(name string) {
+					if len(l.gotoPending[name]) > 0 {
+						found = true
+					}
+				})
+				if found {
+					terminated = l.lowerBlockEntry(nested, true)
+				}
+			}
+			if len(targetBlocks) > 0 {
+				continue
+			}
 			if ls, ok := s.(*LabelStmt); ok {
 				l.lowerStmt(ls)
 				terminated = false
 				continue
 			}
-			// Skip dead code after terminator.
+			// A skipped initializer creates no SSA value, but its declaration
+			// still establishes lexical identity and type.
+			switch decl := s.(type) {
+			case *VarDeclStmt:
+				save(decl.Name)
+				delete(l.env, decl.Name)
+				delete(l.fnAliases, decl.Name)
+				delete(l.localArrays, decl.Name)
+				l.envTy[decl.Name] = decl.Ty
+			case *TupleLetStmt:
+				for i, name := range decl.Names {
+					if name != "_" {
+						save(name)
+						delete(l.env, name)
+						delete(l.fnAliases, name)
+						delete(l.localArrays, name)
+						l.envTy[name] = decl.Tys[i]
+					}
+				}
+			}
 			continue
+		}
+		switch decl := s.(type) {
+		case *VarDeclStmt:
+			save(decl.Name)
+		case *TupleLetStmt:
+			for _, name := range decl.Names {
+				if name != "_" {
+					save(name)
+				}
+			}
 		}
 		if l.lowerStmt(s) {
 			terminated = true
 		}
+	}
+	if terminated && !l.bld.Cur.IsSealed() {
+		l.bld.Unreachable()
 	}
 	return terminated
 }
@@ -753,12 +1025,26 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		return l.lowerBlock(st)
 
 	case *VarDeclStmt:
+		if ty, ok := mir2.BaseOf(st.Ty).(*mir2.StructTy); ok && st.ArrayLen == 0 {
+			// Source struct locals own their bytes; a call-site result buffer is
+			// temporary and can be reused by the next loop iteration.
+			dest := l.fixedStructStorage(ty)
+			if lit, ok := st.Init.(*StructLitExpr); ok {
+				l.emitStructLitFields(lit, func() mir2.Reg { return dest })
+			} else if st.Init != nil {
+				src := l.lowerExpr(st.Init)
+				l.copyStructValue(dest, src, ty)
+			}
+			delete(l.fnAliases, st.Name)
+			l.bind(st.Name, dest, st.Ty)
+			return false
+		}
 		var r mir2.Reg
 		if st.Init != nil {
 			// Check for fold/reduce: let result = fold(ptr, init, cb, n)
 			if foldReg, ok := l.tryLowerFold(st.Init); ok {
 				chain, _ := l.recognizeIterChain(st.Init)
-				l.bind(st.Name, foldReg, chain.foldAccTy)
+				l.bind(st.Name, l.coerceLocalInteger(foldReg, chain.foldAccTy, st.Ty), st.Ty)
 				return false
 			}
 			r = l.lowerExpr(st.Init)
@@ -770,6 +1056,9 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 					if alias, isAlias := l.fnAliases[vr.Name]; isAlias {
 						funcName = alias
 					}
+					delete(l.env, st.Name)
+					delete(l.envTy, st.Name)
+					delete(l.localArrays, st.Name)
 					l.fnAliases[st.Name] = funcName
 				}
 				return false
@@ -791,6 +1080,13 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			}
 			totalBytes := st.ArrayLen * elemBytes
 			globalName := l.mf.Name + "$" + st.Name
+			baseName := globalName
+			for {
+				if _, exists := l.findGlobal(globalName); !exists {
+					break
+				}
+				globalName = baseName + "$" + l.fresh("scope_")
+			}
 			initBytes := make([]byte, totalBytes)
 			// Pre-populate from Initial (array designated/positional init)
 			for i, expr := range st.Initial {
@@ -834,14 +1130,29 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		} else {
 			r = l.bld.Const(0, st.Ty, classForExpr(st.Ty))
 		}
-		l.bind(st.Name, r, st.Ty)
+		if st.Init != nil && st.ArrayLen == 0 {
+			r = l.coerceLocalInteger(r, st.Init.ExprTy(), st.Ty)
+		}
+		delete(l.fnAliases, st.Name) // a scalar declaration hides a callable alias
+		bindingTy := st.Ty
+		if st.ArrayLen > 0 {
+			// The environment carries the array base address, not one element.
+			// Loop block parameters must retain the full pointer width.
+			bindingTy = mir2.TyPtr
+		}
+		l.bind(st.Name, r, bindingTy)
+		if st.ArrayLen > 0 {
+			l.localArrays[st.Name] = true
+		}
 		return false
 
 	case *AssignStmt:
 		// Check for fold/reduce: x = fold(ptr, init, cb, n)
 		if foldReg, ok := l.tryLowerFold(st.Val); ok {
 			if tgt, ok2 := st.Target.(*VarRefExpr); ok2 {
-				l.env[tgt.Name] = foldReg
+				chain, _ := l.recognizeIterChain(st.Val)
+				l.env[tgt.Name] = l.coerceLocalInteger(foldReg, chain.foldAccTy, tgt.Ty)
+				l.envTy[tgt.Name] = tgt.Ty
 				return false
 			}
 		}
@@ -870,6 +1181,24 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			}
 		}
 		val := l.lowerExpr(st.Val)
+		if ty, ok := mir2.BaseOf(st.Target.ExprTy()).(*mir2.StructTy); ok {
+			var dest mir2.Reg
+			if tgt, ok := st.Target.(*VarRefExpr); ok {
+				if _, global := l.findGlobal(tgt.Name); global {
+					dest = l.globalAddr(tgt.Name)
+				} else {
+					dest = l.env[tgt.Name]
+					if dest == mir2.NoReg {
+						dest = l.fixedStructStorage(ty)
+						l.bind(tgt.Name, dest, tgt.Ty)
+					}
+				}
+			} else {
+				dest = l.lowerExprAddr(st.Target)
+			}
+			l.copyStructValue(dest, val, ty)
+			return false
+		}
 		switch tgt := st.Target.(type) {
 		case *VarRefExpr:
 			// Global variable: store through pointer.
@@ -879,8 +1208,10 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 				return false
 			}
 			// Re-bind the local variable to the new vreg (SSA-style rename).
-			// Type is already in envTy; just update the register.
-			l.env[tgt.Name] = val
+			// A goto may skip the declaration initializer and reach a full
+			// assignment. The verified target still supplies its lexical type.
+			l.env[tgt.Name] = l.coerceLocalInteger(val, st.Val.ExprTy(), tgt.Ty)
+			l.envTy[tgt.Name] = tgt.Ty
 		case *DerefExpr:
 			ptr := l.lowerExpr(tgt.Ptr)
 			l.bld.Store(ptr, val, tgt.Ty)
@@ -973,6 +1304,30 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		return false
 
 	case *ExprStmt:
+		if call, ok := st.Expr.(*CallExpr); ok {
+			switch call.Fn {
+			case "@error":
+				if len(call.Args) != 1 {
+					panic("@error requires one code")
+				}
+				code := l.lowerExprAs(call.Args[0], mir2.TyU8)
+				l.bld.ErrorRet(code)
+				return true
+			case "@propagate", "@check":
+				if l.errorFlag == mir2.NoReg {
+					panic("error propagation requires a preceding fallible direct call")
+				}
+				fail, next := l.fresh("error"), l.fresh("error_ok")
+				flag, code := l.errorFlag, l.errorCode
+				condition := l.bld.Cmp(mir2.CmpNe, flag, l.bld.Const(0, mir2.TyBool, mir2.ClassGeneral), mir2.ClassFlag, false)
+				l.bld.BrIf(condition, fail, nil, next, nil)
+				l.bld.SwitchToNewBlock(fail)
+				l.bld.ErrorRet(code)
+				l.bld.SwitchToNewBlock(next)
+				l.errorFlag, l.errorCode = mir2.NoReg, mir2.NoReg
+				return false
+			}
+		}
 		if l.tryLowerIterChain(st.Expr) {
 			return false
 		}
@@ -1033,8 +1388,8 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		code := strings.Join(lines, "\n    ")
 		// Resolve input operands to virtual registers.
 		// If no explicit (in ...) clause, auto-infer from @z80_X-annotated params.
-		// If explicit, (in REG, ...) names physical registers; we reverse-map
-		// each to the @z80_X parameter that occupies that register.
+		// Explicit inputs name in-scope values first; legacy physical aliases
+		// resolve to the corresponding @z80_X-annotated parameter.
 		var ins []mir2.Reg
 		if len(st.Ins) == 0 {
 			for _, p := range l.hf.Params {
@@ -1046,21 +1401,23 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			}
 		} else {
 			for _, op := range st.Ins {
+				// AsmOperand names an in-scope value. Resolve it before the
+				// legacy physical-register alias syntax; unknown names must
+				// never match an unannotated parameter's zero RegClass.
+				if r, ok := l.env[op.Name]; ok {
+					ins = append(ins, r)
+					continue
+				}
 				wantCls := z80RegNameToClass(op.Name)
-				found := false
+				if wantCls == 0 {
+					continue
+				}
 				for _, p := range l.hf.Params {
 					if p.RegClass == wantCls {
 						if r, ok := l.env[p.Name]; ok {
 							ins = append(ins, r)
-							found = true
 							break
 						}
-					}
-				}
-				if !found {
-					// Fallback: try as variable name (backward compat)
-					if r, ok := l.env[op.Name]; ok {
-						ins = append(ins, r)
 					}
 				}
 			}
@@ -1098,12 +1455,33 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 
 	case *BreakStmt:
 		ctx := l.curLoop()
-		args := l.collectArgs(ctx.mutated)
+		oldEnv, oldTy, oldAlias, oldArrays := l.env, l.envTy, l.fnAliases, l.localArrays
+		l.env = cloneMap(l.env)
+		l.envTy = maps.Clone(l.envTy)
+		l.fnAliases = maps.Clone(l.fnAliases)
+		l.localArrays = maps.Clone(l.localArrays)
+		for i := len(l.scopeRestores) - 1; i >= ctx.scopeDepth; i-- {
+			l.scopeRestores[i]()
+		}
+		defer func() { l.env = oldEnv; l.envTy = oldTy; l.fnAliases = oldAlias; l.localArrays = oldArrays }()
+		args := append(append([]mir2.Reg{}, ctx.exitPrefix...), l.collectArgs(ctx.mutated)...)
 		l.bld.Jmp(ctx.exitLabel, args...)
 		return true // break is a terminator
 
 	case *ContinueStmt:
 		ctx := l.curLoop()
+		oldEnv, oldTy, oldAlias, oldArrays := l.env, l.envTy, l.fnAliases, l.localArrays
+		l.env = cloneMap(l.env)
+		l.envTy = maps.Clone(l.envTy)
+		l.fnAliases = maps.Clone(l.fnAliases)
+		l.localArrays = maps.Clone(l.localArrays)
+		for i := len(l.scopeRestores) - 1; i >= ctx.scopeDepth; i-- {
+			l.scopeRestores[i]()
+		}
+		defer func() { l.env = oldEnv; l.envTy = oldTy; l.fnAliases = oldAlias; l.localArrays = oldArrays }()
+		if ctx.continueStep != nil {
+			l.lowerStmt(ctx.continueStep)
+		}
 		args := l.collectArgs(ctx.mutated)
 		l.bld.Jmp(ctx.headLabel, args...)
 		return true // continue is a terminator
@@ -1113,56 +1491,61 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		return false
 
 	case *LabelStmt:
-		blkLabel := "label_" + st.Name
-
-		if l.backwardGotoLabels[st.Name] {
-			// Backward-goto target: thread all current env vars through block params.
-			// This is analogous to a loop_head block.
-			varNames := sortedKeys(mapToBool(l.env), l.env)
-			l.backwardGotoVars[st.Name] = varNames
-
-			// Jump to label block with current values.
-			args := l.collectArgs(varNames)
-			if !l.bld.Cur.IsSealed() {
-				l.bld.Jmp(blkLabel, args...)
-			}
-
-			// Switch to the pre-created label block and add block params.
-			for _, blk := range l.bld.F.Blocks {
-				if blk.Label == blkLabel {
-					l.bld.SwitchTo(blk)
-					break
-				}
-			}
-			newEnv := cloneMap(l.env)
-			for _, name := range varNames {
-				ty := l.envTy[name]
-				r := l.bld.BlockParam(l.bld.Cur, ty, classForExpr(ty))
-				newEnv[name] = r
-			}
-			l.env = newEnv
-		} else {
-			// Forward-goto target: no block params needed.
-			if !l.bld.Cur.IsSealed() {
-				l.bld.Jmp(blkLabel)
-			}
-			for _, blk := range l.bld.F.Blocks {
-				if blk.Label == blkLabel {
-					l.bld.SwitchTo(blk)
-					break
-				}
+		label := "label_" + st.Name
+		vars := sortedKeys(l.gotoDemands[st.Name], l.env)
+		l.backwardGotoVars[st.Name] = vars
+		if !l.bld.Cur.IsSealed() {
+			l.bld.Jmp(label, l.collectArgs(vars)...)
+		}
+		for _, incoming := range l.gotoPending[st.Name] {
+			jump := incoming.block.Term.(*mir2.TermJmp)
+			for _, name := range vars {
+				jump.Args = append(jump.Args, incoming.env[name])
 			}
 		}
+		delete(l.gotoPending, st.Name)
+		for _, b := range l.bld.F.Blocks {
+			if b.Label == label {
+				l.bld.SwitchTo(b)
+				break
+			}
+		}
+		env := cloneMap(l.env)
+		for _, name := range vars {
+			ty := l.envTy[name]
+			env[name] = l.bld.BlockParam(l.bld.Cur, ty, classForExpr(ty))
+		}
+		l.env = env
 		return false
 
 	case *GotoStmt:
+		oldEnv, oldTy, oldAlias, oldArrays := l.env, l.envTy, l.fnAliases, l.localArrays
+		l.env = cloneMap(l.env)
+		l.envTy = maps.Clone(l.envTy)
+		l.fnAliases = maps.Clone(l.fnAliases)
+		l.localArrays = maps.Clone(l.localArrays)
+		depth := 0
+		ancestors := l.gotoAncestors[st.Label]
+		for i, b := range l.activeBlocks {
+			for _, targetBlock := range ancestors {
+				if b == targetBlock {
+					depth = i + 1
+				}
+			}
+		}
+		for i := len(l.scopeRestores) - 1; i >= depth; i-- {
+			l.scopeRestores[i]()
+		}
+
+		defer func() { l.env = oldEnv; l.envTy = oldTy; l.fnAliases = oldAlias; l.localArrays = oldArrays }()
 		target := "label_" + st.Label
-		if l.backwardGotoLabels[st.Label] {
+		if _, known := l.backwardGotoVars[st.Label]; known {
 			// Backward goto: pass current env values as block args.
 			varNames := l.backwardGotoVars[st.Label]
 			args := l.collectArgs(varNames)
 			l.bld.Jmp(target, args...)
 		} else {
+			l.gotoPending[st.Label] = append(l.gotoPending[st.Label], gotoIncoming{l.bld.Cur, cloneMap(l.env)})
 			l.bld.Jmp(target)
 		}
 		return true // goto is a terminator
@@ -1195,6 +1578,22 @@ func (l *lowerer) lowerIf(st *IfStmt) bool {
 
 	// Union of mutated vars (stable iteration order via sort).
 	mutated := unionKeys(thenMuts, elseMuts, envBefore)
+	if st.Else != nil {
+		left, right := gotoAssignedNames(st.Then), gotoAssignedNames(st.Else)
+		for name := range left {
+			if (right[name] || gotoStmtTerminates(st.Else)) && l.envTy[name] != nil && envBefore[name] == mir2.NoReg {
+				mutated = append(mutated, name)
+			}
+		}
+		if gotoStmtTerminates(st.Then) {
+			for name := range right {
+				if l.envTy[name] != nil && envBefore[name] == mir2.NoReg && !left[name] {
+					mutated = append(mutated, name)
+				}
+			}
+		}
+		sort.Strings(mutated)
+	}
 
 	thenLabel := l.fresh("if_then")
 	joinLabel := l.fresh("if_join")
@@ -1316,6 +1715,11 @@ func (l *lowerer) lowerIf(st *IfStmt) bool {
 // params to prevent A/other registers from being clobbered and lost between
 // loop-head visits.
 func (l *lowerer) lowerWhile(st *WhileStmt) {
+	l.lowerWhileWithContinue(st, nil)
+}
+
+// A desugared range loop must run its increment even when the body continues.
+func (l *lowerer) lowerWhileWithContinue(st *WhileStmt, continueStep Stmt) {
 	envBefore := cloneMap(l.env)
 
 	// Collect ALL env vars used (read or written) anywhere in the loop.
@@ -1339,6 +1743,12 @@ func (l *lowerer) lowerWhile(st *WhileStmt) {
 
 	// ── loop_head ──
 	head := l.bld.SwitchToNewBlock(headLabel)
+	if source, ok := l.lineage[st]; ok {
+		if l.mf.LoopOrigins == nil {
+			l.mf.LoopOrigins = map[string]mir2.LoopOrigin{}
+		}
+		l.mf.LoopOrigins[bodyLabel] = mir2.LoopOrigin{SiteID: source.SiteID, Role: source.Role, Rule: source.Rule}
+	}
 	headEnv := cloneMap(envBefore)
 	for _, name := range mutated {
 		ty := l.envTy[name]
@@ -1358,13 +1768,15 @@ func (l *lowerer) lowerWhile(st *WhileStmt) {
 	// ── loop_body ──
 	l.bld.SwitchToNewBlock(bodyLabel)
 	l.env = cloneMap(headEnv) // body directly uses head's vregs
-	l.pushLoop(loopCtx{headLabel: headLabel, exitLabel: exitLabel, mutated: mutated})
-	l.lowerBlock(st.Body)
+	l.pushLoop(loopCtx{headLabel: headLabel, exitLabel: exitLabel, mutated: mutated, continueStep: continueStep})
+	terminated := l.lowerBlock(st.Body)
 	l.popLoop()
 	l.inLoopContext = prevInLoopCtx
-	// Back-edge: jump to head with updated values.
-	backArgs := l.collectArgs(mutated)
-	l.bld.Jmp(headLabel, backArgs...)
+	// A return, break or continue already sealed the current body block.
+	if !terminated {
+		backArgs := l.collectArgs(mutated)
+		l.bld.Jmp(headLabel, backArgs...)
+	}
 
 	// ── loop_exit ──
 	exit := l.bld.SwitchToNewBlock(exitLabel)
@@ -1377,6 +1789,36 @@ func (l *lowerer) lowerWhile(st *WhileStmt) {
 	l.env = exitEnv
 }
 
+// saveLexicalName restores one loop binder without discarding outer mutations.
+func (l *lowerer) saveLexicalName(name string) func() {
+	r, rok := l.env[name]
+	ty, tok := l.envTy[name]
+	a, aok := l.fnAliases[name]
+	arr := l.localArrays[name]
+	return func() {
+		if rok {
+			l.env[name] = r
+		} else {
+			delete(l.env, name)
+		}
+		if tok {
+			l.envTy[name] = ty
+		} else {
+			delete(l.envTy, name)
+		}
+		if aok {
+			l.fnAliases[name] = a
+		} else {
+			delete(l.fnAliases, name)
+		}
+		if arr {
+			l.localArrays[name] = true
+		} else {
+			delete(l.localArrays, name)
+		}
+	}
+}
+
 // lowerForRange desugars a ForRangeStmt to a while-equivalent.
 // for v in start..end → v = start; hi = end; while v < hi { body; v++ }
 //
@@ -1386,33 +1828,44 @@ func (l *lowerer) lowerWhile(st *WhileStmt) {
 // would force 'n' into the A register as the ADD lhs and corrupt it via
 // the body's scratch uses of A (loads, mul16 counter, etc.).
 func (l *lowerer) lowerForRange(st *ForRangeStmt) {
+	defer l.saveLexicalName(st.Var)()
 	var ty mir2.Ty = mir2.TyU8
 	if st.End != nil {
 		ty = st.End.ExprTy()
 	}
 	initReg := l.lowerExpr(st.Start)
-	l.bind(st.Var, initReg, ty)
 
 	// Precompute the loop upper bound once, outside the loop.
 	endReg := l.lowerExpr(st.End)
+	l.bind(st.Var, initReg, ty)
 	endName := l.fresh("__for_hi_")
+	defer l.saveLexicalName(endName)()
 	l.bind(endName, endReg, ty)
 
 	// Synthesise a WhileStmt: while v < hi { body; v = v + 1 }
 	one := &IntLitExpr{Val: 1, Ty: ty}
-	whileBody := &Block{Body: append(st.Body.Body, &AssignStmt{
+	increment := &AssignStmt{
 		Target: &VarRefExpr{Name: st.Var, Ty: ty},
 		Val:    &BinExpr{Op: "+", L: &VarRefExpr{Name: st.Var, Ty: ty}, R: one, Ty: ty},
-	})}
-	l.lowerWhile(&WhileStmt{
+	}
+	// Copy the slice: lowering must not overwrite the source HIR backing array.
+	whileBody := &Block{Body: []Stmt{st.Body, increment}}
+	synthetic := &WhileStmt{
 		Cond: &BinExpr{Op: "<", L: &VarRefExpr{Name: st.Var, Ty: ty}, R: &VarRefExpr{Name: endName, Ty: ty}, Ty: mir2.TyBool},
 		Body: whileBody,
-	})
+	}
+	if origin, ok := l.lineage[st]; ok {
+		l.lineage[synthetic] = origin
+	}
+	l.lowerWhileWithContinue(synthetic, increment)
 }
 
 // lowerForEach lowers a ForEachStmt.
 //
-// MIR2 structure (ptr → HL, counter → B for DJNZ):
+// Byte loops without control transfers use an initial zero-trip check and
+// a DJNZ back-edge, whose first target parameter receives the decremented
+// count. The counter class prefers B; codegen handles its actual allocation.
+// Wide loops and bodies with control transfers retain the structure below:
 //
 //	entry:
 //	    ptr0 = lower(Ptr) + Start * stride
@@ -1430,7 +1883,17 @@ func (l *lowerer) lowerForRange(st *ForRangeStmt) {
 //	fe_exit(ptr, cnt, ...mutated...):   -- ptr/cnt discarded
 //	    [continue]
 func (l *lowerer) lowerForEach(st *ForEachStmt) {
+	defer l.saveLexicalName(st.Var)()
 	envBefore := cloneMap(l.env)
+	needsTrampoline := false
+	walkGraceBlocks(st.Body, "", func(_ string, b *Block) {
+		for _, s := range b.Body {
+			switch s.(type) {
+			case *ContinueStmt, *BreakStmt, *ReturnStmt, *GotoStmt, *LabelStmt:
+				needsTrampoline = true
+			}
+		}
+	})
 	stride := int64(mir2.ByteWidth(st.ElemTy))
 	if st.ElemStride > 0 {
 		stride = int64(st.ElemStride)
@@ -1451,6 +1914,24 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	}
 	// Compute element count.
 	cntReg := l.lowerExpr(st.Len)
+	cntTy := st.Len.ExprTy()
+	if cntTy == mir2.TyU8 && !needsTrampoline {
+		l.lowerForEachByteCountdown(st, envBefore, ptrReg, cntReg, stride)
+		return
+	}
+
+	cntClass := mir2.ClassCounter
+	zeroClass := mir2.ClassAcc
+	if cntTy.Width() > mir2.TyU8.Width() {
+		// ClassCounter targets the byte register B. Wide lengths need a pair,
+		// preferably DE so the element pointer can remain in HL.
+		cntClass = mir2.ClassIndex
+		zeroClass = cntClass
+	}
+
+	// Literal operands are loop-invariant for the general control-flow path.
+	zero := l.bld.Const(0, cntTy, zeroClass)
+	one := l.bld.Const(1, cntTy, cntClass)
 
 	// Collect user env vars used/mutated in the body (for block params).
 	allUsed := map[string]bool{}
@@ -1474,8 +1955,14 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 
 	// ── fe_head(ptr, cnt, mutated...) ──
 	head := l.bld.SwitchToNewBlock(headLabel)
+	if source, ok := l.lineage[st]; ok {
+		if l.mf.LoopOrigins == nil {
+			l.mf.LoopOrigins = map[string]mir2.LoopOrigin{}
+		}
+		l.mf.LoopOrigins[bodyLabel] = mir2.LoopOrigin{SiteID: source.SiteID, Role: source.Role, Rule: source.Rule}
+	}
 	headPtr := l.bld.BlockParam(head, mir2.TyPtr, mir2.ClassPointer) // HL
-	headCnt := l.bld.BlockParam(head, mir2.TyU8, mir2.ClassCounter)  // B → DJNZ
+	headCnt := l.bld.BlockParam(head, cntTy, cntClass)
 	headEnv := cloneMap(envBefore)
 	for _, name := range mutated {
 		ty := l.envTy[name]
@@ -1485,8 +1972,7 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	l.env = headEnv
 
 	// brif (cnt != 0) → body, else → exit
-	zero8 := l.bld.Const(0, mir2.TyU8, mir2.ClassAcc)
-	cond := l.bld.Cmp(mir2.CmpNe, headCnt, zero8, mir2.ClassFlag, false)
+	cond := l.bld.Cmp(mir2.CmpNe, headCnt, zero, mir2.ClassFlag, false)
 	exitArgs := append([]mir2.Reg{headPtr, headCnt}, l.collectArgs(mutated)...)
 	l.bld.BrIf(cond, bodyLabel, nil, exitLabel, exitArgs)
 
@@ -1506,37 +1992,42 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	// ContinueStmt jumps to fe_cont (not fe_head) so ptr/cnt are advanced first.
 	prevInLoopCtx2 := l.inLoopContext
 	l.inLoopContext = true
-	l.pushLoop(loopCtx{headLabel: contLabel, exitLabel: exitLabel, mutated: mutated})
-	l.lowerBlock(st.Body)
+	l.pushLoop(loopCtx{headLabel: contLabel, exitLabel: exitLabel, mutated: mutated, exitPrefix: []mir2.Reg{headPtr, headCnt}})
+	terminated := l.lowerBlock(st.Body)
 	l.popLoop()
 	l.inLoopContext = prevInLoopCtx2
 
 	// mapInPlace: store the (possibly transformed) element value back to ptr.
-	if st.MutateInPlace {
+	if st.MutateInPlace && !terminated {
 		if finalVal, ok := l.env[st.Var]; ok {
 			l.bld.Store(headPtr, finalVal, st.ElemTy)
 		}
 	}
 
-	// Fall-through from body → fe_cont with current mutated values.
-	l.bld.Jmp(contLabel, l.collectArgs(mutated)...)
+	// Continue needs an increment trampoline; retain it for other control
+	// transfers too. Ordinary fall-through bodies increment directly.
+	if needsTrampoline {
+		// Only fall-through reaches the trampoline through this edge.
+		if !terminated {
+			l.bld.Jmp(contLabel, l.collectArgs(mutated)...)
+		}
 
-	// ── fe_cont(mutated...) — advance ptr/cnt, back-edge to fe_head ──
-	// This is the target for ContinueStmt inside the body, as well as the
-	// normal fall-through path. It advances ptr/cnt (using headPtr/headCnt
-	// which dominate this block) and loops back.
-	cont := l.bld.SwitchToNewBlock(contLabel)
-	contEnv := cloneMap(headEnv)
-	for _, name := range mutated {
-		ty := l.envTy[name]
-		r := l.bld.BlockParam(cont, ty, classForExpr(ty))
-		contEnv[name] = r
+		// ── fe_cont(mutated...) — advance ptr/cnt, back-edge to fe_head ──
+		// This is the target for ContinueStmt inside the body, as well as the
+		// normal fall-through path. It advances ptr/cnt (using headPtr/headCnt
+		// which dominate this block) and loops back.
+		cont := l.bld.SwitchToNewBlock(contLabel)
+		contEnv := cloneMap(headEnv)
+		for _, name := range mutated {
+			ty := l.envTy[name]
+			r := l.bld.BlockParam(cont, ty, classForExpr(ty))
+			contEnv[name] = r
+		}
+		l.env = contEnv
 	}
-	l.env = contEnv
 
 	ptrNext := l.bld.PtrBump(headPtr, stride, mir2.ClassPointer)
-	one := l.bld.Const(1, mir2.TyU8, mir2.ClassCounter)
-	cntNext := l.bld.Sub(headCnt, one, mir2.TyU8, mir2.ClassCounter)
+	cntNext := l.bld.Sub(headCnt, one, cntTy, cntClass)
 
 	backArgs := append([]mir2.Reg{ptrNext, cntNext}, l.collectArgs(mutated)...)
 	l.bld.Jmp(headLabel, backArgs...)
@@ -1544,7 +2035,7 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	// ── fe_exit(ptr, cnt, mutated...) ──
 	exit := l.bld.SwitchToNewBlock(exitLabel)
 	l.bld.BlockParam(exit, mir2.TyPtr, mir2.ClassPointer) // discard ptr
-	l.bld.BlockParam(exit, mir2.TyU8, mir2.ClassCounter)  // discard cnt
+	l.bld.BlockParam(exit, cntTy, cntClass)               // discard cnt
 	exitEnv := cloneMap(envBefore)
 	for _, name := range mutated {
 		ty := l.envTy[name]
@@ -1552,8 +2043,63 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 		exitEnv[name] = r
 	}
 	// Element var goes out of scope.
-	delete(exitEnv, st.Var)
 	l.env = exitEnv
+}
+
+// Byte fall-through bodies need only one zero-trip check. DJNZ decrements
+// the counter on the back-edge, so no zero/one values remain live in the body.
+// Bodies with control transfers retain the general trampoline implementation.
+func (l *lowerer) lowerForEachByteCountdown(st *ForEachStmt, envBefore map[string]mir2.Reg, ptrReg, cntReg mir2.Reg, stride int64) {
+	allUsed := map[string]bool{}
+	scanUsedInBlock(st.Body, envBefore, allUsed)
+	for name := range scanMutations(st.Body, envBefore) {
+		allUsed[name] = true
+	}
+	delete(allUsed, st.Var)
+	mutated := sortedKeys(allUsed, envBefore)
+	bodyLabel, exitLabel := l.fresh("fe_body"), l.fresh("fe_exit")
+	zero := l.bld.Const(0, mir2.TyU8, mir2.ClassAcc)
+	nonzero := l.bld.Cmp(mir2.CmpNe, cntReg, zero, mir2.ClassFlag, false)
+	initial := append([]mir2.Reg{cntReg, ptrReg}, l.collectArgs(mutated)...)
+	l.bld.BrIf(nonzero, bodyLabel, initial, exitLabel, l.collectArgs(mutated))
+	body := l.bld.SwitchToNewBlock(bodyLabel)
+	if origin, ok := l.lineage[st]; ok {
+		if l.mf.LoopOrigins == nil {
+			l.mf.LoopOrigins = map[string]mir2.LoopOrigin{}
+		}
+		l.mf.LoopOrigins[bodyLabel] = mir2.LoopOrigin{SiteID: origin.SiteID, Role: origin.Role, Rule: origin.Rule}
+	}
+	cnt := l.bld.BlockParam(body, mir2.TyU8, mir2.ClassCounter)
+	ptr := l.bld.BlockParam(body, mir2.TyPtr, mir2.ClassPointer)
+	env := cloneMap(envBefore)
+	for _, name := range mutated {
+		env[name] = l.bld.BlockParam(body, l.envTy[name], classForLoop(l.envTy[name], name))
+	}
+	l.env = env
+	if st.PtrIter {
+		l.bind(st.Var, ptr, mir2.TyPtr)
+	} else {
+		l.bind(st.Var, l.bld.Load(ptr, st.ElemTy, classForExpr(st.ElemTy)), st.ElemTy)
+	}
+	previous := l.inLoopContext
+	l.inLoopContext = true
+	l.lowerBlock(st.Body)
+	l.inLoopContext = previous
+	if st.MutateInPlace {
+		if final, ok := l.env[st.Var]; ok {
+			l.bld.Store(ptr, final, st.ElemTy)
+		}
+	}
+	ptrNext := l.bld.PtrBump(ptr, stride, mir2.ClassPointer)
+	updates := l.collectArgs(mutated)
+	back := append([]mir2.Reg{ptrNext}, updates...)
+	l.bld.DJNZ(cnt, bodyLabel, back, exitLabel, updates)
+	exit := l.bld.SwitchToNewBlock(exitLabel)
+	env = cloneMap(envBefore)
+	for _, name := range mutated {
+		env[name] = l.bld.BlockParam(exit, l.envTy[name], classForExpr(l.envTy[name]))
+	}
+	l.env = env
 }
 
 // ── Switch lowering ───────────────────────────────────────────────────────────
@@ -1615,7 +2161,11 @@ func (l *lowerer) lowerSwitch(st *SwitchStmt) {
 	for i, c := range st.Cases {
 		imm := l.bld.Const(c.Val, valTy, mir2.ClassGeneral)
 		cond := l.bld.Cmp(mir2.CmpEq, valReg, imm, mir2.ClassFlag, false)
-		l.bld.BrIf(cond, caseLabels[i], nil, nextLabels[i], nil)
+		falseArgs := []mir2.Reg(nil)
+		if nextLabels[i] == joinLabel {
+			falseArgs = l.collectArgs(mutated)
+		}
+		l.bld.BrIf(cond, caseLabels[i], nil, nextLabels[i], falseArgs)
 		if i+1 < len(st.Cases) {
 			l.bld.SwitchToNewBlock(nextLabels[i])
 		}
@@ -1670,6 +2220,25 @@ func (l *lowerer) lowerSwitch(st *SwitchStmt) {
 }
 
 // ── Expression lowering ───────────────────────────────────────────────────────
+
+// coerceLocalInteger respects the declared scalar binding after evaluating its
+// source once. HIR accepts implicit integer width conversion at declarations
+// and assignments; the SSA register must carry that converted value too.
+func (l *lowerer) coerceLocalInteger(src mir2.Reg, from, to mir2.Ty) mir2.Reg {
+	if src == mir2.NoReg || !mir2.IsInt(from) || !mir2.IsInt(to) {
+		return src
+	}
+	if from.Width() > to.Width() {
+		return l.bld.Trunc(src, from, to, classForExpr(to))
+	}
+	if from.Width() < to.Width() {
+		if mir2.IsSigned(from) {
+			return l.bld.Sext(src, from, to, classForExpr(to))
+		}
+		return l.bld.Ext(src, from, to, classForExpr(to))
+	}
+	return src
+}
 
 // lowerExprAs promotes narrow literals and sign-extends signed operands
 // to the expression width. This also handles C integer promotions.
@@ -1740,6 +2309,9 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 		return l.lowerUnaryExpr(ex)
 
 	case *CallExpr:
+		if ex.Fn == "@mir.io.print.sstr" || ex.Fn == "@mir.io.print.lstr" {
+			return l.lowerCountedStringPrint(ex)
+		}
 		// @target() intrinsic — returns compile-time platform constant
 		if ex.Fn == "@target" {
 			return l.bld.Const(int64(l.target), mir2.TyU8, mir2.ClassGeneral)
@@ -1752,18 +2324,39 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 			fnName = alias
 		}
 
+		var calleeParams []Param
+		if callee := l.hirFuncs[fnName]; callee != nil {
+			calleeParams = callee.Params
+		}
 		args := make([]mir2.Reg, len(ex.Args))
 		for i, a := range ex.Args {
-			r := l.lowerExpr(a)
-			// Coerce arg to its calling-convention register class.
-			// E.g. arg[0] must be in ClassAcc (A), but classForExpr returns
-			// ClassGeneral for safety.  Emit an explicit Move so the allocator
-			// puts the value in the right physical register.
-			tgtCls := classForParam(a.ExprTy(), i)
-			if tgtCls != classForExpr(a.ExprTy()) {
-				r = l.bld.Move(r, a.ExprTy(), tgtCls)
+			// A struct expression is represented by its address when passed to
+			// a concrete method. Its storage width is not the argument width.
+			paramTy := a.ExprTy()
+			if _, isStruct := a.ExprTy().(*mir2.StructTy); isStruct && i < len(calleeParams) && mir2.IsPointer(calleeParams[i].Ty) {
+				paramTy = calleeParams[i].Ty
+			}
+			var r mir2.Reg
+			if _, literal := a.(*IntLitExpr); literal && i < len(calleeParams) && mir2.IsInt(paramTy) && mir2.IsInt(calleeParams[i].Ty) {
+				paramTy = calleeParams[i].Ty
+				r = l.lowerExprAs(a, paramTy)
+			} else {
+				r = l.lowerExpr(a)
+			}
+			tgtCls := classForParam(paramTy, i)
+			if tgtCls != classForExpr(paramTy) {
+				r = l.bld.Move(r, paramTy, tgtCls)
 			}
 			args[i] = r
+		}
+
+		if callee := l.hirFuncs[fnName]; callee != nil && callee.FallibleCY {
+			if l.errorFlag != mir2.NoReg {
+				panic("fallible call requires checking preceding outcome")
+			}
+			var value mir2.Reg
+			value, l.errorFlag, l.errorCode = l.bld.CallFallible(fnName, args, ex.Ty, classForRet(ex.Ty))
+			return value
 		}
 		if ex.Ty == mir2.TyVoid {
 			l.bld.CallVoid(fnName, args, mir2.CallAttrs{})
@@ -1791,7 +2384,21 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 			args[i] = r
 		}
 		cls := classForRet(ex.Ty)
-		return l.bld.CallIndirect(fnPtrReg, args, ex.Ty, cls)
+		r := l.bld.CallIndirect(fnPtrReg, args, ex.Ty, cls)
+		inst := l.bld.Cur.Insts[len(l.bld.Cur.Insts)-1]
+		if ex.Signature != nil {
+			inst.IndirectParamTys = append([]mir2.Ty(nil), ex.Signature.Params...)
+			inst.IndirectReturnTys = append([]mir2.Ty(nil), ex.Signature.Returns...)
+		} else {
+			for _, arg := range ex.Args {
+				inst.IndirectParamTys = append(inst.IndirectParamTys, arg.ExprTy())
+			}
+			if ex.Ty != mir2.TyVoid {
+				inst.IndirectReturnTys = []mir2.Ty{ex.Ty}
+			}
+		}
+		mir2.CloneCallABIMetadata(inst, inst)
+		return r
 
 	case *AddrOfExpr:
 		if ex.X != nil {
@@ -1858,9 +2465,33 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 	case *LetInExpr:
 		// Lower init, bind the result to the variable name, then lower body.
 		initReg := l.lowerExpr(ex.Init)
-		l.env[ex.Name] = initReg
-		l.envTy[ex.Name] = ex.Ty
-		return l.lowerExpr(ex.Body)
+		savedReg, hadReg := l.env[ex.Name]
+		savedTy, hadTy := l.envTy[ex.Name]
+		savedAlias, hadAlias := l.fnAliases[ex.Name]
+		savedArray, hadArray := l.localArrays[ex.Name]
+		l.bind(ex.Name, l.coerceLocalInteger(initReg, ex.Init.ExprTy(), ex.Ty), ex.Ty)
+		result := l.lowerExpr(ex.Body)
+		if hadReg {
+			l.env[ex.Name] = savedReg
+		} else {
+			delete(l.env, ex.Name)
+		}
+		if hadTy {
+			l.envTy[ex.Name] = savedTy
+		} else {
+			delete(l.envTy, ex.Name)
+		}
+		if hadAlias {
+			l.fnAliases[ex.Name] = savedAlias
+		} else {
+			delete(l.fnAliases, ex.Name)
+		}
+		if hadArray {
+			l.localArrays[ex.Name] = savedArray
+		} else {
+			delete(l.localArrays, ex.Name)
+		}
+		return result
 
 	default:
 		panic(fmt.Sprintf("hir/lower: unhandled expression type %T", e))
@@ -1939,16 +2570,27 @@ func (l *lowerer) lowerCondExpr(ex *CondExpr) mir2.Reg {
 	thenBlk := l.bld.SwitchToNewBlock(thenLabel)
 	_ = thenBlk
 	thenVal := l.lowerExpr(ex.Then)
-	l.bld.Jmp(joinLabel, thenVal)
+	if ex.Ty == mir2.TyVoid {
+		l.bld.Jmp(joinLabel)
+	} else {
+		l.bld.Jmp(joinLabel, thenVal)
+	}
 
 	// else-branch
 	elseBlk := l.bld.SwitchToNewBlock(elseLabel)
 	_ = elseBlk
 	elseVal := l.lowerExpr(ex.Else)
-	l.bld.Jmp(joinLabel, elseVal)
+	if ex.Ty == mir2.TyVoid {
+		l.bld.Jmp(joinLabel)
+	} else {
+		l.bld.Jmp(joinLabel, elseVal)
+	}
 
 	// join block: a block parameter receives the value from whichever branch
 	joinBlk := l.bld.SwitchToNewBlock(joinLabel)
+	if ex.Ty == mir2.TyVoid {
+		return mir2.NoReg
+	}
 	result := l.bld.BlockParam(joinBlk, ex.Ty, cls)
 	return result
 }
@@ -2168,7 +2810,15 @@ func scanStmt(s Stmt, env map[string]mir2.Reg, muts map[string]bool) {
 	case *Block:
 		scanBlock(st, env, muts)
 	case *AssignStmt:
-		if vr, ok := st.Target.(*VarRefExpr); ok {
+		target := st.Target
+		for {
+			bit, ok := target.(*BitExpr)
+			if !ok {
+				break
+			}
+			target = bit.X
+		}
+		if vr, ok := target.(*VarRefExpr); ok {
 			if _, inEnv := env[vr.Name]; inEnv {
 				muts[vr.Name] = true
 			}
@@ -2220,6 +2870,10 @@ func collectLabels(blk *Block, emit func(string)) {
 			collectLabels(st.Else, emit)
 		case *WhileStmt:
 			collectLabels(st.Body, emit)
+		case *ForRangeStmt:
+			collectLabels(st.Body, emit)
+		case *ForEachStmt:
+			collectLabels(st.Body, emit)
 		case *SwitchStmt:
 			for _, c := range st.Cases {
 				collectLabels(c.Body, emit)
@@ -2259,6 +2913,8 @@ func walkBackwardGotos(blk *Block, seen, result map[string]bool) {
 		case *WhileStmt:
 			walkBackwardGotos(st.Body, seen, result)
 		case *ForRangeStmt:
+			walkBackwardGotos(st.Body, seen, result)
+		case *ForEachStmt:
 			walkBackwardGotos(st.Body, seen, result)
 		case *SwitchStmt:
 			for _, c := range st.Cases {
@@ -2592,30 +3248,9 @@ func (l *lowerer) recognizeIterChain(expr Expr) (iterChain, bool) {
 		return iterChain{}, false
 	}
 
-	// Detect range-source form (2 args).
-	if len(call.Args) == 2 {
-		if rs, ok2 := call.Args[0].(*RangeSourceExpr); ok2 {
-			cbName := l.resolveFunc(call.Args[1])
-			if cbName == "" {
-				return iterChain{}, false
-			}
-			elemTy := mir2.Ty(mir2.TyU8)
-			if cbFn, ok3 := l.hirFuncs[cbName]; ok3 && len(cbFn.Params) > 0 {
-				elemTy = cbFn.Params[0].Ty
-			}
-			return iterChain{
-				cbName:   cbName,
-				mutate:   isMutate,
-				elemTy:   elemTy,
-				isRange:  true,
-				rangeLo:  rs.Lo,
-				rangeHi:  rs.Hi,
-				rangeRev: rs.Rev,
-			}, true
-		}
-	}
-
-	if len(call.Args) != 3 {
+	// Unwrap stages before distinguishing range and memory sources. A range
+	// chain has two terminal arguments even when map/filter wrap its source.
+	if len(call.Args) != 2 && len(call.Args) != 3 {
 		return iterChain{}, false
 	}
 
@@ -2625,7 +3260,6 @@ func (l *lowerer) recognizeIterChain(expr Expr) (iterChain, bool) {
 	}
 
 	chain := iterChain{
-		len:    call.Args[2],
 		cbName: cbName,
 		mutate: isMutate,
 		elemTy: mir2.TyU8, // default; refined from callback param below
@@ -2656,7 +3290,19 @@ func (l *lowerer) recognizeIterChain(expr Expr) (iterChain, bool) {
 	for i, j := 0, len(chain.stages)-1; i < j; i, j = i+1, j-1 {
 		chain.stages[i], chain.stages[j] = chain.stages[j], chain.stages[i]
 	}
-	chain.ptr = src
+	if rs, ok := src.(*RangeSourceExpr); ok {
+		// mapInPlace requires storage; range values have no address to mutate.
+		if chain.mutate || len(call.Args) != 2 {
+			return iterChain{}, false
+		}
+		chain.isRange = true
+		chain.rangeLo, chain.rangeHi, chain.rangeRev = rs.Lo, rs.Hi, rs.Rev
+	} else {
+		if len(call.Args) != 3 {
+			return iterChain{}, false
+		}
+		chain.ptr, chain.len = src, call.Args[2]
+	}
 	return chain, true
 }
 
@@ -2785,7 +3431,7 @@ func (l *lowerer) lowerFusedForEach(chain iterChain) {
 			paramName = cbFn.Params[0].Name
 		}
 		for _, s := range cbFn.Body.Body {
-			renamed := renameStmt(s, paramName, elemVar)
+			renamed := renameStmt(s, paramName, elemVar, l.lineage)
 			// ReturnStmt inside an inlined forEach callback = end of iteration body
 			// (not return from the outer function). Skip it.
 			if _, isRet := renamed.(*ReturnStmt); isRet {
@@ -2838,14 +3484,11 @@ func (l *lowerer) lowerFusedFold(chain iterChain) mir2.Reg {
 	}
 	if bodyExpr == nil {
 		// Complex or unknown callback — emit a call.
-		bodyExpr = &CallExpr{
-			Fn: chain.cbName,
-			Args: []Expr{
-				&VarRefExpr{Name: accVar, Ty: accTy},
-				&VarRefExpr{Name: elemVar, Ty: elemTy},
-			},
-			Ty: accTy,
+		args := []Expr{&VarRefExpr{Name: accVar, Ty: accTy}, &VarRefExpr{Name: elemVar, Ty: elemTy}}
+		if cbFn != nil && len(cbFn.Params) == 1 {
+			args = args[:1]
 		}
+		bodyExpr = &CallExpr{Fn: chain.cbName, Args: args, Ty: accTy}
 	}
 	bodyStmts := []Stmt{
 		&AssignStmt{
@@ -2853,6 +3496,8 @@ func (l *lowerer) lowerFusedFold(chain iterChain) mir2.Reg {
 			Val:    bodyExpr,
 		},
 	}
+
+	bodyStmts = foldStageBody(chain.stages, elemVar, elemTy, bodyStmts)
 
 	// 3. Run the ForEachStmt — lowerForEach threads __fold_acc__ via block params.
 	forEach := &ForEachStmt{
@@ -2874,18 +3519,11 @@ func (l *lowerer) lowerFusedFold(chain iterChain) mir2.Reg {
 // range(lo..hi).forEach(cb)   — pure DJNZ loop, no memory access
 // range(lo..hi).fold(init,cb) — DJNZ accumulator loop, result in register
 //
-// Back-counting range(hi..lo) (Rev=true):
-//   B = lo (the starting value), counts down to 0 via DJNZ directly.
-//   Element value = B (current counter). DJNZ is the ONLY branch instruction.
+// The range source exposes a countdown, not a conventional half-open interval:
+// range(0..n) and range(n..0) both yield n, n-1, ..., 1. Other forward
+// bounds give count = hi-lo; the element is the counter, not lo+offset.
+// See Nanz Language Book, chapter 6. lowerRangeLoop emits TermDJNZ directly.
 //
-// Forward-counting range(lo..hi) (Rev=false):
-//   Count = hi - lo (or just hi when lo==0).
-//   B = count, counts down. Element value = lo + (count_init - B) if needed.
-//   If element is unused ("_"), generates identical code to back-counting.
-//
-// Implementation: desugars to a ForRangeStmt so the existing lowerForRange
-// path generates the DJNZ loop and threads captured vars as block params.
-
 // lowerRangeForEach lowers range(lo..hi).forEach(cb) to a counter-only loop.
 func (l *lowerer) lowerRangeForEach(chain iterChain) {
 	const elemVar = "__iter_elem__"
@@ -2901,7 +3539,7 @@ func (l *lowerer) lowerRangeForEach(chain iterChain) {
 			if _, isRet := st.(*ReturnStmt); isRet {
 				continue
 			}
-			bodyStmts = append(bodyStmts, renameStmt(st, paramName, elemVar))
+			bodyStmts = append(bodyStmts, renameStmt(st, paramName, elemVar, l.lineage))
 		}
 	} else {
 		bodyStmts = []Stmt{&ExprStmt{Expr: &CallExpr{
@@ -2917,38 +3555,33 @@ func (l *lowerer) lowerRangeForEach(chain iterChain) {
 	l.lowerRangeLoop(chain, elemVar, elemTy, bodyStmts)
 }
 
-// prependStageStmts injects map/filter stage transformations before the main
-// loop body (used by lowerRangeForEach where composition into a single
-// expression isn't possible).
+// prependStageStmts preserves stage order and filter short-circuiting without
+// ContinueStmt: continue would jump over a range loop's implicit DJNZ decrement.
 func (l *lowerer) prependStageStmts(stages []iterStage, elemVar string, elemTy mir2.Ty, body []Stmt) []Stmt {
-	if len(stages) == 0 {
-		return body
-	}
-	var prefix []Stmt
-	for _, stage := range stages {
-		if stage.kind == "map" {
-			mapFn := l.hirFuncs[stage.fn]
-			if mapFn != nil && mapFn.Body != nil && len(mapFn.Params) >= 1 {
-				if ret := extractReturnExpr(mapFn.Body); ret != nil {
-					mapExpr := renameExpr(ret, mapFn.Params[0].Name, elemVar)
-					prefix = append(prefix, &AssignStmt{
-						Target: &VarRefExpr{Name: elemVar, Ty: elemTy},
-						Val:    mapExpr,
-					})
-					continue
-				}
+	for i := len(stages) - 1; i >= 0; i-- {
+		stage := stages[i]
+		ty := elemTy
+		if stage.kind == "filter" {
+			ty = mir2.TyBool
+		}
+		var value Expr
+		if fn := l.hirFuncs[stage.fn]; fn != nil && len(fn.Params) == 1 {
+			if ret := extractReturnExpr(fn.Body); ret != nil {
+				value = renameExpr(ret, fn.Params[0].Name, elemVar)
 			}
-			prefix = append(prefix, &AssignStmt{
-				Target: &VarRefExpr{Name: elemVar, Ty: elemTy},
-				Val: &CallExpr{
-					Fn:   stage.fn,
-					Args: []Expr{&VarRefExpr{Name: elemVar, Ty: elemTy}},
-					Ty:   elemTy,
-				},
-			})
+		}
+		if value == nil {
+			value = &CallExpr{Fn: stage.fn, Args: []Expr{&VarRefExpr{Name: elemVar, Ty: elemTy}}, Ty: ty}
+		}
+		switch stage.kind {
+		case "map":
+			assign := &AssignStmt{Target: &VarRefExpr{Name: elemVar, Ty: elemTy}, Val: value}
+			body = append([]Stmt{assign}, body...)
+		case "filter":
+			body = []Stmt{&IfStmt{Cond: value, Then: &Block{Body: body}}}
 		}
 	}
-	return append(prefix, body...)
+	return body
 }
 
 // lowerRangeFold lowers range(lo..hi).fold(init, cb) to a DJNZ accumulator loop.
@@ -2977,41 +3610,38 @@ func (l *lowerer) lowerRangeFold(chain iterChain) mir2.Reg {
 		}
 	}
 	if bodyExpr == nil {
-		bodyExpr = &CallExpr{
-			Fn: chain.cbName,
-			Args: []Expr{
-				&VarRefExpr{Name: accVar, Ty: accTy},
-				&VarRefExpr{Name: elemVar, Ty: elemTy},
-			},
-			Ty: accTy,
+		args := []Expr{&VarRefExpr{Name: accVar, Ty: accTy}, &VarRefExpr{Name: elemVar, Ty: elemTy}}
+		if cbFn != nil && len(cbFn.Params) == 1 {
+			args = args[:1]
 		}
+		bodyExpr = &CallExpr{Fn: chain.cbName, Args: args, Ty: accTy}
 	}
-	// Apply map stages as CALL-based transformations before the fold.
-	// Using CALL (not inline) avoids register class conflicts: the CALL
-	// boundary gives the allocator proper save/restore semantics.
-	var stageStmts []Stmt
-	for _, stage := range chain.stages {
-		if stage.kind != "map" {
-			continue
-		}
-		stageStmts = append(stageStmts, &AssignStmt{
-			Target: &VarRefExpr{Name: elemVar, Ty: elemTy},
-			Val: &CallExpr{
-				Fn:   stage.fn,
-				Args: []Expr{&VarRefExpr{Name: elemVar, Ty: elemTy}},
-				Ty:   elemTy,
-			},
-		})
-	}
-
-	foldAssign := &AssignStmt{
-		Target: &VarRefExpr{Name: accVar, Ty: accTy},
-		Val:    bodyExpr,
-	}
-	bodyStmts := append(stageStmts, foldAssign)
+	// Keep stage order and filter short-circuiting. Calls preserve callback
+	// prefixes; predicates guard the remaining pipeline without continue,
+	// which would bypass the range loop's implicit DJNZ decrement.
+	foldAssign := &AssignStmt{Target: &VarRefExpr{Name: accVar, Ty: accTy}, Val: bodyExpr}
+	bodyStmts := foldStageBody(chain.stages, elemVar, elemTy, []Stmt{foldAssign})
 
 	l.lowerRangeLoop(chain, elemVar, elemTy, bodyStmts)
 	return l.env[accVar]
+}
+
+// foldStageBody preserves map/filter order and skips the remaining stages and
+// terminal fold when a filter fails. Build from the end to nest the suffix.
+func foldStageBody(stages []iterStage, elemVar string, elemTy mir2.Ty, body []Stmt) []Stmt {
+	for i := len(stages) - 1; i >= 0; i-- {
+		stage := stages[i]
+		value := &VarRefExpr{Name: elemVar, Ty: elemTy}
+		switch stage.kind {
+		case "map":
+			assign := &AssignStmt{Target: value, Val: &CallExpr{Fn: stage.fn, Args: []Expr{value}, Ty: elemTy}}
+			body = append([]Stmt{assign}, body...)
+		case "filter":
+			pred := &CallExpr{Fn: stage.fn, Args: []Expr{value}, Ty: mir2.TyBool}
+			body = []Stmt{&IfStmt{Cond: pred, Then: &Block{Body: body}}}
+		}
+	}
+	return body
 }
 
 // lowerRangeLoop emits a counter-only DJNZ loop for range(lo..hi) sources.
@@ -3097,11 +3727,11 @@ func (l *lowerer) lowerRangeLoop(chain iterChain, elemVar string, elemTy mir2.Ty
 	// Element = current B value.
 	l.bind(elemVar, bodyCnt, elemTy)
 
-	// DJNZ loops have no CmpNe/AND A comparison — A is free for ALU results.
-	// Don't set inLoopContext, so lowerBinExpr uses classForALUResult (ClassAcc)
-	// rather than classForExpr (ClassGeneral), keeping acc in A without spills.
+	// A fold owns its accumulator in A. A forEach body may have several
+	// independently live values (including stage results and captures); use
+	// ordinary loop expression classes rather than forcing all ALU results to A.
 	prevInLoop := l.inLoopContext
-	l.inLoopContext = false
+	l.inLoopContext = !chain.isFold
 	l.pushLoop(loopCtx{headLabel: bodyLabel, exitLabel: exitLabel, mutated: mutated})
 	l.lowerBlock(syntheticBody)
 	l.popLoop()
@@ -3129,13 +3759,13 @@ func (l *lowerer) lowerRangeLoop(chain iterChain, elemVar string, elemTy mir2.Ty
 	l.env = exitEnv
 }
 
-// extractReturnExpr extracts the return value from the last statement of a block.
-// Returns nil if the block is complex (not a simple single return expression).
+// extractReturnExpr extracts a single-return expression only when it is the
+// entire body. Dropping a prefix can erase effects, local bindings or control flow.
 func extractReturnExpr(body *Block) Expr {
-	if body == nil || len(body.Body) == 0 {
+	if body == nil || len(body.Body) != 1 {
 		return nil
 	}
-	if rs, ok := body.Body[len(body.Body)-1].(*ReturnStmt); ok && rs.Val != nil {
+	if rs, ok := body.Body[0].(*ReturnStmt); ok && rs.Val != nil {
 		return rs.Val
 	}
 	return nil
@@ -3173,7 +3803,7 @@ func renameExpr(e Expr, from, to string) Expr {
 		for i, a := range ex.Args {
 			args[i] = renameExpr(a, from, to)
 		}
-		return &CallIndirectExpr{FnPtr: renameExpr(ex.FnPtr, from, to), Args: args, Ty: ex.Ty}
+		return &CallIndirectExpr{FnPtr: renameExpr(ex.FnPtr, from, to), Args: args, Ty: ex.Ty, Signature: ex.Signature.Clone()}
 	case *LoadExpr:
 		return &LoadExpr{Ptr: renameExpr(ex.Ptr, from, to), Ty: ex.Ty}
 	case *IndexExpr:
@@ -3204,7 +3834,16 @@ func renameExpr(e Expr, from, to string) Expr {
 }
 
 // renameStmt deep-copies a statement, renaming variables as in renameExpr.
-func renameStmt(s Stmt, from, to string) Stmt {
+func renameStmt(s Stmt, from, to string, lineage ...map[Stmt]LoopLineage) (renamed Stmt) {
+	// Each inlined copy retains its original site attribution. The lowerer owns
+	// this map; adding clone nodes must not mutate the input module metadata.
+	defer func() {
+		if len(lineage) > 0 && lineage[0] != nil && renamed != nil {
+			if origin, ok := lineage[0][s]; ok {
+				lineage[0][renamed] = origin
+			}
+		}
+	}()
 	if s == nil {
 		return nil
 	}
@@ -3224,11 +3863,11 @@ func renameStmt(s Stmt, from, to string) Stmt {
 	case *IfStmt:
 		var els *Block
 		if st.Else != nil {
-			els = renameBlock(st.Else, from, to)
+			els = renameBlock(st.Else, from, to, lineage...)
 		}
-		return &IfStmt{Cond: renameExpr(st.Cond, from, to), Then: renameBlock(st.Then, from, to), Else: els}
+		return &IfStmt{Cond: renameExpr(st.Cond, from, to), Then: renameBlock(st.Then, from, to, lineage...), Else: els}
 	case *Block:
-		return renameBlock(st, from, to)
+		return renameBlock(st, from, to, lineage...)
 	case *BreakStmt:
 		return &BreakStmt{}
 	case *ContinueStmt:
@@ -3240,20 +3879,44 @@ func renameStmt(s Stmt, from, to string) Stmt {
 	case *StoreStmt:
 		return &StoreStmt{Ptr: renameExpr(st.Ptr, from, to), Val: renameExpr(st.Val, from, to)}
 	case *WhileStmt:
-		return &WhileStmt{Cond: renameExpr(st.Cond, from, to), Body: renameBlock(st.Body, from, to)}
+		return &WhileStmt{Cond: renameExpr(st.Cond, from, to), Body: renameBlock(st.Body, from, to, lineage...)}
+	case *ForRangeStmt:
+		c := *st
+		c.Start = renameExpr(st.Start, from, to)
+		c.End = renameExpr(st.End, from, to)
+		c.Body = renameBlock(st.Body, from, to, lineage...)
+		return &c
+	case *ForEachStmt:
+		c := *st
+		c.Ptr = renameExpr(st.Ptr, from, to)
+		c.Start = renameExpr(st.Start, from, to)
+		c.Len = renameExpr(st.Len, from, to)
+		c.Body = renameBlock(st.Body, from, to, lineage...)
+		return &c
+	case *SwitchStmt:
+		c := *st
+		c.Val = renameExpr(st.Val, from, to)
+		c.Cases = make([]*SwitchCase, len(st.Cases))
+		for i := range c.Cases {
+			cc := *st.Cases[i]
+			cc.Body = renameBlock(st.Cases[i].Body, from, to, lineage...)
+			c.Cases[i] = &cc
+		}
+		c.Default = renameBlock(st.Default, from, to, lineage...)
+		return &c
 	default:
 		return s
 	}
 }
 
 // renameBlock deep-copies a block, renaming variables.
-func renameBlock(b *Block, from, to string) *Block {
+func renameBlock(b *Block, from, to string, lineage ...map[Stmt]LoopLineage) *Block {
 	if b == nil {
 		return nil
 	}
 	stmts := make([]Stmt, len(b.Body))
 	for i, s := range b.Body {
-		stmts[i] = renameStmt(s, from, to)
+		stmts[i] = renameStmt(s, from, to, lineage...)
 	}
 	return &Block{Body: stmts}
 }
@@ -3290,6 +3953,33 @@ func invertCond(e Expr) Expr {
 // this ensures each OpAddrOf result has useCount==1, enabling the HL-chain
 // optimization in z80codegen (LD HL,sym ; LD (HL),n ; INC HL ; ...).
 // Fields may appear in any source order; unmentioned fields are left uninitialized.
+// fixedStructStorage allocates one owned object in the function frame, even
+// for a source declaration in a conditional or loop body.
+func (l *lowerer) fixedStructStorage(ty *mir2.StructTy) mir2.Reg {
+	r := l.mf.AllocReg()
+	i := &mir2.Inst{Op: mir2.OpAlloca, Dst: r, Ty: mir2.TyPtr, Cls: mir2.ClassPointer, Imm: int64(max(1, mir2.ByteWidth(ty)))}
+	l.mf.Entry().Insts = append([]*mir2.Inst{i}, l.mf.Entry().Insts...)
+	return r
+}
+
+func (l *lowerer) copyStructValue(dest, source mir2.Reg, ty *mir2.StructTy) {
+	values := make([]mir2.Reg, mir2.ByteWidth(ty))
+	for off := range values {
+		addr := source
+		if off != 0 {
+			addr = l.bld.Field(source, int64(off), mir2.ClassPointer)
+		}
+		values[off] = l.bld.Load(addr, mir2.TyU8, mir2.ClassGeneral)
+	}
+	for off, value := range values {
+		addr := dest
+		if off != 0 {
+			addr = l.bld.Field(dest, int64(off), mir2.ClassPointer)
+		}
+		l.bld.Store(addr, value, mir2.TyU8)
+	}
+}
+
 func (l *lowerer) emitStructLitFields(lit *StructLitExpr, baseProvider func() mir2.Reg) {
 	for _, fi := range lit.Fields {
 		// Find the matching struct field to get its type and byte offset.
@@ -3305,6 +3995,17 @@ func (l *lowerer) emitStructLitFields(lit *StructLitExpr, baseProvider func() mi
 		if fieldTy == nil {
 			panic(fmt.Sprintf("hir/lower: struct %q has no field %q", lit.St.Name, fi.Name))
 		}
+		if nested, ok := fi.Val.(*StructLitExpr); ok {
+			off := byteOff
+			l.emitStructLitFields(nested, func() mir2.Reg {
+				base := baseProvider()
+				if off == 0 {
+					return base
+				}
+				return l.bld.Field(base, int64(off), mir2.ClassPointer)
+			})
+			continue
+		}
 		val := l.lowerExpr(fi.Val)
 		base := baseProvider()
 		var addr mir2.Reg
@@ -3313,7 +4014,11 @@ func (l *lowerer) emitStructLitFields(lit *StructLitExpr, baseProvider func() mi
 		} else {
 			addr = l.bld.Field(base, int64(byteOff), mir2.ClassPointer)
 		}
-		l.bld.Store(addr, val, fieldTy)
+		if ty, ok := mir2.BaseOf(fieldTy).(*mir2.StructTy); ok {
+			l.copyStructValue(addr, val, ty)
+		} else {
+			l.bld.Store(addr, val, fieldTy)
+		}
 	}
 }
 
@@ -3327,6 +4032,14 @@ func (l *lowerer) emitStructLitFields(lit *StructLitExpr, baseProvider func() mi
 // causing the allocator to spill to alloca instead of keeping everything in
 // registers.
 func (l *lowerer) emitStructLitFieldsChained(lit *StructLitExpr, startAddr mir2.Reg) {
+	for _, field := range lit.St.Fields {
+		if _, aggregate := mir2.BaseOf(field.Ty).(*mir2.StructTy); aggregate {
+			// Inline subobjects require a value copy (or recursive literal
+			// initialization), never an address-sized scalar store.
+			l.emitStructLitFields(lit, func() mir2.Reg { return startAddr })
+			return
+		}
+	}
 	// Build sorted (offset, ty, valExpr) list — store HIR Expr, not lowered Reg.
 	type fieldEntry struct {
 		byteOff int
@@ -3546,4 +4259,33 @@ func z80AutoClobbers(code string) mir2.ClassSet {
 		}
 	}
 	return cs
+}
+
+func collectGotoAncestors(b *Block, path []*Block, out map[string][]*Block) {
+	if b == nil {
+		return
+	}
+	path = append(append([]*Block(nil), path...), b)
+	for _, s := range b.Body {
+		switch x := s.(type) {
+		case *LabelStmt:
+			out[x.Name] = path
+		case *Block:
+			collectGotoAncestors(x, path, out)
+		case *IfStmt:
+			collectGotoAncestors(x.Then, path, out)
+			collectGotoAncestors(x.Else, path, out)
+		case *WhileStmt:
+			collectGotoAncestors(x.Body, path, out)
+		case *ForRangeStmt:
+			collectGotoAncestors(x.Body, path, out)
+		case *ForEachStmt:
+			collectGotoAncestors(x.Body, path, out)
+		case *SwitchStmt:
+			for _, c := range x.Cases {
+				collectGotoAncestors(c.Body, path, out)
+			}
+			collectGotoAncestors(x.Default, path, out)
+		}
+	}
 }

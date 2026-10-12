@@ -1,0 +1,302 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "434df3cf21280b9ee237cc99147adb08ff79645da40759c4077b2257101c1a91"
+  },
+  {
+    "path": "hello_agon/hir-grace-size/program.asm",
+    "sha256": "011a4f1d76557493d673ef21b4ed5acb3d8107a592f2cfb814aa3a1ce2423f25"
+  },
+  {
+    "path": "hello_agon/hir-grace-size/program.asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/hir-grace-size/program.asm.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/hir-grace-size/program.bin",
+    "sha256": "2069e2a4b068f56d1426c2d842fe11ae982ed1b6ed20091fec977dfae8cd7e32"
+  },
+  {
+    "path": "hello_agon/hir-grace-size/program.bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/hir-grace-size/program.bin.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/hir-grace-size/result.json",
+    "sha256": "99ab23ec9b304b1bd40bc4cff0026a8fbc586b9aba927e1bcb18edf1ec9e6716"
+  },
+  {
+    "path": "hello_agon/hir-grace-size/sdcard/program.bin",
+    "sha256": "2069e2a4b068f56d1426c2d842fe11ae982ed1b6ed20091fec977dfae8cd7e32"
+  },
+  {
+    "path": "hello_agon/hir-grace-size/source.nanz",
+    "sha256": "4684218e7110368e2122eff39a16dd792dea3bd335383cec6000507505831f77"
+  },
+  {
+    "path": "hello_agon/hir-grace-size/stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/hir-grace-size/stdin.txt",
+    "sha256": "c25bb3a8c17d4b0a44c6cea64b72d977e6e91093a05d4df88979b8649493ed53"
+  },
+  {
+    "path": "hello_agon/hir-grace-size/stdout.txt",
+    "sha256": "fed50e325d7077018cc5dd1ac6e77c8d802ce39a8ce68a10dbc5552edd10673d"
+  },
+  {
+    "path": "hello_agon/hir-grace-speed/program.asm",
+    "sha256": "011a4f1d76557493d673ef21b4ed5acb3d8107a592f2cfb814aa3a1ce2423f25"
+  },
+  {
+    "path": "hello_agon/hir-grace-speed/program.asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/hir-grace-speed/program.asm.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/hir-grace-speed/program.bin",
+    "sha256": "2069e2a4b068f56d1426c2d842fe11ae982ed1b6ed20091fec977dfae8cd7e32"
+  },
+  {
+    "path": "hello_agon/hir-grace-speed/program.bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/hir-grace-speed/program.bin.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/hir-grace-speed/result.json",
+    "sha256": "f119f7dfd6cd197f607ed45c185fe0a182f961fb990a25cf1220081e90c25b88"
+  },
+  {
+    "path": "hello_agon/hir-grace-speed/sdcard/program.bin",
+    "sha256": "2069e2a4b068f56d1426c2d842fe11ae982ed1b6ed20091fec977dfae8cd7e32"
+  },
+  {
+    "path": "hello_agon/hir-grace-speed/source.nanz",
+    "sha256": "4684218e7110368e2122eff39a16dd792dea3bd335383cec6000507505831f77"
+  },
+  {
+    "path": "hello_agon/hir-grace-speed/stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/hir-grace-speed/stdin.txt",
+    "sha256": "c25bb3a8c17d4b0a44c6cea64b72d977e6e91093a05d4df88979b8649493ed53"
+  },
+  {
+    "path": "hello_agon/hir-grace-speed/stdout.txt",
+    "sha256": "fed50e325d7077018cc5dd1ac6e77c8d802ce39a8ce68a10dbc5552edd10673d"
+  },
+  {
+    "path": "hello_agon/ordinary/program.asm",
+    "sha256": "011a4f1d76557493d673ef21b4ed5acb3d8107a592f2cfb814aa3a1ce2423f25"
+  },
+  {
+    "path": "hello_agon/ordinary/program.asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/ordinary/program.asm.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/ordinary/program.bin",
+    "sha256": "2069e2a4b068f56d1426c2d842fe11ae982ed1b6ed20091fec977dfae8cd7e32"
+  },
+  {
+    "path": "hello_agon/ordinary/program.bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/ordinary/program.bin.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/ordinary/result.json",
+    "sha256": "27ec9165c6b835680f628b104a64dadc9f7d746e791fd2f639669307b148b2d2"
+  },
+  {
+    "path": "hello_agon/ordinary/sdcard/program.bin",
+    "sha256": "2069e2a4b068f56d1426c2d842fe11ae982ed1b6ed20091fec977dfae8cd7e32"
+  },
+  {
+    "path": "hello_agon/ordinary/source.nanz",
+    "sha256": "4684218e7110368e2122eff39a16dd792dea3bd335383cec6000507505831f77"
+  },
+  {
+    "path": "hello_agon/ordinary/stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/ordinary/stdin.txt",
+    "sha256": "c25bb3a8c17d4b0a44c6cea64b72d977e6e91093a05d4df88979b8649493ed53"
+  },
+  {
+    "path": "hello_agon/ordinary/stdout.txt",
+    "sha256": "fed50e325d7077018cc5dd1ac6e77c8d802ce39a8ce68a10dbc5552edd10673d"
+  },
+  {
+    "path": "hello_world/hir-grace-size/program.asm",
+    "sha256": "94d91f25f339028f8cf04410b6fe31d2058e701a6506fcec903ed8162acb70e5"
+  },
+  {
+    "path": "hello_world/hir-grace-size/program.asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/hir-grace-size/program.asm.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/hir-grace-size/program.bin",
+    "sha256": "89e840b7e79fe2f35e544dce2aa7411db8fe0185d2c35d429834b6aca265f6a2"
+  },
+  {
+    "path": "hello_world/hir-grace-size/program.bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/hir-grace-size/program.bin.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/hir-grace-size/result.json",
+    "sha256": "1e36ee408d7efda58ab8e60ab119f32d6d229494d73733ad1a22695b71ff9f06"
+  },
+  {
+    "path": "hello_world/hir-grace-size/sdcard/program.bin",
+    "sha256": "89e840b7e79fe2f35e544dce2aa7411db8fe0185d2c35d429834b6aca265f6a2"
+  },
+  {
+    "path": "hello_world/hir-grace-size/source.nanz",
+    "sha256": "f6d88281bb19c637b1dcde8ccdcbc6a26eaba47e09153d892f160f5177d3d6f5"
+  },
+  {
+    "path": "hello_world/hir-grace-size/stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/hir-grace-size/stdin.txt",
+    "sha256": "c25bb3a8c17d4b0a44c6cea64b72d977e6e91093a05d4df88979b8649493ed53"
+  },
+  {
+    "path": "hello_world/hir-grace-size/stdout.txt",
+    "sha256": "376de2a06a6c356d90b5fb496c752c6cf6062c872fb31c2decfb4bcfafb4ae7b"
+  },
+  {
+    "path": "hello_world/hir-grace-speed/program.asm",
+    "sha256": "94d91f25f339028f8cf04410b6fe31d2058e701a6506fcec903ed8162acb70e5"
+  },
+  {
+    "path": "hello_world/hir-grace-speed/program.asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/hir-grace-speed/program.asm.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/hir-grace-speed/program.bin",
+    "sha256": "89e840b7e79fe2f35e544dce2aa7411db8fe0185d2c35d429834b6aca265f6a2"
+  },
+  {
+    "path": "hello_world/hir-grace-speed/program.bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/hir-grace-speed/program.bin.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/hir-grace-speed/result.json",
+    "sha256": "b62aa9e0072c5d6896d17518a8ddfd6f7d81f933d044829ff4072f1df2577f15"
+  },
+  {
+    "path": "hello_world/hir-grace-speed/sdcard/program.bin",
+    "sha256": "89e840b7e79fe2f35e544dce2aa7411db8fe0185d2c35d429834b6aca265f6a2"
+  },
+  {
+    "path": "hello_world/hir-grace-speed/source.nanz",
+    "sha256": "f6d88281bb19c637b1dcde8ccdcbc6a26eaba47e09153d892f160f5177d3d6f5"
+  },
+  {
+    "path": "hello_world/hir-grace-speed/stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/hir-grace-speed/stdin.txt",
+    "sha256": "c25bb3a8c17d4b0a44c6cea64b72d977e6e91093a05d4df88979b8649493ed53"
+  },
+  {
+    "path": "hello_world/hir-grace-speed/stdout.txt",
+    "sha256": "376de2a06a6c356d90b5fb496c752c6cf6062c872fb31c2decfb4bcfafb4ae7b"
+  },
+  {
+    "path": "hello_world/ordinary/program.asm",
+    "sha256": "94d91f25f339028f8cf04410b6fe31d2058e701a6506fcec903ed8162acb70e5"
+  },
+  {
+    "path": "hello_world/ordinary/program.asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/ordinary/program.asm.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/ordinary/program.bin",
+    "sha256": "89e840b7e79fe2f35e544dce2aa7411db8fe0185d2c35d429834b6aca265f6a2"
+  },
+  {
+    "path": "hello_world/ordinary/program.bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/ordinary/program.bin.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/ordinary/result.json",
+    "sha256": "8ae883968bbd4adb2e852aa2f112161d0725c29ab8b3a35c9a60da9749f9435b"
+  },
+  {
+    "path": "hello_world/ordinary/sdcard/program.bin",
+    "sha256": "89e840b7e79fe2f35e544dce2aa7411db8fe0185d2c35d429834b6aca265f6a2"
+  },
+  {
+    "path": "hello_world/ordinary/source.nanz",
+    "sha256": "f6d88281bb19c637b1dcde8ccdcbc6a26eaba47e09153d892f160f5177d3d6f5"
+  },
+  {
+    "path": "hello_world/ordinary/stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/ordinary/stdin.txt",
+    "sha256": "c25bb3a8c17d4b0a44c6cea64b72d977e6e91093a05d4df88979b8649493ed53"
+  },
+  {
+    "path": "hello_world/ordinary/stdout.txt",
+    "sha256": "376de2a06a6c356d90b5fb496c752c6cf6062c872fb31c2decfb4bcfafb4ae7b"
+  },
+  {
+    "path": "mos.nanz",
+    "sha256": "68688841d1f7742c6a0c596e55af5b6e239a15a581aef2edc77246945adf505f"
+  },
+  {
+    "path": "summary.json",
+    "sha256": "687d20d49bbd15cb9f8fa2bf5530661197845f5d727d099e2341d8d7bd9e55d5"
+  }
+]

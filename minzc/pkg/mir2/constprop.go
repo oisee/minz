@@ -1,5 +1,7 @@
 package mir2
 
+import "reflect"
+
 // collectKnownConsts returns a map of Reg → int64 for every OpConst-defined
 // register in f.  This is the seed used by PropagateConstants, FoldConstants,
 // and ConstantCallElim.
@@ -27,6 +29,7 @@ func collectKnownConsts(f *Func) map[Reg]int64 {
 //   - Binary:  OpAdd, OpSub, OpMul, OpDiv, OpSDiv, OpMod
 //     OpAnd, OpOr, OpXor, OpShl, OpShr, OpSar
 //   - Compare: OpCmp (all conditions, signed and unsigned)
+//   - Branch: TermBrIf and TermCondRet with known conditions
 //
 // Returns true if any instruction was folded.  Callers should follow with
 // DeadStoreElim to remove the now-unused original operand definitions.
@@ -54,6 +57,43 @@ func FoldConstants(f *Func) bool {
 				SrcLine: inst.SrcLine,
 			}
 			consts[inst.Dst] = folded
+			changed = true
+		}
+	}
+	if foldConstantBranches(f, consts) {
+		EliminateDeadBlocks(f)
+		changed = true
+	}
+	return changed
+}
+
+// foldConstantBranches preserves the selected edge's arguments. CondRet
+// returns on zero, the opposite of its continuation edge.
+func foldConstantBranches(f *Func, consts map[Reg]int64) bool {
+	changed := false
+	for _, b := range f.Blocks {
+		switch term := b.Term.(type) {
+		case *TermBrIf:
+			value, known := consts[term.Cond]
+			if !known {
+				continue
+			}
+			if value != 0 {
+				b.Term = &TermJmp{Target: term.Then, Args: append([]Reg(nil), term.ThenArgs...)}
+			} else {
+				b.Term = &TermJmp{Target: term.Else, Args: append([]Reg(nil), term.ElseArgs...)}
+			}
+			changed = true
+		case *TermCondRet:
+			value, known := consts[term.Cond]
+			if !known {
+				continue
+			}
+			if value == 0 {
+				b.Term = &TermRet{Vals: append([]Reg(nil), term.Vals...)}
+			} else {
+				b.Term = &TermJmp{Target: term.Then, Args: append([]Reg(nil), term.ThenArgs...)}
+			}
 			changed = true
 		}
 	}
@@ -345,9 +385,12 @@ func PropagateConstants(f *Func) bool {
 			if !ok {
 				continue
 			}
+			// Block entry truncates every incoming value to the parameter's
+			// width. Propagate that value, not the predecessor's wider value.
+			cv = maskToWidth(cv, param.Ty)
 			allSame := true
 			for _, s := range srcs[1:] {
-				if v, ok2 := consts[s]; !ok2 || v != cv {
+				if v, ok2 := consts[s]; !ok2 || maskToWidth(v, param.Ty) != cv {
 					allSame = false
 					break
 				}
@@ -431,10 +474,27 @@ func PropagateConstants(f *Func) bool {
 // Returns true if any instruction was rewritten.
 func SimplifyIdentities(f *Func) bool {
 	consts := collectKnownConsts(f)
-	changed := false
+	changed := simplifyTypedZeroIdentities(f)
 	for _, b := range f.Blocks {
+		defs := map[Reg]*Inst{}
 		for i, inst := range b.Insts {
 			switch inst.Op {
+			case OpTrunc:
+				// trunc8(and16(x, 255)) == trunc8(x), including signed x.
+				// Only inspect a dominating definition in this block; do not
+				// touch the original byte memory instructions or remove an
+				// AND whose full-width value has another consumer.
+				mask := defs[inst.Src[0]]
+				if !inst.ClsHard && inst.Ty != nil && inst.Ty.Width() == 8 && inst.SrcTy != nil && inst.SrcTy.Width() == 16 &&
+					mask != nil && mask.Op == OpAnd && !mask.ClsHard && mask.Ty != nil && mask.Ty.Width() == 16 {
+					for n := 0; n < 2; n++ {
+						if k := defs[mask.Src[n]]; k != nil && k.Op == OpConst && k.Ty != nil && k.Ty.Width() == 16 && k.Imm == 255 {
+							inst.Src[0] = mask.Src[1-n]
+							changed = true
+							break
+						}
+					}
+				}
 			case OpPtrAdd:
 				// PtrAdd(x, 0) → Move(x)
 				if v, ok := consts[inst.Src[1]]; ok && v == 0 {
@@ -483,6 +543,9 @@ func SimplifyIdentities(f *Func) bool {
 					}
 					changed = true
 				}
+			}
+			if inst.Dst != NoReg {
+				defs[inst.Dst] = b.Insts[i]
 			}
 		}
 	}
@@ -550,7 +613,127 @@ func rewriteTermUses(t Term, old, new_ Reg) {
 		}
 		rewriteSlice(t.BodyArgs)
 		rewriteSlice(t.ExitArgs)
+	case *TermErrorRet:
+		if t.Code == old {
+			t.Code = new_
+		}
 	case *TermRet:
 		rewriteSlice(t.Vals)
 	}
+}
+
+// simplifyTypedZeroIdentities transfers value identities before allocation.
+// It never reasons about textual flag-producing Z80 instructions. Opaque ASM,
+// first-class flag/CY consumers and fallible exits remain outside this domain.
+func simplifyTypedZeroIdentities(f *Func) bool {
+	if f == nil || f.Attrs.FallibleCY {
+		return false
+	}
+	for _, p := range f.Contract.Params {
+		if p.Class == ClassFlag {
+			return false
+		}
+	}
+	for _, r := range f.Contract.Returns {
+		if r.Class == ClassFlag {
+			return false
+		}
+	}
+	for _, b := range f.Blocks {
+		switch b.Term.(type) {
+		case *TermErrorRet:
+			return false
+		}
+		for _, p := range b.Params {
+			if p.Class == ClassFlag {
+				return false
+			}
+		}
+		for _, x := range b.Insts {
+			if x == nil || x.Op == OpAsm || x.Op == OpCallCond || x.Op == OpCmp || x.FallibleCY || x.FlagsOnly || x.Cls == ClassFlag {
+				return false
+			}
+		}
+	}
+	integer := func(t Ty) bool { return t == TyU8 || t == TyI8 || t == TyU16 || t == TyI16 }
+	changed := false
+	for _, b := range f.Blocks {
+		types := map[Reg]Ty{}
+		for _, p := range f.Contract.Params {
+			types[p.Reg] = p.Ty
+		}
+		for _, p := range b.Params {
+			types[p.Dst] = p.Ty
+		}
+		defs := map[Reg]*Inst{}
+		for i, x := range b.Insts {
+			if x == nil {
+				continue
+			}
+			clean := *x
+			clean.Op = 0
+			clean.Dst = 0
+			clean.Src = [2]Reg{}
+			clean.Ty = nil
+			clean.Cls = 0
+			clean.SrcLine = 0
+			clean.SrcFile = ""
+			// Unlisted metadata on a value opcode cannot be silently discarded.
+			pure := reflect.DeepEqual(clean, Inst{}) && !x.ClsHard && integer(x.Ty) && x.Dst > 0 && types[x.Src[0]] == x.Ty && types[x.Src[1]] == x.Ty
+			zero := func(r Reg) bool {
+				k := defs[r]
+				if k == nil || k.Op != OpConst || k.ClsHard || k.Ty != x.Ty || truncate(Value{I: k.Imm}, k.Ty).I != 0 {
+					return false
+				}
+				plain := *k
+				plain.Op, plain.Dst, plain.Imm, plain.Ty, plain.Cls = 0, 0, 0, nil, 0
+				plain.SrcFile, plain.SrcLine = "", 0
+				return reflect.DeepEqual(plain, Inst{})
+			}
+			replacement := -1
+			constant := false
+			if pure {
+				switch x.Op {
+				case OpOr, OpXor:
+					if zero(x.Src[1]) {
+						replacement = 0
+					} else if zero(x.Src[0]) {
+						replacement = 1
+					}
+				case OpSub, OpShl:
+					if zero(x.Src[1]) {
+						replacement = 0
+					}
+				case OpAnd, OpMul:
+					// Byte multiply-by-zero already has a cheaper native XOR path.
+					// Keep that path rather than forcing a general-class constant.
+					if x.Op == OpMul && x.Ty.Width() == 8 {
+						break
+					}
+					if zero(x.Src[0]) || zero(x.Src[1]) {
+						constant = true
+					}
+				}
+			}
+			if replacement >= 0 || constant {
+				y := *x
+				if constant {
+					y.Op = OpConst
+					y.Imm = 0
+					y.Src = [2]Reg{}
+				} else {
+					y.Op = OpMove
+					y.Src = [2]Reg{x.Src[replacement]}
+				}
+				b.Insts[i] = &y
+				x = &y
+				changed = true
+			}
+			if x.Dst != NoReg {
+				types[x.Dst] = x.Ty
+				defs[x.Dst] = x
+			}
+		}
+	}
+	return changed
 }

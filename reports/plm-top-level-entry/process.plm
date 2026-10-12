@@ -1,0 +1,15 @@
+Process: do;
+declare Trace byte;
+Consume: procedure(P, N);
+ declare P word, N byte, C byte;
+ do while N <> 0;
+  C = P(0);
+  Trace = Trace * 3 + C;
+  P = P + 1;
+  N = N - 1;
+ end;
+end Consume;
+Trace = 0;
+call Consume(.'aB''c!', 5);
+call Consume(.('zY'), 2);
+end Process;

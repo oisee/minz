@@ -1,0 +1,23 @@
+{
+  "base": "432a3950",
+  "before_execution": true,
+  "sources": [
+    {
+      "path": "examples/nanz/16_rotate_sled.nanz",
+      "sha256": "de903b9610bef3db82d4143cb2cf51b749895cb1ef6937df9970f8a226a4baeb"
+    },
+    {
+      "path": "reports/artifacts/legacy-import/16_rotate_sled.nanz",
+      "sha256": "de903b9610bef3db82d4143cb2cf51b749895cb1ef6937df9970f8a226a4baeb"
+    }
+  ],
+  "models": {
+    "swap_nibbles": "rol8(x,4)",
+    "rol1": "rol8(x,1)",
+    "rol3": "rol8(x,3)",
+    "high_nibble": "x>>4",
+    "low_nibble": "x&15",
+    "main": "decimal stdout 1861011 (no source separator/newline); OUT23 native model"
+  },
+  "domain": "all256 x per5helper each3modes, actual helper CALL/PC/SP/fullRAM; main compiler top-level terminates DI/HALT at SPeffe; corrected pre-main rerun, initial CALL-return expectation was wrong; ASM noVMoracle"
+}

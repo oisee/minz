@@ -1,0 +1,3848 @@
+[
+  {
+    "entry": "IsDigit",
+    "input": 0,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 1,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 2,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 3,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 4,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 5,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 6,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 7,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 8,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 9,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 10,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 11,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 12,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 13,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 14,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 15,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 16,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 17,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 18,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 19,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 20,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 21,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 22,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 23,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 24,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 25,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 26,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 27,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 28,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 29,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 30,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 31,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 32,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 33,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 34,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 35,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 36,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 37,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 38,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 39,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 40,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 41,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 42,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 43,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 44,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 45,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 46,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 47,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 48,
+    "expected": 1
+  },
+  {
+    "entry": "IsDigit",
+    "input": 49,
+    "expected": 1
+  },
+  {
+    "entry": "IsDigit",
+    "input": 50,
+    "expected": 1
+  },
+  {
+    "entry": "IsDigit",
+    "input": 51,
+    "expected": 1
+  },
+  {
+    "entry": "IsDigit",
+    "input": 52,
+    "expected": 1
+  },
+  {
+    "entry": "IsDigit",
+    "input": 53,
+    "expected": 1
+  },
+  {
+    "entry": "IsDigit",
+    "input": 54,
+    "expected": 1
+  },
+  {
+    "entry": "IsDigit",
+    "input": 55,
+    "expected": 1
+  },
+  {
+    "entry": "IsDigit",
+    "input": 56,
+    "expected": 1
+  },
+  {
+    "entry": "IsDigit",
+    "input": 57,
+    "expected": 1
+  },
+  {
+    "entry": "IsDigit",
+    "input": 58,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 59,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 60,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 61,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 62,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 63,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 64,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 65,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 66,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 67,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 68,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 69,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 70,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 71,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 72,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 73,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 74,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 75,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 76,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 77,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 78,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 79,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 80,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 81,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 82,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 83,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 84,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 85,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 86,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 87,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 88,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 89,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 90,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 91,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 92,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 93,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 94,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 95,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 96,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 97,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 98,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 99,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 100,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 101,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 102,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 103,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 104,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 105,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 106,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 107,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 108,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 109,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 110,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 111,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 112,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 113,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 114,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 115,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 116,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 117,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 118,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 119,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 120,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 121,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 122,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 123,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 124,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 125,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 126,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 127,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 128,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 129,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 130,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 131,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 132,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 133,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 134,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 135,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 136,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 137,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 138,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 139,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 140,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 141,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 142,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 143,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 144,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 145,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 146,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 147,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 148,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 149,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 150,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 151,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 152,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 153,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 154,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 155,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 156,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 157,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 158,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 159,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 160,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 161,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 162,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 163,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 164,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 165,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 166,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 167,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 168,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 169,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 170,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 171,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 172,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 173,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 174,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 175,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 176,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 177,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 178,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 179,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 180,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 181,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 182,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 183,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 184,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 185,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 186,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 187,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 188,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 189,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 190,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 191,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 192,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 193,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 194,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 195,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 196,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 197,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 198,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 199,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 200,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 201,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 202,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 203,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 204,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 205,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 206,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 207,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 208,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 209,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 210,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 211,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 212,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 213,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 214,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 215,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 216,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 217,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 218,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 219,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 220,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 221,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 222,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 223,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 224,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 225,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 226,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 227,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 228,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 229,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 230,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 231,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 232,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 233,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 234,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 235,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 236,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 237,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 238,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 239,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 240,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 241,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 242,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 243,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 244,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 245,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 246,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 247,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 248,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 249,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 250,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 251,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 252,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 253,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 254,
+    "expected": 0
+  },
+  {
+    "entry": "IsDigit",
+    "input": 255,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 0,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 1,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 2,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 3,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 4,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 5,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 6,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 7,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 8,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 9,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 10,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 11,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 12,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 13,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 14,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 15,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 16,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 17,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 18,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 19,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 20,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 21,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 22,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 23,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 24,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 25,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 26,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 27,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 28,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 29,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 30,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 31,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 32,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 33,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 34,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 35,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 36,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 37,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 38,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 39,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 40,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 41,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 42,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 43,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 44,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 45,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 46,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 47,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 48,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 49,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 50,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 51,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 52,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 53,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 54,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 55,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 56,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 57,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 58,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 59,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 60,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 61,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 62,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 63,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 64,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 65,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 66,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 67,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 68,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 69,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 70,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 71,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 72,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 73,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 74,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 75,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 76,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 77,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 78,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 79,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 80,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 81,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 82,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 83,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 84,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 85,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 86,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 87,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 88,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 89,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 90,
+    "expected": 1
+  },
+  {
+    "entry": "IsUpper",
+    "input": 91,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 92,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 93,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 94,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 95,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 96,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 97,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 98,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 99,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 100,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 101,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 102,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 103,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 104,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 105,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 106,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 107,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 108,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 109,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 110,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 111,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 112,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 113,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 114,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 115,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 116,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 117,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 118,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 119,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 120,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 121,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 122,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 123,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 124,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 125,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 126,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 127,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 128,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 129,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 130,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 131,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 132,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 133,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 134,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 135,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 136,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 137,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 138,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 139,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 140,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 141,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 142,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 143,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 144,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 145,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 146,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 147,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 148,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 149,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 150,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 151,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 152,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 153,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 154,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 155,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 156,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 157,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 158,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 159,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 160,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 161,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 162,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 163,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 164,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 165,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 166,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 167,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 168,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 169,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 170,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 171,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 172,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 173,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 174,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 175,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 176,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 177,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 178,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 179,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 180,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 181,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 182,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 183,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 184,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 185,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 186,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 187,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 188,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 189,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 190,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 191,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 192,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 193,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 194,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 195,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 196,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 197,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 198,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 199,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 200,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 201,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 202,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 203,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 204,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 205,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 206,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 207,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 208,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 209,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 210,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 211,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 212,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 213,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 214,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 215,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 216,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 217,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 218,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 219,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 220,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 221,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 222,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 223,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 224,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 225,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 226,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 227,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 228,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 229,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 230,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 231,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 232,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 233,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 234,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 235,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 236,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 237,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 238,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 239,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 240,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 241,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 242,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 243,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 244,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 245,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 246,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 247,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 248,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 249,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 250,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 251,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 252,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 253,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 254,
+    "expected": 0
+  },
+  {
+    "entry": "IsUpper",
+    "input": 255,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 0,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 1,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 2,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 3,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 4,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 5,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 6,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 7,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 8,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 9,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 10,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 11,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 12,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 13,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 14,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 15,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 16,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 17,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 18,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 19,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 20,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 21,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 22,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 23,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 24,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 25,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 26,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 27,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 28,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 29,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 30,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 31,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 32,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 33,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 34,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 35,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 36,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 37,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 38,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 39,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 40,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 41,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 42,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 43,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 44,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 45,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 46,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 47,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 48,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 49,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 50,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 51,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 52,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 53,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 54,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 55,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 56,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 57,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 58,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 59,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 60,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 61,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 62,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 63,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 64,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 65,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 66,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 67,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 68,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 69,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 70,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 71,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 72,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 73,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 74,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 75,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 76,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 77,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 78,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 79,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 80,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 81,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 82,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 83,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 84,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 85,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 86,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 87,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 88,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 89,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 90,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 91,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 92,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 93,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 94,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 95,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 96,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 97,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 98,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 99,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 100,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 101,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 102,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 103,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 104,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 105,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 106,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 107,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 108,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 109,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 110,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 111,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 112,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 113,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 114,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 115,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 116,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 117,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 118,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 119,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 120,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 121,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 122,
+    "expected": 1
+  },
+  {
+    "entry": "IsLower",
+    "input": 123,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 124,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 125,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 126,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 127,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 128,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 129,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 130,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 131,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 132,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 133,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 134,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 135,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 136,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 137,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 138,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 139,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 140,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 141,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 142,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 143,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 144,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 145,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 146,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 147,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 148,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 149,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 150,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 151,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 152,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 153,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 154,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 155,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 156,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 157,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 158,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 159,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 160,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 161,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 162,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 163,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 164,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 165,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 166,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 167,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 168,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 169,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 170,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 171,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 172,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 173,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 174,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 175,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 176,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 177,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 178,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 179,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 180,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 181,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 182,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 183,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 184,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 185,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 186,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 187,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 188,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 189,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 190,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 191,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 192,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 193,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 194,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 195,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 196,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 197,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 198,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 199,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 200,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 201,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 202,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 203,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 204,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 205,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 206,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 207,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 208,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 209,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 210,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 211,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 212,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 213,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 214,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 215,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 216,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 217,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 218,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 219,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 220,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 221,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 222,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 223,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 224,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 225,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 226,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 227,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 228,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 229,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 230,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 231,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 232,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 233,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 234,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 235,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 236,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 237,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 238,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 239,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 240,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 241,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 242,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 243,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 244,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 245,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 246,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 247,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 248,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 249,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 250,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 251,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 252,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 253,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 254,
+    "expected": 0
+  },
+  {
+    "entry": "IsLower",
+    "input": 255,
+    "expected": 0
+  },
+  {
+    "entry": "main",
+    "arguments": [],
+    "expected_void": true,
+    "expected_effects": []
+  }
+]

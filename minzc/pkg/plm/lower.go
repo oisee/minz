@@ -36,6 +36,7 @@ func LowerModule(pm *Module) (*hir.Module, error) {
 	l := &modLowerer{
 		pm:           pm,
 		fnRetTy:      make(map[string]PLMType),
+		globalTypes:  make(map[string]PLMType),
 		globalArrays: make(map[string]int),
 		globalBased:  make(map[string]string),
 		globalAt:     make(map[string]*uint16),
@@ -46,15 +47,18 @@ func LowerModule(pm *Module) (*hir.Module, error) {
 // ── Module lowerer ────────────────────────────────────────────────────────────
 
 type modLowerer struct {
+	hm           *hir.Module
+	globalTypes  map[string]PLMType
 	pm           *Module
-	fnRetTy      map[string]PLMType  // return type per procedure name
-	globalArrays map[string]int      // name → array size (0 = scalar)
-	globalBased  map[string]string   // name → base variable (BASED)
-	globalAt     map[string]*uint16  // name → AT address
+	fnRetTy      map[string]PLMType // return type per procedure name
+	globalArrays map[string]int     // name → array size (0 = scalar)
+	globalBased  map[string]string  // name → base variable (BASED)
+	globalAt     map[string]*uint16 // name → AT address
 }
 
 func (l *modLowerer) lower() (*hir.Module, error) {
 	hm := &hir.Module{Name: l.pm.Name}
+	l.hm = hm
 
 	// First pass: collect procedure return types so call expressions can be typed.
 	for _, d := range l.pm.Decls {
@@ -68,6 +72,7 @@ func (l *modLowerer) lower() (*hir.Module, error) {
 		switch d := d.(type) {
 		case *VarDecl:
 			for _, name := range d.Names {
+				l.globalTypes[name] = d.Ty
 				elemTy := plmToMIR2(d.Ty)
 
 				// Track array metadata.
@@ -113,6 +118,18 @@ func (l *modLowerer) lower() (*hir.Module, error) {
 			}
 			hm.Asserts = append(hm.Asserts, a)
 		}
+	}
+	if len(l.pm.Body) > 0 {
+		for _, f := range hm.Funcs {
+			if f.Name == "main" {
+				return nil, fmt.Errorf("module entry conflicts with procedure main")
+			}
+		}
+		f, err := l.lowerProc(&ProcDecl{Name: "main", RetTy: PLMVoid, Body: l.pm.Body})
+		if err != nil {
+			return nil, fmt.Errorf("module body: %w", err)
+		}
+		hm.Funcs = append(hm.Funcs, f)
 	}
 	return hm, nil
 }
@@ -277,6 +294,9 @@ func (pl *procLowerer) typeOf(name string) PLMType {
 	if ty, ok := pl.localTypes[name]; ok {
 		return ty
 	}
+	if ty, ok := pl.ml.globalTypes[name]; ok {
+		return ty
+	}
 	return PLMWord // default
 }
 
@@ -328,7 +348,7 @@ func (pl *procLowerer) lowerStmt(s Stmt) ([]hir.Stmt, error) {
 			elemTy := plmToMIR2(pl.typeOf(s.Name))
 			base := &hir.AddrOfExpr{Sym: s.Name}
 			indexedPtr := &hir.IndexExpr{Base: base, Idx: idx, ElemTy: elemTy}
-			return []hir.Stmt{&hir.StoreStmt{Ptr: indexedPtr, Val: val}}, nil
+			return []hir.Stmt{&hir.StoreStmt{Ptr: hir.AddrExpr(indexedPtr), Val: val}}, nil
 		}
 
 		// PL/M scalar assignment to an array variable (no explicit index) means
@@ -337,7 +357,7 @@ func (pl *procLowerer) lowerStmt(s Stmt) ([]hir.Stmt, error) {
 			elemTy := plmToMIR2(pl.typeOf(s.Name))
 			base := &hir.AddrOfExpr{Sym: s.Name}
 			indexedPtr := &hir.IndexExpr{Base: base, Idx: hir.U8(0), ElemTy: elemTy}
-			return []hir.Stmt{&hir.StoreStmt{Ptr: indexedPtr, Val: val}}, nil
+			return []hir.Stmt{&hir.StoreStmt{Ptr: hir.AddrExpr(indexedPtr), Val: val}}, nil
 		}
 
 		ty := plmToMIR2(pl.typeOf(s.Name))
@@ -347,6 +367,25 @@ func (pl *procLowerer) lowerStmt(s Stmt) ([]hir.Stmt, error) {
 		var retTy mir2.Ty = mir2.TyVoid
 		if rt, ok := pl.ml.fnRetTy[s.Fn]; ok {
 			retTy = plmToMIR2(rt)
+		}
+		// CP/M console intrinsic: BDOS(2, byte) is deliberately narrower than
+		// a generic fixed-address call. A declared BDOS procedure takes priority.
+		if _, declared := pl.ml.fnRetTy[s.Fn]; s.Fn == "BDOS" && !declared {
+			if len(s.Args) != 2 {
+				return nil, fmt.Errorf("BDOS console intrinsic requires function 2 and one BYTE argument")
+			}
+			function, ok := evalLit(s.Args[0])
+			if !ok || function != 2 {
+				return nil, fmt.Errorf("BDOS console intrinsic supports only literal function 2")
+			}
+			value, err := pl.lowerExpr(s.Args[1])
+			if err != nil {
+				return nil, err
+			}
+			if value.ExprTy() != mir2.TyU8 {
+				return nil, fmt.Errorf("BDOS console intrinsic requires a BYTE argument")
+			}
+			return []hir.Stmt{&hir.ExprStmt{Expr: hir.Call("@mir.io.print.char", mir2.TyVoid, value)}}, nil
 		}
 		args, err := pl.lowerExprs(s.Args)
 		if err != nil {
@@ -501,6 +540,38 @@ func (pl *procLowerer) lowerExpr(e Expr) (hir.Expr, error) {
 		}
 		return hir.U16(int64(e.Val)), nil
 
+	case *StringAddrExpr:
+		if len(e.Value) == 0 {
+			return nil, fmt.Errorf("empty string address has no byte object")
+		}
+		index := len(pl.ml.hm.Globals)
+		name := ""
+		for {
+			name = fmt.Sprintf("__plm_literal_%d", index)
+			collision := false
+			for _, g := range pl.ml.hm.Globals {
+				if g.Name == name {
+					collision = true
+					break
+				}
+			}
+			if !collision {
+				break
+			}
+			index++
+		}
+		pl.ml.hm.Globals = append(pl.ml.hm.Globals, mir2.Global{Name: name, Ty: &mir2.ArrayTy{Elem: mir2.TyU8, Len: len(e.Value)}, Init: []byte(e.Value)})
+		return hir.Addr(name), nil
+	case *AddrExpr:
+		if e.Idx == nil {
+			return hir.Addr(e.Name), nil
+		}
+		idx, err := pl.lowerExpr(e.Idx)
+		if err != nil {
+			return nil, err
+		}
+		return hir.AddrExpr(hir.Index(hir.Addr(e.Name), idx, plmToMIR2(pl.typeOf(e.Name)))), nil
+
 	case *VarRef:
 		// BASED variable read: X BASED Y → *Y (load through pointer)
 		if base, ok := pl.basedVar(e.Name); ok {
@@ -555,6 +626,19 @@ func (pl *procLowerer) lowerExpr(e Expr) (hir.Expr, error) {
 			elemTy := plmToMIR2(pl.typeOf(e.Fn))
 			base := &hir.AddrOfExpr{Sym: e.Fn}
 			return &hir.IndexExpr{Base: base, Idx: idx, ElemTy: elemTy}, nil
+		}
+		// A declared scalar WORD used with one index is byte access through
+		// its stored address (PL/M-80 PTR(I)), not a procedure call.
+		if _, isProc := pl.ml.fnRetTy[e.Fn]; !isProc && len(e.Args) == 1 {
+			_, local := pl.paramTypes[e.Fn]
+			_, global := pl.ml.globalTypes[e.Fn]
+			if (local || global) && pl.typeOf(e.Fn) == PLMWord {
+				idx, err := pl.lowerExpr(e.Args[0])
+				if err != nil {
+					return nil, err
+				}
+				return hir.Index(hir.Var(e.Fn, mir2.TyU16), idx, mir2.TyU8), nil
+			}
 		}
 		// Indirect call: if name is a local ADDRESS variable (not a procedure),
 		// emit CallIndirectExpr — the variable holds a function pointer.

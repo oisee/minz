@@ -37,9 +37,10 @@ func TestGraceConvergence(t *testing.T) {
 		}
 
 		// Compile with Go path
-		hm1, err := nanz.ParseWithOpts(string(src), e.Name(), nanz.ParseOpts{})
+		hm1, err := nanz.ParseWithOpts(string(src), e.Name(), nanz.ParseOpts{BaseDir: nanzDir, StdlibDir: filepath.Join("..", "..", "..", "stdlib")})
 		if err != nil {
-			continue // skip files that don't parse
+			t.Logf("PARSE FAIL %s: %v", e.Name(), err)
+			continue
 		}
 		goSteps, goErr := CompileHIRSteps(hm1, Options{ContractOpt: true})
 		if goErr != nil {
@@ -48,7 +49,7 @@ func TestGraceConvergence(t *testing.T) {
 		total++
 
 		// Compile with Grace path (re-parse to get fresh module)
-		hm2, err := nanz.ParseWithOpts(string(src), e.Name(), nanz.ParseOpts{})
+		hm2, err := nanz.ParseWithOpts(string(src), e.Name(), nanz.ParseOpts{BaseDir: nanzDir, StdlibDir: filepath.Join("..", "..", "..", "stdlib")})
 		if err != nil {
 			continue
 		}
@@ -125,7 +126,7 @@ func TestGraceVerify(t *testing.T) {
 		if err != nil {
 			continue
 		}
-		hm, err := nanz.ParseWithOpts(string(src), e.Name(), nanz.ParseOpts{})
+		hm, err := nanz.ParseWithOpts(string(src), e.Name(), nanz.ParseOpts{BaseDir: nanzDir, StdlibDir: filepath.Join("..", "..", "..", "stdlib")})
 		if err != nil {
 			continue
 		}

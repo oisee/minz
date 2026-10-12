@@ -1,0 +1,19 @@
+=== RUN   TestOriginalRotozoomerWholeMain
+=== RUN   TestOriginalRotozoomerWholeMain/ordinary
+    original_rotozoomer_main_test.go:234: raw 32 frames PASS
+    original_rotozoomer_main_test.go:234: final 32 frames PASS
+    original_rotozoomer_main_test.go:371: native 32 frames 2656 5523758850 PASS
+=== RUN   TestOriginalRotozoomerWholeMain/grace-size
+    original_rotozoomer_main_test.go:234: raw 32 frames PASS
+    original_rotozoomer_main_test.go:234: final 32 frames PASS
+    original_rotozoomer_main_test.go:371: native 32 frames 2656 5523758850 PASS
+=== RUN   TestOriginalRotozoomerWholeMain/grace-speed
+    original_rotozoomer_main_test.go:234: raw 32 frames PASS
+    original_rotozoomer_main_test.go:234: final 32 frames PASS
+    original_rotozoomer_main_test.go:371: native 32 frames 2656 5523758850 PASS
+--- PASS: TestOriginalRotozoomerWholeMain (91.56s)
+    --- PASS: TestOriginalRotozoomerWholeMain/ordinary (33.60s)
+    --- PASS: TestOriginalRotozoomerWholeMain/grace-size (28.02s)
+    --- PASS: TestOriginalRotozoomerWholeMain/grace-speed (29.92s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	91.570s

@@ -21,10 +21,10 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/minz/minzc/pkg/asmutil"
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/ez80"
 	"github.com/minz/minzc/pkg/hir"
-	"github.com/minz/minzc/pkg/lir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/mir2llvm"
 	"github.com/minz/minzc/pkg/mir2wasm"
@@ -40,14 +40,16 @@ type Result struct {
 
 // Steps holds the intermediate outputs of each pipeline stage.
 type Steps struct {
-	HIR        string                  // HIR structural dump (hir.Module.Dump())
-	MIR2Raw    string                  // MIR2 module dump before optimisation passes
-	MIR2Opt    string                  // MIR2 module dump after DSE + ReorderBlocks
-	MIR2Module *mir2.Module            // MIR2 module (for LLVM/WASM/ABAP emit)
-	Allocation *mir2.AllocResult       // physical locations used by Z80 codegen
-	Assembly   string                  // Final .a80 text
-	LIRResults []lir.ConvergenceResult // LIR convergence check results (if LIRCheck enabled)
-	Traces     map[string]*FuncTrace   // per-function compilation trace (keyed by func name)
+	UnsignedPairComparePolicy mir2.UnsignedPairComparePolicy // resolved policy replayed by native re-codegen
+	ProfileDecisions          []hir.ProfileDecision
+	HIRLoopSites              *hir.LoopSiteMap      // optional input-HIR origins, before Grace/splitting
+	HIR                       string                // HIR structural dump (hir.Module.Dump())
+	MIR2Raw                   string                // MIR2 module dump before optimisation passes
+	MIR2Opt                   string                // MIR2 module dump after DSE + ReorderBlocks
+	MIR2Module                *mir2.Module          // MIR2 module (for LLVM/WASM/ABAP emit)
+	Allocation                *mir2.AllocResult     // physical locations used by Z80 codegen
+	Assembly                  string                // Final .a80 text
+	Traces                    map[string]*FuncTrace // per-function compilation trace (keyed by func name)
 }
 
 // FuncTrace records the full compilation provenance for one function.
@@ -74,7 +76,7 @@ type FuncTrace struct {
 	LUTReplaced  bool // function was replaced by LUTGen
 
 	// Codegen provenance
-	Backend    string // "LIR", "VIR", "PBQP", "LIR+PBQP-fallback", "VIR+PBQP-fallback"
+	Backend    string // "VIR", "PBQP", "checked-local-table", "VIR+PBQP-fallback"
 	BackendErr string // error message if primary backend failed (before fallback)
 	WFCAttempt int    // WFC retry attempt (0 = first try)
 	CondRets   int    // number of cond_ret terminators
@@ -85,25 +87,36 @@ type FuncTrace struct {
 
 // Options configures optional pipeline passes.
 type Options struct {
+	Runtime           mir2.Z80Runtime `json:",omitempty"`
+	RuntimeStackBytes int             `json:",omitempty"`
+	// CheckedLocalTablePath opts into admitted leaf function replacements under
+	// OptSize. The selected function must assemble smaller than PBQP baseline.
+	CheckedLocalTablePath string `json:",omitempty"`
+	// CheckedLocalTableSHA256 optionally pins the exact JSON bytes. A mismatch is
+	// an input error; it must never silently use another table or fallback.
+	CheckedLocalTableSHA256 string `json:",omitempty"`
+
+	UnsignedPairComparePolicy mir2.UnsignedPairComparePolicy `json:",omitempty"` // explicit opt-in; zero preserves Legacy
+	ProfileSelection          *ProfileSelection              // opt-in refusing PGO input
+	CollectHIRSites           bool                           // diagnostic loop sites; does not enable PGO
 	// ContractOpt enables Phase 5b interprocedural contract optimisation.
 	// Default true — only disable for A/B comparison or debugging.
 	ContractOpt bool
+	// ContractStrategy opts into joint PFCCO choices; empty keeps greedy.
+	ContractStrategy string `json:",omitempty"`
 	// AnnotateTStates adds T-state cost comments to every Z80 instruction line.
 	AnnotateTStates bool
-	// LIRCheck runs the LIR pipeline in parallel with Z80Codegen and reports
-	// which functions successfully lower through ISLE+WFC.
-	// Non-destructive — does not affect assembly output.
-	LIRCheck bool
-	// UseLIR reports disabled native LIR provenance and emits the whole module
-	// with production PBQP. Direct LIR codegen remains available for research.
-	UseLIR bool
-	// UseGrace replaces hand-coded Go optimization passes (DSE, CondRetSink,
-	// SplitJoinRet, DeadBlockArgElim, FuseAbsDiff) with declarative Grace
-	// rules. When enabled, Grace runs instead of Go originals.
+	// FuseByteWords opts into effect-safe sequential little-endian byte fusion.
+	FuseByteWords bool `json:",omitempty"`
+	// UseGrace replaces hand-coded optimization passes with declarative Grace rules.
 	// GraceStats (if non-nil) collects per-rule application counts.
 	UseGrace   bool
 	GraceStats *mir2.GraceStats
-	// OptSize enables size optimizations (Grace reroll: repeated CALLs → DJNZ loop).
+	// UseHIRGrace runs structural HIR rules before splitting and lowering.
+	// Independent of UseGrace, which controls MIR2 rules.
+	UseHIRGrace bool
+	// OptSize enables size optimizations (Grace reroll: repeated CALLs → DJNZ loop)
+	// and excludes HIR Grace's code-growing versioned pointer-walk.
 	// Trades ~4T/iteration for code size reduction. Use for ROM-constrained targets.
 	OptSize bool
 	// Backend selects the codegen backend: "z80" (default), "ez80".
@@ -122,20 +135,81 @@ type Options struct {
 }
 
 // DefaultOptions returns the default pipeline options.
-// Production default stays on PBQP; VIR remains an explicit opt-in.
+// Production defaults to PBQP; checked local table replacements are opt-in.
 func DefaultOptions() Options { return Options{ContractOpt: true} }
 
 // CompileHIRSteps runs the full HIR→MIR2→Z80 pipeline and returns all intermediate outputs.
 func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
+	// Runtime and ABI admission below inspect fields and traverse bodies.
+	if err := hir.Verify(hm); err != nil {
+		return Steps{}, err
+	}
 	var opt Options
 	if len(opts) > 0 {
 		opt = opts[0]
 	}
 	var s Steps
+	if opt.CheckedLocalTableSHA256 != "" && opt.CheckedLocalTablePath == "" {
+		return s, fmt.Errorf("checked local table: SHA256 requires a path")
+	}
+	if err := ValidateContractStrategy(opt); err != nil {
+		return s, err
+	}
+	policy, err := resolveUnsignedPairComparePolicy(opt)
+	if err != nil {
+		return s, err
+	}
+	if err := mir2.ValidateCPMRuntimeStack(opt.Runtime, opt.RuntimeStackBytes); err != nil {
+		return Steps{}, err
+	}
+	if opt.Runtime != "" && opt.AssertMode != "none" && len(hm.Asserts) > 0 {
+		return s, fmt.Errorf("CP/M application runtime assertions require a separate workload; use AssertMode none")
+	}
+	if opt.Runtime != "" && (opt.Runtime != mir2.Z80RuntimeCPM || hm.Target != hir.TargetCPM || opt.Backend != "" && opt.Backend != "z80" || opt.ProfileSelection != nil || opt.SkipZ80Emission) {
+		return s, fmt.Errorf("CP/M runtime requires emitted CPM Z80 without measured profile selection")
+	}
+	if opt.CheckedLocalTablePath != "" && (!opt.OptSize || opt.Backend != "" && opt.Backend != "z80" || opt.SkipZ80Emission || opt.ProfileSelection != nil && opt.CheckedLocalTableSHA256 == "") {
+		return s, fmt.Errorf("checked local tables require emitted Z80 OptSize and a content pin for PGO")
+	}
+	s.UnsignedPairComparePolicy = policy
 	s.Traces = make(map[string]*FuncTrace)
 
+	if err := hir.ResolveErrorABI(hm); err != nil {
+		return s, err
+	}
+	if opt.Backend != "" && opt.Backend != "z80" {
+		for _, f := range hm.Funcs {
+			if f.FallibleCY {
+				return s, fmt.Errorf("CY error ABI requires Z80 backend")
+			}
+		}
+	}
+	if err := hir.ResolveCallSignatures(hm); err != nil {
+		return s, err
+	}
+
+	if opt.CollectHIRSites {
+		var err error
+		s.HIRLoopSites, err = hir.BuildLoopSiteMap(hm)
+		if err != nil {
+			return s, err
+		}
+	}
+	if opt.ProfileSelection != nil {
+		decisions, err := applyPipelineProfile(hm, opt)
+		if err != nil {
+			return s, err
+		}
+		s.ProfileDecisions = decisions
+	}
 	// Capture HIR before lowering.
 	s.HIR = hm.Dump()
+	if opt.UseHIRGrace {
+		if _, err := hir.RunGraceWithOptions(hm, hir.GraceOptions{OptimizeForSize: opt.OptSize}); err != nil {
+			return s, err
+		}
+		s.HIR = hm.Dump()
+	}
 
 	// Great Autorefactor: split high-pressure functions before lowering.
 	// Each sub-function gets independent PBQP allocation → fewer spills.
@@ -148,6 +222,9 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		}
 	}
 
+	if err := hir.ResolveCallSignatures(hm); err != nil {
+		return s, err
+	}
 	// Lower HIR → MIR2 (raw, before optimisation).
 	m := hir.LowerModule(hm)
 	s.MIR2Raw = m.Dump()
@@ -198,7 +275,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		if opt.UseGrace {
 			// ── Grace declarative path ──────────────────────────────
 			localGrace := mir2.NewGraceStats()
-			mir2.RunGracePasses(f, localGrace)
+			mir2.RunGracePassesWithOptions(f, localGrace, mir2.GracePassOptions{OptimizeForSize: opt.OptSize})
 			mergeGraceStats(opt.GraceStats, localGrace)
 			applyGraceStatsToTrace(tr, localGrace)
 			mir2.EliminateDeadBlocks(f)
@@ -206,7 +283,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 				tr.BranchEquiv++
 				mir2.EliminateDeadBlocks(f)
 				localGrace = mir2.NewGraceStats()
-				mir2.RunGracePasses(f, localGrace)
+				mir2.RunGracePassesWithOptions(f, localGrace, mir2.GracePassOptions{OptimizeForSize: opt.OptSize})
 				mergeGraceStats(opt.GraceStats, localGrace)
 				applyGraceStatsToTrace(tr, localGrace)
 				mir2.EliminateDeadBlocks(f)
@@ -239,6 +316,9 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 				tr.FuseAbsDiff++
 			}
 		}
+		if opt.FuseByteWords {
+			mir2.FuseSequentialByteWords(f)
+		}
 		// Re-count cond_ret after optimization (CondRetSink creates them)
 		tr.CondRets = 0
 		for _, b := range f.Blocks {
@@ -260,17 +340,6 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		return s, fmt.Errorf("MIR2 verify: %w", err)
 	}
 
-	// LIR convergence check (non-destructive, parallel to existing codegen).
-	if opt.LIRCheck {
-		lirResults := lir.CheckModuleConvergence(m)
-		for _, r := range lirResults {
-			if r.Match {
-				_ = r // silent success — logged by caller if needed
-			}
-		}
-		s.LIRResults = lirResults
-	}
-
 	// Phase 6f: inline trivial functions (≤4 instructions, single block, leaf).
 	// Run BEFORE contract optimisation: inlining removes call-graph edges,
 	// shrinking the optimiser's search space and eliminating degenerate cases
@@ -286,7 +355,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	// allocated regs in earlier functions that overlap later functions.
 	m.RenumberRegs()
 
-	// Phase 5b: interprocedural contract optimisation (greedy DP on call graph).
+	// Phase 5b: interprocedural contracts (greedy default, opt-in joint PFCCO).
 	// Run BEFORE LUTGen so that synthetic LUT functions (which have hardcoded
 	// class requirements in their Sub instructions) are not re-optimised and
 	// given a conflicting class (BUG-004).
@@ -296,8 +365,10 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	} else {
 		ct = mir2.Z80CostTable{}
 	}
-	cs := mir2.OptimizeContracts(m, ct)
-	mir2.ApplyContracts(m, cs)
+	if opt.ContractOpt {
+		cs := optimizePipelineContracts(m, ct, opt.ContractStrategy)
+		mir2.ApplyContracts(m, cs)
+	}
 
 	// Module-level: replace ranged-param pure functions with LUTs.
 	// Must run AFTER contract optimisation — LUT synthesis inherits the
@@ -326,11 +397,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	}
 
 	if !opt.SkipZ80Emission || NeedsZ80Asserts(hm, opt.AssertMode) {
-		// Native LIR emission is disabled until the M3 rebuild passes the judges.
 		// Generate the complete production module, including runtime routines.
-		if opt.UseLIR {
-			fmt.Fprintln(os.Stderr, "lir: native LIR codegen disabled (wrong code found by exhaustive judges); module compiled with PBQP")
-		}
 		for _, f := range m.Funcs {
 			if tr := s.Traces[f.Name]; tr != nil {
 				tr.Backend = "PBQP"
@@ -344,10 +411,22 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		}
 		var codegenErr error
 		s.Assembly, codegenErr = mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
-			AnnotateTStates: opt.AnnotateTStates,
+			OptimizeForSize:           opt.OptSize,
+			CalledMain:                opt.Backend == "ez80",
+			Runtime:                   opt.Runtime,
+			RuntimeStackBytes:         opt.RuntimeStackBytes,
+			AnnotateTStates:           opt.AnnotateTStates,
+			UnsignedPairComparePolicy: s.UnsignedPairComparePolicy,
 		})
 		if codegenErr != nil {
 			return s, codegenErr
+		}
+
+		if opt.CheckedLocalTablePath != "" {
+			s.Assembly, err = applyCheckedLocalTables(s.Assembly, m, combined, opt, s.Traces)
+			if err != nil {
+				return s, err
+			}
 		}
 
 		// Emit stubs for @extern functions not already defined in the assembly.
@@ -369,14 +448,6 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		// Inject module-level compilation summary at the top.
 		s.Assembly = injectModuleSummary(s.Assembly, s.Traces, labelWarnings)
 
-		// Keep PBQP assembly byte-identical, including its annotations and pruned
-		// function summary. Report disabled native LIR in every returned trace.
-		if opt.UseLIR {
-			for _, tr := range s.Traces {
-				tr.Backend = "PBQP (lir disabled)"
-			}
-		}
-
 		// Deduplicate labels in assembly.
 		s.Assembly = dedupAsmLabels(s.Assembly)
 
@@ -386,7 +457,8 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 				"; Target: Agon Light 2 (eZ80 @ 18.432 MHz)\n\n" +
 				"    .ASSUME ADL=1\n" +
 				"    ORG $040045\n\n" +
-				s.Assembly
+				"; MOS entry preserves IY (firmware frame) and returns status in HL.\n" +
+				"__agon_entry:\n    PUSH IY\n    CALL main\n    POP IY\n    LD HL, 0\n    RET\n\n" + s.Assembly
 		}
 
 		// Z80 binary assertion checks (skip for eZ80 — different encoding).
@@ -443,9 +515,54 @@ func CompileHIR(hm *hir.Module) (string, error) {
 // CompileHIRWithOptions runs the HIR→MIR2→Z80 pipeline with explicit options.
 // Use this to compare output with/without specific optimisation passes.
 func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
+	if opts.CheckedLocalTableSHA256 != "" && opts.CheckedLocalTablePath == "" {
+		return "", fmt.Errorf("checked local table: SHA256 requires a path")
+	}
+	if err := hir.ResolveErrorABI(hm); err != nil {
+		return "", err
+	}
+	if opts.Backend != "" && opts.Backend != "z80" {
+		for _, f := range hm.Funcs {
+			if f.FallibleCY {
+				return "", fmt.Errorf("CY error ABI requires Z80 backend")
+			}
+		}
+	}
+	if err := ValidateContractStrategy(opts); err != nil {
+		return "", err
+	}
+	// MIR Grace has one implementation and one option/size policy in the steps
+	// pipeline. Do not silently run the legacy passes for an explicit request.
+	if err := mir2.ValidateCPMRuntimeStack(opts.Runtime, opts.RuntimeStackBytes); err != nil {
+		return "", err
+	}
+	if opts.UseGrace || opts.Runtime != "" || opts.ProfileSelection != nil {
+		steps, err := CompileHIRSteps(hm, opts)
+		return steps.Assembly, err
+	}
+	policy, err := resolveUnsignedPairComparePolicy(opts)
+	if err != nil {
+		return "", err
+	}
+	if err := hir.ResolveCallSignatures(hm); err != nil {
+		return "", err
+	}
+	if opts.ProfileSelection != nil {
+		if _, err := applyPipelineProfile(hm, opts); err != nil {
+			return "", err
+		}
+	}
+	if opts.UseHIRGrace {
+		if _, err := hir.RunGraceWithOptions(hm, hir.GraceOptions{OptimizeForSize: opts.OptSize}); err != nil {
+			return "", err
+		}
+	}
 	// Great Autorefactor: split high-pressure functions.
 	hir.SplitHighPressure(hm)
 
+	if err := hir.ResolveCallSignatures(hm); err != nil {
+		return "", err
+	}
 	// Lower HIR → MIR2.
 	m := hir.LowerModule(hm)
 
@@ -474,6 +591,9 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 			mir2.EliminateDeadBlocks(f)
 		}
 		mir2.FuseAbsDiff(f)
+		if opts.FuseByteWords {
+			mir2.FuseSequentialByteWords(f)
+		}
 	}
 
 	// Structural verification.
@@ -493,11 +613,11 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	mir2.PruneUnreachableFuncs(m, functionPruneRoots(hm))
 	m.RenumberRegs()
 
-	// Phase 5b: interprocedural contract optimisation (greedy DP on call graph).
+	// Phase 5b: interprocedural contracts (greedy default, opt-in joint PFCCO).
 	// Run BEFORE LUTGen so synthetic LUT functions keep their original param class
 	// and are not re-assigned a conflicting one (BUG-004).
 	if opts.ContractOpt {
-		cs := mir2.OptimizeContracts(m, ct)
+		cs := optimizePipelineContracts(m, ct, opts.ContractStrategy)
 		mir2.ApplyContracts(m, cs)
 	}
 
@@ -524,7 +644,9 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 
 	// Insert explicit A-register saves before destructive ops.
 	for _, f := range m.Funcs {
-		mir2.InsertAccSaves(f, combined)
+		if err := mir2.InsertAccSaves(f, combined); err != nil {
+			return "", err
+		}
 	}
 
 	// Z80 assembly text.
@@ -534,9 +656,19 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	if err := mir2.ValidateZ80Symbols(m); err != nil {
 		return "", err
 	}
-	asm, err := mir2.Z80Codegen(m, combined)
+	asm, err := mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{UnsignedPairComparePolicy: policy, OptimizeForSize: opts.OptSize})
 	if err != nil {
 		return "", err
+	}
+
+	if opts.CheckedLocalTablePath != "" {
+		if !opts.OptSize || opts.Backend != "" && opts.Backend != "z80" || opts.ProfileSelection != nil && opts.CheckedLocalTableSHA256 == "" {
+			return "", fmt.Errorf("checked local tables require Z80 OptSize and a content pin for PGO")
+		}
+		asm, err = applyCheckedLocalTables(asm, m, combined, opts, nil)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	// Z80 binary assertion checks (skip "mir2"-only asserts).
@@ -812,9 +944,20 @@ func buildAssertBootstrap(org int, a hir.Assert, mf *mir2.Func, ar *mir2.AllocRe
 	var boot strings.Builder
 	fmt.Fprintf(&boot, "    ORG 0x%04X\n", org)
 	boot.WriteString("    LD SP, 0xFF00\n")
+	// Hidden result storage is reserved below this invocation's initial SP;
+	// source assertion arguments and their fingerprints remain unchanged.
+	args := append([]int64(nil), a.Args...)
+	bufferTop := int64(0xFF00)
+	for _, slot := range mf.Contract.StructReturnBuffers {
+		bufferTop -= int64(max(1, mir2.ByteWidth(slot.Ty)))
+		args = append(args, bufferTop)
+	}
+	if len(mf.Contract.StructReturnBuffers) > 0 {
+		fmt.Fprintf(&boot, "    LD SP, %d\n", bufferTop)
+	}
 	// Initialize spill slots before registers: the byte stores use A, which may
 	// itself hold another argument at the call boundary.
-	for i, arg := range a.Args {
+	for i, arg := range args {
 		if i >= len(mf.Contract.Params) {
 			break
 		}
@@ -824,7 +967,7 @@ func buildAssertBootstrap(org int, a hir.Assert, mf *mir2.Func, ar *mir2.AllocRe
 			continue
 		}
 		label := mir2.Z80SpillLabel(mf.Name, param.Reg)
-		for b := range max(1, (param.Ty.Width()+7)/8) {
+		for b := range mir2.NativeSpillWidth(param.Ty) {
 			suffix := ""
 			if b > 0 {
 				suffix = fmt.Sprintf("+%d", b)
@@ -832,7 +975,7 @@ func buildAssertBootstrap(org int, a hir.Assert, mf *mir2.Func, ar *mir2.AllocRe
 			fmt.Fprintf(&boot, "    LD A, %d\n    LD (%s%s), A\n", (uint64(arg)>>(8*b))&0xff, label, suffix)
 		}
 	}
-	for i, arg := range a.Args {
+	for i, arg := range args {
 		if i >= len(mf.Contract.Params) {
 			break
 		}
@@ -1055,6 +1198,11 @@ func auditLabels(asm string) []string {
 		if trimmed == "" || strings.HasPrefix(trimmed, ";") {
 			continue
 		}
+		// EQU creates a symbol without a colon, including function aliases.
+		fields := strings.Fields(strings.SplitN(trimmed, ";", 2)[0])
+		if len(fields) >= 3 && strings.EqualFold(fields[1], "EQU") && isLabel(fields[0]) {
+			defined[fields[0]] = true
+		}
 		// Label definition: "label:" at start (possibly with indent)
 		if idx := strings.IndexByte(trimmed, ':'); idx > 0 {
 			candidate := trimmed[:idx]
@@ -1146,15 +1294,14 @@ func isInstruction(s string) bool {
 }
 
 // emitExternStubs appends label stubs for @extern functions that are called
-// in the assembly but have no label definition. This happens when hybrid
-// LIR+PBQP splicing loses LIR's empty-function stubs.
+// in the assembly but have no label definition after function emission.
 func emitExternStubs(asm string, m *mir2.Module) string {
 	var stubs strings.Builder
 	for _, f := range m.Funcs {
 		if len(f.Blocks) > 0 {
 			continue // not extern — has a body
 		}
-		label := lir.SanitizeAsmLabel(f.Name)
+		label := asmutil.SanitizeZ80Label(f.Name)
 		// Only emit stub if the label is referenced but not defined.
 		if strings.Contains(asm, label) && !strings.Contains(asm, label+":") {
 			fmt.Fprintf(&stubs, "; %s — extern stub\n%s:\n    RET\n\n", label, label)
@@ -1197,7 +1344,7 @@ func injectModuleSummary(asm string, traces map[string]*FuncTrace, labelWarnings
 	}
 	sb.WriteString("; ── compilation summary ──────────────────────────────────────\n")
 	sb.WriteString(fmt.Sprintf("; functions: %d", total))
-	for _, be := range []string{"LIR", "VIR", "PBQP", "LIR+PBQP-fallback", "VIR+PBQP-fallback"} {
+	for _, be := range []string{"VIR", "PBQP", "checked-local-table", "VIR+PBQP-fallback"} {
 		if n := counts[be]; n > 0 {
 			sb.WriteString(fmt.Sprintf("  %s=%d", be, n))
 		}
@@ -1378,8 +1525,7 @@ func formatTrace(tr *FuncTrace) string {
 }
 
 // dedupAsmLabels removes duplicate label definitions from assembly text.
-// When hybrid LIR+PBQP output contains the same label twice (e.g. globals
-// emitted by both paths), keep only the first definition.
+// When combined function output defines a label twice, keep the first definition.
 func dedupAsmLabels(asm string) string {
 	lines := strings.Split(asm, "\n")
 	seen := make(map[string]bool)

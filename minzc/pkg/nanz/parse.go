@@ -39,6 +39,7 @@ package nanz
 //	lambda      = '|' (IDENT [':' type])* '|' (expr | '{' stmt* '}')
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -126,18 +127,20 @@ const (
 )
 
 type token struct {
-	kind tokKind
-	val  string
-	line int
-	pos  int // byte offset in source where this token starts
+	kind  tokKind
+	val   string
+	line  int
+	pos   int // legacy lexer position (identifiers/numbers record their end)
+	start int // exact first source byte, used by source-site metadata
 }
 
 type lexer struct {
-	src    []byte
-	pos    int
-	line   int
-	tokens []token
-	cur    int
+	tokenStart int
+	src        []byte
+	pos        int
+	line       int
+	tokens     []token
+	cur        int
 }
 
 func newLexer(src string) *lexer {
@@ -182,6 +185,7 @@ func (l *lexer) tokenize() {
 			continue
 		}
 
+		l.tokenStart = l.pos
 		line := l.line
 		// Multi-char tokens
 		switch {
@@ -399,7 +403,7 @@ func (l *lexer) tokenize() {
 }
 
 func (l *lexer) emit(k tokKind, v string, line int) {
-	l.tokens = append(l.tokens, token{kind: k, val: v, line: line, pos: l.pos})
+	l.tokens = append(l.tokens, token{kind: k, val: v, line: line, pos: l.pos, start: l.tokenStart})
 }
 
 func (l *lexer) peek() token {
@@ -520,14 +524,16 @@ type nanzADTCtor struct {
 }
 
 type parser struct {
-	l           *lexer
-	name        string
-	opts        ParseOpts
-	module      *hir.Module // current module being built (set in parseModule)
-	structs     map[string]*mir2.StructTy
-	interfaces  map[string]*hir.InterfaceDecl // interface name → declaration
-	lambdas     []*hir.Func                   // anonymous functions generated from |params| body syntax
-	lambdaCount int
+	sourceSHA256 string
+	l            *lexer
+	name         string
+	opts         ParseOpts
+	module       *hir.Module // current module being built (set in parseModule)
+	structs      map[string]*mir2.StructTy
+	interfaces   map[string]*hir.InterfaceDecl // interface name → declaration
+	lambdas      []*hir.Func                   // anonymous functions generated from |params| body syntax
+	lambdaCount  int
+	lambdaScopes map[*hir.Func]map[string]mir2.Ty
 	// Week 1: UFCS + struct methods + operator overloading
 	globalTypes          map[string]mir2.Ty               // module-level: global varname → type (persistent)
 	globalInterfaceTypes map[string]string                // module-level: global varname → interface name
@@ -542,13 +548,18 @@ type parser struct {
 	warnings   []string       // accumulated diagnostic warnings
 	// function return type table — populated as functions are parsed so that
 	// call expressions can get the correct Ty instead of TyVoid.
-	funcSigs        map[string]mir2.Ty
-	funcParamTys    map[string][]mir2.Ty        // function name → param types (for partial application)
-	varEnumType     map[string]string           // variable name → enum name (for exhaustive switch check)
+	funcSigs     map[string]mir2.Ty
+	funcParamTys map[string][]mir2.Ty // function name → param types (for partial application)
+	varEnumType  map[string]string    // variable name → enum name (for exhaustive switch check)
+	// Callable signatures are frontend metadata; the address type stays TyPtr.
+	callableAliases map[string]*hir.CallSignature
+	varCallables    map[string]*hir.CallSignature
+	lastCallable    *hir.CallSignature          // result metadata of the most recent parseType
 	typeAliases     map[string]mir2.Ty          // type X = Y — structural alias
 	enums           map[string]map[string]int64 // enumName → {variantName → value}
 	enumBaseTy      map[string]mir2.Ty          // enumName → base type (default TyU8)
 	importedModules map[string]string           // modPath → mangled prefix (for qualified access)
+	globalAliases   map[string]string           // imported global local name → mangled symbol
 	funcAliases     map[string]string           // local name → mangled name (for unqualified imports)
 	pipes           map[string][]pipeStep       // pipe/trans name → stages
 	lambdaHintTy    mir2.Ty                     // type hint for untyped lambda params (set by chain context)
@@ -694,7 +705,10 @@ func isOpToken(k tokKind) bool {
 }
 
 func (p *parser) parseModule() (*hir.Module, error) {
-	m := &hir.Module{Name: p.name}
+	m := &hir.Module{Name: p.name, SourceLocations: make(map[hir.Stmt]hir.SourceLocation)}
+	p.sourceSHA256 = fmt.Sprintf("%x", sha256.Sum256(p.l.src))
+	m.SourceUnits = map[string]string{p.name: p.sourceSHA256}
+	m.SourceUnitsComplete = true
 	p.module = m
 	p.structs = make(map[string]*mir2.StructTy)
 	p.interfaces = make(map[string]*hir.InterfaceDecl)
@@ -711,6 +725,8 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	p.varPtrElem = make(map[string]*mir2.StructTy)
 	p.uninitVars = make(map[string]int)
 	p.typeAliases = make(map[string]mir2.Ty)
+	p.callableAliases = make(map[string]*hir.CallSignature)
+	p.varCallables = make(map[string]*hir.CallSignature)
 	p.enums = make(map[string]map[string]int64)
 	p.enumBaseTy = make(map[string]mir2.Ty)
 	p.funcAliases = make(map[string]string)
@@ -887,6 +903,9 @@ func (p *parser) parseModule() (*hir.Module, error) {
 					if err != nil {
 						return nil, fmt.Errorf("line %d: @screen: generated code error: %w\n--- generated ---\n%s", attr.line, err, emitted)
 					}
+					if err := mergeSourceUnits(m, generated); err != nil {
+						return nil, err
+					}
 					strOffset := len(m.Strings)
 					if len(generated.Strings) > 0 {
 						m.Strings = append(m.Strings, generated.Strings...)
@@ -981,6 +1000,9 @@ func (p *parser) parseModule() (*hir.Module, error) {
 					}
 					// Merge strings: remap @mir2.str.N references in generated code
 					// to account for strings already in the parent module.
+					if err := mergeSourceUnits(m, generated); err != nil {
+						return nil, err
+					}
 					strOffset := len(m.Strings)
 					if len(generated.Strings) > 0 {
 						m.Strings = append(m.Strings, generated.Strings...)
@@ -1101,6 +1123,13 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	// happens when function A calls function B that is declared later in the
 	// file — at parse time B's signature wasn't in funcSigs yet.
 	p.fixForwardCallTypes(m)
+	for _, f := range p.lambdas {
+		if outer, ok := p.lambdaScopes[f]; ok {
+			if err := hir.InferCaptures(m, f, outer); err != nil {
+				return nil, err
+			}
+		}
+	}
 
 	m.Warnings = p.warnings
 	return m, nil
@@ -1126,7 +1155,17 @@ func sameClobberSet(a, b []string) bool {
 // forward references: when fun A (line 100) calls fun B (line 200), B's
 // signature isn't in funcSigs during the first parse of A.
 func (p *parser) fixForwardCallTypes(m *hir.Module) {
+	// Lifted lambda signatures are available only after the module is assembled.
 	for _, f := range m.Funcs {
+		if f.RetTy != nil {
+			p.funcSigs[f.Name] = f.RetTy
+		}
+	}
+	for _, f := range m.Funcs {
+		p.varTypes = make(map[string]mir2.Ty)
+		for _, param := range f.Params {
+			p.varTypes[param.Name] = param.Ty
+		}
 		if f.Body != nil {
 			p.fixBlockCallTypes(f.Body)
 		}
@@ -1146,7 +1185,12 @@ func (p *parser) fixStmtCallTypes(s hir.Stmt) {
 	switch st := s.(type) {
 	case *hir.VarDeclStmt:
 		p.fixExprCallTypes(st.Init)
+		if (st.Ty == nil || st.Ty == mir2.TyVoid) && st.Init != nil {
+			st.Ty = st.Init.ExprTy()
+		}
+		p.varTypes[st.Name] = st.Ty
 	case *hir.AssignStmt:
+		p.fixExprCallTypes(st.Target)
 		p.fixExprCallTypes(st.Val)
 	case *hir.ReturnStmt:
 		p.fixExprCallTypes(st.Val)
@@ -1179,6 +1223,12 @@ func (p *parser) fixExprCallTypes(e hir.Expr) {
 		return
 	}
 	switch ex := e.(type) {
+	case *hir.VarRefExpr:
+		if ex.Ty == nil || ex.Ty == mir2.TyVoid {
+			if ty := p.varTypes[ex.Name]; ty != nil {
+				ex.Ty = ty
+			}
+		}
 	case *hir.CallExpr:
 		if ex.Ty == mir2.TyVoid {
 			if sig, ok := p.funcSigs[ex.Fn]; ok && sig != mir2.TyVoid {
@@ -1188,22 +1238,58 @@ func (p *parser) fixExprCallTypes(e hir.Expr) {
 		for _, a := range ex.Args {
 			p.fixExprCallTypes(a)
 		}
+		// Fold lowering produces the callback's accumulator type, even when the
+		// chain occurs directly in a return rather than in a let binding.
+		if ex.Ty == mir2.TyVoid && (ex.Fn == "fold" || ex.Fn == "reduce") && len(ex.Args) >= 3 {
+			name := ""
+			switch cb := ex.Args[2].(type) {
+			case *hir.VarRefExpr:
+				name = cb.Name
+			case *hir.AddrOfExpr:
+				name = cb.Sym
+			}
+			if sig := p.funcSigs[name]; sig != nil && sig != mir2.TyVoid {
+				ex.Ty = sig
+			} else {
+				ex.Ty = mir2.TyU8
+			}
+		}
 	case *hir.BinExpr:
 		p.fixExprCallTypes(ex.L)
 		p.fixExprCallTypes(ex.R)
+		if ex.Ty == nil || ex.Ty == mir2.TyVoid {
+			ex.Ty = resultTy(ex.L.ExprTy(), ex.R.ExprTy(), ex.Op)
+		}
 	case *hir.UnaryExpr:
 		p.fixExprCallTypes(ex.X)
 	case *hir.CastExpr:
 		p.fixExprCallTypes(ex.X)
+	case *hir.AddrOfExpr:
+		if ex.X != nil {
+			p.fixExprCallTypes(ex.X)
+			ex.Ty = mir2.PointerTo(ex.X.ExprTy())
+		}
 	case *hir.FieldExpr:
 		p.fixExprCallTypes(ex.X)
 	case *hir.LoadExpr:
+		unresolved := ex.Ptr.ExprTy() == nil || ex.Ptr.ExprTy() == mir2.TyVoid
 		p.fixExprCallTypes(ex.Ptr)
+		if unresolved {
+			ex.Ty = pointerDerefType(ex.Ptr.ExprTy())
+		}
 	case *hir.DerefExpr:
+		unresolved := ex.Ptr.ExprTy() == nil || ex.Ptr.ExprTy() == mir2.TyVoid
 		p.fixExprCallTypes(ex.Ptr)
+		if unresolved {
+			ex.Ty = pointerDerefType(ex.Ptr.ExprTy())
+		}
 	case *hir.IndexExpr:
+		unresolved := ex.Base.ExprTy() == nil || ex.Base.ExprTy() == mir2.TyVoid
 		p.fixExprCallTypes(ex.Base)
 		p.fixExprCallTypes(ex.Idx)
+		if unresolved {
+			ex.ElemTy = pointerDerefType(ex.Base.ExprTy())
+		}
 	case *hir.CondExpr:
 		p.fixExprCallTypes(ex.Cond)
 		p.fixExprCallTypes(ex.Then)
@@ -1227,6 +1313,9 @@ func (p *parser) parseTypeAlias() error {
 		return fmt.Errorf("line %d: type alias %s: %v", nameTok.line, nameTok.val, err)
 	}
 	p.typeAliases[nameTok.val] = ty
+	if p.lastCallable != nil {
+		p.callableAliases[nameTok.val] = p.lastCallable
+	}
 	return nil
 }
 
@@ -1569,6 +1658,15 @@ func (p *parser) parseImport() error {
 		return fmt.Errorf("line %d: import %s: %w", line, modPath, err)
 	}
 
+	if imported.SourceUnits == nil {
+		imported.SourceUnits = map[string]string{modPath: fmt.Sprintf("%x", sha256.Sum256(src))}
+	}
+	if err := mergeSourceUnits(p.module, imported); err != nil {
+		return err
+	}
+	for node, origin := range imported.SourceLocations {
+		p.module.SourceLocations[node] = origin
+	}
 	// Merge imported module into current module.
 	// Module prefix for name mangling: "tui.render" → "tui__render__"
 	// Uses __ instead of $ for Z80 assembler label compatibility.
@@ -1689,8 +1787,12 @@ func (p *parser) parseImport() error {
 		g.Name = mangledName
 		p.globalTypes[mangledName] = g.Ty
 
+		if p.globalAliases == nil {
+			p.globalAliases = make(map[string]string)
+		}
 		if globImport {
 			p.globalTypes[origName] = g.Ty
+			p.globalAliases[origName] = mangledName
 		}
 		for _, sym := range selected {
 			if sym.name == origName {
@@ -1699,6 +1801,7 @@ func (p *parser) parseImport() error {
 					localName = sym.alias
 				}
 				p.globalTypes[localName] = g.Ty
+				p.globalAliases[localName] = mangledName
 			}
 		}
 
@@ -1798,8 +1901,13 @@ func (p *parser) resolveModulePath(modPath string, line int) (string, error) {
 	}
 
 	for _, dir := range dirs {
+		candidateBase := basePath
+		// stdlib-qualified imports already name the configured library root.
+		if dir == p.opts.StdlibDir && strings.HasPrefix(modPath, "stdlib.") {
+			candidateBase = strings.TrimPrefix(basePath, "stdlib"+string(filepath.Separator))
+		}
 		for _, ext := range exts {
-			candidate := filepath.Join(dir, basePath+ext)
+			candidate := filepath.Join(dir, candidateBase+ext)
 			if _, err := os.Stat(candidate); err == nil {
 				return candidate, nil
 			}
@@ -2269,6 +2377,7 @@ func (p *parser) parseImplBlock() ([]*hir.Func, error) {
 
 		// Set up per-function scope for field access on self
 		p.varTypes = make(map[string]mir2.Ty)
+		p.varCallables = make(map[string]*hir.CallSignature)
 		p.localArrayElems = make(map[string]mir2.Ty)
 		p.varPtrElem = make(map[string]*mir2.StructTy)
 		p.varInterfaceTypes = make(map[string]string)
@@ -2419,18 +2528,14 @@ func (p *parser) parseInitializer(ty mir2.Ty) ([]byte, error) {
 				return nil, err
 			}
 			if lit, ok := e.(*hir.IntLitExpr); ok {
-				// Emit as 1 or 2 bytes depending on element type
+				// Serialize every byte of the declared integer element.
 				elemTy := ty
 				if at, ok := ty.(*mir2.ArrayTy); ok {
 					elemTy = at.Elem
 				}
-				switch elemTy.Width() {
-				case 8:
-					data = append(data, byte(lit.Val))
-				case 16:
-					data = append(data, byte(lit.Val), byte(lit.Val>>8))
-				default:
-					data = append(data, byte(lit.Val))
+				width := mir2.ByteWidth(elemTy)
+				for i := 0; i < width; i++ {
+					data = append(data, byte(lit.Val>>uint(8*i)))
 				}
 			}
 			if p.l.is(tokComma) {
@@ -2448,11 +2553,13 @@ func (p *parser) parseInitializer(ty mir2.Ty) ([]byte, error) {
 		return nil, err
 	}
 	if lit, ok := e.(*hir.IntLitExpr); ok {
-		switch ty.Width() {
-		case 8:
-			return []byte{byte(lit.Val)}, nil
-		case 16:
-			return []byte{byte(lit.Val), byte(lit.Val >> 8)}, nil
+		width := mir2.ByteWidth(ty)
+		if width >= 1 && width <= 4 {
+			data := make([]byte, width)
+			for i := range data {
+				data[i] = byte(lit.Val >> uint(8*i))
+			}
+			return data, nil
 		}
 	}
 	return nil, nil
@@ -2510,6 +2617,7 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 	if _, err := p.l.eat(tokLParen); err != nil {
 		return nil, err
 	}
+	paramCallables := map[string]*hir.CallSignature{}
 	var params []hir.Param
 	var paramIfaceNames []string       // parallel to params: interface name or ""
 	var paramPtrElems []*mir2.StructTy // parallel to params: ^Struct elem type or nil
@@ -2582,6 +2690,9 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 		pty, ifaceName, ptrElem, err := p.parseParamType()
 		if err != nil {
 			return nil, err
+		}
+		if p.lastCallable != nil {
+			paramCallables[pname.val] = p.lastCallable
 		}
 		params = append(params, hir.Param{Name: pname.val, Ty: pty, RegClass: regClass, SMC: smcParam})
 		paramIfaceNames = append(paramIfaceNames, ifaceName)
@@ -2669,6 +2780,7 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 	// save and restore only the param entries.
 	savedEnumTypes := p.varEnumType
 	p.varTypes = make(map[string]mir2.Ty)
+	p.varCallables = paramCallables
 	p.localArrayElems = make(map[string]mir2.Ty)
 	p.varInterfaceTypes = make(map[string]string)
 	p.varPtrElem = make(map[string]*mir2.StructTy)
@@ -2714,19 +2826,29 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 func (p *parser) parseType() (mir2.Ty, error) {
+	p.lastCallable = nil
 	t := p.l.peek()
 
 	// ^T — pointer to T
 	if t.kind == tokCaret {
 		p.l.next()
-		// Consume inner type if present (^u8, ^u16, ^Point…).
-		// MIR2 TyPtr is untyped — we parse and discard the element type.
+		// Preserve scalar pointee types through HIR expressions and calls.
+		// Struct pointers retain the existing separate receiver metadata.
+		elem := mir2.Ty(mir2.TyU8)
 		if !p.l.is(tokEOF) && !p.l.is(tokComma) && !p.l.is(tokRParen) &&
 			!p.l.is(tokLBrace) && !p.l.is(tokRBrace) && !p.l.is(tokSemi) &&
 			!p.l.is(tokEq) && !p.l.is(tokArrow) {
-			_, _ = p.parseType()
+			var err error
+			elem, err = p.parseType()
+			if err != nil {
+				return nil, err
+			}
 		}
-		return mir2.TyPtr, nil
+		if _, structElem := elem.(*mir2.StructTy); structElem {
+			return mir2.TyPtr, nil
+		}
+		p.lastCallable = nil
+		return mir2.PointerTo(elem), nil
 	}
 
 	// [T; N] — array
@@ -2750,6 +2872,7 @@ func (p *parser) parseType() (mir2.Ty, error) {
 		if _, err := p.l.eat(tokRBrack); err != nil {
 			return nil, err
 		}
+		p.lastCallable = nil
 		return mir2.NewArray(elemTy, n), nil
 	}
 
@@ -2783,13 +2906,15 @@ func (p *parser) parseType() (mir2.Ty, error) {
 		case "fun", "fn":
 			// Function type: fun(T1, T2) -> R
 			// On Z80, function pointers are just addresses (TyPtr).
-			// Parse and discard param/return types for now.
+			sig := &hir.CallSignature{}
 			if p.l.is(tokLParen) {
 				p.l.next() // consume (
 				for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
-					if _, err := p.parseType(); err != nil {
+					ty, err := p.parseType()
+					if err != nil {
 						return nil, fmt.Errorf("line %d: function type param: %v", t.line, err)
 					}
+					sig.Params = append(sig.Params, ty)
 					if p.l.is(tokComma) {
 						p.l.next()
 					}
@@ -2800,11 +2925,17 @@ func (p *parser) parseType() (mir2.Ty, error) {
 				// Optional -> ReturnType
 				if p.l.is(tokArrow) {
 					p.l.next()
-					if _, err := p.parseType(); err != nil {
+					ty, err := p.parseType()
+					if err != nil {
 						return nil, fmt.Errorf("line %d: function type return: %v", t.line, err)
+					}
+					if ty != mir2.TyVoid {
+						sig.Returns = []mir2.Ty{ty}
 					}
 				}
 			}
+			sig.ResolveStructReturnABI()
+			p.lastCallable = sig
 			return mir2.TyPtr, nil
 		case "String", "SString", "LString", "CString":
 			// All string types are pointers at the MIR2 level.
@@ -2816,6 +2947,7 @@ func (p *parser) parseType() (mir2.Ty, error) {
 		default:
 			// Type alias (structural)
 			if aliased, ok := p.typeAliases[t.val]; ok {
+				p.lastCallable = p.callableAliases[t.val]
 				return aliased, nil
 			}
 			// Enum type → base type (u8)
@@ -2891,6 +3023,7 @@ func (p *parser) parseTypeWithIface() (mir2.Ty, string, error) {
 //   - ^StructName (e.g. ^Acc)        → (TyPtr, "", *StructTy, nil)
 //   - Any other type                 → (ty, "", nil, err)
 func (p *parser) parseParamType() (mir2.Ty, string, *mir2.StructTy, error) {
+	p.lastCallable = nil
 	t := p.l.peek()
 	// Interface name?
 	if t.kind == tokIdent {
@@ -2909,13 +3042,24 @@ func (p *parser) parseParamType() (mir2.Ty, string, *mir2.StructTy, error) {
 				elemSt = st
 			}
 		}
-		// Consume inner type
+		elem := mir2.Ty(mir2.TyU8)
 		if !p.l.is(tokEOF) && !p.l.is(tokComma) && !p.l.is(tokRParen) &&
 			!p.l.is(tokLBrace) && !p.l.is(tokRBrace) && !p.l.is(tokSemi) &&
 			!p.l.is(tokEq) && !p.l.is(tokArrow) {
-			_, _ = p.parseType()
+			var err error
+			elem, err = p.parseType()
+			if err != nil {
+				return nil, "", nil, err
+			}
 		}
-		return mir2.TyPtr, "", elemSt, nil
+		if resolved, ok := elem.(*mir2.StructTy); ok {
+			elemSt = resolved
+		}
+		if elemSt != nil {
+			return mir2.TyPtr, "", elemSt, nil
+		}
+		p.lastCallable = nil
+		return mir2.PointerTo(elem), "", nil, nil
 	}
 	ty, err := p.parseType()
 	return ty, "", nil, err
@@ -3068,8 +3212,25 @@ func isCheckOrPropagate(s hir.Stmt) bool {
 	return c.Fn == "@check" || c.Fn == "@propagate"
 }
 
-func (p *parser) parseStmt() (hir.Stmt, error) {
+func (p *parser) parseStmt() (stmt hir.Stmt, err error) {
 	t := p.l.peek()
+	// Metafunction expansions use a temporary lexer; do not assign generated
+	// statements an invented position in the caller's original source.
+	record := p.metaExpandDepth == 0
+	lex := p.l
+	defer func() {
+		if err != nil || stmt == nil || !record || p.module == nil {
+			return
+		}
+		lineStart := t.start
+		for lineStart > 0 && lex.src[lineStart-1] != '\n' {
+			lineStart--
+		}
+		p.module.SourceLocations[stmt] = hir.SourceLocation{
+			Unit: p.name, ByteOffset: t.start, Line: t.line, Column: t.start - lineStart + 1,
+			SourceSHA256: p.sourceSHA256,
+		}
+	}()
 	if t.kind == tokAt {
 		name := p.l.peekN(1)
 		if name.kind == tokIdent {
@@ -3212,6 +3373,9 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 			}
 		}
 		ty, err = p.parseType()
+		if p.lastCallable != nil {
+			p.varCallables[nameTok.val] = p.lastCallable
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -3391,6 +3555,9 @@ func (p *parser) parseVarDecl() (hir.Stmt, error) {
 		}
 	}
 	ty, err := p.parseType()
+	if p.lastCallable != nil {
+		p.varCallables[nameTok.val] = p.lastCallable
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -3753,7 +3920,7 @@ func (p *parser) parsePostfixNoBrack(base hir.Expr) (hir.Expr, error) {
 				isStructPtr = p.varPtrElem[vr.Name] != nil
 			}
 			if !isStructPtr {
-				base = &hir.LoadExpr{Ptr: base, Ty: mir2.TyU8}
+				base = &hir.LoadExpr{Ptr: base, Ty: pointerDerefType(base.ExprTy())}
 			}
 		case tokDot:
 			p.l.next()
@@ -4501,8 +4668,8 @@ var binops = map[tokKind]binop{
 	tokPipePipe: {"||", 1},
 	tokAmpAmp:   {"&&", 2},
 	tokPipe:     {"|", 3},
-	// XOR uses the `xor` keyword operator (see parseBinary), not ^.
-	// ^ is reserved exclusively for postfix pointer dereference.
+	// Infix ^ and the xor keyword share XOR precedence.
+	tokCaret:   {"^", 4},
 	tokAmp:     {"&", 5},
 	tokEqEq:    {"==", 6},
 	tokBangEq:  {"!=", 6},
@@ -4620,6 +4787,20 @@ func (p *parser) parseUnary() (hir.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
+		if literal, ok := x.(*hir.IntLitExpr); ok && mir2.IsInt(literal.Ty) {
+			value := -literal.Val
+			ty := mir2.Ty(mir2.TyI8)
+			if value < -128 || value > 127 {
+				ty = mir2.TyI16
+			}
+			if value < -32768 || value > 32767 {
+				ty = mir2.TyI24
+			}
+			if value < -8388608 || value > 8388607 {
+				ty = mir2.TyI32
+			}
+			return &hir.IntLitExpr{Val: value, Ty: ty}, nil
+		}
 		return &hir.UnaryExpr{Op: "-", X: x, Ty: x.ExprTy()}, nil
 	case tokBang:
 		p.l.next()
@@ -4644,9 +4825,23 @@ func (p *parser) parseUnary() (hir.Expr, error) {
 		}
 		switch target := target.(type) {
 		case *hir.VarRefExpr:
-			return &hir.AddrOfExpr{Sym: target.Name}, nil
+			ty := p.exprTy(target)
+			if elem := p.localArrayElems[target.Name]; elem != nil {
+				ty = elem
+			}
+			if array, ok := ty.(*mir2.ArrayTy); ok {
+				ty = array.Elem
+			}
+			pointer := mir2.PointerTo(ty)
+			if p.funcSigs[target.Name] != nil {
+				pointer = mir2.TyPtr
+			}
+			if _, structValue := ty.(*mir2.StructTy); structValue {
+				pointer = mir2.TyPtr
+			}
+			return &hir.AddrOfExpr{Sym: target.Name, Ty: pointer}, nil
 		case *hir.FieldExpr, *hir.IndexExpr:
-			return &hir.AddrOfExpr{X: target}, nil
+			return &hir.AddrOfExpr{X: target, Ty: mir2.PointerTo(p.exprTy(target))}, nil
 		default:
 			return nil, fmt.Errorf("line %d: &: expected addressable name, field, or index", t.line)
 		}
@@ -4662,20 +4857,43 @@ func (p *parser) parsePostfixFull() (hir.Expr, error) {
 	return p.parsePostfix(base)
 }
 
+// caretRHSStarts excludes operators that can follow a postfix dereference.
+// Unary +, - and & are ambiguous: adjacency p^ preserves dereference, while
+// the explicit xor keyword remains available for those operands.
+func caretRHSStarts(t token) bool {
+	switch t.kind {
+	case tokIdent:
+		switch t.val {
+		case "xor", "XOR", "as", "return", "else", "if", "while":
+			return false
+		}
+		return true
+	case tokInt, tokLParen, tokBang, tokTilde:
+		return true
+	}
+	return false
+}
+
 func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 	for {
 		t := p.l.peek()
 		switch t.kind {
 		case tokCaret:
-			// expr^ — postfix pointer dereference (always).
-			// XOR uses the `xor` keyword operator, not ^.
+			// A following operand on this line makes ^ infix XOR. Otherwise
+			// keep postfix dereference, including p^ ^ mask and p^ = value.
+			next := p.l.peekN(1)
+			if next.line == t.line && (caretRHSStarts(next) ||
+				(t.start > 0 && (p.l.src[t.start-1] == ' ' || p.l.src[t.start-1] == '\t') &&
+					(next.kind == tokMinus || next.kind == tokPlus || next.kind == tokAmp))) {
+				return base, nil
+			}
 			p.l.next()
 			isStructPtr := false
 			if vr, ok := base.(*hir.VarRefExpr); ok {
 				isStructPtr = p.varPtrElem[vr.Name] != nil
 			}
 			if !isStructPtr {
-				base = &hir.LoadExpr{Ptr: base, Ty: mir2.TyU8}
+				base = &hir.LoadExpr{Ptr: base, Ty: pointerDerefType(base.ExprTy())}
 			}
 			// else: `self^` on ^Struct — keep base as-is; subsequent .field handles it
 		case tokLBrack:
@@ -4688,7 +4906,7 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 			if _, err := p.l.eat(tokRBrack); err != nil {
 				return nil, err
 			}
-			elemTy := mir2.Ty(mir2.TyU8)
+			elemTy := pointerDerefType(base.ExprTy())
 			if arrayTy, ok := p.exprTy(base).(*mir2.ArrayTy); ok {
 				elemTy = arrayTy.Elem
 			} else if vr, ok := base.(*hir.VarRefExpr); ok {
@@ -5068,8 +5286,7 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			if _, err2 := p.l.eat(tokRParen); err2 != nil {
 				return nil, err2
 			}
-			// Detect back-counting: if lo is an ident/var and hi is literal 0,
-			// or hi < lo literally — set Rev=true.
+			// Detect the range(n..0) countdown spelling by its literal zero endpoint.
 			rev := false
 			if lit, ok2 := hi.(*hir.IntLitExpr); ok2 && lit.Val == 0 {
 				rev = true
@@ -5135,7 +5352,13 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		} else if t2, ok := p.globalTypes[t.val]; ok {
 			ty = t2
 		}
-		return &hir.VarRefExpr{Name: t.val, Ty: ty}, nil
+		name := t.val
+		if _, local := p.varTypes[name]; !local {
+			if alias, ok := p.globalAliases[name]; ok {
+				name = alias
+			}
+		}
+		return &hir.VarRefExpr{Name: name, Ty: ty}, nil
 
 	case tokLParen:
 		p.l.next()
@@ -5166,6 +5389,12 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		}
 
 		s := processStringEscapes(raw)
+		if kind == mir2.StrSString && len(s) > 255 {
+			return nil, fmt.Errorf("line %d: SString has %d bytes; maximum is 255", t.line, len(s))
+		}
+		if kind == mir2.StrLString && len(s) > 65535 {
+			return nil, fmt.Errorf("line %d: LString has %d bytes; maximum is 65535", t.line, len(s))
+		}
 
 		// Deduplicate and intern with kind
 		idx := -1
@@ -5204,7 +5433,19 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			if _, err := p.l.eat(tokRParen); err != nil {
 				return nil, err
 			}
-			return &hir.CallExpr{Fn: "@mir.io.print.str", Args: []hir.Expr{arg}, Ty: mir2.TyVoid}, nil
+			fn := "@mir.io.print.str" // Opaque pointers retain the CString contract.
+			if a, ok := arg.(*hir.AddrOfExpr); ok {
+				var i int
+				if n, _ := fmt.Sscanf(a.Sym, "@mir2.str.%d", &i); n == 1 && i >= 0 && i < len(p.module.StrKinds) {
+					switch p.module.StrKinds[i] {
+					case mir2.StrSString:
+						fn = "@mir.io.print.sstr"
+					case mir2.StrLString:
+						fn = "@mir.io.print.lstr"
+					}
+				}
+			}
+			return &hir.CallExpr{Fn: fn, Args: []hir.Expr{arg}, Ty: mir2.TyVoid}, nil
 		}
 		if p.l.isIdent("print_nl") {
 			p.l.next()
@@ -5404,14 +5645,16 @@ func (p *parser) resolveCall(base hir.Expr, args []hir.Expr) (hir.Expr, error) {
 			}
 			lambdaName := fmt.Sprintf("lambda_%d", p.lambdaCount)
 			p.lambdaCount++
-			p.lambdas = append(p.lambdas, &hir.Func{
-				Name:   lambdaName,
-				Params: lambdaParams,
-				RetTy:  retTy,
-				Body: &hir.Block{Body: []hir.Stmt{
-					&hir.ReturnStmt{Val: &hir.CallExpr{Fn: name, Args: args, Ty: retTy}},
-				}},
-			})
+			f := &hir.Func{Name: lambdaName, Params: lambdaParams, RetTy: retTy, Body: hir.Blk(&hir.ReturnStmt{Val: &hir.CallExpr{Fn: name, Args: args, Ty: retTy}})}
+			p.lambdas = append(p.lambdas, f)
+			if p.lambdaScopes == nil {
+				p.lambdaScopes = map[*hir.Func]map[string]mir2.Ty{}
+			}
+			outer := map[string]mir2.Ty{}
+			for n, ty := range p.varTypes {
+				outer[n] = ty
+			}
+			p.lambdaScopes[f] = outer
 			return &hir.VarRefExpr{Name: lambdaName, Ty: retTy}, nil
 		}
 	}
@@ -5425,14 +5668,22 @@ func (p *parser) resolveCall(base hir.Expr, args []hir.Expr) (hir.Expr, error) {
 	// Indirect call: local variable → function pointer.
 	if name != "" && callTy == mir2.TyVoid && !p.isKnownFunc(name) {
 		if _, isLocal := p.varTypes[name]; isLocal {
+			sig := p.varCallables[name]
 			retTy := p.varTypes[name]
-			if retTy == nil || retTy == mir2.TyVoid {
+			if sig != nil {
+				retTy = mir2.TyVoid
+				if len(sig.Returns) > 0 {
+					retTy = sig.Returns[0]
+				}
+			}
+			if sig == nil && (retTy == nil || retTy == mir2.TyVoid) {
 				retTy = mir2.TyU8
 			}
 			return &hir.CallIndirectExpr{
-				FnPtr: &hir.VarRefExpr{Name: name, Ty: mir2.TyPtr},
-				Args:  args,
-				Ty:    retTy,
+				Signature: sig,
+				FnPtr:     &hir.VarRefExpr{Name: name, Ty: mir2.TyPtr},
+				Args:      args,
+				Ty:        retTy,
 			}, nil
 		}
 		return &hir.CallExpr{Fn: name, Args: args, Ty: callTy}, nil
@@ -5492,6 +5743,18 @@ func (p *parser) parseLambda() (hir.Expr, error) {
 		}
 	}
 
+	// Parameters shadow the surrounding scope while parsing the lambda body.
+	// Keep captured names visible, then restore the outer type environment.
+	savedVars := p.varTypes
+	p.varTypes = make(map[string]mir2.Ty, len(savedVars)+len(params))
+	for n, ty := range savedVars {
+		p.varTypes[n] = ty
+	}
+	for _, param := range params {
+		p.varTypes[param.Name] = param.Ty
+	}
+	defer func() { p.varTypes = savedVars }()
+
 	// Parse body: block { ... } or single expression → implicit return
 	var body *hir.Block
 	if p.l.is(tokLBrace) {
@@ -5519,12 +5782,16 @@ func (p *parser) parseLambda() (hir.Expr, error) {
 	// Generate a unique name and register the anonymous function.
 	name := fmt.Sprintf("lambda_%d", p.lambdaCount)
 	p.lambdaCount++
-	p.lambdas = append(p.lambdas, &hir.Func{
-		Name:   name,
-		Params: params,
-		RetTy:  retTy,
-		Body:   body,
-	})
+	f := &hir.Func{Name: name, Params: params, RetTy: retTy, Body: body}
+	p.lambdas = append(p.lambdas, f)
+	if p.lambdaScopes == nil {
+		p.lambdaScopes = map[*hir.Func]map[string]mir2.Ty{}
+	}
+	outer := map[string]mir2.Ty{}
+	for n, ty := range savedVars {
+		outer[n] = ty
+	}
+	p.lambdaScopes[f] = outer
 
 	return &hir.VarRefExpr{Name: name, Ty: retTy}, nil
 }
@@ -5561,7 +5828,7 @@ func (p *parser) makeFieldExpr(base hir.Expr, fieldName string) *hir.FieldExpr {
 				fieldOffset = byteOffset
 				break
 			}
-			byteOffset += f.Ty.Width() / 8
+			byteOffset += mir2.ByteWidth(f.Ty)
 		}
 	}
 
@@ -5595,11 +5862,38 @@ func resultTy(l, r mir2.Ty, op string) mir2.Ty {
 	case "==", "!=", "<", "<=", ">", ">=", "&&", "||":
 		return mir2.TyBool
 	}
+	if mir2.IsPointer(l) && mir2.PointerElem(l) != mir2.TyU8 {
+		return l
+	}
+	if mir2.IsPointer(r) && mir2.PointerElem(r) != mir2.TyU8 {
+		return r
+	}
+	// Primitive unsigned arithmetic uses the widest operand. Do this before
+	// the historical u16 shortcut so a word cannot truncate a u24/u32 peer.
+	// Shifts and mixed signedness retain their existing separate policies.
+	if op != "<<" && op != ">>" && mir2.IsInt(l) && mir2.IsInt(r) &&
+		!mir2.IsSigned(l) && !mir2.IsSigned(r) {
+		if r.Width() > l.Width() {
+			return r
+		}
+		return l
+	}
+
 	if l == mir2.TyU16 || r == mir2.TyU16 {
 		return mir2.TyU16
 	}
-	if l == mir2.TyPtr || r == mir2.TyPtr {
-		return mir2.TyPtr
+	// The widest integer operand determines operation width, including
+	// signed words and dwords. A small left literal must not truncate RHS.
+	if op != "<<" && op != ">>" && mir2.IsInt(l) && mir2.IsInt(r) {
+		if r.Width() > l.Width() {
+			return r
+		}
+	}
+	if mir2.IsPointer(l) {
+		return l
+	}
+	if mir2.IsPointer(r) {
+		return r
 	}
 	return l
 }
@@ -6004,4 +6298,27 @@ func rewriteExpr(expr hir.Expr, nameMap map[string]string) {
 		rewriteExpr(e.Then, nameMap)
 		rewriteExpr(e.Else, nameMap)
 	}
+}
+
+func pointerDerefType(ty mir2.Ty) mir2.Ty {
+	if elem := mir2.PointerElem(ty); elem != nil {
+		return elem
+	}
+	return mir2.TyU8
+}
+
+// Source units are keyed by the same logical names used for statement origins.
+// Ambiguous reuse of a name refuses parsing rather than losing a dependency.
+func mergeSourceUnits(dst, src *hir.Module) error {
+	if dst.SourceUnits == nil {
+		dst.SourceUnits = map[string]string{}
+	}
+	for unit, hash := range src.SourceUnits {
+		if old, ok := dst.SourceUnits[unit]; ok && old != hash {
+			return fmt.Errorf("conflicting source unit %q", unit)
+		}
+		dst.SourceUnits[unit] = hash
+	}
+	dst.SourceUnitsComplete = dst.SourceUnitsComplete && src.SourceUnitsComplete
+	return nil
 }

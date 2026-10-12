@@ -1,6 +1,7 @@
-package lanz
+package lanz_test
 
 import (
+	"github.com/minz/minzc/pkg/lanz"
 	"strings"
 	"testing"
 
@@ -11,7 +12,7 @@ import (
 
 func TestParseSExpr(t *testing.T) {
 	src := `(fun add ((a u8) (b u8)) u8 (return (+ a b)))`
-	nodes, err := ParseSExpr(src)
+	nodes, err := lanz.ParseSExpr(src)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -30,7 +31,7 @@ func TestParseSExpr_Comments(t *testing.T) {
 	src := `; this is a comment
 (+ 1 2) ; trailing
 ; another`
-	nodes, err := ParseSExpr(src)
+	nodes, err := lanz.ParseSExpr(src)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +42,7 @@ func TestParseSExpr_Comments(t *testing.T) {
 
 func TestParseSExpr_String(t *testing.T) {
 	src := `(print "hello world")`
-	nodes, err := ParseSExpr(src)
+	nodes, err := lanz.ParseSExpr(src)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,7 +53,7 @@ func TestParseSExpr_String(t *testing.T) {
 
 func TestCompile_Add(t *testing.T) {
 	src := `(fun add ((a u8) (b u8)) u8 (return (+ a b)))`
-	m, err := Compile(src, "test")
+	m, err := lanz.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,7 +92,7 @@ func TestU16ValuesThroughHIRAndMIR2(t *testing.T) {
 (fun local16 () u16 (var n u16 1000) (return (+ n base)))
 (fun let16 () u16 (return (let-in n u16 1000 (+ n 700))))
 (fun reverse16 ((n u16)) u16 (return (+ 1 n)))`
-	m, err := Compile(src, "wide")
+	m, err := lanz.Compile(src, "wide")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -120,7 +121,7 @@ func TestU16ValuesThroughHIRAndMIR2(t *testing.T) {
 
 func TestCompile_Global(t *testing.T) {
 	src := `(global counter u8 42)`
-	m, err := Compile(src, "test")
+	m, err := lanz.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -146,7 +147,7 @@ func TestCompile_IfWhile(t *testing.T) {
 			(set x (+ x 1)))
 		(while (< x 20)
 			(set x (+ x 1))))`
-	m, err := Compile(src, "test")
+	m, err := lanz.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -170,7 +171,7 @@ func TestCompile_IfWhile(t *testing.T) {
 
 func TestCompile_ForRange(t *testing.T) {
 	src := `(fun f () void (for i 0 10 (call print_u8 i)))`
-	m, err := Compile(src, "test")
+	m, err := lanz.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -189,7 +190,7 @@ func TestCompile_ForRange(t *testing.T) {
 
 func TestCompile_Extern(t *testing.T) {
 	src := `(extern print_u8 ((v u8)) void)`
-	m, err := Compile(src, "test")
+	m, err := lanz.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -203,7 +204,7 @@ func TestCompile_Extern(t *testing.T) {
 
 func TestCompile_Struct(t *testing.T) {
 	src := `(struct Point ((x u8) (y u8)))`
-	m, err := Compile(src, "test")
+	m, err := lanz.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -221,7 +222,7 @@ func TestCompile_Struct(t *testing.T) {
 
 func TestCompile_BareCall(t *testing.T) {
 	src := `(fun f () void (print_u8 42))`
-	m, err := Compile(src, "test")
+	m, err := lanz.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -245,7 +246,7 @@ func TestCompile_BareCall(t *testing.T) {
 func TestCompile_RoundTrip(t *testing.T) {
 	// Compile Lanz → HIR → dump → verify dump is parseable
 	src := `(fun add ((a u8) (b u8)) u8 (return (+ a b)))`
-	m, err := Compile(src, "test")
+	m, err := lanz.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -258,14 +259,14 @@ func TestCompile_RoundTrip(t *testing.T) {
 
 func TestDump_RoundTrip(t *testing.T) {
 	src := `(fun add ((a u8) (b u8)) u8 (return (+ a b)))`
-	m, err := Compile(src, "test")
+	m, err := lanz.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
-	lanzOut := Dump(m)
+	lanzOut := lanz.Dump(m)
 	t.Logf("Dump output:\n%s", lanzOut)
 	// Parse the dump back
-	m2, err := Compile(lanzOut, "test2")
+	m2, err := lanz.Compile(lanzOut, "test2")
 	if err != nil {
 		t.Fatalf("re-parse failed: %v", err)
 	}
@@ -276,11 +277,11 @@ func TestDump_RoundTrip(t *testing.T) {
 
 func TestDump_Global(t *testing.T) {
 	src := `(global counter u8 42)`
-	m, err := Compile(src, "test")
+	m, err := lanz.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
-	lanzOut := Dump(m)
+	lanzOut := lanz.Dump(m)
 	if !strings.Contains(lanzOut, "(global counter u8 42)") {
 		t.Errorf("dump = %q, want global counter u8 42", lanzOut)
 	}
@@ -300,15 +301,15 @@ func TestIsInt(t *testing.T) {
 		{"0x", false},
 	}
 	for _, c := range cases {
-		if got := IsInt(c.s); got != c.want {
-			t.Errorf("IsInt(%q) = %v, want %v", c.s, got, c.want)
+		if got := lanz.IsInt(c.s); got != c.want {
+			t.Errorf("lanz.IsInt(%q) = %v, want %v", c.s, got, c.want)
 		}
 	}
 }
 
 func TestCompile_UnaryNeg(t *testing.T) {
 	src := `(fun f ((x u8)) u8 (return (neg x)))`
-	m, err := Compile(src, "test")
+	m, err := lanz.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -325,7 +326,7 @@ func TestCompile_UnaryNeg(t *testing.T) {
 func TestCompile_CondExpr(t *testing.T) {
 	// if-as-expression
 	src := `(fun abs ((x i8)) u8 (return (cast (if (< x 0) (neg x) x) u8)))`
-	m, err := Compile(src, "test")
+	m, err := lanz.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -345,7 +346,7 @@ func TestAssert_Parse(t *testing.T) {
 	src := `(fun double ((x u8)) u8 (return (+ x x)))
 (assert double 5 == 10)
 (assert double 0 == 0)`
-	m, err := Compile(src, "test")
+	m, err := lanz.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -367,7 +368,7 @@ func TestAssert_Parse(t *testing.T) {
 func TestAssert_Via(t *testing.T) {
 	src := `(fun id ((x u8)) u8 (return x))
 (assert id 42 == 42 via mir2)`
-	m, err := Compile(src, "test")
+	m, err := lanz.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -382,7 +383,7 @@ func TestAssert_Via(t *testing.T) {
 func TestAssert_MultiArg(t *testing.T) {
 	src := `(fun add ((a u8) (b u8)) u8 (return (+ a b)))
 (assert add 3 4 == 7)`
-	m, err := Compile(src, "test")
+	m, err := lanz.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -400,7 +401,7 @@ func TestAssert_E2E(t *testing.T) {
 (assert double 0 == 0)
 (assert double 5 == 10)
 (assert double 127 == 254)`
-	m, err := Compile(src, "test")
+	m, err := lanz.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -419,7 +420,7 @@ func TestLambda_Parse(t *testing.T) {
   (return (apply (lambda ((x u8)) u8 (return (+ x x))) 5)))
 (assert test_lambda == 10 via mir2)
 `
-	m, err := Compile(src, "test_lambda")
+	m, err := lanz.Compile(src, "test_lambda")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -453,7 +454,7 @@ func TestLetIn_Parse(t *testing.T) {
   (return (let-in doubled u8 (+ x x) (+ doubled 1))))
 (assert f 5 == 11 via mir2)
 `
-	m, err := Compile(src, "test_letin")
+	m, err := lanz.Compile(src, "test_letin")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -478,7 +479,7 @@ func TestLetIn_Chained(t *testing.T) {
     (let-in b u8 (+ a a) (+ b 10)))))
 (assert f 3 == 18 via mir2)
 `
-	m, err := Compile(src, "test_letin_chain")
+	m, err := lanz.Compile(src, "test_letin_chain")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -499,7 +500,7 @@ func TestMatch_Parse(t *testing.T) {
 (assert classify 2 == 30 via mir2)
 (assert classify 42 == 99 via mir2)
 `
-	m, err := Compile(src, "test_match")
+	m, err := lanz.Compile(src, "test_match")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -522,7 +523,7 @@ func TestMatch_Else(t *testing.T) {
 (assert f 1 == 100 via mir2)
 (assert f 5 == 0 via mir2)
 `
-	m, err := Compile(src, "test_match_else")
+	m, err := lanz.Compile(src, "test_match_else")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -541,7 +542,7 @@ func TestFuncall(t *testing.T) {
   (return (apply (addr double) 5)))
 (assert test_fp == 10 via mir2)
 `
-	m, err := Compile(src, "test_funcall")
+	m, err := lanz.Compile(src, "test_funcall")
 	if err != nil {
 		t.Fatal(err)
 	}

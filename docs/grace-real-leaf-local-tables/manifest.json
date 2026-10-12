@@ -1,0 +1,30 @@
+{
+  "base": "5652212c",
+  "sha256": {
+    "README.md": "7caf794b05555e9201f7d30463ce2f105c9a7b8fb86edb234e0b27d685f7714c",
+    "baseline-cli.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline.a80": "4b4327127ec25c410285b51314a8543e13917fdcbd4d7f0ec0c18f5e3788dde7",
+    "baseline.a80.bin": "0e5515e146a58cfe20bc32ace9f65a26140b7fe66ac269be4392bc0dcff2c414",
+    "binaries.txt": "18921ed87a82b3a42470a2ec49500b6ec2ae3a5f12cb9ffd8ee450415e98fd1e",
+    "caller-baseline.a80": "cb770e29aad9898ff5174587ae92a1872dece63287a6636f46e29341cb267600",
+    "caller-baseline.a80.bin": "96d21e3d30b6ca975a95e8ee5d94778e75ddd1b65e3da670c7eca1caf251bfbf",
+    "caller-harness.nanz": "4d067e803b071517a62fd10f114386d76115009c49b23b089c612775ba597762",
+    "caller-selected.a80": "32915866dac150081aae06101ef1d7746ac077da555e967a59547092625d62e4",
+    "caller-selected.a80.bin": "324fc9718f6860d64722007c3fa5e0b441ac3d405936e71bae00f3af6388fe55",
+    "caller-table.json": "dd4016043eea23b533a4c5fbd906be39ae80788aa20daf78847f0ef0915a38fc",
+    "cli-refused.txt": "b868f8205dfb4c5831fd11fb06eb7abf0a65fd25355fb8e0d1da65034da2a022",
+    "compile-cli.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "compile-only.txt": "b3210ec561b76c4e1a6b589cd847e77c162222a9b11fb5fb5077b012f1b0e8e4",
+    "corpus.nanz": "d09334848a213973143c24f5ac165081d24c175693995febf40e552bb5ae66c5",
+    "generate-cli.txt": "d8978a69217200071240f9101bae65e881003f95c16a67fb71c8c3019f7eb73b",
+    "native.txt": "7dfbab7f4150d3b79cff7496be5046fa0d85dbd9acdf22ddca51ab3956d3870f",
+    "rotate-generation.txt": "207b25a9579d7511ab59ef24727aa90ebc76f9f76ead1a1b054c20b00dad0cd2",
+    "selected.a80": "20041d966eec92a432fc0789b47678b61b30f94ef192d5fe7e17491af04aba50",
+    "selected.a80.bin": "564c1659dcfd0d381c82166f9d2879bd7a6e14cca5d61eea1cf31ef4d84b4232",
+    "solver-install.txt": "380a4130c211708712ad45779babd58a073612bc91e2c6372ede852fec31c327",
+    "solver-sha256.txt": "09cecc6719b3f403da28642af1090e98cea82a98093ba14f67480b9f123fde06",
+    "solver-version.txt": "5b4f1a0b05fec775849f067e8b74475f2788ab7d87d9801663864f3cd5c4107a",
+    "table.json": "dd4016043eea23b533a4c5fbd906be39ae80788aa20daf78847f0ef0915a38fc",
+    "vir-full.txt": "1f7e6ac0e10270b13110fa7b63deb88f6a4bcc6dfef1de5e4a2555741c57ca94"
+  }
+}

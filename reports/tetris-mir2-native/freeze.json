@@ -1,0 +1,62 @@
+{
+  "source_sha256": "2db9d65b5ef5bf23d4b32ccce1904caaff38b4a9cff0cb2d191bce9f60e1ca37",
+  "geometry_grids": [
+    [
+      "####",
+      "#/#/#/#",
+      "####",
+      "#/#/#/#"
+    ],
+    [
+      "##/##",
+      "##/##",
+      "##/##",
+      "##/##"
+    ],
+    [
+      ".#./###",
+      "#./##/#.",
+      "###/.#.",
+      ".#/##/.#"
+    ],
+    [
+      ".##/##.",
+      "#./##/.#",
+      ".##/##.",
+      "#./##/.#"
+    ],
+    [
+      "##./.##",
+      ".#/##/#.",
+      "##./.##",
+      ".#/##/#."
+    ],
+    [
+      "..#/###",
+      "#./#./##",
+      "###/#..",
+      "##/.#/.#"
+    ],
+    [
+      "#../###",
+      "##/#./#.",
+      "###/..#",
+      ".#/.#/##"
+    ]
+  ],
+  "geometry_authority": "sevenstandardI,O,T,S,Z,L,Jtetromino cells, displayedrotationstates; blockindexc definedraster(rowmajor)order. Frozenhuman-authoredgrid independentofcompiledLUT; normalizeorigins includes sourcecanonicalI/O twoorientationrepeat. NotgeneralSRSrotationmodel.",
+  "piece_colors": [
+    40,
+    48,
+    24,
+    32,
+    16,
+    112,
+    8
+  ],
+  "color_authority": "sourcepublished ZXattributeenumvalues, noexternalTetrominocolorstandard",
+  "domain": "t0..6,r0..3,c0..3;colors t0..6,idx0..7;boardx0..9,y0..19,every256valuepersistentorderedset/get",
+  "board_model": "offset10*y+x, othersunchanged; full200cells and guards",
+  "main": "originalemptyvoid main productionDI/HALT",
+  "source_asserts": "all18originalasserts executedbeforeboardmutation"
+}

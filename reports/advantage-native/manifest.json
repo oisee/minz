@@ -1,0 +1,160 @@
+{
+  "schema": "minz.local-artifact-manifest/v1",
+  "files": [
+    {
+      "path": "REPORT.md",
+      "bytes": 3345,
+      "sha256": "dcf7ffff759e4bbd4f8c0a097d1362ae48b48e6a303d640bb0beb1440011b6b3"
+    },
+    {
+      "path": "actual/advantage/grace-size/abi.json",
+      "bytes": 57616,
+      "sha256": "4567b93ce7f0d9f8090bee13ff0e733fec02835b63027bcc9ee4c63b02d13ec2"
+    },
+    {
+      "path": "actual/advantage/grace-size/execution.a80",
+      "bytes": 4966,
+      "sha256": "5775c57c85325c305ffe209bbe6d7351953f96731bc5daaf68aa701f0231ca30"
+    },
+    {
+      "path": "actual/advantage/grace-size/execution.bin",
+      "bytes": 204,
+      "sha256": "3367d7197dd29b2cae9a61cce28f4ca69724af24ba8dc1ed454b8b40a1fbea63"
+    },
+    {
+      "path": "actual/advantage/grace-size/fib255-nonreturn.json",
+      "bytes": 140,
+      "sha256": "b39c4c46270275032b0c841be0e37c65c16e6e63cd75593b9eb351139d99e226"
+    },
+    {
+      "path": "actual/advantage/grace-size/final.mir",
+      "bytes": 3624,
+      "sha256": "1c6d455c9d0c18e5e1edf23eabc44f2639398f6b13a55212b0339b2c2411a6a6"
+    },
+    {
+      "path": "actual/advantage/grace-size/program.a80",
+      "bytes": 4518,
+      "sha256": "cb3e2ad9cb32c11a8835863dea8efd869a1eb3e3677d229368bfda02481b866e"
+    },
+    {
+      "path": "actual/advantage/grace-size/program.bin",
+      "bytes": 156,
+      "sha256": "82df71b2b26a83ecf5de26accea5d18f706ccc38a51a0ca1fceed0d4245b3417"
+    },
+    {
+      "path": "actual/advantage/grace-size/results.json",
+      "bytes": 1100,
+      "sha256": "a18b8efea7024a9e92203e47d18eb2f518434e05f6d33900707afcc468c8257a"
+    },
+    {
+      "path": "actual/advantage/grace-speed/abi.json",
+      "bytes": 57617,
+      "sha256": "c4e33ec0fcfa0a47c7d9ad7464fbaa2178e4749d69d2e6a3027a4d52b0a244b7"
+    },
+    {
+      "path": "actual/advantage/grace-speed/execution.a80",
+      "bytes": 4966,
+      "sha256": "5775c57c85325c305ffe209bbe6d7351953f96731bc5daaf68aa701f0231ca30"
+    },
+    {
+      "path": "actual/advantage/grace-speed/execution.bin",
+      "bytes": 204,
+      "sha256": "3367d7197dd29b2cae9a61cce28f4ca69724af24ba8dc1ed454b8b40a1fbea63"
+    },
+    {
+      "path": "actual/advantage/grace-speed/fib255-nonreturn.json",
+      "bytes": 140,
+      "sha256": "b39c4c46270275032b0c841be0e37c65c16e6e63cd75593b9eb351139d99e226"
+    },
+    {
+      "path": "actual/advantage/grace-speed/final.mir",
+      "bytes": 3624,
+      "sha256": "1c6d455c9d0c18e5e1edf23eabc44f2639398f6b13a55212b0339b2c2411a6a6"
+    },
+    {
+      "path": "actual/advantage/grace-speed/program.a80",
+      "bytes": 4518,
+      "sha256": "cb3e2ad9cb32c11a8835863dea8efd869a1eb3e3677d229368bfda02481b866e"
+    },
+    {
+      "path": "actual/advantage/grace-speed/program.bin",
+      "bytes": 156,
+      "sha256": "82df71b2b26a83ecf5de26accea5d18f706ccc38a51a0ca1fceed0d4245b3417"
+    },
+    {
+      "path": "actual/advantage/grace-speed/results.json",
+      "bytes": 1100,
+      "sha256": "a18b8efea7024a9e92203e47d18eb2f518434e05f6d33900707afcc468c8257a"
+    },
+    {
+      "path": "actual/advantage/ordinary/abi.json",
+      "bytes": 57619,
+      "sha256": "a579a330eda8df2b9e983c6c9629b6bbfd506807b8fbb3f219cd9c897720cade"
+    },
+    {
+      "path": "actual/advantage/ordinary/execution.a80",
+      "bytes": 5068,
+      "sha256": "35a8c9120b0b106720063cede6a1a24b8a07d1d857a3cce186c52aa0d9a4771c"
+    },
+    {
+      "path": "actual/advantage/ordinary/execution.bin",
+      "bytes": 204,
+      "sha256": "3367d7197dd29b2cae9a61cce28f4ca69724af24ba8dc1ed454b8b40a1fbea63"
+    },
+    {
+      "path": "actual/advantage/ordinary/fib255-nonreturn.json",
+      "bytes": 140,
+      "sha256": "b39c4c46270275032b0c841be0e37c65c16e6e63cd75593b9eb351139d99e226"
+    },
+    {
+      "path": "actual/advantage/ordinary/final.mir",
+      "bytes": 3624,
+      "sha256": "1c6d455c9d0c18e5e1edf23eabc44f2639398f6b13a55212b0339b2c2411a6a6"
+    },
+    {
+      "path": "actual/advantage/ordinary/program.a80",
+      "bytes": 4620,
+      "sha256": "d3399bcf84903aa2e6755e8159a9fcaef6d34e5358ee22856c724adc4a464cad"
+    },
+    {
+      "path": "actual/advantage/ordinary/program.bin",
+      "bytes": 156,
+      "sha256": "82df71b2b26a83ecf5de26accea5d18f706ccc38a51a0ca1fceed0d4245b3417"
+    },
+    {
+      "path": "actual/advantage/ordinary/results.json",
+      "bytes": 1100,
+      "sha256": "a18b8efea7024a9e92203e47d18eb2f518434e05f6d33900707afcc468c8257a"
+    },
+    {
+      "path": "actual/advantage/raw.mir",
+      "bytes": 4445,
+      "sha256": "f928ce1dc98ca96b8886946b5ccdb461c7191fde7618e710c7d96fb019ade9b6"
+    },
+    {
+      "path": "advantage.test.gz",
+      "bytes": 13599010,
+      "sha256": "4d2fa9eed355a83daffec070a41b516d1c16e0ebed3d1d074f97641931dec28e"
+    },
+    {
+      "path": "freeze.json",
+      "bytes": 1277,
+      "sha256": "9768ef924e0e653fadc4722ce1e8f83432fc73bde716aa1e904926f6157b7abc"
+    },
+    {
+      "path": "identity.json",
+      "bytes": 311,
+      "sha256": "966bc58dce68214a50bcdced093c43abe16c1093fcb39af4aac53fe627df3f47"
+    },
+    {
+      "path": "native-tests.txt",
+      "bytes": 5253,
+      "sha256": "0490dd17fc5f7586598ba3e2777a793d65b239f81eeee3ba6f5c905a3c75d654"
+    },
+    {
+      "path": "source.nanz",
+      "bytes": 1748,
+      "sha256": "04f3b01dc1126dae71b4b1152716df7e9e1f1225e747c3150f4ad5b0b9850875"
+    }
+  ]
+}

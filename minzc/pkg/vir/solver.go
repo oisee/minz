@@ -6,7 +6,7 @@
 //
 // Architecture:
 //
-//	Z3 solver (primary): encodes joint isel+regalloc as SMT, provably optimal.
+//	Z3 research solver: joint isel+regalloc SMT over a fixed schedule and cost model.
 //	WFC solver (future):  fast greedy approximation, validated against Z3.
 //
 // For each VIROp the solver sees:
@@ -15,10 +15,12 @@
 //   - ALL spill tier options (L1-L7)
 //   - ALL inter-instruction constraints (interference, clobbers, aliasing)
 //
-// One decision. No phase boundaries. No information loss.
+// Optimality is limited to the encoded schedule, locations, constraints and cost.
+// This research path is not the ordinary compiler backend (ADR-0043/0047).
 package vir
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -32,6 +34,12 @@ import (
 
 // SolverOptions controls the unified solver.
 type SolverOptions struct {
+	// Checked local emission domain: production candidates bind complete MIR
+	// context and actual return ABI, and bypass unverified text peepholes.
+	CheckedContext        string
+	CheckedReturnLocation string
+	CheckedRawEmission    bool
+
 	Timeout time.Duration // Z3 timeout (default 5s)
 	Z3Path  string        // path to z3 binary (default: "z3")
 	Verbose bool          // print SMT-LIB2 and model
@@ -1538,6 +1546,15 @@ func (p *problem) parseSolution(model string, desc *MachineDesc) ([]PIROp, error
 		result = append(result, pir)
 	}
 
+	if len(result) > 0 {
+		exit := make(map[int]int)
+		for vreg := range p.vregs {
+			if loc, ok := vals[fmt.Sprintf("loc_v%d", vreg)]; ok {
+				exit[vreg] = loc
+			}
+		}
+		result[len(result)-1].ExitLocations = exit
+	}
 	return result, nil
 }
 
@@ -1837,12 +1854,13 @@ func generateSMTPerInst(p *problem) string {
 	// Per-instruction solver can move the vreg to a different register
 	// at later instructions (paying 4T move cost). But at entry, the
 	// vreg MUST be in the ABI register for caller compatibility.
+	var hardDstHints []string
 	paramHardDone := make(map[int]bool)
 	for i, op := range p.ops {
 		if op.Dst > 0 && !op.DstHint.IsEmpty() && !paramHardDone[op.Dst] {
 			if _, ok := vars[vregAtInst{op.Dst, i}]; ok {
 				c := locSetToSMT(fmt.Sprintf("lv%d_i%d", op.Dst, i), op.DstHint)
-				b.WriteString(fmt.Sprintf("(assert %s) ; hard param at i%d\n", c, i))
+				hardDstHints = append(hardDstHints, fmt.Sprintf("(assert %s) ; hard param at i%d\n", c, i))
 				paramHardDone[op.Dst] = true
 			}
 		}
@@ -1912,6 +1930,10 @@ func generateSMTPerInst(p *problem) string {
 	}
 
 	b.WriteString(")))\n") // close cost expression
+
+	for _, h := range hardDstHints {
+		b.WriteString(h)
+	}
 
 	// Emit hard SrcHint constraints (collected above, outside cost ITE)
 	for _, h := range hardSrcHints {
@@ -1990,6 +2012,15 @@ func parsePerInstSolution(p *problem, model string, desc *MachineDesc) ([]PIROp,
 	}
 
 	final := insertPerInstMoves(raw, p, vals, desc)
+	if len(final) > 0 {
+		exit := make(map[int]int)
+		for vreg := range p.vregs {
+			if loc, ok := vals[fmt.Sprintf("lv%d_i%d", vreg, len(p.ops)-1)]; ok {
+				exit[vreg] = loc
+			}
+		}
+		final[len(final)-1].ExitLocations = exit
+	}
 	return final, nil
 }
 
@@ -2050,6 +2081,9 @@ func findMovePatternDirect(desc *MachineDesc, srcPhys, dstPhys int) *Pattern {
 		if pat.Op != OpMove || pat.Width != dstWidth {
 			continue
 		}
+		if pat.TiedDstSrc && srcPhys != dstPhys {
+			continue
+		}
 		if strings.Contains(pat.Template, "EX ") {
 			continue
 		}
@@ -2062,6 +2096,9 @@ func findMovePatternDirect(desc *MachineDesc, srcPhys, dstPhys int) *Pattern {
 		pat := &desc.Patterns[i]
 		if pat.Op != OpMove || pat.Width == dstWidth {
 			continue // already tried
+		}
+		if pat.TiedDstSrc && srcPhys != dstPhys {
+			continue
 		}
 		if strings.Contains(pat.Template, "EX ") {
 			continue
@@ -2154,12 +2191,23 @@ func runZ3(smt string, opts SolverOptions) (string, error) {
 	}
 	f.Close()
 
-	// Run z3
-	cmd := exec.Command(opts.Z3Path,
+	// Enforce the host deadline as well as Z3's own timeout argument: a
+	// configured replacement executable must not hang generation indefinitely.
+	timeout := opts.Timeout
+	if timeout <= 0 {
+		timeout = 30 * time.Second
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), timeout+time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, opts.Z3Path,
 		"-T:"+strconv.Itoa(int(opts.Timeout.Seconds())),
 		f.Name())
+	cmd.WaitDelay = time.Second // bound inherited output pipes after process timeout
 	out, err := cmd.CombinedOutput()
 	output := string(out)
+	if ctx.Err() != nil {
+		return "", fmt.Errorf("z3 host deadline exceeded after %v", timeout)
+	}
 
 	// Z3 exits 0 for sat/unsat, non-zero for errors
 	if err != nil {

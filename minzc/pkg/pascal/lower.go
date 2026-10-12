@@ -1,7 +1,10 @@
 package pascal
 
 import (
+	"crypto/sha256"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
@@ -31,6 +34,16 @@ func Compile(src, name string, opts ...CompileOpts) (*hir.Module, error) {
 	// register conventions — no external Lizp import needed.
 	_ = o // StdlibDir no longer used; runtime is generated directly.
 	emitRuntimeFuncs(hm)
+	sum := sha256.Sum256([]byte(src))
+	hm.SourceUnits = map[string]string{hm.Name: fmt.Sprintf("%x", sum)}
+	hm.SourceUnitsComplete = completeSingleSource(src)
+	for stmt, origin := range hm.SourceLocations {
+		origin.SourceSHA256 = fmt.Sprintf("%x", sum)
+		origin.Unit = hm.Name
+		lineStart := strings.LastIndex(src[:origin.ByteOffset], "\n") + 1
+		origin.Column = origin.ByteOffset - lineStart + 1
+		hm.SourceLocations[stmt] = origin
+	}
 	return hm, nil
 }
 
@@ -42,15 +55,17 @@ func LowerProgram(prog *Program, name string) (*hir.Module, error) {
 		types:    make(map[string]PasType),
 		fnRetTy:  make(map[string]PasType),
 		varTypes: make(map[string]PasType),
+		mirTypes: make(map[PasType]mir2.Ty),
 	}
 	if name == "" {
 		name = prog.Name
 	}
-	l.hm = &hir.Module{Name: name}
+	l.hm = &hir.Module{Name: name, SourceLocations: map[hir.Stmt]hir.SourceLocation{}}
 	return l.lower()
 }
 
 type lowerer struct {
+	mirTypes map[PasType]mir2.Ty
 	prog     *Program
 	hm       *hir.Module
 	consts   map[string]int64   // resolved compile-time constants
@@ -105,7 +120,7 @@ func (l *lowerer) lowerDecl(d Decl) error {
 	case *TypedConstDecl:
 		// Typed const → mutable global with init value.
 		ty := l.resolveType(d.Ty)
-		mty := PasTypeToMIR2(ty)
+		mty := l.mirType(ty)
 		g := mir2.Global{Name: d.Name, Ty: mty}
 		l.hm.Globals = append(l.hm.Globals, g)
 		l.varTypes[d.Name] = ty
@@ -121,7 +136,7 @@ func (l *lowerer) lowerDecl(d Decl) error {
 
 	case *VarDecl:
 		ty := l.resolveType(d.Ty)
-		mty := PasTypeToMIR2(ty)
+		mty := l.mirType(ty)
 		for _, name := range d.Names {
 			l.hm.Globals = append(l.hm.Globals, mir2.Global{Name: name, Ty: mty})
 			l.varTypes[name] = ty
@@ -144,7 +159,7 @@ func (l *lowerer) lowerDecl(d Decl) error {
 func (l *lowerer) lowerRecordType(name string, rt *RecordType) *mir2.StructTy {
 	st := &mir2.StructTy{Name: name}
 	for _, f := range rt.Fields {
-		fty := PasTypeToMIR2(l.resolveType(f.Ty))
+		fty := l.mirType(f.Ty)
 		for _, fn := range f.Names {
 			st.Fields = append(st.Fields, mir2.StructField{Name: fn, Ty: fty})
 		}
@@ -191,7 +206,7 @@ func (l *lowerer) lowerProc(pd *ProcDecl) (*hir.Func, error) {
 	var params []hir.Param
 	for _, pg := range pd.Params {
 		ty := l.resolveType(pg.Ty)
-		mty := PasTypeToMIR2(ty)
+		mty := l.mirType(ty)
 		if pg.IsVar {
 			mty = mir2.TyPtr // var params passed as pointer
 		}
@@ -203,7 +218,7 @@ func (l *lowerer) lowerProc(pd *ProcDecl) (*hir.Func, error) {
 
 	var retTy mir2.Ty = mir2.TyVoid
 	if pd.RetTy != nil {
-		retTy = PasTypeToMIR2(l.resolveType(pd.RetTy))
+		retTy = l.mirType(pd.RetTy)
 	}
 
 	// Local declarations.
@@ -211,7 +226,7 @@ func (l *lowerer) lowerProc(pd *ProcDecl) (*hir.Func, error) {
 	for _, ld := range pd.Locals {
 		if vd, ok := ld.(*VarDecl); ok {
 			ty := l.resolveType(vd.Ty)
-			mty := PasTypeToMIR2(ty)
+			mty := l.mirType(ty)
 			for _, name := range vd.Names {
 				bodyStmts = append(bodyStmts, &hir.VarDeclStmt{Name: name, Ty: mty})
 				pl.localTypes[name] = ty
@@ -273,7 +288,7 @@ func (pl *procLow) typeOf(name string) PasType {
 }
 
 func (pl *procLow) mir2TypeOf(name string) mir2.Ty {
-	return PasTypeToMIR2(pl.low.resolveType(pl.typeOf(name)))
+	return pl.low.mirType(pl.typeOf(name))
 }
 
 // ── Statement lowering ───────────────────────────────────────────────────────
@@ -300,7 +315,7 @@ func (pl *procLow) lowerStmt(s Stmt) ([]hir.Stmt, error) {
 		return pl.lowerAssert(s)
 	case *ExitStmt:
 		if pl.funcRetTy != nil {
-			retTy := PasTypeToMIR2(pl.low.resolveType(pl.funcRetTy))
+			retTy := pl.low.mirType(pl.funcRetTy)
 			return []hir.Stmt{hir.Ret(hir.Var(pl.funcName, retTy))}, nil
 		}
 		return []hir.Stmt{hir.RetVoid()}, nil
@@ -331,7 +346,7 @@ func (pl *procLow) lowerAssign(s *AssignStmt) ([]hir.Stmt, error) {
 			elemTy := pl.elemTypeOf(vr.Name)
 			base := &hir.AddrOfExpr{Sym: vr.Name}
 			ptr := &hir.IndexExpr{Base: base, Idx: idx, ElemTy: elemTy}
-			return []hir.Stmt{&hir.StoreStmt{Ptr: ptr, Val: val}}, nil
+			return []hir.Stmt{&hir.StoreStmt{Ptr: hir.AddrExpr(ptr), Val: val}}, nil
 		}
 	}
 
@@ -341,8 +356,10 @@ func (pl *procLow) lowerAssign(s *AssignStmt) ([]hir.Stmt, error) {
 		if err != nil {
 			return nil, err
 		}
-		// For now, emit as field set — we need the struct type info
-		fieldExpr := &hir.FieldExpr{X: base, Field: fe.Field, Ty: val.ExprTy()}
+		fieldExpr, err := pl.lowerField(fe, base)
+		if err != nil {
+			return nil, err
+		}
 		return []hir.Stmt{hir.Assign(fieldExpr, val)}, nil
 	}
 
@@ -352,9 +369,9 @@ func (pl *procLow) lowerAssign(s *AssignStmt) ([]hir.Stmt, error) {
 func (pl *procLow) elemTypeOf(name string) mir2.Ty {
 	ty := pl.low.resolveType(pl.typeOf(name))
 	if at, ok := ty.(*ArrayType); ok {
-		return PasTypeToMIR2(pl.low.resolveType(at.Elem))
+		return pl.low.mirType(at.Elem)
 	}
-	return PasTypeToMIR2(ty)
+	return pl.low.mirType(ty)
 }
 
 func (pl *procLow) lowerCallStmt(s *CallStmt) ([]hir.Stmt, error) {
@@ -374,7 +391,7 @@ func (pl *procLow) lowerCallStmt(s *CallStmt) ([]hir.Stmt, error) {
 
 	var retTy mir2.Ty = mir2.TyVoid
 	if rt, ok := pl.low.fnRetTy[s.Name]; ok {
-		retTy = PasTypeToMIR2(pl.low.resolveType(rt))
+		retTy = pl.low.mirType(rt)
 	}
 	args, err := pl.lowerExprs(s.Args)
 	if err != nil {
@@ -419,7 +436,7 @@ func (pl *procLow) lowerWrite(args []Expr) ([]hir.Stmt, error) {
 				})
 			} else {
 				stmts = append(stmts, &hir.ExprStmt{
-					Expr: hir.Call("WriteI16", mir2.TyVoid, he),
+					Expr: hir.Call(pascalWordPrinter(ty), mir2.TyVoid, he),
 				})
 			}
 		}
@@ -476,7 +493,9 @@ func (pl *procLow) lowerWhile(s *WhileStmt) ([]hir.Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	return []hir.Stmt{hir.While(cond, body)}, nil
+	loop := hir.While(cond, body)
+	pl.recordLoop(loop, s.Token)
+	return []hir.Stmt{loop}, nil
 }
 
 func (pl *procLow) lowerRepeat(s *RepeatStmt) ([]hir.Stmt, error) {
@@ -492,6 +511,7 @@ func (pl *procLow) lowerRepeat(s *RepeatStmt) ([]hir.Stmt, error) {
 	// if (cond) break
 	bodyStmts = append(bodyStmts, hir.If(cond, hir.Blk(&hir.BreakStmt{}), nil))
 	loop := hir.While(&hir.BoolLitExpr{Val: true}, hir.Blk(bodyStmts...))
+	pl.recordLoop(loop, s.Token)
 	return []hir.Stmt{loop}, nil
 }
 
@@ -533,7 +553,9 @@ func (pl *procLow) lowerFor(s *ForStmt) ([]hir.Stmt, error) {
 	}
 	bodyStmts := append(body.Body, inc)
 
-	return []hir.Stmt{init, hir.While(cond, hir.Blk(bodyStmts...))}, nil
+	loop := hir.While(cond, hir.Blk(bodyStmts...))
+	pl.recordLoop(loop, s.Token)
+	return []hir.Stmt{init, loop}, nil
 }
 
 func (pl *procLow) lowerCase(s *CaseStmt) ([]hir.Stmt, error) {
@@ -723,8 +745,7 @@ func (pl *procLow) lowerExpr(e Expr) (hir.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-		// Simplified: field access. The HIR FieldExpr needs offset resolution.
-		return &hir.FieldExpr{X: base, Field: e.Field, Ty: mir2.TyU16}, nil
+		return pl.lowerField(e, base)
 
 	case *DerefExpr:
 		x, err := pl.lowerExpr(e.X)
@@ -742,6 +763,20 @@ func (pl *procLow) lowerExpr(e Expr) (hir.Expr, error) {
 	default:
 		return nil, fmt.Errorf("unhandled Pascal expression type %T", e)
 	}
+}
+
+// lowerField preserves the declared packed field type and byte offset.
+func (pl *procLow) lowerField(e *FieldExpr, base hir.Expr) (*hir.FieldExpr, error) {
+	st, ok := base.ExprTy().(*mir2.StructTy)
+	if !ok {
+		return nil, fmt.Errorf("field %s requires a record, got %s", e.Field, base.ExprTy())
+	}
+	for i, f := range st.Fields {
+		if f.Name == e.Field {
+			return &hir.FieldExpr{X: base, Field: e.Field, Offset: st.ByteOffset(i), Ty: f.Ty}, nil
+		}
+	}
+	return nil, fmt.Errorf("unknown record field %s", e.Field)
 }
 
 func (pl *procLow) lowerCallExpr(e *CallExpr) (hir.Expr, error) {
@@ -842,7 +877,7 @@ func (pl *procLow) lowerCallExpr(e *CallExpr) (hir.Expr, error) {
 
 	var retTy mir2.Ty = mir2.TyVoid
 	if rt, ok := pl.low.fnRetTy[e.Name]; ok {
-		retTy = PasTypeToMIR2(pl.low.resolveType(rt))
+		retTy = pl.low.mirType(rt)
 	}
 	args, err := pl.lowerExprs(e.Args)
 	if err != nil {
@@ -874,6 +909,33 @@ func (l *lowerer) internString(s string) string {
 	l.hm.Strings = append(l.hm.Strings, terminated)
 	l.hm.StrKinds = append(l.hm.StrKinds, mir2.StrCString)
 	return fmt.Sprintf("@mir2.str.%d", idx)
+}
+
+// Reuse the same resolved aggregate type across declarations, parameters,
+// and field expressions. Struct identity is part of the HIR call contract.
+func (l *lowerer) mirType(t PasType) mir2.Ty {
+	t = l.resolveType(t)
+	if ty, ok := l.mirTypes[t]; ok {
+		return ty
+	}
+	var ty mir2.Ty
+	switch t := t.(type) {
+	case *RecordType:
+		st := &mir2.StructTy{}
+		l.mirTypes[t] = st
+		for _, f := range t.Fields {
+			for _, name := range f.Names {
+				st.Fields = append(st.Fields, mir2.StructField{Name: name, Ty: l.mirType(f.Ty)})
+			}
+		}
+		ty = st
+	case *ArrayType:
+		ty = &mir2.ArrayTy{Elem: l.mirType(t.Elem), Len: t.Hi - t.Lo + 1}
+	default:
+		ty = PasTypeToMIR2(t)
+	}
+	l.mirTypes[t] = ty
+	return ty
 }
 
 func (l *lowerer) resolveType(t PasType) PasType {
@@ -928,7 +990,6 @@ func pasResultTy(l, r mir2.Ty, op string) mir2.Ty {
 }
 
 // ── Auto-import system unit ──────────────────────────────────────────────────
-
 
 // moduleReferences checks if a function name is called anywhere in the module.
 func moduleReferences(hm *hir.Module, name string) bool {
@@ -1037,56 +1098,19 @@ func emitRuntimeFuncs(hm *hir.Module) {
 
 	// ConOut(ch: u8) -> void — BDOS 2, char in E
 	if need("ConOut") {
-		hm.Funcs = append(hm.Funcs, &hir.Func{
-			Name:   "ConOut",
-			Params: []hir.Param{{Name: "ch", Ty: mir2.TyU8}},
-			RetTy:  mir2.TyVoid,
-			Body: &hir.Block{Body: []hir.Stmt{
-				&hir.AsmStmt{
-					Target:     "z80",
-					Code:       "LD E, A / LD C, 2 / CALL 0x0005",
-					ClobberAll: true,
-					Ins:        []hir.AsmOperand{{Name: "ch"}},
-				},
-				&hir.ReturnStmt{},
-			}},
-		})
+		hm.Funcs = append(hm.Funcs, hir.CanonicalPascalProfileRuntime("ConOut"))
 		defined["ConOut"] = true
 	}
 
 	// WriteCrLf() -> void — output CR+LF via inline asm (BDOS 2)
 	if need("WriteCrLf") {
-		hm.Funcs = append(hm.Funcs, &hir.Func{
-			Name:  "WriteCrLf",
-			RetTy: mir2.TyVoid,
-			Body: &hir.Block{Body: []hir.Stmt{
-				&hir.AsmStmt{
-					Target:     "z80",
-					Code:       "LD E, 13 / LD C, 2 / CALL 5 / LD E, 10 / LD C, 2 / CALL 5",
-					ClobberAll: true,
-				},
-				&hir.ReturnStmt{},
-			}},
-		})
+		hm.Funcs = append(hm.Funcs, hir.CanonicalPascalProfileRuntime("WriteCrLf"))
 		defined["WriteCrLf"] = true
 	}
 
 	// WriteStr(addr: u16) -> void — BDOS 9, string addr in DE
 	if need("WriteStr") {
-		hm.Funcs = append(hm.Funcs, &hir.Func{
-			Name:   "WriteStr",
-			Params: []hir.Param{{Name: "addr", Ty: mir2.TyU16}},
-			RetTy:  mir2.TyVoid,
-			Body: &hir.Block{Body: []hir.Stmt{
-				&hir.AsmStmt{
-					Target:     "z80",
-					Code:       "EX DE, HL / LD C, 9 / CALL 0x0005",
-					ClobberAll: true,
-					Ins:        []hir.AsmOperand{{Name: "addr"}},
-				},
-				&hir.ReturnStmt{},
-			}},
-		})
+		hm.Funcs = append(hm.Funcs, hir.CanonicalPascalProfileRuntime("WriteStr"))
 		defined["WriteStr"] = true
 	}
 
@@ -1094,112 +1118,24 @@ func emitRuntimeFuncs(hm *hir.Module) {
 	if need("WriteU8") {
 		// Ensure ConOut is available
 		if !defined["ConOut"] {
-			hm.Funcs = append(hm.Funcs, &hir.Func{
-				Name:   "ConOut",
-				Params: []hir.Param{{Name: "ch", Ty: mir2.TyU8}},
-				RetTy:  mir2.TyVoid,
-				Body: &hir.Block{Body: []hir.Stmt{
-					&hir.AsmStmt{
-						Target:     "z80",
-						Code:       "LD E, A / LD C, 2 / CALL 0x0005",
-						ClobberAll: true,
-						Ins:        []hir.AsmOperand{{Name: "ch"}},
-					},
-					&hir.ReturnStmt{},
-				}},
-			})
+			hm.Funcs = append(hm.Funcs, hir.CanonicalPascalProfileRuntime("ConOut"))
 			defined["ConOut"] = true
 		}
 		// WriteU8: emit decimal digits via asm for compact output
-		hm.Funcs = append(hm.Funcs, &hir.Func{
-			Name:   "WriteU8",
-			Params: []hir.Param{{Name: "val", Ty: mir2.TyU8}},
-			RetTy:  mir2.TyVoid,
-			Body: &hir.Block{Body: []hir.Stmt{
-				// Use inline asm: val is in A, decompose and print digits
-				&hir.AsmStmt{
-					Target: "z80",
-					Code: "LD B, A / LD C, 0 / LD A, B" +
-						" / CP 100 / JR C, .wu8_tens" +
-						" / .wu8_h: SUB 100 / INC C / CP 100 / JR NC, .wu8_h" +
-						" / LD B, A / LD A, C / ADD A, 48 / LD E, A / PUSH BC / LD C, 2 / CALL 0x0005 / POP BC / LD A, B" +
-						" / LD C, 1" + // flag: had hundreds
-						" / .wu8_tens: LD B, 0" +
-						" / CP 10 / JR C, .wu8_ones" +
-						" / .wu8_t: SUB 10 / INC B / CP 10 / JR NC, .wu8_t" +
-						" / PUSH AF / LD A, B / ADD A, 48 / LD E, A / LD C, 2 / CALL 0x0005 / POP AF" +
-						" / .wu8_ones: ADD A, 48 / LD E, A / LD C, 2 / CALL 0x0005",
-					ClobberAll: true,
-					Ins:        []hir.AsmOperand{{Name: "val"}},
-				},
-				&hir.ReturnStmt{},
-			}},
-		})
+		hm.Funcs = append(hm.Funcs, hir.CanonicalPascalProfileRuntime("WriteU8"))
 		defined["WriteU8"] = true
 	}
 
-	// WriteI16(val: u16) -> void — print i16 as decimal via BDOS 2
-	if need("WriteI16") {
-		if !defined["ConOut"] {
-			hm.Funcs = append(hm.Funcs, &hir.Func{
-				Name:   "ConOut",
-				Params: []hir.Param{{Name: "ch", Ty: mir2.TyU8}},
-				RetTy:  mir2.TyVoid,
-				Body: &hir.Block{Body: []hir.Stmt{
-					&hir.AsmStmt{
-						Target:     "z80",
-						Code:       "LD E, A / LD C, 2 / CALL 0x0005",
-						ClobberAll: true,
-						Ins:        []hir.AsmOperand{{Name: "ch"}},
-					},
-					&hir.ReturnStmt{},
-				}},
-			})
-			defined["ConOut"] = true
+	// Signed and unsigned source values have distinct decimal contracts.
+	for _, name := range []string{"WriteI16", "WriteU16"} {
+		if need(name) {
+			hm.Funcs = append(hm.Funcs, hir.CanonicalPascalDecimalRuntime(name))
+			defined[name] = true
+			if !defined["_wr16_dig"] {
+				hm.Funcs = append(hm.Funcs, hir.CanonicalPascalDecimalRuntime("_wr16_dig"))
+				defined["_wr16_dig"] = true
+			}
 		}
-		hm.Funcs = append(hm.Funcs, &hir.Func{
-			Name:   "WriteI16",
-			Params: []hir.Param{{Name: "val", Ty: mir2.TyU16}},
-			RetTy:  mir2.TyVoid,
-			Body: &hir.Block{Body: []hir.Stmt{
-				&hir.AsmStmt{
-					Target: "z80",
-					// HL = val. Print decimal via subtract-and-count.
-					Code: "PUSH IX / PUSH HL / POP IX / LD D, 0" +
-						" / PUSH IX / POP HL / LD BC, 10000 / CALL _wr16_dig / PUSH HL / POP IX" +
-						" / PUSH IX / POP HL / LD BC, 1000 / CALL _wr16_dig / PUSH HL / POP IX" +
-						" / PUSH IX / POP HL / LD BC, 100 / CALL _wr16_dig / PUSH HL / POP IX" +
-						" / PUSH IX / POP HL / LD BC, 10 / CALL _wr16_dig / PUSH HL / POP IX" +
-						" / LD A, IXL / ADD A, 48 / LD E, A / LD C, 2 / CALL 5" +
-						" / POP IX",
-					ClobberAll: true,
-					Ins:        []hir.AsmOperand{{Name: "val"}},
-				},
-				&hir.ReturnStmt{},
-			}},
-		})
-		// Helper: _wr16_dig — same as ABAP's _abap_wr_dig
-		if !defined["_wr16_dig"] {
-			hm.Funcs = append(hm.Funcs, &hir.Func{
-				Name:  "_wr16_dig",
-				RetTy: mir2.TyVoid,
-				Body: &hir.Block{Body: []hir.Stmt{
-					&hir.AsmStmt{
-						Target: "z80",
-						Code: "LD A, 48" +
-							" / _w16_sub: OR A / SBC HL, BC / JR NC, _w16_cont" +
-							" / ADD HL, BC / CP 48 / JR NZ, _w16_pr" +
-							" / LD A, D / OR A / RET Z / LD A, 48" +
-							" / _w16_pr: LD D, 1 / LD E, A / PUSH HL / PUSH DE / PUSH BC / LD C, 2 / CALL 5 / POP BC / POP DE / POP HL / RET" +
-							" / _w16_cont: INC A / JR _w16_sub",
-						ClobberAll: true,
-					},
-					&hir.ReturnStmt{},
-				}},
-			})
-			defined["_wr16_dig"] = true
-		}
-		defined["WriteI16"] = true
 	}
 
 	// PascalHalt() -> void — BDOS 0
@@ -1218,4 +1154,40 @@ func emitRuntimeFuncs(hm *hir.Module) {
 		})
 		defined["PascalHalt"] = true
 	}
+}
+
+// USES is currently skipped by the parser and include directives are comments,
+// not resolved source units. Such requests cannot claim a complete manifest.
+func completeSingleSource(src string) bool {
+	l, err := NewLexer(src)
+	if err != nil {
+		return false
+	}
+	for _, t := range l.tokens {
+		if t.Kind == TokIdent && t.Val == "USES" {
+			return false
+		}
+	}
+	directives := regexp.MustCompile(`(?is)\{\s*\$([^}]+)\}|\(\*\s*\$([^*]+)\*\)`)
+	for _, m := range directives.FindAllStringSubmatch(src, -1) {
+		d := strings.TrimSpace(m[1] + m[2])
+		fields := strings.Fields(strings.ToUpper(d))
+		if len(fields) > 0 && (fields[0] == "I" || fields[0] == "INCLUDE" || fields[0] == "LINK" || fields[0] == "L") {
+			return false
+		}
+	}
+	return true
+}
+
+func (pl *procLow) recordLoop(stmt hir.Stmt, t Token) {
+	if t.Line > 0 {
+		pl.low.hm.SourceLocations[stmt] = hir.SourceLocation{ByteOffset: t.Offset, Line: t.Line}
+	}
+}
+
+func pascalWordPrinter(ty mir2.Ty) string {
+	if ty == mir2.TyU16 {
+		return "WriteU16"
+	}
+	return "WriteI16"
 }

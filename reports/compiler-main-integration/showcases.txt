@@ -1,0 +1,48 @@
+=== RUN   TestPublicCPMTetrisNative
+    cpm_tetris_native_test.go:256: ordinary public runtime exact stdout/state/OSreturn/SP PASS
+    cpm_tetris_native_test.go:256: grace-size public runtime exact stdout/state/OSreturn/SP PASS
+    cpm_tetris_native_test.go:256: grace-speed public runtime exact stdout/state/OSreturn/SP PASS
+--- PASS: TestPublicCPMTetrisNative (1.88s)
+=== RUN   TestLizpLastFormEffectsNative
+=== RUN   TestLizpLastFormEffectsNative/ordinary
+=== RUN   TestLizpLastFormEffectsNative/grace-size
+=== RUN   TestLizpLastFormEffectsNative/grace-speed
+--- PASS: TestLizpLastFormEffectsNative (0.11s)
+    --- PASS: TestLizpLastFormEffectsNative/ordinary (0.04s)
+    --- PASS: TestLizpLastFormEffectsNative/grace-size (0.04s)
+    --- PASS: TestLizpLastFormEffectsNative/grace-speed (0.04s)
+=== RUN   TestOriginalLizpCondLastFormNative
+=== RUN   TestOriginalLizpCondLastFormNative/ordinary
+=== RUN   TestOriginalLizpCondLastFormNative/grace-size
+=== RUN   TestOriginalLizpCondLastFormNative/grace-speed
+--- PASS: TestOriginalLizpCondLastFormNative (0.06s)
+    --- PASS: TestOriginalLizpCondLastFormNative/ordinary (0.02s)
+    --- PASS: TestOriginalLizpCondLastFormNative/grace-size (0.02s)
+    --- PASS: TestOriginalLizpCondLastFormNative/grace-speed (0.02s)
+=== RUN   TestOriginalPLMHelloWholeCPM
+=== RUN   TestOriginalPLMHelloWholeCPM/ordinary
+    plm_hello_cpm_native_test.go:185: ordinary clobber=false COM=1183 bytes native=14135 T excluding host BDOS, stdout="Hello from PL/M-80!\r\n" PC=0 SP=fe00 full RAM guard PASS
+    plm_hello_cpm_native_test.go:185: ordinary clobber=true COM=1183 bytes native=14135 T excluding host BDOS, stdout="Hello from PL/M-80!\r\n" PC=0 SP=fe00 full RAM guard PASS
+=== RUN   TestOriginalPLMHelloWholeCPM/grace-size
+    plm_hello_cpm_native_test.go:185: grace-size clobber=false COM=1183 bytes native=14135 T excluding host BDOS, stdout="Hello from PL/M-80!\r\n" PC=0 SP=fe00 full RAM guard PASS
+    plm_hello_cpm_native_test.go:185: grace-size clobber=true COM=1183 bytes native=14135 T excluding host BDOS, stdout="Hello from PL/M-80!\r\n" PC=0 SP=fe00 full RAM guard PASS
+=== RUN   TestOriginalPLMHelloWholeCPM/grace-speed
+    plm_hello_cpm_native_test.go:185: grace-speed clobber=false COM=1183 bytes native=14135 T excluding host BDOS, stdout="Hello from PL/M-80!\r\n" PC=0 SP=fe00 full RAM guard PASS
+    plm_hello_cpm_native_test.go:185: grace-speed clobber=true COM=1183 bytes native=14135 T excluding host BDOS, stdout="Hello from PL/M-80!\r\n" PC=0 SP=fe00 full RAM guard PASS
+--- PASS: TestOriginalPLMHelloWholeCPM (0.03s)
+    --- PASS: TestOriginalPLMHelloWholeCPM/ordinary (0.01s)
+    --- PASS: TestOriginalPLMHelloWholeCPM/grace-size (0.01s)
+    --- PASS: TestOriginalPLMHelloWholeCPM/grace-speed (0.01s)
+=== RUN   TestPlayableTetrisRenderErasesAndKeepsBoard
+=== RUN   TestPlayableTetrisRenderErasesAndKeepsBoard/ordinary
+    tetris_playable_render_test.go:109: second frame: old cells erased, current I and locked O cell retained; BDOS register clobbers, exact PC/SP PASS
+=== RUN   TestPlayableTetrisRenderErasesAndKeepsBoard/grace-size
+    tetris_playable_render_test.go:109: second frame: old cells erased, current I and locked O cell retained; BDOS register clobbers, exact PC/SP PASS
+=== RUN   TestPlayableTetrisRenderErasesAndKeepsBoard/grace-speed
+    tetris_playable_render_test.go:109: second frame: old cells erased, current I and locked O cell retained; BDOS register clobbers, exact PC/SP PASS
+--- PASS: TestPlayableTetrisRenderErasesAndKeepsBoard (2.29s)
+    --- PASS: TestPlayableTetrisRenderErasesAndKeepsBoard/ordinary (0.66s)
+    --- PASS: TestPlayableTetrisRenderErasesAndKeepsBoard/grace-size (0.74s)
+    --- PASS: TestPlayableTetrisRenderErasesAndKeepsBoard/grace-speed (0.89s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.379s

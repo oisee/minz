@@ -1,0 +1,14 @@
+{
+  "schema": "minz.error-enforcement-native/v1",
+  "source_sha256": "0fea7e236116054f0da14859393df4cf272f8461ca812186b44a28ac7d26d51b",
+  "model": "Nanz Language Book v7 Appendix K CY+A; section naming ? parser enforcement",
+  "entries": {
+    "safe_div?": "all256x256 b0=>error1 else a/b",
+    "safe_add?": "all256x256 overflow=>error2 else sum",
+    "compute": "all256x256 div then checked add5 (error2 for quotient>250)",
+    "try_div": "all256x256 checkeddivision",
+    "main": "stdout105, successfulvoid NC, incomingCY0/1"
+  },
+  "source_unchanged": true,
+  "freeze_before_measurement": true
+}

@@ -1,0 +1,13 @@
+{
+  "source_path": "examples/pascal/string_test.pas",
+  "source_sha256": "ffd5d5a5e71f24bc5ef9a7a7f208ac42cee2f7e425cae64993d1d3bd9306c282",
+  "base_compiler": "ccbcecda",
+  "source_untouched": true,
+  "oracle": "Unsigned Byte domain0..255; nested>=lower and<=upper tests produce numericByte0/1. Main consists only comments; no assertions or output executed. Book integer comparison/control-flow semantics; actual Pascal source bodies determine the intervals.",
+  "calls_per_mode": 769,
+  "modes": [
+    "default",
+    "grace-speed",
+    "grace-size"
+  ]
+}

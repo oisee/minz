@@ -2,6 +2,9 @@ package main
 
 import (
 	"bytes"
+	"github.com/minz/minzc/pkg/c89"
+	"github.com/minz/minzc/pkg/pipeline"
+	"github.com/minz/minzc/pkg/z80asm"
 	"io"
 	"os"
 	"path/filepath"
@@ -45,7 +48,7 @@ func TestDefaultMIR2AssertAssembly(t *testing.T) {
 	}
 }
 
-func TestIndirectMIR2DefaultWarning(t *testing.T) {
+func TestIndirectMIR2DefaultAssembly(t *testing.T) {
 	outputTestState(t)
 	src, err := os.ReadFile("../../../examples/c89/func_ptr.c")
 	if err != nil {
@@ -75,12 +78,29 @@ func TestIndirectMIR2DefaultWarning(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(warning), "Z80 output skipped because of the unsupported indirect-call ABI") {
-		t.Fatalf("missing warning: %s", warning)
+	if strings.Contains(string(warning), "unsupported indirect-call ABI") {
+		t.Fatalf("supported typed ABI was incorrectly skipped: %s", warning)
 	}
-	if _, err := os.Stat(strings.TrimSuffix(source, ".c") + ".a80"); !os.IsNotExist(err) {
-		t.Fatal("unsupported default wrote assembly")
+	emitted, err := os.ReadFile(strings.TrimSuffix(source, ".c") + ".a80")
+	if err != nil || len(emitted) == 0 {
+		t.Fatal("supported default did not emit assembly", err)
 	}
+	hm, err := c89.Compile(string(src), source)
+	if err != nil {
+		t.Fatal(err)
+	}
+	steps, err := pipeline.CompileHIRSteps(hm, pipeline.Options{ContractOpt: true, AssertMode: "none"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(emitted) != steps.Assembly {
+		t.Fatal("default CLI assembly differs from exact-source API")
+	}
+	a, err := z80asm.NewAssembler().AssembleString(string(emitted))
+	if err != nil || a == nil || len(a.Errors) != 0 {
+		t.Fatalf("assembly: %v %+v", err, a)
+	}
+	indirectFixtureNative(t, &steps, a)
 }
 
 func TestCDefaultOutputProtection(t *testing.T) {

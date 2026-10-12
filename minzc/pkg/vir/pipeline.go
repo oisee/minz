@@ -8,13 +8,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"reflect"
 	"sort"
 	"strings"
 	"time"
 
-	"github.com/minz/minzc/pkg/lir"
+	"github.com/minz/minzc/pkg/asmutil"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/rewrite/datalog"
+	"github.com/minz/minzc/pkg/z80validate"
 )
 
 // FuncResult tracks per-function codegen outcome.
@@ -326,7 +328,7 @@ func emitModuleGlobals(m *mir2.Module) string {
 		if len(g.Init) > w {
 			w = len(g.Init)
 		}
-		name := lir.SanitizeAsmLabel(g.Name)
+		name := asmutil.SanitizeZ80Label(g.Name)
 		if w == 0 {
 			sb.WriteString(name + ":\n")
 			continue
@@ -492,9 +494,9 @@ __mod16:
 }
 
 // CodegenFunc runs the VIR solver on a single MIR2 function.
-// Dual-mode strategy: solves with ABI constraints AND standalone (unconstrained).
+// Constrained-first strategy: standalone (unconstrained) is a fallback.
 // Currently prefers constrained; falls back to standalone when constrained fails.
-// Logs potential savings from standalone+adapter for future optimization.
+// A successful constrained solve returns directly; no dual-mode cost comparison is performed.
 func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, error) {
 	desc := Z80
 
@@ -585,13 +587,19 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 		}
 	}
 
-	// Try precomputed regalloc table first (O(1) lookup, provably optimal).
-	// Direct PIR emit — no Z3 needed. GPU assignment is the final answer.
+	// Try checked local allocation certificates before the solver.
+	// Legacy GPU/shape tables remain available through research lookup only.
 	// Only use for functions where ABI constraints are satisfied by the table assignment.
 	if table := GetRegAllocTable(); table.Size() > 0 {
-		if assignment, cost, ok := table.Lookup(allOps, desc); ok {
+		tableOpts := opts
+		if pl, ok := opts.FuncParamLocs[f.Name]; ok {
+			tableOpts.ParamLocs = pl
+		}
+		tableOpts.FuncParamLocs = nil
+
+		if assignment, cost, ok := table.LookupChecked(allOps, desc, tableOpts); ok {
 			// Verify ABI compatibility: table assignment must match param/return constraints
-			abiOK := verifyABICompat(allOps, assignment, opts)
+			abiOK := verifyABICompat(allOps, assignment, tableOpts)
 			if abiOK {
 				// Skip table emit for multi-block functions: the table path
 				// doesn't emit edge moves or PHI moves between blocks, so
@@ -605,7 +613,7 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 					goto skipTable
 				}
 				// Table emit: try emitFromTable directly. On failure fall through to Z3.
-				result, err := emitFromTable(f, vf, allOps, assignment, desc, opts)
+				result, err := emitFromTable(f, vf, allOps, assignment, desc, tableOpts)
 				if err == nil {
 					if opts.Verbose {
 						fmt.Fprintf(os.Stderr, "[vir] %s: table emit OK (cost=%d)\n", f.Name, cost)
@@ -623,9 +631,9 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 		// Components are disjoint live ranges → can reuse physical registers across them.
 		// 87% of real functions have cut vertices → avoids Z3 for most >6v functions.
 		if assignment, ok := tryCutVertexDecompose(allOps, desc, table, opts.Verbose, f.Name); ok {
-			abiOK := verifyABICompat(allOps, assignment, opts)
+			abiOK := verifyABICompat(allOps, assignment, tableOpts)
 			if abiOK {
-				result, err := emitFromTable(f, vf, allOps, assignment, desc, opts)
+				result, err := emitFromTable(f, vf, allOps, assignment, desc, tableOpts)
 				if err == nil {
 					if opts.Verbose {
 						fmt.Fprintf(os.Stderr, "[vir] %s: cut-vertex decompose emit OK\n", f.Name)
@@ -685,14 +693,19 @@ skipTable:
 	}
 
 	// Check if we have caller-imposed param constraints
-	hasConstraints := false
-	var callerParamLocs map[int]int
+	callerParamLocs := make(map[int]int)
+	for v, loc := range opts.ParamLocs {
+		callerParamLocs[v] = loc
+	}
 	if opts.FuncParamLocs != nil {
 		if pl, ok := opts.FuncParamLocs[f.Name]; ok && len(pl) > 0 {
-			hasConstraints = true
-			callerParamLocs = pl
+			for v, loc := range pl {
+				callerParamLocs[v] = loc
+			}
 		}
 	}
+
+	hasConstraints := len(callerParamLocs) > 0
 
 	// --- Mode 1: Constrained solve (ABI-compatible) ---
 	// When caller provides param locations, try constrained first.
@@ -720,47 +733,23 @@ skipTable:
 	vfStand := deepCopyFunc(vf)
 	standParamLocs, standASM, standErr := codegenFuncCFGFull(f, vfStand, desc, optsStand)
 
-	// --- Pick winner ---
-	if constRan && constErr == nil && standErr == nil {
-		constInsts := countASMInstructions(constASM)
-		standInsts := countASMInstructions(standASM)
-
-		// Compute real adapter cost: only count params where registers differ
-		adapterCost := 0
-		for vreg, callerPhys := range callerParamLocs {
-			if standPhys, ok := standParamLocs[vreg]; ok && standPhys != callerPhys {
-				adapterCost++
-			}
-		}
-
-		if standInsts+adapterCost < constInsts {
-			// Standalone wins — emit adapter moves at function entry
-			adapted := emitAdapterEntry(standASM, f, callerParamLocs, standParamLocs, desc)
-			fmt.Fprintf(os.Stderr, "[vir] %s: standalone+adapter wins (%d+%d=%d vs %d constrained, saved %d)\n",
-				f.Name, standInsts, adapterCost, standInsts+adapterCost, constInsts,
-				constInsts-(standInsts+adapterCost))
-			return adapted, nil
-		}
-		return constASM, nil
-	}
-
-	// One mode succeeded
-	if constRan && constErr == nil {
-		return constASM, nil
-	}
+	// Use the standalone result only after the constrained solve failed.
 	if standErr == nil {
 		if constRan && hasConstraints {
 			// resolveParallelMoves handles dependency ordering (topological sort)
-			// and cycles (EX DE,HL or 3-move XOR swap). Just emit the adapter.
-			adapterCost := 0
+			// and cycles with preserved register/stack snapshots. Emit the adapter.
+			changedParams := 0
 			for vreg, callerPhys := range callerParamLocs {
 				if standPhys, ok := standParamLocs[vreg]; ok && standPhys != callerPhys {
-					adapterCost++
+					changedParams++
 				}
 			}
-			adapted := emitAdapterEntry(standASM, f, callerParamLocs, standParamLocs, desc)
+			adapted, adapterErr := emitAdapterEntry(standASM, f, callerParamLocs, standParamLocs, desc)
+			if adapterErr != nil {
+				return "", adapterErr
+			}
 			fmt.Fprintf(os.Stderr, "[vir] %s: constrained unsat, using standalone+adapter (%d adapters)\n",
-				f.Name, adapterCost)
+				f.Name, changedParams)
 			return adapted, nil
 		} else {
 			return standASM, nil
@@ -781,13 +770,14 @@ skipTable:
 	// Then try standalone + adapter
 	vfWhole2 := deepCopyFunc(vf)
 	wholeASM, wholeErr = codegenFuncWhole(f, vfWhole2, desc, optsStand)
-	if wholeErr == nil && !hasConstraints {
-		adapted := emitAdapterEntry(wholeASM, f, callerParamLocs, standParamLocs, desc)
-		fmt.Fprintf(os.Stderr, "[vir] %s: CFG unsat, whole-function standalone+adapter OK\n", f.Name)
-		return adapted, nil
-	} else if wholeErr == nil {
-		fmt.Fprintf(os.Stderr, "[vir] %s: CFG unsat, whole-function standalone OK (no constraints)\n", f.Name)
-		return wholeASM, nil
+	if wholeErr == nil {
+		if hasConstraints {
+			// The failed CFG model supplies no standalone entry locations.
+			// Returning a free solve here would silently discard caller ABI.
+			wholeErr = fmt.Errorf("standalone linear result lacks caller ABI mapping")
+		} else {
+			return wholeASM, nil
+		}
 	}
 
 	// Recursive island decomposition: split function at liveness bottlenecks,
@@ -825,237 +815,272 @@ skipTable:
 	return "", fmt.Errorf("all VIR solvers failed: %v", errMsg)
 }
 
-// resolveParallelMoves orders adapter moves to avoid clobbering.
-// Uses topological sort; breaks cycles with EX DE,HL or temp via PUSH/POP.
-// insertParamMoves inserts OpMove instructions at the start of the flattened
-// ops for param vregs whose caller register (from paramHints) doesn't match
-// the register required by their first use pattern. This gives the solver
-// a "slot" to plan the move (e.g., LD A, C before OR A).
+// insertParamMoves preserves the caller ABI at entry while giving each
+// parameter a distinct internal copy that can move for instruction selection.
 func insertParamMoves(ops []VIROp, paramHints map[int]int, desc *MachineDesc) []VIROp {
-	// Find which param vregs need moves: their first use as Src is in
-	// a pattern that requires a different register than the caller convention.
-	nextVReg := 0
+	nextVReg := 1
 	for _, op := range ops {
-		if op.Dst > nextVReg {
-			nextVReg = op.Dst
-		}
-		for _, s := range op.Src {
-			if s > nextVReg {
-				nextVReg = s
+		for _, v := range append(append([]int{op.Dst}, op.Src[:]...), append(append([]int(nil), op.AsmIns...), op.AsmOuts...)...) {
+			if v >= nextVReg {
+				nextVReg = v + 1
 			}
 		}
 	}
-	nextVReg++
-
+	params := make([]int, 0, len(paramHints))
+	for v := range paramHints {
+		params = append(params, v)
+	}
+	sort.Ints(params)
 	var moves []VIROp
-	moved := make(map[int]int) // original vreg → copy vreg
-
-	for vreg, callerPhys := range paramHints {
-		// Insert: copy_vreg = move(vreg) with DstHint = caller's register
-		// Then rewrite all uses of vreg in ops to copy_vreg.
-		// The solver will place vreg at callerPhys (via DstHint on the move)
-		// and copy_vreg wherever the pattern needs it.
+	moved := make(map[int]int)
+	for _, vreg := range params {
+		callerPhys := paramHints[vreg]
 		copyVReg := nextVReg
 		nextVReg++
-		moves = append(moves, VIROp{
-			Op:      OpMove,
-			Dst:     copyVReg,
-			Src:     [2]int{vreg, -1},
-			Width:   8,
-			DstHint: Singleton(callerPhys), // copy starts in caller's register
-		})
+		width := desc.Locs[callerPhys].Width
+		moves = append(moves, VIROp{Op: OpMove, Dst: copyVReg, Src: [2]int{vreg, -1}, Width: width,
+			SrcHint: [2]LocSet{Singleton(callerPhys)}, DstHint: Singleton(callerPhys)})
 		moved[vreg] = copyVReg
 	}
-
 	if len(moves) == 0 {
 		return ops
 	}
-
-	// DON'T rewrite uses — the solver handles the move naturally.
-	// The move instruction copies vreg → copyVReg. The original vreg
-	// is defined by the move's Src and has DstHint=callerPhys.
-	// The pattern that needs A will get copyVReg (which starts at callerPhys
-	// and can move to A via the per-instruction solver).
-	//
-	// Actually: we DO need to rewrite. The CMP's Src is the original vreg.
-	// After the move, the CMP should use copyVReg (which has the value).
-	// But the original vreg is the function parameter — defined outside.
-	// The move creates a copy with a known starting location.
-	//
-	// Simplest: just prepend the moves. The solver sees:
-	//   i0: copy_v2 = move(v2)  ; DstHint=C (caller's convention)
-	//   i1: v4 = cmp(v2, 0)    ; pattern needs v2 in A
-	// The solver puts v2 at A (for the cmp) and copy_v2 at C.
-	// But that means the MOVE goes from A to C (wrong direction!).
-	//
-	// The correct approach: rewrite all Src references to use the copy,
-	// and let the move instruction handle the transition.
-
-	// Rewrite: every Src reference to a moved vreg → copy vreg
-	newOps := make([]VIROp, len(ops))
+	newOps := append([]VIROp(nil), ops...)
 	for i, op := range ops {
-		newOps[i] = op
-		for j, s := range op.Src {
-			if copyV, ok := moved[s]; ok {
-				newOps[i].Src[j] = copyV
+		for j, v := range op.Src {
+			if copy, ok := moved[v]; ok {
+				newOps[i].Src[j] = copy
+			}
+		}
+		newOps[i].AsmIns = append([]int(nil), op.AsmIns...)
+		for j, v := range op.AsmIns {
+			if copy, ok := moved[v]; ok {
+				newOps[i].AsmIns[j] = copy
 			}
 		}
 	}
-
-	// Prepend moves, then rewritten ops
-	result := make([]VIROp, 0, len(moves)+len(newOps))
-	result = append(result, moves...)
-	result = append(result, newOps...)
-	return result
+	return append(moves, newOps...)
 }
 
 type adapterMove struct {
 	fromPhys, toPhys int
 }
 
+// emitAdapterMove copies a value without altering other adapter inputs.
+// Pair copies must not swap the source, and prefix-conflicting byte copies
+// preserve AF instead of borrowing a live parameter in A.
+func emitAdapterMove(from, to Loc) []string {
+	if from.Name == to.Name {
+		return nil
+	}
+	if from.Width == 8 && to.Width == 16 {
+		lo, hi := pairHalves(to.Name)
+		result := emitAdapterMove(from, Loc{Name: lo, Width: 8})
+		return append(result, "LD "+hi+", 0")
+	}
+	if from.Width == 16 && to.Width == 8 {
+		lo, _ := pairHalves(from.Name)
+		return emitAdapterMove(Loc{Name: lo, Width: 8}, to)
+	}
+	if from.Width == 16 && to.Width == 16 && from.Name != "SP" && to.Name != "SP" {
+		return []string{"PUSH " + from.Name, "POP " + to.Name}
+	}
+	if from.Width == 8 && to.Width == 8 {
+		indexed := func(name string) bool { return strings.HasPrefix(name, "IX") || strings.HasPrefix(name, "IY") }
+		halfHL := func(name string) bool { return name == "H" || name == "L" }
+		conflict := indexed(from.Name) && halfHL(to.Name) || indexed(to.Name) && halfHL(from.Name) || indexed(from.Name) && indexed(to.Name) && from.Name[:2] != to.Name[:2]
+		if conflict {
+			return []string{"PUSH AF", "LD A, " + from.Name, "LD " + to.Name + ", A", "POP AF"}
+		}
+	}
+	return emitRegMove(from, to)
+}
+
 func resolveParallelMoves(moves []adapterMove, desc *MachineDesc) []string {
-
-	if len(moves) <= 1 {
-		var result []string
-		for _, mv := range moves {
-			result = append(result, emitRegMove(desc.Locs[mv.fromPhys], desc.Locs[mv.toPhys])...)
-		}
-		return result
+	if err := validateAdapterDestinations(moves, desc); err != nil {
+		return []string{"ERROR " + err.Error()}
 	}
-
-	// Build dependency graph: which destination registers are also sources?
-	destIsSource := make(map[int]bool)
-	for _, mv := range moves {
-		destIsSource[mv.toPhys] = false
-	}
-	for _, mv := range moves {
-		if _, ok := destIsSource[mv.fromPhys]; ok {
-			destIsSource[mv.fromPhys] = true
-		}
-	}
-
-	// Emit moves where the destination is NOT someone else's source first
+	pending := append([]adapterMove(nil), moves...)
 	var result []string
-	emitted := make(map[int]bool) // source index → done
-	changed := true
-	for changed {
-		changed = false
-		for i, mv := range moves {
-			if emitted[i] {
-				continue
-			}
-			// Check: is mv.toPhys used as source by any un-emitted move?
+	for len(pending) > 0 {
+		progress := false
+		for i, mv := range pending {
 			blocked := false
-			for j, other := range moves {
-				if j != i && !emitted[j] && other.fromPhys == mv.toPhys {
+			for j, other := range pending {
+				if i != j && locsOverlap(desc, mv.toPhys, other.fromPhys) {
 					blocked = true
 					break
 				}
 			}
 			if !blocked {
-				result = append(result, emitRegMove(desc.Locs[mv.fromPhys], desc.Locs[mv.toPhys])...)
-				emitted[i] = true
-				changed = true
+				result = append(result, emitAdapterMove(desc.Locs[mv.fromPhys], desc.Locs[mv.toPhys])...)
+				pending = append(pending[:i], pending[i+1:]...)
+				progress = true
+				break
 			}
 		}
-	}
-
-	// Any remaining moves form cycles — break with EX DE,HL or PUSH/POP
-	for i, mv := range moves {
-		if emitted[i] {
+		if progress {
 			continue
 		}
-		from := desc.Locs[mv.fromPhys]
-		to := desc.Locs[mv.toPhys]
-		// Try EX DE,HL for DE↔HL swap
-		if (from.Name == "D" || from.Name == "E" || from.Name == "H" || from.Name == "L") &&
-			(to.Name == "D" || to.Name == "E" || to.Name == "H" || to.Name == "L") {
-			result = append(result, "EX DE, HL")
-			// Mark all DE↔HL moves as done
-			for j, other := range moves {
-				if !emitted[j] {
-					of := desc.Locs[other.fromPhys].Name
-					ot := desc.Locs[other.toPhys].Name
-					if (of == "D" || of == "E" || of == "H" || of == "L") &&
-						(ot == "D" || ot == "E" || ot == "H" || ot == "L") {
-						emitted[j] = true
-					}
-				}
-			}
-		} else {
-			// Generic cycle break for 2-element cycle (swap):
-			// Find the OTHER move in the cycle, emit as 3-move swap via temp.
-			// For A↔C: LD B,A / LD A,C / LD C,B (using B as temp)
-			var partner int = -1
-			for j, other := range moves {
-				if !emitted[j] && j != i && other.toPhys == mv.fromPhys {
-					partner = j
-					break
-				}
-			}
-			if partner >= 0 {
-				// 2-element swap via temp: A↔C → LD B,A / LD A,C / LD C,B
-				// Restrict this fast path to 8-bit registers; pair/index cases
-				// must go through emitRegMove or the generic fallback.
-				tempLoc := -1
-				if from.Width == 8 && to.Width == 8 {
-					for t := 0; t < 7; t++ {
-						if t != mv.fromPhys && t != mv.toPhys {
-							tempLoc = t
-							break
-						}
-					}
-				}
-				if tempLoc >= 0 {
-					temp := desc.Locs[tempLoc]
-					result = append(result, emitRegMove(from, temp)...)
-					result = append(result, emitRegMove(to, from)...)
-					result = append(result, emitRegMove(temp, to)...)
-					emitted[i] = true
-					emitted[partner] = true
-				}
-			}
-			if !emitted[i] {
-				// Fallback: PUSH/POP
-				result = append(result, fmt.Sprintf("PUSH AF ; save %s", from.Name))
-				result = append(result, emitRegMove(from, to)...)
-				result = append(result, "POP AF")
-				emitted[i] = true
+		// Snapshot the unresolved component before writing any destination.
+		// Whole-pair cycles need no scratch register at all.
+		allPairs := true
+		for _, mv := range pending {
+			if desc.Locs[mv.fromPhys].Width != 16 || desc.Locs[mv.toPhys].Width != 16 {
+				allPairs = false
 			}
 		}
+		if allPairs {
+			for _, mv := range pending {
+				result = append(result, "PUSH "+desc.Locs[mv.fromPhys].Name)
+			}
+			for i := len(pending) - 1; i >= 0; i-- {
+				result = append(result, "POP "+desc.Locs[pending[i].toPhys].Name)
+			}
+			break
+		}
+		// Byte cycles use a preserved whole pair outside the adapter endpoints.
+		// All snapshots precede writes, so cycles of any length are supported.
+		scratch, high, low := "", "", ""
+		for _, pair := range []string{"BC", "DE", "HL", "IX", "IY"} {
+			idx := desc.LocByName(pair)
+			free := idx >= 0
+			for _, mv := range moves {
+				if locsOverlap(desc, idx, mv.fromPhys) || locsOverlap(desc, idx, mv.toPhys) {
+					free = false
+				}
+			}
+			if free {
+				scratch = pair
+				high, low = pairHalvesASM(pair)
+				break
+			}
+		}
+		if scratch == "" {
+			// Snapshot all registers into separate input/output stack frames.
+			// Reads always use the immutable input frame; output writes cannot
+			// clobber another source or the scratch registers used for copying.
+			return append(result, emitStackAdapter(pending, desc)...)
+		}
+		result = append(result, "PUSH "+scratch)
+		for _, mv := range pending {
+			from := desc.Locs[mv.fromPhys]
+			if from.Width == 16 {
+				result = append(result, "PUSH "+from.Name)
+			} else {
+				result = append(result, emitAdapterMove(from, desc.Locs[desc.LocByName(high)])...)
+				result = append(result, "PUSH "+scratch)
+			}
+		}
+		for i := len(pending) - 1; i >= 0; i-- {
+			mv := pending[i]
+			if desc.Locs[mv.fromPhys].Width == 16 && desc.Locs[mv.toPhys].Width == 16 {
+				result = append(result, "POP "+desc.Locs[mv.toPhys].Name)
+				continue
+			}
+			result = append(result, "POP "+scratch)
+			from := high
+			if desc.Locs[mv.fromPhys].Width == 16 {
+				from = low
+			}
+			result = append(result, emitAdapterMove(desc.Locs[desc.LocByName(from)], desc.Locs[mv.toPhys])...)
+		}
+		result = append(result, "POP "+scratch)
+		break
 	}
+	return result
+}
 
+// emitStackAdapter handles dense cycles without a free physical scratch pair.
+// Two identical frames preserve original registers and accumulate destinations.
+// Frame byte layout matches Z80 little-endian PUSH words, including AF flags.
+func emitStackAdapter(moves []adapterMove, desc *MachineDesc) []string {
+	if err := validateAdapterDestinations(moves, desc); err != nil {
+		return []string{"ERROR " + err.Error()}
+	}
+	bytes := map[string][]int{
+		"A": {1}, "F": {0}, "B": {3}, "C": {2}, "D": {5}, "E": {4}, "H": {7}, "L": {6},
+		"BC": {2, 3}, "DE": {4, 5}, "HL": {6, 7}, "IX": {8, 9}, "IY": {10, 11},
+		"IXL": {8}, "IXH": {9}, "IYL": {10}, "IYH": {11},
+	}
+	var result []string
+	for _, mv := range moves {
+		if len(bytes[desc.Locs[mv.fromPhys].Name]) == 0 || len(bytes[desc.Locs[mv.toPhys].Name]) == 0 {
+			return []string{"ERROR adapter has unsupported stack location"}
+		}
+	}
+	for frame := 0; frame < 2; frame++ {
+		for _, pair := range []string{"IY", "IX", "HL", "DE", "BC", "AF"} {
+			result = append(result, "PUSH "+pair)
+		}
+	}
+	for _, mv := range moves {
+		from, to := bytes[desc.Locs[mv.fromPhys].Name], bytes[desc.Locs[mv.toPhys].Name]
+		for i, dst := range to {
+			if i < len(from) {
+				result = append(result, fmt.Sprintf("LD HL, %d", 12+from[i]), "ADD HL, SP", "LD A, (HL)")
+			} else {
+				result = append(result, "LD A, 0")
+			}
+			result = append(result, fmt.Sprintf("LD HL, %d", dst), "ADD HL, SP", "LD (HL), A")
+		}
+	}
+	for _, pair := range []string{"AF", "BC", "DE", "HL", "IX", "IY"} {
+		result = append(result, "POP "+pair)
+	}
+	for i := 0; i < 12; i++ {
+		result = append(result, "INC SP")
+	}
 	return result
 }
 
 // emitAdapterEntry inserts LD moves after the function label to shuffle params
 // from caller's convention (callerLocs) to standalone solver's convention (standLocs).
-func emitAdapterEntry(asm string, f *mir2.Func, callerLocs, standLocs map[int]int, desc *MachineDesc) string {
-	// Collect adapter moves needed (skip SP/F — not valid param locations)
+func emitAdapterEntry(asm string, f *mir2.Func, callerLocs, standLocs map[int]int, desc *MachineDesc) (string, error) {
 	var moves []adapterMove
+	var inputs, outputs []int
 	for _, cp := range f.Contract.Params {
 		vreg := int(cp.Reg)
 		callerPhys, cOK := callerLocs[vreg]
 		standPhys, sOK := standLocs[vreg]
-		if cOK && sOK && callerPhys != standPhys {
-			// Skip SP (index 10) and F (index 13) — not valid param registers
-			if callerPhys < len(desc.Locs) && (desc.Locs[callerPhys].Name == "SP" || desc.Locs[callerPhys].Name == "F") {
-				continue
+		if !sOK {
+			continue
+		} // unused parameter has no solver location
+		if !cOK {
+			return "", fmt.Errorf("adapter missing caller location for v%d", vreg)
+		}
+		for _, phys := range []int{callerPhys, standPhys} {
+			if phys < 0 || phys >= len(desc.Locs) || desc.NonAllocatable.Has(phys) {
+				return "", fmt.Errorf("adapter invalid parameter location %d for v%d", phys, vreg)
 			}
-			if standPhys < len(desc.Locs) && (desc.Locs[standPhys].Name == "SP" || desc.Locs[standPhys].Name == "F") {
-				continue
+			if cp.Ty != nil && cp.Ty.Width() > 0 && desc.Locs[phys].Width != cp.Ty.Width() {
+				return "", fmt.Errorf("adapter parameter width mismatch for v%d", vreg)
 			}
+		}
+		for i := range inputs {
+			if locsOverlap(desc, inputs[i], callerPhys) || locsOverlap(desc, outputs[i], standPhys) {
+				return "", fmt.Errorf("adapter overlapping independent parameter locations for v%d", vreg)
+			}
+		}
+		inputs = append(inputs, callerPhys)
+		outputs = append(outputs, standPhys)
+		if callerPhys != standPhys {
 			moves = append(moves, adapterMove{callerPhys, standPhys})
 		}
 	}
 	if len(moves) == 0 {
-		return asm
+		return asm, nil
 	}
 
 	// Resolve parallel moves: topological sort to avoid clobbering.
 	// If move B writes to a register that move A reads from, do A first.
 	// For cycles (A→B, B→A): use a temp register or PUSH/POP.
 	resolved := resolveParallelMoves(moves, desc)
+	for _, line := range resolved {
+		if strings.HasPrefix(line, "ERROR ") {
+			return "", fmt.Errorf("%s", line)
+		}
+	}
 	if os.Getenv("VIR_DEBUG_ASM") != "" {
 		fmt.Fprintf(os.Stderr, "[ADAPTER] %s caller=%v standalone=%v\n", f.Name, callerLocs, standLocs)
 		for _, mv := range moves {
@@ -1075,23 +1100,48 @@ func emitAdapterEntry(asm string, f *mir2.Func, callerLocs, standLocs map[int]in
 	// Insert after function label line (funcname:)
 	lines := strings.SplitN(asm, "\n", -1)
 	var result strings.Builder
-	inserted := false
+	entry := f.Name + ":"
+	matches := 0
+	for _, line := range lines {
+		if strings.TrimSpace(strings.SplitN(line, ";", 2)[0]) == entry {
+			matches++
+		}
+	}
+	if matches != 1 {
+		return "", fmt.Errorf("adapter requires exactly one entry label %s, got %d", entry, matches)
+	}
 	for _, line := range lines {
 		result.WriteString(line)
 		result.WriteByte('\n')
-		if !inserted && strings.HasSuffix(strings.TrimSpace(line), ":") &&
-			!strings.HasPrefix(strings.TrimSpace(line), ";") &&
-			!strings.HasPrefix(strings.TrimSpace(line), ".") {
+		if strings.TrimSpace(strings.SplitN(line, ";", 2)[0]) == entry {
 			// This is the function label — insert adapters after it
 			result.WriteString(adapter.String())
-			inserted = true
 		}
 	}
 	fixed := fixDDPrefixConflict(result.String())
 	if os.Getenv("VIR_DEBUG_ASM") != "" {
 		fmt.Fprintf(os.Stderr, "[ADAPTER-ASM] %s:\n%s\n", f.Name, fixed)
 	}
-	return fixed
+	return fixed, nil
+}
+
+// Independent assignments may read overlapping sources, but cannot demand
+// different values in the same physical destination byte. Reject such maps
+// before emitting any instructions, including in the direct stack helper.
+func validateAdapterDestinations(moves []adapterMove, desc *MachineDesc) error {
+	for i, mv := range moves {
+		for _, phys := range []int{mv.fromPhys, mv.toPhys} {
+			if phys < 0 || phys >= len(desc.Locs) || desc.NonAllocatable.Has(phys) {
+				return fmt.Errorf("adapter invalid move location %d", phys)
+			}
+		}
+		for _, earlier := range moves[:i] {
+			if locsOverlap(desc, earlier.toPhys, mv.toPhys) {
+				return fmt.Errorf("adapter overlapping destinations %s and %s", desc.Locs[earlier.toPhys].Name, desc.Locs[mv.toPhys].Name)
+			}
+		}
+	}
+	return nil
 }
 
 // emitRegMove generates Z80 instructions to move a value between physical locations.
@@ -1389,7 +1439,7 @@ func tryCutVertexDecompose(allOps []VIROp, desc *MachineDesc, table *RegAllocTab
 			continue
 		}
 
-		assignment, _, ok := table.Lookup(subOps, desc)
+		assignment, _, ok := table.LookupChecked(subOps, desc, SolverOptions{})
 		if !ok {
 			if verbose {
 				fmt.Fprintf(os.Stderr, "[vir] %s: cut-vertex component (nv=%d) miss\n", funcName, len(compCanon))
@@ -1480,6 +1530,13 @@ func codegenFuncCFGFull(f *mir2.Func, vf *Func, desc *MachineDesc, opts SolverOp
 // codegenFuncWhole solves ALL blocks of a function in one Z3 query.
 // Cross-block register state is handled automatically via per-instruction variables.
 func codegenFuncWhole(f *mir2.Func, vf *Func, desc *MachineDesc, opts SolverOptions) (string, error) {
+	// A linear solver has no edge/PHI or back-edge location constraints.
+	// Successful SMT for a flattened CFG therefore does not prove valid code.
+	// Multi-block functions must use the CFG solver; its failure is propagated
+	// to the existing MIR2 backend fallback, rather than emitting this model.
+	if len(f.Blocks) > 1 {
+		return "", fmt.Errorf("linear solver cannot establish CFG contracts for %d blocks", len(f.Blocks))
+	}
 	// Flatten all blocks into one VIROp sequence, tracking block boundaries
 	var allOps []VIROp
 	type blockRange struct {
@@ -1682,6 +1739,11 @@ type islandRange struct {
 }
 
 func codegenFuncIslands(f *mir2.Func, vf *Func, desc *MachineDesc, opts SolverOptions) (string, error) {
+	// Current island contracts cover a split within one block. Independently
+	// solved schedules cannot establish PHI/back-edge contracts across blocks.
+	if len(f.Blocks) > 1 {
+		return "", fmt.Errorf("island solver lacks CFG edge contracts for %d blocks", len(f.Blocks))
+	}
 	// Flatten all blocks into one sequence
 	var allOps []VIROp
 	var ranges []islandRange
@@ -1734,6 +1796,28 @@ func codegenFuncIslands(f *mir2.Func, vf *Func, desc *MachineDesc, opts SolverOp
 	// Split into two islands at the best point
 	island1Ops := allOps[:best.pc+1]
 	island2Ops := allOps[best.pc+1:]
+
+	// Single-block schedules need no reconstructed block labels. Emit both
+	// contracted solutions in order and the original terminator once.
+	if len(f.Blocks) == 1 {
+		pir1, pir2, err := solveIslandPair(island1Ops, island2Ops, desc, opts)
+		if err != nil {
+			return "", err
+		}
+		var sb strings.Builder
+		emitFuncHeader(&sb, f, opts)
+		sb.WriteString(f.Name + ":\n")
+		for _, pir := range [][]PIROp{pir1, pir2} {
+			for _, op := range pir {
+				line := op.Emit(desc)
+				if !isSelfMove(line) {
+					emitLine(&sb, line)
+				}
+			}
+		}
+		emitTerminator(&sb, f.Blocks[0], f.Name)
+		return peepholeCleanup(sb.String()), nil
+	}
 
 	// Solve island 1
 	pir1, err1 := solveIsland(island1Ops, desc, opts, 0)
@@ -1850,7 +1934,9 @@ func emitPIRWithLabels(sb *strings.Builder, pirOps []PIROp, ops []VIROp, ranges 
 				break
 			}
 		}
-		if blockIdx >= 0 && blockIdx < len(f.Blocks) {
+		// An island may stop inside a MIR block. Its continuation still
+		// belongs to that block; emitting RET here would discard it.
+		if blockIdx >= 0 && blockIdx < len(f.Blocks) && startPC+len(ops) >= br.end {
 			emitTerminator(sb, f.Blocks[blockIdx], funcName)
 		}
 
@@ -2228,6 +2314,23 @@ func validateNoClobber(asm string) string {
 // emitFromTable generates assembly directly from a GPU table assignment.
 // No Z3 solver needed — just pattern selection + PIR emit.
 func emitFromTable(f *mir2.Func, vf *Func, allOps []VIROp, assignment map[int]int, desc *MachineDesc, opts SolverOptions) (string, error) {
+	if desc == nil || len(vf.Blocks) != 1 || !reflect.DeepEqual(vf.Blocks[0].Ops, allOps) {
+		return "", fmt.Errorf("table admission: requires one complete linear block")
+	}
+	if err := validateTableAssignment(allOps, assignment, desc); err != nil {
+		return "", fmt.Errorf("table admission: %w", err)
+	}
+	for _, block := range vf.Blocks {
+		if err := validateTableAssignment(block.Ops, assignment, desc); err != nil {
+			return "", fmt.Errorf("table admission: %w", err)
+		}
+	}
+	if pl, ok := opts.FuncParamLocs[f.Name]; ok {
+		opts.ParamLocs = pl
+	}
+	if !verifyABICompat(allOps, assignment, opts) {
+		return "", fmt.Errorf("table admission: ABI or location hint mismatch")
+	}
 	var sb strings.Builder
 	emitFuncHeader(&sb, f, opts)
 	sb.WriteString(f.Name + ":\n")
@@ -2279,45 +2382,9 @@ func emitFromTable(f *mir2.Func, vf *Func, allOps []VIROp, assignment map[int]in
 			// then try with src0 moved to A (accumulator ops).
 			pat := findBestPattern(op, dstPhys, srcPhys, desc)
 
-			if pat == nil {
-				// Try moving src0 to where the pattern needs it.
-				// Most Z80 ALU ops need src0 in A (tied dst=src0=A).
-				aLoc := desc.LocByName("A")
-				candidates := []int{dstPhys, aLoc} // try dst first, then A
-				for _, tryLoc := range candidates {
-					if tryLoc < 0 {
-						continue
-					}
-					trySrc := [2]int{tryLoc, srcPhys[1]}
-					tryPat := findBestPattern(op, dstPhys, trySrc, desc)
-					if tryPat == nil {
-						// Also try with dst=tryLoc for non-CMP ops
-						tryPat = findBestPattern(op, tryLoc, trySrc, desc)
-						if tryPat != nil {
-							dstPhys = tryLoc
-						}
-					}
-					if tryPat != nil && srcPhys[0] >= 0 && srcPhys[0] != tryLoc {
-						movePat := findMovePattern(desc, srcPhys[0], tryLoc)
-						if movePat != nil {
-							remSrc, mp := findMovePatternRemap(desc, srcPhys[0], tryLoc)
-							if mp != nil {
-								movePir := PIROp{Pat: mp, DstPhys: tryLoc, SrcPhys: [2]int{remSrc, -1}}
-								line := movePir.Emit(desc)
-								if !isSelfMove(line) {
-									emitLine(&sb, line)
-								}
-							}
-						}
-						srcPhys[0] = tryLoc
-						pat = tryPat
-						break
-					} else if tryPat != nil {
-						pat = tryPat
-						break
-					}
-				}
-			}
+			// A cached assignment does not certify inserted repair moves. They
+			// can overwrite another operand or a live accumulator. Require a
+			// direct legal pattern; the normal solver handles rejected hits.
 
 			if pat == nil {
 				return "", fmt.Errorf("no pattern for op %d (%v) dst=%d src=%v", opIdx, op.Op, dstPhys, srcPhys)
@@ -2332,28 +2399,13 @@ func emitFromTable(f *mir2.Func, vf *Func, allOps []VIROp, assignment map[int]in
 			}
 
 			line := pir.Emit(desc)
+			if err := validateTablePatternWrites(allOps, opIdx, assignment, desc, pir); err != nil {
+				return "", fmt.Errorf("table pattern admission: %w", err)
+			}
 			if !isSelfMove(line) {
 				emitLine(&sb, line)
 			}
 
-			// Post-op move: if pattern produced result in dstPhys but vreg
-			// is assigned to a different location, move result there.
-			if op.Dst > 0 && op.Op != OpCmp && op.Op != OpCmpImm && op.Op != OpBitTest {
-				assignedLoc := -1
-				if loc, ok := assignment[op.Dst]; ok {
-					assignedLoc = loc
-				}
-				if assignedLoc >= 0 && assignedLoc != dstPhys {
-					_, mp := findMovePatternRemap(desc, dstPhys, assignedLoc)
-					if mp != nil {
-						movePir := PIROp{Pat: mp, DstPhys: assignedLoc, SrcPhys: [2]int{dstPhys, -1}}
-						mline := movePir.Emit(desc)
-						if !isSelfMove(mline) {
-							emitLine(&sb, mline)
-						}
-					}
-				}
-			}
 			opIdx++
 		}
 
@@ -2362,22 +2414,31 @@ func emitFromTable(f *mir2.Func, vf *Func, allOps []VIROp, assignment map[int]in
 		}
 	}
 
-	return peepholeCleanup(sb.String()), nil
+	result := sb.String()
+	if !opts.CheckedRawEmission {
+		result = peepholeCleanup(result)
+	}
+	if errors := z80validate.Validate(result); len(errors) > 0 {
+		return "", fmt.Errorf("table instruction admission: %v", errors[0])
+	}
+	return result, nil
 }
 
 // verifyABICompat checks if a GPU table assignment is compatible with ABI constraints.
 // ParamLocs from PFCCO must match the table assignment for constrained vregs.
 func verifyABICompat(ops []VIROp, assignment map[int]int, opts SolverOptions) bool {
+	if validateTableAssignment(ops, assignment, nil) != nil {
+		return false
+	}
 	// Check param constraints
 	paramLocs := opts.ParamLocs
 	if paramLocs == nil && opts.FuncParamLocs != nil {
 		// FuncParamLocs checked later — for now just allow
 	}
 	for vreg, requiredLoc := range paramLocs {
-		if tableLoc, ok := assignment[vreg]; ok {
-			if tableLoc != requiredLoc {
-				return false // table puts vreg at wrong loc for ABI
-			}
+		tableLoc, ok := assignment[vreg]
+		if !ok || tableLoc != requiredLoc {
+			return false
 		}
 	}
 	// Check DstHint/SrcHint constraints from ops
@@ -2797,6 +2858,15 @@ func applyGPUPeepholeRules(asm string) string {
 		fmt.Fprintf(os.Stderr, "[peephole] applied %d GPU-proven rules\n", applied)
 	}
 	return strings.Join(result, "\n")
+}
+
+// Conservatively retain every register used by native/PFCCO return contracts.
+func isReturnStorage(reg string) bool {
+	switch reg {
+	case "A", "F", "B", "C", "D", "E", "H", "L", "BC", "DE", "HL", "IX", "IY", "IXH", "IXL", "IYH", "IYL":
+		return true
+	}
+	return false
 }
 
 func peepholeCleanup(asm string) string {
@@ -3837,9 +3907,8 @@ func gracePass(lines []string) []string {
 		line := strings.TrimSpace(lines[i])
 
 		// ── Dead instruction before RET ─────────────────────────────
-		// Any instruction that writes to a register right before RET is dead
-		// if it doesn't write to A (return value) or affect flags for conditional return.
-		// Example: DEC HL / RET → RET (HL not used after return)
+		// Return registers may contain byte, word, pointer or contract results.
+		// Preserve their components: assembly text has no return type metadata.
 		if i+1 < len(lines) {
 			next := strings.TrimSpace(lines[i+1])
 			if next == "RET" {
@@ -3847,21 +3916,18 @@ func gracePass(lines []string) []string {
 				// BUT: keep INC/DEC on return registers (A for u8, HL for u16/ptr)
 				if strings.HasPrefix(line, "DEC ") || strings.HasPrefix(line, "INC ") {
 					reg := strings.TrimSpace(line[4:])
-					if reg != "A" && reg != "HL" && reg != "DE" && reg != "BC" {
+					if !isReturnStorage(reg) {
 						continue
 					}
 				}
-				// EX DE, HL / RET → RET (register swap is dead before return)
-				if line == "EX DE, HL" {
-					continue
-				}
-				// LD r, N / RET where r != A → skip (dead const load before return)
+				// EX DE,HL may place a word return value in HL; preserve it.
+				// Preserve return storage even when its final write is a load.
 				if strings.HasPrefix(line, "LD ") && !strings.HasPrefix(line, "LD A") &&
 					!strings.HasPrefix(line, "LD (") {
 					parts := strings.SplitN(line[3:], ", ", 2)
 					if len(parts) == 2 {
 						reg := strings.TrimSpace(parts[0])
-						if reg != "A" && !strings.HasPrefix(reg, "(") {
+						if !isReturnStorage(reg) && !strings.HasPrefix(reg, "(") {
 							continue // dead load before RET
 						}
 					}

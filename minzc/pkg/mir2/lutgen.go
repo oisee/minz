@@ -7,10 +7,10 @@ package mir2
 //  1. Evaluate f at every value in [lo, hi) via the MIR2 VM.
 //  2. Emit a read-only Global "f_lut" containing the result bytes.
 //  3. Replace f's body with a table-lookup sequence:
-//       base = &f_lut
-//       idx  = zero_ext(x - lo, u16)   // adjust for non-zero lo
-//       ptr  = base + idx
-//       ret  = *ptr
+//     base = &f_lut
+//     idx  = zero_ext(x - lo, u16)   // adjust for non-zero lo
+//     ptr  = base + idx
+//     ret  = *ptr
 //
 // Call sites are unchanged — they still CALL f.  The body is now just 5–6
 // instructions so the future inliner will eliminate the CALL overhead.
@@ -100,6 +100,7 @@ func LUTGen(m *Module) bool {
 		// so we must start fresh or the old params (from the original body) remain
 		// and the allocator sees duplicate entries, causing register misassignment.
 		f.Blocks = nil
+		f.LoopOrigins = nil // lookup replaces the entire body, not its lineage
 		f.Contract.Params = f.Contract.Params[:0]
 		b := NewBuilder(f)
 		b.SwitchToNewBlock("entry")
@@ -160,7 +161,7 @@ func LUTGen(m *Module) bool {
 // lutEligible reports whether f is a candidate for LUT replacement.
 func lutEligible(f *Func) bool {
 	// Must have a body.
-	if f.Attrs.IsExtern || len(f.Blocks) == 0 {
+	if len(f.Contract.StructReturnBuffers) > 0 || f.Attrs.FallibleCY || f.Attrs.IsExtern || len(f.Blocks) == 0 {
 		return false
 	}
 	// Exactly one parameter.

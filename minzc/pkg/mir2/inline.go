@@ -86,7 +86,7 @@ func findTrivialFuncs(mod *Module, maxSize int) map[string]*Func {
 
 // isTrivialFunc reports whether f is safe and profitable to inline.
 func isTrivialFunc(f *Func, maxSize int) bool {
-	if f.Attrs.IsExtern || f.Attrs.IsRecursive {
+	if len(f.Contract.StructReturnBuffers) > 0 || f.Attrs.IsExtern || f.Attrs.IsRecursive || f.Attrs.FallibleCY {
 		return false
 	}
 	if len(f.Blocks) != 1 {
@@ -97,6 +97,9 @@ func isTrivialFunc(f *Func, maxSize int) bool {
 		return false
 	}
 	for _, inst := range entry.Insts {
+		if inst.SequentialBytes {
+			return false
+		} // retain byte-origin callback identity across function boundaries
 		switch inst.Op {
 		case OpCall, OpCallIndirect,
 			OpPatch, OpPatchSlot, OpLoadPatched,
@@ -232,6 +235,7 @@ func inlineOneCall(caller, callee *Func, inst *Inst) []*Inst {
 // substituted via regMap.
 func remapInst(inst *Inst, regMap map[Reg]Reg) *Inst {
 	ni := *inst // shallow copy — safe for fields without pointer ownership
+	CloneCallABIMetadata(&ni, inst)
 	ni.Dst = remapReg(inst.Dst, regMap)
 	ni.Src[0] = remapReg(inst.Src[0], regMap)
 	ni.Src[1] = remapReg(inst.Src[1], regMap)

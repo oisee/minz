@@ -42,13 +42,16 @@ func setupMZXSQLitePorts(machine *spectrum.Machine, verbose bool) {
 		Value: 0x0041,
 		Write: func(addr uint16, val byte) {
 			cmd := val
+			// Handles and strings share port45. Consume/reset the command
+			// payload even on errors or handle-only commands.
+			defer func() { strBuf = nil }()
 			switch cmd {
 			case 1: // open
 				name := string(strBuf)
 				strBuf = nil
 				db, err := sql.Open("sqlite", name)
 				if err != nil {
-					status = 1
+					status = 0
 					if verbose {
 						fmt.Fprintf(os.Stderr, "  sql:open(%q) → error: %v\n", name, err)
 					}
@@ -59,7 +62,7 @@ func setupMZXSQLitePorts(machine *spectrum.Machine, verbose bool) {
 				dbs[h] = db
 				nextDB++
 				resultLo = h
-				status = 0
+				status = h
 				if verbose {
 					fmt.Fprintf(os.Stderr, "  sql:open(%q) → handle %d\n", name, h)
 				}
@@ -78,7 +81,7 @@ func setupMZXSQLitePorts(machine *spectrum.Machine, verbose bool) {
 				strBuf = nil
 				db, ok := dbs[h]
 				if !ok {
-					status = 1
+					status = 0
 					if verbose {
 						fmt.Fprintf(os.Stderr, "   sql:query(%d, %q) error: no such handle\n", h, sqlStr)
 					}
@@ -86,7 +89,7 @@ func setupMZXSQLitePorts(machine *spectrum.Machine, verbose bool) {
 				}
 				rows, err := db.Query(sqlStr)
 				if err != nil {
-					status = 1
+					status = 0
 					if verbose {
 						fmt.Fprintf(os.Stderr, "   sql:query(%d, %q) error: %v\n", h, sqlStr, err)
 					}
@@ -97,7 +100,7 @@ func setupMZXSQLitePorts(machine *spectrum.Machine, verbose bool) {
 				stmts[sh] = &stmtState{rows: rows, vals: make([]interface{}, len(cols))}
 				nextStmt++
 				resultLo = sh
-				status = 0
+				status = sh
 				if verbose {
 					fmt.Fprintf(os.Stderr, "  sql:query(%d, %q) → stmt %d (%d cols)\n", h, sqlStr, sh, len(cols))
 				}
@@ -117,16 +120,17 @@ func setupMZXSQLitePorts(machine *spectrum.Machine, verbose bool) {
 					}
 					st.rows.Scan(ptrs...)
 					resultLo = 1
+					status = 1
 					if verbose {
 						fmt.Fprintf(os.Stderr, "  sql:step(%d) → row %v\n", sh, st.vals)
 					}
 				} else {
 					resultLo = 0
+					status = 0
 					if verbose {
 						fmt.Fprintf(os.Stderr, "  sql:step(%d) → done\n", sh)
 					}
 				}
-				status = 0
 
 			case 5: // column_text
 				sh := dataByte

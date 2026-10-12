@@ -1,0 +1,14 @@
+Opening DB...
+
+=== Material Master Report ===
+Selection: MTART = FERT
+
+MATNR      MTART  MEINS  MAKTX
+----------------------------------------------
+100-100  FERT   ST    Pump Assembly GRUNDFOS
+100-110  FERT   ST    Motor 3-Phase 5kW
+200-100  FERT   ST    Desktop PC Standard
+----------------------------------------------
+3 materials found.
+
+Report complete.

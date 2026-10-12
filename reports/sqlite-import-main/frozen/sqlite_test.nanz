@@ -1,0 +1,54 @@
+// sqlite_test.nanz — SQLite bridge test
+//
+// Tests the I/O port protocol: open, exec, query, step, column_text.
+// Run on CP/M: mz sqlite_test.nanz --lir=false | mza | mze -t cpm -v
+
+import tui.render
+import sql.sqlite
+
+fun main() -> void {
+    tui_puts(c"SQLite test\n")
+
+    // Open in-memory database
+    var db: u8 = sqlite_open(c":memory:")
+    if db == 0 {
+        tui_puts(c"ERROR: open failed\n")
+        return
+    }
+    tui_puts(c"Opened db\n")
+
+    // Create table
+    var rc: u8 = sqlite_exec(db, c"CREATE TABLE mara(matnr TEXT, mtart TEXT, meins TEXT)")
+    if rc != 0 {
+        tui_puts(c"ERROR: create table\n")
+        return
+    }
+
+    // Insert data (ABAP-style material master)
+    sqlite_exec(db, c"INSERT INTO mara VALUES('MAT-001','FERT','ST')")
+    sqlite_exec(db, c"INSERT INTO mara VALUES('MAT-002','HALB','KG')")
+    sqlite_exec(db, c"INSERT INTO mara VALUES('MAT-003','ROH','L')")
+
+    tui_puts(c"Data loaded\n")
+
+    // Query
+    var q: u8 = sqlite_query(db, c"SELECT matnr, mtart, meins FROM mara")
+    if q == 0 {
+        tui_puts(c"ERROR: query failed\n")
+        return
+    }
+
+    // Iterate rows
+    while sqlite_step(q) == SQLITE_ROW {
+        tui_puts(sqlite_column_text(q, 0))
+        tui_puts(c"  ")
+        tui_puts(sqlite_column_text(q, 1))
+        tui_puts(c"  ")
+        tui_puts(sqlite_column_text(q, 2))
+        tui_puts(c"\n")
+    }
+
+    sqlite_finalize(q)
+    sqlite_close(db)
+    tui_puts(c"Done.\n")
+}

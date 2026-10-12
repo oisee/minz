@@ -1,0 +1,16 @@
+{
+  "base": "fe51f4f7",
+  "missing_requested_path": "reports/showcase-src/2026-03-11/ex5_lut.nanz does not exist; authoritative March10 ex5 used",
+  "source_sha256": {
+    "reports/showcase-src/2026-03-10/ex5_lut.nanz": "d33826eba80cfd940d02c844ba58a0b085251763552b31de104564009b8c36c4",
+    "reports/showcase-src/2026-03-10/ex6_foreach.nanz": "e1e53370ff161285310b11fd2a0ad573f96cef85193532c0f1ebe4c9217641eb",
+    "reports/showcase-src/2026-03-10/ex7_mapinplace.nanz": "779c02d554372699c21d41ea3488a05eed304f8cbc55a6e3eca026fee316b780",
+    "reports/showcase-src/2026-03-13/ex5_lut.nanz": "d33826eba80cfd940d02c844ba58a0b085251763552b31de104564009b8c36c4",
+    "reports/showcase-src/2026-03-13/ex6_foreach.nanz": "e1e53370ff161285310b11fd2a0ad573f96cef85193532c0f1ebe4c9217641eb",
+    "reports/showcase-src/2026-03-13/ex7_mapinplace.nanz": "779c02d554372699c21d41ea3488a05eed304f8cbc55a6e3eca026fee316b780"
+  },
+  "lut": "popcount all256bytevalues independent bit count",
+  "memory": "eachseed0..255 n0..255 at0x4000; ordered input bytes seed+73*i mod256; guards atptr-1 andptr+255; boundaries count0/1/255",
+  "oracle": "sum modular8,max initial0, mapInPlace byte+2 wrap; input writes exactly firstn bytes, VM observed access forward order",
+  "book": "Nanz v7 Chapter5 Iterator Chains and \u00a711.3 mapInPlace"
+}

@@ -1,7 +1,8 @@
-package pascal
+package pascal_test
 
 import (
 	"fmt"
+	"github.com/minz/minzc/pkg/pascal"
 	"strings"
 	"testing"
 
@@ -13,7 +14,7 @@ func TestParseMinimal(t *testing.T) {
 	src := `program Hello;
 begin
 end.`
-	prog, err := ParseProgram(src)
+	prog, err := pascal.ParseProgram(src)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,14 +30,14 @@ const
   MaxVal = $FF;
 begin
 end.`
-	prog, err := ParseProgram(src)
+	prog, err := pascal.ParseProgram(src)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(prog.Decls) != 2 {
 		t.Fatalf("got %d decls, want 2", len(prog.Decls))
 	}
-	cd := prog.Decls[0].(*ConstDecl)
+	cd := prog.Decls[0].(*pascal.ConstDecl)
 	if cd.Name != "SIZE" {
 		t.Errorf("const name = %q", cd.Name)
 	}
@@ -49,14 +50,14 @@ var
   Ch: Char;
 begin
 end.`
-	prog, err := ParseProgram(src)
+	prog, err := pascal.ParseProgram(src)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(prog.Decls) != 2 {
 		t.Fatalf("got %d decls, want 2", len(prog.Decls))
 	}
-	vd := prog.Decls[0].(*VarDecl)
+	vd := prog.Decls[0].(*pascal.VarDecl)
 	if len(vd.Names) != 2 {
 		t.Errorf("got %d names, want 2", len(vd.Names))
 	}
@@ -70,12 +71,12 @@ var
   Flags: TFlags;
 begin
 end.`
-	prog, err := ParseProgram(src)
+	prog, err := pascal.ParseProgram(src)
 	if err != nil {
 		t.Fatal(err)
 	}
-	td := prog.Decls[0].(*TypeDecl)
-	at, ok := td.Ty.(*ArrayType)
+	td := prog.Decls[0].(*pascal.TypeDecl)
+	at, ok := td.Ty.(*pascal.ArrayType)
 	if !ok {
 		t.Fatalf("expected ArrayType, got %T", td.Ty)
 	}
@@ -92,12 +93,12 @@ type
   end;
 begin
 end.`
-	prog, err := ParseProgram(src)
+	prog, err := pascal.ParseProgram(src)
 	if err != nil {
 		t.Fatal(err)
 	}
-	td := prog.Decls[0].(*TypeDecl)
-	rt, ok := td.Ty.(*RecordType)
+	td := prog.Decls[0].(*pascal.TypeDecl)
+	rt, ok := td.Ty.(*pascal.RecordType)
 	if !ok {
 		t.Fatalf("expected RecordType, got %T", td.Ty)
 	}
@@ -120,11 +121,11 @@ begin
 end;
 begin
 end.`
-	prog, err := ParseProgram(src)
+	prog, err := pascal.ParseProgram(src)
 	if err != nil {
 		t.Fatal(err)
 	}
-	pd := prog.Decls[0].(*ProcDecl)
+	pd := prog.Decls[0].(*pascal.ProcDecl)
 	if pd.Name != "SWAP" {
 		t.Errorf("name = %q, want SWAP", pd.Name)
 	}
@@ -147,11 +148,11 @@ begin
 end;
 begin
 end.`
-	prog, err := ParseProgram(src)
+	prog, err := pascal.ParseProgram(src)
 	if err != nil {
 		t.Fatal(err)
 	}
-	pd := prog.Decls[0].(*ProcDecl)
+	pd := prog.Decls[0].(*pascal.ProcDecl)
 	if pd.RetTy == nil {
 		t.Fatal("expected return type")
 	}
@@ -164,14 +165,14 @@ begin
   for I := 1 to 10 do
     I := I;
 end.`
-	prog, err := ParseProgram(src)
+	prog, err := pascal.ParseProgram(src)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(prog.Body) != 1 {
 		t.Fatalf("got %d stmts, want 1", len(prog.Body))
 	}
-	fs, ok := prog.Body[0].(*ForStmt)
+	fs, ok := prog.Body[0].(*pascal.ForStmt)
 	if !ok {
 		t.Fatalf("expected ForStmt, got %T", prog.Body[0])
 	}
@@ -190,17 +191,17 @@ begin
     X := X + 1;
   until X = 10;
 end.`
-	prog, err := ParseProgram(src)
+	prog, err := pascal.ParseProgram(src)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(prog.Body) != 2 {
 		t.Fatalf("got %d stmts, want 2", len(prog.Body))
 	}
-	if _, ok := prog.Body[0].(*WhileStmt); !ok {
+	if _, ok := prog.Body[0].(*pascal.WhileStmt); !ok {
 		t.Errorf("stmt 0: expected WhileStmt, got %T", prog.Body[0])
 	}
-	if _, ok := prog.Body[1].(*RepeatStmt); !ok {
+	if _, ok := prog.Body[1].(*pascal.RepeatStmt); !ok {
 		t.Errorf("stmt 1: expected RepeatStmt, got %T", prog.Body[1])
 	}
 }
@@ -216,11 +217,11 @@ begin
     Ch := 'A';
   end;
 end.`
-	prog, err := ParseProgram(src)
+	prog, err := pascal.ParseProgram(src)
 	if err != nil {
 		t.Fatal(err)
 	}
-	cs, ok := prog.Body[0].(*CaseStmt)
+	cs, ok := prog.Body[0].(*pascal.CaseStmt)
 	if !ok {
 		t.Fatalf("expected CaseStmt, got %T", prog.Body[0])
 	}
@@ -247,11 +248,11 @@ begin
   Total := 0;
   Outer(10);
 end.`
-	prog, err := ParseProgram(src)
+	prog, err := pascal.ParseProgram(src)
 	if err != nil {
 		t.Fatal(err)
 	}
-	pd := prog.Decls[1].(*ProcDecl)
+	pd := prog.Decls[1].(*pascal.ProcDecl)
 	if len(pd.SubProc) != 1 {
 		t.Fatalf("expected 1 nested proc, got %d", len(pd.SubProc))
 	}
@@ -264,7 +265,7 @@ func TestCompileMinimal(t *testing.T) {
 	src := `program Hello;
 begin
 end.`
-	hm, err := Compile(src, "hello")
+	hm, err := pascal.Compile(src, "hello")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -288,7 +289,7 @@ begin
   for I := 0 to 10 do
     Count := Count + 1;
 end.`
-	hm, err := Compile(src, "sieve")
+	hm, err := pascal.Compile(src, "sieve")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -312,7 +313,7 @@ begin
   A := 0;
   AddOne(41);
 end.`
-	hm, err := Compile(src, "test")
+	hm, err := pascal.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -332,7 +333,7 @@ var R: Integer;
 begin
   R := Double(21);
 end.`
-	hm, err := Compile(src, "test")
+	hm, err := pascal.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -360,7 +361,7 @@ begin
   else
     X := 0;
 end.`
-	_, err := Compile(src, "test")
+	_, err := pascal.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -378,7 +379,7 @@ begin
     Ch := 0;
   end;
 end.`
-	_, err := Compile(src, "test")
+	_, err := pascal.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -393,7 +394,7 @@ begin
     X := X + 1;
   until X = 10;
 end.`
-	_, err := Compile(src, "test")
+	_, err := pascal.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -408,7 +409,7 @@ begin
   for I := 1 to 5 do
     Counter := Counter + I;
 end.`
-	hm, err := Compile(src, "test")
+	hm, err := pascal.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -434,7 +435,7 @@ begin
   P.X := 10;
   P.Y := 20;
 end.`
-	hm, err := Compile(src, "test")
+	hm, err := pascal.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -455,7 +456,7 @@ var X: Integer;
 begin
   X := 42; { inline comment }
 end.`
-	_, err := Compile(src, "test")
+	_, err := pascal.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -471,7 +472,7 @@ begin
   if (A > 0) and (B < 100) then
     C := A + B;
 end.`
-	_, err := Compile(src, "test")
+	_, err := pascal.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -482,7 +483,7 @@ func TestCompileStringType(t *testing.T) {
 var S: string[20];
 begin
 end.`
-	hm, err := Compile(src, "test")
+	hm, err := pascal.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -498,7 +499,7 @@ begin
   for I := 10 downto 1 do
     I := I;
 end.`
-	_, err := Compile(src, "test")
+	_, err := pascal.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -511,7 +512,7 @@ begin
   X := 42;
   WriteLn(X);
 end.`
-	hm, err := Compile(src, "test")
+	hm, err := pascal.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -529,7 +530,7 @@ func TestCompileUsesClause(t *testing.T) {
 uses Crt, Graph;
 begin
 end.`
-	_, err := Compile(src, "test")
+	_, err := pascal.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -544,7 +545,7 @@ end;
 begin
   assert Double(21) = 42;
 end.`
-	hm, err := Compile(src, "test")
+	hm, err := pascal.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -570,7 +571,7 @@ var Ch: Char;
 begin
   Ch := #65;
 end.`
-	_, err := Compile(src, "test")
+	_, err := pascal.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -586,7 +587,7 @@ begin
   assert Double(0) = 0;
   assert Double(21) = 42;
 end.`
-	hm, err := Compile(src, "test")
+	hm, err := pascal.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -618,7 +619,7 @@ end;
 
 begin
 end.`
-	hm, err := Compile(src, "fp_test")
+	hm, err := pascal.Compile(src, "fp_test")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -667,7 +668,7 @@ begin
   assert Max(1, 0) = 1;
   assert Max(0, 1) = 1;
 end.`
-	hm, err := Compile(src, "test")
+	hm, err := pascal.Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
 	}

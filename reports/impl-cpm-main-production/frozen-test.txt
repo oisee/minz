@@ -1,0 +1,55 @@
+=== RUN   TestOriginalImplCPMRejectsUntrustedVariants
+=== RUN   TestOriginalImplCPMRejectsUntrustedVariants/extra_ASM_call
+    original_impl_cpm_admission_test.go:82: CP/M runtime rejects ASM and fixed-address extern functions
+=== RUN   TestOriginalImplCPMRejectsUntrustedVariants/other_BDOS_function
+    original_impl_cpm_admission_test.go:82: CP/M runtime rejects ASM and fixed-address extern functions
+=== RUN   TestOriginalImplCPMRejectsUntrustedVariants/omitted_clobbers
+    original_impl_cpm_admission_test.go:82: CP/M runtime rejects ASM and fixed-address extern functions
+=== RUN   TestOriginalImplCPMRejectsUntrustedVariants/extra_ASM_output
+    original_impl_cpm_admission_test.go:82: CP/M runtime rejects ASM and fixed-address extern functions
+=== RUN   TestOriginalImplCPMRejectsUntrustedVariants/out_of_object_field
+    original_impl_cpm_admission_test.go:82: CP/M runtime invalid derived local address
+=== RUN   TestOriginalImplCPMRejectsUntrustedVariants/pointer_escape
+    original_impl_cpm_admission_test.go:82: CP/M runtime local pointer escapes through putchar
+=== RUN   TestOriginalImplCPMRejectsUntrustedVariants/dynamic_allocation
+    original_impl_cpm_admission_test.go:82: CP/M runtime requires bounded entry-local allocations
+=== RUN   TestOriginalImplCPMRejectsUntrustedVariants/allocation_loop
+    original_impl_cpm_admission_test.go:82: CP/M runtime requires bounded entry-local allocations
+=== RUN   TestOriginalImplCPMRejectsUntrustedVariants/store_local_pointer
+    original_impl_cpm_admission_test.go:82: CP/M runtime local pointer stored as data
+=== RUN   TestOriginalImplCPMRejectsUntrustedVariants/untrusted_address_store
+    original_impl_cpm_admission_test.go:82: CP/M runtime only supports direct module-global memory accesses
+--- PASS: TestOriginalImplCPMRejectsUntrustedVariants (0.05s)
+    --- PASS: TestOriginalImplCPMRejectsUntrustedVariants/extra_ASM_call (0.01s)
+    --- PASS: TestOriginalImplCPMRejectsUntrustedVariants/other_BDOS_function (0.01s)
+    --- PASS: TestOriginalImplCPMRejectsUntrustedVariants/omitted_clobbers (0.01s)
+    --- PASS: TestOriginalImplCPMRejectsUntrustedVariants/extra_ASM_output (0.01s)
+    --- PASS: TestOriginalImplCPMRejectsUntrustedVariants/out_of_object_field (0.01s)
+    --- PASS: TestOriginalImplCPMRejectsUntrustedVariants/pointer_escape (0.01s)
+    --- PASS: TestOriginalImplCPMRejectsUntrustedVariants/dynamic_allocation (0.01s)
+    --- PASS: TestOriginalImplCPMRejectsUntrustedVariants/allocation_loop (0.00s)
+    --- PASS: TestOriginalImplCPMRejectsUntrustedVariants/store_local_pointer (0.00s)
+    --- PASS: TestOriginalImplCPMRejectsUntrustedVariants/untrusted_address_store (0.01s)
+=== RUN   TestCPMSourceBDOSCallerLiveState
+--- PASS: TestCPMSourceBDOSCallerLiveState (0.04s)
+=== RUN   TestOriginalImplCPMProductionMain
+=== RUN   TestOriginalImplCPMProductionMain/ordinary
+=== RUN   TestOriginalImplCPMProductionMain/ordinary/clobber-false
+=== RUN   TestOriginalImplCPMProductionMain/ordinary/clobber-true
+=== RUN   TestOriginalImplCPMProductionMain/grace-size
+=== RUN   TestOriginalImplCPMProductionMain/grace-size/clobber-false
+=== RUN   TestOriginalImplCPMProductionMain/grace-size/clobber-true
+=== RUN   TestOriginalImplCPMProductionMain/grace-speed
+=== RUN   TestOriginalImplCPMProductionMain/grace-speed/clobber-false
+=== RUN   TestOriginalImplCPMProductionMain/grace-speed/clobber-true
+--- PASS: TestOriginalImplCPMProductionMain (0.06s)
+    --- PASS: TestOriginalImplCPMProductionMain/ordinary (0.02s)
+        --- PASS: TestOriginalImplCPMProductionMain/ordinary/clobber-false (0.00s)
+        --- PASS: TestOriginalImplCPMProductionMain/ordinary/clobber-true (0.00s)
+    --- PASS: TestOriginalImplCPMProductionMain/grace-size (0.02s)
+        --- PASS: TestOriginalImplCPMProductionMain/grace-size/clobber-false (0.00s)
+        --- PASS: TestOriginalImplCPMProductionMain/grace-size/clobber-true (0.00s)
+    --- PASS: TestOriginalImplCPMProductionMain/grace-speed (0.02s)
+        --- PASS: TestOriginalImplCPMProductionMain/grace-speed/clobber-false (0.00s)
+        --- PASS: TestOriginalImplCPMProductionMain/grace-speed/clobber-true (0.00s)
+PASS

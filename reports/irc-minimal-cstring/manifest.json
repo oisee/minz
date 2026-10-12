@@ -1,0 +1,30 @@
+[
+  {
+    "path": "reports/irc-minimal-cstring/README.md",
+    "sha256": "de1071578a40f7bd6cc96efc41234df8e3326ec95ab107deba7a9405fd2562a2"
+  },
+  {
+    "path": "reports/irc-minimal-cstring/before-strings.txt",
+    "sha256": "c3c563f8f5f4795803f8bcb9122cc7e46957884e3f6792c4d63c8d9380c054e3"
+  },
+  {
+    "path": "reports/irc-minimal-cstring/before.a80",
+    "sha256": "8169155ea791be55c306ca4ab4871939fc2b34e4a39586e04c270cd868c5025c"
+  },
+  {
+    "path": "reports/irc-minimal-cstring/before.nanz",
+    "sha256": "c0ddc381e0a51a4527d168ae3e2fb7154c619d1d4a93fe0be8f4cc3574ba3b11"
+  },
+  {
+    "path": "reports/irc-minimal-cstring/final.txt",
+    "sha256": "5018950dfca8d70241a5e4d8d0e21f7c2cc35e1520788de78e62edad590eb2be"
+  },
+  {
+    "path": "reports/irc-minimal-cstring/freeze.json",
+    "sha256": "e76a1662fd8021784196f1d7c8ad5b10bee82e196729b9470c38cc042b89aa69"
+  },
+  {
+    "path": "reports/irc-minimal-cstring/negative.txt",
+    "sha256": "373bac961a4ed74313b4af98aa10ffbfbc7ab724d4c19c061f3059a22bff82b3"
+  }
+]

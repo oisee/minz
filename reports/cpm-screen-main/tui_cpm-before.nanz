@@ -1,0 +1,138 @@
+// tui_cpm.nanz — TUI demo that works on both CP/M and MZV
+//
+// Uses inline Z80 asm for BDOS output + VT100 escape sequences.
+// On MZV, host functions override the calls (ANSI to stdout).
+// On CP/M, the asm executes directly via BDOS.
+//
+// CP/M: minzc tui_cpm.nanz -o tui.a80 && mza tui.a80 -o tui.com && mze tui.com -t cpm
+// MZV:  echo "" | mzv -H examples/nanz/tui_cpm.nanz
+
+// ── BDOS helpers ──────────────────────────────────────────────
+
+fun _putch(ch: u8) -> void {
+    asm z80 (in ch) { LD E, A / LD C, 2 / CALL 5 }
+}
+
+fun _esc() -> void {
+    asm z80 { LD E, 0x1B / LD C, 2 / CALL 5 }
+}
+
+fun _dec(val: u8) -> void {
+    asm z80 (in val) {
+        LD B, A
+        LD C, 0
+        .h: CP 100 / JR C, .hd / SUB 100 / INC C / JR .h
+        .hd: LD B, A / LD A, C / OR A / JR Z, .sh
+        ADD A, 48 / LD E, A / PUSH BC / LD C, 2 / CALL 5 / POP BC
+        .sh: LD A, B / LD C, 0
+        .t: CP 10 / JR C, .td / SUB 10 / INC C / JR .t
+        .td: LD B, A / LD A, C / ADD A, 48 / LD E, A / PUSH BC / LD C, 2 / CALL 5 / POP BC
+        LD A, B / ADD A, 48 / LD E, A / LD C, 2 / CALL 5
+    }
+}
+
+fun _puts(str: ^u8) -> void {
+    asm z80 (in str) {
+        .lp: LD A, (HL) / OR A / RET Z
+        LD E, A / PUSH HL / LD C, 2 / CALL 5 / POP HL / INC HL / JR .lp
+    }
+}
+
+// ── VT100 TUI functions ───────────────────────────────────────
+
+fun tui_goto(x: u8, y: u8) -> void {
+    _esc()
+    _putch(91)
+    _dec(y + 1)
+    _putch(59)
+    _dec(x + 1)
+    _putch(72)
+}
+
+fun tui_color(fg: u8, bg: u8, bright: u8) -> void {
+    var f: u8 = 30 + fg
+    var b: u8 = 40 + bg
+    if bright != 0 { f = f + 60 }
+    if bright != 0 { b = b + 60 }
+    _esc()
+    _putch(91)
+    _dec(f)
+    _putch(59)
+    _dec(b)
+    _putch(109)
+}
+
+fun tui_reset() -> void {
+    _esc()
+    _putch(91)
+    _putch(48)
+    _putch(109)
+}
+
+fun tui_clear() -> void {
+    _esc()
+    _putch(91)
+    _putch(50)
+    _putch(74)
+    _esc()
+    _putch(91)
+    _putch(72)
+}
+
+fun tui_read_key() -> u8 {
+    asm z80 (ret A) { LD C, 1 / CALL 5 }
+}
+
+// ── The screen ────────────────────────────────────────────────
+
+fun main() -> void {
+    tui_clear()
+
+    // Title bar: white on blue
+    tui_color(7, 4, 1)
+    tui_goto(0, 0)
+    _puts(c"  Material Report                                                               ")
+    tui_reset()
+
+    // Fields
+    tui_goto(2, 2)
+    tui_color(6, 0, 0)
+    _puts(c"Material    ")
+    tui_color(7, 0, 0)
+    _puts(c"[*                 ]")
+    tui_reset()
+
+    tui_goto(2, 3)
+    tui_color(6, 0, 0)
+    _puts(c"Plant       ")
+    tui_color(7, 0, 0)
+    _puts(c"[    ]")
+    tui_reset()
+
+    tui_goto(2, 4)
+    tui_color(6, 0, 0)
+    _puts(c"Count       ")
+    tui_color(7, 0, 0)
+    _puts(c"[10]")
+    tui_reset()
+
+    // Buttons
+    tui_goto(2, 6)
+    tui_color(0, 7, 1)
+    _puts(c"[F8=Execute]")
+    tui_reset()
+    _puts(c"  ")
+    tui_color(7, 0, 1)
+    _puts(c"[F3=Back]")
+    tui_reset()
+
+    // Status bar
+    tui_color(7, 4, 0)
+    tui_goto(0, 23)
+    _puts(c"  TAB=Next  Enter=Edit  F8=Execute  F3=Back                                     ")
+    tui_reset()
+
+    // Wait for key
+    var key: u8 = tui_read_key()
+    tui_clear()
+}

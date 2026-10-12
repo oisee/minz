@@ -1,0 +1,39 @@
+{
+  "source": "examples/tests/z80_compute_verify.nanz",
+  "sha256": "cd78339e7ce7a83b9104b4b08a4976524a15ff049757c30dcd50601df3cc7102",
+  "base": "025ce7bb",
+  "authority": "Book v7 section 3 modular widths, chapter7 arithmetic and chapter6 explicit while loops; commented expectations remain separate from original assertions",
+  "domains": {
+    "byte_pairs": [
+      "add8",
+      "sub8",
+      "band",
+      "bor",
+      "max8",
+      "min8",
+      "abs_diff"
+    ],
+    "byte_unary": [
+      "mul2",
+      "mul3",
+      "shl1",
+      "shr1",
+      "count_bits",
+      "is_power_of_2",
+      "double_it",
+      "quad",
+      "compose",
+      "widen"
+    ],
+    "clamp": "x all256, lo/hi each [0,1,2,63,127,128,192,254,255], including inverted bounds; source tests x<lo first",
+    "word_pairs": "add16/sub16: all65536 low-byte pairs plus Cartesian [0,1,2,127,128,255,256,257,32767,32768,65534,65535]",
+    "sum_to": "0..254 triangular modulo256;255 source byte loop nontermination, bounded raw/final/native no-return control"
+  },
+  "modes": [
+    "ordinary",
+    "Grace Size",
+    "Grace Speed"
+  ],
+  "native": "actual CALL returnPC/SP, actual ABI, immutable nonstack RAM except declared compiler spill bytes; zero data accesses in raw/final VM",
+  "source_assertions": "preserve and separately execute all active via z80 qualifiers; commented TODO inputs covered by independent domain, bxor has no source callable"
+}

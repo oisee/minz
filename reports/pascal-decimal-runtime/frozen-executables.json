@@ -1,0 +1,12 @@
+{
+  "minzc": {
+    "path": "/mnt/safe/minz/grace/2026-10-12/pascal-decimal-runtime/executables/minzc",
+    "sha256": "e1e27d8082a7cecf2d1c1d3a291c1f5086312efb79d5c0adabfec2b374156d69",
+    "compiler_commit": "1eb745c4"
+  },
+  "pipeline.test": {
+    "path": "/mnt/safe/minz/grace/2026-10-12/pascal-decimal-runtime/executables/pipeline.test",
+    "sha256": "7d5212a0d1bf0e32417cf9a2ce1b0c25c84edc084fdcef8d0ab33c26371b1199",
+    "compiler_commit": "1eb745c4"
+  }
+}

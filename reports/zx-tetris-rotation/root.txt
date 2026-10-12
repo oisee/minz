@@ -1,0 +1,38 @@
+=== RUN   TestOriginalZXTetrisMainRotation
+=== RUN   TestOriginalZXTetrisMainRotation/current
+=== RUN   TestOriginalZXTetrisMainRotation/current/ordinary
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:360: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:363: 4548 20749192 initial main and31frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainRotation/current/grace-size
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:360: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:363: 4557 20748603 initial main and31frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainRotation/current/grace-speed
+[HIR-SPLIT] main → main$split_5 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:360: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:363: 4557 20748603 initial main and31frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainRotation/historical
+=== RUN   TestOriginalZXTetrisMainRotation/historical/ordinary
+[HIR-SPLIT] main → main$split_7 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:360: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:363: 4979 9966863 initial main and31frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainRotation/historical/grace-size
+[HIR-SPLIT] main → main$split_7 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:360: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:363: 4988 9966274 initial main and31frames/full RAM PASS
+=== RUN   TestOriginalZXTetrisMainRotation/historical/grace-speed
+[HIR-SPLIT] main → main$split_7 (0 inputs, pressure 10)
+    original_zx_tetris_main_test.go:360: 31 frames including input edges and gravity/full RAM PASS
+    original_zx_tetris_main_test.go:363: 4988 9966274 initial main and31frames/full RAM PASS
+--- PASS: TestOriginalZXTetrisMainRotation (7.51s)
+    --- PASS: TestOriginalZXTetrisMainRotation/current (1.89s)
+        --- PASS: TestOriginalZXTetrisMainRotation/current/ordinary (0.46s)
+        --- PASS: TestOriginalZXTetrisMainRotation/current/grace-size (0.86s)
+        --- PASS: TestOriginalZXTetrisMainRotation/current/grace-speed (0.58s)
+    --- PASS: TestOriginalZXTetrisMainRotation/historical (5.61s)
+        --- PASS: TestOriginalZXTetrisMainRotation/historical/ordinary (0.82s)
+        --- PASS: TestOriginalZXTetrisMainRotation/historical/grace-size (2.46s)
+        --- PASS: TestOriginalZXTetrisMainRotation/historical/grace-speed (2.34s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	7.517s

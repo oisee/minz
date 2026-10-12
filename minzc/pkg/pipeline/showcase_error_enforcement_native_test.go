@@ -1,0 +1,335 @@
+package pipeline
+
+import (
+	"crypto/sha256"
+	"encoding/json"
+	"fmt"
+	"github.com/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/nanz"
+	"github.com/minz/minzc/pkg/z80asm"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+)
+
+// Original complete source and Book Appendix K CY outcome, frozen before repair.
+func TestOriginalErrorEnforcementNative(t *testing.T) {
+	const path = "../../../examples/nanz/15_error_enforcement.nanz"
+	src, e := os.ReadFile(path)
+	if e != nil {
+		t.Fatal(e)
+	}
+	frozen, e := os.ReadFile("../../../reports/error-enforcement-native/workload.json")
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	var spec struct {
+		SourceSHA256 string `json:"source_sha256"`
+	}
+	if e = json.Unmarshal(frozen, &spec); e != nil || spec.SourceSHA256 != fmt.Sprintf("%x", sha256.Sum256(src)) {
+		t.Fatal("source freeze", e)
+	}
+	type call struct {
+		Entry         string
+		Args          []int64
+		Expected      int64
+		ExpectedMulti []int64
+		Failed        bool
+	}
+
+	var calls []call
+	add := func(entry string, args []int64, value int64, failed bool) {
+		calls = append(calls, call{Entry: entry, Args: args, Expected: value, ExpectedMulti: []int64{value}, Failed: failed})
+	}
+	for a := int64(0); a < 256; a++ {
+		for b := int64(0); b < 256; b++ {
+			div, fail := int64(1), b == 0
+			if !fail {
+				div = a / b
+			}
+			add("safe_div?", []int64{a, b}, div, fail)
+			sum, overflow := a+b, a+b > 255
+			if overflow {
+				sum = 2
+			}
+			add("safe_add?", []int64{a, b}, sum, overflow)
+			computed, failed := div, fail
+			if !fail {
+				computed = div + 5
+				if computed > 255 {
+					computed = 2
+					failed = true
+				}
+			}
+			add("compute", []int64{a, b}, computed, failed)
+			add("try_div", []int64{a, b}, div, fail)
+		}
+	}
+
+	save := func(name string, v any) {
+		dir := os.Getenv("MINZ_ERROR_ENFORCEMENT_ARTIFACTS")
+		if dir == "" {
+			return
+		}
+		p := filepath.Join(dir, name)
+		if e := os.MkdirAll(filepath.Dir(p), 0755); e != nil {
+			t.Fatal(e)
+		}
+		var data []byte
+		switch x := v.(type) {
+		case string:
+			data = []byte(x)
+		case []byte:
+			data = x
+		default:
+			data, e = json.MarshalIndent(v, "", "  ")
+			if e != nil {
+				t.Fatal(e)
+			}
+		}
+		if e = os.WriteFile(p, data, 0644); e != nil {
+			t.Fatal(e)
+		}
+	}
+	save("source.nanz", src)
+	save("calls.json", calls)
+	for _, mode := range []string{"default", "grace-size", "grace-speed"} {
+		parse := func() *hir.Module {
+			h, e := nanz.Parse(string(src), path)
+			if e != nil {
+				t.Fatal(e)
+			}
+			return h
+		}
+		rawModule := hir.LowerModule(parse())
+		h := parse()
+		steps, e := CompileHIRSteps(h, Options{ContractOpt: true, UseGrace: mode != "default", OptSize: mode == "grace-size"})
+		if e != nil {
+			t.Fatal(mode, e)
+		}
+		save(mode+"/target.a80", steps.Assembly)
+		save(mode+"/raw.mir", rawModule.Dump())
+		save(mode+"/final.mir", steps.MIR2Module.Dump())
+		save(mode+"/allocation.json", steps.Allocation)
+		// Add only invocation drivers; keep every original function and assertion.
+		allowedSpill := map[int]bool{}
+		var drivers strings.Builder
+		for _, entry := range []string{"safe_div?", "safe_add?", "compute", "try_div"} {
+			drivers.WriteString(fmt.Sprintf("\noracle_%s:\n CALL %s\n RET\n", strings.ReplaceAll(entry, "?", "_"), strings.ReplaceAll(entry, "?", "_")))
+		}
+
+		assembled, e := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + steps.Assembly + drivers.String())
+		if e != nil || len(assembled.Errors) > 0 {
+			t.Fatal(e, assembled.Errors)
+		}
+		if len(assembled.Binary) > 0x6000 {
+			t.Fatal("driver/image stack overlap")
+		}
+		save(mode+"/target.bin", assembled.Binary)
+		for _, l := range assembled.Listing {
+			if strings.HasPrefix(l.Label, "_spill_") {
+				for j := range l.Bytes {
+					allowedSpill[l.Address+j] = true
+				}
+			}
+		}
+		z := emulator.NewRemogattoZ80()
+		if e = z.LoadMemory(0x8000, assembled.Binary); e != nil {
+			t.Fatal(e)
+		}
+		type measure struct {
+			Calls  int
+			TotalT uint64
+			MinSP  uint16
+		}
+		metrics := map[string]measure{}
+		for i, c := range calls {
+
+			for label, m := range map[string]*mir2.Module{"raw": rawModule, "final": steps.MIR2Module} {
+				vm := mir2.NewVM(m)
+				var args []mir2.Value
+				for _, a := range c.Args {
+					args = append(args, mir2.Value{I: a})
+				}
+				outcome, err := vm.CallWithOutcome(c.Entry, args)
+				if err != nil || outcome.Failed != c.Failed {
+					t.Fatalf("%s %s %s %v outcome=%+v err=%v", mode, label, c.Entry, c.Args, outcome, err)
+				}
+				if c.Failed {
+					if outcome.ErrorCode != byte(c.Expected) {
+						t.Fatal("VM error code", c, outcome)
+					}
+				} else if len(outcome.Values) != 1 || outcome.Values[0].I != c.Expected {
+					t.Fatal("VM value", c, outcome)
+				}
+
+			}
+
+			mem := z.Memory()
+			mem[0xeff0], mem[0xeff1] = 0, 0x70
+			mem[0xe000], mem[0xeff2] = 0x9b, 0xad
+			regs := emulator.Registers{PC: uint16(assembled.Symbols["oracle_"+strings.ReplaceAll(c.Entry, "?", "_")]), SP: 0xeff0, BC: 0x5555, DE: 0x6666, HL: 0x7777, IX: 0x8888, IY: 0x9999, A: 0x42}
+			f := steps.MIR2Module.FuncByName(c.Entry)
+			for j, arg := range c.Args {
+				loc := assertParamLocation(f.Contract.Params[j], steps.Allocation)
+				v := uint16(arg)
+				switch loc.Name {
+				case "A":
+					regs.A = byte(v)
+				case "HL":
+					regs.HL = v
+				case "DE":
+					regs.DE = v
+				case "BC":
+					regs.BC = v
+				case "IX":
+					regs.IX = v
+				case "IY":
+					regs.IY = v
+				case "B":
+					regs.BC = regs.BC&255 | v<<8
+				case "C":
+					regs.BC = regs.BC&0xff00 | v
+				case "D":
+					regs.DE = regs.DE&255 | v<<8
+				case "E":
+					regs.DE = regs.DE&0xff00 | v
+				case "H":
+					regs.HL = regs.HL&255 | v<<8
+				case "L":
+					regs.HL = regs.HL&0xff00 | v
+				case "IXH":
+					regs.IX = regs.IX&255 | v<<8
+				case "IXL":
+					regs.IX = regs.IX&0xff00 | v
+				case "IYH":
+					regs.IY = regs.IY&255 | v<<8
+				case "IYL":
+					regs.IY = regs.IY&0xff00 | v
+				default:
+					if loc.Kind != mir2.LocMem {
+						t.Fatal("unhandled entry ABI", loc)
+					}
+					p := assembled.Symbols[mir2.Z80SpillLabel(f.Name, f.Contract.Params[j].Reg)]
+					mem[p] = byte(arg)
+				}
+			}
+			z.SetRegisters(regs)
+			before := append([]byte(nil), mem...)
+			minSP := uint16(0xeff0)
+			start := z.GetCycles()
+			done := false
+			for j := 0; j < 1000000; j++ {
+				if z.GetPC() == 0x7000 && z.GetSP() == 0xeff2 {
+					done = true
+					break
+				}
+				if z.GetSP() <= 0xe000 || z.GetSP() > 0xeff2 {
+					t.Fatal("stack bounds", c)
+				}
+				z.Step()
+				if z.GetSP() < minSP {
+					minSP = z.GetSP()
+				}
+			}
+			if !done {
+				t.Fatal("native did not return", c)
+			}
+
+			regsAfter := z.GetRegisters()
+			wantCarry := byte(0)
+			if c.Failed {
+				wantCarry = 1
+			}
+
+			if regsAfter.A != byte(c.Expected) || regsAfter.F&1 != wantCarry {
+				t.Fatalf("%s independent native %s%v A%d want%d CY%d want%d", mode, c.Entry, c.Args, regsAfter.A, c.Expected, regsAfter.F&1, wantCarry)
+			}
+
+			for p := 0; p < 65536; p++ {
+				if mem[p] == before[p] {
+					continue
+				}
+				if p >= int(minSP) && p < int(0xeff0) {
+					continue
+				}
+				spill := allowedSpill[p]
+				if !spill {
+					t.Fatalf("unexpected memory %s call%d %x %x->%x minSP%x", mode, i, p, before[p], mem[p], minSP)
+				}
+			}
+
+			metric := metrics[c.Entry]
+			metric.Calls++
+			metric.TotalT += uint64(z.GetCycles() - start)
+			if metric.MinSP == 0 || minSP < metric.MinSP {
+				metric.MinSP = minSP
+			}
+			metrics[c.Entry] = metric
+		}
+		save(mode+"/evidence.json", map[string]any{"source_sha256": spec.SourceSHA256, "options": Options{ContractOpt: true, UseGrace: mode != "default", OptSize: mode == "grace-size"}, "native_calls": len(calls), "source_assertions_retained": len(h.Asserts), "entries": metrics, "assembled_binary_sha256": fmt.Sprintf("%x", sha256.Sum256(assembled.Binary))})
+		for _, vmModule := range []*mir2.Module{rawModule, steps.MIR2Module} {
+			vm := mir2.NewVM(vmModule)
+			var output strings.Builder
+			vm.Hosts["@mir.io.print.u8"] = func(args []mir2.Value) ([]mir2.Value, error) {
+				if len(args) != 1 {
+					return nil, fmt.Errorf("print arguments")
+				}
+				fmt.Fprint(&output, args[0].I)
+				return nil, nil
+			}
+			outcome, err := vm.CallWithOutcome("main", nil)
+			if err != nil || outcome.Failed || outcome.ErrorCode != 0 || output.String() != "105" {
+				t.Fatal("VM main", outcome, err, output.String())
+			}
+		}
+		for _, carry := range []byte{0, 1} {
+			z := emulator.NewRemogattoZ80()
+			if e := z.LoadMemory(0x8000, assembled.Binary); e != nil {
+				t.Fatal(e)
+			}
+			var output []byte
+			z.SetIOHandlers(func(port uint16) byte { t.Fatalf("unexpectedinput%x", port); return 0 }, func(port uint16, value byte) {
+				if byte(port) != 0x23 {
+					t.Fatalf("unexpectedoutputport%x", port)
+				}
+				output = append(output, value)
+			})
+			mem := z.Memory()
+			mem[0xeff0], mem[0xeff1] = 0, 0x70
+			z.SetRegisters(emulator.Registers{PC: uint16(assembled.Symbols["main"]), SP: 0xeff0, F: carry, A: 42})
+			before := append([]byte(nil), mem...)
+			minSP := uint16(0xeff0)
+			returned := false
+			for j := 0; j < 10000; j++ {
+				if z.GetPC() == 0x7000 {
+					returned = true
+					break
+				}
+				if z.GetSP() <= 0xe000 || z.GetSP() > 0xeff2 {
+					t.Fatal("main stack bounds")
+				}
+				z.Step()
+				if z.GetSP() < minSP {
+					minSP = z.GetSP()
+				}
+			}
+			for p := 0; p < 65536; p++ {
+				if mem[p] != before[p] && !(p >= int(minSP) && p < 0xeff0) && !allowedSpill[p] {
+					t.Fatalf("main unexpected memory %x", p)
+				}
+			}
+			save(fmt.Sprintf("%s/main-carry%d.json", mode, carry), map[string]any{"initialcarry": carry, "output": string(output), "returned": returned, "A": z.GetRegisters().A, "carry": z.GetRegisters().F & 1, "SP": z.GetSP(), "expected_output": "105"})
+			if !returned || string(output) != "105" || z.GetSP() != 0xeff2 || z.GetRegisters().F&1 != 0 {
+				t.Fatal("main outcome", carry, string(output), returned, z.GetRegisters())
+			}
+			t.Logf("main initial CY=%d output=%q success CY=0 restored SP PASS", carry, output)
+		}
+
+		t.Logf("%s %d native + raw/final VM outcome/SP/RAM calls PASS; %d source assertions retained", mode, len(calls), len(h.Asserts))
+	}
+}

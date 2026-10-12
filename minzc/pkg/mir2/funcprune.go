@@ -4,7 +4,9 @@ package mir2
 // explicit root set after whole-module rewrites such as inlining.
 //
 // In addition to the caller-provided roots, any function whose address is
-// taken via OpAddrOf is treated conservatively as reachable.
+// taken via OpAddrOf is treated conservatively as reachable. A reachable
+// opaque assembly block may call or take the address of any module function;
+// until assembly has explicit symbol dependencies, it disables pruning.
 func PruneUnreachableFuncs(m *Module, roots map[string]bool) bool {
 	if len(m.Funcs) == 0 {
 		return false
@@ -45,6 +47,12 @@ func PruneUnreachableFuncs(m *Module, roots map[string]bool) bool {
 		}
 		for _, b := range f.Blocks {
 			for _, inst := range b.Insts {
+				if inst.Op == OpAsm {
+					// Templates can contain conditional jumps, address tables,
+					// indirect calls, or target-specific expressions. Parsing only
+					// CALL operands would miss valid dependencies.
+					return false
+				}
 				if inst.Op == OpCall && inst.Sym != "" && inst.Sym[0] != '@' {
 					enqueue(inst.Sym)
 					continue

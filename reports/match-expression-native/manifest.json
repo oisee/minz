@@ -1,0 +1,119 @@
+{
+  "files": [
+    {
+      "path": "reports/match-expression-native/run.txt",
+      "bytes": 1992,
+      "sha256": "ae254b1a40530de802c5f07abbfe6a80320b189ecff094d45a428c64b3d22c2f"
+    },
+    {
+      "path": "reports/match-expression-native/workload.json",
+      "bytes": 540,
+      "sha256": "fc995937b6a67856839fdcd127c5e28dce0f852184f911329f37d8a7cb394312"
+    },
+    {
+      "path": "reports/match-expression-native/native/calls.json",
+      "bytes": 1089,
+      "sha256": "c265ea856cf051c5d1e17879225513793f59274ffeb65b83d8275237f4ce1671"
+    },
+    {
+      "path": "reports/match-expression-native/native/source.nanz",
+      "bytes": 913,
+      "sha256": "e46d5979e2fe90f6e612bf303542370f58dc3df9e0e5b9822e5142352fe60261"
+    },
+    {
+      "path": "reports/match-expression-native/native/grace-size/evidence.json",
+      "bytes": 818,
+      "sha256": "47c7d1db8f60019ec3a850a0aa9b7255a39925f64e287772d1ea4b361bb906a6"
+    },
+    {
+      "path": "reports/match-expression-native/native/grace-size/raw.mir",
+      "bytes": 2164,
+      "sha256": "c4fdd1c9bc382ecdf445f551f813ae6fd4722a9a378d858e6f82e2559106ee17"
+    },
+    {
+      "path": "reports/match-expression-native/native/grace-size/final.mir",
+      "bytes": 1519,
+      "sha256": "9ee17f3c960e66e37f007ca6990999a4ef4f65cec8432adf6838d7b55d48529b"
+    },
+    {
+      "path": "reports/match-expression-native/native/grace-size/target.a80",
+      "bytes": 1610,
+      "sha256": "c2b5edf16bc33e75cb319d90e4e5f0f9efea3fe8ec4d93e2ce886bd66dc40908"
+    },
+    {
+      "path": "reports/match-expression-native/native/grace-size/target.bin",
+      "bytes": 55,
+      "sha256": "120b71d183c94ff4460d9c33a77ad62a79335941cda0960ab69a234f226f537b"
+    },
+    {
+      "path": "reports/match-expression-native/native/grace-size/allocation.json",
+      "bytes": 1780,
+      "sha256": "5980144d68d040307561d9700d25ae6d1b26376c7c88f0e08c553a2ebf615911"
+    },
+    {
+      "path": "reports/match-expression-native/native/grace-speed/evidence.json",
+      "bytes": 819,
+      "sha256": "445f25a21835b2674b513401be6527555d5cb25140ea151b60b485874c07f9c2"
+    },
+    {
+      "path": "reports/match-expression-native/native/grace-speed/raw.mir",
+      "bytes": 2164,
+      "sha256": "c4fdd1c9bc382ecdf445f551f813ae6fd4722a9a378d858e6f82e2559106ee17"
+    },
+    {
+      "path": "reports/match-expression-native/native/grace-speed/final.mir",
+      "bytes": 1519,
+      "sha256": "9ee17f3c960e66e37f007ca6990999a4ef4f65cec8432adf6838d7b55d48529b"
+    },
+    {
+      "path": "reports/match-expression-native/native/grace-speed/target.a80",
+      "bytes": 1610,
+      "sha256": "c2b5edf16bc33e75cb319d90e4e5f0f9efea3fe8ec4d93e2ce886bd66dc40908"
+    },
+    {
+      "path": "reports/match-expression-native/native/grace-speed/target.bin",
+      "bytes": 55,
+      "sha256": "120b71d183c94ff4460d9c33a77ad62a79335941cda0960ab69a234f226f537b"
+    },
+    {
+      "path": "reports/match-expression-native/native/grace-speed/allocation.json",
+      "bytes": 1780,
+      "sha256": "5980144d68d040307561d9700d25ae6d1b26376c7c88f0e08c553a2ebf615911"
+    },
+    {
+      "path": "reports/match-expression-native/native/default/evidence.json",
+      "bytes": 820,
+      "sha256": "29a39303ce963eb23a8462920a506d93a5b6ebd281f39bcf3f8dae11a96b410e"
+    },
+    {
+      "path": "reports/match-expression-native/native/default/raw.mir",
+      "bytes": 2164,
+      "sha256": "c4fdd1c9bc382ecdf445f551f813ae6fd4722a9a378d858e6f82e2559106ee17"
+    },
+    {
+      "path": "reports/match-expression-native/native/default/final.mir",
+      "bytes": 1562,
+      "sha256": "8abcf13eea27a735db347823d081838bcc84aaf60f7bcfbf72fa75e77c900c70"
+    },
+    {
+      "path": "reports/match-expression-native/native/default/target.a80",
+      "bytes": 1648,
+      "sha256": "0515b83011a32985361f31f3a8ca15dd51e6b0530a8539e9ac63b141d0ca86e1"
+    },
+    {
+      "path": "reports/match-expression-native/native/default/target.bin",
+      "bytes": 55,
+      "sha256": "120b71d183c94ff4460d9c33a77ad62a79335941cda0960ab69a234f226f537b"
+    },
+    {
+      "path": "reports/match-expression-native/native/default/allocation.json",
+      "bytes": 1780,
+      "sha256": "5980144d68d040307561d9700d25ae6d1b26376c7c88f0e08c553a2ebf615911"
+    },
+    {
+      "path": "reports/2026-10-11-075-original-match-expression-native.md",
+      "bytes": 1657,
+      "sha256": "b2c289565423834db7c6a1be8eb859f9b9501cdaaf3f78a6547872fb0fbfc5ea"
+    }
+  ]
+}

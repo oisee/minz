@@ -1,0 +1,9 @@
+{
+  "pid_at_capture": 2511569,
+  "sha256": "6dc1363719c5cde1c862ebd247100a7c8ab2dd597ca457eb5605135686b954bf",
+  "code_base": "31161121",
+  "test_source_commit": "c382bf49",
+  "scope": "Exact live executable started with then-uncommitted self-parser classifier test. Includes old TermCondRet; predates IRC/Pascal integrations.",
+  "run": "-test.run ^TestOriginalSelfParserCharacterClassifiers$ -test.count=1",
+  "working_directory": "minzc/pkg/pipeline"
+}

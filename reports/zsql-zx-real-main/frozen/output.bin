@@ -1,0 +1,1 @@
+ ZSQL - Real SQL on ZX Spectrum SQLite via I/O portszsql> CREATE TABLE t(a,b)OKzsql> INSERT INTO t VALUES('hi',42)OKzsql> SELECT * FROM thi | 42zsql> zsql> zsql> zsql> zsql> zsql> zsql> zsql> zsql> zsql> zsql> zsql> zsql> Bye!

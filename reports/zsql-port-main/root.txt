@@ -1,0 +1,50 @@
+=== RUN   TestOriginalSQLiteImportedMainNative
+=== RUN   TestOriginalSQLiteImportedMainNative/ordinary
+    original_sqlite_import_main_test.go:287: false 1963 26125 92 original main native PASS
+    original_sqlite_import_main_test.go:287: true 1963 26125 92 original main native PASS
+=== RUN   TestOriginalSQLiteImportedMainNative/grace-size
+    original_sqlite_import_main_test.go:287: false 1963 26125 92 original main native PASS
+    original_sqlite_import_main_test.go:287: true 1963 26125 92 original main native PASS
+=== RUN   TestOriginalSQLiteImportedMainNative/grace-speed
+    original_sqlite_import_main_test.go:287: false 1963 26125 92 original main native PASS
+    original_sqlite_import_main_test.go:287: true 1963 26125 92 original main native PASS
+--- PASS: TestOriginalSQLiteImportedMainNative (0.17s)
+    --- PASS: TestOriginalSQLiteImportedMainNative/ordinary (0.05s)
+    --- PASS: TestOriginalSQLiteImportedMainNative/grace-size (0.06s)
+    --- PASS: TestOriginalSQLiteImportedMainNative/grace-speed (0.06s)
+=== RUN   TestOriginalSAPMaraPortMainNative
+=== RUN   TestOriginalSAPMaraPortMainNative/ordinary
+    original_sqlite_import_main_test.go:287: false 2820 78892 360 original main native PASS
+    original_sqlite_import_main_test.go:287: true 2820 78892 360 original main native PASS
+=== RUN   TestOriginalSAPMaraPortMainNative/grace-size
+    original_sqlite_import_main_test.go:287: false 2820 78892 360 original main native PASS
+    original_sqlite_import_main_test.go:287: true 2820 78892 360 original main native PASS
+=== RUN   TestOriginalSAPMaraPortMainNative/grace-speed
+    original_sqlite_import_main_test.go:287: false 2820 78892 360 original main native PASS
+    original_sqlite_import_main_test.go:287: true 2820 78892 360 original main native PASS
+--- PASS: TestOriginalSAPMaraPortMainNative (0.19s)
+    --- PASS: TestOriginalSAPMaraPortMainNative/ordinary (0.06s)
+    --- PASS: TestOriginalSAPMaraPortMainNative/grace-size (0.07s)
+    --- PASS: TestOriginalSAPMaraPortMainNative/grace-speed (0.07s)
+=== RUN   TestOriginalZSQLPortMainNative
+=== RUN   TestOriginalZSQLPortMainNative/ordinary
+[Z80-VALIDATE] terminate: 1 invalid instruction(s)
+  line 3: >>> LD HL, _inbuf+2 <<<
+    original_sqlite_import_main_test.go:287: false 1545 42787 388 original main native PASS
+    original_sqlite_import_main_test.go:287: true 1545 42787 388 original main native PASS
+=== RUN   TestOriginalZSQLPortMainNative/grace-size
+[Z80-VALIDATE] terminate: 1 invalid instruction(s)
+  line 3: >>> LD HL, _inbuf+2 <<<
+    original_sqlite_import_main_test.go:287: false 1545 42787 388 original main native PASS
+    original_sqlite_import_main_test.go:287: true 1545 42787 388 original main native PASS
+=== RUN   TestOriginalZSQLPortMainNative/grace-speed
+[Z80-VALIDATE] terminate: 1 invalid instruction(s)
+  line 3: >>> LD HL, _inbuf+2 <<<
+    original_sqlite_import_main_test.go:287: false 1545 42787 388 original main native PASS
+    original_sqlite_import_main_test.go:287: true 1545 42787 388 original main native PASS
+--- PASS: TestOriginalZSQLPortMainNative (0.14s)
+    --- PASS: TestOriginalZSQLPortMainNative/ordinary (0.04s)
+    --- PASS: TestOriginalZSQLPortMainNative/grace-size (0.05s)
+    --- PASS: TestOriginalZSQLPortMainNative/grace-speed (0.05s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.510s

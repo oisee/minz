@@ -1,0 +1,177 @@
+// stdlib/sql/sqlite — Z80 SQLite bridge
+//
+// Two execution paths:
+//   MZV:  Host function overrides intercept calls directly (already in mzv)
+//   CP/M: I/O port protocol via ports $41/$43/$45/$47 (asm bodies below)
+//
+// Handle types are u16 (matching ABAP lowerer + mzv host functions).
+// Only lo byte sent via I/O ports (max 255 handles).
+
+const SQLITE_OK: u8 = 0
+const SQLITE_ERROR: u8 = 1
+const SQLITE_ROW: u8 = 1
+const SQLITE_DONE: u8 = 0
+
+// Internal: send null-terminated string via port $45.
+// Expects string pointer in HL.
+fun _sql_send_str(@z80_hl str: ^u8) -> void {
+    asm z80 (in str) {
+        .loop:
+        LD A, (HL)
+        OUT (0x45), A
+        OR A
+        RET Z
+        INC HL
+        JR .loop
+    }
+}
+
+// Internal: receive null-terminated string from port $45 into buf.
+global _sql_buf: [u8; 256]
+
+fun _sql_recv_str(@z80_hl buf: ^u8) -> ^u8 {
+    asm z80 (in buf) (ret HL) {
+        PUSH HL
+        .loop:
+        IN A, (0x45)
+        LD (HL), A
+        OR A
+        JR Z, .done
+        INC HL
+        JR .loop
+        .done:
+        POP HL
+    }
+}
+
+// ── Public API ──────────────────────────────────────────────────────
+
+// Open database. Returns handle (0 = error).
+// PFCCO: path=HL (^u8) → ret HL (u16)
+fun sqlite_open(@z80_hl path: ^u8) -> u16 {
+    _sql_send_str(path)
+    asm z80 (ret HL) {
+        LD A, 1
+        OUT (0x41), A
+        IN A, (0x43)
+        LD L, A
+        LD H, 0
+    }
+}
+
+// Close database.
+// PFCCO: db=HL (u16)
+fun sqlite_close(@z80_hl db: u16) -> u8 {
+    asm z80 (in db) (ret A) {
+        LD A, L
+        OUT (0x45), A
+        LD A, 2
+        OUT (0x41), A
+        IN A, (0x43)
+    }
+}
+
+// Execute SQL (no results). Returns 0=ok, 1=error.
+// PFCCO: db=HL (u16), sql=DE (^u8)
+// All-asm: send handle via $47, string via $45, then command 8.
+fun sqlite_exec(@z80_hl db: u16, @z80_de sql: ^u8) -> u8 {
+    asm z80 (in db, sql) (ret A) {
+        ; HL=db, DE=sql
+        LD A, L
+        OUT (0x47), A       ; handle via hi port
+        ; Send SQL string from DE
+        EX DE, HL           ; HL = sql
+        .send:
+        LD A, (HL)
+        OUT (0x45), A
+        OR A
+        JR Z, .exec
+        INC HL
+        JR .send
+        .exec:
+        LD A, 8
+        OUT (0x41), A
+        IN A, (0x43)
+    }
+}
+
+// Query (with results). Returns stmt handle (0 = error).
+// PFCCO: db=HL (u16), sql=DE (^u8)
+fun sqlite_query(@z80_hl db: u16, @z80_de sql: ^u8) -> u16 {
+    asm z80 (in db, sql) (ret HL) {
+        LD A, L
+        OUT (0x47), A       ; handle via hi port
+        EX DE, HL
+        .send:
+        LD A, (HL)
+        OUT (0x45), A
+        OR A
+        JR Z, .qry
+        INC HL
+        JR .send
+        .qry:
+        LD A, 3
+        OUT (0x41), A
+        IN A, (0x43)
+        LD L, A
+        LD H, 0
+    }
+}
+
+// Step to next row. Returns 1=row, 0=done.
+// PFCCO: q=HL (u16)
+fun sqlite_step(@z80_hl q: u16) -> u8 {
+    asm z80 (in q) (ret A) {
+        LD A, L
+        OUT (0x45), A
+        LD A, 4
+        OUT (0x41), A
+        IN A, (0x43)
+    }
+}
+
+// Get text value of column. Returns pointer to static buffer.
+// PFCCO: q=HL (u16), col=A (u8)
+fun sqlite_column_text(@z80_hl q: u16, @z80_a col: u8) -> ^u8 {
+    asm z80 (in q, col) {
+        ; HL=q, A=col
+        PUSH AF
+        LD A, L
+        OUT (0x45), A
+        POP AF
+        OUT (0x47), A
+        LD A, 5
+        OUT (0x41), A
+    }
+    return _sql_recv_str(&_sql_buf)
+}
+
+// Get integer value of column. Returns u16.
+// PFCCO: q=HL (u16), col=A (u8)
+fun sqlite_column_int(@z80_hl q: u16, @z80_a col: u8) -> u16 {
+    asm z80 (in q, col) (ret HL) {
+        PUSH AF
+        LD A, L
+        OUT (0x45), A
+        POP AF
+        OUT (0x47), A
+        LD A, 6
+        OUT (0x41), A
+        IN A, (0x45)
+        LD L, A
+        IN A, (0x47)
+        LD H, A
+    }
+}
+
+// Finalize (close) a query statement.
+// PFCCO: q=HL (u16)
+fun sqlite_finalize(@z80_hl q: u16) -> u8 {
+    asm z80 (in q) (ret A) {
+        LD A, L
+        OUT (0x45), A
+        LD A, 7
+        OUT (0x41), A
+        IN A, (0x43)
+    }
+}

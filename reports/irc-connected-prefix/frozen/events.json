@@ -1,0 +1,1596 @@
+[
+  {
+    "Name": "tui_clear",
+    "Args": []
+  },
+  {
+    "Name": "ctl_read",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "MinZ IRC v0.1 — connected"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      78
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      73
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      67
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      75
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      109
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      105
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      110
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      122
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      95
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      117
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      115
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      114
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      13
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      10
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      85
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      83
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      69
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      82
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      109
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      105
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      110
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      122
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      48
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      42
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      58
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      77
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      105
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      110
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      90
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      90
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      56
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      48
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      73
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      82
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      67
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      67
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      108
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      105
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      110
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      116
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      13
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      10
+    ]
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      80
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      79
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      78
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      71
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      58
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      97
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      98
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      99
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      13
+    ]
+  },
+  {
+    "Name": "net_write",
+    "Args": [
+      10
+    ]
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "tui_read_key",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      6,
+      0,
+      1
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      60
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      98
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      111
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      98
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      62
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      104
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      105
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      13
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      10
+    ]
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "tui_read_key",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      2,
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      98
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      111
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      98
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      " joined"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      13
+    ]
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      10
+    ]
+  },
+  {
+    "Name": "net_read",
+    "Args": []
+  },
+  {
+    "Name": "tui_read_key",
+    "Args": []
+  }
+]

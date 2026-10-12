@@ -14,6 +14,12 @@ func ValidateZ80IndirectCalls(m *Module) error {
 				if inst.Op != OpCallIndirect {
 					continue
 				}
+				// Typed calls use the same conservative all-register caller-save
+				// machinery as direct calls. Legacy allocation-inferred signatures
+				// cannot establish the argument/result ABI for live callers.
+				if len(inst.IndirectParamTys) == len(inst.Args) && len(inst.IndirectReturnTys) > 0 {
+					continue
+				}
 				live := g.regsLiveAfterInst(inst)
 				delete(live, inst.Dst)
 				for _, r := range inst.ExtraRets {

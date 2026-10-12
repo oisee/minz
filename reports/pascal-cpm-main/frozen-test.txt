@@ -1,0 +1,23 @@
+=== RUN   TestPascalHelloProductionCPM
+=== RUN   TestPascalHelloProductionCPM/ordinary
+=== RUN   TestPascalHelloProductionCPM/ordinary/hello
+    pascal_cpm_main_test.go:280: clobberfalse stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+    pascal_cpm_main_test.go:280: clobbertrue stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+=== RUN   TestPascalHelloProductionCPM/grace-size
+=== RUN   TestPascalHelloProductionCPM/grace-size/hello
+    pascal_cpm_main_test.go:280: clobberfalse stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+    pascal_cpm_main_test.go:280: clobbertrue stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+=== RUN   TestPascalHelloProductionCPM/grace-speed
+=== RUN   TestPascalHelloProductionCPM/grace-speed/hello
+    pascal_cpm_main_test.go:280: clobberfalse stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+    pascal_cpm_main_test.go:280: clobbertrue stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+--- PASS: TestPascalHelloProductionCPM (0.02s)
+    --- PASS: TestPascalHelloProductionCPM/ordinary (0.01s)
+        --- PASS: TestPascalHelloProductionCPM/ordinary/hello (0.01s)
+    --- PASS: TestPascalHelloProductionCPM/grace-size (0.01s)
+        --- PASS: TestPascalHelloProductionCPM/grace-size/hello (0.01s)
+    --- PASS: TestPascalHelloProductionCPM/grace-speed (0.01s)
+        --- PASS: TestPascalHelloProductionCPM/grace-speed/hello (0.01s)
+=== RUN   TestOriginalPascalFactorialPureModel
+--- PASS: TestOriginalPascalFactorialPureModel (0.13s)
+PASS

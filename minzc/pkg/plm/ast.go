@@ -35,6 +35,7 @@ func (t PLMType) String() string {
 type Module struct {
 	Name  string // module name, or "" for file-scope
 	Decls []Decl
+	Body  []Stmt // executable module statements, in source order
 }
 
 // ── Declarations ──────────────────────────────────────────────────────────────
@@ -92,7 +93,7 @@ type Stmt interface{ plmStmt() }
 // AssignStmt: <name> = <expr>;  or  <name>(<idx>) = <expr>;  (array element write)
 type AssignStmt struct {
 	Name string
-	Idx  Expr   // non-nil: array element assignment — arr(idx) = val
+	Idx  Expr // non-nil: array element assignment — arr(idx) = val
 	Val  Expr
 }
 
@@ -228,3 +229,17 @@ type CastExpr struct {
 }
 
 func (*CastExpr) plmExpr() {}
+
+// AddrExpr is the address of a variable or indexed array element.
+type AddrExpr struct {
+	Name string
+	Idx  Expr
+}
+
+func (*AddrExpr) plmExpr() {}
+
+// StringAddrExpr addresses the exact bytes of a PL/M string constant.
+// Unlike a C string, no terminator is implied.
+type StringAddrExpr struct{ Value string }
+
+func (*StringAddrExpr) plmExpr() {}

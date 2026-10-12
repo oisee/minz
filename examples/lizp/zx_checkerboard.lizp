@@ -8,7 +8,7 @@
 ;; ── Hardware primitives ──────────────────────────────────────────────
 
 (defun zx-poke ((addr u16) (val u8)) -> void
-  (asm "LD (HL), A" (in addr val)))
+  (poke addr val))
 
 ;; ── Attribute address: 0x5800 + row*32 + col ────────────────────────
 

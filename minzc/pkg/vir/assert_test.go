@@ -1,6 +1,7 @@
 package vir_test
 
 import (
+	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -13,7 +14,6 @@ import (
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/minz/minzc/pkg/vir"
 )
-
 
 // runVIRAsserts compiles Nanz source through VIR and runs both MIR2-VM and Z80 asserts.
 func runVIRAsserts(t *testing.T, name, src string) {
@@ -83,6 +83,24 @@ func runVIRAsserts(t *testing.T, name, src string) {
 		}
 	}
 
+	if root := os.Getenv("VIR_ASSERT_EXPORT"); root != "" {
+		dir := filepath.Join(root, name)
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			t.Fatal(err)
+		}
+		for file, data := range map[string][]byte{"source.nanz": []byte(src), "module.mir": []byte(m.Dump()), "module.a80": []byte(virAsm)} {
+			if err := os.WriteFile(filepath.Join(dir, file), data, 0644); err != nil {
+				t.Fatal(err)
+			}
+		}
+		data, err := json.MarshalIndent(combined, "", "  ")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(dir, "allocation.json"), data, 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
 	// Z80 asserts on VIR+PBQP output
 	if err := pipeline.RunAssertsZ80(hm, m, combined, virAsm); err != nil {
 		t.Errorf("Z80: %v", err)
@@ -372,7 +390,11 @@ fun lookup(idx: u8) -> u8 {
 
 assert lookup(0) == 10
 assert lookup(1) == 20
+assert lookup(2) == 30
 assert lookup(3) == 40
+assert lookup(4) == 50
+assert lookup(5) == 60
+assert lookup(6) == 70
 assert lookup(7) == 80
 `)
 }

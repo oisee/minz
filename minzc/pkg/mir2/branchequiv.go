@@ -30,7 +30,7 @@ package mir2
 func BranchEquiv(m *Module, f *Func) bool {
 	// The comparator observes returns only. Reject memory, calls, I/O, asm,
 	// patches and any future opcode until its effects are explicitly handled.
-	if !beqAdmittedPureU8(f) {
+	if f.Attrs.FallibleCY || !beqAdmittedPureU8(f) {
 		return false
 	}
 	vm := NewVM(m)

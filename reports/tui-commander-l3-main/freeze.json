@@ -1,0 +1,10 @@
+{
+  "base": "b45b9d17",
+  "source_sha256": "182dfacd09df25de965104cd0a6242dfa5d09b5ccf25f7e6e7f2d81f6a2550a3",
+  "input_keys": [
+    27
+  ],
+  "final_globals": {},
+  "expected_events": 36,
+  "scope": "unchanged @screen source; one generated frame and one key; compile-time string args per meta host CString contract; no navigation loop or CP/M runtime"
+}

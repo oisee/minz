@@ -30,12 +30,6 @@ func TestProductionCallFixRound1(t *testing.T) {
 			opts := pipeline.DefaultOptions()
 			opts.AssertMode = "all"
 			steps, err := pipeline.CompileHIRSteps(hm, opts)
-			if filepath.Base(path) == "indirect.nanz" {
-				if err == nil || !strings.Contains(err.Error(), "indirect call in apply has live values") {
-					t.Fatalf("want unsupported indirect ABI error, got %v", err)
-				}
-				return
-			}
 			if err != nil {
 				t.Fatal(err)
 			}
