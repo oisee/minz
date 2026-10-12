@@ -25,6 +25,7 @@ func TestOriginalZXTetrisMainHold(t *testing.T)           { testOriginalZXTetris
 func TestOriginalZXTetrisMainGravityLock(t *testing.T) {
 	testOriginalZXTetrisMainFrames(t, "gravity-lock")
 }
+func TestOriginalZXTetrisMainLineClear(t *testing.T) { testOriginalZXTetrisMainFrames(t, "line-clear") }
 func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 	for _, source := range []struct{ name, path string }{{"current", "examples/zx/tetris.nanz"}, {"historical", "reports/showcase-src/2026-03-15/ex34_tetris.nanz"}} {
 		t.Run(source.name, func(t *testing.T) {
@@ -167,6 +168,17 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 					borders := 0
 					keyReads := 0
 					keysAt := func(frame int) byte {
+						if scenario == "line-clear" {
+							switch frame {
+							case 1, 3, 5:
+								return 1
+							case 9, 13, 15, 17, 19:
+								return 2
+							case 7, 11, 21:
+								return 16
+							}
+							return 0
+						}
 						if scenario == "gravity-lock" {
 							if frame <= 21 {
 								return 8
@@ -227,6 +239,7 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 					expectedY, expectedTimer := 0, 0
 					expectedType, expectedNext := typ, queued
 					expectedScore := 0
+					expectedLines := 0
 					expectedHold, expectedHoldUsed := byte(255), byte(0)
 					var board [200]byte
 					colors := []byte{0x28, 0x30, 0x18, 0x20, 0x10, 0x70, 0x08}
@@ -243,31 +256,50 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 						}
 						return [7][4][2]int{{{0, 0}, {1, 0}, {2, 0}, {3, 0}}, {{0, 0}, {1, 0}, {0, 1}, {1, 1}}, {{1, 0}, {0, 1}, {1, 1}, {2, 1}}, {{1, 0}, {2, 0}, {0, 1}, {1, 1}}, {{0, 0}, {1, 0}, {1, 1}, {2, 1}}, {{2, 0}, {0, 1}, {1, 1}, {2, 1}}, {{0, 0}, {0, 1}, {1, 1}, {2, 1}}}[t]
 					}
-					fits := func(y int) bool {
+					fitsAt := func(x, y int) bool {
 						for _, c := range shape(expectedType, expectedRotation) {
-							x, cy := expectedX+c[0], y+c[1]
+							x, cy := x+c[0], y+c[1]
 							if x < 0 || x >= 10 || cy < 0 || cy >= 20 || board[cy*10+x] != 0 {
 								return false
 							}
 						}
 						return true
 					}
+					fits := func(y int) bool { return fitsAt(expectedX, y) }
 					lockAndSpawn := func() {
 						for _, c := range shape(expectedType, expectedRotation) {
 							board[(expectedY+c[1])*10+expectedX+c[0]] = expectedType + 1
 						}
-						// Current workloads never clear a row; explicitly reject a full row
-						// instead of silently substituting a no-clear oracle.
+						// Independent stable row compaction, rather than the source's repeated
+						// bottom-up scan and in-place shifting. Preserve retained row order.
+						retained := make([][10]byte, 0, 20)
+						cleared := 0
 						for y := 0; y < 20; y++ {
+							var row [10]byte
+							copy(row[:], board[y*10:y*10+10])
 							full := true
-							for x := 0; x < 10; x++ {
-								if board[y*10+x] == 0 {
+							for _, v := range row {
+								if v == 0 {
 									full = false
 								}
 							}
 							if full {
-								t.Fatal("model requires line-clear support", y)
+								cleared++
+							} else {
+								retained = append(retained, row)
 							}
+						}
+						board = [200]byte{}
+						for i, row := range retained {
+							copy(board[(cleared+i)*10:], row[:])
+						}
+						if cleared > 4 {
+							t.Fatal("model scoring outside workload", cleared)
+						}
+						expectedScore += []int{0, 100, 300, 500, 800}[cleared]
+						expectedLines += cleared
+						if expectedLines >= 8 {
+							t.Fatal("model requires speed-change support")
 						}
 						expectedHoldUsed = 0
 						expectedType = expectedNext
@@ -373,10 +405,10 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 						awake = true
 						keys := keysAt(frame)
 						pressed := keys & (keys ^ previousKeys)
-						if pressed&1 != 0 && expectedX > 0 {
+						if pressed&1 != 0 && expectedX > 0 && fitsAt(expectedX-1, expectedY) {
 							expectedX--
 						}
-						if pressed&2 != 0 && expectedX+4 < 10 {
+						if pressed&2 != 0 && fitsAt(expectedX+1, expectedY) {
 							expectedX++
 						}
 						if pressed&4 != 0 {
@@ -424,6 +456,8 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 						want[sym("hold_used")] = expectedHoldUsed
 						want[sym("cur_type")] = expectedType
 						want[sym("next_type")] = expectedNext
+						want[sym("lines_cleared")] = byte(expectedLines)
+						want[sym("lines_cleared")+1] = byte(expectedLines >> 8)
 						want[sym("score")] = byte(expectedScore)
 						want[sym("score")+1] = byte(expectedScore >> 8)
 						copy(want[int(sym("board")):int(sym("board"))+200], board[:])
@@ -514,9 +548,19 @@ func testOriginalZXTetrisMainFrames(t *testing.T, scenario string) {
 							save(fmt.Sprintf("%s/frame-%d-ram.bin", mode, frame), mem)
 						}
 					}
+					if scenario == "line-clear" {
+						if expectedLines != 1 || expectedScore != 212 || board[197] != 5 || board[198] != 5 {
+							t.Fatal("line-clear workload was not reached")
+						}
+						for i, v := range board {
+							if i != 197 && i != 198 && v != 0 {
+								t.Fatal("unexpected retained cell", i, v)
+							}
+						}
+					}
 					t.Log("31 frames including input edges and gravity/full RAM PASS")
 					save(mode+"/screen.bin", mem[0x4000:0x5b00])
-					save(mode+"/summary.json", map[string]any{"bytes": len(a.Binary), "T_states": z.GetCycles(), "source_sha256": fmt.Sprintf("%x", sha256.Sum256(src)), "rng": rng, "type": typ, "next": queued, "minimum_sp": minSP, "full_ram": true, "scenario": scenario, "final_hold": expectedHold, "final_hold_used": expectedHoldUsed, "final_score": expectedScore, "final_type": expectedType, "final_next": expectedNext, "final_y": expectedY, "final_timer": expectedTimer, "termination": "bounded before frame32 game HALT"})
+					save(mode+"/summary.json", map[string]any{"bytes": len(a.Binary), "T_states": z.GetCycles(), "source_sha256": fmt.Sprintf("%x", sha256.Sum256(src)), "rng": rng, "type": typ, "next": queued, "minimum_sp": minSP, "full_ram": true, "scenario": scenario, "final_hold": expectedHold, "final_hold_used": expectedHoldUsed, "final_lines": expectedLines, "final_score": expectedScore, "final_type": expectedType, "final_next": expectedNext, "final_y": expectedY, "final_timer": expectedTimer, "termination": "bounded before frame32 game HALT"})
 					t.Log(len(a.Binary), z.GetCycles(), "initial main and31frames/full RAM PASS")
 				})
 			}
