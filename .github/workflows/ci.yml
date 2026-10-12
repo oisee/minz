@@ -17,7 +17,7 @@ jobs:
   pr_gate:
     name: PR gate
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     outputs:
       build: ${{ steps.build.outcome }}
       stable: ${{ steps.stable.outcome }}
@@ -43,7 +43,17 @@ jobs:
           go build -o "$RUNNER_TEMP/mzv" ./cmd/mzv
       - name: Run stable compiler and toolchain tests
         id: stable
-        run: go test -short -timeout 30m ./pkg/hir/... ./pkg/mir2/... ./pkg/z80asm/... ./pkg/c89/... ./pkg/codegen/... ./pkg/parser/... ./pkg/pipeline/... ./pkg/plm/... ./pkg/lanz/... ./pkg/lizp/...
+        run: |
+          go test -short -timeout 30m ./pkg/hir/... ./pkg/mir2/... ./pkg/z80asm/... ./pkg/c89/... ./pkg/codegen/... ./pkg/parser/... ./pkg/plm/... ./pkg/lanz/... ./pkg/lizp/...
+          python3 ../scripts/ci/test_stable_pipeline.py
+          python3 ../scripts/ci/run_stable_pipeline.py --output "$RUNNER_TEMP/stable-pipeline" --shards 3
+      - name: Preserve complete pipeline inventory and shard logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stable-pipeline-shards
+          path: ${{ runner.temp }}/stable-pipeline/
+          if-no-files-found: ignore
       - name: Compile and assemble a program
         id: assemble
         run: |
