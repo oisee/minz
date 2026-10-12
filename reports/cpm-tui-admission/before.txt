@@ -1,0 +1,5 @@
+=== RUN   TestCPMTUIAdmissionAudit
+    cpm_tui_admission_audit_test.go:53: CP/M runtime rejects ASM and fixed-address extern functions
+--- PASS: TestCPMTUIAdmissionAudit (0.25s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.261s

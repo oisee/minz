@@ -1,0 +1,41 @@
+{
+  "base": "e23bde5a",
+  "read_only_production": true,
+  "files": [
+    {
+      "path": "before/asm-contracts.json",
+      "bytes": 21121,
+      "sha256": "793b8005f717214a2ad04c536beb6d5246eecac83871ab474cfc3e058df80417"
+    },
+    {
+      "path": "before/final.mir",
+      "bytes": 71486,
+      "sha256": "3138588d48fa88928e09e9e90c5172b8891f3b63017f8affe74baba878155d68"
+    },
+    {
+      "path": "before/refusal.txt",
+      "bytes": 59,
+      "sha256": "03161a064dd1176c36c802b119281c799124f805e7e9daa8268b743e2a737d5b"
+    },
+    {
+      "path": "before/source.nanz",
+      "bytes": 14335,
+      "sha256": "91b2a3cc7be3a309b17b6655ed7e1757b70b89ac67985cad0bcc3a5e2f55c23d"
+    },
+    {
+      "path": "before/target.a80",
+      "bytes": 66478,
+      "sha256": "8dac5c77aac580f48664bd99a7eea80260565087b8d3fd8ef5c2da6d656f70c6"
+    },
+    {
+      "path": "before.txt",
+      "bytes": 230,
+      "sha256": "a8b062bbaa782b26496e8e560212d2b755f2214425a913fabda6b85509bf80e3"
+    },
+    {
+      "path": "source-render.nanz",
+      "bytes": 12188,
+      "sha256": "4711dbee908a2271f02d1fbb4720942604e23322d7745f32311f6b2c17c6d4a8"
+    }
+  ]
+}
