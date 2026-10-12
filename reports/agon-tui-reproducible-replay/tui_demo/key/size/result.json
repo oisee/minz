@@ -1,0 +1,44 @@
+{
+  "source": "examples/agon/tui_demo.nanz",
+  "source_sha256": "afcadba573f924da7fcaf74574a8ec451be8ffb37eb0b3aa8567a6757d2957bd",
+  "scenario": "key",
+  "keys": [],
+  "mode": "size",
+  "compile_commands": [
+    [
+      "/home/alice/dev/minz-artifacts/grace-tools/minzc-agon-entry",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/tui_demo.nanz",
+      "-b",
+      "ez80",
+      "--hir-grace",
+      "--Osize",
+      "-o",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-tui-reproducible-replay/tui_demo/key/size/program.asm"
+    ],
+    [
+      "/home/alice/dev/minz-artifacts/grace-tools/minzc-agon-entry",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/tui_demo.nanz",
+      "-b",
+      "ez80",
+      "--hir-grace",
+      "--Osize",
+      "-o",
+      "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-tui-reproducible-replay/tui_demo/key/size/program.bin"
+    ]
+  ],
+  "run_command": [
+    "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/agon-cli-emulator",
+    "--mos",
+    "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+    "--sdcard",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-tui-reproducible-replay/tui_demo/key/size/sdcard",
+    "--unlimited-cpu",
+    "--zero"
+  ],
+  "exit": 0,
+  "decode_error": "",
+  "exact_stream_and_mos_return": true,
+  "stream_bytes": 707,
+  "bin_bytes": 1505,
+  "bin_sha256": "b9206ce2111adf5e38698a5b64f07a975ec7cf22c5c498eeacdae52329481372"
+}

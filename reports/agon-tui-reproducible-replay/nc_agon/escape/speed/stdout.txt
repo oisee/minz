@@ -1,0 +1,69 @@
+Tom's Fake VDP Version 1.03
+unknown packet VDU 0x17, 0, 0x94
+
+Agon Console8 MOS Version 2.3.3 Rainbow
+
+/ *load program.bin
+/ *run
+Unknown packet VDU 0x1b
+[2JUnknown packet VDU 0x1b
+[HUnknown packet VDU 0x1b
+[?25lUnknown packet VDU 0x1b
+[01;01HUnknown packet VDU 0x1b
+[30;46m MinZ NC for Agon Light 2                                                       Unknown packet VDU 0x1b
+[97;104mUnknown packet VDU 0x1b
+[03;02H+--------------------------------------+Unknown packet VDU 0x1b
+[04;02H|Unknown packet VDU 0x1b
+[04;41H|Unknown packet VDU 0x1b
+[05;02H|Unknown packet VDU 0x1b
+[05;41H|Unknown packet VDU 0x1b
+[06;02H|Unknown packet VDU 0x1b
+[06;41H|Unknown packet VDU 0x1b
+[07;02H|Unknown packet VDU 0x1b
+[07;41H|Unknown packet VDU 0x1b
+[08;02H|Unknown packet VDU 0x1b
+[08;41H|Unknown packet VDU 0x1b
+[09;02H|Unknown packet VDU 0x1b
+[09;41H|Unknown packet VDU 0x1b
+[10;02H|Unknown packet VDU 0x1b
+[10;41H|Unknown packet VDU 0x1b
+[11;02H|Unknown packet VDU 0x1b
+[11;41H|Unknown packet VDU 0x1b
+[12;02H|Unknown packet VDU 0x1b
+[12;41H|Unknown packet VDU 0x1b
+[13;02H|Unknown packet VDU 0x1b
+[13;41H|Unknown packet VDU 0x1b
+[14;02H+--------------------------------------+Unknown packet VDU 0x1b
+[03;04HUnknown packet VDU 0x1b
+[30;46m /sdcard Unknown packet VDU 0x1b
+[04;04HUnknown packet VDU 0x1b
+[93;104mName           SizeUnknown packet VDU 0x1b
+[25;01HUnknown packet VDU 0x1b
+[30;46m Up/DnUnknown packet VDU 0x1b
+[37;40mNav Unknown packet VDU 0x1b
+[30;46m EnterUnknown packet VDU 0x1b
+[37;40mOpen Unknown packet VDU 0x1b
+[30;46m EscUnknown packet VDU 0x1b
+[37;40mQuit                                            Unknown packet VDU 0x1b
+[05;03HUnknown packet VDU 0x1b
+[30;46m HELLO    .BIN   166          Unknown packet VDU 0x1b
+[06;03HUnknown packet VDU 0x1b
+[97;104m NC_AGON  .BIN  1024          Unknown packet VDU 0x1b
+[07;03HUnknown packet VDU 0x1b
+[97;104m TETRIS   .BIN  2048          Unknown packet VDU 0x1b
+[08;03HUnknown packet VDU 0x1b
+[97;104m README   .TXT   512          Unknown packet VDU 0x1b
+[09;03HUnknown packet VDU 0x1b
+[97;104m STDLIB   .    <DIR>          Unknown packet VDU 0x1b
+[10;03HUnknown packet VDU 0x1b
+[97;104m DOCS     .    <DIR>          Unknown packet VDU 0x1b
+[11;03HUnknown packet VDU 0x1b
+[97;104m EXAMPLES .    <DIR>          Unknown packet VDU 0x1b
+[12;03HUnknown packet VDU 0x1b
+[97;104m PLASMA   .BIN   789          Unknown packet VDU 0x1b
+[?25hUnknown packet VDU 0x1b
+[0mUnknown packet VDU 0x1b
+[2JUnknown packet VDU 0x1b
+[H/ *echo MINZ_RETURNED
+MINZ_RETURNED
+/ *

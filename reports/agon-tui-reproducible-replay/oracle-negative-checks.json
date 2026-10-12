@@ -1,0 +1,7 @@
+{
+  "wrong_text": "rejected",
+  "repeated_boot": "rejected",
+  "unknown_vdu": "rejected",
+  "missing_mos_continuation": "rejected",
+  "scope": "mutated saved positive transcript through same decoder/exact model"
+}
