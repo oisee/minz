@@ -1,0 +1,78 @@
+{
+  "checkpoint": "85fd7531",
+  "initial_command_exit": 1,
+  "initial_setup_failures": [
+    "./pkg/validate (nonexistent)",
+    "./pkg/importer (nonexistent)"
+  ],
+  "correction_command_exit": 0,
+  "actual_packages": [
+    {
+      "package": "github.com/minz/minzc/pkg/hir",
+      "seconds": 25.151,
+      "status": "PASS"
+    },
+    {
+      "package": "github.com/minz/minzc/pkg/mir2",
+      "seconds": 73.984,
+      "status": "PASS"
+    },
+    {
+      "package": "github.com/minz/minzc/pkg/nanz",
+      "seconds": 18.66,
+      "status": "PASS"
+    },
+    {
+      "package": "github.com/minz/minzc/pkg/lanz",
+      "seconds": 0.021,
+      "status": "PASS"
+    },
+    {
+      "package": "github.com/minz/minzc/pkg/lizp",
+      "seconds": 2.562,
+      "status": "PASS"
+    },
+    {
+      "package": "github.com/minz/minzc/pkg/plm",
+      "seconds": 0.058,
+      "status": "PASS"
+    },
+    {
+      "package": "github.com/minz/minzc/pkg/pascal",
+      "seconds": 0.037,
+      "status": "PASS"
+    },
+    {
+      "package": "github.com/minz/minzc/pkg/c89",
+      "seconds": 5.303,
+      "status": "PASS"
+    },
+    {
+      "package": "github.com/minz/minzc/pkg/frill",
+      "seconds": 0.157,
+      "status": "PASS"
+    },
+    {
+      "package": "github.com/minz/minzc/pkg/vir",
+      "seconds": 2.467,
+      "status": "PASS"
+    },
+    {
+      "package": "github.com/minz/minzc/pkg/z80asm",
+      "seconds": 0.094,
+      "status": "PASS"
+    },
+    {
+      "package": "github.com/minz/minzc/pkg/z80validate",
+      "seconds": 0.003,
+      "status": "PASS"
+    },
+    {
+      "package": "github.com/minz/minzc/cmd/import-enrt",
+      "seconds": 1.589,
+      "status": "PASS"
+    }
+  ],
+  "CLI": "still running; separate result",
+  "pipeline_5d90b7aa": "still running; separate result"
+}

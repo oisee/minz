@@ -1,0 +1,18 @@
+# ./pkg/validate
+stat /home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/validate: directory not found
+FAIL	./pkg/validate [setup failed]
+# ./pkg/importer
+stat /home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/importer: directory not found
+FAIL	./pkg/importer [setup failed]
+ok  	github.com/minz/minzc/pkg/hir	25.151s
+ok  	github.com/minz/minzc/pkg/mir2	73.984s
+ok  	github.com/minz/minzc/pkg/nanz	18.660s
+ok  	github.com/minz/minzc/pkg/lanz	0.021s
+ok  	github.com/minz/minzc/pkg/lizp	2.562s
+ok  	github.com/minz/minzc/pkg/plm	0.058s
+ok  	github.com/minz/minzc/pkg/pascal	0.037s
+ok  	github.com/minz/minzc/pkg/c89	5.303s
+ok  	github.com/minz/minzc/pkg/frill	0.157s
+ok  	github.com/minz/minzc/pkg/vir	2.467s
+ok  	github.com/minz/minzc/pkg/z80asm	0.094s
+FAIL
