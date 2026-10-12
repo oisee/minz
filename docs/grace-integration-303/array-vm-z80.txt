@@ -1,0 +1,20 @@
+=== RUN   TestLocalArrayLoopPointerWidthVMZ80
+=== RUN   TestLocalArrayLoopPointerWidthVMZ80/n0/gracefalse
+=== RUN   TestLocalArrayLoopPointerWidthVMZ80/n0/gracetrue
+=== RUN   TestLocalArrayLoopPointerWidthVMZ80/n1/gracefalse
+=== RUN   TestLocalArrayLoopPointerWidthVMZ80/n1/gracetrue
+=== RUN   TestLocalArrayLoopPointerWidthVMZ80/n2/gracefalse
+=== RUN   TestLocalArrayLoopPointerWidthVMZ80/n2/gracetrue
+=== RUN   TestLocalArrayLoopPointerWidthVMZ80/n3/gracefalse
+=== RUN   TestLocalArrayLoopPointerWidthVMZ80/n3/gracetrue
+--- PASS: TestLocalArrayLoopPointerWidthVMZ80 (0.05s)
+    --- PASS: TestLocalArrayLoopPointerWidthVMZ80/n0/gracefalse (0.01s)
+    --- PASS: TestLocalArrayLoopPointerWidthVMZ80/n0/gracetrue (0.01s)
+    --- PASS: TestLocalArrayLoopPointerWidthVMZ80/n1/gracefalse (0.01s)
+    --- PASS: TestLocalArrayLoopPointerWidthVMZ80/n1/gracetrue (0.01s)
+    --- PASS: TestLocalArrayLoopPointerWidthVMZ80/n2/gracefalse (0.01s)
+    --- PASS: TestLocalArrayLoopPointerWidthVMZ80/n2/gracetrue (0.01s)
+    --- PASS: TestLocalArrayLoopPointerWidthVMZ80/n3/gracefalse (0.01s)
+    --- PASS: TestLocalArrayLoopPointerWidthVMZ80/n3/gracetrue (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.064s

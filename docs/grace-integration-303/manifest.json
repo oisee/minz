@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "6ffc3f81984375487c9222c6d6fc12d4b88e8e47eab7a718bd78d69499a6aeed"
+    },
+    {
+      "path": "array-vm-z80.txt",
+      "sha256": "5a973e8e26f24d23fe0ebd038976db38b9e2a0fbee75e4d31e44e989d0bab59d"
+    },
+    {
+      "path": "catalog-root.txt",
+      "sha256": "11b63514a5acd300c02b00092e4e9941d2d94c0dcb2d1fedfe9a300d501d429c"
+    },
+    {
+      "path": "catalog.json",
+      "sha256": "2a429854e99adf0735eb9c5cd0aecec066828eb1fc1c3b0c2287d1f6af37f0ae"
+    },
+    {
+      "path": "nc-before-pointer-fix.txt",
+      "sha256": "e38ecc740aa1170cb9f3474c69f4958b9276037fc744f8cb07487d2556b7e40d"
+    },
+    {
+      "path": "nc-diagnostic-mir.txt",
+      "sha256": "b57e9a9428fbdb48ca899093e571a333dc2c8647f28b69311aaeb36f383fd2de"
+    },
+    {
+      "path": "nc-vm-after.txt",
+      "sha256": "3de6286a1f2f255d68d4e3d10bcf4827ecde64055eb0062516e5662e282da77a"
+    },
+    {
+      "path": "print-root.txt",
+      "sha256": "9e1173b7f98f1e19b4504e5e19c6356bb03ad76f7b690553024dca15ebe9d4bb"
+    },
+    {
+      "path": "reviewed-updates.json",
+      "sha256": "412ccb96412a602f1a0a60971292c1e104042c641be4175b15d65aaec263069e"
+    },
+    {
+      "path": "sap-root.txt",
+      "sha256": "876b8d7f4d6fa87e76f4025e41473737083a4bb586664eb9c4302adfd746d4f0"
+    }
+  ]
+}

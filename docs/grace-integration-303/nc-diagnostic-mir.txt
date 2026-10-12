@@ -1,0 +1,115 @@
+=== RUN   TestOriginalNCWholeMainVM
+[HIR-SPLIT] fs__fat12__write_fat12 → fs__fat12__write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__fat_cache_put → fs__fat12__fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__find_file → fs__fat12__find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__get_file_size → fs__fat12__get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__file_read → fs__fat12__file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__file_write_data → fs__fat12__file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] fs__fat12__update_dir_size → fs__fat12__update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] fs__fat12__delete_file → fs__fat12__delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__overwrite_file → fs__fat12__overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] fs__fat12__count_dir_entries → fs__fat12__count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] fs__fat12__get_dir_entry → fs__fat12__get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] fs__fat12__get_dir_entry_full → fs__fat12__get_dir_entry_full$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] draw_panel → draw_panel$split_26 (4 inputs, pressure 10)
+=== RUN   TestOriginalNCWholeMainVM/ordinary/raw
+    original_nc_main_test.go:167: final buffers size=[0 0 0 0 0 0 0 0] dirent=[72 69 76 76 79 32 32 32 84 88 84 32 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2 0 5 0 0 0]
+    original_nc_main_test.go:170: isolated format_size(5) result=[] err=<nil> buf=[0 0 0 0 0 0 0 0]
+        ; MIR2 module: 
+        fun @format_size(%r1823: u16 [pointer], %r1824: ptr [pointer])
+          block @entry:
+            %r1825 = const 0 : u8 [general]
+            %r1826 = cmp.eq %r1823, %r1825 : bool [flag]
+            br_if %r1826, @if_then1(), @if_join2()
+          block @if_then1:
+            %r1827 = addr_of @CH_ZERO : ptr [pointer]
+            %r1828 = load %r1827 : u8 [general]
+            %r1829 = const 0 : u8 [general]
+            %r1830 = ptr_add %r1824, %r1829 : ptr [pointer]
+            store %r1830, %r1828 : u8
+            %r1831 = const 0 : u8 [general]
+            %r1832 = const 1 : u8 [general]
+            %r1833 = ptr_add %r1824, %r1832 : ptr [pointer]
+            store %r1833, %r1831 : u8
+            ret void
+          block @if_join2:
+            %r1834 = addr_of @format_size$tmp : ptr [pointer]
+            %r1835 = const 0 : u8 [general]
+            jmp @loop_head3(%r1835, %r1823)
+          block @loop_head3(%r1836: u8 [general], %r1837: u16 [pointer]):
+            %r1838 = const 0 : u8 [general]
+            %r1839 = cmp.ugt %r1837, %r1838 : bool [flag]
+            br_if %r1839, @loop_body4(), @loop_exit5(%r1836, %r1837)
+          block @loop_body4:
+            %r1840 = const 10 : u16 [pointer]
+            %r1841 = div %r1837, %r1840 : u16 [pointer]
+            %r1842 = const 10 : u16 [pointer]
+            %r1843 = mul %r1841, %r1842 : u16 [pointer]
+            %r1844 = sub %r1837, %r1843 : u16 [pointer]
+            %r1845 = addr_of @CH_ZERO : ptr [pointer]
+            %r1846 = load %r1845 : u8 [general]
+            %r1847 = ext %r1846 : u8 -> u16 [pointer]
+            %r1848 = add %r1844, %r1847 : u16 [pointer]
+            %r1849 = ptr_add %r1834, %r1836 : ptr [pointer]
+            store %r1849, %r1848 : u8
+            %r1850 = const 1 : u8 [general]
+            %r1851 = add %r1836, %r1850 : u8 [general]
+            %r1852 = const 10 : u16 [pointer]
+            %r1853 = div %r1837, %r1852 : u16 [pointer]
+            jmp @loop_head3(%r1851, %r1853)
+          block @loop_exit5(%r1854: u8 [general], %r1855: u16 [pointer]):
+            %r1856 = const 0 : u8 [general]
+            jmp @loop_head6(%r1856, %r1854, %r1834)
+          block @loop_head6(%r1857: u8 [general], %r1858: u8 [general], %r1859: u8 [general]):
+            %r1860 = cmp.ult %r1857, %r1858 : bool [flag]
+            br_if %r1860, @loop_body7(), @loop_exit8(%r1857, %r1858, %r1859)
+          block @loop_body7:
+            %r1861 = const 1 : u8 [general]
+            %r1862 = sub %r1858, %r1861 : u8 [general]
+            %r1863 = sub %r1862, %r1857 : u8 [general]
+            %r1864 = ext %r1863 : u8 -> u16 [index]
+            %r1865 = ptr_add %r1859, %r1864 : ptr [pointer]
+            %r1866 = load %r1865 : u8 [general]
+            %r1867 = ptr_add %r1824, %r1857 : ptr [pointer]
+            store %r1867, %r1866 : u8
+            %r1868 = const 1 : u8 [general]
+            %r1869 = add %r1857, %r1868 : u8 [general]
+            jmp @loop_head6(%r1869, %r1858, %r1859)
+          block @loop_exit8(%r1870: u8 [general], %r1871: u8 [general], %r1872: u8 [general]):
+            %r1873 = const 0 : u8 [general]
+            %r1874 = ptr_add %r1824, %r1871 : ptr [pointer]
+            store %r1874, %r1873 : u8
+            ret void
+        
+    original_nc_main_test.go:174: event 212 got{tui_putch [32]} want{tui_putch [53]}
+[HIR-SPLIT] fs__fat12__write_fat12 → fs__fat12__write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__fat_cache_put → fs__fat12__fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__find_file → fs__fat12__find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__get_file_size → fs__fat12__get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__file_read → fs__fat12__file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__file_write_data → fs__fat12__file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] fs__fat12__update_dir_size → fs__fat12__update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] fs__fat12__delete_file → fs__fat12__delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__overwrite_file → fs__fat12__overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] fs__fat12__count_dir_entries → fs__fat12__count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] fs__fat12__get_dir_entry → fs__fat12__get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] fs__fat12__get_dir_entry_full → fs__fat12__get_dir_entry_full$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] draw_panel → draw_panel$split_26 (4 inputs, pressure 10)
+[HIR-SPLIT] fs__fat12__write_fat12 → fs__fat12__write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__fat_cache_put → fs__fat12__fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__find_file → fs__fat12__find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__get_file_size → fs__fat12__get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__file_read → fs__fat12__file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__file_write_data → fs__fat12__file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] fs__fat12__update_dir_size → fs__fat12__update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] fs__fat12__delete_file → fs__fat12__delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__overwrite_file → fs__fat12__overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] fs__fat12__count_dir_entries → fs__fat12__count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] fs__fat12__get_dir_entry → fs__fat12__get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] fs__fat12__get_dir_entry_full → fs__fat12__get_dir_entry_full$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] draw_panel → draw_panel$split_26 (4 inputs, pressure 10)
+--- FAIL: TestOriginalNCWholeMainVM (2.49s)
+    --- FAIL: TestOriginalNCWholeMainVM/ordinary/raw (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	2.500s
+FAIL
