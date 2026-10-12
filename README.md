@@ -10,7 +10,7 @@ The project is active research: examples and targets have different levels of ma
 
 ## Compiler progress — October 2026
 
-[**Full report: MinZ today — Nanz, the other frontends, compiler layers, and verified Z80**](reports/2026-10-11-092-grace-vm-z80-status.md) (Russian). A readable tour of the shared pipeline, Grace, PFCCO/PBQP and register-allocation tables, with measured results and remaining gaps. Research-branch results are identified separately from what is available in `main`. Updated October 12: playable CP/M Tetris, exact Agon output/return checks, LIR transfer evidence, heldout gains rechecked after a backend fix, full CLI PASS, and explicit open VIR/full-pipeline gaps.
+[**Full report: MinZ today — Nanz, the other frontends, compiler layers, and verified Z80**](reports/2026-10-11-092-grace-vm-z80-status.md) (Russian). A readable tour of the shared pipeline, Grace, PFCCO/PBQP and register-allocation tables, with measured results and remaining gaps. Research-branch results are identified separately from what is available in `main`. Updated October 12: full production checkpoint PASS (547 tests, 17 skips), C89 struct-return fixes, heldout Z80 gains, playable CP/M Tetris, and explicit limits of the newer gate and research VIR path.
 
 ## Run a program
 

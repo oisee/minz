@@ -1,0 +1,13 @@
+{
+  "observed_at_utc": "2026-10-12T14:02:45.793286+00:00",
+  "checkpoint": "cbf01110",
+  "status": "running, not terminal PASS",
+  "counts": {
+    "PASS": 189,
+    "FAIL": 0,
+    "SKIP": 8
+  },
+  "last_started_test": "TestMemoryHostArenaSelectorStaleHostsAndWorkload/workload",
+  "log_prefix_sha256": "aed48be0c6f5b8bf23cce2df8691d417bc148fc2a705606d62dfc56c648b63bb",
+  "scope": "Snapshot only; immutable full production checkpoint includes late Agon, divmod and C89 fixes. Later VIR experiments excluded."
+}
