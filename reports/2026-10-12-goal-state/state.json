@@ -1,0 +1,94 @@
+{
+  "source_commit": "a5519093136aad9d7fb431798a3fef4e505540f1",
+  "observed_at_utc": "2026-10-12T12:35:40.084049+00:00",
+  "overall_status": "active, incomplete",
+  "requirements": [
+    {
+      "id": "corpus",
+      "state": "incomplete",
+      "evidence": [
+        "docs/grace-integration-338/catalog.json",
+        "reports/pipeline-b6b4e0c7-checkpoint/job.json"
+      ],
+      "remaining": "Full pipeline terminal result; Lizp return and PL/M Hello semantic decisions; category-specific runtime limits remain."
+    },
+    {
+      "id": "contracts-tables",
+      "state": "bounded-benefit-proved",
+      "evidence": [
+        "reports/heldout-after-literal-overwrite/README.md",
+        "reports/contract-table-current/README.md",
+        "reports/pfcco-tokenizer-objective/README.md"
+      ],
+      "remaining": "No claim of globally superior PBQP, universal table admission or arbitrary CFG/island allocation. Current tokenizer PBQP Size remains worse than greedy."
+    },
+    {
+      "id": "Grace-heldout",
+      "state": "bounded-multiple-program-benefit-proved",
+      "evidence": [
+        "reports/heldout-after-literal-overwrite/README.md"
+      ],
+      "remaining": "Results apply to frozen parser/hashmap workloads and selected identical BINs; current full gate still pending."
+    },
+    {
+      "id": "LIR-removal-transfer",
+      "state": "live-removal-and-bounded-transfer-proved",
+      "evidence": [
+        "docs/lir-retirement-backlog.md",
+        "docs/grace-lir-final-removal/archive-manifest.json",
+        "reports/composition-vm-native/README.md"
+      ],
+      "remaining": "No complete research-solver relation equivalence or whole 3/4-argument Cartesian claimed; concrete useful transfers and tests preserved."
+    },
+    {
+      "id": "artifact-reproduction",
+      "state": "ongoing",
+      "evidence": [
+        "reports/agon-native-vdu-matrix-d071b99c/manifest.json",
+        "reports/agon-debug-return-matrix-d071b99c/manifest.json",
+        "reports/agon-console-full-vdp/manifest.json",
+        "reports/agon-console-debug-return/manifest.json",
+        "reports/composition-vm-native/manifest.json"
+      ],
+      "remaining": "Retain terminal full-gate result and final report/site synchronization. New packages copied and SHA checked on share."
+    }
+  ],
+  "catalog_status_counts": {
+    "executed-native-asm-bounded": 21,
+    "agon-mos-runtime": 5,
+    "executed-independent-vm-z80": 69,
+    "pending-independent-oracle": 2,
+    "bounded-independent-vm-native": 82,
+    "executed-independent-bounded": 2,
+    "executed-native-cpm-runtime": 10,
+    "host-only-memory-model": 1,
+    "executed-native-smc-bounded": 2
+  },
+  "pipeline": {
+    "pid": 2953041,
+    "confirmed_live": "2953041    01:43:50  217",
+    "top_level_counts": {
+      "PASS": 281,
+      "FAIL": 0,
+      "SKIP": 10
+    },
+    "terminal": false,
+    "checkpoint": "b6b4e0c7",
+    "late_Agon_and_test_changes_not_in_executable": true
+  },
+  "evidence_sha256": {
+    "docs/grace-integration-338/catalog.json": "46d3360c3d7f8f3736a8417106ba70cf2cda9803d3dc51e48e455ca0e618273b",
+    "reports/pipeline-b6b4e0c7-checkpoint/job.json": "3b466ca292c9232344fc981e8de87825effaf35f6bbe63fbfa68a23452130b56",
+    "reports/heldout-after-literal-overwrite/README.md": "f97f5decbc3578eda497c3e61c10bde95e4d83974d219ac61815ffe724c61dde",
+    "reports/contract-table-current/README.md": "2d14255e875511b15219abd2848843eb1898276c68d15faf54515b0c226f82c0",
+    "reports/pfcco-tokenizer-objective/README.md": "09e2446de7cfbabc25457e5b0986f80ba48e8a77df2ac4f00edb8d0fe4ea75d0",
+    "docs/lir-retirement-backlog.md": "278a43d02f19e18b8c84807a89d9ed8780c2a2d10aa1cfcd9dbb7c0c5edb8111",
+    "docs/grace-lir-final-removal/archive-manifest.json": "659b9ac3e0b42522ae2527873b96b3ff4fd4845a4e058bcf9aa6ec1ab43cecbd",
+    "reports/composition-vm-native/README.md": "19d95d5acb725bf265dd98fa8bf927d323ffd4cd994303b232dba8830fd604ed",
+    "reports/agon-native-vdu-matrix-d071b99c/manifest.json": "072d06b707e4be9704205dd5889ecf8e746fe5241f5e4567eaa745ad14900c3d",
+    "reports/agon-debug-return-matrix-d071b99c/manifest.json": "a2279dc492c15a26712358b567f389b6d841cee8272a120e728a06c0bfa012d0",
+    "reports/agon-console-full-vdp/manifest.json": "c6697011232957b2694d20f8261aa0637f22dbc61878eab4928121e9457214d1",
+    "reports/agon-console-debug-return/manifest.json": "7078318ffd7801d4b4160924ae1856a2446484c5155cf87a51dc89cdaca86135",
+    "reports/composition-vm-native/manifest.json": "7801019529fe2a2603a113789daf1818de93a6f1686dfae1ca0ee1b0e3b7a419"
+  }
+}
