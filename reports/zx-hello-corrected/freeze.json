@@ -1,0 +1,6 @@
+{
+  "base": "81649477",
+  "source_sha256": "2784828bad84c2f0b7ab2e588f84fcf0cb2ff6535d50ce91cbb9432149a8bb48",
+  "before_corrected_execution": true,
+  "oracle": "same report text/attrs,17keyboardreads,actualCALLreturnSP,wholememoryguard; explicitCstrings sourcefix only"
+}

@@ -1,0 +1,44 @@
+=== RUN   TestOriginalZXAppsNative
+=== RUN   TestOriginalZXAppsNative/source0/ordinary
+    original_zx_apps_test.go:272: corrected hello model map[actual_parameter_homes:map[abap_write:map[val:HL] abap_write_str:map[str:HL] main:map[] zx__console__any_key_pressed:map[] zx__console__attr_addr:map[col:A row:B] zx__console__con_clear:map[] zx__console__con_draw_char:map[ch:C col:B row:D] zx__console__con_getchar:map[] zx__console__con_goto:map[col:C row:D] zx__console__con_hide_cursor:map[] zx__console__con_init:map[ink:A paper:C] zx__console__con_input:map[buf:HL maxlen:IXH] zx__console__con_newline:map[] zx__console__con_print:map[str:DE] zx__console__con_print_u16:map[val:HL] zx__console__con_print_u8:map[val:D] zx__console__con_putchar:map[ch:A] zx__console__con_scroll:map[] zx__console__con_set_attr:map[ink:A paper:C] zx__console__con_set_bright:map[on:A] zx__console__con_show_cursor:map[] zx__console__scan_row_key:map[base_idx:C row_addr:A] zx__console__screen_addr:map[col:A line:C row:B] zx__console__scroll_attrs:map[row:B] zx__console__scroll_line:map[line:D row:B] zx__console__scroll_row:map[row:A] zx__console__zx_border:map[color:A] zx__console__zx_in_fe:map[high_byte:A] zx__console__zx_peek:map[addr:HL] zx__console__zx_poke:map[addr:HL val:A]] bytes:2421 expected_col:0 expected_row:14 first_screen_mismatch:16453 halted:false min_sp:61424 mode:ordinary outside_allowed_writes:[] read_ports:[65278 65022 64510 63486 61438 57342 49150 32766 65278 65022 64510 63486 61438 57342 49150 32766 65278] registers:{14 139 35086 6238 34929 2135 3349 61440 28675} returned:true source:examples/abap/hello_zx.nanz t_states_before_terminal:523715 write_ports:[] write_values:[]]
+=== RUN   TestOriginalZXAppsNative/source0/grace-size
+    original_zx_apps_test.go:272: corrected hello model map[actual_parameter_homes:map[abap_write:map[val:HL] abap_write_str:map[str:HL] main:map[] zx__console__any_key_pressed:map[] zx__console__attr_addr:map[col:A row:B] zx__console__con_clear:map[] zx__console__con_draw_char:map[ch:C col:B row:D] zx__console__con_getchar:map[] zx__console__con_goto:map[col:C row:D] zx__console__con_hide_cursor:map[] zx__console__con_init:map[ink:A paper:C] zx__console__con_input:map[buf:HL maxlen:IXH] zx__console__con_newline:map[] zx__console__con_print:map[str:DE] zx__console__con_print_u16:map[val:HL] zx__console__con_print_u8:map[val:D] zx__console__con_putchar:map[ch:A] zx__console__con_scroll:map[] zx__console__con_set_attr:map[ink:A paper:C] zx__console__con_set_bright:map[on:A] zx__console__con_show_cursor:map[] zx__console__scan_row_key:map[base_idx:C row_addr:A] zx__console__screen_addr:map[col:A line:C row:B] zx__console__scroll_attrs:map[row:B] zx__console__scroll_line:map[line:D row:B] zx__console__scroll_row:map[row:A] zx__console__zx_border:map[color:A] zx__console__zx_in_fe:map[high_byte:A] zx__console__zx_peek:map[addr:HL] zx__console__zx_poke:map[addr:HL val:A]] bytes:2414 expected_col:0 expected_row:14 first_screen_mismatch:16453 halted:false min_sp:61424 mode:grace-size outside_allowed_writes:[] read_ports:[65278 65022 64510 63486 61438 57342 49150 32766 65278 65022 64510 63486 61438 57342 49150 32766 65278] registers:{14 139 35086 6231 34922 2135 3349 61440 28675} returned:true source:examples/abap/hello_zx.nanz t_states_before_terminal:523764 write_ports:[] write_values:[]]
+=== RUN   TestOriginalZXAppsNative/source0/grace-speed
+    original_zx_apps_test.go:272: corrected hello model map[actual_parameter_homes:map[abap_write:map[val:HL] abap_write_str:map[str:HL] main:map[] zx__console__any_key_pressed:map[] zx__console__attr_addr:map[col:A row:B] zx__console__con_clear:map[] zx__console__con_draw_char:map[ch:C col:B row:D] zx__console__con_getchar:map[] zx__console__con_goto:map[col:C row:D] zx__console__con_hide_cursor:map[] zx__console__con_init:map[ink:A paper:C] zx__console__con_input:map[buf:HL maxlen:IXH] zx__console__con_newline:map[] zx__console__con_print:map[str:DE] zx__console__con_print_u16:map[val:HL] zx__console__con_print_u8:map[val:D] zx__console__con_putchar:map[ch:A] zx__console__con_scroll:map[] zx__console__con_set_attr:map[ink:A paper:C] zx__console__con_set_bright:map[on:A] zx__console__con_show_cursor:map[] zx__console__scan_row_key:map[base_idx:C row_addr:A] zx__console__screen_addr:map[col:A line:C row:B] zx__console__scroll_attrs:map[row:B] zx__console__scroll_line:map[line:D row:B] zx__console__scroll_row:map[row:A] zx__console__zx_border:map[color:A] zx__console__zx_in_fe:map[high_byte:A] zx__console__zx_peek:map[addr:HL] zx__console__zx_poke:map[addr:HL val:A]] bytes:2414 expected_col:0 expected_row:14 first_screen_mismatch:16453 halted:false min_sp:61424 mode:grace-speed outside_allowed_writes:[] read_ports:[65278 65022 64510 63486 61438 57342 49150 32766 65278 65022 64510 63486 61438 57342 49150 32766 65278] registers:{14 139 35086 6231 34922 2135 3349 61440 28675} returned:true source:examples/abap/hello_zx.nanz t_states_before_terminal:523764 write_ports:[] write_values:[]]
+=== RUN   TestOriginalZXAppsNative/source1/ordinary
+    original_zx_apps_test.go:278: original app halted=true mismatch=-001 outside=0 SP=effe
+=== RUN   TestOriginalZXAppsNative/source1/grace-size
+    original_zx_apps_test.go:278: original app halted=true mismatch=-001 outside=0 SP=effe
+=== RUN   TestOriginalZXAppsNative/source1/grace-speed
+    original_zx_apps_test.go:278: original app halted=true mismatch=-001 outside=0 SP=effe
+=== RUN   TestOriginalZXAppsNative/source2/ordinary
+    original_zx_apps_test.go:229: source font has 32 bytes; character 'Z' outside font
+=== RUN   TestOriginalZXAppsNative/source2/grace-size
+    original_zx_apps_test.go:229: source font has 32 bytes; character 'Z' outside font
+=== RUN   TestOriginalZXAppsNative/source2/grace-speed
+    original_zx_apps_test.go:229: source font has 32 bytes; character 'Z' outside font
+=== RUN   TestOriginalZXAppsNative/source3/ordinary
+=== RUN   TestOriginalZXAppsNative/source3/grace-size
+=== RUN   TestOriginalZXAppsNative/source3/grace-speed
+=== RUN   TestOriginalZXAppsNative/source4/ordinary
+=== RUN   TestOriginalZXAppsNative/source4/grace-size
+=== RUN   TestOriginalZXAppsNative/source4/grace-speed
+--- FAIL: TestOriginalZXAppsNative (4.14s)
+    --- FAIL: TestOriginalZXAppsNative/source0/ordinary (0.16s)
+    --- FAIL: TestOriginalZXAppsNative/source0/grace-size (0.48s)
+    --- FAIL: TestOriginalZXAppsNative/source0/grace-speed (0.18s)
+    --- PASS: TestOriginalZXAppsNative/source1/ordinary (1.03s)
+    --- PASS: TestOriginalZXAppsNative/source1/grace-size (1.03s)
+    --- PASS: TestOriginalZXAppsNative/source1/grace-speed (0.99s)
+    --- PASS: TestOriginalZXAppsNative/source2/ordinary (0.02s)
+    --- PASS: TestOriginalZXAppsNative/source2/grace-size (0.02s)
+    --- PASS: TestOriginalZXAppsNative/source2/grace-speed (0.02s)
+    --- PASS: TestOriginalZXAppsNative/source3/ordinary (0.05s)
+    --- PASS: TestOriginalZXAppsNative/source3/grace-size (0.03s)
+    --- PASS: TestOriginalZXAppsNative/source3/grace-speed (0.04s)
+    --- PASS: TestOriginalZXAppsNative/source4/ordinary (0.02s)
+    --- PASS: TestOriginalZXAppsNative/source4/grace-size (0.03s)
+    --- PASS: TestOriginalZXAppsNative/source4/grace-speed (0.04s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	4.155s
+FAIL
