@@ -1,0 +1,253 @@
+{
+  "scope": "two console programs, three CLI configurations; real eZ80/MOS firmware, fake VDP; no full RAM/SP or hardware proof",
+  "tools": {
+    "compiler": {
+      "path": "/home/alice/dev/minz-artifacts/grace-tools/minzc-99ab4b54",
+      "sha256": "1f2ddae43133f1ad52ed4786472b3dfdd5f2821aff8381b222fc59f629457ee5"
+    },
+    "emulator": {
+      "path": "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/agon-cli-emulator",
+      "sha256": "cf7ca7e23983fe20e56f47cd76de4b87342eb60b1f15f074e3f59d0eb0ee2fa1"
+    },
+    "mos": {
+      "path": "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+      "sha256": "5fbacb749ee037f0428aeac39817b5a6d465adc020f92d4020bb7dcb046d39fe"
+    }
+  },
+  "results": [
+    {
+      "source": "examples/agon/hello_agon.nanz",
+      "mode": "ordinary",
+      "source_sha256": "4684218e7110368e2122eff39a16dd792dea3bd335383cec6000507505831f77",
+      "bin_bytes": 188,
+      "bin_sha256": "0ad8bf0695d4a74b974dc5f5e7fec881d468442c3a007b2533cc5e3d1cc8f639",
+      "compile_commands": [
+        [
+          "/home/alice/dev/minz-artifacts/grace-tools/minzc-99ab4b54",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/hello_agon.nanz",
+          "-b",
+          "ez80",
+          "-o",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-mos-console-matrix/hello_agon/ordinary/program.bin"
+        ],
+        [
+          "/home/alice/dev/minz-artifacts/grace-tools/minzc-99ab4b54",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/hello_agon.nanz",
+          "-b",
+          "ez80",
+          "-o",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-mos-console-matrix/hello_agon/ordinary/program.asm"
+        ]
+      ],
+      "run_command": [
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/agon-cli-emulator",
+        "--mos",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+        "--sdcard",
+        "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-mos-console-matrix/hello_agon/ordinary/sdcard",
+        "--unlimited-cpu",
+        "--zero"
+      ],
+      "expected_body": "Hello from MinZ on Agon Light 2!\nPress any key: \nYou pressed a key!\n",
+      "exit_code": 0,
+      "exact_body_and_mos_return": true
+    },
+    {
+      "source": "examples/agon/hello_agon.nanz",
+      "mode": "hir-grace-size",
+      "source_sha256": "4684218e7110368e2122eff39a16dd792dea3bd335383cec6000507505831f77",
+      "bin_bytes": 188,
+      "bin_sha256": "0ad8bf0695d4a74b974dc5f5e7fec881d468442c3a007b2533cc5e3d1cc8f639",
+      "compile_commands": [
+        [
+          "/home/alice/dev/minz-artifacts/grace-tools/minzc-99ab4b54",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/hello_agon.nanz",
+          "-b",
+          "ez80",
+          "--hir-grace",
+          "--Osize",
+          "-o",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-mos-console-matrix/hello_agon/hir-grace-size/program.bin"
+        ],
+        [
+          "/home/alice/dev/minz-artifacts/grace-tools/minzc-99ab4b54",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/hello_agon.nanz",
+          "-b",
+          "ez80",
+          "--hir-grace",
+          "--Osize",
+          "-o",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-mos-console-matrix/hello_agon/hir-grace-size/program.asm"
+        ]
+      ],
+      "run_command": [
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/agon-cli-emulator",
+        "--mos",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+        "--sdcard",
+        "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-mos-console-matrix/hello_agon/hir-grace-size/sdcard",
+        "--unlimited-cpu",
+        "--zero"
+      ],
+      "expected_body": "Hello from MinZ on Agon Light 2!\nPress any key: \nYou pressed a key!\n",
+      "exit_code": 0,
+      "exact_body_and_mos_return": true
+    },
+    {
+      "source": "examples/agon/hello_agon.nanz",
+      "mode": "hir-grace-speed",
+      "source_sha256": "4684218e7110368e2122eff39a16dd792dea3bd335383cec6000507505831f77",
+      "bin_bytes": 188,
+      "bin_sha256": "0ad8bf0695d4a74b974dc5f5e7fec881d468442c3a007b2533cc5e3d1cc8f639",
+      "compile_commands": [
+        [
+          "/home/alice/dev/minz-artifacts/grace-tools/minzc-99ab4b54",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/hello_agon.nanz",
+          "-b",
+          "ez80",
+          "--hir-grace",
+          "-o",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-mos-console-matrix/hello_agon/hir-grace-speed/program.bin"
+        ],
+        [
+          "/home/alice/dev/minz-artifacts/grace-tools/minzc-99ab4b54",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/hello_agon.nanz",
+          "-b",
+          "ez80",
+          "--hir-grace",
+          "-o",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-mos-console-matrix/hello_agon/hir-grace-speed/program.asm"
+        ]
+      ],
+      "run_command": [
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/agon-cli-emulator",
+        "--mos",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+        "--sdcard",
+        "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-mos-console-matrix/hello_agon/hir-grace-speed/sdcard",
+        "--unlimited-cpu",
+        "--zero"
+      ],
+      "expected_body": "Hello from MinZ on Agon Light 2!\nPress any key: \nYou pressed a key!\n",
+      "exit_code": 0,
+      "exact_body_and_mos_return": true
+    },
+    {
+      "source": "examples/agon/hello_world.nanz",
+      "mode": "ordinary",
+      "source_sha256": "f6d88281bb19c637b1dcde8ccdcbc6a26eaba47e09153d892f160f5177d3d6f5",
+      "bin_bytes": 266,
+      "bin_sha256": "078064fc315ef007395fc8d9f740a1b140ab50ad48081cb12e43f484b04cf0c3",
+      "compile_commands": [
+        [
+          "/home/alice/dev/minz-artifacts/grace-tools/minzc-99ab4b54",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/hello_world.nanz",
+          "-b",
+          "ez80",
+          "-o",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-mos-console-matrix/hello_world/ordinary/program.bin"
+        ],
+        [
+          "/home/alice/dev/minz-artifacts/grace-tools/minzc-99ab4b54",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/hello_world.nanz",
+          "-b",
+          "ez80",
+          "-o",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-mos-console-matrix/hello_world/ordinary/program.asm"
+        ]
+      ],
+      "run_command": [
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/agon-cli-emulator",
+        "--mos",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+        "--sdcard",
+        "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-mos-console-matrix/hello_world/ordinary/sdcard",
+        "--unlimited-cpu",
+        "--zero"
+      ],
+      "expected_body": "Hello, Agon Light 2!\nMinZ running on eZ80 at 18.432 MHz\nPress any key to continue...\nYou pressed: a\nGoodbye!\n",
+      "exit_code": 0,
+      "exact_body_and_mos_return": true
+    },
+    {
+      "source": "examples/agon/hello_world.nanz",
+      "mode": "hir-grace-size",
+      "source_sha256": "f6d88281bb19c637b1dcde8ccdcbc6a26eaba47e09153d892f160f5177d3d6f5",
+      "bin_bytes": 266,
+      "bin_sha256": "078064fc315ef007395fc8d9f740a1b140ab50ad48081cb12e43f484b04cf0c3",
+      "compile_commands": [
+        [
+          "/home/alice/dev/minz-artifacts/grace-tools/minzc-99ab4b54",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/hello_world.nanz",
+          "-b",
+          "ez80",
+          "--hir-grace",
+          "--Osize",
+          "-o",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-mos-console-matrix/hello_world/hir-grace-size/program.bin"
+        ],
+        [
+          "/home/alice/dev/minz-artifacts/grace-tools/minzc-99ab4b54",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/hello_world.nanz",
+          "-b",
+          "ez80",
+          "--hir-grace",
+          "--Osize",
+          "-o",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-mos-console-matrix/hello_world/hir-grace-size/program.asm"
+        ]
+      ],
+      "run_command": [
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/agon-cli-emulator",
+        "--mos",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+        "--sdcard",
+        "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-mos-console-matrix/hello_world/hir-grace-size/sdcard",
+        "--unlimited-cpu",
+        "--zero"
+      ],
+      "expected_body": "Hello, Agon Light 2!\nMinZ running on eZ80 at 18.432 MHz\nPress any key to continue...\nYou pressed: a\nGoodbye!\n",
+      "exit_code": 0,
+      "exact_body_and_mos_return": true
+    },
+    {
+      "source": "examples/agon/hello_world.nanz",
+      "mode": "hir-grace-speed",
+      "source_sha256": "f6d88281bb19c637b1dcde8ccdcbc6a26eaba47e09153d892f160f5177d3d6f5",
+      "bin_bytes": 266,
+      "bin_sha256": "078064fc315ef007395fc8d9f740a1b140ab50ad48081cb12e43f484b04cf0c3",
+      "compile_commands": [
+        [
+          "/home/alice/dev/minz-artifacts/grace-tools/minzc-99ab4b54",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/hello_world.nanz",
+          "-b",
+          "ez80",
+          "--hir-grace",
+          "-o",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-mos-console-matrix/hello_world/hir-grace-speed/program.bin"
+        ],
+        [
+          "/home/alice/dev/minz-artifacts/grace-tools/minzc-99ab4b54",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon/hello_world.nanz",
+          "-b",
+          "ez80",
+          "--hir-grace",
+          "-o",
+          "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-mos-console-matrix/hello_world/hir-grace-speed/program.asm"
+        ]
+      ],
+      "run_command": [
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/agon-cli-emulator",
+        "--mos",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+        "--sdcard",
+        "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-mos-console-matrix/hello_world/hir-grace-speed/sdcard",
+        "--unlimited-cpu",
+        "--zero"
+      ],
+      "expected_body": "Hello, Agon Light 2!\nMinZ running on eZ80 at 18.432 MHz\nPress any key to continue...\nYou pressed: a\nGoodbye!\n",
+      "exit_code": 0,
+      "exact_body_and_mos_return": true
+    }
+  ]
+}
