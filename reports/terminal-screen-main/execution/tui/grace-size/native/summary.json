@@ -1,0 +1,12 @@
+{
+  "events": 139,
+  "full_ram": true,
+  "image_bytes": 540,
+  "linked_asm_sha256": "e6bd77a66d017183e3c26dbbcf0ac4b13e1c9bb66ab93650353b5a7a31d84d1d",
+  "minimum_sp": 61416,
+  "result": "PASS",
+  "scope": "whole source main explicit native terminal linker externbindings",
+  "source_sha256": "ffd82561eba30cf4673888d868e60cca0f48d2c2f0005d5a5aa012ff44ef49c5",
+  "stdout_bytes": 420,
+  "unlinked_asm_sha256": "0f861334efafb9c7a707e0898988c61e77350f5e2c35580b2cbb3772ea2b12ca"
+}

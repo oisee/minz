@@ -1,0 +1,6 @@
+=== RUN   TestRenumberRegsKeepsAsmInputOutputIdentity
+--- PASS: TestRenumberRegsKeepsAsmInputOutputIdentity (0.00s)
+=== RUN   TestRenumberRegsSharedAndOverlappingEdgeArguments
+--- PASS: TestRenumberRegsSharedAndOverlappingEdgeArguments (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.009s

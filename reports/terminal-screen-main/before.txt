@@ -1,0 +1,9 @@
+=== RUN   TestOriginalTerminalScreenWholeMain
+    original_terminal_screen_main_test.go:518: ordinary raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:518: grace-size raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:518: grace-speed raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:499: native return/SP ordinary {0 68 49 48 1897 20584 4951 61422 344}
+--- FAIL: TestOriginalTerminalScreenWholeMain (0.22s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.228s
+FAIL

@@ -1,0 +1,176 @@
+[
+  {
+    "contract": {
+      "Params": [
+        {
+          "Name": "x",
+          "Reg": 1,
+          "Ty": {},
+          "Class": 1
+        },
+        {
+          "Name": "y",
+          "Reg": 2,
+          "Ty": {},
+          "Class": 0
+        }
+      ],
+      "Returns": null,
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "entry_pc": 627,
+    "formal_homes": [
+      "A",
+      "C"
+    ],
+    "name": "tui_goto"
+  },
+  {
+    "contract": {
+      "Params": [
+        {
+          "Name": "fg",
+          "Reg": 3,
+          "Ty": {},
+          "Class": 1
+        },
+        {
+          "Name": "bg",
+          "Reg": 4,
+          "Ty": {},
+          "Class": 0
+        },
+        {
+          "Name": "bright",
+          "Reg": 5,
+          "Ty": {},
+          "Class": 2
+        }
+      ],
+      "Returns": null,
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "entry_pc": 628,
+    "formal_homes": [
+      "A",
+      "C",
+      "B"
+    ],
+    "name": "tui_color"
+  },
+  {
+    "contract": {
+      "Params": null,
+      "Returns": null,
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "entry_pc": 629,
+    "formal_homes": null,
+    "name": "tui_reset"
+  },
+  {
+    "contract": {
+      "Params": null,
+      "Returns": null,
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "entry_pc": 630,
+    "formal_homes": null,
+    "name": "tui_clear"
+  },
+  {
+    "contract": {
+      "Params": [
+        {
+          "Name": "ch",
+          "Reg": 6,
+          "Ty": {},
+          "Class": 1
+        }
+      ],
+      "Returns": null,
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "entry_pc": 631,
+    "formal_homes": [
+      "A"
+    ],
+    "name": "tui_putch"
+  },
+  {
+    "contract": {
+      "Params": [
+        {
+          "Name": "str",
+          "Reg": 7,
+          "Ty": {},
+          "Class": 8
+        }
+      ],
+      "Returns": null,
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "entry_pc": 632,
+    "formal_homes": [
+      "HL"
+    ],
+    "name": "tui_puts"
+  },
+  {
+    "contract": {
+      "Params": null,
+      "Returns": [
+        {
+          "Ty": {},
+          "Class": 1,
+          "FlagCond": 0
+        }
+      ],
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "entry_pc": 633,
+    "formal_homes": null,
+    "name": "tui_read_key"
+  },
+  {
+    "contract": {
+      "Params": null,
+      "Returns": [
+        {
+          "Ty": {},
+          "Class": 1,
+          "FlagCond": 0
+        }
+      ],
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "entry_pc": 634,
+    "formal_homes": null,
+    "name": "tui_width"
+  },
+  {
+    "contract": {
+      "Params": null,
+      "Returns": [
+        {
+          "Ty": {},
+          "Class": 1,
+          "FlagCond": 0
+        }
+      ],
+      "ExternClobbers": null,
+      "Clobbers": 0
+    },
+    "entry_pc": 635,
+    "formal_homes": null,
+    "name": "tui_height"
+  }
+]

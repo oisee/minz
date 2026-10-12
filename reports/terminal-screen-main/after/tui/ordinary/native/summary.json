@@ -1,0 +1,14 @@
+{
+  "case": "tui",
+  "events": 139,
+  "full_ram": true,
+  "image_bytes": 540,
+  "linked_asm_sha256": "d3b72918d779f595e8d5e466454f4147c59b9275096acbd0b56486ce8012560d",
+  "minimum_sp": 61416,
+  "result": "PASS",
+  "scope": "whole source main explicit native terminal linker externbindings",
+  "source_sha256": "ffd82561eba30cf4673888d868e60cca0f48d2c2f0005d5a5aa012ff44ef49c5",
+  "stdout_bytes": 420,
+  "terminal_pc": 263,
+  "unlinked_asm_sha256": "33c01b82ef5159ec451fc7e13f456e865db267dc22ca3a4e75c3e3dd6c857d37"
+}
