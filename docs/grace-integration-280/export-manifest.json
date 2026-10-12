@@ -1,0 +1,191 @@
+{
+  "source_checkpoint": "841ca5e0",
+  "export_share": "/mnt/safe/minz/grace/2026-10-12/compiler-reports/call-literal-root-current",
+  "files": [
+    {
+      "path": "candidates.json",
+      "bytes": 132,
+      "sha256": "746c9d250a186dd6ff82478bea70d502135cb57e5d44f656a5e7d137aed85e29"
+    },
+    {
+      "path": "speed-heldout/greedy-final.mir",
+      "bytes": 90966,
+      "sha256": "6708c3011ac1b30721022cf885ecb5c226462244e0c84030123ae802d88f64f8"
+    },
+    {
+      "path": "speed-heldout/greedy-native.bin",
+      "bytes": 5469,
+      "sha256": "40518cbe9128135fb9fa0faf6e43b2229d5fe6c04410aa7fdf512d1e687a26a6"
+    },
+    {
+      "path": "speed-heldout/greedy-input2.json",
+      "bytes": 17732,
+      "sha256": "cc20564d8c910a5d9e8ee052696a9d4b2637963db0aee0e56ba1eadff522656b"
+    },
+    {
+      "path": "speed-heldout/greedy-allocation.json",
+      "bytes": 121067,
+      "sha256": "6bda3a797133ab158fc8a157265022c36961c4ed193af9d83ef55440e072211a"
+    },
+    {
+      "path": "speed-heldout/greedy.bin",
+      "bytes": 5465,
+      "sha256": "9539caefc60b8da3d06d1d47f8c84bfb187b2b422a58b95ed4bb67faa6fc149b"
+    },
+    {
+      "path": "speed-heldout/greedy-input3.json",
+      "bytes": 17773,
+      "sha256": "a1d30f2a147369f3696be659b7a502e6911f1ee814cc4624dcdcae5f4dbc3b06"
+    },
+    {
+      "path": "speed-heldout/greedy.a80",
+      "bytes": 76499,
+      "sha256": "c33675dfdbe6c61049d88fff2242b057a0cbd0da09affa34c8c36f4094dbd23c"
+    },
+    {
+      "path": "speed-heldout/greedy-input1.json",
+      "bytes": 17800,
+      "sha256": "cfa107da7c12a71b5194c36c2c4526f50d8b829dc9c374bc1dc37ea3323f7a8f"
+    },
+    {
+      "path": "speed-heldout/greedy-input0.json",
+      "bytes": 17797,
+      "sha256": "e22d7deb595f50cd84b8c3fd4154451be7f602716b6996c3826b982f3583cc87"
+    },
+    {
+      "path": "speed-heldout/greedy-native.a80",
+      "bytes": 76541,
+      "sha256": "5c216d4c723534a6690ced0324772ebb1429b83c599a588ec4f0eb3a13650553"
+    },
+    {
+      "path": "size-heldout/greedy-final.mir",
+      "bytes": 90966,
+      "sha256": "6708c3011ac1b30721022cf885ecb5c226462244e0c84030123ae802d88f64f8"
+    },
+    {
+      "path": "size-heldout/greedy-native.bin",
+      "bytes": 5469,
+      "sha256": "40518cbe9128135fb9fa0faf6e43b2229d5fe6c04410aa7fdf512d1e687a26a6"
+    },
+    {
+      "path": "size-heldout/greedy-input2.json",
+      "bytes": 17732,
+      "sha256": "cc20564d8c910a5d9e8ee052696a9d4b2637963db0aee0e56ba1eadff522656b"
+    },
+    {
+      "path": "size-heldout/greedy-allocation.json",
+      "bytes": 121067,
+      "sha256": "6bda3a797133ab158fc8a157265022c36961c4ed193af9d83ef55440e072211a"
+    },
+    {
+      "path": "size-heldout/greedy.bin",
+      "bytes": 5465,
+      "sha256": "9539caefc60b8da3d06d1d47f8c84bfb187b2b422a58b95ed4bb67faa6fc149b"
+    },
+    {
+      "path": "size-heldout/greedy-input3.json",
+      "bytes": 17773,
+      "sha256": "a1d30f2a147369f3696be659b7a502e6911f1ee814cc4624dcdcae5f4dbc3b06"
+    },
+    {
+      "path": "size-heldout/greedy.a80",
+      "bytes": 76499,
+      "sha256": "c33675dfdbe6c61049d88fff2242b057a0cbd0da09affa34c8c36f4094dbd23c"
+    },
+    {
+      "path": "size-heldout/greedy-input1.json",
+      "bytes": 17800,
+      "sha256": "cfa107da7c12a71b5194c36c2c4526f50d8b829dc9c374bc1dc37ea3323f7a8f"
+    },
+    {
+      "path": "size-heldout/greedy-input0.json",
+      "bytes": 17797,
+      "sha256": "e22d7deb595f50cd84b8c3fd4154451be7f602716b6996c3826b982f3583cc87"
+    },
+    {
+      "path": "size-heldout/greedy-native.a80",
+      "bytes": 76541,
+      "sha256": "5c216d4c723534a6690ced0324772ebb1429b83c599a588ec4f0eb3a13650553"
+    },
+    {
+      "path": "pbqp/training/pbqp-allocation.json",
+      "bytes": 121067,
+      "sha256": "3e8611ab3e1d45936c6d0631921809127b7128d6e49f40eb48f8893c7afed16c"
+    },
+    {
+      "path": "pbqp/training/pbqp.a80",
+      "bytes": 77008,
+      "sha256": "2dda8e7581cc29b109e2d3bb24127cc52fd17ca8e3eda0f9fc0aec3dbbd8ad66"
+    },
+    {
+      "path": "pbqp/training/pbqp-final.mir",
+      "bytes": 90986,
+      "sha256": "afa3c06f6d2a71c88522cae58be38be7318eb0b21e17e600bc676a6e916a3b7e"
+    },
+    {
+      "path": "pbqp/training/pbqp-input1.json",
+      "bytes": 17799,
+      "sha256": "468e146d083a61cd59455319c5d06a33b4faacb6a4b97d4db607c51446e17efc"
+    },
+    {
+      "path": "pbqp/training/pbqp-input0.json",
+      "bytes": 17771,
+      "sha256": "7f426c21ed3f25608672420b2a81b77ed237f728102f4571bf7c2f302c9f326b"
+    },
+    {
+      "path": "pbqp/training/pbqp-native.a80",
+      "bytes": 77050,
+      "sha256": "8daca019c48c511d137649692fed20cae807330d1183ac67c39afdd9001801ea"
+    },
+    {
+      "path": "pbqp/training/pbqp.bin",
+      "bytes": 5533,
+      "sha256": "d27cf93f9cf21cdb52ec5377e55a594f2669ed9dc063401e4a4126a891bfb1d9"
+    },
+    {
+      "path": "pbqp/training/pbqp-native.bin",
+      "bytes": 5537,
+      "sha256": "8812f39f29704d85943c12a086063689ee009949d15420556d1e22d2b6739e72"
+    },
+    {
+      "path": "greedy/training/greedy-final.mir",
+      "bytes": 90966,
+      "sha256": "6708c3011ac1b30721022cf885ecb5c226462244e0c84030123ae802d88f64f8"
+    },
+    {
+      "path": "greedy/training/greedy-native.bin",
+      "bytes": 5469,
+      "sha256": "40518cbe9128135fb9fa0faf6e43b2229d5fe6c04410aa7fdf512d1e687a26a6"
+    },
+    {
+      "path": "greedy/training/greedy-allocation.json",
+      "bytes": 121067,
+      "sha256": "6bda3a797133ab158fc8a157265022c36961c4ed193af9d83ef55440e072211a"
+    },
+    {
+      "path": "greedy/training/greedy.bin",
+      "bytes": 5465,
+      "sha256": "9539caefc60b8da3d06d1d47f8c84bfb187b2b422a58b95ed4bb67faa6fc149b"
+    },
+    {
+      "path": "greedy/training/greedy.a80",
+      "bytes": 76499,
+      "sha256": "c33675dfdbe6c61049d88fff2242b057a0cbd0da09affa34c8c36f4094dbd23c"
+    },
+    {
+      "path": "greedy/training/greedy-input1.json",
+      "bytes": 17799,
+      "sha256": "e6c208e0caba01a49f532bb5480ad39c4d5457001b60717e277b73913f29b8da"
+    },
+    {
+      "path": "greedy/training/greedy-input0.json",
+      "bytes": 17771,
+      "sha256": "22de4d4bfd9a9365df741ebae937164ca7f1a1dd7180b91c346e0b90c047cdfb"
+    },
+    {
+      "path": "greedy/training/greedy-native.a80",
+      "bytes": 76541,
+      "sha256": "5c216d4c723534a6690ced0324772ebb1429b83c599a588ec4f0eb3a13650553"
+    }
+  ]
+}
