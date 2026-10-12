@@ -1,0 +1,26 @@
+{
+  "base": "d7ef674c",
+  "source_sha256": "094af24a48a5e849947fc97ce9ca4c08e5ffc1f1c939ed7db0aaad3b46df9625",
+  "whole_main_stdout": "5040\r\n",
+  "format_inputs": "all65536 physical word patterns, interpret int16, decimal no padding",
+  "oracle": "Python/Go independent signed decimal string, -32768..32767",
+  "host": "BDOS2 E, preserving and A/F/BC/DE/HL/IX/IY clobber",
+  "modes": [
+    "ordinary",
+    "grace-size",
+    "grace-speed"
+  ],
+  "baseline_probe_words": [
+    0,
+    1,
+    9,
+    10,
+    99,
+    100,
+    999,
+    1000,
+    32767,
+    32768,
+    65535
+  ]
+}
