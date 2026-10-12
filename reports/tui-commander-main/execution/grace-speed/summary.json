@@ -1,0 +1,11 @@
+{
+  "SP": 61440,
+  "T_states": 16353,
+  "events": 204,
+  "full_ram": true,
+  "host_clobber_stress": true,
+  "image_bytes": 1574,
+  "minimum_sp": 61432,
+  "result": "PASS",
+  "stdout_bytes": 2729
+}
