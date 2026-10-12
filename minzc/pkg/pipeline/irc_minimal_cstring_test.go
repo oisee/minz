@@ -14,7 +14,7 @@ import (
 )
 
 // net_send uses NUL termination; Nanz ordinary strings are length-prefixed.
-// See Nanz Language Book string representations and mir2.StringKind contracts.
+// See Nanz Language Book v7, Chapter 18.1, and mir2.StringKind contracts.
 func TestIRCMinimalWireCString(t *testing.T) {
 	for _, old := range []bool{true, false} {
 		path := "../../../examples/nanz/test_irc_minimal.nanz"
