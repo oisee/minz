@@ -1,0 +1,5 @@
+--- FAIL: TestPreallocCoalescePreservesLiveOuterLoopValue (0.00s)
+    precoalesce_nested_test.go:28: n1 got[{0}] err<nil>
+FAIL
+FAIL	github.com/minz/minzc/pkg/mir2	0.008s
+FAIL

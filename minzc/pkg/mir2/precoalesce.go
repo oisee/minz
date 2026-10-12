@@ -138,12 +138,10 @@ func canUpgradeClass(from, to RegClass) bool {
 //
 // # Why this is safe
 //
-// By SSA construction, a block argument (defined somewhere in the source block)
-// and the corresponding block parameter (live-in at the target block) have
-// DISJOINT live ranges: the argument's last use is the branch itself, and the
-// parameter's first use is the first instruction of the target block.  Because
-// they never overlap, they can never interfere, so merging them into one
-// virtual register cannot introduce a new conflict in the interference graph.
+// Merge only groups whose original members do not interfere. An argument's
+// last use need not be its outgoing edge: it may remain live after a nested
+// loop whose parameter receives the same initial value. Such distinct values
+// must remain separate, including conflicts introduced through earlier unions.
 //
 // # What it buys
 //
@@ -171,12 +169,10 @@ type PreallocCoalesceMap = map[Reg]Reg
 //
 // # Why this is safe
 //
-// By SSA construction, a block argument (defined somewhere in the source block)
-// and the corresponding block parameter (live-in at the target block) have
-// DISJOINT live ranges: the argument's last use is the branch itself, and the
-// parameter's first use is the first instruction of the target block.  Because
-// they never overlap, they can never interfere, so merging them into one
-// virtual register cannot introduce a new conflict in the interference graph.
+// Merge only groups whose original members do not interfere. An argument's
+// last use need not be its outgoing edge: it may remain live after a nested
+// loop whose parameter receives the same initial value. Such distinct values
+// must remain separate, including conflicts introduced through earlier unions.
 //
 // # What it buys
 //
@@ -194,6 +190,11 @@ func PreallocCoalesce(f *Func) PreallocCoalesceMap {
 	// ── Union-Find ────────────────────────────────────────────────────────────
 	parent := make(map[Reg]Reg)
 	rank := make(map[Reg]int)
+	// An edge argument can remain live inside/after its successor (e.g. an
+	// outer loop counter passed to a mutable inner counter). SSA does not
+	// guarantee disjoint ranges. Check all original members of both groups.
+	interference := BuildInterferenceGraph(f, ComputeLiveness(f))
+	members := make(map[Reg][]Reg)
 
 	var find func(Reg) Reg
 	find = func(r Reg) Reg {
@@ -216,11 +217,27 @@ func PreallocCoalesce(f *Func) PreallocCoalesceMap {
 		if ra == rb {
 			return
 		}
+		ma, mb := members[ra], members[rb]
+		if ma == nil {
+			ma = []Reg{ra}
+		}
+		if mb == nil {
+			mb = []Reg{rb}
+		}
+		for _, x := range ma {
+			for _, y := range mb {
+				if interference.Neighbors(x).Has(y) {
+					return
+				}
+			}
+		}
 		// Union by rank.
 		if rank[ra] < rank[rb] {
 			ra, rb = rb, ra
 		}
 		parent[rb] = ra
+		members[ra] = append(ma, mb...)
+		delete(members, rb)
 		if rank[ra] == rank[rb] {
 			rank[ra]++
 		}
