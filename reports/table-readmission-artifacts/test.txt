@@ -1,0 +1,5 @@
+=== RUN   TestCheckedTableModuleRelocationRequiresReadmission
+    checked_table_module_rebind_test.go:150: vregs [1 3 4] -> [43 45 46]; readmitted cost 17; native all 256 inputs PASS
+--- PASS: TestCheckedTableModuleRelocationRequiresReadmission (0.61s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.620s

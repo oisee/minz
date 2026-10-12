@@ -1,10 +1,14 @@
 package pipeline
 
 import (
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"sort"
 	"testing"
 
 	"github.com/minz/minzc/pkg/vir"
+	"github.com/minz/minzc/pkg/z80asm"
 )
 
 // A register assignment can be proposed again, but its old certificate binds
@@ -39,6 +43,10 @@ func TestCheckedTableModuleRelocationRequiresReadmission(t *testing.T) {
 	var table vir.RegAllocTable
 	table.Init()
 	if err := table.Load(path); err != nil {
+		t.Fatal(err)
+	}
+	originalTable, err := os.ReadFile(path)
+	if err != nil {
 		t.Fatal(err)
 	}
 	_, oldCost, ok := table.LookupChecked(old.Ops, vir.Z80, old.Options)
@@ -91,8 +99,53 @@ func TestCheckedTableModuleRelocationRequiresReadmission(t *testing.T) {
 	if selected.Traces["add5"].Backend != "checked-local-table" {
 		t.Fatal("readmitted candidate not selected")
 	}
+	var replay vir.RegAllocTable
+	replay.Init()
+	if err := replay.Load(path); err != nil {
+		t.Fatal(err)
+	}
+	first, err := current.Emit(&readmitted)
+	if err != nil {
+		t.Fatal(err)
+	}
+	again, err := current.Emit(&replay)
+	if err != nil || again != first {
+		t.Fatal("saved certificate replay changed emission", err)
+	}
+	type observation struct{ Input, Expected, TStatesWithHarness int }
+	var observations []observation
 	for x := 0; x < 256; x++ {
-		executeLocalTableFunction(t, selected.Assembly, byte(x))
+		cycles := executeLocalTableFunction(t, selected.Assembly, byte(x))
+		observations = append(observations, observation{x, int(byte(x + 5)), cycles})
+	}
+	if dir := os.Getenv("MINZ_TABLE_REBIND_EXPORT"); dir != "" {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			t.Fatal(err)
+		}
+		binary, err := z80asm.NewAssembler().AssembleString(selected.Assembly)
+		if err != nil || len(binary.Errors) != 0 {
+			t.Fatal(err, binary.Errors)
+		}
+		tableData, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		oracle, err := json.MarshalIndent(observations, "", "  ")
+		if err != nil {
+			t.Fatal(err)
+		}
+		files := map[string][]byte{
+			"source.nanz":         []byte(jointSource + checkedTableSource),
+			"original-table.json": originalTable, "readmitted-table.json": tableData,
+			"baseline.a80": []byte(joined.Assembly), "selected.a80": []byte(selected.Assembly),
+			"selected.bin": binary.Binary, "native-observations.json": oracle,
+			"baseline.mir": []byte(joined.MIR2Module.Dump()),
+		}
+		for name, data := range files {
+			if err := os.WriteFile(filepath.Join(dir, name), data, 0644); err != nil {
+				t.Fatal(err)
+			}
+		}
 	}
 	t.Logf("vregs %v -> %v; readmitted cost %d; native all 256 inputs PASS", before, after, newCost)
 }

@@ -1,0 +1,1282 @@
+[
+  {
+    "Input": 0,
+    "Expected": 5,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 1,
+    "Expected": 6,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 2,
+    "Expected": 7,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 3,
+    "Expected": 8,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 4,
+    "Expected": 9,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 5,
+    "Expected": 10,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 6,
+    "Expected": 11,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 7,
+    "Expected": 12,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 8,
+    "Expected": 13,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 9,
+    "Expected": 14,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 10,
+    "Expected": 15,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 11,
+    "Expected": 16,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 12,
+    "Expected": 17,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 13,
+    "Expected": 18,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 14,
+    "Expected": 19,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 15,
+    "Expected": 20,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 16,
+    "Expected": 21,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 17,
+    "Expected": 22,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 18,
+    "Expected": 23,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 19,
+    "Expected": 24,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 20,
+    "Expected": 25,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 21,
+    "Expected": 26,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 22,
+    "Expected": 27,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 23,
+    "Expected": 28,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 24,
+    "Expected": 29,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 25,
+    "Expected": 30,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 26,
+    "Expected": 31,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 27,
+    "Expected": 32,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 28,
+    "Expected": 33,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 29,
+    "Expected": 34,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 30,
+    "Expected": 35,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 31,
+    "Expected": 36,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 32,
+    "Expected": 37,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 33,
+    "Expected": 38,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 34,
+    "Expected": 39,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 35,
+    "Expected": 40,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 36,
+    "Expected": 41,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 37,
+    "Expected": 42,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 38,
+    "Expected": 43,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 39,
+    "Expected": 44,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 40,
+    "Expected": 45,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 41,
+    "Expected": 46,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 42,
+    "Expected": 47,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 43,
+    "Expected": 48,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 44,
+    "Expected": 49,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 45,
+    "Expected": 50,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 46,
+    "Expected": 51,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 47,
+    "Expected": 52,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 48,
+    "Expected": 53,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 49,
+    "Expected": 54,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 50,
+    "Expected": 55,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 51,
+    "Expected": 56,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 52,
+    "Expected": 57,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 53,
+    "Expected": 58,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 54,
+    "Expected": 59,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 55,
+    "Expected": 60,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 56,
+    "Expected": 61,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 57,
+    "Expected": 62,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 58,
+    "Expected": 63,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 59,
+    "Expected": 64,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 60,
+    "Expected": 65,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 61,
+    "Expected": 66,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 62,
+    "Expected": 67,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 63,
+    "Expected": 68,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 64,
+    "Expected": 69,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 65,
+    "Expected": 70,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 66,
+    "Expected": 71,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 67,
+    "Expected": 72,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 68,
+    "Expected": 73,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 69,
+    "Expected": 74,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 70,
+    "Expected": 75,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 71,
+    "Expected": 76,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 72,
+    "Expected": 77,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 73,
+    "Expected": 78,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 74,
+    "Expected": 79,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 75,
+    "Expected": 80,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 76,
+    "Expected": 81,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 77,
+    "Expected": 82,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 78,
+    "Expected": 83,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 79,
+    "Expected": 84,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 80,
+    "Expected": 85,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 81,
+    "Expected": 86,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 82,
+    "Expected": 87,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 83,
+    "Expected": 88,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 84,
+    "Expected": 89,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 85,
+    "Expected": 90,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 86,
+    "Expected": 91,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 87,
+    "Expected": 92,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 88,
+    "Expected": 93,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 89,
+    "Expected": 94,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 90,
+    "Expected": 95,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 91,
+    "Expected": 96,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 92,
+    "Expected": 97,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 93,
+    "Expected": 98,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 94,
+    "Expected": 99,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 95,
+    "Expected": 100,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 96,
+    "Expected": 101,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 97,
+    "Expected": 102,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 98,
+    "Expected": 103,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 99,
+    "Expected": 104,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 100,
+    "Expected": 105,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 101,
+    "Expected": 106,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 102,
+    "Expected": 107,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 103,
+    "Expected": 108,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 104,
+    "Expected": 109,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 105,
+    "Expected": 110,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 106,
+    "Expected": 111,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 107,
+    "Expected": 112,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 108,
+    "Expected": 113,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 109,
+    "Expected": 114,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 110,
+    "Expected": 115,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 111,
+    "Expected": 116,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 112,
+    "Expected": 117,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 113,
+    "Expected": 118,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 114,
+    "Expected": 119,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 115,
+    "Expected": 120,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 116,
+    "Expected": 121,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 117,
+    "Expected": 122,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 118,
+    "Expected": 123,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 119,
+    "Expected": 124,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 120,
+    "Expected": 125,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 121,
+    "Expected": 126,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 122,
+    "Expected": 127,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 123,
+    "Expected": 128,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 124,
+    "Expected": 129,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 125,
+    "Expected": 130,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 126,
+    "Expected": 131,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 127,
+    "Expected": 132,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 128,
+    "Expected": 133,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 129,
+    "Expected": 134,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 130,
+    "Expected": 135,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 131,
+    "Expected": 136,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 132,
+    "Expected": 137,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 133,
+    "Expected": 138,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 134,
+    "Expected": 139,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 135,
+    "Expected": 140,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 136,
+    "Expected": 141,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 137,
+    "Expected": 142,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 138,
+    "Expected": 143,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 139,
+    "Expected": 144,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 140,
+    "Expected": 145,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 141,
+    "Expected": 146,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 142,
+    "Expected": 147,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 143,
+    "Expected": 148,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 144,
+    "Expected": 149,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 145,
+    "Expected": 150,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 146,
+    "Expected": 151,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 147,
+    "Expected": 152,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 148,
+    "Expected": 153,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 149,
+    "Expected": 154,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 150,
+    "Expected": 155,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 151,
+    "Expected": 156,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 152,
+    "Expected": 157,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 153,
+    "Expected": 158,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 154,
+    "Expected": 159,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 155,
+    "Expected": 160,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 156,
+    "Expected": 161,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 157,
+    "Expected": 162,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 158,
+    "Expected": 163,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 159,
+    "Expected": 164,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 160,
+    "Expected": 165,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 161,
+    "Expected": 166,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 162,
+    "Expected": 167,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 163,
+    "Expected": 168,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 164,
+    "Expected": 169,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 165,
+    "Expected": 170,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 166,
+    "Expected": 171,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 167,
+    "Expected": 172,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 168,
+    "Expected": 173,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 169,
+    "Expected": 174,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 170,
+    "Expected": 175,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 171,
+    "Expected": 176,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 172,
+    "Expected": 177,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 173,
+    "Expected": 178,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 174,
+    "Expected": 179,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 175,
+    "Expected": 180,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 176,
+    "Expected": 181,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 177,
+    "Expected": 182,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 178,
+    "Expected": 183,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 179,
+    "Expected": 184,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 180,
+    "Expected": 185,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 181,
+    "Expected": 186,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 182,
+    "Expected": 187,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 183,
+    "Expected": 188,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 184,
+    "Expected": 189,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 185,
+    "Expected": 190,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 186,
+    "Expected": 191,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 187,
+    "Expected": 192,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 188,
+    "Expected": 193,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 189,
+    "Expected": 194,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 190,
+    "Expected": 195,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 191,
+    "Expected": 196,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 192,
+    "Expected": 197,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 193,
+    "Expected": 198,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 194,
+    "Expected": 199,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 195,
+    "Expected": 200,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 196,
+    "Expected": 201,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 197,
+    "Expected": 202,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 198,
+    "Expected": 203,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 199,
+    "Expected": 204,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 200,
+    "Expected": 205,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 201,
+    "Expected": 206,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 202,
+    "Expected": 207,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 203,
+    "Expected": 208,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 204,
+    "Expected": 209,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 205,
+    "Expected": 210,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 206,
+    "Expected": 211,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 207,
+    "Expected": 212,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 208,
+    "Expected": 213,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 209,
+    "Expected": 214,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 210,
+    "Expected": 215,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 211,
+    "Expected": 216,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 212,
+    "Expected": 217,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 213,
+    "Expected": 218,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 214,
+    "Expected": 219,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 215,
+    "Expected": 220,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 216,
+    "Expected": 221,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 217,
+    "Expected": 222,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 218,
+    "Expected": 223,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 219,
+    "Expected": 224,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 220,
+    "Expected": 225,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 221,
+    "Expected": 226,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 222,
+    "Expected": 227,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 223,
+    "Expected": 228,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 224,
+    "Expected": 229,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 225,
+    "Expected": 230,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 226,
+    "Expected": 231,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 227,
+    "Expected": 232,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 228,
+    "Expected": 233,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 229,
+    "Expected": 234,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 230,
+    "Expected": 235,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 231,
+    "Expected": 236,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 232,
+    "Expected": 237,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 233,
+    "Expected": 238,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 234,
+    "Expected": 239,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 235,
+    "Expected": 240,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 236,
+    "Expected": 241,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 237,
+    "Expected": 242,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 238,
+    "Expected": 243,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 239,
+    "Expected": 244,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 240,
+    "Expected": 245,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 241,
+    "Expected": 246,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 242,
+    "Expected": 247,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 243,
+    "Expected": 248,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 244,
+    "Expected": 249,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 245,
+    "Expected": 250,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 246,
+    "Expected": 251,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 247,
+    "Expected": 252,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 248,
+    "Expected": 253,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 249,
+    "Expected": 254,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 250,
+    "Expected": 255,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 251,
+    "Expected": 0,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 252,
+    "Expected": 1,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 253,
+    "Expected": 2,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 254,
+    "Expected": 3,
+    "TStatesWithHarness": 49
+  },
+  {
+    "Input": 255,
+    "Expected": 4,
+    "TStatesWithHarness": 49
+  }
+]

@@ -1,0 +1,44 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "5c3f64205ac2c3e9a0443869aa57c506a565d28b342e34c709b63bf6aef099d3"
+    },
+    {
+      "path": "executed/baseline.a80",
+      "sha256": "25ad6382b2fa8b6b3ad8a65035d7bd333a31882954774d1f6a81b49a7d9d001d"
+    },
+    {
+      "path": "executed/baseline.mir",
+      "sha256": "c4486fc7ab87ef6574ec12b065b9d79d3ec5002e5e0ecd072f9bf89f4f4a9e44"
+    },
+    {
+      "path": "executed/native-observations.json",
+      "sha256": "cf52abdb81324e903275aef3b03032d188c252648269c87cc65e008be782a07b"
+    },
+    {
+      "path": "executed/original-table.json",
+      "sha256": "66bb917ae6f2ea6f0c52dd50ce608a1e497948c36f0bd4395602120ddcbdd2e4"
+    },
+    {
+      "path": "executed/readmitted-table.json",
+      "sha256": "c56257fa262fae82dc40e7f4a493a93f45f238c50f828683dc87ff854b72af36"
+    },
+    {
+      "path": "executed/selected.a80",
+      "sha256": "9d21b301a03515234c361ce1f5acf084a53596b35ff9bc3ac07418c17bbb282b"
+    },
+    {
+      "path": "executed/selected.bin",
+      "sha256": "fd6eac33a7300df92583951f99ab2d2b726152fb8502ac2310ecb3a317d4ed68"
+    },
+    {
+      "path": "executed/source.nanz",
+      "sha256": "ac52740207d647fae5a555b2ef63c6299a01274073eb4311c4b1df41b8b7f69b"
+    },
+    {
+      "path": "test.txt",
+      "sha256": "0b8ef48a01bc30b5499aa225e28bb7a6e9be6e67e23285498ae169472799a187"
+    }
+  ]
+}

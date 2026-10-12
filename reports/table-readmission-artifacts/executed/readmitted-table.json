@@ -1,0 +1,15 @@
+[
+  {
+    "schema": "vir-local-direct-v1",
+    "costModel": "expanded-pattern-tstates-v1",
+    "sig": "vir-local-direct-v1:6808cc77cb26ba73318b943c0f383e9d0cfae0fb4445879c71cea334c0fa8e72",
+    "nVregs": 3,
+    "nOps": 3,
+    "cost": 17,
+    "assignment": [
+      0,
+      0,
+      0
+    ]
+  }
+]
