@@ -129,3 +129,33 @@ one closed ASM region for each nontransparent row, with precomputed address and
 sequential INC HL advances. AF/HL are saved/restored in four normal stack bytes;
 other registers and IFF are unchanged. Caller owns writable RAM disjoint from
 code and stack. Empty and fully transparent regions produce no writes.
+
+# Affine texture walks
+
+`import hw.texture` generates a named runtime kernel from a static plan:
+
+```nanz
+@texture_walk("render_kernel") {
+    destination "zx_halfcells" 0x5800 32 24
+    texture "page16x16" 0xc000
+    setup "origin_u" "origin_v" "step_a" "step_minus_b" "step_half_a" "step_half_b" "row_step_u" "row_step_v"
+    unroll 4
+}
+```
+
+The mutable 16×16 texture occupies a 256-byte aligned page and contains colour
+indices 0..7. The eight u16 setup symbols remain runtime data: origins, per-cell
+steps, half-cell sampling offsets and next-row increments. Each output byte packs
+two 8×4 samples as `64 | (paper << 3) | ink`; BRIGHT is shared. The fixed ZX
+bitmap pattern is prepared separately. Changing the texture is not frame playback.
+
+The plan validates dimensions (up to 32×24 packed cells), page alignment, address
+bounds, nonoverlap and symbolic identifiers. Factors 1/2/4/8/16/32 may be selected
+when they divide columns. The emitted ASM holds coordinates in registers, uses
+page/nibble texture addressing and separates loop counters with EXX. It restores
+SP and leaves IFF unchanged but clobbers both register banks; call it as the
+named runtime function. Caller supplies valid setup symbols and an interrupt
+handler preserving both banks (verified with Spectrum 48K ROM in the demo).
+
+See reports/zx-rotozoomer-library/source.nanz for a demo using the shared texture
+walk and six declarative fill spans to prepare Alice's 32×48 PAPER/INK display.

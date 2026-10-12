@@ -92,7 +92,15 @@ func (c *rotoMachineObserver) DoOpcode() {
 // This is a 48K Spectrum emulator proof with actual ROM IRQ handling and ULA
 // contention, not a physical-hardware measurement or a tear-free guarantee.
 func TestZXHalfCellRotozoomerFullMachine(t *testing.T) {
-	src, err := os.ReadFile("../../../reports/zx-rotozoomer-kernel/source.nanz")
+	zxRotozoomerFullMachine(t, "zx-rotozoomer-kernel")
+}
+
+func TestZXHalfCellRotozoomerLibraryFullMachine(t *testing.T) {
+	zxRotozoomerFullMachine(t, "zx-rotozoomer-library")
+}
+
+func zxRotozoomerFullMachine(t *testing.T, sourceReport string) {
+	src, err := os.ReadFile("../../../reports/" + sourceReport + "/source.nanz")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -131,7 +139,7 @@ func TestZXHalfCellRotozoomerFullMachine(t *testing.T) {
 	}
 	for _, mode := range []string{"ordinary", "grace-size", "grace-speed"} {
 		t.Run(mode, func(t *testing.T) {
-			h, err := nanz.Parse(string(src), "halfcell-machine")
+			h, err := nanz.ParseWithOpts(string(src), "halfcell-machine", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
 			if err != nil {
 				t.Fatal(err)
 			}

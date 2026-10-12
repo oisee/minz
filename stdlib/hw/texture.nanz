@@ -1,0 +1,152 @@
+// Compile-time affine texture walk over packed ZX Spectrum half-cells.
+// Runtime setup symbols contain unsigned 8.8 values (arithmetic wraps at 16 bits).
+// Each destination byte owns both samples: BRIGHT | (top << 3) | bottom.
+// Texture bytes must be colour indices 0..7. Its 256-byte page remains mutable.
+// The caller owns screen bitmap initialization, texture/setup storage and IRQ ABI.
+// The kernel preserves SP and interrupt enable state; it clobbers both register banks.
+fun @texture_walk(name: ^u8) -> void {
+    var base: i32 = 0
+    var cols: i32 = 0
+    var rows: i32 = 0
+    var page: i32 = 0
+    var unroll: i32 = 4
+    var destination_seen: u8 = 0
+    var texture_seen: u8 = 0
+    var setup_seen: u8 = 0
+    var unroll_seen: u8 = 0
+    var symbols: [^u8;9] = [name,c"",c"",c"",c"",c"",c"",c"",c""]
+    var i: u8 = 0
+    while i < block_len() {
+        let key: ^u8 = node_keyword(i)
+        if str_eq(key, c"destination") == 1 {
+            if destination_seen != 0 { meta_error(c"texture_walk: duplicate destination") }
+            if node_arg_count(i) != 4 { meta_error(c"texture_walk: destination needs layout, base, columns, rows") }
+            if str_eq(node_arg_str(i, 0), c"zx_halfcells") == 0 { meta_error(c"texture_walk: unknown destination layout") }
+            destination_seen = 1
+            base = node_arg_int(i, 1)
+            cols = node_arg_int(i, 2)
+            rows = node_arg_int(i, 3)
+        } else if str_eq(key, c"texture") == 1 {
+            if texture_seen != 0 { meta_error(c"texture_walk: duplicate texture") }
+            if node_arg_count(i) != 2 { meta_error(c"texture_walk: texture needs layout and page base") }
+            if str_eq(node_arg_str(i, 0), c"page16x16") == 0 { meta_error(c"texture_walk: unknown texture layout") }
+            texture_seen = 1
+            page = node_arg_int(i, 1)
+        } else if str_eq(key, c"setup") == 1 {
+            if setup_seen != 0 { meta_error(c"texture_walk: duplicate setup") }
+            if node_arg_count(i) != 8 { meta_error(c"texture_walk: setup needs eight word symbols") }
+            setup_seen = 1
+            var s: u8 = 0
+            while s < 8 { symbols[s + 1] = node_arg_str(i, s)
+                s = s + 1 }
+        } else if str_eq(key, c"unroll") == 1 {
+            if unroll_seen != 0 { meta_error(c"texture_walk: duplicate unroll") }
+            if node_arg_count(i) != 1 { meta_error(c"texture_walk: unroll needs one factor") }
+            unroll_seen = 1
+            unroll = node_arg_int(i, 0)
+        } else { meta_error(c"texture_walk: unknown field") }
+        i = i + 1
+    }
+    if destination_seen == 0 { meta_error(c"texture_walk: missing destination") }
+    if texture_seen == 0 { meta_error(c"texture_walk: missing texture") }
+    if setup_seen == 0 { meta_error(c"texture_walk: missing setup") }
+    if base < 0 { meta_error(c"texture_walk: destination outside address space") }
+    if base > 65535 { meta_error(c"texture_walk: destination outside address space") }
+    if cols <= 0 { meta_error(c"texture_walk: invalid destination dimensions") }
+    if cols > 32 { meta_error(c"texture_walk: invalid destination dimensions") }
+    if rows <= 0 { meta_error(c"texture_walk: invalid destination dimensions") }
+    if rows > 24 { meta_error(c"texture_walk: invalid destination dimensions") }
+    if cols * rows > 65536 - base { meta_error(c"texture_walk: destination exceeds address space") }
+    if page < 0 { meta_error(c"texture_walk: texture outside address space") }
+    if page > 65280 { meta_error(c"texture_walk: texture outside address space") }
+    if (page & 255) != 0 { meta_error(c"texture_walk: texture page must be aligned to 256 bytes") }
+    if base < page + 256 {
+        if page < base + cols * rows { meta_error(c"texture_walk: texture overlaps destination") }
+    }
+    if unroll != 1 {
+        if unroll != 2 {
+            if unroll != 4 {
+                if unroll != 8 {
+                    if unroll != 16 {
+                        if unroll != 32 { meta_error(c"texture_walk: unroll must be 1, 2, 4, 8, 16 or 32") }
+                    }
+                }
+            }
+        }
+    }
+    if cols % unroll != 0 { meta_error(c"texture_walk: unroll must divide destination columns") }
+    // Validate strings before inserting them into emitted Nanz or assembler.
+    // The bounded scan also avoids reading arbitrary VM memory on a huge name.
+    i = 0
+    while i < 9 {
+        var cursor: ^u8 = symbols[i]
+        var length: u16 = 0
+        if cursor^ == 0 { meta_error(c"texture_walk: empty symbol") }
+        while cursor^ != 0 {
+            let ch: u8 = cursor^
+            var letter: u8 = 0
+            if ch >= 65 { if ch <= 90 { letter = 1 } }
+            if ch >= 97 { if ch <= 122 { letter = 1 } }
+            if ch == 95 { letter = 1 }
+            if letter == 0 {
+                if length == 0 { meta_error(c"texture_walk: invalid symbol") }
+                if ch < 48 { meta_error(c"texture_walk: invalid symbol") }
+                if ch > 57 { meta_error(c"texture_walk: invalid symbol") }
+            }
+            length = length + 1
+            if length > 127 { meta_error(c"texture_walk: symbol too long") }
+            cursor = cursor + 1
+        }
+        i = i + 1
+    }
+    emit(str_concat(c"fun ", str_concat(name, c"() -> void {")))
+    emit(c"asm z80 (clob all) {")
+    emit(str_concat(c"LD HL, (", str_concat(symbols[1], c")")))
+    emit(str_concat(c"LD DE, (", str_concat(symbols[2], c")")))
+    emit(str_concat(c"LD IX, ", str_from_int(u16(base))))
+    emit(c"EXX")
+    emit(str_concat(c"LD C, ", str_from_int(u16(rows))))
+    emit(c"EXX")
+    emit(c".row:")
+    emit(c"PUSH HL")
+    emit(c"PUSH DE")
+    emit(c"EXX")
+    emit(str_concat(c"LD B, ", str_from_int(u16(cols / unroll))))
+    emit(c"EXX")
+    emit(c".pixel:")
+    var pixel: i32 = 0
+    while pixel < unroll {
+        emit(c"PUSH HL")
+        emit(c"LD A, H / AND 15 / LD C, A")
+        emit(c"LD A, D / AND 15 / RLCA / RLCA / RLCA / RLCA / OR C")
+        emit(c"LD L, A")
+        emit(str_concat(c"LD H, ", str_from_int(u16(page >> 8))))
+        emit(c"LD A, (HL) / POP HL / RLCA / RLCA / RLCA / OR 0x40")
+        emit(c"EX AF, AF'")
+        emit(c"PUSH HL / PUSH DE")
+        emit(str_concat(c"LD BC, (", str_concat(symbols[6], c")")))
+        emit(c"ADD HL, BC / EX DE, HL")
+        emit(str_concat(c"LD BC, (", str_concat(symbols[5], c")")))
+        emit(c"ADD HL, BC / EX DE, HL")
+        emit(c"LD A, H / AND 15 / LD C, A")
+        emit(c"LD A, D / AND 15 / RLCA / RLCA / RLCA / RLCA / OR C")
+        emit(c"LD L, A")
+        emit(str_concat(c"LD H, ", str_from_int(u16(page >> 8))))
+        emit(c"LD A, (HL) / LD C, A / EX AF, AF' / OR C")
+        emit(c"LD (IX+0), A / INC IX / POP DE / POP HL")
+        emit(str_concat(c"LD BC, (", str_concat(symbols[3], c")")))
+        emit(c"ADD HL, BC / EX DE, HL")
+        emit(str_concat(c"LD BC, (", str_concat(symbols[4], c")")))
+        emit(c"ADD HL, BC / EX DE, HL")
+        pixel = pixel + 1
+    }
+    emit(c"EXX / DEC B / EXX / JP NZ, .pixel")
+    emit(c"POP DE / POP HL")
+    emit(str_concat(c"LD BC, (", str_concat(symbols[7], c")")))
+    emit(c"ADD HL, BC / EX DE, HL")
+    emit(str_concat(c"LD BC, (", str_concat(symbols[8], c")")))
+    emit(c"ADD HL, BC / EX DE, HL")
+    emit(c"EXX / DEC C / EXX / JP NZ, .row")
+    emit(c"}")
+    emit(c"}")
+}
