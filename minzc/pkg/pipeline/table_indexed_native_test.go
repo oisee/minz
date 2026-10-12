@@ -33,28 +33,35 @@ func TestIndexedHistoricalTripleNative(t *testing.T) {
 	}
 	tab := &vir.RegAllocTable{}
 	tab.Init()
+	fenced := base.MIR2Module.FuncByName("triple").Attrs.FixedIndirectABI
 	problem, e := vir.PrepareLocalTableProblem(base.MIR2Module.FuncByName("triple"), base.Allocation)
-	if e != nil {
+	if fenced {
+		if e == nil || e.Error() != "checked local table does not model the canonical indirect entry bridge" {
+			t.Fatal("canonical indirect bridge requires exact refusal", e)
+		}
+	} else if e != nil {
 		t.Fatal(e)
 	}
 	var evidence *vir.IndexedLegacyImportEvidence
-	if index := os.Getenv("INDEXED_ENRT_INDEX"); index != "" {
-		op, err := vir.OpenENRTOperation(asset, index)
-		if err != nil {
-			t.Fatal(err)
+	if !fenced {
+		if index := os.Getenv("INDEXED_ENRT_INDEX"); index != "" {
+			op, err := vir.OpenENRTOperation(asset, index)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer op.Close()
+			evidence, e = op.Import(problem, tab, false)
+			if err = op.Validate(); err != nil {
+				t.Fatal(err)
+			}
+		} else {
+			evidence, e = vir.ImportIndexedENRT(asset, problem, tab)
 		}
-		defer op.Close()
-		evidence, e = op.Import(problem, tab, false)
-		if err = op.Validate(); err != nil {
-			t.Fatal(err)
+		if e != nil || evidence.Import == nil || evidence.Import.Admitted != 1 {
+			t.Fatal(e, evidence)
 		}
-	} else {
-		evidence, e = vir.ImportIndexedENRT(asset, problem, tab)
+		t.Logf("historical record%d bytes%dB prefixSHA=%s blockSHA=%s", evidence.RecordIndex, evidence.BytesRead, evidence.PrefixSHA256, evidence.BlockSHA256)
 	}
-	if e != nil || evidence.Import == nil || evidence.Import.Admitted != 1 {
-		t.Fatal(e, evidence)
-	}
-	t.Logf("historical record%d bytes%dB prefixSHA=%s blockSHA=%s", evidence.RecordIndex, evidence.BytesRead, evidence.PrefixSHA256, evidence.BlockSHA256)
 	p := t.TempDir() + "/table.json"
 	if e = tab.Save(p); e != nil {
 		t.Fatal(e)
@@ -64,14 +71,18 @@ func TestIndexedHistoricalTripleNative(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	if selected.Traces["triple"].Backend != "checked-local-table" {
+	if fenced {
+		if selected.Assembly != base.Assembly || tab.Size() != 0 {
+			t.Fatal("indirect bridge fallback changed")
+		}
+	} else if selected.Traces["triple"].Backend != "checked-local-table" {
 		t.Fatal("historical candidate was not selected")
 	}
 	vm := mir2.NewVM(selected.MIR2Module)
 	rawVM := mir2.NewVM(hir.LowerModule(parse()))
 	beforeSize, _ := checkedAsmSize(base.Assembly)
 	afterSize, _ := checkedAsmSize(selected.Assembly)
-	if afterSize >= beforeSize {
+	if !fenced && afterSize >= beforeSize {
 		t.Fatal("no module benefit")
 	}
 	var bt, st int
@@ -142,7 +153,7 @@ func TestIndexedHistoricalTripleNative(t *testing.T) {
 		}
 		if index == 0 {
 			baselineIndirect = cycles
-		} else if cycles >= baselineIndirect {
+		} else if !fenced && cycles >= baselineIndirect {
 			t.Fatal("indirect lost benefit")
 		}
 		t.Logf("existing indirect apply triple all256 %dT/%dB", cycles, len(bin.Binary))
@@ -160,7 +171,7 @@ func TestIndexedHistoricalTripleNative(t *testing.T) {
 		data, _ = json.MarshalIndent(evidence, "", "  ")
 		os.WriteFile(filepath.Join(dir, "indexed-triple.json"), data, 0644)
 	}
-	if st >= bt {
+	if !fenced && st >= bt {
 		t.Fatal("direct lost benefit")
 	}
 	for _, s := range []Steps{base, selected} {

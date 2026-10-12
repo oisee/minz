@@ -1,0 +1,5 @@
+=== RUN   TestCompositionExactHashNative
+    composition_native_test.go:94: exact hash3 imported proposal equal6B30T/fullmodule45B;65536tuples perpath
+--- PASS: TestCompositionExactHashNative (0.17s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.176s

@@ -1,0 +1,32 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "6615e6621a9fff34a6358e1b1abc65d681363dc97053c361558d4a9b987f7714"
+    },
+    {
+      "path": "before.txt",
+      "sha256": "8bdc49c91cfc81a2bf6272f6b3ba5d3dc4a4bbbd51577c17ef33d7f15ff5d4ac"
+    },
+    {
+      "path": "composition/hash3-baseline.a80",
+      "sha256": "c4a4b6348ffc2654b6d3cf2507a70c6145b89cf5670495c72fa34bead48012f1"
+    },
+    {
+      "path": "composition/hash3-candidate.a80",
+      "sha256": "01158c04d5530c141256f34c2b0c53fd82381d4450dbb778aa28b332155ed97d"
+    },
+    {
+      "path": "composition/hash3-proposal-table.json",
+      "sha256": "2e9a8bdf06df11282b333571feeb27da7fbc93ae0bb5663f6351b4b009ec6f55"
+    },
+    {
+      "path": "composition.txt",
+      "sha256": "d0a0641482fca52ae80646cefab2f94b8e268d67c8df5f171a369115be45f8c0"
+    },
+    {
+      "path": "final.txt",
+      "sha256": "41fb3abef79214aab1106d08d9446244233e0693195975180e2e86567dd5b63c"
+    }
+  ]
+}
