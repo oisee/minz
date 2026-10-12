@@ -1,0 +1,10 @@
+{
+  "SP": 61438,
+  "T_states": 582,
+  "extern_clobber_stress": true,
+  "full_ram": true,
+  "image_bytes": 80,
+  "minimum_sp": 61436,
+  "result": "PASS",
+  "stdout": "255"
+}
