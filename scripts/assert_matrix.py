@@ -84,6 +84,13 @@ def outcomes(attempts):
             'flaky': len({a['pass'] for a in attempts}) > 1, 'runs': attempts}
 
 
+def top_level_identity(assertion):
+    # Source lines select assertions in each checkout; they are not semantic
+    # identity. Keep the backend and tuple shape, and count duplicate directives.
+    return (assertion['file'], normalize_expression(assertion['expression']),
+            assertion.get('via'), assertion.get('tuple_elements', 0))
+
+
 def inventory_changes(before, after):
     def indexed(items):
         out, occurrences = {}, {}
@@ -94,10 +101,26 @@ def inventory_changes(before, after):
             out[(*key, occurrence)] = a
         return out
     b, c = indexed(before), indexed(after)
+    # Match unchanged independent directives across line shifts first. Sandbox
+    # members retain positional comparison: reordering shared-state assertions
+    # is a semantic change and must still be audited.
+    candidate_matches = {}
+    for key, assertion in c.items():
+        if assertion['kind'] == 'top-level':
+            candidate_matches.setdefault(top_level_identity(assertion), []).append(key)
+    for key, assertion in list(b.items()):
+        if assertion['kind'] != 'top-level':
+            continue
+        matches = candidate_matches.get(top_level_identity(assertion), [])
+        if matches:
+            del b[key]
+            del c[matches.pop(0)]
     return ([b[k] for k in sorted(b.keys() - c.keys())],
             [c[k] for k in sorted(c.keys() - b.keys())],
             [{'baseline': b[k], 'candidate': c[k]} for k in sorted(b.keys() & c.keys())
-             if b[k]['expression'] != c[k]['expression']])
+             if (b[k]['expression'] != c[k]['expression'] or
+                 b[k].get('via') != c[k].get('via') or
+                 b[k].get('tuple_elements', 0) != c[k].get('tuple_elements', 0))])
 
 
 def matrix(root, globs, compilers, jobs, runs, timeout, controls=False, roots=None, backend='z80', controls_only=False):
@@ -108,8 +131,18 @@ def matrix(root, globs, compilers, jobs, runs, timeout, controls=False, roots=No
     # A sandbox is a unit: its assertions retain source order and shared state.
     units = {}
     for label, assertions in inventories.items():
+        occurrences = {}
         for a in assertions:
-            key = (a['file'], a['line'] if a['kind'] == 'top-level' else a['kind'])
+            if a['kind'] == 'top-level' and a['line'] == 0:
+                # Line-zero frontend receipts cannot select individual members.
+                key = ('line-zero', a['file'])
+            elif a['kind'] == 'top-level':
+                identity = top_level_identity(a)
+                occurrence = occurrences.get(identity, 0)
+                occurrences[identity] = occurrence + 1
+                key = ('top-level', identity, occurrence)
+            else:
+                key = ('sandbox', a['file'], a['kind'])
             unit = units.setdefault(key, {'file': a['file'], 'line': a['line'], 'kind': a['kind'], 'assert': a['expression'], 'members': {}})
             unit['members'].setdefault(label, []).append(a)
     local = threading.local()

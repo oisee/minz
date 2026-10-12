@@ -1,13 +1,5 @@
 [
   {
-    "file": "examples/c/array_desig.c",
-    "line": 50,
-    "expression": "assert test_sparse_sum() == 60",
-    "error": "Error: HIR compile: line 50: assert \"// assert test_sparse_sum() == 60 via mir2  // z80: got 144, sparse array init bug\" [z80]: got 37, want 60",
-    "reason": "Pre-existing Z80 sparse array initializer codegen bug.",
-    "date": "2026-10-02"
-  },
-  {
     "file": "examples/c/c11_anon_struct.c",
     "line": 62,
     "expression": "assert pair_first() == 42",

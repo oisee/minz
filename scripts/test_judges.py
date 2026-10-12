@@ -81,6 +81,35 @@ sys.exit(int(fail))
             self.assertEqual(matrix.exit_code(report,True),1)
             self.assertEqual(matrix.exit_code(report,True,True),0)
 
+    def test_inventory_line_shifts_preserve_top_level_identity(self):
+        before = [dict(file='x', line=i, kind='top-level', expression=e, via='mir2')
+                  for i, e in enumerate(('assert a() == 1', 'assert b() == 2'), 1)]
+        after = [dict(a, line=a['line'] + 1) for a in before]
+        self.assertEqual(matrix.inventory_changes(before, after), ([], [], []))
+        # Removing a duplicate still removes an obligation.
+        removed, added, changed = matrix.inventory_changes(before + [dict(before[0], line=8)], after)
+        self.assertEqual((len(removed), len(added), len(changed)), (1, 0, 0))
+        # Sandbox order, backend and tuple shape are not cosmetic source shifts.
+        sandbox = [dict(a, kind='sandbox:1') for a in before]
+        swapped = [dict(sandbox[1], line=1), dict(sandbox[0], line=2)]
+        self.assertEqual(len(matrix.inventory_changes(sandbox, swapped)[2]), 2)
+        self.assertEqual(len(matrix.inventory_changes(before, [dict(a, via='z80') for a in before])[2]), 2)
+        self.assertEqual(len(matrix.inventory_changes(before, [dict(a, tuple_elements=2) for a in before])[2]), 2)
+
+    def test_matrix_shifted_units_execute_each_checkouts_line(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            self.fixture(root)
+            before = [dict(file='case.nanz', line=2, kind='top-level', expression='assert answer() == 42')]
+            after = [dict(before[0], line=3)]
+            with patch.object(matrix, 'enumerate_asserts', side_effect=[before, after]), \
+                 patch.object(matrix, 'run_compiler', return_value={'pass': True, 'exit_code': 0}) as run:
+                report = matrix.matrix(root, ['*.nanz'], {'baseline': 'old', 'candidate': 'new'}, 1, 1, 5)
+            self.assertEqual(report['summary']['units'], 1)
+            self.assertEqual(report['summary']['pass both'], 1)
+            self.assertEqual([call.args[4] for call in run.call_args_list], [[2], [3]])
+            self.assertEqual(matrix.exit_code(report, True), 0)
+
     def known_report(self, candidate=None, classification='added', expression='assert answer() == 43'):
         failed = {'pass': False, 'error': 'error: assertion failed'}
         member = dict(file='case.nanz', line=3, expression=expression)
