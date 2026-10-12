@@ -1,0 +1,62 @@
+=== RUN   TestOriginalSelfParserWholeMainNative
+=== RUN   TestOriginalSelfParserWholeMainNative/ordinary
+    self_parser_whole_main_test.go:428: native stdout === Source (76 bytes) ===
+        First chars: 102 117 110
+        Tokens: 29
+        0
+        19 tok_count=29
+        (fun answer () u8 (return 7))
+        === Written 70 bytes to tiny.lanz ===
+        Stats: 12 nodes, 55 string bytes
+         === Source (76 bytes) ===
+        First chars: 102 117 110
+        Tokens: 29
+        0
+        19 tok_count=29
+        (fun answer () u8 (return 7))
+        === Written 76 bytes to tiny.lanz ===
+        Stats: 12 nodes, 55 string bytes
+        
+=== RUN   TestOriginalSelfParserWholeMainNative/grace-size
+    self_parser_whole_main_test.go:428: native stdout === Source (76 bytes) ===
+        First chars: 102 117 110
+        Tokens: 29
+        0
+        19 tok_count=29
+        (fun answer () u8 (return 7))
+        === Written 70 bytes to tiny.lanz ===
+        Stats: 12 nodes, 55 string bytes
+         === Source (76 bytes) ===
+        First chars: 102 117 110
+        Tokens: 29
+        0
+        19 tok_count=29
+        (fun answer () u8 (return 7))
+        === Written 76 bytes to tiny.lanz ===
+        Stats: 12 nodes, 55 string bytes
+        
+=== RUN   TestOriginalSelfParserWholeMainNative/grace-speed
+    self_parser_whole_main_test.go:428: native stdout === Source (76 bytes) ===
+        First chars: 102 117 110
+        Tokens: 29
+        0
+        19 tok_count=29
+        (fun answer () u8 (return 7))
+        === Written 70 bytes to tiny.lanz ===
+        Stats: 12 nodes, 55 string bytes
+         === Source (76 bytes) ===
+        First chars: 102 117 110
+        Tokens: 29
+        0
+        19 tok_count=29
+        (fun answer () u8 (return 7))
+        === Written 76 bytes to tiny.lanz ===
+        Stats: 12 nodes, 55 string bytes
+        
+--- FAIL: TestOriginalSelfParserWholeMainNative (3.61s)
+    --- FAIL: TestOriginalSelfParserWholeMainNative/ordinary (0.67s)
+    --- FAIL: TestOriginalSelfParserWholeMainNative/grace-size (1.34s)
+    --- FAIL: TestOriginalSelfParserWholeMainNative/grace-speed (1.59s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	3.621s
+FAIL

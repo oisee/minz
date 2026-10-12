@@ -1,0 +1,52 @@
+=== RUN   TestOriginalSelfParserWholeMainVM
+=== RUN   TestOriginalSelfParserWholeMainVM/raw
+    self_parser_whole_main_test.go:222: wholemain independent files/AST/tokens/stdout PASS inputSHA f73e18cfe6ec36cd8ddda84d935e0b54549cb19f3b7c07d952e87dbcce96959d events[read tiny.nanz write tiny.lanz]
+=== RUN   TestOriginalSelfParserWholeMainVM/ordinary
+    self_parser_whole_main_test.go:222: wholemain independent files/AST/tokens/stdout PASS inputSHA f73e18cfe6ec36cd8ddda84d935e0b54549cb19f3b7c07d952e87dbcce96959d events[read tiny.nanz write tiny.lanz]
+=== RUN   TestOriginalSelfParserWholeMainVM/grace-size
+    self_parser_whole_main_test.go:222: wholemain independent files/AST/tokens/stdout PASS inputSHA f73e18cfe6ec36cd8ddda84d935e0b54549cb19f3b7c07d952e87dbcce96959d events[read tiny.nanz write tiny.lanz]
+=== RUN   TestOriginalSelfParserWholeMainVM/grace-speed
+    self_parser_whole_main_test.go:222: wholemain independent files/AST/tokens/stdout PASS inputSHA f73e18cfe6ec36cd8ddda84d935e0b54549cb19f3b7c07d952e87dbcce96959d events[read tiny.nanz write tiny.lanz]
+--- PASS: TestOriginalSelfParserWholeMainVM (3.57s)
+    --- PASS: TestOriginalSelfParserWholeMainVM/raw (0.05s)
+    --- PASS: TestOriginalSelfParserWholeMainVM/ordinary (0.71s)
+    --- PASS: TestOriginalSelfParserWholeMainVM/grace-size (1.41s)
+    --- PASS: TestOriginalSelfParserWholeMainVM/grace-speed (1.39s)
+=== RUN   TestOriginalSelfParserWholeMainNative
+=== RUN   TestOriginalSelfParserWholeMainNative/ordinary
+    self_parser_whole_main_test.go:423: no return 2377 61438 === Source (76 bytes) ===
+        First chars: 102 117 110
+        Tokens: 29
+        0
+        19 tok_count=29
+        (fun answer () u8 (return 7))
+        === Written 70 bytes to tiny.lanz ===
+        Stats: 12 nodes, 55 string bytes
+        
+=== RUN   TestOriginalSelfParserWholeMainNative/grace-size
+    self_parser_whole_main_test.go:423: no return 2377 61438 === Source (76 bytes) ===
+        First chars: 102 117 110
+        Tokens: 29
+        0
+        19 tok_count=29
+        (fun answer () u8 (return 7))
+        === Written 70 bytes to tiny.lanz ===
+        Stats: 12 nodes, 55 string bytes
+        
+=== RUN   TestOriginalSelfParserWholeMainNative/grace-speed
+    self_parser_whole_main_test.go:423: no return 2377 61438 === Source (76 bytes) ===
+        First chars: 102 117 110
+        Tokens: 29
+        0
+        19 tok_count=29
+        (fun answer () u8 (return 7))
+        === Written 70 bytes to tiny.lanz ===
+        Stats: 12 nodes, 55 string bytes
+        
+--- FAIL: TestOriginalSelfParserWholeMainNative (4.18s)
+    --- FAIL: TestOriginalSelfParserWholeMainNative/ordinary (1.11s)
+    --- FAIL: TestOriginalSelfParserWholeMainNative/grace-size (1.68s)
+    --- FAIL: TestOriginalSelfParserWholeMainNative/grace-speed (1.39s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	7.760s
+FAIL
