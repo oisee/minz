@@ -12,11 +12,11 @@ Completion requires all of these, not merely successful operation-level tests:
 | Declarative fill | stdlib/hw/fill.nanz: pointer and preserving LDIR; native tests |
 | Declarative copy | stdlib/hw/copy.nanz pointer/LDIR; 13-case native/VM matrix PASS |
 | Masked sprites | Static byte-aligned masks: pointer/compiled; independent VM/native tests PASS |
-| Texture walks | Existing independent roto meta/ASM spike; reusable abstraction pending |
-| Independent bounds/memory/PC/SP | Fill matrix proven; copy and dedicated full-main roto proven; library demo pending; static masks proven |
-| Speed and size alternatives | Fill pointer/LDIR measured; copy pointer/LDIR measured; mask pointer/compiled measured; texture choices pending |
-| Full Spectrum display+IRQ execution | Full dedicated-kernel main proven: ROM/ULA/IRQ and 64 screens per mode |
-| Main integration | Design reports merged PR86; compiler/library still research branch |
+| Texture walks | Reusable @texture_walk with runtime setup and static unroll; library full-main demo PASS |
+| Independent bounds/memory/PC/SP | Fill matrix proven; copy and dedicated full-main roto proven; library full-main demo proven; reusable texture matrix pending |
+| Speed and size alternatives | Fill pointer/LDIR measured; copy pointer/LDIR measured; mask pointer/compiled measured; texture unroll costs measured; reusable matrix pending |
+| Full Spectrum display+IRQ execution | Both dedicated and shared-library main proven: ROM/ULA/IRQ, 64 screens per mode |
+| Main integration | Design reports merged PR86; compiler/library still research branch; PR85 foundation gate repairs in progress |
 | Shared artifacts | Fill, preserving LDIR and roto packets copied and checksummed |
 
 Work order: copy semantics and measured primitives, masks/compiled constants,
