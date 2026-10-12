@@ -37,6 +37,8 @@
 
 **Self-parser прошёл полный native main** во всех трёх режимах; отдельная whole-main VM проверяет независимую модель файлов, AST, токенов и stdout. Это другая программа, чем self-Lanz parser из таблицы heldout, и результаты не смешиваются. Полный pipeline-5d90b7aa всё ещё выполняется: в наблюдении после 2 ч 53 мин — 469 верхнеуровневых PASS, 0 FAIL, 14 SKIP. Уже завершились модель стоимости полного u8 domain, конкуренция правил за бюджет, bool/return-flags (198 912 вызовов на режим) и C89 string/memory. Это промежуточные результаты; полный gate актуального backend по-прежнему требуется. [Checkpoint и команда](https://github.com/oisee/minz/blob/541db881/reports/pipeline-5d90b7aa-checkpoint/job.json).
 
+**Итог предыдущего gate:** pipeline-5d90b7aa достиг 493 PASS, 0 верхнеуровневых FAIL, 14 SKIP и завершился exit 2 по лимиту 180 минут во время SHA split helpers. Это timeout, не общий PASS; оставшиеся тесты не подтверждены. [Полный лог и итог](https://github.com/oisee/minz/tree/514a54e9/reports/pipeline-5d90b7aa-terminal). Подготовленный gate актуального backend b6b4e0c7 запущен с полным корпусом и лимитом 360 минут. [Новый checkpoint](https://github.com/oisee/minz/blob/f0312aa0/reports/pipeline-b6b4e0c7-checkpoint/job.json).
+
 ## Что такое MinZ сейчас
 
 MinZ — экспериментальный набор инструментов для программирования Z80: языковые фронтенды, общий оптимизирующий компилятор, ассемблер и эмуляторы. **Nanz — основной исходный язык современного пути.** Имя MinZ также обозначает проект и его исторический язык; принимать `.minz` нынешним Nanz-парсером не означает поддерживать весь старый синтаксис.
