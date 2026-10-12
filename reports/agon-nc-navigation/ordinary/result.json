@@ -1,0 +1,11 @@
+{
+  "exact_stream": true,
+  "keys": [
+    11,
+    13,
+    27
+  ],
+  "observed_bytes": 1024,
+  "expected_bytes": 1024,
+  "scope": "up at zero boundary, Enter selection0, ESC; no down-arrow proof"
+}

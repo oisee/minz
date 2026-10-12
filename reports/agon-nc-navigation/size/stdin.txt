@@ -1,0 +1,5 @@
+load program.bin
+run
+
+
+echo MINZ_RETURNED

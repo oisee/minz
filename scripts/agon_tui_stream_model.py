@@ -22,7 +22,7 @@ def box(x, y, width, height):
     return s + goto(x, y + height - 1) + '+' + '-' * (width - 2) + '+'
 
 
-def expected(name):
+def expected(name, keys=(27,)):
     clear = ESC + '[2J' + ESC + '[H'
     reset = ESC + '[0m'
     if name == 'tui_hello':
@@ -55,11 +55,26 @@ def expected(name):
         names = ['HELLO    .BIN', 'NC_AGON  .BIN', 'TETRIS   .BIN', 'README   .TXT',
                  'STDLIB   .   ', 'DOCS     .   ', 'EXAMPLES .   ', 'PLASMA   .BIN']
         sizes = ['   166', '  1024', '  2048', '   512', ' <DIR>', ' <DIR>', ' <DIR>', '   789']
-        for i, (filename, size) in enumerate(zip(names, sizes)):
-            s += goto(2, 4 + i) + (color(0, 6, 0) if i == 0 else color(7, 4, 1))
-            s += ' ' + filename + size + '          '
-        # Frozen immediate ESC scenario: cleanup without navigation/redraw.
-        return s + ESC + '[?25h' + reset + clear
+        def listing(selected):
+            text = ''
+            for i, (filename, size) in enumerate(zip(names, sizes)):
+                text += goto(2, 4 + i) + (color(0, 6, 0) if i == selected else color(7, 4, 1))
+                text += ' ' + filename + size + '          '
+            return text
+        selected = 0
+        s += listing(selected)
+        for key in keys:
+            if key == 10 and selected < 7:
+                selected += 1
+                s += listing(selected)
+            if key == 11 and selected > 0:
+                selected -= 1
+                s += listing(selected)
+            if key == 13:
+                s += goto(0, 22) + color(2, 0, 1) + 'Selected: ' + names[selected] + '        '
+            if key == 27:
+                return s + ESC + '[?25h' + reset + clear
+        raise ValueError('scenario must terminate with ESC')
     raise ValueError(name)
 
 
