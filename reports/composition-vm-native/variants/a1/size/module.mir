@@ -1,0 +1,8 @@
+; MIR2 module: allowlist_judge
+fun @a1(%r1: u8 [acc], %r2: u8 [general], %r3: u8 [counter]) -> u8 [acc]
+  block @entry:
+    %r4 = add %r1, %r2 : u8 [acc]
+    %r5 = add %r3, %r1 : u8 [acc]
+    %r6 = sub %r4, %r5 : u8 [acc]
+    ret %r6
+
