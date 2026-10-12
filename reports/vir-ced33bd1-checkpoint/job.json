@@ -1,0 +1,18 @@
+{
+  "checkpoint": "ced33bd1",
+  "session": 34413,
+  "pid": 3062732,
+  "binary": "/home/alice/dev/minz-artifacts/grace-checkpoints/vir-ced33bd1.test",
+  "binary_sha256": "74f56ee6a8bd37857dfbbe3022a3dce9d13c08234a7d56a2b0669061091f947d",
+  "shared_binary": "/mnt/safe/minz/grace/2026-10-12/compiler-checkpoints/vir-ced33bd1.test",
+  "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/vir",
+  "args": [
+    "-test.count=1",
+    "-test.timeout=30m",
+    "-test.v"
+  ],
+  "z3": "/home/alice/dev/minz-artifacts/grace-tools/z3-python/bin/z3",
+  "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/vir-ced33bd1-full.txt",
+  "status": "running; not PASS",
+  "recorded_at_utc": "2026-10-12T14:34:25.251415+00:00"
+}
