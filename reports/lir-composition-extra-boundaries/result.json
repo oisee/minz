@@ -1,0 +1,20 @@
+{
+  "domains": 54,
+  "cases_per_domain": 65536,
+  "native_calls": 3538944,
+  "additional_argument_values": [
+    0,
+    1,
+    127,
+    128,
+    254,
+    255
+  ],
+  "mode": "ordinary production",
+  "full_memory_stack_oracle": false,
+  "source_hashes": {
+    "minzc/pkg/hir/native_composition_test.go": "066148c0957f2bcde8f9aa1f41fa0b1a793955e07839ec15355b557d87fc517f",
+    "minzc/pkg/hir/native_composition_boundary_test.go": "88cbe8438a224fca31debb41e20b9a3258a36df36dfbc475ce4eceb166c1f125",
+    "minzc/pkg/hir/native_lowering_judge_test.go": "0c039d2f6d4aaf172df26958f8ebba6acb09921a114a86f26c1ac5716866d031"
+  }
+}

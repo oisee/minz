@@ -1,0 +1,128 @@
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a1
+=== PAUSE TestNativeCompositionAdditionalArgumentBoundaries/a1
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2
+=== PAUSE TestNativeCompositionAdditionalArgumentBoundaries/a2
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a4
+=== PAUSE TestNativeCompositionAdditionalArgumentBoundaries/a4
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a8
+=== PAUSE TestNativeCompositionAdditionalArgumentBoundaries/a8
+=== CONT  TestNativeCompositionAdditionalArgumentBoundaries/a1
+=== CONT  TestNativeCompositionAdditionalArgumentBoundaries/a4
+=== CONT  TestNativeCompositionAdditionalArgumentBoundaries/a2
+=== CONT  TestNativeCompositionAdditionalArgumentBoundaries/a8
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a4/c0_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a1/c0_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c0_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a8/c0_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a8/c1_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a4/c1_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c0_d1
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a1/c1_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a8/c127_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a4/c127_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a1/c127_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a8/c128_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c0_d127
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a1/c128_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a4/c128_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a8/c254_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a1/c254_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c0_d128
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a8/c255_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a4/c254_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c0_d254
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a1/c255_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a4/c255_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c0_d255
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c1_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c1_d1
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c1_d127
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c1_d128
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c1_d254
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c1_d255
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c127_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c127_d1
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c127_d127
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c127_d128
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c127_d254
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c127_d255
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c128_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c128_d1
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c128_d127
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c128_d128
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c128_d254
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c128_d255
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c254_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c254_d1
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c254_d127
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c254_d128
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c254_d254
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c254_d255
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c255_d0
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c255_d1
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c255_d127
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c255_d128
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c255_d254
+=== RUN   TestNativeCompositionAdditionalArgumentBoundaries/a2/c255_d255
+--- PASS: TestNativeCompositionAdditionalArgumentBoundaries (0.00s)
+    --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a8 (0.06s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a8/c0_d0 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a8/c1_d0 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a8/c127_d0 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a8/c128_d0 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a8/c254_d0 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a8/c255_d0 (0.00s)
+    --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a1 (0.06s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a1/c0_d0 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a1/c1_d0 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a1/c127_d0 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a1/c128_d0 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a1/c254_d0 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a1/c255_d0 (0.01s)
+    --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a4 (0.07s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a4/c0_d0 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a4/c1_d0 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a4/c127_d0 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a4/c128_d0 (0.02s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a4/c254_d0 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a4/c255_d0 (0.01s)
+    --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2 (0.21s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c0_d0 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c0_d1 (0.02s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c0_d127 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c0_d128 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c0_d254 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c0_d255 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c1_d0 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c1_d1 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c1_d127 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c1_d128 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c1_d254 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c1_d255 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c127_d0 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c127_d1 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c127_d127 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c127_d128 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c127_d254 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c127_d255 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c128_d0 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c128_d1 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c128_d127 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c128_d128 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c128_d254 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c128_d255 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c254_d0 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c254_d1 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c254_d127 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c254_d128 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c254_d254 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c254_d255 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c255_d0 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c255_d1 (0.01s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c255_d127 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c255_d128 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c255_d254 (0.00s)
+        --- PASS: TestNativeCompositionAdditionalArgumentBoundaries/a2/c255_d255 (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	0.216s
