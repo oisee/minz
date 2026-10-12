@@ -656,12 +656,13 @@ func (g *z80cg) callArgumentLiteral(arg Reg, ty Ty, dst string, call *Inst) (int
 	if definition == nil {
 		return 0, false
 	}
+	seen := false
 	for _, i := range g.curBlock.Insts {
 		if i == call {
-			return 0, false
+			return definition.Imm, seen
 		}
 		if i == definition {
-			return definition.Imm, true
+			seen = true
 		}
 	}
 	return 0, false
