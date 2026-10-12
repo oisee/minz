@@ -1,0 +1,81 @@
+{
+  "production": "199c7f1c",
+  "comments_only_native_build": true,
+  "files": [
+    {
+      "path": "native/grace-size.a80",
+      "bytes": 3272,
+      "sha256": "a4e37aafd9e834930819505dd4c6a192370880b520e35f1b1dfc54958adfd777"
+    },
+    {
+      "path": "native/grace-size.bin",
+      "bytes": 186,
+      "sha256": "3cd91858a454c29d32e4f9fc43deb5d50a2134a7dd90ac79e09344a27ee825ec"
+    },
+    {
+      "path": "native/grace-size.json",
+      "bytes": 348,
+      "sha256": "58f1ecc129b5af4c6ba58c1769b9c70fbf2a99919e42e3a4e581882ef4a6f83f"
+    },
+    {
+      "path": "native/grace-size.mir",
+      "bytes": 1011,
+      "sha256": "fde07273c7568a682a087dfc03255e6d09121a0a6d7755ee0ed44425cb9b6daf"
+    },
+    {
+      "path": "native/grace-speed.a80",
+      "bytes": 3272,
+      "sha256": "a4e37aafd9e834930819505dd4c6a192370880b520e35f1b1dfc54958adfd777"
+    },
+    {
+      "path": "native/grace-speed.bin",
+      "bytes": 186,
+      "sha256": "3cd91858a454c29d32e4f9fc43deb5d50a2134a7dd90ac79e09344a27ee825ec"
+    },
+    {
+      "path": "native/grace-speed.json",
+      "bytes": 348,
+      "sha256": "58f1ecc129b5af4c6ba58c1769b9c70fbf2a99919e42e3a4e581882ef4a6f83f"
+    },
+    {
+      "path": "native/grace-speed.mir",
+      "bytes": 1011,
+      "sha256": "fde07273c7568a682a087dfc03255e6d09121a0a6d7755ee0ed44425cb9b6daf"
+    },
+    {
+      "path": "native/ordinary.a80",
+      "bytes": 3347,
+      "sha256": "29343d2fd176d983b35b6fe454bda3f14f316545eb7942c65b8a7bb71bb0368b"
+    },
+    {
+      "path": "native/ordinary.bin",
+      "bytes": 186,
+      "sha256": "3cd91858a454c29d32e4f9fc43deb5d50a2134a7dd90ac79e09344a27ee825ec"
+    },
+    {
+      "path": "native/ordinary.json",
+      "bytes": 348,
+      "sha256": "58f1ecc129b5af4c6ba58c1769b9c70fbf2a99919e42e3a4e581882ef4a6f83f"
+    },
+    {
+      "path": "native/ordinary.mir",
+      "bytes": 1011,
+      "sha256": "fde07273c7568a682a087dfc03255e6d09121a0a6d7755ee0ed44425cb9b6daf"
+    },
+    {
+      "path": "native.txt",
+      "bytes": 727,
+      "sha256": "390dbcad65ea7589c6a924f8c944f69037019eb3de5b606f8bf6fc853f7e72ca"
+    },
+    {
+      "path": "notes.md",
+      "bytes": 752,
+      "sha256": "c91562a2a7ab503751a10dbfa901dff3e5c20769fb94860608c19c5e1e5f614c"
+    },
+    {
+      "path": "peephole.txt",
+      "bytes": 43,
+      "sha256": "81c8b7872c2608337e29c4d01f7d1d091ebe48676f0ebdf63ff002568bfc6954"
+    }
+  ]
+}
