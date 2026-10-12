@@ -1,5 +1,7 @@
 # Grace / PGO: текущее состояние
 
+Исходные ALV и piped `tui_demo` интегрированы: совместно с SQLite demo raw/final VM и native **PASS 2,216 с** на `34082988`. [Пакет 298](grace-integration-298/README.md). Screen report и commander остаются в работе.
+
 Повтор frozen heldout/associations `1b5cf5ca`: **PASS 48,256 с**. Неизменённый SQLite demo: raw/final VM и native в трёх режимах **PASS 0,066 с**. Arena consumer сохраняет правильное поведение, но строгий size-gain assertion FAIL (1130/1130 байт); расследование продолжается. [Пакет 297](grace-integration-297/README.md).
 
 FullMIR0cc467f7 PASS98,850с; selectedartifactCLIcccddb02 collect/replay/publicationPASS47,578с ([296](grace-integration-296/README.md)). Новые ALV/SQL/TUI runtimefamilies вработе.
