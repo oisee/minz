@@ -1,0 +1,20 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "3c02617b093de2ee42d73fc0e7ed8b579bd5cc74bfc3f25d29a85ffac64e09bd"
+    },
+    {
+      "path": "core.txt",
+      "sha256": "4ae73ea3b79b064e045b13cc5ca6fc2126fc728427b95190591fb02c858ec6d0"
+    },
+    {
+      "path": "result.json",
+      "sha256": "b18c446eb6cb72837597fe1e5c5bc16e63d1e14174255f81cc9f38c2771e821b"
+    },
+    {
+      "path": "vir-full.txt",
+      "sha256": "90031a6dd2f254f2098dc0c178ffc75861a557957aec5a5ca3fe8862f6f2cabe"
+    }
+  ]
+}

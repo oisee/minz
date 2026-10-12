@@ -1,0 +1,27 @@
+{
+  "core": {
+    "checkpoint": "a7ffb886",
+    "exit_code": 0,
+    "packages": [
+      "hir",
+      "mir2",
+      "nanz",
+      "c89",
+      "lanz",
+      "lizp",
+      "plm"
+    ],
+    "scope": "Full packages; no resolution of Lizp/PLM semantic policy implied"
+  },
+  "vir": {
+    "checkpoint": "7bfe4476",
+    "exit_code": 0,
+    "counts": {
+      "PASS": 130,
+      "FAIL": 0,
+      "SKIP": 4
+    },
+    "binary_sha256": "39afe252805b313ec2e42be4608e8067c44a1422e77fb27e449227e5dad1c7d9",
+    "scope": "Includes dense stack, overlap and frame proofs; predates mixed byte/word copies and exact entry label fix. Corpus admission not independent native proof of every function."
+  }
+}
