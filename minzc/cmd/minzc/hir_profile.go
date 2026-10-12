@@ -77,7 +77,7 @@ func validateHIRProfileFlags(source string) error {
 	if p.profile != "" && product == "" {
 		product = source[:len(source)-len(filepath.Ext(source))] + ".a80"
 	}
-	paths := []string{source, p.workload, p.model, p.profile, p.collect, p.run, p.decisions, product}
+	paths := []string{source, p.workload, p.model, p.profile, p.collect, p.run, p.decisions, product, checkedLocalTablePath}
 	for i, path := range paths {
 		if path == "" {
 			continue

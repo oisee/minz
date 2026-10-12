@@ -1,0 +1,58 @@
+=== RUN   TestHIRProfileTableInputAliases
+--- PASS: TestHIRProfileTableInputAliases (0.00s)
+=== RUN   TestHIRProfileStrictJSON
+=== RUN   TestHIRProfileStrictJSON/unknown
+=== RUN   TestHIRProfileStrictJSON/nested_unknown
+=== RUN   TestHIRProfileStrictJSON/trailing
+=== RUN   TestHIRProfileStrictJSON/trailing_garbage
+=== RUN   TestHIRProfileStrictJSON/duplicate
+=== RUN   TestHIRProfileStrictJSON/case_duplicate
+=== RUN   TestHIRProfileStrictJSON/nested_duplicate
+=== RUN   TestHIRProfileStrictJSON/null
+=== RUN   TestHIRProfileStrictJSON/oversized
+=== RUN   TestHIRProfileStrictJSON/model_unknown
+=== RUN   TestHIRProfileStrictJSON/model_trailing
+=== RUN   TestHIRProfileStrictJSON/model_overflow
+=== RUN   TestHIRProfileStrictJSON/model_null
+--- PASS: TestHIRProfileStrictJSON (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/unknown (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/nested_unknown (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/trailing (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/trailing_garbage (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/duplicate (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/case_duplicate (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/nested_duplicate (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/null (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/oversized (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/model_unknown (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/model_trailing (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/model_overflow (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/model_null (0.00s)
+=== RUN   TestHIRProfileFlagValidation
+=== RUN   TestHIRProfileFlagValidation/missing_mode
+=== RUN   TestHIRProfileFlagValidation/both_modes
+=== RUN   TestHIRProfileFlagValidation/missing_workload
+=== RUN   TestHIRProfileFlagValidation/collect_model
+=== RUN   TestHIRProfileFlagValidation/collect_output
+=== RUN   TestHIRProfileFlagValidation/apply_missing_model
+=== RUN   TestHIRProfileFlagValidation/apply_run
+=== RUN   TestHIRProfileFlagValidation/legacy
+=== RUN   TestHIRProfileFlagValidation/backend
+=== RUN   TestHIRProfileFlagValidation/emit
+=== RUN   TestHIRProfileFlagValidation/disabled
+=== RUN   TestHIRProfileFlagValidation/collision
+--- PASS: TestHIRProfileFlagValidation (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/missing_mode (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/both_modes (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/missing_workload (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/collect_model (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/collect_output (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/apply_missing_model (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/apply_run (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/legacy (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/backend (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/emit (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/disabled (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/collision (0.00s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	0.012s

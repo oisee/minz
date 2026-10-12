@@ -96,7 +96,10 @@ func validateHIRProfileAuto(source string) error {
 		if err != nil {
 			return err
 		}
-		for _, input := range []string{source, hirProfileAutoWorkload} {
+		for _, input := range []string{source, hirProfileAutoWorkload, checkedLocalTablePath} {
+			if input == "" {
+				continue
+			}
 			path, err := filepath.Abs(input)
 			if err != nil {
 				return err
@@ -111,7 +114,7 @@ func validateHIRProfileAuto(source string) error {
 	// Never let an artifact overwrite its own source, workload or compiled product.
 	for _, name := range []string{"workload.json", "profile.json", "run.json", "model.json", "evidence.json", "decisions.json", "input.hir", "raw.mir", "optimized.mir", "selected.a80", "joint-evidence.json", "selected.bin"} {
 		dest, _ := filepath.Abs(filepath.Join(hirProfileAutoDirectory, name))
-		for _, input := range []string{source, hirProfileAutoWorkload, outputFile} {
+		for _, input := range []string{source, hirProfileAutoWorkload, outputFile, checkedLocalTablePath} {
 			if input == "" {
 				continue
 			}
