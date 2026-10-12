@@ -563,6 +563,9 @@ func rewriteCallSites(blk *hir.Block, eligible map[string]*promotionInfo) {
 		}
 
 		// Replace the VarDeclStmt with TupleLetStmt.
+		// The tuple carries its result types separately; the scalar call type
+		// must match the promoted function's now-void RetTy.
+		call.Ty = mir2.TyVoid
 		blk.Body[i] = &hir.TupleLetStmt{
 			Names: names,
 			Tys:   info.fieldTys,

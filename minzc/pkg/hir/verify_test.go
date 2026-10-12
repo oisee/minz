@@ -73,6 +73,35 @@ func TestVerifyValidHIRCompatibility(t *testing.T) {
 	}
 }
 
+func TestVerifyTupleCallUsesAllResultSlots(t *testing.T) {
+	makeModule := func() *Module {
+		return &Module{Funcs: []*Func{
+			{Name: "pair", RetTy: mir2.TyVoid, RetTys: []mir2.Ty{mir2.TyU8, mir2.TyU16}, Body: Blk(&ReturnStmt{Vals: []Expr{U8(10), U16(300)}})},
+			{Name: "caller", RetTy: mir2.TyVoid, Body: Blk(&TupleLetStmt{Names: []string{"a", "b"}, Tys: []mir2.Ty{mir2.TyU8, mir2.TyU16}, Call: Call("pair", mir2.TyVoid)})},
+		}}
+	}
+	if err := Verify(makeModule()); err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		name string
+		edit func(*TupleLetStmt)
+		want string
+	}{
+		{"second result", func(s *TupleLetStmt) { s.Tys[1] = mir2.TyU8 }, "result 1 type"},
+		{"arity", func(s *TupleLetStmt) { s.Names = s.Names[:1]; s.Tys = s.Tys[:1] }, "arity"},
+		{"arguments", func(s *TupleLetStmt) { s.Call.Args = []Expr{U8(1)} }, "arity"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			m := makeModule()
+			tc.edit(m.Funcs[1].Body.Body[0].(*TupleLetStmt))
+			if err := Verify(m); err == nil || !strings.Contains(err.Error(), tc.want) {
+				t.Fatalf("got %v, want %s", err, tc.want)
+			}
+		})
+	}
+}
+
 func TestGraceRejectsBadInputBeforeMutation(t *testing.T) {
 	branch := If(Bool(true), Blk(&ReturnStmt{Val: U8(1)}), Blk(&ReturnStmt{Val: U8(2)}))
 	m := verifierModule(branch, &BreakStmt{})

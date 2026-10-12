@@ -117,6 +117,7 @@ type hirVerifier struct {
 	callbackParams   map[*Func]map[int]*CallSignature
 	callbackOrigins  map[string]int
 	callbackChanged  bool
+	tupleCall        *CallExpr
 }
 
 func nilHIR(x any) bool {
@@ -401,11 +402,22 @@ func (v *hirVerifier) stmt(s Stmt, env map[string]mir2.Ty, loops int) error {
 		if len(s.Names) != len(s.Tys) {
 			return v.fail("tuple names/types length mismatch")
 		}
-		if err := v.expr(s.Call, env); err != nil {
+		previousTupleCall := v.tupleCall
+		v.tupleCall = s.Call
+		err := v.expr(s.Call, env)
+		v.tupleCall = previousTupleCall
+		if err != nil {
 			return err
 		}
-		if f := v.funcs[s.Call.Fn]; f != nil && len(f.RetTys) != len(s.Names) {
-			return v.fail("tuple call result arity mismatch")
+		if f := v.funcs[s.Call.Fn]; f != nil {
+			if len(f.RetTys) != len(s.Names) {
+				return v.fail("tuple call result arity mismatch")
+			}
+			for i, ty := range f.RetTys {
+				if !reflect.DeepEqual(ty, s.Tys[i]) {
+					return v.fail("tuple call result %d type %s, want %s", i, s.Tys[i], ty)
+				}
+			}
 		}
 		for i, n := range s.Names {
 			if n != "_" {
@@ -578,7 +590,7 @@ func (v *hirVerifier) expr(e Expr, env map[string]mir2.Ty) error {
 			if len(e.Args) != len(f.Params) {
 				return v.fail("call %s arity %d, want %d", e.Fn, len(e.Args), len(f.Params))
 			}
-			if !assignableHIR(e.Ty, f.RetTy) {
+			if e != v.tupleCall && !assignableHIR(e.Ty, f.RetTy) {
 				return v.fail("call %s return type %s, declared %s", e.Fn, e.Ty, f.RetTy)
 			}
 		}
@@ -599,7 +611,14 @@ func (v *hirVerifier) expr(e Expr, env map[string]mir2.Ty) error {
 			if err := v.checkConsumedCallbacks(f, e.Args); err != nil {
 				return err
 			}
-			return v.checkSignature(f.Signature(), e.Args, e.Ty, env)
+			ret := e.Ty
+			if e == v.tupleCall {
+				ret = mir2.TyVoid
+				if len(f.RetTys) > 0 {
+					ret = f.RetTys[0]
+				}
+			}
+			return v.checkSignature(f.Signature(), e.Args, ret, env)
 		}
 		return nil
 	case *CallIndirectExpr:

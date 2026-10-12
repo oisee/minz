@@ -1,0 +1,78 @@
+; HIR module: c99_designated
+struct @Pair { a: u8, b: u8 }
+struct @Triple { x: u8, y: u8, z: u8 }
+string #0 = "desig_basic"
+string #1 = "desig_basic_a"
+string #2 = "desig_basic_b"
+string #3 = "desig_reverse"
+string #4 = "desig_rev_a"
+string #5 = "desig_rev_b"
+string #6 = "desig_mixed"
+string #7 = "desig_mixed_a"
+string #8 = "desig_mixed_b"
+string #9 = "desig_triple"
+string #10 = "desig_triple_x"
+string #11 = "desig_triple_y"
+string #12 = "desig_triple_z"
+
+fun @desig_basic()
+  var __func__: ptr = 0:ptr
+  return (10:i16, 20:i16)
+
+fun @desig_basic_a() -> u8
+  var __func__: ptr = 1:ptr
+  let (p_a, p_b) = desig_basic(...)
+  return (p_a:u8)
+
+fun @desig_basic_b() -> u8
+  var __func__: ptr = 2:ptr
+  let (p_a, p_b) = desig_basic(...)
+  return (p_b:u8)
+
+fun @desig_reverse()
+  var __func__: ptr = 3:ptr
+  return (3:i16, 7:i16)
+
+fun @desig_rev_a() -> u8
+  var __func__: ptr = 4:ptr
+  let (p_a, p_b) = desig_reverse(...)
+  return (p_a:u8)
+
+fun @desig_rev_b() -> u8
+  var __func__: ptr = 5:ptr
+  let (p_a, p_b) = desig_reverse(...)
+  return (p_b:u8)
+
+fun @desig_mixed()
+  var __func__: ptr = 6:ptr
+  return (5:i16, 15:i16)
+
+fun @desig_mixed_a() -> u8
+  var __func__: ptr = 7:ptr
+  let (p_a, p_b) = desig_mixed(...)
+  return (p_a:u8)
+
+fun @desig_mixed_b() -> u8
+  var __func__: ptr = 8:ptr
+  let (p_a, p_b) = desig_mixed(...)
+  return (p_b:u8)
+
+fun @desig_triple()
+  var __func__: ptr = 9:ptr
+  return (1:i16, 50:i16, 100:i16)
+
+fun @desig_triple_x() -> u8
+  var __func__: ptr = 10:ptr
+  let (t_x, t_y, t_z) = desig_triple(...)
+  return (t_x:u8)
+
+fun @desig_triple_y() -> u8
+  var __func__: ptr = 11:ptr
+  let (t_x, t_y, t_z) = desig_triple(...)
+  return (t_y:u8)
+
+fun @desig_triple_z() -> u8
+  var __func__: ptr = 12:ptr
+  let (t_x, t_y, t_z) = desig_triple(...)
+  return (t_z:u8)
+

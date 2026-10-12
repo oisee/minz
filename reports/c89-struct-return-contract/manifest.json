@@ -1,0 +1,21 @@
+{
+  "files": {
+    "README.md": "921d38e296f686dfca1dffdf5d00d068a6424158861fee33f791aebea7d34d14",
+    "after.txt": "ab109d7682e5020199e8433ef97b62e32903a109058ec5f3864d6d3817fe1291",
+    "before.txt": "9ee1515313582a29b9f1a24bf2885941ca5e7ffa9a7edd4b3ec851206056cc4f",
+    "boundaries.txt": "641259c1f406e51293bbeceeb809e24820b896a9dd595553cb9164277eb09463",
+    "ordinary/final.a80": "afb6ef7b6c51f00a82128b5d83d3bfd1c12acc760b210bba6026cdf004ac61a4",
+    "ordinary/final.mir2": "c985053166910af6314d4a167e798488fbf4ccd3785e661a3c06be7d17a49845",
+    "ordinary/input.hir": "10471268b4e4db187635381bd46252916732a42d9d79192aae94af99081d0993",
+    "ordinary/source.c": "5e8c2b619e4a4cc0ff3cc0bf64b2961affab9512dbb1601c6033acb2cef0ead4",
+    "packages.txt": "b787fa216c89b8a95362bd6dbef6fe4b8317a4a21f1c329bdc8d21ae49a30a91",
+    "size/final.a80": "afb6ef7b6c51f00a82128b5d83d3bfd1c12acc760b210bba6026cdf004ac61a4",
+    "size/final.mir2": "c985053166910af6314d4a167e798488fbf4ccd3785e661a3c06be7d17a49845",
+    "size/input.hir": "10471268b4e4db187635381bd46252916732a42d9d79192aae94af99081d0993",
+    "size/source.c": "5e8c2b619e4a4cc0ff3cc0bf64b2961affab9512dbb1601c6033acb2cef0ead4",
+    "speed/final.a80": "afb6ef7b6c51f00a82128b5d83d3bfd1c12acc760b210bba6026cdf004ac61a4",
+    "speed/final.mir2": "c985053166910af6314d4a167e798488fbf4ccd3785e661a3c06be7d17a49845",
+    "speed/input.hir": "10471268b4e4db187635381bd46252916732a42d9d79192aae94af99081d0993",
+    "speed/source.c": "5e8c2b619e4a4cc0ff3cc0bf64b2961affab9512dbb1601c6033acb2cef0ead4"
+  }
+}

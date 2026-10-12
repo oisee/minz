@@ -1,0 +1,85 @@
+; MIR2 module: c99_designated
+string @mir2.str.0 = "desig_basic"
+string @mir2.str.1 = "desig_basic_a"
+string @mir2.str.2 = "desig_basic_b"
+string @mir2.str.3 = "desig_reverse"
+string @mir2.str.4 = "desig_rev_a"
+string @mir2.str.5 = "desig_rev_b"
+string @mir2.str.6 = "desig_mixed"
+string @mir2.str.7 = "desig_mixed_a"
+string @mir2.str.8 = "desig_mixed_b"
+string @mir2.str.9 = "desig_triple"
+string @mir2.str.10 = "desig_triple_x"
+string @mir2.str.11 = "desig_triple_y"
+string @mir2.str.12 = "desig_triple_z"
+
+fun @desig_basic() -> (u8 [acc], u8 [counter])
+  block @entry:
+    %r3 = const 10 : i16 [pointer]
+    %r5 = const 20 : i16 [index]
+    ret %r3, %r5
+
+fun @desig_basic_a() -> u8 [acc]
+  block @entry:
+    %r7 = call @desig_basic() : u8 [acc]
+    ret %r7
+
+fun @desig_basic_b() -> u8 [acc]
+  block @entry:
+    %r10 = call @desig_basic() : u8 [acc]
+    ret %r11
+
+fun @desig_reverse() -> (u8 [acc], u8 [counter])
+  block @entry:
+    %r14 = const 3 : i16 [pointer]
+    %r16 = const 7 : i16 [index]
+    ret %r14, %r16
+
+fun @desig_rev_a() -> u8 [acc]
+  block @entry:
+    %r18 = call @desig_reverse() : u8 [acc]
+    ret %r18
+
+fun @desig_rev_b() -> u8 [acc]
+  block @entry:
+    %r21 = call @desig_reverse() : u8 [acc]
+    ret %r22
+
+fun @desig_mixed() -> (u8 [acc], u8 [counter])
+  block @entry:
+    %r25 = const 5 : i16 [pointer]
+    %r27 = const 15 : i16 [index]
+    ret %r25, %r27
+
+fun @desig_mixed_a() -> u8 [acc]
+  block @entry:
+    %r29 = call @desig_mixed() : u8 [acc]
+    ret %r29
+
+fun @desig_mixed_b() -> u8 [acc]
+  block @entry:
+    %r32 = call @desig_mixed() : u8 [acc]
+    ret %r33
+
+fun @desig_triple() -> (u8 [acc], u8 [counter], u8 [general])
+  block @entry:
+    %r36 = const 1 : i16 [pointer]
+    %r38 = const 50 : i16 [index]
+    %r39 = const 100 : i16 [pointer]
+    ret %r36, %r38, %r39
+
+fun @desig_triple_x() -> u8 [acc]
+  block @entry:
+    %r41 = call @desig_triple() : u8 [acc]
+    ret %r41
+
+fun @desig_triple_y() -> u8 [acc]
+  block @entry:
+    %r45 = call @desig_triple() : u8 [acc]
+    ret %r46
+
+fun @desig_triple_z() -> u8 [acc]
+  block @entry:
+    %r49 = call @desig_triple() : u8 [acc]
+    ret %r51
+

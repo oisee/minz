@@ -1,0 +1,4 @@
+=== RUN   TestDesignatedStructReturnContractVMZ80
+--- PASS: TestDesignatedStructReturnContractVMZ80 (0.06s)
+PASS
+ok  	github.com/minz/minzc/pkg/c89	0.067s

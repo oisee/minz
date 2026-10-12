@@ -1,0 +1,6 @@
+=== RUN   TestDesignatedStructReturnContractVMZ80
+    struct_return_contract_test.go:31: statement 1: HIR desig_basic_a: call desig_basic return type ptr, declared void
+--- FAIL: TestDesignatedStructReturnContractVMZ80 (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/c89	0.009s
+FAIL
