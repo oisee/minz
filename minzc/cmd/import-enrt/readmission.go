@@ -40,6 +40,18 @@ func readmitFile(source, proposals, output, evidence, stdlib string, limit int) 
 	if err != nil {
 		return err
 	}
+	// Bound raw entries before LoadJSON deduplicates signatures. Repeated keys
+	// must not bypass the user-visible proposal budget.
+	if len(data) > vir.MaxLegacyCandidateBytes {
+		return fmt.Errorf("checked proposals exceed byte limit")
+	}
+	var envelope []json.RawMessage
+	if err := json.Unmarshal(data, &envelope); err != nil {
+		return err
+	}
+	if len(envelope) > limit {
+		return fmt.Errorf("checked proposals exceed entry limit")
+	}
 	var pool vir.RegAllocTable
 	pool.Init()
 	if err := pool.LoadJSON(data); err != nil {

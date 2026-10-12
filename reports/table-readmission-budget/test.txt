@@ -1,0 +1,9 @@
+=== RUN   TestReadmissionCLIWeightedNative
+    readmission_native_test.go:86: real importer/compiler; 20-byte BIN; all256caller native inputs and content mutation rejection PASS
+--- PASS: TestReadmissionCLIWeightedNative (1.84s)
+=== RUN   TestReadmissionRefusesExistingAndAliasedOutputs
+--- PASS: TestReadmissionRefusesExistingAndAliasedOutputs (0.00s)
+=== RUN   TestReadmissionRawDuplicateBudget
+--- PASS: TestReadmissionRawDuplicateBudget (0.00s)
+PASS
+ok  	github.com/minz/minzc/cmd/import-enrt	1.846s
