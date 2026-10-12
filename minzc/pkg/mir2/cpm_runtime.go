@@ -217,7 +217,7 @@ func validateCPMRuntimeAssemblyTrusted(assembly string, guarded bool, adapters m
 				pc = code[pc].next
 			}
 			i, ok := code[pc]
-			if !ok || strings.Join(strings.Fields(strings.ToUpper(i.text)), "") != want {
+			if !ok || cpmBDOSInstruction(i.text) != want {
 				return fmt.Errorf("CP/M mutated BDOS adapter %s at %04x", name, pc)
 			}
 			if want == "CALL5" {
@@ -307,7 +307,7 @@ func validateCPMRuntimeAssemblyTrusted(assembly string, guarded bool, adapters m
 			}
 			parts := strings.Split(rest, ",")
 			name := strings.TrimSpace(parts[len(parts)-1])
-			if name == "5" && (trustedCalls[s.pc] || s.pc >= int(a.Symbols["__cpm_putchar"]) && s.pc < int(a.Symbols["__cpm_saved_sp"])) {
+			if cpmBDOSInstruction("CALL "+name) == "CALL5" && (trustedCalls[s.pc] || s.pc >= int(a.Symbols["__cpm_putchar"]) && s.pc < int(a.Symbols["__cpm_saved_sp"])) {
 				// Only the return word is application-owned; BDOS internal
 				// stack requirements remain an operating-system precondition.
 				if !guarded && s.depth+2 > 256 {
