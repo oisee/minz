@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/minz/minzc/pkg/vir"
 	"os"
 	"path/filepath"
 	"strings"
@@ -40,5 +41,30 @@ func TestReadmissionRawDuplicateBudget(t *testing.T) {
 	}
 	if _, err := os.Stat(output); !os.IsNotExist(err) {
 		t.Fatal("budget failure published output", err)
+	}
+}
+
+func TestReadmissionBoundsInputBytes(t *testing.T) {
+	dir := t.TempDir()
+	source, pool, output, evidence := filepath.Join(dir, "source"), filepath.Join(dir, "pool"), filepath.Join(dir, "out"), filepath.Join(dir, "evidence")
+	if err := os.WriteFile(source, []byte("fun main()->u8{return 1}"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	// A sparse file exercises a large input without allocating its full size.
+	f, err := os.Create(pool)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := f.Truncate(64 * vir.MaxLegacyCandidateBytes); err != nil {
+		t.Fatal(err)
+	}
+	if err := f.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := readmitFile(source, pool, output, evidence, "", 1); err == nil || !strings.Contains(err.Error(), "byte limit") {
+		t.Fatal("oversized input admitted", err)
+	}
+	if _, err := os.Stat(output); !os.IsNotExist(err) {
+		t.Fatal("oversize input published product", err)
 	}
 }

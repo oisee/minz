@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -36,9 +37,17 @@ func readmitFile(source, proposals, output, evidence, stdlib string, limit int) 
 	if err != nil {
 		return err
 	}
-	data, err := os.ReadFile(proposals)
+	input, err := os.Open(proposals)
 	if err != nil {
 		return err
+	}
+	data, err := io.ReadAll(io.LimitReader(input, vir.MaxLegacyCandidateBytes+1))
+	closeErr := input.Close()
+	if err != nil {
+		return err
+	}
+	if closeErr != nil {
+		return closeErr
 	}
 	// Bound raw entries before LoadJSON deduplicates signatures. Repeated keys
 	// must not bypass the user-visible proposal budget.
