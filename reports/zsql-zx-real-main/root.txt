@@ -1,0 +1,13 @@
+=== RUN   TestOriginalZSQLZXRealMainNative
+=== RUN   TestOriginalZSQLZXRealMainNative/ordinary
+    original_zsql_zx_real_main_test.go:294: 1127 312516 247 screen/SQL/full RAM PASS
+=== RUN   TestOriginalZSQLZXRealMainNative/grace-size
+    original_zsql_zx_real_main_test.go:294: 1127 312516 247 screen/SQL/full RAM PASS
+=== RUN   TestOriginalZSQLZXRealMainNative/grace-speed
+    original_zsql_zx_real_main_test.go:294: 1127 312516 247 screen/SQL/full RAM PASS
+--- PASS: TestOriginalZSQLZXRealMainNative (0.09s)
+    --- PASS: TestOriginalZSQLZXRealMainNative/ordinary (0.02s)
+    --- PASS: TestOriginalZSQLZXRealMainNative/grace-size (0.03s)
+    --- PASS: TestOriginalZSQLZXRealMainNative/grace-speed (0.03s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.096s

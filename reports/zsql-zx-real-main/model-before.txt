@@ -1,0 +1,14 @@
+=== RUN   TestOriginalZSQLZXRealMainNative
+=== RUN   TestOriginalZSQLZXRealMainNative/ordinary
+    original_zsql_zx_real_main_test.go:264: RAM 840d got 4f want 00
+=== RUN   TestOriginalZSQLZXRealMainNative/grace-size
+    original_zsql_zx_real_main_test.go:264: RAM 840d got 4f want 00
+=== RUN   TestOriginalZSQLZXRealMainNative/grace-speed
+    original_zsql_zx_real_main_test.go:264: RAM 840d got 4f want 00
+--- FAIL: TestOriginalZSQLZXRealMainNative (0.08s)
+    --- FAIL: TestOriginalZSQLZXRealMainNative/ordinary (0.02s)
+    --- FAIL: TestOriginalZSQLZXRealMainNative/grace-size (0.03s)
+    --- FAIL: TestOriginalZSQLZXRealMainNative/grace-speed (0.03s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.091s
+FAIL
