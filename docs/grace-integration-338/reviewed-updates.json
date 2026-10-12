@@ -278,7 +278,8 @@
     "independent_model": "n*(n+1)/2 modulo 256; VM/native baseline and chosen transformations",
     "boundary": "Named sum_array entry; original main not executed.",
     "evidence": {
-      "minzc/pkg/pipeline/profile_guided_sum_test.go": "ca2a7626529a0d93c4375d0da1a9a42a0336967cf8cc083f23410e0131e38a56"
+      "minzc/pkg/pipeline/profile_guided_sum_test.go": "17560fe13e05efe0aff46a07cb944b31f1d3cb159aad77566d9c3e333c27e80c",
+      "reports/profile-coalesced-edge-costs/root.txt": "7685133d9d5ccb2e269f3b444ec9dfe4be6d6977348fcffe4fae6766fe9a3eb1"
     }
   },
   {
@@ -622,7 +623,8 @@
     "independent_model": "Independent CP/M 53 OK LF output and persistent result54; PC/SP and stack guard",
     "boundary": "cmd/minzc TestCPMRuntimeOrdinaryCLI; native CALL5 hook only, no raw VM or actual OS claim",
     "evidence": {
-      "minzc/cmd/minzc/cpm_runtime_test.go": "90f494205cc5288a33645821d0382093637dfff7d0f4158a850cf01a39039048"
+      "minzc/cmd/minzc/cpm_runtime_test.go": "a0a5192dc3585760dd178c6167bd23fa2aaba513dabe538a1283b186a8acd7ec",
+      "reports/cli-checked-table-pin/gates.txt": "80d4cf030cfd5eb2cdac65dcbaed7ad0dc6806c7f6713b16659feb85ed943286"
     }
   },
   {

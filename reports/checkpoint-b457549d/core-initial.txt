@@ -1,0 +1,19 @@
+ok  	github.com/minz/minzc/pkg/hir	30.625s
+ok  	github.com/minz/minzc/pkg/mir2	71.560s
+score=65535 game=Game(7)
+[Z80-VALIDATE] set_border: 2 invalid instruction(s)
+  line 3: >>> LD A, col <<<
+--- FAIL: TestShowcaseExecutableOracleCatalog (2.01s)
+    showcase_oracle_catalog_test.go:226: reviewed evidence changed: minzc/pkg/pipeline/profile_guided_sum_test.go
+FAIL
+FAIL	github.com/minz/minzc/pkg/nanz	19.628s
+ok  	github.com/minz/minzc/pkg/lanz	0.024s
+ok  	github.com/minz/minzc/pkg/lizp	3.100s
+ok  	github.com/minz/minzc/pkg/plm	0.087s
+ok  	github.com/minz/minzc/pkg/pascal	0.062s
+ok  	github.com/minz/minzc/pkg/c89	6.022s
+ok  	github.com/minz/minzc/pkg/frill	0.212s
+ok  	github.com/minz/minzc/pkg/vir	2.437s
+ok  	github.com/minz/minzc/pkg/z80asm	0.151s
+ok  	github.com/minz/minzc/pkg/z80validate	0.021s
+FAIL

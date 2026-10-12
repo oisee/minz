@@ -1,0 +1,8 @@
+score=65535 game=Game(7)
+[Z80-VALIDATE] set_border: 2 invalid instruction(s)
+  line 3: >>> LD A, col <<<
+--- FAIL: TestShowcaseExecutableOracleCatalog (2.04s)
+    showcase_oracle_catalog_test.go:226: reviewed evidence changed: minzc/cmd/minzc/cpm_runtime_test.go
+FAIL
+FAIL	github.com/minz/minzc/pkg/nanz	17.388s
+FAIL

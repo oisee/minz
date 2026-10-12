@@ -2,7 +2,15 @@
   "files": [
     {
       "path": "README.md",
-      "sha256": "e60c7fc1cdc8e9f893bec82702b63ce9e2175cec006e12b05241aac4cccf4356"
+      "sha256": "0d6753f0be0b9a387118a4a907408548b4fb6a74ec5fa7325c8f67bf86a6bbfb"
+    },
+    {
+      "path": "core-initial.txt",
+      "sha256": "afe13489678f457390e888366f1d82e1d00e974aae433478b98febccc7d17598"
+    },
+    {
+      "path": "heldout-parser-hashmap.txt",
+      "sha256": "a91b16e0cc5539ff9bdbea9e853beaa3edb7f8508579fc1f85034669c10b4f0a"
     },
     {
       "path": "heldout-tables.txt",
@@ -11,6 +19,14 @@
     {
       "path": "jobs.json",
       "sha256": "884c991772390c7996fae961ee7d95d436f24ee970fe7b3555c85e04d1dcd52f"
+    },
+    {
+      "path": "nanz-final.txt",
+      "sha256": "e7dc04503bfca0938352341d1fc2135cd945a694a76e3dfd9a9c681d818d9103"
+    },
+    {
+      "path": "nanz-first-repair.txt",
+      "sha256": "4a64e733994b9d2fe9b848fa4895c7457c7cb45bc2aef792cc131b067edac78e"
     }
   ]
 }

@@ -1150,13 +1150,19 @@
       "reviewed_evidence": [
         {
           "test_or_artifact": "minzc/pkg/pipeline/profile_guided_sum_test.go::TestProfileGuidedSumVMZ80",
-          "evidence_file_sha256": "ca2a7626529a0d93c4375d0da1a9a42a0336967cf8cc083f23410e0131e38a56",
+          "evidence_file_sha256": "17560fe13e05efe0aff46a07cb944b31f1d3cb159aad77566d9c3e333c27e80c",
           "source_relation": "original functions; explicit driver/runtime where stated",
           "scope": "sum_array: lengths 0,1,5,16,64,255; ramp resource; Named sum_array entry; original main not executed."
         },
         {
           "test_or_artifact": "minzc/pkg/pipeline/profile_guided_sum_test.go",
-          "evidence_file_sha256": "ca2a7626529a0d93c4375d0da1a9a42a0336967cf8cc083f23410e0131e38a56",
+          "evidence_file_sha256": "17560fe13e05efe0aff46a07cb944b31f1d3cb159aad77566d9c3e333c27e80c",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "sum_array: lengths 0,1,5,16,64,255; ramp resource; Named sum_array entry; original main not executed."
+        },
+        {
+          "test_or_artifact": "reports/profile-coalesced-edge-costs/root.txt",
+          "evidence_file_sha256": "7685133d9d5ccb2e269f3b444ec9dfe4be6d6977348fcffe4fae6766fe9a3eb1",
           "source_relation": "reviewed exact-source root replay",
           "scope": "sum_array: lengths 0,1,5,16,64,255; ramp resource; Named sum_array entry; original main not executed."
         }
@@ -2541,19 +2547,25 @@
       "reviewed_evidence": [
         {
           "test_or_artifact": "minzc/cmd/minzc/cpm_runtime_test.go::TestCPMRuntimeOrdinaryCLI",
-          "evidence_file_sha256": "90f494205cc5288a33645821d0382093637dfff7d0f4158a850cf01a39039048",
+          "evidence_file_sha256": "a0a5192dc3585760dd178c6167bd23fa2aaba513dabe538a1283b186a8acd7ec",
           "source_relation": "exact original source through public CP/M CLI",
           "scope": "Whole linked COM output/result/registers/SP/guard checked by independent native CALL5 hook; VM not checked"
         },
         {
           "test_or_artifact": "minzc/cmd/minzc/cpm_runtime_test.go",
-          "evidence_file_sha256": "90f494205cc5288a33645821d0382093637dfff7d0f4158a850cf01a39039048",
+          "evidence_file_sha256": "a0a5192dc3585760dd178c6167bd23fa2aaba513dabe538a1283b186a8acd7ec",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Whole public CLI COM; BDOS2 output with primary-register corruption; cmd/minzc TestCPMRuntimeOrdinaryCLI; native CALL5 hook only, no raw VM or actual OS claim"
+        },
+        {
+          "test_or_artifact": "reports/cli-checked-table-pin/gates.txt",
+          "evidence_file_sha256": "80d4cf030cfd5eb2cdac65dcbaed7ad0dc6806c7f6713b16659feb85ed943286",
           "source_relation": "reviewed exact-source root replay",
           "scope": "Whole public CLI COM; BDOS2 output with primary-register corruption; cmd/minzc TestCPMRuntimeOrdinaryCLI; native CALL5 hook only, no raw VM or actual OS claim"
         }
       ],
       "test_source_references_not_execution_claim": [
-        "minzc/cmd/minzc/cpm_runtime_test.go:20"
+        "minzc/cmd/minzc/cpm_runtime_test.go:21"
       ]
     },
     {
@@ -3362,7 +3374,7 @@
         "minzc/cmd/minzc/hir_profile_modes_replay_test.go:222",
         "minzc/cmd/minzc/hir_profile_modes_replay_test.go:25",
         "minzc/cmd/minzc/hir_profile_modes_replay_test.go:82",
-        "minzc/cmd/minzc/hir_profile_modes_test.go:61",
+        "minzc/cmd/minzc/hir_profile_modes_test.go:65",
         "minzc/pkg/pipeline/pfcco_native_workload_test.go:18",
         "minzc/pkg/pipeline/pfcco_prospective_heldout_test.go:18"
       ]
