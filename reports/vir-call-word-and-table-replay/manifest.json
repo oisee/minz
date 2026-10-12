@@ -1,0 +1,32 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "cf10619116dea1177aba6d8ee6c2f666dc30e1d981a2e7458599b8c222cc32cc"
+    },
+    {
+      "path": "call.a80",
+      "sha256": "df49db1a0c3c9ee54f4c0250ca2abd642590046b1d9858995e1b42e8867ef024"
+    },
+    {
+      "path": "call.bin",
+      "sha256": "c86e3f0b6c9ef6527f42e3dd5d0f68878d5783be3dcb6c9a886b9af2df0e5074"
+    },
+    {
+      "path": "combined-with-solver.txt",
+      "sha256": "27672d048982d13df2de4abdacc8a32cdab9952c01a715a9b86781d71691bc4f"
+    },
+    {
+      "path": "corpus-retention.json",
+      "sha256": "da62dbf61363e0f3b3c1b9df20fc41f10ee1aaf42fe48ad6f0cd33fa6a43484a"
+    },
+    {
+      "path": "native.txt",
+      "sha256": "399307c1b170f9bdc8c81a820523dd4774242aaf72c9417f85ba03c2f246f715"
+    },
+    {
+      "path": "readmission.txt",
+      "sha256": "03e9cdf9b51e77dcd03824218457999f6f1bd684e96a92b2d25e0ebe75d8f8cc"
+    }
+  ]
+}

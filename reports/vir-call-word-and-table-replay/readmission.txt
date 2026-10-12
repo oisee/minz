@@ -1,0 +1,39 @@
+=== RUN   TestModuleTableReadmissionWithoutSolver
+    checked_local_readmission_test.go:40: [left_sum: skipped: local table requires single-result leaf block right_sum: skipped: local table requires single-result leaf block caller: skipped: invalid or duplicate contract parameter add5: 1 admitted proposals main: 0 admitted proposals]
+--- PASS: TestModuleTableReadmissionWithoutSolver (0.63s)
+=== RUN   TestSavedWeightedTableReadmissionNativeCaller
+    checked_local_readmission_weighted_test.go:12: saved proposal without solver: module 44 -> 20 B; all256caller 60928 -> 36352 T; [weighted: 1 admitted proposals weighted_caller: skipped: unsupported local opcode call]
+--- PASS: TestSavedWeightedTableReadmissionNativeCaller (0.45s)
+=== RUN   TestSavedWeightedReadmissionContractGraceMatrix
+=== RUN   TestSavedWeightedReadmissionContractGraceMatrix/off/plain
+    checked_local_readmission_weighted_test.go:27: saved proposal without solver: module 44 -> 20 B; all256caller 60928 -> 36352 T; [weighted: 1 admitted proposals weighted_caller: skipped: unsupported local opcode call]
+=== RUN   TestSavedWeightedReadmissionContractGraceMatrix/off/grace
+    checked_local_readmission_weighted_test.go:27: saved proposal without solver: module 44 -> 20 B; all256caller 60928 -> 36352 T; [weighted: 1 admitted proposals weighted_caller: skipped: unsupported local opcode call]
+=== RUN   TestSavedWeightedReadmissionContractGraceMatrix/greedy/plain
+    checked_local_readmission_weighted_test.go:27: saved proposal without solver: module 44 -> 20 B; all256caller 60928 -> 36352 T; [weighted: 1 admitted proposals weighted_caller: skipped: unsupported local opcode call]
+=== RUN   TestSavedWeightedReadmissionContractGraceMatrix/greedy/grace
+    checked_local_readmission_weighted_test.go:27: saved proposal without solver: module 44 -> 20 B; all256caller 60928 -> 36352 T; [weighted: 1 admitted proposals weighted_caller: skipped: unsupported local opcode call]
+=== RUN   TestSavedWeightedReadmissionContractGraceMatrix/pbqp/plain
+    checked_local_readmission_weighted_test.go:27: saved proposal without solver: module 44 -> 20 B; all256caller 60928 -> 36352 T; [weighted: 1 admitted proposals weighted_caller: skipped: unsupported local opcode call]
+=== RUN   TestSavedWeightedReadmissionContractGraceMatrix/pbqp/grace
+    checked_local_readmission_weighted_test.go:27: saved proposal without solver: module 44 -> 20 B; all256caller 60928 -> 36352 T; [weighted: 1 admitted proposals weighted_caller: skipped: unsupported local opcode call]
+--- PASS: TestSavedWeightedReadmissionContractGraceMatrix (2.78s)
+    --- PASS: TestSavedWeightedReadmissionContractGraceMatrix/off/plain (0.46s)
+    --- PASS: TestSavedWeightedReadmissionContractGraceMatrix/off/grace (0.46s)
+    --- PASS: TestSavedWeightedReadmissionContractGraceMatrix/greedy/plain (0.46s)
+    --- PASS: TestSavedWeightedReadmissionContractGraceMatrix/greedy/grace (0.46s)
+    --- PASS: TestSavedWeightedReadmissionContractGraceMatrix/pbqp/plain (0.46s)
+    --- PASS: TestSavedWeightedReadmissionContractGraceMatrix/pbqp/grace (0.47s)
+=== RUN   TestCheckedLocalTableOrdinaryHIRSelectsSmallerNativeFunction
+    checked_local_tables_test.go:110: ordinary add5 all 256 byte inputs: module 8→6 bytes fixture 56→49 T; result/SP pass
+--- PASS: TestCheckedLocalTableOrdinaryHIRSelectsSmallerNativeFunction (0.07s)
+=== RUN   TestCheckedLocalTableTamperFallsBackAndProfileRefuses
+--- PASS: TestCheckedLocalTableTamperFallsBackAndProfileRefuses (0.00s)
+=== RUN   TestCheckedTableModuleRelocationRequiresReadmission
+    checked_table_module_rebind_test.go:150: vregs [1 3 4] -> [43 45 46]; readmitted cost 17; native all 256 inputs PASS
+--- PASS: TestCheckedTableModuleRelocationRequiresReadmission (0.64s)
+=== RUN   TestCombinedContractTableGraceNative
+    combined_contract_table_grace_test.go:18: set VIR_TEST_Z3 for offline local solver integration
+--- SKIP: TestCombinedContractTableGraceNative (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.582s

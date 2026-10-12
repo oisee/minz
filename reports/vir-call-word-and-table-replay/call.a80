@@ -1,0 +1,16 @@
+ORG 0x8000
+probe:
+
+
+PUSH IX
+    PUSH IY
+    CALL clobber
+    POP IY
+    POP IX
+
+
+RET
+clobber:
+LD IX,0x1357
+LD IY,0x2468
+RET

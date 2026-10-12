@@ -1,0 +1,5 @@
+=== RUN   TestIndexCallPreservationFullWordNative
+    index_call_preservation_test.go:68: 65536 native calls preserve both full index words, exact PC/SP, despite callee overwrites
+--- PASS: TestIndexCallPreservationFullWordNative (0.03s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.037s
