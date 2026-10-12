@@ -1,0 +1,47 @@
+=== RUN   TestCheckedExistingFunctionPointerLeaf
+    checked_table_practical_audit_test.go:44: [double: skipped: checked local table does not model the canonical indirect entry bridge triple: skipped: checked local table does not model the canonical indirect entry bridge apply: skipped: invalid or duplicate contract parameter test_apply_double: skipped: hard class or invalid local definition unsupported test_apply_triple: skipped: hard class or invalid local definition unsupported]
+--- FAIL: TestCheckedExistingFunctionPointerLeaf (0.01s)
+=== RUN   TestCheckedExistingHash16Native
+    checked_word_xor_test.go:105: unchanged hash16 all65536 VM/native PASS; 55T including RET; module987B ABIDE→HL
+    checked_word_xor_test.go:117: existing caller test_put_get native3692T result1 SP=f000
+    checked_word_xor_test.go:117: existing caller test_missing native1955T result1 SP=f000
+    checked_word_xor_test.go:117: existing caller test_overwrite native4768T result1 SP=f000
+    checked_word_xor_test.go:117: existing caller test_two_keys native5871T result1 SP=f000
+    checked_word_xor_test.go:117: existing caller test_has native4209T result1 SP=f000
+    checked_word_xor_test.go:117: existing caller test_count native5027T result1 SP=f000
+    checked_word_xor_test.go:117: existing caller test_zero_key native3704T result1 SP=f000
+    checked_word_xor_test.go:117: existing caller test_many native17884T result1 SP=f000
+--- PASS: TestCheckedExistingHash16Native (0.16s)
+=== RUN   TestCheckedExistingHash16GenerationEvidence
+    checked_word_xor_test.go:166: generation notes=[rd16: skipped: invalid or duplicate contract parameter wr16: skipped: local table requires single-result leaf block hash16: rejected: no pattern for local op 2 map_clear: skipped: local table requires single-result leaf block map_put: skipped: local table requires single-result leaf block map_get: skipped: local table requires single-result leaf block map_has: skipped: local table requires single-result leaf block test_put_get: skipped: local table requires single-result leaf block test_missing: skipped: local table requires single-result leaf block test_overwrite: skipped: local table requires single-result leaf block test_two_keys: skipped: local table requires single-result leaf block test_has: skipped: local table requires single-result leaf block test_count: skipped: local table requires single-result leaf block test_zero_key: skipped: local table requires single-result leaf block test_many: skipped: local table requires single-result leaf block]; table0entries; module987→987B; hash16backendPBQP
+--- PASS: TestCheckedExistingHash16GenerationEvidence (0.14s)
+=== RUN   TestCombinedContractTableGraceNative
+    combined_contract_table_grace_test.go:98: mode=off grace=false table=false fullBIN=44 helper256=46592T caller256=60928T entries=1
+    combined_contract_table_grace_test.go:98: mode=off grace=false table=true fullBIN=20 helper256=22016T caller256=36352T entries=1
+    combined_contract_table_grace_test.go:98: mode=off grace=true table=false fullBIN=44 helper256=46592T caller256=60928T entries=1
+    combined_contract_table_grace_test.go:98: mode=off grace=true table=true fullBIN=20 helper256=22016T caller256=36352T entries=1
+    combined_contract_table_grace_test.go:98: mode=greedy grace=false table=false fullBIN=44 helper256=46592T caller256=60928T entries=1
+    combined_contract_table_grace_test.go:98: mode=greedy grace=false table=true fullBIN=20 helper256=22016T caller256=36352T entries=1
+    combined_contract_table_grace_test.go:98: mode=greedy grace=true table=false fullBIN=44 helper256=46592T caller256=60928T entries=1
+    combined_contract_table_grace_test.go:98: mode=greedy grace=true table=true fullBIN=20 helper256=22016T caller256=36352T entries=1
+    combined_contract_table_grace_test.go:98: mode=pbqp grace=false table=false fullBIN=44 helper256=46592T caller256=60928T entries=1
+    combined_contract_table_grace_test.go:98: mode=pbqp grace=false table=true fullBIN=20 helper256=22016T caller256=36352T entries=1
+    combined_contract_table_grace_test.go:98: mode=pbqp grace=true table=false fullBIN=44 helper256=46592T caller256=60928T entries=1
+    combined_contract_table_grace_test.go:98: mode=pbqp grace=true table=true fullBIN=20 helper256=22016T caller256=36352T entries=1
+--- PASS: TestCombinedContractTableGraceNative (5.80s)
+=== RUN   TestPFCCOMeasuredNativePacket
+    pfcco_native_workload_test.go:150: off: 8857T/52B choices=map[]
+    pfcco_native_workload_test.go:150: greedy: 7888T/52B choices=map[displacement:0x238cbc7958c0 weighted_packet:0x238cbc7958f0]
+    pfcco_native_workload_test.go:150: pbqp: 7888T/52B choices=map[displacement:0x238cbc7c81b0 weighted_packet:0x238cbc7c8210]
+    pfcco_native_workload_test.go:152: independent displacement arithmetic and global state verified
+--- PASS: TestPFCCOMeasuredNativePacket (0.09s)
+=== RUN   TestPFCCOOriginalTokenizerRenderingConsumer
+    pfcco_tokenizer_consumer_test.go:217: strategy"" input0 init15790T tokenizer138371T render21896T count12 stdout"var id = num if true { return id + num } "
+    pfcco_tokenizer_consumer_test.go:217: strategy"" input1 init15790T tokenizer131639T render18512T count11 stdout"id id id + num  num  num  str "
+    pfcco_tokenizer_consumer_test.go:217: strategy"pbqp" input0 init17488T tokenizer138371T render21896T count12 stdout"var id = num if true { return id + num } "
+    pfcco_tokenizer_consumer_test.go:217: strategy"pbqp" input1 init17488T tokenizer131639T render18512T count11 stdout"id id id + num  num  num  str "
+    pfcco_tokenizer_consumer_test.go:240: no size gain [5465 5683]
+--- FAIL: TestPFCCOOriginalTokenizerRenderingConsumer (1.53s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	7.730s
+FAIL

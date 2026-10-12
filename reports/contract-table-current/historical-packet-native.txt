@@ -1,0 +1,9 @@
+=== RUN   TestCompileHIRStepsRespectsContractOption
+--- PASS: TestCompileHIRStepsRespectsContractOption (0.01s)
+=== RUN   TestPFCCOMeasuredNativePacket
+    pfcco_native_workload_test.go:170: off: 8857T/52B choices=map[]
+    pfcco_native_workload_test.go:170: greedy: 7888T/52B choices=map[displacement:0x726587b02a0 weighted_packet:0x726587b02d0]
+    pfcco_native_workload_test.go:170: pbqp: 7888T/52B choices=map[displacement:0x726588353e0 weighted_packet:0x72658835620]
+    pfcco_native_workload_test.go:172: independent displacement arithmetic and global state verified
+--- PASS: TestPFCCOMeasuredNativePacket (0.09s)
+PASS

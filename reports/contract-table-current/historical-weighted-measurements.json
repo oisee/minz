@@ -1,0 +1,158 @@
+[
+  {
+    "Mode": "off",
+    "Grace": false,
+    "Table": false,
+    "Bytes": 44,
+    "HelperT": 46592,
+    "CallerT": 60928,
+    "TableEntries": 1,
+    "Notes": [
+      "weighted: admitted",
+      "weighted_caller: skipped: unsupported local opcode call"
+    ]
+  },
+  {
+    "Mode": "off",
+    "Grace": false,
+    "Table": true,
+    "Bytes": 20,
+    "HelperT": 22016,
+    "CallerT": 36352,
+    "TableEntries": 1,
+    "Notes": [
+      "weighted: admitted",
+      "weighted_caller: skipped: unsupported local opcode call"
+    ]
+  },
+  {
+    "Mode": "off",
+    "Grace": true,
+    "Table": false,
+    "Bytes": 44,
+    "HelperT": 46592,
+    "CallerT": 60928,
+    "TableEntries": 1,
+    "Notes": [
+      "weighted: admitted",
+      "weighted_caller: skipped: unsupported local opcode call"
+    ]
+  },
+  {
+    "Mode": "off",
+    "Grace": true,
+    "Table": true,
+    "Bytes": 20,
+    "HelperT": 22016,
+    "CallerT": 36352,
+    "TableEntries": 1,
+    "Notes": [
+      "weighted: admitted",
+      "weighted_caller: skipped: unsupported local opcode call"
+    ]
+  },
+  {
+    "Mode": "greedy",
+    "Grace": false,
+    "Table": false,
+    "Bytes": 44,
+    "HelperT": 46592,
+    "CallerT": 60928,
+    "TableEntries": 1,
+    "Notes": [
+      "weighted: admitted",
+      "weighted_caller: skipped: unsupported local opcode call"
+    ]
+  },
+  {
+    "Mode": "greedy",
+    "Grace": false,
+    "Table": true,
+    "Bytes": 20,
+    "HelperT": 22016,
+    "CallerT": 36352,
+    "TableEntries": 1,
+    "Notes": [
+      "weighted: admitted",
+      "weighted_caller: skipped: unsupported local opcode call"
+    ]
+  },
+  {
+    "Mode": "greedy",
+    "Grace": true,
+    "Table": false,
+    "Bytes": 44,
+    "HelperT": 46592,
+    "CallerT": 60928,
+    "TableEntries": 1,
+    "Notes": [
+      "weighted: admitted",
+      "weighted_caller: skipped: unsupported local opcode call"
+    ]
+  },
+  {
+    "Mode": "greedy",
+    "Grace": true,
+    "Table": true,
+    "Bytes": 20,
+    "HelperT": 22016,
+    "CallerT": 36352,
+    "TableEntries": 1,
+    "Notes": [
+      "weighted: admitted",
+      "weighted_caller: skipped: unsupported local opcode call"
+    ]
+  },
+  {
+    "Mode": "pbqp",
+    "Grace": false,
+    "Table": false,
+    "Bytes": 44,
+    "HelperT": 46592,
+    "CallerT": 60928,
+    "TableEntries": 1,
+    "Notes": [
+      "weighted: admitted",
+      "weighted_caller: skipped: unsupported local opcode call"
+    ]
+  },
+  {
+    "Mode": "pbqp",
+    "Grace": false,
+    "Table": true,
+    "Bytes": 20,
+    "HelperT": 22016,
+    "CallerT": 36352,
+    "TableEntries": 1,
+    "Notes": [
+      "weighted: admitted",
+      "weighted_caller: skipped: unsupported local opcode call"
+    ]
+  },
+  {
+    "Mode": "pbqp",
+    "Grace": true,
+    "Table": false,
+    "Bytes": 44,
+    "HelperT": 46592,
+    "CallerT": 60928,
+    "TableEntries": 1,
+    "Notes": [
+      "weighted: admitted",
+      "weighted_caller: skipped: unsupported local opcode call"
+    ]
+  },
+  {
+    "Mode": "pbqp",
+    "Grace": true,
+    "Table": true,
+    "Bytes": 20,
+    "HelperT": 22016,
+    "CallerT": 36352,
+    "TableEntries": 1,
+    "Notes": [
+      "weighted: admitted",
+      "weighted_caller: skipped: unsupported local opcode call"
+    ]
+  }
+]
