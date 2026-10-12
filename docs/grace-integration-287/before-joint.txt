@@ -1,0 +1,44 @@
+=== RUN   TestPublicCPMTetrisNative
+    cpm_tetris_native_test.go:256: ordinary public runtime exact stdout/state/OSreturn/SP PASS
+    cpm_tetris_native_test.go:256: grace-size public runtime exact stdout/state/OSreturn/SP PASS
+    cpm_tetris_native_test.go:256: grace-speed public runtime exact stdout/state/OSreturn/SP PASS
+--- PASS: TestPublicCPMTetrisNative (1.99s)
+=== RUN   TestIRCMinimalWholeMain
+=== RUN   TestIRCMinimalWholeMain/ordinary
+    irc_minimal_main_test.go:176: whole main 253 B 109087 T,500 reads,36 wire,384 stdout,PC7003/SPf000
+=== RUN   TestIRCMinimalWholeMain/grace-size
+    irc_minimal_main_test.go:176: whole main 253 B 109087 T,500 reads,36 wire,384 stdout,PC7003/SPf000
+=== RUN   TestIRCMinimalWholeMain/grace-speed
+    irc_minimal_main_test.go:176: whole main 253 B 109087 T,500 reads,36 wire,384 stdout,PC7003/SPf000
+--- PASS: TestIRCMinimalWholeMain (0.06s)
+    --- PASS: TestIRCMinimalWholeMain/ordinary (0.02s)
+    --- PASS: TestIRCMinimalWholeMain/grace-size (0.02s)
+    --- PASS: TestIRCMinimalWholeMain/grace-speed (0.02s)
+=== RUN   TestOriginalCPMScreenMain
+    original_cpm_screen_main_test.go:286: tui_cpm/ordinary wholemain PASS
+    original_cpm_screen_main_test.go:286: tui_cpm/grace-size wholemain PASS
+    original_cpm_screen_main_test.go:286: tui_cpm/grace-speed wholemain PASS
+    original_cpm_screen_main_test.go:286: meta_screen/ordinary wholemain PASS
+    original_cpm_screen_main_test.go:286: meta_screen/grace-size wholemain PASS
+    original_cpm_screen_main_test.go:286: meta_screen/grace-speed wholemain PASS
+--- PASS: TestOriginalCPMScreenMain (0.24s)
+=== RUN   TestOriginalTerminalScreenWholeMain
+    original_terminal_screen_main_test.go:547: ordinary raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:547: grace-size raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:547: grace-speed raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:547: ordinary raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:547: grace-size raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:547: grace-speed raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:547: ordinary raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:547: grace-size raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:547: grace-speed raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:547: ordinary raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:547: grace-size raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:547: grace-speed raw/finalVM+native wholemain PASS
+--- PASS: TestOriginalTerminalScreenWholeMain (1.20s)
+=== RUN   TestSQLiteOriginalWholeMain
+    sqlite_whole_main_test.go:199: freeze minzc/cmd/mzx/sqlite_ports.go
+--- FAIL: TestSQLiteOriginalWholeMain (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	3.504s
+FAIL

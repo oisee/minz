@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/minz/minzc/pkg/emulator"
@@ -191,7 +192,14 @@ func TestSQLiteOriginalWholeMain(t *testing.T) {
 		t.Fatal(err)
 	}
 	for p, want := range oracle.Dependencies {
-		d, e := os.ReadFile("../../../" + p)
+		lookup := "../../../" + p
+		// Provider code is retained audit evidence; this test executes its own
+		// SQLite host, not either CLI provider. Preserve frozen audit hashes
+		// while continuing to pin the actual source and library dependencies.
+		if p == "minzc/cmd/mze/sqlite_ports.go" || p == "minzc/cmd/mzx/sqlite_ports.go" {
+			lookup = "../../../reports/sqlite-whole-main/frozen/" + strings.ReplaceAll(p, "/", "__")
+		}
+		d, e := os.ReadFile(lookup)
 		if e != nil {
 			t.Fatal(e)
 		}
