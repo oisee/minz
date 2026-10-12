@@ -1,0 +1,7 @@
+# Per-instruction hints and CFG admission
+
+The per-instruction SMT generator emitted hard DstHint assertions inside the integer cost expression. Collect and emit them after closing the cost expression, as already done for source hints. Exit-location tests now retain destination hints for both global and per-instruction solvers and independently execute the assembled output (A=37, exact PC/SP).
+
+Making SMT valid exposed unsound fallback results: count5=0 instead5 and gcd(12,8)=0 instead4. The whole-function linear fallback flattens multiple blocks without PHI/back-edge constraints. The multi-block island fallback likewise solves disconnected schedules without edge contracts; blocking only the first path still admitted count5. Both now require a single block. Multiple-block functions continue through the genuine CFG solver or existing production MIR2 fallback; research support is not certified merely by a satisfiable linear model. This admission fix does not implement missing multi-block island contracts, which remain work toward a broader VIR backend.
+
+Broad native assert/codegen/table/indexed/island/word-return family PASS6.363s; focused contract tests PASS0.038s. Permanent regression rejects both unsupported CFG emissions, and the existing count5/GCD VM+Z80 tests confirm fallback behavior. Original inputs and expected values unchanged. Earlier full VIR immutable index-alias checkpoint and production cbf01110 still run separately; neither covers these later changes.

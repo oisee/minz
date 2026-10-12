@@ -25,11 +25,6 @@ func TestIslandSolverRetainsExitLocations(t *testing.T) {
 	}{{"global", Solve}, {"per instruction", solvePerInstruction}} {
 		t.Run(solve.name, func(t *testing.T) {
 			input := append([]VIROp(nil), ops...)
-			if solve.name == "per instruction" {
-				for i := range input {
-					input[i].DstHint = 0
-				}
-			}
 			pir, err := solve.fn(input, Z80, SolverOptions{Z3Path: "z3", Timeout: 30 * time.Second})
 			if err != nil || len(pir) == 0 {
 				t.Fatalf("solve: %v", err)
@@ -41,6 +36,32 @@ func TestIslandSolverRetainsExitLocations(t *testing.T) {
 			if solve.name == "global" && exit[1] != Z80.LocByName("DE") {
 				t.Fatalf("word placement lost: %v", exit)
 			}
+			var asm strings.Builder
+			asm.WriteString("ORG 0x8000\n")
+			for _, op := range pir {
+				asm.WriteString(op.Emit(Z80) + "\n")
+			}
+			asm.WriteString("RET\n")
+			ar, err := z80asm.NewAssembler().AssembleString(asm.String())
+			if err != nil || len(ar.Errors) > 0 {
+				t.Fatalf("assembly: %v %v", err, ar.Errors)
+			}
+			z := emulator.NewRemogattoZ80()
+			if err := z.LoadMemory(0x8000, ar.Binary); err != nil {
+				t.Fatal(err)
+			}
+			if err := z.LoadMemory(0xeffe, []byte{0, 0xf1}); err != nil {
+				t.Fatal(err)
+			}
+			z.SetRegisters(emulator.Registers{PC: 0x8000, SP: 0xeffe})
+			for i := 0; i < 100 && z.GetRegisters().PC != 0xf100; i++ {
+				z.Step()
+			}
+			r := z.GetRegisters()
+			if r.A != 37 || r.PC != 0xf100 || r.SP != 0xf000 {
+				t.Fatalf("native hinted result: %+v", r)
+			}
+
 		})
 	}
 }

@@ -1,0 +1,35 @@
+; MIR2 module: for_call_loop_regression.nanz
+global @acc : u8
+
+fun @bump(%r1: u8 [acc])
+  block @entry:
+    %r2 = addr_of @acc : ptr [pointer]
+    %r3 = load %r2 : u8 [general]
+    %r4 = add %r3, %r1 : u8 [acc]
+    %r5 = addr_of @acc : ptr [pointer]
+    store %r5, %r4 : u8
+    ret void
+
+fun @count5() -> u8 [acc]
+  block @entry:
+    %r6 = const 0 : u8 [general]
+    %r7 = addr_of @acc : ptr [pointer]
+    store %r7, %r6 : u8
+    %r8 = const 0 : u8 [general]
+    %r9 = const 5 : u8 [general]
+    jmp @loop_head2(%r9, %r8)
+  block @loop_head2(%r10: u8 [general], %r11: u8 [general]):
+    %r12 = cmp.ult %r11, %r10 : bool [flag]
+    br_if %r12, @loop_body3(), @loop_exit4(%r10, %r11)
+  block @loop_body3:
+    %r13 = const 1 : u8 [general]
+    %r14 = move %r13 : u8 [acc]
+    call @bump(%r14)
+    %r15 = const 1 : u8 [general]
+    %r16 = add %r11, %r15 : u8 [general]
+    jmp @loop_head2(%r10, %r16)
+  block @loop_exit4(%r17: u8 [general], %r18: u8 [general]):
+    %r19 = addr_of @acc : ptr [pointer]
+    %r20 = load %r19 : u8 [general]
+    ret %r20
+

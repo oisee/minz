@@ -1,0 +1,16 @@
+
+global acc: u8 = 0
+
+fun bump(v: u8) -> void {
+    acc = acc + v
+}
+
+fun count5() -> u8 {
+    acc = 0
+    for i in 0..5 {
+        bump(1)
+    }
+    return acc
+}
+
+assert count5() == 5

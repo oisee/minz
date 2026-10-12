@@ -1488,6 +1488,13 @@ func codegenFuncCFGFull(f *mir2.Func, vf *Func, desc *MachineDesc, opts SolverOp
 // codegenFuncWhole solves ALL blocks of a function in one Z3 query.
 // Cross-block register state is handled automatically via per-instruction variables.
 func codegenFuncWhole(f *mir2.Func, vf *Func, desc *MachineDesc, opts SolverOptions) (string, error) {
+	// A linear solver has no edge/PHI or back-edge location constraints.
+	// Successful SMT for a flattened CFG therefore does not prove valid code.
+	// Multi-block functions must use the CFG solver; its failure is propagated
+	// to the existing MIR2 backend fallback, rather than emitting this model.
+	if len(f.Blocks) > 1 {
+		return "", fmt.Errorf("linear solver cannot establish CFG contracts for %d blocks", len(f.Blocks))
+	}
 	// Flatten all blocks into one VIROp sequence, tracking block boundaries
 	var allOps []VIROp
 	type blockRange struct {
@@ -1690,6 +1697,11 @@ type islandRange struct {
 }
 
 func codegenFuncIslands(f *mir2.Func, vf *Func, desc *MachineDesc, opts SolverOptions) (string, error) {
+	// Current island contracts cover a split within one block. Independently
+	// solved schedules cannot establish PHI/back-edge contracts across blocks.
+	if len(f.Blocks) > 1 {
+		return "", fmt.Errorf("island solver lacks CFG edge contracts for %d blocks", len(f.Blocks))
+	}
 	// Flatten all blocks into one sequence
 	var allOps []VIROp
 	var ranges []islandRange

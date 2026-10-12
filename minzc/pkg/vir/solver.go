@@ -1854,12 +1854,13 @@ func generateSMTPerInst(p *problem) string {
 	// Per-instruction solver can move the vreg to a different register
 	// at later instructions (paying 4T move cost). But at entry, the
 	// vreg MUST be in the ABI register for caller compatibility.
+	var hardDstHints []string
 	paramHardDone := make(map[int]bool)
 	for i, op := range p.ops {
 		if op.Dst > 0 && !op.DstHint.IsEmpty() && !paramHardDone[op.Dst] {
 			if _, ok := vars[vregAtInst{op.Dst, i}]; ok {
 				c := locSetToSMT(fmt.Sprintf("lv%d_i%d", op.Dst, i), op.DstHint)
-				b.WriteString(fmt.Sprintf("(assert %s) ; hard param at i%d\n", c, i))
+				hardDstHints = append(hardDstHints, fmt.Sprintf("(assert %s) ; hard param at i%d\n", c, i))
 				paramHardDone[op.Dst] = true
 			}
 		}
@@ -1929,6 +1930,10 @@ func generateSMTPerInst(p *problem) string {
 	}
 
 	b.WriteString(")))\n") // close cost expression
+
+	for _, h := range hardDstHints {
+		b.WriteString(h)
+	}
 
 	// Emit hard SrcHint constraints (collected above, outside cost ITE)
 	for _, h := range hardSrcHints {
