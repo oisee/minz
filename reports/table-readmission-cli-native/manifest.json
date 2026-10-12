@@ -1,0 +1,6 @@
+{
+  "reports/table-readmission-cli-native/pass.txt": "fdaf3f87f7e17b84f5acd401b545d514334656014de700acbd3decf9a3af6630",
+  "reports/table-readmission-cli-native/harness-before.txt": "b6e7c415e1c6ab0d014cf4313a5b47bd27e4ec8665c1645889acaad25d11ecdd",
+  "reports/table-readmission-cli-native/README.md": "09285b8de0646bc4b517a904153bf75cc5432cd40875130312573bda6ef5289a",
+  "minzc/cmd/import-enrt/readmission_native_test.go": "540664d02be4c6198c570fcf537c2023166333e4dc9c75bc7596852da65d66a9"
+}

@@ -1,0 +1,8 @@
+=== RUN   TestReadmissionCLIWeightedNative
+    readmission_native_test.go:71: 1 {1 0 0 0 0 0 0 61440 61701}
+--- FAIL: TestReadmissionCLIWeightedNative (1.59s)
+=== RUN   TestReadmissionRefusesExistingAndAliasedOutputs
+--- PASS: TestReadmissionRefusesExistingAndAliasedOutputs (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/cmd/import-enrt	1.601s
+FAIL
