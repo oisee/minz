@@ -1,0 +1,13 @@
+{
+  "code_checkpoint": "2a3f6662",
+  "metadata_registry_file_sha256": "81baf4bc8f515414d7f5534b55a73153b37f470d5bb28ff8e46538a3cb9628b1",
+  "original_running_executable": "/tmp/go-build4219809230/b001/minzc.test",
+  "retained_executable": "/home/alice/dev/minz-artifacts/grace-checkpoints/cli-2a3f6662-current.test",
+  "sha256": "41334b7cc5ba4d5f50edea36a05d6bd5c713d6546d278d62432fd32056572f76",
+  "session_id": 31257,
+  "pid": 2481516,
+  "state": "confirmed live, terminal pending",
+  "command": "go test ./cmd/minzc -count=1 -timeout=30m",
+  "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc",
+  "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/cli-2a3f6662-current.txt"
+}
