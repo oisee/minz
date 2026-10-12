@@ -1,0 +1,146 @@
+diff --git a/minzc/pkg/vir/pipeline.go b/minzc/pkg/vir/pipeline.go
+index 4d08eb43..7f1a637f 100644
+--- a/minzc/pkg/vir/pipeline.go
++++ b/minzc/pkg/vir/pipeline.go
+@@ -955,7 +955,7 @@ func resolveParallelMoves(moves []adapterMove, desc *MachineDesc) []string {
+ 			// Check: is mv.toPhys used as source by any un-emitted move?
+ 			blocked := false
+ 			for j, other := range moves {
+-				if j != i && !emitted[j] && other.fromPhys == mv.toPhys {
++				if j != i && !emitted[j] && locsOverlap(desc, mv.toPhys, other.fromPhys) {
+ 					blocked = true
+ 					break
+ 				}
+@@ -968,69 +968,79 @@ func resolveParallelMoves(moves []adapterMove, desc *MachineDesc) []string {
+ 		}
+ 	}
+ 
+-	// Any remaining moves form cycles — break with EX DE,HL or PUSH/POP
++	// Break cycles using a register whose complete saved pair is outside all
++	// source/destination locations. Preserve that scratch pair for the caller.
++	pending := []adapterMove{}
+ 	for i, mv := range moves {
+-		if emitted[i] {
+-			continue
++		if !emitted[i] {
++			pending = append(pending, mv)
+ 		}
+-		from := desc.Locs[mv.fromPhys]
+-		to := desc.Locs[mv.toPhys]
+-		// Try EX DE,HL for DE↔HL swap
+-		if (from.Name == "D" || from.Name == "E" || from.Name == "H" || from.Name == "L") &&
+-			(to.Name == "D" || to.Name == "E" || to.Name == "H" || to.Name == "L") {
+-			result = append(result, "EX DE, HL")
+-			// Mark all DE↔HL moves as done
+-			for j, other := range moves {
+-				if !emitted[j] {
+-					of := desc.Locs[other.fromPhys].Name
+-					ot := desc.Locs[other.toPhys].Name
+-					if (of == "D" || of == "E" || of == "H" || of == "L") &&
+-						(ot == "D" || ot == "E" || ot == "H" || ot == "L") {
+-						emitted[j] = true
+-					}
++	}
++	for len(pending) > 0 {
++		progress := false
++		for i, mv := range pending {
++			blocked := false
++			for j, other := range pending {
++				if j != i && locsOverlap(desc, mv.toPhys, other.fromPhys) {
++					blocked = true
++					break
+ 				}
+ 			}
+-		} else {
+-			// Generic cycle break for 2-element cycle (swap):
+-			// Find the OTHER move in the cycle, emit as 3-move swap via temp.
+-			// For A↔C: LD B,A / LD A,C / LD C,B (using B as temp)
+-			var partner int = -1
+-			for j, other := range moves {
+-				if !emitted[j] && j != i && other.toPhys == mv.fromPhys {
+-					partner = j
++			if !blocked {
++				result = append(result, emitRegMove(desc.Locs[mv.fromPhys], desc.Locs[mv.toPhys])...)
++				pending = append(pending[:i], pending[i+1:]...)
++				progress = true
++				break
++			}
++		}
++		if progress {
++			continue
++		}
++		first := pending[0]
++		temp := -1
++		savePair := ""
++		for _, candidate := range []struct{ loc, pair string }{{"A", "AF"}, {"B", "BC"}, {"D", "DE"}, {"H", "HL"}, {"IX", "IX"}, {"IY", "IY"}} {
++			idx := desc.LocByName(candidate.loc)
++			if idx < 0 || desc.Locs[idx].Width != desc.Locs[first.fromPhys].Width {
++				continue
++			}
++			pair := desc.LocByName(candidate.pair)
++			free := true
++			for _, mv := range moves {
++				if locsOverlap(desc, idx, mv.fromPhys) || locsOverlap(desc, idx, mv.toPhys) || pair >= 0 && (locsOverlap(desc, pair, mv.fromPhys) || locsOverlap(desc, pair, mv.toPhys)) {
++					free = false
+ 					break
+ 				}
+ 			}
+-			if partner >= 0 {
+-				// 2-element swap via temp: A↔C → LD B,A / LD A,C / LD C,B
+-				// Restrict this fast path to 8-bit registers; pair/index cases
+-				// must go through emitRegMove or the generic fallback.
+-				tempLoc := -1
+-				if from.Width == 8 && to.Width == 8 {
+-					for t := 0; t < 7; t++ {
+-						if t != mv.fromPhys && t != mv.toPhys {
+-							tempLoc = t
+-							break
+-						}
+-					}
+-				}
+-				if tempLoc >= 0 {
+-					temp := desc.Locs[tempLoc]
+-					result = append(result, emitRegMove(from, temp)...)
+-					result = append(result, emitRegMove(to, from)...)
+-					result = append(result, emitRegMove(temp, to)...)
+-					emitted[i] = true
+-					emitted[partner] = true
+-				}
++			if free {
++				temp = idx
++				savePair = candidate.pair
++				break
+ 			}
+-			if !emitted[i] {
+-				// Fallback: PUSH/POP
+-				result = append(result, fmt.Sprintf("PUSH AF ; save %s", from.Name))
+-				result = append(result, emitRegMove(from, to)...)
+-				result = append(result, "POP AF")
+-				emitted[i] = true
++		}
++		if temp < 0 { // No spare whole pair: retain explicit simultaneous stack snapshots for pair cycles.
++			for _, mv := range pending {
++				result = append(result, "PUSH "+desc.Locs[mv.fromPhys].Name)
++			}
++			for i := len(pending) - 1; i >= 0; i-- {
++				result = append(result, "POP "+desc.Locs[pending[i].toPhys].Name)
++			}
++			break
++		}
++		result = append(result, "PUSH "+savePair)
++		result = append(result, emitRegMove(desc.Locs[first.fromPhys], desc.Locs[temp])...)
++		old := first.fromPhys
++		for i := range pending {
++			if pending[i].fromPhys == old {
++				pending[i].fromPhys = temp
+ 			}
+ 		}
++		// The saved scratch is restored after all dependencies are resolved.
++		deferRestore := "POP " + savePair
++		rest := resolveParallelMoves(pending, desc)
++		result = append(result, rest...)
++		result = append(result, deferRestore)
++		break
+ 	}
+ 
+ 	return result

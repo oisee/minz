@@ -1,0 +1,37 @@
+package vir
+
+import (
+	"github.com/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/z80asm"
+	"strings"
+	"testing"
+)
+
+func TestAdapterThreeCycleNative(t *testing.T) {
+	moves := []adapterMove{{Z80.LocByName("A"), Z80.LocByName("B")}, {Z80.LocByName("B"), Z80.LocByName("C")}, {Z80.LocByName("C"), Z80.LocByName("A")}}
+	asm := "ORG 0x8000\n" + strings.Join(resolveParallelMoves(moves, Z80), "\n") + "\nRET\n"
+	ar, err := z80asm.NewAssembler().AssembleString(asm)
+	if err != nil || len(ar.Errors) > 0 {
+		t.Fatalf("assembly %v %v", err, ar.Errors)
+	}
+	z := emulator.NewRemogattoZ80()
+	if err := z.LoadMemory(0x8000, ar.Binary); err != nil {
+		t.Fatal(err)
+	}
+	for x := 0; x < 256; x++ {
+		for y := 0; y < 256; y++ {
+			c := byte(x*3 + y*7)
+			if err := z.LoadMemory(0xeffe, []byte{0, 0xf1}); err != nil {
+				t.Fatal(err)
+			}
+			z.SetRegisters(emulator.Registers{A: byte(x), BC: uint16(y)<<8 | uint16(c), DE: 0x9172, HL: 0x3849, IX: 0x5162, IY: 0x7384, PC: 0x8000, SP: 0xeffe})
+			for i := 0; i < 128 && z.GetRegisters().PC != 0xf100; i++ {
+				z.Step()
+			}
+			r := z.GetRegisters()
+			if r.A != c || byte(r.BC>>8) != byte(x) || byte(r.BC) != byte(y) || r.DE != 0x9172 || r.HL != 0x3849 || r.IX != 0x5162 || r.IY != 0x7384 || r.PC != 0xf100 || r.SP != 0xf000 {
+				t.Fatalf("x=%d y=%d: %+v ASM=%s", x, y, r, asm)
+			}
+		}
+	}
+}

@@ -1,0 +1,24 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "6a6df40c1975836a32a6494e648c804ee1005f3096e054a646332f8cbf2e48fb"
+    },
+    {
+      "path": "after.txt",
+      "sha256": "179c768476bd28f98728944c32fbb747f77e04e9e1226dce71c813e8390661cf"
+    },
+    {
+      "path": "before.txt",
+      "sha256": "494010366dc64516122daabaa6771b8055d377bf467331efc688b964d156eddc"
+    },
+    {
+      "path": "candidate.patch",
+      "sha256": "4b550040198dd81aa996616c6b8426140dabbbf420e9134b6cf3d988d47f474f"
+    },
+    {
+      "path": "regression_test.go.txt",
+      "sha256": "fadb20a1ce11f88848f9b29c5c865daeb8a9f0d399c69970cc937a4855182e5b"
+    }
+  ]
+}

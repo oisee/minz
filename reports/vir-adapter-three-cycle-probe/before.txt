@@ -1,0 +1,13 @@
+=== RUN   TestAdapterThreeCycleNative
+    adapter_parallel_native_test.go:33: x=0 y=1: {A:1 F:0 BC:0 DE:37234 HL:14409 IX:20834 IY:29572 SP:61440 PC:61696} ASM=ORG 0x8000
+        LD C, A
+        LD A, B
+        LD B, C
+        PUSH AF ; save B
+        LD C, B
+        POP AF
+        RET
+--- FAIL: TestAdapterThreeCycleNative (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/vir	0.008s
+FAIL

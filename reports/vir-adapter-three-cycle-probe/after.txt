@@ -1,0 +1,4 @@
+=== RUN   TestAdapterThreeCycleNative
+--- PASS: TestAdapterThreeCycleNative (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.019s
