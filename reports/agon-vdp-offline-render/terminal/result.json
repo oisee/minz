@@ -1,0 +1,11 @@
+{
+  "vdp_path": "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/vdp_console8.so",
+  "vdp_sha256": "7028583607b1d0b3f272dcd223d148a7ce58e4596b300c9c5eb455e3de7815dd",
+  "stream_path": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/agon-tui-stream-matrix/tui_hello/ordinary/observed-ansi.bin",
+  "stream_sha256": "fa9e321aefb1529f8ab01a0ea9c8812f6c3838982c4f374c447c6735c4444139",
+  "terminal_mode_requested": true,
+  "width": 640,
+  "height": 480,
+  "fps": 59.94047546386719,
+  "scope": "offline retained native stream through full VDP library; no simultaneous CPU/MOS or independent pixel oracle"
+}

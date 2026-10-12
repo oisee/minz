@@ -1,0 +1,50 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "52a181a0f16e83c49332211fbf3163faa845a1a05922bad54b6f2a9ffe28fbfd"
+  },
+  {
+    "path": "capture.py",
+    "sha256": "e0ea0661eaaec78d648b95163f86b1b20daca83224808b6aeb605e5b6f42cef7"
+  },
+  {
+    "path": "ordinary-vdu/frame.png",
+    "sha256": "67d62fec87b605060afa9bb77795f99345ce33860c7c1a4baf11853bf519bbe3"
+  },
+  {
+    "path": "ordinary-vdu/frame.ppm",
+    "sha256": "1047efa0673f61bf0a5d58bce5fab9b65facb4e61fc88c71b058b1c731357a59"
+  },
+  {
+    "path": "ordinary-vdu/initialization.bin",
+    "sha256": "f920612e096546629d9015cfd2f0c17574cd7bbb514c153ff4ce4e4f274f57e3"
+  },
+  {
+    "path": "ordinary-vdu/result.json",
+    "sha256": "ac3522f3286b712423aca4a3f0c3bd86ad890182beaa87cab8d2fba5b033acb5"
+  },
+  {
+    "path": "ordinary-vdu/stream.bin",
+    "sha256": "fa9e321aefb1529f8ab01a0ea9c8812f6c3838982c4f374c447c6735c4444139"
+  },
+  {
+    "path": "terminal/frame.png",
+    "sha256": "1d1beba2e148b749a895d38b80d8cfbaa4c5e09992ae275af7184f46fa521c42"
+  },
+  {
+    "path": "terminal/frame.ppm",
+    "sha256": "bd75904c6599c62f1e943a77cc20e972bd0a12846a517490cc8adc8b102fb7ca"
+  },
+  {
+    "path": "terminal/initialization.bin",
+    "sha256": "57662929856ff9a7281ff38376c8467057dcbf186e995eefe5857f00eff4c68c"
+  },
+  {
+    "path": "terminal/result.json",
+    "sha256": "23063f5d408f5b2bb233a6dda8c6cbf853346a63824c06b8ab0bc239a566b3cf"
+  },
+  {
+    "path": "terminal/stream.bin",
+    "sha256": "fa9e321aefb1529f8ab01a0ea9c8812f6c3838982c4f374c447c6735c4444139"
+  }
+]
