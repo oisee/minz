@@ -1,0 +1,28 @@
+=== RUN   TestOriginalTetrisFamilyMechanics
+    original_tetris_family_test.go:309: tetris_cpm ordinary 65536 completed calls
+    original_tetris_family_test.go:309: tetris_cpm ordinary 131072 completed calls
+    original_tetris_family_test.go:309: tetris_cpm ordinary 196608 completed calls
+    original_tetris_family_test.go:503: tetris_cpm ordinary 238456 fullstate orderedboard VM/native PASS
+    original_tetris_family_test.go:309: tetris_cpm grace-size 65536 completed calls
+    original_tetris_family_test.go:309: tetris_cpm grace-size 131072 completed calls
+    original_tetris_family_test.go:309: tetris_cpm grace-size 196608 completed calls
+    original_tetris_family_test.go:503: tetris_cpm grace-size 238456 fullstate orderedboard VM/native PASS
+    original_tetris_family_test.go:309: tetris_cpm grace-speed 65536 completed calls
+    original_tetris_family_test.go:309: tetris_cpm grace-speed 131072 completed calls
+    original_tetris_family_test.go:309: tetris_cpm grace-speed 196608 completed calls
+    original_tetris_family_test.go:503: tetris_cpm grace-speed 238456 fullstate orderedboard VM/native PASS
+    original_tetris_family_test.go:309: tetris_tui ordinary 65536 completed calls
+    original_tetris_family_test.go:309: tetris_tui ordinary 131072 completed calls
+    original_tetris_family_test.go:309: tetris_tui ordinary 196608 completed calls
+    original_tetris_family_test.go:503: tetris_tui ordinary 238456 fullstate orderedboard VM/native PASS
+    original_tetris_family_test.go:309: tetris_tui grace-size 65536 completed calls
+    original_tetris_family_test.go:309: tetris_tui grace-size 131072 completed calls
+    original_tetris_family_test.go:309: tetris_tui grace-size 196608 completed calls
+    original_tetris_family_test.go:503: tetris_tui grace-size 238456 fullstate orderedboard VM/native PASS
+    original_tetris_family_test.go:309: tetris_tui grace-speed 65536 completed calls
+    original_tetris_family_test.go:309: tetris_tui grace-speed 131072 completed calls
+    original_tetris_family_test.go:309: tetris_tui grace-speed 196608 completed calls
+    original_tetris_family_test.go:503: tetris_tui grace-speed 238456 fullstate orderedboard VM/native PASS
+--- PASS: TestOriginalTetrisFamilyMechanics (274.03s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	274.043s
