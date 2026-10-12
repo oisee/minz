@@ -16,9 +16,18 @@ func (g *z80cg) genCall(inst *Inst) error {
 	// ── Built-in intrinsics (inlined, no CALL emitted) ────────────────────────
 	switch inst.Sym {
 	case "@mir.io.print.str":
-		// Emit inline NUL-terminated string output loop via OUT ($23), A.
-		// The string pointer must be in HL (ClassPointer).
-		// HL is advanced in-place; A and F are clobbered.
+		if len(inst.Args) != 1 {
+			return fmt.Errorf("print.str requires one pointer argument")
+		}
+		// Inline output uses HL/A/F, independent of the allocated argument home.
+		// Preserve the original pointer too when it remains live after printing.
+		restore := g.saveStringPrintScratch(inst)
+		defer restore()
+		src := g.loc(inst.Args[0])
+		if src == "F" || g.pendingFlagReg == inst.Args[0] {
+			return fmt.Errorf("print.str requires a pointer, not a flag")
+		}
+		g.emitMov("HL", src, 16)
 		idx := g.trampIdx
 		g.trampIdx++
 		g.emitf(".print_str_%d:", idx)
@@ -64,7 +73,17 @@ func (g *z80cg) genCall(inst *Inst) error {
 		return nil
 
 	case "@mir.io.print.nl":
-		// Emit newline (\n = 0x0A) via OUT ($23), A.
+		// Newline has no result; a live accumulator is not its scratch value.
+		saveA := false
+		for r := range g.scratchLiveAfter(inst) {
+			if r != inst.Dst && (g.loc(r) == "A" || r == g.pendingAccReg) {
+				saveA = true
+			}
+		}
+		if saveA {
+			g.emit("    PUSH AF")
+			defer func() { g.emit("    POP AF"); g.invalidate("A") }()
+		}
 		g.emit("    LD A, 0x0A")
 		g.emitConsoleA()
 		g.invalidate("A")

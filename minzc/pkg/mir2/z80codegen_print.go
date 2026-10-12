@@ -49,3 +49,44 @@ func (g *z80cg) saveDecimalPrintScratch(inst *Inst) func() {
 		g.lastFlagsLhs, g.lastFlagsRhs = "", ""
 	}
 }
+
+// String printing consumes a pointer but does not mutate any MIR value.
+func (g *z80cg) saveStringPrintScratch(inst *Inst) func() {
+	live := g.scratchLiveAfter(inst)
+	saveAF, saveHL := false, false
+	for r := range live {
+		if r == inst.Dst {
+			continue
+		}
+		loc := g.loc(r)
+		if loc == "A" || loc == "F" || loc == "AF" {
+			saveAF = true
+		}
+		if loc == "HL" || loc == "H" || loc == "L" {
+			saveHL = true
+		}
+	}
+	if g.pendingAccReg != NoReg && live[g.pendingAccReg] {
+		saveAF = true
+	}
+	if g.pendingFlagReg != NoReg && live[g.pendingFlagReg] {
+		saveAF = true
+	}
+	if saveAF {
+		g.emit("    PUSH AF")
+	}
+	if saveHL {
+		g.emit("    PUSH HL")
+	}
+	return func() {
+		if saveHL {
+			g.emit("    POP HL")
+		}
+		if saveAF {
+			g.emit("    POP AF")
+		}
+		g.invalidate("A")
+		g.invalidate("HL")
+		g.lastFlagsLhs, g.lastFlagsRhs = "", ""
+	}
+}
