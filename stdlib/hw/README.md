@@ -73,3 +73,31 @@ against an independent physical-address oracle in ordinary, Grace Size and Grace
 Speed modes. Tests include empty regions, 255/256 counts, page boundaries, the
 last address, ZX rows 7/8 and 63/64, full bitmap and surrounding RAM. Separate
 negative cases reject invalid descriptions.
+
+# Static row copying
+
+`import hw.copy` provides a row-copy metafunction:
+
+```nanz
+@copy() {
+    source "linear" 0xc000 32 192 32
+    destination "zx_bitmap_bytes" 0x4000
+    region 0 0 0 0 32 192
+    via "ldir"
+}
+```
+
+`source` and `destination` use the same layout descriptors as fills. `region`
+requires source x/y, destination x/y, width and height. Every row's source and
+destination address is prepared at compile time. This allows linear raster data
+to be uploaded into the interleaved Spectrum bitmap without runtime row-address
+calculations. Either side can be linear or ZX mapped.
+
+`via "pointer"` is the default and emits Nanz loops; `via "ldir"` emits closed
+native blocks preserving AF/BC/DE/HL, using eight bytes of normal stack per row.
+Zero-size regions emit no copy; LDIR is only emitted with nonzero width. Layout
+bounds must fit the address space. Nonempty copies require disjoint layout
+bounding extents, including stride gaps: this conservative rule rejects overlap
+rather than silently promising memmove semantics. Destination and source must
+also be disjoint from the executing code and active stack; writable RAM ownership
+is the caller's responsibility.
