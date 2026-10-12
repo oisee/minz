@@ -1,7 +1,7 @@
 [
   {
     "path": "README.md",
-    "sha256": "381985252f15fd7e2792884f57d32b1077a39e69a84b4583dc91205c4b117425"
+    "sha256": "1c19efe981a86c2ebc7bbd70fe5eab29336d0e0bd7f7b0342e1cfb9d2c2990cb"
   },
   {
     "path": "build.json",
@@ -10,5 +10,13 @@
   {
     "path": "help.txt",
     "sha256": "ace5097dff7d2fcdcc579c47987546128be008b87305a0c2e51167a1f4037c5b"
+  },
+  {
+    "path": "showcase-result.json",
+    "sha256": "3c8475360a133e99937d36241dc0e0bd808c24ae33e6b91db1c8ae5795c11b31"
+  },
+  {
+    "path": "showcase.txt",
+    "sha256": "01ecaf384eaeb79d7c3506fe3bf07aef2db6aeee621e59b3c563d5bb3ddd3a10"
   }
 ]

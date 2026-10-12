@@ -1,0 +1,10 @@
+{
+  "exit_code": 0,
+  "scope": "compile/assemble only, not native behavior",
+  "subtest_counts": {
+    "PASS": 193,
+    "FAIL": 0,
+    "SKIP": 1
+  },
+  "command": "GOCACHE=/tmp/minz-grace-gocache go test ./pkg/nanz -run '^TestShowcaseCompileAssemble$' -count=1 -timeout=20m -v"
+}
