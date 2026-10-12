@@ -1,0 +1,10 @@
+{
+  "source_commit": "HEAD",
+  "files": [
+    {
+      "path": "targeted.txt",
+      "bytes": 1984,
+      "sha256": "be6585d2c7927ac9c6822bc4c32bce8a02970d0e28d37f0cf2ec92446f022570"
+    }
+  ]
+}
