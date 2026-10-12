@@ -2,6 +2,7 @@ package mir2
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -38,6 +39,41 @@ func cpmSourceBDOS2(f *Func, ar *AllocResult) bool {
 	return true
 }
 
+// Only native-width pointer operations with their exact semantic fields may
+// carry local-object authority. Value casts and proof/call metadata do not.
+func cpmCleanLocalAddress(i *Inst) bool {
+	if i == nil || i.Ty != TyPtr || i.Dst == NoReg {
+		return false
+	}
+	p := *i
+	p.Op, p.Dst, p.Ty, p.Cls, p.ClsHard, p.SrcFile, p.SrcLine = 0, 0, nil, 0, false, "", 0
+	switch i.Op {
+	case OpAlloca:
+		p.Imm = 0
+	case OpMove:
+		p.Src[0] = 0
+	case OpField:
+		p.Src[0], p.Imm = 0, 0
+	case OpPtrAdd:
+		p.Src = [2]Reg{}
+	default:
+		return false
+	}
+	return reflect.DeepEqual(p, Inst{})
+}
+
+func cpmLocalOffset(i *Inst) (int64, bool) {
+	if i == nil || i.Op != OpConst || !(i.Ty == TyU8 || i.Ty == TyI8 || i.Ty == TyU16 || i.Ty == TyI16) {
+		return 0, false
+	}
+	p := *i
+	p.Op, p.Dst, p.Imm, p.Ty, p.Cls, p.ClsHard, p.SrcFile, p.SrcLine = 0, 0, 0, nil, 0, false, "", 0
+	if !reflect.DeepEqual(p, Inst{}) {
+		return 0, false
+	}
+	return maskToWidth(i.Imm, i.Ty), true
+}
+
 type cpmLocalAddress struct {
 	root         Reg
 	offset, size int64
@@ -58,7 +94,7 @@ func cpmLocalAddresses(f *Func) (map[Reg]cpmLocalAddress, error) {
 				defs[i.Dst] = i
 			}
 			if i.Op == OpAlloca {
-				if b != entry || i.Ty != TyPtr || i.Imm <= 0 || i.Imm > 256 || total+i.Imm > 256 {
+				if b != entry || !cpmCleanLocalAddress(i) || i.Imm <= 0 || i.Imm > 256 || total+i.Imm > 256 {
 					return nil, fmt.Errorf("CP/M runtime requires bounded entry-local allocations")
 				}
 				total += i.Imm
@@ -78,7 +114,7 @@ func cpmLocalAddresses(f *Func) (map[Reg]cpmLocalAddress, error) {
 		busy[r] = true
 		defer delete(busy, r)
 		i := defs[r]
-		if i == nil {
+		if !cpmCleanLocalAddress(i) {
 			return cpmLocalAddress{}, false
 		}
 		var x cpmLocalAddress
@@ -97,12 +133,12 @@ func cpmLocalAddresses(f *Func) (map[Reg]cpmLocalAddress, error) {
 				x.offset += i.Imm
 			}
 		case OpPtrAdd:
-			if c := defs[i.Src[1]]; c != nil && c.Op == OpConst {
+			if off, valid := cpmLocalOffset(defs[i.Src[1]]); valid {
 				x, ok = resolve(i.Src[0])
-				if c.Imm < 0 || c.Imm >= x.size || x.offset > x.size-c.Imm {
+				if off < 0 || off >= x.size || x.offset > x.size-off {
 					ok = false
 				} else {
-					x.offset += c.Imm
+					x.offset += off
 				}
 			}
 		}
@@ -121,7 +157,7 @@ func cpmLocalAddresses(f *Func) (map[Reg]cpmLocalAddress, error) {
 // A local pointer may cross a direct call only into a closed read-only leaf
 // parameter. It cannot be returned, stored, or forwarded elsewhere.
 func cpmReadOnlyPointerParam(f *Func, index int, size int64) bool {
-	if f == nil || f.Attrs.IsExtern || f.Attrs.HasAsm || index >= len(f.Contract.Params) {
+	if f == nil || f.Attrs.IsExtern || f.Attrs.HasAsm || index < 0 || index >= len(f.Contract.Params) || f.Contract.Params[index].Ty != TyPtr {
 		return false
 	}
 	pointers := map[Reg]bool{f.Contract.Params[index].Reg: true}
@@ -133,7 +169,7 @@ func cpmReadOnlyPointerParam(f *Func, index int, size int64) bool {
 	for pass := 0; pass <= count; pass++ {
 		for _, b := range f.Blocks {
 			for _, i := range b.Insts {
-				if (i.Op == OpField || i.Op == OpMove) && pointers[i.Src[0]] {
+				if cpmCleanLocalAddress(i) && (i.Op == OpField || i.Op == OpMove) && pointers[i.Src[0]] {
 					pointers[i.Dst] = true
 					offsets[i.Dst] = offsets[i.Src[0]]
 					if i.Op == OpField {
@@ -155,7 +191,7 @@ func cpmReadOnlyPointerParam(f *Func, index int, size int64) bool {
 						return false
 					}
 				case OpField, OpMove:
-					if i.Src[0] != r || offsets[i.Dst] < 0 || offsets[i.Dst] >= size {
+					if !cpmCleanLocalAddress(i) || i.Src[0] != r || offsets[i.Dst] < 0 || offsets[i.Dst] >= size {
 						return false
 					}
 				default:
