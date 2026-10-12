@@ -1,0 +1,18 @@
+{
+  "sources": {
+    "examples/nanz/screen_alv.nanz": "d6d74b99f7ce5aa97110f9f5cbe5fe6f1e3f85d00a56f442575d32b0661a7dc2",
+    "minzc/pkg/nanz/screen_gen.go": "14d655cdc870297591a3ff44096221b5e58352f5ebb046e2d117e72430a1f1bc",
+    "minzc/cmd/mzv/tui_host.go": "8d3fe8aaf13adf2f933a123a37bf847350205d9c933a180f675b761de4407ec1",
+    "stdlib/tui/render.nanz": "4711dbee908a2271f02d1fbb4720942604e23322d7745f32311f6b2c17c6d4a8",
+    "reports/alv-report-main/model.py": "da7fc5493284e3a46fd8aeb7225289c45ce2ed28029930a469612a9108c83e9c",
+    "reports/alv-report-main/alv.json": "61d924a113e7a48da5d41020067f44d032d855a5280f93bea3b7dd0bbd25ccd8",
+    "reports/alv-report-main/alv-stdout.bin": "58d1366c5e72fd5680e67ec5cb75c2273eca644819ba88630d15adce3892bcf4",
+    "reports/alv-report-main/alv-tab.json": "13ccacdc857af05e379cc06be3a8c28763f59d77979cfe7f28936f371e746518",
+    "reports/alv-report-main/alv-tab-stdout.bin": "df1e3fa2800db9a3d366696bb3c4762325bbf8aa0a4ae293a7b84cf94cd4c356"
+  },
+  "authority": [
+    "source table literal records and DSL columnwidths10/6/4 +NUL stride23",
+    "screen_gen source API/table rowordering",
+    "terminalmzvANSI80x24 exact contract"
+  ]
+}
