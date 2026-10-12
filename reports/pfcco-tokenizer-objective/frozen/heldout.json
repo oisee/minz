@@ -1,0 +1,6 @@
+[
+  "// unseen only punctuation and keywords\nlet first = 999\nfor item in values { if item >= 4 { return item } }\n",
+  "fn blend(a, b) { return a ^ b & 31 }\nname name name \"quoted slate\" != 07",
+  "alpha\n// commentary removes + 42\nbeta gamma / delta * 17 <= 18",
+  "var z = 0\nwhile z < 6 { z = z + 1 }\nreturn z"
+]
