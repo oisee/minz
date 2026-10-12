@@ -23,6 +23,15 @@
       "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/pipeline-94a41120-full.txt",
       "checkpoint": "94a41120",
       "command": "pipeline-94a41120.test -test.count=1 -test.timeout=120m"
+    },
+    {
+      "pid": 2837750,
+      "session": 79744,
+      "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/pipeline-dd100284-full.txt",
+      "checkpoint": "dd100284",
+      "binary_sha256": "5a81349d862c0f7f5bbc287ef4b69b8f9c69f653257c092e609b87f5ee4300e5",
+      "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/pipeline",
+      "command": "pipeline-dd100284.test -test.count=1 -test.timeout=180m"
     }
   ]
 }

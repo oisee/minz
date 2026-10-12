@@ -2,7 +2,7 @@
   "files": [
     {
       "path": "README.md",
-      "sha256": "0d6753f0be0b9a387118a4a907408548b4fb6a74ec5fa7325c8f67bf86a6bbfb"
+      "sha256": "530bd309013727a6fd364be40425aa99cb2d3d986a4788568408222c61cd49ec"
     },
     {
       "path": "core-initial.txt",
@@ -18,7 +18,7 @@
     },
     {
       "path": "jobs.json",
-      "sha256": "884c991772390c7996fae961ee7d95d436f24ee970fe7b3555c85e04d1dcd52f"
+      "sha256": "fb6ae0ec2bc7f50eaeeaf943266d9f0b6329cf129d473431663e982a2fef80fa"
     },
     {
       "path": "nanz-final.txt",
