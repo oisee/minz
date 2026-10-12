@@ -4,4 +4,4 @@
 
 Production CP/M COM main исполнен в ordinary/Grace Size/Grace Speed с preserving/all-primary-clobber BDOS2/9: точный dollar literal/read bound, stdout, OS RET/PC/SP/fullRAM/stack guard. Ordinary COM1278B, Grace1276B. Пакет сохраняет также повтор исходных Hello/Factorial как regression, а не новые приложения. Root joint PASS в root.txt.
 
-ASM/BIN/raw/finalMIR/options/allocation/source/output ledger сохранены. Это injected CP/M host, не hardware; VM ASM stdout не симулируется. Public CLI exactartifact proof отдельным вызовом ещё не выполнен, поэтому не заявлен для CASE.
+ASM/BIN/raw/finalMIR/options/allocation/source/output ledger сохранены. Это injected CP/M host, не hardware; VM ASM stdout не симулируется. Public CLI на сохранённом compiler executable1f2365be выполнил все три команды; COM побайтно совпали с native проверенными образами. Команды, SHA compiler/COM и stdout/stderr сохранены в cli/.

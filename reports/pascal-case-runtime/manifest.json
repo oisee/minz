@@ -13,12 +13,60 @@
       "bytes": 282
     },
     "README.md": {
-      "sha256": "2886b8478dd76c8a02b02e262dde7914df696da6b0a38d2aa8dc1c0b711ca838",
-      "bytes": 1123
+      "sha256": "f4530e6ef340f87d7e71836b0f1c6ec727ba08ee0efe95d663cae1c4a5932e80",
+      "bytes": 1261
     },
     "frozen.json": {
       "sha256": "8c29ea64c4dd7769770c61db1eeb585cc7c7f7c56da81bede326ab61afaa0823",
       "bytes": 357
+    },
+    "cli/grace-size/casetest.com": {
+      "sha256": "83f13e6db5a38bac73a33ff7fb45aa722f2fc4658dd1e4cfeb71185372c72eb2",
+      "bytes": 1276
+    },
+    "cli/grace-size/command.json": {
+      "sha256": "40e944cc217b1a13d48f7fcf2c2a59b35d7a63e93a4447d7f6387ab44e9555a1",
+      "bytes": 625
+    },
+    "cli/grace-size/stdout.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cli/grace-size/stderr.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cli/grace-speed/casetest.com": {
+      "sha256": "83f13e6db5a38bac73a33ff7fb45aa722f2fc4658dd1e4cfeb71185372c72eb2",
+      "bytes": 1276
+    },
+    "cli/grace-speed/command.json": {
+      "sha256": "88724874e8768dff9eff6004c5ea945c47dfa48f88c6777b6eca527e15490c43",
+      "bytes": 611
+    },
+    "cli/grace-speed/stdout.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cli/grace-speed/stderr.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cli/ordinary/casetest.com": {
+      "sha256": "4e60bf95101ef19eff25d15d9e7d16c56b74c5d711decf7ad2f6f230c1490d86",
+      "bytes": 1278
+    },
+    "cli/ordinary/command.json": {
+      "sha256": "fa3138da983ef216f5590a3af814b78aa01f246e2e5737fdfd1fc01aa630b0e6",
+      "bytes": 574
+    },
+    "cli/ordinary/stdout.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "cli/ordinary/stderr.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
     },
     "execution/factorial/grace-size/clobber-false.json": {
       "sha256": "0294a829713f713b91c4c75a3de0dc9af266c16225412aae5d40625fc603f263",

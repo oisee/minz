@@ -1,0 +1,21 @@
+{
+  "args": [
+    "/home/alice/dev/minz-artifacts/grace-checkpoints/minzc-1f2365be",
+    "examples/pascal/casetest.pas",
+    "-t",
+    "cpm",
+    "--runtime",
+    "cpm",
+    "--runtime-stack",
+    "1024",
+    "--asserts",
+    "none",
+    "--grace",
+    "--hir-grace",
+    "-o",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/reports/pascal-case-runtime/cli/grace-speed/casetest.com"
+  ],
+  "compiler_sha256": "f76edc22ce373f4a77cdc91a999544c7c74700e60beb05684ed1410772c39b53",
+  "matches_native_checked_com": true,
+  "sha256": "83f13e6db5a38bac73a33ff7fb45aa722f2fc4658dd1e4cfeb71185372c72eb2"
+}
