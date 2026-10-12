@@ -1,0 +1,1088 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "b7a66bfd51eb0d23a27e6c5f0257cb383be4db19ef86f6c03cf459a275be9a7e"
+    },
+    {
+      "path": "initial-tests.txt",
+      "sha256": "cf95b70b1f7e2b72bf190a4f6949b8f37fd8d2f71b0d31fa3fcd0fae849b6369"
+    },
+    {
+      "path": "live-tests.txt",
+      "sha256": "0c4d08b9ab974baa140a4365214fc6dc96ae54372252b82df2f9dd65a91075e0"
+    },
+    {
+      "path": "native/ldir/destination-last-byte/grace-size/program.a80",
+      "sha256": "2a63a96b8252e9ebe920824f76503c645f31033de76bf8c3d2221227f40a70ae"
+    },
+    {
+      "path": "native/ldir/destination-last-byte/grace-size/program.bin",
+      "sha256": "8cbb143d1bfea9f9c2631fc0ad0e948a6a043a1d9320775e45e2028f2e010591"
+    },
+    {
+      "path": "native/ldir/destination-last-byte/grace-size/result.json",
+      "sha256": "e1e066d4621c47ab8e23c353ea2f236ab51aa841e376a39bb75edac4ebc79d50"
+    },
+    {
+      "path": "native/ldir/destination-last-byte/grace-speed/program.a80",
+      "sha256": "2a63a96b8252e9ebe920824f76503c645f31033de76bf8c3d2221227f40a70ae"
+    },
+    {
+      "path": "native/ldir/destination-last-byte/grace-speed/program.bin",
+      "sha256": "8cbb143d1bfea9f9c2631fc0ad0e948a6a043a1d9320775e45e2028f2e010591"
+    },
+    {
+      "path": "native/ldir/destination-last-byte/grace-speed/result.json",
+      "sha256": "701bae9a33afb12e66921e3bb2629e1c1ba1d8b12da15abdcf1e328fddd0b361"
+    },
+    {
+      "path": "native/ldir/destination-last-byte/ordinary/program.a80",
+      "sha256": "1e1f767a6fd29aacf4d7f398d9a87f0db47c2e0caa7801b4e7ed84f5b3a522f1"
+    },
+    {
+      "path": "native/ldir/destination-last-byte/ordinary/program.bin",
+      "sha256": "8cbb143d1bfea9f9c2631fc0ad0e948a6a043a1d9320775e45e2028f2e010591"
+    },
+    {
+      "path": "native/ldir/destination-last-byte/ordinary/result.json",
+      "sha256": "a9e473eea62bd677be0926d639add90ab61c260d2b930a1a6ca2727df62b2227"
+    },
+    {
+      "path": "native/ldir/destination-last-byte/source.nanz",
+      "sha256": "fd4360ce8d8b7fce120beaf53cae3ce926b4cb5d1e8bb1fd7f2582018c899743"
+    },
+    {
+      "path": "native/ldir/linear-255/grace-size/program.a80",
+      "sha256": "73ea126000e48717e6119276e3a23c7539358d24d53218fd4b36a2ae59aa803f"
+    },
+    {
+      "path": "native/ldir/linear-255/grace-size/program.bin",
+      "sha256": "e010ac986c877acd66366fa9c96e23fdb1ed373d621ec6a08e04fb23bd18e022"
+    },
+    {
+      "path": "native/ldir/linear-255/grace-size/result.json",
+      "sha256": "407d9e92f194bf1c46c8444ec829ceadb646058282f741c01b08e25e5077810b"
+    },
+    {
+      "path": "native/ldir/linear-255/grace-speed/program.a80",
+      "sha256": "73ea126000e48717e6119276e3a23c7539358d24d53218fd4b36a2ae59aa803f"
+    },
+    {
+      "path": "native/ldir/linear-255/grace-speed/program.bin",
+      "sha256": "e010ac986c877acd66366fa9c96e23fdb1ed373d621ec6a08e04fb23bd18e022"
+    },
+    {
+      "path": "native/ldir/linear-255/grace-speed/result.json",
+      "sha256": "f47903fff29eb024465a4573a19f9f4abeaf5635d80ccb2aed7ed8bd6181e55d"
+    },
+    {
+      "path": "native/ldir/linear-255/ordinary/program.a80",
+      "sha256": "471011ff90c028c1d65580a93aa05e209fa977115be0ba99333c0dbe685d281b"
+    },
+    {
+      "path": "native/ldir/linear-255/ordinary/program.bin",
+      "sha256": "e010ac986c877acd66366fa9c96e23fdb1ed373d621ec6a08e04fb23bd18e022"
+    },
+    {
+      "path": "native/ldir/linear-255/ordinary/result.json",
+      "sha256": "61a440479fbb5d9ca4794ccd0dcb98c5a2faad8ef5799586d4e11582944744ec"
+    },
+    {
+      "path": "native/ldir/linear-255/source.nanz",
+      "sha256": "055b01515d83acb0431b55a8de0aeb1578661c2f57c799913874abeafeea392e"
+    },
+    {
+      "path": "native/ldir/linear-256/grace-size/program.a80",
+      "sha256": "2f7300ab14997f2153b8d6e3322a8232e75010dfa25eaf749b6235efafd73150"
+    },
+    {
+      "path": "native/ldir/linear-256/grace-size/program.bin",
+      "sha256": "bffbc5361dc1bf05c88c9554efdeb4942639ee872cbdc0b3a01d759eb5630bbd"
+    },
+    {
+      "path": "native/ldir/linear-256/grace-size/result.json",
+      "sha256": "26bf0371bb025b867e4b67c45fb293f6967a35bdac74d829f3c576e05706cf89"
+    },
+    {
+      "path": "native/ldir/linear-256/grace-speed/program.a80",
+      "sha256": "2f7300ab14997f2153b8d6e3322a8232e75010dfa25eaf749b6235efafd73150"
+    },
+    {
+      "path": "native/ldir/linear-256/grace-speed/program.bin",
+      "sha256": "bffbc5361dc1bf05c88c9554efdeb4942639ee872cbdc0b3a01d759eb5630bbd"
+    },
+    {
+      "path": "native/ldir/linear-256/grace-speed/result.json",
+      "sha256": "c61549e018608982788ff62667d0c5265a41a621e66a66c3e968d7dee0b92462"
+    },
+    {
+      "path": "native/ldir/linear-256/ordinary/program.a80",
+      "sha256": "fa06a0c78819c8aa63ec502e582bf7c68faf8f1c4bf75c4296415e5ad50856b0"
+    },
+    {
+      "path": "native/ldir/linear-256/ordinary/program.bin",
+      "sha256": "bffbc5361dc1bf05c88c9554efdeb4942639ee872cbdc0b3a01d759eb5630bbd"
+    },
+    {
+      "path": "native/ldir/linear-256/ordinary/result.json",
+      "sha256": "5257b624e7ab12f6ef1fe465bacb42e2afa402593669b76f9cd868511d0ab8d1"
+    },
+    {
+      "path": "native/ldir/linear-256/source.nanz",
+      "sha256": "744ab32375dfddf891691e0ae71563b05aa873b54c0d2447253e39f503622f9d"
+    },
+    {
+      "path": "native/ldir/linear-one/grace-size/program.a80",
+      "sha256": "80fbd162c9b5aef9b5dd282abfac784b783b25a0192d47148738e500ae759db8"
+    },
+    {
+      "path": "native/ldir/linear-one/grace-size/program.bin",
+      "sha256": "03669e06e320e22b7cd49ee338f08739d1048c800ac6ba75b7bd1e2daf591748"
+    },
+    {
+      "path": "native/ldir/linear-one/grace-size/result.json",
+      "sha256": "78283b55088011daadcb0c83426c620f239a1b68ac6d140895c279bd62aba809"
+    },
+    {
+      "path": "native/ldir/linear-one/grace-speed/program.a80",
+      "sha256": "80fbd162c9b5aef9b5dd282abfac784b783b25a0192d47148738e500ae759db8"
+    },
+    {
+      "path": "native/ldir/linear-one/grace-speed/program.bin",
+      "sha256": "03669e06e320e22b7cd49ee338f08739d1048c800ac6ba75b7bd1e2daf591748"
+    },
+    {
+      "path": "native/ldir/linear-one/grace-speed/result.json",
+      "sha256": "58ec75b8ef961b94676729010dd1aeace75444c996e7864428d1ea6bc56313b4"
+    },
+    {
+      "path": "native/ldir/linear-one/ordinary/program.a80",
+      "sha256": "1fa386ccea4d095df69273c9e90e9e3603764f417453eda22d1d0d8cc0e7f85a"
+    },
+    {
+      "path": "native/ldir/linear-one/ordinary/program.bin",
+      "sha256": "03669e06e320e22b7cd49ee338f08739d1048c800ac6ba75b7bd1e2daf591748"
+    },
+    {
+      "path": "native/ldir/linear-one/ordinary/result.json",
+      "sha256": "6bf3e0c2ade83aedc9bb8b70bc0098d101c5fac21b5ab1e376be27bc8400ba16"
+    },
+    {
+      "path": "native/ldir/linear-one/source.nanz",
+      "sha256": "1786dcb7eb7dddf47d3b2a33c809ce9995eef8d799814b19235c61af5b0a5c99"
+    },
+    {
+      "path": "native/ldir/linear-page-crossing/grace-size/program.a80",
+      "sha256": "46beab04af526a32fed2ee612418e24b8b1590c36af4725fc06575dcf9ce00ce"
+    },
+    {
+      "path": "native/ldir/linear-page-crossing/grace-size/program.bin",
+      "sha256": "39ea4ab4ac07a446d18489bf34857ceaf16ab9c02fc587b3c46d9a28eaa0cbbc"
+    },
+    {
+      "path": "native/ldir/linear-page-crossing/grace-size/result.json",
+      "sha256": "d63f2ce8fd913d7d7aaf90fae5a2fb2fc6cbad8c152289b1c9af43c4566790c6"
+    },
+    {
+      "path": "native/ldir/linear-page-crossing/grace-speed/program.a80",
+      "sha256": "46beab04af526a32fed2ee612418e24b8b1590c36af4725fc06575dcf9ce00ce"
+    },
+    {
+      "path": "native/ldir/linear-page-crossing/grace-speed/program.bin",
+      "sha256": "39ea4ab4ac07a446d18489bf34857ceaf16ab9c02fc587b3c46d9a28eaa0cbbc"
+    },
+    {
+      "path": "native/ldir/linear-page-crossing/grace-speed/result.json",
+      "sha256": "c7b67c82b2571a3f8bfc1c00b7626340e1501c9b58fd7d49e30589f595ed2a0f"
+    },
+    {
+      "path": "native/ldir/linear-page-crossing/ordinary/program.a80",
+      "sha256": "2524338de42b9bbb57e371a2aa28cf363a0de1e2e6f90efb105a826bc132ee89"
+    },
+    {
+      "path": "native/ldir/linear-page-crossing/ordinary/program.bin",
+      "sha256": "39ea4ab4ac07a446d18489bf34857ceaf16ab9c02fc587b3c46d9a28eaa0cbbc"
+    },
+    {
+      "path": "native/ldir/linear-page-crossing/ordinary/result.json",
+      "sha256": "bdf8d9d8290d1cea162797dd385de7b25462a46f102f426f346f69f0d7157731"
+    },
+    {
+      "path": "native/ldir/linear-page-crossing/source.nanz",
+      "sha256": "8884aaf8f338127abb731ed3f083864b67dafbc7bb3f89ca121bef7b7270cfe4"
+    },
+    {
+      "path": "native/ldir/linear-strided/grace-size/program.a80",
+      "sha256": "0f87775d0fc6c99b791a0af16955929597566cc51834eb0e21a7a5c593b7462c"
+    },
+    {
+      "path": "native/ldir/linear-strided/grace-size/program.bin",
+      "sha256": "8df9730d31857e271d0e1ffcef3c7b45b8f033e9fcb5abfe6a9cd5faea0e7a68"
+    },
+    {
+      "path": "native/ldir/linear-strided/grace-size/result.json",
+      "sha256": "8a7e23eebb4d3d5762a875315ed775a83bfc0513871d58a9dc4427a337ea04ff"
+    },
+    {
+      "path": "native/ldir/linear-strided/grace-speed/program.a80",
+      "sha256": "0f87775d0fc6c99b791a0af16955929597566cc51834eb0e21a7a5c593b7462c"
+    },
+    {
+      "path": "native/ldir/linear-strided/grace-speed/program.bin",
+      "sha256": "8df9730d31857e271d0e1ffcef3c7b45b8f033e9fcb5abfe6a9cd5faea0e7a68"
+    },
+    {
+      "path": "native/ldir/linear-strided/grace-speed/result.json",
+      "sha256": "18be395718a2d00c8ca7465d6c48c9b442b55a16d0841fdbba91bdd50d5b050b"
+    },
+    {
+      "path": "native/ldir/linear-strided/ordinary/program.a80",
+      "sha256": "e1a8a03a7dc9af1f414d43e807af767e552995dae684298096696a9aadd11bba"
+    },
+    {
+      "path": "native/ldir/linear-strided/ordinary/program.bin",
+      "sha256": "8df9730d31857e271d0e1ffcef3c7b45b8f033e9fcb5abfe6a9cd5faea0e7a68"
+    },
+    {
+      "path": "native/ldir/linear-strided/ordinary/result.json",
+      "sha256": "db6079c15d5ea524b884739c740bc59cbb71dac3606dfa623210ecfa17939a8e"
+    },
+    {
+      "path": "native/ldir/linear-strided/source.nanz",
+      "sha256": "b101a84adf4a9f67e4b20e2854b2ed32ead878c0a4769d2c94fd22e104c7a1f0"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-full/grace-size/program.a80",
+      "sha256": "71b21248f6d134b2566432526a2eaae5cb3fad3bb93f4c7dc8dbbfefdc668a4d"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-full/grace-size/program.bin",
+      "sha256": "02f9660c5d3f2d0421aae9877743a5b0295f3a9bd76ce5ba9619f21309bc3cc9"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-full/grace-size/result.json",
+      "sha256": "bcb7f42fcbc273247a29b2e3f2e62a4e12919f18dd6d5c4e99c36a38c8c23d14"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-full/grace-speed/program.a80",
+      "sha256": "71b21248f6d134b2566432526a2eaae5cb3fad3bb93f4c7dc8dbbfefdc668a4d"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-full/grace-speed/program.bin",
+      "sha256": "02f9660c5d3f2d0421aae9877743a5b0295f3a9bd76ce5ba9619f21309bc3cc9"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-full/grace-speed/result.json",
+      "sha256": "90f12b48708375d86d5b0efa5fcfcaf416c8047c89b67a3b1d76ea57673d458d"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-full/ordinary/program.a80",
+      "sha256": "e6b6a8c2ed3b7c7b5ff5dbedf9802d2a1c98aa3d07c78167983501cf12d67277"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-full/ordinary/program.bin",
+      "sha256": "02f9660c5d3f2d0421aae9877743a5b0295f3a9bd76ce5ba9619f21309bc3cc9"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-full/ordinary/result.json",
+      "sha256": "a46b023504f11cba961ad06da90b048bd4e8ffbe45ab56e885a842c8a774057a"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-full/source.nanz",
+      "sha256": "a6f02d14dd667e0ba39c773abd89f5b42c42193370c9266ef533a7ce52dc01db"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-row-63-64/grace-size/program.a80",
+      "sha256": "e6fd8dc0994397991a9ac474ce26ce9afa29ba7e8109c3ca58e8554128b76bd1"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-row-63-64/grace-size/program.bin",
+      "sha256": "8f056ca9912a43d4b9105a7b66177110706f7e8e97999074eac2d56e34c8a6ca"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-row-63-64/grace-size/result.json",
+      "sha256": "cc8b4ecfb6c278f28ec131d0db03d0d803dab4054f476da78df8366440d2bd5a"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-row-63-64/grace-speed/program.a80",
+      "sha256": "e6fd8dc0994397991a9ac474ce26ce9afa29ba7e8109c3ca58e8554128b76bd1"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-row-63-64/grace-speed/program.bin",
+      "sha256": "8f056ca9912a43d4b9105a7b66177110706f7e8e97999074eac2d56e34c8a6ca"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-row-63-64/grace-speed/result.json",
+      "sha256": "81a19f8bd00d85cd5b97425cd6d475f602b7a309e01739b9bdcd70b4b05fac53"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-row-63-64/ordinary/program.a80",
+      "sha256": "fcc81b7d109fecf0727c08517754a8d7a0828a15df2f83d0d0f924cfd1efaf80"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-row-63-64/ordinary/program.bin",
+      "sha256": "8f056ca9912a43d4b9105a7b66177110706f7e8e97999074eac2d56e34c8a6ca"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-row-63-64/ordinary/result.json",
+      "sha256": "80f525dc82b786370cf4bfc38c7c8553388eb2539bcacf648f75906523233912"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-row-63-64/source.nanz",
+      "sha256": "1fc6b1b97450c368fe1fef17809d0a83c16e3a8cfda1ed1edec5c95a8066a684"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-row-7-8/grace-size/program.a80",
+      "sha256": "12d8fd1e877f3fec5206505a2ff6e8db39a15af1597bfdbe66671492dcb10af9"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-row-7-8/grace-size/program.bin",
+      "sha256": "37d016d93f7256e20937d734a212247d3ca389bd4e2b514bebb4763c7c0c097d"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-row-7-8/grace-size/result.json",
+      "sha256": "11bdedf37363b52f166da9c3e75c92651f92739b7fb25180eea88313daf1ffbb"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-row-7-8/grace-speed/program.a80",
+      "sha256": "12d8fd1e877f3fec5206505a2ff6e8db39a15af1597bfdbe66671492dcb10af9"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-row-7-8/grace-speed/program.bin",
+      "sha256": "37d016d93f7256e20937d734a212247d3ca389bd4e2b514bebb4763c7c0c097d"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-row-7-8/grace-speed/result.json",
+      "sha256": "2fba6697c3b04a6cabb6060db1856d09d59ecd0e5ceac9942ef79fa9ff010587"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-row-7-8/ordinary/program.a80",
+      "sha256": "0f8ab1614dcc8b9da5bda9514f9bcf1c6f13e4b57ab5401df4e0863f0fcb4fda"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-row-7-8/ordinary/program.bin",
+      "sha256": "37d016d93f7256e20937d734a212247d3ca389bd4e2b514bebb4763c7c0c097d"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-row-7-8/ordinary/result.json",
+      "sha256": "e6a68b8d5ba1ba3f1577fa6dfb6e937865c3b6e245f8448d1dc0423b65e4941f"
+    },
+    {
+      "path": "native/ldir/raster-to-zx-row-7-8/source.nanz",
+      "sha256": "8c5303eaa090f58bda1a5f559e27d671ef28cde39cd73ad4cd040eca94925335"
+    },
+    {
+      "path": "native/ldir/source-last-byte/grace-size/program.a80",
+      "sha256": "a1de500e1c7d44d3d9401830cad97a3d22031e5158560df50eb29686a8299524"
+    },
+    {
+      "path": "native/ldir/source-last-byte/grace-size/program.bin",
+      "sha256": "83aec83d90cfce8a19fa56650749f4e755b0486525f0ea7ed4d29feb9f83856f"
+    },
+    {
+      "path": "native/ldir/source-last-byte/grace-size/result.json",
+      "sha256": "e1e066d4621c47ab8e23c353ea2f236ab51aa841e376a39bb75edac4ebc79d50"
+    },
+    {
+      "path": "native/ldir/source-last-byte/grace-speed/program.a80",
+      "sha256": "a1de500e1c7d44d3d9401830cad97a3d22031e5158560df50eb29686a8299524"
+    },
+    {
+      "path": "native/ldir/source-last-byte/grace-speed/program.bin",
+      "sha256": "83aec83d90cfce8a19fa56650749f4e755b0486525f0ea7ed4d29feb9f83856f"
+    },
+    {
+      "path": "native/ldir/source-last-byte/grace-speed/result.json",
+      "sha256": "701bae9a33afb12e66921e3bb2629e1c1ba1d8b12da15abdcf1e328fddd0b361"
+    },
+    {
+      "path": "native/ldir/source-last-byte/ordinary/program.a80",
+      "sha256": "c34198fb1e554be961bbc46a3a593e1bdb8163d0fbb2e9976e614d076b00fb65"
+    },
+    {
+      "path": "native/ldir/source-last-byte/ordinary/program.bin",
+      "sha256": "83aec83d90cfce8a19fa56650749f4e755b0486525f0ea7ed4d29feb9f83856f"
+    },
+    {
+      "path": "native/ldir/source-last-byte/ordinary/result.json",
+      "sha256": "a9e473eea62bd677be0926d639add90ab61c260d2b930a1a6ca2727df62b2227"
+    },
+    {
+      "path": "native/ldir/source-last-byte/source.nanz",
+      "sha256": "c92eab06e4ec6d78017ae1a66d672ae1ce1c81131bb79d5d30a7bc9aa694774f"
+    },
+    {
+      "path": "native/ldir/zero-height/grace-size/program.a80",
+      "sha256": "007bba2ded809d64ff8392917025d6cf9a65b4a03a12d228b1f23e5dc08b535e"
+    },
+    {
+      "path": "native/ldir/zero-height/grace-size/program.bin",
+      "sha256": "4fb733bedb74fec8d65bedf056b935189a289e928b3302bec38a281814de523a"
+    },
+    {
+      "path": "native/ldir/zero-height/grace-size/result.json",
+      "sha256": "5621da40ece94cf3affca0e82795358761319d99b0e61c92dd7ea75969f4f1f0"
+    },
+    {
+      "path": "native/ldir/zero-height/grace-speed/program.a80",
+      "sha256": "007bba2ded809d64ff8392917025d6cf9a65b4a03a12d228b1f23e5dc08b535e"
+    },
+    {
+      "path": "native/ldir/zero-height/grace-speed/program.bin",
+      "sha256": "4fb733bedb74fec8d65bedf056b935189a289e928b3302bec38a281814de523a"
+    },
+    {
+      "path": "native/ldir/zero-height/grace-speed/result.json",
+      "sha256": "419272b407d3953aab218bc90cd2f1e2b5a55cccf6ac4e2e37d47e8c99be7759"
+    },
+    {
+      "path": "native/ldir/zero-height/ordinary/program.a80",
+      "sha256": "9ead0adcdeb102cf0a8df8266c8b5cb4032eea7e768d7d6a1bd93accf63aa47e"
+    },
+    {
+      "path": "native/ldir/zero-height/ordinary/program.bin",
+      "sha256": "4fb733bedb74fec8d65bedf056b935189a289e928b3302bec38a281814de523a"
+    },
+    {
+      "path": "native/ldir/zero-height/ordinary/result.json",
+      "sha256": "8ea612a027a598eb6235ee053967d649f8dc499392824081a48ad98a12c045d4"
+    },
+    {
+      "path": "native/ldir/zero-height/source.nanz",
+      "sha256": "d399339a8f3da0df5d1b066ba0abf4842e6d4959f81184c56af1d6d264c86ef6"
+    },
+    {
+      "path": "native/ldir/zero-width/grace-size/program.a80",
+      "sha256": "007bba2ded809d64ff8392917025d6cf9a65b4a03a12d228b1f23e5dc08b535e"
+    },
+    {
+      "path": "native/ldir/zero-width/grace-size/program.bin",
+      "sha256": "4fb733bedb74fec8d65bedf056b935189a289e928b3302bec38a281814de523a"
+    },
+    {
+      "path": "native/ldir/zero-width/grace-size/result.json",
+      "sha256": "5621da40ece94cf3affca0e82795358761319d99b0e61c92dd7ea75969f4f1f0"
+    },
+    {
+      "path": "native/ldir/zero-width/grace-speed/program.a80",
+      "sha256": "007bba2ded809d64ff8392917025d6cf9a65b4a03a12d228b1f23e5dc08b535e"
+    },
+    {
+      "path": "native/ldir/zero-width/grace-speed/program.bin",
+      "sha256": "4fb733bedb74fec8d65bedf056b935189a289e928b3302bec38a281814de523a"
+    },
+    {
+      "path": "native/ldir/zero-width/grace-speed/result.json",
+      "sha256": "419272b407d3953aab218bc90cd2f1e2b5a55cccf6ac4e2e37d47e8c99be7759"
+    },
+    {
+      "path": "native/ldir/zero-width/ordinary/program.a80",
+      "sha256": "9ead0adcdeb102cf0a8df8266c8b5cb4032eea7e768d7d6a1bd93accf63aa47e"
+    },
+    {
+      "path": "native/ldir/zero-width/ordinary/program.bin",
+      "sha256": "4fb733bedb74fec8d65bedf056b935189a289e928b3302bec38a281814de523a"
+    },
+    {
+      "path": "native/ldir/zero-width/ordinary/result.json",
+      "sha256": "8ea612a027a598eb6235ee053967d649f8dc499392824081a48ad98a12c045d4"
+    },
+    {
+      "path": "native/ldir/zero-width/source.nanz",
+      "sha256": "90bdbf04f710944204a258e7df02c5f8fae8456736eab69b8af589e53c7b83e4"
+    },
+    {
+      "path": "native/ldir/zx-to-raster/grace-size/program.a80",
+      "sha256": "98de285a4f2bd3f60ef1d6321323fe302f845a89bbb53ac8b222e43c900ac94f"
+    },
+    {
+      "path": "native/ldir/zx-to-raster/grace-size/program.bin",
+      "sha256": "c7e98e607f4b82bfe4c86dc615349ebcf2569f07a39af1f40a1a5ab06bf72a27"
+    },
+    {
+      "path": "native/ldir/zx-to-raster/grace-size/result.json",
+      "sha256": "4190ec3b1b2863a32ce435f1bfc880591e8ad9372411b7ec04f869492b4f5a7c"
+    },
+    {
+      "path": "native/ldir/zx-to-raster/grace-speed/program.a80",
+      "sha256": "98de285a4f2bd3f60ef1d6321323fe302f845a89bbb53ac8b222e43c900ac94f"
+    },
+    {
+      "path": "native/ldir/zx-to-raster/grace-speed/program.bin",
+      "sha256": "c7e98e607f4b82bfe4c86dc615349ebcf2569f07a39af1f40a1a5ab06bf72a27"
+    },
+    {
+      "path": "native/ldir/zx-to-raster/grace-speed/result.json",
+      "sha256": "82fe06a0b15c9cf80facab24b1e7cd1ef9456650d9633226482f2b1eeb8424fb"
+    },
+    {
+      "path": "native/ldir/zx-to-raster/ordinary/program.a80",
+      "sha256": "2276373c5977cf84743fc58050076e80e9facc36bd16d0c44b59b3a9fcfd321d"
+    },
+    {
+      "path": "native/ldir/zx-to-raster/ordinary/program.bin",
+      "sha256": "c7e98e607f4b82bfe4c86dc615349ebcf2569f07a39af1f40a1a5ab06bf72a27"
+    },
+    {
+      "path": "native/ldir/zx-to-raster/ordinary/result.json",
+      "sha256": "2c6ffc006e5e7a6100d0c4569c7800094daac8b6816e2705895e7ef84055aae0"
+    },
+    {
+      "path": "native/ldir/zx-to-raster/source.nanz",
+      "sha256": "77f6aa3d8d3f8e12814ff49d00a4a9f354f7926caff5c1b27d4526f28a8d863c"
+    },
+    {
+      "path": "native/live-values/grace-size/program.a80",
+      "sha256": "c3981aed62c486ea26e3c4a28649d556dff7b6ccf8153329e9149f259a189a23"
+    },
+    {
+      "path": "native/live-values/grace-size/program.bin",
+      "sha256": "81d4bd3cddc8c81039b112ea9847ddfd2ce7a9f7fe1f36172a6d4eeb86522039"
+    },
+    {
+      "path": "native/live-values/grace-speed/program.a80",
+      "sha256": "c3981aed62c486ea26e3c4a28649d556dff7b6ccf8153329e9149f259a189a23"
+    },
+    {
+      "path": "native/live-values/grace-speed/program.bin",
+      "sha256": "81d4bd3cddc8c81039b112ea9847ddfd2ce7a9f7fe1f36172a6d4eeb86522039"
+    },
+    {
+      "path": "native/live-values/ordinary/program.a80",
+      "sha256": "5768ed1328f446d902ebbc02cd5a57a256ddad7809f44cf793acdf79a49e800a"
+    },
+    {
+      "path": "native/live-values/ordinary/program.bin",
+      "sha256": "81d4bd3cddc8c81039b112ea9847ddfd2ce7a9f7fe1f36172a6d4eeb86522039"
+    },
+    {
+      "path": "native/live-values/source.nanz",
+      "sha256": "083901150a2a9ab7875a4d769c81c4663aa1095ec7eb9d1aa1950801476fe318"
+    },
+    {
+      "path": "native/pointer/destination-last-byte/grace-size/program.a80",
+      "sha256": "82d3386f50ef7ed096b60484f465823bdcd8bc4d872dfce9a7c09edd99866d8a"
+    },
+    {
+      "path": "native/pointer/destination-last-byte/grace-size/program.bin",
+      "sha256": "71fd29ff058af43beca66fe3740353d5db5c67db768fdbd0ef4827facb764888"
+    },
+    {
+      "path": "native/pointer/destination-last-byte/grace-size/result.json",
+      "sha256": "108b1dcd1376c6cfecdf984e6af933960dff1e6dccb3b5722483275bdbcad586"
+    },
+    {
+      "path": "native/pointer/destination-last-byte/grace-speed/program.a80",
+      "sha256": "82d3386f50ef7ed096b60484f465823bdcd8bc4d872dfce9a7c09edd99866d8a"
+    },
+    {
+      "path": "native/pointer/destination-last-byte/grace-speed/program.bin",
+      "sha256": "71fd29ff058af43beca66fe3740353d5db5c67db768fdbd0ef4827facb764888"
+    },
+    {
+      "path": "native/pointer/destination-last-byte/grace-speed/result.json",
+      "sha256": "dc6966ee6e29d9a02f926df9f7e13adeb8f96b531b08cc32b9b4a2b2ee46b5db"
+    },
+    {
+      "path": "native/pointer/destination-last-byte/ordinary/program.a80",
+      "sha256": "962ce5fa02e568a4f2414daaa493d4c298a5b21d2fdcc9bd5bb280cbb72a4fce"
+    },
+    {
+      "path": "native/pointer/destination-last-byte/ordinary/program.bin",
+      "sha256": "71fd29ff058af43beca66fe3740353d5db5c67db768fdbd0ef4827facb764888"
+    },
+    {
+      "path": "native/pointer/destination-last-byte/ordinary/result.json",
+      "sha256": "007bf0d08ca2a652ca2b9462a4b7aa89ceccf7e8ec735bf2c0a20c22cc96d73e"
+    },
+    {
+      "path": "native/pointer/destination-last-byte/source.nanz",
+      "sha256": "f001b1261782a390872a56514865bb7ec230e0934c2b2ef81d28f67cf7c112fe"
+    },
+    {
+      "path": "native/pointer/linear-255/grace-size/program.a80",
+      "sha256": "4e16abe411019a8cdcc4ab2657dac8b20e4f3058e56e7aec169e235fa30697df"
+    },
+    {
+      "path": "native/pointer/linear-255/grace-size/program.bin",
+      "sha256": "7a99d5f23c32c2c04304c3523e6a9186f5040383b0ea72d72d0967e45500be0a"
+    },
+    {
+      "path": "native/pointer/linear-255/grace-size/result.json",
+      "sha256": "50a0fbf30921e0ed42ba762fb25b821b9a0572747cb02cd577ed77c84d402e6f"
+    },
+    {
+      "path": "native/pointer/linear-255/grace-speed/program.a80",
+      "sha256": "4e16abe411019a8cdcc4ab2657dac8b20e4f3058e56e7aec169e235fa30697df"
+    },
+    {
+      "path": "native/pointer/linear-255/grace-speed/program.bin",
+      "sha256": "7a99d5f23c32c2c04304c3523e6a9186f5040383b0ea72d72d0967e45500be0a"
+    },
+    {
+      "path": "native/pointer/linear-255/grace-speed/result.json",
+      "sha256": "9caf1be764a294e2d410ef6329df1fc893811380dc8ae1913bdacfc16e79ae0a"
+    },
+    {
+      "path": "native/pointer/linear-255/ordinary/program.a80",
+      "sha256": "3c9ab3f05c2dfd23205486b3e8b0e848a6ae3e6c42105c220fad222a1c8a9519"
+    },
+    {
+      "path": "native/pointer/linear-255/ordinary/program.bin",
+      "sha256": "7a99d5f23c32c2c04304c3523e6a9186f5040383b0ea72d72d0967e45500be0a"
+    },
+    {
+      "path": "native/pointer/linear-255/ordinary/result.json",
+      "sha256": "268aedd018d6627c29a3a0e6d7a82ee2f107d84c86e724675e3136aa154438ef"
+    },
+    {
+      "path": "native/pointer/linear-255/source.nanz",
+      "sha256": "5f5e330be1abc85b7b3e398e8567b9cc6d4aa5705427dfe870922a0fe3ab2b3e"
+    },
+    {
+      "path": "native/pointer/linear-256/grace-size/program.a80",
+      "sha256": "fb2fe7e76c6f9844016d5e51a1e33022f6b28aabb8ed91f39659b4747b6d2f05"
+    },
+    {
+      "path": "native/pointer/linear-256/grace-size/program.bin",
+      "sha256": "919dcac68fb7f4e229dc971709cecb1b8ac2be78576f1b7d1bb4da2e5214bfb4"
+    },
+    {
+      "path": "native/pointer/linear-256/grace-size/result.json",
+      "sha256": "6717340411594f13a83845826ca5b7f5f7bc33f7c3d5849d60553926f174e948"
+    },
+    {
+      "path": "native/pointer/linear-256/grace-speed/program.a80",
+      "sha256": "fb2fe7e76c6f9844016d5e51a1e33022f6b28aabb8ed91f39659b4747b6d2f05"
+    },
+    {
+      "path": "native/pointer/linear-256/grace-speed/program.bin",
+      "sha256": "919dcac68fb7f4e229dc971709cecb1b8ac2be78576f1b7d1bb4da2e5214bfb4"
+    },
+    {
+      "path": "native/pointer/linear-256/grace-speed/result.json",
+      "sha256": "4fefd478abcf1b29af01026c29dd589daa8bacb1608fcad08268e68ab34a7985"
+    },
+    {
+      "path": "native/pointer/linear-256/ordinary/program.a80",
+      "sha256": "1d2536c33213ac2691ed9f018f00d99ce3863a974f0376e161aff541096c0ec3"
+    },
+    {
+      "path": "native/pointer/linear-256/ordinary/program.bin",
+      "sha256": "919dcac68fb7f4e229dc971709cecb1b8ac2be78576f1b7d1bb4da2e5214bfb4"
+    },
+    {
+      "path": "native/pointer/linear-256/ordinary/result.json",
+      "sha256": "dbbffd4dbfda9a378ffd812fe8cb5bb6f2ed295ad003cb290221317eb24cc7b5"
+    },
+    {
+      "path": "native/pointer/linear-256/source.nanz",
+      "sha256": "7471a87c1b68dcf2bd3280d6b78eb002f28a4d56e604dc53bfd235cea16a3a2f"
+    },
+    {
+      "path": "native/pointer/linear-one/grace-size/program.a80",
+      "sha256": "9b8af9a89413dc88617135c2dd820dcf1f101fed7597fcf349ad0cbae68323b3"
+    },
+    {
+      "path": "native/pointer/linear-one/grace-size/program.bin",
+      "sha256": "1b3929a00be46622af9adb4c4075baf5215352d70bc87414dbd979af507f18e2"
+    },
+    {
+      "path": "native/pointer/linear-one/grace-size/result.json",
+      "sha256": "de1af58068211a2d0844bb819befc18318c59776939251966f6898e9f3c3e54b"
+    },
+    {
+      "path": "native/pointer/linear-one/grace-speed/program.a80",
+      "sha256": "9b8af9a89413dc88617135c2dd820dcf1f101fed7597fcf349ad0cbae68323b3"
+    },
+    {
+      "path": "native/pointer/linear-one/grace-speed/program.bin",
+      "sha256": "1b3929a00be46622af9adb4c4075baf5215352d70bc87414dbd979af507f18e2"
+    },
+    {
+      "path": "native/pointer/linear-one/grace-speed/result.json",
+      "sha256": "42ac6704dde35c6ddc3f1fd7cb6625f87f79f94fd2f23c48060ffffb53626aa0"
+    },
+    {
+      "path": "native/pointer/linear-one/ordinary/program.a80",
+      "sha256": "73180c07416daece451a2e0ed5bb53427cf83c0173017ba7fb40e4cdbc521eee"
+    },
+    {
+      "path": "native/pointer/linear-one/ordinary/program.bin",
+      "sha256": "1b3929a00be46622af9adb4c4075baf5215352d70bc87414dbd979af507f18e2"
+    },
+    {
+      "path": "native/pointer/linear-one/ordinary/result.json",
+      "sha256": "0ab08a636b11e247c42d4c8f249de51d83a7b21ed91cdaefef45b775c4ebbdba"
+    },
+    {
+      "path": "native/pointer/linear-one/source.nanz",
+      "sha256": "3395927f9301ffb875a01ac2afe3002f2acf8ed11cb9abce9180babeda3059d4"
+    },
+    {
+      "path": "native/pointer/linear-page-crossing/grace-size/program.a80",
+      "sha256": "1fe57ace45b0e8c858dcc0a2ea32c2ff24d48dc0343598af5e2c3dbabb9f60aa"
+    },
+    {
+      "path": "native/pointer/linear-page-crossing/grace-size/program.bin",
+      "sha256": "f0f847f7e8eeae4d43051863d94f3b5eb0d126cba0f419491c3790f671521a83"
+    },
+    {
+      "path": "native/pointer/linear-page-crossing/grace-size/result.json",
+      "sha256": "8f64c408f05bdbfc1b852bbdba12eac7e2bd46891983674ed08414fcc9c4bff9"
+    },
+    {
+      "path": "native/pointer/linear-page-crossing/grace-speed/program.a80",
+      "sha256": "1fe57ace45b0e8c858dcc0a2ea32c2ff24d48dc0343598af5e2c3dbabb9f60aa"
+    },
+    {
+      "path": "native/pointer/linear-page-crossing/grace-speed/program.bin",
+      "sha256": "f0f847f7e8eeae4d43051863d94f3b5eb0d126cba0f419491c3790f671521a83"
+    },
+    {
+      "path": "native/pointer/linear-page-crossing/grace-speed/result.json",
+      "sha256": "017fa7544fd3803af6789e3f0696defff3076b4e8b8c50d5734d13af1642755e"
+    },
+    {
+      "path": "native/pointer/linear-page-crossing/ordinary/program.a80",
+      "sha256": "5e60d1d8eb578615a9c2f87342aaf4e19d259c7cb08d67c9e489929346ae8508"
+    },
+    {
+      "path": "native/pointer/linear-page-crossing/ordinary/program.bin",
+      "sha256": "f0f847f7e8eeae4d43051863d94f3b5eb0d126cba0f419491c3790f671521a83"
+    },
+    {
+      "path": "native/pointer/linear-page-crossing/ordinary/result.json",
+      "sha256": "6c843c66a72a9b9718ade68df1f4f256b7096e26e00b3c837a3b871867dcfd6e"
+    },
+    {
+      "path": "native/pointer/linear-page-crossing/source.nanz",
+      "sha256": "085751d0a15037def74fd3bb02c03446f2cb63eb072a2194ae8a0f6246d8cf08"
+    },
+    {
+      "path": "native/pointer/linear-strided/grace-size/program.a80",
+      "sha256": "347b8a2f7eb7f20a8c9ff953a1bfa633bb89478b4ebc41c46831fe0daaaabf14"
+    },
+    {
+      "path": "native/pointer/linear-strided/grace-size/program.bin",
+      "sha256": "23ec35b6d172ea988767d4f4b68ff0512de1aa3b7641aa5eb7231f1573b645dd"
+    },
+    {
+      "path": "native/pointer/linear-strided/grace-size/result.json",
+      "sha256": "245357ffb956dd6380d6f82a6cb7a42b5dd263c93a70fcf3f3e6a050bd242cd0"
+    },
+    {
+      "path": "native/pointer/linear-strided/grace-speed/program.a80",
+      "sha256": "347b8a2f7eb7f20a8c9ff953a1bfa633bb89478b4ebc41c46831fe0daaaabf14"
+    },
+    {
+      "path": "native/pointer/linear-strided/grace-speed/program.bin",
+      "sha256": "23ec35b6d172ea988767d4f4b68ff0512de1aa3b7641aa5eb7231f1573b645dd"
+    },
+    {
+      "path": "native/pointer/linear-strided/grace-speed/result.json",
+      "sha256": "d4dddd83bb5cb09d77611af18d6c253da0d50fa4580f8741ca25bbbf284496d4"
+    },
+    {
+      "path": "native/pointer/linear-strided/ordinary/program.a80",
+      "sha256": "a29824ce18b77e320357056e746ade58b9a69bf05fb51a45d1a7f66e98588fec"
+    },
+    {
+      "path": "native/pointer/linear-strided/ordinary/program.bin",
+      "sha256": "23ec35b6d172ea988767d4f4b68ff0512de1aa3b7641aa5eb7231f1573b645dd"
+    },
+    {
+      "path": "native/pointer/linear-strided/ordinary/result.json",
+      "sha256": "22ad893c65f0af2b119034bd0cfb4ec3a9723bf0e1d2428ac282043a0a1e9294"
+    },
+    {
+      "path": "native/pointer/linear-strided/source.nanz",
+      "sha256": "2ca69625326c125848b9c204d6e7e369a81d2272c8aa4528eed4689520997277"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-full/grace-size/program.a80",
+      "sha256": "747ca1049cdfdc8464a7a1be0e0f7c6f7b46bde83bd31f99d9b0ca2cd4032df7"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-full/grace-size/program.bin",
+      "sha256": "2488d20df6e5cab7fd75a6fcdd20fe3cecb5eb792d43595d2b2297774e66aecb"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-full/grace-size/result.json",
+      "sha256": "fafd539681614494dad09613919f5e4f67eea7e1891f38d985b834a9b9f65324"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-full/grace-speed/program.a80",
+      "sha256": "747ca1049cdfdc8464a7a1be0e0f7c6f7b46bde83bd31f99d9b0ca2cd4032df7"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-full/grace-speed/program.bin",
+      "sha256": "2488d20df6e5cab7fd75a6fcdd20fe3cecb5eb792d43595d2b2297774e66aecb"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-full/grace-speed/result.json",
+      "sha256": "3227b49444c826da898819489c6397f4fcd84c83feb937966f187d4bcf48f5a1"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-full/ordinary/program.a80",
+      "sha256": "a0c1600b18248529c5e12394da273c8ef8e7358f3ab60c1a2098b664a79b76b5"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-full/ordinary/program.bin",
+      "sha256": "f8ee12653f37b5cba4a55d6c204987070e6f915c45491cc572770372793c04dc"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-full/ordinary/result.json",
+      "sha256": "de1afbdf0ad45c1eb834d2a6612ebe76a3ef8427c0d1c1d40cff1477852fb105"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-full/source.nanz",
+      "sha256": "8ae26cd80920b069a3ba5836d33870f152869ee95bc7780648e4abce89cdb810"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-row-63-64/grace-size/program.a80",
+      "sha256": "0352f7370a7f18a8cb0bdb9aa09609126e253717df8dd74dddc041e17cf405cf"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-row-63-64/grace-size/program.bin",
+      "sha256": "463f38a42a28a22a8eafe85872d543bac29742eee557c462ed86937485859c8f"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-row-63-64/grace-size/result.json",
+      "sha256": "bda9e2f7de0c9c9fdfc93c5b79de703774b3a5425f3af2e85703076e9ed2c06f"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-row-63-64/grace-speed/program.a80",
+      "sha256": "0352f7370a7f18a8cb0bdb9aa09609126e253717df8dd74dddc041e17cf405cf"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-row-63-64/grace-speed/program.bin",
+      "sha256": "463f38a42a28a22a8eafe85872d543bac29742eee557c462ed86937485859c8f"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-row-63-64/grace-speed/result.json",
+      "sha256": "e3fbbf19a10f04ac24e40a96f2b2bfffe361a2365798ca8e8320a512e4cc8fdf"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-row-63-64/ordinary/program.a80",
+      "sha256": "83cf692da33219a73553c023f99a67a7932870d527f0c0eefa2c724d881ffe5d"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-row-63-64/ordinary/program.bin",
+      "sha256": "463f38a42a28a22a8eafe85872d543bac29742eee557c462ed86937485859c8f"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-row-63-64/ordinary/result.json",
+      "sha256": "4f290703517803abe4707876d3793a607f7505ab7751d727e4e7cdaf768c39db"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-row-63-64/source.nanz",
+      "sha256": "7dfdebb3d73359d167364e501a497bd6485d262027f6e65544e9cd2a1e075095"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-row-7-8/grace-size/program.a80",
+      "sha256": "06c7d175aec63e1ef77041770c0a1504f16b886bab97f34605772c2b53de76c3"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-row-7-8/grace-size/program.bin",
+      "sha256": "ddb9c69a6ef866db476d5fcfb02c7c68dcd26fb39ec112357693008c1003ef61"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-row-7-8/grace-size/result.json",
+      "sha256": "ef184f33a67d4206d417fcfc2b5c42f93683c123e430fc523d26eeee4de6340e"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-row-7-8/grace-speed/program.a80",
+      "sha256": "06c7d175aec63e1ef77041770c0a1504f16b886bab97f34605772c2b53de76c3"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-row-7-8/grace-speed/program.bin",
+      "sha256": "ddb9c69a6ef866db476d5fcfb02c7c68dcd26fb39ec112357693008c1003ef61"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-row-7-8/grace-speed/result.json",
+      "sha256": "85735450a094a27045354b5b01c64b9af4ab31f895329f95777d8e99d7db5ae1"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-row-7-8/ordinary/program.a80",
+      "sha256": "01138f068f55b88132651f593afe52f6485a319daaa4268a311aedbe51c11351"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-row-7-8/ordinary/program.bin",
+      "sha256": "ddb9c69a6ef866db476d5fcfb02c7c68dcd26fb39ec112357693008c1003ef61"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-row-7-8/ordinary/result.json",
+      "sha256": "06d08a082cbabe059449190c1277368f55a9693b3488ce7cf4728df8e4e06362"
+    },
+    {
+      "path": "native/pointer/raster-to-zx-row-7-8/source.nanz",
+      "sha256": "2cff778c6a4682576b3301fa5728cd388a94ca8dd6e23c16fd48ecaa842f6cd6"
+    },
+    {
+      "path": "native/pointer/source-last-byte/grace-size/program.a80",
+      "sha256": "42983d9f3cca6f3ec0b3191320e6bfce4bf642a0b3c0c8d4547a628048fda7ae"
+    },
+    {
+      "path": "native/pointer/source-last-byte/grace-size/program.bin",
+      "sha256": "952a00ea2d5ccae4dda407ad53a3c47161e0a0d2bd40962c35afb082ad253732"
+    },
+    {
+      "path": "native/pointer/source-last-byte/grace-size/result.json",
+      "sha256": "108b1dcd1376c6cfecdf984e6af933960dff1e6dccb3b5722483275bdbcad586"
+    },
+    {
+      "path": "native/pointer/source-last-byte/grace-speed/program.a80",
+      "sha256": "42983d9f3cca6f3ec0b3191320e6bfce4bf642a0b3c0c8d4547a628048fda7ae"
+    },
+    {
+      "path": "native/pointer/source-last-byte/grace-speed/program.bin",
+      "sha256": "952a00ea2d5ccae4dda407ad53a3c47161e0a0d2bd40962c35afb082ad253732"
+    },
+    {
+      "path": "native/pointer/source-last-byte/grace-speed/result.json",
+      "sha256": "dc6966ee6e29d9a02f926df9f7e13adeb8f96b531b08cc32b9b4a2b2ee46b5db"
+    },
+    {
+      "path": "native/pointer/source-last-byte/ordinary/program.a80",
+      "sha256": "118a65dba65550aedbc03ff6561be0470829d16685547481fbd8f96376f3f0bc"
+    },
+    {
+      "path": "native/pointer/source-last-byte/ordinary/program.bin",
+      "sha256": "952a00ea2d5ccae4dda407ad53a3c47161e0a0d2bd40962c35afb082ad253732"
+    },
+    {
+      "path": "native/pointer/source-last-byte/ordinary/result.json",
+      "sha256": "007bf0d08ca2a652ca2b9462a4b7aa89ceccf7e8ec735bf2c0a20c22cc96d73e"
+    },
+    {
+      "path": "native/pointer/source-last-byte/source.nanz",
+      "sha256": "9113621a3b628f84173113852f85dace7c81293db3f4ebdd73e9730963ee977b"
+    },
+    {
+      "path": "native/pointer/zero-height/grace-size/program.a80",
+      "sha256": "007bba2ded809d64ff8392917025d6cf9a65b4a03a12d228b1f23e5dc08b535e"
+    },
+    {
+      "path": "native/pointer/zero-height/grace-size/program.bin",
+      "sha256": "4fb733bedb74fec8d65bedf056b935189a289e928b3302bec38a281814de523a"
+    },
+    {
+      "path": "native/pointer/zero-height/grace-size/result.json",
+      "sha256": "a20fc3152bbb5be69e39887f38fb9c3b844ca8a49c8f7c215d7c58dffa27b230"
+    },
+    {
+      "path": "native/pointer/zero-height/grace-speed/program.a80",
+      "sha256": "007bba2ded809d64ff8392917025d6cf9a65b4a03a12d228b1f23e5dc08b535e"
+    },
+    {
+      "path": "native/pointer/zero-height/grace-speed/program.bin",
+      "sha256": "4fb733bedb74fec8d65bedf056b935189a289e928b3302bec38a281814de523a"
+    },
+    {
+      "path": "native/pointer/zero-height/grace-speed/result.json",
+      "sha256": "3e16479574180f7fdba292877a33f0b81a01bc5871b217e6ad24166d5343ec2c"
+    },
+    {
+      "path": "native/pointer/zero-height/ordinary/program.a80",
+      "sha256": "9ead0adcdeb102cf0a8df8266c8b5cb4032eea7e768d7d6a1bd93accf63aa47e"
+    },
+    {
+      "path": "native/pointer/zero-height/ordinary/program.bin",
+      "sha256": "4fb733bedb74fec8d65bedf056b935189a289e928b3302bec38a281814de523a"
+    },
+    {
+      "path": "native/pointer/zero-height/ordinary/result.json",
+      "sha256": "d4dc66cfd90719f732b5e8aa27cca64dac919035de571b86523fae4dfbee734a"
+    },
+    {
+      "path": "native/pointer/zero-height/source.nanz",
+      "sha256": "16af4ba6c729c8d4f5ace969348417739a10996e7341e09f7235d716f4da76af"
+    },
+    {
+      "path": "native/pointer/zero-width/grace-size/program.a80",
+      "sha256": "007bba2ded809d64ff8392917025d6cf9a65b4a03a12d228b1f23e5dc08b535e"
+    },
+    {
+      "path": "native/pointer/zero-width/grace-size/program.bin",
+      "sha256": "4fb733bedb74fec8d65bedf056b935189a289e928b3302bec38a281814de523a"
+    },
+    {
+      "path": "native/pointer/zero-width/grace-size/result.json",
+      "sha256": "a20fc3152bbb5be69e39887f38fb9c3b844ca8a49c8f7c215d7c58dffa27b230"
+    },
+    {
+      "path": "native/pointer/zero-width/grace-speed/program.a80",
+      "sha256": "007bba2ded809d64ff8392917025d6cf9a65b4a03a12d228b1f23e5dc08b535e"
+    },
+    {
+      "path": "native/pointer/zero-width/grace-speed/program.bin",
+      "sha256": "4fb733bedb74fec8d65bedf056b935189a289e928b3302bec38a281814de523a"
+    },
+    {
+      "path": "native/pointer/zero-width/grace-speed/result.json",
+      "sha256": "3e16479574180f7fdba292877a33f0b81a01bc5871b217e6ad24166d5343ec2c"
+    },
+    {
+      "path": "native/pointer/zero-width/ordinary/program.a80",
+      "sha256": "9ead0adcdeb102cf0a8df8266c8b5cb4032eea7e768d7d6a1bd93accf63aa47e"
+    },
+    {
+      "path": "native/pointer/zero-width/ordinary/program.bin",
+      "sha256": "4fb733bedb74fec8d65bedf056b935189a289e928b3302bec38a281814de523a"
+    },
+    {
+      "path": "native/pointer/zero-width/ordinary/result.json",
+      "sha256": "d4dc66cfd90719f732b5e8aa27cca64dac919035de571b86523fae4dfbee734a"
+    },
+    {
+      "path": "native/pointer/zero-width/source.nanz",
+      "sha256": "54f8ff1a0ffe054d6de6ac85376086515a38f39f494a8d4b18d5973c28ef2b35"
+    },
+    {
+      "path": "native/pointer/zx-to-raster/grace-size/program.a80",
+      "sha256": "c8aa81e1edfbe9ab768955b284e4fde3b4c1be9d27ec42046f1f6182ced778e8"
+    },
+    {
+      "path": "native/pointer/zx-to-raster/grace-size/program.bin",
+      "sha256": "6f3e49cf12393d43cca94e236de1183d1994e380c58d249f2c107e3cbf8f561c"
+    },
+    {
+      "path": "native/pointer/zx-to-raster/grace-size/result.json",
+      "sha256": "a85011ed4a9ea921f7ff592b25199cbb496c0ee09052577e8dd2e55f50b0a0a2"
+    },
+    {
+      "path": "native/pointer/zx-to-raster/grace-speed/program.a80",
+      "sha256": "c8aa81e1edfbe9ab768955b284e4fde3b4c1be9d27ec42046f1f6182ced778e8"
+    },
+    {
+      "path": "native/pointer/zx-to-raster/grace-speed/program.bin",
+      "sha256": "6f3e49cf12393d43cca94e236de1183d1994e380c58d249f2c107e3cbf8f561c"
+    },
+    {
+      "path": "native/pointer/zx-to-raster/grace-speed/result.json",
+      "sha256": "581233e18c7772fdca2772bbcf277c788ff042f41befae055e2725234510c23c"
+    },
+    {
+      "path": "native/pointer/zx-to-raster/ordinary/program.a80",
+      "sha256": "d470897b38f1eb99b8e82f609cd4bf374167e6e521553b88ce9674883a676fe4"
+    },
+    {
+      "path": "native/pointer/zx-to-raster/ordinary/program.bin",
+      "sha256": "6f3e49cf12393d43cca94e236de1183d1994e380c58d249f2c107e3cbf8f561c"
+    },
+    {
+      "path": "native/pointer/zx-to-raster/ordinary/result.json",
+      "sha256": "0cb45e3b2a5dd0ff0e3ee7f7a0ba26f6b5ce3a196b0f973e268654ae2bf41c8b"
+    },
+    {
+      "path": "native/pointer/zx-to-raster/source.nanz",
+      "sha256": "7aec351e252a44304280eae665b9189b3ea98c8b3e9fc55b027ab5c80fe23a5b"
+    },
+    {
+      "path": "tests.txt",
+      "sha256": "f700f04f5134566990bb4bf5e8e423cc7997a4c335f88d95b16cea36276c411a"
+    }
+  ]
+}

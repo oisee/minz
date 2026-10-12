@@ -1,0 +1,8 @@
+import hw.copy
+fun copy_test() { @copy() {
+source "zx_bitmap_bytes" 16384
+ destination "linear" 24576 9 4 12
+ region 3 62 1 1 7 3
+ via "pointer"
+
+} }

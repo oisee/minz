@@ -1,0 +1,8 @@
+import hw.copy
+fun copy_test() { @copy() {
+source "linear" 24576 256 1 256
+ destination "linear" 26624 256 1 256
+ region 0 0 0 0 256 1
+ via "pointer"
+
+} }

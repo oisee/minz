@@ -1,0 +1,8 @@
+import hw.copy
+fun copy_test() { @copy() {
+source "linear" 24831 2 1 2
+ destination "linear" 26879 2 1 2
+ region 0 0 0 0 2 1
+ via "ldir"
+
+} }

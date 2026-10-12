@@ -1,0 +1,10 @@
+=== RUN   TestHardwareCopyLDIRLiveValues
+=== RUN   TestHardwareCopyLDIRLiveValues/ordinary
+=== RUN   TestHardwareCopyLDIRLiveValues/grace-size
+=== RUN   TestHardwareCopyLDIRLiveValues/grace-speed
+--- PASS: TestHardwareCopyLDIRLiveValues (0.02s)
+    --- PASS: TestHardwareCopyLDIRLiveValues/ordinary (0.01s)
+    --- PASS: TestHardwareCopyLDIRLiveValues/grace-size (0.01s)
+    --- PASS: TestHardwareCopyLDIRLiveValues/grace-speed (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.029s
