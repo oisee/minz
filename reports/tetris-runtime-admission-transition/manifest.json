@@ -1,0 +1,6 @@
+{
+  "reports/tetris-runtime-admission-transition/hostile.txt": "6f2e48675bf3bd95d86587319108ef590690963083706d33a86b56883405722c",
+  "reports/tetris-runtime-admission-transition/README.md": "010c02e896c4b51960f4f00904a785005c6cdadbdc767d80909f86733f8b37a8",
+  "reports/tetris-runtime-admission-transition/native.txt": "650a9e1a2c7032f4c4f3ac68316ded8664b76ab9ea5ae27b2787e26e7e69a116",
+  "minzc/pkg/pipeline/original_tetris_main_negative_test.go": "83468f6a87ca9802054084a5e4e0fd97e4379bc5ff9e55a827485b9ab1afb68d"
+}

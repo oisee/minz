@@ -1,0 +1,12 @@
+=== RUN   TestPublicCPMTetrisNative
+    cpm_tetris_native_test.go:256: ordinary public runtime exact stdout/state/OSreturn/SP PASS
+    cpm_tetris_native_test.go:256: grace-size public runtime exact stdout/state/OSreturn/SP PASS
+    cpm_tetris_native_test.go:256: grace-speed public runtime exact stdout/state/OSreturn/SP PASS
+--- PASS: TestPublicCPMTetrisNative (1.72s)
+=== RUN   TestOriginalTetrisCPMMainSourceAPIRefusal
+    original_tetris_main_negative_test.go:239: ordinary original wholemain source/API refusal reproduced
+    original_tetris_main_negative_test.go:239: grace-size original wholemain source/API refusal reproduced
+    original_tetris_main_negative_test.go:239: grace-speed original wholemain source/API refusal reproduced
+--- PASS: TestOriginalTetrisCPMMainSourceAPIRefusal (3.23s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.958s

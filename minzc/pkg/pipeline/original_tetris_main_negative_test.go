@@ -11,7 +11,6 @@ import (
 	"github.com/minz/minzc/pkg/z80asm"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
@@ -142,7 +141,8 @@ func TestOriginalTetrisCPMMainSourceAPIRefusal(t *testing.T) {
 		save(mode+"/program.a80", asm)
 		save(mode+"/program.com", a.Binary)
 		save(mode+"/final.mir", s.MIR2Module.Dump())
-		// Preserve real production refusal as its own observation, never bypass it.
+		// Canonical TUI ASM is now admitted; source/string API failure below
+		// remains a separate bounded diagnostic and is not runtime correctness.
 		h, e = nanz.ParseWithOpts(string(src), "tetris_cpm.nanz", nanz.ParseOpts{BaseDir: "../../../examples/nanz", StdlibDir: "../../../stdlib"})
 		if e != nil {
 			t.Fatal(e)
@@ -151,10 +151,10 @@ func TestOriginalTetrisCPMMainSourceAPIRefusal(t *testing.T) {
 		cpmOpt.Runtime = mir2.Z80RuntimeCPM
 		cpmOpt.RuntimeStackBytes = 1024
 		_, admission := CompileHIRSteps(h, cpmOpt)
-		if admission == nil || !strings.Contains(admission.Error(), "rejects ASM") {
+		if admission != nil {
 			t.Fatal("unexpected runtime admission", admission)
 		}
-		save(mode+"/production-admission.txt", admission.Error())
+		save(mode+"/production-admission.txt", "admitted canonical TUI ASM; source/API mismatch remains separately tested")
 		z := emulator.NewRemogattoZ80WithScreen()
 		z.SetROMEnd(0)
 		mem := z.Memory()
