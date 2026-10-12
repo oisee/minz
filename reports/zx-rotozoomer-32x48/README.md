@@ -1,9 +1,11 @@
-# ZX Spectrum half-cell rotozoomer — prototype
+# ZX Spectrum 32×48 colour rotozoomer
 
-Alice proposed a 32×48 colour surface: each fixed 8×8 bitmap cell has four zero rows above four FF rows. PAPER colours the upper 8×4 rectangle, INK the lower one, with shared BRIGHT. Only 768 attribute bytes change per frame. The Nanz algorithm uses 8.8 coordinates and additive stepping, following antique-toy chapter7.
+Alice's half-cell display works: the fixed bitmap has four zero rows above four FF rows in every8×8cell. PAPER colours upper8×4, INK lower8×4; sharedBRIGHT1 FLASH0. Only768attribute bytes change perframe. Nanz uses8.8texturecoordinates and addition stepping; algorithm reference antique-toy chapter7 (HEAD7313ecfaab710d1a105b7bff3be19aaf04dc5935).
 
-source.nanz compiles to Z80. Independent model.json and previews describe the intended 32 frames. Raw/final VM matches that model after exposing a 64KiB target memory map. Current native validation FAILS frame0 attribute0 (4d instead of6d) in allthree modes: intermediate top colour is lost while evaluating the second texture sample. The backend issue is under investigation. This prototype and model preview are not a working native showcase yet.
+All32frames PASS in ordinary, Grace Size and Grace Speed: raw/finalVM and assembledZ80 agree with independentmodel for everyattribute; fixedbitmap and immutablecode/data remain unchanged, exactlydeclaredspilldata exempted. Calls return toPC7000/SPeff2. No host graphics callback executes. Nativepreview.gif/png decode actual screen dumps; modelpreviews are separate expectations.
 
-Native tests check every attribute, fixed bitmap, exact return PC/SP and code integrity. Reports preserve only the exercised scopes; ULA contention and hardware timing are not measured. Test: TestZXHalfCellRotozoomerNative; export variable MINZ_ZX_ROTO_EXPORT.
+Baseline1291bytes; frame0 2451932T, about1.4fps at3.5MHz beforeULAcontention. Correctnessbaseline, not yetfastdemo. Main animates with EI/HALT using standard48KROM interrupts. Nativeframecheck calls draw_frame directly; complete ROM pacing/main loop/hardware not validated yet. Load compactrotozoomer.bin at8000 and enter8000. A runnable emulator/TAP wrapper and faster innerloop remain next work.
 
-Reference book cloned at /home/alice/dev/minz-artifacts/reference/antique-toy, repository https://github.com/oisee/antique-toy, initial HEAD7313ecfaab710d1a105b7bff3be19aaf04dc5935.
+The test found a backendbug: codegen's postallocation relocation could leave suppressedconstant1 in an uninitializedspillhome, so pointer+1 didn'tadvance. Retainedbefore image/log showfirstattribute overwritten by laterpixels. CorrectedwordADD/SUB1 usesdirectINC/DEC afterrelocation;16nativecases coverregister/spill/IX/IY andwrapboundaries; fullMIR2PASS67.108s.
+
+Replay: fromminzc, MINZ_ZX_ROTO_EXPORT=/absolute/output go test ./pkg/pipeline -run '^TestZXHalfCellRotozoomerNative$' -count=1 -v. Beforeandafter binaries and screen dumps remain separate. No physicalhardware orULAcontention claim.

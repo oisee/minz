@@ -11,6 +11,8 @@ import (
 	"github.com/minz/minzc/pkg/z80asm"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -60,6 +62,35 @@ func TestZXHalfCellRotozoomerNative(t *testing.T) {
 			}
 			save(mode+"/program.a80", []byte(asm))
 			save(mode+"/program.bin", a.Binary)
+			// Spill homes are mutable data inside the assembled image; exempt
+			// exactly their declared DB/DW ranges, not surrounding instructions.
+			spillBytes := map[int]bool{}
+			for _, line := range strings.Split(asm, "\n") {
+				fields := strings.Fields(line)
+				if len(fields) < 3 || !strings.HasPrefix(fields[0], "_spill_") {
+					continue
+				}
+				name := strings.TrimSuffix(fields[0], ":")
+				base, ok := a.Symbols[name]
+				if !ok {
+					t.Fatal("spill symbol", name)
+				}
+				width := 1
+				if fields[1] == "DW" {
+					width = 2
+				} else if fields[1] != "DB" {
+					t.Fatal("spill declaration", line)
+				}
+				values := strings.Join(fields[2:], "")
+				for _, value := range strings.Split(values, ",") {
+					if _, err := strconv.Atoi(value); err != nil {
+						t.Fatal("spill data", line)
+					}
+				}
+				for j := 0; j < width*len(strings.Split(values, ",")); j++ {
+					spillBytes[base+j] = true
+				}
+			}
 			z := emulator.NewRemogattoZ80()
 			z.LoadMemory(0x8000, a.Binary)
 			mem := z.Memory()
@@ -124,8 +155,13 @@ func TestZXHalfCellRotozoomerNative(t *testing.T) {
 						}
 					}
 				}
-				if !bytes.Equal(before[0x4000:0x5800], mem[0x4000:0x5800]) || !bytes.Equal(mem[0x8000:0x8000+len(a.Binary)], a.Binary) {
-					t.Fatal("bitmap orcode modified")
+				if !bytes.Equal(before[0x4000:0x5800], mem[0x4000:0x5800]) {
+					t.Fatal("bitmap modified")
+				}
+				for j, b := range a.Binary {
+					if !spillBytes[0x8000+j] && mem[0x8000+j] != b {
+						t.Fatalf("immutable code/data changed at %04x", 0x8000+j)
+					}
 				}
 				save(fmt.Sprintf("%s/frame-%02d.scr", mode, frame), append([]byte(nil), mem[0x4000:0x5b00]...))
 			}
