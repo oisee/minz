@@ -248,6 +248,14 @@ func pfccoEdgeCost(caller *Func, callerCh *ContractChoice, calleeName string, ca
 					argClass = ClassGeneral
 				}
 				wantClass := calleeCh.ParamClasses[ai]
+				if _, z80 := ct.(Z80CostTable); z80 && caller.mod != nil && pfccoWordLiteralClass(wantClass) {
+					callee := caller.mod.FuncByName(calleeName)
+					if callee != nil && !callee.Attrs.IsExtern && !callee.Attrs.FixedIndirectABI && !funcHasAsm(callee) && ai < len(callee.Contract.Params) {
+						if d := pfccoCallWordLiteral(caller, inst, ai); d != nil && d.Ty == callee.Contract.Params[ai].Ty {
+							continue
+						}
+					}
+				}
 				if argClass != wantClass {
 					total += pfccoAdapterCost(argClass, wantClass, ct)
 				}
