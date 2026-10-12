@@ -1,0 +1,13 @@
+=== RUN   TestSQLiteOriginalBoundedPortAPIs
+=== RUN   TestSQLiteOriginalBoundedPortAPIs/ordinary
+    sqlite_whole_main_test.go:545: original send/receive 0,1,17,255 bytes; column int signed/modulo boundaries; handles/columns/status; fullRAM/SP PASS
+=== RUN   TestSQLiteOriginalBoundedPortAPIs/grace-size
+    sqlite_whole_main_test.go:545: original send/receive 0,1,17,255 bytes; column int signed/modulo boundaries; handles/columns/status; fullRAM/SP PASS
+=== RUN   TestSQLiteOriginalBoundedPortAPIs/grace-speed
+    sqlite_whole_main_test.go:545: original send/receive 0,1,17,255 bytes; column int signed/modulo boundaries; handles/columns/status; fullRAM/SP PASS
+--- PASS: TestSQLiteOriginalBoundedPortAPIs (0.22s)
+    --- PASS: TestSQLiteOriginalBoundedPortAPIs/ordinary (0.06s)
+    --- PASS: TestSQLiteOriginalBoundedPortAPIs/grace-size (0.07s)
+    --- PASS: TestSQLiteOriginalBoundedPortAPIs/grace-speed (0.08s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.229s

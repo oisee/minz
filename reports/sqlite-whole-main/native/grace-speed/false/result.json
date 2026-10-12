@@ -1,0 +1,867 @@
+{
+  "bytes": 1670,
+  "commands": [
+    {
+      "command": 1,
+      "result": 1,
+      "string": ":memory:"
+    },
+    {
+      "command": 8,
+      "handle": 1,
+      "result": 0,
+      "string": "CREATE TABLE t(name TEXT)"
+    },
+    {
+      "command": 8,
+      "handle": 1,
+      "result": 0,
+      "string": "INSERT INTO t VALUES('Alice')"
+    },
+    {
+      "command": 8,
+      "handle": 1,
+      "result": 0,
+      "string": "INSERT INTO t VALUES('Bob')"
+    },
+    {
+      "command": 3,
+      "handle": 1,
+      "result": 1,
+      "string": "SELECT name FROM t"
+    },
+    {
+      "command": 4,
+      "handle": 1,
+      "result": 1
+    },
+    {
+      "column": 0,
+      "command": 5,
+      "handle": 1,
+      "text": "Alice"
+    },
+    {
+      "command": 4,
+      "handle": 1,
+      "result": 1
+    },
+    {
+      "column": 0,
+      "command": 5,
+      "handle": 1,
+      "text": "Bob"
+    },
+    {
+      "command": 7,
+      "handle": 1,
+      "result": 0
+    },
+    {
+      "command": 2,
+      "handle": 1,
+      "result": 0
+    }
+  ],
+  "done": true,
+  "min_sp": 61432,
+  "native_t_states_excluding_test_bdos": 12173,
+  "options": {
+    "ProfileSelection": null,
+    "CollectHIRSites": false,
+    "ContractOpt": true,
+    "AnnotateTStates": false,
+    "UseGrace": true,
+    "GraceStats": null,
+    "UseHIRGrace": true,
+    "OptSize": false,
+    "Backend": "",
+    "AssertMode": "none",
+    "SkipZ80Emission": false
+  },
+  "ports": [
+    {
+      "direction": "out",
+      "port": 14917,
+      "value": 58
+    },
+    {
+      "direction": "out",
+      "port": 27973,
+      "value": 109
+    },
+    {
+      "direction": "out",
+      "port": 25925,
+      "value": 101
+    },
+    {
+      "direction": "out",
+      "port": 27973,
+      "value": 109
+    },
+    {
+      "direction": "out",
+      "port": 28485,
+      "value": 111
+    },
+    {
+      "direction": "out",
+      "port": 29253,
+      "value": 114
+    },
+    {
+      "direction": "out",
+      "port": 31045,
+      "value": 121
+    },
+    {
+      "direction": "out",
+      "port": 14917,
+      "value": 58
+    },
+    {
+      "direction": "out",
+      "port": 69,
+      "value": 0
+    },
+    {
+      "direction": "out",
+      "port": 321,
+      "value": 1
+    },
+    {
+      "direction": "in",
+      "port": 323,
+      "value": 1
+    },
+    {
+      "direction": "out",
+      "port": 327,
+      "value": 1
+    },
+    {
+      "direction": "out",
+      "port": 17221,
+      "value": 67
+    },
+    {
+      "direction": "out",
+      "port": 21061,
+      "value": 82
+    },
+    {
+      "direction": "out",
+      "port": 17733,
+      "value": 69
+    },
+    {
+      "direction": "out",
+      "port": 16709,
+      "value": 65
+    },
+    {
+      "direction": "out",
+      "port": 21573,
+      "value": 84
+    },
+    {
+      "direction": "out",
+      "port": 17733,
+      "value": 69
+    },
+    {
+      "direction": "out",
+      "port": 8261,
+      "value": 32
+    },
+    {
+      "direction": "out",
+      "port": 21573,
+      "value": 84
+    },
+    {
+      "direction": "out",
+      "port": 16709,
+      "value": 65
+    },
+    {
+      "direction": "out",
+      "port": 16965,
+      "value": 66
+    },
+    {
+      "direction": "out",
+      "port": 19525,
+      "value": 76
+    },
+    {
+      "direction": "out",
+      "port": 17733,
+      "value": 69
+    },
+    {
+      "direction": "out",
+      "port": 8261,
+      "value": 32
+    },
+    {
+      "direction": "out",
+      "port": 29765,
+      "value": 116
+    },
+    {
+      "direction": "out",
+      "port": 10309,
+      "value": 40
+    },
+    {
+      "direction": "out",
+      "port": 28229,
+      "value": 110
+    },
+    {
+      "direction": "out",
+      "port": 24901,
+      "value": 97
+    },
+    {
+      "direction": "out",
+      "port": 27973,
+      "value": 109
+    },
+    {
+      "direction": "out",
+      "port": 25925,
+      "value": 101
+    },
+    {
+      "direction": "out",
+      "port": 8261,
+      "value": 32
+    },
+    {
+      "direction": "out",
+      "port": 21573,
+      "value": 84
+    },
+    {
+      "direction": "out",
+      "port": 17733,
+      "value": 69
+    },
+    {
+      "direction": "out",
+      "port": 22597,
+      "value": 88
+    },
+    {
+      "direction": "out",
+      "port": 21573,
+      "value": 84
+    },
+    {
+      "direction": "out",
+      "port": 10565,
+      "value": 41
+    },
+    {
+      "direction": "out",
+      "port": 69,
+      "value": 0
+    },
+    {
+      "direction": "out",
+      "port": 2113,
+      "value": 8
+    },
+    {
+      "direction": "in",
+      "port": 2115,
+      "value": 0
+    },
+    {
+      "direction": "out",
+      "port": 327,
+      "value": 1
+    },
+    {
+      "direction": "out",
+      "port": 18757,
+      "value": 73
+    },
+    {
+      "direction": "out",
+      "port": 20037,
+      "value": 78
+    },
+    {
+      "direction": "out",
+      "port": 21317,
+      "value": 83
+    },
+    {
+      "direction": "out",
+      "port": 17733,
+      "value": 69
+    },
+    {
+      "direction": "out",
+      "port": 21061,
+      "value": 82
+    },
+    {
+      "direction": "out",
+      "port": 21573,
+      "value": 84
+    },
+    {
+      "direction": "out",
+      "port": 8261,
+      "value": 32
+    },
+    {
+      "direction": "out",
+      "port": 18757,
+      "value": 73
+    },
+    {
+      "direction": "out",
+      "port": 20037,
+      "value": 78
+    },
+    {
+      "direction": "out",
+      "port": 21573,
+      "value": 84
+    },
+    {
+      "direction": "out",
+      "port": 20293,
+      "value": 79
+    },
+    {
+      "direction": "out",
+      "port": 8261,
+      "value": 32
+    },
+    {
+      "direction": "out",
+      "port": 29765,
+      "value": 116
+    },
+    {
+      "direction": "out",
+      "port": 8261,
+      "value": 32
+    },
+    {
+      "direction": "out",
+      "port": 22085,
+      "value": 86
+    },
+    {
+      "direction": "out",
+      "port": 16709,
+      "value": 65
+    },
+    {
+      "direction": "out",
+      "port": 19525,
+      "value": 76
+    },
+    {
+      "direction": "out",
+      "port": 21829,
+      "value": 85
+    },
+    {
+      "direction": "out",
+      "port": 17733,
+      "value": 69
+    },
+    {
+      "direction": "out",
+      "port": 21317,
+      "value": 83
+    },
+    {
+      "direction": "out",
+      "port": 10309,
+      "value": 40
+    },
+    {
+      "direction": "out",
+      "port": 10053,
+      "value": 39
+    },
+    {
+      "direction": "out",
+      "port": 16709,
+      "value": 65
+    },
+    {
+      "direction": "out",
+      "port": 27717,
+      "value": 108
+    },
+    {
+      "direction": "out",
+      "port": 26949,
+      "value": 105
+    },
+    {
+      "direction": "out",
+      "port": 25413,
+      "value": 99
+    },
+    {
+      "direction": "out",
+      "port": 25925,
+      "value": 101
+    },
+    {
+      "direction": "out",
+      "port": 10053,
+      "value": 39
+    },
+    {
+      "direction": "out",
+      "port": 10565,
+      "value": 41
+    },
+    {
+      "direction": "out",
+      "port": 69,
+      "value": 0
+    },
+    {
+      "direction": "out",
+      "port": 2113,
+      "value": 8
+    },
+    {
+      "direction": "in",
+      "port": 2115,
+      "value": 0
+    },
+    {
+      "direction": "out",
+      "port": 327,
+      "value": 1
+    },
+    {
+      "direction": "out",
+      "port": 18757,
+      "value": 73
+    },
+    {
+      "direction": "out",
+      "port": 20037,
+      "value": 78
+    },
+    {
+      "direction": "out",
+      "port": 21317,
+      "value": 83
+    },
+    {
+      "direction": "out",
+      "port": 17733,
+      "value": 69
+    },
+    {
+      "direction": "out",
+      "port": 21061,
+      "value": 82
+    },
+    {
+      "direction": "out",
+      "port": 21573,
+      "value": 84
+    },
+    {
+      "direction": "out",
+      "port": 8261,
+      "value": 32
+    },
+    {
+      "direction": "out",
+      "port": 18757,
+      "value": 73
+    },
+    {
+      "direction": "out",
+      "port": 20037,
+      "value": 78
+    },
+    {
+      "direction": "out",
+      "port": 21573,
+      "value": 84
+    },
+    {
+      "direction": "out",
+      "port": 20293,
+      "value": 79
+    },
+    {
+      "direction": "out",
+      "port": 8261,
+      "value": 32
+    },
+    {
+      "direction": "out",
+      "port": 29765,
+      "value": 116
+    },
+    {
+      "direction": "out",
+      "port": 8261,
+      "value": 32
+    },
+    {
+      "direction": "out",
+      "port": 22085,
+      "value": 86
+    },
+    {
+      "direction": "out",
+      "port": 16709,
+      "value": 65
+    },
+    {
+      "direction": "out",
+      "port": 19525,
+      "value": 76
+    },
+    {
+      "direction": "out",
+      "port": 21829,
+      "value": 85
+    },
+    {
+      "direction": "out",
+      "port": 17733,
+      "value": 69
+    },
+    {
+      "direction": "out",
+      "port": 21317,
+      "value": 83
+    },
+    {
+      "direction": "out",
+      "port": 10309,
+      "value": 40
+    },
+    {
+      "direction": "out",
+      "port": 10053,
+      "value": 39
+    },
+    {
+      "direction": "out",
+      "port": 16965,
+      "value": 66
+    },
+    {
+      "direction": "out",
+      "port": 28485,
+      "value": 111
+    },
+    {
+      "direction": "out",
+      "port": 25157,
+      "value": 98
+    },
+    {
+      "direction": "out",
+      "port": 10053,
+      "value": 39
+    },
+    {
+      "direction": "out",
+      "port": 10565,
+      "value": 41
+    },
+    {
+      "direction": "out",
+      "port": 69,
+      "value": 0
+    },
+    {
+      "direction": "out",
+      "port": 2113,
+      "value": 8
+    },
+    {
+      "direction": "in",
+      "port": 2115,
+      "value": 0
+    },
+    {
+      "direction": "out",
+      "port": 327,
+      "value": 1
+    },
+    {
+      "direction": "out",
+      "port": 21317,
+      "value": 83
+    },
+    {
+      "direction": "out",
+      "port": 17733,
+      "value": 69
+    },
+    {
+      "direction": "out",
+      "port": 19525,
+      "value": 76
+    },
+    {
+      "direction": "out",
+      "port": 17733,
+      "value": 69
+    },
+    {
+      "direction": "out",
+      "port": 17221,
+      "value": 67
+    },
+    {
+      "direction": "out",
+      "port": 21573,
+      "value": 84
+    },
+    {
+      "direction": "out",
+      "port": 8261,
+      "value": 32
+    },
+    {
+      "direction": "out",
+      "port": 28229,
+      "value": 110
+    },
+    {
+      "direction": "out",
+      "port": 24901,
+      "value": 97
+    },
+    {
+      "direction": "out",
+      "port": 27973,
+      "value": 109
+    },
+    {
+      "direction": "out",
+      "port": 25925,
+      "value": 101
+    },
+    {
+      "direction": "out",
+      "port": 8261,
+      "value": 32
+    },
+    {
+      "direction": "out",
+      "port": 17989,
+      "value": 70
+    },
+    {
+      "direction": "out",
+      "port": 21061,
+      "value": 82
+    },
+    {
+      "direction": "out",
+      "port": 20293,
+      "value": 79
+    },
+    {
+      "direction": "out",
+      "port": 19781,
+      "value": 77
+    },
+    {
+      "direction": "out",
+      "port": 8261,
+      "value": 32
+    },
+    {
+      "direction": "out",
+      "port": 29765,
+      "value": 116
+    },
+    {
+      "direction": "out",
+      "port": 69,
+      "value": 0
+    },
+    {
+      "direction": "out",
+      "port": 833,
+      "value": 3
+    },
+    {
+      "direction": "in",
+      "port": 835,
+      "value": 1
+    },
+    {
+      "direction": "out",
+      "port": 325,
+      "value": 1
+    },
+    {
+      "direction": "out",
+      "port": 1089,
+      "value": 4
+    },
+    {
+      "direction": "in",
+      "port": 1091,
+      "value": 1
+    },
+    {
+      "direction": "out",
+      "port": 325,
+      "value": 1
+    },
+    {
+      "direction": "out",
+      "port": 71,
+      "value": 0
+    },
+    {
+      "direction": "out",
+      "port": 1345,
+      "value": 5
+    },
+    {
+      "direction": "in",
+      "port": 1349,
+      "value": 65
+    },
+    {
+      "direction": "in",
+      "port": 16709,
+      "value": 108
+    },
+    {
+      "direction": "in",
+      "port": 27717,
+      "value": 105
+    },
+    {
+      "direction": "in",
+      "port": 26949,
+      "value": 99
+    },
+    {
+      "direction": "in",
+      "port": 25413,
+      "value": 101
+    },
+    {
+      "direction": "in",
+      "port": 25925,
+      "value": 0
+    },
+    {
+      "direction": "out",
+      "port": 325,
+      "value": 1
+    },
+    {
+      "direction": "out",
+      "port": 1089,
+      "value": 4
+    },
+    {
+      "direction": "in",
+      "port": 1091,
+      "value": 1
+    },
+    {
+      "direction": "out",
+      "port": 325,
+      "value": 1
+    },
+    {
+      "direction": "out",
+      "port": 71,
+      "value": 0
+    },
+    {
+      "direction": "out",
+      "port": 1345,
+      "value": 5
+    },
+    {
+      "direction": "in",
+      "port": 1349,
+      "value": 66
+    },
+    {
+      "direction": "in",
+      "port": 16965,
+      "value": 111
+    },
+    {
+      "direction": "in",
+      "port": 28485,
+      "value": 98
+    },
+    {
+      "direction": "in",
+      "port": 25157,
+      "value": 0
+    },
+    {
+      "direction": "out",
+      "port": 325,
+      "value": 1
+    },
+    {
+      "direction": "out",
+      "port": 1857,
+      "value": 7
+    },
+    {
+      "direction": "in",
+      "port": 1859,
+      "value": 0
+    },
+    {
+      "direction": "out",
+      "port": 325,
+      "value": 1
+    },
+    {
+      "direction": "out",
+      "port": 577,
+      "value": 2
+    },
+    {
+      "direction": "in",
+      "port": 579,
+      "value": 0
+    }
+  ],
+  "received": "QWxpY2UAQm9iAA==",
+  "registers": {
+    "A": 0,
+    "F": 68,
+    "BC": 2,
+    "DE": 10,
+    "HL": 1925,
+    "IX": 4951,
+    "IY": 9320,
+    "SP": 61440,
+    "PC": 28675
+  },
+  "stdout": "Open...\nExec...\nQuery...\nStep1...\nAlice\nStep2...\nBob\nDone.\n"
+}

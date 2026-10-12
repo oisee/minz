@@ -1,0 +1,8 @@
+{
+  "base": "869fb6cb",
+  "freeze": "ac512ed4",
+  "test_commit": "2101a241",
+  "go": "go1.26.8",
+  "executable": "/home/alice/dev/minz-artifacts/grace-checkpoints/sqlite-whole-main.test",
+  "sha256": "691455410f0e6edbb0f8693677d4280289e07a15d081da231f8c0f99d49983b1"
+}
