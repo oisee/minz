@@ -1,0 +1,13 @@
+=== RUN   TestOriginalTUIZXWholeMainNative
+=== RUN   TestOriginalTUIZXWholeMainNative/ordinary
+    original_tui_zx_main_test.go:168: 603 9314 194 ROM protocol/full RAM PASS
+=== RUN   TestOriginalTUIZXWholeMainNative/grace-size
+    original_tui_zx_main_test.go:168: 603 9314 194 ROM protocol/full RAM PASS
+=== RUN   TestOriginalTUIZXWholeMainNative/grace-speed
+    original_tui_zx_main_test.go:168: 603 9314 194 ROM protocol/full RAM PASS
+--- PASS: TestOriginalTUIZXWholeMainNative (0.05s)
+    --- PASS: TestOriginalTUIZXWholeMainNative/ordinary (0.02s)
+    --- PASS: TestOriginalTUIZXWholeMainNative/grace-size (0.01s)
+    --- PASS: TestOriginalTUIZXWholeMainNative/grace-speed (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.055s

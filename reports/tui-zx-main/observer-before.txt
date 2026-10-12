@@ -1,0 +1,14 @@
+=== RUN   TestOriginalTUIZXWholeMainNative
+=== RUN   TestOriginalTUIZXWholeMainNative/ordinary
+    original_tui_zx_main_test.go:145: incomplete main true 1 0
+=== RUN   TestOriginalTUIZXWholeMainNative/grace-size
+    original_tui_zx_main_test.go:145: incomplete main true 1 0
+=== RUN   TestOriginalTUIZXWholeMainNative/grace-speed
+    original_tui_zx_main_test.go:145: incomplete main true 1 0
+--- FAIL: TestOriginalTUIZXWholeMainNative (0.04s)
+    --- FAIL: TestOriginalTUIZXWholeMainNative/ordinary (0.01s)
+    --- FAIL: TestOriginalTUIZXWholeMainNative/grace-size (0.01s)
+    --- FAIL: TestOriginalTUIZXWholeMainNative/grace-speed (0.01s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.051s
+FAIL
