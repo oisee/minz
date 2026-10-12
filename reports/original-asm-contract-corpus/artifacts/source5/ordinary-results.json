@@ -1,0 +1,32 @@
+{
+  "T": {
+    "double": 7936,
+    "main": 22016,
+    "port_read": 9728
+  },
+  "allowedmemory": {},
+  "bytes": 13,
+  "calls": {
+    "double": 256,
+    "main": 256,
+    "port_read": 256
+  },
+  "options": {
+    "ProfileSelection": null,
+    "CollectHIRSites": false,
+    "ContractOpt": true,
+    "AnnotateTStates": false,
+    "UseGrace": false,
+    "GraceStats": null,
+    "UseHIRGrace": false,
+    "OptSize": false,
+    "Backend": "",
+    "AssertMode": "none",
+    "SkipZ80Emission": false
+  },
+  "register_output_sha256": "c83f39c889d165cdbf50120bd7e4684cc1d8681fe47ef680d852a15d39ae441d",
+  "sha256": "cf179c15efdc7420d049b9f67a8882de29d52294678d3afc109a6ec469569e85",
+  "source": "reports/showcase-src/2026-03-15/ex31_asm_ret_clob.nanz",
+  "source_assertions": 0,
+  "stack": 4
+}

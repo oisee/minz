@@ -1,0 +1,141 @@
+; MIR2 module: examples/tests/asm_register_permutations.nanz
+fun @pin_a(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    asm "NOP"
+    ret void
+
+fun @pin_b(%r2: u8 [counter]) -> u8 [acc]
+  block @entry:
+    asm "LD A, B"
+    ret void
+
+fun @pin_c(%r3: u8 [regC]) -> u8 [acc]
+  block @entry:
+    asm "LD A, C"
+    ret void
+
+fun @pin_d(%r4: u8 [regD]) -> u8 [acc]
+  block @entry:
+    asm "LD A, D"
+    ret void
+
+fun @pin_e(%r5: u8 [regE]) -> u8 [acc]
+  block @entry:
+    asm "LD A, E"
+    ret void
+
+fun @pin_h(%r6: u8 [regH]) -> u8 [acc]
+  block @entry:
+    asm "LD A, H"
+    ret void
+
+fun @pin_l(%r7: u8 [regL]) -> u8 [acc]
+  block @entry:
+    asm "LD A, L"
+    ret void
+
+fun @pin_hl(%r8: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    asm "NOP"
+    ret void
+
+fun @pin_de(%r9: u16 [index]) -> u16 [pointer]
+  block @entry:
+    asm "EX DE, HL"
+    ret void
+
+fun @sub_ab(%r10: u8 [acc], %r11: u8 [counter]) -> u8 [acc]
+  block @entry:
+    asm "SUB B"
+    ret void
+
+fun @sub_bc(%r12: u8 [counter], %r13: u8 [regC]) -> u8 [acc]
+  block @entry:
+    asm "LD A, B\n    SUB C"
+    ret void
+
+fun @sub_de(%r14: u8 [regD], %r15: u8 [regE]) -> u8 [acc]
+  block @entry:
+    asm "LD A, D\n    SUB E"
+    ret void
+
+fun @sub_hl(%r16: u8 [regH], %r17: u8 [regL]) -> u8 [acc]
+  block @entry:
+    asm "LD A, H\n    SUB L"
+    ret void
+
+fun @mix_be(%r18: u8 [counter], %r19: u8 [regE]) -> u8 [acc]
+  block @entry:
+    asm "LD A, B\n    ADD A, A\n    ADD A, E"
+    ret void
+
+fun @xor_al(%r20: u8 [acc], %r21: u8 [regL]) -> u8 [acc]
+  block @entry:
+    asm "XOR L"
+    ret void
+
+fun @abc_mix(%r22: u8 [acc], %r23: u8 [counter], %r24: u8 [regC]) -> u8 [acc]
+  block @entry:
+    asm "ADD A, B\n    XOR C"
+    ret void
+
+fun @del_sum(%r25: u8 [regD], %r26: u8 [regE], %r27: u8 [regL]) -> u8 [acc]
+  block @entry:
+    asm "LD A, D\n    ADD A, E\n    ADD A, L"
+    ret void
+
+fun @bdh_sum(%r28: u8 [counter], %r29: u8 [regD], %r30: u8 [regH]) -> u8 [acc]
+  block @entry:
+    asm "LD A, B\n    ADD A, D\n    ADD A, H"
+    ret void
+
+fun @cel_sum(%r31: u8 [regC], %r32: u8 [regE], %r33: u8 [regL]) -> u8 [acc]
+  block @entry:
+    asm "LD A, C\n    ADD A, E\n    ADD A, L"
+    ret void
+
+fun @abcd_weighted(%r34: u8 [acc], %r35: u8 [counter], %r36: u8 [regC], %r37: u8 [regD]) -> u8 [acc]
+  block @entry:
+    asm "ADD A, A\n    ADD A, A\n    ADD A, A\n    LD E, A\n    LD A, B\n    ADD A, A\n    ADD A, A\n    ADD A, E\n    LD E, A\n    LD A, C\n    ADD A, A\n    ADD A, E\n    ADD A, D"
+    ret void
+
+fun @bcde_sum(%r38: u8 [counter], %r39: u8 [regC], %r40: u8 [regD], %r41: u8 [regE]) -> u8 [acc]
+  block @entry:
+    asm "LD A, B\n    ADD A, C\n    ADD A, D\n    ADD A, E"
+    ret void
+
+fun @store_at(%r42: u16 [pointer], %r43: u8 [acc]) -> u16 [pointer]
+  block @entry:
+    asm "LD (HL), A"
+    ret void
+
+fun @advance(%r44: u16 [pointer], %r45: u8 [counter]) -> u16 [pointer]
+  block @entry:
+    asm "LD D, 0\n    LD E, B\n    ADD HL, DE"
+    ret void
+
+fun @copy_n(%r46: u16 [pointer], %r47: u16 [index], %r48: u8 [counter]) -> u16 [pointer]
+  block @entry:
+    asm "LD C, B\n    LD B, 0\n    LDIR"
+    ret void
+
+fun @rotate_abc(%r49: u8 [acc], %r50: u8 [counter], %r51: u8 [regC]) -> u16 [pointer]
+  block @entry:
+    asm "LD L, A\n    LD H, B"
+    ret void
+
+fun @build_hl(%r52: u8 [regD], %r53: u8 [regE]) -> u16 [pointer]
+  block @entry:
+    asm "LD H, D\n    LD L, E"
+    ret void
+
+fun @passthru_hl(%r54: u8 [regH], %r55: u8 [regL]) -> u16 [pointer]
+  block @entry:
+    asm "NOP"
+    ret void
+
+fun @screen_addr(%r56: u8 [acc], %r57: u8 [counter], %r58: u8 [regC]) -> u16 [pointer]
+  block @entry:
+    asm "LD L, A\n    LD A, B\n    AND 0x18\n    OR C\n    OR 0x40\n    LD H, A\n    LD A, B\n    AND 0x07\n    RRCA\n    RRCA\n    RRCA\n    OR L\n    LD L, A"
+    ret void
+

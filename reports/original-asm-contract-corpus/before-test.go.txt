@@ -1,0 +1,356 @@
+package pipeline
+
+import (
+	"crypto/sha256"
+	"encoding/json"
+	"fmt"
+	"github.com/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/nanz"
+	"github.com/minz/minzc/pkg/z80asm"
+	"os"
+	"path/filepath"
+	"testing"
+)
+
+// ASM is executed on the CPU; MIR VM OpAsm=no-op is not an oracle.
+func TestOriginalASMContractsNative(t *testing.T) {
+	paths := []string{"examples/tests/asm_caller_callee.nanz", "examples/tests/asm_calling_convention.nanz", "examples/tests/asm_register_permutations.nanz", "reports/showcase-src/2026-03-11/ex17_asm_block.nanz", "reports/showcase-src/2026-03-13/ex17_asm_block.nanz", "reports/showcase-src/2026-03-15/ex31_asm_ret_clob.nanz"}
+	export := func(n string, b []byte) {
+		if d := os.Getenv("ASM_CORPUS_EXPORT"); d != "" {
+			p := filepath.Join(d, n)
+			os.MkdirAll(filepath.Dir(p), 0755)
+			if e := os.WriteFile(p, b, 0644); e != nil {
+				t.Fatal(e)
+			}
+		}
+	}
+	for index, path := range paths {
+		t.Run(fmt.Sprintf("source%d", index), func(t *testing.T) {
+			data, e := os.ReadFile("../../../" + path)
+			if e != nil {
+				t.Fatal(e)
+			}
+			export(fmt.Sprintf("source%d/source.nanz", index), data)
+			for _, mode := range []struct {
+				name string
+				o    Options
+			}{{"ordinary", Options{ContractOpt: true, AssertMode: "none"}}, {"grace-size", Options{ContractOpt: true, AssertMode: "none", UseGrace: true, UseHIRGrace: true, OptSize: true}}, {"grace-speed", Options{ContractOpt: true, AssertMode: "none", UseGrace: true, UseHIRGrace: true}}} {
+				t.Run(mode.name, func(t *testing.T) {
+					h, e := nanz.Parse(string(data), path)
+					if e != nil {
+						t.Fatal(e)
+					}
+					s, e := CompileHIRSteps(h, mode.o)
+					if e != nil {
+						t.Fatal(e)
+					}
+					a, e := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + s.Assembly)
+					if e != nil || a == nil || len(a.Errors) > 0 {
+						t.Fatal("asm", e, a.Errors)
+					}
+					prefix := fmt.Sprintf("source%d/%s", index, mode.name)
+					export(prefix+".a80", []byte(s.Assembly))
+					export(prefix+".bin", a.Binary)
+					export(prefix+".mir", []byte(s.MIR2Module.Dump()))
+					z := emulator.NewRemogattoZ80WithScreen()
+					z.SetROMEnd(0)
+					prof := emulator.NewProfiler()
+					z.SetProfiler(prof)
+					for i := range z.Memory() {
+						z.Memory()[i] = byte(i*41 + 29)
+					}
+					z.LoadMemory(0x8000, a.Binary)
+					before := append([]byte(nil), z.Memory()...)
+					allowed := map[int]bool{}
+					counts := map[string]int{}
+					costs := map[string]int64{}
+					depth := uint16(0xf000)
+					portSeed := byte(0)
+					reads, writes := []uint16{}, []uint16{}
+					output := []byte{}
+					z.SetIOHandlers(func(p uint16) byte { reads = append(reads, p); return byte(p) ^ byte(p>>8) ^ portSeed }, func(p uint16, v byte) {
+						writes = append(writes, p)
+						if byte(p) == 0x23 {
+							output = append(output, v)
+						}
+					})
+					run := func(f *mir2.Func, args []uint16, want uint16) {
+						target := a.Symbols[f.Name]
+						z.LoadMemory(0x7000, []byte{0xcd, byte(target), byte(target >> 8), 0x76})
+						r := emulator.Registers{PC: 0x7000, SP: 0xf000, A: 0x97, F: 0x45, BC: 0x1234, DE: 0x5678, HL: 0x9abc, IX: 0x1357, IY: 0x2468}
+						z.SetRegisters(r)
+						for n, p := range f.Contract.Params {
+							l := s.Allocation.Locs[p.Reg]
+							v := args[n]
+							if p.Ty.Width() == 8 {
+								if e := z.SetRegister8(l.Name, byte(v)); e != nil {
+									t.Fatal(e)
+								}
+							} else {
+								rr := z.GetRegisters()
+								switch l.Name {
+								case "HL":
+									rr.HL = v
+								case "DE":
+									rr.DE = v
+								case "BC":
+									rr.BC = v
+								default:
+									t.Fatal("param", l)
+								}
+								z.SetRegisters(rr)
+							}
+						}
+						done := false
+						for n := 0; n < 20000; n++ {
+							if z.GetPC() == 0x7003 && z.GetSP() == 0xf000 {
+								done = true
+								break
+							}
+							costs[f.Name] += int64(z.Step())
+							if z.GetSP() < depth {
+								depth = z.GetSP()
+							}
+						}
+						if !done {
+							t.Fatal("CALL/SP", f.Name, args, z.GetRegisters())
+						}
+						if len(f.Contract.Returns) > 0 {
+							rr := z.GetRegisters()
+							got := uint16(rr.A)
+							home := mir2.ReturnLocation(f.Contract.Returns[0].Class, f.Contract.Returns[0].Ty)
+							switch home {
+							case "A":
+							case "HL":
+								got = rr.HL
+							case "DE":
+								got = rr.DE
+							case "BC":
+								got = rr.BC
+							case "C":
+								got = uint16(byte(rr.BC))
+							default:
+								t.Fatal("ret", home)
+							}
+							if got != want {
+								t.Fatal("native", f.Name, args, got, want)
+							}
+						}
+						counts[f.Name]++
+					}
+					bounds := []uint16{0, 1, 2, 7, 127, 128, 254, 255, 256, 257, 32767, 32768, 65534, 65535}
+					for _, f := range s.MIR2Module.Funcs {
+						name := f.Name
+						model := func(v []uint16) uint16 {
+							switch name {
+							case "ident_a", "read_b", "read_c", "pin_a", "pin_b", "pin_c", "pin_d", "pin_e", "pin_h", "pin_l", "ident_hl", "ident_de", "pin_hl", "pin_de", "store_at":
+								return v[0]
+							case "add_ab", "add_ac", "add_bc", "inner", "middle":
+								return uint16(byte(v[0] + v[1]))
+							case "diff_bc", "sub_ab", "sub_bc", "sub_de", "sub_hl":
+								return uint16(byte(v[0] - v[1]))
+							case "sum_abc", "triple_abc", "del_sum", "bdh_sum", "cel_sum":
+								return uint16(byte(v[0] + v[1] + v[2]))
+							case "abc_mix":
+								return uint16(byte(v[0]+v[1]) ^ byte(v[2]))
+							case "mix_be":
+								return uint16(byte(v[0]*2 + v[1]))
+							case "xor_al":
+								return uint16(byte(v[0] ^ v[1]))
+							case "abcd_weighted":
+								return uint16(byte(v[0]*8 + v[1]*4 + v[2]*2 + v[3]))
+							case "bcde_sum":
+								return uint16(byte(v[0] + v[1] + v[2] + v[3]))
+							case "add16", "hl_plus_a", "ptr_offset", "advance":
+								return v[0] + v[1]
+							case "swap_bytes":
+								return v[0]<<8 | v[0]>>8
+							case "rotate_abc":
+								return v[0] | v[1]<<8
+							case "build_hl", "passthru_hl":
+								return v[0]<<8 | v[1]
+							case "screen_addr":
+								return 0x4000 | ((v[1]&0x18)|v[2])<<8 | (v[1]&7)<<5 | v[0]
+							case "double":
+								return uint16(byte(v[0] * 2))
+							default:
+								t.Fatal("missing model", name)
+								return 0
+							}
+						}
+						switch name {
+						case "set_border":
+							for v := 0; v < 256; v++ {
+								writes = nil
+								run(f, []uint16{uint16(v)}, 0)
+								if len(writes) != 1 || writes[0] != uint16(v)<<8|0xfe {
+									t.Fatal("borderports", writes)
+								}
+							}
+						case "nop_slide":
+							run(f, nil, 0)
+						case "main":
+							if index == 5 {
+								for seed := 0; seed < 256; seed++ {
+									portSeed = byte(seed)
+									reads = nil
+									run(f, nil, uint16(byte((0xfe^0xdf^seed)*2)))
+									if len(reads) != 1 || reads[0] != 0xdffe {
+										t.Fatal("mainport", reads)
+									}
+								}
+							} else {
+								output = nil
+								writes = nil
+								run(f, nil, 0)
+								if string(output) != "asm blocks work!\n" || len(writes) != 18 {
+									t.Fatal("mainoutput", string(output), writes)
+								}
+							}
+						case "port_read":
+							for hi := 0; hi < 256; hi++ {
+								reads = nil
+								portSeed = byte(hi * 13)
+								run(f, []uint16{uint16(hi)}, uint16(byte(0xfe^hi)^portSeed))
+								if len(reads) != 1 || reads[0] != uint16(hi)<<8|0xfe {
+									t.Fatal("portread", reads)
+								}
+							}
+						case "poke", "peek", "store_at", "poke_peek_test":
+							addrs := []uint16{0, 1, 0x4000, 0x5000, 0xfffe, 0xffff}
+							if name == "poke_peek_test" {
+								addrs = []uint16{0xfe00}
+							}
+							for _, addr := range addrs {
+								allowed[int(addr)] = true
+								for v := 0; v < 256; v++ {
+									z.Memory()[addr] = byte(v)
+									switch name {
+									case "poke":
+										run(f, []uint16{addr, uint16(v)}, 0)
+										if z.Memory()[addr] != byte(v) {
+											t.Fatal("store")
+										}
+									case "store_at":
+										run(f, []uint16{addr, uint16(v)}, addr)
+										if z.Memory()[addr] != byte(v) {
+											t.Fatal("store")
+										}
+									case "peek":
+										run(f, []uint16{addr}, uint16(v))
+									case "poke_peek_test":
+										run(f, nil, 0x42)
+										if z.Memory()[addr] != 0x42 {
+											t.Fatal("pokepeek")
+										}
+									}
+								}
+							}
+						case "copy_n":
+							for n := 1; n < 256; n++ {
+								for i := 0; i < 256; i++ {
+									z.Memory()[0x4000+i] = byte(i*17 + n)
+									z.Memory()[0x5000+i] = 0xcc
+									allowed[0x4000+i] = true
+									allowed[0x5000+i] = true
+								}
+								run(f, []uint16{0x5000, 0x4000, uint16(n)}, 0x5000+uint16(n))
+								for i := 0; i < 256; i++ {
+									want := byte(0xcc)
+									if i < n {
+										want = byte(i*17 + n)
+									}
+									if z.Memory()[0x5000+i] != want {
+										t.Fatal("copy", n, i)
+									}
+								}
+							}
+						case "test_ab", "test_ac", "test_abc", "test_diff", "test_add16", "test_mixed", "test_chain", "test_multi1", "test_multi2":
+							want := map[string]uint16{"test_ab": 30, "test_ac": 40, "test_abc": 60, "test_diff": 70, "test_add16": 3000, "test_mixed": 0x4020, "test_chain": 40, "test_multi1": 6, "test_multi2": 0}[name]
+							run(f, nil, want)
+						case "screen_addr":
+							for col := 0; col < 32; col++ {
+								for row := 0; row < 24; row++ {
+									for line := 0; line < 8; line++ {
+										v := []uint16{uint16(col), uint16(row), uint16(line)}
+										run(f, v, model(v))
+									}
+								}
+							}
+						default:
+							if len(f.Contract.Params) == 1 {
+								vs := bounds
+								if f.Contract.Params[0].Ty.Width() == 8 {
+									vs = nil
+									for i := 0; i < 256; i++ {
+										vs = append(vs, uint16(i))
+									}
+								} else {
+									vs = nil
+									for i := 0; i < 65536; i++ {
+										vs = append(vs, uint16(i))
+									}
+								}
+								for _, v := range vs {
+									run(f, []uint16{v}, model([]uint16{v}))
+								}
+							}
+							if len(f.Contract.Params) >= 2 {
+								xs, ys := []uint16{}, []uint16{}
+								for i := 0; i < 256; i++ {
+									xs = append(xs, uint16(i))
+									ys = append(ys, uint16(i))
+								}
+								if f.Contract.Params[0].Ty.Width() > 8 {
+									xs = bounds
+								}
+								if f.Contract.Params[1].Ty.Width() > 8 {
+									ys = bounds
+								}
+								cs := []uint16{0}
+								if len(f.Contract.Params) > 2 {
+									cs = []uint16{0, 1, 127, 128, 254, 255}
+								}
+								for _, c := range cs {
+									ds := []uint16{0}
+									if len(f.Contract.Params) > 3 {
+										ds = []uint16{c, 255 - c}
+									}
+									for _, d := range ds {
+										for _, x := range xs {
+											for _, y := range ys {
+												v := []uint16{x, y, c, d}
+												v = v[:len(f.Contract.Params)]
+												run(f, v, model(v))
+											}
+										}
+									}
+								}
+							}
+						}
+						if counts[name] == 0 {
+							t.Fatal("uncoveredentry", name)
+						}
+					}
+					for addr, w := range prof.WriteCount {
+						if w > 0 && !allowed[addr] && !(addr >= int(depth) && addr < 0xf000) {
+							t.Fatal("writeauthority", addr)
+						}
+					}
+					for addr, v := range before {
+						if allowed[addr] || addr >= 0x7000 && addr < 0x7004 || addr >= int(depth) && addr < 0xf000 {
+							continue
+						}
+						if z.Memory()[addr] != v {
+							t.Fatal("RAM/code", addr)
+						}
+					}
+					j, _ := json.MarshalIndent(map[string]any{"source": path, "sha256": fmt.Sprintf("%x", sha256.Sum256(data)), "options": mode.o, "bytes": len(a.Binary), "calls": counts, "T": costs, "stack": 0xf000 - depth, "allowedmemory": allowed}, "", "  ")
+					export(prefix+"-results.json", j)
+					t.Logf("bytes%d entries%d", len(a.Binary), len(counts))
+				})
+			}
+		})
+	}
+}

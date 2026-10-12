@@ -1,0 +1,32 @@
+{
+  "T": {
+    "main": 2004,
+    "nop_slide": 43,
+    "set_border": 9728
+  },
+  "allowedmemory": {},
+  "bytes": 61,
+  "calls": {
+    "main": 1,
+    "nop_slide": 1,
+    "set_border": 256
+  },
+  "options": {
+    "ProfileSelection": null,
+    "CollectHIRSites": false,
+    "ContractOpt": true,
+    "AnnotateTStates": false,
+    "UseGrace": true,
+    "GraceStats": null,
+    "UseHIRGrace": true,
+    "OptSize": false,
+    "Backend": "",
+    "AssertMode": "none",
+    "SkipZ80Emission": false
+  },
+  "register_output_sha256": "9231dde4a27c84d509e22a591bc0abf1ce6aeb8e5f3765c9a1c27834dc328ca8",
+  "sha256": "719e9b92212f011f6bf9922f779d7cf057d5545218285bb925d036bebe85cfaa",
+  "source": "reports/showcase-src/2026-03-11/ex17_asm_block.nanz",
+  "source_assertions": 0,
+  "stack": 4
+}

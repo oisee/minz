@@ -1,0 +1,108 @@
+; MIR2 module: examples/tests/asm_caller_callee.nanz
+fun @add_ab(%r1: u8 [acc], %r2: u8 [counter]) -> u8 [acc]
+  block @entry:
+    asm "ADD A, B"
+    ret void
+
+fun @test_ab() -> u8 [acc]
+  block @entry:
+    %r3 = const 10 : u8 [acc]
+    %r4 = const 20 : u8 [general]
+    %r5 = call @add_ab(%r3, %r4) : u8 [acc]
+    ret %r5
+
+fun @add_ac(%r6: u8 [acc], %r7: u8 [regC]) -> u8 [acc]
+  block @entry:
+    asm "ADD A, C"
+    ret void
+
+fun @test_ac() -> u8 [acc]
+  block @entry:
+    %r8 = const 10 : u8 [acc]
+    %r9 = const 30 : u8 [general]
+    %r10 = call @add_ac(%r8, %r9) : u8 [acc]
+    ret %r10
+
+fun @sum_abc(%r11: u8 [acc], %r12: u8 [counter], %r13: u8 [regC]) -> u8 [acc]
+  block @entry:
+    asm "ADD A, B\n    ADD A, C"
+    ret void
+
+fun @test_abc() -> u8 [acc]
+  block @entry:
+    %r14 = const 10 : u8 [acc]
+    %r15 = const 20 : u8 [general]
+    %r16 = const 30 : u8 [counter]
+    %r17 = call @sum_abc(%r14, %r15, %r16) : u8 [acc]
+    ret %r17
+
+fun @diff_bc(%r18: u8 [counter], %r19: u8 [regC]) -> u8 [acc]
+  block @entry:
+    asm "LD A, B\n    SUB C"
+    ret void
+
+fun @test_diff() -> u8 [acc]
+  block @entry:
+    %r20 = const 100 : u8 [acc]
+    %r21 = const 30 : u8 [general]
+    %r22 = call @diff_bc(%r20, %r21) : u8 [acc]
+    ret %r22
+
+fun @add16(%r23: u16 [pointer], %r24: u16 [index]) -> u16 [pointer]
+  block @entry:
+    asm "ADD HL, DE"
+    ret void
+
+fun @test_add16() -> u16 [pointer]
+  block @entry:
+    %r25 = const 1000 : u16 [pointer]
+    %r26 = const 2000 : u16 [index]
+    %r27 = call @add16(%r25, %r26) : u16 [pointer]
+    ret %r27
+
+fun @hl_plus_a(%r28: u16 [pointer], %r29: u8 [acc]) -> u16 [pointer]
+  block @entry:
+    asm "LD D, 0\n    LD E, A\n    ADD HL, DE"
+    ret void
+
+fun @test_mixed() -> u16 [pointer]
+  block @entry:
+    %r30 = const 16384 : u16 [pointer]
+    %r31 = const 32 : u8 [general]
+    %r32 = call @hl_plus_a(%r30, %r31) : u16 [pointer]
+    ret %r32
+
+fun @inner(%r33: u8 [acc], %r34: u8 [counter]) -> u8 [acc]
+  block @entry:
+    asm "ADD A, B"
+    ret void
+
+fun @middle(%r35: u8 [acc], %r36: u8 [counter]) -> u8 [acc]
+  block @entry:
+    %r37 = move %r35 : u8 [acc]
+    %r38 = call @inner(%r37, %r36) : u8 [acc]
+    ret %r38
+
+fun @test_chain() -> u8 [acc]
+  block @entry:
+    %r39 = const 15 : u8 [acc]
+    %r40 = const 25 : u8 [general]
+    %r41 = call @middle(%r39, %r40) : u8 [acc]
+    ret %r41
+
+fun @test_multi1() -> u8 [acc]
+  block @entry:
+    %r42 = const 1 : u8 [acc]
+    %r43 = const 2 : u8 [general]
+    %r44 = const 3 : u8 [counter]
+    %r45 = call @sum_abc(%r42, %r43, %r44) : u8 [acc]
+    ret %r45
+
+fun @test_multi2() -> u8 [acc]
+  block @entry:
+    %r46 = const 0 : u8 [acc]
+    %r47 = const 0 : u8 [general]
+    %r48 = const 0 : u8 [counter]
+    %r49 = call @sum_abc(%r46, %r47, %r48) : u8 [acc]
+    ret %r49
+
