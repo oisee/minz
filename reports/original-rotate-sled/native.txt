@@ -1,0 +1,13 @@
+=== RUN   TestOriginalRotateSledNative
+=== RUN   TestOriginalRotateSledNative/ordinary
+    original_rotate_sled_test.go:172: original mismatched helpers=0 stdout="1861011"
+=== RUN   TestOriginalRotateSledNative/grace-size
+    original_rotate_sled_test.go:172: original mismatched helpers=0 stdout="1861011"
+=== RUN   TestOriginalRotateSledNative/grace-speed
+    original_rotate_sled_test.go:172: original mismatched helpers=0 stdout="1861011"
+--- PASS: TestOriginalRotateSledNative (0.02s)
+    --- PASS: TestOriginalRotateSledNative/ordinary (0.01s)
+    --- PASS: TestOriginalRotateSledNative/grace-size (0.01s)
+    --- PASS: TestOriginalRotateSledNative/grace-speed (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.032s
