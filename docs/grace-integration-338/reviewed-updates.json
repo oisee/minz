@@ -76,48 +76,56 @@
     "path": "examples/agon/nc_agon.nanz",
     "source_sha256": "8063ebaf25ab5faff632017874a06d1db25019fa7efe559c4d0cfc6f3b3e9b38",
     "native_behavior": "agon-mos-runtime",
-    "workload": "Three CLI modes: initial eight-file list, Up at zero, Enter selection0, ESC;1024-byte exact ANSI stream.",
-    "independent_model": "Independent source/library-derived ANSI model; inverse only known fake VDP ESC diagnostic; reject repeated MOS boot or other unknown packets.",
-    "boundary": "Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof;no Down/arbitrary navigation proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence.",
+    "workload": "Current native-VDU ordinary whole-device: initial list; Down/Enter/Escape at index 1; nine Down/Enter at index 7 without wrap; Up/Enter at index 6, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.",
+    "independent_model": "Historical independent source/library-derived ANSI model applies only to retained pre-VDU library. Current full-device images visually inspected; real eZ80 CPU, MOS and full VDP, normal SDL-to-PS2-to-MOS input and following echo/prompt.",
+    "boundary": "Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library.",
     "evidence": {
       "minzc/pkg/pipeline/agon_corpus_product_test.go": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
       "reports/agon-product-audit/manifest.json": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
       "reports/agon-product-audit/root.txt": "31936901fb106c4808aea698dfeee5cc7260a10d52c9a1866baeaaba76152bd4",
       "scripts/agon_tui_stream_model.py": "18e79aff84bf54ef1449321fd2392fc0c35befd56a6ffde1e43e0538b67357b8",
       "reports/agon-entry-fix/manifest.json": "fcf4fb7aea98fe4ab3345713e7a1a8465ee43c91495b7cd52d7b7d921bf39ac6",
-      "reports/agon-nc-navigation/manifest.json": "1037b25cfc62f82ed0ff8696b23af3485c5aad48f2b31134fc3b945281e71c5c"
+      "reports/agon-nc-navigation/manifest.json": "1037b25cfc62f82ed0ff8696b23af3485c5aad48f2b31134fc3b945281e71c5c",
+      "reports/agon-full-vdp-demo-nc/manifest.json": "a17513b4834048ec0f9e09c4f9093c5c09d9e31177b878f694e3f1b7fb5fb7ce",
+      "reports/agon-full-vdp-nc-navigation/manifest.json": "37c0764f81367cfa3d9152243b5d2280ed5527a4163e42e80e082f28e8de739b",
+      "reports/agon-full-vdp-nc-boundary/manifest.json": "2c8e1587ad58c8057a6c65c00f89d3a0bd3406c33a1032b1578ae0265abf0ccf",
+      "stdlib/agon/tui_render.nanz": "df324615b171bed89dc29a768d826551123604867bc3279fb20020fd784046f8"
     }
   },
   {
     "path": "examples/agon/tui_demo.nanz",
     "source_sha256": "afcadba573f924da7fcaf74574a8ec451be8ffb37eb0b3aa8567a6757d2957bd",
     "native_behavior": "agon-mos-runtime",
-    "workload": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.",
-    "independent_model": "Independent source/library-derived ANSI model; inverse only known fake VDP ESC diagnostic; reject repeated MOS boot or other unknown packets.",
-    "boundary": "Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence.",
+    "workload": "Current native-VDU ordinary whole-device: rendered Demo and SDL A, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.",
+    "independent_model": "Historical independent source/library-derived ANSI model applies only to retained pre-VDU library. Current full-device images visually inspected; real eZ80 CPU, MOS and full VDP, normal SDL-to-PS2-to-MOS input and following echo/prompt.",
+    "boundary": "Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library.",
     "evidence": {
       "minzc/pkg/pipeline/agon_corpus_product_test.go": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
       "reports/agon-product-audit/manifest.json": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
       "reports/agon-product-audit/root.txt": "31936901fb106c4808aea698dfeee5cc7260a10d52c9a1866baeaaba76152bd4",
       "scripts/agon_tui_stream_model.py": "18e79aff84bf54ef1449321fd2392fc0c35befd56a6ffde1e43e0538b67357b8",
       "reports/agon-entry-fix/manifest.json": "fcf4fb7aea98fe4ab3345713e7a1a8465ee43c91495b7cd52d7b7d921bf39ac6",
-      "reports/agon-tui-stream-matrix/manifest.json": "331dd1e19c5bc3232f99ff1bb01b56999186996803c341ef4c7f719a30f22e20"
+      "reports/agon-tui-stream-matrix/manifest.json": "331dd1e19c5bc3232f99ff1bb01b56999186996803c341ef4c7f719a30f22e20",
+      "reports/agon-full-vdp-demo-nc/manifest.json": "a17513b4834048ec0f9e09c4f9093c5c09d9e31177b878f694e3f1b7fb5fb7ce",
+      "stdlib/agon/tui_render.nanz": "df324615b171bed89dc29a768d826551123604867bc3279fb20020fd784046f8"
     }
   },
   {
     "path": "examples/agon/tui_hello.nanz",
     "source_sha256": "44f505b14ac4c5c674db470d9f81684aeaf078498c03ad267e81a05d13d25f90",
     "native_behavior": "agon-mos-runtime",
-    "workload": "Three CLI modes: unchanged wholemain; exact source-derived ANSI stream (Hello313B/Demo707B), key and clean MOS continuation.",
-    "independent_model": "Independent source/library-derived ANSI model; inverse only known fake VDP ESC diagnostic; reject repeated MOS boot or other unknown packets.",
-    "boundary": "Scoped real eZ80/MOS execution now verified; fake VDP, no real graphical rendering/full RAM-SP/hardware proof. Retained ANSI replay used the saved pre-VDU library; current library changed to native VDU and requires new full-device evidence.",
+    "workload": "Current native-VDU ordinary whole-device: rendered greeting/box and SDL A, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.",
+    "independent_model": "Historical independent source/library-derived ANSI model applies only to retained pre-VDU library. Current full-device images visually inspected; real eZ80 CPU, MOS and full VDP, normal SDL-to-PS2-to-MOS input and following echo/prompt.",
+    "boundary": "Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library.",
     "evidence": {
       "minzc/pkg/pipeline/agon_corpus_product_test.go": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
       "reports/agon-product-audit/manifest.json": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
       "reports/agon-product-audit/root.txt": "31936901fb106c4808aea698dfeee5cc7260a10d52c9a1866baeaaba76152bd4",
       "scripts/agon_tui_stream_model.py": "18e79aff84bf54ef1449321fd2392fc0c35befd56a6ffde1e43e0538b67357b8",
       "reports/agon-entry-fix/manifest.json": "fcf4fb7aea98fe4ab3345713e7a1a8465ee43c91495b7cd52d7b7d921bf39ac6",
-      "reports/agon-tui-stream-matrix/manifest.json": "331dd1e19c5bc3232f99ff1bb01b56999186996803c341ef4c7f719a30f22e20"
+      "reports/agon-tui-stream-matrix/manifest.json": "331dd1e19c5bc3232f99ff1bb01b56999186996803c341ef4c7f719a30f22e20",
+      "reports/agon-native-vdu-fix/manifest.json": "109279a77ab17245fb970690a4b435cf02bfcfeadc3ce5661db1e297bcd71e06",
+      "stdlib/agon/tui_render.nanz": "df324615b171bed89dc29a768d826551123604867bc3279fb20020fd784046f8"
     }
   },
   {
@@ -1141,14 +1149,16 @@
     "path": "examples/nanz/tui_demo.nanz",
     "source_sha256": "1371d729645b1a5bcd232b1f3a5155ff05a1c499598d5995a951f651dca16e9b",
     "native_behavior": "bounded-independent-vm-native",
-    "workload": "Whole main with four piped inputs: 7, blank, 256 and 65535; three modes, raw/final VM and native; exact COUNT registration, host state and stdout 7/42/0/255.",
-    "independent_model": "Pre-execution frozen MZV piped-selection contract, independent integer parser and expected byte-output semantics.",
-    "boundary": "Test-owned typed selection hosts with native register clobber stress, full RAM/image checks; actual main HALT with driver CALL SP EFFE. No interactive ANSI/key-loop or public runtime claim.",
+    "workload": "Current native-VDU ordinary whole-device: rendered Demo and SDL A, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.",
+    "independent_model": "Historical independent source/library-derived ANSI model applies only to retained pre-VDU library. Current full-device images visually inspected; real eZ80 CPU, MOS and full VDP, normal SDL-to-PS2-to-MOS input and following echo/prompt.",
+    "boundary": "Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library.",
     "evidence": {
       "minzc/pkg/pipeline/original_tui_demo_main_test.go": "26cad99e7a3d15981f2270e9f879ed2290d2c53739e6ea6f57fa378adce1af9b",
       "reports/tui-demo-main/freeze.json": "34c06aebf4000c3a9dfbbee12834753db80fda1045e416d219f109ed492aea1a",
       "reports/tui-demo-main/manifest.json": "9e9f7755ceeb5dca57ceb716530fe147f198a930b3ca1e2babe2e737429cd0f8",
-      "docs/grace-integration-298/root.txt": "02f7cbd161304b94805de060ac196ff7f8744f100990f0f896c123aae9187163"
+      "docs/grace-integration-298/root.txt": "02f7cbd161304b94805de060ac196ff7f8744f100990f0f896c123aae9187163",
+      "reports/agon-full-vdp-demo-nc/manifest.json": "a17513b4834048ec0f9e09c4f9093c5c09d9e31177b878f694e3f1b7fb5fb7ce",
+      "stdlib/agon/tui_render.nanz": "df324615b171bed89dc29a768d826551123604867bc3279fb20020fd784046f8"
     }
   },
   {

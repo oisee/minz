@@ -2,11 +2,11 @@
   "files": [
     {
       "path": "README.md",
-      "sha256": "2ed584c5281e1073e78d2ef67d6a2feb94dd19cab3295eac087728b23f4e3bb9"
+      "sha256": "fb57f6c210ef3545a879f6dd9d25b5546a268ebd144eb46e5cf6fdb442483755"
     },
     {
       "path": "catalog.json",
-      "sha256": "3c10acd80ef69243f2c975b99c69e8ca0cae69c25f716e0cac6be925e3f4858c"
+      "sha256": "433bf2e108ac2d94ed81cdb64905cb4c0cc090b70eda40cfc61b67f3b7f07f20"
     },
     {
       "path": "catalog.txt",
@@ -14,7 +14,7 @@
     },
     {
       "path": "reviewed-updates.json",
-      "sha256": "cab4475234df035341392dac28834533cd8aa6b15949204a773cb9908bc371be"
+      "sha256": "43050e9fed157bc5c84416be9e573310816235bcc447ef22e07c7bc900027d3d"
     }
   ]
 }

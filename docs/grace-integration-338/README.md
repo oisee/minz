@@ -1,3 +1,9 @@
-# ZX Tetris: native ASM допуск
+# Заявленный корпус: точные границы доказательств
 
-Все inline примитивы проверены; неиспользуемый peek прошёл 3072 дополнительных native чтения. Оба Tetris допускаются как native ASM bounded: категория выросла до 21, inline ASM audit осталось 0. Все 194 пути сохранены; это не допуск произвольной игры или оборудования. [Аудит](../../reports/zx-tetris-asm-audit/README.md).
+Каталог сохраняет все 194 пути. Статусы различают независимые VM/Z80 проверки, ограниченный native ASM, CP/M runtime, Agon MOS runtime и незакрытые случаи; наличие BIN или screenshot не означает полной корректности.
+
+Обновление Agon: native-VDU TUI Hello, Demo и Mini NC выполняются в ordinary mode с реальными eZ80 CPU/MOS и полным VDP эмулятора. Кадры, клавиатура и следующий MOS echo сохранены. У NC дополнительно наблюдены Down/Enter, граница index 7 без wrap, Up до index 6 и Escape. Эти визуальные наблюдения не являются независимым pixel/RAM/SP оракулом и не покрывают все режимы, входы или железо. Старый независимый ANSI replay относится к сохранённой pre-VDU библиотеке.
+
+Все inline примитивы ZX Tetris проверены; неиспользуемый peek прошёл 3072 дополнительных native чтения. Оба Tetris допускаются как native ASM bounded; категория включает 21 путь. [Аудит](../../reports/zx-tetris-asm-audit/README.md).
+
+Источники и SHA256 reviewed evidence проверяет `TestShowcaseExecutableOracleCatalog`; `reviewed-updates.json` задаёт точные workload/model/boundary. Новый pipeline продолжает работать отдельным immutable checkpoint и не подменяется каталогом.
