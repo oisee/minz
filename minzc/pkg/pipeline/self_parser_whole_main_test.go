@@ -11,7 +11,7 @@ import (
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/z80asm"
 	"os"
-"strings"
+	"strings"
 	"testing"
 )
 
@@ -21,7 +21,14 @@ func TestOriginalSelfParserWholeMainVM(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	original, e := os.ReadFile(root + "source.nanz");if e!=nil{t.Fatal(e)};expectedFixed:=bytes.ReplaceAll(original,[]byte(`out_str("`),[]byte(`out_str(c"`));if !bytes.Equal(source,expectedFixed){t.Fatal("exact source CString correction") }
+	original, e := os.ReadFile(root + "source.nanz")
+	if e != nil {
+		t.Fatal(e)
+	}
+	expectedFixed := bytes.ReplaceAll(original, []byte(`out_str("`), []byte(`out_str(c"`))
+	if !bytes.Equal(source, expectedFixed) {
+		t.Fatal("exact source CString correction")
+	}
 	input, _ := os.ReadFile(root + "tiny.nanz")
 	_, _ = os.ReadFile(root + "tiny.lanz")
 	stdout, _ := os.ReadFile(root + "stdout.txt")
@@ -65,7 +72,10 @@ func TestOriginalSelfParserWholeMainVM(t *testing.T) {
 			vm.WriteHeapBytes(0xc000, bytes.Repeat([]byte{0xe1}, 4096))
 			vm.WriteHeapBytes(0xd000, bytes.Repeat([]byte{0x91}, 4096))
 			var out bytes.Buffer
-			var fileEvents []string;var written []byte
+			var fileEvents []string
+			var written []byte
+			var writes []uint16
+			var hostReadBefore, hostWriteBefore []byte
 			readPath := func(ptr int64) string {
 				b := vm.ReadHeap(ptr, 1)
 				if b[0] == 9 {
@@ -87,6 +97,7 @@ func TestOriginalSelfParserWholeMainVM(t *testing.T) {
 				if p < 0x8000 || p >= 0xe000 {
 					t.Fatal("poke outside arenas", p)
 				}
+				writes = append(writes, p)
 				vm.WriteHeap(int64(p), byte(a[1].I))
 				return nil, nil
 			}
@@ -95,6 +106,7 @@ func TestOriginalSelfParserWholeMainVM(t *testing.T) {
 				if p != "tiny.nanz" || a[1].I != 0xc000 {
 					t.Fatal("read args", p, a)
 				}
+				hostReadBefore = append([]byte(nil), vm.ReadHeap(0, 0xe000)...)
 				vm.WriteHeapBytes(0xc000, append(append([]byte(nil), input...), 0))
 				fileEvents = append(fileEvents, "read tiny.nanz")
 				return []mir2.Value{{I: int64(len(input))}}, nil
@@ -104,7 +116,9 @@ func TestOriginalSelfParserWholeMainVM(t *testing.T) {
 				if p != "tiny.lanz" || a[1].I != 0xd000 || a[2].I > 4096 {
 					t.Fatal("write args/data", p, a, string(vm.ReadHeap(0xd000, int(a[2].I))))
 				}
-				written=append([]byte(nil),vm.ReadHeap(0xd000,int(a[2].I))...);fileEvents = append(fileEvents, "write tiny.lanz")
+				hostWriteBefore = append([]byte(nil), vm.ReadHeap(0, 0xe000)...)
+				written = append([]byte(nil), vm.ReadHeap(0xd000, int(a[2].I))...)
+				fileEvents = append(fileEvents, "write tiny.lanz")
 				return []mir2.Value{{I: a[2].I}}, nil
 			}
 			vm.Hosts["file_size"] = func(a []mir2.Value) ([]mir2.Value, error) { t.Fatal("unreachable file_size", a); return nil, nil }
@@ -124,8 +138,11 @@ func TestOriginalSelfParserWholeMainVM(t *testing.T) {
 				os.WriteFile(dir+"/"+mode+"/whole.mir", []byte(m.Dump()), 0644)
 				os.WriteFile(dir+"/"+mode+"/heap.bin", vm.ReadHeap(0, 0xe000), 0644)
 			}
-			wantFile,_:=os.ReadFile(root+"tiny.lanz");if !bytes.Equal(written,wantFile){t.Fatalf("Lanz file got%q want%q",written,wantFile)}
- if e != nil || !bytes.Equal(out.Bytes(), stdout) {
+			wantFile, _ := os.ReadFile(root + "tiny.lanz")
+			if !bytes.Equal(written, wantFile) {
+				t.Fatalf("Lanz file got%q want%q", written, wantFile)
+			}
+			if e != nil || !bytes.Equal(out.Bytes(), stdout) {
 				t.Fatal("whole main", e, out.String(), string(stdout))
 			}
 			for _, x := range []struct {
@@ -155,12 +172,28 @@ func TestOriginalSelfParserWholeMainVM(t *testing.T) {
 					t.Fatal("global", name, got, want)
 				}
 			}
+			if fmt.Sprint(fileEvents) != "[read tiny.nanz write tiny.lanz]" {
+				t.Fatal("file event sequence", fileEvents)
+			}
+			if len(hostReadBefore) == 0 || len(hostWriteBefore) == 0 {
+				t.Fatal("file memory snapshots")
+			}
+			for _, p := range writes {
+				if !(p >= 0x8000 && p < 0x8060 || p >= 0x9000 && p < 0x9037 || p >= 0xb000 && p < 0xb074 || p >= 0xd000 && p < 0xd04c) {
+					t.Fatal("poke outside exactusedranges", p)
+				}
+			}
 			t.Logf("wholemain independent files/AST/tokens/stdout PASS inputSHA %x events%v", sha256.Sum256(input), fileEvents)
 		})
 	}
 }
 
-func TestOriginalSelfParserNativeCounterexample(t *testing.T) {
+func TestOriginalSelfParserWholeMainNative(t *testing.T) {
+	for _, mode := range []string{"ordinary", "grace-size", "grace-speed"} {
+		t.Run(mode, func(t *testing.T) { selfParserWholeMainNative(t, mode) })
+	}
+}
+func selfParserWholeMainNative(t *testing.T, mode string) {
 	const root = "../../../reports/self-parser-whole-main/frozen/"
 	src, _ := os.ReadFile("../../../examples/nanz/self_parser.nanz")
 	input, _ := os.ReadFile(root + "tiny.nanz")
@@ -168,12 +201,25 @@ func TestOriginalSelfParserNativeCounterexample(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	s, e := CompileHIRSteps(h, Options{ContractOpt: true, AssertMode: "none"})
+	opts := Options{ContractOpt: true, AssertMode: "none"}
+	if mode != "ordinary" {
+		opts.UseGrace = true
+		opts.UseHIRGrace = true
+		opts.OptSize = mode == "grace-size"
+	}
+	s, e := CompileHIRSteps(h, opts)
 	if e != nil {
 		t.Fatal(e)
 	}
-	linked:=s.Assembly;for _,n:=range []string{"peek","poke","file_read","file_write","file_size"}{needle:=n+":\n";if strings.Count(linked,needle)!=1{t.Fatal("extern label",n)};linked=strings.Replace(linked,needle,needle+" RET\n",1)}
- a, e := z80asm.NewAssembler().AssembleString("ORG 0x400\n" + linked)
+	linked := s.Assembly
+	for _, n := range []string{"peek", "poke", "file_read", "file_write", "file_size"} {
+		needle := n + ":\n"
+		if strings.Count(linked, needle) != 1 {
+			t.Fatal("extern label", n)
+		}
+		linked = strings.Replace(linked, needle, needle+" RET\n", 1)
+	}
+	a, e := z80asm.NewAssembler().AssembleString("ORG 0x400\n" + linked)
 	if e != nil || len(a.Errors) > 0 {
 		t.Fatal(e, a.Errors)
 	}
@@ -232,6 +278,25 @@ func TestOriginalSelfParserNativeCounterexample(t *testing.T) {
 		r.SP += 2
 		z.SetRegisters(r)
 	}
+	before := append([]byte(nil), z.Memory()...)
+	mutable := map[int]bool{}
+	for _, g := range s.MIR2Module.Globals {
+		if !g.IsConst {
+			base := a.Symbols[g.Name]
+			for i := 0; i < mir2.ByteWidth(g.Ty); i++ {
+				mutable[base+i] = true
+			}
+		}
+	}
+	for _, l := range a.Listing {
+		if strings.HasPrefix(strings.ToLower(l.Label), "_spill_") {
+			for i := range l.Bytes {
+				mutable[l.Address+i] = true
+			}
+		}
+	}
+	var events []map[string]any
+	minSP := uint16(0xf000)
 	done := false
 	for i := 0; i < 3000000; i++ {
 		pc := z.GetPC()
@@ -249,19 +314,34 @@ func TestOriginalSelfParserNativeCounterexample(t *testing.T) {
 			case "peek":
 				p := readArg(name, 0)
 				r := z.GetRegisters()
+				if !(p >= 0x8000 && p < 0xe000 || p >= 0x400 && int(p) < 0x400+len(a.Binary)) {
+					t.Fatal("peek authority", p)
+				}
+				events = append(events, map[string]any{"kind": "peek", "address": p, "value": z.Memory()[p]})
 				r.A = z.Memory()[p]
 				z.SetRegisters(r)
 			case "poke":
 				p := readArg(name, 0)
 				v := readArg(name, 1)
+				if !(p >= 0x8000 && p < 0x8060 || p >= 0x9000 && p < 0x9037 || p >= 0xb000 && p < 0xb074 || p >= 0xd000 && p < 0xd04c) {
+					t.Fatal("poke exactbound", p)
+				}
+				events = append(events, map[string]any{"kind": "poke", "address": p, "value": byte(v)})
 				z.Memory()[p] = byte(v)
 			case "file_read":
 				ptr := readArg(name, 0)
 				p := readArg(name, 1)
 				if string(z.Memory()[ptr+1:ptr+10]) != "tiny.nanz" || p != 0xc000 {
- if dir:=os.Getenv("MINZ_SELF_PARSER_MAIN_EXPORT");dir!=""{os.MkdirAll(dir+"/native-abi",0755);os.WriteFile(dir+"/native-abi/main.a80",[]byte("ORG 0x400\n"+linked),0644);os.WriteFile(dir+"/native-abi/main.bin",a.Binary,0644);b,_:=json.MarshalIndent(s.MIR2Module.FuncByName(name).Contract,"","  ");os.WriteFile(dir+"/native-abi/contract.json",b,0644)}
+					if dir := os.Getenv("MINZ_SELF_PARSER_MAIN_EXPORT"); dir != "" {
+						os.MkdirAll(dir+"/native-abi", 0755)
+						os.WriteFile(dir+"/native-abi/main.a80", []byte("ORG 0x400\n"+linked), 0644)
+						os.WriteFile(dir+"/native-abi/main.bin", a.Binary, 0644)
+						b, _ := json.MarshalIndent(s.MIR2Module.FuncByName(name).Contract, "", "  ")
+						os.WriteFile(dir+"/native-abi/contract.json", b, 0644)
+					}
 					t.Fatal("file_read ABI", ptr, p)
 				}
+				events = append(events, map[string]any{"kind": "file_read", "path": "tiny.nanz", "buffer": p, "length": len(input)})
 				z.LoadMemory(p, append(append([]byte(nil), input...), 0))
 				setRet(name, uint16(len(input)))
 			case "file_write":
@@ -271,6 +351,7 @@ func TestOriginalSelfParserNativeCounterexample(t *testing.T) {
 				if string(z.Memory()[ptr+1:ptr+10]) != "tiny.lanz" || p != 0xd000 || n > 4096 {
 					t.Fatal("file_writeABI", ptr, p, n)
 				}
+				events = append(events, map[string]any{"kind": "file_write", "path": "tiny.lanz", "buffer": p, "length": n})
 				file = append([]byte(nil), z.Memory()[p:p+n]...)
 				setRet(name, n)
 			case "file_size":
@@ -286,21 +367,58 @@ func TestOriginalSelfParserNativeCounterexample(t *testing.T) {
 			t.Fatal("foreignpc", pc, z.GetSP())
 		}
 		z.Step()
+		if z.GetSP() < minSP {
+			minSP = z.GetSP()
+		}
 	}
 	if dir := os.Getenv("MINZ_SELF_PARSER_MAIN_EXPORT"); dir != "" {
-		dir += "/native"
+		dir += "/native-" + mode
 		os.MkdirAll(dir, 0755)
 		os.WriteFile(dir+"/file.lanz", file, 0644)
 		os.WriteFile(dir+"/stdout.txt", stdout, 0644)
 		os.WriteFile(dir+"/main.a80", []byte("ORG 0x400\n"+linked), 0644)
 		os.WriteFile(dir+"/main.bin", a.Binary, 0644)
 		os.WriteFile(dir+"/memory.bin", z.Memory(), 0644)
+		os.WriteFile(dir+"/before.bin", before, 0644)
+		b, _ := json.MarshalIndent(map[string]any{"events": events, "options": opts, "allocation": s.Allocation, "min_sp": minSP, "done": done, "cycles": z.GetCycles()}, "", "  ")
+		os.WriteFile(dir+"/context.json", b, 0644)
 	}
 	if !done {
 		t.Fatal("no return", z.GetPC(), z.GetSP(), string(stdout))
 	}
 	want, _ := os.ReadFile(root + "tiny.lanz")
+	stdoutWant, _ := os.ReadFile(root + "stdout.txt")
+	if !bytes.Equal(stdout, stdoutWant) {
+		t.Fatal("native stdout", string(stdout), string(stdoutWant))
+	}
+	for _, x := range []struct {
+		base int
+		file string
+	}{{0x8000, "ast.bin"}, {0x9000, "strings.bin"}, {0xb000, "tokens.bin"}} {
+		d, _ := os.ReadFile(root + x.file)
+		if !bytes.Equal(z.Memory()[x.base:x.base+len(d)], d) {
+			t.Fatal("native arena", x.file)
+		}
+	}
+	expected := append([]byte(nil), before...)
+	for _, x := range []struct {
+		base int
+		file string
+	}{{0x8000, "ast.bin"}, {0x9000, "strings.bin"}, {0xb000, "tokens.bin"}} {
+		d, _ := os.ReadFile(root + x.file)
+		copy(expected[x.base:], d)
+	}
+	copy(expected[0xc000:], append(append([]byte(nil), input...), 0))
+	copy(expected[0xd000:], want)
+	for p, v := range expected {
+		if mutable[p] || p >= int(minSP) && p < 0xf000 {
+			continue
+		}
+		if z.Memory()[p] != v {
+			t.Fatal("native RAM", p, z.Memory()[p], v)
+		}
+	}
 	if !bytes.Equal(file, want) {
-		t.Fatalf("original source native file %d bytes want%d %q", len(file), len(want), file)
+		t.Fatalf("self parser native file %d bytes want%d %q", len(file), len(want), file)
 	}
 }
