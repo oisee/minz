@@ -1,0 +1,420 @@
+[
+  {
+    "clobber": false,
+    "error": "",
+    "expected": "0",
+    "registers": {
+      "A": 48,
+      "F": 32,
+      "BC": 2,
+      "DE": 48,
+      "HL": 0,
+      "IX": 0,
+      "IY": 0,
+      "SP": 61440,
+      "PC": 0
+    },
+    "signed": 0,
+    "stdout": "0",
+    "word": 0
+  },
+  {
+    "clobber": true,
+    "error": "",
+    "expected": "0",
+    "registers": {
+      "A": 165,
+      "F": 255,
+      "BC": 4660,
+      "DE": 22136,
+      "HL": 50115,
+      "IX": 0,
+      "IY": 4951,
+      "SP": 61440,
+      "PC": 0
+    },
+    "signed": 0,
+    "stdout": "0",
+    "word": 0
+  },
+  {
+    "clobber": false,
+    "error": "",
+    "expected": "1",
+    "registers": {
+      "A": 49,
+      "F": 32,
+      "BC": 2,
+      "DE": 49,
+      "HL": 1,
+      "IX": 0,
+      "IY": 0,
+      "SP": 61440,
+      "PC": 0
+    },
+    "signed": 1,
+    "stdout": "1",
+    "word": 1
+  },
+  {
+    "clobber": true,
+    "error": "",
+    "expected": "1",
+    "registers": {
+      "A": 165,
+      "F": 255,
+      "BC": 4660,
+      "DE": 22136,
+      "HL": 50115,
+      "IX": 0,
+      "IY": 4951,
+      "SP": 61440,
+      "PC": 0
+    },
+    "signed": 1,
+    "stdout": "1",
+    "word": 1
+  },
+  {
+    "clobber": false,
+    "error": "",
+    "expected": "9",
+    "registers": {
+      "A": 57,
+      "F": 40,
+      "BC": 2,
+      "DE": 57,
+      "HL": 9,
+      "IX": 0,
+      "IY": 0,
+      "SP": 61440,
+      "PC": 0
+    },
+    "signed": 9,
+    "stdout": "9",
+    "word": 9
+  },
+  {
+    "clobber": true,
+    "error": "",
+    "expected": "9",
+    "registers": {
+      "A": 165,
+      "F": 255,
+      "BC": 4660,
+      "DE": 22136,
+      "HL": 50115,
+      "IX": 0,
+      "IY": 4951,
+      "SP": 61440,
+      "PC": 0
+    },
+    "signed": 9,
+    "stdout": "9",
+    "word": 9
+  },
+  {
+    "clobber": false,
+    "error": "",
+    "expected": "10",
+    "registers": {
+      "A": 48,
+      "F": 32,
+      "BC": 2,
+      "DE": 304,
+      "HL": 0,
+      "IX": 0,
+      "IY": 0,
+      "SP": 61440,
+      "PC": 0
+    },
+    "signed": 10,
+    "stdout": "10",
+    "word": 10
+  },
+  {
+    "clobber": true,
+    "error": "",
+    "expected": "10",
+    "registers": {
+      "A": 165,
+      "F": 255,
+      "BC": 4660,
+      "DE": 22136,
+      "HL": 50115,
+      "IX": 0,
+      "IY": 4951,
+      "SP": 61440,
+      "PC": 0
+    },
+    "signed": 10,
+    "stdout": "10",
+    "word": 10
+  },
+  {
+    "clobber": false,
+    "error": "",
+    "expected": "99",
+    "registers": {
+      "A": 57,
+      "F": 40,
+      "BC": 2,
+      "DE": 313,
+      "HL": 9,
+      "IX": 0,
+      "IY": 0,
+      "SP": 61440,
+      "PC": 0
+    },
+    "signed": 99,
+    "stdout": "99",
+    "word": 99
+  },
+  {
+    "clobber": true,
+    "error": "",
+    "expected": "99",
+    "registers": {
+      "A": 165,
+      "F": 255,
+      "BC": 4660,
+      "DE": 22136,
+      "HL": 50115,
+      "IX": 0,
+      "IY": 4951,
+      "SP": 61440,
+      "PC": 0
+    },
+    "signed": 99,
+    "stdout": "99",
+    "word": 99
+  },
+  {
+    "clobber": false,
+    "error": "",
+    "expected": "100",
+    "registers": {
+      "A": 48,
+      "F": 32,
+      "BC": 2,
+      "DE": 304,
+      "HL": 0,
+      "IX": 0,
+      "IY": 0,
+      "SP": 61440,
+      "PC": 0
+    },
+    "signed": 100,
+    "stdout": "100",
+    "word": 100
+  },
+  {
+    "clobber": true,
+    "error": "",
+    "expected": "100",
+    "registers": {
+      "A": 165,
+      "F": 255,
+      "BC": 4660,
+      "DE": 22136,
+      "HL": 50115,
+      "IX": 0,
+      "IY": 4951,
+      "SP": 61440,
+      "PC": 0
+    },
+    "signed": 100,
+    "stdout": "100",
+    "word": 100
+  },
+  {
+    "clobber": false,
+    "error": "",
+    "expected": "999",
+    "registers": {
+      "A": 57,
+      "F": 40,
+      "BC": 2,
+      "DE": 313,
+      "HL": 9,
+      "IX": 0,
+      "IY": 0,
+      "SP": 61440,
+      "PC": 0
+    },
+    "signed": 999,
+    "stdout": "999",
+    "word": 999
+  },
+  {
+    "clobber": true,
+    "error": "",
+    "expected": "999",
+    "registers": {
+      "A": 165,
+      "F": 255,
+      "BC": 4660,
+      "DE": 22136,
+      "HL": 50115,
+      "IX": 0,
+      "IY": 4951,
+      "SP": 61440,
+      "PC": 0
+    },
+    "signed": 999,
+    "stdout": "999",
+    "word": 999
+  },
+  {
+    "clobber": false,
+    "error": "",
+    "expected": "1000",
+    "registers": {
+      "A": 48,
+      "F": 32,
+      "BC": 2,
+      "DE": 304,
+      "HL": 0,
+      "IX": 0,
+      "IY": 0,
+      "SP": 61440,
+      "PC": 0
+    },
+    "signed": 1000,
+    "stdout": "1000",
+    "word": 1000
+  },
+  {
+    "clobber": true,
+    "error": "",
+    "expected": "1000",
+    "registers": {
+      "A": 165,
+      "F": 255,
+      "BC": 4660,
+      "DE": 22136,
+      "HL": 50115,
+      "IX": 0,
+      "IY": 4951,
+      "SP": 61440,
+      "PC": 0
+    },
+    "signed": 1000,
+    "stdout": "1000",
+    "word": 1000
+  },
+  {
+    "clobber": false,
+    "error": "",
+    "expected": "32767",
+    "registers": {
+      "A": 55,
+      "F": 32,
+      "BC": 2,
+      "DE": 311,
+      "HL": 7,
+      "IX": 0,
+      "IY": 0,
+      "SP": 61440,
+      "PC": 0
+    },
+    "signed": 32767,
+    "stdout": "32767",
+    "word": 32767
+  },
+  {
+    "clobber": true,
+    "error": "",
+    "expected": "32767",
+    "registers": {
+      "A": 165,
+      "F": 255,
+      "BC": 4660,
+      "DE": 22136,
+      "HL": 50115,
+      "IX": 0,
+      "IY": 4951,
+      "SP": 61440,
+      "PC": 0
+    },
+    "signed": 32767,
+    "stdout": "32767",
+    "word": 32767
+  },
+  {
+    "clobber": false,
+    "error": "",
+    "expected": "-32768",
+    "registers": {
+      "A": 56,
+      "F": 40,
+      "BC": 2,
+      "DE": 312,
+      "HL": 8,
+      "IX": 0,
+      "IY": 0,
+      "SP": 61440,
+      "PC": 0
+    },
+    "signed": -32768,
+    "stdout": "32768",
+    "word": 32768
+  },
+  {
+    "clobber": true,
+    "error": "",
+    "expected": "-32768",
+    "registers": {
+      "A": 165,
+      "F": 255,
+      "BC": 4660,
+      "DE": 22136,
+      "HL": 50115,
+      "IX": 0,
+      "IY": 4951,
+      "SP": 61440,
+      "PC": 0
+    },
+    "signed": -32768,
+    "stdout": "32768",
+    "word": 32768
+  },
+  {
+    "clobber": false,
+    "error": "",
+    "expected": "-1",
+    "registers": {
+      "A": 53,
+      "F": 32,
+      "BC": 2,
+      "DE": 309,
+      "HL": 5,
+      "IX": 0,
+      "IY": 0,
+      "SP": 61440,
+      "PC": 0
+    },
+    "signed": -1,
+    "stdout": "65535",
+    "word": 65535
+  },
+  {
+    "clobber": true,
+    "error": "",
+    "expected": "-1",
+    "registers": {
+      "A": 165,
+      "F": 255,
+      "BC": 4660,
+      "DE": 22136,
+      "HL": 50115,
+      "IX": 0,
+      "IY": 4951,
+      "SP": 61440,
+      "PC": 0
+    },
+    "signed": -1,
+    "stdout": "65535",
+    "word": 65535
+  }
+]
