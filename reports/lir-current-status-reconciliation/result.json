@@ -1,0 +1,7 @@
+{
+  "live_lir_package_exists": false,
+  "live_go_imports": [],
+  "backlog_links_verified": true,
+  "source_checkpoint": "8e71372b17c63d9e4039394c0beb1c714a9ee8b8",
+  "scope": "read-only current source/dependency and evidence-reference reconciliation, no new CPU gate"
+}

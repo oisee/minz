@@ -1,0 +1,1 @@
+Current backlog reconciled against removal/transfer source mapping and new composition VM/native evidence. Live tracked Go sources contain no pkg/lir import; directory absent. Relative proof links checked. This is documentation/source reconciliation, not full compiler completion. Historical reports remain immutable.
