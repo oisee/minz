@@ -7,3 +7,5 @@
 Все inline примитивы ZX Tetris проверены; неиспользуемый peek прошёл 3072 дополнительных native чтения. Оба Tetris допускаются как native ASM bounded; категория включает 21 путь. [Аудит](../../reports/zx-tetris-asm-audit/README.md).
 
 Источники и SHA256 reviewed evidence проверяет `TestShowcaseExecutableOracleCatalog`; `reviewed-updates.json` задаёт точные workload/model/boundary. Новый pipeline продолжает работать отдельным immutable checkpoint и не подменяется каталогом.
+
+Дополнительно все три графических примера прошли отдельную матрицу точного возврата в MOS (9 запусков): SP/IY/IX, 24 байта caller frame, status HL0 и PC после RET из сохранённого трёхбайтного адреса. Это фиксированные early-exit сценарии, не аудит всех записей RAM.

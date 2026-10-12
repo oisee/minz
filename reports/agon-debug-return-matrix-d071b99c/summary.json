@@ -1,0 +1,487 @@
+{
+  "scope": "fixed early-exit scenarios, three examples x three modes; exact return/SP/IY/IX/24-byte caller-frame, no full RAM/pixel/hardware proof",
+  "tools": {
+    "emulator": {
+      "path": "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/fab-agon-emulator",
+      "sha256": "7dee136f9c44d1eceea38e30b26769d2c80ac11b1844e638eda45cd34b54e282"
+    },
+    "mos": {
+      "path": "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+      "sha256": "5fbacb749ee037f0428aeac39817b5a6d465adc020f92d4020bb7dcb046d39fe"
+    },
+    "vdp": {
+      "path": "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/vdp_console8.so",
+      "sha256": "7028583607b1d0b3f272dcd223d148a7ce58e4596b300c9c5eb455e3de7815dd"
+    }
+  },
+  "results": [
+    {
+      "source": "tui_hello",
+      "mode": "ordinary",
+      "bin_sha256": "7753540a53c8d7de37bed5d92c3baee4206a90035765b1e6d0d9183eadab6a3b",
+      "entry": {
+        "pc": "040045",
+        "hl": "0bc370",
+        "sp": "0bfe66",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "before_ret": {
+        "pc": "040051",
+        "hl": "000000",
+        "sp": "0bfe66",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "after_ret": {
+        "pc": "000874",
+        "hl": "000000",
+        "sp": "0bfe69",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004",
+      "caller_frame_24_bytes_unchanged": true,
+      "exact_return_contract": true,
+      "keys": "repeated A",
+      "command": [
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/fab-agon-emulator",
+        "--renderer",
+        "sw",
+        "--firmware",
+        "console8",
+        "--mos",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+        "--vdp",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/vdp_console8.so",
+        "--sdcard",
+        "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-debug-return-matrix-d071b99c/tui_hello/ordinary/sdcard",
+        "--zero",
+        "--debugger",
+        "--breakpoint",
+        "0x40045",
+        "--breakpoint",
+        "0x40051"
+      ]
+    },
+    {
+      "source": "tui_hello",
+      "mode": "size",
+      "bin_sha256": "7753540a53c8d7de37bed5d92c3baee4206a90035765b1e6d0d9183eadab6a3b",
+      "entry": {
+        "pc": "040045",
+        "hl": "0bc370",
+        "sp": "0bfe66",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "before_ret": {
+        "pc": "040051",
+        "hl": "000000",
+        "sp": "0bfe66",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "after_ret": {
+        "pc": "000874",
+        "hl": "000000",
+        "sp": "0bfe69",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004",
+      "caller_frame_24_bytes_unchanged": true,
+      "exact_return_contract": true,
+      "keys": "repeated A",
+      "command": [
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/fab-agon-emulator",
+        "--renderer",
+        "sw",
+        "--firmware",
+        "console8",
+        "--mos",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+        "--vdp",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/vdp_console8.so",
+        "--sdcard",
+        "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-debug-return-matrix-d071b99c/tui_hello/size/sdcard",
+        "--zero",
+        "--debugger",
+        "--breakpoint",
+        "0x40045",
+        "--breakpoint",
+        "0x40051"
+      ]
+    },
+    {
+      "source": "tui_hello",
+      "mode": "speed",
+      "bin_sha256": "7753540a53c8d7de37bed5d92c3baee4206a90035765b1e6d0d9183eadab6a3b",
+      "entry": {
+        "pc": "040045",
+        "hl": "0bc370",
+        "sp": "0bfe66",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "before_ret": {
+        "pc": "040051",
+        "hl": "000000",
+        "sp": "0bfe66",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "after_ret": {
+        "pc": "000874",
+        "hl": "000000",
+        "sp": "0bfe69",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004",
+      "caller_frame_24_bytes_unchanged": true,
+      "exact_return_contract": true,
+      "keys": "repeated A",
+      "command": [
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/fab-agon-emulator",
+        "--renderer",
+        "sw",
+        "--firmware",
+        "console8",
+        "--mos",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+        "--vdp",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/vdp_console8.so",
+        "--sdcard",
+        "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-debug-return-matrix-d071b99c/tui_hello/speed/sdcard",
+        "--zero",
+        "--debugger",
+        "--breakpoint",
+        "0x40045",
+        "--breakpoint",
+        "0x40051"
+      ]
+    },
+    {
+      "source": "tui_demo",
+      "mode": "ordinary",
+      "bin_sha256": "bbf9fd32a1b1f6b46e77e7c1b9f42e6585037808c4279b3b6037d13d5c697059",
+      "entry": {
+        "pc": "040045",
+        "hl": "0bc370",
+        "sp": "0bfe66",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "before_ret": {
+        "pc": "040051",
+        "hl": "000000",
+        "sp": "0bfe66",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "after_ret": {
+        "pc": "000874",
+        "hl": "000000",
+        "sp": "0bfe69",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004",
+      "caller_frame_24_bytes_unchanged": true,
+      "exact_return_contract": true,
+      "keys": "repeated A",
+      "command": [
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/fab-agon-emulator",
+        "--renderer",
+        "sw",
+        "--firmware",
+        "console8",
+        "--mos",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+        "--vdp",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/vdp_console8.so",
+        "--sdcard",
+        "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-debug-return-matrix-d071b99c/tui_demo/ordinary/sdcard",
+        "--zero",
+        "--debugger",
+        "--breakpoint",
+        "0x40045",
+        "--breakpoint",
+        "0x40051"
+      ]
+    },
+    {
+      "source": "tui_demo",
+      "mode": "size",
+      "bin_sha256": "bbf9fd32a1b1f6b46e77e7c1b9f42e6585037808c4279b3b6037d13d5c697059",
+      "entry": {
+        "pc": "040045",
+        "hl": "0bc370",
+        "sp": "0bfe66",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "before_ret": {
+        "pc": "040051",
+        "hl": "000000",
+        "sp": "0bfe66",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "after_ret": {
+        "pc": "000874",
+        "hl": "000000",
+        "sp": "0bfe69",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004",
+      "caller_frame_24_bytes_unchanged": true,
+      "exact_return_contract": true,
+      "keys": "repeated A",
+      "command": [
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/fab-agon-emulator",
+        "--renderer",
+        "sw",
+        "--firmware",
+        "console8",
+        "--mos",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+        "--vdp",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/vdp_console8.so",
+        "--sdcard",
+        "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-debug-return-matrix-d071b99c/tui_demo/size/sdcard",
+        "--zero",
+        "--debugger",
+        "--breakpoint",
+        "0x40045",
+        "--breakpoint",
+        "0x40051"
+      ]
+    },
+    {
+      "source": "tui_demo",
+      "mode": "speed",
+      "bin_sha256": "bbf9fd32a1b1f6b46e77e7c1b9f42e6585037808c4279b3b6037d13d5c697059",
+      "entry": {
+        "pc": "040045",
+        "hl": "0bc370",
+        "sp": "0bfe66",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "before_ret": {
+        "pc": "040051",
+        "hl": "000000",
+        "sp": "0bfe66",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "after_ret": {
+        "pc": "000874",
+        "hl": "000000",
+        "sp": "0bfe69",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004",
+      "caller_frame_24_bytes_unchanged": true,
+      "exact_return_contract": true,
+      "keys": "repeated A",
+      "command": [
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/fab-agon-emulator",
+        "--renderer",
+        "sw",
+        "--firmware",
+        "console8",
+        "--mos",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+        "--vdp",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/vdp_console8.so",
+        "--sdcard",
+        "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-debug-return-matrix-d071b99c/tui_demo/speed/sdcard",
+        "--zero",
+        "--debugger",
+        "--breakpoint",
+        "0x40045",
+        "--breakpoint",
+        "0x40051"
+      ]
+    },
+    {
+      "source": "nc_agon",
+      "mode": "ordinary",
+      "bin_sha256": "33e9482d01c8f17111aac455691601f8845e258fa20c4d2e4128f28cb12b67ae",
+      "entry": {
+        "pc": "040045",
+        "hl": "0bc370",
+        "sp": "0bfe66",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "before_ret": {
+        "pc": "040051",
+        "hl": "000000",
+        "sp": "0bfe66",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "after_ret": {
+        "pc": "000874",
+        "hl": "000000",
+        "sp": "0bfe69",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004",
+      "caller_frame_24_bytes_unchanged": true,
+      "exact_return_contract": true,
+      "keys": "repeated Escape",
+      "command": [
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/fab-agon-emulator",
+        "--renderer",
+        "sw",
+        "--firmware",
+        "console8",
+        "--mos",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+        "--vdp",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/vdp_console8.so",
+        "--sdcard",
+        "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-debug-return-matrix-d071b99c/nc_agon/ordinary/sdcard",
+        "--zero",
+        "--debugger",
+        "--breakpoint",
+        "0x40045",
+        "--breakpoint",
+        "0x40051"
+      ]
+    },
+    {
+      "source": "nc_agon",
+      "mode": "size",
+      "bin_sha256": "33e9482d01c8f17111aac455691601f8845e258fa20c4d2e4128f28cb12b67ae",
+      "entry": {
+        "pc": "040045",
+        "hl": "0bc370",
+        "sp": "0bfe66",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "before_ret": {
+        "pc": "040051",
+        "hl": "000000",
+        "sp": "0bfe66",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "after_ret": {
+        "pc": "000874",
+        "hl": "000000",
+        "sp": "0bfe69",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004",
+      "caller_frame_24_bytes_unchanged": true,
+      "exact_return_contract": true,
+      "keys": "repeated Escape",
+      "command": [
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/fab-agon-emulator",
+        "--renderer",
+        "sw",
+        "--firmware",
+        "console8",
+        "--mos",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+        "--vdp",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/vdp_console8.so",
+        "--sdcard",
+        "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-debug-return-matrix-d071b99c/nc_agon/size/sdcard",
+        "--zero",
+        "--debugger",
+        "--breakpoint",
+        "0x40045",
+        "--breakpoint",
+        "0x40051"
+      ]
+    },
+    {
+      "source": "nc_agon",
+      "mode": "speed",
+      "bin_sha256": "33e9482d01c8f17111aac455691601f8845e258fa20c4d2e4128f28cb12b67ae",
+      "entry": {
+        "pc": "040045",
+        "hl": "0bc370",
+        "sp": "0bfe66",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "before_ret": {
+        "pc": "040051",
+        "hl": "000000",
+        "sp": "0bfe66",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "after_ret": {
+        "pc": "000874",
+        "hl": "000000",
+        "sp": "0bfe69",
+        "ix": "0bc32e",
+        "iy": "0bfe75",
+        "adl": "1"
+      },
+      "caller_frame_hex": "74080048000082fe0b81fe0b480100000004511d00000004",
+      "caller_frame_24_bytes_unchanged": true,
+      "exact_return_contract": true,
+      "keys": "repeated Escape",
+      "command": [
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/fab-agon-emulator",
+        "--renderer",
+        "sw",
+        "--firmware",
+        "console8",
+        "--mos",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/mos_console8.bin",
+        "--vdp",
+        "/home/alice/dev/minz-artifacts/grace-tools/fab-agon-1.2.5/fab-agon-emulator-v1.2.5-debian13-x86_64/firmware/vdp_console8.so",
+        "--sdcard",
+        "/home/alice/dev/minz-artifacts/grace-checkpoints/agon-debug-return-matrix-d071b99c/nc_agon/speed/sdcard",
+        "--zero",
+        "--debugger",
+        "--breakpoint",
+        "0x40045",
+        "--breakpoint",
+        "0x40051"
+      ]
+    }
+  ]
+}

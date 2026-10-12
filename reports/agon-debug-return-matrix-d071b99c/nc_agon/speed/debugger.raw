@@ -1,0 +1,52 @@
+
+[1mAgon EZ80 Debugger[0m
+
+[36mbr[eak] <address>             [37mSet a breakpoint at the hex address
+[36mc[ontinue]                    [37mResume (un-pause) Agon CPU
+[36mdelete <address>              [37mDelete a breakpoint
+[36mdis[assemble] [start] [end]   [37mDisassemble in current ADL mode
+[36mdis16 [start] [end]           [37mDisassemble in ADL=0 (Z80) mode
+[36mdis24 [start] [end]           [37mDisassemble in ADL=1 (24-bit) mode
+[36mexit                          [37mQuit from Agon Light Emulator
+[36minfo breakpoints              [37mList breakpoints
+[36m[mem]ory <start> [len]        [37mDump memory. <start> can be a register
+[36mn[ext]                        [37mStep over function calls
+[36mpause                         [37mPause execution and enter debugger
+[36mstate                         [37mShow CPU state
+[36m.                             [37mShow CPU state
+[36ms[tep]                        [37mExecute one instuction
+[36mtrace on                      [37mEnable logging every instruction
+[36mtrace off                     [37mDisable logging every instruction
+[36mtrigger <address> cmd1 : cmd2 : ...[37m
+    Perform debugger commands when <address> is reached
+    eg: break $123 is equivalent to:
+        trigger $123 pause:"CPU paused at breakpoint":state
+
+[36mtriggers                      [37mList triggers
+
+The previous command can be repeated by pressing return.
+
+[32mCPU running. Press <CTRL-C> to pause
+[39m
+Video driver: dummy (can override with SDL_VIDEO_DRIVER environment variable)
+[33mCPU paused (breakpoint)[39m
+* 040045: PUSH IY              AF:0448 BC:040000 DE:040000 HL:0bc370 SPS:0000 SPL:0bfe66 IX:0bc32e IY:0bfe75 ADL:1
+[36m>> registers
+[39mPC=040045 AF:0448 BC:040000 DE:040000 HL:0bc370 SPS:0000 SPL:0bfe66 IX:0bc32e IY:0bfe75 IR:0139 MB:00 ADL:1 MADL:1 IFF1:1
+[36m>> mem SP 24
+[39m0bfe66: 74 08 00 48 00 00 82 fe 0b 81 fe 0b 48 01 00 00 | t  H        H   
+0bfe76: 00 04 51 1d 00 00 00 04 |   Q     
+[36m>> c
+[39m[32mCPU running[39m
+[33mCPU paused (breakpoint)[39m
+* 040051: RET                  AF:0c89 BC:040080 DE:040000 HL:000000 SPS:0000 SPL:0bfe66 IX:0bc32e IY:0bfe75 ADL:1
+[36m>> registers
+[39mPC=040051 AF:0c89 BC:040080 DE:040000 HL:000000 SPS:0000 SPL:0bfe66 IX:0bc32e IY:0bfe75 IR:01b9 MB:00 ADL:1 MADL:1 IFF1:1
+[36m>> mem SP 24
+[39m0bfe66: 74 08 00 48 00 00 82 fe 0b 81 fe 0b 48 01 00 00 | t  H        H   
+0bfe76: 00 04 51 1d 00 00 00 04 |   Q     
+[36m>> s
+[39m* 000874: POP AF               AF:0c89 BC:040080 DE:040000 HL:000000 SPS:0000 SPL:0bfe69 IX:0bc32e IY:0bfe75 ADL:1
+[36m>> registers
+[39mPC=000874 AF:0c89 BC:040080 DE:040000 HL:000000 SPS:0000 SPL:0bfe69 IX:0bc32e IY:0bfe75 IR:01ba MB:00 ADL:1 MADL:1 IFF1:1
+[36m>> 
