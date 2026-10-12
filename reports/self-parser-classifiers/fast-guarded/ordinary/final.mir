@@ -1,0 +1,2696 @@
+; MIR2 module: examples/nanz/self_parser.nanz
+string @mir2.str.0 = "(fun "
+string @mir2.str.1 = " ("
+string @mir2.str.2 = ") "
+string @mir2.str.3 = "(return "
+string @mir2.str.4 = "null"
+string @mir2.str.5 = " "
+string @mir2.str.6 = ")"
+string @mir2.str.7 = "("
+string @mir2.str.8 = "+"
+string @mir2.str.9 = "-"
+string @mir2.str.10 = "*"
+string @mir2.str.11 = "?"
+string @mir2.str.12 = "tiny.nanz"
+string @mir2.str.13 = "ERROR: cannot read file"
+string @mir2.str.14 = "=== Source ("
+string @mir2.str.15 = " bytes) ==="
+string @mir2.str.16 = "First chars: "
+string @mir2.str.17 = "Tokens: "
+string @mir2.str.18 = "PARSE ERROR at token "
+string @mir2.str.19 = " tok_count="
+string @mir2.str.20 = "tiny.lanz"
+string @mir2.str.21 = "=== Written "
+string @mir2.str.22 = " bytes to tiny.lanz ==="
+string @mir2.str.23 = "Stats: "
+string @mir2.str.24 = " nodes, "
+string @mir2.str.25 = " string bytes"
+global @str_arena : u16
+global @str_bump : u16
+global @tok_arena : u16
+global @tok_count : u16
+global @src_buf : u16
+global @src_len : u16
+global @pos : u16
+global @tok_start : u16
+global @out_buf : u16
+global @out_len : u16
+global @TOK_EOF : u8
+global @TOK_IDENT : u8
+global @TOK_INT : u8
+global @TOK_LPAREN : u8
+global @TOK_RPAREN : u8
+global @TOK_LBRACE : u8
+global @TOK_RBRACE : u8
+global @TOK_COLON : u8
+global @TOK_COMMA : u8
+global @TOK_ARROW : u8
+global @TOK_EQ : u8
+global @TOK_EQEQ : u8
+global @TOK_PLUS : u8
+global @TOK_MINUS : u8
+global @TOK_STAR : u8
+global @TOK_SLASH : u8
+global @TOK_LT : u8
+global @TOK_GT : u8
+global @TOK_STRING : u8
+global @TOK_KW : u8
+global @KW_FUN : u16
+global @KW_FN : u16
+global @KW_RETURN : u16
+global @KW_IF : u16
+global @KW_ELSE : u16
+global @KW_WHILE : u16
+global @KW_LET : u16
+global @KW_VAR : u16
+global @AST_FUN : u8
+global @AST_PARAM : u8
+global @AST_RETURN : u8
+global @AST_BINOP : u8
+global @AST_IDENT : u8
+global @AST_INT : u8
+global @AST_CALL : u8
+global @AST_IF : u8
+global @AST_BLOCK : u8
+global @ast_arena : u16
+global @ast_bump : u16
+global @parse_pos : u16
+global @parse_error : u8
+
+extern fun @peek(%r1: u16 [pointer]) -> u8 [acc]
+
+extern fun @poke(%r2: u16 [pointer], %r3: u8 [general])
+
+extern fun @file_read(%r4: ptr [pointer], %r5: ptr [pointer]) -> u16 [pointer]
+
+extern fun @file_write(%r6: ptr [pointer], %r7: ptr [pointer], %r8: u16 [index]) -> u16 [pointer]
+
+extern fun @file_size(%r9: ptr [pointer]) -> u16 [pointer]
+
+fun @is_digit(%r10: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r11 = const 48 : u8 [general]
+    %r12 = cmp.uge %r10, %r11 : bool [flag]
+    br_if %r12, @if_then1(), @if_join2()
+  block @if_then1:
+    %r13 = const 57 : u8 [general]
+    %r14 = cmp.ule %r10, %r13 : bool [flag]
+    br_if %r14, @if_then3(), @if_join4()
+  block @if_then3:
+    %r15 = const 1 : u8 [acc]
+    ret %r15
+  block @if_join4:
+    jmp @if_join2()
+  block @if_join2:
+    %r16 = const 0 : u8 [acc]
+    ret %r16
+
+fun @is_alpha(%r17: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r18 = const 65 : u8 [general]
+    %r19 = cmp.uge %r17, %r18 : bool [flag]
+    br_if %r19, @if_then1(), @if_join2()
+  block @if_then1:
+    %r20 = const 90 : u8 [general]
+    %r21 = cmp.ule %r17, %r20 : bool [flag]
+    br_if %r21, @if_then3(), @if_join4()
+  block @if_then3:
+    %r22 = const 1 : u8 [acc]
+    ret %r22
+  block @if_join4:
+    jmp @if_join2()
+  block @if_join2:
+    %r23 = const 97 : u8 [general]
+    %r24 = cmp.uge %r17, %r23 : bool [flag]
+    br_if %r24, @if_then5(), @if_join6()
+  block @if_then5:
+    %r25 = const 122 : u8 [general]
+    %r26 = cmp.ule %r17, %r25 : bool [flag]
+    br_if %r26, @if_then7(), @if_join8()
+  block @if_then7:
+    %r27 = const 1 : u8 [acc]
+    ret %r27
+  block @if_join8:
+    jmp @if_join6()
+  block @if_join6:
+    %r28 = const 95 : u8 [general]
+    %r29 = cmp.eq %r17, %r28 : bool [flag]
+    %r30 = const 0 : u8 [acc]
+    cond_ret %r29, [%r30], @if_then9()
+  block @if_then9:
+    %r31 = const 1 : u8 [acc]
+    ret %r31
+
+fun @is_alnum(%r32: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r33 = move %r32 : u8 [acc]
+    %r34 = call @is_digit(%r33) : u8 [acc]
+    %r35 = const 1 : u8 [general]
+    %r36 = cmp.eq %r34, %r35 : bool [flag]
+    br_if %r36, @if_then1(), @if_join2()
+  block @if_then1:
+    %r37 = const 1 : u8 [acc]
+    ret %r37
+  block @if_join2:
+    %r38 = move %r32 : u8 [acc]
+    %r39 = call @is_alpha(%r38) : u8 [acc]
+    ret %r39
+
+fun @is_space(%r40: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r41 = const 32 : u8 [general]
+    %r42 = cmp.eq %r40, %r41 : bool [flag]
+    br_if %r42, @if_then1(), @if_join2()
+  block @if_then1:
+    %r43 = const 1 : u8 [acc]
+    ret %r43
+  block @if_join2:
+    %r44 = const 9 : u8 [general]
+    %r45 = cmp.eq %r40, %r44 : bool [flag]
+    br_if %r45, @if_then3(), @if_join4()
+  block @if_then3:
+    %r46 = const 1 : u8 [acc]
+    ret %r46
+  block @if_join4:
+    %r47 = const 10 : u8 [general]
+    %r48 = cmp.eq %r40, %r47 : bool [flag]
+    br_if %r48, @if_then5(), @if_join6()
+  block @if_then5:
+    %r49 = const 1 : u8 [acc]
+    ret %r49
+  block @if_join6:
+    %r50 = const 13 : u8 [general]
+    %r51 = cmp.eq %r40, %r50 : bool [flag]
+    %r52 = const 0 : u8 [acc]
+    cond_ret %r51, [%r52], @if_then7()
+  block @if_then7:
+    %r53 = const 1 : u8 [acc]
+    ret %r53
+
+fun @str_alloc_2(%r54: u8 [acc], %r55: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r56 = addr_of @str_bump : ptr [pointer]
+    %r57 = load %r56 : u16 [pointer]
+    %r58 = const 2 : u8 [general]
+    call @poke(%r57, %r58)
+    %r59 = const 1 : u16 [pointer]
+    %r60 = add %r57, %r59 : u16 [pointer]
+    call @poke(%r60, %r54)
+    %r61 = const 2 : u16 [pointer]
+    %r62 = add %r57, %r61 : u16 [pointer]
+    call @poke(%r62, %r55)
+    %r63 = addr_of @str_bump : ptr [pointer]
+    %r64 = load %r63 : u16 [pointer]
+    %r65 = const 3 : u16 [pointer]
+    %r66 = add %r64, %r65 : u16 [pointer]
+    %r67 = addr_of @str_bump : ptr [pointer]
+    store %r67, %r66 : u16
+    ret %r57
+
+fun @str_alloc_3(%r68: u8 [acc], %r69: u8 [general], %r70: u8 [counter]) -> u16 [pointer]
+  block @entry:
+    %r71 = addr_of @str_bump : ptr [pointer]
+    %r72 = load %r71 : u16 [pointer]
+    %r73 = const 3 : u8 [general]
+    call @poke(%r72, %r73)
+    %r74 = const 1 : u16 [pointer]
+    %r75 = add %r72, %r74 : u16 [pointer]
+    call @poke(%r75, %r68)
+    %r76 = const 2 : u16 [pointer]
+    %r77 = add %r72, %r76 : u16 [pointer]
+    call @poke(%r77, %r69)
+    %r78 = const 3 : u16 [pointer]
+    %r79 = add %r72, %r78 : u16 [pointer]
+    call @poke(%r79, %r70)
+    %r80 = addr_of @str_bump : ptr [pointer]
+    %r81 = load %r80 : u16 [pointer]
+    %r82 = const 4 : u16 [pointer]
+    %r83 = add %r81, %r82 : u16 [pointer]
+    %r84 = addr_of @str_bump : ptr [pointer]
+    store %r84, %r83 : u16
+    ret %r72
+
+fun @str_alloc_5(%r85: u8 [general], %r86: u8 [general], %r87: u8 [general], %r88: u8 [general], %r89: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r90 = addr_of @str_bump : ptr [pointer]
+    %r91 = load %r90 : u16 [pointer]
+    %r92 = const 5 : u8 [general]
+    call @poke(%r91, %r92)
+    %r93 = const 1 : u16 [pointer]
+    %r94 = add %r91, %r93 : u16 [pointer]
+    call @poke(%r94, %r85)
+    %r95 = const 2 : u16 [pointer]
+    %r96 = add %r91, %r95 : u16 [pointer]
+    call @poke(%r96, %r86)
+    %r97 = const 3 : u16 [pointer]
+    %r98 = add %r91, %r97 : u16 [pointer]
+    call @poke(%r98, %r87)
+    %r99 = const 4 : u16 [pointer]
+    %r100 = add %r91, %r99 : u16 [pointer]
+    call @poke(%r100, %r88)
+    %r101 = const 5 : u16 [pointer]
+    %r102 = add %r91, %r101 : u16 [pointer]
+    call @poke(%r102, %r89)
+    %r103 = addr_of @str_bump : ptr [pointer]
+    %r104 = load %r103 : u16 [pointer]
+    %r105 = const 6 : u16 [pointer]
+    %r106 = add %r104, %r105 : u16 [pointer]
+    %r107 = addr_of @str_bump : ptr [pointer]
+    store %r107, %r106 : u16
+    ret %r91
+
+fun @str_alloc_6(%r108: u8 [general], %r109: u8 [general], %r110: u8 [general], %r111: u8 [general], %r112: u8 [general], %r113: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r114 = addr_of @str_bump : ptr [pointer]
+    %r115 = load %r114 : u16 [pointer]
+    %r116 = const 6 : u8 [general]
+    call @poke(%r115, %r116)
+    %r117 = const 1 : u16 [pointer]
+    %r118 = add %r115, %r117 : u16 [pointer]
+    call @poke(%r118, %r108)
+    %r119 = const 2 : u16 [pointer]
+    %r120 = add %r115, %r119 : u16 [pointer]
+    call @poke(%r120, %r109)
+    %r121 = const 3 : u16 [pointer]
+    %r122 = add %r115, %r121 : u16 [pointer]
+    call @poke(%r122, %r110)
+    %r123 = const 4 : u16 [pointer]
+    %r124 = add %r115, %r123 : u16 [pointer]
+    call @poke(%r124, %r111)
+    %r125 = const 5 : u16 [pointer]
+    %r126 = add %r115, %r125 : u16 [pointer]
+    call @poke(%r126, %r112)
+    %r127 = const 6 : u16 [pointer]
+    %r128 = add %r115, %r127 : u16 [pointer]
+    call @poke(%r128, %r113)
+    %r129 = addr_of @str_bump : ptr [pointer]
+    %r130 = load %r129 : u16 [pointer]
+    %r131 = const 7 : u16 [pointer]
+    %r132 = add %r130, %r131 : u16 [pointer]
+    %r133 = addr_of @str_bump : ptr [pointer]
+    store %r133, %r132 : u16
+    ret %r115
+
+fun @region_eq(%r134: u16 [pointer], %r135: u16 [index], %r136: u8 [counter]) -> u8 [acc]
+  block @entry:
+    %r137 = const 0 : u8 [general]
+    jmp @loop_head1(%r135, %r137, %r136, %r134)
+  block @loop_head1(%r138: u16 [pointer], %r137: u8 [general], %r140: u8 [general], %r141: u16 [pointer]):
+    %r142 = cmp.ult %r137, %r140 : bool [flag]
+    %r143 = const 1 : u8 [acc]
+    cond_ret %r142, [%r143], @loop_body2()
+  block @loop_body2:
+    %r144 = addr_of @src_buf : ptr [pointer]
+    %r145 = load %r144 : u16 [pointer]
+    %r146 = add %r145, %r141 : u16 [pointer]
+    %r147 = ext %r137 : u8 -> u16 [pointer]
+    %r148 = add %r146, %r147 : u16 [pointer]
+    %r149 = call @peek(%r148) : u8 [acc]
+    %r150 = const 1 : u16 [pointer]
+    %r151 = add %r138, %r150 : u16 [pointer]
+    %r152 = ext %r137 : u8 -> u16 [pointer]
+    %r153 = add %r151, %r152 : u16 [pointer]
+    %r154 = call @peek(%r153) : u8 [acc]
+    %r155 = cmp.ne %r149, %r154 : bool [flag]
+    br_if %r155, @if_then4(), @if_join5()
+  block @if_then4:
+    %r156 = const 0 : u8 [acc]
+    ret %r156
+  block @if_join5:
+    %r157 = const 1 : u8 [general]
+    %r158 = add %r137, %r157 : u8 [general]
+    jmp @loop_head1(%r138, %r158, %r140, %r141)
+
+fun @intern(%r159: u16 [pointer], %r160: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r161 = addr_of @str_arena : ptr [pointer]
+    %r162 = load %r161 : u16 [pointer]
+    jmp @loop_head1(%r160, %r162, %r159)
+  block @loop_head1(%r163: u8 [general], %r162: u16 [pointer], %r165: u16 [pointer]):
+    %r166 = addr_of @str_bump : ptr [pointer]
+    %r167 = load %r166 : u16 [pointer]
+    %r168 = cmp.ult %r162, %r167 : bool [flag]
+    br_if %r168, @loop_body2(), @loop_exit3(%r163, %r165)
+  block @loop_body2:
+    %r169 = call @peek(%r162) : u8 [acc]
+    %r170 = cmp.eq %r169, %r163 : bool [flag]
+    br_if %r170, @if_then4(), @if_join5()
+  block @if_then4:
+    %r171 = move %r162 : u16 [index]
+    %r172 = move %r163 : u8 [counter]
+    %r173 = call @region_eq(%r165, %r171, %r172) : u8 [acc]
+    %r174 = const 1 : u8 [general]
+    %r175 = cmp.eq %r173, %r174 : bool [flag]
+    br_if %r175, @if_then6(), @if_join7()
+  block @if_then6:
+    ret %r162
+  block @if_join7:
+    jmp @if_join5()
+  block @if_join5:
+    %r176 = const 1 : u16 [pointer]
+    %r177 = add %r162, %r176 : u16 [pointer]
+    %r178 = ext %r169 : u8 -> u16 [pointer]
+    %r179 = add %r177, %r178 : u16 [pointer]
+    jmp @loop_head1(%r163, %r179, %r165)
+  block @loop_exit3(%r180: u8 [general], %r181: u16 [pointer]):
+    %r182 = addr_of @str_bump : ptr [pointer]
+    %r183 = load %r182 : u16 [pointer]
+    %r184 = addr_of @str_bump : ptr [pointer]
+    %r185 = load %r184 : u16 [pointer]
+    call @poke(%r185, %r180)
+    %r186 = const 0 : u8 [general]
+    jmp @loop_head8(%r186, %r180, %r181)
+  block @loop_head8(%r186: u8 [general], %r180: u8 [general], %r181: u16 [pointer]):
+    %r190 = cmp.ult %r186, %r180 : bool [flag]
+    br_if %r190, @loop_body9(), @loop_exit10(%r180)
+  block @loop_body9:
+    %r191 = addr_of @str_bump : ptr [pointer]
+    %r192 = load %r191 : u16 [pointer]
+    %r193 = const 1 : u16 [pointer]
+    %r194 = add %r192, %r193 : u16 [pointer]
+    %r195 = ext %r186 : u8 -> u16 [pointer]
+    %r196 = add %r194, %r195 : u16 [pointer]
+    %r197 = addr_of @src_buf : ptr [pointer]
+    %r198 = load %r197 : u16 [pointer]
+    %r199 = add %r198, %r181 : u16 [pointer]
+    %r200 = ext %r186 : u8 -> u16 [pointer]
+    %r201 = add %r199, %r200 : u16 [pointer]
+    %r202 = call @peek(%r201) : u8 [acc]
+    call @poke(%r196, %r202)
+    %r203 = const 1 : u8 [general]
+    %r204 = add %r186, %r203 : u8 [general]
+    jmp @loop_head8(%r204, %r180, %r181)
+  block @loop_exit10(%r205: u8 [general]):
+    %r206 = addr_of @str_bump : ptr [pointer]
+    %r207 = load %r206 : u16 [pointer]
+    %r208 = const 1 : u16 [pointer]
+    %r209 = add %r207, %r208 : u16 [pointer]
+    %r210 = ext %r205 : u8 -> u16 [pointer]
+    %r211 = add %r209, %r210 : u16 [pointer]
+    %r212 = addr_of @str_bump : ptr [pointer]
+    store %r212, %r211 : u16
+    ret %r183
+
+fun @peek_char() -> u8 [acc]
+  block @entry:
+    %r213 = addr_of @pos : ptr [pointer]
+    %r214 = load %r213 : u16 [pointer]
+    %r215 = addr_of @src_len : ptr [pointer]
+    %r216 = load %r215 : u16 [pointer]
+    %r217 = cmp.uge %r214, %r216 : bool [flag]
+    br_if %r217, @if_then1(), @if_join2()
+  block @if_then1:
+    %r218 = const 0 : u8 [acc]
+    ret %r218
+  block @if_join2:
+    %r219 = const 49152 : u16 [pointer]
+    %r220 = addr_of @pos : ptr [pointer]
+    %r221 = load %r220 : u16 [pointer]
+    %r222 = add %r219, %r221 : u16 [pointer]
+    %r223 = call @peek(%r222) : u8 [acc]
+    ret %r223
+
+fun @skip_ws()
+  block @entry:
+    jmp @loop_head1()
+  block @loop_head1:
+    %r224 = call @peek_char() : u8 [acc]
+    %r225 = move %r224 : u8 [acc]
+    %r226 = call @is_space(%r225) : u8 [acc]
+    %r227 = const 1 : u8 [general]
+    %r228 = cmp.eq %r226, %r227 : bool [flag]
+    cond_ret %r228, [], @loop_body2()
+  block @loop_body2:
+    %r229 = addr_of @pos : ptr [pointer]
+    %r230 = load %r229 : u16 [pointer]
+    %r231 = const 1 : u16 [pointer]
+    %r232 = add %r230, %r231 : u16 [pointer]
+    %r233 = addr_of @pos : ptr [pointer]
+    store %r233, %r232 : u16
+    jmp @loop_head1()
+
+fun @skip_comment()
+  block @entry:
+    jmp @loop_head1()
+  block @loop_head1:
+    %r234 = call @peek_char() : u8 [acc]
+    %r235 = const 10 : u8 [general]
+    %r236 = cmp.ne %r234, %r235 : bool [flag]
+    br_if %r236, @loop_body2(), @loop_exit3()
+  block @loop_body2:
+    %r237 = call @peek_char() : u8 [acc]
+    %r238 = const 0 : u8 [general]
+    %r239 = cmp.eq %r237, %r238 : bool [flag]
+    br_if %r239, @if_then4(), @if_join5()
+  block @if_then4:
+    ret void
+  block @if_join5:
+    %r240 = addr_of @pos : ptr [pointer]
+    %r241 = load %r240 : u16 [pointer]
+    %r242 = const 1 : u16 [pointer]
+    %r243 = add %r241, %r242 : u16 [pointer]
+    %r244 = addr_of @pos : ptr [pointer]
+    store %r244, %r243 : u16
+    jmp @loop_head1()
+  block @loop_exit3:
+    %r245 = addr_of @pos : ptr [pointer]
+    %r246 = load %r245 : u16 [pointer]
+    %r247 = const 1 : u16 [pointer]
+    %r248 = add %r246, %r247 : u16 [pointer]
+    %r249 = addr_of @pos : ptr [pointer]
+    store %r249, %r248 : u16
+    ret void
+
+fun @classify(%r250: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    %r251 = addr_of @KW_FUN : ptr [pointer]
+    %r252 = load %r251 : u16 [pointer]
+    %r253 = cmp.eq %r250, %r252 : bool [flag]
+    br_if %r253, @if_then1(), @if_join2()
+  block @if_then1:
+    %r254 = addr_of @TOK_KW : ptr [pointer]
+    %r255 = load %r254 : u8 [general]
+    ret %r255
+  block @if_join2:
+    %r256 = addr_of @KW_FN : ptr [pointer]
+    %r257 = load %r256 : u16 [pointer]
+    %r258 = cmp.eq %r250, %r257 : bool [flag]
+    br_if %r258, @if_then3(), @if_join4()
+  block @if_then3:
+    %r259 = addr_of @TOK_KW : ptr [pointer]
+    %r260 = load %r259 : u8 [general]
+    ret %r260
+  block @if_join4:
+    %r261 = addr_of @KW_RETURN : ptr [pointer]
+    %r262 = load %r261 : u16 [pointer]
+    %r263 = cmp.eq %r250, %r262 : bool [flag]
+    br_if %r263, @if_then5(), @if_join6()
+  block @if_then5:
+    %r264 = addr_of @TOK_KW : ptr [pointer]
+    %r265 = load %r264 : u8 [general]
+    ret %r265
+  block @if_join6:
+    %r266 = addr_of @KW_IF : ptr [pointer]
+    %r267 = load %r266 : u16 [pointer]
+    %r268 = cmp.eq %r250, %r267 : bool [flag]
+    br_if %r268, @if_then7(), @if_join8()
+  block @if_then7:
+    %r269 = addr_of @TOK_KW : ptr [pointer]
+    %r270 = load %r269 : u8 [general]
+    ret %r270
+  block @if_join8:
+    %r271 = addr_of @KW_ELSE : ptr [pointer]
+    %r272 = load %r271 : u16 [pointer]
+    %r273 = cmp.eq %r250, %r272 : bool [flag]
+    br_if %r273, @if_then9(), @if_join10()
+  block @if_then9:
+    %r274 = addr_of @TOK_KW : ptr [pointer]
+    %r275 = load %r274 : u8 [general]
+    ret %r275
+  block @if_join10:
+    %r276 = addr_of @KW_WHILE : ptr [pointer]
+    %r277 = load %r276 : u16 [pointer]
+    %r278 = cmp.eq %r250, %r277 : bool [flag]
+    br_if %r278, @if_then11(), @if_join12()
+  block @if_then11:
+    %r279 = addr_of @TOK_KW : ptr [pointer]
+    %r280 = load %r279 : u8 [general]
+    ret %r280
+  block @if_join12:
+    %r281 = addr_of @KW_LET : ptr [pointer]
+    %r282 = load %r281 : u16 [pointer]
+    %r283 = cmp.eq %r250, %r282 : bool [flag]
+    br_if %r283, @if_then13(), @if_join14()
+  block @if_then13:
+    %r284 = addr_of @TOK_KW : ptr [pointer]
+    %r285 = load %r284 : u8 [general]
+    ret %r285
+  block @if_join14:
+    %r286 = addr_of @KW_VAR : ptr [pointer]
+    %r287 = load %r286 : u16 [pointer]
+    %r288 = cmp.eq %r250, %r287 : bool [flag]
+    br_if %r288, @if_then15(), @if_join16()
+  block @if_then15:
+    %r289 = addr_of @TOK_KW : ptr [pointer]
+    %r290 = load %r289 : u8 [general]
+    ret %r290
+  block @if_join16:
+    %r291 = addr_of @TOK_IDENT : ptr [pointer]
+    %r292 = load %r291 : u8 [general]
+    ret %r292
+
+fun @emit_tok(%r293: u8 [acc], %r294: u16 [index])
+  block @entry:
+    %r295 = addr_of @tok_arena : ptr [pointer]
+    %r296 = load %r295 : u16 [pointer]
+    %r297 = addr_of @tok_count : ptr [pointer]
+    %r298 = load %r297 : u16 [pointer]
+    %r299 = const 4 : u16 [pointer]
+    %r300 = mul %r298, %r299 : u16 [pointer]
+    %r301 = add %r296, %r300 : u16 [pointer]
+    call @poke(%r301, %r293)
+    %r302 = const 1 : u16 [pointer]
+    %r303 = add %r301, %r302 : u16 [pointer]
+    %r304 = const 256 : u16 [pointer]
+    %r305 = mod %r294, %r304 : u16 [pointer]
+    %r306 = move %r305 : u16 [index]
+    call @poke(%r303, %r306)
+    %r307 = const 2 : u16 [pointer]
+    %r308 = add %r301, %r307 : u16 [pointer]
+    %r309 = const 256 : u16 [pointer]
+    %r310 = div %r294, %r309 : u16 [pointer]
+    %r311 = move %r310 : u16 [index]
+    call @poke(%r308, %r311)
+    %r312 = const 3 : u16 [pointer]
+    %r313 = add %r301, %r312 : u16 [pointer]
+    %r314 = const 0 : u8 [general]
+    call @poke(%r313, %r314)
+    %r315 = addr_of @tok_count : ptr [pointer]
+    %r316 = load %r315 : u16 [pointer]
+    %r317 = const 1 : u16 [pointer]
+    %r318 = add %r316, %r317 : u16 [pointer]
+    %r319 = addr_of @tok_count : ptr [pointer]
+    store %r319, %r318 : u16
+    ret void
+
+fun @scan() -> u8 [acc]
+  block @entry:
+    call @skip_ws()
+    %r320 = addr_of @pos : ptr [pointer]
+    %r321 = load %r320 : u16 [pointer]
+    %r322 = addr_of @tok_start : ptr [pointer]
+    store %r322, %r321 : u16
+    %r323 = call @peek_char() : u8 [acc]
+    %r324 = const 0 : u8 [general]
+    %r325 = cmp.eq %r323, %r324 : bool [flag]
+    br_if %r325, @if_then1(), @if_join2()
+  block @if_then1:
+    %r326 = addr_of @TOK_EOF : ptr [pointer]
+    %r327 = load %r326 : u8 [general]
+    ret %r327
+  block @if_join2:
+    %r328 = const 47 : u8 [general]
+    %r329 = cmp.eq %r323, %r328 : bool [flag]
+    br_if %r329, @if_then3(), @if_join4()
+  block @if_then3:
+    %r330 = addr_of @src_buf : ptr [pointer]
+    %r331 = load %r330 : u16 [pointer]
+    %r332 = addr_of @pos : ptr [pointer]
+    %r333 = load %r332 : u16 [pointer]
+    %r334 = add %r331, %r333 : u16 [pointer]
+    %r335 = const 1 : u16 [pointer]
+    %r336 = add %r334, %r335 : u16 [pointer]
+    %r337 = call @peek(%r336) : u8 [acc]
+    %r338 = const 47 : u8 [general]
+    %r339 = cmp.eq %r337, %r338 : bool [flag]
+    br_if %r339, @if_then5(), @if_join6()
+  block @if_then5:
+    call @skip_comment()
+    %r340 = call @scan() : u8 [acc]
+    ret %r340
+  block @if_join6:
+    %r341 = addr_of @pos : ptr [pointer]
+    %r342 = load %r341 : u16 [pointer]
+    %r343 = const 1 : u16 [pointer]
+    %r344 = add %r342, %r343 : u16 [pointer]
+    %r345 = addr_of @pos : ptr [pointer]
+    store %r345, %r344 : u16
+    %r346 = addr_of @TOK_SLASH : ptr [pointer]
+    %r347 = load %r346 : u8 [general]
+    %r348 = move %r347 : u8 [acc]
+    %r349 = const 0 : u16 [index]
+    call @emit_tok(%r348, %r349)
+    %r350 = addr_of @TOK_SLASH : ptr [pointer]
+    %r351 = load %r350 : u8 [general]
+    ret %r351
+  block @if_join4:
+    %r352 = const 45 : u8 [general]
+    %r353 = cmp.eq %r323, %r352 : bool [flag]
+    br_if %r353, @if_then7(), @if_join8()
+  block @if_then7:
+    %r354 = addr_of @src_buf : ptr [pointer]
+    %r355 = load %r354 : u16 [pointer]
+    %r356 = addr_of @pos : ptr [pointer]
+    %r357 = load %r356 : u16 [pointer]
+    %r358 = add %r355, %r357 : u16 [pointer]
+    %r359 = const 1 : u16 [pointer]
+    %r360 = add %r358, %r359 : u16 [pointer]
+    %r361 = call @peek(%r360) : u8 [acc]
+    %r362 = const 62 : u8 [general]
+    %r363 = cmp.eq %r361, %r362 : bool [flag]
+    br_if %r363, @if_then9(), @if_join10()
+  block @if_then9:
+    %r364 = addr_of @pos : ptr [pointer]
+    %r365 = load %r364 : u16 [pointer]
+    %r366 = const 2 : u16 [pointer]
+    %r367 = add %r365, %r366 : u16 [pointer]
+    %r368 = addr_of @pos : ptr [pointer]
+    store %r368, %r367 : u16
+    %r369 = addr_of @TOK_ARROW : ptr [pointer]
+    %r370 = load %r369 : u8 [general]
+    %r371 = move %r370 : u8 [acc]
+    %r372 = const 0 : u16 [index]
+    call @emit_tok(%r371, %r372)
+    %r373 = addr_of @TOK_ARROW : ptr [pointer]
+    %r374 = load %r373 : u8 [general]
+    ret %r374
+  block @if_join10:
+    %r375 = addr_of @pos : ptr [pointer]
+    %r376 = load %r375 : u16 [pointer]
+    %r377 = const 1 : u16 [pointer]
+    %r378 = add %r376, %r377 : u16 [pointer]
+    %r379 = addr_of @pos : ptr [pointer]
+    store %r379, %r378 : u16
+    %r380 = addr_of @TOK_MINUS : ptr [pointer]
+    %r381 = load %r380 : u8 [general]
+    %r382 = move %r381 : u8 [acc]
+    %r383 = const 0 : u16 [index]
+    call @emit_tok(%r382, %r383)
+    %r384 = addr_of @TOK_MINUS : ptr [pointer]
+    %r385 = load %r384 : u8 [general]
+    ret %r385
+  block @if_join8:
+    %r386 = const 61 : u8 [general]
+    %r387 = cmp.eq %r323, %r386 : bool [flag]
+    br_if %r387, @if_then11(), @if_join12()
+  block @if_then11:
+    %r388 = addr_of @src_buf : ptr [pointer]
+    %r389 = load %r388 : u16 [pointer]
+    %r390 = addr_of @pos : ptr [pointer]
+    %r391 = load %r390 : u16 [pointer]
+    %r392 = add %r389, %r391 : u16 [pointer]
+    %r393 = const 1 : u16 [pointer]
+    %r394 = add %r392, %r393 : u16 [pointer]
+    %r395 = call @peek(%r394) : u8 [acc]
+    %r396 = const 61 : u8 [general]
+    %r397 = cmp.eq %r395, %r396 : bool [flag]
+    br_if %r397, @if_then13(), @if_join14()
+  block @if_then13:
+    %r398 = addr_of @pos : ptr [pointer]
+    %r399 = load %r398 : u16 [pointer]
+    %r400 = const 2 : u16 [pointer]
+    %r401 = add %r399, %r400 : u16 [pointer]
+    %r402 = addr_of @pos : ptr [pointer]
+    store %r402, %r401 : u16
+    %r403 = addr_of @TOK_EQEQ : ptr [pointer]
+    %r404 = load %r403 : u8 [general]
+    %r405 = move %r404 : u8 [acc]
+    %r406 = const 0 : u16 [index]
+    call @emit_tok(%r405, %r406)
+    %r407 = addr_of @TOK_EQEQ : ptr [pointer]
+    %r408 = load %r407 : u8 [general]
+    ret %r408
+  block @if_join14:
+    %r409 = addr_of @pos : ptr [pointer]
+    %r410 = load %r409 : u16 [pointer]
+    %r411 = const 1 : u16 [pointer]
+    %r412 = add %r410, %r411 : u16 [pointer]
+    %r413 = addr_of @pos : ptr [pointer]
+    store %r413, %r412 : u16
+    %r414 = addr_of @TOK_EQ : ptr [pointer]
+    %r415 = load %r414 : u8 [general]
+    %r416 = move %r415 : u8 [acc]
+    %r417 = const 0 : u16 [index]
+    call @emit_tok(%r416, %r417)
+    %r418 = addr_of @TOK_EQ : ptr [pointer]
+    %r419 = load %r418 : u8 [general]
+    ret %r419
+  block @if_join12:
+    %r420 = const 40 : u8 [general]
+    %r421 = cmp.eq %r323, %r420 : bool [flag]
+    br_if %r421, @if_then15(), @if_join16()
+  block @if_then15:
+    %r422 = addr_of @pos : ptr [pointer]
+    %r423 = load %r422 : u16 [pointer]
+    %r424 = const 1 : u16 [pointer]
+    %r425 = add %r423, %r424 : u16 [pointer]
+    %r426 = addr_of @pos : ptr [pointer]
+    store %r426, %r425 : u16
+    %r427 = addr_of @TOK_LPAREN : ptr [pointer]
+    %r428 = load %r427 : u8 [general]
+    %r429 = move %r428 : u8 [acc]
+    %r430 = const 0 : u16 [index]
+    call @emit_tok(%r429, %r430)
+    %r431 = addr_of @TOK_LPAREN : ptr [pointer]
+    %r432 = load %r431 : u8 [general]
+    ret %r432
+  block @if_join16:
+    %r433 = const 41 : u8 [general]
+    %r434 = cmp.eq %r323, %r433 : bool [flag]
+    br_if %r434, @if_then17(), @if_join18()
+  block @if_then17:
+    %r435 = addr_of @pos : ptr [pointer]
+    %r436 = load %r435 : u16 [pointer]
+    %r437 = const 1 : u16 [pointer]
+    %r438 = add %r436, %r437 : u16 [pointer]
+    %r439 = addr_of @pos : ptr [pointer]
+    store %r439, %r438 : u16
+    %r440 = addr_of @TOK_RPAREN : ptr [pointer]
+    %r441 = load %r440 : u8 [general]
+    %r442 = move %r441 : u8 [acc]
+    %r443 = const 0 : u16 [index]
+    call @emit_tok(%r442, %r443)
+    %r444 = addr_of @TOK_RPAREN : ptr [pointer]
+    %r445 = load %r444 : u8 [general]
+    ret %r445
+  block @if_join18:
+    %r446 = const 123 : u8 [general]
+    %r447 = cmp.eq %r323, %r446 : bool [flag]
+    br_if %r447, @if_then19(), @if_join20()
+  block @if_then19:
+    %r448 = addr_of @pos : ptr [pointer]
+    %r449 = load %r448 : u16 [pointer]
+    %r450 = const 1 : u16 [pointer]
+    %r451 = add %r449, %r450 : u16 [pointer]
+    %r452 = addr_of @pos : ptr [pointer]
+    store %r452, %r451 : u16
+    %r453 = addr_of @TOK_LBRACE : ptr [pointer]
+    %r454 = load %r453 : u8 [general]
+    %r455 = move %r454 : u8 [acc]
+    %r456 = const 0 : u16 [index]
+    call @emit_tok(%r455, %r456)
+    %r457 = addr_of @TOK_LBRACE : ptr [pointer]
+    %r458 = load %r457 : u8 [general]
+    ret %r458
+  block @if_join20:
+    %r459 = const 125 : u8 [general]
+    %r460 = cmp.eq %r323, %r459 : bool [flag]
+    br_if %r460, @if_then21(), @if_join22()
+  block @if_then21:
+    %r461 = addr_of @pos : ptr [pointer]
+    %r462 = load %r461 : u16 [pointer]
+    %r463 = const 1 : u16 [pointer]
+    %r464 = add %r462, %r463 : u16 [pointer]
+    %r465 = addr_of @pos : ptr [pointer]
+    store %r465, %r464 : u16
+    %r466 = addr_of @TOK_RBRACE : ptr [pointer]
+    %r467 = load %r466 : u8 [general]
+    %r468 = move %r467 : u8 [acc]
+    %r469 = const 0 : u16 [index]
+    call @emit_tok(%r468, %r469)
+    %r470 = addr_of @TOK_RBRACE : ptr [pointer]
+    %r471 = load %r470 : u8 [general]
+    ret %r471
+  block @if_join22:
+    %r472 = const 58 : u8 [general]
+    %r473 = cmp.eq %r323, %r472 : bool [flag]
+    br_if %r473, @if_then23(), @if_join24()
+  block @if_then23:
+    %r474 = addr_of @pos : ptr [pointer]
+    %r475 = load %r474 : u16 [pointer]
+    %r476 = const 1 : u16 [pointer]
+    %r477 = add %r475, %r476 : u16 [pointer]
+    %r478 = addr_of @pos : ptr [pointer]
+    store %r478, %r477 : u16
+    %r479 = addr_of @TOK_COLON : ptr [pointer]
+    %r480 = load %r479 : u8 [general]
+    %r481 = move %r480 : u8 [acc]
+    %r482 = const 0 : u16 [index]
+    call @emit_tok(%r481, %r482)
+    %r483 = addr_of @TOK_COLON : ptr [pointer]
+    %r484 = load %r483 : u8 [general]
+    ret %r484
+  block @if_join24:
+    %r485 = const 44 : u8 [general]
+    %r486 = cmp.eq %r323, %r485 : bool [flag]
+    br_if %r486, @if_then25(), @if_join26()
+  block @if_then25:
+    %r487 = addr_of @pos : ptr [pointer]
+    %r488 = load %r487 : u16 [pointer]
+    %r489 = const 1 : u16 [pointer]
+    %r490 = add %r488, %r489 : u16 [pointer]
+    %r491 = addr_of @pos : ptr [pointer]
+    store %r491, %r490 : u16
+    %r492 = addr_of @TOK_COMMA : ptr [pointer]
+    %r493 = load %r492 : u8 [general]
+    %r494 = move %r493 : u8 [acc]
+    %r495 = const 0 : u16 [index]
+    call @emit_tok(%r494, %r495)
+    %r496 = addr_of @TOK_COMMA : ptr [pointer]
+    %r497 = load %r496 : u8 [general]
+    ret %r497
+  block @if_join26:
+    %r498 = const 43 : u8 [general]
+    %r499 = cmp.eq %r323, %r498 : bool [flag]
+    br_if %r499, @if_then27(), @if_join28()
+  block @if_then27:
+    %r500 = addr_of @pos : ptr [pointer]
+    %r501 = load %r500 : u16 [pointer]
+    %r502 = const 1 : u16 [pointer]
+    %r503 = add %r501, %r502 : u16 [pointer]
+    %r504 = addr_of @pos : ptr [pointer]
+    store %r504, %r503 : u16
+    %r505 = addr_of @TOK_PLUS : ptr [pointer]
+    %r506 = load %r505 : u8 [general]
+    %r507 = move %r506 : u8 [acc]
+    %r508 = const 0 : u16 [index]
+    call @emit_tok(%r507, %r508)
+    %r509 = addr_of @TOK_PLUS : ptr [pointer]
+    %r510 = load %r509 : u8 [general]
+    ret %r510
+  block @if_join28:
+    %r511 = const 42 : u8 [general]
+    %r512 = cmp.eq %r323, %r511 : bool [flag]
+    br_if %r512, @if_then29(), @if_join30()
+  block @if_then29:
+    %r513 = addr_of @pos : ptr [pointer]
+    %r514 = load %r513 : u16 [pointer]
+    %r515 = const 1 : u16 [pointer]
+    %r516 = add %r514, %r515 : u16 [pointer]
+    %r517 = addr_of @pos : ptr [pointer]
+    store %r517, %r516 : u16
+    %r518 = addr_of @TOK_STAR : ptr [pointer]
+    %r519 = load %r518 : u8 [general]
+    %r520 = move %r519 : u8 [acc]
+    %r521 = const 0 : u16 [index]
+    call @emit_tok(%r520, %r521)
+    %r522 = addr_of @TOK_STAR : ptr [pointer]
+    %r523 = load %r522 : u8 [general]
+    ret %r523
+  block @if_join30:
+    %r524 = const 60 : u8 [general]
+    %r525 = cmp.eq %r323, %r524 : bool [flag]
+    br_if %r525, @if_then31(), @if_join32()
+  block @if_then31:
+    %r526 = addr_of @pos : ptr [pointer]
+    %r527 = load %r526 : u16 [pointer]
+    %r528 = const 1 : u16 [pointer]
+    %r529 = add %r527, %r528 : u16 [pointer]
+    %r530 = addr_of @pos : ptr [pointer]
+    store %r530, %r529 : u16
+    %r531 = addr_of @TOK_LT : ptr [pointer]
+    %r532 = load %r531 : u8 [general]
+    %r533 = move %r532 : u8 [acc]
+    %r534 = const 0 : u16 [index]
+    call @emit_tok(%r533, %r534)
+    %r535 = addr_of @TOK_LT : ptr [pointer]
+    %r536 = load %r535 : u8 [general]
+    ret %r536
+  block @if_join32:
+    %r537 = const 62 : u8 [general]
+    %r538 = cmp.eq %r323, %r537 : bool [flag]
+    br_if %r538, @if_then33(), @if_join34()
+  block @if_then33:
+    %r539 = addr_of @pos : ptr [pointer]
+    %r540 = load %r539 : u16 [pointer]
+    %r541 = const 1 : u16 [pointer]
+    %r542 = add %r540, %r541 : u16 [pointer]
+    %r543 = addr_of @pos : ptr [pointer]
+    store %r543, %r542 : u16
+    %r544 = addr_of @TOK_GT : ptr [pointer]
+    %r545 = load %r544 : u8 [general]
+    %r546 = move %r545 : u8 [acc]
+    %r547 = const 0 : u16 [index]
+    call @emit_tok(%r546, %r547)
+    %r548 = addr_of @TOK_GT : ptr [pointer]
+    %r549 = load %r548 : u8 [general]
+    ret %r549
+  block @if_join34:
+    %r550 = move %r323 : u8 [acc]
+    %r551 = call @is_digit(%r550) : u8 [acc]
+    %r552 = const 1 : u8 [general]
+    %r553 = cmp.eq %r551, %r552 : bool [flag]
+    br_if %r553, @if_then35(), @if_join36()
+  block @if_then35:
+    jmp @loop_head37()
+  block @loop_head37:
+    %r554 = call @peek_char() : u8 [acc]
+    %r555 = move %r554 : u8 [acc]
+    %r556 = call @is_digit(%r555) : u8 [acc]
+    %r557 = const 1 : u8 [general]
+    %r558 = cmp.eq %r556, %r557 : bool [flag]
+    br_if %r558, @loop_body38(), @loop_exit39()
+  block @loop_body38:
+    %r559 = addr_of @pos : ptr [pointer]
+    %r560 = load %r559 : u16 [pointer]
+    %r561 = const 1 : u16 [pointer]
+    %r562 = add %r560, %r561 : u16 [pointer]
+    %r563 = addr_of @pos : ptr [pointer]
+    store %r563, %r562 : u16
+    jmp @loop_head37()
+  block @loop_exit39:
+    %r564 = addr_of @pos : ptr [pointer]
+    %r565 = load %r564 : u16 [pointer]
+    %r566 = addr_of @tok_start : ptr [pointer]
+    %r567 = load %r566 : u16 [pointer]
+    %r568 = sub %r565, %r567 : u16 [pointer]
+    %r569 = trunc %r568 : u16 -> u8 [general]
+    %r570 = addr_of @tok_start : ptr [pointer]
+    %r571 = load %r570 : u16 [pointer]
+    %r572 = call @intern(%r571, %r569) : u16 [pointer]
+    %r573 = addr_of @TOK_INT : ptr [pointer]
+    %r574 = load %r573 : u8 [general]
+    %r575 = move %r574 : u8 [acc]
+    %r576 = move %r572 : u16 [index]
+    call @emit_tok(%r575, %r576)
+    %r577 = addr_of @TOK_INT : ptr [pointer]
+    %r578 = load %r577 : u8 [general]
+    ret %r578
+  block @if_join36:
+    %r579 = move %r323 : u8 [acc]
+    %r580 = call @is_alpha(%r579) : u8 [acc]
+    %r581 = const 1 : u8 [general]
+    %r582 = cmp.eq %r580, %r581 : bool [flag]
+    br_if %r582, @if_then40(), @if_join41()
+  block @if_then40:
+    jmp @loop_head42()
+  block @loop_head42:
+    %r583 = call @peek_char() : u8 [acc]
+    %r584 = move %r583 : u8 [acc]
+    %r585 = call @is_alnum(%r584) : u8 [acc]
+    %r586 = const 1 : u8 [general]
+    %r587 = cmp.eq %r585, %r586 : bool [flag]
+    br_if %r587, @loop_body43(), @loop_exit44()
+  block @loop_body43:
+    %r588 = addr_of @pos : ptr [pointer]
+    %r589 = load %r588 : u16 [pointer]
+    %r590 = const 1 : u16 [pointer]
+    %r591 = add %r589, %r590 : u16 [pointer]
+    %r592 = addr_of @pos : ptr [pointer]
+    store %r592, %r591 : u16
+    jmp @loop_head42()
+  block @loop_exit44:
+    %r593 = addr_of @pos : ptr [pointer]
+    %r594 = load %r593 : u16 [pointer]
+    %r595 = addr_of @tok_start : ptr [pointer]
+    %r596 = load %r595 : u16 [pointer]
+    %r597 = sub %r594, %r596 : u16 [pointer]
+    %r598 = trunc %r597 : u16 -> u8 [general]
+    %r599 = addr_of @tok_start : ptr [pointer]
+    %r600 = load %r599 : u16 [pointer]
+    %r601 = call @intern(%r600, %r598) : u16 [pointer]
+    %r602 = call @classify(%r601) : u8 [acc]
+    %r603 = move %r602 : u8 [acc]
+    %r604 = move %r601 : u16 [index]
+    call @emit_tok(%r603, %r604)
+    ret %r602
+  block @if_join41:
+    %r605 = addr_of @pos : ptr [pointer]
+    %r606 = load %r605 : u16 [pointer]
+    %r607 = const 1 : u16 [pointer]
+    %r608 = add %r606, %r607 : u16 [pointer]
+    %r609 = addr_of @pos : ptr [pointer]
+    store %r609, %r608 : u16
+    %r610 = call @scan() : u8 [acc]
+    ret %r610
+
+fun @tokenize_all() -> u16 [pointer]
+  block @entry:
+    %r611 = const 0 : u8 [general]
+    %r612 = addr_of @pos : ptr [pointer]
+    store %r612, %r611 : u16
+    %r613 = const 0 : u8 [general]
+    %r614 = addr_of @tok_count : ptr [pointer]
+    store %r614, %r613 : u16
+    %r615 = call @scan() : u8 [acc]
+    jmp @loop_head1(%r615)
+  block @loop_head1(%r616: u8 [general]):
+    %r617 = addr_of @TOK_EOF : ptr [pointer]
+    %r618 = load %r617 : u8 [general]
+    %r619 = cmp.ne %r616, %r618 : bool [flag]
+    br_if %r619, @loop_body2(), @loop_exit3()
+  block @loop_body2:
+    %r620 = call @scan() : u8 [acc]
+    jmp @loop_head1(%r620)
+  block @loop_exit3:
+    %r621 = addr_of @tok_count : ptr [pointer]
+    %r622 = load %r621 : u16 [pointer]
+    ret %r622
+
+fun @ast_new(%r623: u8 [acc], %r624: u16 [index], %r625: u16 [index], %r626: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r627 = addr_of @ast_bump : ptr [pointer]
+    %r628 = load %r627 : u16 [pointer]
+    call @poke(%r628, %r623)
+    %r629 = const 1 : u16 [pointer]
+    %r630 = add %r628, %r629 : u16 [pointer]
+    %r631 = const 256 : u16 [pointer]
+    %r632 = mod %r624, %r631 : u16 [pointer]
+    %r633 = move %r632 : u16 [index]
+    call @poke(%r630, %r633)
+    %r634 = const 2 : u16 [pointer]
+    %r635 = add %r628, %r634 : u16 [pointer]
+    %r636 = const 256 : u16 [pointer]
+    %r637 = div %r624, %r636 : u16 [pointer]
+    %r638 = move %r637 : u16 [index]
+    call @poke(%r635, %r638)
+    %r639 = const 3 : u16 [pointer]
+    %r640 = add %r628, %r639 : u16 [pointer]
+    %r641 = const 256 : u16 [pointer]
+    %r642 = mod %r625, %r641 : u16 [pointer]
+    %r643 = move %r642 : u16 [index]
+    call @poke(%r640, %r643)
+    %r644 = const 4 : u16 [pointer]
+    %r645 = add %r628, %r644 : u16 [pointer]
+    %r646 = const 256 : u16 [pointer]
+    %r647 = div %r625, %r646 : u16 [pointer]
+    %r648 = move %r647 : u16 [index]
+    call @poke(%r645, %r648)
+    %r649 = const 5 : u16 [pointer]
+    %r650 = add %r628, %r649 : u16 [pointer]
+    %r651 = const 256 : u16 [pointer]
+    %r652 = mod %r626, %r651 : u16 [pointer]
+    %r653 = move %r652 : u16 [index]
+    call @poke(%r650, %r653)
+    %r654 = const 6 : u16 [pointer]
+    %r655 = add %r628, %r654 : u16 [pointer]
+    %r656 = const 256 : u16 [pointer]
+    %r657 = div %r626, %r656 : u16 [pointer]
+    %r658 = move %r657 : u16 [index]
+    call @poke(%r655, %r658)
+    %r659 = const 7 : u16 [pointer]
+    %r660 = add %r628, %r659 : u16 [pointer]
+    %r661 = const 0 : u8 [general]
+    call @poke(%r660, %r661)
+    %r662 = addr_of @ast_bump : ptr [pointer]
+    %r663 = load %r662 : u16 [pointer]
+    %r664 = const 8 : u16 [pointer]
+    %r665 = add %r663, %r664 : u16 [pointer]
+    %r666 = addr_of @ast_bump : ptr [pointer]
+    store %r666, %r665 : u16
+    ret %r628
+
+fun @ast_tag(%r667: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    %r668 = call @peek(%r667) : u8 [acc]
+    ret %r668
+
+fun @ast_d0(%r669: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r670 = const 1 : u16 [pointer]
+    %r671 = add %r669, %r670 : u16 [pointer]
+    %r672 = call @peek(%r671) : u8 [acc]
+    %r673 = ext %r672 : u8 -> u16 [pointer]
+    %r674 = const 2 : u16 [pointer]
+    %r675 = add %r669, %r674 : u16 [pointer]
+    %r676 = call @peek(%r675) : u8 [acc]
+    %r677 = ext %r676 : u8 -> u16 [pointer]
+    %r678 = const 256 : u16 [pointer]
+    %r679 = mul %r677, %r678 : u16 [pointer]
+    %r680 = add %r673, %r679 : u16 [pointer]
+    ret %r680
+
+fun @ast_d1(%r681: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r682 = const 3 : u16 [pointer]
+    %r683 = add %r681, %r682 : u16 [pointer]
+    %r684 = call @peek(%r683) : u8 [acc]
+    %r685 = ext %r684 : u8 -> u16 [pointer]
+    %r686 = const 4 : u16 [pointer]
+    %r687 = add %r681, %r686 : u16 [pointer]
+    %r688 = call @peek(%r687) : u8 [acc]
+    %r689 = ext %r688 : u8 -> u16 [pointer]
+    %r690 = const 256 : u16 [pointer]
+    %r691 = mul %r689, %r690 : u16 [pointer]
+    %r692 = add %r685, %r691 : u16 [pointer]
+    ret %r692
+
+fun @ast_d2(%r693: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r694 = const 5 : u16 [pointer]
+    %r695 = add %r693, %r694 : u16 [pointer]
+    %r696 = call @peek(%r695) : u8 [acc]
+    %r697 = ext %r696 : u8 -> u16 [pointer]
+    %r698 = const 6 : u16 [pointer]
+    %r699 = add %r693, %r698 : u16 [pointer]
+    %r700 = call @peek(%r699) : u8 [acc]
+    %r701 = ext %r700 : u8 -> u16 [pointer]
+    %r702 = const 256 : u16 [pointer]
+    %r703 = mul %r701, %r702 : u16 [pointer]
+    %r704 = add %r697, %r703 : u16 [pointer]
+    ret %r704
+
+fun @cur_tok() -> u8 [acc]
+  block @entry:
+    %r705 = addr_of @parse_pos : ptr [pointer]
+    %r706 = load %r705 : u16 [pointer]
+    %r707 = addr_of @tok_count : ptr [pointer]
+    %r708 = load %r707 : u16 [pointer]
+    %r709 = cmp.uge %r706, %r708 : bool [flag]
+    br_if %r709, @if_then1(), @if_join2()
+  block @if_then1:
+    %r710 = addr_of @TOK_EOF : ptr [pointer]
+    %r711 = load %r710 : u8 [general]
+    ret %r711
+  block @if_join2:
+    %r712 = addr_of @tok_arena : ptr [pointer]
+    %r713 = load %r712 : u16 [pointer]
+    %r714 = addr_of @parse_pos : ptr [pointer]
+    %r715 = load %r714 : u16 [pointer]
+    %r716 = const 4 : u16 [pointer]
+    %r717 = mul %r715, %r716 : u16 [pointer]
+    %r718 = add %r713, %r717 : u16 [pointer]
+    %r719 = call @peek(%r718) : u8 [acc]
+    ret %r719
+
+fun @cur_str() -> u16 [pointer]
+  block @entry:
+    %r720 = addr_of @tok_arena : ptr [pointer]
+    %r721 = load %r720 : u16 [pointer]
+    %r722 = addr_of @parse_pos : ptr [pointer]
+    %r723 = load %r722 : u16 [pointer]
+    %r724 = const 4 : u16 [pointer]
+    %r725 = mul %r723, %r724 : u16 [pointer]
+    %r726 = add %r721, %r725 : u16 [pointer]
+    %r727 = const 1 : u16 [pointer]
+    %r728 = add %r726, %r727 : u16 [pointer]
+    %r729 = call @peek(%r728) : u8 [acc]
+    %r730 = ext %r729 : u8 -> u16 [pointer]
+    %r731 = const 2 : u16 [pointer]
+    %r732 = add %r726, %r731 : u16 [pointer]
+    %r733 = call @peek(%r732) : u8 [acc]
+    %r734 = ext %r733 : u8 -> u16 [pointer]
+    %r735 = const 256 : u16 [pointer]
+    %r736 = mul %r734, %r735 : u16 [pointer]
+    %r737 = add %r730, %r736 : u16 [pointer]
+    ret %r737
+
+fun @advance()
+  block @entry:
+    %r738 = addr_of @parse_pos : ptr [pointer]
+    %r739 = load %r738 : u16 [pointer]
+    %r740 = const 1 : u16 [pointer]
+    %r741 = add %r739, %r740 : u16 [pointer]
+    %r742 = addr_of @parse_pos : ptr [pointer]
+    store %r742, %r741 : u16
+    ret void
+
+fun @expect(%r743: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r744 = call @cur_tok() : u8 [acc]
+    %r745 = cmp.ne %r744, %r743 : bool [flag]
+    br_if %r745, @if_then1(), @if_join2()
+  block @if_then1:
+    %r746 = const 1 : u8 [general]
+    %r747 = addr_of @parse_error : ptr [pointer]
+    store %r747, %r746 : u8
+    %r748 = const 0 : u8 [acc]
+    ret %r748
+  block @if_join2:
+    call @advance()
+    %r749 = const 1 : u8 [acc]
+    ret %r749
+
+fun @expect_kw(%r750: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    %r751 = call @cur_tok() : u8 [acc]
+    %r752 = addr_of @TOK_KW : ptr [pointer]
+    %r753 = load %r752 : u8 [general]
+    %r754 = cmp.ne %r751, %r753 : bool [flag]
+    br_if %r754, @if_then1(), @if_join2()
+  block @if_then1:
+    %r755 = const 1 : u8 [general]
+    %r756 = addr_of @parse_error : ptr [pointer]
+    store %r756, %r755 : u8
+    %r757 = const 0 : u8 [acc]
+    ret %r757
+  block @if_join2:
+    %r758 = call @cur_str() : u16 [pointer]
+    %r759 = cmp.ne %r758, %r750 : bool [flag]
+    br_if %r759, @if_then3(), @if_join4()
+  block @if_then3:
+    %r760 = const 1 : u8 [general]
+    %r761 = addr_of @parse_error : ptr [pointer]
+    store %r761, %r760 : u8
+    %r762 = const 0 : u8 [acc]
+    ret %r762
+  block @if_join4:
+    call @advance()
+    %r763 = const 1 : u8 [acc]
+    ret %r763
+
+fun @parse_atom() -> u16 [pointer]
+  block @entry:
+    %r764 = call @cur_tok() : u8 [acc]
+    %r765 = addr_of @TOK_IDENT : ptr [pointer]
+    %r766 = load %r765 : u8 [general]
+    %r767 = cmp.eq %r764, %r766 : bool [flag]
+    br_if %r767, @if_then1(), @if_join2()
+  block @if_then1:
+    %r768 = call @cur_str() : u16 [pointer]
+    call @advance()
+    %r769 = addr_of @AST_IDENT : ptr [pointer]
+    %r770 = load %r769 : u8 [general]
+    %r771 = move %r770 : u8 [acc]
+    %r772 = move %r768 : u16 [index]
+    %r773 = const 0 : u16 [index]
+    %r774 = const 0 : u16 [index]
+    %r775 = call @ast_new(%r771, %r772, %r773, %r774) : u16 [pointer]
+    ret %r775
+  block @if_join2:
+    %r776 = call @cur_tok() : u8 [acc]
+    %r777 = addr_of @TOK_INT : ptr [pointer]
+    %r778 = load %r777 : u8 [general]
+    %r779 = cmp.eq %r776, %r778 : bool [flag]
+    br_if %r779, @if_then3(), @if_join4()
+  block @if_then3:
+    %r780 = call @cur_str() : u16 [pointer]
+    call @advance()
+    %r781 = addr_of @AST_INT : ptr [pointer]
+    %r782 = load %r781 : u8 [general]
+    %r783 = move %r782 : u8 [acc]
+    %r784 = move %r780 : u16 [index]
+    %r785 = const 0 : u16 [index]
+    %r786 = const 0 : u16 [index]
+    %r787 = call @ast_new(%r783, %r784, %r785, %r786) : u16 [pointer]
+    ret %r787
+  block @if_join4:
+    %r788 = call @cur_tok() : u8 [acc]
+    %r789 = addr_of @TOK_LPAREN : ptr [pointer]
+    %r790 = load %r789 : u8 [general]
+    %r791 = cmp.eq %r788, %r790 : bool [flag]
+    br_if %r791, @if_then5(), @if_join6()
+  block @if_then5:
+    call @advance()
+    %r792 = call @parse_expr() : u16 [pointer]
+    %r793 = addr_of @TOK_RPAREN : ptr [pointer]
+    %r794 = load %r793 : u8 [general]
+    %r795 = move %r794 : u8 [acc]
+    %r796 = call @expect(%r795) : u8 [acc]
+    ret %r792
+  block @if_join6:
+    %r797 = const 1 : u8 [general]
+    %r798 = addr_of @parse_error : ptr [pointer]
+    store %r798, %r797 : u8
+    %r799 = const 0 : u16 [pointer]
+    ret %r799
+
+fun @parse_expr() -> u16 [pointer]
+  block @entry:
+    %r800 = call @parse_atom() : u16 [pointer]
+    jmp @loop_head1(%r800)
+  block @loop_head1(%r800: u16 [pointer]):
+    %r802 = call @cur_tok() : u8 [acc]
+    %r803 = addr_of @TOK_PLUS : ptr [pointer]
+    %r804 = load %r803 : u8 [general]
+    %r805 = cmp.eq %r802, %r804 : bool [flag]
+    br_if %r805, @loop_body2(), @loop_exit3(%r800)
+  block @loop_body2:
+    call @advance()
+    %r806 = call @parse_atom() : u16 [pointer]
+    %r807 = addr_of @AST_BINOP : ptr [pointer]
+    %r808 = load %r807 : u8 [general]
+    %r809 = move %r808 : u8 [acc]
+    %r810 = addr_of @TOK_PLUS : ptr [pointer]
+    %r811 = load %r810 : u8 [general]
+    %r812 = move %r800 : u16 [index]
+    %r813 = move %r806 : u16 [index]
+    %r814 = call @ast_new(%r809, %r811, %r812, %r813) : u16 [pointer]
+    jmp @loop_head1(%r814)
+  block @loop_exit3(%r815: u16 [pointer]):
+    jmp @loop_head4(%r815)
+  block @loop_head4(%r815: u16 [pointer]):
+    %r817 = call @cur_tok() : u8 [acc]
+    %r818 = addr_of @TOK_MINUS : ptr [pointer]
+    %r819 = load %r818 : u8 [general]
+    %r820 = cmp.eq %r817, %r819 : bool [flag]
+    br_if %r820, @loop_body5(), @loop_exit6(%r815)
+  block @loop_body5:
+    call @advance()
+    %r821 = call @parse_atom() : u16 [pointer]
+    %r822 = addr_of @AST_BINOP : ptr [pointer]
+    %r823 = load %r822 : u8 [general]
+    %r824 = move %r823 : u8 [acc]
+    %r825 = addr_of @TOK_MINUS : ptr [pointer]
+    %r826 = load %r825 : u8 [general]
+    %r827 = move %r815 : u16 [index]
+    %r828 = move %r821 : u16 [index]
+    %r829 = call @ast_new(%r824, %r826, %r827, %r828) : u16 [pointer]
+    jmp @loop_head4(%r829)
+  block @loop_exit6(%r830: u16 [pointer]):
+    jmp @loop_head7(%r830)
+  block @loop_head7(%r830: u16 [pointer]):
+    %r832 = call @cur_tok() : u8 [acc]
+    %r833 = addr_of @TOK_STAR : ptr [pointer]
+    %r834 = load %r833 : u8 [general]
+    %r835 = cmp.eq %r832, %r834 : bool [flag]
+    cond_ret %r835, [%r830], @loop_body8()
+  block @loop_body8:
+    call @advance()
+    %r836 = call @parse_atom() : u16 [pointer]
+    %r837 = addr_of @AST_BINOP : ptr [pointer]
+    %r838 = load %r837 : u8 [general]
+    %r839 = move %r838 : u8 [acc]
+    %r840 = addr_of @TOK_STAR : ptr [pointer]
+    %r841 = load %r840 : u8 [general]
+    %r842 = move %r830 : u16 [index]
+    %r843 = move %r836 : u16 [index]
+    %r844 = call @ast_new(%r839, %r841, %r842, %r843) : u16 [pointer]
+    jmp @loop_head7(%r844)
+
+fun @parse_return() -> u16 [pointer]
+  block @entry:
+    %r845 = addr_of @KW_RETURN : ptr [pointer]
+    %r846 = load %r845 : u16 [pointer]
+    %r847 = call @expect_kw(%r846) : u8 [acc]
+    %r848 = call @parse_expr() : u16 [pointer]
+    %r849 = addr_of @AST_RETURN : ptr [pointer]
+    %r850 = load %r849 : u8 [general]
+    %r851 = move %r850 : u8 [acc]
+    %r852 = move %r848 : u16 [index]
+    %r853 = const 0 : u16 [index]
+    %r854 = const 0 : u16 [index]
+    %r855 = call @ast_new(%r851, %r852, %r853, %r854) : u16 [pointer]
+    ret %r855
+
+fun @parse_param() -> u16 [pointer]
+  block @entry:
+    %r856 = call @cur_str() : u16 [pointer]
+    %r857 = addr_of @TOK_IDENT : ptr [pointer]
+    %r858 = load %r857 : u8 [general]
+    %r859 = move %r858 : u8 [acc]
+    %r860 = call @expect(%r859) : u8 [acc]
+    %r861 = addr_of @TOK_COLON : ptr [pointer]
+    %r862 = load %r861 : u8 [general]
+    %r863 = move %r862 : u8 [acc]
+    %r864 = call @expect(%r863) : u8 [acc]
+    %r865 = call @cur_str() : u16 [pointer]
+    %r866 = addr_of @TOK_IDENT : ptr [pointer]
+    %r867 = load %r866 : u8 [general]
+    %r868 = move %r867 : u8 [acc]
+    %r869 = call @expect(%r868) : u8 [acc]
+    %r870 = addr_of @AST_PARAM : ptr [pointer]
+    %r871 = load %r870 : u8 [general]
+    %r872 = move %r871 : u8 [acc]
+    %r873 = move %r856 : u16 [index]
+    %r874 = move %r865 : u16 [index]
+    %r875 = const 0 : u16 [index]
+    %r876 = call @ast_new(%r872, %r873, %r874, %r875) : u16 [pointer]
+    ret %r876
+
+fun @parse_fun() -> u16 [pointer]
+  block @entry:
+    %r877 = call @cur_str() : u16 [pointer]
+    %r878 = addr_of @TOK_IDENT : ptr [pointer]
+    %r879 = load %r878 : u8 [general]
+    %r880 = move %r879 : u8 [acc]
+    %r881 = call @expect(%r880) : u8 [acc]
+    %r882 = addr_of @TOK_LPAREN : ptr [pointer]
+    %r883 = load %r882 : u8 [general]
+    %r884 = move %r883 : u8 [acc]
+    %r885 = call @expect(%r884) : u8 [acc]
+    %r886 = const 0 : u16 [pointer]
+    %r887 = const 0 : u16 [pointer]
+    %r888 = call @cur_tok() : u8 [acc]
+    %r889 = addr_of @TOK_RPAREN : ptr [pointer]
+    %r890 = load %r889 : u8 [general]
+    %r891 = cmp.ne %r888, %r890 : bool [flag]
+    br_if %r891, @if_then1(), @if_join2(%r886, %r887)
+  block @if_then1:
+    %r892 = call @parse_param() : u16 [pointer]
+    %r893 = call @cur_tok() : u8 [acc]
+    %r894 = addr_of @TOK_COMMA : ptr [pointer]
+    %r895 = load %r894 : u8 [general]
+    %r896 = cmp.eq %r893, %r895 : bool [flag]
+    br_if %r896, @if_then3(), @if_join4(%r887)
+  block @if_then3:
+    call @advance()
+    %r897 = call @parse_param() : u16 [pointer]
+    jmp @if_join4(%r897)
+  block @if_join4(%r897: u16 [pointer]):
+    jmp @if_join2(%r892, %r897)
+  block @if_join2(%r892: u16 [pointer], %r897: u16 [pointer]):
+    %r901 = addr_of @TOK_RPAREN : ptr [pointer]
+    %r902 = load %r901 : u8 [general]
+    %r903 = move %r902 : u8 [acc]
+    %r904 = call @expect(%r903) : u8 [acc]
+    %r905 = addr_of @TOK_ARROW : ptr [pointer]
+    %r906 = load %r905 : u8 [general]
+    %r907 = move %r906 : u8 [acc]
+    %r908 = call @expect(%r907) : u8 [acc]
+    %r909 = call @cur_str() : u16 [pointer]
+    %r910 = addr_of @TOK_IDENT : ptr [pointer]
+    %r911 = load %r910 : u8 [general]
+    %r912 = move %r911 : u8 [acc]
+    %r913 = call @expect(%r912) : u8 [acc]
+    %r914 = addr_of @TOK_LBRACE : ptr [pointer]
+    %r915 = load %r914 : u8 [general]
+    %r916 = move %r915 : u8 [acc]
+    %r917 = call @expect(%r916) : u8 [acc]
+    %r918 = call @parse_return() : u16 [pointer]
+    %r919 = addr_of @TOK_RBRACE : ptr [pointer]
+    %r920 = load %r919 : u8 [general]
+    %r921 = move %r920 : u8 [acc]
+    %r922 = call @expect(%r921) : u8 [acc]
+    %r923 = addr_of @AST_BLOCK : ptr [pointer]
+    %r924 = load %r923 : u8 [general]
+    %r925 = move %r924 : u8 [acc]
+    %r926 = move %r892 : u16 [index]
+    %r927 = move %r897 : u16 [index]
+    %r928 = move %r909 : u16 [index]
+    %r929 = call @ast_new(%r925, %r926, %r927, %r928) : u16 [pointer]
+    %r930 = addr_of @AST_FUN : ptr [pointer]
+    %r931 = load %r930 : u8 [general]
+    %r932 = move %r931 : u8 [acc]
+    %r933 = move %r877 : u16 [index]
+    %r934 = move %r929 : u16 [index]
+    %r935 = move %r918 : u16 [index]
+    %r936 = call @ast_new(%r932, %r933, %r934, %r935) : u16 [pointer]
+    ret %r936
+
+fun @parse_program() -> u16 [pointer]
+  block @entry:
+    %r937 = const 0 : u8 [general]
+    %r938 = addr_of @parse_pos : ptr [pointer]
+    store %r938, %r937 : u16
+    %r939 = const 0 : u8 [general]
+    %r940 = addr_of @parse_error : ptr [pointer]
+    store %r940, %r939 : u8
+    %r941 = call @cur_tok() : u8 [acc]
+    %r942 = addr_of @TOK_KW : ptr [pointer]
+    %r943 = load %r942 : u8 [general]
+    %r944 = cmp.eq %r941, %r943 : bool [flag]
+    br_if %r944, @if_then1(), @if_join2()
+  block @if_then1:
+    %r945 = call @cur_str() : u16 [pointer]
+    %r946 = addr_of @KW_FUN : ptr [pointer]
+    %r947 = load %r946 : u16 [pointer]
+    %r948 = cmp.eq %r945, %r947 : bool [flag]
+    br_if %r948, @if_then3(), @if_join4()
+  block @if_then3:
+    call @advance()
+    %r949 = call @parse_fun() : u16 [pointer]
+    ret %r949
+  block @if_join4:
+    %r950 = call @cur_str() : u16 [pointer]
+    %r951 = addr_of @KW_FN : ptr [pointer]
+    %r952 = load %r951 : u16 [pointer]
+    %r953 = cmp.eq %r950, %r952 : bool [flag]
+    br_if %r953, @if_then5(), @if_join6()
+  block @if_then5:
+    call @advance()
+    %r954 = call @parse_fun() : u16 [pointer]
+    ret %r954
+  block @if_join6:
+    jmp @if_join2()
+  block @if_join2:
+    %r955 = const 1 : u8 [general]
+    %r956 = addr_of @parse_error : ptr [pointer]
+    store %r956, %r955 : u8
+    %r957 = const 0 : u16 [pointer]
+    ret %r957
+
+fun @out_char(%r958: u8 [acc])
+  block @entry:
+    %r959 = const 53248 : u16 [pointer]
+    %r960 = addr_of @out_len : ptr [pointer]
+    %r961 = load %r960 : u16 [pointer]
+    %r962 = add %r959, %r961 : u16 [pointer]
+    call @poke(%r962, %r958)
+    %r963 = addr_of @out_len : ptr [pointer]
+    %r964 = load %r963 : u16 [pointer]
+    %r965 = const 1 : u16 [pointer]
+    %r966 = add %r964, %r965 : u16 [pointer]
+    %r967 = addr_of @out_len : ptr [pointer]
+    store %r967, %r966 : u16
+    ret void
+
+fun @out_str(%r968: ptr [pointer])
+  block @entry:
+    %r969 = const 0 : u16 [pointer]
+    jmp @loop_head1(%r969, %r968)
+  block @loop_head1(%r969: u16 [pointer], %r971: ptr [general]):
+    %r972 = add %r971, %r969 : u16 [pointer]
+    %r973 = call @peek(%r972) : u8 [acc]
+    %r974 = const 0 : u8 [general]
+    %r975 = cmp.ne %r973, %r974 : bool [flag]
+    cond_ret %r975, [], @loop_body2()
+  block @loop_body2:
+    %r976 = add %r971, %r969 : u16 [pointer]
+    %r977 = call @peek(%r976) : u8 [acc]
+    %r978 = move %r977 : u8 [acc]
+    call @out_char(%r978)
+    %r979 = const 1 : u16 [pointer]
+    %r980 = add %r969, %r979 : u16 [pointer]
+    jmp @loop_head1(%r980, %r971)
+
+fun @out_arena_str(%r981: u16 [pointer])
+  block @entry:
+    %r982 = call @peek(%r981) : u8 [acc]
+    %r983 = const 0 : u8 [general]
+    jmp @loop_head1(%r983, %r982, %r981)
+  block @loop_head1(%r983: u8 [general], %r985: u8 [general], %r986: u16 [pointer]):
+    %r987 = cmp.ult %r983, %r985 : bool [flag]
+    cond_ret %r987, [], @loop_body2()
+  block @loop_body2:
+    %r988 = const 1 : u16 [pointer]
+    %r989 = add %r986, %r988 : u16 [pointer]
+    %r990 = ext %r983 : u8 -> u16 [pointer]
+    %r991 = add %r989, %r990 : u16 [pointer]
+    %r992 = call @peek(%r991) : u8 [acc]
+    %r993 = move %r992 : u8 [acc]
+    call @out_char(%r993)
+    %r994 = const 1 : u8 [general]
+    %r995 = add %r983, %r994 : u8 [general]
+    jmp @loop_head1(%r995, %r985, %r986)
+
+fun @out_nl()
+  block @entry:
+    %r996 = const 10 : u8 [acc]
+    call @out_char(%r996)
+    ret void
+
+fun @emit_lanz(%r997: u16 [pointer])
+  block @entry:
+    %r998 = const 0 : u8 [general]
+    %r999 = cmp.eq %r997, %r998 : bool [flag]
+    br_if %r999, @if_then1(), @if_join2()
+  block @if_then1:
+    ret void
+  block @if_join2:
+    %r1000 = call @ast_tag(%r997) : u8 [acc]
+    %r1001 = addr_of @AST_FUN : ptr [pointer]
+    %r1002 = load %r1001 : u8 [general]
+    %r1003 = cmp.eq %r1000, %r1002 : bool [flag]
+    br_if %r1003, @if_then3(), @if_join4()
+  block @if_then3:
+    %r1004 = call @ast_d1(%r997) : u16 [pointer]
+    %r1005 = call @ast_d2(%r1004) : u16 [pointer]
+    %r1006 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r1007 = move %r1006 : ptr [pointer]
+    call @out_str(%r1007)
+    %r1008 = call @ast_d0(%r997) : u16 [pointer]
+    call @out_arena_str(%r1008)
+    %r1009 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r1010 = move %r1009 : ptr [pointer]
+    call @out_str(%r1010)
+    %r1011 = call @ast_d0(%r1004) : u16 [pointer]
+    %r1012 = call @ast_d1(%r1004) : u16 [pointer]
+    %r1013 = const 0 : u8 [general]
+    %r1014 = cmp.ne %r1011, %r1013 : bool [flag]
+    call_cc %r1014 : void [general]
+    jmp @if_join6()
+  block @if_join6:
+    %r1015 = const 0 : u8 [general]
+    %r1016 = cmp.ne %r1012, %r1015 : bool [flag]
+    br_if %r1016, @if_then7(), @if_join8()
+  block @if_then7:
+    %r1017 = const 32 : u8 [acc]
+    call @out_char(%r1017)
+    call @emit_lanz(%r1012)
+    jmp @if_join8()
+  block @if_join8:
+    %r1018 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r1019 = move %r1018 : ptr [pointer]
+    call @out_str(%r1019)
+    call @out_arena_str(%r1005)
+    %r1020 = const 32 : u8 [acc]
+    call @out_char(%r1020)
+    %r1021 = call @ast_d2(%r997) : u16 [pointer]
+    call @emit_lanz(%r1021)
+    %r1022 = const 41 : u8 [acc]
+    call @out_char(%r1022)
+    ret void
+  block @if_join4:
+    %r1023 = addr_of @AST_RETURN : ptr [pointer]
+    %r1024 = load %r1023 : u8 [general]
+    %r1025 = cmp.eq %r1000, %r1024 : bool [flag]
+    br_if %r1025, @if_then9(), @if_join10()
+  block @if_then9:
+    %r1026 = addr_of @@mir2.str.3 : ptr [pointer]
+    %r1027 = move %r1026 : ptr [pointer]
+    call @out_str(%r1027)
+    %r1028 = call @ast_d0(%r997) : u16 [pointer]
+    call @emit_lanz(%r1028)
+    %r1029 = const 41 : u8 [acc]
+    call @out_char(%r1029)
+    ret void
+  block @if_join10:
+    %r1030 = addr_of @AST_BINOP : ptr [pointer]
+    %r1031 = load %r1030 : u8 [general]
+    %r1032 = cmp.eq %r1000, %r1031 : bool [flag]
+    br_if %r1032, @if_then11(), @if_join12()
+  block @if_then11:
+    %r1033 = const 40 : u8 [acc]
+    call @out_char(%r1033)
+    %r1034 = call @ast_d0(%r997) : u16 [pointer]
+    %r1035 = addr_of @TOK_PLUS : ptr [pointer]
+    %r1036 = load %r1035 : u8 [general]
+    %r1037 = cmp.eq %r1034, %r1036 : bool [flag]
+    br_if %r1037, @if_then13(), @if_join14()
+  block @if_then13:
+    %r1038 = const 43 : u8 [acc]
+    call @out_char(%r1038)
+    jmp @if_join14()
+  block @if_join14:
+    %r1039 = call @ast_d0(%r997) : u16 [pointer]
+    %r1040 = addr_of @TOK_MINUS : ptr [pointer]
+    %r1041 = load %r1040 : u8 [general]
+    %r1042 = cmp.eq %r1039, %r1041 : bool [flag]
+    br_if %r1042, @if_then15(), @if_join16()
+  block @if_then15:
+    %r1043 = const 45 : u8 [acc]
+    call @out_char(%r1043)
+    jmp @if_join16()
+  block @if_join16:
+    %r1044 = call @ast_d0(%r997) : u16 [pointer]
+    %r1045 = addr_of @TOK_STAR : ptr [pointer]
+    %r1046 = load %r1045 : u8 [general]
+    %r1047 = cmp.eq %r1044, %r1046 : bool [flag]
+    br_if %r1047, @if_then17(), @if_join18()
+  block @if_then17:
+    %r1048 = const 42 : u8 [acc]
+    call @out_char(%r1048)
+    jmp @if_join18()
+  block @if_join18:
+    %r1049 = const 32 : u8 [acc]
+    call @out_char(%r1049)
+    %r1050 = call @ast_d1(%r997) : u16 [pointer]
+    call @emit_lanz(%r1050)
+    %r1051 = const 32 : u8 [acc]
+    call @out_char(%r1051)
+    %r1052 = call @ast_d2(%r997) : u16 [pointer]
+    call @emit_lanz(%r1052)
+    %r1053 = const 41 : u8 [acc]
+    call @out_char(%r1053)
+    ret void
+  block @if_join12:
+    %r1054 = addr_of @AST_IDENT : ptr [pointer]
+    %r1055 = load %r1054 : u8 [general]
+    %r1056 = cmp.eq %r1000, %r1055 : bool [flag]
+    br_if %r1056, @if_then19(), @if_join20()
+  block @if_then19:
+    %r1057 = call @ast_d0(%r997) : u16 [pointer]
+    call @out_arena_str(%r1057)
+    ret void
+  block @if_join20:
+    %r1058 = addr_of @AST_INT : ptr [pointer]
+    %r1059 = load %r1058 : u8 [general]
+    %r1060 = cmp.eq %r1000, %r1059 : bool [flag]
+    br_if %r1060, @if_then21(), @if_join22()
+  block @if_then21:
+    %r1061 = call @ast_d0(%r997) : u16 [pointer]
+    call @out_arena_str(%r1061)
+    ret void
+  block @if_join22:
+    %r1062 = addr_of @AST_PARAM : ptr [pointer]
+    %r1063 = load %r1062 : u8 [general]
+    %r1064 = cmp.eq %r1000, %r1063 : bool [flag]
+    cond_ret %r1064, [], @if_then23()
+  block @if_then23:
+    %r1065 = const 40 : u8 [acc]
+    call @out_char(%r1065)
+    %r1066 = call @ast_d0(%r997) : u16 [pointer]
+    call @out_arena_str(%r1066)
+    %r1067 = const 32 : u8 [acc]
+    call @out_char(%r1067)
+    %r1068 = call @ast_d1(%r997) : u16 [pointer]
+    call @out_arena_str(%r1068)
+    %r1069 = const 41 : u8 [acc]
+    call @out_char(%r1069)
+    ret void
+
+fun @print_str_arena(%r1070: u16 [pointer])
+  block @entry:
+    %r1071 = call @peek(%r1070) : u8 [acc]
+    %r1072 = const 0 : u8 [general]
+    jmp @loop_head1(%r1072, %r1071, %r1070)
+  block @loop_head1(%r1072: u8 [general], %r1074: u8 [general], %r1075: u16 [pointer]):
+    %r1076 = cmp.ult %r1072, %r1074 : bool [flag]
+    cond_ret %r1076, [], @loop_body2()
+  block @loop_body2:
+    %r1077 = const 1 : u16 [pointer]
+    %r1078 = add %r1075, %r1077 : u16 [pointer]
+    %r1079 = ext %r1072 : u8 -> u16 [pointer]
+    %r1080 = add %r1078, %r1079 : u16 [pointer]
+    %r1081 = call @peek(%r1080) : u8 [acc]
+    %r1082 = move %r1081 : u8 [acc]
+    call @@mir.io.print.char(%r1082)
+    %r1083 = const 1 : u8 [general]
+    %r1084 = add %r1072, %r1083 : u8 [general]
+    jmp @loop_head1(%r1084, %r1074, %r1075)
+
+fun @print_ast(%r1085: u16 [pointer])
+  block @entry:
+    %r1086 = const 0 : u8 [general]
+    %r1087 = cmp.eq %r1085, %r1086 : bool [flag]
+    br_if %r1087, @if_then1(), @if_join2()
+  block @if_then1:
+    %r1088 = addr_of @@mir2.str.4 : ptr [pointer]
+    %r1089 = load %r1088 : u8 [general]
+    %r1090 = const 1 : u16 [pointer]
+    %r1091 = add %r1088, %r1090 : ptr [acc]
+    jmp @loop_head5(%r1089, %r1091)
+  block @loop_head5(%r1089: u8 [general], %r1093: ptr [general]):
+    %r1094 = const 0 : u8 [general]
+    %r1095 = cmp.ne %r1089, %r1094 : bool [flag]
+    cond_ret %r1095, [], @loop_body6()
+  block @loop_body6:
+    %r1096 = load %r1093 : u8 [general]
+    %r1097 = move %r1096 : u8 [acc]
+    call @@mir.io.print.char(%r1097)
+    %r1098 = const 1 : u16 [pointer]
+    %r1099 = add %r1093, %r1098 : ptr [general]
+    %r1100 = const 1 : u8 [general]
+    %r1101 = sub %r1089, %r1100 : u8 [general]
+    jmp @loop_head5(%r1101, %r1099)
+  block @if_join2:
+    %r1102 = call @ast_tag(%r1085) : u8 [acc]
+    %r1103 = addr_of @AST_FUN : ptr [pointer]
+    %r1104 = load %r1103 : u8 [general]
+    %r1105 = cmp.eq %r1102, %r1104 : bool [flag]
+    br_if %r1105, @if_then8(), @if_join9()
+  block @if_then8:
+    %r1106 = call @ast_d1(%r1085) : u16 [pointer]
+    %r1107 = call @ast_d2(%r1106) : u16 [pointer]
+    %r1108 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r1109 = load %r1108 : u8 [general]
+    %r1110 = const 1 : u16 [pointer]
+    %r1111 = add %r1108, %r1110 : ptr [acc]
+    jmp @loop_head12(%r1109, %r1111)
+  block @loop_head12(%r1109: u8 [general], %r1113: ptr [general]):
+    %r1114 = const 0 : u8 [general]
+    %r1115 = cmp.ne %r1109, %r1114 : bool [flag]
+    br_if %r1115, @loop_body13(), @loop_exit14()
+  block @loop_body13:
+    %r1116 = load %r1113 : u8 [general]
+    %r1117 = move %r1116 : u8 [acc]
+    call @@mir.io.print.char(%r1117)
+    %r1118 = const 1 : u16 [pointer]
+    %r1119 = add %r1113, %r1118 : ptr [general]
+    %r1120 = const 1 : u8 [general]
+    %r1121 = sub %r1109, %r1120 : u8 [general]
+    jmp @loop_head12(%r1121, %r1119)
+  block @loop_exit14:
+    %r1122 = call @ast_d0(%r1085) : u16 [pointer]
+    call @print_str_arena(%r1122)
+    %r1123 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r1124 = load %r1123 : u8 [general]
+    %r1125 = const 1 : u16 [pointer]
+    %r1126 = add %r1123, %r1125 : ptr [acc]
+    jmp @loop_head17(%r1124, %r1126)
+  block @loop_head17(%r1124: u8 [general], %r1128: ptr [general]):
+    %r1129 = const 0 : u8 [general]
+    %r1130 = cmp.ne %r1124, %r1129 : bool [flag]
+    br_if %r1130, @loop_body18(), @loop_exit19()
+  block @loop_body18:
+    %r1131 = load %r1128 : u8 [general]
+    %r1132 = move %r1131 : u8 [acc]
+    call @@mir.io.print.char(%r1132)
+    %r1133 = const 1 : u16 [pointer]
+    %r1134 = add %r1128, %r1133 : ptr [general]
+    %r1135 = const 1 : u8 [general]
+    %r1136 = sub %r1124, %r1135 : u8 [general]
+    jmp @loop_head17(%r1136, %r1134)
+  block @loop_exit19:
+    %r1137 = call @ast_d0(%r1106) : u16 [pointer]
+    %r1138 = call @ast_d1(%r1106) : u16 [pointer]
+    %r1139 = const 0 : u8 [general]
+    %r1140 = cmp.ne %r1137, %r1139 : bool [flag]
+    call_cc %r1140 : void [general]
+    jmp @if_join21()
+  block @if_join21:
+    %r1141 = const 0 : u8 [general]
+    %r1142 = cmp.ne %r1138, %r1141 : bool [flag]
+    br_if %r1142, @if_then22(), @if_join23()
+  block @if_then22:
+    %r1143 = addr_of @@mir2.str.5 : ptr [pointer]
+    %r1144 = load %r1143 : u8 [general]
+    %r1145 = const 1 : u16 [pointer]
+    %r1146 = add %r1143, %r1145 : ptr [acc]
+    jmp @loop_head26(%r1144, %r1146)
+  block @loop_head26(%r1144: u8 [general], %r1148: ptr [general]):
+    %r1149 = const 0 : u8 [general]
+    %r1150 = cmp.ne %r1144, %r1149 : bool [flag]
+    br_if %r1150, @loop_body27(), @loop_exit28()
+  block @loop_body27:
+    %r1151 = load %r1148 : u8 [general]
+    %r1152 = move %r1151 : u8 [acc]
+    call @@mir.io.print.char(%r1152)
+    %r1153 = const 1 : u16 [pointer]
+    %r1154 = add %r1148, %r1153 : ptr [general]
+    %r1155 = const 1 : u8 [general]
+    %r1156 = sub %r1144, %r1155 : u8 [general]
+    jmp @loop_head26(%r1156, %r1154)
+  block @loop_exit28:
+    call @print_ast(%r1138)
+    jmp @if_join23()
+  block @if_join23:
+    %r1157 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r1158 = load %r1157 : u8 [general]
+    %r1159 = const 1 : u16 [pointer]
+    %r1160 = add %r1157, %r1159 : ptr [acc]
+    jmp @loop_head31(%r1158, %r1160)
+  block @loop_head31(%r1158: u8 [general], %r1162: ptr [general]):
+    %r1163 = const 0 : u8 [general]
+    %r1164 = cmp.ne %r1158, %r1163 : bool [flag]
+    br_if %r1164, @loop_body32(), @loop_exit33()
+  block @loop_body32:
+    %r1165 = load %r1162 : u8 [general]
+    %r1166 = move %r1165 : u8 [acc]
+    call @@mir.io.print.char(%r1166)
+    %r1167 = const 1 : u16 [pointer]
+    %r1168 = add %r1162, %r1167 : ptr [general]
+    %r1169 = const 1 : u8 [general]
+    %r1170 = sub %r1158, %r1169 : u8 [general]
+    jmp @loop_head31(%r1170, %r1168)
+  block @loop_exit33:
+    call @print_str_arena(%r1107)
+    %r1171 = addr_of @@mir2.str.5 : ptr [pointer]
+    %r1172 = load %r1171 : u8 [general]
+    %r1173 = const 1 : u16 [pointer]
+    %r1174 = add %r1171, %r1173 : ptr [acc]
+    jmp @loop_head36(%r1172, %r1174)
+  block @loop_head36(%r1172: u8 [general], %r1176: ptr [general]):
+    %r1177 = const 0 : u8 [general]
+    %r1178 = cmp.ne %r1172, %r1177 : bool [flag]
+    br_if %r1178, @loop_body37(), @loop_exit38()
+  block @loop_body37:
+    %r1179 = load %r1176 : u8 [general]
+    %r1180 = move %r1179 : u8 [acc]
+    call @@mir.io.print.char(%r1180)
+    %r1181 = const 1 : u16 [pointer]
+    %r1182 = add %r1176, %r1181 : ptr [general]
+    %r1183 = const 1 : u8 [general]
+    %r1184 = sub %r1172, %r1183 : u8 [general]
+    jmp @loop_head36(%r1184, %r1182)
+  block @loop_exit38:
+    %r1185 = call @ast_d2(%r1085) : u16 [pointer]
+    call @print_ast(%r1185)
+    %r1186 = addr_of @@mir2.str.6 : ptr [pointer]
+    %r1187 = load %r1186 : u8 [general]
+    %r1188 = const 1 : u16 [pointer]
+    %r1189 = add %r1186, %r1188 : ptr [acc]
+    jmp @loop_head41(%r1187, %r1189)
+  block @loop_head41(%r1187: u8 [general], %r1191: ptr [general]):
+    %r1192 = const 0 : u8 [general]
+    %r1193 = cmp.ne %r1187, %r1192 : bool [flag]
+    cond_ret %r1193, [], @loop_body42()
+  block @loop_body42:
+    %r1194 = load %r1191 : u8 [general]
+    %r1195 = move %r1194 : u8 [acc]
+    call @@mir.io.print.char(%r1195)
+    %r1196 = const 1 : u16 [pointer]
+    %r1197 = add %r1191, %r1196 : ptr [general]
+    %r1198 = const 1 : u8 [general]
+    %r1199 = sub %r1187, %r1198 : u8 [general]
+    jmp @loop_head41(%r1199, %r1197)
+  block @if_join9:
+    %r1200 = addr_of @AST_RETURN : ptr [pointer]
+    %r1201 = load %r1200 : u8 [general]
+    %r1202 = cmp.eq %r1102, %r1201 : bool [flag]
+    br_if %r1202, @if_then44(), @if_join45()
+  block @if_then44:
+    %r1203 = addr_of @@mir2.str.3 : ptr [pointer]
+    %r1204 = load %r1203 : u8 [general]
+    %r1205 = const 1 : u16 [pointer]
+    %r1206 = add %r1203, %r1205 : ptr [acc]
+    jmp @loop_head48(%r1204, %r1206)
+  block @loop_head48(%r1204: u8 [general], %r1208: ptr [general]):
+    %r1209 = const 0 : u8 [general]
+    %r1210 = cmp.ne %r1204, %r1209 : bool [flag]
+    br_if %r1210, @loop_body49(), @loop_exit50()
+  block @loop_body49:
+    %r1211 = load %r1208 : u8 [general]
+    %r1212 = move %r1211 : u8 [acc]
+    call @@mir.io.print.char(%r1212)
+    %r1213 = const 1 : u16 [pointer]
+    %r1214 = add %r1208, %r1213 : ptr [general]
+    %r1215 = const 1 : u8 [general]
+    %r1216 = sub %r1204, %r1215 : u8 [general]
+    jmp @loop_head48(%r1216, %r1214)
+  block @loop_exit50:
+    %r1217 = call @ast_d0(%r1085) : u16 [pointer]
+    call @print_ast(%r1217)
+    %r1218 = addr_of @@mir2.str.6 : ptr [pointer]
+    %r1219 = load %r1218 : u8 [general]
+    %r1220 = const 1 : u16 [pointer]
+    %r1221 = add %r1218, %r1220 : ptr [acc]
+    jmp @loop_head53(%r1219, %r1221)
+  block @loop_head53(%r1219: u8 [general], %r1223: ptr [general]):
+    %r1224 = const 0 : u8 [general]
+    %r1225 = cmp.ne %r1219, %r1224 : bool [flag]
+    cond_ret %r1225, [], @loop_body54()
+  block @loop_body54:
+    %r1226 = load %r1223 : u8 [general]
+    %r1227 = move %r1226 : u8 [acc]
+    call @@mir.io.print.char(%r1227)
+    %r1228 = const 1 : u16 [pointer]
+    %r1229 = add %r1223, %r1228 : ptr [general]
+    %r1230 = const 1 : u8 [general]
+    %r1231 = sub %r1219, %r1230 : u8 [general]
+    jmp @loop_head53(%r1231, %r1229)
+  block @if_join45:
+    %r1232 = addr_of @AST_BINOP : ptr [pointer]
+    %r1233 = load %r1232 : u8 [general]
+    %r1234 = cmp.eq %r1102, %r1233 : bool [flag]
+    br_if %r1234, @if_then56(), @if_join57()
+  block @if_then56:
+    %r1235 = addr_of @@mir2.str.7 : ptr [pointer]
+    %r1236 = load %r1235 : u8 [general]
+    %r1237 = const 1 : u16 [pointer]
+    %r1238 = add %r1235, %r1237 : ptr [acc]
+    jmp @loop_head60(%r1236, %r1238)
+  block @loop_head60(%r1236: u8 [general], %r1240: ptr [general]):
+    %r1241 = const 0 : u8 [general]
+    %r1242 = cmp.ne %r1236, %r1241 : bool [flag]
+    br_if %r1242, @loop_body61(), @loop_exit62()
+  block @loop_body61:
+    %r1243 = load %r1240 : u8 [general]
+    %r1244 = move %r1243 : u8 [acc]
+    call @@mir.io.print.char(%r1244)
+    %r1245 = const 1 : u16 [pointer]
+    %r1246 = add %r1240, %r1245 : ptr [general]
+    %r1247 = const 1 : u8 [general]
+    %r1248 = sub %r1236, %r1247 : u8 [general]
+    jmp @loop_head60(%r1248, %r1246)
+  block @loop_exit62:
+    %r1249 = call @ast_d0(%r1085) : u16 [pointer]
+    %r1250 = addr_of @TOK_PLUS : ptr [pointer]
+    %r1251 = load %r1250 : u8 [general]
+    %r1252 = cmp.eq %r1249, %r1251 : bool [flag]
+    br_if %r1252, @if_then63(), @if_join64()
+  block @if_then63:
+    %r1253 = addr_of @@mir2.str.8 : ptr [pointer]
+    %r1254 = load %r1253 : u8 [general]
+    %r1255 = const 1 : u16 [pointer]
+    %r1256 = add %r1253, %r1255 : ptr [acc]
+    jmp @loop_head67(%r1254, %r1256)
+  block @loop_head67(%r1254: u8 [general], %r1258: ptr [general]):
+    %r1259 = const 0 : u8 [general]
+    %r1260 = cmp.ne %r1254, %r1259 : bool [flag]
+    br_if %r1260, @loop_body68(), @loop_exit69()
+  block @loop_body68:
+    %r1261 = load %r1258 : u8 [general]
+    %r1262 = move %r1261 : u8 [acc]
+    call @@mir.io.print.char(%r1262)
+    %r1263 = const 1 : u16 [pointer]
+    %r1264 = add %r1258, %r1263 : ptr [general]
+    %r1265 = const 1 : u8 [general]
+    %r1266 = sub %r1254, %r1265 : u8 [general]
+    jmp @loop_head67(%r1266, %r1264)
+  block @loop_exit69:
+    jmp @if_join64()
+  block @if_join64:
+    %r1267 = call @ast_d0(%r1085) : u16 [pointer]
+    %r1268 = addr_of @TOK_MINUS : ptr [pointer]
+    %r1269 = load %r1268 : u8 [general]
+    %r1270 = cmp.eq %r1267, %r1269 : bool [flag]
+    br_if %r1270, @if_then70(), @if_join71()
+  block @if_then70:
+    %r1271 = addr_of @@mir2.str.9 : ptr [pointer]
+    %r1272 = load %r1271 : u8 [general]
+    %r1273 = const 1 : u16 [pointer]
+    %r1274 = add %r1271, %r1273 : ptr [acc]
+    jmp @loop_head74(%r1272, %r1274)
+  block @loop_head74(%r1272: u8 [general], %r1276: ptr [general]):
+    %r1277 = const 0 : u8 [general]
+    %r1278 = cmp.ne %r1272, %r1277 : bool [flag]
+    br_if %r1278, @loop_body75(), @loop_exit76()
+  block @loop_body75:
+    %r1279 = load %r1276 : u8 [general]
+    %r1280 = move %r1279 : u8 [acc]
+    call @@mir.io.print.char(%r1280)
+    %r1281 = const 1 : u16 [pointer]
+    %r1282 = add %r1276, %r1281 : ptr [general]
+    %r1283 = const 1 : u8 [general]
+    %r1284 = sub %r1272, %r1283 : u8 [general]
+    jmp @loop_head74(%r1284, %r1282)
+  block @loop_exit76:
+    jmp @if_join71()
+  block @if_join71:
+    %r1285 = call @ast_d0(%r1085) : u16 [pointer]
+    %r1286 = addr_of @TOK_STAR : ptr [pointer]
+    %r1287 = load %r1286 : u8 [general]
+    %r1288 = cmp.eq %r1285, %r1287 : bool [flag]
+    br_if %r1288, @if_then77(), @if_join78()
+  block @if_then77:
+    %r1289 = addr_of @@mir2.str.10 : ptr [pointer]
+    %r1290 = load %r1289 : u8 [general]
+    %r1291 = const 1 : u16 [pointer]
+    %r1292 = add %r1289, %r1291 : ptr [acc]
+    jmp @loop_head81(%r1290, %r1292)
+  block @loop_head81(%r1290: u8 [general], %r1294: ptr [general]):
+    %r1295 = const 0 : u8 [general]
+    %r1296 = cmp.ne %r1290, %r1295 : bool [flag]
+    br_if %r1296, @loop_body82(), @loop_exit83()
+  block @loop_body82:
+    %r1297 = load %r1294 : u8 [general]
+    %r1298 = move %r1297 : u8 [acc]
+    call @@mir.io.print.char(%r1298)
+    %r1299 = const 1 : u16 [pointer]
+    %r1300 = add %r1294, %r1299 : ptr [general]
+    %r1301 = const 1 : u8 [general]
+    %r1302 = sub %r1290, %r1301 : u8 [general]
+    jmp @loop_head81(%r1302, %r1300)
+  block @loop_exit83:
+    jmp @if_join78()
+  block @if_join78:
+    %r1303 = addr_of @@mir2.str.5 : ptr [pointer]
+    %r1304 = load %r1303 : u8 [general]
+    %r1305 = const 1 : u16 [pointer]
+    %r1306 = add %r1303, %r1305 : ptr [acc]
+    jmp @loop_head86(%r1304, %r1306)
+  block @loop_head86(%r1304: u8 [general], %r1308: ptr [general]):
+    %r1309 = const 0 : u8 [general]
+    %r1310 = cmp.ne %r1304, %r1309 : bool [flag]
+    br_if %r1310, @loop_body87(), @loop_exit88()
+  block @loop_body87:
+    %r1311 = load %r1308 : u8 [general]
+    %r1312 = move %r1311 : u8 [acc]
+    call @@mir.io.print.char(%r1312)
+    %r1313 = const 1 : u16 [pointer]
+    %r1314 = add %r1308, %r1313 : ptr [general]
+    %r1315 = const 1 : u8 [general]
+    %r1316 = sub %r1304, %r1315 : u8 [general]
+    jmp @loop_head86(%r1316, %r1314)
+  block @loop_exit88:
+    %r1317 = call @ast_d1(%r1085) : u16 [pointer]
+    call @print_ast(%r1317)
+    %r1318 = addr_of @@mir2.str.5 : ptr [pointer]
+    %r1319 = load %r1318 : u8 [general]
+    %r1320 = const 1 : u16 [pointer]
+    %r1321 = add %r1318, %r1320 : ptr [acc]
+    jmp @loop_head91(%r1319, %r1321)
+  block @loop_head91(%r1319: u8 [general], %r1323: ptr [general]):
+    %r1324 = const 0 : u8 [general]
+    %r1325 = cmp.ne %r1319, %r1324 : bool [flag]
+    br_if %r1325, @loop_body92(), @loop_exit93()
+  block @loop_body92:
+    %r1326 = load %r1323 : u8 [general]
+    %r1327 = move %r1326 : u8 [acc]
+    call @@mir.io.print.char(%r1327)
+    %r1328 = const 1 : u16 [pointer]
+    %r1329 = add %r1323, %r1328 : ptr [general]
+    %r1330 = const 1 : u8 [general]
+    %r1331 = sub %r1319, %r1330 : u8 [general]
+    jmp @loop_head91(%r1331, %r1329)
+  block @loop_exit93:
+    %r1332 = call @ast_d2(%r1085) : u16 [pointer]
+    call @print_ast(%r1332)
+    %r1333 = addr_of @@mir2.str.6 : ptr [pointer]
+    %r1334 = load %r1333 : u8 [general]
+    %r1335 = const 1 : u16 [pointer]
+    %r1336 = add %r1333, %r1335 : ptr [acc]
+    jmp @loop_head96(%r1334, %r1336)
+  block @loop_head96(%r1334: u8 [general], %r1338: ptr [general]):
+    %r1339 = const 0 : u8 [general]
+    %r1340 = cmp.ne %r1334, %r1339 : bool [flag]
+    cond_ret %r1340, [], @loop_body97()
+  block @loop_body97:
+    %r1341 = load %r1338 : u8 [general]
+    %r1342 = move %r1341 : u8 [acc]
+    call @@mir.io.print.char(%r1342)
+    %r1343 = const 1 : u16 [pointer]
+    %r1344 = add %r1338, %r1343 : ptr [general]
+    %r1345 = const 1 : u8 [general]
+    %r1346 = sub %r1334, %r1345 : u8 [general]
+    jmp @loop_head96(%r1346, %r1344)
+  block @if_join57:
+    %r1347 = addr_of @AST_IDENT : ptr [pointer]
+    %r1348 = load %r1347 : u8 [general]
+    %r1349 = cmp.eq %r1102, %r1348 : bool [flag]
+    br_if %r1349, @if_then99(), @if_join100()
+  block @if_then99:
+    %r1350 = call @ast_d0(%r1085) : u16 [pointer]
+    call @print_str_arena(%r1350)
+    ret void
+  block @if_join100:
+    %r1351 = addr_of @AST_INT : ptr [pointer]
+    %r1352 = load %r1351 : u8 [general]
+    %r1353 = cmp.eq %r1102, %r1352 : bool [flag]
+    br_if %r1353, @if_then101(), @if_join102()
+  block @if_then101:
+    %r1354 = call @ast_d0(%r1085) : u16 [pointer]
+    call @print_str_arena(%r1354)
+    ret void
+  block @if_join102:
+    %r1355 = addr_of @AST_PARAM : ptr [pointer]
+    %r1356 = load %r1355 : u8 [general]
+    %r1357 = cmp.eq %r1102, %r1356 : bool [flag]
+    br_if %r1357, @if_then103(), @if_join104()
+  block @if_then103:
+    %r1358 = addr_of @@mir2.str.7 : ptr [pointer]
+    %r1359 = load %r1358 : u8 [general]
+    %r1360 = const 1 : u16 [pointer]
+    %r1361 = add %r1358, %r1360 : ptr [acc]
+    jmp @loop_head107(%r1359, %r1361)
+  block @loop_head107(%r1359: u8 [general], %r1363: ptr [general]):
+    %r1364 = const 0 : u8 [general]
+    %r1365 = cmp.ne %r1359, %r1364 : bool [flag]
+    br_if %r1365, @loop_body108(), @loop_exit109()
+  block @loop_body108:
+    %r1366 = load %r1363 : u8 [general]
+    %r1367 = move %r1366 : u8 [acc]
+    call @@mir.io.print.char(%r1367)
+    %r1368 = const 1 : u16 [pointer]
+    %r1369 = add %r1363, %r1368 : ptr [general]
+    %r1370 = const 1 : u8 [general]
+    %r1371 = sub %r1359, %r1370 : u8 [general]
+    jmp @loop_head107(%r1371, %r1369)
+  block @loop_exit109:
+    %r1372 = call @ast_d0(%r1085) : u16 [pointer]
+    call @print_str_arena(%r1372)
+    %r1373 = addr_of @@mir2.str.5 : ptr [pointer]
+    %r1374 = load %r1373 : u8 [general]
+    %r1375 = const 1 : u16 [pointer]
+    %r1376 = add %r1373, %r1375 : ptr [acc]
+    jmp @loop_head112(%r1374, %r1376)
+  block @loop_head112(%r1374: u8 [general], %r1378: ptr [general]):
+    %r1379 = const 0 : u8 [general]
+    %r1380 = cmp.ne %r1374, %r1379 : bool [flag]
+    br_if %r1380, @loop_body113(), @loop_exit114()
+  block @loop_body113:
+    %r1381 = load %r1378 : u8 [general]
+    %r1382 = move %r1381 : u8 [acc]
+    call @@mir.io.print.char(%r1382)
+    %r1383 = const 1 : u16 [pointer]
+    %r1384 = add %r1378, %r1383 : ptr [general]
+    %r1385 = const 1 : u8 [general]
+    %r1386 = sub %r1374, %r1385 : u8 [general]
+    jmp @loop_head112(%r1386, %r1384)
+  block @loop_exit114:
+    %r1387 = call @ast_d1(%r1085) : u16 [pointer]
+    call @print_str_arena(%r1387)
+    %r1388 = addr_of @@mir2.str.6 : ptr [pointer]
+    %r1389 = load %r1388 : u8 [general]
+    %r1390 = const 1 : u16 [pointer]
+    %r1391 = add %r1388, %r1390 : ptr [acc]
+    jmp @loop_head117(%r1389, %r1391)
+  block @loop_head117(%r1389: u8 [general], %r1393: ptr [general]):
+    %r1394 = const 0 : u8 [general]
+    %r1395 = cmp.ne %r1389, %r1394 : bool [flag]
+    cond_ret %r1395, [], @loop_body118()
+  block @loop_body118:
+    %r1396 = load %r1393 : u8 [general]
+    %r1397 = move %r1396 : u8 [acc]
+    call @@mir.io.print.char(%r1397)
+    %r1398 = const 1 : u16 [pointer]
+    %r1399 = add %r1393, %r1398 : ptr [general]
+    %r1400 = const 1 : u8 [general]
+    %r1401 = sub %r1389, %r1400 : u8 [general]
+    jmp @loop_head117(%r1401, %r1399)
+  block @if_join104:
+    %r1402 = addr_of @@mir2.str.11 : ptr [pointer]
+    %r1403 = load %r1402 : u8 [general]
+    %r1404 = const 1 : u16 [pointer]
+    %r1405 = add %r1402, %r1404 : ptr [acc]
+    jmp @loop_head122(%r1403, %r1405)
+  block @loop_head122(%r1403: u8 [general], %r1407: ptr [general]):
+    %r1408 = const 0 : u8 [general]
+    %r1409 = cmp.ne %r1403, %r1408 : bool [flag]
+    cond_ret %r1409, [], @loop_body123()
+  block @loop_body123:
+    %r1410 = load %r1407 : u8 [general]
+    %r1411 = move %r1410 : u8 [acc]
+    call @@mir.io.print.char(%r1411)
+    %r1412 = const 1 : u16 [pointer]
+    %r1413 = add %r1407, %r1412 : ptr [general]
+    %r1414 = const 1 : u8 [general]
+    %r1415 = sub %r1403, %r1414 : u8 [general]
+    jmp @loop_head122(%r1415, %r1413)
+
+fun @init_keywords()
+  block @entry:
+    %r1416 = const 102 : u8 [acc]
+    %r1417 = const 110 : u8 [general]
+    %r1418 = call @str_alloc_2(%r1416, %r1417) : u16 [pointer]
+    %r1419 = addr_of @KW_FN : ptr [pointer]
+    store %r1419, %r1418 : u16
+    %r1420 = const 105 : u8 [acc]
+    %r1421 = const 102 : u8 [general]
+    %r1422 = call @str_alloc_2(%r1420, %r1421) : u16 [pointer]
+    %r1423 = addr_of @KW_IF : ptr [pointer]
+    store %r1423, %r1422 : u16
+    %r1424 = const 102 : u8 [acc]
+    %r1425 = const 117 : u8 [general]
+    %r1426 = const 110 : u8 [counter]
+    %r1427 = call @str_alloc_3(%r1424, %r1425, %r1426) : u16 [pointer]
+    %r1428 = addr_of @KW_FUN : ptr [pointer]
+    store %r1428, %r1427 : u16
+    %r1429 = const 108 : u8 [acc]
+    %r1430 = const 101 : u8 [general]
+    %r1431 = const 116 : u8 [counter]
+    %r1432 = call @str_alloc_3(%r1429, %r1430, %r1431) : u16 [pointer]
+    %r1433 = addr_of @KW_LET : ptr [pointer]
+    store %r1433, %r1432 : u16
+    %r1434 = const 118 : u8 [acc]
+    %r1435 = const 97 : u8 [general]
+    %r1436 = const 114 : u8 [counter]
+    %r1437 = call @str_alloc_3(%r1434, %r1435, %r1436) : u16 [pointer]
+    %r1438 = addr_of @KW_VAR : ptr [pointer]
+    store %r1438, %r1437 : u16
+    %r1439 = const 119 : u8 [acc]
+    %r1440 = const 104 : u8 [general]
+    %r1441 = const 105 : u8 [counter]
+    %r1442 = const 108 : u8 [general]
+    %r1443 = const 101 : u8 [general]
+    %r1444 = call @str_alloc_5(%r1439, %r1440, %r1441, %r1442, %r1443) : u16 [pointer]
+    %r1445 = addr_of @KW_WHILE : ptr [pointer]
+    store %r1445, %r1444 : u16
+    %r1446 = const 114 : u8 [acc]
+    %r1447 = const 101 : u8 [general]
+    %r1448 = const 116 : u8 [counter]
+    %r1449 = const 117 : u8 [general]
+    %r1450 = const 114 : u8 [general]
+    %r1451 = const 110 : u8 [general]
+    %r1452 = call @str_alloc_6(%r1446, %r1447, %r1448, %r1449, %r1450, %r1451) : u16 [pointer]
+    %r1453 = addr_of @KW_RETURN : ptr [pointer]
+    store %r1453, %r1452 : u16
+    %r1454 = const 101 : u8 [acc]
+    %r1455 = const 108 : u8 [general]
+    %r1456 = const 115 : u8 [counter]
+    %r1457 = call @str_alloc_3(%r1454, %r1455, %r1456) : u16 [pointer]
+    %r1458 = addr_of @KW_ELSE : ptr [pointer]
+    store %r1458, %r1457 : u16
+    ret void
+
+fun @main()
+  block @entry:
+    call @init_keywords()
+    %r1459 = addr_of @@mir2.str.12 : ptr [pointer]
+    %r1460 = move %r1459 : ptr [pointer]
+    %r1461 = addr_of @src_buf : ptr [pointer]
+    %r1462 = load %r1461 : u16 [pointer]
+    %r1463 = move %r1462 : u16 [index]
+    %r1464 = call @file_read(%r1460, %r1463) : u16 [pointer]
+    %r1465 = addr_of @src_len : ptr [pointer]
+    store %r1465, %r1464 : u16
+    %r1466 = addr_of @src_len : ptr [pointer]
+    %r1467 = load %r1466 : u16 [pointer]
+    %r1468 = const 0 : u8 [general]
+    %r1469 = cmp.eq %r1467, %r1468 : bool [flag]
+    br_if %r1469, @if_then1(), @if_join2()
+  block @if_then1:
+    %r1470 = addr_of @@mir2.str.13 : ptr [pointer]
+    %r1471 = load %r1470 : u8 [general]
+    %r1472 = const 1 : u16 [pointer]
+    %r1473 = add %r1470, %r1472 : ptr [acc]
+    jmp @loop_head5(%r1471, %r1473)
+  block @loop_head5(%r1471: u8 [general], %r1475: ptr [general]):
+    %r1476 = const 0 : u8 [general]
+    %r1477 = cmp.ne %r1471, %r1476 : bool [flag]
+    br_if %r1477, @loop_body6(), @loop_exit7()
+  block @loop_body6:
+    %r1478 = load %r1475 : u8 [general]
+    %r1479 = move %r1478 : u8 [acc]
+    call @@mir.io.print.char(%r1479)
+    %r1480 = const 1 : u16 [pointer]
+    %r1481 = add %r1475, %r1480 : ptr [general]
+    %r1482 = const 1 : u8 [general]
+    %r1483 = sub %r1471, %r1482 : u8 [general]
+    jmp @loop_head5(%r1483, %r1481)
+  block @loop_exit7:
+    call @@mir.io.print.nl()
+    ret void
+  block @if_join2:
+    %r1484 = addr_of @@mir2.str.14 : ptr [pointer]
+    %r1485 = load %r1484 : u8 [general]
+    %r1486 = const 1 : u16 [pointer]
+    %r1487 = add %r1484, %r1486 : ptr [acc]
+    jmp @loop_head10(%r1485, %r1487)
+  block @loop_head10(%r1485: u8 [general], %r1489: ptr [general]):
+    %r1490 = const 0 : u8 [general]
+    %r1491 = cmp.ne %r1485, %r1490 : bool [flag]
+    br_if %r1491, @loop_body11(), @loop_exit12()
+  block @loop_body11:
+    %r1492 = load %r1489 : u8 [general]
+    %r1493 = move %r1492 : u8 [acc]
+    call @@mir.io.print.char(%r1493)
+    %r1494 = const 1 : u16 [pointer]
+    %r1495 = add %r1489, %r1494 : ptr [general]
+    %r1496 = const 1 : u8 [general]
+    %r1497 = sub %r1485, %r1496 : u8 [general]
+    jmp @loop_head10(%r1497, %r1495)
+  block @loop_exit12:
+    %r1498 = addr_of @src_len : ptr [pointer]
+    %r1499 = load %r1498 : u16 [pointer]
+    call @@mir.io.print.u8(%r1499)
+    %r1500 = addr_of @@mir2.str.15 : ptr [pointer]
+    %r1501 = load %r1500 : u8 [general]
+    %r1502 = const 1 : u16 [pointer]
+    %r1503 = add %r1500, %r1502 : ptr [acc]
+    jmp @loop_head15(%r1501, %r1503)
+  block @loop_head15(%r1501: u8 [general], %r1505: ptr [general]):
+    %r1506 = const 0 : u8 [general]
+    %r1507 = cmp.ne %r1501, %r1506 : bool [flag]
+    br_if %r1507, @loop_body16(), @loop_exit17()
+  block @loop_body16:
+    %r1508 = load %r1505 : u8 [general]
+    %r1509 = move %r1508 : u8 [acc]
+    call @@mir.io.print.char(%r1509)
+    %r1510 = const 1 : u16 [pointer]
+    %r1511 = add %r1505, %r1510 : ptr [general]
+    %r1512 = const 1 : u8 [general]
+    %r1513 = sub %r1501, %r1512 : u8 [general]
+    jmp @loop_head15(%r1513, %r1511)
+  block @loop_exit17:
+    call @@mir.io.print.nl()
+    %r1514 = const 49152 : u16 [pointer]
+    %r1515 = addr_of @@mir2.str.16 : ptr [pointer]
+    %r1516 = load %r1515 : u8 [general]
+    %r1517 = const 1 : u16 [pointer]
+    %r1518 = add %r1515, %r1517 : ptr [acc]
+    jmp @loop_head20(%r1516, %r1518)
+  block @loop_head20(%r1516: u8 [general], %r1520: ptr [general]):
+    %r1521 = const 0 : u8 [general]
+    %r1522 = cmp.ne %r1516, %r1521 : bool [flag]
+    br_if %r1522, @loop_body21(), @loop_exit22()
+  block @loop_body21:
+    %r1523 = load %r1520 : u8 [general]
+    %r1524 = move %r1523 : u8 [acc]
+    call @@mir.io.print.char(%r1524)
+    %r1525 = const 1 : u16 [pointer]
+    %r1526 = add %r1520, %r1525 : ptr [general]
+    %r1527 = const 1 : u8 [general]
+    %r1528 = sub %r1516, %r1527 : u8 [general]
+    jmp @loop_head20(%r1528, %r1526)
+  block @loop_exit22:
+    %r1529 = call @peek(%r1514) : u8 [acc]
+    %r1530 = move %r1529 : u8 [acc]
+    call @@mir.io.print.u8(%r1530)
+    %r1531 = addr_of @@mir2.str.5 : ptr [pointer]
+    %r1532 = load %r1531 : u8 [general]
+    %r1533 = const 1 : u16 [pointer]
+    %r1534 = add %r1531, %r1533 : ptr [acc]
+    jmp @loop_head25(%r1532, %r1534)
+  block @loop_head25(%r1532: u8 [general], %r1536: ptr [general]):
+    %r1537 = const 0 : u8 [general]
+    %r1538 = cmp.ne %r1532, %r1537 : bool [flag]
+    br_if %r1538, @loop_body26(), @loop_exit27()
+  block @loop_body26:
+    %r1539 = load %r1536 : u8 [general]
+    %r1540 = move %r1539 : u8 [acc]
+    call @@mir.io.print.char(%r1540)
+    %r1541 = const 1 : u16 [pointer]
+    %r1542 = add %r1536, %r1541 : ptr [general]
+    %r1543 = const 1 : u8 [general]
+    %r1544 = sub %r1532, %r1543 : u8 [general]
+    jmp @loop_head25(%r1544, %r1542)
+  block @loop_exit27:
+    %r1545 = const 49153 : u16 [pointer]
+    %r1546 = call @peek(%r1545) : u8 [acc]
+    %r1547 = move %r1546 : u8 [acc]
+    call @@mir.io.print.u8(%r1547)
+    %r1548 = addr_of @@mir2.str.5 : ptr [pointer]
+    %r1549 = load %r1548 : u8 [general]
+    %r1550 = const 1 : u16 [pointer]
+    %r1551 = add %r1548, %r1550 : ptr [acc]
+    jmp @loop_head30(%r1549, %r1551)
+  block @loop_head30(%r1549: u8 [general], %r1553: ptr [general]):
+    %r1554 = const 0 : u8 [general]
+    %r1555 = cmp.ne %r1549, %r1554 : bool [flag]
+    br_if %r1555, @loop_body31(), @loop_exit32()
+  block @loop_body31:
+    %r1556 = load %r1553 : u8 [general]
+    %r1557 = move %r1556 : u8 [acc]
+    call @@mir.io.print.char(%r1557)
+    %r1558 = const 1 : u16 [pointer]
+    %r1559 = add %r1553, %r1558 : ptr [general]
+    %r1560 = const 1 : u8 [general]
+    %r1561 = sub %r1549, %r1560 : u8 [general]
+    jmp @loop_head30(%r1561, %r1559)
+  block @loop_exit32:
+    %r1562 = const 49154 : u16 [pointer]
+    %r1563 = call @peek(%r1562) : u8 [acc]
+    %r1564 = move %r1563 : u8 [acc]
+    call @@mir.io.print.u8(%r1564)
+    call @@mir.io.print.nl()
+    %r1565 = call @tokenize_all() : u16 [pointer]
+    %r1566 = addr_of @@mir2.str.17 : ptr [pointer]
+    %r1567 = load %r1566 : u8 [general]
+    %r1568 = const 1 : u16 [pointer]
+    %r1569 = add %r1566, %r1568 : ptr [acc]
+    jmp @loop_head35(%r1567, %r1569)
+  block @loop_head35(%r1567: u8 [general], %r1571: ptr [general]):
+    %r1572 = const 0 : u8 [general]
+    %r1573 = cmp.ne %r1567, %r1572 : bool [flag]
+    br_if %r1573, @loop_body36(), @loop_exit37()
+  block @loop_body36:
+    %r1574 = load %r1571 : u8 [general]
+    %r1575 = move %r1574 : u8 [acc]
+    call @@mir.io.print.char(%r1575)
+    %r1576 = const 1 : u16 [pointer]
+    %r1577 = add %r1571, %r1576 : ptr [general]
+    %r1578 = const 1 : u8 [general]
+    %r1579 = sub %r1567, %r1578 : u8 [general]
+    jmp @loop_head35(%r1579, %r1577)
+  block @loop_exit37:
+    call @@mir.io.print.u8(%r1565)
+    call @@mir.io.print.nl()
+    %r1580 = const 0 : u8 [general]
+    %r1581 = addr_of @parse_pos : ptr [pointer]
+    store %r1581, %r1580 : u16
+    %r1582 = const 0 : u8 [general]
+    %r1583 = addr_of @parse_error : ptr [pointer]
+    store %r1583, %r1582 : u8
+    %r1584 = const 0 : u8 [general]
+    %r1585 = addr_of @out_len : ptr [pointer]
+    store %r1585, %r1584 : u16
+    jmp @loop_head38()
+  block @loop_head38:
+    %r1586 = addr_of @parse_pos : ptr [pointer]
+    %r1587 = load %r1586 : u16 [pointer]
+    %r1588 = addr_of @tok_count : ptr [pointer]
+    %r1589 = load %r1588 : u16 [pointer]
+    %r1590 = cmp.ult %r1587, %r1589 : bool [flag]
+    br_if %r1590, @loop_body39(), @loop_exit40()
+  block @loop_body39:
+    %r1591 = addr_of @parse_error : ptr [pointer]
+    %r1592 = load %r1591 : u8 [general]
+    %r1593 = const 1 : u8 [general]
+    %r1594 = cmp.eq %r1592, %r1593 : bool [flag]
+    br_if %r1594, @if_then41(), @if_join42()
+  block @if_then41:
+    %r1595 = addr_of @@mir2.str.18 : ptr [pointer]
+    %r1596 = load %r1595 : u8 [general]
+    %r1597 = const 1 : u16 [pointer]
+    %r1598 = add %r1595, %r1597 : ptr [general]
+    jmp @loop_head45(%r1596, %r1598)
+  block @loop_head45(%r1596: u8 [general], %r1598: ptr [general]):
+    %r1601 = const 0 : u8 [general]
+    %r1602 = cmp.ne %r1596, %r1601 : bool [flag]
+    br_if %r1602, @loop_body46(), @loop_exit47()
+  block @loop_body46:
+    %r1603 = load %r1598 : u8 [general]
+    %r1604 = move %r1603 : u8 [acc]
+    call @@mir.io.print.char(%r1604)
+    %r1605 = const 1 : u16 [pointer]
+    %r1606 = add %r1598, %r1605 : ptr [general]
+    %r1607 = const 1 : u8 [general]
+    %r1608 = sub %r1596, %r1607 : u8 [general]
+    jmp @loop_head45(%r1608, %r1606)
+  block @loop_exit47:
+    %r1609 = addr_of @parse_pos : ptr [pointer]
+    %r1610 = load %r1609 : u16 [pointer]
+    call @@mir.io.print.u8(%r1610)
+    call @@mir.io.print.nl()
+    ret void
+  block @if_join42:
+    %r1611 = const 0 : u8 [general]
+    %r1612 = call @cur_tok() : u8 [acc]
+    %r1613 = addr_of @TOK_KW : ptr [pointer]
+    %r1614 = load %r1613 : u8 [general]
+    %r1615 = cmp.eq %r1612, %r1614 : bool [flag]
+    br_if %r1615, @if_then48(), @if_join49(%r1611)
+  block @if_then48:
+    %r1616 = call @cur_str() : u16 [pointer]
+    %r1617 = addr_of @KW_FUN : ptr [pointer]
+    %r1618 = load %r1617 : u16 [pointer]
+    %r1619 = cmp.eq %r1616, %r1618 : bool [flag]
+    br_if %r1619, @if_then50(), @if_join51(%r1611)
+  block @if_then50:
+    %r1620 = addr_of @parse_pos : ptr [pointer]
+    %r1621 = load %r1620 : u16 [pointer]
+    call @@mir.io.print.u8(%r1621)
+    call @@mir.io.print.nl()
+    call @advance()
+    %r1622 = call @parse_fun() : u16 [pointer]
+    %r1623 = addr_of @parse_pos : ptr [pointer]
+    %r1624 = load %r1623 : u16 [pointer]
+    call @@mir.io.print.u8(%r1624)
+    %r1625 = addr_of @@mir2.str.19 : ptr [pointer]
+    %r1626 = load %r1625 : u8 [general]
+    %r1627 = const 1 : u16 [pointer]
+    %r1628 = add %r1625, %r1627 : ptr [general]
+    jmp @loop_head54(%r1626, %r1628)
+  block @loop_head54(%r1626: u8 [general], %r1628: ptr [general]):
+    %r1631 = const 0 : u8 [general]
+    %r1632 = cmp.ne %r1626, %r1631 : bool [flag]
+    br_if %r1632, @loop_body55(), @loop_exit56()
+  block @loop_body55:
+    %r1633 = load %r1628 : u8 [general]
+    %r1634 = move %r1633 : u8 [acc]
+    call @@mir.io.print.char(%r1634)
+    %r1635 = const 1 : u16 [pointer]
+    %r1636 = add %r1628, %r1635 : ptr [general]
+    %r1637 = const 1 : u8 [general]
+    %r1638 = sub %r1626, %r1637 : u8 [general]
+    jmp @loop_head54(%r1638, %r1636)
+  block @loop_exit56:
+    %r1639 = addr_of @tok_count : ptr [pointer]
+    %r1640 = load %r1639 : u16 [pointer]
+    call @@mir.io.print.u8(%r1640)
+    call @@mir.io.print.nl()
+    %r1641 = addr_of @parse_error : ptr [pointer]
+    %r1642 = load %r1641 : u8 [general]
+    %r1643 = const 0 : u8 [general]
+    %r1644 = cmp.eq %r1642, %r1643 : bool [flag]
+    br_if %r1644, @if_then57(), @if_join58()
+  block @if_then57:
+    call @emit_lanz(%r1622)
+    call @out_nl()
+    jmp @if_join58()
+  block @if_join58:
+    %r1645 = const 1 : u8 [general]
+    jmp @if_join51(%r1645)
+  block @if_join51(%r1645: u8 [general]):
+    %r1647 = const 0 : u8 [general]
+    %r1648 = cmp.eq %r1645, %r1647 : bool [flag]
+    br_if %r1648, @if_then59(), @if_join60(%r1645)
+  block @if_then59:
+    %r1649 = call @cur_str() : u16 [pointer]
+    %r1650 = addr_of @KW_FN : ptr [pointer]
+    %r1651 = load %r1650 : u16 [pointer]
+    %r1652 = cmp.eq %r1649, %r1651 : bool [flag]
+    br_if %r1652, @if_then61(), @if_join62(%r1645)
+  block @if_then61:
+    call @advance()
+    %r1653 = call @parse_fun() : u16 [pointer]
+    %r1654 = addr_of @parse_error : ptr [pointer]
+    %r1655 = load %r1654 : u8 [general]
+    %r1656 = const 0 : u8 [general]
+    %r1657 = cmp.eq %r1655, %r1656 : bool [flag]
+    br_if %r1657, @if_then63(), @if_join64()
+  block @if_then63:
+    call @emit_lanz(%r1653)
+    call @out_nl()
+    call @print_ast(%r1653)
+    call @@mir.io.print.nl()
+    jmp @if_join64()
+  block @if_join64:
+    %r1658 = const 1 : u8 [general]
+    jmp @if_join62(%r1658)
+  block @if_join62(%r1658: u8 [general]):
+    jmp @if_join60(%r1658)
+  block @if_join60(%r1658: u8 [general]):
+    jmp @if_join49(%r1658)
+  block @if_join49(%r1658: u8 [general]):
+    %r1662 = const 0 : u8 [general]
+    %r1663 = cmp.eq %r1658, %r1662 : bool [flag]
+    call_cc %r1663 : void [general]
+    jmp @if_join66()
+  block @if_join66:
+    jmp @loop_head38()
+  block @loop_exit40:
+    %r1664 = addr_of @@mir2.str.20 : ptr [pointer]
+    %r1665 = move %r1664 : ptr [pointer]
+    %r1666 = const 53248 : u16 [index]
+    %r1667 = addr_of @out_len : ptr [pointer]
+    %r1668 = load %r1667 : u16 [pointer]
+    %r1669 = move %r1668 : u16 [index]
+    %r1670 = call @file_write(%r1665, %r1666, %r1669) : u16 [pointer]
+    %r1671 = addr_of @@mir2.str.21 : ptr [pointer]
+    %r1672 = load %r1671 : u8 [general]
+    %r1673 = const 1 : u16 [pointer]
+    %r1674 = add %r1671, %r1673 : ptr [acc]
+    jmp @loop_head69(%r1672, %r1674)
+  block @loop_head69(%r1672: u8 [general], %r1676: ptr [general]):
+    %r1677 = const 0 : u8 [general]
+    %r1678 = cmp.ne %r1672, %r1677 : bool [flag]
+    br_if %r1678, @loop_body70(), @loop_exit71()
+  block @loop_body70:
+    %r1679 = load %r1676 : u8 [general]
+    %r1680 = move %r1679 : u8 [acc]
+    call @@mir.io.print.char(%r1680)
+    %r1681 = const 1 : u16 [pointer]
+    %r1682 = add %r1676, %r1681 : ptr [general]
+    %r1683 = const 1 : u8 [general]
+    %r1684 = sub %r1672, %r1683 : u8 [general]
+    jmp @loop_head69(%r1684, %r1682)
+  block @loop_exit71:
+    call @@mir.io.print.u8(%r1670)
+    %r1685 = addr_of @@mir2.str.22 : ptr [pointer]
+    %r1686 = load %r1685 : u8 [general]
+    %r1687 = const 1 : u16 [pointer]
+    %r1688 = add %r1685, %r1687 : ptr [acc]
+    jmp @loop_head74(%r1686, %r1688)
+  block @loop_head74(%r1686: u8 [general], %r1690: ptr [general]):
+    %r1691 = const 0 : u8 [general]
+    %r1692 = cmp.ne %r1686, %r1691 : bool [flag]
+    br_if %r1692, @loop_body75(), @loop_exit76()
+  block @loop_body75:
+    %r1693 = load %r1690 : u8 [general]
+    %r1694 = move %r1693 : u8 [acc]
+    call @@mir.io.print.char(%r1694)
+    %r1695 = const 1 : u16 [pointer]
+    %r1696 = add %r1690, %r1695 : ptr [general]
+    %r1697 = const 1 : u8 [general]
+    %r1698 = sub %r1686, %r1697 : u8 [general]
+    jmp @loop_head74(%r1698, %r1696)
+  block @loop_exit76:
+    call @@mir.io.print.nl()
+    %r1699 = addr_of @@mir2.str.23 : ptr [pointer]
+    %r1700 = load %r1699 : u8 [general]
+    %r1701 = const 1 : u16 [pointer]
+    %r1702 = add %r1699, %r1701 : ptr [acc]
+    jmp @loop_head79(%r1700, %r1702)
+  block @loop_head79(%r1700: u8 [general], %r1704: ptr [general]):
+    %r1705 = const 0 : u8 [general]
+    %r1706 = cmp.ne %r1700, %r1705 : bool [flag]
+    br_if %r1706, @loop_body80(), @loop_exit81()
+  block @loop_body80:
+    %r1707 = load %r1704 : u8 [general]
+    %r1708 = move %r1707 : u8 [acc]
+    call @@mir.io.print.char(%r1708)
+    %r1709 = const 1 : u16 [pointer]
+    %r1710 = add %r1704, %r1709 : ptr [general]
+    %r1711 = const 1 : u8 [general]
+    %r1712 = sub %r1700, %r1711 : u8 [general]
+    jmp @loop_head79(%r1712, %r1710)
+  block @loop_exit81:
+    %r1713 = addr_of @ast_bump : ptr [pointer]
+    %r1714 = load %r1713 : u16 [pointer]
+    %r1715 = addr_of @ast_arena : ptr [pointer]
+    %r1716 = load %r1715 : u16 [pointer]
+    %r1717 = sub %r1714, %r1716 : u16 [pointer]
+    %r1718 = const 8 : u16 [pointer]
+    %r1719 = div %r1717, %r1718 : u16 [pointer]
+    call @@mir.io.print.u8(%r1719)
+    %r1720 = addr_of @@mir2.str.24 : ptr [pointer]
+    %r1721 = load %r1720 : u8 [general]
+    %r1722 = const 1 : u16 [pointer]
+    %r1723 = add %r1720, %r1722 : ptr [acc]
+    jmp @loop_head84(%r1721, %r1723)
+  block @loop_head84(%r1721: u8 [general], %r1725: ptr [general]):
+    %r1726 = const 0 : u8 [general]
+    %r1727 = cmp.ne %r1721, %r1726 : bool [flag]
+    br_if %r1727, @loop_body85(), @loop_exit86()
+  block @loop_body85:
+    %r1728 = load %r1725 : u8 [general]
+    %r1729 = move %r1728 : u8 [acc]
+    call @@mir.io.print.char(%r1729)
+    %r1730 = const 1 : u16 [pointer]
+    %r1731 = add %r1725, %r1730 : ptr [general]
+    %r1732 = const 1 : u8 [general]
+    %r1733 = sub %r1721, %r1732 : u8 [general]
+    jmp @loop_head84(%r1733, %r1731)
+  block @loop_exit86:
+    %r1734 = addr_of @str_bump : ptr [pointer]
+    %r1735 = load %r1734 : u16 [pointer]
+    %r1736 = addr_of @str_arena : ptr [pointer]
+    %r1737 = load %r1736 : u16 [pointer]
+    %r1738 = sub %r1735, %r1737 : u16 [pointer]
+    call @@mir.io.print.u8(%r1738)
+    %r1739 = addr_of @@mir2.str.25 : ptr [pointer]
+    %r1740 = load %r1739 : u8 [general]
+    %r1741 = const 1 : u16 [pointer]
+    %r1742 = add %r1739, %r1741 : ptr [acc]
+    jmp @loop_head89(%r1740, %r1742)
+  block @loop_head89(%r1740: u8 [general], %r1744: ptr [general]):
+    %r1745 = const 0 : u8 [general]
+    %r1746 = cmp.ne %r1740, %r1745 : bool [flag]
+    br_if %r1746, @loop_body90(), @loop_exit91()
+  block @loop_body90:
+    %r1747 = load %r1744 : u8 [general]
+    %r1748 = move %r1747 : u8 [acc]
+    call @@mir.io.print.char(%r1748)
+    %r1749 = const 1 : u16 [pointer]
+    %r1750 = add %r1744, %r1749 : ptr [general]
+    %r1751 = const 1 : u8 [general]
+    %r1752 = sub %r1740, %r1751 : u8 [general]
+    jmp @loop_head89(%r1752, %r1750)
+  block @loop_exit91:
+    call @@mir.io.print.nl()
+    ret void
+
