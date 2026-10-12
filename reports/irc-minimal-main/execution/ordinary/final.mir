@@ -1,0 +1,134 @@
+; MIR2 module: test_irc_minimal.nanz
+string @mir2.str.0 = "Starting...\n"
+string @mir2.str.1 = "NICK minztest\r\n"
+string @mir2.str.2 = "USER minz 0 * :test\r\n"
+string @mir2.str.3 = "Sent NICK+USER\n"
+string @mir2.str.4 = "\nDone.\n"
+
+extern fun @net_read() -> u8 [acc]
+
+extern fun @net_write(%r1: u8 [acc])
+
+extern fun @ctl_read() -> u8 [acc]
+
+extern fun @ctl_write(%r2: u8 [acc])
+
+fun @net_send(%r3: ptr [pointer])
+  block @entry:
+    %r4 = const 0 : u8 [general]
+    jmp @loop_head1(%r4, %r3)
+  block @loop_head1(%r4: u8 [general], %r6: ptr [general]):
+    %r7 = ext %r4 : u8 -> u16 [index]
+    %r8 = ptr_add %r6, %r7 : ptr [pointer]
+    %r9 = load %r8 : u8 [general]
+    %r10 = const 0 : u8 [general]
+    %r11 = cmp.ne %r9, %r10 : bool [flag]
+    cond_ret %r11, [], @loop_body2()
+  block @loop_body2:
+    %r12 = ext %r4 : u8 -> u16 [index]
+    %r13 = ptr_add %r6, %r12 : ptr [pointer]
+    %r14 = load %r13 : u8 [general]
+    %r15 = move %r14 : u8 [acc]
+    call @net_write(%r15)
+    %r16 = const 1 : u8 [general]
+    %r17 = add %r4, %r16 : u8 [general]
+    jmp @loop_head1(%r17, %r6)
+
+fun @main()
+  block @entry:
+    %r18 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r19 = load %r18 : u8 [general]
+    %r20 = const 1 : u16 [pointer]
+    %r21 = add %r18, %r20 : ptr [acc]
+    jmp @loop_head3(%r19, %r21)
+  block @loop_head3(%r19: u8 [general], %r23: ptr [general]):
+    %r24 = const 0 : u8 [general]
+    %r25 = cmp.ne %r19, %r24 : bool [flag]
+    br_if %r25, @loop_body4(), @loop_exit5()
+  block @loop_body4:
+    %r26 = load %r23 : u8 [general]
+    %r27 = move %r26 : u8 [acc]
+    call @@mir.io.print.char(%r27)
+    %r28 = const 1 : u16 [pointer]
+    %r29 = add %r23, %r28 : ptr [general]
+    %r30 = const 1 : u8 [general]
+    %r31 = sub %r19, %r30 : u8 [general]
+    jmp @loop_head3(%r31, %r29)
+  block @loop_exit5:
+    %r32 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r33 = move %r32 : ptr [pointer]
+    call @net_send(%r33)
+    %r34 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r35 = move %r34 : ptr [pointer]
+    call @net_send(%r35)
+    %r36 = addr_of @@mir2.str.3 : ptr [pointer]
+    %r37 = load %r36 : u8 [general]
+    %r38 = const 1 : u16 [pointer]
+    %r39 = add %r36, %r38 : ptr [acc]
+    jmp @loop_head8(%r37, %r39)
+  block @loop_head8(%r37: u8 [general], %r41: ptr [general]):
+    %r42 = const 0 : u8 [general]
+    %r43 = cmp.ne %r37, %r42 : bool [flag]
+    br_if %r43, @loop_body9(), @loop_exit10()
+  block @loop_body9:
+    %r44 = load %r41 : u8 [general]
+    %r45 = move %r44 : u8 [acc]
+    call @@mir.io.print.char(%r45)
+    %r46 = const 1 : u16 [pointer]
+    %r47 = add %r41, %r46 : ptr [general]
+    %r48 = const 1 : u8 [general]
+    %r49 = sub %r37, %r48 : u8 [general]
+    jmp @loop_head8(%r49, %r47)
+  block @loop_exit10:
+    %r50 = const 0 : u16 [pointer]
+    jmp @loop_head11(%r50)
+  block @loop_head11(%r50: u16 [pointer]):
+    %r52 = const 500 : u16 [pointer]
+    %r53 = cmp.ult %r50, %r52 : bool [flag]
+    br_if %r53, @loop_body12(), @loop_exit13()
+  block @loop_body12:
+    %r54 = call @net_read() : u8 [acc]
+    %r55 = const 0 : u8 [general]
+    %r56 = cmp.ne %r54, %r55 : bool [flag]
+    br_if %r56, @if_then14(), @if_join15(%r50)
+  block @if_then14:
+    %r57 = const 127 : u8 [general]
+    %r58 = and %r54, %r57 : u8 [general]
+    %r59 = const 32 : u8 [general]
+    %r60 = cmp.uge %r58, %r59 : bool [flag]
+    br_if %r60, @if_then16(), @if_join17()
+  block @if_then16:
+    %r61 = move %r58 : u8 [acc]
+    call @@mir.io.print.char(%r61)
+    jmp @if_join17()
+  block @if_join17:
+    %r62 = const 10 : u8 [general]
+    %r63 = cmp.eq %r58, %r62 : bool [flag]
+    call_cc %r63 : void [general]
+    jmp @if_join19()
+  block @if_join19:
+    %r64 = const 1 : u16 [pointer]
+    %r65 = add %r50, %r64 : u16 [pointer]
+    jmp @if_join15(%r65)
+  block @if_join15(%r65: u16 [pointer]):
+    jmp @loop_head11(%r65)
+  block @loop_exit13:
+    %r67 = addr_of @@mir2.str.4 : ptr [pointer]
+    %r68 = load %r67 : u8 [general]
+    %r69 = const 1 : u16 [pointer]
+    %r70 = add %r67, %r69 : ptr [acc]
+    jmp @loop_head22(%r68, %r70)
+  block @loop_head22(%r68: u8 [general], %r72: ptr [general]):
+    %r73 = const 0 : u8 [general]
+    %r74 = cmp.ne %r68, %r73 : bool [flag]
+    cond_ret %r74, [], @loop_body23()
+  block @loop_body23:
+    %r75 = load %r72 : u8 [general]
+    %r76 = move %r75 : u8 [acc]
+    call @@mir.io.print.char(%r76)
+    %r77 = const 1 : u16 [pointer]
+    %r78 = add %r72, %r77 : ptr [general]
+    %r79 = const 1 : u8 [general]
+    %r80 = sub %r68, %r79 : u8 [general]
+    jmp @loop_head22(%r80, %r78)
+
