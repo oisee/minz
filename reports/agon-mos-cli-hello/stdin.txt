@@ -1,0 +1,4 @@
+load hellocli.bin
+run
+a
+echo MINZ_RETURNED

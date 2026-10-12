@@ -1,0 +1,30 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "24b99914cc4cd25a6aedb51bdf668fa0fb124a40485387c7670aee2408860aa7"
+  },
+  {
+    "path": "hello.bin",
+    "sha256": "0ad8bf0695d4a74b974dc5f5e7fec881d468442c3a007b2533cc5e3d1cc8f639"
+  },
+  {
+    "path": "result.json",
+    "sha256": "1b815e1d906694ff91dfd36450850a423fe19ae9ec0a15d45929f981405c3572"
+  },
+  {
+    "path": "source.nanz",
+    "sha256": "4684218e7110368e2122eff39a16dd792dea3bd335383cec6000507505831f77"
+  },
+  {
+    "path": "stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "stdin.txt",
+    "sha256": "1402525cbc63aebb97a90b0ac8a7c642952311239353948b9b68c14a3663f0da"
+  },
+  {
+    "path": "stdout.txt",
+    "sha256": "4688159b23381e2eabe6855309c47727c72aa3c11e814fd237be5250826b8019"
+  }
+]

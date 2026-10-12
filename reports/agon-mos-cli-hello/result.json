@@ -1,0 +1,11 @@
+{
+  "exit_code": 0,
+  "cli_binary_bytes": 188,
+  "expected_program_output": "Hello from MinZ on Agon Light 2!\nPress any key: \nYou pressed a key!\n",
+  "program_output_exact_contiguous": true,
+  "returned_mos_prompt": true,
+  "followup_echo": true,
+  "source_sha256": "4684218e7110368e2122eff39a16dd792dea3bd335383cec6000507505831f77",
+  "bin_sha256": "0ad8bf0695d4a74b974dc5f5e7fec881d468442c3a007b2533cc5e3d1cc8f639",
+  "scope": "ordinary CLI product on real eZ80 CPU/MOS firmware with fake CLI VDP; not full RAM/SP oracle or hardware"
+}
