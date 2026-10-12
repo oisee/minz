@@ -1,0 +1,6 @@
+{
+  "reports/bool-flag-truncation/after.txt": "6772716a2ee97670503bcb518409ef4a79455ee7ed2fcf58f225908e56680521",
+  "reports/bool-flag-truncation/before.txt": "fc605c09f23226cf6e056fb453490b9b09b54facfdf6cc35f4fc46709bd51a1d",
+  "reports/bool-flag-truncation/REPORT.md": "b894f3a1b8cc3b3ef9e86ca530cb7c3bbc1c559aaf6754b4cc86b680f778db8b",
+  "reports/bool-flag-truncation/mir2-tests.txt": "1508a24c80e6ddddb2c0a7941218be11f1c2c6043c29d7d4eaf90cdc8f07bd82"
+}
