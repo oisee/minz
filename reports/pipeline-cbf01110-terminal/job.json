@@ -1,0 +1,24 @@
+{
+  "checkpoint": "cbf01110",
+  "binary": "/home/alice/dev/minz-artifacts/grace-checkpoints/pipeline-cbf01110.test",
+  "binary_sha256": "04b43fb97aae02b529e5503642b55a34a6a7aae9ef4c3e82119e80d20b8995a5",
+  "shared_binary": "/mnt/safe/minz/grace/2026-10-12/compiler-checkpoints/pipeline-cbf01110.test",
+  "pid": 3029523,
+  "session": 10262,
+  "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/pipeline",
+  "args": [
+    "-test.count=1",
+    "-test.timeout=360m",
+    "-test.v"
+  ],
+  "started_recorded_at_utc": "2026-10-12T13:50:06.169774+00:00",
+  "environment": {
+    "VIR_TEST_Z3": "/home/alice/dev/minz-artifacts/grace-tools/z3-python/bin/z3",
+    "INDEXED_ENRT4": "/mnt/safe/z80-compiler/tables/enriched_4v.enr",
+    "INDEXED_ENRT5": "/mnt/safe/z80-compiler/tables/enriched_5v.enr"
+  },
+  "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/pipeline-cbf01110-full.txt",
+  "status": "running, not PASS",
+  "predecessor": "reports/pipeline-b6b4e0c7-terminal/result.json",
+  "scope": "includes late Agon, divmod and C89 fixes; full suite unchanged"
+}

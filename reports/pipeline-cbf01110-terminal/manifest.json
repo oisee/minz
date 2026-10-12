@@ -1,0 +1,24 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 1769,
+      "sha256": "0df2c2ea71b62eb0fde39645d1e7e0d32c99902a410254519dc77b841a1792b1"
+    },
+    {
+      "path": "full.txt",
+      "bytes": 771607,
+      "sha256": "349df7fadd5b9f7b1982da79ed03927c0a6fb997bce884c390afdb2dea02e207"
+    },
+    {
+      "path": "job.json",
+      "bytes": 1082,
+      "sha256": "f90fda0731739997447fdb7d2cb30dc4818f29c74a803a8eadc69e1df1e68670"
+    },
+    {
+      "path": "result.json",
+      "bytes": 706,
+      "sha256": "f76a368da410b9d49f782b5cff697dc288d7fda887ad3b021cc21f95f54d8431"
+    }
+  ]
+}

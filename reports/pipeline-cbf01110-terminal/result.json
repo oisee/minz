@@ -1,0 +1,15 @@
+{
+  "checkpoint": "cbf01110604aaa643db06574ef608d92ee3de899",
+  "session": 10262,
+  "exit_code": 0,
+  "terminal": "PASS",
+  "counts": {
+    "PASS": 548,
+    "FAIL": 0,
+    "SKIP": 17
+  },
+  "observed_at_utc": "2026-10-12T16:45:45.363444+00:00",
+  "log_sha256": "349df7fadd5b9f7b1982da79ed03927c0a6fb997bce884c390afdb2dea02e207",
+  "binary_sha256": "04b43fb97aae02b529e5503642b55a34a6a7aae9ef4c3e82119e80d20b8995a5",
+  "scope": "Immutable cbf01110 production pipeline, including late Agon/divmod/C89 fixes. Later VIR adapters and exact-return table replay test additions excluded. SKIP remains unverified; Lizp implicit-return and PLM Hello policies unresolved. Emulator evidence, not physical hardware."
+}
