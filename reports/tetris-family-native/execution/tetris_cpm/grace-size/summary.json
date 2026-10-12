@@ -1,0 +1,20 @@
+{
+  "by_entry": {
+    "board_get": 51200,
+    "board_set": 51200,
+    "can_place": 672,
+    "clear_lines": 24,
+    "ghost_y": 672,
+    "lock_piece": 672,
+    "piece_dx": 112,
+    "piece_dy": 112,
+    "random_piece": 65536,
+    "rng_next": 65536,
+    "score_lines": 2048,
+    "try_rotate": 672
+  },
+  "calls": 238456,
+  "result": "PASS",
+  "scope": "12 computational entries, full module retained; no terminal/main execution",
+  "source_sha256": "444a07777a59a5fd57e1d57f364232ae7c87eeba9430e665ef170a64b7d3793f"
+}

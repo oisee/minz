@@ -1048,7 +1048,9 @@
   },
   "geometry_authority": "Explicit published source data before compilation: seven tetromino four-cell ordered rotations; source cell enumeration retained because collision short circuit observes order. No generated HIR/ASM/table used as oracle.",
   "book": [
-    "docs/Nanz_Language_Book_v7.md \u00a73.1 integer widths; \u00a73.3 pointers; \u00a76 ordinary for half-open ascending vs range countdown"
+    "docs/Nanz_Language_Book_v7.md \u00a73.1 integer widths",
+    "docs/Nanz_Language_Book_v7.md \u00a72.6 pointers/arrays",
+    "docs/Nanz_Language_Book_v7.md \u00a72.5 ordinary for syntax; \u00a76.2 range countdown"
   ],
   "domains": {
     "rng_next/random_piece": "all65536seeds each",
@@ -1070,5 +1072,7 @@
     "try_rotate",
     "score_lines"
   ],
-  "remaining": "spawn/hold/composedlock main and terminal/BDOS not executed; ZX/archived remain separate uncovered modules"
+  "remaining": "spawn/hold/composedlock main and terminal/BDOS not executed; ZX/archived remain separate uncovered modules",
+  "geometry_relationship": "CPM/TUI published ordered cells frozen separately; exact 112 entries each, compare tetromino four-cell sets as data authority, not emitted artifact.",
+  "address_boundary": "Position sums computed modulo256 including255/254; board storage fixed originalglobal, no claim wrap-crossing board allocation relocation"
 }
