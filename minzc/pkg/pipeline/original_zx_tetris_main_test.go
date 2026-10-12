@@ -160,7 +160,7 @@ func TestOriginalZXTetrisMainInitialization(t *testing.T) {
 					awake := false
 					z.SetIOHandlers(func(p uint16) byte {
 						rows := []byte{0xdf, 0xfb, 0xfd, 0x7f, 0xbf}
-						if !awake || byte(p) != 0xfe || keyReads >= 5 || byte(p>>8) != rows[keyReads] {
+						if !awake || byte(p) != 0xfe || keyReads >= 155 || byte(p>>8) != rows[keyReads%5] {
 							t.Fatal("keyboard", p, keyReads)
 						}
 						keyReads++
@@ -221,74 +221,79 @@ func TestOriginalZXTetrisMainInitialization(t *testing.T) {
 					if typ != 0 || queued != 0 {
 						t.Fatal("initial I queue", typ, queued)
 					}
-					awake = true
-					r := z.GetRegisters()
-					r.PC++
-					z.SetRegisters(r)
-					for y := 0; y < 20; y++ {
-						for x := 0; x < 10; x++ {
-							want[0x5800+(2+y)*32+11+x] = 0
-						}
-					}
-					for x := 3; x < 7; x++ {
-						want[0x5800+21*32+11+x] = 5
-						want[0x5800+2*32+11+x] = 0x28
-					}
-					for _, sx := range []int{23, 5} {
-						for y := 0; y < 4; y++ {
-							for x := 0; x < 4; x++ {
-								want[0x5800+(3+y)*32+sx+x] = 0
+					for frame := 1; frame <= 31; frame++ {
+						awake = true
+						r := z.GetRegisters()
+						r.PC++
+						z.SetRegisters(r)
+						for y := 0; y < 20; y++ {
+							for x := 0; x < 10; x++ {
+								want[0x5800+(2+y)*32+11+x] = 0
 							}
 						}
-					}
-					for x := 0; x < 4; x++ {
-						want[0x5800+3*32+23+x] = 0x28
-					}
-					want[sym("frame_count")] = 1
-					want[sym("frame_count")+1] = 0
-					want[sym("drop_timer")] = 1
-					halt = false
-					for step := 0; step < 5000000; step++ {
-						pc := z.GetPC()
-						if pc < 0x8000 || int(pc) >= 0x8000+len(a.Binary) {
-							t.Fatal("frame fetch", pc)
+						for x := 3; x < 7; x++ {
+							want[0x5800+21*32+11+x] = 5
+							want[0x5800+(2+frame/30)*32+11+x] = 0x28
 						}
-						if mem[pc] == 0x76 {
-							if pc != sym("zx_halt") {
-								t.Fatal("second HALT", pc)
-							}
-							halt = true
-							break
-						}
-						z.Step()
-						if z.GetSP() < minSP {
-							minSP = z.GetSP()
-						}
-						if minSP < 0xe000 || z.GetSP() > 0xf000 {
-							t.Fatal("frame stack")
-						}
-					}
-					if !halt || keyReads != 5 || borders != 1 {
-						t.Fatal("frame incomplete", halt, keyReads, borders)
-					}
-					copy(want[minSP:0xf000], mem[minSP:0xf000])
-					for _, l := range a.Listing {
-						if strings.HasPrefix(l.Label, "_spill_") {
-							copy(want[l.Address:l.Address+len(l.Bytes)], mem[l.Address:l.Address+len(l.Bytes)])
-						}
-					}
-					if !bytes.Equal(want, mem) {
-						for p := range mem {
-							if want[p] != mem[p] {
-								t.Fatalf("frame RAM %04x got %02x want %02x", p, mem[p], want[p])
+						for _, sx := range []int{23, 5} {
+							for y := 0; y < 4; y++ {
+								for x := 0; x < 4; x++ {
+									want[0x5800+(3+y)*32+sx+x] = 0
+								}
 							}
 						}
+						for x := 0; x < 4; x++ {
+							want[0x5800+3*32+23+x] = 0x28
+						}
+						want[sym("frame_count")] = byte(frame)
+						want[sym("frame_count")+1] = 0
+						want[sym("drop_timer")] = byte(frame % 30)
+						want[sym("cur_y")] = byte(frame / 30)
+						halt = false
+						for step := 0; step < 5000000; step++ {
+							pc := z.GetPC()
+							if pc < 0x8000 || int(pc) >= 0x8000+len(a.Binary) {
+								t.Fatal("frame fetch", pc)
+							}
+							if mem[pc] == 0x76 {
+								if pc != sym("zx_halt") {
+									t.Fatal("second HALT", pc)
+								}
+								halt = true
+								break
+							}
+							z.Step()
+							if z.GetSP() < minSP {
+								minSP = z.GetSP()
+							}
+							if minSP < 0xe000 || z.GetSP() > 0xf000 {
+								t.Fatal("frame stack")
+							}
+						}
+						if !halt || keyReads != frame*5 || borders != 1 {
+							t.Fatal("frame incomplete", frame, halt, keyReads, borders)
+						}
+						copy(want[minSP:0xf000], mem[minSP:0xf000])
+						for _, l := range a.Listing {
+							if strings.HasPrefix(l.Label, "_spill_") {
+								copy(want[l.Address:l.Address+len(l.Bytes)], mem[l.Address:l.Address+len(l.Bytes)])
+							}
+						}
+						if !bytes.Equal(want, mem) {
+							for p := range mem {
+								if want[p] != mem[p] {
+									t.Fatalf("frame RAM %04x got %02x want %02x", p, mem[p], want[p])
+								}
+							}
+						}
+						if frame == 1 || frame == 30 || frame == 31 {
+							save(fmt.Sprintf("%s/frame-%d-ram.bin", mode, frame), mem)
+						}
 					}
-					save(mode+"/first-frame-ram.bin", mem)
-					t.Log("first keyboard-free frame/full RAM PASS")
+					t.Log("31 no-key frames including gravity/full RAM PASS")
 					save(mode+"/screen.bin", mem[0x4000:0x5b00])
-					save(mode+"/summary.json", map[string]any{"bytes": len(a.Binary), "T_states": z.GetCycles(), "source_sha256": fmt.Sprintf("%x", sha256.Sum256(src)), "rng": rng, "type": typ, "next": queued, "minimum_sp": minSP, "full_ram": true, "termination": "bounded before first game HALT"})
-					t.Log(len(a.Binary), z.GetCycles(), "initial main prefix/full RAM PASS")
+					save(mode+"/summary.json", map[string]any{"bytes": len(a.Binary), "T_states": z.GetCycles(), "source_sha256": fmt.Sprintf("%x", sha256.Sum256(src)), "rng": rng, "type": typ, "next": queued, "minimum_sp": minSP, "full_ram": true, "termination": "bounded before frame32 game HALT"})
+					t.Log(len(a.Binary), z.GetCycles(), "initial main and31frames/full RAM PASS")
 				})
 			}
 		})
