@@ -1,0 +1,112 @@
+{
+  "actual_parameter_homes": {
+    "abap_write": {
+      "val": "HL"
+    },
+    "abap_write_str": {
+      "str": "HL"
+    },
+    "main": {},
+    "zx__console__any_key_pressed": {},
+    "zx__console__attr_addr": {
+      "col": "A",
+      "row": "B"
+    },
+    "zx__console__con_clear": {},
+    "zx__console__con_draw_char": {
+      "ch": "C",
+      "col": "B",
+      "row": "D"
+    },
+    "zx__console__con_getchar": {},
+    "zx__console__con_goto": {
+      "col": "C",
+      "row": "D"
+    },
+    "zx__console__con_hide_cursor": {},
+    "zx__console__con_init": {
+      "ink": "A",
+      "paper": "C"
+    },
+    "zx__console__con_input": {
+      "buf": "HL",
+      "maxlen": "IXH"
+    },
+    "zx__console__con_newline": {},
+    "zx__console__con_print": {
+      "str": "DE"
+    },
+    "zx__console__con_print_u16": {
+      "val": "HL"
+    },
+    "zx__console__con_print_u8": {
+      "val": "D"
+    },
+    "zx__console__con_putchar": {
+      "ch": "A"
+    },
+    "zx__console__con_scroll": {},
+    "zx__console__con_set_attr": {
+      "ink": "A",
+      "paper": "C"
+    },
+    "zx__console__con_set_bright": {
+      "on": "A"
+    },
+    "zx__console__con_show_cursor": {},
+    "zx__console__scan_row_key": {
+      "base_idx": "C",
+      "row_addr": "A"
+    },
+    "zx__console__screen_addr": {
+      "col": "A",
+      "line": "C",
+      "row": "B"
+    },
+    "zx__console__scroll_attrs": {
+      "row": "B"
+    },
+    "zx__console__scroll_line": {
+      "line": "D",
+      "row": "B"
+    },
+    "zx__console__scroll_row": {
+      "row": "A"
+    },
+    "zx__console__zx_border": {
+      "color": "A"
+    },
+    "zx__console__zx_in_fe": {
+      "high_byte": "A"
+    },
+    "zx__console__zx_peek": {
+      "addr": "HL"
+    },
+    "zx__console__zx_poke": {
+      "addr": "HL",
+      "val": "A"
+    }
+  },
+  "bytes": 2421,
+  "halted": false,
+  "min_sp": 61406,
+  "mode": "ordinary",
+  "native_scope": "original counted literals passed to NUL-reading con_print; frozen failure, not success",
+  "read_ports": [],
+  "registers": {
+    "A": 4,
+    "F": 128,
+    "BC": 4,
+    "DE": 17952,
+    "HL": 17924,
+    "IX": 17955,
+    "IY": 1056,
+    "SP": 61414,
+    "PC": 33603
+  },
+  "returned": false,
+  "source": "examples/abap/hello_zx.nanz",
+  "t_states_before_terminal": 18960007,
+  "write_ports": [],
+  "write_values": ""
+}

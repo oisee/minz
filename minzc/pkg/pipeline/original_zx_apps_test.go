@@ -1,0 +1,238 @@
+package pipeline
+
+import (
+	"encoding/json"
+	"fmt"
+	"github.com/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/nanz"
+	"github.com/minz/minzc/pkg/z80asm"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strconv"
+	"testing"
+)
+
+func TestOriginalZXAppsNative(t *testing.T) {
+	paths := []string{"examples/abap/hello_zx.nanz", "examples/abap/sap_report_zx.nanz", "examples/abap/zsql_mara_color_zx.nanz", "examples/nanz/zsql_zx.nanz", "examples/nanz/zsql_zx_real.nanz"}
+	export := func(name string, b []byte) {
+		if d := os.Getenv("ZX_APPS_EXPORT"); d != "" {
+			p := filepath.Join(d, name)
+			os.MkdirAll(filepath.Dir(p), 0755)
+			if e := os.WriteFile(p, b, 0644); e != nil {
+				t.Fatal(e)
+			}
+		}
+	}
+	for i, path := range paths {
+		for _, mode := range []struct {
+			name string
+			o    Options
+		}{{"ordinary", Options{ContractOpt: true, AssertMode: "none"}}, {"grace-size", Options{ContractOpt: true, AssertMode: "none", UseGrace: true, UseHIRGrace: true, OptSize: true}}, {"grace-speed", Options{ContractOpt: true, AssertMode: "none", UseGrace: true, UseHIRGrace: true}}} {
+			t.Run(fmt.Sprintf("source%d/%s", i, mode.name), func(t *testing.T) {
+				b, e := os.ReadFile("../../../" + path)
+				if e != nil {
+					t.Fatal(e)
+				}
+				prefix := fmt.Sprintf("source%d/%s", i, mode.name)
+				result := map[string]any{"source": path, "mode": mode.name}
+				defer func() { out, _ := json.MarshalIndent(result, "", "  "); export(prefix+".json", out) }()
+				h, e := nanz.ParseWithOpts(string(b), path, nanz.ParseOpts{BaseDir: filepath.Dir("../../../" + path), StdlibDir: "../../../stdlib"})
+				if e != nil {
+					result["parse_error"] = e.Error()
+					t.Log(e)
+					return
+				}
+				s, e := CompileHIRSteps(h, mode.o)
+				if e != nil {
+					result["compile_error"] = e.Error()
+					t.Log(e)
+					return
+				}
+				export(prefix+".a80", []byte(s.Assembly))
+				export(prefix+".mir", []byte(s.MIR2Module.Dump()))
+				a, e := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + s.Assembly)
+				if e != nil || a == nil || len(a.Errors) > 0 {
+					result["assemble_errors"] = fmt.Sprint(e, a.Errors)
+					t.Log(e, a.Errors)
+					return
+				}
+				export(prefix+".bin", a.Binary)
+				result["bytes"] = len(a.Binary)
+				abi := map[string]any{}
+				for _, f := range s.MIR2Module.Funcs {
+					p := map[string]string{}
+					for _, v := range f.Contract.Params {
+						p[v.Name] = s.Allocation.Locs[v.Reg].Name
+					}
+					abi[f.Name] = p
+				}
+				result["actual_parameter_homes"] = abi
+				if i >= 3 {
+					result["native_scope"] = "not executed: requires real SQLite port bridge model"
+					return
+				}
+				z := emulator.NewRemogattoZ80WithScreen()
+				z.SetROMEnd(0)
+				prof := emulator.NewProfiler()
+				z.SetProfiler(prof)
+				for n := range z.Memory() {
+					z.Memory()[n] = byte(n*41 + 29)
+				}
+				z.LoadMemory(0x8000, a.Binary)
+				for ch := 32; ch < 128; ch++ {
+					for line := 0; line < 8; line++ {
+						z.Memory()[0x3d00+(ch-32)*8+line] = byte((ch*17 + line*29) ^ 0x5a)
+					}
+				}
+				reads := []uint16{}
+				writes := []uint16{}
+				values := []byte{}
+				z.SetIOHandlers(func(p uint16) byte {
+					reads = append(reads, p)
+					if len(reads) > 8 && byte(p>>8) == 0xfd {
+						return 0xfe
+					}
+					return 0xff
+				}, func(p uint16, v byte) { writes = append(writes, p); values = append(values, v) })
+				target := a.Symbols["main"]
+				z.LoadMemory(0x7000, []byte{0xcd, byte(target), byte(target >> 8), 0x76})
+				z.SetRegisters(emulator.Registers{PC: 0x7000, SP: 0xf000, A: 0x97, F: 0x45, BC: 0x1234, DE: 0x5678, HL: 0x9abc, IX: 0x1357, IY: 0x2468})
+				before := append([]byte(nil), z.Memory()...)
+				done := false
+				halt := false
+				cycles := int64(0)
+				depth := uint16(0xf000)
+				for n := 0; n < 2000000; n++ {
+					if z.GetPC() == 0x7003 && z.GetSP() == 0xf000 {
+						done = true
+						break
+					}
+					if z.Memory()[z.GetPC()] == 0x76 {
+						halt = true
+						break
+					}
+					cycles += int64(z.Step())
+					if z.GetSP() < depth {
+						depth = z.GetSP()
+					}
+				}
+				result["returned"] = done
+				result["halted"] = halt
+				result["registers"] = z.GetRegisters()
+				result["min_sp"] = depth
+				result["t_states_before_terminal"] = cycles
+				result["read_ports"] = reads
+				result["write_ports"] = writes
+				result["write_values"] = values
+				want := append([]byte(nil), before[0x4000:0x5b00]...)
+				switch i {
+				case 0:
+					result["native_scope"] = "original counted literals passed to NUL-reading con_print; frozen failure, not success"
+					t.Logf("hello original returned=%v halt=%v reads=%d", done, halt, len(reads))
+					return
+				case 1:
+					for n := 0x1800; n < len(want); n++ {
+						want[n] = 0
+					}
+					colors := map[int]byte{0: 0x4f, 1: 0x4e, 3: 0x44, 4: 0x44, 5: 0x44, 7: 0x47, 9: 0x47, 10: 0x45, 11: 0x46, 12: 0x46, 13: 0x46, 15: 0x47, 21: 0x4f}
+					for row, v := range colors {
+						for col := 0; col < 32; col++ {
+							want[0x1800+row*32+col] = v
+						}
+					}
+					fill := func(row, lo, hi int) {
+						for col := lo; col <= hi; col++ {
+							for line := 0; line < 8; line++ {
+								want[((row&0x18)<<8)|(line<<8)|((row&7)<<5)|col] = 0xff
+							}
+						}
+					}
+					fill(0, 2, 27)
+					fill(1, 2, 24)
+					fill(21, 0, 29)
+					for row := 11; row <= 13; row++ {
+						fill(row, 1, 8)
+					}
+					fill(7, 2, 10)
+					fill(7, 12, 17)
+				case 2:
+					for n := range want {
+						want[n] = 0
+					}
+					for n := 0x1800; n < len(want); n++ {
+						want[n] = 7
+					}
+					// Source-level font model: declared u16 globals encoded little-endian, not generated code.
+					reFont := regexp.MustCompile(`global (?:_zx_font|_f[0-9a-z]+): u16 = (0x[0-9A-Fa-f]+)`)
+					font := []byte{}
+					for _, m := range reFont.FindAllStringSubmatch(string(b), -1) {
+						v, _ := strconv.ParseUint(m[1], 0, 16)
+						font = append(font, byte(v), byte(v>>8))
+					}
+					row, col := 0, 0
+					main := string(b)
+					main = main[regexp.MustCompile(`fun main\(\)`).FindStringIndex(main)[0]:]
+					main = main[:regexp.MustCompile(`// ZX font data`).FindStringIndex(main)[0]]
+					actions := regexp.MustCompile(`zx_attr_row\((\d+), (0x[0-9A-Fa-f]+)\)|zx_puts\(c"([^"]*)"\)`)
+					for _, m := range actions.FindAllStringSubmatch(main, -1) {
+						if m[1] != "" {
+							r, _ := strconv.Atoi(m[1])
+							v, _ := strconv.ParseUint(m[2], 0, 8)
+							for c := 0; c < 32; c++ {
+								want[0x1800+r*32+c] = byte(v)
+							}
+						} else {
+							for _, ch := range []byte(m[3]) {
+								for line := 0; line < 8; line++ {
+									idx := (int(ch)-32)*8 + line
+									if idx < 0 || idx >= len(font) {
+										result["missing_source_font_bytes"] = len(font)
+										result["first_unbacked_char"] = ch
+										result["native_scope"] = "incomplete source font, no complete text oracle"
+										t.Logf("source font has %d bytes; character %q outside font", len(font), ch)
+										return
+									}
+									want[((row&0x18)<<8)|(line<<8)|((row&7)<<5)|col] = font[idx]
+								}
+								col++
+								if col == 32 {
+									row++
+									col = 0
+								}
+							}
+							row++
+							col = 0
+						}
+					}
+					result["expected_row"] = row
+					result["expected_col"] = col
+				}
+				mismatch := -1
+				for n, v := range want {
+					if z.Memory()[0x4000+n] != v {
+						mismatch = 0x4000 + n
+						break
+					}
+				}
+				result["first_screen_mismatch"] = mismatch
+				outside := []int{}
+				for n := range z.Memory() {
+					allowed := (n >= 0x4000 && n <= 0x5aff) || (n >= int(depth) && n < 0xf000)
+					if i == 2 && (n == int(a.Symbols["_zx_row"]) || n == int(a.Symbols["_zx_col"])) {
+						allowed = true
+					}
+					if !allowed && (z.Memory()[n] != before[n] || prof.WriteCount[n] != 0) {
+						outside = append(outside, n)
+					}
+				}
+				result["outside_allowed_writes"] = outside
+				result["native_pass"] = halt && z.GetSP() == 0xeffe && mismatch < 0 && len(outside) == 0 && fmt.Sprint(writes) == "[510]" && fmt.Sprint(values) == "[1]" && len(reads) == 0
+				t.Logf("original app halted=%v mismatch=%04x outside=%d SP=%04x", halt, mismatch, len(outside), z.GetSP())
+				if i == 1 && result["native_pass"] != true {
+					t.Fatal("native model", result)
+				}
+			})
+		}
+	}
+}

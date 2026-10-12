@@ -1,0 +1,391 @@
+; MIR2 module: examples/nanz/zsql_zx.nanz
+string @mir2.str.0 = "OK"
+string @mir2.str.1 = " | "
+string @mir2.str.2 = "zsql> "
+string @mir2.str.3 = ".help .quit"
+string @mir2.str.4 = " ZSQL - Z80 SQLite on Spectrum"
+string @mir2.str.5 = " Type SQL. Connected :memory: "
+string @mir2.str.6 = ":memory:"
+string @mir2.str.7 = "Bye!"
+global const @sql__sqlite__SQLITE_OK : u8
+global const @sql__sqlite__SQLITE_ERROR : u8
+global const @sql__sqlite__SQLITE_ROW : u8
+global const @sql__sqlite__SQLITE_DONE : u8
+global @sql__sqlite___sql_buf : [256]u8
+global @_zx_row : u8
+global @_zx_col : u8
+global @db : u16
+global @_sel_stmt : u16
+global @_zx_inbuf : u16
+global @_zx_inbuf2 : u16
+global @_zx_inbuf3 : u16
+global @_zx_inbuf4 : u16
+global @_zx_inbuf5 : u16
+global @_zx_inbuf6 : u16
+global @_zx_inbuf7 : u16
+global @_zx_inbuf8 : u16
+global @_zx_inbuf9 : u16
+global @_zx_inbufa : u16
+global @_zx_inbufb : u16
+global @_zx_inbufc : u16
+global @_zx_inbufd : u16
+global @_zx_inbufe : u16
+global @_zx_inbuff : u16
+global @_zx_inbufg : u16
+global @_zx_inbufh : u16
+global @_zx_inbufi : u16
+global @_zx_inbufj : u16
+global @_zx_inbufk : u16
+
+fun @sql__sqlite___sql_send_str(%r1: ptr [pointer])
+  block @entry:
+    asm ".loop:\n        LD A, (HL)\n        OUT (0x45), A\n        OR A\n        RET Z\n        INC HL\n        JR .loop"
+    ret void
+
+fun @sql__sqlite___sql_recv_str(%r2: ptr [pointer]) -> ptr [pointer]
+  block @entry:
+    %r3 = asm "PUSH HL\n        .loop:\n        IN A, (0x45)\n        LD (HL), A\n        OR A\n        JR Z, .done\n        INC HL\n        JR .loop\n        .done:\n        POP HL"
+    ret void
+
+fun @sql__sqlite__sqlite_open(%r4: ptr [pointer]) -> u16 [pointer]
+  block @entry:
+    %r5 = move %r4 : ptr [pointer]
+    call @sql__sqlite___sql_send_str(%r5)
+    %r6 = asm "LD A, 1\n        OUT (0x41), A\n        IN A, (0x43)\n        LD L, A\n        LD H, 0"
+    ret void
+
+fun @sql__sqlite__sqlite_close(%r7: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    %r8 = asm "LD A, L\n        OUT (0x45), A\n        LD A, 2\n        OUT (0x41), A\n        IN A, (0x43)"
+    ret void
+
+fun @sql__sqlite__sqlite_exec(%r9: u16 [pointer], %r10: ptr [pointer]) -> u8 [acc]
+  block @entry:
+    %r11 = asm "; HL=db, DE=sql\n        LD A, L\n        OUT (0x47), A       ; handle via hi port\n        ; Send SQL string from DE\n        EX DE, HL           ; HL = sql\n        .send:\n        LD A, (HL)\n        OUT (0x45), A\n        OR A\n        JR Z, .exec\n        INC HL\n        JR .send\n        .exec:\n        LD A, 8\n        OUT (0x41), A\n        IN A, (0x43)"
+    ret void
+
+fun @sql__sqlite__sqlite_query(%r12: u16 [pointer], %r13: ptr [pointer]) -> u16 [pointer]
+  block @entry:
+    %r14 = asm "LD A, L\n        OUT (0x47), A       ; handle via hi port\n        EX DE, HL\n        .send:\n        LD A, (HL)\n        OUT (0x45), A\n        OR A\n        JR Z, .qry\n        INC HL\n        JR .send\n        .qry:\n        LD A, 3\n        OUT (0x41), A\n        IN A, (0x43)\n        LD L, A\n        LD H, 0"
+    ret void
+
+fun @sql__sqlite__sqlite_step(%r15: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    %r16 = asm "LD A, L\n        OUT (0x45), A\n        LD A, 4\n        OUT (0x41), A\n        IN A, (0x43)"
+    ret void
+
+fun @sql__sqlite__sqlite_column_text(%r17: u16 [pointer], %r18: u8 [general]) -> ptr [pointer]
+  block @entry:
+    asm "; HL=q, A=col\n        PUSH AF\n        LD A, L\n        OUT (0x45), A\n        POP AF\n        OUT (0x47), A\n        LD A, 5\n        OUT (0x41), A"
+    %r19 = addr_of @sql__sqlite___sql_buf : ptr [pointer]
+    %r20 = move %r19 : ptr [pointer]
+    %r21 = call @sql__sqlite___sql_recv_str(%r20) : ptr [pointer]
+    ret %r21
+
+fun @sql__sqlite__sqlite_column_int(%r22: u16 [pointer], %r23: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r24 = asm "PUSH AF\n        LD A, L\n        OUT (0x45), A\n        POP AF\n        OUT (0x47), A\n        LD A, 6\n        OUT (0x41), A\n        IN A, (0x45)\n        LD L, A\n        IN A, (0x47)\n        LD H, A"
+    ret void
+
+fun @sql__sqlite__sqlite_finalize(%r25: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    %r26 = asm "LD A, L\n        OUT (0x45), A\n        LD A, 7\n        OUT (0x41), A\n        IN A, (0x43)"
+    ret void
+
+fun @_zxch(%r27: u8 [acc])
+  block @entry:
+    asm "CP 13\n        JR Z, ._nl\n        CP 10\n        JR Z, ._nl\n        SUB 32\n        LD L, A\n        LD H, 0\n        ADD HL, HL\n        ADD HL, HL\n        ADD HL, HL\n        LD DE, _font_anchor\n        ADD HL, DE\n        PUSH HL\n        LD A, (_zx_row)\n        LD C, A\n        LD A, (_zx_col)\n        LD B, A\n        LD A, C\n        AND 0x07\n        RRCA\n        RRCA\n        RRCA\n        AND 0xE0\n        OR B\n        LD L, A\n        LD A, C\n        AND 0x18\n        OR 0x40\n        LD H, A\n        POP DE\n        LD B, 8\n        ._cp: LD A, (DE)\n        LD (HL), A\n        INC DE\n        INC H\n        DJNZ ._cp\n        LD HL, _zx_col\n        INC (HL)\n        LD A, (HL)\n        CP 32\n        RET NZ\n        LD (HL), 0\n        DEC HL\n        INC (HL)\n        RET\n        ._nl: LD HL, _zx_row\n        INC (HL)\n        INC HL\n        LD (HL), 0"
+    ret void
+
+fun @zx_puts(%r28: ptr [pointer])
+  block @entry:
+    asm "PUSH IX\n        PUSH HL\n        POP IX\n        .lp: LD A, (IX+0)\n        OR A\n        JR Z, .dn\n        PUSH IX\n        CALL _zxch\n        POP IX\n        INC IX\n        JR .lp\n        .dn: POP IX"
+    ret void
+
+fun @zx_newline()
+  block @entry:
+    %r29 = const 13 : u8 [acc]
+    call @_zxch(%r29)
+    ret void
+
+fun @zx_cls()
+  block @entry:
+    asm "LD HL, 0x4000\n        LD DE, 0x4001\n        LD BC, 6143\n        LD (HL), 0\n        LDIR\n        LD HL, 0x5800\n        LD DE, 0x5801\n        LD BC, 767\n        LD (HL), 0x47\n        LDIR\n        LD HL, _zx_row\n        LD (HL), 0\n        INC HL\n        LD (HL), 0"
+    ret void
+
+fun @zx_attr_row(%r30: u8 [acc], %r31: u8 [general])
+  block @entry:
+    asm "LD H, 0\n        LD L, A\n        ADD HL, HL\n        ADD HL, HL\n        ADD HL, HL\n        ADD HL, HL\n        ADD HL, HL\n        LD DE, 0x5800\n        ADD HL, DE\n        LD B, 32\n        .f: LD (HL), C\n        INC HL\n        DJNZ .f"
+    ret void
+
+fun @zx_readline() -> u8 [acc]
+  block @entry:
+    %r32 = asm "LD IX, _zx_inbuf\n        LD B, 0\n        ._poll: IN A, (0x23)\n        OR A\n        JR Z, ._poll\n        AND 0x7F\n        CP 13\n        JR Z, ._done\n        CP 10\n        JR Z, ._done\n        LD (IX+0), A\n        INC IX\n        INC B\n        PUSH BC\n        CALL _zxch\n        POP BC\n        LD A, B\n        CP 60\n        JR NZ, ._poll\n        ._done: LD (IX+0), 0\n        PUSH BC\n        LD A, 13\n        CALL _zxch\n        POP BC\n        LD A, B"
+    ret void
+
+fun @zx_getinput() -> ptr [pointer]
+  block @entry:
+    %r33 = asm "LD HL, _zx_inbuf"
+    ret void
+
+fun @first_char(%r34: ptr [pointer]) -> u8 [acc]
+  block @entry:
+    %r35 = asm "LD A, (HL)"
+    ret void
+
+fun @_do_exec(%r36: ptr [pointer])
+  block @entry:
+    asm "EX DE, HL\n        LD HL, (db)\n        CALL sql__sqlite__sqlite_exec"
+    %r37 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r38 = move %r37 : ptr [pointer]
+    call @zx_puts(%r38)
+    call @zx_newline()
+    ret void
+
+fun @_sql_query(%r39: ptr [pointer])
+  block @entry:
+    asm "EX DE, HL\n        LD HL, (db)\n        CALL sql__sqlite__sqlite_query\n        LD (_sel_stmt), HL"
+    ret void
+
+fun @_step1() -> u8 [acc]
+  block @entry:
+    %r40 = asm "LD HL, (_sel_stmt)\n        CALL sql__sqlite__sqlite_step"
+    ret void
+
+fun @_print_col(%r41: u8 [acc])
+  block @entry:
+    asm "LD C, A\n        LD HL, (_sel_stmt)\n        CALL sql__sqlite__sqlite_column_text\n        ; HL = text pointer\n        PUSH IX\n        PUSH HL\n        POP IX\n        .lp: LD A, (IX+0)\n        OR A\n        JR Z, .dn\n        PUSH IX\n        CALL _zxch\n        POP IX\n        INC IX\n        JR .lp\n        .dn: POP IX"
+    ret void
+
+fun @_finalize1()
+  block @entry:
+    asm "LD HL, (_sel_stmt)\n        CALL sql__sqlite__sqlite_finalize"
+    ret void
+
+fun @_do_select(%r42: ptr [pointer])
+  block @entry:
+    %r43 = move %r42 : ptr [pointer]
+    call @_sql_query(%r43)
+    %r44 = call @_step1() : u8 [acc]
+    %r45 = const 1 : u8 [general]
+    %r46 = cmp.eq %r44, %r45 : bool [flag]
+    br_if %r46, @if_then1(), @if_join2()
+  block @if_then1:
+    %r47 = const 0 : u8 [acc]
+    call @_print_col(%r47)
+    %r48 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r49 = move %r48 : ptr [pointer]
+    call @zx_puts(%r49)
+    %r50 = const 1 : u8 [acc]
+    call @_print_col(%r50)
+    call @zx_newline()
+    jmp @if_join2()
+  block @if_join2:
+    %r51 = call @_step1() : u8 [acc]
+    %r52 = const 1 : u8 [general]
+    %r53 = cmp.eq %r51, %r52 : bool [flag]
+    br_if %r53, @if_then3(), @if_join4()
+  block @if_then3:
+    %r54 = const 0 : u8 [acc]
+    call @_print_col(%r54)
+    %r55 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r56 = move %r55 : ptr [pointer]
+    call @zx_puts(%r56)
+    %r57 = const 1 : u8 [acc]
+    call @_print_col(%r57)
+    call @zx_newline()
+    jmp @if_join4()
+  block @if_join4:
+    %r58 = call @_step1() : u8 [acc]
+    %r59 = const 1 : u8 [general]
+    %r60 = cmp.eq %r58, %r59 : bool [flag]
+    br_if %r60, @if_then5(), @if_join6()
+  block @if_then5:
+    %r61 = const 0 : u8 [acc]
+    call @_print_col(%r61)
+    %r62 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r63 = move %r62 : ptr [pointer]
+    call @zx_puts(%r63)
+    %r64 = const 1 : u8 [acc]
+    call @_print_col(%r64)
+    call @zx_newline()
+    jmp @if_join6()
+  block @if_join6:
+    %r65 = call @_step1() : u8 [acc]
+    %r66 = const 1 : u8 [general]
+    %r67 = cmp.eq %r65, %r66 : bool [flag]
+    br_if %r67, @if_then7(), @if_join8()
+  block @if_then7:
+    %r68 = const 0 : u8 [acc]
+    call @_print_col(%r68)
+    %r69 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r70 = move %r69 : ptr [pointer]
+    call @zx_puts(%r70)
+    %r71 = const 1 : u8 [acc]
+    call @_print_col(%r71)
+    call @zx_newline()
+    jmp @if_join8()
+  block @if_join8:
+    %r72 = call @_step1() : u8 [acc]
+    %r73 = const 1 : u8 [general]
+    %r74 = cmp.eq %r72, %r73 : bool [flag]
+    br_if %r74, @if_then9(), @if_join10()
+  block @if_then9:
+    %r75 = const 0 : u8 [acc]
+    call @_print_col(%r75)
+    %r76 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r77 = move %r76 : ptr [pointer]
+    call @zx_puts(%r77)
+    %r78 = const 1 : u8 [acc]
+    call @_print_col(%r78)
+    call @zx_newline()
+    jmp @if_join10()
+  block @if_join10:
+    %r79 = call @_step1() : u8 [acc]
+    %r80 = const 1 : u8 [general]
+    %r81 = cmp.eq %r79, %r80 : bool [flag]
+    br_if %r81, @if_then11(), @if_join12()
+  block @if_then11:
+    %r82 = const 0 : u8 [acc]
+    call @_print_col(%r82)
+    %r83 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r84 = move %r83 : ptr [pointer]
+    call @zx_puts(%r84)
+    %r85 = const 1 : u8 [acc]
+    call @_print_col(%r85)
+    call @zx_newline()
+    jmp @if_join12()
+  block @if_join12:
+    %r86 = call @_step1() : u8 [acc]
+    %r87 = const 1 : u8 [general]
+    %r88 = cmp.eq %r86, %r87 : bool [flag]
+    br_if %r88, @if_then13(), @if_join14()
+  block @if_then13:
+    %r89 = const 0 : u8 [acc]
+    call @_print_col(%r89)
+    %r90 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r91 = move %r90 : ptr [pointer]
+    call @zx_puts(%r91)
+    %r92 = const 1 : u8 [acc]
+    call @_print_col(%r92)
+    call @zx_newline()
+    jmp @if_join14()
+  block @if_join14:
+    %r93 = call @_step1() : u8 [acc]
+    %r94 = const 1 : u8 [general]
+    %r95 = cmp.eq %r93, %r94 : bool [flag]
+    br_if %r95, @if_then15(), @if_join16()
+  block @if_then15:
+    %r96 = const 0 : u8 [acc]
+    call @_print_col(%r96)
+    %r97 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r98 = move %r97 : ptr [pointer]
+    call @zx_puts(%r98)
+    %r99 = const 1 : u8 [acc]
+    call @_print_col(%r99)
+    call @zx_newline()
+    jmp @if_join16()
+  block @if_join16:
+    call @_finalize1()
+    call @zx_newline()
+    ret void
+
+fun @_prompt()
+  block @entry:
+    %r100 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r101 = move %r100 : ptr [pointer]
+    call @zx_puts(%r101)
+    %r102 = call @zx_readline() : u8 [acc]
+    %r103 = const 0 : u8 [general]
+    %r104 = cmp.eq %r102, %r103 : bool [flag]
+    br_if %r104, @if_then1(), @if_join2()
+  block @if_then1:
+    ret void
+  block @if_join2:
+    %r105 = call @zx_getinput() : ptr [pointer]
+    %r106 = move %r105 : ptr [pointer]
+    %r107 = call @first_char(%r106) : u8 [acc]
+    %r108 = const 46 : u8 [general]
+    %r109 = cmp.eq %r107, %r108 : bool [flag]
+    br_if %r109, @if_then3(), @if_join4()
+  block @if_then3:
+    %r110 = addr_of @@mir2.str.3 : ptr [pointer]
+    %r111 = move %r110 : ptr [pointer]
+    call @zx_puts(%r111)
+    call @zx_newline()
+    ret void
+  block @if_join4:
+    %r112 = const 83 : u8 [general]
+    %r113 = cmp.eq %r107, %r112 : bool [flag]
+    br_if %r113, @if_then5(), @if_join6()
+  block @if_then5:
+    %r114 = move %r105 : ptr [pointer]
+    call @_do_select(%r114)
+    ret void
+  block @if_join6:
+    %r115 = const 115 : u8 [general]
+    %r116 = cmp.eq %r107, %r115 : bool [flag]
+    br_if %r116, @if_then7(), @if_join8()
+  block @if_then7:
+    %r117 = move %r105 : ptr [pointer]
+    call @_do_select(%r117)
+    ret void
+  block @if_join8:
+    %r118 = move %r105 : ptr [pointer]
+    call @_do_exec(%r118)
+    ret void
+
+fun @main()
+  block @entry:
+    call @zx_cls()
+    asm "LD A, 1\n    OUT (0xFE), A"
+    %r119 = const 0 : u8 [acc]
+    %r120 = const 79 : u8 [general]
+    call @zx_attr_row(%r119, %r120)
+    %r121 = addr_of @@mir2.str.4 : ptr [pointer]
+    %r122 = move %r121 : ptr [pointer]
+    call @zx_puts(%r122)
+    call @zx_newline()
+    %r123 = const 1 : u8 [acc]
+    %r124 = const 78 : u8 [general]
+    call @zx_attr_row(%r123, %r124)
+    %r125 = addr_of @@mir2.str.5 : ptr [pointer]
+    %r126 = move %r125 : ptr [pointer]
+    call @zx_puts(%r126)
+    call @zx_newline()
+    call @zx_newline()
+    %r127 = addr_of @@mir2.str.6 : ptr [pointer]
+    %r128 = move %r127 : ptr [pointer]
+    %r129 = call @sql__sqlite__sqlite_open(%r128) : u16 [pointer]
+    %r130 = addr_of @db : ptr [pointer]
+    store %r130, %r129 : u16
+    call @_prompt()
+    call @_prompt()
+    call @_prompt()
+    call @_prompt()
+    call @_prompt()
+    call @_prompt()
+    call @_prompt()
+    call @_prompt()
+    call @_prompt()
+    call @_prompt()
+    call @_prompt()
+    call @_prompt()
+    call @_prompt()
+    call @_prompt()
+    call @_prompt()
+    call @_prompt()
+    %r131 = addr_of @db : ptr [pointer]
+    %r132 = load %r131 : u16 [pointer]
+    %r133 = call @sql__sqlite__sqlite_close(%r132) : u8 [acc]
+    %r134 = addr_of @@mir2.str.7 : ptr [pointer]
+    %r135 = move %r134 : ptr [pointer]
+    call @zx_puts(%r135)
+    asm "DI\n    HALT"
+    ret void
+
+fun @_font_anchor()
+  block @entry:
+    asm "DB $00, $00, $00, $00, $00, $00, $00, $00\n    DB $00, $10, $10, $10, $10, $00, $10, $00\n    DB $00, $24, $24, $00, $00, $00, $00, $00\n    DB $00, $24, $7E, $24, $24, $7E, $24, $00\n    DB $00, $08, $3E, $28, $3E, $0A, $3E, $08\n    DB $00, $62, $64, $08, $10, $26, $46, $00\n    DB $00, $10, $28, $10, $2A, $44, $3A, $00\n    DB $00, $08, $10, $00, $00, $00, $00, $00\n    DB $00, $04, $08, $08, $08, $08, $04, $00\n    DB $00, $20, $10, $10, $10, $10, $20, $00\n    DB $00, $00, $14, $08, $3E, $08, $14, $00\n    DB $00, $00, $08, $08, $3E, $08, $08, $00\n    DB $00, $00, $00, $00, $00, $08, $08, $10\n    DB $00, $00, $00, $00, $3E, $00, $00, $00\n    DB $00, $00, $00, $00, $00, $18, $18, $00\n    DB $00, $00, $02, $04, $08, $10, $20, $00\n    DB $00, $3C, $46, $4A, $52, $62, $3C, $00\n    DB $00, $18, $28, $08, $08, $08, $3E, $00\n    DB $00, $3C, $42, $02, $3C, $40, $7E, $00\n    DB $00, $3C, $42, $0C, $02, $42, $3C, $00\n    DB $00, $08, $18, $28, $48, $7E, $08, $00\n    DB $00, $7E, $40, $7C, $02, $42, $3C, $00\n    DB $00, $3C, $40, $7C, $42, $42, $3C, $00\n    DB $00, $7E, $02, $04, $08, $10, $10, $00\n    DB $00, $3C, $42, $3C, $42, $42, $3C, $00\n    DB $00, $3C, $42, $42, $3E, $02, $3C, $00\n    DB $00, $00, $00, $10, $00, $00, $10, $00\n    DB $00, $00, $10, $00, $00, $10, $10, $20\n    DB $00, $00, $04, $08, $10, $08, $04, $00\n    DB $00, $00, $00, $3E, $00, $3E, $00, $00\n    DB $00, $00, $10, $08, $04, $08, $10, $00\n    DB $00, $3C, $42, $04, $08, $00, $08, $00\n    DB $00, $3C, $4A, $56, $5E, $40, $3C, $00\n    DB $00, $3C, $42, $42, $7E, $42, $42, $00\n    DB $00, $7C, $42, $7C, $42, $42, $7C, $00\n    DB $00, $3C, $42, $40, $40, $42, $3C, $00\n    DB $00, $78, $44, $42, $42, $44, $78, $00\n    DB $00, $7E, $40, $7C, $40, $40, $7E, $00\n    DB $00, $7E, $40, $7C, $40, $40, $40, $00\n    DB $00, $3C, $42, $40, $4E, $42, $3C, $00\n    DB $00, $42, $42, $7E, $42, $42, $42, $00\n    DB $00, $3E, $08, $08, $08, $08, $3E, $00\n    DB $00, $02, $02, $02, $42, $42, $3C, $00\n    DB $00, $44, $48, $70, $48, $44, $42, $00\n    DB $00, $40, $40, $40, $40, $40, $7E, $00\n    DB $00, $42, $66, $5A, $42, $42, $42, $00\n    DB $00, $42, $62, $52, $4A, $46, $42, $00\n    DB $00, $3C, $42, $42, $42, $42, $3C, $00\n    DB $00, $7C, $42, $42, $7C, $40, $40, $00\n    DB $00, $3C, $42, $42, $52, $4A, $3C, $00\n    DB $00, $7C, $42, $42, $7C, $44, $42, $00\n    DB $00, $3C, $40, $3C, $02, $42, $3C, $00\n    DB $00, $7F, $08, $08, $08, $08, $08, $00\n    DB $00, $42, $42, $42, $42, $42, $3C, $00\n    DB $00, $42, $42, $42, $42, $24, $18, $00\n    DB $00, $42, $42, $42, $42, $5A, $24, $00\n    DB $00, $42, $24, $18, $18, $24, $42, $00\n    DB $00, $22, $14, $08, $08, $08, $08, $00\n    DB $00, $7E, $04, $08, $10, $20, $7E, $00\n    DB $00, $0E, $08, $08, $08, $08, $0E, $00\n    DB $00, $00, $40, $20, $10, $08, $04, $00\n    DB $00, $70, $10, $10, $10, $10, $70, $00\n    DB $00, $10, $38, $54, $10, $10, $10, $00\n    DB $00, $00, $00, $00, $00, $00, $00, $FF\n    DB $00, $10, $08, $00, $00, $00, $00, $00\n    DB $00, $00, $38, $04, $3C, $44, $3C, $00\n    DB $00, $20, $20, $3C, $22, $22, $3C, $00\n    DB $00, $00, $1C, $20, $20, $20, $1C, $00\n    DB $00, $04, $04, $3C, $44, $44, $3C, $00\n    DB $00, $00, $38, $44, $78, $40, $3C, $00\n    DB $00, $0C, $10, $18, $10, $10, $10, $00\n    DB $00, $00, $3C, $44, $44, $3C, $04, $38\n    DB $00, $40, $40, $78, $44, $44, $44, $00\n    DB $00, $10, $00, $30, $10, $10, $38, $00\n    DB $00, $04, $00, $04, $04, $04, $24, $18\n    DB $00, $20, $28, $30, $30, $28, $24, $00\n    DB $00, $10, $10, $10, $10, $10, $0C, $00\n    DB $00, $00, $68, $54, $54, $54, $54, $00\n    DB $00, $00, $78, $44, $44, $44, $44, $00\n    DB $00, $00, $38, $44, $44, $44, $38, $00\n    DB $00, $00, $78, $44, $44, $78, $40, $40\n    DB $00, $00, $3C, $44, $44, $3C, $04, $06\n    DB $00, $00, $1C, $20, $20, $20, $20, $00\n    DB $00, $00, $38, $40, $38, $04, $78, $00\n    DB $00, $10, $38, $10, $10, $10, $0C, $00\n    DB $00, $00, $44, $44, $44, $44, $38, $00\n    DB $00, $00, $44, $44, $28, $28, $10, $00\n    DB $00, $00, $44, $54, $54, $54, $28, $00\n    DB $00, $00, $44, $28, $10, $28, $44, $00\n    DB $00, $00, $44, $44, $44, $3C, $04, $38\n    DB $00, $00, $7C, $08, $10, $20, $7C, $00"
+    ret void
+
