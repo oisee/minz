@@ -1,0 +1,54 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "b17a850043fb7c9d29d00c15d498796984ca7b68aee44b7787c3e95b2fe83592"
+  },
+  {
+    "path": "asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "expected-ansi.bin",
+    "sha256": "f529465a65c2631ac498e48ce3a7f6386c5e34d2f41c1adcfe4c86b361e88193"
+  },
+  {
+    "path": "observed-ansi.bin",
+    "sha256": "f529465a65c2631ac498e48ce3a7f6386c5e34d2f41c1adcfe4c86b361e88193"
+  },
+  {
+    "path": "program.asm",
+    "sha256": "69489f4ded4603785877a6c60b22f542c30e3c144ebc7d55cdd67b952a70c558"
+  },
+  {
+    "path": "program.bin",
+    "sha256": "36c5057762c965c79066a0227117df4f4f86cdd795ffacc3bef2238131f18bb5"
+  },
+  {
+    "path": "result.json",
+    "sha256": "bc7765221b2ab97e08f40d7867871b136e756b56b1de8b55585957bc18820bed"
+  },
+  {
+    "path": "sdcard/program.bin",
+    "sha256": "36c5057762c965c79066a0227117df4f4f86cdd795ffacc3bef2238131f18bb5"
+  },
+  {
+    "path": "source.nanz",
+    "sha256": "8063ebaf25ab5faff632017874a06d1db25019fa7efe559c4d0cfc6f3b3e9b38"
+  },
+  {
+    "path": "stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "stdin.txt",
+    "sha256": "e982063ff8e33378e14d5a8d9c1f3371a1ab692d9bdddc9ccb394e4d7ff75ff3"
+  },
+  {
+    "path": "stdout.txt",
+    "sha256": "fc4dc8fd26a3106b5fe35c1fa45db280bd114b4e78cea3f19db1bc2ca414d778"
+  }
+]

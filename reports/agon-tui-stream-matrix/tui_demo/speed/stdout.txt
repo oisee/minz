@@ -1,0 +1,58 @@
+Tom's Fake VDP Version 1.03
+unknown packet VDU 0x17, 0, 0x94
+
+Agon Console8 MOS Version 2.3.3 Rainbow
+
+/ *load program.bin
+/ *run
+Unknown packet VDU 0x1b
+[2JUnknown packet VDU 0x1b
+[HUnknown packet VDU 0x1b
+[?25lUnknown packet VDU 0x1b
+[01;01HUnknown packet VDU 0x1b
+[30;46m MinZ TUI Demo for Agon Light 2                                                Unknown packet VDU 0x1b
+[97;104mUnknown packet VDU 0x1b
+[03;03H+----------------------------------+Unknown packet VDU 0x1b
+[04;03H|Unknown packet VDU 0x1b
+[04;38H|Unknown packet VDU 0x1b
+[05;03H|Unknown packet VDU 0x1b
+[05;38H|Unknown packet VDU 0x1b
+[06;03H|Unknown packet VDU 0x1b
+[06;38H|Unknown packet VDU 0x1b
+[07;03H|Unknown packet VDU 0x1b
+[07;38H|Unknown packet VDU 0x1b
+[08;03H|Unknown packet VDU 0x1b
+[08;38H|Unknown packet VDU 0x1b
+[09;03H|Unknown packet VDU 0x1b
+[09;38H|Unknown packet VDU 0x1b
+[10;03H|Unknown packet VDU 0x1b
+[10;38H|Unknown packet VDU 0x1b
+[11;03H|Unknown packet VDU 0x1b
+[11;38H|Unknown packet VDU 0x1b
+[12;03H|Unknown packet VDU 0x1b
+[12;38H|Unknown packet VDU 0x1b
+[13;03H|Unknown packet VDU 0x1b
+[13;38H|Unknown packet VDU 0x1b
+[14;03H+----------------------------------+Unknown packet VDU 0x1b
+[03;05HUnknown packet VDU 0x1b
+[30;46m Panel Unknown packet VDU 0x1b
+[05;05HUnknown packet VDU 0x1b
+[97;104mWhite on blueUnknown packet VDU 0x1b
+[06;05HUnknown packet VDU 0x1b
+[93;104mYellow on blueUnknown packet VDU 0x1b
+[07;05HUnknown packet VDU 0x1b
+[92;104mGreen on blueUnknown packet VDU 0x1b
+[08;05HUnknown packet VDU 0x1b
+[31;44mRed on blueUnknown packet VDU 0x1b
+[10;05HUnknown packet VDU 0x1b
+[96;104meZ80 @ 18.432 MHzUnknown packet VDU 0x1b
+[11;05HUnknown packet VDU 0x1b
+[37;44mCompiled with MinZUnknown packet VDU 0x1b
+[25;01HUnknown packet VDU 0x1b
+[30;46m Press any key to exit                                                          Unknown packet VDU 0x1b
+[?25hUnknown packet VDU 0x1b
+[0mUnknown packet VDU 0x1b
+[2JUnknown packet VDU 0x1b
+[H/ *echo MINZ_RETURNED
+MINZ_RETURNED
+/ *

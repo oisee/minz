@@ -1,0 +1,8 @@
+{
+  "exact_ansi_stream": true,
+  "expected_bytes": 707,
+  "observed_bytes": 707,
+  "bin_bytes": 1505,
+  "exit": 0,
+  "scope": "stream and clean MOS return, no real VDP rendering"
+}

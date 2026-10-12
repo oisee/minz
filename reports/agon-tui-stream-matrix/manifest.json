@@ -1,0 +1,294 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "b17a850043fb7c9d29d00c15d498796984ca7b68aee44b7787c3e95b2fe83592"
+  },
+  {
+    "path": "tui_demo/ordinary/asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_demo/ordinary/bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_demo/ordinary/expected-ansi.bin",
+    "sha256": "da41d23089e209a5b7c2b14c6795cdef42b2a239587e106ce185b15ae68d05db"
+  },
+  {
+    "path": "tui_demo/ordinary/observed-ansi.bin",
+    "sha256": "da41d23089e209a5b7c2b14c6795cdef42b2a239587e106ce185b15ae68d05db"
+  },
+  {
+    "path": "tui_demo/ordinary/program.asm",
+    "sha256": "96c0f3980721ed9d8acb46bf0edecf08e06c24f1be3becd62a9d1032ea5b418f"
+  },
+  {
+    "path": "tui_demo/ordinary/program.bin",
+    "sha256": "b9206ce2111adf5e38698a5b64f07a975ec7cf22c5c498eeacdae52329481372"
+  },
+  {
+    "path": "tui_demo/ordinary/result.json",
+    "sha256": "4d5f543300ef7f2c0df9da7e24063772faf5c3f4caeb4f4caa62549128186908"
+  },
+  {
+    "path": "tui_demo/ordinary/sdcard/program.bin",
+    "sha256": "b9206ce2111adf5e38698a5b64f07a975ec7cf22c5c498eeacdae52329481372"
+  },
+  {
+    "path": "tui_demo/ordinary/source.nanz",
+    "sha256": "afcadba573f924da7fcaf74574a8ec451be8ffb37eb0b3aa8567a6757d2957bd"
+  },
+  {
+    "path": "tui_demo/ordinary/stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_demo/ordinary/stdin.txt",
+    "sha256": "c25bb3a8c17d4b0a44c6cea64b72d977e6e91093a05d4df88979b8649493ed53"
+  },
+  {
+    "path": "tui_demo/ordinary/stdout.txt",
+    "sha256": "dff781338a7c1ef5830a84b84832811f8ee7a772643073d04b174ed6323c5576"
+  },
+  {
+    "path": "tui_demo/size/asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_demo/size/bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_demo/size/expected-ansi.bin",
+    "sha256": "da41d23089e209a5b7c2b14c6795cdef42b2a239587e106ce185b15ae68d05db"
+  },
+  {
+    "path": "tui_demo/size/observed-ansi.bin",
+    "sha256": "da41d23089e209a5b7c2b14c6795cdef42b2a239587e106ce185b15ae68d05db"
+  },
+  {
+    "path": "tui_demo/size/program.asm",
+    "sha256": "96c0f3980721ed9d8acb46bf0edecf08e06c24f1be3becd62a9d1032ea5b418f"
+  },
+  {
+    "path": "tui_demo/size/program.bin",
+    "sha256": "b9206ce2111adf5e38698a5b64f07a975ec7cf22c5c498eeacdae52329481372"
+  },
+  {
+    "path": "tui_demo/size/result.json",
+    "sha256": "4d5f543300ef7f2c0df9da7e24063772faf5c3f4caeb4f4caa62549128186908"
+  },
+  {
+    "path": "tui_demo/size/sdcard/program.bin",
+    "sha256": "b9206ce2111adf5e38698a5b64f07a975ec7cf22c5c498eeacdae52329481372"
+  },
+  {
+    "path": "tui_demo/size/source.nanz",
+    "sha256": "afcadba573f924da7fcaf74574a8ec451be8ffb37eb0b3aa8567a6757d2957bd"
+  },
+  {
+    "path": "tui_demo/size/stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_demo/size/stdin.txt",
+    "sha256": "c25bb3a8c17d4b0a44c6cea64b72d977e6e91093a05d4df88979b8649493ed53"
+  },
+  {
+    "path": "tui_demo/size/stdout.txt",
+    "sha256": "dff781338a7c1ef5830a84b84832811f8ee7a772643073d04b174ed6323c5576"
+  },
+  {
+    "path": "tui_demo/speed/asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_demo/speed/bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_demo/speed/expected-ansi.bin",
+    "sha256": "da41d23089e209a5b7c2b14c6795cdef42b2a239587e106ce185b15ae68d05db"
+  },
+  {
+    "path": "tui_demo/speed/observed-ansi.bin",
+    "sha256": "da41d23089e209a5b7c2b14c6795cdef42b2a239587e106ce185b15ae68d05db"
+  },
+  {
+    "path": "tui_demo/speed/program.asm",
+    "sha256": "96c0f3980721ed9d8acb46bf0edecf08e06c24f1be3becd62a9d1032ea5b418f"
+  },
+  {
+    "path": "tui_demo/speed/program.bin",
+    "sha256": "b9206ce2111adf5e38698a5b64f07a975ec7cf22c5c498eeacdae52329481372"
+  },
+  {
+    "path": "tui_demo/speed/result.json",
+    "sha256": "4d5f543300ef7f2c0df9da7e24063772faf5c3f4caeb4f4caa62549128186908"
+  },
+  {
+    "path": "tui_demo/speed/sdcard/program.bin",
+    "sha256": "b9206ce2111adf5e38698a5b64f07a975ec7cf22c5c498eeacdae52329481372"
+  },
+  {
+    "path": "tui_demo/speed/source.nanz",
+    "sha256": "afcadba573f924da7fcaf74574a8ec451be8ffb37eb0b3aa8567a6757d2957bd"
+  },
+  {
+    "path": "tui_demo/speed/stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_demo/speed/stdin.txt",
+    "sha256": "c25bb3a8c17d4b0a44c6cea64b72d977e6e91093a05d4df88979b8649493ed53"
+  },
+  {
+    "path": "tui_demo/speed/stdout.txt",
+    "sha256": "dff781338a7c1ef5830a84b84832811f8ee7a772643073d04b174ed6323c5576"
+  },
+  {
+    "path": "tui_hello/ordinary/asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_hello/ordinary/bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_hello/ordinary/expected-ansi.bin",
+    "sha256": "fa9e321aefb1529f8ab01a0ea9c8812f6c3838982c4f374c447c6735c4444139"
+  },
+  {
+    "path": "tui_hello/ordinary/observed-ansi.bin",
+    "sha256": "fa9e321aefb1529f8ab01a0ea9c8812f6c3838982c4f374c447c6735c4444139"
+  },
+  {
+    "path": "tui_hello/ordinary/program.asm",
+    "sha256": "10c1034aacdd55caf306d63c0e4f15158635a2ab4fbb7d93097e17ee37d0fa40"
+  },
+  {
+    "path": "tui_hello/ordinary/program.bin",
+    "sha256": "b8dcc47cd9d158918c45691b35d601397e42d88c6acec2b3c2ed5b98392dc02e"
+  },
+  {
+    "path": "tui_hello/ordinary/result.json",
+    "sha256": "ac4105ddad0869fc648a0b43a72123ff3f4dec797aa4b31415c844f91e7ba6e6"
+  },
+  {
+    "path": "tui_hello/ordinary/sdcard/program.bin",
+    "sha256": "b8dcc47cd9d158918c45691b35d601397e42d88c6acec2b3c2ed5b98392dc02e"
+  },
+  {
+    "path": "tui_hello/ordinary/source.nanz",
+    "sha256": "44f505b14ac4c5c674db470d9f81684aeaf078498c03ad267e81a05d13d25f90"
+  },
+  {
+    "path": "tui_hello/ordinary/stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_hello/ordinary/stdin.txt",
+    "sha256": "c25bb3a8c17d4b0a44c6cea64b72d977e6e91093a05d4df88979b8649493ed53"
+  },
+  {
+    "path": "tui_hello/ordinary/stdout.txt",
+    "sha256": "afd98847527b84fdc8baf4df7db6b956ff2f8643d876e92969e8a7ebe3fc4490"
+  },
+  {
+    "path": "tui_hello/size/asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_hello/size/bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_hello/size/expected-ansi.bin",
+    "sha256": "fa9e321aefb1529f8ab01a0ea9c8812f6c3838982c4f374c447c6735c4444139"
+  },
+  {
+    "path": "tui_hello/size/observed-ansi.bin",
+    "sha256": "fa9e321aefb1529f8ab01a0ea9c8812f6c3838982c4f374c447c6735c4444139"
+  },
+  {
+    "path": "tui_hello/size/program.asm",
+    "sha256": "10c1034aacdd55caf306d63c0e4f15158635a2ab4fbb7d93097e17ee37d0fa40"
+  },
+  {
+    "path": "tui_hello/size/program.bin",
+    "sha256": "b8dcc47cd9d158918c45691b35d601397e42d88c6acec2b3c2ed5b98392dc02e"
+  },
+  {
+    "path": "tui_hello/size/result.json",
+    "sha256": "ac4105ddad0869fc648a0b43a72123ff3f4dec797aa4b31415c844f91e7ba6e6"
+  },
+  {
+    "path": "tui_hello/size/sdcard/program.bin",
+    "sha256": "b8dcc47cd9d158918c45691b35d601397e42d88c6acec2b3c2ed5b98392dc02e"
+  },
+  {
+    "path": "tui_hello/size/source.nanz",
+    "sha256": "44f505b14ac4c5c674db470d9f81684aeaf078498c03ad267e81a05d13d25f90"
+  },
+  {
+    "path": "tui_hello/size/stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_hello/size/stdin.txt",
+    "sha256": "c25bb3a8c17d4b0a44c6cea64b72d977e6e91093a05d4df88979b8649493ed53"
+  },
+  {
+    "path": "tui_hello/size/stdout.txt",
+    "sha256": "afd98847527b84fdc8baf4df7db6b956ff2f8643d876e92969e8a7ebe3fc4490"
+  },
+  {
+    "path": "tui_hello/speed/asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_hello/speed/bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_hello/speed/expected-ansi.bin",
+    "sha256": "fa9e321aefb1529f8ab01a0ea9c8812f6c3838982c4f374c447c6735c4444139"
+  },
+  {
+    "path": "tui_hello/speed/observed-ansi.bin",
+    "sha256": "fa9e321aefb1529f8ab01a0ea9c8812f6c3838982c4f374c447c6735c4444139"
+  },
+  {
+    "path": "tui_hello/speed/program.asm",
+    "sha256": "10c1034aacdd55caf306d63c0e4f15158635a2ab4fbb7d93097e17ee37d0fa40"
+  },
+  {
+    "path": "tui_hello/speed/program.bin",
+    "sha256": "b8dcc47cd9d158918c45691b35d601397e42d88c6acec2b3c2ed5b98392dc02e"
+  },
+  {
+    "path": "tui_hello/speed/result.json",
+    "sha256": "ac4105ddad0869fc648a0b43a72123ff3f4dec797aa4b31415c844f91e7ba6e6"
+  },
+  {
+    "path": "tui_hello/speed/sdcard/program.bin",
+    "sha256": "b8dcc47cd9d158918c45691b35d601397e42d88c6acec2b3c2ed5b98392dc02e"
+  },
+  {
+    "path": "tui_hello/speed/source.nanz",
+    "sha256": "44f505b14ac4c5c674db470d9f81684aeaf078498c03ad267e81a05d13d25f90"
+  },
+  {
+    "path": "tui_hello/speed/stderr.txt",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "tui_hello/speed/stdin.txt",
+    "sha256": "c25bb3a8c17d4b0a44c6cea64b72d977e6e91093a05d4df88979b8649493ed53"
+  },
+  {
+    "path": "tui_hello/speed/stdout.txt",
+    "sha256": "afd98847527b84fdc8baf4df7db6b956ff2f8643d876e92969e8a7ebe3fc4490"
+  }
+]
