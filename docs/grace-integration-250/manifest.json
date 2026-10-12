@@ -1,0 +1,12 @@
+{
+  "files": {
+    "core-full.txt": {
+      "sha256": "1d179880011bc38bc6cdd3562de3a9165e3812c1a38fb8b692e5e16c3a9e6151",
+      "bytes": 218
+    },
+    "README.md": {
+      "sha256": "34de56169a34719d5a9ee915f38492b50f9393cfabb2e9b961edc3dfc633be40",
+      "bytes": 1278
+    }
+  }
+}
