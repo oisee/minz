@@ -9,6 +9,29 @@ import (
 )
 
 func TestSavedWeightedTableReadmissionNativeCaller(t *testing.T) {
+	testSavedWeightedReadmission(t, Options{ContractOpt: true, OptSize: true, AssertMode: "none"})
+}
+
+func TestSavedWeightedReadmissionContractGraceMatrix(t *testing.T) {
+	for _, strategy := range []string{"off", "greedy", "pbqp"} {
+		for _, grace := range []bool{false, true} {
+			name := strategy + "/plain"
+			if grace {
+				name = strategy + "/grace"
+			}
+			t.Run(name, func(t *testing.T) {
+				opts := Options{ContractOpt: strategy != "off", OptSize: true, AssertMode: "none", UseGrace: grace, UseHIRGrace: grace}
+				if strategy == "pbqp" {
+					opts.ContractStrategy = "pbqp"
+				}
+				testSavedWeightedReadmission(t, opts)
+			})
+		}
+	}
+}
+
+func testSavedWeightedReadmission(t *testing.T, opts Options) {
+	t.Helper()
 	src, err := os.ReadFile("../../../examples/nanz/06_pbqp_weighted.nanz")
 	if err != nil {
 		t.Fatal(err)
@@ -19,7 +42,6 @@ func TestSavedWeightedTableReadmissionNativeCaller(t *testing.T) {
 	if err := saved.Load("../../../docs/grace-real-leaf-local-tables/caller-table.json"); err != nil {
 		t.Fatal(err)
 	}
-	opts := Options{ContractOpt: true, OptSize: true, AssertMode: "none"}
 	baseline, err := CompileHIRSteps(graceMeasureParse(t, text), opts)
 	if err != nil {
 		t.Fatal(err)
