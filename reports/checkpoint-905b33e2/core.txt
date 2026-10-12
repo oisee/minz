@@ -1,0 +1,13 @@
+ok  	github.com/minz/minzc/pkg/hir	25.220s
+ok  	github.com/minz/minzc/pkg/mir2	83.094s
+ok  	github.com/minz/minzc/pkg/nanz	18.786s
+ok  	github.com/minz/minzc/pkg/lanz	0.022s
+ok  	github.com/minz/minzc/pkg/lizp	2.913s
+ok  	github.com/minz/minzc/pkg/plm	0.070s
+ok  	github.com/minz/minzc/pkg/pascal	0.047s
+ok  	github.com/minz/minzc/pkg/c89	5.699s
+ok  	github.com/minz/minzc/pkg/frill	0.185s
+ok  	github.com/minz/minzc/pkg/vir	2.511s
+ok  	github.com/minz/minzc/pkg/z80asm	0.150s
+ok  	github.com/minz/minzc/pkg/z80validate	0.020s
+ok  	github.com/minz/minzc/cmd/import-enrt	2.028s

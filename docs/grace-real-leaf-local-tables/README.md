@@ -79,3 +79,28 @@ retained in native.txt rather than presented as a win.
 These measurements demonstrate one existing arithmetic showcase leaf plus its
 explicit caller harness. They do not establish generalized corpus benefit or
 optimality of all assignments, and do not expand the admitted CFG/call domain.
+
+## Повторное использование сохранённых назначений без solver
+
+Для нового текущего MIR/ABI можно заново допустить bounded пул saved JSON:
+
+```sh
+cd minzc
+go run ./cmd/import-enrt \
+  --source ../docs/grace-real-leaf-local-tables/caller-harness.nanz \
+  --checked-proposals ../docs/grace-real-leaf-local-tables/caller-table.json \
+  --proposal-limit 1 --out /new/current.json --evidence /new/evidence.json
+```
+
+Оба output должны быть новыми файлами в существующем каталоге. Команда сохраняет
+SHA256 source/proposals/output и причины допуска/пропуска по функциям. Она
+не использует ENRT или Z3. Текущая запись снова проверяется на ISA/ABI и
+стоимость; старые key/cost не авторизуют emission. Для обычного compiler
+передайте current.json через `--Osize --checked-local-table`; evidence содержит
+его SHA256 для `--checked-local-table-sha256`.
+
+Weighted caller сохраняет 44→20 байт и238→142 такта. Все256inputs проверены
+реальной CLI→Z80 цепочкой, а12сочетаний contract/Grace/table проходят без
+solver. Это тот же corpus fixture, не новое семейство или heldout.
+[CLI replay](../../reports/table-readmission-cli-native/README.md) ·
+[Матрица](../../reports/table-readmission-matrix/README.md).
