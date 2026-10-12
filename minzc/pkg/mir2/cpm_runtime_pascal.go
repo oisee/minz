@@ -86,11 +86,9 @@ func cpmExactDecimalBody(i *Inst, code string) []string {
 		if strings.Join(strings.Fields(strings.ToUpper(actual[n])), "") != strings.Join(strings.Fields(strings.ToUpper(line)), "") {
 			return nil
 		}
-		if colon := strings.Index(line, ":"); colon >= 0 {
-			line = strings.TrimSpace(line[colon+1:])
-		}
+
 		if line != "" {
-			body = append(body, strings.Join(strings.Fields(strings.ToUpper(line)), ""))
+			body = append(body, line)
 		}
 	}
 	return append(body, "RET")

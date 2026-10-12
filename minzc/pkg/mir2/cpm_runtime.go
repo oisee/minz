@@ -223,6 +223,17 @@ func validateCPMRuntimeAssemblyAdapters(assembly string, guarded bool, adapters 
 			return fmt.Errorf("CP/M missing BDOS adapter %s", name)
 		}
 		for _, want := range body {
+			if colon := strings.Index(want, ":"); colon >= 0 {
+				label := strings.TrimSpace(want[:colon])
+				address, exists := a.Symbols[label]
+				if !exists || address != pc {
+					return fmt.Errorf("CP/M altered private adapter label %s", label)
+				}
+				want = strings.TrimSpace(want[colon+1:])
+				if want == "" {
+					continue
+				}
+			}
 			for code[pc].text == "CALL __cpm_stack_check" {
 				pc = code[pc].next
 			}
