@@ -1,0 +1,4 @@
+=== RUN   TestIslandContinuationDoesNotReturnMidBlock
+--- PASS: TestIslandContinuationDoesNotReturnMidBlock (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.007s

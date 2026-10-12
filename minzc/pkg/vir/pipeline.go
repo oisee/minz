@@ -1858,7 +1858,9 @@ func emitPIRWithLabels(sb *strings.Builder, pirOps []PIROp, ops []VIROp, ranges 
 				break
 			}
 		}
-		if blockIdx >= 0 && blockIdx < len(f.Blocks) {
+		// An island may stop inside a MIR block. Its continuation still
+		// belongs to that block; emitting RET here would discard it.
+		if blockIdx >= 0 && blockIdx < len(f.Blocks) && startPC+len(ops) >= br.end {
 			emitTerminator(sb, f.Blocks[blockIdx], funcName)
 		}
 
