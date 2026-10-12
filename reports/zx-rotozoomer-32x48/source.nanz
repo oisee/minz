@@ -1,0 +1,67 @@
+// ZX Spectrum 32x48 colour rotozoomer: each 8x8 cell contains two 8x4 samples.
+// PAPER colours its top half, INK its bottom half; BRIGHT is shared.
+// Fixed 8.8 texture coordinates wrap modulo 65536. Only attributes change.
+// Algorithm reference: antique-toy chapter7; half-cell display suggested by Alice.
+// Build: minzc source.nanz -t zxspectrum --asserts none -o rotozoomer.bin
+
+global axis_a: [i16;32] = [320,313,291,257,213,162,107,52,0,-48,-89,-122,-149,-169,-182,-190,-192,-190,-182,-169,-149,-122,-89,-48,0,52,107,162,213,257,291,313]
+global axis_b: [i16;32] = [0,62,121,172,213,242,259,263,256,239,214,183,149,113,75,38,0,-38,-75,-113,-149,-183,-214,-239,-256,-263,-259,-242,-213,-172,-121,-62]
+global texture: [u8;256] = [3,3,3,3,5,5,1,1,3,3,3,3,5,5,1,1,3,3,3,3,5,5,1,1,3,3,3,3,5,5,1,1,3,3,3,3,1,1,5,5,3,3,3,3,1,1,5,5,3,3,3,3,1,1,5,5,6,3,3,3,1,1,5,5,5,5,1,1,3,3,3,6,6,6,1,1,3,3,3,3,5,5,1,1,3,3,6,6,6,6,6,1,3,3,3,3,1,1,5,5,3,6,6,6,7,6,6,6,3,3,3,3,1,1,5,5,6,6,6,7,7,7,6,6,6,3,3,3,3,3,3,6,6,6,7,7,7,7,7,6,6,6,1,1,3,3,3,3,6,6,6,7,7,7,6,6,6,5,1,1,3,3,3,3,1,6,6,6,7,6,6,6,1,1,5,5,3,3,3,3,1,1,6,6,6,6,6,3,1,1,5,5,5,5,1,1,3,3,3,6,6,6,1,1,3,3,3,3,5,5,1,1,3,3,3,3,6,5,1,1,3,3,3,3,1,1,5,5,3,3,3,3,1,1,5,5,3,3,3,3,1,1,5,5,3,3,3,3,1,1,5,5,3,3,3,3]
+
+fun init_screen() -> void {
+    var p: ^u8 = ptr(0x4000)
+    var addr: u16 = 0x4000
+    while addr < 0x5800 {
+        // Spectrum address bit10 is pixel y bit2, in all three screen thirds.
+        if (addr & 0x0400) == 0 { p^ = 0 } else { p^ = 255 }
+        p = p + 1
+        addr = addr + 1
+    }
+}
+
+fun texel(u: u16, v: u16) -> u8 {
+    let x: u16 = (u >> 8) & 15
+    let y: u16 = (v >> 8) & 15
+    return texture[y * 16 + x]
+}
+
+fun draw_frame(frame: u8) -> void {
+    let sa: i16 = axis_a[frame]
+    let sb: i16 = axis_b[frame]
+    let a: u16 = u16(sa)
+    let b: u16 = u16(sb)
+    let half_a: u16 = u16(sa / 2)
+    let half_b: u16 = u16(sb / 2)
+    var u_row: u16 = 32768 - a * 16 - b * 12
+    var v_row: u16 = 32768 + b * 16 - a * 12
+    var dest: ^u8 = ptr(0x5800)
+    var y: u8 = 0
+    while y < 24 {
+        var u: u16 = u_row
+        var v: u16 = v_row
+        var x: u8 = 0
+        while x < 32 {
+            let top: u8 = texel(u, v)
+            let bottom: u8 = texel(u + half_b, v + half_a)
+            dest^ = 0x40 | (top << 3) | bottom
+            dest = dest + 1
+            u = u + a
+            v = v - b
+            x = x + 1
+        }
+        u_row = u_row + half_b + half_b
+        v_row = v_row + half_a + half_a
+        y = y + 1
+    }
+}
+
+fun main() -> void {
+    init_screen()
+    var frame: u8 = 0
+    while true {
+        draw_frame(frame)
+        frame = (frame + 1) & 31
+        // Standard 48K ROM interrupt supplies frame pacing; no host graphics.
+        asm z80 (clob all) { EI / HALT }
+    }
+}

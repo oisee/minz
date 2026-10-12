@@ -1,0 +1,14 @@
+=== RUN   TestZXHalfCellRotozoomerNative
+=== RUN   TestZXHalfCellRotozoomerNative/ordinary
+    zx_rotozoomer_halfcell_test.go:123: frame0 attr0 got4d want6d
+=== RUN   TestZXHalfCellRotozoomerNative/grace-size
+    zx_rotozoomer_halfcell_test.go:123: frame0 attr0 got4d want6d
+=== RUN   TestZXHalfCellRotozoomerNative/grace-speed
+    zx_rotozoomer_halfcell_test.go:123: frame0 attr0 got4d want6d
+--- FAIL: TestZXHalfCellRotozoomerNative (0.18s)
+    --- FAIL: TestZXHalfCellRotozoomerNative/ordinary (0.05s)
+    --- FAIL: TestZXHalfCellRotozoomerNative/grace-size (0.06s)
+    --- FAIL: TestZXHalfCellRotozoomerNative/grace-speed (0.07s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.190s
+FAIL
