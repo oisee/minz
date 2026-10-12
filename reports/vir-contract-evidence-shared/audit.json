@@ -1,0 +1,360 @@
+{
+  "scope": "complete explicit report packages: Git retention, manifests, optional shared copies; not execution proof",
+  "packages": [
+    "reports/vir-indexed-native-domain-probe",
+    "reports/vir-index-alias-width-fix",
+    "reports/vir-same-pair-call-contract",
+    "reports/vir-hints-cfg-admission",
+    "reports/vir-call-word-and-table-replay",
+    "reports/vir-adapter-three-cycle-probe",
+    "reports/vir-adapter-stack-cycles",
+    "reports/vir-adapter-copy-contracts",
+    "reports/vir-index-alias-full-terminal",
+    "reports/vir-word-param-entry",
+    "reports/vir-adapter-abi-admission"
+  ],
+  "files": [
+    {
+      "path": "reports/vir-indexed-native-domain-probe/README.md",
+      "sha256": "7e0d7db712a2d07785208f307bf79629c653ac83a38dc3d662c6582489b62f65"
+    },
+    {
+      "path": "reports/vir-indexed-native-domain-probe/baseline.a80",
+      "sha256": "e4bacd9e4c312b90f2e7c26f53020928e9a46e0b4d1c2c95ebc5d32bb27f8c86"
+    },
+    {
+      "path": "reports/vir-indexed-native-domain-probe/baseline.txt",
+      "sha256": "f2682f2ff5eb0ed57dd7d7f5bb5f4ca98c8a72126d292668b420e0826e526be2"
+    },
+    {
+      "path": "reports/vir-indexed-native-domain-probe/costed-same-pair.txt",
+      "sha256": "7e53c8224709ee97f5032d97858570185a61fabdd12b14aff64ac7f15683bdd1"
+    },
+    {
+      "path": "reports/vir-indexed-native-domain-probe/manifest.json",
+      "sha256": "6948c6a153aec95af7823c7b96505e50a1517c607ac23853cf161802b40c16b5"
+    },
+    {
+      "path": "reports/vir-indexed-native-domain-probe/regression_test.go.txt",
+      "sha256": "3a460977891958870978d2e1524130d27d1ebc52ba01af2d0de06d1d1bbf127c"
+    },
+    {
+      "path": "reports/vir-indexed-native-domain-probe/rejected-costed-same-pair.patch",
+      "sha256": "cb5a43aaa2e9078efa31d58b5bfa382cf3121e1f12125c39426efaf5cb29f853"
+    },
+    {
+      "path": "reports/vir-indexed-native-domain-probe/rejected-width-scratch.patch",
+      "sha256": "fc1d840511b310d4b67fa9d88515eab22c76b4de6fa0698ff1c660d1bfb9fb1e"
+    },
+    {
+      "path": "reports/vir-indexed-native-domain-probe/width-scratch.txt",
+      "sha256": "729748106e007f70d3f24d28a6e164399e5ce7ea25180e65192fa91b6c98939e"
+    },
+    {
+      "path": "reports/vir-index-alias-width-fix/README.md",
+      "sha256": "93f159cd9c52ba47cdd5d589d3b6a398cbe0a783cb12c562001eb77d529f16b6"
+    },
+    {
+      "path": "reports/vir-index-alias-width-fix/after.a80",
+      "sha256": "52275ed0e21d66f34c4930fb621ddae214378c68ed283b1d252379b7ab8ffbbe"
+    },
+    {
+      "path": "reports/vir-index-alias-width-fix/before.a80",
+      "sha256": "e4bacd9e4c312b90f2e7c26f53020928e9a46e0b4d1c2c95ebc5d32bb27f8c86"
+    },
+    {
+      "path": "reports/vir-index-alias-width-fix/before.txt",
+      "sha256": "780feb3e9706a1865e6849af7090d42db92dd7cc12b209a37e43bcd3a2514c63"
+    },
+    {
+      "path": "reports/vir-index-alias-width-fix/chained_calls_full_byte/allocation.json",
+      "sha256": "4cb4cb4f5a8a03ad2398622f6d70dd3bf04ac0511b9796d75c34263730b94913"
+    },
+    {
+      "path": "reports/vir-index-alias-width-fix/chained_calls_full_byte/module.a80",
+      "sha256": "b785b59ab0d8234f3bdceecbfaf1d67c897b71a5edc874820eb65ced8e0b9877"
+    },
+    {
+      "path": "reports/vir-index-alias-width-fix/chained_calls_full_byte/module.mir",
+      "sha256": "0ecaa219064008695030a1229642b494b756ea09b17b115fe7745d42ae5b3f74"
+    },
+    {
+      "path": "reports/vir-index-alias-width-fix/chained_calls_full_byte/source.nanz",
+      "sha256": "17ae80b19f6ada319f5f128bba8ec1690ff828362c40eb0a74fe10fbfdab659a"
+    },
+    {
+      "path": "reports/vir-index-alias-width-fix/family.txt",
+      "sha256": "89f592995bef502cc21e29b2ff97e379baa84074582691aac7f54afe1a092e93"
+    },
+    {
+      "path": "reports/vir-index-alias-width-fix/manifest.json",
+      "sha256": "16dd6d91cc896469304b59267b4faef6ad2dff8d57d3715f3df5c02aca4971dc"
+    },
+    {
+      "path": "reports/vir-index-alias-width-fix/native.txt",
+      "sha256": "1a9b7cbddc5655b65275a33370c501f601bfa70f12eebdd4325cd03f9620e7f1"
+    },
+    {
+      "path": "reports/vir-same-pair-call-contract/README.md",
+      "sha256": "c2f14ca695bd42e209852e725765be87a248def4880f112b65d664e9a289f5be"
+    },
+    {
+      "path": "reports/vir-same-pair-call-contract/asserts/chained_calls_full_byte/allocation.json",
+      "sha256": "4cb4cb4f5a8a03ad2398622f6d70dd3bf04ac0511b9796d75c34263730b94913"
+    },
+    {
+      "path": "reports/vir-same-pair-call-contract/asserts/chained_calls_full_byte/module.a80",
+      "sha256": "d14828b4c02279f0249de80499b6496b268bc450f5513aa42caead9e8e765b99"
+    },
+    {
+      "path": "reports/vir-same-pair-call-contract/asserts/chained_calls_full_byte/module.mir",
+      "sha256": "0ecaa219064008695030a1229642b494b756ea09b17b115fe7745d42ae5b3f74"
+    },
+    {
+      "path": "reports/vir-same-pair-call-contract/asserts/chained_calls_full_byte/source.nanz",
+      "sha256": "17ae80b19f6ada319f5f128bba8ec1690ff828362c40eb0a74fe10fbfdab659a"
+    },
+    {
+      "path": "reports/vir-same-pair-call-contract/asserts/indexed_mixed_calls_byte_domain/allocation.json",
+      "sha256": "6d6959b4bc7167a362e5cf1ecc2f35d6edd91b95018e51dc8a4a98b5c083b21a"
+    },
+    {
+      "path": "reports/vir-same-pair-call-contract/asserts/indexed_mixed_calls_byte_domain/module.a80",
+      "sha256": "ff3d51644872a4c9eea97b530decc6e4a70ba819b855496a4931fc7b9b933a84"
+    },
+    {
+      "path": "reports/vir-same-pair-call-contract/asserts/indexed_mixed_calls_byte_domain/module.mir",
+      "sha256": "779908325ab88dccf0f72ec8bdb710a7e9ad618add0ce92505f1663be889ee22"
+    },
+    {
+      "path": "reports/vir-same-pair-call-contract/asserts/indexed_mixed_calls_byte_domain/source.nanz",
+      "sha256": "87fb84d513fcc5b728762fb39e50338990d3dd12f17bbf748928915fb6856d25"
+    },
+    {
+      "path": "reports/vir-same-pair-call-contract/family.txt",
+      "sha256": "789d6d3bd7890fbb885edaa03a8cb0fc9866bfb9a2a5d7a5cc7740ea189fed9f"
+    },
+    {
+      "path": "reports/vir-same-pair-call-contract/helpers.a80",
+      "sha256": "654aa17ad5d31c612f19620176ef977542ca98eb848ad52ea24904f41da96a0f"
+    },
+    {
+      "path": "reports/vir-same-pair-call-contract/manifest.json",
+      "sha256": "14f2b6523c44affe45c8cfe4710018058b41e3673b81500200dbfc5623b74079"
+    },
+    {
+      "path": "reports/vir-same-pair-call-contract/native.txt",
+      "sha256": "38fce3d7c373cbd04d621202452a2ff897f3fcb21f04688281cd8612e1f77865"
+    },
+    {
+      "path": "reports/vir-same-pair-call-contract/rejected-without-call-save.txt",
+      "sha256": "c8fe365ca9840e48cc757fb87dec089624eff6710ccd4d70c5aaa7eb9f76b6e9"
+    },
+    {
+      "path": "reports/vir-same-pair-call-contract/rejected-without-scratch.txt",
+      "sha256": "01eebe4c3dcf1190fa0099557245e8a9fd204983906eadf00f47fad91284aa51"
+    },
+    {
+      "path": "reports/vir-same-pair-call-contract/word/final.a80",
+      "sha256": "5678d9389780ad0a655dfed36c1e3a3b5bf4c0839c434007dcd8d25a063b1910"
+    },
+    {
+      "path": "reports/vir-same-pair-call-contract/word/final.bin",
+      "sha256": "96300a75c45ca1748dbdecbae62c46d9293d978481712d047f9418d782e35742"
+    },
+    {
+      "path": "reports/vir-hints-cfg-admission/README.md",
+      "sha256": "8ea0e5d8e93d8d127186e3dbc3ba9291925f1daa301a6ce049d6cd424eb1d420"
+    },
+    {
+      "path": "reports/vir-hints-cfg-admission/failed-output/for_call_loop_regression/allocation.json",
+      "sha256": "0850a502d532c88a64935d0c5137dd853ef9ae550f9ea680f43e86ce0c2c489c"
+    },
+    {
+      "path": "reports/vir-hints-cfg-admission/failed-output/for_call_loop_regression/module.a80",
+      "sha256": "69c3c0bf064e8093b02a8e859fb4dae12bb206289370bd95bdce93619eadf53f"
+    },
+    {
+      "path": "reports/vir-hints-cfg-admission/failed-output/for_call_loop_regression/module.mir",
+      "sha256": "c35a3ba46689bf8e7ed053061af9344121aa7b7700346ce24ddfa38871bc6638"
+    },
+    {
+      "path": "reports/vir-hints-cfg-admission/failed-output/for_call_loop_regression/source.nanz",
+      "sha256": "48b47d0d71b70858dc449f6da61d5945617da59715ae737e6b28cdac7ca018be"
+    },
+    {
+      "path": "reports/vir-hints-cfg-admission/failed-output/gcd/allocation.json",
+      "sha256": "f3138d9e9a3b76c4d8a675170018856c09b9e984c13e684ab3aab1e120ec9d86"
+    },
+    {
+      "path": "reports/vir-hints-cfg-admission/failed-output/gcd/module.a80",
+      "sha256": "856f9795cdfdb2c2dbcdbd2a47ee72219e178db131b2de51f0bce33c169b3143"
+    },
+    {
+      "path": "reports/vir-hints-cfg-admission/failed-output/gcd/module.mir",
+      "sha256": "8cc929666f8b63645704450257621e9fd8f1aeb8f333ddb6ac359b9060f45904"
+    },
+    {
+      "path": "reports/vir-hints-cfg-admission/failed-output/gcd/source.nanz",
+      "sha256": "ccea468b9eba79f6268dcd18b98ff3bd8d3abd1e8c285e194773b0328b5fe82c"
+    },
+    {
+      "path": "reports/vir-hints-cfg-admission/family.txt",
+      "sha256": "a1987f4e09afc8a3fe3cf7b27f17f03d3fa80e1f6009a1cbeeb51560b62226b8"
+    },
+    {
+      "path": "reports/vir-hints-cfg-admission/hints-only-rejected.txt",
+      "sha256": "15efcc4acfa02237ca98cfecc051ef7c60c4b00e35101dc47b3cb0b5721f0a1f"
+    },
+    {
+      "path": "reports/vir-hints-cfg-admission/manifest.json",
+      "sha256": "21bc66828094b423a7f3aebb1499b9c48e9110142496ba1fcddbda12ef73ed0d"
+    },
+    {
+      "path": "reports/vir-hints-cfg-admission/whole-guard-insufficient.txt",
+      "sha256": "d4010c29689c1614d767b7f791ed061d7366926207858ef0d92d0b63ad752be9"
+    },
+    {
+      "path": "reports/vir-call-word-and-table-replay/README.md",
+      "sha256": "cf10619116dea1177aba6d8ee6c2f666dc30e1d981a2e7458599b8c222cc32cc"
+    },
+    {
+      "path": "reports/vir-call-word-and-table-replay/call.a80",
+      "sha256": "df49db1a0c3c9ee54f4c0250ca2abd642590046b1d9858995e1b42e8867ef024"
+    },
+    {
+      "path": "reports/vir-call-word-and-table-replay/call.bin",
+      "sha256": "c86e3f0b6c9ef6527f42e3dd5d0f68878d5783be3dcb6c9a886b9af2df0e5074"
+    },
+    {
+      "path": "reports/vir-call-word-and-table-replay/combined-with-solver.txt",
+      "sha256": "27672d048982d13df2de4abdacc8a32cdab9952c01a715a9b86781d71691bc4f"
+    },
+    {
+      "path": "reports/vir-call-word-and-table-replay/corpus-retention.json",
+      "sha256": "da62dbf61363e0f3b3c1b9df20fc41f10ee1aaf42fe48ad6f0cd33fa6a43484a"
+    },
+    {
+      "path": "reports/vir-call-word-and-table-replay/manifest.json",
+      "sha256": "e83a76f1d103f621a7326324e738e3b3ab9c36a9a328996dd8922a38dd9f958b"
+    },
+    {
+      "path": "reports/vir-call-word-and-table-replay/native.txt",
+      "sha256": "399307c1b170f9bdc8c81a820523dd4774242aaf72c9417f85ba03c2f246f715"
+    },
+    {
+      "path": "reports/vir-call-word-and-table-replay/readmission.txt",
+      "sha256": "03e9cdf9b51e77dcd03824218457999f6f1bd684e96a92b2d25e0ebe75d8f8cc"
+    },
+    {
+      "path": "reports/vir-adapter-three-cycle-probe/README.md",
+      "sha256": "6a6df40c1975836a32a6494e648c804ee1005f3096e054a646332f8cbf2e48fb"
+    },
+    {
+      "path": "reports/vir-adapter-three-cycle-probe/after.txt",
+      "sha256": "179c768476bd28f98728944c32fbb747f77e04e9e1226dce71c813e8390661cf"
+    },
+    {
+      "path": "reports/vir-adapter-three-cycle-probe/before.txt",
+      "sha256": "494010366dc64516122daabaa6771b8055d377bf467331efc688b964d156eddc"
+    },
+    {
+      "path": "reports/vir-adapter-three-cycle-probe/candidate.patch",
+      "sha256": "4b550040198dd81aa996616c6b8426140dabbbf420e9134b6cf3d988d47f474f"
+    },
+    {
+      "path": "reports/vir-adapter-three-cycle-probe/manifest.json",
+      "sha256": "decc5fc095294faf740462a4418aeb0dfb8f35be5968de2543851346243a5848"
+    },
+    {
+      "path": "reports/vir-adapter-three-cycle-probe/regression_test.go.txt",
+      "sha256": "fadb20a1ce11f88848f9b29c5c865daeb8a9f0d399c69970cc937a4855182e5b"
+    },
+    {
+      "path": "reports/vir-adapter-stack-cycles/README.md",
+      "sha256": "703796cdb7f4b0c693dd886d4bf4585eb30af5d2aaeded585d2acb75e1887350"
+    },
+    {
+      "path": "reports/vir-adapter-stack-cycles/family.txt",
+      "sha256": "da57443e0644a27cbdeb8a802a07e04efe66d2078cc316d9d802252405e251ce"
+    },
+    {
+      "path": "reports/vir-adapter-stack-cycles/manifest.json",
+      "sha256": "f1292b5b7d50cbe0ff4b5cb86d51df8fa24e8d965342e7217736cf864fdc9ab7"
+    },
+    {
+      "path": "reports/vir-adapter-stack-cycles/native.txt",
+      "sha256": "1833b0325e200668c021b31e41ee2cf85cc36d02bbfb7043e9ba029360daf395"
+    },
+    {
+      "path": "reports/vir-adapter-copy-contracts/README.md",
+      "sha256": "be65969284ea01241039df74a2aa52f773c6baddffbf88e1c0eb2645eb5e415e"
+    },
+    {
+      "path": "reports/vir-adapter-copy-contracts/family.txt",
+      "sha256": "7e70cad0bf620db8698224cd497b33015e6f93d065a6b0cf2233b25e6bd8726e"
+    },
+    {
+      "path": "reports/vir-adapter-copy-contracts/manifest.json",
+      "sha256": "b637cf05159e7fb29b579d5828538e1f50ae474a3574520415b98109207045fe"
+    },
+    {
+      "path": "reports/vir-index-alias-full-terminal/README.md",
+      "sha256": "437ed1c7da2c3308dee4f228f32ca8fe227fb790e84b0e80f42f36f78e75f70d"
+    },
+    {
+      "path": "reports/vir-index-alias-full-terminal/full.txt",
+      "sha256": "1ad116ff887f6cf622eddd7b93a6df63462929bcbcde589ca48c8440e67a3edf"
+    },
+    {
+      "path": "reports/vir-index-alias-full-terminal/manifest.json",
+      "sha256": "6fd8c392acadee1e0bad40376969cedaa0fc4774b5711edab1cda364977ecabd"
+    },
+    {
+      "path": "reports/vir-index-alias-full-terminal/result.json",
+      "sha256": "8031f04fcbe978a8d4596d507889ac48864065c80732ee6b8294fec3f565be63"
+    },
+    {
+      "path": "reports/vir-word-param-entry/README.md",
+      "sha256": "d3f703ee76eab4e8c14aa83b6a3725e212c020591fe1eb86c21460c9c7c6874e"
+    },
+    {
+      "path": "reports/vir-word-param-entry/before.txt",
+      "sha256": "36090ca037324f336d839c4c610ad87a6ea0282446e6c9a63282e67916f7484e"
+    },
+    {
+      "path": "reports/vir-word-param-entry/entry.a80",
+      "sha256": "c409c1f8332581a485abe79e7d4016650846548212da544a843014a1f9084b17"
+    },
+    {
+      "path": "reports/vir-word-param-entry/entry.bin",
+      "sha256": "b21d92d5134d40229a594fe724e8b270639cc63f5c570271226c2bf84e7a87a0"
+    },
+    {
+      "path": "reports/vir-word-param-entry/family.txt",
+      "sha256": "7893815474de4935661510315ffaeddbe8bf5d7b9a1f0abe77dab04f78b3a6be"
+    },
+    {
+      "path": "reports/vir-word-param-entry/manifest.json",
+      "sha256": "c6f9ee70551c5544a6fbc4735660b633792bf975abda8566a4cd9404a4419be3"
+    },
+    {
+      "path": "reports/vir-word-param-entry/native.txt",
+      "sha256": "3e8c2b2b488d4e3b8dcdf7f4c9d8eb20434b3a3b39d90c1973b7bffcb194c2eb"
+    },
+    {
+      "path": "reports/vir-adapter-abi-admission/README.md",
+      "sha256": "d95b0501d7426eb6621e8d90dcafd45c85fa04f2b074ba488a3879998fe5ed3a"
+    },
+    {
+      "path": "reports/vir-adapter-abi-admission/family.txt",
+      "sha256": "41c93865229c1b6d65d8f3cf62efbf1a5fb8fb40a70089c796acb6e921e27f32"
+    },
+    {
+      "path": "reports/vir-adapter-abi-admission/manifest.json",
+      "sha256": "5ef9d01401414b3d12506fc87e3454e2d4a9ca986ccd08910cf28e1160cab493"
+    }
+  ],
+  "failures": [],
+  "verified": true
+}
