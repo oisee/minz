@@ -308,6 +308,10 @@ func TestOriginalTetrisFamilyMechanics(t *testing.T) {
 					}
 				}
 			}
+			// Reuse scratch memory while retaining a complete 64KiB comparison
+			// after every VM and native call. Domain size and access order stay fixed.
+			vmBefore, vmAfter := make([]byte, 65536), make([]byte, 65536)
+			nativeAfter := make([]byte, 65536)
 			count := 0
 			byEntry := map[string]int{}
 			check := func(entry string, args []int64, in tetrisFamilyState) {
@@ -318,7 +322,8 @@ func TestOriginalTetrisFamilyMechanics(t *testing.T) {
 				}
 				byEntry[entry]++
 				for j, vm := range vms {
-					before := append([]byte(nil), vmBases[j]...)
+					before := vmBefore
+					copy(before, vmBases[j])
 					addr := func(n string) int {
 						p, e := vm.ResolveSymbol(n)
 						if e != nil {
@@ -327,8 +332,9 @@ func TestOriginalTetrisFamilyMechanics(t *testing.T) {
 						return int(p)
 					}
 					apply(before, in, addr)
-					vm.WriteHeapSlice(0, before)
-					after := append([]byte(nil), before...)
+					vm.WriteHeapBytes(0, before)
+					after := vmAfter
+					copy(after, before)
 					apply(after, out, addr)
 					var events []tetrisFamilyEvent
 					board := int64(addr("board"))
@@ -356,8 +362,8 @@ func TestOriginalTetrisFamilyMechanics(t *testing.T) {
 				}
 				copy(z.Memory(), base)
 				apply(z.Memory(), in, func(n string) int { return a.Symbols[n] })
-				before := append([]byte(nil), z.Memory()...)
-				after := append([]byte(nil), before...)
+				after := nativeAfter
+				copy(after, z.Memory())
 				apply(after, out, func(n string) int { return a.Symbols[n] })
 				r := emulator.Registers{PC: uint16(a.Symbols[entry]), SP: 0xeff0, A: 0x42, BC: 0x5555, DE: 0x6666, HL: 0x7777, IX: 0x8888, IY: 0x9999}
 				f := s.MIR2Module.FuncByName(entry)
