@@ -8,12 +8,13 @@
     "reports/alv-report-main/report.json": "e0d24ea671b3646a38dd2f8ec0d09e9fa15bb37ded04f6c0c28752b206c84c32",
     "reports/alv-report-main/report-stdout.bin": "f65f8bd56c475793066167ec6bf33f695cda2ddd2bbbea83b2af17f9b369e9e5",
     "reports/alv-report-main/report-model.py": "45f8881908f31c823a2ff171ef1d64033e9e4b584cb14b291f2e942482261af1",
-    "reports/alv-report-main/report-native-stdout.bin": "04f84c1139f7a2f61d1705404cc1276fd40f0538293027f8d47770aaa538d567"
+    "reports/alv-report-main/report-native-stdout.bin": "f65f8bd56c475793066167ec6bf33f695cda2ddd2bbbea83b2af17f9b369e9e5"
   },
   "authority": [
     "sourceSQLseed8rows sortedcarrid; DSLwidth4/22/30 stride59; two screensF8 thenF3",
     "screen_gen source API/table rowordering",
     "terminalmzvANSI80x24 exact contract"
   ],
-  "model_correction": "Original screen_show clears/resets before every return; first model omitted the first return between two screen_show calls. Historical model/log preserved, not a compiler defect."
+  "model_correction": "Original screen_show clears/resets before every return; first model omitted the first return between two screen_show calls. Historical model/log preserved, not a compiler defect.",
+  "native_adapter": "No tui.render import in original screen_report; native externs use explicitly bound mzv ANSI host contract. Only _scr_puts_padded is actual original ASM/BDOS. No imported CP/M decimal formatting claim."
 }
