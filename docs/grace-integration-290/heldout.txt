@@ -1,0 +1,48 @@
+=== RUN   TestArithmeticProspectiveHeldout
+    arithmetic_heldout_test.go:142: speed mask0: 21426 T / 136 B
+    arithmetic_heldout_test.go:142: speed mask1: 21426 T / 136 B
+    arithmetic_heldout_test.go:142: speed mask2: 21998 T / 149 B
+    arithmetic_heldout_test.go:142: speed mask3: 21998 T / 149 B
+    arithmetic_heldout_test.go:163: speed selected0 heldout 404193 T / 136 B
+    arithmetic_heldout_test.go:142: size mask0: 21426 T / 136 B
+    arithmetic_heldout_test.go:142: size mask1: 21426 T / 136 B
+    arithmetic_heldout_test.go:142: size mask2: 21998 T / 149 B
+    arithmetic_heldout_test.go:142: size mask3: 21998 T / 149 B
+    arithmetic_heldout_test.go:163: size selected0 heldout 404193 T / 136 B
+--- PASS: TestArithmeticProspectiveHeldout (1.88s)
+=== RUN   TestPascalBubbleSortProspectiveHeldout
+    bubble_sort_heldout_test.go:209: map[baseline_bytes:488 goal:speed heldout_arrays:8 heldout_baseline_t:164671 heldout_selected_t:164275 same_binary_sha256:ad33cb3741e279aa6c53f6daa55eea627e512025f9b32912155f42a871d5fba5 selected:2 selected_bytes:486 training_baseline_t:66891 training_selected_t:66720]
+    bubble_sort_heldout_test.go:209: map[baseline_bytes:488 goal:size heldout_arrays:8 heldout_baseline_t:164671 heldout_selected_t:164275 same_binary_sha256:ad33cb3741e279aa6c53f6daa55eea627e512025f9b32912155f42a871d5fba5 selected:2 selected_bytes:486 training_baseline_t:66891 training_selected_t:66720]
+--- PASS: TestPascalBubbleSortProspectiveHeldout (11.69s)
+=== RUN   TestCallLiteralTokenizerProspective
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input0 init15790T tokenizer158470T render31405T count18 stdout"fn id ( id ) { return id + num } var id = id ( num ) "
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input1 init15790T tokenizer178215T render27940T count15 stdout"let id = false if id { return str } else { return str } "
+    call_literal_tokenizer_prospective_test.go:83: greedy entiretrain 411820T/5465B
+    call_literal_tokenizer_runner_test.go:196: tag"pbqp" input0 init16273T tokenizer158470T render31405T count18 stdout"fn id ( id ) { return id + num } var id = id ( num ) "
+    call_literal_tokenizer_runner_test.go:196: tag"pbqp" input1 init16273T tokenizer178215T render27940T count15 stdout"let id = false if id { return str } else { return str } "
+    call_literal_tokenizer_prospective_test.go:83: pbqp entiretrain 412303T/5533B
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input0 init15790T tokenizer217468T render48183T count28 stdout"fn id ( id , id , id ) { return id + id * id } var id = id ( num , num , num ) "
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input1 init15790T tokenizer140907T render22079T count12 stdout"while true { if id == num { return str } } "
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input2 init15790T tokenizer147589T render15857T count9 stdout"id id id  num  num return id "
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input3 init15790T tokenizer249435T render27809T count16 stdout"id id id id { var id = id + num } let id = str "
+    call_literal_tokenizer_prospective_test.go:101: speed selectedgreedy fixedBIN heldout 885117T/5465B
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input0 init15790T tokenizer217468T render48183T count28 stdout"fn id ( id , id , id ) { return id + id * id } var id = id ( num , num , num ) "
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input1 init15790T tokenizer140907T render22079T count12 stdout"while true { if id == num { return str } } "
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input2 init15790T tokenizer147589T render15857T count9 stdout"id id id  num  num return id "
+    call_literal_tokenizer_runner_test.go:196: tag"greedy" input3 init15790T tokenizer249435T render27809T count16 stdout"id id id id { var id = id + num } let id = str "
+    call_literal_tokenizer_prospective_test.go:101: size selectedgreedy fixedBIN heldout 885117T/5465B
+--- PASS: TestCallLiteralTokenizerProspective (2.37s)
+=== RUN   TestParserProspectiveHeldout
+    parser_prospective_heldout_test.go:149: training mask 0: 1041396 T / 2380 B
+    parser_prospective_heldout_test.go:149: training mask 1: 1037534 T / 2501 B
+    parser_prospective_heldout_test.go:149: training mask 2: 1017031 T / 2360 B
+    parser_prospective_heldout_test.go:149: training mask 3: 1013169 T / 2481 B
+    parser_prospective_heldout_test.go:185: heldout mask 0: 2195166 T / 2380 B SHA 6d80d6ec7c8a1a00b1d70d88cedbb7cc0e345cb9234de9772ea710acb019efe5
+    parser_prospective_heldout_test.go:185: heldout mask 3: 2137780 T / 2481 B SHA 999016e970bb93a51cec68dd2e95a1d1d5c09badbfdf1669d25779c7588dc1d4
+--- PASS: TestParserProspectiveHeldout (24.25s)
+=== RUN   TestHashmapMeasuredTrainingAndUnseenWorkload
+    profile_hashmap_heldout_test.go:211: speed selected3 training 26346→23437T 996→976B; heldout 258962→237948T calls48
+    profile_hashmap_heldout_test.go:211: size selected3 training 26346→23437T 996→976B; heldout 258962→237948T calls48
+--- PASS: TestHashmapMeasuredTrainingAndUnseenWorkload (2.95s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	43.148s

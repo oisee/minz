@@ -1,5 +1,7 @@
 # Grace / PGO: текущее состояние
 
+Пять прежних frozenheldout после sharedargumentfix повторно PASS43,148с ([290](grace-integration-290/README.md)). ExternABI и exposed wordspill-store fixes пока в отдельной работе; новые canvas/selfparsernativeproof ещёpending.
+
 Checkpoint292d140c full frontends PASS и showcase193PASS/1capacitySKIP; explicit audit193PASS/1capacityFAIL сохранён ([289](grace-integration-289/README.md)). Новые externmultiarg runtime коллизии обнаружены независимо и ещё в работе; broadcompilePASS не считается ихcorrectnessproof.
 
 Root fullMIR1d9c76c9 завершён PASS85,902с ([288](grace-integration-288/README.md)); PFCCO прежний prospective heldout повторно PASS. Offline table integration повторяется отдельно с доступным research solver; production Z3 dependency не вводится.
