@@ -2,6 +2,7 @@ package vir
 
 import (
 	"github.com/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/z80asm"
 	"os"
 	"os/exec"
@@ -58,6 +59,20 @@ func TestLinearWordParamEntryFullDomainNative(t *testing.T) {
 		r := z.GetRegisters()
 		if r.HL != uint16(2*x) || r.PC != 0xf100 || r.SP != 0xf000 {
 			t.Fatalf("x=%d: %+v ASM=%s", x, r, asm.String())
+		}
+	}
+}
+
+func TestAdapterEntryRejectsInvalidABI(t *testing.T) {
+	f := &mir2.Func{Name: "probe", Contract: mir2.Contract{Params: []mir2.Param{{Reg: 1, Ty: mir2.TyU16}}}}
+	for _, tc := range []struct{ caller, stand map[int]int }{
+		{map[int]int{1: -1}, map[int]int{1: Z80.LocByName("HL")}},
+		{map[int]int{1: Z80.LocByName("SP")}, map[int]int{1: Z80.LocByName("HL")}},
+		{map[int]int{1: Z80.LocByName("DE")}, map[int]int{1: Z80.LocByName("A")}},
+		{map[int]int{}, map[int]int{1: Z80.LocByName("HL")}},
+	} {
+		if asm, err := emitAdapterEntry("probe:\nRET\n", f, tc.caller, tc.stand, Z80); err == nil || asm != "" {
+			t.Fatalf("invalid ABI admitted: %q %v", asm, err)
 		}
 	}
 }

@@ -795,16 +795,14 @@ skipTable:
 	// Then try standalone + adapter
 	vfWhole2 := deepCopyFunc(vf)
 	wholeASM, wholeErr = codegenFuncWhole(f, vfWhole2, desc, optsStand)
-	if wholeErr == nil && !hasConstraints {
-		adapted, adapterErr := emitAdapterEntry(wholeASM, f, callerParamLocs, standParamLocs, desc)
-		if adapterErr != nil {
-			return "", adapterErr
+	if wholeErr == nil {
+		if hasConstraints {
+			// The failed CFG model supplies no standalone entry locations.
+			// Returning a free solve here would silently discard caller ABI.
+			wholeErr = fmt.Errorf("standalone linear result lacks caller ABI mapping")
+		} else {
+			return wholeASM, nil
 		}
-		fmt.Fprintf(os.Stderr, "[vir] %s: CFG unsat, whole-function standalone+adapter OK\n", f.Name)
-		return adapted, nil
-	} else if wholeErr == nil {
-		fmt.Fprintf(os.Stderr, "[vir] %s: CFG unsat, whole-function standalone OK (no constraints)\n", f.Name)
-		return wholeASM, nil
 	}
 
 	// Recursive island decomposition: split function at liveness bottlenecks,
@@ -1008,20 +1006,26 @@ func resolveParallelMoves(moves []adapterMove, desc *MachineDesc) []string {
 // emitAdapterEntry inserts LD moves after the function label to shuffle params
 // from caller's convention (callerLocs) to standalone solver's convention (standLocs).
 func emitAdapterEntry(asm string, f *mir2.Func, callerLocs, standLocs map[int]int, desc *MachineDesc) (string, error) {
-	// Collect adapter moves needed (skip SP/F — not valid param locations)
 	var moves []adapterMove
 	for _, cp := range f.Contract.Params {
 		vreg := int(cp.Reg)
 		callerPhys, cOK := callerLocs[vreg]
 		standPhys, sOK := standLocs[vreg]
-		if cOK && sOK && callerPhys != standPhys {
-			// Skip SP (index 10) and F (index 13) — not valid param registers
-			if callerPhys < len(desc.Locs) && (desc.Locs[callerPhys].Name == "SP" || desc.Locs[callerPhys].Name == "F") {
-				continue
+		if !sOK {
+			continue
+		} // unused parameter has no solver location
+		if !cOK {
+			return "", fmt.Errorf("adapter missing caller location for v%d", vreg)
+		}
+		for _, phys := range []int{callerPhys, standPhys} {
+			if phys < 0 || phys >= len(desc.Locs) || desc.NonAllocatable.Has(phys) {
+				return "", fmt.Errorf("adapter invalid parameter location %d for v%d", phys, vreg)
 			}
-			if standPhys < len(desc.Locs) && (desc.Locs[standPhys].Name == "SP" || desc.Locs[standPhys].Name == "F") {
-				continue
+			if cp.Ty != nil && cp.Ty.Width() > 0 && desc.Locs[phys].Width != cp.Ty.Width() {
+				return "", fmt.Errorf("adapter parameter width mismatch for v%d", vreg)
 			}
+		}
+		if callerPhys != standPhys {
 			moves = append(moves, adapterMove{callerPhys, standPhys})
 		}
 	}
