@@ -1,0 +1,242 @@
+; MIR2 module: canvas_house.nanz
+string @mir2.str.0 = "build/canvas_house.png"
+
+extern fun @canvas_save(%r1: ptr [pointer]) -> u16 [pointer]
+
+extern fun @canvas_init(%r2: u16 [pointer], %r3: u16 [index], %r4: u16 [index]) -> u16 [pointer]
+
+extern fun @canvas_clear(%r5: u16 [pointer]) -> u16 [pointer]
+
+extern fun @canvas_pixel(%r6: u16 [pointer], %r7: u16 [index], %r8: u16 [index]) -> u16 [pointer]
+
+extern fun @canvas_line(%r9: u16 [pointer], %r10: u16 [index], %r11: u16 [index], %r12: u16 [index], %r13: u16 [index]) -> u16 [pointer]
+
+extern fun @canvas_rect(%r14: u16 [pointer], %r15: u16 [index], %r16: u16 [index], %r17: u16 [index], %r18: u16 [index]) -> u16 [pointer]
+
+extern fun @canvas_fill_rect(%r19: u16 [pointer], %r20: u16 [index], %r21: u16 [index], %r22: u16 [index], %r23: u16 [index]) -> u16 [pointer]
+
+extern fun @canvas_circle(%r24: u16 [pointer], %r25: u16 [index], %r26: u16 [index], %r27: u16 [index]) -> u16 [pointer]
+
+fun @Circle_draw(%r28: ptr [pointer]) -> u16 [pointer]
+  block @entry:
+    %r29 = load %r28 : u16 [pointer]
+    %r30 = field %r28, +2 : ptr [pointer]
+    %r31 = load %r30 : u16 [pointer]
+    %r32 = move %r31 : u16 [index]
+    %r33 = field %r28, +4 : ptr [pointer]
+    %r34 = load %r33 : u16 [pointer]
+    %r35 = move %r34 : u16 [index]
+    %r36 = field %r28, +6 : ptr [pointer]
+    %r37 = load %r36 : u16 [pointer]
+    %r38 = move %r37 : u16 [index]
+    %r39 = call @canvas_circle(%r29, %r32, %r35, %r38) : u16 [pointer]
+    ret %r39
+
+fun @Box_draw(%r40: ptr [pointer]) -> u16 [pointer]
+  block @entry:
+    %r41 = load %r40 : u16 [pointer]
+    %r42 = field %r40, +2 : ptr [pointer]
+    %r43 = load %r42 : u16 [pointer]
+    %r44 = move %r43 : u16 [index]
+    %r45 = field %r40, +4 : ptr [pointer]
+    %r46 = load %r45 : u16 [pointer]
+    %r47 = move %r46 : u16 [index]
+    %r48 = field %r40, +6 : ptr [pointer]
+    %r49 = load %r48 : u16 [pointer]
+    %r50 = move %r49 : u16 [index]
+    %r51 = field %r40, +8 : ptr [pointer]
+    %r52 = load %r51 : u16 [pointer]
+    %r53 = move %r52 : u16 [index]
+    %r54 = call @canvas_fill_rect(%r41, %r44, %r47, %r50, %r53) : u16 [pointer]
+    ret %r54
+
+fun @Box_outline(%r55: ptr [pointer]) -> u16 [pointer]
+  block @entry:
+    %r56 = load %r55 : u16 [pointer]
+    %r57 = field %r55, +2 : ptr [pointer]
+    %r58 = load %r57 : u16 [pointer]
+    %r59 = move %r58 : u16 [index]
+    %r60 = field %r55, +4 : ptr [pointer]
+    %r61 = load %r60 : u16 [pointer]
+    %r62 = move %r61 : u16 [index]
+    %r63 = field %r55, +6 : ptr [pointer]
+    %r64 = load %r63 : u16 [pointer]
+    %r65 = move %r64 : u16 [index]
+    %r66 = const 15 : u16 [pointer]
+    %r67 = move %r66 : u16 [index]
+    %r68 = call @canvas_rect(%r56, %r59, %r62, %r65, %r67) : u16 [pointer]
+    ret %r68
+
+fun @draw_scene() -> u16 [pointer]
+  block @entry:
+    %r181 = alloca 8 : ptr
+    %r169 = alloca 10 : ptr
+    %r157 = alloca 10 : ptr
+    %r125 = alloca 10 : ptr
+    %r111 = alloca 10 : ptr
+    %r101 = alloca 8 : ptr
+    %r89 = alloca 10 : ptr
+    %r77 = alloca 10 : ptr
+    %r69 = const 256 : u16 [pointer]
+    %r70 = const 192 : u16 [pointer]
+    %r71 = move %r70 : u16 [index]
+    %r72 = const 0 : u16 [pointer]
+    %r73 = move %r72 : u16 [index]
+    %r74 = call @canvas_init(%r69, %r71, %r73) : u16 [pointer]
+    %r75 = const 0 : u16 [pointer]
+    %r76 = call @canvas_clear(%r75) : u16 [pointer]
+    %r78 = const 0 : u8 [general]
+    store %r77, %r78 : u16
+    %r79 = const 0 : u8 [general]
+    %r80 = field %r77, +2 : ptr [pointer]
+    store %r80, %r79 : u16
+    %r81 = const 256 : u16 [pointer]
+    %r82 = field %r77, +4 : ptr [pointer]
+    store %r82, %r81 : u16
+    %r83 = const 96 : u8 [general]
+    %r84 = field %r77, +6 : ptr [pointer]
+    store %r84, %r83 : u16
+    %r85 = const 1 : u8 [general]
+    %r86 = field %r77, +8 : ptr [pointer]
+    store %r86, %r85 : u16
+    %r87 = move %r77 : ptr [pointer]
+    %r88 = call @Box_draw(%r87) : u16 [pointer]
+    %r90 = const 0 : u8 [general]
+    store %r89, %r90 : u16
+    %r91 = const 96 : u8 [general]
+    %r92 = field %r89, +2 : ptr [pointer]
+    store %r92, %r91 : u16
+    %r93 = const 256 : u16 [pointer]
+    %r94 = field %r89, +4 : ptr [pointer]
+    store %r94, %r93 : u16
+    %r95 = const 96 : u8 [general]
+    %r96 = field %r89, +6 : ptr [pointer]
+    store %r96, %r95 : u16
+    %r97 = const 4 : u8 [general]
+    %r98 = field %r89, +8 : ptr [pointer]
+    store %r98, %r97 : u16
+    %r99 = move %r89 : ptr [pointer]
+    %r100 = call @Box_draw(%r99) : u16 [pointer]
+    %r102 = const 200 : u8 [general]
+    store %r101, %r102 : u16
+    %r103 = const 40 : u8 [general]
+    %r104 = field %r101, +2 : ptr [pointer]
+    store %r104, %r103 : u16
+    %r105 = const 25 : u8 [general]
+    %r106 = field %r101, +4 : ptr [pointer]
+    store %r106, %r105 : u16
+    %r107 = const 14 : u8 [general]
+    %r108 = field %r101, +6 : ptr [pointer]
+    store %r108, %r107 : u16
+    %r109 = move %r101 : ptr [pointer]
+    %r110 = call @Circle_draw(%r109) : u16 [pointer]
+    %r112 = const 60 : u8 [general]
+    store %r111, %r112 : u16
+    %r113 = const 70 : u8 [general]
+    %r114 = field %r111, +2 : ptr [pointer]
+    store %r114, %r113 : u16
+    %r115 = const 60 : u8 [general]
+    %r116 = field %r111, +4 : ptr [pointer]
+    store %r116, %r115 : u16
+    %r117 = const 50 : u8 [general]
+    %r118 = field %r111, +6 : ptr [pointer]
+    store %r118, %r117 : u16
+    %r119 = const 2 : u8 [general]
+    %r120 = field %r111, +8 : ptr [pointer]
+    store %r120, %r119 : u16
+    %r121 = move %r111 : ptr [pointer]
+    %r122 = call @Box_draw(%r121) : u16 [pointer]
+    %r123 = move %r111 : ptr [pointer]
+    %r124 = call @Box_outline(%r123) : u16 [pointer]
+    %r126 = const 80 : u8 [general]
+    store %r125, %r126 : u16
+    %r127 = const 95 : u8 [general]
+    %r128 = field %r125, +2 : ptr [pointer]
+    store %r128, %r127 : u16
+    %r129 = const 15 : u8 [general]
+    %r130 = field %r125, +4 : ptr [pointer]
+    store %r130, %r129 : u16
+    %r131 = const 25 : u8 [general]
+    %r132 = field %r125, +6 : ptr [pointer]
+    store %r132, %r131 : u16
+    %r133 = const 6 : u8 [general]
+    %r134 = field %r125, +8 : ptr [pointer]
+    store %r134, %r133 : u16
+    %r135 = move %r125 : ptr [pointer]
+    %r136 = call @Box_draw(%r135) : u16 [pointer]
+    %r137 = const 55 : u16 [pointer]
+    %r138 = const 70 : u16 [pointer]
+    %r139 = move %r138 : u16 [index]
+    %r140 = const 90 : u16 [pointer]
+    %r141 = move %r140 : u16 [index]
+    %r142 = const 40 : u16 [pointer]
+    %r143 = move %r142 : u16 [index]
+    %r144 = const 15 : u16 [pointer]
+    %r145 = move %r144 : u16 [index]
+    %r146 = call @canvas_line(%r137, %r139, %r141, %r143, %r145) : u16 [pointer]
+    %r147 = const 90 : u16 [pointer]
+    %r148 = const 40 : u16 [pointer]
+    %r149 = move %r148 : u16 [index]
+    %r150 = const 125 : u16 [pointer]
+    %r151 = move %r150 : u16 [index]
+    %r152 = const 70 : u16 [pointer]
+    %r153 = move %r152 : u16 [index]
+    %r154 = const 15 : u16 [pointer]
+    %r155 = move %r154 : u16 [index]
+    %r156 = call @canvas_line(%r147, %r149, %r151, %r153, %r155) : u16 [pointer]
+    %r158 = const 65 : u8 [general]
+    store %r157, %r158 : u16
+    %r159 = const 78 : u8 [general]
+    %r160 = field %r157, +2 : ptr [pointer]
+    store %r160, %r159 : u16
+    %r161 = const 10 : u8 [general]
+    %r162 = field %r157, +4 : ptr [pointer]
+    store %r162, %r161 : u16
+    %r163 = const 10 : u8 [general]
+    %r164 = field %r157, +6 : ptr [pointer]
+    store %r164, %r163 : u16
+    %r165 = const 13 : u8 [general]
+    %r166 = field %r157, +8 : ptr [pointer]
+    store %r166, %r165 : u16
+    %r167 = move %r157 : ptr [pointer]
+    %r168 = call @Box_draw(%r167) : u16 [pointer]
+    %r170 = const 170 : u8 [general]
+    store %r169, %r170 : u16
+    %r171 = const 85 : u8 [general]
+    %r172 = field %r169, +2 : ptr [pointer]
+    store %r172, %r171 : u16
+    %r173 = const 6 : u8 [general]
+    %r174 = field %r169, +4 : ptr [pointer]
+    store %r174, %r173 : u16
+    %r175 = const 35 : u8 [general]
+    %r176 = field %r169, +6 : ptr [pointer]
+    store %r176, %r175 : u16
+    %r177 = const 6 : u8 [general]
+    %r178 = field %r169, +8 : ptr [pointer]
+    store %r178, %r177 : u16
+    %r179 = move %r169 : ptr [pointer]
+    %r180 = call @Box_draw(%r179) : u16 [pointer]
+    %r182 = const 173 : u8 [general]
+    store %r181, %r182 : u16
+    %r183 = const 75 : u8 [general]
+    %r184 = field %r181, +2 : ptr [pointer]
+    store %r184, %r183 : u16
+    %r185 = const 20 : u8 [general]
+    %r186 = field %r181, +4 : ptr [pointer]
+    store %r186, %r185 : u16
+    %r187 = const 4 : u8 [general]
+    %r188 = field %r181, +6 : ptr [pointer]
+    store %r188, %r187 : u16
+    %r189 = move %r181 : ptr [pointer]
+    %r190 = call @Circle_draw(%r189) : u16 [pointer]
+    %r191 = const 0 : u16 [pointer]
+    ret %r191
+
+fun @main()
+  block @entry:
+    %r192 = call @draw_scene() : u16 [pointer]
+    %r193 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r194 = move %r193 : ptr [pointer]
+    %r195 = call @canvas_save(%r194) : u16 [pointer]
+    ret void
+

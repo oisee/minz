@@ -1,0 +1,48 @@
+=== RUN   TestOriginalCanvasHouseMethods
+=== RUN   TestOriginalCanvasHouseMethods/ordinary/0
+=== RUN   TestOriginalCanvasHouseMethods/ordinary/1
+=== RUN   TestOriginalCanvasHouseMethods/ordinary/2
+=== RUN   TestOriginalCanvasHouseMethods/ordinary/3
+=== RUN   TestOriginalCanvasHouseMethods/ordinary/4
+=== RUN   TestOriginalCanvasHouseMethods/ordinary/5
+=== RUN   TestOriginalCanvasHouseMethods/grace-size/0
+=== RUN   TestOriginalCanvasHouseMethods/grace-size/1
+=== RUN   TestOriginalCanvasHouseMethods/grace-size/2
+=== RUN   TestOriginalCanvasHouseMethods/grace-size/3
+=== RUN   TestOriginalCanvasHouseMethods/grace-size/4
+=== RUN   TestOriginalCanvasHouseMethods/grace-size/5
+=== RUN   TestOriginalCanvasHouseMethods/grace-speed/0
+=== RUN   TestOriginalCanvasHouseMethods/grace-speed/1
+=== RUN   TestOriginalCanvasHouseMethods/grace-speed/2
+=== RUN   TestOriginalCanvasHouseMethods/grace-speed/3
+=== RUN   TestOriginalCanvasHouseMethods/grace-speed/4
+=== RUN   TestOriginalCanvasHouseMethods/grace-speed/5
+--- PASS: TestOriginalCanvasHouseMethods (0.20s)
+    --- PASS: TestOriginalCanvasHouseMethods/ordinary/0 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/ordinary/1 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/ordinary/2 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/ordinary/3 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/ordinary/4 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/ordinary/5 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-size/0 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-size/1 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-size/2 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-size/3 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-size/4 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-size/5 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-speed/0 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-speed/1 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-speed/2 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-speed/3 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-speed/4 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-speed/5 (0.00s)
+=== RUN   TestOriginalCanvasHouseWholeScene
+    original_canvas_house_test.go:308: ordinary draw_scene raw/final/native ordered events PASS
+    original_canvas_house_test.go:308: ordinary main raw/final/native ordered events PASS
+    original_canvas_house_test.go:308: grace-size draw_scene raw/final/native ordered events PASS
+    original_canvas_house_test.go:308: grace-size main raw/final/native ordered events PASS
+    original_canvas_house_test.go:308: grace-speed draw_scene raw/final/native ordered events PASS
+    original_canvas_house_test.go:308: grace-speed main raw/final/native ordered events PASS
+--- PASS: TestOriginalCanvasHouseWholeScene (0.37s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.577s

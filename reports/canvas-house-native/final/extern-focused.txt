@@ -1,0 +1,14 @@
+=== RUN   TestZ80ExternalParameterStorage
+=== RUN   TestZ80ExternalParameterStorage/two-pointers
+=== RUN   TestZ80ExternalParameterStorage/five-words
+=== RUN   TestZ80ExternalParameterStorage/mixed
+=== RUN   TestZ80ExternalParameterStorage/overflow
+--- PASS: TestZ80ExternalParameterStorage (0.00s)
+    --- PASS: TestZ80ExternalParameterStorage/two-pointers (0.00s)
+    --- PASS: TestZ80ExternalParameterStorage/five-words (0.00s)
+    --- PASS: TestZ80ExternalParameterStorage/mixed (0.00s)
+    --- PASS: TestZ80ExternalParameterStorage/overflow (0.00s)
+=== RUN   TestZ80ExternalFiveWordsAndSpillNative
+--- PASS: TestZ80ExternalFiveWordsAndSpillNative (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.013s
