@@ -1,0 +1,9 @@
+=== RUN   TestOriginalIRCClassifiers
+    original_irc_classifiers_test.go:469: ordinary 66912 raw/final/native ordered reads fullRAM PC/SP PASS
+    original_irc_classifiers_test.go:469: grace-size 66912 raw/final/native ordered reads fullRAM PC/SP PASS
+    original_irc_classifiers_test.go:469: grace-speed 66912 raw/final/native ordered reads fullRAM PC/SP PASS
+--- PASS: TestOriginalIRCClassifiers (11.36s)
+=== RUN   TestIRCClassifierTraceOracleControls
+--- PASS: TestIRCClassifierTraceOracleControls (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	11.376s

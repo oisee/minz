@@ -1,0 +1,10 @@
+{
+  "calls": 66912,
+  "observed_reads": {
+    "final_public_reads": 71433,
+    "native_public_reads": 71433,
+    "raw_public_reads": 71433
+  },
+  "result": "PASS",
+  "scope": "3originalclassifiers+region_matchdependency, no network/TUI/main"
+}

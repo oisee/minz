@@ -1,0 +1,94 @@
+[
+  {
+    "path": "reports/irc-classifiers/REPORT.md",
+    "sha256": "5be088abab104b7eb501bf5cf96759b5c7f5de2ec115dca02caf6bfeac077de0"
+  },
+  {
+    "path": "reports/irc-classifiers/SOURCE-CORRECTION.md",
+    "sha256": "89d22db3cdaffbc82170951dbb8888fd890473c59f9a34aa6e011158b606a9a0"
+  },
+  {
+    "path": "reports/irc-classifiers/before.txt",
+    "sha256": "3ef1d29d30e595fdd059a56a775d2c0890f5c2078b3bb0d5162f7412f1fd0228"
+  },
+  {
+    "path": "reports/irc-classifiers/corrected-source.nanz",
+    "sha256": "240ecc56c7b35683c15801f20490f22033837dfafa1e4d991ed1ca26a66d6f53"
+  },
+  {
+    "path": "reports/irc-classifiers/execution/grace-size/final.mir",
+    "sha256": "bc06d16a8c02d3c1fb16cd8c371c0b990a4c7807ceb02f0bc7e0226b7e63af90"
+  },
+  {
+    "path": "reports/irc-classifiers/execution/grace-size/raw.mir",
+    "sha256": "c286d3470fa5104be85f09222feb70670ba84ff225b1ea72e32be97d749d9692"
+  },
+  {
+    "path": "reports/irc-classifiers/execution/grace-size/summary.json",
+    "sha256": "1d924e6cf6c1df97b021d3249880c9951b41f05ace6c932ee60490ccfd94c538"
+  },
+  {
+    "path": "reports/irc-classifiers/execution/grace-size/target.a80",
+    "sha256": "bfcb5e38ac32d5f287d419505c64eef0318ae0954b3d22222f4ad1fad3019207"
+  },
+  {
+    "path": "reports/irc-classifiers/execution/grace-size/target.bin",
+    "sha256": "a40a8673d43816f44829d4012c08519b828335f5aed4f0e47df4d0a86261c2c7"
+  },
+  {
+    "path": "reports/irc-classifiers/execution/grace-speed/final.mir",
+    "sha256": "bc06d16a8c02d3c1fb16cd8c371c0b990a4c7807ceb02f0bc7e0226b7e63af90"
+  },
+  {
+    "path": "reports/irc-classifiers/execution/grace-speed/raw.mir",
+    "sha256": "c286d3470fa5104be85f09222feb70670ba84ff225b1ea72e32be97d749d9692"
+  },
+  {
+    "path": "reports/irc-classifiers/execution/grace-speed/summary.json",
+    "sha256": "1d924e6cf6c1df97b021d3249880c9951b41f05ace6c932ee60490ccfd94c538"
+  },
+  {
+    "path": "reports/irc-classifiers/execution/grace-speed/target.a80",
+    "sha256": "bfcb5e38ac32d5f287d419505c64eef0318ae0954b3d22222f4ad1fad3019207"
+  },
+  {
+    "path": "reports/irc-classifiers/execution/grace-speed/target.bin",
+    "sha256": "a40a8673d43816f44829d4012c08519b828335f5aed4f0e47df4d0a86261c2c7"
+  },
+  {
+    "path": "reports/irc-classifiers/execution/ordinary/final.mir",
+    "sha256": "b32bf7800e51cc0e3b56d56ca7910276357869002dda46e4590e227aca5f7d25"
+  },
+  {
+    "path": "reports/irc-classifiers/execution/ordinary/raw.mir",
+    "sha256": "c286d3470fa5104be85f09222feb70670ba84ff225b1ea72e32be97d749d9692"
+  },
+  {
+    "path": "reports/irc-classifiers/execution/ordinary/summary.json",
+    "sha256": "5a01d2b77bc10fcf30c238ea60299e5b8524009068f74bfcfbed4d3eff1ff4e1"
+  },
+  {
+    "path": "reports/irc-classifiers/execution/ordinary/target.a80",
+    "sha256": "195ff62c49ada767dffcfa8423cd68568977dd13e47f08e2581b29b7c730604c"
+  },
+  {
+    "path": "reports/irc-classifiers/execution/ordinary/target.bin",
+    "sha256": "021f87284ccada154ac7382a0da58650daa888a0d93c9018cd9c488511148307"
+  },
+  {
+    "path": "reports/irc-classifiers/freeze.json",
+    "sha256": "06f7aef515dbe1cbb2bf236e63482e3be5fce4807b31de9ce731f752d14a33db"
+  },
+  {
+    "path": "reports/irc-classifiers/literal-contracts.json",
+    "sha256": "8a851827ec689c8ebf3cc97b775de49c8e2ceb03b7cc69c92a1f26ca9fecae86"
+  },
+  {
+    "path": "reports/irc-classifiers/result.txt",
+    "sha256": "08242fc9c75bc01219a7167d6a70d3f497439d22d854834ac514bc86f85c5975"
+  },
+  {
+    "path": "reports/irc-classifiers/source.nanz",
+    "sha256": "2836abd4f06db6a7ae777459e56c9ad35e42aa2ec87c479125685c7d9cdacc96"
+  }
+]
