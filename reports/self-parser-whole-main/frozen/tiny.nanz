@@ -1,0 +1,2 @@
+fun add(a: u8, b: u8) -> u8 { return a + b }
+fn answer() -> u8 { return 7 }
