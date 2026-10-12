@@ -1,0 +1,29 @@
+{
+  "checkpoint": "1d56e49c",
+  "observed_at_utc": "2026-10-12T15:06:56.349783+00:00",
+  "cli": {
+    "status": "running",
+    "session": 61270,
+    "binary": "/home/alice/dev/minz-artifacts/grace-checkpoints/cli-1d56e49c.test",
+    "sha256": "f9fd7a40544a6f4377d7cee1c43c42eae14cb5bb8684fd2323c91926e7e6292a",
+    "args": [
+      "-test.count=1",
+      "-test.timeout=30m",
+      "-test.v"
+    ],
+    "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/cmd/minzc",
+    "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/cli-1d56e49c-full.txt"
+  },
+  "heldout": {
+    "status": "running",
+    "session": 64706,
+    "command": "go test ./pkg/pipeline -run ^(TestParserProspectiveHeldout|TestHashmapMeasuredTrainingAndUnseenWorkload)$ -count=1 -timeout=20m -v",
+    "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc",
+    "artifacts": "/home/alice/dev/minz-artifacts/grace-checkpoints/heldout-1d56e49c",
+    "env": {
+      "MINZ_PARSER_PROSPECTIVE_EVIDENCE": "/home/alice/dev/minz-artifacts/grace-checkpoints/heldout-1d56e49c/parser",
+      "MINZ_HASHMAP_HELDOUT_EVIDENCE": "/home/alice/dev/minz-artifacts/grace-checkpoints/heldout-1d56e49c/hashmap"
+    }
+  },
+  "scope": "Latest production/shared VIR descriptor checkpoint. No changed train/heldout inputs or language policy. Logs are live, not terminal proof."
+}
