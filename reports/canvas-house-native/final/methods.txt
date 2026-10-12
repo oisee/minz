@@ -1,0 +1,40 @@
+=== RUN   TestOriginalCanvasHouseMethods
+=== RUN   TestOriginalCanvasHouseMethods/ordinary/0
+=== RUN   TestOriginalCanvasHouseMethods/ordinary/1
+=== RUN   TestOriginalCanvasHouseMethods/ordinary/2
+=== RUN   TestOriginalCanvasHouseMethods/ordinary/3
+=== RUN   TestOriginalCanvasHouseMethods/ordinary/4
+=== RUN   TestOriginalCanvasHouseMethods/ordinary/5
+=== RUN   TestOriginalCanvasHouseMethods/grace-size/0
+=== RUN   TestOriginalCanvasHouseMethods/grace-size/1
+=== RUN   TestOriginalCanvasHouseMethods/grace-size/2
+=== RUN   TestOriginalCanvasHouseMethods/grace-size/3
+=== RUN   TestOriginalCanvasHouseMethods/grace-size/4
+=== RUN   TestOriginalCanvasHouseMethods/grace-size/5
+=== RUN   TestOriginalCanvasHouseMethods/grace-speed/0
+=== RUN   TestOriginalCanvasHouseMethods/grace-speed/1
+=== RUN   TestOriginalCanvasHouseMethods/grace-speed/2
+=== RUN   TestOriginalCanvasHouseMethods/grace-speed/3
+=== RUN   TestOriginalCanvasHouseMethods/grace-speed/4
+=== RUN   TestOriginalCanvasHouseMethods/grace-speed/5
+--- PASS: TestOriginalCanvasHouseMethods (0.23s)
+    --- PASS: TestOriginalCanvasHouseMethods/ordinary/0 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/ordinary/1 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/ordinary/2 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/ordinary/3 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/ordinary/4 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/ordinary/5 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-size/0 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-size/1 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-size/2 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-size/3 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-size/4 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-size/5 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-speed/0 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-speed/1 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-speed/2 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-speed/3 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-speed/4 (0.00s)
+    --- PASS: TestOriginalCanvasHouseMethods/grace-speed/5 (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.234s

@@ -1,0 +1,9 @@
+{
+  "SP": 61440,
+  "T_states": 17001,
+  "bytes": 1918,
+  "events": 13,
+  "external_clobber_stress": true,
+  "full_ram": true,
+  "path": ""
+}

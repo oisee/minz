@@ -1,0 +1,510 @@
+{
+  "source_commit": "399a65a0",
+  "files": [
+    {
+      "path": "canvas-host-source.go.txt",
+      "bytes": 10256,
+      "sha256": "ccd9c47cd9027df23fdaba7240a8cdbfd875c980214c5a4f7dc2c70f772fceb9"
+    },
+    {
+      "path": "executable.json",
+      "bytes": 333,
+      "sha256": "51a82b331934cc8cea0f7d94d6b4faa39e91b740627f0de111b73c67098e6028"
+    },
+    {
+      "path": "execution/grace-size/allocation.json",
+      "bytes": 14023,
+      "sha256": "4912ea3e75e369314e428fe249d3e0580153ad03d1579d18cdf577b590e2b24f"
+    },
+    {
+      "path": "execution/grace-size/draw_scene/final-events.json",
+      "bytes": 1318,
+      "sha256": "b4c65b3cbe807b332a4b209ee4db712d73dda3cf84d54fbb774da20f66b66519"
+    },
+    {
+      "path": "execution/grace-size/draw_scene/final-frame.png",
+      "bytes": 1355,
+      "sha256": "be0eb3b2ba3c2bdb92f478b3a490a6974d772d7f5e87e8f0ae0ea5eda3a93b1d"
+    },
+    {
+      "path": "execution/grace-size/draw_scene/final-pixels.bin",
+      "bytes": 49152,
+      "sha256": "8962381d58fb94510a4a4bb0b8798dcac1a5252cb95134e30bb52e66c13a2ec2"
+    },
+    {
+      "path": "execution/grace-size/draw_scene/native-events.json",
+      "bytes": 1318,
+      "sha256": "b4c65b3cbe807b332a4b209ee4db712d73dda3cf84d54fbb774da20f66b66519"
+    },
+    {
+      "path": "execution/grace-size/draw_scene/native-frame.png",
+      "bytes": 1355,
+      "sha256": "be0eb3b2ba3c2bdb92f478b3a490a6974d772d7f5e87e8f0ae0ea5eda3a93b1d"
+    },
+    {
+      "path": "execution/grace-size/draw_scene/native-pixels.bin",
+      "bytes": 49152,
+      "sha256": "8962381d58fb94510a4a4bb0b8798dcac1a5252cb95134e30bb52e66c13a2ec2"
+    },
+    {
+      "path": "execution/grace-size/draw_scene/program.a80",
+      "bytes": 26049,
+      "sha256": "0e5ed6444b20d6fa83a61218018ae2bf11f60b23557709b32f3214967fb20b07"
+    },
+    {
+      "path": "execution/grace-size/draw_scene/program.bin",
+      "bytes": 1918,
+      "sha256": "ca2935ebb56229113586272e01cf0ea50ec56fa2b286feee29c5cba733c62952"
+    },
+    {
+      "path": "execution/grace-size/draw_scene/raw-events.json",
+      "bytes": 1318,
+      "sha256": "b4c65b3cbe807b332a4b209ee4db712d73dda3cf84d54fbb774da20f66b66519"
+    },
+    {
+      "path": "execution/grace-size/draw_scene/raw-frame.png",
+      "bytes": 1355,
+      "sha256": "be0eb3b2ba3c2bdb92f478b3a490a6974d772d7f5e87e8f0ae0ea5eda3a93b1d"
+    },
+    {
+      "path": "execution/grace-size/draw_scene/raw-pixels.bin",
+      "bytes": 49152,
+      "sha256": "8962381d58fb94510a4a4bb0b8798dcac1a5252cb95134e30bb52e66c13a2ec2"
+    },
+    {
+      "path": "execution/grace-size/draw_scene/registers.json",
+      "bytes": 125,
+      "sha256": "c7cf3a1f0a41741d773d16b0e69e7e3087701bbf8d4efdd2a9cbc1753325b275"
+    },
+    {
+      "path": "execution/grace-size/draw_scene/summary.json",
+      "bytes": 140,
+      "sha256": "f6302599222b9ad3bb1929464c1ef5f994bb668efea65d61d3bdc69cf2ad9ffe"
+    },
+    {
+      "path": "execution/grace-size/final.mir",
+      "bytes": 8541,
+      "sha256": "06e50382f8b3dc11f9b63f94b80bd896f3bffce33f772e0c89a23b3ab76e2a85"
+    },
+    {
+      "path": "execution/grace-size/main/final-events.json",
+      "bytes": 1318,
+      "sha256": "b4c65b3cbe807b332a4b209ee4db712d73dda3cf84d54fbb774da20f66b66519"
+    },
+    {
+      "path": "execution/grace-size/main/final-frame.png",
+      "bytes": 1355,
+      "sha256": "be0eb3b2ba3c2bdb92f478b3a490a6974d772d7f5e87e8f0ae0ea5eda3a93b1d"
+    },
+    {
+      "path": "execution/grace-size/main/final-pixels.bin",
+      "bytes": 49152,
+      "sha256": "8962381d58fb94510a4a4bb0b8798dcac1a5252cb95134e30bb52e66c13a2ec2"
+    },
+    {
+      "path": "execution/grace-size/main/native-events.json",
+      "bytes": 1318,
+      "sha256": "b4c65b3cbe807b332a4b209ee4db712d73dda3cf84d54fbb774da20f66b66519"
+    },
+    {
+      "path": "execution/grace-size/main/native-frame.png",
+      "bytes": 1355,
+      "sha256": "be0eb3b2ba3c2bdb92f478b3a490a6974d772d7f5e87e8f0ae0ea5eda3a93b1d"
+    },
+    {
+      "path": "execution/grace-size/main/native-pixels.bin",
+      "bytes": 49152,
+      "sha256": "8962381d58fb94510a4a4bb0b8798dcac1a5252cb95134e30bb52e66c13a2ec2"
+    },
+    {
+      "path": "execution/grace-size/main/program.a80",
+      "bytes": 26049,
+      "sha256": "0e5ed6444b20d6fa83a61218018ae2bf11f60b23557709b32f3214967fb20b07"
+    },
+    {
+      "path": "execution/grace-size/main/program.bin",
+      "bytes": 1918,
+      "sha256": "ca2935ebb56229113586272e01cf0ea50ec56fa2b286feee29c5cba733c62952"
+    },
+    {
+      "path": "execution/grace-size/main/raw-events.json",
+      "bytes": 1318,
+      "sha256": "b4c65b3cbe807b332a4b209ee4db712d73dda3cf84d54fbb774da20f66b66519"
+    },
+    {
+      "path": "execution/grace-size/main/raw-frame.png",
+      "bytes": 1355,
+      "sha256": "be0eb3b2ba3c2bdb92f478b3a490a6974d772d7f5e87e8f0ae0ea5eda3a93b1d"
+    },
+    {
+      "path": "execution/grace-size/main/raw-pixels.bin",
+      "bytes": 49152,
+      "sha256": "8962381d58fb94510a4a4bb0b8798dcac1a5252cb95134e30bb52e66c13a2ec2"
+    },
+    {
+      "path": "execution/grace-size/main/registers.json",
+      "bytes": 125,
+      "sha256": "c7cf3a1f0a41741d773d16b0e69e7e3087701bbf8d4efdd2a9cbc1753325b275"
+    },
+    {
+      "path": "execution/grace-size/main/summary.json",
+      "bytes": 162,
+      "sha256": "91ddb4ab672ec5193bb00823b9803b6d4cd282c09eae5bbc2168b0969ac92404"
+    },
+    {
+      "path": "execution/grace-size/raw.mir",
+      "bytes": 8999,
+      "sha256": "c17387baea7be1df6f0a963633c6dc9dd2005e32ff63a2f970ca44ef10b4bbf1"
+    },
+    {
+      "path": "execution/grace-size/unlinked.a80",
+      "bytes": 25791,
+      "sha256": "8354073fd538de60dd12285aee2b6a4d6a6b6801ce48d0d38282b6c038ccabf6"
+    },
+    {
+      "path": "execution/grace-speed/allocation.json",
+      "bytes": 14023,
+      "sha256": "4912ea3e75e369314e428fe249d3e0580153ad03d1579d18cdf577b590e2b24f"
+    },
+    {
+      "path": "execution/grace-speed/draw_scene/final-events.json",
+      "bytes": 1318,
+      "sha256": "b4c65b3cbe807b332a4b209ee4db712d73dda3cf84d54fbb774da20f66b66519"
+    },
+    {
+      "path": "execution/grace-speed/draw_scene/final-frame.png",
+      "bytes": 1355,
+      "sha256": "be0eb3b2ba3c2bdb92f478b3a490a6974d772d7f5e87e8f0ae0ea5eda3a93b1d"
+    },
+    {
+      "path": "execution/grace-speed/draw_scene/final-pixels.bin",
+      "bytes": 49152,
+      "sha256": "8962381d58fb94510a4a4bb0b8798dcac1a5252cb95134e30bb52e66c13a2ec2"
+    },
+    {
+      "path": "execution/grace-speed/draw_scene/native-events.json",
+      "bytes": 1318,
+      "sha256": "b4c65b3cbe807b332a4b209ee4db712d73dda3cf84d54fbb774da20f66b66519"
+    },
+    {
+      "path": "execution/grace-speed/draw_scene/native-frame.png",
+      "bytes": 1355,
+      "sha256": "be0eb3b2ba3c2bdb92f478b3a490a6974d772d7f5e87e8f0ae0ea5eda3a93b1d"
+    },
+    {
+      "path": "execution/grace-speed/draw_scene/native-pixels.bin",
+      "bytes": 49152,
+      "sha256": "8962381d58fb94510a4a4bb0b8798dcac1a5252cb95134e30bb52e66c13a2ec2"
+    },
+    {
+      "path": "execution/grace-speed/draw_scene/program.a80",
+      "bytes": 26049,
+      "sha256": "0e5ed6444b20d6fa83a61218018ae2bf11f60b23557709b32f3214967fb20b07"
+    },
+    {
+      "path": "execution/grace-speed/draw_scene/program.bin",
+      "bytes": 1918,
+      "sha256": "ca2935ebb56229113586272e01cf0ea50ec56fa2b286feee29c5cba733c62952"
+    },
+    {
+      "path": "execution/grace-speed/draw_scene/raw-events.json",
+      "bytes": 1318,
+      "sha256": "b4c65b3cbe807b332a4b209ee4db712d73dda3cf84d54fbb774da20f66b66519"
+    },
+    {
+      "path": "execution/grace-speed/draw_scene/raw-frame.png",
+      "bytes": 1355,
+      "sha256": "be0eb3b2ba3c2bdb92f478b3a490a6974d772d7f5e87e8f0ae0ea5eda3a93b1d"
+    },
+    {
+      "path": "execution/grace-speed/draw_scene/raw-pixels.bin",
+      "bytes": 49152,
+      "sha256": "8962381d58fb94510a4a4bb0b8798dcac1a5252cb95134e30bb52e66c13a2ec2"
+    },
+    {
+      "path": "execution/grace-speed/draw_scene/registers.json",
+      "bytes": 125,
+      "sha256": "c7cf3a1f0a41741d773d16b0e69e7e3087701bbf8d4efdd2a9cbc1753325b275"
+    },
+    {
+      "path": "execution/grace-speed/draw_scene/summary.json",
+      "bytes": 140,
+      "sha256": "f6302599222b9ad3bb1929464c1ef5f994bb668efea65d61d3bdc69cf2ad9ffe"
+    },
+    {
+      "path": "execution/grace-speed/final.mir",
+      "bytes": 8541,
+      "sha256": "06e50382f8b3dc11f9b63f94b80bd896f3bffce33f772e0c89a23b3ab76e2a85"
+    },
+    {
+      "path": "execution/grace-speed/main/final-events.json",
+      "bytes": 1318,
+      "sha256": "b4c65b3cbe807b332a4b209ee4db712d73dda3cf84d54fbb774da20f66b66519"
+    },
+    {
+      "path": "execution/grace-speed/main/final-frame.png",
+      "bytes": 1355,
+      "sha256": "be0eb3b2ba3c2bdb92f478b3a490a6974d772d7f5e87e8f0ae0ea5eda3a93b1d"
+    },
+    {
+      "path": "execution/grace-speed/main/final-pixels.bin",
+      "bytes": 49152,
+      "sha256": "8962381d58fb94510a4a4bb0b8798dcac1a5252cb95134e30bb52e66c13a2ec2"
+    },
+    {
+      "path": "execution/grace-speed/main/native-events.json",
+      "bytes": 1318,
+      "sha256": "b4c65b3cbe807b332a4b209ee4db712d73dda3cf84d54fbb774da20f66b66519"
+    },
+    {
+      "path": "execution/grace-speed/main/native-frame.png",
+      "bytes": 1355,
+      "sha256": "be0eb3b2ba3c2bdb92f478b3a490a6974d772d7f5e87e8f0ae0ea5eda3a93b1d"
+    },
+    {
+      "path": "execution/grace-speed/main/native-pixels.bin",
+      "bytes": 49152,
+      "sha256": "8962381d58fb94510a4a4bb0b8798dcac1a5252cb95134e30bb52e66c13a2ec2"
+    },
+    {
+      "path": "execution/grace-speed/main/program.a80",
+      "bytes": 26049,
+      "sha256": "0e5ed6444b20d6fa83a61218018ae2bf11f60b23557709b32f3214967fb20b07"
+    },
+    {
+      "path": "execution/grace-speed/main/program.bin",
+      "bytes": 1918,
+      "sha256": "ca2935ebb56229113586272e01cf0ea50ec56fa2b286feee29c5cba733c62952"
+    },
+    {
+      "path": "execution/grace-speed/main/raw-events.json",
+      "bytes": 1318,
+      "sha256": "b4c65b3cbe807b332a4b209ee4db712d73dda3cf84d54fbb774da20f66b66519"
+    },
+    {
+      "path": "execution/grace-speed/main/raw-frame.png",
+      "bytes": 1355,
+      "sha256": "be0eb3b2ba3c2bdb92f478b3a490a6974d772d7f5e87e8f0ae0ea5eda3a93b1d"
+    },
+    {
+      "path": "execution/grace-speed/main/raw-pixels.bin",
+      "bytes": 49152,
+      "sha256": "8962381d58fb94510a4a4bb0b8798dcac1a5252cb95134e30bb52e66c13a2ec2"
+    },
+    {
+      "path": "execution/grace-speed/main/registers.json",
+      "bytes": 125,
+      "sha256": "c7cf3a1f0a41741d773d16b0e69e7e3087701bbf8d4efdd2a9cbc1753325b275"
+    },
+    {
+      "path": "execution/grace-speed/main/summary.json",
+      "bytes": 162,
+      "sha256": "91ddb4ab672ec5193bb00823b9803b6d4cd282c09eae5bbc2168b0969ac92404"
+    },
+    {
+      "path": "execution/grace-speed/raw.mir",
+      "bytes": 8999,
+      "sha256": "c17387baea7be1df6f0a963633c6dc9dd2005e32ff63a2f970ca44ef10b4bbf1"
+    },
+    {
+      "path": "execution/grace-speed/unlinked.a80",
+      "bytes": 25791,
+      "sha256": "8354073fd538de60dd12285aee2b6a4d6a6b6801ce48d0d38282b6c038ccabf6"
+    },
+    {
+      "path": "execution/ordinary/allocation.json",
+      "bytes": 14023,
+      "sha256": "4912ea3e75e369314e428fe249d3e0580153ad03d1579d18cdf577b590e2b24f"
+    },
+    {
+      "path": "execution/ordinary/draw_scene/final-events.json",
+      "bytes": 1318,
+      "sha256": "b4c65b3cbe807b332a4b209ee4db712d73dda3cf84d54fbb774da20f66b66519"
+    },
+    {
+      "path": "execution/ordinary/draw_scene/final-frame.png",
+      "bytes": 1355,
+      "sha256": "be0eb3b2ba3c2bdb92f478b3a490a6974d772d7f5e87e8f0ae0ea5eda3a93b1d"
+    },
+    {
+      "path": "execution/ordinary/draw_scene/final-pixels.bin",
+      "bytes": 49152,
+      "sha256": "8962381d58fb94510a4a4bb0b8798dcac1a5252cb95134e30bb52e66c13a2ec2"
+    },
+    {
+      "path": "execution/ordinary/draw_scene/native-events.json",
+      "bytes": 1318,
+      "sha256": "b4c65b3cbe807b332a4b209ee4db712d73dda3cf84d54fbb774da20f66b66519"
+    },
+    {
+      "path": "execution/ordinary/draw_scene/native-frame.png",
+      "bytes": 1355,
+      "sha256": "be0eb3b2ba3c2bdb92f478b3a490a6974d772d7f5e87e8f0ae0ea5eda3a93b1d"
+    },
+    {
+      "path": "execution/ordinary/draw_scene/native-pixels.bin",
+      "bytes": 49152,
+      "sha256": "8962381d58fb94510a4a4bb0b8798dcac1a5252cb95134e30bb52e66c13a2ec2"
+    },
+    {
+      "path": "execution/ordinary/draw_scene/program.a80",
+      "bytes": 26095,
+      "sha256": "80505c28ebb6ed19de7cee0e706c40774d397c71112cccfdc4755e169b2926de"
+    },
+    {
+      "path": "execution/ordinary/draw_scene/program.bin",
+      "bytes": 1918,
+      "sha256": "ca2935ebb56229113586272e01cf0ea50ec56fa2b286feee29c5cba733c62952"
+    },
+    {
+      "path": "execution/ordinary/draw_scene/raw-events.json",
+      "bytes": 1318,
+      "sha256": "b4c65b3cbe807b332a4b209ee4db712d73dda3cf84d54fbb774da20f66b66519"
+    },
+    {
+      "path": "execution/ordinary/draw_scene/raw-frame.png",
+      "bytes": 1355,
+      "sha256": "be0eb3b2ba3c2bdb92f478b3a490a6974d772d7f5e87e8f0ae0ea5eda3a93b1d"
+    },
+    {
+      "path": "execution/ordinary/draw_scene/raw-pixels.bin",
+      "bytes": 49152,
+      "sha256": "8962381d58fb94510a4a4bb0b8798dcac1a5252cb95134e30bb52e66c13a2ec2"
+    },
+    {
+      "path": "execution/ordinary/draw_scene/registers.json",
+      "bytes": 125,
+      "sha256": "c7cf3a1f0a41741d773d16b0e69e7e3087701bbf8d4efdd2a9cbc1753325b275"
+    },
+    {
+      "path": "execution/ordinary/draw_scene/summary.json",
+      "bytes": 140,
+      "sha256": "f6302599222b9ad3bb1929464c1ef5f994bb668efea65d61d3bdc69cf2ad9ffe"
+    },
+    {
+      "path": "execution/ordinary/final.mir",
+      "bytes": 8541,
+      "sha256": "06e50382f8b3dc11f9b63f94b80bd896f3bffce33f772e0c89a23b3ab76e2a85"
+    },
+    {
+      "path": "execution/ordinary/main/final-events.json",
+      "bytes": 1318,
+      "sha256": "b4c65b3cbe807b332a4b209ee4db712d73dda3cf84d54fbb774da20f66b66519"
+    },
+    {
+      "path": "execution/ordinary/main/final-frame.png",
+      "bytes": 1355,
+      "sha256": "be0eb3b2ba3c2bdb92f478b3a490a6974d772d7f5e87e8f0ae0ea5eda3a93b1d"
+    },
+    {
+      "path": "execution/ordinary/main/final-pixels.bin",
+      "bytes": 49152,
+      "sha256": "8962381d58fb94510a4a4bb0b8798dcac1a5252cb95134e30bb52e66c13a2ec2"
+    },
+    {
+      "path": "execution/ordinary/main/native-events.json",
+      "bytes": 1318,
+      "sha256": "b4c65b3cbe807b332a4b209ee4db712d73dda3cf84d54fbb774da20f66b66519"
+    },
+    {
+      "path": "execution/ordinary/main/native-frame.png",
+      "bytes": 1355,
+      "sha256": "be0eb3b2ba3c2bdb92f478b3a490a6974d772d7f5e87e8f0ae0ea5eda3a93b1d"
+    },
+    {
+      "path": "execution/ordinary/main/native-pixels.bin",
+      "bytes": 49152,
+      "sha256": "8962381d58fb94510a4a4bb0b8798dcac1a5252cb95134e30bb52e66c13a2ec2"
+    },
+    {
+      "path": "execution/ordinary/main/program.a80",
+      "bytes": 26095,
+      "sha256": "80505c28ebb6ed19de7cee0e706c40774d397c71112cccfdc4755e169b2926de"
+    },
+    {
+      "path": "execution/ordinary/main/program.bin",
+      "bytes": 1918,
+      "sha256": "ca2935ebb56229113586272e01cf0ea50ec56fa2b286feee29c5cba733c62952"
+    },
+    {
+      "path": "execution/ordinary/main/raw-events.json",
+      "bytes": 1318,
+      "sha256": "b4c65b3cbe807b332a4b209ee4db712d73dda3cf84d54fbb774da20f66b66519"
+    },
+    {
+      "path": "execution/ordinary/main/raw-frame.png",
+      "bytes": 1355,
+      "sha256": "be0eb3b2ba3c2bdb92f478b3a490a6974d772d7f5e87e8f0ae0ea5eda3a93b1d"
+    },
+    {
+      "path": "execution/ordinary/main/raw-pixels.bin",
+      "bytes": 49152,
+      "sha256": "8962381d58fb94510a4a4bb0b8798dcac1a5252cb95134e30bb52e66c13a2ec2"
+    },
+    {
+      "path": "execution/ordinary/main/registers.json",
+      "bytes": 125,
+      "sha256": "c7cf3a1f0a41741d773d16b0e69e7e3087701bbf8d4efdd2a9cbc1753325b275"
+    },
+    {
+      "path": "execution/ordinary/main/summary.json",
+      "bytes": 162,
+      "sha256": "91ddb4ab672ec5193bb00823b9803b6d4cd282c09eae5bbc2168b0969ac92404"
+    },
+    {
+      "path": "execution/ordinary/raw.mir",
+      "bytes": 8999,
+      "sha256": "c17387baea7be1df6f0a963633c6dc9dd2005e32ff63a2f970ca44ef10b4bbf1"
+    },
+    {
+      "path": "execution/ordinary/unlinked.a80",
+      "bytes": 25837,
+      "sha256": "d778efd03124520ea915640e1bd14f5e7f130f79ce5c5071464b3146d6851a30"
+    },
+    {
+      "path": "extern-focused.txt",
+      "bytes": 708,
+      "sha256": "468b4dc555b6fe5b705912e33459851f43825dd253676677efe8a0a10282ab52"
+    },
+    {
+      "path": "final-focused.txt",
+      "bytes": 2954,
+      "sha256": "615e4fc130d99dc1ef4c6fde91f8a88fab7cb48a252d173c33f58a8f49d5912f"
+    },
+    {
+      "path": "freeze.json",
+      "bytes": 2325,
+      "sha256": "f72a8771dfe8c0676d1ecf5798b200f9616348da83a040af124c364dac1f4da4"
+    },
+    {
+      "path": "full-mir2.txt",
+      "bytes": 44,
+      "sha256": "b662c33a3373dc1282d49212b0ef277996b89828ca903e2436353f7ddd2e0457"
+    },
+    {
+      "path": "identity-focused.txt",
+      "bytes": 1243,
+      "sha256": "e761e78671daef16b4f50773c14d53e4ea5c6ee78867333ed43c2a3b85e1900b"
+    },
+    {
+      "path": "methods.txt",
+      "bytes": 2290,
+      "sha256": "7c7e72b9e4a6cc0a3bd404aaf3a3322e9434a26e85c142cd3cac7ccf1fc6053b"
+    },
+    {
+      "path": "retained-proof.txt",
+      "bytes": 2907,
+      "sha256": "74ad1f3d252e76d22ec00ecb95daf56396be10db6b9ff5d2e5a9fa3b0dff4e7a"
+    },
+    {
+      "path": "source.nanz",
+      "bytes": 2522,
+      "sha256": "e9c60c6156e44a2f1500631c6974db0f840bdd3cdbfbc98863742aaefa67af97"
+    },
+    {
+      "path": "word-store-focused.txt",
+      "bytes": 10998,
+      "sha256": "bf9b2d9f5fbfaee73d5593f5a7cec322b9503227b3cbaa061aebf2d208ec7d6b"
+    }
+  ]
+}
