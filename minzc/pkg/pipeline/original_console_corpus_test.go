@@ -247,13 +247,30 @@ func TestOriginalConsoleNative(t *testing.T) {
 					result["expected_col"] = col
 					result["actual_row"] = z.Memory()[a.Symbols["zx__console__con_row"]]
 					result["actual_col"] = z.Memory()[a.Symbols["zx__console__con_col"]]
-					// Retain the original unsupported library contract outcome; never call it a pass.
-					if os.Getenv("CONSOLE_REQUIRE_ZX") == "1" {
-						if !done || mismatch >= 0 {
-							t.Fatalf("ZX original returned=%v screen mismatch=%04x", done, mismatch)
+					if !done || mismatch >= 0 || row != 11 || col != 0 || result["actual_row"] != byte(11) || result["actual_col"] != byte(0) {
+						t.Fatalf("ZX corrected returned=%v screen mismatch=%04x", done, mismatch)
+					}
+					expectedReads := []uint16{0xfefe, 0xfdfe, 0xfbfe, 0xf7fe, 0xeffe, 0xdffe, 0xbffe, 0x7ffe, 0xfefe, 0xfdfe, 0xfbfe, 0xf7fe, 0xeffe, 0xdffe, 0xbffe, 0x7ffe, 0xfefe}
+					if fmt.Sprint(reads) != fmt.Sprint(expectedReads) || len(ports) != 0 {
+						t.Fatal("keyboard/ports", reads, ports)
+					}
+					allowed := map[int]bool{}
+					for n := 0x4000; n <= 0x5aff; n++ {
+						allowed[n] = true
+					}
+					for n := int(depth); n < 0xf000; n++ {
+						allowed[n] = true
+					}
+					for _, name := range []string{"zx__console__con_col", "zx__console__con_row", "zx__console__con_attr"} {
+						allowed[int(a.Symbols[name])] = true
+					}
+					for n := range z.Memory() {
+						if !allowed[n] && (z.Memory()[n] != before[n] || prof.WriteCount[n] != 0) {
+							t.Fatalf("ZX write outside explicit screen/globals/stack: %04x", n)
 						}
 					}
-					t.Logf("ZX original returned=%v screen mismatch=%04x cursor=%v/%v", done, mismatch, result["actual_row"], result["actual_col"])
+					t.Logf("ZX corrected returned=%v screen mismatch=%04x cursor=%v/%v", done, mismatch, result["actual_row"], result["actual_col"])
+
 				}
 				out, _ := json.MarshalIndent(result, "", "  ")
 				export(prefix+".json", out)

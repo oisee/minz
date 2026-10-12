@@ -1,0 +1,53 @@
+; MIR2 module: reports/showcase-src/2026-03-11/ex18_user_console_io.nanz
+string @mir2.str.0 = "same thing!\n"
+
+fun @console_log(%r1: u8 [acc])
+  block @entry:
+    asm "OUT (0x23), A"
+    ret void
+
+fun @console_err(%r2: u8 [acc])
+  block @entry:
+    asm "OUT (0x25), A"
+    ret void
+
+fun @print_str(%r3: u16 [pointer])
+  block @entry:
+    asm "LD A, (HL)\n        OR A\n        JR Z, _ps_done\n_ps_loop:\n        OUT (0x23), A\n        INC HL\n        LD A, (HL)\n        OR A\n        JR NZ, _ps_loop\n_ps_done:"
+    ret void
+
+fun @main()
+  block @entry:
+    %r4 = const 65 : u8 [acc]
+    call @console_log(%r4)
+    %r5 = const 66 : u8 [acc]
+    call @console_log(%r5)
+    %r6 = const 10 : u8 [acc]
+    call @console_log(%r6)
+    %r7 = const 69 : u8 [acc]
+    call @console_err(%r7)
+    %r8 = const 82 : u8 [acc]
+    call @console_err(%r8)
+    %r9 = const 82 : u8 [acc]
+    call @console_err(%r9)
+    %r10 = const 10 : u8 [acc]
+    call @console_err(%r10)
+    %r11 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r12 = load %r11 : u8 [general]
+    %r13 = const 1 : u16 [pointer]
+    %r14 = add %r11, %r13 : ptr [acc]
+    jmp @loop_head3(%r12, %r14)
+  block @loop_head3(%r12: u8 [general], %r16: ptr [general]):
+    %r17 = const 0 : u8 [general]
+    %r18 = cmp.ne %r12, %r17 : bool [flag]
+    cond_ret %r18, [], @loop_body4()
+  block @loop_body4:
+    %r19 = load %r16 : u8 [general]
+    %r20 = move %r19 : u8 [acc]
+    call @@mir.io.print.char(%r20)
+    %r21 = const 1 : u16 [pointer]
+    %r22 = add %r16, %r21 : ptr [general]
+    %r23 = const 1 : u8 [general]
+    %r24 = sub %r12, %r23 : u8 [general]
+    jmp @loop_head3(%r24, %r22)
+

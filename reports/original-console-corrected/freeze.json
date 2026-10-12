@@ -1,0 +1,20 @@
+{
+  "base": "0cb00145",
+  "source_fixes": [
+    "3ec12f47",
+    "f2a4e033"
+  ],
+  "sources": [
+    {
+      "path": "stdlib/zx/console.nanz",
+      "sha256": "179cd575fdb7fdd650bf3d405bfb8683e44ac4eb5324b71aadd7eea187087709",
+      "snapshot": "console.nanz"
+    },
+    {
+      "path": "examples/zx/console_demo.nanz",
+      "sha256": "302a073be5c9bdfdcd8527570265ac6b62f9333a8bfef0e6b8c3bb6b92986cb1",
+      "snapshot": "console_demo.nanz"
+    }
+  ],
+  "model": "Original prospective model unchanged: lowercase a, exact 17 INFE keyboard rows, row11col0, full independent screen; no VM ASM proof."
+}

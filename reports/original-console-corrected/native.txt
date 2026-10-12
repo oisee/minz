@@ -1,0 +1,25 @@
+=== RUN   TestOriginalConsoleNative
+=== RUN   TestOriginalConsoleNative/source0/ordinary
+=== RUN   TestOriginalConsoleNative/source0/grace-size
+=== RUN   TestOriginalConsoleNative/source0/grace-speed
+=== RUN   TestOriginalConsoleNative/source1/ordinary
+=== RUN   TestOriginalConsoleNative/source1/grace-size
+=== RUN   TestOriginalConsoleNative/source1/grace-speed
+=== RUN   TestOriginalConsoleNative/source2/ordinary
+    original_console_corpus_test.go:272: ZX corrected returned=true screen mismatch=-001 cursor=11/0
+=== RUN   TestOriginalConsoleNative/source2/grace-size
+    original_console_corpus_test.go:272: ZX corrected returned=true screen mismatch=-001 cursor=11/0
+=== RUN   TestOriginalConsoleNative/source2/grace-speed
+    original_console_corpus_test.go:272: ZX corrected returned=true screen mismatch=-001 cursor=11/0
+--- PASS: TestOriginalConsoleNative (0.53s)
+    --- PASS: TestOriginalConsoleNative/source0/ordinary (0.01s)
+    --- PASS: TestOriginalConsoleNative/source0/grace-size (0.01s)
+    --- PASS: TestOriginalConsoleNative/source0/grace-speed (0.01s)
+    --- PASS: TestOriginalConsoleNative/source1/ordinary (0.01s)
+    --- PASS: TestOriginalConsoleNative/source1/grace-size (0.02s)
+    --- PASS: TestOriginalConsoleNative/source1/grace-speed (0.01s)
+    --- PASS: TestOriginalConsoleNative/source2/ordinary (0.14s)
+    --- PASS: TestOriginalConsoleNative/source2/grace-size (0.15s)
+    --- PASS: TestOriginalConsoleNative/source2/grace-speed (0.16s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.538s
