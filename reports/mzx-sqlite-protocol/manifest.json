@@ -1,0 +1,55 @@
+{
+  "schema": "minz.artifacts/v1",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 4307,
+      "sha256": "bfddb7714faf50b0a3e97afe2803d197c02e79401e046fc10aadff71a61e7ce6"
+    },
+    {
+      "path": "after.txt",
+      "bytes": 1433,
+      "sha256": "3fdd8fbff179b53edf585d7afa12481af68044bfdb6ea1fd473d1dfe9354648b"
+    },
+    {
+      "path": "before.txt",
+      "bytes": 623,
+      "sha256": "2bad1b09e2f537bccdf8cb7835b8aa21a3cf9ca70929c564bc85e699f1ef44aa"
+    },
+    {
+      "path": "build.json",
+      "bytes": 337,
+      "sha256": "13ca10e2441ef9b1cdc024ebebe29ba58507a2e9a6834f96646fc6cc406c1129"
+    },
+    {
+      "path": "frozen/freeze.json",
+      "bytes": 1194,
+      "sha256": "aaed89d25cf18113b55fc8b89f9224326152a002d07bc7e41bf579b53f92027a"
+    },
+    {
+      "path": "frozen/minzc__cmd__mze__sqlite_ports.go",
+      "bytes": 6427,
+      "sha256": "41ff572d381f29d5c24aa85fb3615952ea4c2c2d266f1f550b9485389c2edd1c"
+    },
+    {
+      "path": "frozen/minzc__cmd__mzx__sqlite_ports.go",
+      "bytes": 5501,
+      "sha256": "5e872b82b4c5eb3267c6efc4be7b89d551a51d763e85829725f1a8a40a47da51"
+    },
+    {
+      "path": "frozen/stdlib__sql__sqlite.nanz",
+      "bytes": 4132,
+      "sha256": "bc177e0dc25ad2f36f3694b115439356efbfb3d956b46b2701afe82bde277fc8"
+    },
+    {
+      "path": "frozen-test.txt",
+      "bytes": 1391,
+      "sha256": "55c8038f6fea0495052f3031ad1a9f826f4f3524c47ccbf82b13d80956d8cc5f"
+    },
+    {
+      "path": "production.patch",
+      "bytes": 2460,
+      "sha256": "7ab6dc387e28da41bffe03d073b626304520e3ae32d0518ee6ebf9c651059529"
+    }
+  ]
+}

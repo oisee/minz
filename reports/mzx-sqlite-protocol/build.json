@@ -1,0 +1,12 @@
+{
+  "base": "7c4ce479",
+  "freeze": "b96fdd7d",
+  "before_failure": "31a7a008",
+  "fix": "f6e6efe6",
+  "go": "go1.26.8",
+  "build_tags": [
+    "mzx_headless"
+  ],
+  "executable": "/home/alice/dev/minz-artifacts/grace-checkpoints/mzx-sqlite-protocol.test",
+  "sha256": "aabc2742f56b51df841f177141a144018f5b0eb7bb9714e1531c788b0a388b56"
+}
