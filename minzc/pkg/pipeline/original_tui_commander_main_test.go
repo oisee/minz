@@ -47,11 +47,16 @@ func commanderANSI(events []commanderEvent) string {
 	return o.String()
 }
 func TestOriginalTUICommanderWholeMain(t *testing.T) {
-	src, e := os.ReadFile("../../../examples/nanz/tui_commander.nanz")
+	testOriginalTUIWholeMain(t, "tui_commander.nanz", "tui-commander-main", "MINZ_TUI_COMMANDER_ARTIFACTS")
+}
+
+func testOriginalTUIWholeMain(t *testing.T, sourceName, packetName, artifactEnv string) {
+	t.Helper()
+	src, e := os.ReadFile(filepath.Join("../../../examples/nanz", sourceName))
 	if e != nil {
 		t.Fatal(e)
 	}
-	f, e := os.ReadFile("../../../reports/tui-commander-main/freeze.json")
+	f, e := os.ReadFile(filepath.Join("../../../reports", packetName, "freeze.json"))
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -64,13 +69,13 @@ func TestOriginalTUICommanderWholeMain(t *testing.T) {
 		t.Fatal("freeze")
 	}
 	var expected []commanderEvent
-	b, e := os.ReadFile("../../../reports/tui-commander-main/events.json")
+	b, e := os.ReadFile(filepath.Join("../../../reports", packetName, "events.json"))
 	if e != nil || json.Unmarshal(b, &expected) != nil {
 		t.Fatal(e)
 	}
 	wantANSI := commanderANSI(expected)
 	save := func(n string, v any) {
-		if root := os.Getenv("MINZ_TUI_COMMANDER_ARTIFACTS"); root != "" {
+		if root := os.Getenv(artifactEnv); root != "" {
 			p := filepath.Join(root, n)
 			os.MkdirAll(filepath.Dir(p), 0755)
 			var b []byte
@@ -89,7 +94,7 @@ func TestOriginalTUICommanderWholeMain(t *testing.T) {
 	}
 	save("expected-stdout.bin", wantANSI)
 	parse := func() *hir.Module {
-		h, e := nanz.Parse(string(src), "tui_commander.nanz")
+		h, e := nanz.Parse(string(src), sourceName)
 		if e != nil {
 			t.Fatal(e)
 		}
