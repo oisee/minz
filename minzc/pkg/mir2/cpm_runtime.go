@@ -18,7 +18,7 @@ func validateCPMApplicationRuntime(m *Module, ar *AllocResult) error {
 		return fmt.Errorf("CP/M runtime requires target cpm and void main without arguments")
 	}
 	for _, f := range m.Funcs {
-		trustedBDOS := cpmSourceBDOS2(f, ar)
+		trustedBDOS := cpmSourceBDOS2(f, ar) || cpmPascalOutputAdapter(f, ar) != nil
 		if (f.Attrs.HasAsm && !trustedBDOS) || f.Attrs.ExternAddr != 0 {
 			return fmt.Errorf("CP/M runtime rejects ASM and fixed-address extern functions")
 		}
@@ -173,6 +173,13 @@ func validateCPMRuntimeAssemblyMode(assembly string, guarded bool) error {
 	return validateCPMRuntimeAssemblyTrusted(assembly, guarded, nil)
 }
 func validateCPMRuntimeAssemblyTrusted(assembly string, guarded bool, adapters map[string]bool) error {
+	bodies := map[string][]string{}
+	for name := range adapters {
+		bodies[name] = []string{"LDE,A", "LDC,2", "CALL5", "RET"}
+	}
+	return validateCPMRuntimeAssemblyAdapters(assembly, guarded, bodies)
+}
+func validateCPMRuntimeAssemblyAdapters(assembly string, guarded bool, adapters map[string][]string) error {
 	a, err := z80asm.NewAssembler().AssembleString(assembly)
 	if err != nil {
 		return err
@@ -207,20 +214,20 @@ func validateCPMRuntimeAssemblyTrusted(assembly string, guarded bool, adapters m
 		code[line.Address] = item{text, line.Address + len(line.Bytes)}
 	}
 	trustedCalls := map[int]bool{}
-	for name := range adapters {
+	for name, body := range adapters {
 		pc, ok := a.Symbols[name]
 		if !ok {
 			return fmt.Errorf("CP/M missing BDOS adapter %s", name)
 		}
-		for _, want := range []string{"LDE,A", "LDC,2", "CALL5", "RET"} {
+		for _, want := range body {
 			for code[pc].text == "CALL __cpm_stack_check" {
 				pc = code[pc].next
 			}
 			i, ok := code[pc]
-			if !ok || cpmBDOSInstruction(i.text) != want {
+			if !ok || cpmBDOSInstruction(i.text) != cpmBDOSInstruction(want) {
 				return fmt.Errorf("CP/M mutated BDOS adapter %s at %04x", name, pc)
 			}
-			if want == "CALL5" {
+			if cpmBDOSInstruction(want) == "CALL5" {
 				trustedCalls[pc] = true
 			}
 			pc = i.next

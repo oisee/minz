@@ -480,13 +480,16 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 		} else {
 			result += cpmRuntimeTail
 		}
-		adapters := map[string]bool{}
+		adapters := map[string][]string{}
 		for _, f := range m.Funcs {
+			if body := cpmPascalOutputAdapter(f, ar); body != nil {
+				adapters[f.Name] = body
+			}
 			if cpmSourceBDOS2(f, ar) {
-				adapters[f.Name] = true
+				adapters[f.Name] = []string{"LDE,A", "LDC,2", "CALL5", "RET"}
 			}
 		}
-		if err := validateCPMRuntimeAssemblyTrusted(result, opt.RuntimeStackBytes != 0, adapters); err != nil {
+		if err := validateCPMRuntimeAssemblyAdapters(result, opt.RuntimeStackBytes != 0, adapters); err != nil {
 			return "", err
 		}
 	}
