@@ -1,12 +1,16 @@
 package hir_test
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 	"sync/atomic"
 	"testing"
 
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/minz/minzc/pkg/z80asm"
@@ -46,8 +50,8 @@ func TestNativeCompositionAdditionalArgumentBoundaries(t *testing.T) {
 							opts.UseHIRGrace = mode != "ordinary"
 							opts.OptSize = mode == "size"
 							bad, first := sweepCodegenJudgeOptions(t, hm.Funcs, fixture.name, 65536, inputs, fixture.model, opts, true)
-							if completed.Load() != 65536 {
-								t.Fatalf("executed %d/65536 cases", completed.Load())
+							if completed.Load() != 2*65536 {
+								t.Fatalf("executed %d/131072 VM+native cases", completed.Load())
 							}
 							if bad != 0 {
 								t.Fatalf("native %d/65536 mismatches (%s)", bad, first)
@@ -74,6 +78,34 @@ func sweepCodegenJudgeOptions(t *testing.T, funcs []*hir.Func, name string, case
 	res, err := z80asm.NewAssembler().AssembleString(boot + steps.Assembly)
 	if err != nil || len(res.Errors) > 0 {
 		t.Fatalf("assemble: %v %v", err, res.Errors)
+	}
+	if root := os.Getenv("MINZ_COMPOSITION_EVIDENCE"); root != "" {
+		dir := filepath.Join(root, filepath.Dir(t.Name()))
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			t.Fatal(err)
+		}
+		options, err := json.MarshalIndent(opts, "", "  ")
+		if err != nil {
+			t.Fatal(err)
+		}
+		for filename, data := range map[string][]byte{"program.asm": []byte(boot + steps.Assembly), "program.bin": res.Binary, "module.mir": []byte(steps.MIR2Module.Dump()), "options.json": options} {
+			if err := os.WriteFile(filepath.Join(dir, filename), data, 0644); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	vm := mir2.NewVM(steps.MIR2Module)
+	vm.MaxSteps = int64(cases) * 100
+	for i := 0; i < cases; i++ {
+		args := inputs(i)
+		values := make([]mir2.Value, len(args))
+		for k, v := range args {
+			values[k] = mir2.Value{I: v}
+		}
+		outcome, err := vm.CallWithOutcome(name, values)
+		if err != nil || outcome.Failed || len(outcome.Values) != 1 || outcome.Values[0].I != model(args) {
+			t.Fatalf("VM %s%v got %+v want %d err %v", name, args, outcome, model(args), err)
+		}
 	}
 	// Validate the ABI before starting workers: Fatal must run on the test goroutine.
 	for _, p := range mf.Contract.Params {

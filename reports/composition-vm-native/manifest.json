@@ -1,0 +1,222 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "19d95d5acb725bf265dd98fa8bf927d323ffd4cd994303b232dba8830fd604ed"
+  },
+  {
+    "path": "gate.txt",
+    "sha256": "b66d034eaa9ab36936a0a65b02678cd2e66e54db04cc6daacc8ae6e690ff55a0"
+  },
+  {
+    "path": "result.json",
+    "sha256": "3eae20f6cb62d82e1d87ecad0c6d48e69ef063f188a03d6dbce4d5ac0f4bb043"
+  },
+  {
+    "path": "variants/a1/ordinary/module.mir",
+    "sha256": "6335335074925b4afc472e42f0618c020957701bac76d4ab1212e71d3dfc6ab8"
+  },
+  {
+    "path": "variants/a1/ordinary/options.json",
+    "sha256": "f2c93b0646ddc707abf344897f19f87f99b8cff1e1d15c684ac439ec2f7888ec"
+  },
+  {
+    "path": "variants/a1/ordinary/program.asm",
+    "sha256": "e2e79a4de1f0dd21318098a6355a0c894b89d95cc0cfd3f918dc08ad352aaf17"
+  },
+  {
+    "path": "variants/a1/ordinary/program.bin",
+    "sha256": "46b3414188cd1f7d500fa12afc5367f9fd470d54a7e224c0415cd344189c0c9e"
+  },
+  {
+    "path": "variants/a1/size/module.mir",
+    "sha256": "6335335074925b4afc472e42f0618c020957701bac76d4ab1212e71d3dfc6ab8"
+  },
+  {
+    "path": "variants/a1/size/options.json",
+    "sha256": "b5ed8100b2d909489325b0c961c794607a97d6536557406f3ccffca5bab63321"
+  },
+  {
+    "path": "variants/a1/size/program.asm",
+    "sha256": "e2e79a4de1f0dd21318098a6355a0c894b89d95cc0cfd3f918dc08ad352aaf17"
+  },
+  {
+    "path": "variants/a1/size/program.bin",
+    "sha256": "46b3414188cd1f7d500fa12afc5367f9fd470d54a7e224c0415cd344189c0c9e"
+  },
+  {
+    "path": "variants/a1/source.nanz",
+    "sha256": "26e0c8db59fd60efc2dfca937547e382340b9eeae6b1dbbdeb31fde7bba2c1fa"
+  },
+  {
+    "path": "variants/a1/speed/module.mir",
+    "sha256": "6335335074925b4afc472e42f0618c020957701bac76d4ab1212e71d3dfc6ab8"
+  },
+  {
+    "path": "variants/a1/speed/options.json",
+    "sha256": "a6f63c262678a5efbde34ec89ebc421f237533a80dbfc66c5c1fba110d514d76"
+  },
+  {
+    "path": "variants/a1/speed/program.asm",
+    "sha256": "e2e79a4de1f0dd21318098a6355a0c894b89d95cc0cfd3f918dc08ad352aaf17"
+  },
+  {
+    "path": "variants/a1/speed/program.bin",
+    "sha256": "46b3414188cd1f7d500fa12afc5367f9fd470d54a7e224c0415cd344189c0c9e"
+  },
+  {
+    "path": "variants/a2/ordinary/module.mir",
+    "sha256": "4ae540629a19fc57391ed29fe924fed29f0de7171b7f2a0566db99c0d1ad83a3"
+  },
+  {
+    "path": "variants/a2/ordinary/options.json",
+    "sha256": "f2c93b0646ddc707abf344897f19f87f99b8cff1e1d15c684ac439ec2f7888ec"
+  },
+  {
+    "path": "variants/a2/ordinary/program.asm",
+    "sha256": "dee75c2ee0b2ffa0b606895525b71bca4a456ff781f38639000a7d81914bf892"
+  },
+  {
+    "path": "variants/a2/ordinary/program.bin",
+    "sha256": "0021c968fd00ca4698227627310b0342a61c86386f4e23bdf61422aea041804a"
+  },
+  {
+    "path": "variants/a2/size/module.mir",
+    "sha256": "4ae540629a19fc57391ed29fe924fed29f0de7171b7f2a0566db99c0d1ad83a3"
+  },
+  {
+    "path": "variants/a2/size/options.json",
+    "sha256": "b5ed8100b2d909489325b0c961c794607a97d6536557406f3ccffca5bab63321"
+  },
+  {
+    "path": "variants/a2/size/program.asm",
+    "sha256": "dee75c2ee0b2ffa0b606895525b71bca4a456ff781f38639000a7d81914bf892"
+  },
+  {
+    "path": "variants/a2/size/program.bin",
+    "sha256": "0021c968fd00ca4698227627310b0342a61c86386f4e23bdf61422aea041804a"
+  },
+  {
+    "path": "variants/a2/source.nanz",
+    "sha256": "1e03a72cd6a11da94160695e642b546513b83d1da04caa750807c74e632d8de0"
+  },
+  {
+    "path": "variants/a2/speed/module.mir",
+    "sha256": "4ae540629a19fc57391ed29fe924fed29f0de7171b7f2a0566db99c0d1ad83a3"
+  },
+  {
+    "path": "variants/a2/speed/options.json",
+    "sha256": "a6f63c262678a5efbde34ec89ebc421f237533a80dbfc66c5c1fba110d514d76"
+  },
+  {
+    "path": "variants/a2/speed/program.asm",
+    "sha256": "dee75c2ee0b2ffa0b606895525b71bca4a456ff781f38639000a7d81914bf892"
+  },
+  {
+    "path": "variants/a2/speed/program.bin",
+    "sha256": "0021c968fd00ca4698227627310b0342a61c86386f4e23bdf61422aea041804a"
+  },
+  {
+    "path": "variants/a4/ordinary/module.mir",
+    "sha256": "db6b110ae764eac6981f8385cba36c51d6f79fc6b155a015fc9b81570ed4f05e"
+  },
+  {
+    "path": "variants/a4/ordinary/options.json",
+    "sha256": "f2c93b0646ddc707abf344897f19f87f99b8cff1e1d15c684ac439ec2f7888ec"
+  },
+  {
+    "path": "variants/a4/ordinary/program.asm",
+    "sha256": "86f71d48721367cdc1d181c486f7be790bcfe5b9d038295eca6bdbc16ead4849"
+  },
+  {
+    "path": "variants/a4/ordinary/program.bin",
+    "sha256": "c42a96ad1044291096f7b80a9aeca4c6742625073ac70ac4750ef0b4b055dade"
+  },
+  {
+    "path": "variants/a4/size/module.mir",
+    "sha256": "db6b110ae764eac6981f8385cba36c51d6f79fc6b155a015fc9b81570ed4f05e"
+  },
+  {
+    "path": "variants/a4/size/options.json",
+    "sha256": "b5ed8100b2d909489325b0c961c794607a97d6536557406f3ccffca5bab63321"
+  },
+  {
+    "path": "variants/a4/size/program.asm",
+    "sha256": "86f71d48721367cdc1d181c486f7be790bcfe5b9d038295eca6bdbc16ead4849"
+  },
+  {
+    "path": "variants/a4/size/program.bin",
+    "sha256": "c42a96ad1044291096f7b80a9aeca4c6742625073ac70ac4750ef0b4b055dade"
+  },
+  {
+    "path": "variants/a4/source.nanz",
+    "sha256": "904bc514f8825cabf593fc65883853e7eda8274a86fbc43005270b4d86985d66"
+  },
+  {
+    "path": "variants/a4/speed/module.mir",
+    "sha256": "db6b110ae764eac6981f8385cba36c51d6f79fc6b155a015fc9b81570ed4f05e"
+  },
+  {
+    "path": "variants/a4/speed/options.json",
+    "sha256": "a6f63c262678a5efbde34ec89ebc421f237533a80dbfc66c5c1fba110d514d76"
+  },
+  {
+    "path": "variants/a4/speed/program.asm",
+    "sha256": "86f71d48721367cdc1d181c486f7be790bcfe5b9d038295eca6bdbc16ead4849"
+  },
+  {
+    "path": "variants/a4/speed/program.bin",
+    "sha256": "c42a96ad1044291096f7b80a9aeca4c6742625073ac70ac4750ef0b4b055dade"
+  },
+  {
+    "path": "variants/a8/ordinary/module.mir",
+    "sha256": "da21a52f2d7ab76feb0090e01c98a5b10489ffae295df36a7b7d9dc06d56873b"
+  },
+  {
+    "path": "variants/a8/ordinary/options.json",
+    "sha256": "f2c93b0646ddc707abf344897f19f87f99b8cff1e1d15c684ac439ec2f7888ec"
+  },
+  {
+    "path": "variants/a8/ordinary/program.asm",
+    "sha256": "37c8719be9b1775c8456ef97246a7cfffe7fd0b465dc4a5ef9790004e5df77e5"
+  },
+  {
+    "path": "variants/a8/ordinary/program.bin",
+    "sha256": "b3a61b8e80d69128649a06618c06976b89cbcac3d752efd96353b6021ffdc5e5"
+  },
+  {
+    "path": "variants/a8/size/module.mir",
+    "sha256": "da21a52f2d7ab76feb0090e01c98a5b10489ffae295df36a7b7d9dc06d56873b"
+  },
+  {
+    "path": "variants/a8/size/options.json",
+    "sha256": "b5ed8100b2d909489325b0c961c794607a97d6536557406f3ccffca5bab63321"
+  },
+  {
+    "path": "variants/a8/size/program.asm",
+    "sha256": "37c8719be9b1775c8456ef97246a7cfffe7fd0b465dc4a5ef9790004e5df77e5"
+  },
+  {
+    "path": "variants/a8/size/program.bin",
+    "sha256": "b3a61b8e80d69128649a06618c06976b89cbcac3d752efd96353b6021ffdc5e5"
+  },
+  {
+    "path": "variants/a8/source.nanz",
+    "sha256": "c0b403c6f150118577919ccb5dc5a8b4a7164496ade90209444d7610c731d929"
+  },
+  {
+    "path": "variants/a8/speed/module.mir",
+    "sha256": "da21a52f2d7ab76feb0090e01c98a5b10489ffae295df36a7b7d9dc06d56873b"
+  },
+  {
+    "path": "variants/a8/speed/options.json",
+    "sha256": "a6f63c262678a5efbde34ec89ebc421f237533a80dbfc66c5c1fba110d514d76"
+  },
+  {
+    "path": "variants/a8/speed/program.asm",
+    "sha256": "37c8719be9b1775c8456ef97246a7cfffe7fd0b465dc4a5ef9790004e5df77e5"
+  },
+  {
+    "path": "variants/a8/speed/program.bin",
+    "sha256": "b3a61b8e80d69128649a06618c06976b89cbcac3d752efd96353b6021ffdc5e5"
+  }
+]

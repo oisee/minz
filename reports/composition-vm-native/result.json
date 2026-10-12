@@ -1,0 +1,82 @@
+{
+  "scope": "mathematical oracle + final MIR VM + assembled Z80 for four composition sources/three modes",
+  "domains": 162,
+  "calls_per_layer": 10616832,
+  "exact_native_return": true,
+  "variants": [
+    {
+      "name": "a1",
+      "mode": "ordinary",
+      "bin_bytes": 15,
+      "bin_sha256": "46b3414188cd1f7d500fa12afc5367f9fd470d54a7e224c0415cd344189c0c9e"
+    },
+    {
+      "name": "a1",
+      "mode": "size",
+      "bin_bytes": 15,
+      "bin_sha256": "46b3414188cd1f7d500fa12afc5367f9fd470d54a7e224c0415cd344189c0c9e"
+    },
+    {
+      "name": "a1",
+      "mode": "speed",
+      "bin_bytes": 15,
+      "bin_sha256": "46b3414188cd1f7d500fa12afc5367f9fd470d54a7e224c0415cd344189c0c9e"
+    },
+    {
+      "name": "a2",
+      "mode": "ordinary",
+      "bin_bytes": 13,
+      "bin_sha256": "0021c968fd00ca4698227627310b0342a61c86386f4e23bdf61422aea041804a"
+    },
+    {
+      "name": "a2",
+      "mode": "size",
+      "bin_bytes": 13,
+      "bin_sha256": "0021c968fd00ca4698227627310b0342a61c86386f4e23bdf61422aea041804a"
+    },
+    {
+      "name": "a2",
+      "mode": "speed",
+      "bin_bytes": 13,
+      "bin_sha256": "0021c968fd00ca4698227627310b0342a61c86386f4e23bdf61422aea041804a"
+    },
+    {
+      "name": "a4",
+      "mode": "ordinary",
+      "bin_bytes": 16,
+      "bin_sha256": "c42a96ad1044291096f7b80a9aeca4c6742625073ac70ac4750ef0b4b055dade"
+    },
+    {
+      "name": "a4",
+      "mode": "size",
+      "bin_bytes": 16,
+      "bin_sha256": "c42a96ad1044291096f7b80a9aeca4c6742625073ac70ac4750ef0b4b055dade"
+    },
+    {
+      "name": "a4",
+      "mode": "speed",
+      "bin_bytes": 16,
+      "bin_sha256": "c42a96ad1044291096f7b80a9aeca4c6742625073ac70ac4750ef0b4b055dade"
+    },
+    {
+      "name": "a8",
+      "mode": "ordinary",
+      "bin_bytes": 11,
+      "bin_sha256": "b3a61b8e80d69128649a06618c06976b89cbcac3d752efd96353b6021ffdc5e5"
+    },
+    {
+      "name": "a8",
+      "mode": "size",
+      "bin_bytes": 11,
+      "bin_sha256": "b3a61b8e80d69128649a06618c06976b89cbcac3d752efd96353b6021ffdc5e5"
+    },
+    {
+      "name": "a8",
+      "mode": "speed",
+      "bin_bytes": 11,
+      "bin_sha256": "b3a61b8e80d69128649a06618c06976b89cbcac3d752efd96353b6021ffdc5e5"
+    }
+  ],
+  "full_RAM_or_flags_oracle": false,
+  "vm_raw_HIR_checked": false
+}

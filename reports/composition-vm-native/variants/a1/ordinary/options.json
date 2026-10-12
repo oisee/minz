@@ -1,0 +1,13 @@
+{
+  "ProfileSelection": null,
+  "CollectHIRSites": false,
+  "ContractOpt": true,
+  "AnnotateTStates": false,
+  "UseGrace": false,
+  "GraceStats": null,
+  "UseHIRGrace": false,
+  "OptSize": false,
+  "Backend": "",
+  "AssertMode": "",
+  "SkipZ80Emission": false
+}
