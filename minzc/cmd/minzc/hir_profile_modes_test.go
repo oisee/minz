@@ -29,11 +29,15 @@ func TestCompilerModeCLIPathsAndFlags(t *testing.T) {
 	if e := os.WriteFile(source, []byte("fun test()->u8{return 1}"), 0644); e != nil {
 		t.Fatal(e)
 	}
-	for _, kind := range []string{"missing-workload", "joint", "other-output", "hir-grace", "alias-input", "hardlink-input"} {
+	for _, kind := range []string{"missing-workload", "joint", "other-output", "hir-grace", "alias-input", "hardlink-input", "table-pin"} {
 		t.Run(kind, func(t *testing.T) {
+			oldPin := checkedLocalTableSHA256
+			defer func() { checkedLocalTableSHA256 = oldPin }()
 			oldW, oldO, oldJ, oldG := hirProfileAutoWorkload, outputFile, hirProfileJoint, useHIRGrace
 			defer func() { hirProfileAutoWorkload, outputFile, hirProfileJoint, useHIRGrace = oldW, oldO, oldJ, oldG }()
 			switch kind {
+			case "table-pin":
+				checkedLocalTableSHA256 = fmt.Sprintf("%064x", 1)
 			case "missing-workload":
 				hirProfileAutoWorkload = ""
 			case "joint":

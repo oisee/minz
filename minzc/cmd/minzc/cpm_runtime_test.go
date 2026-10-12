@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -104,6 +105,8 @@ func TestCPMRuntimeOrdinaryCLI(t *testing.T) {
 }
 
 func TestCPMRuntimeRejectsUnsupported(t *testing.T) {
+	oldPin := checkedLocalTableSHA256
+	t.Cleanup(func() { checkedLocalTableSHA256 = oldPin })
 	hirProfileTestState(t)
 	oldAutoDirectory := hirProfileAutoDirectory
 	t.Cleanup(func() { hirProfileAutoDirectory = oldAutoDirectory })
@@ -118,6 +121,11 @@ func TestCPMRuntimeRejectsUnsupported(t *testing.T) {
 			t.Fatal("unsupportedruntime accepted", src)
 		}
 	}
+	checkedLocalTableSHA256 = fmt.Sprintf("%064x", 1)
+	if err := validateCLIRuntime("source.nanz"); err == nil {
+		t.Fatal("table pin with runtime accepted")
+	}
+	checkedLocalTableSHA256 = oldPin
 	oldAuto := hirProfileAutoDirectory
 	t.Cleanup(func() { hirProfileAutoDirectory = oldAuto })
 	hirProfileAutoDirectory = "evidence"

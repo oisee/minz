@@ -35,7 +35,7 @@ func validateHIRCompilerModes(source string) error {
 	if hirProfileAutoFunction != "" || hirProfileJoint || hirProfileIndependentRules || hirProfileInvariantSites || hirProfileSiteRules || hirProfileJointSites || hirProfileWeightedSites || hirProfileForwardCopySites || hirProfileMixedCopyWeightedSites || hirProfileRegionCompareSites || hirProfileOrderedByteFunctions || hirProfileOrderedByteRWFunctions || hirProfileMixedCopyRegionSites || hirProfile != (hirProfileFlags{}) || memoryHostCLI != (memoryHostCLIFlags{}) || memoryHostPolicyCLIRequested() || memoryHostSearchCLIRequested() {
 		return fmt.Errorf("compiler modes: cannot combine with other profile/function/site modes")
 	}
-	if filepath.Ext(source) != ".nanz" || backend != "z80" || target != "cpm" || emitFormat != "" || outputFormat != "" || gpuRun != "" || pgoProfile != "" || pgoDebug || listAsserts || generateCheckedLocalTablePath != "" || checkedLocalTablePath != "" {
+	if filepath.Ext(source) != ".nanz" || backend != "z80" || target != "cpm" || emitFormat != "" || outputFormat != "" || gpuRun != "" || pgoProfile != "" || pgoDebug || listAsserts || generateCheckedLocalTablePath != "" || checkedLocalTablePath != "" || checkedLocalTableSHA256 != "" {
 		return fmt.Errorf("compiler modes: requires Nanz, CPM, default Z80 output")
 	}
 	if useGrace || useHIRGrace || disableOptimize || disableIROpt || disableReroll || disableAsmOpt || disableCodegenOpt || disableSMC || disableCTIE || ctieDebug || emitSLD || annotateTStates || assertForce != "" || assertLines != "" || assertLinesSet || assertControlSet || assertReceipt || enableTAS || tasFile != "" || tasReplay != "" || dumpAST || dumpMIR || compileTrace || superoptRules != "" || visualizeMIR != "" {

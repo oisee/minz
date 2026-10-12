@@ -79,6 +79,7 @@ var (
 	// Backend selection
 	generateCheckedLocalTablePath string // offline output table
 	checkedLocalSolver            string // Z3 executable for offline generation
+	checkedLocalTableSHA256       string // optional content pin
 	checkedLocalTablePath         string // --checked-local-table: admitted leaf OptSize candidates
 	optSize                       bool   // -Osize: optimize for code size (Grace reroll, DJNZ loops)
 	fuseByteWords                 bool
@@ -267,6 +268,7 @@ func init() {
 	rootCmd.Flags().StringVar(&superoptRules, "superopt-rules", "", "path to z80-optimizer rules.json[.gz] for superoptimizer peephole pass")
 	rootCmd.Flags().StringVar(&generateCheckedLocalTablePath, "generate-checked-local-table", "", "generate admitted leaf register table offline (requires --Osize)")
 	rootCmd.Flags().StringVar(&checkedLocalSolver, "checked-local-solver", "z3", "Z3 executable for offline local table generation")
+	rootCmd.Flags().StringVar(&checkedLocalTableSHA256, "checked-local-table-sha256", "", "pin exact checked table JSON content (required for measured HIR profile replay)")
 	rootCmd.Flags().StringVar(&checkedLocalTablePath, "checked-local-table", "", "use checked local register table for smaller leaf Z80 functions (requires --Osize)")
 	rootCmd.Flags().BoolVar(&optSize, "Osize", false, "optimize for code size: Grace reroll; skip HIR Grace's versioned pointer loops")
 	rootCmd.Flags().BoolVar(&useGrace, "grace", false, "run all Grace MIR2 passes before VIR lowering (DSE, CondRetSink, BlockMerge, etc.)")
@@ -1078,19 +1080,20 @@ func compileViaHIR(sourceFile string) error {
 		((am == "" || am == "all") && (len(hirMod.Asserts) > 0 || len(hirMod.Sandboxes) > 0) && !pipeline.NeedsZ80Asserts(hirMod, am))
 
 	opts := pipeline.Options{
-		Runtime:               mir2.Z80Runtime(runtimeMode),
-		RuntimeStackBytes:     runtimeStackBytes,
-		CheckedLocalTablePath: checkedLocalTablePath,
-		ContractStrategy:      contractStrategy,
-		ContractOpt:           true,
-		AnnotateTStates:       annotateTStates,
-		OptSize:               optSize, // --Osize enables Grace reroll
-		FuseByteWords:         fuseByteWords,
-		UseGrace:              useGrace, // --grace enables full Grace MIR2 pass suite
-		UseHIRGrace:           useHIRGrace,
-		Backend:               backend,
-		AssertMode:            am,
-		SkipZ80Emission:       skipZ80,
+		Runtime:                 mir2.Z80Runtime(runtimeMode),
+		RuntimeStackBytes:       runtimeStackBytes,
+		CheckedLocalTablePath:   checkedLocalTablePath,
+		CheckedLocalTableSHA256: checkedLocalTableSHA256,
+		ContractStrategy:        contractStrategy,
+		ContractOpt:             true,
+		AnnotateTStates:         annotateTStates,
+		OptSize:                 optSize, // --Osize enables Grace reroll
+		FuseByteWords:           fuseByteWords,
+		UseGrace:                useGrace, // --grace enables full Grace MIR2 pass suite
+		UseHIRGrace:             useHIRGrace,
+		Backend:                 backend,
+		AssertMode:              am,
+		SkipZ80Emission:         skipZ80,
 	}
 	if hirProfile.profile != "" {
 		selection, err := loadHIRProfileSelection()

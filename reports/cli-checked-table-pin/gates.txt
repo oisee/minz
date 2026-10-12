@@ -1,0 +1,22 @@
+=== RUN   TestCPMRuntimeRejectsUnsupported
+--- PASS: TestCPMRuntimeRejectsUnsupported (0.01s)
+=== RUN   TestCompilerModeReplayFlagAndPathAdmission
+--- PASS: TestCompilerModeReplayFlagAndPathAdmission (0.01s)
+=== RUN   TestCompilerModeCLIPathsAndFlags
+=== RUN   TestCompilerModeCLIPathsAndFlags/missing-workload
+=== RUN   TestCompilerModeCLIPathsAndFlags/joint
+=== RUN   TestCompilerModeCLIPathsAndFlags/other-output
+=== RUN   TestCompilerModeCLIPathsAndFlags/hir-grace
+=== RUN   TestCompilerModeCLIPathsAndFlags/alias-input
+=== RUN   TestCompilerModeCLIPathsAndFlags/hardlink-input
+=== RUN   TestCompilerModeCLIPathsAndFlags/table-pin
+--- PASS: TestCompilerModeCLIPathsAndFlags (0.01s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/missing-workload (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/joint (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/other-output (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/hir-grace (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/alias-input (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/hardlink-input (0.01s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/table-pin (0.00s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	0.034s
