@@ -1,0 +1,12 @@
+=== RUN   TestTokenizerBoundedABIRefinement
+    pfcco_tokenizer_refinement_runner_test.go:196: tag"greedy" input0 init15790T tokenizer212702T render41521T count24 stdout"fn id ( id : id ) -> id { return id * id } var id = id ( num ) + num "
+    pfcco_tokenizer_refinement_runner_test.go:196: tag"greedy" input1 init15790T tokenizer213682T render35558T count19 stdout"while false { var id = num } if true { return str } else { return str } "
+    pfcco_tokenizer_refinement_test.go:146: candidategreedy entiretrain 519253T/5465B
+    pfcco_tokenizer_refinement_runner_test.go:196: tag"pbqp" input0 init16868T tokenizer212702T render41521T count24 stdout"fn id ( id : id ) -> id { return id * id } var id = id ( num ) + num "
+    pfcco_tokenizer_refinement_runner_test.go:196: tag"pbqp" input1 init16868T tokenizer213682T render35558T count19 stdout"while false { var id = num } if true { return str } else { return str } "
+    pfcco_tokenizer_refinement_test.go:146: candidatepbqp entiretrain 520331T/5593B
+    pfcco_tokenizer_refinement_test.go:123: mir2: func @str_eq: duplicate definition of %r114
+--- FAIL: TestTokenizerBoundedABIRefinement (2.45s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	2.462s
+FAIL

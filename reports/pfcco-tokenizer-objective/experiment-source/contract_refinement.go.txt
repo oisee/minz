@@ -1,0 +1,97 @@
+package pipeline
+
+import (
+	"crypto/sha256"
+	"encoding/json"
+	"fmt"
+	"github.com/minz/minzc/pkg/mir2"
+)
+
+// Internal proof-bound proposal, intentionally unavailable to ordinary callers.
+// The expected whole preallocation module includes body/types/ABI/attributes.
+type contractRefinement struct {
+	ExpectedSHA256 string
+	Classes        map[string]map[int]mir2.RegClass
+}
+
+func contractRefinementIdentity(m *mir2.Module) (string, error) {
+	b, e := json.Marshal(m)
+	if e != nil {
+		return "", e
+	}
+	return fmt.Sprintf("%x", sha256.Sum256(b)), nil
+}
+func applyContractRefinement(m *mir2.Module, opt Options) error {
+	p := opt.contractRefinement
+	if p == nil {
+		return nil
+	}
+	if !opt.ContractOpt || opt.ContractStrategy != "pbqp" || opt.Backend != "" || opt.Runtime != "" || opt.ProfileSelection != nil || opt.CheckedLocalTablePath != "" || opt.SkipZ80Emission {
+		return fmt.Errorf("experimental contract refinement incompatible options")
+	}
+	if e := mir2.Verify(m); e != nil {
+		return e
+	}
+	before, e := contractRefinementIdentity(m)
+	if e != nil {
+		return e
+	}
+	if before != p.ExpectedSHA256 {
+		return fmt.Errorf("experimental contract refinement context changed: %s", before)
+	}
+	old := map[string]map[int]mir2.RegClass{}
+	for name, slots := range p.Classes {
+		f := m.FuncByName(name)
+		if f == nil || f.Attrs.IsExtern || f.Attrs.FixedIndirectABI || f.Attrs.FallibleCY || f.Attrs.HasAsm {
+			return fmt.Errorf("experimental refinement fixed or missing function %s", name)
+		}
+		for _, b := range f.Blocks {
+			for _, i := range b.Insts {
+				if i.Op == mir2.OpAsm {
+					return fmt.Errorf("experimental refinement ASM function")
+				}
+			}
+		}
+		old[name] = map[int]mir2.RegClass{}
+		for index, c := range slots {
+			if index < 0 || index >= len(f.Contract.Params) {
+				return fmt.Errorf("experimental refinement invalid slot")
+			}
+			param := f.Contract.Params[index]
+			if param.Ty != mir2.TyU8 && param.Ty != mir2.TyI8 {
+				return fmt.Errorf("experimental refinement supports byte slots only")
+			}
+			if c != mir2.ClassAcc && c != mir2.ClassGeneral && c != mir2.ClassCounter {
+				return fmt.Errorf("experimental refinement unsupported class")
+			}
+			old[name][index] = param.Class
+		}
+	}
+	for name, slots := range p.Classes {
+		f := m.FuncByName(name)
+		for i, c := range slots {
+			f.Contract.Params[i].Class = c
+		}
+	}
+	// Verify semantic bodies/metadata are unchanged apart from permitted classes.
+	for name, slots := range old {
+		f := m.FuncByName(name)
+		for i, c := range slots {
+			f.Contract.Params[i].Class = c
+		}
+	}
+	restored, e := contractRefinementIdentity(m)
+	if e != nil {
+		return e
+	}
+	if restored != before {
+		return fmt.Errorf("experimental refinement mutated non-class context")
+	}
+	for name, slots := range p.Classes {
+		f := m.FuncByName(name)
+		for i, c := range slots {
+			f.Contract.Params[i].Class = c
+		}
+	}
+	return mir2.Verify(m)
+}

@@ -1,0 +1,26 @@
+=== RUN   TestTokenizerBoundedABIRefinement
+    pfcco_tokenizer_refinement_runner_test.go:196: tag"greedy" input0 init15790T tokenizer212702T render41521T count24 stdout"fn id ( id : id ) -> id { return id * id } var id = id ( num ) + num "
+    pfcco_tokenizer_refinement_runner_test.go:196: tag"greedy" input1 init15790T tokenizer213682T render35558T count19 stdout"while false { var id = num } if true { return str } else { return str } "
+    pfcco_tokenizer_refinement_test.go:149: candidategreedy entiretrain 519253T/5465B
+    pfcco_tokenizer_refinement_runner_test.go:196: tag"pbqp" input0 init16868T tokenizer212702T render41521T count24 stdout"fn id ( id : id ) -> id { return id * id } var id = id ( num ) + num "
+    pfcco_tokenizer_refinement_runner_test.go:196: tag"pbqp" input1 init16868T tokenizer213682T render35558T count19 stdout"while false { var id = num } if true { return str } else { return str } "
+    pfcco_tokenizer_refinement_test.go:149: candidatepbqp entiretrain 520331T/5593B
+    pfcco_tokenizer_refinement_runner_test.go:196: tag"slot0-u8" input0 init15790T tokenizer212702T render41521T count24 stdout"fn id ( id : id ) -> id { return id * id } var id = id ( num ) + num "
+    pfcco_tokenizer_refinement_runner_test.go:196: tag"slot0-u8" input1 init15790T tokenizer213682T render35558T count19 stdout"while false { var id = num } if true { return str } else { return str } "
+    pfcco_tokenizer_refinement_test.go:149: candidateslot0-u8 entiretrain 519253T/5465B
+    pfcco_tokenizer_refinement_runner_test.go:196: tag"slot2-u8" input0 init16868T tokenizer212702T render41521T count24 stdout"fn id ( id : id ) -> id { return id * id } var id = id ( num ) + num "
+    pfcco_tokenizer_refinement_runner_test.go:196: tag"slot2-u8" input1 init16868T tokenizer213682T render35558T count19 stdout"while false { var id = num } if true { return str } else { return str } "
+    pfcco_tokenizer_refinement_test.go:149: candidateslot2-u8 entiretrain 520331T/5593B
+    pfcco_tokenizer_refinement_runner_test.go:196: tag"greedy" input0 init15790T tokenizer227213T render31474T count18 stdout"let id = num id id id id { if id  num { return id } } "
+    pfcco_tokenizer_refinement_runner_test.go:196: tag"greedy" input1 init15790T tokenizer241738T render33035T count19 stdout"fn id ( id , id ) { return id id num } id id id str  num "
+    pfcco_tokenizer_refinement_runner_test.go:196: tag"greedy" input2 init15790T tokenizer168236T render15151T count9 stdout"id id id  id * num  num "
+    pfcco_tokenizer_refinement_runner_test.go:196: tag"greedy" input3 init15790T tokenizer194697T render30203T count17 stdout"var id = num while id  num { id = id + num } return id "
+    pfcco_tokenizer_refinement_test.go:169: speed selectedgreedy fixedBIN heldout 957537T/5465B
+    pfcco_tokenizer_refinement_runner_test.go:196: tag"greedy" input0 init15790T tokenizer227213T render31474T count18 stdout"let id = num id id id id { if id  num { return id } } "
+    pfcco_tokenizer_refinement_runner_test.go:196: tag"greedy" input1 init15790T tokenizer241738T render33035T count19 stdout"fn id ( id , id ) { return id id num } id id id str  num "
+    pfcco_tokenizer_refinement_runner_test.go:196: tag"greedy" input2 init15790T tokenizer168236T render15151T count9 stdout"id id id  id * num  num "
+    pfcco_tokenizer_refinement_runner_test.go:196: tag"greedy" input3 init15790T tokenizer194697T render30203T count17 stdout"var id = num while id  num { id = id + num } return id "
+    pfcco_tokenizer_refinement_test.go:169: size selectedgreedy fixedBIN heldout 957537T/5465B
+--- PASS: TestTokenizerBoundedABIRefinement (4.70s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.715s

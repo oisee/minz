@@ -1,0 +1,8 @@
+{
+  "production_checkpoint": "7a066613",
+  "freeze_commit": "e60fd5fc",
+  "experiment": "nonbuilt overlay in experiment-source; not current production",
+  "executable": "/home/alice/dev/minz-artifacts/grace-checkpoints/pfcco-tokenizer-refinement-experiment.test",
+  "executable_sha256": "4b924473706e8c020f6e35d0ea3161c9e967f837561778d2700e7abe5f27037a",
+  "go": "go1.26.8"
+}

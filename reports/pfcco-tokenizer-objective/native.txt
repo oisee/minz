@@ -1,0 +1,9 @@
+=== RUN   TestPFCCOOriginalTokenizerRenderingConsumer
+    pfcco_tokenizer_consumer_test.go:217: strategy"" input0 init15790T tokenizer138371T render21896T count12 stdout"var id = num if true { return id + num } "
+    pfcco_tokenizer_consumer_test.go:217: strategy"" input1 init15790T tokenizer131639T render18512T count11 stdout"id id id + num  num  num  str "
+    pfcco_tokenizer_consumer_test.go:217: strategy"pbqp" input0 init16868T tokenizer138371T render21896T count12 stdout"var id = num if true { return id + num } "
+    pfcco_tokenizer_consumer_test.go:217: strategy"pbqp" input1 init16868T tokenizer131639T render18512T count11 stdout"id id id + num  num  num  str "
+    pfcco_tokenizer_consumer_test.go:246: ordinary fullBIN5465→5593B; renderer costs[21896 18512]→[21896 18512] (no assumed speed gain)
+--- PASS: TestPFCCOOriginalTokenizerRenderingConsumer (1.73s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.743s
