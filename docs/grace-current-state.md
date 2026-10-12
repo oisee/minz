@@ -14,7 +14,7 @@
 
 IRC получил отдельное исправление 27 CString литералов после source-contract audit. Затем обнаружен и исправлен Z80 TermCondRet miscompile: untaken edge copies затирали return constant. Три computational entry проверены в raw/final VM и native; network/TUI main остаётся неподтверждённым ([235](grace-integration-235/README.md)). Pascal signed decimal output пока имеет подтверждённую ошибку на −1/−32768; исправление и полный i16/u16 oracle в работе, production Factorial runtime ещё не допущен.
 
-Полный MIR2 на `7ce75464` после CP/M pointer fix завершился **PASS**, exit 0 ([234](grace-integration-234/README.md)). Свежий core `76945771` после TermCondRet/Pascal Hello начат и ещё выполняется ([239](grace-integration-239/README.md)). Эти checkpoints нельзя объединять в один current fullsuite PASS.
+Полный MIR2 на `7ce75464` после CP/M pointer fix завершился **PASS**, exit 0 ([234](grace-integration-234/README.md)). Полный core `76945771` после TermCondRet/Pascal Hello завершился **PASS**, exit 0: HIR 37,493 с, MIR2 71,654 с, Nanz 23,217 с, VIR 2,351 с ([240](grace-integration-240/README.md)). Эти checkpoints нельзя объединять в один current fullsuite PASS.
 
 Последние полные HIR/MIR на `c3129387`: **PASS 24,829 / 64,484 с**, exit0 ([227](grace-integration-227/README.md)); Nanz65a018eb **PASS 21,771 с** после negative literals и gallery ([222](grace-integration-222/README.md)). Полный CLI `2a3f6662` завершился **PASS 354,362 с**, exit 0 ([226](grace-integration-226/README.md)). Он предшествует расширению README BDOS adapter и исправлению типов локальных адресов; последние изменения имеют отдельные проверки [231](grace-integration-231/README.md) и [233](grace-integration-233/README.md).
 
