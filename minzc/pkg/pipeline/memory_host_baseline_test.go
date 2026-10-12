@@ -124,7 +124,7 @@ fun same_two()->u16{return 7}`
 // equivalence and factory/instrumented native artifact equality were proven.
 func assertCurrentMemoryHostParserReference(t *testing.T, target *MemoryHostTargetEvidence) {
 	t.Helper()
-	if target.TotalTStates != 1296385 || len(target.Binary) != 2380 || target.BinarySHA256 != "6d80d6ec7c8a1a00b1d70d88cedbb7cc0e345cb9234de9772ea710acb019efe5" {
+	if target.TotalTStates != 1296226 || len(target.Binary) != 2377 || target.BinarySHA256 != "a08a6d9ddb64bce02ad56ad492506e97ef647496184e48c57aa17ebf328a9de5" {
 		t.Fatal("current parser target drift", target.TotalTStates, len(target.Binary), target.BinarySHA256)
 	}
 	if fmt.Sprintf("%x", sha256.Sum256(target.Binary)) != target.BinarySHA256 {

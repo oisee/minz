@@ -1,0 +1,50 @@
+{
+  "old_T": 1296385,
+  "new_T": 1296226,
+  "old_bytes": 2380,
+  "new_bytes": 2377,
+  "per_invocation_T_delta": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    19,
+    25,
+    25,
+    19,
+    39,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    13,
+    19,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "independent_invocations_verified": 30,
+  "unchanged": [
+    "results",
+    "globals",
+    "regions",
+    "events",
+    "error"
+  ],
+  "changed_diagnostic": [
+    "steps"
+  ],
+  "native_asm_delta": "removed redundant parse_sexpr trampoline"
+}

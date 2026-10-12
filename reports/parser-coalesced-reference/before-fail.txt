@@ -1,0 +1,12 @@
+=== RUN   TestMemoryHostFactoryOriginalParser
+    memory_host_baseline_test.go:27: current parser target drift 1296226 2377 a08a6d9ddb64bce02ad56ad492506e97ef647496184e48c57aa17ebf328a9de5
+--- FAIL: TestMemoryHostFactoryOriginalParser (1.02s)
+=== RUN   TestMemoryHostLoopAssociationOriginalParser
+    memory_host_loop_profile_test.go:46: current parser target drift 1296226 2377 a08a6d9ddb64bce02ad56ad492506e97ef647496184e48c57aa17ebf328a9de5
+--- FAIL: TestMemoryHostLoopAssociationOriginalParser (2.67s)
+=== RUN   TestMemoryHostOriginalSelfLanzTarget
+    memory_host_target_test.go:59: current parser target drift 1296226 2377 a08a6d9ddb64bce02ad56ad492506e97ef647496184e48c57aa17ebf328a9de5
+--- FAIL: TestMemoryHostOriginalSelfLanzTarget (0.62s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	4.317s
+FAIL

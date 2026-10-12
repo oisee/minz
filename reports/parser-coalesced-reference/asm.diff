@@ -1,0 +1,33 @@
+--- historical-6d80
++++ current-a08a
+@@ -345,12 +345,10 @@
+     LD E, L
+     JRS .main_loop_exit3
+ 
+-; fun peek(addr: u16 = HL) -> u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+ peek:
+     LD A,(HL)
+     RET
+ 
+-; fun poke(addr: u16 = HL, val: u8 = C) ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+ poke:
+     LD (HL),C
+     RET
+@@ -1388,7 +1386,7 @@
+ .parse_sexpr_loop_head19:
+     LD A, IYL
+     CP IYH
+-    JRS NC, .parse_sexpr_trmp1
++    JRS NC, .parse_sexpr_loop_exit21
+ .parse_sexpr_loop_body20:
+     PUSH BC
+     PUSH HL
+@@ -1485,8 +1483,6 @@
+     LD B, H
+     LD C, L
+     JRS .parse_sexpr_loop_exit9
+-.parse_sexpr_trmp1:
+-    JRS .parse_sexpr_loop_exit21
+ 
+ ; fun print_str(s: u16 = HL) ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+ print_str:
