@@ -1,0 +1,6 @@
+=== RUN   TestOriginalIRCConnectionFailureWholeMain
+    original_irc_connection_failure_test.go:143: event 0 got{ctl_read []} want{tui_clear []}
+--- FAIL: TestOriginalIRCConnectionFailureWholeMain (0.20s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.210s
+FAIL

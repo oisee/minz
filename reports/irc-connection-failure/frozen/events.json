@@ -1,0 +1,1822 @@
+[
+  {
+    "Name": "tui_clear",
+    "Args": []
+  },
+  {
+    "Name": "ctl_read",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Connecting to irc.libera.chat:6667..."
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  },
+  {
+    "Name": "ctl_write",
+    "Args": [
+      67
+    ]
+  },
+  {
+    "Name": "ctl_write",
+    "Args": [
+      105
+    ]
+  },
+  {
+    "Name": "ctl_write",
+    "Args": [
+      114
+    ]
+  },
+  {
+    "Name": "ctl_write",
+    "Args": [
+      99
+    ]
+  },
+  {
+    "Name": "ctl_write",
+    "Args": [
+      46
+    ]
+  },
+  {
+    "Name": "ctl_write",
+    "Args": [
+      108
+    ]
+  },
+  {
+    "Name": "ctl_write",
+    "Args": [
+      105
+    ]
+  },
+  {
+    "Name": "ctl_write",
+    "Args": [
+      98
+    ]
+  },
+  {
+    "Name": "ctl_write",
+    "Args": [
+      101
+    ]
+  },
+  {
+    "Name": "ctl_write",
+    "Args": [
+      114
+    ]
+  },
+  {
+    "Name": "ctl_write",
+    "Args": [
+      97
+    ]
+  },
+  {
+    "Name": "ctl_write",
+    "Args": [
+      46
+    ]
+  },
+  {
+    "Name": "ctl_write",
+    "Args": [
+      99
+    ]
+  },
+  {
+    "Name": "ctl_write",
+    "Args": [
+      104
+    ]
+  },
+  {
+    "Name": "ctl_write",
+    "Args": [
+      97
+    ]
+  },
+  {
+    "Name": "ctl_write",
+    "Args": [
+      116
+    ]
+  },
+  {
+    "Name": "ctl_write",
+    "Args": [
+      58
+    ]
+  },
+  {
+    "Name": "ctl_write",
+    "Args": [
+      54
+    ]
+  },
+  {
+    "Name": "ctl_write",
+    "Args": [
+      54
+    ]
+  },
+  {
+    "Name": "ctl_write",
+    "Args": [
+      54
+    ]
+  },
+  {
+    "Name": "ctl_write",
+    "Args": [
+      55
+    ]
+  },
+  {
+    "Name": "ctl_write",
+    "Args": [
+      0
+    ]
+  },
+  {
+    "Name": "ctl_read",
+    "Args": []
+  },
+  {
+    "Name": "ctl_read",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      0,
+      0
+    ]
+  },
+  {
+    "Name": "tui_color",
+    "Args": [
+      7,
+      4,
+      1
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_putch",
+    "Args": [
+      32
+    ]
+  },
+  {
+    "Name": "tui_width",
+    "Args": []
+  },
+  {
+    "Name": "tui_goto",
+    "Args": [
+      1,
+      0
+    ]
+  },
+  {
+    "Name": "tui_puts",
+    "Args": [
+      "Connection failed!"
+    ]
+  },
+  {
+    "Name": "tui_reset",
+    "Args": []
+  }
+]

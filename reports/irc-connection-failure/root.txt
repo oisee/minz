@@ -1,0 +1,13 @@
+=== RUN   TestOriginalIRCConnectionFailureWholeMain
+    original_irc_connection_failure_test.go:381: ordinary 2 4496 50531 whole main failure-path PASS
+    original_irc_connection_failure_test.go:381: ordinary 3 4496 50554 whole main failure-path PASS
+    original_irc_connection_failure_test.go:381: ordinary 4 4496 50582 whole main failure-path PASS
+    original_irc_connection_failure_test.go:381: grace-size 2 4471 50531 whole main failure-path PASS
+    original_irc_connection_failure_test.go:381: grace-size 3 4471 50554 whole main failure-path PASS
+    original_irc_connection_failure_test.go:381: grace-size 4 4471 50582 whole main failure-path PASS
+    original_irc_connection_failure_test.go:381: grace-speed 2 4471 50531 whole main failure-path PASS
+    original_irc_connection_failure_test.go:381: grace-speed 3 4471 50554 whole main failure-path PASS
+    original_irc_connection_failure_test.go:381: grace-speed 4 4471 50582 whole main failure-path PASS
+--- PASS: TestOriginalIRCConnectionFailureWholeMain (2.27s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.279s
