@@ -1,0 +1,7 @@
+=== RUN   TestOriginalTetrisTUIWholeMain
+    original_tetris_tui_main_test.go:455: ordinary raw/finalVM+native wholemain PASS
+    original_tetris_tui_main_test.go:455: grace-size raw/finalVM+native wholemain PASS
+    original_tetris_tui_main_test.go:455: grace-speed raw/finalVM+native wholemain PASS
+--- PASS: TestOriginalTetrisTUIWholeMain (1.23s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.238s

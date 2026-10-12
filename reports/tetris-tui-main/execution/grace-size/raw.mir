@@ -1,0 +1,1765 @@
+; MIR2 module: tetris_tui.nanz
+string @mir2.str.0 = "SCORE"
+string @mir2.str.1 = "LINES"
+string @mir2.str.2 = "NEXT"
+string @mir2.str.3 = "HOLD"
+string @mir2.str.4 = "Arrows:Move Z:Rot X:Drop C:Hold Q:Quit"
+string @mir2.str.5 = "GAME OVER!"
+string @mir2.str.6 = "Score: "
+global const @KEY_UP : u8
+global const @KEY_DOWN : u8
+global const @KEY_LEFT : u8
+global const @KEY_RIGHT : u8
+global const @KEY_ESC : u8
+global const @KEY_Q : u8
+global const @KEY_Z : u8
+global const @KEY_X : u8
+global const @KEY_C : u8
+global const @BOX_TL : u8
+global const @BOX_TR : u8
+global const @BOX_BL : u8
+global const @BOX_BR : u8
+global const @BOX_H : u8
+global const @BOX_V : u8
+global const @FG_BLACK : u8
+global const @FG_RED : u8
+global const @FG_GREEN : u8
+global const @FG_YELLOW : u8
+global const @FG_BLUE : u8
+global const @FG_MAGENTA : u8
+global const @FG_CYAN : u8
+global const @FG_WHITE : u8
+global const @BG_BLACK : u8
+global const @BG_BLUE : u8
+global const @BOARD_W : u8
+global const @BOARD_H : u8
+global const @DRAW_X : u8
+global const @DRAW_Y : u8
+global @board : [200]u8
+global @cur_type : u8
+global @cur_rot : u8
+global @cur_x : u8
+global @cur_y : u8
+global @drop_timer : u8
+global @drop_speed : u8
+global @tick : u16
+global @score : u16
+global @lines_cleared : u16
+global @game_over : u8
+global @next_type : u8
+global @hold_type : u8
+global @hold_used : u8
+global @rng_state : u16
+global @PIECE_DX : [112]u8
+global @PIECE_DY : [112]u8
+global @PIECE_FG : [7]u8
+global @PIECE_BR : [7]u8
+
+extern fun @tui_goto(%r1: u8 [acc], %r2: u8 [general])
+
+extern fun @tui_color(%r3: u8 [acc], %r4: u8 [general], %r5: u8 [counter])
+
+extern fun @tui_reset()
+
+extern fun @tui_clear()
+
+extern fun @tui_putch(%r6: u8 [acc])
+
+extern fun @tui_puts(%r7: ptr [pointer])
+
+extern fun @tui_read_key() -> u8 [acc]
+
+extern fun @tui_width() -> u8 [acc]
+
+extern fun @tui_height() -> u8 [acc]
+
+fun @rng_next() -> u8 [acc]
+  block @entry:
+    %r8 = addr_of @rng_state : ptr [pointer]
+    %r9 = load %r8 : u16 [pointer]
+    %r10 = const 1 : u16 [pointer]
+    %r11 = and %r9, %r10 : u16 [pointer]
+    %r12 = addr_of @rng_state : ptr [pointer]
+    %r13 = load %r12 : u16 [pointer]
+    %r14 = const 1 : u16 [pointer]
+    %r15 = shr %r13, %r14 : u16 [pointer]
+    %r16 = addr_of @rng_state : ptr [pointer]
+    store %r16, %r15 : u16
+    %r17 = const 1 : u8 [general]
+    %r18 = cmp.eq %r11, %r17 : bool [flag]
+    br_if %r18, @if_then1(), @if_join2()
+  block @if_then1:
+    %r19 = addr_of @rng_state : ptr [pointer]
+    %r20 = load %r19 : u16 [pointer]
+    %r21 = const 46080 : u16 [pointer]
+    %r22 = xor %r20, %r21 : u16 [pointer]
+    %r23 = addr_of @rng_state : ptr [pointer]
+    store %r23, %r22 : u16
+    jmp @if_join2()
+  block @if_join2:
+    %r24 = addr_of @rng_state : ptr [pointer]
+    %r25 = load %r24 : u16 [pointer]
+    %r26 = const 255 : u16 [pointer]
+    %r27 = and %r25, %r26 : u16 [pointer]
+    %r28 = trunc %r27 : u16 -> u8 [general]
+    ret %r28
+
+fun @random_piece() -> u8 [acc]
+  block @entry:
+    %r29 = call @rng_next() : u8 [acc]
+    %r30 = const 7 : u8 [general]
+    %r31 = and %r29, %r30 : u8 [acc]
+    %r32 = const 7 : u8 [general]
+    %r33 = cmp.uge %r31, %r32 : bool [flag]
+    br_if %r33, @if_then1(), @if_join2()
+  block @if_then1:
+    %r34 = const 0 : u8 [acc]
+    ret %r34
+  block @if_join2:
+    ret %r31
+
+fun @piece_dx(%r35: u8 [acc], %r36: u8 [general], %r37: u8 [counter]) -> u8 [acc]
+  block @entry:
+    %r38 = addr_of @PIECE_DX : ptr [pointer]
+    %r39 = ext %r35 : u8 -> u16 [pointer]
+    %r40 = const 16 : u16 [pointer]
+    %r41 = mul %r39, %r40 : u16 [pointer]
+    %r42 = ext %r36 : u8 -> u16 [pointer]
+    %r43 = const 4 : u16 [pointer]
+    %r44 = mul %r42, %r43 : u16 [pointer]
+    %r45 = add %r41, %r44 : u16 [pointer]
+    %r46 = ext %r37 : u8 -> u16 [pointer]
+    %r47 = add %r45, %r46 : u16 [pointer]
+    %r48 = ptr_add %r38, %r47 : ptr [pointer]
+    %r49 = load %r48 : u8 [general]
+    ret %r49
+
+fun @piece_dy(%r50: u8 [acc], %r51: u8 [general], %r52: u8 [counter]) -> u8 [acc]
+  block @entry:
+    %r53 = addr_of @PIECE_DY : ptr [pointer]
+    %r54 = ext %r50 : u8 -> u16 [pointer]
+    %r55 = const 16 : u16 [pointer]
+    %r56 = mul %r54, %r55 : u16 [pointer]
+    %r57 = ext %r51 : u8 -> u16 [pointer]
+    %r58 = const 4 : u16 [pointer]
+    %r59 = mul %r57, %r58 : u16 [pointer]
+    %r60 = add %r56, %r59 : u16 [pointer]
+    %r61 = ext %r52 : u8 -> u16 [pointer]
+    %r62 = add %r60, %r61 : u16 [pointer]
+    %r63 = ptr_add %r53, %r62 : ptr [pointer]
+    %r64 = load %r63 : u8 [general]
+    ret %r64
+
+fun @board_get(%r65: u8 [acc], %r66: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r67 = addr_of @board : ptr [pointer]
+    %r68 = ext %r66 : u8 -> u16 [pointer]
+    %r69 = const 10 : u16 [pointer]
+    %r70 = mul %r68, %r69 : u16 [pointer]
+    %r71 = ext %r65 : u8 -> u16 [pointer]
+    %r72 = add %r70, %r71 : u16 [pointer]
+    %r73 = ptr_add %r67, %r72 : ptr [pointer]
+    %r74 = load %r73 : u8 [general]
+    ret %r74
+
+fun @board_set(%r75: u8 [acc], %r76: u8 [general], %r77: u8 [counter])
+  block @entry:
+    %r78 = addr_of @board : ptr [pointer]
+    %r79 = ext %r76 : u8 -> u16 [pointer]
+    %r80 = const 10 : u16 [pointer]
+    %r81 = mul %r79, %r80 : u16 [pointer]
+    %r82 = ext %r75 : u8 -> u16 [pointer]
+    %r83 = add %r81, %r82 : u16 [pointer]
+    %r84 = ptr_add %r78, %r83 : ptr [pointer]
+    store %r84, %r77 : u8
+    ret void
+
+fun @can_place(%r85: u8 [acc], %r86: u8 [general], %r87: u8 [counter], %r88: u8 [general]) -> bool [acc]
+  block @entry:
+    %r89 = const 0 : u8 [general]
+    %r90 = const 4 : u8 [general]
+    jmp @loop_head2(%r90, %r89, %r87, %r88, %r86, %r85)
+  block @loop_head2(%r91: u8 [general], %r92: u8 [general], %r93: u8 [general], %r94: u8 [general], %r95: u8 [general], %r96: u8 [general]):
+    %r97 = cmp.ult %r92, %r91 : bool [flag]
+    br_if %r97, @loop_body3(), @loop_exit4(%r91, %r92, %r93, %r94, %r95, %r96)
+  block @loop_body3:
+    %r98 = move %r96 : u8 [acc]
+    %r99 = move %r92 : u8 [counter]
+    %r100 = call @piece_dx(%r98, %r95, %r99) : u8 [acc]
+    %r101 = add %r93, %r100 : u8 [general]
+    %r102 = move %r96 : u8 [acc]
+    %r103 = move %r92 : u8 [counter]
+    %r104 = call @piece_dy(%r102, %r95, %r103) : u8 [acc]
+    %r105 = add %r94, %r104 : u8 [general]
+    %r106 = addr_of @BOARD_W : ptr [pointer]
+    %r107 = load %r106 : u8 [general]
+    %r108 = cmp.uge %r101, %r107 : bool [flag]
+    br_if %r108, @if_then5(), @if_join6()
+  block @if_then5:
+    %r109 = const 0 : bool [general]
+    ret %r109
+  block @if_join6:
+    %r110 = addr_of @BOARD_H : ptr [pointer]
+    %r111 = load %r110 : u8 [general]
+    %r112 = cmp.uge %r105, %r111 : bool [flag]
+    br_if %r112, @if_then7(), @if_join8()
+  block @if_then7:
+    %r113 = const 0 : bool [general]
+    ret %r113
+  block @if_join8:
+    %r114 = move %r101 : u8 [acc]
+    %r115 = call @board_get(%r114, %r105) : u8 [acc]
+    %r116 = const 0 : u8 [general]
+    %r117 = cmp.ne %r115, %r116 : bool [flag]
+    br_if %r117, @if_then9(), @if_join10()
+  block @if_then9:
+    %r118 = const 0 : bool [general]
+    ret %r118
+  block @if_join10:
+    %r119 = const 1 : u8 [general]
+    %r120 = add %r92, %r119 : u8 [general]
+    jmp @loop_head2(%r91, %r120, %r93, %r94, %r95, %r96)
+  block @loop_exit4(%r121: u8 [general], %r122: u8 [general], %r123: u8 [general], %r124: u8 [general], %r125: u8 [general], %r126: u8 [general]):
+    %r127 = const 1 : bool [general]
+    ret %r127
+
+fun @lock_piece()
+  block @entry:
+    %r128 = addr_of @cur_type : ptr [pointer]
+    %r129 = load %r128 : u8 [general]
+    %r130 = const 1 : u8 [general]
+    %r131 = add %r129, %r130 : u8 [acc]
+    %r132 = const 0 : u8 [general]
+    %r133 = const 4 : u8 [general]
+    jmp @loop_head2(%r133, %r132, %r131)
+  block @loop_head2(%r134: u8 [general], %r135: u8 [general], %r136: u8 [general]):
+    %r137 = cmp.ult %r135, %r134 : bool [flag]
+    br_if %r137, @loop_body3(), @loop_exit4(%r134, %r135, %r136)
+  block @loop_body3:
+    %r138 = addr_of @cur_x : ptr [pointer]
+    %r139 = load %r138 : u8 [general]
+    %r140 = addr_of @cur_type : ptr [pointer]
+    %r141 = load %r140 : u8 [general]
+    %r142 = move %r141 : u8 [acc]
+    %r143 = addr_of @cur_rot : ptr [pointer]
+    %r144 = load %r143 : u8 [general]
+    %r145 = move %r135 : u8 [counter]
+    %r146 = call @piece_dx(%r142, %r144, %r145) : u8 [acc]
+    %r147 = add %r139, %r146 : u8 [general]
+    %r148 = addr_of @cur_y : ptr [pointer]
+    %r149 = load %r148 : u8 [general]
+    %r150 = addr_of @cur_type : ptr [pointer]
+    %r151 = load %r150 : u8 [general]
+    %r152 = move %r151 : u8 [acc]
+    %r153 = addr_of @cur_rot : ptr [pointer]
+    %r154 = load %r153 : u8 [general]
+    %r155 = move %r135 : u8 [counter]
+    %r156 = call @piece_dy(%r152, %r154, %r155) : u8 [acc]
+    %r157 = add %r149, %r156 : u8 [general]
+    %r158 = addr_of @BOARD_W : ptr [pointer]
+    %r159 = load %r158 : u8 [general]
+    %r160 = cmp.ult %r147, %r159 : bool [flag]
+    %r161 = addr_of @BOARD_H : ptr [pointer]
+    %r162 = load %r161 : u8 [general]
+    %r163 = cmp.ult %r157, %r162 : bool [flag]
+    %r164 = and %r160, %r163 : bool [general]
+    %r165 = const 0 : bool [general]
+    %r166 = cmp.ne %r164, %r165 : bool [flag]
+    br_if %r166, @if_then5(), @if_join6()
+  block @if_then5:
+    %r167 = move %r147 : u8 [acc]
+    %r168 = move %r136 : u8 [counter]
+    call @board_set(%r167, %r157, %r168)
+    jmp @if_join6()
+  block @if_join6:
+    %r169 = const 1 : u8 [general]
+    %r170 = add %r135, %r169 : u8 [general]
+    jmp @loop_head2(%r134, %r170, %r136)
+  block @loop_exit4(%r171: u8 [general], %r172: u8 [general], %r173: u8 [general]):
+    ret void
+
+fun @clear_lines() -> u8 [acc]
+  block @entry:
+    %r174 = const 0 : u8 [general]
+    %r175 = const 19 : u8 [general]
+    jmp @loop_head1(%r174, %r175)
+  block @loop_head1(%r176: u8 [general], %r177: u8 [general]):
+    %r178 = addr_of @BOARD_H : ptr [pointer]
+    %r179 = load %r178 : u8 [general]
+    %r180 = cmp.ult %r177, %r179 : bool [flag]
+    br_if %r180, @loop_body2(), @loop_exit3(%r176, %r177)
+  block @loop_body2:
+    %r181 = const 1 : u8 [general]
+    %r182 = const 0 : u8 [general]
+    %r183 = const 10 : u8 [general]
+    jmp @loop_head5(%r183, %r181, %r182, %r177)
+  block @loop_head5(%r184: u8 [general], %r185: u8 [general], %r186: u8 [general], %r187: u8 [general]):
+    %r188 = cmp.ult %r186, %r184 : bool [flag]
+    br_if %r188, @loop_body6(), @loop_exit7(%r184, %r185, %r186, %r187)
+  block @loop_body6:
+    %r189 = move %r186 : u8 [acc]
+    %r190 = call @board_get(%r189, %r187) : u8 [acc]
+    %r191 = const 0 : u8 [general]
+    %r192 = cmp.eq %r190, %r191 : bool [flag]
+    br_if %r192, @if_then8(), @if_join9(%r185)
+  block @if_then8:
+    %r193 = const 0 : u8 [general]
+    jmp @if_join9(%r193)
+  block @if_join9(%r194: u8 [general]):
+    %r195 = const 1 : u8 [general]
+    %r196 = add %r186, %r195 : u8 [general]
+    jmp @loop_head5(%r184, %r194, %r196, %r187)
+  block @loop_exit7(%r197: u8 [general], %r198: u8 [general], %r199: u8 [general], %r200: u8 [general]):
+    %r201 = const 1 : u8 [general]
+    %r202 = cmp.eq %r198, %r201 : bool [flag]
+    br_if %r202, @if_then10(), @if_else12()
+  block @if_then10:
+    jmp @loop_head13(%r200)
+  block @loop_head13(%r203: u8 [general]):
+    %r204 = const 0 : u8 [general]
+    %r205 = cmp.ugt %r203, %r204 : bool [flag]
+    br_if %r205, @loop_body14(), @loop_exit15(%r203)
+  block @loop_body14:
+    %r206 = const 0 : u8 [general]
+    %r207 = const 10 : u8 [general]
+    jmp @loop_head17(%r207, %r206, %r203)
+  block @loop_head17(%r208: u8 [general], %r209: u8 [general], %r210: u8 [general]):
+    %r211 = cmp.ult %r209, %r208 : bool [flag]
+    br_if %r211, @loop_body18(), @loop_exit19(%r208, %r209, %r210)
+  block @loop_body18:
+    %r212 = move %r209 : u8 [acc]
+    %r213 = move %r209 : u8 [acc]
+    %r214 = const 1 : u8 [general]
+    %r215 = sub %r210, %r214 : u8 [general]
+    %r216 = call @board_get(%r213, %r215) : u8 [acc]
+    %r217 = move %r216 : u8 [counter]
+    call @board_set(%r212, %r210, %r217)
+    %r218 = const 1 : u8 [general]
+    %r219 = add %r209, %r218 : u8 [general]
+    jmp @loop_head17(%r208, %r219, %r210)
+  block @loop_exit19(%r220: u8 [general], %r221: u8 [general], %r222: u8 [general]):
+    %r223 = const 1 : u8 [general]
+    %r224 = sub %r222, %r223 : u8 [general]
+    jmp @loop_head13(%r224)
+  block @loop_exit15(%r225: u8 [general]):
+    %r226 = const 0 : u8 [general]
+    %r227 = const 10 : u8 [general]
+    jmp @loop_head21(%r227, %r226)
+  block @loop_head21(%r228: u8 [general], %r229: u8 [general]):
+    %r230 = cmp.ult %r229, %r228 : bool [flag]
+    br_if %r230, @loop_body22(), @loop_exit23(%r228, %r229)
+  block @loop_body22:
+    %r231 = move %r229 : u8 [acc]
+    %r232 = const 0 : u8 [general]
+    %r233 = const 0 : u8 [general]
+    %r234 = move %r233 : u8 [counter]
+    call @board_set(%r231, %r232, %r234)
+    %r235 = const 1 : u8 [general]
+    %r236 = add %r229, %r235 : u8 [general]
+    jmp @loop_head21(%r228, %r236)
+  block @loop_exit23(%r237: u8 [general], %r238: u8 [general]):
+    %r239 = const 1 : u8 [general]
+    %r240 = add %r176, %r239 : u8 [general]
+    jmp @if_join11(%r240, %r200)
+  block @if_else12:
+    %r241 = const 1 : u8 [general]
+    %r242 = sub %r200, %r241 : u8 [general]
+    jmp @if_join11(%r176, %r242)
+  block @if_join11(%r243: u8 [general], %r244: u8 [general]):
+    jmp @loop_head1(%r243, %r244)
+  block @loop_exit3(%r245: u8 [general], %r246: u8 [general]):
+    ret %r245
+
+fun @ghost_y() -> u8 [acc]
+  block @entry:
+    %r247 = addr_of @cur_y : ptr [pointer]
+    %r248 = load %r247 : u8 [general]
+    jmp @loop_head1(%r248)
+  block @loop_head1(%r249: u8 [general]):
+    %r250 = addr_of @cur_type : ptr [pointer]
+    %r251 = load %r250 : u8 [general]
+    %r252 = move %r251 : u8 [acc]
+    %r253 = addr_of @cur_rot : ptr [pointer]
+    %r254 = load %r253 : u8 [general]
+    %r255 = addr_of @cur_x : ptr [pointer]
+    %r256 = load %r255 : u8 [general]
+    %r257 = move %r256 : u8 [counter]
+    %r258 = const 1 : u8 [general]
+    %r259 = add %r249, %r258 : u8 [general]
+    %r260 = call @can_place(%r252, %r254, %r257, %r259) : bool [acc]
+    %r261 = const 0 : bool [general]
+    %r262 = cmp.ne %r260, %r261 : bool [flag]
+    br_if %r262, @loop_body2(), @loop_exit3(%r249)
+  block @loop_body2:
+    %r263 = const 1 : u8 [general]
+    %r264 = add %r249, %r263 : u8 [general]
+    jmp @loop_head1(%r264)
+  block @loop_exit3(%r265: u8 [general]):
+    ret %r265
+
+fun @try_rotate() -> u8 [acc]
+  block @entry:
+    %r266 = addr_of @cur_rot : ptr [pointer]
+    %r267 = load %r266 : u8 [general]
+    %r268 = const 1 : u8 [general]
+    %r269 = add %r267, %r268 : u8 [acc]
+    %r270 = const 3 : u8 [general]
+    %r271 = and %r269, %r270 : u8 [acc]
+    %r272 = addr_of @cur_type : ptr [pointer]
+    %r273 = load %r272 : u8 [general]
+    %r274 = move %r273 : u8 [acc]
+    %r275 = addr_of @cur_x : ptr [pointer]
+    %r276 = load %r275 : u8 [general]
+    %r277 = move %r276 : u8 [counter]
+    %r278 = addr_of @cur_y : ptr [pointer]
+    %r279 = load %r278 : u8 [general]
+    %r280 = call @can_place(%r274, %r271, %r277, %r279) : bool [acc]
+    %r281 = const 0 : bool [general]
+    %r282 = cmp.ne %r280, %r281 : bool [flag]
+    br_if %r282, @if_then1(), @if_join2()
+  block @if_then1:
+    %r283 = addr_of @cur_rot : ptr [pointer]
+    store %r283, %r271 : u8
+    %r284 = const 1 : u8 [acc]
+    ret %r284
+  block @if_join2:
+    %r285 = addr_of @cur_x : ptr [pointer]
+    %r286 = load %r285 : u8 [general]
+    %r287 = const 9 : u8 [general]
+    %r288 = cmp.ult %r286, %r287 : bool [flag]
+    br_if %r288, @if_then3(), @if_join4()
+  block @if_then3:
+    %r289 = addr_of @cur_type : ptr [pointer]
+    %r290 = load %r289 : u8 [general]
+    %r291 = move %r290 : u8 [acc]
+    %r292 = addr_of @cur_x : ptr [pointer]
+    %r293 = load %r292 : u8 [general]
+    %r294 = const 1 : u8 [general]
+    %r295 = add %r293, %r294 : u8 [acc]
+    %r296 = move %r295 : u8 [counter]
+    %r297 = addr_of @cur_y : ptr [pointer]
+    %r298 = load %r297 : u8 [general]
+    %r299 = call @can_place(%r291, %r271, %r296, %r298) : bool [acc]
+    %r300 = const 0 : bool [general]
+    %r301 = cmp.ne %r299, %r300 : bool [flag]
+    br_if %r301, @if_then5(), @if_join6()
+  block @if_then5:
+    %r302 = addr_of @cur_x : ptr [pointer]
+    %r303 = load %r302 : u8 [general]
+    %r304 = const 1 : u8 [general]
+    %r305 = add %r303, %r304 : u8 [acc]
+    %r306 = addr_of @cur_x : ptr [pointer]
+    store %r306, %r305 : u8
+    %r307 = addr_of @cur_rot : ptr [pointer]
+    store %r307, %r271 : u8
+    %r308 = const 1 : u8 [acc]
+    ret %r308
+  block @if_join6:
+    jmp @if_join4()
+  block @if_join4:
+    %r309 = addr_of @cur_x : ptr [pointer]
+    %r310 = load %r309 : u8 [general]
+    %r311 = const 0 : u8 [general]
+    %r312 = cmp.ugt %r310, %r311 : bool [flag]
+    br_if %r312, @if_then7(), @if_join8()
+  block @if_then7:
+    %r313 = addr_of @cur_type : ptr [pointer]
+    %r314 = load %r313 : u8 [general]
+    %r315 = move %r314 : u8 [acc]
+    %r316 = addr_of @cur_x : ptr [pointer]
+    %r317 = load %r316 : u8 [general]
+    %r318 = const 1 : u8 [general]
+    %r319 = sub %r317, %r318 : u8 [acc]
+    %r320 = move %r319 : u8 [counter]
+    %r321 = addr_of @cur_y : ptr [pointer]
+    %r322 = load %r321 : u8 [general]
+    %r323 = call @can_place(%r315, %r271, %r320, %r322) : bool [acc]
+    %r324 = const 0 : bool [general]
+    %r325 = cmp.ne %r323, %r324 : bool [flag]
+    br_if %r325, @if_then9(), @if_join10()
+  block @if_then9:
+    %r326 = addr_of @cur_x : ptr [pointer]
+    %r327 = load %r326 : u8 [general]
+    %r328 = const 1 : u8 [general]
+    %r329 = sub %r327, %r328 : u8 [acc]
+    %r330 = addr_of @cur_x : ptr [pointer]
+    store %r330, %r329 : u8
+    %r331 = addr_of @cur_rot : ptr [pointer]
+    store %r331, %r271 : u8
+    %r332 = const 1 : u8 [acc]
+    ret %r332
+  block @if_join10:
+    jmp @if_join8()
+  block @if_join8:
+    %r333 = addr_of @cur_y : ptr [pointer]
+    %r334 = load %r333 : u8 [general]
+    %r335 = const 0 : u8 [general]
+    %r336 = cmp.ugt %r334, %r335 : bool [flag]
+    br_if %r336, @if_then11(), @if_join12()
+  block @if_then11:
+    %r337 = addr_of @cur_type : ptr [pointer]
+    %r338 = load %r337 : u8 [general]
+    %r339 = move %r338 : u8 [acc]
+    %r340 = addr_of @cur_x : ptr [pointer]
+    %r341 = load %r340 : u8 [general]
+    %r342 = move %r341 : u8 [counter]
+    %r343 = addr_of @cur_y : ptr [pointer]
+    %r344 = load %r343 : u8 [general]
+    %r345 = const 1 : u8 [general]
+    %r346 = sub %r344, %r345 : u8 [acc]
+    %r347 = call @can_place(%r339, %r271, %r342, %r346) : bool [acc]
+    %r348 = const 0 : bool [general]
+    %r349 = cmp.ne %r347, %r348 : bool [flag]
+    br_if %r349, @if_then13(), @if_join14()
+  block @if_then13:
+    %r350 = addr_of @cur_y : ptr [pointer]
+    %r351 = load %r350 : u8 [general]
+    %r352 = const 1 : u8 [general]
+    %r353 = sub %r351, %r352 : u8 [acc]
+    %r354 = addr_of @cur_y : ptr [pointer]
+    store %r354, %r353 : u8
+    %r355 = addr_of @cur_rot : ptr [pointer]
+    store %r355, %r271 : u8
+    %r356 = const 1 : u8 [acc]
+    ret %r356
+  block @if_join14:
+    jmp @if_join12()
+  block @if_join12:
+    %r357 = const 0 : u8 [acc]
+    ret %r357
+
+fun @spawn_piece()
+  block @entry:
+    %r358 = addr_of @next_type : ptr [pointer]
+    %r359 = load %r358 : u8 [general]
+    %r360 = addr_of @cur_type : ptr [pointer]
+    store %r360, %r359 : u8
+    %r361 = call @random_piece() : u8 [acc]
+    %r362 = addr_of @next_type : ptr [pointer]
+    store %r362, %r361 : u8
+    %r363 = const 0 : u8 [general]
+    %r364 = addr_of @cur_rot : ptr [pointer]
+    store %r364, %r363 : u8
+    %r365 = const 3 : u8 [general]
+    %r366 = addr_of @cur_x : ptr [pointer]
+    store %r366, %r365 : u8
+    %r367 = const 0 : u8 [general]
+    %r368 = addr_of @cur_y : ptr [pointer]
+    store %r368, %r367 : u8
+    %r369 = const 0 : u8 [general]
+    %r370 = addr_of @hold_used : ptr [pointer]
+    store %r370, %r369 : u8
+    %r371 = addr_of @cur_type : ptr [pointer]
+    %r372 = load %r371 : u8 [general]
+    %r373 = move %r372 : u8 [acc]
+    %r374 = addr_of @cur_rot : ptr [pointer]
+    %r375 = load %r374 : u8 [general]
+    %r376 = addr_of @cur_x : ptr [pointer]
+    %r377 = load %r376 : u8 [general]
+    %r378 = move %r377 : u8 [counter]
+    %r379 = addr_of @cur_y : ptr [pointer]
+    %r380 = load %r379 : u8 [general]
+    %r381 = call @can_place(%r373, %r375, %r378, %r380) : bool [acc]
+    %r382 = const 0 : bool [general]
+    %r383 = cmp.eq %r381, %r382 : bool [flag]
+    br_if %r383, @if_then1(), @if_join2()
+  block @if_then1:
+    %r384 = const 1 : u8 [general]
+    %r385 = addr_of @game_over : ptr [pointer]
+    store %r385, %r384 : u8
+    jmp @if_join2()
+  block @if_join2:
+    ret void
+
+fun @hold_piece()
+  block @entry:
+    %r386 = addr_of @hold_used : ptr [pointer]
+    %r387 = load %r386 : u8 [general]
+    %r388 = const 1 : u8 [general]
+    %r389 = cmp.eq %r387, %r388 : bool [flag]
+    br_if %r389, @if_then1(), @if_join2()
+  block @if_then1:
+    ret void
+  block @if_join2:
+    %r390 = const 1 : u8 [general]
+    %r391 = addr_of @hold_used : ptr [pointer]
+    store %r391, %r390 : u8
+    %r392 = addr_of @hold_type : ptr [pointer]
+    %r393 = load %r392 : u8 [general]
+    %r394 = const 255 : u8 [general]
+    %r395 = cmp.eq %r393, %r394 : bool [flag]
+    br_if %r395, @if_then3(), @if_else5()
+  block @if_then3:
+    %r396 = addr_of @cur_type : ptr [pointer]
+    %r397 = load %r396 : u8 [general]
+    %r398 = addr_of @hold_type : ptr [pointer]
+    store %r398, %r397 : u8
+    call @spawn_piece()
+    jmp @if_join4()
+  block @if_else5:
+    %r399 = addr_of @cur_type : ptr [pointer]
+    %r400 = load %r399 : u8 [general]
+    %r401 = addr_of @hold_type : ptr [pointer]
+    %r402 = load %r401 : u8 [general]
+    %r403 = addr_of @cur_type : ptr [pointer]
+    store %r403, %r402 : u8
+    %r404 = addr_of @hold_type : ptr [pointer]
+    store %r404, %r400 : u8
+    %r405 = const 0 : u8 [general]
+    %r406 = addr_of @cur_rot : ptr [pointer]
+    store %r406, %r405 : u8
+    %r407 = const 3 : u8 [general]
+    %r408 = addr_of @cur_x : ptr [pointer]
+    store %r408, %r407 : u8
+    %r409 = const 0 : u8 [general]
+    %r410 = addr_of @cur_y : ptr [pointer]
+    store %r410, %r409 : u8
+    jmp @if_join4()
+  block @if_join4:
+    ret void
+
+fun @score_lines(%r411: u8 [acc])
+  block @entry:
+    %r412 = const 0 : u8 [general]
+    %r413 = cmp.eq %r411, %r412 : bool [flag]
+    br_if %r413, @if_then1(), @if_join2()
+  block @if_then1:
+    ret void
+  block @if_join2:
+    %r414 = const 1 : u8 [general]
+    %r415 = cmp.eq %r411, %r414 : bool [flag]
+    br_if %r415, @if_then3(), @if_join4()
+  block @if_then3:
+    %r416 = addr_of @score : ptr [pointer]
+    %r417 = load %r416 : u16 [pointer]
+    %r418 = const 100 : u16 [pointer]
+    %r419 = add %r417, %r418 : u16 [pointer]
+    %r420 = addr_of @score : ptr [pointer]
+    store %r420, %r419 : u16
+    jmp @if_join4()
+  block @if_join4:
+    %r421 = const 2 : u8 [general]
+    %r422 = cmp.eq %r411, %r421 : bool [flag]
+    br_if %r422, @if_then5(), @if_join6()
+  block @if_then5:
+    %r423 = addr_of @score : ptr [pointer]
+    %r424 = load %r423 : u16 [pointer]
+    %r425 = const 300 : u16 [pointer]
+    %r426 = add %r424, %r425 : u16 [pointer]
+    %r427 = addr_of @score : ptr [pointer]
+    store %r427, %r426 : u16
+    jmp @if_join6()
+  block @if_join6:
+    %r428 = const 3 : u8 [general]
+    %r429 = cmp.eq %r411, %r428 : bool [flag]
+    br_if %r429, @if_then7(), @if_join8()
+  block @if_then7:
+    %r430 = addr_of @score : ptr [pointer]
+    %r431 = load %r430 : u16 [pointer]
+    %r432 = const 500 : u16 [pointer]
+    %r433 = add %r431, %r432 : u16 [pointer]
+    %r434 = addr_of @score : ptr [pointer]
+    store %r434, %r433 : u16
+    jmp @if_join8()
+  block @if_join8:
+    %r435 = const 4 : u8 [general]
+    %r436 = cmp.eq %r411, %r435 : bool [flag]
+    br_if %r436, @if_then9(), @if_join10()
+  block @if_then9:
+    %r437 = addr_of @score : ptr [pointer]
+    %r438 = load %r437 : u16 [pointer]
+    %r439 = const 800 : u16 [pointer]
+    %r440 = add %r438, %r439 : u16 [pointer]
+    %r441 = addr_of @score : ptr [pointer]
+    store %r441, %r440 : u16
+    jmp @if_join10()
+  block @if_join10:
+    %r442 = addr_of @lines_cleared : ptr [pointer]
+    %r443 = load %r442 : u16 [pointer]
+    %r444 = ext %r411 : u8 -> u16 [pointer]
+    %r445 = add %r443, %r444 : u16 [pointer]
+    %r446 = addr_of @lines_cleared : ptr [pointer]
+    store %r446, %r445 : u16
+    %r447 = addr_of @drop_speed : ptr [pointer]
+    %r448 = load %r447 : u8 [general]
+    %r449 = const 2 : u8 [general]
+    %r450 = cmp.ugt %r448, %r449 : bool [flag]
+    br_if %r450, @if_then11(), @if_join12()
+  block @if_then11:
+    %r451 = addr_of @lines_cleared : ptr [pointer]
+    %r452 = load %r451 : u16 [pointer]
+    %r453 = trunc %r452 : u16 -> u8 [general]
+    %r454 = const 7 : u8 [general]
+    %r455 = and %r453, %r454 : u8 [acc]
+    %r456 = const 0 : u8 [general]
+    %r457 = cmp.eq %r455, %r456 : bool [flag]
+    br_if %r457, @if_then13(), @if_join14()
+  block @if_then13:
+    %r458 = addr_of @drop_speed : ptr [pointer]
+    %r459 = load %r458 : u8 [general]
+    %r460 = const 1 : u8 [general]
+    %r461 = sub %r459, %r460 : u8 [acc]
+    %r462 = addr_of @drop_speed : ptr [pointer]
+    store %r462, %r461 : u8
+    jmp @if_join14()
+  block @if_join14:
+    jmp @if_join12()
+  block @if_join12:
+    ret void
+
+fun @do_lock_and_clear()
+  block @entry:
+    call @lock_piece()
+    %r463 = call @clear_lines() : u8 [acc]
+    %r464 = move %r463 : u8 [acc]
+    call @score_lines(%r464)
+    call @spawn_piece()
+    ret void
+
+fun @draw_cell(%r465: u8 [acc], %r466: u8 [general], %r467: u8 [counter])
+  block @entry:
+    %r468 = move %r465 : u8 [acc]
+    call @tui_goto(%r468, %r466)
+    %r469 = const 0 : u8 [general]
+    %r470 = cmp.eq %r467, %r469 : bool [flag]
+    br_if %r470, @if_then1(), @if_else3()
+  block @if_then1:
+    %r471 = addr_of @FG_BLACK : ptr [pointer]
+    %r472 = load %r471 : u8 [general]
+    %r473 = move %r472 : u8 [acc]
+    %r474 = addr_of @BG_BLACK : ptr [pointer]
+    %r475 = load %r474 : u8 [general]
+    %r476 = const 0 : u8 [general]
+    %r477 = move %r476 : u8 [counter]
+    call @tui_color(%r473, %r475, %r477)
+    %r478 = const 32 : u8 [general]
+    %r479 = move %r478 : u8 [acc]
+    call @tui_putch(%r479)
+    %r480 = const 32 : u8 [general]
+    %r481 = move %r480 : u8 [acc]
+    call @tui_putch(%r481)
+    jmp @if_join2()
+  block @if_else3:
+    %r482 = addr_of @PIECE_FG : ptr [pointer]
+    %r483 = const 1 : u8 [general]
+    %r484 = sub %r467, %r483 : u8 [acc]
+    %r485 = ext %r484 : u8 -> u16 [index]
+    %r486 = ptr_add %r482, %r485 : ptr [pointer]
+    %r487 = load %r486 : u8 [general]
+    %r488 = addr_of @PIECE_BR : ptr [pointer]
+    %r489 = const 1 : u8 [general]
+    %r490 = sub %r467, %r489 : u8 [acc]
+    %r491 = ext %r490 : u8 -> u16 [index]
+    %r492 = ptr_add %r488, %r491 : ptr [pointer]
+    %r493 = load %r492 : u8 [general]
+    %r494 = addr_of @FG_BLACK : ptr [pointer]
+    %r495 = load %r494 : u8 [general]
+    %r496 = move %r495 : u8 [acc]
+    %r497 = move %r493 : u8 [counter]
+    call @tui_color(%r496, %r487, %r497)
+    %r498 = const 32 : u8 [general]
+    %r499 = move %r498 : u8 [acc]
+    call @tui_putch(%r499)
+    %r500 = const 32 : u8 [general]
+    %r501 = move %r500 : u8 [acc]
+    call @tui_putch(%r501)
+    jmp @if_join2()
+  block @if_join2:
+    ret void
+
+fun @draw_border()
+  block @entry:
+    %r502 = addr_of @FG_WHITE : ptr [pointer]
+    %r503 = load %r502 : u8 [general]
+    %r504 = move %r503 : u8 [acc]
+    %r505 = addr_of @BG_BLACK : ptr [pointer]
+    %r506 = load %r505 : u8 [general]
+    %r507 = const 1 : u8 [general]
+    %r508 = move %r507 : u8 [counter]
+    call @tui_color(%r504, %r506, %r508)
+    %r509 = addr_of @DRAW_X : ptr [pointer]
+    %r510 = load %r509 : u8 [general]
+    %r511 = const 1 : u8 [general]
+    %r512 = sub %r510, %r511 : u8 [acc]
+    %r513 = move %r512 : u8 [acc]
+    %r514 = addr_of @DRAW_Y : ptr [pointer]
+    %r515 = load %r514 : u8 [general]
+    %r516 = const 1 : u8 [general]
+    %r517 = sub %r515, %r516 : u8 [acc]
+    call @tui_goto(%r513, %r517)
+    %r518 = addr_of @BOX_TL : ptr [pointer]
+    %r519 = load %r518 : u8 [general]
+    %r520 = move %r519 : u8 [acc]
+    call @tui_putch(%r520)
+    %r521 = const 0 : u8 [general]
+    %r522 = const 20 : u8 [general]
+    jmp @loop_head2(%r522, %r521)
+  block @loop_head2(%r523: u8 [general], %r524: u8 [general]):
+    %r525 = cmp.ult %r524, %r523 : bool [flag]
+    br_if %r525, @loop_body3(), @loop_exit4(%r523, %r524)
+  block @loop_body3:
+    %r526 = addr_of @BOX_H : ptr [pointer]
+    %r527 = load %r526 : u8 [general]
+    %r528 = move %r527 : u8 [acc]
+    call @tui_putch(%r528)
+    %r529 = const 1 : u8 [general]
+    %r530 = add %r524, %r529 : u8 [general]
+    jmp @loop_head2(%r523, %r530)
+  block @loop_exit4(%r531: u8 [general], %r532: u8 [general]):
+    %r533 = addr_of @BOX_TR : ptr [pointer]
+    %r534 = load %r533 : u8 [general]
+    %r535 = move %r534 : u8 [acc]
+    call @tui_putch(%r535)
+    %r536 = addr_of @DRAW_X : ptr [pointer]
+    %r537 = load %r536 : u8 [general]
+    %r538 = const 1 : u8 [general]
+    %r539 = sub %r537, %r538 : u8 [acc]
+    %r540 = move %r539 : u8 [acc]
+    %r541 = addr_of @DRAW_Y : ptr [pointer]
+    %r542 = load %r541 : u8 [general]
+    %r543 = const 20 : u8 [general]
+    %r544 = add %r542, %r543 : u8 [acc]
+    call @tui_goto(%r540, %r544)
+    %r545 = addr_of @BOX_BL : ptr [pointer]
+    %r546 = load %r545 : u8 [general]
+    %r547 = move %r546 : u8 [acc]
+    call @tui_putch(%r547)
+    %r548 = const 0 : u8 [general]
+    %r549 = const 20 : u8 [general]
+    jmp @loop_head6(%r549, %r548)
+  block @loop_head6(%r550: u8 [general], %r551: u8 [general]):
+    %r552 = cmp.ult %r551, %r550 : bool [flag]
+    br_if %r552, @loop_body7(), @loop_exit8(%r550, %r551)
+  block @loop_body7:
+    %r553 = addr_of @BOX_H : ptr [pointer]
+    %r554 = load %r553 : u8 [general]
+    %r555 = move %r554 : u8 [acc]
+    call @tui_putch(%r555)
+    %r556 = const 1 : u8 [general]
+    %r557 = add %r551, %r556 : u8 [general]
+    jmp @loop_head6(%r550, %r557)
+  block @loop_exit8(%r558: u8 [general], %r559: u8 [general]):
+    %r560 = addr_of @BOX_BR : ptr [pointer]
+    %r561 = load %r560 : u8 [general]
+    %r562 = move %r561 : u8 [acc]
+    call @tui_putch(%r562)
+    %r563 = const 0 : u8 [general]
+    %r564 = const 20 : u8 [general]
+    jmp @loop_head10(%r564, %r563)
+  block @loop_head10(%r565: u8 [general], %r566: u8 [general]):
+    %r567 = cmp.ult %r566, %r565 : bool [flag]
+    br_if %r567, @loop_body11(), @loop_exit12(%r565, %r566)
+  block @loop_body11:
+    %r568 = addr_of @DRAW_X : ptr [pointer]
+    %r569 = load %r568 : u8 [general]
+    %r570 = const 1 : u8 [general]
+    %r571 = sub %r569, %r570 : u8 [general]
+    %r572 = move %r571 : u8 [acc]
+    %r573 = addr_of @DRAW_Y : ptr [pointer]
+    %r574 = load %r573 : u8 [general]
+    %r575 = add %r574, %r566 : u8 [general]
+    call @tui_goto(%r572, %r575)
+    %r576 = addr_of @BOX_V : ptr [pointer]
+    %r577 = load %r576 : u8 [general]
+    %r578 = move %r577 : u8 [acc]
+    call @tui_putch(%r578)
+    %r579 = addr_of @DRAW_X : ptr [pointer]
+    %r580 = load %r579 : u8 [general]
+    %r581 = const 20 : u8 [general]
+    %r582 = add %r580, %r581 : u8 [general]
+    %r583 = move %r582 : u8 [acc]
+    %r584 = addr_of @DRAW_Y : ptr [pointer]
+    %r585 = load %r584 : u8 [general]
+    %r586 = add %r585, %r566 : u8 [general]
+    call @tui_goto(%r583, %r586)
+    %r587 = addr_of @BOX_V : ptr [pointer]
+    %r588 = load %r587 : u8 [general]
+    %r589 = move %r588 : u8 [acc]
+    call @tui_putch(%r589)
+    %r590 = const 1 : u8 [general]
+    %r591 = add %r566, %r590 : u8 [general]
+    jmp @loop_head10(%r565, %r591)
+  block @loop_exit12(%r592: u8 [general], %r593: u8 [general]):
+    ret void
+
+fun @draw_digit(%r594: u8 [acc])
+  block @entry:
+    %r595 = const 48 : u8 [general]
+    %r596 = add %r595, %r594 : u8 [acc]
+    %r597 = move %r596 : u8 [acc]
+    call @tui_putch(%r597)
+    ret void
+
+fun @draw_number(%r598: u16 [pointer])
+  block @entry:
+    %r599 = const 0 : u8 [general]
+    jmp @loop_head1(%r599, %r598)
+  block @loop_head1(%r600: u8 [general], %r601: u16 [pointer]):
+    %r602 = const 10000 : u16 [pointer]
+    %r603 = cmp.uge %r601, %r602 : bool [flag]
+    br_if %r603, @loop_body2(), @loop_exit3(%r600, %r601)
+  block @loop_body2:
+    %r604 = const 1 : u8 [general]
+    %r605 = add %r600, %r604 : u8 [general]
+    %r606 = const 10000 : u16 [pointer]
+    %r607 = sub %r601, %r606 : u16 [pointer]
+    jmp @loop_head1(%r605, %r607)
+  block @loop_exit3(%r608: u8 [general], %r609: u16 [pointer]):
+    %r610 = const 0 : u8 [general]
+    jmp @loop_head4(%r610, %r609)
+  block @loop_head4(%r611: u8 [general], %r612: u16 [pointer]):
+    %r613 = const 1000 : u16 [pointer]
+    %r614 = cmp.uge %r612, %r613 : bool [flag]
+    br_if %r614, @loop_body5(), @loop_exit6(%r611, %r612)
+  block @loop_body5:
+    %r615 = const 1 : u8 [general]
+    %r616 = add %r611, %r615 : u8 [general]
+    %r617 = const 1000 : u16 [pointer]
+    %r618 = sub %r612, %r617 : u16 [pointer]
+    jmp @loop_head4(%r616, %r618)
+  block @loop_exit6(%r619: u8 [general], %r620: u16 [pointer]):
+    %r621 = const 0 : u8 [general]
+    jmp @loop_head7(%r621, %r620)
+  block @loop_head7(%r622: u8 [general], %r623: u16 [pointer]):
+    %r624 = const 100 : u8 [general]
+    %r625 = cmp.uge %r623, %r624 : bool [flag]
+    br_if %r625, @loop_body8(), @loop_exit9(%r622, %r623)
+  block @loop_body8:
+    %r626 = const 1 : u8 [general]
+    %r627 = add %r622, %r626 : u8 [general]
+    %r628 = const 100 : u16 [pointer]
+    %r629 = sub %r623, %r628 : u16 [pointer]
+    jmp @loop_head7(%r627, %r629)
+  block @loop_exit9(%r630: u8 [general], %r631: u16 [pointer]):
+    %r632 = const 0 : u8 [general]
+    jmp @loop_head10(%r632, %r631)
+  block @loop_head10(%r633: u8 [general], %r634: u16 [pointer]):
+    %r635 = const 10 : u8 [general]
+    %r636 = cmp.uge %r634, %r635 : bool [flag]
+    br_if %r636, @loop_body11(), @loop_exit12(%r633, %r634)
+  block @loop_body11:
+    %r637 = const 1 : u8 [general]
+    %r638 = add %r633, %r637 : u8 [general]
+    %r639 = const 10 : u16 [pointer]
+    %r640 = sub %r634, %r639 : u16 [pointer]
+    jmp @loop_head10(%r638, %r640)
+  block @loop_exit12(%r641: u8 [general], %r642: u16 [pointer]):
+    %r643 = trunc %r642 : u16 -> u8 [general]
+    %r644 = move %r608 : u8 [acc]
+    call @draw_digit(%r644)
+    %r645 = move %r619 : u8 [acc]
+    call @draw_digit(%r645)
+    %r646 = move %r630 : u8 [acc]
+    call @draw_digit(%r646)
+    %r647 = move %r641 : u8 [acc]
+    call @draw_digit(%r647)
+    %r648 = move %r643 : u8 [acc]
+    call @draw_digit(%r648)
+    ret void
+
+fun @draw_info()
+  block @entry:
+    %r649 = addr_of @FG_WHITE : ptr [pointer]
+    %r650 = load %r649 : u8 [general]
+    %r651 = move %r650 : u8 [acc]
+    %r652 = addr_of @BG_BLACK : ptr [pointer]
+    %r653 = load %r652 : u8 [general]
+    %r654 = const 0 : u8 [general]
+    %r655 = move %r654 : u8 [counter]
+    call @tui_color(%r651, %r653, %r655)
+    %r656 = addr_of @DRAW_X : ptr [pointer]
+    %r657 = load %r656 : u8 [general]
+    %r658 = const 22 : u8 [general]
+    %r659 = add %r657, %r658 : u8 [acc]
+    %r660 = move %r659 : u8 [acc]
+    %r661 = addr_of @DRAW_Y : ptr [pointer]
+    %r662 = load %r661 : u8 [general]
+    call @tui_goto(%r660, %r662)
+    %r663 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r664 = move %r663 : ptr [pointer]
+    call @tui_puts(%r664)
+    %r665 = addr_of @DRAW_X : ptr [pointer]
+    %r666 = load %r665 : u8 [general]
+    %r667 = const 22 : u8 [general]
+    %r668 = add %r666, %r667 : u8 [acc]
+    %r669 = move %r668 : u8 [acc]
+    %r670 = addr_of @DRAW_Y : ptr [pointer]
+    %r671 = load %r670 : u8 [general]
+    %r672 = const 1 : u8 [general]
+    %r673 = add %r671, %r672 : u8 [acc]
+    call @tui_goto(%r669, %r673)
+    %r674 = addr_of @score : ptr [pointer]
+    %r675 = load %r674 : u16 [pointer]
+    call @draw_number(%r675)
+    %r676 = addr_of @DRAW_X : ptr [pointer]
+    %r677 = load %r676 : u8 [general]
+    %r678 = const 22 : u8 [general]
+    %r679 = add %r677, %r678 : u8 [acc]
+    %r680 = move %r679 : u8 [acc]
+    %r681 = addr_of @DRAW_Y : ptr [pointer]
+    %r682 = load %r681 : u8 [general]
+    %r683 = const 3 : u8 [general]
+    %r684 = add %r682, %r683 : u8 [acc]
+    call @tui_goto(%r680, %r684)
+    %r685 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r686 = move %r685 : ptr [pointer]
+    call @tui_puts(%r686)
+    %r687 = addr_of @DRAW_X : ptr [pointer]
+    %r688 = load %r687 : u8 [general]
+    %r689 = const 22 : u8 [general]
+    %r690 = add %r688, %r689 : u8 [acc]
+    %r691 = move %r690 : u8 [acc]
+    %r692 = addr_of @DRAW_Y : ptr [pointer]
+    %r693 = load %r692 : u8 [general]
+    %r694 = const 4 : u8 [general]
+    %r695 = add %r693, %r694 : u8 [acc]
+    call @tui_goto(%r691, %r695)
+    %r696 = addr_of @lines_cleared : ptr [pointer]
+    %r697 = load %r696 : u16 [pointer]
+    call @draw_number(%r697)
+    %r698 = addr_of @DRAW_X : ptr [pointer]
+    %r699 = load %r698 : u8 [general]
+    %r700 = const 22 : u8 [general]
+    %r701 = add %r699, %r700 : u8 [acc]
+    %r702 = move %r701 : u8 [acc]
+    %r703 = addr_of @DRAW_Y : ptr [pointer]
+    %r704 = load %r703 : u8 [general]
+    %r705 = const 6 : u8 [general]
+    %r706 = add %r704, %r705 : u8 [acc]
+    call @tui_goto(%r702, %r706)
+    %r707 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r708 = move %r707 : ptr [pointer]
+    call @tui_puts(%r708)
+    %r709 = const 0 : u8 [general]
+    %r710 = const 2 : u8 [general]
+    jmp @loop_head2(%r710, %r709)
+  block @loop_head2(%r711: u8 [general], %r712: u8 [general]):
+    %r713 = cmp.ult %r712, %r711 : bool [flag]
+    br_if %r713, @loop_body3(), @loop_exit4(%r711, %r712)
+  block @loop_body3:
+    %r714 = const 0 : u8 [general]
+    %r715 = const 4 : u8 [general]
+    jmp @loop_head6(%r715, %r714, %r712)
+  block @loop_head6(%r716: u8 [general], %r717: u8 [general], %r718: u8 [general]):
+    %r719 = cmp.ult %r717, %r716 : bool [flag]
+    br_if %r719, @loop_body7(), @loop_exit8(%r716, %r717, %r718)
+  block @loop_body7:
+    %r720 = addr_of @DRAW_X : ptr [pointer]
+    %r721 = load %r720 : u8 [general]
+    %r722 = const 22 : u8 [general]
+    %r723 = add %r721, %r722 : u8 [general]
+    %r724 = const 2 : u8 [general]
+    %r725 = mul %r717, %r724 : u8 [general]
+    %r726 = add %r723, %r725 : u8 [general]
+    %r727 = move %r726 : u8 [acc]
+    %r728 = addr_of @DRAW_Y : ptr [pointer]
+    %r729 = load %r728 : u8 [general]
+    %r730 = const 7 : u8 [general]
+    %r731 = add %r729, %r730 : u8 [general]
+    %r732 = add %r731, %r718 : u8 [general]
+    call @tui_goto(%r727, %r732)
+    %r733 = addr_of @FG_BLACK : ptr [pointer]
+    %r734 = load %r733 : u8 [general]
+    %r735 = move %r734 : u8 [acc]
+    %r736 = addr_of @BG_BLACK : ptr [pointer]
+    %r737 = load %r736 : u8 [general]
+    %r738 = const 0 : u8 [general]
+    %r739 = move %r738 : u8 [counter]
+    call @tui_color(%r735, %r737, %r739)
+    %r740 = const 32 : u8 [general]
+    %r741 = move %r740 : u8 [acc]
+    call @tui_putch(%r741)
+    %r742 = const 32 : u8 [general]
+    %r743 = move %r742 : u8 [acc]
+    call @tui_putch(%r743)
+    %r744 = const 1 : u8 [general]
+    %r745 = add %r717, %r744 : u8 [general]
+    jmp @loop_head6(%r716, %r745, %r718)
+  block @loop_exit8(%r746: u8 [general], %r747: u8 [general], %r748: u8 [general]):
+    %r749 = const 1 : u8 [general]
+    %r750 = add %r748, %r749 : u8 [general]
+    jmp @loop_head2(%r711, %r750)
+  block @loop_exit4(%r751: u8 [general], %r752: u8 [general]):
+    %r753 = addr_of @next_type : ptr [pointer]
+    %r754 = load %r753 : u8 [general]
+    %r755 = const 7 : u8 [general]
+    %r756 = cmp.ult %r754, %r755 : bool [flag]
+    br_if %r756, @if_then9(), @if_join10()
+  block @if_then9:
+    %r757 = addr_of @PIECE_FG : ptr [pointer]
+    %r758 = addr_of @next_type : ptr [pointer]
+    %r759 = load %r758 : u8 [general]
+    %r760 = ext %r759 : u8 -> u16 [index]
+    %r761 = ptr_add %r757, %r760 : ptr [pointer]
+    %r762 = load %r761 : u8 [general]
+    %r763 = addr_of @PIECE_BR : ptr [pointer]
+    %r764 = addr_of @next_type : ptr [pointer]
+    %r765 = load %r764 : u8 [general]
+    %r766 = ext %r765 : u8 -> u16 [index]
+    %r767 = ptr_add %r763, %r766 : ptr [pointer]
+    %r768 = load %r767 : u8 [general]
+    %r769 = const 0 : u8 [general]
+    %r770 = const 4 : u8 [general]
+    jmp @loop_head12(%r770, %r768, %r769, %r762)
+  block @loop_head12(%r771: u8 [general], %r772: u8 [general], %r773: u8 [general], %r774: u8 [general]):
+    %r775 = cmp.ult %r773, %r771 : bool [flag]
+    br_if %r775, @loop_body13(), @loop_exit14(%r771, %r772, %r773, %r774)
+  block @loop_body13:
+    %r776 = addr_of @next_type : ptr [pointer]
+    %r777 = load %r776 : u8 [general]
+    %r778 = move %r777 : u8 [acc]
+    %r779 = const 0 : u8 [general]
+    %r780 = move %r773 : u8 [counter]
+    %r781 = call @piece_dx(%r778, %r779, %r780) : u8 [acc]
+    %r782 = addr_of @next_type : ptr [pointer]
+    %r783 = load %r782 : u8 [general]
+    %r784 = move %r783 : u8 [acc]
+    %r785 = const 0 : u8 [general]
+    %r786 = move %r773 : u8 [counter]
+    %r787 = call @piece_dy(%r784, %r785, %r786) : u8 [acc]
+    %r788 = addr_of @DRAW_X : ptr [pointer]
+    %r789 = load %r788 : u8 [general]
+    %r790 = const 22 : u8 [general]
+    %r791 = add %r789, %r790 : u8 [general]
+    %r792 = const 2 : u8 [general]
+    %r793 = mul %r781, %r792 : u8 [general]
+    %r794 = add %r791, %r793 : u8 [general]
+    %r795 = move %r794 : u8 [acc]
+    %r796 = addr_of @DRAW_Y : ptr [pointer]
+    %r797 = load %r796 : u8 [general]
+    %r798 = const 7 : u8 [general]
+    %r799 = add %r797, %r798 : u8 [general]
+    %r800 = add %r799, %r787 : u8 [general]
+    call @tui_goto(%r795, %r800)
+    %r801 = addr_of @FG_BLACK : ptr [pointer]
+    %r802 = load %r801 : u8 [general]
+    %r803 = move %r802 : u8 [acc]
+    %r804 = move %r772 : u8 [counter]
+    call @tui_color(%r803, %r774, %r804)
+    %r805 = const 32 : u8 [general]
+    %r806 = move %r805 : u8 [acc]
+    call @tui_putch(%r806)
+    %r807 = const 32 : u8 [general]
+    %r808 = move %r807 : u8 [acc]
+    call @tui_putch(%r808)
+    %r809 = const 1 : u8 [general]
+    %r810 = add %r773, %r809 : u8 [general]
+    jmp @loop_head12(%r771, %r772, %r810, %r774)
+  block @loop_exit14(%r811: u8 [general], %r812: u8 [general], %r813: u8 [general], %r814: u8 [general]):
+    jmp @if_join10()
+  block @if_join10:
+    %r815 = addr_of @FG_WHITE : ptr [pointer]
+    %r816 = load %r815 : u8 [general]
+    %r817 = move %r816 : u8 [acc]
+    %r818 = addr_of @BG_BLACK : ptr [pointer]
+    %r819 = load %r818 : u8 [general]
+    %r820 = const 0 : u8 [general]
+    %r821 = move %r820 : u8 [counter]
+    call @tui_color(%r817, %r819, %r821)
+    %r822 = addr_of @DRAW_X : ptr [pointer]
+    %r823 = load %r822 : u8 [general]
+    %r824 = const 22 : u8 [general]
+    %r825 = add %r823, %r824 : u8 [acc]
+    %r826 = move %r825 : u8 [acc]
+    %r827 = addr_of @DRAW_Y : ptr [pointer]
+    %r828 = load %r827 : u8 [general]
+    %r829 = const 12 : u8 [general]
+    %r830 = add %r828, %r829 : u8 [acc]
+    call @tui_goto(%r826, %r830)
+    %r831 = addr_of @@mir2.str.3 : ptr [pointer]
+    %r832 = move %r831 : ptr [pointer]
+    call @tui_puts(%r832)
+    %r833 = addr_of @hold_type : ptr [pointer]
+    %r834 = load %r833 : u8 [general]
+    %r835 = const 7 : u8 [general]
+    %r836 = cmp.ult %r834, %r835 : bool [flag]
+    br_if %r836, @if_then15(), @if_join16()
+  block @if_then15:
+    %r837 = addr_of @PIECE_FG : ptr [pointer]
+    %r838 = addr_of @hold_type : ptr [pointer]
+    %r839 = load %r838 : u8 [general]
+    %r840 = ext %r839 : u8 -> u16 [index]
+    %r841 = ptr_add %r837, %r840 : ptr [pointer]
+    %r842 = load %r841 : u8 [general]
+    %r843 = addr_of @PIECE_BR : ptr [pointer]
+    %r844 = addr_of @hold_type : ptr [pointer]
+    %r845 = load %r844 : u8 [general]
+    %r846 = ext %r845 : u8 -> u16 [index]
+    %r847 = ptr_add %r843, %r846 : ptr [pointer]
+    %r848 = load %r847 : u8 [general]
+    %r849 = const 0 : u8 [general]
+    %r850 = const 4 : u8 [general]
+    jmp @loop_head18(%r850, %r849, %r848, %r842)
+  block @loop_head18(%r851: u8 [general], %r852: u8 [general], %r853: u8 [general], %r854: u8 [general]):
+    %r855 = cmp.ult %r852, %r851 : bool [flag]
+    br_if %r855, @loop_body19(), @loop_exit20(%r851, %r852, %r853, %r854)
+  block @loop_body19:
+    %r856 = addr_of @hold_type : ptr [pointer]
+    %r857 = load %r856 : u8 [general]
+    %r858 = move %r857 : u8 [acc]
+    %r859 = const 0 : u8 [general]
+    %r860 = move %r852 : u8 [counter]
+    %r861 = call @piece_dx(%r858, %r859, %r860) : u8 [acc]
+    %r862 = addr_of @hold_type : ptr [pointer]
+    %r863 = load %r862 : u8 [general]
+    %r864 = move %r863 : u8 [acc]
+    %r865 = const 0 : u8 [general]
+    %r866 = move %r852 : u8 [counter]
+    %r867 = call @piece_dy(%r864, %r865, %r866) : u8 [acc]
+    %r868 = addr_of @DRAW_X : ptr [pointer]
+    %r869 = load %r868 : u8 [general]
+    %r870 = const 22 : u8 [general]
+    %r871 = add %r869, %r870 : u8 [general]
+    %r872 = const 2 : u8 [general]
+    %r873 = mul %r861, %r872 : u8 [general]
+    %r874 = add %r871, %r873 : u8 [general]
+    %r875 = move %r874 : u8 [acc]
+    %r876 = addr_of @DRAW_Y : ptr [pointer]
+    %r877 = load %r876 : u8 [general]
+    %r878 = const 13 : u8 [general]
+    %r879 = add %r877, %r878 : u8 [general]
+    %r880 = add %r879, %r867 : u8 [general]
+    call @tui_goto(%r875, %r880)
+    %r881 = addr_of @FG_BLACK : ptr [pointer]
+    %r882 = load %r881 : u8 [general]
+    %r883 = move %r882 : u8 [acc]
+    %r884 = move %r853 : u8 [counter]
+    call @tui_color(%r883, %r854, %r884)
+    %r885 = const 32 : u8 [general]
+    %r886 = move %r885 : u8 [acc]
+    call @tui_putch(%r886)
+    %r887 = const 32 : u8 [general]
+    %r888 = move %r887 : u8 [acc]
+    call @tui_putch(%r888)
+    %r889 = const 1 : u8 [general]
+    %r890 = add %r852, %r889 : u8 [general]
+    jmp @loop_head18(%r851, %r890, %r853, %r854)
+  block @loop_exit20(%r891: u8 [general], %r892: u8 [general], %r893: u8 [general], %r894: u8 [general]):
+    jmp @if_join16()
+  block @if_join16:
+    %r895 = addr_of @FG_WHITE : ptr [pointer]
+    %r896 = load %r895 : u8 [general]
+    %r897 = move %r896 : u8 [acc]
+    %r898 = addr_of @BG_BLACK : ptr [pointer]
+    %r899 = load %r898 : u8 [general]
+    %r900 = const 0 : u8 [general]
+    %r901 = move %r900 : u8 [counter]
+    call @tui_color(%r897, %r899, %r901)
+    %r902 = const 1 : u8 [general]
+    %r903 = move %r902 : u8 [acc]
+    %r904 = const 23 : u8 [general]
+    call @tui_goto(%r903, %r904)
+    %r905 = addr_of @@mir2.str.4 : ptr [pointer]
+    %r906 = move %r905 : ptr [pointer]
+    call @tui_puts(%r906)
+    ret void
+
+fun @render()
+  block @entry:
+    %r907 = const 0 : u8 [general]
+    %r908 = const 20 : u8 [general]
+    jmp @loop_head2(%r908, %r907)
+  block @loop_head2(%r909: u8 [general], %r910: u8 [general]):
+    %r911 = cmp.ult %r910, %r909 : bool [flag]
+    br_if %r911, @loop_body3(), @loop_exit4(%r909, %r910)
+  block @loop_body3:
+    %r912 = const 0 : u8 [general]
+    %r913 = const 10 : u8 [general]
+    jmp @loop_head6(%r913, %r912, %r910)
+  block @loop_head6(%r914: u8 [general], %r915: u8 [general], %r916: u8 [general]):
+    %r917 = cmp.ult %r915, %r914 : bool [flag]
+    br_if %r917, @loop_body7(), @loop_exit8(%r914, %r915, %r916)
+  block @loop_body7:
+    %r918 = move %r915 : u8 [acc]
+    %r919 = call @board_get(%r918, %r916) : u8 [acc]
+    %r920 = addr_of @DRAW_X : ptr [pointer]
+    %r921 = load %r920 : u8 [general]
+    %r922 = const 2 : u8 [general]
+    %r923 = mul %r915, %r922 : u8 [general]
+    %r924 = add %r921, %r923 : u8 [general]
+    %r925 = move %r924 : u8 [acc]
+    %r926 = addr_of @DRAW_Y : ptr [pointer]
+    %r927 = load %r926 : u8 [general]
+    %r928 = add %r927, %r916 : u8 [general]
+    %r929 = move %r919 : u8 [counter]
+    call @draw_cell(%r925, %r928, %r929)
+    %r930 = const 1 : u8 [general]
+    %r931 = add %r915, %r930 : u8 [general]
+    jmp @loop_head6(%r914, %r931, %r916)
+  block @loop_exit8(%r932: u8 [general], %r933: u8 [general], %r934: u8 [general]):
+    %r935 = const 1 : u8 [general]
+    %r936 = add %r934, %r935 : u8 [general]
+    jmp @loop_head2(%r909, %r936)
+  block @loop_exit4(%r937: u8 [general], %r938: u8 [general]):
+    %r939 = call @ghost_y() : u8 [acc]
+    %r940 = addr_of @cur_y : ptr [pointer]
+    %r941 = load %r940 : u8 [general]
+    %r942 = cmp.ne %r939, %r941 : bool [flag]
+    br_if %r942, @if_then9(), @if_join10()
+  block @if_then9:
+    %r943 = const 0 : u8 [general]
+    %r944 = const 4 : u8 [general]
+    jmp @loop_head12(%r944, %r943, %r939)
+  block @loop_head12(%r945: u8 [general], %r946: u8 [general], %r947: u8 [general]):
+    %r948 = cmp.ult %r946, %r945 : bool [flag]
+    br_if %r948, @loop_body13(), @loop_exit14(%r945, %r946, %r947)
+  block @loop_body13:
+    %r949 = addr_of @cur_x : ptr [pointer]
+    %r950 = load %r949 : u8 [general]
+    %r951 = addr_of @cur_type : ptr [pointer]
+    %r952 = load %r951 : u8 [general]
+    %r953 = move %r952 : u8 [acc]
+    %r954 = addr_of @cur_rot : ptr [pointer]
+    %r955 = load %r954 : u8 [general]
+    %r956 = move %r946 : u8 [counter]
+    %r957 = call @piece_dx(%r953, %r955, %r956) : u8 [acc]
+    %r958 = add %r950, %r957 : u8 [general]
+    %r959 = addr_of @cur_type : ptr [pointer]
+    %r960 = load %r959 : u8 [general]
+    %r961 = move %r960 : u8 [acc]
+    %r962 = addr_of @cur_rot : ptr [pointer]
+    %r963 = load %r962 : u8 [general]
+    %r964 = move %r946 : u8 [counter]
+    %r965 = call @piece_dy(%r961, %r963, %r964) : u8 [acc]
+    %r966 = add %r947, %r965 : u8 [general]
+    %r967 = addr_of @BOARD_W : ptr [pointer]
+    %r968 = load %r967 : u8 [general]
+    %r969 = cmp.ult %r958, %r968 : bool [flag]
+    %r970 = addr_of @BOARD_H : ptr [pointer]
+    %r971 = load %r970 : u8 [general]
+    %r972 = cmp.ult %r966, %r971 : bool [flag]
+    %r973 = and %r969, %r972 : bool [general]
+    %r974 = const 0 : bool [general]
+    %r975 = cmp.ne %r973, %r974 : bool [flag]
+    br_if %r975, @if_then15(), @if_join16()
+  block @if_then15:
+    %r976 = move %r958 : u8 [acc]
+    %r977 = call @board_get(%r976, %r966) : u8 [acc]
+    %r978 = const 0 : u8 [general]
+    %r979 = cmp.eq %r977, %r978 : bool [flag]
+    br_if %r979, @if_then17(), @if_join18()
+  block @if_then17:
+    %r980 = addr_of @DRAW_X : ptr [pointer]
+    %r981 = load %r980 : u8 [general]
+    %r982 = const 2 : u8 [general]
+    %r983 = mul %r958, %r982 : u8 [general]
+    %r984 = add %r981, %r983 : u8 [general]
+    %r985 = move %r984 : u8 [acc]
+    %r986 = addr_of @DRAW_Y : ptr [pointer]
+    %r987 = load %r986 : u8 [general]
+    %r988 = add %r987, %r966 : u8 [general]
+    call @tui_goto(%r985, %r988)
+    %r989 = addr_of @FG_WHITE : ptr [pointer]
+    %r990 = load %r989 : u8 [general]
+    %r991 = move %r990 : u8 [acc]
+    %r992 = addr_of @BG_BLACK : ptr [pointer]
+    %r993 = load %r992 : u8 [general]
+    %r994 = const 0 : u8 [general]
+    %r995 = move %r994 : u8 [counter]
+    call @tui_color(%r991, %r993, %r995)
+    %r996 = const 46 : u8 [general]
+    %r997 = move %r996 : u8 [acc]
+    call @tui_putch(%r997)
+    %r998 = const 46 : u8 [general]
+    %r999 = move %r998 : u8 [acc]
+    call @tui_putch(%r999)
+    jmp @if_join18()
+  block @if_join18:
+    jmp @if_join16()
+  block @if_join16:
+    %r1000 = const 1 : u8 [general]
+    %r1001 = add %r946, %r1000 : u8 [general]
+    jmp @loop_head12(%r945, %r1001, %r947)
+  block @loop_exit14(%r1002: u8 [general], %r1003: u8 [general], %r1004: u8 [general]):
+    jmp @if_join10()
+  block @if_join10:
+    %r1005 = const 0 : u8 [general]
+    %r1006 = const 4 : u8 [general]
+    jmp @loop_head20(%r1006, %r1005)
+  block @loop_head20(%r1007: u8 [general], %r1008: u8 [general]):
+    %r1009 = cmp.ult %r1008, %r1007 : bool [flag]
+    br_if %r1009, @loop_body21(), @loop_exit22(%r1007, %r1008)
+  block @loop_body21:
+    %r1010 = addr_of @cur_x : ptr [pointer]
+    %r1011 = load %r1010 : u8 [general]
+    %r1012 = addr_of @cur_type : ptr [pointer]
+    %r1013 = load %r1012 : u8 [general]
+    %r1014 = move %r1013 : u8 [acc]
+    %r1015 = addr_of @cur_rot : ptr [pointer]
+    %r1016 = load %r1015 : u8 [general]
+    %r1017 = move %r1008 : u8 [counter]
+    %r1018 = call @piece_dx(%r1014, %r1016, %r1017) : u8 [acc]
+    %r1019 = add %r1011, %r1018 : u8 [general]
+    %r1020 = addr_of @cur_y : ptr [pointer]
+    %r1021 = load %r1020 : u8 [general]
+    %r1022 = addr_of @cur_type : ptr [pointer]
+    %r1023 = load %r1022 : u8 [general]
+    %r1024 = move %r1023 : u8 [acc]
+    %r1025 = addr_of @cur_rot : ptr [pointer]
+    %r1026 = load %r1025 : u8 [general]
+    %r1027 = move %r1008 : u8 [counter]
+    %r1028 = call @piece_dy(%r1024, %r1026, %r1027) : u8 [acc]
+    %r1029 = add %r1021, %r1028 : u8 [general]
+    %r1030 = addr_of @BOARD_W : ptr [pointer]
+    %r1031 = load %r1030 : u8 [general]
+    %r1032 = cmp.ult %r1019, %r1031 : bool [flag]
+    %r1033 = addr_of @BOARD_H : ptr [pointer]
+    %r1034 = load %r1033 : u8 [general]
+    %r1035 = cmp.ult %r1029, %r1034 : bool [flag]
+    %r1036 = and %r1032, %r1035 : bool [general]
+    %r1037 = const 0 : bool [general]
+    %r1038 = cmp.ne %r1036, %r1037 : bool [flag]
+    br_if %r1038, @if_then23(), @if_join24()
+  block @if_then23:
+    %r1039 = addr_of @DRAW_X : ptr [pointer]
+    %r1040 = load %r1039 : u8 [general]
+    %r1041 = const 2 : u8 [general]
+    %r1042 = mul %r1019, %r1041 : u8 [general]
+    %r1043 = add %r1040, %r1042 : u8 [general]
+    %r1044 = move %r1043 : u8 [acc]
+    %r1045 = addr_of @DRAW_Y : ptr [pointer]
+    %r1046 = load %r1045 : u8 [general]
+    %r1047 = add %r1046, %r1029 : u8 [general]
+    %r1048 = addr_of @cur_type : ptr [pointer]
+    %r1049 = load %r1048 : u8 [general]
+    %r1050 = const 1 : u8 [general]
+    %r1051 = add %r1049, %r1050 : u8 [general]
+    %r1052 = move %r1051 : u8 [counter]
+    call @draw_cell(%r1044, %r1047, %r1052)
+    jmp @if_join24()
+  block @if_join24:
+    %r1053 = const 1 : u8 [general]
+    %r1054 = add %r1008, %r1053 : u8 [general]
+    jmp @loop_head20(%r1007, %r1054)
+  block @loop_exit22(%r1055: u8 [general], %r1056: u8 [general]):
+    call @draw_info()
+    call @tui_reset()
+    ret void
+
+fun @main()
+  block @entry:
+    %r1057 = const 0 : u8 [general]
+    %r1058 = const 200 : u8 [general]
+    jmp @loop_head2(%r1058, %r1057)
+  block @loop_head2(%r1059: u8 [general], %r1060: u8 [general]):
+    %r1061 = cmp.ult %r1060, %r1059 : bool [flag]
+    br_if %r1061, @loop_body3(), @loop_exit4(%r1059, %r1060)
+  block @loop_body3:
+    %r1062 = const 0 : u8 [general]
+    %r1063 = addr_of @board : ptr [pointer]
+    %r1064 = ptr_add %r1063, %r1060 : ptr [pointer]
+    store %r1064, %r1062 : u8
+    %r1065 = const 1 : u8 [general]
+    %r1066 = add %r1060, %r1065 : u8 [general]
+    jmp @loop_head2(%r1059, %r1066)
+  block @loop_exit4(%r1067: u8 [general], %r1068: u8 [general]):
+    %r1069 = call @random_piece() : u8 [acc]
+    %r1070 = addr_of @next_type : ptr [pointer]
+    store %r1070, %r1069 : u8
+    call @spawn_piece()
+    call @tui_clear()
+    call @draw_border()
+    jmp @loop_head5()
+  block @loop_head5:
+    %r1071 = addr_of @game_over : ptr [pointer]
+    %r1072 = load %r1071 : u8 [general]
+    %r1073 = const 0 : u8 [general]
+    %r1074 = cmp.eq %r1072, %r1073 : bool [flag]
+    br_if %r1074, @loop_body6(), @loop_exit7()
+  block @loop_body6:
+    call @render()
+    %r1075 = call @tui_read_key() : u8 [acc]
+    %r1076 = addr_of @KEY_LEFT : ptr [pointer]
+    %r1077 = load %r1076 : u8 [general]
+    %r1078 = cmp.eq %r1075, %r1077 : bool [flag]
+    br_if %r1078, @if_then8(), @if_join9()
+  block @if_then8:
+    %r1079 = addr_of @cur_x : ptr [pointer]
+    %r1080 = load %r1079 : u8 [general]
+    %r1081 = const 0 : u8 [general]
+    %r1082 = cmp.ugt %r1080, %r1081 : bool [flag]
+    br_if %r1082, @if_then10(), @if_join11()
+  block @if_then10:
+    %r1083 = addr_of @cur_type : ptr [pointer]
+    %r1084 = load %r1083 : u8 [general]
+    %r1085 = move %r1084 : u8 [acc]
+    %r1086 = addr_of @cur_rot : ptr [pointer]
+    %r1087 = load %r1086 : u8 [general]
+    %r1088 = addr_of @cur_x : ptr [pointer]
+    %r1089 = load %r1088 : u8 [general]
+    %r1090 = const 1 : u8 [general]
+    %r1091 = sub %r1089, %r1090 : u8 [general]
+    %r1092 = move %r1091 : u8 [counter]
+    %r1093 = addr_of @cur_y : ptr [pointer]
+    %r1094 = load %r1093 : u8 [general]
+    %r1095 = call @can_place(%r1085, %r1087, %r1092, %r1094) : bool [acc]
+    %r1096 = const 0 : bool [general]
+    %r1097 = cmp.ne %r1095, %r1096 : bool [flag]
+    br_if %r1097, @if_then12(), @if_join13()
+  block @if_then12:
+    %r1098 = addr_of @cur_x : ptr [pointer]
+    %r1099 = load %r1098 : u8 [general]
+    %r1100 = const 1 : u8 [general]
+    %r1101 = sub %r1099, %r1100 : u8 [general]
+    %r1102 = addr_of @cur_x : ptr [pointer]
+    store %r1102, %r1101 : u8
+    jmp @if_join13()
+  block @if_join13:
+    jmp @if_join11()
+  block @if_join11:
+    jmp @if_join9()
+  block @if_join9:
+    %r1103 = addr_of @KEY_RIGHT : ptr [pointer]
+    %r1104 = load %r1103 : u8 [general]
+    %r1105 = cmp.eq %r1075, %r1104 : bool [flag]
+    br_if %r1105, @if_then14(), @if_join15()
+  block @if_then14:
+    %r1106 = addr_of @cur_type : ptr [pointer]
+    %r1107 = load %r1106 : u8 [general]
+    %r1108 = move %r1107 : u8 [acc]
+    %r1109 = addr_of @cur_rot : ptr [pointer]
+    %r1110 = load %r1109 : u8 [general]
+    %r1111 = addr_of @cur_x : ptr [pointer]
+    %r1112 = load %r1111 : u8 [general]
+    %r1113 = const 1 : u8 [general]
+    %r1114 = add %r1112, %r1113 : u8 [general]
+    %r1115 = move %r1114 : u8 [counter]
+    %r1116 = addr_of @cur_y : ptr [pointer]
+    %r1117 = load %r1116 : u8 [general]
+    %r1118 = call @can_place(%r1108, %r1110, %r1115, %r1117) : bool [acc]
+    %r1119 = const 0 : bool [general]
+    %r1120 = cmp.ne %r1118, %r1119 : bool [flag]
+    br_if %r1120, @if_then16(), @if_join17()
+  block @if_then16:
+    %r1121 = addr_of @cur_x : ptr [pointer]
+    %r1122 = load %r1121 : u8 [general]
+    %r1123 = const 1 : u8 [general]
+    %r1124 = add %r1122, %r1123 : u8 [general]
+    %r1125 = addr_of @cur_x : ptr [pointer]
+    store %r1125, %r1124 : u8
+    jmp @if_join17()
+  block @if_join17:
+    jmp @if_join15()
+  block @if_join15:
+    %r1126 = addr_of @KEY_UP : ptr [pointer]
+    %r1127 = load %r1126 : u8 [general]
+    %r1128 = cmp.eq %r1075, %r1127 : bool [flag]
+    br_if %r1128, @if_then18(), @if_join19()
+  block @if_then18:
+    %r1129 = call @try_rotate() : u8 [acc]
+    jmp @if_join19()
+  block @if_join19:
+    %r1130 = addr_of @KEY_Z : ptr [pointer]
+    %r1131 = load %r1130 : u8 [general]
+    %r1132 = cmp.eq %r1075, %r1131 : bool [flag]
+    br_if %r1132, @if_then20(), @if_join21()
+  block @if_then20:
+    %r1133 = call @try_rotate() : u8 [acc]
+    jmp @if_join21()
+  block @if_join21:
+    %r1134 = addr_of @KEY_DOWN : ptr [pointer]
+    %r1135 = load %r1134 : u8 [general]
+    %r1136 = cmp.eq %r1075, %r1135 : bool [flag]
+    br_if %r1136, @if_then22(), @if_join23()
+  block @if_then22:
+    %r1137 = addr_of @cur_type : ptr [pointer]
+    %r1138 = load %r1137 : u8 [general]
+    %r1139 = move %r1138 : u8 [acc]
+    %r1140 = addr_of @cur_rot : ptr [pointer]
+    %r1141 = load %r1140 : u8 [general]
+    %r1142 = addr_of @cur_x : ptr [pointer]
+    %r1143 = load %r1142 : u8 [general]
+    %r1144 = move %r1143 : u8 [counter]
+    %r1145 = addr_of @cur_y : ptr [pointer]
+    %r1146 = load %r1145 : u8 [general]
+    %r1147 = const 1 : u8 [general]
+    %r1148 = add %r1146, %r1147 : u8 [general]
+    %r1149 = call @can_place(%r1139, %r1141, %r1144, %r1148) : bool [acc]
+    %r1150 = const 0 : bool [general]
+    %r1151 = cmp.ne %r1149, %r1150 : bool [flag]
+    br_if %r1151, @if_then24(), @if_join25()
+  block @if_then24:
+    %r1152 = addr_of @cur_y : ptr [pointer]
+    %r1153 = load %r1152 : u8 [general]
+    %r1154 = const 1 : u8 [general]
+    %r1155 = add %r1153, %r1154 : u8 [general]
+    %r1156 = addr_of @cur_y : ptr [pointer]
+    store %r1156, %r1155 : u8
+    %r1157 = addr_of @score : ptr [pointer]
+    %r1158 = load %r1157 : u16 [pointer]
+    %r1159 = const 1 : u16 [pointer]
+    %r1160 = add %r1158, %r1159 : u16 [pointer]
+    %r1161 = addr_of @score : ptr [pointer]
+    store %r1161, %r1160 : u16
+    jmp @if_join25()
+  block @if_join25:
+    jmp @if_join23()
+  block @if_join23:
+    %r1162 = addr_of @KEY_X : ptr [pointer]
+    %r1163 = load %r1162 : u8 [general]
+    %r1164 = cmp.eq %r1075, %r1163 : bool [flag]
+    br_if %r1164, @if_then26(), @if_join27()
+  block @if_then26:
+    jmp @loop_head28()
+  block @loop_head28:
+    %r1165 = addr_of @cur_type : ptr [pointer]
+    %r1166 = load %r1165 : u8 [general]
+    %r1167 = move %r1166 : u8 [acc]
+    %r1168 = addr_of @cur_rot : ptr [pointer]
+    %r1169 = load %r1168 : u8 [general]
+    %r1170 = addr_of @cur_x : ptr [pointer]
+    %r1171 = load %r1170 : u8 [general]
+    %r1172 = move %r1171 : u8 [counter]
+    %r1173 = addr_of @cur_y : ptr [pointer]
+    %r1174 = load %r1173 : u8 [general]
+    %r1175 = const 1 : u8 [general]
+    %r1176 = add %r1174, %r1175 : u8 [general]
+    %r1177 = call @can_place(%r1167, %r1169, %r1172, %r1176) : bool [acc]
+    %r1178 = const 0 : bool [general]
+    %r1179 = cmp.ne %r1177, %r1178 : bool [flag]
+    br_if %r1179, @loop_body29(), @loop_exit30()
+  block @loop_body29:
+    %r1180 = addr_of @cur_y : ptr [pointer]
+    %r1181 = load %r1180 : u8 [general]
+    %r1182 = const 1 : u8 [general]
+    %r1183 = add %r1181, %r1182 : u8 [general]
+    %r1184 = addr_of @cur_y : ptr [pointer]
+    store %r1184, %r1183 : u8
+    %r1185 = addr_of @score : ptr [pointer]
+    %r1186 = load %r1185 : u16 [pointer]
+    %r1187 = const 2 : u16 [pointer]
+    %r1188 = add %r1186, %r1187 : u16 [pointer]
+    %r1189 = addr_of @score : ptr [pointer]
+    store %r1189, %r1188 : u16
+    jmp @loop_head28()
+  block @loop_exit30:
+    call @do_lock_and_clear()
+    jmp @if_join27()
+  block @if_join27:
+    %r1190 = addr_of @KEY_C : ptr [pointer]
+    %r1191 = load %r1190 : u8 [general]
+    %r1192 = cmp.eq %r1075, %r1191 : bool [flag]
+    br_if %r1192, @if_then31(), @if_join32()
+  block @if_then31:
+    call @hold_piece()
+    jmp @if_join32()
+  block @if_join32:
+    %r1193 = addr_of @KEY_Q : ptr [pointer]
+    %r1194 = load %r1193 : u8 [general]
+    %r1195 = cmp.eq %r1075, %r1194 : bool [flag]
+    br_if %r1195, @if_then33(), @if_join34()
+  block @if_then33:
+    %r1196 = const 1 : u8 [general]
+    %r1197 = addr_of @game_over : ptr [pointer]
+    store %r1197, %r1196 : u8
+    jmp @if_join34()
+  block @if_join34:
+    %r1198 = addr_of @KEY_ESC : ptr [pointer]
+    %r1199 = load %r1198 : u8 [general]
+    %r1200 = cmp.eq %r1075, %r1199 : bool [flag]
+    br_if %r1200, @if_then35(), @if_join36()
+  block @if_then35:
+    %r1201 = const 1 : u8 [general]
+    %r1202 = addr_of @game_over : ptr [pointer]
+    store %r1202, %r1201 : u8
+    jmp @if_join36()
+  block @if_join36:
+    %r1203 = addr_of @drop_timer : ptr [pointer]
+    %r1204 = load %r1203 : u8 [general]
+    %r1205 = const 1 : u8 [general]
+    %r1206 = add %r1204, %r1205 : u8 [general]
+    %r1207 = addr_of @drop_timer : ptr [pointer]
+    store %r1207, %r1206 : u8
+    %r1208 = addr_of @drop_timer : ptr [pointer]
+    %r1209 = load %r1208 : u8 [general]
+    %r1210 = addr_of @drop_speed : ptr [pointer]
+    %r1211 = load %r1210 : u8 [general]
+    %r1212 = cmp.uge %r1209, %r1211 : bool [flag]
+    br_if %r1212, @if_then37(), @if_join38()
+  block @if_then37:
+    %r1213 = const 0 : u8 [general]
+    %r1214 = addr_of @drop_timer : ptr [pointer]
+    store %r1214, %r1213 : u8
+    %r1215 = addr_of @cur_type : ptr [pointer]
+    %r1216 = load %r1215 : u8 [general]
+    %r1217 = move %r1216 : u8 [acc]
+    %r1218 = addr_of @cur_rot : ptr [pointer]
+    %r1219 = load %r1218 : u8 [general]
+    %r1220 = addr_of @cur_x : ptr [pointer]
+    %r1221 = load %r1220 : u8 [general]
+    %r1222 = move %r1221 : u8 [counter]
+    %r1223 = addr_of @cur_y : ptr [pointer]
+    %r1224 = load %r1223 : u8 [general]
+    %r1225 = const 1 : u8 [general]
+    %r1226 = add %r1224, %r1225 : u8 [general]
+    %r1227 = call @can_place(%r1217, %r1219, %r1222, %r1226) : bool [acc]
+    %r1228 = const 0 : bool [general]
+    %r1229 = cmp.ne %r1227, %r1228 : bool [flag]
+    br_if %r1229, @if_then39(), @if_else41()
+  block @if_then39:
+    %r1230 = addr_of @cur_y : ptr [pointer]
+    %r1231 = load %r1230 : u8 [general]
+    %r1232 = const 1 : u8 [general]
+    %r1233 = add %r1231, %r1232 : u8 [general]
+    %r1234 = addr_of @cur_y : ptr [pointer]
+    store %r1234, %r1233 : u8
+    jmp @if_join40()
+  block @if_else41:
+    call @do_lock_and_clear()
+    jmp @if_join40()
+  block @if_join40:
+    jmp @if_join38()
+  block @if_join38:
+    %r1235 = addr_of @tick : ptr [pointer]
+    %r1236 = load %r1235 : u16 [pointer]
+    %r1237 = const 1 : u16 [pointer]
+    %r1238 = add %r1236, %r1237 : u16 [pointer]
+    %r1239 = addr_of @tick : ptr [pointer]
+    store %r1239, %r1238 : u16
+    jmp @loop_head5()
+  block @loop_exit7:
+    %r1240 = addr_of @FG_WHITE : ptr [pointer]
+    %r1241 = load %r1240 : u8 [general]
+    %r1242 = move %r1241 : u8 [acc]
+    %r1243 = addr_of @BG_BLACK : ptr [pointer]
+    %r1244 = load %r1243 : u8 [general]
+    %r1245 = const 1 : u8 [general]
+    %r1246 = move %r1245 : u8 [counter]
+    call @tui_color(%r1242, %r1244, %r1246)
+    %r1247 = addr_of @DRAW_X : ptr [pointer]
+    %r1248 = load %r1247 : u8 [general]
+    %r1249 = const 4 : u8 [general]
+    %r1250 = add %r1248, %r1249 : u8 [acc]
+    %r1251 = move %r1250 : u8 [acc]
+    %r1252 = addr_of @DRAW_Y : ptr [pointer]
+    %r1253 = load %r1252 : u8 [general]
+    %r1254 = const 9 : u8 [general]
+    %r1255 = add %r1253, %r1254 : u8 [acc]
+    call @tui_goto(%r1251, %r1255)
+    %r1256 = addr_of @@mir2.str.5 : ptr [pointer]
+    %r1257 = move %r1256 : ptr [pointer]
+    call @tui_puts(%r1257)
+    %r1258 = addr_of @DRAW_X : ptr [pointer]
+    %r1259 = load %r1258 : u8 [general]
+    %r1260 = const 2 : u8 [general]
+    %r1261 = add %r1259, %r1260 : u8 [acc]
+    %r1262 = move %r1261 : u8 [acc]
+    %r1263 = addr_of @DRAW_Y : ptr [pointer]
+    %r1264 = load %r1263 : u8 [general]
+    %r1265 = const 11 : u8 [general]
+    %r1266 = add %r1264, %r1265 : u8 [acc]
+    call @tui_goto(%r1262, %r1266)
+    %r1267 = addr_of @@mir2.str.6 : ptr [pointer]
+    %r1268 = move %r1267 : ptr [pointer]
+    call @tui_puts(%r1268)
+    %r1269 = addr_of @score : ptr [pointer]
+    %r1270 = load %r1269 : u16 [pointer]
+    call @draw_number(%r1270)
+    call @tui_reset()
+    %r1271 = const 1 : u8 [general]
+    %r1272 = move %r1271 : u8 [acc]
+    %r1273 = const 23 : u8 [general]
+    call @tui_goto(%r1272, %r1273)
+    %r1274 = call @tui_read_key() : u8 [acc]
+    ret void
+

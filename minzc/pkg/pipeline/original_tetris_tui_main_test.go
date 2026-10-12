@@ -33,17 +33,26 @@ func TestOriginalTetrisTUIWholeMain(t *testing.T) {
 	var freeze struct {
 		Sources map[string]string `json:"sources"`
 	}
-	json.Unmarshal(read("freeze.json"), &freeze)
+	if e := json.Unmarshal(read("freeze.json"), &freeze); e != nil {
+		t.Fatal(e)
+	}
 	for p, h := range freeze.Sources {
 		b, e := os.ReadFile("../../../" + p)
 		if e != nil || fmt.Sprintf("%x", sha256.Sum256(b)) != h {
 			t.Fatal("freeze", p, e)
 		}
 	}
+	if fmt.Sprintf("%x", sha256.Sum256(read("source.nanz"))) != freeze.Sources["examples/nanz/tetris_tui.nanz"] {
+		t.Fatal("snapshot source identity")
+	}
 	var expected []tuiMainEvent
-	json.Unmarshal(read("expected-events.json"), &expected)
+	if e := json.Unmarshal(read("expected-events.json"), &expected); e != nil {
+		t.Fatal(e)
+	}
 	var globals map[string]int64
-	json.Unmarshal(read("expected-state.json"), &globals)
+	if e := json.Unmarshal(read("expected-state.json"), &globals); e != nil {
+		t.Fatal(e)
+	}
 	stdout := read("expected-stdout.bin")
 	save := func(n string, v any) {
 		r := os.Getenv("MINZ_TETRIS_TUI_MAIN_ARTIFACTS")
@@ -200,7 +209,7 @@ func TestOriginalTetrisTUIWholeMain(t *testing.T) {
 					t.Fatal(e)
 				}
 				for k := 0; k <= len(m.Strings.At(j)); k++ {
-					stringAllowed[v.I+int64(k)] = true
+					stringAllowed[v+int64(k)] = true
 				}
 			}
 			vm.EnsureHeap(65536)
@@ -270,6 +279,7 @@ func TestOriginalTetrisTUIWholeMain(t *testing.T) {
 		want := append([]byte(nil), mem...)
 		apply(want, func(n string) int { return a.Symbols[n] })
 		externs := map[uint16]*mir2.Func{}
+		var abiMapping []map[string]any
 		for _, f := range s.MIR2Module.Funcs {
 			if f.Attrs.IsExtern {
 				if p, ok := a.Symbols[f.Name]; ok {
@@ -280,9 +290,15 @@ func TestOriginalTetrisTUIWholeMain(t *testing.T) {
 						t.Fatal("aliased extern bindings", f.Name)
 					}
 					externs[uint16(p)] = f
+					var homes []string
+					for _, param := range f.Contract.Params {
+						homes = append(homes, assertParamLocation(param, s.Allocation).Name)
+					}
+					abiMapping = append(abiMapping, map[string]any{"name": f.Name, "entry_pc": p, "formal_homes": homes, "contract": f.Contract})
 				}
 			}
 		}
+		save(mode+"/native/abi-bindings.json", abiMapping)
 		stringAllowed := map[int64]bool{}
 		for j := 0; j < s.MIR2Module.Strings.Len(); j++ {
 			p, ok := a.Symbols[fmt.Sprintf("_mir2_str_%d", j)]

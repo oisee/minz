@@ -1,0 +1,266 @@
+[
+  {
+    "path": "minzc/pkg/pipeline/original_tetris_tui_main_test.go",
+    "sha256": "4b516f485025df7ac151b2558eb169a9b582e88bc513defcf2a1a260ef75fdbb"
+  },
+  {
+    "path": "reports/tetris-tui-main/LINKER.md",
+    "sha256": "8133b24677280951f68cae559079d7d14b83db841484d483f0680a9b071f4512"
+  },
+  {
+    "path": "reports/tetris-tui-main/REPORT.md",
+    "sha256": "5a6acf865093237bec4fb1fcfa0fce47fa564b93f4dee580a1d77b9f12edb5df"
+  },
+  {
+    "path": "reports/tetris-tui-main/before.txt",
+    "sha256": "d44bd802036fe83fb166dbc47c1f434bed36c4fcd360da0cff0f57a4bf85555d"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-size/final.mir",
+    "sha256": "13a282ab789ea08a2cf6803a2eee216649b58d6be9671a1f71c2ce36420973af"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-size/native/abi-bindings.json",
+    "sha256": "96f9c57067e988ecf1aa5b54d8e6e684203dadbb1c06b41cd53c5beadaf1813d"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-size/native/events.json",
+    "sha256": "b01e261fecef0bd24592e9f028b570320f41c4ae39b960e94a22eb7d0725ddfc"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-size/native/program.a80",
+    "sha256": "ca064a83cc39d080553630306ea6af7b6ee676f1929e183bd57935a5ff469bcf"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-size/native/program.com",
+    "sha256": "1a57ab8dabb0035e9784a10f8f8aceb336f6cb29e03ad66a94f2fb6988f4b148"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-size/native/stdout.bin",
+    "sha256": "058ca10760eddb2f4e22df36a41ffb886d37b13ada3db0d76bae91da20cd8141"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-size/native/string-reads.json",
+    "sha256": "c4a112e0196b31006ad3b54748c92dd8664c85ccf4fb48ec01d41a2d90da05da"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-size/native/summary.json",
+    "sha256": "7aca7fe9721d43927b3844e5c72da99fd787ea4bab78ae66c76136b46d469a2e"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-size/native/unlinked.a80",
+    "sha256": "c3da8abd347a647640680f8aa294567a5977c9e2d38dd0d68b2513e2665bf44e"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-size/raw.mir",
+    "sha256": "67b4cf0551db3854454b9f489ffa04b0af406775de33601a90dcbb51b39639ef"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-size/vm0/events.json",
+    "sha256": "b01e261fecef0bd24592e9f028b570320f41c4ae39b960e94a22eb7d0725ddfc"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-size/vm0/stdout.bin",
+    "sha256": "058ca10760eddb2f4e22df36a41ffb886d37b13ada3db0d76bae91da20cd8141"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-size/vm0/string-reads.json",
+    "sha256": "9f8278bcd25798f5a4fb3c825bf39e5c9f6ffd93993e07a3b5e44152a789eac1"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-size/vm0/summary.json",
+    "sha256": "f8d4e7390f820170c81c20cbbd6abffde4319140f2f6f8d028ddafd5848f928f"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-size/vm1/events.json",
+    "sha256": "b01e261fecef0bd24592e9f028b570320f41c4ae39b960e94a22eb7d0725ddfc"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-size/vm1/stdout.bin",
+    "sha256": "058ca10760eddb2f4e22df36a41ffb886d37b13ada3db0d76bae91da20cd8141"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-size/vm1/string-reads.json",
+    "sha256": "9f8278bcd25798f5a4fb3c825bf39e5c9f6ffd93993e07a3b5e44152a789eac1"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-size/vm1/summary.json",
+    "sha256": "9e4eb687abd001de50cc3ff261a312948e18b0496deb4933d661f6f6ac4b4fd8"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-speed/final.mir",
+    "sha256": "13a282ab789ea08a2cf6803a2eee216649b58d6be9671a1f71c2ce36420973af"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-speed/native/abi-bindings.json",
+    "sha256": "96f9c57067e988ecf1aa5b54d8e6e684203dadbb1c06b41cd53c5beadaf1813d"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-speed/native/events.json",
+    "sha256": "b01e261fecef0bd24592e9f028b570320f41c4ae39b960e94a22eb7d0725ddfc"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-speed/native/program.a80",
+    "sha256": "ca064a83cc39d080553630306ea6af7b6ee676f1929e183bd57935a5ff469bcf"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-speed/native/program.com",
+    "sha256": "1a57ab8dabb0035e9784a10f8f8aceb336f6cb29e03ad66a94f2fb6988f4b148"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-speed/native/stdout.bin",
+    "sha256": "058ca10760eddb2f4e22df36a41ffb886d37b13ada3db0d76bae91da20cd8141"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-speed/native/string-reads.json",
+    "sha256": "c4a112e0196b31006ad3b54748c92dd8664c85ccf4fb48ec01d41a2d90da05da"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-speed/native/summary.json",
+    "sha256": "7aca7fe9721d43927b3844e5c72da99fd787ea4bab78ae66c76136b46d469a2e"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-speed/native/unlinked.a80",
+    "sha256": "c3da8abd347a647640680f8aa294567a5977c9e2d38dd0d68b2513e2665bf44e"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-speed/raw.mir",
+    "sha256": "67b4cf0551db3854454b9f489ffa04b0af406775de33601a90dcbb51b39639ef"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-speed/vm0/events.json",
+    "sha256": "b01e261fecef0bd24592e9f028b570320f41c4ae39b960e94a22eb7d0725ddfc"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-speed/vm0/stdout.bin",
+    "sha256": "058ca10760eddb2f4e22df36a41ffb886d37b13ada3db0d76bae91da20cd8141"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-speed/vm0/string-reads.json",
+    "sha256": "9f8278bcd25798f5a4fb3c825bf39e5c9f6ffd93993e07a3b5e44152a789eac1"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-speed/vm0/summary.json",
+    "sha256": "f8d4e7390f820170c81c20cbbd6abffde4319140f2f6f8d028ddafd5848f928f"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-speed/vm1/events.json",
+    "sha256": "b01e261fecef0bd24592e9f028b570320f41c4ae39b960e94a22eb7d0725ddfc"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-speed/vm1/stdout.bin",
+    "sha256": "058ca10760eddb2f4e22df36a41ffb886d37b13ada3db0d76bae91da20cd8141"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-speed/vm1/string-reads.json",
+    "sha256": "9f8278bcd25798f5a4fb3c825bf39e5c9f6ffd93993e07a3b5e44152a789eac1"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/grace-speed/vm1/summary.json",
+    "sha256": "9e4eb687abd001de50cc3ff261a312948e18b0496deb4933d661f6f6ac4b4fd8"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/ordinary/final.mir",
+    "sha256": "247e4b7461e636d2d51bcc3bd0ead312567df160fb0b56b6ac47fbe5aa7e24d6"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/ordinary/native/abi-bindings.json",
+    "sha256": "96f9c57067e988ecf1aa5b54d8e6e684203dadbb1c06b41cd53c5beadaf1813d"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/ordinary/native/events.json",
+    "sha256": "b01e261fecef0bd24592e9f028b570320f41c4ae39b960e94a22eb7d0725ddfc"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/ordinary/native/program.a80",
+    "sha256": "ded590ee5976ca7c5895942ebe68e5c558880e0d08f1077f81c73fb49985f5cd"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/ordinary/native/program.com",
+    "sha256": "4f09a494be40ec4d7f9f5a6252430b89fb260f482fa9fe19657e9540232660b2"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/ordinary/native/stdout.bin",
+    "sha256": "058ca10760eddb2f4e22df36a41ffb886d37b13ada3db0d76bae91da20cd8141"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/ordinary/native/string-reads.json",
+    "sha256": "58259a7d43b75875bcdc33a52a04ddcf52a5412bc748546045512c22c457966e"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/ordinary/native/summary.json",
+    "sha256": "abd9f34f7f74fa685cec2db3d7695a579fa7c2dd2983c12263f1734dd5159969"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/ordinary/native/unlinked.a80",
+    "sha256": "45e6ca0507a0572a43d191355ff656a8e8ac0dc90f36000e985b83639581fad0"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/ordinary/raw.mir",
+    "sha256": "67b4cf0551db3854454b9f489ffa04b0af406775de33601a90dcbb51b39639ef"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/ordinary/vm0/events.json",
+    "sha256": "b01e261fecef0bd24592e9f028b570320f41c4ae39b960e94a22eb7d0725ddfc"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/ordinary/vm0/stdout.bin",
+    "sha256": "058ca10760eddb2f4e22df36a41ffb886d37b13ada3db0d76bae91da20cd8141"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/ordinary/vm0/string-reads.json",
+    "sha256": "9f8278bcd25798f5a4fb3c825bf39e5c9f6ffd93993e07a3b5e44152a789eac1"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/ordinary/vm0/summary.json",
+    "sha256": "f8d4e7390f820170c81c20cbbd6abffde4319140f2f6f8d028ddafd5848f928f"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/ordinary/vm1/events.json",
+    "sha256": "b01e261fecef0bd24592e9f028b570320f41c4ae39b960e94a22eb7d0725ddfc"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/ordinary/vm1/stdout.bin",
+    "sha256": "058ca10760eddb2f4e22df36a41ffb886d37b13ada3db0d76bae91da20cd8141"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/ordinary/vm1/string-reads.json",
+    "sha256": "9f8278bcd25798f5a4fb3c825bf39e5c9f6ffd93993e07a3b5e44152a789eac1"
+  },
+  {
+    "path": "reports/tetris-tui-main/execution/ordinary/vm1/summary.json",
+    "sha256": "9e4eb687abd001de50cc3ff261a312948e18b0496deb4933d661f6f6ac4b4fd8"
+  },
+  {
+    "path": "reports/tetris-tui-main/expected-events.json",
+    "sha256": "7fab0672e6fbc0a618ebe03d2978d258d2e973e8e4e3470c1984128545d83215"
+  },
+  {
+    "path": "reports/tetris-tui-main/expected-state.json",
+    "sha256": "81ff657ab473fc23355ebb2750c8387e1e2038dd22d4b73c66f797ee27dde451"
+  },
+  {
+    "path": "reports/tetris-tui-main/expected-stdout.bin",
+    "sha256": "058ca10760eddb2f4e22df36a41ffb886d37b13ada3db0d76bae91da20cd8141"
+  },
+  {
+    "path": "reports/tetris-tui-main/freeze.json",
+    "sha256": "ecf2e55fbd2977e8f94b8d7e2d1a9a73545e863b4f961a692669303d5d73e4ac"
+  },
+  {
+    "path": "reports/tetris-tui-main/linked-first.txt",
+    "sha256": "3e076a6be61fd90128fba9c5f0b3ed35240fb33c40327a88d65210d42a710984"
+  },
+  {
+    "path": "reports/tetris-tui-main/model.py",
+    "sha256": "6f8dfbf35d676ba9ce24379e8740f3e73f1dce5fee23426c535882f72a2c4681"
+  },
+  {
+    "path": "reports/tetris-tui-main/source.nanz",
+    "sha256": "019ddfef02d2afe7e9c911bdf50e8f4ec95a341ef638bbd1b73b34130efb97e8"
+  },
+  {
+    "path": "reports/tetris-tui-main/terminal.txt",
+    "sha256": "387b4ff94c0a61418bf2bd42f2a49a959eae827f27797fd8886dd90271fca946"
+  }
+]
