@@ -1,5 +1,7 @@
 # Grace / PGO: текущее состояние
 
+Root fullMIR1d9c76c9 завершён PASS85,902с ([288](grace-integration-288/README.md)); PFCCO прежний prospective heldout повторно PASS. Offline table integration повторяется отдельно с доступным research solver; production Z3 dependency не вводится.
+
 MIR shared-argument miscompile исправлен c778c135. Совместные runtime families PASS3,251с; каталожные экраны получили bounded VM/native proof ([287](grace-integration-287/README.md)). Root fullMIR1d9c76c9 ещё работает; общий retained pipeline1f2365be тоже.
 
 Публичный guarded CP/M Tetris интегрирован: [root286](grace-integration-286/README.md), native/adversaries PASS6,409с; CPM MIR PASS0,127с; old-main admission transition PASS2,256с. Полный minimal IRC теперь raw/finalVM/native PASS0,070с ([285](grace-integration-285/README.md)); public network/hardware не заявляются.

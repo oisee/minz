@@ -1,0 +1,5 @@
+=== RUN   TestCheckedTableNegativeCorpusAudit
+    table_negative_audit_test.go:19: set VIR_TEST_Z3 for offline local solver integration
+--- SKIP: TestCheckedTableNegativeCorpusAudit (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.008s
