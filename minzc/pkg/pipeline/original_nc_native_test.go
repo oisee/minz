@@ -105,7 +105,8 @@ func TestOriginalNCWholeMainNative(t *testing.T) {
 				}
 				return uint16(v)
 			}
-			z := emulator.NewRemogattoZ80()
+			z := emulator.NewRemogattoZ80WithScreen()
+			z.SetROMEnd(0) // Flat test RAM, not the emulator default ZX ROM region.
 			z.LoadMemory(0x400, a.Binary)
 			main := sym("main")
 			z.LoadMemory(0xc000, []byte{0xcd, byte(main), byte(main >> 8), 0x76})
@@ -260,7 +261,9 @@ func TestOriginalNCWholeMainNative(t *testing.T) {
 						}
 					}
 					ret := uint16(z.GetMemory(r.SP)) | uint16(z.GetMemory(r.SP+1))<<8
-					if ret < 0x400 || ret >= uint16(0x400+len(a.Binary)) {
+					if ret == 0xc003 && name == "tui_reset" && r.SP == 0xeffe {
+						// Original main tail-calls reset, retaining the loader CALL authority.
+					} else if ret < 0x400 || ret >= uint16(0x400+len(a.Binary)) {
 						t.Fatal("foreign extern return", name, ret)
 					}
 					r.PC = ret
@@ -287,6 +290,20 @@ func TestOriginalNCWholeMainNative(t *testing.T) {
 				state[name] = int64(z.GetMemory(sym(name)))
 			}
 			save(mode+"/final-state.json", state)
+			for _, name := range []string{"namebuf", "sizebuf", "dirent"} {
+				n := 14
+				if name == "sizebuf" {
+					n = 8
+				}
+				if name == "dirent" {
+					n = 32
+				}
+				data := make([]byte, n)
+				for i := range data {
+					data[i] = z.GetMemory(sym(name) + uint16(i))
+				}
+				save(mode+"/"+name+".bin", data)
+			}
 			imageAfter := make([]byte, len(a.Binary))
 			for i := range imageAfter {
 				imageAfter[i] = z.GetMemory(uint16(0x400 + i))
