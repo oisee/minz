@@ -1,0 +1,37 @@
+{
+  "checkpoint": "fe50ffb76e941260d85fe1b721bc21692fb3df79",
+  "full_pipeline_checkpoint": "b6b4e0c7",
+  "changed_code": [
+    {
+      "path": "minzc/pkg/hir/native_composition_boundary_test.go",
+      "sha256": "eb67a4976bad3dbe8d9dfc53107bca6ab76024f12f64971fab8ec201f26f5b45",
+      "scope": "test-only"
+    },
+    {
+      "path": "minzc/pkg/mir2/z80codegen.go",
+      "sha256": "e86e0d9c0834b15ef6f86e093627000ab6986afa1480467dcbc0335b39e26d61",
+      "scope": "CalledMain / Agon entry and reserved symbol"
+    },
+    {
+      "path": "minzc/pkg/mir2/z80codegen_term.go",
+      "sha256": "ea5997154433513544c6748ff32c8ef3724f7b36d5ecd076585e80fa3ebd8035",
+      "scope": "CalledMain / Agon entry and reserved symbol"
+    },
+    {
+      "path": "minzc/pkg/pipeline/agon_entry_test.go",
+      "sha256": "cc70e1636455843fdeb45442649af91b050fef73ca967f22eb46c9d113b1f807",
+      "scope": "test-only"
+    },
+    {
+      "path": "minzc/pkg/pipeline/pipeline.go",
+      "sha256": "9e35e7f9a9f3542a4c29ae270c7cca895cfef5d781c3ccb3965050e19947cc5a",
+      "scope": "CalledMain / Agon entry and reserved symbol"
+    },
+    {
+      "path": "stdlib/agon/tui_render.nanz",
+      "sha256": "df324615b171bed89dc29a768d826551123604867bc3279fb20020fd784046f8",
+      "scope": "Agon native VDU library"
+    }
+  ],
+  "full_pipeline_terminal": false
+}

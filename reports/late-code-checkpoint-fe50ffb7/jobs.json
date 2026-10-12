@@ -1,0 +1,32 @@
+{
+  "checkpoint": "fe50ffb7",
+  "observed_at_utc": "2026-10-12T12:47:30.825927+00:00",
+  "frontends": {
+    "exit_code": 0,
+    "packages": [
+      "hir",
+      "nanz",
+      "lanz",
+      "lizp"
+    ],
+    "command": "GOCACHE=/tmp/minz-grace-gocache go test ./pkg/hir ./pkg/nanz ./pkg/lanz ./pkg/lizp -count=1 -timeout=20m"
+  },
+  "agon_entry": {
+    "exit_code": 0,
+    "command": "GOCACHE=/tmp/minz-grace-gocache go test ./pkg/pipeline -run '^TestAgonCalledVoidMainEntry$' -count=1 -timeout=5m -v"
+  },
+  "backend": {
+    "state": "running, not PASS",
+    "session": 27334,
+    "go_pid": 2986027,
+    "test_pid": 2986104,
+    "command": "GOCACHE=/tmp/minz-grace-gocache go test ./pkg/mir2 ./pkg/z80asm -count=1 -timeout=20m",
+    "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/late-backend-fe50ffb7.txt"
+  },
+  "full_pipeline": {
+    "state": "running, not PASS",
+    "pid": 2953041,
+    "session": 53197,
+    "checkpoint": "b6b4e0c7"
+  }
+}

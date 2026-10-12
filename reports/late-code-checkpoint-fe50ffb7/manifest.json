@@ -1,0 +1,22 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "6724f0007587300f41289e04224e0b1419607c8f9d6eb18de7612473f3c5be0c"
+  },
+  {
+    "path": "artifact-audit.json",
+    "sha256": "da62dbf61363e0f3b3c1b9df20fc41f10ee1aaf42fe48ad6f0cd33fa6a43484a"
+  },
+  {
+    "path": "frontends.txt",
+    "sha256": "2a648b74c84baca3602e83a8ad044a7490afd36f537d2c119e922932fe562791"
+  },
+  {
+    "path": "jobs.json",
+    "sha256": "c1250efd32268b17c2e888e9aebc2c58483fabf0aaec8367d119176e5494b96d"
+  },
+  {
+    "path": "scope.json",
+    "sha256": "8e1d6b4def0c3c230913aea0856b05b87dc350e4b0d262953ce14ec4d5e84be2"
+  }
+]
