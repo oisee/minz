@@ -226,11 +226,30 @@
       "source_assertions": 0,
       "assertion_scope": "unexecuted source expectations",
       "native_behavior": "agon-mos-runtime",
-      "workload": "",
+      "workload": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.",
       "independent_model": "",
       "external_requirement_or_remaining_work": "Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS.",
       "entry_structure_not_execution_claim": "declares main; whole-main execution not implied",
-      "reviewed_evidence": [],
+      "reviewed_evidence": [
+        {
+          "test_or_artifact": "minzc/pkg/pipeline/agon_corpus_product_test.go",
+          "evidence_file_sha256": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.; Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS."
+        },
+        {
+          "test_or_artifact": "reports/agon-product-audit/manifest.json",
+          "evidence_file_sha256": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.; Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS."
+        },
+        {
+          "test_or_artifact": "reports/agon-product-audit/root.txt",
+          "evidence_file_sha256": "31936901fb106c4808aea698dfeee5cc7260a10d52c9a1866baeaaba76152bd4",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.; Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS."
+        }
+      ],
       "test_source_references_not_execution_claim": []
     },
     {
@@ -257,11 +276,30 @@
       "source_assertions": 0,
       "assertion_scope": "unexecuted source expectations",
       "native_behavior": "agon-mos-runtime",
-      "workload": "",
+      "workload": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.",
       "independent_model": "",
       "external_requirement_or_remaining_work": "Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS.",
       "entry_structure_not_execution_claim": "declares main; whole-main execution not implied",
-      "reviewed_evidence": [],
+      "reviewed_evidence": [
+        {
+          "test_or_artifact": "minzc/pkg/pipeline/agon_corpus_product_test.go",
+          "evidence_file_sha256": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.; Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS."
+        },
+        {
+          "test_or_artifact": "reports/agon-product-audit/manifest.json",
+          "evidence_file_sha256": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.; Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS."
+        },
+        {
+          "test_or_artifact": "reports/agon-product-audit/root.txt",
+          "evidence_file_sha256": "31936901fb106c4808aea698dfeee5cc7260a10d52c9a1866baeaaba76152bd4",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.; Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS."
+        }
+      ],
       "test_source_references_not_execution_claim": [
         "minzc/pkg/nanz/agon_mos_test.go:22"
       ]
@@ -319,11 +357,30 @@
       "source_assertions": 0,
       "assertion_scope": "unexecuted source expectations",
       "native_behavior": "agon-mos-runtime",
-      "workload": "",
+      "workload": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.",
       "independent_model": "",
       "external_requirement_or_remaining_work": "Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS.",
       "entry_structure_not_execution_claim": "declares main; whole-main execution not implied",
-      "reviewed_evidence": [],
+      "reviewed_evidence": [
+        {
+          "test_or_artifact": "minzc/pkg/pipeline/agon_corpus_product_test.go",
+          "evidence_file_sha256": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.; Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS."
+        },
+        {
+          "test_or_artifact": "reports/agon-product-audit/manifest.json",
+          "evidence_file_sha256": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.; Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS."
+        },
+        {
+          "test_or_artifact": "reports/agon-product-audit/root.txt",
+          "evidence_file_sha256": "31936901fb106c4808aea698dfeee5cc7260a10d52c9a1866baeaaba76152bd4",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.; Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS."
+        }
+      ],
       "test_source_references_not_execution_claim": []
     },
     {
@@ -375,11 +432,30 @@
       "source_assertions": 0,
       "assertion_scope": "unexecuted source expectations",
       "native_behavior": "agon-mos-runtime",
-      "workload": "",
+      "workload": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.",
       "independent_model": "",
       "external_requirement_or_remaining_work": "Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS.",
       "entry_structure_not_execution_claim": "declares main; whole-main execution not implied",
-      "reviewed_evidence": [],
+      "reviewed_evidence": [
+        {
+          "test_or_artifact": "minzc/pkg/pipeline/agon_corpus_product_test.go",
+          "evidence_file_sha256": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.; Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS."
+        },
+        {
+          "test_or_artifact": "reports/agon-product-audit/manifest.json",
+          "evidence_file_sha256": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.; Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS."
+        },
+        {
+          "test_or_artifact": "reports/agon-product-audit/root.txt",
+          "evidence_file_sha256": "31936901fb106c4808aea698dfeee5cc7260a10d52c9a1866baeaaba76152bd4",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.; Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS."
+        }
+      ],
       "test_source_references_not_execution_claim": [
         "minzc/pkg/pipeline/original_tui_demo_main_test.go:22",
         "minzc/pkg/pipeline/original_tui_demo_main_test.go:60"
@@ -434,11 +510,30 @@
       "source_assertions": 0,
       "assertion_scope": "unexecuted source expectations",
       "native_behavior": "agon-mos-runtime",
-      "workload": "",
+      "workload": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.",
       "independent_model": "",
       "external_requirement_or_remaining_work": "Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS.",
       "entry_structure_not_execution_claim": "declares main; whole-main execution not implied",
-      "reviewed_evidence": [],
+      "reviewed_evidence": [
+        {
+          "test_or_artifact": "minzc/pkg/pipeline/agon_corpus_product_test.go",
+          "evidence_file_sha256": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.; Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS."
+        },
+        {
+          "test_or_artifact": "reports/agon-product-audit/manifest.json",
+          "evidence_file_sha256": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.; Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS."
+        },
+        {
+          "test_or_artifact": "reports/agon-product-audit/root.txt",
+          "evidence_file_sha256": "31936901fb106c4808aea698dfeee5cc7260a10d52c9a1866baeaaba76152bd4",
+          "source_relation": "reviewed exact-source root replay",
+          "scope": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.; Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS."
+        }
+      ],
       "test_source_references_not_execution_claim": []
     },
     {
@@ -1459,7 +1554,7 @@
         }
       ],
       "test_source_references_not_execution_claim": [
-        "minzc/pkg/pipeline/checked_local_readmission_weighted_test.go:12",
+        "minzc/pkg/pipeline/checked_local_readmission_weighted_test.go:35",
         "minzc/pkg/pipeline/checked_local_real_test.go:83",
         "minzc/pkg/pipeline/combined_contract_table_grace_test.go:19",
         "minzc/pkg/pipeline/grace_showcase_test.go:30",

@@ -44,46 +44,66 @@
     "path": "examples/agon/hello_agon.nanz",
     "source_sha256": "4684218e7110368e2122eff39a16dd792dea3bd335383cec6000507505831f77",
     "native_behavior": "agon-mos-runtime",
-    "workload": "",
+    "workload": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.",
     "independent_model": "",
     "boundary": "Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS.",
-    "evidence": {}
+    "evidence": {
+      "minzc/pkg/pipeline/agon_corpus_product_test.go": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
+      "reports/agon-product-audit/manifest.json": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
+      "reports/agon-product-audit/root.txt": "31936901fb106c4808aea698dfeee5cc7260a10d52c9a1866baeaaba76152bd4"
+    }
   },
   {
     "path": "examples/agon/hello_world.nanz",
     "source_sha256": "f6d88281bb19c637b1dcde8ccdcbc6a26eaba47e09153d892f160f5177d3d6f5",
     "native_behavior": "agon-mos-runtime",
-    "workload": "",
+    "workload": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.",
     "independent_model": "",
     "boundary": "Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS.",
-    "evidence": {}
+    "evidence": {
+      "minzc/pkg/pipeline/agon_corpus_product_test.go": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
+      "reports/agon-product-audit/manifest.json": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
+      "reports/agon-product-audit/root.txt": "31936901fb106c4808aea698dfeee5cc7260a10d52c9a1866baeaaba76152bd4"
+    }
   },
   {
     "path": "examples/agon/nc_agon.nanz",
     "source_sha256": "8063ebaf25ab5faff632017874a06d1db25019fa7efe559c4d0cfc6f3b3e9b38",
     "native_behavior": "agon-mos-runtime",
-    "workload": "",
+    "workload": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.",
     "independent_model": "",
     "boundary": "Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS.",
-    "evidence": {}
+    "evidence": {
+      "minzc/pkg/pipeline/agon_corpus_product_test.go": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
+      "reports/agon-product-audit/manifest.json": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
+      "reports/agon-product-audit/root.txt": "31936901fb106c4808aea698dfeee5cc7260a10d52c9a1866baeaaba76152bd4"
+    }
   },
   {
     "path": "examples/agon/tui_demo.nanz",
     "source_sha256": "afcadba573f924da7fcaf74574a8ec451be8ffb37eb0b3aa8567a6757d2957bd",
     "native_behavior": "agon-mos-runtime",
-    "workload": "",
+    "workload": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.",
     "independent_model": "",
     "boundary": "Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS.",
-    "evidence": {}
+    "evidence": {
+      "minzc/pkg/pipeline/agon_corpus_product_test.go": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
+      "reports/agon-product-audit/manifest.json": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
+      "reports/agon-product-audit/root.txt": "31936901fb106c4808aea698dfeee5cc7260a10d52c9a1866baeaaba76152bd4"
+    }
   },
   {
     "path": "examples/agon/tui_hello.nanz",
     "source_sha256": "44f505b14ac4c5c674db470d9f81684aeaf078498c03ad267e81a05d13d25f90",
     "native_behavior": "agon-mos-runtime",
-    "workload": "",
+    "workload": "Three actual eZ80 ADL ASM/BIN products: ordinary, Grace Size and Grace Speed; main/origin and assembly admission checked. No CPU execution.",
     "independent_model": "",
     "boundary": "Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS.",
-    "evidence": {}
+    "evidence": {
+      "minzc/pkg/pipeline/agon_corpus_product_test.go": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
+      "reports/agon-product-audit/manifest.json": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
+      "reports/agon-product-audit/root.txt": "31936901fb106c4808aea698dfeee5cc7260a10d52c9a1866baeaaba76152bd4"
+    }
   },
   {
     "path": "examples/lizp/assert_test.lanz",
