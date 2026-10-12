@@ -1,0 +1,19 @@
+=== RUN   TestOriginalPlasmaWholeMainNative
+=== RUN   TestOriginalPlasmaWholeMainNative/ordinary
+    original_plasma_main_test.go:160: raw VM with explicit zx_poke model PASS
+    original_plasma_main_test.go:160: final VM with explicit zx_poke model PASS
+    original_plasma_main_test.go:240: 1555 7562297 6912 ordered screen/full RAM/main return PASS
+=== RUN   TestOriginalPlasmaWholeMainNative/grace-size
+    original_plasma_main_test.go:160: raw VM with explicit zx_poke model PASS
+    original_plasma_main_test.go:160: final VM with explicit zx_poke model PASS
+    original_plasma_main_test.go:240: 1555 7562297 6912 ordered screen/full RAM/main return PASS
+=== RUN   TestOriginalPlasmaWholeMainNative/grace-speed
+    original_plasma_main_test.go:160: raw VM with explicit zx_poke model PASS
+    original_plasma_main_test.go:160: final VM with explicit zx_poke model PASS
+    original_plasma_main_test.go:240: 1555 7562297 6912 ordered screen/full RAM/main return PASS
+--- PASS: TestOriginalPlasmaWholeMainNative (0.63s)
+    --- PASS: TestOriginalPlasmaWholeMainNative/ordinary (0.23s)
+    --- PASS: TestOriginalPlasmaWholeMainNative/grace-size (0.19s)
+    --- PASS: TestOriginalPlasmaWholeMainNative/grace-speed (0.20s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.636s

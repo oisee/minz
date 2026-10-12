@@ -1,0 +1,7 @@
+{
+  "source_sha256": "71113665c335bff7a20b34f581179c7055282e03f5332204f458a4578904991c",
+  "phase": 0,
+  "bitmap_writes": 6144,
+  "attribute_writes": 768,
+  "numeric_authority": "Nanz Language Book v7 section 3.2: unsigned typed intermediates wrap modulo 2^width; source integer quarter-wave approximation"
+}
