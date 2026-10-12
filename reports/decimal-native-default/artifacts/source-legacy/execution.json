@@ -1,0 +1,18 @@
+{
+  "Registers": {
+    "A": 57,
+    "F": 0,
+    "BC": 9,
+    "DE": 256,
+    "HL": 273,
+    "IX": 0,
+    "IY": 0,
+    "SP": 61440,
+    "PC": 32778
+  },
+  "Answer": 273,
+  "Cycles": 853,
+  "Error": "\u003cnil\u003e",
+  "ExpectedPC": 32778,
+  "ExpectedSP": 61440
+}

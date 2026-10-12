@@ -1,0 +1,10 @@
+=== RUN   TestDecimalPrintSourceCompile
+--- PASS: TestDecimalPrintSourceCompile (0.01s)
+=== RUN   TestDecimalPrintSourceNative
+=== RUN   TestDecimalPrintSourceNative/steps
+=== RUN   TestDecimalPrintSourceNative/legacy
+--- PASS: TestDecimalPrintSourceNative (0.01s)
+    --- PASS: TestDecimalPrintSourceNative/steps (0.00s)
+    --- PASS: TestDecimalPrintSourceNative/legacy (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.025s

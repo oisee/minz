@@ -85,7 +85,7 @@ func TestDecimalPrintSourceCompile(t *testing.T) {
 func TestDecimalPrintSourceNative(t *testing.T) {
 	dir := os.Getenv("MINZ_DECIMAL_PRINT_ARTIFACTS")
 	if dir == "" {
-		t.Skip("native artifact export not requested")
+		dir = t.TempDir()
 	}
 	vm := decimalSourceVM(t)
 	for _, legacy := range []bool{false, true} {

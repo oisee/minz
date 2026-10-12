@@ -1,0 +1,19 @@
+{
+  "answer": 32779,
+  "demo": 32781,
+  "demo.pdec_h0": 32791,
+  "demo.pdec_h1": 32847,
+  "demo.pdec_ht0": 32802,
+  "demo.pdec_ht1": 32858,
+  "demo.pdec_t0": 32810,
+  "demo.pdec_t1": 32866,
+  "demo.pdec_tl0": 32812,
+  "demo.pdec_tl1": 32868,
+  "demo.pdec_tt0": 32823,
+  "demo.pdec_tt1": 32879,
+  "demo.pdec_u0": 32832,
+  "demo.pdec_u1": 32888,
+  "done": 32777,
+  "input": 32899,
+  "start": 32768
+}

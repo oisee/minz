@@ -1,0 +1,7 @@
+=== RUN   TestDecimalPrintSourceNative
+=== RUN   TestDecimalPrintSourceNative/steps
+=== RUN   TestDecimalPrintSourceNative/legacy
+--- PASS: TestDecimalPrintSourceNative (0.01s)
+    --- PASS: TestDecimalPrintSourceNative/steps (0.00s)
+    --- PASS: TestDecimalPrintSourceNative/legacy (0.00s)
+PASS

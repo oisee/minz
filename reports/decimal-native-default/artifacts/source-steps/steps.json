@@ -1,0 +1,431 @@
+{
+  "UnsignedPairComparePolicy": 0,
+  "ProfileDecisions": null,
+  "HIRLoopSites": null,
+  "HIR": "; HIR module: decimal-print.nanz\nglobal @input : u16\n\nfun @demo() -\u003e u16\n  var x: u16 = ((input:u16) + 1:u8):u16\n  call @@mir.io.print.u8((x:u16)):void\n  call @@mir.io.print.dec(((x:u16) + 99:u8):u16):void\n  return ((x:u16) + 17:u8):u16\n\n",
+  "MIR2Raw": "; MIR2 module: decimal-print.nanz\nglobal @input : u16\n\nfun @demo() -\u003e u16 [pointer]\n  block @entry:\n    %r1 = addr_of @input : ptr [pointer]\n    %r2 = load %r1 : u16 [pointer]\n    %r3 = const 1 : u16 [pointer]\n    %r4 = add %r2, %r3 : u16 [pointer]\n    call @@mir.io.print.u8(%r4)\n    %r5 = const 99 : u16 [pointer]\n    %r6 = add %r4, %r5 : u16 [pointer]\n    call @@mir.io.print.dec(%r6)\n    %r7 = const 17 : u16 [pointer]\n    %r8 = add %r4, %r7 : u16 [pointer]\n    ret %r8\n\n",
+  "MIR2Opt": "; MIR2 module: decimal-print.nanz\nglobal @input : u16\n\nfun @demo() -\u003e u16 [pointer]\n  block @entry:\n    %r1 = addr_of @input : ptr [pointer]\n    %r2 = load %r1 : u16 [pointer]\n    %r3 = const 1 : u16 [pointer]\n    %r4 = add %r2, %r3 : u16 [pointer]\n    call @@mir.io.print.u8(%r4)\n    %r5 = const 99 : u16 [pointer]\n    %r6 = add %r4, %r5 : u16 [pointer]\n    call @@mir.io.print.dec(%r6)\n    %r7 = const 17 : u16 [pointer]\n    %r8 = add %r4, %r7 : u16 [pointer]\n    ret %r8\n\n",
+  "MIR2Module": {
+    "Name": "decimal-print.nanz",
+    "Target": 0,
+    "Funcs": [
+      {
+        "LoopOrigins": null,
+        "Name": "demo",
+        "Contract": {
+          "Params": null,
+          "Returns": [
+            {
+              "Ty": {},
+              "Class": 8,
+              "FlagCond": 0
+            }
+          ],
+          "ExternClobbers": null,
+          "Clobbers": 0
+        },
+        "Attrs": {
+          "FallibleCY": false,
+          "IsExtern": false,
+          "ExternAddr": 0,
+          "IsComptime": false,
+          "HasAsm": false,
+          "IsLeaf": false,
+          "IsRecursive": false
+        },
+        "Blocks": [
+          {
+            "Label": "entry",
+            "Params": null,
+            "Insts": [
+              {
+                "Op": 26,
+                "Dst": 1,
+                "Src": [
+                  0,
+                  0
+                ],
+                "Imm": 0,
+                "Sym": "input",
+                "Ty": {},
+                "Cls": 8,
+                "ClsHard": false,
+                "Cond": 0,
+                "FlagsOnly": false,
+                "SrcTy": null,
+                "CallAttr": {
+                  "IsComptime": false,
+                  "IsHost": false,
+                  "IsTailCall": false
+                },
+                "Args": null,
+                "FallibleCY": false,
+                "ExtraRets": null,
+                "ExtraRetClasses": null,
+                "ExtraRetTys": null,
+                "Asm": null,
+                "SrcLine": 0,
+                "SrcFile": ""
+              },
+              {
+                "Op": 24,
+                "Dst": 2,
+                "Src": [
+                  1,
+                  0
+                ],
+                "Imm": 0,
+                "Sym": "",
+                "Ty": {},
+                "Cls": 8,
+                "ClsHard": false,
+                "Cond": 0,
+                "FlagsOnly": false,
+                "SrcTy": null,
+                "CallAttr": {
+                  "IsComptime": false,
+                  "IsHost": false,
+                  "IsTailCall": false
+                },
+                "Args": null,
+                "FallibleCY": false,
+                "ExtraRets": null,
+                "ExtraRetClasses": null,
+                "ExtraRetTys": null,
+                "Asm": null,
+                "SrcLine": 0,
+                "SrcFile": ""
+              },
+              {
+                "Op": 22,
+                "Dst": 3,
+                "Src": [
+                  0,
+                  0
+                ],
+                "Imm": 1,
+                "Sym": "",
+                "Ty": {},
+                "Cls": 8,
+                "ClsHard": false,
+                "Cond": 0,
+                "FlagsOnly": false,
+                "SrcTy": null,
+                "CallAttr": {
+                  "IsComptime": false,
+                  "IsHost": false,
+                  "IsTailCall": false
+                },
+                "Args": null,
+                "FallibleCY": false,
+                "ExtraRets": null,
+                "ExtraRetClasses": null,
+                "ExtraRetTys": null,
+                "Asm": null,
+                "SrcLine": 0,
+                "SrcFile": ""
+              },
+              {
+                "Op": 0,
+                "Dst": 4,
+                "Src": [
+                  2,
+                  3
+                ],
+                "Imm": 0,
+                "Sym": "",
+                "Ty": {},
+                "Cls": 8,
+                "ClsHard": false,
+                "Cond": 0,
+                "FlagsOnly": false,
+                "SrcTy": null,
+                "CallAttr": {
+                  "IsComptime": false,
+                  "IsHost": false,
+                  "IsTailCall": false
+                },
+                "Args": null,
+                "FallibleCY": false,
+                "ExtraRets": null,
+                "ExtraRetClasses": null,
+                "ExtraRetTys": null,
+                "Asm": null,
+                "SrcLine": 0,
+                "SrcFile": ""
+              },
+              {
+                "Op": 31,
+                "Dst": 0,
+                "Src": [
+                  0,
+                  0
+                ],
+                "Imm": 0,
+                "Sym": "@mir.io.print.u8",
+                "Ty": {},
+                "Cls": 0,
+                "ClsHard": false,
+                "Cond": 0,
+                "FlagsOnly": false,
+                "SrcTy": null,
+                "CallAttr": {
+                  "IsComptime": false,
+                  "IsHost": false,
+                  "IsTailCall": false
+                },
+                "Args": [
+                  4
+                ],
+                "FallibleCY": false,
+                "ExtraRets": null,
+                "ExtraRetClasses": null,
+                "ExtraRetTys": null,
+                "Asm": null,
+                "SrcLine": 0,
+                "SrcFile": ""
+              },
+              {
+                "Op": 22,
+                "Dst": 5,
+                "Src": [
+                  0,
+                  0
+                ],
+                "Imm": 99,
+                "Sym": "",
+                "Ty": {},
+                "Cls": 8,
+                "ClsHard": false,
+                "Cond": 0,
+                "FlagsOnly": false,
+                "SrcTy": null,
+                "CallAttr": {
+                  "IsComptime": false,
+                  "IsHost": false,
+                  "IsTailCall": false
+                },
+                "Args": null,
+                "FallibleCY": false,
+                "ExtraRets": null,
+                "ExtraRetClasses": null,
+                "ExtraRetTys": null,
+                "Asm": null,
+                "SrcLine": 0,
+                "SrcFile": ""
+              },
+              {
+                "Op": 0,
+                "Dst": 6,
+                "Src": [
+                  4,
+                  5
+                ],
+                "Imm": 0,
+                "Sym": "",
+                "Ty": {},
+                "Cls": 8,
+                "ClsHard": false,
+                "Cond": 0,
+                "FlagsOnly": false,
+                "SrcTy": null,
+                "CallAttr": {
+                  "IsComptime": false,
+                  "IsHost": false,
+                  "IsTailCall": false
+                },
+                "Args": null,
+                "FallibleCY": false,
+                "ExtraRets": null,
+                "ExtraRetClasses": null,
+                "ExtraRetTys": null,
+                "Asm": null,
+                "SrcLine": 0,
+                "SrcFile": ""
+              },
+              {
+                "Op": 31,
+                "Dst": 0,
+                "Src": [
+                  0,
+                  0
+                ],
+                "Imm": 0,
+                "Sym": "@mir.io.print.dec",
+                "Ty": {},
+                "Cls": 0,
+                "ClsHard": false,
+                "Cond": 0,
+                "FlagsOnly": false,
+                "SrcTy": null,
+                "CallAttr": {
+                  "IsComptime": false,
+                  "IsHost": false,
+                  "IsTailCall": false
+                },
+                "Args": [
+                  6
+                ],
+                "FallibleCY": false,
+                "ExtraRets": null,
+                "ExtraRetClasses": null,
+                "ExtraRetTys": null,
+                "Asm": null,
+                "SrcLine": 0,
+                "SrcFile": ""
+              },
+              {
+                "Op": 22,
+                "Dst": 7,
+                "Src": [
+                  0,
+                  0
+                ],
+                "Imm": 17,
+                "Sym": "",
+                "Ty": {},
+                "Cls": 8,
+                "ClsHard": false,
+                "Cond": 0,
+                "FlagsOnly": false,
+                "SrcTy": null,
+                "CallAttr": {
+                  "IsComptime": false,
+                  "IsHost": false,
+                  "IsTailCall": false
+                },
+                "Args": null,
+                "FallibleCY": false,
+                "ExtraRets": null,
+                "ExtraRetClasses": null,
+                "ExtraRetTys": null,
+                "Asm": null,
+                "SrcLine": 0,
+                "SrcFile": ""
+              },
+              {
+                "Op": 0,
+                "Dst": 8,
+                "Src": [
+                  4,
+                  7
+                ],
+                "Imm": 0,
+                "Sym": "",
+                "Ty": {},
+                "Cls": 8,
+                "ClsHard": false,
+                "Cond": 0,
+                "FlagsOnly": false,
+                "SrcTy": null,
+                "CallAttr": {
+                  "IsComptime": false,
+                  "IsHost": false,
+                  "IsTailCall": false
+                },
+                "Args": null,
+                "FallibleCY": false,
+                "ExtraRets": null,
+                "ExtraRetClasses": null,
+                "ExtraRetTys": null,
+                "Asm": null,
+                "SrcLine": 0,
+                "SrcFile": ""
+              }
+            ],
+            "Term": {
+              "Vals": [
+                8
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "Globals": [
+      {
+        "Name": "input",
+        "Ty": {},
+        "Init": "/wA=",
+        "InitString": false,
+        "IsConst": false,
+        "At": null,
+        "Storage": 0,
+        "VtableSyms": null
+      }
+    ],
+    "Strings": {}
+  },
+  "Allocation": {
+    "Locs": {
+      "1": {
+        "Kind": 0,
+        "Name": "HL",
+        "Offset": 0
+      },
+      "2": {
+        "Kind": 0,
+        "Name": "DE",
+        "Offset": 0
+      },
+      "3": {
+        "Kind": 0,
+        "Name": "HL",
+        "Offset": 0
+      },
+      "4": {
+        "Kind": 0,
+        "Name": "DE",
+        "Offset": 0
+      },
+      "5": {
+        "Kind": 0,
+        "Name": "HL",
+        "Offset": 0
+      },
+      "6": {
+        "Kind": 0,
+        "Name": "HL",
+        "Offset": 0
+      },
+      "7": {
+        "Kind": 0,
+        "Name": "HL",
+        "Offset": 0
+      },
+      "8": {
+        "Kind": 0,
+        "Name": "HL",
+        "Offset": 0
+      }
+    },
+    "Spilled": null
+  },
+  "Assembly": "; ── compilation summary ──────────────────────────────────────\n; functions: 1  PBQP=1\n; optimization passes fired: 1\n; label audit: OK\n; ─────────────────────────────────────────────────────────────\n; generated by MIR2 Z80 codegen\n\n; fun demo() -\u003e u16 = HL ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP passes=[dse=1]\ndemo:\n    LD DE, (input)    ; u16 direct load, no scratch clobber\n    INC DE\n    ; genCall: @mir.io.print.u8 dst=0\n    PUSH DE\n    LD A, E\n    LD C, A\n    LD B, 0\n.pdec_h0:\n    LD A, C\n    CP 100\n    JR C, .pdec_ht0\n    SUB 100\n    LD C, A\n    INC B\n    JR .pdec_h0\n.pdec_ht0:\n    LD A, B\n    OR A\n    JR Z, .pdec_t0\n    ADD A, 48\n    OUT (0x23), A\n.pdec_t0:\n    LD D, 0\n.pdec_tl0:\n    LD A, C\n    CP 10\n    JR C, .pdec_tt0\n    SUB 10\n    LD C, A\n    INC D\n    JR .pdec_tl0\n.pdec_tt0:\n    LD A, B\n    OR D\n    JR Z, .pdec_u0\n    LD A, D\n    ADD A, 48\n    OUT (0x23), A\n.pdec_u0:\n    LD A, C\n    ADD A, 48\n    OUT (0x23), A\n    POP DE\n    LD HL, 99\n    ADD HL, DE\n    ; genCall: @mir.io.print.dec dst=0\n    PUSH DE\n    LD A, L\n    LD C, A\n    LD B, 0\n.pdec_h1:\n    LD A, C\n    CP 100\n    JR C, .pdec_ht1\n    SUB 100\n    LD C, A\n    INC B\n    JR .pdec_h1\n.pdec_ht1:\n    LD A, B\n    OR A\n    JR Z, .pdec_t1\n    ADD A, 48\n    OUT (0x23), A\n.pdec_t1:\n    LD D, 0\n.pdec_tl1:\n    LD A, C\n    CP 10\n    JR C, .pdec_tt1\n    SUB 10\n    LD C, A\n    INC D\n    JR .pdec_tl1\n.pdec_tt1:\n    LD A, B\n    OR D\n    JR Z, .pdec_u1\n    LD A, D\n    ADD A, 48\n    OUT (0x23), A\n.pdec_u1:\n    LD A, C\n    ADD A, 48\n    OUT (0x23), A\n    POP DE\n    LD HL, 17\n    ADD HL, DE\n    RET\n\n; globals\ninput:\n    DW 255\n",
+  "Traces": {
+    "demo": {
+      "Name": "demo",
+      "SplitFrom": "",
+      "SplitPressure": 0,
+      "ConstProp": 0,
+      "ConstFold": 0,
+      "IdentSimp": 0,
+      "CallElim": 0,
+      "DSE": 1,
+      "DeadBlockArg": 0,
+      "BranchEquiv": 0,
+      "SplitJoinRet": 0,
+      "CondRetSink": 0,
+      "FuseAbsDiff": 0,
+      "PtrThreading": 0,
+      "PtrAddCSE": 0,
+      "Inlined": false,
+      "LUTReplaced": false,
+      "Backend": "PBQP",
+      "BackendErr": "",
+      "WFCAttempt": 0,
+      "CondRets": 0,
+      "LabelWarnings": null
+    }
+  }
+}
