@@ -1,0 +1,9 @@
+=== RUN   TestPascalCPMOrdinaryCLI
+--- PASS: TestPascalCPMOrdinaryCLI (0.01s)
+=== RUN   TestCPMRuntimeOrdinaryCLI
+    cpm_runtime_test.go:103: COM 524 bytes, BDOS chars12, resident stack touched≤19 bytes
+--- PASS: TestCPMRuntimeOrdinaryCLI (0.03s)
+=== RUN   TestCPMRuntimeRejectsUnsupported
+--- PASS: TestCPMRuntimeRejectsUnsupported (0.00s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	0.054s

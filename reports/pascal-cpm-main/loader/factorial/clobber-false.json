@@ -1,0 +1,20 @@
+{
+  "BDOS9_reads": [],
+  "cycles": 1642,
+  "done": true,
+  "expected": "5040\r\n",
+  "min_sp": 65006,
+  "registers": {
+    "A": 48,
+    "F": 32,
+    "BC": 2,
+    "DE": 266,
+    "HL": 0,
+    "IX": 0,
+    "IY": 0,
+    "SP": 65022,
+    "PC": 262
+  },
+  "stdout": "5040\r\n",
+  "unexpected_RAM_changes": []
+}

@@ -1,0 +1,16 @@
+[
+  "/mnt/safe/minz/grace/2026-10-12/pascal-cpm-main/executables/minzc",
+  "examples/pascal/hello.pas",
+  "-t",
+  "cpm",
+  "--runtime",
+  "cpm",
+  "--runtime-stack",
+  "1024",
+  "--asserts",
+  "none",
+  "--grace",
+  "--hir-grace",
+  "-o",
+  "reports/pascal-cpm-main/cli/grace-speed/hello.com"
+]

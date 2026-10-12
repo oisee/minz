@@ -1,0 +1,22 @@
+=== RUN   TestPascalHelloProductionCPM
+=== RUN   TestPascalHelloProductionCPM/ordinary
+=== RUN   TestPascalHelloProductionCPM/ordinary/hello
+    pascal_cpm_main_test.go:251: clobberfalse stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+    pascal_cpm_main_test.go:251: clobbertrue stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+=== RUN   TestPascalHelloProductionCPM/grace-size
+=== RUN   TestPascalHelloProductionCPM/grace-size/hello
+    pascal_cpm_main_test.go:251: clobberfalse stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+    pascal_cpm_main_test.go:251: clobbertrue stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+=== RUN   TestPascalHelloProductionCPM/grace-speed
+=== RUN   TestPascalHelloProductionCPM/grace-speed/hello
+    pascal_cpm_main_test.go:251: clobberfalse stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+    pascal_cpm_main_test.go:251: clobbertrue stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+--- PASS: TestPascalHelloProductionCPM (0.10s)
+    --- PASS: TestPascalHelloProductionCPM/ordinary (0.04s)
+        --- PASS: TestPascalHelloProductionCPM/ordinary/hello (0.04s)
+    --- PASS: TestPascalHelloProductionCPM/grace-size (0.02s)
+        --- PASS: TestPascalHelloProductionCPM/grace-size/hello (0.02s)
+    --- PASS: TestPascalHelloProductionCPM/grace-speed (0.04s)
+        --- PASS: TestPascalHelloProductionCPM/grace-speed/hello (0.04s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.133s

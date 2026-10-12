@@ -1,0 +1,82 @@
+=== RUN   TestOriginalImplCPMProductionMain
+=== RUN   TestOriginalImplCPMProductionMain/ordinary
+=== RUN   TestOriginalImplCPMProductionMain/ordinary/clobber-false
+=== RUN   TestOriginalImplCPMProductionMain/ordinary/clobber-true
+=== RUN   TestOriginalImplCPMProductionMain/grace-size
+=== RUN   TestOriginalImplCPMProductionMain/grace-size/clobber-false
+=== RUN   TestOriginalImplCPMProductionMain/grace-size/clobber-true
+=== RUN   TestOriginalImplCPMProductionMain/grace-speed
+=== RUN   TestOriginalImplCPMProductionMain/grace-speed/clobber-false
+=== RUN   TestOriginalImplCPMProductionMain/grace-speed/clobber-true
+--- PASS: TestOriginalImplCPMProductionMain (0.06s)
+    --- PASS: TestOriginalImplCPMProductionMain/ordinary (0.02s)
+        --- PASS: TestOriginalImplCPMProductionMain/ordinary/clobber-false (0.00s)
+        --- PASS: TestOriginalImplCPMProductionMain/ordinary/clobber-true (0.00s)
+    --- PASS: TestOriginalImplCPMProductionMain/grace-size (0.02s)
+        --- PASS: TestOriginalImplCPMProductionMain/grace-size/clobber-false (0.00s)
+        --- PASS: TestOriginalImplCPMProductionMain/grace-size/clobber-true (0.00s)
+    --- PASS: TestOriginalImplCPMProductionMain/grace-speed (0.02s)
+        --- PASS: TestOriginalImplCPMProductionMain/grace-speed/clobber-false (0.00s)
+        --- PASS: TestOriginalImplCPMProductionMain/grace-speed/clobber-true (0.00s)
+=== RUN   TestCPMRuntimeOriginalSelfLanzMain
+    original_lanz_main_test.go:324: resident stack touched 46 bytes
+    original_lanz_main_test.go:336: exact main 135 stdout bytes all regions/globals/stack guards PASS 419878 T BIN 3987 SHA de4d0cd1e8f1682c266d3732b3398b8a064b3e495b6f220fd8ab680aa18943fb
+--- PASS: TestCPMRuntimeOriginalSelfLanzMain (0.22s)
+=== RUN   TestCPMRuntimeOriginalTokenizerMain
+    original_tokenizer_main_test.go:350: resident stack touched 28 bytes
+    original_tokenizer_main_test.go:352: exact main 146 stdout bytes all regions/globals/stack guards PASS 228766 T BIN 5806 SHA 3e90128653482e55a1e0540277fed123a0d0ae0d3186f951b6f4ec8b981e0c41
+--- PASS: TestCPMRuntimeOriginalTokenizerMain (1.26s)
+=== RUN   TestPascalCPMAdapterNearMisses
+=== RUN   TestPascalCPMAdapterNearMisses/wrong_BDOS
+=== RUN   TestPascalCPMAdapterNearMisses/extra_call
+=== RUN   TestPascalCPMAdapterNearMisses/wrong_input
+=== RUN   TestPascalCPMAdapterNearMisses/missing_clobber
+=== RUN   TestPascalCPMAdapterNearMisses/fake_label
+=== RUN   TestPascalCPMAdapterNearMisses/wrong_CR
+--- PASS: TestPascalCPMAdapterNearMisses (0.00s)
+    --- PASS: TestPascalCPMAdapterNearMisses/wrong_BDOS (0.00s)
+    --- PASS: TestPascalCPMAdapterNearMisses/extra_call (0.00s)
+    --- PASS: TestPascalCPMAdapterNearMisses/wrong_input (0.00s)
+    --- PASS: TestPascalCPMAdapterNearMisses/missing_clobber (0.00s)
+    --- PASS: TestPascalCPMAdapterNearMisses/fake_label (0.00s)
+    --- PASS: TestPascalCPMAdapterNearMisses/wrong_CR (0.00s)
+=== RUN   TestPascalHelloProductionCPM
+=== RUN   TestPascalHelloProductionCPM/ordinary
+=== RUN   TestPascalHelloProductionCPM/ordinary/hello
+    pascal_cpm_main_test.go:251: clobberfalse stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+    pascal_cpm_main_test.go:251: clobbertrue stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+=== RUN   TestPascalHelloProductionCPM/grace-size
+=== RUN   TestPascalHelloProductionCPM/grace-size/hello
+    pascal_cpm_main_test.go:251: clobberfalse stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+    pascal_cpm_main_test.go:251: clobbertrue stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+=== RUN   TestPascalHelloProductionCPM/grace-speed
+=== RUN   TestPascalHelloProductionCPM/grace-speed/hello
+    pascal_cpm_main_test.go:251: clobberfalse stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+    pascal_cpm_main_test.go:251: clobbertrue stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+--- PASS: TestPascalHelloProductionCPM (0.02s)
+    --- PASS: TestPascalHelloProductionCPM/ordinary (0.01s)
+        --- PASS: TestPascalHelloProductionCPM/ordinary/hello (0.01s)
+    --- PASS: TestPascalHelloProductionCPM/grace-size (0.01s)
+        --- PASS: TestPascalHelloProductionCPM/grace-size/hello (0.01s)
+    --- PASS: TestPascalHelloProductionCPM/grace-speed (0.01s)
+        --- PASS: TestPascalHelloProductionCPM/grace-speed/hello (0.01s)
+=== RUN   TestReadmeCPMWholeMain
+=== RUN   TestReadmeCPMWholeMain/hello_cpm
+=== RUN   TestReadmeCPMWholeMain/hello_cpm/ordinary
+=== RUN   TestReadmeCPMWholeMain/hello_cpm/grace-size
+=== RUN   TestReadmeCPMWholeMain/hello_cpm/grace-speed
+=== RUN   TestReadmeCPMWholeMain/hello_cpm_fib
+=== RUN   TestReadmeCPMWholeMain/hello_cpm_fib/ordinary
+=== RUN   TestReadmeCPMWholeMain/hello_cpm_fib/grace-size
+=== RUN   TestReadmeCPMWholeMain/hello_cpm_fib/grace-speed
+--- PASS: TestReadmeCPMWholeMain (0.09s)
+    --- PASS: TestReadmeCPMWholeMain/hello_cpm (0.03s)
+        --- PASS: TestReadmeCPMWholeMain/hello_cpm/ordinary (0.01s)
+        --- PASS: TestReadmeCPMWholeMain/hello_cpm/grace-size (0.01s)
+        --- PASS: TestReadmeCPMWholeMain/hello_cpm/grace-speed (0.01s)
+    --- PASS: TestReadmeCPMWholeMain/hello_cpm_fib (0.06s)
+        --- PASS: TestReadmeCPMWholeMain/hello_cpm_fib/ordinary (0.02s)
+        --- PASS: TestReadmeCPMWholeMain/hello_cpm_fib/grace-size (0.02s)
+        --- PASS: TestReadmeCPMWholeMain/hello_cpm_fib/grace-speed (0.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.659s

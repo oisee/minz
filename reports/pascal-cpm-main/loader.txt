@@ -1,0 +1,12 @@
+=== RUN   TestPascalWholeMainCPMLoaderObservation
+=== RUN   TestPascalWholeMainCPMLoaderObservation/hello
+    pascal_cpm_main_test.go:186: clobberfalse stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfdfe
+    pascal_cpm_main_test.go:186: clobbertrue stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfdfe
+=== RUN   TestPascalWholeMainCPMLoaderObservation/factorial
+    pascal_cpm_main_test.go:186: clobberfalse stdout"5040\r\n" expected"5040\r\n" donetrue SPfdfe
+    pascal_cpm_main_test.go:186: clobbertrue stdout"5040\r\n" expected"5040\r\n" donetrue SPfdfe
+--- PASS: TestPascalWholeMainCPMLoaderObservation (0.07s)
+    --- PASS: TestPascalWholeMainCPMLoaderObservation/hello (0.02s)
+    --- PASS: TestPascalWholeMainCPMLoaderObservation/factorial (0.05s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.078s
