@@ -1,0 +1,41 @@
+; MIR2 module: grace_measure.nanz
+fun @swap_nibbles(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    asm "RLCA\n    RLCA\n    RLCA\n    RLCA"
+    ret %r1
+
+fun @rol1(%r2: u8 [acc]) -> u8 [acc]
+  block @entry:
+    asm "RLCA"
+    ret %r2
+
+fun @rol3(%r3: u8 [acc]) -> u8 [acc]
+  block @entry:
+    asm "RLCA\n    RLCA\n    RLCA"
+    ret %r3
+
+fun @high_nibble(%r4: u8 [acc]) -> u8 [acc]
+  block @entry:
+    asm "RLCA\n    RLCA\n    RLCA\n    RLCA\n    AND 0x0F"
+    ret %r4
+
+fun @low_nibble(%r5: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r6 = const 15 : u8 [general]
+    %r7 = and %r5, %r6 : u8 [acc]
+    ret %r7
+
+fun @main()
+  block @entry:
+    %r8 = const 171 : u8 [acc]
+    %r9 = call @swap_nibbles(%r8) : u8 [acc]
+    %r10 = move %r9 : u8 [acc]
+    call @@mir.io.print.u8(%r10)
+    %r11 = const 171 : u8 [acc]
+    %r12 = call @high_nibble(%r11) : u8 [acc]
+    %r13 = move %r12 : u8 [acc]
+    call @@mir.io.print.u8(%r13)
+    %r14 = const 11 : u8 [acc]
+    call @@mir.io.print.u8(%r14)
+    ret void
+

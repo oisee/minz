@@ -1,0 +1,5 @@
+; fun test_eq() ; clobbers: F
+test_eq:
+    LD L, 1
+    LD A, L
+    RET

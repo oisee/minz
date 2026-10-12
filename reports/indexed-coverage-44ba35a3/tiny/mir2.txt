@@ -1,0 +1,17 @@
+; MIR2 module: grace_measure.nanz
+fun @add(%r1: u8 [acc], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = add %r1, %r2 : u8 [acc]
+    ret %r3
+
+fun @double(%r4: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r5 = add %r4, %r4 : u8 [acc]
+    ret %r5
+
+fun @triple(%r6: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r7 = add %r6, %r6 : u8 [acc]
+    %r8 = add %r7, %r6 : u8 [acc]
+    ret %r8
+

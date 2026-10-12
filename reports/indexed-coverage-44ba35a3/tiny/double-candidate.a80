@@ -1,0 +1,4 @@
+; fun double() ; clobbers: F
+double:
+    ADD A, A
+    RET

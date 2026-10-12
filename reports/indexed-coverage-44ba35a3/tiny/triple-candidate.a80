@@ -1,0 +1,6 @@
+; fun triple() ; clobbers: F
+triple:
+    LD L, A
+    ADD A, A
+    ADD A, L
+    RET

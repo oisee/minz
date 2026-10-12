@@ -1,0 +1,16 @@
+; MIR2 module: grace_measure.nanz
+fun @weighted(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = const 1 : u8 [general]
+    %r3 = add %r1, %r1 : u8 [acc]
+    %r4 = add %r3, %r1 : u8 [acc]
+    %r5 = add %r4, %r1 : u8 [acc]
+    %r6 = add %r5, %r1 : u8 [acc]
+    %r7 = add %r6, %r1 : u8 [acc]
+    %r8 = add %r7, %r1 : u8 [acc]
+    %r9 = add %r8, %r1 : u8 [acc]
+    %r10 = add %r9, %r1 : u8 [acc]
+    %r11 = add %r10, %r1 : u8 [acc]
+    %r12 = add %r11, %r2 : u8 [acc]
+    ret %r12
+

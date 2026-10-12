@@ -1,0 +1,4 @@
+; fun add() ; clobbers: F
+add:
+    ADD A, C
+    RET

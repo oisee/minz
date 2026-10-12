@@ -1,0 +1,50 @@
+; MIR2 module: grace_measure.nanz
+fun @sar(%r1: i8 [general], %r2: u8 [general]) -> i8 [acc]
+  block @entry:
+    %r3 = sar %r1, %r2 : i8 [general]
+    ret %r3
+
+fun @sar16(%r4: i16 [pointer], %r5: u8 [general]) -> i16 [pointer]
+  block @entry:
+    %r6 = ext %r5 : u8 -> i16 [pointer]
+    %r7 = sar %r4, %r6 : i16 [pointer]
+    ret %r7
+
+fun @sar_one(%r8: i8 [general]) -> i8 [acc]
+  block @entry:
+    %r9 = const 1 : u8 [general]
+    %r10 = sar %r8, %r9 : i8 [general]
+    ret %r10
+
+fun @quotient(%r11: i8 [general], %r12: i8 [general]) -> i8 [acc]
+  block @entry:
+    %r13 = sdiv %r11, %r12 : i8 [general]
+    ret %r13
+
+fun @remainder(%r14: i8 [general], %r15: i8 [general]) -> i8 [acc]
+  block @entry:
+    %r16 = smod %r14, %r15 : i8 [general]
+    ret %r16
+
+fun @div_two(%r17: i8 [general]) -> i8 [acc]
+  block @entry:
+    %r18 = const 2 : u8 [general]
+    %r19 = sdiv %r17, %r18 : i8 [general]
+    ret %r19
+
+fun @mod_two(%r20: i8 [general]) -> i8 [acc]
+  block @entry:
+    %r21 = const 2 : u8 [general]
+    %r22 = smod %r20, %r21 : i8 [general]
+    ret %r22
+
+fun @widen(%r23: i8 [general]) -> i16 [pointer]
+  block @entry:
+    %r24 = sext %r23 : i8 -> i16 [pointer]
+    ret %r24
+
+fun @logical(%r25: u8 [general], %r26: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r27 = shr %r25, %r26 : u8 [general]
+    ret %r27
+

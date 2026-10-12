@@ -1,0 +1,14 @@
+; fun weighted() ; clobbers: F
+weighted:
+    LD C, A
+    ADD A, A
+    ADD A, C
+    ADD A, C
+    ADD A, C
+    ADD A, C
+    ADD A, C
+    ADD A, C
+    ADD A, C
+    ADD A, C
+    INC A
+    RET
