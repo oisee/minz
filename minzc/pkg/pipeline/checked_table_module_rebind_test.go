@@ -41,7 +41,7 @@ func TestCheckedTableModuleRelocationRequiresReadmission(t *testing.T) {
 	if err := table.Load(path); err != nil {
 		t.Fatal(err)
 	}
-	assignment, oldCost, ok := table.LookupChecked(old.Ops, vir.Z80, old.Options)
+	_, oldCost, ok := table.LookupChecked(old.Ops, vir.Z80, old.Options)
 	if !ok {
 		t.Fatal("original certificate missing")
 	}
@@ -68,18 +68,20 @@ func TestCheckedTableModuleRelocationRequiresReadmission(t *testing.T) {
 	if len(before) != len(after) || before[0] == after[0] {
 		t.Fatal("fixture did not relocate vregs", before, after)
 	}
-	proposal := map[int]int{}
-	for i, v := range before {
-		proposal[after[i]] = assignment[v]
+	var readmitted vir.RegAllocTable
+	readmitted.Init()
+	if _, err := table.ReadmitCheckedCandidates(current, &readmitted, 0); err == nil {
+		t.Fatal("invalid bound admitted")
 	}
-	if err := table.AddChecked(current.Ops, proposal, vir.Z80, current.Options); err != nil {
-		t.Fatal(err)
+	count, err := table.ReadmitCheckedCandidates(current, &readmitted, 1)
+	if err != nil || count != 1 {
+		t.Fatal("readmission failed", count, err)
 	}
-	_, newCost, ok := table.LookupChecked(current.Ops, vir.Z80, current.Options)
+	_, newCost, ok := readmitted.LookupChecked(current.Ops, vir.Z80, current.Options)
 	if !ok || newCost != oldCost {
 		t.Fatal("readmission changed cost", oldCost, newCost, ok)
 	}
-	if err := table.Save(path); err != nil {
+	if err := readmitted.Save(path); err != nil {
 		t.Fatal(err)
 	}
 	selected, err := CompileHIRSteps(graceMeasureParse(t, jointSource+checkedTableSource), Options{OptSize: true, AssertMode: "none", CheckedLocalTablePath: path})

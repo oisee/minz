@@ -1,0 +1,9 @@
+{
+  "reports/table-readmission-api/vir-full.txt": "cfeca5e6b155d04d59b252e620d389a6bb99102837a3f833c2340da6e0e0f7de",
+  "reports/table-readmission-api/controls.txt": "bf199420a439b0c7d1b37ff487ae5d5bb5b4a2a8e50db8173333b9e7b1d10251",
+  "reports/table-readmission-api/README.md": "46a6798a7c0ece455101b2b2671ef21671789c7939b62bc75f3776437b20c3ff",
+  "reports/table-readmission-api/native.txt": "7be00f902b2a0f6ebce563fa3a4f048577c104b98ca9d7bac506634884f39428",
+  "minzc/pkg/vir/table_readmission.go": "d618cba4ab519c91da49fba7f3629f68d634d2927a3666ed912f491cec6ee2e2",
+  "minzc/pkg/vir/table_readmission_test.go": "b7224c7f96959685e280e1d8b466e6e6b86716c65c02b914be90d5d8108c9c5d",
+  "minzc/pkg/pipeline/checked_table_module_rebind_test.go": "a8b0ed5f4262f7882aaf3cde6ddfeae283ef824591da59dedbd6cf54455fab80"
+}
