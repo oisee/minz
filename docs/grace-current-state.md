@@ -1,5 +1,7 @@
 # Grace / PGO: текущее состояние
 
+PFCCO arena repair интегрирован4e70ff9e: root arena/heldout/arrayVMZ80 **PASS1,565с**,1130→1122B иsplit220→166T. [Пакет306](grace-integration-306/README.md). FullrootMIR повторяется; NCnative покаFAIL.
+
 NC diagnosis уточнён: цикл вызван ROM-защитой стенда, tailcallreset также требовал точного разрешения. После коррекции main возвращается, но native output mismatch остаётся (blank вместо H). [Пакет305](grace-integration-305/README.md). NC nativeнеобъявленPASS.
 
 Full HIR/MIR0597fc9b PASS25,602/78,620с. NC native wholemain новый executionFAIL: неверное выделение и зацикливание; VMPASS не даёт nativeadmission. [Пакет304](grace-integration-304/README.md). PFCCO arena repair actualnativePASS у donor, root ещё не интегрирован.

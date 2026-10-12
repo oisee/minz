@@ -1,0 +1,59 @@
+=== RUN   TestLocalArrayLoopPointerWidthVMZ80
+=== RUN   TestLocalArrayLoopPointerWidthVMZ80/n0/gracefalse
+=== RUN   TestLocalArrayLoopPointerWidthVMZ80/n0/gracetrue
+=== RUN   TestLocalArrayLoopPointerWidthVMZ80/n1/gracefalse
+=== RUN   TestLocalArrayLoopPointerWidthVMZ80/n1/gracetrue
+=== RUN   TestLocalArrayLoopPointerWidthVMZ80/n2/gracefalse
+=== RUN   TestLocalArrayLoopPointerWidthVMZ80/n2/gracetrue
+=== RUN   TestLocalArrayLoopPointerWidthVMZ80/n3/gracefalse
+=== RUN   TestLocalArrayLoopPointerWidthVMZ80/n3/gracetrue
+--- PASS: TestLocalArrayLoopPointerWidthVMZ80 (0.05s)
+    --- PASS: TestLocalArrayLoopPointerWidthVMZ80/n0/gracefalse (0.01s)
+    --- PASS: TestLocalArrayLoopPointerWidthVMZ80/n0/gracetrue (0.01s)
+    --- PASS: TestLocalArrayLoopPointerWidthVMZ80/n1/gracefalse (0.01s)
+    --- PASS: TestLocalArrayLoopPointerWidthVMZ80/n1/gracetrue (0.01s)
+    --- PASS: TestLocalArrayLoopPointerWidthVMZ80/n2/gracefalse (0.01s)
+    --- PASS: TestLocalArrayLoopPointerWidthVMZ80/n2/gracetrue (0.01s)
+    --- PASS: TestLocalArrayLoopPointerWidthVMZ80/n3/gracefalse (0.01s)
+    --- PASS: TestLocalArrayLoopPointerWidthVMZ80/n3/gracetrue (0.01s)
+=== RUN   TestPFCCOExistingArenaNativeConsumer
+    pfcco_arena_native_test.go:121: strategy="" test_alloc_sequence 2196T return0000
+    pfcco_arena_native_test.go:121: strategy="" test_oom 1431T return0000
+    pfcco_arena_native_test.go:121: strategy="" test_small_allocs 1897T return0000
+    pfcco_arena_native_test.go:121: strategy="" test_sizeof 20T return0000
+    pfcco_arena_native_test.go:121: strategy="" test_split 3906T return0000
+    pfcco_arena_native_test.go:121: strategy="" test_typed_alloc 1609T return0000
+    pfcco_arena_native_test.go:121: strategy="" init_frame 375T return3f00
+    pfcco_arena_native_test.go:121: strategy="" alloc_and_check 455T return0000
+    pfcco_arena_native_test.go:121: strategy="" alloc_and_check 455T return0000
+    pfcco_arena_native_test.go:121: strategy="" alloc_and_check 455T return0000
+    pfcco_arena_native_test.go:121: strategy="" get_remaining 241T return3e40
+    pfcco_arena_native_test.go:195: strategy="" arena_split independent100boundarypairs 220T actual pointer/word ABI and4memorybytes PASS
+    pfcco_arena_native_test.go:121: strategy="pbqp" test_alloc_sequence 2196T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" test_oom 1431T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" test_small_allocs 1897T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" test_sizeof 20T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" test_split 3766T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" test_typed_alloc 1609T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" init_frame 375T return3f00
+    pfcco_arena_native_test.go:121: strategy="pbqp" alloc_and_check 455T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" alloc_and_check 455T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" alloc_and_check 455T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" get_remaining 241T return3e40
+    pfcco_arena_native_test.go:195: strategy="pbqp" arena_split independent100boundarypairs 166T actual pointer/word ABI and4memorybytes PASS
+    pfcco_arena_native_test.go:212: exact arena source BIN1130→1122B sum11calls13040→12900T
+--- PASS: TestPFCCOExistingArenaNativeConsumer (0.11s)
+=== RUN   TestPFCCOProspectiveHeldout
+    pfcco_prospective_heldout_test.go:119: speed mask0: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask1: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask2: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask3: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:153: speed selected1 heldout 5568 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask0: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask1: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask2: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask3: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:153: size selected0 heldout 6252 T / 52 B
+--- PASS: TestPFCCOProspectiveHeldout (1.40s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.565s
