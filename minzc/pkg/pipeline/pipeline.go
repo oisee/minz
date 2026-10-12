@@ -168,8 +168,8 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	if opt.Runtime != "" && (opt.Runtime != mir2.Z80RuntimeCPM || hm.Target != hir.TargetCPM || opt.Backend != "" && opt.Backend != "z80" || opt.ProfileSelection != nil || opt.SkipZ80Emission) {
 		return s, fmt.Errorf("CP/M runtime requires emitted CPM Z80 without measured profile selection")
 	}
-	if opt.CheckedLocalTablePath != "" && (!opt.OptSize || opt.Backend != "" && opt.Backend != "z80" || opt.SkipZ80Emission || opt.ProfileSelection != nil) {
-		return s, fmt.Errorf("checked local tables require emitted Z80 OptSize without PGO")
+	if opt.CheckedLocalTablePath != "" && (!opt.OptSize || opt.Backend != "" && opt.Backend != "z80" || opt.SkipZ80Emission || opt.ProfileSelection != nil && opt.CheckedLocalTableSHA256 == "") {
+		return s, fmt.Errorf("checked local tables require emitted Z80 OptSize and a content pin for PGO")
 	}
 	s.UnsignedPairComparePolicy = policy
 	s.Traces = make(map[string]*FuncTrace)
@@ -534,7 +534,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	if err := mir2.ValidateCPMRuntimeStack(opts.Runtime, opts.RuntimeStackBytes); err != nil {
 		return "", err
 	}
-	if opts.UseGrace || opts.Runtime != "" {
+	if opts.UseGrace || opts.Runtime != "" || opts.ProfileSelection != nil {
 		steps, err := CompileHIRSteps(hm, opts)
 		return steps.Assembly, err
 	}
@@ -660,8 +660,8 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	}
 
 	if opts.CheckedLocalTablePath != "" {
-		if !opts.OptSize || opts.Backend != "" && opts.Backend != "z80" || opts.ProfileSelection != nil {
-			return "", fmt.Errorf("checked local tables require Z80 OptSize without PGO")
+		if !opts.OptSize || opts.Backend != "" && opts.Backend != "z80" || opts.ProfileSelection != nil && opts.CheckedLocalTableSHA256 == "" {
+			return "", fmt.Errorf("checked local tables require Z80 OptSize and a content pin for PGO")
 		}
 		asm, err = applyCheckedLocalTables(asm, m, combined, opts, nil)
 		if err != nil {

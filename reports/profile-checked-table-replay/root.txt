@@ -1,0 +1,5 @@
+=== RUN   TestProfilePinnedCheckedTableMeasuredReplay
+    profile_checked_table_test.go:143: 1022 measured cases; Size replay retains original loop and checked add5; relocation/mutation controls and native inputs PASS
+--- PASS: TestProfilePinnedCheckedTableMeasuredReplay (8.20s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	8.243s

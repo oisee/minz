@@ -1,0 +1,20 @@
+=== RUN   TestCheckedLocalTableOrdinaryHIRSelectsSmallerNativeFunction
+    checked_local_tables_test.go:110: ordinary add5 all 256 byte inputs: module 8→6 bytes fixture 56→49 T; result/SP pass
+--- PASS: TestCheckedLocalTableOrdinaryHIRSelectsSmallerNativeFunction (0.07s)
+=== RUN   TestCheckedLocalTableTamperFallsBackAndProfileRefuses
+--- PASS: TestCheckedLocalTableTamperFallsBackAndProfileRefuses (0.00s)
+=== RUN   TestCheckedTablePinnedSnapshotNative
+    checked_table_snapshot_test.go:70: pinned native256, relocation, content mutation, malformed/orphan pins and unpinned fallback PASS
+--- PASS: TestCheckedTablePinnedSnapshotNative (0.04s)
+=== RUN   TestContractStrategyPinnedNativeSource
+    contract_strategy_native_test.go:136: strategy="" full-source 87387 T/63 B
+    contract_strategy_native_test.go:136: strategy="pbqp" full-source 85343 T/61 B
+--- PASS: TestContractStrategyPinnedNativeSource (0.05s)
+=== RUN   TestContractStrategyLiteralRHSNativeSource
+    contract_strategy_native_test.go:136: strategy="" full-source 84327 T/60 B
+    contract_strategy_native_test.go:136: strategy="pbqp" full-source 82283 T/58 B
+--- PASS: TestContractStrategyLiteralRHSNativeSource (0.06s)
+=== RUN   TestContractStrategyAdmissionAndIdentity
+--- PASS: TestContractStrategyAdmissionAndIdentity (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.234s

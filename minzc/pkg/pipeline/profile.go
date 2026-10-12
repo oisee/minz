@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/vir"
+	"strings"
 )
 
 // ProfileSelection supplies observations, workload and independently measured
@@ -30,7 +32,27 @@ func ProfileCompilationID(options Options, mode string) (string, error) {
 		return "", fmt.Errorf("PGO: application runtimes are unsupported by the measured workload model")
 	}
 	if options.CheckedLocalTablePath != "" {
-		return "", fmt.Errorf("PGO: external local tables are not bound by profile evidence")
+		if options.CheckedLocalTableSHA256 == "" {
+			return "", fmt.Errorf("PGO: external local tables require a content pin")
+		}
+		if !options.OptSize || options.SkipZ80Emission || options.Backend != "" && options.Backend != "z80" {
+			return "", fmt.Errorf("PGO: checked local tables require emitted Z80 OptSize")
+		}
+		data, err := readCheckedLocalTableSnapshot(options)
+		if err != nil {
+			return "", err
+		}
+		var table vir.RegAllocTable
+		table.Init()
+		if err := table.LoadJSON(data); err != nil {
+			return "", fmt.Errorf("PGO: checked local table: %w", err)
+		}
+		// Identity binds exact bytes, not a machine-specific filename. Each compile
+		// verifies the pin again before decoding its one selection snapshot.
+		options.CheckedLocalTablePath = "sha256:" + strings.ToLower(options.CheckedLocalTableSHA256)
+		options.CheckedLocalTableSHA256 = strings.ToLower(options.CheckedLocalTableSHA256)
+	} else if options.CheckedLocalTableSHA256 != "" {
+		return "", fmt.Errorf("PGO: table SHA256 requires a path")
 	}
 	if mode != "default" {
 		return "", fmt.Errorf("PGO: unsupported assembler configuration")

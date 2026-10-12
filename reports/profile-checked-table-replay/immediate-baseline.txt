@@ -1,0 +1,18 @@
+=== RUN   TestProfileGuidedSumVMZ80
+    profile_guided_sum_test.go:184: original n=0 result=0 T-states=69 module_bytes=201
+    profile_guided_sum_test.go:184: original n=1 result=1 T-states=260 module_bytes=201
+    profile_guided_sum_test.go:184: original n=5 result=15 T-states=1024 module_bytes=201
+    profile_guided_sum_test.go:184: original n=16 result=136 T-states=3125 module_bytes=201
+    profile_guided_sum_test.go:184: original n=64 result=32 T-states=12293 module_bytes=201
+    profile_guided_sum_test.go:184: original n=255 result=128 T-states=48774 module_bytes=201
+    profile_guided_sum_test.go:180: cost model disproved: pointer-walk n=0 got=232/251 expected=262/262
+--- FAIL: TestProfileGuidedSumVMZ80 (0.48s)
+=== RUN   TestMeasureLoopCostModel
+    profile_measure_test.go:56: independent ASM cost disagrees: {N:0 Base:16384 Path:fast Original:69 Pointer:232 Result:0 OriginalExecutionSHA256:342de306573872b521e2d544982c8c74556f61fbb69cc702894b6a56b051389c PointerExecutionSHA256:064b2db7987a4d333ace4a788f7452214fe4c6d775fcb938dc747d2d86fe6cc1} want 69/262
+--- FAIL: TestMeasureLoopCostModel (20.09s)
+=== RUN   TestMultiFunctionProfileVMZ80
+    profile_test.go:109: long_sum cycles=1436 want=1455
+--- FAIL: TestMultiFunctionProfileVMZ80 (0.14s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	20.715s
+FAIL
