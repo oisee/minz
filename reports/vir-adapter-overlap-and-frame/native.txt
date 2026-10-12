@@ -1,0 +1,31 @@
+=== RUN   TestAdapterRejectsOverlappingParameterABI
+=== RUN   TestAdapterRejectsOverlappingParameterABI/unchanged_destination
+=== RUN   TestAdapterRejectsOverlappingParameterABI/caller_alias
+--- PASS: TestAdapterRejectsOverlappingParameterABI (0.00s)
+    --- PASS: TestAdapterRejectsOverlappingParameterABI/unchanged_destination (0.00s)
+    --- PASS: TestAdapterRejectsOverlappingParameterABI/caller_alias (0.00s)
+=== RUN   TestAdapterRejectsContradictoryMoves
+--- PASS: TestAdapterRejectsContradictoryMoves (0.00s)
+=== RUN   TestAdapterThreeCycleNative
+--- PASS: TestAdapterThreeCycleNative (0.02s)
+=== RUN   TestAdapterWordPairCycleNative
+--- PASS: TestAdapterWordPairCycleNative (0.01s)
+=== RUN   TestAdapterAllBytePermutationsNative
+--- PASS: TestAdapterAllBytePermutationsNative (0.11s)
+=== RUN   TestAdapterPrefixAndPairCopiesNative
+--- PASS: TestAdapterPrefixAndPairCopiesNative (0.04s)
+=== RUN   TestAdapterDenseCycleNative
+    adapter_parallel_native_test.go:209: 65536 dense cycles: full register state and all-RAM write footprint confined to 24-byte frame; code and return address unchanged
+--- PASS: TestAdapterDenseCycleNative (0.11s)
+=== RUN   TestStackAdapterMixedWidthsNative
+--- PASS: TestStackAdapterMixedWidthsNative (0.10s)
+=== RUN   TestLinearWordParamEntryFullDomainNative
+--- PASS: TestLinearWordParamEntryFullDomainNative (0.05s)
+=== RUN   TestAdapterEntryRejectsInvalidABI
+--- PASS: TestAdapterEntryRejectsInvalidABI (0.00s)
+=== RUN   TestCodegenGlobalParamLocsNative
+[regalloc] loaded 56 exhaustive entries from regalloc_exhaustive.json
+[vir] double_word: constrained unsat, using standalone+adapter (1 adapters)
+--- PASS: TestCodegenGlobalParamLocsNative (0.04s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.495s

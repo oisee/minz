@@ -1,0 +1,7 @@
+# Adapter destination and frame contracts
+
+Independent function arguments must have disjoint caller and standalone locations, including arguments already in the correct location. Previous emission admitted HL plus H and overwrote an unchanged word argument. Generic parallel and stack emitters now reject overlapping destinations and invalid physical locations before emitting instructions. Overlapping sources remain supported by the stack helper (HL→BC, B→H, C→L). Compatible duplicate destinations are conservatively rejected; no general byte-equivalence proof is implemented.
+
+Permanent negative tests reproduce prior admission of overlapping HL/H destinations and IX/IXH caller arguments. Native dense cycle covers 65536 x/y inputs with four derived bytes, exact register/flag/PC/SP state. A profiler aggregates every observed writable-RAM write across those executions: writes stay inside the two 12-byte frames; every frame byte is exercised. Final full-memory snapshot also confirms no changes outside that frame, including emitted code and return address. Emulator addresses below 0x4000 retain default ROM protection; this is not proof of writes attempted into ROM, arbitrary SP values, stack capacity, or all destination maps.
+
+Adapter/parameter native family PASS 0.495s before final log wording correction. Broader actual-Z3 assert/codegen/indexed/island/native family PASS 6.792s includes the final test. Original semantic expectations are unchanged. Production cbf01110 is still live; research ced33bd1 completed separately and predates this patch.

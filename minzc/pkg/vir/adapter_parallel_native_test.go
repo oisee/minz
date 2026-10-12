@@ -157,9 +157,18 @@ func TestAdapterDenseCycleNative(t *testing.T) {
 		t.Fatalf("assembly %v %v", err, ar.Errors)
 	}
 	z := emulator.NewRemogattoZ80()
+	for addr := 0; addr < 65536; addr++ {
+		z.SetMemory(uint16(addr), byte(addr*37+19))
+	}
 	if err := z.LoadMemory(0x8000, ar.Binary); err != nil {
 		t.Fatal(err)
 	}
+	if err := z.LoadMemory(0xeffe, []byte{0, 0xf1}); err != nil {
+		t.Fatal(err)
+	}
+	before := append([]byte(nil), z.Memory()...)
+	profiler := emulator.NewProfiler()
+	z.SetProfiler(profiler)
 	for x := 0; x < 256; x++ {
 		for y := 0; y < 256; y++ {
 			v := [6]byte{byte(x), byte(y), byte(x*3 + y*7), byte(x*5 + y*11), byte(x*13 + y*17), byte(x*19 + y*23)}
@@ -185,6 +194,19 @@ func TestAdapterDenseCycleNative(t *testing.T) {
 			}
 		}
 	}
+	for addr := 0; addr < 65536; addr++ {
+		// Exactly two six-word frames below the original return address.
+		if addr >= 0xeffe-24 && addr < 0xeffe {
+			if profiler.WriteCount[addr] == 0 {
+				t.Fatalf("frame byte %04x never exercised", addr)
+			}
+			continue
+		}
+		if profiler.WriteCount[addr] != 0 || z.GetMemory(uint16(addr)) != before[addr] {
+			t.Fatalf("write outside adapter frame at %04x: writes=%d before=%02x after=%02x", addr, profiler.WriteCount[addr], before[addr], z.GetMemory(uint16(addr)))
+		}
+	}
+	t.Log("65536 dense cycles: full register state and writable-RAM write footprint confined to 24-byte frame; code and return address unchanged")
 }
 
 func TestStackAdapterMixedWidthsNative(t *testing.T) {

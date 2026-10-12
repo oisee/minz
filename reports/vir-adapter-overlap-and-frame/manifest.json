@@ -1,0 +1,20 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "1001dd2115818f7543bd92eb91ba76e81ed60773081f689384484a10affdbeaa"
+    },
+    {
+      "path": "before.txt",
+      "sha256": "3fcd394a419dfed6e050f1e0d07b99e713b91c0555e0146743b921949593b9de"
+    },
+    {
+      "path": "family.txt",
+      "sha256": "7064c3e1576eb986f9ae3c313d03ac7b313961043a221f6ac2bfcf66e2a11503"
+    },
+    {
+      "path": "native.txt",
+      "sha256": "9bd919de2dfbf2ecce069ffab9e4b3f8537c9dc5ce8fea2e344b315167338281"
+    }
+  ]
+}

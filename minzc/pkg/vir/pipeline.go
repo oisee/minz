@@ -918,6 +918,9 @@ func emitAdapterMove(from, to Loc) []string {
 }
 
 func resolveParallelMoves(moves []adapterMove, desc *MachineDesc) []string {
+	if err := validateAdapterDestinations(moves, desc); err != nil {
+		return []string{"ERROR " + err.Error()}
+	}
 	pending := append([]adapterMove(nil), moves...)
 	var result []string
 	for len(pending) > 0 {
@@ -1013,6 +1016,9 @@ func resolveParallelMoves(moves []adapterMove, desc *MachineDesc) []string {
 // Two identical frames preserve original registers and accumulate destinations.
 // Frame byte layout matches Z80 little-endian PUSH words, including AF flags.
 func emitStackAdapter(moves []adapterMove, desc *MachineDesc) []string {
+	if err := validateAdapterDestinations(moves, desc); err != nil {
+		return []string{"ERROR " + err.Error()}
+	}
 	bytes := map[string][]int{
 		"A": {1}, "F": {0}, "B": {3}, "C": {2}, "D": {5}, "E": {4}, "H": {7}, "L": {6},
 		"BC": {2, 3}, "DE": {4, 5}, "HL": {6, 7}, "IX": {8, 9}, "IY": {10, 11},
@@ -1053,6 +1059,7 @@ func emitStackAdapter(moves []adapterMove, desc *MachineDesc) []string {
 // from caller's convention (callerLocs) to standalone solver's convention (standLocs).
 func emitAdapterEntry(asm string, f *mir2.Func, callerLocs, standLocs map[int]int, desc *MachineDesc) (string, error) {
 	var moves []adapterMove
+	var inputs, outputs []int
 	for _, cp := range f.Contract.Params {
 		vreg := int(cp.Reg)
 		callerPhys, cOK := callerLocs[vreg]
@@ -1071,6 +1078,13 @@ func emitAdapterEntry(asm string, f *mir2.Func, callerLocs, standLocs map[int]in
 				return "", fmt.Errorf("adapter parameter width mismatch for v%d", vreg)
 			}
 		}
+		for i := range inputs {
+			if locsOverlap(desc, inputs[i], callerPhys) || locsOverlap(desc, outputs[i], standPhys) {
+				return "", fmt.Errorf("adapter overlapping independent parameter locations for v%d", vreg)
+			}
+		}
+		inputs = append(inputs, callerPhys)
+		outputs = append(outputs, standPhys)
 		if callerPhys != standPhys {
 			moves = append(moves, adapterMove{callerPhys, standPhys})
 		}
@@ -1124,6 +1138,25 @@ func emitAdapterEntry(asm string, f *mir2.Func, callerLocs, standLocs map[int]in
 		fmt.Fprintf(os.Stderr, "[ADAPTER-ASM] %s:\n%s\n", f.Name, fixed)
 	}
 	return fixed, nil
+}
+
+// Independent assignments may read overlapping sources, but cannot demand
+// different values in the same physical destination byte. Reject such maps
+// before emitting any instructions, including in the direct stack helper.
+func validateAdapterDestinations(moves []adapterMove, desc *MachineDesc) error {
+	for i, mv := range moves {
+		for _, phys := range []int{mv.fromPhys, mv.toPhys} {
+			if phys < 0 || phys >= len(desc.Locs) || desc.NonAllocatable.Has(phys) {
+				return fmt.Errorf("adapter invalid move location %d", phys)
+			}
+		}
+		for _, earlier := range moves[:i] {
+			if locsOverlap(desc, earlier.toPhys, mv.toPhys) {
+				return fmt.Errorf("adapter overlapping destinations %s and %s", desc.Locs[earlier.toPhys].Name, desc.Locs[mv.toPhys].Name)
+			}
+		}
+	}
+	return nil
 }
 
 // emitRegMove generates Z80 instructions to move a value between physical locations.

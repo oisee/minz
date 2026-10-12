@@ -1,0 +1,10 @@
+--- FAIL: TestAdapterRejectsOverlappingParameterABI (0.00s)
+    --- FAIL: TestAdapterRejectsOverlappingParameterABI/unchanged_destination (0.00s)
+        adapter_overlap_test.go:17: overlapping independent arguments admitted: "probe:\n    ; adapter: caller→standalone convention\n    LD H, A\nRET\n\n" <nil>
+    --- FAIL: TestAdapterRejectsOverlappingParameterABI/caller_alias (0.00s)
+        adapter_overlap_test.go:17: overlapping independent arguments admitted: "probe:\n    ; adapter: caller→standalone convention\n    PUSH IX\n    POP HL\n    LD A, IXH\nRET\n\n" <nil>
+--- FAIL: TestAdapterRejectsContradictoryMoves (0.00s)
+    adapter_overlap_test.go:26: conflicting destination admitted: [PUSH HL POP BC LD B, A]
+FAIL
+FAIL	github.com/minz/minzc/pkg/vir	0.007s
+FAIL

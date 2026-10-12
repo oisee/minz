@@ -1,0 +1,14 @@
+{
+  "checkpoint": "ced33bd1",
+  "binary_sha256": "74f56ee6a8bd37857dfbbe3022a3dce9d13c08234a7d56a2b0669061091f947d",
+  "terminal": "PASS",
+  "process_handle": 3062732,
+  "process_missing_after_terminal": true,
+  "counts": {
+    "PASS": 123,
+    "FAIL": 0,
+    "SKIP": 4
+  },
+  "observed_at_utc": "2026-10-12T14:54:02.370101+00:00",
+  "scope": "Full research VIR suite; predates word/global ABI, dense stack and overlap/frame fixes. Corpus admission is not universal independent native proof."
+}
