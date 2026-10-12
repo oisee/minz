@@ -1,0 +1,262 @@
+--- before/pbqp
++++ after/pbqp
+@@ -2507,20 +2507,11 @@
+     LD A, 102
+     LD C, 110
+     ; genCall: str_alloc_2 dst=778
+-    PUSH AF
+-    EX AF, AF'
+-    POP AF
+-    EX AF, AF'
+-    PUSH AF
+-    EX AF, AF'
+-    LD A, C
+-    PUSH AF
+-    EX AF, AF'
+-    POP AF
+-    EX AF, AF'
+-    POP AF
+-    LD C, A
+-    EX AF, AF'
++    PUSH DE
++    LD D, A
++    LD A, C
++    LD C, D
++    POP DE
+     CALL str_alloc_2
+     LD D, H
+     LD E, L
+@@ -2532,20 +2523,11 @@
+     LD A, 105
+     LD C, 102
+     ; genCall: str_alloc_2 dst=782
+-    PUSH AF
+-    EX AF, AF'
+-    POP AF
+-    EX AF, AF'
+-    PUSH AF
+-    EX AF, AF'
+-    LD A, C
+-    PUSH AF
+-    EX AF, AF'
+-    POP AF
+-    EX AF, AF'
+-    POP AF
+-    LD C, A
+-    EX AF, AF'
++    PUSH DE
++    LD D, A
++    LD A, C
++    LD C, D
++    POP DE
+     CALL str_alloc_2
+     LD D, H
+     LD E, L
+@@ -2558,20 +2540,11 @@
+     LD C, 117
+     LD B, 110
+     ; genCall: str_alloc_3 dst=787
+-    PUSH AF
+-    EX AF, AF'
+-    POP AF
+-    EX AF, AF'
+-    PUSH AF
+-    EX AF, AF'
+-    LD A, C
+-    PUSH AF
+-    EX AF, AF'
+-    POP AF
+-    EX AF, AF'
+-    POP AF
+-    LD C, A
+-    EX AF, AF'
++    PUSH DE
++    LD D, A
++    LD A, C
++    LD C, D
++    POP DE
+     CALL str_alloc_3
+     LD D, H
+     LD E, L
+@@ -2584,20 +2557,11 @@
+     LD C, 101
+     LD B, 116
+     ; genCall: str_alloc_3 dst=792
+-    PUSH AF
+-    EX AF, AF'
+-    POP AF
+-    EX AF, AF'
+-    PUSH AF
+-    EX AF, AF'
+-    LD A, C
+-    PUSH AF
+-    EX AF, AF'
+-    POP AF
+-    EX AF, AF'
+-    POP AF
+-    LD C, A
+-    EX AF, AF'
++    PUSH DE
++    LD D, A
++    LD A, C
++    LD C, D
++    POP DE
+     CALL str_alloc_3
+     LD D, H
+     LD E, L
+@@ -2610,20 +2574,11 @@
+     LD C, 97
+     LD B, 114
+     ; genCall: str_alloc_3 dst=797
+-    PUSH AF
+-    EX AF, AF'
+-    POP AF
+-    EX AF, AF'
+-    PUSH AF
+-    EX AF, AF'
+-    LD A, C
+-    PUSH AF
+-    EX AF, AF'
+-    POP AF
+-    EX AF, AF'
+-    POP AF
+-    LD C, A
+-    EX AF, AF'
++    PUSH DE
++    LD D, A
++    LD A, C
++    LD C, D
++    POP DE
+     CALL str_alloc_3
+     LD D, H
+     LD E, L
+@@ -2638,20 +2593,11 @@
+     LD D, 101
+     ; genCall: str_alloc_4 dst=803
+     LD IXH, D
+-    PUSH AF
+-    EX AF, AF'
+-    POP AF
+-    EX AF, AF'
+-    PUSH AF
+-    EX AF, AF'
+-    LD A, C
+-    PUSH AF
+-    EX AF, AF'
+-    POP AF
+-    EX AF, AF'
+-    POP AF
+-    LD C, A
+-    EX AF, AF'
++    PUSH HL
++    LD H, A
++    LD A, C
++    LD C, H
++    POP HL
+     CALL str_alloc_4
+     LD D, H
+     LD E, L
+@@ -2666,20 +2612,11 @@
+     LD D, 109
+     ; genCall: str_alloc_4 dst=809
+     LD IXH, D
+-    PUSH AF
+-    EX AF, AF'
+-    POP AF
+-    EX AF, AF'
+-    PUSH AF
+-    EX AF, AF'
+-    LD A, C
+-    PUSH AF
+-    EX AF, AF'
+-    POP AF
+-    EX AF, AF'
+-    POP AF
+-    LD C, A
+-    EX AF, AF'
++    PUSH HL
++    LD H, A
++    LD A, C
++    LD C, H
++    POP HL
+     CALL str_alloc_4
+     LD D, H
+     LD E, L
+@@ -2694,20 +2631,11 @@
+     LD D, 101
+     ; genCall: str_alloc_4 dst=815
+     LD IXH, D
+-    PUSH AF
+-    EX AF, AF'
+-    POP AF
+-    EX AF, AF'
+-    PUSH AF
+-    EX AF, AF'
+-    LD A, C
+-    PUSH AF
+-    EX AF, AF'
+-    POP AF
+-    EX AF, AF'
+-    POP AF
+-    LD C, A
+-    EX AF, AF'
++    PUSH HL
++    LD H, A
++    LD A, C
++    LD C, H
++    POP HL
+     CALL str_alloc_4
+     LD D, H
+     LD E, L
+@@ -2724,20 +2652,11 @@
+     ; genCall: str_alloc_5 dst=822
+     LD IXH, D
+     LD IXL, E
+-    PUSH AF
+-    EX AF, AF'
+-    POP AF
+-    EX AF, AF'
+-    PUSH AF
+-    EX AF, AF'
+-    LD A, C
+-    PUSH AF
+-    EX AF, AF'
+-    POP AF
+-    EX AF, AF'
+-    POP AF
+-    LD C, A
+-    EX AF, AF'
++    PUSH HL
++    LD H, A
++    LD A, C
++    LD C, H
++    POP HL
+     CALL str_alloc_5
+     LD D, H
+     LD E, L
+@@ -2754,20 +2673,11 @@
+     ; genCall: str_alloc_5 dst=829
+     LD IXH, D
+     LD IXL, E
+-    PUSH AF
+-    EX AF, AF'
+-    POP AF
+-    EX AF, AF'
+-    PUSH AF
+-    EX AF, AF'
+-    LD A, C
+-    PUSH AF
+-    EX AF, AF'
+-    POP AF
+-    EX AF, AF'
+-    POP AF
+-    LD C, A
+-    EX AF, AF'
++    PUSH HL
++    LD H, A
++    LD A, C
++    LD C, H
++    POP HL
+     CALL str_alloc_5
+     LD D, H
+     LD E, L

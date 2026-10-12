@@ -1,0 +1,1054 @@
+{
+  "schema": "minz.measured-compiler-modes/v1",
+  "goal": "size",
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:3396c8715e52ae86960eeac9a4a7f5a22048e41fc51d1325315577b4a8c073eb",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+      "target_id": "module-target:0/model:cpm-z80-v1",
+      "workload_sha256": "6988f2d0a9855b21087530b6c41fc33d329aeab7d70c988c8d02121082325003",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "../../../examples/nanz/pfcco_weighted_packet.nanz": "6a8ecc8d50e41f5609cabb061b7a06474a7e72619295259d9e5aa4e3cc5bb4ab"
+      }
+    },
+    "hir_sha256": "55bece9bc1e11ad3604d27e45b705c3fc69fe427deeaa9f6986ffc3f32cd2891",
+    "origins_sha256": "4e7620155872f247e06aa4d3e14c9c8e089bc79cf64c300869de777412b006d2"
+  },
+  "function_sites": {
+    "origins_sha256": "5dd601383c890af1ed7eb10739dfbb604ae1f02147693deb4a0c7a9a3ca6e482",
+    "schema": "minz.function-sites/v1",
+    "stage": "input-hir",
+    "source_units": {
+      "../../../examples/nanz/pfcco_weighted_packet.nanz": "6a8ecc8d50e41f5609cabb061b7a06474a7e72619295259d9e5aa4e3cc5bb4ab"
+    },
+    "sites": [
+      {
+        "id": "56e85d7939ce6395ab201db4fb02ec4c6a6fa96beb0327d77c1c0430daa58ad6",
+        "function": "weighted_packet",
+        "source_units_sha256": "84619de1839eae774612939bd297bdf3d99ce1a2aa2b59e6df1fc08e219704a1",
+        "abi_sha256": "68133394fdcb1d29adb1c6fd7ed1ef91d7ae52a1fcdea61be63de25dddaa6600",
+        "body_sha256": "afb62f9f7b467223e9eecb49669a424f8a7f15d43e99915d27b1f17eb2414b63"
+      },
+      {
+        "id": "f69439ac3f10f0bee8eee5208066d94bc712541503c6f25aefd10213eb39d002",
+        "function": "displacement",
+        "source_units_sha256": "84619de1839eae774612939bd297bdf3d99ce1a2aa2b59e6df1fc08e219704a1",
+        "abi_sha256": "710edfef0c0b7f7fc43a463ceeccb61d59fe6e834c70e54342599af40d520bf4",
+        "body_sha256": "b311f534ea51888751bcc534b555704174b9d06f6ee6d62631877d27cc925f74"
+      }
+    ]
+  },
+  "oracle": {
+    "accesses": [
+      {
+        "globals": {
+          "packet_trace": {
+            "reads": [
+              2,
+              2
+            ],
+            "writes": [
+              2,
+              2
+            ]
+          }
+        },
+        "resources": {}
+      },
+      {
+        "globals": {
+          "packet_trace": {
+            "reads": [
+              2,
+              2
+            ],
+            "writes": [
+              2,
+              2
+            ]
+          }
+        },
+        "resources": {}
+      },
+      {
+        "globals": {
+          "packet_trace": {
+            "reads": [
+              2,
+              2
+            ],
+            "writes": [
+              2,
+              2
+            ]
+          }
+        },
+        "resources": {}
+      },
+      {
+        "globals": {
+          "packet_trace": {
+            "reads": [
+              2,
+              2
+            ],
+            "writes": [
+              2,
+              2
+            ]
+          }
+        },
+        "resources": {}
+      },
+      {
+        "globals": {
+          "packet_trace": {
+            "reads": [
+              2,
+              2
+            ],
+            "writes": [
+              2,
+              2
+            ]
+          }
+        },
+        "resources": {}
+      }
+    ],
+    "profile": {
+      "guards": [],
+      "compatibility": {
+        "schema": "minz.loop-profile-compatibility/v1",
+        "context": {
+          "compiler_id": "executable-sha256:3396c8715e52ae86960eeac9a4a7f5a22048e41fc51d1325315577b4a8c073eb",
+          "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+          "target_id": "module-target:0/model:cpm-z80-v1",
+          "workload_sha256": "6988f2d0a9855b21087530b6c41fc33d329aeab7d70c988c8d02121082325003",
+          "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+          "dependencies": {
+            "../../../examples/nanz/pfcco_weighted_packet.nanz": "6a8ecc8d50e41f5609cabb061b7a06474a7e72619295259d9e5aa4e3cc5bb4ab"
+          }
+        },
+        "hir_sha256": "55bece9bc1e11ad3604d27e45b705c3fc69fe427deeaa9f6986ffc3f32cd2891",
+        "origins_sha256": "4e7620155872f247e06aa4d3e14c9c8e089bc79cf64c300869de777412b006d2"
+      },
+      "schema": "minz.input-hir-loop-observations/v5",
+      "stage": "unoptimised-mir2-vm",
+      "sites": {
+        "schema": "minz.hir-loop-sites/v1",
+        "stage": "input-hir",
+        "sites": [],
+        "unmapped_loops": 0
+      },
+      "counts": [],
+      "completed_calls": 5,
+      "failed_calls": 0
+    },
+    "results": [
+      [
+        {
+          "I": 65188
+        }
+      ],
+      [
+        {
+          "I": 61582
+        }
+      ],
+      [
+        {
+          "I": 4096
+        }
+      ],
+      [
+        {
+          "I": 51996
+        }
+      ],
+      [
+        {
+          "I": 0
+        }
+      ]
+    ],
+    "snapshots": [
+      {
+        "globals": {
+          "packet_trace": "/v8="
+        },
+        "resources": {}
+      },
+      {
+        "globals": {
+          "packet_trace": "AAA="
+        },
+        "resources": {}
+      },
+      {
+        "globals": {
+          "packet_trace": "AgA="
+        },
+        "resources": {}
+      },
+      {
+        "globals": {
+          "packet_trace": "BAA="
+        },
+        "resources": {}
+      },
+      {
+        "globals": {
+          "packet_trace": "BgA="
+        },
+        "resources": {}
+      }
+    ],
+    "globals": {
+      "packet_trace": "BgA="
+    },
+    "resources": {}
+  },
+  "candidates": [
+    {
+      "options": {
+        "ProfileSelection": null,
+        "CollectHIRSites": false,
+        "ContractOpt": false,
+        "AnnotateTStates": false,
+        "UseGrace": false,
+        "GraceStats": null,
+        "UseHIRGrace": false,
+        "OptSize": false,
+        "Backend": "",
+        "AssertMode": "none",
+        "SkipZ80Emission": false
+      },
+      "compilation_id": "91a87d2e1b427fa933ddb9da13e078e5debf9649eecc0ec0bb9ace44872d96f5",
+      "assembly": "; ── compilation summary ──────────────────────────────────────\n; functions: 2  PBQP=2\n; optimization passes fired: 2\n; label audit: OK\n; ─────────────────────────────────────────────────────────────\n; generated by MIR2 Z80 codegen\n\n; fun displacement(base: u16 = HL, position: u16 = DE) -\u003e u16 = HL ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP passes=[dse=1]\ndisplacement:\n    LD BC, (packet_trace)    ; u16 direct load, no scratch clobber\n    INC BC\n    LD IX, packet_trace\n    LD (IX+0), C     ; lo\n    LD (IX+1), B     ; hi\n    PUSH DE\n    PUSH HL\n    POP DE\n    POP HL\n    OR A\n    SBC HL, DE\n    RET\n\n; fun weighted_packet(a: u16 = HL, b: u16 = DE) -\u003e u16 = HL ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP passes=[dse=1]\nweighted_packet:\n    PUSH DE\n    POP BC\n    ; genCall: displacement dst=12\n    PUSH DE\n    PUSH HL\n    LD D, B\n    LD E, C\n    CALL displacement\n    LD B, H\n    LD C, L\n    POP HL\n    POP DE\n    ; genCall: displacement dst=14\n    PUSH BC\n    EX DE, HL\n    CALL displacement\n    POP BC\n    PUSH BC\n    PUSH HL\n    POP BC\n    ADD HL, HL\n    ADD HL, BC\n    POP BC\n    ADD HL, BC\n    RET\n\n; globals\npacket_trace:\n    DW 0\n",
+      "binary": "7UsygAPdITKA3XEA3XAB1eXR4bftUsnVwdXlUFnNAIBETeHRxevNAIDBxeXBKQnBCckAAA==",
+      "full_mir_sha256": "233a15727d3124ba5f1176c86ae9611292550f87f86cd74b21cc83f479eca0d2",
+      "allocation_sha256": "2343539948234a5b7998f0c072b163f2eb294456ea4fe1648d2a8ccbfc9a19ed",
+      "final_mir": "; MIR2 module: ../../../examples/nanz/pfcco_weighted_packet.nanz\nglobal @packet_trace : u16\n\nfun @displacement(%r1: u16 [pointer], %r2: u16 [index]) -\u003e u16 [pointer]\n  block @entry:\n    %r3 = addr_of @packet_trace : ptr [pointer]\n    %r4 = load %r3 : u16 [pointer]\n    %r5 = const 1 : u16 [pointer]\n    %r6 = add %r4, %r5 : u16 [pointer]\n    %r7 = addr_of @packet_trace : ptr [pointer]\n    store %r7, %r6 : u16\n    %r8 = sub %r2, %r1 : u16 [pointer]\n    ret %r8\n\nfun @weighted_packet(%r9: u16 [pointer], %r10: u16 [index]) -\u003e u16 [pointer]\n  block @entry:\n    %r11 = move %r10 : u16 [index]\n    %r12 = call @displacement(%r9, %r11) : u16 [pointer]\n    %r13 = move %r9 : u16 [index]\n    %r14 = call @displacement(%r10, %r13) : u16 [pointer]\n    %r15 = const 3 : u16 [pointer]\n    %r16 = mul %r14, %r15 : u16 [pointer]\n    %r17 = add %r12, %r16 : u16 [pointer]\n    ret %r17\n\n",
+      "run": {
+        "compatibility": {
+          "schema": "minz.loop-profile-compatibility/v1",
+          "context": {
+            "compiler_id": "executable-sha256:3396c8715e52ae86960eeac9a4a7f5a22048e41fc51d1325315577b4a8c073eb",
+            "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+            "target_id": "module-target:0/model:cpm-z80-v1",
+            "workload_sha256": "6988f2d0a9855b21087530b6c41fc33d329aeab7d70c988c8d02121082325003",
+            "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+            "dependencies": {
+              "../../../examples/nanz/pfcco_weighted_packet.nanz": "6a8ecc8d50e41f5609cabb061b7a06474a7e72619295259d9e5aa4e3cc5bb4ab"
+            }
+          },
+          "hir_sha256": "55bece9bc1e11ad3604d27e45b705c3fc69fe427deeaa9f6986ffc3f32cd2891",
+          "origins_sha256": "4e7620155872f247e06aa4d3e14c9c8e089bc79cf64c300869de777412b006d2"
+        },
+        "binary_sha256": "6a4f4ecd6f60f6b82ffc420997363ccc32357e82cedc1a86beff451b5b9b9e54",
+        "bootstrap_sha256": [
+          "d2b93089028b52dc1cda5623e0000f68765323ae91d103869f3abcdf0c4cf01e",
+          "fb8a51cef188938374a7e57867cac530994af28ee02403231a2d077a3fbe7c01",
+          "e62b62014964fb13f6e5a7e8b75be0db3b0268e0393c76a358133735e4e76b9c",
+          "02b560424ef55ef70cc97cfe4aaaecd6a813cac51ff0e0238b8c1c84a3bc0e5e",
+          "19a81bdd815d7e25a12d83de4e28442bea544b3e5cc71a577287bd4380146c3e"
+        ],
+        "invocations": [
+          {
+            "access": {
+              "globals": {
+                "packet_trace": {
+                  "reads": [
+                    2,
+                    2
+                  ],
+                  "writes": [
+                    2,
+                    2
+                  ]
+                }
+              },
+              "resources": {}
+            },
+            "function": "weighted_packet",
+            "t_states": 521,
+            "results": [
+              {
+                "I": 65188
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "packet_trace": "/v8="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {
+                "packet_trace": {
+                  "reads": [
+                    2,
+                    2
+                  ],
+                  "writes": [
+                    2,
+                    2
+                  ]
+                }
+              },
+              "resources": {}
+            },
+            "function": "weighted_packet",
+            "t_states": 521,
+            "results": [
+              {
+                "I": 61582
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "packet_trace": "AAA="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {
+                "packet_trace": {
+                  "reads": [
+                    2,
+                    2
+                  ],
+                  "writes": [
+                    2,
+                    2
+                  ]
+                }
+              },
+              "resources": {}
+            },
+            "function": "weighted_packet",
+            "t_states": 521,
+            "results": [
+              {
+                "I": 4096
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "packet_trace": "AgA="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {
+                "packet_trace": {
+                  "reads": [
+                    2,
+                    2
+                  ],
+                  "writes": [
+                    2,
+                    2
+                  ]
+                }
+              },
+              "resources": {}
+            },
+            "function": "weighted_packet",
+            "t_states": 521,
+            "results": [
+              {
+                "I": 51996
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "packet_trace": "BAA="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {
+                "packet_trace": {
+                  "reads": [
+                    2,
+                    2
+                  ],
+                  "writes": [
+                    2,
+                    2
+                  ]
+                }
+              },
+              "resources": {}
+            },
+            "function": "weighted_packet",
+            "t_states": 521,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "packet_trace": "BgA="
+              },
+              "resources": {}
+            }
+          }
+        ],
+        "globals": {
+          "packet_trace": "BgA="
+        },
+        "resources": {},
+        "resource_addresses": {},
+        "global_addresses": {
+          "packet_trace": 32818
+        },
+        "bootstrap_t_states": 235,
+        "total_t_states": 2605,
+        "executed_steps": 255
+      }
+    },
+    {
+      "options": {
+        "ProfileSelection": null,
+        "CollectHIRSites": false,
+        "ContractOpt": true,
+        "AnnotateTStates": false,
+        "UseGrace": false,
+        "GraceStats": null,
+        "UseHIRGrace": false,
+        "OptSize": false,
+        "Backend": "",
+        "AssertMode": "none",
+        "SkipZ80Emission": false
+      },
+      "compilation_id": "6444837028126bf972122e81190937b8f613dd5b6ca25f0b47219d8d9ec10155",
+      "assembly": "; ── compilation summary ──────────────────────────────────────\n; functions: 2  PBQP=2\n; optimization passes fired: 2\n; label audit: OK\n; ─────────────────────────────────────────────────────────────\n; generated by MIR2 Z80 codegen\n\n; fun displacement(base: u16 = DE, position: u16 = IX) -\u003e u16 = HL ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP passes=[dse=1]\ndisplacement:\n    LD HL, (packet_trace)    ; u16 direct load (20T, no A clobber)\n    INC HL\n    LD BC, packet_trace\n    LD (packet_trace), HL    ; u16 direct store (16T, no A clobber)\n    PUSH IX\n    POP HL\n    OR A\n    SBC HL, DE\n    RET\n\n; fun weighted_packet(a: u16 = HL, b: u16 = DE) -\u003e u16 = HL ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP passes=[dse=1]\nweighted_packet:\n    PUSH DE\n    POP BC\n    ; genCall: displacement dst=12\n    PUSH DE\n    PUSH HL\n    LD D, H\n    LD E, L\n    LD IXH, B\n    LD IXL, C\n    CALL displacement\n    LD B, H\n    LD C, L\n    POP HL\n    POP DE\n    ; genCall: displacement dst=14\n    PUSH BC\n    PUSH HL\n    POP IX\n    CALL displacement\n    POP BC\n    PUSH BC\n    PUSH HL\n    POP BC\n    ADD HL, HL\n    ADD HL, BC\n    POP BC\n    ADD HL, BC\n    RET\n\n; globals\npacket_trace:\n    DW 0\n",
+      "binary": "KjKAIwEygCIygN3l4bftUsnVwdXlVF3dYN1pzQCARE3h0cXl3eHNAIDBxeXBKQnBCckAAA==",
+      "full_mir_sha256": "e93dac7bd9e774d63c6cfb8885ffc9932a0bcf4a857592b777c5d0219f3f0495",
+      "allocation_sha256": "cb52eec43eaffe235174e43433c143e6035845a02ae4be175006e908bf40a9a8",
+      "final_mir": "; MIR2 module: ../../../examples/nanz/pfcco_weighted_packet.nanz\nglobal @packet_trace : u16\n\nfun @displacement(%r1: u16 [index], %r2: u16 [pair]) -\u003e u16 [pointer]\n  block @entry:\n    %r3 = addr_of @packet_trace : ptr [pointer]\n    %r4 = load %r3 : u16 [pointer]\n    %r5 = const 1 : u16 [pointer]\n    %r6 = add %r4, %r5 : u16 [pointer]\n    %r7 = addr_of @packet_trace : ptr [pointer]\n    store %r7, %r6 : u16\n    %r8 = sub %r2, %r1 : u16 [pointer]\n    ret %r8\n\nfun @weighted_packet(%r9: u16 [pointer], %r10: u16 [index]) -\u003e u16 [pointer]\n  block @entry:\n    %r11 = move %r10 : u16 [index]\n    %r12 = call @displacement(%r9, %r11) : u16 [pointer]\n    %r13 = move %r9 : u16 [index]\n    %r14 = call @displacement(%r10, %r13) : u16 [pointer]\n    %r15 = const 3 : u16 [pointer]\n    %r16 = mul %r14, %r15 : u16 [pointer]\n    %r17 = add %r12, %r16 : u16 [pointer]\n    ret %r17\n\n",
+      "run": {
+        "compatibility": {
+          "schema": "minz.loop-profile-compatibility/v1",
+          "context": {
+            "compiler_id": "executable-sha256:3396c8715e52ae86960eeac9a4a7f5a22048e41fc51d1325315577b4a8c073eb",
+            "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+            "target_id": "module-target:0/model:cpm-z80-v1",
+            "workload_sha256": "6988f2d0a9855b21087530b6c41fc33d329aeab7d70c988c8d02121082325003",
+            "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+            "dependencies": {
+              "../../../examples/nanz/pfcco_weighted_packet.nanz": "6a8ecc8d50e41f5609cabb061b7a06474a7e72619295259d9e5aa4e3cc5bb4ab"
+            }
+          },
+          "hir_sha256": "55bece9bc1e11ad3604d27e45b705c3fc69fe427deeaa9f6986ffc3f32cd2891",
+          "origins_sha256": "4e7620155872f247e06aa4d3e14c9c8e089bc79cf64c300869de777412b006d2"
+        },
+        "binary_sha256": "23a46320f4d5adaf3a706457cf721145f0ff0df85efcd4c8e0e2b0f0d83642f0",
+        "bootstrap_sha256": [
+          "dc72de17289b04578caf12063f0aae44df9e61891b35e6c5452fd46739fcb38c",
+          "9901749e02eb35a50dea2dd383ad5f3e952fee6e862144cb0d2e48e8c6b257e5",
+          "a41c18e814021adca09455c99b9181f6d3e18f1baaa21b74023106b732799514",
+          "0b9e04f97ded01840712e7473799d5d6fd35bca957be001c3c517711cf2448c4",
+          "6cf59c5a0697b815d0e30620ddaadf01d06aa10f65be1c4b520c4f7ff77b0795"
+        ],
+        "invocations": [
+          {
+            "access": {
+              "globals": {
+                "packet_trace": {
+                  "reads": [
+                    2,
+                    2
+                  ],
+                  "writes": [
+                    2,
+                    2
+                  ]
+                }
+              },
+              "resources": {}
+            },
+            "function": "weighted_packet",
+            "t_states": 464,
+            "results": [
+              {
+                "I": 65188
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "packet_trace": "/v8="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {
+                "packet_trace": {
+                  "reads": [
+                    2,
+                    2
+                  ],
+                  "writes": [
+                    2,
+                    2
+                  ]
+                }
+              },
+              "resources": {}
+            },
+            "function": "weighted_packet",
+            "t_states": 464,
+            "results": [
+              {
+                "I": 61582
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "packet_trace": "AAA="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {
+                "packet_trace": {
+                  "reads": [
+                    2,
+                    2
+                  ],
+                  "writes": [
+                    2,
+                    2
+                  ]
+                }
+              },
+              "resources": {}
+            },
+            "function": "weighted_packet",
+            "t_states": 464,
+            "results": [
+              {
+                "I": 4096
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "packet_trace": "AgA="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {
+                "packet_trace": {
+                  "reads": [
+                    2,
+                    2
+                  ],
+                  "writes": [
+                    2,
+                    2
+                  ]
+                }
+              },
+              "resources": {}
+            },
+            "function": "weighted_packet",
+            "t_states": 464,
+            "results": [
+              {
+                "I": 51996
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "packet_trace": "BAA="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {
+                "packet_trace": {
+                  "reads": [
+                    2,
+                    2
+                  ],
+                  "writes": [
+                    2,
+                    2
+                  ]
+                }
+              },
+              "resources": {}
+            },
+            "function": "weighted_packet",
+            "t_states": 464,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "packet_trace": "BgA="
+              },
+              "resources": {}
+            }
+          }
+        ],
+        "globals": {
+          "packet_trace": "BgA="
+        },
+        "resources": {},
+        "resource_addresses": {},
+        "global_addresses": {
+          "packet_trace": 32818
+        },
+        "bootstrap_t_states": 235,
+        "total_t_states": 2320,
+        "executed_steps": 240
+      }
+    },
+    {
+      "options": {
+        "ProfileSelection": null,
+        "CollectHIRSites": false,
+        "ContractOpt": false,
+        "AnnotateTStates": false,
+        "UseGrace": true,
+        "GraceStats": null,
+        "UseHIRGrace": false,
+        "OptSize": false,
+        "Backend": "",
+        "AssertMode": "none",
+        "SkipZ80Emission": false
+      },
+      "compilation_id": "e42380956ecb77eed7039e150f9200f8af024d270dfda24002d5cac8d3aceb70",
+      "assembly": "; ── compilation summary ──────────────────────────────────────\n; functions: 2  PBQP=2\n; optimization passes fired: 0\n; label audit: OK\n; ─────────────────────────────────────────────────────────────\n; generated by MIR2 Z80 codegen\n\n; fun displacement(base: u16 = HL, position: u16 = DE) -\u003e u16 = HL ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP\ndisplacement:\n    LD BC, (packet_trace)    ; u16 direct load, no scratch clobber\n    INC BC\n    LD IX, packet_trace\n    LD (IX+0), C     ; lo\n    LD (IX+1), B     ; hi\n    PUSH DE\n    PUSH HL\n    POP DE\n    POP HL\n    OR A\n    SBC HL, DE\n    RET\n\n; fun weighted_packet(a: u16 = HL, b: u16 = DE) -\u003e u16 = HL ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP\nweighted_packet:\n    PUSH DE\n    POP BC\n    ; genCall: displacement dst=12\n    PUSH DE\n    PUSH HL\n    LD D, B\n    LD E, C\n    CALL displacement\n    LD B, H\n    LD C, L\n    POP HL\n    POP DE\n    ; genCall: displacement dst=14\n    PUSH BC\n    EX DE, HL\n    CALL displacement\n    POP BC\n    PUSH BC\n    PUSH HL\n    POP BC\n    ADD HL, HL\n    ADD HL, BC\n    POP BC\n    ADD HL, BC\n    RET\n\n; globals\npacket_trace:\n    DW 0\n",
+      "binary": "7UsygAPdITKA3XEA3XAB1eXR4bftUsnVwdXlUFnNAIBETeHRxevNAIDBxeXBKQnBCckAAA==",
+      "full_mir_sha256": "233a15727d3124ba5f1176c86ae9611292550f87f86cd74b21cc83f479eca0d2",
+      "allocation_sha256": "2343539948234a5b7998f0c072b163f2eb294456ea4fe1648d2a8ccbfc9a19ed",
+      "final_mir": "; MIR2 module: ../../../examples/nanz/pfcco_weighted_packet.nanz\nglobal @packet_trace : u16\n\nfun @displacement(%r1: u16 [pointer], %r2: u16 [index]) -\u003e u16 [pointer]\n  block @entry:\n    %r3 = addr_of @packet_trace : ptr [pointer]\n    %r4 = load %r3 : u16 [pointer]\n    %r5 = const 1 : u16 [pointer]\n    %r6 = add %r4, %r5 : u16 [pointer]\n    %r7 = addr_of @packet_trace : ptr [pointer]\n    store %r7, %r6 : u16\n    %r8 = sub %r2, %r1 : u16 [pointer]\n    ret %r8\n\nfun @weighted_packet(%r9: u16 [pointer], %r10: u16 [index]) -\u003e u16 [pointer]\n  block @entry:\n    %r11 = move %r10 : u16 [index]\n    %r12 = call @displacement(%r9, %r11) : u16 [pointer]\n    %r13 = move %r9 : u16 [index]\n    %r14 = call @displacement(%r10, %r13) : u16 [pointer]\n    %r15 = const 3 : u16 [pointer]\n    %r16 = mul %r14, %r15 : u16 [pointer]\n    %r17 = add %r12, %r16 : u16 [pointer]\n    ret %r17\n\n",
+      "run": {
+        "compatibility": {
+          "schema": "minz.loop-profile-compatibility/v1",
+          "context": {
+            "compiler_id": "executable-sha256:3396c8715e52ae86960eeac9a4a7f5a22048e41fc51d1325315577b4a8c073eb",
+            "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+            "target_id": "module-target:0/model:cpm-z80-v1",
+            "workload_sha256": "6988f2d0a9855b21087530b6c41fc33d329aeab7d70c988c8d02121082325003",
+            "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+            "dependencies": {
+              "../../../examples/nanz/pfcco_weighted_packet.nanz": "6a8ecc8d50e41f5609cabb061b7a06474a7e72619295259d9e5aa4e3cc5bb4ab"
+            }
+          },
+          "hir_sha256": "55bece9bc1e11ad3604d27e45b705c3fc69fe427deeaa9f6986ffc3f32cd2891",
+          "origins_sha256": "4e7620155872f247e06aa4d3e14c9c8e089bc79cf64c300869de777412b006d2"
+        },
+        "binary_sha256": "6a4f4ecd6f60f6b82ffc420997363ccc32357e82cedc1a86beff451b5b9b9e54",
+        "bootstrap_sha256": [
+          "d2b93089028b52dc1cda5623e0000f68765323ae91d103869f3abcdf0c4cf01e",
+          "fb8a51cef188938374a7e57867cac530994af28ee02403231a2d077a3fbe7c01",
+          "e62b62014964fb13f6e5a7e8b75be0db3b0268e0393c76a358133735e4e76b9c",
+          "02b560424ef55ef70cc97cfe4aaaecd6a813cac51ff0e0238b8c1c84a3bc0e5e",
+          "19a81bdd815d7e25a12d83de4e28442bea544b3e5cc71a577287bd4380146c3e"
+        ],
+        "invocations": [
+          {
+            "access": {
+              "globals": {
+                "packet_trace": {
+                  "reads": [
+                    2,
+                    2
+                  ],
+                  "writes": [
+                    2,
+                    2
+                  ]
+                }
+              },
+              "resources": {}
+            },
+            "function": "weighted_packet",
+            "t_states": 521,
+            "results": [
+              {
+                "I": 65188
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "packet_trace": "/v8="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {
+                "packet_trace": {
+                  "reads": [
+                    2,
+                    2
+                  ],
+                  "writes": [
+                    2,
+                    2
+                  ]
+                }
+              },
+              "resources": {}
+            },
+            "function": "weighted_packet",
+            "t_states": 521,
+            "results": [
+              {
+                "I": 61582
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "packet_trace": "AAA="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {
+                "packet_trace": {
+                  "reads": [
+                    2,
+                    2
+                  ],
+                  "writes": [
+                    2,
+                    2
+                  ]
+                }
+              },
+              "resources": {}
+            },
+            "function": "weighted_packet",
+            "t_states": 521,
+            "results": [
+              {
+                "I": 4096
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "packet_trace": "AgA="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {
+                "packet_trace": {
+                  "reads": [
+                    2,
+                    2
+                  ],
+                  "writes": [
+                    2,
+                    2
+                  ]
+                }
+              },
+              "resources": {}
+            },
+            "function": "weighted_packet",
+            "t_states": 521,
+            "results": [
+              {
+                "I": 51996
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "packet_trace": "BAA="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {
+                "packet_trace": {
+                  "reads": [
+                    2,
+                    2
+                  ],
+                  "writes": [
+                    2,
+                    2
+                  ]
+                }
+              },
+              "resources": {}
+            },
+            "function": "weighted_packet",
+            "t_states": 521,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "packet_trace": "BgA="
+              },
+              "resources": {}
+            }
+          }
+        ],
+        "globals": {
+          "packet_trace": "BgA="
+        },
+        "resources": {},
+        "resource_addresses": {},
+        "global_addresses": {
+          "packet_trace": 32818
+        },
+        "bootstrap_t_states": 235,
+        "total_t_states": 2605,
+        "executed_steps": 255
+      }
+    },
+    {
+      "options": {
+        "ProfileSelection": null,
+        "CollectHIRSites": false,
+        "ContractOpt": true,
+        "AnnotateTStates": false,
+        "UseGrace": true,
+        "GraceStats": null,
+        "UseHIRGrace": false,
+        "OptSize": false,
+        "Backend": "",
+        "AssertMode": "none",
+        "SkipZ80Emission": false
+      },
+      "compilation_id": "fb26d5d434813a58a1e8444d0e7c3441e50aa45380b86a166a24f078aa7b8efb",
+      "assembly": "; ── compilation summary ──────────────────────────────────────\n; functions: 2  PBQP=2\n; optimization passes fired: 0\n; label audit: OK\n; ─────────────────────────────────────────────────────────────\n; generated by MIR2 Z80 codegen\n\n; fun displacement(base: u16 = DE, position: u16 = IX) -\u003e u16 = HL ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP\ndisplacement:\n    LD HL, (packet_trace)    ; u16 direct load (20T, no A clobber)\n    INC HL\n    LD BC, packet_trace\n    LD (packet_trace), HL    ; u16 direct store (16T, no A clobber)\n    PUSH IX\n    POP HL\n    OR A\n    SBC HL, DE\n    RET\n\n; fun weighted_packet(a: u16 = HL, b: u16 = DE) -\u003e u16 = HL ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n; [trace] backend=PBQP\nweighted_packet:\n    PUSH DE\n    POP BC\n    ; genCall: displacement dst=12\n    PUSH DE\n    PUSH HL\n    LD D, H\n    LD E, L\n    LD IXH, B\n    LD IXL, C\n    CALL displacement\n    LD B, H\n    LD C, L\n    POP HL\n    POP DE\n    ; genCall: displacement dst=14\n    PUSH BC\n    PUSH HL\n    POP IX\n    CALL displacement\n    POP BC\n    PUSH BC\n    PUSH HL\n    POP BC\n    ADD HL, HL\n    ADD HL, BC\n    POP BC\n    ADD HL, BC\n    RET\n\n; globals\npacket_trace:\n    DW 0\n",
+      "binary": "KjKAIwEygCIygN3l4bftUsnVwdXlVF3dYN1pzQCARE3h0cXl3eHNAIDBxeXBKQnBCckAAA==",
+      "full_mir_sha256": "e93dac7bd9e774d63c6cfb8885ffc9932a0bcf4a857592b777c5d0219f3f0495",
+      "allocation_sha256": "cb52eec43eaffe235174e43433c143e6035845a02ae4be175006e908bf40a9a8",
+      "final_mir": "; MIR2 module: ../../../examples/nanz/pfcco_weighted_packet.nanz\nglobal @packet_trace : u16\n\nfun @displacement(%r1: u16 [index], %r2: u16 [pair]) -\u003e u16 [pointer]\n  block @entry:\n    %r3 = addr_of @packet_trace : ptr [pointer]\n    %r4 = load %r3 : u16 [pointer]\n    %r5 = const 1 : u16 [pointer]\n    %r6 = add %r4, %r5 : u16 [pointer]\n    %r7 = addr_of @packet_trace : ptr [pointer]\n    store %r7, %r6 : u16\n    %r8 = sub %r2, %r1 : u16 [pointer]\n    ret %r8\n\nfun @weighted_packet(%r9: u16 [pointer], %r10: u16 [index]) -\u003e u16 [pointer]\n  block @entry:\n    %r11 = move %r10 : u16 [index]\n    %r12 = call @displacement(%r9, %r11) : u16 [pointer]\n    %r13 = move %r9 : u16 [index]\n    %r14 = call @displacement(%r10, %r13) : u16 [pointer]\n    %r15 = const 3 : u16 [pointer]\n    %r16 = mul %r14, %r15 : u16 [pointer]\n    %r17 = add %r12, %r16 : u16 [pointer]\n    ret %r17\n\n",
+      "run": {
+        "compatibility": {
+          "schema": "minz.loop-profile-compatibility/v1",
+          "context": {
+            "compiler_id": "executable-sha256:3396c8715e52ae86960eeac9a4a7f5a22048e41fc51d1325315577b4a8c073eb",
+            "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+            "target_id": "module-target:0/model:cpm-z80-v1",
+            "workload_sha256": "6988f2d0a9855b21087530b6c41fc33d329aeab7d70c988c8d02121082325003",
+            "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+            "dependencies": {
+              "../../../examples/nanz/pfcco_weighted_packet.nanz": "6a8ecc8d50e41f5609cabb061b7a06474a7e72619295259d9e5aa4e3cc5bb4ab"
+            }
+          },
+          "hir_sha256": "55bece9bc1e11ad3604d27e45b705c3fc69fe427deeaa9f6986ffc3f32cd2891",
+          "origins_sha256": "4e7620155872f247e06aa4d3e14c9c8e089bc79cf64c300869de777412b006d2"
+        },
+        "binary_sha256": "23a46320f4d5adaf3a706457cf721145f0ff0df85efcd4c8e0e2b0f0d83642f0",
+        "bootstrap_sha256": [
+          "dc72de17289b04578caf12063f0aae44df9e61891b35e6c5452fd46739fcb38c",
+          "9901749e02eb35a50dea2dd383ad5f3e952fee6e862144cb0d2e48e8c6b257e5",
+          "a41c18e814021adca09455c99b9181f6d3e18f1baaa21b74023106b732799514",
+          "0b9e04f97ded01840712e7473799d5d6fd35bca957be001c3c517711cf2448c4",
+          "6cf59c5a0697b815d0e30620ddaadf01d06aa10f65be1c4b520c4f7ff77b0795"
+        ],
+        "invocations": [
+          {
+            "access": {
+              "globals": {
+                "packet_trace": {
+                  "reads": [
+                    2,
+                    2
+                  ],
+                  "writes": [
+                    2,
+                    2
+                  ]
+                }
+              },
+              "resources": {}
+            },
+            "function": "weighted_packet",
+            "t_states": 464,
+            "results": [
+              {
+                "I": 65188
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "packet_trace": "/v8="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {
+                "packet_trace": {
+                  "reads": [
+                    2,
+                    2
+                  ],
+                  "writes": [
+                    2,
+                    2
+                  ]
+                }
+              },
+              "resources": {}
+            },
+            "function": "weighted_packet",
+            "t_states": 464,
+            "results": [
+              {
+                "I": 61582
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "packet_trace": "AAA="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {
+                "packet_trace": {
+                  "reads": [
+                    2,
+                    2
+                  ],
+                  "writes": [
+                    2,
+                    2
+                  ]
+                }
+              },
+              "resources": {}
+            },
+            "function": "weighted_packet",
+            "t_states": 464,
+            "results": [
+              {
+                "I": 4096
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "packet_trace": "AgA="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {
+                "packet_trace": {
+                  "reads": [
+                    2,
+                    2
+                  ],
+                  "writes": [
+                    2,
+                    2
+                  ]
+                }
+              },
+              "resources": {}
+            },
+            "function": "weighted_packet",
+            "t_states": 464,
+            "results": [
+              {
+                "I": 51996
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "packet_trace": "BAA="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "access": {
+              "globals": {
+                "packet_trace": {
+                  "reads": [
+                    2,
+                    2
+                  ],
+                  "writes": [
+                    2,
+                    2
+                  ]
+                }
+              },
+              "resources": {}
+            },
+            "function": "weighted_packet",
+            "t_states": 464,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "packet_trace": "BgA="
+              },
+              "resources": {}
+            }
+          }
+        ],
+        "globals": {
+          "packet_trace": "BgA="
+        },
+        "resources": {},
+        "resource_addresses": {},
+        "global_addresses": {
+          "packet_trace": 32818
+        },
+        "bootstrap_t_states": 235,
+        "total_t_states": 2320,
+        "executed_steps": 240
+      }
+    }
+  ],
+  "selected": 0,
+  "sha256": "8a5e1fd3d2c27544da3b5b125ff3587bb78f588bcc869bd293766d6d3a3b31d9"
+}

@@ -1,0 +1,23 @@
+=== RUN   TestCPMRuntimeOriginalSelfLanzMain
+    original_lanz_main_test.go:324: resident stack touched 46 bytes
+    original_lanz_main_test.go:336: exact main 135 stdout bytes all regions/globals/stack guards PASS 419878 T BIN 3987 SHA de4d0cd1e8f1682c266d3732b3398b8a064b3e495b6f220fd8ab680aa18943fb
+--- PASS: TestCPMRuntimeOriginalSelfLanzMain (0.21s)
+=== RUN   TestCPMRuntimeGuardedTokenizerMain
+    original_tokenizer_main_test.go:350: resident stack touched 30 bytes
+    original_tokenizer_main_test.go:352: exact main 146 stdout bytes all regions/globals/stack guards PASS 411987 T BIN 7391 SHA e460190ff4fc895b7fb4e50d60452dcd3689504830d9402dbb086ae530ce0628
+--- PASS: TestCPMRuntimeGuardedTokenizerMain (1.15s)
+=== RUN   TestPFCCOMeasuredNativePacket
+    pfcco_native_workload_test.go:150: off: 8857T/52B choices=map[]
+    pfcco_native_workload_test.go:150: greedy: 7888T/52B choices=map[displacement:0x86cc249c300 weighted_packet:0x86cc249c330]
+    pfcco_native_workload_test.go:150: pbqp: 7888T/52B choices=map[displacement:0x86cc25b92f0 weighted_packet:0x86cc25b9320]
+    pfcco_native_workload_test.go:152: independent displacement arithmetic and global state verified
+--- PASS: TestPFCCOMeasuredNativePacket (0.16s)
+=== RUN   TestPFCCOOriginalTokenizerRenderingConsumer
+    pfcco_tokenizer_consumer_test.go:217: strategy"" input0 init15790T tokenizer138371T render21896T count12 stdout"var id = num if true { return id + num } "
+    pfcco_tokenizer_consumer_test.go:217: strategy"" input1 init15790T tokenizer131639T render18512T count11 stdout"id id id + num  num  num  str "
+    pfcco_tokenizer_consumer_test.go:217: strategy"pbqp" input0 init16868T tokenizer138371T render21896T count12 stdout"var id = num if true { return id + num } "
+    pfcco_tokenizer_consumer_test.go:217: strategy"pbqp" input1 init16868T tokenizer131639T render18512T count11 stdout"id id id + num  num  num  str "
+    pfcco_tokenizer_consumer_test.go:246: ordinary fullBIN5465→5593B; renderer costs[21896 18512]→[21896 18512] (no assumed speed gain)
+--- PASS: TestPFCCOOriginalTokenizerRenderingConsumer (2.20s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.724s

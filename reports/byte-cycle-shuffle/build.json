@@ -1,0 +1,8 @@
+{
+  "production_base": "1f2365be",
+  "production_fix": "a445e292",
+  "measured_test": "3cfaec07",
+  "go": "go1.26.8",
+  "test_executable": "/home/alice/dev/minz-artifacts/grace-checkpoints/byte-cycle-shuffle-pipeline.test",
+  "sha256": "e8de1eb6e1706875762a22c270d0da43a6800142849007a01fb819a8b4cb6028"
+}

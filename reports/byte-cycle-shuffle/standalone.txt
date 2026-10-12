@@ -1,0 +1,6 @@
+=== RUN   TestNativeByteCycleMeasuredBeforeAfter
+    z80codegen_byte_cycle_saved_pair_test.go:157: old exact emitted A/C shuffle 95T/14B
+    z80codegen_byte_cycle_saved_pair_test.go:157: saved-pair exact emitted A/C shuffle 33T/5B
+--- PASS: TestNativeByteCycleMeasuredBeforeAfter (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.009s
