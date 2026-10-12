@@ -1,0 +1,18 @@
+// tui_demo.nanz — Screen TUI demo (MZV host functions)
+//
+// Run:  mzv examples/nanz/tui_demo.nanz
+// Pipe: printf '7\n' | mzv -H examples/nanz/tui_demo.nanz
+//
+// Demonstrates the universal TUI screen API from Nanz.
+// The sel_* functions are host functions on MZV.
+
+@extern fun sel_register_int(name: ^u8, defval: u16) -> void
+@extern fun sel_show() -> u8
+@extern fun sel_get_int(idx: u8) -> u16
+
+fun main() -> void {
+    sel_register_int(c"COUNT", 42)
+    var rc: u8 = sel_show()
+    var count: u16 = sel_get_int(0)
+    @print_u8(u8(count))
+}
