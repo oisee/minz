@@ -1,0 +1,12 @@
+{
+  "files": {
+    "console-root.txt": {
+      "sha256": "ad54b29180b92cda69c469db349e310030483d2ce6de51e89526bff3d55d1d0a",
+      "bytes": 47
+    },
+    "README.md": {
+      "sha256": "063955fb96362c798b3048c20ef56a3bfe3756d74b3cc143fe0c641f213e287d",
+      "bytes": 1611
+    }
+  }
+}
