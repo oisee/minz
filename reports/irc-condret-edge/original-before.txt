@@ -1,0 +1,7 @@
+=== RUN   TestOriginalIRCClassifiers
+    original_irc_classifiers_test.go:397: ordinary 66912 raw/final/native ordered reads fullRAM PC/SP PASS
+    original_irc_classifiers_test.go:355: native grace-size classify_irc [36864 0] {6 131 20816 20480 36864 4 1024 61426 28672} 0
+--- FAIL: TestOriginalIRCClassifiers (5.15s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	5.158s
+FAIL
