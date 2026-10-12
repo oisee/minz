@@ -52,7 +52,7 @@ func TestCPMDecimalMachineBodyAndHelperAuthority(t *testing.T) {
 	if e := validateCPMRuntimeAssemblyAdapters(code, true, bodies); e != nil {
 		t.Fatal(e)
 	}
-	for _, bad := range []string{strings.Replace(code, "LD E, 45", "LD E, 43", 1), strings.Replace(code, "CALL _wr16_dig", "CALL WriteI16", 1), strings.Replace(code, "_w16_cont: INC A", "_w16_cont: DEC A", 1)} {
+	for _, bad := range []string{strings.Replace(code, "LD E, 45", "LD E, 43", 1), strings.Replace(code, "CALL _wr16_dig", "CALL WriteI16", 1), strings.Replace(code, "_w16_cont: INC A", "_w16_cont: DEC A", 1), strings.Replace(code, "_w16_cont: INC A", "_w16_cont EQU 0\n INC A", 1)} {
 		if e := validateCPMRuntimeAssemblyAdapters(bad, true, bodies); e == nil {
 			t.Fatal("tampered decimal machine body admitted")
 		}
