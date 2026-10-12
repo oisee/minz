@@ -1,0 +1,8 @@
+=== Source (76 bytes) ===
+First chars: 102 117 110
+Tokens: 29
+0
+19 tok_count=29
+(fun answer () u8 (return 7))
+=== Written 70 bytes to tiny.lanz ===
+Stats: 12 nodes, 55 string bytes

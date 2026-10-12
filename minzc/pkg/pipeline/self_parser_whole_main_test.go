@@ -336,7 +336,7 @@ func selfParserWholeMainNative(t *testing.T, mode string) {
 	done := false
 	for i := 0; i < 3000000; i++ {
 		pc := z.GetPC()
-		if pc == 0x7003 && z.GetSP() == 0xf000 {
+		if z.IsHalted(){if z.GetSP()!=0xeffe{t.Fatal("terminalHALTstack",z.GetSP())};done=true;break};if pc == 0x7003 && z.GetSP() == 0xf000 {
 			done = true
 			break
 		}
@@ -454,6 +454,33 @@ func selfParserWholeMainNative(t *testing.T, mode string) {
 			t.Fatal("native RAM", p, z.Memory()[p], v)
 		}
 	}
+	var frozen map[string]json.RawMessage
+	fb, _ := os.ReadFile(root + "freeze.json")
+	json.Unmarshal(fb, &frozen)
+	var interns map[string]uint16
+	json.Unmarshal(frozen["interns"], &interns)
+	wantedGlobals := map[string]uint16{"src_len": uint16(len(input)), "str_bump": 0x9037, "ast_bump": 0x8060, "tok_count": 29, "parse_pos": 29, "parse_error": 0, "pos": 76, "tok_start": 76, "out_len": 76}
+	for _, kw := range []string{"fn", "if", "fun", "let", "var", "while", "return"} {
+		wantedGlobals["KW_"+stringsPkg.ToUpper(kw)] = interns[kw]
+	}
+	wantedGlobals["KW_ELSE"] = interns["els"]
+	for _, g := range s.MIR2Module.Globals {
+		base, ok := a.Symbols[g.Name]
+		if !ok {
+			t.Fatal("global symbol", g.Name)
+		}
+		expected := append([]byte(nil), before[base:base+mir2.ByteWidth(g.Ty)]...)
+		if v, ok := wantedGlobals[g.Name]; ok {
+			expected[0] = byte(v)
+			if len(expected) > 1 {
+				expected[1] = byte(v >> 8)
+			}
+		}
+		if !bytes.Equal(z.Memory()[base:base+len(expected)], expected) {
+			t.Fatal("native globals", g.Name, z.Memory()[base:base+len(expected)], expected)
+		}
+	}
+	t.Logf("whole native parser %d bytes file76/AST12/token29/stdout/SP memory PASS", len(a.Binary))
 	if !bytes.Equal(file, want) {
 		t.Fatalf("self parser native file %d bytes want%d %q", len(file), len(want), file)
 	}
