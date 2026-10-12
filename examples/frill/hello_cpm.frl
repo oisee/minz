@@ -4,9 +4,11 @@
 import "../../stdlib/frill/math.frl"
 import "../../stdlib/frill/io_cpm.nanz"
 
-let print_hundreds (n : u8) : IO u8 = if n > 99 then putchar (n / 100 + 48) else 0
-let print_tens (n : u8) : IO u8 = if n > 9 then putchar (n / 10 % 10 + 48) else 0
-let print_ones (n : u8) : IO u8 = putchar (n % 10 + 48)
+let emit_digit (ch : u8) : IO u8 = do putchar ch 0
+
+let print_hundreds (n : u8) : IO u8 = if n > 99 then emit_digit (n / 100 + 48) else 0
+let print_tens (n : u8) : IO u8 = if n > 9 then emit_digit (n / 10 % 10 + 48) else 0
+let print_ones (n : u8) : IO u8 = do putchar (n % 10 + 48) 0
 let print_u8 (n : u8) : IO u8 =
   do print_hundreds n
   do print_tens n

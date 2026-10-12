@@ -76,6 +76,7 @@ type DataDecl struct {
 }
 
 func (*DataDecl) abapDecl() {}
+func (*DataDecl) abapStmt() {}
 
 // ParamDecl is a PARAMETERS statement (selection screen input field).
 // PARAMETERS p_name TYPE c LENGTH 20 DEFAULT 'Hello'.
