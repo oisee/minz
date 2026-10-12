@@ -1,0 +1,4 @@
+=== RUN   TestPascalSignedDecimalFullWordDomain
+--- PASS: TestPascalSignedDecimalFullWordDomain (1.77s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.777s

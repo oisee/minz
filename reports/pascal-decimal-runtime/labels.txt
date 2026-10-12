@@ -1,0 +1,42 @@
+=== RUN   TestCPMDecimalMachineBodyAndHelperAuthority
+--- PASS: TestCPMDecimalMachineBodyAndHelperAuthority (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.017s
+=== RUN   TestPascalHelloProductionCPM
+=== RUN   TestPascalHelloProductionCPM/ordinary
+=== RUN   TestPascalHelloProductionCPM/ordinary/hello
+    pascal_cpm_main_test.go:278: clobberfalse stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+    pascal_cpm_main_test.go:278: clobbertrue stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+=== RUN   TestPascalHelloProductionCPM/ordinary/factorial
+    pascal_cpm_main_test.go:278: clobberfalse stdout"5040\r\n" expected"5040\r\n" donetrue SPfe00
+    pascal_cpm_main_test.go:278: clobbertrue stdout"5040\r\n" expected"5040\r\n" donetrue SPfe00
+=== RUN   TestPascalHelloProductionCPM/grace-size
+=== RUN   TestPascalHelloProductionCPM/grace-size/hello
+    pascal_cpm_main_test.go:278: clobberfalse stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+    pascal_cpm_main_test.go:278: clobbertrue stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+=== RUN   TestPascalHelloProductionCPM/grace-size/factorial
+    pascal_cpm_main_test.go:278: clobberfalse stdout"5040\r\n" expected"5040\r\n" donetrue SPfe00
+    pascal_cpm_main_test.go:278: clobbertrue stdout"5040\r\n" expected"5040\r\n" donetrue SPfe00
+=== RUN   TestPascalHelloProductionCPM/grace-speed
+=== RUN   TestPascalHelloProductionCPM/grace-speed/hello
+    pascal_cpm_main_test.go:278: clobberfalse stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+    pascal_cpm_main_test.go:278: clobbertrue stdout"Hello from Pascal on Z80!\r\n" expected"Hello from Pascal on Z80!\r\n" donetrue SPfe00
+=== RUN   TestPascalHelloProductionCPM/grace-speed/factorial
+    pascal_cpm_main_test.go:278: clobberfalse stdout"5040\r\n" expected"5040\r\n" donetrue SPfe00
+    pascal_cpm_main_test.go:278: clobbertrue stdout"5040\r\n" expected"5040\r\n" donetrue SPfe00
+--- PASS: TestPascalHelloProductionCPM (0.07s)
+    --- PASS: TestPascalHelloProductionCPM/ordinary (0.02s)
+        --- PASS: TestPascalHelloProductionCPM/ordinary/hello (0.01s)
+        --- PASS: TestPascalHelloProductionCPM/ordinary/factorial (0.01s)
+    --- PASS: TestPascalHelloProductionCPM/grace-size (0.02s)
+        --- PASS: TestPascalHelloProductionCPM/grace-size/hello (0.01s)
+        --- PASS: TestPascalHelloProductionCPM/grace-size/factorial (0.02s)
+    --- PASS: TestPascalHelloProductionCPM/grace-speed (0.02s)
+        --- PASS: TestPascalHelloProductionCPM/grace-speed/hello (0.01s)
+        --- PASS: TestPascalHelloProductionCPM/grace-speed/factorial (0.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.076s
+=== RUN   TestCPMDecimalMachineBodyAndHelperAuthority
+--- PASS: TestCPMDecimalMachineBodyAndHelperAuthority (0.06s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.073s

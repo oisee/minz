@@ -1,0 +1,17 @@
+[
+  "/mnt/safe/minz/grace/2026-10-12/pascal-decimal-runtime/executables/minzc",
+  "examples/pascal/factorial.pas",
+  "-t",
+  "cpm",
+  "--runtime",
+  "cpm",
+  "--runtime-stack",
+  "1024",
+  "--asserts",
+  "none",
+  "--grace",
+  "--hir-grace",
+  "--Osize",
+  "-o",
+  "reports/pascal-decimal-runtime/cli/grace-size/factorial.com"
+]

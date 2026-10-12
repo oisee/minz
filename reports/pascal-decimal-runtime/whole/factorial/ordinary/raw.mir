@@ -1,0 +1,50 @@
+; MIR2 module: examples/pascal/factorial.pas
+global @N : i16
+global @RESULT : i16
+
+fun @FACT(%r1: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r2 = const 0 : i16 [pointer]
+    %r3 = const 1 : u8 [general]
+    %r4 = cmp.le %r1, %r3 : bool [flag]
+    br_if %r4, @if_then1(), @if_else3()
+  block @if_then1:
+    %r5 = const 1 : u8 [general]
+    %r6 = ext %r5 : u8 -> i16 [pointer]
+    jmp @if_join2(%r6)
+  block @if_else3:
+    %r7 = const 1 : i16 [pointer]
+    %r8 = sub %r1, %r7 : i16 [pointer]
+    %r9 = call @FACT(%r8) : i16 [pointer]
+    %r10 = mul %r1, %r9 : i16 [pointer]
+    jmp @if_join2(%r10)
+  block @if_join2(%r11: i16 [pointer]):
+    ret %r11
+
+fun @main()
+  block @entry:
+    %r12 = const 7 : i16 [pointer]
+    %r13 = call @FACT(%r12) : i16 [pointer]
+    %r14 = addr_of @RESULT : ptr [pointer]
+    store %r14, %r13 : i16
+    %r15 = addr_of @RESULT : ptr [pointer]
+    %r16 = load %r15 : i16 [pointer]
+    call @WriteI16(%r16)
+    call @WriteCrLf()
+    ret void
+
+fun @WriteCrLf()
+  block @entry:
+    asm "LD E, 13\n    LD C, 2\n    CALL 5\n    LD E, 10\n    LD C, 2\n    CALL 5"
+    ret void
+
+fun @WriteI16(%r17: i16 [pointer])
+  block @entry:
+    asm "PUSH IX\n    BIT 7, H\n    JR Z, _wr_i16_positive\n    PUSH HL\n    LD E, 45\n    LD C, 2\n    CALL 5\n    POP HL\n    XOR A\n    SUB L\n    LD L, A\n    SBC A, A\n    SUB H\n    LD H, A\n    _wr_i16_positive:\n    PUSH HL\n    POP IX\n    LD D, 0\n    PUSH IX\n    POP HL\n    LD BC, 10000\n    CALL _wr16_dig\n    PUSH HL\n    POP IX\n    PUSH IX\n    POP HL\n    LD BC, 1000\n    CALL _wr16_dig\n    PUSH HL\n    POP IX\n    PUSH IX\n    POP HL\n    LD BC, 100\n    CALL _wr16_dig\n    PUSH HL\n    POP IX\n    PUSH IX\n    POP HL\n    LD BC, 10\n    CALL _wr16_dig\n    PUSH HL\n    POP IX\n    LD A, IXL\n    ADD A, 48\n    LD E, A\n    LD C, 2\n    CALL 5\n    POP IX"
+    ret void
+
+fun @_wr16_dig()
+  block @entry:
+    asm "LD A, 48\n    _w16_sub: OR A\n    SBC HL, BC\n    JR NC, _w16_cont\n    ADD HL, BC\n    CP 48\n    JR NZ, _w16_pr\n    LD A, D\n    OR A\n    RET Z\n    LD A, 48\n    _w16_pr: LD D, 1\n    LD E, A\n    PUSH HL\n    PUSH DE\n    PUSH BC\n    LD C, 2\n    CALL 5\n    POP BC\n    POP DE\n    POP HL\n    RET\n    _w16_cont: INC A\n    JR _w16_sub"
+    ret void
+
