@@ -1,0 +1,12 @@
+{
+  "files": {
+    "mir2-full.txt": {
+      "sha256": "c2d29e6b77afdcbb5b051c97864d783f717fca613c148ea9e3d96e90fd88fe13",
+      "bytes": 1327
+    },
+    "README.md": {
+      "sha256": "78bd504b70f873cdfb592dd9f1b18f4a3540a19b0afc03189d54383d3943adb8",
+      "bytes": 936
+    }
+  }
+}
