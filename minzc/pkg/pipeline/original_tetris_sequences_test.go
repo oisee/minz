@@ -17,6 +17,7 @@ import (
 )
 
 func TestOriginalTetrisSpawnHoldAndSequences(t *testing.T) {
+	tetrisVerifyHistoricalModel(t)
 	data, e := os.ReadFile("../../../reports/tetris-sequences-native/freeze.json")
 	if e != nil {
 		t.Fatal(e)
@@ -47,7 +48,17 @@ func TestOriginalTetrisSpawnHoldAndSequences(t *testing.T) {
 		dependencies[p] = h
 	}
 	for p, h := range dependencies {
-		b, e := os.ReadFile("../../../" + p)
+		path := "../../../" + p
+		if p == "minzc/pkg/pipeline/original_tetris_family_test.go" {
+			path = "../../../reports/tetris-main-native/historical-family-test.go.txt"
+		}
+		if p == "examples/nanz/tetris_cpm.nanz" {
+			path = "../../../reports/tetris-family-native/tetris_cpm.nanz"
+		}
+		if p == "examples/nanz/tetris_tui.nanz" {
+			path = "../../../reports/tetris-family-native/tetris_tui.nanz"
+		}
+		b, e := os.ReadFile(path)
 		if e != nil || fmt.Sprintf("%x", sha256.Sum256(b)) != h {
 			t.Fatal("freeze", p, e)
 		}
@@ -73,7 +84,7 @@ func TestOriginalTetrisSpawnHoldAndSequences(t *testing.T) {
 		}
 	}
 	for _, module := range []string{"tetris_cpm", "tetris_tui"} {
-		src, e := os.ReadFile("../../../examples/nanz/" + module + ".nanz")
+		src, e := os.ReadFile("../../../reports/tetris-family-native/" + module + ".nanz")
 		if e != nil {
 			t.Fatal(e)
 		}

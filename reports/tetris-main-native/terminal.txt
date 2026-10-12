@@ -1,0 +1,16 @@
+=== RUN   TestTetrisFamilyIndependentModelControls
+--- PASS: TestTetrisFamilyIndependentModelControls (0.00s)
+=== RUN   TestTetrisHistoricalModelIdentity
+--- PASS: TestTetrisHistoricalModelIdentity (0.00s)
+=== RUN   TestOriginalTetrisCPMMainSourceAPIRefusal
+    original_tetris_main_negative_test.go:239: ordinary original wholemain source/API refusal reproduced
+    original_tetris_main_negative_test.go:239: grace-size original wholemain source/API refusal reproduced
+    original_tetris_main_negative_test.go:239: grace-speed original wholemain source/API refusal reproduced
+--- PASS: TestOriginalTetrisCPMMainSourceAPIRefusal (1.84s)
+=== RUN   TestOriginalTetrisCPMMainNative
+    original_tetris_main_test.go:258: ordinary whole original main exactstdout/state/HALT/SP PASS
+    original_tetris_main_test.go:258: grace-size whole original main exactstdout/state/HALT/SP PASS
+    original_tetris_main_test.go:258: grace-speed whole original main exactstdout/state/HALT/SP PASS
+--- PASS: TestOriginalTetrisCPMMainNative (1.77s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.623s
