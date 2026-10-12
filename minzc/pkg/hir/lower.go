@@ -1134,7 +1134,13 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			r = l.coerceLocalInteger(r, st.Init.ExprTy(), st.Ty)
 		}
 		delete(l.fnAliases, st.Name) // a scalar declaration hides a callable alias
-		l.bind(st.Name, r, st.Ty)
+		bindingTy := st.Ty
+		if st.ArrayLen > 0 {
+			// The environment carries the array base address, not one element.
+			// Loop block parameters must retain the full pointer width.
+			bindingTy = mir2.TyPtr
+		}
+		l.bind(st.Name, r, bindingTy)
 		if st.ArrayLen > 0 {
 			l.localArrays[st.Name] = true
 		}
