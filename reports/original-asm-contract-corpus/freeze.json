@@ -1,0 +1,40 @@
+{
+  "base": "7ce75464",
+  "before_execution": true,
+  "spec": "docs/Nanz_Language_Book_v7.md chapter2.14/2.15, exactZ80instructions andsourceassertions",
+  "sources": [
+    {
+      "path": "examples/tests/asm_caller_callee.nanz",
+      "sha256": "2055fecf573db289ccfbd16de3d2f59d2e91e903e2e0be462aee5d851b6c5a83",
+      "saved": "source-0.nanz"
+    },
+    {
+      "path": "examples/tests/asm_calling_convention.nanz",
+      "sha256": "ae7c1e14855375e9a83ebcc3fc74f73461a1fc099163f3059d78bada2c856716",
+      "saved": "source-1.nanz"
+    },
+    {
+      "path": "examples/tests/asm_register_permutations.nanz",
+      "sha256": "86a49f3262aeebe9411c8ef9ead9bd753443c6ee602769968a0bc35a4f0f2ab7",
+      "saved": "source-2.nanz"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-11/ex17_asm_block.nanz",
+      "sha256": "719e9b92212f011f6bf9922f779d7cf057d5545218285bb925d036bebe85cfaa",
+      "saved": "source-3.nanz"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex17_asm_block.nanz",
+      "sha256": "719e9b92212f011f6bf9922f779d7cf057d5545218285bb925d036bebe85cfaa",
+      "saved": "source-4.nanz"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-15/ex31_asm_ret_clob.nanz",
+      "sha256": "cf179c15efdc7420d049b9f67a8882de29d52294678d3afc109a6ec469569e85",
+      "saved": "source-5.nanz"
+    }
+  ],
+  "domain": "byteunary all256; binarybyte all65536; triple allbytepairs at c=0,1,127,128,254,255; fourparam allbytepairs at sixc/d matched+cross boundarypairs; wordunary all65536; wordpair14x14bounds; mixedword14boundsxall256byte; screen_col0..31,row0..23,line0..7; memorydirectguardedaddresses andbytevalues;copy_n1..255 ondisjointbuffers,0 explicitlynonreturn/corruptionprobeoutsidepositiveproof",
+  "port_read": "frozenportfunction lowbyte xor highbyte seed, verify actual 16bitportaddress",
+  "VM": "ASMnoop excluded, nativeonly"
+}

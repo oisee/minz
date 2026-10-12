@@ -1,0 +1,7 @@
+{
+  "model_correction": "copy_n exactLDIRreadsHL(named dest)\u2192writesDE(named src)",
+  "old_expectation_baseline": "before-copy-comment-oracle.txt",
+  "original_source_changed": false,
+  "zero_count": "notexecuted; CPULDIRBC0 means65536 bytes, notsafe copyingproof",
+  "revision_before_positive_rerun": true
+}

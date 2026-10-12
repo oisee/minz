@@ -1,0 +1,19 @@
+; MIR2 module: reports/showcase-src/2026-03-15/ex31_asm_ret_clob.nanz
+fun @port_read(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = asm "IN A, (0xFE)"
+    ret void
+
+fun @double(%r3: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r4 = asm "ADD A, A"
+    ret void
+
+fun @main() -> u8 [acc]
+  block @entry:
+    %r5 = const 223 : u8 [acc]
+    %r6 = call @port_read(%r5) : u8 [acc]
+    %r7 = move %r6 : u8 [acc]
+    %r8 = call @double(%r7) : u8 [acc]
+    ret %r8
+

@@ -1,0 +1,37 @@
+; MIR2 module: reports/showcase-src/2026-03-11/ex17_asm_block.nanz
+string @mir2.str.0 = "asm blocks work!\n"
+
+fun @set_border(%r1: u8 [acc])
+  block @entry:
+    asm "OUT (0xFE), A"
+    ret void
+
+fun @nop_slide()
+  block @entry:
+    asm "NOP\n    NOP\n    NOP\n    NOP"
+    ret void
+
+fun @main()
+  block @entry:
+    %r2 = const 2 : u8 [acc]
+    call @set_border(%r2)
+    call @nop_slide()
+    %r3 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r4 = load %r3 : u8 [general]
+    %r5 = const 1 : u16 [pointer]
+    %r6 = add %r3, %r5 : ptr [acc]
+    jmp @loop_head3(%r4, %r6)
+  block @loop_head3(%r4: u8 [general], %r8: ptr [general]):
+    %r9 = const 0 : u8 [general]
+    %r10 = cmp.ne %r4, %r9 : bool [flag]
+    cond_ret %r10, [], @loop_body4()
+  block @loop_body4:
+    %r11 = load %r8 : u8 [general]
+    %r12 = move %r11 : u8 [acc]
+    call @@mir.io.print.char(%r12)
+    %r13 = const 1 : u16 [pointer]
+    %r14 = add %r8, %r13 : ptr [general]
+    %r15 = const 1 : u8 [general]
+    %r16 = sub %r4, %r15 : u8 [general]
+    jmp @loop_head3(%r16, %r14)
+

@@ -1,0 +1,69 @@
+=== RUN   TestOriginalASMContractsNative
+=== RUN   TestOriginalASMContractsNative/source0
+=== RUN   TestOriginalASMContractsNative/source0/ordinary
+    original_asm_contract_corpus_test.go:383: bytes155 entries17
+=== RUN   TestOriginalASMContractsNative/source0/grace-size
+    original_asm_contract_corpus_test.go:383: bytes155 entries17
+=== RUN   TestOriginalASMContractsNative/source0/grace-speed
+    original_asm_contract_corpus_test.go:383: bytes155 entries17
+=== RUN   TestOriginalASMContractsNative/source1
+=== RUN   TestOriginalASMContractsNative/source1/ordinary
+    original_asm_contract_corpus_test.go:383: bytes68 entries16
+=== RUN   TestOriginalASMContractsNative/source1/grace-size
+    original_asm_contract_corpus_test.go:383: bytes68 entries16
+=== RUN   TestOriginalASMContractsNative/source1/grace-speed
+    original_asm_contract_corpus_test.go:383: bytes68 entries16
+=== RUN   TestOriginalASMContractsNative/source2
+=== RUN   TestOriginalASMContractsNative/source2/ordinary
+    original_asm_contract_corpus_test.go:383: bytes107 entries28
+=== RUN   TestOriginalASMContractsNative/source2/grace-size
+    original_asm_contract_corpus_test.go:383: bytes107 entries28
+=== RUN   TestOriginalASMContractsNative/source2/grace-speed
+    original_asm_contract_corpus_test.go:383: bytes107 entries28
+=== RUN   TestOriginalASMContractsNative/source3
+=== RUN   TestOriginalASMContractsNative/source3/ordinary
+    original_asm_contract_corpus_test.go:383: bytes61 entries3
+=== RUN   TestOriginalASMContractsNative/source3/grace-size
+    original_asm_contract_corpus_test.go:383: bytes61 entries3
+=== RUN   TestOriginalASMContractsNative/source3/grace-speed
+    original_asm_contract_corpus_test.go:383: bytes61 entries3
+=== RUN   TestOriginalASMContractsNative/source4
+=== RUN   TestOriginalASMContractsNative/source4/ordinary
+    original_asm_contract_corpus_test.go:383: bytes61 entries3
+=== RUN   TestOriginalASMContractsNative/source4/grace-size
+    original_asm_contract_corpus_test.go:383: bytes61 entries3
+=== RUN   TestOriginalASMContractsNative/source4/grace-speed
+    original_asm_contract_corpus_test.go:383: bytes61 entries3
+=== RUN   TestOriginalASMContractsNative/source5
+=== RUN   TestOriginalASMContractsNative/source5/ordinary
+    original_asm_contract_corpus_test.go:383: bytes13 entries3
+=== RUN   TestOriginalASMContractsNative/source5/grace-size
+    original_asm_contract_corpus_test.go:383: bytes13 entries3
+=== RUN   TestOriginalASMContractsNative/source5/grace-speed
+    original_asm_contract_corpus_test.go:383: bytes13 entries3
+--- PASS: TestOriginalASMContractsNative (8.36s)
+    --- PASS: TestOriginalASMContractsNative/source0 (0.85s)
+        --- PASS: TestOriginalASMContractsNative/source0/ordinary (0.30s)
+        --- PASS: TestOriginalASMContractsNative/source0/grace-size (0.28s)
+        --- PASS: TestOriginalASMContractsNative/source0/grace-speed (0.28s)
+    --- PASS: TestOriginalASMContractsNative/source1 (0.80s)
+        --- PASS: TestOriginalASMContractsNative/source1/ordinary (0.27s)
+        --- PASS: TestOriginalASMContractsNative/source1/grace-size (0.27s)
+        --- PASS: TestOriginalASMContractsNative/source1/grace-speed (0.26s)
+    --- PASS: TestOriginalASMContractsNative/source2 (6.67s)
+        --- PASS: TestOriginalASMContractsNative/source2/ordinary (2.33s)
+        --- PASS: TestOriginalASMContractsNative/source2/grace-size (2.21s)
+        --- PASS: TestOriginalASMContractsNative/source2/grace-speed (2.14s)
+    --- PASS: TestOriginalASMContractsNative/source3 (0.01s)
+        --- PASS: TestOriginalASMContractsNative/source3/ordinary (0.00s)
+        --- PASS: TestOriginalASMContractsNative/source3/grace-size (0.00s)
+        --- PASS: TestOriginalASMContractsNative/source3/grace-speed (0.00s)
+    --- PASS: TestOriginalASMContractsNative/source4 (0.01s)
+        --- PASS: TestOriginalASMContractsNative/source4/ordinary (0.00s)
+        --- PASS: TestOriginalASMContractsNative/source4/grace-size (0.00s)
+        --- PASS: TestOriginalASMContractsNative/source4/grace-speed (0.00s)
+    --- PASS: TestOriginalASMContractsNative/source5 (0.01s)
+        --- PASS: TestOriginalASMContractsNative/source5/ordinary (0.00s)
+        --- PASS: TestOriginalASMContractsNative/source5/grace-size (0.00s)
+        --- PASS: TestOriginalASMContractsNative/source5/grace-speed (0.00s)
+PASS

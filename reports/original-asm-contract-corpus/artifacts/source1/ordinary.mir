@@ -1,0 +1,85 @@
+; MIR2 module: examples/tests/asm_calling_convention.nanz
+fun @ident_a(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    asm "NOP"
+    ret void
+
+fun @read_b(%r2: u8 [counter]) -> u8 [acc]
+  block @entry:
+    asm "LD A, B"
+    ret void
+
+fun @read_c(%r3: u8 [regC]) -> u8 [acc]
+  block @entry:
+    asm "LD A, C"
+    ret void
+
+fun @add_ab(%r4: u8 [acc], %r5: u8 [counter]) -> u8 [acc]
+  block @entry:
+    asm "ADD A, B"
+    ret void
+
+fun @add_bc(%r6: u8 [counter], %r7: u8 [regC]) -> u8 [acc]
+  block @entry:
+    asm "LD A, B\n    ADD A, C"
+    ret void
+
+fun @diff_bc(%r8: u8 [counter], %r9: u8 [regC]) -> u8 [acc]
+  block @entry:
+    asm "LD A, B\n    SUB C"
+    ret void
+
+fun @triple_abc(%r10: u8 [acc], %r11: u8 [counter], %r12: u8 [regC]) -> u8 [acc]
+  block @entry:
+    asm "ADD A, B\n    ADD A, C"
+    ret void
+
+fun @ident_hl(%r13: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    asm "NOP"
+    ret void
+
+fun @ident_de(%r14: u16 [index]) -> u16 [pointer]
+  block @entry:
+    asm "EX DE, HL"
+    ret void
+
+fun @add16(%r15: u16 [pointer], %r16: u16 [index]) -> u16 [pointer]
+  block @entry:
+    asm "ADD HL, DE"
+    ret void
+
+fun @ptr_offset(%r17: u16 [pointer], %r18: u8 [acc]) -> u16 [pointer]
+  block @entry:
+    asm "LD D, 0\n    LD E, A\n    ADD HL, DE"
+    ret void
+
+fun @poke(%r19: u16 [pointer], %r20: u8 [acc])
+  block @entry:
+    asm "LD (HL), A"
+    ret void
+
+fun @peek(%r21: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    asm "LD A, (HL)"
+    ret void
+
+fun @poke_peek_test() -> u8 [acc]
+  block @entry:
+    %r22 = const 65024 : u16 [pointer]
+    %r23 = const 66 : u8 [general]
+    call @poke(%r22, %r23)
+    %r24 = const 65024 : u16 [pointer]
+    %r25 = call @peek(%r24) : u8 [acc]
+    ret %r25
+
+fun @swap_bytes(%r26: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    asm "LD A, H\n    LD H, L\n    LD L, A"
+    ret void
+
+fun @screen_addr(%r27: u8 [acc], %r28: u8 [counter], %r29: u8 [regC]) -> u16 [pointer]
+  block @entry:
+    asm "LD L, A\n    LD A, B\n    AND 0x18\n    OR C\n    OR 0x40\n    LD H, A\n    LD A, B\n    AND 0x07\n    RRCA\n    RRCA\n    RRCA\n    OR L\n    LD L, A"
+    ret void
+
