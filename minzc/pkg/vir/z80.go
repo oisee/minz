@@ -282,6 +282,8 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			Template: "LD E, {src0}\n    LD D, 0", Cost: 11, Bytes: 3},
 
 		// 16-bit moves
+		{Name: "same_pair", Op: OpMove, Width: 16, DstLocs: Z80_Pairs,
+			SrcLocs: [2]LocSet{Z80_Pairs}, TiedDstSrc: true, Template: "", Cost: 0, Bytes: 0},
 		{Name: "push_pop", Op: OpMove, Width: 16, DstLocs: Z80_Pairs,
 			SrcLocs:  [2]LocSet{Z80_Pairs},
 			Template: "PUSH {src0}\n    POP {dst}", Cost: 21, Bytes: 2},
@@ -627,8 +629,10 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			Clobbers: Z80_Flags, TiedDstSrc: true},
 
 		// ── Call / Return ────────────────────────────────────────────
+		// Solver call liveness treats index registers as preserved. Callees may
+		// allocate them, so enforce that contract at each call boundary.
 		{Name: "call", Op: OpCall, DstLocs: Z80_A.Or(Z80_HL),
-			Template: "CALL {imm}", Cost: 17, Bytes: 3,
+			Template: "PUSH IX\n    PUSH IY\n    CALL {imm}\n    POP IY\n    POP IX", Cost: 75, Bytes: 11,
 			Flags: PatCall | PatImmediate},
 		{Name: "ret", Op: OpRet,
 			Template: "RET", Cost: 10, Bytes: 1},
@@ -638,6 +642,16 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			DstLocs:  Z80_GPR8.Or(Z80_Pairs),
 			Template: "", Cost: 10, Bytes: 0,
 			Flags: PatCall}, // treated like a call (has clobbers)
+	}
+	// Transfers through A preserve its live value and flags on every emission
+	// path; the solver pays for both the transfer and scratch preservation.
+	for i := range pats {
+		p := &pats[i]
+		if p.Op == OpMove && strings.Contains(p.Template, "LD A,") && !p.DstLocs.Has(m.LocByName("A")) && !p.SrcLocs[0].Has(m.LocByName("A")) {
+			p.Template = "PUSH AF\n    " + p.Template + "\n    POP AF"
+			p.Cost += 21
+			p.Bytes += 2
+		}
 	}
 	pats = append(pats, generateBitPatterns()...)
 	return pats

@@ -1,0 +1,20 @@
+=== RUN   TestCodegenModule_Double16ThenDec
+[regalloc] loaded 56 exhaustive entries from regalloc_exhaustive.json
+[vir] cut-vertex? double_dec nv=4
+[CFG-solver] 1 blocks, 0 edges, 6 vars
+[CFG-solver] double_dec: 0 edges to check for moves
+--- PASS: TestCodegenModule_Double16ThenDec (0.04s)
+=== RUN   TestDouble16ThenDecFullDomainNative
+    word_return_native_test.go:67: all 65536 word inputs, native HL and exact return PC/SP PASS; 3 bytes
+--- PASS: TestDouble16ThenDecFullDomainNative (0.04s)
+=== RUN   TestVIRIndexedHelpersNativeDomain
+    indexed_helpers_native_test.go:141: 6400 stores and 6400 reads; all 25 cells, all byte values, adjacent memory and exact PC/SP PASS
+--- PASS: TestVIRIndexedHelpersNativeDomain (0.43s)
+=== RUN   TestVIRChainedCallsFullByteDomain
+    indexed_helpers_native_test.go:154: chained_calls_full_byte: 256 asserts passed ✓ (MIR2-VM + Z80)
+--- PASS: TestVIRChainedCallsFullByteDomain (0.22s)
+=== RUN   TestVIRIndexedMixedCallsByteDomain
+    indexed_helpers_native_test.go:172: indexed_mixed_calls_byte_domain: 256 asserts passed ✓ (MIR2-VM + Z80)
+--- PASS: TestVIRIndexedMixedCallsByteDomain (3.15s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	3.884s

@@ -2076,6 +2076,9 @@ func findMovePatternDirect(desc *MachineDesc, srcPhys, dstPhys int) *Pattern {
 		if pat.Op != OpMove || pat.Width != dstWidth {
 			continue
 		}
+		if pat.TiedDstSrc && srcPhys != dstPhys {
+			continue
+		}
 		if strings.Contains(pat.Template, "EX ") {
 			continue
 		}
@@ -2088,6 +2091,9 @@ func findMovePatternDirect(desc *MachineDesc, srcPhys, dstPhys int) *Pattern {
 		pat := &desc.Patterns[i]
 		if pat.Op != OpMove || pat.Width == dstWidth {
 			continue // already tried
+		}
+		if pat.TiedDstSrc && srcPhys != dstPhys {
+			continue
 		}
 		if strings.Contains(pat.Template, "EX ") {
 			continue

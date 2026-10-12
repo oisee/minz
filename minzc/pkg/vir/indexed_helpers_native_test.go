@@ -153,3 +153,21 @@ fun compute(x:u8)->u8 { return mul2(add(x,1)) }
 	}
 	runVIRAsserts(t, "chained_calls_full_byte", src.String())
 }
+
+// The first read remains live through another call whose callee uses IX/IY.
+func TestVIRIndexedMixedCallsByteDomain(t *testing.T) {
+	var src strings.Builder
+	src.WriteString(`global board:[u8;25]
+fun board_get(x:u8,y:u8)->u8 { return board[y*5+x] }
+fun board_set(x:u8,y:u8,v:u8)->void { board[y*5+x]=v }
+fun combine(v:u8)->u8 {
+ board_set(0,0,v)
+ board_set(3,2,9)
+ return board_get(0,0)+board_get(3,2)
+}
+`)
+	for v := 0; v < 256; v++ {
+		fmt.Fprintf(&src, "assert combine(%d) == %d\n", v, (v+9)&255)
+	}
+	runVIRAsserts(t, "indexed_mixed_calls_byte_domain", src.String())
+}

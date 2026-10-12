@@ -1,0 +1,20 @@
+; MIR2 module: chained_calls_full_byte.nanz
+fun @add(%r1: u8 [acc], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = add %r1, %r2 : u8 [acc]
+    ret %r3
+
+fun @mul2(%r4: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r5 = add %r4, %r4 : u8 [acc]
+    ret %r5
+
+fun @compute(%r6: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r7 = move %r6 : u8 [acc]
+    %r8 = const 1 : u8 [general]
+    %r9 = call @add(%r7, %r8) : u8 [acc]
+    %r10 = move %r9 : u8 [acc]
+    %r11 = call @mul2(%r10) : u8 [acc]
+    ret %r11
+

@@ -1,0 +1,68 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "c2f14ca695bd42e209852e725765be87a248def4880f112b65d664e9a289f5be"
+    },
+    {
+      "path": "asserts/chained_calls_full_byte/allocation.json",
+      "sha256": "4cb4cb4f5a8a03ad2398622f6d70dd3bf04ac0511b9796d75c34263730b94913"
+    },
+    {
+      "path": "asserts/chained_calls_full_byte/module.a80",
+      "sha256": "d14828b4c02279f0249de80499b6496b268bc450f5513aa42caead9e8e765b99"
+    },
+    {
+      "path": "asserts/chained_calls_full_byte/module.mir",
+      "sha256": "0ecaa219064008695030a1229642b494b756ea09b17b115fe7745d42ae5b3f74"
+    },
+    {
+      "path": "asserts/chained_calls_full_byte/source.nanz",
+      "sha256": "17ae80b19f6ada319f5f128bba8ec1690ff828362c40eb0a74fe10fbfdab659a"
+    },
+    {
+      "path": "asserts/indexed_mixed_calls_byte_domain/allocation.json",
+      "sha256": "6d6959b4bc7167a362e5cf1ecc2f35d6edd91b95018e51dc8a4a98b5c083b21a"
+    },
+    {
+      "path": "asserts/indexed_mixed_calls_byte_domain/module.a80",
+      "sha256": "ff3d51644872a4c9eea97b530decc6e4a70ba819b855496a4931fc7b9b933a84"
+    },
+    {
+      "path": "asserts/indexed_mixed_calls_byte_domain/module.mir",
+      "sha256": "779908325ab88dccf0f72ec8bdb710a7e9ad618add0ce92505f1663be889ee22"
+    },
+    {
+      "path": "asserts/indexed_mixed_calls_byte_domain/source.nanz",
+      "sha256": "87fb84d513fcc5b728762fb39e50338990d3dd12f17bbf748928915fb6856d25"
+    },
+    {
+      "path": "family.txt",
+      "sha256": "789d6d3bd7890fbb885edaa03a8cb0fc9866bfb9a2a5d7a5cc7740ea189fed9f"
+    },
+    {
+      "path": "helpers.a80",
+      "sha256": "654aa17ad5d31c612f19620176ef977542ca98eb848ad52ea24904f41da96a0f"
+    },
+    {
+      "path": "native.txt",
+      "sha256": "38fce3d7c373cbd04d621202452a2ff897f3fcb21f04688281cd8612e1f77865"
+    },
+    {
+      "path": "rejected-without-call-save.txt",
+      "sha256": "c8fe365ca9840e48cc757fb87dec089624eff6710ccd4d70c5aaa7eb9f76b6e9"
+    },
+    {
+      "path": "rejected-without-scratch.txt",
+      "sha256": "01eebe4c3dcf1190fa0099557245e8a9fd204983906eadf00f47fad91284aa51"
+    },
+    {
+      "path": "word/final.a80",
+      "sha256": "5678d9389780ad0a655dfed36c1e3a3b5bf4c0839c434007dcd8d25a063b1910"
+    },
+    {
+      "path": "word/final.bin",
+      "sha256": "96300a75c45ca1748dbdecbae62c46d9293d978481712d047f9418d782e35742"
+    }
+  ]
+}
