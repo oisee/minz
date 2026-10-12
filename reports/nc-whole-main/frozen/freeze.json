@@ -57,5 +57,8 @@
     "fs_fsize": 1
   },
   "disk_authority": "Read-only image; successful disk_read drive0 count1, sector0 or2 into exact sector-window global. Any write or other read refused for navigation-only workload.",
-  "status": "Pre-execution independent input/state freeze; terminal event oracle and actual VM/native execution not yet completed."
+  "status": "Input/state/ordered-terminal oracle frozen before execution; raw/final VM and native still pending.",
+  "terminal_oracle_sha256": "b42dcf52f8a651c58e56701b88ddc417c848bb0cf003141a3667e86580781cbb",
+  "terminal_event_count": 1453,
+  "oracle_provenance": "Handwritten independent model of original draw_* and main source, source constants/layout and frozen directory rows; no HIR/VM/native execution used."
 }
