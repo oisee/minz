@@ -1,5 +1,7 @@
 # Grace / PGO: текущее состояние
 
+SQL result-filter followup `9ec0f503`: unknown-column refusal и LIMIT-before-filter на настоящей SQLite PASS; весь `cmd/mzv` PASS. [Пакет 299](grace-integration-299/README.md). Полный screen_report proof ещё в работе.
+
 Исходные ALV и piped `tui_demo` интегрированы: совместно с SQLite demo raw/final VM и native **PASS 2,216 с** на `34082988`. [Пакет 298](grace-integration-298/README.md). Screen report и commander остаются в работе.
 
 Повтор frozen heldout/associations `1b5cf5ca`: **PASS 48,256 с**. Неизменённый SQLite demo: raw/final VM и native в трёх режимах **PASS 0,066 с**. Arena consumer сохраняет правильное поведение, но строгий size-gain assertion FAIL (1130/1130 байт); расследование продолжается. [Пакет 297](grace-integration-297/README.md).

@@ -1,0 +1,1 @@
+ok  	github.com/minz/minzc/cmd/mzv	0.004s

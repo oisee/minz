@@ -1,0 +1,16 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "83302c32fa4d5b7db956d194ee2b80cd0b4284a3721bc69548f03f7c663f7477"
+    },
+    {
+      "path": "focused.txt",
+      "sha256": "caf6c65be7c615b6ef61267c47dca2360c1307c1a8f04e0aaf32cab422104350"
+    },
+    {
+      "path": "full-mzv.txt",
+      "sha256": "8c91a29fccf39ae24f5a34cd831bba6de83b10b519e609b995887aa5eba49e1a"
+    }
+  ]
+}
