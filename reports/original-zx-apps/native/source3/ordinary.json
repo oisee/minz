@@ -1,0 +1,76 @@
+{
+  "actual_parameter_homes": {
+    "_do_exec": {
+      "sql": "HL"
+    },
+    "_do_select": {
+      "sql": "HL"
+    },
+    "_finalize1": {},
+    "_font_anchor": {},
+    "_print_col": {
+      "col": "A"
+    },
+    "_prompt": {},
+    "_sql_query": {
+      "sql": "HL"
+    },
+    "_step1": {},
+    "_zxch": {
+      "ch": "A"
+    },
+    "first_char": {
+      "s": "HL"
+    },
+    "main": {},
+    "sql__sqlite___sql_recv_str": {
+      "buf": "HL"
+    },
+    "sql__sqlite___sql_send_str": {
+      "str": "HL"
+    },
+    "sql__sqlite__sqlite_close": {
+      "db": "HL"
+    },
+    "sql__sqlite__sqlite_column_int": {
+      "col": "C",
+      "q": "HL"
+    },
+    "sql__sqlite__sqlite_column_text": {
+      "col": "C",
+      "q": "HL"
+    },
+    "sql__sqlite__sqlite_exec": {
+      "db": "HL",
+      "sql": "mem"
+    },
+    "sql__sqlite__sqlite_finalize": {
+      "q": "HL"
+    },
+    "sql__sqlite__sqlite_open": {
+      "path": "HL"
+    },
+    "sql__sqlite__sqlite_query": {
+      "db": "HL",
+      "sql": "mem"
+    },
+    "sql__sqlite__sqlite_step": {
+      "q": "HL"
+    },
+    "zx_attr_row": {
+      "attr": "C",
+      "row": "A"
+    },
+    "zx_cls": {},
+    "zx_getinput": {},
+    "zx_newline": {},
+    "zx_puts": {
+      "s": "HL"
+    },
+    "zx_readline": {}
+  },
+  "bytes": 2125,
+  "mode": "ordinary",
+  "native_scope": "not executed: requires real SQLite port bridge model",
+  "source": "examples/nanz/zsql_zx.nanz"
+}

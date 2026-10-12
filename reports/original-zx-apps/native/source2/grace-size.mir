@@ -1,0 +1,195 @@
+; MIR2 module: examples/abap/zsql_mara_color_zx.nanz
+string @mir2.str.0 = " ZSQL - Z80 SQLite on Spectrum"
+string @mir2.str.1 = " =============================="
+string @mir2.str.2 = " "
+string @mir2.str.3 = " zsql> CREATE TABLE mara"
+string @mir2.str.4 = "   (matnr, mtart, meins, maktx)"
+string @mir2.str.5 = " OK"
+string @mir2.str.6 = " zsql> INSERT INTO mara VALUES"
+string @mir2.str.7 = "   100-100 FERT ST Pump Assy"
+string @mir2.str.8 = "   100-300 FERT ST Valve Unit"
+string @mir2.str.9 = "   200-100 ROH  KG Raw Steel"
+string @mir2.str.10 = "   200-200 HALB KG Steel Plate"
+string @mir2.str.11 = " OK (4 rows)"
+string @mir2.str.12 = " zsql> SELECT * FROM mara"
+string @mir2.str.13 = "   WHERE mtart = FERT"
+string @mir2.str.14 = " matnr   |mtart|meins|maktx"
+string @mir2.str.15 = " --------|-----|-----|----------"
+string @mir2.str.16 = " 100-100 |FERT |ST   |Pump Assy"
+string @mir2.str.17 = " 100-300 |FERT |ST   |Valve Unit"
+string @mir2.str.18 = " 2 rows. SQL on Z80!"
+global @_zx_row : u8
+global @_zx_col : u8
+global @_zx_font : u16
+global @_f01 : u16
+global @_f02 : u16
+global @_f03 : u16
+global @_f04 : u16
+global @_f05 : u16
+global @_f06 : u16
+global @_f07 : u16
+global @_f08 : u16
+global @_f09 : u16
+global @_f0a : u16
+global @_f0b : u16
+global @_f0c : u16
+global @_f0d : u16
+global @_f0e : u16
+global @_f0f : u16
+
+fun @_zxch(%r1: u8 [acc])
+  block @entry:
+    asm "CP 13\n    JR Z, ._nl\n    CP 10\n    JR Z, ._nl\n        SUB 32\n    LD L, A\n    LD H, 0\n        ADD HL, HL\n    ADD HL, HL\n    ADD HL, HL\n        LD DE, _zx_font\n    ADD HL, DE\n        PUSH HL\n        LD A, (_zx_row)\n    LD C, A\n        LD A, (_zx_col)\n    LD B, A\n        LD A, C\n    AND 0x07\n    RRCA\n    RRCA\n    RRCA\n    AND 0xE0\n        OR B\n    LD L, A\n        LD A, C\n    AND 0x18\n    OR 0x40\n    LD H, A\n        POP DE\n        LD B, 8\n        ._cp: LD A, (DE)\n    LD (HL), A\n    INC DE\n    INC H\n    DJNZ ._cp\n        LD HL, _zx_col\n    INC (HL)\n    LD A, (HL)\n    CP 32\n    RET NZ\n        LD (HL), 0\n    DEC HL\n    INC (HL)\n    RET\n        ._nl: LD HL, _zx_row\n    INC (HL)\n    INC HL\n    LD (HL), 0"
+    ret void
+
+fun @zx_puts(%r2: ptr [pointer])
+  block @entry:
+    asm "PUSH IX\n    PUSH HL\n    POP IX\n        .lp: LD A, (IX+0)\n    OR A\n    JR Z, .dn\n        PUSH IX\n    CALL _zxch\n    POP IX\n    INC IX\n    JR .lp\n        .dn: LD A, 13\n    PUSH IX\n    CALL _zxch\n    POP IX\n    POP IX"
+    ret void
+
+fun @zx_cls()
+  block @entry:
+    asm "LD HL, 0x4000\n    LD DE, 0x4001\n    LD BC, 6143\n    LD (HL), 0\n    LDIR\n        LD HL, 0x5800\n    LD DE, 0x5801\n    LD BC, 767\n    LD (HL), 0x07\n    LDIR\n        LD HL, _zx_row\n    LD (HL), 0\n    INC HL\n    LD (HL), 0"
+    ret void
+
+fun @zx_attr_row(%r3: u8 [acc], %r4: u8 [general])
+  block @entry:
+    asm "LD H, 0\n    LD L, A\n        ADD HL, HL\n    ADD HL, HL\n    ADD HL, HL\n    ADD HL, HL\n    ADD HL, HL\n        LD DE, 0x5800\n    ADD HL, DE\n        LD B, 32\n        .f: LD (HL), C\n    INC HL\n    DJNZ .f"
+    ret void
+
+fun @main()
+  block @entry:
+    call @zx_cls()
+    asm "LD A, 1\n    OUT (0xFE), A"
+    %r5 = const 0 : u8 [acc]
+    %r6 = const 79 : u8 [general]
+    call @zx_attr_row(%r5, %r6)
+    %r7 = const 1 : u8 [acc]
+    %r8 = const 79 : u8 [general]
+    call @zx_attr_row(%r7, %r8)
+    %r9 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r10 = move %r9 : ptr [pointer]
+    call @zx_puts(%r10)
+    %r11 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r12 = move %r11 : ptr [pointer]
+    call @zx_puts(%r12)
+    %r13 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r14 = move %r13 : ptr [pointer]
+    call @zx_puts(%r14)
+    %r15 = const 3 : u8 [acc]
+    %r16 = const 68 : u8 [general]
+    call @zx_attr_row(%r15, %r16)
+    %r17 = const 4 : u8 [acc]
+    %r18 = const 68 : u8 [general]
+    call @zx_attr_row(%r17, %r18)
+    %r19 = const 5 : u8 [acc]
+    %r20 = const 68 : u8 [general]
+    call @zx_attr_row(%r19, %r20)
+    %r21 = const 6 : u8 [acc]
+    %r22 = const 68 : u8 [general]
+    call @zx_attr_row(%r21, %r22)
+    %r23 = addr_of @@mir2.str.3 : ptr [pointer]
+    %r24 = move %r23 : ptr [pointer]
+    call @zx_puts(%r24)
+    %r25 = addr_of @@mir2.str.4 : ptr [pointer]
+    %r26 = move %r25 : ptr [pointer]
+    call @zx_puts(%r26)
+    %r27 = const 5 : u8 [acc]
+    %r28 = const 71 : u8 [general]
+    call @zx_attr_row(%r27, %r28)
+    %r29 = addr_of @@mir2.str.5 : ptr [pointer]
+    %r30 = move %r29 : ptr [pointer]
+    call @zx_puts(%r30)
+    %r31 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r32 = move %r31 : ptr [pointer]
+    call @zx_puts(%r32)
+    %r33 = const 7 : u8 [acc]
+    %r34 = const 68 : u8 [general]
+    call @zx_attr_row(%r33, %r34)
+    %r35 = const 8 : u8 [acc]
+    %r36 = const 68 : u8 [general]
+    call @zx_attr_row(%r35, %r36)
+    %r37 = const 9 : u8 [acc]
+    %r38 = const 68 : u8 [general]
+    call @zx_attr_row(%r37, %r38)
+    %r39 = const 10 : u8 [acc]
+    %r40 = const 68 : u8 [general]
+    call @zx_attr_row(%r39, %r40)
+    %r41 = const 11 : u8 [acc]
+    %r42 = const 68 : u8 [general]
+    call @zx_attr_row(%r41, %r42)
+    %r43 = addr_of @@mir2.str.6 : ptr [pointer]
+    %r44 = move %r43 : ptr [pointer]
+    call @zx_puts(%r44)
+    %r45 = addr_of @@mir2.str.7 : ptr [pointer]
+    %r46 = move %r45 : ptr [pointer]
+    call @zx_puts(%r46)
+    %r47 = addr_of @@mir2.str.8 : ptr [pointer]
+    %r48 = move %r47 : ptr [pointer]
+    call @zx_puts(%r48)
+    %r49 = addr_of @@mir2.str.9 : ptr [pointer]
+    %r50 = move %r49 : ptr [pointer]
+    call @zx_puts(%r50)
+    %r51 = addr_of @@mir2.str.10 : ptr [pointer]
+    %r52 = move %r51 : ptr [pointer]
+    call @zx_puts(%r52)
+    %r53 = const 12 : u8 [acc]
+    %r54 = const 71 : u8 [general]
+    call @zx_attr_row(%r53, %r54)
+    %r55 = addr_of @@mir2.str.11 : ptr [pointer]
+    %r56 = move %r55 : ptr [pointer]
+    call @zx_puts(%r56)
+    %r57 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r58 = move %r57 : ptr [pointer]
+    call @zx_puts(%r58)
+    %r59 = const 14 : u8 [acc]
+    %r60 = const 69 : u8 [general]
+    call @zx_attr_row(%r59, %r60)
+    %r61 = const 15 : u8 [acc]
+    %r62 = const 69 : u8 [general]
+    call @zx_attr_row(%r61, %r62)
+    %r63 = addr_of @@mir2.str.12 : ptr [pointer]
+    %r64 = move %r63 : ptr [pointer]
+    call @zx_puts(%r64)
+    %r65 = addr_of @@mir2.str.13 : ptr [pointer]
+    %r66 = move %r65 : ptr [pointer]
+    call @zx_puts(%r66)
+    %r67 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r68 = move %r67 : ptr [pointer]
+    call @zx_puts(%r68)
+    %r69 = const 17 : u8 [acc]
+    %r70 = const 71 : u8 [general]
+    call @zx_attr_row(%r69, %r70)
+    %r71 = addr_of @@mir2.str.14 : ptr [pointer]
+    %r72 = move %r71 : ptr [pointer]
+    call @zx_puts(%r72)
+    %r73 = const 18 : u8 [acc]
+    %r74 = const 69 : u8 [general]
+    call @zx_attr_row(%r73, %r74)
+    %r75 = addr_of @@mir2.str.15 : ptr [pointer]
+    %r76 = move %r75 : ptr [pointer]
+    call @zx_puts(%r76)
+    %r77 = const 19 : u8 [acc]
+    %r78 = const 70 : u8 [general]
+    call @zx_attr_row(%r77, %r78)
+    %r79 = const 20 : u8 [acc]
+    %r80 = const 70 : u8 [general]
+    call @zx_attr_row(%r79, %r80)
+    %r81 = addr_of @@mir2.str.16 : ptr [pointer]
+    %r82 = move %r81 : ptr [pointer]
+    call @zx_puts(%r82)
+    %r83 = addr_of @@mir2.str.17 : ptr [pointer]
+    %r84 = move %r83 : ptr [pointer]
+    call @zx_puts(%r84)
+    %r85 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r86 = move %r85 : ptr [pointer]
+    call @zx_puts(%r86)
+    %r87 = const 22 : u8 [acc]
+    %r88 = const 71 : u8 [general]
+    call @zx_attr_row(%r87, %r88)
+    %r89 = addr_of @@mir2.str.18 : ptr [pointer]
+    %r90 = move %r89 : ptr [pointer]
+    call @zx_puts(%r90)
+    asm "DI\n    HALT"
+    ret void
+

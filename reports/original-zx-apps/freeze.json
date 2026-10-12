@@ -1,0 +1,45 @@
+{
+  "base": "81649477",
+  "before_execution": true,
+  "sources": [
+    {
+      "path": "examples/abap/hello_zx.nanz",
+      "sha256": "3b78a2a3281a2db4364400009f609260f3f9f8792a3f8b37107875109352b2e9",
+      "snapshot": "source0.nanz"
+    },
+    {
+      "path": "examples/abap/sap_report_zx.nanz",
+      "sha256": "5509c36b278ca724d2ac80e334c468dbba178091d10e74a032a6cdcdf201d463",
+      "snapshot": "source1.nanz"
+    },
+    {
+      "path": "examples/abap/zsql_mara_color_zx.nanz",
+      "sha256": "c7e23b4a549b4627672bc37fcdbb75e15d32c6ad54e8604e225836dd07f4286f",
+      "snapshot": "source2.nanz"
+    },
+    {
+      "path": "examples/nanz/zsql_zx.nanz",
+      "sha256": "5f1e8230c2e59e25f7e3bb3c958633e29b8707ad019db18ac61c8fb38ab49e31",
+      "snapshot": "source3.nanz"
+    },
+    {
+      "path": "examples/nanz/zsql_zx_real.nanz",
+      "sha256": "444865f7ad85c4c7eeaa51e53827f58303436339ba8bbda82683ee4fc5364eaf",
+      "snapshot": "source4.nanz"
+    },
+    {
+      "path": "stdlib/zx/console.nanz",
+      "sha256": "179cd575fdb7fdd650bf3d405bfb8683e44ac4eb5324b71aadd7eea187087709",
+      "snapshot": "source5.nanz"
+    },
+    {
+      "path": "stdlib/sql/sqlite.nanz",
+      "sha256": "8ffac000fc19328312a66c9249aee352caa08b3073df201958a0abb905756326",
+      "snapshot": "source6.nanz"
+    }
+  ],
+  "sap_model": "Main HALT (not return), border OUTFE1, attrs black initial then exact row colors; pixels retain seed except row0cols2..27,row1cols2..24,row21cols0..29, rows11..13cols1..8,row7cols2..10 and12..17 filledFF all8scanlines. Verify literal actual unrolled counts before execution.",
+  "color_model": "Whole HALT with source font array decoded independently little-endian; every frozen zx_puts C-string adds newline; attrrow values exact source. No SQL runtime: this is static report display.",
+  "hello_model": "Finite CALL-return after17INFE script released8 thenFDbit0 thencapsFEreleased, expected displayed SystemReport plusHelloABAP, barestrings NUL consumer suspect.",
+  "sql_scope": "Real SQLite port bridge required, not pretend SQL host no-op. Compile/admission audit first; no unmodelled runtimePASS."
+}

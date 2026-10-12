@@ -1,0 +1,43 @@
+=== RUN   TestOriginalZXAppsNative
+=== RUN   TestOriginalZXAppsNative/source0/ordinary
+    original_zx_apps_test.go:132: hello original returned=false halt=false reads=0
+=== RUN   TestOriginalZXAppsNative/source0/grace-size
+    original_zx_apps_test.go:132: hello original returned=false halt=false reads=0
+=== RUN   TestOriginalZXAppsNative/source0/grace-speed
+    original_zx_apps_test.go:132: hello original returned=false halt=false reads=0
+=== RUN   TestOriginalZXAppsNative/source1/ordinary
+    original_zx_apps_test.go:231: original app halted=true mismatch=-001 outside=0 SP=effe
+=== RUN   TestOriginalZXAppsNative/source1/grace-size
+    original_zx_apps_test.go:231: original app halted=true mismatch=-001 outside=0 SP=effe
+=== RUN   TestOriginalZXAppsNative/source1/grace-speed
+    original_zx_apps_test.go:231: original app halted=true mismatch=-001 outside=0 SP=effe
+=== RUN   TestOriginalZXAppsNative/source2/ordinary
+    original_zx_apps_test.go:193: source font has 32 bytes; character 'Z' outside font
+=== RUN   TestOriginalZXAppsNative/source2/grace-size
+    original_zx_apps_test.go:193: source font has 32 bytes; character 'Z' outside font
+=== RUN   TestOriginalZXAppsNative/source2/grace-speed
+    original_zx_apps_test.go:193: source font has 32 bytes; character 'Z' outside font
+=== RUN   TestOriginalZXAppsNative/source3/ordinary
+=== RUN   TestOriginalZXAppsNative/source3/grace-size
+=== RUN   TestOriginalZXAppsNative/source3/grace-speed
+=== RUN   TestOriginalZXAppsNative/source4/ordinary
+=== RUN   TestOriginalZXAppsNative/source4/grace-size
+=== RUN   TestOriginalZXAppsNative/source4/grace-speed
+--- PASS: TestOriginalZXAppsNative (2.62s)
+    --- PASS: TestOriginalZXAppsNative/source0/ordinary (0.18s)
+    --- PASS: TestOriginalZXAppsNative/source0/grace-size (0.21s)
+    --- PASS: TestOriginalZXAppsNative/source0/grace-speed (0.20s)
+    --- PASS: TestOriginalZXAppsNative/source1/ordinary (0.44s)
+    --- PASS: TestOriginalZXAppsNative/source1/grace-size (0.62s)
+    --- PASS: TestOriginalZXAppsNative/source1/grace-speed (0.71s)
+    --- PASS: TestOriginalZXAppsNative/source2/ordinary (0.02s)
+    --- PASS: TestOriginalZXAppsNative/source2/grace-size (0.02s)
+    --- PASS: TestOriginalZXAppsNative/source2/grace-speed (0.02s)
+    --- PASS: TestOriginalZXAppsNative/source3/ordinary (0.04s)
+    --- PASS: TestOriginalZXAppsNative/source3/grace-size (0.04s)
+    --- PASS: TestOriginalZXAppsNative/source3/grace-speed (0.04s)
+    --- PASS: TestOriginalZXAppsNative/source4/ordinary (0.02s)
+    --- PASS: TestOriginalZXAppsNative/source4/grace-size (0.03s)
+    --- PASS: TestOriginalZXAppsNative/source4/grace-speed (0.03s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.631s

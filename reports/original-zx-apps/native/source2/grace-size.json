@@ -1,0 +1,42 @@
+{
+  "actual_parameter_homes": {
+    "_zxch": {
+      "ch": "A"
+    },
+    "main": {},
+    "zx_attr_row": {
+      "attr": "C",
+      "row": "A"
+    },
+    "zx_cls": {},
+    "zx_puts": {
+      "s": "HL"
+    }
+  },
+  "bytes": 952,
+  "first_unbacked_char": 90,
+  "halted": true,
+  "min_sp": 61428,
+  "missing_source_font_bytes": 32,
+  "mode": "grace-size",
+  "native_scope": "incomplete source font, no complete text oracle",
+  "read_ports": [],
+  "registers": {
+    "A": 13,
+    "F": 8,
+    "BC": 23,
+    "DE": 33239,
+    "HL": 33222,
+    "IX": 4951,
+    "IY": 9320,
+    "SP": 61438,
+    "PC": 33054
+  },
+  "returned": false,
+  "source": "examples/abap/zsql_mara_color_zx.nanz",
+  "t_states_before_terminal": 465838,
+  "write_ports": [
+    510
+  ],
+  "write_values": "AQ=="
+}
