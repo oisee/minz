@@ -40,14 +40,28 @@ func TestCheckedExistingFunctionPointerLeaf(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	if selected.Traces["triple"].Backend != "checked-local-table" {
+	// Canonical indirect entries now have an ABI bridge which local tables do
+	// not model. Require that precise refusal and unchanged ordinary fallback;
+	// still execute the complete caller domain below.
+	fenced := base.MIR2Module.FuncByName("triple").Attrs.FixedIndirectABI
+	if fenced {
+		want := "triple: skipped: checked local table does not model the canonical indirect entry bridge"
+		found := false
+		for _, note := range notes {
+			found = found || note == want
+		}
+		if !found || tab.Size() != 0 || selected.Assembly != base.Assembly {
+			t.Fatal("indirect bridge must retain exact baseline", notes)
+		}
+		t.Logf("canonical indirect bridge refused; exact baseline retained: %v", notes)
+	} else if selected.Traces["triple"].Backend != "checked-local-table" {
 		t.Fatal(notes)
 	}
 	vm := mir2.NewVM(selected.MIR2Module)
 	rawVM := mir2.NewVM(hir.LowerModule(parse()))
 	beforeSize, _ := checkedAsmSize(base.Assembly)
 	afterSize, _ := checkedAsmSize(selected.Assembly)
-	if afterSize >= beforeSize {
+	if !fenced && afterSize >= beforeSize {
 		t.Fatal("no module benefit")
 	}
 	var bt, st int
@@ -118,7 +132,7 @@ func TestCheckedExistingFunctionPointerLeaf(t *testing.T) {
 		}
 		if index == 0 {
 			baselineIndirect = cycles
-		} else if cycles >= baselineIndirect {
+		} else if (!fenced && cycles >= baselineIndirect) || (fenced && cycles != baselineIndirect) {
 			t.Fatal("indirect lost benefit")
 		}
 		t.Logf("existing indirect apply triple all256 %dT/%dB", cycles, len(bin.Binary))
@@ -134,7 +148,7 @@ func TestCheckedExistingFunctionPointerLeaf(t *testing.T) {
 		os.WriteFile(filepath.Join(dir, "table.json"), data, 0644)
 		os.WriteFile(filepath.Join(dir, "source.nanz"), src, 0644)
 	}
-	if st >= bt {
+	if (!fenced && st >= bt) || (fenced && st != bt) {
 		t.Fatal("direct lost benefit")
 	}
 	for _, s := range []Steps{base, selected} {
