@@ -12,6 +12,8 @@ The project is active research: examples and targets have different levels of ma
 
 [**Full report: MinZ today — Nanz, the other frontends, compiler layers, and verified Z80**](reports/2026-10-11-092-grace-vm-z80-status.md) (Russian). A readable tour of the shared pipeline, Grace, PFCCO/PBQP and register-allocation tables, with measured results and remaining gaps. Research-branch results are identified separately from what is available in `main`. Updated October 12: full production checkpoint PASS (547 tests, 17 skips), C89 struct-return fixes, heldout Z80 gains, playable CP/M Tetris, and explicit limits of the newer gate and research VIR path.
 
+[**Nanz close to hardware: declarative arrays, compile-time interfaces and Antique Toy techniques**](reports/2026-10-12-131-nanz-hardware-api-roadmap.md) (Russian). A proposed library design for fills, copies, masks, sprites and texture walks, with a [full Astra review](reports/2026-10-12-130-nanz-hardware-arrays-astra.md). Existing features and measured research results are distinguished from planned APIs.
+
 ## Run a program
 
 Install [Go](https://go.dev/doc/install), then from the repository root:
