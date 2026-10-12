@@ -1,0 +1,129 @@
+; MIR2 module: tui_commander_l3.nanz
+string @mir2.str.0 = "  Mini Commander v0.1"
+string @mir2.str.1 = "Name          Size   Date"
+string @mir2.str.2 = "README.MD     1024   2026-03-18"
+string @mir2.str.3 = "MAIN.NZ        947   2026-03-17"
+string @mir2.str.4 = "FAT12.NZ       603   2026-03-16"
+string @mir2.str.5 = "TETRIS.NZ      853   2026-03-15"
+string @mir2.str.6 = "HELLO.COM      128   2026-03-14"
+string @mir2.str.7 = "F5=View  F3=Quit  UP/DOWN=Navigate"
+
+extern fun @tui_goto(%r1: u8 [acc], %r2: u8 [general])
+
+extern fun @tui_color(%r3: u8 [acc], %r4: u8 [general], %r5: u8 [counter])
+
+extern fun @tui_reset()
+
+extern fun @tui_clear()
+
+extern fun @tui_putch(%r6: u8 [acc])
+
+extern fun @tui_puts(%r7: ptr [pointer])
+
+extern fun @tui_read_key() -> u8 [acc]
+
+extern fun @tui_width() -> u8 [acc]
+
+extern fun @tui_height() -> u8 [acc]
+
+fun @_render_screen()
+  block @entry:
+    call @tui_clear()
+    %r8 = const 7 : u8 [acc]
+    %r9 = const 4 : u8 [general]
+    %r10 = const 1 : u8 [counter]
+    call @tui_color(%r8, %r9, %r10)
+    %r11 = const 0 : u8 [acc]
+    %r12 = const 0 : u8 [general]
+    call @tui_goto(%r11, %r12)
+    %r13 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r14 = move %r13 : ptr [pointer]
+    call @tui_puts(%r14)
+    call @tui_reset()
+    %r15 = const 2 : u8 [acc]
+    %r16 = const 2 : u8 [general]
+    call @tui_goto(%r15, %r16)
+    %r17 = const 7 : u8 [acc]
+    %r18 = const 0 : u8 [general]
+    %r19 = const 0 : u8 [counter]
+    call @tui_color(%r17, %r18, %r19)
+    %r20 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r21 = move %r20 : ptr [pointer]
+    call @tui_puts(%r21)
+    call @tui_reset()
+    %r22 = const 2 : u8 [acc]
+    %r23 = const 3 : u8 [general]
+    call @tui_goto(%r22, %r23)
+    %r24 = const 7 : u8 [acc]
+    %r25 = const 0 : u8 [general]
+    %r26 = const 0 : u8 [counter]
+    call @tui_color(%r24, %r25, %r26)
+    %r27 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r28 = move %r27 : ptr [pointer]
+    call @tui_puts(%r28)
+    call @tui_reset()
+    %r29 = const 2 : u8 [acc]
+    %r30 = const 4 : u8 [general]
+    call @tui_goto(%r29, %r30)
+    %r31 = const 7 : u8 [acc]
+    %r32 = const 0 : u8 [general]
+    %r33 = const 0 : u8 [counter]
+    call @tui_color(%r31, %r32, %r33)
+    %r34 = addr_of @@mir2.str.3 : ptr [pointer]
+    %r35 = move %r34 : ptr [pointer]
+    call @tui_puts(%r35)
+    call @tui_reset()
+    %r36 = const 2 : u8 [acc]
+    %r37 = const 5 : u8 [general]
+    call @tui_goto(%r36, %r37)
+    %r38 = const 7 : u8 [acc]
+    %r39 = const 0 : u8 [general]
+    %r40 = const 0 : u8 [counter]
+    call @tui_color(%r38, %r39, %r40)
+    %r41 = addr_of @@mir2.str.4 : ptr [pointer]
+    %r42 = move %r41 : ptr [pointer]
+    call @tui_puts(%r42)
+    call @tui_reset()
+    %r43 = const 2 : u8 [acc]
+    %r44 = const 6 : u8 [general]
+    call @tui_goto(%r43, %r44)
+    %r45 = const 7 : u8 [acc]
+    %r46 = const 0 : u8 [general]
+    %r47 = const 0 : u8 [counter]
+    call @tui_color(%r45, %r46, %r47)
+    %r48 = addr_of @@mir2.str.5 : ptr [pointer]
+    %r49 = move %r48 : ptr [pointer]
+    call @tui_puts(%r49)
+    call @tui_reset()
+    %r50 = const 2 : u8 [acc]
+    %r51 = const 7 : u8 [general]
+    call @tui_goto(%r50, %r51)
+    %r52 = const 7 : u8 [acc]
+    %r53 = const 0 : u8 [general]
+    %r54 = const 0 : u8 [counter]
+    call @tui_color(%r52, %r53, %r54)
+    %r55 = addr_of @@mir2.str.6 : ptr [pointer]
+    %r56 = move %r55 : ptr [pointer]
+    call @tui_puts(%r56)
+    call @tui_reset()
+    %r57 = const 0 : u8 [acc]
+    %r58 = const 6 : u8 [general]
+    %r59 = const 0 : u8 [counter]
+    call @tui_color(%r57, %r58, %r59)
+    %r60 = const 0 : u8 [acc]
+    %r61 = const 23 : u8 [general]
+    call @tui_goto(%r60, %r61)
+    %r62 = addr_of @@mir2.str.7 : ptr [pointer]
+    %r63 = move %r62 : ptr [pointer]
+    call @tui_puts(%r63)
+    call @tui_reset()
+    ret void
+
+fun @main()
+  block @entry:
+    call @_render_screen()
+    %r64 = call @tui_read_key() : u8 [acc]
+    call @tui_clear()
+    call @tui_reset()
+    ret void
+

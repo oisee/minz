@@ -1,0 +1,7 @@
+{
+  "code_commit": "3a0c5f0a",
+  "sha256": "70a20ddfb54ce9ccabf2c4380b67c60df3485e8bf79b01de68d28de710503f6d",
+  "bytes": 35062773,
+  "durable_worktree_path": "/home/alice/dev/minz-artifacts/grace-workspaces/tui-demo-whole-main/reports/tui-commander-l3-main/pipeline-proof.test",
+  "share_path": "/mnt/safe/minz/grace/2026-10-12/agent-artifacts/tui-commander-l3-main/executables/pipeline-proof.test"
+}
