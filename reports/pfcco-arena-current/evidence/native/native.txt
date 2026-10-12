@@ -1,0 +1,28 @@
+=== RUN   TestPFCCOExistingArenaNativeConsumer
+    pfcco_arena_native_test.go:121: strategy="" test_alloc_sequence 2196T return0000
+    pfcco_arena_native_test.go:121: strategy="" test_oom 1431T return0000
+    pfcco_arena_native_test.go:121: strategy="" test_small_allocs 1897T return0000
+    pfcco_arena_native_test.go:121: strategy="" test_sizeof 20T return0000
+    pfcco_arena_native_test.go:121: strategy="" test_split 3906T return0000
+    pfcco_arena_native_test.go:121: strategy="" test_typed_alloc 1609T return0000
+    pfcco_arena_native_test.go:121: strategy="" init_frame 375T return3f00
+    pfcco_arena_native_test.go:121: strategy="" alloc_and_check 455T return0000
+    pfcco_arena_native_test.go:121: strategy="" alloc_and_check 455T return0000
+    pfcco_arena_native_test.go:121: strategy="" alloc_and_check 455T return0000
+    pfcco_arena_native_test.go:121: strategy="" get_remaining 241T return3e40
+    pfcco_arena_native_test.go:195: strategy="" arena_split independent100boundarypairs 220T actual pointer/word ABI and4memorybytes PASS
+    pfcco_arena_native_test.go:121: strategy="pbqp" test_alloc_sequence 2196T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" test_oom 1431T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" test_small_allocs 1897T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" test_sizeof 20T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" test_split 3766T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" test_typed_alloc 1609T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" init_frame 375T return3f00
+    pfcco_arena_native_test.go:121: strategy="pbqp" alloc_and_check 455T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" alloc_and_check 455T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" alloc_and_check 455T return0000
+    pfcco_arena_native_test.go:121: strategy="pbqp" get_remaining 241T return3e40
+    pfcco_arena_native_test.go:195: strategy="pbqp" arena_split independent100boundarypairs 166T actual pointer/word ABI and4memorybytes PASS
+    pfcco_arena_native_test.go:212: exact arena source BIN1130→1122B sum11calls13040→12900T
+--- PASS: TestPFCCOExistingArenaNativeConsumer (0.10s)
+PASS

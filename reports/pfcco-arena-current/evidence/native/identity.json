@@ -1,0 +1,35 @@
+{
+  "schema": "minz.pfcco-arena-native-review/v1",
+  "base": "1abea5b1",
+  "production_commit": "effbb22d",
+  "executable_sha256": "06ad8590a025f089e704394a67f96b6219107d16d0a6092268ee294ee40afe8f",
+  "source_sha256": "ae1ff790c63064bb30bb27aa3529f847f5981de841ce816c868249c9bb85107e",
+  "logical_source": "grace_measure.nanz",
+  "options": {
+    "ContractOpt": true,
+    "ContractStrategy": [
+      "",
+      "pbqp"
+    ],
+    "OptSize": true,
+    "AssertMode": "none"
+  },
+  "invocations": {
+    "whole_caller": 22,
+    "independent_boundary_pairs": 200,
+    "total": 222
+  },
+  "sizes": [
+    1130,
+    1122
+  ],
+  "whole_caller_T": [
+    13040,
+    12900
+  ],
+  "arena_split_T": [
+    220,
+    166
+  ],
+  "native_state_scope": "PC/SP, return and memory/guards/code integrity asserted at runtime; per-call state not separately exported"
+}
