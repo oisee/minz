@@ -1,0 +1,59 @@
+// SQLite demo — database operations from MIR2 VM
+//
+// Run: mzv2 -headless -trace examples/nanz/sqlite_demo.nanz
+//
+// Creates an in-memory SQLite database, inserts rows, queries them.
+// All via host functions — the VM calls into Go's database/sql.
+
+// ── SQLite host function declarations ────────────────────────────────
+
+@extern fun sqlite_open(name: ^u8) -> u16
+@extern fun sqlite_close(handle: u16) -> u8
+@extern fun sqlite_exec(handle: u16, sql: ^u8) -> u8
+@extern fun sqlite_query(handle: u16, sql: ^u8) -> u16
+@extern fun sqlite_step(stmt: u16) -> u8
+@extern fun sqlite_finalize(stmt: u16) -> u8
+@extern fun sqlite_column_int(stmt: u16, col: u8) -> u16
+
+// ── Main ─────────────────────────────────────────────────────────────
+
+fun main() -> void {
+    // Open in-memory database
+    var db: u16 = sqlite_open(0)
+
+    // Create table
+    sqlite_exec(db, c"CREATE TABLE scores (id INTEGER, name TEXT, val INTEGER)")
+
+    // Insert data
+    sqlite_exec(db, c"INSERT INTO scores VALUES (1, 'Alice', 95)")
+    sqlite_exec(db, c"INSERT INTO scores VALUES (2, 'Bob', 87)")
+    sqlite_exec(db, c"INSERT INTO scores VALUES (3, 'Charlie', 92)")
+    sqlite_exec(db, c"INSERT INTO scores VALUES (4, 'Diana', 98)")
+    sqlite_exec(db, c"INSERT INTO scores VALUES (5, 'Eve', 73)")
+
+    // Query: all scores above 90, ordered by score
+    var q1: u16 = sqlite_query(db, c"SELECT id, val FROM scores WHERE val >= 90 ORDER BY val DESC")
+    while sqlite_step(q1) == 1 {
+        var id: u16 = sqlite_column_int(q1, 0)
+        var score: u16 = sqlite_column_int(q1, 1)
+        @print_u8(u8(id))
+        @print_u8(u8(score))
+    }
+    // q1 auto-closed by step returning 0
+
+    // Query: count — single-row result, finalize after reading
+    var q2: u16 = sqlite_query(db, c"SELECT COUNT(*) FROM scores")
+    sqlite_step(q2)
+    var count: u16 = sqlite_column_int(q2, 0)
+    @print_u8(u8(count))
+    sqlite_finalize(q2)
+
+    // Query: max score
+    var q3: u16 = sqlite_query(db, c"SELECT MAX(val) FROM scores")
+    sqlite_step(q3)
+    var best: u16 = sqlite_column_int(q3, 0)
+    @print_u8(u8(best))
+    sqlite_finalize(q3)
+
+    sqlite_close(db)
+}
