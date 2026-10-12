@@ -1,0 +1,13 @@
+=== RUN   TestOriginalImplCPMRuntimeAdmission
+=== RUN   TestOriginalImplCPMRuntimeAdmission/ordinary
+    original_impl_cpm_main_test.go:63: CP/M runtime rejects ASM and fixed-address extern functions
+=== RUN   TestOriginalImplCPMRuntimeAdmission/grace-size
+    original_impl_cpm_main_test.go:63: CP/M runtime rejects ASM and fixed-address extern functions
+=== RUN   TestOriginalImplCPMRuntimeAdmission/grace-speed
+    original_impl_cpm_main_test.go:63: CP/M runtime rejects ASM and fixed-address extern functions
+--- PASS: TestOriginalImplCPMRuntimeAdmission (0.01s)
+    --- PASS: TestOriginalImplCPMRuntimeAdmission/ordinary (0.00s)
+    --- PASS: TestOriginalImplCPMRuntimeAdmission/grace-size (0.00s)
+    --- PASS: TestOriginalImplCPMRuntimeAdmission/grace-speed (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.014s
