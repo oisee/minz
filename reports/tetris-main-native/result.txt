@@ -1,0 +1,6 @@
+=== RUN   TestOriginalTetrisCPMMainNative
+    original_tetris_main_test.go:230: main termination/input/SP false 2 {165 164 1794 2469 64060 104 4951 61418 5}
+--- FAIL: TestOriginalTetrisCPMMainNative (0.63s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.653s
+FAIL

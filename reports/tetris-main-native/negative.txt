@@ -1,0 +1,7 @@
+=== RUN   TestOriginalTetrisCPMMainSourceAPIRefusal
+    original_tetris_main_test.go:239: ordinary original wholemain source/API refusal reproduced
+    original_tetris_main_test.go:239: grace-size original wholemain source/API refusal reproduced
+    original_tetris_main_test.go:239: grace-speed original wholemain source/API refusal reproduced
+--- PASS: TestOriginalTetrisCPMMainSourceAPIRefusal (1.39s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.398s
