@@ -1,0 +1,6 @@
+=== RUN   TestNativeCallLiteralCycleExhaustive
+--- PASS: TestNativeCallLiteralCycleExhaustive (0.18s)
+=== RUN   TestCallLiteralRefusesNoncanonicalDefinitions
+--- PASS: TestCallLiteralRefusesNoncanonicalDefinitions (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.190s

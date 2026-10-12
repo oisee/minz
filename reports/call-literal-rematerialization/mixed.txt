@@ -1,0 +1,4 @@
+=== RUN   TestNativeCallLiteralMixedHalfOrdering
+--- PASS: TestNativeCallLiteralMixedHalfOrdering (0.05s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.057s

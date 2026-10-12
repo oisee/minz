@@ -1,0 +1,12 @@
+{
+  "base": "08e3ae7f",
+  "freeze": "5897e1de",
+  "production_chain": [
+    "f1b1e289",
+    "a3a0e4b3",
+    "fb5771c2"
+  ],
+  "executable": "/home/alice/dev/minz-artifacts/grace-checkpoints/call-literal-pipeline.test",
+  "sha256": "2a75c102d84feafd98a02bb4a568fc141f03d624f02a927c6436f12402514317",
+  "go": "go1.26.8"
+}
