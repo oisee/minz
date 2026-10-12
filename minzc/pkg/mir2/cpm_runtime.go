@@ -18,7 +18,7 @@ func validateCPMApplicationRuntime(m *Module, ar *AllocResult) error {
 		return fmt.Errorf("CP/M runtime requires target cpm and void main without arguments")
 	}
 	for _, f := range m.Funcs {
-		trustedBDOS := cpmSourceBDOS2(f, ar) || cpmPascalOutputAdapter(f, ar) != nil
+		trustedBDOS := cpmSourceBDOS2(f, ar) || cpmPascalOutputAdapter(f, ar) != nil || cpmTUIAdapter(f, ar) != nil
 		if (f.Attrs.HasAsm && !trustedBDOS) || f.Attrs.ExternAddr != 0 {
 			return fmt.Errorf("CP/M runtime rejects ASM and fixed-address extern functions")
 		}
@@ -89,7 +89,7 @@ func validateCPMApplicationRuntime(m *Module, ar *AllocResult) error {
 					}
 					def := defs[i.Src[0]]
 					if def == nil || def.Op != OpAddrOf || !cpmRuntimeGlobal(m, def.Sym) {
-						return fmt.Errorf("CP/M runtime only supports direct module-global memory accesses")
+						return fmt.Errorf("CP/M runtime only supports direct module-global memory accesses: %s block %s reg %d def %v",f.Name,b.Label,i.Src[0],def)
 					}
 				case OpAlloca:
 					continue
