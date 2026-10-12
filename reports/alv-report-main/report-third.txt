@@ -1,0 +1,6 @@
+=== RUN   TestOriginalReportScreenWholeMain
+    original_report_screen_main_test.go:566: ABIhome {0 IX 0}
+--- FAIL: TestOriginalReportScreenWholeMain (0.15s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.160s
+FAIL

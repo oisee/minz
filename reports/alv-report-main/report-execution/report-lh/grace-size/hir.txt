@@ -1,0 +1,373 @@
+; HIR module: screen_report.nanz
+global const @SCREEN_NONE : u8
+global const @SCREEN_EXECUTE : u8
+global const @SCREEN_BACK : u8
+global @_scr_title : ptr
+global @_scr_nfields : u8
+global @_scr_focus : u8
+global @_buf_carrier : [5]u8
+global @_tbl_data : [472]u8
+global @_tbl_nrows : u8
+global const @TBL_OFF_ID : u16
+global const @TBL_OFF_CARRIER_NAME : u16
+global const @TBL_OFF_URL : u16
+global const @TBL_ROW_SIZE : u16
+global const @TBL_MAX_ROWS : u8
+global @db : u16
+string #0 = "SCARR Report"
+string #1 = "  "
+string #2 = "Carrier"
+string #3 = "F8=Execute"
+string #4 = "F3=Back"
+string #5 = "  TAB=Next  Enter=Edit  F8=Execute  F3=Back"
+string #6 = "ID"
+string #7 = "Carrier Name"
+string #8 = "URL"
+string #9 = "CREATE TABLE scarr (carrid TEXT, carrname TEXT, url TEXT)"
+string #10 = "INSERT INTO scarr VALUES ('AA', 'American Airlines', 'http://www.aa.com')"
+string #11 = "INSERT INTO scarr VALUES ('BA', 'British Airways', 'http://www.ba.com')"
+string #12 = "INSERT INTO scarr VALUES ('LH', 'Lufthansa', 'http://www.lufthansa.com')"
+string #13 = "INSERT INTO scarr VALUES ('SQ', 'Singapore Airlines', 'http://www.singaporeair.com')"
+string #14 = "INSERT INTO scarr VALUES ('UA', 'United Airlines', 'http://www.united.com')"
+string #15 = "INSERT INTO scarr VALUES ('QF', 'Qantas', 'http://www.qantas.com.au')"
+string #16 = "INSERT INTO scarr VALUES ('EK', 'Emirates', 'http://www.emirates.com')"
+string #17 = "INSERT INTO scarr VALUES ('AF', 'Air France', 'http://www.airfrance.com')"
+string #18 = "SELECT carrid, carrname, url FROM scarr ORDER BY carrid"
+string #19 = "carrid"
+string #20 = "Filter: "
+string #21 = " -> "
+string #22 = " rows\n"
+
+extern fun @sqlite_open(name: ptr) -> u16
+
+extern fun @sqlite_close(handle: u16) -> u8
+
+extern fun @sqlite_exec(handle: u16, sql: ptr) -> u8
+
+extern fun @sqlite_query(handle: u16, sql: ptr) -> u16
+
+extern fun @sqlite_query_like(handle: u16, base: ptr, col: ptr, filter: ptr) -> u16
+
+extern fun @sqlite_step(stmt: u16) -> u8
+
+extern fun @sqlite_column_int(stmt: u16, col: u8) -> u16
+
+extern fun @sqlite_column_text(stmt: u16, col: u8) -> ptr
+
+extern fun @sqlite_finalize(stmt: u16) -> u8
+
+extern fun @tui_clear()
+
+extern fun @tui_goto(x: u8, y: u8)
+
+extern fun @tui_color(fg: u8, bg: u8, bright: u8)
+
+extern fun @tui_reset()
+
+extern fun @tui_putch(ch: u8)
+
+extern fun @tui_puts(str: ptr)
+
+extern fun @tui_read_key() -> u8
+
+extern fun @tui_width() -> u8
+
+extern fun @tui_height() -> u8
+
+extern fun @tui_read_line(buf: ptr, maxlen: u8) -> u8
+
+fun @_scr_puts_padded(str: ptr, width: u8)
+  <unknown stmt *hir.AsmStmt>
+
+fun @_scr_print_u16(n: u16)
+  var started: u8 = 0:u8
+  var d: u16 = ((n:u16) / 10000:u16):u16
+  if ((d:u16) > 0:u8):bool
+    call @tui_putch((48:u8 + (d:u16)):u16):void
+    (n:u16) = ((n:u16) - ((d:u16) * 10000:u16):u16):u16
+    (started:u8) = 1:u8
+  (d:u16) = ((n:u16) / 1000:u16):u16
+  if ((d:u16) > 0:u8):bool
+    call @tui_putch((48:u8 + (d:u16)):u16):void
+    (n:u16) = ((n:u16) - ((d:u16) * 1000:u16):u16):u16
+    (started:u8) = 1:u8
+  else
+    if ((started:u8) == 1:u8):bool
+      call @tui_putch(48:u8):void
+  (d:u16) = ((n:u16) / 100:u8):u16
+  if ((d:u16) > 0:u8):bool
+    call @tui_putch((48:u8 + (d:u16)):u16):void
+    (n:u16) = ((n:u16) - ((d:u16) * 100:u8):u16):u16
+    (started:u8) = 1:u8
+  else
+    if ((started:u8) == 1:u8):bool
+      call @tui_putch(48:u8):void
+  (d:u16) = ((n:u16) / 10:u8):u16
+  if ((d:u16) > 0:u8):bool
+    call @tui_putch((48:u8 + (d:u16)):u16):void
+    (n:u16) = ((n:u16) - ((d:u16) * 10:u8):u16):u16
+  else
+    if ((started:u8) == 1:u8):bool
+      call @tui_putch(48:u8):void
+  call @tui_putch((48:u8 + (n:u16)):u16):void
+
+fun @_scr_atoi(str: ptr) -> u16
+  var result: u16 = 0:u8
+  var ptr: ptr = (str:ptr)
+  while (load((ptr:ptr)):u8 >= 48:u8):bool
+    if (load((ptr:ptr)):u8 > 57:u8):bool
+      return (result:u16)
+    (result:u16) = ((((result:u16) * 10:u8):u16 + load((ptr:ptr)):u8):u16 - 48:u8):u16
+    (ptr:ptr) = ((ptr:ptr) + 1:u8):ptr
+  return (result:u16)
+
+fun @screen_init()
+  (_scr_title:ptr) = addr @@mir2.str.0:ptr
+  (_scr_nfields:u8) = 3:u8
+  (_scr_focus:u8) = 0:u8
+  ((_buf_carrier:[5]u8))[0:u8]:u8 = 42:u8
+  ((_buf_carrier:[5]u8))[1:u8]:u8 = 0:u8
+
+fun @table_init()
+  (_tbl_nrows:u8) = 0:u8
+
+fun @table_set_str(val: ptr, row: u8, col_off: u8)
+  <unknown stmt *hir.AsmStmt>
+
+fun @table_set_nrows(n: u8)
+  (_tbl_nrows:u8) = (n:u8)
+
+fun @table_nrows() -> u8
+  return (_tbl_nrows:u8)
+
+fun @screen_render()
+  call @tui_clear():void
+  call @tui_color(7:u8, 4:u8, 1:u8):void
+  call @tui_goto(0:u8, 0:u8):void
+  call @tui_puts(addr @@mir2.str.1:ptr):void
+  call @tui_puts((_scr_title:ptr)):void
+  var _tw: u8 = call @tui_width():u8
+  var _pad: u8 = 20:u8
+  while ((_pad:u8) < (_tw:u8)):bool
+    call @tui_putch(32:u8):void
+    (_pad:u8) = ((_pad:u8) + 1:u8):u8
+  call @tui_reset():void
+  var _f0: u8 = 0:u8
+  if ((_scr_focus:u8) == 0:u8):bool
+    (_f0:u8) = 1:u8
+  call @tui_goto(2:u8, 2:u8):void
+  call @tui_color(6:u8, 0:u8, 0:u8):void
+  call @_scr_puts_padded(addr @@mir2.str.2:ptr, 12:u8):void
+  if ((_f0:u8) == 1:u8):bool
+    call @tui_color(7:u8, 4:u8, 1:u8):void
+  else
+    call @tui_color(7:u8, 0:u8, 0:u8):void
+  call @tui_putch(91:u8):void
+  call @_scr_puts_padded(addr @_buf_carrier:ptr, 3:u8):void
+  call @tui_putch(93:u8):void
+  call @tui_reset():void
+  var _f1: u8 = 0:u8
+  if ((_scr_focus:u8) == 1:u8):bool
+    (_f1:u8) = 1:u8
+  call @tui_goto(2:u8, 14:u8):void
+  if ((_f1:u8) == 1:u8):bool
+    call @tui_color(0:u8, 7:u8, 1:u8):void
+  else
+    call @tui_color(7:u8, 0:u8, 1:u8):void
+  call @tui_putch(91:u8):void
+  call @tui_puts(addr @@mir2.str.3:ptr):void
+  call @tui_putch(93:u8):void
+  call @tui_reset():void
+  var _f2: u8 = 0:u8
+  if ((_scr_focus:u8) == 2:u8):bool
+    (_f2:u8) = 1:u8
+  call @tui_puts(addr @@mir2.str.1:ptr):void
+  if ((_f2:u8) == 1:u8):bool
+    call @tui_color(0:u8, 7:u8, 1:u8):void
+  else
+    call @tui_color(7:u8, 0:u8, 1:u8):void
+  call @tui_putch(91:u8):void
+  call @tui_puts(addr @@mir2.str.4:ptr):void
+  call @tui_putch(93:u8):void
+  call @tui_reset():void
+  call @_tbl_render():void
+  var _th: u8 = call @tui_height():u8
+  call @tui_color(7:u8, 4:u8, 0:u8):void
+  call @tui_goto(0:u8, ((_th:u8) - 1:u8):u8):void
+  call @tui_puts(addr @@mir2.str.5:ptr):void
+  (_pad:u8) = 43:u8
+  while ((_pad:u8) < (_tw:u8)):bool
+    call @tui_putch(32:u8):void
+    (_pad:u8) = ((_pad:u8) + 1:u8):u8
+  call @tui_reset():void
+
+fun @_tbl_render()
+  call @tui_goto(2:u8, 3:u8):void
+  call @tui_color(7:u8, 0:u8, 1:u8):void
+  call @_scr_puts_padded(addr @@mir2.str.6:ptr, 5:u8):void
+  call @_scr_puts_padded(addr @@mir2.str.7:ptr, 23:u8):void
+  call @_scr_puts_padded(addr @@mir2.str.8:ptr, 31:u8):void
+  call @tui_reset():void
+  call @tui_goto(2:u8, 4:u8):void
+  call @tui_color(7:u8, 0:u8, 0:u8):void
+  var _si: u8 = 0:u8
+  while ((_si:u8) < 59:u8):bool
+    call @tui_putch(45:u8):void
+    (_si:u8) = ((_si:u8) + 1:u8):u8
+  call @tui_reset():void
+  var _ri: u8 = 0:u8
+  if ((_ri:u8) < (_tbl_nrows:u8)):bool
+    call @tui_goto(2:u8, 5:u8):void
+    call @tui_color(7:u8, 0:u8, 0:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 0:u8):ptr, 5:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 5:u8):ptr, 23:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 28:u8):ptr, 31:u8):void
+    call @tui_reset():void
+    (_ri:u8) = ((_ri:u8) + 1:u8):u8
+  if ((_ri:u8) < (_tbl_nrows:u8)):bool
+    call @tui_goto(2:u8, 6:u8):void
+    call @tui_color(7:u8, 0:u8, 0:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 59:u8):ptr, 5:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 64:u8):ptr, 23:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 87:u8):ptr, 31:u8):void
+    call @tui_reset():void
+    (_ri:u8) = ((_ri:u8) + 1:u8):u8
+  if ((_ri:u8) < (_tbl_nrows:u8)):bool
+    call @tui_goto(2:u8, 7:u8):void
+    call @tui_color(7:u8, 0:u8, 0:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 118:u8):ptr, 5:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 123:u8):ptr, 23:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 146:u8):ptr, 31:u8):void
+    call @tui_reset():void
+    (_ri:u8) = ((_ri:u8) + 1:u8):u8
+  if ((_ri:u8) < (_tbl_nrows:u8)):bool
+    call @tui_goto(2:u8, 8:u8):void
+    call @tui_color(7:u8, 0:u8, 0:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 177:u8):ptr, 5:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 182:u8):ptr, 23:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 205:u8):ptr, 31:u8):void
+    call @tui_reset():void
+    (_ri:u8) = ((_ri:u8) + 1:u8):u8
+  if ((_ri:u8) < (_tbl_nrows:u8)):bool
+    call @tui_goto(2:u8, 9:u8):void
+    call @tui_color(7:u8, 0:u8, 0:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 236:u8):ptr, 5:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 241:u8):ptr, 23:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 264:u16):u16, 31:u8):void
+    call @tui_reset():void
+    (_ri:u8) = ((_ri:u8) + 1:u8):u8
+  if ((_ri:u8) < (_tbl_nrows:u8)):bool
+    call @tui_goto(2:u8, 10:u8):void
+    call @tui_color(7:u8, 0:u8, 0:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 295:u16):u16, 5:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 300:u16):u16, 23:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 323:u16):u16, 31:u8):void
+    call @tui_reset():void
+    (_ri:u8) = ((_ri:u8) + 1:u8):u8
+  if ((_ri:u8) < (_tbl_nrows:u8)):bool
+    call @tui_goto(2:u8, 11:u8):void
+    call @tui_color(7:u8, 0:u8, 0:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 354:u16):u16, 5:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 359:u16):u16, 23:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 382:u16):u16, 31:u8):void
+    call @tui_reset():void
+    (_ri:u8) = ((_ri:u8) + 1:u8):u8
+  if ((_ri:u8) < (_tbl_nrows:u8)):bool
+    call @tui_goto(2:u8, 12:u8):void
+    call @tui_color(7:u8, 0:u8, 0:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 413:u16):u16, 5:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 418:u16):u16, 23:u8):void
+    call @_scr_puts_padded((addr @_tbl_data:ptr + 441:u16):u16, 31:u8):void
+    call @tui_reset():void
+    (_ri:u8) = ((_ri:u8) + 1:u8):u8
+
+fun @screen_handle_key(key: u8) -> u8
+  if ((key:u8) == 147:u8):bool
+    return (SCREEN_EXECUTE:u8)
+  if ((key:u8) == 142:u8):bool
+    return (SCREEN_BACK:u8)
+  if ((key:u8) == 27:u8):bool
+    return (SCREEN_BACK:u8)
+  if ((key:u8) == 9:u8):bool
+    (_scr_focus:u8) = ((_scr_focus:u8) + 1:u8):u8
+    if ((_scr_focus:u8) >= 3:u8):bool
+      (_scr_focus:u8) = 0:u8
+    return (SCREEN_NONE:u8)
+  if ((key:u8) == 13:u8):bool
+    if ((_scr_focus:u8) == 0:u8):bool
+      call @tui_goto(15:u8, 2:u8):void
+      call @tui_color(7:u8, 4:u8, 1:u8):void
+      var _len: u8 = call @tui_read_line(addr @_buf_carrier:ptr, 3:u8):u8
+      call @tui_reset():void
+    if ((_scr_focus:u8) == 1:u8):bool
+      return (SCREEN_EXECUTE:u8)
+    if ((_scr_focus:u8) == 2:u8):bool
+      return (SCREEN_BACK:u8)
+    return (SCREEN_NONE:u8)
+  return (SCREEN_NONE:u8)
+
+fun @screen_show() -> u8
+  var action: u8 = (SCREEN_NONE:u8)
+  while ((action:u8) == (SCREEN_NONE:u8)):bool
+    call @screen_render():void
+    var key: u8 = call @tui_read_key():u8
+    (action:u8) = call @screen_handle_key((key:u8)):u8
+  call @tui_clear():void
+  call @tui_goto(0:u8, 0:u8):void
+  call @tui_reset():void
+  return (action:u8)
+
+fun @screen_carrier() -> ptr
+  return addr @_buf_carrier:ptr
+
+fun @table_set_id(row: u8, val: ptr)
+  <unknown stmt *hir.AsmStmt>
+
+fun @table_set_carrier_name(row: u8, val: ptr)
+  <unknown stmt *hir.AsmStmt>
+
+fun @table_set_url(row: u8, val: ptr)
+  <unknown stmt *hir.AsmStmt>
+
+fun @seed_database()
+  (db:u16) = call @sqlite_open(0:u8):u16
+  call @sqlite_exec((db:u16), addr @@mir2.str.9:ptr):u8
+  call @sqlite_exec((db:u16), addr @@mir2.str.10:ptr):u8
+  call @sqlite_exec((db:u16), addr @@mir2.str.11:ptr):u8
+  call @sqlite_exec((db:u16), addr @@mir2.str.12:ptr):u8
+  call @sqlite_exec((db:u16), addr @@mir2.str.13:ptr):u8
+  call @sqlite_exec((db:u16), addr @@mir2.str.14:ptr):u8
+  call @sqlite_exec((db:u16), addr @@mir2.str.15:ptr):u8
+  call @sqlite_exec((db:u16), addr @@mir2.str.16:ptr):u8
+  call @sqlite_exec((db:u16), addr @@mir2.str.17:ptr):u8
+
+fun @run_query()
+  call @table_init():void
+  var q: u16 = call @sqlite_query_like((db:u16), addr @@mir2.str.18:ptr, addr @@mir2.str.19:ptr, call @screen_carrier():ptr):u16
+  var row: u8 = 0:u8
+  while (call @sqlite_step((q:u16)):u8 == 1:u8):bool
+    if ((row:u8) < 8:u8):bool
+      var id: ptr = call @sqlite_column_text((q:u16), 0:u8):ptr
+      var name: ptr = call @sqlite_column_text((q:u16), 1:u8):ptr
+      var url: ptr = call @sqlite_column_text((q:u16), 2:u8):ptr
+      call @table_set_id((row:u8), (id:ptr)):void
+      call @table_set_carrier_name((row:u8), (name:ptr)):void
+      call @table_set_url((row:u8), (url:ptr)):void
+      (row:u8) = ((row:u8) + 1:u8):u8
+  call @table_set_nrows((row:u8)):void
+
+fun @main()
+  call @seed_database():void
+  call @screen_init():void
+  call @run_query():void
+  var result: u8 = call @screen_show():u8
+  if ((result:u8) == (SCREEN_EXECUTE:u8)):bool
+    call @run_query():void
+    (result:u8) = call @screen_show():u8
+  call @tui_puts(addr @@mir2.str.20:ptr):void
+  call @tui_puts(call @screen_carrier():ptr):void
+  call @tui_puts(addr @@mir2.str.21:ptr):void
+  call @_scr_print_u16(call @table_nrows():u8):void
+  call @tui_puts(addr @@mir2.str.22:ptr):void
+  call @sqlite_close((db:u16)):u8
+

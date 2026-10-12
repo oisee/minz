@@ -1,0 +1,10 @@
+=== RUN   TestOriginalReportScreenWholeMain
+    original_report_screen_main_test.go:842: report ordinary wholemain raw/final/native PASS
+    original_report_screen_main_test.go:842: report grace-size wholemain raw/final/native PASS
+    original_report_screen_main_test.go:842: report grace-speed wholemain raw/final/native PASS
+    original_report_screen_main_test.go:842: report-lh ordinary wholemain raw/final/native PASS
+    original_report_screen_main_test.go:842: report-lh grace-size wholemain raw/final/native PASS
+    original_report_screen_main_test.go:842: report-lh grace-speed wholemain raw/final/native PASS
+--- PASS: TestOriginalReportScreenWholeMain (1.74s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.748s

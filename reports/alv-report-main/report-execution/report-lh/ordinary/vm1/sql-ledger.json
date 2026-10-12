@@ -1,0 +1,131 @@
+[
+  {
+    "call": "sqlite_exec",
+    "sql": "CREATE TABLE scarr (carrid TEXT, carrname TEXT, url TEXT)"
+  },
+  {
+    "call": "sqlite_exec",
+    "sql": "INSERT INTO scarr VALUES ('AA', 'American Airlines', 'http://www.aa.com')"
+  },
+  {
+    "call": "sqlite_exec",
+    "sql": "INSERT INTO scarr VALUES ('BA', 'British Airways', 'http://www.ba.com')"
+  },
+  {
+    "call": "sqlite_exec",
+    "sql": "INSERT INTO scarr VALUES ('LH', 'Lufthansa', 'http://www.lufthansa.com')"
+  },
+  {
+    "call": "sqlite_exec",
+    "sql": "INSERT INTO scarr VALUES ('SQ', 'Singapore Airlines', 'http://www.singaporeair.com')"
+  },
+  {
+    "call": "sqlite_exec",
+    "sql": "INSERT INTO scarr VALUES ('UA', 'United Airlines', 'http://www.united.com')"
+  },
+  {
+    "call": "sqlite_exec",
+    "sql": "INSERT INTO scarr VALUES ('QF', 'Qantas', 'http://www.qantas.com.au')"
+  },
+  {
+    "call": "sqlite_exec",
+    "sql": "INSERT INTO scarr VALUES ('EK', 'Emirates', 'http://www.emirates.com')"
+  },
+  {
+    "call": "sqlite_exec",
+    "sql": "INSERT INTO scarr VALUES ('AF', 'Air France', 'http://www.airfrance.com')"
+  },
+  {
+    "base": "SELECT carrid, carrname, url FROM scarr ORDER BY carrid",
+    "call": "sqlite_query_like",
+    "column": "carrid",
+    "filter": "*"
+  },
+  {
+    "call": "sqlite_step",
+    "row": [
+      "AA",
+      "American Airlines",
+      "http://www.aa.com"
+    ],
+    "statement": 1
+  },
+  {
+    "call": "sqlite_step",
+    "row": [
+      "AF",
+      "Air France",
+      "http://www.airfrance.com"
+    ],
+    "statement": 1
+  },
+  {
+    "call": "sqlite_step",
+    "row": [
+      "BA",
+      "British Airways",
+      "http://www.ba.com"
+    ],
+    "statement": 1
+  },
+  {
+    "call": "sqlite_step",
+    "row": [
+      "EK",
+      "Emirates",
+      "http://www.emirates.com"
+    ],
+    "statement": 1
+  },
+  {
+    "call": "sqlite_step",
+    "row": [
+      "LH",
+      "Lufthansa",
+      "http://www.lufthansa.com"
+    ],
+    "statement": 1
+  },
+  {
+    "call": "sqlite_step",
+    "row": [
+      "QF",
+      "Qantas",
+      "http://www.qantas.com.au"
+    ],
+    "statement": 1
+  },
+  {
+    "call": "sqlite_step",
+    "row": [
+      "SQ",
+      "Singapore Airlines",
+      "http://www.singaporeair.com"
+    ],
+    "statement": 1
+  },
+  {
+    "call": "sqlite_step",
+    "row": [
+      "UA",
+      "United Airlines",
+      "http://www.united.com"
+    ],
+    "statement": 1
+  },
+  {
+    "base": "SELECT carrid, carrname, url FROM scarr ORDER BY carrid",
+    "call": "sqlite_query_like",
+    "column": "carrid",
+    "filter": "LH"
+  },
+  {
+    "call": "sqlite_step",
+    "row": [
+      "LH",
+      "Lufthansa",
+      "http://www.lufthansa.com"
+    ],
+    "statement": 2
+  }
+]
