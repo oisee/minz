@@ -1,0 +1,106 @@
+; MIR2 module: examples/nanz/51_impl_cpm_demo.nanz
+fun @Circle_area(%r1: ptr [pointer]) -> u8 [acc]
+  block @entry:
+    %r2 = const 3 : u8 [general]
+    %r3 = load %r1 : u8 [general]
+    %r4 = mul %r2, %r3 : u8 [general]
+    %r5 = load %r1 : u8 [general]
+    %r6 = mul %r4, %r5 : u8 [general]
+    ret %r6
+
+fun @Rect_area(%r7: ptr [pointer]) -> u8 [acc]
+  block @entry:
+    %r8 = load %r7 : u8 [general]
+    %r9 = field %r7, +1 : ptr [pointer]
+    %r10 = load %r9 : u8 [general]
+    %r11 = mul %r8, %r10 : u8 [general]
+    ret %r11
+
+fun @putchar(%r12: u8 [acc])
+  block @entry:
+    asm "LD E, A\n        LD C, 2\n        CALL 5"
+    ret void
+
+fun @print_u8(%r13: u8 [acc])
+  block @entry:
+    %r14 = const 100 : u8 [general]
+    %r15 = cmp.uge %r13, %r14 : bool [flag]
+    br_if %r15, @if_then1(), @if_join2(%r13)
+  block @if_then1:
+    %r16 = const 0 : u8 [general]
+    jmp @loop_head3(%r16, %r13)
+  block @loop_head3(%r16: u8 [general], %r18: u8 [general]):
+    %r19 = const 100 : u8 [general]
+    %r20 = cmp.uge %r18, %r19 : bool [flag]
+    br_if %r20, @loop_body4(), @loop_exit5(%r16, %r18)
+  block @loop_body4:
+    %r21 = const 100 : u8 [general]
+    %r22 = sub %r18, %r21 : u8 [general]
+    %r23 = const 1 : u8 [general]
+    %r24 = add %r16, %r23 : u8 [general]
+    jmp @loop_head3(%r24, %r22)
+  block @loop_exit5(%r25: u8 [general], %r26: u8 [general]):
+    %r27 = const 48 : u8 [general]
+    %r28 = add %r25, %r27 : u8 [acc]
+    call @putchar(%r28)
+    jmp @if_join2(%r26)
+  block @if_join2(%r26: u8 [general]):
+    %r30 = const 0 : u8 [general]
+    jmp @loop_head6(%r26, %r30)
+  block @loop_head6(%r26: u8 [general], %r30: u8 [general]):
+    %r33 = const 10 : u8 [general]
+    %r34 = cmp.uge %r26, %r33 : bool [flag]
+    br_if %r34, @loop_body7(), @loop_exit8(%r26, %r30)
+  block @loop_body7:
+    %r35 = const 10 : u8 [general]
+    %r36 = sub %r26, %r35 : u8 [general]
+    %r37 = const 1 : u8 [general]
+    %r38 = add %r30, %r37 : u8 [general]
+    jmp @loop_head6(%r36, %r38)
+  block @loop_exit8(%r39: u8 [general], %r40: u8 [general]):
+    %r41 = const 48 : u8 [general]
+    %r42 = add %r40, %r41 : u8 [acc]
+    call @putchar(%r42)
+    %r43 = const 48 : u8 [general]
+    %r44 = add %r39, %r43 : u8 [acc]
+    call @putchar(%r44)
+    ret void
+
+fun @newline()
+  block @entry:
+    %r45 = const 13 : u8 [acc]
+    call @putchar(%r45)
+    %r46 = const 10 : u8 [acc]
+    call @putchar(%r46)
+    ret void
+
+fun @main()
+  block @entry:
+    %r47 = alloca 2 : ptr
+    %r48 = alloca 1 : ptr
+    %r49 = const 5 : u8 [general]
+    store %r48, %r49 : u8
+    %r50 = const 10 : u8 [general]
+    store %r47, %r50 : u8
+    %r51 = const 5 : u8 [general]
+    %r52 = field %r47, +1 : ptr [pointer]
+    store %r52, %r51 : u8
+    %r53 = const 67 : u8 [acc]
+    call @putchar(%r53)
+    %r54 = const 58 : u8 [acc]
+    call @putchar(%r54)
+    %r55 = call @Circle_area(%r48) : u8 [acc]
+    call @print_u8(%r55)
+    call @newline()
+    %r56 = const 82 : u8 [acc]
+    call @putchar(%r56)
+    %r57 = const 58 : u8 [acc]
+    call @putchar(%r57)
+    %r58 = load %r47 : u8 [general]
+    %r59 = field %r47, +1 : ptr [pointer]
+    %r60 = load %r59 : u8 [general]
+    %r61 = mul %r58, %r60 : u8 [general]
+    call @print_u8(%r61)
+    call @newline()
+    ret void
+

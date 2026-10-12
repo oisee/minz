@@ -1,0 +1,196 @@
+{
+  "files": {
+    "README.md": {
+      "sha256": "fac061df8d3bc9177e2b198d889010a7df0772744acc6736c7975882e4229bc4",
+      "bytes": 1548
+    },
+    "root-bool-trunc-0758c02b.txt": {
+      "sha256": "17e6943b210a204903248d25c91cf35d205cb600037080674ebcedf90f5c834b",
+      "bytes": 43
+    },
+    "root-c89-expression-effects/grace-size/final.mir": {
+      "sha256": "ae78fa2ca478906b83c87f4273d3fd83b64419c5e1cc92685878b182bae4edc2",
+      "bytes": 8372
+    },
+    "root-c89-expression-effects/grace-size/raw.mir": {
+      "sha256": "a1bb59cc67769543b3e9f217e38c42f21329f21841e4b4f67c8565499a1bbc7c",
+      "bytes": 9729
+    },
+    "root-c89-expression-effects/grace-size/summary.json": {
+      "sha256": "793d656d44475d899e68d2319173aaba272ba0753f267a9f283734cfe20c69b7",
+      "bytes": 179
+    },
+    "root-c89-expression-effects/grace-size/target.a80": {
+      "sha256": "b55b3988b273297b7c400d737407fa262fb9e03a9e330e55663705bd421cd4d6",
+      "bytes": 8598
+    },
+    "root-c89-expression-effects/grace-size/target.bin": {
+      "sha256": "f30cb80e3c31f7ac94ad7b601e894a064cfab236f6002353d04e0281b71e944c",
+      "bytes": 544
+    },
+    "root-c89-expression-effects/grace-speed/final.mir": {
+      "sha256": "ae78fa2ca478906b83c87f4273d3fd83b64419c5e1cc92685878b182bae4edc2",
+      "bytes": 8372
+    },
+    "root-c89-expression-effects/grace-speed/raw.mir": {
+      "sha256": "a1bb59cc67769543b3e9f217e38c42f21329f21841e4b4f67c8565499a1bbc7c",
+      "bytes": 9729
+    },
+    "root-c89-expression-effects/grace-speed/summary.json": {
+      "sha256": "793d656d44475d899e68d2319173aaba272ba0753f267a9f283734cfe20c69b7",
+      "bytes": 179
+    },
+    "root-c89-expression-effects/grace-speed/target.a80": {
+      "sha256": "b55b3988b273297b7c400d737407fa262fb9e03a9e330e55663705bd421cd4d6",
+      "bytes": 8598
+    },
+    "root-c89-expression-effects/grace-speed/target.bin": {
+      "sha256": "f30cb80e3c31f7ac94ad7b601e894a064cfab236f6002353d04e0281b71e944c",
+      "bytes": 544
+    },
+    "root-c89-expression-effects/ordinary/final.mir": {
+      "sha256": "66a65cec665d9ea58ad85b4aab922d2372903c0407ef386e4cb32972278108b8",
+      "bytes": 8468
+    },
+    "root-c89-expression-effects/ordinary/raw.mir": {
+      "sha256": "a1bb59cc67769543b3e9f217e38c42f21329f21841e4b4f67c8565499a1bbc7c",
+      "bytes": 9729
+    },
+    "root-c89-expression-effects/ordinary/summary.json": {
+      "sha256": "793d656d44475d899e68d2319173aaba272ba0753f267a9f283734cfe20c69b7",
+      "bytes": 179
+    },
+    "root-c89-expression-effects/ordinary/target.a80": {
+      "sha256": "f26a2234876ab97f363382a558970063f8a64a03461093cb60c0979311e743e0",
+      "bytes": 8724
+    },
+    "root-c89-expression-effects/ordinary/target.bin": {
+      "sha256": "ffe45380d706d5f995f190e91c614c8b864d5a9bdda7f266a984dd54d7d88837",
+      "bytes": 551
+    },
+    "root-c89-expression-effects.txt": {
+      "sha256": "f4100ab9024ea228308642710bd345d98a612bb15f4bb701a1e5249994749873",
+      "bytes": 48
+    },
+    "root-c89-f54d982a-full.txt": {
+      "sha256": "58e568fadae3129f914b13c01bc302de4dbfc40565a496a2c892513063817edd",
+      "bytes": 42
+    },
+    "root-impl-cpm-main/grace-size/admission.json": {
+      "sha256": "4ecac4963ef5351e55b2096cef476e5ee88e7ac9229041127bd376a5dd6c846e",
+      "bytes": 435
+    },
+    "root-impl-cpm-main/grace-size/clobber-false/ledger.json": {
+      "sha256": "87931a9a03a3db74e411873a9b17c3ecc624edae99cd7d00304fb954f92983ac",
+      "bytes": 322565
+    },
+    "root-impl-cpm-main/grace-size/clobber-true/ledger.json": {
+      "sha256": "8145f2fc1426e82b18bd62bd89be161978076ca44953c89a8928a9db8944af4b",
+      "bytes": 323329
+    },
+    "root-impl-cpm-main/grace-size/final.mir": {
+      "sha256": "9cc2e1ff92c9024c193a4424b46816b74b3e122696e2e6e81c081d5d2356fe75",
+      "bytes": 3234
+    },
+    "root-impl-cpm-main/grace-size/native-context.json": {
+      "sha256": "2c1f4ae8c0dad9754070e6cf1a9adcf547aa0b9d2ad5e0472f60b5e41abb7c3f",
+      "bytes": 64619
+    },
+    "root-impl-cpm-main/grace-size/native-final.mir": {
+      "sha256": "9cc2e1ff92c9024c193a4424b46816b74b3e122696e2e6e81c081d5d2356fe75",
+      "bytes": 3234
+    },
+    "root-impl-cpm-main/grace-size/native-raw.mir": {
+      "sha256": "a25bb99ea146c2e98a5588f1cda4d30f21c42527996eb5720b9311959dacf94e",
+      "bytes": 3573
+    },
+    "root-impl-cpm-main/grace-size/test-loader.a80": {
+      "sha256": "3397d7446736d099dd19b167c6fc9923263f39c3bff29abaf529cce6701a232e",
+      "bytes": 4678
+    },
+    "root-impl-cpm-main/grace-size/test-loader.com": {
+      "sha256": "08d8cd0e108a36825f94bf14f4d6f17a839da9e60ab35519ad8ddf32466b6c4e",
+      "bytes": 266
+    },
+    "root-impl-cpm-main/grace-speed/admission.json": {
+      "sha256": "d49b3d182949ac0acfd79c412f6e46d226be578c0cafc51a58d07b2ab595eb4d",
+      "bytes": 436
+    },
+    "root-impl-cpm-main/grace-speed/clobber-false/ledger.json": {
+      "sha256": "87931a9a03a3db74e411873a9b17c3ecc624edae99cd7d00304fb954f92983ac",
+      "bytes": 322565
+    },
+    "root-impl-cpm-main/grace-speed/clobber-true/ledger.json": {
+      "sha256": "8145f2fc1426e82b18bd62bd89be161978076ca44953c89a8928a9db8944af4b",
+      "bytes": 323329
+    },
+    "root-impl-cpm-main/grace-speed/final.mir": {
+      "sha256": "9cc2e1ff92c9024c193a4424b46816b74b3e122696e2e6e81c081d5d2356fe75",
+      "bytes": 3234
+    },
+    "root-impl-cpm-main/grace-speed/native-context.json": {
+      "sha256": "21fdfbda14a47c3a546b9689fb682d5747d68400232c55d5379a2ee6f90a1b5e",
+      "bytes": 64620
+    },
+    "root-impl-cpm-main/grace-speed/native-final.mir": {
+      "sha256": "9cc2e1ff92c9024c193a4424b46816b74b3e122696e2e6e81c081d5d2356fe75",
+      "bytes": 3234
+    },
+    "root-impl-cpm-main/grace-speed/native-raw.mir": {
+      "sha256": "a25bb99ea146c2e98a5588f1cda4d30f21c42527996eb5720b9311959dacf94e",
+      "bytes": 3573
+    },
+    "root-impl-cpm-main/grace-speed/test-loader.a80": {
+      "sha256": "3397d7446736d099dd19b167c6fc9923263f39c3bff29abaf529cce6701a232e",
+      "bytes": 4678
+    },
+    "root-impl-cpm-main/grace-speed/test-loader.com": {
+      "sha256": "08d8cd0e108a36825f94bf14f4d6f17a839da9e60ab35519ad8ddf32466b6c4e",
+      "bytes": 266
+    },
+    "root-impl-cpm-main/ordinary/admission.json": {
+      "sha256": "f9b062231af9047c2a8488b4346ffc8251bde715f0da29da93f3fd37713cbcf0",
+      "bytes": 438
+    },
+    "root-impl-cpm-main/ordinary/clobber-false/ledger.json": {
+      "sha256": "87931a9a03a3db74e411873a9b17c3ecc624edae99cd7d00304fb954f92983ac",
+      "bytes": 322565
+    },
+    "root-impl-cpm-main/ordinary/clobber-true/ledger.json": {
+      "sha256": "8145f2fc1426e82b18bd62bd89be161978076ca44953c89a8928a9db8944af4b",
+      "bytes": 323329
+    },
+    "root-impl-cpm-main/ordinary/final.mir": {
+      "sha256": "9cc2e1ff92c9024c193a4424b46816b74b3e122696e2e6e81c081d5d2356fe75",
+      "bytes": 3234
+    },
+    "root-impl-cpm-main/ordinary/native-context.json": {
+      "sha256": "bb993edb6660ee6484f8f927acd9ec6fe74556c44d3d42f182a7a579ebbd11f0",
+      "bytes": 64625
+    },
+    "root-impl-cpm-main/ordinary/native-final.mir": {
+      "sha256": "9cc2e1ff92c9024c193a4424b46816b74b3e122696e2e6e81c081d5d2356fe75",
+      "bytes": 3234
+    },
+    "root-impl-cpm-main/ordinary/native-raw.mir": {
+      "sha256": "a25bb99ea146c2e98a5588f1cda4d30f21c42527996eb5720b9311959dacf94e",
+      "bytes": 3573
+    },
+    "root-impl-cpm-main/ordinary/test-loader.a80": {
+      "sha256": "44763efd2437cf20a36a4f36270f188d42af31e25b5151d72d1d38de1cb7c2f6",
+      "bytes": 4738
+    },
+    "root-impl-cpm-main/ordinary/test-loader.com": {
+      "sha256": "08d8cd0e108a36825f94bf14f4d6f17a839da9e60ab35519ad8ddf32466b6c4e",
+      "bytes": 266
+    },
+    "root-impl-cpm-main.txt": {
+      "sha256": "45a6cb87bdc2d54c48e67594d353c87e404dbcf796e906d3c07da0b93b1d1ad1",
+      "bytes": 47
+    },
+    "verified-packets.json": {
+      "sha256": "3e05ec679022f9a2fd723e697dc84799ee1c0198d7768156305f4fce022bab0a",
+      "bytes": 271
+    }
+  }
+}
