@@ -1,0 +1,6 @@
+=== RUN   TestTokenizerContractObjectiveAttribution
+    pfcco_tokenizer_objective_audit_test.go:83: greedy assembled module 5465 bytes; 27 function spans (last span may include trailing data)
+    pfcco_tokenizer_objective_audit_test.go:83: pbqp assembled module 5533 bytes; 27 function spans (last span may include trailing data)
+--- PASS: TestTokenizerContractObjectiveAttribution (1.07s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.084s

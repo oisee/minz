@@ -1,0 +1,3 @@
+=== RUN   TestTokenizerContractObjectiveAttribution
+--- PASS: TestTokenizerContractObjectiveAttribution (1.05s)
+PASS

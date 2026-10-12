@@ -1,0 +1,15 @@
+{
+  "final-check.txt": "921f3621a5c50c171d582ad4ff73bb1ca9e2c4ff89e8a73e1cba25c42e2a59cf",
+  "comparison.json": "89dcffdc593c7aa0899ed1851beb56bb500f338e3f702cd917e692bc69c77867",
+  "before-export.txt": "b00753077570f4228239cf99e385b3a0194dba520e5f35e47c25613a0f1b421d",
+  "README.md": "487b39835a41a18a16cb3cc055257402e40825696345bf7dc29013d320c6fa76",
+  "artifacts/greedy-functions.json": "33cdebd8d2203f2052a402a73457f86f5259ff6eb51c1bb9412952602140dc9b",
+  "artifacts/pbqp-target.bin": "d27cf93f9cf21cdb52ec5377e55a594f2669ed9dc063401e4a4126a891bfb1d9",
+  "artifacts/greedy-target.bin": "9539caefc60b8da3d06d1d47f8c84bfb187b2b422a58b95ed4bb67faa6fc149b",
+  "artifacts/greedy-final.mir2": "6c6af3b79726b1825678223637f6d4546071ceb9f631d2db7007d606058312ec",
+  "artifacts/pbqp-target.a80": "7321f7f84249b11cf2c3645a91d18f1a080b64d0fa6b562ead28df8f86ca4a49",
+  "artifacts/source.nanz": "d893df00710b7f1105b8bfb58342aca1c1f8cce7eb674037a8d6ca41b91b0689",
+  "artifacts/greedy-target.a80": "d0d819e5d2b8e5d1ddaff305ac0f220bb3822c64c911ea04e691f572450967f8",
+  "artifacts/pbqp-functions.json": "d52817c698df146e0cd16e3728441732ecf4bf370aacd81b63908f5cb04a4903",
+  "artifacts/pbqp-final.mir2": "6c6af3b79726b1825678223637f6d4546071ceb9f631d2db7007d606058312ec"
+}

@@ -70,5 +70,16 @@ func TestTokenizerContractObjectiveAttribution(t *testing.T) {
 		if e = os.WriteFile(filepath.Join(dir, mode+"-functions.json"), b, 0644); e != nil {
 			t.Fatal(e)
 		}
+		for name, data := range map[string][]byte{
+			"source.nanz":        src,
+			mode + "-target.a80": []byte(s.Assembly),
+			mode + "-target.bin": bin.Binary,
+			mode + "-final.mir2": []byte(s.MIR2Opt),
+		} {
+			if e = os.WriteFile(filepath.Join(dir, name), data, 0644); e != nil {
+				t.Fatal(e)
+			}
+		}
+		t.Logf("%s assembled module %d bytes; %d function spans (last span may include trailing data)", mode, len(bin.Binary), len(rows))
 	}
 }

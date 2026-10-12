@@ -1,0 +1,116 @@
+{
+  "checkpoint_before_test_export_change": "ce9512f4",
+  "source_sha256": "d893df00710b7f1105b8bfb58342aca1c1f8cce7eb674037a8d6ca41b91b0689",
+  "scope": "assembled size attribution; no runtime execution in this check",
+  "greedy_module_bytes": 5465,
+  "pbqp_module_bytes": 5533,
+  "changed_functions": [
+    {
+      "name": "str_alloc_2",
+      "greedy_span_bytes": 70,
+      "pbqp_span_bytes": 70,
+      "greedy_param_homes": [
+        "A",
+        "C"
+      ],
+      "pbqp_param_homes": [
+        "C",
+        "A"
+      ]
+    },
+    {
+      "name": "str_alloc_3",
+      "greedy_span_bytes": 88,
+      "pbqp_span_bytes": 90,
+      "greedy_param_homes": [
+        "A",
+        "C",
+        "B"
+      ],
+      "pbqp_param_homes": [
+        "C",
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "str_alloc_4",
+      "greedy_span_bytes": 121,
+      "pbqp_span_bytes": 123,
+      "greedy_param_homes": [
+        "A",
+        "C",
+        "B",
+        "IXH"
+      ],
+      "pbqp_param_homes": [
+        "C",
+        "A",
+        "B",
+        "IXH"
+      ]
+    },
+    {
+      "name": "str_alloc_5",
+      "greedy_span_bytes": 142,
+      "pbqp_span_bytes": 144,
+      "greedy_param_homes": [
+        "A",
+        "C",
+        "B",
+        "IXH",
+        "IXL"
+      ],
+      "pbqp_param_homes": [
+        "C",
+        "A",
+        "B",
+        "IXH",
+        "IXL"
+      ]
+    },
+    {
+      "name": "str_alloc_6",
+      "greedy_span_bytes": 183,
+      "pbqp_span_bytes": 185,
+      "greedy_param_homes": [
+        "A",
+        "C",
+        "B",
+        "IXH",
+        "IXL",
+        "IYH"
+      ],
+      "pbqp_param_homes": [
+        "C",
+        "A",
+        "B",
+        "IXH",
+        "IXL",
+        "IYH"
+      ]
+    },
+    {
+      "name": "region_eq",
+      "greedy_span_bytes": 131,
+      "pbqp_span_bytes": 131,
+      "greedy_param_homes": [
+        "HL",
+        "DE",
+        "B"
+      ],
+      "pbqp_param_homes": [
+        "HL",
+        "DE",
+        "C"
+      ]
+    },
+    {
+      "name": "init_keywords",
+      "greedy_span_bytes": 370,
+      "pbqp_span_bytes": 430,
+      "greedy_param_homes": null,
+      "pbqp_param_homes": null
+    }
+  ]
+}
