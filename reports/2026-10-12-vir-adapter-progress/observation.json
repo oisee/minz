@@ -1,0 +1,29 @@
+{
+  "observed_at_utc": "2026-10-12T14:48:18.237834+00:00",
+  "compiler_head": "72e322e7",
+  "scope": "Read-only snapshots of live immutable checkpoints; counts are top-level completed tests, not terminal results. Later adapter fixes excluded.",
+  "production": {
+    "checkpoint": "pipeline-cbf01110",
+    "status": "running",
+    "counts": {
+      "PASS": 278,
+      "FAIL": 0,
+      "SKIP": 10
+    },
+    "last_started_test": "TestOriginalStringsPointerAndPLMAdapter",
+    "log_prefix_bytes": 388124,
+    "log_prefix_sha256": "0c748dacb84766b72a7191f571235a31522c4273b5bde3234dd44b402768c970"
+  },
+  "research": {
+    "checkpoint": "vir-ced33bd1",
+    "status": "running",
+    "counts": {
+      "PASS": 123,
+      "FAIL": 0,
+      "SKIP": 4
+    },
+    "last_started_test": "TestZ3_PFCCO_vs_PBQP",
+    "log_prefix_bytes": 157908,
+    "log_prefix_sha256": "302a7ad9c0f0819a1b04547222392b33a25e84e2e92083e792e91a9b9fd465e7"
+  }
+}
