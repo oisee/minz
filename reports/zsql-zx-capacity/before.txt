@@ -1,0 +1,65 @@
+=== RUN   TestZSQLZXRealReadlineCapacity
+=== RUN   TestZSQLZXRealReadlineCapacity/ordinary
+=== RUN   TestZSQLZXRealReadlineCapacity/ordinary/a
+    zsql_zx_input_capacity_test.go:134: 0 input 0 accepted 1 reads/full RAM PASS
+=== RUN   TestZSQLZXRealReadlineCapacity/ordinary/\u0088
+    zsql_zx_input_capacity_test.go:134: 39 input 39 accepted 40 reads/full RAM PASS
+=== RUN   TestZSQLZXRealReadlineCapacity/ordinary/\u0089
+    zsql_zx_input_capacity_test.go:125: readline length 40 writes terminator outside 40-byte source buffer
+=== RUN   TestZSQLZXRealReadlineCapacity/ordinary/\u009c
+    zsql_zx_input_capacity_test.go:125: readline length 59 writes terminator outside 40-byte source buffer
+=== RUN   TestZSQLZXRealReadlineCapacity/ordinary/\u009d
+    zsql_zx_input_capacity_test.go:125: readline length 60 writes terminator outside 40-byte source buffer
+=== RUN   TestZSQLZXRealReadlineCapacity/ordinary/\u009e
+    zsql_zx_input_capacity_test.go:125: readline length 60 writes terminator outside 40-byte source buffer
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-size
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-size/a
+    zsql_zx_input_capacity_test.go:134: 0 input 0 accepted 1 reads/full RAM PASS
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-size/\u0088
+    zsql_zx_input_capacity_test.go:134: 39 input 39 accepted 40 reads/full RAM PASS
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-size/\u0089
+    zsql_zx_input_capacity_test.go:125: readline length 40 writes terminator outside 40-byte source buffer
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-size/\u009c
+    zsql_zx_input_capacity_test.go:125: readline length 59 writes terminator outside 40-byte source buffer
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-size/\u009d
+    zsql_zx_input_capacity_test.go:125: readline length 60 writes terminator outside 40-byte source buffer
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-size/\u009e
+    zsql_zx_input_capacity_test.go:125: readline length 60 writes terminator outside 40-byte source buffer
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-speed
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-speed/a
+    zsql_zx_input_capacity_test.go:134: 0 input 0 accepted 1 reads/full RAM PASS
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-speed/\u0088
+    zsql_zx_input_capacity_test.go:134: 39 input 39 accepted 40 reads/full RAM PASS
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-speed/\u0089
+    zsql_zx_input_capacity_test.go:125: readline length 40 writes terminator outside 40-byte source buffer
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-speed/\u009c
+    zsql_zx_input_capacity_test.go:125: readline length 59 writes terminator outside 40-byte source buffer
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-speed/\u009d
+    zsql_zx_input_capacity_test.go:125: readline length 60 writes terminator outside 40-byte source buffer
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-speed/\u009e
+    zsql_zx_input_capacity_test.go:125: readline length 60 writes terminator outside 40-byte source buffer
+--- FAIL: TestZSQLZXRealReadlineCapacity (0.08s)
+    --- FAIL: TestZSQLZXRealReadlineCapacity/ordinary (0.02s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/ordinary/a (0.00s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/ordinary/\u0088 (0.00s)
+        --- FAIL: TestZSQLZXRealReadlineCapacity/ordinary/\u0089 (0.00s)
+        --- FAIL: TestZSQLZXRealReadlineCapacity/ordinary/\u009c (0.00s)
+        --- FAIL: TestZSQLZXRealReadlineCapacity/ordinary/\u009d (0.00s)
+        --- FAIL: TestZSQLZXRealReadlineCapacity/ordinary/\u009e (0.00s)
+    --- FAIL: TestZSQLZXRealReadlineCapacity/grace-size (0.03s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/grace-size/a (0.00s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/grace-size/\u0088 (0.00s)
+        --- FAIL: TestZSQLZXRealReadlineCapacity/grace-size/\u0089 (0.00s)
+        --- FAIL: TestZSQLZXRealReadlineCapacity/grace-size/\u009c (0.00s)
+        --- FAIL: TestZSQLZXRealReadlineCapacity/grace-size/\u009d (0.00s)
+        --- FAIL: TestZSQLZXRealReadlineCapacity/grace-size/\u009e (0.00s)
+    --- FAIL: TestZSQLZXRealReadlineCapacity/grace-speed (0.03s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/grace-speed/a (0.00s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/grace-speed/\u0088 (0.00s)
+        --- FAIL: TestZSQLZXRealReadlineCapacity/grace-speed/\u0089 (0.00s)
+        --- FAIL: TestZSQLZXRealReadlineCapacity/grace-speed/\u009c (0.00s)
+        --- FAIL: TestZSQLZXRealReadlineCapacity/grace-speed/\u009d (0.00s)
+        --- FAIL: TestZSQLZXRealReadlineCapacity/grace-speed/\u009e (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.087s
+FAIL

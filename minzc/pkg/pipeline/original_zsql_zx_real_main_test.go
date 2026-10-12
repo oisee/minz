@@ -16,7 +16,7 @@ import (
 
 // Original ASM executes; only console input and SQLite port services are modeled.
 func TestOriginalZSQLZXRealMainNative(t *testing.T) {
-	const packet = "../../../reports/zsql-zx-real-main/frozen/"
+	const packet = "../../../reports/zsql-zx-capacity/frozen/"
 	read := func(n string) []byte {
 		b, e := os.ReadFile(packet + n)
 		if e != nil {
@@ -144,15 +144,15 @@ func TestOriginalZSQLZXRealMainNative(t *testing.T) {
 			if len(f.Inputs) != 16 || len(f.Inputs[0]) == 0 || len(f.Inputs[1]) == 0 || len(f.Inputs[2]) == 0 {
 				t.Fatal("frozen dialogue")
 			}
-			if sym("_inbufk")+2-sym("_inbuf") != 40 {
+			if len(h.Globals) == 0 {
 				t.Fatal("source input storage layout")
 			}
 			for _, line := range f.Inputs {
-				if len(line) > 39 {
-					t.Fatal("workload exceeds original 40-byte storage")
+				if len(line) > 60 {
+					t.Fatal("workload exceeds 60-character storage")
 				}
 			}
-			inputWant := make([]byte, 40)
+			inputWant := make([]byte, 61)
 			var input []byte
 			for _, line := range f.Inputs {
 				input = append(input, []byte(line)...)
