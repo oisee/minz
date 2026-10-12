@@ -1,5 +1,7 @@
 # Grace / PGO: текущее состояние
 
+MZX SQLite provider protocol исправлен (a484224a), root headless/native consumer PASS 0,181 с; minimal IRC два CString literals исправлены с raw/finalVM/native entry proof PASS 0,123 с. [Пакет284](grace-integration-284/README.md). Полный network main ещё не доказан. Новое screen-family GraceSize падение пока расследуется отдельно и не интегрировано.
+
 SQLite и два screen main интегрированы: [root gate283](grace-integration-283/README.md), PASS 1,013 с. SQLite native с real SQL; screens raw/final VM плюс native. Это test-owned runtime; публичный CP/M admission ещё в работе.
 
 12 октября 2026. Рабочая ветка — `feat/grace-hir-vm`.
