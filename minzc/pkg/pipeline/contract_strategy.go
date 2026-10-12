@@ -25,7 +25,9 @@ func ValidateContractStrategy(opts Options) error {
 }
 func optimizePipelineContracts(m *mir2.Module, ct mir2.CostTable, strategy string) mir2.ContractSet {
 	if strategy == "pbqp" {
-		return mir2.OptimizeContractsPBQP(m, ct)
+		cs := mir2.OptimizeContractsPBQP(m, ct)
+		mir2.PlacePFCCOCallWordLiterals(m, cs, ct)
+		return cs
 	}
 	return mir2.OptimizeContracts(m, ct)
 }
