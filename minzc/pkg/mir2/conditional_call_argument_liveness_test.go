@@ -23,6 +23,8 @@ func TestConditionalCallArgumentAcrossWordCompare(t *testing.T) {
 		}
 		b.Cur.Insts = append(b.Cur.Insts, &Inst{Op: OpCallCond, Src: [2]Reg{c}, Args: []Reg{x}, Sym: "observer", Ty: TyVoid, Cond: cc})
 		b.Ret()
+		// DSE must retain zero and x definitions consumed only by predicate/call.
+		DeadStoreElim(f)
 		h := m.AddFunc("observer")
 		hb := NewBuilder(h)
 		hb.SwitchToNewBlock("entry")
@@ -100,4 +102,19 @@ func boolByte(v bool) byte {
 		return 1
 	}
 	return 0
+}
+
+func TestConditionalCallUndefinedArgumentRejected(t *testing.T) {
+	m := &Module{}
+	f := m.AddFunc("entry")
+	b := NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	x := b.Const(1, TyU8, ClassAcc)
+	zero := b.Const(0, TyU8, ClassGeneral)
+	c := b.Cmp(CmpNe, x, zero, ClassFlag, false)
+	b.Cur.Insts = append(b.Cur.Insts, &Inst{Op: OpCallCond, Src: [2]Reg{c}, Args: []Reg{Reg(999)}, Sym: "@observer", Cond: CmpNe})
+	b.Ret()
+	if e := Verify(m); e == nil {
+		t.Fatal("undefined conditional argument accepted")
+	}
 }
