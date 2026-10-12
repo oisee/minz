@@ -6,33 +6,33 @@
 //
 // Syntax overview (Hrill-0: OCaml/F# subset):
 //
-//   (* function definition *)
-//   let add (a : u8) (b : u8) : u8 = a + b
+//	(* function definition *)
+//	let add (a : u8) (b : u8) : u8 = a + b
 //
-//   (* with type inference for body *)
-//   let double (x : u8) : u8 = x + x
+//	(* with type inference for body *)
+//	let double (x : u8) : u8 = x + x
 //
-//   (* if expression *)
-//   let max (a : u8) (b : u8) : u8 = if a > b then a else b
+//	(* if expression *)
+//	let max (a : u8) (b : u8) : u8 = if a > b then a else b
 //
-//   (* let binding *)
-//   let dist (x : u8) (y : u8) : u8 =
-//     let dx = x - y in
-//     let dy = y - x in
-//     dx + dy
+//	(* let binding *)
+//	let dist (x : u8) (y : u8) : u8 =
+//	  let dx = x - y in
+//	  let dy = y - x in
+//	  dx + dy
 //
-//   (* type alias *)
-//   type byte = u8
+//	(* type alias *)
+//	type byte = u8
 //
-//   (* ADT — future *)
-//   type option = None | Some of u8
+//	(* ADT — future *)
+//	type option = None | Some of u8
 //
-//   (* pipe — future *)
-//   let result = x |> double |> add 1
+//	(* pipe — future *)
+//	let result = x |> double |> add 1
 //
-//   (* assert for testing *)
-//   assert add 3 5 == 8
-//   assert max 10 20 == 20
+//	(* assert for testing *)
+//	assert add 3 5 == 8
+//	assert max 10 20 == 20
 //
 // Pipeline: Hrill source → parse → *hir.Module → MIR2 → codegen
 package frill
@@ -46,8 +46,8 @@ import (
 	"unicode"
 
 	"github.com/minz/minzc/pkg/hir"
-	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/nanz"
 )
 
 // CompileOpts controls import resolution.
@@ -65,7 +65,7 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 	p := &parser{
 		src: src, pos: 0, line: 1, name: name,
 		adts: make(map[string]*adtDef), ctors: make(map[string]*adtCtor),
-		arities: make(map[string]int), classes: make(map[string][]string),
+		arities: make(map[string]int), returnTypes: make(map[string]mir2.Ty), classes: make(map[string][]string),
 		stringIdx: make(map[string]int), varTypes: make(map[string]mir2.Ty),
 		polyFuncs: make(map[string]*polyFunc), polySpeced: make(map[string]bool),
 		ioFuncs: make(map[string]bool),
@@ -115,19 +115,20 @@ type adtCtor struct {
 }
 
 type parser struct {
-	src    string
-	pos    int
-	line   int
-	name   string
-	peeked *token
-	adts        map[string]*adtDef  // type name → definition
-	ctors       map[string]*adtCtor // constructor name → ctor (for match + expr)
-	autoFuncs   []*hir.Func         // auto-generated helpers (__tag, __payload, lambdas)
+	src         string
+	pos         int
+	line        int
+	name        string
+	peeked      *token
+	adts        map[string]*adtDef   // type name → definition
+	ctors       map[string]*adtCtor  // constructor name → ctor (for match + expr)
+	autoFuncs   []*hir.Func          // auto-generated helpers (__tag, __payload, lambdas)
 	lambdaCount int                  // counter for unique lambda names
-	strings    []string             // interned string literals
-	stringIdx  map[string]int      // dedup: content → index in strings[]
+	strings     []string             // interned string literals
+	stringIdx   map[string]int       // dedup: content → index in strings[]
 	records     []*mir2.StructTy     // record type declarations
 	arities     map[string]int       // function name → param count (for partial application)
+	returnTypes map[string]mir2.Ty   // known function signatures, including Nanz imports
 	varTypes    map[string]mir2.Ty   // variable/param name → declared type (for VarRefExpr)
 	polyFuncs   map[string]*polyFunc // polymorphic function templates
 	polySpeced  map[string]bool      // already-specialized mangled names
@@ -142,10 +143,9 @@ type parser struct {
 // polyFunc stores a polymorphic function template for monomorphization.
 // When called with concrete types, we clone the HIR func and substitute type vars.
 type polyFunc struct {
-	hirFunc  *hir.Func         // parsed HIR (with TyVarTy sentinels in param/return types)
-	tyParams []string          // type variable names found: ["'a", "'b"]
+	hirFunc  *hir.Func // parsed HIR (with TyVarTy sentinels in param/return types)
+	tyParams []string  // type variable names found: ["'a", "'b"]
 }
-
 
 // collectTyVars returns the set of type variable names ('a, 'b, ...) in a function's signature.
 func collectTyVars(fn *hir.Func) []string {
@@ -946,6 +946,7 @@ func (p *parser) parseImport() (*hir.Module, error) {
 			continue
 		}
 		p.arities[f.Name] = len(f.Params)
+		p.returnTypes[f.Name] = f.RetTy
 		if f.IsIO || f.IsExtern || hasAsmBlock(f) {
 			p.ioFuncs[f.Name] = true
 		}
@@ -992,6 +993,7 @@ func (p *parser) parseExtern() (*hir.Func, error) {
 		fn.ExternAddr = uint16(addr)
 	}
 
+	p.returnTypes[fn.Name] = fn.RetTy
 	return fn, nil
 }
 
@@ -1068,6 +1070,9 @@ func (p *parser) parseLet() (*hir.Func, error) {
 	}
 
 	fn := &hir.Func{Name: nameTok.text}
+	outerTypes := p.varTypes
+	p.varTypes = make(map[string]mir2.Ty)
+	defer func() { p.varTypes = outerTypes }()
 
 	// Parse parameters: (name : type) or (! name : type) or (& name : type) or (~ name : type)
 	// Quantity annotations: ! = linear (1), & = shared (ω), ~ = erased (0)
@@ -1078,13 +1083,15 @@ func (p *parser) parseLet() (*hir.Func, error) {
 	}
 	var paramQtys []paramQuantity
 	for p.peek().kind == tokLParen {
-		p.next() // (
+		p.next()  // (
 		qty := -1 // default: no annotation
 		pk := p.peek()
 		if pk.kind == tokOp && pk.text == "!" {
-			p.next(); qty = 1 // explicit linear
+			p.next()
+			qty = 1 // explicit linear
 		} else if pk.kind == tokOp && pk.text == "~" {
-			p.next(); qty = 0 // erased
+			p.next()
+			qty = 0 // erased
 		}
 		pname := p.next()
 		if err := p.expect(tokColon, ":"); err != nil {
@@ -1133,6 +1140,7 @@ func (p *parser) parseLet() (*hir.Func, error) {
 		inferRetTy = true
 		fn.RetTy = mir2.TyU8
 	}
+	p.returnTypes[fn.Name] = fn.RetTy
 	if isIO {
 		fn.IsIO = true
 		p.ioFuncs[fn.Name] = true
@@ -1169,6 +1177,7 @@ func (p *parser) parseLet() (*hir.Func, error) {
 	// Infer return type from body expression
 	if inferRetTy && body != nil {
 		fn.RetTy = body.ExprTy()
+		p.returnTypes[fn.Name] = fn.RetTy
 	}
 
 	// where-bindings come BEFORE the let-in bindings and body
@@ -1366,10 +1375,16 @@ func countVarUses(block *hir.Block) map[string]int {
 func countUsesStmt(stmt hir.Stmt, uses map[string]int) {
 	switch s := stmt.(type) {
 	case *hir.ReturnStmt:
-		if s.Val != nil { countUsesExpr(s.Val, uses) }
-		for _, v := range s.Vals { countUsesExpr(v, uses) }
+		if s.Val != nil {
+			countUsesExpr(s.Val, uses)
+		}
+		for _, v := range s.Vals {
+			countUsesExpr(v, uses)
+		}
 	case *hir.VarDeclStmt:
-		if s.Init != nil { countUsesExpr(s.Init, uses) }
+		if s.Init != nil {
+			countUsesExpr(s.Init, uses)
+		}
 	}
 }
 
@@ -1381,7 +1396,9 @@ func countUsesExpr(expr hir.Expr, uses map[string]int) {
 		countUsesExpr(e.L, uses)
 		countUsesExpr(e.R, uses)
 	case *hir.CallExpr:
-		for _, a := range e.Args { countUsesExpr(a, uses) }
+		for _, a := range e.Args {
+			countUsesExpr(a, uses)
+		}
 	case *hir.CondExpr:
 		countUsesExpr(e.Cond, uses)
 		countUsesExpr(e.Then, uses)
@@ -1786,7 +1803,9 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 				p.next()
 				val, _ := strconv.ParseInt(pk.text, 10, 64)
 				ty := mir2.TyU8
-				if val > 255 { ty = mir2.TyU16 }
+				if val > 255 {
+					ty = mir2.TyU16
+				}
 				args = append(args, &hir.IntLitExpr{Val: val, Ty: ty})
 			} else if pk.kind == tokString {
 				p.next()
@@ -1796,8 +1815,12 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			} else if pk.kind == tokLParen {
 				p.next()
 				e, err := p.parseExpr()
-				if err != nil { return nil, err }
-				if err := p.expect(tokRParen, ")"); err != nil { return nil, err }
+				if err != nil {
+					return nil, err
+				}
+				if err := p.expect(tokRParen, ")"); err != nil {
+					return nil, err
+				}
 				args = append(args, e)
 			} else if pk.kind == tokIdent && !isKeyword(pk.text) {
 				// Check if it's a constructor
@@ -1807,7 +1830,11 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 				} else {
 					// Plain variable ref — don't recurse into function call
 					p.next()
-					args = append(args, &hir.VarRefExpr{Name: pk.text, Ty: mir2.TyU8})
+					ty := mir2.Ty(mir2.TyU8)
+					if declared, ok := p.varTypes[pk.text]; ok {
+						ty = declared
+					}
+					args = append(args, &hir.VarRefExpr{Name: pk.text, Ty: ty})
 				}
 			} else {
 				break
@@ -1840,6 +1867,9 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			// Check for polymorphic function — specialize at call site.
 			callName := name
 			callRetTy := mir2.Ty(mir2.TyU8)
+			if declared, ok := p.returnTypes[name]; ok {
+				callRetTy = declared
+			}
 			if pf, ok := p.polyFuncs[name]; ok {
 				argTypes := make([]mir2.Ty, len(args))
 				for i, a := range args {
@@ -1924,8 +1954,8 @@ func (p *parser) parseIf() (hir.Expr, error) {
 // parseBodyExpr parses an expression that may start with let-in chains.
 // Returns the final expression + any VarDeclStmt's extracted from let-in.
 //
-//   let x = 1 in let y = 2 in x + y
-//   →  stmts: [VarDecl x=1, VarDecl y=2], expr: x+y
+//	let x = 1 in let y = 2 in x + y
+//	→  stmts: [VarDecl x=1, VarDecl y=2], expr: x+y
 func (p *parser) parseBodyExpr() (hir.Expr, []hir.Stmt, error) {
 	var stmts []hir.Stmt
 
@@ -1972,33 +2002,50 @@ func (p *parser) parseBodyExpr() (hir.Expr, []hir.Stmt, error) {
 			if err != nil {
 				return nil, nil, err
 			}
-			discardName := fmt.Sprintf("__do_%d", p.lambdaCount)
-			p.lambdaCount++
-			stmts = append(stmts, &hir.VarDeclStmt{Name: discardName, Ty: doExpr.ExprTy(), Init: doExpr})
+			stmts = append(stmts, &hir.ExprStmt{Expr: doExpr})
 		} else if p.peek().kind == tokIdent && p.peek().text == "let" {
-		p.next() // consume "let"
+			p.next() // consume "let"
 
-		// Tuple destructuring: let (a, b) = expr in body
-		if p.peek().kind == tokLParen {
-			p.next() // (
-			var names []string
-			var tys []mir2.Ty
-			for {
-				name := p.next()
-				names = append(names, name.text)
-				tys = append(tys, mir2.TyU8) // TODO: infer types
-				if p.peek().kind == tokComma {
-					p.next()
-				} else {
-					break
+			// Tuple destructuring: let (a, b) = expr in body
+			if p.peek().kind == tokLParen {
+				p.next() // (
+				var names []string
+				var tys []mir2.Ty
+				for {
+					name := p.next()
+					names = append(names, name.text)
+					tys = append(tys, mir2.TyU8) // TODO: infer types
+					if p.peek().kind == tokComma {
+						p.next()
+					} else {
+						break
+					}
 				}
+				if err := p.expect(tokRParen, ")"); err != nil {
+					return nil, nil, err
+				}
+				if err := p.expect(tokEq, "="); err != nil {
+					return nil, nil, err
+				}
+				val, err := p.parseExpr()
+				if err != nil {
+					return nil, nil, err
+				}
+				if err := p.expect(tokIdent, "in"); err != nil {
+					return nil, nil, err
+				}
+				// Emit TupleLetStmt
+				if call, ok := val.(*hir.CallExpr); ok {
+					stmts = append(stmts, &hir.TupleLetStmt{Names: names, Tys: tys, Call: call})
+				}
+				continue
 			}
-			if err := p.expect(tokRParen, ")"); err != nil {
-				return nil, nil, err
+
+			nameTok := p.next()
+			if p.peek().kind != tokEq {
+				return nil, nil, fmt.Errorf("line %d: expected '=' after let %s", nameTok.line, nameTok.text)
 			}
-			if err := p.expect(tokEq, "="); err != nil {
-				return nil, nil, err
-			}
+			p.next() // consume "="
 			val, err := p.parseExpr()
 			if err != nil {
 				return nil, nil, err
@@ -2006,31 +2053,12 @@ func (p *parser) parseBodyExpr() (hir.Expr, []hir.Stmt, error) {
 			if err := p.expect(tokIdent, "in"); err != nil {
 				return nil, nil, err
 			}
-			// Emit TupleLetStmt
-			if call, ok := val.(*hir.CallExpr); ok {
-				stmts = append(stmts, &hir.TupleLetStmt{Names: names, Tys: tys, Call: call})
-			}
-			continue
-		}
-
-		nameTok := p.next()
-		if p.peek().kind != tokEq {
-			return nil, nil, fmt.Errorf("line %d: expected '=' after let %s", nameTok.line, nameTok.text)
-		}
-		p.next() // consume "="
-		val, err := p.parseExpr()
-		if err != nil {
-			return nil, nil, err
-		}
-		if err := p.expect(tokIdent, "in"); err != nil {
-			return nil, nil, err
-		}
-		stmts = append(stmts, &hir.VarDeclStmt{
-			Name: nameTok.text,
-			Ty:   val.ExprTy(),
-			Init: val,
-		})
-		p.varTypes[nameTok.text] = val.ExprTy()
+			stmts = append(stmts, &hir.VarDeclStmt{
+				Name: nameTok.text,
+				Ty:   val.ExprTy(),
+				Init: val,
+			})
+			p.varTypes[nameTok.text] = val.ExprTy()
 		} else if p.peek().kind == tokIdent && p.peek().text == "while" {
 			// while cond do ... end
 			p.next() // consume "while"
@@ -2095,11 +2123,12 @@ func (p *parser) parseBodyExpr() (hir.Expr, []hir.Stmt, error) {
 // Desugars to nested CondExpr (if-then-else chain).
 //
 // Syntax:
-//   match x with
-//   | 0 -> expr0
-//   | 1 -> expr1
-//   | _ -> default
-//   end
+//
+//	match x with
+//	| 0 -> expr0
+//	| 1 -> expr1
+//	| _ -> default
+//	end
 func (p *parser) parseMatch() (hir.Expr, error) {
 	p.next() // consume "match"
 	scrutinee, err := p.parseExpr()
@@ -2111,12 +2140,12 @@ func (p *parser) parseMatch() (hir.Expr, error) {
 	}
 
 	type arm struct {
-		isDefault       bool
-		val             int64
-		guard           hir.Expr // nil = no guard; non-nil = extra condition
-		body            hir.Expr
-		bindName        string // variable name bound to scrutinee (for guards)
-		hasPayloadBind  bool   // true when | Some x -> ... binds payload
+		isDefault      bool
+		val            int64
+		guard          hir.Expr // nil = no guard; non-nil = extra condition
+		body           hir.Expr
+		bindName       string // variable name bound to scrutinee (for guards)
+		hasPayloadBind bool   // true when | Some x -> ... binds payload
 	}
 	var arms []arm
 

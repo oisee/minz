@@ -210,11 +210,11 @@ type lowerer struct {
 	prog               *Program
 	hm                 *hir.Module
 	varTypes           map[string]mir2.Ty
-	paramRegistrations []*ParamDecl // collected during lowering
-	stringInits        []stringInit // DATA x TYPE string VALUE '...' → deferred init
-	strCache           map[string]int // dedup cache: content → index in hm.Strings
-	hasSelect          bool          // true if any SELECT statement → emit sqlite externs + _abap_db
-	selectStmtCounter  int           // unique IDs for temp variables
+	paramRegistrations []*ParamDecl              // collected during lowering
+	stringInits        []stringInit              // DATA x TYPE string VALUE '...' → deferred init
+	strCache           map[string]int            // dedup cache: content → index in hm.Strings
+	hasSelect          bool                      // true if any SELECT statement → emit sqlite externs + _abap_db
+	selectStmtCounter  int                       // unique IDs for temp variables
 	internalTables     map[string]*internalTable // lt_name → table metadata
 }
 
@@ -250,6 +250,12 @@ func (l *lowerer) lower() (*hir.Module, error) {
 			dd := &DataDecl{Name: d.Name, AbapTy: d.AbapTy, Length: d.Length, Value: d.Default}
 			l.lowerGlobal(dd)
 			l.lowerParamRegister(d)
+		}
+	}
+	// Collect every global before entering procedure-local scopes, including
+	// globals declared after a FORM or FUNCTION in source order.
+	for _, d := range l.prog.Decls {
+		switch d := d.(type) {
 		case *FormDecl:
 			l.lowerForm(d)
 		case *FunctionDecl:
@@ -671,7 +677,9 @@ func (l *lowerer) lower() (*hir.Module, error) {
 		// Emit _zx_halt function
 		hasHalt := false
 		for _, f := range l.hm.Funcs {
-			if f.Name == "_zx_halt" { hasHalt = true }
+			if f.Name == "_zx_halt" {
+				hasHalt = true
+			}
 		}
 		if !hasHalt {
 			l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
@@ -706,8 +714,8 @@ func (l *lowerer) emitSYStruct() {
 			{Name: "INDEX", Ty: mir2.TyU16},
 			{Name: "TABIX", Ty: mir2.TyU16},
 			{Name: "UCOMM", Ty: mir2.TyU16}, // simplified: command code as u16
-			{Name: "DATUM", Ty: mir2.TyU16},  // date as days-since-epoch (simplified)
-			{Name: "UZEIT", Ty: mir2.TyU16},  // time as minutes-since-midnight
+			{Name: "DATUM", Ty: mir2.TyU16}, // date as days-since-epoch (simplified)
+			{Name: "UZEIT", Ty: mir2.TyU16}, // time as minutes-since-midnight
 		},
 	}
 	l.hm.Structs = append(l.hm.Structs, st)
@@ -797,9 +805,35 @@ func (l *lowerer) lowerGlobal(d *DataDecl) {
 	l.hm.Globals = append(l.hm.Globals, g)
 }
 
+// enterProcedure isolates parameters and local DATA from sibling procedures.
+// The outer map contains report globals and is restored even on lowering errors.
+func (l *lowerer) enterProcedure() func() {
+	outer := l.varTypes
+	l.varTypes = make(map[string]mir2.Ty, len(outer))
+	for name, ty := range outer {
+		l.varTypes[name] = ty
+	}
+	return func() { l.varTypes = outer }
+}
+
+func (l *lowerer) lowerLocalData(d *DataDecl) (hir.Stmt, error) {
+	ty := l.abapTypeToHIR(d.AbapTy, d.Length)
+	var init hir.Expr = &hir.IntLitExpr{Val: 0, Ty: ty}
+	if d.Value != nil {
+		var err error
+		init, err = l.lowerExpr(*d.Value)
+		if err != nil {
+			return nil, err
+		}
+	}
+	l.varTypes[d.Name] = ty
+	return &hir.VarDeclStmt{Name: d.Name, Ty: ty, Init: init}, nil
+}
+
 // ── FORM → hir.Func ─────────────────────────────────────────────────────────
 
 func (l *lowerer) lowerForm(d *FormDecl) {
+	defer l.enterProcedure()()
 	params := make([]hir.Param, 0, len(d.Using)+len(d.Changing))
 	for _, p := range d.Using {
 		ty := l.abapTypeToHIR(p.AbapTy, 0)
@@ -812,6 +846,11 @@ func (l *lowerer) lowerForm(d *FormDecl) {
 		l.varTypes[p.Name] = ty
 	}
 
+	var resultDecl hir.Stmt
+	if len(d.Changing) == 1 {
+		p := d.Changing[0]
+		resultDecl, _ = l.lowerLocalData(&DataDecl{Name: p.Name, AbapTy: p.AbapTy})
+	}
 	body, err := l.lowerStmts(d.Body)
 	if err != nil {
 		l.hm.Warnings = append(l.hm.Warnings, fmt.Sprintf("FORM %s: %v", d.Name, err))
@@ -830,6 +869,7 @@ func (l *lowerer) lowerForm(d *FormDecl) {
 		retStmt := &hir.ReturnStmt{
 			Val: &hir.VarRefExpr{Name: changingName, Ty: changingTy},
 		}
+		body.Body = append([]hir.Stmt{resultDecl}, body.Body...)
 		body.Body = append(body.Body, retStmt)
 		l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
 			Name:   d.Name,
@@ -852,6 +892,7 @@ func (l *lowerer) lowerForm(d *FormDecl) {
 // Name is lowercased function module name (e.g. 'Z_ADD' → 'z_add').
 
 func (l *lowerer) lowerFunction(d *FunctionDecl) {
+	defer l.enterProcedure()()
 	params := make([]hir.Param, 0, len(d.Importing)+len(d.Changing))
 	for _, p := range d.Importing {
 		ty := l.abapTypeToHIR(p.AbapTy, 0)
@@ -864,6 +905,11 @@ func (l *lowerer) lowerFunction(d *FunctionDecl) {
 		l.varTypes[p.Name] = ty
 	}
 
+	var resultDecl hir.Stmt
+	if len(d.Exporting) == 1 {
+		p := d.Exporting[0]
+		resultDecl, _ = l.lowerLocalData(&DataDecl{Name: p.Name, AbapTy: p.AbapTy})
+	}
 	body, err := l.lowerStmts(d.Body)
 	if err != nil {
 		l.hm.Warnings = append(l.hm.Warnings, fmt.Sprintf("FUNCTION %s: %v", d.Name, err))
@@ -878,6 +924,7 @@ func (l *lowerer) lowerFunction(d *FunctionDecl) {
 		retStmt := &hir.ReturnStmt{
 			Val: &hir.VarRefExpr{Name: expName, Ty: expTy},
 		}
+		body.Body = append([]hir.Stmt{resultDecl}, body.Body...)
 		body.Body = append(body.Body, retStmt)
 		l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
 			Name:   d.Name,
@@ -911,6 +958,7 @@ func (l *lowerer) lowerClass(d *ClassDecl) {
 }
 
 func (l *lowerer) lowerMethod(className string, m *MethodDecl) {
+	defer l.enterProcedure()()
 	// Only add self parameter if the class has attributes (instance data).
 	// Pure computation classes emit free functions, enabling compile-time asserts.
 	var params []hir.Param
@@ -929,6 +977,11 @@ func (l *lowerer) lowerMethod(className string, m *MethodDecl) {
 		retTy = l.abapTypeToHIR(m.Returning.AbapTy, 0)
 	}
 
+	var resultDecl hir.Stmt
+	if m.Returning != nil {
+		p := m.Returning
+		resultDecl, _ = l.lowerLocalData(&DataDecl{Name: p.Name, AbapTy: p.AbapTy})
+	}
 	body, err := l.lowerStmts(m.Body)
 	if err != nil {
 		l.hm.Warnings = append(l.hm.Warnings, fmt.Sprintf("METHOD %s~%s: %v", className, m.Name, err))
@@ -938,6 +991,7 @@ func (l *lowerer) lowerMethod(className string, m *MethodDecl) {
 	// If the method has RETURNING, add implicit return of the RETURNING variable.
 	if m.Returning != nil {
 		retVarTy := l.abapTypeToHIR(m.Returning.AbapTy, 0)
+		body.Body = append([]hir.Stmt{resultDecl}, body.Body...)
 		body.Body = append(body.Body, &hir.ReturnStmt{
 			Val: &hir.VarRefExpr{Name: m.Returning.Name, Ty: retVarTy},
 		})
@@ -988,6 +1042,8 @@ func (l *lowerer) lowerStmts(stmts []Stmt_) (*hir.Block, error) {
 
 func (l *lowerer) lowerStmt(s Stmt_) (hir.Stmt, error) {
 	switch s := s.(type) {
+	case *DataDecl:
+		return l.lowerLocalData(s)
 	case *WriteStmt:
 		return l.lowerWrite(s)
 	case *AssignStmt:
@@ -1191,6 +1247,19 @@ func (l *lowerer) lowerPerform(s *PerformStmt) (hir.Stmt, error) {
 			return nil, err
 		}
 		args = append(args, e)
+	}
+	if len(s.Changing) == 1 {
+		for _, decl := range l.prog.Decls {
+			if form, ok := decl.(*FormDecl); ok && form.Name == s.FormName && len(form.Changing) == 1 {
+				target, ok := s.Changing[0].(*VarRef)
+				if !ok {
+					return nil, fmt.Errorf("PERFORM %s CHANGING requires a variable", s.FormName)
+				}
+				ty := l.abapTypeToHIR(form.Changing[0].AbapTy, 0)
+				call := &hir.CallExpr{Fn: s.FormName, Args: args, Ty: ty}
+				return &hir.AssignStmt{Target: &hir.VarRefExpr{Name: target.Name, Ty: l.varTypes[target.Name]}, Val: call}, nil
+			}
+		}
 	}
 	for _, c := range s.Changing {
 		e, err := l.lowerExpr(c)
@@ -1426,7 +1495,7 @@ func (l *lowerer) lowerSelectIntoTable(s *SelectStmt, sql string, uid int) (hir.
 	if l.hm.Target == hir.TargetZXSpectrum {
 		colWidth = 8 // ZX Spectrum: 32 chars wide, 4 cols × 8 = 32
 	}
-	const maxRows = 8   // max rows in buffer (limited for Z80 code size)
+	const maxRows = 8 // max rows in buffer (limited for Z80 code size)
 
 	// Resolve columns — for *, use table schema from *!sql pragmas
 	cols := s.Fields
@@ -1456,7 +1525,9 @@ func (l *lowerer) lowerSelectIntoTable(s *SelectStmt, sql string, uid int) (hir.
 	// Emit globals: flat buffer + row counter + stmt handle
 	hasStmtHandle := false
 	for _, g := range l.hm.Globals {
-		if g.Name == "_itab_stmt_handle" { hasStmtHandle = true }
+		if g.Name == "_itab_stmt_handle" {
+			hasStmtHandle = true
+		}
 	}
 	if !hasStmtHandle {
 		l.hm.Globals = append(l.hm.Globals, mir2.Global{
@@ -2650,7 +2721,7 @@ func emitZXRuntimeFuncs(hm *hir.Module, names map[string]bool) {
 			Body: &hir.Block{
 				Body: []hir.Stmt{
 					&hir.AsmStmt{
-						Target: "z80",
+						Target:      "z80",
 						Code:        "OUT (0xFE), A",
 						Ins:         []hir.AsmOperand{{Name: "c"}},
 						ClobberRegs: []string{"A"},

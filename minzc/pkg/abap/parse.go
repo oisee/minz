@@ -887,8 +887,11 @@ func filterTokens(tokens []string, skip ...string) []string {
 func collectStmtsFromDecls(decls []Decl) []Stmt_ {
 	var stmts []Stmt_
 	for _, d := range decls {
-		if fbd, ok := d.(*formBodyDecl); ok {
-			stmts = append(stmts, fbd.stmt)
+		switch d := d.(type) {
+		case *formBodyDecl:
+			stmts = append(stmts, d.stmt)
+		case *DataDecl:
+			stmts = append(stmts, d)
 		}
 	}
 	return stmts
