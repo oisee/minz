@@ -1,0 +1,4 @@
+ok  	github.com/minz/minzc/pkg/pascal	0.024s
+ok  	github.com/minz/minzc/pkg/plm	0.027s
+ok  	github.com/minz/minzc/pkg/c89	4.784s
+ok  	github.com/minz/minzc/pkg/vir	2.465s
