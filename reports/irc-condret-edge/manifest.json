@@ -1,0 +1,30 @@
+[
+  {
+    "path": "reports/irc-condret-edge/REPORT.md",
+    "sha256": "cd491dd6b3f71dacf7fd1059b6309ba5fe02a32edc49c3a936d6c9fe8ad9cde0"
+  },
+  {
+    "path": "reports/irc-condret-edge/after.txt",
+    "sha256": "93743bbbdc174b9b471d8e2ae0089e79036616de80882ffe5f23850b529d3530"
+  },
+  {
+    "path": "reports/irc-condret-edge/mir2.txt",
+    "sha256": "7b6ee632dada805f0be33d9fcfc3dcc35a2f44c016d48dcf19c91fd70dca1fea"
+  },
+  {
+    "path": "reports/irc-condret-edge/original-before.a80",
+    "sha256": "4b06de0b6e2e02dda2632c43bcaf0d07b16aa3e2a7763fd6f59d8163ef04b500"
+  },
+  {
+    "path": "reports/irc-condret-edge/original-before.mir",
+    "sha256": "bc06d16a8c02d3c1fb16cd8c371c0b990a4c7807ceb02f0bc7e0226b7e63af90"
+  },
+  {
+    "path": "reports/irc-condret-edge/original-before.txt",
+    "sha256": "9ab14deff8d5de4dc953b214fa9b53b6d350a6febd36ba3cc5e25ade8e28c8ba"
+  },
+  {
+    "path": "reports/irc-condret-edge/reduced-before.txt",
+    "sha256": "5bf58a3636c634cd490009bbd5d1976d20015c8006bcc05ac2cd19324ade1ee6"
+  }
+]

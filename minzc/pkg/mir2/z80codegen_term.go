@@ -406,7 +406,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			} else {
 				// General case: emit conditional jump to Then first, then return path.
 				g.emitf("    JRS %s, %s", cc, thenLbl)
-				g.emitParallelCopy(copies)
+				// Then copies belong to its branch trampoline, never the return path.
 				g.emitParallelCopy(retCopies)
 				g.emitLocalFrameCleanup(frameBytes)
 				g.emit("    RET")
