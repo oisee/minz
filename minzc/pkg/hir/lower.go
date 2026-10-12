@@ -1394,21 +1394,23 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			}
 		} else {
 			for _, op := range st.Ins {
+				// AsmOperand names an in-scope value. Resolve it before the
+				// legacy physical-register alias syntax; unknown names must
+				// never match an unannotated parameter's zero RegClass.
+				if r, ok := l.env[op.Name]; ok {
+					ins = append(ins, r)
+					continue
+				}
 				wantCls := z80RegNameToClass(op.Name)
-				found := false
+				if wantCls == 0 {
+					continue
+				}
 				for _, p := range l.hf.Params {
 					if p.RegClass == wantCls {
 						if r, ok := l.env[p.Name]; ok {
 							ins = append(ins, r)
-							found = true
 							break
 						}
-					}
-				}
-				if !found {
-					// Fallback: try as variable name (backward compat)
-					if r, ok := l.env[op.Name]; ok {
-						ins = append(ins, r)
 					}
 				}
 			}
