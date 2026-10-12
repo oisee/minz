@@ -1,0 +1,16 @@
+{
+  "files": {
+    "irc.txt": {
+      "sha256": "ef535bbb358492c3be94467d0550b9215d4b99eccc3f17c0e592d1d243268a45",
+      "bytes": 48
+    },
+    "condret.txt": {
+      "sha256": "ae06e62d798bb600fa89600aa43ac6f75bcacaaa9455738eeafb428e9d359dde",
+      "bytes": 43
+    },
+    "README.md": {
+      "sha256": "e9843ee47ee747ac10a0e5af5999d27330b41e0abe2c8cf8d0d04da7d365c61f",
+      "bytes": 1626
+    }
+  }
+}

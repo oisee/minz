@@ -1,0 +1,24 @@
+{
+  "files": {
+    "catalog-test.txt": {
+      "sha256": "7d1b3404c4e157f56f7480313d262e1916604e372cdf66372f519194a2c4e4d8",
+      "bytes": 43
+    },
+    "catalog.json": {
+      "sha256": "2deabd469c3e9718443b691a1b7fe1084e81acdb2b4a99a6e0e089168d7d2d1f",
+      "bytes": 678934
+    },
+    "counts.json": {
+      "sha256": "3b4b04562a87965cc048459883556888c166aa77763d8486f7942afe23e7bf2e",
+      "bytes": 356
+    },
+    "reviewed-updates.json": {
+      "sha256": "2cd41bdb92517ce7ac3d052052a742e86210e24518a114f8df3cabbd95a0c537",
+      "bytes": 166685
+    },
+    "README.md": {
+      "sha256": "f5c04dd6d27f9ec59f2ea7d48948e3f3bbaa101be9758badb09593a97b73fc40",
+      "bytes": 1090
+    }
+  }
+}
