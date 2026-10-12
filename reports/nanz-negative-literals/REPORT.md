@@ -1,0 +1,11 @@
+# Negative integer literals retain their numeric value
+
+Original untouched rotozoomer exposes the bug: axis_a(9) is declared i16 and returns -11, but raw/final MIR returned245. Unary minus inherited a positive small literal's u8 type, so -11 became byte0xF5 before return/cast/call conversion. The reduced source and failing log are frozen; original source SHA and original GIF SHA/payload remain preserved.
+
+Nanz parseUnary folds unary minus only on an integer literal to its negative numeric value in a sufficient signed literal type (i8/i16/i24/i32). Unary minus on variables/expressions is unchanged: -u8variable still wraps as a byte. HIR direct return literals are emitted at their declared integer return width; nested conditional return arms honor that same literal contract, without sealing an already returned arm twice. Known-call integer literal arguments use the formal type (other argument semantics unchanged). Existing typed-local coercion then sign-extends signed literals correctly.
+
+Authority: Nanz Book v7 §3.1 i8/i16 widths, §3.2 signed stored-bit representation, §2.9 widening/reinterpret casts. Boundary regressions -128/-129/-32768, plain/parenthesized/conditional returns, explicit i16(-11), typed i16/u16 locals, and known i16 arguments use independent numeric models; nonliteral unsigned unary controls preserve their prior byte semantics. Actual native assertions run in ordinary/Grace Speed/Size alongside raw/finalVM.
+
+The gallery GIF had been rendered by the old compiler and froze wrong negative phases. The historical GIF remains at rotozoomer-before.gif with SHA. render_model.py builds replacement media/rotozoomer.gif using independent signed16 arithmetic, division to zero, original frozen axis/palette data, and the published pixel recurrence; it never consults compiler/VM output. TestRotozoomerGallery now compares every32frames plus wrapped frame32 independently with both VM canvas output and GIF. Gallery changes therefore follow corrected signed phases, not a new expectation copied from compiler output. This canvas VM proof does not claim a native renderer.
+
+Full HIR and Nanz checks and the original four-pure-function native packet are retained. Initial pre-gallery Nanz failure remains in frontend-tests.txt as historical evidence; nanz-tests.txt is the corrected full-package result.

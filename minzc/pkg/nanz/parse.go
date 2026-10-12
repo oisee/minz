@@ -4787,6 +4787,20 @@ func (p *parser) parseUnary() (hir.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
+		if literal, ok := x.(*hir.IntLitExpr); ok && mir2.IsInt(literal.Ty) {
+			value := -literal.Val
+			ty := mir2.Ty(mir2.TyI8)
+			if value < -128 || value > 127 {
+				ty = mir2.TyI16
+			}
+			if value < -32768 || value > 32767 {
+				ty = mir2.TyI24
+			}
+			if value < -8388608 || value > 8388607 {
+				ty = mir2.TyI32
+			}
+			return &hir.IntLitExpr{Val: value, Ty: ty}, nil
+		}
 		return &hir.UnaryExpr{Op: "-", X: x, Ty: x.ExprTy()}, nil
 	case tokBang:
 		p.l.next()

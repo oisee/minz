@@ -1,0 +1,12 @@
+fun literal() -> i16 { return -11 }
+fun boundary128() -> i16 { return -128 }
+fun boundary129() -> i16 { return -129 }
+fun boundary32768() -> i16 { return -32768 }
+fun explicit() -> i16 { return i16(-11) }
+fun assigned() -> i16 { var n:i16=-11 return n }
+fun assigned_u() -> u16 { var n:u16=-11 return n }
+fun identity(n:i16) -> i16 { return n }
+fun argument() -> i16 { return identity(-11) }
+fun conditional(yes:u8) -> i16 { return if yes != 0 { -11 } else { -129 } }
+fun variable(n:u8) -> i16 { return 0 - n }
+fun neg_variable(n:u8) -> i16 { var r:i16=-n return r }

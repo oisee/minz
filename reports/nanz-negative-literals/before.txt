@@ -1,0 +1,5 @@
+--- FAIL: TestNegativeLiteralContextVMZ80 (0.01s)
+    negative_literal_context_test.go:45: {literal [] 65525} [{245}] <nil>
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.019s
+FAIL
