@@ -1,0 +1,6 @@
+=== RUN   TestOriginalReportScreenWholeMain
+    original_report_screen_main_test.go:355: stdout/input report ordinary/native 2 1092 2202
+--- FAIL: TestOriginalReportScreenWholeMain (0.16s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.165s
+FAIL
