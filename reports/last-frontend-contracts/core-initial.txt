@@ -1,0 +1,15 @@
+ok  	github.com/minz/minzc/pkg/hir	31.591s
+ok  	github.com/minz/minzc/pkg/mir2	93.102s
+score=65535 game=Game(7)
+[Z80-VALIDATE] set_border: 2 invalid instruction(s)
+  line 3: >>> LD A, col <<<
+--- FAIL: TestShowcaseExecutableOracleCatalog (2.58s)
+    showcase_oracle_catalog_test.go:226: reviewed evidence changed: minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go
+FAIL
+FAIL	github.com/minz/minzc/pkg/nanz	18.128s
+ok  	github.com/minz/minzc/pkg/lanz	0.014s
+ok  	github.com/minz/minzc/pkg/lizp	2.380s
+ok  	github.com/minz/minzc/pkg/plm	0.034s
+ok  	github.com/minz/minzc/pkg/pascal	0.026s
+ok  	github.com/minz/minzc/pkg/c89	5.919s
+FAIL

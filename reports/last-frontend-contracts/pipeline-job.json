@@ -1,0 +1,16 @@
+{
+  "source_commit": "36c07cd1",
+  "binary": "/home/alice/dev/minz-artifacts/grace-checkpoints/pipeline-36c07cd1.test",
+  "binary_sha256": "77810ea72b51c76f0a6538c540056256b15459b5e22149ebfbea5aa40491e6ca",
+  "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/pipeline",
+  "argv": [
+    "/home/alice/dev/minz-artifacts/grace-checkpoints/pipeline-36c07cd1.test",
+    "-test.v",
+    "-test.timeout=12h",
+    "-test.count=1"
+  ],
+  "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/pipeline-36c07cd1-full.txt",
+  "session_id": 81021,
+  "status": "started, terminal result pending",
+  "scope": "Complete pipeline after Lizp and PLM changes; no PASS claim"
+}

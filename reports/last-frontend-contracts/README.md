@@ -7,3 +7,5 @@ Catalog regeneration PASS: 194 exact paths, zero pending-independent-oracle. Cat
 The fresh focused native gate and retained historical adapter gate PASS. An earlier broad directed run used a pre-fix historical Hello test and failed its source freeze; the historical test now reads the retained historical source and passed again. Its earlier failure is not included as a passing gate.
 
 The previous complete production/CLI/research gates predate these frontend changes. Fresh core and complete pipeline results must be assessed separately before compiler integration into main. Compiler changes remain on feat/grace-hir-vm; published main reports do not imply code integration.
+
+Fresh core results: HIR 31.591s, MIR2 93.102s, Lanz 0.014s, Lizp 2.380s, PL/M 0.034s, Pascal 0.026s and C89 5.919s PASS. The initial Nanz run overlapped evidence edits and rejected a stale test-file SHA; the final repeat after committing code and registry passed in 26.895s. See core-initial.txt and nanz-final.txt. The complete pipeline binary is frozen at source commit 36c07cd1; pipeline-job.json records its SHA and started session. Its terminal result remains pending.

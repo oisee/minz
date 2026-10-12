@@ -2,8 +2,8 @@
   "files": [
     {
       "path": "README.md",
-      "bytes": 1293,
-      "sha256": "313930553b1df4839db05ce2f9fa96285a842eb474dd105d73363905a1a6fba3"
+      "bytes": 1768,
+      "sha256": "c7501ec8c3d172e305bf333d80f6887b711f09cac1c40a5b87cef7b5c605501d"
     },
     {
       "path": "catalog.txt",
@@ -11,14 +11,29 @@
       "sha256": "4ae5f3e44b3cdcd3fc3275656d82f9cc9c17bb443b3baba1ea9390fa495ab4da"
     },
     {
+      "path": "core-initial.txt",
+      "bytes": 643,
+      "sha256": "40849bfed5eb10a31f281d55b4310971145e20eafffc21122622b892030d86df"
+    },
+    {
       "path": "historical-adapter.txt",
       "bytes": 1801,
       "sha256": "7d06978cb150698f48031daf628dd7d954ccdf040cdcc3ea7838c7b2e72c324c"
     },
     {
+      "path": "nanz-final.txt",
+      "bytes": 44,
+      "sha256": "96816f8ef263fb44fda32acbbef2b82ea5aefd580644c4add9bb83db888a0e0a"
+    },
+    {
       "path": "native.txt",
       "bytes": 2521,
       "sha256": "9d4b15a03ff89fe8769f6d2ff02491b8015ab650fe1dca5086645f6f05124c91"
+    },
+    {
+      "path": "pipeline-job.json",
+      "bytes": 685,
+      "sha256": "c5b3e21199d0a7d26e5b6c7633cb17383e01f31c54066b84af40c55911d16789"
     }
   ]
 }
