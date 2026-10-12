@@ -228,6 +228,7 @@ func TestMemoryHostCompiledMetadataRefusals(t *testing.T) {
 			m.FuncByName("peek").Blocks = []*mir2.Block{{Label: "entry", Term: &mir2.TermRet{}}}
 		},
 		"host_return":    func(m *mir2.Module) { m.FuncByName("peek").Contract.Returns[0].Ty = mir2.TyU16 },
+		"host_hard_pin":  func(m *mir2.Module) { m.FuncByName("peek").Contract.Params[0].ClassHard = true },
 		"host_parameter": func(m *mir2.Module) { m.FuncByName("peek").Contract.Params[0].Ty = mir2.TyU8 },
 		"dynamic_call": func(m *mir2.Module) {
 			f := m.FuncByName("step")

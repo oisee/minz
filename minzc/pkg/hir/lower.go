@@ -538,6 +538,7 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 				cls = p.RegClass
 			}
 			bld.Param(p.Name, p.Ty, cls)
+			mf.Contract.Params[len(mf.Contract.Params)-1].ClassHard = p.RegClass != 0
 		}
 		return
 	}
