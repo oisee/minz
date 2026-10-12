@@ -1,0 +1,24 @@
+{
+  "files": {
+    "asm-root.txt": {
+      "sha256": "38e6cfbaa7df17c7af7893bf475c49afb305440ff970d79748abb164b6f095bc",
+      "bytes": 47
+    },
+    "pascal-root.txt": {
+      "sha256": "da9bcdd8a155c0b9a69febae6d315759d722679891431df2b9aa11251594abb2",
+      "bytes": 47
+    },
+    "pascal-whole-root.txt": {
+      "sha256": "1248dbd4ce5d3733de1a72a3d29248e7023033001d6aa9eac077f918873636c0",
+      "bytes": 47
+    },
+    "pascal-cli-root.txt": {
+      "sha256": "9818ce3defb80c888c38cdbbb9dffa3182d7287e9b33e551535f194496159707",
+      "bytes": 44
+    },
+    "README.md": {
+      "sha256": "e6bdbee058bffc1f171c646596582ffc1452452f877005b614ff02f923b1b4d5",
+      "bytes": 1519
+    }
+  }
+}
