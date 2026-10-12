@@ -1,0 +1,9 @@
+{
+  "checkpoint": "9fc083c1",
+  "session": 97240,
+  "go_pid": 2989196,
+  "test_pid": 2989367,
+  "state": "running, not PASS",
+  "command": "GOCACHE=/tmp/minz-grace-gocache go test ./cmd/minzc -count=1 -timeout=30m -v",
+  "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/cli-9fc083c1-full.txt"
+}

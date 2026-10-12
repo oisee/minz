@@ -1,7 +1,15 @@
 [
   {
     "path": "README.md",
-    "sha256": "58c331ef84d005b14857f4de1230971b8d1a85e5fd3ee2e8b192e7981a3c2b8e"
+    "sha256": "ad4ea08d94e55deaa8a3c9c350779447415dd41a65c767f5fb144e34021acc1d"
+  },
+  {
+    "path": "allocation.json",
+    "sha256": "32092b19acc4a6094d44b37153d410be161ad6b3c06ec02b95db177f94275c98"
+  },
+  {
+    "path": "composition_export_test.go",
+    "sha256": "c800a78939fc77a8be190962fa71cac4e6def0c39bedee6d45f60c1a46b02663"
   },
   {
     "path": "composition_native_test.go",
@@ -16,12 +24,28 @@
     "sha256": "c4a4b6348ffc2654b6d3cf2507a70c6145b89cf5670495c72fa34bead48012f1"
   },
   {
+    "path": "hash3-baseline.bin",
+    "sha256": "338ac037f4cc30b51b5a20aaacbb93926902924ba056b6ec2e8e4d007d3ab99f"
+  },
+  {
     "path": "hash3-candidate.a80",
     "sha256": "01158c04d5530c141256f34c2b0c53fd82381d4450dbb778aa28b332155ed97d"
   },
   {
+    "path": "hash3-candidate.bin",
+    "sha256": "338ac037f4cc30b51b5a20aaacbb93926902924ba056b6ec2e8e4d007d3ab99f"
+  },
+  {
     "path": "hash3-proposal-table.json",
     "sha256": "2e9a8bdf06df11282b333571feeb27da7fbc93ae0bb5663f6351b4b009ec6f55"
+  },
+  {
+    "path": "options.json",
+    "sha256": "db744df6091f435fb72fa726975a8b6b7b8ad981c530daf6820026318773b96d"
+  },
+  {
+    "path": "result.json",
+    "sha256": "cf214114ed5a4050720182b8c7c860d5ddfe89755bc2e9704c2f3d0da9fc0a6b"
   },
   {
     "path": "source.nanz",

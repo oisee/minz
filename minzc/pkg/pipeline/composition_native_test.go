@@ -1,11 +1,13 @@
 package pipeline
 
 import (
+	"encoding/json"
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/vir"
 	"github.com/minz/minzc/pkg/z80asm"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -42,13 +44,19 @@ func TestCompositionExactHashNative(t *testing.T) {
 	}
 	nativeCandidate := base.Assembly[:start] + candidate + base.Assembly[end:]
 	var cost int
-	for _, asm := range []string{base.Assembly, nativeCandidate} {
+	for index, asm := range []string{base.Assembly, nativeCandidate} {
 		bin, e := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + asm)
 		if e != nil || len(bin.Errors) > 0 {
 			t.Fatal(e, bin.Errors)
 		}
 		if len(bin.Binary) != 45 {
 			t.Fatal("module changed")
+		}
+		label := []string{"baseline", "candidate"}[index]
+		for suffix, data := range map[string][]byte{"a80": []byte(asm), "bin": bin.Binary} {
+			if err := os.WriteFile(filepath.Join(dir, "hash3-"+label+"."+suffix), data, 0644); err != nil {
+				t.Fatal(err)
+			}
 		}
 		z := emulator.NewRemogattoZ80()
 		z.LoadMemory(0x8000, bin.Binary)
@@ -89,7 +97,18 @@ func TestCompositionExactHashNative(t *testing.T) {
 			}
 		}
 	}
-	os.WriteFile(dir+"/hash3-candidate.a80", []byte(nativeCandidate), 0644)
-	os.WriteFile(dir+"/hash3-baseline.a80", []byte(base.Assembly), 0644)
+	for name, value := range map[string]any{
+		"allocation.json": base.Allocation,
+		"options.json":    opts,
+		"result.json":     map[string]any{"tuples_per_path": 65536, "paths": 2, "module_bytes": 45, "function_bytes": 6, "call_t_states": cost, "native_exact_pc_sp": true, "code_integrity": true, "vm_math_oracle": true},
+	} {
+		data, err := json.MarshalIndent(value, "", "  ")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(dir, name), append(data, '\n'), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
 	t.Log("exact hash3 imported proposal equal6B30T/fullmodule45B;65536tuples perpath")
 }

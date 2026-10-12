@@ -1,0 +1,10 @@
+{
+  "call_t_states": 30,
+  "code_integrity": true,
+  "function_bytes": 6,
+  "module_bytes": 45,
+  "native_exact_pc_sp": true,
+  "paths": 2,
+  "tuples_per_path": 65536,
+  "vm_math_oracle": true
+}
