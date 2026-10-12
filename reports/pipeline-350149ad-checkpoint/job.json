@@ -1,0 +1,16 @@
+{
+  "checkpoint": "350149ad",
+  "binary": "/home/alice/dev/minz-artifacts/grace-checkpoints/pipeline-350149ad.test",
+  "binary_sha256": "8b5f341a24e00d941ebca56068f5476cbe540e188c2e739572f120c766a19930",
+  "pid": 2860836,
+  "session": 13077,
+  "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/pipeline",
+  "args": [
+    "-test.count=1",
+    "-test.timeout=180m",
+    "-test.v"
+  ],
+  "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/pipeline-350149ad-full.txt",
+  "status_at_recording": "running; not PASS",
+  "prior_live_pid": 2837750
+}

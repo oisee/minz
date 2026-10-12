@@ -14,11 +14,20 @@ CP/M **10**, SMC **2**. Остаются Lizp/PLM semantic oracle (2), Agon MOS 
 и host ZVM memory model (1). Границы каждого workload сохранены в
 [каталоге 338](grace-integration-338/catalog.json).
 
-Полный CLI checkpoint b457549d прошёл за **370,915 с**. Core прошёл по
-пакетам после исправления двух устаревших SHA references в каталоге; исходные
-FAIL логи сохранены. Два полных pipeline (`94a41120`, `dd100284`) продолжают
-работать и не объявлены PASS. Frozen parser/hashmap/Pascal/PFCCO проверки
-сохранили ранее измеренные выигрыши. [Checkpoint](../reports/checkpoint-b457549d/README.md).
+Полный CLI checkpoint b457549d прошёл за **370,915 с**. Свежий core
+905b33e2: все 13 пакетов **PASS**, включая HIR/MIR2, фронтенды, VIR и
+importer. Frozen parser/hashmap replay 9d041c80 также **PASS**.
+[Свежий checkpoint](../reports/checkpoint-905b33e2/README.md).
+
+Pipeline 94a41120 завершился **FAIL / exit 2**; BDOS test, obsolete Tetris
+runtime expectation и ZX probe исправлены с отдельными native проверками.
+[Terminal лог](../reports/pipeline-94a41120-terminal/README.md).
+Полный dd100284 ещё работает и содержит три fixed parser reference FAIL;
+независимое сохранение состояния доказано, эталон обновлён в 470a884f.
+[Parser reference](../reports/parser-coalesced-reference/README.md).
+Новый полный 350149ad запущен отдельно с подробным журналом и сохранённым
+бинарником; live прогоны не объявляются PASS.
+[Команды и идентичность](../reports/pipeline-350149ad-checkpoint/README.md).
 
 Таблица закрепляется SHA256 при PGO collect/replay, в том числе через CLI.
 Совместный поиск двух циклов сохраняет табличный backend и учитывает caller
