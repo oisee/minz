@@ -1,0 +1,16 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "c85c85262f341a0522686c8d31d85873dbc3de5519ba9cf329314c6bd8863786"
+    },
+    {
+      "path": "frozen/freeze.json",
+      "sha256": "fbc90dfd5e1842337f7f092c2afff8fd824efcb8844e1af230acb56e4de6cfb0"
+    },
+    {
+      "path": "frozen/source.nanz",
+      "sha256": "df38ac3b0eca81e67432c4032bfcfb5c2ae44af3ca32fbdcc673de863d0cf06f"
+    }
+  ]
+}
