@@ -1,0 +1,27 @@
+=== RUN   TestConditionalExpressionEffectsRaw
+=== RUN   TestConditionalExpressionEffectsRaw/and_post
+    conditional_effects_test.go:28: {and_post 0 7 1792} [{2048}] <nil>
+=== RUN   TestConditionalExpressionEffectsRaw/and_post#01
+=== RUN   TestConditionalExpressionEffectsRaw/or_post
+    conditional_effects_test.go:28: {or_post 1 7 1793} [{2049}] <nil>
+=== RUN   TestConditionalExpressionEffectsRaw/or_post#01
+=== RUN   TestConditionalExpressionEffectsRaw/pick_post
+    conditional_effects_test.go:28: {pick_post 0 7 2056} [{2313}] <nil>
+=== RUN   TestConditionalExpressionEffectsRaw/pick_post#01
+    conditional_effects_test.go:28: {pick_post 1 7 2055} [{2311}] <nil>
+=== RUN   TestConditionalExpressionEffectsRaw/effect_cond
+    conditional_effects_test.go:28: {effect_cond 0 7 264} [{265}] <nil>
+=== RUN   TestConditionalExpressionEffectsRaw/nested
+    conditional_effects_test.go:28: {nested 0 7 2055} [{2569}] <nil>
+--- FAIL: TestConditionalExpressionEffectsRaw (0.00s)
+    --- FAIL: TestConditionalExpressionEffectsRaw/and_post (0.00s)
+    --- PASS: TestConditionalExpressionEffectsRaw/and_post#01 (0.00s)
+    --- FAIL: TestConditionalExpressionEffectsRaw/or_post (0.00s)
+    --- PASS: TestConditionalExpressionEffectsRaw/or_post#01 (0.00s)
+    --- FAIL: TestConditionalExpressionEffectsRaw/pick_post (0.00s)
+    --- FAIL: TestConditionalExpressionEffectsRaw/pick_post#01 (0.00s)
+    --- FAIL: TestConditionalExpressionEffectsRaw/effect_cond (0.00s)
+    --- FAIL: TestConditionalExpressionEffectsRaw/nested (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/c89	0.009s
+FAIL

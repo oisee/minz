@@ -1,0 +1,245 @@
+; MIR2 module: expression-effects
+string @mir2.str.0 = "mark"
+string @mir2.str.1 = "and_post"
+string @mir2.str.2 = "or_post"
+string @mir2.str.3 = "pick_post"
+string @mir2.str.4 = "effect_cond"
+string @mir2.str.5 = "nested"
+string @mir2.str.6 = "trace_and"
+string @mir2.str.7 = "trace_or"
+string @mir2.str.8 = "trace_pick"
+string @mir2.str.9 = "loop_condition"
+global @trace : u8
+
+fun @mark(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = addr_of @trace : ptr [pointer]
+    %r3 = load %r2 : u8 [general]
+    %r4 = ext %r3 : u8 -> i16 [pointer]
+    %r5 = const 3 : i16 [pointer]
+    %r6 = mul %r4, %r5 : i16 [pointer]
+    %r7 = ext %r1 : u8 -> i16 [pointer]
+    %r8 = add %r6, %r7 : i16 [pointer]
+    %r9 = addr_of @trace : ptr [pointer]
+    store %r9, %r8 : u8
+    ret %r1
+
+fun @and_post(%r10: u8 [acc], %r11: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r12 = const 0 : u8 [general]
+    %r13 = cmp.ne %r10, %r12 : bool [flag]
+    br_if %r13, @if_then1(), @if_else3()
+  block @if_then1:
+    %r14 = const 1 : u8 [general]
+    %r15 = add %r11, %r14 : u8 [acc]
+    %r16 = const 0 : u8 [general]
+    %r17 = cmp.ne %r11, %r16 : bool [flag]
+    jmp @if_join2(%r17, %r15)
+  block @if_join2(%r18: bool [general], %r19: u8 [general]):
+    %r20 = ext %r18 : bool -> u8 [general]
+    %r21 = ext %r19 : u8 -> u16 [pointer]
+    %r22 = const 256 : i16 [pointer]
+    %r23 = mul %r21, %r22 : u16 [pointer]
+    %r24 = ext %r20 : u8 -> u16 [pointer]
+    %r25 = add %r23, %r24 : u16 [pointer]
+    ret %r25
+  block @if_else3:
+    %r26 = const 0 : bool [general]
+    jmp @if_join2(%r26, %r11)
+
+fun @or_post(%r27: u8 [acc], %r28: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r29 = const 0 : u8 [general]
+    %r30 = cmp.ne %r27, %r29 : bool [flag]
+    br_if %r30, @if_then1(), @if_else3()
+  block @if_then1:
+    %r31 = const 1 : bool [general]
+    jmp @if_join2(%r31, %r28)
+  block @if_join2(%r31: bool [general], %r33: u8 [general]):
+    %r34 = ext %r31 : bool -> u8 [general]
+    %r35 = ext %r33 : u8 -> u16 [pointer]
+    %r36 = const 256 : i16 [pointer]
+    %r37 = mul %r35, %r36 : u16 [pointer]
+    %r38 = ext %r34 : u8 -> u16 [pointer]
+    %r39 = add %r37, %r38 : u16 [pointer]
+    ret %r39
+  block @if_else3:
+    %r40 = const 1 : u8 [general]
+    %r41 = add %r28, %r40 : u8 [acc]
+    %r42 = const 0 : u8 [general]
+    %r43 = cmp.ne %r28, %r42 : bool [flag]
+    jmp @if_join2(%r43, %r41)
+
+fun @pick_post(%r44: u8 [acc], %r45: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r46 = const 0 : u8 [general]
+    %r47 = cmp.ne %r44, %r46 : bool [flag]
+    br_if %r47, @if_then1(), @if_else3()
+  block @if_then1:
+    %r48 = const 1 : u8 [general]
+    %r49 = add %r45, %r48 : u8 [acc]
+    %r50 = ext %r45 : u8 -> i16 [pointer]
+    jmp @if_join2(%r50, %r49)
+  block @if_join2(%r50: i16 [pointer], %r52: u8 [general]):
+    %r53 = trunc %r50 : i16 -> u8 [general]
+    %r54 = ext %r52 : u8 -> u16 [pointer]
+    %r55 = const 256 : i16 [pointer]
+    %r56 = mul %r54, %r55 : u16 [pointer]
+    %r57 = ext %r53 : u8 -> u16 [pointer]
+    %r58 = add %r56, %r57 : u16 [pointer]
+    ret %r58
+  block @if_else3:
+    %r59 = const 1 : u8 [general]
+    %r60 = add %r45, %r59 : u8 [acc]
+    %r61 = ext %r60 : u8 -> i16 [pointer]
+    jmp @if_join2(%r61, %r60)
+
+fun @effect_cond(%r62: u8 [acc], %r63: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r64 = const 1 : u8 [general]
+    %r65 = add %r62, %r64 : u8 [acc]
+    %r66 = const 0 : u8 [general]
+    %r67 = cmp.ne %r62, %r66 : bool [flag]
+    br_if %r67, @if_then1(), @if_else3()
+  block @if_then1:
+    %r68 = ext %r63 : u8 -> i16 [pointer]
+    jmp @if_join2(%r68)
+  block @if_join2(%r68: i16 [pointer]):
+    %r70 = trunc %r68 : i16 -> u8 [general]
+    %r71 = ext %r65 : u8 -> u16 [pointer]
+    %r72 = const 256 : i16 [pointer]
+    %r73 = mul %r71, %r72 : u16 [pointer]
+    %r74 = ext %r70 : u8 -> u16 [pointer]
+    %r75 = add %r73, %r74 : u16 [pointer]
+    ret %r75
+  block @if_else3:
+    %r76 = const 1 : u8 [general]
+    %r77 = add %r63, %r76 : u8 [acc]
+    %r78 = ext %r77 : u8 -> i16 [pointer]
+    jmp @if_join2(%r78)
+
+fun @nested(%r79: u8 [acc], %r80: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r81 = const 0 : u8 [general]
+    %r82 = cmp.ne %r79, %r81 : bool [flag]
+    br_if %r82, @if_then1(), @if_else3()
+  block @if_then1:
+    %r83 = const 1 : u8 [general]
+    %r84 = add %r80, %r83 : u8 [acc]
+    %r85 = const 0 : u8 [general]
+    %r86 = cmp.ne %r80, %r85 : bool [flag]
+    jmp @if_join2(%r86, %r84)
+  block @if_join2(%r87: bool [general], %r88: u8 [general]):
+    %r89 = const 0 : bool [general]
+    %r90 = cmp.ne %r87, %r89 : bool [flag]
+    br_if %r90, @if_then4(), @if_else6()
+  block @if_then4:
+    %r91 = const 1 : u8 [general]
+    %r92 = add %r88, %r91 : u8 [acc]
+    %r93 = ext %r92 : u8 -> i16 [pointer]
+    jmp @if_join5(%r93, %r92)
+  block @if_join5(%r93: i16 [pointer], %r95: u8 [general]):
+    %r96 = trunc %r93 : i16 -> u8 [general]
+    %r97 = ext %r95 : u8 -> u16 [pointer]
+    %r98 = const 256 : i16 [pointer]
+    %r99 = mul %r97, %r98 : u16 [pointer]
+    %r100 = ext %r96 : u8 -> u16 [pointer]
+    %r101 = add %r99, %r100 : u16 [pointer]
+    ret %r101
+  block @if_else6:
+    %r102 = const 1 : u8 [general]
+    %r103 = add %r88, %r102 : u8 [acc]
+    %r104 = ext %r88 : u8 -> i16 [pointer]
+    jmp @if_join5(%r104, %r103)
+  block @if_else3:
+    %r105 = const 0 : bool [general]
+    jmp @if_join2(%r105, %r80)
+
+fun @trace_and(%r106: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r107 = const 0 : i16 [pointer]
+    %r108 = addr_of @trace : ptr [pointer]
+    store %r108, %r107 : u8
+    %r109 = move %r106 : u8 [acc]
+    %r110 = call @mark(%r109) : u8 [acc]
+    %r111 = const 0 : u8 [general]
+    %r112 = cmp.ne %r110, %r111 : bool [flag]
+    %r113 = const 0 : bool [general]
+    cond_ret %r112, [%r113], @cret_then1()
+  block @cret_then1:
+    %r114 = const 7 : i16 [pointer]
+    %r115 = call @mark(%r114) : u8 [acc]
+    %r116 = const 0 : u8 [general]
+    %r117 = cmp.ne %r115, %r116 : bool [flag]
+    ret %r117
+
+fun @trace_or(%r118: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r119 = const 0 : i16 [pointer]
+    %r120 = addr_of @trace : ptr [pointer]
+    store %r120, %r119 : u8
+    %r121 = move %r118 : u8 [acc]
+    %r122 = call @mark(%r121) : u8 [acc]
+    %r123 = const 0 : u8 [general]
+    %r124 = cmp.ne %r122, %r123 : bool [flag]
+    br_if %r124, @cret_then1(), @cret_else2()
+  block @cret_then1:
+    %r125 = const 1 : bool [general]
+    ret %r125
+  block @cret_else2:
+    %r126 = const 7 : i16 [pointer]
+    %r127 = call @mark(%r126) : u8 [acc]
+    %r128 = const 0 : u8 [general]
+    %r129 = cmp.ne %r127, %r128 : bool [flag]
+    ret %r129
+
+fun @trace_pick(%r130: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r131 = const 0 : i16 [pointer]
+    %r132 = addr_of @trace : ptr [pointer]
+    store %r132, %r131 : u8
+    %r133 = move %r130 : u8 [acc]
+    %r134 = call @mark(%r133) : u8 [acc]
+    %r135 = const 0 : u8 [general]
+    %r136 = cmp.ne %r134, %r135 : bool [flag]
+    br_if %r136, @cret_then1(), @cret_else2()
+  block @cret_then1:
+    %r137 = const 7 : i16 [pointer]
+    %r138 = call @mark(%r137) : u8 [acc]
+    ret %r138
+  block @cret_else2:
+    %r139 = const 9 : i16 [pointer]
+    %r140 = call @mark(%r139) : u8 [acc]
+    ret %r140
+
+fun @loop_condition(%r141: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r142 = const 0 : u8 [general]
+    %r143 = const 0 : u8 [general]
+    jmp @loop_head1(%r141, %r142, %r143)
+  block @loop_head1(%r144: u8 [general], %r142: u8 [general], %r143: u8 [general]):
+    %r147 = cmp.ult %r142, %r144 : bool [flag]
+    br_if %r147, @if_then4(), @if_else6()
+  block @if_then4:
+    %r148 = const 1 : u8 [general]
+    %r149 = add %r142, %r148 : u8 [general]
+    %r150 = const 3 : i16 [pointer]
+    %r151 = cmp.ult %r142, %r150 : bool [flag]
+    %r152 = const 0 : bool [general]
+    %r153 = cmp.ne %r151, %r152 : bool [flag]
+    jmp @if_join5(%r153, %r149)
+  block @if_join5(%r154: bool [general], %r149: u8 [general]):
+    %r156 = const 0 : bool [general]
+    %r157 = cmp.eq %r154, %r156 : bool [flag]
+    %r158 = const 0 : bool [general]
+    %r159 = cmp.ne %r157, %r158 : bool [flag]
+    br_if %r159, @loop_exit3_ret_then(), @if_join8()
+  block @if_join8:
+    %r160 = add %r143, %r149 : u8 [general]
+    jmp @loop_head1(%r144, %r149, %r160)
+  block @if_else6:
+    %r161 = const 0 : bool [general]
+    jmp @if_join5(%r161, %r142)
+  block @loop_exit3_ret_then:
+    ret %r143
+

@@ -707,6 +707,21 @@ func (fl *funcLow) captureControlPrelude(fn func() ([]hir.Stmt, error)) func() (
 	}
 }
 
+// lowerConditionalValue puts arm effects inside their selected branch. The
+// condition is evaluated before either arm and logical callers normalize truth.
+func (fl *funcLow) lowerConditionalValue(cond hir.Expr, then, els hir.Expr, thenEffects, elseEffects []hir.Stmt, ty mir2.Ty) hir.Expr {
+	if len(thenEffects) == 0 && len(elseEffects) == 0 {
+		return &hir.CondExpr{Cond: cond, Then: then, Else: els, Ty: ty}
+	}
+	name := fmt.Sprintf("__conditional_%d", fl.tmpCounter())
+	fl.locals[name] = ty
+	result := &hir.VarRefExpr{Name: name, Ty: ty}
+	fl.pendingStmts = append(fl.pendingStmts, &hir.VarDeclStmt{Name: name, Ty: ty}, hir.If(cond,
+		hir.Blk(append(thenEffects, &hir.AssignStmt{Target: result, Val: then})...),
+		hir.Blk(append(elseEffects, &hir.AssignStmt{Target: result, Val: els})...)))
+	return result
+}
+
 func (fl *funcLow) lowerLoopBody(s *cc.Statement, prelude func() ([]hir.Stmt, error)) ([]hir.Stmt, error) {
 	old := fl.continuePrelude
 	fl.continuePrelude = prelude
@@ -1290,15 +1305,12 @@ func (fl *funcLow) lowerExpr(e cc.ExpressionNode) (*exprResult, error) {
 			if err != nil {
 				return nil, err
 			}
-			r, err := fl.lowerExprAsExpr(x.InclusiveOrExpression)
+			r, effects, err := fl.lowerControlExpr(x.InclusiveOrExpression)
 			if err != nil {
 				return nil, err
 			}
-			return wrapExpr(&hir.CondExpr{
-				Cond: l, Then: r,
-				Else: &hir.IntLitExpr{Val: 0, Ty: mir2.TyBool},
-				Ty:   mir2.TyBool,
-			}), nil
+			r = &hir.BinExpr{Op: "!=", L: r, R: &hir.IntLitExpr{Val: 0, Ty: r.ExprTy()}, Ty: mir2.TyBool}
+			return wrapExpr(fl.lowerConditionalValue(l, r, &hir.IntLitExpr{Val: 0, Ty: mir2.TyBool}, effects, nil, mir2.TyBool)), nil
 		}
 		return fl.lowerExpr(x.InclusiveOrExpression)
 
@@ -1309,15 +1321,12 @@ func (fl *funcLow) lowerExpr(e cc.ExpressionNode) (*exprResult, error) {
 			if err != nil {
 				return nil, err
 			}
-			r, err := fl.lowerExprAsExpr(x.LogicalAndExpression)
+			r, effects, err := fl.lowerControlExpr(x.LogicalAndExpression)
 			if err != nil {
 				return nil, err
 			}
-			return wrapExpr(&hir.CondExpr{
-				Cond: l,
-				Then: &hir.IntLitExpr{Val: 1, Ty: mir2.TyBool},
-				Else: r, Ty: mir2.TyBool,
-			}), nil
+			r = &hir.BinExpr{Op: "!=", L: r, R: &hir.IntLitExpr{Val: 0, Ty: r.ExprTy()}, Ty: mir2.TyBool}
+			return wrapExpr(fl.lowerConditionalValue(l, &hir.IntLitExpr{Val: 1, Ty: mir2.TyBool}, r, nil, effects, mir2.TyBool)), nil
 		}
 		return fl.lowerExpr(x.LogicalAndExpression)
 
@@ -1329,15 +1338,15 @@ func (fl *funcLow) lowerExpr(e cc.ExpressionNode) (*exprResult, error) {
 		if err != nil {
 			return nil, err
 		}
-		then, err := fl.lowerExprAsExpr(x.ExpressionList)
+		then, thenEffects, err := fl.lowerControlExpr(x.ExpressionList)
 		if err != nil {
 			return nil, err
 		}
-		els, err := fl.lowerExprAsExpr(x.ConditionalExpression)
+		els, elseEffects, err := fl.lowerControlExpr(x.ConditionalExpression)
 		if err != nil {
 			return nil, err
 		}
-		return wrapExpr(&hir.CondExpr{Cond: cond, Then: then, Else: els, Ty: fl.low.mapType(x.Type())}), nil
+		return wrapExpr(fl.lowerConditionalValue(cond, then, els, thenEffects, elseEffects, fl.low.mapType(x.Type()))), nil
 
 	case *cc.ConstantExpression:
 		return fl.lowerExpr(x.ConditionalExpression)
