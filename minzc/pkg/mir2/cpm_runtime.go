@@ -18,13 +18,18 @@ func validateCPMApplicationRuntime(m *Module, ar *AllocResult) error {
 		return fmt.Errorf("CP/M runtime requires target cpm and void main without arguments")
 	}
 	for _, f := range m.Funcs {
-		if f.Attrs.HasAsm || f.Attrs.ExternAddr != 0 {
+		trustedBDOS := cpmSourceBDOS2(f, ar)
+		if (f.Attrs.HasAsm && !trustedBDOS) || f.Attrs.ExternAddr != 0 {
 			return fmt.Errorf("CP/M runtime rejects ASM and fixed-address extern functions")
 		}
 		if f.Attrs.IsExtern {
 			if err := validateCPMBytePrimitive(f, ar); err != nil {
 				return err
 			}
+		}
+		locals, localErr := cpmLocalAddresses(f)
+		if localErr != nil {
+			return localErr
 		}
 		defs := map[Reg]*Inst{}
 		for _, b := range f.Blocks {
@@ -36,8 +41,32 @@ func validateCPMApplicationRuntime(m *Module, ar *AllocResult) error {
 		}
 		for _, b := range f.Blocks {
 			for _, i := range b.Insts {
+				for _, r := range i.Uses() {
+					if _, ok := locals[r]; ok {
+						switch i.Op {
+						case OpLoad, OpCall:
+						case OpField, OpMove, OpPtrAdd:
+							if _, valid := locals[i.Dst]; !valid {
+								return fmt.Errorf("CP/M runtime invalid derived local address")
+							}
+						case OpStore:
+							if i.Src[0] != r || i.Src[1] == r {
+								return fmt.Errorf("CP/M runtime local pointer stored as data")
+							}
+						default:
+							return fmt.Errorf("CP/M runtime local pointer has unsupported use")
+						}
+					}
+				}
 				switch i.Op {
 				case OpCall:
+					for arg, r := range i.Args {
+						if local, ok := locals[r]; ok {
+							if !cpmReadOnlyPointerParam(m.FuncByName(i.Sym), arg, local.size-local.offset) {
+								return fmt.Errorf("CP/M runtime local pointer escapes through %s", i.Sym)
+							}
+						}
+					}
 					switch i.Sym {
 					case "@mir.io.print.str", "@mir.io.print.sstr", "@mir.io.print.lstr", "@mir.io.print.char", "@mir.io.print.nl", "@mir.io.print.u8", "@mir.io.print.dec", "console_log":
 					default:
@@ -45,15 +74,38 @@ func validateCPMApplicationRuntime(m *Module, ar *AllocResult) error {
 							return fmt.Errorf("CP/M runtime rejects unbound call %s", i.Sym)
 						}
 					}
-				case OpStore:
+				case OpStore, OpLoad:
+					if local, ok := locals[i.Src[0]]; ok {
+						if local.offset+int64(ByteWidth(i.Ty)) > local.size {
+							return fmt.Errorf("CP/M runtime local access exceeds object")
+						}
+						continue
+					}
+					if i.Op == OpLoad {
+						continue
+					}
 					def := defs[i.Src[0]]
 					if def == nil || def.Op != OpAddrOf || !cpmRuntimeGlobal(m, def.Sym) {
 						return fmt.Errorf("CP/M runtime only supports direct module-global memory accesses")
 					}
-				case OpAlloca, OpPush, OpPop:
+				case OpAlloca:
+					continue
+				case OpAsm:
+					if trustedBDOS {
+						continue
+					}
+					return fmt.Errorf("CP/M runtime rejects untrusted ASM")
+				case OpPush, OpPop:
 					return fmt.Errorf("CP/M runtime rejects explicit stack operations")
-				case OpCallCond, OpCallIndirect, OpAsm, OpIn8, OpIn16, OpOut8, OpOut16, OpPatchSlot, OpLoadPatched, OpPatch:
+				case OpCallCond, OpCallIndirect, OpIn8, OpIn16, OpOut8, OpOut16, OpPatchSlot, OpLoadPatched, OpPatch:
 					return fmt.Errorf("CP/M runtime rejects calls/ASM/ports/SMC")
+				}
+			}
+		}
+		for _, b := range f.Blocks {
+			for _, r := range b.Term.termUses() {
+				if _, ok := locals[r]; ok {
+					return fmt.Errorf("CP/M runtime local pointer escapes terminator")
 				}
 			}
 		}
@@ -118,6 +170,9 @@ func validateCPMRuntimeAssembly(assembly string) error {
 	return validateCPMRuntimeAssemblyMode(assembly, false)
 }
 func validateCPMRuntimeAssemblyMode(assembly string, guarded bool) error {
+	return validateCPMRuntimeAssemblyTrusted(assembly, guarded, nil)
+}
+func validateCPMRuntimeAssemblyTrusted(assembly string, guarded bool, adapters map[string]bool) error {
 	a, err := z80asm.NewAssembler().AssembleString(assembly)
 	if err != nil {
 		return err
@@ -151,6 +206,27 @@ func validateCPMRuntimeAssemblyMode(assembly string, guarded bool) error {
 		}
 		code[line.Address] = item{text, line.Address + len(line.Bytes)}
 	}
+	trustedCalls := map[int]bool{}
+	for name := range adapters {
+		pc, ok := a.Symbols[name]
+		if !ok {
+			return fmt.Errorf("CP/M missing BDOS adapter %s", name)
+		}
+		for _, want := range []string{"LDE,A", "LDC,2", "CALL5", "RET"} {
+			for code[pc].text == "CALL __cpm_stack_check" {
+				pc = code[pc].next
+			}
+			i, ok := code[pc]
+			if !ok || strings.Join(strings.Fields(strings.ToUpper(i.text)), "") != want {
+				return fmt.Errorf("CP/M mutated BDOS adapter %s at %04x", name, pc)
+			}
+			if want == "CALL5" {
+				trustedCalls[pc] = true
+			}
+			pc = i.next
+		}
+	}
+
 	if guarded {
 		if a.Symbols["__cpm_stack_limit"] != a.Symbols["__cpm_stack"]+32 {
 			return fmt.Errorf("CP/M runtime invalid checker reserve bound")
@@ -208,7 +284,7 @@ func validateCPMRuntimeAssemblyMode(assembly string, guarded bool) error {
 			}
 			return int(v), nil
 		}
-		if guarded && (op == "PUSH" || op == "CALL" && rest != "__cpm_stack_check") && s.reserve < 8 {
+		if guarded && (op == "PUSH" || op == "DEC" && strings.EqualFold(rest, "SP") || op == "CALL" && rest != "__cpm_stack_check") && s.reserve < 8 {
 			return fmt.Errorf("CP/M runtime stack growth reached without executing guard at %04x %s reserve%d depth%d", s.pc, i.text, s.reserve, s.depth)
 		}
 		switch op {
@@ -231,7 +307,7 @@ func validateCPMRuntimeAssemblyMode(assembly string, guarded bool) error {
 			}
 			parts := strings.Split(rest, ",")
 			name := strings.TrimSpace(parts[len(parts)-1])
-			if name == "5" && s.pc >= int(a.Symbols["__cpm_putchar"]) && s.pc < int(a.Symbols["__cpm_saved_sp"]) {
+			if name == "5" && (trustedCalls[s.pc] || s.pc >= int(a.Symbols["__cpm_putchar"]) && s.pc < int(a.Symbols["__cpm_saved_sp"])) {
 				// Only the return word is application-owned; BDOS internal
 				// stack requirements remain an operating-system precondition.
 				if !guarded && s.depth+2 > 256 {
@@ -298,7 +374,13 @@ func validateCPMRuntimeAssemblyMode(assembly string, guarded bool) error {
 			}
 		case "INC", "DEC":
 			if strings.EqualFold(rest, "SP") {
-				return fmt.Errorf("CP/M runtime dynamic SP unsupported")
+				if op == "DEC" {
+					next.depth++
+					next.reserve--
+				} else {
+					next.depth--
+					next.reserve = min(next.reserve+1, 32)
+				}
 			}
 		}
 		queue = append(queue, next)
@@ -410,18 +492,22 @@ func coalesceCPMStackGuards(assembly string) string {
 		fields := strings.Fields(text)
 		if !inChecker && len(fields) > 0 {
 			op := fields[0]
-			if op == "PUSH" || op == "CALL" {
+			if op == "PUSH" || op == "CALL" || op == "DEC" && len(fields) > 1 && fields[1] == "SP" {
 				if reserve < 8 && pending != "" {
 					out.WriteString(pending)
 					out.WriteByte('\n')
 					reserve = 32
 				}
-				if op == "PUSH" {
+				if op == "DEC" {
+					reserve--
+				} else if op == "PUSH" {
 					reserve -= 2
 				} else {
 					reserve = 0
 				}
 				pending = ""
+			} else if op == "INC" && len(fields) > 1 && fields[1] == "SP" {
+				reserve = min(reserve+1, 32)
 			} else if op == "POP" {
 				reserve = min(reserve+2, 32)
 			} else if op == "JP" || op == "JR" || op == "JRS" || op == "DJNZ" || op == "RET" {

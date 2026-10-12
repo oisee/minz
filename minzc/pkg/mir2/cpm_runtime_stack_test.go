@@ -114,3 +114,21 @@ func TestCPMRuntimeRejectsForgedReserveLimit(t *testing.T) {
 		t.Fatal("forged guard bound admitted")
 	}
 }
+
+func TestCPMRuntimeLocalStackAndNamedBDOSProof(t *testing.T) {
+	body := "main:\n DEC SP\n CALL console\n INC SP\n RET\nconsole:\n LD E,A\n LD C,2\n CALL 5\n RET\n"
+	code := cpmRuntimeEntry + body + cpmRuntimeTail
+	if e := validateCPMRuntimeAssemblyTrusted(code, false, map[string]bool{"console": true}); e != nil {
+		t.Fatal(e)
+	}
+	for _, bad := range []string{strings.Replace(code, "LD C,2", "LD C,9", 1), strings.Replace(code, "console:\n", "console:\n NOP\n", 1), strings.Replace(code, " INC SP\n RET", " RET", 1), strings.Replace(code, " CALL console", " CALL 5", 1), strings.Replace(code, "console:\n LD E,A", "console:\n CALL 5\n LD E,A", 1)} {
+		if e := validateCPMRuntimeAssemblyTrusted(bad, false, map[string]bool{"console": true}); e == nil {
+			t.Fatal("untrusted stack/adapter admitted")
+		}
+	}
+	entry := strings.Replace(cpmRuntimeEntry, "    CALL main", "    CALL __cpm_stack_check\n    CALL main", 1)
+	guarded := entry + "main:\n JP unsafe_local\n CALL __cpm_stack_check\nunsafe_local:\n DEC SP\n INC SP\n RET\n" + cpmRuntimeGuardedTail(64)
+	if e := validateCPMRuntimeAssemblyMode(guarded, true); e == nil {
+		t.Fatal("local growth bypass admitted")
+	}
+}
