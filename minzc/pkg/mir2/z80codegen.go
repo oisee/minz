@@ -442,11 +442,11 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 	}
 
 	// Emit __rotate runtime: multi-entry RLCA sled (barrel shifter).
-	// CALL __rotate_N rotates A left by N bits. 9 bytes shared, zero overhead.
+	// CALL __rotate_N rotates A left by N bits. 8 bytes shared; each CALL adds 27 T-states.
 	// Nibble swap = CALL __rotate_4. No loop, no counter.
 	if cg.needsRotate || strings.Contains(result, "CALL __rotate_") {
 		var sled strings.Builder
-		sled.WriteString("\n; runtime: RLCA sled — multi-entry barrel shifter (9 bytes)\n")
+		sled.WriteString("\n; runtime: RLCA sled — multi-entry barrel shifter (8 bytes)\n")
 		sled.WriteString("; CALL __rotate_N rotates A left by N bits (N×4T + 27T)\n")
 		sled.WriteString("__rotate_7:  RLCA\n")
 		sled.WriteString("__rotate_6:  RLCA\n")
