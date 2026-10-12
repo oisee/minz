@@ -1,0 +1,32 @@
+=== RUN   TestMemoryHostPolicyAssociationControl
+--- PASS: TestMemoryHostPolicyAssociationControl (2.33s)
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope/cost
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope/result
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope/callSpillHash
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope/failed
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope/schema
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope/policy
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope/context
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope/binary
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope/sums
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope/nestedPolicy
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope/nilBaseline
+--- PASS: TestMemoryHostPolicyAssociationStrictEnvelope (0.59s)
+    --- PASS: TestMemoryHostPolicyAssociationStrictEnvelope/cost (0.03s)
+    --- PASS: TestMemoryHostPolicyAssociationStrictEnvelope/result (0.03s)
+    --- PASS: TestMemoryHostPolicyAssociationStrictEnvelope/callSpillHash (0.03s)
+    --- PASS: TestMemoryHostPolicyAssociationStrictEnvelope/failed (0.02s)
+    --- PASS: TestMemoryHostPolicyAssociationStrictEnvelope/schema (0.00s)
+    --- PASS: TestMemoryHostPolicyAssociationStrictEnvelope/policy (0.00s)
+    --- PASS: TestMemoryHostPolicyAssociationStrictEnvelope/context (0.03s)
+    --- PASS: TestMemoryHostPolicyAssociationStrictEnvelope/binary (0.03s)
+    --- PASS: TestMemoryHostPolicyAssociationStrictEnvelope/sums (0.02s)
+    --- PASS: TestMemoryHostPolicyAssociationStrictEnvelope/nestedPolicy (0.00s)
+    --- PASS: TestMemoryHostPolicyAssociationStrictEnvelope/nilBaseline (0.00s)
+=== RUN   TestMemoryHostPolicyAssociationFreshReplayRefusals
+--- PASS: TestMemoryHostPolicyAssociationFreshReplayRefusals (1.84s)
+=== RUN   TestMemoryHostPolicyAssociationPreflight
+--- PASS: TestMemoryHostPolicyAssociationPreflight (0.39s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	5.158s

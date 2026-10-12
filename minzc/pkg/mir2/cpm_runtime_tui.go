@@ -113,8 +113,15 @@ func cpmTUIAdapter(f *Func, ar *AllocResult) []string {
 // by its caller and is never modified.
 func cpmRuntimeClosure(m *Module, ar *AllocResult) (*Module, error) {
 	for _, f := range m.Funcs {
-		if f.Attrs.IsExtern || f.Attrs.ExternAddr != 0 {
+		if f.Attrs.ExternAddr != 0 {
 			return nil, fmt.Errorf("CP/M runtime rejects fixed/external function %s", f.Name)
+		}
+		if f.Attrs.IsExtern {
+			// Keep the pre-existing byte primitive admission and its complete
+			// ABI/body validation; closure pruning grants no new host authority.
+			if err := validateCPMBytePrimitive(f, ar); err != nil {
+				return nil, err
+			}
 		}
 		hasAsm := f.Attrs.HasAsm
 		for _, b := range f.Blocks {
