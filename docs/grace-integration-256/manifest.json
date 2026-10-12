@@ -1,0 +1,16 @@
+{
+  "files": {
+    "cli-full.txt": {
+      "sha256": "791b59b199d8d6e4ce81dc64a85cbc2eaf14480cac8c24f8da905fdfa757f237",
+      "bytes": 2220
+    },
+    "contract-table-root.txt": {
+      "sha256": "d63122ea7b5a036965ee5741721b8137c621979d5c57691194ff948a78fe999e",
+      "bytes": 47
+    },
+    "README.md": {
+      "sha256": "fd2cd630d4356ce75db33b0b419525890c065b3fdebb856bffb447981889ef8e",
+      "bytes": 1219
+    }
+  }
+}

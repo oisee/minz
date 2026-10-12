@@ -1,0 +1,17 @@
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayActualFrozenHeldout1956934866/002/training
+[compiler-modes replay] fixed mode 1: 5568 T / 52 B; saved BIN 23a46320f4d5adaf3a706457cf721145f0ff0df85efcd4c8e0e2b0f0d83642f0
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayRejectsMutatedTraining393012211/002/training
+[compiler-modes] speed selected mode 0: 24 T / 10 B; artifacts /tmp/TestCompilerModeReplayChangedImportedSource2352981728/002/training
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayRejectsHeldoutDiskMutation1642689480/002/training
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts964523476/002/evidence
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts964523476/003/evidence
+[compiler-modes] size selected mode 0: 2605 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts964523476/004/evidence
+[compiler-modes] size selected mode 0: 2605 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts964523476/005/evidence
+[compiler-modes] speed selected mode 0: 24 T / 10 B; artifacts /tmp/TestCompilerModeCLIImportedSource1194136229/001/evidence
+Closed memory-host policy preserve-speed speed selected mask1: 739T / 2548B; evidence /tmp/TestPolicyCLICollectReplay2873317918/001/policy-artifacts
+Closed memory-host policy preserve-speed speed selected mask1: 739T / 2548B; evidence /tmp/TestPolicyCLICollectReplay2873317918/001/replay
+Closed memory-host search speed selected policy1/mask1: 739T / 2502B; evidence /tmp/TestSearchCLICollectAndPairedReplay327533833/001/search-artifacts
+Closed memory-host search size selected policy0/mask2: 834T / 2360B; evidence /tmp/TestSearchCLICollectAndPairedReplay327533833/001/search-replay
+Closed memory-host speed selected mask1: 756T / 2547B; evidence /tmp/TestMemoryHostLegacySelectedOutputCollectReplay3753057709/001/legacy-collect
+Closed memory-host speed selected mask1: 756T / 2547B; evidence /tmp/TestMemoryHostLegacySelectedOutputCollectReplay3753057709/001/legacy-replay
+PASS
