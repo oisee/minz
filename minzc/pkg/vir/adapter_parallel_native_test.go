@@ -102,3 +102,45 @@ func TestAdapterAllBytePermutationsNative(t *testing.T) {
 		}
 	}
 }
+
+func TestAdapterPrefixAndPairCopiesNative(t *testing.T) {
+	for _, names := range [][2]string{{"H", "IXH"}, {"IXH", "L"}, {"IYL", "IXH"}, {"HL", "DE"}} {
+		from, to := Z80.LocByName(names[0]), Z80.LocByName(names[1])
+		asm := "ORG 0x8000\n" + strings.Join(emitAdapterMove(Z80.Locs[from], Z80.Locs[to]), "\n") + "\nRET\n"
+		ar, err := z80asm.NewAssembler().AssembleString(asm)
+		if err != nil || len(ar.Errors) > 0 {
+			t.Fatalf("assembly %v %v", err, ar.Errors)
+		}
+		z := emulator.NewRemogattoZ80()
+		if err := z.LoadMemory(0x8000, ar.Binary); err != nil {
+			t.Fatal(err)
+		}
+		for x := 0; x < 65536; x++ {
+			in := emulator.Registers{A: byte(x), F: 0x45, BC: 0x1234, DE: 0x5678, HL: uint16(x), IX: ^uint16(x), IY: uint16(x*3 + 17), PC: 0x8000, SP: 0xeffe}
+			want := in
+			switch names {
+			case [2]string{"H", "IXH"}:
+				want.IX = uint16(byte(in.HL>>8))<<8 | in.IX&255
+			case [2]string{"IXH", "L"}:
+				want.HL = in.HL&0xff00 | uint16(byte(in.IX>>8))
+			case [2]string{"IYL", "IXH"}:
+				want.IX = uint16(byte(in.IY))<<8 | in.IX&255
+			case [2]string{"HL", "DE"}:
+				want.DE = in.HL
+			}
+			if err := z.LoadMemory(0xeffe, []byte{0, 0xf1}); err != nil {
+				t.Fatal(err)
+			}
+			z.SetRegisters(in)
+			for i := 0; i < 64 && z.GetRegisters().PC != 0xf100; i++ {
+				z.Step()
+			}
+			r := z.GetRegisters()
+			want.PC = 0xf100
+			want.SP = 0xf000
+			if r != want {
+				t.Fatalf("%v x=%d got=%+v want=%+v", names, x, r, want)
+			}
+		}
+	}
+}

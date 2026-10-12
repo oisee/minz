@@ -930,6 +930,27 @@ type adapterMove struct {
 	fromPhys, toPhys int
 }
 
+// emitAdapterMove copies a value without altering other adapter inputs.
+// Pair copies must not swap the source, and prefix-conflicting byte copies
+// preserve AF instead of borrowing a live parameter in A.
+func emitAdapterMove(from, to Loc) []string {
+	if from.Name == to.Name {
+		return nil
+	}
+	if from.Width == 16 && to.Width == 16 && from.Name != "SP" && to.Name != "SP" {
+		return []string{"PUSH " + from.Name, "POP " + to.Name}
+	}
+	if from.Width == 8 && to.Width == 8 {
+		indexed := func(name string) bool { return strings.HasPrefix(name, "IX") || strings.HasPrefix(name, "IY") }
+		halfHL := func(name string) bool { return name == "H" || name == "L" }
+		conflict := indexed(from.Name) && halfHL(to.Name) || indexed(to.Name) && halfHL(from.Name) || indexed(from.Name) && indexed(to.Name) && from.Name[:2] != to.Name[:2]
+		if conflict {
+			return []string{"PUSH AF", "LD A, " + from.Name, "LD " + to.Name + ", A", "POP AF"}
+		}
+	}
+	return emitRegMove(from, to)
+}
+
 func resolveParallelMoves(moves []adapterMove, desc *MachineDesc) []string {
 	pending := append([]adapterMove(nil), moves...)
 	var result []string
@@ -944,7 +965,7 @@ func resolveParallelMoves(moves []adapterMove, desc *MachineDesc) []string {
 				}
 			}
 			if !blocked {
-				result = append(result, emitRegMove(desc.Locs[mv.fromPhys], desc.Locs[mv.toPhys])...)
+				result = append(result, emitAdapterMove(desc.Locs[mv.fromPhys], desc.Locs[mv.toPhys])...)
 				pending = append(pending[:i], pending[i+1:]...)
 				progress = true
 				break
@@ -998,18 +1019,22 @@ func resolveParallelMoves(moves []adapterMove, desc *MachineDesc) []string {
 			if from.Width == 16 {
 				result = append(result, "PUSH "+from.Name)
 			} else {
-				result = append(result, emitRegMove(from, desc.Locs[desc.LocByName(high)])...)
+				result = append(result, emitAdapterMove(from, desc.Locs[desc.LocByName(high)])...)
 				result = append(result, "PUSH "+scratch)
 			}
 		}
 		for i := len(pending) - 1; i >= 0; i-- {
 			mv := pending[i]
+			if desc.Locs[mv.fromPhys].Width == 16 && desc.Locs[mv.toPhys].Width == 16 {
+				result = append(result, "POP "+desc.Locs[mv.toPhys].Name)
+				continue
+			}
 			result = append(result, "POP "+scratch)
 			from := high
 			if desc.Locs[mv.fromPhys].Width == 16 {
 				from = low
 			}
-			result = append(result, emitRegMove(desc.Locs[desc.LocByName(from)], desc.Locs[mv.toPhys])...)
+			result = append(result, emitAdapterMove(desc.Locs[desc.LocByName(from)], desc.Locs[mv.toPhys])...)
 		}
 		result = append(result, "POP "+scratch)
 		break

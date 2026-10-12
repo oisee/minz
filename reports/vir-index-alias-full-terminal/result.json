@@ -1,0 +1,13 @@
+{
+  "checkpoint": "27aa1f7c code; later docs only excluded",
+  "session": 14638,
+  "exit_code": 0,
+  "terminal": "PASS",
+  "seconds": 1170.693,
+  "counts": {
+    "PASS": 116,
+    "FAIL": 0,
+    "SKIP": 4
+  },
+  "scope": "Full research VIR suite with Z3 on PATH. Predates same-pair, CALL preservation, hint/CFG admission and adapter fixes. Corpus compilation/admission is not independent native proof of every function."
+}

@@ -1,0 +1,16 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "437ed1c7da2c3308dee4f228f32ca8fe227fb790e84b0e80f42f36f78e75f70d"
+    },
+    {
+      "path": "full.txt",
+      "sha256": "1ad116ff887f6cf622eddd7b93a6df63462929bcbcde589ca48c8440e67a3edf"
+    },
+    {
+      "path": "result.json",
+      "sha256": "8031f04fcbe978a8d4596d507889ac48864065c80732ee6b8294fec3f565be63"
+    }
+  ]
+}
