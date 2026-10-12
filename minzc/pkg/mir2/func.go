@@ -37,10 +37,11 @@ type Contract struct {
 // Param is one parameter: a named, typed, class-constrained value that arrives
 // in a specific virtual register at function entry.
 type Param struct {
-	Name  string   // source-level parameter name (for diagnostics)
-	Reg   Reg      // virtual register holding this param on entry
-	Ty    Ty       // type of the parameter
-	Class RegClass // required register class
+	ClassHard bool     `json:",omitempty"` // explicit source physical constraint; not a default ABI preference
+	Name      string   // source-level parameter name (for diagnostics)
+	Reg       Reg      // virtual register holding this param on entry
+	Ty        Ty       // type of the parameter
+	Class     RegClass // required register class
 }
 
 // Return is one return value slot (one element of a multi-return tuple).

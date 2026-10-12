@@ -168,6 +168,19 @@ func nodeCosts(f *Func, info map[Reg]RegInfo, ct CostTable, locs []PhysLoc) map[
 // PBQPAllocate runs the PBQP allocator on function f.
 // It is a drop-in replacement for Allocate.
 func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
+	if f.Attrs.IsExtern {
+		if _, isZ80 := ct.(Z80CostTable); isZ80 {
+			if locs, e := Z80ExternParamLocations(f); e == nil {
+				ar := &AllocResult{Locs: locs}
+				for _, p := range f.Contract.Params {
+					if locs[p.Reg].Kind == LocMem {
+						ar.Spilled = append(ar.Spilled, p.Reg)
+					}
+				}
+				return ar
+			}
+		}
+	}
 	info := collectRegInfo(f)
 
 	// Pre-PBQP: propagate class hints through phi-web edges and return values.
