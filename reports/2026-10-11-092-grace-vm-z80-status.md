@@ -21,7 +21,7 @@
 
 После последней production правки прошли полный MIR2, HIR и 11 пакетов фронтендов/инструментов, полный CLI (74 PASS, 0 FAIL, 0 SKIP) и showcase compile/assemble (193 PASS, 1 capacity SKIP). Compile/assemble не заменяет проверку поведения. [Свежий checkpoint с логами](https://github.com/oisee/minz/blob/b6b4e0c7/reports/2026-10-12-grace-current-checkpoint.md).
 
-**Полный pipeline актуального backend выполняется.** Наблюдение 12 октября в 11:19 UTC: 226 верхнеуровневых PASS, 0 FAIL, 10 SKIP; выполняется матрица native composition boundaries. Это промежуточный результат, не общий PASS. Checkpoint b6b4e0c7 включает последнюю literal-overwrite правку, полный корпус и лимит 360 минут. [Команда, executable SHA256 и checkpoint](https://github.com/oisee/minz/blob/f0312aa0/reports/pipeline-b6b4e0c7-checkpoint/job.json).
+**Полный pipeline checkpoint b6b4e0c7 выполняется.** Наблюдение 12 октября в 11:59 UTC: 281 верхнеуровневых PASS, 0 FAIL, 10 SKIP; последний запущенный тест — `TestOriginalTetrisFamilyMechanics`. Это промежуточный результат, не общий PASS. Сборка включает последнюю literal-overwrite правку и лимит 360 минут; поздние Agon-изменения проверены отдельно и не входят в этот immutable executable. [Команда, executable SHA256 и checkpoint](https://github.com/oisee/minz/blob/f0312aa0/reports/pipeline-b6b4e0c7-checkpoint/job.json).
 
 Предыдущий полный запуск 5d90b7aa завершился exit 2 по лимиту 180 минут во время SHA split helpers: 493 PASS, 0 верхнеуровневых FAIL, 14 SKIP. Он подтвердил большие семейства Tetris, графики, Pascal и self-parser, но timeout не означает общий PASS; оставшиеся тесты не подтверждены. [Терминальный результат и полный лог](https://github.com/oisee/minz/tree/514a54e9/reports/pipeline-5d90b7aa-terminal).
 
@@ -39,22 +39,26 @@
 
 **Self-parser прошёл полный native main** во всех трёх режимах; отдельная whole-main VM проверяет независимую модель файлов, AST, токенов и stdout. Это другая программа, чем self-Lanz parser из таблицы heldout, и результаты не смешиваются. В предыдущем полном запуске также завершились модель стоимости полного u8 domain, конкуренция правил за бюджет, bool/return-flags (198 912 вызовов на режим) и C89 string/memory. Итоги обоих gate приведены выше; старые промежуточные счётчики не используются как текущий статус.
 
-## Новое: настоящий CLI Hello на Agon MOS
+## Новое: Agon рисует интерфейс и возвращается в MOS
 
-**Первый Agon Hello уже выполнен в eZ80-эмуляторе под MOS.** Обычная команда `minzc examples/agon/hello_agon.nanz -b ez80 -o hellocli.bin` выпускает 188 B: MOS-заголовок и 119 B кода/данных. Fab Agon Emulator 1.2.5 с Console8 MOS 2.3.3 загрузил этот файл штатными `LOAD` и `RUN`. Проверено точное сообщение:
+**Теперь проверен не только текстовый Hello, но и графический интерфейс.** Неизменённые примеры TUI Hello, TUI Demo и Mini NC собраны публичной CLI и выполнены в ordinary mode одновременно с eZ80 CPU, Console8 MOS 2.3.3 и полным VDP 2.16.0 в Fab Agon Emulator 1.2.5. Кадры показывают окна, цвета, текст и выделение выбранной строки. Клавиши поступают через штатный путь SDL → PS/2 → MOS; после выхода выполняется следующая команда MOS и появляется приглашение.
 
-```text
-Hello from MinZ on Agon Light 2!
-Press any key:
-You pressed a key!
-```
+| Программа / сценарий | Что наблюдали | Доказательства |
+|---|---|---|
+| TUI Hello | Окно и приветствие; клавиша A; возврат в MOS | [Кадры, исходник и BIN](https://github.com/oisee/minz/tree/77e0bffb/reports/agon-native-vdu-fix) |
+| TUI Demo и Mini NC | Отрисовка обоих интерфейсов; выход A / Escape | [Полный пакет](https://github.com/oisee/minz/tree/9084e512/reports/agon-full-vdp-demo-nc) |
+| Mini NC: Down, Enter, Escape | Выделение второй строки; `Selected: NC_AGON.BIN`; возврат в MOS | [Последовательность и кадры](https://github.com/oisee/minz/tree/21770ce7/reports/agon-full-vdp-nc-navigation) |
+| Mini NC: нижняя граница списка и Up | Девять Down оставляют выбор на последней, восьмой строке; Enter показывает PLASMA.BIN; Up выбирает каталог EXAMPLES; Escape возвращает в MOS | [Кадры и точный ввод](https://github.com/oisee/minz/tree/431500f0/reports/agon-full-vdp-nc-boundary) |
 
-Программа прочитала клавишу и вернулась к приглашению MOS; последующая команда `echo MINZ_RETURNED` тоже выполнилась. Одного exit 0 эмулятора недостаточно: оракул проверяет вывод программы и продолжение работы MOS. [Исходник, фактический BIN, ввод, вывод и SHA256](https://github.com/oisee/minz/tree/7ecf72e8/reports/agon-mos-cli-hello).
+![Mini NC на полном VDP: выбрана последняя строка PLASMA.BIN](https://raw.githubusercontent.com/oisee/minz/431500f0/reports/agon-full-vdp-nc-boundary/last.png)
 
-Это ordinary-mode smoke для одного исходника: процессор eZ80 и firmware MOS исполняются, но CLI VDP — упрощённая модель. Графика, полный оракул RAM/SP, остальные четыре Agon-программы, все режимы оптимизации и аппаратный запуск ещё не подтверждены. Поэтому каталог не повышен целиком до «Agon работает».
+**Проверки нашли два настоящих препятствия.** Во-первых, приложение могло затереть IY, используемый MOS, а void main заканчивался HALT. Agon entry теперь сохраняет и восстанавливает IY, вызывает main и возвращает status 0 в MOS. [Исправление и регрессии](https://github.com/oisee/minz/tree/31030f07/reports/agon-entry-fix). Во-вторых, прежняя TUI-библиотека отправляла ANSI escape sequences, которые обычный графический VDP показывал как текст. Библиотека теперь использует собственные VDU-команды Agon для позиции курсора, цветов, очистки и видимости курсора; сами примеры не переписаны. [Исправление VDU](https://github.com/oisee/minz/tree/77e0bffb/reports/agon-native-vdu-fix).
 
-Ранний отказ MOS относился к исследовательскому BIN без заголовка. Публичная CLI уже правильно добавляла MOS-заголовок; исправление backend не потребовалось. [Сохранённая отрицательная проба и уточнение](https://github.com/oisee/minz/tree/99ab4b54/reports/agon-mos-first-execution). Новые артефакты целиком лежат на шаре в `/mnt/safe/minz/grace/2026-10-12/agon-mos-cli-hello/`.
+Оба текстовых Hello отдельно прошли точную проверку вывода и продолжения MOS в ordinary, Grace Size и Grace Speed — шесть запусков. После добавления entry wrapper их BIN занимают 201 и 279 B; старые 188/266 B относятся к предыдущей сборке. Все пять Agon-примеров также собираются в трёх режимах. [Console replay](https://github.com/oisee/minz/tree/31030f07/reports/agon-entry-console-replay).
 
+**Граница доказательства:** графические кадры проверены визуально, это ещё не независимый pixel/RAM/SP оракул и не покрытие всех входов или всех режимов графических программ. Настоящее железо не проверено. Незакрашенные внутренние области окон остаются чёрными; динамические размеры экрана и все TUI-примитивы не подтверждены. Каталог сохраняет отдельную категорию Agon MOS runtime. Таймаут наблюдателя останавливает продолжающий работать MOS; возврат приложения подтверждается следующей командой и приглашением, а не exit code эмулятора.
+
+Исторический отказ загрузки относился к исследовательскому BIN без MOS-заголовка; публичная CLI уже добавляла его правильно. [Ранняя проба](https://github.com/oisee/minz/tree/99ab4b54/reports/agon-mos-first-execution). Все новые пакеты, изображения, ASM/BIN, логи и manifests SHA256 сохранены на шаре в `/mnt/safe/minz/grace/2026-10-12/compiler-updates/<commit>/reports/`.
 
 ## Что такое MinZ сейчас
 
