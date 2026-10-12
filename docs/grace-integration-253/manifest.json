@@ -1,0 +1,12 @@
+{
+  "files": {
+    "tetris-root.txt": {
+      "sha256": "ce14de5c8a5a1b741fab3d2e9675702bcfc408db59f04bfe59e12eace36235ca",
+      "bytes": 49
+    },
+    "README.md": {
+      "sha256": "b1d0a9f6ae5f436ae14d690e2573d2a30cdcd05ca75e541a93869ad9e3914839",
+      "bytes": 847
+    }
+  }
+}
