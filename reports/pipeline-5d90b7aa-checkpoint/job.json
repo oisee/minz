@@ -1,0 +1,23 @@
+{
+  "checkpoint": "5d90b7aa2206f712c0983c58d6ba1502f79445db",
+  "recorded_at_utc": "2026-10-12T07:51:57.948309+00:00",
+  "binary": "/home/alice/dev/minz-artifacts/grace-checkpoints/pipeline-5d90b7aa.test",
+  "binary_sha256": "1419d11fc25e5f29667963a164045581832e291c42eefcef89b91c8a5072c9bb",
+  "shared_binary": "/mnt/safe/minz/grace/2026-10-12/compiler-checkpoints/pipeline-5d90b7aa.test",
+  "pid": 2915793,
+  "session": 96595,
+  "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/pipeline",
+  "args": [
+    "-test.count=1",
+    "-test.timeout=180m",
+    "-test.v"
+  ],
+  "environment": {
+    "VIR_TEST_Z3": "/home/alice/dev/minz-artifacts/grace-tools/z3-python/bin/z3",
+    "INDEXED_ENRT4": "/mnt/safe/z80-compiler/tables/enriched_4v.enr",
+    "INDEXED_ENRT5": "/mnt/safe/z80-compiler/tables/enriched_5v.enr"
+  },
+  "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/pipeline-5d90b7aa-full.txt",
+  "status_at_recording": "running; not PASS",
+  "predecessor": "reports/pipeline-350149ad-terminal/result.json (exit 1)"
+}
