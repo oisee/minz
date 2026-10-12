@@ -1,0 +1,24 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "593110ef4ab248ba2eb73042a4bbcd4c4da1dab8c6906ac3bfd3d0c5d24ab5b8"
+    },
+    {
+      "path": "after.txt",
+      "sha256": "1481e2246cb59d093be65918bd0a3a6f9c86dcaeb43a92b855d2e2982b57ca7c"
+    },
+    {
+      "path": "audit.json",
+      "sha256": "b3c65d9de76b63af06b25df8e461806bd0a9bf4c0ab333abdd067c77e8018d16"
+    },
+    {
+      "path": "before.txt",
+      "sha256": "77359b1087eca9309be4d8910a33d29770a1e69d892e46c4fe007533c349fa38"
+    },
+    {
+      "path": "production-deps.txt",
+      "sha256": "10ae673dcbc875e7d11672b079f6db56e52ecdb50e5df2bec8d9ca9ce80a68d5"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "code_checkpoint": "a7ffb886; z80spec expectation updated afterward",
+  "live_lir_files": [],
+  "lir_imports": [],
+  "transferred_tests": "rewrite/datalog, grace, isle, sexpr; asmutil; z80spec PASS",
+  "production_vir_dependency": true,
+  "scope": "Production can import checked VIR table utilities; Z3 remains offline. Archive snapshots are retained and excluded from live-source audit."
+}

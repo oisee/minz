@@ -5,7 +5,6 @@ import (
 	"go/parser"
 	"go/token"
 	"path/filepath"
-	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -263,9 +262,6 @@ func TestVIRPairAliases(t *testing.T) {
 		}
 		actual[pair.Name] = [2]string{hi.Name, lo.Name}
 	}
-	// Known VIR gap: pairAliases omits both index registers. A future fix must
-	// remove these entries, so newly fixed or newly missing relations fail.
-	known := map[string][2]string{"IX": {"IXH", "IXL"}, "IY": {"IYH", "IYL"}}
 	missing := map[string][2]string{}
 	for _, loc := range vir.Z80.Locs {
 		hi, lo, ok := z80spec.Halves(loc.Name)
@@ -276,8 +272,8 @@ func TestVIRPairAliases(t *testing.T) {
 			missing[loc.Name] = [2]string{hi, lo}
 		}
 	}
-	if !reflect.DeepEqual(missing, known) {
-		t.Errorf("VIR missing aliases: %v, known %v", missing, known)
+	if len(missing) != 0 {
+		t.Errorf("VIR missing canonical pair aliases: %v", missing)
 	}
 }
 

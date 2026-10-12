@@ -1,0 +1,7 @@
+?   	github.com/minz/minzc/pkg/rewrite	[no test files]
+ok  	github.com/minz/minzc/pkg/rewrite/datalog	0.004s
+ok  	github.com/minz/minzc/pkg/rewrite/grace	0.003s
+ok  	github.com/minz/minzc/pkg/rewrite/isle	0.003s
+ok  	github.com/minz/minzc/pkg/rewrite/sexpr	0.004s
+ok  	github.com/minz/minzc/pkg/asmutil	0.002s
+ok  	github.com/minz/minzc/pkg/z80spec	0.007s
