@@ -18,7 +18,16 @@ import (
 // Executes imported SQLite and TUI ASM, with the existing real SQLite port
 // adapter. The expected output/column stream is frozen independently.
 func TestOriginalSQLiteImportedMainNative(t *testing.T) {
-	const packet = "../../../reports/sqlite-import-main/frozen/"
+	testOriginalSQLitePortMain(t, "sqlite_test.nanz", "sqlite-import-main", "MINZ_SQLITE_IMPORT_EXPORT")
+}
+
+func TestOriginalSAPMaraPortMainNative(t *testing.T) {
+	testOriginalSQLitePortMain(t, "sap_mara_cpm.nanz", "sap-mara-port-main", "MINZ_SAP_MARA_PORT_EXPORT")
+}
+
+func testOriginalSQLitePortMain(t *testing.T, sourceName, packetName, exportEnv string) {
+	t.Helper()
+	packet := "../../../reports/" + packetName + "/frozen/"
 	read := func(n string) []byte {
 		b, e := os.ReadFile(packet + n)
 		if e != nil {
@@ -46,7 +55,7 @@ func TestOriginalSQLiteImportedMainNative(t *testing.T) {
 		t.Fatal("stdout freeze")
 	}
 	save := func(n string, v any) {
-		if d := os.Getenv("MINZ_SQLITE_IMPORT_EXPORT"); d != "" {
+		if d := os.Getenv(exportEnv); d != "" {
 			var b []byte
 			switch x := v.(type) {
 			case string:
@@ -67,7 +76,7 @@ func TestOriginalSQLiteImportedMainNative(t *testing.T) {
 	}
 	for _, mode := range []string{"ordinary", "grace-size", "grace-speed"} {
 		t.Run(mode, func(t *testing.T) {
-			h, e := nanz.ParseWithOpts(string(read("sqlite_test.nanz")), "sqlite_test.nanz", nanz.ParseOpts{BaseDir: "../../../examples/nanz", StdlibDir: "../../../stdlib"})
+			h, e := nanz.ParseWithOpts(string(read(sourceName)), sourceName, nanz.ParseOpts{BaseDir: "../../../examples/nanz", StdlibDir: "../../../stdlib"})
 			if e != nil {
 				t.Fatal(e)
 			}

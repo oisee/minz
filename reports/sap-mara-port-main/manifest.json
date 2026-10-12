@@ -1,0 +1,32 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "cf05a2c4a4111e0e573899c5856e5fa0688aa801667ec8fa00a801a35e9323e8"
+    },
+    {
+      "path": "frozen/freeze.json",
+      "sha256": "3a83c5214957135762145926b2c8481c56eed2abb5ea9f50f48855650a22fbd5"
+    },
+    {
+      "path": "frozen/render.nanz",
+      "sha256": "4711dbee908a2271f02d1fbb4720942604e23322d7745f32311f6b2c17c6d4a8"
+    },
+    {
+      "path": "frozen/sap_mara_cpm.nanz",
+      "sha256": "64bb1d34f30d79707c86507d74e046c60a82da7531f480901df90053e02f3442"
+    },
+    {
+      "path": "frozen/sqlite.nanz",
+      "sha256": "bc177e0dc25ad2f36f3694b115439356efbfb3d956b46b2701afe82bde277fc8"
+    },
+    {
+      "path": "frozen/stdout.bin",
+      "sha256": "b45efa16d10e1060e799b3970eef36b7ef7bc3d4812fb485cdf9c9589b68b558"
+    },
+    {
+      "path": "root.txt",
+      "sha256": "dad6bb1a9b5a4a8b7ec087f0688c4ddb92ee6e7b95a56bddd98ff1089fa6b351"
+    }
+  ]
+}

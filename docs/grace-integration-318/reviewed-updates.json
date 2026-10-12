@@ -1,0 +1,2458 @@
+[
+  {
+    "path": "examples/abap/hello_zx.nanz",
+    "source_sha256": "2784828bad84c2f0b7ab2e588f84fcf0cb2ff6535d50ce91cbb9432149a8bb48",
+    "native_behavior": "executed-native-asm-bounded",
+    "workload": "Wholemain3modes, independent exact screen/attrs/termination/RAM; Hello correctedCString source and frozen17keyboard input.",
+    "independent_model": "Independent ZX pixel/attribute/font fixture and port model; exact old/newsource freezes and assembler quoted-space fix.",
+    "boundary": "Injected device only, frozen scenario not fullkeyboard/font API or hardware. SAP source unchanged, Hello CString source corrected explicitly.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_zx_apps_test.go": "17f021935a45c1e3243c64875fce829f362afe77112e2587a1b1557ba282b526",
+      "reports/original-zx-apps/manifest.json": "5e5dc435fce383df29f9922a9aef062166ab88fcd7db35c0f67f045016df9cf1",
+      "reports/zx-hello-corrected/manifest.json": "b8303954db7119c387b95cfbd834a66affb02921d416c4c7e7f9885abf93df79",
+      "docs/grace-integration-254/zx-root.txt": "16c3afe3bad10fdf4123bdaf8891f6ab597252d56201371cc476c48d5b8bb1c2"
+    }
+  },
+  {
+    "path": "examples/abap/sap_report_zx.nanz",
+    "source_sha256": "5509c36b278ca724d2ac80e334c468dbba178091d10e74a032a6cdcdf201d463",
+    "native_behavior": "executed-native-asm-bounded",
+    "workload": "Wholemain3modes, independent exact screen/attrs/termination/RAM; Hello correctedCString source and frozen17keyboard input.",
+    "independent_model": "Independent ZX pixel/attribute/font fixture and port model; exact old/newsource freezes and assembler quoted-space fix.",
+    "boundary": "Injected device only, frozen scenario not fullkeyboard/font API or hardware. SAP source unchanged, Hello CString source corrected explicitly.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_zx_apps_test.go": "17f021935a45c1e3243c64875fce829f362afe77112e2587a1b1557ba282b526",
+      "reports/original-zx-apps/manifest.json": "5e5dc435fce383df29f9922a9aef062166ab88fcd7db35c0f67f045016df9cf1",
+      "reports/zx-hello-corrected/manifest.json": "b8303954db7119c387b95cfbd834a66affb02921d416c4c7e7f9885abf93df79",
+      "docs/grace-integration-254/zx-root.txt": "16c3afe3bad10fdf4123bdaf8891f6ab597252d56201371cc476c48d5b8bb1c2"
+    }
+  },
+  {
+    "path": "examples/abap/zsql_mara_color_zx.nanz",
+    "source_sha256": "c7e23b4a549b4627672bc37fcdbb75e15d32c6ad54e8604e225836dd07f4286f",
+    "native_behavior": "inline-asm-target-needs-audit",
+    "workload": "",
+    "independent_model": "",
+    "boundary": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+    "evidence": {}
+  },
+  {
+    "path": "examples/agon/hello_agon.nanz",
+    "source_sha256": "4684218e7110368e2122eff39a16dd792dea3bd335383cec6000507505831f77",
+    "native_behavior": "agon-mos-runtime",
+    "workload": "",
+    "independent_model": "",
+    "boundary": "Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS.",
+    "evidence": {}
+  },
+  {
+    "path": "examples/agon/hello_world.nanz",
+    "source_sha256": "f6d88281bb19c637b1dcde8ccdcbc6a26eaba47e09153d892f160f5177d3d6f5",
+    "native_behavior": "agon-mos-runtime",
+    "workload": "",
+    "independent_model": "",
+    "boundary": "Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS.",
+    "evidence": {}
+  },
+  {
+    "path": "examples/agon/nc_agon.nanz",
+    "source_sha256": "8063ebaf25ab5faff632017874a06d1db25019fa7efe559c4d0cfc6f3b3e9b38",
+    "native_behavior": "agon-mos-runtime",
+    "workload": "",
+    "independent_model": "",
+    "boundary": "Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS.",
+    "evidence": {}
+  },
+  {
+    "path": "examples/agon/tui_demo.nanz",
+    "source_sha256": "afcadba573f924da7fcaf74574a8ec451be8ffb37eb0b3aa8567a6757d2957bd",
+    "native_behavior": "agon-mos-runtime",
+    "workload": "",
+    "independent_model": "",
+    "boundary": "Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS.",
+    "evidence": {}
+  },
+  {
+    "path": "examples/agon/tui_hello.nanz",
+    "source_sha256": "44f505b14ac4c5c674db470d9f81684aeaf078498c03ad267e81a05d13d25f90",
+    "native_behavior": "agon-mos-runtime",
+    "workload": "",
+    "independent_model": "",
+    "boundary": "Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS.",
+    "evidence": {}
+  },
+  {
+    "path": "examples/lizp/assert_test.lanz",
+    "source_sha256": "c391efd9e328dce82df2ee60df63a7b83d0178fea20f71f0288e0c767424c5af",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Six exactsourcepaths allbyteunary/pairs andPascalDoubleall65536signedpatterns,sourceasserts/mainwhereexists,three modes2167440nativecalls.",
+    "independent_model": "Frozen8569bbf4 directarithmetic/predicate models raw/final/native actualreturnABI PC/SP/fullRAM.",
+    "boundary": "No fabricatedmain;all stated typed callable domainscovered.",
+    "evidence": {
+      "reports/assert-frontends-native/REPORT.md": "cf205f07d7a5687ac665dcba6643492f86de5feaeb914229621ad5bfc5ab8728",
+      "reports/assert-frontends-native/manifest.json": "8eb56bea7003fb88fdb74a69bfc21ed44f2edca2e7019ddc092773be89a49068",
+      "docs/grace-integration-197/assert-gcd-root.txt": "1691e8d1f713b5002fd9213e9251e0664d421045682935bdbbd1dad25a0c30ea"
+    }
+  },
+  {
+    "path": "examples/lizp/assert_test.lizp",
+    "source_sha256": "af0ba4f10b3268e737b2deab8ced31f97e474f9e038fad8b93e8df63d80900d1",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Six exactsourcepaths allbyteunary/pairs andPascalDoubleall65536signedpatterns,sourceasserts/mainwhereexists,three modes2167440nativecalls.",
+    "independent_model": "Frozen8569bbf4 directarithmetic/predicate models raw/final/native actualreturnABI PC/SP/fullRAM.",
+    "boundary": "No fabricatedmain;all stated typed callable domainscovered.",
+    "evidence": {
+      "reports/assert-frontends-native/REPORT.md": "cf205f07d7a5687ac665dcba6643492f86de5feaeb914229621ad5bfc5ab8728",
+      "reports/assert-frontends-native/manifest.json": "8eb56bea7003fb88fdb74a69bfc21ed44f2edca2e7019ddc092773be89a49068",
+      "docs/grace-integration-197/assert-gcd-root.txt": "1691e8d1f713b5002fd9213e9251e0664d421045682935bdbbd1dad25a0c30ea"
+    }
+  },
+  {
+    "path": "examples/lizp/cond_test.lizp",
+    "source_sha256": "50a8ca601da047bde2975df0a833e625efa89d0a08204dfac562f75b4afd4c00",
+    "native_behavior": "pending-independent-oracle",
+    "workload": "",
+    "independent_model": "",
+    "boundary": "Unresolved language implicit return authority: classify(42) raw/final VM returns no result; native leaves stale A=42. Diagnostic PASS is not behavioral correctness proof.",
+    "evidence": {
+      "reports/lizp-lanz-family-native/REPORT.md": "acefcb8e799b19f97c1e8675a237e04457230c56e5feea285156ff6b276ba5b6",
+      "reports/lizp-lanz-family-native/before-cond-return.txt": "2fbe81855aec497b0e4cb732bb8be423eb99b1b59b3451b0640a5c71a53823d4",
+      "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go": "b1e030b72222c84a857c17cb7666b42f260da8117f9d442a9726426057d25eb9"
+    }
+  },
+  {
+    "path": "examples/lizp/crypto.lizp",
+    "source_sha256": "e107a6c6f875c48cb45e148f7a8d0ff0bbed47991a722347763d7698ef4ae094",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "250 XOR/Caesar/hash/checksum byte boundary calls",
+    "independent_model": "Unsigned modulo256 math and XOR; Caesar in A..Z with typed intermediate wrap",
+    "boundary": "TestShowcaseLizpCryptoNativeByteModels",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_algorithm_oracles_test.go": "a7eadc86158bf723956aa3b0074c95d29d649c062f6824213ee373d2e5f73dc1"
+    }
+  },
+  {
+    "path": "examples/lizp/dsp.lizp",
+    "source_sha256": "aa0dda94d6f77e7a51113a9b929cebf0c6831f8e5c47889eeecd7e0763e3bbad",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "5 original entries, 282368 calls per mode, all byte pairs lowpass/peak, nonzero-period pairs square/sawtooth, clamp all x and 9x9 bounds; three modes",
+    "independent_model": "host unsigned byte arithmetic and ordered cond model; every intermediate wraps modulo256",
+    "boundary": "period0 and full clamp 256^3 domain unverified; no audio peripheral or analog DSP claim",
+    "evidence": {
+      "minzc/pkg/pipeline/lizp_dsp_complete_test.go": "3e6740dc96e86047c29ab7a6b8e17af1172503782486ac1a23718572dc1cef93",
+      "reports/lizp-dsp-native/manifest.json": "d7e85603ed17e73e74aa9b622d5f9df4abc58b68015f1b810106e40a3e24ad91"
+    }
+  },
+  {
+    "path": "examples/lizp/factorial.lizp",
+    "source_sha256": "93598adbb7279b487c78750024e0e4624885b004fe559117bc4b15fa949cf156",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All actual original entries in three modes; 198915 native calls across this family, raw/final VM and full RAM/SP. Lanz sum_to(255) bounded nonreturn controls.",
+    "independent_model": "Independent modular factorial/double/absolute difference/triangular sum; Lizp dotimes ascending; empty hello main has no output",
+    "boundary": "Lanz sum_to(255) source loops forever after byte counter wraps; explicit nonreturn rather than numerical expected value. cond_test excluded. No Grace gain.",
+    "evidence": {
+      "reports/lizp-lanz-family-native/REPORT.md": "acefcb8e799b19f97c1e8675a237e04457230c56e5feea285156ff6b276ba5b6",
+      "reports/lizp-lanz-family-native/manifest.json": "ad09aa3253465d54aa5c78e8900b6dd67e9e01bd15f7fb2ba22ff423d7941b17",
+      "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go": "b1e030b72222c84a857c17cb7666b42f260da8117f9d442a9726426057d25eb9",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "examples/lizp/functional.lizp",
+    "source_sha256": "ef3ea461b1bb82e294821a59350e7474a673d87f88c2a5addade7360606c5796",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "All eight unchanged original entries and ten assertions;132865 calls per mode, three modes,398595 actual native invocations",
+    "independent_model": "Independent byte polynomial, transform and weekday models; raw/finalVM plus native actual CallIndirect/target PC trace, CALLdriver, PC/SP and full64KiBRAM",
+    "boundary": "Original lambdas have zero captures. Actual function addresses mapped to corresponding VM callable identities; no indirect specialization. Same117B image in allmodes. Separate erased word callback ABI admission defect remains outside this exactsource proof.",
+    "evidence": {
+      "minzc/pkg/pipeline/lizp_functional_complete_test.go": "5c1e3c23b7c87bc6494ab6800d228d26df79988f73c1aab1c348a536d537c8da"
+    }
+  },
+  {
+    "path": "examples/lizp/game_of_life.lizp",
+    "source_sha256": "f050567d1b8694ee5ea3a745b9568f21dac8d7c54649635affeaa1a59993fd2e",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "3 original entries: xor all65536pairs, popcount all256, rule30 all8bit configs; 65800calls per mode/197400total",
+    "independent_model": "host XOR, independently counted set bits, truth-table bit from integer30",
+    "boundary": "rule30 nonbit inputs not covered; original has no grid/main game loop",
+    "evidence": {
+      "minzc/pkg/pipeline/lizp_cellular_complete_test.go": "43c181c2aceb7e359dd05225f59a44c069ce11d13c45002f8674d0885006ffa3",
+      "reports/lizp-cellular-native/manifest.json": "ddad7080cab9a7a449caad75e6d55d352eebe8e81ef35f8ea1a39290f7e2e997"
+    }
+  },
+  {
+    "path": "examples/lizp/hello.lizp",
+    "source_sha256": "35c508dab177413c9caf5aae931463f403d83f04d5268ef7033ee22c9968837f",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All actual original entries in three modes; 198915 native calls across this family, raw/final VM and full RAM/SP. Lanz sum_to(255) bounded nonreturn controls.",
+    "independent_model": "Independent modular factorial/double/absolute difference/triangular sum; Lizp dotimes ascending; empty hello main has no output",
+    "boundary": "Lanz sum_to(255) source loops forever after byte counter wraps; explicit nonreturn rather than numerical expected value. cond_test excluded. No Grace gain.",
+    "evidence": {
+      "reports/lizp-lanz-family-native/REPORT.md": "acefcb8e799b19f97c1e8675a237e04457230c56e5feea285156ff6b276ba5b6",
+      "reports/lizp-lanz-family-native/manifest.json": "ad09aa3253465d54aa5c78e8900b6dd67e9e01bd15f7fb2ba22ff423d7941b17",
+      "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go": "b1e030b72222c84a857c17cb7666b42f260da8117f9d442a9726426057d25eb9",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "examples/lizp/scheme_r5rs.lizp",
+    "source_sha256": "dccdb53d9ffe73cd95b939e9e35a3359417d827a1a3a81aa3580f97e012259de",
+    "native_behavior": "executed-independent-bounded",
+    "workload": "All13 original entries: seven unary full byte, factorial0..254, three binary full byte pairs, divisibility nonzero divisor, clamp256x10x10 bounds; 289535 calls per mode, 868605 total.",
+    "independent_model": "Frozen fdae8e86: direct byte arithmetic/branches, wrap intermediate operations per Bookv7\u00a73.1/21.2; raw/final/native trueCALL, PC/SP/fullRAM.",
+    "boundary": "fact_loop255 nontermination/divisorzero/fullclampdomain explicitly outside proof.",
+    "evidence": {
+      "docs/grace-integration-177/README.md": "5a86268aa1da01b8ff8b0714cf4685b188c5a0df131efc752ba8758c49415bcd",
+      "reports/lizp-r5rs-bounded/manifest.json": "639c1e124d6a1fab6352cb7049881794c43ead682c7eba45f62f467e355224e8"
+    }
+  },
+  {
+    "path": "examples/lizp/scheme_test.lizp",
+    "source_sha256": "1af1b643711d49199737f4a8e4439e1b00750335922c33046dc94ee0bcecacc0",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "all11 original entries; all byte domains for8 unary+3binary funcs,198656calls/mode595968total",
+    "independent_model": "host byte arithmetic/parity/comparison/orderedcond; full domains",
+    "boundary": "none for original declared callable domains; no claim about full Scheme R5RS implementation",
+    "evidence": {
+      "minzc/pkg/pipeline/lizp_scheme_complete_test.go": "0ebec4f27e7ddba297b64db119206391a26cade938fc29598d90950eaa273907",
+      "reports/lizp-scheme-native/manifest.json": "806d95085c1859eeb0e028953ab986d1595ea0624298b32dce9f9ee787abcd81"
+    }
+  },
+  {
+    "path": "examples/lizp/self_tokenizer.lizp",
+    "source_sha256": "601b838183ec5f800dfa85605ade3f949b462d93008ce590b2bf606732384348",
+    "native_behavior": "executed-independent-bounded",
+    "workload": "Original whole main exact134425 newline return0 pos7len7 plus9 persistent lexer streams ordinary/GraceSize/GraceSpeed.",
+    "independent_model": "Frozen b9e93e34 direct source grammar/output/state model; raw/final/native trueCALL fullRAM/SP/image/source-read and state-write order negativecontrols.",
+    "boundary": "Arbitrary Lisp input and CP/M deployment not claimed; all37 manifest payloads now tracked and SHAverified.",
+    "evidence": {
+      "reports/lizp-tokenizer-main/REPORT.md": "2ac6f73c0bfbe98cb3c22282bf0c2d47e26c2d17e0c30aea089ead2fa645bc85",
+      "minzc/pkg/pipeline/original_lizp_tokenizer_main_test.go": "0aea70dc191bcf15fe5ade1011fee84789a79297b3973caa5e6865ffa1ffc310",
+      "docs/grace-integration-177/joint.txt": "afa323383757769e73d5a2a2c696a1533e305e6817117fa55cb476b1ee86ada3"
+    }
+  },
+  {
+    "path": "examples/lizp/showcase.lizp",
+    "source_sha256": "b3ea6ea6c03e94fc882e5cccc561219fb0826dafb4d6d004c62140d217c520e5",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "main; screen RAM seeded a5",
+    "independent_model": "All 6912 ZX screen bytes from independent row/col/color formula; macro counter 3",
+    "boundary": "pkg/lizp TestZXExamplesFullScreenVMZ80; no ULA/contention/hardware claim",
+    "evidence": {
+      "minzc/pkg/lizp/zx_memory_regression_test.go": "d8a19163433221e30c9dc37abb4cb385197055e19f059e3b5f9a08ee1edaa398"
+    }
+  },
+  {
+    "path": "examples/lizp/zx_checkerboard.lizp",
+    "source_sha256": "fdae8ac8706e67aad184f98d8c2adb0e65755accd885e6470dedbc9ed376c2ee",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "main; screen RAM seeded a5",
+    "independent_model": "All 6912 ZX screen bytes from independent row/col/color formula; macro counter 3",
+    "boundary": "pkg/lizp TestZXExamplesFullScreenVMZ80; no ULA/contention/hardware claim",
+    "evidence": {
+      "minzc/pkg/lizp/zx_memory_regression_test.go": "d8a19163433221e30c9dc37abb4cb385197055e19f059e3b5f9a08ee1edaa398"
+    }
+  },
+  {
+    "path": "examples/lizp/zx_rainbow.lizp",
+    "source_sha256": "02af98cfe116d63b6e7c4c08b52a242a341b97d6c7b81556c3eb4d306d27e069",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "main; screen RAM seeded a5",
+    "independent_model": "All 6912 ZX screen bytes from independent row/col/color formula; macro counter 3",
+    "boundary": "pkg/lizp TestZXExamplesFullScreenVMZ80; no ULA/contention/hardware claim",
+    "evidence": {
+      "minzc/pkg/lizp/zx_memory_regression_test.go": "d8a19163433221e30c9dc37abb4cb385197055e19f059e3b5f9a08ee1edaa398"
+    }
+  },
+  {
+    "path": "examples/nanz/01_sum_array.nanz",
+    "source_sha256": "fa0ad7d685c31aeb52b91b323bcef46e5c86c0e4390b2fd41ecd69ecfef58694",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "sum_array: lengths 0,1,5,16,64,255; ramp resource",
+    "independent_model": "n*(n+1)/2 modulo 256; VM/native baseline and chosen transformations",
+    "boundary": "Named sum_array entry; original main not executed.",
+    "evidence": {
+      "minzc/pkg/pipeline/profile_guided_sum_test.go": "ca2a7626529a0d93c4375d0da1a9a42a0336967cf8cc083f23410e0131e38a56"
+    }
+  },
+  {
+    "path": "examples/nanz/01_sum_array.plm",
+    "source_sha256": "fa0911df63dbc5bb16f169e1392f92be3f64e09c299156127ef37a7ff9d20c8e",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Each source70,144calls/mode:all256seed\u00d7256length plus4608pointerwrapcases,three sources/modes631296calls.",
+    "independent_model": "Frozen independentsumbyte/orderedread sourceSHA;raw/final/nativeCALL exactPC/SP/RAM/noextrasstores;threeoriginalsourcesparsedseparately.",
+    "boundary": "Arrayfamiliesbounded,notallarrays;noGracegaincode28Bequal.",
+    "evidence": {
+      "reports/2026-10-11-original-plm-sum-corpus.md": "02f24a4437743b577aad5f935fad551f58597a5064da216040e5ff2799d4da98",
+      "reports/original-plm-sum-corpus/manifest.json": "f7fe95196f83c507ef8140986a87b2dacb8ace2b1d7881a866278fe381953066",
+      "docs/grace-integration-194/plm-root.txt": "1784864b0b88ba61cbd1950f50e3a2e3ffa8b080733fc9884dcf0b846a3351f7"
+    }
+  },
+  {
+    "path": "examples/nanz/01_sum_plm_origin.plm",
+    "source_sha256": "6564b22b460943d7b8ac088ec482f05857f752eb40f5c6103534fcaf2a0ec023",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Each source70,144calls/mode:all256seed\u00d7256length plus4608pointerwrapcases,three sources/modes631296calls.",
+    "independent_model": "Frozen independentsumbyte/orderedread sourceSHA;raw/final/nativeCALL exactPC/SP/RAM/noextrasstores;threeoriginalsourcesparsedseparately.",
+    "boundary": "Arrayfamiliesbounded,notallarrays;noGracegaincode28Bequal.",
+    "evidence": {
+      "reports/2026-10-11-original-plm-sum-corpus.md": "02f24a4437743b577aad5f935fad551f58597a5064da216040e5ff2799d4da98",
+      "reports/original-plm-sum-corpus/manifest.json": "f7fe95196f83c507ef8140986a87b2dacb8ace2b1d7881a866278fe381953066",
+      "docs/grace-integration-194/plm-root.txt": "1784864b0b88ba61cbd1950f50e3a2e3ffa8b080733fc9884dcf0b846a3351f7"
+    }
+  },
+  {
+    "path": "examples/nanz/02_sum_array_idiomatic.nanz",
+    "source_sha256": "50790226cca46747ab48bb542a204e90419fa7632b32ab38572376e5e84dc6b5",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Both full original sum_array_idiomatic/sum_array_chain entries: all256 lengths x two offsets =1024 calls; separate observer",
+    "independent_model": "Independent uint8 sum and exact ordered reads, all514 input bytes/guards; raw+finalVM and assembled native PC/SP/code",
+    "boundary": "Original source and all declarations/algorithm bodies retained; observer only added. Source/candidate direct-call reachability admission permits unused add_to_acc with no runtime binding; no public CLI/callback runtime claim, address range9001..91fd, no address wrap.",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_idiomatic_sum_oracle_test.go": "093d58e44cc8f40a8d531b5e0ca457cf9efc6f70a6c069784cb791089d70ff76"
+    }
+  },
+  {
+    "path": "examples/nanz/03_filter_map_chain.nanz",
+    "source_sha256": "53e50444cb55dc1c75e59b2dd1f6ac5cb3bd31ef9886f90e72ba871f0a69b238",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Both exact original filter_map_forEach/filter_map_explicit entries: 6 lengths \u00d7 7 thresholds = 84 calls",
+    "independent_model": "Independent byte doubling modulo256, ordered input reads and survivor callback writes; full 260 input/258 trace bytes, count and guards",
+    "boundary": "Original source unchanged; explicit process(u8) runtime writes trace using typed poke adapter. No main exists; stack, code access and return checked by native runner.",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_filter_map_oracle_test.go": "5d465d374d098ab18a586493cf929ee4b1c6ef15872e3b8830cdda69e7d4b0f5"
+    }
+  },
+  {
+    "path": "examples/nanz/04_lut_popcount.nanz",
+    "source_sha256": "6409fd03c4157e228871f5497f5da168c2b6d70e4d3e28f45874cb7019b15101",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "All256 byte values",
+    "independent_model": "bits.OnesCount8, independent host popcount",
+    "boundary": "TestShowcasePopcountAllBytesNativeModel",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_algorithm_oracles_test.go": "a7eadc86158bf723956aa3b0074c95d29d649c062f6824213ee373d2e5f73dc1"
+    }
+  },
+  {
+    "path": "examples/nanz/05_four_pointers.nanz",
+    "source_sha256": "2e9bbd4d3c59ec1fd5b75a69ba05b56e5ce91df91e7790c9ba38774ba9b62fea",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Full four_ptrs: seven alias layouts x256 byte patterns =1792calls; separate observer",
+    "independent_model": "Independent four-byte sum modulo256 and exact ordered reads; full259RAM/guards, raw+finalVM and assemblednative",
+    "boundary": "Exact original source unchanged. Integer-address driver preserves actual HL/DE/BC/IX argument ABI. Includes ffff singlebyte, no offsetwrap; native PC/SP/code admission. No new algorithm or physical hardware claim.",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_four_pointer_oracle_test.go": "c3ccd96f7f243a145e6a9d0cf599b20b4f0197c39a4dac89823518e49fa9d15a"
+    }
+  },
+  {
+    "path": "examples/nanz/06_pbqp_weighted.nanz",
+    "source_sha256": "d09334848a213973143c24f5ac165081d24c175693995febf40e552bb5ae66c5",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "weighted;256byteinputs, originalfunction plusexplicitcallerharness",
+    "independent_model": "weighted(x)=10*x+1 modulo256",
+    "boundary": "Only explicitly listed entries/input coverage; table assignment evidence is not wholeprogramallinput proof.",
+    "evidence": {
+      "docs/grace-integration-095/manifest.json": "59ccb8b141302d1ec92473013fbafc33353b423d5c14c770a120fba741a20091"
+    }
+  },
+  {
+    "path": "examples/nanz/07_ix_load_store.nanz",
+    "source_sha256": "a6c78a01b1371301ed55786c2306ae2c3a9244a412bf175266f20f824436c115",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "1536 roundtrip_ix calls (six alias layouts x all256 byte values), six sum_with_ix calls; separate observer",
+    "independent_model": "Independent store-before-read byte model, all259RAM bytes/guards and exact ordered writes/reads, rawVM+assembledZ80",
+    "boundary": "Exact original entries unchanged, typed pointer drivers explicit. Includes single-byte ffff address, all-same/partial pointer aliases; current allocation measured, no promise actual IX must appear. Native PC/SP/code data checks.",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_ix_alias_oracle_test.go": "4bbe420a2f3b70a8dcdf3ed9706426038b0e25daa7b5ffcad38993d88e5e7309"
+    }
+  },
+  {
+    "path": "examples/nanz/08_arena_allocator.nanz",
+    "source_sha256": "ae1ff790c63064bb30bb27aa3529f847f5981de841ce816c868249c9bb85107e",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "6 allocation/OOM/reset/split/sizeof cases + sequential shared source sandbox",
+    "independent_model": "Bump pointer+end model: arena c00c/d000,perm c008/c100,level c1c8/c900,frame c910/cd00; Book v7 Ch15",
+    "boundary": "TestShowcaseArenaNativeStateModel; native SP restored",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_native_oracles_test.go": "c92cf3a20409cf07850fc2a188486334c11fc62522a31f88009372601cef194e"
+    }
+  },
+  {
+    "path": "examples/nanz/09_function_pointers.nanz",
+    "source_sha256": "aab9c0fd1dbafae2bf78ebbf18bb2a573b6a18a6f6f29b6170d6f34ca3849579",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "apply(triple,x) on all256 bytes through actual indirect native calls; raw/final VM apply(double/triple,x)",
+    "independent_model": "Independent byte multiplication modulo256; native result/SP/immutable image",
+    "boundary": "Exact original functions and unchanged source assertions; requires explicit offline Z3 to generate selected leaf. Native double indirect not checked; no wholeprogram or arbitrary callback ABI claim",
+    "evidence": {
+      "minzc/pkg/pipeline/checked_table_practical_audit_test.go": "d2913990d9f712c3c4563f9b4b40c250475020dc2d2486b30a552033a04feba5"
+    }
+  },
+  {
+    "path": "examples/nanz/10_adt_option.nanz",
+    "source_sha256": "0387f5a0f616e6cd5f0d9b432131593326cf81c807a28d4ce36859664a6edb30",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Eight original source entries, 131590 calls per mode: all byte division pairs, all valid Option encodings and byte defaults; three builds",
+    "independent_model": "Independent unsigned division and Book v7 section16.2 tag/payload model; raw/finalVM/native; actual ABI, PC/SP and full RAM guard",
+    "boundary": "Exact original source and five assertions retained. None and Some(0) distinguished; invalid tags are outside language-value proof. Generated helpers separately checked in raw VM and pruned from final native.",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_option_native_test.go": "a1274beedca4f8e529cedd2589a8ab59b96b1cb226d925e6b4782af0cfc6ce90"
+    }
+  },
+  {
+    "path": "examples/nanz/11_match_expression.nanz",
+    "source_sha256": "e46d5979e2fe90f6e612bf303542370f58dc3df9e0e5b9822e5142352fe60261",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Three original functions on all three declared enum values; raw/final VM and native in three modes",
+    "independent_model": "Independent Book v7 sections16.1/16.3 enum numbering and match models; actual ABI, PC/SP and full RAM guard",
+    "boundary": "Exact original source and nine assertions retained; invalid enum tags are outside declared-value proof.",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_match_expression_native_test.go": "b8dfbe9ea6ba490488f68474fd7bd67312c6393432825a0afc81c5535e43899e"
+    }
+  },
+  {
+    "path": "examples/nanz/12_state_machine.nanz",
+    "source_sha256": "e786b92e809a12eb3d8bdc98d75481c88d92c17be7139d51f76db34b85ec8838",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "states0..3 \u00d7 events0,1,2,3,4,127,255 plus alive/speed",
+    "independent_model": "Independent transition table and state property tables",
+    "boundary": "TestShowcaseStateMachineNativeTransitionModel",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_algorithm_oracles_test.go": "a7eadc86158bf723956aa3b0074c95d29d649c062f6824213ee373d2e5f73dc1"
+    }
+  },
+  {
+    "path": "examples/nanz/13_result_error.nanz",
+    "source_sha256": "4721bf61952713a54d53f64748cd4503f92d0d26ce73ff9240bd4e562183650c",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "reports/result-error-native/workload.json",
+    "independent_model": "Book v7 tagged result highbyte/lowpayload; host byteaddition carry andtag0x0101 overflow",
+    "boundary": "Nineoriginalsourceentries native/raw/finalcovered; generated __tag/__payload rawonly because finalinlinesprunes. Sixassertionsretained; boundedmodulescope notallcorpus.",
+    "evidence": {
+      "reports/result-error-native/manifest.json": "1036b5206b2367d526edbd36503a744ccf4adc60b75daf5e0edabcabb6eb1570",
+      "docs/grace-integration-115/result-error-root.txt": "01e60d2e5e40df5798d1540373d0d0f509bf463630ced016f8eda094a9b2eea7"
+    }
+  },
+  {
+    "path": "examples/nanz/14_error_propagation.nanz",
+    "source_sha256": "c8fd898edc8b3fefa960d86aebcad04db6c51f1d03ab9552e31fb5747f9be629",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Original six functions all bytepairs/indices,327936 calls per mode, plus whole main with initial Carry0/1; three modes",
+    "independent_model": "Independent Book AppendixK error-code/CY plus source arithmetic and bounds; raw/final VM outcomes, native A/CY, stdout5250, PC/SP and full RAM/code",
+    "boundary": "Exact source unchanged; application ORG8000 with explicit decimal-output binding, not linked COM. Initial CY ABI supports direct checked u8/void; word/tuple/extern/nested forms and value-only profiles explicitly declined.",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_carry_error_native_test.go": "647d26dc121d5e6100471a2e12a564d61f687758925eb2099a8705acb8bedc65"
+    }
+  },
+  {
+    "path": "examples/nanz/15_error_enforcement.nanz",
+    "source_sha256": "0fea7e236116054f0da14859393df4cf272f8461ca812186b44a28ac7d26d51b",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Four original functions on all byte pairs, 262144 calls per mode; three modes plus whole main for incoming Carry0/1",
+    "independent_model": "Independent Book v7 Appendix K CY/code and unsigned source arithmetic; raw/final VM outcomes, native A/CY, stdout105, PC/SP and full RAM/code",
+    "boundary": "Exact source unchanged, including ? names. Original main succeeds with NC; both public compilation APIs independently run assembled images. Direct checked u8/void ABI only; not linked CP/M or word/tuple/extern/nested forms.",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_error_enforcement_native_test.go": "a556e97a08460c42471eabe303d955b0460231b8252f8dabac8462f0914f515a"
+    }
+  },
+  {
+    "path": "examples/nanz/16_rotate_sled.nanz",
+    "source_sha256": "de903b9610bef3db82d4143cb2cf51b749895cb1ef6937df9970f8a226a4baeb",
+    "native_behavior": "executed-native-asm-bounded",
+    "workload": "Five original helpers, all 256 byte inputs, plus exact main stdout; ordinary, Grace Size and Grace Speed.",
+    "independent_model": "Independent byte rotations and nibble extraction; assembled Z80 CALLs, helper return PC/SP, full RAM/write guards, IX/IY and OUT port bytes.",
+    "boundary": "Native ASM proof for this exact source and ABI; VM ignores ASM. Main terminates with HALT. Shared sled adds 27 T-states versus inline; no speed gain claimed.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_rotate_sled_test.go": "2fb4751f298e7360b6126e852bb98dad87079d02b98443aa218cbbb93a388d2e",
+      "reports/original-rotate-sled/freeze.json": "cce56887224ebc16d754d04bc6454b93853f541362eaa3f6eb083ef59f95e461",
+      "reports/original-rotate-sled/manifest.json": "eb31695cd669a41c142d23e29f13709aaf122c4fd9b2f3080010f12cbc492150",
+      "docs/grace-integration-259/rotate-root.txt": "b83172348e36edd4a09bc19333576715f97a219e034b584bfdc23b473c115e18"
+    }
+  },
+  {
+    "path": "examples/nanz/17_bool_retflag.nanz",
+    "source_sha256": "95896d353dfdd27b523890cb7f1526b7ebe9d659eed0cfc461433e95f616bce7",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "reports/bool-retflag-native/workload.json",
+    "independent_model": "Unsignedbyte hostpredicates;9unaryall256,eq/lt/gtall65536pairs",
+    "boundary": "All12originalentries covered. ActualreturnABI A/ClassAcc; no native Freturnselectionclaim. Nototherprograms.",
+    "evidence": {
+      "reports/bool-retflag-native/manifest.json": "478ec38612707bc24223b3f3577f622718ef9a15b550242ae47e0f257b6a98df",
+      "docs/grace-integration-112/bool-root.txt": "b9f169f293232dfa49da31ffb83e5070e2627fb41153b26e4b03638759ccf89f"
+    }
+  },
+  {
+    "path": "examples/nanz/18_tail_recursion.nanz",
+    "source_sha256": "e88d580c3ce9499cdea28a05794e6c6146f88a0e67967d148933b17c969e9540",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Existing exact-source frozen16training/24heldout calls of fib/fact/sum_to/pow2; four MIRGrace/ContractOpt candidates; speed/size",
+    "independent_model": "Independent iterative byte arithmetic modulo256 on rawVM, internally assembled native training/captured winner heldout",
+    "boundary": "Catalog reconciliation of existing evidence, not newly implemented algorithms. Full wrapper call paths include tail recursion; no all256 seeded accumulator entry proof. Current source SHA remains equal to historical freeze.",
+    "evidence": {
+      "minzc/pkg/pipeline/arithmetic_heldout_test.go": "117aea52977c260c45ce865340c759b5c08ee09e1e63f8237e18067423273511"
+    }
+  },
+  {
+    "path": "examples/nanz/20_strref_test.nanz",
+    "source_sha256": "23d92aa2d44e5d126dbe9f63a1f10edb283cc39d276656f3aaa3d57c96b02c10",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "hash3;65536 correlatedtriple samples, not all2^24",
+    "independent_model": "a+2*b+3*c modulo256",
+    "boundary": "Only explicitly listed entries/input coverage; table assignment evidence is not wholeprogramallinput proof.",
+    "evidence": {
+      "reports/artifacts/historical-composition-evidence.tar.xz": "f045f20e9d4b905d0a435b33337ecd994ee9a24f55df31ff290b04685a45409d"
+    }
+  },
+  {
+    "path": "examples/nanz/21_hashmap_test.nanz",
+    "source_sha256": "2caa7c16db7371f6f1ef6eecfa8c767e58d9d961c5bdfdbfccda1fb6e613c3f8",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "36 persistent clear/put/get/has calls: collision chains, full table, overwrite, reset, 0xffff",
+    "independent_model": "Independent Go map model checks returns, keys/values/used/count bytes and exact byte access",
+    "boundary": "Named map entries with workload adapters; CP/M output main not executed.",
+    "evidence": {
+      "minzc/pkg/pipeline/hashmap_program_test.go": "6e8766a1ee107548ddef9fc799c4db221c4b1959eda6add686cef9572d7e37fd",
+      "minzc/pkg/pipeline/profile_hashmap_heldout_test.go": "257e563b1b39a1b465b0e195ccbb1c3069940958c2e4d4c50bb271bac78ef364"
+    }
+  },
+  {
+    "path": "examples/nanz/30_stream_test.nanz",
+    "source_sha256": "c5da58c9e90049f1ac63b9d01dcec856a41bc0a62b111f4a7ffe2c008cb73fc2",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "bufstream_init/write: capacities 0,1,3,63,64; 70 sequential writes each",
+    "independent_model": "All 64 buffer bytes and 6 descriptor bytes; host min(capacity,writes) model with relocated pointer",
+    "boundary": "HIR driver and explicit initial globals; original source functions unchanged. Does not claim importing stdlib streams or whole source sandbox.",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_stream_oracle_test.go": "bc3284dd649caaee3d72b6888ce4b40e315175755f3dd256d52eb89c4ea8bb1e"
+    }
+  },
+  {
+    "path": "examples/nanz/50_impl_showcase.nanz",
+    "source_sha256": "18245db1f0fdb215a31dd9daa759546880a802a12b53d5787ad651ca0ecc7bda",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Eight original functions: four local-struct wrappers plus both Circle methods on all256 radii and both Rect methods on256 widths x8 boundary heights;4612 calls/mode",
+    "independent_model": "Independent modular area/perimeter model and typed receiver field-access values; raw/final VM and native three modes, actual ABI, PC/SP and full RAM guards",
+    "boundary": "Original source and four assertions unchanged. Finite Circle radii exhaustive; Rect heights bounded. No arbitrary OOP or pointer-UFCS claim; abandoned MemoryHost adapter retained separately.",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_impl_oracle_test.go": "bd2b80c9300d32b6edab29485620caba6f69d92b7d56a562f3673e352389d89f"
+    }
+  },
+  {
+    "path": "examples/nanz/51_impl_cpm_demo.nanz",
+    "source_sha256": "9440fd4e4347fd871edacdd02588e7b5198e60fd32eef55bb88f59ae040161ac",
+    "native_behavior": "executed-native-cpm-runtime",
+    "workload": "Exact original main under public RuntimeCPM with1024byte guarded stack,3modes x2 BDOS2 contracts; exact C:75 CRLF R:50 CRLF. Pure Circle/Rect methods394752 VM/native calls; separate print_u8 all256 test-loader executions.",
+    "independent_model": "Independent modular geometry and decimal strings; real COM0100 startup and OSRET, clobbering BDOS2 handler, PC/SP/guard/fullRAM, CLI identical BIN. Pure methods raw/final VM independently checked.",
+    "boundary": "Native emulator runtime evidence, not physical CP/M hardware. VM ASM/BDOS output not simulated. Exact trusted adapter/local address admission only. Historical refused runtime and test loader preserved separately.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_impl_cpm_methods_test.go": "c99d241e4b0a0b6a680cc63561f3de1ac03e0ff868310e9de4db0e502c4a5ef2",
+      "docs/grace-integration-214/root-impl-cpm-methods.txt": "642418ca1cc84c1c05c33efdc05f7fbe51261ae68df390e2d77a0d0351d45c92",
+      "reports/impl-cpm-methods/identity.json": "3234e4084ae2035d0e5ea2e6953e907cc19e643b73102bdf0b4eaa8af21d30b5",
+      "minzc/pkg/pipeline/original_impl_cpm_main_test.go": "73040163e688c31f67ae2f93ce8b4b9f85da4c04f5c3f98a6aae0d2b7ef11838",
+      "minzc/pkg/pipeline/original_impl_cpm_admission_test.go": "bdce894b705bd282dcb2ce52a71c99ffe3ca2a8594e6c31c674decb08dab9354",
+      "docs/grace-integration-221/root-impl-cpm-production.txt": "c0be731e24aba9e57e4282d5b6ccb416fc4bb79bbd35d328588cf20ef5e04eda",
+      "reports/impl-cpm-main-production/manifest.json": "8a22aabf801fa443d15e6855561e2180e6dada6bf67ddf0d61ef80ab45024776"
+    }
+  },
+  {
+    "path": "examples/nanz/abap_screen.nanz",
+    "source_sha256": "241483fe9a7ebbf7a6db1d9f7564935107a9fcf2a63b2c9e99cd7e0bff911b27",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Wholemain four finite screen/key/edit scenarios total,three modes raw/final VM and linked Z80; exact orderedterminal/output/globalbuffers/RAM/PCSP.",
+    "independent_model": "Frozen pre-execution ANSI80x24 terminal/key/read_line model; originalsources unchanged.",
+    "boundary": "Test-owned linked terminal runtime,not public standaloneBIN. ABAP original DIHALT usesJPloader; tui returnsCALLloader. One finite scenariofamily.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_terminal_screen_main_test.go": "dca1b8afcf5b5c02184df33c62f025b9f07401debca66a91090101247cfd421e",
+      "minzc/pkg/mir2/renumber.go": "d73a7c4c4f7142a0951a894fd91fe73bfd5170f624615b185cb6d78bd6f0bbaf",
+      "reports/terminal-screen-main/manifest.json": "e8586c0e0d35c551e136034063d9aa705985e9a233bdecfb44892053ff4fd908",
+      "docs/grace-integration-287/root-final.txt": "6343930976baa317b532fc607617fd8a30961b6e8a991cf4b4f969b5871fd85f"
+    }
+  },
+  {
+    "path": "examples/nanz/assert_test.nanz",
+    "source_sha256": "860725e8e61b6427bce6cc0d8b4ce10cf5f9be09873ba79bf85491e7db8fd457",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Six exactsourcepaths allbyteunary/pairs andPascalDoubleall65536signedpatterns,sourceasserts/mainwhereexists,three modes2167440nativecalls.",
+    "independent_model": "Frozen8569bbf4 directarithmetic/predicate models raw/final/native actualreturnABI PC/SP/fullRAM.",
+    "boundary": "No fabricatedmain;all stated typed callable domainscovered.",
+    "evidence": {
+      "reports/assert-frontends-native/REPORT.md": "cf205f07d7a5687ac665dcba6643492f86de5feaeb914229621ad5bfc5ab8728",
+      "reports/assert-frontends-native/manifest.json": "8eb56bea7003fb88fdb74a69bfc21ed44f2edca2e7019ddc092773be89a49068",
+      "docs/grace-integration-197/assert-gcd-root.txt": "1691e8d1f713b5002fd9213e9251e0664d421045682935bdbbd1dad25a0c30ea"
+    }
+  },
+  {
+    "path": "examples/nanz/assert_test.plm",
+    "source_sha256": "6eaca5ccab9b46d534be6b79e267b1479135e365e4fb313c39d40f5be437842a",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Six exactsourcepaths allbyteunary/pairs andPascalDoubleall65536signedpatterns,sourceasserts/mainwhereexists,three modes2167440nativecalls.",
+    "independent_model": "Frozen8569bbf4 directarithmetic/predicate models raw/final/native actualreturnABI PC/SP/fullRAM.",
+    "boundary": "No fabricatedmain;all stated typed callable domainscovered.",
+    "evidence": {
+      "reports/assert-frontends-native/REPORT.md": "cf205f07d7a5687ac665dcba6643492f86de5feaeb914229621ad5bfc5ab8728",
+      "reports/assert-frontends-native/manifest.json": "8eb56bea7003fb88fdb74a69bfc21ed44f2edca2e7019ddc092773be89a49068",
+      "docs/grace-integration-197/assert-gcd-root.txt": "1691e8d1f713b5002fd9213e9251e0664d421045682935bdbbd1dad25a0c30ea"
+    }
+  },
+  {
+    "path": "examples/nanz/canvas_house.nanz",
+    "source_sha256": "e9c60c6156e44a2f1500631c6974db0f840bdd3cdbfbc98863742aaefa67af97",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Whole unchangedscene/main raw/finalVM/native3modes:13renderingcalls,49152pixels,savepath,methodcases/fullRAM/PCSP.",
+    "independent_model": "Pre-execution independentcanvasmodel and actualcanvas API; frozenframebuffer and effects.",
+    "boundary": "Test-ownedcanvas, hostrendering time excluded; nohardware/rotozoomerproof.",
+    "evidence": {
+      "docs/grace-integration-295/root.txt": "99314b765221b1176fe4c9d7e11d7046d835d6e29e6ffbd33434d97f3bb0bc5a",
+      "minzc/pkg/pipeline/original_canvas_house_test.go": "5dd599d47dc15c8f9c5e771e67e01ceba19f4ab7a4a9314672f14fa834e404a2"
+    }
+  },
+  {
+    "path": "examples/nanz/cpm_leaf_console.nanz",
+    "source_sha256": "baaa58c8bdbfde5f6cd99d3a4df3f8e809eff3dd31d11e89e8c1defffa90b103",
+    "native_behavior": "executed-native-cpm-runtime",
+    "workload": "Whole public CLI COM; BDOS2 output with primary-register corruption",
+    "independent_model": "Independent CP/M 53 OK LF output and persistent result54; PC/SP and stack guard",
+    "boundary": "cmd/minzc TestCPMRuntimeOrdinaryCLI; native CALL5 hook only, no raw VM or actual OS claim",
+    "evidence": {
+      "minzc/cmd/minzc/cpm_runtime_test.go": "90f494205cc5288a33645821d0382093637dfff7d0f4158a850cf01a39039048"
+    }
+  },
+  {
+    "path": "examples/nanz/grace_hir_constant_if.nanz",
+    "source_sha256": "0d13c6f83931f48898ccbe7b8767790bcc826552c4dcb19b40ec97d1ea50272f",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "wrap(255), choose(42), baseline/common Grace",
+    "independent_model": "Modulo byte arithmetic expects 0; constant branch expects 42",
+    "boundary": "Two calls only; experiment has no general optimization benefit claim.",
+    "evidence": {
+      "minzc/pkg/pipeline/profile_grace_variants_test.go": "fdd4df48a94dc7c9260507f31d216fd556e969f3502766da70ffe8b2830373cd"
+    }
+  },
+  {
+    "path": "examples/nanz/grace_intern_checked.nanz",
+    "source_sha256": "f8106be4e72bbebdb2d69b167243adf1bd93dbabbb3efd4d1afa73ad8bd62900",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "30 persistent intern calls; repeated hits, zero/long strings, arena bump",
+    "independent_model": "Independent byte-string interning model, results, snapshots and exact accesses",
+    "boundary": "Checked intern file only, bounded arena/resources.",
+    "evidence": {
+      "minzc/pkg/pipeline/intern_program_test.go": "b33ec8b2671e5c3612e6cb76fc21f4b855910a851113fbdcb4f2a538b03a1b76"
+    }
+  },
+  {
+    "path": "examples/nanz/grace_seeded_sum.nanz",
+    "source_sha256": "abc8df5dad8c2639a09de170f1cae6c31dc62ab5dcec01a0ce5c6a872b17c6c7",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "18 seeded_packet calls: 3 seeds \u00d7 6 lengths, carry and zero trip",
+    "independent_model": "Independent uint16 seeded sum plus globals/snapshots and exact resource reads",
+    "boundary": "Named caller; separate synthetic address-domain matrix is not additional corpus proof.",
+    "evidence": {
+      "minzc/pkg/pipeline/seeded_pointer_walk_test.go": "c75f354216b349a7ab4e5d6f4361d54d2306c1c80d8f58c11bd93285856eebfe"
+    }
+  },
+  {
+    "path": "examples/nanz/grace_tokenizer_checked.nanz",
+    "source_sha256": "d689844c9ca68d9d352d0ef863fd0c51b3a8166735138fcbfe821790daceff5a",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "30 scanner calls: tokens/operators/comments/NUL/unterminated strings/boundary atoms",
+    "independent_model": "Independent Go lexer checks token/source/arena RAM, globals and exact accesses",
+    "boundary": "Checked tokenizer file only; no transfer to self_tokenizer.nanz or self_tokenizer.lizp.",
+    "evidence": {
+      "minzc/pkg/pipeline/tokenizer_program_test.go": "0da31bda3afc14887be58cc079f44f4b9c96b2c465c525646aa8a6701e8d2767"
+    }
+  },
+  {
+    "path": "examples/nanz/grace_weighted_checksum.nanz",
+    "source_sha256": "b350e4307d9134ebdefbc5c1485b52d9529b8fcb6abfe37fd62eae728d2f6423",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "30 weighted_checksum/checksum_packet calls; 5 patterns \u00d7 6 lengths including 0/255 and carry",
+    "independent_model": "Go integer accumulation modulo 65536 plus persistent globals and unchanged resources",
+    "boundary": "Named entries; bounded workload, not all inputs or every derived packet caller.",
+    "evidence": {
+      "minzc/pkg/pipeline/profile_scalar_program_test.go": "96b651327c12f9f9ef9e2494ab3a47c9bd1f3b43f1b10bc870cc51dcfd43462a"
+    }
+  },
+  {
+    "path": "examples/nanz/hello_cpm.nanz",
+    "source_sha256": "d9ef5575cf9241a89f060a66a532bb84c08bfe3ff25224790c6340b75f093563",
+    "native_behavior": "executed-native-cpm-runtime",
+    "workload": "Original unchanged whole main via guarded RuntimeCPM, ordinary/GraceSpeed/GraceSize x preserving/allclobber BDOS2; exact frozen output and OSRET. fib/gcd source assertions additionally raw/finalVM and native.",
+    "independent_model": "Frozen literal stdout; actualCOM0100/OSRET, registerclobber, fullRAM/code/SP/guard. CLI BIN identical to native-tested COM.",
+    "boundary": "Native emulator CP/M runtime, no physicalhardware or VM ASMstdout claim. Main arithmetic may constantfold; original fib/gcd assertions independently execute callable entries. Exact adapter semantics only.",
+    "evidence": {
+      "minzc/pkg/pipeline/readme_cpm_runtime_test.go": "e097e4931385a23f8d73383473255c99e38f187a33d764bf7826a6aabb1ec427",
+      "docs/grace-integration-231/root-readme-cpm.txt": "2d93c22c4c3e018ee57fc11fe1d244859af00250c4a7eaac7950152f20093c20",
+      "reports/readme-cpm-runtime/frozen.json": "d1878d2899803b44ed6757720e8df1113552d12d747535009c16d1be60065596",
+      "reports/readme-cpm-runtime/manifest.json": "674d3b1d4ef58f90c003a20206284a80d2b7e3ee1aaa875d8ae98deb4d0ee8e7"
+    }
+  },
+  {
+    "path": "examples/nanz/hello_cpm_fib.nanz",
+    "source_sha256": "1ad4ba073b38f4b194bcdc38feebb282f35035efc3b28658c0a0eee69e1407de",
+    "native_behavior": "executed-native-cpm-runtime",
+    "workload": "Original unchanged whole main via guarded RuntimeCPM, ordinary/GraceSpeed/GraceSize x preserving/allclobber BDOS2; exact frozen output and OSRET. fib/gcd source assertions additionally raw/finalVM and native.",
+    "independent_model": "Frozen literal stdout; actualCOM0100/OSRET, registerclobber, fullRAM/code/SP/guard. CLI BIN identical to native-tested COM.",
+    "boundary": "Native emulator CP/M runtime, no physicalhardware or VM ASMstdout claim. Main arithmetic may constantfold; original fib/gcd assertions independently execute callable entries. Exact adapter semantics only.",
+    "evidence": {
+      "minzc/pkg/pipeline/readme_cpm_runtime_test.go": "e097e4931385a23f8d73383473255c99e38f187a33d764bf7826a6aabb1ec427",
+      "docs/grace-integration-231/root-readme-cpm.txt": "2d93c22c4c3e018ee57fc11fe1d244859af00250c4a7eaac7950152f20093c20",
+      "reports/readme-cpm-runtime/frozen.json": "d1878d2899803b44ed6757720e8df1113552d12d747535009c16d1be60065596",
+      "reports/readme-cpm-runtime/manifest.json": "674d3b1d4ef58f90c003a20206284a80d2b7e3ee1aaa875d8ae98deb4d0ee8e7"
+    }
+  },
+  {
+    "path": "examples/nanz/irc_client.nanz",
+    "source_sha256": "240ecc56c7b35683c15801f20490f22033837dfafa1e4d991ed1ca26a66d6f53",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Original main: three failed connection paths plus pre-connected registration/PING/PRIVMSG/JOIN prefix, all three modes, raw/final VM and assembled Z80.",
+    "independent_model": "Frozen exact host events, control/network bytes and globals including buffer tails; all native RAM except exact spill/observed stack; real return on failures and actual CALL continuation at prefix boundary.",
+    "boundary": "Test-owned network and imported TUI host overrides preserve registers except result. Infinite main prefix stops at next net_read, not program termination. No arbitrary traffic, user command loop or physical network/CPM claim.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_irc_classifiers_test.go": "13c0b1423649b40a1b11b45c92ab1ab5738b3b93d67fbc207e48398db5055f26",
+      "reports/irc-classifiers/freeze.json": "06f7aef515dbe1cbb2bf236e63482e3be5fce4807b31de9ce731f752d14a33db",
+      "reports/irc-classifiers/manifest.json": "2222fdf72afedfe6b6fe7481e938a4c3a0964e26ca4d24344916013c8a933bf4",
+      "docs/grace-integration-235/irc.txt": "ef535bbb358492c3be94467d0550b9215d4b99eccc3f17c0e592d1d243268a45",
+      "minzc/pkg/pipeline/original_irc_connection_failure_test.go": "10b989599865c39daafc745cbcdf662c5a9cd50f88f10f15ac7cb0e47dcf86d9",
+      "minzc/pkg/pipeline/original_irc_connected_prefix_test.go": "d8c42500c3250b8b88088eed8ce885956dbec60478b1ef19c17c14076413c002",
+      "reports/irc-connection-failure/manifest.json": "34bc7ecdee2057cd7fece99aa5e3681bbba537d74db7dc1fbd68d13e6de7c2f5",
+      "reports/irc-connected-prefix/manifest.json": "26df904f5523c1bc7a66a2c98fd8c9234e5a23792fb957d2d12ea897667a28f2"
+    }
+  },
+  {
+    "path": "examples/nanz/meta_screen.nanz",
+    "source_sha256": "d9e13ac784d0ceb162047602bd6938d497e5138898bca391cea7fad708fe422c",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Whole unchanged main, three modes; one key a, exact stdout 422/236 bytes; raw/final VM and assembled Z80.",
+    "independent_model": "Pre-execution frozen output/model; explicit low-level ASM host bindings in VM and original native ASM.",
+    "boundary": "Finite scenario; RAM/code/PC/SP checked. Test-owned runtime, not public CP/M.",
+    "evidence": {
+      "docs/grace-integration-283/root.txt": "1d4443af9676dceace698eee90359dac4e83c43d3ac3b339768eb54eb5d09563",
+      "minzc/pkg/pipeline/original_cpm_screen_main_test.go": "4a783f6f8cb63e8d265d74734d01c8150b6de4b0f7ec64a104f90251c308e143",
+      "reports/cpm-screen-main/manifest.json": "50fb1ff5fd58ba30265eaa813cb3ce1ea15e039af72e7c1c9e093e94677edb49"
+    }
+  },
+  {
+    "path": "examples/nanz/mul16_gpu_test.nanz",
+    "source_sha256": "ce88b6cd88fe6ddf56d37393de9186ba5e00791b688735dcaca7dca1d84f18c9",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "allfiveoriginalhelpers;nativeall65536/limitedrawVM;newcallerfixtureseparate",
+    "independent_model": "x*k modulo65536",
+    "boundary": "Only explicitly listed entries/input coverage; table assignment evidence is not wholeprogramallinput proof.",
+    "evidence": {
+      "reports/artifacts/checked-word-mul-evidence.tar.xz": "3f7dd3aa30163c3178fe4013f893732cf8a96e92c52d291ed12430be28dabcc9"
+    }
+  },
+  {
+    "path": "examples/nanz/mul_const.nanz",
+    "source_sha256": "a5ff9edb54a2fd290105b471ce6dc3e3937f5400ce9a90bdd1e5bb90f02e0d57",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "m10 all65536u16values,sourceasserts,three modes196608nativecalls.",
+    "independent_model": "Frozen59c8ae64 direct10xmod65536 raw/final/native actualwordABI CALLPC/SP/fullRAM.",
+    "boundary": "Fullwordunarydomaincovered,sourcehasnomain.",
+    "evidence": {
+      "reports/original-mulconst-native/REPORT.md": "18f5fb84c1d2c590ae4eb4c42e1f385b1a60c0337987c588c2698037239d55da",
+      "reports/original-mulconst-native/manifest.json": "969c5083272a5ad4dab3534caad8cd6bc73539aacf042606478cf8d6adbebb5e",
+      "minzc/pkg/pipeline/original_mulconst_native_test.go": "f136448f3beaa0571d700717de69caa38716ad5907a12a998244a3e6c17fb5a8"
+    }
+  },
+  {
+    "path": "examples/nanz/nc.nanz",
+    "source_sha256": "d7b548c92645b8eb546c4f0495e67e506aafde433e915cd0b60e3fc24da2e0e5",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Whole original FAT12 browser main on independently generated eight-sector disk with two files/one directory; Down/Up/Esc, three frames, exact1453events in raw/finalVM/native across three modes.",
+    "independent_model": "Pre-execution frozen disk entries, BPB, keys and source-derived terminal oracle; independent buffer formatting/tail simulation and expected filesystem state, no VM/native outputs used as oracle.",
+    "boundary": "Test-owned exact disk/TUI externs using actual ABI, read-only sectors0/2 and exact512-byte window; fullnativeRAM including allglobals/image, precise generatedspill/observedstack exceptions. Finite navigation, not viewing/deleting, arbitrary FAT images or physical CP/M.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_nc_main_test.go": "c684c539ec44346dfca96cd565b2e867aad74331a1e6054079bb58b20d65be1d",
+      "minzc/pkg/pipeline/original_nc_native_test.go": "8bdee6fdf2188b5e2a13d33340f08130c27fbb2b342204be428eb7d8a94e1617",
+      "reports/nc-whole-main/frozen/freeze.json": "33aa5d0d68dc1d9191d2458b3afc955e9d3bc56a23e0bfa44a4481b2db953d5b",
+      "reports/nc-whole-main/frozen/terminal-events.json": "b42dcf52f8a651c58e56701b88ddc417c848bb0cf003141a3667e86580781cbb",
+      "docs/grace-integration-310/root.txt": "8fc3179c118f639f95957dc0f4abbae44f1fa31de1d8b121ac4a525861e4ffea"
+    }
+  },
+  {
+    "path": "examples/nanz/pfcco_weighted_packet.nanz",
+    "source_sha256": "6a8ecc8d50e41f5609cabb061b7a06474a7e72619295259d9e5aa4e3cc5bb4ab",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "17 ordered u16 boundary pairs; contract off/greedy/PBQP",
+    "independent_model": "uint16(b-a)+3*uint16(a-b) and persistent trace+2",
+    "boundary": "Original weighted_packet/helper calls; bounded model, all modes independently checked.",
+    "evidence": {
+      "minzc/pkg/pipeline/pfcco_native_workload_test.go": "f382a27619d0f671bea0ff5b754ada900d6f0705930f15ba3841ff8d753bae19"
+    }
+  },
+  {
+    "path": "examples/nanz/promoted_arithmetic.nanz",
+    "source_sha256": "cb0dea99eeda35be09f3fe09a015d2e827daeba98597322c4082d3d66d6b4d81",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "All nine unchanged original functions;353564 calls per mode across ordinary/Grace Size/Grace Speed: four adds plus word load all65536bytepairs, three unary all256, pressure25116 signedword boundary tuples",
+    "independent_model": "Independent modulo unsigned additions, byte operations and signed truncating division; raw/finalVM and actual native CALL drivers, return ABI,PC/SP/full64KiBRAM",
+    "boundary": "Exact original source and24assertions retained. Pressure zero-divisor3445tuples explicitly excluded; thirteenwordboundaries, notfullfourwordCartesian. Native module342/337/337B; no execution speed claim.",
+    "evidence": {
+      "minzc/pkg/pipeline/promoted_arithmetic_complete_test.go": "90b46fa04a2f3cf609a6cb43144fee4c1195b9e742f3819484c684d8a40d1398"
+    }
+  },
+  {
+    "path": "examples/nanz/rotozoomer.nanz",
+    "source_sha256": "df38ac3b0eca81e67432c4032bfcfb5c2ae44af3ca32fbdcc673de863d0cf06f",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Full unchanged main, all 32 frames 256x192, raw/final VM and assembled Z80 in Ordinary/Grace Size/Grace Speed.",
+    "independent_model": "Frozen axis/palette data; independent signed16 modular recurrence/texture model checks every coordinate/color, init/palette/save ordering, exact file paths, immutable full RAM except exact spill/observed stack, native PC/SP restored.",
+    "boundary": "Test-owned canvas callbacks preserve registers except u16 result; callback time excluded. All32 finite frames, not arbitrary draw_frame inputs, physical canvas hardware or PNG filesystem provider. No measured Grace gain.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_rotozoomer_pure_test.go": "091b57d3d8f81a94d7fe3e2a4b4139de74fa021f20b55256264dc50462b5e475",
+      "docs/grace-integration-222/root-rotozoomer-negative.txt": "99e2d86c401deb5b7cb693981fbbd82fa771255cce82d59db30406384f0b540c",
+      "reports/rotozoomer-pure/freeze.json": "dae5fd35fd8cc3d02560532eead53ed856c14427058f7484f43e1eca7f2c75c8",
+      "minzc/pkg/nanz/rotozoomer_test.go": "f935ed958bbb9a8a18cfcd71a09c1d947a253c271ef158449be0ffc31fdcd527",
+      "minzc/pkg/pipeline/original_rotozoomer_main_test.go": "16869f7fb117dd3980b93916ac9fc049cf7c695d249ac17b22693adcdbbd7f26",
+      "reports/rotozoomer-main/manifest.json": "e9210e42c02890247a2244b7212c0e79cf43026678e2a85162428e9227d170ba",
+      "reports/rotozoomer-main/root.txt": "af4c2b962e7ae21f063cdf0c1130af1b0cf7ef54443eb2264fa693ba84ac7367"
+    }
+  },
+  {
+    "path": "examples/nanz/sap_mara_cpm.nanz",
+    "source_sha256": "64bb1d34f30d79707c86507d74e046c60a82da7531f480901df90053e02f3442",
+    "native_behavior": "executed-native-cpm-runtime",
+    "workload": "Full unchanged main, three modes and two BDOS clobber contracts; real SQLite via original imported port/ASM bodies.",
+    "independent_model": "Frozen exact stdout/column values/type command order; all receive writes and retained buffer tails; full RAM except exact spill/observed stack, PC/SP restored, query/db closed.",
+    "boundary": "Native test-owned SQL port/BDOS adapter. No VM ASM emulation or physical CP/M/provider. Full port trace retained but not independently compared byte by byte.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_sqlite_import_main_test.go": "dbeab1f5841cafe9d849956f885de2aa6ea88f0aa1422f9b1ef3ec0e61afda12",
+      "reports/sap-mara-port-main/manifest.json": "20e058c03eae4905591b18183905795de68ae8ca711b19a7466d145ce0801a26",
+      "reports/sap-mara-port-main/root.txt": "dad6bb1a9b5a4a8b7ec087f0688c4ddb92ee6e7b95a56bddd98ff1089fa6b351"
+    }
+  },
+  {
+    "path": "examples/nanz/sap_mara_demo.nanz",
+    "source_sha256": "eadc8f2f1094245a695a9690aca74ec20d6dde3c6cf7fd00c8d40f7403af732c",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Original whole main SAP MARA/MAKT report, real SQLite queries and 17 owned text allocations; exact601stdout, raw/final VM/native in three modes.",
+    "independent_model": "Frozen seed rows, sorted join/aggregate results, modulo256 casts and ordered SQL/host/stdout model committed before execution; text allocation lifetime matches MZV API.",
+    "boundary": "Test-owned linked SQLite host, actual typed extern ABI, full RAM/image/return checks; finite in-memory SQL report, not public CP/M or arbitrary host clobber. Print intrinsic miscompiles fixed separately.",
+    "evidence": {
+      "minzc/pkg/pipeline/sap_mara_main_test.go": "271342de621ba7db9327618ef37aebd76e27cb1e09c6ffc4f064d46994e5a22a",
+      "reports/sap-mara-whole-main/manifest.json": "25f290ec4886222ced87ffb90229f43a19ed4b4d541541689833f7a3b6b73516",
+      "reports/sap-mara-whole-main/frozen/freeze.json": "0a8ac89175182190944d0daac8666144195d8be9818bc938cd59ab4e29f440e2",
+      "docs/grace-integration-303/sap-root.txt": "876b8d7f4d6fa87e76f4025e41473737083a4bb586664eb9c4302adfd746d4f0"
+    }
+  },
+  {
+    "path": "examples/nanz/screen_alv.nanz",
+    "source_sha256": "d6d74b99f7ce5aa97110f9f5cbe5fe6f1e3f85d00a56f442575d32b0661a7dc2",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Two whole-main key scenarios F8 and TAB/F8, three modes, raw/final VM and assembled native; exact five-row table, fields and ordered terminal events.",
+    "independent_model": "Frozen records, table layout and terminal model; native executes original copy/padding/render ASM.",
+    "boundary": "Test-owned bounded BDOS runtime; separate frozen native coordinate formatting; no public unlinked or hardware claim.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_alv_screen_main_test.go": "dded30eedc22d249c69b2895e2bfe7be981f57e71d396685ac331f3ecbeb9def",
+      "reports/alv-report-main/freeze.json": "73ddcdd7e477d30e68ed214e7098c177a316e03eb1ddfb82e760246e256eb261",
+      "reports/alv-report-main/native-freeze.json": "2dd7aa039d743182fda9990459c4f77e3ca65e868534425ce0382c450a440004",
+      "reports/alv-report-main/manifest-alv.json": "b456bd8d66095659d82744a7bb6abd3591e04a66c5e8f0a842441cf6908f6fe9",
+      "docs/grace-integration-298/root.txt": "02f7cbd161304b94805de060ac196ff7f8744f100990f0f896c123aae9187163"
+    }
+  },
+  {
+    "path": "examples/nanz/screen_customer.nanz",
+    "source_sha256": "4fa8e46c784e9a4de942e2266bb5b186b7264d0335f93ce1139bb5182d8b1f55",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Wholemain36raw/finalVM/native runs acrossfour edit/run/cancel scenarios andthree modes; exactorderedterminal/globalbuffers/RAM/PCSP.",
+    "independent_model": "Frozen independentcustomer/declarative models; nativeimportedCPM two-digit ANSI distinctfromVMhostformat; exactBDOS inputsequence.",
+    "boundary": "Test-ownedterminal/BDOS hosts; realgeneratedpaddingASM/nativeimportedrenderexecuted. Finiteworkloads,noALV/SQLitereport/hardwareproof.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_generated_screen_main_test.go": "86db0eebe80d2be81daa23f597ba657f184e874e9873781cdd23bb74b1f2e9f0",
+      "reports/generated-screen-main/manifest.json": "6b0240f7ffe87402120ea730532de8b323ca0f9fc82462b51b56b527c149b8ad",
+      "docs/grace-integration-292/runtime.txt": "76213e218e2368f4d405711538fce97a8f2740f3757edd947d58dc9eaa5e29cc"
+    }
+  },
+  {
+    "path": "examples/nanz/screen_declarative.nanz",
+    "source_sha256": "39c0bacea00ceddb3853a99e11a45e01f47361b971990c126f2efa4ad3a61c8d",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Wholemain36raw/finalVM/native runs acrossfour edit/run/cancel scenarios andthree modes; exactorderedterminal/globalbuffers/RAM/PCSP.",
+    "independent_model": "Frozen independentcustomer/declarative models; nativeimportedCPM two-digit ANSI distinctfromVMhostformat; exactBDOS inputsequence.",
+    "boundary": "Test-ownedterminal/BDOS hosts; realgeneratedpaddingASM/nativeimportedrenderexecuted. Finiteworkloads,noALV/SQLitereport/hardwareproof.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_generated_screen_main_test.go": "86db0eebe80d2be81daa23f597ba657f184e874e9873781cdd23bb74b1f2e9f0",
+      "reports/generated-screen-main/manifest.json": "6b0240f7ffe87402120ea730532de8b323ca0f9fc82462b51b56b527c149b8ad",
+      "docs/grace-integration-292/runtime.txt": "76213e218e2368f4d405711538fce97a8f2740f3757edd947d58dc9eaa5e29cc"
+    }
+  },
+  {
+    "path": "examples/nanz/screen_report.nanz",
+    "source_sha256": "6103aaba8f51e47158184097d14459788e1cf5019df171282c58e263a9418c5c",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Whole original SQL report: F8/F3 all eight carriers and Enter/LH/F8/F3 requery to Lufthansa, three modes raw/final VM/native; exact 503/711 terminal events, 2202/2766 output bytes and 472-byte table.",
+    "independent_model": "Frozen seed rows, sorted query results, filter and table/terminal lifecycle; real modernc SQLite in each engine, source-generated table/padding ASM runs natively.",
+    "boundary": "Explicit test-owned terminal/SQL bindings using actual extern ABI; exact host scratch writes and full RAM/image/stack verified. Native tail close returns to driver HALT. Not public unlinked CP/M/SQL or all filter workloads.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_report_screen_main_test.go": "437a2b7880500af216d7847ae1329f8bb597ccc01d2c284534ec52386e89f6f5",
+      "reports/alv-report-main/freeze.json": "73ddcdd7e477d30e68ed214e7098c177a316e03eb1ddfb82e760246e256eb261",
+      "reports/alv-report-main/report.json": "e0d24ea671b3646a38dd2f8ec0d09e9fa15bb37ded04f6c0c28752b206c84c32",
+      "reports/alv-report-main/report-lh.json": "a8007adcc314ae5c49c63efa385ef724584afcef08d93aa89e7968560fc07e36",
+      "reports/alv-report-main/manifest-report.json": "8ce643db4927d85fe2a8c645318e66144af56361aea361ad25ab6027facdcdcd",
+      "docs/grace-integration-302/root.txt": "8bdd29fcc9e8ee44e40185a7b2435ce833cdbeca3bdb13ffdaa5072adb6bdd1d"
+    }
+  },
+  {
+    "path": "examples/nanz/self_lanz_parser.nanz",
+    "source_sha256": "763d9f369e3bbbdbcb84dee2627aff5ee90e57d99ad8d0f69e7db0c8325a6b51",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "30 persistent parsing calls: valid/nested/malformed/decimal wrapping/comments/255..257 atom lengths",
+    "independent_model": "Independent Go Lanz parser: node/string arenas, globals, result and exact byte accesses",
+    "boundary": "Original parser entries with explicit peek/poke/console runtime adapters. Original main is not this workload; separate derived CP/M evidence below. Frozen parser prospective test replays historical source SHA 0e92689, not this current-source SHA. Current exact-source whole main separately executed through port23 and test CP/M BDOS2 assembly runtime adapter; source corrected CString literal. Historical CString derivative retains its own hashes.",
+    "evidence": {
+      "minzc/pkg/pipeline/self_lanz_baseline_test.go": "9e351401495675ca915f2629d2a03a2c8098da38a115738dad92bd8946fc7af9",
+      "minzc/pkg/pipeline/original_lanz_main_test.go": "409bf10adb83f1f37e621a92753e5d58bfc5eda2768808291f9f4d47d4e4c834",
+      "minzc/pkg/pipeline/parser_prospective_heldout_test.go": "c4fee5e8fb1ba0e56cfcd4c29e8720bca069d114c17bcea646bd8dabe7503e9e",
+      "docs/grace-cpm-memory-capture/independent-review/README.md": "933320d4520f077711ed6527d3ec3d3a1fb4e0ba2ab7faf3912b079b71dfb8a1"
+    }
+  },
+  {
+    "path": "examples/nanz/self_parser.nanz",
+    "source_sha256": "d41f5c9b5c4959a84611fc1e362d3f8c3782e7c89d904ea742dfa55614f6fc83",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Whole corrected main raw/finalVM +native3modes: inputtwofunctions,76Lanzbytes,29tokens,12ASTnodes,exactstdout/fileevents/fullRAM.",
+    "independent_model": "Pre-execution frozen input/token/interner/AST/file/stdout model; fourCString sourcefixes explicit.",
+    "boundary": "Finite restricted grammar, test-ownedmemory/filesystem adapters; originalmainHALT noRETpromise.",
+    "evidence": {
+      "docs/grace-integration-295/root.txt": "99314b765221b1176fe4c9d7e11d7046d835d6e29e6ffbd33434d97f3bb0bc5a",
+      "minzc/pkg/pipeline/self_parser_whole_main_test.go": "02ab6ea9a81f886d5002630ce682d0dc68e7e742cf07a3cfb599c6e0f6efc34d"
+    }
+  },
+  {
+    "path": "examples/nanz/self_tokenizer.nanz",
+    "source_sha256": "d893df00710b7f1105b8bfb58342aca1c1f8cce7eb674037a8d6ca41b91b0689",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "init_keywords plus 30 sequential tokenize_all inputs including NUL, operators, strings and 255/256/257-byte atoms",
+    "independent_model": "Independent Go lexical/interner model; all 8192 string/4096 token/4096 source bytes and 47 globals",
+    "boundary": "Exact original functions; explicit peek/poke native memory adapters. Main console/CPM output not executed; original recognizes 10 of 15 keyword slots and narrows length to u8. Whole main separately executed with explicit port23/CPM BDOS2 runtime adapters; default compiler backend remains port23.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_tokenizer_native_test.go": "d63013c0d71536ac8f5ab3e41fef26e0ab8fe68fcecf6fc107af3446be342937",
+      "minzc/pkg/pipeline/original_tokenizer_main_test.go": "177abf2f56b7184082a9c858de0049e03592f43f2e369e589c668b6646f9371b"
+    }
+  },
+  {
+    "path": "examples/nanz/sha256.nanz",
+    "source_sha256": "6a19378d623d83ad05f99b271b19daa94013f1ea069318e7210f230fd5248540",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "All15 original split-u16 helpers/wrappers,69480 calls plusobserver; not16all65536; threebuilds",
+    "independent_model": "Independent uint32add/shift and uint16Boolean FIPS180-4models; raw/finalVM/native; guards/no-dataeffects/SP/instructionbytes",
+    "boundary": "Exact original source unchanged, all6declared MIRasserts run. This is helper arithmetic only: full SHA256 compression/digest/vector promise remains unimplemented. Current source implements only arithmetic/bit helpers; no complete SHA256 compression, digest or block vectors. Whole-hash promise remains unimplemented.",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_sha_split_oracle_test.go": "d830991bda3960b481cfce0ab9b8e7879c628ea00ae6e5b9d2173ba81cab6809"
+    }
+  },
+  {
+    "path": "examples/nanz/signed_arithmetic.nanz",
+    "source_sha256": "7a5860570b48508e67af293b9cc34ab86b66fc32b1f278efd34b382908b59f45",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Nine original functions,266240 cases in ordinary ContractOpt mode: byte shifts all inputs/counts; quotient/remainder all nonzero divisors; signedword shifts fourteen boundaries",
+    "independent_model": "Independent int8/int16 sign extension, truncation and division-to-zero model; raw/final VM and native actual ABI, PC/SP and immutable code",
+    "boundary": "Exact original source unchanged. Division by zero not asserted as a value. Counts beyond width preserve existing VM semantics; Book has no explicit large-count norm. Single mode, no three-mode or full memory guard claim.",
+    "evidence": {
+      "minzc/pkg/pipeline/signed_source_native_test.go": "db3f54d2126277abf17e1c7cf3bf09ad403258d89698803811f1ff952d413311"
+    }
+  },
+  {
+    "path": "examples/nanz/sql_test6.nanz",
+    "source_sha256": "1300b30eb66c72c1f5cb5aeef778abe3c5cfc6dcc29a809c628e995159cea18f",
+    "native_behavior": "executed-native-asm-bounded",
+    "workload": "Whole unchanged main, three modes \u00d7 two BDOS contracts; real SQLite, 11 commands, exact 59 stdout bytes; bounded port APIs.",
+    "independent_model": "Pre-execution frozen SQL/stdout oracle and real modernc SQLite through strict test-owned host.",
+    "boundary": "Native only; test-owned runtime. MZX mismatch remains; recv requires NUL within 256 bytes.",
+    "evidence": {
+      "docs/grace-integration-283/root.txt": "1d4443af9676dceace698eee90359dac4e83c43d3ac3b339768eb54eb5d09563",
+      "minzc/pkg/pipeline/sqlite_whole_main_test.go": "ab23c48b435bbe24c3ea1fb4eb097403473b2a237f050b49bd2dbb2a8e6d9148",
+      "reports/sqlite-whole-main/manifest.json": "5ecc84c447375a3ca053aad44e7625ff0859fff365d1036771179a69e1374a22"
+    }
+  },
+  {
+    "path": "examples/nanz/sqlite_demo.nanz",
+    "source_sha256": "76a2e02c058379fdb24240b2a72ccc1b70dc21ae6a4645ad2eb3ded318a94056",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Unchanged whole main, three compiler modes: 29 ordered host events and exact 12-byte stdout 498195392598; raw/final VM and assembled native.",
+    "independent_model": "Pre-execution frozen SQL commands, rows and host lifecycle; actual modernc SQLite executes all commands. Native reads actual typed extern formal homes.",
+    "boundary": "Test-owned linked SQL host, finite in-memory workload, not public CP/M/filesystem or arbitrary SQL dialect; native tail return restores loader PC/SP. All RAM and generated image checked.",
+    "evidence": {
+      "minzc/pkg/pipeline/sqlite_demo_main_test.go": "0b7632687b4d08d39cc1eb88e3153b0561ecd84069a7a9b84a33349b7a89334e",
+      "reports/sqlite-demo-whole-main/frozen/freeze.json": "296439e8f1ca64464d495fe77388d040b1d96ff143ccc0a6a3e9f2605c499dd8",
+      "reports/sqlite-demo-whole-main/manifest.json": "0cab8cbc302297326533b7e81cb51eee4ee8c4fe294742277433225d3c838ee8",
+      "docs/grace-integration-297/sqlite-root.txt": "2634c8b88c0c0d8d3e6cb83f65549c73b8bdcb6fb3e65dd182c4a88b5ba10793"
+    }
+  },
+  {
+    "path": "examples/nanz/sqlite_test.nanz",
+    "source_sha256": "1cb96794bf14cbb5c2e5affbf5f8d83828df601b42943118be9c0f48b9e0c15b",
+    "native_behavior": "executed-native-cpm-runtime",
+    "workload": "Full unchanged main, three modes and two BDOS clobber contracts; real SQLite via original imported port/ASM bodies.",
+    "independent_model": "Frozen exact stdout/column values/type command order; all receive writes and retained buffer tails; full RAM except exact spill/observed stack, PC/SP restored, query/db closed.",
+    "boundary": "Native test-owned SQL port/BDOS adapter. No VM ASM emulation or physical CP/M/provider. Full port trace retained but not independently compared byte by byte.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_sqlite_import_main_test.go": "dbeab1f5841cafe9d849956f885de2aa6ea88f0aa1422f9b1ef3ec0e61afda12",
+      "reports/sqlite-import-main/manifest.json": "609a5c0bfe850f2d5e85082b33efc6f7079b8081ec85fa24a7c88f432d5fef1f",
+      "reports/sqlite-import-main/root.txt": "3a1baae905b1b621f894ee528080d9f37fed136432a5fa22aaaa9f7dc4fbb317"
+    }
+  },
+  {
+    "path": "examples/nanz/test_irc_minimal.nanz",
+    "source_sha256": "9e41884457b0a4bae28dc95e5b18c54eaba60b2fe59c6e29b2396f14c2076982",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Wholemain three modes,500 nonzero byte input,36 wirebytes,384 stdoutbytes; raw/final VM and assembled Z80.",
+    "independent_model": "Pre-execution frozen input/wire/stdout from source mask/count semantics; no generated oracle.",
+    "boundary": "One finite test-owned network workload, not TCP/server/public runtime. FullRAM/code/PC/SP checked; source previously corrected two CString literals.",
+    "evidence": {
+      "minzc/pkg/pipeline/irc_minimal_main_test.go": "1592ff5721dedeb5b190e1258870bc43dc10f6073256ae1867bb1d1293155563",
+      "reports/irc-minimal-main/manifest.json": "a89f40a14aaa3ea230689761f7fd228c88578b229adcbace1caa14b31edaf10d",
+      "reports/irc-minimal-main/root.txt": "599ca5d7bb234e9190a55a4287828206e27dd1e88488f9e1fc78aac1a4e17b8b"
+    }
+  },
+  {
+    "path": "examples/nanz/tetris_cpm.nanz",
+    "source_sha256": "91b2a3cc7be3a309b17b6655ed7e1757b70b89ac67985cad0bcc3a5e2f55c23d",
+    "native_behavior": "executed-native-asm-bounded",
+    "workload": "Whole original corrected main z/q/a in three public guarded CP/M runtime modes; exact ANSI/state/RAM/OSPCSP plus invalid globalstore status2.",
+    "independent_model": "Independent original game state and complete ANSI output model; real imported ASM with explicit test-owned BDOS1/2 and CALL-main loader; full RAM, code, return PC/SP.",
+    "boundary": "Finite scenario/test-owned BDOS OS; exact CLI ASM/COM parity donor. No hardware/BDOS10/general sandbox. Previous ordinary linkedmain proof/historicalfailure retained.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_tetris_main_test.go": "77699d76a8c2271e2293ec3aec1a977f3c02ceb1d29b1f1db8f08fd6b973ef3e",
+      "minzc/pkg/pipeline/cpm_tetris_native_test.go": "671e010cb4dc56cd4514a3ba2ec6a22102ecc875ff235e3010d8a7e24fa879eb",
+      "minzc/pkg/pipeline/cpm_tetris_invalid_store_test.go": "e278e94431edd0a94128977a6a18f187616e6d21e7f77d7dfd70d12cd99dd88e",
+      "docs/grace-integration-286/root.txt": "169dec71a6acca7fc2867e10e7012c65b3f126e6ffb8e3f5f1df5bd088eb420e",
+      "docs/grace-integration-286/transition.txt": "2547a0186385efefde82fd8ccf584b9eefcbb4ec19f90f7a0be023b7e6ab27ef"
+    }
+  },
+  {
+    "path": "examples/nanz/tetris_tui.nanz",
+    "source_sha256": "019ddfef02d2afe7e9c911bdf50e8f4ec95a341ef638bbd1b73b34130efb97e8",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Whole corrected original main, frozen z/q/a terminal input, all3modes raw/finalVM and linked native; 1955 ordered events and 8669 UTF8 bytes.",
+    "independent_model": "Independent complete terminal/render and game state model frozen before execution. Native unique extern RET linker slots and actual allocated ABI; pooled CString bounds, full RAM/code/stack return checked.",
+    "boundary": "Explicit test-owned terminal bindings match mzv host contract; unlinked public ASM has unresolved extern slots. No public mze/runtime/hardware claim; fixed finite scenario only.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_tetris_tui_main_test.go": "4b516f485025df7ac151b2558eb169a9b582e88bc513defcf2a1a260ef75fdbb",
+      "reports/tetris-tui-main/freeze.json": "ecf2e55fbd2977e8f94b8d7e2d1a9a73545e863b4f961a692669303d5d73e4ac",
+      "reports/tetris-tui-main/manifest.json": "6e88ac17b8d3cfe41ca0181834bbd2f39f97fad719089e678a8163f6a90d559c",
+      "reports/tetris-tui-main/LINKER.md": "8133b24677280951f68cae559079d7d14b83db841484d483f0680a9b071f4512",
+      "docs/grace-integration-275/tui-root.txt": "10ccc3e877b317ecc386d409c24c6922df1f6d708e2d1f107b51739d45b9bec8"
+    }
+  },
+  {
+    "path": "examples/nanz/tiny.nanz",
+    "source_sha256": "e1439d8bc257241d93d60dc3e9af0fe6a64a7f55c7f2602284183bcee9d43c90",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "add all65536bytepairs,double/triple all256inputs,three modes198144nativecalls.",
+    "independent_model": "Frozen c3b6ab52 independentmod256arithmetic raw/final/native trueCALLactualreturnABI PC/SP/fullRAM andVMzeroeffects.",
+    "boundary": "All3purecallable byte domains covered;no applicationmain source.",
+    "evidence": {
+      "reports/original-tiny-native/REPORT.md": "e812516d5a55d8bd3210f24efd6413143e775fe96a00c7f1d56a8d8063a4afdd",
+      "reports/original-tiny-native/manifest.json": "f59161aea794bb6bc34aed43ae5d4523161964c702dfcc4c222e3cc1c078c57d",
+      "minzc/pkg/pipeline/original_tiny_native_test.go": "db7fdb1b3665868d7024e665bfced0d8e60aad2ca49f0465b2eeed53b26abf80"
+    }
+  },
+  {
+    "path": "examples/nanz/tui_commander.nanz",
+    "source_sha256": "11a31a7e49238da84a61e03e0a7d883670f787413e228c19616f9521035649bb",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Whole original main: Down,F5,F3,Up,Esc; five frames, 204 terminal events and 2729 ANSI bytes in raw/final VM and assembled native across three modes.",
+    "independent_model": "Frozen source/API and independent navigation/terminal oracle, including both independent if clauses in main.",
+    "boundary": "Test-owned typed TUI hosts with native register clobber stress; full RAM/image, state and PC7003/SPf000 checked. Finite key workload, not public terminal/hardware or tui_commander_l3 proof.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_tui_commander_main_test.go": "b68a9f1f0b576fbefceecd7c0e1d839ff7dfed6a71c638669eac1ad719237331",
+      "reports/tui-commander-main/freeze.json": "722a71887cbc65ae470a49532f58453d821cc50e180a55dd87009c66687c1380",
+      "reports/tui-commander-main/manifest.json": "6bb24326c6e1463b211e261f92fcd20b2f21ff8ebc0c6105aed7913eb0301f9a",
+      "docs/grace-integration-300/root.txt": "c6c81ade3c5a65eeab16094336bac45148cfc7b5079895998f164ad30315b095",
+      "docs/grace-integration-301/root.txt": "fe1b7dfeaf586404584a77be1836eaae60972bcd7ea5d6b863b59f628b49a99c"
+    }
+  },
+  {
+    "path": "examples/nanz/tui_commander_l3.nanz",
+    "source_sha256": "182dfacd09df25de965104cd0a6242dfa5d09b5ccf25f7e6e7f2d81f6a2550a3",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Original meta-generated screen whole main: one Esc input, 36 ordered terminal events and 399 ANSI bytes; raw/final VM and assembled native across three modes.",
+    "independent_model": "Independent source metafunction/block rendering model frozen before execution; compile-time CString and emitted literals inspected.",
+    "boundary": "One original declarative block and key scenario, test-owned typed TUI host with register-clobber stress and full RAM/PC/SP checks; not generic meta-engine or public CP/M proof.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_tui_commander_l3_main_test.go": "f0d1a8f16741b28126166a71bd7733e5c5037ecd42f347e014324581f9dd05cb",
+      "minzc/pkg/pipeline/original_tui_commander_main_test.go": "b68a9f1f0b576fbefceecd7c0e1d839ff7dfed6a71c638669eac1ad719237331",
+      "reports/tui-commander-l3-main/freeze.json": "6f3cb242f0cc7a81b63483c41b909af47a4953071e53f04db828253a1eb2a334",
+      "reports/tui-commander-l3-main/manifest.json": "b40df3b4bb0a98a9ebc5d0b001487983cf7f9849a36bb01255016a47dcb159f2",
+      "docs/grace-integration-301/root.txt": "fe1b7dfeaf586404584a77be1836eaae60972bcd7ea5d6b863b59f628b49a99c"
+    }
+  },
+  {
+    "path": "examples/nanz/tui_cpm.nanz",
+    "source_sha256": "178294bd8a1fb6987be907cec3117b479fe2e04b08caae6aaebb14c7f36d6583",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Whole unchanged main, three modes; one key a, exact stdout 422/236 bytes; raw/final VM and assembled Z80.",
+    "independent_model": "Pre-execution frozen output/model; explicit low-level ASM host bindings in VM and original native ASM.",
+    "boundary": "Finite scenario; RAM/code/PC/SP checked. Test-owned runtime, not public CP/M.",
+    "evidence": {
+      "docs/grace-integration-283/root.txt": "1d4443af9676dceace698eee90359dac4e83c43d3ac3b339768eb54eb5d09563",
+      "minzc/pkg/pipeline/original_cpm_screen_main_test.go": "4a783f6f8cb63e8d265d74734d01c8150b6de4b0f7ec64a104f90251c308e143",
+      "reports/cpm-screen-main/manifest.json": "50fb1ff5fd58ba30265eaa813cb3ce1ea15e039af72e7c1c9e093e94677edb49"
+    }
+  },
+  {
+    "path": "examples/nanz/tui_demo.nanz",
+    "source_sha256": "1371d729645b1a5bcd232b1f3a5155ff05a1c499598d5995a951f651dca16e9b",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Whole main with four piped inputs: 7, blank, 256 and 65535; three modes, raw/final VM and native; exact COUNT registration, host state and stdout 7/42/0/255.",
+    "independent_model": "Pre-execution frozen MZV piped-selection contract, independent integer parser and expected byte-output semantics.",
+    "boundary": "Test-owned typed selection hosts with native register clobber stress, full RAM/image checks; actual main HALT with driver CALL SP EFFE. No interactive ANSI/key-loop or public runtime claim.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_tui_demo_main_test.go": "26cad99e7a3d15981f2270e9f879ed2290d2c53739e6ea6f57fa378adce1af9b",
+      "reports/tui-demo-main/freeze.json": "34c06aebf4000c3a9dfbbee12834753db80fda1045e416d219f109ed492aea1a",
+      "reports/tui-demo-main/manifest.json": "9e9f7755ceeb5dca57ceb716530fe147f198a930b3ca1e2babe2e737429cd0f8",
+      "docs/grace-integration-298/root.txt": "02f7cbd161304b94805de060ac196ff7f8744f100990f0f896c123aae9187163"
+    }
+  },
+  {
+    "path": "examples/nanz/tui_screen.nanz",
+    "source_sha256": "ffd82561eba30cf4673888d868e60cca0f48d2c2f0005d5a5aa012ff44ef49c5",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Wholemain four finite screen/key/edit scenarios total,three modes raw/final VM and linked Z80; exact orderedterminal/output/globalbuffers/RAM/PCSP.",
+    "independent_model": "Frozen pre-execution ANSI80x24 terminal/key/read_line model; originalsources unchanged.",
+    "boundary": "Test-owned linked terminal runtime,not public standaloneBIN. ABAP original DIHALT usesJPloader; tui returnsCALLloader. One finite scenariofamily.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_terminal_screen_main_test.go": "dca1b8afcf5b5c02184df33c62f025b9f07401debca66a91090101247cfd421e",
+      "minzc/pkg/mir2/renumber.go": "d73a7c4c4f7142a0951a894fd91fe73bfd5170f624615b185cb6d78bd6f0bbaf",
+      "reports/terminal-screen-main/manifest.json": "e8586c0e0d35c551e136034063d9aa705985e9a233bdecfb44892053ff4fd908",
+      "docs/grace-integration-287/root-final.txt": "6343930976baa317b532fc607617fd8a30961b6e8a991cf4b4f969b5871fd85f"
+    }
+  },
+  {
+    "path": "examples/nanz/tui_zx.nanz",
+    "source_sha256": "9f5b746bebc91c71488d2458a40aba316834f555c772afbeeec588d64642a4b8",
+    "native_behavior": "executed-native-asm-bounded",
+    "workload": "Full unchanged main in three modes; 194 exact ROM output bytes, real RST/CALL continuation, original DI/HALT.",
+    "independent_model": "Frozen source-derived text/control stream; only ROM entries0010/1601 intercepted with preserved registers; all RAM except exact spill/observed stack, loader return word preserved.",
+    "boundary": "Native ROM protocol only, no VM differential, pixel model, physical ZX ROM or arbitrary register clobber claim.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_tui_zx_main_test.go": "4b03af27634696af2033bbcc2fc28848fee15c32f833832f89490936a1f4cad9",
+      "reports/tui-zx-main/manifest.json": "4ee28378cc03155f46186daf1118dd3716d21dc6cd86e54725322414203a6f98",
+      "reports/tui-zx-main/root.txt": "a238a70f33e3d6b01e890d06cc6e6b5f08dd8114a1481cd0408160a86efe9030"
+    }
+  },
+  {
+    "path": "examples/nanz/tuple_assert_gate.nanz",
+    "source_sha256": "4d4456e75beb9dcb43df6bc1483a3b8c9fa2b3c8dfe9d4f68c3b6679abcde6d8",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Divmod full byte numerator/nonzero denominator; word minmax/swap/projections all lowbyte orderedpairs plus14x14wordboundaries, both result slots. Three modes591136calls each across three source modules.",
+    "independent_model": "Frozen direct source arithmetic and Bookv7\u00a77.5 tuple results; raw/final/native actualCALL returnPC/SP full64KiBRAM. March13 duplicate exactSHA read independently.",
+    "boundary": "No divisorzero/nonterminatingdivmod or fullu16pairdomain claim.",
+    "evidence": {
+      "reports/2026-10-11-original-tuple-corpus.md": "64f02fab27f37b46fa4e47e1f3ad898b4b986b584ed6d0ad8ebfc4c8f8664d7b",
+      "reports/original-tuple-corpus/manifest.json": "7f3e45fe2dc1d1b4fd7e4e67296f88ba3e58b87983adce30c303f22dce8c92fe",
+      "docs/grace-integration-179/tuple-root.txt": "7b27c76fb41632913dad386ae2b2978f0ac687cb49faea88bca01e3eba80dbbe"
+    }
+  },
+  {
+    "path": "examples/nanz/typed_print.nanz",
+    "source_sha256": "f7db7b5097f91a537b1bb39f9e20a2358a5be72582bc70eaab7514ef5625f846",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Exact full main/probe_zero/probe_overflow, six persistent calls; 104 additional imported decimal/capacity workloads separate",
+    "independent_model": "Independent strconv decimal plus bounded writer model; all44globalbytes, byte output order in VM, relocated pointers and full native write bounds/SP/immutable image",
+    "boundary": "Exact source and real stdlib/text/print.nanz import unchanged. Main bytes score=65535 u8=175 plus NUL; no OS output. Concrete Printable implementation/capacity workloads only, not all interfaces.",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_typed_print_native_test.go": "39212c88e2393d6c1cb91435b5cc650a65bcdde662869e7f323c601732872042"
+    }
+  },
+  {
+    "path": "examples/nanz/widemath.nanz",
+    "source_sha256": "f602875384794e55e4175961ddb822c3c45760a638b54eee90e13aeb27178ea8",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "All26originalcallables;749345 frozen deterministic host-model inputs/mode, three modes, 2248035 native calls",
+    "independent_model": "Book v7 semantic chapters3/7/8: signed ordering, modular widths, saturation, fields and calls; raw/final VM and assembled native, ordered W8 reads/writes, PC/SP and full64KiB/code guard",
+    "boundary": "Exact source and31assertions retained; assertions are additional source expectations, not assumed independent proof. Allbytepairs for eight functions and allwordunary inputs; wordpair/clamp/brightness/structhelper domains bounded explicitly. Address-valued local struct return inspected immediately before later calls; not arbitrary escaping lifetime or allcorpus proof.",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_widemath_native_test.go": "b12cf12f0db50d2c8040191db282164dd34fb8e0ace57f7088a5557e6fab6dfb"
+    }
+  },
+  {
+    "path": "examples/nanz/zsql.nanz",
+    "source_sha256": "47ac542243680cad2f8165d0da07017c2788ab63815cad10fdcd66630c2b6530",
+    "native_behavior": "inline-asm-target-needs-audit",
+    "workload": "",
+    "independent_model": "",
+    "boundary": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+    "evidence": {}
+  },
+  {
+    "path": "examples/nanz/zsql_zx.nanz",
+    "source_sha256": "5f1e8230c2e59e25f7e3bb3c958633e29b8707ad019db18ac61c8fb38ab49e31",
+    "native_behavior": "inline-asm-target-needs-audit",
+    "workload": "",
+    "independent_model": "",
+    "boundary": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+    "evidence": {}
+  },
+  {
+    "path": "examples/nanz/zsql_zx_real.nanz",
+    "source_sha256": "444865f7ad85c4c7eeaa51e53827f58303436339ba8bbda82683ee4fc5364eaf",
+    "native_behavior": "inline-asm-target-needs-audit",
+    "workload": "",
+    "independent_model": "",
+    "boundary": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+    "evidence": {}
+  },
+  {
+    "path": "examples/paper/outparam_swap.nanz",
+    "source_sha256": "557ec2d0ca09991b12edf50f86b8673803ab97bce2381476c22a2d246ad70fdf",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Swap/use_swap all65536bytepairs plusmain,three modes393219nativecalls.",
+    "independent_model": "Frozen directswap/modularsum,alltupleslots raw/final/nativeCALLPC/SP/fullRAM.",
+    "boundary": "Fullbyte domainscovered;internalnativeCALLswap folded,notclaimingcrossfunctionABIcallremains.",
+    "evidence": {
+      "reports/2026-10-11-087-original-outparam-swap.md": "0fd840c4ceaa08d5a1e6f9b3e9c8e92730ee2f2dc8d5998606598bea3c53575e",
+      "reports/outparam-swap-native/manifest.json": "e4fb60f29b32bd4aa4e3698988bfa7b9847f6fbd4e6807cd4d20d6ab5771ee4c",
+      "docs/grace-integration-194/outparam-root.txt": "2e97de24132ffe36b23a78a1271e23f5da87fcc0d767a0a558568aec625e84a2"
+    }
+  },
+  {
+    "path": "examples/pascal/assert_test.pas",
+    "source_sha256": "8e86abf7590820766d59117a07bea60755a7e40d3803d6f9589a788824726ec3",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Six exactsourcepaths allbyteunary/pairs andPascalDoubleall65536signedpatterns,sourceasserts/mainwhereexists,three modes2167440nativecalls.",
+    "independent_model": "Frozen8569bbf4 directarithmetic/predicate models raw/final/native actualreturnABI PC/SP/fullRAM.",
+    "boundary": "No fabricatedmain;all stated typed callable domainscovered.",
+    "evidence": {
+      "reports/assert-frontends-native/REPORT.md": "cf205f07d7a5687ac665dcba6643492f86de5feaeb914229621ad5bfc5ab8728",
+      "reports/assert-frontends-native/manifest.json": "8eb56bea7003fb88fdb74a69bfc21ed44f2edca2e7019ddc092773be89a49068",
+      "docs/grace-integration-197/assert-gcd-root.txt": "1691e8d1f713b5002fd9213e9251e0664d421045682935bdbbd1dad25a0c30ea"
+    }
+  },
+  {
+    "path": "examples/pascal/bubble_sort.pas",
+    "source_sha256": "f461d9d23e9b78c841999d3867db1d1d028353b80ce94354d7a1b89c70280732",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "INITARRAY then SORT; source's ten input bytes",
+    "independent_model": "Independent ascending sort of 50,30,80,10,60,40,90,20,70,100; compare all array RAM",
+    "boundary": "TestShowcasePascalBubbleSortNativeMemory; output/PrintArray deliberately outside workload",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_native_oracles_test.go": "c92cf3a20409cf07850fc2a188486334c11fc62522a31f88009372601cef194e"
+    }
+  },
+  {
+    "path": "examples/pascal/casetest.pas",
+    "source_sha256": "5957f24a6b6956e71e35ef71e8cdfdc50c3fd4149de9bce85e2437fc28038fb7",
+    "native_behavior": "executed-native-cpm-runtime",
+    "workload": "Unchanged CASE66/REPEAT wholemain3modes x2BDOS hosts; exact Beta CRLF/OSRET/PCSP/RAM/stack.",
+    "independent_model": "Frozen Pascal case/repeat semantic stdout; bounded source dollar literal read model.",
+    "boundary": "Native injected BDOS; no VM ASM stdout/hardware claim. Exact publicCLI COM equality verified in all3 modes.",
+    "evidence": {
+      "minzc/pkg/pipeline/pascal_case_runtime_test.go": "ecc45c8173d67be998c913b386db63c89bf6722bdce260d4c5d5e4079dd31ed4",
+      "minzc/pkg/pipeline/pascal_cpm_main_test.go": "4527f3a1f5c5fb3f9195ad8dcf071b35e7e3d189a00eb169f700f36dd8fad9ed",
+      "reports/pascal-case-runtime/manifest.json": "79a5a75baeaa023032d7c41a4754523fd7415678d852feb8f19e292d1a99aee1"
+    }
+  },
+  {
+    "path": "examples/pascal/factorial.pas",
+    "source_sha256": "094af24a48a5e849947fc97ce9ca4c08e5ffc1f1c939ed7db0aaad3b46df9625",
+    "native_behavior": "executed-native-cpm-runtime",
+    "workload": "Unchanged original whole-main production COM/public CLI, 3modes x2BDOS hosts, exact stdout/OSRET/PC/SP/RAM/stack. FACT0..12 raw/finalVM/native separately.",
+    "independent_model": "Frozen output and independent decimal word domain: signed/unsigned all65536 x2hosts ordinary formatter options; wholemain3modes separate, same COM identity.",
+    "boundary": "Injected BDOS only, no hardware or VM ASM stdout claim. Formatter model module includes explicit unsigned helper; unchanged original Factorial wholemain separate. Signed beforefailure frozen.",
+    "evidence": {
+      "minzc/pkg/pipeline/pascal_cpm_main_test.go": "4527f3a1f5c5fb3f9195ad8dcf071b35e7e3d189a00eb169f700f36dd8fad9ed",
+      "minzc/pkg/pipeline/pascal_decimal_runtime_test.go": "2e3498c98cb279a6c8afe9338d18b92bf180e83b49f770602296c4206ee4bbfc",
+      "reports/pascal-decimal-runtime/manifest.json": "2b93ab205fe1e1764e4f845c791ede323df1337e13edc897561707b1684dda1f",
+      "docs/grace-integration-244/pascal-factorial-whole-root.txt": "31bb6f23cb2b65d3f19e1045e619529a10373e0a3d59ae0a7df5d20725bdef25",
+      "docs/grace-integration-244/pascal-decimal-root.txt": "8576ee429fef8cf16501a4a3fc70e490fa01f0c647d95383a0174036ca9ecc76"
+    }
+  },
+  {
+    "path": "examples/pascal/hello.pas",
+    "source_sha256": "d8788f16c919d3454fc59e045df8ea79673ee34e9e0da69d7a5c732d423d2dca",
+    "native_behavior": "executed-native-cpm-runtime",
+    "workload": "Unchanged original whole-main production COM/public CLI, 3modes x2BDOS hosts, exact stdout/OSRET/PC/SP/RAM/stack. FACT0..12 raw/finalVM/native separately.",
+    "independent_model": "Frozen output and independent decimal word domain: signed/unsigned all65536 x2hosts ordinary formatter options; wholemain3modes separate, same COM identity.",
+    "boundary": "Injected BDOS only, no hardware or VM ASM stdout claim. Formatter model module includes explicit unsigned helper; unchanged original Factorial wholemain separate. Signed beforefailure frozen.",
+    "evidence": {
+      "minzc/pkg/pipeline/pascal_cpm_main_test.go": "4527f3a1f5c5fb3f9195ad8dcf071b35e7e3d189a00eb169f700f36dd8fad9ed",
+      "minzc/pkg/pipeline/pascal_decimal_runtime_test.go": "2e3498c98cb279a6c8afe9338d18b92bf180e83b49f770602296c4206ee4bbfc",
+      "reports/pascal-decimal-runtime/manifest.json": "2b93ab205fe1e1764e4f845c791ede323df1337e13edc897561707b1684dda1f",
+      "docs/grace-integration-244/pascal-factorial-whole-root.txt": "31bb6f23cb2b65d3f19e1045e619529a10373e0a3d59ae0a7df5d20725bdef25",
+      "docs/grace-integration-244/pascal-decimal-root.txt": "8576ee429fef8cf16501a4a3fc70e490fa01f0c647d95383a0174036ca9ecc76"
+    }
+  },
+  {
+    "path": "examples/pascal/logic_test.pas",
+    "source_sha256": "59a713bce212dd1b353e032bb6addeaf05875799e1a4e7f8d4094dfcfde24f1e",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All13 originalcallables acrosslogic/math,main+38asserts;completebyteunary/pairs,signedDoubleall65536patterns,Add3allpairs\u00d716frozenthirdvalues;4134264nativecalls three modes.",
+    "independent_model": "Frozen871b03ea directarithmetic wrap/spec;Double signedactualworddecodeint16,raw/finalVM/nativePC/SP/fullRAM/imageeachcall.",
+    "boundary": "Add3third16boundariesbounded,notall16Mtriples;allmathdeclareddomainscovered.",
+    "evidence": {
+      "reports/pascal-logic-math-native/REPORT.md": "cbdf98623137f7d2fe90ba6dd0ca1615adf51df3214469ca63a7e40c9447b126",
+      "reports/pascal-logic-math-native/manifest.json": "85c6f138b3c51fe235dceffa2665c5e33b35a798ccf89fa1977f05a1ec31dfe9",
+      "docs/grace-integration-189/pascal-root.txt": "8b4f905f1058042554ce17a78ecdb9e0614649ecdf652c00703f2c9743cd2454"
+    }
+  },
+  {
+    "path": "examples/pascal/math_test.pas",
+    "source_sha256": "407967b334035ccf1576b857d2953759d55c4ad4e117d7361544330b0d41c529",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "All13 originalcallables acrosslogic/math,main+38asserts;completebyteunary/pairs,signedDoubleall65536patterns,Add3allpairs\u00d716frozenthirdvalues;4134264nativecalls three modes.",
+    "independent_model": "Frozen871b03ea directarithmetic wrap/spec;Double signedactualworddecodeint16,raw/finalVM/nativePC/SP/fullRAM/imageeachcall.",
+    "boundary": "Add3third16boundariesbounded,notall16Mtriples;allmathdeclareddomainscovered.",
+    "evidence": {
+      "reports/pascal-logic-math-native/REPORT.md": "cbdf98623137f7d2fe90ba6dd0ca1615adf51df3214469ca63a7e40c9447b126",
+      "reports/pascal-logic-math-native/manifest.json": "85c6f138b3c51fe235dceffa2665c5e33b35a798ccf89fa1977f05a1ec31dfe9",
+      "docs/grace-integration-189/pascal-root.txt": "8b4f905f1058042554ce17a78ecdb9e0614649ecdf652c00703f2c9743cd2454"
+    }
+  },
+  {
+    "path": "examples/pascal/records.pas",
+    "source_sha256": "b2ff92c95d24419362563db2653e075bf6ec58d1171aa6c3a2e227ce10c72f28",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "16 PointSum and Manhattan cases on two RAM records",
+    "independent_model": "Byte sum and Manhattan distance with modulo256; every field populated explicitly",
+    "boundary": "TestShowcasePascalRecordsNativeModels; CP/M main printing outside workload",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_native_oracles_test.go": "c92cf3a20409cf07850fc2a188486334c11fc62522a31f88009372601cef194e"
+    }
+  },
+  {
+    "path": "examples/pascal/recursive_test.pas",
+    "source_sha256": "290fb4faeeeba36ff27ea3eb72157f9ee63f6161229b85d2e46ed00423e4ed1e",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "All8 original callable entries fullByte0..255,14sourceasserts,unchangedmain in three modes;6189nativecalls total.",
+    "independent_model": "Frozen37dc2192 independent iterativefactorial/summation mod256 and direct functions;raw/final/nativeCALL PC/SP/fullRAM,image;main actualDI/HALT/nooutput.",
+    "boundary": "Full declared byte domain covered; oldVIR source comment historical, source untouched.",
+    "evidence": {
+      "reports/pascal-recursive-native/REPORT.md": "7a97f222847aa946056b94ca2c49a8181200e485dee4d584e43ff61ac09baf77",
+      "reports/pascal-recursive-native/manifest.json": "5aed0b3c381f70868d2cc63bfc4180e9f1a8d43438b11a7e59c576283ebc4fa1",
+      "docs/grace-integration-182/pascal-root.txt": "480748767ea9cde720f6a5d5ef43c75b9d6e0ea511a6b52b945e213ef639a725"
+    }
+  },
+  {
+    "path": "examples/pascal/sieve.pas",
+    "source_sha256": "4bffa6493958faa56aeea92e364693f3eaf0d405bac27a7ec3d0f1ae91a0719e",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Original main compute prefix before CP/M WriteI16 output",
+    "independent_model": "Trial division primality for odd numbers3..203: all101Flags and count45",
+    "boundary": "TestShowcasePascalSieveNativeFullMemoryModel; BDOS output outside workload",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_algorithm_oracles_test.go": "a7eadc86158bf723956aa3b0074c95d29d649c062f6824213ee373d2e5f73dc1"
+    }
+  },
+  {
+    "path": "examples/pascal/string_test.pas",
+    "source_sha256": "ffd5d5a5e71f24bc5ef9a7a7f208ac42cee2f7e425cae64993d1d3bd9306c282",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "All3 classifiers full256Byteinputs + unchangedmain directDI/HALT, three modes2307invocations.",
+    "independent_model": "Frozen179958e9 directASCIIrange predicates;raw/finalVM/native trueCALL PC/SP fullRAM no globals/spills;native main termination separately.",
+    "boundary": "Full declared byte domains covered; original staleVIRbug comment unchanged.",
+    "evidence": {
+      "reports/2026-10-11-085-original-pascal-string-native.md": "627cd5cc6d91f389a1c7b4828c7bd6658cbc42bff50a22ecf7581760364cd889",
+      "reports/pascal-string-native/manifest.json": "95830a6b46652107b198b1cb463ed6daa858d3a84b47cdb9c48a8d99d1e4498b",
+      "docs/grace-integration-183/pascal-string-root.txt": "1716952cda413b5e8303e587f675c6299b1abf2f322baf61165611684cf13f33"
+    }
+  },
+  {
+    "path": "examples/plm/abs_diff_fib.plm",
+    "source_sha256": "7f799d07762377d7f889594d6b51891b64832a11648d5e5163d6a5b23af17a1a",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "bothoriginalentries fulldomains: ABS_DIFF65536pairs+FIB256n,65792calls/mode197376total",
+    "independent_model": "host absolute difference and independent Fibonacci recurrence modulo256",
+    "boundary": "none for original declared callable byte domains",
+    "evidence": {
+      "minzc/pkg/pipeline/plm_absdiff_fib_complete_test.go": "d793797c5c601a786dbbbb85125c07fbe7a13c266401843da5d8abeb4d4a57ca",
+      "reports/plm-absdiff-fib-native/manifest.json": "7cc800de31ea94ff5fbb4f5703abc21570ae7402cc5abc01f97ba01b02262d57"
+    }
+  },
+  {
+    "path": "examples/plm/assert_test.plm",
+    "source_sha256": "6eaca5ccab9b46d534be6b79e267b1479135e365e4fb313c39d40f5be437842a",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Six exactsourcepaths allbyteunary/pairs andPascalDoubleall65536signedpatterns,sourceasserts/mainwhereexists,three modes2167440nativecalls.",
+    "independent_model": "Frozen8569bbf4 directarithmetic/predicate models raw/final/native actualreturnABI PC/SP/fullRAM.",
+    "boundary": "No fabricatedmain;all stated typed callable domainscovered.",
+    "evidence": {
+      "reports/assert-frontends-native/REPORT.md": "cf205f07d7a5687ac665dcba6643492f86de5feaeb914229621ad5bfc5ab8728",
+      "reports/assert-frontends-native/manifest.json": "8eb56bea7003fb88fdb74a69bfc21ed44f2edca2e7019ddc092773be89a49068",
+      "docs/grace-integration-197/assert-gcd-root.txt": "1691e8d1f713b5002fd9213e9251e0664d421045682935bdbbd1dad25a0c30ea"
+    }
+  },
+  {
+    "path": "examples/plm/hello.plm",
+    "source_sha256": "fdb0a98768bdd5ad347c8220ed409e4f964230541712c8af9b0b4561d259b84c",
+    "native_behavior": "pending-independent-oracle",
+    "workload": "",
+    "independent_model": "",
+    "boundary": "Module entry and exact case-preserving byte literals fixed in d32d20d4. Original PRINTCHAR is empty; PRINTMSG termination beyond exact literal bytes still requires explicit trailing-zero memory convention. Bounded original-main proof is separate from portable/CPM runtime completion.",
+    "evidence": {
+      "reports/plm-top-level-entry/manifest.json": "3a9148d205d72980ca8fbf8b063f3d47f98415472114e3b95ba9864ca3ec6161",
+      "reports/plm-top-level-entry/REPORT.md": "c4059283c3371099732e50c755476a874c2d2412be165a14b755c09a2863d2ce",
+      "minzc/pkg/pipeline/plm_module_entry_native_test.go": "d3108ccacd9abb02707ecdf9621e699c58a3665c32749bb749d7aa98ec3d41d3",
+      "docs/grace-integration-209/root-plm-entry.txt": "bdfc82ba18dfa827f3e240e215a0c910d60cc4077edc0d6ad2b92fadbef8f520"
+    }
+  },
+  {
+    "path": "examples/plm/showcase.plm",
+    "source_sha256": "e95cc14440849d599144d9b007263273d96ab5adeae4df828abd107ff361dcdb",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "24 boundary arithmetic/fib/min calls incl formerly commented expectations",
+    "independent_model": "Go integer arithmetic modulo256, iterative Fibonacci, unsigned min",
+    "boundary": "TestShowcasePLMArithmeticNativeModels",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_native_oracles_test.go": "c92cf3a20409cf07850fc2a188486334c11fc62522a31f88009372601cef194e"
+    }
+  },
+  {
+    "path": "examples/plm/sum_array.plm",
+    "source_sha256": "6564b22b460943d7b8ac088ec482f05857f752eb40f5c6103534fcaf2a0ec023",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Each source70,144calls/mode:all256seed\u00d7256length plus4608pointerwrapcases,three sources/modes631296calls.",
+    "independent_model": "Frozen independentsumbyte/orderedread sourceSHA;raw/final/nativeCALL exactPC/SP/RAM/noextrasstores;threeoriginalsourcesparsedseparately.",
+    "boundary": "Arrayfamiliesbounded,notallarrays;noGracegaincode28Bequal.",
+    "evidence": {
+      "reports/2026-10-11-original-plm-sum-corpus.md": "02f24a4437743b577aad5f935fad551f58597a5064da216040e5ff2799d4da98",
+      "reports/original-plm-sum-corpus/manifest.json": "f7fe95196f83c507ef8140986a87b2dacb8ace2b1d7881a866278fe381953066",
+      "docs/grace-integration-194/plm-root.txt": "1784864b0b88ba61cbd1950f50e3a2e3ffa8b080733fc9884dcf0b846a3351f7"
+    }
+  },
+  {
+    "path": "examples/tests/asm_caller_callee.nanz",
+    "source_sha256": "2055fecf573db289ccfbd16de3d2f59d2e91e903e2e0be462aee5d851b6c5a83",
+    "native_behavior": "executed-native-asm-bounded",
+    "workload": "Original ASM entries/native source assertions, 3 modes; exhaustive byte domains and frozen word/3/4 argument boundaries, actual CALL chains.",
+    "independent_model": "Exact Z80 instructions, screen/port bit models, PC/SP/fullRAM/write guards. No VM ASM equivalence claim.",
+    "boundary": "Exact bounded native ABI/effects; copy_n actual HL->DE despite misleading names; count0 unexecuted; injected peripherals, no hardware claim.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_asm_contract_corpus_test.go": "d94d350d204ac92f81a0907052377a854eb0c5bb95166a07d2bc0196f9972021",
+      "reports/original-asm-contract-corpus/freeze.json": "5bc98f426e45fa053c59cc1c4df9e5f98aebda8885b34c51db3bac0aa4a46744",
+      "reports/original-asm-contract-corpus/manifest.json": "ae6a4e31395228ba91c75b19ad3fe96e3280db6b8b7b458c5dfa8c06fc101c4c",
+      "docs/grace-integration-237/asm-root.txt": "38e6cfbaa7df17c7af7893bf475c49afb305440ff970d79748abb164b6f095bc"
+    }
+  },
+  {
+    "path": "examples/tests/asm_calling_convention.nanz",
+    "source_sha256": "ae7c1e14855375e9a83ebcc3fc74f73461a1fc099163f3059d78bada2c856716",
+    "native_behavior": "executed-native-asm-bounded",
+    "workload": "Original ASM entries/native source assertions, 3 modes; exhaustive byte domains and frozen word/3/4 argument boundaries, actual CALL chains.",
+    "independent_model": "Exact Z80 instructions, screen/port bit models, PC/SP/fullRAM/write guards. No VM ASM equivalence claim.",
+    "boundary": "Exact bounded native ABI/effects; copy_n actual HL->DE despite misleading names; count0 unexecuted; injected peripherals, no hardware claim.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_asm_contract_corpus_test.go": "d94d350d204ac92f81a0907052377a854eb0c5bb95166a07d2bc0196f9972021",
+      "reports/original-asm-contract-corpus/freeze.json": "5bc98f426e45fa053c59cc1c4df9e5f98aebda8885b34c51db3bac0aa4a46744",
+      "reports/original-asm-contract-corpus/manifest.json": "ae6a4e31395228ba91c75b19ad3fe96e3280db6b8b7b458c5dfa8c06fc101c4c",
+      "docs/grace-integration-237/asm-root.txt": "38e6cfbaa7df17c7af7893bf475c49afb305440ff970d79748abb164b6f095bc"
+    }
+  },
+  {
+    "path": "examples/tests/asm_register_permutations.nanz",
+    "source_sha256": "86a49f3262aeebe9411c8ef9ead9bd753443c6ee602769968a0bc35a4f0f2ab7",
+    "native_behavior": "executed-native-asm-bounded",
+    "workload": "Original ASM entries/native source assertions, 3 modes; exhaustive byte domains and frozen word/3/4 argument boundaries, actual CALL chains.",
+    "independent_model": "Exact Z80 instructions, screen/port bit models, PC/SP/fullRAM/write guards. No VM ASM equivalence claim.",
+    "boundary": "Exact bounded native ABI/effects; copy_n actual HL->DE despite misleading names; count0 unexecuted; injected peripherals, no hardware claim.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_asm_contract_corpus_test.go": "d94d350d204ac92f81a0907052377a854eb0c5bb95166a07d2bc0196f9972021",
+      "reports/original-asm-contract-corpus/freeze.json": "5bc98f426e45fa053c59cc1c4df9e5f98aebda8885b34c51db3bac0aa4a46744",
+      "reports/original-asm-contract-corpus/manifest.json": "ae6a4e31395228ba91c75b19ad3fe96e3280db6b8b7b458c5dfa8c06fc101c4c",
+      "docs/grace-integration-237/asm-root.txt": "38e6cfbaa7df17c7af7893bf475c49afb305440ff970d79748abb164b6f095bc"
+    }
+  },
+  {
+    "path": "examples/tests/divmod10_test.nanz",
+    "source_sha256": "2c183337ceb6c7df4299d3db49cf0c43065a6aa3641152b5d1dfab85630b1678",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "All256div/mod10inputs,14constantcoeff\u00d7256bytes,board_idxall65536bytepairs,sourceasserts/mainthree modes208962calls.",
+    "independent_model": "Frozen directarithwraporacle/raw/final/nativeSP/PC/fullRAM;sourceunchanged.",
+    "boundary": "Full declared byte domainscovered;puremainunusedcalculationslegallyfolded.",
+    "evidence": {
+      "reports/divmod-strength-native/REPORT.md": "9ca8ba742aad77efae892017faea0f7424bc4fa33184606d0c9d7500006280e6",
+      "reports/divmod-strength-native/manifest.json": "d538442f2483a6bedeed5984decb0eebe4b600af31b152a9a262670635aa0ed6",
+      "docs/grace-integration-194/divmod-root.txt": "b61f7a6b5aeea5f81c49e5ade12e1658fd34426d15c009dee0f8362787c87eed"
+    }
+  },
+  {
+    "path": "examples/tests/fib_parallel_copy.nanz",
+    "source_sha256": "1816bdacb6be551b42edfb83365149d00b7ce9dfa0193ade4beed24ca3479671",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All256 inputs/rawfinalnative3modes",
+    "independent_model": "Independent iterative byte Fibonacci",
+    "boundary": "Source-specific loop endpoints; no additional optimization gain",
+    "evidence": {
+      "reports/fib-pipe-native/manifest.json": "694fd073333ade6cb25d2d0c9492caaf5d13b44f6319486f862da4510c4f8b7a",
+      "minzc/pkg/pipeline/original_fib_pipe_native_test.go": "94beef83f3df0c775c7dd0e9f4e6b0724ac1802db0f719c91d7081bb6e7a78e6"
+    }
+  },
+  {
+    "path": "examples/tests/mul8_strength_reduction.nanz",
+    "source_sha256": "0083244993e5cb7216c3d0a75f806d2219a2c0ae534cdbc5295c596f5858c4e8",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "All256div/mod10inputs,14constantcoeff\u00d7256bytes,board_idxall65536bytepairs,sourceasserts/mainthree modes208962calls.",
+    "independent_model": "Frozen directarithwraporacle/raw/final/nativeSP/PC/fullRAM;sourceunchanged.",
+    "boundary": "Full declared byte domainscovered;puremainunusedcalculationslegallyfolded.",
+    "evidence": {
+      "reports/divmod-strength-native/REPORT.md": "9ca8ba742aad77efae892017faea0f7424bc4fa33184606d0c9d7500006280e6",
+      "reports/divmod-strength-native/manifest.json": "d538442f2483a6bedeed5984decb0eebe4b600af31b152a9a262670635aa0ed6",
+      "docs/grace-integration-194/divmod-root.txt": "b61f7a6b5aeea5f81c49e5ade12e1658fd34426d15c009dee0f8362787c87eed"
+    }
+  },
+  {
+    "path": "examples/tests/nanz_advantage_showcase.nanz",
+    "source_sha256": "04f3b01dc1126dae71b4b1152716df7e9e1f1225e747c3150f4ad5b0b9850875",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All13entries;450651 executions3modes;9057arrays exactfoldreads;sourceasserts",
+    "independent_model": "Independent byte arithmetic/enum/Fibonacci/five-byte sum",
+    "boundary": "fib255 exact repeated native register state/nonreturn; otherfib0..254, bounded arrays; no Grace gain",
+    "evidence": {
+      "reports/advantage-native/manifest.json": "57bd5233d9993fbc542cc3ceda33867f6ca8416965e18046b62c49e899f371f9",
+      "minzc/pkg/pipeline/original_advantage_native_test.go": "9e96934e871dc1c9d3f0c803eca91e11699676985c617be719c3b830fb05b005"
+    }
+  },
+  {
+    "path": "examples/tests/pipe_fold_mul_combos.nanz",
+    "source_sha256": "db44d4f56184592498d612b86658823effb95f52b16c15de58dfe6c45a3fb76f",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All12entries; bytepairs/unary and2321 arrays with exactreads; actualmainDIHALT",
+    "independent_model": "Independent polynomial and four-byte fold models",
+    "boundary": "Three native main entries directHALT, othersrealCALL; fullimage immutable; no runtime game claim",
+    "evidence": {
+      "reports/fib-pipe-native/manifest.json": "694fd073333ade6cb25d2d0c9492caaf5d13b44f6319486f862da4510c4f8b7a",
+      "minzc/pkg/pipeline/original_fib_pipe_native_test.go": "94beef83f3df0c775c7dd0e9f4e6b0724ac1802db0f719c91d7081bb6e7a78e6"
+    }
+  },
+  {
+    "path": "examples/tests/z80_compute_verify.nanz",
+    "source_sha256": "cd78339e7ce7a83b9104b4b08a4976524a15ff049757c30dcd50601df3cc7102",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All21 entries, three modes,1840989 actual CALL; fullbytepairs/unary, bounded word/clamp; active source via-z80 assertions",
+    "independent_model": "Independent modular arithmetic and bit-count model; Book v7 widths/explicit loops",
+    "boundary": "Word lowbytepairs+12\u00b2 boundaries,clamp256x9\u00b2, sum_to255 source nontermination; no added bxor callable",
+    "evidence": {
+      "reports/original-compute-verify-native/manifest.json": "d11908919793211141565a50aa68d0f01b27799b8afaa87f070d9dde5230f9fc",
+      "minzc/pkg/pipeline/original_compute_verify_native_test.go": "33dbaec625c4cb68a3ad371660b079ce8f59130c00961a8cd2f66f28555a99b0"
+    }
+  },
+  {
+    "path": "examples/zmachine/zork-west-demo/zvm.nanz",
+    "source_sha256": "26c396961731c73045b4f3e84f810aede7fb91e0c78d6e710cc492a7c45a59e1",
+    "native_behavior": "host-only-memory-model",
+    "workload": "",
+    "independent_model": "",
+    "boundary": "128KiB story[131072], host file/console runtime; ordinary 16-bit Z80 rejects capacity; needs explicit target memory model.",
+    "evidence": {}
+  },
+  {
+    "path": "examples/zx/console_demo.nanz",
+    "source_sha256": "302a073be5c9bdfdcd8527570265ac6b62f9333a8bfef0e6b8c3bb6b92986cb1",
+    "native_behavior": "executed-native-asm-bounded",
+    "workload": "Whole-main 3modes; original ex18 exact stdout/stderr ports; source-corrected ZX demo frozen font/keyboard scenario and full screen/RAM/PCSP.",
+    "independent_model": "Independent byte output and ZX bitmap/attributes/keyboard port model; exact source before/new identity preserved. Native-only ASM proof.",
+    "boundary": "ZX source/library contracts corrected explicitly. One lowercase keyboard/font scenario, no full scrolling/keys API or hardware claim; VM ASM no-op excluded.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_console_corpus_test.go": "7f9b02f77fe62d7d4ef5dff6f2b3e0daf1f7e6b3e4d1fe4eb56443d3fbcd8637",
+      "reports/original-console-corrected/manifest.json": "9542f0d2b7a97614fc8f8c6bffa2651caecb599d5820a855a500712debafb1da",
+      "docs/grace-integration-246/console-root.txt": "ad54b29180b92cda69c469db349e310030483d2ce6de51e89526bff3d55d1d0a"
+    }
+  },
+  {
+    "path": "examples/zx/plasma.nanz",
+    "source_sha256": "71113665c335bff7a20b34f581179c7055282e03f5332204f458a4578904991c",
+    "native_behavior": "inline-asm-target-needs-audit",
+    "workload": "",
+    "independent_model": "",
+    "boundary": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment. Pure plasma_attr helper has independent native proof; whole ZX ASM application remains unaudited.",
+    "evidence": {
+      "minzc/pkg/pipeline/plasma_mul11_test.go": "d96ef59d6428b7bfa234fad28a82c9f1a5e785859e73fc337e457ad1270ec385"
+    }
+  },
+  {
+    "path": "examples/zx/tetris.nanz",
+    "source_sha256": "66826d441f3d1ff2c50bdef6d5b466113c6694fc21728f7e842e32a7ea04f134",
+    "native_behavior": "inline-asm-target-needs-audit",
+    "workload": "",
+    "independent_model": "",
+    "boundary": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+    "evidence": {}
+  },
+  {
+    "path": "examples/zx/tetris_mir2_test.nanz",
+    "source_sha256": "2db9d65b5ef5bf23d4b32ccce1904caaff38b4a9cff0cb2d191bce9f60e1ca37",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All112dx/dy positions,15colors,200cellsx256values,main;307974 executions3modes",
+    "independent_model": "Independent frozen tetromino ASCII geometry and source enum colors, board-state model",
+    "boundary": "Only validpiece/rotation/cell values; original computational module, not wholeTetris/ZXdevice",
+    "evidence": {
+      "reports/tetris-mir2-native/manifest.json": "e48ba21db4dd66a4aaf81881be1e48342eb955a8b6aad6f2bb5e28d556e94ee0",
+      "minzc/pkg/pipeline/original_tetris_mir2_native_test.go": "d676021ae5c20c3aa6d66583a70796e5ab6cb6c9b5407cfaa3c6391cf4bad62a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-10/ex1_struct.nanz",
+    "source_sha256": "1028825d183ba0d11d2f43ac678b6afcc9cd91c475450d440a9239c731d7682e",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All callable entries, actual object/guards/fullRAM, raw/final VM and native three modes, ordered stores/read-current-state, PC/SP; 1192611 calls across five source modules.",
+    "independent_model": "Independent byte Acc add/reset, RGB field, and static single-implementor interface models, Book v7 structs/UFCS/interfaces",
+    "boundary": "No main or assertions exist in these sources. Acc add all65536 pairs at6000/ffff, reset all256 atboth; sum_two all65536. Color all256 eachlane plus216 mixedtriples. Empty-object interface entries both addresses. SHA-exact duplicates read independently. No Grace gain.",
+    "evidence": {
+      "reports/struct-interface-native/REPORT.md": "c107270368393d2b7c3897ebbcd4ab8e6363ccc9f9df74486c4634d02db20d12",
+      "reports/struct-interface-native/manifest.json": "cc31f591c7917d1cc218fff789f8baa353b1b3e2f228d9e81f1d07df5bd3b3db",
+      "minzc/pkg/pipeline/original_struct_interface_native_test.go": "5b36ffa822a8ae8e30df71f782574fbe3502271db54fe0cc0dc1e4b8dc748577",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-10/ex2_ufcs.nanz",
+    "source_sha256": "a7ebf82edbfcc931bb336de2808c4aae2835c5a293b78f124ed96c39f23421ea",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All callable entries, actual object/guards/fullRAM, raw/final VM and native three modes, ordered stores/read-current-state, PC/SP; 1192611 calls across five source modules.",
+    "independent_model": "Independent byte Acc add/reset, RGB field, and static single-implementor interface models, Book v7 structs/UFCS/interfaces",
+    "boundary": "No main or assertions exist in these sources. Acc add all65536 pairs at6000/ffff, reset all256 atboth; sum_two all65536. Color all256 eachlane plus216 mixedtriples. Empty-object interface entries both addresses. SHA-exact duplicates read independently. No Grace gain.",
+    "evidence": {
+      "reports/struct-interface-native/REPORT.md": "c107270368393d2b7c3897ebbcd4ab8e6363ccc9f9df74486c4634d02db20d12",
+      "reports/struct-interface-native/manifest.json": "cc31f591c7917d1cc218fff789f8baa353b1b3e2f228d9e81f1d07df5bd3b3db",
+      "minzc/pkg/pipeline/original_struct_interface_native_test.go": "5b36ffa822a8ae8e30df71f782574fbe3502271db54fe0cc0dc1e4b8dc748577",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-10/ex3_iface.nanz",
+    "source_sha256": "3a0c1b5a906485e6a0e3871bdad241072a9429adf6a186ecdd339b6c14984d35",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All callable entries, actual object/guards/fullRAM, raw/final VM and native three modes, ordered stores/read-current-state, PC/SP; 1192611 calls across five source modules.",
+    "independent_model": "Independent byte Acc add/reset, RGB field, and static single-implementor interface models, Book v7 structs/UFCS/interfaces",
+    "boundary": "No main or assertions exist in these sources. Acc add all65536 pairs at6000/ffff, reset all256 atboth; sum_two all65536. Color all256 eachlane plus216 mixedtriples. Empty-object interface entries both addresses. SHA-exact duplicates read independently. No Grace gain.",
+    "evidence": {
+      "reports/struct-interface-native/REPORT.md": "c107270368393d2b7c3897ebbcd4ab8e6363ccc9f9df74486c4634d02db20d12",
+      "reports/struct-interface-native/manifest.json": "cc31f591c7917d1cc218fff789f8baa353b1b3e2f228d9e81f1d07df5bd3b3db",
+      "minzc/pkg/pipeline/original_struct_interface_native_test.go": "5b36ffa822a8ae8e30df71f782574fbe3502271db54fe0cc0dc1e4b8dc748577",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-10/ex3b_iface_param.nanz",
+    "source_sha256": "d71ba92330826788fb759f58f88660312dc2018c89dbddef06d25b1b41acdc3c",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All callable entries, actual object/guards/fullRAM, raw/final VM and native three modes, ordered stores/read-current-state, PC/SP; 1192611 calls across five source modules.",
+    "independent_model": "Independent byte Acc add/reset, RGB field, and static single-implementor interface models, Book v7 structs/UFCS/interfaces",
+    "boundary": "No main or assertions exist in these sources. Acc add all65536 pairs at6000/ffff, reset all256 atboth; sum_two all65536. Color all256 eachlane plus216 mixedtriples. Empty-object interface entries both addresses. SHA-exact duplicates read independently. No Grace gain.",
+    "evidence": {
+      "reports/struct-interface-native/REPORT.md": "c107270368393d2b7c3897ebbcd4ab8e6363ccc9f9df74486c4634d02db20d12",
+      "reports/struct-interface-native/manifest.json": "cc31f591c7917d1cc218fff789f8baa353b1b3e2f228d9e81f1d07df5bd3b3db",
+      "minzc/pkg/pipeline/original_struct_interface_native_test.go": "5b36ffa822a8ae8e30df71f782574fbe3502271db54fe0cc0dc1e4b8dc748577",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-10/ex4a_abs_diff.nanz",
+    "source_sha256": "d200af0eb58a60d00262b54224da749ecb07a25ec15638ba03e4bf3f308ccf90",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Byteabsfullpairs;wordabsalllowbytepairs+196bounds;gcd65026returningpairs+510boundednonreturncontrols,three modes588882returnCALL.",
+    "independent_model": "Frozen independentabs/Euclid oracle forreturning cases;sourcezero subtractloop preserved;raw/final/nativePC/SP/fullRAM andexactSHAduplicates.",
+    "boundary": "Fullu16pairdomain notclaimed;mixedzeroGCDnonreturnconsistentwithsource,boundedobservation notuniversalterminationproof.",
+    "evidence": {
+      "reports/2026-10-11-original-absdiff-gcd-corpus.md": "07813129d63dd81b97b7b07b853d01cd4bd7de07470a44981e294a5b765289a5",
+      "reports/original-absdiff-gcd-corpus/manifest.json": "6128fa4994ecc7a82f4a9b24ff94136bd57117d6c308df794f9e28911c70fd48",
+      "docs/grace-integration-197/assert-gcd-root.txt": "1691e8d1f713b5002fd9213e9251e0664d421045682935bdbbd1dad25a0c30ea"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-10/ex4a_abs_diff_iar.nanz",
+    "source_sha256": "621fbdd24f4747af79b0e0d83fd90aaa304ed75d44fe72fda0b86b6cd4496361",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "abs_diff: 9\u00d79 signed boundaries, Grace on/off; other added helpers tracked separately",
+    "independent_model": "Independent signed distance 0..255, Language Book v7 section 3.2",
+    "boundary": "Derived test source appends helpers; original abs_diff unchanged. Original entry 162 cases; 810 total includes helpers and is not five corpus programs.",
+    "evidence": {
+      "minzc/pkg/pipeline/signed_sub_cmp_regression_test.go": "25a668f0cf83218d3a6a3649ed283551fe6589a367dfe71946f0923fa8e809bb"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-10/ex4b_abs_diff_u16.nanz",
+    "source_sha256": "9ef0622b17529e2989b36a749291ee50f6facfbff17f7818c7c001e4348ffbca",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Byteabsfullpairs;wordabsalllowbytepairs+196bounds;gcd65026returningpairs+510boundednonreturncontrols,three modes588882returnCALL.",
+    "independent_model": "Frozen independentabs/Euclid oracle forreturning cases;sourcezero subtractloop preserved;raw/final/nativePC/SP/fullRAM andexactSHAduplicates.",
+    "boundary": "Fullu16pairdomain notclaimed;mixedzeroGCDnonreturnconsistentwithsource,boundedobservation notuniversalterminationproof.",
+    "evidence": {
+      "reports/2026-10-11-original-absdiff-gcd-corpus.md": "07813129d63dd81b97b7b07b853d01cd4bd7de07470a44981e294a5b765289a5",
+      "reports/original-absdiff-gcd-corpus/manifest.json": "6128fa4994ecc7a82f4a9b24ff94136bd57117d6c308df794f9e28911c70fd48",
+      "docs/grace-integration-197/assert-gcd-root.txt": "1691e8d1f713b5002fd9213e9251e0664d421045682935bdbbd1dad25a0c30ea"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-10/ex5_lut.nanz",
+    "source_sha256": "d33826eba80cfd940d02c844ba58a0b085251763552b31de104564009b8c36c4",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Popcount all256bytes;sum/max/map all256seeds\u00d7256lengths with ordered(seed+73*i)%256 arrays,three modes590592sourceCALL;March13duplicatesindependentSHA.",
+    "independent_model": "Frozen directpopcount/sum_mod256/max/map+2;raw/final/nativeCALL,fullRAM/guards/SP,orderedactualmemoryaccess. Graceedgeargcounterexample before36instead219 fixed.",
+    "boundary": "Arrayfamilies bounded,notallpossiblearrays. Liftedlambda inlinednotseparatenativeproof. Rootfulloriginalreplayrunning.",
+    "evidence": {
+      "reports/2026-10-11-original-iterator-lut-corpus.md": "e4b4bcf1522ab8dc5b3d2c29a7857a3080fafde9159a6c6f6080b0690de71287",
+      "reports/original-iter-lut-corpus/manifest.json": "b33be06ef6715f5d16b3fd854a3f250c0038e1cbb01b59232064803002bb9b78",
+      "docs/grace-integration-185/grace-edge-root.txt": "d32c33d3dbd0d1720c5bc2b7008fcb7ee87b0adc5c567151aa44249d076b1dd1"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-10/ex6_foreach.nanz",
+    "source_sha256": "e1e53370ff161285310b11fd2a0ad573f96cef85193532c0f1ebe4c9217641eb",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Popcount all256bytes;sum/max/map all256seeds\u00d7256lengths with ordered(seed+73*i)%256 arrays,three modes590592sourceCALL;March13duplicatesindependentSHA.",
+    "independent_model": "Frozen directpopcount/sum_mod256/max/map+2;raw/final/nativeCALL,fullRAM/guards/SP,orderedactualmemoryaccess. Graceedgeargcounterexample before36instead219 fixed.",
+    "boundary": "Arrayfamilies bounded,notallpossiblearrays. Liftedlambda inlinednotseparatenativeproof. Rootfulloriginalreplayrunning.",
+    "evidence": {
+      "reports/2026-10-11-original-iterator-lut-corpus.md": "e4b4bcf1522ab8dc5b3d2c29a7857a3080fafde9159a6c6f6080b0690de71287",
+      "reports/original-iter-lut-corpus/manifest.json": "b33be06ef6715f5d16b3fd854a3f250c0038e1cbb01b59232064803002bb9b78",
+      "docs/grace-integration-185/grace-edge-root.txt": "d32c33d3dbd0d1720c5bc2b7008fcb7ee87b0adc5c567151aa44249d076b1dd1"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-10/ex7_mapinplace.nanz",
+    "source_sha256": "779c02d554372699c21d41ea3488a05eed304f8cbc55a6e3eca026fee316b780",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Popcount all256bytes;sum/max/map all256seeds\u00d7256lengths with ordered(seed+73*i)%256 arrays,three modes590592sourceCALL;March13duplicatesindependentSHA.",
+    "independent_model": "Frozen directpopcount/sum_mod256/max/map+2;raw/final/nativeCALL,fullRAM/guards/SP,orderedactualmemoryaccess. Graceedgeargcounterexample before36instead219 fixed.",
+    "boundary": "Arrayfamilies bounded,notallpossiblearrays. Liftedlambda inlinednotseparatenativeproof. Rootfulloriginalreplayrunning.",
+    "evidence": {
+      "reports/2026-10-11-original-iterator-lut-corpus.md": "e4b4bcf1522ab8dc5b3d2c29a7857a3080fafde9159a6c6f6080b0690de71287",
+      "reports/original-iter-lut-corpus/manifest.json": "b33be06ef6715f5d16b3fd854a3f250c0038e1cbb01b59232064803002bb9b78",
+      "docs/grace-integration-185/grace-edge-root.txt": "d32c33d3dbd0d1720c5bc2b7008fcb7ee87b0adc5c567151aa44249d076b1dd1"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-10/ex8_gcd.nanz",
+    "source_sha256": "88747063a59526e797061cf828911c417e661723efb3b614715f2d2109977832",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Byteabsfullpairs;wordabsalllowbytepairs+196bounds;gcd65026returningpairs+510boundednonreturncontrols,three modes588882returnCALL.",
+    "independent_model": "Frozen independentabs/Euclid oracle forreturning cases;sourcezero subtractloop preserved;raw/final/nativePC/SP/fullRAM andexactSHAduplicates.",
+    "boundary": "Fullu16pairdomain notclaimed;mixedzeroGCDnonreturnconsistentwithsource,boundedobservation notuniversalterminationproof.",
+    "evidence": {
+      "reports/2026-10-11-original-absdiff-gcd-corpus.md": "07813129d63dd81b97b7b07b853d01cd4bd7de07470a44981e294a5b765289a5",
+      "reports/original-absdiff-gcd-corpus/manifest.json": "6128fa4994ecc7a82f4a9b24ff94136bd57117d6c308df794f9e28911c70fd48",
+      "docs/grace-integration-197/assert-gcd-root.txt": "1691e8d1f713b5002fd9213e9251e0664d421045682935bdbbd1dad25a0c30ea"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-11/ex0_test_struct.nanz",
+    "source_sha256": "7ca3725c6ae9a3dbd3c497a3df7e7d2dc2d62f3acd57a96855db3db50aea78b5",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All callable entries, actual object/guards/fullRAM, raw/final VM and native three modes, ordered stores/read-current-state, PC/SP; 1192611 calls across five source modules.",
+    "independent_model": "Independent byte Acc add/reset, RGB field, and static single-implementor interface models, Book v7 structs/UFCS/interfaces",
+    "boundary": "No main or assertions exist in these sources. Acc add all65536 pairs at6000/ffff, reset all256 atboth; sum_two all65536. Color all256 eachlane plus216 mixedtriples. Empty-object interface entries both addresses. SHA-exact duplicates read independently. No Grace gain.",
+    "evidence": {
+      "reports/struct-interface-native/REPORT.md": "c107270368393d2b7c3897ebbcd4ab8e6363ccc9f9df74486c4634d02db20d12",
+      "reports/struct-interface-native/manifest.json": "cc31f591c7917d1cc218fff789f8baa353b1b3e2f228d9e81f1d07df5bd3b3db",
+      "minzc/pkg/pipeline/original_struct_interface_native_test.go": "5b36ffa822a8ae8e30df71f782574fbe3502271db54fe0cc0dc1e4b8dc748577",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-11/ex10a_fib_rec.nanz",
+    "source_sha256": "396e859e7c49c19cd59d95354672582ffe9d99046c1f87c81dea5ac738b9670c",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All source entries, ordinary/Grace Speed/Grace Size; mathematical host model, raw/final VM, assembled native CALL, full RAM/SP and ordered array reads where present",
+    "independent_model": "Independent iterative Fibonacci/factorial and range/filter model, Book v7 widths/ranges; exact source-specific loop endpoints",
+    "boundary": "fib_rec inputs 0..20 only; other numeric inputs all256; count_in_range all256 lengths x4 frozen seeds x10 lo/hi pairs. Source ForRange ascending half-open; source fib_fold(0)=1 and byte end+1 wrap retained. No Grace gain, no whole application claim.",
+    "evidence": {
+      "reports/2026-10-11-original-recursion-fold-corpus.md": "1e56b869448be30ee0f669e521a3114353d62a5899d2f7491314d0c070e81579",
+      "reports/original-recursion-fold-corpus/manifest.json": "1d3b412fe3ec6b895898fd92b67897401e0b2493872d277edea5c1a32f2e9563",
+      "minzc/pkg/pipeline/original_recursion_fold_corpus_test.go": "ce18ce4da0a6600e5a3cd1c92c493315c011fd85e99727812471e52b3897ac68",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-11/ex10b_fib_iter.nanz",
+    "source_sha256": "afb172839734878c9697ecc295e20a62ff1e658bcc7be994c38b1b8962fa9615",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All source entries, ordinary/Grace Speed/Grace Size; mathematical host model, raw/final VM, assembled native CALL, full RAM/SP and ordered array reads where present",
+    "independent_model": "Independent iterative Fibonacci/factorial and range/filter model, Book v7 widths/ranges; exact source-specific loop endpoints",
+    "boundary": "fib_rec inputs 0..20 only; other numeric inputs all256; count_in_range all256 lengths x4 frozen seeds x10 lo/hi pairs. Source ForRange ascending half-open; source fib_fold(0)=1 and byte end+1 wrap retained. No Grace gain, no whole application claim.",
+    "evidence": {
+      "reports/2026-10-11-original-recursion-fold-corpus.md": "1e56b869448be30ee0f669e521a3114353d62a5899d2f7491314d0c070e81579",
+      "reports/original-recursion-fold-corpus/manifest.json": "1d3b412fe3ec6b895898fd92b67897401e0b2493872d277edea5c1a32f2e9563",
+      "minzc/pkg/pipeline/original_recursion_fold_corpus_test.go": "ce18ce4da0a6600e5a3cd1c92c493315c011fd85e99727812471e52b3897ac68",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-11/ex10c_fib_fold.nanz",
+    "source_sha256": "14fe7eed3447aa6928d72411cb91b1f56ffc55bd87cd61d9e49f52d24435a26a",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All source entries, ordinary/Grace Speed/Grace Size; mathematical host model, raw/final VM, assembled native CALL, full RAM/SP and ordered array reads where present",
+    "independent_model": "Independent iterative Fibonacci/factorial and range/filter model, Book v7 widths/ranges; exact source-specific loop endpoints",
+    "boundary": "fib_rec inputs 0..20 only; other numeric inputs all256; count_in_range all256 lengths x4 frozen seeds x10 lo/hi pairs. Source ForRange ascending half-open; source fib_fold(0)=1 and byte end+1 wrap retained. No Grace gain, no whole application claim.",
+    "evidence": {
+      "reports/2026-10-11-original-recursion-fold-corpus.md": "1e56b869448be30ee0f669e521a3114353d62a5899d2f7491314d0c070e81579",
+      "reports/original-recursion-fold-corpus/manifest.json": "1d3b412fe3ec6b895898fd92b67897401e0b2493872d277edea5c1a32f2e9563",
+      "minzc/pkg/pipeline/original_recursion_fold_corpus_test.go": "ce18ce4da0a6600e5a3cd1c92c493315c011fd85e99727812471e52b3897ac68",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-11/ex11_minmax_multiret.nanz",
+    "source_sha256": "f7f3be929afe1d2ce0b4212b46b004bfeb9a562780ff9b54b9eef2a7efcf7326",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Divmod full byte numerator/nonzero denominator; word minmax/swap/projections all lowbyte orderedpairs plus14x14wordboundaries, both result slots. Three modes591136calls each across three source modules.",
+    "independent_model": "Frozen direct source arithmetic and Bookv7\u00a77.5 tuple results; raw/final/native actualCALL returnPC/SP full64KiBRAM. March13 duplicate exactSHA read independently.",
+    "boundary": "No divisorzero/nonterminatingdivmod or fullu16pairdomain claim.",
+    "evidence": {
+      "reports/2026-10-11-original-tuple-corpus.md": "64f02fab27f37b46fa4e47e1f3ad898b4b986b584ed6d0ad8ebfc4c8f8664d7b",
+      "reports/original-tuple-corpus/manifest.json": "7f3e45fe2dc1d1b4fd7e4e67296f88ba3e58b87983adce30c303f22dce8c92fe",
+      "docs/grace-integration-179/tuple-root.txt": "7b27c76fb41632913dad386ae2b2978f0ac687cb49faea88bca01e3eba80dbbe"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-11/ex12_assert.nanz",
+    "source_sha256": "4972461eba6fb194fd5a844dd9e10a25ae800b92bf2c64709070f7df590f9ad1",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All256\u00b3clamp andallbytepairsabs,unarydouble3modes",
+    "independent_model": "Independent byte clamp/abs/double",
+    "boundary": "Allsourceasserts retained; exactsource March13 duplicate independently read; rootfullPASS111.521s",
+    "evidence": {
+      "reports/original-assert-smc-hello-corpus/manifest.json": "938fa58bbabadcbed80b3f9fa1d078575aca57029b9b7779025ec642441f7dfc",
+      "minzc/pkg/pipeline/original_assert_corpus_test.go": "10d3e75c0388edcc281a354c7b0963b28c7b25a7f75a21904628f8167a122a7e"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-11/ex13_multiret_assert.nanz",
+    "source_sha256": "6677d09ec89a8489a9691bd4caa184ef88149c370b87fe543dc4b3e1432270b7",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Divmod full byte numerator/nonzero denominator; word minmax/swap/projections all lowbyte orderedpairs plus14x14wordboundaries, both result slots. Three modes591136calls each across three source modules.",
+    "independent_model": "Frozen direct source arithmetic and Bookv7\u00a77.5 tuple results; raw/final/native actualCALL returnPC/SP full64KiBRAM. March13 duplicate exactSHA read independently.",
+    "boundary": "No divisorzero/nonterminatingdivmod or fullu16pairdomain claim.",
+    "evidence": {
+      "reports/2026-10-11-original-tuple-corpus.md": "64f02fab27f37b46fa4e47e1f3ad898b4b986b584ed6d0ad8ebfc4c8f8664d7b",
+      "reports/original-tuple-corpus/manifest.json": "7f3e45fe2dc1d1b4fd7e4e67296f88ba3e58b87983adce30c303f22dce8c92fe",
+      "docs/grace-integration-179/tuple-root.txt": "7b27c76fb41632913dad386ae2b2978f0ac687cb49faea88bca01e3eba80dbbe"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-11/ex14_fold_assert.nanz",
+    "source_sha256": "362b9106276974042e33936b02203f10a48cf726d24bd5e48eec1d4f75bae1a7",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All source entries, ordinary/Grace Speed/Grace Size; mathematical host model, raw/final VM, assembled native CALL, full RAM/SP and ordered array reads where present",
+    "independent_model": "Independent iterative Fibonacci/factorial and range/filter model, Book v7 widths/ranges; exact source-specific loop endpoints",
+    "boundary": "fib_rec inputs 0..20 only; other numeric inputs all256; count_in_range all256 lengths x4 frozen seeds x10 lo/hi pairs. Source ForRange ascending half-open; source fib_fold(0)=1 and byte end+1 wrap retained. No Grace gain, no whole application claim.",
+    "evidence": {
+      "reports/2026-10-11-original-recursion-fold-corpus.md": "1e56b869448be30ee0f669e521a3114353d62a5899d2f7491314d0c070e81579",
+      "reports/original-recursion-fold-corpus/manifest.json": "1d3b412fe3ec6b895898fd92b67897401e0b2493872d277edea5c1a32f2e9563",
+      "minzc/pkg/pipeline/original_recursion_fold_corpus_test.go": "ce18ce4da0a6600e5a3cd1c92c493315c011fd85e99727812471e52b3897ac68",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-11/ex15_smc_sprite.nanz",
+    "source_sha256": "ebf231db98b4ec793a186188138b8b7a3202e0d749e079cd3914877e44d22781",
+    "native_behavior": "executed-native-smc-bounded",
+    "workload": "ActualgeneratedHLpatcher andoriginal2/4bytedraw at7addresses3modes",
+    "independent_model": "Independent actualnative instruction operand patch/destination-byte model",
+    "boundary": "NativephysicalSMC exactcodepatch/orderedwrites proven; raw/finalVM PatchSlot heap abstraction separately observed, no dynamicphysicalSMC equivalence claim",
+    "evidence": {
+      "reports/original-assert-smc-hello-corpus/manifest.json": "938fa58bbabadcbed80b3f9fa1d078575aca57029b9b7779025ec642441f7dfc",
+      "minzc/pkg/pipeline/original_smc_hello_corpus_test.go": "2d904a8002efd5e8b30a1399c1643f5c73079be93922616a4f112e92c99fe166"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-11/ex16_hello_mze.nanz",
+    "source_sha256": "adacf7829f2a7b20db2d9d5e1a8701826633e6e0de6ac1e22bcd62e5a5526082",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All65536abs pairs plusoriginalmain3modes",
+    "independent_model": "Independent absolute difference and exactoutputtext",
+    "boundary": "Explicit OUT23 consolemodel, notCPM runtime; raw/finalstdout and nativebytes matched",
+    "evidence": {
+      "reports/original-assert-smc-hello-corpus/manifest.json": "938fa58bbabadcbed80b3f9fa1d078575aca57029b9b7779025ec642441f7dfc",
+      "minzc/pkg/pipeline/original_smc_hello_corpus_test.go": "2d904a8002efd5e8b30a1399c1643f5c73079be93922616a4f112e92c99fe166"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-11/ex17_asm_block.nanz",
+    "source_sha256": "719e9b92212f011f6bf9922f779d7cf057d5545218285bb925d036bebe85cfaa",
+    "native_behavior": "executed-native-asm-bounded",
+    "workload": "Original ASM entries/native source assertions, 3 modes; exhaustive byte domains and frozen word/3/4 argument boundaries, actual CALL chains.",
+    "independent_model": "Exact Z80 instructions, screen/port bit models, PC/SP/fullRAM/write guards. No VM ASM equivalence claim.",
+    "boundary": "Exact bounded native ABI/effects; copy_n actual HL->DE despite misleading names; count0 unexecuted; injected peripherals, no hardware claim.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_asm_contract_corpus_test.go": "d94d350d204ac92f81a0907052377a854eb0c5bb95166a07d2bc0196f9972021",
+      "reports/original-asm-contract-corpus/freeze.json": "5bc98f426e45fa053c59cc1c4df9e5f98aebda8885b34c51db3bac0aa4a46744",
+      "reports/original-asm-contract-corpus/manifest.json": "ae6a4e31395228ba91c75b19ad3fe96e3280db6b8b7b458c5dfa8c06fc101c4c",
+      "docs/grace-integration-237/asm-root.txt": "38e6cfbaa7df17c7af7893bf475c49afb305440ff970d79748abb164b6f095bc"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-11/ex18_user_console_io.nanz",
+    "source_sha256": "8c5e935ba7284418db1200c822948c90e1c8d8b57b4fe283cbf3e77ea6f8e7f0",
+    "native_behavior": "executed-native-asm-bounded",
+    "workload": "Whole-main 3modes; original ex18 exact stdout/stderr ports; source-corrected ZX demo frozen font/keyboard scenario and full screen/RAM/PCSP.",
+    "independent_model": "Independent byte output and ZX bitmap/attributes/keyboard port model; exact source before/new identity preserved. Native-only ASM proof.",
+    "boundary": "ZX source/library contracts corrected explicitly. One lowercase keyboard/font scenario, no full scrolling/keys API or hardware claim; VM ASM no-op excluded.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_console_corpus_test.go": "7f9b02f77fe62d7d4ef5dff6f2b3e0daf1f7e6b3e4d1fe4eb56443d3fbcd8637",
+      "reports/original-console-corrected/manifest.json": "9542f0d2b7a97614fc8f8c6bffa2651caecb599d5820a855a500712debafb1da",
+      "docs/grace-integration-246/console-root.txt": "ad54b29180b92cda69c469db349e310030483d2ce6de51e89526bff3d55d1d0a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-11/ex9a_factorial_rec.nanz",
+    "source_sha256": "49418af6de858d7388edf81bb74eadd2beb608b15c6f45c0b0d5eeae34f663f1",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All source entries, ordinary/Grace Speed/Grace Size; mathematical host model, raw/final VM, assembled native CALL, full RAM/SP and ordered array reads where present",
+    "independent_model": "Independent iterative Fibonacci/factorial and range/filter model, Book v7 widths/ranges; exact source-specific loop endpoints",
+    "boundary": "fib_rec inputs 0..20 only; other numeric inputs all256; count_in_range all256 lengths x4 frozen seeds x10 lo/hi pairs. Source ForRange ascending half-open; source fib_fold(0)=1 and byte end+1 wrap retained. No Grace gain, no whole application claim.",
+    "evidence": {
+      "reports/2026-10-11-original-recursion-fold-corpus.md": "1e56b869448be30ee0f669e521a3114353d62a5899d2f7491314d0c070e81579",
+      "reports/original-recursion-fold-corpus/manifest.json": "1d3b412fe3ec6b895898fd92b67897401e0b2493872d277edea5c1a32f2e9563",
+      "minzc/pkg/pipeline/original_recursion_fold_corpus_test.go": "ce18ce4da0a6600e5a3cd1c92c493315c011fd85e99727812471e52b3897ac68",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-11/ex9b_factorial_fold.nanz",
+    "source_sha256": "d3dad2dc322fc522c86d14cf5fdb87897b0e5a102c594c686c19ae76357846de",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All source entries, ordinary/Grace Speed/Grace Size; mathematical host model, raw/final VM, assembled native CALL, full RAM/SP and ordered array reads where present",
+    "independent_model": "Independent iterative Fibonacci/factorial and range/filter model, Book v7 widths/ranges; exact source-specific loop endpoints",
+    "boundary": "fib_rec inputs 0..20 only; other numeric inputs all256; count_in_range all256 lengths x4 frozen seeds x10 lo/hi pairs. Source ForRange ascending half-open; source fib_fold(0)=1 and byte end+1 wrap retained. No Grace gain, no whole application claim.",
+    "evidence": {
+      "reports/2026-10-11-original-recursion-fold-corpus.md": "1e56b869448be30ee0f669e521a3114353d62a5899d2f7491314d0c070e81579",
+      "reports/original-recursion-fold-corpus/manifest.json": "1d3b412fe3ec6b895898fd92b67897401e0b2493872d277edea5c1a32f2e9563",
+      "minzc/pkg/pipeline/original_recursion_fold_corpus_test.go": "ce18ce4da0a6600e5a3cd1c92c493315c011fd85e99727812471e52b3897ac68",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex10a_fib_rec.nanz",
+    "source_sha256": "396e859e7c49c19cd59d95354672582ffe9d99046c1f87c81dea5ac738b9670c",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All source entries, ordinary/Grace Speed/Grace Size; mathematical host model, raw/final VM, assembled native CALL, full RAM/SP and ordered array reads where present",
+    "independent_model": "Independent iterative Fibonacci/factorial and range/filter model, Book v7 widths/ranges; exact source-specific loop endpoints",
+    "boundary": "fib_rec inputs 0..20 only; other numeric inputs all256; count_in_range all256 lengths x4 frozen seeds x10 lo/hi pairs. Source ForRange ascending half-open; source fib_fold(0)=1 and byte end+1 wrap retained. No Grace gain, no whole application claim.",
+    "evidence": {
+      "reports/2026-10-11-original-recursion-fold-corpus.md": "1e56b869448be30ee0f669e521a3114353d62a5899d2f7491314d0c070e81579",
+      "reports/original-recursion-fold-corpus/manifest.json": "1d3b412fe3ec6b895898fd92b67897401e0b2493872d277edea5c1a32f2e9563",
+      "minzc/pkg/pipeline/original_recursion_fold_corpus_test.go": "ce18ce4da0a6600e5a3cd1c92c493315c011fd85e99727812471e52b3897ac68",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex10b_fib_iter.nanz",
+    "source_sha256": "afb172839734878c9697ecc295e20a62ff1e658bcc7be994c38b1b8962fa9615",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All source entries, ordinary/Grace Speed/Grace Size; mathematical host model, raw/final VM, assembled native CALL, full RAM/SP and ordered array reads where present",
+    "independent_model": "Independent iterative Fibonacci/factorial and range/filter model, Book v7 widths/ranges; exact source-specific loop endpoints",
+    "boundary": "fib_rec inputs 0..20 only; other numeric inputs all256; count_in_range all256 lengths x4 frozen seeds x10 lo/hi pairs. Source ForRange ascending half-open; source fib_fold(0)=1 and byte end+1 wrap retained. No Grace gain, no whole application claim.",
+    "evidence": {
+      "reports/2026-10-11-original-recursion-fold-corpus.md": "1e56b869448be30ee0f669e521a3114353d62a5899d2f7491314d0c070e81579",
+      "reports/original-recursion-fold-corpus/manifest.json": "1d3b412fe3ec6b895898fd92b67897401e0b2493872d277edea5c1a32f2e9563",
+      "minzc/pkg/pipeline/original_recursion_fold_corpus_test.go": "ce18ce4da0a6600e5a3cd1c92c493315c011fd85e99727812471e52b3897ac68",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex10c_fib_fold.nanz",
+    "source_sha256": "14fe7eed3447aa6928d72411cb91b1f56ffc55bd87cd61d9e49f52d24435a26a",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All source entries, ordinary/Grace Speed/Grace Size; mathematical host model, raw/final VM, assembled native CALL, full RAM/SP and ordered array reads where present",
+    "independent_model": "Independent iterative Fibonacci/factorial and range/filter model, Book v7 widths/ranges; exact source-specific loop endpoints",
+    "boundary": "fib_rec inputs 0..20 only; other numeric inputs all256; count_in_range all256 lengths x4 frozen seeds x10 lo/hi pairs. Source ForRange ascending half-open; source fib_fold(0)=1 and byte end+1 wrap retained. No Grace gain, no whole application claim.",
+    "evidence": {
+      "reports/2026-10-11-original-recursion-fold-corpus.md": "1e56b869448be30ee0f669e521a3114353d62a5899d2f7491314d0c070e81579",
+      "reports/original-recursion-fold-corpus/manifest.json": "1d3b412fe3ec6b895898fd92b67897401e0b2493872d277edea5c1a32f2e9563",
+      "minzc/pkg/pipeline/original_recursion_fold_corpus_test.go": "ce18ce4da0a6600e5a3cd1c92c493315c011fd85e99727812471e52b3897ac68",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex11_minmax_multiret.nanz",
+    "source_sha256": "f7f3be929afe1d2ce0b4212b46b004bfeb9a562780ff9b54b9eef2a7efcf7326",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Divmod full byte numerator/nonzero denominator; word minmax/swap/projections all lowbyte orderedpairs plus14x14wordboundaries, both result slots. Three modes591136calls each across three source modules.",
+    "independent_model": "Frozen direct source arithmetic and Bookv7\u00a77.5 tuple results; raw/final/native actualCALL returnPC/SP full64KiBRAM. March13 duplicate exactSHA read independently.",
+    "boundary": "No divisorzero/nonterminatingdivmod or fullu16pairdomain claim.",
+    "evidence": {
+      "reports/2026-10-11-original-tuple-corpus.md": "64f02fab27f37b46fa4e47e1f3ad898b4b986b584ed6d0ad8ebfc4c8f8664d7b",
+      "reports/original-tuple-corpus/manifest.json": "7f3e45fe2dc1d1b4fd7e4e67296f88ba3e58b87983adce30c303f22dce8c92fe",
+      "docs/grace-integration-179/tuple-root.txt": "7b27c76fb41632913dad386ae2b2978f0ac687cb49faea88bca01e3eba80dbbe"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex12_assert.nanz",
+    "source_sha256": "4972461eba6fb194fd5a844dd9e10a25ae800b92bf2c64709070f7df590f9ad1",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All256\u00b3clamp andallbytepairsabs,unarydouble3modes",
+    "independent_model": "Independent byte clamp/abs/double",
+    "boundary": "Allsourceasserts retained; exactsource March13 duplicate independently read; rootfullPASS111.521s",
+    "evidence": {
+      "reports/original-assert-smc-hello-corpus/manifest.json": "938fa58bbabadcbed80b3f9fa1d078575aca57029b9b7779025ec642441f7dfc",
+      "minzc/pkg/pipeline/original_assert_corpus_test.go": "10d3e75c0388edcc281a354c7b0963b28c7b25a7f75a21904628f8167a122a7e"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex13_multiret_assert.nanz",
+    "source_sha256": "6677d09ec89a8489a9691bd4caa184ef88149c370b87fe543dc4b3e1432270b7",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Divmod full byte numerator/nonzero denominator; word minmax/swap/projections all lowbyte orderedpairs plus14x14wordboundaries, both result slots. Three modes591136calls each across three source modules.",
+    "independent_model": "Frozen direct source arithmetic and Bookv7\u00a77.5 tuple results; raw/final/native actualCALL returnPC/SP full64KiBRAM. March13 duplicate exactSHA read independently.",
+    "boundary": "No divisorzero/nonterminatingdivmod or fullu16pairdomain claim.",
+    "evidence": {
+      "reports/2026-10-11-original-tuple-corpus.md": "64f02fab27f37b46fa4e47e1f3ad898b4b986b584ed6d0ad8ebfc4c8f8664d7b",
+      "reports/original-tuple-corpus/manifest.json": "7f3e45fe2dc1d1b4fd7e4e67296f88ba3e58b87983adce30c303f22dce8c92fe",
+      "docs/grace-integration-179/tuple-root.txt": "7b27c76fb41632913dad386ae2b2978f0ac687cb49faea88bca01e3eba80dbbe"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex14_fold_assert.nanz",
+    "source_sha256": "362b9106276974042e33936b02203f10a48cf726d24bd5e48eec1d4f75bae1a7",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All source entries, ordinary/Grace Speed/Grace Size; mathematical host model, raw/final VM, assembled native CALL, full RAM/SP and ordered array reads where present",
+    "independent_model": "Independent iterative Fibonacci/factorial and range/filter model, Book v7 widths/ranges; exact source-specific loop endpoints",
+    "boundary": "fib_rec inputs 0..20 only; other numeric inputs all256; count_in_range all256 lengths x4 frozen seeds x10 lo/hi pairs. Source ForRange ascending half-open; source fib_fold(0)=1 and byte end+1 wrap retained. No Grace gain, no whole application claim.",
+    "evidence": {
+      "reports/2026-10-11-original-recursion-fold-corpus.md": "1e56b869448be30ee0f669e521a3114353d62a5899d2f7491314d0c070e81579",
+      "reports/original-recursion-fold-corpus/manifest.json": "1d3b412fe3ec6b895898fd92b67897401e0b2493872d277edea5c1a32f2e9563",
+      "minzc/pkg/pipeline/original_recursion_fold_corpus_test.go": "ce18ce4da0a6600e5a3cd1c92c493315c011fd85e99727812471e52b3897ac68",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex15_smc_sprite.nanz",
+    "source_sha256": "ebf231db98b4ec793a186188138b8b7a3202e0d749e079cd3914877e44d22781",
+    "native_behavior": "executed-native-smc-bounded",
+    "workload": "ActualgeneratedHLpatcher andoriginal2/4bytedraw at7addresses3modes",
+    "independent_model": "Independent actualnative instruction operand patch/destination-byte model",
+    "boundary": "NativephysicalSMC exactcodepatch/orderedwrites proven; raw/finalVM PatchSlot heap abstraction separately observed, no dynamicphysicalSMC equivalence claim",
+    "evidence": {
+      "reports/original-assert-smc-hello-corpus/manifest.json": "938fa58bbabadcbed80b3f9fa1d078575aca57029b9b7779025ec642441f7dfc",
+      "minzc/pkg/pipeline/original_smc_hello_corpus_test.go": "2d904a8002efd5e8b30a1399c1643f5c73079be93922616a4f112e92c99fe166"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex16_hello_mze.nanz",
+    "source_sha256": "adacf7829f2a7b20db2d9d5e1a8701826633e6e0de6ac1e22bcd62e5a5526082",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All65536abs pairs plusoriginalmain3modes",
+    "independent_model": "Independent absolute difference and exactoutputtext",
+    "boundary": "Explicit OUT23 consolemodel, notCPM runtime; raw/finalstdout and nativebytes matched",
+    "evidence": {
+      "reports/original-assert-smc-hello-corpus/manifest.json": "938fa58bbabadcbed80b3f9fa1d078575aca57029b9b7779025ec642441f7dfc",
+      "minzc/pkg/pipeline/original_smc_hello_corpus_test.go": "2d904a8002efd5e8b30a1399c1643f5c73079be93922616a4f112e92c99fe166"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex17_asm_block.nanz",
+    "source_sha256": "719e9b92212f011f6bf9922f779d7cf057d5545218285bb925d036bebe85cfaa",
+    "native_behavior": "executed-native-asm-bounded",
+    "workload": "Original ASM entries/native source assertions, 3 modes; exhaustive byte domains and frozen word/3/4 argument boundaries, actual CALL chains.",
+    "independent_model": "Exact Z80 instructions, screen/port bit models, PC/SP/fullRAM/write guards. No VM ASM equivalence claim.",
+    "boundary": "Exact bounded native ABI/effects; copy_n actual HL->DE despite misleading names; count0 unexecuted; injected peripherals, no hardware claim.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_asm_contract_corpus_test.go": "d94d350d204ac92f81a0907052377a854eb0c5bb95166a07d2bc0196f9972021",
+      "reports/original-asm-contract-corpus/freeze.json": "5bc98f426e45fa053c59cc1c4df9e5f98aebda8885b34c51db3bac0aa4a46744",
+      "reports/original-asm-contract-corpus/manifest.json": "ae6a4e31395228ba91c75b19ad3fe96e3280db6b8b7b458c5dfa8c06fc101c4c",
+      "docs/grace-integration-237/asm-root.txt": "38e6cfbaa7df17c7af7893bf475c49afb305440ff970d79748abb164b6f095bc"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex18_user_console_io.nanz",
+    "source_sha256": "8c5e935ba7284418db1200c822948c90e1c8d8b57b4fe283cbf3e77ea6f8e7f0",
+    "native_behavior": "executed-native-asm-bounded",
+    "workload": "Whole-main 3modes; original ex18 exact stdout/stderr ports; source-corrected ZX demo frozen font/keyboard scenario and full screen/RAM/PCSP.",
+    "independent_model": "Independent byte output and ZX bitmap/attributes/keyboard port model; exact source before/new identity preserved. Native-only ASM proof.",
+    "boundary": "ZX source/library contracts corrected explicitly. One lowercase keyboard/font scenario, no full scrolling/keys API or hardware claim; VM ASM no-op excluded.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_console_corpus_test.go": "7f9b02f77fe62d7d4ef5dff6f2b3e0daf1f7e6b3e4d1fe4eb56443d3fbcd8637",
+      "reports/original-console-corrected/manifest.json": "9542f0d2b7a97614fc8f8c6bffa2651caecb599d5820a855a500712debafb1da",
+      "docs/grace-integration-246/console-root.txt": "ad54b29180b92cda69c469db349e310030483d2ce6de51e89526bff3d55d1d0a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex19_assert_forms.nanz",
+    "source_sha256": "1f4349338f02fbe8eaa253bc9033115ebf4bcaace3d675222fcab4c140224567",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "reports/showcase-ex19-complete/workload.json; reports/showcase-manhattan/workload.json",
+    "independent_model": "Book v7 named byte fields/unsigned width; host Manhattan abs differences modulo256 and named accessors",
+    "boundary": "All nine source-defined entries have bounded independent raw/finalVM/native proof; generated lambda_0 raw-only because final inlining prunes it. Not all byte Cartesian inputs, and assertions retain original qualifiers.",
+    "evidence": {
+      "reports/showcase-manhattan/proof/manifest.json": "288fef1a2487c78a606d5122184d641dda12285ecfd83aa94a25cbf7a22b727f",
+      "docs/grace-integration-103/local-frame-integrated-original.txt": "2bd415b2b089f946d65435b2fa6e3d58f3fa15a2bee077bbcb37a2279810f75c",
+      "reports/showcase-ex19-complete/manifest.json": "64f21185fe315a1749cf4d7bae3464efb5db7580ff5174e6b3d8d64028fb5c70",
+      "docs/grace-integration-105/ex19-complete-root.txt": "9e7519f4d6bed0bc575b0c2cc236c17314ae13ab88fdaa85cf5fad59b03ca1c9"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex1_struct.nanz",
+    "source_sha256": "1028825d183ba0d11d2f43ac678b6afcc9cd91c475450d440a9239c731d7682e",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All callable entries, actual object/guards/fullRAM, raw/final VM and native three modes, ordered stores/read-current-state, PC/SP; 1192611 calls across five source modules.",
+    "independent_model": "Independent byte Acc add/reset, RGB field, and static single-implementor interface models, Book v7 structs/UFCS/interfaces",
+    "boundary": "No main or assertions exist in these sources. Acc add all65536 pairs at6000/ffff, reset all256 atboth; sum_two all65536. Color all256 eachlane plus216 mixedtriples. Empty-object interface entries both addresses. SHA-exact duplicates read independently. No Grace gain.",
+    "evidence": {
+      "reports/struct-interface-native/REPORT.md": "c107270368393d2b7c3897ebbcd4ab8e6363ccc9f9df74486c4634d02db20d12",
+      "reports/struct-interface-native/manifest.json": "cc31f591c7917d1cc218fff789f8baa353b1b3e2f228d9e81f1d07df5bd3b3db",
+      "minzc/pkg/pipeline/original_struct_interface_native_test.go": "5b36ffa822a8ae8e30df71f782574fbe3502271db54fe0cc0dc1e4b8dc748577",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex2_ufcs.nanz",
+    "source_sha256": "a7ebf82edbfcc931bb336de2808c4aae2835c5a293b78f124ed96c39f23421ea",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All callable entries, actual object/guards/fullRAM, raw/final VM and native three modes, ordered stores/read-current-state, PC/SP; 1192611 calls across five source modules.",
+    "independent_model": "Independent byte Acc add/reset, RGB field, and static single-implementor interface models, Book v7 structs/UFCS/interfaces",
+    "boundary": "No main or assertions exist in these sources. Acc add all65536 pairs at6000/ffff, reset all256 atboth; sum_two all65536. Color all256 eachlane plus216 mixedtriples. Empty-object interface entries both addresses. SHA-exact duplicates read independently. No Grace gain.",
+    "evidence": {
+      "reports/struct-interface-native/REPORT.md": "c107270368393d2b7c3897ebbcd4ab8e6363ccc9f9df74486c4634d02db20d12",
+      "reports/struct-interface-native/manifest.json": "cc31f591c7917d1cc218fff789f8baa353b1b3e2f228d9e81f1d07df5bd3b3db",
+      "minzc/pkg/pipeline/original_struct_interface_native_test.go": "5b36ffa822a8ae8e30df71f782574fbe3502271db54fe0cc0dc1e4b8dc748577",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex3_iface.nanz",
+    "source_sha256": "3a0c1b5a906485e6a0e3871bdad241072a9429adf6a186ecdd339b6c14984d35",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All callable entries, actual object/guards/fullRAM, raw/final VM and native three modes, ordered stores/read-current-state, PC/SP; 1192611 calls across five source modules.",
+    "independent_model": "Independent byte Acc add/reset, RGB field, and static single-implementor interface models, Book v7 structs/UFCS/interfaces",
+    "boundary": "No main or assertions exist in these sources. Acc add all65536 pairs at6000/ffff, reset all256 atboth; sum_two all65536. Color all256 eachlane plus216 mixedtriples. Empty-object interface entries both addresses. SHA-exact duplicates read independently. No Grace gain.",
+    "evidence": {
+      "reports/struct-interface-native/REPORT.md": "c107270368393d2b7c3897ebbcd4ab8e6363ccc9f9df74486c4634d02db20d12",
+      "reports/struct-interface-native/manifest.json": "cc31f591c7917d1cc218fff789f8baa353b1b3e2f228d9e81f1d07df5bd3b3db",
+      "minzc/pkg/pipeline/original_struct_interface_native_test.go": "5b36ffa822a8ae8e30df71f782574fbe3502271db54fe0cc0dc1e4b8dc748577",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex3b_iface_param.nanz",
+    "source_sha256": "d71ba92330826788fb759f58f88660312dc2018c89dbddef06d25b1b41acdc3c",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All callable entries, actual object/guards/fullRAM, raw/final VM and native three modes, ordered stores/read-current-state, PC/SP; 1192611 calls across five source modules.",
+    "independent_model": "Independent byte Acc add/reset, RGB field, and static single-implementor interface models, Book v7 structs/UFCS/interfaces",
+    "boundary": "No main or assertions exist in these sources. Acc add all65536 pairs at6000/ffff, reset all256 atboth; sum_two all65536. Color all256 eachlane plus216 mixedtriples. Empty-object interface entries both addresses. SHA-exact duplicates read independently. No Grace gain.",
+    "evidence": {
+      "reports/struct-interface-native/REPORT.md": "c107270368393d2b7c3897ebbcd4ab8e6363ccc9f9df74486c4634d02db20d12",
+      "reports/struct-interface-native/manifest.json": "cc31f591c7917d1cc218fff789f8baa353b1b3e2f228d9e81f1d07df5bd3b3db",
+      "minzc/pkg/pipeline/original_struct_interface_native_test.go": "5b36ffa822a8ae8e30df71f782574fbe3502271db54fe0cc0dc1e4b8dc748577",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex4a_abs_diff.nanz",
+    "source_sha256": "d200af0eb58a60d00262b54224da749ecb07a25ec15638ba03e4bf3f308ccf90",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Byteabsfullpairs;wordabsalllowbytepairs+196bounds;gcd65026returningpairs+510boundednonreturncontrols,three modes588882returnCALL.",
+    "independent_model": "Frozen independentabs/Euclid oracle forreturning cases;sourcezero subtractloop preserved;raw/final/nativePC/SP/fullRAM andexactSHAduplicates.",
+    "boundary": "Fullu16pairdomain notclaimed;mixedzeroGCDnonreturnconsistentwithsource,boundedobservation notuniversalterminationproof.",
+    "evidence": {
+      "reports/2026-10-11-original-absdiff-gcd-corpus.md": "07813129d63dd81b97b7b07b853d01cd4bd7de07470a44981e294a5b765289a5",
+      "reports/original-absdiff-gcd-corpus/manifest.json": "6128fa4994ecc7a82f4a9b24ff94136bd57117d6c308df794f9e28911c70fd48",
+      "docs/grace-integration-197/assert-gcd-root.txt": "1691e8d1f713b5002fd9213e9251e0664d421045682935bdbbd1dad25a0c30ea"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex4b_abs_diff_u16.nanz",
+    "source_sha256": "9ef0622b17529e2989b36a749291ee50f6facfbff17f7818c7c001e4348ffbca",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Byteabsfullpairs;wordabsalllowbytepairs+196bounds;gcd65026returningpairs+510boundednonreturncontrols,three modes588882returnCALL.",
+    "independent_model": "Frozen independentabs/Euclid oracle forreturning cases;sourcezero subtractloop preserved;raw/final/nativePC/SP/fullRAM andexactSHAduplicates.",
+    "boundary": "Fullu16pairdomain notclaimed;mixedzeroGCDnonreturnconsistentwithsource,boundedobservation notuniversalterminationproof.",
+    "evidence": {
+      "reports/2026-10-11-original-absdiff-gcd-corpus.md": "07813129d63dd81b97b7b07b853d01cd4bd7de07470a44981e294a5b765289a5",
+      "reports/original-absdiff-gcd-corpus/manifest.json": "6128fa4994ecc7a82f4a9b24ff94136bd57117d6c308df794f9e28911c70fd48",
+      "docs/grace-integration-197/assert-gcd-root.txt": "1691e8d1f713b5002fd9213e9251e0664d421045682935bdbbd1dad25a0c30ea"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex5_lut.nanz",
+    "source_sha256": "d33826eba80cfd940d02c844ba58a0b085251763552b31de104564009b8c36c4",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Popcount all256bytes;sum/max/map all256seeds\u00d7256lengths with ordered(seed+73*i)%256 arrays,three modes590592sourceCALL;March13duplicatesindependentSHA.",
+    "independent_model": "Frozen directpopcount/sum_mod256/max/map+2;raw/final/nativeCALL,fullRAM/guards/SP,orderedactualmemoryaccess. Graceedgeargcounterexample before36instead219 fixed.",
+    "boundary": "Arrayfamilies bounded,notallpossiblearrays. Liftedlambda inlinednotseparatenativeproof. Rootfulloriginalreplayrunning.",
+    "evidence": {
+      "reports/2026-10-11-original-iterator-lut-corpus.md": "e4b4bcf1522ab8dc5b3d2c29a7857a3080fafde9159a6c6f6080b0690de71287",
+      "reports/original-iter-lut-corpus/manifest.json": "b33be06ef6715f5d16b3fd854a3f250c0038e1cbb01b59232064803002bb9b78",
+      "docs/grace-integration-185/grace-edge-root.txt": "d32c33d3dbd0d1720c5bc2b7008fcb7ee87b0adc5c567151aa44249d076b1dd1"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex6_foreach.nanz",
+    "source_sha256": "e1e53370ff161285310b11fd2a0ad573f96cef85193532c0f1ebe4c9217641eb",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Popcount all256bytes;sum/max/map all256seeds\u00d7256lengths with ordered(seed+73*i)%256 arrays,three modes590592sourceCALL;March13duplicatesindependentSHA.",
+    "independent_model": "Frozen directpopcount/sum_mod256/max/map+2;raw/final/nativeCALL,fullRAM/guards/SP,orderedactualmemoryaccess. Graceedgeargcounterexample before36instead219 fixed.",
+    "boundary": "Arrayfamilies bounded,notallpossiblearrays. Liftedlambda inlinednotseparatenativeproof. Rootfulloriginalreplayrunning.",
+    "evidence": {
+      "reports/2026-10-11-original-iterator-lut-corpus.md": "e4b4bcf1522ab8dc5b3d2c29a7857a3080fafde9159a6c6f6080b0690de71287",
+      "reports/original-iter-lut-corpus/manifest.json": "b33be06ef6715f5d16b3fd854a3f250c0038e1cbb01b59232064803002bb9b78",
+      "docs/grace-integration-185/grace-edge-root.txt": "d32c33d3dbd0d1720c5bc2b7008fcb7ee87b0adc5c567151aa44249d076b1dd1"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex7_mapinplace.nanz",
+    "source_sha256": "779c02d554372699c21d41ea3488a05eed304f8cbc55a6e3eca026fee316b780",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Popcount all256bytes;sum/max/map all256seeds\u00d7256lengths with ordered(seed+73*i)%256 arrays,three modes590592sourceCALL;March13duplicatesindependentSHA.",
+    "independent_model": "Frozen directpopcount/sum_mod256/max/map+2;raw/final/nativeCALL,fullRAM/guards/SP,orderedactualmemoryaccess. Graceedgeargcounterexample before36instead219 fixed.",
+    "boundary": "Arrayfamilies bounded,notallpossiblearrays. Liftedlambda inlinednotseparatenativeproof. Rootfulloriginalreplayrunning.",
+    "evidence": {
+      "reports/2026-10-11-original-iterator-lut-corpus.md": "e4b4bcf1522ab8dc5b3d2c29a7857a3080fafde9159a6c6f6080b0690de71287",
+      "reports/original-iter-lut-corpus/manifest.json": "b33be06ef6715f5d16b3fd854a3f250c0038e1cbb01b59232064803002bb9b78",
+      "docs/grace-integration-185/grace-edge-root.txt": "d32c33d3dbd0d1720c5bc2b7008fcb7ee87b0adc5c567151aa44249d076b1dd1"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex8_gcd.nanz",
+    "source_sha256": "88747063a59526e797061cf828911c417e661723efb3b614715f2d2109977832",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Byteabsfullpairs;wordabsalllowbytepairs+196bounds;gcd65026returningpairs+510boundednonreturncontrols,three modes588882returnCALL.",
+    "independent_model": "Frozen independentabs/Euclid oracle forreturning cases;sourcezero subtractloop preserved;raw/final/nativePC/SP/fullRAM andexactSHAduplicates.",
+    "boundary": "Fullu16pairdomain notclaimed;mixedzeroGCDnonreturnconsistentwithsource,boundedobservation notuniversalterminationproof.",
+    "evidence": {
+      "reports/2026-10-11-original-absdiff-gcd-corpus.md": "07813129d63dd81b97b7b07b853d01cd4bd7de07470a44981e294a5b765289a5",
+      "reports/original-absdiff-gcd-corpus/manifest.json": "6128fa4994ecc7a82f4a9b24ff94136bd57117d6c308df794f9e28911c70fd48",
+      "docs/grace-integration-197/assert-gcd-root.txt": "1691e8d1f713b5002fd9213e9251e0664d421045682935bdbbd1dad25a0c30ea"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex9a_factorial_rec.nanz",
+    "source_sha256": "49418af6de858d7388edf81bb74eadd2beb608b15c6f45c0b0d5eeae34f663f1",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All source entries, ordinary/Grace Speed/Grace Size; mathematical host model, raw/final VM, assembled native CALL, full RAM/SP and ordered array reads where present",
+    "independent_model": "Independent iterative Fibonacci/factorial and range/filter model, Book v7 widths/ranges; exact source-specific loop endpoints",
+    "boundary": "fib_rec inputs 0..20 only; other numeric inputs all256; count_in_range all256 lengths x4 frozen seeds x10 lo/hi pairs. Source ForRange ascending half-open; source fib_fold(0)=1 and byte end+1 wrap retained. No Grace gain, no whole application claim.",
+    "evidence": {
+      "reports/2026-10-11-original-recursion-fold-corpus.md": "1e56b869448be30ee0f669e521a3114353d62a5899d2f7491314d0c070e81579",
+      "reports/original-recursion-fold-corpus/manifest.json": "1d3b412fe3ec6b895898fd92b67897401e0b2493872d277edea5c1a32f2e9563",
+      "minzc/pkg/pipeline/original_recursion_fold_corpus_test.go": "ce18ce4da0a6600e5a3cd1c92c493315c011fd85e99727812471e52b3897ac68",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-13/ex9b_factorial_fold.nanz",
+    "source_sha256": "d3dad2dc322fc522c86d14cf5fdb87897b0e5a102c594c686c19ae76357846de",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All source entries, ordinary/Grace Speed/Grace Size; mathematical host model, raw/final VM, assembled native CALL, full RAM/SP and ordered array reads where present",
+    "independent_model": "Independent iterative Fibonacci/factorial and range/filter model, Book v7 widths/ranges; exact source-specific loop endpoints",
+    "boundary": "fib_rec inputs 0..20 only; other numeric inputs all256; count_in_range all256 lengths x4 frozen seeds x10 lo/hi pairs. Source ForRange ascending half-open; source fib_fold(0)=1 and byte end+1 wrap retained. No Grace gain, no whole application claim.",
+    "evidence": {
+      "reports/2026-10-11-original-recursion-fold-corpus.md": "1e56b869448be30ee0f669e521a3114353d62a5899d2f7491314d0c070e81579",
+      "reports/original-recursion-fold-corpus/manifest.json": "1d3b412fe3ec6b895898fd92b67897401e0b2493872d277edea5c1a32f2e9563",
+      "minzc/pkg/pipeline/original_recursion_fold_corpus_test.go": "ce18ce4da0a6600e5a3cd1c92c493315c011fd85e99727812471e52b3897ac68",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-14/ex20_arena_allocator.nanz",
+    "source_sha256": "886e1b3fb2e92c1f16ebf585a03a81f6fd1b2d0bcd2ed24559b4a9584adf21d9",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All8entries14boundarydomains,4000/fffe/ffff objects pluspersistent sandbox258alloc;55464calls",
+    "independent_model": "Independent modulo65536 bump/end and bytefield model",
+    "boundary": "Source next>end is modular, not stronger overflow-safe allocator; exactstores/fullobjects/guards/PCSP",
+    "evidence": {
+      "reports/original-arena20-corpus/manifest.json": "4ed5c2dd1e60033aa13beeb62973221abba27381ffe28364bfa8b87f561d0439",
+      "minzc/pkg/pipeline/original_arena20_corpus_test.go": "4917b5dd41059b6a058d592042a0864bc6cf4ff53e1edda418f7c9aad184b787"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-14/ex21_enum.nanz",
+    "source_sha256": "a02aaa800c41df13c89d4f833bc5aa1f5971b0a3ee1dbd96a707be8413c8e4d4",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Fiveoriginalmodules allbytepairs/enumdomains,double_scoreall65536u16,source12asserts,986127nativecalls acrossthree modes plus768rawliftedlambda.",
+    "independent_model": "Frozen08d2595a directtyped arithmetic/countdown5..1sum30;raw/final/nativeCALLPC/SP/fullRAM andimmediateCALLwrites;lambda fusedprunedfinal.",
+    "boundary": "Liftedlambda rawonly;originalsumloop nativeproved,notseparatenativecallbackclaim. No source hasmain.",
+    "evidence": {
+      "reports/typed-showcase-native/REPORT.md": "5373411c78855b0765eed04ed1fbcd1bfc64ed8c7c8ad3c0a2bf47bc5ee922f3",
+      "reports/typed-showcase-native/manifest.json": "750fcf14d0645d3f14319279a6858131b120cd8a3535dfa88f8ab5957cd82598",
+      "docs/grace-integration-198/typed-root.txt": "3a926ea31e81e1b98fc8228e4ac3a88c32df45c55472ed331d7c15f368677068"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-14/ex22_type_alias.nanz",
+    "source_sha256": "fb8fc372fdac128656855ab78db9548fb2c25e46fcf458ce43b0357b8ddd912a",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Fiveoriginalmodules allbytepairs/enumdomains,double_scoreall65536u16,source12asserts,986127nativecalls acrossthree modes plus768rawliftedlambda.",
+    "independent_model": "Frozen08d2595a directtyped arithmetic/countdown5..1sum30;raw/final/nativeCALLPC/SP/fullRAM andimmediateCALLwrites;lambda fusedprunedfinal.",
+    "boundary": "Liftedlambda rawonly;originalsumloop nativeproved,notseparatenativecallbackclaim. No source hasmain.",
+    "evidence": {
+      "reports/typed-showcase-native/REPORT.md": "5373411c78855b0765eed04ed1fbcd1bfc64ed8c7c8ad3c0a2bf47bc5ee922f3",
+      "reports/typed-showcase-native/manifest.json": "750fcf14d0645d3f14319279a6858131b120cd8a3535dfa88f8ab5957cd82598",
+      "docs/grace-integration-198/typed-root.txt": "3a926ea31e81e1b98fc8228e4ac3a88c32df45c55472ed331d7c15f368677068"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-14/ex23_import_unqualified.nanz",
+    "source_sha256": "e65c2a9ba21835cc3fa49ff1c235f0a48ac38d79baff815abde98f393b141df1",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "compute on all 256 byte inputs; both original asserts",
+    "independent_model": "2*x+1 modulo256 independent host arithmetic",
+    "boundary": "Exact import consumer and local mathlib dependency; raw/final VM + assembled native return/SP/guards/image",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "f40b8aac4baf2649603ad2e3a44160ed83cf7479908211d12101628167daeecd"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-14/ex24_import_qualified.nanz",
+    "source_sha256": "b30449883492a7617d62c6869cf3486eb3689af9b845ec21c28e7f395f087a51",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Full parameter-free compute entry; original assert",
+    "independent_model": "2*10+5 equals25",
+    "boundary": "Exact qualified import consumer; local mathlib, no general stdlib claim",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "f40b8aac4baf2649603ad2e3a44160ed83cf7479908211d12101628167daeecd"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-14/ex25_import_alias_glob.nanz",
+    "source_sha256": "3cde5e96496c6ca925ae2410043df8abeac49040e2e8262f25c20bd9584cd805",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Full parameter-free compute entry; original assert",
+    "independent_model": "3*3+1 equals10",
+    "boundary": "Exact alias import consumer; local mathlib, no general stdlib claim",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "f40b8aac4baf2649603ad2e3a44160ed83cf7479908211d12101628167daeecd"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-14/ex26_enum_assert.nanz",
+    "source_sha256": "27628c2d6130d10c430d97f80e58a455cd72cfc2b33ec6d37aae5595e01a703a",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Fiveoriginalmodules allbytepairs/enumdomains,double_scoreall65536u16,source12asserts,986127nativecalls acrossthree modes plus768rawliftedlambda.",
+    "independent_model": "Frozen08d2595a directtyped arithmetic/countdown5..1sum30;raw/final/nativeCALLPC/SP/fullRAM andimmediateCALLwrites;lambda fusedprunedfinal.",
+    "boundary": "Liftedlambda rawonly;originalsumloop nativeproved,notseparatenativecallbackclaim. No source hasmain.",
+    "evidence": {
+      "reports/typed-showcase-native/REPORT.md": "5373411c78855b0765eed04ed1fbcd1bfc64ed8c7c8ad3c0a2bf47bc5ee922f3",
+      "reports/typed-showcase-native/manifest.json": "750fcf14d0645d3f14319279a6858131b120cd8a3535dfa88f8ab5957cd82598",
+      "docs/grace-integration-198/typed-root.txt": "3a926ea31e81e1b98fc8228e4ac3a88c32df45c55472ed331d7c15f368677068"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-14/ex27_strings.nanz",
+    "source_sha256": "d78bc089145ca00510fece9723c4881f3247206f2dadedbe549bffcbc350ef37",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "Allfour original entries raw/final/native3modes",
+    "independent_model": "Independent exactCString/SString/LString/multiline text",
+    "boundary": "Explicit output binding; no wholeCPM application claim",
+    "evidence": {
+      "reports/strings-pointer-plm-native/manifest.json": "596da59a6ca0342ad443ff3430946cc4ef2c181c0adeef0c3dbeebcd9012a2cc",
+      "minzc/pkg/pipeline/original_strings_pointer_plm_native_test.go": "c4bd9a18d4333325abca6edd48b66680f498aa85daa6589d2d52a1bf413a97a3",
+      "docs/grace-integration-209/root-plm-entry.txt": "bdfc82ba18dfa827f3e240e215a0c910d60cc4077edc0d6ad2b92fadbef8f520"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-14/ex28_pipe.nanz",
+    "source_sha256": "f1c25c6f70c1e5105813fe3a84ddef5f7b6fd54aa1915383cc2859d29c0101e4",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Both full sum_doubled/sum_tripled entries and both source asserts",
+    "independent_model": "Independent n-to-1 range with doubled then optional +1, byte accumulation",
+    "boundary": "Named pipe/trans/use/apply unchanged; only fixed original entry workloads, not additional invented parameterized pipeline",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "f40b8aac4baf2649603ad2e3a44160ed83cf7479908211d12101628167daeecd"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-14/mathlib/ops.nanz",
+    "source_sha256": "f68ec5e20342396460f655a397aecd24cb36bb50767c77212ccf9306cc46f39c",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "1792 full original add/double/triple calls: byte inputs and five addend boundaries",
+    "independent_model": "Host byte addition / 2*x / 3*x modulo256",
+    "boundary": "Library file has no main/asserts; all three callable entries independently checked, no all-libraries claim",
+    "evidence": {
+      "minzc/pkg/pipeline/showcase_pipe_import_oracle_test.go": "f40b8aac4baf2649603ad2e3a44160ed83cf7479908211d12101628167daeecd"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-15/ex29_lanz.lanz",
+    "source_sha256": "cb1b2a4b97fb4724926d4377a77024b0268009eb844059bf63097064f0f4e660",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "All actual original entries in three modes; 198915 native calls across this family, raw/final VM and full RAM/SP. Lanz sum_to(255) bounded nonreturn controls.",
+    "independent_model": "Independent modular factorial/double/absolute difference/triangular sum; Lizp dotimes ascending; empty hello main has no output",
+    "boundary": "Lanz sum_to(255) source loops forever after byte counter wraps; explicit nonreturn rather than numerical expected value. cond_test excluded. No Grace gain.",
+    "evidence": {
+      "reports/lizp-lanz-family-native/REPORT.md": "acefcb8e799b19f97c1e8675a237e04457230c56e5feea285156ff6b276ba5b6",
+      "reports/lizp-lanz-family-native/manifest.json": "ad09aa3253465d54aa5c78e8900b6dd67e9e01bd15f7fb2ba22ff423d7941b17",
+      "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go": "b1e030b72222c84a857c17cb7666b42f260da8117f9d442a9726426057d25eb9",
+      "docs/grace-integration-201/root-new-families.txt": "495f210e6079c98d13692257a55a03ebf2f44cbc4ad10e97afc556b0192911b0",
+      "docs/grace-integration-201/root-struct-interface.txt": "10059da0d950772f5ba87f201e9f72677a86a3c341fef86e3edb87a469c5293a"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-15/ex30_ptr_cast.nanz",
+    "source_sha256": "13faaea6fc8830bd48d9cb2463c68d5ae609fb8de51f0bbfce83b2303b743ade",
+    "native_behavior": "bounded-independent-vm-native",
+    "workload": "all256valuesx7addresses incl0/ffff;allpeek/poke/main3modes",
+    "independent_model": "Independent flat16bit RAM write/read model",
+    "boundary": "AllRAM native image4000 permits original main store8000; code/guards/ordered effects/SP checked",
+    "evidence": {
+      "reports/strings-pointer-plm-native/manifest.json": "596da59a6ca0342ad443ff3430946cc4ef2c181c0adeef0c3dbeebcd9012a2cc",
+      "minzc/pkg/pipeline/original_strings_pointer_plm_native_test.go": "c4bd9a18d4333325abca6edd48b66680f498aa85daa6589d2d52a1bf413a97a3",
+      "docs/grace-integration-209/root-plm-entry.txt": "bdfc82ba18dfa827f3e240e215a0c910d60cc4077edc0d6ad2b92fadbef8f520"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-15/ex31_asm_ret_clob.nanz",
+    "source_sha256": "cf179c15efdc7420d049b9f67a8882de29d52294678d3afc109a6ec469569e85",
+    "native_behavior": "executed-native-asm-bounded",
+    "workload": "Original ASM entries/native source assertions, 3 modes; exhaustive byte domains and frozen word/3/4 argument boundaries, actual CALL chains.",
+    "independent_model": "Exact Z80 instructions, screen/port bit models, PC/SP/fullRAM/write guards. No VM ASM equivalence claim.",
+    "boundary": "Exact bounded native ABI/effects; copy_n actual HL->DE despite misleading names; count0 unexecuted; injected peripherals, no hardware claim.",
+    "evidence": {
+      "minzc/pkg/pipeline/original_asm_contract_corpus_test.go": "d94d350d204ac92f81a0907052377a854eb0c5bb95166a07d2bc0196f9972021",
+      "reports/original-asm-contract-corpus/freeze.json": "5bc98f426e45fa053c59cc1c4df9e5f98aebda8885b34c51db3bac0aa4a46744",
+      "reports/original-asm-contract-corpus/manifest.json": "ae6a4e31395228ba91c75b19ad3fe96e3280db6b8b7b458c5dfa8c06fc101c4c",
+      "docs/grace-integration-237/asm-root.txt": "38e6cfbaa7df17c7af7893bf475c49afb305440ff970d79748abb164b6f095bc"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-15/ex32_value_pipe.nanz",
+    "source_sha256": "964819c2d6e3247f690256818d80625cd87ba1b4da8e3e91d5e300af4a44a24a",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Fiveoriginalmodules allbytepairs/enumdomains,double_scoreall65536u16,source12asserts,986127nativecalls acrossthree modes plus768rawliftedlambda.",
+    "independent_model": "Frozen08d2595a directtyped arithmetic/countdown5..1sum30;raw/final/nativeCALLPC/SP/fullRAM andimmediateCALLwrites;lambda fusedprunedfinal.",
+    "boundary": "Liftedlambda rawonly;originalsumloop nativeproved,notseparatenativecallbackclaim. No source hasmain.",
+    "evidence": {
+      "reports/typed-showcase-native/REPORT.md": "5373411c78855b0765eed04ed1fbcd1bfc64ed8c7c8ad3c0a2bf47bc5ee922f3",
+      "reports/typed-showcase-native/manifest.json": "750fcf14d0645d3f14319279a6858131b120cd8a3535dfa88f8ab5957cd82598",
+      "docs/grace-integration-198/typed-root.txt": "3a926ea31e81e1b98fc8228e4ac3a88c32df45c55472ed331d7c15f368677068"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-15/ex33_lambda_inference.nanz",
+    "source_sha256": "6c48b03a21410afc4b346f115839a8488d9cb66308af2842810cb12f9186c94f",
+    "native_behavior": "executed-independent-vm-z80",
+    "workload": "Fiveoriginalmodules allbytepairs/enumdomains,double_scoreall65536u16,source12asserts,986127nativecalls acrossthree modes plus768rawliftedlambda.",
+    "independent_model": "Frozen08d2595a directtyped arithmetic/countdown5..1sum30;raw/final/nativeCALLPC/SP/fullRAM andimmediateCALLwrites;lambda fusedprunedfinal.",
+    "boundary": "Liftedlambda rawonly;originalsumloop nativeproved,notseparatenativecallbackclaim. No source hasmain.",
+    "evidence": {
+      "reports/typed-showcase-native/REPORT.md": "5373411c78855b0765eed04ed1fbcd1bfc64ed8c7c8ad3c0a2bf47bc5ee922f3",
+      "reports/typed-showcase-native/manifest.json": "750fcf14d0645d3f14319279a6858131b120cd8a3535dfa88f8ab5957cd82598",
+      "docs/grace-integration-198/typed-root.txt": "3a926ea31e81e1b98fc8228e4ac3a88c32df45c55472ed331d7c15f368677068"
+    }
+  },
+  {
+    "path": "reports/showcase-src/2026-03-15/ex34_tetris.nanz",
+    "source_sha256": "d27bc60573b403edf80d0a362e6d86b72702f4fd08c446488bffca2014c550ae",
+    "native_behavior": "inline-asm-target-needs-audit",
+    "workload": "",
+    "independent_model": "",
+    "boundary": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+    "evidence": {}
+  }
+]
