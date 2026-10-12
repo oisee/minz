@@ -1,0 +1,172 @@
+; MIR2 module: examples/nanz/hello_cpm_fib.nanz
+fun @putch(%r1: u8 [acc])
+  block @entry:
+    asm "LD E, A\n        LD C, 2\n        CALL 0x0005"
+    ret void
+
+fun @print_digit(%r2: u8 [acc])
+  block @entry:
+    %r3 = const 48 : u8 [general]
+    %r4 = add %r2, %r3 : u8 [acc]
+    %r5 = move %r4 : u8 [acc]
+    call @putch(%r5)
+    ret void
+
+fun @fib(%r6: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r7 = const 2 : u8 [general]
+    %r8 = cmp.ult %r6, %r7 : bool [flag]
+    br_if %r8, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r6
+  block @if_join2:
+    %r9 = const 1 : u8 [general]
+    %r10 = sub %r6, %r9 : u8 [acc]
+    %r11 = move %r10 : u8 [acc]
+    %r12 = call @fib(%r11) : u8 [acc]
+    %r13 = const 2 : u8 [general]
+    %r14 = sub %r6, %r13 : u8 [acc]
+    %r15 = move %r14 : u8 [acc]
+    %r16 = call @fib(%r15) : u8 [acc]
+    %r17 = add %r12, %r16 : u8 [acc]
+    ret %r17
+
+fun @gcd(%r18: u8 [acc], %r19: u8 [general]) -> u8 [acc]
+  block @entry:
+    jmp @loop_head1(%r18, %r19)
+  block @loop_head1(%r20: u8 [general], %r21: u8 [general]):
+    %r22 = const 0 : u8 [general]
+    %r23 = cmp.ne %r21, %r22 : bool [flag]
+    br_if %r23, @loop_body2(), @loop_exit3(%r20, %r21)
+  block @loop_body2:
+    %r24 = mod %r20, %r21 : u8 [general]
+    jmp @loop_head1(%r21, %r24)
+  block @loop_exit3(%r25: u8 [general], %r26: u8 [general]):
+    ret %r25
+
+fun @main()
+  block @entry:
+    %r27 = const 72 : u8 [general]
+    %r28 = move %r27 : u8 [acc]
+    call @putch(%r28)
+    %r29 = const 101 : u8 [general]
+    %r30 = move %r29 : u8 [acc]
+    call @putch(%r30)
+    %r31 = const 108 : u8 [general]
+    %r32 = move %r31 : u8 [acc]
+    call @putch(%r32)
+    %r33 = const 108 : u8 [general]
+    %r34 = move %r33 : u8 [acc]
+    call @putch(%r34)
+    %r35 = const 111 : u8 [general]
+    %r36 = move %r35 : u8 [acc]
+    call @putch(%r36)
+    %r37 = const 32 : u8 [general]
+    %r38 = move %r37 : u8 [acc]
+    call @putch(%r38)
+    %r39 = const 70 : u8 [general]
+    %r40 = move %r39 : u8 [acc]
+    call @putch(%r40)
+    %r41 = const 114 : u8 [general]
+    %r42 = move %r41 : u8 [acc]
+    call @putch(%r42)
+    %r43 = const 105 : u8 [general]
+    %r44 = move %r43 : u8 [acc]
+    call @putch(%r44)
+    %r45 = const 108 : u8 [general]
+    %r46 = move %r45 : u8 [acc]
+    call @putch(%r46)
+    %r47 = const 108 : u8 [general]
+    %r48 = move %r47 : u8 [acc]
+    call @putch(%r48)
+    %r49 = const 33 : u8 [general]
+    %r50 = move %r49 : u8 [acc]
+    call @putch(%r50)
+    %r51 = const 13 : u8 [general]
+    %r52 = move %r51 : u8 [acc]
+    call @putch(%r52)
+    %r53 = const 10 : u8 [general]
+    %r54 = move %r53 : u8 [acc]
+    call @putch(%r54)
+    %r55 = const 102 : u8 [general]
+    %r56 = move %r55 : u8 [acc]
+    call @putch(%r56)
+    %r57 = const 105 : u8 [general]
+    %r58 = move %r57 : u8 [acc]
+    call @putch(%r58)
+    %r59 = const 98 : u8 [general]
+    %r60 = move %r59 : u8 [acc]
+    call @putch(%r60)
+    %r61 = const 40 : u8 [general]
+    %r62 = move %r61 : u8 [acc]
+    call @putch(%r62)
+    %r63 = const 55 : u8 [general]
+    %r64 = move %r63 : u8 [acc]
+    call @putch(%r64)
+    %r65 = const 41 : u8 [general]
+    %r66 = move %r65 : u8 [acc]
+    call @putch(%r66)
+    %r67 = const 61 : u8 [general]
+    %r68 = move %r67 : u8 [acc]
+    call @putch(%r68)
+    %r69 = const 7 : u8 [general]
+    %r70 = move %r69 : u8 [acc]
+    %r71 = call @fib(%r70) : u8 [acc]
+    %r72 = const 10 : u8 [general]
+    %r73 = div %r71, %r72 : u8 [general]
+    %r74 = move %r73 : u8 [acc]
+    call @print_digit(%r74)
+    %r75 = const 10 : u8 [general]
+    %r76 = mod %r71, %r75 : u8 [general]
+    %r77 = move %r76 : u8 [acc]
+    call @print_digit(%r77)
+    %r78 = const 13 : u8 [general]
+    %r79 = move %r78 : u8 [acc]
+    call @putch(%r79)
+    %r80 = const 10 : u8 [general]
+    %r81 = move %r80 : u8 [acc]
+    call @putch(%r81)
+    %r82 = const 103 : u8 [general]
+    %r83 = move %r82 : u8 [acc]
+    call @putch(%r83)
+    %r84 = const 99 : u8 [general]
+    %r85 = move %r84 : u8 [acc]
+    call @putch(%r85)
+    %r86 = const 100 : u8 [general]
+    %r87 = move %r86 : u8 [acc]
+    call @putch(%r87)
+    %r88 = const 40 : u8 [general]
+    %r89 = move %r88 : u8 [acc]
+    call @putch(%r89)
+    %r90 = const 49 : u8 [general]
+    %r91 = move %r90 : u8 [acc]
+    call @putch(%r91)
+    %r92 = const 50 : u8 [general]
+    %r93 = move %r92 : u8 [acc]
+    call @putch(%r93)
+    %r94 = const 44 : u8 [general]
+    %r95 = move %r94 : u8 [acc]
+    call @putch(%r95)
+    %r96 = const 56 : u8 [general]
+    %r97 = move %r96 : u8 [acc]
+    call @putch(%r97)
+    %r98 = const 41 : u8 [general]
+    %r99 = move %r98 : u8 [acc]
+    call @putch(%r99)
+    %r100 = const 61 : u8 [general]
+    %r101 = move %r100 : u8 [acc]
+    call @putch(%r101)
+    %r102 = const 12 : u8 [general]
+    %r103 = move %r102 : u8 [acc]
+    %r104 = const 8 : u8 [general]
+    %r105 = call @gcd(%r103, %r104) : u8 [acc]
+    %r106 = move %r105 : u8 [acc]
+    call @print_digit(%r106)
+    %r107 = const 13 : u8 [general]
+    %r108 = move %r107 : u8 [acc]
+    call @putch(%r108)
+    %r109 = const 10 : u8 [general]
+    %r110 = move %r109 : u8 [acc]
+    call @putch(%r110)
+    ret void
+

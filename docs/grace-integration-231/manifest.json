@@ -1,0 +1,200 @@
+{
+  "files": {
+    "README.md": {
+      "sha256": "59196582075d356b82d94ef55b34dd95feeac0b30f56fad470e2830cfe72abbb",
+      "bytes": 1404
+    },
+    "execution/hello_cpm/before.json": {
+      "sha256": "77b97563686935681d3dcb703d30704f316dd8558a6c9fa71a92b1021dca8e8d",
+      "bytes": 17458
+    },
+    "execution/hello_cpm/before.mir": {
+      "sha256": "6f861c0150775aadd0527c8d91c80913a9aa6c6bb216a530996f399054e4a6bd",
+      "bytes": 605
+    },
+    "execution/hello_cpm/grace-size/clobber-false.json": {
+      "sha256": "fc111d0d9f37b576ca3e3d86696a74191d8810bb509b6d543f406ea786ee020d",
+      "bytes": 2168
+    },
+    "execution/hello_cpm/grace-size/clobber-true.json": {
+      "sha256": "5ea169bf4161401ee7a48de082f81017bb10f88da87ad9d352e1bcaa35d57897",
+      "bytes": 2177
+    },
+    "execution/hello_cpm/grace-size/context.json": {
+      "sha256": "963a4fdfab97d753ff6d4324366e87019eb153bef32f1da54ece6dcdd578e3cd",
+      "bytes": 16663
+    },
+    "execution/hello_cpm/grace-size/final.mir": {
+      "sha256": "6f861c0150775aadd0527c8d91c80913a9aa6c6bb216a530996f399054e4a6bd",
+      "bytes": 605
+    },
+    "execution/hello_cpm/grace-size/program.a80": {
+      "sha256": "cd41f5d8e600504bbebe3a4d01efcada48795bf1b9f9bc1a25b93a119fdb3a53",
+      "bytes": 2409
+    },
+    "execution/hello_cpm/grace-size/program.com": {
+      "sha256": "5f33e61ddb22be8e8f9084c23aeaae7c90535e0dea1da14249db0754da3d11ad",
+      "bytes": 1178
+    },
+    "execution/hello_cpm/grace-size/raw.mir": {
+      "sha256": "f0655460d39e1dfbdb77b221f893d9dec156456f49e8bb2d265e5e4d982cdbcc",
+      "bytes": 893
+    },
+    "execution/hello_cpm/grace-speed/clobber-false.json": {
+      "sha256": "fc111d0d9f37b576ca3e3d86696a74191d8810bb509b6d543f406ea786ee020d",
+      "bytes": 2168
+    },
+    "execution/hello_cpm/grace-speed/clobber-true.json": {
+      "sha256": "5ea169bf4161401ee7a48de082f81017bb10f88da87ad9d352e1bcaa35d57897",
+      "bytes": 2177
+    },
+    "execution/hello_cpm/grace-speed/context.json": {
+      "sha256": "fdb43437ee15722a7f78aecd3ac340d93b21052f0d4509ec2ceecb59b1f9dd14",
+      "bytes": 16664
+    },
+    "execution/hello_cpm/grace-speed/final.mir": {
+      "sha256": "6f861c0150775aadd0527c8d91c80913a9aa6c6bb216a530996f399054e4a6bd",
+      "bytes": 605
+    },
+    "execution/hello_cpm/grace-speed/program.a80": {
+      "sha256": "cd41f5d8e600504bbebe3a4d01efcada48795bf1b9f9bc1a25b93a119fdb3a53",
+      "bytes": 2409
+    },
+    "execution/hello_cpm/grace-speed/program.com": {
+      "sha256": "5f33e61ddb22be8e8f9084c23aeaae7c90535e0dea1da14249db0754da3d11ad",
+      "bytes": 1178
+    },
+    "execution/hello_cpm/grace-speed/raw.mir": {
+      "sha256": "f0655460d39e1dfbdb77b221f893d9dec156456f49e8bb2d265e5e4d982cdbcc",
+      "bytes": 893
+    },
+    "execution/hello_cpm/ordinary/clobber-false.json": {
+      "sha256": "fc111d0d9f37b576ca3e3d86696a74191d8810bb509b6d543f406ea786ee020d",
+      "bytes": 2168
+    },
+    "execution/hello_cpm/ordinary/clobber-true.json": {
+      "sha256": "5ea169bf4161401ee7a48de082f81017bb10f88da87ad9d352e1bcaa35d57897",
+      "bytes": 2177
+    },
+    "execution/hello_cpm/ordinary/context.json": {
+      "sha256": "c3e882c895b8df3c851180bef54b916ee03e3f88993b2ac489c9362b1a67f321",
+      "bytes": 16667
+    },
+    "execution/hello_cpm/ordinary/final.mir": {
+      "sha256": "6f861c0150775aadd0527c8d91c80913a9aa6c6bb216a530996f399054e4a6bd",
+      "bytes": 605
+    },
+    "execution/hello_cpm/ordinary/program.a80": {
+      "sha256": "f6bf300edbc00173ae09784a8cb79fd83ef29d1489912d6f976fa13878582972",
+      "bytes": 2424
+    },
+    "execution/hello_cpm/ordinary/program.com": {
+      "sha256": "5f33e61ddb22be8e8f9084c23aeaae7c90535e0dea1da14249db0754da3d11ad",
+      "bytes": 1178
+    },
+    "execution/hello_cpm/ordinary/raw.mir": {
+      "sha256": "f0655460d39e1dfbdb77b221f893d9dec156456f49e8bb2d265e5e4d982cdbcc",
+      "bytes": 893
+    },
+    "execution/hello_cpm_fib/before.json": {
+      "sha256": "fbbcf294e99bda4e264e7b6d1399b3a18887aeab6fb6f20eccf35d78bed72c98",
+      "bytes": 92521
+    },
+    "execution/hello_cpm_fib/before.mir": {
+      "sha256": "789947225eddb937bca669d35e8616a8fa419611964fc8d540068b4e0b581b4a",
+      "bytes": 3352
+    },
+    "execution/hello_cpm_fib/grace-size/clobber-false.json": {
+      "sha256": "41fcf79c03d07ea5333263c5102bf8712987cad0d31e39e5efc75210bfa0c6eb",
+      "bytes": 9213
+    },
+    "execution/hello_cpm_fib/grace-size/clobber-true.json": {
+      "sha256": "4e9fc05c9e4549523551cbe52a74c4c5feff743507f6c6fbd0771a9b368d46d8",
+      "bytes": 9249
+    },
+    "execution/hello_cpm_fib/grace-size/context.json": {
+      "sha256": "210fcd2d0d068d375a46a32a75fe07384991c7d92eefe67815652d661edfd6f5",
+      "bytes": 87362
+    },
+    "execution/hello_cpm_fib/grace-size/final.mir": {
+      "sha256": "789947225eddb937bca669d35e8616a8fa419611964fc8d540068b4e0b581b4a",
+      "bytes": 3352
+    },
+    "execution/hello_cpm_fib/grace-size/program.a80": {
+      "sha256": "9073e329a881a74250e3b451aebd758f5afb9754732825a1528e6c723f059665",
+      "bytes": 6745
+    },
+    "execution/hello_cpm_fib/grace-size/program.com": {
+      "sha256": "4eb0dc0a225bd8e310a8a073a2330ba78d38c36a155a714f176aabff132c24a5",
+      "bytes": 1523
+    },
+    "execution/hello_cpm_fib/grace-size/raw.mir": {
+      "sha256": "0327d3b8327cda3bd8de2614c3d2e570e5a2460ba4d079849338188bb460edb7",
+      "bytes": 5125
+    },
+    "execution/hello_cpm_fib/grace-speed/clobber-false.json": {
+      "sha256": "41fcf79c03d07ea5333263c5102bf8712987cad0d31e39e5efc75210bfa0c6eb",
+      "bytes": 9213
+    },
+    "execution/hello_cpm_fib/grace-speed/clobber-true.json": {
+      "sha256": "4e9fc05c9e4549523551cbe52a74c4c5feff743507f6c6fbd0771a9b368d46d8",
+      "bytes": 9249
+    },
+    "execution/hello_cpm_fib/grace-speed/context.json": {
+      "sha256": "3379b48b7628971c2626aa0221ed17f78b1b1d6cae489e011e3eb29c5cff1423",
+      "bytes": 87363
+    },
+    "execution/hello_cpm_fib/grace-speed/final.mir": {
+      "sha256": "789947225eddb937bca669d35e8616a8fa419611964fc8d540068b4e0b581b4a",
+      "bytes": 3352
+    },
+    "execution/hello_cpm_fib/grace-speed/program.a80": {
+      "sha256": "9073e329a881a74250e3b451aebd758f5afb9754732825a1528e6c723f059665",
+      "bytes": 6745
+    },
+    "execution/hello_cpm_fib/grace-speed/program.com": {
+      "sha256": "4eb0dc0a225bd8e310a8a073a2330ba78d38c36a155a714f176aabff132c24a5",
+      "bytes": 1523
+    },
+    "execution/hello_cpm_fib/grace-speed/raw.mir": {
+      "sha256": "0327d3b8327cda3bd8de2614c3d2e570e5a2460ba4d079849338188bb460edb7",
+      "bytes": 5125
+    },
+    "execution/hello_cpm_fib/ordinary/clobber-false.json": {
+      "sha256": "41fcf79c03d07ea5333263c5102bf8712987cad0d31e39e5efc75210bfa0c6eb",
+      "bytes": 9213
+    },
+    "execution/hello_cpm_fib/ordinary/clobber-true.json": {
+      "sha256": "4e9fc05c9e4549523551cbe52a74c4c5feff743507f6c6fbd0771a9b368d46d8",
+      "bytes": 9249
+    },
+    "execution/hello_cpm_fib/ordinary/context.json": {
+      "sha256": "3b932579481dca25f90212a23b45f9312c642a679e6f53c9ee98f87bd421deea",
+      "bytes": 87367
+    },
+    "execution/hello_cpm_fib/ordinary/final.mir": {
+      "sha256": "789947225eddb937bca669d35e8616a8fa419611964fc8d540068b4e0b581b4a",
+      "bytes": 3352
+    },
+    "execution/hello_cpm_fib/ordinary/program.a80": {
+      "sha256": "502c6df7317894a1152ba3575f2395f0db3829c1a1ff17d470724e4371dd3511",
+      "bytes": 6797
+    },
+    "execution/hello_cpm_fib/ordinary/program.com": {
+      "sha256": "4eb0dc0a225bd8e310a8a073a2330ba78d38c36a155a714f176aabff132c24a5",
+      "bytes": 1523
+    },
+    "execution/hello_cpm_fib/ordinary/raw.mir": {
+      "sha256": "0327d3b8327cda3bd8de2614c3d2e570e5a2460ba4d079849338188bb460edb7",
+      "bytes": 5125
+    },
+    "root-cpm-adapters-d823ddd2.txt": {
+      "sha256": "396a2ecd95ceef22df095f9842384ff5e8d382a94849b9cc2177ea1f25d8c5d8",
+      "bytes": 43
+    },
+    "root-readme-cpm.txt": {
+      "sha256": "2d93c22c4c3e018ee57fc11fe1d244859af00250c4a7eaac7950152f20093c20",
+      "bytes": 47
+    }
+  }
+}
