@@ -1,0 +1,12 @@
+{
+  "pipeline-proof.test": {
+    "sha256": "c3ba8457f0cf072a649eb020abd1b69800ddfdd9e04e9fe85ced3b2f1a8a1556",
+    "bytes": 28846676,
+    "retained_share_path": "/mnt/safe/minz/grace/2026-10-12/agent-artifacts/cpm-tui-public-runtime/executables/pipeline-proof.test"
+  },
+  "minzc-runtime": {
+    "sha256": "24f8735f3d79c2ca5c7c7d583236a04320888da620c04c3dc1d87f614a71fa15",
+    "bytes": 42861864,
+    "retained_share_path": "/mnt/safe/minz/grace/2026-10-12/agent-artifacts/cpm-tui-public-runtime/executables/minzc-runtime"
+  }
+}

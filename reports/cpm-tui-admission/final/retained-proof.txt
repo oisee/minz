@@ -1,0 +1,34 @@
+=== RUN   TestCPMTetrisInvalidBoardStoreBeforeWrite
+    cpm_tetris_invalid_store_test.go:114: ordinary-out-of-object actual original board_set(255,255,42), fullRAM/SP PASS
+    cpm_tetris_invalid_store_test.go:114: guarded-before-write actual original board_set(255,255,42), fullRAM/SP PASS
+--- PASS: TestCPMTetrisInvalidBoardStoreBeforeWrite (0.95s)
+=== RUN   TestPublicCPMTetrisNative
+    cpm_tetris_native_test.go:256: ordinary public runtime exact stdout/state/OSreturn/SP PASS
+    cpm_tetris_native_test.go:256: grace-size public runtime exact stdout/state/OSreturn/SP PASS
+    cpm_tetris_native_test.go:256: grace-speed public runtime exact stdout/state/OSreturn/SP PASS
+--- PASS: TestPublicCPMTetrisNative (1.73s)
+=== RUN   TestCPMTUIAdmissionAudit
+--- PASS: TestCPMTUIAdmissionAudit (0.75s)
+=== RUN   TestCPMTUICanonicalHostileInputs
+=== RUN   TestCPMTUICanonicalHostileInputs/body
+=== RUN   TestCPMTUICanonicalHostileInputs/injected-call
+=== RUN   TestCPMTUICanonicalHostileInputs/clobber
+=== RUN   TestCPMTUICanonicalHostileInputs/input-order
+=== RUN   TestCPMTUICanonicalHostileInputs/return-width
+=== RUN   TestCPMTUICanonicalHostileInputs/unused-unknown
+=== RUN   TestCPMTUICanonicalHostileInputs/readline-call
+=== RUN   TestCPMTUICanonicalHostileInputs/readline-address
+=== RUN   TestCPMTUICanonicalHostileInputs/hidden-asm
+=== RUN   TestCPMTUICanonicalHostileInputs/external
+--- PASS: TestCPMTUICanonicalHostileInputs (2.38s)
+    --- PASS: TestCPMTUICanonicalHostileInputs/body (0.22s)
+    --- PASS: TestCPMTUICanonicalHostileInputs/injected-call (0.20s)
+    --- PASS: TestCPMTUICanonicalHostileInputs/clobber (0.25s)
+    --- PASS: TestCPMTUICanonicalHostileInputs/input-order (0.34s)
+    --- PASS: TestCPMTUICanonicalHostileInputs/return-width (0.33s)
+    --- PASS: TestCPMTUICanonicalHostileInputs/unused-unknown (0.29s)
+    --- PASS: TestCPMTUICanonicalHostileInputs/readline-call (0.19s)
+    --- PASS: TestCPMTUICanonicalHostileInputs/readline-address (0.19s)
+    --- PASS: TestCPMTUICanonicalHostileInputs/hidden-asm (0.20s)
+    --- PASS: TestCPMTUICanonicalHostileInputs/external (0.19s)
+PASS
