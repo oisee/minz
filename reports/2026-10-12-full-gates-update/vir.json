@@ -1,0 +1,12 @@
+{
+  "checkpoint": "c1744a23",
+  "exit_code": 0,
+  "terminal": "PASS",
+  "counts": {
+    "PASS": 134,
+    "FAIL": 0,
+    "SKIP": 4
+  },
+  "binary_sha256": "d2b205ff047f0bc4649fee742027e81b4ba56ec749869a885ffa99b3d8c51fa3",
+  "scope": "Full research VIR including mixed copies/cycles and exact adapter entry. Later wrap-boundary test and independent audit tools not included; no compiler semantic changes since. Corpus admission not universal native proof."
+}
