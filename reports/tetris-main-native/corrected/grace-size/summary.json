@@ -1,0 +1,14 @@
+{
+  "dependency_sha256": "4711dbee908a2271f02d1fbb4720942604e23322d7745f32311f6b2c17c6d4a8",
+  "full_ram_guard": true,
+  "image_bytes": 4611,
+  "inputs": 3,
+  "intended_text_equal": true,
+  "minimum_sp": 61404,
+  "native_whole_main": true,
+  "output_bytes": 326,
+  "result": "PASS",
+  "scope": "original main+importedASM, testownedloader/BDOS1/2; productionruntime refused",
+  "source_sha256": "91b2a3cc7be3a309b17b6655ed7e1757b70b89ac67985cad0bcc3a5e2f55c23d",
+  "terminal_halt_pc": "0x0107"
+}

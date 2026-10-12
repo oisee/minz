@@ -16,13 +16,13 @@ import (
 )
 
 // Whole original main: real imported ASM executes; only BDOS console services
-// are test-owned runtime bindings. Source/runtime string mismatch stays visible.
-func TestOriginalTetrisCPMMainSourceAPIRefusal(t *testing.T) {
+// are test-owned runtime bindings. Corrected source literals follow the existing NUL-terminated API contract.
+func TestOriginalTetrisCPMMainNative(t *testing.T) {
 	src, e := os.ReadFile("../../../examples/nanz/tetris_cpm.nanz")
 	if e != nil {
 		t.Fatal(e)
 	}
-	data, e := os.ReadFile("../../../reports/tetris-main-native/freeze.json")
+	data, e := os.ReadFile("../../../reports/tetris-main-native/freeze-corrected.json")
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -120,7 +120,7 @@ func TestOriginalTetrisCPMMainSourceAPIRefusal(t *testing.T) {
 		gotoXY(1, 23)
 		return out.Bytes()
 	}
-	wantBytes := buildOutput(true)
+	wantBytes := buildOutput(false)
 	save("expected-exact-stdout.bin", wantBytes)
 	save("expected-intended-stdout.bin", buildOutput(false))
 	save("expected-state.json", in)
@@ -134,7 +134,7 @@ func TestOriginalTetrisCPMMainSourceAPIRefusal(t *testing.T) {
 		if e != nil {
 			t.Fatal(e)
 		}
-		asm := "ORG 0x100\n__test_loader:\nLD SP,0xeff0\nJP main\n" + s.Assembly
+		asm := "ORG 0x100\n__test_loader:\nLD SP,0xeff0\nCALL main\nDI\nHALT\n" + s.Assembly
 		a, e := z80asm.NewAssembler().AssembleString(asm)
 		if e != nil || len(a.Errors) > 0 {
 			t.Fatal(e, a.Errors)
@@ -183,7 +183,7 @@ func TestOriginalTetrisCPMMainSourceAPIRefusal(t *testing.T) {
 		var ledger []map[string]any
 		minSP := uint16(0xeff0)
 		done := false
-		for step := 0; step < 100000; step++ {
+		for step := 0; step < 2000000; step++ {
 			pc := z.GetPC()
 			if pc == 5 {
 				r := z.GetRegisters()
@@ -211,6 +211,9 @@ func TestOriginalTetrisCPMMainSourceAPIRefusal(t *testing.T) {
 				t.Fatal("foreign fetch", pc)
 			}
 			if mem[pc] == 0x76 {
+				if pc != 0x107 {
+					t.Fatal("unexpected HALT", mode, pc)
+				}
 				z.Step()
 				done = true
 				break
@@ -220,25 +223,22 @@ func TestOriginalTetrisCPMMainSourceAPIRefusal(t *testing.T) {
 				minSP = z.GetSP()
 			}
 			if minSP < 0xe000 || z.GetSP() > 0xeff0 {
-				t.Fatal("stack bound")
+				t.Fatal("stack bound", mode, z.GetRegisters(), minSP, keyIndex)
 			}
 		}
 		save(mode+"/actual-stdout.bin", output)
-		if len(ledger) > 200 {
-			ledger = ledger[:200]
-		}
-		save(mode+"/bdos-ledger-prefix.json", ledger)
+		save(mode+"/bdos-ledger.json", ledger)
 		save(mode+"/registers.json", z.GetRegisters())
-		// SString expression has no NUL. Native imported puts crosses its
-		// object into the next pooled string and then ordinary RAM. Refuse
-		// whole-program success: preserve this executable bounded diagnostic.
-		if done || bytes.Equal(output, wantBytes) || !bytes.Contains(output, []byte("Arrows:Move Z:Rot X:Drop C:Hold Q:Quit\nGAME OVER!\x07Score: ")) {
-			t.Fatal("missing exact source/API failure", done, keyIndex, len(output))
+		if !done || keyIndex != 3 || z.GetSP() != 0xeff0 {
+			t.Fatal("main termination/input/SP", done, keyIndex, z.GetRegisters())
 		}
-		save(mode+"/source-gap.json", map[string]any{"wholemain_result": "FAIL source/API", "input_reads": keyIndex, "output_bytes": len(output), "budget_steps": 100000, "source_sha256": freeze.SHA})
-		t.Log(mode, "original wholemain source/API refusal reproduced")
-		continue
-
+		if !bytes.Equal(output, wantBytes) {
+			i := 0
+			for i < len(output) && i < len(wantBytes) && output[i] == wantBytes[i] {
+				i++
+			}
+			t.Fatalf("%s stdout firstdiff%d got%q want%q", mode, i, output, wantBytes)
+		}
 		copy(after[minSP:0xeff0], mem[minSP:0xeff0])
 		for _, l := range a.Listing {
 			if strings.HasPrefix(l.Label, "_spill_") {
@@ -254,7 +254,7 @@ func TestOriginalTetrisCPMMainSourceAPIRefusal(t *testing.T) {
 				}
 			}
 		}
-		save(mode+"/summary.json", map[string]any{"result": "PASS", "inputs": keyIndex, "output_bytes": len(output), "native_whole_main": true, "intended_text_equal": bytes.Equal(output, buildOutput(false)), "scope": "original main+importedASM, testownedloader/BDOS1/2; productionruntime refused"})
+		save(mode+"/summary.json", map[string]any{"result": "PASS", "inputs": keyIndex, "output_bytes": len(output), "source_sha256": freeze.SHA, "dependency_sha256": freeze.DependencySHA, "image_bytes": len(a.Binary), "minimum_sp": minSP, "terminal_halt_pc": "0x0107", "full_ram_guard": true, "native_whole_main": true, "intended_text_equal": bytes.Equal(output, buildOutput(false)), "scope": "original main+importedASM, testownedloader/BDOS1/2; productionruntime refused"})
 		t.Log(mode, "whole original main exactstdout/state/HALT/SP PASS")
 	}
 }

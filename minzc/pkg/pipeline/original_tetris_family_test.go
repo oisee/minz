@@ -165,6 +165,7 @@ func tetrisFamilyModel(entry string, args []int64, in tetrisFamilyState, geo [][
 }
 
 func TestOriginalTetrisFamilyMechanics(t *testing.T) {
+	tetrisVerifyHistoricalModel(t)
 	data, e := os.ReadFile("../../../reports/tetris-family-native/freeze.json")
 	if e != nil {
 		t.Fatal(e)
@@ -177,7 +178,14 @@ func TestOriginalTetrisFamilyMechanics(t *testing.T) {
 		t.Fatal(e)
 	}
 	for p, h := range freeze.Sources {
-		b, e := os.ReadFile("../../../" + p)
+		path := "../../../" + p
+		if p == "examples/nanz/tetris_cpm.nanz" {
+			path = "../../../reports/tetris-family-native/tetris_cpm.nanz"
+		}
+		if p == "examples/nanz/tetris_tui.nanz" {
+			path = "../../../reports/tetris-family-native/tetris_tui.nanz"
+		}
+		b, e := os.ReadFile(path)
 		if e != nil || fmt.Sprintf("%x", sha256.Sum256(b)) != h {
 			t.Fatal("freeze", p, e)
 		}
@@ -203,7 +211,7 @@ func TestOriginalTetrisFamilyMechanics(t *testing.T) {
 		}
 	}
 	for _, module := range []string{"tetris_cpm", "tetris_tui"} {
-		src, e := os.ReadFile("../../../examples/nanz/" + module + ".nanz")
+		src, e := os.ReadFile("../../../reports/tetris-family-native/" + module + ".nanz")
 		if e != nil {
 			t.Fatal(e)
 		}
