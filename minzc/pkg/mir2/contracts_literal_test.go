@@ -45,7 +45,7 @@ func TestPFCCOCallWordLiteralPlacement(t *testing.T) {
 }
 
 func TestPFCCOCallWordLiteralPlacementRefusals(t *testing.T) {
-	for _, name := range []string{"second-use", "duplicate-arg", "return-use", "other-block", "after-call", "parameter", "hard", "width", "unknown-symbol", "extern", "fixed-ABI", "type-mismatch", "opaque-meta", "wide-literal", "extra-def"} {
+	for _, name := range []string{"second-use", "duplicate-arg", "return-use", "other-block", "after-call", "parameter", "hard", "width", "unknown-symbol", "extern", "fixed-ABI", "type-mismatch", "opaque-meta", "wide-literal", "extra-def", "callee-hard"} {
 		t.Run(name, func(t *testing.T) {
 			m, f, d, c, cs := pfccoLiteralFixture()
 			b := f.Blocks[0]
@@ -75,6 +75,8 @@ func TestPFCCOCallWordLiteralPlacementRefusals(t *testing.T) {
 				m.FuncByName("accept").Attrs.IsExtern = true
 			case "fixed-ABI":
 				m.FuncByName("accept").Attrs.FixedIndirectABI = true
+			case "callee-hard":
+				m.FuncByName("accept").Contract.Params[0].ClassHard = true
 			case "opaque-meta":
 				d.SequentialBytes = true
 			case "wide-literal":

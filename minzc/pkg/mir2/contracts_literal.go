@@ -105,7 +105,7 @@ func PlacePFCCOCallWordLiterals(m *Module, cs ContractSet, ct CostTable) int {
 					continue
 				}
 				for ai := range call.Args {
-					if ai >= len(ch.ParamClasses) || ai >= len(callee.Contract.Params) || !pfccoWordLiteralClass(ch.ParamClasses[ai]) {
+					if ai >= len(ch.ParamClasses) || ai >= len(callee.Contract.Params) || callee.Contract.Params[ai].ClassHard || !pfccoWordLiteralClass(ch.ParamClasses[ai]) {
 						continue
 					}
 					if d := pfccoCallWordLiteral(f, call, ai); d != nil && d.Ty == callee.Contract.Params[ai].Ty && d.Cls != ch.ParamClasses[ai] {
