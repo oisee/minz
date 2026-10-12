@@ -1,0 +1,21 @@
+=== RUN   TestMZXSQLiteProviderPublicProtocol
+=== RUN   TestMZXSQLiteProviderPublicProtocol/handles_status_and_fresh_query
+=== RUN   TestMZXSQLiteProviderPublicProtocol/errors_invalid_columns_and_integer_bounds
+--- PASS: TestMZXSQLiteProviderPublicProtocol (0.00s)
+    --- PASS: TestMZXSQLiteProviderPublicProtocol/handles_status_and_fresh_query (0.00s)
+    --- PASS: TestMZXSQLiteProviderPublicProtocol/errors_invalid_columns_and_integer_bounds (0.00s)
+=== RUN   TestMZXSQLiteOriginalNativeConsumer
+=== RUN   TestMZXSQLiteOriginalNativeConsumer/ordinary
+    sqlite_ports_test.go:271: actual MZX provider native original main 1670 B exact59stdout status/commands/fullRAM/SP PASS
+=== RUN   TestMZXSQLiteOriginalNativeConsumer/grace-size
+    sqlite_ports_test.go:271: actual MZX provider native original main 1670 B exact59stdout status/commands/fullRAM/SP PASS
+=== RUN   TestMZXSQLiteOriginalNativeConsumer/grace-speed
+    sqlite_ports_test.go:271: actual MZX provider native original main 1670 B exact59stdout status/commands/fullRAM/SP PASS
+--- PASS: TestMZXSQLiteOriginalNativeConsumer (0.17s)
+    --- PASS: TestMZXSQLiteOriginalNativeConsumer/ordinary (0.06s)
+    --- PASS: TestMZXSQLiteOriginalNativeConsumer/grace-size (0.05s)
+    --- PASS: TestMZXSQLiteOriginalNativeConsumer/grace-speed (0.06s)
+=== RUN   TestMZXSQLiteStringBoundary
+--- PASS: TestMZXSQLiteStringBoundary (0.00s)
+PASS
+ok  	github.com/minz/minzc/cmd/mzx	0.181s
