@@ -1,0 +1,36 @@
+=== RUN   TestOriginalZXAppsNative
+=== RUN   TestOriginalZXAppsNative/source0/ordinary
+=== RUN   TestOriginalZXAppsNative/source0/grace-size
+=== RUN   TestOriginalZXAppsNative/source0/grace-speed
+=== RUN   TestOriginalZXAppsNative/source1/ordinary
+    original_zx_apps_test.go:280: original app halted=true mismatch=-001 outside=0 SP=effe
+=== RUN   TestOriginalZXAppsNative/source1/grace-size
+    original_zx_apps_test.go:280: original app halted=true mismatch=-001 outside=0 SP=effe
+=== RUN   TestOriginalZXAppsNative/source1/grace-speed
+    original_zx_apps_test.go:280: original app halted=true mismatch=-001 outside=0 SP=effe
+=== RUN   TestOriginalZXAppsNative/source2/ordinary
+--- FAIL: TestOriginalZXAppsNative (3.25s)
+    --- PASS: TestOriginalZXAppsNative/source0/ordinary (0.14s)
+    --- PASS: TestOriginalZXAppsNative/source0/grace-size (0.18s)
+    --- PASS: TestOriginalZXAppsNative/source0/grace-speed (0.25s)
+    --- PASS: TestOriginalZXAppsNative/source1/ordinary (0.51s)
+    --- PASS: TestOriginalZXAppsNative/source1/grace-size (0.89s)
+    --- PASS: TestOriginalZXAppsNative/source1/grace-speed (1.25s)
+    --- FAIL: TestOriginalZXAppsNative/source2/ordinary (0.03s)
+panic: runtime error: index out of range [0] with length 0 [recovered, repanicked]
+
+goroutine 26 [running]:
+testing.tRunner.func1.2({0x13494c0, 0x10a45341a000})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:1974 +0x232
+testing.tRunner.func1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:1977 +0x349
+panic({0x13494c0?, 0x10a45341a000?})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/panic.go:860 +0x13a
+github.com/minz/minzc/pkg/pipeline.TestOriginalZXAppsNative.func2(0x10a45307eb48)
+	/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/pipeline/original_zx_apps_test.go:212 +0x2c3b
+testing.tRunner(0x10a45307eb48, 0x10a4532622a0)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2036 +0xea
+created by testing.(*T).Run in goroutine 51
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2101 +0x4c5
+FAIL	github.com/minz/minzc/pkg/pipeline	3.265s
+FAIL

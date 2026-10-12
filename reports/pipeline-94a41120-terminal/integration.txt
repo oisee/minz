@@ -1,0 +1,3 @@
+ok  	github.com/minz/minzc/pkg/nanz	20.335s
+ok  	github.com/minz/minzc/pkg/vir	2.423s
+ok  	github.com/minz/minzc/cmd/import-enrt	1.529s

@@ -7,7 +7,7 @@
     "independent_model": "Independent ZX pixel/attribute/font fixture and port model; exact old/newsource freezes and assembler quoted-space fix.",
     "boundary": "Injected device only, frozen scenario not fullkeyboard/font API or hardware. SAP source unchanged, Hello CString source corrected explicitly.",
     "evidence": {
-      "minzc/pkg/pipeline/original_zx_apps_test.go": "17f021935a45c1e3243c64875fce829f362afe77112e2587a1b1557ba282b526",
+      "minzc/pkg/pipeline/original_zx_apps_test.go": "4a9a1da3cc2a3875c622728cbeb63c3c27fe257ee99d5ac0c4555e7df893d99b",
       "reports/original-zx-apps/manifest.json": "5e5dc435fce383df29f9922a9aef062166ab88fcd7db35c0f67f045016df9cf1",
       "reports/zx-hello-corrected/manifest.json": "b8303954db7119c387b95cfbd834a66affb02921d416c4c7e7f9885abf93df79",
       "docs/grace-integration-254/zx-root.txt": "16c3afe3bad10fdf4123bdaf8891f6ab597252d56201371cc476c48d5b8bb1c2"
@@ -21,7 +21,7 @@
     "independent_model": "Independent ZX pixel/attribute/font fixture and port model; exact old/newsource freezes and assembler quoted-space fix.",
     "boundary": "Injected device only, frozen scenario not fullkeyboard/font API or hardware. SAP source unchanged, Hello CString source corrected explicitly.",
     "evidence": {
-      "minzc/pkg/pipeline/original_zx_apps_test.go": "17f021935a45c1e3243c64875fce829f362afe77112e2587a1b1557ba282b526",
+      "minzc/pkg/pipeline/original_zx_apps_test.go": "4a9a1da3cc2a3875c622728cbeb63c3c27fe257ee99d5ac0c4555e7df893d99b",
       "reports/original-zx-apps/manifest.json": "5e5dc435fce383df29f9922a9aef062166ab88fcd7db35c0f67f045016df9cf1",
       "reports/zx-hello-corrected/manifest.json": "b8303954db7119c387b95cfbd834a66affb02921d416c4c7e7f9885abf93df79",
       "docs/grace-integration-254/zx-root.txt": "16c3afe3bad10fdf4123bdaf8891f6ab597252d56201371cc476c48d5b8bb1c2"

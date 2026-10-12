@@ -1,0 +1,42 @@
+=== RUN   TestOriginalZXAppsNative
+=== RUN   TestOriginalZXAppsNative/source0/ordinary
+=== RUN   TestOriginalZXAppsNative/source0/grace-size
+=== RUN   TestOriginalZXAppsNative/source0/grace-speed
+=== RUN   TestOriginalZXAppsNative/source1/ordinary
+    original_zx_apps_test.go:286: original app halted=true mismatch=-001 outside=0 SP=effe
+=== RUN   TestOriginalZXAppsNative/source1/grace-size
+    original_zx_apps_test.go:286: original app halted=true mismatch=-001 outside=0 SP=effe
+=== RUN   TestOriginalZXAppsNative/source1/grace-speed
+    original_zx_apps_test.go:286: original app halted=true mismatch=-001 outside=0 SP=effe
+=== RUN   TestOriginalZXAppsNative/source2/full-main
+=== RUN   TestOriginalZXAppsNative/source2/full-main/ordinary
+    original_zsql_mara_color_main_test.go:219: 1699 478352 492 20 static screen/full RAM PASS
+=== RUN   TestOriginalZXAppsNative/source2/full-main/grace-size
+    original_zsql_mara_color_main_test.go:219: 1699 478352 492 20 static screen/full RAM PASS
+=== RUN   TestOriginalZXAppsNative/source2/full-main/grace-speed
+    original_zsql_mara_color_main_test.go:219: 1699 478352 492 20 static screen/full RAM PASS
+=== RUN   TestOriginalZXAppsNative/source3/ordinary
+=== RUN   TestOriginalZXAppsNative/source3/grace-size
+=== RUN   TestOriginalZXAppsNative/source3/grace-speed
+=== RUN   TestOriginalZXAppsNative/source4/ordinary
+=== RUN   TestOriginalZXAppsNative/source4/grace-size
+=== RUN   TestOriginalZXAppsNative/source4/grace-speed
+--- PASS: TestOriginalZXAppsNative (3.88s)
+    --- PASS: TestOriginalZXAppsNative/source0/ordinary (0.14s)
+    --- PASS: TestOriginalZXAppsNative/source0/grace-size (0.26s)
+    --- PASS: TestOriginalZXAppsNative/source0/grace-speed (0.24s)
+    --- PASS: TestOriginalZXAppsNative/source1/ordinary (0.66s)
+    --- PASS: TestOriginalZXAppsNative/source1/grace-size (0.95s)
+    --- PASS: TestOriginalZXAppsNative/source1/grace-speed (1.19s)
+    --- PASS: TestOriginalZXAppsNative/source2/full-main (0.10s)
+        --- PASS: TestOriginalZXAppsNative/source2/full-main/ordinary (0.03s)
+        --- PASS: TestOriginalZXAppsNative/source2/full-main/grace-size (0.03s)
+        --- PASS: TestOriginalZXAppsNative/source2/full-main/grace-speed (0.04s)
+    --- PASS: TestOriginalZXAppsNative/source3/ordinary (0.06s)
+    --- PASS: TestOriginalZXAppsNative/source3/grace-size (0.06s)
+    --- PASS: TestOriginalZXAppsNative/source3/grace-speed (0.07s)
+    --- PASS: TestOriginalZXAppsNative/source4/ordinary (0.04s)
+    --- PASS: TestOriginalZXAppsNative/source4/grace-size (0.05s)
+    --- PASS: TestOriginalZXAppsNative/source4/grace-speed (0.05s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.887s

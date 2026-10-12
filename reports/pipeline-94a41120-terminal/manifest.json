@@ -1,0 +1,28 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "e89c78b60e475df3771a52a52d5125f0b808256ec6cc36593c589eac15266188"
+    },
+    {
+      "path": "catalog.txt",
+      "sha256": "c9ad4cae17265d317ed5d4511ea12b232fe98fa2d0cf654572fc01545ac15366"
+    },
+    {
+      "path": "current-reproduction.txt",
+      "sha256": "a4545acfc38ec3208f9c67ea03934d5466905fab9b85fcb269beeceefd6f70b7"
+    },
+    {
+      "path": "full-fail.txt",
+      "sha256": "eeee789ce1d36b2b5c8bc0af68dcaf47922349f890eab4cfbbfff34e54f2179c"
+    },
+    {
+      "path": "integration.txt",
+      "sha256": "d3915518bca783c90139bdfff5cc3bd2a53d7406e75285c149cf71dccaa92afd"
+    },
+    {
+      "path": "zx-repaired.txt",
+      "sha256": "b3c39c0e27e53633ff3f3837daf743c083326f2a149ef42f0552238e235565e5"
+    }
+  ]
+}

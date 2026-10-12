@@ -25,6 +25,12 @@ func TestOriginalZXAppsNative(t *testing.T) {
 		}
 	}
 	for i, path := range paths {
+		if i == 2 {
+			// The complete byte-array font and text overflow are covered by the
+			// frozen full-memory oracle, replacing the obsolete u16-font probe.
+			t.Run("source2/full-main", TestOriginalZSQLMaraColorMainNative)
+			continue
+		}
 		for _, mode := range []struct {
 			name string
 			o    Options
