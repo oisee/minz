@@ -1,0 +1,25 @@
+{
+  "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+  "all30_semantic_observations_equal": true,
+  "semantic_fields": [
+    "results",
+    "globals",
+    "regions",
+    "events",
+    "error"
+  ],
+  "steps_diagnostic_excluded": true,
+  "old": {
+    "bytes": 2391,
+    "T": 1296873,
+    "sha": "59392b014d66b82221122a57119836f66d762ad66a7304fa46b4fd2bb8c12cef"
+  },
+  "new": {
+    "bytes": 2380,
+    "T": 1296385,
+    "sha": "6d80d6ec7c8a1a00b1d70d88cedbb7cc0e345cb9234de9772ea710acb019efe5"
+  },
+  "cause": "1f87d7b7 contextual integer literals in HIR return/known-call lowering; no rotate ASM delta",
+  "fresh_factory_association_target_full_evidence_equal": true,
+  "association_test_direct_fresh_full_evidence_equal": true
+}

@@ -1,0 +1,113 @@
+--- old5939
++++ current6d80
+@@ -1197,9 +1197,7 @@
+     AND A
+     JRS NZ, .parse_sexpr_if_join2
+ .parse_sexpr_if_then1:
+-    LD A, 0
+-    LD L, A
+-    LD H, 0
++    LD HL, 0
+     RET
+ .parse_sexpr_if_join2:
+     CP 40
+@@ -1229,16 +1227,14 @@
+     LD HL, SEXP_LIST
+     LD C, (HL) ; @minz-memory-access:f14_b4_i7_a0
+     LD A, C
+-    LD C, 0
+-    LD B, 0
+-    LD D, 0
++    LD DE, 0
++    LD HL, 0
++    LD BC, 0
+     ; genCall: make_node dst=275
+-    LD E, C
+-    LD C, B
+-    LD IXL, D
+-    LD D, 0
+-    LD B, 0
+-    LD IXH, 0
++    LD IXH, B
++    LD IXL, C
++    LD B, H
++    LD C, L
+     JP make_node
+ .parse_sexpr_if_join6:
+     ; genCall: parse_sexpr dst=276
+@@ -1250,16 +1246,12 @@
+     LD A, C
+     LD H, D
+     LD L, E
+-    LD B, 0
+-    LD C, 0
++    LD BC, 0
++    LD IX, 0
+     ; genCall: make_node dst=283
+     PUSH DE
+     LD D, H
+     LD E, L
+-    LD IXL, C
+-    LD C, B
+-    LD B, 0
+-    LD IXH, 0
+     CALL make_node
+     POP DE
+     ; genCall: skip_ws dst=0
+@@ -1367,9 +1359,7 @@
+     AND A
+     JRS NZ, .parse_sexpr_if_join16
+ .parse_sexpr_if_then15:
+-    LD A, 0
+-    LD L, A
+-    LD H, 0
++    LD HL, 0
+     RET
+ .parse_sexpr_if_join16:
+     LD HL, (src_buf)    ; u16 direct load (20T, no A clobber) ; @minz-memory-access:f14_b16_i1_a0
+@@ -1459,15 +1449,15 @@
+     LD C, A
+     EX AF, AF'      ; restore byte-load scratch
+     LD A, C
+-    LD B, 0
+-    LD C, 0
++    LD D, H
++    LD E, L
++    LD HL, 0
++    LD BC, 0
+     ; genCall: make_node dst=355
+-    LD D, H
+-    LD E, L
++    LD IXH, B
+     LD IXL, C
+-    LD C, B
+-    LD B, 0
+-    LD IXH, 0
++    LD B, H
++    LD C, L
+     JP make_node
+ .parse_sexpr_if_join18:
+     ; genCall: intern_region dst=356
+@@ -1481,15 +1471,15 @@
+     LD C, A
+     EX AF, AF'      ; restore byte-load scratch
+     LD A, C
+-    LD B, 0
+-    LD C, 0
++    LD D, H
++    LD E, L
++    LD HL, 0
++    LD BC, 0
+     ; genCall: make_node dst=363
+-    LD D, H
+-    LD E, L
++    LD IXH, B
+     LD IXL, C
+-    LD C, B
+-    LD B, 0
+-    LD IXH, 0
++    LD B, H
++    LD C, L
+     JP make_node
+ .parse_sexpr_trmp0:
+     LD B, H

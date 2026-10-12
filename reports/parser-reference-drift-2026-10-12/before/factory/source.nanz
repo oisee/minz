@@ -1,0 +1,262 @@
+// Stage 2: Lanz S-expression parser on MZV
+//
+// Parses Lanz output from Stage 1 into HIR-like AST
+// Input: (fun add ((a u8) (b u8)) u8 (return (+ a b)))
+// Output: structured AST ready for MIR2 lowering
+//
+// Run: mzv self_lanz_parser.nanz -v
+
+@extern fun peek(addr: u16) -> u8
+@extern fun poke(addr: u16, val: u8) -> void
+
+// ── Memory layout ───────────────────────────────────────
+global src_buf: u16 = 0xC000
+global src_len: u16 = 0
+global pos: u16 = 0
+
+// S-expr node arena at 0x8000
+// Node: [tag: u8] [d0_lo] [d0_hi] [d1_lo] [d1_hi] [d2_lo] [d2_hi] [pad]
+global node_arena: u16 = 0x8000
+global node_bump: u16 = 0x8000
+
+// String arena at 0x9000
+global str_arena: u16 = 0x9000
+global str_bump: u16 = 0x9000
+
+// Node types
+global SEXP_ATOM: u8 = 1    // leaf: d0 = interned string ptr
+global SEXP_LIST: u8 = 2    // list: d0 = first child, d1 = next sibling
+global SEXP_INT: u8 = 3     // integer literal: d0 = value
+
+// ── Character helpers ───────────────────────────────────
+
+fun is_space(c: u8) -> u8 {
+    if c == 32 { return 1 }
+    if c == 9 { return 1 }
+    if c == 10 { return 1 }
+    if c == 13 { return 1 }
+    return 0
+}
+
+fun is_digit(c: u8) -> u8 {
+    if c >= 48 { if c <= 57 { return 1 } }
+    return 0
+}
+
+fun is_atom_char(c: u8) -> u8 {
+    if c == 0 { return 0 }
+    if c == 32 { return 0 }
+    if c == 9 { return 0 }
+    if c == 10 { return 0 }
+    if c == 13 { return 0 }
+    if c == 40 { return 0 }
+    if c == 41 { return 0 }
+    return 1
+}
+
+// ── Source access ───────────────────────────────────────
+
+fun cur() -> u8 {
+    if pos >= src_len { return 0 }
+    return peek(src_buf + pos)
+}
+
+fun skip_ws() -> void {
+    while is_space(cur()) == 1 { pos = pos + 1 }
+    // Skip ; comments
+    if cur() == 59 {
+        while cur() != 10 {
+            if cur() == 0 { return }
+            pos = pos + 1
+        }
+        pos = pos + 1
+        skip_ws()
+    }
+}
+
+// ── String interning ────────────────────────────────────
+
+fun region_match(arena_p: u16, src_start: u16, len: u8) -> u8 {
+    var i: u8 = 0
+    while i < len {
+        if peek(arena_p + 1 + i) != peek(src_buf + src_start + i) { return 0 }
+        i = i + 1
+    }
+    return 1
+}
+
+fun intern_region(start: u16, len: u8) -> u16 {
+    var p: u16 = str_arena
+    while p < str_bump {
+        let slen: u8 = peek(p)
+        if slen == len {
+            if region_match(p, start, len) == 1 { return p }
+        }
+        p = p + 1 + slen
+    }
+    let new_p: u16 = str_bump
+    poke(str_bump, len)
+    var j: u8 = 0
+    while j < len {
+        poke(str_bump + 1 + j, peek(src_buf + start + j))
+        j = j + 1
+    }
+    str_bump = str_bump + 1 + len
+    return new_p
+}
+
+// ── Node constructors ───────────────────────────────────
+
+fun make_node(tag: u8, d0: u16, d1: u16, d2: u16) -> u16 {
+    let p: u16 = node_bump
+    poke(p, tag)
+    poke(p+1, d0 % 256) poke(p+2, d0 / 256)
+    poke(p+3, d1 % 256) poke(p+4, d1 / 256)
+    poke(p+5, d2 % 256) poke(p+6, d2 / 256)
+    poke(p+7, 0)
+    node_bump = node_bump + 8
+    return p
+}
+
+fun node_tag(n: u16) -> u8 { return peek(n) }
+fun node_d0(n: u16) -> u16 { return peek(n+1) + peek(n+2) * 256 }
+fun node_d1(n: u16) -> u16 { return peek(n+3) + peek(n+4) * 256 }
+fun set_d1(n: u16, v: u16) -> void { poke(n+3, v % 256) poke(n+4, v / 256) }
+
+// ── S-expression parser ─────────────────────────────────
+// Returns a node pointer. Lists stored as linked chains via d1 (sibling).
+
+fun parse_sexpr() -> u16 {
+    skip_ws()
+    let c: u8 = cur()
+
+    if c == 0 { return 0 }
+
+    // List: ( items... )
+    if c == 40 {
+        pos = pos + 1  // skip (
+        skip_ws()
+
+        if cur() == 41 {
+            pos = pos + 1  // empty list ()
+            return make_node(SEXP_LIST, 0, 0, 0)
+        }
+
+        // Parse first child
+        let first: u16 = parse_sexpr()
+        let list_node: u16 = make_node(SEXP_LIST, first, 0, 0)
+
+        // Parse rest as sibling chain on first
+        var prev: u16 = first
+        skip_ws()
+        while cur() != 41 {
+            if cur() == 0 { return list_node }
+            let next: u16 = parse_sexpr()
+            set_d1(prev, next)
+            prev = next
+            skip_ws()
+        }
+        pos = pos + 1  // skip )
+        return list_node
+    }
+
+    // Atom: identifier, number, operator
+    let start: u16 = pos
+    while is_atom_char(cur()) == 1 {
+        pos = pos + 1
+    }
+    let len: u8 = pos - start
+    if len == 0 { return 0 }
+
+    // Check if integer
+    if is_digit(peek(src_buf + start)) == 1 {
+        var val: u16 = 0
+        var k: u8 = 0
+        while k < len {
+            val = val * 10 + peek(src_buf + start + k) - 48
+            k = k + 1
+        }
+        return make_node(SEXP_INT, val, 0, 0)
+    }
+
+    // Atom with interned string
+    let s: u16 = intern_region(start, len)
+    return make_node(SEXP_ATOM, s, 0, 0)
+}
+
+// ── Pretty printer ──────────────────────────────────────
+
+fun print_str(s: u16) -> void {
+    let len: u8 = peek(s)
+    var i: u8 = 0
+    while i < len {
+        @print_char(peek(s + 1 + i))
+        i = i + 1
+    }
+}
+
+fun print_node(n: u16) -> void {
+    if n == 0 { return }
+    let tag: u8 = node_tag(n)
+
+    if tag == SEXP_ATOM {
+        print_str(node_d0(n))
+        return
+    }
+
+    if tag == SEXP_INT {
+        @print_u8(node_d0(n))
+        return
+    }
+
+    if tag == SEXP_LIST {
+        @print("(")
+        // Print children via sibling chain
+        var child: u16 = node_d0(n)
+        var first: u8 = 1
+        while child != 0 {
+            if first == 0 { @print(" ") }
+            first = 0
+            print_node(child)
+            child = node_d1(child)
+        }
+        @print(")")
+        return
+    }
+}
+
+// ── Main ────────────────────────────────────────────────
+
+fun main() -> void {
+    // Load Lanz source: (fun add ((a u8) (b u8)) u8 (return (+ a b)))
+    let src: ^u8 = "(fun add ((a u8) (b u8)) u8 (return (+ a b)))"
+    var i: u16 = 0
+    while peek(src + i) != 0 {
+        poke(src_buf + i, peek(src + i))
+        i = i + 1
+    }
+    poke(src_buf + i, 0)
+    src_len = i
+
+    @print("Input: ")
+    @print("(fun add ((a u8) (b u8)) u8 (return (+ a b)))")
+    @print_nl()
+
+    let tree: u16 = parse_sexpr()
+
+    @print("Parsed: ")
+    print_node(tree)
+    @print_nl()
+
+    @print("Nodes: ")
+    @print_u8((node_bump - node_arena) / 8)
+    @print(" Strings: ")
+    @print_u8(str_bump - str_arena)
+    @print(" bytes")
+    @print_nl()
+}
+
+assert is_space(32) == 1 via mir2
+assert is_digit(48) == 1 via mir2
+assert is_atom_char(97) == 1 via mir2
+assert is_atom_char(40) == 0 via mir2

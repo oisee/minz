@@ -35,7 +35,6 @@ func TestMemoryHostLoopAssociationOriginalParser(t *testing.T) {
 		t.Fatal("region_match absent")
 	}
 	assertMemoryHostParserIndependentOracle(t, r.Baseline.Raw.Invocations, r.Baseline.Target.Invocations)
-	assertCurrentMemoryHostParserReference(t, r.Baseline.Target)
 	direct, err := RunZ80MemoryHostBaseline(factory, w)
 	if err != nil {
 		t.Fatal(err)
@@ -44,6 +43,7 @@ func TestMemoryHostLoopAssociationOriginalParser(t *testing.T) {
 		t.Fatal("instrumentation changed native artifact/state/cost")
 	}
 	assertMemoryHostParserIndependentOracle(t, direct.Raw.Invocations, direct.Target.Invocations)
+	assertCurrentMemoryHostParserReference(t, r.Baseline.Target)
 	if dir := os.Getenv("MINZ_MEMORY_HOST_LOOP_ARTIFACTS"); dir != "" {
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			t.Fatal(err)
