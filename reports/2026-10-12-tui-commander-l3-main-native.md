@@ -1,0 +1,11 @@
+# Исходный Level 3 commander: метафункция и native экран
+
+Неизменённый `examples/nanz/tui_commander_l3.nanz` прошёл raw VM, final VM и linked assembled Z80 в Ordinary / Grace Size / Grace Speed. Исходные `fun @screen` и декларативный block действительно разобраны/исполнены при компиляции; сгенерированная `_render_screen` и оригинальный main исполняются во всех движках. В программе один кадр, одно чтение клавиши, затем clear/reset и возврат — навигационного цикла нет.
+
+До исполнения отдельно сохранены SHA исходника, API TUI, meta/parser snapshots, клавиша Esc27 и независимая модель: заголовок, шесть label rows по x2/y2..7 и status по x0/y23. Замороженный порядок составляет 36 host events и 399 байт ANSI. Оракул строится по телу пользовательской метафункции и её входному block, не по сгенерированному ASM. Default строки title/block поступают compile-time host как выделенные C strings; emit_tui_puts создаёт c-literals. Это корректно для исходного примера, source fix не требуется; runtime CString семантика не изменена.
+
+Совпали точный порядок операций и все байты вывода, including исходные пробелы. Native host читает фактические ABI homes, проверяет readonly literals, возвращает key в A и затирает основные регистры/F между вызовами. Проверяется вся RAM с исключением только emitted spills и наблюдённого stack диапазона; код/литералы неизменны. Реальный CALL возвращает к PC7003/SPf000, минимум SPeffa. Link добавляет только test-owned RET slots внешним TUI функциям, программа не переписана.
+
+Все три режима: linked BIN 467 B, native caller 992 T. Host ввод/ANSI-rendering выполняется вне тактов процессора. Не заявляется public CP/M TUI, все клавиши/все декларативные blocks или самостоятельная корректность metafunction engine вне этого оригинального примера.
+
+Первая проверка PASS0.037s, retained executable повторно проверил этот пример, обычный commander и selection demo. Freeze `4b3d1f47`, test `3a0c5f0a`. Shared execution harness используется с самостоятельными source/API/events snapshots. ASM/BIN, raw/final MIR, allocation, outputs/events/registers/logs перечислены в `reports/tui-commander-l3-main/manifest.json`, executable SHA — в executable.json. Share: `/mnt/safe/minz/grace/2026-10-12/agent-artifacts/tui-commander-l3-main/`. Production changes отсутствуют; broad gates не повторяли.

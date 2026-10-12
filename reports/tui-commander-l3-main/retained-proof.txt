@@ -1,0 +1,7 @@
+=== RUN   TestOriginalTUICommanderL3WholeMain
+--- PASS: TestOriginalTUICommanderL3WholeMain (0.03s)
+=== RUN   TestOriginalTUICommanderWholeMain
+--- PASS: TestOriginalTUICommanderWholeMain (0.22s)
+=== RUN   TestOriginalTUIDemoWholeMain
+--- PASS: TestOriginalTUIDemoWholeMain (0.01s)
+PASS
