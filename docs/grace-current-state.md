@@ -1,5 +1,7 @@
 # Grace / PGO: текущее состояние
 
+NC diagnosis уточнён: цикл вызван ROM-защитой стенда, tailcallreset также требовал точного разрешения. После коррекции main возвращается, но native output mismatch остаётся (blank вместо H). [Пакет305](grace-integration-305/README.md). NC nativeнеобъявленPASS.
+
 Full HIR/MIR0597fc9b PASS25,602/78,620с. NC native wholemain новый executionFAIL: неверное выделение и зацикливание; VMPASS не даёт nativeadmission. [Пакет304](grace-integration-304/README.md). PFCCO arena repair actualnativePASS у donor, root ещё не интегрирован.
 
 SAP MARA original whole main VM/native PASS после print.str/newline fixes. NC нашёл HIR truncation local-array loop pointer; fix0597fc9b minimal VM/Z80 PASS, whole NC VM PASS, native ещё pending. [Пакет 303](grace-integration-303/README.md). Full root HIR/MIR запущен.

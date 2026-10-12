@@ -1,0 +1,53 @@
+=== RUN   TestOriginalNCWholeMainNative
+=== RUN   TestOriginalNCWholeMainNative/ordinary
+[HIR-SPLIT] fs__fat12__write_fat12 → fs__fat12__write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__fat_cache_put → fs__fat12__fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__find_file → fs__fat12__find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__get_file_size → fs__fat12__get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__file_read → fs__fat12__file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__file_write_data → fs__fat12__file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] fs__fat12__update_dir_size → fs__fat12__update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] fs__fat12__delete_file → fs__fat12__delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__overwrite_file → fs__fat12__overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] fs__fat12__count_dir_entries → fs__fat12__count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] fs__fat12__get_dir_entry → fs__fat12__get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] fs__fat12__get_dir_entry_full → fs__fat12__get_dir_entry_full$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] draw_panel → draw_panel$split_26 (4 inputs, pressure 10)
+    original_nc_native_test.go:305: native event191 got{tui_putch [32]} want{tui_putch [72]}
+=== RUN   TestOriginalNCWholeMainNative/grace-size
+[HIR-SPLIT] fs__fat12__write_fat12 → fs__fat12__write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__fat_cache_put → fs__fat12__fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__find_file → fs__fat12__find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__get_file_size → fs__fat12__get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__file_read → fs__fat12__file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__file_write_data → fs__fat12__file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] fs__fat12__update_dir_size → fs__fat12__update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] fs__fat12__delete_file → fs__fat12__delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__overwrite_file → fs__fat12__overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] fs__fat12__count_dir_entries → fs__fat12__count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] fs__fat12__get_dir_entry → fs__fat12__get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] fs__fat12__get_dir_entry_full → fs__fat12__get_dir_entry_full$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] draw_panel → draw_panel$split_26 (4 inputs, pressure 10)
+    original_nc_native_test.go:305: native event191 got{tui_putch [32]} want{tui_putch [72]}
+=== RUN   TestOriginalNCWholeMainNative/grace-speed
+[HIR-SPLIT] fs__fat12__write_fat12 → fs__fat12__write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__fat_cache_put → fs__fat12__fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__find_file → fs__fat12__find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__get_file_size → fs__fat12__get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__file_read → fs__fat12__file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__file_write_data → fs__fat12__file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] fs__fat12__update_dir_size → fs__fat12__update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] fs__fat12__delete_file → fs__fat12__delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] fs__fat12__overwrite_file → fs__fat12__overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] fs__fat12__count_dir_entries → fs__fat12__count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] fs__fat12__get_dir_entry → fs__fat12__get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] fs__fat12__get_dir_entry_full → fs__fat12__get_dir_entry_full$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] draw_panel → draw_panel$split_26 (4 inputs, pressure 10)
+    original_nc_native_test.go:305: native event191 got{tui_putch [32]} want{tui_putch [72]}
+--- FAIL: TestOriginalNCWholeMainNative (4.10s)
+    --- FAIL: TestOriginalNCWholeMainNative/ordinary (1.07s)
+    --- FAIL: TestOriginalNCWholeMainNative/grace-size (1.57s)
+    --- FAIL: TestOriginalNCWholeMainNative/grace-speed (1.46s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	4.115s
+FAIL
