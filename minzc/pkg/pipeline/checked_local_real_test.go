@@ -72,8 +72,8 @@ func runCheckedRealByte(t *testing.T, asm string, f *mir2.Func, allocation *mir2
 	default:
 		t.Fatal("unsupported byte ABI", ret)
 	}
-	if value != want || r.SP != 0xf000 {
-		t.Fatalf("%s x=%d %s=%d want=%d SP=%04x", f.Name, x, ret, value, want, r.SP)
+	if value != want || r.SP != 0xf000 || !z.IsHalted() || r.PC != uint16(0xf100+len(boot.Binary)-1) {
+		t.Fatalf("%s x=%d %s=%d want=%d SP=%04x PC=%04x halted=%v", f.Name, x, ret, value, want, r.SP, r.PC, z.IsHalted())
 	}
 	return int(z.GetCycles())
 }

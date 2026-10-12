@@ -1,11 +1,14 @@
 package pipeline
 
 import (
+	"encoding/json"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/vir"
+	"github.com/minz/minzc/pkg/z80asm"
 )
 
 func TestSavedWeightedTableReadmissionNativeCaller(t *testing.T) {
@@ -85,4 +88,37 @@ func testSavedWeightedReadmission(t *testing.T, opts Options) {
 		t.Fatal("caller gain lost", beforeT, afterT)
 	}
 	t.Logf("saved proposal without solver: module %d -> %d B; all256caller %d -> %d T; %v", before, after, beforeT, afterT, notes)
+	if root := os.Getenv("VIR_READMISSION_EXPORT"); root != "" {
+		dir := filepath.Join(root, t.Name())
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			t.Fatal(err)
+		}
+		payloads := map[string][]byte{"source.nanz": []byte(text)}
+		payloads["current-table.json"], err = os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for name, asm := range map[string]string{"baseline": baseline.Assembly, "selected": selected.Assembly} {
+			binary, err := z80asm.NewAssembler().AssembleString(asm)
+			if err != nil || len(binary.Errors) > 0 {
+				t.Fatal(err, binary.Errors)
+			}
+			payloads[name+".a80"] = []byte(asm)
+			payloads[name+".bin"] = binary.Binary
+		}
+		payloads["measurements.json"], err = json.MarshalIndent(map[string]any{
+			"inputs": 256, "baseline_bytes": before, "selected_bytes": after,
+			"baseline_caller_T": beforeT, "selected_caller_T": afterT,
+			"contract_opt": opts.ContractOpt, "contract_strategy": opts.ContractStrategy,
+			"grace": opts.UseGrace, "size": opts.OptSize, "admission": notes,
+		}, "", "  ")
+		if err != nil {
+			t.Fatal(err)
+		}
+		for name, data := range payloads {
+			if err := os.WriteFile(filepath.Join(dir, name), data, 0644); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
 }

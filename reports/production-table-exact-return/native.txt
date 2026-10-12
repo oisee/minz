@@ -1,0 +1,25 @@
+=== RUN   TestSavedWeightedTableReadmissionNativeCaller
+    checked_local_readmission_weighted_test.go:15: saved proposal without solver: module 44 -> 20 B; all256caller 60928 -> 36352 T; [weighted: 1 admitted proposals weighted_caller: skipped: unsupported local opcode call]
+--- PASS: TestSavedWeightedTableReadmissionNativeCaller (0.46s)
+=== RUN   TestSavedWeightedReadmissionContractGraceMatrix
+=== RUN   TestSavedWeightedReadmissionContractGraceMatrix/off/plain
+    checked_local_readmission_weighted_test.go:30: saved proposal without solver: module 44 -> 20 B; all256caller 60928 -> 36352 T; [weighted: 1 admitted proposals weighted_caller: skipped: unsupported local opcode call]
+=== RUN   TestSavedWeightedReadmissionContractGraceMatrix/off/grace
+    checked_local_readmission_weighted_test.go:30: saved proposal without solver: module 44 -> 20 B; all256caller 60928 -> 36352 T; [weighted: 1 admitted proposals weighted_caller: skipped: unsupported local opcode call]
+=== RUN   TestSavedWeightedReadmissionContractGraceMatrix/greedy/plain
+    checked_local_readmission_weighted_test.go:30: saved proposal without solver: module 44 -> 20 B; all256caller 60928 -> 36352 T; [weighted: 1 admitted proposals weighted_caller: skipped: unsupported local opcode call]
+=== RUN   TestSavedWeightedReadmissionContractGraceMatrix/greedy/grace
+    checked_local_readmission_weighted_test.go:30: saved proposal without solver: module 44 -> 20 B; all256caller 60928 -> 36352 T; [weighted: 1 admitted proposals weighted_caller: skipped: unsupported local opcode call]
+=== RUN   TestSavedWeightedReadmissionContractGraceMatrix/pbqp/plain
+    checked_local_readmission_weighted_test.go:30: saved proposal without solver: module 44 -> 20 B; all256caller 60928 -> 36352 T; [weighted: 1 admitted proposals weighted_caller: skipped: unsupported local opcode call]
+=== RUN   TestSavedWeightedReadmissionContractGraceMatrix/pbqp/grace
+    checked_local_readmission_weighted_test.go:30: saved proposal without solver: module 44 -> 20 B; all256caller 60928 -> 36352 T; [weighted: 1 admitted proposals weighted_caller: skipped: unsupported local opcode call]
+--- PASS: TestSavedWeightedReadmissionContractGraceMatrix (2.77s)
+    --- PASS: TestSavedWeightedReadmissionContractGraceMatrix/off/plain (0.46s)
+    --- PASS: TestSavedWeightedReadmissionContractGraceMatrix/off/grace (0.47s)
+    --- PASS: TestSavedWeightedReadmissionContractGraceMatrix/greedy/plain (0.46s)
+    --- PASS: TestSavedWeightedReadmissionContractGraceMatrix/greedy/grace (0.46s)
+    --- PASS: TestSavedWeightedReadmissionContractGraceMatrix/pbqp/plain (0.45s)
+    --- PASS: TestSavedWeightedReadmissionContractGraceMatrix/pbqp/grace (0.47s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.239s

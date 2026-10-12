@@ -1,0 +1,228 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "07366f25f3f55bb7803620b2c0afc8905bc1e84b760bf60906956c5a30681db2"
+    },
+    {
+      "path": "consumers.txt",
+      "sha256": "a5f9658ac2bad264259f2a5a414aad973458c0b33df4ae60cb997f30666ac3c4"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/greedy/grace/baseline.a80",
+      "sha256": "ead2b69590cd540294e448c89df1619e3ede21cccb53b2d2f18ca6c91471df69"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/greedy/grace/baseline.bin",
+      "sha256": "96d21e3d30b6ca975a95e8ee5d94778e75ddd1b65e3da670c7eca1caf251bfbf"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/greedy/grace/current-table.json",
+      "sha256": "dc69581afadbf1f40534cb667f7f3798a6c21691395ab0317515e63b0905b15f"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/greedy/grace/measurements.json",
+      "sha256": "aff0e96670155553f536a4fb85d3185da6cdd82fafc806b3cfbfdf115a4e3093"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/greedy/grace/selected.a80",
+      "sha256": "3b06fd8f1a869218215ec975e107251765e256928bd26b741e0c151e61b298ac"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/greedy/grace/selected.bin",
+      "sha256": "324fc9718f6860d64722007c3fa5e0b441ac3d405936e71bae00f3af6388fe55"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/greedy/grace/source.nanz",
+      "sha256": "1d029d49f716050459d71800c78e43aab09106be15ba6fb2dfcb2f5cf32565a6"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/greedy/plain/baseline.a80",
+      "sha256": "0b8819d95efb3d7f8ec86794840f028bed3aee7b71ed605c911df98a945ae45c"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/greedy/plain/baseline.bin",
+      "sha256": "96d21e3d30b6ca975a95e8ee5d94778e75ddd1b65e3da670c7eca1caf251bfbf"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/greedy/plain/current-table.json",
+      "sha256": "dc69581afadbf1f40534cb667f7f3798a6c21691395ab0317515e63b0905b15f"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/greedy/plain/measurements.json",
+      "sha256": "9822e0b9a867a3d9f13b030a96fafee014fe67ec1ec5626cdf5d6af879741c63"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/greedy/plain/selected.a80",
+      "sha256": "32915866dac150081aae06101ef1d7746ac077da555e967a59547092625d62e4"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/greedy/plain/selected.bin",
+      "sha256": "324fc9718f6860d64722007c3fa5e0b441ac3d405936e71bae00f3af6388fe55"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/greedy/plain/source.nanz",
+      "sha256": "1d029d49f716050459d71800c78e43aab09106be15ba6fb2dfcb2f5cf32565a6"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/off/grace/baseline.a80",
+      "sha256": "ead2b69590cd540294e448c89df1619e3ede21cccb53b2d2f18ca6c91471df69"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/off/grace/baseline.bin",
+      "sha256": "96d21e3d30b6ca975a95e8ee5d94778e75ddd1b65e3da670c7eca1caf251bfbf"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/off/grace/current-table.json",
+      "sha256": "dc69581afadbf1f40534cb667f7f3798a6c21691395ab0317515e63b0905b15f"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/off/grace/measurements.json",
+      "sha256": "e9a75f054a52673b868d978bc7648c953896434831e4f4ec0f3eeef8a5f5a28e"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/off/grace/selected.a80",
+      "sha256": "3b06fd8f1a869218215ec975e107251765e256928bd26b741e0c151e61b298ac"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/off/grace/selected.bin",
+      "sha256": "324fc9718f6860d64722007c3fa5e0b441ac3d405936e71bae00f3af6388fe55"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/off/grace/source.nanz",
+      "sha256": "1d029d49f716050459d71800c78e43aab09106be15ba6fb2dfcb2f5cf32565a6"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/off/plain/baseline.a80",
+      "sha256": "0b8819d95efb3d7f8ec86794840f028bed3aee7b71ed605c911df98a945ae45c"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/off/plain/baseline.bin",
+      "sha256": "96d21e3d30b6ca975a95e8ee5d94778e75ddd1b65e3da670c7eca1caf251bfbf"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/off/plain/current-table.json",
+      "sha256": "dc69581afadbf1f40534cb667f7f3798a6c21691395ab0317515e63b0905b15f"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/off/plain/measurements.json",
+      "sha256": "3f03ca54cf9507b2cc15da5478c8169bb9b366476f166542c54b3bf7906af5db"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/off/plain/selected.a80",
+      "sha256": "32915866dac150081aae06101ef1d7746ac077da555e967a59547092625d62e4"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/off/plain/selected.bin",
+      "sha256": "324fc9718f6860d64722007c3fa5e0b441ac3d405936e71bae00f3af6388fe55"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/off/plain/source.nanz",
+      "sha256": "1d029d49f716050459d71800c78e43aab09106be15ba6fb2dfcb2f5cf32565a6"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/pbqp/grace/baseline.a80",
+      "sha256": "ead2b69590cd540294e448c89df1619e3ede21cccb53b2d2f18ca6c91471df69"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/pbqp/grace/baseline.bin",
+      "sha256": "96d21e3d30b6ca975a95e8ee5d94778e75ddd1b65e3da670c7eca1caf251bfbf"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/pbqp/grace/current-table.json",
+      "sha256": "dc69581afadbf1f40534cb667f7f3798a6c21691395ab0317515e63b0905b15f"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/pbqp/grace/measurements.json",
+      "sha256": "daa59dddb9aaadd7d934206655accaa8c01cb886de6b1587fe7b58923acda2d1"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/pbqp/grace/selected.a80",
+      "sha256": "3b06fd8f1a869218215ec975e107251765e256928bd26b741e0c151e61b298ac"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/pbqp/grace/selected.bin",
+      "sha256": "324fc9718f6860d64722007c3fa5e0b441ac3d405936e71bae00f3af6388fe55"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/pbqp/grace/source.nanz",
+      "sha256": "1d029d49f716050459d71800c78e43aab09106be15ba6fb2dfcb2f5cf32565a6"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/pbqp/plain/baseline.a80",
+      "sha256": "0b8819d95efb3d7f8ec86794840f028bed3aee7b71ed605c911df98a945ae45c"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/pbqp/plain/baseline.bin",
+      "sha256": "96d21e3d30b6ca975a95e8ee5d94778e75ddd1b65e3da670c7eca1caf251bfbf"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/pbqp/plain/current-table.json",
+      "sha256": "dc69581afadbf1f40534cb667f7f3798a6c21691395ab0317515e63b0905b15f"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/pbqp/plain/measurements.json",
+      "sha256": "c7ea359995f5d246483a128a8668176ae7c066701f4b1ab0517ea92fe41be862"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/pbqp/plain/selected.a80",
+      "sha256": "32915866dac150081aae06101ef1d7746ac077da555e967a59547092625d62e4"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/pbqp/plain/selected.bin",
+      "sha256": "324fc9718f6860d64722007c3fa5e0b441ac3d405936e71bae00f3af6388fe55"
+    },
+    {
+      "path": "emitted/TestSavedWeightedReadmissionContractGraceMatrix/pbqp/plain/source.nanz",
+      "sha256": "1d029d49f716050459d71800c78e43aab09106be15ba6fb2dfcb2f5cf32565a6"
+    },
+    {
+      "path": "emitted/TestSavedWeightedTableReadmissionNativeCaller/baseline.a80",
+      "sha256": "0b8819d95efb3d7f8ec86794840f028bed3aee7b71ed605c911df98a945ae45c"
+    },
+    {
+      "path": "emitted/TestSavedWeightedTableReadmissionNativeCaller/baseline.bin",
+      "sha256": "96d21e3d30b6ca975a95e8ee5d94778e75ddd1b65e3da670c7eca1caf251bfbf"
+    },
+    {
+      "path": "emitted/TestSavedWeightedTableReadmissionNativeCaller/current-table.json",
+      "sha256": "dc69581afadbf1f40534cb667f7f3798a6c21691395ab0317515e63b0905b15f"
+    },
+    {
+      "path": "emitted/TestSavedWeightedTableReadmissionNativeCaller/measurements.json",
+      "sha256": "9822e0b9a867a3d9f13b030a96fafee014fe67ec1ec5626cdf5d6af879741c63"
+    },
+    {
+      "path": "emitted/TestSavedWeightedTableReadmissionNativeCaller/selected.a80",
+      "sha256": "32915866dac150081aae06101ef1d7746ac077da555e967a59547092625d62e4"
+    },
+    {
+      "path": "emitted/TestSavedWeightedTableReadmissionNativeCaller/selected.bin",
+      "sha256": "324fc9718f6860d64722007c3fa5e0b441ac3d405936e71bae00f3af6388fe55"
+    },
+    {
+      "path": "emitted/TestSavedWeightedTableReadmissionNativeCaller/source.nanz",
+      "sha256": "1d029d49f716050459d71800c78e43aab09106be15ba6fb2dfcb2f5cf32565a6"
+    },
+    {
+      "path": "indexed-consumers.txt",
+      "sha256": "227cbc5c1f2b74181b5f5a5b1716682e1528adf0f15d99f83295eaa4f6af7868"
+    },
+    {
+      "path": "legacy-consumer.txt",
+      "sha256": "ff89bff8257c16bb80db9e039d36b679fd53bfa8286881b56ade947be58aaf23"
+    },
+    {
+      "path": "legacy-enrt4v-sample.json",
+      "sha256": "01d61aa371861a8a387c38b17f266917a8b4c9f64b1234f2fc18877d6db36c10"
+    },
+    {
+      "path": "native.txt",
+      "sha256": "56ce4fd0963be2c08fa8f7b0cc273b952e3391842eefa2cf01f91ed34c34a01b"
+    },
+    {
+      "path": "research-generation.txt",
+      "sha256": "21ee6d91bf131527f48b957a8dc265b100c38d724163138a11f1f8121b46de62"
+    }
+  ]
+}

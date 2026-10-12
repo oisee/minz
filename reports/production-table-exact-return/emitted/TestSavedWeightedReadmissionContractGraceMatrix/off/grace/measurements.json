@@ -1,0 +1,15 @@
+{
+  "admission": [
+    "weighted: 1 admitted proposals",
+    "weighted_caller: skipped: unsupported local opcode call"
+  ],
+  "baseline_bytes": 44,
+  "baseline_caller_T": 60928,
+  "contract_opt": false,
+  "contract_strategy": "",
+  "grace": true,
+  "inputs": 256,
+  "selected_bytes": 20,
+  "selected_caller_T": 36352,
+  "size": true
+}

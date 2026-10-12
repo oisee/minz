@@ -1,0 +1,33 @@
+=== RUN   TestActualLegacyCandidateImportCorpus
+    table_legacy_import_test.go:54: 06_pbqp_weighted/weighted legacy-native-json compatible0 admitted0
+    table_legacy_import_test.go:54: 06_pbqp_weighted/weighted legacy-gpu-json compatible0 admitted0
+    table_legacy_import_test.go:67: 06_pbqp_weighted/weighted enrt4v-prefix compatible0 admitted0
+    table_legacy_import_test.go:80: 06_pbqp_weighted module36→36B importedentries0
+    table_legacy_import_test.go:80: 09_function_pointers module34→34B importedentries0
+    table_legacy_import_test.go:54: tiny/add legacy-native-json compatible2 admitted0
+    table_legacy_import_test.go:54: tiny/add legacy-gpu-json compatible9 admitted0
+    table_legacy_import_test.go:54: tiny/double legacy-native-json compatible2 admitted0
+    table_legacy_import_test.go:54: tiny/double legacy-gpu-json compatible5 admitted0
+    table_legacy_import_test.go:54: tiny/triple legacy-native-json compatible1 admitted0
+    table_legacy_import_test.go:54: tiny/triple legacy-gpu-json compatible4 admitted0
+    table_legacy_import_test.go:67: tiny/add enrt4v-prefix compatible19 admitted3
+    table_legacy_import_test.go:67: tiny/double enrt4v-prefix compatible193 admitted1
+    table_legacy_import_test.go:67: tiny/triple enrt4v-prefix compatible0 admitted0
+    table_legacy_import_test.go:80: tiny module11→11B importedentries2
+    table_legacy_import_test.go:54: 20_strref_test/hash3 legacy-native-json compatible1 admitted0
+    table_legacy_import_test.go:54: 20_strref_test/hash3 legacy-gpu-json compatible6 admitted0
+    table_legacy_import_test.go:54: 20_strref_test/test_eq legacy-native-json compatible1 admitted1
+    table_legacy_import_test.go:54: 20_strref_test/test_eq legacy-gpu-json compatible9 admitted1
+    table_legacy_import_test.go:54: 20_strref_test/test_neq legacy-native-json compatible1 admitted1
+    table_legacy_import_test.go:54: 20_strref_test/test_neq legacy-gpu-json compatible9 admitted1
+    table_legacy_import_test.go:67: 20_strref_test/hash3 enrt4v-prefix compatible0 admitted0
+    table_legacy_import_test.go:67: 20_strref_test/test_eq enrt4v-prefix compatible32 admitted6
+    table_legacy_import_test.go:67: 20_strref_test/test_neq enrt4v-prefix compatible32 admitted6
+    table_legacy_import_test.go:80: 20_strref_test module45→45B importedentries2
+    table_legacy_import_test.go:54: 16_rotate_sled/low_nibble legacy-native-json compatible2 admitted0
+    table_legacy_import_test.go:54: 16_rotate_sled/low_nibble legacy-gpu-json compatible5 admitted0
+    table_legacy_import_test.go:67: 16_rotate_sled/low_nibble enrt4v-prefix compatible193 admitted1
+    table_legacy_import_test.go:80: 16_rotate_sled module186→186B importedentries1
+--- PASS: TestActualLegacyCandidateImportCorpus (1.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.018s
