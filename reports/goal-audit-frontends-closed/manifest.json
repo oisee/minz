@@ -1,0 +1,14 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 1394,
+      "sha256": "c8621e22dad17290dd24a9dabeaede7029bb253a2eab4a829912d234fcc27d69"
+    },
+    {
+      "path": "requirements.json",
+      "bytes": 8497,
+      "sha256": "00e0731b5ff5d027d43460d4a241daf45b002f80b55c87dbda54d05707f808df"
+    }
+  ]
+}
