@@ -1,0 +1,12 @@
+{
+  "checkpoint": "7a066613193e42081a770dc45d0d82a95676bce3",
+  "scope": "Read-only production audit; reuse existing two frozen tokenizer inputs, no new selection/heldout claim",
+  "sha256": {
+    "examples/nanz/self_tokenizer.nanz": "d893df00710b7f1105b8bfb58342aca1c1f8cce7eb674037a8d6ca41b91b0689",
+    "minzc/pkg/mir2/contracts_pbqp.go": "2ea62582162ba2ea200437a4f8faa342d8e81a3121397c26ebdc80f3262078df",
+    "minzc/pkg/mir2/contracts.go": "fd73459bdda33bd3bfd4befc7ef30375695e253a2cc769255cadf4e3448d87cb",
+    "minzc/pkg/pipeline/pfcco_tokenizer_consumer_test.go": "e40f08d12e4fa725802cf916e0be7faf1339abb5f0a5ae0c92df22b29498fbb4",
+    "reports/byte-cycle-shuffle/after/pbqp.bin": "1f518533e191c868eb438d505e9fe4717cc57333c1b9e9488cd375426b244c7e",
+    "reports/byte-cycle-shuffle/after/greedy.bin": "9539caefc60b8da3d06d1d47f8c84bfb187b2b422a58b95ed4bb67faa6fc149b"
+  }
+}
