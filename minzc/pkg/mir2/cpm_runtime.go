@@ -44,7 +44,7 @@ func validateCPMApplicationRuntime(m *Module, ar *AllocResult) error {
 				for _, r := range i.Uses() {
 					if _, ok := locals[r]; ok {
 						switch i.Op {
-						case OpLoad, OpCall:
+						case OpLoad, OpCall, OpCallCond:
 						case OpField, OpMove, OpPtrAdd:
 							if _, valid := locals[i.Dst]; !valid {
 								return fmt.Errorf("CP/M runtime invalid derived local address")
@@ -59,7 +59,7 @@ func validateCPMApplicationRuntime(m *Module, ar *AllocResult) error {
 					}
 				}
 				switch i.Op {
-				case OpCall:
+				case OpCall, OpCallCond:
 					if i.Sym == "_wr16_dig" {
 						return fmt.Errorf("CP/M private decimal helper requires internal ABI")
 					}
@@ -100,7 +100,7 @@ func validateCPMApplicationRuntime(m *Module, ar *AllocResult) error {
 					return fmt.Errorf("CP/M runtime rejects untrusted ASM")
 				case OpPush, OpPop:
 					return fmt.Errorf("CP/M runtime rejects explicit stack operations")
-				case OpCallCond, OpCallIndirect, OpIn8, OpIn16, OpOut8, OpOut16, OpPatchSlot, OpLoadPatched, OpPatch:
+				case OpCallIndirect, OpIn8, OpIn16, OpOut8, OpOut16, OpPatchSlot, OpLoadPatched, OpPatch:
 					return fmt.Errorf("CP/M runtime rejects calls/ASM/ports/SMC")
 				}
 			}
