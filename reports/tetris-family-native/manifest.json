@@ -1,7 +1,7 @@
 [
   {
     "path": "reports/tetris-family-native/REPORT.md",
-    "sha256": "40d8b732ff92f946d03ef34136749cbca8b42a7b983669bc35cfbc30f5380a12"
+    "sha256": "77d0cc811182461348c4b7df371b1aba8e926497d7c8dba41db42d4aa3b9dc6e"
   },
   {
     "path": "reports/tetris-family-native/execution/tetris_cpm/grace-size/final.mir",
@@ -42,10 +42,6 @@
   {
     "path": "reports/tetris-family-native/execution/tetris_cpm/grace-speed/target.bin",
     "sha256": "5b63632cc68942aac0a08a64763b267ec44cc6e1e05cf65fca82c6dc94cfe828"
-  },
-  {
-    "path": "reports/tetris-family-native/execution/tetris_cpm/ordinary/failure.json",
-    "sha256": "734561a2421d7e8050f485bd5482312d508f88d8666f8202dda02bc704c16323"
   },
   {
     "path": "reports/tetris-family-native/execution/tetris_cpm/ordinary/final.mir",
@@ -138,6 +134,10 @@
   {
     "path": "reports/tetris-family-native/model-controls.txt",
     "sha256": "6a9657bb47be15b4c1e735d3aea43d53f88bdca70b200d43b04535c05226fd22"
+  },
+  {
+    "path": "reports/tetris-family-native/original-trace-failure.json",
+    "sha256": "734561a2421d7e8050f485bd5482312d508f88d8666f8202dda02bc704c16323"
   },
   {
     "path": "reports/tetris-family-native/result.txt",

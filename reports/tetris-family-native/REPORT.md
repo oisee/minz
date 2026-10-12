@@ -21,4 +21,6 @@ A genuine production bug was found: four full bottom rows gave raw/model 4 but f
 
 This is a bounded computational-entry proof. `spawn_piece`, `hold_piece`, composed `do_lock_and_clear`, rendering, input, game loop/main, BDOS/VT100 and external TUI runtime are not executed here. Complete interactive games are not claimed. No PGO improvement or runtime speed conclusion is inferred from a corrected wrong-code baseline.
 
-Terminal full family result: **PASS 274.043 s**, all six source/mode combinations, **1,430,736 native calls and 2,861,472 raw/final VM calls**. Independent model controls PASS0.009s. Full-module native BIN lengths: CP/M4660ordinary/4663GraceSize/Speed; TUI4141ordinary/4144GraceSize/Speed. These are final image sizes, not a controlled speed/size improvement experiment. All per-entry counts and original SHA values are retained in six summary.json files.
+Terminal full family result: **PASS 274.043 s**, all six source/mode combinations, **1,430,736 native calls and 2,861,472 raw/final VM calls**. Independent model controls PASS0.009s. Full-module native BIN lengths: CP/M4660ordinary/4663GraceSize/Speed; TUI4141ordinary/4146GraceSize/Speed. These are final image sizes, not a controlled speed/size improvement experiment. All per-entry counts and original SHA values are retained in six summary.json files.
+
+`original-trace-failure.json` is the historical pre-fix final-VM trace capture, not a failure of the final execution artifacts. Semantic four-row counterexample is separately frozen in reports/tetris-precoalesce/semantic-input.json.
