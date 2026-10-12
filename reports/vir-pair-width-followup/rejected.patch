@@ -1,0 +1,83 @@
+diff --git a/minzc/pkg/vir/solver.go b/minzc/pkg/vir/solver.go
+index 947e7e88..f83f8c8d 100644
+--- a/minzc/pkg/vir/solver.go
++++ b/minzc/pkg/vir/solver.go
+@@ -542,6 +542,11 @@ func insertPreTieMoves(ops []VIROp, desc *MachineDesc) []VIROp {
+ 	// Find which ops have tied patterns
+ 	hasTied := make([]bool, len(ops))
+ 	for i, op := range ops {
++		// A tied copy coalesces identical values; it does not destroy its
++		// source as an arithmetic two-address operation does.
++		if op.Op == OpMove {
++			continue
++		}
+ 		for _, pat := range desc.Patterns {
+ 			if pat.Matches(op) && pat.TiedDstSrc {
+ 				hasTied[i] = true
+@@ -626,6 +631,9 @@ func insertSaveMoves(ops []VIROp, desc *MachineDesc) []VIROp {
+ 	// Find which patterns are tied for each op
+ 	hasTied := make([]bool, len(ops))
+ 	for i, op := range ops {
++		if op.Op == OpMove {
++			continue
++		}
+ 		for _, pat := range desc.Patterns {
+ 			if pat.Matches(op) && pat.TiedDstSrc {
+ 				hasTied[i] = true
+@@ -1620,6 +1628,12 @@ func generateSMTPerInst(p *problem) string {
+ 		inst int
+ 	}
+ 	vars := make(map[vregAtInst]bool)
++	widths := make(map[int]int)
++	for _, op := range p.ops {
++		if op.Dst > 0 && op.Width > 0 {
++			widths[op.Dst] = op.Width
++		}
++	}
+ 
+ 	ensureVar := func(v, i int) {
+ 		key := vregAtInst{v, i}
+@@ -1628,6 +1642,9 @@ func generateSMTPerInst(p *problem) string {
+ 			b.WriteString(fmt.Sprintf("(declare-const lv%d_i%d Int)\n", v, i))
+ 			b.WriteString(fmt.Sprintf("(assert (and (>= lv%d_i%d 0) (< lv%d_i%d %d)))\n",
+ 				v, i, v, i, nLocs))
++			if width := widths[v]; width > 0 {
++				b.WriteString(fmt.Sprintf("(assert %s) ; preserve value width\n", locSetToSMT(fmt.Sprintf("lv%d_i%d", v, i), p.desc.LocsOfWidth(width))))
++			}
+ 		}
+ 	}
+ 
+@@ -2058,6 +2075,9 @@ func findMovePatternDirect(desc *MachineDesc, srcPhys, dstPhys int) *Pattern {
+ 		if pat.Op != OpMove || pat.Width != dstWidth {
+ 			continue
+ 		}
++		if pat.TiedDstSrc && srcPhys != dstPhys {
++			continue
++		}
+ 		if strings.Contains(pat.Template, "EX ") {
+ 			continue
+ 		}
+@@ -2071,6 +2091,9 @@ func findMovePatternDirect(desc *MachineDesc, srcPhys, dstPhys int) *Pattern {
+ 		if pat.Op != OpMove || pat.Width == dstWidth {
+ 			continue // already tried
+ 		}
++		if pat.TiedDstSrc && srcPhys != dstPhys {
++			continue
++		}
+ 		if strings.Contains(pat.Template, "EX ") {
+ 			continue
+ 		}
+diff --git a/minzc/pkg/vir/z80.go b/minzc/pkg/vir/z80.go
+index c9f780e1..8f8c08c8 100644
+--- a/minzc/pkg/vir/z80.go
++++ b/minzc/pkg/vir/z80.go
+@@ -281,6 +281,9 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
+ 			Template: "LD E, {src0}\n    LD D, 0", Cost: 11, Bytes: 3},
+ 
+ 		// 16-bit moves
++		{Name: "same_pair", Op: OpMove, Width: 16, DstLocs: Z80_Pairs,
++			SrcLocs: [2]LocSet{Z80_Pairs}, TiedDstSrc: true,
++			Template: "", Cost: 0, Bytes: 0},
+ 		{Name: "push_pop", Op: OpMove, Width: 16, DstLocs: Z80_Pairs,
+ 			SrcLocs:  [2]LocSet{Z80_Pairs},
+ 			Template: "PUSH {src0}\n    POP {dst}", Cost: 21, Bytes: 2},

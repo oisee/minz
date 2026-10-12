@@ -1,0 +1,17 @@
+{
+  "files": {
+    "README.md": "ce2b7fcacb0c2efd04734ca9656ac9323790faccced98601415b6dd353d3b89e",
+    "after/allocation.json": "ded5775b8fc7d7ffe650732493d671cfe55d4e07509cab948148cc9652cbdd91",
+    "after/module.a80": "48061ea0243df8bd78b29a73d9343bb160dfacca64c962538515719974a8a5e6",
+    "after/module.mir": "b286b39511026b44197be232f30960edc6f713f8b9b40fce5e61b419c508f782",
+    "after/source.nanz": "509005a9ecb7adc4934f1b8c4b7f29b0baecd2ba996615f500994dfb4ec9871c",
+    "before/allocation.json": "ded5775b8fc7d7ffe650732493d671cfe55d4e07509cab948148cc9652cbdd91",
+    "before/module.a80": "7a473115bd0f41f97c95b92a5025e213f4883b88ce4ef08a4dd2d727ede705bc",
+    "before/module.mir": "b286b39511026b44197be232f30960edc6f713f8b9b40fce5e61b419c508f782",
+    "before/source.nanz": "509005a9ecb7adc4934f1b8c4b7f29b0baecd2ba996615f500994dfb4ec9871c",
+    "pre-tie-copy-probe.txt": "f2d490bee786adb72d65b1068b1b5a92fc1d376e8efdd1c4a7e95ad9ec7e9b82",
+    "rejected.patch": "c9831e7d42871bd06af1068acd0c2ca198de01af7bebf5522a8354c3c2ed5789",
+    "save-copy-probe.txt": "55a347312859e4ef09b9f7ca377a202b367c37bd0a37dc1b7b3d66f4ac4ef3fb",
+    "width-probe.txt": "104651305a08224d57a19cdd524d0afbfbd1c874fb7515073151d25ac7047cd5"
+  }
+}

@@ -1,0 +1,15 @@
+[regalloc] loaded 56 exhaustive entries from regalloc_exhaustive.json
+[vir] count5: PBQP fallback (timeout=30s, err=all VIR solvers failed: CFG solve: z3 rejected part of the query, so the model does not answer the question asked: (error "line 1283 column 10: model is not available"))
+[vir] scenario: skip island decomposition (call-heavy)
+[vir] scenario: PBQP fallback (timeout=30s, err=all VIR solvers failed: CFG solve: unexpected z3 output: timeout
+)
+--- FAIL: TestVIR_Assert_IndexedArrayBaseRegression (5.45s)
+    assert_test.go:261: Z80: line 18: assert "assert scenario() == 16" [z80]: got 0, want 16
+[vir] triple: PBQP fallback (timeout=30s, err=[call-args] CALL inc without arg setup (callee expects 1 params))
+[vir] double_inc: PBQP fallback (timeout=30s, err=[call-args] CALL inc without arg setup (callee expects 1 params))
+[vir] abs_val: constrained unsat, using standalone+adapter (2 adapters)
+[vir] gcd: skip island decomposition (self-recursive)
+[vir] gcd: PBQP fallback (timeout=30s, err=all VIR solvers failed: CFG solve: z3 rejected part of the query, so the model does not answer the question asked: (error "line 1408 column 10: model is not available"))
+FAIL
+FAIL	github.com/minz/minzc/pkg/vir	7.057s
+FAIL
