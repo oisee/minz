@@ -11,7 +11,7 @@ import (
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/z80asm"
 	"os"
-	"strings"
+	stringsPkg "strings"
 	"testing"
 )
 
@@ -75,6 +75,7 @@ func TestOriginalSelfParserWholeMainVM(t *testing.T) {
 			var fileEvents []string
 			var written []byte
 			var writes []uint16
+			var memoryEvents []map[string]any
 			var hostReadBefore, hostWriteBefore []byte
 			readPath := func(ptr int64) string {
 				b := vm.ReadHeap(ptr, 1)
@@ -89,6 +90,7 @@ func TestOriginalSelfParserWholeMainVM(t *testing.T) {
 				if p < 0x8000 {
 					t.Fatal("peek outside arenas", p)
 				}
+				memoryEvents = append(memoryEvents, map[string]any{"kind": "peek", "address": p, "value": vm.ReadHeap(int64(p), 1)})
 				vm.EnsureHeap(int64(p) + 1)
 				return []mir2.Value{{I: int64(vm.ReadHeap(int64(p), 1)[0])}}, nil
 			}
@@ -97,6 +99,7 @@ func TestOriginalSelfParserWholeMainVM(t *testing.T) {
 				if p < 0x8000 || p >= 0xe000 {
 					t.Fatal("poke outside arenas", p)
 				}
+				memoryEvents = append(memoryEvents, map[string]any{"kind": "poke", "address": p, "value": byte(a[1].I)})
 				writes = append(writes, p)
 				vm.WriteHeap(int64(p), byte(a[1].I))
 				return nil, nil
@@ -131,12 +134,15 @@ func TestOriginalSelfParserWholeMainVM(t *testing.T) {
 				out.Write(vm.ReadHeap(p+1, length))
 				return nil, nil
 			}
+			beforeVM := append([]byte(nil), vm.ReadHeap(0, 0xe000)...)
 			_, e := vm.Call("main", nil)
 			if dir := os.Getenv("MINZ_SELF_PARSER_MAIN_EXPORT"); dir != "" {
 				os.MkdirAll(dir+"/"+mode, 0755)
 				os.WriteFile(dir+"/"+mode+"/stdout.txt", out.Bytes(), 0644)
 				os.WriteFile(dir+"/"+mode+"/whole.mir", []byte(m.Dump()), 0644)
 				os.WriteFile(dir+"/"+mode+"/heap.bin", vm.ReadHeap(0, 0xe000), 0644)
+				b, _ := json.MarshalIndent(memoryEvents, "", "  ")
+				os.WriteFile(dir+"/"+mode+"/memory-events.json", b, 0644)
 			}
 			wantFile, _ := os.ReadFile(root + "tiny.lanz")
 			if !bytes.Equal(written, wantFile) {
@@ -183,6 +189,36 @@ func TestOriginalSelfParserWholeMainVM(t *testing.T) {
 					t.Fatal("poke outside exactusedranges", p)
 				}
 			}
+			expectedVM := append([]byte(nil), beforeVM...)
+			copy(expectedVM[0x8000:], asts)
+			copy(expectedVM[0x9000:], strings)
+			copy(expectedVM[0xb000:], tokens)
+			copy(expectedVM[0xc000:], append(append([]byte(nil), input...), 0))
+			copy(expectedVM[0xd000:], wantFile)
+			var interns map[string]uint16
+			json.Unmarshal(f["interns"], &interns)
+			globalWant := map[string]uint16{"src_len": uint16(len(input)), "str_bump": 0x9037, "ast_bump": 0x8060, "tok_count": 29, "parse_pos": 29, "parse_error": 0, "pos": 76, "tok_start": 76, "out_len": 76}
+			for _, kw := range []string{"fn", "if", "fun", "let", "var", "while", "return"} {
+				globalWant["KW_"+stringsPkg.ToUpper(kw)] = interns[kw]
+			}
+			globalWant["KW_ELSE"] = interns["els"]
+			for name, want := range globalWant {
+				addr := vm.GlobalAddr(name)
+				if addr < 0 {
+					t.Fatal("missingglobal", name)
+				}
+				expectedVM[addr] = byte(want)
+				if name != "parse_error" {
+					expectedVM[addr+1] = byte(want >> 8)
+				}
+			}
+			if !bytes.Equal(vm.ReadHeap(0, 0xe000), expectedVM) {
+				for i, v := range expectedVM {
+					if vm.ReadHeap(int64(i), 1)[0] != v {
+						t.Fatal("wholeVMRAM", i, vm.ReadHeap(int64(i), 1), v)
+					}
+				}
+			}
 			t.Logf("wholemain independent files/AST/tokens/stdout PASS inputSHA %x events%v", sha256.Sum256(input), fileEvents)
 		})
 	}
@@ -214,10 +250,10 @@ func selfParserWholeMainNative(t *testing.T, mode string) {
 	linked := s.Assembly
 	for _, n := range []string{"peek", "poke", "file_read", "file_write", "file_size"} {
 		needle := n + ":\n"
-		if strings.Count(linked, needle) != 1 {
+		if stringsPkg.Count(linked, needle) != 1 {
 			t.Fatal("extern label", n)
 		}
-		linked = strings.Replace(linked, needle, needle+" RET\n", 1)
+		linked = stringsPkg.Replace(linked, needle, needle+" RET\n", 1)
 	}
 	a, e := z80asm.NewAssembler().AssembleString("ORG 0x400\n" + linked)
 	if e != nil || len(a.Errors) > 0 {
@@ -289,7 +325,7 @@ func selfParserWholeMainNative(t *testing.T, mode string) {
 		}
 	}
 	for _, l := range a.Listing {
-		if strings.HasPrefix(strings.ToLower(l.Label), "_spill_") {
+		if stringsPkg.HasPrefix(stringsPkg.ToLower(l.Label), "_spill_") {
 			for i := range l.Bytes {
 				mutable[l.Address+i] = true
 			}
