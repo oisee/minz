@@ -1,0 +1,24 @@
+{
+  "bytes": 186,
+  "calls": 1281,
+  "costs_t_states": {
+    "high_nibble": 12800,
+    "low_nibble": 8704,
+    "main": 1088,
+    "rol1": 7936,
+    "rol3": 9984,
+    "swap_nibbles": 11008
+  },
+  "min_sp": 61436,
+  "mismatches": {},
+  "ports": [
+    12579,
+    14371,
+    13859,
+    12579,
+    12323,
+    12579,
+    12579
+  ],
+  "stdout": "1861011"
+}

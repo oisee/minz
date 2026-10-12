@@ -1,0 +1,6 @@
+{
+  "base": "beb245eb",
+  "source_sha256": "de903b9610bef3db82d4143cb2cf51b749895cb1ef6937df9970f8a226a4baeb",
+  "before_edits": true,
+  "native_oracle": "same original all256x/5helpers+mainstdout1861011,3modes;Size strict total bytes,Speed keepinline RLCA"
+}
