@@ -1,0 +1,10 @@
+=== RUN   TestPascalCPMMainAdmission
+=== RUN   TestPascalCPMMainAdmission/hello
+    pascal_cpm_main_test.go:36: CP/M runtime rejects ASM and fixed-address extern functions
+=== RUN   TestPascalCPMMainAdmission/factorial
+    pascal_cpm_main_test.go:36: CP/M runtime rejects ASM and fixed-address extern functions
+--- PASS: TestPascalCPMMainAdmission (0.00s)
+    --- PASS: TestPascalCPMMainAdmission/hello (0.00s)
+    --- PASS: TestPascalCPMMainAdmission/factorial (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.010s
