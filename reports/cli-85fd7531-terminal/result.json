@@ -1,0 +1,12 @@
+{
+  "checkpoint": "85fd7531",
+  "exit_code": 0,
+  "counts_top_level": {
+    "PASS": 74,
+    "FAIL": 0,
+    "SKIP": 0
+  },
+  "binary_sha256": "f17849d74a6de662add6f2949479320e2d27ce6875641c6ef02fbf1a872d990d",
+  "scope": "full cmd/minzc test binary; predates literal overwrite backend change",
+  "skips": []
+}
