@@ -254,6 +254,19 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 	if err := ValidateCPMRuntimeStack(opt.Runtime, opt.RuntimeStackBytes); err != nil {
 		return "", err
 	}
+	for _, f := range m.Funcs {
+		if f.Attrs.IsExtern {
+			locs, e := Z80ExternParamLocations(f)
+			if e != nil {
+				return "", e
+			}
+			for r, expected := range locs {
+				if actual, ok := ar.Locs[r]; ok && actual != expected {
+					return "", fmt.Errorf("external ABI %s inconsistent allocation for r%d", f.Name, r)
+				}
+			}
+		}
+	}
 	if opt.Runtime == Z80RuntimeCPM {
 		var closureErr error
 		m, closureErr = cpmRuntimeClosure(m, ar)
@@ -838,6 +851,20 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 }
 
 func (g *z80cg) genFunc(f *Func) {
+	if f.Attrs.IsExtern && g.runtime != Z80RuntimeCPM {
+		locs, e := Z80ExternParamLocations(f)
+		if e != nil {
+			g.err = e
+			return
+		}
+		g.emit(sanitizeIdent(f.Name) + ":")
+		for _, p := range f.Contract.Params {
+			if locs[p.Reg].Kind == LocMem {
+				g.emitf("%s: DS %d", locs[p.Reg].Name, ByteWidth(p.Ty))
+			}
+		}
+		return
+	}
 	var frameErr error
 	g.localFrameDepth, g.hasLocalFrame, frameErr = nativeAllocaDepths(f)
 	if frameErr != nil {

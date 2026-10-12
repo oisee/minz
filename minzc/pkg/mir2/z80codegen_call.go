@@ -549,6 +549,15 @@ func (g *z80cg) emitCallArgs(args []Reg, callee *Func) {
 
 func (g *z80cg) emitCallArgsForInst(args []Reg, callee *Func, call *Inst) {
 	var copies []parallelCopy
+	var external map[Reg]PhysLoc
+	if callee.Attrs.IsExtern {
+		var e error
+		external, e = Z80ExternParamLocations(callee)
+		if e != nil {
+			g.err = e
+			return
+		}
+	}
 	for i, arg := range args {
 		if i >= len(callee.Contract.Params) {
 			break
@@ -566,6 +575,9 @@ func (g *z80cg) emitCallArgsForInst(args []Reg, callee *Func, call *Inst) {
 			} else {
 				dstPhys = physName(loc)
 			}
+		}
+		if callee.Attrs.IsExtern {
+			dstPhys = external[param.Reg].Name
 		}
 		if dstPhys == "" {
 			dstPhys = canonicalReturnLoc(param.Class, param.Ty)

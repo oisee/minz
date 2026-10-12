@@ -399,7 +399,7 @@ func memoryHostExternIdentityEqual(a, b *mir2.Func) bool {
 	}
 	for i, p := range a.Contract.Params {
 		q := b.Contract.Params[i]
-		if p.Name != q.Name || p.Ty != q.Ty || p.Class != q.Class {
+		if p.Name != q.Name || p.Ty != q.Ty || p.Class != q.Class || p.ClassHard != q.ClassHard {
 			return false
 		}
 	}
