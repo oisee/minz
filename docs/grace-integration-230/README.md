@@ -1,6 +1,6 @@
 # Независимый аудит нового CP/M допуска и IRC строк
 
-На checkpoint686d9e81 запущен повтор четырёх frozen heldout семей; результат ожидается. Свежий полный CLI остаётся live, старый pipeline29df08bb также live. Новые найденные проблемы расследуются отдельно, не подменяют исторические PASS.
+На checkpoint686d9e81 повтор четырёх frozen heldout семей завершился exit0/PASS; точное время в heldout-root.txt. Этот checkpoint включает CP/M runtime и Nanz отрицательные литералы. Свежий полный CLI остаётся live, старый pipeline29df08bb также live. Новые найденные проблемы расследуются отдельно, не подменяют исторические PASS.
 
 CP/M review воспроизвёл accepted MIR форму: local pointer копируется через OpMove с byte destination, а provenance ошибочно считает результат полноценным адресом. При byte spill home код может писать по постороннему адресу. Это конкретная admission ошибка; ordinary source miscompile пока не заявляется. Независимый агент сохраняет exact MIR/allocation/native beforeproof и исправление typed provenance.
 
