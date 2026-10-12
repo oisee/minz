@@ -161,6 +161,9 @@ func (inst *Inst) Uses() []Reg {
 		return nil
 	case OpCall:
 		return inst.Args
+	case OpCallCond:
+		// Both the branch predicate and every argument are live uses.
+		return append(filterNoReg(inst.Src[0]), inst.Args...)
 	case OpCallIndirect:
 		out := make([]Reg, 0, len(inst.Args)+1)
 		if inst.Src[0] != NoReg {
