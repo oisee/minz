@@ -1,0 +1,78 @@
+{
+  "greedy": {
+    "str_eq": {
+      "historical_lines": 128,
+      "current_lines": 134
+    },
+    "region_eq": {
+      "historical_lines": 97,
+      "current_lines": 103
+    },
+    "intern": {
+      "historical_lines": 262,
+      "current_lines": 271
+    },
+    "scan": {
+      "historical_lines": 677,
+      "current_lines": 641
+    },
+    "print_str": {
+      "historical_lines": 80,
+      "current_lines": 86
+    }
+  },
+  "pbqp": {
+    "str_alloc_2": {
+      "historical_lines": 57,
+      "current_lines": 57
+    },
+    "str_alloc_3": {
+      "historical_lines": 72,
+      "current_lines": 74
+    },
+    "str_alloc_4": {
+      "historical_lines": 93,
+      "current_lines": 95
+    },
+    "str_alloc_5": {
+      "historical_lines": 108,
+      "current_lines": 110
+    },
+    "str_alloc_6": {
+      "historical_lines": 133,
+      "current_lines": 135
+    },
+    "str_eq": {
+      "historical_lines": 128,
+      "current_lines": 134
+    },
+    "region_eq": {
+      "historical_lines": 97,
+      "current_lines": 103
+    },
+    "intern": {
+      "historical_lines": 262,
+      "current_lines": 271
+    },
+    "scan": {
+      "historical_lines": 677,
+      "current_lines": 641
+    },
+    "init_keywords": {
+      "historical_lines": 242,
+      "current_lines": 452
+    },
+    "print_str": {
+      "historical_lines": 80,
+      "current_lines": 86
+    },
+    "tok_name": {
+      "historical_lines": 881,
+      "current_lines": 893
+    },
+    "print_all_tokens": {
+      "historical_lines": 265,
+      "current_lines": 265
+    }
+  }
+}

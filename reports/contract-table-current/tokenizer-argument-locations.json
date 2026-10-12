@@ -1,0 +1,46 @@
+{
+  "greedy": {
+    "4": {
+      "Kind": 0,
+      "Name": "A",
+      "Offset": 0
+    },
+    "5": {
+      "Kind": 0,
+      "Name": "C",
+      "Offset": 0
+    },
+    "776": {
+      "Kind": 0,
+      "Name": "A",
+      "Offset": 0
+    },
+    "777": {
+      "Kind": 0,
+      "Name": "C",
+      "Offset": 0
+    }
+  },
+  "pbqp": {
+    "4": {
+      "Kind": 0,
+      "Name": "C",
+      "Offset": 0
+    },
+    "5": {
+      "Kind": 0,
+      "Name": "A",
+      "Offset": 0
+    },
+    "776": {
+      "Kind": 0,
+      "Name": "A",
+      "Offset": 0
+    },
+    "777": {
+      "Kind": 0,
+      "Name": "C",
+      "Offset": 0
+    }
+  }
+}

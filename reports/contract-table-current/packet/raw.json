@@ -1,0 +1,483 @@
+{
+  "accesses": [
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    }
+  ],
+  "profile": {
+    "guards": [],
+    "compatibility": {
+      "schema": "minz.loop-profile-compatibility/v1",
+      "context": {
+        "compiler_id": "executable-sha256:eca6055aaaad216bc7fb57e118752ef3ed997caee18bc60eb619fc57b2145f09",
+        "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+        "target_id": "module-target:0/model:cpm-z80-v1",
+        "workload_sha256": "121b0ccfcb9c330599a6779004c0be045efe93ba36941a313abfabaafa82a8bc",
+        "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+        "dependencies": {
+          "../../../examples/nanz/pfcco_weighted_packet.nanz": "6a8ecc8d50e41f5609cabb061b7a06474a7e72619295259d9e5aa4e3cc5bb4ab"
+        }
+      },
+      "hir_sha256": "55bece9bc1e11ad3604d27e45b705c3fc69fe427deeaa9f6986ffc3f32cd2891",
+      "origins_sha256": "4e7620155872f247e06aa4d3e14c9c8e089bc79cf64c300869de777412b006d2"
+    },
+    "schema": "minz.input-hir-loop-observations/v5",
+    "stage": "unoptimised-mir2-vm",
+    "sites": {
+      "schema": "minz.hir-loop-sites/v1",
+      "stage": "input-hir",
+      "sites": [],
+      "unmapped_loops": 0
+    },
+    "counts": [],
+    "completed_calls": 17,
+    "failed_calls": 0
+  },
+  "results": [
+    [
+      {
+        "I": 0
+      }
+    ],
+    [
+      {
+        "I": 65534
+      }
+    ],
+    [
+      {
+        "I": 2
+      }
+    ],
+    [
+      {
+        "I": 0
+      }
+    ],
+    [
+      {
+        "I": 65534
+      }
+    ],
+    [
+      {
+        "I": 2
+      }
+    ],
+    [
+      {
+        "I": 65534
+      }
+    ],
+    [
+      {
+        "I": 2
+      }
+    ],
+    [
+      {
+        "I": 0
+      }
+    ],
+    [
+      {
+        "I": 65534
+      }
+    ],
+    [
+      {
+        "I": 2
+      }
+    ],
+    [
+      {
+        "I": 65534
+      }
+    ],
+    [
+      {
+        "I": 2
+      }
+    ],
+    [
+      {
+        "I": 65534
+      }
+    ],
+    [
+      {
+        "I": 2
+      }
+    ],
+    [
+      {
+        "I": 65532
+      }
+    ],
+    [
+      {
+        "I": 4
+      }
+    ]
+  ],
+  "snapshots": [
+    {
+      "globals": {
+        "packet_trace": "/P8="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "/v8="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "AAA="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "AgA="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "BAA="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "BgA="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "CAA="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "CgA="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "DAA="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "DgA="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "EAA="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "EgA="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "FAA="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "FgA="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "GAA="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "GgA="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "HAA="
+      },
+      "resources": {}
+    }
+  ],
+  "globals": {
+    "packet_trace": "HAA="
+  },
+  "resources": {}
+}

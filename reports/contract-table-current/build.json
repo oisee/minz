@@ -1,0 +1,14 @@
+{
+  "compiler_checkpoint": "81649477",
+  "test_checkpoint": "96e1bccde2e548a8ba7ac808f5d065b3ca8e62df",
+  "test_executable": "/home/alice/dev/minz-artifacts/grace-checkpoints/contract-table-current-96e1bccd.test",
+  "test_executable_sha256": "eca6055aaaad216bc7fb57e118752ef3ed997caee18bc60eb619fc57b2145f09",
+  "go": "go1.26.8",
+  "solver": "/home/alice/dev/minz-artifacts/grace-tools/z3-python/bin/z3",
+  "solver_sha256": "54bae839dd54e262edac6f755fc99659ce2a121301faff20a3e3b94478dcead0",
+  "precoalesce_before": "3ab819648d131cb03af6f1f2930d7b77462fb091",
+  "production_diff": [
+    "minzc/pkg/mir2/precoalesce.go"
+  ],
+  "scope": "Existing frozen domains; no fresh prospective heldout selection."
+}

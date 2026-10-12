@@ -1,0 +1,6 @@
+=== RUN   TestCheckedExistingFunctionPointerLeaf
+    checked_table_practical_audit_test.go:44: [double: skipped: checked local table does not model the canonical indirect entry bridge triple: skipped: checked local table does not model the canonical indirect entry bridge apply: skipped: invalid or duplicate contract parameter test_apply_double: skipped: hard class or invalid local definition unsupported test_apply_triple: skipped: hard class or invalid local definition unsupported]
+--- FAIL: TestCheckedExistingFunctionPointerLeaf (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.013s
+FAIL
