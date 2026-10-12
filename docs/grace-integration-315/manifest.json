@@ -1,0 +1,28 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "b2048e729c6a18c782c097d78cee3c1dfb6d2a9544e20be31b58d1bc9ea2b657"
+    },
+    {
+      "path": "catalog.json",
+      "sha256": "84984c567b48cf1a4b9c6a409a05b14e1073515ef5785b4b70736b4facc4e4e9"
+    },
+    {
+      "path": "catalog.txt",
+      "sha256": "659ff4e633583740b5994612633182bb4c141b8d7232796318cc598b8b4912c9"
+    },
+    {
+      "path": "compile-run.txt",
+      "sha256": "06d13b795746936d371b897e7722a81c30d230fdeb1e4bccdeab44f80afe1897"
+    },
+    {
+      "path": "mzx-build.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "reviewed-updates.json",
+      "sha256": "0a3486947bf18181e045388851af1633abab1366b1d5e7c87b989f1aefc7a5c1"
+    }
+  ]
+}
