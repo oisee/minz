@@ -1,0 +1,6 @@
+[
+  "fn tone(a,b,c) { return a+b*c }\nvar v = tone(17,21,23)",
+  "// fresh literal rematerialization heldout\nwhile true { if value == 99 { return \"pearl\" } }",
+  "name name theta / 013 != 14\nreturn name",
+  "for key in list { var next = key + 2 }\nlet x = \"copper dusk\""
+]
