@@ -81,6 +81,26 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 
 	if w == 16 {
 		defer g.saveWrittenScratch(inst)()
+		// Constant suppression is decided before codegen relocates values.
+		// Consume a unit RHS directly even when an originally in-place
+		// operation now has a spilled source or destination; its allocated
+		// RHS home may never have been initialized.
+		if cv, ok := g.constVals[rhsReg]; ok && cv == 1 && (mnem == "ADD" || mnem == "SUB") {
+			work := dst
+			if isSpill(work) {
+				work = "HL"
+			}
+			g.emitMov(work, lhs, 16)
+			op := "INC"
+			if mnem == "SUB" {
+				op = "DEC"
+			}
+			g.emitf("    %s %s", op, work)
+			g.emitMov(dst, work, 16)
+			g.invalidate(work)
+			g.invalidate(dst)
+			return
+		}
 	}
 
 	if w >= 24 {

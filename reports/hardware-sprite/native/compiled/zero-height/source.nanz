@@ -1,0 +1,7 @@
+import hw.sprite
+fun sprite_test() { @sprite() {
+destination "linear" 24576 8 3 10
+region 0 3 8 0
+via "compiled"
+
+} }

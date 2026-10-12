@@ -3,6 +3,7 @@ package nanz_test
 import (
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -200,5 +201,30 @@ fun main() -> u8 { return generated() }
 	bad := strings.Replace(src, "value 46", `value "forty-six"`, 1)
 	if _, err := nanz.Parse(bad, "bad_numeric_block.nanz"); err == nil || !strings.Contains(err.Error(), "node_arg_int") {
 		t.Fatalf("invalid numeric argument should fail at compile time, got %v", err)
+	}
+}
+
+// Numeric block hosts must carry a signed type through assignment and bounds
+// checks, rather than being an undeclared void call with an incidental VM value.
+func TestMetafunctionSignedNumericAssignment(t *testing.T) {
+	const src = `
+fun @validate() {
+    var n: i32 = 0
+    n = node_arg_int(0, 0)
+    if n < 0 { meta_error(c"negative numeric argument") }
+    if n > 65535 { meta_error(c"address out of range") }
+    emit(c"fun generated() -> u8 { return 42 }")
+}
+@validate() { value 65535 }
+fun main() -> u8 { return generated() }
+`
+	if _, err := nanz.Parse(src, "numeric_assignment.nanz"); err != nil {
+		t.Fatal(err)
+	}
+	for _, value := range []string{"-1", "65536", "2147483648", "-2147483649"} {
+		bad := strings.Replace(src, "value 65535", "value "+strconv.Quote(value), 1)
+		if _, err := nanz.Parse(bad, "numeric_assignment_bad.nanz"); err == nil {
+			t.Fatalf("invalid numeric argument %s accepted", value)
+		}
 	}
 }

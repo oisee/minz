@@ -6034,6 +6034,7 @@ func (p *parser) captureMetaFuncSource(name string) (string, error) {
 	sb.WriteString("@extern fun node_keyword(i: u8) -> ^u8\n")
 	sb.WriteString("@extern fun node_arg_count(i: u8) -> u8\n")
 	sb.WriteString("@extern fun node_arg_str(i: u8, j: u8) -> ^u8\n")
+	sb.WriteString("@extern fun node_arg_int(i: u8, j: u8) -> i32\n")
 	sb.WriteString("@extern fun node_kwarg(i: u8, key: ^u8) -> ^u8\n")
 	sb.WriteString("@extern fun node_has_kwarg(i: u8, key: ^u8) -> u8\n")
 	sb.WriteString("@extern fun str_concat(a: ^u8, b: ^u8) -> ^u8\n")

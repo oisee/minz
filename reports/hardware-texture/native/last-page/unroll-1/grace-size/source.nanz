@@ -1,0 +1,16 @@
+import hw.texture
+ global coords_u:u16=0
+ global coords_v:u16=0
+ global along_u:u16=0
+ global along_v:u16=0
+ global between_v:u16=0
+ global between_u:u16=0
+ global next_row_u:u16=0
+ global next_row_v:u16=0
+ @texture_walk("mapped_texture") { destination "zx_halfcells" 27669 8 2
+ texture "page16x16" 65280
+ setup "coords_u" "coords_v" "along_u" "along_v" "between_v" "between_u" "next_row_u" "next_row_v"
+ unroll 1
+ }
+ fun main()->void { mapped_texture() }
+ 

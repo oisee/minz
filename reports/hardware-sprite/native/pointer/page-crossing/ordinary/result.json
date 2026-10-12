@@ -1,0 +1,18 @@
+{
+  "PASS": true,
+  "bytes": 16,
+  "measurements": [
+    {
+      "T_states": 72,
+      "seed_salt": 19
+    },
+    {
+      "T_states": 72,
+      "seed_salt": 173
+    }
+  ],
+  "mode": "ordinary",
+  "primitive": "pointer",
+  "scope": "independent mask and ZX address oracle; two runtime backgrounds; all native RAM except exact spill declarations and bounded four-byte compiled stack; exact PC/SP; raw/final VM for pointer only; preserved AF/BC/DE/HL/IX/IY for compiled",
+  "sprite_bytes": 3
+}

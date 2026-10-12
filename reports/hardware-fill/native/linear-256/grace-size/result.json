@@ -1,0 +1,8 @@
+{
+  "PASS": true,
+  "T_states": 34901,
+  "bytes": 30,
+  "mode": "grace-size",
+  "scope": "raw/final VM and native Z80; independent layout oracle; all RAM except exact declared native spill slots and bounded stack; return PC/SP",
+  "written_bytes": 256
+}

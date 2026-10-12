@@ -1,0 +1,254 @@
+=== RUN   TestHardwareTextureWalkNative
+=== RUN   TestHardwareTextureWalkNative/spectrum/unroll-1/ordinary
+    hardware_texture_test.go:184: 143 bytes, seed0 323907 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/spectrum/unroll-1/grace-size
+    hardware_texture_test.go:184: 143 bytes, seed0 323907 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/spectrum/unroll-1/grace-speed
+    hardware_texture_test.go:184: 143 bytes, seed0 323907 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/spectrum/unroll-2/ordinary
+    hardware_texture_test.go:184: 219 bytes, seed0 315459 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/spectrum/unroll-2/grace-size
+    hardware_texture_test.go:184: 219 bytes, seed0 315459 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/spectrum/unroll-2/grace-speed
+    hardware_texture_test.go:184: 219 bytes, seed0 315459 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/spectrum/unroll-4/ordinary
+    hardware_texture_test.go:184: 371 bytes, seed0 311235 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/spectrum/unroll-4/grace-size
+    hardware_texture_test.go:184: 371 bytes, seed0 311235 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/spectrum/unroll-4/grace-speed
+    hardware_texture_test.go:184: 371 bytes, seed0 311235 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/spectrum/unroll-8/ordinary
+    hardware_texture_test.go:184: 675 bytes, seed0 309123 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/spectrum/unroll-8/grace-size
+    hardware_texture_test.go:184: 667 bytes, seed0 350595 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/spectrum/unroll-8/grace-speed
+    hardware_texture_test.go:184: 675 bytes, seed0 309123 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/spectrum/unroll-16/ordinary
+    hardware_texture_test.go:184: 1283 bytes, seed0 308067 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/spectrum/unroll-16/grace-size
+    hardware_texture_test.go:184: 1259 bytes, seed0 349539 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/spectrum/unroll-16/grace-speed
+    hardware_texture_test.go:184: 1283 bytes, seed0 308067 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/spectrum/unroll-32/ordinary
+    hardware_texture_test.go:184: 2499 bytes, seed0 307539 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/spectrum/unroll-32/grace-size
+    hardware_texture_test.go:184: 2443 bytes, seed0 349011 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/spectrum/unroll-32/grace-speed
+    hardware_texture_test.go:184: 2499 bytes, seed0 307539 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/relocated/unroll-1/ordinary
+    hardware_texture_test.go:184: 143 bytes, seed0 40554 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/relocated/unroll-1/grace-size
+    hardware_texture_test.go:184: 143 bytes, seed0 40554 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/relocated/unroll-1/grace-speed
+    hardware_texture_test.go:184: 143 bytes, seed0 40554 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/relocated/unroll-2/ordinary
+    hardware_texture_test.go:184: 219 bytes, seed0 39498 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/relocated/unroll-2/grace-size
+    hardware_texture_test.go:184: 219 bytes, seed0 39498 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/relocated/unroll-2/grace-speed
+    hardware_texture_test.go:184: 219 bytes, seed0 39498 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/relocated/unroll-4/ordinary
+    hardware_texture_test.go:184: 371 bytes, seed0 38970 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/relocated/unroll-4/grace-size
+    hardware_texture_test.go:184: 371 bytes, seed0 38970 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/relocated/unroll-4/grace-speed
+    hardware_texture_test.go:184: 371 bytes, seed0 38970 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/relocated/unroll-8/ordinary
+    hardware_texture_test.go:184: 675 bytes, seed0 38706 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/relocated/unroll-8/grace-size
+    hardware_texture_test.go:184: 667 bytes, seed0 43890 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/relocated/unroll-8/grace-speed
+    hardware_texture_test.go:184: 675 bytes, seed0 38706 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/relocated/unroll-16/ordinary
+    hardware_texture_test.go:184: 1283 bytes, seed0 38574 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/relocated/unroll-16/grace-size
+    hardware_texture_test.go:184: 1259 bytes, seed0 43758 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/relocated/unroll-16/grace-speed
+    hardware_texture_test.go:184: 1283 bytes, seed0 38574 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/relocated/unroll-32/ordinary
+    hardware_texture_test.go:184: 2499 bytes, seed0 38508 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/relocated/unroll-32/grace-size
+    hardware_texture_test.go:184: 2443 bytes, seed0 43692 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/relocated/unroll-32/grace-speed
+    hardware_texture_test.go:184: 2499 bytes, seed0 38508 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/tiny/unroll-1/ordinary
+    hardware_texture_test.go:184: 143 bytes, seed0 3709 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/tiny/unroll-1/grace-size
+    hardware_texture_test.go:184: 143 bytes, seed0 3709 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/tiny/unroll-1/grace-speed
+    hardware_texture_test.go:184: 143 bytes, seed0 3709 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/tiny/unroll-2/ordinary
+    hardware_texture_test.go:184: 219 bytes, seed0 3621 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/tiny/unroll-2/grace-size
+    hardware_texture_test.go:184: 219 bytes, seed0 3621 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/tiny/unroll-2/grace-speed
+    hardware_texture_test.go:184: 219 bytes, seed0 3621 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/tiny/unroll-4/ordinary
+    hardware_texture_test.go:184: 371 bytes, seed0 3577 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/tiny/unroll-4/grace-size
+    hardware_texture_test.go:184: 371 bytes, seed0 3577 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/tiny/unroll-4/grace-speed
+    hardware_texture_test.go:184: 371 bytes, seed0 3577 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/singleton/unroll-1/ordinary
+    hardware_texture_test.go:184: 143 bytes, seed0 641 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/singleton/unroll-1/grace-size
+    hardware_texture_test.go:184: 143 bytes, seed0 641 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/singleton/unroll-1/grace-speed
+    hardware_texture_test.go:184: 143 bytes, seed0 641 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/last-page/unroll-1/ordinary
+    hardware_texture_test.go:184: 143 bytes, seed0 7045 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/last-page/unroll-1/grace-size
+    hardware_texture_test.go:184: 143 bytes, seed0 7045 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/last-page/unroll-1/grace-speed
+    hardware_texture_test.go:184: 143 bytes, seed0 7045 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/last-page/unroll-2/ordinary
+    hardware_texture_test.go:184: 219 bytes, seed0 6869 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/last-page/unroll-2/grace-size
+    hardware_texture_test.go:184: 219 bytes, seed0 6869 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/last-page/unroll-2/grace-speed
+    hardware_texture_test.go:184: 219 bytes, seed0 6869 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/last-page/unroll-4/ordinary
+    hardware_texture_test.go:184: 371 bytes, seed0 6781 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/last-page/unroll-4/grace-size
+    hardware_texture_test.go:184: 371 bytes, seed0 6781 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/last-page/unroll-4/grace-speed
+    hardware_texture_test.go:184: 371 bytes, seed0 6781 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/last-page/unroll-8/ordinary
+    hardware_texture_test.go:184: 675 bytes, seed0 6737 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/last-page/unroll-8/grace-size
+    hardware_texture_test.go:184: 667 bytes, seed0 7601 T-states, eight independent runtime setups/textures
+=== RUN   TestHardwareTextureWalkNative/last-page/unroll-8/grace-speed
+    hardware_texture_test.go:184: 675 bytes, seed0 6737 T-states, eight independent runtime setups/textures
+--- PASS: TestHardwareTextureWalkNative (2.34s)
+    --- PASS: TestHardwareTextureWalkNative/spectrum/unroll-1/ordinary (0.01s)
+    --- PASS: TestHardwareTextureWalkNative/spectrum/unroll-1/grace-size (0.01s)
+    --- PASS: TestHardwareTextureWalkNative/spectrum/unroll-1/grace-speed (0.01s)
+    --- PASS: TestHardwareTextureWalkNative/spectrum/unroll-2/ordinary (0.02s)
+    --- PASS: TestHardwareTextureWalkNative/spectrum/unroll-2/grace-size (0.02s)
+    --- PASS: TestHardwareTextureWalkNative/spectrum/unroll-2/grace-speed (0.02s)
+    --- PASS: TestHardwareTextureWalkNative/spectrum/unroll-4/ordinary (0.03s)
+    --- PASS: TestHardwareTextureWalkNative/spectrum/unroll-4/grace-size (0.03s)
+    --- PASS: TestHardwareTextureWalkNative/spectrum/unroll-4/grace-speed (0.03s)
+    --- PASS: TestHardwareTextureWalkNative/spectrum/unroll-8/ordinary (0.05s)
+    --- PASS: TestHardwareTextureWalkNative/spectrum/unroll-8/grace-size (0.05s)
+    --- PASS: TestHardwareTextureWalkNative/spectrum/unroll-8/grace-speed (0.05s)
+    --- PASS: TestHardwareTextureWalkNative/spectrum/unroll-16/ordinary (0.07s)
+    --- PASS: TestHardwareTextureWalkNative/spectrum/unroll-16/grace-size (0.08s)
+    --- PASS: TestHardwareTextureWalkNative/spectrum/unroll-16/grace-speed (0.08s)
+    --- PASS: TestHardwareTextureWalkNative/spectrum/unroll-32/ordinary (0.14s)
+    --- PASS: TestHardwareTextureWalkNative/spectrum/unroll-32/grace-size (0.15s)
+    --- PASS: TestHardwareTextureWalkNative/spectrum/unroll-32/grace-speed (0.14s)
+    --- PASS: TestHardwareTextureWalkNative/relocated/unroll-1/ordinary (0.01s)
+    --- PASS: TestHardwareTextureWalkNative/relocated/unroll-1/grace-size (0.01s)
+    --- PASS: TestHardwareTextureWalkNative/relocated/unroll-1/grace-speed (0.01s)
+    --- PASS: TestHardwareTextureWalkNative/relocated/unroll-2/ordinary (0.02s)
+    --- PASS: TestHardwareTextureWalkNative/relocated/unroll-2/grace-size (0.02s)
+    --- PASS: TestHardwareTextureWalkNative/relocated/unroll-2/grace-speed (0.02s)
+    --- PASS: TestHardwareTextureWalkNative/relocated/unroll-4/ordinary (0.02s)
+    --- PASS: TestHardwareTextureWalkNative/relocated/unroll-4/grace-size (0.02s)
+    --- PASS: TestHardwareTextureWalkNative/relocated/unroll-4/grace-speed (0.02s)
+    --- PASS: TestHardwareTextureWalkNative/relocated/unroll-8/ordinary (0.04s)
+    --- PASS: TestHardwareTextureWalkNative/relocated/unroll-8/grace-size (0.04s)
+    --- PASS: TestHardwareTextureWalkNative/relocated/unroll-8/grace-speed (0.04s)
+    --- PASS: TestHardwareTextureWalkNative/relocated/unroll-16/ordinary (0.07s)
+    --- PASS: TestHardwareTextureWalkNative/relocated/unroll-16/grace-size (0.07s)
+    --- PASS: TestHardwareTextureWalkNative/relocated/unroll-16/grace-speed (0.07s)
+    --- PASS: TestHardwareTextureWalkNative/relocated/unroll-32/ordinary (0.14s)
+    --- PASS: TestHardwareTextureWalkNative/relocated/unroll-32/grace-size (0.14s)
+    --- PASS: TestHardwareTextureWalkNative/relocated/unroll-32/grace-speed (0.14s)
+    --- PASS: TestHardwareTextureWalkNative/tiny/unroll-1/ordinary (0.01s)
+    --- PASS: TestHardwareTextureWalkNative/tiny/unroll-1/grace-size (0.01s)
+    --- PASS: TestHardwareTextureWalkNative/tiny/unroll-1/grace-speed (0.01s)
+    --- PASS: TestHardwareTextureWalkNative/tiny/unroll-2/ordinary (0.02s)
+    --- PASS: TestHardwareTextureWalkNative/tiny/unroll-2/grace-size (0.02s)
+    --- PASS: TestHardwareTextureWalkNative/tiny/unroll-2/grace-speed (0.02s)
+    --- PASS: TestHardwareTextureWalkNative/tiny/unroll-4/ordinary (0.02s)
+    --- PASS: TestHardwareTextureWalkNative/tiny/unroll-4/grace-size (0.02s)
+    --- PASS: TestHardwareTextureWalkNative/tiny/unroll-4/grace-speed (0.02s)
+    --- PASS: TestHardwareTextureWalkNative/singleton/unroll-1/ordinary (0.01s)
+    --- PASS: TestHardwareTextureWalkNative/singleton/unroll-1/grace-size (0.01s)
+    --- PASS: TestHardwareTextureWalkNative/singleton/unroll-1/grace-speed (0.01s)
+    --- PASS: TestHardwareTextureWalkNative/last-page/unroll-1/ordinary (0.01s)
+    --- PASS: TestHardwareTextureWalkNative/last-page/unroll-1/grace-size (0.01s)
+    --- PASS: TestHardwareTextureWalkNative/last-page/unroll-1/grace-speed (0.01s)
+    --- PASS: TestHardwareTextureWalkNative/last-page/unroll-2/ordinary (0.02s)
+    --- PASS: TestHardwareTextureWalkNative/last-page/unroll-2/grace-size (0.01s)
+    --- PASS: TestHardwareTextureWalkNative/last-page/unroll-2/grace-speed (0.02s)
+    --- PASS: TestHardwareTextureWalkNative/last-page/unroll-4/ordinary (0.02s)
+    --- PASS: TestHardwareTextureWalkNative/last-page/unroll-4/grace-size (0.02s)
+    --- PASS: TestHardwareTextureWalkNative/last-page/unroll-4/grace-speed (0.02s)
+    --- PASS: TestHardwareTextureWalkNative/last-page/unroll-8/ordinary (0.04s)
+    --- PASS: TestHardwareTextureWalkNative/last-page/unroll-8/grace-size (0.04s)
+    --- PASS: TestHardwareTextureWalkNative/last-page/unroll-8/grace-speed (0.04s)
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/missing-destination
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/duplicate-destination
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/zero-unroll
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/destination-layout
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/destination-zero-rows
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/texture-unaligned
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/invalid-unroll
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/empty-symbol
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/missing-texture
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/duplicate-texture
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/duplicate-setup
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/duplicate-unroll
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/destination-arity
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/texture-arity
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/unroll-arity
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/destination-negative
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/unknown-field
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/texture-layout
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/injected-symbol
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/destination-zero-columns
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/destination-too-many-rows
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/missing-setup
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/setup-arity
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/destination-overflow
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/destination-too-many-columns
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/texture-negative
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/nondividing-unroll
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/texture-overflow
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/texture-destination-overlap
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/numeric-symbol
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/function-name/0
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/function-name/8
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/function-name/9
+=== RUN   TestHardwareTextureWalkRejectsInvalidDescriptions/function-name/128
+--- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions (0.11s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/missing-destination (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/duplicate-destination (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/zero-unroll (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/destination-layout (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/destination-zero-rows (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/texture-unaligned (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/invalid-unroll (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/empty-symbol (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/missing-texture (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/duplicate-texture (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/duplicate-setup (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/duplicate-unroll (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/destination-arity (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/texture-arity (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/unroll-arity (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/destination-negative (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/unknown-field (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/texture-layout (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/injected-symbol (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/destination-zero-columns (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/destination-too-many-rows (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/missing-setup (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/setup-arity (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/destination-overflow (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/destination-too-many-columns (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/texture-negative (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/nondividing-unroll (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/texture-overflow (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/texture-destination-overlap (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/numeric-symbol (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/function-name/0 (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/function-name/8 (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/function-name/9 (0.00s)
+    --- PASS: TestHardwareTextureWalkRejectsInvalidDescriptions/function-name/128 (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.456s

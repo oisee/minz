@@ -1,0 +1,26 @@
+=== RUN   TestZXHalfCellRotozoomerKernelNative
+=== RUN   TestZXHalfCellRotozoomerKernelNative/ordinary
+    zx_rotozoomer_kernel_test.go:173: ordinary 1616 bytes frame0 312363 T;all32framesPASS
+=== RUN   TestZXHalfCellRotozoomerKernelNative/grace-size
+    zx_rotozoomer_kernel_test.go:173: grace-size 1616 bytes frame0 312363 T;all32framesPASS
+=== RUN   TestZXHalfCellRotozoomerKernelNative/grace-speed
+    zx_rotozoomer_kernel_test.go:173: grace-speed 1616 bytes frame0 312363 T;all32framesPASS
+--- PASS: TestZXHalfCellRotozoomerKernelNative (0.18s)
+    --- PASS: TestZXHalfCellRotozoomerKernelNative/ordinary (0.06s)
+    --- PASS: TestZXHalfCellRotozoomerKernelNative/grace-size (0.06s)
+    --- PASS: TestZXHalfCellRotozoomerKernelNative/grace-speed (0.06s)
+=== RUN   TestZXHalfCellRotozoomerMetaGeneratedSetup
+--- PASS: TestZXHalfCellRotozoomerMetaGeneratedSetup (0.01s)
+=== RUN   TestZXHalfCellRotozoomerMetaNative
+=== RUN   TestZXHalfCellRotozoomerMetaNative/ordinary
+    zx_rotozoomer_meta_test.go:237: ordinary 10447 bytes frame0 1885669 T;all32framesPASS
+=== RUN   TestZXHalfCellRotozoomerMetaNative/grace-size
+    zx_rotozoomer_meta_test.go:237: grace-size 10447 bytes frame0 1885669 T;all32framesPASS
+=== RUN   TestZXHalfCellRotozoomerMetaNative/grace-speed
+    zx_rotozoomer_meta_test.go:237: grace-speed 10447 bytes frame0 1885669 T;all32framesPASS
+--- PASS: TestZXHalfCellRotozoomerMetaNative (2.58s)
+    --- PASS: TestZXHalfCellRotozoomerMetaNative/ordinary (0.86s)
+    --- PASS: TestZXHalfCellRotozoomerMetaNative/grace-size (0.85s)
+    --- PASS: TestZXHalfCellRotozoomerMetaNative/grace-speed (0.86s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.775s
