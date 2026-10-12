@@ -1,0 +1,4 @@
+[
+  "fn square(n: u8) -> u8 { return n * n } // training green\nvar total = square(7) + 11\n",
+  "while false { var unused = 0 }\nif true { return \"indigo\" } else { return \"violet\" }\n"
+]
