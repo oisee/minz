@@ -86,24 +86,24 @@ fun emit_port_digits(p: u16) -> void {
 
 fun main() -> void {
     tui_clear()
-    set_str(&NICK, "minz_user")
-    set_str(&CHANNEL, "#minz")
+    set_str(&NICK, c"minz_user")
+    set_str(&CHANNEL, c"#minz")
 
     // Check if pre-connected
     let s: u8 = ctl_read()
     if s != 1 {
-        status_msg("Connecting to irc.libera.chat:6667...")
-        let r: ConnStatus = net_connect("irc.libera.chat", 6667)
+        status_msg(c"Connecting to irc.libera.chat:6667...")
+        let r: ConnStatus = net_connect(c"irc.libera.chat", 6667)
         if r != ConnStatus.Connected {
-            status_msg("Connection failed!")
+            status_msg(c"Connection failed!")
             return
         }
     }
-    status_msg("MinZ IRC v0.1 — connected")
+    status_msg(c"MinZ IRC v0.1 — connected")
 
     // IRC registration
-    net_send("NICK minz_user\r\n")
-    net_send("USER minz 0 * :MinZ Z80 IRC Client\r\n")
+    net_send(c"NICK minz_user\r\n")
+    net_send(c"USER minz 0 * :MinZ Z80 IRC Client\r\n")
 
     // Main loop
     loop {
@@ -135,11 +135,11 @@ fun poll_network() -> void {
 // ── IRC command dispatch ───────────────────────────────────────────
 
 fun classify_irc(buf: ^u8, pos: u16) -> IrcCmd {
-    if buf_starts_with(buf, "PING")              { return IrcCmd.Ping }
-    if region_match(buf, pos, "PRIVMSG", 7)      { return IrcCmd.Privmsg }
-    if region_match(buf, pos, "JOIN", 4)          { return IrcCmd.Join }
-    if region_match(buf, pos, "PART", 4)          { return IrcCmd.Part }
-    if region_match(buf, pos, "QUIT", 4)          { return IrcCmd.Quit }
+    if buf_starts_with(buf, c"PING")              { return IrcCmd.Ping }
+    if region_match(buf, pos, c"PRIVMSG", 7)      { return IrcCmd.Privmsg }
+    if region_match(buf, pos, c"JOIN", 4)          { return IrcCmd.Join }
+    if region_match(buf, pos, c"PART", 4)          { return IrcCmd.Part }
+    if region_match(buf, pos, c"QUIT", 4)          { return IrcCmd.Quit }
     // Check if numeric (digit after prefix)
     let p: ^u8 = buf + pos
     if p^ >= 48 {
@@ -180,18 +180,18 @@ fun dispatch_server_line() -> void {
     match cmd {
         Ping    => handle_ping(),
         Privmsg => handle_privmsg(pos, nick_start, nick_len),
-        Join    => show_event(nick_start, nick_len, " joined", Color.Green),
-        Part    => show_event(nick_start, nick_len, " left", Color.Red),
-        Quit    => show_event(nick_start, nick_len, " quit", Color.Red),
+        Join    => show_event(nick_start, nick_len, c" joined", Color.Green),
+        Part    => show_event(nick_start, nick_len, c" left", Color.Red),
+        Quit    => show_event(nick_start, nick_len, c" quit", Color.Red),
         Numeric => show_raw(),
         _       => show_raw(),
     }
 }
 
 fun handle_ping() -> void {
-    net_send("PONG")
+    net_send(c"PONG")
     send_from(&srv_buf, 4)
-    net_send("\r\n")
+    net_send(c"\r\n")
 }
 
 fun handle_privmsg(cmd_pos: u16, nick_start: u16, nick_len: u8) -> void {
@@ -263,16 +263,16 @@ fun submit_input() -> void {
 
     let cmd: UserCmd = classify_user_cmd()
     if cmd == UserCmd.CmdJoin {
-        net_send("JOIN ")
+        net_send(c"JOIN ")
         send_from(&usr_buf, 6)
-        net_send("\r\n")
+        net_send(c"\r\n")
     } else if cmd == UserCmd.CmdNick {
-        net_send("NICK ")
+        net_send(c"NICK ")
         send_from(&usr_buf, 6)
-        net_send("\r\n")
+        net_send(c"\r\n")
     } else if cmd == UserCmd.CmdQuit {
-        net_send("QUIT :MinZ IRC signing off\r\n")
-        status_msg("Disconnected.")
+        net_send(c"QUIT :MinZ IRC signing off\r\n")
+        status_msg(c"Disconnected.")
     } else {
         send_privmsg()
     }
@@ -292,11 +292,11 @@ fun classify_user_cmd() -> UserCmd {
 }
 
 fun send_privmsg() -> void {
-    net_send("PRIVMSG ")
+    net_send(c"PRIVMSG ")
     send_buf(&CHANNEL)
-    net_send(" :")
+    net_send(c" :")
     send_buf(&usr_buf)
-    net_send("\r\n")
+    net_send(c"\r\n")
 
     // Local echo
     tui_color(Color.Yellow, Color.Black, 1)

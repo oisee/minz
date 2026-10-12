@@ -1,0 +1,6 @@
+=== RUN   TestOriginalIRCClassifiers
+    original_irc_classifiers_test.go:258: VM ordinary classify_irc [36864 0] [{6}] 0 <nil>
+--- FAIL: TestOriginalIRCClassifiers (0.23s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.243s
+FAIL

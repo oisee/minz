@@ -1,7 +1,7 @@
 {
-  "source_sha256": "2836abd4f06db6a7ae777459e56c9ad35e42aa2ec87c479125685c7d9cdacc96",
+  "source_sha256": "240ecc56c7b35683c15801f20490f22033837dfafa1e4d991ed1ca26a66d6f53",
   "dependencies": {
-    "examples/nanz/irc_client.nanz": "2836abd4f06db6a7ae777459e56c9ad35e42aa2ec87c479125685c7d9cdacc96",
+    "examples/nanz/irc_client.nanz": "240ecc56c7b35683c15801f20490f22033837dfafa1e4d991ed1ca26a66d6f53",
     "stdlib/tui/render.nanz": "4711dbee908a2271f02d1fbb4720942604e23322d7745f32311f6b2c17c6d4a8"
   },
   "scope": [
@@ -31,5 +31,7 @@
   ],
   "prefix_domain": "empty/length1,4,127,255; all256first mismatch bytes; earlyzero",
   "authority": "Bookv7 \u00a73.3 pointer/byte access and \u00a718.1 string encodings; original enumcodes/prefix matching are published protocolparser behavior",
-  "remaining": "wholemain,networkports30/31,terminalBDOS not executed"
+  "remaining": "wholemain,networkports30/31,terminalBDOS not executed",
+  "original_source_sha256": "2836abd4f06db6a7ae777459e56c9ad35e42aa2ec87c479125685c7d9cdacc96",
+  "correction": "27 literal pointer arguments corrected toCString; nativeproofclassifieronly, runtimeothersAPIauditednotexecuted"
 }
