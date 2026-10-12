@@ -1,0 +1,23 @@
+{
+  "scope": "ordinary full eZ80/MOS/VDP with independent exact VDU/text oracle; no independent pixel/RAM/SP/hardware proof",
+  "keycodes": [
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    10,
+    13,
+    11,
+    13,
+    27
+  ],
+  "application_bytes": 3151,
+  "wire_bytes": 3248,
+  "exact_application_vdu": true,
+  "following_mos_echo_prompt": true,
+  "cutoff_exit": 124
+}
