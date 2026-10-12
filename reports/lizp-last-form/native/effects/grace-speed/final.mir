@@ -1,0 +1,67 @@
+; MIR2 module: tail
+global @effects : u8
+
+fun @choose(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = addr_of @effects : ptr [pointer]
+    %r3 = load %r2 : u8 [general]
+    %r4 = const 1 : u8 [general]
+    %r5 = add %r3, %r4 : u8 [acc]
+    %r6 = addr_of @effects : ptr [pointer]
+    store %r6, %r5 : u8
+    %r7 = const 1 : u8 [general]
+    %r8 = add %r1, %r7 : u8 [acc]
+    %r9 = const 0 : u8 [general]
+    %r10 = cmp.eq %r1, %r9 : bool [flag]
+    br_if %r10, @if_then1(), @if_else3()
+  block @if_then1:
+    %r11 = addr_of @effects : ptr [pointer]
+    %r12 = load %r11 : u8 [general]
+    %r13 = const 2 : u8 [general]
+    %r14 = add %r12, %r13 : u8 [acc]
+    %r15 = addr_of @effects : ptr [pointer]
+    store %r15, %r14 : u8
+    %r16 = const 7 : u8 [acc]
+    ret %r16
+  block @if_else3:
+    %r17 = addr_of @effects : ptr [pointer]
+    %r18 = load %r17 : u8 [general]
+    %r19 = const 3 : u8 [general]
+    %r20 = add %r18, %r19 : u8 [acc]
+    %r21 = addr_of @effects : ptr [pointer]
+    store %r21, %r20 : u8
+    %r22 = const 2 : u8 [general]
+    %r23 = add %r8, %r22 : u8 [acc]
+    ret %r23
+
+fun @explicit_let(%r24: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r25 = const 4 : u8 [general]
+    %r26 = add %r24, %r25 : u8 [acc]
+    %r27 = addr_of @effects : ptr [pointer]
+    %r28 = load %r27 : u8 [general]
+    %r29 = const 5 : u8 [general]
+    %r30 = add %r28, %r29 : u8 [acc]
+    %r31 = addr_of @effects : ptr [pointer]
+    store %r31, %r30 : u8
+    ret %r26
+
+fun @early(%r32: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r33 = const 0 : u8 [general]
+    %r34 = cmp.eq %r32, %r33 : bool [flag]
+    br_if %r34, @if_then1(), @if_join2()
+  block @if_then1:
+    %r35 = const 9 : u8 [acc]
+    ret %r35
+  block @if_join2:
+    %r36 = addr_of @effects : ptr [pointer]
+    %r37 = load %r36 : u8 [general]
+    %r38 = const 6 : u8 [general]
+    %r39 = add %r37, %r38 : u8 [acc]
+    %r40 = addr_of @effects : ptr [pointer]
+    store %r40, %r39 : u8
+    %r41 = const 1 : u8 [general]
+    %r42 = add %r32, %r41 : u8 [acc]
+    ret %r42
+

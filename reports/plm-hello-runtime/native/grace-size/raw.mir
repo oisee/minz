@@ -1,0 +1,47 @@
+; MIR2 module: HELLO
+global @__plm_literal_0 : [20]u8
+
+fun @PRINTCHAR(%r1: u8 [acc])
+  block @entry:
+    %r2 = move %r1 : u8 [acc]
+    call @@mir.io.print.char(%r2)
+    ret void
+
+fun @PRINTMSG(%r3: u16 [pointer])
+  block @entry:
+    %r4 = const 0 : u8 [general]
+    %r5 = const 0 : u8 [general]
+    %r6 = ext %r5 : u8 -> u16 [index]
+    %r7 = ptr_add %r3, %r6 : ptr [pointer]
+    %r8 = load %r7 : u8 [general]
+    jmp @loop_head1(%r8, %r3)
+  block @loop_head1(%r9: u8 [general], %r10: u16 [pointer]):
+    %r11 = const 0 : u8 [general]
+    %r12 = cmp.ne %r9, %r11 : bool [flag]
+    br_if %r12, @loop_body2(), @loop_exit3(%r9, %r10)
+  block @loop_body2:
+    %r13 = move %r9 : u8 [acc]
+    call @PRINTCHAR(%r13)
+    %r14 = const 1 : u16 [pointer]
+    %r15 = add %r10, %r14 : u16 [pointer]
+    %r16 = const 0 : u8 [general]
+    %r17 = ext %r16 : u8 -> u16 [index]
+    %r18 = ptr_add %r15, %r17 : ptr [pointer]
+    %r19 = load %r18 : u8 [general]
+    jmp @loop_head1(%r19, %r15)
+  block @loop_exit3(%r20: u8 [general], %r21: u16 [pointer]):
+    ret void
+
+fun @main()
+  block @entry:
+    %r22 = addr_of @__plm_literal_0 : ptr [pointer]
+    %r23 = move %r22 : ptr [pointer]
+    call @PRINTMSG(%r23)
+    %r24 = const 13 : u8 [general]
+    %r25 = move %r24 : u8 [acc]
+    call @PRINTCHAR(%r25)
+    %r26 = const 10 : u8 [general]
+    %r27 = move %r26 : u8 [acc]
+    call @PRINTCHAR(%r27)
+    ret void
+

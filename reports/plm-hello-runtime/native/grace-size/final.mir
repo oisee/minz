@@ -1,0 +1,38 @@
+; MIR2 module: HELLO
+global @__plm_literal_0 : [20]u8
+
+fun @PRINTCHAR(%r1: u8 [acc])
+  block @entry:
+    %r2 = move %r1 : u8 [acc]
+    call @@mir.io.print.char(%r2)
+    ret void
+
+fun @PRINTMSG(%r3: u16 [pointer])
+  block @entry:
+    %r4 = move %r3 : ptr [pointer]
+    %r5 = load %r4 : u8 [general]
+    jmp @loop_head1(%r5, %r3)
+  block @loop_head1(%r5: u8 [general], %r7: u16 [pointer]):
+    %r8 = const 0 : u8 [general]
+    %r9 = cmp.ne %r5, %r8 : bool [flag]
+    cond_ret %r9, [], @loop_body2()
+  block @loop_body2:
+    %r10 = move %r5 : u8 [acc]
+    call @PRINTCHAR(%r10)
+    %r11 = const 1 : u16 [pointer]
+    %r12 = add %r7, %r11 : u16 [pointer]
+    %r13 = move %r12 : ptr [pointer]
+    %r14 = load %r13 : u8 [general]
+    jmp @loop_head1(%r14, %r12)
+
+fun @main()
+  block @entry:
+    %r15 = addr_of @__plm_literal_0 : ptr [pointer]
+    %r16 = move %r15 : ptr [pointer]
+    call @PRINTMSG(%r16)
+    %r17 = const 13 : u8 [acc]
+    call @PRINTCHAR(%r17)
+    %r18 = const 10 : u8 [acc]
+    call @PRINTCHAR(%r18)
+    ret void
+

@@ -1,0 +1,66 @@
+; MIR2 module: ../../../examples/lizp/cond_test.lizp
+global @score : u8
+
+fun @classify(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = const 0 : u8 [general]
+    %r3 = cmp.eq %r1, %r2 : bool [flag]
+    br_if %r3, @if_then1(), @if_else3()
+  block @if_then1:
+    %r4 = const 0 : u8 [acc]
+    ret %r4
+  block @if_else3:
+    %r5 = const 10 : u8 [general]
+    %r6 = cmp.ult %r1, %r5 : bool [flag]
+    br_if %r6, @if_then4(), @if_else6()
+  block @if_then4:
+    %r7 = const 1 : u8 [acc]
+    ret %r7
+  block @if_else6:
+    %r8 = const 100 : u8 [general]
+    %r9 = cmp.ult %r1, %r8 : bool [flag]
+    %r10 = const 255 : u8 [acc]
+    cond_ret %r9, [%r10], @if_then7()
+  block @if_then7:
+    %r11 = const 2 : u8 [acc]
+    ret %r11
+
+fun @main()
+  block @entry:
+    %r12 = const 2 : u8 [acc]
+    %r13 = addr_of @score : ptr [pointer]
+    store %r13, %r12 : u8
+    %r14 = addr_of @score : ptr [pointer]
+    %r15 = load %r14 : u8 [general]
+    %r16 = const 2 : u8 [general]
+    %r17 = cmp.eq %r15, %r16 : bool [flag]
+    br_if %r17, @if_then1(), @if_join2()
+  block @if_then1:
+    %r18 = addr_of @score : ptr [pointer]
+    %r19 = load %r18 : u8 [general]
+    %r20 = const 1 : u8 [general]
+    %r21 = add %r19, %r20 : u8 [acc]
+    %r22 = addr_of @score : ptr [pointer]
+    store %r22, %r21 : u8
+    jmp @if_join2()
+  block @if_join2:
+    %r23 = addr_of @score : ptr [pointer]
+    %r24 = load %r23 : u8 [general]
+    %r25 = const 0 : u8 [general]
+    %r26 = cmp.eq %r24, %r25 : bool [flag]
+    %r27 = const 0 : bool [general]
+    %r28 = cmp.eq %r26, %r27 : bool [flag]
+    %r29 = const 0 : bool [general]
+    %r30 = cmp.ne %r28, %r29 : bool [flag]
+    br_if %r30, @if_then3(), @if_join4()
+  block @if_then3:
+    %r31 = addr_of @score : ptr [pointer]
+    %r32 = load %r31 : u8 [general]
+    %r33 = const 1 : u8 [general]
+    %r34 = sub %r32, %r33 : u8 [acc]
+    %r35 = addr_of @score : ptr [pointer]
+    store %r35, %r34 : u8
+    jmp @if_join4()
+  block @if_join4:
+    ret void
+
