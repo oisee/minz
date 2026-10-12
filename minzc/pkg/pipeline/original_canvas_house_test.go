@@ -133,8 +133,17 @@ func TestOriginalCanvasHouseWholeScene(t *testing.T) {
 					t.Fatal("savepath", path)
 				}
 				pixels := ref.C.Pixels
+				if !bytes.Equal(pixels, canvasHousePixels(expected)) {
+					t.Fatal("independent framebuffer", mode, engine.name, entry)
+				}
 				save(mode+"/"+entry+"/"+engine.name+"-pixels.bin", pixels)
 				save(mode+"/"+entry+"/"+engine.name+"-events.json", events)
+				if root := os.Getenv("MINZ_CANVAS_HOUSE_ARTIFACTS"); root != "" {
+					name := filepath.Join(root, mode, entry, engine.name+"-frame.png")
+					if e := ref.C.SavePNG(name); e != nil {
+						t.Fatal(e)
+					}
+				}
 			}
 			linked := s.Assembly
 			for _, f := range s.MIR2Module.Funcs {
@@ -160,6 +169,8 @@ func TestOriginalCanvasHouseWholeScene(t *testing.T) {
 			copy(mem[0x7000:], []byte{0xcd, byte(p), byte(p >> 8), 0})
 			before := append([]byte(nil), mem...)
 			nativeEvents := []canvasHouseEvent{}
+			nativeVM := mir2.NewVM(&mir2.Module{})
+			nativeCanvas := mir2.RegisterCanvasHosts(nativeVM)
 			savePath := ""
 			externs := map[uint16]*mir2.Func{}
 			for _, f := range s.MIR2Module.Funcs {
@@ -218,8 +229,21 @@ func TestOriginalCanvasHouseWholeScene(t *testing.T) {
 						}
 					} else {
 						nativeEvents = append(nativeEvents, canvasHouseEvent{f.Name, vals})
+						vs := []mir2.Value{}
+						for _, v := range vals {
+							vs = append(vs, mir2.Value{I: v})
+						}
+						if _, e := nativeVM.Hosts[f.Name](vs); e != nil {
+							t.Fatal("device", e)
+						}
 					}
-					r.HL = 0 // u16 host result, remaining registers preserved as declared extern contract
+					r.A = 0x91
+					r.F = 0xd7
+					r.BC = 0xdead
+					r.DE = 0xbeef
+					r.IX = 0x1357
+					r.IY = 0x2468
+					r.HL = 0 // u16 host result; unknown external ABI clobbers primary scratch
 					r.PC = uint16(mem[r.SP]) | uint16(mem[r.SP+1])<<8
 					r.SP += 2
 					z.SetRegisters(r)
@@ -250,6 +274,16 @@ func TestOriginalCanvasHouseWholeScene(t *testing.T) {
 			if !done || z.GetSP() != 0xf000 {
 				t.Fatal("terminationSP", mode, entry, z.GetRegisters())
 			}
+			if !bytes.Equal(nativeCanvas.C.Pixels, canvasHousePixels(expected)) {
+				t.Fatal("native framebuffer")
+			}
+			save(mode+"/"+entry+"/native-pixels.bin", nativeCanvas.C.Pixels)
+			if root := os.Getenv("MINZ_CANVAS_HOUSE_ARTIFACTS"); root != "" {
+				name := filepath.Join(root, mode, entry, "native-frame.png")
+				if e := nativeCanvas.C.SavePNG(name); e != nil {
+					t.Fatal(e)
+				}
+			}
 			if !reflect.DeepEqual(nativeEvents, expected) {
 				t.Fatal("nativeevents", mode, entry, nativeEvents)
 			}
@@ -270,7 +304,7 @@ func TestOriginalCanvasHouseWholeScene(t *testing.T) {
 					}
 				}
 			}
-			save(mode+"/"+entry+"/summary.json", map[string]any{"events": len(nativeEvents), "path": savePath, "full_ram": true, "SP": z.GetSP(), "bytes": len(a.Binary), "T_states": z.GetCycles()})
+			save(mode+"/"+entry+"/summary.json", map[string]any{"events": len(nativeEvents), "path": savePath, "full_ram": true, "SP": z.GetSP(), "bytes": len(a.Binary), "T_states": z.GetCycles(), "external_clobber_stress": true})
 			t.Log(mode, entry, "raw/final/native ordered events PASS")
 		}
 	}
