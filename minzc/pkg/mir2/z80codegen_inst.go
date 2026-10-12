@@ -1105,6 +1105,13 @@ func (g *z80cg) genInst(inst *Inst) {
 		sym := sanitizeIdent(inst.Sym)
 		if isPairReg(dst) {
 			g.emitf("    LD %s, %s", dst, sym)
+		} else if isSpill(dst) {
+			// A spilled address still occupies a complete word. Preserve HL,
+			// which may hold an unrelated live pointer or a later call argument.
+			g.emit("    PUSH HL")
+			g.emitf("    LD HL, %s", sym)
+			g.emitNativeSpillf(dst, 0, 2, true, "    LD (%s), HL", dst)
+			g.emit("    POP HL")
 		} else {
 			// addr_of produces a 16-bit address but dst is 8-bit —
 			// allocator spilled the pointer to an 8-bit reg.
