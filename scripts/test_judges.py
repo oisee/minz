@@ -86,6 +86,9 @@ sys.exit(int(fail))
                   for i, e in enumerate(('assert a() == 1', 'assert b() == 2'), 1)]
         after = [dict(a, line=a['line'] + 1) for a in before]
         self.assertEqual(matrix.inventory_changes(before, after), ([], [], []))
+        literal_before = [dict(before[0], expression='assert text() == \"a  b\"')]
+        literal_after = [dict(before[0], expression='assert text() == \"a b\"')]
+        self.assertEqual(len(matrix.inventory_changes(literal_before, literal_after)[2]), 1)
         # Removing a duplicate still removes an obligation.
         removed, added, changed = matrix.inventory_changes(before + [dict(before[0], line=8)], after)
         self.assertEqual((len(removed), len(added), len(changed)), (1, 0, 0))

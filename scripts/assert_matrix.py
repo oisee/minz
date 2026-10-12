@@ -87,7 +87,7 @@ def outcomes(attempts):
 def top_level_identity(assertion):
     # Source lines select assertions in each checkout; they are not semantic
     # identity. Keep the backend and tuple shape, and count duplicate directives.
-    return (assertion['file'], normalize_expression(assertion['expression']),
+    return (assertion['file'], assertion['expression'],
             assertion.get('via'), assertion.get('tuple_elements', 0))
 
 
