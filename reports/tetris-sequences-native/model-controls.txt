@@ -1,0 +1,4 @@
+=== RUN   TestTetrisSequenceIndependentModelControls
+--- PASS: TestTetrisSequenceIndependentModelControls (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.008s

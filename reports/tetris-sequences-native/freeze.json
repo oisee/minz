@@ -21,5 +21,9 @@
     44257,
     65535
   ],
-  "remaining": "main/device/input/rendering notexecuted; external descent transition explicittestcontroller notoriginalAPI"
+  "remaining": "main/device/input/rendering notexecuted; external descent transition explicittestcontroller notoriginalAPI",
+  "model_dependencies": {
+    "reports/tetris-family-native/freeze.json": "390d198011185da34881e478836dc320f0e602a41bd798e766fae2bf4ef573bb",
+    "minzc/pkg/pipeline/original_tetris_family_test.go": "82dddb20f2eb505680254bde2988390196c166e68d077dc3339ad98fb6b704fe"
+  }
 }
