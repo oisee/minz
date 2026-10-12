@@ -1,0 +1,10 @@
+=== RUN   TestOriginalTerminalScreenWholeMain
+    original_terminal_screen_main_test.go:539: ordinary raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:539: grace-size raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:539: grace-speed raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:539: ordinary raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:200: grace-size/vm1 event135 got{"name":"tui_putch","args":[148]} want{"name":"tui_putch","args":[49]}
+--- FAIL: TestOriginalTerminalScreenWholeMain (0.24s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.250s
+FAIL

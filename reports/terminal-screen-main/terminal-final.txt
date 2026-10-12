@@ -1,0 +1,16 @@
+=== RUN   TestOriginalTerminalScreenWholeMain
+    original_terminal_screen_main_test.go:547: ordinary raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:547: grace-size raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:547: grace-speed raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:547: ordinary raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:547: grace-size raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:547: grace-speed raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:547: ordinary raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:547: grace-size raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:547: grace-speed raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:547: ordinary raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:547: grace-size raw/finalVM+native wholemain PASS
+    original_terminal_screen_main_test.go:547: grace-speed raw/finalVM+native wholemain PASS
+--- PASS: TestOriginalTerminalScreenWholeMain (1.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.031s

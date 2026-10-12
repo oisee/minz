@@ -1,0 +1,14 @@
+{
+  "case": "cancel",
+  "events": 197,
+  "full_ram": true,
+  "image_bytes": 1653,
+  "linked_asm_sha256": "d7bf03dc3777c75cffc274c7215938979d75fb799a18040841700ce962662d4c",
+  "minimum_sp": 61402,
+  "result": "PASS",
+  "scope": "whole source main explicit native terminal linker externbindings",
+  "source_sha256": "241483fe9a7ebbf7a6db1d9f7564935107a9fcf2a63b2c9e99cd7e0bff911b27",
+  "stdout_bytes": 423,
+  "terminal_pc": 342,
+  "unlinked_asm_sha256": "14534a4e0e22ac7ce6e1b090a767564d0bed96b04c4781c7b2ebcaf3a203d158"
+}

@@ -1,0 +1,228 @@
+; HIR module: abap_screen.nanz
+global @scr_title : ptr
+global @scr_nfields : u8
+global @scr_focus : u8
+global @buf_material : [12]u8
+global @buf_plant : [8]u8
+global @val_count : u16
+string #0 = "Material Report"
+string #1 = "  "
+string #2 = "Material"
+string #3 = "Plant"
+string #4 = "Count"
+string #5 = "F8=Execute"
+string #6 = "F3=Back"
+string #7 = "  TAB=Next  Enter=Edit  F8=Execute  F3=Back"
+string #8 = "Report: Material="
+string #9 = " Plant="
+string #10 = " Count="
+string #11 = "\n"
+string #12 = "Cancelled.\n"
+
+extern fun @tui_clear()
+
+extern fun @tui_goto(x: u8, y: u8)
+
+extern fun @tui_color(fg: u8, bg: u8, bright: u8)
+
+extern fun @tui_reset()
+
+extern fun @tui_putch(ch: u8)
+
+extern fun @tui_puts(str: ptr)
+
+extern fun @tui_read_key() -> u8
+
+extern fun @tui_width() -> u8
+
+extern fun @tui_height() -> u8
+
+extern fun @tui_read_line(buf: ptr, maxlen: u8) -> u8
+
+fun @screen_init()
+  (scr_title:ptr) = addr @@mir2.str.0:ptr
+  (scr_nfields:u8) = 5:u8
+  (scr_focus:u8) = 0:u8
+  ((buf_material:[12]u8))[0:u8]:u8 = 42:u8
+  ((buf_material:[12]u8))[1:u8]:u8 = 0:u8
+  ((buf_plant:[8]u8))[0:u8]:u8 = 0:u8
+  (val_count:u16) = 10:u8
+
+fun @puts_padded(str: ptr, width: u8)
+  var ptr: ptr = (str:ptr)
+  var i: u8 = 0:u8
+  while ((i:u8) < (width:u8)):bool
+    if (load((ptr:ptr)):u8 != 0:u8):bool
+      call @tui_putch(load((ptr:ptr)):u8):void
+      (ptr:ptr) = ((ptr:ptr) + 1:u8):ptr
+    else
+      call @tui_putch(32:u8):void
+    (i:u8) = ((i:u8) + 1:u8):u8
+
+fun @print_u16_simple(n: u16)
+  var started: u8 = 0:u8
+  var d: u16 = ((n:u16) / 10000:u16):u16
+  if ((d:u16) > 0:u8):bool
+    call @tui_putch((48:u8 + (d:u16)):u16):void
+    (n:u16) = ((n:u16) - ((d:u16) * 10000:u16):u16):u16
+    (started:u8) = 1:u8
+  (d:u16) = ((n:u16) / 1000:u16):u16
+  if ((d:u16) > 0:u8):bool
+    call @tui_putch((48:u8 + (d:u16)):u16):void
+    (n:u16) = ((n:u16) - ((d:u16) * 1000:u16):u16):u16
+    (started:u8) = 1:u8
+  else
+    if ((started:u8) == 1:u8):bool
+      call @tui_putch(48:u8):void
+  (d:u16) = ((n:u16) / 100:u8):u16
+  if ((d:u16) > 0:u8):bool
+    call @tui_putch((48:u8 + (d:u16)):u16):void
+    (n:u16) = ((n:u16) - ((d:u16) * 100:u8):u16):u16
+    (started:u8) = 1:u8
+  else
+    if ((started:u8) == 1:u8):bool
+      call @tui_putch(48:u8):void
+  (d:u16) = ((n:u16) / 10:u8):u16
+  if ((d:u16) > 0:u8):bool
+    call @tui_putch((48:u8 + (d:u16)):u16):void
+    (n:u16) = ((n:u16) - ((d:u16) * 10:u8):u16):u16
+  else
+    if ((started:u8) == 1:u8):bool
+      call @tui_putch(48:u8):void
+  call @tui_putch((48:u8 + (n:u16)):u16):void
+
+fun @render_text_field(row: u8, label: ptr, buf: ptr, length: u8, focused: u8)
+  call @tui_goto(2:u8, (row:u8)):void
+  call @tui_color(6:u8, 0:u8, 0:u8):void
+  call @puts_padded((label:ptr), 12:u8):void
+  if ((focused:u8) == 1:u8):bool
+    call @tui_color(7:u8, 4:u8, 1:u8):void
+  else
+    call @tui_color(7:u8, 0:u8, 0:u8):void
+  call @tui_putch(91:u8):void
+  call @puts_padded((buf:ptr), (length:u8)):void
+  call @tui_putch(93:u8):void
+  call @tui_reset():void
+
+fun @render_int_field(row: u8, label: ptr, val: u16, focused: u8)
+  call @tui_goto(2:u8, (row:u8)):void
+  call @tui_color(6:u8, 0:u8, 0:u8):void
+  call @puts_padded((label:ptr), 12:u8):void
+  if ((focused:u8) == 1:u8):bool
+    call @tui_color(7:u8, 4:u8, 1:u8):void
+  else
+    call @tui_color(7:u8, 0:u8, 0:u8):void
+  call @tui_putch(91:u8):void
+  call @print_u16_simple((val:u16)):void
+  call @tui_putch(93:u8):void
+  call @tui_reset():void
+
+fun @render_button(label: ptr, focused: u8)
+  if ((focused:u8) == 1:u8):bool
+    call @tui_color(0:u8, 7:u8, 1:u8):void
+  else
+    call @tui_color(7:u8, 0:u8, 1:u8):void
+  call @tui_putch(91:u8):void
+  call @tui_puts((label:ptr)):void
+  call @tui_putch(93:u8):void
+  call @tui_reset():void
+
+fun @screen_render()
+  call @tui_clear():void
+  call @tui_color(7:u8, 4:u8, 1:u8):void
+  call @tui_goto(0:u8, 0:u8):void
+  call @tui_puts(addr @@mir2.str.1:ptr):void
+  call @tui_puts((scr_title:ptr)):void
+  var tw: u8 = call @tui_width():u8
+  var pad: u8 = 20:u8
+  while ((pad:u8) < (tw:u8)):bool
+    call @tui_putch(32:u8):void
+    (pad:u8) = ((pad:u8) + 1:u8):u8
+  call @tui_reset():void
+  var f: u8 = 0:u8
+  if ((scr_focus:u8) == 0:u8):bool
+    (f:u8) = 1:u8
+  call @render_text_field(2:u8, addr @@mir2.str.2:ptr, addr @buf_material:ptr, 10:u8, (f:u8)):void
+  (f:u8) = 0:u8
+  if ((scr_focus:u8) == 1:u8):bool
+    (f:u8) = 1:u8
+  call @render_text_field(3:u8, addr @@mir2.str.3:ptr, addr @buf_plant:ptr, 6:u8, (f:u8)):void
+  (f:u8) = 0:u8
+  if ((scr_focus:u8) == 2:u8):bool
+    (f:u8) = 1:u8
+  call @render_int_field(4:u8, addr @@mir2.str.4:ptr, (val_count:u16), (f:u8)):void
+  call @tui_goto(2:u8, 6:u8):void
+  (f:u8) = 0:u8
+  if ((scr_focus:u8) == 3:u8):bool
+    (f:u8) = 1:u8
+  call @render_button(addr @@mir2.str.5:ptr, (f:u8)):void
+  call @tui_puts(addr @@mir2.str.1:ptr):void
+  (f:u8) = 0:u8
+  if ((scr_focus:u8) == 4:u8):bool
+    (f:u8) = 1:u8
+  call @render_button(addr @@mir2.str.6:ptr, (f:u8)):void
+  var th: u8 = call @tui_height():u8
+  call @tui_color(7:u8, 4:u8, 0:u8):void
+  call @tui_goto(0:u8, ((th:u8) - 1:u8):u8):void
+  call @tui_puts(addr @@mir2.str.7:ptr):void
+  (pad:u8) = 44:u8
+  while ((pad:u8) < (tw:u8)):bool
+    call @tui_putch(32:u8):void
+    (pad:u8) = ((pad:u8) + 1:u8):u8
+  call @tui_reset():void
+
+fun @screen_handle_key(key: u8) -> u8
+  if ((key:u8) == 147:u8):bool
+    return 1:u8
+  if ((key:u8) == 142:u8):bool
+    return 2:u8
+  if ((key:u8) == 27:u8):bool
+    return 2:u8
+  if ((key:u8) == 9:u8):bool
+    (scr_focus:u8) = ((scr_focus:u8) + 1:u8):u8
+    if ((scr_focus:u8) >= (scr_nfields:u8)):bool
+      (scr_focus:u8) = 0:u8
+    return 0:u8
+  if ((key:u8) == 13:u8):bool
+    if ((scr_focus:u8) == 3:u8):bool
+      return 1:u8
+    if ((scr_focus:u8) == 4:u8):bool
+      return 2:u8
+    if ((scr_focus:u8) == 0:u8):bool
+      call @tui_goto(15:u8, 2:u8):void
+      call @tui_color(7:u8, 4:u8, 1:u8):void
+      var len: u8 = call @tui_read_line(addr @buf_material:ptr, 10:u8):u8
+      call @tui_reset():void
+    if ((scr_focus:u8) == 1:u8):bool
+      call @tui_goto(15:u8, 3:u8):void
+      call @tui_color(7:u8, 4:u8, 1:u8):void
+      var len: u8 = call @tui_read_line(addr @buf_plant:ptr, 6:u8):u8
+      call @tui_reset():void
+    return 0:u8
+  return 0:u8
+
+fun @screen_show() -> u8
+  var action: u8 = 0:u8
+  while ((action:u8) == 0:u8):bool
+    call @screen_render():void
+    var key: u8 = call @tui_read_key():u8
+    (action:u8) = call @screen_handle_key((key:u8)):u8
+  call @tui_clear():void
+  call @tui_goto(0:u8, 0:u8):void
+  call @tui_reset():void
+  return (action:u8)
+
+fun @main()
+  call @screen_init():void
+  var result: u8 = call @screen_show():u8
+  if ((result:u8) == 1:u8):bool
+    call @tui_puts(addr @@mir2.str.8:ptr):void
+    call @tui_puts(addr @buf_material:ptr):void
+    call @tui_puts(addr @@mir2.str.9:ptr):void
+    call @tui_puts(addr @buf_plant:ptr):void
+    call @tui_puts(addr @@mir2.str.10:ptr):void
+    call @print_u16_simple((val_count:u16)):void
+    call @tui_puts(addr @@mir2.str.11:ptr):void
+  if ((result:u8) == 2:u8):bool
+    call @tui_puts(addr @@mir2.str.12:ptr):void
+

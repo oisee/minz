@@ -1,0 +1,6 @@
+=== RUN   TestRenumberRegsSharedAndOverlappingEdgeArguments
+    renumber_shared_args_test.go:20: overlapfalse then0 got2 want1
+--- FAIL: TestRenumberRegsSharedAndOverlappingEdgeArguments (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/mir2	0.007s
+FAIL

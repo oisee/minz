@@ -1,0 +1,14 @@
+{
+  "case": "tab",
+  "events": 397,
+  "full_ram": true,
+  "image_bytes": 1661,
+  "linked_asm_sha256": "e16f3033102c9203b583fa93c4e9d62eae37a8d3abac400943a3ae202ce4649e",
+  "minimum_sp": 61402,
+  "result": "PASS",
+  "scope": "whole source main explicit native terminal linker externbindings",
+  "source_sha256": "241483fe9a7ebbf7a6db1d9f7564935107a9fcf2a63b2c9e99cd7e0bff911b27",
+  "stdout_bytes": 842,
+  "terminal_pc": 342,
+  "unlinked_asm_sha256": "d8df50ae0afccbae017a64ed0c23540ece22988759187a78b1fac9176d96c663"
+}
