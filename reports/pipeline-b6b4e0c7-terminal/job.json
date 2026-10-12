@@ -1,0 +1,25 @@
+{
+  "checkpoint": "b6b4e0c718006247452ce95b3b53fd963d795bc1",
+  "built_at_utc": "2026-10-12T08:47:09.893265+00:00",
+  "binary": "/home/alice/dev/minz-artifacts/grace-checkpoints/pipeline-b6b4e0c7.test",
+  "binary_sha256": "dc233b6d6f66a5a7d0fed7561188331ad9882dca45ac42ba18229515ef58b6a2",
+  "shared_binary": "/mnt/safe/minz/grace/2026-10-12/compiler-checkpoints/pipeline-b6b4e0c7.test",
+  "status": "running, not PASS",
+  "build_command": "GOCACHE=/tmp/minz-grace-gocache /home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/bin/go test -c ./pkg/pipeline -o /home/alice/dev/minz-artifacts/grace-checkpoints/pipeline-b6b4e0c7.test",
+  "pid": 2953041,
+  "session": 53197,
+  "started_recorded_at": "2026-10-12T10:52:04.050378+00:00",
+  "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/pipeline",
+  "args": [
+    "-test.count=1",
+    "-test.timeout=360m",
+    "-test.v"
+  ],
+  "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/pipeline-b6b4e0c7-full.txt",
+  "environment": {
+    "VIR_TEST_Z3": "/home/alice/dev/minz-artifacts/grace-tools/z3-python/bin/z3",
+    "INDEXED_ENRT4": "/mnt/safe/z80-compiler/tables/enriched_4v.enr",
+    "INDEXED_ENRT5": "/mnt/safe/z80-compiler/tables/enriched_5v.enr"
+  },
+  "predecessor": "reports/pipeline-5d90b7aa-terminal/result.json"
+}
