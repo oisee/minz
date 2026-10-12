@@ -70,7 +70,11 @@ func cpmLocalOffset(i *Inst) (int64, bool) {
 	if !reflect.DeepEqual(p, Inst{}) {
 		return 0, false
 	}
-	return maskToWidth(i.Imm, i.Ty), true
+	stored := maskToWidth(i.Imm, i.Ty)
+	if stored != i.Imm {
+		return 0, false
+	}
+	return stored, true
 }
 
 type cpmLocalAddress struct {
