@@ -265,6 +265,8 @@ func TestOriginalSAPMaraWholeMain(t *testing.T) {
 					_, e := vm.Call("main", nil)
 					b, _ := json.MarshalIndent(host.events, "", "  ")
 					save(kind+"-events.json", b)
+					ownedJSON, _ := json.MarshalIndent(host.owned, "", "  ")
+					save(kind+"-owned-text.json", ownedJSON)
 					save(kind+"-stdout.txt", out.Bytes())
 					save(kind+".mir", []byte(m.Dump()))
 					if e != nil {
@@ -424,6 +426,8 @@ func TestOriginalSAPMaraWholeMain(t *testing.T) {
 			}
 			b, _ := json.MarshalIndent(host.events, "", "  ")
 			save("native-events.json", b)
+			ownedJSON, _ := json.MarshalIndent(host.owned, "", "  ")
+			save("native-owned-text.json", ownedJSON)
 			meta, _ := json.MarshalIndent(map[string]any{"options": o, "allocation": s.Allocation, "functions": s.MIR2Module.Funcs, "min_sp": minSP, "registers": z.GetRegisters(), "cycles_excluding_host": z.GetCycles(), "bytes": len(a.Binary)}, "", "  ")
 			save("context.json", meta)
 			save("native-stdout.txt", out.Bytes())
