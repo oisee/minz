@@ -1,0 +1,983 @@
+; MIR2 module: ../../../examples/nanz/rotozoomer.nanz
+string @mir2.str.0 = "build/rotozoom-0.png"
+string @mir2.str.1 = "build/rotozoom-1.png"
+string @mir2.str.2 = "build/rotozoom-2.png"
+string @mir2.str.3 = "build/rotozoom-3.png"
+string @mir2.str.4 = "build/rotozoom-4.png"
+string @mir2.str.5 = "build/rotozoom-5.png"
+string @mir2.str.6 = "build/rotozoom-6.png"
+string @mir2.str.7 = "build/rotozoom-7.png"
+string @mir2.str.8 = "build/rotozoom-8.png"
+string @mir2.str.9 = "build/rotozoom-9.png"
+string @mir2.str.10 = "build/rotozoom-10.png"
+string @mir2.str.11 = "build/rotozoom-11.png"
+string @mir2.str.12 = "build/rotozoom-12.png"
+string @mir2.str.13 = "build/rotozoom-13.png"
+string @mir2.str.14 = "build/rotozoom-14.png"
+string @mir2.str.15 = "build/rotozoom-15.png"
+string @mir2.str.16 = "build/rotozoom-16.png"
+string @mir2.str.17 = "build/rotozoom-17.png"
+string @mir2.str.18 = "build/rotozoom-18.png"
+string @mir2.str.19 = "build/rotozoom-19.png"
+string @mir2.str.20 = "build/rotozoom-20.png"
+string @mir2.str.21 = "build/rotozoom-21.png"
+string @mir2.str.22 = "build/rotozoom-22.png"
+string @mir2.str.23 = "build/rotozoom-23.png"
+string @mir2.str.24 = "build/rotozoom-24.png"
+string @mir2.str.25 = "build/rotozoom-25.png"
+string @mir2.str.26 = "build/rotozoom-26.png"
+string @mir2.str.27 = "build/rotozoom-27.png"
+string @mir2.str.28 = "build/rotozoom-28.png"
+string @mir2.str.29 = "build/rotozoom-29.png"
+string @mir2.str.30 = "build/rotozoom-30.png"
+string @mir2.str.31 = "build/rotozoom-31.png"
+
+extern fun @canvas_init(%r1: u16 [pointer], %r2: u16 [index], %r3: u16 [index]) -> u16 [pointer]
+
+extern fun @canvas_pixel(%r4: i16 [pointer], %r5: i16 [index], %r6: u16 [index]) -> u16 [pointer]
+
+extern fun @canvas_palette(%r7: u16 [pointer], %r8: u16 [index], %r9: u16 [index], %r10: u16 [index]) -> u16 [pointer]
+
+extern fun @canvas_save(%r11: ptr [pointer]) -> u16 [pointer]
+
+fun @palette()
+  block @entry:
+    %r12 = const 0 : u16 [pointer]
+    %r13 = const 8 : u16 [pointer]
+    %r14 = move %r13 : u16 [index]
+    %r15 = const 9 : u16 [pointer]
+    %r16 = move %r15 : u16 [index]
+    %r17 = const 30 : u16 [pointer]
+    %r18 = move %r17 : u16 [index]
+    %r19 = call @canvas_palette(%r12, %r14, %r16, %r18) : u16 [pointer]
+    %r20 = const 1 : u16 [pointer]
+    %r21 = const 27 : u16 [pointer]
+    %r22 = move %r21 : u16 [index]
+    %r23 = const 41 : u16 [pointer]
+    %r24 = move %r23 : u16 [index]
+    %r25 = const 83 : u16 [pointer]
+    %r26 = move %r25 : u16 [index]
+    %r27 = call @canvas_palette(%r20, %r22, %r24, %r26) : u16 [pointer]
+    %r28 = const 2 : u16 [pointer]
+    %r29 = const 27 : u16 [pointer]
+    %r30 = move %r29 : u16 [index]
+    %r31 = const 123 : u16 [pointer]
+    %r32 = move %r31 : u16 [index]
+    %r33 = const 137 : u16 [pointer]
+    %r34 = move %r33 : u16 [index]
+    %r35 = call @canvas_palette(%r28, %r30, %r32, %r34) : u16 [pointer]
+    %r36 = const 3 : u16 [pointer]
+    %r37 = const 229 : u16 [pointer]
+    %r38 = move %r37 : u16 [index]
+    %r39 = const 64 : u16 [pointer]
+    %r40 = move %r39 : u16 [index]
+    %r41 = const 117 : u16 [pointer]
+    %r42 = move %r41 : u16 [index]
+    %r43 = call @canvas_palette(%r36, %r38, %r40, %r42) : u16 [pointer]
+    %r44 = const 4 : u16 [pointer]
+    %r45 = const 255 : u16 [pointer]
+    %r46 = move %r45 : u16 [index]
+    %r47 = const 166 : u16 [pointer]
+    %r48 = move %r47 : u16 [index]
+    %r49 = const 95 : u16 [pointer]
+    %r50 = move %r49 : u16 [index]
+    %r51 = call @canvas_palette(%r44, %r46, %r48, %r50) : u16 [pointer]
+    %r52 = const 5 : u16 [pointer]
+    %r53 = const 255 : u16 [pointer]
+    %r54 = move %r53 : u16 [index]
+    %r55 = const 240 : u16 [pointer]
+    %r56 = move %r55 : u16 [index]
+    %r57 = const 178 : u16 [pointer]
+    %r58 = move %r57 : u16 [index]
+    %r59 = call @canvas_palette(%r52, %r54, %r56, %r58) : u16 [pointer]
+    ret void
+
+fun @abs16(%r60: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r61 = const 0 : u8 [general]
+    %r62 = cmp.lt %r60, %r61 : bool [flag]
+    br_if %r62, @if_then1(), @if_join2()
+  block @if_then1:
+    %r63 = const 0 : i16 [pointer]
+    %r64 = sub %r63, %r60 : i16 [pointer]
+    ret %r64
+  block @if_join2:
+    ret %r60
+
+fun @texture(%r65: i16 [pointer], %r66: i16 [index]) -> u16 [pointer]
+  block @entry:
+    %r67 = const 8 : i16 [pointer]
+    %r68 = sub %r65, %r67 : i16 [pointer]
+    %r69 = call @abs16(%r68) : i16 [pointer]
+    %r70 = const 8 : i16 [pointer]
+    %r71 = sub %r66, %r70 : i16 [pointer]
+    %r72 = call @abs16(%r71) : i16 [pointer]
+    %r73 = add %r69, %r72 : i16 [pointer]
+    %r74 = const 3 : u8 [general]
+    %r75 = cmp.lt %r73, %r74 : bool [flag]
+    br_if %r75, @if_then1(), @if_join2()
+  block @if_then1:
+    %r76 = const 5 : u16 [pointer]
+    ret %r76
+  block @if_join2:
+    %r77 = const 6 : u8 [general]
+    %r78 = cmp.lt %r73, %r77 : bool [flag]
+    br_if %r78, @if_then3(), @if_join4()
+  block @if_then3:
+    %r79 = const 4 : u16 [pointer]
+    ret %r79
+  block @if_join4:
+    %r80 = const 4 : i16 [pointer]
+    %r81 = sdiv %r65, %r80 : i16 [pointer]
+    %r82 = const 4 : i16 [pointer]
+    %r83 = sdiv %r66, %r82 : i16 [pointer]
+    %r84 = add %r81, %r83 : i16 [pointer]
+    %r85 = const 2 : i16 [pointer]
+    %r86 = smod %r84, %r85 : i16 [pointer]
+    %r87 = const 0 : u8 [general]
+    %r88 = cmp.eq %r86, %r87 : bool [flag]
+    br_if %r88, @if_then5(), @if_join6()
+  block @if_then5:
+    %r89 = const 3 : u16 [pointer]
+    ret %r89
+  block @if_join6:
+    %r90 = xor %r65, %r66 : i16 [pointer]
+    %r91 = const 2 : i16 [pointer]
+    %r92 = and %r90, %r91 : i16 [pointer]
+    %r93 = const 0 : u8 [general]
+    %r94 = cmp.eq %r92, %r93 : bool [flag]
+    br_if %r94, @if_then7(), @if_join8()
+  block @if_then7:
+    %r95 = const 2 : u16 [pointer]
+    ret %r95
+  block @if_join8:
+    %r96 = const 1 : u16 [pointer]
+    ret %r96
+
+fun @draw_frame(%r97: i16 [pointer], %r98: i16 [index])
+  block @entry:
+    %r99 = const 256 : u16 [pointer]
+    %r100 = const 192 : u16 [pointer]
+    %r101 = move %r100 : u16 [index]
+    %r102 = const 0 : u16 [pointer]
+    %r103 = move %r102 : u16 [index]
+    %r104 = call @canvas_init(%r99, %r101, %r103) : u16 [pointer]
+    call @palette()
+    %r105 = const 0 : u8 [general]
+    %r106 = ext %r105 : u8 -> i16 [pointer]
+    %r107 = const 18432 : u16 [pointer]
+    %r108 = const 128 : i16 [pointer]
+    %r109 = mul %r97, %r108 : i16 [pointer]
+    %r110 = sub %r107, %r109 : u16 [pointer]
+    %r111 = const 96 : i16 [pointer]
+    %r112 = mul %r98, %r111 : i16 [pointer]
+    %r113 = sub %r110, %r112 : u16 [pointer]
+    %r114 = const 18432 : u16 [pointer]
+    %r115 = const 128 : i16 [pointer]
+    %r116 = mul %r98, %r115 : i16 [pointer]
+    %r117 = add %r114, %r116 : u16 [pointer]
+    %r118 = const 96 : i16 [pointer]
+    %r119 = mul %r97, %r118 : i16 [pointer]
+    %r120 = sub %r117, %r119 : u16 [pointer]
+    jmp @loop_head1(%r97, %r98, %r113, %r120, %r106)
+  block @loop_head1(%r121: i16 [pointer], %r122: i16 [pointer], %r123: i16 [pointer], %r124: i16 [pointer], %r125: i16 [pointer]):
+    %r126 = const 192 : u8 [general]
+    %r127 = cmp.lt %r125, %r126 : bool [flag]
+    br_if %r127, @loop_body2(), @loop_exit3(%r121, %r122, %r123, %r124, %r125)
+  block @loop_body2:
+    %r128 = const 0 : u8 [general]
+    %r129 = ext %r128 : u8 -> i16 [pointer]
+    jmp @loop_head4(%r121, %r122, %r123, %r124, %r129, %r125)
+  block @loop_head4(%r130: i16 [pointer], %r131: i16 [pointer], %r132: i16 [pointer], %r133: i16 [pointer], %r134: i16 [pointer], %r135: i16 [pointer]):
+    %r136 = const 256 : u16 [pointer]
+    %r137 = cmp.lt %r134, %r136 : bool [flag]
+    br_if %r137, @loop_body5(), @loop_exit6(%r130, %r131, %r132, %r133, %r134, %r135)
+  block @loop_body5:
+    %r138 = const 256 : u16 [pointer]
+    %r139 = div %r132, %r138 : u16 [pointer]
+    %r140 = const 16 : u16 [pointer]
+    %r141 = mod %r139, %r140 : u16 [pointer]
+    %r142 = const 256 : u16 [pointer]
+    %r143 = div %r133, %r142 : u16 [pointer]
+    %r144 = const 16 : u16 [pointer]
+    %r145 = mod %r143, %r144 : u16 [pointer]
+    %r146 = move %r135 : i16 [index]
+    %r147 = move %r145 : i16 [index]
+    %r148 = call @texture(%r141, %r147) : u16 [pointer]
+    %r149 = move %r148 : u16 [index]
+    %r150 = call @canvas_pixel(%r134, %r146, %r149) : u16 [pointer]
+    %r151 = add %r132, %r130 : i16 [pointer]
+    %r152 = sub %r133, %r131 : i16 [pointer]
+    %r153 = const 1 : i16 [pointer]
+    %r154 = add %r134, %r153 : i16 [pointer]
+    jmp @loop_head4(%r130, %r131, %r151, %r152, %r154, %r135)
+  block @loop_exit6(%r155: i16 [pointer], %r156: i16 [pointer], %r157: i16 [pointer], %r158: i16 [pointer], %r159: i16 [pointer], %r160: i16 [pointer]):
+    %r161 = add %r123, %r156 : i16 [pointer]
+    %r162 = add %r124, %r155 : i16 [pointer]
+    %r163 = const 1 : i16 [pointer]
+    %r164 = add %r160, %r163 : i16 [pointer]
+    jmp @loop_head1(%r155, %r156, %r161, %r162, %r164)
+  block @loop_exit3(%r165: i16 [pointer], %r166: i16 [pointer], %r167: i16 [pointer], %r168: i16 [pointer], %r169: i16 [pointer]):
+    ret void
+
+fun @axis_a(%r170: u8 [acc]) -> i16 [pointer]
+  block @entry:
+    %r171 = const 0 : u8 [general]
+    %r172 = cmp.eq %r170, %r171 : bool [flag]
+    br_if %r172, @if_then1(), @if_join2()
+  block @if_then1:
+    %r173 = const 70 : i16 [pointer]
+    ret %r173
+  block @if_join2:
+    %r174 = const 1 : u8 [general]
+    %r175 = cmp.eq %r170, %r174 : bool [flag]
+    br_if %r175, @if_then3(), @if_join4()
+  block @if_then3:
+    %r176 = const 68 : i16 [pointer]
+    ret %r176
+  block @if_join4:
+    %r177 = const 2 : u8 [general]
+    %r178 = cmp.eq %r170, %r177 : bool [flag]
+    br_if %r178, @if_then5(), @if_join6()
+  block @if_then5:
+    %r179 = const 64 : i16 [pointer]
+    ret %r179
+  block @if_join6:
+    %r180 = const 3 : u8 [general]
+    %r181 = cmp.eq %r170, %r180 : bool [flag]
+    br_if %r181, @if_then7(), @if_join8()
+  block @if_then7:
+    %r182 = const 57 : i16 [pointer]
+    ret %r182
+  block @if_join8:
+    %r183 = const 4 : u8 [general]
+    %r184 = cmp.eq %r170, %r183 : bool [flag]
+    br_if %r184, @if_then9(), @if_join10()
+  block @if_then9:
+    %r185 = const 47 : i16 [pointer]
+    ret %r185
+  block @if_join10:
+    %r186 = const 5 : u8 [general]
+    %r187 = cmp.eq %r170, %r186 : bool [flag]
+    br_if %r187, @if_then11(), @if_join12()
+  block @if_then11:
+    %r188 = const 36 : i16 [pointer]
+    ret %r188
+  block @if_join12:
+    %r189 = const 6 : u8 [general]
+    %r190 = cmp.eq %r170, %r189 : bool [flag]
+    br_if %r190, @if_then13(), @if_join14()
+  block @if_then13:
+    %r191 = const 24 : i16 [pointer]
+    ret %r191
+  block @if_join14:
+    %r192 = const 7 : u8 [general]
+    %r193 = cmp.eq %r170, %r192 : bool [flag]
+    br_if %r193, @if_then15(), @if_join16()
+  block @if_then15:
+    %r194 = const 12 : i16 [pointer]
+    ret %r194
+  block @if_join16:
+    %r195 = const 8 : u8 [general]
+    %r196 = cmp.eq %r170, %r195 : bool [flag]
+    br_if %r196, @if_then17(), @if_join18()
+  block @if_then17:
+    %r197 = const 0 : i16 [pointer]
+    ret %r197
+  block @if_join18:
+    %r198 = const 9 : u8 [general]
+    %r199 = cmp.eq %r170, %r198 : bool [flag]
+    br_if %r199, @if_then19(), @if_join20()
+  block @if_then19:
+    %r200 = const -11 : i16 [pointer]
+    ret %r200
+  block @if_join20:
+    %r201 = const 10 : u8 [general]
+    %r202 = cmp.eq %r170, %r201 : bool [flag]
+    br_if %r202, @if_then21(), @if_join22()
+  block @if_then21:
+    %r203 = const -20 : i16 [pointer]
+    ret %r203
+  block @if_join22:
+    %r204 = const 11 : u8 [general]
+    %r205 = cmp.eq %r170, %r204 : bool [flag]
+    br_if %r205, @if_then23(), @if_join24()
+  block @if_then23:
+    %r206 = const -29 : i16 [pointer]
+    ret %r206
+  block @if_join24:
+    %r207 = const 12 : u8 [general]
+    %r208 = cmp.eq %r170, %r207 : bool [flag]
+    br_if %r208, @if_then25(), @if_join26()
+  block @if_then25:
+    %r209 = const -35 : i16 [pointer]
+    ret %r209
+  block @if_join26:
+    %r210 = const 13 : u8 [general]
+    %r211 = cmp.eq %r170, %r210 : bool [flag]
+    br_if %r211, @if_then27(), @if_join28()
+  block @if_then27:
+    %r212 = const -40 : i16 [pointer]
+    ret %r212
+  block @if_join28:
+    %r213 = const 14 : u8 [general]
+    %r214 = cmp.eq %r170, %r213 : bool [flag]
+    br_if %r214, @if_then29(), @if_join30()
+  block @if_then29:
+    %r215 = const -43 : i16 [pointer]
+    ret %r215
+  block @if_join30:
+    %r216 = const 15 : u8 [general]
+    %r217 = cmp.eq %r170, %r216 : bool [flag]
+    br_if %r217, @if_then31(), @if_join32()
+  block @if_then31:
+    %r218 = const -45 : i16 [pointer]
+    ret %r218
+  block @if_join32:
+    %r219 = const 16 : u8 [general]
+    %r220 = cmp.eq %r170, %r219 : bool [flag]
+    br_if %r220, @if_then33(), @if_join34()
+  block @if_then33:
+    %r221 = const -46 : i16 [pointer]
+    ret %r221
+  block @if_join34:
+    %r222 = const 17 : u8 [general]
+    %r223 = cmp.eq %r170, %r222 : bool [flag]
+    br_if %r223, @if_then35(), @if_join36()
+  block @if_then35:
+    %r224 = const -45 : i16 [pointer]
+    ret %r224
+  block @if_join36:
+    %r225 = const 18 : u8 [general]
+    %r226 = cmp.eq %r170, %r225 : bool [flag]
+    br_if %r226, @if_then37(), @if_join38()
+  block @if_then37:
+    %r227 = const -43 : i16 [pointer]
+    ret %r227
+  block @if_join38:
+    %r228 = const 19 : u8 [general]
+    %r229 = cmp.eq %r170, %r228 : bool [flag]
+    br_if %r229, @if_then39(), @if_join40()
+  block @if_then39:
+    %r230 = const -40 : i16 [pointer]
+    ret %r230
+  block @if_join40:
+    %r231 = const 20 : u8 [general]
+    %r232 = cmp.eq %r170, %r231 : bool [flag]
+    br_if %r232, @if_then41(), @if_join42()
+  block @if_then41:
+    %r233 = const -35 : i16 [pointer]
+    ret %r233
+  block @if_join42:
+    %r234 = const 21 : u8 [general]
+    %r235 = cmp.eq %r170, %r234 : bool [flag]
+    br_if %r235, @if_then43(), @if_join44()
+  block @if_then43:
+    %r236 = const -29 : i16 [pointer]
+    ret %r236
+  block @if_join44:
+    %r237 = const 22 : u8 [general]
+    %r238 = cmp.eq %r170, %r237 : bool [flag]
+    br_if %r238, @if_then45(), @if_join46()
+  block @if_then45:
+    %r239 = const -20 : i16 [pointer]
+    ret %r239
+  block @if_join46:
+    %r240 = const 23 : u8 [general]
+    %r241 = cmp.eq %r170, %r240 : bool [flag]
+    br_if %r241, @if_then47(), @if_join48()
+  block @if_then47:
+    %r242 = const -11 : i16 [pointer]
+    ret %r242
+  block @if_join48:
+    %r243 = const 24 : u8 [general]
+    %r244 = cmp.eq %r170, %r243 : bool [flag]
+    br_if %r244, @if_then49(), @if_join50()
+  block @if_then49:
+    %r245 = const 0 : i16 [pointer]
+    ret %r245
+  block @if_join50:
+    %r246 = const 25 : u8 [general]
+    %r247 = cmp.eq %r170, %r246 : bool [flag]
+    br_if %r247, @if_then51(), @if_join52()
+  block @if_then51:
+    %r248 = const 12 : i16 [pointer]
+    ret %r248
+  block @if_join52:
+    %r249 = const 26 : u8 [general]
+    %r250 = cmp.eq %r170, %r249 : bool [flag]
+    br_if %r250, @if_then53(), @if_join54()
+  block @if_then53:
+    %r251 = const 24 : i16 [pointer]
+    ret %r251
+  block @if_join54:
+    %r252 = const 27 : u8 [general]
+    %r253 = cmp.eq %r170, %r252 : bool [flag]
+    br_if %r253, @if_then55(), @if_join56()
+  block @if_then55:
+    %r254 = const 36 : i16 [pointer]
+    ret %r254
+  block @if_join56:
+    %r255 = const 28 : u8 [general]
+    %r256 = cmp.eq %r170, %r255 : bool [flag]
+    br_if %r256, @if_then57(), @if_join58()
+  block @if_then57:
+    %r257 = const 47 : i16 [pointer]
+    ret %r257
+  block @if_join58:
+    %r258 = const 29 : u8 [general]
+    %r259 = cmp.eq %r170, %r258 : bool [flag]
+    br_if %r259, @if_then59(), @if_join60()
+  block @if_then59:
+    %r260 = const 57 : i16 [pointer]
+    ret %r260
+  block @if_join60:
+    %r261 = const 30 : u8 [general]
+    %r262 = cmp.eq %r170, %r261 : bool [flag]
+    br_if %r262, @if_then61(), @if_join62()
+  block @if_then61:
+    %r263 = const 64 : i16 [pointer]
+    ret %r263
+  block @if_join62:
+    %r264 = const 68 : i16 [pointer]
+    ret %r264
+
+fun @axis_b(%r265: u8 [acc]) -> i16 [pointer]
+  block @entry:
+    %r266 = const 0 : u8 [general]
+    %r267 = cmp.eq %r265, %r266 : bool [flag]
+    br_if %r267, @if_then1(), @if_join2()
+  block @if_then1:
+    %r268 = const 0 : i16 [pointer]
+    ret %r268
+  block @if_join2:
+    %r269 = const 1 : u8 [general]
+    %r270 = cmp.eq %r265, %r269 : bool [flag]
+    br_if %r270, @if_then3(), @if_join4()
+  block @if_then3:
+    %r271 = const 14 : i16 [pointer]
+    ret %r271
+  block @if_join4:
+    %r272 = const 2 : u8 [general]
+    %r273 = cmp.eq %r265, %r272 : bool [flag]
+    br_if %r273, @if_then5(), @if_join6()
+  block @if_then5:
+    %r274 = const 26 : i16 [pointer]
+    ret %r274
+  block @if_join6:
+    %r275 = const 3 : u8 [general]
+    %r276 = cmp.eq %r265, %r275 : bool [flag]
+    br_if %r276, @if_then7(), @if_join8()
+  block @if_then7:
+    %r277 = const 38 : i16 [pointer]
+    ret %r277
+  block @if_join8:
+    %r278 = const 4 : u8 [general]
+    %r279 = cmp.eq %r265, %r278 : bool [flag]
+    br_if %r279, @if_then9(), @if_join10()
+  block @if_then9:
+    %r280 = const 47 : i16 [pointer]
+    ret %r280
+  block @if_join10:
+    %r281 = const 5 : u8 [general]
+    %r282 = cmp.eq %r265, %r281 : bool [flag]
+    br_if %r282, @if_then11(), @if_join12()
+  block @if_then11:
+    %r283 = const 54 : i16 [pointer]
+    ret %r283
+  block @if_join12:
+    %r284 = const 6 : u8 [general]
+    %r285 = cmp.eq %r265, %r284 : bool [flag]
+    br_if %r285, @if_then13(), @if_join14()
+  block @if_then13:
+    %r286 = const 58 : i16 [pointer]
+    ret %r286
+  block @if_join14:
+    %r287 = const 7 : u8 [general]
+    %r288 = cmp.eq %r265, %r287 : bool [flag]
+    br_if %r288, @if_then15(), @if_join16()
+  block @if_then15:
+    %r289 = const 59 : i16 [pointer]
+    ret %r289
+  block @if_join16:
+    %r290 = const 8 : u8 [general]
+    %r291 = cmp.eq %r265, %r290 : bool [flag]
+    br_if %r291, @if_then17(), @if_join18()
+  block @if_then17:
+    %r292 = const 58 : i16 [pointer]
+    ret %r292
+  block @if_join18:
+    %r293 = const 9 : u8 [general]
+    %r294 = cmp.eq %r265, %r293 : bool [flag]
+    br_if %r294, @if_then19(), @if_join20()
+  block @if_then19:
+    %r295 = const 55 : i16 [pointer]
+    ret %r295
+  block @if_join20:
+    %r296 = const 10 : u8 [general]
+    %r297 = cmp.eq %r265, %r296 : bool [flag]
+    br_if %r297, @if_then21(), @if_join22()
+  block @if_then21:
+    %r298 = const 49 : i16 [pointer]
+    ret %r298
+  block @if_join22:
+    %r299 = const 11 : u8 [general]
+    %r300 = cmp.eq %r265, %r299 : bool [flag]
+    br_if %r300, @if_then23(), @if_join24()
+  block @if_then23:
+    %r301 = const 43 : i16 [pointer]
+    ret %r301
+  block @if_join24:
+    %r302 = const 12 : u8 [general]
+    %r303 = cmp.eq %r265, %r302 : bool [flag]
+    br_if %r303, @if_then25(), @if_join26()
+  block @if_then25:
+    %r304 = const 35 : i16 [pointer]
+    ret %r304
+  block @if_join26:
+    %r305 = const 13 : u8 [general]
+    %r306 = cmp.eq %r265, %r305 : bool [flag]
+    br_if %r306, @if_then27(), @if_join28()
+  block @if_then27:
+    %r307 = const 27 : i16 [pointer]
+    ret %r307
+  block @if_join28:
+    %r308 = const 14 : u8 [general]
+    %r309 = cmp.eq %r265, %r308 : bool [flag]
+    br_if %r309, @if_then29(), @if_join30()
+  block @if_then29:
+    %r310 = const 18 : i16 [pointer]
+    ret %r310
+  block @if_join30:
+    %r311 = const 15 : u8 [general]
+    %r312 = cmp.eq %r265, %r311 : bool [flag]
+    br_if %r312, @if_then31(), @if_join32()
+  block @if_then31:
+    %r313 = const 9 : i16 [pointer]
+    ret %r313
+  block @if_join32:
+    %r314 = const 16 : u8 [general]
+    %r315 = cmp.eq %r265, %r314 : bool [flag]
+    br_if %r315, @if_then33(), @if_join34()
+  block @if_then33:
+    %r316 = const 0 : i16 [pointer]
+    ret %r316
+  block @if_join34:
+    %r317 = const 17 : u8 [general]
+    %r318 = cmp.eq %r265, %r317 : bool [flag]
+    br_if %r318, @if_then35(), @if_join36()
+  block @if_then35:
+    %r319 = const -9 : i16 [pointer]
+    ret %r319
+  block @if_join36:
+    %r320 = const 18 : u8 [general]
+    %r321 = cmp.eq %r265, %r320 : bool [flag]
+    br_if %r321, @if_then37(), @if_join38()
+  block @if_then37:
+    %r322 = const -18 : i16 [pointer]
+    ret %r322
+  block @if_join38:
+    %r323 = const 19 : u8 [general]
+    %r324 = cmp.eq %r265, %r323 : bool [flag]
+    br_if %r324, @if_then39(), @if_join40()
+  block @if_then39:
+    %r325 = const -27 : i16 [pointer]
+    ret %r325
+  block @if_join40:
+    %r326 = const 20 : u8 [general]
+    %r327 = cmp.eq %r265, %r326 : bool [flag]
+    br_if %r327, @if_then41(), @if_join42()
+  block @if_then41:
+    %r328 = const -35 : i16 [pointer]
+    ret %r328
+  block @if_join42:
+    %r329 = const 21 : u8 [general]
+    %r330 = cmp.eq %r265, %r329 : bool [flag]
+    br_if %r330, @if_then43(), @if_join44()
+  block @if_then43:
+    %r331 = const -43 : i16 [pointer]
+    ret %r331
+  block @if_join44:
+    %r332 = const 22 : u8 [general]
+    %r333 = cmp.eq %r265, %r332 : bool [flag]
+    br_if %r333, @if_then45(), @if_join46()
+  block @if_then45:
+    %r334 = const -49 : i16 [pointer]
+    ret %r334
+  block @if_join46:
+    %r335 = const 23 : u8 [general]
+    %r336 = cmp.eq %r265, %r335 : bool [flag]
+    br_if %r336, @if_then47(), @if_join48()
+  block @if_then47:
+    %r337 = const -55 : i16 [pointer]
+    ret %r337
+  block @if_join48:
+    %r338 = const 24 : u8 [general]
+    %r339 = cmp.eq %r265, %r338 : bool [flag]
+    br_if %r339, @if_then49(), @if_join50()
+  block @if_then49:
+    %r340 = const -58 : i16 [pointer]
+    ret %r340
+  block @if_join50:
+    %r341 = const 25 : u8 [general]
+    %r342 = cmp.eq %r265, %r341 : bool [flag]
+    br_if %r342, @if_then51(), @if_join52()
+  block @if_then51:
+    %r343 = const -59 : i16 [pointer]
+    ret %r343
+  block @if_join52:
+    %r344 = const 26 : u8 [general]
+    %r345 = cmp.eq %r265, %r344 : bool [flag]
+    br_if %r345, @if_then53(), @if_join54()
+  block @if_then53:
+    %r346 = const -58 : i16 [pointer]
+    ret %r346
+  block @if_join54:
+    %r347 = const 27 : u8 [general]
+    %r348 = cmp.eq %r265, %r347 : bool [flag]
+    br_if %r348, @if_then55(), @if_join56()
+  block @if_then55:
+    %r349 = const -54 : i16 [pointer]
+    ret %r349
+  block @if_join56:
+    %r350 = const 28 : u8 [general]
+    %r351 = cmp.eq %r265, %r350 : bool [flag]
+    br_if %r351, @if_then57(), @if_join58()
+  block @if_then57:
+    %r352 = const -47 : i16 [pointer]
+    ret %r352
+  block @if_join58:
+    %r353 = const 29 : u8 [general]
+    %r354 = cmp.eq %r265, %r353 : bool [flag]
+    br_if %r354, @if_then59(), @if_join60()
+  block @if_then59:
+    %r355 = const -38 : i16 [pointer]
+    ret %r355
+  block @if_join60:
+    %r356 = const 30 : u8 [general]
+    %r357 = cmp.eq %r265, %r356 : bool [flag]
+    br_if %r357, @if_then61(), @if_join62()
+  block @if_then61:
+    %r358 = const -26 : i16 [pointer]
+    ret %r358
+  block @if_join62:
+    %r359 = const -14 : i16 [pointer]
+    ret %r359
+
+fun @save_frame(%r360: u8 [acc])
+  block @entry:
+    %r361 = const 0 : u8 [general]
+    %r362 = cmp.eq %r360, %r361 : bool [flag]
+    br_if %r362, @if_then1(), @if_join2()
+  block @if_then1:
+    %r363 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r364 = move %r363 : ptr [pointer]
+    %r365 = call @canvas_save(%r364) : u16 [pointer]
+    ret void
+  block @if_join2:
+    %r366 = const 1 : u8 [general]
+    %r367 = cmp.eq %r360, %r366 : bool [flag]
+    br_if %r367, @if_then3(), @if_join4()
+  block @if_then3:
+    %r368 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r369 = move %r368 : ptr [pointer]
+    %r370 = call @canvas_save(%r369) : u16 [pointer]
+    ret void
+  block @if_join4:
+    %r371 = const 2 : u8 [general]
+    %r372 = cmp.eq %r360, %r371 : bool [flag]
+    br_if %r372, @if_then5(), @if_join6()
+  block @if_then5:
+    %r373 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r374 = move %r373 : ptr [pointer]
+    %r375 = call @canvas_save(%r374) : u16 [pointer]
+    ret void
+  block @if_join6:
+    %r376 = const 3 : u8 [general]
+    %r377 = cmp.eq %r360, %r376 : bool [flag]
+    br_if %r377, @if_then7(), @if_join8()
+  block @if_then7:
+    %r378 = addr_of @@mir2.str.3 : ptr [pointer]
+    %r379 = move %r378 : ptr [pointer]
+    %r380 = call @canvas_save(%r379) : u16 [pointer]
+    ret void
+  block @if_join8:
+    %r381 = const 4 : u8 [general]
+    %r382 = cmp.eq %r360, %r381 : bool [flag]
+    br_if %r382, @if_then9(), @if_join10()
+  block @if_then9:
+    %r383 = addr_of @@mir2.str.4 : ptr [pointer]
+    %r384 = move %r383 : ptr [pointer]
+    %r385 = call @canvas_save(%r384) : u16 [pointer]
+    ret void
+  block @if_join10:
+    %r386 = const 5 : u8 [general]
+    %r387 = cmp.eq %r360, %r386 : bool [flag]
+    br_if %r387, @if_then11(), @if_join12()
+  block @if_then11:
+    %r388 = addr_of @@mir2.str.5 : ptr [pointer]
+    %r389 = move %r388 : ptr [pointer]
+    %r390 = call @canvas_save(%r389) : u16 [pointer]
+    ret void
+  block @if_join12:
+    %r391 = const 6 : u8 [general]
+    %r392 = cmp.eq %r360, %r391 : bool [flag]
+    br_if %r392, @if_then13(), @if_join14()
+  block @if_then13:
+    %r393 = addr_of @@mir2.str.6 : ptr [pointer]
+    %r394 = move %r393 : ptr [pointer]
+    %r395 = call @canvas_save(%r394) : u16 [pointer]
+    ret void
+  block @if_join14:
+    %r396 = const 7 : u8 [general]
+    %r397 = cmp.eq %r360, %r396 : bool [flag]
+    br_if %r397, @if_then15(), @if_join16()
+  block @if_then15:
+    %r398 = addr_of @@mir2.str.7 : ptr [pointer]
+    %r399 = move %r398 : ptr [pointer]
+    %r400 = call @canvas_save(%r399) : u16 [pointer]
+    ret void
+  block @if_join16:
+    %r401 = const 8 : u8 [general]
+    %r402 = cmp.eq %r360, %r401 : bool [flag]
+    br_if %r402, @if_then17(), @if_join18()
+  block @if_then17:
+    %r403 = addr_of @@mir2.str.8 : ptr [pointer]
+    %r404 = move %r403 : ptr [pointer]
+    %r405 = call @canvas_save(%r404) : u16 [pointer]
+    ret void
+  block @if_join18:
+    %r406 = const 9 : u8 [general]
+    %r407 = cmp.eq %r360, %r406 : bool [flag]
+    br_if %r407, @if_then19(), @if_join20()
+  block @if_then19:
+    %r408 = addr_of @@mir2.str.9 : ptr [pointer]
+    %r409 = move %r408 : ptr [pointer]
+    %r410 = call @canvas_save(%r409) : u16 [pointer]
+    ret void
+  block @if_join20:
+    %r411 = const 10 : u8 [general]
+    %r412 = cmp.eq %r360, %r411 : bool [flag]
+    br_if %r412, @if_then21(), @if_join22()
+  block @if_then21:
+    %r413 = addr_of @@mir2.str.10 : ptr [pointer]
+    %r414 = move %r413 : ptr [pointer]
+    %r415 = call @canvas_save(%r414) : u16 [pointer]
+    ret void
+  block @if_join22:
+    %r416 = const 11 : u8 [general]
+    %r417 = cmp.eq %r360, %r416 : bool [flag]
+    br_if %r417, @if_then23(), @if_join24()
+  block @if_then23:
+    %r418 = addr_of @@mir2.str.11 : ptr [pointer]
+    %r419 = move %r418 : ptr [pointer]
+    %r420 = call @canvas_save(%r419) : u16 [pointer]
+    ret void
+  block @if_join24:
+    %r421 = const 12 : u8 [general]
+    %r422 = cmp.eq %r360, %r421 : bool [flag]
+    br_if %r422, @if_then25(), @if_join26()
+  block @if_then25:
+    %r423 = addr_of @@mir2.str.12 : ptr [pointer]
+    %r424 = move %r423 : ptr [pointer]
+    %r425 = call @canvas_save(%r424) : u16 [pointer]
+    ret void
+  block @if_join26:
+    %r426 = const 13 : u8 [general]
+    %r427 = cmp.eq %r360, %r426 : bool [flag]
+    br_if %r427, @if_then27(), @if_join28()
+  block @if_then27:
+    %r428 = addr_of @@mir2.str.13 : ptr [pointer]
+    %r429 = move %r428 : ptr [pointer]
+    %r430 = call @canvas_save(%r429) : u16 [pointer]
+    ret void
+  block @if_join28:
+    %r431 = const 14 : u8 [general]
+    %r432 = cmp.eq %r360, %r431 : bool [flag]
+    br_if %r432, @if_then29(), @if_join30()
+  block @if_then29:
+    %r433 = addr_of @@mir2.str.14 : ptr [pointer]
+    %r434 = move %r433 : ptr [pointer]
+    %r435 = call @canvas_save(%r434) : u16 [pointer]
+    ret void
+  block @if_join30:
+    %r436 = const 15 : u8 [general]
+    %r437 = cmp.eq %r360, %r436 : bool [flag]
+    br_if %r437, @if_then31(), @if_join32()
+  block @if_then31:
+    %r438 = addr_of @@mir2.str.15 : ptr [pointer]
+    %r439 = move %r438 : ptr [pointer]
+    %r440 = call @canvas_save(%r439) : u16 [pointer]
+    ret void
+  block @if_join32:
+    %r441 = const 16 : u8 [general]
+    %r442 = cmp.eq %r360, %r441 : bool [flag]
+    br_if %r442, @if_then33(), @if_join34()
+  block @if_then33:
+    %r443 = addr_of @@mir2.str.16 : ptr [pointer]
+    %r444 = move %r443 : ptr [pointer]
+    %r445 = call @canvas_save(%r444) : u16 [pointer]
+    ret void
+  block @if_join34:
+    %r446 = const 17 : u8 [general]
+    %r447 = cmp.eq %r360, %r446 : bool [flag]
+    br_if %r447, @if_then35(), @if_join36()
+  block @if_then35:
+    %r448 = addr_of @@mir2.str.17 : ptr [pointer]
+    %r449 = move %r448 : ptr [pointer]
+    %r450 = call @canvas_save(%r449) : u16 [pointer]
+    ret void
+  block @if_join36:
+    %r451 = const 18 : u8 [general]
+    %r452 = cmp.eq %r360, %r451 : bool [flag]
+    br_if %r452, @if_then37(), @if_join38()
+  block @if_then37:
+    %r453 = addr_of @@mir2.str.18 : ptr [pointer]
+    %r454 = move %r453 : ptr [pointer]
+    %r455 = call @canvas_save(%r454) : u16 [pointer]
+    ret void
+  block @if_join38:
+    %r456 = const 19 : u8 [general]
+    %r457 = cmp.eq %r360, %r456 : bool [flag]
+    br_if %r457, @if_then39(), @if_join40()
+  block @if_then39:
+    %r458 = addr_of @@mir2.str.19 : ptr [pointer]
+    %r459 = move %r458 : ptr [pointer]
+    %r460 = call @canvas_save(%r459) : u16 [pointer]
+    ret void
+  block @if_join40:
+    %r461 = const 20 : u8 [general]
+    %r462 = cmp.eq %r360, %r461 : bool [flag]
+    br_if %r462, @if_then41(), @if_join42()
+  block @if_then41:
+    %r463 = addr_of @@mir2.str.20 : ptr [pointer]
+    %r464 = move %r463 : ptr [pointer]
+    %r465 = call @canvas_save(%r464) : u16 [pointer]
+    ret void
+  block @if_join42:
+    %r466 = const 21 : u8 [general]
+    %r467 = cmp.eq %r360, %r466 : bool [flag]
+    br_if %r467, @if_then43(), @if_join44()
+  block @if_then43:
+    %r468 = addr_of @@mir2.str.21 : ptr [pointer]
+    %r469 = move %r468 : ptr [pointer]
+    %r470 = call @canvas_save(%r469) : u16 [pointer]
+    ret void
+  block @if_join44:
+    %r471 = const 22 : u8 [general]
+    %r472 = cmp.eq %r360, %r471 : bool [flag]
+    br_if %r472, @if_then45(), @if_join46()
+  block @if_then45:
+    %r473 = addr_of @@mir2.str.22 : ptr [pointer]
+    %r474 = move %r473 : ptr [pointer]
+    %r475 = call @canvas_save(%r474) : u16 [pointer]
+    ret void
+  block @if_join46:
+    %r476 = const 23 : u8 [general]
+    %r477 = cmp.eq %r360, %r476 : bool [flag]
+    br_if %r477, @if_then47(), @if_join48()
+  block @if_then47:
+    %r478 = addr_of @@mir2.str.23 : ptr [pointer]
+    %r479 = move %r478 : ptr [pointer]
+    %r480 = call @canvas_save(%r479) : u16 [pointer]
+    ret void
+  block @if_join48:
+    %r481 = const 24 : u8 [general]
+    %r482 = cmp.eq %r360, %r481 : bool [flag]
+    br_if %r482, @if_then49(), @if_join50()
+  block @if_then49:
+    %r483 = addr_of @@mir2.str.24 : ptr [pointer]
+    %r484 = move %r483 : ptr [pointer]
+    %r485 = call @canvas_save(%r484) : u16 [pointer]
+    ret void
+  block @if_join50:
+    %r486 = const 25 : u8 [general]
+    %r487 = cmp.eq %r360, %r486 : bool [flag]
+    br_if %r487, @if_then51(), @if_join52()
+  block @if_then51:
+    %r488 = addr_of @@mir2.str.25 : ptr [pointer]
+    %r489 = move %r488 : ptr [pointer]
+    %r490 = call @canvas_save(%r489) : u16 [pointer]
+    ret void
+  block @if_join52:
+    %r491 = const 26 : u8 [general]
+    %r492 = cmp.eq %r360, %r491 : bool [flag]
+    br_if %r492, @if_then53(), @if_join54()
+  block @if_then53:
+    %r493 = addr_of @@mir2.str.26 : ptr [pointer]
+    %r494 = move %r493 : ptr [pointer]
+    %r495 = call @canvas_save(%r494) : u16 [pointer]
+    ret void
+  block @if_join54:
+    %r496 = const 27 : u8 [general]
+    %r497 = cmp.eq %r360, %r496 : bool [flag]
+    br_if %r497, @if_then55(), @if_join56()
+  block @if_then55:
+    %r498 = addr_of @@mir2.str.27 : ptr [pointer]
+    %r499 = move %r498 : ptr [pointer]
+    %r500 = call @canvas_save(%r499) : u16 [pointer]
+    ret void
+  block @if_join56:
+    %r501 = const 28 : u8 [general]
+    %r502 = cmp.eq %r360, %r501 : bool [flag]
+    br_if %r502, @if_then57(), @if_join58()
+  block @if_then57:
+    %r503 = addr_of @@mir2.str.28 : ptr [pointer]
+    %r504 = move %r503 : ptr [pointer]
+    %r505 = call @canvas_save(%r504) : u16 [pointer]
+    ret void
+  block @if_join58:
+    %r506 = const 29 : u8 [general]
+    %r507 = cmp.eq %r360, %r506 : bool [flag]
+    br_if %r507, @if_then59(), @if_join60()
+  block @if_then59:
+    %r508 = addr_of @@mir2.str.29 : ptr [pointer]
+    %r509 = move %r508 : ptr [pointer]
+    %r510 = call @canvas_save(%r509) : u16 [pointer]
+    ret void
+  block @if_join60:
+    %r511 = const 30 : u8 [general]
+    %r512 = cmp.eq %r360, %r511 : bool [flag]
+    br_if %r512, @if_then61(), @if_join62()
+  block @if_then61:
+    %r513 = addr_of @@mir2.str.30 : ptr [pointer]
+    %r514 = move %r513 : ptr [pointer]
+    %r515 = call @canvas_save(%r514) : u16 [pointer]
+    ret void
+  block @if_join62:
+    %r516 = addr_of @@mir2.str.31 : ptr [pointer]
+    %r517 = move %r516 : ptr [pointer]
+    %r518 = call @canvas_save(%r517) : u16 [pointer]
+    ret void
+
+fun @render_frame(%r519: u8 [acc])
+  block @entry:
+    %r520 = const 32 : u8 [general]
+    %r521 = mod %r519, %r520 : u8 [general]
+    %r522 = move %r521 : u8 [acc]
+    %r523 = call @axis_a(%r522) : i16 [pointer]
+    %r524 = move %r521 : u8 [acc]
+    %r525 = call @axis_b(%r524) : i16 [pointer]
+    %r526 = move %r525 : i16 [index]
+    call @draw_frame(%r523, %r526)
+    ret void
+
+fun @main()
+  block @entry:
+    %r527 = const 0 : u8 [general]
+    jmp @loop_head1(%r527)
+  block @loop_head1(%r528: u8 [general]):
+    %r529 = const 32 : u8 [general]
+    %r530 = cmp.ult %r528, %r529 : bool [flag]
+    br_if %r530, @loop_body2(), @loop_exit3(%r528)
+  block @loop_body2:
+    %r531 = move %r528 : u8 [acc]
+    call @render_frame(%r531)
+    %r532 = move %r528 : u8 [acc]
+    call @save_frame(%r532)
+    %r533 = const 1 : u8 [general]
+    %r534 = add %r528, %r533 : u8 [general]
+    jmp @loop_head1(%r534)
+  block @loop_exit3(%r535: u8 [general]):
+    ret void
+

@@ -1,0 +1,116 @@
+{
+  "files": {
+    "README.md": {
+      "sha256": "f1f5c8c957aa9b612d68ec652c1eee1682231f1a346783806f190eb88f98d619",
+      "bytes": 1385
+    },
+    "root-nanz-65a018eb-full.txt": {
+      "sha256": "12288e4ce27f78d0eaa4f147bc458916de20245c8ffbed999e4f0869a1fb847a",
+      "bytes": 44
+    },
+    "root-negative-literals/grace-size/final.mir": {
+      "sha256": "bc827ad84e4cffcbe0cd1cd63d1165f4be97b0609115d4b585e7340ffedafac8",
+      "bytes": 1483
+    },
+    "root-negative-literals/grace-size/raw.mir": {
+      "sha256": "750edb0959faf3f6f0d2e783076b8330dcc9deada4386bfec067fee43650ef69",
+      "bytes": 1727
+    },
+    "root-negative-literals/grace-size/target.a80": {
+      "sha256": "d7c82d5fcfc34ba038092afe13f035ea42cac72cca9b018d1523f929a8338a39",
+      "bytes": 2716
+    },
+    "root-negative-literals/grace-speed/final.mir": {
+      "sha256": "bc827ad84e4cffcbe0cd1cd63d1165f4be97b0609115d4b585e7340ffedafac8",
+      "bytes": 1483
+    },
+    "root-negative-literals/grace-speed/raw.mir": {
+      "sha256": "750edb0959faf3f6f0d2e783076b8330dcc9deada4386bfec067fee43650ef69",
+      "bytes": 1727
+    },
+    "root-negative-literals/grace-speed/target.a80": {
+      "sha256": "d7c82d5fcfc34ba038092afe13f035ea42cac72cca9b018d1523f929a8338a39",
+      "bytes": 2716
+    },
+    "root-negative-literals/ordinary/final.mir": {
+      "sha256": "bc827ad84e4cffcbe0cd1cd63d1165f4be97b0609115d4b585e7340ffedafac8",
+      "bytes": 1483
+    },
+    "root-negative-literals/ordinary/raw.mir": {
+      "sha256": "750edb0959faf3f6f0d2e783076b8330dcc9deada4386bfec067fee43650ef69",
+      "bytes": 1727
+    },
+    "root-negative-literals/ordinary/target.a80": {
+      "sha256": "b6eb950acbe6b06dfc3362aa71c84cb6af11bd987e81418c0d09d70a44063280",
+      "bytes": 2812
+    },
+    "root-rotozoomer-negative.txt": {
+      "sha256": "99e2d86c401deb5b7cb693981fbbd82fa771255cce82d59db30406384f0b540c",
+      "bytes": 47
+    },
+    "root-rotozoomer-pure/grace-size/final.mir": {
+      "sha256": "8a3cf840de0531d820ab794276dcd08541f8a23f04a8958f93656c3d13657bd1",
+      "bytes": 32097
+    },
+    "root-rotozoomer-pure/grace-size/raw.mir": {
+      "sha256": "652948f6469bdc44ce223f496dac807f5b90e94a433dbcbfe7604bab046d2c12",
+      "bytes": 33722
+    },
+    "root-rotozoomer-pure/grace-size/summary.json": {
+      "sha256": "d4fb74ad356f6568f720da7bac07ccf3627d58071fade7354a9e76b3f9b8ce89",
+      "bytes": 261
+    },
+    "root-rotozoomer-pure/grace-size/target.a80": {
+      "sha256": "78060b3bc5945332d4d0618808fe1e9484f55d5516eacc544657b5c13e03290e",
+      "bytes": 27316
+    },
+    "root-rotozoomer-pure/grace-size/target.bin": {
+      "sha256": "6333a90697a15ebccbddf08d23f4649839eb54f23a5e911465c947fa9ea6be1b",
+      "bytes": 2600
+    },
+    "root-rotozoomer-pure/grace-speed/final.mir": {
+      "sha256": "8a3cf840de0531d820ab794276dcd08541f8a23f04a8958f93656c3d13657bd1",
+      "bytes": 32097
+    },
+    "root-rotozoomer-pure/grace-speed/raw.mir": {
+      "sha256": "652948f6469bdc44ce223f496dac807f5b90e94a433dbcbfe7604bab046d2c12",
+      "bytes": 33722
+    },
+    "root-rotozoomer-pure/grace-speed/summary.json": {
+      "sha256": "d4fb74ad356f6568f720da7bac07ccf3627d58071fade7354a9e76b3f9b8ce89",
+      "bytes": 261
+    },
+    "root-rotozoomer-pure/grace-speed/target.a80": {
+      "sha256": "78060b3bc5945332d4d0618808fe1e9484f55d5516eacc544657b5c13e03290e",
+      "bytes": 27316
+    },
+    "root-rotozoomer-pure/grace-speed/target.bin": {
+      "sha256": "6333a90697a15ebccbddf08d23f4649839eb54f23a5e911465c947fa9ea6be1b",
+      "bytes": 2600
+    },
+    "root-rotozoomer-pure/ordinary/final.mir": {
+      "sha256": "67f6a675178e5e45e5630fad280f44990da3df2f2b79bf2ee2ff430245ca299a",
+      "bytes": 32136
+    },
+    "root-rotozoomer-pure/ordinary/raw.mir": {
+      "sha256": "652948f6469bdc44ce223f496dac807f5b90e94a433dbcbfe7604bab046d2c12",
+      "bytes": 33722
+    },
+    "root-rotozoomer-pure/ordinary/summary.json": {
+      "sha256": "d4fb74ad356f6568f720da7bac07ccf3627d58071fade7354a9e76b3f9b8ce89",
+      "bytes": 261
+    },
+    "root-rotozoomer-pure/ordinary/target.a80": {
+      "sha256": "d4dab887426a621c265818dd759758b5445278062c4b2e90b111431047f2883a",
+      "bytes": 27442
+    },
+    "root-rotozoomer-pure/ordinary/target.bin": {
+      "sha256": "6333a90697a15ebccbddf08d23f4649839eb54f23a5e911465c947fa9ea6be1b",
+      "bytes": 2600
+    },
+    "root-rotozoomer-pure/workload.json": {
+      "sha256": "7b9b6a8abc261614340dbeb1e14cde219c1fd5fed393c4d53de717c049993f00",
+      "bytes": 5667979
+    }
+  }
+}
