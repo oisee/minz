@@ -1,0 +1,50 @@
+{
+  "bytes": 93,
+  "changed_addresses": [
+    61436,
+    61437,
+    61438,
+    61439
+  ],
+  "helper_calls": 1024,
+  "min_sp": 61436,
+  "mode": "grace-speed",
+  "ports": [
+    16675,
+    16931,
+    2595,
+    17701,
+    21029,
+    21029,
+    2597,
+    29475,
+    24867,
+    27939,
+    25891,
+    8227,
+    29731,
+    26659,
+    26915,
+    28195,
+    26403,
+    8483,
+    2595
+  ],
+  "reads": [],
+  "registers": {
+    "A": 0,
+    "F": 84,
+    "BC": 4660,
+    "DE": 32861,
+    "HL": 32861,
+    "IX": 4951,
+    "IY": 9320,
+    "SP": 61440,
+    "PC": 28675
+  },
+  "returned": true,
+  "source": "reports/showcase-src/2026-03-11/ex18_user_console_io.nanz",
+  "stderr": "ERR\n",
+  "stdout": "AB\nsame thing!\n",
+  "t_states": 1686
+}

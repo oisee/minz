@@ -1,0 +1,31 @@
+{
+  "base": "0cb00145",
+  "before_execution": true,
+  "sources": [
+    {
+      "path": "reports/showcase-src/2026-03-11/ex18_user_console_io.nanz",
+      "sha256": "8c5e935ba7284418db1200c822948c90e1c8d8b57b4fe283cbf3e77ea6f8e7f0",
+      "snapshot": "source-0.nanz"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex18_user_console_io.nanz",
+      "sha256": "8c5e935ba7284418db1200c822948c90e1c8d8b57b4fe283cbf3e77ea6f8e7f0",
+      "snapshot": "source-1.nanz"
+    },
+    {
+      "path": "examples/zx/console_demo.nanz",
+      "sha256": "bd326f4f8f32d7f0078e622bb8f75d5367bd7d82d401fbde0f8b680843558c08",
+      "snapshot": "source-2.nanz"
+    },
+    {
+      "path": "stdlib/zx/console.nanz",
+      "sha256": "77cf08af748e448556546d5d860b304b856e364b6f59d0d7abd2e25c4f35504a",
+      "snapshot": "source-3.nanz"
+    }
+  ],
+  "ex18": "wholemainstdoutAB\\nsamething!\\n (actualspace same thing!),stderrERR\\n; helpersall256char;print_str lengths0..255+wrapfffe atfixednonzero payload",
+  "zx": "wholemainmemoryscreen0x4000..0x5aff fromindependent8x8fontmodel, initialfixedfontfixture3d00; exactkeyboard8releasedrows followed keyA FDbit0, capsFE optional; expectedcursorrow11col0 afterlastnewline; allreadonlymoduleliteral/codeguard",
+  "no_VM_ASM_claim": true,
+  "no_source_rewrites": true,
+  "freeze_correction_before_native_execution": "Counted source newlines explicitly: final row11, col0; initial row15 estimate was corrected before any native run."
+}
