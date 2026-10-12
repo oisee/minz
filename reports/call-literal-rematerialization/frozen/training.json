@@ -1,0 +1,4 @@
+[
+  "fn amber(x) { return x + 93 }\nvar answer = amber(12)\n",
+  "let branch = false\nif branch { return \"saffron\" } else { return \"ochre\" }\n"
+]

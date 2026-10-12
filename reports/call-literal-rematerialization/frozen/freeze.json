@@ -1,0 +1,9 @@
+{
+  "checkpoint": "08e3ae7fa89e33c84a1fbb6a3e108ccb4d0d0c2f",
+  "source_sha256": "d893df00710b7f1105b8bfb58342aca1c1f8cce7eb674037a8d6ca41b91b0689",
+  "inputs_sha256": {
+    "training.json": "648b2bfdbe45cffe64ff42144d358c496ce6e35e1a9cd70fcf12e1bcd88c0bbd",
+    "heldout.json": "d6ea8f47dc5482cd9fa5105daad9d2b6998099c3a8abedb7c8402392170d96a1"
+  },
+  "purpose": "Freshtraining/heldout frozen beforeproduction edit; fixedsource/adapters, comparebothstrategies beforeafter wholeconsumer; noheldoutsearch"
+}
