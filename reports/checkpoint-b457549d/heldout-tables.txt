@@ -1,0 +1,44 @@
+=== RUN   TestArithmeticProspectiveHeldout
+    arithmetic_heldout_test.go:142: speed mask0: 21426 T / 136 B
+    arithmetic_heldout_test.go:142: speed mask1: 21426 T / 136 B
+    arithmetic_heldout_test.go:142: speed mask2: 21998 T / 149 B
+    arithmetic_heldout_test.go:142: speed mask3: 21998 T / 149 B
+    arithmetic_heldout_test.go:163: speed selected0 heldout 404193 T / 136 B
+    arithmetic_heldout_test.go:142: size mask0: 21426 T / 136 B
+    arithmetic_heldout_test.go:142: size mask1: 21426 T / 136 B
+    arithmetic_heldout_test.go:142: size mask2: 21998 T / 149 B
+    arithmetic_heldout_test.go:142: size mask3: 21998 T / 149 B
+    arithmetic_heldout_test.go:163: size selected0 heldout 404193 T / 136 B
+--- PASS: TestArithmeticProspectiveHeldout (1.67s)
+=== RUN   TestPascalBubbleSortProspectiveHeldout
+    bubble_sort_heldout_test.go:209: map[baseline_bytes:488 goal:speed heldout_arrays:8 heldout_baseline_t:164671 heldout_selected_t:164275 same_binary_sha256:ad33cb3741e279aa6c53f6daa55eea627e512025f9b32912155f42a871d5fba5 selected:2 selected_bytes:486 training_baseline_t:66891 training_selected_t:66720]
+    bubble_sort_heldout_test.go:209: map[baseline_bytes:488 goal:size heldout_arrays:8 heldout_baseline_t:164671 heldout_selected_t:164275 same_binary_sha256:ad33cb3741e279aa6c53f6daa55eea627e512025f9b32912155f42a871d5fba5 selected:2 selected_bytes:486 training_baseline_t:66891 training_selected_t:66720]
+--- PASS: TestPascalBubbleSortProspectiveHeldout (8.38s)
+=== RUN   TestCombinedContractTableGraceNative
+    combined_contract_table_grace_test.go:98: mode=off grace=false table=false fullBIN=44 helper256=46592T caller256=60928T entries=1
+    combined_contract_table_grace_test.go:98: mode=off grace=false table=true fullBIN=20 helper256=22016T caller256=36352T entries=1
+    combined_contract_table_grace_test.go:98: mode=off grace=true table=false fullBIN=44 helper256=46592T caller256=60928T entries=1
+    combined_contract_table_grace_test.go:98: mode=off grace=true table=true fullBIN=20 helper256=22016T caller256=36352T entries=1
+    combined_contract_table_grace_test.go:98: mode=greedy grace=false table=false fullBIN=44 helper256=46592T caller256=60928T entries=1
+    combined_contract_table_grace_test.go:98: mode=greedy grace=false table=true fullBIN=20 helper256=22016T caller256=36352T entries=1
+    combined_contract_table_grace_test.go:98: mode=greedy grace=true table=false fullBIN=44 helper256=46592T caller256=60928T entries=1
+    combined_contract_table_grace_test.go:98: mode=greedy grace=true table=true fullBIN=20 helper256=22016T caller256=36352T entries=1
+    combined_contract_table_grace_test.go:98: mode=pbqp grace=false table=false fullBIN=44 helper256=46592T caller256=60928T entries=1
+    combined_contract_table_grace_test.go:98: mode=pbqp grace=false table=true fullBIN=20 helper256=22016T caller256=36352T entries=1
+    combined_contract_table_grace_test.go:98: mode=pbqp grace=true table=false fullBIN=44 helper256=46592T caller256=60928T entries=1
+    combined_contract_table_grace_test.go:98: mode=pbqp grace=true table=true fullBIN=20 helper256=22016T caller256=36352T entries=1
+--- PASS: TestCombinedContractTableGraceNative (5.97s)
+=== RUN   TestPFCCOProspectiveHeldout
+    pfcco_prospective_heldout_test.go:119: speed mask0: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask1: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask2: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: speed mask3: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:153: speed selected1 heldout 5568 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask0: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask1: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask2: 2605 T / 52 B
+    pfcco_prospective_heldout_test.go:119: size mask3: 2320 T / 52 B
+    pfcco_prospective_heldout_test.go:153: size selected0 heldout 6252 T / 52 B
+--- PASS: TestPFCCOProspectiveHeldout (1.36s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	17.392s

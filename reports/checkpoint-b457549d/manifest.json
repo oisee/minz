@@ -1,0 +1,16 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "e60c7fc1cdc8e9f893bec82702b63ce9e2175cec006e12b05241aac4cccf4356"
+    },
+    {
+      "path": "heldout-tables.txt",
+      "sha256": "c8099bb3d89c295b0b43ea56dff6e97b799a534e24db2b238cc12195778f66e5"
+    },
+    {
+      "path": "jobs.json",
+      "sha256": "884c991772390c7996fae961ee7d95d436f24ee970fe7b3555c85e04d1dcd52f"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "checkpoint": "b457549d26a930b18fd99bff4c51d10c7c987b2a",
+  "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc",
+  "jobs": [
+    {
+      "session": 77542,
+      "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/core-b457549d-full.txt",
+      "command": "go test ./pkg/hir ./pkg/mir2 ./pkg/nanz ./pkg/lanz ./pkg/lizp ./pkg/plm ./pkg/pascal ./pkg/c89 ./pkg/frill ./pkg/vir ./pkg/z80asm ./pkg/z80validate -count=1"
+    },
+    {
+      "session": 50269,
+      "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/cli-b457549d-full.txt",
+      "command": "go test ./cmd/minzc -count=1 -timeout=30m"
+    },
+    {
+      "session": 36587,
+      "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/heldout-b457549d-parser-hashmap.txt",
+      "command": "go test ./pkg/pipeline -run ^(TestParserProspectiveHeldout|TestHashmapMeasuredTrainingAndUnseenWorkload)$ -count=1 -v"
+    },
+    {
+      "pid": 2768998,
+      "session": 63955,
+      "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/pipeline-94a41120-full.txt",
+      "checkpoint": "94a41120",
+      "command": "pipeline-94a41120.test -test.count=1 -test.timeout=120m"
+    }
+  ]
+}
