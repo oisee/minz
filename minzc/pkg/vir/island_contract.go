@@ -44,3 +44,34 @@ func pinIslandEntry(ops []VIROp, incoming map[int]int, desc *MachineDesc) ([]VIR
 	}
 	return append(pins, ops...), nil
 }
+
+// solveIslandPair makes live-out uses explicit before solving the first part,
+// then binds the second part to that solution. Input slices remain unchanged.
+func solveIslandPair(first, second []VIROp, desc *MachineDesc, opts SolverOptions) ([]PIROp, []PIROp, error) {
+	left := append([]VIROp(nil), first...)
+	widths := make(map[int]int)
+	for _, op := range first {
+		if op.Dst > 0 && op.Width > 0 {
+			widths[op.Dst] = op.Width
+		}
+	}
+	for _, v := range islandLiveIns(second) {
+		left = append(left, VIROp{Op: OpKeepAlive, Src: [2]int{v, -1}, Width: widths[v]})
+	}
+	pir1, err := Solve(left, desc, opts)
+	if err != nil {
+		return nil, nil, fmt.Errorf("island live-out solve: %w", err)
+	}
+	if len(pir1) == 0 {
+		return nil, nil, fmt.Errorf("empty island exit solution")
+	}
+	right, err := pinIslandEntry(second, pir1[len(pir1)-1].ExitLocations, desc)
+	if err != nil {
+		return nil, nil, err
+	}
+	pir2, err := Solve(right, desc, opts)
+	if err != nil {
+		return nil, nil, fmt.Errorf("island entry solve: %w", err)
+	}
+	return pir1, pir2, nil
+}

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/z80asm"
 )
 
@@ -48,6 +49,46 @@ func TestIslandEntryContractNativeByteDomain(t *testing.T) {
 		r := z.GetRegisters()
 		if r.A != byte(x+1) || r.PC != 0xf100 || r.SP != 0xf000 {
 			t.Fatalf("x%d: %+v ASM=%s", x, r, asm.String())
+		}
+	}
+}
+
+func TestAutomaticIslandSplitNativeByteDomain(t *testing.T) {
+	if _, err := exec.LookPath("z3"); err != nil {
+		t.Skip("research Z3 unavailable")
+	}
+	f := (&mir2.Module{}).AddFunc("split_probe")
+	f.NewBlock("entry").Seal(&mir2.TermRet{})
+	vf := &Func{Name: f.Name, Blocks: []Block{{Label: "entry", Ops: []VIROp{
+		{Op: OpAddImm, Dst: 2, Src: [2]int{1, -1}, Width: 8, Imm: 1, SrcHint: [2]LocSet{Z80.LocSetByNames("D")}},
+		{Op: OpAsmBlock, AsmTemplate: "LD DE, 0", Clobbers: Z80.LocSetByNames("DE", "D", "E")},
+		{Op: OpAddImm, Dst: 3, Src: [2]int{2, -1}, Width: 8, Imm: 2},
+		{Op: OpMove, Dst: 4, Src: [2]int{3, -1}, Width: 8},
+		{Op: OpKeepAlive, Src: [2]int{4, -1}, Width: 8, SrcHint: [2]LocSet{Z80.LocSetByNames("A")}},
+	}}}}
+	asm, err := codegenFuncIslands(f, vf, Z80, SolverOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ar, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + asm)
+	if err != nil || len(ar.Errors) != 0 {
+		t.Fatalf("assemble %v %v ASM=%s", err, ar.Errors, asm)
+	}
+	z := emulator.NewRemogattoZ80()
+	if err := z.LoadMemory(0x8000, ar.Binary); err != nil {
+		t.Fatal(err)
+	}
+	for x := 0; x < 256; x++ {
+		if err := z.LoadMemory(0xeffe, []byte{0, 0xf1}); err != nil {
+			t.Fatal(err)
+		}
+		z.SetRegisters(emulator.Registers{DE: uint16(x << 8), PC: 0x8000, SP: 0xeffe})
+		for steps := 0; steps < 64 && z.GetRegisters().PC != 0xf100; steps++ {
+			z.Step()
+		}
+		r := z.GetRegisters()
+		if r.A != byte(x+3) || r.PC != 0xf100 || r.SP != 0xf000 {
+			t.Fatalf("x%d: %+v ASM=%s", x, r, asm)
 		}
 	}
 }

@@ -1743,6 +1743,28 @@ func codegenFuncIslands(f *mir2.Func, vf *Func, desc *MachineDesc, opts SolverOp
 	island1Ops := allOps[:best.pc+1]
 	island2Ops := allOps[best.pc+1:]
 
+	// Single-block schedules need no reconstructed block labels. Emit both
+	// contracted solutions in order and the original terminator once.
+	if len(f.Blocks) == 1 {
+		pir1, pir2, err := solveIslandPair(island1Ops, island2Ops, desc, opts)
+		if err != nil {
+			return "", err
+		}
+		var sb strings.Builder
+		emitFuncHeader(&sb, f, opts)
+		sb.WriteString(f.Name + ":\n")
+		for _, pir := range [][]PIROp{pir1, pir2} {
+			for _, op := range pir {
+				line := op.Emit(desc)
+				if !isSelfMove(line) {
+					emitLine(&sb, line)
+				}
+			}
+		}
+		emitTerminator(&sb, f.Blocks[0], f.Name)
+		return peepholeCleanup(sb.String()), nil
+	}
+
 	// Solve island 1
 	pir1, err1 := solveIsland(island1Ops, desc, opts, 0)
 	if err1 != nil {
