@@ -1,0 +1,16 @@
+{
+  "files": {
+    "zx-root.txt": {
+      "sha256": "16c3afe3bad10fdf4123bdaf8891f6ab597252d56201371cc476c48d5b8bb1c2",
+      "bytes": 92
+    },
+    "README.md": {
+      "sha256": "6f6e7feef0affff6a7558a481d86d67e87a106c1175f333fc476a135e17522af",
+      "bytes": 1410
+    },
+    "assembler-full.txt": {
+      "sha256": "550dfdfd23ce45b16fd4f633bbcbbcae7889d9dfdc00e419467f16b60ddbd282",
+      "bytes": 45
+    }
+  }
+}
