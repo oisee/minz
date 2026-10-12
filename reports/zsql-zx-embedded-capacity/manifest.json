@@ -1,0 +1,24 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "8b628e93f95d58d3694144f4bfc36d346d40da091ce40eed32ce7983a8329e48"
+    },
+    {
+      "path": "before.txt",
+      "sha256": "37374a57307223cf174e81003a4ea6c77b169916b6371c564d0388e0207e67d3"
+    },
+    {
+      "path": "frozen/source-before.nanz",
+      "sha256": "5f1e8230c2e59e25f7e3bb3c958633e29b8707ad019db18ac61c8fb38ab49e31"
+    },
+    {
+      "path": "frozen/source.nanz",
+      "sha256": "17f6020b9b6625aa34ef518e4eb10fe54d0f15b8d6fa3f0269f76f045cc7b320"
+    },
+    {
+      "path": "root.txt",
+      "sha256": "75e943b7c946488e620b4a47c14bf05d3941adcbb5caed3f35b718ceed172a7c"
+    }
+  ]
+}

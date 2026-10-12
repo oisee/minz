@@ -280,26 +280,8 @@ fun main() -> void {
 }
 
 // ── Input buffer ───────────────────────────────────────────────
-global _zx_inbuf: u16 = 0
-global _zx_inbuf2: u16 = 0
-global _zx_inbuf3: u16 = 0
-global _zx_inbuf4: u16 = 0
-global _zx_inbuf5: u16 = 0
-global _zx_inbuf6: u16 = 0
-global _zx_inbuf7: u16 = 0
-global _zx_inbuf8: u16 = 0
-global _zx_inbuf9: u16 = 0
-global _zx_inbufa: u16 = 0
-global _zx_inbufb: u16 = 0
-global _zx_inbufc: u16 = 0
-global _zx_inbufd: u16 = 0
-global _zx_inbufe: u16 = 0
-global _zx_inbuff: u16 = 0
-global _zx_inbufg: u16 = 0
-global _zx_inbufh: u16 = 0
-global _zx_inbufi: u16 = 0
-global _zx_inbufj: u16 = 0
-global _zx_inbufk: u16 = 0
+// 60 input characters plus the NUL written by zx_readline.
+global _zx_inbuf: [u8; 61]
 
 // ZX font: inject via asm data block (91 chars × 8 bytes)
 fun _font_anchor() -> void {

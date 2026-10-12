@@ -8,19 +8,28 @@ import (
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/z80asm"
 	"os"
+	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 )
 
 // Boundary inputs execute the complete original readline ASM, including echo.
 func TestZSQLZXRealReadlineCapacity(t *testing.T) {
-	src, e := os.ReadFile("../../../examples/nanz/zsql_zx_real.nanz")
+	testZSQLZXReadlineCapacity(t, "zsql_zx_real", "readline", "_inbuf", false)
+}
+func TestZSQLZXEmbeddedReadlineCapacity(t *testing.T) {
+	testZSQLZXReadlineCapacity(t, "zsql_zx", "zx_readline", "_zx_inbuf", true)
+}
+
+func testZSQLZXReadlineCapacity(t *testing.T, sourceName, entryName, bufferName string, embeddedFont bool) {
+	src, e := os.ReadFile("../../../examples/nanz/" + sourceName + ".nanz")
 	if e != nil {
 		t.Fatal(e)
 	}
 	for _, mode := range []string{"ordinary", "grace-size", "grace-speed"} {
 		t.Run(mode, func(t *testing.T) {
-			h, e := nanz.ParseWithOpts(string(src), "zsql_zx_real.nanz", nanz.ParseOpts{BaseDir: "../../../examples/nanz", StdlibDir: "../../../stdlib"})
+			h, e := nanz.ParseWithOpts(string(src), sourceName+".nanz", nanz.ParseOpts{BaseDir: "../../../examples/nanz", StdlibDir: "../../../stdlib"})
 			if e != nil {
 				t.Fatal(e)
 			}
@@ -39,7 +48,7 @@ func TestZSQLZXRealReadlineCapacity(t *testing.T) {
 				}
 				return uint16(v)
 			}
-			for _, length := range []int{0, 39, 40, 59, 60, 61} {
+			for length := 0; length <= 61; length++ {
 				t.Run(fmt.Sprintf("length-%d", length), func(t *testing.T) {
 					z := emulator.NewRemogattoZ80WithScreen()
 					z.SetROMEnd(0)
@@ -52,14 +61,40 @@ func TestZSQLZXRealReadlineCapacity(t *testing.T) {
 							mem[0x3d00+(ch-32)*8+line] = byte((ch*17 + line*29) ^ 0x5a)
 						}
 					}
-					p := sym("readline")
+					font := make([]byte, 96*8)
+					for ch := 32; ch < 128; ch++ {
+						for line := 0; line < 8; line++ {
+							font[(ch-32)*8+line] = byte((ch*17 + line*29) ^ 0x5a)
+						}
+					}
+					if embeddedFont {
+						start := strings.Index(string(src), "fun _font_anchor()")
+						if start < 0 {
+							t.Fatal("embedded font source")
+						}
+						font = nil
+						for _, match := range regexp.MustCompile(`(?m)^\s*DB (.+)$`).FindAllStringSubmatch(string(src)[start:], -1) {
+							for _, literal := range strings.Split(match[1], ",") {
+								v, err := strconv.ParseUint(strings.TrimPrefix(strings.TrimSpace(literal), "$"), 16, 8)
+								if err != nil {
+									t.Fatal(err)
+								}
+								font = append(font, byte(v))
+							}
+						}
+						base := sym("_font_anchor")
+						if !bytes.Equal(mem[base:int(base)+len(font)], font) {
+							t.Fatal("embedded font bytes")
+						}
+					}
+					p := sym(entryName)
 					copy(mem[0x7000:], []byte{0xcd, byte(p), byte(p >> 8), 0})
 					want := append([]byte(nil), mem...)
 					n := length
 					if n > 60 {
 						n = 60
 					}
-					buf := sym("_inbuf")
+					buf := sym(bufferName)
 					for j := 0; j < n; j++ {
 						want[buf+uint16(j)] = 'A'
 					}
@@ -68,7 +103,7 @@ func TestZSQLZXRealReadlineCapacity(t *testing.T) {
 					for j := 0; j < n; j++ {
 						for line := 0; line < 8; line++ {
 							addr := 0x4000 | ((row & 0x18) << 8) | (line << 8) | ((row & 7) << 5) | col
-							want[addr] = byte(('A'*17 + line*29) ^ 0x5a)
+							want[addr] = font[('A'-32)*8+line]
 						}
 						col++
 						if col == 32 {
@@ -117,7 +152,7 @@ func TestZSQLZXRealReadlineCapacity(t *testing.T) {
 					// happens to expect an echoed character there.
 					capacity := 40
 					for _, g := range h.Globals {
-						if g.Name == "_inbuf" {
+						if g.Name == bufferName {
 							if a, ok := g.Ty.(*mir2.ArrayTy); ok {
 								capacity = a.Len
 							}
