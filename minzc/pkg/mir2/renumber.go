@@ -10,6 +10,60 @@ package mir2
 // The combined AllocResult (one flat map[Reg]PhysLoc for all functions) relies
 // on every function's regs being unique.
 func (m *Module) RenumberRegs() {
+	// CFG rewrites may share or overlap edge-argument backing arrays. Detach
+	// every owned argument field before mutating IDs; each function's mapping
+	// must read its original IDs, including when another function shares a slice.
+	clone := func(rs []Reg) []Reg {
+		if rs == nil {
+			return nil
+		}
+		return append([]Reg{}, rs...)
+	}
+	for _, f := range m.Funcs {
+		for _, b := range f.Blocks {
+			for _, in := range b.Insts {
+				in.Args = clone(in.Args)
+				in.ExtraRets = clone(in.ExtraRets)
+				if in.Asm != nil {
+					a := *in.Asm
+					a.Ins = clone(a.Ins)
+					a.Outs = clone(a.Outs)
+					in.Asm = &a
+				}
+			}
+			switch t := b.Term.(type) {
+			case *TermJmp:
+				n := *t
+				n.Args = clone(t.Args)
+				b.Term = &n
+			case *TermBrIf:
+				n := *t
+				n.ThenArgs = clone(t.ThenArgs)
+				n.ElseArgs = clone(t.ElseArgs)
+				b.Term = &n
+			case *TermBrIf2:
+				n := *t
+				n.EqArgs = clone(t.EqArgs)
+				n.LtArgs = clone(t.LtArgs)
+				n.GtArgs = clone(t.GtArgs)
+				b.Term = &n
+			case *TermDJNZ:
+				n := *t
+				n.BodyArgs = clone(t.BodyArgs)
+				n.ExitArgs = clone(t.ExitArgs)
+				b.Term = &n
+			case *TermCondRet:
+				n := *t
+				n.Vals = clone(t.Vals)
+				n.ThenArgs = clone(t.ThenArgs)
+				b.Term = &n
+			case *TermRet:
+				n := *t
+				n.Vals = clone(t.Vals)
+				b.Term = &n
+			}
+		}
+	}
 	next := Reg(1)
 	for _, f := range m.Funcs {
 		remap := make(map[Reg]Reg)
