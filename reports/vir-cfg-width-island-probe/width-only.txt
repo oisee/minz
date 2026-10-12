@@ -1,0 +1,8 @@
+=== RUN   TestVIR_Assert_IndexedArrayBaseRegression
+[regalloc] loaded 56 exhaustive entries from regalloc_exhaustive.json
+[vir] board_set: island decomposition OK
+    assert_test.go:261: Z80: line 18: assert "assert scenario() == 16" [z80]: got 130, want 16
+--- FAIL: TestVIR_Assert_IndexedArrayBaseRegression (0.98s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/vir	0.988s
+FAIL

@@ -1,0 +1,16 @@
+=== RUN   TestCodegenModule_Double16ThenDec
+[regalloc] loaded 56 exhaustive entries from regalloc_exhaustive.json
+[vir] cut-vertex? double_dec nv=4
+[CFG-solver] 1 blocks, 0 edges, 6 vars
+[CFG-solver] double_dec: 0 edges to check for moves
+--- PASS: TestCodegenModule_Double16ThenDec (0.04s)
+=== RUN   TestDouble16ThenDecFullDomainNative
+    word_return_native_test.go:67: all 65536 word inputs, native HL and exact return PC/SP PASS; 3 bytes
+--- PASS: TestDouble16ThenDecFullDomainNative (0.04s)
+=== RUN   TestVIR_Assert_IndexedArrayBaseRegression
+[vir] board_set: island decomposition OK
+    assert_test.go:261: Z80: line 18: assert "assert scenario() == 16" [z80]: got 128, want 16
+--- FAIL: TestVIR_Assert_IndexedArrayBaseRegression (1.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/vir	1.084s
+FAIL

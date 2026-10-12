@@ -1,0 +1,12 @@
+{
+  "files": {
+    "README.md": "79ae912859152902bd356764cfcf8df605739909fbc30ccbad74620b55c614ff",
+    "export/allocation.json": "ded5775b8fc7d7ffe650732493d671cfe55d4e07509cab948148cc9652cbdd91",
+    "export/module.a80": "370458e453cb488cba0c3a18d9f734882375a588154d3e5dad27cc95cf3fdaf9",
+    "export/module.mir": "b286b39511026b44197be232f30960edc6f713f8b9b40fce5e61b419c508f782",
+    "export/source.nanz": "509005a9ecb7adc4934f1b8c4b7f29b0baecd2ba996615f500994dfb4ec9871c",
+    "rejected.patch": "19888ffff52a5ca59c74a9ce95c5b1ef80f1bfa3992395a3bdbad0a7ea28d9d2",
+    "same-pair-and-width.txt": "2ddc27bc4b518254ed1b6ec97e99f354e67f7a65c3834a7c33626f562cd68b9d",
+    "width-only.txt": "74245ea2155b70c5f54b74c56c806bc96e1113e846d6c96405744dd902387cf0"
+  }
+}
