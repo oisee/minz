@@ -903,6 +903,15 @@ func emitAdapterMove(from, to Loc) []string {
 	if from.Name == to.Name {
 		return nil
 	}
+	if from.Width == 8 && to.Width == 16 {
+		lo, hi := pairHalves(to.Name)
+		result := emitAdapterMove(from, Loc{Name: lo, Width: 8})
+		return append(result, "LD "+hi+", 0")
+	}
+	if from.Width == 16 && to.Width == 8 {
+		lo, _ := pairHalves(from.Name)
+		return emitAdapterMove(Loc{Name: lo, Width: 8}, to)
+	}
 	if from.Width == 16 && to.Width == 16 && from.Name != "SP" && to.Name != "SP" {
 		return []string{"PUSH " + from.Name, "POP " + to.Name}
 	}

@@ -1,0 +1,116 @@
+--- FAIL: TestAdapterMixedCopiesNative (0.01s)
+    --- FAIL: TestAdapterMixedCopiesNative/H_to_IX (0.00s)
+        adapter_mixed_copy_native_test.go:107: x=0 got={A:0 F:69 BC:13 DE:27 HL:39 IX:0 IY:63 SP:61440 PC:61696} want={A:1 F:69 BC:13 DE:27 HL:39 IX:0 IY:63 SP:61440 PC:61696} ASM=ORG 0x8000
+            LD IXL, H
+            LD IXH, 0
+            RET
+    --- FAIL: TestAdapterMixedCopiesNative/IX_to_H (0.00s)
+        adapter_mixed_copy_native_test.go:107: x=0 got={A:51 F:69 BC:13 DE:27 HL:13095 IX:51 IY:63 SP:61440 PC:61696} want={A:1 F:69 BC:13 DE:27 HL:13095 IX:51 IY:63 SP:61440 PC:61696} ASM=ORG 0x8000
+            LD H, IXL
+            RET
+    --- FAIL: TestAdapterMixedCopiesNative/H_to_IY (0.00s)
+        adapter_mixed_copy_native_test.go:107: x=0 got={A:0 F:69 BC:13 DE:27 HL:39 IX:51 IY:0 SP:61440 PC:61696} want={A:1 F:69 BC:13 DE:27 HL:39 IX:51 IY:0 SP:61440 PC:61696} ASM=ORG 0x8000
+            LD IYL, H
+            LD IYH, 0
+            RET
+    --- FAIL: TestAdapterMixedCopiesNative/IY_to_H (0.00s)
+        adapter_mixed_copy_native_test.go:107: x=0 got={A:63 F:69 BC:13 DE:27 HL:16167 IX:51 IY:63 SP:61440 PC:61696} want={A:1 F:69 BC:13 DE:27 HL:16167 IX:51 IY:63 SP:61440 PC:61696} ASM=ORG 0x8000
+            LD H, IYL
+            RET
+    --- FAIL: TestAdapterMixedCopiesNative/L_to_IX (0.00s)
+        adapter_mixed_copy_native_test.go:107: x=0 got={A:39 F:69 BC:13 DE:27 HL:39 IX:39 IY:63 SP:61440 PC:61696} want={A:1 F:69 BC:13 DE:27 HL:39 IX:39 IY:63 SP:61440 PC:61696} ASM=ORG 0x8000
+            LD IXL, L
+            LD IXH, 0
+            RET
+    --- FAIL: TestAdapterMixedCopiesNative/IX_to_L (0.00s)
+        adapter_mixed_copy_native_test.go:107: x=0 got={A:51 F:69 BC:13 DE:27 HL:51 IX:51 IY:63 SP:61440 PC:61696} want={A:1 F:69 BC:13 DE:27 HL:51 IX:51 IY:63 SP:61440 PC:61696} ASM=ORG 0x8000
+            LD L, IXL
+            RET
+    --- FAIL: TestAdapterMixedCopiesNative/L_to_IY (0.00s)
+        adapter_mixed_copy_native_test.go:107: x=0 got={A:39 F:69 BC:13 DE:27 HL:39 IX:51 IY:39 SP:61440 PC:61696} want={A:1 F:69 BC:13 DE:27 HL:39 IX:51 IY:39 SP:61440 PC:61696} ASM=ORG 0x8000
+            LD IYL, L
+            LD IYH, 0
+            RET
+    --- FAIL: TestAdapterMixedCopiesNative/IY_to_L (0.00s)
+        adapter_mixed_copy_native_test.go:107: x=0 got={A:63 F:69 BC:13 DE:27 HL:63 IX:51 IY:63 SP:61440 PC:61696} want={A:1 F:69 BC:13 DE:27 HL:63 IX:51 IY:63 SP:61440 PC:61696} ASM=ORG 0x8000
+            LD L, IYL
+            RET
+    --- FAIL: TestAdapterMixedCopiesNative/IXH_to_HL (0.00s)
+        adapter_mixed_copy_native_test.go:107: x=0 got={A:0 F:69 BC:13 DE:27 HL:0 IX:51 IY:63 SP:61440 PC:61696} want={A:1 F:69 BC:13 DE:27 HL:0 IX:51 IY:63 SP:61440 PC:61696} ASM=ORG 0x8000
+            LD L, IXH
+            LD H, 0
+            RET
+    --- FAIL: TestAdapterMixedCopiesNative/HL_to_IXH (0.00s)
+        adapter_mixed_copy_native_test.go:107: x=0 got={A:39 F:69 BC:13 DE:27 HL:39 IX:10035 IY:63 SP:61440 PC:61696} want={A:1 F:69 BC:13 DE:27 HL:39 IX:10035 IY:63 SP:61440 PC:61696} ASM=ORG 0x8000
+            LD A, L
+            LD IXH, A
+            RET
+    --- FAIL: TestAdapterMixedCopiesNative/IXH_to_IY (0.00s)
+        adapter_mixed_copy_native_test.go:87: assembly <nil> [line 2: unknown instruction or invalid operands: LD line 2: unknown instruction or invalid operands: LD]: ORG 0x8000
+            LD IYL, IXH
+            LD IYH, 0
+            RET
+    --- FAIL: TestAdapterMixedCopiesNative/IY_to_IXH (0.00s)
+        adapter_mixed_copy_native_test.go:87: assembly <nil> [line 2: unknown instruction or invalid operands: LD line 2: unknown instruction or invalid operands: LD]: ORG 0x8000
+            LD IXH, IYL
+            RET
+    --- FAIL: TestAdapterMixedCopiesNative/IXL_to_HL (0.00s)
+        adapter_mixed_copy_native_test.go:107: x=0 got={A:51 F:69 BC:13 DE:27 HL:51 IX:51 IY:63 SP:61440 PC:61696} want={A:1 F:69 BC:13 DE:27 HL:51 IX:51 IY:63 SP:61440 PC:61696} ASM=ORG 0x8000
+            LD L, IXL
+            LD H, 0
+            RET
+    --- FAIL: TestAdapterMixedCopiesNative/HL_to_IXL (0.00s)
+        adapter_mixed_copy_native_test.go:107: x=0 got={A:39 F:69 BC:13 DE:27 HL:39 IX:39 IY:63 SP:61440 PC:61696} want={A:1 F:69 BC:13 DE:27 HL:39 IX:39 IY:63 SP:61440 PC:61696} ASM=ORG 0x8000
+            LD A, L
+            LD IXL, A
+            RET
+    --- FAIL: TestAdapterMixedCopiesNative/IXL_to_IY (0.00s)
+        adapter_mixed_copy_native_test.go:87: assembly <nil> [line 2: unknown instruction or invalid operands: LD line 2: unknown instruction or invalid operands: LD]: ORG 0x8000
+            LD IYL, IXL
+            LD IYH, 0
+            RET
+    --- FAIL: TestAdapterMixedCopiesNative/IY_to_IXL (0.00s)
+        adapter_mixed_copy_native_test.go:87: assembly <nil> [line 2: unknown instruction or invalid operands: LD line 2: unknown instruction or invalid operands: LD]: ORG 0x8000
+            LD IXL, IYL
+            RET
+    --- FAIL: TestAdapterMixedCopiesNative/IYH_to_HL (0.00s)
+        adapter_mixed_copy_native_test.go:107: x=0 got={A:0 F:69 BC:13 DE:27 HL:0 IX:51 IY:63 SP:61440 PC:61696} want={A:1 F:69 BC:13 DE:27 HL:0 IX:51 IY:63 SP:61440 PC:61696} ASM=ORG 0x8000
+            LD L, IYH
+            LD H, 0
+            RET
+    --- FAIL: TestAdapterMixedCopiesNative/HL_to_IYH (0.00s)
+        adapter_mixed_copy_native_test.go:107: x=0 got={A:39 F:69 BC:13 DE:27 HL:39 IX:51 IY:10047 SP:61440 PC:61696} want={A:1 F:69 BC:13 DE:27 HL:39 IX:51 IY:10047 SP:61440 PC:61696} ASM=ORG 0x8000
+            LD A, L
+            LD IYH, A
+            RET
+    --- FAIL: TestAdapterMixedCopiesNative/IYH_to_IX (0.00s)
+        adapter_mixed_copy_native_test.go:87: assembly <nil> [line 2: unknown instruction or invalid operands: LD line 2: unknown instruction or invalid operands: LD]: ORG 0x8000
+            LD IXL, IYH
+            LD IXH, 0
+            RET
+    --- FAIL: TestAdapterMixedCopiesNative/IX_to_IYH (0.00s)
+        adapter_mixed_copy_native_test.go:87: assembly <nil> [line 2: unknown instruction or invalid operands: LD line 2: unknown instruction or invalid operands: LD]: ORG 0x8000
+            LD IYH, IXL
+            RET
+    --- FAIL: TestAdapterMixedCopiesNative/IYL_to_HL (0.00s)
+        adapter_mixed_copy_native_test.go:107: x=0 got={A:63 F:69 BC:13 DE:27 HL:63 IX:51 IY:63 SP:61440 PC:61696} want={A:1 F:69 BC:13 DE:27 HL:63 IX:51 IY:63 SP:61440 PC:61696} ASM=ORG 0x8000
+            LD L, IYL
+            LD H, 0
+            RET
+    --- FAIL: TestAdapterMixedCopiesNative/HL_to_IYL (0.00s)
+        adapter_mixed_copy_native_test.go:107: x=0 got={A:39 F:69 BC:13 DE:27 HL:39 IX:51 IY:39 SP:61440 PC:61696} want={A:1 F:69 BC:13 DE:27 HL:39 IX:51 IY:39 SP:61440 PC:61696} ASM=ORG 0x8000
+            LD A, L
+            LD IYL, A
+            RET
+    --- FAIL: TestAdapterMixedCopiesNative/IYL_to_IX (0.00s)
+        adapter_mixed_copy_native_test.go:87: assembly <nil> [line 2: unknown instruction or invalid operands: LD line 2: unknown instruction or invalid operands: LD]: ORG 0x8000
+            LD IXL, IYL
+            LD IXH, 0
+            RET
+    --- FAIL: TestAdapterMixedCopiesNative/IX_to_IYL (0.00s)
+        adapter_mixed_copy_native_test.go:87: assembly <nil> [line 2: unknown instruction or invalid operands: LD line 2: unknown instruction or invalid operands: LD]: ORG 0x8000
+            LD IYL, IXL
+            RET
+FAIL
+FAIL	github.com/minz/minzc/pkg/vir	0.021s
+FAIL

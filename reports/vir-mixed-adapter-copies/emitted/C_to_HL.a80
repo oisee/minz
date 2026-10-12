@@ -1,0 +1,4 @@
+ORG 0x8000
+LD L, C
+LD H, 0
+RET

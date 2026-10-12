@@ -1,0 +1,4 @@
+ORG 0x8000
+LD E, IYH
+LD D, 0
+RET
