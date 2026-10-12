@@ -6,4 +6,4 @@ Source commit сайта: 83377db775d2922894d0e8e1aa2cf441297eb951. Deployment: 
 
 Первый пакет публикации превысил лимит256MiB. Parser-coalesced-reference сжат в tar.gz без потери файлов; все исходные распакованные артефакты сохраняются в локальном зеркале. Финальный сайт256847852байта укладывается в лимит. Browser QA не выполнялся; успешный native deployment подтверждает публикацию.
 
-Локальное зеркало: /home/alice/dev/minz-artifacts/grace-reports/2026-10-12/site. Шара: /mnt/safe/minz/grace/2026-10-12/site-and-artifacts/site. Проверка полного зеркала на шаре выполняется отдельным живым процессом; этот отчёт не объявляет её завершённой заранее.
+Локальное зеркало: /home/alice/dev/minz-artifacts/grace-reports/2026-10-12/site. Шара: /mnt/safe/minz/grace/2026-10-12/site-and-artifacts/site. Полная проверка зеркала завершена:10059файлов локальной копии и шары совпадают по SHA256. manifest-site-7653fb29.json сохранён рядом с обоими зеркалами.
