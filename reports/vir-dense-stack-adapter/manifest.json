@@ -1,0 +1,20 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "008829820e845bbecadfa13641a9ee6760b2573bf630bde665d7afbd172b5c2e"
+    },
+    {
+      "path": "core-checkpoint-97266570.txt",
+      "sha256": "1845886c8bc5970c1fae5cefebf99691889b67fae1180271687f9fd7d62ab09f"
+    },
+    {
+      "path": "family.txt",
+      "sha256": "e9066f38e04f430050bcc050dcdbf04f2070b2677fcc35cc75f8094f4aa07c0a"
+    },
+    {
+      "path": "native.txt",
+      "sha256": "ab33708886e98b2d92f8bfa19acea1f9d489a5a69b01ed3de3634392a7b60d38"
+    }
+  ]
+}

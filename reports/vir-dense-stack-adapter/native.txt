@@ -1,0 +1,6 @@
+=== RUN   TestAdapterDenseCycleNative
+--- PASS: TestAdapterDenseCycleNative (0.10s)
+=== RUN   TestStackAdapterMixedWidthsNative
+--- PASS: TestStackAdapterMixedWidthsNative (0.09s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.197s

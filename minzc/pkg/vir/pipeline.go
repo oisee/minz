@@ -975,9 +975,10 @@ func resolveParallelMoves(moves []adapterMove, desc *MachineDesc) []string {
 			}
 		}
 		if scratch == "" {
-			// Adapters with every pair occupied require a dedicated stack-slot
-			// lowering. Do not emit the old destructive temporary-register swap.
-			return []string{"ERROR adapter cycle has no nonoverlapping scratch pair"}
+			// Snapshot all registers into separate input/output stack frames.
+			// Reads always use the immutable input frame; output writes cannot
+			// clobber another source or the scratch registers used for copying.
+			return append(result, emitStackAdapter(pending, desc)...)
 		}
 		result = append(result, "PUSH "+scratch)
 		for _, mv := range pending {
@@ -1004,6 +1005,46 @@ func resolveParallelMoves(moves []adapterMove, desc *MachineDesc) []string {
 		}
 		result = append(result, "POP "+scratch)
 		break
+	}
+	return result
+}
+
+// emitStackAdapter handles dense cycles without a free physical scratch pair.
+// Two identical frames preserve original registers and accumulate destinations.
+// Frame byte layout matches Z80 little-endian PUSH words, including AF flags.
+func emitStackAdapter(moves []adapterMove, desc *MachineDesc) []string {
+	bytes := map[string][]int{
+		"A": {1}, "F": {0}, "B": {3}, "C": {2}, "D": {5}, "E": {4}, "H": {7}, "L": {6},
+		"BC": {2, 3}, "DE": {4, 5}, "HL": {6, 7}, "IX": {8, 9}, "IY": {10, 11},
+		"IXL": {8}, "IXH": {9}, "IYL": {10}, "IYH": {11},
+	}
+	var result []string
+	for _, mv := range moves {
+		if len(bytes[desc.Locs[mv.fromPhys].Name]) == 0 || len(bytes[desc.Locs[mv.toPhys].Name]) == 0 {
+			return []string{"ERROR adapter has unsupported stack location"}
+		}
+	}
+	for frame := 0; frame < 2; frame++ {
+		for _, pair := range []string{"IY", "IX", "HL", "DE", "BC", "AF"} {
+			result = append(result, "PUSH "+pair)
+		}
+	}
+	for _, mv := range moves {
+		from, to := bytes[desc.Locs[mv.fromPhys].Name], bytes[desc.Locs[mv.toPhys].Name]
+		for i, dst := range to {
+			if i < len(from) {
+				result = append(result, fmt.Sprintf("LD HL, %d", 12+from[i]), "ADD HL, SP", "LD A, (HL)")
+			} else {
+				result = append(result, "LD A, 0")
+			}
+			result = append(result, fmt.Sprintf("LD HL, %d", dst), "ADD HL, SP", "LD (HL), A")
+		}
+	}
+	for _, pair := range []string{"AF", "BC", "DE", "HL", "IX", "IY"} {
+		result = append(result, "POP "+pair)
+	}
+	for i := 0; i < 12; i++ {
+		result = append(result, "INC SP")
 	}
 	return result
 }
