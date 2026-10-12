@@ -1,0 +1,20 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "e25d64fdefbf98fdf3e10542c78fa6958afde3d44711262f1b90fbc857fba98e"
+    },
+    {
+      "path": "catalog.json",
+      "sha256": "984a9510a5c650b6982aee490c1e83dbab73b79bfc9b45a927b06ab8d44b119a"
+    },
+    {
+      "path": "catalog.txt",
+      "sha256": "c47936685115030efa261b1e623f70cf1d2e32c58b2ed91fc0565da2e6e76ebd"
+    },
+    {
+      "path": "reviewed-updates.json",
+      "sha256": "a85b3e1f078e954fd260c40010432c71d224b61047901332fecd88fce0e7729a"
+    }
+  ]
+}
