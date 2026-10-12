@@ -114,9 +114,9 @@
     "path": "examples/agon/tui_hello.nanz",
     "source_sha256": "44f505b14ac4c5c674db470d9f81684aeaf078498c03ad267e81a05d13d25f90",
     "native_behavior": "agon-mos-runtime",
-    "workload": "Current native-VDU ordinary whole-device: rendered greeting/box and SDL A, clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.",
-    "independent_model": "Historical independent source/library-derived ANSI model applies only to retained pre-VDU library. Current full-device images visually inspected; real eZ80 CPU, MOS and full VDP, normal SDL-to-PS2-to-MOS input and following echo/prompt.",
-    "boundary": "Current graphical evidence is a bounded ordinary-mode visual observation, not an independent pixel/RAM/SP oracle, all-mode graphics, all-input navigation or hardware proof. Native-VDU viewport/dynamic screen primitives remain unproved. Historical ANSI replay is not evidence for current library.",
+    "workload": "Current native-VDU ordinary whole-device: greeting/box, SDL A, exact independent 218-byte native VDU/text stream and clean following MOS echo. Historical exact ANSI replay in three modes retains pre-VDU library.",
+    "independent_model": "Source-level fixed-demo layout/text model translated to documented VDU commands; entire app wire range equals expected 218 bytes. Transparent proxy forwards unchanged bytes to actual full VDP during eZ80/MOS execution. Single firmware boot and following echo/prompt checked.",
+    "boundary": "Independent current native command/text stream for one ordinary Hello scenario, plus visually inspected framebuffer; not an independent pixel/RAM/SP oracle, other modes/inputs or hardware proof. Historical ANSI replay is not evidence for current library.",
     "evidence": {
       "minzc/pkg/pipeline/agon_corpus_product_test.go": "93ef885bdfb0d8ee07ceaf2e78b302ab81145f03461a7c702de173834f392524",
       "reports/agon-product-audit/manifest.json": "f76a457f21b320e53d774dd38792d947ab4a0b9adc07764be9b146456ad77b53",
@@ -125,7 +125,9 @@
       "reports/agon-entry-fix/manifest.json": "fcf4fb7aea98fe4ab3345713e7a1a8465ee43c91495b7cd52d7b7d921bf39ac6",
       "reports/agon-tui-stream-matrix/manifest.json": "331dd1e19c5bc3232f99ff1bb01b56999186996803c341ef4c7f719a30f22e20",
       "reports/agon-native-vdu-fix/manifest.json": "109279a77ab17245fb970690a4b435cf02bfcfeadc3ce5661db1e297bcd71e06",
-      "stdlib/agon/tui_render.nanz": "df324615b171bed89dc29a768d826551123604867bc3279fb20020fd784046f8"
+      "stdlib/agon/tui_render.nanz": "df324615b171bed89dc29a768d826551123604867bc3279fb20020fd784046f8",
+      "reports/agon-native-vdu-wire-hello/manifest.json": "e6b075b7f77cd833845664745964fc45fb4b0f74497b3b228fd5137103d3dd79",
+      "scripts/agon_native_vdu_model.py": "d7a0fe831f8379b78d60851373e29fcf31d6c6d0b3cd4ff26c27197b49468662"
     }
   },
   {
