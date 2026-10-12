@@ -172,13 +172,24 @@ func TestOriginalAssertCorpusComplete(t *testing.T) {
 							return 0
 						}
 					}
+					// Resolve immutable entry metadata once, outside the exhaustive
+					// 256^3 domain. Each mode owns its VM, native memory and profiler.
+					functions := map[string]*mir2.Func{}
+					vmFunctions := map[string][2]*mir2.Func{}
+					for _, name := range source.entries {
+						functions[name] = s.MIR2Module.FuncByName(name)
+						vmFunctions[name] = [2]*mir2.Func{raw.Module.FuncByName(name), final.Module.FuncByName(name)}
+					}
+					vms := [2]*mir2.VM{raw, final}
+					for _, vm := range vms {
+						vm.ObserveDataAccess = func(v mir2.VMDataAccess) { t.Fatalf("unexpected VM memory access: %+v", v) }
+					}
 					run := func(name string, args []mir2.Value, want []uint16) {
 						counts[name]++
-						f := s.MIR2Module.FuncByName(name)
+						f := functions[name]
 
-						for _, vm := range []*mir2.VM{raw, final} {
-							vm.ObserveDataAccess = func(v mir2.VMDataAccess) { t.Fatalf("unexpected VM memory access: %+v", v) }
-							v, e := vm.Call(name, args)
+						for index, vm := range vms {
+							v, e := vm.CallFunc(vmFunctions[name][index], args)
 							if e != nil || len(v) != len(want) {
 								t.Fatalf("VM %s%v got%v want%v err%v", name, args, v, want, e)
 							}
@@ -253,8 +264,14 @@ func TestOriginalAssertCorpusComplete(t *testing.T) {
 							}
 						}
 					}
+					// Compiler setup above remains sequential; only independent
+					// exhaustive executions run concurrently.
+					t.Parallel()
+					var args [3]mir2.Value
+					var want [1]uint16
 					for n := 0; n < 256; n++ {
-						run("double", []mir2.Value{{I: int64(n)}}, []uint16{uint16(2 * n & 255)})
+						args[0].I, want[0] = int64(n), uint16(2*n&255)
+						run("double", args[:1], want[:])
 					}
 					for x := 0; x < 256; x++ {
 						for y := 0; y < 256; y++ {
@@ -262,7 +279,8 @@ func TestOriginalAssertCorpusComplete(t *testing.T) {
 							if w < 0 {
 								w = -w
 							}
-							run("abs_diff", []mir2.Value{{I: int64(x)}, {I: int64(y)}}, []uint16{uint16(w)})
+							args[0].I, args[1].I, want[0] = int64(x), int64(y), uint16(w)
+							run("abs_diff", args[:2], want[:])
 						}
 					}
 					for v := 0; v < 256; v++ {
@@ -274,7 +292,8 @@ func TestOriginalAssertCorpusComplete(t *testing.T) {
 								} else if v > hi {
 									w = hi
 								}
-								run("clamp", []mir2.Value{{I: int64(v)}, {I: int64(lo)}, {I: int64(hi)}}, []uint16{uint16(w)})
+								args[0].I, args[1].I, args[2].I, want[0] = int64(v), int64(lo), int64(hi), uint16(w)
+								run("clamp", args[:], want[:])
 							}
 						}
 					}
