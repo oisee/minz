@@ -1,0 +1,155 @@
+; HIR module: meta_screen.nanz
+struct @BlockNode { keyword: ptr, label: ptr, value: ptr, length: u8, fkey: u8 }
+string #0 = "  Material Report"
+string #1 = "Material    "
+string #2 = "[__________]"
+string #3 = "Plant    "
+string #4 = "Count    "
+string #5 = "[Execute]"
+
+fun @tui__render___tui_bdos_putchar(ch: u8)
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render___tui_esc()
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render___tui_print_dec(val: u8)
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render__tui_goto(x: u8, y: u8)
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render__tui_color(fg: u8, bg: u8, bright: u8)
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render__tui_reset()
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render__tui_clear()
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render__tui_putch(ch: u8)
+  if ((ch:u8) == 1:u8):bool
+    call @tui__render___tui_bdos_putchar(43:u8):void
+    return
+  if ((ch:u8) == 2:u8):bool
+    call @tui__render___tui_bdos_putchar(43:u8):void
+    return
+  if ((ch:u8) == 3:u8):bool
+    call @tui__render___tui_bdos_putchar(43:u8):void
+    return
+  if ((ch:u8) == 4:u8):bool
+    call @tui__render___tui_bdos_putchar(43:u8):void
+    return
+  if ((ch:u8) == 5:u8):bool
+    call @tui__render___tui_bdos_putchar(45:u8):void
+    return
+  if ((ch:u8) == 6:u8):bool
+    call @tui__render___tui_bdos_putchar(124:u8):void
+    return
+  call @tui__render___tui_bdos_putchar((ch:u8)):void
+
+fun @tui__render__tui_puts(str: ptr)
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render__tui_read_key() -> u8
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render__tui_read_line(buf: ptr, maxlen: u8) -> u8
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render__tui_width() -> u8
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render__tui_height() -> u8
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui__render__draw_box(x: u8, y: u8, w: u8, h: u8)
+  call @tui__render__tui_goto((x:u8), (y:u8)):void
+  call @tui__render__tui_putch(1:u8):void
+  var i: u8 = 0:u8
+  while ((i:u8) < ((w:u8) - 2:u8):u8):bool
+    call @tui__render__tui_putch(5:u8):void
+    (i:u8) = ((i:u8) + 1:u8):u8
+  call @tui__render__tui_putch(2:u8):void
+  var row: u8 = 1:u8
+  while ((row:u8) < ((h:u8) - 1:u8):u8):bool
+    call @tui__render__tui_goto((x:u8), ((y:u8) + (row:u8)):u8):void
+    call @tui__render__tui_putch(6:u8):void
+    call @tui__render__tui_goto((((x:u8) + (w:u8)):u8 - 1:u8):u8, ((y:u8) + (row:u8)):u8):void
+    call @tui__render__tui_putch(6:u8):void
+    (row:u8) = ((row:u8) + 1:u8):u8
+  call @tui__render__tui_goto((x:u8), (((y:u8) + (h:u8)):u8 - 1:u8):u8):void
+  call @tui__render__tui_putch(3:u8):void
+  (i:u8) = 0:u8
+  while ((i:u8) < ((w:u8) - 2:u8):u8):bool
+    call @tui__render__tui_putch(5:u8):void
+    (i:u8) = ((i:u8) + 1:u8):u8
+  call @tui__render__tui_putch(4:u8):void
+
+fun @tui__render__clear_rect(x: u8, y: u8, w: u8, h: u8)
+  var row: u8 = 0:u8
+  while ((row:u8) < (h:u8)):bool
+    call @tui__render__tui_goto((x:u8), ((y:u8) + (row:u8)):u8):void
+    var col: u8 = 0:u8
+    while ((col:u8) < (w:u8)):bool
+      call @tui__render__tui_putch(32:u8):void
+      (col:u8) = ((col:u8) + 1:u8):u8
+    (row:u8) = ((row:u8) + 1:u8):u8
+
+fun @tui__render__puts_padded(str: ptr, width: u8)
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui_clear()
+  call @tui__render__tui_clear():void
+
+fun @tui_puts(str: ptr)
+  call @tui__render__tui_puts((str:ptr)):void
+
+fun @tui_goto(x: u8, y: u8)
+  call @tui__render__tui_goto((x:u8), (y:u8)):void
+
+fun @tui_color(fg: u8, bg: u8, bright: u8)
+  call @tui__render__tui_color((fg:u8), (bg:u8), (bright:u8)):void
+
+fun @tui_reset()
+  call @tui__render__tui_reset():void
+
+fun @tui_read_key() -> u8
+  return call @tui__render__tui_read_key():u8
+
+fun @_generated_screen()
+  call @tui_clear():void
+  call @tui_color(7:u8, 4:u8, 1:u8):void
+  call @tui_goto(0:u8, 0:u8):void
+  call @tui_puts(addr @@mir2.str.0:ptr):void
+  call @tui_reset():void
+  call @tui_goto(2:u8, 2:u8):void
+  call @tui_color(6:u8, 0:u8, 0:u8):void
+  call @tui_puts(addr @@mir2.str.1:ptr):void
+  call @tui_color(7:u8, 0:u8, 0:u8):void
+  call @tui_puts(addr @@mir2.str.2:ptr):void
+  call @tui_reset():void
+  call @tui_goto(2:u8, 3:u8):void
+  call @tui_color(6:u8, 0:u8, 0:u8):void
+  call @tui_puts(addr @@mir2.str.3:ptr):void
+  call @tui_color(7:u8, 0:u8, 0:u8):void
+  call @tui_puts(addr @@mir2.str.2:ptr):void
+  call @tui_reset():void
+  call @tui_goto(2:u8, 4:u8):void
+  call @tui_color(6:u8, 0:u8, 0:u8):void
+  call @tui_puts(addr @@mir2.str.4:ptr):void
+  call @tui_color(7:u8, 0:u8, 0:u8):void
+  call @tui_puts(addr @@mir2.str.2:ptr):void
+  call @tui_reset():void
+  call @tui_goto(2:u8, 5:u8):void
+  call @tui_color(0:u8, 7:u8, 1:u8):void
+  call @tui_puts(addr @@mir2.str.5:ptr):void
+  call @tui_reset():void
+  var key: u8 = call @tui_read_key():u8
+  call @tui_clear():void
+  call @tui_reset():void
+
+fun @main()
+  call @_generated_screen():void
+

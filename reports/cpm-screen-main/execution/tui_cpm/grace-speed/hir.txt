@@ -1,0 +1,104 @@
+; HIR module: tui_cpm.nanz
+string #0 = "  Material Report                                                               "
+string #1 = "Material    "
+string #2 = "[*                 ]"
+string #3 = "Plant       "
+string #4 = "[    ]"
+string #5 = "Count       "
+string #6 = "[10]"
+string #7 = "[F8=Execute]"
+string #8 = "  "
+string #9 = "[F3=Back]"
+string #10 = "  TAB=Next  Enter=Edit  F8=Execute  F3=Back                                     "
+
+fun @_putch(ch: u8)
+  <unknown stmt *hir.AsmStmt>
+
+fun @_esc()
+  <unknown stmt *hir.AsmStmt>
+
+fun @_dec(val: u8)
+  <unknown stmt *hir.AsmStmt>
+
+fun @_puts(str: ptr)
+  <unknown stmt *hir.AsmStmt>
+
+fun @tui_goto(x: u8, y: u8)
+  call @_esc():void
+  call @_putch(91:u8):void
+  call @_dec(((y:u8) + 1:u8):u8):void
+  call @_putch(59:u8):void
+  call @_dec(((x:u8) + 1:u8):u8):void
+  call @_putch(72:u8):void
+
+fun @tui_color(fg: u8, bg: u8, bright: u8)
+  var f: u8 = (30:u8 + (fg:u8)):u8
+  var b: u8 = (40:u8 + (bg:u8)):u8
+  if ((bright:u8) != 0:u8):bool
+    (f:u8) = ((f:u8) + 60:u8):u8
+  if ((bright:u8) != 0:u8):bool
+    (b:u8) = ((b:u8) + 60:u8):u8
+  call @_esc():void
+  call @_putch(91:u8):void
+  call @_dec((f:u8)):void
+  call @_putch(59:u8):void
+  call @_dec((b:u8)):void
+  call @_putch(109:u8):void
+
+fun @tui_reset()
+  call @_esc():void
+  call @_putch(91:u8):void
+  call @_putch(48:u8):void
+  call @_putch(109:u8):void
+
+fun @tui_clear()
+  call @_esc():void
+  call @_putch(91:u8):void
+  call @_putch(50:u8):void
+  call @_putch(74:u8):void
+  call @_esc():void
+  call @_putch(91:u8):void
+  call @_putch(72:u8):void
+
+fun @tui_read_key() -> u8
+  <unknown stmt *hir.AsmStmt>
+
+fun @main()
+  call @tui_clear():void
+  call @tui_color(7:u8, 4:u8, 1:u8):void
+  call @tui_goto(0:u8, 0:u8):void
+  call @_puts(addr @@mir2.str.0:ptr):void
+  call @tui_reset():void
+  call @tui_goto(2:u8, 2:u8):void
+  call @tui_color(6:u8, 0:u8, 0:u8):void
+  call @_puts(addr @@mir2.str.1:ptr):void
+  call @tui_color(7:u8, 0:u8, 0:u8):void
+  call @_puts(addr @@mir2.str.2:ptr):void
+  call @tui_reset():void
+  call @tui_goto(2:u8, 3:u8):void
+  call @tui_color(6:u8, 0:u8, 0:u8):void
+  call @_puts(addr @@mir2.str.3:ptr):void
+  call @tui_color(7:u8, 0:u8, 0:u8):void
+  call @_puts(addr @@mir2.str.4:ptr):void
+  call @tui_reset():void
+  call @tui_goto(2:u8, 4:u8):void
+  call @tui_color(6:u8, 0:u8, 0:u8):void
+  call @_puts(addr @@mir2.str.5:ptr):void
+  call @tui_color(7:u8, 0:u8, 0:u8):void
+  call @_puts(addr @@mir2.str.6:ptr):void
+  call @tui_reset():void
+  call @tui_goto(2:u8, 6:u8):void
+  call @tui_color(0:u8, 7:u8, 1:u8):void
+  call @_puts(addr @@mir2.str.7:ptr):void
+  call @tui_reset():void
+  call @_puts(addr @@mir2.str.8:ptr):void
+  call @tui_color(7:u8, 0:u8, 1:u8):void
+  call @_puts(addr @@mir2.str.9:ptr):void
+  call @tui_reset():void
+  call @tui_color(7:u8, 4:u8, 0:u8):void
+  call @tui_goto(0:u8, 23:u8):void
+  call @_puts(addr @@mir2.str.10:ptr):void
+  call @tui_reset():void
+  var key: u8 = call @tui_read_key():u8
+  call @tui_clear():void
+

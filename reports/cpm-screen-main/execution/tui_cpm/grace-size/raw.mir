@@ -1,0 +1,264 @@
+; MIR2 module: tui_cpm.nanz
+string @mir2.str.0 = "  Material Report                                                               "
+string @mir2.str.1 = "Material    "
+string @mir2.str.2 = "[*                 ]"
+string @mir2.str.3 = "Plant       "
+string @mir2.str.4 = "[    ]"
+string @mir2.str.5 = "Count       "
+string @mir2.str.6 = "[10]"
+string @mir2.str.7 = "[F8=Execute]"
+string @mir2.str.8 = "  "
+string @mir2.str.9 = "[F3=Back]"
+string @mir2.str.10 = "  TAB=Next  Enter=Edit  F8=Execute  F3=Back                                     "
+
+fun @_putch(%r1: u8 [acc])
+  block @entry:
+    asm "LD E, A\n    LD C, 2\n    CALL 5"
+    ret void
+
+fun @_esc()
+  block @entry:
+    asm "LD E, 0x1B\n    LD C, 2\n    CALL 5"
+    ret void
+
+fun @_dec(%r2: u8 [acc])
+  block @entry:
+    asm "LD B, A\n        LD C, 0\n        .h: CP 100\n    JR C, .hd\n    SUB 100\n    INC C\n    JR .h\n        .hd: LD B, A\n    LD A, C\n    OR A\n    JR Z, .sh\n        ADD A, 48\n    LD E, A\n    PUSH BC\n    LD C, 2\n    CALL 5\n    POP BC\n        .sh: LD A, B\n    LD C, 0\n        .t: CP 10\n    JR C, .td\n    SUB 10\n    INC C\n    JR .t\n        .td: LD B, A\n    LD A, C\n    ADD A, 48\n    LD E, A\n    PUSH BC\n    LD C, 2\n    CALL 5\n    POP BC\n        LD A, B\n    ADD A, 48\n    LD E, A\n    LD C, 2\n    CALL 5"
+    ret void
+
+fun @_puts(%r3: ptr [pointer])
+  block @entry:
+    asm ".lp: LD A, (HL)\n    OR A\n    RET Z\n        LD E, A\n    PUSH HL\n    LD C, 2\n    CALL 5\n    POP HL\n    INC HL\n    JR .lp"
+    ret void
+
+fun @tui_goto(%r4: u8 [acc], %r5: u8 [general])
+  block @entry:
+    call @_esc()
+    %r6 = const 91 : u8 [general]
+    %r7 = move %r6 : u8 [acc]
+    call @_putch(%r7)
+    %r8 = const 1 : u8 [general]
+    %r9 = add %r5, %r8 : u8 [acc]
+    %r10 = move %r9 : u8 [acc]
+    call @_dec(%r10)
+    %r11 = const 59 : u8 [general]
+    %r12 = move %r11 : u8 [acc]
+    call @_putch(%r12)
+    %r13 = const 1 : u8 [general]
+    %r14 = add %r4, %r13 : u8 [acc]
+    %r15 = move %r14 : u8 [acc]
+    call @_dec(%r15)
+    %r16 = const 72 : u8 [general]
+    %r17 = move %r16 : u8 [acc]
+    call @_putch(%r17)
+    ret void
+
+fun @tui_color(%r18: u8 [acc], %r19: u8 [general], %r20: u8 [counter])
+  block @entry:
+    %r21 = const 30 : u8 [general]
+    %r22 = add %r21, %r18 : u8 [acc]
+    %r23 = const 40 : u8 [general]
+    %r24 = add %r23, %r19 : u8 [acc]
+    %r25 = const 0 : u8 [general]
+    %r26 = cmp.ne %r20, %r25 : bool [flag]
+    br_if %r26, @if_then1(), @if_join2(%r22)
+  block @if_then1:
+    %r27 = const 60 : u8 [general]
+    %r28 = add %r22, %r27 : u8 [acc]
+    jmp @if_join2(%r28)
+  block @if_join2(%r29: u8 [general]):
+    %r30 = const 0 : u8 [general]
+    %r31 = cmp.ne %r20, %r30 : bool [flag]
+    br_if %r31, @if_then3(), @if_join4(%r24)
+  block @if_then3:
+    %r32 = const 60 : u8 [general]
+    %r33 = add %r24, %r32 : u8 [acc]
+    jmp @if_join4(%r33)
+  block @if_join4(%r34: u8 [general]):
+    call @_esc()
+    %r35 = const 91 : u8 [general]
+    %r36 = move %r35 : u8 [acc]
+    call @_putch(%r36)
+    %r37 = move %r29 : u8 [acc]
+    call @_dec(%r37)
+    %r38 = const 59 : u8 [general]
+    %r39 = move %r38 : u8 [acc]
+    call @_putch(%r39)
+    %r40 = move %r34 : u8 [acc]
+    call @_dec(%r40)
+    %r41 = const 109 : u8 [general]
+    %r42 = move %r41 : u8 [acc]
+    call @_putch(%r42)
+    ret void
+
+fun @tui_reset()
+  block @entry:
+    call @_esc()
+    %r43 = const 91 : u8 [general]
+    %r44 = move %r43 : u8 [acc]
+    call @_putch(%r44)
+    %r45 = const 48 : u8 [general]
+    %r46 = move %r45 : u8 [acc]
+    call @_putch(%r46)
+    %r47 = const 109 : u8 [general]
+    %r48 = move %r47 : u8 [acc]
+    call @_putch(%r48)
+    ret void
+
+fun @tui_clear()
+  block @entry:
+    call @_esc()
+    %r49 = const 91 : u8 [general]
+    %r50 = move %r49 : u8 [acc]
+    call @_putch(%r50)
+    %r51 = const 50 : u8 [general]
+    %r52 = move %r51 : u8 [acc]
+    call @_putch(%r52)
+    %r53 = const 74 : u8 [general]
+    %r54 = move %r53 : u8 [acc]
+    call @_putch(%r54)
+    call @_esc()
+    %r55 = const 91 : u8 [general]
+    %r56 = move %r55 : u8 [acc]
+    call @_putch(%r56)
+    %r57 = const 72 : u8 [general]
+    %r58 = move %r57 : u8 [acc]
+    call @_putch(%r58)
+    ret void
+
+fun @tui_read_key() -> u8 [acc]
+  block @entry:
+    %r59 = asm "LD C, 1\n    CALL 5"
+    ret void
+
+fun @main()
+  block @entry:
+    call @tui_clear()
+    %r60 = const 7 : u8 [general]
+    %r61 = move %r60 : u8 [acc]
+    %r62 = const 4 : u8 [general]
+    %r63 = const 1 : u8 [general]
+    %r64 = move %r63 : u8 [counter]
+    call @tui_color(%r61, %r62, %r64)
+    %r65 = const 0 : u8 [general]
+    %r66 = move %r65 : u8 [acc]
+    %r67 = const 0 : u8 [general]
+    call @tui_goto(%r66, %r67)
+    %r68 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r69 = move %r68 : ptr [pointer]
+    call @_puts(%r69)
+    call @tui_reset()
+    %r70 = const 2 : u8 [general]
+    %r71 = move %r70 : u8 [acc]
+    %r72 = const 2 : u8 [general]
+    call @tui_goto(%r71, %r72)
+    %r73 = const 6 : u8 [general]
+    %r74 = move %r73 : u8 [acc]
+    %r75 = const 0 : u8 [general]
+    %r76 = const 0 : u8 [general]
+    %r77 = move %r76 : u8 [counter]
+    call @tui_color(%r74, %r75, %r77)
+    %r78 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r79 = move %r78 : ptr [pointer]
+    call @_puts(%r79)
+    %r80 = const 7 : u8 [general]
+    %r81 = move %r80 : u8 [acc]
+    %r82 = const 0 : u8 [general]
+    %r83 = const 0 : u8 [general]
+    %r84 = move %r83 : u8 [counter]
+    call @tui_color(%r81, %r82, %r84)
+    %r85 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r86 = move %r85 : ptr [pointer]
+    call @_puts(%r86)
+    call @tui_reset()
+    %r87 = const 2 : u8 [general]
+    %r88 = move %r87 : u8 [acc]
+    %r89 = const 3 : u8 [general]
+    call @tui_goto(%r88, %r89)
+    %r90 = const 6 : u8 [general]
+    %r91 = move %r90 : u8 [acc]
+    %r92 = const 0 : u8 [general]
+    %r93 = const 0 : u8 [general]
+    %r94 = move %r93 : u8 [counter]
+    call @tui_color(%r91, %r92, %r94)
+    %r95 = addr_of @@mir2.str.3 : ptr [pointer]
+    %r96 = move %r95 : ptr [pointer]
+    call @_puts(%r96)
+    %r97 = const 7 : u8 [general]
+    %r98 = move %r97 : u8 [acc]
+    %r99 = const 0 : u8 [general]
+    %r100 = const 0 : u8 [general]
+    %r101 = move %r100 : u8 [counter]
+    call @tui_color(%r98, %r99, %r101)
+    %r102 = addr_of @@mir2.str.4 : ptr [pointer]
+    %r103 = move %r102 : ptr [pointer]
+    call @_puts(%r103)
+    call @tui_reset()
+    %r104 = const 2 : u8 [general]
+    %r105 = move %r104 : u8 [acc]
+    %r106 = const 4 : u8 [general]
+    call @tui_goto(%r105, %r106)
+    %r107 = const 6 : u8 [general]
+    %r108 = move %r107 : u8 [acc]
+    %r109 = const 0 : u8 [general]
+    %r110 = const 0 : u8 [general]
+    %r111 = move %r110 : u8 [counter]
+    call @tui_color(%r108, %r109, %r111)
+    %r112 = addr_of @@mir2.str.5 : ptr [pointer]
+    %r113 = move %r112 : ptr [pointer]
+    call @_puts(%r113)
+    %r114 = const 7 : u8 [general]
+    %r115 = move %r114 : u8 [acc]
+    %r116 = const 0 : u8 [general]
+    %r117 = const 0 : u8 [general]
+    %r118 = move %r117 : u8 [counter]
+    call @tui_color(%r115, %r116, %r118)
+    %r119 = addr_of @@mir2.str.6 : ptr [pointer]
+    %r120 = move %r119 : ptr [pointer]
+    call @_puts(%r120)
+    call @tui_reset()
+    %r121 = const 2 : u8 [general]
+    %r122 = move %r121 : u8 [acc]
+    %r123 = const 6 : u8 [general]
+    call @tui_goto(%r122, %r123)
+    %r124 = const 0 : u8 [general]
+    %r125 = move %r124 : u8 [acc]
+    %r126 = const 7 : u8 [general]
+    %r127 = const 1 : u8 [general]
+    %r128 = move %r127 : u8 [counter]
+    call @tui_color(%r125, %r126, %r128)
+    %r129 = addr_of @@mir2.str.7 : ptr [pointer]
+    %r130 = move %r129 : ptr [pointer]
+    call @_puts(%r130)
+    call @tui_reset()
+    %r131 = addr_of @@mir2.str.8 : ptr [pointer]
+    %r132 = move %r131 : ptr [pointer]
+    call @_puts(%r132)
+    %r133 = const 7 : u8 [general]
+    %r134 = move %r133 : u8 [acc]
+    %r135 = const 0 : u8 [general]
+    %r136 = const 1 : u8 [general]
+    %r137 = move %r136 : u8 [counter]
+    call @tui_color(%r134, %r135, %r137)
+    %r138 = addr_of @@mir2.str.9 : ptr [pointer]
+    %r139 = move %r138 : ptr [pointer]
+    call @_puts(%r139)
+    call @tui_reset()
+    %r140 = const 7 : u8 [general]
+    %r141 = move %r140 : u8 [acc]
+    %r142 = const 4 : u8 [general]
+    %r143 = const 0 : u8 [general]
+    %r144 = move %r143 : u8 [counter]
+    call @tui_color(%r141, %r142, %r144)
+    %r145 = const 0 : u8 [general]
+    %r146 = move %r145 : u8 [acc]
+    %r147 = const 23 : u8 [general]
+    call @tui_goto(%r146, %r147)
+    %r148 = addr_of @@mir2.str.10 : ptr [pointer]
+    %r149 = move %r148 : ptr [pointer]
+    call @_puts(%r149)
+    call @tui_reset()
+    %r150 = call @tui_read_key() : u8 [acc]
+    call @tui_clear()
+    ret void
+

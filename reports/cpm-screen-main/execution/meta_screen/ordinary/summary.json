@@ -1,0 +1,9 @@
+{
+  "image_bytes": 1218,
+  "minimum_sp": 61414,
+  "output_bytes": 236,
+  "result": "PASS",
+  "scope": "actual originalASM main with testownedBDOS1/2",
+  "source_sha256": "d9e13ac784d0ceb162047602bd6938d497e5138898bca391cea7fad708fe422c",
+  "wholemain": true
+}
