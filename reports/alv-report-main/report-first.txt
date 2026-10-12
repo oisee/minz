@@ -1,0 +1,6 @@
+=== RUN   TestOriginalReportScreenWholeMain
+    original_report_screen_main_test.go:341: report/ordinary/vm0 event247 got{"name":"tui_goto","args":[0,0]} want{"name":"tui_color","args":[7,4,1]}
+--- FAIL: TestOriginalReportScreenWholeMain (0.09s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.102s
+FAIL

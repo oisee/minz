@@ -13,7 +13,8 @@ for case,keys in [('report',[147,142])]:
   elif n=='_scr_puts_padded':out.append(a[0].ljust(a[1])[:a[1]])
   elif n=='tui_clear':out.append('\x1b[2J\x1b[H')
   elif n=='tui_reset':out.append('\x1b[0m')
- for key in keys:
+ for screen_index,key in enumerate(keys):
+  if screen_index:api('tui_clear');api('tui_goto',0,0);api('tui_reset')
   api('tui_clear');api('tui_color',7,4,1);api('tui_goto',0,0);api('tui_puts','  ');api('tui_puts','SCARR Report');api('tui_width')
   for _ in range(60):api('tui_putch',32)
   api('tui_reset');api('tui_goto',2,2);api('tui_color',6,0,0);api('_scr_puts_padded','Carrier',12);api('tui_color',7,4 if focus==0 else 0,int(focus==0));api('tui_putch',91);api('_scr_puts_padded','*',3);api('tui_putch',93);api('tui_reset')
@@ -35,7 +36,7 @@ for case,keys in [('report',[147,142])]:
   api('tui_reset');api('tui_read_key',key)
   if key==9:focus=1
  api('tui_clear');api('tui_goto',0,0);api('tui_reset');api('tui_puts','Filter: ');api('tui_puts','*');api('tui_puts',' -> ');api('tui_putch',56);api('tui_puts',' rows\n')
- d={'module':'screen_report','title':'SCARR Report','keys':keys,'line':None,'globals':{'_scr_nfields':3,'_scr_focus':focus,'_tbl_nrows':8},'buffers':{'_buf_carrier':'*'},'rows':rows,'events':ev}
+ d={'module':'screen_report','title':'SCARR Report','keys':keys,'line':None,'globals':{'_scr_nfields':3,'_scr_focus':focus,'_tbl_nrows':8,'db':1},'buffers':{'_buf_carrier':'*'},'rows':rows,'events':ev}
  (p/(case+'.json')).write_text(json.dumps(d,indent=2)+'\n');(p/(case+'-stdout.bin')).write_bytes(''.join(out).encode());print(case,len(ev),len(''.join(out).encode()))
 paths=['examples/nanz/screen_report.nanz','minzc/pkg/nanz/screen_gen.go','minzc/cmd/mzv/tui_host.go','stdlib/tui/render.nanz','reports/alv-report-main/model.py']+['reports/alv-report-main/'+x+e for x in ['report']for e in ['.json','-stdout.bin']]
 (p/'freeze-report.json').write_text(json.dumps({'sources':{q:hashlib.sha256(Path(q).read_bytes()).hexdigest()for q in paths},'authority':['sourceSQLseed8rows sortedcarrid; DSLwidth4/22/30 stride59; two screensF8 thenF3','screen_gen source API/table rowordering','terminalmzvANSI80x24 exact contract']},indent=2)+'\n')

@@ -5,14 +5,15 @@
     "minzc/cmd/mzv/tui_host.go": "8d3fe8aaf13adf2f933a123a37bf847350205d9c933a180f675b761de4407ec1",
     "stdlib/tui/render.nanz": "4711dbee908a2271f02d1fbb4720942604e23322d7745f32311f6b2c17c6d4a8",
     "reports/alv-report-main/model.py": "da7fc5493284e3a46fd8aeb7225289c45ce2ed28029930a469612a9108c83e9c",
-    "reports/alv-report-main/report.json": "9d31dc1cf5fb900e64de4b7aaa2eff9c00dde2857a07784807d78ffee151446f",
-    "reports/alv-report-main/report-stdout.bin": "f8318b37bea7e8708fd236a7c27c1356afaf798f6381d5da05f5364b30455f6e",
-    "reports/alv-report-main/report-model.py": "ab5b6ba653c6a9898999008e62cec46c8c41926c1d3f1a0580c42a2bcfb4f4e8",
-    "reports/alv-report-main/report-native-stdout.bin": "e864a2b49596703c94fcea571920cc3f5d00b3246b0d32ad7a3949c9daacfdf2"
+    "reports/alv-report-main/report.json": "e0d24ea671b3646a38dd2f8ec0d09e9fa15bb37ded04f6c0c28752b206c84c32",
+    "reports/alv-report-main/report-stdout.bin": "f65f8bd56c475793066167ec6bf33f695cda2ddd2bbbea83b2af17f9b369e9e5",
+    "reports/alv-report-main/report-model.py": "45f8881908f31c823a2ff171ef1d64033e9e4b584cb14b291f2e942482261af1",
+    "reports/alv-report-main/report-native-stdout.bin": "04f84c1139f7a2f61d1705404cc1276fd40f0538293027f8d47770aaa538d567"
   },
   "authority": [
     "sourceSQLseed8rows sortedcarrid; DSLwidth4/22/30 stride59; two screensF8 thenF3",
     "screen_gen source API/table rowordering",
     "terminalmzvANSI80x24 exact contract"
-  ]
+  ],
+  "model_correction": "Original screen_show clears/resets before every return; first model omitted the first return between two screen_show calls. Historical model/log preserved, not a compiler defect."
 }

@@ -9,7 +9,8 @@
   "globals": {
     "_scr_nfields": 3,
     "_scr_focus": 0,
-    "_tbl_nrows": 8
+    "_tbl_nrows": 8,
+    "db": 1
   },
   "buffers": {
     "_buf_carrier": "*"
@@ -1571,6 +1572,21 @@
       "args": [
         147
       ]
+    },
+    {
+      "name": "tui_clear",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
     },
     {
       "name": "tui_clear",
