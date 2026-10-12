@@ -1,0 +1,11 @@
+{
+  "checkpoint": "1f2365be01bd20df20d861da0b854348f15ed9f3",
+  "scope": "General main-byte cycle snapshot using a saved disjoint pair; existing two tokenizer workloads reused, not newly prospective heldout. No cost assumption updates.",
+  "sha256": {
+    "minzc/pkg/mir2/z80codegen_copy.go": "411ad3f5c5628e742a2435d3a02b00a12506f52a2560491a9bab5c8a684701e3",
+    "minzc/pkg/pipeline/pfcco_tokenizer_consumer_test.go": "e40f08d12e4fa725802cf916e0be7faf1339abb5f0a5ae0c92df22b29498fbb4",
+    "examples/nanz/self_tokenizer.nanz": "d893df00710b7f1105b8bfb58342aca1c1f8cce7eb674037a8d6ca41b91b0689",
+    "reports/contract-table-current/tokenizer/greedy-native.bin": "40518cbe9128135fb9fa0faf6e43b2229d5fe6c04410aa7fdf512d1e687a26a6",
+    "reports/contract-table-current/tokenizer/pbqp-native.bin": "cb47a4905cba630eadb6f8ce8d4a6c0cd1d64a676a1995232a13f2e86b136034"
+  }
+}
