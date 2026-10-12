@@ -1,0 +1,24 @@
+{
+  "files": {
+    "README.md": {
+      "sha256": "b577cb8434ca1d2f90d057b49668a3cc53fefd4e7c25949070b0b5bd45a28ff1",
+      "bytes": 1661
+    },
+    "catalog-test.txt": {
+      "sha256": "d669a43d9ecfaf0ef0e24ea66099abea44b9c118c864afc0e20e0faaabf1469e",
+      "bytes": 43
+    },
+    "catalog.json": {
+      "sha256": "540df418663cb9e4f8962e2ed390f6f899258ed80fee9c806fcbe96a345f5770",
+      "bytes": 675399
+    },
+    "counts.json": {
+      "sha256": "3b4b04562a87965cc048459883556888c166aa77763d8486f7942afe23e7bf2e",
+      "bytes": 356
+    },
+    "reviewed-updates.json": {
+      "sha256": "679f6abe3018b1736f786d8cb5d5d57558c8d70b45ec9976ba63c49eb47f1fa8",
+      "bytes": 165755
+    }
+  }
+}
