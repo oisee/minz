@@ -29,9 +29,9 @@
     },
     {
       "requirement": "Source/profiles/decisions/ASM/BIN/cost reproducible on share",
-      "state": "named packets verified, currentsource copy live",
-      "evidence": "214,215,216; archiveexecutables/manifests",
-      "remaining": "currentcopy session86837 pending; sitev68 older snapshot not latestpublication"
+      "state": "named packets and full tracked source checkpoint verified",
+      "evidence": "214,215,216,217:4583tracked files177786923bytes source checkpoint3fcb7b0b",
+      "remaining": "Sitev68 older snapshot not latestpublication; future source changes need their own delta"
     },
     {
       "requirement": "Speed no byte penalty; Size separate",
