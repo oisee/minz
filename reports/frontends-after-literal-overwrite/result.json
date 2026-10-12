@@ -1,0 +1,64 @@
+{
+  "checkpoint": "95fb99ec",
+  "production_change": "5183e540",
+  "package_exit_code": 0,
+  "native_exit_code": 0,
+  "packages": [
+    {
+      "package": "github.com/minz/minzc/pkg/hir",
+      "seconds": 25.814
+    },
+    {
+      "package": "github.com/minz/minzc/pkg/nanz",
+      "seconds": 18.773
+    },
+    {
+      "package": "github.com/minz/minzc/pkg/lanz",
+      "seconds": 0.02
+    },
+    {
+      "package": "github.com/minz/minzc/pkg/lizp",
+      "seconds": 2.808
+    },
+    {
+      "package": "github.com/minz/minzc/pkg/plm",
+      "seconds": 0.063
+    },
+    {
+      "package": "github.com/minz/minzc/pkg/pascal",
+      "seconds": 0.044
+    },
+    {
+      "package": "github.com/minz/minzc/pkg/c89",
+      "seconds": 5.53
+    },
+    {
+      "package": "github.com/minz/minzc/pkg/frill",
+      "seconds": 0.185
+    },
+    {
+      "package": "github.com/minz/minzc/pkg/vir",
+      "seconds": 2.508
+    },
+    {
+      "package": "github.com/minz/minzc/pkg/z80asm",
+      "seconds": 0.142
+    },
+    {
+      "package": "github.com/minz/minzc/pkg/z80validate",
+      "seconds": 0.017
+    },
+    {
+      "package": "github.com/minz/minzc/cmd/import-enrt",
+      "seconds": 1.979
+    }
+  ],
+  "native_tests": [
+    "TestC89ControlEffectsNative (0.32s)",
+    "TestC89ExpressionEffectsNative (23.37s)",
+    "TestPLMModuleEntryNative (0.02s)",
+    "TestShowcaseLizpCryptoNativeByteModels (0.51s)",
+    "TestShowcasePascalRecordsNativeModels (0.31s)"
+  ],
+  "scope": "full named packages plus independent native cases; not a full pipeline result"
+}

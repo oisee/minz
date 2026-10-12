@@ -1,0 +1,20 @@
+=== RUN   TestC89ControlEffectsNative
+    c89_control_effects_native_test.go:262: ordinary 710 raw/final/native sequenced controls RAM/code/SP PASS
+    c89_control_effects_native_test.go:262: grace-size 710 raw/final/native sequenced controls RAM/code/SP PASS
+    c89_control_effects_native_test.go:262: grace-speed 710 raw/final/native sequenced controls RAM/code/SP PASS
+--- PASS: TestC89ControlEffectsNative (0.32s)
+=== RUN   TestC89ExpressionEffectsNative
+    c89_expression_effects_native_test.go:333: ordinary 328704 raw/final/native whole RAM SP/code ordered trace PASS
+    c89_expression_effects_native_test.go:333: grace-size 328704 raw/final/native whole RAM SP/code ordered trace PASS
+    c89_expression_effects_native_test.go:333: grace-speed 328704 raw/final/native whole RAM SP/code ordered trace PASS
+--- PASS: TestC89ExpressionEffectsNative (23.37s)
+=== RUN   TestPLMModuleEntryNative
+--- PASS: TestPLMModuleEntryNative (0.02s)
+=== RUN   TestShowcaseLizpCryptoNativeByteModels
+    showcase_algorithm_oracles_test.go:102: ORACLE examples/lizp/crypto.lizp 250 VM+Z80 byte crypto/checksum calls; unsigned wrap model PASS
+--- PASS: TestShowcaseLizpCryptoNativeByteModels (0.51s)
+=== RUN   TestShowcasePascalRecordsNativeModels
+    showcase_native_oracles_test.go:240: ORACLE examples/pascal/records.pas 16 VM+Z80 calls; record fields, independent PointSum+Manhattan modulo256 PASS
+--- PASS: TestShowcasePascalRecordsNativeModels (0.31s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	24.542s
