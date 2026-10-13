@@ -1,0 +1,15 @@
+--- before
+
++++ after
+
+@@ -174,8 +174,7 @@
+
+ ; fun word_hi(w: u16 = DE) -> u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+ ; [trace] backend=PBQP passes=[dse=1]
+ word_hi:
+-    LD H, D
+-    LD L, E
++    EX DE, HL
+     LD L, H
+     LD H, 0
+     LD A, L

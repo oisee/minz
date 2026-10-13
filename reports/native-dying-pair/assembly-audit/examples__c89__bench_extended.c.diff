@@ -1,0 +1,15 @@
+--- before
+
++++ after
+
+@@ -650,8 +650,7 @@
+
+     ADD HL, DE
+     LD D, H
+     LD E, L
+-    LD H, D
+-    LD L, E
++    EX DE, HL
+     SRA H
+     RR  L
+     SRA H
