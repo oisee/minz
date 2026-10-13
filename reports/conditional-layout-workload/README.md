@@ -87,3 +87,8 @@ result, err := pipeline.MeasureConditionalLayoutWorkload(
 Сохранены источник, workloads, выбранные ASM/BIN, журналы и полный JSON
 свидетельств (gzip). `metrics.json` даёт компактную таблицу; gzip содержит все
 кандидаты, наблюдения и привязки для разбора результата.
+
+После добавления main `0ca0479a` повторены новый API, независимый tokenizer
+с теми же heldout входами и структурные спрайты: PASS за 3,868 с. Выбранные
+ASM/BIN побайтно совпали с предыдущим замером. `main-integration.txt` содержит
+этот итог; общий fast checkpoint выше относится к базе до этого merge.

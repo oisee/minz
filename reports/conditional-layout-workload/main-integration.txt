@@ -1,0 +1,53 @@
+=== RUN   TestConditionalLayoutTokenizerHeldout
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    conditional_layout_tokenizer_test.go:89: selected2: module 4186 / 4186 B; train 334871 / 334806 T; heldout 289789 / 289732 T
+--- PASS: TestConditionalLayoutTokenizerHeldout (2.46s)
+=== RUN   TestConditionalLayoutWorkloadNativeAndArtifact
+    conditional_layout_workload_test.go:71: speed selected 2 bytes 39 T 1214
+    conditional_layout_workload_test.go:71: size selected 0 bytes 39 T 1256
+--- PASS: TestConditionalLayoutWorkloadNativeAndArtifact (0.41s)
+=== RUN   TestConditionalLayoutWorkloadRejectsDriftAndPartialResults
+=== RUN   TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/shared
+=== RUN   TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/source
+=== RUN   TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/ABI
+=== RUN   TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/late-mutation
+=== RUN   TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/late-failure
+=== RUN   TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/candidate-mutation
+=== RUN   TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/policy
+=== RUN   TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/late-policy
+--- PASS: TestConditionalLayoutWorkloadRejectsDriftAndPartialResults (0.71s)
+    --- PASS: TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/shared (0.04s)
+    --- PASS: TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/source (0.04s)
+    --- PASS: TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/ABI (0.02s)
+    --- PASS: TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/late-mutation (0.16s)
+    --- PASS: TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/late-failure (0.14s)
+    --- PASS: TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/candidate-mutation (0.16s)
+    --- PASS: TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/policy (0.00s)
+    --- PASS: TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/late-policy (0.16s)
+=== RUN   TestConditionalFunctionSpanKeepsAllReturnsAndStorage
+--- PASS: TestConditionalFunctionSpanKeepsAllReturnsAndStorage (0.00s)
+=== RUN   TestStructuredSpriteConditionalNative
+=== RUN   TestStructuredSpriteConditionalNative/gracefalse-visible0
+=== RUN   TestStructuredSpriteConditionalNative/gracefalse-visible1
+=== RUN   TestStructuredSpriteConditionalNative/gracetrue-visible0
+=== RUN   TestStructuredSpriteConditionalNative/gracetrue-visible1
+--- PASS: TestStructuredSpriteConditionalNative (0.08s)
+    --- PASS: TestStructuredSpriteConditionalNative/gracefalse-visible0 (0.02s)
+    --- PASS: TestStructuredSpriteConditionalNative/gracefalse-visible1 (0.02s)
+    --- PASS: TestStructuredSpriteConditionalNative/gracetrue-visible0 (0.02s)
+    --- PASS: TestStructuredSpriteConditionalNative/gracetrue-visible1 (0.02s)
+=== RUN   TestStructuredSpriteWhenDiagnostics
+--- PASS: TestStructuredSpriteWhenDiagnostics (0.02s)
+=== RUN   TestStructuredSpriteMatchesTextBaseline
+    structured_sprite_test.go:65: destination "linear" 24576 4 1 4; region 0 0 4 1; row "00000000" "0055aaff"; grace=false size=false: 21 -> 21 bytes; 90 -> 90 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 4 1 4; region 0 0 4 1; row "00000000" "0055aaff"; grace=true size=false: 21 -> 21 bytes; 90 -> 90 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 4 1 4; region 0 0 4 1; row "00000000" "0055aaff"; grace=true size=true: 21 -> 21 bytes; 90 -> 90 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 6 1 6; region 0 0 6 1; row "fff00faa5500" "00050340aaff"; grace=false size=false: 46 -> 46 bytes; 198 -> 198 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 6 1 6; region 0 0 6 1; row "fff00faa5500" "00050340aaff"; grace=true size=false: 46 -> 46 bytes; 198 -> 198 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 6 1 6; region 0 0 6 1; row "fff00faa5500" "00050340aaff"; grace=true size=true: 46 -> 46 bytes; 198 -> 198 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "zx_bitmap_bytes" 16384; region 2 7 4 2; row "00ff55aa" "12340011"; row "f00f0000" "0521abcd"; grace=false size=false: 64 -> 64 bytes; 273 -> 273 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "zx_bitmap_bytes" 16384; region 2 7 4 2; row "00ff55aa" "12340011"; row "f00f0000" "0521abcd"; grace=true size=false: 64 -> 64 bytes; 273 -> 273 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "zx_bitmap_bytes" 16384; region 2 7 4 2; row "00ff55aa" "12340011"; row "f00f0000" "0521abcd"; grace=true size=true: 64 -> 64 bytes; 273 -> 273 T-states; identical ASM=true
+--- PASS: TestStructuredSpriteMatchesTextBaseline (0.16s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.868s
