@@ -1,0 +1,785 @@
+=== RUN   TestLiteralStorePointerReuseBoundaries
+--- PASS: TestLiteralStorePointerReuseBoundaries (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	0.015s
+=== RUN   TestHardwareSpriteChainMeasuredCost
+=== RUN   TestHardwareSpriteChainMeasuredCost/4/pointer/ordinary
+    hardware_sprite_chain_cost_test.go:125: width4 pointer ordinary position(4,56): move=3884 draw=602 total=4486 module=867
+    hardware_sprite_chain_cost_test.go:125: width4 pointer ordinary position(9,63): move=3884 draw=602 total=4486 module=867
+    hardware_sprite_chain_cost_test.go:125: width4 pointer ordinary position(16,128): move=3884 draw=602 total=4486 module=867
+=== RUN   TestHardwareSpriteChainMeasuredCost/4/pointer/grace-size
+    hardware_sprite_chain_cost_test.go:125: width4 pointer grace-size position(4,56): move=3884 draw=602 total=4486 module=867
+    hardware_sprite_chain_cost_test.go:125: width4 pointer grace-size position(9,63): move=3884 draw=602 total=4486 module=867
+    hardware_sprite_chain_cost_test.go:125: width4 pointer grace-size position(16,128): move=3884 draw=602 total=4486 module=867
+=== RUN   TestHardwareSpriteChainMeasuredCost/4/pointer/grace-speed
+    hardware_sprite_chain_cost_test.go:125: width4 pointer grace-speed position(4,56): move=3884 draw=602 total=4486 module=867
+    hardware_sprite_chain_cost_test.go:125: width4 pointer grace-speed position(9,63): move=3884 draw=602 total=4486 module=867
+    hardware_sprite_chain_cost_test.go:125: width4 pointer grace-speed position(16,128): move=3884 draw=602 total=4486 module=867
+=== RUN   TestHardwareSpriteChainMeasuredCost/4/compiled/ordinary
+    hardware_sprite_chain_cost_test.go:125: width4 compiled ordinary position(4,56): move=3859 draw=728 total=4587 module=945
+    hardware_sprite_chain_cost_test.go:125: width4 compiled ordinary position(9,63): move=3859 draw=728 total=4587 module=945
+    hardware_sprite_chain_cost_test.go:125: width4 compiled ordinary position(16,128): move=3859 draw=728 total=4587 module=945
+=== RUN   TestHardwareSpriteChainMeasuredCost/4/compiled/grace-size
+    hardware_sprite_chain_cost_test.go:125: width4 compiled grace-size position(4,56): move=3859 draw=728 total=4587 module=945
+    hardware_sprite_chain_cost_test.go:125: width4 compiled grace-size position(9,63): move=3859 draw=728 total=4587 module=945
+    hardware_sprite_chain_cost_test.go:125: width4 compiled grace-size position(16,128): move=3859 draw=728 total=4587 module=945
+=== RUN   TestHardwareSpriteChainMeasuredCost/4/compiled/grace-speed
+    hardware_sprite_chain_cost_test.go:125: width4 compiled grace-speed position(4,56): move=3859 draw=728 total=4587 module=945
+    hardware_sprite_chain_cost_test.go:125: width4 compiled grace-speed position(9,63): move=3859 draw=728 total=4587 module=945
+    hardware_sprite_chain_cost_test.go:125: width4 compiled grace-speed position(16,128): move=3859 draw=728 total=4587 module=945
+=== RUN   TestHardwareSpriteChainMeasuredCost/4/push/ordinary
+    hardware_sprite_chain_cost_test.go:125: width4 push ordinary position(4,56): move=4091 draw=630 total=4721 module=976
+    hardware_sprite_chain_cost_test.go:125: width4 push ordinary position(9,63): move=4091 draw=630 total=4721 module=976
+    hardware_sprite_chain_cost_test.go:125: width4 push ordinary position(16,128): move=4091 draw=630 total=4721 module=976
+=== RUN   TestHardwareSpriteChainMeasuredCost/4/push/grace-size
+    hardware_sprite_chain_cost_test.go:125: width4 push grace-size position(4,56): move=4091 draw=630 total=4721 module=976
+    hardware_sprite_chain_cost_test.go:125: width4 push grace-size position(9,63): move=4091 draw=630 total=4721 module=976
+    hardware_sprite_chain_cost_test.go:125: width4 push grace-size position(16,128): move=4091 draw=630 total=4721 module=976
+=== RUN   TestHardwareSpriteChainMeasuredCost/4/push/grace-speed
+    hardware_sprite_chain_cost_test.go:125: width4 push grace-speed position(4,56): move=4091 draw=630 total=4721 module=976
+    hardware_sprite_chain_cost_test.go:125: width4 push grace-speed position(9,63): move=4091 draw=630 total=4721 module=976
+    hardware_sprite_chain_cost_test.go:125: width4 push grace-speed position(16,128): move=4091 draw=630 total=4721 module=976
+=== RUN   TestHardwareSpriteChainMeasuredCost/8/pointer/ordinary
+    hardware_sprite_chain_cost_test.go:125: width8 pointer ordinary position(4,56): move=3884 draw=1114 total=4998 module=963
+    hardware_sprite_chain_cost_test.go:125: width8 pointer ordinary position(9,63): move=3884 draw=1114 total=4998 module=963
+    hardware_sprite_chain_cost_test.go:125: width8 pointer ordinary position(16,128): move=3884 draw=1114 total=4998 module=963
+=== RUN   TestHardwareSpriteChainMeasuredCost/8/pointer/grace-size
+    hardware_sprite_chain_cost_test.go:125: width8 pointer grace-size position(4,56): move=3884 draw=1114 total=4998 module=963
+    hardware_sprite_chain_cost_test.go:125: width8 pointer grace-size position(9,63): move=3884 draw=1114 total=4998 module=963
+    hardware_sprite_chain_cost_test.go:125: width8 pointer grace-size position(16,128): move=3884 draw=1114 total=4998 module=963
+=== RUN   TestHardwareSpriteChainMeasuredCost/8/pointer/grace-speed
+    hardware_sprite_chain_cost_test.go:125: width8 pointer grace-speed position(4,56): move=3884 draw=1114 total=4998 module=963
+    hardware_sprite_chain_cost_test.go:125: width8 pointer grace-speed position(9,63): move=3884 draw=1114 total=4998 module=963
+    hardware_sprite_chain_cost_test.go:125: width8 pointer grace-speed position(16,128): move=3884 draw=1114 total=4998 module=963
+=== RUN   TestHardwareSpriteChainMeasuredCost/8/compiled/ordinary
+    hardware_sprite_chain_cost_test.go:125: width8 compiled ordinary position(4,56): move=3859 draw=1240 total=5099 module=1041
+    hardware_sprite_chain_cost_test.go:125: width8 compiled ordinary position(9,63): move=3859 draw=1240 total=5099 module=1041
+    hardware_sprite_chain_cost_test.go:125: width8 compiled ordinary position(16,128): move=3859 draw=1240 total=5099 module=1041
+=== RUN   TestHardwareSpriteChainMeasuredCost/8/compiled/grace-size
+    hardware_sprite_chain_cost_test.go:125: width8 compiled grace-size position(4,56): move=3859 draw=1240 total=5099 module=1041
+    hardware_sprite_chain_cost_test.go:125: width8 compiled grace-size position(9,63): move=3859 draw=1240 total=5099 module=1041
+    hardware_sprite_chain_cost_test.go:125: width8 compiled grace-size position(16,128): move=3859 draw=1240 total=5099 module=1041
+=== RUN   TestHardwareSpriteChainMeasuredCost/8/compiled/grace-speed
+    hardware_sprite_chain_cost_test.go:125: width8 compiled grace-speed position(4,56): move=3859 draw=1240 total=5099 module=1041
+    hardware_sprite_chain_cost_test.go:125: width8 compiled grace-speed position(9,63): move=3859 draw=1240 total=5099 module=1041
+    hardware_sprite_chain_cost_test.go:125: width8 compiled grace-speed position(16,128): move=3859 draw=1240 total=5099 module=1041
+=== RUN   TestHardwareSpriteChainMeasuredCost/8/push/ordinary
+    hardware_sprite_chain_cost_test.go:125: width8 push ordinary position(4,56): move=4091 draw=966 total=5057 module=1040
+    hardware_sprite_chain_cost_test.go:125: width8 push ordinary position(9,63): move=4091 draw=966 total=5057 module=1040
+    hardware_sprite_chain_cost_test.go:125: width8 push ordinary position(16,128): move=4091 draw=966 total=5057 module=1040
+=== RUN   TestHardwareSpriteChainMeasuredCost/8/push/grace-size
+    hardware_sprite_chain_cost_test.go:125: width8 push grace-size position(4,56): move=4091 draw=966 total=5057 module=1040
+    hardware_sprite_chain_cost_test.go:125: width8 push grace-size position(9,63): move=4091 draw=966 total=5057 module=1040
+    hardware_sprite_chain_cost_test.go:125: width8 push grace-size position(16,128): move=4091 draw=966 total=5057 module=1040
+=== RUN   TestHardwareSpriteChainMeasuredCost/8/push/grace-speed
+    hardware_sprite_chain_cost_test.go:125: width8 push grace-speed position(4,56): move=4091 draw=966 total=5057 module=1040
+    hardware_sprite_chain_cost_test.go:125: width8 push grace-speed position(9,63): move=4091 draw=966 total=5057 module=1040
+    hardware_sprite_chain_cost_test.go:125: width8 push grace-speed position(16,128): move=4091 draw=966 total=5057 module=1040
+=== RUN   TestHardwareSpriteChainMeasuredCost/16/pointer/ordinary
+    hardware_sprite_chain_cost_test.go:125: width16 pointer ordinary position(4,56): move=3884 draw=2138 total=6022 module=1155
+    hardware_sprite_chain_cost_test.go:125: width16 pointer ordinary position(9,63): move=3884 draw=2138 total=6022 module=1155
+    hardware_sprite_chain_cost_test.go:125: width16 pointer ordinary position(16,128): move=3884 draw=2138 total=6022 module=1155
+=== RUN   TestHardwareSpriteChainMeasuredCost/16/pointer/grace-size
+    hardware_sprite_chain_cost_test.go:125: width16 pointer grace-size position(4,56): move=3884 draw=2138 total=6022 module=1155
+    hardware_sprite_chain_cost_test.go:125: width16 pointer grace-size position(9,63): move=3884 draw=2138 total=6022 module=1155
+    hardware_sprite_chain_cost_test.go:125: width16 pointer grace-size position(16,128): move=3884 draw=2138 total=6022 module=1155
+=== RUN   TestHardwareSpriteChainMeasuredCost/16/pointer/grace-speed
+    hardware_sprite_chain_cost_test.go:125: width16 pointer grace-speed position(4,56): move=3884 draw=2138 total=6022 module=1155
+    hardware_sprite_chain_cost_test.go:125: width16 pointer grace-speed position(9,63): move=3884 draw=2138 total=6022 module=1155
+    hardware_sprite_chain_cost_test.go:125: width16 pointer grace-speed position(16,128): move=3884 draw=2138 total=6022 module=1155
+=== RUN   TestHardwareSpriteChainMeasuredCost/16/compiled/ordinary
+    hardware_sprite_chain_cost_test.go:125: width16 compiled ordinary position(4,56): move=3859 draw=2264 total=6123 module=1233
+    hardware_sprite_chain_cost_test.go:125: width16 compiled ordinary position(9,63): move=3859 draw=2264 total=6123 module=1233
+    hardware_sprite_chain_cost_test.go:125: width16 compiled ordinary position(16,128): move=3859 draw=2264 total=6123 module=1233
+=== RUN   TestHardwareSpriteChainMeasuredCost/16/compiled/grace-size
+    hardware_sprite_chain_cost_test.go:125: width16 compiled grace-size position(4,56): move=3859 draw=2264 total=6123 module=1233
+    hardware_sprite_chain_cost_test.go:125: width16 compiled grace-size position(9,63): move=3859 draw=2264 total=6123 module=1233
+    hardware_sprite_chain_cost_test.go:125: width16 compiled grace-size position(16,128): move=3859 draw=2264 total=6123 module=1233
+=== RUN   TestHardwareSpriteChainMeasuredCost/16/compiled/grace-speed
+    hardware_sprite_chain_cost_test.go:125: width16 compiled grace-speed position(4,56): move=3859 draw=2264 total=6123 module=1233
+    hardware_sprite_chain_cost_test.go:125: width16 compiled grace-speed position(9,63): move=3859 draw=2264 total=6123 module=1233
+    hardware_sprite_chain_cost_test.go:125: width16 compiled grace-speed position(16,128): move=3859 draw=2264 total=6123 module=1233
+=== RUN   TestHardwareSpriteChainMeasuredCost/16/push/ordinary
+    hardware_sprite_chain_cost_test.go:125: width16 push ordinary position(4,56): move=4091 draw=1638 total=5729 module=1168
+    hardware_sprite_chain_cost_test.go:125: width16 push ordinary position(9,63): move=4091 draw=1638 total=5729 module=1168
+    hardware_sprite_chain_cost_test.go:125: width16 push ordinary position(16,128): move=4091 draw=1638 total=5729 module=1168
+=== RUN   TestHardwareSpriteChainMeasuredCost/16/push/grace-size
+    hardware_sprite_chain_cost_test.go:125: width16 push grace-size position(4,56): move=4091 draw=1638 total=5729 module=1168
+    hardware_sprite_chain_cost_test.go:125: width16 push grace-size position(9,63): move=4091 draw=1638 total=5729 module=1168
+    hardware_sprite_chain_cost_test.go:125: width16 push grace-size position(16,128): move=4091 draw=1638 total=5729 module=1168
+=== RUN   TestHardwareSpriteChainMeasuredCost/16/push/grace-speed
+    hardware_sprite_chain_cost_test.go:125: width16 push grace-speed position(4,56): move=4091 draw=1638 total=5729 module=1168
+    hardware_sprite_chain_cost_test.go:125: width16 push grace-speed position(9,63): move=4091 draw=1638 total=5729 module=1168
+    hardware_sprite_chain_cost_test.go:125: width16 push grace-speed position(16,128): move=4091 draw=1638 total=5729 module=1168
+--- PASS: TestHardwareSpriteChainMeasuredCost (2.28s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/4/pointer/ordinary (0.07s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/4/pointer/grace-size (0.07s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/4/pointer/grace-speed (0.07s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/4/compiled/ordinary (0.07s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/4/compiled/grace-size (0.07s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/4/compiled/grace-speed (0.07s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/4/push/ordinary (0.07s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/4/push/grace-size (0.08s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/4/push/grace-speed (0.07s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/8/pointer/ordinary (0.08s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/8/pointer/grace-size (0.08s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/8/pointer/grace-speed (0.08s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/8/compiled/ordinary (0.08s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/8/compiled/grace-size (0.08s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/8/compiled/grace-speed (0.08s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/8/push/ordinary (0.08s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/8/push/grace-size (0.08s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/8/push/grace-speed (0.08s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/16/pointer/ordinary (0.11s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/16/pointer/grace-size (0.12s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/16/pointer/grace-speed (0.12s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/16/compiled/ordinary (0.10s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/16/compiled/grace-size (0.10s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/16/compiled/grace-speed (0.10s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/16/push/ordinary (0.09s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/16/push/grace-size (0.09s)
+    --- PASS: TestHardwareSpriteChainMeasuredCost/16/push/grace-speed (0.09s)
+=== RUN   TestHardwareSpriteChainFullMachine
+=== RUN   TestHardwareSpriteChainFullMachine/ordinary/compiled
+    hardware_sprite_chain_machine_test.go:188: ordinary compiled 64 independent screens, 189 ROM IRQ, 192 video frames, PC/SP preserved
+=== RUN   TestHardwareSpriteChainFullMachine/ordinary/push
+    hardware_sprite_chain_machine_test.go:188: ordinary push 64 independent screens, 189 ROM IRQ, 192 video frames, PC/SP preserved
+=== RUN   TestHardwareSpriteChainFullMachine/grace-size/compiled
+    hardware_sprite_chain_machine_test.go:188: grace-size compiled 64 independent screens, 189 ROM IRQ, 192 video frames, PC/SP preserved
+=== RUN   TestHardwareSpriteChainFullMachine/grace-size/push
+    hardware_sprite_chain_machine_test.go:188: grace-size push 64 independent screens, 189 ROM IRQ, 192 video frames, PC/SP preserved
+=== RUN   TestHardwareSpriteChainFullMachine/grace-speed/compiled
+    hardware_sprite_chain_machine_test.go:188: grace-speed compiled 64 independent screens, 189 ROM IRQ, 192 video frames, PC/SP preserved
+=== RUN   TestHardwareSpriteChainFullMachine/grace-speed/push
+    hardware_sprite_chain_machine_test.go:188: grace-speed push 64 independent screens, 189 ROM IRQ, 192 video frames, PC/SP preserved
+--- PASS: TestHardwareSpriteChainFullMachine (2.45s)
+    --- PASS: TestHardwareSpriteChainFullMachine/ordinary/compiled (0.40s)
+    --- PASS: TestHardwareSpriteChainFullMachine/ordinary/push (0.42s)
+    --- PASS: TestHardwareSpriteChainFullMachine/grace-size/compiled (0.41s)
+    --- PASS: TestHardwareSpriteChainFullMachine/grace-size/push (0.41s)
+    --- PASS: TestHardwareSpriteChainFullMachine/grace-speed/compiled (0.41s)
+    --- PASS: TestHardwareSpriteChainFullMachine/grace-speed/push (0.40s)
+=== RUN   TestHardwareSpriteChainCompile
+=== RUN   TestHardwareSpriteChainCompile/compiled
+=== RUN   TestHardwareSpriteChainCompile/push
+--- PASS: TestHardwareSpriteChainCompile (0.03s)
+    --- PASS: TestHardwareSpriteChainCompile/compiled (0.01s)
+    --- PASS: TestHardwareSpriteChainCompile/push (0.01s)
+=== RUN   TestHardwareSpriteChainNative
+=== RUN   TestHardwareSpriteChainNative/compiled/ordinary
+    hardware_sprite_chain_test.go:201: position=0 order=[0 1 2] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=0 order=[2 1 0] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=0 order=[1 2 0] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=0 order=[0 2] module=111 patch=156T draw=260T total=416T
+    hardware_sprite_chain_test.go:201: position=0 order=[2] module=111 patch=130T draw=182T total=312T
+    hardware_sprite_chain_test.go:201: position=0 order=[] module=111 patch=104T draw=104T total=208T
+    hardware_sprite_chain_test.go:201: position=1 order=[0 1 2] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=1 order=[2 1 0] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=1 order=[1 2 0] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=1 order=[0 2] module=111 patch=156T draw=260T total=416T
+    hardware_sprite_chain_test.go:201: position=1 order=[2] module=111 patch=130T draw=182T total=312T
+    hardware_sprite_chain_test.go:201: position=1 order=[] module=111 patch=104T draw=104T total=208T
+    hardware_sprite_chain_test.go:201: position=2 order=[0 1 2] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=2 order=[2 1 0] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=2 order=[1 2 0] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=2 order=[0 2] module=111 patch=156T draw=260T total=416T
+    hardware_sprite_chain_test.go:201: position=2 order=[2] module=111 patch=130T draw=182T total=312T
+    hardware_sprite_chain_test.go:201: position=2 order=[] module=111 patch=104T draw=104T total=208T
+=== RUN   TestHardwareSpriteChainNative/compiled/grace-size
+    hardware_sprite_chain_test.go:201: position=0 order=[0 1 2] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=0 order=[2 1 0] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=0 order=[1 2 0] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=0 order=[0 2] module=111 patch=156T draw=260T total=416T
+    hardware_sprite_chain_test.go:201: position=0 order=[2] module=111 patch=130T draw=182T total=312T
+    hardware_sprite_chain_test.go:201: position=0 order=[] module=111 patch=104T draw=104T total=208T
+    hardware_sprite_chain_test.go:201: position=1 order=[0 1 2] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=1 order=[2 1 0] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=1 order=[1 2 0] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=1 order=[0 2] module=111 patch=156T draw=260T total=416T
+    hardware_sprite_chain_test.go:201: position=1 order=[2] module=111 patch=130T draw=182T total=312T
+    hardware_sprite_chain_test.go:201: position=1 order=[] module=111 patch=104T draw=104T total=208T
+    hardware_sprite_chain_test.go:201: position=2 order=[0 1 2] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=2 order=[2 1 0] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=2 order=[1 2 0] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=2 order=[0 2] module=111 patch=156T draw=260T total=416T
+    hardware_sprite_chain_test.go:201: position=2 order=[2] module=111 patch=130T draw=182T total=312T
+    hardware_sprite_chain_test.go:201: position=2 order=[] module=111 patch=104T draw=104T total=208T
+=== RUN   TestHardwareSpriteChainNative/compiled/grace-speed
+    hardware_sprite_chain_test.go:201: position=0 order=[0 1 2] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=0 order=[2 1 0] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=0 order=[1 2 0] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=0 order=[0 2] module=111 patch=156T draw=260T total=416T
+    hardware_sprite_chain_test.go:201: position=0 order=[2] module=111 patch=130T draw=182T total=312T
+    hardware_sprite_chain_test.go:201: position=0 order=[] module=111 patch=104T draw=104T total=208T
+    hardware_sprite_chain_test.go:201: position=1 order=[0 1 2] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=1 order=[2 1 0] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=1 order=[1 2 0] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=1 order=[0 2] module=111 patch=156T draw=260T total=416T
+    hardware_sprite_chain_test.go:201: position=1 order=[2] module=111 patch=130T draw=182T total=312T
+    hardware_sprite_chain_test.go:201: position=1 order=[] module=111 patch=104T draw=104T total=208T
+    hardware_sprite_chain_test.go:201: position=2 order=[0 1 2] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=2 order=[2 1 0] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=2 order=[1 2 0] module=111 patch=182T draw=338T total=520T
+    hardware_sprite_chain_test.go:201: position=2 order=[0 2] module=111 patch=156T draw=260T total=416T
+    hardware_sprite_chain_test.go:201: position=2 order=[2] module=111 patch=130T draw=182T total=312T
+    hardware_sprite_chain_test.go:201: position=2 order=[] module=111 patch=104T draw=104T total=208T
+=== RUN   TestHardwareSpriteChainNative/push/ordinary
+    hardware_sprite_chain_test.go:201: position=0 order=[0 1 2] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=0 order=[2 1 0] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=0 order=[1 2 0] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=0 order=[0 2] module=109 patch=156T draw=258T total=414T
+    hardware_sprite_chain_test.go:201: position=0 order=[2] module=109 patch=130T draw=196T total=326T
+    hardware_sprite_chain_test.go:201: position=0 order=[] module=109 patch=104T draw=134T total=238T
+    hardware_sprite_chain_test.go:201: position=1 order=[0 1 2] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=1 order=[2 1 0] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=1 order=[1 2 0] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=1 order=[0 2] module=109 patch=156T draw=258T total=414T
+    hardware_sprite_chain_test.go:201: position=1 order=[2] module=109 patch=130T draw=196T total=326T
+    hardware_sprite_chain_test.go:201: position=1 order=[] module=109 patch=104T draw=134T total=238T
+    hardware_sprite_chain_test.go:201: position=2 order=[0 1 2] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=2 order=[2 1 0] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=2 order=[1 2 0] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=2 order=[0 2] module=109 patch=156T draw=258T total=414T
+    hardware_sprite_chain_test.go:201: position=2 order=[2] module=109 patch=130T draw=196T total=326T
+    hardware_sprite_chain_test.go:201: position=2 order=[] module=109 patch=104T draw=134T total=238T
+=== RUN   TestHardwareSpriteChainNative/push/grace-size
+    hardware_sprite_chain_test.go:201: position=0 order=[0 1 2] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=0 order=[2 1 0] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=0 order=[1 2 0] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=0 order=[0 2] module=109 patch=156T draw=258T total=414T
+    hardware_sprite_chain_test.go:201: position=0 order=[2] module=109 patch=130T draw=196T total=326T
+    hardware_sprite_chain_test.go:201: position=0 order=[] module=109 patch=104T draw=134T total=238T
+    hardware_sprite_chain_test.go:201: position=1 order=[0 1 2] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=1 order=[2 1 0] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=1 order=[1 2 0] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=1 order=[0 2] module=109 patch=156T draw=258T total=414T
+    hardware_sprite_chain_test.go:201: position=1 order=[2] module=109 patch=130T draw=196T total=326T
+    hardware_sprite_chain_test.go:201: position=1 order=[] module=109 patch=104T draw=134T total=238T
+    hardware_sprite_chain_test.go:201: position=2 order=[0 1 2] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=2 order=[2 1 0] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=2 order=[1 2 0] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=2 order=[0 2] module=109 patch=156T draw=258T total=414T
+    hardware_sprite_chain_test.go:201: position=2 order=[2] module=109 patch=130T draw=196T total=326T
+    hardware_sprite_chain_test.go:201: position=2 order=[] module=109 patch=104T draw=134T total=238T
+=== RUN   TestHardwareSpriteChainNative/push/grace-speed
+    hardware_sprite_chain_test.go:201: position=0 order=[0 1 2] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=0 order=[2 1 0] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=0 order=[1 2 0] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=0 order=[0 2] module=109 patch=156T draw=258T total=414T
+    hardware_sprite_chain_test.go:201: position=0 order=[2] module=109 patch=130T draw=196T total=326T
+    hardware_sprite_chain_test.go:201: position=0 order=[] module=109 patch=104T draw=134T total=238T
+    hardware_sprite_chain_test.go:201: position=1 order=[0 1 2] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=1 order=[2 1 0] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=1 order=[1 2 0] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=1 order=[0 2] module=109 patch=156T draw=258T total=414T
+    hardware_sprite_chain_test.go:201: position=1 order=[2] module=109 patch=130T draw=196T total=326T
+    hardware_sprite_chain_test.go:201: position=1 order=[] module=109 patch=104T draw=134T total=238T
+    hardware_sprite_chain_test.go:201: position=2 order=[0 1 2] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=2 order=[2 1 0] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=2 order=[1 2 0] module=109 patch=182T draw=320T total=502T
+    hardware_sprite_chain_test.go:201: position=2 order=[0 2] module=109 patch=156T draw=258T total=414T
+    hardware_sprite_chain_test.go:201: position=2 order=[2] module=109 patch=130T draw=196T total=326T
+    hardware_sprite_chain_test.go:201: position=2 order=[] module=109 patch=104T draw=134T total=238T
+--- PASS: TestHardwareSpriteChainNative (0.19s)
+    --- PASS: TestHardwareSpriteChainNative/compiled/ordinary (0.02s)
+    --- PASS: TestHardwareSpriteChainNative/compiled/grace-size (0.02s)
+    --- PASS: TestHardwareSpriteChainNative/compiled/grace-speed (0.02s)
+    --- PASS: TestHardwareSpriteChainNative/push/ordinary (0.04s)
+    --- PASS: TestHardwareSpriteChainNative/push/grace-size (0.05s)
+    --- PASS: TestHardwareSpriteChainNative/push/grace-speed (0.05s)
+=== RUN   TestHardwareSpriteChainRejectsInvalidDescriptions
+=== RUN   TestHardwareSpriteChainRejectsInvalidDescriptions/bad-hex
+=== RUN   TestHardwareSpriteChainRejectsInvalidDescriptions/row-length
+=== RUN   TestHardwareSpriteChainRejectsInvalidDescriptions/address-overflow
+=== RUN   TestHardwareSpriteChainRejectsInvalidDescriptions/bounds
+=== RUN   TestHardwareSpriteChainRejectsInvalidDescriptions/duplicate-region
+=== RUN   TestHardwareSpriteChainRejectsInvalidDescriptions/missing-destination
+=== RUN   TestHardwareSpriteChainRejectsInvalidDescriptions/irq-missing
+=== RUN   TestHardwareSpriteChainRejectsInvalidDescriptions/irq-duplicate
+=== RUN   TestHardwareSpriteChainRejectsInvalidDescriptions/odd-width
+=== RUN   TestHardwareSpriteChainRejectsInvalidDescriptions/unknown-via
+=== RUN   TestHardwareSpriteChainRejectsInvalidDescriptions/irq-enabled
+=== RUN   TestHardwareSpriteChainRejectsInvalidDescriptions/masked-push
+--- PASS: TestHardwareSpriteChainRejectsInvalidDescriptions (0.09s)
+    --- PASS: TestHardwareSpriteChainRejectsInvalidDescriptions/bad-hex (0.01s)
+    --- PASS: TestHardwareSpriteChainRejectsInvalidDescriptions/row-length (0.01s)
+    --- PASS: TestHardwareSpriteChainRejectsInvalidDescriptions/address-overflow (0.00s)
+    --- PASS: TestHardwareSpriteChainRejectsInvalidDescriptions/bounds (0.01s)
+    --- PASS: TestHardwareSpriteChainRejectsInvalidDescriptions/duplicate-region (0.01s)
+    --- PASS: TestHardwareSpriteChainRejectsInvalidDescriptions/missing-destination (0.00s)
+    --- PASS: TestHardwareSpriteChainRejectsInvalidDescriptions/irq-missing (0.01s)
+    --- PASS: TestHardwareSpriteChainRejectsInvalidDescriptions/irq-duplicate (0.01s)
+    --- PASS: TestHardwareSpriteChainRejectsInvalidDescriptions/odd-width (0.01s)
+    --- PASS: TestHardwareSpriteChainRejectsInvalidDescriptions/unknown-via (0.01s)
+    --- PASS: TestHardwareSpriteChainRejectsInvalidDescriptions/irq-enabled (0.00s)
+    --- PASS: TestHardwareSpriteChainRejectsInvalidDescriptions/masked-push (0.01s)
+=== RUN   TestHardwareSpriteChainMaskedNative
+=== RUN   TestHardwareSpriteChainMaskedNative/ordinary
+=== RUN   TestHardwareSpriteChainMaskedNative/grace-size
+=== RUN   TestHardwareSpriteChainMaskedNative/grace-speed
+--- PASS: TestHardwareSpriteChainMaskedNative (0.16s)
+    --- PASS: TestHardwareSpriteChainMaskedNative/ordinary (0.05s)
+    --- PASS: TestHardwareSpriteChainMaskedNative/grace-size (0.05s)
+    --- PASS: TestHardwareSpriteChainMaskedNative/grace-speed (0.05s)
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/transparent
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/transparent/ordinary
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/transparent/grace-size
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/transparent/grace-speed
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/opaque
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/opaque/ordinary
+    hardware_sprite_test.go:242: seed 19: 21 bytes, 90 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 21 bytes, 90 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/opaque/grace-size
+    hardware_sprite_test.go:242: seed 19: 21 bytes, 90 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 21 bytes, 90 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/opaque/grace-speed
+    hardware_sprite_test.go:242: seed 19: 21 bytes, 90 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 21 bytes, 90 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/mixed
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/mixed/ordinary
+    hardware_sprite_test.go:242: seed 19: 46 bytes, 198 T-states; 6 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 46 bytes, 198 T-states; 6 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/mixed/grace-size
+    hardware_sprite_test.go:242: seed 19: 46 bytes, 198 T-states; 6 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 46 bytes, 198 T-states; 6 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/mixed/grace-speed
+    hardware_sprite_test.go:242: seed 19: 46 bytes, 198 T-states; 6 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 46 bytes, 198 T-states; 6 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/overlapping-mask-graphics
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/overlapping-mask-graphics/ordinary
+    hardware_sprite_test.go:242: seed 19: 41 bytes, 178 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 41 bytes, 178 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/overlapping-mask-graphics/grace-size
+    hardware_sprite_test.go:242: seed 19: 41 bytes, 178 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 41 bytes, 178 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/overlapping-mask-graphics/grace-speed
+    hardware_sprite_test.go:242: seed 19: 41 bytes, 178 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 41 bytes, 178 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/strided
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/strided/ordinary
+    hardware_sprite_test.go:242: seed 19: 74 bytes, 313 T-states; 12 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 74 bytes, 313 T-states; 12 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/strided/grace-size
+    hardware_sprite_test.go:242: seed 19: 74 bytes, 313 T-states; 12 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 74 bytes, 313 T-states; 12 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/strided/grace-speed
+    hardware_sprite_test.go:242: seed 19: 74 bytes, 313 T-states; 12 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 74 bytes, 313 T-states; 12 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/page-crossing
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/page-crossing/ordinary
+    hardware_sprite_test.go:242: seed 19: 16 bytes, 72 T-states; 3 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 16 bytes, 72 T-states; 3 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/page-crossing/grace-size
+    hardware_sprite_test.go:242: seed 19: 16 bytes, 72 T-states; 3 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 16 bytes, 72 T-states; 3 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/page-crossing/grace-speed
+    hardware_sprite_test.go:242: seed 19: 16 bytes, 72 T-states; 3 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 16 bytes, 72 T-states; 3 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/last-byte
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/last-byte/ordinary
+    hardware_sprite_test.go:242: seed 19: 21 bytes, 92 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 21 bytes, 92 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/last-byte/grace-size
+    hardware_sprite_test.go:242: seed 19: 21 bytes, 92 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 21 bytes, 92 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/last-byte/grace-speed
+    hardware_sprite_test.go:242: seed 19: 21 bytes, 92 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 21 bytes, 92 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zero-width
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zero-width/ordinary
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zero-width/grace-size
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zero-width/grace-speed
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zero-height
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zero-height/ordinary
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zero-height/grace-size
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zero-height/grace-speed
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-row-7-8
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-row-7-8/ordinary
+    hardware_sprite_test.go:242: seed 19: 64 bytes, 273 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 64 bytes, 273 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-row-7-8/grace-size
+    hardware_sprite_test.go:242: seed 19: 64 bytes, 273 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 64 bytes, 273 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-row-7-8/grace-speed
+    hardware_sprite_test.go:242: seed 19: 64 bytes, 273 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 64 bytes, 273 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-row-63-64
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-row-63-64/ordinary
+    hardware_sprite_test.go:242: seed 19: 64 bytes, 273 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 64 bytes, 273 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-row-63-64/grace-size
+    hardware_sprite_test.go:242: seed 19: 64 bytes, 273 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 64 bytes, 273 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-row-63-64/grace-speed
+    hardware_sprite_test.go:242: seed 19: 64 bytes, 273 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 64 bytes, 273 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-last-row
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-last-row/ordinary
+    hardware_sprite_test.go:242: seed 19: 16 bytes, 72 T-states; 2 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 16 bytes, 72 T-states; 2 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-last-row/grace-size
+    hardware_sprite_test.go:242: seed 19: 16 bytes, 72 T-states; 2 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 16 bytes, 72 T-states; 2 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-last-row/grace-speed
+    hardware_sprite_test.go:242: seed 19: 16 bytes, 72 T-states; 2 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 16 bytes, 72 T-states; 2 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/default-via
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/default-via/ordinary
+    hardware_sprite_test.go:242: seed 19: 6 bytes, 30 T-states; 2 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 6 bytes, 30 T-states; 2 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/default-via/grace-size
+    hardware_sprite_test.go:242: seed 19: 6 bytes, 30 T-states; 2 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 6 bytes, 30 T-states; 2 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/default-via/grace-speed
+    hardware_sprite_test.go:242: seed 19: 6 bytes, 30 T-states; 2 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 6 bytes, 30 T-states; 2 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/patterned-128x16
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/patterned-128x16/ordinary
+    hardware_sprite_test.go:242: seed 19: 1601 bytes, 6666 T-states; 256 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1601 bytes, 6666 T-states; 256 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/patterned-128x16/grace-size
+    hardware_sprite_test.go:242: seed 19: 1601 bytes, 6666 T-states; 256 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1601 bytes, 6666 T-states; 256 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/patterned-128x16/grace-speed
+    hardware_sprite_test.go:242: seed 19: 1601 bytes, 6666 T-states; 256 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1601 bytes, 6666 T-states; 256 sprite bytes
+--- PASS: TestHardwareSpritePointerMemoryNativeAndVM (1.59s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/transparent (0.05s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/transparent/ordinary (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/transparent/grace-size (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/transparent/grace-speed (0.02s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/opaque (0.06s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/opaque/ordinary (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/opaque/grace-size (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/opaque/grace-speed (0.02s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/mixed (0.07s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/mixed/ordinary (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/mixed/grace-size (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/mixed/grace-speed (0.02s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/overlapping-mask-graphics (0.06s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/overlapping-mask-graphics/ordinary (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/overlapping-mask-graphics/grace-size (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/overlapping-mask-graphics/grace-speed (0.02s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/strided (0.08s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/strided/ordinary (0.03s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/strided/grace-size (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/strided/grace-speed (0.03s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/page-crossing (0.05s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/page-crossing/ordinary (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/page-crossing/grace-size (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/page-crossing/grace-speed (0.02s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/last-byte (0.06s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/last-byte/ordinary (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/last-byte/grace-size (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/last-byte/grace-speed (0.02s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zero-width (0.04s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zero-width/ordinary (0.01s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zero-width/grace-size (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zero-width/grace-speed (0.01s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zero-height (0.05s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zero-height/ordinary (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zero-height/grace-size (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zero-height/grace-speed (0.02s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-row-7-8 (0.07s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-row-7-8/ordinary (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-row-7-8/grace-size (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-row-7-8/grace-speed (0.02s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-row-63-64 (0.07s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-row-63-64/ordinary (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-row-63-64/grace-size (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-row-63-64/grace-speed (0.03s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-last-row (0.05s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-last-row/ordinary (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-last-row/grace-size (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-last-row/grace-speed (0.02s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/default-via (0.05s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/default-via/ordinary (0.01s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/default-via/grace-size (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/default-via/grace-speed (0.02s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/patterned-128x16 (0.84s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/patterned-128x16/ordinary (0.28s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/patterned-128x16/grace-size (0.28s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/patterned-128x16/grace-speed (0.28s)
+=== RUN   TestHardwareSpriteCompiledNative
+=== RUN   TestHardwareSpriteCompiledNative/transparent
+=== RUN   TestHardwareSpriteCompiledNative/transparent/ordinary
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/transparent/grace-size
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/transparent/grace-speed
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/opaque
+=== RUN   TestHardwareSpriteCompiledNative/opaque/ordinary
+    hardware_sprite_test.go:242: seed 19: 19 bytes, 120 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 19 bytes, 120 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/opaque/grace-size
+    hardware_sprite_test.go:242: seed 19: 19 bytes, 120 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 19 bytes, 120 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/opaque/grace-speed
+    hardware_sprite_test.go:242: seed 19: 19 bytes, 120 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 19 bytes, 120 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/mixed
+=== RUN   TestHardwareSpriteCompiledNative/mixed/ordinary
+    hardware_sprite_test.go:242: seed 19: 38 bytes, 208 T-states; 6 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 38 bytes, 208 T-states; 6 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/mixed/grace-size
+    hardware_sprite_test.go:242: seed 19: 38 bytes, 208 T-states; 6 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 38 bytes, 208 T-states; 6 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/mixed/grace-speed
+    hardware_sprite_test.go:242: seed 19: 38 bytes, 208 T-states; 6 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 38 bytes, 208 T-states; 6 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/overlapping-mask-graphics
+=== RUN   TestHardwareSpriteCompiledNative/overlapping-mask-graphics/ordinary
+    hardware_sprite_test.go:242: seed 19: 35 bytes, 192 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 35 bytes, 192 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/overlapping-mask-graphics/grace-size
+    hardware_sprite_test.go:242: seed 19: 35 bytes, 192 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 35 bytes, 192 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/overlapping-mask-graphics/grace-speed
+    hardware_sprite_test.go:242: seed 19: 35 bytes, 192 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 35 bytes, 192 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/strided
+=== RUN   TestHardwareSpriteCompiledNative/strided/ordinary
+    hardware_sprite_test.go:242: seed 19: 69 bytes, 398 T-states; 12 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 69 bytes, 398 T-states; 12 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/strided/grace-size
+    hardware_sprite_test.go:242: seed 19: 69 bytes, 398 T-states; 12 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 69 bytes, 398 T-states; 12 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/strided/grace-speed
+    hardware_sprite_test.go:242: seed 19: 69 bytes, 398 T-states; 12 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 69 bytes, 398 T-states; 12 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/page-crossing
+=== RUN   TestHardwareSpriteCompiledNative/page-crossing/ordinary
+    hardware_sprite_test.go:242: seed 19: 17 bytes, 106 T-states; 3 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 17 bytes, 106 T-states; 3 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/page-crossing/grace-size
+    hardware_sprite_test.go:242: seed 19: 17 bytes, 106 T-states; 3 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 17 bytes, 106 T-states; 3 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/page-crossing/grace-speed
+    hardware_sprite_test.go:242: seed 19: 17 bytes, 106 T-states; 3 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 17 bytes, 106 T-states; 3 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/last-byte
+=== RUN   TestHardwareSpriteCompiledNative/last-byte/ordinary
+    hardware_sprite_test.go:242: seed 19: 26 bytes, 168 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 26 bytes, 168 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/last-byte/grace-size
+    hardware_sprite_test.go:242: seed 19: 26 bytes, 168 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 26 bytes, 168 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/last-byte/grace-speed
+    hardware_sprite_test.go:242: seed 19: 26 bytes, 168 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 26 bytes, 168 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zero-width
+=== RUN   TestHardwareSpriteCompiledNative/zero-width/ordinary
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zero-width/grace-size
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zero-width/grace-speed
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zero-height
+=== RUN   TestHardwareSpriteCompiledNative/zero-height/ordinary
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zero-height/grace-size
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zero-height/grace-speed
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zx-row-7-8
+=== RUN   TestHardwareSpriteCompiledNative/zx-row-7-8/ordinary
+    hardware_sprite_test.go:242: seed 19: 57 bytes, 320 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 57 bytes, 320 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zx-row-7-8/grace-size
+    hardware_sprite_test.go:242: seed 19: 57 bytes, 320 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 57 bytes, 320 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zx-row-7-8/grace-speed
+    hardware_sprite_test.go:242: seed 19: 57 bytes, 320 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 57 bytes, 320 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zx-row-63-64
+=== RUN   TestHardwareSpriteCompiledNative/zx-row-63-64/ordinary
+    hardware_sprite_test.go:242: seed 19: 57 bytes, 320 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 57 bytes, 320 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zx-row-63-64/grace-size
+    hardware_sprite_test.go:242: seed 19: 57 bytes, 320 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 57 bytes, 320 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zx-row-63-64/grace-speed
+    hardware_sprite_test.go:242: seed 19: 57 bytes, 320 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 57 bytes, 320 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zx-last-row
+=== RUN   TestHardwareSpriteCompiledNative/zx-last-row/ordinary
+    hardware_sprite_test.go:242: seed 19: 17 bytes, 106 T-states; 2 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 17 bytes, 106 T-states; 2 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zx-last-row/grace-size
+    hardware_sprite_test.go:242: seed 19: 17 bytes, 106 T-states; 2 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 17 bytes, 106 T-states; 2 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zx-last-row/grace-speed
+    hardware_sprite_test.go:242: seed 19: 17 bytes, 106 T-states; 2 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 17 bytes, 106 T-states; 2 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/default-via
+    hardware_sprite_test.go:119: default selects pointer; covered by pointer matrix
+=== RUN   TestHardwareSpriteCompiledNative/patterned-128x16
+=== RUN   TestHardwareSpriteCompiledNative/patterned-128x16/ordinary
+    hardware_sprite_test.go:242: seed 19: 1241 bytes, 6458 T-states; 256 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1241 bytes, 6458 T-states; 256 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/patterned-128x16/grace-size
+    hardware_sprite_test.go:242: seed 19: 1241 bytes, 6458 T-states; 256 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1241 bytes, 6458 T-states; 256 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/patterned-128x16/grace-speed
+    hardware_sprite_test.go:242: seed 19: 1241 bytes, 6458 T-states; 256 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1241 bytes, 6458 T-states; 256 sprite bytes
+--- PASS: TestHardwareSpriteCompiledNative (0.57s)
+    --- PASS: TestHardwareSpriteCompiledNative/transparent (0.02s)
+        --- PASS: TestHardwareSpriteCompiledNative/transparent/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/transparent/grace-size (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/transparent/grace-speed (0.01s)
+    --- PASS: TestHardwareSpriteCompiledNative/opaque (0.02s)
+        --- PASS: TestHardwareSpriteCompiledNative/opaque/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/opaque/grace-size (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/opaque/grace-speed (0.01s)
+    --- PASS: TestHardwareSpriteCompiledNative/mixed (0.03s)
+        --- PASS: TestHardwareSpriteCompiledNative/mixed/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/mixed/grace-size (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/mixed/grace-speed (0.01s)
+    --- PASS: TestHardwareSpriteCompiledNative/overlapping-mask-graphics (0.02s)
+        --- PASS: TestHardwareSpriteCompiledNative/overlapping-mask-graphics/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/overlapping-mask-graphics/grace-size (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/overlapping-mask-graphics/grace-speed (0.01s)
+    --- PASS: TestHardwareSpriteCompiledNative/strided (0.04s)
+        --- PASS: TestHardwareSpriteCompiledNative/strided/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/strided/grace-size (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/strided/grace-speed (0.01s)
+    --- PASS: TestHardwareSpriteCompiledNative/page-crossing (0.02s)
+        --- PASS: TestHardwareSpriteCompiledNative/page-crossing/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/page-crossing/grace-size (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/page-crossing/grace-speed (0.01s)
+    --- PASS: TestHardwareSpriteCompiledNative/last-byte (0.02s)
+        --- PASS: TestHardwareSpriteCompiledNative/last-byte/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/last-byte/grace-size (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/last-byte/grace-speed (0.01s)
+    --- PASS: TestHardwareSpriteCompiledNative/zero-width (0.02s)
+        --- PASS: TestHardwareSpriteCompiledNative/zero-width/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/zero-width/grace-size (0.00s)
+        --- PASS: TestHardwareSpriteCompiledNative/zero-width/grace-speed (0.01s)
+    --- PASS: TestHardwareSpriteCompiledNative/zero-height (0.02s)
+        --- PASS: TestHardwareSpriteCompiledNative/zero-height/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/zero-height/grace-size (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/zero-height/grace-speed (0.01s)
+    --- PASS: TestHardwareSpriteCompiledNative/zx-row-7-8 (0.03s)
+        --- PASS: TestHardwareSpriteCompiledNative/zx-row-7-8/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/zx-row-7-8/grace-size (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/zx-row-7-8/grace-speed (0.01s)
+    --- PASS: TestHardwareSpriteCompiledNative/zx-row-63-64 (0.03s)
+        --- PASS: TestHardwareSpriteCompiledNative/zx-row-63-64/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/zx-row-63-64/grace-size (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/zx-row-63-64/grace-speed (0.01s)
+    --- PASS: TestHardwareSpriteCompiledNative/zx-last-row (0.02s)
+        --- PASS: TestHardwareSpriteCompiledNative/zx-last-row/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/zx-last-row/grace-size (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/zx-last-row/grace-speed (0.01s)
+    --- SKIP: TestHardwareSpriteCompiledNative/default-via (0.00s)
+    --- PASS: TestHardwareSpriteCompiledNative/patterned-128x16 (0.29s)
+        --- PASS: TestHardwareSpriteCompiledNative/patterned-128x16/ordinary (0.09s)
+        --- PASS: TestHardwareSpriteCompiledNative/patterned-128x16/grace-size (0.10s)
+        --- PASS: TestHardwareSpriteCompiledNative/patterned-128x16/grace-speed (0.10s)
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/zx-arity
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/unknown-via
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/destination-arity
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/region-arity
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/unknown-field
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/address-overflow
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/region-overflow
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/bad-mask-hex
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/zx-overflow
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/duplicate-region
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/duplicate-via
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/invalid-stride
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/odd-mask-hex
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/empty
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/unknown-layout
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/via-arity
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/negative-base
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/bad-graphics-hex
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/wrong-mask-width
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/missing-row
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/missing-destination
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/missing-region
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/duplicate-destination
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/row-arity
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/negative-region
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/wrong-graphics-width
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/extra-row
+--- PASS: TestHardwareSpriteRejectsInvalidDescriptions (0.09s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/zx-arity (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/unknown-via (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/destination-arity (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/region-arity (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/unknown-field (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/address-overflow (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/region-overflow (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/bad-mask-hex (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/zx-overflow (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/duplicate-region (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/duplicate-via (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/invalid-stride (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/odd-mask-hex (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/empty (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/unknown-layout (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/via-arity (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/negative-base (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/bad-graphics-hex (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/wrong-mask-width (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/missing-row (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/missing-destination (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/missing-region (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/duplicate-destination (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/row-arity (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/negative-region (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/wrong-graphics-width (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/extra-row (0.00s)
+=== RUN   TestHardwareSpriteCompiledLiveValues
+=== RUN   TestHardwareSpriteCompiledLiveValues/ordinary
+=== RUN   TestHardwareSpriteCompiledLiveValues/grace-size
+=== RUN   TestHardwareSpriteCompiledLiveValues/grace-speed
+--- PASS: TestHardwareSpriteCompiledLiveValues (0.04s)
+    --- PASS: TestHardwareSpriteCompiledLiveValues/ordinary (0.01s)
+    --- PASS: TestHardwareSpriteCompiledLiveValues/grace-size (0.01s)
+    --- PASS: TestHardwareSpriteCompiledLiveValues/grace-speed (0.01s)
+=== RUN   TestStructuredSpriteMatchesTextBaseline
+    structured_sprite_test.go:65: destination "linear" 24576 4 1 4; region 0 0 4 1; row "00000000" "0055aaff"; grace=false size=false: 21 -> 21 bytes; 90 -> 90 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 4 1 4; region 0 0 4 1; row "00000000" "0055aaff"; grace=true size=false: 21 -> 21 bytes; 90 -> 90 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 4 1 4; region 0 0 4 1; row "00000000" "0055aaff"; grace=true size=true: 21 -> 21 bytes; 90 -> 90 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 6 1 6; region 0 0 6 1; row "fff00faa5500" "00050340aaff"; grace=false size=false: 46 -> 46 bytes; 198 -> 198 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 6 1 6; region 0 0 6 1; row "fff00faa5500" "00050340aaff"; grace=true size=false: 46 -> 46 bytes; 198 -> 198 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 6 1 6; region 0 0 6 1; row "fff00faa5500" "00050340aaff"; grace=true size=true: 46 -> 46 bytes; 198 -> 198 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "zx_bitmap_bytes" 16384; region 2 7 4 2; row "00ff55aa" "12340011"; row "f00f0000" "0521abcd"; grace=false size=false: 64 -> 64 bytes; 273 -> 273 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "zx_bitmap_bytes" 16384; region 2 7 4 2; row "00ff55aa" "12340011"; row "f00f0000" "0521abcd"; grace=true size=false: 64 -> 64 bytes; 273 -> 273 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "zx_bitmap_bytes" 16384; region 2 7 4 2; row "00ff55aa" "12340011"; row "f00f0000" "0521abcd"; grace=true size=true: 64 -> 64 bytes; 273 -> 273 T-states; identical ASM=true
+--- PASS: TestStructuredSpriteMatchesTextBaseline (0.15s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	7.668s
