@@ -19,6 +19,9 @@ func TestZMachineV3StatusStoryNative(t *testing.T) {
 	t.Run("score", func(t *testing.T) { testZMachineV3ScreenStory(t, "status", false) })
 	t.Run("time", func(t *testing.T) { testZMachineV3ScreenStory(t, "status", true) })
 }
+func TestZMachineV3UpperInputNative(t *testing.T) {
+	testZMachineV3ScreenStory(t, "window_input", false)
+}
 func testZMachineV3ScreenStory(t *testing.T, fixture string, timeMode bool) {
 	root := filepath.Clean("../../..")
 	dir := t.TempDir()
@@ -71,6 +74,32 @@ func testZMachineV3ScreenStory(t *testing.T, fixture string, timeMode bool) {
 	m.CPU.SetSP(0xbf00)
 	m.CPU.SetIFF1(false)
 	m.CPU.SetIFF2(false)
+	keyAt := 0
+	if fixture == "window_input" {
+		ready := false
+		keys := []byte{0, 'z', 'x', 'c', 'v', 'a', 's', 'd', 'f', 'g', 'q', 'w', 'e', 'r', 't', '1', '2', '3', '4', '5', '0', '9', '8', '7', '6', 'p', 'o', 'i', 'u', 'y', 13, 'l', 'k', 'j', 'h', 32, 0, 'm', 'n', 'b'}
+		m.SetPCTrap(uint16(a.Symbols["zx__console__con_getchar"]), func() { m.Keyboard.Reset(); ready = true; m.CPU.DoOpcode() })
+		m.SetPCTrap(uint16(a.Symbols["zx__console__scan_row_key"]), func() {
+			if ready {
+				ch := byte('a')
+				if keyAt == 40 {
+					ch = 13
+				}
+				if keyAt > 40 {
+					t.Fatal("extra input")
+				}
+				for idx, key := range keys {
+					if ch == key {
+						m.Keyboard.KeyPress(idx/5, idx%5)
+						break
+					}
+				}
+				keyAt++
+				ready = false
+			}
+			m.CPU.DoOpcode()
+		})
+	}
 	var output []byte
 	m.SetPCTrap(uint16(a.Symbols["zx__console__z3_window_put"]), func() { output = append(output, byte(m.CPU.AF()>>8)); m.CPU.DoOpcode() })
 	for i := 0; i < 2000; i++ {
@@ -97,6 +126,25 @@ func testZMachineV3ScreenStory(t *testing.T, fixture string, timeMode bool) {
 				if got := m.Memory.Read(adr); got != font {
 					t.Fatalf("upper pixels x%d line%d: %02x != %02x", x, line, got, font)
 				}
+			}
+		}
+	} else if fixture == "window_input" {
+		if keyAt != 41 || !bytes.Equal(output, []byte("123456789012345678901234567890\r")) {
+			t.Fatalf("input not preserved: keys %d output %q", keyAt, output)
+		}
+		for row := 2; row < 24; row++ {
+			for line := 0; line < 8; line++ {
+				for x := 0; x < 32; x++ {
+					adr := uint16(0x4000 | ((row & 0x18) << 8) | (line << 8) | ((row & 7) << 5) | x)
+					if m.Memory.Read(adr) != 0 {
+						t.Fatalf("upper input wrote lower row %d", row)
+					}
+				}
+			}
+		}
+		for name, want := range map[string]byte{"con_row": 1, "con_col": 31, "z3_selected_window": 1, "z3_lower_row": 23, "z3_lower_col": 0} {
+			if got := m.Memory.Read(uint16(a.Symbols["zx__console__"+name])); got != want {
+				t.Fatalf("upper input changed %s: %d != %d", name, got, want)
 			}
 		}
 	} else {

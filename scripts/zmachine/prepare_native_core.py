@@ -301,6 +301,58 @@ if a.console:
  }
 }
 """+console[end:]
+        # Standard 1.1 §§8.6.2, 15 read: upper input must not scroll or
+        # paint the lower window. Keep the full command; clip only its display.
+        render = " .render:\n  LD HL, (zx__console__con_edit_anchor)"
+        assert console.count(render) == 1
+        console = console.replace(render, " .render:\n  LD A, (zx__console__z3_selected_window)\n  OR A\n  JR NZ, .render_begin\n  LD HL, (zx__console__con_edit_anchor)")
+        enter = "  CALL .position\n  LD A, (zx__console__con_edit_length)"
+        assert console.count(enter) == 1
+        console = console.replace(enter, "  CALL .position\n  LD A, 13\n  CALL zx__console__z3_window_put\n  LD A, (zx__console__con_edit_length)")
+        coordinates = """ .position:
+  LD A, L
+  AND 31
+  LD (zx__console__con_col), A
+  ADD HL, HL
+  ADD HL, HL
+  ADD HL, HL
+  LD A, H
+  LD (zx__console__con_row), A
+  RET
+ .draw:
+  LD A, L
+  AND 31
+  LD B, A
+  ADD HL, HL
+  ADD HL, HL
+  ADD HL, HL
+  LD D, H
+  JP zx__console__con_draw_char"""
+        assert console.count(coordinates) == 1
+        console = console.replace(coordinates, """ .position:
+  LD A, L
+  AND 31
+  LD B, A
+  ADD HL, HL
+  ADD HL, HL
+  ADD HL, HL
+  LD D, H
+  LD A, (zx__console__z3_selected_window)
+  OR A
+  JR Z, .position_store
+  LD A, (zx__console__z3_upper_height)
+  CP D
+  JR NC, .position_store
+  LD H, A
+  LD B, 31
+ .position_store:
+  LD L, B
+  LD (zx__console__con_col), HL
+  RET
+ .draw:
+  CALL .position
+  RET C
+  JP zx__console__con_draw_char""")
     console = re.sub(r'^assert (?:screen_addr|attr_addr)\([^\n]+\n', '', console, flags=re.M)
     local_console = a.output.parent / 'zx/console.nanz'
     local_console.parent.mkdir(parents=True,exist_ok=True)

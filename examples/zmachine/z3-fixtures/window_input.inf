@@ -1,0 +1,17 @@
+! SPDX-License-Identifier: MIT
+! Standard1.1 read permits input in any window; upper must not scroll (8.6.2).
+Global location = Room;
+Global score;
+Global turns;
+Array text -> 82;
+Array parse -> 10;
+Object Room "Input room";
+[ Main;
+ text->0=79; parse->0=2;
+ @split_window 1;
+ @set_window 1;
+ print "123456789012345678901234567890";
+ @sread text parse;
+ if (text->1~='a' || text->40~='a' || text->41~=0) print "bad input";
+ quit;
+];

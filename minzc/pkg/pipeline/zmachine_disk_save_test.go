@@ -163,7 +163,7 @@ func testZMachineDiskSave(t *testing.T, externalStory string, extended, console,
 				t.Fatalf("assemble: %v %v", err, a.Errors)
 			}
 			if 0x5b00+len(a.Binary) > 0xbe00 {
-				t.Fatal("resident overlaps stack")
+				t.Fatalf("resident overlaps stack: %d bytes, limit %d", len(a.Binary), 0xbe00-0x5b00)
 			}
 
 			diskPath := filepath.Join(dir, "save.trd")
