@@ -18,6 +18,7 @@ p.add_argument('--restart-rle-bytes', type=int, default=0, help='validated RLE a
 p.add_argument('--restart-offset', type=int, help='logical bank address of the trusted restart archive')
 p.add_argument('--restart-bytes', type=int, default=0, help='decoded size of the archived original dynamic prefix')
 p.add_argument('--save-story', type=Path, help='enable volatile native SAVE/RESTORE for this exact story')
+p.add_argument('--layout-save-story',type=Path,help='native SAVE for trusted original-block layout')
 p.add_argument('--layout-restart', action='store_true', help='enable trusted LZ restart for compressed story layout')
 p.add_argument('--story-layout', type=Path, help='experimental trusted 2K LZ layout metadata; no SAVE/restart integration yet')
 p.add_argument('--console', action='store_true', help='Spectrum screen and keyboard instead of RAM capture')
@@ -81,6 +82,32 @@ fun z3_lower(ch: u8) -> u8 {
 }
 '''
 text = text[:macro_start] + replacement + text[block_end:]
+
+# Native keyboard/transcript boundaries produce printable ASCII only.
+# Host UTF-8 input parsing cannot be reached from this target adapter.
+replace_function('decode_input_utf8', 'fun decode_input_utf8(length:u8)->u8 { return length }')
+for name in ['z3_from_unicode','z3_lower']:
+    replace_function(name, '')
+text = re.sub(r'^global native_(?:reverse|lower):[^\n]+\n','',text,flags=re.M)
+
+# Host transcript/command files are unsupported by this standalone adapter.
+# Preserve tokenisation below the native input boundary, stream3 and flags2.
+start = text.index('fun read_input(')
+body = text.index('{',start)
+end = text.index('    var i: u8 = 0',body)
+text = text[:body+1] + '''
+    let n:u8 = tui_read_line_or_eof(&input,memory_read16(text))
+    if n == 255 { running = 0 return }
+''' + text[end:]
+start = text.index('    if (memory_read16(17) & 1) != 0 {',text.index('fun emit_zscii'))
+end = text.index('    if screen_enabled == 0',start)
+text = text[:start] + text[end:]
+
+# Spectrum screen adapter already renders extra ZSCII as '?' (no UTF-8
+# font); eliminate the unused Unicode conversion before that fixed fallback.
+text = text.replace('print_utf8(z3_unicode(ch))','print_utf8(63)')
+replace_function('z3_unicode','')
+text = re.sub(r'^global native_unicode:[^\n]+\n','',text,flags=re.M)
 
 # Native decimal output retains signed Z3 semantics and stream routing.
 from native_decimal import emit as decimal_code
@@ -311,6 +338,13 @@ if a.story_layout:
     # Compressed reads replace all raw story-memory helpers; retain only the
     # six-page table used by dynamic writes.
     text = text.replace('import zx.story_memory\n', 'global story_pages:[u8;6]=[0,1,3,4,6,7]\n')
+    # Compressed restart uses LZ and dynamic writes need only bank_write.
+    banked = (root / 'stdlib/zx/banked.nanz').read_text()
+    start = banked.index('fun bank_write(')
+    end = banked.index('\n}',start)+2
+    local_banked = a.output.parent / 'zx/banked.nanz'
+    local_banked.parent.mkdir(parents=True,exist_ok=True)
+    local_banked.write_text(banked[start:end]+'\n'+banked[banked.index('fun bank_validate_rle('):])
     text += cache_code(metadata)
     if a.layout_restart:
         if metadata.get('archive_blocks'):
@@ -397,4 +431,46 @@ if a.story_layout:
  if checksum == word_at(28) { return 1 }
  return 0
 }""")
+if a.layout_save_story:
+    if not a.story_layout or not metadata.get('archive_blocks'):
+        p.error('layout SAVE requires independent original archive blocks')
+    import hashlib
+    story = a.layout_save_story.read_bytes()
+    if hashlib.sha256(story).hexdigest() != metadata['story_sha256']:
+        p.error('layout SAVE story fingerprint mismatch')
+    capacity = metadata['reserved_save_bytes']
+    offset = metadata['reserved_save_offset']
+    bank = metadata['reserved_save_bank'] + 0x10
+    from native_state_stream import emit as state_code
+    from native_shared_reader import emit as reader_code
+    from native_save_stream import emit as pack_code
+    from native_save_preflight import emit as preflight_code
+    from native_state_validate import emit as validate_code
+    from native_delta_apply import emit as apply_code
+    from native_restore import emit as restore_code
+    from native_save import emit as save_code
+    # Retain the proven saved-RLE cursor engine, replacing only its original
+    # wrapper with the register-preserving original-block reader already emitted.
+    reader = reader_code(0x11,0)
+    reader = re.sub(r'global original_cursor:[^\n]+\n','',reader)
+    start = reader.index('fun native_original_byte')
+    end = reader.index('fun native_saved_byte',start)
+    reader = reader[:start] + reader[end:]
+    text = 'import zx.crc\n' + text
+    text += state_code()+reader+pack_code()
+    text += preflight_code(story,capacity).replace('import zx.crc\n','').replace('import zx.banked\n','')
+    text += validate_code(story)+apply_code()+restore_code(story)+save_code(story,bank,offset,capacity)
+    replace_function('save_state','fun save_state()->u8 { return native_save() }')
+    replace_function('restore_state',f'''fun restore_state()->u8 {{
+ asm z80 (ret A) (clob A,F,BC,DE,HL,IX,IY) {{
+  LD DE,(native_save_length)
+  LD A,D
+  OR E
+  JR Z,.no_save
+  LD HL,{offset}
+  LD A,{bank}
+  CALL native_restore
+ .no_save:
+ }}
+}}''')
 a.output.write_text('// Native banked integration harness: output capture; unsupported I/O fails.\n' + text)

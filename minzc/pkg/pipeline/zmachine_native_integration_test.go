@@ -105,6 +105,13 @@ func TestZMachineBankedZorkIICompressedRestartNative(t *testing.T) {
 	}
 	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-compressed-restart")
 }
+func TestZMachineBankedZorkIICompressedSaveNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set Zork II story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-compressed-save")
+}
 func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, externalStory string, commands string) {
 	root := filepath.Clean("../../..")
 	story, err := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/stream3.z3"))
@@ -130,17 +137,18 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
+	compressedSave := commands == "@console-zork2-compressed-save"
 	compressedRestart := commands == "@console-zork2-compressed-restart"
-	compressedStory := commands == "@console-zork2-compressed" || compressedRestart
+	compressedStory := commands == "@console-zork2-compressed" || compressedRestart || compressedSave
 	zorkII := commands == "@console-zork2" || compressedStory
 	cellarSave := commands == "@console-cellar-save"
-	saveRestore := commands == "@console-save" || cellarSave
+	saveRestore := commands == "@console-save" || cellarSave || compressedSave
 	restart := commands == "@console-restart"
 	explore := commands == "@console-explore" || restart || saveRestore || zorkII
 	keyboard := commands == "@console-keyboard" || explore
 	console := commands == "@console-startup" || keyboard
 	var restartArchive []byte
-	if restart || saveRestore {
+	if (restart || saveRestore) && !compressedSave {
 		archivePath := filepath.Join(t.TempDir(), "restart.rle")
 		pack := exec.Command("python3", filepath.Join(root, "scripts/zmachine/restart_rle.py"), externalStory, archivePath)
 		if out, err := pack.CombinedOutput(); err != nil {
@@ -154,7 +162,7 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 		cmd.Args = append(cmd.Args, "--restart-bytes", strconv.Itoa(int(story[14])<<8|int(story[15])), "--restart-rle-bytes", strconv.Itoa(len(restartArchive)))
 	}
 
-	if saveRestore {
+	if saveRestore && !compressedSave {
 		cmd.Args = append(cmd.Args, "--save-story", externalStory)
 	}
 	if console {
@@ -172,7 +180,7 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	if compressedStory {
 		layoutDir := t.TempDir()
 		layout := exec.Command("python3", filepath.Join(root, "scripts/zmachine/story_lz_layout.py"), externalStory, layoutDir)
-		if compressedRestart {
+		if compressedRestart || compressedSave {
 			layout.Args = append(layout.Args, "--archive-blocks")
 		}
 		if out, err := layout.CombinedOutput(); err != nil {
@@ -183,6 +191,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			t.Fatal(err)
 		}
 		cmd.Args = append(cmd.Args, "--story-layout", filepath.Join(layoutDir, "layout-2048.json"))
+		if compressedSave {
+			cmd.Args = append(cmd.Args, "--layout-save-story", externalStory)
+		}
 		if compressedRestart {
 			cmd.Args = append(cmd.Args, "--layout-restart")
 		}
@@ -240,7 +251,7 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			m.Memory.RAM[pages[i/16384]][i%16384] = b
 		}
 	}
-	if restart || saveRestore {
+	if (restart || saveRestore) && !compressedSave {
 		for i, b := range restartArchive {
 			at := len(story) + i
 			m.Memory.RAM[pages[at/16384]][at%16384] = b
@@ -289,6 +300,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 		}
 		if saveRestore {
 			route = []byte("open mailbox\nsave\ntake leaflet\ninventory\nrestore\ninventory\nquit\ny\n")
+		}
+		if compressedSave {
+			route = []byte("take lamp\ntake sword\nturn on lamp\nsouth\nsave\ndrop sword\ninventory\nrestore\ninventory\nquit\ny\n")
 		}
 		if cellarSave {
 			route = []byte("north\neast\nopen window\nenter window\nwest\ntake lamp\ntake sword\nturn on lamp\nmove rug\nopen trap door\ndown\nsave\ndrop sword\ninventory\nrestore\ninventory\ndrop lamp\nrestore\ninventory\nquit\ny\n")
@@ -462,6 +476,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 					phrases = []string{"Cellar", "A sword", "A brass lantern", "Dropped."}
 				}
 			}
+			if compressedSave {
+				phrases = []string{"Narrow Tunnel", "Ok.", "Dropped.", "You are carrying:"}
+			}
 			if restart {
 				phrases = []string{"You are empty-handed.", "West of House"}
 			}
@@ -480,10 +497,19 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 				}
 				t.Logf("cellar native save %d bytes; both inventory restores independently checked", observedSaveLengths[0])
 			}
+			if compressedSave {
+				if !bytes.Contains(rendered, []byte("You are carrying:\n  A lamp (providing light)\n")) || !bytes.Contains(rendered, []byte("You are carrying:\n  A elvish sword\n  A lamp (providing light)")) {
+					t.Fatal("restore must recover sword while preserving lit lamp")
+				}
+				if len(observedSaveLengths) != 1 || observedSaveLengths[0] > 700 {
+					t.Fatal("missing/oversized save", observedSaveLengths)
+				}
+				t.Logf("compressed save record %d bytes", observedSaveLengths[0])
+			}
 			if compressedStory {
 				dynamic := int(story[14])<<8 | int(story[15])
 				for i, b := range storageImage {
-					if i < dynamic {
+					if i < dynamic || compressedSave && i >= 5*16384+15684 {
 						continue
 					}
 					if m.Memory.RAM[pages[i/16384]][i%16384] != b {

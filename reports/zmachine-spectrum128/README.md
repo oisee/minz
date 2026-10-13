@@ -1188,3 +1188,39 @@ PC/SP/paging проверены. Это измерение текущего пу
 Linux/Windows Zork I bundles обновлены тем же SNA. Сам эмулятор не изменён;
 Windows runtime здесь не проверен. Compressed Zork II SAVE остаётся следующим
 этапом: новая прокрутка освобождает место, но ещё не доказывает fit всего кода SAVE.
+
+### 13 октября: native SAVE/RESTORE сжатого Zork II
+
+`--story-layout ... --layout-save-story STORY` включает существующие native
+state serializer, bounded RLE packer, CRC/preflight, semantic validator и
+transactional restore с новым original-block reader. Story SHA256 сверяется
+с layout перед генерацией. Saved-RLE cursor остаётся прежним; original wrapper
+заменён shared-cache reader. Слот берётся из проверенного layout: bank7,
+offset 15684, capacity 700. Overflow возвращает failure, предыдущий слот теряется.
+
+Реальный Z80 lifecycle: взять lamp/sword, включить lamp, south, save, drop sword,
+inventory, restore, inventory, quit. Сохранение **628 байт**. До восстановления
+есть лишь lamp; после — elvish sword и lamp (providing light). Обе строки
+проверяются явно; весь native текст 1214 байт побайтно совпадает с VM.
+91 клавиша, 1133212014 T, 902 cache misses, стек 60 байт, PC/SP/paging сохранены.
+Immutable compressed storage не меняется, кроме выделенного SAVE-slot.
+Resident **25095 байт**, запас 249 байт до $BE00 (без RESTART в этом тесте).
+Совместная compile-проба SAVE+RESTART: 25193 байта, запас 151 байт.
+
+RESTART с той же target-specialisation также PASS: 61 клавиша, 2071 байт,
+865653384 T; текст сверён с VM и Frotz. Zork I SAVE/RESTORE и отдельная Inform
+stream3 story проходят регрессию. Числа времени относятся к текущей консоли,
+не к изолированному выигрышу компрессии.
+
+Чтобы сохранить редактор и SAVE в фиксированной RAM, исключены недостижимые
+на этом target функции: host UTF-8 keyboard decode, host transcript/command
+file loops и Unicode conversion перед уже существующим screen fallback '?'.
+Spectrum input boundary выдаёт ASCII, command fixture также принимает только
+ASCII. Core host/VM исходник не менялся; Unicode screen rendering на Spectrum
+остаётся ограничением. Локальная версия zx.banked содержит dynamic bank_write
+и обязательный bank_validate_rle; прочие raw-archive helpers здесь не нужны.
+CRC/semantic checks и memory stream3 сохраняются.
+
+Это native integration gate, ещё не новый downloadable Zork II SNA. Следующий
+шаг — подключить compressed layout в snapshot-builder, проверить совместный
+SAVE/RESTART lifecycle и выпустить отдельный игровой комплект.
