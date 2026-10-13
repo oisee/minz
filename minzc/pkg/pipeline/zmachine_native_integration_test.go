@@ -188,6 +188,14 @@ func TestZMachineBankedZork128LateSaveWalkthroughNative(t *testing.T) {
 	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-late-save")
 }
 
+func TestZMachineBankedZorkII128KeyNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set Zork II story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-key")
+}
+
 func TestZMachineBankedZorkII128ReturnWellNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
 	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
@@ -305,7 +313,8 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	zorkIIReturnWell := commands == "@console-zork2-return-well"
+	zorkIIKey := commands == "@console-zork2-key"
+	zorkIIReturnWell := commands == "@console-zork2-return-well" || zorkIIKey
 	zorkIIRobot := commands == "@console-zork2-robot" || zorkIIReturnWell
 	zorkIICakes := commands == "@console-zork2-cakes" || zorkIIRobot
 	zorkIIWell := commands == "@console-zork2-well" || zorkIICakes
@@ -611,6 +620,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if zorkIIReturnWell {
 				routeFile = "zork2-return-well.txt"
 			}
+			if zorkIIKey {
+				routeFile = "zork2-key.txt"
+			}
 			route, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", routeFile))
 			if err != nil {
 				t.Fatal(err)
@@ -754,6 +766,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if zorkIIWell {
 				seed = "1"
 			}
+			if zorkIIKey {
+				seed = "14"
+			}
 			ref := exec.Command(os.Getenv("MINZ_Z3_FROTZ"), "-m", "-w", "255", "-s", seed, externalStory)
 			ref.Stdin = bytes.NewReader(route)
 			output, err := ref.Output()
@@ -775,6 +790,10 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			}
 			if zorkIIReturnWell {
 				wants = []string{"The cage shakes and is hurled across the room.", "The bucket descends and comes to a stop.", "Circular Room", "You are carrying:\n  A china teapot\n  The china teapot contains:\n    A quantity of water\n  A red crystal sphere\n  A package of candy\n  A pearl necklace\n  A lamp (providing light)", "Your score would be 65 (total of 400 points), in 63 moves."}
+			}
+
+			if zorkIIKey {
+				wants = []string{"The place mat fits easily under the door.", "As the place mat is moved, a rusty iron key falls from it and onto the floor.", "The door is now unlocked.", "Dreary Room", "You are carrying:\n  A blue crystal sphere\n  A letter opener\n  A rusty iron key\n  A china teapot\n  The china teapot contains:\n    A quantity of water\n  A red crystal sphere\n  A package of candy\n  A pearl necklace\n  A lamp (providing light)", "Your score would be 85 (total of 400 points), in 86 moves."}
 			}
 
 			for _, want := range wants {
@@ -974,6 +993,10 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			}
 			if zorkIIReturnWell {
 				phrases = []string{"The cage shakes and is hurled across the room.", "The bucket descends and comes to a stop.", "Circular Room", "You are carrying:\n  A china teapot\n  The china teapot contains:\n    A quantity of water\n  A red crystal sphere\n  A package of candy\n  A pearl necklace\n  A lamp (providing light)", "Your score would be 65 (total of 400 points), in 63 moves."}
+			}
+
+			if zorkIIKey {
+				phrases = []string{"The place mat fits easily under the door.", "As the place mat is moved, a rusty iron key falls from it and onto the floor.", "The door is now unlocked.", "Dreary Room", "You are carrying:\n  A blue crystal sphere\n  A letter opener\n  A rusty iron key\n  A china teapot\n  The china teapot contains:\n    A quantity of water\n  A red crystal sphere\n  A package of candy\n  A pearl necklace\n  A lamp (providing light)", "Your score would be 85 (total of 400 points), in 86 moves."}
 			}
 
 			for _, phrase := range phrases {
