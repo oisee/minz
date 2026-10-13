@@ -208,3 +208,20 @@ candidate into banks0,1,3,4,6,7. It currently fails before the banner with
 `Z3 error 1:0:14:0:0:108`. Native full-Zork startup is NOT achieved. This is
 now a concrete failing full-story gate, not an inferred compatibility issue.
 Next: compare earliest instruction trace with VM and inspect call/frame state.
+
+## Zork trace: byte-index spill correction
+
+The first ten native instruction PCs matched VM; the second frame returned to
+zero because its return metadata was written through a corrupted array index.
+An optimized ptr_add used a byte index whose spill cell occupied one byte, but
+codegen loaded a 16-bit word including neighboring storage. Pointer codegen now
+uses recorded operand width and zero-extends byte index spills. A native
+regression covers all256 byte indices with poisoned adjacent storage and three
+base register homes (768 cases), preserving A and returned PC/SP.
+
+Native PC high-byte extraction also replaces unsigned pc/256 with pc>>8:
+wide division is not implemented by this backend; the equivalent shift is.
+After both changes, frame return PCs match the VM trace and full Zork proceeds
+further. Startup still stops before the banner, now with empty output rather
+than the earlier invalid-opcode report. Further investigation is required;
+full native Zork startup remains unproven. Trace logs and reductions are saved.

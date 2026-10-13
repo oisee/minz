@@ -42,6 +42,7 @@ text = re.sub(r'^global (story|snapshot):[^\n]+\n', '', text, flags=re.M)
 text = text.replace('import text.print', 'import text.print\nimport zx.story_memory')
 text = text.replace('@print_char(', 'native_putchar(')
 text = text.replace('@print_u8(', 'print_num(')
+text = text.replace('pc / 256', 'pc >> 8')
 replace_function('memory_read', '''fun memory_read(address: u32) -> u8 {
  return story_byte(address, 0x10)
 }''')

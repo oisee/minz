@@ -1189,7 +1189,11 @@ func (g *z80cg) genInst(inst *Inst) {
 		// Place offset into offPair BEFORE moving the base (avoids clobbering
 		// the offset when base and off share a register like DE).
 		if off != offPair {
-			if len(off) == 1 { // 8-bit: zero-extend into pair
+			if info, ok := g.regInfo[inst.Src[1]]; ok && z80ValueWidth(info.Ty) <= 8 {
+				// Optimized ptr_add may consume a byte index directly. Its
+				// spill home is one byte, so never reload an adjacent byte.
+				g.genUnsignedExtBytes(offPair, off, 8, 16)
+			} else if len(off) == 1 { // 8-bit: zero-extend into pair
 				g.emitLD8(lowByte(offPair), off)
 				g.emitf("    LD %s, 0", highByte(offPair))
 			} else {
