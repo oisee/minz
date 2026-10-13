@@ -50,7 +50,7 @@ func TestReturnTailOriginalParserNative(t *testing.T) {
 							if err := os.MkdirAll(directory, 0755); err != nil {
 								t.Fatal(err)
 							}
-							for file, data := range map[string][]byte{"function.a80": []byte(asm), "function.bin": binary.Binary, "source.nanz": source} {
+							for file, data := range map[string][]byte{"function.a80": []byte(asm), "function.bin": binary.Binary} {
 								if err := os.WriteFile(filepath.Join(directory, file), data, 0644); err != nil {
 									t.Fatal(err)
 								}

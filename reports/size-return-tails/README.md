@@ -35,3 +35,9 @@ Negative contracts are covered separately. Full fast/core checks are recorded
 at their own checkpoints. Integration is pending; ordinary Speed retains its
 existing strategy. Conditional checked regions, proof-bound alternative choices
 and independent real-program workloads remain work toward the broader goal.
+
+The unchanged shared input is source.nanz; cases/ retains each assembled
+function and binary. Fast pipeline PASS: 358/706 tests in four shards, on
+the pre-main-#111 checkpoint of the same optimization. Main #111 was merged
+after that run; its VIR changes have their own CI evidence. Full MIR2 was
+still running when this update was written.
