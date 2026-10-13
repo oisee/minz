@@ -1898,3 +1898,17 @@ Probe до200 исходных команд: VM146, Frotz132 и смерть п�
 Cellar на184-м ходе. Это различие случайного поведения NPC, не установленный
 miscompile. Поздний probe не принят как общий checkpoint; нужен устойчивый
 маршрут/разделение семантической проверки и RNG-dependent событий.
+
+
+### 13 октября: Trident и146 очков на Z80
+
+routes/trident.txt проходит первые200 исходных команд Jericho. Frotz seed1
+подтверждает score146 на204 moves, case coins/bar/skull/coffin и inventory
+pump/trident/lamp/lit torch. Seed audit1..24:18 проходят checkpoint,6 погибают;
+seed12 погибает после кражи света. Выбор seed1 даёт воспроизводимый oracle,
+не доказательство независимости маршрута от RNG. Nanz/Z80 RNG не изменён.
+
+1264 клавиши,19986 B output byte-exact original VM,8491788833 T, stack70 B,
+штатный PC/SP/paging. PASS100.413 s. Лимит long harness1.5B инструкций.
+Дальнейший probe до260 исходных команд: VM233, Treasure Room с живым thief;
+это ещё не подтверждённый Z80 checkpoint и не полное прохождение.

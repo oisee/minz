@@ -148,6 +148,14 @@ func TestZMachineBankedZork128CyclopsNative(t *testing.T) {
 	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-cyclops")
 }
 
+func TestZMachineBankedZork128TridentNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-trident")
+}
+
 // A separately built full V3 story, not the Zork I workload used earlier.
 func TestZMachineBankedZorkIIGameplayNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
@@ -217,10 +225,11 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
+	trident := commands == "@console-windows-trident"
 	cyclops := commands == "@console-windows-cyclops"
 	crystalSkull := commands == "@console-windows-skull"
 	damLobby := commands == "@console-windows-dam"
-	earlyDungeon := commands == "@console-windows-dungeon" || damLobby || crystalSkull || cyclops
+	earlyDungeon := commands == "@console-windows-dungeon" || damLobby || crystalSkull || cyclops || trident
 	zorkIIWindows := commands == "@console-zork2-128-windows"
 	if zorkIIWindows {
 		commands = "@console-zork2-compressed-save-restart"
@@ -469,6 +478,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if cyclops {
 				routeFile = "cyclops.txt"
 			}
+			if trident {
+				routeFile = "trident.txt"
+			}
 			route, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", routeFile))
 			if err != nil {
 				t.Fatal(err)
@@ -557,7 +569,11 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			t.Log("exploration VM text matches independently implemented Frotz")
 		}
 		if earlyDungeon && os.Getenv("MINZ_Z3_FROTZ") != "" {
-			ref := exec.Command(os.Getenv("MINZ_Z3_FROTZ"), "-m", "-w", "255", "-s", "12", externalStory)
+			refSeed := "12"
+			if trident {
+				refSeed = "1"
+			}
+			ref := exec.Command(os.Getenv("MINZ_Z3_FROTZ"), "-m", "-w", "255", "-s", refSeed, externalStory)
 			ref.Stdin = bytes.NewReader(route)
 			output, err := ref.Output()
 			if err != nil {
@@ -572,6 +588,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			}
 			if cyclops {
 				checkpoint = []string{"Your score is 142 (total of 350 points), in 150 moves.", "Your collection of treasures consists of:\n  A leather bag of coins\n  A platinum bar\n  A crystal skull\n  A gold coffin", "You are carrying:\n  A rusty knife\n  A brass lantern\n  A torch (providing light)"}
+			}
+			if trident {
+				checkpoint = []string{"Your score is 146 (total of 350 points), in 204 moves.", "Your collection of treasures consists of:\n  A leather bag of coins\n  A platinum bar\n  A crystal skull\n  A gold coffin", "You are carrying:\n  A hand-held air pump\n  A crystal trident\n  A brass lantern\n  A torch (providing light)"}
 			}
 			for _, want := range checkpoint {
 				if !bytes.Contains(output, []byte(want)) {
@@ -601,7 +620,7 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 
 	limit := 200000000
 	if earlyDungeon {
-		limit = 1000000000
+		limit = 1500000000
 	}
 	for i := 0; i < limit; i++ {
 		if console && !keyboard && m.CPU.PC() == uint16(a.Symbols["tui_read_line_or_eof"]) {
@@ -695,6 +714,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			}
 			if cyclops {
 				phrases = []string{"The cyclops, hearing the name of his father's deadly nemesis, flees the room", "Your score is 142 (total of 350 points), in 150 moves.", "Your collection of treasures consists of:\n  A leather bag of coins\n  A platinum bar\n  A crystal skull\n  A gold coffin", "You are carrying:\n  A rusty knife\n  A brass lantern\n  A torch (providing light)"}
+			}
+			if trident {
+				phrases = []string{"Atlantis Room", "Your score is 146 (total of 350 points), in 204 moves.", "Your collection of treasures consists of:\n  A leather bag of coins\n  A platinum bar\n  A crystal skull\n  A gold coffin", "You are carrying:\n  A hand-held air pump\n  A crystal trident\n  A brass lantern\n  A torch (providing light)"}
 			}
 			if zorkII {
 				phrases = []string{"ZORK II: The Wizard of Frobozz", "Inside the Barrow", "You are empty-handed.", "Taken.", "The lamp is now on.", "Narrow Tunnel", "total of 400 points"}

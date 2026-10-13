@@ -29,3 +29,10 @@ Dam Lobby, platinum bar/candles/bell/book/lamp/lit torch. Coffin перенес�
 Контроль: 142 очка на 150 ходах, четыре сокровища в case, rusty knife/lamp/lit
  torch в инвентаре. Более длинный probe до200 исходных команд даёт146 в VM,
 но Frotz seed12 погибает после кражи света; он не принят как общий checkpoint.
+
+
+`trident.txt` проходит первые200 исходных команд Jericho: maze/coins, dam,
+mirror, Atlantis Room/trident и air pump. Контроль146 на204 ходах, четыре
+сокровища в case и pump/trident/lamp/lit torch в инвентаре. Frotz checkpoint
+использует seed1: проверка seed1..24 даёт18 успешных маршрутов и6 смертей;
+seed12 здесь погибает после кражи света. RNG игрового Nanz/Z80 не изменён.
