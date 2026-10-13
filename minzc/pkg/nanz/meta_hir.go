@@ -98,6 +98,10 @@ func (mr *metaRuntime) registerHIRHosts(vm *mir2.VM) {
 			if ty == mir2.TyBool || (ty == mir2.TyPtr && r.ExprTy() != mir2.TyU16 && r.ExprTy() != mir2.TyU8) || (ty != mir2.TyPtr && ty != r.ExprTy()) {
 				return nil, fmt.Errorf("structured emit: incompatible operands for %s", op)
 			}
+		case "&", "|", "^":
+			if (ty != mir2.TyU8 && ty != mir2.TyU16) || ty != r.ExprTy() {
+				return nil, fmt.Errorf("structured emit: bitwise operands need matching integer types")
+			}
 		case "!=", "==":
 			if ty != r.ExprTy() {
 				return nil, fmt.Errorf("structured emit: incompatible comparison")

@@ -1,0 +1,43 @@
+=== RUN   TestStructuredMetaDiagnostics
+=== RUN   TestStructuredMetaDiagnostics/bitwise-bool
+=== RUN   TestStructuredMetaDiagnostics/bitwise-mismatch
+=== RUN   TestStructuredMetaDiagnostics/load-type
+=== RUN   TestStructuredMetaDiagnostics/handle
+=== RUN   TestStructuredMetaDiagnostics/kind
+=== RUN   TestStructuredMetaDiagnostics/overflow
+=== RUN   TestStructuredMetaDiagnostics/type
+=== RUN   TestStructuredMetaDiagnostics/cycle
+=== RUN   TestStructuredMetaDiagnostics/mixed
+=== RUN   TestStructuredMetaDiagnostics/identifier
+--- PASS: TestStructuredMetaDiagnostics (0.01s)
+    --- PASS: TestStructuredMetaDiagnostics/bitwise-bool (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/bitwise-mismatch (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/load-type (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/handle (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/kind (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/overflow (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/type (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/cycle (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/mixed (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/identifier (0.00s)
+=== RUN   TestStructuredMetaBuildsTypedHIR
+--- PASS: TestStructuredMetaBuildsTypedHIR (0.00s)
+=== RUN   TestStructuredMetaSnapshotsAndInvocationIsolation
+--- PASS: TestStructuredMetaSnapshotsAndInvocationIsolation (0.00s)
+=== RUN   TestStructuredMetaHandleLimit
+--- PASS: TestStructuredMetaHandleLimit (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/nanz	0.017s
+=== RUN   TestStructuredSpriteMatchesTextBaseline
+    structured_sprite_test.go:65: destination "linear" 24576 4 1 4; region 0 0 4 1; row "00000000" "0055aaff"; grace=false size=false: 21 -> 21 bytes; 90 -> 90 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 4 1 4; region 0 0 4 1; row "00000000" "0055aaff"; grace=true size=false: 21 -> 21 bytes; 90 -> 90 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 4 1 4; region 0 0 4 1; row "00000000" "0055aaff"; grace=true size=true: 21 -> 21 bytes; 90 -> 90 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 6 1 6; region 0 0 6 1; row "fff00faa5500" "00050340aaff"; grace=false size=false: 46 -> 46 bytes; 198 -> 198 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 6 1 6; region 0 0 6 1; row "fff00faa5500" "00050340aaff"; grace=true size=false: 46 -> 46 bytes; 198 -> 198 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 6 1 6; region 0 0 6 1; row "fff00faa5500" "00050340aaff"; grace=true size=true: 46 -> 46 bytes; 198 -> 198 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "zx_bitmap_bytes" 16384; region 2 7 4 2; row "00ff55aa" "12340011"; row "f00f0000" "0521abcd"; grace=false size=false: 64 -> 64 bytes; 273 -> 273 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "zx_bitmap_bytes" 16384; region 2 7 4 2; row "00ff55aa" "12340011"; row "f00f0000" "0521abcd"; grace=true size=false: 64 -> 64 bytes; 273 -> 273 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "zx_bitmap_bytes" 16384; region 2 7 4 2; row "00ff55aa" "12340011"; row "f00f0000" "0521abcd"; grace=true size=true: 64 -> 64 bytes; 273 -> 273 T-states; identical ASM=true
+--- PASS: TestStructuredSpriteMatchesTextBaseline (0.14s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.155s

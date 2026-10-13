@@ -9,6 +9,8 @@ import (
 
 func TestStructuredMetaDiagnostics(t *testing.T) {
 	for _, tc := range []struct{ name, body, want string }{
+		{"bitwise-bool", `emit_hir(hir_binary(c"&",hir_int(1,c"bool"),hir_int(0,c"bool")))`, "matching integer types"},
+		{"bitwise-mismatch", `emit_hir(hir_binary(c"|",hir_int(1,c"u8"),hir_int(0,c"u16")))`, "matching integer types"},
 		{"load-type", `emit_hir(hir_load(hir_int(1,c"u8")))`, "load needs byte pointer"},
 		{"handle", `emit_hir(0)`, "invalid node handle"},
 		{"kind", `emit_hir(hir_int(1,c"u8"))`, "expected statement"},

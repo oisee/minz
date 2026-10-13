@@ -1,0 +1,9 @@
+=== RUN   TestStructuredSpriteMatchesTextBaseline
+    structured_sprite_test.go:65: destination "linear" 24576 4 1 4; region 0 0 4 1; row "00000000" "0055aaff"; grace=false size=false: 21 -> 21 bytes; 90 -> 90 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 4 1 4; region 0 0 4 1; row "00000000" "0055aaff"; grace=true size=false: 21 -> 21 bytes; 90 -> 90 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 4 1 4; region 0 0 4 1; row "00000000" "0055aaff"; grace=true size=true: 21 -> 21 bytes; 90 -> 90 T-states; identical ASM=true
+    structured_sprite_test.go:63: code regressed 46 -> 58 bytes, 198 -> 238 T-states for destination "linear" 24576 6 1 6; region 0 0 6 1; row "fff00faa5500" "00050340aaff";
+--- FAIL: TestStructuredSpriteMatchesTextBaseline (0.05s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.064s
+FAIL

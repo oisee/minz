@@ -1,0 +1,172 @@
+// Known masked sprite specialized at compile time: (old & keep_mask) | graphics.
+fun @sprite() -> void {
+    var layout: ^u8 = c""
+    var mask_row_count: i32 = 0
+    var primitive: ^u8 = c"pointer"
+    var base: i32 = 0
+    var cols: i32 = 0
+    var rows: i32 = 0
+    var stride: i32 = 0
+    var x: i32 = 0
+    var y: i32 = 0
+    var width: i32 = 0
+    var height: i32 = 0
+    var seen_layout: u8 = 0
+    var seen_region: u8 = 0
+    var seen_via: u8 = 0
+    var i: u16 = 0
+    while i < block_len() {
+        let key: ^u8 = node_keyword(i)
+        if str_eq(key, c"destination") == 1 {
+            if seen_layout != 0 { meta_error(c"sprite: duplicate layout") }
+            seen_layout = 1
+            layout = node_arg_str(i, 0)
+            if str_eq(layout, c"linear") == 1 {
+                if node_arg_count(i) != 5 { meta_error(c"sprite: linear layout needs base, columns, rows, stride") }
+                base = node_arg_int(i, 1)
+                cols = node_arg_int(i, 2)
+                rows = node_arg_int(i, 3)
+                stride = node_arg_int(i, 4)
+            } else if str_eq(layout, c"zx_bitmap_bytes") == 1 {
+                if node_arg_count(i) != 2 { meta_error(c"sprite: ZX layout needs base") }
+                base = node_arg_int(i, 1)
+                cols = 32
+                rows = 192
+                stride = 32
+            } else { meta_error(c"sprite: unknown layout") }
+        } else if str_eq(key, c"region") == 1 {
+            if seen_region != 0 { meta_error(c"sprite: duplicate region") }
+            if node_arg_count(i) != 4 { meta_error(c"sprite: region needs x, y, width, height") }
+            seen_region = 1
+            x = node_arg_int(i, 0)
+            y = node_arg_int(i, 1)
+            width = node_arg_int(i, 2)
+            height = node_arg_int(i, 3)
+        } else if str_eq(key, c"row") == 1 {
+            if node_arg_count(i) != 2 { meta_error(c"sprite: row needs hex mask and graphics") }
+            mask_row_count = mask_row_count + 1
+        } else if str_eq(key, c"via") == 1 {
+            if seen_via != 0 { meta_error(c"sprite: duplicate via") }
+            if node_arg_count(i) != 1 { meta_error(c"sprite: via needs one name") }
+            seen_via = 1
+            primitive = node_arg_str(i, 0)
+        } else { meta_error(c"sprite: unknown field") }
+        i = i + 1
+    }
+    if seen_layout == 0 { meta_error(c"sprite: missing layout") }
+    if base < 0 { meta_error(c"sprite: base outside address space") }
+    if base > 65535 { meta_error(c"sprite: base outside address space") }
+    if cols <= 0 { meta_error(c"sprite: invalid dimensions") }
+    if rows <= 0 { meta_error(c"sprite: invalid dimensions") }
+    if cols > 65535 { meta_error(c"sprite: invalid dimensions") }
+    if rows > 65535 { meta_error(c"sprite: invalid dimensions") }
+    if stride < cols { meta_error(c"sprite: stride smaller than columns") }
+    if stride > 65535 { meta_error(c"sprite: invalid stride") }
+    let extent: u32 = u32(rows - 1) * u32(stride) + u32(cols - 1)
+    if extent > u32(65535 - base) { meta_error(c"sprite: layout exceeds address space") }
+    if seen_region == 0 { meta_error(c"sprite: missing region") }
+    if x < 0 { meta_error(c"sprite: region outside layout") }
+    if y < 0 { meta_error(c"sprite: region outside layout") }
+    if width < 0 { meta_error(c"sprite: region outside layout") }
+    if height < 0 { meta_error(c"sprite: region outside layout") }
+    if x > cols { meta_error(c"sprite: region outside layout") }
+    if y > rows { meta_error(c"sprite: region outside layout") }
+    if width > cols - x { meta_error(c"sprite: region outside layout") }
+    if height > rows - y { meta_error(c"sprite: region outside layout") }
+    if mask_row_count != height { meta_error(c"sprite: row count differs from height") }
+    if str_eq(primitive, c"pointer") == 0 {
+        if str_eq(primitive, c"compiled") == 0 { meta_error(c"sprite: unknown primitive") }
+    }
+    // Decode bytes on the compile-time VM, then emit only the resulting work.
+    var row: i32 = 0
+    i = 0
+    while i < block_len() {
+        if str_eq(node_keyword(i), c"row") == 1 {
+            let masks: ^u8 = node_arg_str(i, 0)
+            let graphics: ^u8 = node_arg_str(i, 1)
+            var mlen: i32 = 0
+            var glen: i32 = 0
+            while masks[mlen] != 0 { mlen = mlen + 1 }
+            while graphics[glen] != 0 { glen = glen + 1 }
+            if mlen != width * 2 { meta_error(c"sprite: mask width mismatch") }
+            if glen != width * 2 { meta_error(c"sprite: graphics width mismatch") }
+            var address: i32 = base + (y + row) * stride + x
+            if str_eq(layout, c"zx_bitmap_bytes") == 1 {
+                let scan: i32 = y + row
+                address = base + ((scan & 192) << 5) + ((scan & 7) << 8) + ((scan & 56) << 2) + x
+            }
+            var started: u8 = 0
+            var previous: i32 = 0
+            var col: i32 = 0
+            while col < width {
+                var mask: u8 = 0
+                var graphic: u8 = 0
+                var digit: i32 = 0
+                while digit < 4 {
+                    var ch: u8 = 0
+                    if digit < 2 { ch = masks[col * 2 + digit] }
+                    else { ch = graphics[col * 2 + digit - 2] }
+                    var nibble: u8 = 255
+                    if ch >= 48 {
+                        if ch <= 57 { nibble = ch - 48 }
+                    }
+                    if ch >= 65 {
+                        if ch <= 70 { nibble = ch - 55 }
+                    }
+                    if ch >= 97 {
+                        if ch <= 102 { nibble = ch - 87 }
+                    }
+                    if nibble == 255 { meta_error(c"sprite: invalid hex digit") }
+                    if digit < 2 { mask = mask * 16 + nibble }
+                    else { graphic = graphic * 16 + nibble }
+                    digit = digit + 1
+                }
+                // Transparent bytes produce no read or write.
+                var write: u8 = 1
+                if mask == 255 {
+                    if graphic == 0 { write = 0 }
+                }
+                if write == 1 {
+                    if str_eq(primitive, c"compiled") == 1 {
+                        if started == 0 {
+                            emit(c"asm z80 (clob) {")
+                            emit(c"PUSH AF")
+                            emit(c"PUSH HL")
+                            emit(str_concat(c"LD HL, ", str_from_int(address + col)))
+                            started = 1
+                        } else {
+                            var step: i32 = previous
+                            while step < col { emit(c"INC HL") step = step + 1 }
+                        }
+                        previous = col
+                        if mask == 0 {
+                            emit(str_concat(c"LD (HL), ", str_from_int(graphic)))
+                        } else {
+                            emit(c"LD A, (HL)")
+                            emit(str_concat(c"AND ", str_from_int(mask)))
+                            emit(str_concat(c"OR ", str_from_int(graphic)))
+                            emit(c"LD (HL), A")
+                        }
+                    } else {
+                        emit(c"{")
+                        emit(str_concat(c"let sprite_ptr: ^u8 = ptr(", str_concat(str_from_int(address + col), c")")))
+                        if mask == 0 {
+                            emit(str_concat(c"sprite_ptr^ = ", str_from_int(graphic)))
+                        } else {
+                            emit(str_concat(c"sprite_ptr^ = (sprite_ptr^ & ", str_concat(str_from_int(mask), str_concat(c") | ", str_from_int(graphic)))))
+                        }
+                        emit(c"}")
+                    }
+                }
+                col = col + 1
+            }
+            if started == 1 {
+                emit(c"POP HL")
+                emit(c"POP AF")
+                emit(c"}")
+            }
+            row = row + 1
+        }
+        i = i + 1
+    }
+}
