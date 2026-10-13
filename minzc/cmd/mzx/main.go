@@ -116,6 +116,7 @@ func (g *Game) Update() error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) && g.demoTitle != "" {
 		if err := saveDemoSession(g.machine, g.demoSession); err != nil {
 			g.demoError = err.Error()
+			return nil
 		}
 		g.demoMenu = true
 	}
@@ -1403,9 +1404,6 @@ VERSION: %s (build %s, %s)
 		log.Fatalf("Unknown model: %s (supported: 48k, 128k, pentagon, scorpion-memory)", *modelFlag)
 	}
 
-	if *modelFlag == "scorpion-memory" && (*saveSnapshotFlag != "" || *snapshotAtTState != "") {
-		log.Fatal("SNA cannot preserve Scorpion extended banks; extended snapshot format not implemented")
-	}
 	demoSession := ""
 	demoTitle := ""
 	if *demoFlag != "" {
@@ -1417,6 +1415,9 @@ VERSION: %s (build %s, %s)
 		d, _ := findDemo(*demoFlag)
 		demoTitle = d.Title
 		*modelFlag = d.Model
+	}
+	if *modelFlag == "scorpion-memory" && (*saveSnapshotFlag != "" || *snapshotAtTState != "") {
+		log.Fatal("SNA cannot preserve Scorpion extended banks; extended snapshot format not implemented")
 	}
 	// Disable audio components based on flags
 	if *noAudioFlag || *noBeeperFlag {
