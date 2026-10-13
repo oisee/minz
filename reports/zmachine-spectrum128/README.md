@@ -103,3 +103,21 @@ path, zeroing the upper byte of the low word. The backend now copies the entire
 low word through overlap-safe byte staging. The boundary read failed before
 this correction and passes after it. The reader still needs connection to the
 interpreter and extension/replacement for compressed storage.
+
+
+## Interpreter memory routing
+
+examples/zmachine/spectrum128/zvm_core.nanz is a derived staging interpreter.
+All indexed story access now goes through memory_read/memory_write, and direct
+host loading/save/restore is isolated in three lifecycle functions. The original
+frozen host fixture remains unchanged. This stage still has host I/O, snapshot
+and a 131072-byte array; it is not yet a native Spectrum interpreter.
+
+The routed version passes the existing Z3 fixture gates: high-memory code,
+stream3, transcript, Unicode output/input, command streams, save format SHA and
+mismatched-story restore refusal. The demo transcript also matched its fixture.
+On the local 86928-byte candidate, original and routed VM gameplay output
+(942 bytes) and save bytes (20306 bytes) match exactly. Candidate SHA is
+140fc6e4664cfe66928e49dded68f3bea150356d6f3bd6a9690de9390c3f0811;
+this does not replace the pinned MIT story/reference gate. Details and
+reproduction commands are in the Spectrum staging README.

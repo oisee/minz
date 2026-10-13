@@ -12,7 +12,7 @@ tmp_dir=$(mktemp -d)
 trap 'rm -rf "$tmp_dir"' EXIT
 
 cp "$fixture_dir/stream3.z3" "$tmp_dir/zork-west-demo.z3"
-cp "$fixture_dir/../zork-west-demo/zvm.nanz" "$tmp_dir/zvm.nanz"
+cp "${ZVM_CORE:-$fixture_dir/../zork-west-demo/zvm.nanz}" "$tmp_dir/zvm.nanz"
 mkdir -p "$tmp_dir/text"
 cp "$fixture_dir/../../../stdlib/text/print.nanz" "$tmp_dir/text/print.nanz"
 "$vm" -H "$tmp_dir/zvm.nanz" > "$tmp_dir/stream3.out"

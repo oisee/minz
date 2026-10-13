@@ -19,7 +19,7 @@ fi
 tmp_dir=$(mktemp -d)
 trap 'rm -rf "$tmp_dir"' EXIT
 cp "$story" "$tmp_dir/zork-west-demo.z3"
-cp "$demo_dir/zvm.nanz" "$tmp_dir/zvm.nanz"
+cp "${ZVM_CORE:-$demo_dir/zvm.nanz}" "$tmp_dir/zvm.nanz"
 mkdir -p "$tmp_dir/text"
 cp "$demo_dir/../../../stdlib/text/print.nanz" "$tmp_dir/text/print.nanz"
 printf 'look\nopen mailbox\ntake leaflet\nread leaflet\ninventory\nquit\ny\n' | "$vm" -H "$tmp_dir/zvm.nanz" > "$tmp_dir/output"
