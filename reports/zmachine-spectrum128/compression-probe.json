@@ -1,0 +1,46 @@
+{
+  "story": "/tmp/stackci-shard6/packs/zork/src/zork1-z3.w3mi.data.z3",
+  "sha256": "140fc6e4664cfe66928e49dded68f3bea150356d6f3bd6a9690de9390c3f0811",
+  "version": 3,
+  "story_bytes": 86928,
+  "dynamic_bytes": 11288,
+  "static_bytes": 75640,
+  "measurements": [
+    {
+      "block_bytes": 256,
+      "blocks": 296,
+      "static_payload_bytes": 71561,
+      "illustrative_index_bytes": 1184,
+      "dynamic_plus_static_and_index_bytes": 84033
+    },
+    {
+      "block_bytes": 512,
+      "blocks": 148,
+      "static_payload_bytes": 69122,
+      "illustrative_index_bytes": 592,
+      "dynamic_plus_static_and_index_bytes": 81002
+    },
+    {
+      "block_bytes": 1024,
+      "blocks": 74,
+      "static_payload_bytes": 65501,
+      "illustrative_index_bytes": 296,
+      "dynamic_plus_static_and_index_bytes": 77085
+    },
+    {
+      "block_bytes": 2048,
+      "blocks": 37,
+      "static_payload_bytes": 62000,
+      "illustrative_index_bytes": 148,
+      "dynamic_plus_static_and_index_bytes": 73436
+    },
+    {
+      "block_bytes": 4096,
+      "blocks": 19,
+      "static_payload_bytes": 59845,
+      "illustrative_index_bytes": 76,
+      "dynamic_plus_static_and_index_bytes": 71209
+    }
+  ],
+  "scope": "zlib redundancy estimate, per-block round trips checked; raw fallback; illustrative index; no Z80 codec/cycle/cache claim"
+}

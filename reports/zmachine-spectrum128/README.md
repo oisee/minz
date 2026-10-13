@@ -28,3 +28,21 @@ annotations/u24 pointers in the ADR are not automatically working features.
 Next: pin available Zork1 story and inspect its dynamic-memory boundary, compile
 an interpreter with a bounded dummy memory accessor to measure code/state size,
 then implement a resident-window architecture and independent page-boundary tests.
+
+## Runtime compression investigation
+
+Z-strings already pack three5-bit characters into each16-bit word and use
+abbreviations. Additional transparent compression can preserve logical story
+addresses by indexing independent static blocks and caching decompressed blocks.
+Keep dynamic story memory writable/uncompressed initially; compressing mutable
+RAM would need dirty eviction/coherency and unpredictable update cost.
+
+A local V3 Zork candidate86928B, dynamic boundary11288B, was found. Its SHA
+140fc6e4664cfe66928e49dded68f3bea150356d6f3bd6a9690de9390c3f0811 differs from
+pinned MIT66e549...: it is a compression probe only, not substitute story evidence.
+Independent zlib chunks1K/2K/4K store static65501/62000/59845B, before index and
+cache. This measures redundancy, not a chosen Z80 decoder. Source script checks
+roundtrip for every block and uses raw fallback; JSON retains exact SHA/results.
+Next practical experiment: Z80-friendly bounded LZSS/ZX0-like block format, cache
+miss costs and access locality, then compare total physical budget with no compression.
+Astra review was requested; first attempt rate-limited before advice, retry pending.
