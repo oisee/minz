@@ -686,3 +686,25 @@ Combined diagnostic resident size 25210 bytes, end BD7A, headroom 134 B before
 BE00: -84 B versus duplicated readers. Semantic saved-state validation, applying
 deltas and wiring SAVE/RESTORE still require additional space. This is an
 integration experiment; desktop bundles retain the earlier runnable checkpoint.
+
+
+## Native XOR delta apply
+
+`native_delta_apply.py` joins the independent original/saved RLE cursors and
+writes original XOR saved-delta into bank0, skipping current flags2 bytes 16/17.
+No decoded buffer is allocated. Caller MUST validate record structure and all
+saved-state semantics before mutation, configure the saved cursor to the delta
+payload, and enforce decoded dynamic bounds. Inputs reside in immutable nonzero
+banks, native code/stack resident, IRQ disabled. This is an apply primitive, not
+a complete restore entry point or atomicity guarantee for unvalidated records.
+
+Eleven native full-memory cases PASS in 0.14 s: zero/one byte, both flags2 byte
+boundaries, literal/repeat boundaries, 11288-byte Zork dynamic size and full 16K.
+Independent oracle computes original XOR delta. Every physical RAM byte checked
+outside declared cursor scratch/bounded stack; current flags2, archive, payload
+and other banks preserved. PC/SP/paging/IFF checked.
+
+Diagnostic combined resident 25260 bytes, end BDAC, headroom 84 B before BE00.
+Saved-state semantic validation, applying state from compressed input, header
+publication, SAVE/RESTORE wiring and gameplay tests still pending. Desktop
+checkpoint remains SAVE/RESTORE-disabled; stack reservation unchanged.
