@@ -1438,3 +1438,25 @@ Zork disk gameplay, atomic сохранение прежнего record при �
 проверка всей dynamic/state при повреждениях и удаление story-bank staging
 ещё не закрыты. Коммит не объявляет завершённый постоянный SAVE showcase.
 Physical TR-DOS driver/ROM workspace также отдельно; current API traps only.
+
+### 13 октября: настоящий Zork I — disk SAVE и RESTORE в новой машине
+
+Native Zork I route `open mailbox`, `take leaflet`, `save`, `inventory`,
+`quit`, `y` сохранил MZ3R на отдельный TRD. Затем disk перечитан с filesystem,
+создана новая Scorpion-memory машина с исходной story; `restore`, `inventory`,
+`quit`, `y` восстановили листовку и continuation после SAVE. Отдельные
+ожидания проверяют `Ok.` и инвентарь с листовкой. Corrupt magic отклоняется
+с `Failed.` без восстановленной листовки. Малая независимая V3 fixture также
+PASS. `TestZMachineZorkDiskSaveAcrossRestart` включается MINZ_Z3_STORY.
+
+Это script-input/capture checkpoint: output boundary заменён NOP для наблюдения
+через PC trap, экран/keyboard этим прогоном не проверяются. Opcode dispatcher,
+банковая память, SAVE serialization/preflight/restore и disk API исполняются
+compiled Z80. Resident этой capture configuration 22736 B; это не размер
+interactive snapshot. Fixed code/stack и оба paging ports после выхода проверены.
+
+Temporary staging пока в последнем story bank; дополнительный bank8 содержит
+sector buffer. Перенос staging в extended RAM и interactive distribution
+ещё впереди. Запись с повреждением/частичным отказом не сохраняет прежний slot
+гарантированно; нужен отдельный commit protocol. Existing physical TR-DOS
+ограничения остаются: emulator API traps, не заявленная ROM compatibility.
