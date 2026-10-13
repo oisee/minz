@@ -84,3 +84,47 @@ func TestCompositionDomainRejectsEmptyAndNonadjacentConflict(t *testing.T) {
 		t.Fatal("unsupported candidate survives empty domain")
 	}
 }
+
+func TestCompositionArcConsistencyDoesNotClaimGlobalSolution(t *testing.T) {
+	// Equality on two edges, inequality on the third: every local choice has
+	// pairwise support, but the cycle has no complete compatible assignment.
+	input := [][]map[int]int{
+		{{1: 0, 2: 0}, {1: 1, 2: 1}},
+		{{2: 0, 3: 0}, {2: 1, 3: 1}},
+		{{1: 0, 3: 1}, {1: 1, 3: 0}},
+	}
+	output := propagateCompositionDomains(input)
+	if !reflect.DeepEqual(input, output) {
+		t.Fatal("unsupported global-solver claim")
+	}
+	count := 0
+	for _, a := range output[0] {
+		for _, b := range output[1] {
+			for _, c := range output[2] {
+				if a[2] == b[2] && b[3] == c[3] && a[1] == c[1] {
+					count++
+				}
+			}
+		}
+	}
+	if count != 0 {
+		t.Fatal("oracle should be unsatisfiable")
+	}
+}
+
+func BenchmarkCompositionDomains(b *testing.B) {
+	input := make([][]map[int]int, 8)
+	for i := range input {
+		for value := 0; value < 8; value++ {
+			input[i] = append(input[i], map[int]int{1: value, i + 2: value})
+		}
+	}
+	input[7] = input[7][:1]
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		out := propagateCompositionDomains(input)
+		if len(out[0]) != 1 {
+			b.Fatal("pruning")
+		}
+	}
+}

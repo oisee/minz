@@ -22,3 +22,10 @@ caller 238→142T in PFCCO greedy/PBQP × Grace off/on; add5 8→6 bytes. Heldou
 +19/-11/XOR90 have unchanged caller times. This is reduced search, not another
 runtime speed claim. Explicit adapters for mismatched placements and CFG islands
 remain future work. The API stays bounded, opt-in preparation.
+
+
+An explicit cyclic contradiction remains arc-consistent but has no full
+solution. The test prevents presenting pairwise propagation as a complete solver.
+On this host (Ryzen 7 5800X), an eight-domain benchmark prunes 8 choices per
+fragment to one in about 20.6 microseconds, 1170 bytes/25 allocations per call.
+This is a local microbenchmark, not total compiler latency.
