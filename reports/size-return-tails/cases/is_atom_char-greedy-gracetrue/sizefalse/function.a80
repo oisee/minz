@@ -1,0 +1,45 @@
+; fun is_atom_char(c: u8 = A) -> u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+; [trace] backend=PBQP passes=[condret-sink=1,cond-rets=1]
+is_atom_char:
+    AND A
+    JRS NZ, .is_atom_char_if_join2
+.is_atom_char_if_then1:
+    LD A, 0
+    RET
+.is_atom_char_if_join2:
+    CP 32
+    JRS NZ, .is_atom_char_if_join4
+.is_atom_char_if_then3:
+    LD A, 0
+    RET
+.is_atom_char_if_join4:
+    CP 9
+    JRS NZ, .is_atom_char_if_join6
+.is_atom_char_if_then5:
+    LD A, 0
+    RET
+.is_atom_char_if_join6:
+    CP 10
+    JRS NZ, .is_atom_char_if_join8
+.is_atom_char_if_then7:
+    LD A, 0
+    RET
+.is_atom_char_if_join8:
+    CP 13
+    JRS NZ, .is_atom_char_if_join10
+.is_atom_char_if_then9:
+    LD A, 0
+    RET
+.is_atom_char_if_join10:
+    CP 40
+    JRS NZ, .is_atom_char_if_join12
+.is_atom_char_if_then11:
+    LD A, 0
+    RET
+.is_atom_char_if_join12:
+    CP 41
+    LD A, 1
+    RET NZ
+.is_atom_char_if_then13:
+    LD A, 0
+    RET

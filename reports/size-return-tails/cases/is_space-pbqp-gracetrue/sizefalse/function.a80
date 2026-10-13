@@ -1,0 +1,27 @@
+; fun is_space(c: u8 = A) -> u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+; [trace] backend=PBQP passes=[condret-sink=1,cond-rets=1]
+is_space:
+    CP 32
+    JRS NZ, .is_space_if_join2
+.is_space_if_then1:
+    LD A, 1
+    RET
+.is_space_if_join2:
+    CP 9
+    JRS NZ, .is_space_if_join4
+.is_space_if_then3:
+    LD A, 1
+    RET
+.is_space_if_join4:
+    CP 10
+    JRS NZ, .is_space_if_join6
+.is_space_if_then5:
+    LD A, 1
+    RET
+.is_space_if_join6:
+    CP 13
+    LD A, 0
+    RET NZ
+.is_space_if_then7:
+    LD A, 1
+    RET
