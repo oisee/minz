@@ -1,0 +1,32 @@
+=== RUN   TestConditionalLayoutModesTokenizerHeldout
+=== RUN   TestConditionalLayoutModesTokenizerHeldout/speed
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    conditional_layout_modes_tokenizer_test.go:52: global mode1, layout2: 4120 B / 329779 training T; ordinary 4186 B / 334871 T
+    conditional_layout_modes_tokenizer_test.go:81: selected2: module 4120 / 4120 B; train 329844 / 329779 T; heldout 284072 / 284015 T
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    conditional_layout_modes_tokenizer_test.go:122: global heldout ordinary 289789 / selected 284015 T
+=== RUN   TestConditionalLayoutModesTokenizerHeldout/size
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    conditional_layout_modes_tokenizer_test.go:52: global mode1, layout0: 4120 B / 329844 training T; ordinary 4186 B / 334871 T
+    conditional_layout_modes_tokenizer_test.go:81: selected0: module 4120 / 4120 B; train 329844 / 329844 T; heldout 284072 / 284072 T
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    conditional_layout_modes_tokenizer_test.go:122: global heldout ordinary 289789 / selected 284072 T
+--- PASS: TestConditionalLayoutModesTokenizerHeldout (33.70s)
+    --- PASS: TestConditionalLayoutModesTokenizerHeldout/speed (16.79s)
+    --- PASS: TestConditionalLayoutModesTokenizerHeldout/size (16.90s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	33.712s

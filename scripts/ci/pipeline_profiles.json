@@ -60,6 +60,9 @@
     "TestConditionalFunctionSpanKeepsAllReturnsAndStorage",
     "TestConditionalInvariantRegression",
     "TestConditionalInvariantSiteCandidates",
+    "TestConditionalLayoutModesOwnsInputsAndTies",
+    "TestConditionalLayoutModesRechecksEarlierTablePin",
+    "TestConditionalLayoutModesRejectsCrossModeDrift",
     "TestConditionalLayoutWorkloadNativeAndArtifact",
     "TestConditionalLayoutWorkloadRechecksTablePin",
     "TestConditionalLayoutWorkloadRejectsDriftAndPartialResults",
@@ -370,6 +373,7 @@
   "deep": [
     "TestByteWordFusionAudit",
     "TestC89ExpressionEffectsNative",
+    "TestConditionalLayoutModesTokenizerHeldout",
     "TestConditionalLayoutTokenizerCompilerCombinations",
     "TestConditionalLayoutTokenizerHeldout",
     "TestFATDirectoryWriteNativeState",

@@ -1,0 +1,26 @@
+[
+  {
+    "goal": "speed",
+    "mode": 1,
+    "layout": 2,
+    "ordinary_bytes": 4186,
+    "selected_bytes": 4120,
+    "ordinary_training": 334871,
+    "selected_training": 329779,
+    "ordinary_heldout": 289789,
+    "selected_heldout": 284015,
+    "evidence_sha256": "c91a917c1b0b4a80f458a905faaf301eaf4d9b3a872efbd52f80965487309385"
+  },
+  {
+    "goal": "size",
+    "mode": 1,
+    "layout": 0,
+    "ordinary_bytes": 4186,
+    "selected_bytes": 4120,
+    "ordinary_training": 334871,
+    "selected_training": 329844,
+    "ordinary_heldout": 289789,
+    "selected_heldout": 284072,
+    "evidence_sha256": "f4c0b2e3e72cbaf9a63eab2c1742ae9570bdc10712d07117b048f355477f9a0c"
+  }
+]

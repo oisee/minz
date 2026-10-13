@@ -35,7 +35,13 @@ func TestConditionalLayoutTokenizerCompilerCombinations(t *testing.T) {
 	}
 }
 
+type conditionalTokenizerSelector func(func() (*hir.Module, error), hir.ProfileWorkload, Options) (*ConditionalLayoutResult, error)
+
 func conditionalLayoutTokenizerRun(t *testing.T, options Options, directory string) {
+	conditionalLayoutTokenizerWithSelector(t, options, directory, nil)
+}
+
+func conditionalLayoutTokenizerWithSelector(t *testing.T, options Options, directory string, selectCandidate conditionalTokenizerSelector) {
 	t.Helper()
 	path := "../../../examples/nanz/grace_tokenizer_checked.nanz"
 	source, err := os.ReadFile(path)
@@ -55,35 +61,17 @@ func conditionalLayoutTokenizerRun(t *testing.T, options Options, directory stri
 	}
 	train := makeWorkload([]string{"fun add(a: u8, b: u8) -> u8 { return a + b }", "alpha alpha beta alpha", "// comment\nfun"})
 	heldout := makeWorkload([]string{"0 007 123456789", "\tfn if else\r\nwhile let var true false return", "_ _a a1 A9"})
-	result, err := MeasureConditionalLayoutWorkload(factory, "is_space", train, options, "speed", 4)
+	if selectCandidate == nil {
+		selectCandidate = func(factory func() (*hir.Module, error), workload hir.ProfileWorkload, options Options) (*ConditionalLayoutResult, error) {
+			return MeasureConditionalLayoutWorkload(factory, "is_space", workload, options, "speed", 4)
+		}
+	}
+	result, err := selectCandidate(factory, train, options)
 	if err != nil {
 		t.Fatal(err)
 	}
 	check := func(w hir.ProfileWorkload, run *Z80ProfileWorkloadEvidence) {
-		t.Helper()
-		host := tokenizerHost{arena: append([]byte(nil), w.Resources["arena"]...), tokens: append([]byte(nil), w.Resources["tokens"]...), keywords: map[string]int{}}
-		for i, c := range w.Calls {
-			name := c.Arguments[0].Resource
-			n := int(*c.Arguments[3].Value)
-			host.run(w.Resources[name], n)
-			inv := run.Invocations[i]
-			if len(inv.Results) != 1 || inv.Results[0].I != int64(host.count) || !reflect.DeepEqual(inv.Snapshot.Globals, host.globals(n)) || !bytes.Equal(inv.Snapshot.Resources["arena"], host.arena) || !bytes.Equal(inv.Snapshot.Resources["tokens"], host.tokens) {
-				t.Fatal("independent tokenizer results/state", i)
-			}
-			if inv.Access == nil {
-				t.Fatal("missing exact accesses")
-			}
-			accesses := inv.Access.Resources
-			for resource, want := range map[string]hir.ProfileByteAccess{
-				"arena":  {Reads: host.arenaReads, Writes: host.arenaWrites},
-				"tokens": {Reads: host.tokensReads, Writes: host.tokensWrites},
-				name:     {Reads: host.sourceReads, Writes: make([]uint64, len(w.Resources[name]))},
-			} {
-				if !reflect.DeepEqual(accesses[resource], want) {
-					t.Fatal("independent tokenizer byte traffic", i, resource)
-				}
-			}
-		}
+		conditionalTokenizerIndependentCheck(t, w, run)
 	}
 	for _, candidate := range result.Evidence.Candidates {
 		check(train, candidate.Run)
@@ -125,6 +113,33 @@ func conditionalLayoutTokenizerRun(t *testing.T, options Options, directory stri
 			}
 			if err = os.WriteFile(filepath.Join(directory, name), data, 0644); err != nil {
 				t.Fatal(err)
+			}
+		}
+	}
+}
+
+func conditionalTokenizerIndependentCheck(t *testing.T, w hir.ProfileWorkload, run *Z80ProfileWorkloadEvidence) {
+	t.Helper()
+	host := tokenizerHost{arena: append([]byte(nil), w.Resources["arena"]...), tokens: append([]byte(nil), w.Resources["tokens"]...), keywords: map[string]int{}}
+	for i, c := range w.Calls {
+		name := c.Arguments[0].Resource
+		n := int(*c.Arguments[3].Value)
+		host.run(w.Resources[name], n)
+		inv := run.Invocations[i]
+		if len(inv.Results) != 1 || inv.Results[0].I != int64(host.count) || !reflect.DeepEqual(inv.Snapshot.Globals, host.globals(n)) || !bytes.Equal(inv.Snapshot.Resources["arena"], host.arena) || !bytes.Equal(inv.Snapshot.Resources["tokens"], host.tokens) {
+			t.Fatal("independent tokenizer results/state", i)
+		}
+		if inv.Access == nil {
+			t.Fatal("missing exact accesses")
+		}
+		accesses := inv.Access.Resources
+		for resource, want := range map[string]hir.ProfileByteAccess{
+			"arena":  {Reads: host.arenaReads, Writes: host.arenaWrites},
+			"tokens": {Reads: host.tokensReads, Writes: host.tokensWrites},
+			name:     {Reads: host.sourceReads, Writes: make([]uint64, len(w.Resources[name]))},
+		} {
+			if !reflect.DeepEqual(accesses[resource], want) {
+				t.Fatal("independent tokenizer byte traffic", i, resource)
 			}
 		}
 	}
