@@ -124,6 +124,28 @@ ZX layouts; region is x-byte/y-row/width/height, entirely within bounds. This
 first API is byte-aligned, with known destination and mask/data. Pixel shifts,
 clipping, dynamic destinations and runtime sprite buffers are future extensions.
 
+A pointer sprite can use a boolean from caller scope:
+
+```nanz
+fun draw(visible: bool) {
+    @sprite() {
+        destination "zx_bitmap_bytes" 16384
+        region 2 7 2 2
+        row "f000" "05ab"
+        row "ff55" "00aa"
+        when "visible"
+    }
+}
+```
+
+`when` wraps the entire sprite in one typed runtime condition. At false,
+no sprite load or store executes. This option requires `via "pointer"`
+(the default). Metafunction authors build the condition with
+`hir_if(boolean_expression, then_block, else_block)`; use `hir_block()`
+for an empty else. Both branches are copied when `emit_hir` records the
+statement, and recursive block construction is rejected.
+
+
 `via "pointer"` emits specialized ordinary Nanz writes. `via "compiled"` emits
 one closed ASM region for each nontransparent row, with precomputed address and
 sequential INC HL advances. AF/HL are saved/restored in four normal stack bytes;

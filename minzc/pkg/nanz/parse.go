@@ -6045,6 +6045,7 @@ func (p *parser) captureMetaFuncSource(name string) (string, error) {
 		"hir_binary(op: ^u8, left: u16, right: u16) -> u16", "hir_block() -> u16",
 		"hir_append(block: u16, statement: u16) -> void", "hir_var(name: ^u8, ty: ^u8, initial: u16) -> u16",
 		"hir_load(pointer: u16) -> u16", "hir_assign(target: u16, value: u16) -> u16", "hir_store(pointer: u16, value: u16) -> u16",
+		"hir_if(condition: u16, then_body: u16, else_body: u16) -> u16",
 		"hir_while(condition: u16, body: u16) -> u16", "emit_hir(statement: u16) -> void",
 	} {
 		sb.WriteString("@extern fun " + decl + "\n")
