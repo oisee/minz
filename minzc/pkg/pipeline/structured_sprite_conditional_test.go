@@ -91,7 +91,7 @@ func TestStructuredSpriteConditionalNative(t *testing.T) {
 						t.Fatalf("unsupported boolean ABI %s", location)
 					}
 					z.SetRegisters(initial)
-					for i := 0; i < 10000 && !(z.GetPC() == 0x7000 && z.GetSP() == 0xeff2); i++ {
+					for i := 0; i < 10000 && (z.GetPC() != 0x7000 || z.GetSP() != 0xeff2); i++ {
 						z.Step()
 					}
 					if z.GetPC() != 0x7000 || z.GetSP() != 0xeff2 {
