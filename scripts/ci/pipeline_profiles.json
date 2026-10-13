@@ -74,6 +74,7 @@
     "TestExternPeekPokeZ80Contract",
     "TestExternStubSharedLabels",
     "TestFAT12BytePackingRetainsNativeAccessesAndWrap",
+    "TestFATByteOffsetOriginalWordDomain",
     "TestFATPackedControlledWholeSourceAdmission",
     "TestFATSequentialWordFusionNative",
     "TestFATSequentialWordFusionNativeWrap",
