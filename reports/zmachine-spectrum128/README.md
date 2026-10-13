@@ -1478,3 +1478,19 @@ fault injection после каждого payload/header/marker ещё впер�
 image replace обеспечивает целый сектор в emulator; torn physical sectors
 и реальный контроллер этим результатом не покрыты. Game staging по-прежнему
 в story bank, interactive distribution и перенос staging остаются следующими.
+
+### 13 октября: отказ на каждом этапе дисковой перезаписи
+
+`TestZMachineZorkDiskSaveAcrossRestart` теперь измеряет количество записей
+успешного SAVE и повторяет overwrite с отказом host filesystem на каждом
+вызове sector-write. Для Zork I это четыре позиции: два payload sectors,
+header и final marker. Во всех случаях SAVE сообщает failure, active marker
+не меняется, TRD перечитывается, fresh machine восстанавливает прежний record;
+полный текст равен исходному RESTORE. PASS за 50.679 s. Малая Inform fixture
+прошла обе позиции (header/marker), PASS за 4.221 s.
+
+Это закрывает API-write failure matrix на этих двух records; оно не
+покрывает arbitrary record sizes, torn physical sectors, power-loss durability
+или все повреждения marker. Existing emulator atomic host-image replace
+остаётся предусловием. Следующее необходимое изменение — перенос staging
+из story bank в расширенную RAM перед interactive disk distribution.

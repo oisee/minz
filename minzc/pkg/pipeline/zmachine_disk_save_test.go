@@ -122,6 +122,7 @@ func testZMachineDiskSave(t *testing.T, externalStory string) {
 			if err := disk.Flush(); err != nil {
 				t.Fatal(err)
 			}
+			failWriteAt, writeCalls := 0, 0
 			run := func(disk *formats.TRDFile, restore bool) []byte {
 				m, err := spectrum.NewScorpionMemory256(nil, nil)
 				if err != nil {
@@ -155,6 +156,18 @@ func testZMachineDiskSave(t *testing.T, externalStory string) {
 				m.CPU.SetSP(0xbf00)
 				m.CPU.SetIFF1(false)
 				m.CPU.SetIFF2(false)
+				writeCalls = 0
+				actualPath := disk.Path
+				defer func() { disk.Path = actualPath }()
+				m.SetPCTrap(uint16(a.Symbols["zx__scorpion_disk__scorpion_disk_sector"]), func() {
+					if byte(m.CPU.AF()>>8) == 6 {
+						writeCalls++
+						if failWriteAt == writeCalls {
+							disk.Path = filepath.Join(actualPath, "invalid-child")
+						}
+					}
+					m.CPU.DoOpcode()
+				})
 				formats.InstallTRDTraps(m, disk, false)
 				var output []byte
 				m.SetPCTrap(uint16(a.Symbols["native_putchar"]), func() { output = append(output, byte(m.CPU.AF()>>8)); m.CPU.DoOpcode() })
@@ -219,6 +232,48 @@ func testZMachineDiskSave(t *testing.T, externalStory string) {
 			retainedOutput := run(retained, true)
 			if !bytes.Equal(retainedOutput, second) {
 				t.Fatalf("prior save lost %q", retainedOutput)
+			}
+			{
+				// Measure the complete overwrite and inject failures at each write,
+				// including the final marker publication. Start from the same disk.
+				baseline, err := os.ReadFile(savedPath)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if output := run(retained, false); !bytes.Equal(output, first) {
+					t.Fatalf("successful overwrite %q", output)
+				}
+				writes := writeCalls
+				if writes < 2 {
+					t.Fatal("missing header/marker writes", writes)
+				}
+				for at := 1; at <= writes; at++ {
+					if err := os.WriteFile(savedPath, baseline, 0644); err != nil {
+						t.Fatal(err)
+					}
+					candidate, err := formats.LoadTRD(savedPath)
+					if err != nil {
+						t.Fatal(err)
+					}
+					candidate.Writeback = true
+					failWriteAt = at
+					output := run(candidate, false)
+					if !bytes.Contains(output, []byte("save failed")) && !bytes.Contains(output, []byte("Failed.")) {
+						t.Fatalf("write%d not rejected %q", at, output)
+					}
+					failWriteAt = 0
+					prior, err := formats.LoadTRD(savedPath)
+					if err != nil {
+						t.Fatal(err)
+					}
+					if prior.Data[8192+2] != baseline[8192+2] {
+						t.Fatal("marker changed on failure", at)
+					}
+					if output := run(prior, true); !bytes.Equal(output, second) {
+						t.Fatalf("write%d lost prior record %q", at, output)
+					}
+				}
+				t.Logf("all %d write failure positions preserve prior committed save", writes)
 			}
 			// Corrupt the stored header: restore must reject it before applying state.
 			reopened.Data[2*2*16*256] ^= 1
