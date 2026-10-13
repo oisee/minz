@@ -16,6 +16,7 @@ p.add_argument('--story-bytes', type=int, required=True)
 p.add_argument('--commands', type=Path, help='ASCII command transcript for native integration')
 p.add_argument('--restart-rle-bytes', type=int, default=0, help='validated RLE archive size instead of raw prefix')
 p.add_argument('--restart-bytes', type=int, default=0, help='original dynamic prefix archived immediately after raw story')
+p.add_argument('--save-story', type=Path, help='enable volatile native SAVE/RESTORE for this exact story')
 p.add_argument('--console', action='store_true', help='Spectrum screen and keyboard instead of RAM capture')
 a = p.parse_args()
 if not 64 <= a.story_bytes <= 98304:
@@ -241,4 +242,40 @@ assert 'story[' not in text and '&story,' not in text
 assert 'snapshot[' not in text
 # Bank write belongs to the nested import: import it directly for stable naming.
 text = text.replace('import zx.story_memory', 'import zx.story_memory\nimport zx.banked')
+if a.save_story:
+    story = a.save_story.read_bytes()
+    if len(story) != a.story_bytes or int.from_bytes(story[14:16], 'big') != a.restart_bytes or not a.restart_rle_bytes:
+        p.error('SAVE requires matching story and validated compressed restart archive')
+    slot = len(story) + a.restart_rle_bytes
+    capacity = 98304 - slot
+    pages = [0,1,3,4,6,7]
+    if capacity < 32 or slot // 16384 != 5:
+        p.error('SAVE slot must fit in the final nonzero story bank')
+    bank = pages[slot // 16384] + 0x10
+    offset = slot % 16384
+    from native_state_stream import emit as state_code
+    from native_shared_reader import emit as reader_code
+    from native_save_stream import emit as pack_code
+    from native_save_preflight import emit as preflight_code
+    from native_state_validate import emit as validate_code
+    from native_delta_apply import emit as apply_code
+    from native_restore import emit as restore_code
+    from native_save import emit as save_code
+    text = 'import zx.crc\n' + text
+    text += state_code()+reader_code(pages[len(story)//16384]+0x10,len(story)%16384)+pack_code()
+    text += preflight_code(story,capacity).replace('import zx.crc\n','').replace('import zx.banked\n','')
+    text += validate_code(story)+apply_code()+restore_code(story)+save_code(story,bank,offset,capacity)
+    replace_function('save_state', 'fun save_state()->u8 { return native_save() }')
+    replace_function('restore_state', f'''fun restore_state()->u8 {{
+ asm z80 (ret A) (clob A,F,BC,DE,HL,IX,IY) {{
+  LD DE,(native_save_length)
+  LD A,D
+  OR E
+  JR Z,.no_save
+  LD HL,{offset}
+  LD A,{bank}
+  CALL native_restore
+ .no_save:
+ }}
+}}''')
 a.output.write_text('// Native banked integration harness: output capture; unsupported I/O fails.\n' + text)

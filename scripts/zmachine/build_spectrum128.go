@@ -45,6 +45,7 @@ func main() {
 	must(err)
 	restart := dynamic >= 64 && dynamic <= 16384 && len(story)+len(archive) <= 98304 && len(story)/16384 == (len(story)+len(archive)-1)/16384 && len(story)/16384 > 0
 
+	saveSupported := restart && (len(story)+len(archive))/16384 == 5 && 98304-len(story)-len(archive) >= 32
 	out, err := filepath.Abs(os.Args[2])
 	must(err)
 	must(os.MkdirAll(out, 0755))
@@ -52,6 +53,9 @@ func main() {
 	cmd := exec.Command("python3", "../scripts/zmachine/prepare_native_core.py", source, "--story-bytes", fmt.Sprint(len(story)), "--console")
 	if restart {
 		cmd.Args = append(cmd.Args, "--restart-bytes", fmt.Sprint(dynamic), "--restart-rle-bytes", fmt.Sprint(len(archive)))
+	}
+	if saveSupported {
+		cmd.Args = append(cmd.Args, "--save-story", os.Args[1])
 	}
 	result, err := cmd.CombinedOutput()
 	if err != nil {
@@ -110,7 +114,9 @@ func main() {
 	}
 	must(os.WriteFile(filepath.Join(out, "zvm-spectrum128.a80"), []byte(assembly), 0644))
 	must(os.WriteFile(filepath.Join(out, "zvm-spectrum128.bin"), a.Binary, 0644))
-	metadata := map[string]any{"story_sha256": fmt.Sprintf("%x", sha256.Sum256(story)), "story_bytes": len(story), "resident_bytes": len(a.Binary), "origin": 0x5b00, "entry": a.Symbols["main"], "native_stack_top": 0xbf00, "paging": 0x10, "story_banks": pages, "snapshot_roundtrip": "all eight banks and PC/SP/paging verified", "limitations": []string{"save/restore unsupported; restart depends on archive capacity", "ROM font data at 0x3d00 required", "IRQs disabled; polling keyboard", "short gameplay verified; full game not proven"}}
+	metadata := map[string]any{"story_sha256": fmt.Sprintf("%x", sha256.Sum256(story)), "story_bytes": len(story), "resident_bytes": len(a.Binary), "origin": 0x5b00, "entry": a.Symbols["main"], "native_stack_top": 0xbf00, "paging": 0x10, "story_banks": pages, "snapshot_roundtrip": "all eight banks and PC/SP/paging verified", "limitations": []string{"RAM save volatile; failed overwrite invalidates prior save; capacity overflow returns failure", "ROM font data at 0x3d00 required", "IRQs disabled; polling keyboard", "short gameplay verified; full game not proven"}}
+	metadata["save_restore_supported"] = saveSupported
+	metadata["save_slot_bytes"] = 98304 - len(story) - len(archive)
 	metadata["restart_supported"] = restart
 	if restart {
 		metadata["restart_archive_offset"] = len(story)

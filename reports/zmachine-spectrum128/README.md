@@ -845,3 +845,23 @@ Combined diagnostic native SAVE/RESTORE code now fits: 25008 bytes, end BCB0,
 This includes codec/header/state/apply functions but not yet opcode wiring or a
 SAVE-enabled snapshot. Next exercise actual Zork SAVE→mutation→RESTORE and
 rebuild desktop artifacts only after the final linked image passes size/runtime.
+
+
+## Real Zork SAVE/RESTORE and playable snapshot
+
+Native preparation can now enable SAVE/RESTORE with `--save-story`, requiring
+matching story bytes and a builder-validated compressed original archive. The
+builder selects this mode when a bounded final-bank save slot exists. SAVE stores
+PC before its Z3 branch; successful RESTORE returns to that saved branch via the
+existing opcode semantics. No emulator file-save service substitutes for Z80 code.
+
+Real Zork keyboard route open mailbox→save→take leaflet→inventory→restore→inventory
+→quit PASS: 66 keys, 644 output bytes identical to host VM, 464656330 T, maximum
+60-byte native stack, correct final PC/SP/paging/IFF. Restored inventory is empty.
+This is one real gameplay save lifecycle, not full-game or all-V3-story coverage.
+
+New builder snapshot: 25030 resident bytes, entry 5B00, end BCC6, 314 B before
+BE00. All eight RAM banks and PC/SP/paging/IFF survive SNA roundtrip. Save slot
+2204 bytes, volatile RAM; failed overwrite invalidates previous save and overflow
+returns failure. RESTART archive remains immutable. Full-game capacity bounds,
+other V3 stories and external persistent save storage remain separate work.
