@@ -166,7 +166,7 @@ func TestShowcaseExecutableOracleCatalog(t *testing.T) {
 			row.NativeBehavior = "agon-mos-runtime"
 			row.Requirement = "Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS."
 		}
-		if row.Path == "examples/zmachine/zork-west-demo/zvm.nanz" {
+		if row.Path == "examples/zmachine/zork-west-demo/zvm.nanz" || row.Path == "examples/zmachine/spectrum128/zvm_core.nanz" {
 			row.NativeBehavior = "host-only-memory-model"
 			row.Requirement = "128KiB story[131072], host file/console runtime; ordinary 16-bit Z80 rejects capacity; needs explicit target memory model."
 		}
@@ -231,7 +231,7 @@ func TestShowcaseExecutableOracleCatalog(t *testing.T) {
 		counts[row.NativeBehavior]++
 		catalog = append(catalog, row)
 	}
-	if len(catalog) != 194 {
+	if len(catalog) != 195 {
 		t.Fatalf("corpus changed: %d paths; refresh catalog intentionally", len(catalog))
 	}
 	for name, count := range counts {
@@ -242,7 +242,7 @@ func TestShowcaseExecutableOracleCatalog(t *testing.T) {
 			Base    string               `json:"base_commit"`
 			Scope   string               `json:"scope"`
 			Entries []oracleCatalogEntry `json:"entries"`
-		}{"ee21cae8", "All 194 paths retained (193 original paths plus the explicit CP/M leaf demo). Reviewed evidence proves only named entries/workloads; discovered test references, source assertions and main declarations are not native execution proofs. Derived CP/M main is separate evidence, never transferred to original source.", catalog}, "", "  ")
+		}{"ee21cae8", "All 195 paths retained (193 original paths, the explicit CP/M leaf demo, and the banked Z-machine host template). Reviewed evidence proves only named entries/workloads; discovered test references, source assertions and main declarations are not native execution proofs. Derived CP/M main is separate evidence, never transferred to original source.", catalog}, "", "  ")
 		if e != nil {
 			t.Fatal(e)
 		}

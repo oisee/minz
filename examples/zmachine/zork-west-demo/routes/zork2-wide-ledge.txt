@@ -1,0 +1,269 @@
+get lamp and sword
+s
+s
+s
+sw
+light lamp
+s
+se
+enter gazebo
+get teapot and mat and letter opener and matchbook and paper
+inventory
+out
+s
+w
+ne
+ne
+fill teapot with water
+s
+sw
+sw
+se
+n
+se
+w
+ne
+se
+sw
+se
+answer "a well"
+e
+take necklace
+e
+get in bucket
+drop water
+get out of bucket
+e
+drop teapot and newspaper and mat and opener and sword and matchbook
+get red and blue and green cake
+eat green cake
+e
+put red cake in pool
+take candy
+w
+eat blue cake
+nw
+robot, east and south
+e
+s
+take red sphere
+robot, lift cage
+take red sphere
+robot, north
+n
+w
+se
+take teapot and mat and opener
+w
+get in bucket
+fill teapot
+get out of bucket
+look
+w
+w
+nw
+n
+w
+n
+sw
+n
+w
+n
+n
+u
+u
+put mat under door
+open lid
+put opener in keyhole
+take mat
+take key
+take opener
+unlock door with key
+open door
+n
+take blue sphere
+s
+d
+w
+n
+hit dragon with opener
+s
+hit dragon with opener
+s
+hit dragon with opener
+w
+e
+n
+n
+n
+drop key and teapot
+open chest
+open chest
+follow princess
+follow princess
+follow princess
+follow princess
+follow princess
+follow princess
+follow princess
+follow princess
+follow princess
+follow princess
+follow princess
+follow princess
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+out
+s
+w
+w
+n
+u
+w
+n
+n
+drop opener
+take statuette
+drop rose, statuette, gold key, blue sphere, red sphere, candy and necklace
+s
+w
+w
+nw
+w
+s
+get portrait
+take lamp
+n
+go through curtain
+go through south wall
+go through curtain
+get bills
+go through north wall
+drop portrait and bills
+w
+w
+get portrait and bills
+go through curtain
+s
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+s
+e
+e
+n
+drop bills and portrait
+take teapot
+take statuette, gold key, blue sphere, red sphere, candy and necklace
+s
+s
+s
+w
+w
+take ruby
+drop ruby, necklace, candy, red sphere, blue sphere, gold key and statuette
+e
+e
+se
+se
+se
+se
+se
+w
+w
+se
+ne
+ne
+se
+e
+e
+get in bucket
+drop water
+get out of bucket
+e
+take newspaper and matchbook
+w
+get in bucket
+fill teapot
+get out of bucket
+w
+w
+nw
+sw
+sw
+take string
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+wait
+n
+d
+w
+s
+open receptacle
+put newspaper in receptacle
+get in basket
+strike match
+burn newspaper
+wait
+wait
+w
+tie wire to hook
+get out of basket
+s
+open purple book
+take stamp
+n
+take zorkmid
+get in basket
+untie wire
+wait
+wait
+wait
+w
+tie wire to hook
+get out of basket
+look
+score
+inventory
+quit
+y

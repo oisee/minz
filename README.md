@@ -8,6 +8,28 @@ MinZ is an experimental compiler toolchain for writing programs for Z80 machines
 
 The project is active research: examples and targets have different levels of maturity. Start with a runnable program below; use the [current handover](docs/project/HANDOVER-2026-10-01.md), [ranked backlog](docs/project/BACKLOG.md), and [dated technical audit](reports/2026-09-19-Deep-Technical-Audit-RU.md) for measured status.
 
+## 🎉 Zork, compiled from Nanz to banked Z80!
+
+**The Spectrum 128K milestone is reached.** Our Z-machine V3 interpreter,
+written in Nanz, runs complete Zork adventures as assembled Z80 in the
+Spectrum emulator:
+
+- **Zork I: 350/350 on ordinary 128K**, including a late SAVE/RESTORE and
+  completion of the game. All 37,194 bytes of that run's output match the MIR2 VM.
+- **Zork II: 400/400 on ordinary 128K** with compressed banked story storage.
+  The Scorpion memory variant also restores a late disk SAVE in a fresh machine
+  and reaches the ending again.
+- **CZECH V3: 349 assertions passed, 0 failed**, plus 19 print checks.
+  Full game routes check stack restoration, paging and immutable story memory;
+  Frotz independently confirms both endings.
+
+[**Results, launch instructions and limits →**](reports/zmachine-spectrum128/current-status.md)
+[**Requirement-by-requirement evidence →**](reports/zmachine-spectrum128/goal-audit.md)
+
+These results are in `feat/zmachine-spectrum128`. They cover specific stories
+and routes in the emulator; physical Spectrum hardware and compatibility with
+all V3 stories remain future work. Disk SAVE uses the emulator's TR-DOS API.
+
 ## Compiler progress — October 2026
 
 [**Full report: MinZ today — Nanz, the other frontends, compiler layers, and verified Z80**](reports/2026-10-11-092-grace-vm-z80-status.md) (Russian). A readable tour of the shared pipeline, Grace, PFCCO/PBQP and register-allocation tables, with measured results and remaining gaps. Research-branch results are identified separately from what is available in `main`. Updated October 13: compiler integration is in `main` (PR #85), with a shared Nanz hardware library, ROM/IRQ-verified Spectrum rotozoomer and moving compiled/PUSH sprites, explicit full-checkpoint results and parallel deep tests on release tags/nightly/manual runs.
@@ -19,6 +41,8 @@ The project is active research: examples and targets have different levels of ma
 [**Hardware-near Nanz library and ZX Spectrum demo**](stdlib/hw/README.md): declarative fills, row copies, masked sprites and affine texture walks, with measured pointer/LDIR/compiled variants. The [32×48 rotozoomer](reports/zx-rotozoomer-library/README.md) runs in the Spectrum emulator with the 48K ROM, ULA contention and interrupts; independent tests verify complete screens and stack/register restoration. Run `scripts/play_zx_rotozoomer.sh` to open it.
 
 [**A sprite as a program: SMC, mutable row chains and PUSH**](reports/2026-10-13-134-moving-sprites-smc-push.md) (Russian). Nanz examples alongside generated Z80, moving and relinking rows, stack/IRQ contracts and measured full move + draw costs.
+
+[**Z-machine V3 on Spectrum: current verified status**](reports/zmachine-spectrum128/current-status.md) (Russian). Nanz interpreter compiled to banked Z80: full Zork I on ordinary 128K, full Zork II with compressed banked storage, and late Zork II disk SAVE/RESTORE through the Scorpion memory profile, including a fresh-machine replay to the ending. Includes launch paths, measured limits and the distinction between emulator API disk support and physical hardware.
 
 [**Moving compiled sprites and PUSH drawing**](reports/hardware-sprite-chain/README.md): mutable row destinations and continuations, measured move + draw costs, and a ROM/IRQ-verified Spectrum animation. Run `scripts/play_zx_sprite_chain.sh` or add `--push`.
 

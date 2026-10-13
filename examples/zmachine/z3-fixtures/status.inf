@@ -1,0 +1,17 @@
+! SPDX-License-Identifier: MIT
+! Standard1.1 8.2: globals1..3 hold room, signed score/turns or hours/minutes.
+Global location = Room;
+Global score = -7;
+Global turns = 42;
+Array stream -> 128;
+Object Room "Status room";
+[ Main;
+ @split_window 2;
+ @set_window 1;
+ print "X";
+ @output_stream 3 stream;
+ @show_status;
+ @output_stream -3;
+ if (stream-->0 ~= 0) print "stream polluted^";
+ quit;
+];

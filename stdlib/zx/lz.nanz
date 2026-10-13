@@ -1,0 +1,96 @@
+// Trusted host-validated LZ block -> resident output below C000.
+// Control LSB first: 1 literal,  0 LE word ((distance-1)<<4)|(length-3).
+// distance1..4096,  length3..18; overlapping copies allowed.
+// Caller guarantees source bank !=2/5,  offset+encoded_size<=16384,
+// dest+count<=C000, or dest=C000 with count<=16384 to restore bank0.
+// Destination must not overlap code/globals/SP; count exact and <=16384.
+// NOT for untrusted saves: no runtime input/match bounds validation.
+// DI,  no NMI/reentry. Restores paging10; clobbers declared regs only.
+global lz_control: u8
+global lz_bits: u8
+fun bank_unpack_lz(@z80_a bank_bits:u8,  @z80_hl offset:u16,  @z80_de dest:^u8,  @z80_ix count:u16) {
+ asm z80 (in bank_bits, offset, dest, count) (clob A, F, BC, DE, HL, IX, IY) {
+  LD IYH, A
+  SET 6, H
+  SET 7, H
+  XOR A
+  LD (zx__lz__lz_bits), A
+ .next:
+  PUSH IX
+  POP BC
+  LD A, B
+  OR C
+  JR Z, .done
+  LD A, (zx__lz__lz_bits)
+  OR A
+  JR NZ, .token
+  CALL .read
+  LD (zx__lz__lz_control), A
+  LD A, 8
+  LD (zx__lz__lz_bits), A
+ .token:
+  LD A, (zx__lz__lz_bits)
+  DEC A
+  LD (zx__lz__lz_bits), A
+  LD A, (zx__lz__lz_control)
+  SRL A
+  LD (zx__lz__lz_control), A
+  JR NC, .match
+  CALL .read
+  LD (DE), A
+  INC DE
+  DEC IX
+  JR .next
+ .match:
+  CALL .read
+  LD C, A
+  CALL .read
+  PUSH HL
+  LD H, A
+  LD L, C
+  LD A, C
+  AND 15
+  ADD A, 3
+  LD B, A
+  SRL H
+  RR L
+  SRL H
+  RR L
+  SRL H
+  RR L
+  SRL H
+  RR L
+  INC HL
+  PUSH DE
+  EX DE, HL
+  OR A
+  SBC HL, DE
+  POP DE
+ .copy:
+  LD A, (HL)
+  LD (DE), A
+  INC HL
+  INC DE
+  DEC IX
+  DJNZ .copy
+  POP HL
+  JR .next
+ .read:
+  PUSH BC
+  LD BC, 0x7ffd
+  LD A, IYH
+  OUT (C), A
+  LD A, (HL)
+  INC HL
+  PUSH AF
+  LD A, 0x10
+  OUT (C), A
+  POP AF
+  POP BC
+  RET
+ .done:
+  LD BC, 0x7ffd
+  LD A, 0x10
+  OUT (C), A
+ }
+}

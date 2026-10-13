@@ -1,0 +1,407 @@
+n
+n
+u
+get egg
+d
+s
+e
+open window
+w
+open sack
+get garlic
+w
+get lamp
+e
+u
+light lamp
+get rope
+get knife
+d
+douse lamp
+w
+get sword
+move rug
+open trapdoor
+d
+light lamp
+n
+kill troll with sword
+kill troll with sword
+kill troll with sword
+kill troll with sword
+kill troll with sword
+kill troll with sword
+drop egg
+e
+e
+se
+e
+tie rope to railing
+d
+douse lamp
+get torch
+d
+s
+drop sword
+get candles
+douse candles
+get book
+n
+get bell
+e
+open coffin
+get sceptre
+w
+s
+pray
+e
+s
+e
+w
+w
+read book
+drop all
+get torch
+get lamp
+open trapdoor
+d
+n
+e
+e
+se
+e
+d
+d
+d
+get coffin
+u
+s
+pray
+e
+s
+e
+w
+w
+open case
+put coffin in case
+get book
+get bell
+get candles
+d
+s
+e
+get painting
+w
+n
+n
+e
+e
+e
+echo
+get bar
+u
+e
+n
+drop painting
+get matchbook
+s
+s
+d
+w
+s
+s
+e
+d
+ring bell
+get candles
+light match
+light candles with match
+read prayer
+drop matchbook
+drop candles
+drop book
+s
+get skull
+n
+u
+n
+n
+n
+w
+w
+s
+u
+put skull in case
+put bar in case
+d
+n
+w
+w
+w
+u
+get knife
+get bag
+sw
+e
+s
+se
+odysseus
+e
+e
+put bag in case
+drop rusty knife
+d
+n
+e
+e
+n
+ne
+e
+d
+get pile
+u
+n
+n
+get screwdriver
+get wrench
+press red button
+press yellow button
+s
+s
+turn bolt with wrench
+drop wrench
+w
+w
+e
+sw
+s
+s
+w
+w
+s
+u
+drop pile
+drop screwdriver
+d
+n
+e
+e
+s
+s
+touch mirror
+e
+d
+get trident
+s
+get pump
+s
+s
+sw
+s
+s
+w
+w
+s
+u
+put trident in case
+get sceptre
+get pile
+d
+n
+e
+e
+e
+e
+e
+drop pile
+inflate pile
+drop pump
+get label
+read label
+drop label
+throw sceptre in boat
+enter boat
+launch
+get sceptre
+wait
+get buoy
+wait
+land
+get out of boat
+n
+open buoy
+get emerald
+drop buoy
+get shovel
+ne
+dig sand
+dig sand
+dig sand
+dig sand
+drop shovel
+get scarab
+sw
+s
+s
+wave sceptre
+w
+w
+get pot
+sw
+u
+u
+nw
+w
+w
+w
+put sceptre in case
+put pot in case
+put emerald in case
+put scarab in case
+get rusty knife
+get nasty knife
+w
+w
+u
+kill thief with nasty knife
+kill thief with nasty knife
+kill thief with nasty knife
+attack thief with nasty knife
+get painting
+get egg
+drop rusty knife
+drop nasty knife
+get chalice
+d
+e
+e
+put painting in case
+get canary
+put chalice in case
+put egg in case
+e
+e
+n
+n
+e
+wind canary
+get bauble
+w
+s
+e
+w
+w
+put canary in case
+put bauble in case
+get screwdriver
+get garlic
+d
+n
+e
+save
+inventory
+drop garlic
+restore
+inventory
+e
+s
+s
+touch mirror
+n
+w
+n
+w
+n
+e
+put torch in basket
+put screwdriver in basket
+light lamp
+n
+d
+e
+ne
+se
+sw
+d
+d
+s
+get coal
+n
+u
+u
+n
+e
+s
+n
+u
+s
+put coal in basket
+lower basket
+n
+d
+e
+ne
+se
+sw
+d
+d
+w
+drop all
+w
+get all from basket
+s
+open lid
+put coal in machine
+close lid
+turn switch with screwdriver
+open lid
+get diamond
+n
+put diamond in basket
+put torch in basket
+put screwdriver in basket
+e
+get lamp
+get garlic
+e
+u
+u
+n
+e
+s
+n
+get bracelet
+u
+s
+raise basket
+get all from basket
+w
+get figurine
+s
+e
+s
+d
+drop garlic
+u
+put diamond in case
+put torch in case
+put bracelet in case
+put figurine in case
+w
+w
+u
+take trunk
+d
+e
+e
+put trunk in case
+look
+get map
+examine map
+e
+e
+n
+w
+sw
+w
+quit

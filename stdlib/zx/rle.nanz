@@ -1,0 +1,130 @@
+// Bounded RLE encoder for resident input and one banked output window.
+// Literal 1..128, repeat 3..130; same greedy format as restart_rle.py.
+// IRQ disabled; code, stack, source and scratch below C000. Source must not
+// overlap output or scratch. Trusted bank 0/1/3/4/6/7; offset+capacity<=16384.
+// Returns encoded bytes or 65535 on overflow. A failed attempt may leave a
+// partial record inside capacity: callers publish slot validity only on success.
+// Not reentrant. Paging restored to 0x10, IFF unchanged.
+global rle_begin: u16
+global rle_literals: u8
+fun bank_pack_rle(@z80_a bank_bits: u8, @z80_hl source: ^u8, @z80_de count: u16, @z80_ix offset: u16, @z80_iy capacity: u16) -> u16 {
+ asm z80 (in bank_bits, source, count, offset, capacity) (ret HL) (clob A, F, BC, DE, HL, IX, IY) {
+  LD BC, 0x7ffd
+  OUT (C), A
+  LD A, IXH
+  OR 0xc0
+  LD IXH, A
+  LD (zx__rle__rle_begin), IX
+ .pack_loop:
+  LD A, D
+  OR E
+  JP Z, .pack_done
+  CALL .pack_run
+  LD A, B
+  CP 3
+  JP C, .pack_literal
+  ADD A, 125
+  CALL .pack_emit
+  JP C, .pack_fail
+  LD A, C
+  CALL .pack_emit
+  JP C, .pack_fail
+ .pack_skip_repeat:
+  INC HL
+  DEC DE
+  DJNZ .pack_skip_repeat
+  JP .pack_loop
+ .pack_literal:
+  PUSH HL
+  PUSH DE
+  XOR A
+  LD (zx__rle__rle_literals), A
+ .pack_literal_scan:
+  CALL .pack_run
+  LD A, B
+  CP 3
+  JP NC, .pack_literal_ready
+  LD A, (zx__rle__rle_literals)
+  INC A
+  LD (zx__rle__rle_literals), A
+  INC HL
+  DEC DE
+  CP 128
+  JP Z, .pack_literal_ready
+  LD A, D
+  OR E
+  JP NZ, .pack_literal_scan
+ .pack_literal_ready:
+  POP DE
+  POP HL
+  LD A, (zx__rle__rle_literals)
+  DEC A
+  CALL .pack_emit
+  JP C, .pack_fail
+  LD A, (zx__rle__rle_literals)
+  LD B, A
+ .pack_literal_copy:
+  LD A, (HL)
+  CALL .pack_emit
+  JP C, .pack_fail
+  INC HL
+  DEC DE
+  DJNZ .pack_literal_copy
+  JP .pack_loop
+ .pack_run:
+  PUSH HL
+  PUSH DE
+  LD C, (HL)
+  LD B, 0
+ .pack_run_scan:
+  LD A, D
+  OR E
+  JP Z, .pack_run_done
+  LD A, (HL)
+  CP C
+  JP NZ, .pack_run_done
+  INC B
+  INC HL
+  DEC DE
+  LD A, B
+  CP 130
+  JP NZ, .pack_run_scan
+ .pack_run_done:
+  POP DE
+  POP HL
+  RET
+ .pack_emit:
+  PUSH BC
+  PUSH AF
+  PUSH IY
+  POP BC
+  LD A, B
+  OR C
+  JP Z, .pack_emit_full
+  POP AF
+  LD (IX+0), A
+  INC IX
+  DEC IY
+  POP BC
+  OR A
+  RET
+ .pack_emit_full:
+  POP AF
+  POP BC
+  SCF
+  RET
+ .pack_done:
+  PUSH IX
+  POP HL
+  LD DE, (zx__rle__rle_begin)
+  OR A
+  SBC HL, DE
+  JP .pack_return
+ .pack_fail:
+  LD HL, 65535
+ .pack_return:
+  LD BC, 0x7ffd
+  LD A, 0x10
+  OUT (C), A
+ }
+}

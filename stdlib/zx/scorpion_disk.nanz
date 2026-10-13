@@ -1,0 +1,36 @@
+// Sector transport for the emulator's TR-DOS API at $3D13.
+// Buffer is in extended bank8; fixed code/stack, DI, prior paging $10/$00.
+// op=5 read, op=6 write; track/sector follow the current TR-DOS adapter.
+// Caller validates offset<=16128, track<160, sector1..16 and reserves sectors.
+// This API-trap checkpoint does not claim compatibility with physical TR-DOS ROM:
+// that ROM's workspace and mapping require a separate hardware adapter.
+fun scorpion_disk_sector(@z80_a op:u8,@z80_hl offset:u16,@z80_d track:u8,@z80_e sector:u8)->u8 {
+ asm z80 (in op,offset,track,sector) (ret A) (clob A,F,BC,DE,HL,IX,IY) {
+  PUSH AF
+  PUSH DE
+  LD BC,0x1ffd
+  LD A,0x10
+  OUT (C),A
+  LD BC,0x7ffd
+  OUT (C),A
+  SET 6,H
+  SET 7,H
+  POP DE
+  POP AF
+  LD C,A
+  LD B,1
+  CALL 0x3d13
+  LD D,B
+  LD BC,0x1ffd
+  XOR A
+  OUT (C),A
+  LD BC,0x7ffd
+  LD A,0x10
+  OUT (C),A
+  LD A,D
+  OR A
+  LD A,0
+  RET NZ
+  INC A
+ }
+}
