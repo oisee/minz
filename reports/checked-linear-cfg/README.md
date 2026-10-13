@@ -41,3 +41,23 @@ by whole-stream admission. Return PC/SP are checked for every pair.
 Full VIR was rerun after adding this native check and merging main PR #110;
 see full-native.txt. This still does not prove general parallel-copy schedules
 or gain on a real CFG program.
+
+## Untouched real-program admission audit
+
+`go run ../reports/checked-linear-cfg/corpus-audit.go` from minzc repeats
+an ordinary OptSize audit of the original self-Lanz parser, tokenizer, FAT12
+library, rotozoomer and hashmap library. Each input SHA256 is retained.
+Four compile successfully (121 emitted functions total); standalone hashmap
+requires an Arena type supplied by its context and does not parse in isolation.
+This is an input-context limitation, not a new compiler regression.
+
+No multiblock function in these four compiled modules is newly admitted.
+Only 11 single-block FAT functions pass existing leaf admission. Other
+functions require conditional edges, loops, calls/effects or unsupported types.
+The audit preserves exact per-function rejection reasons in corpus-audit.json.
+It does not exercise native execution or claim a speed/size gain.
+
+Simple chains are already merged by ordinary MIR optimization, so admitting
+linear edges alone supplies no observed real-program benefit here. The next
+required step is conditional-region admission with live flag/edge contracts,
+then native measurements on untouched classifiers or a real hardware function.
