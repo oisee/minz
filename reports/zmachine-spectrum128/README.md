@@ -747,3 +747,20 @@ Combined diagnostic resident 25964 bytes, end C06C: -42 B from the prior pass,
 but still 620 bytes over the BE00 limit. No runnable snapshot is produced from
 this oversized diagnostic. The remaining semantic pass and complete lifecycle
 still need placement/compaction. Distributed desktop checkpoint unchanged.
+
+
+## Compact complete state validation pass
+
+The semantic state walk now uses explicit Z80 read/word primitives with a shared
+read callback and five declared scratch bytes for frame/depth/previous base.
+Identity, PC, frame/depth, screen/stream3 and active return-base checks are retained.
+The callback preserves iterator registers across the indexed saved-stream decoder;
+failure exits unwind outstanding pushes. No game data is written by validation.
+The unused Nanz word helper is removed from generated modules.
+
+All 1845 native semantic state cases across five story sizes remain PASS (7.06 s
+before final helper removal; final regression log retained separately). Combined
+diagnostic resident improves 25964→25577 bytes (-387 B), ending BEE9, still 233
+bytes beyond BE00. This oversized diagnostic is not a runnable snapshot. More
+space and complete save lifecycle wiring remain required; desktop bundles stay
+at the prior SAVE/RESTORE-disabled checkpoint. No capacity or stack guards relaxed.

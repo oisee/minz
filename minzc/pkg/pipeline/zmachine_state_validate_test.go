@@ -112,6 +112,12 @@ print(json.dumps({'source':reader(0x17,0)+emit(story),'cases':cases}))
 				t.Fatalf("case%d got%d want%d PC/SP%04x/%04x", cindex, m.CPU.AF()>>8, c.Want, m.CPU.PC(), m.CPU.SP())
 			}
 			cursor := a.Symbols["saved_cursor"]
+			scratch := map[int]bool{}
+			for name, size := range map[string]int{"state_check_frame": 1, "state_check_depth": 2, "state_check_last": 2} {
+				for n := 0; n < size; n++ {
+					scratch[a.Symbols[name]+n] = true
+				}
+			}
 			spills := map[int]bool{}
 			for name, address := range a.Symbols {
 				if strings.HasPrefix(strings.ToLower(name), "_spill_native_saved_") || strings.HasPrefix(strings.ToLower(name), "_spill_native_state_validate_") {
@@ -123,7 +129,7 @@ print(json.dumps({'source':reader(0x17,0)+emit(story),'cases':cases}))
 			for p := 0; p < 8; p++ {
 				for i, b := range before[p] {
 					address := 0x8000 + i
-					if p == 2 && (i >= 0x3e00 && i < 0x3f00 || address >= cursor && address < cursor+12 || spills[address]) {
+					if p == 2 && (i >= 0x3e00 && i < 0x3f00 || address >= cursor && address < cursor+12 || spills[address] || scratch[address]) {
 						continue
 					}
 					if m.Memory.RAM[p][i] != b {
