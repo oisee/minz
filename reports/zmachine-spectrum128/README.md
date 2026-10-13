@@ -178,3 +178,17 @@ instructions, but output is still wrong: `32:0,32,0 / 32:0,32;32:0` instead of
 `3:65,13,66 / 2:88,90;1:89`. The new gate intentionally exposes the failure.
 Next work: reduce stream writes and number formatting, verify live values
 across calls. No complete native Z3 or Zork success is claimed.
+
+
+## Stream3 native gate repaired
+
+The stream stores were already correct; the decoder-global declarations were
+emitted after their uses, so unknown variables acquired u8 expression types.
+The generated harness now declares decoder globals before step. No new backend
+fix was needed for this particular discrepancy. The uninstrumented gate passes:
+41 Z3 instructions, exact stream3 output and independent physical buffer bytes,
+restored paging/IFF and returned native PC/SP. This proves execution of one
+Inform fixture on the Pentagon128 paging model, not full Zork support.
+
+The prior failing-checkpoint sections are historical; current gate is PASS.
+Native integration and raw-reader matrix are now part of the fast profile.

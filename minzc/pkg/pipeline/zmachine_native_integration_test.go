@@ -87,6 +87,16 @@ func TestZMachineBankedInterpreterNative(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	for _, expected := range []struct {
+		address int
+		data    []byte
+	}{
+		{0x492, []byte{0, 3, 65, 13, 66}}, {0x4b2, []byte{0, 2, 88, 90}}, {0x4d2, []byte{0, 1, 89}},
+	} {
+		if !bytes.Equal(m.Memory.RAM[0][expected.address:expected.address+len(expected.data)], expected.data) {
+			t.Fatalf("stream RAM mismatch at %04x", expected.address)
+		}
+	}
 	if !bytes.Equal(got, want) {
 		t.Fatalf("output got %q want %q; vmPC=%02x%02x%02x steps=%d", got, want, m.Memory.Read(uint16(a.Symbols["pc"])+2), m.Memory.Read(uint16(a.Symbols["pc"])+1), m.Memory.Read(uint16(a.Symbols["pc"])), int(m.Memory.Read(uint16(a.Symbols["steps"]))))
 	}

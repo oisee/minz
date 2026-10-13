@@ -61,6 +61,7 @@ for name in ['save_state', 'restore_state']:
 replace_function('snapshot_identity', 'fun snapshot_identity() {}')
 replace_function('restart_story', 'fun restart_story() { running = 0 }')
 # step is not reentrant: put its high-pressure decoder state in resident RAM.
+# Declarations precede uses so the parser sees u16 types during expression parsing.
 start = text.index('fun step()')
 end = text.index('\nfun main()', start)
 part = text[start:end]
@@ -70,7 +71,7 @@ for name, ty in states.items():
     part = re.sub(r'\b(?:let|var) ' + name + ': ' + ty + ' =', name + ' =', part)
     part = re.sub(r'\b' + name + r'\b', 'decoded_' + name, part)
 text = text[:start] + part + text[end:]
-text += '\n' + '\n'.join('global decoded_' + name + ': ' + ty for name, ty in states.items()) + '\n'
+text = text.replace('fun step()', '\n'.join('global decoded_' + name + ': ' + ty for name, ty in states.items()) + '\nfun step()', 1)
 
 text += '''
 global native_output: [u8; 1024]
