@@ -1,0 +1,42 @@
+=== RUN   TestByteCopyCostKeepsForbiddenLocationsAndNonCopyCosts
+--- PASS: TestByteCopyCostKeepsForbiddenLocationsAndNonCopyCosts (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.012s
+=== RUN   TestStructuredCopyLiveValues
+=== RUN   TestStructuredCopyLiveValues/ordinary
+=== RUN   TestStructuredCopyLiveValues/grace-size
+=== RUN   TestStructuredCopyLiveValues/grace-speed
+--- PASS: TestStructuredCopyLiveValues (0.05s)
+    --- PASS: TestStructuredCopyLiveValues/ordinary (0.02s)
+    --- PASS: TestStructuredCopyLiveValues/grace-size (0.02s)
+    --- PASS: TestStructuredCopyLiveValues/grace-speed (0.02s)
+=== RUN   TestPBQPByteCopyDeclarationOrderNative
+    pbqp_copy_order_test.go:92: n=1 grace=false size=false source-first/destination-first: B=[62 56] T=[281 261]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:92: n=1 grace=true size=false source-first/destination-first: B=[62 56] T=[281 261]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:92: n=1 grace=true size=true source-first/destination-first: B=[62 56] T=[281 261]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:92: n=3 grace=false size=false source-first/destination-first: B=[62 56] T=[519 499]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:92: n=3 grace=true size=false source-first/destination-first: B=[62 56] T=[519 499]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:92: n=3 grace=true size=true source-first/destination-first: B=[62 56] T=[519 499]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:92: n=17 grace=false size=false source-first/destination-first: B=[62 56] T=[2185 2165]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:92: n=17 grace=true size=false source-first/destination-first: B=[62 56] T=[2185 2165]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:92: n=17 grace=true size=true source-first/destination-first: B=[62 56] T=[2185 2165]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:92: n=127 grace=false size=false source-first/destination-first: B=[62 56] T=[15275 15255]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:92: n=127 grace=true size=false source-first/destination-first: B=[62 56] T=[15275 15255]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:92: n=127 grace=true size=true source-first/destination-first: B=[62 56] T=[15275 15255]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:92: n=255 grace=false size=false source-first/destination-first: B=[62 56] T=[30507 30487]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:92: n=255 grace=true size=false source-first/destination-first: B=[62 56] T=[30507 30487]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:92: n=255 grace=true size=true source-first/destination-first: B=[62 56] T=[30507 30487]; full RAM/PC/SP PASS
+--- PASS: TestPBQPByteCopyDeclarationOrderNative (0.18s)
+=== RUN   TestStructuredCopyMatchesTextBaseline
+    structured_copy_test.go:65: source "linear" 24576 8 2 11; destination "linear" 25088 8 2 13; region 1 0 2 0 4 2; grace=false size=false: 53 -> 41 bytes; 637 -> 597 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 8 2 11; destination "linear" 25088 8 2 13; region 1 0 2 0 4 2; grace=true size=false: 53 -> 41 bytes; 637 -> 597 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 8 2 11; destination "linear" 25088 8 2 13; region 1 0 2 0 4 2; grace=true size=true: 53 -> 41 bytes; 637 -> 597 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 256 1 256; destination "linear" 25088 256 1 256; region 0 0 0 0 256 1; grace=false size=false: 48 -> 30 bytes; 45708 -> 30559 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 256 1 256; destination "linear" 25088 256 1 256; region 0 0 0 0 256 1; grace=true size=false: 48 -> 30 bytes; 45708 -> 30559 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 256 1 256; destination "linear" 25088 256 1 256; region 0 0 0 0 256 1; grace=true size=true: 48 -> 30 bytes; 45708 -> 30559 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 8 2 8; destination "zx_bitmap_bytes" 16384; region 0 0 2 7 5 2; grace=false size=false: 53 -> 41 bytes; 765 -> 725 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 8 2 8; destination "zx_bitmap_bytes" 16384; region 0 0 2 7 5 2; grace=true size=false: 53 -> 41 bytes; 765 -> 725 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 8 2 8; destination "zx_bitmap_bytes" 16384; region 0 0 2 7 5 2; grace=true size=true: 53 -> 41 bytes; 765 -> 725 T-states; identical ASM=false
+--- PASS: TestStructuredCopyMatchesTextBaseline (0.15s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.398s

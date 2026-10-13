@@ -225,6 +225,7 @@
     "TestOrderedByteRWRejectsPriorPolicy",
     "TestOrderedByteRWUnknownKindRequests",
     "TestOrdinaryCallerProfileOracle",
+    "TestPBQPByteCopyDeclarationOrderNative",
     "TestPFCCOExistingArenaNativeConsumer",
     "TestPFCCOMeasuredNativePacket",
     "TestPFCCOOriginalTokenizerRenderingConsumer",
