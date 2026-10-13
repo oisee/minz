@@ -55,3 +55,21 @@ belowC000 so banked compressed input and output remain simultaneously accessible
 Current dictionary lookup linearly scans all entries; transparent compression
 can repeatedly decompress the entire dictionary per input word. Optimize/measure
 that access before choosing cache and block size. Full Astra review did not finish.
+
+## First bank-window primitive
+
+stdlib/zx/banked.nanz reads/writes a byte via OUT(C),A at7FFD and restores the
+caller's complete unlocked paging state. Explicit ABI uses A bank bits, HL offset,
+D value, E restore bits. Caller keeps IRQ disabled and code/stack belowC000.
+384 physical bank read/write cases cover8banks×6offsets×4restore states×2ops,
+whole8bank RAM, PC/SP/IFF and ROM/screen/RAM paging restoration: PASS0.318s.
+This is Pentagon128 paging-model evidence, not standard128K timing/ROM evidence.
+
+## Native size diagnostic
+
+A separate size-probe.nanz replaces story131072 with256 and host services with
+zero-return stubs solely to measure native code/data pressure. It is NOT a valid
+interpreter and NOT a runnable fixture. Ordinary compilation produces ASM but
+assembler rejects end012410>010000. Even reducing story storage leaves a module
+larger than available native RAM. Size-mode result is measured next; code must be
+reduced/placed as well as story compressed. Diagnostic logs/ASM retained on share.

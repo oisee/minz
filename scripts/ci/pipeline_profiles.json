@@ -331,6 +331,7 @@
     "TestZ80UnsignedDivisionOperandSetup",
     "TestZSQLZXEmbeddedReadlineCapacity",
     "TestZSQLZXRealReadlineCapacity",
+    "TestZXBankedMemoryNative",
     "TestZXHalfCellRotozoomerFullMachine",
     "TestZXHalfCellRotozoomerLibraryFullMachine"
   ],
@@ -592,6 +593,7 @@
     "TestRegionCompareTypedTokenizerMeasured",
     "TestSeededPointerWalkMeasuredCaller",
     "TestSumProfileCostFullU8Domain",
-    "TestWeightedPointerPrototypeMeasuredCaller"
+    "TestWeightedPointerPrototypeMeasuredCaller",
+    "TestZXBankedMemoryAllPagesNative"
   ]
 }

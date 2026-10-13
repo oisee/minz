@@ -1,0 +1,28 @@
+// ZX128K raw bank window access. Caller disables IRQ; no NMI/reentry.
+// Code, globals and native stack must be below C000. Offset is 0..16383.
+// bank_bits carries requested RAM bank and caller-owned screen/ROM bits, bit5 clear.
+// restore_bits is the actual prior unlocked7FFD value. These functions restore
+// paging before returning; they do not change IFF or issue ROM services.
+fun bank_read(@z80_a bank_bits: u8, @z80_hl offset: u16, @z80_e restore_bits: u8) -> u8 {
+ asm z80 (in bank_bits, offset, restore_bits) (ret A) (clob A, F, BC, D, HL) {
+  LD BC, 0x7ffd
+  OUT (C), A
+  SET 6, H
+  SET 7, H
+  LD D, (HL)
+  LD A, E
+  OUT (C), A
+  LD A, D
+ }
+}
+fun bank_write(@z80_a bank_bits: u8, @z80_hl offset: u16, @z80_d value: u8, @z80_e restore_bits: u8) -> void {
+ asm z80 (in bank_bits, offset, value, restore_bits) (clob A, F, BC, HL) {
+  LD BC, 0x7ffd
+  OUT (C), A
+  SET 6, H
+  SET 7, H
+  LD (HL), D
+  LD A, E
+  OUT (C), A
+ }
+}
