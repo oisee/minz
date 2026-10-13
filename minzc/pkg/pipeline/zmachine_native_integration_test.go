@@ -188,6 +188,14 @@ func TestZMachineBankedZork128LateSaveWalkthroughNative(t *testing.T) {
 	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-late-save")
 }
 
+func TestZMachineBankedZorkII128BalloonNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set Zork II story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-balloon")
+}
+
 func TestZMachineBankedZorkII128RubyNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
 	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
@@ -361,7 +369,8 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	zorkIIRuby := commands == "@console-zork2-ruby"
+	zorkIIBalloon := commands == "@console-zork2-balloon"
+	zorkIIRuby := commands == "@console-zork2-ruby" || zorkIIBalloon
 	zorkIIBankReturn := commands == "@console-zork2-bank-return" || zorkIIRuby
 	zorkIIBank := commands == "@console-zork2-bank" || zorkIIBankReturn
 	zorkIIPrincessTreasure := commands == "@console-zork2-princess-treasure" || zorkIIBank
@@ -695,6 +704,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if zorkIIRuby {
 				routeFile = "zork2-ruby.txt"
 			}
+			if zorkIIBalloon {
+				routeFile = "zork2-balloon.txt"
+			}
 			route, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", routeFile))
 			if err != nil {
 				t.Fatal(err)
@@ -850,7 +862,15 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 				seed = "14"
 			}
 			ref := exec.Command(os.Getenv("MINZ_Z3_FROTZ"), "-m", "-w", "255", "-s", seed, externalStory)
-			ref.Stdin = bytes.NewReader(route)
+			frotzRoute := route
+			if zorkIIBalloon {
+				frotzRoute, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes/zork2-balloon-frotz.txt"))
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			ref.Stdin = bytes.NewReader(frotzRoute)
 			output, err := ref.Output()
 			if err != nil {
 				t.Fatal(err)
@@ -900,6 +920,10 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 				wants = []string{"Lava Room", "You are carrying:\n  A ruby\n  A pearl necklace\n  A package of candy\n  A red crystal sphere\n  A blue crystal sphere\n  A delicate gold key\n  A golden dragon statuette\n  A lamp (providing light)", "Your score would be 185 (total of 400 points), in 237 moves."}
 			}
 
+			if zorkIIBalloon {
+				wants = []string{"The balloon rises slowly from the ground.", "The balloon lands.", "The balloon is fastened to the hook.", "Opening the purple book reveals a Flathead stamp.", "You are carrying:\n  A Flathead stamp\n  A matchbook\n  A china teapot\n  The china teapot contains:\n    A quantity of water\n  A lamp (providing light)", "Your score would be 195 (total of 400 points), in 368 moves."}
+			}
+
 			for _, want := range wants {
 				if !bytes.Contains(output, []byte(want)) {
 					t.Fatalf("Frotz garden checkpoint missing %q", want)
@@ -929,7 +953,7 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	if earlyDungeon || zorkIIRiddle {
 		limit = 2000000000
 	}
-	if fullWalkthrough {
+	if fullWalkthrough || zorkIIBalloon {
 		limit = 3000000000
 	}
 	for i := 0; i < limit; i++ {
@@ -1140,6 +1164,10 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 
 			if zorkIIRuby {
 				phrases = []string{"Lava Room", "You are carrying:\n  A ruby\n  A pearl necklace\n  A package of candy\n  A red crystal sphere\n  A blue crystal sphere\n  A delicate gold key\n  A golden dragon statuette\n  A lamp (providing light)", "Your score would be 185 (total of 400 points), in 243 moves."}
+			}
+
+			if zorkIIBalloon {
+				phrases = []string{"The balloon rises slowly from the ground.", "The balloon lands.", "The balloon is fastened to the hook.", "Opening the purple book reveals a Flathead stamp.", "You are carrying:\n  A Flathead stamp\n  A matchbook\n  A china teapot\n  The china teapot contains:\n    A quantity of water\n  A lamp (providing light)", "Your score would be 195 (total of 400 points), in 354 moves."}
 			}
 
 			for _, phrase := range phrases {

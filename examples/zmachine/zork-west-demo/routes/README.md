@@ -126,3 +126,9 @@ Wizard Float временно мешает последнему выходу в 
 `zork2-ruby.txt` проходит растопленный ледник до Lava Room и берёт ruby:
 mzv/Z80:185/400 на243 ходах; Frotz seed14:185/400 на237 ходах.
 Полный вывод mzv/Z80 совпадает, ruby и прежние сокровища сохранены.
+
+
+`zork2-balloon.txt` — supplies из Tea Room, ожидание Fall, полёт и посадка
+на Narrow Ledge, крепление hook, stamp в Library: mzv/Z80195/354 хода.
+`zork2-balloon-frotz.txt` — независимый маршрут для Frotz seed14:195/368,
+те же события и полный инвентарь. Carousel и темп NPC требуют разных команд.
