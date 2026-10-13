@@ -188,6 +188,14 @@ func TestZMachineBankedZork128LateSaveWalkthroughNative(t *testing.T) {
 	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-late-save")
 }
 
+func TestZMachineBankedZorkII128CrownNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set Zork II story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-crown")
+}
+
 func TestZMachineBankedZorkII128WideLedgeNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
 	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
@@ -377,7 +385,8 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	zorkIIWideLedge := commands == "@console-zork2-wide-ledge"
+	zorkIICrown := commands == "@console-zork2-crown"
+	zorkIIWideLedge := commands == "@console-zork2-wide-ledge" || zorkIICrown
 	zorkIIBalloon := commands == "@console-zork2-balloon" || zorkIIWideLedge
 	zorkIIRuby := commands == "@console-zork2-ruby" || zorkIIBalloon
 	zorkIIBankReturn := commands == "@console-zork2-bank-return" || zorkIIRuby
@@ -719,6 +728,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if zorkIIWideLedge {
 				routeFile = "zork2-wide-ledge.txt"
 			}
+			if zorkIICrown {
+				routeFile = "zork2-crown.txt"
+			}
 			route, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", routeFile))
 			if err != nil {
 				t.Fatal(err)
@@ -880,6 +892,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 				if zorkIIWideLedge {
 					frotzFile = "zork2-wide-ledge-frotz.txt"
 				}
+				if zorkIICrown {
+					frotzFile = "zork2-crown-frotz.txt"
+				}
 				frotzRoute, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", frotzFile))
 				if err != nil {
 					t.Fatal(err)
@@ -943,6 +958,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if zorkIIWideLedge {
 				wants = []string{"You are on a wide ledge high in the volcano.", "The balloon is fastened to the hook.", "You are carrying:\n  A priceless zorkmid\n  A Flathead stamp\n  A matchbook\n  A china teapot\n  The china teapot contains:\n    A quantity of water\n  A lamp (providing light)", "Your score would be 215 (total of 400 points), in 356 moves."}
 			}
+			if zorkIICrown {
+				wants = []string{"There is an explosion nearby.", "You are now wearing the gaudy crown.", "You are carrying:\n  A gaudy crown (being worn)\n  A priceless zorkmid\n  A Flathead stamp\n  A matchbook\n  A china teapot\n  The china teapot contains:\n    A quantity of water\n  A lamp (providing light)", "Your score would be 235 (total of 400 points), in 367 moves."}
+			}
 
 			for _, want := range wants {
 				if !bytes.Contains(output, []byte(want)) {
@@ -975,6 +993,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	if fullWalkthrough || zorkIIBalloon {
 		limit = 3000000000
+	}
+	if zorkIICrown {
+		limit = 4000000000
 	}
 	for i := 0; i < limit; i++ {
 
@@ -1192,6 +1213,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 
 			if zorkIIWideLedge {
 				phrases = []string{"You are on a wide ledge high in the volcano.", "The balloon is fastened to the hook.", "You are carrying:\n  A priceless zorkmid\n  A Flathead stamp\n  A matchbook\n  A china teapot\n  The china teapot contains:\n    A quantity of water\n  A lamp (providing light)", "Your score would be 215 (total of 400 points), in 369 moves."}
+			}
+			if zorkIICrown {
+				phrases = []string{"There is an explosion nearby.", "You are now wearing the gaudy crown.", "You are carrying:\n  A gaudy crown (being worn)\n  A priceless zorkmid\n  A Flathead stamp\n  A matchbook\n  A china teapot\n  The china teapot contains:\n    A quantity of water\n  A lamp (providing light)", "Your score would be 235 (total of 400 points), in 473 moves."}
 			}
 
 			for _, phrase := range phrases {
