@@ -188,6 +188,14 @@ func TestZMachineBankedZork128LateSaveWalkthroughNative(t *testing.T) {
 	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-late-save")
 }
 
+func TestZMachineBankedZorkII128BankNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set Zork II story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-bank")
+}
+
 func TestZMachineBankedZorkII128PrincessTreasureNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
 	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
@@ -337,7 +345,8 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	zorkIIPrincessTreasure := commands == "@console-zork2-princess-treasure"
+	zorkIIBank := commands == "@console-zork2-bank"
+	zorkIIPrincessTreasure := commands == "@console-zork2-princess-treasure" || zorkIIBank
 	zorkIIPrincess := commands == "@console-zork2-princess" || zorkIIPrincessTreasure
 	zorkIIDragon := commands == "@console-zork2-dragon" || zorkIIPrincess
 	zorkIIKey := commands == "@console-zork2-key" || zorkIIDragon
@@ -659,6 +668,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if zorkIIPrincessTreasure {
 				routeFile = "zork2-princess-treasure.txt"
 			}
+			if zorkIIBank {
+				routeFile = "zork2-bank.txt"
+			}
 			route, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", routeFile))
 			if err != nil {
 				t.Fatal(err)
@@ -686,6 +698,14 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			t.Fatal(err)
 		}
 		vm := exec.Command(os.Getenv("MINZ_Z3_VM"), "-H", filepath.Join(d, "zvm.nanz"))
+		if zorkIIGarden {
+			for line, command := range bytes.Split(route, []byte{10}) {
+				if len(command) > 79 {
+					t.Fatalf("Spectrum route line %d exceeds 79 input characters (%d)", line+1, len(command))
+				}
+			}
+		}
+
 		vm.Stdin = bytes.NewReader(route)
 		reference, err = vm.Output()
 		if err != nil {
@@ -844,6 +864,10 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 				wants = []string{"The princess presses a loose piece of marble", "Shyly, a unicorn peeks out of the hedges.", "You are carrying:\n  A golden dragon statuette\n  A delicate gold key\n  A perfect rose\n  A blue crystal sphere\n  A red crystal sphere\n  A package of candy\n  A pearl necklace\n  A lamp (providing light)", "Your score would be 125 (total of 400 points), in 149 moves."}
 			}
 
+			if zorkIIBank {
+				wants = []string{"Safety Depository", "Vault", "You are carrying:\n  A stack of zorkmid bills\n  A portrait of J. Pierpont Flathead\n  A lamp (providing light)", "Your score would be 170 (total of 400 points), in 170 moves."}
+			}
+
 			for _, want := range wants {
 				if !bytes.Contains(output, []byte(want)) {
 					t.Fatalf("Frotz garden checkpoint missing %q", want)
@@ -962,7 +986,22 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 				}
 			}
 			if !bytes.Equal(rendered, reference) {
-				t.Fatalf("exploration text differs: native %q reference %q", rendered, reference)
+				at := 0
+				for at < len(rendered) && at < len(reference) && rendered[at] == reference[at] {
+					at++
+				}
+				lo := at - 100
+				if lo < 0 {
+					lo = 0
+				}
+				nativeEnd, refEnd := at+300, at+300
+				if nativeEnd > len(rendered) {
+					nativeEnd = len(rendered)
+				}
+				if refEnd > len(reference) {
+					refEnd = len(reference)
+				}
+				t.Fatalf("exploration first differs at byte %d (native %d bytes, reference %d): native %q reference %q", at, len(rendered), len(reference), rendered[lo:nativeEnd], reference[lo:refEnd])
 			}
 			phrases := []string{"Kitchen", "Living Room", "Cellar", "A brass lantern", "A sword"}
 			if treasure {
@@ -1057,6 +1096,10 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 
 			if zorkIIPrincessTreasure {
 				phrases = []string{"The princess presses a loose piece of marble", "Shyly, a unicorn peeks out of the hedges.", "You are carrying:\n  A golden dragon statuette\n  A delicate gold key\n  A perfect rose\n  A blue crystal sphere\n  A red crystal sphere\n  A package of candy\n  A pearl necklace\n  A lamp (providing light)", "Your score would be 125 (total of 400 points), in 151 moves."}
+			}
+
+			if zorkIIBank {
+				phrases = []string{"Safety Depository", "Vault", "You are carrying:\n  A stack of zorkmid bills\n  A portrait of J. Pierpont Flathead\n  A lamp (providing light)", "Your score would be 170 (total of 400 points), in 172 moves."}
 			}
 
 			for _, phrase := range phrases {
