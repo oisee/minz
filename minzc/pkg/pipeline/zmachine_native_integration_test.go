@@ -90,6 +90,13 @@ func TestZMachineBankedZorkIIGameplayNative(t *testing.T) {
 	}
 	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2")
 }
+func TestZMachineBankedZorkIICompressedNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" || os.Getenv("MINZ_Z3_FROTZ") == "" {
+		t.Skip("set MINZ_Z3_ZORK2_STORY, MINZ_Z3_VM and MINZ_Z3_FROTZ")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-compressed")
+}
 func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, externalStory string, commands string) {
 	root := filepath.Clean("../../..")
 	story, err := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/stream3.z3"))
@@ -115,7 +122,8 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	zorkII := commands == "@console-zork2"
+	compressedStory := commands == "@console-zork2-compressed"
+	zorkII := commands == "@console-zork2" || compressedStory
 	cellarSave := commands == "@console-cellar-save"
 	saveRestore := commands == "@console-save" || cellarSave
 	restart := commands == "@console-restart"
@@ -150,6 +158,19 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			t.Fatal(err)
 		}
 		cmd.Args = append(cmd.Args, "--commands", commandPath)
+	}
+	var storageImage []byte
+	if compressedStory {
+		layoutDir := t.TempDir()
+		layout := exec.Command("python3", filepath.Join(root, "scripts/zmachine/story_lz_layout.py"), externalStory, layoutDir)
+		if out, err := layout.CombinedOutput(); err != nil {
+			t.Fatalf("layout: %v %s", err, out)
+		}
+		storageImage, err = os.ReadFile(filepath.Join(layoutDir, "layout-2048.bin"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		cmd.Args = append(cmd.Args, "--story-layout", filepath.Join(layoutDir, "layout-2048.json"))
 	}
 	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("generate: %v %s", err, out)
@@ -198,6 +219,11 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	pages := []int{0, 1, 3, 4, 6, 7}
 	for i, b := range story {
 		m.Memory.RAM[pages[i/16384]][i%16384] = b
+	}
+	if compressedStory {
+		for i, b := range storageImage {
+			m.Memory.RAM[pages[i/16384]][i%16384] = b
+		}
 	}
 	if restart || saveRestore {
 		for i, b := range restartArchive {
@@ -423,6 +449,11 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 					t.Fatal("missing or oversized native save", observedSaveLengths)
 				}
 				t.Logf("cellar native save %d bytes; both inventory restores independently checked", observedSaveLengths[0])
+			}
+			if compressedStory {
+				at := uint16(a.Symbols["native_story_cache_misses"])
+				misses := int(m.Memory.Read(at)) | int(m.Memory.Read(at+1))<<8
+				t.Logf("compressed resident %d bytes; cache misses %d (u16 counter)", len(a.Binary), misses)
 			}
 			t.Logf("exploration %d keys; %d output bytes; %d T; native stack %d bytes", keyAt, len(rendered), m.CPU.Tstates(), 0xbf00-int(minSP))
 			return

@@ -18,6 +18,7 @@ p.add_argument('--restart-rle-bytes', type=int, default=0, help='validated RLE a
 p.add_argument('--restart-offset', type=int, help='logical bank address of the trusted restart archive')
 p.add_argument('--restart-bytes', type=int, default=0, help='decoded size of the archived original dynamic prefix')
 p.add_argument('--save-story', type=Path, help='enable volatile native SAVE/RESTORE for this exact story')
+p.add_argument('--story-layout', type=Path, help='experimental trusted 2K LZ layout metadata; no SAVE/restart integration yet')
 p.add_argument('--console', action='store_true', help='Spectrum screen and keyboard instead of RAM capture')
 a = p.parse_args()
 archive_offset = a.story_bytes if a.restart_offset is None else a.restart_offset
@@ -280,4 +281,36 @@ if a.save_story:
  .no_save:
  }}
 }}''')
+if a.story_layout:
+    if a.restart_bytes or a.save_story:
+        p.error('compressed story cache does not yet support native restart/SAVE')
+    import json
+    from native_story_cache import emit as cache_code
+    metadata = json.loads(a.story_layout.read_text())
+    if metadata['story_bytes'] != a.story_bytes:
+        p.error('layout story length mismatch')
+    # Compressed reads replace all raw story-memory helpers; retain only the
+    # six-page table used by dynamic writes.
+    text = text.replace('import zx.story_memory\n', 'global story_pages:[u8;6]=[0,1,3,4,6,7]\n')
+    text += cache_code(metadata)
+    replace_function('memory_read', """fun memory_read(address:u32)->u8 {
+ return native_story_byte(u16(address),u8(address >> 16))
+}""")
+    replace_function('memory_read16', """fun memory_read16(address:u16)->u8 {
+ return native_story_byte(address,0)
+}""")
+    # Raw bank_sum would checksum compressed storage instead of the story.
+    replace_function('verify_story', """fun verify_story()->u8 {
+ let length:u32 = u32(word_at(26))*2
+ if length < 64 { return 0 }
+ if length > story_size { return 0 }
+ var checksum:u16 = 0
+ var at:u32 = 64
+ while at < length {
+  checksum = checksum + u16(memory_read(at))
+  at = at + 1
+ }
+ if checksum == word_at(28) { return 1 }
+ return 0
+}""")
 a.output.write_text('// Native banked integration harness: output capture; unsupported I/O fails.\n' + text)
