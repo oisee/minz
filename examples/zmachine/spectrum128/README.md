@@ -210,3 +210,17 @@ MINZ_Z3_STORY=/path/to/story.z3 MINZ_Z3_VM=/path/to/mzv \
   MINZ_Z3_FROTZ=/path/to/dfrotz go test ./pkg/pipeline \
   -run '^TestZMachineBankedZorkExploreNative$' -count=1 -v
 ```
+
+
+Готовые упаковки эмулятора и образа:
+
+- `/mnt/safe/minz/grace/2026-10-13/zork-play/linux-x86_64.tar.gz` — распаковать, `./play.sh`.
+- `/mnt/safe/minz/grace/2026-10-13/zork-play/windows-x86_64.zip` — распаковать, открыть `play.bat`.
+
+Windows executable собран для amd64, запуск на Windows не проверен здесь.
+Linux требует X11 и системные libX11/libasound/glibc; headless-бинарник также
+включён. Образ теперь поддерживает RESTART: исходные 11288 байт динамической
+памяти сохранены в хвосте последнего банка; после восстановления сохраняются
+flags2 и сбрасывается состояние интерпретатора. SAVE/RESTORE ещё нет.
+Restart автоматически включается только если архив целиком помещается в одном
+непересекающемся банковом хвосте; build.json отражает доступность.

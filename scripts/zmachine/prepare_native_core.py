@@ -14,6 +14,7 @@ p = argparse.ArgumentParser()
 p.add_argument('output', type=Path)
 p.add_argument('--story-bytes', type=int, required=True)
 p.add_argument('--commands', type=Path, help='ASCII command transcript for native integration')
+p.add_argument('--restart-bytes', type=int, default=0, help='original dynamic prefix archived immediately after raw story')
 p.add_argument('--console', action='store_true', help='Spectrum screen and keyboard instead of RAM capture')
 a = p.parse_args()
 if not 64 <= a.story_bytes <= 98304:
@@ -85,6 +86,55 @@ for name in ['save_state', 'restore_state']:
     replace_function(name, f'fun {name}() -> u8 {{ return 0 }}')
 replace_function('snapshot_identity', 'fun snapshot_identity() {}')
 replace_function('restart_story', 'fun restart_story() { running = 0 }')
+if a.restart_bytes:
+    if not 64 <= a.restart_bytes <= 16384 or a.story_bytes + a.restart_bytes > 98304 or a.story_bytes // 16384 != (a.story_bytes + a.restart_bytes - 1) // 16384:
+        p.error('restart archive must fit within one free logical bank tail')
+    page = a.story_bytes // 16384
+    bank = [0, 1, 3, 4, 6, 7][page]
+    if bank == 0:
+        p.error('restart archive must be outside bank0')
+    replace_function('restart_story', f'''fun restart_story() {{
+ asm z80 (clob A, F, BC, DE, HL, IX, IY) {{
+  LD HL, (0xc010)
+  PUSH HL
+  LD A, {bank + 0x10}
+  LD HL, {a.story_bytes % 16384}
+  LD DE, {a.restart_bytes}
+  LD B, 0x10
+  CALL zx__banked__bank_restore_prefix
+  POP HL
+  LD (0xc010), HL
+  LD A, (0xc001)
+  AND 15
+  OR 16
+  LD (0xc001), A
+  LD A, (0xc00c)
+  LD H, A
+  LD A, (0xc00d)
+  LD L, A
+  LD (globals_at), HL
+  LD A, (0xc006)
+  LD H, A
+  LD A, (0xc007)
+  LD L, A
+  LD (pc), HL
+  LD HL, 0
+  LD (pc+2), HL
+  LD (v_sp), HL
+  LD (steps), HL
+  LD (steps+2), HL
+  XOR A
+  LD (frame), A
+  LD (stream3_depth), A
+  LD (input_mode), A
+  LD (record_commands), A
+  LD HL, 1
+  LD (random_state), HL
+  LD A, 1
+  LD (screen_enabled), A
+ }}
+}}''')
+
 # step is not reentrant: put its high-pressure decoder state in resident RAM.
 # Declarations precede uses so the parser sees u16 types during expression parsing.
 start = text.index('fun step()')

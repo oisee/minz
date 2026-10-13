@@ -30,11 +30,16 @@ func main() {
 	if len(story) < 64 || len(story) > 98304 || story[0] != 3 {
 		panic("requires Z-machine V3 story, 64..98304 bytes")
 	}
+	dynamic := int(story[14])<<8 | int(story[15])
+	restart := dynamic >= 64 && dynamic <= 16384 && len(story)+dynamic <= 98304 && len(story)/16384 == (len(story)+dynamic-1)/16384 && len(story)/16384 > 0
 	out, err := filepath.Abs(os.Args[2])
 	must(err)
 	must(os.MkdirAll(out, 0755))
 	source := filepath.Join(out, "zvm-spectrum128.nanz")
 	cmd := exec.Command("python3", "../scripts/zmachine/prepare_native_core.py", source, "--story-bytes", fmt.Sprint(len(story)), "--console")
+	if restart {
+		cmd.Args = append(cmd.Args, "--restart-bytes", fmt.Sprint(dynamic))
+	}
 	result, err := cmd.CombinedOutput()
 	if err != nil {
 		panic(fmt.Sprintf("generate: %v %s", err, result))
@@ -63,13 +68,19 @@ func main() {
 	for i, b := range story {
 		m.Memory.RAM[pages[i/16384]][i%16384] = b
 	}
+	if restart {
+		for i, b := range story[:dynamic] {
+			at := len(story) + i
+			m.Memory.RAM[pages[at/16384]][at%16384] = b
+		}
+	}
 	m.Memory.SetPagingForce(0x10)
 	// A returned main stays in DI/HALT loop in the unused fixed-RAM tail.
 	for i, b := range []byte{0xf3, 0x76, 0x18, 0xfd} {
-		m.Memory.Write(0xbdf0+uint16(i), b, false)
+		m.Memory.Write(0xbf10+uint16(i), b, false)
 	}
-	m.Memory.Write(0xbf00, 0xf0, false)
-	m.Memory.Write(0xbf01, 0xbd, false)
+	m.Memory.Write(0xbf00, 0x10, false)
+	m.Memory.Write(0xbf01, 0xbf, false)
 	m.CPU.SetPC(uint16(a.Symbols["main"]))
 	m.CPU.SetSP(0xbf00)
 	m.CPU.SetIFF1(false)
@@ -86,7 +97,12 @@ func main() {
 	}
 	must(os.WriteFile(filepath.Join(out, "zvm-spectrum128.a80"), []byte(assembly), 0644))
 	must(os.WriteFile(filepath.Join(out, "zvm-spectrum128.bin"), a.Binary, 0644))
-	metadata := map[string]any{"story_sha256": fmt.Sprintf("%x", sha256.Sum256(story)), "story_bytes": len(story), "resident_bytes": len(a.Binary), "origin": 0x5b00, "entry": a.Symbols["main"], "native_stack_top": 0xbf00, "paging": 0x10, "story_banks": pages, "snapshot_roundtrip": "all eight banks and PC/SP/paging verified", "limitations": []string{"save/restore/restart unsupported", "ROM font data at 0x3d00 required", "IRQs disabled; polling keyboard", "short gameplay verified; full game not proven"}}
+	metadata := map[string]any{"story_sha256": fmt.Sprintf("%x", sha256.Sum256(story)), "story_bytes": len(story), "resident_bytes": len(a.Binary), "origin": 0x5b00, "entry": a.Symbols["main"], "native_stack_top": 0xbf00, "paging": 0x10, "story_banks": pages, "snapshot_roundtrip": "all eight banks and PC/SP/paging verified", "limitations": []string{"save/restore unsupported; restart depends on archive capacity", "ROM font data at 0x3d00 required", "IRQs disabled; polling keyboard", "short gameplay verified; full game not proven"}}
+	metadata["restart_supported"] = restart
+	if restart {
+		metadata["restart_archive_offset"] = len(story)
+		metadata["restart_archive_bytes"] = dynamic
+	}
 	b, err := json.MarshalIndent(metadata, "", "  ")
 	must(err)
 	must(os.WriteFile(filepath.Join(out, "build.json"), append(b, '\n'), 0644))

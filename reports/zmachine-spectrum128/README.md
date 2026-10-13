@@ -396,3 +396,28 @@ not full completion or proof of all Z3 stories. Save/restore/restart remain open
 
 Revalidated startup, short keyboard and exploration/reference gates PASS
 (22.307 s). Native/VM/Frotz transcripts retained with runnable artifacts.
+
+
+## Restart archive and desktop bundles
+
+For this Zork candidate the 11288-byte original dynamic prefix fits after the
+86928-byte story inside the last bank, leaving 88 bytes of raw story capacity.
+The builder enables restart only when that archive fits one bank tail outside
+bank0; it records offset/size/availability. The native copy primitive restores
+the prefix via 7FFD switching while keeping code/stack fixed. It preserves
+flags2, resets PC/frame/expression stack/RNG/stream state, and leaves the original
+archive intact. Startup VERIFY still covers the story's declared file length.
+
+First high-level reset exceeded $BE00; the compact explicit reset fits exactly
+up to $BE00. This leaves the reserved stack region intact; the returned-main
+DI/HALT stub was moved to $BF10 above the $BF00 stack top. Whole-route restart
+returns to an empty inventory and closed mailbox, matching original VM text.
+Independent Frotz prints no "Restarting." front-end message, so full-text Frotz
+comparison is retained for exploration and not claimed for restart.
+
+Bank restore primitive covers zero/one/full-bank/boundary counts, compares all
+eight RAM banks against host copy oracle, permits only bounded stack writes.
+Windows amd64 PE and Linux x86_64 ELF bundles include emulator, SNA and launch
+scripts. Windows runtime not verified; Linux graphical binary needs X11/ALSA
+system libraries, with a headless variant also supplied. Source, binary, logs
+and SHA256 manifest are on the share. Save/restore remain unfinished.

@@ -60,6 +60,13 @@ func TestZMachineBankedZorkExploreNative(t *testing.T) {
 	}
 	testZMachineBankedInterpreterNative(t, false, path, "@console-explore")
 }
+func TestZMachineBankedZorkRestartNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set MINZ_Z3_STORY and MINZ_Z3_VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-restart")
+}
 func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, externalStory string, commands string) {
 	root := filepath.Clean("../../..")
 	story, err := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/stream3.z3"))
@@ -85,9 +92,13 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	explore := commands == "@console-explore"
+	restart := commands == "@console-restart"
+	explore := commands == "@console-explore" || restart
 	keyboard := commands == "@console-keyboard" || explore
 	console := commands == "@console-startup" || keyboard
+	if restart {
+		cmd.Args = append(cmd.Args, "--restart-bytes", strconv.Itoa(int(story[14])<<8|int(story[15])))
+	}
 	if console {
 		commands = ""
 		cmd.Args = append(cmd.Args, "--console")
@@ -147,6 +158,12 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	for i, b := range story {
 		m.Memory.RAM[pages[i/16384]][i%16384] = b
 	}
+	if restart {
+		for i, b := range story[:int(story[14])<<8|int(story[15])] {
+			at := len(story) + i
+			m.Memory.RAM[pages[at/16384]][at%16384] = b
+		}
+	}
 	m.Memory.SetPagingForce(0x10)
 	m.Memory.Write(0xbf00, 0, false)
 	m.Memory.Write(0xbf01, 0x50, false)
@@ -179,6 +196,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	var reference []byte
 	if explore {
 		route := []byte("north\neast\nopen window\nenter window\nwest\ntake lamp\ntake sword\ninventory\nturn on lamp\nmove rug\nopen trap door\ndown\nlook\nup\nquit\ny\n")
+		if restart {
+			route = []byte("open mailbox\ntake leaflet\nrestart\ny\nlook\ninventory\nquit\ny\n")
+		}
 		d := t.TempDir()
 		source, err := os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/zvm.nanz"))
 		if err != nil {
@@ -209,7 +229,7 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 		if bytes.Contains(reference, []byte("Z3 error")) {
 			t.Fatalf("reference failed%q", reference)
 		}
-		if tool := os.Getenv("MINZ_Z3_FROTZ"); tool != "" {
+		if tool := os.Getenv("MINZ_Z3_FROTZ"); tool != "" && !restart {
 			referenceCmd := exec.Command(tool, "-m", "-w", "255", externalStory)
 			referenceCmd.Stdin = bytes.NewReader(route)
 			external, err := referenceCmd.Output()
@@ -318,7 +338,11 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if !bytes.Equal(rendered, reference) {
 				t.Fatalf("exploration text differs: native %q reference %q", rendered, reference)
 			}
-			for _, phrase := range []string{"Kitchen", "Living Room", "Cellar", "A brass lantern", "A sword"} {
+			phrases := []string{"Kitchen", "Living Room", "Cellar", "A brass lantern", "A sword"}
+			if restart {
+				phrases = []string{"You are empty-handed.", "West of House"}
+			}
+			for _, phrase := range phrases {
 				if !bytes.Contains(rendered, []byte(phrase)) {
 					t.Fatalf("exploration missing %q: %q", phrase, rendered)
 				}

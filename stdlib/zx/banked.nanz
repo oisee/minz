@@ -59,3 +59,36 @@ fun bank_sum(@z80_a bank_bits: u8, @z80_hl offset: u16, @z80_de count: u16, @z80
   OUT (C), A
  }
 }
+
+// Restore bank0's dynamic prefix from a non-overlapping archived bank window.
+// Caller guarantees offset+count<=16384, count<=16384, source bank!=0,
+// restore_bits selects bank0. Same resident-code/disabled-IRQ contract.
+fun bank_restore_prefix(@z80_a bank_bits: u8, @z80_hl offset: u16, @z80_de count: u16, @z80_b restore_bits: u8) -> void {
+ asm z80 (in bank_bits, offset, count, restore_bits) (clob A, F, BC, DE, HL, IX, IY) {
+  LD IYH, A
+  LD IYL, B
+  SET 6, H
+  SET 7, H
+  LD IX, 0xc000
+  LD BC, 0x7ffd
+ .restore_loop:
+  LD A, D
+  OR E
+  JR Z, .restore_done
+  LD A, IYH
+  OUT (C), A
+  LD A, (HL)
+  PUSH AF
+  LD A, IYL
+  OUT (C), A
+  POP AF
+  LD (IX+0), A
+  INC IX
+  INC HL
+  DEC DE
+  JR .restore_loop
+ .restore_done:
+  LD A, IYL
+  OUT (C), A
+ }
+}
