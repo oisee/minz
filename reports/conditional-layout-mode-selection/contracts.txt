@@ -1,0 +1,16 @@
+=== RUN   TestConditionalLayoutModesOwnsInputsAndTies
+--- PASS: TestConditionalLayoutModesOwnsInputsAndTies (0.83s)
+=== RUN   TestConditionalLayoutModesRejectsCrossModeDrift
+=== RUN   TestConditionalLayoutModesRejectsCrossModeDrift/source
+=== RUN   TestConditionalLayoutModesRejectsCrossModeDrift/failure
+=== RUN   TestConditionalLayoutModesRejectsCrossModeDrift/previous-mutation
+=== RUN   TestConditionalLayoutModesRejectsCrossModeDrift/shared
+--- PASS: TestConditionalLayoutModesRejectsCrossModeDrift (0.86s)
+    --- PASS: TestConditionalLayoutModesRejectsCrossModeDrift/source (0.23s)
+    --- PASS: TestConditionalLayoutModesRejectsCrossModeDrift/failure (0.21s)
+    --- PASS: TestConditionalLayoutModesRejectsCrossModeDrift/previous-mutation (0.21s)
+    --- PASS: TestConditionalLayoutModesRejectsCrossModeDrift/shared (0.21s)
+=== RUN   TestConditionalLayoutModesRechecksEarlierTablePin
+--- PASS: TestConditionalLayoutModesRechecksEarlierTablePin (0.43s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.137s
