@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/z80asm"
 	"os"
@@ -20,13 +21,14 @@ func TestStructuredFillMatchesTextBaseline(t *testing.T) {
 		`layout "linear" 24576 256 1 256; value 255;`,
 		`layout "zx_bitmap_bytes" 16384; region 2 7 5 2; value 71;`,
 	} {
-		current := hardwareFillParse(t, body)
 		text := string(baseline) + "\n" + strings.Replace(hardwareFillSource(body), "import hw.fill\n", "", 1)
-		old, err := nanz.Parse(text, "baseline.nanz")
-		if err != nil {
-			t.Fatal(err)
-		}
+
 		for _, opts := range []Options{{AssertMode: "none"}, {AssertMode: "none", UseGrace: true, UseHIRGrace: true}, {AssertMode: "none", UseGrace: true, UseHIRGrace: true, OptSize: true}} {
+			current := hardwareFillParse(t, body)
+			old, err := nanz.Parse(text, "baseline.nanz")
+			if err != nil {
+				t.Fatal(err)
+			}
 			before, err := CompileHIRSteps(old, opts)
 			if err != nil {
 				t.Fatal(err)
@@ -35,18 +37,30 @@ func TestStructuredFillMatchesTextBaseline(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			assemble := func(src string) int {
+			assemble := func(src string) (int, int) {
 				a, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + src)
 				if err != nil || len(a.Errors) != 0 {
 					t.Fatal(err, a.Errors)
 				}
-				return len(a.Binary)
+				z := emulator.NewRemogattoZ80()
+				z.LoadMemory(0x8000, a.Binary)
+				z.Memory()[0xeff0], z.Memory()[0xeff1] = 0, 0x70
+				z.SetRegisters(emulator.Registers{PC: uint16(a.Symbols["fill_test"]), SP: 0xeff0})
+				for count := 0; count < 2000000; count++ {
+					if z.GetPC() == 0x7000 && z.GetSP() == 0xeff2 {
+						return len(a.Binary), z.GetCycles()
+					}
+					z.Step()
+				}
+				t.Fatal("native did not restore PC/SP", z.GetRegisters())
+				return 0, 0
 			}
-			oldSize, newSize := assemble(before.Assembly), assemble(after.Assembly)
-			if newSize > oldSize {
+			oldSize, oldCycles := assemble(before.Assembly)
+			newSize, newCycles := assemble(after.Assembly)
+			if newSize > oldSize || newCycles > oldCycles {
 				t.Fatalf("code grew %d -> %d for %s", oldSize, newSize, body)
 			}
-			t.Logf("%s grace=%v size=%v: %d -> %d bytes; identical ASM=%v", body, opts.UseGrace, opts.OptSize, oldSize, newSize, before.Assembly == after.Assembly)
+			t.Logf("%s grace=%v size=%v: %d -> %d bytes; %d -> %d T-states; identical ASM=%v", body, opts.UseGrace, opts.OptSize, oldSize, newSize, oldCycles, newCycles, before.Assembly == after.Assembly)
 		}
 	}
 }

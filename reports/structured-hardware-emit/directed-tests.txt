@@ -16,8 +16,12 @@
     --- PASS: TestStructuredMetaDiagnostics/identifier (0.00s)
 === RUN   TestStructuredMetaBuildsTypedHIR
 --- PASS: TestStructuredMetaBuildsTypedHIR (0.00s)
+=== RUN   TestStructuredMetaSnapshotsAndInvocationIsolation
+--- PASS: TestStructuredMetaSnapshotsAndInvocationIsolation (0.00s)
+=== RUN   TestStructuredMetaHandleLimit
+--- PASS: TestStructuredMetaHandleLimit (0.00s)
 PASS
-ok  	github.com/minz/minzc/pkg/nanz	0.013s
+ok  	github.com/minz/minzc/pkg/nanz	0.016s
 === RUN   TestHardwareFillMemoryNativeAndVM
 === RUN   TestHardwareFillMemoryNativeAndVM/linear-two
 === RUN   TestHardwareFillMemoryNativeAndVM/linear-two/ordinary
@@ -110,7 +114,7 @@ ok  	github.com/minz/minzc/pkg/nanz	0.013s
     hardware_fill_test.go:216: 22 bytes, 571473 T-states; 6144 target bytes
 === RUN   TestHardwareFillMemoryNativeAndVM/zx-full-storage/grace-speed
     hardware_fill_test.go:216: 22 bytes, 571473 T-states; 6144 target bytes
---- PASS: TestHardwareFillMemoryNativeAndVM (0.49s)
+--- PASS: TestHardwareFillMemoryNativeAndVM (0.58s)
     --- PASS: TestHardwareFillMemoryNativeAndVM/linear-two (0.03s)
         --- PASS: TestHardwareFillMemoryNativeAndVM/linear-two/ordinary (0.01s)
         --- PASS: TestHardwareFillMemoryNativeAndVM/linear-two/grace-size (0.01s)
@@ -119,10 +123,10 @@ ok  	github.com/minz/minzc/pkg/nanz	0.013s
         --- PASS: TestHardwareFillMemoryNativeAndVM/linear-one/ordinary (0.01s)
         --- PASS: TestHardwareFillMemoryNativeAndVM/linear-one/grace-size (0.01s)
         --- PASS: TestHardwareFillMemoryNativeAndVM/linear-one/grace-speed (0.01s)
-    --- PASS: TestHardwareFillMemoryNativeAndVM/linear-strided (0.04s)
+    --- PASS: TestHardwareFillMemoryNativeAndVM/linear-strided (0.05s)
         --- PASS: TestHardwareFillMemoryNativeAndVM/linear-strided/ordinary (0.01s)
         --- PASS: TestHardwareFillMemoryNativeAndVM/linear-strided/grace-size (0.02s)
-        --- PASS: TestHardwareFillMemoryNativeAndVM/linear-strided/grace-speed (0.01s)
+        --- PASS: TestHardwareFillMemoryNativeAndVM/linear-strided/grace-speed (0.02s)
     --- PASS: TestHardwareFillMemoryNativeAndVM/linear-255 (0.04s)
         --- PASS: TestHardwareFillMemoryNativeAndVM/linear-255/ordinary (0.01s)
         --- PASS: TestHardwareFillMemoryNativeAndVM/linear-255/grace-size (0.01s)
@@ -135,7 +139,7 @@ ok  	github.com/minz/minzc/pkg/nanz	0.013s
         --- PASS: TestHardwareFillMemoryNativeAndVM/linear-last-byte/ordinary (0.01s)
         --- PASS: TestHardwareFillMemoryNativeAndVM/linear-last-byte/grace-size (0.01s)
         --- PASS: TestHardwareFillMemoryNativeAndVM/linear-last-byte/grace-speed (0.01s)
-    --- PASS: TestHardwareFillMemoryNativeAndVM/linear-zero-width (0.02s)
+    --- PASS: TestHardwareFillMemoryNativeAndVM/linear-zero-width (0.04s)
         --- PASS: TestHardwareFillMemoryNativeAndVM/linear-zero-width/ordinary (0.01s)
         --- PASS: TestHardwareFillMemoryNativeAndVM/linear-zero-width/grace-size (0.01s)
         --- PASS: TestHardwareFillMemoryNativeAndVM/linear-zero-width/grace-speed (0.01s)
@@ -146,20 +150,20 @@ ok  	github.com/minz/minzc/pkg/nanz	0.013s
     --- PASS: TestHardwareFillMemoryNativeAndVM/zx-row-7-8 (0.04s)
         --- PASS: TestHardwareFillMemoryNativeAndVM/zx-row-7-8/ordinary (0.01s)
         --- PASS: TestHardwareFillMemoryNativeAndVM/zx-row-7-8/grace-size (0.01s)
-        --- PASS: TestHardwareFillMemoryNativeAndVM/zx-row-7-8/grace-speed (0.01s)
-    --- PASS: TestHardwareFillMemoryNativeAndVM/zx-row-63-64 (0.04s)
+        --- PASS: TestHardwareFillMemoryNativeAndVM/zx-row-7-8/grace-speed (0.02s)
+    --- PASS: TestHardwareFillMemoryNativeAndVM/zx-row-63-64 (0.06s)
         --- PASS: TestHardwareFillMemoryNativeAndVM/zx-row-63-64/ordinary (0.01s)
-        --- PASS: TestHardwareFillMemoryNativeAndVM/zx-row-63-64/grace-size (0.01s)
-        --- PASS: TestHardwareFillMemoryNativeAndVM/zx-row-63-64/grace-speed (0.01s)
-    --- PASS: TestHardwareFillMemoryNativeAndVM/zx-last-byte (0.03s)
+        --- PASS: TestHardwareFillMemoryNativeAndVM/zx-row-63-64/grace-size (0.02s)
+        --- PASS: TestHardwareFillMemoryNativeAndVM/zx-row-63-64/grace-speed (0.03s)
+    --- PASS: TestHardwareFillMemoryNativeAndVM/zx-last-byte (0.04s)
         --- PASS: TestHardwareFillMemoryNativeAndVM/zx-last-byte/ordinary (0.01s)
         --- PASS: TestHardwareFillMemoryNativeAndVM/zx-last-byte/grace-size (0.01s)
         --- PASS: TestHardwareFillMemoryNativeAndVM/zx-last-byte/grace-speed (0.01s)
-    --- PASS: TestHardwareFillMemoryNativeAndVM/zx-full-rows (0.06s)
-        --- PASS: TestHardwareFillMemoryNativeAndVM/zx-full-rows/ordinary (0.02s)
-        --- PASS: TestHardwareFillMemoryNativeAndVM/zx-full-rows/grace-size (0.02s)
+    --- PASS: TestHardwareFillMemoryNativeAndVM/zx-full-rows (0.08s)
+        --- PASS: TestHardwareFillMemoryNativeAndVM/zx-full-rows/ordinary (0.03s)
+        --- PASS: TestHardwareFillMemoryNativeAndVM/zx-full-rows/grace-size (0.03s)
         --- PASS: TestHardwareFillMemoryNativeAndVM/zx-full-rows/grace-speed (0.02s)
-    --- PASS: TestHardwareFillMemoryNativeAndVM/zx-full-storage (0.06s)
+    --- PASS: TestHardwareFillMemoryNativeAndVM/zx-full-storage (0.07s)
         --- PASS: TestHardwareFillMemoryNativeAndVM/zx-full-storage/ordinary (0.02s)
         --- PASS: TestHardwareFillMemoryNativeAndVM/zx-full-storage/grace-size (0.02s)
         --- PASS: TestHardwareFillMemoryNativeAndVM/zx-full-storage/grace-speed (0.02s)
@@ -255,7 +259,7 @@ ok  	github.com/minz/minzc/pkg/nanz	0.013s
     hardware_fill_test.go:216: 22 bytes, 129132 T-states; 6144 target bytes
 === RUN   TestHardwareFillLDIRNative/zx-full-storage/grace-speed
     hardware_fill_test.go:216: 22 bytes, 129132 T-states; 6144 target bytes
---- PASS: TestHardwareFillLDIRNative (0.37s)
+--- PASS: TestHardwareFillLDIRNative (0.47s)
     --- PASS: TestHardwareFillLDIRNative/linear-two (0.03s)
         --- PASS: TestHardwareFillLDIRNative/linear-two/ordinary (0.01s)
         --- PASS: TestHardwareFillLDIRNative/linear-two/grace-size (0.01s)
@@ -264,7 +268,7 @@ ok  	github.com/minz/minzc/pkg/nanz	0.013s
         --- PASS: TestHardwareFillLDIRNative/linear-one/ordinary (0.01s)
         --- PASS: TestHardwareFillLDIRNative/linear-one/grace-size (0.01s)
         --- PASS: TestHardwareFillLDIRNative/linear-one/grace-speed (0.01s)
-    --- PASS: TestHardwareFillLDIRNative/linear-strided (0.03s)
+    --- PASS: TestHardwareFillLDIRNative/linear-strided (0.04s)
         --- PASS: TestHardwareFillLDIRNative/linear-strided/ordinary (0.01s)
         --- PASS: TestHardwareFillLDIRNative/linear-strided/grace-size (0.01s)
         --- PASS: TestHardwareFillLDIRNative/linear-strided/grace-speed (0.01s)
@@ -276,23 +280,23 @@ ok  	github.com/minz/minzc/pkg/nanz	0.013s
         --- PASS: TestHardwareFillLDIRNative/linear-256/ordinary (0.01s)
         --- PASS: TestHardwareFillLDIRNative/linear-256/grace-size (0.01s)
         --- PASS: TestHardwareFillLDIRNative/linear-256/grace-speed (0.01s)
-    --- PASS: TestHardwareFillLDIRNative/linear-last-byte (0.03s)
+    --- PASS: TestHardwareFillLDIRNative/linear-last-byte (0.04s)
         --- PASS: TestHardwareFillLDIRNative/linear-last-byte/ordinary (0.01s)
         --- PASS: TestHardwareFillLDIRNative/linear-last-byte/grace-size (0.01s)
         --- PASS: TestHardwareFillLDIRNative/linear-last-byte/grace-speed (0.01s)
-    --- PASS: TestHardwareFillLDIRNative/linear-zero-width (0.02s)
+    --- PASS: TestHardwareFillLDIRNative/linear-zero-width (0.03s)
         --- PASS: TestHardwareFillLDIRNative/linear-zero-width/ordinary (0.01s)
         --- PASS: TestHardwareFillLDIRNative/linear-zero-width/grace-size (0.01s)
         --- PASS: TestHardwareFillLDIRNative/linear-zero-width/grace-speed (0.01s)
-    --- PASS: TestHardwareFillLDIRNative/linear-zero-height (0.02s)
+    --- PASS: TestHardwareFillLDIRNative/linear-zero-height (0.04s)
         --- PASS: TestHardwareFillLDIRNative/linear-zero-height/ordinary (0.01s)
         --- PASS: TestHardwareFillLDIRNative/linear-zero-height/grace-size (0.01s)
         --- PASS: TestHardwareFillLDIRNative/linear-zero-height/grace-speed (0.01s)
-    --- PASS: TestHardwareFillLDIRNative/zx-row-7-8 (0.03s)
-        --- PASS: TestHardwareFillLDIRNative/zx-row-7-8/ordinary (0.01s)
+    --- PASS: TestHardwareFillLDIRNative/zx-row-7-8 (0.04s)
+        --- PASS: TestHardwareFillLDIRNative/zx-row-7-8/ordinary (0.02s)
         --- PASS: TestHardwareFillLDIRNative/zx-row-7-8/grace-size (0.01s)
         --- PASS: TestHardwareFillLDIRNative/zx-row-7-8/grace-speed (0.01s)
-    --- PASS: TestHardwareFillLDIRNative/zx-row-63-64 (0.03s)
+    --- PASS: TestHardwareFillLDIRNative/zx-row-63-64 (0.04s)
         --- PASS: TestHardwareFillLDIRNative/zx-row-63-64/ordinary (0.01s)
         --- PASS: TestHardwareFillLDIRNative/zx-row-63-64/grace-size (0.01s)
         --- PASS: TestHardwareFillLDIRNative/zx-row-63-64/grace-speed (0.01s)
@@ -300,80 +304,88 @@ ok  	github.com/minz/minzc/pkg/nanz	0.013s
         --- PASS: TestHardwareFillLDIRNative/zx-last-byte/ordinary (0.01s)
         --- PASS: TestHardwareFillLDIRNative/zx-last-byte/grace-size (0.01s)
         --- PASS: TestHardwareFillLDIRNative/zx-last-byte/grace-speed (0.01s)
-    --- PASS: TestHardwareFillLDIRNative/zx-full-rows (0.03s)
+    --- PASS: TestHardwareFillLDIRNative/zx-full-rows (0.04s)
         --- PASS: TestHardwareFillLDIRNative/zx-full-rows/ordinary (0.01s)
         --- PASS: TestHardwareFillLDIRNative/zx-full-rows/grace-size (0.01s)
         --- PASS: TestHardwareFillLDIRNative/zx-full-rows/grace-speed (0.01s)
-    --- PASS: TestHardwareFillLDIRNative/zx-full-storage (0.03s)
+    --- PASS: TestHardwareFillLDIRNative/zx-full-storage (0.04s)
         --- PASS: TestHardwareFillLDIRNative/zx-full-storage/ordinary (0.01s)
-        --- PASS: TestHardwareFillLDIRNative/zx-full-storage/grace-size (0.01s)
-        --- PASS: TestHardwareFillLDIRNative/zx-full-storage/grace-speed (0.01s)
+        --- PASS: TestHardwareFillLDIRNative/zx-full-storage/grace-size (0.02s)
+        --- PASS: TestHardwareFillLDIRNative/zx-full-storage/grace-speed (0.02s)
 === RUN   TestHardwareFillRejectsInvalidDescriptions
-=== RUN   TestHardwareFillRejectsInvalidDescriptions/negative-base
-=== RUN   TestHardwareFillRejectsInvalidDescriptions/duplicate-region
-=== RUN   TestHardwareFillRejectsInvalidDescriptions/duplicate-layout
-=== RUN   TestHardwareFillRejectsInvalidDescriptions/region-bad-arity
-=== RUN   TestHardwareFillRejectsInvalidDescriptions/int32-overflow
-=== RUN   TestHardwareFillRejectsInvalidDescriptions/region-overflow
-=== RUN   TestHardwareFillRejectsInvalidDescriptions/negative-region
 === RUN   TestHardwareFillRejectsInvalidDescriptions/value-overflow
-=== RUN   TestHardwareFillRejectsInvalidDescriptions/missing-value
-=== RUN   TestHardwareFillRejectsInvalidDescriptions/duplicate-via
-=== RUN   TestHardwareFillRejectsInvalidDescriptions/unknown-layout
-=== RUN   TestHardwareFillRejectsInvalidDescriptions/base-overflow
-=== RUN   TestHardwareFillRejectsInvalidDescriptions/duplicate-value
+=== RUN   TestHardwareFillRejectsInvalidDescriptions/duplicate-region
 === RUN   TestHardwareFillRejectsInvalidDescriptions/duplicate-order
-=== RUN   TestHardwareFillRejectsInvalidDescriptions/missing-layout
+=== RUN   TestHardwareFillRejectsInvalidDescriptions/unknown-primitive
+=== RUN   TestHardwareFillRejectsInvalidDescriptions/unknown-layout
+=== RUN   TestHardwareFillRejectsInvalidDescriptions/negative-base
+=== RUN   TestHardwareFillRejectsInvalidDescriptions/duplicate-value
+=== RUN   TestHardwareFillRejectsInvalidDescriptions/duplicate-layout
+=== RUN   TestHardwareFillRejectsInvalidDescriptions/layout-bad-arity
+=== RUN   TestHardwareFillRejectsInvalidDescriptions/region-bad-arity
 === RUN   TestHardwareFillRejectsInvalidDescriptions/via-bad-arity
+=== RUN   TestHardwareFillRejectsInvalidDescriptions/base-overflow
+=== RUN   TestHardwareFillRejectsInvalidDescriptions/int32-overflow
+=== RUN   TestHardwareFillRejectsInvalidDescriptions/duplicate-via
 === RUN   TestHardwareFillRejectsInvalidDescriptions/zx-partial-storage
+=== RUN   TestHardwareFillRejectsInvalidDescriptions/unknown-traversal
+=== RUN   TestHardwareFillRejectsInvalidDescriptions/missing-layout
+=== RUN   TestHardwareFillRejectsInvalidDescriptions/missing-value
+=== RUN   TestHardwareFillRejectsInvalidDescriptions/unknown-field
 === RUN   TestHardwareFillRejectsInvalidDescriptions/address-overflow
 === RUN   TestHardwareFillRejectsInvalidDescriptions/bad-stride
-=== RUN   TestHardwareFillRejectsInvalidDescriptions/layout-bad-arity
-=== RUN   TestHardwareFillRejectsInvalidDescriptions/unknown-primitive
-=== RUN   TestHardwareFillRejectsInvalidDescriptions/unknown-field
-=== RUN   TestHardwareFillRejectsInvalidDescriptions/unknown-traversal
---- PASS: TestHardwareFillRejectsInvalidDescriptions (0.08s)
-    --- PASS: TestHardwareFillRejectsInvalidDescriptions/negative-base (0.00s)
-    --- PASS: TestHardwareFillRejectsInvalidDescriptions/duplicate-region (0.00s)
-    --- PASS: TestHardwareFillRejectsInvalidDescriptions/duplicate-layout (0.00s)
-    --- PASS: TestHardwareFillRejectsInvalidDescriptions/region-bad-arity (0.00s)
-    --- PASS: TestHardwareFillRejectsInvalidDescriptions/int32-overflow (0.00s)
-    --- PASS: TestHardwareFillRejectsInvalidDescriptions/region-overflow (0.00s)
-    --- PASS: TestHardwareFillRejectsInvalidDescriptions/negative-region (0.00s)
-    --- PASS: TestHardwareFillRejectsInvalidDescriptions/value-overflow (0.00s)
-    --- PASS: TestHardwareFillRejectsInvalidDescriptions/missing-value (0.00s)
-    --- PASS: TestHardwareFillRejectsInvalidDescriptions/duplicate-via (0.00s)
-    --- PASS: TestHardwareFillRejectsInvalidDescriptions/unknown-layout (0.00s)
-    --- PASS: TestHardwareFillRejectsInvalidDescriptions/base-overflow (0.00s)
-    --- PASS: TestHardwareFillRejectsInvalidDescriptions/duplicate-value (0.00s)
-    --- PASS: TestHardwareFillRejectsInvalidDescriptions/duplicate-order (0.01s)
-    --- PASS: TestHardwareFillRejectsInvalidDescriptions/missing-layout (0.00s)
-    --- PASS: TestHardwareFillRejectsInvalidDescriptions/via-bad-arity (0.00s)
-    --- PASS: TestHardwareFillRejectsInvalidDescriptions/zx-partial-storage (0.00s)
-    --- PASS: TestHardwareFillRejectsInvalidDescriptions/address-overflow (0.00s)
-    --- PASS: TestHardwareFillRejectsInvalidDescriptions/bad-stride (0.00s)
-    --- PASS: TestHardwareFillRejectsInvalidDescriptions/layout-bad-arity (0.00s)
+=== RUN   TestHardwareFillRejectsInvalidDescriptions/region-overflow
+=== RUN   TestHardwareFillRejectsInvalidDescriptions/negative-region
+--- PASS: TestHardwareFillRejectsInvalidDescriptions (0.10s)
+    --- PASS: TestHardwareFillRejectsInvalidDescriptions/value-overflow (0.01s)
+    --- PASS: TestHardwareFillRejectsInvalidDescriptions/duplicate-region (0.01s)
+    --- PASS: TestHardwareFillRejectsInvalidDescriptions/duplicate-order (0.00s)
     --- PASS: TestHardwareFillRejectsInvalidDescriptions/unknown-primitive (0.00s)
-    --- PASS: TestHardwareFillRejectsInvalidDescriptions/unknown-field (0.00s)
+    --- PASS: TestHardwareFillRejectsInvalidDescriptions/unknown-layout (0.00s)
+    --- PASS: TestHardwareFillRejectsInvalidDescriptions/negative-base (0.00s)
+    --- PASS: TestHardwareFillRejectsInvalidDescriptions/duplicate-value (0.00s)
+    --- PASS: TestHardwareFillRejectsInvalidDescriptions/duplicate-layout (0.01s)
+    --- PASS: TestHardwareFillRejectsInvalidDescriptions/layout-bad-arity (0.00s)
+    --- PASS: TestHardwareFillRejectsInvalidDescriptions/region-bad-arity (0.00s)
+    --- PASS: TestHardwareFillRejectsInvalidDescriptions/via-bad-arity (0.00s)
+    --- PASS: TestHardwareFillRejectsInvalidDescriptions/base-overflow (0.00s)
+    --- PASS: TestHardwareFillRejectsInvalidDescriptions/int32-overflow (0.00s)
+    --- PASS: TestHardwareFillRejectsInvalidDescriptions/duplicate-via (0.00s)
+    --- PASS: TestHardwareFillRejectsInvalidDescriptions/zx-partial-storage (0.00s)
     --- PASS: TestHardwareFillRejectsInvalidDescriptions/unknown-traversal (0.00s)
+    --- PASS: TestHardwareFillRejectsInvalidDescriptions/missing-layout (0.00s)
+    --- PASS: TestHardwareFillRejectsInvalidDescriptions/missing-value (0.00s)
+    --- PASS: TestHardwareFillRejectsInvalidDescriptions/unknown-field (0.01s)
+    --- PASS: TestHardwareFillRejectsInvalidDescriptions/address-overflow (0.00s)
+    --- PASS: TestHardwareFillRejectsInvalidDescriptions/bad-stride (0.01s)
+    --- PASS: TestHardwareFillRejectsInvalidDescriptions/region-overflow (0.00s)
+    --- PASS: TestHardwareFillRejectsInvalidDescriptions/negative-region (0.01s)
 === RUN   TestHardwareFillLDIRLiveValues
 === RUN   TestHardwareFillLDIRLiveValues/ordinary
 === RUN   TestHardwareFillLDIRLiveValues/grace-size
 === RUN   TestHardwareFillLDIRLiveValues/grace-speed
---- PASS: TestHardwareFillLDIRLiveValues (0.04s)
-    --- PASS: TestHardwareFillLDIRLiveValues/ordinary (0.01s)
-    --- PASS: TestHardwareFillLDIRLiveValues/grace-size (0.01s)
-    --- PASS: TestHardwareFillLDIRLiveValues/grace-speed (0.01s)
+--- PASS: TestHardwareFillLDIRLiveValues (0.06s)
+    --- PASS: TestHardwareFillLDIRLiveValues/ordinary (0.02s)
+    --- PASS: TestHardwareFillLDIRLiveValues/grace-size (0.02s)
+    --- PASS: TestHardwareFillLDIRLiveValues/grace-speed (0.02s)
+=== RUN   TestStructuredFillLiveValues
+=== RUN   TestStructuredFillLiveValues/ordinary
+=== RUN   TestStructuredFillLiveValues/grace-size
+=== RUN   TestStructuredFillLiveValues/grace-speed
+--- PASS: TestStructuredFillLiveValues (0.06s)
+    --- PASS: TestStructuredFillLiveValues/ordinary (0.02s)
+    --- PASS: TestStructuredFillLiveValues/grace-size (0.03s)
+    --- PASS: TestStructuredFillLiveValues/grace-speed (0.02s)
 === RUN   TestStructuredFillMatchesTextBaseline
-    structured_fill_test.go:49: layout "linear" 24576 8 2 11; region 1 0 4 2; value 91; grace=false size=false: 27 -> 27 bytes; identical ASM=true
-    structured_fill_test.go:49: layout "linear" 24576 8 2 11; region 1 0 4 2; value 91; grace=true size=false: 27 -> 27 bytes; identical ASM=true
-    structured_fill_test.go:49: layout "linear" 24576 8 2 11; region 1 0 4 2; value 91; grace=true size=true: 27 -> 27 bytes; identical ASM=true
-    structured_fill_test.go:49: layout "linear" 24576 256 1 256; value 255; grace=false size=false: 30 -> 22 bytes; identical ASM=false
-    structured_fill_test.go:49: layout "linear" 24576 256 1 256; value 255; grace=true size=false: 30 -> 22 bytes; identical ASM=false
-    structured_fill_test.go:49: layout "linear" 24576 256 1 256; value 255; grace=true size=true: 30 -> 22 bytes; identical ASM=false
-    structured_fill_test.go:49: layout "zx_bitmap_bytes" 16384; region 2 7 5 2; value 71; grace=false size=false: 27 -> 27 bytes; identical ASM=true
-    structured_fill_test.go:49: layout "zx_bitmap_bytes" 16384; region 2 7 5 2; value 71; grace=true size=false: 27 -> 27 bytes; identical ASM=true
-    structured_fill_test.go:49: layout "zx_bitmap_bytes" 16384; region 2 7 5 2; value 71; grace=true size=true: 27 -> 27 bytes; identical ASM=true
---- PASS: TestStructuredFillMatchesTextBaseline (0.07s)
+    structured_fill_test.go:63: layout "linear" 24576 8 2 11; region 1 0 4 2; value 91; grace=false size=false: 27 -> 27 bytes; 401 -> 401 T-states; identical ASM=true
+    structured_fill_test.go:63: layout "linear" 24576 8 2 11; region 1 0 4 2; value 91; grace=true size=false: 27 -> 27 bytes; 401 -> 401 T-states; identical ASM=true
+    structured_fill_test.go:63: layout "linear" 24576 8 2 11; region 1 0 4 2; value 91; grace=true size=true: 27 -> 27 bytes; 401 -> 401 T-states; identical ASM=true
+    structured_fill_test.go:63: layout "linear" 24576 256 1 256; value 255; grace=false size=false: 30 -> 22 bytes; 34901 -> 23889 T-states; identical ASM=false
+    structured_fill_test.go:63: layout "linear" 24576 256 1 256; value 255; grace=true size=false: 30 -> 22 bytes; 34901 -> 23889 T-states; identical ASM=false
+    structured_fill_test.go:63: layout "linear" 24576 256 1 256; value 255; grace=true size=true: 30 -> 22 bytes; 34901 -> 23889 T-states; identical ASM=false
+    structured_fill_test.go:63: layout "zx_bitmap_bytes" 16384; region 2 7 5 2; value 71; grace=false size=false: 27 -> 27 bytes; 485 -> 485 T-states; identical ASM=true
+    structured_fill_test.go:63: layout "zx_bitmap_bytes" 16384; region 2 7 5 2; value 71; grace=true size=false: 27 -> 27 bytes; 485 -> 485 T-states; identical ASM=true
+    structured_fill_test.go:63: layout "zx_bitmap_bytes" 16384; region 2 7 5 2; value 71; grace=true size=true: 27 -> 27 bytes; 485 -> 485 T-states; identical ASM=true
+--- PASS: TestStructuredFillMatchesTextBaseline (0.16s)
 PASS
-ok  	github.com/minz/minzc/pkg/pipeline	1.067s
+ok  	github.com/minz/minzc/pkg/pipeline	1.453s

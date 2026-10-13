@@ -265,7 +265,11 @@ func TestHardwareFillRejectsInvalidDescriptions(t *testing.T) {
 
 // Generated inline ASM must preserve values live across its declared clobbers.
 // Read a dynamic global, compute before the fill, and consume after two blocks.
-func TestHardwareFillLDIRLiveValues(t *testing.T) {
+func TestHardwareFillLDIRLiveValues(t *testing.T) { hardwareFillLiveValues(t, "ldir") }
+
+func TestStructuredFillLiveValues(t *testing.T) { hardwareFillLiveValues(t, "pointer") }
+
+func hardwareFillLiveValues(t *testing.T, primitive string) {
 	source := `import hw.fill
 global input: u16 = 0
 global answer: u16 = 0
@@ -283,6 +287,7 @@ fun fill_test() {
     }
     answer = keep ^ input
 }`
+	source = strings.ReplaceAll(source, `via "ldir"`, `via "`+primitive+`"`)
 	hardwareFillExport(t, "live-values/source.nanz", []byte(source))
 	for _, mode := range []string{"ordinary", "grace-size", "grace-speed"} {
 		t.Run(mode, func(t *testing.T) {

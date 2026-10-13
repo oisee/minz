@@ -3,8 +3,8 @@ package nanz
 // Compile-time metafunction execution for Nanz.
 //
 // Metafunctions are declared as `fun @name(...)` and called as `@name(...) { block }`.
-// They run on the MIR2 VM at compile time and emit Nanz source text that gets
-// parsed and spliced into the calling module.
+// They run on the MIR2 VM at compile time. Textual emit is parsed into HIR;
+// structured emit constructs typed HIR statements directly in the caller.
 //
 // Architecture:
 //   1. Parser sees `fun @name(...)` → stores as metaFuncSrc (not in m.Funcs)
