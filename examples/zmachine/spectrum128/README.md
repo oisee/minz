@@ -106,3 +106,26 @@ ZVM_EXPECTED_SAVE_SHA=df95a1d269ebc6f0163adc944f71c7a95021df71948a375d53a5e7e814
 cd minzc
 go test ./pkg/pipeline -run '^TestZMachineBankedInterpreterNative$' -count=1 -v
 ```
+
+
+Нативная high-memory-фикстура (98302 байта) также проходит: процедура и текст
+на $17E00 исполняются из банковой story, возвращаясь к коду ниже 64 КБ.
+Прежняя 131070-байтная VM-фикстура сохраняется побайтно при запуске генератора
+без параметров; вариант меньшей длины нужен для шести свободных банков.
+
+```sh
+cd minzc
+go test ./pkg/pipeline -run '^TestZMachineBanked(Interpreter|HighMemory)Native$' -count=1 -v
+```
+
+Полный Zork проверяется отдельным opt-in gate:
+
+```sh
+MINZ_Z3_STORY=/path/to/zork1.z3 go test ./pkg/pipeline   -run '^TestZMachineBankedZorkStartupNative$' -count=1 -v
+```
+
+Этот gate **пока падает** на локальном кандидате: `Z3 error 1:0:14:0:0:108`
+до появления стартового текста. Проверка high memory не заменяет проверку
+большой программы. Следующий шаг — сопоставить трассу первых инструкций Zork
+с VM и проверить сохранность кадров/операндов через вызовы. Вывод и ввод
+Spectrum, сжатие и финальное размещение ещё не завершены.

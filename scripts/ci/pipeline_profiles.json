@@ -334,6 +334,7 @@
     "TestZXBankedMemoryNative",
     "TestZXStoryLogicalMemoryNative",
     "TestZMachineBankedInterpreterNative",
+    "TestZMachineBankedHighMemoryNative",
     "TestZXHalfCellRotozoomerFullMachine",
     "TestZXHalfCellRotozoomerLibraryFullMachine"
   ],

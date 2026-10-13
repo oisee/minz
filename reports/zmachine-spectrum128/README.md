@@ -192,3 +192,19 @@ Inform fixture on the Pentagon128 paging model, not full Zork support.
 
 The prior failing-checkpoint sections are historical; current gate is PASS.
 Native integration and raw-reader matrix are now part of the fast profile.
+
+
+## Native high-memory execution and first full-story probe
+
+The independent high-memory fixture now has an optional 98302-byte variant
+for six free physical banks; default 131070-byte fixture remains byte-identical.
+Native Z3 call/return and packed-string output at $17E00 pass with exact `H\n`
+and PC/SP/IFF/paging restoration. Stream3 also passes. The generated integration
+module is 23645 bytes in these runs; high-memory execution costs355556052 T,
+including the interpreter's full checksum scan (not interactive performance).
+
+An opt-in MINZ_Z3_STORY native startup gate loads the full 86928-byte local
+candidate into banks0,1,3,4,6,7. It currently fails before the banner with
+`Z3 error 1:0:14:0:0:108`. Native full-Zork startup is NOT achieved. This is
+now a concrete failing full-story gate, not an inferred compatibility issue.
+Next: compare earliest instruction trace with VM and inspect call/frame state.

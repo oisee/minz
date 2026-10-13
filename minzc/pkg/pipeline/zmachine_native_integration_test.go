@@ -8,19 +8,50 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"testing"
 )
 
 // Real Nanz interpreter executes an independent Inform-built Z3 story from
 // physical bank0. Host I/O is replaced by explicit native capture boundaries.
 func TestZMachineBankedInterpreterNative(t *testing.T) {
+	testZMachineBankedInterpreterNative(t, false, "")
+}
+func TestZMachineBankedHighMemoryNative(t *testing.T) {
+	testZMachineBankedInterpreterNative(t, true, "")
+}
+func TestZMachineBankedZorkStartupNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_STORY")
+	if path == "" {
+		t.Skip("set MINZ_Z3_STORY to an independently supplied Zork I story")
+	}
+	testZMachineBankedInterpreterNative(t, false, path)
+}
+func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, externalStory string) {
 	root := filepath.Clean("../../..")
 	story, err := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/stream3.z3"))
 	if err != nil {
 		t.Fatal(err)
 	}
+	if highMemory {
+		fixture := filepath.Join(t.TempDir(), "high.z3")
+		cmd := exec.Command("python3", filepath.Join(root, "examples/zmachine/z3-fixtures/high_memory.py"), fixture, "--bytes", "98302")
+		if out, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("fixture: %v %s", err, out)
+		}
+		story, err = os.ReadFile(fixture)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	if externalStory != "" {
+		story, err = os.ReadFile(externalStory)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
-	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", "2048")
+	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
 	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("generate: %v %s", err, out)
 	}
@@ -53,7 +84,10 @@ func TestZMachineBankedInterpreterNative(t *testing.T) {
 	for i, b := range a.Binary {
 		m.Memory.Write(0x5b00+uint16(i), b, false)
 	}
-	copy(m.Memory.RAM[0][:], story)
+	pages := []int{0, 1, 3, 4, 6, 7}
+	for i, b := range story {
+		m.Memory.RAM[pages[i/16384]][i%16384] = b
+	}
 	m.Memory.SetPagingForce(0x10)
 	m.Memory.Write(0xbf00, 0, false)
 	m.Memory.Write(0xbf01, 0x50, false)
@@ -62,7 +96,7 @@ func TestZMachineBankedInterpreterNative(t *testing.T) {
 	m.CPU.SetIFF1(false)
 	m.CPU.SetIFF2(false)
 	m.CPU.SetTstates(0)
-	for i := 0; i < 20000000; i++ {
+	for i := 0; i < 100000000; i++ {
 		if m.CPU.PC() == 0x5000 && m.CPU.SP() == 0xbf02 {
 			break
 		}
@@ -83,21 +117,36 @@ func TestZMachineBankedInterpreterNative(t *testing.T) {
 	for i := range got {
 		got[i] = m.Memory.Read(uint16(a.Symbols["native_output"]) + uint16(i))
 	}
-	want, err := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/stream3.out"))
+	wantPath := "stream3.out"
+	if highMemory {
+		wantPath = "high_memory.out"
+	}
+	want, err := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures", wantPath))
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, expected := range []struct {
-		address int
-		data    []byte
-	}{
-		{0x492, []byte{0, 3, 65, 13, 66}}, {0x4b2, []byte{0, 2, 88, 90}}, {0x4d2, []byte{0, 1, 89}},
-	} {
-		if !bytes.Equal(m.Memory.RAM[0][expected.address:expected.address+len(expected.data)], expected.data) {
-			t.Fatalf("stream RAM mismatch at %04x", expected.address)
+	if !highMemory && externalStory == "" {
+		for _, expected := range []struct {
+			address int
+			data    []byte
+		}{
+			{0x492, []byte{0, 3, 65, 13, 66}}, {0x4b2, []byte{0, 2, 88, 90}}, {0x4d2, []byte{0, 1, 89}},
+		} {
+			if !bytes.Equal(m.Memory.RAM[0][expected.address:expected.address+len(expected.data)], expected.data) {
+				t.Fatalf("stream RAM mismatch at %04x", expected.address)
+			}
 		}
 	}
-	if !bytes.Equal(got, want) {
+	if externalStory != "" {
+		for _, phrase := range []string{"ZORK I: The Great Underground Empire", "West of House", "There is a small mailbox here."} {
+			if !bytes.Contains(got, []byte(phrase)) {
+				t.Fatalf("missing %q: output %q", phrase, got)
+			}
+		}
+		if bytes.Contains(got, []byte("Z3 error")) {
+			t.Fatalf("interpreter failure %q", got)
+		}
+	} else if !bytes.Equal(got, want) {
 		t.Fatalf("output got %q want %q; vmPC=%02x%02x%02x steps=%d", got, want, m.Memory.Read(uint16(a.Symbols["pc"])+2), m.Memory.Read(uint16(a.Symbols["pc"])+1), m.Memory.Read(uint16(a.Symbols["pc"])), int(m.Memory.Read(uint16(a.Symbols["steps"]))))
 	}
 	t.Logf("native interpreter %d bytes; %d T; output %q", len(a.Binary), m.CPU.Tstates(), got)
