@@ -1,0 +1,15 @@
+--- before
+
++++ after
+
+@@ -4800,8 +4800,7 @@
+
+     CALL fp_mul
+     LD D, H
+     LD E, L
+-    LD H, D
+-    LD L, E
++    EX DE, HL
+     SRA H
+     RR  L
+     LD DE, 0

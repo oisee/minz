@@ -1,0 +1,15 @@
+--- before
+
++++ after
+
+@@ -1224,8 +1224,7 @@
+
+     CALL isqrt
+     LD D, H
+     LD E, L
+-    LD H, D
+-    LD L, E
++    EX DE, HL
+     ADD HL, HL
+     ADD HL, HL
+     ADD HL, HL

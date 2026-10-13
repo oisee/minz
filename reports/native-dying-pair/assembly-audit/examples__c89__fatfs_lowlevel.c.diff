@@ -1,0 +1,37 @@
+--- before
+
++++ after
+
+@@ -17,8 +17,7 @@
+
+     LD D, (HL)
+     LD L, D
+     LD H, 0
+-    LD D, H
+-    LD E, L
++    EX DE, HL
+     LD D, E
+     LD E, 0
+     EX AF, AF'      ; preserve byte-load scratch
+@@ -42,8 +41,7 @@
+
+     PUSH BC
+     POP HL
+     LD (HL), A
+-    LD H, D
+-    LD L, E
++    EX DE, HL
+     LD L, H
+     LD H, 0
+     LD D, L
+@@ -288,8 +286,7 @@
+
+     BIT 0, C
+     JRS Z, .read_fat12_if_else3
+ .read_fat12_if_then1:
+-    LD H, D
+-    LD L, E
++    EX DE, HL
+     SRL H
+     RR  L
+     SRL H

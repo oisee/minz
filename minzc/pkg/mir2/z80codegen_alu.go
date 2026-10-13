@@ -922,7 +922,9 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 	}
 	src := g.loc(inst.Src[0])
 	if dst != src {
-		g.emitMov(dst, src, w)
+		if !g.emitDyingPairExchange(inst, dst, src, w) {
+			g.emitMov(dst, src, w)
+		}
 	}
 	// Shift count in Src[1] — Z80 shifts are always by 1 per instruction.
 	// Constant counts emit N copies; variable counts use genVariableShift.
@@ -1192,4 +1194,26 @@ func (g *z80cg) genShift32(mnem string, inst *Inst) {
 		g.comment(fmt.Sprintf("TODO: 32-bit shift %s", mnem))
 	}
 	g.invalidate(dst)
+}
+
+// A constant word shift may consume a dying DE/HL operand with EX instead
+// of copying both bytes. Refuse when either source half or another destination
+// value survives; ordinary copies remain non-destructive everywhere else.
+func (g *z80cg) emitDyingPairExchange(inst *Inst, dst, src string, width int) bool {
+	if width != 16 || (dst != "HL" || src != "DE") && (dst != "DE" || src != "HL") {
+		return false
+	}
+	for reg := range g.regsLiveAfterInst(inst) {
+		if reg == inst.Dst {
+			continue
+		}
+		physical := g.loc(reg)
+		if physical == src || physical == dst || parentPair(physical) == src || parentPair(physical) == dst {
+			return false
+		}
+	}
+	g.emit("    EX DE, HL")
+	g.invalidate("DE")
+	g.invalidate("HL")
+	return true
 }

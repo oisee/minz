@@ -1,0 +1,12 @@
+=== RUN   TestZ80ConstantShiftDyingPairExchange
+    z80codegen_dying_pair_test.go:99: DE→HL mode=0 all65536 PASS
+    z80codegen_dying_pair_test.go:99: HL→DE mode=0 all65536 PASS
+    z80codegen_dying_pair_test.go:99: DE→HL mode=1 all65536 PASS
+    z80codegen_dying_pair_test.go:99: HL→DE mode=1 all65536 PASS
+    z80codegen_dying_pair_test.go:99: DE→HL mode=2 all65536 PASS
+    z80codegen_dying_pair_test.go:99: HL→DE mode=2 all65536 PASS
+    z80codegen_dying_pair_test.go:99: DE→HL mode=3 all65536 PASS
+    z80codegen_dying_pair_test.go:99: HL→DE mode=3 all65536 PASS
+--- PASS: TestZ80ConstantShiftDyingPairExchange (0.18s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.194s

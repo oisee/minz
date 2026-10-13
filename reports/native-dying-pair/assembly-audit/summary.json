@@ -1,0 +1,57 @@
+[
+  {
+    "path": "examples/c/c99_enum_typedef.c",
+    "removed_byte_moves": 2,
+    "pair_exchanges": 1
+  },
+  {
+    "path": "examples/c89/bench_extended.c",
+    "removed_byte_moves": 2,
+    "pair_exchanges": 1
+  },
+  {
+    "path": "examples/c89/fatfs_lowlevel.c",
+    "removed_byte_moves": 6,
+    "pair_exchanges": 3
+  },
+  {
+    "path": "examples/glsl_sphere_demo.minz",
+    "removed_byte_moves": 2,
+    "pair_exchanges": 1
+  },
+  {
+    "path": "examples/mzv_one_small_step.minz",
+    "removed_byte_moves": 2,
+    "pair_exchanges": 1
+  },
+  {
+    "path": "examples/mzv_one_small_step_medium.minz",
+    "removed_byte_moves": 2,
+    "pair_exchanges": 1
+  },
+  {
+    "path": "examples/mzv_one_small_step_simple.minz",
+    "removed_byte_moves": 2,
+    "pair_exchanges": 1
+  },
+  {
+    "path": "examples/mzv_test_sphere.minz",
+    "removed_byte_moves": 2,
+    "pair_exchanges": 1
+  },
+  {
+    "path": "examples/nanz/nc.nanz",
+    "removed_byte_moves": 4,
+    "pair_exchanges": 2
+  },
+  {
+    "path": "examples/zx_demos/fire_simple.minz",
+    "removed_byte_moves": 2,
+    "pair_exchanges": 1
+  },
+  {
+    "path": "examples/zx_demos/life_simple.minz",
+    "removed_byte_moves": 2,
+    "pair_exchanges": 1
+  }
+]

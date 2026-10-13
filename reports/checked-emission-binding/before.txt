@@ -1,0 +1,24 @@
+--- FAIL: TestCheckedEmitRejectsReAdmittedForeignOperations (0.01s)
+    --- FAIL: TestCheckedEmitRejectsReAdmittedForeignOperations/constant (0.00s)
+        table_emission_binding_test.go:46: foreign lowering emitted: err=<nil> ASM=; fun prod() ; clobbers: F
+            prod:
+                LD A, 99
+                RET
+    --- FAIL: TestCheckedEmitRejectsReAdmittedForeignOperations/return-location (0.00s)
+        table_emission_binding_test.go:46: foreign lowering emitted: err=<nil> ASM=; fun prod() ; clobbers: F
+            prod:
+                LD C, 37
+                RET
+    --- FAIL: TestCheckedEmitRejectsReAdmittedForeignOperations/raw-emission (0.00s)
+        table_emission_binding_test.go:46: foreign lowering emitted: err=<nil> ASM=; fun prod() ; clobbers: F
+            prod:
+                LD A, 37
+                RET
+    --- FAIL: TestCheckedEmitRejectsReAdmittedForeignOperations/size-policy (0.00s)
+        table_emission_binding_test.go:46: foreign lowering emitted: err=<nil> ASM=; fun prod() ; clobbers: F
+            prod:
+                LD A, 37
+                RET
+FAIL
+FAIL	github.com/minz/minzc/pkg/vir	0.017s
+FAIL

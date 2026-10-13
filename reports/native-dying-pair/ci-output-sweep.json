@@ -1,0 +1,62 @@
+{
+  "exit_changes": [],
+  "stdout_changes": [],
+  "stderr_changes": [],
+  "assembly_changes": [
+    {
+      "path": "examples/c/c99_enum_typedef.c",
+      "before_text_bytes": 5148,
+      "after_text_bytes": 5138
+    },
+    {
+      "path": "examples/c89/bench_extended.c",
+      "before_text_bytes": 14620,
+      "after_text_bytes": 14610
+    },
+    {
+      "path": "examples/c89/fatfs_lowlevel.c",
+      "before_text_bytes": 20030,
+      "after_text_bytes": 20000
+    },
+    {
+      "path": "examples/glsl_sphere_demo.minz",
+      "before_text_bytes": 96546,
+      "after_text_bytes": 96536
+    },
+    {
+      "path": "examples/mzv_one_small_step.minz",
+      "before_text_bytes": 59619,
+      "after_text_bytes": 59609
+    },
+    {
+      "path": "examples/mzv_one_small_step_medium.minz",
+      "before_text_bytes": 38382,
+      "after_text_bytes": 38372
+    },
+    {
+      "path": "examples/mzv_one_small_step_simple.minz",
+      "before_text_bytes": 31296,
+      "after_text_bytes": 31286
+    },
+    {
+      "path": "examples/mzv_test_sphere.minz",
+      "before_text_bytes": 24782,
+      "after_text_bytes": 24772
+    },
+    {
+      "path": "examples/nanz/nc.nanz",
+      "before_text_bytes": 153085,
+      "after_text_bytes": 153065
+    },
+    {
+      "path": "examples/zx_demos/fire_simple.minz",
+      "before_text_bytes": 12600,
+      "after_text_bytes": 12590
+    },
+    {
+      "path": "examples/zx_demos/life_simple.minz",
+      "before_text_bytes": 15620,
+      "after_text_bytes": 15610
+    }
+  ]
+}

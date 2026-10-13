@@ -249,6 +249,11 @@ func (p *LocalTableProblem) Emit(table *RegAllocTable) (string, error) {
 	if err != nil || context != p.Options.CheckedContext {
 		return "", fmt.Errorf("changed local function binding")
 	}
+	// A valid table assignment may still describe a forged lowering. Rebuild
+	// from the actual MIR and entry ABI before admitting instruction emission.
+	if err := validateCompositionProblem(p); err != nil {
+		return "", err
+	}
 	assignment, _, ok := table.LookupChecked(p.Ops, Z80, p.Options)
 	if !ok {
 		return "", fmt.Errorf("checked local table miss")
