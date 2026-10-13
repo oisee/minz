@@ -22,15 +22,25 @@ func must(err error) {
 	}
 }
 func main() {
-	if len(os.Args) != 3 && !(len(os.Args) == 4 && os.Args[3] == "--compressed") {
-		panic("usage: build_spectrum128.go STORY OUTDIR [--compressed] (run from minzc)")
+	if len(os.Args) < 3 {
+		panic("usage: build_spectrum128.go STORY OUTDIR [--compressed] [--scorpion-disk] (run from minzc)")
 	}
 	story, err := os.ReadFile(os.Args[1])
 	must(err)
 	if len(story) < 64 || len(story) > 98304 || story[0] != 3 {
 		panic("requires Z-machine V3 story, 64..98304 bytes")
 	}
-	compressed := len(os.Args) == 4
+	compressed, diskSave := false, false
+	for _, arg := range os.Args[3:] {
+		switch arg {
+		case "--compressed":
+			compressed = true
+		case "--scorpion-disk":
+			diskSave = true
+		default:
+			panic("unknown option: " + arg)
+		}
+	}
 	out, err := filepath.Abs(os.Args[2])
 	must(err)
 	must(os.MkdirAll(out, 0755))
@@ -91,6 +101,12 @@ func main() {
 		saveSupported = restart && 98304-saveOffset >= 32
 		saveCapacity = 98304 - saveOffset
 	}
+	if diskSave {
+		if !restart {
+			panic("disk SAVE requires a valid restart archive")
+		}
+		saveSupported, saveCapacity = true, 16384
+	}
 	source := filepath.Join(out, "zvm-spectrum128.nanz")
 	cmd := exec.Command("python3", "../scripts/zmachine/prepare_native_core.py", source, "--story-bytes", fmt.Sprint(len(story)), "--console")
 	if restart && !compressed {
@@ -104,6 +120,9 @@ func main() {
 		if saveSupported {
 			cmd.Args = append(cmd.Args, "--layout-save-story", os.Args[1])
 		}
+	}
+	if diskSave {
+		cmd.Args = append(cmd.Args, "--disk-save", "--extended-save")
 	}
 	result, err := cmd.CombinedOutput()
 	if err != nil {
@@ -167,11 +186,22 @@ func main() {
 	must(os.WriteFile(filepath.Join(out, "zvm-spectrum128.a80"), []byte(assembly), 0644))
 	must(os.WriteFile(filepath.Join(out, "zvm-spectrum128.bin"), a.Binary, 0644))
 	metadata := map[string]any{"story_sha256": fmt.Sprintf("%x", sha256.Sum256(story)), "story_bytes": len(story), "resident_bytes": len(a.Binary), "origin": 0x5b00, "entry": a.Symbols["main"], "native_stack_top": 0xbf00, "paging": 0x10, "story_banks": pages, "snapshot_roundtrip": "all eight banks and PC/SP/paging verified", "limitations": []string{"RAM save volatile; failed overwrite invalidates prior save; capacity overflow returns failure", "ROM font data at 0x3d00 required", "IRQs disabled; polling keyboard", "short gameplay verified; full game not proven"}}
+	if diskSave {
+		metadata["machine_model"] = "scorpion-memory"
+		metadata["save_staging_bank"] = 8
+		metadata["sector_buffer_bank"] = 9
+		metadata["save_slot_offset"] = 0
+		metadata["limitations"] = []string{"dedicated TRD required; emulator TR-DOS API traps, physical controller not supported", "initial SNA stores original eight banks only; extra banks start empty", "ROM font required; IRQs disabled; full game not proven"}
+	}
 	metadata["save_restore_supported"] = saveSupported
 	metadata["save_slot_bytes"] = 0
 	if saveSupported {
 		metadata["save_slot_bytes"] = saveCapacity
-		metadata["save_slot_offset"] = saveOffset
+		if diskSave {
+			metadata["save_slot_offset"] = 0
+		} else {
+			metadata["save_slot_offset"] = saveOffset
+		}
 	}
 	metadata["restart_supported"] = restart
 	metadata["compressed_story"] = compressed

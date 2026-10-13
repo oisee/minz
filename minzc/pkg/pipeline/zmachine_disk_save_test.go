@@ -20,16 +20,24 @@ func TestZMachineZorkDiskSaveAcrossRestart(t *testing.T) {
 	if path == "" {
 		t.Skip("set MINZ_Z3_STORY to Zork I")
 	}
-	testZMachineDiskSave(t, path, true)
+	testZMachineDiskSave(t, path, true, false)
 }
 
-func TestZMachineDiskSaveAcrossRestart(t *testing.T) { testZMachineDiskSave(t, "", true) }
+func TestZMachineDiskSaveAcrossRestart(t *testing.T) { testZMachineDiskSave(t, "", true, false) }
 
-func TestZMachineDiskSaveLegacyStaging(t *testing.T) { testZMachineDiskSave(t, "", false) }
+func TestZMachineDiskSaveLegacyStaging(t *testing.T) { testZMachineDiskSave(t, "", false, false) }
+
+func TestZMachineZorkDiskConsoleSaveAcrossRestart(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_STORY")
+	if path == "" {
+		t.Skip("set MINZ_Z3_STORY to Zork I")
+	}
+	testZMachineDiskSave(t, path, true, true)
+}
 
 // Independent Inform story: SAVE branches again after RESTORE, recovering
 // value=1 even though the restore command sets it to 7 first.
-func testZMachineDiskSave(t *testing.T, externalStory string, extended bool) {
+func testZMachineDiskSave(t *testing.T, externalStory string, extended, console bool) {
 	root := filepath.Clean("../../..")
 	original, err := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/save_restore.z3"))
 	if err != nil {
@@ -78,6 +86,10 @@ func testZMachineDiskSave(t *testing.T, externalStory string, extended bool) {
 			}
 			source := filepath.Join(dir, "native.nanz")
 			gen := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), source, "--story-bytes", strconv.Itoa(size), "--restart-offset", strconv.Itoa(offset), "--restart-bytes", strconv.Itoa(int(story[14])<<8|int(story[15])), "--restart-rle-bytes", strconv.Itoa(len(archive)), "--save-story", storyPath, "--disk-save", "--commands", commands)
+			if console {
+				gen.Args = gen.Args[:len(gen.Args)-2]
+				gen.Args = append(gen.Args, "--console")
+			}
 			if extended {
 				gen.Args = append(gen.Args, "--extended-save")
 			}
@@ -90,22 +102,24 @@ func testZMachineDiskSave(t *testing.T, externalStory string, extended bool) {
 			}
 			// Capture output by observing entry without allocating a bounded output buffer.
 			capture := string(src)
-			start := strings.Index(capture, "fun native_putchar(")
-			brace := strings.Index(capture[start:], "{") + start
-			end := brace + 1
-			depth := 1
-			for depth > 0 {
-				if capture[end] == '{' {
-					depth++
+			if !console {
+				start := strings.Index(capture, "fun native_putchar(")
+				brace := strings.Index(capture[start:], "{") + start
+				end := brace + 1
+				depth := 1
+				for depth > 0 {
+					if capture[end] == '{' {
+						depth++
+					}
+					if capture[end] == '}' {
+						depth--
+					}
+					end++
 				}
-				if capture[end] == '}' {
-					depth--
-				}
-				end++
+				capture = capture[:start] + "fun native_putchar(ch:u8) { asm z80 { NOP } }" + capture[end:]
+				capture = strings.ReplaceAll(capture, "global native_output: [u8; 1024]\n", "")
+				capture = strings.ReplaceAll(capture, "global native_output_length: u16 = 0\n", "")
 			}
-			capture = capture[:start] + "fun native_putchar(ch:u8) { asm z80 { NOP } }" + capture[end:]
-			capture = strings.ReplaceAll(capture, "global native_output: [u8; 1024]\n", "")
-			capture = strings.ReplaceAll(capture, "global native_output_length: u16 = 0\n", "")
 			h, err := nanz.ParseWithOpts(capture, source, nanz.ParseOpts{BaseDir: filepath.Dir(source), StdlibDir: filepath.Join(root, "stdlib")})
 			if err != nil {
 				t.Fatal(err)
@@ -145,19 +159,23 @@ func testZMachineDiskSave(t *testing.T, externalStory string, extended bool) {
 					at := offset + i
 					m.Memory.RAM[pages[at/16384]][at%16384] = b
 				}
+				keyText := bytes.ReplaceAll(route, []byte("\n"), []byte("\r"))
 				if restore {
 					restoreRoute := []byte("r\nq\n")
 					if externalStory != "" {
 						restoreRoute = []byte("restore\ninventory\nquit\ny\n")
 					}
-					for i, b := range restoreRoute {
-						m.Memory.Write(uint16(a.Symbols["native_commands"])+uint16(i), b, false)
+					keyText = bytes.ReplaceAll(restoreRoute, []byte("\n"), []byte("\r"))
+					if !console {
+						for i, b := range restoreRoute {
+							m.Memory.Write(uint16(a.Symbols["native_commands"])+uint16(i), b, false)
+						}
 					}
 				}
 				m.Memory.SetPagingForce(0x10)
-				m.Memory.Write(0x5000, 0x76, false)
-				m.Memory.Write(0xbf00, 0, false)
-				m.Memory.Write(0xbf01, 0x50, false)
+				m.Memory.Write(0xbf10, 0x76, false)
+				m.Memory.Write(0xbf00, 0x10, false)
+				m.Memory.Write(0xbf01, 0xbf, false)
 				m.CPU.SetPC(uint16(a.Symbols["main"]))
 				m.CPU.SetSP(0xbf00)
 				m.CPU.SetIFF1(false)
@@ -180,7 +198,44 @@ func testZMachineDiskSave(t *testing.T, externalStory string, extended bool) {
 				})
 				formats.InstallTRDTraps(m, disk, false)
 				var output []byte
-				m.SetPCTrap(uint16(a.Symbols["native_putchar"]), func() { output = append(output, byte(m.CPU.AF()>>8)); m.CPU.DoOpcode() })
+				keyAt, ready := 0, false
+				if console {
+					keys := []byte{0, 'z', 'x', 'c', 'v', 'a', 's', 'd', 'f', 'g', 'q', 'w', 'e', 'r', 't', '1', '2', '3', '4', '5', '0', '9', '8', '7', '6', 'p', 'o', 'i', 'u', 'y', 13, 'l', 'k', 'j', 'h', 32, 0, 'm', 'n', 'b'}
+					m.SetPCTrap(uint16(a.Symbols["zx__console__con_getchar"]), func() {
+						m.Keyboard.Reset()
+						ready = true
+						m.CPU.DoOpcode()
+					})
+					m.SetPCTrap(uint16(a.Symbols["zx__console__scan_row_key"]), func() {
+						if ready {
+							if keyAt >= len(keyText) {
+								t.Fatal("unexpected keyboard input")
+							}
+							found := false
+							for idx, ch := range keys {
+								if ch == keyText[keyAt] {
+									m.Keyboard.KeyPress(idx/5, idx%5)
+									found = true
+									break
+								}
+							}
+							if !found {
+								t.Fatalf("unmapped key %q", keyText[keyAt])
+							}
+							keyAt++
+							ready = false
+						}
+						m.CPU.DoOpcode()
+					})
+				}
+				putchar := a.Symbols["native_putchar"]
+				if console {
+					putchar = a.Symbols["zx__console__con_putchar"]
+				}
+				if putchar == 0 {
+					t.Fatal("missing output symbol")
+				}
+				m.SetPCTrap(uint16(putchar), func() { output = append(output, byte(m.CPU.AF()>>8)); m.CPU.DoOpcode() })
 				for i := 0; i < 10000; i++ {
 					m.RunFrameFast()
 					if m.CPU.Halted() {
@@ -188,9 +243,12 @@ func testZMachineDiskSave(t *testing.T, externalStory string, extended bool) {
 					}
 				}
 				if !m.CPU.Halted() || m.CPU.SP() != 0xbf02 || m.Memory.PagingState() != 0x10 || m.Memory.ScorpionPagingState() != 0 {
-					t.Fatal("return boundary", m.CPU.PC(), m.CPU.SP())
+					t.Fatalf("return boundary PC/SP %04x/%04x keys %d/%d output %q", m.CPU.PC(), m.CPU.SP(), keyAt, len(keyText), output)
 				}
 
+				if console && keyAt != len(keyText) {
+					t.Fatalf("keys %d/%d", keyAt, len(keyText))
+				}
 				dynamic := int(story[14])<<8 | int(story[15])
 				for i := dynamic; i < len(story); i++ {
 					if got := m.Memory.RAM[pages[i/16384]][i%16384]; got != story[i] {
@@ -242,6 +300,10 @@ func testZMachineDiskSave(t *testing.T, externalStory string, extended bool) {
 						}
 					}
 				}
+			}
+			if console {
+				t.Logf("console keyboard disk SAVE/fresh RESTORE PASS; resident %d bytes", len(a.Binary))
+				return
 			}
 			// Failed overwrite must leave the previously committed record usable.
 			savedPath := disk.Path

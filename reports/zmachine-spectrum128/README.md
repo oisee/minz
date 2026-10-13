@@ -1520,3 +1520,27 @@ Graphical MZX теперь принимает `--model scorpion-memory`; build P
 Постоянный SAVE находится в выделенном TRD через emulator API traps. Physical
 TR-DOS, интерактивный lifecycle новой disk bundle и оконные V3 commands ещё
 не подтверждены. Общая цель остаётся active.
+
+### 13 октября: экранный disk lifecycle и runnable Linux bundle
+
+Builder поддерживает `--scorpion-disk` вместе с raw story: `go run
+../scripts/zmachine/build_spectrum128.go STORY OUTDIR --scorpion-disk` из minzc.
+Начальный SNA хранит обычные восемь банков; запускать только с
+`mzx --model scorpion-memory --snapshot zork-spectrum128.sna --trd save.trd
+--trd-writeback`. Дополнительные staging/buffer banks в начале пусты, постоянное
+состояние находится на диске, а не в snapshot. Builder не создаёт и не
+перезаписывает пользовательский save.trd. Выделенный пустой TRD нужен отдельно.
+
+`TestZMachineZorkDiskConsoleSaveAcrossRestart` исполняет полную console/keyboard
+сборку. Команды проходят Spectrum keyboard matrix, scan_row_key, con_getchar
+и редактор строки; output исполняет con_putchar (наблюдение на входе, без замены
+рендера). SAVE после взятия leaflet, quit, перечитывание TRD и новая машина,
+RESTORE/inventory/quit — PASS, 10.174 s, 24864 resident bytes. Static story и
+restart archive не меняются; PC/SP/paging восстановлены. Отдельные capture
+fault-matrix tests сохраняются; fixture regression PASS за 8.886 s.
+
+Исправлен тестовый return sentinel: console clear стирал прежний `$5000` в
+экранной памяти, теперь остановка в свободном fixed RAM `$BF10`. Это ошибка
+harness, не игрового codegen. CLI загрузил созданный SNA с Scorpion-memory и
+TRD, за 2000 frames отрисовал West of House и prompt. Linux build проверен;
+новый Windows executable не собран в этом checkpoint.
