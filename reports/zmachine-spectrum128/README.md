@@ -1859,3 +1859,15 @@ score/inventory/quit. Первый неадаптированный прогон
 восемь предметов. Его случайные боевые/ambient реплики не сравниваются с VM;
 Z80/VM сравнение полное. PASS32.341 s. Это первый длинный сегмент walkthrough,
 не финальное прохождение; остальные344 исходные команды ещё не подтверждены.
+
+
+### 13 октября: Dam Lobby и102 очка на Z80
+
+Продолжение early-dungeon до100 исходных команд walkthrough: перенос coffin
+в trophy case, получение painting и platinum bar, проход через Loud Room/Echo,
+Dam Lobby. Новый routes/dam-lobby.txt воспроизводится с самого старта.
+709 клавиш,11201 B output byte-exact Nanz VM,4389599135 T, stack70 B.
+Frotz seed12 отдельно подтверждает score102 на104 moves и полный инвентарь
+platinum bar/candles/bell/book/lamp/lit torch. PASS52.870 s. Random combat
+texts Frotz не сравниваются; Z80/VM текст сравнивается целиком. Это checkpoint
+раннего walkthrough, не прохождение всех396 исходных команд.
