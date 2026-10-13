@@ -181,6 +181,10 @@ func TestOriginalTetrisSpawnHoldAndSequences(t *testing.T) {
 					}
 				}
 			}
+			// Scratch buffers hold expected snapshots only; actual VM/native
+			// memory still persists and every checkpoint compares all 64KiB.
+			vmBefore, vmAfter := make([]byte, 65536), make([]byte, 65536)
+			nativeExpectedInput, nativeAfter := make([]byte, 65536), make([]byte, 65536)
 			count := 0
 			byEntry := map[string]int{}
 			persistent := false
@@ -192,7 +196,8 @@ func TestOriginalTetrisSpawnHoldAndSequences(t *testing.T) {
 				}
 				byEntry[entry]++
 				for j, vm := range vms {
-					before := append([]byte(nil), vmBases[j]...)
+					before := vmBefore
+					copy(before, vmBases[j])
 					addr := func(n string) int {
 						p, e := vm.ResolveSymbol(n)
 						if e != nil {
@@ -206,9 +211,10 @@ func TestOriginalTetrisSpawnHoldAndSequences(t *testing.T) {
 							t.Fatal("persistent VM checkpoint input", entry)
 						}
 					} else {
-						vm.WriteHeapSlice(0, before)
+						vm.WriteHeapBytes(0, before)
 					}
-					after := append([]byte(nil), before...)
+					after := vmAfter
+					copy(after, before)
 					apply(after, out, addr)
 					var events []tetrisFamilyEvent
 					board := int64(addr("board"))
@@ -238,14 +244,15 @@ func TestOriginalTetrisSpawnHoldAndSequences(t *testing.T) {
 					copy(z.Memory(), base)
 					apply(z.Memory(), in, func(n string) int { return a.Symbols[n] })
 				} else {
-					expectedInput := append([]byte(nil), z.Memory()...)
+					expectedInput := nativeExpectedInput
+					copy(expectedInput, z.Memory())
 					apply(expectedInput, in, func(n string) int { return a.Symbols[n] })
 					if !bytes.Equal(expectedInput, z.Memory()) {
 						t.Fatal("persistent native checkpoint input", entry)
 					}
 				}
-				before := append([]byte(nil), z.Memory()...)
-				after := append([]byte(nil), before...)
+				after := nativeAfter
+				copy(after, z.Memory())
 				apply(after, out, func(n string) int { return a.Symbols[n] })
 				r := emulator.Registers{PC: uint16(a.Symbols[entry]), SP: 0xeff0, A: 0x42, BC: 0x5555, DE: 0x6666, HL: 0x7777, IX: 0x8888, IY: 0x9999}
 				f := s.MIR2Module.FuncByName(entry)
