@@ -4,17 +4,32 @@ import (
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/spectrum"
 	"github.com/minz/minzc/pkg/z80asm"
+	"strings"
 	"testing"
 )
 
 // Physical RAM is the oracle for real compiled big-endian Z3 reads.
 func TestZXStoryLogicalMemoryNative(t *testing.T) {
+	for _, split := range []bool{false, true} {
+		name := "wide"
+		if split {
+			name = "split"
+		}
+		t.Run(name, func(t *testing.T) { testZXStoryLogicalMemoryNative(t, split) })
+	}
+}
+func testZXStoryLogicalMemoryNative(t *testing.T, split bool) {
 	src := `import zx.story_memory
  global requested: u32
  global prior_paging: u8
  fun read_test() -> u8 { return story_byte(requested, prior_paging) }
  fun word_test() -> u16 { return story_word(requested, prior_paging) }
  `
+	if split {
+		src = strings.ReplaceAll(src, "global requested: u32", "global requested: u16\n global high64: u8")
+		src = strings.ReplaceAll(src, "story_byte(requested, prior_paging)", "story_byte_split(requested, high64, prior_paging)")
+		src = strings.ReplaceAll(src, "story_word(requested, prior_paging)", "story_word_split(requested, high64, prior_paging)")
+	}
 	h, err := nanz.ParseWithOpts(src, "story-memory.nanz", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
 	if err != nil {
 		t.Fatal(err)
@@ -52,6 +67,7 @@ func TestZXStoryLogicalMemoryNative(t *testing.T) {
 		addresses = append(addresses, boundary-2, boundary-1, boundary, boundary+1)
 	}
 	cases := 0
+	totalT := 0
 	for _, address := range addresses {
 		for _, restore := range []byte{0, 0x10, 0x18, 0x1f} {
 			for _, word := range []bool{false, true} {
@@ -61,8 +77,15 @@ func TestZXStoryLogicalMemoryNative(t *testing.T) {
 				cases++
 				m.Memory.SetPagingForce(restore)
 				req := uint16(a.Symbols["requested"])
-				for i := 0; i < 4; i++ {
+				width := 4
+				if split {
+					width = 2
+				}
+				for i := 0; i < width; i++ {
 					m.Memory.Write(req+uint16(i), byte(address>>(8*i)), false)
+				}
+				if split {
+					m.Memory.Write(uint16(a.Symbols["high64"]), byte(address>>16), false)
 				}
 				m.Memory.Write(uint16(a.Symbols["prior_paging"]), restore, false)
 				m.Memory.Write(0xbf00, 0, false)
@@ -76,6 +99,7 @@ func TestZXStoryLogicalMemoryNative(t *testing.T) {
 				m.CPU.SetSP(0xbf00)
 				m.CPU.SetIFF1(false)
 				m.CPU.SetIFF2(false)
+				m.CPU.SetTstates(0)
 				for i := 0; i < 4000; i++ {
 					if m.CPU.PC() == 0x7000 && m.CPU.SP() == 0xbf02 {
 						break
@@ -85,6 +109,7 @@ func TestZXStoryLogicalMemoryNative(t *testing.T) {
 				if m.CPU.PC() != 0x7000 || m.CPU.SP() != 0xbf02 || m.CPU.IFF1() || m.CPU.IFF2() {
 					t.Fatalf("address%d word%v PC/SP=%04x/%04x", address, word, m.CPU.PC(), m.CPU.SP())
 				}
+				totalT += m.CPU.Tstates()
 				if m.Memory.PagingState() != restore {
 					t.Fatal("paging state lost")
 				}
@@ -105,5 +130,5 @@ func TestZXStoryLogicalMemoryNative(t *testing.T) {
 			}
 		}
 	}
-	t.Logf("%d physical-bank cases; generated module %d bytes", cases, len(a.Binary))
+	t.Logf("%d physical-bank cases; generated module %d bytes; aggregate %d T", cases, len(a.Binary), totalT)
 }

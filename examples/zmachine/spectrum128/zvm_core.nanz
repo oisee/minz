@@ -55,7 +55,8 @@ global story: [u8; 131072]
 
 // Only these accessors index story storage; native backend replaces them.
 fun memory_read(address: u32) -> u8 { return story[address] }
-fun memory_write(address: u32, value: u8) { story[address] = value }
+fun memory_read16(address: u16) -> u8 { return story[address] }
+fun memory_write(address: u16, value: u8) { story[address] = value }
 
 // Lifecycle also stays behind the interface: native memory has no flat &story.
 fun memory_load(capacity: u32) -> u32 {
@@ -68,17 +69,17 @@ fun memory_restore(dynamic_size: u16) -> u8 {
     return file_read_pair_checked(&save_path, &snapshot, 9018, &story, dynamic_size)
 }
 
-fun byte_at(addr: u16) -> u8 { return memory_read(u32(addr)) }
+fun byte_at(addr: u16) -> u8 { return memory_read16(addr) }
 fun code_byte_at(addr: u32) -> u8 { return memory_read(u32(addr)) }
 fun code_word_at(addr: u32) -> u16 {
     return u16(memory_read(u32(addr))) * 256 + u16(memory_read(u32(addr + 1)))
 }
 fun word_at(addr: u16) -> u16 {
-    return u16(memory_read(u32(addr))) * 256 + u16(memory_read(u32(addr + 1)))
+    return u16(memory_read16(addr)) * 256 + u16(memory_read16(addr + 1))
 }
 fun put_word(addr: u16, value: u16) {
-    memory_write(u32(addr), u8(value / 256))
-    memory_write(u32(addr + 1), u8(value))
+    memory_write(addr, u8(value / 256))
+    memory_write(addr + 1, u8(value))
 }
 fun local_at(slot: u16) -> u16 {
     return local_words[slot]
@@ -262,40 +263,40 @@ fun object_at(number: u16) -> u16 {
 }
 fun object_parent(number: u16) -> u16 {
     if number == 0 { return 0 }
-    return u16(memory_read(u32(object_at(number) + 4)))
+    return u16(memory_read16(object_at(number) + 4))
 }
 fun object_sibling(number: u16) -> u16 {
     if number == 0 { return 0 }
-    return u16(memory_read(u32(object_at(number) + 5)))
+    return u16(memory_read16(object_at(number) + 5))
 }
 fun object_child(number: u16) -> u16 {
     if number == 0 { return 0 }
-    return u16(memory_read(u32(object_at(number) + 6)))
+    return u16(memory_read16(object_at(number) + 6))
 }
 fun remove_object(number: u16) {
     let parent: u16 = object_parent(number)
     if parent == 0 { return }
     let sibling: u8 = u8(object_sibling(number))
     if object_child(parent) == number {
-        memory_write(u32(object_at(parent) + 6), sibling)
+        memory_write(object_at(parent) + 6, sibling)
     } else {
         var previous: u16 = object_child(parent)
         while previous != 0 {
             if object_sibling(previous) == number {
-                memory_write(u32(object_at(previous) + 5), sibling)
+                memory_write(object_at(previous) + 5, sibling)
                 break
             }
             previous = object_sibling(previous)
         }
     }
-    memory_write(u32(object_at(number) + 4), 0)
-    memory_write(u32(object_at(number) + 5), 0)
+    memory_write(object_at(number) + 4, 0)
+    memory_write(object_at(number) + 5, 0)
 }
 fun insert_object(number: u16, parent: u16) {
     remove_object(number)
-    memory_write(u32(object_at(number) + 4), u8(parent))
-    memory_write(u32(object_at(number) + 5), u8(object_child(parent)))
-    memory_write(u32(object_at(parent) + 6), u8(number))
+    memory_write(object_at(number) + 4, u8(parent))
+    memory_write(object_at(number) + 5, u8(object_child(parent)))
+    memory_write(object_at(parent) + 6, u8(number))
 }
 fun attribute_address(number: u16, attribute: u16) -> u16 {
     return object_at(number) + attribute / 8
@@ -305,12 +306,12 @@ fun attribute_mask(attribute: u16) -> u8 {
 }
 fun property_list_at(number: u16) -> u16 {
     let table: u16 = word_at(object_at(number) + 7)
-    return table + 1 + u16(memory_read(u32(table))) * 2
+    return table + 1 + u16(memory_read16(table)) * 2
 }
 fun property_at(number: u16, property: u16) -> u16 {
     var at: u16 = property_list_at(number)
-    while memory_read(u32(at)) != 0 {
-        let header: u8 = memory_read(u32(at))
+    while memory_read16(at) != 0 {
+        let header: u8 = memory_read16(at)
         if u16(header & 31) == property { return at + 1 }
         at = at + 2 + u16(header / 32)
     }
@@ -318,19 +319,19 @@ fun property_at(number: u16, property: u16) -> u16 {
 }
 fun property_length(data: u16) -> u16 {
     if data == 0 { return 0 }
-    return u16(memory_read(u32(data - 1)) / 32) + 1
+    return u16(memory_read16(data - 1) / 32) + 1
 }
 fun property_value(number: u16, property: u16) -> u16 {
     let data: u16 = property_at(number, property)
     if data == 0 { return word_at(word_at(10) + (property - 1) * 2) }
-    if property_length(data) == 1 { return u16(memory_read(u32(data))) }
+    if property_length(data) == 1 { return u16(memory_read16(data)) }
     return word_at(data)
 }
 fun next_property(number: u16, property: u16) -> u16 {
-    if property == 0 { return u16(memory_read(u32(property_list_at(number))) & 31) }
+    if property == 0 { return u16(memory_read16(property_list_at(number)) & 31) }
     let data: u16 = property_at(number, property)
     if data == 0 { return 0 }
-    return u16(memory_read(u32(data + property_length(data))) & 31)
+    return u16(memory_read16(data + property_length(data)) & 31)
 }
 fun put_property(number: u16, property: u16, value: u16) {
     let data: u16 = property_at(number, property)
@@ -338,7 +339,7 @@ fun put_property(number: u16, property: u16, value: u16) {
         running = 0
         return
     }
-    if property_length(data) == 1 { memory_write(u32(data), u8(value)) }
+    if property_length(data) == 1 { memory_write(data, u8(value)) }
     else { put_word(data, value) }
 }
 fun stream3_table() -> u16 {
@@ -348,12 +349,12 @@ fun emit_zscii(ch: u16) {
     if stream3_depth != 0 {
         let table: u16 = stream3_table()
         let count: u16 = word_at(table)
-        memory_write(u32(table + 2 + count), u8(ch))
+        memory_write(table + 2 + count, u8(ch))
         put_word(table, count + 1)
         return
     }
     if ch == 0 { return }
-    if (memory_read(u32(17)) & 1) != 0 {
+    if (memory_read16(17) & 1) != 0 {
         if ch >= 155 {
             if ch <= 223 { file_append_utf8(&transcript_path, z3_unicode(ch)) }
         }
@@ -376,9 +377,9 @@ fun output_stream(number: u16, table: u16) {
         case 65535:
             screen_enabled = 0
         case 2:
-            memory_write(u32(17), memory_read(u32(17)) | 1)
+            memory_write(17, memory_read16(17) | 1)
         case 65534:
-            memory_write(u32(17), memory_read(u32(17)) & 254)
+            memory_write(17, memory_read16(17) & 254)
         case 3:
             if stream3_depth >= 16 {
                 running = 0
@@ -704,16 +705,16 @@ fun word_code(start: u8, length: u8, half: u8) -> u16 {
 fun is_separator(ch: u8) -> u8 {
     let dict: u16 = word_at(8)
     var i: u16 = 0
-    while i < u16(memory_read(u32(dict))) {
-        if memory_read(u32(dict + 1 + i)) == ch { return 1 }
+    while i < u16(memory_read16(dict)) {
+        if memory_read16(dict + 1 + i) == ch { return 1 }
         i = i + 1
     }
     return 0
 }
 fun dictionary_lookup(start: u8, length: u8) -> u16 {
     let dict: u16 = word_at(8)
-    let separators: u8 = memory_read(u32(dict))
-    let stride: u8 = memory_read(u32(dict + u16(separators) + 1))
+    let separators: u8 = memory_read16(dict)
+    let stride: u8 = memory_read16(dict + u16(separators) + 1)
     let entries: u16 = magnitude(word_at(dict + u16(separators) + 2))
     let base: u16 = dict + u16(separators) + 4
     let first: u16 = word_code(start, length, 0)
@@ -780,19 +781,19 @@ fun read_input(text: u16, parse: u16) {
     var n: u8 = 0
     var from_playback: u8 = 0
     if input_mode == 1 {
-        let length: u16 = file_read_line(&command_path, &input, memory_read(u32(text)), &command_offset)
+        let length: u16 = file_read_line(&command_path, &input, memory_read16(text), &command_offset)
         if length == 65535 { input_mode = 0 }
         else {
             n = u8(length)
             from_playback = 1
         }
     }
-    if from_playback == 0 { n = tui_read_line_or_eof(&input, memory_read(u32(text))) }
+    if from_playback == 0 { n = tui_read_line_or_eof(&input, memory_read16(text)) }
     if n == 255 {
         running = 0
         return
     }
-    if (memory_read(u32(17)) & 1) != 0 {
+    if (memory_read16(17) & 1) != 0 {
         var copied: u8 = 0
         while copied < n {
             file_append_byte(&transcript_path, input[copied])
@@ -818,14 +819,14 @@ fun read_input(text: u16, parse: u16) {
             if ch <= 90 { ch = ch + 32 }
         }
         input[i] = ch
-        memory_write(u32(text + u16(i) + 1), ch)
+        memory_write(text + u16(i) + 1, ch)
         i = i + 1
     }
-    memory_write(u32(text + u16(n) + 1), 0)
+    memory_write(text + u16(n) + 1, 0)
     i = 0
     var words: u8 = 0
     while i < n {
-        if words >= memory_read(u32(parse)) { break }
+        if words >= memory_read16(parse) { break }
         if input[i] == 32 { i = i + 1 }
         else {
             let start: u8 = i
@@ -840,12 +841,12 @@ fun read_input(text: u16, parse: u16) {
             let length: u8 = i - start
             let entry: u16 = parse + 2 + u16(words) * 4
             put_word(entry, dictionary_lookup(start, length))
-            memory_write(u32(entry + 2), length)
-            memory_write(u32(entry + 3), start + 1)
+            memory_write(entry + 2, length)
+            memory_write(entry + 3, start + 1)
             words = words + 1
         }
     }
-    memory_write(u32(parse + 1), words)
+    memory_write(parse + 1, words)
     steps = 0
 }
 fun print_error_prefix(code: u8) {
@@ -876,17 +877,17 @@ fun fail_opcode(form: u8, op: u8) {
     running = 0
 }
 fun restart_story() {
-    let flags_hi: u8 = memory_read(u32(16))
-    let flags_lo: u8 = memory_read(u32(17))
+    let flags_hi: u8 = memory_read16(16)
+    let flags_lo: u8 = memory_read16(17)
     let capacity: u32 = 131072
     story_size = memory_load(capacity)
     if story_size == 0 {
         running = 0
         return
     }
-    memory_write(u32(16), flags_hi)
-    memory_write(u32(17), flags_lo)
-    memory_write(u32(1), (memory_read(u32(1)) & 15) | 16)
+    memory_write(16, flags_hi)
+    memory_write(17, flags_lo)
+    memory_write(1, (memory_read16(1) & 15) | 16)
     globals_at = word_at(12)
     pc = u32(word_at(6))
     frame = 0
@@ -903,17 +904,17 @@ fun snapshot_identity() {
     snapshot[1] = 90
     snapshot[2] = 51
     snapshot[3] = 83
-    snapshot[4] = memory_read(u32(2))
-    snapshot[5] = memory_read(u32(3))
+    snapshot[4] = memory_read16(2)
+    snapshot[5] = memory_read16(3)
     var i: u16 = 0
     while i < 6 {
-        snapshot[6 + i] = memory_read(u32(18 + i))
+        snapshot[6 + i] = memory_read16(18 + i)
         i = i + 1
     }
-    snapshot[12] = memory_read(u32(28))
-    snapshot[13] = memory_read(u32(29))
-    snapshot[14] = memory_read(u32(14))
-    snapshot[15] = memory_read(u32(15))
+    snapshot[12] = memory_read16(28)
+    snapshot[13] = memory_read16(29)
+    snapshot[14] = memory_read16(14)
+    snapshot[15] = memory_read16(15)
 }
 fun save_state() -> u8 {
     snapshot_identity()
@@ -965,11 +966,11 @@ fun save_state() -> u8 {
 fun restore_state() -> u8 {
     snapshot_identity()
     let dynamic_size: u16 = word_at(14)
-    let flags_hi: u8 = memory_read(u32(16))
-    let flags_lo: u8 = memory_read(u32(17))
+    let flags_hi: u8 = memory_read16(16)
+    let flags_lo: u8 = memory_read16(17)
     if memory_restore(dynamic_size) == 0 { return 0 }
-    memory_write(u32(16), flags_hi)
-    memory_write(u32(17), flags_lo)
+    memory_write(16, flags_hi)
+    memory_write(17, flags_lo)
     pc = u32(snapshot[16]) + u32(snapshot[17]) * 256
     let top: u32 = u32(snapshot[18]) << 16
     pc = pc + top
@@ -1132,16 +1133,16 @@ fun step() {
         else if op == 8 { write_var(next_byte(), a | b) }
         else if op == 9 { write_var(next_byte(), a & b) }
         else if op == 10 {
-            if (memory_read(u32(attribute_address(a, b))) & attribute_mask(b)) != 0 { branch(1) }
+            if (memory_read16(attribute_address(a, b)) & attribute_mask(b)) != 0 { branch(1) }
             else { branch(0) }
         }
         else if op == 11 {
             let addr: u16 = attribute_address(a, b)
-            memory_write(u32(addr), memory_read(u32(addr)) | attribute_mask(b))
+            memory_write(addr, memory_read16(addr) | attribute_mask(b))
         }
         else if op == 12 {
             let addr: u16 = attribute_address(a, b)
-            memory_write(u32(addr), memory_read(u32(addr)) & (attribute_mask(b) xor 255))
+            memory_write(addr, memory_read16(addr) & (attribute_mask(b) xor 255))
         }
         else if op == 13 { overwrite_var(u8(a), b) }
         else if op == 14 { insert_object(a, b) }
@@ -1159,7 +1160,7 @@ fun step() {
     } else {
         if op == 0 { enter(a, next_byte(), count - 1, b, c, d) }
         else if op == 1 { put_word(a + b * 2, c) }
-        else if op == 2 { memory_write(u32(a + b), u8(c)) }
+        else if op == 2 { memory_write(a + b, u8(c)) }
         else if op == 3 { put_property(a, b, c) }
         else if op == 4 { read_input(a, b) }
         else if op == 5 { put_zscii(a) }
@@ -1190,7 +1191,7 @@ fun main() {
         @print_char(10)
         return
     }
-    if memory_read(u32(0)) != 3 {
+    if memory_read16(0) != 3 {
         print_error_prefix(2)
         @print_char(10)
         return
@@ -1198,7 +1199,7 @@ fun main() {
     globals_at = word_at(12)
     pc = u32(word_at(6))
     story_verified = verify_story()
-    memory_write(u32(1), (memory_read(u32(1)) & 15) | 16)
+    memory_write(1, (memory_read16(1) & 15) | 16)
     while running != 0 {
         if steps >= 1000000 {
             print_error_prefix(3)

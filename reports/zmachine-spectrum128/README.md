@@ -145,3 +145,22 @@ u32 memory ABI contributes substantial staging overhead. Fixed-memory budget
 is still exceeded by the function region alone; storage reduction has not yet
 made a runnable native interpreter. Snapshot removal, cheaper address ABI,
 code specialization and bank placement remain necessary.
+
+
+## Narrow addressing checkpoint
+
+The interpreter now uses u16 reads/writes for its u16 data-address expressions;
+code reads and checksum retain u32 addresses. Existing VM fixture gates pass,
+and candidate Zork gameplay output and original save bytes still match.
+
+The banked library adds split-address byte and big-endian word reads. Both
+wide and split versions pass the same 220 native physical-bank cases, including
+64K carry, PC/SP/IFF restoration and unchanged story RAM. Aggregate cost on
+this matrix is 846816 → 237116 T, modules 1022 → 825 bytes. These are standalone
+reader measurements on the Pentagon paging model, not whole-game speed.
+
+The current-backend compact diagnostic's function region shrank 27414 → 23439
+bytes by narrowing the data interface; globals remain 4169, total 27608. Full
+native placement remains unfinished. The fixed area must also hold console,
+stack and compression cache/decoder. narrow-native-size-map.json records the
+measurement; artifacts and raw logs are retained on the share.
