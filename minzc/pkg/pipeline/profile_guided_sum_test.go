@@ -48,9 +48,9 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 	}
 	profileJSON, _ := json.MarshalIndent(profileRun.Profile, "", "  ")
 	// reports/hardware-sum-cost records the full 1022-row current measurement.
-	// Unit-RHS emission changed the uncalled main print loop by two bytes;
+	// Word-width comparison fixes add 24 bytes in the uncalled main print loop;
 	// the benchmark sum_array body and every measured cycle coefficient agree.
-	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-unit-rhs-v6", OriginalBytes: 203, PointerBytes: 253, OriginalEntry: 69, OriginalIteration: 191, EqualEntryExtra: 7, FastEntry: 241, FastIteration: 37, FastZeroEntry: 232, FastZeroMeasured: true, FallbackEntry: 258, FallbackIteration: 191, FallbackMeasured: true}
+	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-word-width-v7", OriginalBytes: 227, PointerBytes: 277, OriginalEntry: 69, OriginalIteration: 191, EqualEntryExtra: 7, FastEntry: 241, FastIteration: 37, FastZeroEntry: 232, FastZeroMeasured: true, FallbackEntry: 258, FallbackIteration: 191, FallbackMeasured: true}
 	decisions, e := hir.SelectLoopVariants(bytes.NewReader(profileJSON), input, context, model, false)
 	if e != nil {
 		t.Fatal(e)
