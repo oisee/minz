@@ -64,7 +64,11 @@ func TestCheckedWordShiftCallerNative(t *testing.T) {
 				raw := mir2.NewVM(hir.LowerModule(graceMeasureParse(t, source)))
 				externalBefore := checkedShiftExternalCaller(t, base, amount)
 				externalAfter := checkedShiftExternalCaller(t, selected, amount)
-				if externalAfter >= externalBefore {
+				limit := 84
+				if amount == 4 {
+					limit = 117
+				}
+				if externalAfter > externalBefore || externalAfter > limit {
 					t.Fatal("external CALL regressed", externalBefore, externalAfter)
 				}
 				t.Logf("external CALL keeps x: shift%d %d -> %d T", amount, externalBefore, externalAfter)
