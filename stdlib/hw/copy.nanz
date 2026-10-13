@@ -155,10 +155,8 @@ fun @copy() {
             var counter_type: ^u8 = c"u16"
             if width < 256 { counter_type = c"u8" }
             let counter: u16 = hir_ref(c"copy_left", counter_type)
-            // Current allocator favors HL for the first pointer: declare destination
-            // first so byte stores avoid preserving the live counter in A.
-            hir_append(region, hir_var(c"copy_dst", c"ptr", hir_int(u16(daddress), c"ptr")))
             hir_append(region, hir_var(c"copy_src", c"ptr", hir_int(u16(saddress), c"ptr")))
+            hir_append(region, hir_var(c"copy_dst", c"ptr", hir_int(u16(daddress), c"ptr")))
             hir_append(region, hir_var(c"copy_left", counter_type, hir_int(u16(width), counter_type)))
             let body: u16 = hir_block()
             hir_append(body, hir_store(destination, hir_load(source)))

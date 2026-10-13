@@ -1,0 +1,34 @@
+=== RUN   TestPBQPByteCopyDeclarationOrderNative
+    pbqp_copy_order_test.go:97: n=1 keep=false grace=false size=false source-first/destination-first: B=[28 22] T=[125 105]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=1 keep=false grace=true size=false source-first/destination-first: B=[28 22] T=[125 105]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=1 keep=false grace=true size=true source-first/destination-first: B=[28 22] T=[125 105]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=1 keep=true grace=false size=false source-first/destination-first: B=[62 56] T=[281 261]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=1 keep=true grace=true size=false source-first/destination-first: B=[62 56] T=[281 261]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=1 keep=true grace=true size=true source-first/destination-first: B=[62 56] T=[281 261]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=3 keep=false grace=false size=false source-first/destination-first: B=[28 22] T=[251 231]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=3 keep=false grace=true size=false source-first/destination-first: B=[28 22] T=[251 231]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=3 keep=false grace=true size=true source-first/destination-first: B=[28 22] T=[251 231]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=3 keep=true grace=false size=false source-first/destination-first: B=[62 56] T=[519 499]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=3 keep=true grace=true size=false source-first/destination-first: B=[62 56] T=[519 499]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=3 keep=true grace=true size=true source-first/destination-first: B=[62 56] T=[519 499]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=17 keep=false grace=false size=false source-first/destination-first: B=[28 22] T=[1133 1113]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=17 keep=false grace=true size=false source-first/destination-first: B=[28 22] T=[1133 1113]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=17 keep=false grace=true size=true source-first/destination-first: B=[28 22] T=[1133 1113]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=17 keep=true grace=false size=false source-first/destination-first: B=[62 56] T=[2185 2165]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=17 keep=true grace=true size=false source-first/destination-first: B=[62 56] T=[2185 2165]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=17 keep=true grace=true size=true source-first/destination-first: B=[62 56] T=[2185 2165]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=127 keep=false grace=false size=false source-first/destination-first: B=[28 22] T=[8063 8043]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=127 keep=false grace=true size=false source-first/destination-first: B=[28 22] T=[8063 8043]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=127 keep=false grace=true size=true source-first/destination-first: B=[28 22] T=[8063 8043]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=127 keep=true grace=false size=false source-first/destination-first: B=[62 56] T=[15275 15255]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=127 keep=true grace=true size=false source-first/destination-first: B=[62 56] T=[15275 15255]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=127 keep=true grace=true size=true source-first/destination-first: B=[62 56] T=[15275 15255]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=255 keep=false grace=false size=false source-first/destination-first: B=[28 22] T=[16127 16107]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=255 keep=false grace=true size=false source-first/destination-first: B=[28 22] T=[16127 16107]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=255 keep=false grace=true size=true source-first/destination-first: B=[28 22] T=[16127 16107]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=255 keep=true grace=false size=false source-first/destination-first: B=[62 56] T=[30507 30487]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=255 keep=true grace=true size=false source-first/destination-first: B=[62 56] T=[30507 30487]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:97: n=255 keep=true grace=true size=true source-first/destination-first: B=[62 56] T=[30507 30487]; full RAM/PC/SP PASS
+--- PASS: TestPBQPByteCopyDeclarationOrderNative (0.38s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.402s
