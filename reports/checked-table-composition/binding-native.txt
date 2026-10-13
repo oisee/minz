@@ -1,0 +1,11 @@
+=== RUN   TestCheckedCompositionRevalidatesWholeFunction
+--- PASS: TestCheckedCompositionRevalidatesWholeFunction (0.01s)
+=== RUN   TestCheckedCompositionRejectsCrossBoundaryLiveClobber
+--- PASS: TestCheckedCompositionRejectsCrossBoundaryLiveClobber (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.020s
+=== RUN   TestCheckedCompositionOrdinaryNative
+    checked_composition_test.go:85: composed two checked fragments: full module 8 -> 6 bytes; fixture T=56 -> 49; all 256 native inputs PASS
+--- PASS: TestCheckedCompositionOrdinaryNative (0.12s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.129s

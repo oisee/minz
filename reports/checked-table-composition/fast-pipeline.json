@@ -1,0 +1,13 @@
+{
+  "inventory": 695,
+  "selected": 348,
+  "shards": 4,
+  "exit_codes": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "checkpoint": "1a70eb95",
+  "scope": "all composition code, boundary tests and heldout reuse; later changes update reports only"
+}
