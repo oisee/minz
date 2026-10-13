@@ -188,6 +188,14 @@ func TestZMachineBankedZork128LateSaveWalkthroughNative(t *testing.T) {
 	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-late-save")
 }
 
+func TestZMachineBankedZorkII128CrownDescentNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set Zork II story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-crown-descent")
+}
+
 func TestZMachineBankedZorkII128CrownNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
 	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
@@ -385,7 +393,8 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	zorkIICrown := commands == "@console-zork2-crown"
+	zorkIICrownDescent := commands == "@console-zork2-crown-descent"
+	zorkIICrown := commands == "@console-zork2-crown" || zorkIICrownDescent
 	zorkIIWideLedge := commands == "@console-zork2-wide-ledge" || zorkIICrown
 	zorkIIBalloon := commands == "@console-zork2-balloon" || zorkIIWideLedge
 	zorkIIRuby := commands == "@console-zork2-ruby" || zorkIIBalloon
@@ -731,6 +740,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if zorkIICrown {
 				routeFile = "zork2-crown.txt"
 			}
+			if zorkIICrownDescent {
+				routeFile = "zork2-crown-descent-vm.txt"
+			}
 			route, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", routeFile))
 			if err != nil {
 				t.Fatal(err)
@@ -895,6 +907,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 				if zorkIICrown {
 					frotzFile = "zork2-crown-frotz.txt"
 				}
+				if zorkIICrownDescent {
+					frotzFile = "zork2-crown-descent-frotz.txt"
+				}
 				frotzRoute, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", frotzFile))
 				if err != nil {
 					t.Fatal(err)
@@ -960,6 +975,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			}
 			if zorkIICrown {
 				wants = []string{"There is an explosion nearby.", "You are now wearing the gaudy crown.", "You are carrying:\n  A gaudy crown (being worn)\n  A priceless zorkmid\n  A Flathead stamp\n  A matchbook\n  A china teapot\n  The china teapot contains:\n    A quantity of water\n  A lamp (providing light)", "Your score would be 235 (total of 400 points), in 367 moves."}
+			}
+			if zorkIICrownDescent {
+				wants = append(wants[:len(wants)-1], "The ledge collapses. (That was a narrow escape!)", "Volcano Bottom, in the basket", "Your score would be 235 (total of 400 points), in 408 moves.")
 			}
 
 			for _, want := range wants {
@@ -1216,6 +1234,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			}
 			if zorkIICrown {
 				phrases = []string{"There is an explosion nearby.", "You are now wearing the gaudy crown.", "You are carrying:\n  A gaudy crown (being worn)\n  A priceless zorkmid\n  A Flathead stamp\n  A matchbook\n  A china teapot\n  The china teapot contains:\n    A quantity of water\n  A lamp (providing light)", "Your score would be 235 (total of 400 points), in 473 moves."}
+			}
+			if zorkIICrownDescent {
+				phrases = append(phrases[:len(phrases)-1], "The ledge collapses. (That was a narrow escape!)", "Volcano Bottom, in the basket", "Your score would be 235 (total of 400 points), in 504 moves.")
 			}
 
 			for _, phrase := range phrases {
