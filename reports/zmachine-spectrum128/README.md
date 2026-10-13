@@ -824,3 +824,24 @@ output, 58 keyboard keys and 66-byte native stack. Diagnostic combined native
 SAVE/RESTORE resident size 25922→25624 bytes (-298 B), end BF18: still 280 bytes
 over BE00. No oversized snapshot is published; distributed checkpoint unchanged.
 Further placement/compaction and real SAVE/RESTORE opcode tests remain.
+
+
+## Compact native decimal output restores resident fit
+
+Native preparation replaces generic BufWriter/Printable decimal formatting with
+an explicit Z80 signed decimal routine using subtraction by 10000/1000/100/10/1.
+Every character still calls emit_zscii, preserving screen/stream3 routing. The
+original host core and shared text library remain unchanged. Native source drops
+its unused number buffer/writer/value globals and text.print import, avoiding
+unused imported formatting functions in opaque-ASM modules.
+
+All 65536 signed 16-bit print_num values match the independent decimal oracle,
+including -32768, zero and leading-zero suppression (0.42 s). Native stream3
+interpreter fixture and real Zork RESTART PASS; restart output stays VM-identical,
+58 keys/1256 bytes, 379520815 T vs prior 379701337, native stack still 66 bytes.
+
+Combined diagnostic native SAVE/RESTORE code now fits: 25008 bytes, end BCB0,
+336 B before unchanged BE00 reservation (-616 B from minimal-window baseline).
+This includes codec/header/state/apply functions but not yet opcode wiring or a
+SAVE-enabled snapshot. Next exercise actual Zork SAVE→mutation→RESTORE and
+rebuild desktop artifacts only after the final linked image passes size/runtime.

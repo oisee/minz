@@ -77,10 +77,16 @@ fun z3_lower(ch: u8) -> u8 {
 '''
 text = text[:macro_start] + replacement + text[block_end:]
 
+# Native decimal output retains signed Z3 semantics and stream routing.
+from native_decimal import emit as decimal_code
+replace_function('print_num', decimal_code())
+text = text.replace('import text.print\n', '')
+text = re.sub(r'^global number_(?:bytes|writer|value):[^\n]+\n', '', text, flags=re.M)
+
 # Remove host declarations and buffers made unreachable by native boundaries.
 text = re.sub(r'^@extern fun [^\n]+\n', '', text, flags=re.M)
 text = re.sub(r'^global (story|snapshot):[^\n]+\n', '', text, flags=re.M)
-text = text.replace('import text.print', 'import text.print\nimport zx.story_memory')
+text = 'import zx.story_memory\n' + text
 text = text.replace('@print_char(', 'native_putchar(')
 text = text.replace('@print_u8(', 'print_num(')
 text = text.replace('pc / 256', 'pc >> 8')
