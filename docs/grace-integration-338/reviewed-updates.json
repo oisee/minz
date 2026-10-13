@@ -346,7 +346,7 @@
     "independent_model": "n*(n+1)/2 modulo 256; VM/native baseline and chosen transformations",
     "boundary": "Named sum_array entry; original main not executed.",
     "evidence": {
-      "minzc/pkg/pipeline/profile_guided_sum_test.go": "17560fe13e05efe0aff46a07cb944b31f1d3cb159aad77566d9c3e333c27e80c",
+      "minzc/pkg/pipeline/profile_guided_sum_test.go": "1e3585d2b4c60c3c40bfeb1e2b324e15207537b49fa535da915bf5129bc25c32",
       "reports/profile-coalesced-edge-costs/root.txt": "7685133d9d5ccb2e269f3b444ec9dfe4be6d6977348fcffe4fae6766fe9a3eb1"
     }
   },
