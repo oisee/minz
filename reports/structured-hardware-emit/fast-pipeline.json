@@ -1,0 +1,15 @@
+{
+  "inventory": 690,
+  "fast_selected": 343,
+  "shards": 4,
+  "workers": 4,
+  "exit_codes": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "command": "GOCACHE=/tmp/minz-grace-gocache python3 ../scripts/ci/run_stable_pipeline.py --go /home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/bin/go --output /tmp/structured-fast-pipeline --profile fast --shards 4 --workers 4",
+  "source_checkpoint": "f1a3febd",
+  "scope": "code and tests already present in f1a3febd; report-only changes follow"
+}
