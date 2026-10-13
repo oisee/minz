@@ -1,0 +1,40 @@
+=== RUN   TestReturnTailOriginalParserNative
+=== RUN   TestReturnTailOriginalParserNative/is_space-greedy-gracefalse
+    return_tail_parser_test.go:106: original is_space: 29 -> 22 B; uniform 256-input total 20907 -> 19901 T
+=== RUN   TestReturnTailOriginalParserNative/is_digit-greedy-gracefalse
+    return_tail_parser_test.go:106: original is_digit: 18 -> 18 B; uniform 256-input total 14907 -> 14907 T
+=== RUN   TestReturnTailOriginalParserNative/is_atom_char-greedy-gracefalse
+    return_tail_parser_test.go:106: original is_atom_char: 49 -> 33 B; uniform 256-input total 34464 -> 29690 T
+=== RUN   TestReturnTailOriginalParserNative/is_space-pbqp-gracefalse
+    return_tail_parser_test.go:106: original is_space: 29 -> 22 B; uniform 256-input total 20907 -> 19901 T
+=== RUN   TestReturnTailOriginalParserNative/is_digit-pbqp-gracefalse
+    return_tail_parser_test.go:106: original is_digit: 18 -> 18 B; uniform 256-input total 14907 -> 14907 T
+=== RUN   TestReturnTailOriginalParserNative/is_atom_char-pbqp-gracefalse
+    return_tail_parser_test.go:106: original is_atom_char: 49 -> 33 B; uniform 256-input total 34464 -> 29690 T
+=== RUN   TestReturnTailOriginalParserNative/is_space-greedy-gracetrue
+    return_tail_parser_test.go:106: original is_space: 29 -> 22 B; uniform 256-input total 20907 -> 19901 T
+=== RUN   TestReturnTailOriginalParserNative/is_digit-greedy-gracetrue
+    return_tail_parser_test.go:106: original is_digit: 18 -> 18 B; uniform 256-input total 14907 -> 14907 T
+=== RUN   TestReturnTailOriginalParserNative/is_atom_char-greedy-gracetrue
+    return_tail_parser_test.go:106: original is_atom_char: 49 -> 33 B; uniform 256-input total 34464 -> 29690 T
+=== RUN   TestReturnTailOriginalParserNative/is_space-pbqp-gracetrue
+    return_tail_parser_test.go:106: original is_space: 29 -> 22 B; uniform 256-input total 20907 -> 19901 T
+=== RUN   TestReturnTailOriginalParserNative/is_digit-pbqp-gracetrue
+    return_tail_parser_test.go:106: original is_digit: 18 -> 18 B; uniform 256-input total 14907 -> 14907 T
+=== RUN   TestReturnTailOriginalParserNative/is_atom_char-pbqp-gracetrue
+    return_tail_parser_test.go:106: original is_atom_char: 49 -> 33 B; uniform 256-input total 34464 -> 29690 T
+--- PASS: TestReturnTailOriginalParserNative (42.02s)
+    --- PASS: TestReturnTailOriginalParserNative/is_space-greedy-gracefalse (4.53s)
+    --- PASS: TestReturnTailOriginalParserNative/is_digit-greedy-gracefalse (3.26s)
+    --- PASS: TestReturnTailOriginalParserNative/is_atom_char-greedy-gracefalse (3.55s)
+    --- PASS: TestReturnTailOriginalParserNative/is_space-pbqp-gracefalse (3.37s)
+    --- PASS: TestReturnTailOriginalParserNative/is_digit-pbqp-gracefalse (3.35s)
+    --- PASS: TestReturnTailOriginalParserNative/is_atom_char-pbqp-gracefalse (3.42s)
+    --- PASS: TestReturnTailOriginalParserNative/is_space-greedy-gracetrue (3.39s)
+    --- PASS: TestReturnTailOriginalParserNative/is_digit-greedy-gracetrue (3.32s)
+    --- PASS: TestReturnTailOriginalParserNative/is_atom_char-greedy-gracetrue (3.52s)
+    --- PASS: TestReturnTailOriginalParserNative/is_space-pbqp-gracetrue (3.31s)
+    --- PASS: TestReturnTailOriginalParserNative/is_digit-pbqp-gracetrue (3.49s)
+    --- PASS: TestReturnTailOriginalParserNative/is_atom_char-pbqp-gracetrue (3.51s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	42.034s

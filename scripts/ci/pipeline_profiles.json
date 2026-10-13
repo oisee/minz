@@ -619,6 +619,7 @@
     "TestRegionCompareMeasuredCapBoundary",
     "TestRegionCompareMeasuredSites",
     "TestRegionCompareTypedTokenizerMeasured",
+    "TestReturnTailOriginalParserNative",
     "TestScorpionLibraryNative",
     "TestSeededPointerWalkMeasuredCaller",
     "TestSumProfileCostFullU8Domain",
