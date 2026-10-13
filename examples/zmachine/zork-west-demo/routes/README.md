@@ -66,3 +66,9 @@ Gazebo, семь предметов, Path Near Stream. Frotz seed1 подтве�
 necklace:20/400 очков на25 ходах. Z80/VM полный текст совпадает; Frotz seed2
 подтверждает checkpoint. Carousel зависит от RNG; seed audit1..64 даёт14
 совпадающих checkpoint. Кавычки на Spectrum вводятся SYMBOL SHIFT+P.
+
+
+`zork2-well.txt` — вода в teapot, necklace, подъём в bucket и Tea Room:
+30/400 на36 ходах. Полный текст VM/Z80 совпадает; Frotz seed1 подтверждает
+комнаты, score и inventory. Carousel зависит от RNG;19/64 seed подтверждают
+этот checkpoint.

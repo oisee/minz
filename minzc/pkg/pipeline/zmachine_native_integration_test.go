@@ -188,6 +188,14 @@ func TestZMachineBankedZork128LateSaveWalkthroughNative(t *testing.T) {
 	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-late-save")
 }
 
+func TestZMachineBankedZorkII128WellNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set Zork II story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-well")
+}
+
 func TestZMachineBankedZorkII128RiddleNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
 	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
@@ -273,7 +281,8 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	zorkIIRiddle := commands == "@console-zork2-riddle"
+	zorkIIWell := commands == "@console-zork2-well"
+	zorkIIRiddle := commands == "@console-zork2-riddle" || zorkIIWell
 	zorkIIGarden := commands == "@console-zork2-garden" || zorkIIRiddle
 	if zorkIIGarden {
 		commands = "@console-zork2-compressed"
@@ -563,6 +572,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if zorkIIRiddle {
 				routeFile = "zork2-riddle.txt"
 			}
+			if zorkIIWell {
+				routeFile = "zork2-well.txt"
+			}
 			route, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", routeFile))
 			if err != nil {
 				t.Fatal(err)
@@ -703,6 +715,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if zorkIIRiddle {
 				seed = "2"
 			}
+			if zorkIIWell {
+				seed = "1"
+			}
 			ref := exec.Command(os.Getenv("MINZ_Z3_FROTZ"), "-m", "-w", "255", "-s", seed, externalStory)
 			ref.Stdin = bytes.NewReader(route)
 			output, err := ref.Output()
@@ -712,6 +727,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			wants := []string{"Gazebo", "A newspaper\n  A matchbook\n  A letter opener\n  A place mat\n  A china teapot\n  A elvish sword\n  A lamp (providing light)", "Your score would be 0 (total of 400 points), in 15 moves."}
 			if zorkIIRiddle {
 				wants = []string{"stone door quietly swings open", "A pearl necklace\n  A newspaper\n  A matchbook\n  A letter opener\n  A place mat\n  A china teapot\n  A elvish sword\n  A lamp (providing light)", "Your score would be 20 (total of 400 points), in 25 moves."}
+			}
+			if zorkIIWell {
+				wants = []string{"The bucket rises and comes to a stop.", "Tea Room", "A pearl necklace\n  A newspaper\n  A matchbook\n  A letter opener\n  A place mat\n  A china teapot\n  A elvish sword\n  A lamp (providing light)", "Your score would be 30 (total of 400 points), in 36 moves."}
 			}
 			for _, want := range wants {
 				if !bytes.Contains(output, []byte(want)) {
@@ -893,6 +911,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			}
 			if zorkIIRiddle {
 				phrases = []string{"stone door quietly swings open", "Pearl Room", "A pearl necklace\n  A newspaper\n  A matchbook\n  A letter opener\n  A place mat\n  A china teapot\n  A elvish sword\n  A lamp (providing light)", "Your score would be 20 (total of 400 points), in 25 moves."}
+			}
+			if zorkIIWell {
+				phrases = []string{"The bucket rises and comes to a stop.", "Tea Room", "A pearl necklace\n  A newspaper\n  A matchbook\n  A letter opener\n  A place mat\n  A china teapot\n  A elvish sword\n  A lamp (providing light)", "Your score would be 30 (total of 400 points), in 36 moves."}
 			}
 			for _, phrase := range phrases {
 				if !bytes.Contains(rendered, []byte(phrase)) {

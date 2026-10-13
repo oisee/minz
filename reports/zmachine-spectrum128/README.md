@@ -1997,3 +1997,18 @@ controls PASS0,238 s. Ответ в игре реально вводится SYM
 Полная сборка Zork II с SAVE/RESTORE/windows25 332 B, запас до стека12 B.
 Startup SNA проверен3000 frames; Linux комплект и все логи сохранены на шаре
 в `2026-10-13/zork2-riddle`. Полное прохождение II ещё впереди.
+
+
+### 13 октября: Zork II — подъём в колодце
+
+Маршрут zork2-well.txt получает воду в teapot у Shallow Ford, решает
+каменную дверь, берёт necklace, садится в bucket и выливает воду. Bucket
+поднимает персонажа на Top of Well; доступна Tea Room. Score30/400 на36 moves.
+297 клавиш,8 882 B byte-exact VM,3 333 919 995 T,stack70; PASS37,554 s.
+Сжатое хранилище неизменно,cache misses3155. Frotz seed1 подтверждает подъём,
+Tea Room,score и полный инвентарь. Seed audit1..64:19 совпадающих checkpoint;
+остальные проходят другой случайный маршрут Carousel. RNG не менялся.
+
+Следующий probe в mzv проходит cakes/pool/candy и возвращение обычного размера:
+45/400 на44 moves. Перед пирожными нужно освободить inventory, иначе blue cake
+не берётся. Это пока VM-результат, не проверенный Z80 checkpoint.
