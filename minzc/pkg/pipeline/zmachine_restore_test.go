@@ -84,7 +84,43 @@ print(json.dumps({'source':source,'archive':list(pack(story[:256])),'state':list
 	begin := strings.Index(string(core), "fun random_number(")
 	end := strings.Index(string(core)[begin+4:], "\nfun ") + begin + 4
 	rngSource := string(core)[begin:end]
-	h, err := nanz.ParseWithOpts(globals+f.Source+rngSource+"\nfun main()->u8 {return native_restore(6,0,0)}", "restore.nanz", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
+	extract := func(name string) string {
+		start := strings.Index(string(core), "fun "+name+"(")
+		finish := strings.Index(string(core)[start+4:], "\nfun ") + start + 4
+		return string(core)[start:finish]
+	}
+	streamSource := extract("stream3_table") + extract("emit_zscii") + extract("output_stream")
+	streamSource = strings.ReplaceAll(streamSource, "@print_char(", "test_screen_putchar(")
+	streamSupport := `global running:u8=1
+ global record_commands:u8
+ global transcript_path:[u8;1]
+ global screen_count:u8
+ global screen_last:u8
+ fun test_screen_putchar(ch:u8) {screen_last=ch screen_count=screen_count+1}
+ fun z3_unicode(ch:u16)->u16 {return ch}
+ fun print_utf8(ch:u16) {}
+ fun file_append_utf8(path:^u8,ch:u16)->u8 {return 0}
+ fun file_append_byte(path:^u8,ch:u8)->u8 {return 0}
+ fun memory_read16(@z80_hl address:u16)->u8 {
+ asm z80 (in address) (ret A) (clob A,F,HL) {
+ SET 6,H
+ SET 7,H
+ LD A,(HL)
+ }
+ }
+ fun memory_write(@z80_hl address:u16,@z80_a value:u8) {
+ asm z80 (in address,value) (clob HL) {
+ SET 6,H
+ SET 7,H
+ LD (HL),A
+ }
+ }
+ fun word_at(address:u16)->u16 {return u16(memory_read16(address))*256+u16(memory_read16(address+1))}
+ fun put_word(address:u16,value:u16) {memory_write(address,u8(value>>8)) memory_write(address+1,u8(value))}
+ `
+
+	streamSource += "\nfun test_emit(@z80_hl value:u16) {emit_zscii(value)}\nfun test_close_stream() {output_stream(65533,0)}\n"
+	h, err := nanz.ParseWithOpts(globals+f.Source+rngSource+streamSupport+streamSource+"\nfun main()->u8 {return native_restore(6,0,0)}", "restore.nanz", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -284,6 +320,35 @@ print(json.dumps({'source':source,'archive':list(pack(story[:256])),'state':list
 			afterRestoreSequence := draw()
 			if !slices.Equal(afterRestoreSequence, beforeRestoreSequence) {
 				t.Fatalf("RNG continuation differs after RESTORE: before%v after%v", beforeRestoreSequence, afterRestoreSequence)
+			}
+
+			// Exercise actual stream3 routing after restore, then close nested
+			// stream and write outer stream. No screen byte should be emitted.
+			call := func(name string, value, second uint16) {
+				m.CPU.SetPC(uint16(a.Symbols[name]))
+				m.CPU.SetSP(0xbf00)
+				// Explicit HL annotation on the test entry avoids inferred call ABI.
+				m.CPU.SetHL(value)
+				m.CPU.SetDE(second)
+				for n := 0; n < 100000; n++ {
+					if m.CPU.PC() == 0x7000 && m.CPU.SP() == 0xbf02 {
+						break
+					}
+					m.CPU.DoOpcode()
+				}
+				if m.CPU.PC() != 0x7000 || m.CPU.SP() != 0xbf02 || m.Memory.PagingState() != 0x10 {
+					t.Fatal("stream return", name)
+				}
+			}
+			m.Memory.Write(uint16(a.Symbols["screen_count"]), 0, false)
+			call("test_emit", 88, 0)
+			if m.Memory.RAM[0][80] != 0 || m.Memory.RAM[0][81] != 1 || m.Memory.RAM[0][82] != 88 {
+				t.Fatal("restored nested stream target not used")
+			}
+			call("test_close_stream", 0, 0)
+			call("test_emit", 89, 0)
+			if m.Memory.RAM[0][64] != 0 || m.Memory.RAM[0][65] != 1 || m.Memory.RAM[0][66] != 89 || m.Memory.Read(uint16(a.Symbols["screen_count"])) != 0 {
+				t.Fatal("restored outer stream target not used")
 			}
 			t.Logf("native RNG save/restore sequence matches arithmetic oracle: %v", afterRestoreSequence)
 		}

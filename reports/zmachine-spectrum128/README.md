@@ -897,3 +897,20 @@ draws, alongside all eleven record acceptance/rejection cases and PC/SP/paging/I
 checks. PASS in 0.34 s. This demonstrates RNG continuation for this seed/range
 sequence; it is not an exhaustive RNG-domain proof or a real-game randomness
 scenario. Published runnable binaries are unchanged by this test-only extension.
+
+
+## Restored nested stream3 targets are exercised
+
+The native SAVE/RESTORE integration fixture now compiles the actual stream3_table,
+emit_zscii and output_stream functions from the interpreter core, with simple
+bank0 memory adapters and a screen sink for the fixture. After restore, emitting
+X appends to the saved nested table at address 80; closing stream -3 and emitting
+Y appends to the saved outer table at address 64. Each big-endian table length
+becomes one and the screen sink remains unused. This exercises restored pointers
+and nesting behavior rather than merely comparing their serialized bytes.
+
+Explicit test entry ABI annotations isolate the check from inferred register
+allocation. Existing full-state/dynamic, rejection and RNG continuation assertions
+remain PASS (0.38 s). Test-only support adapters are not shipped in the interpreter;
+real Zork gameplay coverage remains the mailbox and cellar save routes. Desktop
+packages unchanged. Other V3 stories/full-game/persistent storage remain pending.
