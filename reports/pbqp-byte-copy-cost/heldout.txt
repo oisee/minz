@@ -1,34 +1,64 @@
 === RUN   TestPBQPByteCopyDeclarationOrderNative
-    pbqp_copy_order_test.go:97: n=1 keep=false grace=false size=false source-first/destination-first: B=[28 22] T=[125 105]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=1 keep=false grace=true size=false source-first/destination-first: B=[28 22] T=[125 105]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=1 keep=false grace=true size=true source-first/destination-first: B=[28 22] T=[125 105]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=1 keep=true grace=false size=false source-first/destination-first: B=[62 56] T=[281 261]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=1 keep=true grace=true size=false source-first/destination-first: B=[62 56] T=[281 261]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=1 keep=true grace=true size=true source-first/destination-first: B=[62 56] T=[281 261]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=3 keep=false grace=false size=false source-first/destination-first: B=[28 22] T=[251 231]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=3 keep=false grace=true size=false source-first/destination-first: B=[28 22] T=[251 231]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=3 keep=false grace=true size=true source-first/destination-first: B=[28 22] T=[251 231]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=3 keep=true grace=false size=false source-first/destination-first: B=[62 56] T=[519 499]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=3 keep=true grace=true size=false source-first/destination-first: B=[62 56] T=[519 499]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=3 keep=true grace=true size=true source-first/destination-first: B=[62 56] T=[519 499]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=17 keep=false grace=false size=false source-first/destination-first: B=[28 22] T=[1133 1113]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=17 keep=false grace=true size=false source-first/destination-first: B=[28 22] T=[1133 1113]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=17 keep=false grace=true size=true source-first/destination-first: B=[28 22] T=[1133 1113]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=17 keep=true grace=false size=false source-first/destination-first: B=[62 56] T=[2185 2165]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=17 keep=true grace=true size=false source-first/destination-first: B=[62 56] T=[2185 2165]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=17 keep=true grace=true size=true source-first/destination-first: B=[62 56] T=[2185 2165]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=127 keep=false grace=false size=false source-first/destination-first: B=[28 22] T=[8063 8043]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=127 keep=false grace=true size=false source-first/destination-first: B=[28 22] T=[8063 8043]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=127 keep=false grace=true size=true source-first/destination-first: B=[28 22] T=[8063 8043]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=127 keep=true grace=false size=false source-first/destination-first: B=[62 56] T=[15275 15255]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=127 keep=true grace=true size=false source-first/destination-first: B=[62 56] T=[15275 15255]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=127 keep=true grace=true size=true source-first/destination-first: B=[62 56] T=[15275 15255]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=255 keep=false grace=false size=false source-first/destination-first: B=[28 22] T=[16127 16107]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=255 keep=false grace=true size=false source-first/destination-first: B=[28 22] T=[16127 16107]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=255 keep=false grace=true size=true source-first/destination-first: B=[28 22] T=[16127 16107]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=255 keep=true grace=false size=false source-first/destination-first: B=[62 56] T=[30507 30487]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=255 keep=true grace=true size=false source-first/destination-first: B=[62 56] T=[30507 30487]; full RAM/PC/SP PASS
-    pbqp_copy_order_test.go:97: n=255 keep=true grace=true size=true source-first/destination-first: B=[62 56] T=[30507 30487]; full RAM/PC/SP PASS
---- PASS: TestPBQPByteCopyDeclarationOrderNative (0.44s)
+    pbqp_copy_order_test.go:99: n=1 counter=u8 keep=false grace=false size=false source-first/destination-first: B=[28 22] T=[125 105]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=1 counter=u8 keep=false grace=true size=false source-first/destination-first: B=[28 22] T=[125 105]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=1 counter=u8 keep=false grace=true size=true source-first/destination-first: B=[28 22] T=[125 105]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=1 counter=u8 keep=true grace=false size=false source-first/destination-first: B=[62 56] T=[281 261]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=1 counter=u8 keep=true grace=true size=false source-first/destination-first: B=[62 56] T=[281 261]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=1 counter=u8 keep=true grace=true size=true source-first/destination-first: B=[62 56] T=[281 261]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=3 counter=u8 keep=false grace=false size=false source-first/destination-first: B=[28 22] T=[251 231]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=3 counter=u8 keep=false grace=true size=false source-first/destination-first: B=[28 22] T=[251 231]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=3 counter=u8 keep=false grace=true size=true source-first/destination-first: B=[28 22] T=[251 231]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=3 counter=u8 keep=true grace=false size=false source-first/destination-first: B=[62 56] T=[519 499]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=3 counter=u8 keep=true grace=true size=false source-first/destination-first: B=[62 56] T=[519 499]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=3 counter=u8 keep=true grace=true size=true source-first/destination-first: B=[62 56] T=[519 499]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=17 counter=u8 keep=false grace=false size=false source-first/destination-first: B=[28 22] T=[1133 1113]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=17 counter=u8 keep=false grace=true size=false source-first/destination-first: B=[28 22] T=[1133 1113]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=17 counter=u8 keep=false grace=true size=true source-first/destination-first: B=[28 22] T=[1133 1113]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=17 counter=u8 keep=true grace=false size=false source-first/destination-first: B=[62 56] T=[2185 2165]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=17 counter=u8 keep=true grace=true size=false source-first/destination-first: B=[62 56] T=[2185 2165]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=17 counter=u8 keep=true grace=true size=true source-first/destination-first: B=[62 56] T=[2185 2165]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=127 counter=u8 keep=false grace=false size=false source-first/destination-first: B=[28 22] T=[8063 8043]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=127 counter=u8 keep=false grace=true size=false source-first/destination-first: B=[28 22] T=[8063 8043]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=127 counter=u8 keep=false grace=true size=true source-first/destination-first: B=[28 22] T=[8063 8043]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=127 counter=u8 keep=true grace=false size=false source-first/destination-first: B=[62 56] T=[15275 15255]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=127 counter=u8 keep=true grace=true size=false source-first/destination-first: B=[62 56] T=[15275 15255]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=127 counter=u8 keep=true grace=true size=true source-first/destination-first: B=[62 56] T=[15275 15255]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=255 counter=u8 keep=false grace=false size=false source-first/destination-first: B=[28 22] T=[16127 16107]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=255 counter=u8 keep=false grace=true size=false source-first/destination-first: B=[28 22] T=[16127 16107]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=255 counter=u8 keep=false grace=true size=true source-first/destination-first: B=[28 22] T=[16127 16107]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=255 counter=u8 keep=true grace=false size=false source-first/destination-first: B=[62 56] T=[30507 30487]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=255 counter=u8 keep=true grace=true size=false source-first/destination-first: B=[62 56] T=[30507 30487]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=255 counter=u8 keep=true grace=true size=true source-first/destination-first: B=[62 56] T=[30507 30487]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=1 counter=u16 keep=false grace=false size=false source-first/destination-first: B=[50 44] T=[318 298]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=1 counter=u16 keep=false grace=true size=false source-first/destination-first: B=[50 44] T=[318 298]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=1 counter=u16 keep=false grace=true size=true source-first/destination-first: B=[50 44] T=[318 298]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=1 counter=u16 keep=true grace=false size=false source-first/destination-first: B=[68 71] T=[419 429]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=1 counter=u16 keep=true grace=true size=false source-first/destination-first: B=[68 71] T=[419 429]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=1 counter=u16 keep=true grace=true size=true source-first/destination-first: B=[68 71] T=[419 429]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=3 counter=u16 keep=false grace=false size=false source-first/destination-first: B=[50 44] T=[674 654]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=3 counter=u16 keep=false grace=true size=false source-first/destination-first: B=[50 44] T=[674 654]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=3 counter=u16 keep=false grace=true size=true source-first/destination-first: B=[50 44] T=[674 654]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=3 counter=u16 keep=true grace=false size=false source-first/destination-first: B=[68 71] T=[821 831]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=3 counter=u16 keep=true grace=true size=false source-first/destination-first: B=[68 71] T=[821 831]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=3 counter=u16 keep=true grace=true size=true source-first/destination-first: B=[68 71] T=[821 831]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=17 counter=u16 keep=false grace=false size=false source-first/destination-first: B=[50 44] T=[3166 3146]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=17 counter=u16 keep=false grace=true size=false source-first/destination-first: B=[50 44] T=[3166 3146]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=17 counter=u16 keep=false grace=true size=true source-first/destination-first: B=[50 44] T=[3166 3146]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=17 counter=u16 keep=true grace=false size=false source-first/destination-first: B=[68 71] T=[3635 3645]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=17 counter=u16 keep=true grace=true size=false source-first/destination-first: B=[68 71] T=[3635 3645]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=17 counter=u16 keep=true grace=true size=true source-first/destination-first: B=[68 71] T=[3635 3645]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=127 counter=u16 keep=false grace=false size=false source-first/destination-first: B=[50 44] T=[22746 22726]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=127 counter=u16 keep=false grace=true size=false source-first/destination-first: B=[50 44] T=[22746 22726]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=127 counter=u16 keep=false grace=true size=true source-first/destination-first: B=[50 44] T=[22746 22726]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=127 counter=u16 keep=true grace=false size=false source-first/destination-first: B=[68 71] T=[25745 25755]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=127 counter=u16 keep=true grace=true size=false source-first/destination-first: B=[68 71] T=[25745 25755]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=127 counter=u16 keep=true grace=true size=true source-first/destination-first: B=[68 71] T=[25745 25755]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=255 counter=u16 keep=false grace=false size=false source-first/destination-first: B=[50 44] T=[45530 45510]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=255 counter=u16 keep=false grace=true size=false source-first/destination-first: B=[50 44] T=[45530 45510]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=255 counter=u16 keep=false grace=true size=true source-first/destination-first: B=[50 44] T=[45530 45510]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=255 counter=u16 keep=true grace=false size=false source-first/destination-first: B=[68 71] T=[51473 51483]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=255 counter=u16 keep=true grace=true size=false source-first/destination-first: B=[68 71] T=[51473 51483]; full RAM/PC/SP PASS
+    pbqp_copy_order_test.go:99: n=255 counter=u16 keep=true grace=true size=true source-first/destination-first: B=[68 71] T=[51473 51483]; full RAM/PC/SP PASS
+--- PASS: TestPBQPByteCopyDeclarationOrderNative (0.58s)
 PASS
-ok  	github.com/minz/minzc/pkg/pipeline	0.463s
+ok  	github.com/minz/minzc/pkg/pipeline	0.594s

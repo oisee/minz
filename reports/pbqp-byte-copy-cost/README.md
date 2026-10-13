@@ -15,14 +15,27 @@ comparison cases retain destination-first performance: 597T/41B, 30559T/30B,
 725T/41B. This is allocation robustness on those cases, not extra speed beyond
 PR #96.
 
-Independent workloads: five different lengths, both declaration orders,
-with/without a live byte value, three optimization modes, full native RAM
-and return PC/SP. All 60 variants pass. Their baseline and candidate costs
-are identical. Order still changes entry setup by 6 bytes/20T in this family;
-this model does not fix edge/entry allocation moves.
+Independent workloads: five different lengths, u8/u16 counters, both declaration
+orders, with/without a live byte value, three optimization modes, full native
+RAM and return PC/SP. All 120 variants pass. The original u8 family is unchanged.
+For u16 counters with a live byte value, every tested length/order improves:
+
+| Length | Source first T before/after | Destination first T before/after |
+|---|---|---|
+| 1 | 501 → 419 | 481 → 429 |
+| 3 | 1007 → 821 | 987 → 831 |
+| 17 | 4549 → 3635 | 4529 → 3645 |
+| 127 | 32379 → 25745 | 32359 → 25755 |
+| 255 | 64763 → 51473 | 64743 → 51483 |
+
+Bytes: source-first 84→68, destination-first 78→71. All three compiler modes
+have the same results. Costs are from separate baseline/candidate worktrees
+with the same independent test source. No candidate was selected using these
+heldout lengths. Order still affects entry setup; this is not complete
+order-independent allocation or a global optimality proof.
 
 MIR2 core passed in 135.696s; all 346 fast pipeline tests passed in four
 processes. The subsequent definition-lookup refactor has its own directed rerun. This
-experiment is not integrated or proposed as a general performance win.
+experiment is not integrated; the evidence supports this bounded copy family.
 Next work needs correlated operand costs and/or edge-aware allocation
 candidates, with full boundary moves measured.
