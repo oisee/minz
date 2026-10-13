@@ -45,6 +45,28 @@ text = text.replace('import text.print', 'import text.print\nimport zx.story_mem
 text = text.replace('@print_char(', 'native_putchar(')
 text = text.replace('@print_u8(', 'print_num(')
 text = text.replace('pc / 256', 'pc >> 8')
+replace_function('verify_story', '''fun verify_story() -> u8 {
+ let length: u32 = u32(word_at(26)) * 2
+ if length > story_size { return 0 }
+ if length < 64 { return 0 }
+ let end_page: u8 = u8(length >> 14)
+ let end_offset: u16 = u16(length) & 0x3fff
+ var offset: u16 = 64
+ var page: u8 = 0
+ var checksum: u16 = 0
+ while page <= end_page {
+  var stop: u16 = 16384
+  if page == end_page { stop = end_offset }
+  let count: u16 = stop - offset
+  if count != 0 {
+   checksum = checksum + bank_sum(story_pages[page] + 0x10, offset, count, 0x10)
+  }
+  offset = 0
+  page = page + 1
+ }
+ if checksum == word_at(28) { return 1 }
+ return 0
+}''')
 replace_function('memory_read', '''fun memory_read(address: u32) -> u8 {
  return story_byte(address, 0x10)
 }''')

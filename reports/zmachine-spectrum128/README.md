@@ -347,3 +347,27 @@ with source/ASM/BIN/build identity. Combined native gates PASS 31.911 s; Spectru
 and snapshot-format packages PASS. Startup currently costs about 93 seconds at
 3.5 MHz due to the per-byte wide bank reader in checksum; optimize this before
 claiming a polished showcase.
+
+
+## Checksum batching: startup 19 times faster
+
+Native verify_story sums contiguous chunks with bank_sum, switching paging only
+at bank boundaries. The raw primitive returns modulo 65536, supports zero count,
+and requires offset+count<=16384. The Nanz wrapper validates length, partitions
+using page/offset words, and compares the checksum from the Z3 header. Story
+bytes and VERIFY result are not replaced by builder trust or a constant.
+
+Full candidate startup: 325201463→17000289 T (-94.77%, 19.13x), including room
+output, approximately 4.86 seconds at 3.5 MHz instead of 92.91. Capture module
+24348 bytes; console module 25169 bytes, ending $BD51 with 175 bytes before the
+reserved $BE00 native-stack boundary. Keyboard route remains PASS, 318442922 T
+(startup+seven lines), with 66-byte observed stack. Later gameplay is still slow
+and full-game stack bounds are not established.
+
+Bank-sum primitive: 192 physical-bank/bounds/paging cases PASS with all story
+and screen/code bytes unchanged. Generated checksum gate covers 22 cases:
+empty/too-short/truncated length, zero payload, bank boundaries, 64K carry,
+full 98304-byte capacity, and both correct and deliberately corrupt checksums.
+
+Combined native checksum/console/Z3/Zork gates PASS (31.079 s). Updated SNA
+roundtrip and ROM-font startup screenshot PASS after 300 headless frames.

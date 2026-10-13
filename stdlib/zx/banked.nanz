@@ -26,3 +26,36 @@ fun bank_write(@z80_a bank_bits: u8, @z80_hl offset: u16, @z80_d value: u8, @z80
   OUT (C), A
  }
 }
+
+// Sum count bytes within one bank, modulo 65536. Caller guarantees
+// offset+count<=16384. count=0 performs no reads. Same IRQ/paging contract.
+fun bank_sum(@z80_a bank_bits: u8, @z80_hl offset: u16, @z80_de count: u16, @z80_b restore_bits: u8) -> u16 {
+ asm z80 (in bank_bits, offset, count, restore_bits) (ret HL) (clob A, F, BC, DE, HL) {
+  PUSH BC
+  LD BC, 0x7ffd
+  OUT (C), A
+  SET 6, H
+  SET 7, H
+  LD BC, 0
+ .sum_loop:
+  LD A, D
+  OR E
+  JR Z, .sum_done
+  LD A, (HL)
+  ADD A, C
+  LD C, A
+  JR NC, .sum_no_carry
+  INC B
+ .sum_no_carry:
+  INC HL
+  DEC DE
+  JR .sum_loop
+ .sum_done:
+  LD H, B
+  LD L, C
+  POP BC
+  LD A, B
+  LD BC, 0x7ffd
+  OUT (C), A
+ }
+}

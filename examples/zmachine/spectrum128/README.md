@@ -194,9 +194,9 @@ mzx --model 128k --snapshot /path/to/output/zork-spectrum128.sna
 ```sh
 go build -tags mzx_headless -o /tmp/mzx-headless ./cmd/mzx
 /tmp/mzx-headless --model 128k --snapshot /path/to/output/zork-spectrum128.sna \
-  --frames 4700 --screenshot /path/to/output/startup.png --no-border
+  --frames 300 --screenshot /path/to/output/startup.png --no-border
 ```
 
-Startup с полной проверкой checksum занимает около 325 миллионов тактов; на
-обычной скорости это примерно 93 секунды, поэтому пустой экран в начале ещё
-не означает зависание. Оптимизация загрузки/проверки остаётся отдельной задачей.
+Startup после суммирования блоков внутри банка занимает около 17 миллионов
+тактов (примерно 4,9 секунды на 3,5 МГц), с полной проверкой checksum.
+Первый побайтный вариант занимал около 93 секунд.
