@@ -43,10 +43,10 @@ const (
 
 // Game implements ebiten.Game.
 type Game struct {
-	machine  *spectrum.Machine
-	screen   *ebiten.Image
-	scale    int
-	noAudio  bool
+	machine *spectrum.Machine
+	screen  *ebiten.Image
+	scale   int
+	noAudio bool
 
 	// Audio (direct oto for low latency)
 	otoCtx    *oto.Context
@@ -59,8 +59,8 @@ type Game struct {
 	keystrokeQueue *formats.KeystrokeQueue
 
 	// Turbo mode: run many frames per tick (F3 toggle, F4 hold)
-	turbo         bool
-	turboFrames   int // frames per Update() in turbo mode
+	turbo       bool
+	turboFrames int // frames per Update() in turbo mode
 
 	// Startup: restore stderr after first few frames (CAMetalLayer suppression)
 	startupFrames int
@@ -205,23 +205,23 @@ func (g *Game) syncKeyboard() {
 			key  ebiten.Key
 			spec []spectrum.SpecKey // Spectrum equivalent
 		}{
-			{ebiten.KeyDigit1, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key1}},  // ! → SS+1
-			{ebiten.KeyDigit2, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key2}},  // @ → SS+2
-			{ebiten.KeyDigit3, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key3}},  // # → SS+3
-			{ebiten.KeyDigit4, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key4}},  // $ → SS+4
-			{ebiten.KeyDigit5, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key5}},  // % → SS+5
-			{ebiten.KeyDigit6, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key6}},  // ^ → SS+6 (↑)
-			{ebiten.KeyDigit7, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key6}},  // & → SS+6 (closest)
-			{ebiten.KeyDigit8, []spectrum.SpecKey{spectrum.KeySym, spectrum.KeyB}},  // * → SS+B
-			{ebiten.KeyDigit9, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key8}},  // ( → SS+8
-			{ebiten.KeyDigit0, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key9}},  // ) → SS+9
-			{ebiten.KeyMinus, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key0}},   // _ → SS+0
-			{ebiten.KeyEqual, []spectrum.SpecKey{spectrum.KeySym, spectrum.KeyK}},   // + → SS+K
+			{ebiten.KeyDigit1, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key1}},    // ! → SS+1
+			{ebiten.KeyDigit2, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key2}},    // @ → SS+2
+			{ebiten.KeyDigit3, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key3}},    // # → SS+3
+			{ebiten.KeyDigit4, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key4}},    // $ → SS+4
+			{ebiten.KeyDigit5, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key5}},    // % → SS+5
+			{ebiten.KeyDigit6, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key6}},    // ^ → SS+6 (↑)
+			{ebiten.KeyDigit7, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key6}},    // & → SS+6 (closest)
+			{ebiten.KeyDigit8, []spectrum.SpecKey{spectrum.KeySym, spectrum.KeyB}},    // * → SS+B
+			{ebiten.KeyDigit9, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key8}},    // ( → SS+8
+			{ebiten.KeyDigit0, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key9}},    // ) → SS+9
+			{ebiten.KeyMinus, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key0}},     // _ → SS+0
+			{ebiten.KeyEqual, []spectrum.SpecKey{spectrum.KeySym, spectrum.KeyK}},     // + → SS+K
 			{ebiten.KeySemicolon, []spectrum.SpecKey{spectrum.KeySym, spectrum.KeyZ}}, // : → SS+Z
-			{ebiten.KeyQuote, []spectrum.SpecKey{spectrum.KeySym, spectrum.KeyP}},   // " → SS+P
-			{ebiten.KeyComma, []spectrum.SpecKey{spectrum.KeySym, spectrum.KeyR}},   // < → SS+R
-			{ebiten.KeyPeriod, []spectrum.SpecKey{spectrum.KeySym, spectrum.KeyT}},  // > → SS+T
-			{ebiten.KeySlash, []spectrum.SpecKey{spectrum.KeySym, spectrum.KeyC}},   // ? → SS+C
+			{ebiten.KeyQuote, []spectrum.SpecKey{spectrum.KeySym, spectrum.KeyP}},     // " → SS+P
+			{ebiten.KeyComma, []spectrum.SpecKey{spectrum.KeySym, spectrum.KeyR}},     // < → SS+R
+			{ebiten.KeyPeriod, []spectrum.SpecKey{spectrum.KeySym, spectrum.KeyT}},    // > → SS+T
+			{ebiten.KeySlash, []spectrum.SpecKey{spectrum.KeySym, spectrum.KeyC}},     // ? → SS+C
 		}
 		for _, entry := range shiftNumMap {
 			if ebiten.IsKeyPressed(entry.key) {
@@ -323,11 +323,11 @@ func buildKeyMap() map[ebiten.Key][]spectrum.SpecKey {
 		ebiten.KeyDigit9: {spectrum.Key9},
 
 		// Special keys (no shift awareness needed — handled directly)
-		ebiten.KeyEnter:   {spectrum.KeyEnter},
-		ebiten.KeySpace:   {spectrum.KeySpace},
-		ebiten.KeyEscape:  {spectrum.KeyShift, spectrum.Key1},          // EDIT (CS+1)
-		ebiten.KeyTab:     {spectrum.KeyShift, spectrum.KeySym},        // Extended mode (CS+SS)
-		ebiten.KeyCapsLock: {spectrum.KeyShift, spectrum.Key2},         // Caps Lock (CS+2)
+		ebiten.KeyEnter:    {spectrum.KeyEnter},
+		ebiten.KeySpace:    {spectrum.KeySpace},
+		ebiten.KeyEscape:   {spectrum.KeyShift, spectrum.Key1},   // EDIT (CS+1)
+		ebiten.KeyTab:      {spectrum.KeyShift, spectrum.KeySym}, // Extended mode (CS+SS)
+		ebiten.KeyCapsLock: {spectrum.KeyShift, spectrum.Key2},   // Caps Lock (CS+2)
 
 		// Arrow keys → Caps Shift + 5/6/7/8
 		ebiten.KeyArrowLeft:  {spectrum.KeyShift, spectrum.Key5},
@@ -339,13 +339,13 @@ func buildKeyMap() map[ebiten.Key][]spectrum.SpecKey {
 		ebiten.KeyBackspace: {spectrum.KeyShift, spectrum.Key0},
 
 		// Unshifted punctuation → Symbol Shift combos
-		ebiten.KeyComma:     {spectrum.KeySym, spectrum.KeyN},  // , → SS+N
-		ebiten.KeyPeriod:    {spectrum.KeySym, spectrum.KeyM},  // . → SS+M
-		ebiten.KeySlash:     {spectrum.KeySym, spectrum.KeyV},  // / → SS+V
-		ebiten.KeySemicolon: {spectrum.KeySym, spectrum.KeyO},  // ; → SS+O
-		ebiten.KeyQuote:     {spectrum.KeySym, spectrum.Key7},  // ' → SS+7
-		ebiten.KeyMinus:     {spectrum.KeySym, spectrum.KeyJ},  // - → SS+J
-		ebiten.KeyEqual:     {spectrum.KeySym, spectrum.KeyL},  // = → SS+L
+		ebiten.KeyComma:     {spectrum.KeySym, spectrum.KeyN}, // , → SS+N
+		ebiten.KeyPeriod:    {spectrum.KeySym, spectrum.KeyM}, // . → SS+M
+		ebiten.KeySlash:     {spectrum.KeySym, spectrum.KeyV}, // / → SS+V
+		ebiten.KeySemicolon: {spectrum.KeySym, spectrum.KeyO}, // ; → SS+O
+		ebiten.KeyQuote:     {spectrum.KeySym, spectrum.Key7}, // ' → SS+7
+		ebiten.KeyMinus:     {spectrum.KeySym, spectrum.KeyJ}, // - → SS+J
+		ebiten.KeyEqual:     {spectrum.KeySym, spectrum.KeyL}, // = → SS+L
 	}
 	return m
 }
@@ -540,7 +540,7 @@ func saveScreenshotEx(m *spectrum.Machine, path string, mode borderMode) error {
 
 	case borderStandard:
 		// 320x240: standard TV-visible area (32px side, 24px top/bottom)
-		outW := 256 + stdBorderSide*2 // 320
+		outW := 256 + stdBorderSide*2                // 320
 		outH := 192 + stdBorderTop + stdBorderBottom // 240
 		cropX := m.Mode.BorderLeft - stdBorderSide
 		cropY := m.Mode.BorderTop - stdBorderTop
@@ -616,7 +616,7 @@ type frameSpec struct {
 	rangeOffset int    // +N frames after trigger
 }
 
-func (s *frameSpec) isEmpty() bool     { return s.specType == specNone }
+func (s *frameSpec) isEmpty() bool       { return s.specType == specNone }
 func (s *frameSpec) isSingleFrame() bool { return s.specType == specSingleFrame }
 func (s *frameSpec) isFrameRange() bool  { return s.specType == specFrameRange }
 
@@ -661,14 +661,15 @@ func (s *frameSpec) matchesEnd(m *spectrum.Machine, frame int) bool {
 }
 
 // parseFrameSpec parses zxs-compatible frame spec syntax:
-//   "100"                   → single frame
-//   "100..200"              → frame range
-//   "PC=4000"               → trigger at PC
-//   "PC=4000+50"            → 50 frames after PC trigger
-//   "PC=4000..PC=5000"      → range between two PC values
-//   "T=100000"              → trigger at T-state
-//   "T=100000+200"          → 200 frames after T-state trigger
-//   "DI:HALT"               → trigger on dead CPU (DI + HALT)
+//
+//	"100"                   → single frame
+//	"100..200"              → frame range
+//	"PC=4000"               → trigger at PC
+//	"PC=4000+50"            → 50 frames after PC trigger
+//	"PC=4000..PC=5000"      → range between two PC values
+//	"T=100000"              → trigger at T-state
+//	"T=100000+200"          → 200 frames after T-state trigger
+//	"DI:HALT"               → trigger on dead CPU (DI + HALT)
 func parseFrameSpec(s string) frameSpec {
 	s = strings.TrimSpace(s)
 	if s == "" {
@@ -945,10 +946,10 @@ type captureRange struct {
 
 // captureSpec is the parsed result of --frames.
 type captureSpec struct {
-	isCount bool          // plain number: run N frames
-	count   int           // frame count (when isCount)
+	isCount bool           // plain number: run N frames
+	count   int            // frame count (when isCount)
 	ranges  []captureRange // sorted capture ranges
-	legacy  *frameSpec    // PC=, T=, DI:HALT triggers
+	legacy  *frameSpec     // PC=, T=, DI:HALT triggers
 }
 
 func (cs *captureSpec) containsFrame(f int) bool {
@@ -1077,6 +1078,7 @@ func main() {
 	snapshotFlag := flag.String("snapshot", "", "Path to .sna snapshot file")
 	tapFlag := flag.String("tap", "", "Path to .tap tape file")
 	trdFlag := flag.String("trd", "", "Path to .trd disk image")
+	trdWriteback := flag.Bool("trd-writeback", false, "persist TR-DOS disk writes to --trd image")
 	sclFlag := flag.String("scl", "", "Path to .scl disk image (converted to .trd)")
 	trdLoad := flag.String("trd-load", "", "File to load from .trd/.scl (name:ext:addr, e.g. 'GAME:C:32768')")
 	trdRun := flag.String("trd-run", "", "Run BASIC program from disk (e.g. 'RAGE.B')")
@@ -1424,6 +1426,9 @@ VERSION: %s (build %s, %s)
 		needsAutoLoad = true
 	}
 
+	if *trdWriteback && (*trdFlag == "" || *sclFlag != "") {
+		log.Fatal("--trd-writeback requires --trd and cannot overwrite SCL")
+	}
 	// Install .trd or .scl traps / load file if provided
 	diskPath := *trdFlag
 	if *sclFlag != "" {
@@ -1461,6 +1466,7 @@ VERSION: %s (build %s, %s)
 			return
 		}
 
+		trd.Writeback = *trdWriteback
 		formats.InstallTRDTraps(machine, trd, *verboseFlag)
 
 		// --trd-run: run a specific BASIC program from disk
@@ -1479,8 +1485,8 @@ VERSION: %s (build %s, %s)
 				log.Fatalf("Error loading file from disk: %v", err)
 			}
 			fmt.Printf("Loaded file from disk: %s.%c at $%04X\n", name, ext, addr)
-		} else {
-			// No explicit load: try autoboot from main BASIC file
+		} else if *snapshotFlag == "" {
+			// No explicit load/snapshot: try autoboot from main BASIC file
 			if err := formats.AutoBootTRD(machine, trd); err != nil {
 				fmt.Printf("Autoboot: %v (continuing with ROM boot)\n", err)
 			}
@@ -1906,7 +1912,7 @@ VERSION: %s (build %s, %s)
 	// Configure Ebitengine
 	ebiten.SetWindowSize(machine.ScreenWidth()*scale, machine.ScreenHeight()*scale)
 	ebiten.SetWindowTitle("MZX - ZX Spectrum Emulator")
-	ebiten.SetTPS(50)           // 50 Hz PAL
+	ebiten.SetTPS(50) // 50 Hz PAL
 	ebiten.SetVsyncEnabled(true)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
@@ -2008,5 +2014,3 @@ func splitColon(s string) []string {
 	parts = append(parts, s[start:])
 	return parts
 }
-
-
