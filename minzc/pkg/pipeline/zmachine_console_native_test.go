@@ -92,7 +92,7 @@ func TestZMachineConsoleScrollNative(t *testing.T) {
 			t.Fatalf("memory%04x got%02x want%02x", i, z.Memory()[i], want[i])
 		}
 	}
-	t.Logf("module %d bytes; stack %d", len(a.Binary), 0xf000-int(minSP))
+	t.Logf("module %d bytes; stack %d; %d T including CALL", len(a.Binary), 0xf000-int(minSP), z.GetCycles())
 }
 
 func TestZMachineConsoleResidentBudget(t *testing.T) {

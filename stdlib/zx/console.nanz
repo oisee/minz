@@ -299,26 +299,61 @@ fun scroll_attrs(row: u8) -> void {
     }
 }
 
+// Copy upward in each interleaved pixel plane; boundary rows come from
+// the next 2K third. Forward LDIR is safe because destination precedes source.
 fun con_scroll() -> void {
-    for row in 0..23 {
-        scroll_row(row)
-    }
-    // Clear bottom row pixels
-    for line in 0..8 {
-        let dst: u16 = screen_addr(0, 23, line)
-        for col in 0..32 {
-            zx_poke(dst + u16(col), 0)
-        }
-    }
-    // Scroll attributes
-    for row in 0..23 {
-        scroll_attrs(row)
-    }
-    // Clear bottom row attributes
-    let dst: u16 = attr_addr(0, 23)
-    for col in 0..32 {
-        zx_poke(dst + u16(col), con_attr)
-    }
+ asm z80 (clob A, F, BC, DE, HL, IX, IY) {
+  LD IX, 0x4000
+  LD IYL, 3
+ .third:
+  LD IYH, 0
+ .plane:
+  PUSH IX
+  POP HL
+  LD A, H
+  ADD A, IYH
+  LD H, A
+  LD D, H
+  LD E, L
+  LD BC, 32
+  ADD HL, BC
+  LD BC, 224
+  LDIR
+  LD A, IYL
+  CP 1
+  JR Z, .clear
+  LD BC, 0x700
+  ADD HL, BC
+  LD BC, 32
+  LDIR
+  JR .next
+ .clear:
+  XOR A
+  LD B, 32
+ .clear_loop:
+  LD (DE), A
+  INC DE
+  DJNZ .clear_loop
+ .next:
+  INC IYH
+  LD A, IYH
+  CP 8
+  JR NZ, .plane
+  LD BC, 0x800
+  ADD IX, BC
+  DEC IYL
+  JR NZ, .third
+  LD HL, 0x5820
+  LD DE, 0x5800
+  LD BC, 736
+  LDIR
+  LD A, (zx__console__con_attr)
+  LD B, 32
+ .attrs:
+  LD (DE), A
+  INC DE
+  DJNZ .attrs
+ }
 }
 
 // ── Print helpers ───────────────────────────────────────────────────────────

@@ -238,7 +238,7 @@ if a.console:
     # Local module keeps zx.console names/ASM references, omitting helpers
     # unreachable from the standalone game console. The stdlib stays complete.
     console = (root / 'stdlib/zx/console.nanz').read_text()
-    for name in ['con_print_u8','con_print_u16','con_print','con_set_bright','con_set_attr','con_goto','con_newline','con_show_cursor','con_hide_cursor','zx_border','con_init']:
+    for name in ['con_print_u8','con_print_u16','con_print','con_set_bright','con_set_attr','con_goto','con_newline','con_show_cursor','con_hide_cursor','zx_border','con_init','scroll_line','scroll_row','scroll_attrs','screen_addr','attr_addr']:
         start = console.index('fun '+name+'(')
         brace = console.index('{',start)
         depth = 1
@@ -248,6 +248,7 @@ if a.console:
             if console[end] == '}': depth -= 1
             end += 1
         console = console[:start]+console[end:]
+    console = re.sub(r'^assert (?:screen_addr|attr_addr)\([^\n]+\n', '', console, flags=re.M)
     local_console = a.output.parent / 'zx/console.nanz'
     local_console.parent.mkdir(parents=True,exist_ok=True)
     local_console.write_text(console)
