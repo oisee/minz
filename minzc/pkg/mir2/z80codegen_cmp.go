@@ -512,7 +512,26 @@ func (g *z80cg) condCode(f *Func, cond Reg) string {
 			}
 		}
 	}
-	return "NZ" // fallback
+	// A block parameter or another materialized boolean carries a byte,
+	// not the flags left by a predecessor's comparison. Test its location.
+	loc := g.loc(cond)
+	if loc != "F" {
+		if loc == "B" || loc == "C" || loc == "D" || loc == "E" || loc == "H" || loc == "L" {
+			g.emitf("    BIT 0, %s", loc)
+		} else if loc == "A" {
+			g.emit("    OR A")
+		} else {
+			// Preserve live A and HL without restoring stale flags.
+			g.emit("    PUSH HL")
+			g.emit("    PUSH AF")
+			g.emitLD8("A", loc)
+			g.emit("    OR A")
+			g.emit("    POP HL")
+			g.emit("    LD A, H")
+			g.emit("    POP HL")
+		}
+	}
+	return "NZ" // materialized byte is nonzero exactly when true
 }
 
 // invertCC returns the Z80 condition code that is the logical negation of cc.
