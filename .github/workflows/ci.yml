@@ -46,7 +46,7 @@ jobs:
         run: |
           go test -short -timeout 30m ./pkg/hir/... ./pkg/mir2/... ./pkg/z80asm/... ./pkg/c89/... ./pkg/codegen/... ./pkg/parser/... ./pkg/plm/... ./pkg/lanz/... ./pkg/lizp/...
           python3 ../scripts/ci/test_stable_pipeline.py
-          python3 ../scripts/ci/run_stable_pipeline.py --output "$RUNNER_TEMP/stable-pipeline" --shards 12 --workers 3
+          python3 ../scripts/ci/run_stable_pipeline.py --output "$RUNNER_TEMP/stable-pipeline" --profile fast --shards 3 --workers 3
       - name: Preserve complete pipeline inventory and shard logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -94,7 +94,7 @@ jobs:
             const icon = value => value === 'success' ? '🟢 pass' : value === 'failure' ? '🔴 fail' : '⚪ ' + (value || 'not run');
             const checks = [
               ['Build mz, mza, mze, mzv', process.env.BUILD_RESULT],
-              ['Stable Go package tests', process.env.STABLE_RESULT],
+              ['Fast compiler regressions (deep suites run separately)', process.env.STABLE_RESULT],
               ['Fibonacci compile + assemble', process.env.ASSEMBLE_RESULT],
               ['Nanz language regressions', process.env.META_RESULT],
               ['Z3 West of House demo', process.env.DEMO_RESULT],
@@ -110,6 +110,7 @@ jobs:
               '| --- | --- |',
               ...checks.map(([name, result]) => `| ${name} | ${icon(result)} |`),
               '',
+              'Deep pipeline domains and the full assertion corpus run on release tags, nightly and manual audits.',
               'The external CZECH and full Zork I stories are not part of this PR gate.',
             ];
             const body = lines.join('\n');
