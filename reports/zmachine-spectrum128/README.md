@@ -1709,3 +1709,17 @@ archive byte-exact после lifecycle. PC/SP/paging/IFF и stack reservation
 проверены; peak native stack70 B. Этот маршрут не является полным прохождением,
 но покрывает больше изменяемого состояния, чем mailbox checkpoint. Стандартная
 128K сборка на шаре сохраняется; Scorpion disk вариант остаётся отдельно.
+
+### 13 октября: статус сохраняет курсор активного верхнего окна
+
+Independent Inform status fixture теперь сначала split2/select upper/print X,
+затем включает stream3 и выполняет show_status. Проверяются actual rendered
+score/time pixels и сохранение selected window1, upper cursor1/1, lower cursor
+23/0. Единственный обычный screen character — X; stream3 остаётся пустым.
+Оба режима (-7/42 и17:04) PASS5.260 s. Oracle основан на Standard1.1 §8.2
+и независимых позициях курсоров из§8.6.1.
+
+Это проверка show_status при активном upper window, не проверка редактора
+ввода в любом окне. Standard1.1 read разрешает ввод в любом окне; перенос
+строки редактором у нижней границы upper пока требует отдельной проверки.
+Обычные игровые маршруты вводят команды в lower window и уже проверены.

@@ -100,8 +100,13 @@ func testZMachineV3ScreenStory(t *testing.T, fixture string, timeMode bool) {
 			}
 		}
 	} else {
-		if len(output) != 0 {
+		if !bytes.Equal(output, []byte("X")) {
 			t.Fatalf("status polluted window/stream %q", output)
+		}
+		for name, want := range map[string]byte{"con_row": 1, "con_col": 1, "z3_selected_window": 1, "z3_lower_row": 23, "z3_lower_col": 0} {
+			if got := m.Memory.Read(uint16(a.Symbols["zx__console__"+name])); got != want {
+				t.Fatalf("status changed %s: %d != %d", name, got, want)
+			}
 		}
 		text := "-7/42"
 		if timeMode {
