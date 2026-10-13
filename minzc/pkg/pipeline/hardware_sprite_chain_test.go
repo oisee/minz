@@ -45,7 +45,9 @@ func TestHardwareSpriteChainCompile(t *testing.T) {
 			for i := range mem {
 				mem[i] = 0xa5
 			}
-			z.LoadMemory(0x8000, a.Binary)
+			if err := z.LoadMemory(0x8000, a.Binary); err != nil {
+				t.Fatal(err)
+			}
 			// Exercise generated Nanz setters, then draw only row zero.
 			// Destination points to first byte for compiled, end+1 for PUSH.
 			mem[0xeff0], mem[0xeff1] = 0, 0x70
@@ -120,7 +122,9 @@ func TestHardwareSpriteChainNative(t *testing.T) {
 						for i := range mem {
 							mem[i] = byte(i*37 + pi*13 + oi)
 						}
-						z.LoadMemory(0x8000, a.Binary)
+						if err := z.LoadMemory(0x8000, a.Binary); err != nil {
+							t.Fatal(err)
+						}
 						symbol := func(s string) int {
 							v, ok := a.Symbols[s]
 							if !ok {
@@ -266,7 +270,9 @@ func TestHardwareSpriteChainMaskedNative(t *testing.T) {
 			for i := range mem {
 				mem[i] = byte(i * 37)
 			}
-			z.LoadMemory(0x8000, a.Binary)
+			if err := z.LoadMemory(0x8000, a.Binary); err != nil {
+				t.Fatal(err)
+			}
 			masks := []byte{0xff, 0xf0, 0x0f, 0xaa, 0x55, 0}
 			graphics := []byte{0, 5, 3, 0x40, 0xaa, 0xff}
 			for iteration := 0; iteration < 256; iteration++ {

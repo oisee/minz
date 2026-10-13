@@ -88,7 +88,9 @@ func TestHardwareSpriteChainMeasuredCost(t *testing.T) {
 					for i := range mem {
 						mem[i] = byte(i*31 + 7)
 					}
-					z.LoadMemory(0x8000, a.Binary)
+					if err := z.LoadMemory(0x8000, a.Binary); err != nil {
+						t.Fatal(err)
+					}
 					call := func(name string) int64 {
 						mem[0xeff0], mem[0xeff1] = 0, 0x70
 						before := z.GetCycles()
