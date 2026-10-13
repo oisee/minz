@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Emit read-only compact save-state stream; caller keeps bank0 and DI.
+"""Emit compact save-state read/write streams; caller keeps bank0 and DI.
 
 Matches compact_state_core.py byte order, no staging snapshot allocation.
 Generated function can be appended to the prepared native core. Save integration
@@ -23,11 +23,54 @@ def emit(frames=32, stack_words=256):
     size = sum(n for n, _ in fields)
     assert size == 58 + frames*38 + stack_words*2
     table = '\n'.join(f'  DW {length}, {address}' for length, address in fields)
-    return f'''// Read-only compact snapshot stream: {size} bytes, no snapshot buffer.
-// HL index, A byte. Bank0 paged, IRQ disabled, resident code/stack required.
-// Out-of-range index returns zero; caller must validate exact configured size.
+    return f'''// Compact snapshot stream: {size} bytes, no snapshot buffer.
+// Bank0 paged, DI, resident code/stack. Writer requires fully validated state.
+// Identity bytes 0..15 and out-of-range writes are ignored.
 fun native_state_byte(@z80_hl index: u16) -> u8 {{
- asm z80 (in index) (ret A) (clob A, F, DE, HL, IX) {{
+ asm z80 (in index) (ret A) (clob A,F,DE,HL,IX) {{
+  CALL native_state_address
+  LD A, H
+  OR L
+  JR Z, .read_invalid
+  LD A, (HL)
+  JR .read_done
+ .read_invalid:
+  XOR A
+ .read_done:
+ }}
+}}
+fun native_state_write(@z80_hl index:u16, @z80_a value:u8) -> void {{
+ asm z80 (in index,value) (clob A,F,DE,HL,IX) {{
+  PUSH AF
+  LD DE, 16
+  OR A
+  SBC HL, DE
+  JR C, .write_ignore
+  ADD HL, DE
+  PUSH HL
+  CALL native_state_address
+  POP DE
+  LD A, H
+  OR L
+  JR Z, .write_ignore
+  POP AF
+  LD (HL), A
+  LD A, D
+  OR A
+  JR NZ, .write_done
+  LD A, E
+  CP 18
+  JR NZ, .write_done
+  XOR A
+  LD (pc+3), A
+  JR .write_done
+ .write_ignore:
+  POP AF
+ .write_done:
+ }}
+}}
+fun native_state_address(@z80_hl index:u16) -> u16 {{
+ asm z80 (in index) (ret HL) (clob A,F,DE,HL,IX) {{
   LD IX, .state_fields
  .state_find:
   LD E, (IX+0)
@@ -48,17 +91,16 @@ fun native_state_byte(@z80_hl index: u16) -> u8 {{
   LD E, (IX+2)
   LD D, (IX+3)
   ADD HL, DE
-  LD A, (HL)
   JR .state_return
  .state_invalid:
-  XOR A
+  LD HL, 0
  .state_return:
   JP .state_done
  .state_magic:
-  DB 77, 90, 51, 83
+  DB 77,90,51,83
  .state_fields:
 {table}
-  DW 0, 0
+  DW 0,0
  .state_done:
  }}
 }}

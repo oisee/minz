@@ -624,3 +624,22 @@ BCF2, 270 bytes before BE00 stack reservation. Not a released runnable SAVE buil
 More space is required for semantic validation/apply and slot publication; retain
 stack/size guards and seek code sharing or banked helper code. Desktop checkpoint
 SAVE/RESTORE remain disabled.
+
+
+## Native state apply uses the shared field map
+
+The snapshot field map now serves both byte reads and byte writes. The writer
+ignores identity indices 0..15 and out-of-range indices; it writes all mutable
+fields, including RNG and stream3 metadata omitted by the old host restore.
+Writing snapshot PC byte 18 also clears native pc byte 3, since the save stores
+only a 24-bit story address. Caller must validate the entire decoded state before
+any write; this primitive performs no semantic validation or atomic restore.
+
+Native test writes an independent pattern across all 1770 mutable snapshot bytes,
+checks ignored indices and PC high byte, and compares every physical RAM byte
+outside bounded stack with the expected field changes. Existing read/pack and
+same-machine state/delta mode regressions remain PASS. Final state suite 0.30 s.
+Combined diagnostic resident size 25123 bytes, end BD23, headroom 221 B before
+unchanged BE00 stack reservation: +49 B for shared read/write address machinery.
+Semantic state validation, delta apply, save publication and real gameplay
+SAVE→mutation→RESTORE remain unimplemented; desktop SAVE/RESTORE remain disabled.

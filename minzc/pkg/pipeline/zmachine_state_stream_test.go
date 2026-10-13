@@ -74,6 +74,9 @@ global pc:u32
 	}
 	for j, name := range names {
 		address, ok := a.Symbols[name]
+		if address < 0x8000 || address+sizes[j] > 0xbe00 {
+			t.Fatal("global outside fixed resident test region", name, address)
+		}
 		if !ok {
 			t.Fatal("missing global", name)
 		}
@@ -131,6 +134,50 @@ global pc:u32
 		}
 	}
 
+	// Apply an independent byte pattern to every mutable field. Identity and
+	// out-of-range bytes must never be written; the fourth native PC byte clears.
+	after := before
+	pcAddress := uint16(a.Symbols["pc"])
+	for index := 0; index < len(expected)+2; index++ {
+		value := byte(index*73 + 11)
+		m.CPU.SetPC(uint16(a.Symbols["native_state_write"]))
+		m.CPU.SetSP(0xbf00)
+		m.CPU.SetHL(uint16(index))
+		m.CPU.SetAF(uint16(value) << 8)
+		for i := 0; i < 1000; i++ {
+			if m.CPU.PC() == 0x7000 && m.CPU.SP() == 0xbf02 {
+				break
+			}
+			m.CPU.DoOpcode()
+		}
+		if m.CPU.PC() != 0x7000 || m.CPU.SP() != 0xbf02 || m.Memory.PagingState() != 0x10 || m.CPU.IFF1() || m.CPU.IFF2() {
+			t.Fatal("writer return", index)
+		}
+		if index >= 16 && index < len(expected) {
+			remaining := index - 16
+			for j, name := range names {
+				if remaining < sizes[j] {
+					address := a.Symbols[name] + remaining
+					after[2][address%16384] = value
+					break
+				}
+				remaining -= sizes[j]
+			}
+		}
+	}
+	// Globals are all in fixed bank2 in this harness.
+	after[2][pcAddress%16384+3] = 0
+	for p := 0; p < 8; p++ {
+		for i, value := range after[p] {
+			if p == 2 && i >= 0x3ec0 && i < 0x3f00 {
+				continue
+			}
+			if m.Memory.RAM[p][i] != value {
+				t.Fatalf("state writer mismatch bank%d offset%x got%x want%x", p, i, m.Memory.RAM[p][i], value)
+			}
+		}
+	}
+	m.Memory.RAM = before
 	// Compress the complete stream directly, with bank0 mapped only during reads.
 	reference := exec.Command("python3", "-c", "import sys; from restart_rle import pack; print(pack(bytes.fromhex(sys.argv[1])).hex())", hex.EncodeToString(expected))
 	reference.Dir = "../../../scripts/zmachine"
