@@ -248,6 +248,13 @@ func MeasureConditionalLayoutWorkload(factory func() (*hir.Module, error), funct
 	if err != nil || !bytes.Equal(current, allocBytes) {
 		return fail(fmt.Errorf("allocation changed after measurement"))
 	}
+	currentConfig, err := ProfileCompilationID(options, "default")
+	if err != nil {
+		return fail(err)
+	}
+	if currentConfig != config {
+		return fail(fmt.Errorf("compilation configuration changed after measurement"))
+	}
 	if err = problem.Validate(); err != nil {
 		return fail(err)
 	}

@@ -61,6 +61,7 @@
     "TestConditionalInvariantRegression",
     "TestConditionalInvariantSiteCandidates",
     "TestConditionalLayoutWorkloadNativeAndArtifact",
+    "TestConditionalLayoutWorkloadRechecksTablePin",
     "TestConditionalLayoutWorkloadRejectsDriftAndPartialResults",
     "TestConstantByteMulOrdinaryLiveWordsNative",
     "TestConstantCallPreservesPointerMemorySource",
