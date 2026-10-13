@@ -1238,3 +1238,31 @@ SNA со сверкой всех восьми банков после reload; Li
 Linux/Windows архивы: `/mnt/safe/minz/grace/2026-10-13/zork2-play/`.
 Windows runtime не проверен; RAM SAVE volatile и ограничен 700 байтами;
 полное прохождение не заявляется. Цель V3 остаётся активной.
+
+### 13 октября: полный CZECH v0.8 на нативном Spectrum Z80
+
+Внешний CZECH прошёл через полный generated interpreter и экранный adapter,
+без замены opcode dispatcher или native_putchar: **349 assertions PASS,
+0 failures, 19 print cases reached**. Все **1921 байт** вывода побайтно
+совпадают с исходной VM. Resident 21608 байт, native stack 60 байт,
+242447920 T. Проверены PC/SP, IRQ/paging и неизменность static story.
+
+Новый `TestZMachineCzechNative` требует `MINZ_Z3_CZECH` и `MINZ_Z3_VM`,
+проверяет SHA256 story до запуска. Это тот же внешний corpus, описанный
+[30 сентября](../2026-09-30-ZMachine-V3-Test-Corpus-RU.md), не новые авторские
+тесты MinZ и не MIT-ресурс. Исходники и бинарь не добавлены в Git; локальный
+архив хранит README автора и точную provenance. Inform 6.45 собран из commit
+`d1066bc214a45ee0f600d2ae7f94ad0210606317`. Автоматический serial текущей даты
+заменён в header на исходный `260930`; после этого story имеет прежний SHA256
+`6d628af7ab4779224cb87923cce3764e3ad3ab8634758f409b638ba20f91d283`.
+Никакие opcode или тесты не изменены. Date находится вне checksum region.
+
+Повторный reference gate также проверяет все assertions на VM и print block
+против Frotz. Полная native/VM побайтная эквивалентность включает print block,
+но header/blank-line layout Frotz по-прежнему отличается согласно старому gate.
+
+CZECH проверяет арифметику, jumps, переменные, память, subroutines, objects,
+indirect opcodes и misc. Он не доказывает keyboard/tokenisation, SAVE/RESTART,
+файловые streams или split_window/set_window. В текущем core `show_status`
+ещё no-op, а VAR split_window/set_window не реализованы; следующий этап —
+правильные экранные сервисы V3 и более длинные независимые игровые маршруты.

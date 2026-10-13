@@ -20,7 +20,7 @@ p.add_argument('--restart-bytes', type=int, default=0, help='decoded size of the
 p.add_argument('--save-story', type=Path, help='enable volatile native SAVE/RESTORE for this exact story')
 p.add_argument('--layout-save-story',type=Path,help='native SAVE for trusted original-block layout')
 p.add_argument('--layout-restart', action='store_true', help='enable trusted LZ restart for compressed story layout')
-p.add_argument('--story-layout', type=Path, help='experimental trusted 2K LZ layout metadata; no SAVE/restart integration yet')
+p.add_argument('--story-layout', type=Path, help='trusted 2K LZ layout metadata; use layout flags for SAVE/restart')
 p.add_argument('--console', action='store_true', help='Spectrum screen and keyboard instead of RAM capture')
 a = p.parse_args()
 archive_offset = a.story_bytes if a.restart_offset is None else a.restart_offset
