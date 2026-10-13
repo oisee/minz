@@ -1,0 +1,13 @@
+{
+  "inventory": 695,
+  "selected": 348,
+  "shards": 4,
+  "exit_codes": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "checkpoint": "8682a220",
+  "scope": "domain implementation and native composition tests; later contradiction/benchmark VIR tests separately PASS"
+}
