@@ -9,6 +9,10 @@ import (
 
 func TestStructuredMetaDiagnostics(t *testing.T) {
 	for _, tc := range []struct{ name, body, want string }{
+		{"if-condition", `emit_hir(hir_if(hir_int(1,c"u8"),hir_block(),hir_block()))`, "if needs boolean"},
+		{"if-branch", `emit_hir(hir_if(hir_int(1,c"bool"),hir_int(2,c"u8"),hir_block()))`, "if needs boolean"},
+		{"if-cycle-then", `let b:u16=hir_block() hir_append(b,hir_if(hir_int(1,c"bool"),b,hir_block()))`, "cyclic block"},
+		{"if-cycle-else", `let b:u16=hir_block() hir_append(b,hir_if(hir_int(1,c"bool"),hir_block(),b))`, "cyclic block"},
 		{"bitwise-bool", `emit_hir(hir_binary(c"&",hir_int(1,c"bool"),hir_int(0,c"bool")))`, "matching integer types"},
 		{"bitwise-mismatch", `emit_hir(hir_binary(c"|",hir_int(1,c"u8"),hir_int(0,c"u16")))`, "matching integer types"},
 		{"load-type", `emit_hir(hir_load(hir_int(1,c"u8")))`, "load needs byte pointer"},
@@ -82,5 +86,35 @@ func TestStructuredMetaHandleLimit(t *testing.T) {
 	}
 	if _, err = b.add(&hir.Block{}); err == nil || !strings.Contains(err.Error(), "exhausted") {
 		t.Fatal("handle overflow accepted", err)
+	}
+}
+
+func TestStructuredIfSnapshotsBothBranches(t *testing.T) {
+	h, err := Parse(`fun @build() {
+   let yes:u16=hir_block()
+   let no:u16=hir_block()
+   hir_append(yes,hir_store(hir_int(24576,c"ptr"),hir_int(7,c"u8")))
+   hir_append(no,hir_store(hir_int(24576,c"ptr"),hir_int(9,c"u8")))
+   let branch:u16=hir_if(hir_ref(c"visible",c"bool"),yes,no)
+   emit_hir(branch)
+   hir_append(yes,hir_store(hir_int(24577,c"ptr"),hir_int(1,c"u8")))
+   hir_append(no,hir_store(hir_int(24577,c"ptr"),hir_int(2,c"u8")))
+   emit_hir(branch)
+ }
+ fun main(visible:bool) { @build() }`, "if-snapshots.nanz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = hir.Verify(h); err != nil {
+		t.Fatal(err)
+	}
+	block := h.Funcs[0].Body.Body[0].(*hir.Block)
+	first := block.Body[0].(*hir.IfStmt)
+	second := block.Body[1].(*hir.IfStmt)
+	if len(first.Then.Body) != 1 || len(first.Else.Body) != 1 || len(second.Then.Body) != 2 || len(second.Else.Body) != 2 {
+		t.Fatal("conditional snapshots changed after builder mutation")
+	}
+	if first.Then.Body[0] == second.Then.Body[0] || first.Else.Body[0] == second.Else.Body[0] {
+		t.Fatal("shared conditional statements")
 	}
 }
