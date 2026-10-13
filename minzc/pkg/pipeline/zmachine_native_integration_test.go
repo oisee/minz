@@ -81,6 +81,15 @@ func TestZMachineBankedZorkCellarSaveRestoreNative(t *testing.T) {
 	}
 	testZMachineBankedInterpreterNative(t, false, path, "@console-cellar-save")
 }
+
+// A separately built full V3 story, not the Zork I workload used earlier.
+func TestZMachineBankedZorkIIGameplayNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" || os.Getenv("MINZ_Z3_FROTZ") == "" {
+		t.Skip("set MINZ_Z3_ZORK2_STORY, MINZ_Z3_VM and MINZ_Z3_FROTZ")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2")
+}
 func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, externalStory string, commands string) {
 	root := filepath.Clean("../../..")
 	story, err := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/stream3.z3"))
@@ -106,10 +115,11 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
+	zorkII := commands == "@console-zork2"
 	cellarSave := commands == "@console-cellar-save"
 	saveRestore := commands == "@console-save" || cellarSave
 	restart := commands == "@console-restart"
-	explore := commands == "@console-explore" || restart || saveRestore
+	explore := commands == "@console-explore" || restart || saveRestore || zorkII
 	keyboard := commands == "@console-keyboard" || explore
 	console := commands == "@console-startup" || keyboard
 	var restartArchive []byte
@@ -227,6 +237,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	var reference []byte
 	if explore {
 		route := []byte("north\neast\nopen window\nenter window\nwest\ntake lamp\ntake sword\ninventory\nturn on lamp\nmove rug\nopen trap door\ndown\nlook\nup\nquit\ny\n")
+		if zorkII {
+			route = []byte("look\ninventory\ntake lamp\nturn on lamp\nnorth\nlook\nsouth\nquit\ny\n")
+		}
 		if restart {
 			route = []byte("open mailbox\ntake leaflet\nrestart\ny\nlook\ninventory\nquit\ny\n")
 		}
@@ -384,6 +397,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 				t.Fatalf("exploration text differs: native %q reference %q", rendered, reference)
 			}
 			phrases := []string{"Kitchen", "Living Room", "Cellar", "A brass lantern", "A sword"}
+			if zorkII {
+				phrases = []string{"ZORK II: The Wizard of Frobozz", "Inside the Barrow", "You are empty-handed.", "Taken.", "The lamp is now on.", "Narrow Tunnel", "total of 400 points"}
+			}
 			if saveRestore {
 				phrases = []string{"Ok.", "A leaflet", "You are empty-handed."}
 				if cellarSave {
