@@ -73,9 +73,9 @@ func (t *RegAllocTable) ComposeCheckedCandidates(p *LocalTableProblem, target *R
 	}
 	t.mu.RUnlock()
 	sort.Slice(entries, func(i, j int) bool { return entries[i].Signature < entries[j].Signature })
-	candidates := []map[int]int{{}}
+	// Build and independently admit each fragment's finite assignment domain.
+	domains := make([][]map[int]int, 0, len(ends))
 	start = 0
-	attempts := 0
 	for _, end := range ends {
 		ops := p.Ops[start:end]
 		var ids []int
@@ -83,52 +83,63 @@ func (t *RegAllocTable) ComposeCheckedCandidates(p *LocalTableProblem, target *R
 			ids = append(ids, v)
 		}
 		sort.Ints(ids)
-		next := []map[int]int{}
+		choices := []map[int]int{}
+		seen := map[string]bool{}
 		for _, entry := range entries {
 			if entry.Schema != checkedTableSchema || entry.CostModel != checkedTableCostModel || entry.NOps != len(ops) || entry.NVregs != len(ids) || len(entry.Assignment) != len(ids) {
 				continue
 			}
+			fragment := make(map[int]int, len(ids))
+			for i, v := range ids {
+				fragment[v] = entry.Assignment[i]
+			}
+			opts := p.Options
+			opts.ParamLocs = map[int]int{}
+			for v, loc := range p.Options.ParamLocs {
+				if _, exists := fragment[v]; exists {
+					opts.ParamLocs[v] = loc
+				}
+			}
+			if _, err := checkedLocalCost(ops, fragment, Z80, opts); err != nil {
+				continue
+			}
+			key := fmt.Sprint(entry.Assignment)
+			if !seen[key] {
+				choices = append(choices, fragment)
+				seen[key] = true
+			}
+		}
+		domains = append(domains, choices)
+		start = end
+	}
+	domains = propagateCompositionDomains(domains)
+	candidates := []map[int]int{{}}
+	attempts := 0
+	for _, choices := range domains {
+		if len(choices) == 0 {
+			return 0, nil
+		}
+		next := []map[int]int{}
+		for _, fragment := range choices {
 			for _, prefix := range candidates {
+				if !compositionAssignmentsCompatible(prefix, fragment) {
+					continue
+				}
 				attempts++
 				if attempts > limit {
 					return 0, fmt.Errorf("composition combinations exceed bound")
 				}
-				combined := make(map[int]int, len(prefix)+len(ids))
+				combined := make(map[int]int, len(prefix)+len(fragment))
 				for v, loc := range prefix {
 					combined[v] = loc
 				}
-				valid := true
-				fragment := make(map[int]int, len(ids))
-				for i, v := range ids {
-					loc := entry.Assignment[i]
-					if old, exists := combined[v]; exists && old != loc {
-						valid = false
-						break
-					}
+				for v, loc := range fragment {
 					combined[v] = loc
-					fragment[v] = loc
-				}
-				if !valid {
-					continue
-				}
-				opts := p.Options
-				opts.ParamLocs = map[int]int{}
-				for v, loc := range p.Options.ParamLocs {
-					if _, exists := fragment[v]; exists {
-						opts.ParamLocs[v] = loc
-					}
-				}
-				if _, err := checkedLocalCost(ops, fragment, Z80, opts); err != nil {
-					continue
 				}
 				next = append(next, combined)
 			}
 		}
 		candidates = next
-		start = end
-		if len(candidates) == 0 {
-			return 0, nil
-		}
 	}
 	// Stage admission privately: bounds failure never partially changes target.
 	var staged RegAllocTable

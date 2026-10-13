@@ -1,6 +1,7 @@
 package vir
 
 import (
+	"fmt"
 	"github.com/minz/minzc/pkg/mir2"
 	"testing"
 )
@@ -108,5 +109,37 @@ func TestCheckedCompositionRejectsCrossBoundaryLiveClobber(t *testing.T) {
 	before := target.Size()
 	if _, err = pool.ComposeCheckedCandidates(p, &target, []int{1}, 1); err == nil || target.Size() != before {
 		t.Fatal("limit failure mutated target", err)
+	}
+}
+
+func TestCheckedCompositionPropagationFitsBoundedSearch(t *testing.T) {
+	f, allocation := productionTableFunction(mir2.ClassAcc)
+	p, err := PrepareLocalTableProblem(f, allocation)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var pool, target RegAllocTable
+	pool.Init()
+	target.Init()
+	// Three proposals for the constant fragment, only A supports the return.
+	// Dense assignments are intentionally untrusted: fragment and full admission
+	// must run again, independently of these claimed keys and costs.
+	for i, name := range []string{"A", "C"} {
+		pool.entries[fmt.Sprintf("constant-%d", i)] = &RegAllocEntry{Schema: checkedTableSchema, CostModel: checkedTableCostModel, Signature: fmt.Sprintf("constant-%d", i), NVregs: 1, NOps: 1, Cost: -100, Assignment: []int{Z80.LocByName(name)}}
+	}
+	ops := p.Ops[1:]
+	assignment := map[int]int{}
+	for v := range buildProblem(ops, Z80).vregs {
+		assignment[v] = Z80.LocByName("A")
+	}
+	if err = pool.AddChecked(ops, assignment, Z80, p.Options); err != nil {
+		t.Fatal(err)
+	}
+	count, err := pool.ComposeCheckedCandidates(p, &target, []int{1}, 3)
+	if err != nil || count != 1 {
+		t.Fatal("supported candidate exhausted bound", count, err)
+	}
+	if _, err = p.Emit(&target); err != nil {
+		t.Fatal(err)
 	}
 }
