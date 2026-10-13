@@ -438,3 +438,21 @@ Keyboard, exploration against VM/Frotz and restart retain output and timings;
 combined gates PASS 27.047 s. Snapshot rebuilt and roundtrip passed. This frees
 code/data budget for save/restore work; it does not implement save/restore or
 create free bank space (the story+restart archive still leaves 88 bytes).
+
+
+## Compressed restart archive creates bank headroom
+
+Trusted restart archive uses literal runs 1..128 and repeated-byte runs 3..130.
+The builder packs the original dynamic prefix, decodes it on host and verifies
+exact equality before recording its size. Native decoder restores directly into
+bank0 with paging restored for each output chunk; resident stack/code stay fixed.
+This primitive assumes the builder-validated stream, not arbitrary external saves.
+Uncompressed length and encoded bank bounds are separate generator checks.
+
+Zork dynamic prefix 11288→9172 bytes (-2116 B). Story+archive leaves 2204 bytes
+in the six-bank capacity. Resident 23731→23883 bytes (+152 B). Native restart
+route PASS, 379701337 T, output identical to VM. Boundary decode tests exercise
+literal/repeat counts around 128/130, zero count, full-bank decoded output and
+source ending at bank boundary; all eight banks checked against independent
+output oracle outside bounded native stack. Host codec 49 roundtrip/rejection
+cases PASS. Live dynamic memory remains raw; save/restore still unfinished.

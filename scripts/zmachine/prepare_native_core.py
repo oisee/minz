@@ -14,6 +14,7 @@ p = argparse.ArgumentParser()
 p.add_argument('output', type=Path)
 p.add_argument('--story-bytes', type=int, required=True)
 p.add_argument('--commands', type=Path, help='ASCII command transcript for native integration')
+p.add_argument('--restart-rle-bytes', type=int, default=0, help='validated RLE archive size instead of raw prefix')
 p.add_argument('--restart-bytes', type=int, default=0, help='original dynamic prefix archived immediately after raw story')
 p.add_argument('--console', action='store_true', help='Spectrum screen and keyboard instead of RAM capture')
 a = p.parse_args()
@@ -124,12 +125,14 @@ for name in ['save_state', 'restore_state']:
 replace_function('snapshot_identity', 'fun snapshot_identity() {}')
 replace_function('restart_story', 'fun restart_story() { running = 0 }')
 if a.restart_bytes:
-    if not 64 <= a.restart_bytes <= 16384 or a.story_bytes + a.restart_bytes > 98304 or a.story_bytes // 16384 != (a.story_bytes + a.restart_bytes - 1) // 16384:
+    archive_size = a.restart_rle_bytes or a.restart_bytes
+    if not 64 <= a.restart_bytes <= 16384 or a.story_bytes + archive_size > 98304 or a.story_bytes // 16384 != (a.story_bytes + archive_size - 1) // 16384:
         p.error('restart archive must fit within one free logical bank tail')
     page = a.story_bytes // 16384
     bank = [0, 1, 3, 4, 6, 7][page]
     if bank == 0:
         p.error('restart archive must be outside bank0')
+    restore_name = 'bank_restore_rle' if a.restart_rle_bytes else 'bank_restore_prefix'
     replace_function('restart_story', f'''fun restart_story() {{
  asm z80 (clob A, F, BC, DE, HL, IX, IY) {{
   LD HL, (0xc010)
@@ -138,7 +141,7 @@ if a.restart_bytes:
   LD HL, {a.story_bytes % 16384}
   LD DE, {a.restart_bytes}
   LD B, 0x10
-  CALL zx__banked__bank_restore_prefix
+  CALL zx__banked__{restore_name}
   POP HL
   LD (0xc010), HL
   LD A, (0xc001)

@@ -31,14 +31,27 @@ func main() {
 		panic("requires Z-machine V3 story, 64..98304 bytes")
 	}
 	dynamic := int(story[14])<<8 | int(story[15])
-	restart := dynamic >= 64 && dynamic <= 16384 && len(story)+dynamic <= 98304 && len(story)/16384 == (len(story)+dynamic-1)/16384 && len(story)/16384 > 0
+	var archive []byte
+	archiveFile, err := os.CreateTemp("", "z3-restart-*.rle")
+	must(err)
+	archivePath := archiveFile.Name()
+	must(archiveFile.Close())
+	defer os.Remove(archivePath)
+	pack := exec.Command("python3", "../scripts/zmachine/restart_rle.py", os.Args[1], archivePath)
+	if data, err := pack.CombinedOutput(); err != nil {
+		panic(fmt.Sprintf("restart pack %v %s", err, data))
+	}
+	archive, err = os.ReadFile(archivePath)
+	must(err)
+	restart := dynamic >= 64 && dynamic <= 16384 && len(story)+len(archive) <= 98304 && len(story)/16384 == (len(story)+len(archive)-1)/16384 && len(story)/16384 > 0
+
 	out, err := filepath.Abs(os.Args[2])
 	must(err)
 	must(os.MkdirAll(out, 0755))
 	source := filepath.Join(out, "zvm-spectrum128.nanz")
 	cmd := exec.Command("python3", "../scripts/zmachine/prepare_native_core.py", source, "--story-bytes", fmt.Sprint(len(story)), "--console")
 	if restart {
-		cmd.Args = append(cmd.Args, "--restart-bytes", fmt.Sprint(dynamic))
+		cmd.Args = append(cmd.Args, "--restart-bytes", fmt.Sprint(dynamic), "--restart-rle-bytes", fmt.Sprint(len(archive)))
 	}
 	result, err := cmd.CombinedOutput()
 	if err != nil {
@@ -69,7 +82,7 @@ func main() {
 		m.Memory.RAM[pages[i/16384]][i%16384] = b
 	}
 	if restart {
-		for i, b := range story[:dynamic] {
+		for i, b := range archive {
 			at := len(story) + i
 			m.Memory.RAM[pages[at/16384]][at%16384] = b
 		}
@@ -101,7 +114,9 @@ func main() {
 	metadata["restart_supported"] = restart
 	if restart {
 		metadata["restart_archive_offset"] = len(story)
-		metadata["restart_archive_bytes"] = dynamic
+		metadata["restart_archive_bytes"] = len(archive)
+		metadata["restart_decoded_bytes"] = dynamic
+		metadata["restart_archive_format"] = "rle-v1"
 	}
 	b, err := json.MarshalIndent(metadata, "", "  ")
 	must(err)

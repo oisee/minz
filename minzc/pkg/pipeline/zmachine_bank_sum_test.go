@@ -139,3 +139,99 @@ func TestZMachineBankRestorePrefixNative(t *testing.T) {
 		}
 	}
 }
+
+func TestZMachineBankRestoreRLENative(t *testing.T) {
+	h, err := nanz.ParseWithOpts("import zx.banked\nfun main() { bank_restore_rle(7,0,0,0x10) }", "restore.nanz", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	steps, err := CompileHIRSteps(h, Options{AssertMode: "none"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	a, err := z80asm.NewAssembler().AssembleString("ORG 0x9000\n" + steps.Assembly)
+	if err != nil || len(a.Errors) > 0 {
+		t.Fatal(err, a.Errors)
+	}
+	for _, count := range []int{0, 1, 2, 3, 127, 128, 129, 130, 131, 16384} {
+		for _, repeated := range []bool{false, true} {
+			r := [2]int{0, count}
+			m, err := spectrum.NewPentagon128(nil, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for p := 0; p < 8; p++ {
+				for i := range m.Memory.RAM[p] {
+					m.Memory.RAM[p][i] = byte(i*37 + p*17)
+				}
+			}
+			for i, b := range a.Binary {
+				m.Memory.Write(0x9000+uint16(i), b, false)
+			}
+			m.Memory.Write(0xbf00, 0, false)
+			m.Memory.Write(0xbf01, 0x70, false)
+			data := make([]byte, count)
+			for i := range data {
+				data[i] = byte(i * 37)
+				if repeated {
+					data[i] = 0xa7
+				}
+			}
+			encoded := []byte{}
+			for i := 0; i < len(data); {
+				if repeated && len(data)-i >= 3 {
+					n := len(data) - i
+					if n > 130 {
+						n = 130
+					}
+					encoded = append(encoded, byte(128+n-3), data[i])
+					i += n
+				} else {
+					n := len(data) - i
+					if n > 128 {
+						n = 128
+					}
+					encoded = append(encoded, byte(n-1))
+					encoded = append(encoded, data[i:i+n]...)
+					i += n
+				}
+			}
+			if len(encoded) > 16384 {
+				continue
+			}
+			r[0] = 16384 - len(encoded)
+			copy(m.Memory.RAM[7][r[0]:], encoded)
+			before := m.Memory.RAM
+			want := before
+			copy(want[0][:r[1]], data)
+			m.Memory.SetPagingForce(0x10)
+			m.CPU.SetPC(uint16(a.Symbols["zx__banked__bank_restore_rle"]))
+			m.CPU.SetSP(0xbf00)
+			m.CPU.SetAF(0x1700)
+			m.CPU.SetHL(uint16(r[0]))
+			m.CPU.SetDE(uint16(r[1]))
+			m.CPU.SetBC(0x1000)
+			m.CPU.SetIFF1(false)
+			m.CPU.SetIFF2(false)
+			for i := 0; i < 500000; i++ {
+				if m.CPU.PC() == 0x7000 && m.CPU.SP() == 0xbf02 {
+					break
+				}
+				m.CPU.DoOpcode()
+			}
+			if m.CPU.PC() != 0x7000 || m.CPU.SP() != 0xbf02 || m.Memory.PagingState() != 0x10 || m.CPU.IFF1() || m.CPU.IFF2() {
+				t.Fatalf("offset%d count%d PC/SP%04x/%04x", r[0], r[1], m.CPU.PC(), m.CPU.SP())
+			}
+			for p := 0; p < 8; p++ {
+				for i, v := range want[p] {
+					if p == 2 && i >= 0x3ef0 && i < 0x3f00 {
+						continue
+					}
+					if m.Memory.RAM[p][i] != v {
+						t.Fatalf("restore unexpected RAM bank%d offset%04x got%02x want%02x", p, i, m.Memory.RAM[p][i], v)
+					}
+				}
+			}
+		}
+	}
+}

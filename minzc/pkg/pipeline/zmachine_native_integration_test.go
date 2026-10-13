@@ -96,9 +96,21 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	explore := commands == "@console-explore" || restart
 	keyboard := commands == "@console-keyboard" || explore
 	console := commands == "@console-startup" || keyboard
+	var restartArchive []byte
 	if restart {
-		cmd.Args = append(cmd.Args, "--restart-bytes", strconv.Itoa(int(story[14])<<8|int(story[15])))
+		archivePath := filepath.Join(t.TempDir(), "restart.rle")
+		pack := exec.Command("python3", filepath.Join(root, "scripts/zmachine/restart_rle.py"), externalStory, archivePath)
+		if out, err := pack.CombinedOutput(); err != nil {
+			t.Fatalf("pack %v %s", err, out)
+		}
+		var err error
+		restartArchive, err = os.ReadFile(archivePath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		cmd.Args = append(cmd.Args, "--restart-bytes", strconv.Itoa(int(story[14])<<8|int(story[15])), "--restart-rle-bytes", strconv.Itoa(len(restartArchive)))
 	}
+
 	if console {
 		commands = ""
 		cmd.Args = append(cmd.Args, "--console")
@@ -159,7 +171,7 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 		m.Memory.RAM[pages[i/16384]][i%16384] = b
 	}
 	if restart {
-		for i, b := range story[:int(story[14])<<8|int(story[15])] {
+		for i, b := range restartArchive {
 			at := len(story) + i
 			m.Memory.RAM[pages[at/16384]][at%16384] = b
 		}

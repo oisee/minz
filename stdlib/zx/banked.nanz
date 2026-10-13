@@ -92,3 +92,64 @@ fun bank_restore_prefix(@z80_a bank_bits: u8, @z80_hl offset: u16, @z80_de count
   OUT (C), A
  }
 }
+
+// Decode a trusted, host-validated restart RLE stream into bank0 prefix.
+// offset+encoded_size<=16384, source bank!=0, restore_bits selects bank0.
+// count is exact decoded size; each encoded run must fit remaining output.
+// This primitive is NOT a decoder for untrusted/malformed external saves.
+fun bank_restore_rle(@z80_a bank_bits: u8, @z80_hl offset: u16, @z80_de count: u16, @z80_b restore_bits: u8) -> void {
+ asm z80 (in bank_bits, offset, count, restore_bits) (clob A, F, BC, DE, HL, IX, IY) {
+  LD IYH, A
+  LD IYL, B
+  SET 6, H
+  SET 7, H
+  PUSH DE
+  POP IX
+  LD DE, 0xc000
+ .rle_loop:
+  PUSH IX
+  POP BC
+  LD A, B
+  OR C
+  JR Z, .rle_done
+  CALL .rle_read
+  BIT 7, A
+  JR NZ, .rle_repeat
+  INC A
+  LD B, A
+ .rle_literal:
+  CALL .rle_read
+  LD (DE), A
+  INC DE
+  DEC IX
+  DJNZ .rle_literal
+  JR .rle_loop
+ .rle_repeat:
+  AND 127
+  ADD A, 3
+  LD B, A
+  CALL .rle_read
+  LD C, A
+ .rle_fill:
+  LD A, C
+  LD (DE), A
+  INC DE
+  DEC IX
+  DJNZ .rle_fill
+  JR .rle_loop
+ .rle_read:
+  PUSH BC
+  LD BC, 0x7ffd
+  LD A, IYH
+  OUT (C), A
+  LD A, (HL)
+  INC HL
+  PUSH AF
+  LD A, IYL
+  OUT (C), A
+  POP AF
+  POP BC
+  RET
+ .rle_done:
+ }
+}
