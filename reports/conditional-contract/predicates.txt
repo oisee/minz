@@ -1,0 +1,5 @@
+=== RUN   TestConditionalEmitterUnsignedPredicates
+    conditional_contract_test.go:293: 18432 native predicate/limit/branch-vs-condret/input/flags combinations PASS
+--- PASS: TestConditionalEmitterUnsignedPredicates (0.46s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.466s

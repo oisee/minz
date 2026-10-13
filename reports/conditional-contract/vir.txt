@@ -1,0 +1,1 @@
+ok  	github.com/minz/minzc/pkg/vir	10.638s

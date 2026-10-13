@@ -1,0 +1,82 @@
+{
+  "Entry": "entry",
+  "InputLocation": "A",
+  "ReturnLocation": "A",
+  "Blocks": [
+    {
+      "Label": "entry",
+      "Compare": true,
+      "Predicate": 9,
+      "Immediate": 48,
+      "RequiredFlags": "C",
+      "Then": "if_then1",
+      "Else": "if_join2",
+      "Return": false,
+      "Value": 0,
+      "FalseReturn": false,
+      "FalseValue": 0,
+      "Jump": ""
+    },
+    {
+      "Label": "if_then1",
+      "Compare": true,
+      "Predicate": 7,
+      "Immediate": 57,
+      "RequiredFlags": "Z,C",
+      "Then": "if_then3",
+      "Else": "if_join4",
+      "Return": false,
+      "Value": 0,
+      "FalseReturn": false,
+      "FalseValue": 0,
+      "Jump": ""
+    },
+    {
+      "Label": "if_then3",
+      "Compare": false,
+      "Predicate": 0,
+      "Immediate": 0,
+      "RequiredFlags": "",
+      "Then": "",
+      "Else": "",
+      "Return": true,
+      "Value": 1,
+      "FalseReturn": false,
+      "FalseValue": 0,
+      "Jump": ""
+    },
+    {
+      "Label": "if_join4",
+      "Compare": false,
+      "Predicate": 0,
+      "Immediate": 0,
+      "RequiredFlags": "",
+      "Then": "",
+      "Else": "",
+      "Return": false,
+      "Value": 0,
+      "FalseReturn": false,
+      "FalseValue": 0,
+      "Jump": "if_join2"
+    },
+    {
+      "Label": "if_join2",
+      "Compare": false,
+      "Predicate": 0,
+      "Immediate": 0,
+      "RequiredFlags": "",
+      "Then": "",
+      "Else": "",
+      "Return": true,
+      "Value": 0,
+      "FalseReturn": false,
+      "FalseValue": 0,
+      "Jump": ""
+    }
+  ],
+  "Clobbers": [
+    "A",
+    "F"
+  ],
+  "Binding": "conditional-contract-v1:901b047523e7648847d42191a992d724f923475afedeb568ba4f7d4a241434fe"
+}

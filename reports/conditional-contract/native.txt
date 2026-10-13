@@ -1,0 +1,33 @@
+=== RUN   TestConditionalContractOriginalParser
+    conditional_contract_test.go:150: is_space: 9 blocks, 65536 native input/flags combinations plus 256 original VM/certificate/oracle inputs PASS; conditional-contract-v1:061cc8c6585e6b81d862afd8e9c07d795d77d3b31eaa2e8e502a0763491d7859
+    conditional_contract_test.go:150: is_digit: 5 blocks, 65536 native input/flags combinations plus 256 original VM/certificate/oracle inputs PASS; conditional-contract-v1:901b047523e7648847d42191a992d724f923475afedeb568ba4f7d4a241434fe
+    conditional_contract_test.go:150: is_atom_char: 15 blocks, 65536 native input/flags combinations plus 256 original VM/certificate/oracle inputs PASS; conditional-contract-v1:e3c608d2cd80300d4231a395734f1d9e406f5a5a402caca2a8b6cfef227fc7d9
+--- PASS: TestConditionalContractOriginalParser (4.00s)
+=== RUN   TestConditionalContractRejectsForeignCFG
+=== RUN   TestConditionalContractRejectsForeignCFG/effect
+=== RUN   TestConditionalContractRejectsForeignCFG/writer
+=== RUN   TestConditionalContractRejectsForeignCFG/signed
+=== RUN   TestConditionalContractRejectsForeignCFG/nonlocal-flags
+=== RUN   TestConditionalContractRejectsForeignCFG/edge-args
+=== RUN   TestConditionalContractRejectsForeignCFG/cycle
+=== RUN   TestConditionalContractRejectsForeignCFG/missing
+=== RUN   TestConditionalContractRejectsForeignCFG/empty-jump
+=== RUN   TestConditionalContractRejectsForeignCFG/unreachable
+=== RUN   TestConditionalContractRejectsForeignCFG/return-type
+=== RUN   TestConditionalContractRejectsForeignCFG/input-placement
+=== RUN   TestConditionalContractRejectsForeignCFG/param-class
+--- PASS: TestConditionalContractRejectsForeignCFG (0.00s)
+    --- PASS: TestConditionalContractRejectsForeignCFG/effect (0.00s)
+    --- PASS: TestConditionalContractRejectsForeignCFG/writer (0.00s)
+    --- PASS: TestConditionalContractRejectsForeignCFG/signed (0.00s)
+    --- PASS: TestConditionalContractRejectsForeignCFG/nonlocal-flags (0.00s)
+    --- PASS: TestConditionalContractRejectsForeignCFG/edge-args (0.00s)
+    --- PASS: TestConditionalContractRejectsForeignCFG/cycle (0.00s)
+    --- PASS: TestConditionalContractRejectsForeignCFG/missing (0.00s)
+    --- PASS: TestConditionalContractRejectsForeignCFG/empty-jump (0.00s)
+    --- PASS: TestConditionalContractRejectsForeignCFG/unreachable (0.00s)
+    --- PASS: TestConditionalContractRejectsForeignCFG/return-type (0.00s)
+    --- PASS: TestConditionalContractRejectsForeignCFG/input-placement (0.00s)
+    --- PASS: TestConditionalContractRejectsForeignCFG/param-class (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	4.011s
