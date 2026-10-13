@@ -188,6 +188,22 @@ func TestZMachineBankedZork128LateSaveWalkthroughNative(t *testing.T) {
 	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-late-save")
 }
 
+func TestZMachineBankedZorkII128FullNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set Zork II story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-full")
+}
+
+func TestZMachineBankedZorkII128WandNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set Zork II story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-wand")
+}
+
 func TestZMachineBankedZorkII128DemonNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
 	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
@@ -409,7 +425,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	zorkIIDemon := commands == "@console-zork2-demon"
+	zorkIIFull := commands == "@console-zork2-full"
+	zorkIIWand := commands == "@console-zork2-wand" || zorkIIFull
+	zorkIIDemon := commands == "@console-zork2-demon" || zorkIIWand
 	zorkIIWorkshop := commands == "@console-zork2-workshop" || zorkIIDemon
 	zorkIICrownDescent := commands == "@console-zork2-crown-descent" || zorkIIWorkshop
 	zorkIICrown := commands == "@console-zork2-crown" || zorkIICrownDescent
@@ -767,6 +785,12 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if zorkIIDemon {
 				routeFile = "zork2-demon-vm.txt"
 			}
+			if zorkIIWand {
+				routeFile = "zork2-wand-vm.txt"
+			}
+			if zorkIIFull {
+				routeFile = "zork2-full-vm.txt"
+			}
 			route, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", routeFile))
 			if err != nil {
 				t.Fatal(err)
@@ -940,6 +964,12 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 				if zorkIIDemon {
 					frotzFile = "zork2-demon-frotz.txt"
 				}
+				if zorkIIWand {
+					frotzFile = "zork2-wand-frotz.txt"
+				}
+				if zorkIIFull {
+					frotzFile = "zork2-full-frotz.txt"
+				}
 				frotzRoute, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", frotzFile))
 				if err != nil {
 					t.Fatal(err)
@@ -1015,6 +1045,12 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if zorkIIDemon {
 				wants = []string{"shatters the glass wall of the aquarium", "The three spheres begin to vibrate", "You no longer control the Black Crystal, hedge-wizard!", "There is a demon floating in midair here.", "You are carrying:\n  A lamp\n  A delicate gold key\n  A matchbook", "Your score would be 295 (total of 400 points), in 449 moves."}
 			}
+			if zorkIIWand {
+				wants = []string{"Opening the steel box reveals a fancy violin.", "This will do for my fee.", "The wizard runs from the room in terror.", "You are carrying:\n  A Wizard's magic wand\n  A china teapot\n  The china teapot contains:\n    A quantity of water\n  A lamp (providing light)\n  A matchbook", "Your score would be 365 (total of 400 points), in 543 moves."}
+			}
+			if zorkIIFull {
+				wants = []string{"The menhir floats majestically into the air", "You hear a strange rusty squeal", "The creature whines happily", "The secret door opens noiselessly.", "you have conquered the Wizard of Frobozz and become the master of his domain", "Your score would be 400 (total of 400 points), in 571 moves.", "This score gives you the rank of Master Adventurer."}
+			}
 
 			for _, want := range wants {
 				if !bytes.Contains(output, []byte(want)) {
@@ -1050,6 +1086,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	if zorkIICrown {
 		limit = 4000000000
+	}
+	if zorkIIWand {
+		limit = 5000000000
 	}
 	for i := 0; i < limit; i++ {
 
@@ -1279,6 +1318,12 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			}
 			if zorkIIDemon {
 				phrases = []string{"shatters the glass wall of the aquarium", "The three spheres begin to vibrate", "You no longer control the Black Crystal, hedge-wizard!", "There is a demon floating in midair here.", "You are carrying:\n  A lamp\n  A delicate gold key\n  A matchbook", "Your score would be 295 (total of 400 points), in 535 moves."}
+			}
+			if zorkIIWand {
+				phrases = []string{"Opening the steel box reveals a fancy violin.", "This will do for my fee.", "The wizard runs from the room in terror.", "You are carrying:\n  A Wizard's magic wand\n  A china teapot\n  The china teapot contains:\n    A quantity of water\n  A lamp (providing light)\n  A matchbook", "Your score would be 365 (total of 400 points), in 618 moves."}
+			}
+			if zorkIIFull {
+				phrases = []string{"The menhir floats majestically into the air", "You hear a strange rusty squeal", "The creature whines happily", "The secret door opens noiselessly.", "you have conquered the Wizard of Frobozz and become the master of his domain", "Your score would be 400 (total of 400 points), in 648 moves.", "This score gives you the rank of Master Adventurer."}
 			}
 
 			for _, phrase := range phrases {
