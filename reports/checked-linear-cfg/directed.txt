@@ -1,0 +1,28 @@
+=== RUN   TestCheckedLinearCFGCompositionNative
+    table_linear_cfg_test.go:93: 256 VM/Z80 inputs and PC/SP PASS; explicit edge move; 3-byte function
+--- PASS: TestCheckedLinearCFGCompositionNative (0.01s)
+=== RUN   TestCheckedLinearCFGRejectsInvalidEdges
+=== RUN   TestCheckedLinearCFGRejectsInvalidEdges/cycle
+=== RUN   TestCheckedLinearCFGRejectsInvalidEdges/missing-target
+=== RUN   TestCheckedLinearCFGRejectsInvalidEdges/arity
+=== RUN   TestCheckedLinearCFGRejectsInvalidEdges/type
+=== RUN   TestCheckedLinearCFGRejectsInvalidEdges/duplicate-label
+=== RUN   TestCheckedLinearCFGRejectsInvalidEdges/unreachable
+=== RUN   TestCheckedLinearCFGRejectsInvalidEdges/redefined-param
+=== RUN   TestCheckedLinearCFGRejectsInvalidEdges/forward-source
+=== RUN   TestCheckedLinearCFGRejectsInvalidEdges/branch
+--- PASS: TestCheckedLinearCFGRejectsInvalidEdges (0.00s)
+    --- PASS: TestCheckedLinearCFGRejectsInvalidEdges/cycle (0.00s)
+    --- PASS: TestCheckedLinearCFGRejectsInvalidEdges/missing-target (0.00s)
+    --- PASS: TestCheckedLinearCFGRejectsInvalidEdges/arity (0.00s)
+    --- PASS: TestCheckedLinearCFGRejectsInvalidEdges/type (0.00s)
+    --- PASS: TestCheckedLinearCFGRejectsInvalidEdges/duplicate-label (0.00s)
+    --- PASS: TestCheckedLinearCFGRejectsInvalidEdges/unreachable (0.00s)
+    --- PASS: TestCheckedLinearCFGRejectsInvalidEdges/redefined-param (0.00s)
+    --- PASS: TestCheckedLinearCFGRejectsInvalidEdges/forward-source (0.00s)
+    --- PASS: TestCheckedLinearCFGRejectsInvalidEdges/branch (0.00s)
+=== RUN   TestCheckedLinearCFGParallelArgumentsWordDomain
+    table_linear_cfg_test.go:158: 65536 ordered edge argument cases: original/normalized VM and independent subtraction oracle PASS
+--- PASS: TestCheckedLinearCFGParallelArgumentsWordDomain (0.11s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.133s

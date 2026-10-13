@@ -17,7 +17,7 @@ type LocalTableProblem struct {
 	Function *mir2.Func
 }
 
-func PrepareLocalTableProblem(f *mir2.Func, allocation *mir2.AllocResult) (*LocalTableProblem, error) {
+func prepareSingleBlockTableProblem(f *mir2.Func, allocation *mir2.AllocResult) (*LocalTableProblem, error) {
 	if f != nil && f.Attrs.FixedIndirectABI {
 		return nil, fmt.Errorf("checked local table does not model the canonical indirect entry bridge")
 	}
@@ -283,12 +283,17 @@ func localPhysicalRegister(loc mir2.PhysLoc) bool {
 }
 
 func localFunctionContext(f *mir2.Func) (string, error) {
-	if f == nil || len(f.Blocks) != 1 || f.Blocks[0] == nil || f.Blocks[0].Term == nil {
+	if f == nil || len(f.Blocks) == 0 {
 		return "", fmt.Errorf("invalid local function binding")
 	}
-	for _, inst := range f.Blocks[0].Insts {
-		if inst == nil {
-			return "", fmt.Errorf("nil local instruction binding")
+	for _, block := range f.Blocks {
+		if block == nil || block.Term == nil {
+			return "", fmt.Errorf("invalid local block binding")
+		}
+		for _, inst := range block.Insts {
+			if inst == nil {
+				return "", fmt.Errorf("nil local instruction binding")
+			}
 		}
 	}
 	contract, err := json.Marshal(f.Contract)
