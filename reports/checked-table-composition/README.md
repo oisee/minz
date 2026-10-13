@@ -41,3 +41,7 @@ and -11, each with a caller retaining x over CALL. All 256 inputs per workload
 pass. +19/-11 use the composed candidate at unchanged 76T caller cost; XOR90
 retains ordinary PBQP at 69T. This is reuse/correctness evidence, not an
 independent extra speed win. Whole-function selection may prefer baseline.
+
+Final local checks: 348 fast pipeline tests, four independent processes,
+all exit 0. Checked composition/table/production/readmission VIR subset PASS.
+Full research VIR/Z3 suite was not run.
