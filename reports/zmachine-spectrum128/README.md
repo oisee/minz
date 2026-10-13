@@ -468,3 +468,23 @@ identity header still needs measuring. The native restore must validate before
 mutation and restore RNG/stream3 state; shared host restore currently omits
 metadata bytes 22..57 despite saving them. See [save format plan](save-format-plan.md).
 Raw saves, encoded candidates and output logs are retained on the share.
+
+
+## Native preflight for untrusted save payloads
+
+bank_validate_rle checks exact encoded/decoded lengths without output writes,
+rejects truncated literals/repeats and excess output/trailing input, and restores
+paging 0x10 before return. It validates the offset+encoded length within one 16K
+bank window, including arithmetic overflow. The bank selector remains a trusted
+caller argument; code/stack must stay resident with interrupts disabled. This
+is a payload preflight building block, not a complete save identity/integrity
+validator or native SAVE/RESTORE implementation.
+
+Independent native matrix covers all 256 token forms, cut input lengths and
+wrong/exact output lengths at start/end of bank. Decisions match a host parser;
+all eight physical banks stay unchanged outside bounded native stack. Extra
+cases exercise offsets outside the window and 16-bit address overflow.
+8240 cases PASS in 18.20 seconds; raw/RLE restore regression suite also PASS.
+The imported validator adds 256 resident bytes: 23883→24139 bytes, leaving
+1205 bytes before the reserved native stack. Desktop bundles remain the prior
+23883-byte runnable checkpoint until this component is wired into SAVE.

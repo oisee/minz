@@ -153,3 +153,99 @@ fun bank_restore_rle(@z80_a bank_bits: u8, @z80_hl offset: u16, @z80_de count: u
  .rle_done:
  }
 }
+
+// Preflight trusted bank selection but UNTRUSTED RLE payload: no output writes.
+// Restores paging to 0x10. Bank must be 0/1/3/4/6/7, code/SP below C000,
+// IRQ disabled. Accepts only exact encoded and decoded lengths in one window.
+fun bank_validate_rle(@z80_a bank_bits: u8, @z80_hl offset: u16, @z80_de encoded_size: u16, @z80_ix decoded_size: u16) -> u8 {
+ asm z80 (in bank_bits, offset, encoded_size, decoded_size) (ret A) (clob A, F, BC, DE, HL, IX, IY) {
+  LD IYH, A
+  PUSH HL
+  ADD HL, DE
+  JR C, .validate_bad_bounds
+  LD BC, 0x4001
+  OR A
+  SBC HL, BC
+  JR NC, .validate_bad_bounds
+  POP HL
+  LD A, H
+  CP 0x40
+  JR C, .validate_bounds_ok
+  JR NZ, .validate_fail
+  LD A, L
+  OR D
+  OR E
+  JR NZ, .validate_fail
+ .validate_bounds_ok:
+  SET 6, H
+  SET 7, H
+  LD BC, 0x7ffd
+  LD A, IYH
+  OUT (C), A
+ .validate_loop:
+  PUSH IX
+  POP BC
+  LD A, B
+  OR C
+  JR Z, .validate_end
+  LD A, D
+  OR E
+  JR Z, .validate_fail
+  LD A, (HL)
+  INC HL
+  DEC DE
+  BIT 7, A
+  JR NZ, .validate_repeat
+  INC A
+  LD IYL, A
+ .validate_literal:
+  LD A, D
+  OR E
+  JR Z, .validate_fail
+  INC HL
+  DEC DE
+  CALL .validate_output
+  JR Z, .validate_fail
+  DEC IYL
+  JR NZ, .validate_literal
+  JR .validate_loop
+ .validate_repeat:
+  AND 127
+  ADD A, 3
+  LD IYL, A
+  LD A, D
+  OR E
+  JR Z, .validate_fail
+  INC HL
+  DEC DE
+ .validate_repeat_output:
+  CALL .validate_output
+  JR Z, .validate_fail
+  DEC IYL
+  JR NZ, .validate_repeat_output
+  JR .validate_loop
+ .validate_output:
+  PUSH IX
+  POP BC
+  LD A, B
+  OR C
+  RET Z
+  DEC IX
+  RET
+ .validate_end:
+  LD A, D
+  OR E
+  JR NZ, .validate_fail
+  LD D, 1
+  JR .validate_return
+ .validate_bad_bounds:
+  POP HL
+ .validate_fail:
+  LD D, 0
+ .validate_return:
+  LD BC, 0x7ffd
+  LD A, 0x10
+  OUT (C), A
+  LD A, D
+ }
+}
