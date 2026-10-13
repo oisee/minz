@@ -708,3 +708,25 @@ Diagnostic combined resident 25260 bytes, end BDAC, headroom 84 B before BE00.
 Saved-state semantic validation, applying state from compressed input, header
 publication, SAVE/RESTORE wiring and gameplay tests still pending. Desktop
 checkpoint remains SAVE/RESTORE-disabled; stack reservation unchanged.
+
+
+## Saved-state semantic preflight and explicit fit failure
+
+`native_state_validate.py` emits Nanz validation over the structurally preflighted
+saved cursor: snapshot identity, PC, configured frame/stack depth, screen flag,
+stream3 count/table bounds, active return PCs and monotonic return stack bases.
+PC checks split the 24-bit address into byte/word comparisons instead of expensive
+u32 construction. Caller still must validate the reconstructed dynamic boundary
+before applying any bytes; semantic state checking alone is not complete RESTORE.
+
+351 native states match the reference validator on a synthetic 1024-byte V3 story,
+with boundary mutations in identity, PC, frame/depth, stream3 and active return
+fields. All game banks unchanged outside declared compiler scratch and bounded
+stack, PC/SP/paging/IFF checked. PASS in 1.35 s. This test does not yet prove valid
+high-bank PC acceptance for larger real stories or a whole-game SAVE lifecycle.
+
+Combined diagnostic code/data is 26006 bytes, end C096: 662 bytes beyond the BE00
+resident limit. It MUST NOT be released or loaded as a runnable snapshot. The
+existing builder's size guard remains intact, desktop bundles unchanged. Next
+reduce the semantic pass / place helper code without weakening checks, then wire
+save publication and full restore gameplay. Goal remains incomplete.
