@@ -1793,7 +1793,8 @@ VERSION: %s (build %s, %s)
 			}
 			fmt.Printf("Running %d frames...\n", frames)
 			for i := 0; i < frames; i++ {
-				if keystrokeQueue != nil && !keystrokeQueue.Done() {
+				if keystrokeQueue != nil {
+					machine.Keyboard.Reset()
 					keystrokeQueue.Update()
 				}
 				machine.RunFrame()
@@ -1843,7 +1844,8 @@ VERSION: %s (build %s, %s)
 
 			fmt.Printf("Running up to %d frames (trigger mode)...\n", limit)
 			for frame := 0; frame < limit; frame++ {
-				if keystrokeQueue != nil && !keystrokeQueue.Done() {
+				if keystrokeQueue != nil {
+					machine.Keyboard.Reset()
 					keystrokeQueue.Update()
 				}
 				machine.RunFrame()
@@ -1946,7 +1948,8 @@ VERSION: %s (build %s, %s)
 				for i := 0; i < skipTo; i++ {
 					// Inject keystrokes during turbo-skip so --skip and
 					// non-skip modes produce identical results.
-					if keystrokeQueue != nil && !keystrokeQueue.Done() {
+					if keystrokeQueue != nil {
+						machine.Keyboard.Reset()
 						keystrokeQueue.Update()
 					}
 					machine.RunFrameFast()
@@ -1961,7 +1964,8 @@ VERSION: %s (build %s, %s)
 		fmt.Printf("Running frames %d..%d...\n", startFrame, lastEnd)
 
 		for frame := startFrame; frame <= lastEnd; frame++ {
-			if keystrokeQueue != nil && !keystrokeQueue.Done() {
+			if keystrokeQueue != nil {
+				machine.Keyboard.Reset()
 				keystrokeQueue.Update()
 			}
 			machine.RunFrame()
