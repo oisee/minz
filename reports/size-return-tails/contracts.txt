@@ -1,0 +1,22 @@
+=== RUN   TestMergeConstantReturnTailsContracts
+=== RUN   TestMergeConstantReturnTailsContracts/effect
+=== RUN   TestMergeConstantReturnTailsContracts/value
+=== RUN   TestMergeConstantReturnTailsContracts/type
+=== RUN   TestMergeConstantReturnTailsContracts/params
+=== RUN   TestMergeConstantReturnTailsContracts/flag-return
+=== RUN   TestMergeConstantReturnTailsContracts/external-use
+=== RUN   TestMergeConstantReturnTailsContracts/edge-args
+=== RUN   TestMergeConstantReturnTailsContracts/implicit-counter
+=== RUN   TestMergeConstantReturnTailsContracts/hard-class
+--- PASS: TestMergeConstantReturnTailsContracts (0.00s)
+    --- PASS: TestMergeConstantReturnTailsContracts/effect (0.00s)
+    --- PASS: TestMergeConstantReturnTailsContracts/value (0.00s)
+    --- PASS: TestMergeConstantReturnTailsContracts/type (0.00s)
+    --- PASS: TestMergeConstantReturnTailsContracts/params (0.00s)
+    --- PASS: TestMergeConstantReturnTailsContracts/flag-return (0.00s)
+    --- PASS: TestMergeConstantReturnTailsContracts/external-use (0.00s)
+    --- PASS: TestMergeConstantReturnTailsContracts/edge-args (0.00s)
+    --- PASS: TestMergeConstantReturnTailsContracts/implicit-counter (0.00s)
+    --- PASS: TestMergeConstantReturnTailsContracts/hard-class (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.012s

@@ -316,6 +316,9 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 				tr.FuseAbsDiff++
 			}
 		}
+		if opt.OptSize {
+			mir2.MergeConstantReturnTails(f)
+		}
 		if opt.FuseByteWords {
 			mir2.FuseSequentialByteWords(f)
 		}

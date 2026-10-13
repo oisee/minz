@@ -1,0 +1,17 @@
+; fun is_digit(c: u8 = A) -> u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+; [trace] backend=PBQP passes=[dse=1]
+is_digit:
+    CP 48
+    JRS C, .is_digit_if_join2
+.is_digit_if_then1:
+    CP 57
+    JRS C, .is_digit_if_then3
+    JRS Z, .is_digit_if_then3
+    JRS .is_digit_if_join4
+.is_digit_if_then3:
+    LD A, 1
+    RET
+.is_digit_if_join4:
+.is_digit_if_join2:
+    LD A, 0
+    RET
