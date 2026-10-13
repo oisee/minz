@@ -764,3 +764,26 @@ diagnostic resident improves 25964→25577 bytes (-387 B), ending BEE9, still 23
 bytes beyond BE00. This oversized diagnostic is not a runnable snapshot. More
 space and complete save lifecycle wiring remain required; desktop bundles stay
 at the prior SAVE/RESTORE-disabled checkpoint. No capacity or stack guards relaxed.
+
+
+## Integrated validate-before-write native restore
+
+`native_restore.py` joins record structural preflight, saved-state semantic
+validation and reconstructed dynamic-boundary checks before any game data write.
+It then applies the dynamic XOR stream preserving current flags2 and streams all
+mutable saved fields through the shared address map. Saved/archive banks must be
+nonzero and immutable, DI/no reentry and resident stack/code are caller contracts.
+Failure may change declared validator/decoder scratch, never live game state.
+
+Eleven integrated native cases PASS in 0.21 s. A valid record restores all 1770
+mutable state bytes and the dynamic image, including two active frames, RNG and
+two stream3 tables. Invalid frame/depth/stream/PC/return metadata, reconstructed
+static boundary and CRC are rejected. Full physical RAM matches the independent
+expected apply or unchanged-state oracle outside bounded stack/declared scratch.
+PC/SP/paging/IFF checked. These are synthetic restore records, not a Zork gameplay
+SAVE/RESTORE lifecycle; header identity is fixture-specific.
+
+Combined diagnostic code/data 25706 bytes, end BF6A, 362 bytes over BE00. Do not
+load/release this oversized image. Save publication and gameplay wiring remain;
+code placement must be resolved before desktop bundle update. Existing builder
+size guard and distributed runnable checkpoint remain unchanged.
