@@ -1649,3 +1649,26 @@ bank10 archive byte-exact, header capability и PC/SP/paging проверены.
 CLI snapshot+bank10 loader отрисовал startup и status Inside the Barrow0/0.
 Это независимая вторая реальная V3 story, проверенная на выбранном маршруте;
 полное прохождение игры и physical TR-DOS по-прежнему не заявляются.
+
+### 13 октября: возвращение к обычному Spectrum128K со status/windows
+
+Zork I builder без Scorpion: `go run ../scripts/zmachine/build_spectrum128.go
+STORY OUTDIR --windows` (из minzc). Raw story, restart archive и RAM-save
+размещены в восьми обычных128K banks; resident24101 B, native stack capacity
+без изменений. Initial SNA проверен полным eight-bank PC/SP/paging roundtrip.
+Для запуска достаточно `mzx --model 128k --snapshot zork-spectrum128.sna`.
+SAVE остаётся volatile;
+постоянный disk SAVE предоставлен отдельной Scorpion сборкой.
+
+`TestZMachineBankedZork128WindowsSaveRestoreNative`: mailbox/SAVE/take leaflet/
+inventory/RESTORE/inventory/quit — PASS7.333 s. Все66 клавиш проходят Spectrum
+matrix и editor;644 bytes игрового output byte-exact VM. Native stack peak70 B,
+PC/SP/paging restored. Остановка вынесена из очищаемой экранной RAM в$BF10;
+существующие native fixture tests повторены после этого изменения.
+
+Текущий CZECH checkpoint:349 assertions и19 print cases,1921 output bytes
+byte-exact VM, PASS4.817 s, resident21458 B, stack60 B. Этот CZECH запуск
+использует прежний console adapter; новые status/window semantics проверены
+независимыми Inform fixtures и игровым128K lifecycle отдельно. Результаты не
+означают arbitrary V3/full-game completion. Обычная128K playable сборка со
+status/windows публикуется отдельно от Scorpion persistent disk версии.

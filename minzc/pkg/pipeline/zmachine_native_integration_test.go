@@ -75,6 +75,13 @@ func TestZMachineBankedZorkSaveRestoreNative(t *testing.T) {
 	}
 	testZMachineBankedInterpreterNative(t, false, path, "@console-save")
 }
+func TestZMachineBankedZork128WindowsSaveRestoreNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set MINZ_Z3_STORY and MINZ_Z3_VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-save")
+}
 func TestZMachineBankedZorkCellarSaveRestoreNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_STORY")
 	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
@@ -144,6 +151,10 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
+	windows := commands == "@console-windows-save"
+	if windows {
+		commands = "@console-save"
+	}
 	combinedLifecycle := commands == "@console-zork2-compressed-save-restart"
 	compressedSave := commands == "@console-zork2-compressed-save" || combinedLifecycle
 	compressedRestart := commands == "@console-zork2-compressed-restart" || combinedLifecycle
@@ -176,6 +187,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	if console {
 		commands = ""
 		cmd.Args = append(cmd.Args, "--console")
+		if windows {
+			cmd.Args = append(cmd.Args, "--windows")
+		}
 	}
 	if commands != "" {
 		commandPath := filepath.Join(t.TempDir(), "commands.txt")
@@ -266,8 +280,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 		}
 	}
 	m.Memory.SetPagingForce(0x10)
-	m.Memory.Write(0xbf00, 0, false)
-	m.Memory.Write(0xbf01, 0x50, false)
+	m.Memory.Write(0xbf10, 0x76, false)
+	m.Memory.Write(0xbf00, 0x10, false)
+	m.Memory.Write(0xbf01, 0xbf, false)
 	m.CPU.SetPC(uint16(a.Symbols["main"]))
 	m.CPU.SetSP(0xbf00)
 	m.CPU.SetIFF1(false)
@@ -405,7 +420,7 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 		if console && !keyboard && m.CPU.PC() == uint16(a.Symbols["tui_read_line_or_eof"]) {
 			break
 		}
-		if m.CPU.PC() == 0x5000 && m.CPU.SP() == 0xbf02 {
+		if m.CPU.PC() == 0xbf10 && m.CPU.SP() == 0xbf02 {
 			break
 		}
 		if saveRestore && m.CPU.PC() == uint16(a.Symbols["tui_read_line_or_eof"]) {
@@ -424,7 +439,11 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if inputEcho && m.CPU.PC() == inputReturn && m.CPU.SP() == inputSP+2 {
 				inputEcho = false
 			}
-			if !inputEcho && m.CPU.PC() == uint16(a.Symbols["native_putchar"]) {
+			outputSymbol := a.Symbols["native_putchar"]
+			if windows {
+				outputSymbol = a.Symbols["zx__console__z3_window_put"]
+			}
+			if !inputEcho && m.CPU.PC() == uint16(outputSymbol) {
 				rendered = append(rendered, byte(m.CPU.AF()>>8))
 			}
 			if m.CPU.PC() == uint16(a.Symbols["zx__console__con_getchar"]) {
@@ -457,7 +476,7 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 
 	}
 	if keyboard {
-		if m.CPU.PC() != 0x5000 || m.CPU.SP() != 0xbf02 || keyAt != len(keyText) || m.Memory.PagingState() != 0x10 || m.CPU.IFF1() || minSP < 0xbe00 {
+		if m.CPU.PC() != 0xbf10 || m.CPU.SP() != 0xbf02 || keyAt != len(keyText) || m.Memory.PagingState() != 0x10 || m.CPU.IFF1() || minSP < 0xbe00 {
 			t.Fatalf("keyboard keys%d/%d PC/SP%04x/%04x minSP%04x", keyAt, len(keyText), m.CPU.PC(), m.CPU.SP(), minSP)
 		}
 		if explore {
@@ -605,7 +624,7 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 		t.Logf("console startup %d bytes; %d T; SP%04x cursor%d/%d", len(a.Binary), m.CPU.Tstates(), m.CPU.SP(), row, col)
 		return
 	}
-	if m.CPU.PC() != 0x5000 || m.CPU.SP() != 0xbf02 {
+	if m.CPU.PC() != 0xbf10 || m.CPU.SP() != 0xbf02 {
 		t.Fatalf("PC/SP=%04x/%04x vmPC=%02x%02x%02x steps=%02x%02x", m.CPU.PC(), m.CPU.SP(), m.Memory.Read(uint16(a.Symbols["pc"])+2), m.Memory.Read(uint16(a.Symbols["pc"])+1), m.Memory.Read(uint16(a.Symbols["pc"])), m.Memory.Read(uint16(a.Symbols["steps"])+1), m.Memory.Read(uint16(a.Symbols["steps"])))
 	}
 	if m.CPU.IFF1() || m.CPU.IFF2() || m.Memory.PagingState() != 0x10 {
