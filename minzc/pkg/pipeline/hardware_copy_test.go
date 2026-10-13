@@ -273,7 +273,11 @@ func TestHardwareCopyRejectsInvalidDescriptions(t *testing.T) {
 // Preserving inline ASM must not erase values live in the surrounding Nanz.
 // The pointer oracle cannot cover inline ASM, so this is an independent native
 // ABI check with a changing global input and two adjacent generated blocks.
-func TestHardwareCopyLDIRLiveValues(t *testing.T) {
+func TestHardwareCopyLDIRLiveValues(t *testing.T) { hardwareCopyLiveValues(t, "ldir") }
+
+func TestStructuredCopyLiveValues(t *testing.T) { hardwareCopyLiveValues(t, "pointer") }
+
+func hardwareCopyLiveValues(t *testing.T, primitive string) {
 	source := `import hw.copy
 global input: u16 = 0
 global answer: u16 = 0
@@ -293,6 +297,7 @@ fun copy_test() {
     }
     answer = keep ^ input
 }`
+	source = strings.ReplaceAll(source, `via "ldir"`, `via "`+primitive+`"`)
 	hardwareCopyExport(t, "live-values/source.nanz", []byte(source))
 	for _, mode := range []string{"ordinary", "grace-size", "grace-speed"} {
 		t.Run(mode, func(t *testing.T) {

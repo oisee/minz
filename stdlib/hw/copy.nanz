@@ -149,21 +149,24 @@ fun @copy() {
             emit(c"POP AF")
             emit(c"}")
         } else {
-            emit(c"{")
-            emit(str_concat(c"var copy_src: ^u8 = ptr(", str_concat(str_from_int(saddress), c")")))
-            emit(str_concat(c"var copy_dst: ^u8 = ptr(", str_concat(str_from_int(daddress), c")")))
-            if width < 256 {
-                emit(str_concat(c"var copy_left: u8 = ", str_from_int(width)))
-            } else {
-                emit(str_concat(c"var copy_left: u16 = ", str_from_int(width)))
-            }
-            emit(c"while copy_left != 0 {")
-            emit(c"copy_dst^ = copy_src^")
-            emit(c"copy_src = copy_src + 1")
-            emit(c"copy_dst = copy_dst + 1")
-            emit(c"copy_left = copy_left - 1")
-            emit(c"}")
-            emit(c"}")
+            let region: u16 = hir_block()
+            let source: u16 = hir_ref(c"copy_src", c"ptr")
+            let destination: u16 = hir_ref(c"copy_dst", c"ptr")
+            var counter_type: ^u8 = c"u16"
+            if width < 256 { counter_type = c"u8" }
+            let counter: u16 = hir_ref(c"copy_left", counter_type)
+            // Current allocator favors HL for the first pointer: declare destination
+            // first so byte stores avoid preserving the live counter in A.
+            hir_append(region, hir_var(c"copy_dst", c"ptr", hir_int(u16(daddress), c"ptr")))
+            hir_append(region, hir_var(c"copy_src", c"ptr", hir_int(u16(saddress), c"ptr")))
+            hir_append(region, hir_var(c"copy_left", counter_type, hir_int(u16(width), counter_type)))
+            let body: u16 = hir_block()
+            hir_append(body, hir_store(destination, hir_load(source)))
+            hir_append(body, hir_assign(source, hir_binary(c"+", source, hir_int(1, c"u8"))))
+            hir_append(body, hir_assign(destination, hir_binary(c"+", destination, hir_int(1, c"u8"))))
+            hir_append(body, hir_assign(counter, hir_binary(c"-", counter, hir_int(1, counter_type))))
+            hir_append(region, hir_while(hir_binary(c"!=", counter, hir_int(0, counter_type)), body))
+            emit_hir(region)
         }
         row = row + 1
     }
