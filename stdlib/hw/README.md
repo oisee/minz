@@ -159,3 +159,60 @@ handler preserving both banks (verified with Spectrum 48K ROM in the demo).
 
 See reports/zx-rotozoomer-library/source.nanz for a demo using the shared texture
 walk and six declarative fill spans to prepare Alice's 32×48 PAPER/INK display.
+
+# Moving sprites and mutable row chains
+
+`import hw.sprite_chain` supplies a named generator, distinct from fixed `@sprite`:
+
+```nanz
+@sprite_chain("actor") {
+    destination "zx_bitmap_bytes" 0x4000
+    region 4 56 4 2
+    row "00000000" "11223344"
+    row "00000000" "55667788"
+    via "compiled"
+}
+
+fun relocate() -> void {
+    actor_set_row_0(0x4804)
+    actor_set_row_1(0x4904)
+    actor_set_entry(actor_row_1_address())
+    actor_set_next_1(actor_row_0_address())
+    actor_set_next_0(actor_done_address())
+    actor()
+}
+```
+
+Each row is an executable section with `LD HL,address` and a patchable JP link.
+Generated setters accept u16: `NAME_set_row_N(address)`,
+`NAME_set_next_N(code_address)`, `NAME_set_entry(code_address)`.
+`NAME_row_N_address()` and `NAME_done_address()` return section addresses for
+building chains. `NAME_entry_address()` returns the entry JP address; it is an
+introspection helper, not a substitute for calling the preserving `NAME()`.
+The initial chain visits rows naturally. Relinking permits permutations,
+subsets or an empty chain (entry → done). A valid chain must terminate at its
+own done; raw setters do not validate dynamic destinations, targets or cycles.
+
+Mask semantics and descriptor checks match `@sprite`. Address operands change
+at runtime. Pixel shifts and clipping are not implemented. Compiled form saves
+AF/BC/DE/HL in eight normal-stack bytes and preserves IX/IY, alternate registers,
+flags and IFF. Mutable JP bytes use DB 195 / DW target to prevent peephole removal
+of an adjacent JP; the assembled instruction remains a real JP.
+
+`via "push"` emits `LD SP,end_plus_one` and reversed `LD DE,word / PUSH DE` pairs.
+It requires even byte width, zero keep masks (opaque data), and explicit
+`irq "disabled"`. Its row setter takes the address immediately after the row,
+modulo 65536, rather than the first byte. The kernel saves the normal stack,
+records SP in a mutable restore immediate, draws, restores SP and registers,
+and returns. It does not execute DI/EI. The caller must disable maskable IRQ
+before entry and keep it disabled until return; NMI and reentry are unsupported.
+
+Both strategies require owned writable code and destination RAM, eight available
+normal-stack bytes, and code/destination/stack disjointness. Patch words before
+drawing; coordinate with IRQ/other callers so execution never sees a partial
+word patch. Repeated drawing without moving requires no patch. Instances are
+not recursion/reentry-safe. Caller controls valid layout and executable links.
+
+The demo uses DI around patch/draw and EI after return, then HALT for ROM IRQ.
+Run `scripts/play_zx_sprite_chain.sh`; pass `--push` first to select PUSH.
+See [proof and costs](../../reports/hardware-sprite-chain/README.md).

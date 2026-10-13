@@ -62,3 +62,35 @@ position; a regression verifies both generated functions and deterministic hashe
 Machine exports and logs are retained on `/mnt/safe/minz/grace/2026-10-13/`.
 Comparative move+draw cost, final API docs, main integration and final share audit
 remain required before the goal can close.
+
+## Measured move + draw
+
+Eight opaque rows; x/y are runtime globals, and position() calculates the same
+ZX row addresses. Pointer stores addresses in data and draws specialized ordinary
+Nanz; compiled/PUSH patch immediate addresses. Natural links are initialized once.
+The following is ordinary mode at x=4,y=56:
+
+| Width (bytes) | Strategy | Move T | Draw T | Total T | Module bytes |
+|---|---|---:|---:|---:|---:|
+| 4 | pointer | 3884 | 602 | 4486 | 867 |
+| 4 | compiled | 3859 | 728 | 4587 | 945 |
+| 4 | PUSH | 4091 | 630 | 4721 | 976 |
+| 8 | pointer | 3884 | 1114 | 4998 | 963 |
+| 8 | compiled | 3859 | 1240 | 5099 | 1041 |
+| 8 | PUSH | 4091 | 966 | 5057 | 1040 |
+| 16 | pointer | 3884 | 2138 | 6022 | 1155 |
+| 16 | compiled | 3859 | 2264 | 6123 | 1233 |
+| 16 | PUSH | 4091 | 1638 | 5729 | 1168 |
+
+81 checks cover three widths × three strategies × three compilation modes ×
+three runtime positions, including ZX row-boundary crossings. Each checks pixels
+and exact PC/SP. Counts include RET, exclude external CALL, DI/EI, ROM IRQ and ULA;
+module bytes include position code and helper accessors, not the demo. Relinking
+cost is measured separately in the initial native matrix. This cost benchmark
+compares natural traversal, not a dynamically reordered pointer algorithm.
+
+PUSH wins full move+draw on width16 here (~4.9% T), but loses on width4 and width8.
+Compiled chains buy dynamic traversal/masks and are not a universal speed win.
+A stationary sprite amortizes moving costs. No automatic selector is added.
+Exact source, ASM/BIN and measurements are exported by
+MINZ_HW_CHAIN_COST_EXPORT; the retained packet is on the share.

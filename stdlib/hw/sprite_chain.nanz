@@ -112,7 +112,7 @@ fun @sprite_chain(name: ^u8) -> void {
     }
     emit(str_concat(prefix, c"entry:"))
     if height == 0 { emit(c"DB 195")
-    emit(str_concat(c"DW ", str_concat(prefix, c"done"))) }
+        emit(str_concat(c"DW ", str_concat(prefix, c"done"))) }
     else { emit(c"DB 195")
     emit(str_concat(c"DW ", str_concat(prefix, c"row_0"))) }
     // Decode bytes on the compile-time VM, then emit only the resulting work.
@@ -183,7 +183,7 @@ fun @sprite_chain(name: ^u8) -> void {
             }
             emit(str_concat(rowname, c"_next:"))
             if row + 1 == height { emit(c"DB 195")
-    emit(str_concat(c"DW ", str_concat(prefix, c"done"))) }
+        emit(str_concat(c"DW ", str_concat(prefix, c"done"))) }
             else { emit(c"DB 195")
     emit(str_concat(c"DW ", str_concat(prefix, str_concat(c"row_", str_from_int(row + 1))))) }
             row = row + 1

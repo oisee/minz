@@ -348,6 +348,7 @@
     "TestHardwareFillLDIRNative",
     "TestHardwareFillMemoryNativeAndVM",
     "TestHardwareSpriteChainMaskedNative",
+    "TestHardwareSpriteChainMeasuredCost",
     "TestHardwareSpriteChainNative",
     "TestHardwareSpriteCompiledLiveValues",
     "TestHardwareSpriteCompiledNative",
