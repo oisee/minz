@@ -1793,6 +1793,9 @@ VERSION: %s (build %s, %s)
 			}
 			fmt.Printf("Running %d frames...\n", frames)
 			for i := 0; i < frames; i++ {
+				if keystrokeQueue != nil && !keystrokeQueue.Done() {
+					keystrokeQueue.Update()
+				}
 				machine.RunFrame()
 			}
 			if *screenshotFlag != "" {
