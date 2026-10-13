@@ -34,6 +34,13 @@ func TestZMachineBankedZorkGameplayNative(t *testing.T) {
 	}
 	testZMachineBankedInterpreterNative(t, false, path, "look\nopen mailbox\ntake leaflet\nread leaflet\ninventory\nquit\ny\n")
 }
+func TestZMachineBankedZorkConsoleNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_STORY")
+	if path == "" {
+		t.Skip("set MINZ_Z3_STORY")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-startup")
+}
 func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, externalStory string, commands string) {
 	root := filepath.Clean("../../..")
 	story, err := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/stream3.z3"))
@@ -59,6 +66,11 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
+	console := commands == "@console-startup"
+	if console {
+		commands = ""
+		cmd.Args = append(cmd.Args, "--console")
+	}
 	if commands != "" {
 		commandPath := filepath.Join(t.TempDir(), "commands.txt")
 		if err := os.WriteFile(commandPath, []byte(commands), 0600); err != nil {
@@ -100,6 +112,13 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	if err != nil {
 		t.Fatal(err)
 	}
+	if console {
+		for ch := 32; ch < 128; ch++ {
+			for line := 0; line < 8; line++ {
+				m.Memory.ROM[1][0x3d00+(ch-32)*8+line] = byte((ch*17 + line*29) ^ 0x5a)
+			}
+		}
+	}
 	for i, b := range a.Binary {
 		m.Memory.Write(0x5b00+uint16(i), b, false)
 	}
@@ -116,10 +135,67 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	m.CPU.SetIFF2(false)
 	m.CPU.SetTstates(0)
 	for i := 0; i < 100000000; i++ {
+		if console && m.CPU.PC() == uint16(a.Symbols["tui_read_line_or_eof"]) {
+			break
+		}
 		if m.CPU.PC() == 0x5000 && m.CPU.SP() == 0xbf02 {
 			break
 		}
 		m.CPU.DoOpcode()
+	}
+	if console {
+		if m.CPU.PC() != uint16(a.Symbols["tui_read_line_or_eof"]) {
+			t.Fatalf("console did not reach input PC%04x", m.CPU.PC())
+		}
+		// Independent 32x24 terminal model including wrap and scrolling.
+		cells := [24][32]byte{}
+		row, col := 0, 0
+		newline := func() {
+			col = 0
+			row++
+			if row == 24 {
+				for r := 0; r < 23; r++ {
+					cells[r] = cells[r+1]
+				}
+				cells[23] = [32]byte{}
+				row = 23
+			}
+		}
+		text := "ZORK I: The Great Underground Empire\nInfocom interactive fiction - a fantasy story\nCopyright (c) 1981, 1982, 1983, 1984, 1985, 1986 Infocom, Inc. All rights reserved.\nZORK is a registered trademark of Infocom, Inc.\nRelease 1 / Serial number 000001\n\nWest of House\nYou are standing in an open field west of a white house, with a boarded front door.\nThere is a small mailbox here.\n\n>"
+		for _, ch := range []byte(text) {
+			if ch == 10 || ch == 13 {
+				newline()
+				continue
+			}
+			cells[row][col] = ch
+			col++
+			if col == 32 {
+				newline()
+			}
+		}
+		for r := 0; r < 24; r++ {
+			for c := 0; c < 32; c++ {
+				ch := cells[r][c]
+				for l := 0; l < 8; l++ {
+					want := byte(0)
+					if ch >= 32 {
+						want = byte((int(ch)*17 + l*29) ^ 0x5a)
+					}
+					addr := uint16(0x4000 | ((r & 0x18) << 8) | (l << 8) | ((r & 7) << 5) | c)
+					if m.Memory.Read(addr) != want {
+						t.Fatalf("screen r%d c%d l%d got%02x want%02x", r, c, l, m.Memory.Read(addr), want)
+					}
+				}
+				if m.Memory.Read(uint16(0x5800+r*32+c)) != 7 {
+					t.Fatal("attribute mismatch")
+				}
+			}
+		}
+		if m.Memory.Read(uint16(a.Symbols["zx__console__con_col"])) != byte(col) || m.Memory.Read(uint16(a.Symbols["zx__console__con_row"])) != byte(row) || m.Memory.PagingState() != 0x10 || m.CPU.IFF1() {
+			t.Fatal("console cursor/paging/IFF mismatch")
+		}
+		t.Logf("console startup %d bytes; %d T; SP%04x cursor%d/%d", len(a.Binary), m.CPU.Tstates(), m.CPU.SP(), row, col)
+		return
 	}
 	if m.CPU.PC() != 0x5000 || m.CPU.SP() != 0xbf02 {
 		t.Fatalf("PC/SP=%04x/%04x vmPC=%02x%02x%02x steps=%02x%02x", m.CPU.PC(), m.CPU.SP(), m.Memory.Read(uint16(a.Symbols["pc"])+2), m.Memory.Read(uint16(a.Symbols["pc"])+1), m.Memory.Read(uint16(a.Symbols["pc"])), m.Memory.Read(uint16(a.Symbols["steps"])+1), m.Memory.Read(uint16(a.Symbols["steps"])))

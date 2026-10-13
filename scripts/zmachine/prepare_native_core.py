@@ -14,6 +14,7 @@ p = argparse.ArgumentParser()
 p.add_argument('output', type=Path)
 p.add_argument('--story-bytes', type=int, required=True)
 p.add_argument('--commands', type=Path, help='ASCII command transcript for native integration')
+p.add_argument('--console', action='store_true', help='Spectrum screen and keyboard instead of RAM capture')
 a = p.parse_args()
 if not 64 <= a.story_bytes <= 98304:
     p.error('raw story capacity is 64..98304')
@@ -110,6 +111,14 @@ if a.commands:
 }}'''
     assert stub in text
     text = text.replace(stub, replacement)
+if a.console:
+    text = text.replace('import zx.story_memory', 'import zx.console\nimport zx.story_memory')
+    text = text.replace('global native_output: [u8; 1024]\n', '')
+    text = text.replace('global native_output_length: u16 = 0\n', '')
+    replace_function('native_putchar', 'fun native_putchar(ch: u8) { con_putchar(ch) }')
+    if not a.commands:
+        replace_function('tui_read_line_or_eof', 'fun tui_read_line_or_eof(buf: ^u8, maxlen: u8) -> u8 { return con_input(buf, maxlen) }')
+    text = text.replace('fun main() {', 'fun main() {\n con_init(7, 0)\n con_clear()', 1)
 assert 'story[' not in text and '&story,' not in text
 assert 'snapshot[' not in text
 # Bank write belongs to the nested import: import it directly for stable naming.

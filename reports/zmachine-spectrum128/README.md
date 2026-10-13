@@ -297,3 +297,29 @@ inputs; capture remains bounded at 1024 bytes. Longer transcripts need a larger
 or streamed boundary and a new resident/stack budget.
 
 Full MIR2 after the word-store fix: PASS (114.029 s).
+
+
+## Native Spectrum screen reaches Zork input
+
+`prepare_native_core.py --console` replaces the capture buffer with zx.console
+output and keyboard input, initializes/clears the screen, and preserves raw
+banked story access. The generated console resident is 24860 bytes at $5B00,
+ending $BC1C below the reserved stack boundary $BE00. This is a size gate, not
+a proof of worst-case native stack depth or complete game compatibility.
+
+Full candidate Zork now reaches the real input boundary after rendering startup
+on Spectrum screen RAM: 325870630 T, cursor row 18/column 1, SP $BEF4. The test
+compares all 6144 pixel bytes and 768 attributes against an independent 32x24
+terminal model including wrapping and scrolling; font bytes are synthetic ROM
+data for a deterministic oracle. No keyboard input is bypassed in the generated
+console version, but this startup test stops before executing the input routine.
+Real keyboard gameplay and a distributable snapshot still need verification.
+
+A separate full 64KB memory check confirms original console scrolling copies
+rows 1..23 upward and clears the bottom row without writes outside screen/stack.
+The original implementation passed; no console code fix was necessary. Ordinary
+Nanz `for i in 0..N` traverses zero-based ascending indices here; it must not be
+confused with the separate countdown iterator range path. Earlier suspicion of
+an indexing bug was disproved by the native check.
+
+Combined console budget/scroll and native Z3 fixture/Zork gates: PASS (24.376 s).
