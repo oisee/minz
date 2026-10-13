@@ -20,14 +20,16 @@ func TestZMachineZorkDiskSaveAcrossRestart(t *testing.T) {
 	if path == "" {
 		t.Skip("set MINZ_Z3_STORY to Zork I")
 	}
-	testZMachineDiskSave(t, path)
+	testZMachineDiskSave(t, path, true)
 }
 
-func TestZMachineDiskSaveAcrossRestart(t *testing.T) { testZMachineDiskSave(t, "") }
+func TestZMachineDiskSaveAcrossRestart(t *testing.T) { testZMachineDiskSave(t, "", true) }
+
+func TestZMachineDiskSaveLegacyStaging(t *testing.T) { testZMachineDiskSave(t, "", false) }
 
 // Independent Inform story: SAVE branches again after RESTORE, recovering
 // value=1 even though the restore command sets it to 7 first.
-func testZMachineDiskSave(t *testing.T, externalStory string) {
+func testZMachineDiskSave(t *testing.T, externalStory string, extended bool) {
 	root := filepath.Clean("../../..")
 	original, err := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/save_restore.z3"))
 	if err != nil {
@@ -76,6 +78,9 @@ func testZMachineDiskSave(t *testing.T, externalStory string) {
 			}
 			source := filepath.Join(dir, "native.nanz")
 			gen := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), source, "--story-bytes", strconv.Itoa(size), "--restart-offset", strconv.Itoa(offset), "--restart-bytes", strconv.Itoa(int(story[14])<<8|int(story[15])), "--restart-rle-bytes", strconv.Itoa(len(archive)), "--save-story", storyPath, "--disk-save", "--commands", commands)
+			if extended {
+				gen.Args = append(gen.Args, "--extended-save")
+			}
 			if out, err := gen.CombinedOutput(); err != nil {
 				t.Fatalf("generate: %v %s", err, out)
 			}
@@ -101,7 +106,7 @@ func testZMachineDiskSave(t *testing.T, externalStory string) {
 			capture = capture[:start] + "fun native_putchar(ch:u8) { asm z80 { NOP } }" + capture[end:]
 			capture = strings.ReplaceAll(capture, "global native_output: [u8; 1024]\n", "")
 			capture = strings.ReplaceAll(capture, "global native_output_length: u16 = 0\n", "")
-			h, err := nanz.ParseWithOpts(capture, source, nanz.ParseOpts{StdlibDir: filepath.Join(root, "stdlib")})
+			h, err := nanz.ParseWithOpts(capture, source, nanz.ParseOpts{BaseDir: filepath.Dir(source), StdlibDir: filepath.Join(root, "stdlib")})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -123,6 +128,7 @@ func testZMachineDiskSave(t *testing.T, externalStory string) {
 				t.Fatal(err)
 			}
 			failWriteAt, writeCalls := 0, 0
+			var stagingMagic []byte
 			run := func(disk *formats.TRDFile, restore bool) []byte {
 				m, err := spectrum.NewScorpionMemory256(nil, nil)
 				if err != nil {
@@ -159,7 +165,11 @@ func testZMachineDiskSave(t *testing.T, externalStory string) {
 				writeCalls = 0
 				actualPath := disk.Path
 				defer func() { disk.Path = actualPath }()
-				m.SetPCTrap(uint16(a.Symbols["zx__scorpion_disk__scorpion_disk_sector"]), func() {
+				sectorSymbol := "zx__scorpion_disk__scorpion_disk_sector"
+				if extended {
+					sectorSymbol = "zx__scorpion_disk9__scorpion_disk_sector"
+				}
+				m.SetPCTrap(uint16(a.Symbols[sectorSymbol]), func() {
 					if byte(m.CPU.AF()>>8) == 6 {
 						writeCalls++
 						if failWriteAt == writeCalls {
@@ -181,9 +191,25 @@ func testZMachineDiskSave(t *testing.T, externalStory string) {
 					t.Fatal("return boundary", m.CPU.PC(), m.CPU.SP())
 				}
 
+				dynamic := int(story[14])<<8 | int(story[15])
+				for i := dynamic; i < len(story); i++ {
+					if got := m.Memory.RAM[pages[i/16384]][i%16384]; got != story[i] {
+						t.Fatalf("static story changed at %d: %02x != %02x", i, got, story[i])
+					}
+				}
+				for i, expected := range archive {
+					at := offset + i
+					if got := m.Memory.RAM[pages[at/16384]][at%16384]; got != expected {
+						t.Fatalf("restart archive changed at %d", at)
+					}
+				}
+				stagingMagic = append([]byte(nil), m.Memory.ExtendedRAM[0][:4]...)
 				return output
 			}
 			first := run(disk, false)
+			if extended && !bytes.Equal(stagingMagic, []byte("MZ3R")) {
+				t.Fatalf("save not staged in physical bank8: %x", stagingMagic)
+			}
 			if externalStory == "" && !bytes.Equal(first, []byte(">saved 1\n>\n")) {
 				t.Fatalf("save %q", first)
 			}

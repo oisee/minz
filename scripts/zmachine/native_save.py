@@ -9,7 +9,7 @@ from save_format import HEADER,MAGIC,VERSION,geometry
 
 def emit(story,bank_bits,offset,capacity=2204,frames=32,stack_words=256):
     dynamic,size,identity=geometry(story,frames,stack_words)
-    if bank_bits not in (0x11,0x13,0x14,0x16,0x17) or not 32<=capacity<=16384 or not 0<=offset<=16384-capacity:
+    if bank_bits not in (0x11,0x13,0x14,0x16,0x17,0x50) or not 32<=capacity<=16384 or not 0<=offset<=16384-capacity:
         raise ValueError('invalid save slot')
     header=HEADER.pack(MAGIC,VERSION,frames,stack_words,dynamic,size,0,0,identity,len(story),0)
     values=','.join(str(x) for x in header)

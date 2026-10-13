@@ -1494,3 +1494,29 @@ header и final marker. Во всех случаях SAVE сообщает failu
 или все повреждения marker. Existing emulator atomic host-image replace
 остаётся предусловием. Следующее необходимое изменение — перенос staging
 из story bank в расширенную RAM перед interactive disk distribution.
+
+### 13 октября: SAVE staging освобождает story RAM
+
+Generator `--disk-save --extended-save` размещает MZ3R staging целиком в
+Scorpion bank8 (16384 bytes), sector buffer в bank9. Обычные банки истории
+и независимый RESTART archive больше не используются как временный SAVE.
+Переключатель учитывает оба порта `$7FFD`/`$1FFD`, сохраняет registers/flags,
+а после операций возвращает paging `$10/$00`. Предусловия: DI, resident
+code/stack, paging unlocked; это профиль памяти Scorpion, не полный компьютер.
+
+Zork I: disk SAVE, fresh-machine RESTORE с leaflet inventory, corrupt header
+rejection и все четыре write failure positions — PASS за 52.663 s. Каждый
+запуск дополнительно проверяет static story и restart archive byte-for-byte;
+первый SAVE проверяет MZ3R magic непосредственно в physical bank8. Resident
+capture 23329 bytes. Независимая Inform fixture: extended staging и прежний
+story-bank staging оба PASS (8.396 s суммарно). Прежний режим сохраняет sector
+buffer в bank8. Это проверки двух records, не всех состояний игры.
+
+Полная console/keyboard сборка Zork I с extended disk SAVE помещается:
+24864 bytes, origin `$5B00`, end `$BC20`; stack reservation начинается `$BE00`.
+Graphical MZX теперь принимает `--model scorpion-memory`; build PASS.
+Сохранение SNA с extended memory отклоняется: формат не хранит банки8..15.
+Загрузка исходного 128K SNA допустима, если extra banks инициализируются пустыми.
+Постоянный SAVE находится в выделенном TRD через emulator API traps. Physical
+TR-DOS, интерактивный lifecycle новой disk bundle и оконные V3 commands ещё
+не подтверждены. Общая цель остаётся active.

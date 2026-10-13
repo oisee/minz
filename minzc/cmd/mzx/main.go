@@ -1072,7 +1072,7 @@ func parseCaptureRange(s string) (captureRange, bool) {
 }
 
 func main() {
-	modelFlag := flag.String("model", "128k", "Machine model: 48k, 128k, pentagon")
+	modelFlag := flag.String("model", "128k", "Machine model: 48k, 128k, pentagon, scorpion-memory")
 	romFlag := flag.String("rom", "", "Path to ROM file")
 	rom1Flag := flag.String("rom1", "", "Path to second ROM (128K models)")
 	snapshotFlag := flag.String("snapshot", "", "Path to .sna snapshot file")
@@ -1131,7 +1131,7 @@ USAGE:
   mzx [flags] --dump-frames DIR       Headless: capture frame sequence
 
 MACHINE:
-  --model MODEL       Machine model: 48k, 128k, pentagon (default: 128k)
+  --model MODEL       Machine model: 48k, 128k, pentagon, scorpion-memory (default: 128k)
   --rom FILE          Custom ROM file (16K for 48K, 32K for 128K)
   --rom1 FILE         Second ROM for 128K models
   --scale N           Display scale 1-4 (default: 2)
@@ -1299,7 +1299,7 @@ VERSION: %s (build %s, %s)
 			log.Fatalf("Error creating 48K machine: %v", err)
 		}
 
-	case "128k", "pentagon":
+	case "128k", "pentagon", "scorpion-memory":
 		var rom0, rom1 []byte
 		if *romFlag != "" {
 			rom0, err = os.ReadFile(*romFlag)
@@ -1321,15 +1321,22 @@ VERSION: %s (build %s, %s)
 			// so ExecBASIC (which uses 48K ROM entry points) always works.
 			rom1 = embedded48KROM
 		}
-		machine, err = spectrum.NewPentagon128(rom0, rom1)
+		if *modelFlag == "scorpion-memory" {
+			machine, err = spectrum.NewScorpionMemory256(rom0, rom1)
+		} else {
+			machine, err = spectrum.NewPentagon128(rom0, rom1)
+		}
 		if err != nil {
 			log.Fatalf("Error creating Pentagon machine: %v", err)
 		}
 
 	default:
-		log.Fatalf("Unknown model: %s (supported: 48k, 128k, pentagon)", *modelFlag)
+		log.Fatalf("Unknown model: %s (supported: 48k, 128k, pentagon, scorpion-memory)", *modelFlag)
 	}
 
+	if *modelFlag == "scorpion-memory" && (*saveSnapshotFlag != "" || *snapshotAtTState != "") {
+		log.Fatal("SNA cannot preserve Scorpion extended banks; extended snapshot format not implemented")
+	}
 	// Disable audio components based on flags
 	if *noAudioFlag || *noBeeperFlag {
 		machine.Beeper.SetEnabled(false)

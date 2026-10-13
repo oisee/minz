@@ -4,35 +4,39 @@ Dedicated TRD marker track1/sector1 and two slots tracks2..5 and6..9.
 Commit marker published last; atomic sector persistence is provided by emulator.
 Existing preflight validates identity/CRC/structure before applying game state.
 """
-def emit(bank,offset,capacity):
+def emit(bank,offset,capacity,extended=False):
+    buffer = 9 if extended else 8
+    module = "scorpion_disk9" if extended else "scorpion_disk"
+    read = f"scorpion_read(8,base+i,0x10,0)" if extended else f"bank_read({bank},{offset}+base+i,0x10)"
+    write = f"scorpion_write(8,base+i,scorpion_read({buffer},i,0x10,0),0x10,0)" if extended else f"bank_write({bank},{offset}+base+i,scorpion_read({buffer},i,0x10,0),0x10)"
     return f'''import zx.scorpion_memory
-import zx.scorpion_disk
+import zx.{module}
 global disk_record_length:u16
 global disk_slot:u8
 fun native_disk_marker()->u8 {{
  if scorpion_disk_sector(5,0,1,1)==0 {{ return 0 }}
- if scorpion_read(8,0,0x10,0)!=77 {{ return 0 }}
- if scorpion_read(8,1,0x10,0)!=90 {{ return 0 }}
- disk_slot=scorpion_read(8,2,0x10,0)
+ if scorpion_read({buffer},0,0x10,0)!=77 {{ return 0 }}
+ if scorpion_read({buffer},1,0x10,0)!=90 {{ return 0 }}
+ disk_slot=scorpion_read({buffer},2,0x10,0)
  if disk_slot>1 {{ return 0 }}
- if scorpion_read(8,3,0x10,0)!=(disk_slot xor 255) {{ return 0 }}
+ if scorpion_read({buffer},3,0x10,0)!=(disk_slot xor 255) {{ return 0 }}
  return 1
 }}
 fun native_disk_commit()->u8 {{
  var i:u16=0
- while i<256 {{ scorpion_write(8,i,0,0x10,0) i=i+1 }}
- scorpion_write(8,0,77,0x10,0)
- scorpion_write(8,1,90,0x10,0)
- scorpion_write(8,2,disk_slot,0x10,0)
- scorpion_write(8,3,disk_slot xor 255,0x10,0)
+ while i<256 {{ scorpion_write({buffer},i,0,0x10,0) i=i+1 }}
+ scorpion_write({buffer},0,77,0x10,0)
+ scorpion_write({buffer},1,90,0x10,0)
+ scorpion_write({buffer},2,disk_slot,0x10,0)
+ scorpion_write({buffer},3,disk_slot xor 255,0x10,0)
  return scorpion_disk_sector(6,0,1,1)
 }}
 fun native_disk_copy_out(base:u16,count:u16) {{
  var i:u16=0
  while i<256 {{
   var value:u8=0
-  if base+i<count {{ value=bank_read({bank},{offset}+base+i,0x10) }}
-  scorpion_write(8,i,value,0x10,0)
+  if base+i<count {{ value={read} }}
+  scorpion_write({buffer},i,value,0x10,0)
   i=i+1
  }}
 }}
@@ -56,8 +60,8 @@ fun native_disk_restore()->u8 {{
  if native_disk_marker()==0 {{ return 0 }}
  if scorpion_disk_sector(5,0,2+disk_slot*4,1)==0 {{ return 0 }}
  // MZ3R stores two little-endian encoded lengths at offsets12 and14.
- let first:u16=u16(scorpion_read(8,12,0x10,0)) | (u16(scorpion_read(8,13,0x10,0))<<8)
- let second:u16=u16(scorpion_read(8,14,0x10,0)) | (u16(scorpion_read(8,15,0x10,0))<<8)
+ let first:u16=u16(scorpion_read({buffer},12,0x10,0)) | (u16(scorpion_read({buffer},13,0x10,0))<<8)
+ let second:u16=u16(scorpion_read({buffer},14,0x10,0)) | (u16(scorpion_read({buffer},15,0x10,0))<<8)
  if first>{capacity}-32 {{ return 0 }}
  if second>{capacity}-32-first {{ return 0 }}
  disk_record_length=first+second+32
@@ -69,7 +73,7 @@ fun native_disk_restore()->u8 {{
   }}
   var i:u16=0
   while i<256 {{
-   if base+i<disk_record_length {{ bank_write({bank},{offset}+base+i,scorpion_read(8,i,0x10,0),0x10) }}
+   if base+i<disk_record_length {{ {write} }}
    i=i+1
   }}
   base=base+256
