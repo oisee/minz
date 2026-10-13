@@ -20,6 +20,7 @@ import (
 
 	"github.com/ebitengine/oto/v3"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
 	"github.com/minz/minzc/pkg/spectrum"
@@ -43,10 +44,16 @@ const (
 
 // Game implements ebiten.Game.
 type Game struct {
-	machine *spectrum.Machine
-	screen  *ebiten.Image
-	scale   int
-	noAudio bool
+	demoMenu     bool
+	demoRoot     string
+	demoSession  string
+	demoTitle    string
+	demoSelected int
+	demoError    string
+	machine      *spectrum.Machine
+	screen       *ebiten.Image
+	scale        int
+	noAudio      bool
 
 	// Audio (direct oto for low latency)
 	otoCtx    *oto.Context
@@ -106,6 +113,38 @@ func newGame(machine *spectrum.Machine, scale int, noAudio bool) *Game {
 }
 
 func (g *Game) Update() error {
+	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) && g.demoTitle != "" {
+		if err := saveDemoSession(g.machine, g.demoSession); err != nil {
+			g.demoError = err.Error()
+			return nil
+		}
+		g.demoMenu = true
+	}
+	if g.demoMenu {
+		if inpututil.IsKeyJustPressed(ebiten.KeyArrowDown) {
+			g.demoSelected = (g.demoSelected + 1) % len(demoCatalog)
+		}
+		if inpututil.IsKeyJustPressed(ebiten.KeyArrowUp) {
+			g.demoSelected = (g.demoSelected + len(demoCatalog) - 1) % len(demoCatalog)
+		}
+		if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
+			d := demoCatalog[g.demoSelected]
+			m, session, err := loadDemo(d.ID, g.demoRoot, embedded48KROM)
+			if err != nil {
+				g.demoError = err.Error()
+			} else {
+				g.machine = m
+				g.demoSession = session
+				g.demoTitle = d.Title
+				g.screen = ebiten.NewImage(m.ScreenWidth(), m.ScreenHeight())
+				g.demoMenu = false
+				g.demoError = ""
+				g.keystrokeQueue = nil
+			}
+		}
+		return nil
+	}
+
 	// Restore stderr after a few startup frames (suppressed for CAMetalLayer warnings)
 	g.startupFrames++
 	if g.startupFrames == 3 {
@@ -127,7 +166,7 @@ func (g *Game) Update() error {
 			log.Printf("Screenshot saved: %s", path)
 		}
 	}
-	if inpututil.IsKeyJustPressed(ebiten.KeyF12) {
+	if inpututil.IsKeyJustPressed(ebiten.KeyF12) && !g.machine.Memory.ScorpionPagingEnabled() {
 		path := fmt.Sprintf("mzx_snapshot_%06d.sna", g.machine.FrameCount())
 		if err := formats.SaveSNA(path, g.machine); err != nil {
 			log.Printf("Snapshot error: %v", err)
@@ -168,6 +207,24 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
+	if g.demoMenu {
+		screen.Fill(color.RGBA{16, 20, 38, 255})
+		text := "MINZ / Z80 DEMOS\n\n"
+		for i, d := range demoCatalog {
+			marker := "  "
+			if i == g.demoSelected {
+				marker = "> "
+			}
+			text += marker + d.Title + "\n\n"
+		}
+		text += "Up / Down: choose    Enter: play\nEscape: menu\n\n" + demoCatalog[g.demoSelected].Help
+		if g.demoError != "" {
+			text += "\n\n" + g.demoError
+		}
+		ebitenutil.DebugPrintAt(screen, text, 24, 24)
+		return
+	}
+
 	fb := g.machine.Framebuffer()
 	w := g.machine.ScreenWidth()
 	h := g.machine.ScreenHeight()
@@ -1078,6 +1135,9 @@ func parseCaptureRange(s string) (captureRange, bool) {
 }
 
 func main() {
+	demoFlag := flag.String("demo", "", "Launch an embedded demo (see --list-demos)")
+	demoList := flag.Bool("list-demos", false, "List embedded demos")
+	demoRoot := flag.String("data-dir", "", "Persistent demo data directory (default: user config/minz/mzx)")
 	modelFlag := flag.String("model", "128k", "Machine model: 48k, 128k, pentagon, scorpion-memory")
 	romFlag := flag.String("rom", "", "Path to ROM file")
 	rom1Flag := flag.String("rom1", "", "Path to second ROM (128K models)")
@@ -1235,6 +1295,10 @@ VERSION: %s (build %s, %s)
 `, version, buildNum, buildDate)
 	}
 	flag.Parse()
+	if *demoList {
+		listDemos()
+		return
+	}
 
 	// --run FILE@ADDR: expand to --load + --set
 	if *runFlag != "" {
@@ -1340,6 +1404,18 @@ VERSION: %s (build %s, %s)
 		log.Fatalf("Unknown model: %s (supported: 48k, 128k, pentagon, scorpion-memory)", *modelFlag)
 	}
 
+	demoSession := ""
+	demoTitle := ""
+	if *demoFlag != "" {
+		var err error
+		machine, demoSession, err = loadDemo(*demoFlag, *demoRoot, embedded48KROM)
+		if err != nil {
+			log.Fatal(err)
+		}
+		d, _ := findDemo(*demoFlag)
+		demoTitle = d.Title
+		*modelFlag = d.Model
+	}
 	if *modelFlag == "scorpion-memory" && (*saveSnapshotFlag != "" || *snapshotAtTState != "") {
 		log.Fatal("SNA cannot preserve Scorpion extended banks; extended snapshot format not implemented")
 	}
@@ -1701,6 +1777,12 @@ VERSION: %s (build %s, %s)
 	isHeadless := *screenshotFlag != "" || *dumpFrames != "" || *dumpKeyframes != "" || *saveSnapshotFlag != "" || *consolePortFlag != ""
 
 	if isHeadless {
+		defer func() {
+			if err := saveDemoSession(machine, demoSession); err != nil {
+				log.Printf("Session save: %v", err)
+			}
+		}()
+
 		cs := parseCaptureSpec(*framesFlag)
 		limit := *maxFrames
 
@@ -1712,6 +1794,10 @@ VERSION: %s (build %s, %s)
 			}
 			fmt.Printf("Running %d frames...\n", frames)
 			for i := 0; i < frames; i++ {
+				if keystrokeQueue != nil {
+					machine.Keyboard.Reset()
+					keystrokeQueue.Update()
+				}
 				machine.RunFrame()
 			}
 			if *screenshotFlag != "" {
@@ -1759,7 +1845,8 @@ VERSION: %s (build %s, %s)
 
 			fmt.Printf("Running up to %d frames (trigger mode)...\n", limit)
 			for frame := 0; frame < limit; frame++ {
-				if keystrokeQueue != nil && !keystrokeQueue.Done() {
+				if keystrokeQueue != nil {
+					machine.Keyboard.Reset()
 					keystrokeQueue.Update()
 				}
 				machine.RunFrame()
@@ -1862,7 +1949,8 @@ VERSION: %s (build %s, %s)
 				for i := 0; i < skipTo; i++ {
 					// Inject keystrokes during turbo-skip so --skip and
 					// non-skip modes produce identical results.
-					if keystrokeQueue != nil && !keystrokeQueue.Done() {
+					if keystrokeQueue != nil {
+						machine.Keyboard.Reset()
 						keystrokeQueue.Update()
 					}
 					machine.RunFrameFast()
@@ -1877,7 +1965,8 @@ VERSION: %s (build %s, %s)
 		fmt.Printf("Running frames %d..%d...\n", startFrame, lastEnd)
 
 		for frame := startFrame; frame <= lastEnd; frame++ {
-			if keystrokeQueue != nil && !keystrokeQueue.Done() {
+			if keystrokeQueue != nil {
+				machine.Keyboard.Reset()
 				keystrokeQueue.Update()
 			}
 			machine.RunFrame()
@@ -1933,8 +2022,12 @@ VERSION: %s (build %s, %s)
 	// Restored in Game.Update() after the first few frames.
 	suppressStderr()
 
-	game := newGame(machine, scale, *noAudioFlag)
+	game := newGame(machine, scale, *noAudioFlag || len(os.Args) == 1 || *demoFlag != "")
 	game.keystrokeQueue = keystrokeQueue
+	game.demoRoot = *demoRoot
+	game.demoSession = demoSession
+	game.demoTitle = demoTitle
+	game.demoMenu = len(os.Args) == 1
 
 	fmt.Printf("MZX ZX Spectrum Emulator\n")
 	fmt.Printf("Model: %s (%dx%d, %d T-states/frame)\n",
@@ -1946,6 +2039,9 @@ VERSION: %s (build %s, %s)
 
 	if err := ebiten.RunGame(game); err != nil && err != ebiten.Termination {
 		log.Fatal(err)
+	}
+	if err := saveDemoSession(game.machine, game.demoSession); err != nil {
+		log.Printf("Session save: %v", err)
 	}
 	savePSG()
 }

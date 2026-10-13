@@ -1,4 +1,6 @@
 <p align="center">
+
+**Zork I/II on native Z80 is now in main.** Full-game and fresh-machine SAVE/RESTORE evidence: [current port status](reports/zmachine-spectrum128/current-status.md). The Linux/Windows embedded-demo release is being verified: [release progress](reports/zmachine-spectrum128/release/progress.md).
   <img src="media/minz-logo-shamrock-mint.png" width="520" alt="MinZ logo: a mint-green shamrock">
 </p>
 
