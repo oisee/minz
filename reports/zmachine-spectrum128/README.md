@@ -164,3 +164,17 @@ bytes by narrowing the data interface; globals remain 4169, total 27608. Full
 native placement remains unfinished. The fixed area must also hold console,
 stack and compression cache/decoder. narrow-native-size-map.json records the
 measurement; artifacts and raw logs are retained on the share.
+
+## First native interpreter integration: failing gate
+
+prepare_native_core.py replaces story storage with real banked access, removes
+snapshot and retains explicitly unsupported native I/O boundaries. This is an
+integration harness, not a runnable game release. The independent Inform
+stream3 fixture executes from physical bank0, resident code starting at $5B00.
+
+The initial attempt misdecoded instruction 1 despite correct header/PC reads.
+Putting nonreentrant decoder state in globals reaches quit after 41 Z3
+instructions, but output is still wrong: `32:0,32,0 / 32:0,32;32:0` instead of
+`3:65,13,66 / 2:88,90;1:89`. The new gate intentionally exposes the failure.
+Next work: reduce stream writes and number formatting, verify live values
+across calls. No complete native Z3 or Zork success is claimed.

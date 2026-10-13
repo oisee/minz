@@ -90,3 +90,17 @@ ZVM_EXPECTED_SAVE_SHA=df95a1d269ebc6f0163adc944f71c7a95021df71948a375d53a5e7e814
 область функций неисполняемого диагностического пробника с 27414 до
 23439 байт. Globals остаются 4169 байт; полный пробник — 27608 байт.
 Фикстуры VM и исходный формат save проходят без изменений.
+
+Первый native harness (`prepare_native_core.py`) исполняет настоящее ядро
+с банковой story и захватом вывода в RAM. Ввод, save и restart Spectrum ещё
+не реализованы. Независимая Inform-фикстура stream3 находится в банке 0.
+Код размещается от $5B00, native stack ниже $C000, IRQ отключены.
+
+**Интеграционный gate пока красный:** перенос состояния nonreentrant-декодера
+в globals позволил завершить 41 инструкцию story, но числа/байты stream3
+не совпадают с эталоном. Это не работоспособный Z3 или Zork. Воспроизведение:
+
+```sh
+cd minzc
+go test ./pkg/pipeline -run '^TestZMachineBankedInterpreterNative$' -count=1 -v
+```
