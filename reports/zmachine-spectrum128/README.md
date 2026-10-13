@@ -543,3 +543,20 @@ The generator is tested separately and not yet appended to the runnable core.
 Native dynamic-memory XOR streaming and full format validation/apply remain;
 resident fit must be measured once connected. SAVE/RESTORE remain disabled in
 the distributed desktop checkpoint.
+
+
+## Native save integrity primitive
+
+`stdlib/zx/crc.nanz` computes incremental CRC-16/CCITT-FALSE (polynomial 0x1021,
+initial 0xffff, no final XOR) directly over one bank window, with no tables or
+scratch allocation. Resident code/stack and disabled IRQ are caller requirements;
+bank/offset/count bounds are trusted. Paging returns to 0x10, IFF unchanged.
+
+162 native range cases PASS in 1.57 seconds, each also checked with split updates:
+all six banks, three seeds, zero length at both boundaries, known 123456789→29b1
+vector, 2204-byte save-slot ranges at start/end, and complete 16K banks. Additional
+save-layout checks combine header bytes 0..29 with payload bytes 32 onward,
+excluding stored CRC bytes 30/31. Every physical RAM byte outside bounded native
+stack remains unchanged; PC/SP/paging/IFF checked. CRC detects accidental damage,
+not authenticity. The primitive still needs wiring into the complete save header
+validator before the apply phase; desktop SAVE/RESTORE remain disabled.
