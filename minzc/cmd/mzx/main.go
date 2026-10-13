@@ -1406,6 +1406,18 @@ VERSION: %s (build %s, %s)
 	if *modelFlag == "scorpion-memory" && (*saveSnapshotFlag != "" || *snapshotAtTState != "") {
 		log.Fatal("SNA cannot preserve Scorpion extended banks; extended snapshot format not implemented")
 	}
+	demoSession := ""
+	demoTitle := ""
+	if *demoFlag != "" {
+		var err error
+		machine, demoSession, err = loadDemo(*demoFlag, *demoRoot, embedded48KROM)
+		if err != nil {
+			log.Fatal(err)
+		}
+		d, _ := findDemo(*demoFlag)
+		demoTitle = d.Title
+		*modelFlag = d.Model
+	}
 	// Disable audio components based on flags
 	if *noAudioFlag || *noBeeperFlag {
 		machine.Beeper.SetEnabled(false)
@@ -1761,17 +1773,6 @@ VERSION: %s (build %s, %s)
 		}
 	}
 
-	demoSession := ""
-	demoTitle := ""
-	if *demoFlag != "" {
-		var err error
-		machine, demoSession, err = loadDemo(*demoFlag, *demoRoot, embedded48KROM)
-		if err != nil {
-			log.Fatal(err)
-		}
-		d, _ := findDemo(*demoFlag)
-		demoTitle = d.Title
-	}
 	isHeadless := *screenshotFlag != "" || *dumpFrames != "" || *dumpKeyframes != "" || *saveSnapshotFlag != "" || *consolePortFlag != ""
 
 	if isHeadless {
