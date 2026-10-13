@@ -254,6 +254,52 @@ sys.exit(int(fail))
             self.assertEqual(len(report['results']),1)
             self.assertEqual(run.call_args.args[4:6],([2,3],2))
 
+    def test_progress_retains_inventory_and_completed_units(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); self.fixture(root); fake = self.fake(root)
+            output = root / 'matrix.json'
+            progress = matrix.MatrixProgress(output)
+            events = []
+            def callback(event):
+                events.append(event)
+                progress.event('z80', event)
+            cache = {}
+            with patch.object(matrix, 'enumerate_asserts', wraps=matrix.enumerate_asserts) as listing:
+                first = matrix.matrix(root, ['*.nanz'], {'compiler': fake}, 2, 1, 5,
+                                      progress=callback, inventory_cache=cache)
+                second = matrix.matrix(root, ['*.nanz'], {'compiler': fake}, 2, 1, 5,
+                                       backend='mir2', inventory_cache=cache)
+                self.assertEqual(listing.call_count, 1)
+            progress.close() # Cancellation/error state must never imply success.
+            state = json.loads(output.with_suffix('.progress.json').read_text())
+            self.assertEqual(state['status'], 'incomplete')
+            inventory = next(event for event in events if event['stage'] == 'inventory')
+            execution_index = next(i for i,event in enumerate(events) if event['stage'] == 'execution')
+            self.assertLess(events.index(inventory), execution_index)
+            journal = [json.loads(line) for line in output.with_suffix('.events.jsonl').read_text().splitlines()]
+            completed = [event for event in journal if event['stage'] == 'unit']
+            self.assertEqual(len(completed), first['summary']['units'])
+            self.assertEqual(len(state['passes']['z80']['results']), len(completed))
+            self.assertEqual(first['results'], second['results'])
+            self.assertEqual(len(inventory['inventories']['compiler']), 2)
+
+    def test_progress_publishes_completed_unit_before_slow_first(self):
+        import threading
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); self.fixture(root); fake = self.fake(root)
+            fast_reported = threading.Event()
+            def run(*args, **kwargs):
+                if args[4] == [2]:
+                    self.assertTrue(fast_reported.wait(2), 'first unit blocked completed-unit publication')
+                return {'pass': True, 'exit_code': 0, 'error': ''}
+            def progress(event):
+                if event['stage'] == 'unit' and event['index'] == 1:
+                    fast_reported.set()
+            with patch.object(matrix, 'run_compiler', side_effect=run):
+                report = matrix.matrix(root, ['*.nanz'], {'compiler':fake},2,1,5,progress=progress)
+            self.assertEqual([result['line'] for result in report['results']], [2,3])
+            self.assertTrue(fast_reported.is_set())
+
     def test_listing_failures_are_audited(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp); self.fixture(root); fake=self.fake(root)
