@@ -1,0 +1,28 @@
+=== RUN   TestCheckedWordShiftCallerNative
+    checked_word_shift_caller_test.go:70: external CALL keeps x: shift1 88 -> 84 T
+    checked_word_shift_caller_test.go:101: strategy=greedy grace=false
+    checked_word_shift_caller_test.go:102: caller shift1 all65536: 9 -> 8 bytes, 40 -> 40 T; backend=checked-local-table
+    checked_word_shift_caller_test.go:70: external CALL keeps x: shift4 121 -> 117 T
+    checked_word_shift_caller_test.go:101: strategy=greedy grace=false
+    checked_word_shift_caller_test.go:102: caller shift4 all65536: 15 -> 14 bytes, 73 -> 73 T; backend=checked-local-table
+    checked_word_shift_caller_test.go:70: external CALL keeps x: shift1 88 -> 84 T
+    checked_word_shift_caller_test.go:101: strategy=greedy grace=true
+    checked_word_shift_caller_test.go:102: caller shift1 all65536: 9 -> 8 bytes, 40 -> 40 T; backend=checked-local-table
+    checked_word_shift_caller_test.go:70: external CALL keeps x: shift4 121 -> 117 T
+    checked_word_shift_caller_test.go:101: strategy=greedy grace=true
+    checked_word_shift_caller_test.go:102: caller shift4 all65536: 15 -> 14 bytes, 73 -> 73 T; backend=checked-local-table
+    checked_word_shift_caller_test.go:70: external CALL keeps x: shift1 88 -> 84 T
+    checked_word_shift_caller_test.go:101: strategy=pbqp grace=false
+    checked_word_shift_caller_test.go:102: caller shift1 all65536: 9 -> 8 bytes, 40 -> 40 T; backend=checked-local-table
+    checked_word_shift_caller_test.go:70: external CALL keeps x: shift4 121 -> 117 T
+    checked_word_shift_caller_test.go:101: strategy=pbqp grace=false
+    checked_word_shift_caller_test.go:102: caller shift4 all65536: 15 -> 14 bytes, 73 -> 73 T; backend=checked-local-table
+    checked_word_shift_caller_test.go:70: external CALL keeps x: shift1 88 -> 84 T
+    checked_word_shift_caller_test.go:101: strategy=pbqp grace=true
+    checked_word_shift_caller_test.go:102: caller shift1 all65536: 9 -> 8 bytes, 40 -> 40 T; backend=checked-local-table
+    checked_word_shift_caller_test.go:70: external CALL keeps x: shift4 121 -> 117 T
+    checked_word_shift_caller_test.go:101: strategy=pbqp grace=true
+    checked_word_shift_caller_test.go:102: caller shift4 all65536: 15 -> 14 bytes, 73 -> 73 T; backend=checked-local-table
+--- PASS: TestCheckedWordShiftCallerNative (0.63s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.638s
