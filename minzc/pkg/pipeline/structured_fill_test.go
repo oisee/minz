@@ -43,7 +43,9 @@ func TestStructuredFillMatchesTextBaseline(t *testing.T) {
 					t.Fatal(err, a.Errors)
 				}
 				z := emulator.NewRemogattoZ80()
-				z.LoadMemory(0x8000, a.Binary)
+				if err := z.LoadMemory(0x8000, a.Binary); err != nil {
+					t.Fatal(err)
+				}
 				z.Memory()[0xeff0], z.Memory()[0xeff1] = 0, 0x70
 				z.SetRegisters(emulator.Registers{PC: uint16(a.Symbols["fill_test"]), SP: 0xeff0})
 				for count := 0; count < 2000000; count++ {
