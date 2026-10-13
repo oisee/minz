@@ -32,7 +32,7 @@ func TestZMachineSavedStreamNative(t *testing.T) {
 	cases := 0
 	for _, bank := range []int{1, 3, 4, 6, 7} {
 		offset := 16384 - len(packed)
-		command = exec.Command("python3", "-c", "from native_archive_stream import emit_saved_reader; print(emit_saved_reader())")
+		command = exec.Command("python3", "-c", "from native_shared_reader import emit; print(emit(0x17,0))")
 		command.Dir = "../../../scripts/zmachine"
 		generated, err := command.Output()
 		if err != nil {
@@ -67,11 +67,12 @@ func TestZMachineSavedStreamNative(t *testing.T) {
 		}
 		copy(m.Memory.RAM[bank][offset:], packed)
 		copy(m.Memory.RAM[0][:2], []byte{255, 0x7e})
+		copy(m.Memory.RAM[7][:2], []byte{255, 0x3c})
 		m.Memory.Write(0xbf00, 0, false)
 		m.Memory.Write(0xbf01, 0x70, false)
 		before := m.Memory.RAM
 		scratch := map[uint16]bool{}
-		for name, size := range map[string]int{"saved_next": 2, "saved_pointer": 2, "saved_left": 1, "saved_repeat": 1, "saved_value": 1, "saved_request": 2, "saved_begin": 2, "saved_bank": 1} {
+		for name, size := range map[string]int{"saved_cursor": 12, "original_cursor": 12} {
 			for i := 0; i < size; i++ {
 				scratch[uint16(a.Symbols[name]+i)] = true
 			}
@@ -141,6 +142,20 @@ func TestZMachineSavedStreamNative(t *testing.T) {
 			}
 			if byte(m.CPU.AF()>>8) != 0x7e || m.CPU.PC() != 0x7000 || m.CPU.SP() != 0xbf02 || m.Memory.PagingState() != 0x10 || m.CPU.IFF1() || m.CPU.IFF2() {
 				t.Fatal("stream switch failed", bank, index)
+			}
+
+			// Alternate the original cursor while saved cursor remains populated.
+			m.CPU.SetPC(uint16(a.Symbols["native_original_byte"]))
+			m.CPU.SetSP(0xbf00)
+			m.CPU.SetHL(uint16(index))
+			for i := 0; i < 10000; i++ {
+				if m.CPU.PC() == 0x7000 && m.CPU.SP() == 0xbf02 {
+					break
+				}
+				m.CPU.DoOpcode()
+			}
+			if byte(m.CPU.AF()>>8) != 0x3c || m.CPU.PC() != 0x7000 || m.CPU.SP() != 0xbf02 || m.Memory.PagingState() != 0x10 {
+				t.Fatal("independent cursor failed", index)
 			}
 			cases++
 		}

@@ -135,7 +135,7 @@ def emit_delta_packer():
     reader = """
 // Reads current XOR original byte; archive and live bank0 never modified.
 fun native_delta_byte(@z80_hl index: u16) -> u8 {
- asm z80 (in index) (ret A) (clob A, F, BC, DE, HL) {
+ asm z80 (in index) (ret A) (clob A, F, BC, DE, HL, IX) {
   PUSH HL
   CALL native_original_byte
   POP HL

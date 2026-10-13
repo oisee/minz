@@ -33,7 +33,7 @@ func TestZMachineArchiveStreamNative(t *testing.T) {
 	cases := 0
 	for _, bank := range []int{1, 3, 4, 6, 7} {
 		offset := 16384 - len(packed)
-		command = exec.Command("python3", "-c", "from native_archive_stream import emit; from native_save_stream import emit as pack; import sys; print(emit(int(sys.argv[1]),int(sys.argv[2]))+pack())", strconv.Itoa(0x10|bank), strconv.Itoa(offset))
+		command = exec.Command("python3", "-c", "from native_shared_reader import emit; from native_save_stream import emit as pack; import sys; print(emit(int(sys.argv[1]),int(sys.argv[2]))+pack())", strconv.Itoa(0x10|bank), strconv.Itoa(offset))
 		command.Dir = "../../../scripts/zmachine"
 		generated, err := command.Output()
 		if err != nil {
@@ -76,7 +76,7 @@ func TestZMachineArchiveStreamNative(t *testing.T) {
 		}
 		before := m.Memory.RAM
 		scratch := map[uint16]bool{}
-		for name, size := range map[string]int{"archive_next": 2, "archive_pointer": 2, "archive_left": 1, "archive_repeat": 1, "archive_value": 1, "archive_request": 2} {
+		for name, size := range map[string]int{"original_cursor": 12, "saved_cursor": 12} {
 			for i := 0; i < size; i++ {
 				scratch[uint16(a.Symbols[name]+i)] = true
 			}

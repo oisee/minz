@@ -666,3 +666,23 @@ BE00 stack reservation. The two decoder bodies are still duplicated. Next share
 the decoder engine while retaining independent original/saved cursors; do not
 expand the stack region or call this complete SAVE support. Desktop checkpoint
 remains unchanged with SAVE/RESTORE disabled.
+
+
+## One decoder, independent original/save cursors
+
+`native_shared_reader.py` emits one indexed RLE decoder with two 12-byte resident
+cursor records. Original and saved entry points select their cursor; changing
+or seeking one does not alter the other. Saved input still requires structural
+preflight and bounded indices; original input is builder-validated. Both inputs
+must remain immutable. Cached reads explicitly restore bank0 as well.
+
+Original/delta, saved-stream and state read/write/pack regressions PASS together
+in 0.78 s. Saved test alternates populated original and saved cursors with
+different bytes, request order and banks, checking independent cache positions.
+Declared IX clobber is propagated through the XOR reader; pack callback preserves
+its output IX. All existing physical-memory/PC/SP/paging/IFF checks retained.
+
+Combined diagnostic resident size 25210 bytes, end BD7A, headroom 134 B before
+BE00: -84 B versus duplicated readers. Semantic saved-state validation, applying
+deltas and wiring SAVE/RESTORE still require additional space. This is an
+integration experiment; desktop bundles retain the earlier runnable checkpoint.
