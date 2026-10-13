@@ -30,6 +30,9 @@ import (
 var embedded48ROM []byte
 
 func main() {
+	demoFlag := flag.String("demo", "", "Launch an embedded demo")
+	demoList := flag.Bool("list-demos", false, "List embedded demos")
+	demoRoot := flag.String("data-dir", "", "Persistent demo data directory")
 	modelFlag := flag.String("model", "48k", "Machine profile: 48k, 128k, pentagon, scorpion-memory")
 	romFlag := flag.String("rom", "", "Path to ROM file")
 	snapshotFlag := flag.String("snapshot", "", "Path to .sna snapshot file")
@@ -50,6 +53,10 @@ func main() {
 	runFlag := flag.String("run", "", "Load and run: FILE@ADDR (shortcut)")
 	rzxFlag := flag.String("rzx", "", "Replay RZX recording file (overrides --frames)")
 	flag.Parse()
+	if *demoList {
+		listDemos()
+		return
+	}
 
 	// Build machine
 	var machine *spectrum.Machine
@@ -115,6 +122,20 @@ func main() {
 		formats.ApplySnapshot(machine, snap)
 	}
 
+	demoSession := ""
+	if *demoFlag != "" {
+		machine, demoSession, err = loadDemo(*demoFlag, *demoRoot, embedded48ROM)
+		d, _ := findDemo(*demoFlag)
+		*modelFlag = d.Model
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer func() {
+			if err := saveDemoSession(machine, demoSession); err != nil {
+				log.Printf("Session save: %v", err)
+			}
+		}()
+	}
 	// Load TAP
 	if *tapFlag != "" {
 		// TAP loading in headless: just load via trap
