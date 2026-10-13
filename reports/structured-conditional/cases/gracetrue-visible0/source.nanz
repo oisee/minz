@@ -1,0 +1,9 @@
+import hw.sprite
+fun draw(visible:bool) { @sprite() {
+destination "zx_bitmap_bytes" 16384
+ region 2 7 2 2
+ row "f000" "05ab"
+ row "ff55" "00aa"
+ when "visible"
+
+} }

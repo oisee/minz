@@ -1,0 +1,103 @@
+=== RUN   TestStructuredMetaDiagnostics
+=== RUN   TestStructuredMetaDiagnostics/if-condition
+=== RUN   TestStructuredMetaDiagnostics/if-branch
+=== RUN   TestStructuredMetaDiagnostics/if-cycle-then
+=== RUN   TestStructuredMetaDiagnostics/if-cycle-else
+=== RUN   TestStructuredMetaDiagnostics/bitwise-bool
+=== RUN   TestStructuredMetaDiagnostics/bitwise-mismatch
+=== RUN   TestStructuredMetaDiagnostics/load-type
+=== RUN   TestStructuredMetaDiagnostics/handle
+=== RUN   TestStructuredMetaDiagnostics/kind
+=== RUN   TestStructuredMetaDiagnostics/overflow
+=== RUN   TestStructuredMetaDiagnostics/type
+=== RUN   TestStructuredMetaDiagnostics/cycle
+=== RUN   TestStructuredMetaDiagnostics/mixed
+=== RUN   TestStructuredMetaDiagnostics/identifier
+--- PASS: TestStructuredMetaDiagnostics (0.01s)
+    --- PASS: TestStructuredMetaDiagnostics/if-condition (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/if-branch (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/if-cycle-then (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/if-cycle-else (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/bitwise-bool (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/bitwise-mismatch (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/load-type (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/handle (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/kind (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/overflow (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/type (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/cycle (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/mixed (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/identifier (0.00s)
+=== RUN   TestStructuredMetaBuildsTypedHIR
+--- PASS: TestStructuredMetaBuildsTypedHIR (0.00s)
+=== RUN   TestStructuredMetaSnapshotsAndInvocationIsolation
+--- PASS: TestStructuredMetaSnapshotsAndInvocationIsolation (0.00s)
+=== RUN   TestStructuredMetaHandleLimit
+--- PASS: TestStructuredMetaHandleLimit (0.00s)
+=== RUN   TestStructuredIfSnapshotsBothBranches
+--- PASS: TestStructuredIfSnapshotsBothBranches (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/nanz	0.020s
+=== RUN   TestStructuredCopyLiveValues
+=== RUN   TestStructuredCopyLiveValues/ordinary
+=== RUN   TestStructuredCopyLiveValues/grace-size
+=== RUN   TestStructuredCopyLiveValues/grace-speed
+--- PASS: TestStructuredCopyLiveValues (0.05s)
+    --- PASS: TestStructuredCopyLiveValues/ordinary (0.02s)
+    --- PASS: TestStructuredCopyLiveValues/grace-size (0.02s)
+    --- PASS: TestStructuredCopyLiveValues/grace-speed (0.01s)
+=== RUN   TestStructuredFillLiveValues
+=== RUN   TestStructuredFillLiveValues/ordinary
+=== RUN   TestStructuredFillLiveValues/grace-size
+=== RUN   TestStructuredFillLiveValues/grace-speed
+--- PASS: TestStructuredFillLiveValues (0.04s)
+    --- PASS: TestStructuredFillLiveValues/ordinary (0.01s)
+    --- PASS: TestStructuredFillLiveValues/grace-size (0.01s)
+    --- PASS: TestStructuredFillLiveValues/grace-speed (0.01s)
+=== RUN   TestStructuredCopyMatchesTextBaseline
+    structured_copy_test.go:65: source "linear" 24576 8 2 11; destination "linear" 25088 8 2 13; region 1 0 2 0 4 2; grace=false size=false: 53 -> 41 bytes; 637 -> 597 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 8 2 11; destination "linear" 25088 8 2 13; region 1 0 2 0 4 2; grace=true size=false: 53 -> 41 bytes; 637 -> 597 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 8 2 11; destination "linear" 25088 8 2 13; region 1 0 2 0 4 2; grace=true size=true: 53 -> 41 bytes; 637 -> 597 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 256 1 256; destination "linear" 25088 256 1 256; region 0 0 0 0 256 1; grace=false size=false: 48 -> 30 bytes; 45708 -> 30559 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 256 1 256; destination "linear" 25088 256 1 256; region 0 0 0 0 256 1; grace=true size=false: 48 -> 30 bytes; 45708 -> 30559 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 256 1 256; destination "linear" 25088 256 1 256; region 0 0 0 0 256 1; grace=true size=true: 48 -> 30 bytes; 45708 -> 30559 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 8 2 8; destination "zx_bitmap_bytes" 16384; region 0 0 2 7 5 2; grace=false size=false: 53 -> 41 bytes; 765 -> 725 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 8 2 8; destination "zx_bitmap_bytes" 16384; region 0 0 2 7 5 2; grace=true size=false: 53 -> 41 bytes; 765 -> 725 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 8 2 8; destination "zx_bitmap_bytes" 16384; region 0 0 2 7 5 2; grace=true size=true: 53 -> 41 bytes; 765 -> 725 T-states; identical ASM=false
+--- PASS: TestStructuredCopyMatchesTextBaseline (0.15s)
+=== RUN   TestStructuredFillMatchesTextBaseline
+    structured_fill_test.go:65: layout "linear" 24576 8 2 11; region 1 0 4 2; value 91; grace=false size=false: 27 -> 27 bytes; 401 -> 401 T-states; identical ASM=true
+    structured_fill_test.go:65: layout "linear" 24576 8 2 11; region 1 0 4 2; value 91; grace=true size=false: 27 -> 27 bytes; 401 -> 401 T-states; identical ASM=true
+    structured_fill_test.go:65: layout "linear" 24576 8 2 11; region 1 0 4 2; value 91; grace=true size=true: 27 -> 27 bytes; 401 -> 401 T-states; identical ASM=true
+    structured_fill_test.go:65: layout "linear" 24576 256 1 256; value 255; grace=false size=false: 30 -> 22 bytes; 34901 -> 23889 T-states; identical ASM=false
+    structured_fill_test.go:65: layout "linear" 24576 256 1 256; value 255; grace=true size=false: 30 -> 22 bytes; 34901 -> 23889 T-states; identical ASM=false
+    structured_fill_test.go:65: layout "linear" 24576 256 1 256; value 255; grace=true size=true: 30 -> 22 bytes; 34901 -> 23889 T-states; identical ASM=false
+    structured_fill_test.go:65: layout "zx_bitmap_bytes" 16384; region 2 7 5 2; value 71; grace=false size=false: 27 -> 27 bytes; 485 -> 485 T-states; identical ASM=true
+    structured_fill_test.go:65: layout "zx_bitmap_bytes" 16384; region 2 7 5 2; value 71; grace=true size=false: 27 -> 27 bytes; 485 -> 485 T-states; identical ASM=true
+    structured_fill_test.go:65: layout "zx_bitmap_bytes" 16384; region 2 7 5 2; value 71; grace=true size=true: 27 -> 27 bytes; 485 -> 485 T-states; identical ASM=true
+--- PASS: TestStructuredFillMatchesTextBaseline (0.11s)
+=== RUN   TestStructuredSpriteConditionalNative
+=== RUN   TestStructuredSpriteConditionalNative/gracefalse-visible0
+=== RUN   TestStructuredSpriteConditionalNative/gracefalse-visible1
+=== RUN   TestStructuredSpriteConditionalNative/gracetrue-visible0
+=== RUN   TestStructuredSpriteConditionalNative/gracetrue-visible1
+--- PASS: TestStructuredSpriteConditionalNative (0.07s)
+    --- PASS: TestStructuredSpriteConditionalNative/gracefalse-visible0 (0.02s)
+    --- PASS: TestStructuredSpriteConditionalNative/gracefalse-visible1 (0.02s)
+    --- PASS: TestStructuredSpriteConditionalNative/gracetrue-visible0 (0.02s)
+    --- PASS: TestStructuredSpriteConditionalNative/gracetrue-visible1 (0.02s)
+=== RUN   TestStructuredSpriteWhenDiagnostics
+--- PASS: TestStructuredSpriteWhenDiagnostics (0.01s)
+=== RUN   TestStructuredSpriteMatchesTextBaseline
+    structured_sprite_test.go:65: destination "linear" 24576 4 1 4; region 0 0 4 1; row "00000000" "0055aaff"; grace=false size=false: 21 -> 21 bytes; 90 -> 90 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 4 1 4; region 0 0 4 1; row "00000000" "0055aaff"; grace=true size=false: 21 -> 21 bytes; 90 -> 90 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 4 1 4; region 0 0 4 1; row "00000000" "0055aaff"; grace=true size=true: 21 -> 21 bytes; 90 -> 90 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 6 1 6; region 0 0 6 1; row "fff00faa5500" "00050340aaff"; grace=false size=false: 46 -> 46 bytes; 198 -> 198 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 6 1 6; region 0 0 6 1; row "fff00faa5500" "00050340aaff"; grace=true size=false: 46 -> 46 bytes; 198 -> 198 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 6 1 6; region 0 0 6 1; row "fff00faa5500" "00050340aaff"; grace=true size=true: 46 -> 46 bytes; 198 -> 198 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "zx_bitmap_bytes" 16384; region 2 7 4 2; row "00ff55aa" "12340011"; row "f00f0000" "0521abcd"; grace=false size=false: 64 -> 64 bytes; 273 -> 273 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "zx_bitmap_bytes" 16384; region 2 7 4 2; row "00ff55aa" "12340011"; row "f00f0000" "0521abcd"; grace=true size=false: 64 -> 64 bytes; 273 -> 273 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "zx_bitmap_bytes" 16384; region 2 7 4 2; row "00ff55aa" "12340011"; row "f00f0000" "0521abcd"; grace=true size=true: 64 -> 64 bytes; 273 -> 273 T-states; identical ASM=true
+--- PASS: TestStructuredSpriteMatchesTextBaseline (0.15s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.584s
