@@ -174,7 +174,15 @@ func TestCheckedCompositionMoveBridgeWeightedCaller(t *testing.T) {
 	checkedCompositionWeightedNativeCaller(t, true)
 }
 
+func TestCheckedCompositionAutomaticWeightedCaller(t *testing.T) {
+	checkedCompositionWeightedNativeCallerMode(t, true, true)
+}
+
 func checkedCompositionWeightedNativeCaller(t *testing.T, moves bool) {
+	checkedCompositionWeightedNativeCallerMode(t, moves, false)
+}
+
+func checkedCompositionWeightedNativeCallerMode(t *testing.T, moves, automatic bool) {
 	t.Helper()
 	source, err := os.ReadFile("../../../examples/nanz/06_pbqp_weighted.nanz")
 	if err != nil {
@@ -204,7 +212,8 @@ func checkedCompositionWeightedNativeCaller(t *testing.T, moves bool) {
 					}
 				}
 			}
-			var pool, target vir.RegAllocTable
+			var pool vir.RegAllocTable
+			target := &vir.RegAllocTable{}
 			pool.Init()
 			target.Init()
 			cut := len(p.Ops) / 2
@@ -240,7 +249,20 @@ func checkedCompositionWeightedNativeCaller(t *testing.T, moves bool) {
 			if moves {
 				compose = pool.ComposeCheckedCandidatesWithMoves
 			}
-			n, err := compose(p, &target, []int{cut}, 64)
+			n := 0
+			if automatic {
+				var notes []string
+				prepared, ns, e := ComposeCheckedLocalTables(graceMeasureParse(t, text), opts, &pool, 64)
+				err = e
+				notes = ns
+				if prepared != nil {
+					target = prepared
+					n = target.Size()
+				}
+				t.Log(notes)
+			} else {
+				n, err = compose(p, target, []int{cut}, 64)
+			}
 			if err != nil || n == 0 {
 				t.Fatal(n, err)
 			}
@@ -276,6 +298,15 @@ func checkedCompositionWeightedNativeCaller(t *testing.T, moves bool) {
 }
 
 func TestCheckedCompositionHeldoutOperationsNative(t *testing.T) {
+	checkedCompositionHeldoutOperationsNative(t, false)
+}
+
+func TestCheckedCompositionAutomaticHeldoutNative(t *testing.T) {
+	checkedCompositionHeldoutOperationsNative(t, true)
+}
+
+func checkedCompositionHeldoutOperationsNative(t *testing.T, automatic bool) {
+	t.Helper()
 	// Prepare the assignment pool only on add5; reuse it without regenerating
 	// records on the different constants/operators and live caller workload.
 	seed, err := CompileHIRSteps(graceMeasureParse(t, checkedTableSource), Options{OptSize: true, AssertMode: "none"})
@@ -331,7 +362,12 @@ func TestCheckedCompositionHeldoutOperationsNative(t *testing.T) {
 		}
 		var composed vir.RegAllocTable
 		composed.Init()
-		n, err := pool.ComposeCheckedCandidates(current, &composed, []int{1}, 32)
+		n := 0
+		if automatic {
+			n, err = pool.ComposeCheckedAutomatically(current, &composed, 32)
+		} else {
+			n, err = pool.ComposeCheckedCandidates(current, &composed, []int{1}, 32)
+		}
 		if err != nil || n == 0 {
 			t.Fatal(test.expression, n, err)
 		}

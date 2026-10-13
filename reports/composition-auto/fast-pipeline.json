@@ -1,0 +1,29 @@
+{
+  "total": 701,
+  "selected": 354,
+  "profile": "fast",
+  "binary_sha256": "2d52d5159ede4507b5a158bbfa9cc605c0b33326c3d6de34f743757127e9f7a6",
+  "manifest_sha256": "2769d1fd17a8bc76785fd12bf2839f4f26694e4b67927d5820aeab4162bf3261",
+  "statuses": [
+    {
+      "shard": 1,
+      "exit_code": 0,
+      "log": "/tmp/composition-auto-fast/shard-1.log"
+    },
+    {
+      "shard": 2,
+      "exit_code": 0,
+      "log": "/tmp/composition-auto-fast/shard-2.log"
+    },
+    {
+      "shard": 3,
+      "exit_code": 0,
+      "log": "/tmp/composition-auto-fast/shard-3.log"
+    },
+    {
+      "shard": 4,
+      "exit_code": 0,
+      "log": "/tmp/composition-auto-fast/shard-4.log"
+    }
+  ]
+}

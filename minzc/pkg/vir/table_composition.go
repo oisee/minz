@@ -29,38 +29,8 @@ func (t *RegAllocTable) composeCheckedCandidates(p *LocalTableProblem, target *R
 	if t == nil || target == nil || p == nil || p.Function == nil || limit < 1 || limit > MaxLegacyCandidates || len(cuts) < 1 || len(cuts) > 7 {
 		return 0, fmt.Errorf("invalid composition input or bounds")
 	}
-	context, err := localFunctionContext(p.Function)
-	if err != nil || context != p.Options.CheckedContext {
-		return 0, fmt.Errorf("stale composition function binding")
-	}
-	// Rebuild the lowering from the real MIR and its entry placements. A
-	// caller may mutate the prepared ops without changing the function hash.
-	allocation := &mir2.AllocResult{Locs: map[mir2.Reg]mir2.PhysLoc{}}
-	for _, param := range p.Function.Contract.Params {
-		index, exists := p.Options.ParamLocs[int(param.Reg)]
-		if exists {
-			if index < 0 || index >= len(Z80.Locs) {
-				return 0, fmt.Errorf("invalid composition ABI placement")
-			}
-			name := Z80.Locs[index].Name
-			for _, location := range mir2.Z80PhysLocs {
-				if location.Name == name {
-					allocation.Locs[param.Reg] = location
-					break
-				}
-			}
-		} else {
-			for _, location := range mir2.Z80PhysLocs {
-				if localPhysicalRegister(location) && (mir2.Z80CostTable{}).Cost(param.Class, location) < mir2.InfCost && Z80.LocByName(location.Name) >= 0 && Z80.Locs[Z80.LocByName(location.Name)].Width == param.Ty.Width() {
-					allocation.Locs[param.Reg] = location
-					break
-				}
-			}
-		}
-	}
-	rebuilt, err := PrepareLocalTableProblem(p.Function, allocation)
-	if err != nil || !reflect.DeepEqual(rebuilt.Ops, p.Ops) || !reflect.DeepEqual(rebuilt.Options, p.Options) {
-		return 0, fmt.Errorf("composition problem differs from current MIR")
+	if err := validateCompositionProblem(p); err != nil {
+		return 0, err
 	}
 	ends := append(append([]int(nil), cuts...), len(p.Ops))
 	start := 0
@@ -188,4 +158,41 @@ func (t *RegAllocTable) composeCheckedCandidates(p *LocalTableProblem, target *R
 		return 0, err
 	}
 	return admitted, nil
+}
+
+func validateCompositionProblem(p *LocalTableProblem) error {
+	context, err := localFunctionContext(p.Function)
+	if err != nil || context != p.Options.CheckedContext {
+		return fmt.Errorf("stale composition function binding")
+	}
+	// Rebuild the lowering from the real MIR and its entry placements. A
+	// caller may mutate the prepared ops without changing the function hash.
+	allocation := &mir2.AllocResult{Locs: map[mir2.Reg]mir2.PhysLoc{}}
+	for _, param := range p.Function.Contract.Params {
+		index, exists := p.Options.ParamLocs[int(param.Reg)]
+		if exists {
+			if index < 0 || index >= len(Z80.Locs) {
+				return fmt.Errorf("invalid composition ABI placement")
+			}
+			name := Z80.Locs[index].Name
+			for _, location := range mir2.Z80PhysLocs {
+				if location.Name == name {
+					allocation.Locs[param.Reg] = location
+					break
+				}
+			}
+		} else {
+			for _, location := range mir2.Z80PhysLocs {
+				if localPhysicalRegister(location) && (mir2.Z80CostTable{}).Cost(param.Class, location) < mir2.InfCost && Z80.LocByName(location.Name) >= 0 && Z80.Locs[Z80.LocByName(location.Name)].Width == param.Ty.Width() {
+					allocation.Locs[param.Reg] = location
+					break
+				}
+			}
+		}
+	}
+	rebuilt, err := PrepareLocalTableProblem(p.Function, allocation)
+	if err != nil || !reflect.DeepEqual(rebuilt.Ops, p.Ops) || !reflect.DeepEqual(rebuilt.Options, p.Options) {
+		return fmt.Errorf("composition problem differs from current MIR")
+	}
+	return nil
 }
