@@ -1,0 +1,15 @@
+// Minimal raw bank read for consumers that do not need restore/codecs.
+// Caller validates offset<16384, unlocked bank/restore bits, DI/no reentry.
+// Code/stack resident below C000; paging restored, IFF unchanged.
+fun bank_read(@z80_a bank_bits: u8, @z80_hl offset: u16, @z80_e restore_bits: u8) -> u8 {
+ asm z80 (in bank_bits, offset, restore_bits) (ret A) (clob A, F, BC, D, HL) {
+  LD BC, 0x7ffd
+  OUT (C), A
+  SET 6, H
+  SET 7, H
+  LD D, (HL)
+  LD A, E
+  OUT (C), A
+  LD A, D
+ }
+}

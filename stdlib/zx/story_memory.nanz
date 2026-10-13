@@ -3,7 +3,7 @@
 // This is NOT the final state layout. Caller validates address <98304
 // (word address <98303), disables IRQ, provides unlocked 7FFD state,
 // and keeps code/globals/native stack below C000.
-import zx.banked
+import zx.bank_window
 global story_pages: [u8; 6] = [0, 1, 3, 4, 6, 7]
 fun story_byte(address: u32, restore_bits: u8) -> u8 {
  let page: u8 = (address >> 14) as u8

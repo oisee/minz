@@ -807,3 +807,20 @@ not yet Zork gameplay or disk persistence; PC/SP/paging/IFF checked.
 Combined diagnostic with native SAVE: 25922 bytes, end C042, 578 bytes beyond
 BE00. Existing builder guard retained: this is not a playable new snapshot.
 Code placement and real SAVE/RESTORE opcode lifecycle remain before distribution.
+
+
+## Minimal bank-window import avoids duplicated codec code
+
+`zx.story_memory` now imports `zx.bank_window`, a minimal raw read primitive,
+instead of the complete `zx.banked` restore/codec library. The raw read has the
+same explicit A/HL/E ABI and paging/DI/resident requirements. The core still
+imports full `zx.banked` for checksum/restart/save preflight. This avoids pulling
+a second nested copy of unused bank restore and RLE routines into opaque-ASM
+modules without changing the compiler's conservative function pruning policy.
+
+All-page bank access, native high-memory interpreter and real Zork RESTART route
+PASS together in 10.01 s. Restart remains 379701337 T, 1256 bytes of VM-identical
+output, 58 keyboard keys and 66-byte native stack. Diagnostic combined native
+SAVE/RESTORE resident size 25922→25624 bytes (-298 B), end BF18: still 280 bytes
+over BE00. No oversized snapshot is published; distributed checkpoint unchanged.
+Further placement/compaction and real SAVE/RESTORE opcode tests remain.
