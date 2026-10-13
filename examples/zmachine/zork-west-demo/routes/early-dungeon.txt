@@ -1,0 +1,61 @@
+n
+n
+u
+get egg
+d
+s
+e
+open window
+w
+open sack
+get garlic
+w
+get lamp
+e
+u
+light lamp
+get rope
+get knife
+d
+douse lamp
+w
+get sword
+move rug
+open trapdoor
+d
+light lamp
+n
+kill troll with sword
+kill troll with sword
+kill troll with sword
+kill troll with sword
+kill troll with sword
+kill troll with sword
+drop egg
+e
+e
+se
+e
+tie rope to railing
+d
+douse lamp
+get torch
+d
+s
+drop sword
+get candles
+douse candles
+get book
+n
+get bell
+e
+open coffin
+get sceptre
+w
+s
+pray
+e
+score
+inventory
+quit
+y

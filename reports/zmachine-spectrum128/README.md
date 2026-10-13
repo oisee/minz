@@ -1843,3 +1843,19 @@ Standard1.1 §15 verify проверяет checksum файла. Реализац
 проверяет сохранение story_verified=1 после SAVE/RESTORE/RESTART: PASS18.418 s,
 628 B SAVE,25279 B resident,output2214 B byte-exact VM. Это не повторная
 проверка исходной истории с диска после загрузки и не аудит всех повреждений.
+
+
+### 13 октября: ранний dungeon маршрут до63 очков
+
+Microsoft Jericho game_info содержит396-command walkthrough Zork I V5 seed12.
+Первые52 команды адаптированы к V3/Nanz RNG: шесть атак вместо одной, затем
+score/inventory/quit. Первый неадаптированный прогон погибал от тролля;
+это различие RNG/маршрута, не доказанный miscompile. Адаптированный маршрут
+убивает тролля, использует rope, получает torch, candles/book/bell/sceptre,
+возвращается через altar/forest. Команды сохранены в routes/early-dungeon.txt.
+
+477 клавиш,7448 B output byte-exact VM,2592448539 T, stack70 B; PC/SP/paging
+проверены. Независимый Frotz seed12 подтверждает score63 на57 moves и все
+восемь предметов. Его случайные боевые/ambient реплики не сравниваются с VM;
+Z80/VM сравнение полное. PASS32.341 s. Это первый длинный сегмент walkthrough,
+не финальное прохождение; остальные344 исходные команды ещё не подтверждены.
