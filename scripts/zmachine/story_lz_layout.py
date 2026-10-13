@@ -19,7 +19,7 @@ BANK_SIZE = 16384
 PAGES = [0, 1, 3, 4, 6, 7]
 
 
-def build(story, block_size, reserve_bytes=0, reserve_page=5, strategy=0):
+def build(story, block_size, reserve_bytes=0, reserve_page=5, strategy=0, archive_blocks=False):
     if len(story) < 64 or story[0] != 3 or len(story) > 98304:
         raise ValueError('expected V3 story, 64..98304 bytes')
     dynamic = int.from_bytes(story[14:16], 'big')
@@ -40,7 +40,21 @@ def build(story, block_size, reserve_bytes=0, reserve_page=5, strategy=0):
     assert unpack(archive, dynamic) == story[:dynamic]
     # Store the descriptor table in the same six-bank budget.
     index = {'name': 'index', 'data': bytes(4 * len(blocks))}
-    objects = blocks + [{'name': 'restart', 'data': archive}, index]
+    if archive_blocks:
+        originals = []
+        for begin in range(0, dynamic, block_size):
+            raw = story[begin:begin + min(block_size, dynamic - begin)]
+            encoded = pack(raw)
+            assert unpack(encoded, len(raw)) == raw
+            compressed = len(encoded) < len(raw)
+            originals.append({'name': f'original{len(originals)}', 'begin': begin,
+                              'decoded_bytes': len(raw), 'raw': not compressed,
+                              'data': encoded if compressed else raw})
+        original_index = {'name': 'original_index', 'data': bytes(4 * len(originals))}
+        objects = blocks + originals + [index, original_index]
+    else:
+        originals = []
+        objects = blocks + [{'name': 'restart', 'data': archive}, index]
     if not 0 <= reserve_bytes <= BANK_SIZE or not 1 <= reserve_page <= 5:
         raise ValueError('invalid save reservation')
     limits = [BANK_SIZE] * 6
@@ -51,7 +65,7 @@ def build(story, block_size, reserve_bytes=0, reserve_page=5, strategy=0):
     for obj in sorted(objects, key=lambda o: (-len(o['data']), o['name'])):
         size = len(obj['data'])
         eligible = [i for i in range(6) if limits[i] - used[i] >= size
-                    and not (obj['name'] == 'restart' and i == 0)]
+                    and not ((obj['name'] == 'restart' or obj['name'].startswith('original')) and i == 0)]
         if not eligible:
             raise ValueError(f"cannot place {obj['name']} ({size} bytes) in one bank")
         if strategy == 0:
@@ -69,6 +83,14 @@ def build(story, block_size, reserve_bytes=0, reserve_page=5, strategy=0):
         table.append(int(obj['raw']))
     at = index['page'] * BANK_SIZE + index['offset']
     image[at:at + len(table)] = table
+    if archive_blocks:
+        original_table = bytearray()
+        for obj in originals:
+            original_table.extend(bytes([PAGES[obj['page']] + 0x10]))
+            original_table.extend(obj['offset'].to_bytes(2, 'little'))
+            original_table.append(int(obj['raw']))
+        at = original_index['page'] * BANK_SIZE + original_index['offset']
+        image[at:at + len(original_table)] = original_table
     descriptors = []
     for obj in objects:
         descriptors.append({k: v for k, v in obj.items() if k != 'data'} |
@@ -77,7 +99,9 @@ def build(story, block_size, reserve_bytes=0, reserve_page=5, strategy=0):
     metadata = {'story_sha256': hashlib.sha256(story).hexdigest(),
                 'story_bytes': len(story), 'dynamic_bytes': dynamic,
                 'block_bytes': block_size, 'index_bytes': len(table),
-                'restart_bytes': len(archive), 'used_bytes': sum(used),
+                'restart_bytes': sum(len(o['data']) for o in originals) if archive_blocks else len(archive),
+                'original_index_bytes': 4 * len(originals),
+                'archive_blocks': archive_blocks, 'used_bytes': sum(used),
                 'placement_strategy': strategy,
                 'reserved_save_bytes': reserve_bytes,
                 'reserved_save_bank': PAGES[reserve_page],
@@ -105,9 +129,17 @@ def reconstruct(image, metadata):
         start = page * BANK_SIZE + offset
         data = image[start:start + obj['stored_bytes']]
         result.extend(data if entry[3] else unpack(data, obj['decoded_bytes']))
-    archive = next(o for o in objects if o['name'] == 'restart')
-    at = archive['page'] * BANK_SIZE + archive['offset']
-    assert unpack(image[at:at + archive['stored_bytes']], dynamic) == result[:dynamic]
+    if metadata.get('archive_blocks'):
+        original = bytearray()
+        for obj in (o for o in objects if o['name'].startswith('original') and o['name'] != 'original_index'):
+            at = obj['page'] * BANK_SIZE + obj['offset']
+            data = image[at:at + obj['stored_bytes']]
+            original.extend(data if obj['raw'] else unpack(data, obj['decoded_bytes']))
+        assert original == result[:dynamic]
+    else:
+        archive = next(o for o in objects if o['name'] == 'restart')
+        at = archive['page'] * BANK_SIZE + archive['offset']
+        assert unpack(image[at:at + archive['stored_bytes']], dynamic) == result[:dynamic]
     return bytes(result)
 
 
@@ -115,6 +147,7 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('story', type=Path)
     p.add_argument('output', type=Path)
+    p.add_argument('--archive-blocks', action='store_true')
     a = p.parse_args()
     a.output.mkdir(parents=True, exist_ok=True)
     story = a.story.read_bytes()
@@ -124,7 +157,7 @@ if __name__ == '__main__':
             last_error = None
             for strategy in range(7):
                 try:
-                    image, metadata = build(story, size, strategy=strategy)
+                    image, metadata = build(story, size, strategy=strategy, archive_blocks=a.archive_blocks)
                     break
                 except ValueError as e:
                     last_error = e
@@ -139,7 +172,7 @@ if __name__ == '__main__':
                     page = (5, 4, 3, 2, 1)[attempt // 7]
                     strategy = attempt % 7
                     try:
-                        image, metadata = build(story, size, reserved, page, strategy)
+                        image, metadata = build(story, size, reserved, page, strategy, archive_blocks=a.archive_blocks)
                         found = True
                         break
                     except ValueError:

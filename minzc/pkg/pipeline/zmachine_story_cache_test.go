@@ -26,7 +26,7 @@ else:
  # Repeated blocks exercise compressed/raw mixed descriptors.
  story[3072:5120]=bytes(2048)
  story=bytes(story)
-image,m=build(story,2048)
+image,m=build(story,2048,archive_blocks=True)
 print(json.dumps({'Story':base64.b64encode(story).decode(),'Image':base64.b64encode(image).decode(),'Source':emit(m),'Dynamic':m['dynamic_bytes']}))`
 	out, err := exec.Command("python3", "-c", script).Output()
 	if err != nil {
@@ -73,13 +73,24 @@ print(json.dumps({'Story':base64.b64encode(story).decode(),'Image':base64.b64enc
 	m.CPU.SetIFF2(false)
 	before := m.Memory.RAM
 	calls := 0
+	originalRead := false
 	read := func(address int) {
 		m.Memory.Write(0xbf00, 0, false)
 		m.Memory.Write(0xbf01, 0x70, false)
-		m.CPU.SetPC(uint16(a.Symbols["native_story_byte"]))
+		entry := "native_story_byte"
+		if originalRead {
+			entry = "native_original_byte"
+		}
+		m.CPU.SetPC(uint16(a.Symbols[entry]))
 		m.CPU.SetSP(0xbf00)
 		m.CPU.SetHL(uint16(address))
 		m.CPU.SetAF(uint16(address>>16) << 8)
+		if originalRead {
+			m.CPU.SetBC(0x1234)
+			m.CPU.SetDE(0x5678)
+			m.CPU.SetIX(0x9abc)
+			m.CPU.SetIY(0xdef0)
+		}
 		for i := 0; i < 100000; i++ {
 			if m.CPU.PC() == 0x7000 && m.CPU.SP() == 0xbf02 {
 				break
@@ -92,6 +103,9 @@ print(json.dumps({'Story':base64.b64encode(story).decode(),'Image':base64.b64enc
 		if byte(m.CPU.AF()>>8) != fixture.Story[address] {
 			t.Fatalf("address%d got%02x want%02x", address, byte(m.CPU.AF()>>8), fixture.Story[address])
 		}
+		if originalRead && (m.CPU.BC() != 0x1234 || m.CPU.DE() != 0x5678 || m.CPU.HL() != uint16(address) || m.CPU.IX() != 0x9abc || m.CPU.IY() != 0xdef0) {
+			t.Fatal("original reader clobbers streaming ABI")
+		}
 		calls++
 	}
 	for i := range fixture.Story {
@@ -103,9 +117,32 @@ print(json.dumps({'Story':base64.b64encode(story).decode(),'Image':base64.b64enc
 			read(i)
 		}
 	}
+	// Alternate original/static reads to force both cache namespaces.
+	originalRead = true
+	for i := 0; i < fixture.Dynamic; i++ {
+		read(i)
+	}
+	for _, i := range []int{0, fixture.Dynamic - 1, 2047, 2048} {
+		if i < fixture.Dynamic {
+			read(i)
+		}
+	}
+	originalRead = false
+	read(fixture.Dynamic)
+	originalRead = true
+	read(0)
+	originalRead = false
+	original63 := fixture.Story[63]
 	fixture.Story[63] ^= 255
 	m.Memory.RAM[0][63] = fixture.Story[63]
 	before[0][63] = fixture.Story[63]
+	read(63)
+	modified := fixture.Story[63]
+	fixture.Story[63] = original63
+	originalRead = true
+	read(63)
+	fixture.Story[63] = modified
+	originalRead = false
 	read(63)
 	cache := uint16(a.Symbols["native_story_cache"])
 	for p := 0; p < 8; p++ {

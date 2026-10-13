@@ -25,6 +25,14 @@ class LayoutTests(unittest.TestCase):
     for strategy in range(1,7):
      alt,meta=build(story,block,2048,5,strategy)
      self.assertEqual(reconstruct(alt,meta),story)
+ def test_original_blocks(self):
+  story=self.story(70000,8192)
+  image,m=build(story,2048,512,5,3,True)
+  self.assertEqual(reconstruct(image,m),story)
+  self.assertTrue(m['archive_blocks'])
+  self.assertEqual(m['original_index_bytes'],16)
+  self.assertFalse(any(o['name']=='restart' for o in m['objects']))
+  self.assertTrue(all(o['page']!=0 for o in m['objects'] if o['name'].startswith('original')))
  def test_impossible_reservation(self):
   import random
   data=bytearray(random.Random(42).randbytes(98304))

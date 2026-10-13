@@ -17,7 +17,7 @@ def emit(metadata):
     index = next(o for o in metadata['objects'] if o['name'] == 'index')
     blocks = (size - dynamic + 2047) // 2048
     last_size = (size - dynamic) % 2048 or 2048
-    return f'''import zx.lz
+    code = f'''import zx.lz
 // Immutable descriptors/blocks are validated by the host builder.
 global native_story_cache: [u8;2048]
 global native_story_cache_key: u8 = 255
@@ -128,7 +128,73 @@ fun native_story_byte(@z80_hl low:u16, @z80_a high:u8)->u8 {{
   LD A,(HL)
  }}
 }}
-'''.replace(',', ', ')
+'''
+
+    if metadata.get('archive_blocks'):
+        original_index = next(o for o in metadata['objects'] if o['name'] == 'original_index')
+        original_blocks = (dynamic + 2047) // 2048
+        original_last = dynamic % 2048 or 2048
+        code = code.replace('  LD D,A\n  LD A,(native_story_cache_key)', '  LD D,A\n native_story_cache_fetch:\n  LD A,(native_story_cache_key)')
+        code = code.replace('  LD L,D\n  LD H,0', '  LD A,D\n  AND 127\n  LD L,A\n  LD H,0')
+        old = f"  LD DE,{index['offset'] + 0xc000}\n  ADD HL,DE\n  LD A,{index['physical_bank']+0x10}"
+        new = f"""  BIT 7,D
+  JR Z,.static_index
+  LD DE,{original_index['offset']+0xc000}
+  ADD HL,DE
+  LD A,{original_index['physical_bank']+0x10}
+  JR .index_selected
+ .static_index:
+{old}
+ .index_selected:"""
+        assert old in code
+        code = code.replace(old,new)
+        old = f"  CP {blocks-1}\n  LD IX,2048"
+        new = f"""  BIT 7,A
+  JR Z,.static_count
+  AND 127
+  CP {original_blocks-1}
+  LD IX,2048
+  JR NZ,.count_ready
+  LD IX,{original_last}
+  JR .count_ready
+ .static_count:
+{old}"""
+        assert old in code
+        code = code.replace(old,new)
+        code += """
+// Reuses and may evict the static cache. Caller index<original dynamic size.
+// Preserves BC/DE/HL/IX/IY for compatibility with the SAVE streaming reader.
+fun native_original_byte(@z80_hl index:u16)->u8 {
+ asm z80 (in index) (ret A) (clob A,F) {
+  PUSH BC
+  PUSH DE
+  PUSH HL
+  PUSH IX
+  PUSH IY
+  LD A,H
+  SRL A
+  SRL A
+  SRL A
+  OR 128
+  LD D,A
+  LD A,H
+  AND 7
+  LD H,A
+  CALL .original_fetch
+  POP IY
+  POP IX
+  POP HL
+  POP DE
+  POP BC
+  RET
+ .original_fetch:
+  PUSH HL
+  JP native_story_cache_fetch
+ }
+}
+"""
+    return code.replace(',', ', ')
+
 
 
 if __name__ == '__main__':

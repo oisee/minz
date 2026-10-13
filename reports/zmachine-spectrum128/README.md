@@ -1080,3 +1080,34 @@ PC/SP/paging/IFF. Все байты банкового image выше dynamic-bo
 хвосты. Полная сборка **25025 байт**, запас 319 байт до stack reservation.
 Это включённый экспериментальный RESTART, но SAVE для compressed-story
 пока не подключён, downloadable raw-комплекты не заменены.
+
+### 13 октября: исходные dynamic-байты через тот же 2-КБ кэш
+
+`story_lz_layout.py --archive-blocks` хранит исходный dynamic-prefix независимыми
+LZ/raw блоками и отдельным четырёхбайтовым индексом. Whole-prefix restart-архив
+в этом формате заменён блоками; прежний layout остаётся доступным без флага.
+Host reconstruction проверяет всю историю и точное совпадение archived dynamic.
+
+`native_story_cache.py` для такого layout добавляет `native_original_byte`.
+Старший бит ключа кэша различает static и original блоки; output-buffer общий.
+Reader сохраняет BC/DE/HL/IX/IY, возвращая исходный байт в A — контракт,
+необходимый существующему потоковому SAVE encoder/delta apply. Архивные reads
+не читают изменённый live bank0. Цена расширения — 73 байта; изолированный
+модуль с общим буфером занимает 2435 байт.
+
+Z80 проверил все live/story и original-prefix байты synthetic story, Zork I
+и Zork II. Финальная проверка Zork II: 104190 reads PASS; отдельно проверены
+сохранность регистров при hit/miss и оригинальный byte 63 после изменения
+live byte 63. Полная память восьми банков проверена на посторонние записи.
+Zork I на предыдущем checkpoint той же реализации: 98231 reads PASS.
+Четыре группы host layout-тестов PASS, включая новый блочный архив.
+
+Для Zork II блоки исходного prefix занимают 8986 байт, индекс 24 байта;
+весь six-bank storage 97071 байт. Проверенное размещение резервирует 512 байт
+под SAVE. Нельзя утверждать, что реальный игровой SAVE помещается: полный
+record/state/delta ещё не измерены для этого слота.
+
+Этот механизм пока проверен отдельно: `--layout-restart` ожидает старый
+whole-prefix layout, а compressed SAVE ещё не подключён. Следующее изменение
+должно переключить restart на блоки и связать existing saved-RLE cursor с
+новым original reader, затем измерить resident headroom и реальный SAVE.
