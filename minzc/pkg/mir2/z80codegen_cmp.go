@@ -292,11 +292,18 @@ func (g *z80cg) genCmp(inst *Inst) {
 		}
 	}
 
-	// 16-bit comparison: one or both operands are register pairs (HL/DE/BC/…).
+	// Preserve semantic word width when an operand lives in a spill slot.
+	// Its physical name alone does not identify a register pair.
 	// Z80 only supports SBC HL, rr for 16-bit flag-setting subtraction.
 	cv, immediate := g.constVals[inst.Src[1]]
 	byteImmediate := immediate && cv >= 0 && cv <= 255 && !isPairReg(lhs) && (isSimpleReg(lhs) || isIXYReg(lhs)) && lhs != "F" && (inst.SrcTy == nil || inst.SrcTy.Width() <= 8)
-	if isPairReg(lhs) || (isPairReg(rhs) && !byteImmediate) {
+	wordOperand := inst.SrcTy != nil && inst.SrcTy.Width() > 8
+	for _, r := range inst.Src {
+		if info, ok := g.regInfo[r]; ok && info.Ty != nil && info.Ty.Width() > 8 {
+			wordOperand = true
+		}
+	}
+	if wordOperand || isPairReg(lhs) || (isPairReg(rhs) && !byteImmediate) {
 		g.genCmp16(inst)
 		return
 	}
