@@ -33,13 +33,13 @@ func TestZMachineArchiveStreamNative(t *testing.T) {
 	cases := 0
 	for _, bank := range []int{1, 3, 4, 6, 7} {
 		offset := 16384 - len(packed)
-		command = exec.Command("python3", "-c", "from native_archive_stream import emit, emit_delta_packer; import sys; print(emit(int(sys.argv[1]),int(sys.argv[2]))+emit_delta_packer())", strconv.Itoa(0x10|bank), strconv.Itoa(offset))
+		command = exec.Command("python3", "-c", "from native_archive_stream import emit; from native_save_stream import emit as pack; import sys; print(emit(int(sys.argv[1]),int(sys.argv[2]))+pack())", strconv.Itoa(0x10|bank), strconv.Itoa(offset))
 		command.Dir = "../../../scripts/zmachine"
 		generated, err := command.Output()
 		if err != nil {
 			t.Fatal(err)
 		}
-		h, err := nanz.Parse(string(generated)+"\nfun main() -> u8 { return native_original_byte(0) }", "archive.nanz")
+		h, err := nanz.Parse(string(generated)+"\nfun native_state_byte(index:u16)->u8 { return 0 }\nfun main() -> u8 { return native_original_byte(0) }", "archive.nanz")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -115,7 +115,7 @@ func TestZMachineArchiveStreamNative(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		for name, size := range map[string]int{"native_delta_pack_begin": 2, "native_delta_pack_literals": 1, "native_delta_pack_bank": 1} {
+		for name, size := range map[string]int{"native_state_pack_begin": 2, "native_state_pack_literals": 1, "native_state_pack_bank": 1, "native_save_mode": 1} {
 			for i := 0; i < size; i++ {
 				scratch[uint16(a.Symbols[name]+i)] = true
 			}

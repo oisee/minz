@@ -13,13 +13,14 @@ import (
 func TestZMachineStateStreamNative(t *testing.T) {
 	// Source is emitted by the production generator; expected bytes are formed
 	// independently from raw physical globals and the original compact layout.
-	cmd := exec.Command("python3", "-c", "from native_state_stream import emit, emit_packer; print(emit()+emit_packer())")
+	cmd := exec.Command("python3", "-c", "from native_state_stream import emit; from native_save_stream import emit as pack; print(emit()+pack())")
 	cmd.Dir = "../../../scripts/zmachine"
 	generated, err := cmd.Output()
 	if err != nil {
 		t.Fatal(err)
 	}
-	src := `global pc:u32
+	src := `fun native_original_byte(index:u16)->u8 { return 0 }
+global pc:u32
  global frame:u8
  global v_sp:u16
  global random_state:u16
@@ -171,7 +172,7 @@ func TestZMachineStateStreamNative(t *testing.T) {
 			t.Fatal("state packed bytes mismatch")
 		}
 		scratch := map[uint16]bool{}
-		for name, size := range map[string]int{"native_state_pack_begin": 2, "native_state_pack_literals": 1, "native_state_pack_bank": 1} {
+		for name, size := range map[string]int{"native_state_pack_begin": 2, "native_state_pack_literals": 1, "native_state_pack_bank": 1, "native_save_mode": 1} {
 			for i := 0; i < size; i++ {
 				scratch[uint16(a.Symbols[name]+i)] = true
 			}
@@ -188,6 +189,46 @@ func TestZMachineStateStreamNative(t *testing.T) {
 					t.Fatalf("state pack wrote outside slot/scratch/stack bank%d offset%04x", p, i)
 				}
 			}
+		}
+	}
+
+	// Alternate modes in the same machine. Original-byte fixture is zero here,
+	// so delta must equal raw bank0 bytes; field-byte mode must still work afterward.
+	reference = exec.Command("python3", "-c", "import sys; from restart_rle import pack; print(pack(bytes.fromhex(sys.argv[1])).hex())", hex.EncodeToString(before[0][:256]))
+	reference.Dir = "../../../scripts/zmachine"
+	deltaHex, err := reference.Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	delta, err := hex.DecodeString(string(bytes.TrimSpace(deltaHex)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, entry := range []string{"native_delta_pack", "native_state_pack", "native_delta_pack", "native_state_pack"} {
+		size := 1786
+		wantBytes := encoded
+		if entry == "native_delta_pack" {
+			size = 256
+			wantBytes = delta
+		}
+		m.Memory.SetPagingForce(0x10)
+		m.CPU.SetPC(uint16(a.Symbols[entry]))
+		m.CPU.SetSP(0xbf00)
+		m.CPU.SetAF(0x1700)
+		m.CPU.SetHL(0)
+		m.CPU.SetDE(uint16(size))
+		m.CPU.SetIX(0)
+		m.CPU.SetIY(uint16(len(wantBytes)))
+		m.CPU.SetIFF1(false)
+		m.CPU.SetIFF2(false)
+		for i := 0; i < 2000000; i++ {
+			if m.CPU.PC() == 0x7000 && m.CPU.SP() == 0xbf02 {
+				break
+			}
+			m.CPU.DoOpcode()
+		}
+		if int(m.CPU.HL()) != len(wantBytes) || !bytes.Equal(m.Memory.RAM[7][:len(wantBytes)], wantBytes) || m.CPU.PC() != 0x7000 || m.CPU.SP() != 0xbf02 || m.Memory.PagingState() != 0x10 || m.CPU.IFF1() || m.CPU.IFF2() {
+			t.Fatal("mode switch failed", entry)
 		}
 	}
 	t.Logf("complete state stream encoded directly to %d bytes, exact/short/spare capacities", len(encoded))

@@ -584,3 +584,20 @@ archive/delta streaming and CRC to the native console core: 24969 resident bytes
 ending BC89, only 375 bytes before BE00 native-stack reservation. This is not a
 released SAVE-enabled snapshot. Header validation and restore/apply still need
 space; share the duplicated encoder next, retaining current stack/capacity guards.
+
+
+## Shared native save encoder
+
+`native_save_stream.py` now emits one bounded RLE engine with small state/delta
+entry wrappers. Both preserve the existing bank/index/count/offset/capacity ABI.
+A transient mode byte selects the read callback; it is not saved interpreter
+state. State and XOR-delta fixtures still match the independent host codec,
+including capacity failure. Additional same-machine delta→state→delta→state
+checks verify mode changes cannot silently select the wrong data source.
+Combined streaming regressions PASS in 0.67 seconds.
+
+Diagnostic resident size improves 24969→24759 bytes (-210 B), ending BBB7,
+leaving 585 bytes before the unchanged BE00 stack reservation. Native SAVE remains
+unconnected; header preflight and restore/apply must still be implemented and
+measured. The remaining headroom is a budget, not evidence that the complete
+feature will fit. Desktop bundles retain their prior runnable checkpoint.
