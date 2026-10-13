@@ -601,3 +601,26 @@ leaving 585 bytes before the unchanged BE00 stack reservation. Native SAVE remai
 unconnected; header preflight and restore/apply must still be implemented and
 measured. The remaining headroom is a budget, not evidence that the complete
 feature will fit. Desktop bundles retain their prior runnable checkpoint.
+
+
+## Native structural save-record preflight
+
+`native_save_preflight.py` emits read-only checks for the complete 32-byte header:
+magic/version, configured capacities, story release/serial/checksum/file size,
+decoded lengths, exact encoded record length, one-bank bounds, CRC excluding its
+stored bytes, and both exact-length RLE streams. Only declared resident scratch
+and native stack are written. Slot/bank selection and resident DI execution are
+trusted caller preconditions; bytes must stay immutable through preflight/apply.
+
+2232 native structural cases PASS in 5.49 seconds, all six banks at start/end:
+valid record, individual-byte corruption, every truncation, trailing data,
+wrong format/identity/capacity/length fields and malformed RLE with recalculated
+CRC. All physical banks unchanged outside scratch/stack, PC/SP/paging/IFF checked.
+This pass does NOT validate decoded PC/frame/stack/stream metadata and must never
+alone authorize applying an untrusted record. That semantic pass remains.
+
+Diagnostic combined resident size with structural preflight: 25074 bytes, end
+BCF2, 270 bytes before BE00 stack reservation. Not a released runnable SAVE build.
+More space is required for semantic validation/apply and slot publication; retain
+stack/size guards and seek code sharing or banked helper code. Desktop checkpoint
+SAVE/RESTORE remain disabled.
