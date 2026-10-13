@@ -2007,7 +2007,7 @@ VERSION: %s (build %s, %s)
 	// Restored in Game.Update() after the first few frames.
 	suppressStderr()
 
-	game := newGame(machine, scale, *noAudioFlag)
+	game := newGame(machine, scale, *noAudioFlag || len(os.Args) == 1 || *demoFlag != "")
 	game.keystrokeQueue = keystrokeQueue
 	game.demoRoot = *demoRoot
 	game.demoSession = demoSession

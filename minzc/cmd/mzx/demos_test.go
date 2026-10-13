@@ -49,3 +49,22 @@ func TestDemoSessionResumes(t *testing.T) {
 		t.Fatalf("saved byte = %x", got)
 	}
 }
+
+func TestEmbeddedDemoBoots(t *testing.T) {
+	for _, d := range demoCatalog {
+		t.Run(d.ID, func(t *testing.T) {
+			m, _, err := loadDemo(d.ID, t.TempDir(), embedded48ROM)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for i := 0; i < 120; i++ {
+				m.RunFrame()
+			}
+			if d.ID == "tetris" {
+				if m.Memory.Read(0x584a)&7 != 7 {
+					t.Fatal("Tetris wall must use visible white INK")
+				}
+			}
+		})
+	}
+}
