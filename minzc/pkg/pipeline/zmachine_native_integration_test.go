@@ -164,6 +164,22 @@ func TestZMachineBankedZork128TreasureRoomNative(t *testing.T) {
 	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-treasure-room")
 }
 
+func TestZMachineBankedZork128ColdPassageNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-cold-passage")
+}
+
+func TestZMachineBankedZork128FullWalkthroughNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-full-walkthrough")
+}
+
 // A separately built full V3 story, not the Zork I workload used earlier.
 func TestZMachineBankedZorkIIGameplayNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
@@ -233,12 +249,14 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
+	fullWalkthrough := commands == "@console-windows-full-walkthrough"
+	coldPassage := commands == "@console-windows-cold-passage"
 	treasureRoom := commands == "@console-windows-treasure-room"
 	trident := commands == "@console-windows-trident"
 	cyclops := commands == "@console-windows-cyclops"
 	crystalSkull := commands == "@console-windows-skull"
 	damLobby := commands == "@console-windows-dam"
-	earlyDungeon := commands == "@console-windows-dungeon" || damLobby || crystalSkull || cyclops || trident || treasureRoom
+	earlyDungeon := commands == "@console-windows-dungeon" || damLobby || crystalSkull || cyclops || trident || treasureRoom || coldPassage || fullWalkthrough
 	zorkIIWindows := commands == "@console-zork2-128-windows"
 	if zorkIIWindows {
 		commands = "@console-zork2-compressed-save-restart"
@@ -493,6 +511,12 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if treasureRoom {
 				routeFile = "treasure-room.txt"
 			}
+			if coldPassage {
+				routeFile = "cold-passage.txt"
+			}
+			if fullWalkthrough {
+				routeFile = "full-walkthrough.txt"
+			}
 			route, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", routeFile))
 			if err != nil {
 				t.Fatal(err)
@@ -582,7 +606,7 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 		}
 		if earlyDungeon && os.Getenv("MINZ_Z3_FROTZ") != "" {
 			refSeed := "12"
-			if trident || treasureRoom {
+			if trident || treasureRoom || coldPassage || fullWalkthrough {
 				refSeed = "1"
 			}
 			ref := exec.Command(os.Getenv("MINZ_Z3_FROTZ"), "-m", "-w", "255", "-s", refSeed, externalStory)
@@ -606,6 +630,12 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			}
 			if treasureRoom {
 				checkpoint = []string{"Your score is 233 (total of 350 points), in 264 moves.", "There is a silver chalice, intricately engraved, here.", "You are carrying:\n  A nasty knife\n  A rusty knife\n  A brass lantern\n  A torch (providing light)"}
+			}
+			if coldPassage {
+				checkpoint = []string{"Your score is 271 (total of 350 points), in 304 moves.", "Cold Passage", "You are carrying:\n  A clove of garlic\n  A screwdriver\n  A brass lantern\n  A torch (providing light)"}
+			}
+			if fullWalkthrough {
+				checkpoint = []string{"Inside the Barrow", "You have mastered the first part of the ZORK trilogy.", "Your score is 350 (total of 350 points), in 399 moves.", "This gives you the rank of Master Adventurer."}
 			}
 			for _, want := range checkpoint {
 				if !bytes.Contains(output, []byte(want)) {
@@ -637,7 +667,11 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	if earlyDungeon {
 		limit = 2000000000
 	}
+	if fullWalkthrough {
+		limit = 3000000000
+	}
 	for i := 0; i < limit; i++ {
+
 		if console && !keyboard && m.CPU.PC() == uint16(a.Symbols["tui_read_line_or_eof"]) {
 			break
 		}
@@ -735,6 +769,12 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			}
 			if treasureRoom {
 				phrases = []string{"Treasure Room", "Your score is 233 (total of 350 points), in 264 moves.", "There is a silver chalice, intricately engraved, here.", "You are carrying:\n  A nasty knife\n  A rusty knife\n  A brass lantern\n  A torch (providing light)"}
+			}
+			if coldPassage {
+				phrases = []string{"Your score is 271 (total of 350 points), in 304 moves.", "Cold Passage", "You are carrying:\n  A clove of garlic\n  A screwdriver\n  A brass lantern\n  A torch (providing light)"}
+			}
+			if fullWalkthrough {
+				phrases = []string{"Inside the Barrow", "You have mastered the first part of the ZORK trilogy.", "Your score is 350 (total of 350 points), in 399 moves.", "This gives you the rank of Master Adventurer."}
 			}
 			if zorkII {
 				phrases = []string{"ZORK II: The Wizard of Frobozz", "Inside the Barrow", "You are empty-handed.", "Taken.", "The lamp is now on.", "Narrow Tunnel", "total of 400 points"}
