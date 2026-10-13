@@ -488,3 +488,12 @@ cases exercise offsets outside the window and 16-bit address overflow.
 The imported validator adds 256 resident bytes: 23883→24139 bytes, leaving
 1205 bytes before the reserved native stack. Desktop bundles remain the prior
 23883-byte runnable checkpoint until this component is wired into SAVE.
+
+
+## Complete-header reference save records
+
+A bounded reference codec now includes the 32-byte version/identity/capacity/CRC
+header: three real saves measure 485/652/779 bytes and roundtrip exactly. Six
+reference tests reject corruption, truncation, foreign records, capacity overflow
+and invalid state. This advances the save format; it does not enable native SAVE.
+See [layout and remaining integration work](save-format-plan.md).
