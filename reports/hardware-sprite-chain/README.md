@@ -37,3 +37,28 @@ Expanded checkpoint: 768 masked executions (256 backgrounds × three modes)
 repatch the same compiled code repeatedly, with independent mask/full-RAM
 oracles. Twelve invalid descriptors and five invalid names reject. Combined
 chain suite PASS 0.486 s. Full Spectrum/IRQ/demo and comparative cost remain open.
+
+
+## Full Spectrum checkpoint
+
+Both primitives × ordinary/Grace Size/Grace Speed passed actual main on the
+48K Spectrum model with ROM IM1 IRQ and ULA contention: 64 completed screens
+per run, 189 accepted ROM IRQ, 192 video frames. Independent image math checks
+all 6912 screen bytes; draw return PC/SP and ROM IRQ register preservation hold.
+PUSH entry requires IFF1=false and its return keeps it false; the caller uses
+DI around patch/draw and EI afterwards. No IRQ is accepted during PUSH.
+See demo/source.nanz and the machine test. Snapshots resume running RAM code.
+
+Run `scripts/play_zx_sprite_chain.sh` or `scripts/play_zx_sprite_chain.sh --push`.
+Windowless: append `--headless --frames 100 --screenshot build/sprite.png`.
+The PUSH launcher completed 100 video frames. Partial video captures can show
+an in-progress next draw; exact screens are checked at completed draw boundaries.
+Physical hardware, NMI, and tear-free presentation are not established.
+
+Two differently named invocations of the same top-level metafunction initially
+collided in source provenance. Generated source-unit names now include invocation
+position; a regression verifies both generated functions and deterministic hashes.
+
+Machine exports and logs are retained on `/mnt/safe/minz/grace/2026-10-13/`.
+Comparative move+draw cost, final API docs, main integration and final share audit
+remain required before the goal can close.

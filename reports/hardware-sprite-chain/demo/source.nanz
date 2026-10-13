@@ -1,0 +1,138 @@
+import hw.fill
+import hw.sprite_chain
+
+// Animated opaque byte-aligned sprite. Both kernels are mutable code in RAM.
+// All patching/drawing occurs under DI; EI/HALT resumes normal ROM IM1 IRQ.
+@sprite_chain("actor_compiled") {
+ destination "zx_bitmap_bytes" 0x4000
+ region 4 56 8 8
+ row "0000000000000000" "00183c7e7e3c1800"
+ row "0000000000000000" "183c7effff7e3c18"
+ row "0000000000000000" "3c7effa5a5ff7e3c"
+ row "0000000000000000" "7effa55a5aa5ff7e"
+ row "0000000000000000" "7effa55a5aa5ff7e"
+ row "0000000000000000" "3c7effa5a5ff7e3c"
+ row "0000000000000000" "183c7effff7e3c18"
+ row "0000000000000000" "00183c7e7e3c1800"
+ via "compiled"
+ irq "disabled"
+}
+
+@sprite_chain("actor_push") {
+ destination "zx_bitmap_bytes" 0x4000
+ region 4 56 8 8
+ row "0000000000000000" "00183c7e7e3c1800"
+ row "0000000000000000" "183c7effff7e3c18"
+ row "0000000000000000" "3c7effa5a5ff7e3c"
+ row "0000000000000000" "7effa55a5aa5ff7e"
+ row "0000000000000000" "7effa55a5aa5ff7e"
+ row "0000000000000000" "3c7effa5a5ff7e3c"
+ row "0000000000000000" "183c7effff7e3c18"
+ row "0000000000000000" "00183c7e7e3c1800"
+ via "push"
+ irq "disabled"
+}
+
+global primitive: u8 = 0
+
+fun clear_bitmap() -> void {
+ @fill() {
+  layout "zx_bitmap_bytes" 0x4000
+  value 0
+  via "ldir"
+ }
+}
+
+fun init_attributes() -> void {
+ @fill() {
+  layout "linear" 0x5800 32 24 32
+  value 0x46
+  via "ldir"
+ }
+}
+
+fun screen_address(x: u16, y: u16) -> u16 {
+ return 0x4000 + ((y & 192) << 5) + ((y & 7) << 8) + ((y & 56) << 2) + x
+}
+
+fun draw_frame(frame: u8) -> void {
+ clear_bitmap()
+ let x: u16 = 4 + u16(frame & 15)
+ let y: u16 = 56 + u16(frame >> 4) * 8
+ // Patching is two-byte writes: schedule atomically against execution/reentry.
+ asm z80 (clob) { DI }
+ if primitive == 0 {
+  actor_compiled_set_row_0(screen_address(x, y + 0))
+  actor_compiled_set_row_1(screen_address(x, y + 1))
+  actor_compiled_set_row_2(screen_address(x, y + 2))
+  actor_compiled_set_row_3(screen_address(x, y + 3))
+  actor_compiled_set_row_4(screen_address(x, y + 4))
+  actor_compiled_set_row_5(screen_address(x, y + 5))
+  actor_compiled_set_row_6(screen_address(x, y + 6))
+  actor_compiled_set_row_7(screen_address(x, y + 7))
+  if (frame & 1) == 0 {
+   actor_compiled_set_next_0(actor_compiled_row_1_address())
+   actor_compiled_set_next_1(actor_compiled_row_2_address())
+   actor_compiled_set_next_2(actor_compiled_row_3_address())
+   actor_compiled_set_next_3(actor_compiled_row_4_address())
+   actor_compiled_set_next_4(actor_compiled_row_5_address())
+   actor_compiled_set_next_5(actor_compiled_row_6_address())
+   actor_compiled_set_next_6(actor_compiled_row_7_address())
+   actor_compiled_set_next_7(actor_compiled_done_address())
+   actor_compiled_set_entry(actor_compiled_row_0_address())
+  } else {
+   actor_compiled_set_next_0(actor_compiled_done_address())
+   actor_compiled_set_next_1(actor_compiled_row_0_address())
+   actor_compiled_set_next_2(actor_compiled_row_1_address())
+   actor_compiled_set_next_3(actor_compiled_row_2_address())
+   actor_compiled_set_next_4(actor_compiled_row_3_address())
+   actor_compiled_set_next_5(actor_compiled_row_4_address())
+   actor_compiled_set_next_6(actor_compiled_row_5_address())
+   actor_compiled_set_next_7(actor_compiled_row_6_address())
+   actor_compiled_set_entry(actor_compiled_row_7_address())
+  }
+  actor_compiled()
+ } else {
+  actor_push_set_row_0(screen_address(x, y + 0) + 8)
+  actor_push_set_row_1(screen_address(x, y + 1) + 8)
+  actor_push_set_row_2(screen_address(x, y + 2) + 8)
+  actor_push_set_row_3(screen_address(x, y + 3) + 8)
+  actor_push_set_row_4(screen_address(x, y + 4) + 8)
+  actor_push_set_row_5(screen_address(x, y + 5) + 8)
+  actor_push_set_row_6(screen_address(x, y + 6) + 8)
+  actor_push_set_row_7(screen_address(x, y + 7) + 8)
+  if (frame & 1) == 0 {
+   actor_push_set_next_0(actor_push_row_1_address())
+   actor_push_set_next_1(actor_push_row_2_address())
+   actor_push_set_next_2(actor_push_row_3_address())
+   actor_push_set_next_3(actor_push_row_4_address())
+   actor_push_set_next_4(actor_push_row_5_address())
+   actor_push_set_next_5(actor_push_row_6_address())
+   actor_push_set_next_6(actor_push_row_7_address())
+   actor_push_set_next_7(actor_push_done_address())
+   actor_push_set_entry(actor_push_row_0_address())
+  } else {
+   actor_push_set_next_0(actor_push_done_address())
+   actor_push_set_next_1(actor_push_row_0_address())
+   actor_push_set_next_2(actor_push_row_1_address())
+   actor_push_set_next_3(actor_push_row_2_address())
+   actor_push_set_next_4(actor_push_row_3_address())
+   actor_push_set_next_5(actor_push_row_4_address())
+   actor_push_set_next_6(actor_push_row_5_address())
+   actor_push_set_next_7(actor_push_row_6_address())
+   actor_push_set_entry(actor_push_row_7_address())
+  }
+  actor_push()
+ }
+ asm z80 (clob) { EI }
+}
+
+fun main() -> void {
+ init_attributes()
+ var frame: u8 = 0
+ while true {
+  draw_frame(frame)
+  frame = (frame + 1) & 31
+  asm z80 (clob) { EI / HALT }
+ }
+}
