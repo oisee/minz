@@ -41,4 +41,6 @@ primitive. Dynamic positions, clipping and a structured ASM builder remain
 separate work. This stage proves expressiveness and behavior; it does not
 claim an optimization speedup or coverage of every sprite layout.
 
-Integration is pending. Native evidence is in native.txt and cases/.
+Full Nanz PASS in 35.122 seconds. All 359 fast pipeline tests PASS in four
+process shards (706 total inventory). Integration is pending. Native evidence
+is in native.txt and cases/.
