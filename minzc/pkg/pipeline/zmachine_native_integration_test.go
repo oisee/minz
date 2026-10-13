@@ -188,6 +188,14 @@ func TestZMachineBankedZork128LateSaveWalkthroughNative(t *testing.T) {
 	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-late-save")
 }
 
+func TestZMachineBankedZorkII128ReturnWellNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set Zork II story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-return-well")
+}
+
 func TestZMachineBankedZorkII128RobotNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
 	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
@@ -297,7 +305,8 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	zorkIIRobot := commands == "@console-zork2-robot"
+	zorkIIReturnWell := commands == "@console-zork2-return-well"
+	zorkIIRobot := commands == "@console-zork2-robot" || zorkIIReturnWell
 	zorkIICakes := commands == "@console-zork2-cakes" || zorkIIRobot
 	zorkIIWell := commands == "@console-zork2-well" || zorkIICakes
 	zorkIIRiddle := commands == "@console-zork2-riddle" || zorkIIWell
@@ -599,6 +608,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if zorkIIRobot {
 				routeFile = "zork2-robot.txt"
 			}
+			if zorkIIReturnWell {
+				routeFile = "zork2-return-well.txt"
+			}
 			route, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", routeFile))
 			if err != nil {
 				t.Fatal(err)
@@ -761,6 +773,10 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if zorkIIRobot {
 				wants = []string{"The cage shakes and is hurled across the room.", "You are carrying:\n  A red crystal sphere\n  A package of candy\n  A pearl necklace\n  A lamp (providing light)", "Your score would be 65 (total of 400 points), in 56 moves.", "Low Room"}
 			}
+			if zorkIIReturnWell {
+				wants = []string{"The cage shakes and is hurled across the room.", "The bucket descends and comes to a stop.", "Circular Room", "You are carrying:\n  A china teapot\n  The china teapot contains:\n    A quantity of water\n  A red crystal sphere\n  A package of candy\n  A pearl necklace\n  A lamp (providing light)", "Your score would be 65 (total of 400 points), in 63 moves."}
+			}
+
 			for _, want := range wants {
 				if !bytes.Contains(output, []byte(want)) {
 					t.Fatalf("Frotz garden checkpoint missing %q", want)
@@ -956,6 +972,10 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if zorkIIRobot {
 				phrases = []string{"The cage shakes and is hurled across the room.", "You are carrying:\n  A red crystal sphere\n  A package of candy\n  A pearl necklace\n  A lamp (providing light)", "Your score would be 65 (total of 400 points), in 56 moves.", "Low Room"}
 			}
+			if zorkIIReturnWell {
+				phrases = []string{"The cage shakes and is hurled across the room.", "The bucket descends and comes to a stop.", "Circular Room", "You are carrying:\n  A china teapot\n  The china teapot contains:\n    A quantity of water\n  A red crystal sphere\n  A package of candy\n  A pearl necklace\n  A lamp (providing light)", "Your score would be 65 (total of 400 points), in 63 moves."}
+			}
+
 			for _, phrase := range phrases {
 				if !bytes.Contains(rendered, []byte(phrase)) {
 					t.Fatalf("exploration missing %q: %q", phrase, rendered)
