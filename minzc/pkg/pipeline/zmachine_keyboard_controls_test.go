@@ -84,6 +84,16 @@ func TestZMachineKeyboardControlsNative(t *testing.T) {
 			t.Fatalf("key%v shift%v got%d want%d", c.key, c.shift, byte(m.CPU.AF()>>8), c.want)
 		}
 	}
+	for _, c := range []struct {
+		key  spectrum.SpecKey
+		want byte
+	}{{spectrum.KeyP, 34}, {spectrum.KeyN, 44}, {spectrum.KeyM, 46}, {spectrum.KeyC, 63}, {spectrum.Key7, 39}, {spectrum.Key1, 33}, {spectrum.KeyL, 61}} {
+		m := setup()
+		run(m, "zx__console__con_getchar", [][]spectrum.SpecKey{{spectrum.KeySym, c.key}})
+		if byte(m.CPU.AF()>>8) != c.want {
+			t.Fatalf("symbol key %v got%d want%d", c.key, byte(m.CPU.AF()>>8), c.want)
+		}
+	}
 	for _, start := range []struct{ col, row byte }{{0, 2}, {30, 2}, {31, 23}} {
 		m := setup()
 		m.Memory.Write(uint16(a.Symbols["zx__console__con_col"]), start.col, false)

@@ -60,3 +60,9 @@ Native SAVE1 660/2 204 B. Полный вывод совпадает с VM.
 `zork2-garden.txt` проверяет карту V3 из 2dungeon.zil: Great Cavern→SW→S→SE,
 Gazebo, семь предметов, Path Near Stream. Frotz seed1 подтверждает inventory
 и score0/15 moves; VM/Z80 текст совпадает. Это отдельный маршрут, не walkthrough II.
+
+
+`zork2-riddle.txt` решает каменную дверь (`answer "a well"`) и берёт pearl
+necklace:20/400 очков на25 ходах. Z80/VM полный текст совпадает; Frotz seed2
+подтверждает checkpoint. Carousel зависит от RNG; seed audit1..64 даёт14
+совпадающих checkpoint. Кавычки на Spectrum вводятся SYMBOL SHIFT+P.

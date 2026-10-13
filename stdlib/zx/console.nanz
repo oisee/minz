@@ -541,15 +541,30 @@ global KBD_KEYS: [u8; 40] = [
     32,   0,   109, 110, 98       // SPACE, SS, m, n, b
 ]
 
+// Printable SYMBOL SHIFT legends; BASIC keywords keep their ordinary key.
+global KBD_SYMBOLS: [u8;40] = [
+ 0,58,0,63,47, 0,0,0,0,0, 0,0,0,60,62,
+ 33,64,35,36,37, 95,41,40,39,38, 34,59,0,93,0,
+ 0,61,43,45,94, 0,0,46,44,42
+]
+
+fun keyboard_char(index:u8)->u8 {
+ if (zx_in_fe(0x7f) & 2) == 0 {
+  let symbol:u8=KBD_SYMBOLS[index]
+  if symbol != 0 { return symbol }
+ }
+ return KBD_KEYS[index]
+}
+
 fun scan_row_key(row_addr: u8, base_idx: u8) -> u8 {
     var row_val: u8 = zx_in_fe(row_addr)
     if row_addr == 0xfe { row_val = row_val | 1 }
     if row_addr == 0x7f { row_val = row_val | 2 }
-    if (row_val & 1) == 0 { return KBD_KEYS[base_idx] }
-    if (row_val & 2) == 0 { return KBD_KEYS[base_idx + 1] }
-    if (row_val & 4) == 0 { return KBD_KEYS[base_idx + 2] }
-    if (row_val & 8) == 0 { return KBD_KEYS[base_idx + 3] }
-    if (row_val & 16) == 0 { return KBD_KEYS[base_idx + 4] }
+    if (row_val & 1) == 0 { return keyboard_char(base_idx) }
+    if (row_val & 2) == 0 { return keyboard_char(base_idx + 1) }
+    if (row_val & 4) == 0 { return keyboard_char(base_idx + 2) }
+    if (row_val & 8) == 0 { return keyboard_char(base_idx + 3) }
+    if (row_val & 16) == 0 { return keyboard_char(base_idx + 4) }
     return 0
 }
 

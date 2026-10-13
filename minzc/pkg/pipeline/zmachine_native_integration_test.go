@@ -188,6 +188,14 @@ func TestZMachineBankedZork128LateSaveWalkthroughNative(t *testing.T) {
 	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-late-save")
 }
 
+func TestZMachineBankedZorkII128RiddleNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set Zork II story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-riddle")
+}
+
 func TestZMachineBankedZorkII128GardenNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
 	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
@@ -265,7 +273,8 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	zorkIIGarden := commands == "@console-zork2-garden"
+	zorkIIRiddle := commands == "@console-zork2-riddle"
+	zorkIIGarden := commands == "@console-zork2-garden" || zorkIIRiddle
 	if zorkIIGarden {
 		commands = "@console-zork2-compressed"
 	}
@@ -550,7 +559,11 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			}
 		}
 		if zorkIIGarden {
-			route, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes/zork2-garden.txt"))
+			routeFile := "zork2-garden.txt"
+			if zorkIIRiddle {
+				routeFile = "zork2-riddle.txt"
+			}
+			route, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", routeFile))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -686,13 +699,21 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			t.Log("independent Frotz confirms score and complete inventory; random combat text is not compared")
 		}
 		if zorkIIGarden && os.Getenv("MINZ_Z3_FROTZ") != "" {
-			ref := exec.Command(os.Getenv("MINZ_Z3_FROTZ"), "-m", "-w", "255", "-s", "1", externalStory)
+			seed := "1"
+			if zorkIIRiddle {
+				seed = "2"
+			}
+			ref := exec.Command(os.Getenv("MINZ_Z3_FROTZ"), "-m", "-w", "255", "-s", seed, externalStory)
 			ref.Stdin = bytes.NewReader(route)
 			output, err := ref.Output()
 			if err != nil {
 				t.Fatal(err)
 			}
-			for _, want := range []string{"Gazebo", "A newspaper\n  A matchbook\n  A letter opener\n  A place mat\n  A china teapot\n  A elvish sword\n  A lamp (providing light)", "Your score would be 0 (total of 400 points), in 15 moves."} {
+			wants := []string{"Gazebo", "A newspaper\n  A matchbook\n  A letter opener\n  A place mat\n  A china teapot\n  A elvish sword\n  A lamp (providing light)", "Your score would be 0 (total of 400 points), in 15 moves."}
+			if zorkIIRiddle {
+				wants = []string{"stone door quietly swings open", "A pearl necklace\n  A newspaper\n  A matchbook\n  A letter opener\n  A place mat\n  A china teapot\n  A elvish sword\n  A lamp (providing light)", "Your score would be 20 (total of 400 points), in 25 moves."}
+			}
+			for _, want := range wants {
 				if !bytes.Contains(output, []byte(want)) {
 					t.Fatalf("Frotz garden checkpoint missing %q", want)
 				}
@@ -718,7 +739,7 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	var inputReturn, inputSP uint16
 
 	limit := 200000000
-	if earlyDungeon {
+	if earlyDungeon || zorkIIRiddle {
 		limit = 2000000000
 	}
 	if fullWalkthrough {
@@ -770,6 +791,11 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 						found = true
 						break
 					}
+				}
+				if !found && keyText[keyAt] == '"' {
+					m.Keyboard.KeyPress(spectrum.KeySym.Row, spectrum.KeySym.Bit)
+					m.Keyboard.KeyPress(spectrum.KeyP.Row, spectrum.KeyP.Bit)
+					found = true
 				}
 				if !found {
 					t.Fatalf("unmapped key %q", keyText[keyAt])
@@ -864,6 +890,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			}
 			if zorkIIGarden {
 				phrases = []string{"Gazebo", "Path Near Stream", "You are carrying:\n  A newspaper\n  A matchbook\n  A letter opener\n  A place mat\n  A china teapot\n  A elvish sword\n  A lamp (providing light)", "Your score would be 0 (total of 400 points), in 15 moves."}
+			}
+			if zorkIIRiddle {
+				phrases = []string{"stone door quietly swings open", "Pearl Room", "A pearl necklace\n  A newspaper\n  A matchbook\n  A letter opener\n  A place mat\n  A china teapot\n  A elvish sword\n  A lamp (providing light)", "Your score would be 20 (total of 400 points), in 25 moves."}
 			}
 			for _, phrase := range phrases {
 				if !bytes.Contains(rendered, []byte(phrase)) {
