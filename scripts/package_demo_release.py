@@ -34,7 +34,7 @@ for platform, binary in [('linux-amd64', a.linux), ('windows-amd64', a.windows)]
     (dest / 'README.txt').write_text(readme, encoding='utf-8')
     for id in ['tetris', 'zork1', 'zork2', 'rotozoomer', 'sprites', 'sprites-push']:
         if platform.startswith('windows'):
-            (dest / f'play-{id}.cmd').write_text(f'@echo off\r\n"%~dp0mzx.exe" --demo {id}\r\n', encoding='utf-8')
+            (dest / f'play-{id}.cmd').write_text(f'@echo off\r\n"%~dp0mzx.exe" --demo {id}\r\n', encoding='utf-8', newline='')
         else:
             script = dest / f'play-{id}.sh'
             script.write_text(f'#!/bin/sh\nexec "$(dirname "$0")/mzx" --demo {id} "$@"\n')

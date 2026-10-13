@@ -34,3 +34,9 @@ PR #93 содержит каталог демо. Кандидат 2 провер
 и SHA256 manifest; все шесть запусков Linux и шесть Windows/Wine — PASS.
 После CLI-выхода Zork I создан session.sna. Это ещё не полный SAVE/workflow audit.
 Пакеты лежат в `embedded-demo-release/candidate-2`, доказательства — `proof-rc2`.
+
+Проверка реальных команд обнаружила два дефекта автоматического ввода MZX:
+plain-count screenshot loop не вызывал очередь `--type`, а headless loops не
+отпускали кнопки. Исправлены оба; повтор Zork II ответил `Ok.` на SAVE и RESTORE,
+и записал данные на TRD. Первые RC-пакеты этого исправления не содержат,
+поэтому финальный пакет нужно пересобрать и повторить его runtime checks.
