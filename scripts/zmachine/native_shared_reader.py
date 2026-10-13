@@ -7,7 +7,7 @@ Original archive is builder-validated; both inputs immutable during reading.
 
 
 def emit(bank_bits, offset):
-    if bank_bits not in (0x11,0x13,0x14,0x16,0x17) or not 0 <= offset < 16384:
+    if bank_bits not in (0x11,0x13,0x14,0x16,0x17,0x52) or not 0 <= offset < 16384:
         raise ValueError('invalid original archive location')
     pointer=0xc000+offset
     return f'''global original_cursor:[u8;12]=[0,0,{pointer&255},{pointer>>8},0,0,0,0,0,{pointer&255},{pointer>>8},{bank_bits}]

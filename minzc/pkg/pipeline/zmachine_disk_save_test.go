@@ -2,6 +2,8 @@ package pipeline
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -45,6 +47,14 @@ func TestZMachineZorkWindowDiskConsoleSaveAcrossRestart(t *testing.T) {
 	testZMachineDiskSave(t, path, true, true, true)
 }
 
+func TestZMachineZorkIIWindowDiskConsoleSaveAcrossRestart(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" {
+		t.Skip("set MINZ_Z3_ZORK2_STORY")
+	}
+	testZMachineDiskSave(t, path, true, true, true)
+}
+
 // Independent Inform story: SAVE branches again after RESTORE, recovering
 // value=1 even though the restore command sets it to 7 first.
 func testZMachineDiskSave(t *testing.T, externalStory string, extended, console, windows bool) {
@@ -59,6 +69,7 @@ func testZMachineDiskSave(t *testing.T, externalStory string, extended, console,
 			t.Fatal(err)
 		}
 	}
+	zorkII := fmt.Sprintf("%x", sha256.Sum256(original)) == "4cd8ac586b93881afe6fad00e72a33e93541c9573b15a1977ac67acf36ddc6b1"
 	for _, size := range []int{len(original)} {
 		t.Run(strconv.Itoa(size), func(t *testing.T) {
 			story := append([]byte(nil), original...)
@@ -86,10 +97,16 @@ func testZMachineDiskSave(t *testing.T, externalStory string, extended, console,
 			if offset/16384 != (offset+len(archive)-1)/16384 {
 				offset = (offset/16384 + 1) * 16384
 			}
+			if extended && offset+len(archive) > 98304 {
+				offset = 98304
+			}
 			commands := filepath.Join(dir, "commands.txt")
 			route := []byte("s\nq\n")
 			if externalStory != "" {
 				route = []byte("open mailbox\ntake leaflet\nsave\ninventory\nquit\ny\n")
+				if zorkII {
+					route = []byte("take lamp\ntake sword\nturn on lamp\nsouth\nsave\ninventory\nquit\ny\n")
+				}
 			}
 			if err := os.WriteFile(commands, route, 0600); err != nil {
 				t.Fatal(err)
@@ -170,13 +187,20 @@ func testZMachineDiskSave(t *testing.T, externalStory string, extended, console,
 				}
 				for i, b := range archive {
 					at := offset + i
-					m.Memory.RAM[pages[at/16384]][at%16384] = b
+					if at >= 98304 {
+						m.Memory.ExtendedRAM[2][at-98304] = b
+					} else {
+						m.Memory.RAM[pages[at/16384]][at%16384] = b
+					}
 				}
 				keyText := bytes.ReplaceAll(route, []byte("\n"), []byte("\r"))
 				if restore {
 					restoreRoute := []byte("r\nq\n")
 					if externalStory != "" {
 						restoreRoute = []byte("restore\ninventory\nquit\ny\n")
+						if zorkII {
+							restoreRoute = []byte("restore\ninventory\nrestart\ny\nlook\ninventory\nquit\ny\n")
+						}
 					}
 					keyText = bytes.ReplaceAll(restoreRoute, []byte("\n"), []byte("\r"))
 					if !console {
@@ -280,7 +304,13 @@ func testZMachineDiskSave(t *testing.T, externalStory string, extended, console,
 				}
 				for i, expected := range archive {
 					at := offset + i
-					if got := m.Memory.RAM[pages[at/16384]][at%16384]; got != expected {
+					var got byte
+					if at >= 98304 {
+						got = m.Memory.ExtendedRAM[2][at-98304]
+					} else {
+						got = m.Memory.RAM[pages[at/16384]][at%16384]
+					}
+					if got != expected {
 						t.Fatalf("restart archive changed at %d", at)
 					}
 				}
@@ -304,13 +334,25 @@ func testZMachineDiskSave(t *testing.T, externalStory string, extended, console,
 			}
 			if externalStory != "" {
 				for _, data := range [][]byte{first, second} {
-					for _, needle := range []string{"Ok.", "You are carrying:\n  A leaflet"} {
+					needles := []string{"Ok.", "You are carrying:\n  A leaflet"}
+					if zorkII {
+						needles = []string{"Ok.", "You are carrying:", "A elvish sword", "A lamp (providing light)"}
+					}
+					for _, needle := range needles {
 						if !bytes.Contains(data, []byte(needle)) {
 							t.Fatalf("missing %q: %q", needle, data)
 						}
 					}
 					if bytes.Contains(data, []byte("Z3 error")) {
 						t.Fatal("interpreter error")
+					}
+				}
+				if zorkII {
+					if !bytes.Contains(second, []byte("You are empty-handed.")) {
+						t.Fatal("restart did not reset inventory")
+					}
+					if bytes.Count(second, []byte("Inside the Barrow")) < 2 {
+						t.Fatal("restart did not reset room")
 					}
 				}
 				if d := os.Getenv("MINZ_Z3_TRANSCRIPTS"); d != "" {

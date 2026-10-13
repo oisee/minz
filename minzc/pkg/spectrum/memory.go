@@ -417,8 +417,9 @@ func (m *Memory) PagingState() byte {
 
 // EnableScorpionPaging enables only the Scorpion 256K memory map, not ROM,
 // disk hardware, video timings or turbo. Configure before constructing Ports.
-func (m *Memory) EnableScorpionPaging()     { m.scorpionPaging = true; m.ResetPaging() }
-func (m *Memory) ScorpionPagingState() byte { return m.scorpionPort }
+func (m *Memory) EnableScorpionPaging()       { m.scorpionPaging = true; m.ResetPaging() }
+func (m *Memory) ScorpionPagingEnabled() bool { return m.scorpionPaging }
+func (m *Memory) ScorpionPagingState() byte   { return m.scorpionPort }
 
 // $1FFD bit4 selects banks8..15; bit0 maps writable RAM0 at $0000;
 // bit1 selects ROM2. The $7FFD lock prevents changing the memory map.

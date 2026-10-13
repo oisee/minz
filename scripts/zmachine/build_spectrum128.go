@@ -94,7 +94,14 @@ func main() {
 		if len(archive) > 0 && archiveOffset/16384 != (archiveOffset+len(archive)-1)/16384 {
 			archiveOffset = (archiveOffset/16384 + 1) * 16384
 		}
-		restart = dynamic >= 64 && dynamic <= 16384 && len(archive) > 0 && archiveOffset+len(archive) <= 98304 && archiveOffset/16384 == (archiveOffset+len(archive)-1)/16384
+		if diskSave && archiveOffset+len(archive) > 98304 && len(archive) <= 16384 {
+			archiveOffset = 98304
+		}
+		limit := 98304
+		if diskSave {
+			limit = 114688
+		}
+		restart = dynamic >= 64 && dynamic <= 16384 && len(archive) > 0 && archiveOffset+len(archive) <= limit && archiveOffset/16384 == (archiveOffset+len(archive)-1)/16384
 
 		saveOffset = archiveOffset + len(archive)
 		if saveOffset < 5*16384 {
@@ -164,6 +171,10 @@ func main() {
 	if restart && !compressed {
 		for i, b := range archive {
 			at := archiveOffset + i
+			if at >= 98304 {
+				// Extra archive is loaded separately after the initial SNA.
+				continue
+			}
 			m.Memory.RAM[pages[at/16384]][at%16384] = b
 		}
 	}
@@ -196,7 +207,7 @@ func main() {
 		metadata["save_staging_bank"] = 8
 		metadata["sector_buffer_bank"] = 9
 		metadata["save_slot_offset"] = 0
-		metadata["limitations"] = []string{"dedicated TRD required; emulator TR-DOS API traps, physical controller not supported", "initial SNA stores original eight banks only; extra banks start empty", "ROM font required; IRQs disabled; full game not proven"}
+		metadata["limitations"] = []string{"dedicated TRD required; emulator TR-DOS API traps, physical controller not supported", "initial SNA stores eight banks; load restart-bank10.bin separately when listed in metadata", "ROM font required; IRQs disabled; full game not proven"}
 	}
 	metadata["v3_windows"] = windows
 	metadata["save_restore_supported"] = saveSupported
@@ -219,6 +230,11 @@ func main() {
 		metadata["restart_decoded_bytes"] = dynamic
 	}
 	if restart && !compressed {
+		if archiveOffset >= 98304 {
+			must(os.WriteFile(filepath.Join(out, "restart-bank10.bin"), archive, 0644))
+			metadata["restart_archive_physical_bank"] = 10
+			metadata["restart_archive_load"] = "restart-bank10.bin@C000:10"
+		}
 		metadata["restart_archive_offset"] = archiveOffset
 		metadata["restart_archive_bytes"] = len(archive)
 		metadata["restart_decoded_bytes"] = dynamic

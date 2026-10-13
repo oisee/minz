@@ -1623,3 +1623,29 @@ window matrix и independent window bytecode остаются PASS.
 object/stream combinations и physical TR-DOS не подтверждены. Новый status
 checkpoint пока отдельно от опубликованной playable disk bundle; её обновление
 и подтверждение другой реальной V3 story остаются следующими действиями.
+
+### 13 октября: Zork II — raw story, bank10 RESTART и persistent SAVE
+
+Scorpion disk builder размещает RLE archive в physical bank10, когда raw story
+и archive не помещаются вместе в шесть original story banks. Story остаётся
+raw в banks0/1/3/4/6/7; staging SAVE bank8, sector buffer bank9. Для Zork II
+story92412 B, archive9589 B, resident25323 B. Новый native reader допускает
+archive selector$52; shared paging helper переводит его в `$1FFD` bit4 и
+`$7FFD` bank2. Основные memory/layout tests PASS.
+
+Builder сохраняет initial128K SNA и отдельный `restart-bank10.bin`; extra bank
+не теряется молча в snapshot. Graphical/headless MZX поддерживают
+`--load restart-bank10.bin@C000:10`. Extended load отклоняется на обычной128K
+машине, crossing physical bank boundary отклоняется. Full Scorpion snapshot
+формат ещё не добавлен.
+
+Новый `TestZMachineZorkIIWindowDiskConsoleSaveAcrossRestart` проверяет pinned
+story SHA4cd8ac586b93881afe6fad00e72a33e93541c9573b15a1977ac67acf36ddc6b1.
+Keyboard route: take lamp/sword, turn on lamp, south, SAVE/inventory/quit;
+fresh machine после перечитывания TRD: RESTORE/inventory, RESTART/y,
+look/inventory/quit. Восстановлены elvish sword и lamp providing light,
+после RESTART начальная Inside the Barrow и empty-handed. Static story и
+bank10 archive byte-exact, header capability и PC/SP/paging проверены.
+CLI snapshot+bank10 loader отрисовал startup и status Inside the Barrow0/0.
+Это независимая вторая реальная V3 story, проверенная на выбранном маршруте;
+полное прохождение игры и physical TR-DOS по-прежнему не заявляются.

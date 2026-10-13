@@ -818,8 +818,8 @@ func parseLoadSpec(s string) (loadSpec, error) {
 		if _, err := fmt.Sscanf(pageStr, "%d", &page); err != nil {
 			return loadSpec{}, fmt.Errorf("invalid page number %q in load spec", pageStr)
 		}
-		if page < 0 || page > 7 {
-			return loadSpec{}, fmt.Errorf("page must be 0-7, got %d", page)
+		if page < 0 || page > 15 {
+			return loadSpec{}, fmt.Errorf("page must be 0-15, got %d", page)
 		}
 		spec.page = page
 	} else {
@@ -831,13 +831,19 @@ func parseLoadSpec(s string) (loadSpec, error) {
 
 func applyLoads(m *spectrum.Machine, specs []loadSpec) error {
 	for _, spec := range specs {
+		if spec.page > 7 && !m.Memory.ScorpionPagingEnabled() {
+			return fmt.Errorf("extended RAM load requires scorpion-memory")
+		}
 		data, err := os.ReadFile(spec.file)
 		if err != nil {
 			return fmt.Errorf("reading %s: %w", spec.file, err)
 		}
 		if spec.page >= 0 {
-			// Write to specific 128K RAM page
+			// Write to a physical bank, rejecting crossings.
 			offset := spec.addr & 0x3FFF
+			if int(offset)+len(data) > 16384 {
+				return fmt.Errorf("load crosses physical bank boundary")
+			}
 			for i, b := range data {
 				m.Memory.WriteRAMDirect(spec.page, offset+uint16(i), b)
 			}
@@ -1149,7 +1155,7 @@ LOADING:
 BARE-METAL CODE:
   --run FILE@ADDR        Load binary + set PC/SP/DI/IM1 (quick start)
   --load FILE@ADDR       Load raw binary to memory address (hex)
-  --load FILE@ADDR:PAGE  Load to specific 128K RAM page (0-7)
+  --load FILE@ADDR:PAGE  Load to specific RAM page (0-7; Scorpion-memory 0-15)
   --set REGS             Set CPU registers (hex): PC=8000,SP=FFFF,DI,IM=1
                          Supports: PC,SP,AF,BC,DE,HL,IX,IY,AF',BC',DE',HL',
                                    A,I,R,IM,DI,EI

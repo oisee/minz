@@ -144,18 +144,32 @@ func main() {
 		if err != nil {
 			log.Fatalf("--load %s: %v", parts[0], err)
 		}
-		addr, err := strconv.ParseUint(strings.TrimPrefix(parts[1], "0x"), 16, 16)
+		addressParts := strings.SplitN(parts[1], ":", 2)
+		addr, err := strconv.ParseUint(strings.TrimPrefix(addressParts[0], "0x"), 16, 16)
 		if err != nil {
-			addr2, err2 := strconv.ParseUint(parts[1], 10, 16)
-			if err2 != nil {
-				log.Fatalf("--load: bad address %q", parts[1])
+			log.Fatalf("--load: bad address %q", addressParts[0])
+		}
+		page := -1
+		if len(addressParts) == 2 {
+			page, err = strconv.Atoi(addressParts[1])
+			if err != nil || page < 0 || page > 15 {
+				log.Fatal("--load page must be 0..15")
 			}
-			addr = addr2
+			if page > 7 && !machine.Memory.ScorpionPagingEnabled() {
+				log.Fatal("extended RAM load requires scorpion-memory")
+			}
+			if int(addr&0x3fff)+len(data) > 16384 {
+				log.Fatal("--load crosses physical bank boundary")
+			}
 		}
 		for j, b := range data {
-			machine.Memory.Write(uint16(addr)+uint16(j), b, false)
+			if page >= 0 {
+				machine.Memory.WriteRAMDirect(page, uint16(addr&0x3fff)+uint16(j), b)
+			} else {
+				machine.Memory.Write(uint16(addr)+uint16(j), b, false)
+			}
 		}
-		fmt.Fprintf(os.Stderr, "Loaded %d bytes at $%04X\n", len(data), addr)
+		fmt.Fprintf(os.Stderr, "Loaded %d bytes at $%04X page %d\n", len(data), addr, page)
 	}
 
 	// --set registers

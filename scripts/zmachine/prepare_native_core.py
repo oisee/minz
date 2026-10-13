@@ -170,10 +170,10 @@ replace_function('snapshot_identity', 'fun snapshot_identity() {}')
 replace_function('restart_story', 'fun restart_story() { running = 0 }')
 if a.restart_bytes:
     archive_size = a.restart_rle_bytes or a.restart_bytes
-    if not 64 <= a.restart_bytes <= min(16384, a.story_bytes) or archive_size <= 0 or archive_offset < a.story_bytes or archive_offset + archive_size > 98304 or archive_offset // 16384 != (archive_offset + archive_size - 1) // 16384:
+    if not 64 <= a.restart_bytes <= min(16384, a.story_bytes) or archive_size <= 0 or archive_offset < a.story_bytes or archive_offset + archive_size > (114688 if a.extended_save else 98304) or archive_offset // 16384 != (archive_offset + archive_size - 1) // 16384:
         p.error('restart archive must fit within one free logical bank tail')
     page = archive_offset // 16384
-    bank = [0, 1, 3, 4, 6, 7][page]
+    bank = 0x42 if page == 6 and a.extended_save else [0, 1, 3, 4, 6, 7][page]
     if bank == 0:
         p.error('restart archive must be outside bank0')
     restore_name = 'bank_restore_rle' if a.restart_rle_bytes else 'bank_restore_prefix'
@@ -339,7 +339,7 @@ if a.save_story:
     from native_restore import emit as restore_code
     from native_save import emit as save_code
     text = 'import zx.crc\n' + text
-    text += state_code()+reader_code(pages[archive_offset//16384]+0x10,archive_offset%16384)+pack_code()
+    text += state_code()+reader_code(0x52 if archive_offset//16384==6 and a.extended_save else pages[archive_offset//16384]+0x10,archive_offset%16384)+pack_code()
     text += preflight_code(story,capacity).replace('import zx.crc\n','').replace('import zx.banked\n','')
     text += validate_code(story)+apply_code()+restore_code(story)+save_code(story,bank,offset,capacity)
     replace_function('save_state', 'fun save_state()->u8 { return native_save() }')
