@@ -5,6 +5,8 @@ import (
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/z80asm"
+	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -185,5 +187,109 @@ func TestHardwareSpriteChainNative(t *testing.T) {
 				}
 			})
 		}
+	}
+}
+
+func TestHardwareSpriteChainRejectsInvalidDescriptions(t *testing.T) {
+	valid := `destination "linear" 24576 4 1 4
+ region 0 0 4 1
+ row "00000000" "11223344"
+ via "push"
+ irq "disabled"`
+	cases := map[string]string{
+		"irq-missing":         strings.Replace(valid, `irq "disabled"`, "", 1),
+		"irq-enabled":         strings.Replace(valid, `"disabled"`, `"enabled"`, 1),
+		"irq-duplicate":       valid + "\nirq \"disabled\"",
+		"masked-push":         strings.Replace(valid, `"00000000"`, `"00ff0000"`, 1),
+		"odd-width":           strings.Replace(valid, `region 0 0 4 1`, `region 0 0 3 1`, 1),
+		"unknown-via":         strings.Replace(valid, `"push"`, `"magic"`, 1),
+		"bad-hex":             strings.Replace(valid, `"11223344"`, `"112233gg"`, 1),
+		"row-length":          strings.Replace(valid, `"11223344"`, `"112233"`, 1),
+		"address-overflow":    strings.Replace(valid, `24576`, `65535`, 1),
+		"bounds":              strings.Replace(valid, `region 0 0 4 1`, `region 1 0 4 1`, 1),
+		"duplicate-region":    valid + "\nregion 0 0 4 1",
+		"missing-destination": strings.Replace(valid, `destination "linear" 24576 4 1 4`, "", 1),
+	}
+	for name, body := range cases {
+		t.Run(name, func(t *testing.T) {
+			_, err := nanz.ParseWithOpts("import hw.sprite_chain\n@sprite_chain(\"actor\") {\n"+body+"\n}", "bad-chain.nanz", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
+			if err == nil {
+				t.Fatal("invalid descriptor accepted")
+			}
+		})
+	}
+	for _, name := range []string{"", "1actor", "actor;RET", "actor\nLD A,1", strings.Repeat("a", 81)} {
+		_, err := nanz.ParseWithOpts("import hw.sprite_chain\n@sprite_chain("+strconv.Quote(name)+") {\n"+valid+"\n}", "bad-name.nanz", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
+		if err == nil {
+			t.Fatalf("invalid name %q accepted", name)
+		}
+	}
+}
+
+func TestHardwareSpriteChainMaskedNative(t *testing.T) {
+	src := `import hw.sprite_chain
+ @sprite_chain("masked") {
+ destination "linear" 24576 6 1 6
+ region 0 0 6 1
+ row "fff00faa5500" "00050340aaff"
+ via "compiled"
+ }
+ `
+	for _, mode := range []string{"ordinary", "grace-size", "grace-speed"} {
+		t.Run(mode, func(t *testing.T) {
+			h, err := nanz.ParseWithOpts(src, "masked-chain.nanz", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
+			if err != nil {
+				t.Fatal(err)
+			}
+			steps, err := CompileHIRSteps(h, Options{AssertMode: "none", UseGrace: mode != "ordinary", UseHIRGrace: mode != "ordinary", OptSize: mode == "grace-size"})
+			if err != nil {
+				t.Fatal(err)
+			}
+			a, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + steps.Assembly)
+			if err != nil || len(a.Errors) > 0 {
+				t.Fatal(err, a.Errors)
+			}
+			z := emulator.NewRemogattoZ80()
+			mem := z.Memory()
+			for i := range mem {
+				mem[i] = byte(i * 37)
+			}
+			z.LoadMemory(0x8000, a.Binary)
+			masks := []byte{0xff, 0xf0, 0x0f, 0xaa, 0x55, 0}
+			graphics := []byte{0, 5, 3, 0x40, 0xaa, 0xff}
+			for iteration := 0; iteration < 256; iteration++ {
+				// Repatch and execute the SAME code repeatedly. This distinguishes a mutable
+				// immediate from a one-shot initialized instruction stream.
+				addr := 0x60fc + (iteration%2)*0x100
+				mem[a.Symbols["masked_chain_row_0"]+1] = byte(addr)
+				mem[a.Symbols["masked_chain_row_0"]+2] = byte(addr >> 8)
+				for i := 0; i < 6; i++ {
+					mem[addr+i] = byte(iteration)
+				}
+				mem[0xeff0], mem[0xeff1] = 0, 0x70
+				before := append([]byte(nil), mem...)
+				z.SetRegisters(emulator.Registers{PC: uint16(a.Symbols["masked"]), SP: 0xeff0, A: 0xa5, F: 0xd7, HL: 0x1234, BC: 0x5678, DE: 0x9abc})
+				for n := 0; n < 1000; n++ {
+					if z.GetPC() == 0x7000 && z.GetSP() == 0xeff2 {
+						break
+					}
+					z.Step()
+				}
+				if z.GetPC() != 0x7000 || z.GetSP() != 0xeff2 {
+					t.Fatal("PC/SP", z.GetRegisters())
+				}
+				for address, want := range before {
+					if address >= addr && address < addr+6 {
+						x := address - addr
+						want = (want & masks[x]) | graphics[x]
+					} else if address >= 0xefe8 && address < 0xeff0 {
+						continue
+					}
+					if mem[address] != want {
+						t.Fatalf("iteration %d RAM[%04x]=%02x want %02x", iteration, address, mem[address], want)
+					}
+				}
+			}
+		})
 	}
 }

@@ -32,3 +32,8 @@ Independent full-RAM comparisons permit only the exact eight-byte save frame
 and PUSH saved-SP immediate; exact return PC/SP and registers are checked.
 See first-native.log. This initial positive matrix uses opaque four-byte rows;
 mixed masks, rejection tests and full IRQ/ULA proof remain outstanding.
+
+Expanded checkpoint: 768 masked executions (256 backgrounds × three modes)
+repatch the same compiled code repeatedly, with independent mask/full-RAM
+oracles. Twelve invalid descriptors and five invalid names reject. Combined
+chain suite PASS 0.486 s. Full Spectrum/IRQ/demo and comparative cost remain open.
