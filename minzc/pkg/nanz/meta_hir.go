@@ -214,7 +214,8 @@ func validMetaIdentifier(s string) bool {
 		return false
 	}
 	for i, c := range s {
-		if !(c == '_' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || i > 0 && c >= '0' && c <= '9') {
+		valid := c == '_' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || i > 0 && c >= '0' && c <= '9'
+		if !valid {
 			return false
 		}
 	}
