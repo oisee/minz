@@ -81,3 +81,54 @@ func TestCheckedCompositionMoveBridgeNative(t *testing.T) {
 		}
 	}
 }
+
+func TestCheckedCompositionWordMoveBridgeNative(t *testing.T) {
+	for _, source := range []string{"BC", "DE", "IX", "IY"} {
+		for _, value := range []uint16{0, 1, 0x80ff, 0xffff} {
+			f, allocation := productionTableFunction(mir2.ClassPointer)
+			f.Contract.Returns[0].Ty = mir2.TyU16
+			f.Blocks[0].Insts[0].Ty = mir2.TyU16
+			f.Blocks[0].Insts[0].Imm = int64(value)
+			p, err := PrepareLocalTableProblem(f, allocation)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var pool, target RegAllocTable
+			pool.Init()
+			target.Init()
+			if err := pool.AddChecked(p.Ops[:1], map[int]int{p.Ops[0].Dst: Z80.LocByName(source)}, Z80, p.Options); err != nil {
+				t.Fatal(err)
+			}
+			if n, err := pool.ComposeCheckedCandidatesWithMoves(p, &target, []int{1}, 32); err != nil || n != 1 {
+				t.Fatal(source, n, err)
+			}
+			asm, err := p.Emit(&target)
+			if err != nil {
+				t.Fatal(err)
+			}
+			bin, err := z80asm.NewAssembler().AssembleString(asm)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(bin.Errors) > 0 {
+				t.Fatal(bin.Errors)
+			}
+			for flags := 0; flags < 256; flags++ {
+				boot := []byte{0x21, byte(flags), 0x55, 0xe5, 0xf1, 0xcd, 10, 0x80, 0xf3, 0x76}
+				z := emulator.NewRemogattoZ80()
+				z.MaxCycles = 1000
+				z.LoadMemory(0x8000, append(boot, bin.Binary...))
+				z.SetPC(0x8000)
+				z.SetSP(0xf000)
+				if err := z.Run(); err != nil {
+					t.Fatal(err)
+				}
+				r := z.GetRegisters()
+				if r.HL != value || r.F != byte(flags) || r.A != 0x55 || r.SP != 0xf000 || r.PC != 0x8009 {
+					t.Fatalf("%s value=%04x flags=%02x: %+v ASM=%s", source, value, flags, r, asm)
+				}
+			}
+		}
+	}
+	t.Log("4096 word-move native checks: BC/DE/IX/IY to HL, boundary words, complete flags and PC/SP PASS")
+}
