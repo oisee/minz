@@ -1398,3 +1398,21 @@ resident core `$5B00`, а extended mapping ROM driver требует отдел�
 Необходимо отдельное размещение/adapter перед запуском на железе. Игровой
 SAVE пока не использует секторный API; следующий этап — запись complete
 MZ3R record, commit marker/CRC и RESTORE после нового запуска игры.
+
+### 13 октября: headless CLI — Scorpion memory и постоянный TRD
+
+Headless mzx принимает `--model scorpion-memory`, `--trd PATH` и явный
+`--trd-writeback`. Disk image подключается без autoboot, TR-DOS API traps
+работают в обычном frame loop. `--trd-writeback` без диска отклоняется.
+`--save-snapshot` для extended memory отклоняется, поскольку SNA не сохранит
+дополнительные банки; extended snapshot пока не реализован.
+
+Два независимых CLI-процесса прошли lifecycle: первый Z80 записал 256 байт
+из bank8 на TRD; второй, со свежей машиной, прочитал сектор в bank8 и скопировал
+на screen для независимой проверки dump. Disk bytes и все 256 screen bytes
+совпадают с Python oracle. Это проверка транспорта через actual CLI, не
+игровой SAVE. Headless build/tests PASS, отказ extended SNA проверен.
+
+Для первой runnable Scorpion версии нужен loader дополнительных банков,
+подключение record serialization и проверка RESTORE после запуска игры заново.
+Graphical CLI пока не имеет Scorpion memory selector. Full V3 остаётся active.

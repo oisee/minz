@@ -30,9 +30,11 @@ import (
 var embedded48ROM []byte
 
 func main() {
-	modelFlag := flag.String("model", "48k", "Machine model: 48k, 128k, pentagon")
+	modelFlag := flag.String("model", "48k", "Machine profile: 48k, 128k, pentagon, scorpion-memory")
 	romFlag := flag.String("rom", "", "Path to ROM file")
 	snapshotFlag := flag.String("snapshot", "", "Path to .sna snapshot file")
+	trdFlag := flag.String("trd", "", "Attach a TR-DOS image through emulator API traps")
+	trdWriteback := flag.Bool("trd-writeback", false, "persist disk writes to --trd image")
 	tapFlag := flag.String("tap", "", "Path to .tap tape file")
 	screenshotFlag := flag.String("screenshot", "", "Save screenshot to PNG")
 	framesFlag := flag.String("frames", "50", "Frame count")
@@ -63,7 +65,7 @@ func main() {
 			}
 		}
 		machine, err = spectrum.New48K(romData)
-	case "128k", "pentagon":
+	case "128k", "pentagon", "scorpion-memory":
 		romData := embedded48ROM
 		if *romFlag != "" {
 			romData, err = os.ReadFile(*romFlag)
@@ -77,12 +79,31 @@ func main() {
 		if len(romData) == 32768 {
 			rom0, rom1 = romData[:16384], romData[16384:]
 		}
-		machine, err = spectrum.NewPentagon128(rom0, rom1)
+		if *modelFlag == "scorpion-memory" {
+			machine, err = spectrum.NewScorpionMemory256(rom0, rom1)
+		} else {
+			machine, err = spectrum.NewPentagon128(rom0, rom1)
+		}
 	default:
-		log.Fatalf("unknown machine model %s (48k, 128k, pentagon)", *modelFlag)
+		log.Fatalf("unknown machine model %s (48k, 128k, pentagon, scorpion-memory)", *modelFlag)
 	}
 	if err != nil {
 		log.Fatalf("Machine init: %v", err)
+	}
+
+	if *trdWriteback && *trdFlag == "" {
+		log.Fatal("--trd-writeback requires --trd")
+	}
+	if *modelFlag == "scorpion-memory" && *saveSnapshotFlag != "" {
+		log.Fatal("SNA cannot preserve Scorpion extended banks; extended snapshot format not implemented")
+	}
+	if *trdFlag != "" {
+		disk, err := formats.LoadTRD(*trdFlag)
+		if err != nil {
+			log.Fatalf("TRD: %v", err)
+		}
+		disk.Writeback = *trdWriteback
+		formats.InstallTRDTraps(machine, disk, false)
 	}
 
 	// Load snapshot
@@ -350,13 +371,13 @@ func saveScreenPNG(m *spectrum.Machine, path string, noBorder bool) {
 
 func zxColor(c, bright byte) color.RGBA {
 	base := [8]color.RGBA{
-		{0, 0, 0, 255},       // black
-		{0, 0, 0xCD, 255},    // blue
-		{0xCD, 0, 0, 255},    // red
-		{0xCD, 0, 0xCD, 255}, // magenta
-		{0, 0xCD, 0, 255},    // green
-		{0, 0xCD, 0xCD, 255}, // cyan
-		{0xCD, 0xCD, 0, 255}, // yellow
+		{0, 0, 0, 255},          // black
+		{0, 0, 0xCD, 255},       // blue
+		{0xCD, 0, 0, 255},       // red
+		{0xCD, 0, 0xCD, 255},    // magenta
+		{0, 0xCD, 0, 255},       // green
+		{0, 0xCD, 0xCD, 255},    // cyan
+		{0xCD, 0xCD, 0, 255},    // yellow
 		{0xCD, 0xCD, 0xCD, 255}, // white
 	}
 	hi := [8]color.RGBA{
