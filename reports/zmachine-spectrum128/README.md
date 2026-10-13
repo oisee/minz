@@ -1776,3 +1776,15 @@ Z80 output byte-exact original VM. Frotz подтверждает весь ос�
 различается между интерпретаторами. Проверяются предмет в case, score20
 на13 moves и пустой inventory. Остальной текст и пунктуация не удаляются.
 Это дополнительный законченный игровой эпизод, не полное прохождение.
+
+
+### 13 октября: обычный128K SAVE возвращает сокровище и счёт
+
+TestZMachineBankedZork128TreasureRestoreNative продолжает egg маршрут:
+SAVE после помещения яйца в trophy case; take egg from case; look in case;
+inventory; RESTORE; look in case; score; inventory; quit. Порядок empty case,
+carried egg, restored case, empty inventory проверяется явно. Score20 после
+RESTORE, статическая история и архив RESTART неизменны. SAVE788 B помещается
+в обычный128K слот2204 B. 202 клавиши,2778 B output byte-exact original VM,
+1006904137 T, peak stack70 B. PASS15.571 s. Это RAM lifecycle на128K,
+а не новый дисковый маршрут или доказательство полного прохождения игры.

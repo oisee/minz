@@ -108,6 +108,14 @@ func TestZMachineBankedZork128TreasureNative(t *testing.T) {
 	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-treasure")
 }
 
+func TestZMachineBankedZork128TreasureRestoreNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-treasure-save")
+}
+
 // A separately built full V3 story, not the Zork I workload used earlier.
 func TestZMachineBankedZorkIIGameplayNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
@@ -169,12 +177,13 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	treasure := commands == "@console-windows-treasure"
+	treasureSave := commands == "@console-windows-treasure-save"
+	treasure := commands == "@console-windows-treasure" || treasureSave
 	windowCellar := commands == "@console-windows-cellar"
 	windows := commands == "@console-windows-save" || windowCellar || treasure
 	if windows {
 		commands = "@console-save"
-		if treasure {
+		if treasure && !treasureSave {
 			commands = "@console-explore"
 		}
 		if windowCellar {
@@ -361,6 +370,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 		}
 		if cellarSave {
 			route = []byte("north\neast\nopen window\nenter window\nwest\ntake lamp\ntake sword\nturn on lamp\nmove rug\nopen trap door\ndown\nsave\ndrop sword\ninventory\nrestore\ninventory\ndrop lamp\nrestore\ninventory\nquit\ny\n")
+		}
+		if treasureSave {
+			route = []byte("north\nnorth\nclimb tree\ntake egg\ndown\nsouth\neast\nopen window\nenter window\nwest\nopen trophy case\nput egg in case\nsave\ntake egg from case\nlook in case\ninventory\nrestore\nlook in case\nscore\ninventory\nquit\ny\n")
 		}
 		if windowCellar {
 			route = bytes.Replace(route, []byte("quit\ny\n"), []byte("restart\ny\nlook\ninventory\nquit\ny\n"), 1)
@@ -551,6 +563,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 					phrases = []string{"Cellar", "A sword", "A brass lantern", "Dropped."}
 				}
 			}
+			if treasureSave {
+				phrases = []string{"Up a Tree", "Ok.", "Your collection of treasures consists of:\n  A jewel-encrusted egg", "Your score is 20 (total of 350 points)", "You are empty-handed."}
+			}
 			if compressedSave {
 				phrases = []string{"Narrow Tunnel", "Ok.", "Dropped.", "You are carrying:"}
 			}
@@ -561,6 +576,35 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 				if !bytes.Contains(rendered, []byte(phrase)) {
 					t.Fatalf("exploration missing %q: %q", phrase, rendered)
 				}
+			}
+			if treasureSave {
+				collection := []byte("Your collection of treasures consists of:\n  A jewel-encrusted egg")
+				emptyCase := bytes.Index(rendered, []byte("The trophy case is empty."))
+				carrying := bytes.Index(rendered, []byte("You are carrying:\n  A jewel-encrusted egg"))
+				restoredCase := bytes.Index(rendered, collection)
+				emptyInventory := bytes.Index(rendered, []byte("You are empty-handed."))
+				if bytes.Count(rendered, collection) != 1 || emptyCase < 0 || carrying <= emptyCase || restoredCase <= carrying || emptyInventory <= restoredCase {
+					t.Fatal("treasure ownership not restored", string(rendered))
+				}
+				if len(observedSaveLengths) != 1 || observedSaveLengths[0] > 2204 {
+					t.Fatal("missing/oversized treasure save", observedSaveLengths)
+				}
+				if !bytes.Contains(rendered, []byte("Your score is 20 (total of 350 points)")) {
+					t.Fatal("treasure score lost")
+				}
+				dynamic := int(story[14])<<8 | int(story[15])
+				for at := dynamic; at < len(story); at++ {
+					if m.Memory.RAM[pages[at/16384]][at%16384] != story[at] {
+						t.Fatalf("static story changed at %d", at)
+					}
+				}
+				for offset, b := range restartArchive {
+					at := len(story) + offset
+					if m.Memory.RAM[pages[at/16384]][at%16384] != b {
+						t.Fatalf("restart archive changed at %d", at)
+					}
+				}
+				t.Logf("treasure save %d bytes; case ownership, inventory and score restored", observedSaveLengths[0])
 			}
 			if cellarSave {
 				restored := []byte("You are carrying:\n  A sword\n  A brass lantern (providing light)")
