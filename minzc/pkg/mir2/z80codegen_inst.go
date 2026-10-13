@@ -295,6 +295,14 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
 		if inst.Ty.Width() == 16 {
+			defer g.saveWrittenScratch(inst)()
+			// The allocator may place either operand in a pair or a spill.
+			// NEG's fixed HL sequence must consume the actual source and
+			// publish its result at the allocated destination.
+			src, dst := g.loc(inst.Src[0]), g.loc(inst.Dst)
+			if src != "HL" {
+				g.genUnsignedExtBytes("HL", src, 16, 16)
+			}
 			// 16-bit NEG HL using the classic demo-scene SBC A,A trick:
 			//   XOR A      ; A=0, CF=0
 			//   SUB L      ; A = 0-L, CF=1 if L≠0 (borrow)
@@ -309,8 +317,12 @@ func (g *z80cg) genInst(inst *Inst) {
 			g.emit("    SBC A, A")
 			g.emit("    SUB H")
 			g.emit("    LD H, A")
+			if dst != "HL" {
+				g.genUnsignedExtBytes(dst, "HL", 16, 16)
+			}
 			g.invalidate("A")
 			g.invalidate("HL")
+			g.invalidate(dst)
 		} else {
 			// Z80 NEG always operates on A; ensure source is in A first.
 			srcLoc := g.loc(inst.Src[0])

@@ -241,3 +241,32 @@ release/serial and West of House room description on generated Z80. Startup
 still fails before the mailbox line with `Z3 error 1:2:29:0:24:57`; therefore the
 startup gate remains red. This is progress into real story execution, not a
 completed native game. Full logs and reductions are retained on the share.
+
+
+## Full candidate Zork reaches the native input prompt
+
+The address change $980A → $180D came from a negative conditional branch.
+16-bit NEG emitted its fixed HL sequence without loading the allocated source
+or storing the allocated destination. Here the offset lived in a spill while
+HL held a prior comparison difference. Codegen now loads the real source,
+stores the real result, and preserves unrelated live scratch registers.
+
+The independent regression checks every 16-bit input for all 36 source/result
+placements (HL, DE, BC, IX, IY, memory): 2,359,296 native cases, with live A/HL
+and returned PC/SP checks. It passes. The full 86928-byte candidate story now
+passes the native startup gate: banner, West of House, mailbox and input prompt
+`>`; no Z3 error. Resident integration module: 24037 bytes; startup 325201463 T,
+including full checksum scan. This is a capture-only harness: keyboard input,
+console, save/restart and a runnable Spectrum release are still unfinished.
+Story SHA256 remains 140fc6e4664cfe66928e49dded68f3bea150356d6f3bd6a9690de9390c3f0811;
+this does not substitute for the separate previously pinned story gate.
+
+Astra's followup review completed after two rate-limit interruptions. It
+recommends finishing raw interactive integration first, keeping writable dynamic
+memory raw, and evaluating immutable-block compression from actual read traces.
+Raw story fits six banks; fixed RAM is the tight area for stack/console/cache.
+See [the completed followup](astra-compression-followup.md) for budget and next
+experiment. No Z80 codec measurements or compressed release are claimed.
+
+Validation: native allocation matrix PASS (1.744 s), native fixture/header gates
+PASS (7.290 s), full MIR2 PASS (104.565 s), full candidate startup PASS (4.087 s).

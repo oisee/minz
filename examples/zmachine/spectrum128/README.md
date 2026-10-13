@@ -146,3 +146,10 @@ gate после изменений проходят.
 выводит заставку, release/serial и описание West of House, но затем падает
 с `Z3 error 1:2:29:0:24:57` до строки про mailbox. Gate запуска остаётся
 красным; полноценно поиграть в эту native-версию ещё нельзя.
+
+
+Native full candidate Zork startup now passes: banner, initial room, mailbox and
+`>` prompt (capture harness only; interactive keyboard/console/save/restart are
+not implemented). The module is 24037 bytes. A backend 16-bit NEG operand fix
+was verified across all 65536 inputs and 36 source/result placements. See the
+chronological audit for candidate story identity and remaining release gates.
