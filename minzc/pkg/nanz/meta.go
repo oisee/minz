@@ -3,8 +3,8 @@ package nanz
 // Compile-time metafunction execution for Nanz.
 //
 // Metafunctions are declared as `fun @name(...)` and called as `@name(...) { block }`.
-// They run on the MIR2 VM at compile time and emit Nanz source text that gets
-// parsed and spliced into the calling module.
+// They run on the MIR2 VM at compile time. Textual emit is parsed into HIR;
+// structured emit constructs typed HIR statements directly in the caller.
 //
 // Architecture:
 //   1. Parser sees `fun @name(...)` → stores as metaFuncSrc (not in m.Funcs)
@@ -52,9 +52,10 @@ type metaBlockNode struct {
 
 // metaRuntime manages compile-time execution of metafunctions.
 type metaRuntime struct {
-	hirMod  *hir.Module
-	emitted strings.Builder
-	vm      *mir2.VM
+	hirMod     *hir.Module
+	emitted    strings.Builder
+	structured metaHIRBuilder
+	vm         *mir2.VM
 }
 
 func newMetaRuntime(hirMod *hir.Module) *metaRuntime {
@@ -64,6 +65,7 @@ func newMetaRuntime(hirMod *hir.Module) *metaRuntime {
 // registerHosts installs all metafunction host functions on the VM.
 func (mr *metaRuntime) registerHosts(vm *mir2.VM, block []metaBlockNode) {
 	mr.vm = vm
+	mr.registerHIRHosts(vm)
 
 	// ── Emit ──────────────────────────────────────────────────────
 	vm.Hosts["emit"] = func(args []mir2.Value) ([]mir2.Value, error) {

@@ -148,19 +148,20 @@ fun @fill() -> void {
             }
             emit(c"}")
         } else {
-            emit(c"{")
-            emit(str_concat(c"var fill_ptr: ^u8 = ptr(", str_concat(str_from_int(address), c")")))
-            if length < 256 {
-                emit(str_concat(c"var fill_left: u8 = ", str_from_int(length)))
-            } else {
-                emit(str_concat(c"var fill_left: u16 = ", str_from_int(length)))
-            }
-            emit(c"while fill_left != 0 {")
-            emit(str_concat(c"fill_ptr^ = ", str_from_int(value)))
-            emit(c"fill_ptr = fill_ptr + 1")
-            emit(c"fill_left = fill_left - 1")
-            emit(c"}")
-            emit(c"}")
+            // Build the runtime loop as typed HIR, without parsing generated text.
+            let region: u16 = hir_block()
+            let pointer: u16 = hir_ref(c"fill_ptr", c"ptr")
+            var counter_type: ^u8 = c"u16"
+            if length < 256 { counter_type = c"u8" }
+            let counter: u16 = hir_ref(c"fill_left", counter_type)
+            hir_append(region, hir_var(c"fill_ptr", c"ptr", hir_int(u16(address), c"ptr")))
+            hir_append(region, hir_var(c"fill_left", counter_type, hir_int(u16(length), counter_type)))
+            let body: u16 = hir_block()
+            hir_append(body, hir_store(pointer, hir_int(u16(value), c"u8")))
+            hir_append(body, hir_assign(pointer, hir_binary(c"+", pointer, hir_int(1, c"u8"))))
+            hir_append(body, hir_assign(counter, hir_binary(c"-", counter, hir_int(1, counter_type))))
+            hir_append(region, hir_while(hir_binary(c"!=", counter, hir_int(0, counter_type)), body))
+            emit_hir(region)
         }
         if contiguous == 1 { return }
         row = row + 1

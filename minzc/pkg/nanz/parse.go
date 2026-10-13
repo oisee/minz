@@ -3317,9 +3317,12 @@ func (p *parser) parseMetaStmt(metaSrc, name string) (hir.Stmt, error) {
 			return nil, fmt.Errorf("line %d: @%s block: %w", callLine, name, err)
 		}
 	}
-	emitted, err := p.executeMetaInvocation(metaSrc, name, scalarArgs, block)
+	emitted, nodes, err := executeMetaOutput(metaSrc, name, scalarArgs, block, p.module)
 	if err != nil {
 		return nil, fmt.Errorf("line %d: @%s: %w", callLine, name, err)
+	}
+	if len(nodes) > 0 {
+		return &hir.Block{Body: nodes}, nil
 	}
 	if strings.TrimSpace(emitted) == "" {
 		return &hir.Block{}, nil
@@ -6037,6 +6040,15 @@ func (p *parser) captureMetaFuncSource(name string) (string, error) {
 	var sb strings.Builder
 
 	// Build extern declarations for host functions the metafunction can call
+	for _, decl := range []string{
+		"hir_int(value: u16, ty: ^u8) -> u16", "hir_ref(name: ^u8, ty: ^u8) -> u16",
+		"hir_binary(op: ^u8, left: u16, right: u16) -> u16", "hir_block() -> u16",
+		"hir_append(block: u16, statement: u16) -> void", "hir_var(name: ^u8, ty: ^u8, initial: u16) -> u16",
+		"hir_assign(target: u16, value: u16) -> u16", "hir_store(pointer: u16, value: u16) -> u16",
+		"hir_while(condition: u16, body: u16) -> u16", "emit_hir(statement: u16) -> void",
+	} {
+		sb.WriteString("@extern fun " + decl + "\n")
+	}
 	sb.WriteString("@extern fun emit(s: ^u8) -> void\n")
 	sb.WriteString("@extern fun block_len() -> u8\n")
 	sb.WriteString("@extern fun node_keyword(i: u8) -> ^u8\n")
@@ -6126,17 +6138,25 @@ func (p *parser) executeMetaInvocation(metaSrc, funcName string, scalarArgs []st
 
 // executeMetaFuncWithStringArgs is like executeMetaFunc but pre-allocates
 // string arguments on the VM heap before calling the function.
-func executeMetaFuncWithStringArgs(
+func executeMetaFuncWithStringArgs(metaSrc, funcName string, args []string, block []metaBlockNode, caller *hir.Module) (string, error) {
+	text, nodes, err := executeMetaOutput(metaSrc, funcName, args, block, caller)
+	if err == nil && len(nodes) > 0 {
+		return "", fmt.Errorf("metafunc @%s: structured statement emit requires a statement invocation", funcName)
+	}
+	return text, err
+}
+
+func executeMetaOutput(
 	metaSrc string,
 	funcName string,
 	stringArgs []string,
 	block []metaBlockNode,
 	callerMod *hir.Module,
-) (string, error) {
+) (string, []hir.Stmt, error) {
 	// 1. Parse metafunction source → HIR
 	metaHIR, err := Parse(metaSrc, "meta_"+funcName+".nanz")
 	if err != nil {
-		return "", fmt.Errorf("metafunc @%s: parse error: %w", funcName, err)
+		return "", nil, fmt.Errorf("metafunc @%s: parse error: %w", funcName, err)
 	}
 
 	// 2. HIR → MIR2
@@ -6170,10 +6190,13 @@ func executeMetaFuncWithStringArgs(
 	// 6. Call metafunction
 	_, err = vm.Call(funcName, vmArgs)
 	if err != nil {
-		return "", fmt.Errorf("metafunc @%s: VM error: %w", funcName, err)
+		return "", nil, fmt.Errorf("metafunc @%s: VM error: %w", funcName, err)
 	}
 
-	return mr.emitted.String(), nil
+	if mr.emitted.Len() != 0 && len(mr.structured.output) != 0 {
+		return "", nil, fmt.Errorf("metafunc @%s: cannot mix textual and structured emit", funcName)
+	}
+	return mr.emitted.String(), mr.structured.output, nil
 }
 
 // rewriteImportedSymbols walks an HIR statement tree and rewrites function
