@@ -1,0 +1,9 @@
+{
+  "measurement": "VM transcript only; not global capacity proof",
+  "story_sha256": "140fc6e4664cfe66928e49dded68f3bea150356d6f3bd6a9690de9390c3f0811",
+  "story_bytes": 86928,
+  "commands_sha256": "28b54953b4f1964ddd600ce421f805f85bc752f918b708271949fee802dbbd38",
+  "commands": "look\nopen mailbox\ntake leaflet\nread leaflet\ninventory\nnorth\nsouth\neast\nwest\nsave\nrestore\nquit\ny\n",
+  "max_frame": 11,
+  "max_evaluation_stack_words": 11
+}

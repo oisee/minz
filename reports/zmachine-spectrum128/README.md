@@ -121,3 +121,27 @@ On the local 86928-byte candidate, original and routed VM gameplay output
 140fc6e4664cfe66928e49dded68f3bea150356d6f3bd6a9690de9390c3f0811;
 this does not replace the pinned MIT story/reference gate. Details and
 reproduction commands are in the Spectrum staging README.
+
+## Observed state and explicit capacity experiment
+
+A temporary instrumented VM core measures maximum frame and evaluation-stack
+usage without changing the historical source. state-profile.json records the
+exact story SHA and commands: 11 frames and 11 stack words on that route.
+This is not a whole-game bound.
+
+An explicit 32-frame / 256-stack-word experiment reduces locals+stack+return
+metadata from 8960 to 1728 bytes; its snapshot is 1786 instead of 9018 bytes.
+Frame/stack overflow checks remain, and routine local counts over 15 stop the
+experiment before local stores. The existing fixture gameplay/output gates
+and save/restore checks pass; the compact save SHA is recorded in the staging
+README. Candidate Zork gameplay matches the original, with save length
+20306 → 13074 bytes. Formats intentionally differ in this experiment.
+
+A new invalid size diagnostic compiled with the current backend and memory
+routing measures 31583 bytes: function regions 27414, globals 4169. This is
+not directly a code-only comparison with the old un-routed probe: source,
+backend wide-truncation correction and storage capacities differ. The routed
+u32 memory ABI contributes substantial staging overhead. Fixed-memory budget
+is still exceeded by the function region alone; storage reduction has not yet
+made a runnable native interpreter. Snapshot removal, cheaper address ABI,
+code specialization and bank placement remain necessary.
