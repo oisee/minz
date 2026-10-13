@@ -31,6 +31,7 @@
     "TestCaretXORAndPointerDereferenceVMZ80",
     "TestCheckedActualWordMultiplication",
     "TestCheckedBranchCorpusLeafNativeAllByteInputs",
+    "TestCheckedCompositionHeldoutOperationsNative",
     "TestCheckedCompositionOrdinaryNative",
     "TestCheckedCompositionWeightedNativeCaller",
     "TestCheckedExactBindingMissAndRevalidatedTransfer",

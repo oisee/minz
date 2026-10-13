@@ -1,0 +1,7 @@
+=== RUN   TestCheckedCompositionHeldoutOperationsNative
+    checked_composition_test.go:258: x+19 reused add5 fragments: actual caller 76 -> 76 T; backend=checked-local-table; all 256 inputs PASS
+    checked_composition_test.go:258: x^90 reused add5 fragments: actual caller 69 -> 69 T; backend=PBQP; all 256 inputs PASS
+    checked_composition_test.go:258: x-11 reused add5 fragments: actual caller 76 -> 76 T; backend=checked-local-table; all 256 inputs PASS
+--- PASS: TestCheckedCompositionHeldoutOperationsNative (1.05s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.058s

@@ -34,3 +34,10 @@ PFCCO greedy/PBQP × Grace off/on. Complete module 44→20 bytes and real caller
 238→142T in every mode, all 256 byte inputs per path. The caller keeps x live
 across CALL, so saves and ABI transfers are included. This reproduces the
 monolithic candidate's benefit through composition, without invoking Z3.
+
+
+Heldout: the add5 fragment pool is reused without regeneration for +19, XOR90
+and -11, each with a caller retaining x over CALL. All 256 inputs per workload
+pass. +19/-11 use the composed candidate at unchanged 76T caller cost; XOR90
+retains ordinary PBQP at 69T. This is reuse/correctness evidence, not an
+independent extra speed win. Whole-function selection may prefer baseline.

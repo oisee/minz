@@ -176,3 +176,85 @@ func TestCheckedCompositionWeightedNativeCaller(t *testing.T) {
 		}
 	}
 }
+
+func TestCheckedCompositionHeldoutOperationsNative(t *testing.T) {
+	// Prepare the assignment pool only on add5; reuse it without regenerating
+	// records on the different constants/operators and live caller workload.
+	seed, err := CompileHIRSteps(graceMeasureParse(t, checkedTableSource), Options{OptSize: true, AssertMode: "none"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, err := vir.PrepareLocalTableProblem(seed.MIR2Module.FuncByName("add5"), seed.Allocation)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var pool vir.RegAllocTable
+	pool.Init()
+	for _, part := range [][]vir.VIROp{p.Ops[:1], p.Ops[1:]} {
+		assignment := map[int]int{}
+		for _, op := range part {
+			if op.Dst > 0 {
+				assignment[op.Dst] = vir.Z80.LocByName("A")
+			}
+			for _, v := range op.Src {
+				if v > 0 {
+					assignment[v] = vir.Z80.LocByName("A")
+				}
+			}
+		}
+		opts := p.Options
+		opts.ParamLocs = map[int]int{}
+		for v, loc := range p.Options.ParamLocs {
+			if _, exists := assignment[v]; exists {
+				opts.ParamLocs[v] = loc
+			}
+		}
+		if err = pool.AddChecked(part, assignment, vir.Z80, opts); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, test := range []struct {
+		expression string
+		oracle     func(byte) byte
+	}{
+		{"x+19", func(x byte) byte { return x + 19 }},
+		{"x^90", func(x byte) byte { return x ^ 90 }},
+		{"x-11", func(x byte) byte { return x - 11 }},
+	} {
+		source := "fun tweak(x:u8)->u8 { return " + test.expression + " }\nfun caller(x:u8)->u8 { return tweak(x)+x }"
+		opts := Options{OptSize: true, AssertMode: "none"}
+		baseline, err := CompileHIRSteps(graceMeasureParse(t, source), opts)
+		if err != nil {
+			t.Fatal(err)
+		}
+		current, err := vir.PrepareLocalTableProblem(baseline.MIR2Module.FuncByName("tweak"), baseline.Allocation)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var composed vir.RegAllocTable
+		composed.Init()
+		n, err := pool.ComposeCheckedCandidates(current, &composed, []int{1}, 32)
+		if err != nil || n == 0 {
+			t.Fatal(test.expression, n, err)
+		}
+		path := t.TempDir() + "/composed.json"
+		if err = composed.Save(path); err != nil {
+			t.Fatal(err)
+		}
+		opts.CheckedLocalTablePath = path
+		selected, err := CompileHIRSteps(graceMeasureParse(t, source), opts)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var before, after int
+		for x := 0; x < 256; x++ {
+			want := test.oracle(byte(x)) + byte(x)
+			before = runCheckedRealByte(t, baseline.Assembly, baseline.MIR2Module.FuncByName("caller"), baseline.Allocation, byte(x), want)
+			after = runCheckedRealByte(t, selected.Assembly, selected.MIR2Module.FuncByName("caller"), selected.Allocation, byte(x), want)
+		}
+		if after > before {
+			t.Fatal("heldout caller regressed", test.expression, before, after)
+		}
+		t.Logf("%s reused add5 fragments: actual caller %d -> %d T; backend=%s; all 256 inputs PASS", test.expression, before, after, selected.Traces["tweak"].Backend)
+	}
+}
