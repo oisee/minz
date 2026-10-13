@@ -1339,3 +1339,25 @@ GLFW, поэтому общий PASS этой команды не заявляе
 OptSize 25039 B, MIR Grace+Size 25053 B, HIR+MIR Grace+Size 25053 B. Поведение
 альтернативных режимов этим замером не проверено; default остаётся gameplay
 baseline. Size policy не гарантирует меньший итоговый модуль.
+
+### 13 октября: Scorpion 256K — только профиль памяти
+
+По уточнению Alice добавлена только раскладка памяти, без полной эмуляции
+Scorpion. `NewScorpionMemory256` использует existing Pentagon timing/peripherals,
+но включает 16 банков RAM. Восемь дополнительных банков хранятся отдельно,
+поэтому existing API 128K snapshots/profiler сохраняет прежний тип массива.
+CLI и extended snapshot пока не подключены; turbo не реализован.
+
+Reference: Fuse `machines/scorpion.c` (локальная копия с SHA в manifest).
+`$1FFD` bit4 выбирает верхнюю восьмёрку, bit0 отображает writable RAM0 вместо
+ROM при `$0000`, bit1 выбирает ROM2; `$7FFD` выбирает младшие три бита банка,
+экран и ROM0/1. Lock `$7FFD` блокирует дальнейшее изменение карты. Фиксированные
+банки5/2 при `$4000/$8000` остаются доступны. ROM/Betadisk overlay, дисковый
+контроллер и точные Scorpion timings этим профилем не моделируются.
+
+Проверены все 16 физических банков, отсутствие alias с младшими, fixed banks,
+RAM0 overlay, ROM2, lock/reset, flat view. Отдельная Z80 программа выполняет
+OUT в оба порта, пишет bank13, возвращает bank0 и корректные PC/SP. PASS.
+Полные пакеты spectrum и spectrum/formats также PASS. Existing 128K модель
+не получает extended paging. Дальше — native bank API для story/дискового
+буфера и подключение persistent SAVE/RESTORE; playable Scorpion ещё не заявляется.

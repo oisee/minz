@@ -11,12 +11,17 @@ type Memory struct {
 
 	// RAM pages (up to 8 x 16KB for 128K models)
 	RAM [8][16384]byte
+	// Optional Scorpion memory extension; existing 128K snapshot API stays intact.
+	ExtendedRAM    [8][16384]byte
+	scorpionPaging bool
+	scorpionPort   byte
+	pagingPort     byte
 
 	// Current page mappings (index into ROM/RAM arrays)
-	romPage    int // which ROM page at $0000-$3FFF
-	ramPage5   int // always page 5 at $4000-$7FFF (screen)
-	ramPage2   int // always page 2 at $8000-$BFFF
-	ramPageHi  int // switchable page at $C000-$FFFF (default: 0)
+	romPage   int // which ROM page at $0000-$3FFF
+	ramPage5  int // always page 5 at $4000-$7FFF (screen)
+	ramPage2  int // always page 2 at $8000-$BFFF
+	ramPageHi int // switchable page at $C000-$FFFF (default: 0)
 
 	// Screen page: which RAM page contains the displayed screen.
 	// Usually 5, but 128K can switch to page 7.
@@ -125,27 +130,32 @@ func (m *Memory) contentionDelay() int {
 func (m *Memory) readByte(addr uint16) byte {
 	switch {
 	case addr < 0x4000:
+		if m.scorpionPaging && m.scorpionPort&1 != 0 {
+			return m.RAM[0][addr]
+		}
 		return m.ROM[m.romPage][addr]
 	case addr < 0x8000:
 		return m.RAM[m.ramPage5][addr-0x4000]
 	case addr < 0xC000:
 		return m.RAM[m.ramPage2][addr-0x8000]
 	default:
-		return m.RAM[m.ramPageHi][addr-0xC000]
+		return m.ReadRAMDirect(m.ramPageHi, addr-0xC000)
 	}
 }
 
 func (m *Memory) writeByte(addr uint16, val byte) {
 	switch {
 	case addr < 0x4000:
-		// ROM — ignore writes
+		if m.scorpionPaging && m.scorpionPort&1 != 0 {
+			m.RAM[0][addr] = val
+		}
 		return
 	case addr < 0x8000:
 		m.RAM[m.ramPage5][addr-0x4000] = val
 	case addr < 0xC000:
 		m.RAM[m.ramPage2][addr-0x8000] = val
 	default:
-		m.RAM[m.ramPageHi][addr-0xC000] = val
+		m.WriteRAMDirect(m.ramPageHi, addr-0xC000, val)
 	}
 }
 
@@ -262,10 +272,10 @@ func (m *Memory) Data() []byte {
 	// Return a flat 64KB view. This is mainly used by the disassembler.
 	data := make([]byte, 65536)
 	for i := 0; i < 16384; i++ {
-		data[i] = m.ROM[m.romPage][i]
+		data[i] = m.readByte(uint16(i))
 		data[0x4000+i] = m.RAM[m.ramPage5][i]
 		data[0x8000+i] = m.RAM[m.ramPage2][i]
-		data[0xC000+i] = m.RAM[m.ramPageHi][i]
+		data[0xC000+i] = m.ReadRAMDirect(m.ramPageHi, uint16(i))
 	}
 	return data
 }
@@ -273,16 +283,21 @@ func (m *Memory) Data() []byte {
 // ---- 128K paging ----
 
 // SetPaging configures 128K memory paging from port $7FFD value.
-//   Bits 0-2: RAM page at $C000
-//   Bit 3:    Screen page (0=page 5, 1=page 7)
-//   Bit 4:    ROM page (0=128K ROM, 1=48K ROM)
-//   Bit 5:    Lock paging (no further changes until reset)
+//
+//	Bits 0-2: RAM page at $C000
+//	Bit 3:    Screen page (0=page 5, 1=page 7)
+//	Bit 4:    ROM page (0=128K ROM, 1=48K ROM)
+//	Bit 5:    Lock paging (no further changes until reset)
 func (m *Memory) SetPaging(val byte) {
 	if m.is48K || m.pagingLocked {
 		return
 	}
 
+	m.pagingPort = val
 	m.ramPageHi = int(val & 0x07)
+	if m.scorpionPaging {
+		m.ramPageHi |= int((m.scorpionPort & 0x10) >> 1)
+	}
 
 	if val&0x08 != 0 {
 		m.screenPage = 7
@@ -296,6 +311,9 @@ func (m *Memory) SetPaging(val byte) {
 		m.romPage = 0
 	}
 
+	if m.scorpionPaging && m.scorpionPort&2 != 0 {
+		m.romPage = 2
+	}
 	if val&0x20 != 0 {
 		m.pagingLocked = true
 	}
@@ -329,8 +347,13 @@ func (m *Memory) ReadScreen(offset uint16) byte {
 // ReadRAMDirect reads a byte directly from a specific RAM page and offset.
 // Used by snapshot savers.
 func (m *Memory) ReadRAMDirect(page int, offset uint16) byte {
-	if page >= 0 && page < 8 && offset < 16384 {
-		return m.RAM[page][offset]
+	if offset < 16384 {
+		if page >= 0 && page < 8 {
+			return m.RAM[page][offset]
+		}
+		if m.scorpionPaging && page >= 8 && page < 16 {
+			return m.ExtendedRAM[page-8][offset]
+		}
 	}
 	return 0
 }
@@ -338,14 +361,21 @@ func (m *Memory) ReadRAMDirect(page int, offset uint16) byte {
 // WriteRAMDirect writes a byte directly to a specific RAM page and offset.
 // Used by snapshot loaders.
 func (m *Memory) WriteRAMDirect(page int, offset uint16, val byte) {
-	if page >= 0 && page < 8 && offset < 16384 {
-		m.RAM[page][offset] = val
+	if offset < 16384 {
+		if page >= 0 && page < 8 {
+			m.RAM[page][offset] = val
+		}
+		if m.scorpionPaging && page >= 8 && page < 16 {
+			m.ExtendedRAM[page-8][offset] = val
+		}
 	}
 }
 
 // ResetPaging unlocks paging and resets to defaults.
 func (m *Memory) ResetPaging() {
 	m.pagingLocked = false
+	m.scorpionPort = 0
+	m.pagingPort = 0
 	m.romPage = 0
 	m.ramPageHi = 0
 	m.screenPage = 5
@@ -368,6 +398,9 @@ func (m *Memory) ROMPages() *[4][16384]byte {
 
 // PagingState reconstructs the port $7FFD value from current state.
 func (m *Memory) PagingState() byte {
+	if m.scorpionPaging {
+		return m.pagingPort
+	}
 	var val byte
 	val |= byte(m.ramPageHi & 0x07)
 	if m.screenPage == 7 {
@@ -380,4 +413,19 @@ func (m *Memory) PagingState() byte {
 		val |= 0x20
 	}
 	return val
+}
+
+// EnableScorpionPaging enables only the Scorpion 256K memory map, not ROM,
+// disk hardware, video timings or turbo. Configure before constructing Ports.
+func (m *Memory) EnableScorpionPaging()     { m.scorpionPaging = true; m.ResetPaging() }
+func (m *Memory) ScorpionPagingState() byte { return m.scorpionPort }
+
+// $1FFD bit4 selects banks8..15; bit0 maps writable RAM0 at $0000;
+// bit1 selects ROM2. The $7FFD lock prevents changing the memory map.
+func (m *Memory) SetScorpionPaging(val byte) {
+	if !m.scorpionPaging || m.pagingLocked {
+		return
+	}
+	m.scorpionPort = val
+	m.SetPaging(m.pagingPort)
 }

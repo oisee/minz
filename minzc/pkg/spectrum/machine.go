@@ -45,8 +45,8 @@ type Machine struct {
 	tstateTrapCB     func(actualTState int64)
 
 	// WarnOnHalt: print warning to stderr when HALT executes with DI
-	WarnOnHalt    bool
-	haltWarned    bool // only warn once
+	WarnOnHalt bool
+	haltWarned bool // only warn once
 }
 
 // New48K creates a 48K ZX Spectrum machine.
@@ -98,8 +98,21 @@ func New48K(romData []byte) (*Machine, error) {
 
 // NewPentagon128 creates a Pentagon 128K machine.
 func NewPentagon128(rom0, rom1 []byte) (*Machine, error) {
+	return newBankedMachine(rom0, rom1, false)
+}
+
+// NewScorpionMemory256 uses Scorpion 16-bank paging with existing Pentagon
+// timing/peripherals. It does not emulate Scorpion ROM, disk hardware or turbo.
+func NewScorpionMemory256(rom0, rom1 []byte) (*Machine, error) {
+	return newBankedMachine(rom0, rom1, true)
+}
+
+func newBankedMachine(rom0, rom1 []byte, scorpionMemory bool) (*Machine, error) {
 	mode := ModePentagon128
 	mem := NewMemory128K(mode)
+	if scorpionMemory {
+		mem.EnableScorpionPaging()
+	}
 
 	if rom0 != nil {
 		if err := mem.LoadROM(0, rom0); err != nil {

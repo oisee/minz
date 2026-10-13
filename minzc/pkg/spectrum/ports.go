@@ -41,7 +41,7 @@ type Ports struct {
 	hasContention bool
 
 	// Real-time tape signal
-	tape         *TapeSignalProvider
+	tape          *TapeSignalProvider
 	getAbsTStates func() int64
 
 	// Profiler (nil = disabled)
@@ -76,15 +76,21 @@ func NewPorts(ula *ULA, mem *Memory, kb *Keyboard, beep *Beeper, hasContention b
 	// 128K paging port: $7FFD (bits 1 and 15 = 0)
 	// Only register for 128K models — 48K has no paging hardware.
 	if !mem.is48K {
+		mask, value := uint16(0x8002), uint16(0)
+		if mem.scorpionPaging {
+			mask, value = 0xc002, 0x4000
+		}
 		p.Register(&PortDevice{
-			Mask:  0x8002,
-			Value: 0x0000,
+			Mask: mask, Value: value,
 			Read:  nil, // write only
 			Write: p.writePaging,
 			Name:  "128K Paging",
 		})
 	}
 
+	if mem.scorpionPaging {
+		p.Register(&PortDevice{Mask: 0xf002, Value: 0x1000, Name: "Scorpion 1FFD memory", Write: func(addr uint16, val byte) { mem.SetScorpionPaging(val) }})
+	}
 	// Kempston joystick: $1F (bits 5-7 of low byte = 0)
 	p.Register(&PortDevice{
 		Mask:  0x00E0,
