@@ -39,6 +39,43 @@ def replace_function(name, replacement):
         end += 1
     text = text[:match.start()] + replacement + text[end:]
 
+# Preserve all original Unicode/lower mappings with compact indexed data.
+# Python only changes representation; values come from the core's DSL block.
+macro_start = text.index('fun @z3_unicode_table()')
+call_start = text.index('@z3_unicode_table() {', macro_start)
+block_start = text.index('{', call_start)
+block_end = text.index('\n}', block_start) + 2
+block = text[block_start:block_end]
+glyphs = [(int(c), int(u)) for c, u in re.findall(r'^    glyph (\d+) (\d+)', block, re.M)]
+lowers = [(int(u), int(l)) for u, l in re.findall(r'^    lower (\d+) (\d+)', block, re.M)]
+assert [c for c, u in glyphs] == list(range(155, 224))
+reverse = [63] * 256
+for c, u in glyphs:
+    if u < 256: reverse[u] = c
+fold = list(range(155, 224))
+for u, l in lowers: fold[u - 155] = l
+replacement = 'global native_unicode: [u16; 69] = [' + ','.join(str(u) for c, u in glyphs) + ']\n'
+replacement += 'global native_reverse: [u8; 256] = [' + ','.join(map(str, reverse)) + ']\n'
+replacement += 'global native_lower: [u8; 69] = [' + ','.join(map(str, fold)) + ']\n'
+replacement += '''fun z3_unicode(ch: u16) -> u16 {
+ if ch < 155 { return 63 }
+ if ch > 223 { return 63 }
+ return native_unicode[ch - 155]
+}
+fun z3_from_unicode(ch: u16) -> u8 {
+ if ch == 339 { return 220 }
+ if ch == 338 { return 221 }
+ if ch > 255 { return 63 }
+ return native_reverse[ch]
+}
+fun z3_lower(ch: u8) -> u8 {
+ if ch < 155 { return ch }
+ if ch > 223 { return ch }
+ return native_lower[ch - 155]
+}
+'''
+text = text[:macro_start] + replacement + text[block_end:]
+
 # Remove host declarations and buffers made unreachable by native boundaries.
 text = re.sub(r'^@extern fun [^\n]+\n', '', text, flags=re.M)
 text = re.sub(r'^global (story|snapshot):[^\n]+\n', '', text, flags=re.M)

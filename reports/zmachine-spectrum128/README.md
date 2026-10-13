@@ -421,3 +421,20 @@ Windows amd64 PE and Linux x86_64 ELF bundles include emulator, SNA and launch
 scripts. Windows runtime not verified; Linux graphical binary needs X11/ALSA
 system libraries, with a headless variant also supplied. Source, binary, logs
 and SHA256 manifest are on the share. Save/restore remain unfinished.
+
+
+## Compact Unicode tables preserve all mappings
+
+Native generator replaces the Unicode DSL's long equality chains with indexed
+data: 69 Unicode words, 256 reverse bytes and 69 lower-case bytes. Values are
+read from the original DSL block; the two Unicode values above 255 retain
+explicit handling. No ASCII-only narrowing or removal of supported mappings.
+Resident with restart shrinks 25344→23731 bytes (-1613 B), leaving 1613 bytes
+before the reserved native stack.
+
+Native exhaustive oracle derived independently from the original DSL: 65536
+inputs for each wide translation and 256 for lower-case, 131328 cases PASS.
+Keyboard, exploration against VM/Frotz and restart retain output and timings;
+combined gates PASS 27.047 s. Snapshot rebuilt and roundtrip passed. This frees
+code/data budget for save/restore work; it does not implement save/restore or
+create free bank space (the story+restart archive still leaves 88 bytes).
