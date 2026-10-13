@@ -32,11 +32,11 @@ workload [#115](https://github.com/oisee/minz/pull/115). Меняется пор
 57 T на heldout; на отдельном self-Lanz classifier есть и отрицательный
 heldout результат. Обучающий выигрыш сам по себе не доказывает перенос.
 
-Следующий общий API и CLI подготовлены в
-[#116](https://github.com/oisee/minz/pull/116),
-[#117](https://github.com/oisee/minz/pull/117) и
-[#118](https://github.com/oisee/minz/pull/118); на момент этого обновления они
-проходят последовательную интеграцию через обязательный CI.
+Матрица [#116](https://github.com/oisee/minz/pull/116) и общий API
+[#117](https://github.com/oisee/minz/pull/117) уже в main (`8bbfd14c`,
+`1fc92f0c`). CLI [#118](https://github.com/oisee/minz/pull/118) добавляет
+команды collect/replay и публикуется вместе с этим обновлением через
+обязательный CI.
 Они сравнивают greedy/PBQP контрактов × HIR Grace × MIR Grace и допустимые
 раскладки, возвращая точный измеренный ASM/BIN. CLI сохраняет полный collect
 и воспроизводит тот же winner на heldout без нового выбора по heldout.
