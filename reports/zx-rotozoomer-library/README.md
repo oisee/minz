@@ -32,7 +32,8 @@ Running snapshot is in native/ordinary/running.sna. Build MZX then:
     minzc/mzx --model 48k --no-audio --snapshot reports/zx-rotozoomer-library/native/ordinary/running.sna
 
 This is full Spectrum emulator evidence, not physical hardware or tear-free output.
-The library and demo are still in research branch until curated main integration.
+The library and demo are in main since PR #85, merge commit 26cc879e (October 13).
+A clean main checkout repeated the full-machine proof and headless launcher successfully.
 
 Run from the repository with `scripts/play_zx_rotozoomer.sh`. SDL development
 libraries and a display are needed for the interactive window. For a reproducible
