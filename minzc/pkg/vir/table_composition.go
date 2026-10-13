@@ -14,6 +14,18 @@ import (
 // return ABI, scratch writes, overlap, immediates and all explicit operations.
 // This preparation does not invoke a solver or alter production IR.
 func (t *RegAllocTable) ComposeCheckedCandidates(p *LocalTableProblem, target *RegAllocTable, cuts []int, limit int) (int, error) {
+	return t.composeCheckedCandidates(p, target, cuts, limit, false)
+}
+
+// ComposeCheckedCandidatesWithMoves additionally assigns existing move (optionally followed by RET)
+// fragments as explicit bridges between proposals. It never inserts operations,
+// changes SSA value identities, or invents parallel-copy schedules. The bridge
+// cost, scratch effects and actual return ABI enter whole-function admission.
+func (t *RegAllocTable) ComposeCheckedCandidatesWithMoves(p *LocalTableProblem, target *RegAllocTable, cuts []int, limit int) (int, error) {
+	return t.composeCheckedCandidates(p, target, cuts, limit, true)
+}
+
+func (t *RegAllocTable) composeCheckedCandidates(p *LocalTableProblem, target *RegAllocTable, cuts []int, limit int, moves bool) (int, error) {
 	if t == nil || target == nil || p == nil || p.Function == nil || limit < 1 || limit > MaxLegacyCandidates || len(cuts) < 1 || len(cuts) > 7 {
 		return 0, fmt.Errorf("invalid composition input or bounds")
 	}
@@ -107,6 +119,21 @@ func (t *RegAllocTable) ComposeCheckedCandidates(p *LocalTableProblem, target *R
 			if !seen[key] {
 				choices = append(choices, fragment)
 				seen[key] = true
+			}
+		}
+		if moves && isCompositionMoveFragment(ops) {
+			for _, bridge := range compositionMoveChoices(ops, entries, p.Options) {
+				key := fmt.Sprint(bridge)
+				duplicate := false
+				for _, choice := range choices {
+					if fmt.Sprint(choice) == key {
+						duplicate = true
+						break
+					}
+				}
+				if !duplicate {
+					choices = append(choices, bridge)
+				}
 			}
 		}
 		domains = append(domains, choices)
