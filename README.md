@@ -8,6 +8,28 @@ MinZ is an experimental compiler toolchain for writing programs for Z80 machines
 
 The project is active research: examples and targets have different levels of maturity. Start with a runnable program below; use the [current handover](docs/project/HANDOVER-2026-10-01.md), [ranked backlog](docs/project/BACKLOG.md), and [dated technical audit](reports/2026-09-19-Deep-Technical-Audit-RU.md) for measured status.
 
+## 🎉 Zork, compiled from Nanz to banked Z80!
+
+**The Spectrum 128K milestone is reached.** Our Z-machine V3 interpreter,
+written in Nanz, runs complete Zork adventures as assembled Z80 in the
+Spectrum emulator:
+
+- **Zork I: 350/350 on ordinary 128K**, including a late SAVE/RESTORE and
+  completion of the game. All 37,194 bytes of that run's output match the MIR2 VM.
+- **Zork II: 400/400 on ordinary 128K** with compressed banked story storage.
+  The Scorpion memory variant also restores a late disk SAVE in a fresh machine
+  and reaches the ending again.
+- **CZECH V3: 349 assertions passed, 0 failed**, plus 19 print checks.
+  Full game routes check stack restoration, paging and immutable story memory;
+  Frotz independently confirms both endings.
+
+[**Results, launch instructions and limits →**](reports/zmachine-spectrum128/current-status.md)
+[**Requirement-by-requirement evidence →**](reports/zmachine-spectrum128/goal-audit.md)
+
+These results are in `feat/zmachine-spectrum128`. They cover specific stories
+and routes in the emulator; physical Spectrum hardware and compatibility with
+all V3 stories remain future work. Disk SAVE uses the emulator's TR-DOS API.
+
 ## Compiler progress — October 2026
 
 [**Full report: MinZ today — Nanz, the other frontends, compiler layers, and verified Z80**](reports/2026-10-11-092-grace-vm-z80-status.md) (Russian). A readable tour of the shared pipeline, Grace, PFCCO/PBQP and register-allocation tables, with measured results and remaining gaps. Research-branch results are identified separately from what is available in `main`. Updated October 13: compiler integration is in `main` (PR #85), with a shared Nanz hardware library, ROM/IRQ-verified Spectrum rotozoomer, explicit full-checkpoint results and parallel deep tests on release tags/nightly/manual runs.
