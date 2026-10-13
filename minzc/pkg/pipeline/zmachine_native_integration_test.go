@@ -180,6 +180,22 @@ func TestZMachineBankedZork128FullWalkthroughNative(t *testing.T) {
 	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-full-walkthrough")
 }
 
+func TestZMachineBankedZork128LateSaveWalkthroughNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-late-save")
+}
+
+func TestZMachineBankedZorkII128GardenNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set Zork II story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-garden")
+}
+
 // A separately built full V3 story, not the Zork I workload used earlier.
 func TestZMachineBankedZorkIIGameplayNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
@@ -249,7 +265,12 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	fullWalkthrough := commands == "@console-windows-full-walkthrough"
+	zorkIIGarden := commands == "@console-zork2-garden"
+	if zorkIIGarden {
+		commands = "@console-zork2-compressed"
+	}
+	lateSave := commands == "@console-windows-late-save"
+	fullWalkthrough := commands == "@console-windows-full-walkthrough" || lateSave
 	coldPassage := commands == "@console-windows-cold-passage"
 	treasureRoom := commands == "@console-windows-treasure-room"
 	trident := commands == "@console-windows-trident"
@@ -264,11 +285,14 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	treasureSave := commands == "@console-windows-treasure-save"
 	treasure := commands == "@console-windows-treasure" || treasureSave
 	windowCellar := commands == "@console-windows-cellar"
-	windows := commands == "@console-windows-save" || windowCellar || treasure || zorkIIWindows || earlyDungeon
-	if windows && !zorkIIWindows {
+	windows := commands == "@console-windows-save" || windowCellar || treasure || zorkIIWindows || earlyDungeon || zorkIIGarden
+	if windows && !zorkIIWindows && !zorkIIGarden {
 		commands = "@console-save"
 		if (treasure && !treasureSave) || earlyDungeon {
 			commands = "@console-explore"
+		}
+		if lateSave {
+			commands = "@console-save"
 		}
 		if windowCellar {
 			commands = "@console-cellar-save"
@@ -517,7 +541,16 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if fullWalkthrough {
 				routeFile = "full-walkthrough.txt"
 			}
+			if lateSave {
+				routeFile = "late-save-walkthrough.txt"
+			}
 			route, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", routeFile))
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+		if zorkIIGarden {
+			route, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes/zork2-garden.txt"))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -552,7 +585,7 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 		if bytes.Contains(reference, []byte("Z3 error")) {
 			t.Fatalf("reference failed%q", reference)
 		}
-		if tool := os.Getenv("MINZ_Z3_FROTZ"); tool != "" && !restart && !saveRestore && !earlyDungeon {
+		if tool := os.Getenv("MINZ_Z3_FROTZ"); tool != "" && !restart && !saveRestore && !earlyDungeon && !zorkIIGarden {
 			referenceCmd := exec.Command(tool, "-m", "-w", "255", externalStory)
 			referenceCmd.Stdin = bytes.NewReader(route)
 			external, err := referenceCmd.Output()
@@ -604,7 +637,7 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			}
 			t.Log("exploration VM text matches independently implemented Frotz")
 		}
-		if earlyDungeon && os.Getenv("MINZ_Z3_FROTZ") != "" {
+		if earlyDungeon && !lateSave && os.Getenv("MINZ_Z3_FROTZ") != "" {
 			refSeed := "12"
 			if trident || treasureRoom || coldPassage || fullWalkthrough {
 				refSeed = "1"
@@ -651,6 +684,27 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 				}
 			}
 			t.Log("independent Frotz confirms score and complete inventory; random combat text is not compared")
+		}
+		if zorkIIGarden && os.Getenv("MINZ_Z3_FROTZ") != "" {
+			ref := exec.Command(os.Getenv("MINZ_Z3_FROTZ"), "-m", "-w", "255", "-s", "1", externalStory)
+			ref.Stdin = bytes.NewReader(route)
+			output, err := ref.Output()
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, want := range []string{"Gazebo", "A newspaper\n  A matchbook\n  A letter opener\n  A place mat\n  A china teapot\n  A elvish sword\n  A lamp (providing light)", "Your score would be 0 (total of 400 points), in 15 moves."} {
+				if !bytes.Contains(output, []byte(want)) {
+					t.Fatalf("Frotz garden checkpoint missing %q", want)
+				}
+			}
+			if d := os.Getenv("MINZ_Z3_TRANSCRIPTS"); d != "" {
+				if err := os.MkdirAll(d, 0755); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(filepath.Join(d, "garden-frotz.txt"), output, 0644); err != nil {
+					t.Fatal(err)
+				}
+			}
 		}
 		keyText = bytes.ReplaceAll(route, []byte{10}, []byte{13})
 	}
@@ -797,6 +851,20 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if restart {
 				phrases = []string{"You are empty-handed.", "West of House"}
 			}
+			if lateSave {
+				phrases = []string{"Inside the Barrow", "You have mastered the first part of the ZORK trilogy.", "Your score is 350 (total of 350 points), in 400 moves.", "Master Adventurer", "Ok.", "Dropped."}
+				inventory := []byte("You are carrying:\n  A clove of garlic\n  A screwdriver\n  A brass lantern\n  A torch (providing light)")
+				if bytes.Count(rendered, inventory) != 2 {
+					t.Fatal("late restore did not recover complete inventory", string(rendered))
+				}
+				if len(observedSaveLengths) != 1 || observedSaveLengths[0] > 2204 {
+					t.Fatal("late save missing/oversized", observedSaveLengths)
+				}
+				t.Logf("late-game native SAVE %d/2204 bytes", observedSaveLengths[0])
+			}
+			if zorkIIGarden {
+				phrases = []string{"Gazebo", "Path Near Stream", "You are carrying:\n  A newspaper\n  A matchbook\n  A letter opener\n  A place mat\n  A china teapot\n  A elvish sword\n  A lamp (providing light)", "Your score would be 0 (total of 400 points), in 15 moves."}
+			}
 			for _, phrase := range phrases {
 				if !bytes.Contains(rendered, []byte(phrase)) {
 					t.Fatalf("exploration missing %q: %q", phrase, rendered)
@@ -869,6 +937,20 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 					t.Fatal("missing/oversized save", observedSaveLengths)
 				}
 				t.Logf("compressed save record %d bytes", observedSaveLengths[0])
+			}
+			if fullWalkthrough {
+				dynamic := int(story[14])<<8 | int(story[15])
+				for at := dynamic; at < len(story); at++ {
+					if m.Memory.RAM[pages[at/16384]][at%16384] != story[at] {
+						t.Fatalf("static story modified at %d", at)
+					}
+				}
+				for off, b := range restartArchive {
+					at := len(story) + off
+					if m.Memory.RAM[pages[at/16384]][at%16384] != b {
+						t.Fatalf("restart archive modified at %d", at)
+					}
+				}
 			}
 			if zorkIIWindows && m.Memory.Read(uint16(a.Symbols["story_verified"])) != 1 {
 				t.Fatal("SAVE/RESTORE/RESTART lost original checksum result")

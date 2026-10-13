@@ -204,13 +204,13 @@ func main() {
 	}
 	must(os.WriteFile(filepath.Join(out, "zvm-spectrum128.a80"), []byte(assembly), 0644))
 	must(os.WriteFile(filepath.Join(out, "zvm-spectrum128.bin"), a.Binary, 0644))
-	metadata := map[string]any{"story_sha256": fmt.Sprintf("%x", sha256.Sum256(story)), "story_bytes": len(story), "resident_bytes": len(a.Binary), "origin": 0x5b00, "entry": a.Symbols["main"], "native_stack_top": 0xbf00, "paging": 0x10, "story_banks": pages, "snapshot_roundtrip": "all eight banks and PC/SP/paging verified", "limitations": []string{"RAM save volatile; failed overwrite invalidates prior save; capacity overflow returns failure", "ROM font data at 0x3d00 required", "IRQs disabled; polling keyboard", "short gameplay verified; full game not proven"}}
+	metadata := map[string]any{"story_sha256": fmt.Sprintf("%x", sha256.Sum256(story)), "story_bytes": len(story), "resident_bytes": len(a.Binary), "origin": 0x5b00, "entry": a.Symbols["main"], "native_stack_top": 0xbf00, "paging": 0x10, "story_banks": pages, "snapshot_roundtrip": "all eight banks and PC/SP/paging verified", "limitations": []string{"RAM save volatile; failed overwrite invalidates prior save; capacity overflow returns failure", "ROM font data at 0x3d00 required", "IRQs disabled; polling keyboard", "builder verifies layout only; gameplay evidence is story-specific"}}
 	if diskSave {
 		metadata["machine_model"] = "scorpion-memory"
 		metadata["save_staging_bank"] = 8
 		metadata["sector_buffer_bank"] = 9
 		metadata["save_slot_offset"] = 0
-		metadata["limitations"] = []string{"dedicated TRD required; emulator TR-DOS API traps, physical controller not supported", "initial SNA stores eight banks; load restart-bank10.bin separately when listed in metadata", "ROM font required; IRQs disabled; full game not proven"}
+		metadata["limitations"] = []string{"dedicated TRD required; emulator TR-DOS API traps, physical controller not supported", "initial SNA stores eight banks; load restart-bank10.bin separately when listed in metadata", "ROM font required; IRQs disabled; gameplay evidence is story-specific"}
 	}
 	metadata["v3_windows"] = windows
 	metadata["save_restore_supported"] = saveSupported
