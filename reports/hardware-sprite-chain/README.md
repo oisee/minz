@@ -1,8 +1,9 @@
 # Patchable sprite chains: implementation checkpoint
 
 October 13, 2026. Work in progress on `feat/hw-patchable-sprites`; not yet in main.
-The goal still requires full Spectrum execution, animation, expanded masks and
-refusal coverage, comparison with existing primitives, publication and sharing.
+The implemented operations, native masks/refusals, full Spectrum animation and
+comparative move+draw measurements are verified below. Main publication and
+final shared manifest audit remain pending.
 
 `import hw.sprite_chain` provides `@sprite_chain("actor")` with the existing
 sprite destination/region/hex rows and `via "compiled"` or `via "push"`.
@@ -94,3 +95,5 @@ Compiled chains buy dynamic traversal/masks and are not a universal speed win.
 A stationary sprite amortizes moving costs. No automatic selector is added.
 Exact source, ASM/BIN and measurements are exported by
 MINZ_HW_CHAIN_COST_EXPORT; the retained packet is on the share.
+
+![Animation from independent completed Spectrum screens](demo/animation.gif)
