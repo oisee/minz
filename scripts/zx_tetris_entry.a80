@@ -1,0 +1,34 @@
+ORG $8000
+JP demo_entry
+demo_irq:
+PUSH AF
+PUSH BC
+PUSH DE
+PUSH HL
+PUSH IX
+PUSH IY
+POP IY
+POP IX
+POP HL
+POP DE
+POP BC
+POP AF
+EI
+RETI
+demo_entry:
+DI
+LD SP,$FCE0
+LD HL,$FE00
+LD DE,$FE01
+LD BC,256
+LD (HL),$FD
+LDIR
+LD A,$C3
+LD ($FDFD),A
+LD HL,demo_irq
+LD ($FDFE),HL
+LD A,$FE
+LD I,A
+IM 2
+EI
+JP main
