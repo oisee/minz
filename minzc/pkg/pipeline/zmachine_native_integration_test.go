@@ -690,6 +690,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 				}
 				t.Logf("compressed save record %d bytes", observedSaveLengths[0])
 			}
+			if zorkIIWindows && m.Memory.Read(uint16(a.Symbols["story_verified"])) != 1 {
+				t.Fatal("SAVE/RESTORE/RESTART lost original checksum result")
+			}
 			if compressedStory {
 				dynamic := int(story[14])<<8 | int(story[15])
 				for i, b := range storageImage {

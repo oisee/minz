@@ -1826,3 +1826,20 @@ A/B с одной историей, тем же lifecycle и corruption probe: c
 в обоих вариантах. SAVE628/700 B, output2214 B byte-exact VM, stack70 B.
 Оба варианта verify принимают оригинал и отклоняют xor1 по адресу64.
 Это контроль одной corrupt позиции, а не всех возможных повреждений.
+
+
+### 13 октября: verify относится к исходной истории
+
+Independent Inform verify_lifecycle выполняет opcode verify, меняет score123
+и выполняет verify снова. Исходный story даёт verified/verified; тот же story
+с изменённым до загрузки byte score даёт rejected/rejected. Z80 и независимый
+Frotz совпадают; PC/SP/paging и фактическое изменение score проверены.
+Standard1.1 §15 verify проверяет checksum файла. Реализация вычисляет результат
+при main до игры и opcode использует story_verified; повторного checksum
+изменённой dynamic RAM нет. Это уже существующая семантика, подтверждённая
+новой проверкой, без изменения interpreter runtime.
+
+Оба Inform варианта PASS5.298 s. Zork II compressed lifecycle дополнительно
+проверяет сохранение story_verified=1 после SAVE/RESTORE/RESTART: PASS18.418 s,
+628 B SAVE,25279 B resident,output2214 B byte-exact VM. Это не повторная
+проверка исходной истории с диска после загрузки и не аудит всех повреждений.

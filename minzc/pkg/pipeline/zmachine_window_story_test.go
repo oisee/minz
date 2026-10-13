@@ -19,6 +19,10 @@ func TestZMachineV3StatusStoryNative(t *testing.T) {
 	t.Run("score", func(t *testing.T) { testZMachineV3ScreenStory(t, "status", false) })
 	t.Run("time", func(t *testing.T) { testZMachineV3ScreenStory(t, "status", true) })
 }
+func TestZMachineV3VerifyLifecycleNative(t *testing.T) {
+	t.Run("original", func(t *testing.T) { testZMachineV3ScreenStory(t, "verify_lifecycle", false) })
+	t.Run("corrupt", func(t *testing.T) { testZMachineV3ScreenStory(t, "verify_corrupt", false) })
+}
 func TestZMachineNativeOpcodeDiagnostic(t *testing.T) {
 	testZMachineV3ScreenStory(t, "bad_opcode", false)
 }
@@ -39,9 +43,16 @@ func testZMachineV3ScreenStoryInput(t *testing.T, fixture string, timeMode bool,
 	if fixture == "bad_opcode" {
 		sourceFixture = "windows"
 	}
+	if fixture == "verify_corrupt" {
+		sourceFixture = "verify_lifecycle"
+	}
 	story, e := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/"+sourceFixture+".z3"))
 	if e != nil {
 		t.Fatal(e)
+	}
+	if fixture == "verify_corrupt" {
+		globals := int(story[12])<<8 | int(story[13])
+		story[globals+3] ^= 1 // score is safe to change; original checksum remains.
 	}
 	initialPC := int(story[6])<<8 | int(story[7])
 	if fixture == "bad_opcode" {
@@ -148,7 +159,19 @@ func testZMachineV3ScreenStoryInput(t *testing.T, fixture string, timeMode bool,
 	if !m.CPU.Halted() || m.CPU.SP() != 0xbf02 || m.Memory.PagingState() != 0x10 {
 		t.Fatalf("boundary %04x/%04x output %q", m.CPU.PC(), m.CPU.SP(), output)
 	}
-	if fixture == "bad_opcode" {
+	if fixture == "verify_lifecycle" || fixture == "verify_corrupt" {
+		want := "verified\nverified\n"
+		if fixture == "verify_corrupt" {
+			want = "rejected\nrejected\n"
+		}
+		if string(output) != want {
+			t.Fatalf("verify lifecycle %q != %q", output, want)
+		}
+		scoreAddr := (int(story[12])<<8 | int(story[13])) + 2
+		if m.Memory.RAM[0][scoreAddr] != 0 || m.Memory.RAM[0][scoreAddr+1] != 123 {
+			t.Fatal("story did not mutate score")
+		}
+	} else if fixture == "bad_opcode" {
 		faultPC := initialPC + 1
 		want := fmt.Sprintf("Z3 error 1:0:15:%d:%d:%d\n", faultPC>>16, (faultPC>>8)&255, faultPC&255)
 		if string(output) != want {

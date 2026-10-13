@@ -1,0 +1,20 @@
+! SPDX-License-Identifier: MIT
+! Standard 1.1 section 15 verify checks the story file, not modified game RAM.
+Global location = Room;
+Global score;
+Global turns;
+Object Room "Verify room";
+[ Check;
+ @verify ?valid;
+ print "rejected^";
+ rfalse;
+ .valid;
+ print "verified^";
+ rtrue;
+];
+[ Main;
+ Check();
+ score = 123;
+ Check();
+ quit;
+];
