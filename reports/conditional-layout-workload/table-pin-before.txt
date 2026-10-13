@@ -1,0 +1,6 @@
+=== RUN   TestConditionalLayoutWorkloadRechecksTablePin
+    conditional_layout_table_pin_test.go:42: late configured table mutation yielded a winner
+--- FAIL: TestConditionalLayoutWorkloadRechecksTablePin (0.32s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.332s
+FAIL

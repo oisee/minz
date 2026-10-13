@@ -1,0 +1,6 @@
+=== RUN   TestConditionalLayoutTokenizerHeldout
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    conditional_layout_tokenizer_test.go:89: selected2: module 4186 / 4186 B; train 334871 / 334806 T; heldout 289789 / 289732 T
+--- PASS: TestConditionalLayoutTokenizerHeldout (2.47s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.485s

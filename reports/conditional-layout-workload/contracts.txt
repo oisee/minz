@@ -1,0 +1,26 @@
+=== RUN   TestConditionalLayoutWorkloadNativeAndArtifact
+    conditional_layout_workload_test.go:71: speed selected 2 bytes 39 T 1214
+    conditional_layout_workload_test.go:71: size selected 0 bytes 39 T 1256
+--- PASS: TestConditionalLayoutWorkloadNativeAndArtifact (0.40s)
+=== RUN   TestConditionalLayoutWorkloadRejectsDriftAndPartialResults
+=== RUN   TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/shared
+=== RUN   TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/source
+=== RUN   TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/ABI
+=== RUN   TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/late-mutation
+=== RUN   TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/late-failure
+=== RUN   TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/candidate-mutation
+=== RUN   TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/policy
+=== RUN   TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/late-policy
+--- PASS: TestConditionalLayoutWorkloadRejectsDriftAndPartialResults (0.69s)
+    --- PASS: TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/shared (0.04s)
+    --- PASS: TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/source (0.04s)
+    --- PASS: TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/ABI (0.02s)
+    --- PASS: TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/late-mutation (0.16s)
+    --- PASS: TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/late-failure (0.14s)
+    --- PASS: TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/candidate-mutation (0.16s)
+    --- PASS: TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/policy (0.00s)
+    --- PASS: TestConditionalLayoutWorkloadRejectsDriftAndPartialResults/late-policy (0.16s)
+=== RUN   TestConditionalFunctionSpanKeepsAllReturnsAndStorage
+--- PASS: TestConditionalFunctionSpanKeepsAllReturnsAndStorage (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.107s
