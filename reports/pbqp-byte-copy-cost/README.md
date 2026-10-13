@@ -40,3 +40,9 @@ also passed all 346 fast tests; final directed MIR2/pipeline rerun passed. This
 experiment is not integrated; the evidence supports this bounded copy family.
 Next work needs correlated operand costs and/or edge-aware allocation
 candidates, with full boundary moves measured.
+
+Default sweep compares exact output text. Its 838-file checkpoint changed five
+ASM outputs but no exit code, stdout or stderr. That is not itself semantic
+proof. Additional native tests for original IRC classifiers, CP/M tokenizer
+main, checked tokenizer and interning passed in 23.689s. This does not prove
+full equivalence of every changed program (notably FatFs and Snake).
