@@ -1,0 +1,11 @@
+=== RUN   TestCheckedCompositionCLIValidation
+--- PASS: TestCheckedCompositionCLIValidation (0.00s)
+=== RUN   TestCheckedCompositionCLIRealPrepareReplay
+[checked-composition] add5: 1 admitted compositions
+    checked_composition_cli_test.go:166: CLI result native all256inputs/PC/SP PASS; module 5 -> 3 bytes
+    checked_composition_cli_test.go:185: CLI prepared current exact table from one fragment; ordinary pipeline selected checked-local-table
+--- PASS: TestCheckedCompositionCLIRealPrepareReplay (0.01s)
+=== RUN   TestCheckedCompositionCLIImportedSourceAlias
+--- PASS: TestCheckedCompositionCLIImportedSourceAlias (0.00s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	0.026s
