@@ -21,6 +21,7 @@ p.add_argument('--save-story', type=Path, help='enable volatile native SAVE/REST
 p.add_argument('--layout-save-story',type=Path,help='native SAVE for trusted original-block layout')
 p.add_argument('--layout-restart', action='store_true', help='enable trusted LZ restart for compressed story layout')
 p.add_argument('--story-layout', type=Path, help='trusted 2K LZ layout metadata; use layout flags for SAVE/restart')
+p.add_argument('--disk-save',action='store_true',help='persist MZ3R through emulator TR-DOS sector API; dedicated disk required')
 p.add_argument('--console', action='store_true', help='Spectrum screen and keyboard instead of RAM capture')
 a = p.parse_args()
 archive_offset = a.story_bytes if a.restart_offset is None else a.restart_offset
@@ -473,4 +474,11 @@ if a.layout_save_story:
  .no_save:
  }}
 }}''')
+if a.disk_save:
+    if not (a.save_story or a.layout_save_story):
+        p.error('--disk-save requires native SAVE configuration')
+    from native_disk_save import emit as disk_code
+    text += disk_code(bank,offset,capacity)
+    replace_function('save_state','fun save_state()->u8 { return native_disk_save() }')
+    replace_function('restore_state','fun restore_state()->u8 { return native_disk_restore() }')
 a.output.write_text('// Native banked integration harness: output capture; unsupported I/O fails.\n' + text)

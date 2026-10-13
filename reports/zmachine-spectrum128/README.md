@@ -1416,3 +1416,25 @@ Headless mzx принимает `--model scorpion-memory`, `--trd PATH` и яв�
 Для первой runnable Scorpion версии нужен loader дополнительных банков,
 подключение record serialization и проверка RESTORE после запуска игры заново.
 Graphical CLI пока не имеет Scorpion memory selector. Full V3 остаётся active.
+
+### 13 октября: игровой SAVE/RESTORE с диска после новой машины
+
+Generator `--disk-save` подключает existing MZ3R сериализацию к секторному
+TR-DOS adapter emulator. Temporary RAM slot хранит record до записи/после
+чтения; sector buffer находится в Scorpion bank8. Payload sectors записываются
+перед header. Restore читает lengths с overflow bounds, затем existing
+identity/CRC/RLE/state preflight проверяет record до применения game state.
+Выделенные disk tracks2..5 принадлежат этому прототипу; использовать только
+отдельный образ, не произвольный пользовательский TRD с файлами.
+
+Независимая Inform fixture SAVE сохранила value1, disk перечитан с filesystem,
+новая машина выполнила RESTORE после установки value7: текст `saved 1` и
+возврат к save continuation PASS. Повреждённый magic header возвращает
+`restore failed`. Resident capture configuration 23726 B. Existing RAM save
+fixtures 1536/32700 B также PASS.
+
+Это первый реальный disk game-state lifecycle, пока на малой V3 fixture.
+Zork disk gameplay, atomic сохранение прежнего record при частичном отказе,
+проверка всей dynamic/state при повреждениях и удаление story-bank staging
+ещё не закрыты. Коммит не объявляет завершённый постоянный SAVE showcase.
+Physical TR-DOS driver/ROM workspace также отдельно; current API traps only.
