@@ -1,0 +1,17 @@
+=== RUN   TestCheckedCompositionAutomaticWeightedCaller
+    checked_composition_test.go:178: [weighted: 1 admitted compositions weighted_caller: skipped: unsupported local opcode call]
+    checked_composition_test.go:178: PFCCO=greedy grace=false composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+    checked_composition_test.go:178: [weighted: 1 admitted compositions weighted_caller: skipped: unsupported local opcode call]
+    checked_composition_test.go:178: PFCCO=greedy grace=true composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+    checked_composition_test.go:178: [weighted: 1 admitted compositions weighted_caller: skipped: unsupported local opcode call]
+    checked_composition_test.go:178: PFCCO=pbqp grace=false composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+    checked_composition_test.go:178: [weighted: 1 admitted compositions weighted_caller: skipped: unsupported local opcode call]
+    checked_composition_test.go:178: PFCCO=pbqp grace=true composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+--- PASS: TestCheckedCompositionAutomaticWeightedCaller (3.29s)
+=== RUN   TestCheckedCompositionAutomaticHeldoutNative
+    checked_composition_test.go:305: x+19 reused add5 fragments: actual caller 76 -> 76 T; backend=checked-local-table; all 256 inputs PASS
+    checked_composition_test.go:305: x^90 reused add5 fragments: actual caller 69 -> 69 T; backend=PBQP; all 256 inputs PASS
+    checked_composition_test.go:305: x-11 reused add5 fragments: actual caller 76 -> 76 T; backend=checked-local-table; all 256 inputs PASS
+--- PASS: TestCheckedCompositionAutomaticHeldoutNative (1.09s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.385s
