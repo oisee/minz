@@ -1418,11 +1418,6 @@ VERSION: %s (build %s, %s)
 		demoTitle = d.Title
 		*modelFlag = d.Model
 	}
-	defer func() {
-		if err := saveDemoSession(machine, demoSession); err != nil {
-			log.Printf("Session save: %v", err)
-		}
-	}()
 	// Disable audio components based on flags
 	if *noAudioFlag || *noBeeperFlag {
 		machine.Beeper.SetEnabled(false)
@@ -1781,6 +1776,12 @@ VERSION: %s (build %s, %s)
 	isHeadless := *screenshotFlag != "" || *dumpFrames != "" || *dumpKeyframes != "" || *saveSnapshotFlag != "" || *consolePortFlag != ""
 
 	if isHeadless {
+		defer func() {
+			if err := saveDemoSession(machine, demoSession); err != nil {
+				log.Printf("Session save: %v", err)
+			}
+		}()
+
 		cs := parseCaptureSpec(*framesFlag)
 		limit := *maxFrames
 
