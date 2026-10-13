@@ -45,7 +45,8 @@ cache. This measures redundancy, not a chosen Z80 decoder. Source script checks
 roundtrip for every block and uses raw fallback; JSON retains exact SHA/results.
 Next practical experiment: Z80-friendly bounded LZSS/ZX0-like block format, cache
 miss costs and access locality, then compare total physical budget with no compression.
-Astra review was requested; first attempt rate-limited before advice, retry pending.
+Astra review was requested; initial attempts hit rate limits. A subsequent retry
+completed the review; see astra-compression-review.md.
 
 Astra returned partial code-grounded advice before a second rate limit:
 resident mutable budget including dynamic11288 totals29522B before code; below
@@ -71,5 +72,13 @@ A separate size-probe.nanz replaces story131072 with256 and host services with
 zero-return stubs solely to measure native code/data pressure. It is NOT a valid
 interpreter and NOT a runnable fixture. Ordinary compilation produces ASM but
 assembler rejects end012410>010000. Even reducing story storage leaves a module
-larger than available native RAM. Size-mode result is measured next; code must be
-reduced/placed as well as story compressed. Diagnostic logs/ASM retained on share.
+larger than available native RAM. The separate --Osize attempt also ends at
+012410; this is not a claim about every optimization configuration. Code must
+be reduced/placed as well as story compressed. Diagnostic logs/ASM retained on share.
+
+The generic assembler at diagnostic origin0 gives 42000 bytes: function regions
+(including local spill storage)23367, globals18633. Largest function regions:
+step4571, print_text2005, restore_state1274. Largest globals: snapshot9018,
+stack_words4096, local_words4096. native-size-map.json contains all regions;
+run from minzc: go run ../scripts/zmachine/native_size_map.go input.a80.
+Origin0 is for measurement only, not a runnable Spectrum layout.
