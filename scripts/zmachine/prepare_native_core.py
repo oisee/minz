@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build native integration core with banked story and bounded capture I/O.
 
-This first native harness has no interactive console/save/restart loader.
+Console, banked restart and volatile SAVE/RESTORE are optional.
 Unsupported host services fail explicitly. Full Zork release remains separate.
 """
 import argparse
@@ -15,10 +15,12 @@ p.add_argument('output', type=Path)
 p.add_argument('--story-bytes', type=int, required=True)
 p.add_argument('--commands', type=Path, help='ASCII command transcript for native integration')
 p.add_argument('--restart-rle-bytes', type=int, default=0, help='validated RLE archive size instead of raw prefix')
-p.add_argument('--restart-bytes', type=int, default=0, help='original dynamic prefix archived immediately after raw story')
+p.add_argument('--restart-offset', type=int, help='logical bank address of the trusted restart archive')
+p.add_argument('--restart-bytes', type=int, default=0, help='decoded size of the archived original dynamic prefix')
 p.add_argument('--save-story', type=Path, help='enable volatile native SAVE/RESTORE for this exact story')
 p.add_argument('--console', action='store_true', help='Spectrum screen and keyboard instead of RAM capture')
 a = p.parse_args()
+archive_offset = a.story_bytes if a.restart_offset is None else a.restart_offset
 if not 64 <= a.story_bytes <= 98304:
     p.error('raw story capacity is 64..98304')
 root = Path(__file__).resolve().parents[2]
@@ -133,9 +135,9 @@ replace_function('snapshot_identity', 'fun snapshot_identity() {}')
 replace_function('restart_story', 'fun restart_story() { running = 0 }')
 if a.restart_bytes:
     archive_size = a.restart_rle_bytes or a.restart_bytes
-    if not 64 <= a.restart_bytes <= 16384 or a.story_bytes + archive_size > 98304 or a.story_bytes // 16384 != (a.story_bytes + archive_size - 1) // 16384:
+    if not 64 <= a.restart_bytes <= min(16384, a.story_bytes) or archive_size <= 0 or archive_offset < a.story_bytes or archive_offset + archive_size > 98304 or archive_offset // 16384 != (archive_offset + archive_size - 1) // 16384:
         p.error('restart archive must fit within one free logical bank tail')
-    page = a.story_bytes // 16384
+    page = archive_offset // 16384
     bank = [0, 1, 3, 4, 6, 7][page]
     if bank == 0:
         p.error('restart archive must be outside bank0')
@@ -145,7 +147,7 @@ if a.restart_bytes:
   LD HL, (0xc010)
   PUSH HL
   LD A, {bank + 0x10}
-  LD HL, {a.story_bytes % 16384}
+  LD HL, {archive_offset % 16384}
   LD DE, {a.restart_bytes}
   LD B, 0x10
   CALL zx__banked__{restore_name}
@@ -246,11 +248,11 @@ if a.save_story:
     story = a.save_story.read_bytes()
     if len(story) != a.story_bytes or int.from_bytes(story[14:16], 'big') != a.restart_bytes or not a.restart_rle_bytes:
         p.error('SAVE requires matching story and validated compressed restart archive')
-    slot = len(story) + a.restart_rle_bytes
+    slot = max(5 * 16384, archive_offset + a.restart_rle_bytes)
     capacity = 98304 - slot
     pages = [0,1,3,4,6,7]
     if capacity < 32 or slot // 16384 != 5:
-        p.error('SAVE slot must fit in the final nonzero story bank')
+        p.error('SAVE requires at least 32 free bytes in the final nonzero story bank')
     bank = pages[slot // 16384] + 0x10
     offset = slot % 16384
     from native_state_stream import emit as state_code
@@ -262,7 +264,7 @@ if a.save_story:
     from native_restore import emit as restore_code
     from native_save import emit as save_code
     text = 'import zx.crc\n' + text
-    text += state_code()+reader_code(pages[len(story)//16384]+0x10,len(story)%16384)+pack_code()
+    text += state_code()+reader_code(pages[archive_offset//16384]+0x10,archive_offset%16384)+pack_code()
     text += preflight_code(story,capacity).replace('import zx.crc\n','').replace('import zx.banked\n','')
     text += validate_code(story)+apply_code()+restore_code(story)+save_code(story,bank,offset,capacity)
     replace_function('save_state', 'fun save_state()->u8 { return native_save() }')

@@ -43,16 +43,28 @@ func main() {
 	}
 	archive, err = os.ReadFile(archivePath)
 	must(err)
-	restart := dynamic >= 64 && dynamic <= 16384 && len(story)+len(archive) <= 98304 && len(story)/16384 == (len(story)+len(archive)-1)/16384 && len(story)/16384 > 0
+	// Keep the immutable archive outside mutable bank0 and within one window.
+	archiveOffset := len(story)
+	if archiveOffset < 16384 {
+		archiveOffset = 16384
+	}
+	if len(archive) > 0 && archiveOffset/16384 != (archiveOffset+len(archive)-1)/16384 {
+		archiveOffset = (archiveOffset/16384 + 1) * 16384
+	}
+	restart := dynamic >= 64 && dynamic <= 16384 && len(archive) > 0 && archiveOffset+len(archive) <= 98304 && archiveOffset/16384 == (archiveOffset+len(archive)-1)/16384
 
-	saveSupported := restart && (len(story)+len(archive))/16384 == 5 && 98304-len(story)-len(archive) >= 32
+	saveOffset := archiveOffset + len(archive)
+	if saveOffset < 5*16384 {
+		saveOffset = 5 * 16384
+	}
+	saveSupported := restart && 98304-saveOffset >= 32
 	out, err := filepath.Abs(os.Args[2])
 	must(err)
 	must(os.MkdirAll(out, 0755))
 	source := filepath.Join(out, "zvm-spectrum128.nanz")
 	cmd := exec.Command("python3", "../scripts/zmachine/prepare_native_core.py", source, "--story-bytes", fmt.Sprint(len(story)), "--console")
 	if restart {
-		cmd.Args = append(cmd.Args, "--restart-bytes", fmt.Sprint(dynamic), "--restart-rle-bytes", fmt.Sprint(len(archive)))
+		cmd.Args = append(cmd.Args, "--restart-offset", fmt.Sprint(archiveOffset), "--restart-bytes", fmt.Sprint(dynamic), "--restart-rle-bytes", fmt.Sprint(len(archive)))
 	}
 	if saveSupported {
 		cmd.Args = append(cmd.Args, "--save-story", os.Args[1])
@@ -87,7 +99,7 @@ func main() {
 	}
 	if restart {
 		for i, b := range archive {
-			at := len(story) + i
+			at := archiveOffset + i
 			m.Memory.RAM[pages[at/16384]][at%16384] = b
 		}
 	}
@@ -116,10 +128,14 @@ func main() {
 	must(os.WriteFile(filepath.Join(out, "zvm-spectrum128.bin"), a.Binary, 0644))
 	metadata := map[string]any{"story_sha256": fmt.Sprintf("%x", sha256.Sum256(story)), "story_bytes": len(story), "resident_bytes": len(a.Binary), "origin": 0x5b00, "entry": a.Symbols["main"], "native_stack_top": 0xbf00, "paging": 0x10, "story_banks": pages, "snapshot_roundtrip": "all eight banks and PC/SP/paging verified", "limitations": []string{"RAM save volatile; failed overwrite invalidates prior save; capacity overflow returns failure", "ROM font data at 0x3d00 required", "IRQs disabled; polling keyboard", "short gameplay verified; full game not proven"}}
 	metadata["save_restore_supported"] = saveSupported
-	metadata["save_slot_bytes"] = 98304 - len(story) - len(archive)
+	metadata["save_slot_bytes"] = 0
+	if saveSupported {
+		metadata["save_slot_bytes"] = 98304 - saveOffset
+		metadata["save_slot_offset"] = saveOffset
+	}
 	metadata["restart_supported"] = restart
 	if restart {
-		metadata["restart_archive_offset"] = len(story)
+		metadata["restart_archive_offset"] = archiveOffset
 		metadata["restart_archive_bytes"] = len(archive)
 		metadata["restart_decoded_bytes"] = dynamic
 		metadata["restart_archive_format"] = "rle-v1"
