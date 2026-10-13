@@ -302,6 +302,7 @@
     "TestStructuredCopyMatchesTextBaseline",
     "TestStructuredFillLiveValues",
     "TestStructuredFillMatchesTextBaseline",
+    "TestStructuredSpriteMatchesTextBaseline",
     "TestTetrisFamilyIndependentModelControls",
     "TestTetrisHistoricalModelIdentity",
     "TestTetrisSequenceIndependentModelControls",

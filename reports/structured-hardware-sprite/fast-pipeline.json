@@ -1,0 +1,29 @@
+{
+  "total": 699,
+  "selected": 352,
+  "profile": "fast",
+  "statuses": [
+    {
+      "shard": 1,
+      "exit_code": 0,
+      "log": "/tmp/structured-sprite-fast/shard-1.log"
+    },
+    {
+      "shard": 2,
+      "exit_code": 0,
+      "log": "/tmp/structured-sprite-fast/shard-2.log"
+    },
+    {
+      "shard": 3,
+      "exit_code": 0,
+      "log": "/tmp/structured-sprite-fast/shard-3.log"
+    },
+    {
+      "shard": 4,
+      "exit_code": 0,
+      "log": "/tmp/structured-sprite-fast/shard-4.log"
+    }
+  ],
+  "manifest_sha256": "b31340b153ccef7e9cf7c61da71fd78c2301ad774deca3d635ecab0d660c7ffb",
+  "binary_sha256": "84d429ed94c50e66dde9f8c89ebf69e7c3253d997a0eccc7ff2e914238ab3c05"
+}
