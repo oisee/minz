@@ -97,3 +97,8 @@ Exact source, ASM/BIN and measurements are exported by
 MINZ_HW_CHAIN_COST_EXPORT; the retained packet is on the share.
 
 ![Animation from independent completed Spectrum screens](demo/animation.gif)
+
+Exact row-entry PC traces additionally confirm permutations and subsets in all
+108 native executions. Full Nanz/HIR/MIR2: PASS 20.735/33.953/99.807 s at
+checkpoint preceding this trace-only assertion. Final full sprite family PASS
+7.084 s; added row-order trace PASS 0.190 s.

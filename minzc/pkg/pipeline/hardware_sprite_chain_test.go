@@ -5,6 +5,7 @@ import (
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/z80asm"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -128,6 +129,7 @@ func TestHardwareSpriteChainNative(t *testing.T) {
 							return v
 						}
 						writeWord := func(addr, val int) { mem[addr] = byte(val); mem[addr+1] = byte(val >> 8) }
+						visited := []int{}
 						call := func(name string, hl int) uint64 {
 							t.Helper()
 							writeWord(0xeff0, 0x7000)
@@ -136,6 +138,13 @@ func TestHardwareSpriteChainNative(t *testing.T) {
 							for n := 0; n < 10000; n++ {
 								if z.GetPC() == 0x7000 && z.GetSP() == 0xeff2 {
 									break
+								}
+								if name == "actor" {
+									for row := 0; row < 3; row++ {
+										if z.GetPC() == uint16(symbol(fmt.Sprintf("actor_chain_row_%d", row))) {
+											visited = append(visited, row)
+										}
+									}
 								}
 								z.Step()
 							}
@@ -161,6 +170,9 @@ func TestHardwareSpriteChainNative(t *testing.T) {
 						writeWord(0xeff0, 0x7000)
 						before := append([]byte(nil), mem...)
 						drawT := call("actor", 0xbeef)
+						if !slices.Equal(visited, order) {
+							t.Fatalf("row order got %v want %v", visited, order)
+						}
 						got := z.GetRegisters()
 						if got.A != 0x5a || got.F != 0xd7 || got.BC != 0x1234 || got.DE != 0x5678 || got.HL != 0xbeef || got.IX != 0x9abc || got.IY != 0x1357 {
 							t.Fatalf("register preservation %+v", got)
