@@ -1,6 +1,6 @@
 # Z-machine V3 on Spectrum 128K: memory/platform audit
 
-October 13, 2026. Active goal, implementation not complete.
+October 13, 2026. Initial banked V3/Spectrum 128K goal verified in the emulator; see [current status](current-status.md) and [requirement audit](goal-audit.md). Broad compatibility and physical hardware remain separate work.
 
 **Актуальный обзор:** [что работает, как запустить и что осталось](current-status.md).
 Ниже — хронологический журнал исследований. Его ранние записи описывают
@@ -2337,3 +2337,13 @@ RESTART сохранены. Scorpion, TRD, несжатая банковая и�
 
 Поздний SAVE II также восстановлен в новой машине: полный инвентарь с wand,
 Landing и 400/400 на 650 ходах, история и PC/SP/paging сохранены. PASS 28,173 с.
+
+
+## Финальная проверка исходной цели на текущем коде
+
+Zork I на обычном 128K повторно прошёл поздний SAVE/RESTORE и полный финал
+350/350 на 400 ходах. SAVE 1660/2204 байта, 2790 клавиш, 37 194 байта
+byte-exact mzv, 17 912 604 794 T-states, стек 70 байт; PASS 230,825 с.
+Новый комплект: `/mnt/safe/minz/grace/2026-10-13/zork1-current-128/`.
+Исходная цель достигнута в эмуляторе; широкая поддержка всех V3-историй,
+физический Spectrum и реальный контроллер диска отдельно не заявляются.
