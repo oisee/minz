@@ -1672,3 +1672,23 @@ byte-exact VM, PASS4.817 s, resident21458 B, stack60 B. Этот CZECH запу�
 независимыми Inform fixtures и игровым128K lifecycle отдельно. Результаты не
 означают arbitrary V3/full-game completion. Обычная128K playable сборка со
 status/windows публикуется отдельно от Scorpion persistent disk версии.
+
+### 13 октября: CZECH на новом status/window screen adapter
+
+`TestZMachineCzechWindowsNative` исполняет pinned CZECH с `--console --windows`
+на ordinary128K memory. Все349 assertions и19 print cases PASS;1921 bytes
+output byte-exact VM. Для сравнения VM reference объявляет те же screen flags:
+Flags1 bit4 clear, bit5 set. Изменены только эти header assignments в временном
+reference source; opcode/test bodies не меняются. Без такого согласования
+CZECH закономерно печатает другой список screen capabilities, хотя assertions
+проходят. Старый console adapter проверяется отдельно с bit4 set/bit5 clear.
+
+Оба режима дополнительно проверяют exact advertised header flags, static
+story, PC/SP/paging/IFF и native stack reservation. Новое окно: resident22205 B,
+stack60 B,249146722 T. Старое:21458 B,60 B,242315495 T. Наблюдение active screen
+output не заменяет renderer. Return sentinel$BF10 расположен вне screen clear.
+Native/VM transcript pair каждого режима сохранён с отдельным именем.
+
+CZECH не покрывает весь V3 I/O и полное прохождение игр: windows/status имеют
+independent Inform pixel tests, keyboard/SAVE/RESTART — игровые lifecycle tests.
+Цель остаётся active до итоговой проверки совокупного поведения и deliverables.

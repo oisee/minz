@@ -15,8 +15,10 @@ import (
 
 // CZECH is an external, author-licensed corpus, never vendored into MinZ.
 // Execute the complete interpreter and screen adapter, observing characters
-// at native_putchar without replacing its body or the opcode dispatcher.
-func TestZMachineCzechNative(t *testing.T) {
+// at the active screen output function without replacing its body or dispatcher.
+func TestZMachineCzechNative(t *testing.T)        { testZMachineCzechNative(t, false) }
+func TestZMachineCzechWindowsNative(t *testing.T) { testZMachineCzechNative(t, true) }
+func testZMachineCzechNative(t *testing.T, windows bool) {
 	storyPath := os.Getenv("MINZ_Z3_CZECH")
 	vmPath := os.Getenv("MINZ_Z3_VM")
 	if storyPath == "" || vmPath == "" {
@@ -33,6 +35,9 @@ func TestZMachineCzechNative(t *testing.T) {
 	dir := t.TempDir()
 	source := filepath.Join(dir, "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), source, "--story-bytes", fmt.Sprint(len(story)), "--console")
+	if windows {
+		cmd.Args = append(cmd.Args, "--windows")
+	}
 	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("generate %v %s", err, out)
 	}
@@ -69,17 +74,25 @@ func TestZMachineCzechNative(t *testing.T) {
 	m.Memory.SetPagingForce(0x10)
 	m.CPU.SetIFF1(false)
 	m.CPU.SetIFF2(false)
-	m.Memory.Write(0xbf00, 0, false)
-	m.Memory.Write(0xbf01, 0x50, false)
+	m.Memory.Write(0xbf10, 0x76, false)
+	m.Memory.Write(0xbf00, 0x10, false)
+	m.Memory.Write(0xbf01, 0xbf, false)
 	m.CPU.SetPC(uint16(a.Symbols["main"]))
 	m.CPU.SetSP(0xbf00)
+	outputSymbol := a.Symbols["native_putchar"]
+	if windows {
+		outputSymbol = a.Symbols["zx__console__z3_window_put"]
+	}
+	if outputSymbol == 0 {
+		t.Fatal("missing output symbol")
+	}
 	var output []byte
 	minSP := uint16(0xbf00)
 	for i := 0; i < 200000000; i++ {
-		if m.CPU.PC() == 0x5000 && m.CPU.SP() == 0xbf02 {
+		if m.CPU.PC() == 0xbf10 && m.CPU.SP() == 0xbf02 {
 			break
 		}
-		if m.CPU.PC() == uint16(a.Symbols["native_putchar"]) {
+		if m.CPU.PC() == uint16(outputSymbol) {
 			output = append(output, byte(m.CPU.AF()>>8))
 		}
 		if m.CPU.PC() == uint16(a.Symbols["tui_read_line_or_eof"]) {
@@ -90,8 +103,18 @@ func TestZMachineCzechNative(t *testing.T) {
 			minSP = m.CPU.SP()
 		}
 	}
-	if m.CPU.PC() != 0x5000 || m.CPU.SP() != 0xbf02 || m.Memory.PagingState() != 0x10 || m.CPU.IFF1() || m.CPU.IFF2() {
+	if m.CPU.PC() != 0xbf10 || m.CPU.SP() != 0xbf02 || m.Memory.PagingState() != 0x10 || m.CPU.IFF1() || m.CPU.IFF2() {
 		t.Fatalf("boundary PC/SP=%04x/%04x output=%q", m.CPU.PC(), m.CPU.SP(), output)
+	}
+	if minSP < 0xbe00 {
+		t.Fatalf("native stack exceeded reservation: %04x", minSP)
+	}
+	expected := byte(16)
+	if windows {
+		expected = 32
+	}
+	if m.Memory.RAM[0][1]&48 != expected {
+		t.Fatal("screen capability flags", m.Memory.RAM[0][1])
 	}
 	for _, needle := range []string{"Performed 368 tests.", "Passed: 349, Failed: 0, Print tests: 19", "Didn't crash: hooray!"} {
 		if !bytes.Contains(output, []byte(needle)) {
@@ -113,6 +136,13 @@ func TestZMachineCzechNative(t *testing.T) {
 	core, err := os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/zvm.nanz"))
 	if err != nil {
 		t.Fatal(err)
+	}
+	if windows {
+		old := []byte("(story[1] & 15) | 16")
+		if !bytes.Contains(core, old) {
+			t.Fatal("reference capability anchor missing")
+		}
+		core = bytes.ReplaceAll(core, old, []byte("(story[1] & 15) | 32"))
 	}
 	if err = os.WriteFile(filepath.Join(refDir, "zvm.nanz"), core, 0600); err != nil {
 		t.Fatal(err)
@@ -141,10 +171,10 @@ func TestZMachineCzechNative(t *testing.T) {
 		if err = os.MkdirAll(d, 0755); err != nil {
 			t.Fatal(err)
 		}
-		if err = os.WriteFile(filepath.Join(d, "czech-native.txt"), output, 0644); err != nil {
+		if err = os.WriteFile(filepath.Join(d, fmt.Sprintf("czech-native-windows-%v.txt", windows)), output, 0644); err != nil {
 			t.Fatal(err)
 		}
-		if err = os.WriteFile(filepath.Join(d, "czech-vm.txt"), reference, 0644); err != nil {
+		if err = os.WriteFile(filepath.Join(d, fmt.Sprintf("czech-vm-windows-%v.txt", windows)), reference, 0644); err != nil {
 			t.Fatal(err)
 		}
 	}
