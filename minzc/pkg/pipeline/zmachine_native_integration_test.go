@@ -74,6 +74,13 @@ func TestZMachineBankedZorkSaveRestoreNative(t *testing.T) {
 	}
 	testZMachineBankedInterpreterNative(t, false, path, "@console-save")
 }
+func TestZMachineBankedZorkCellarSaveRestoreNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set MINZ_Z3_STORY and MINZ_Z3_VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-cellar-save")
+}
 func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, externalStory string, commands string) {
 	root := filepath.Clean("../../..")
 	story, err := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/stream3.z3"))
@@ -99,7 +106,8 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	saveRestore := commands == "@console-save"
+	cellarSave := commands == "@console-cellar-save"
+	saveRestore := commands == "@console-save" || cellarSave
 	restart := commands == "@console-restart"
 	explore := commands == "@console-explore" || restart || saveRestore
 	keyboard := commands == "@console-keyboard" || explore
@@ -225,6 +233,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 		if saveRestore {
 			route = []byte("open mailbox\nsave\ntake leaflet\ninventory\nrestore\ninventory\nquit\ny\n")
 		}
+		if cellarSave {
+			route = []byte("north\neast\nopen window\nenter window\nwest\ntake lamp\ntake sword\nturn on lamp\nmove rug\nopen trap door\ndown\nsave\ndrop sword\ninventory\nrestore\ninventory\ndrop lamp\nrestore\ninventory\nquit\ny\n")
+		}
 		d := t.TempDir()
 		source, err := os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/zvm.nanz"))
 		if err != nil {
@@ -295,6 +306,7 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	ready := false
 	minSP := uint16(0xbf00)
 	var rendered []byte
+	var observedSaveLengths []int
 	inputEcho := false
 	var inputReturn, inputSP uint16
 
@@ -304,6 +316,13 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 		}
 		if m.CPU.PC() == 0x5000 && m.CPU.SP() == 0xbf02 {
 			break
+		}
+		if saveRestore && m.CPU.PC() == uint16(a.Symbols["tui_read_line_or_eof"]) {
+			addr := uint16(a.Symbols["native_save_length"])
+			length := int(m.Memory.Read(addr)) | int(m.Memory.Read(addr+1))<<8
+			if length > 0 && (len(observedSaveLengths) == 0 || observedSaveLengths[len(observedSaveLengths)-1] != length) {
+				observedSaveLengths = append(observedSaveLengths, length)
+			}
 		}
 		if keyboard {
 			if m.CPU.PC() == uint16(a.Symbols["tui_read_line_or_eof"]) {
@@ -367,6 +386,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			phrases := []string{"Kitchen", "Living Room", "Cellar", "A brass lantern", "A sword"}
 			if saveRestore {
 				phrases = []string{"Ok.", "A leaflet", "You are empty-handed."}
+				if cellarSave {
+					phrases = []string{"Cellar", "A sword", "A brass lantern", "Dropped."}
+				}
 			}
 			if restart {
 				phrases = []string{"You are empty-handed.", "West of House"}
@@ -375,6 +397,16 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 				if !bytes.Contains(rendered, []byte(phrase)) {
 					t.Fatalf("exploration missing %q: %q", phrase, rendered)
 				}
+			}
+			if cellarSave {
+				restored := []byte("You are carrying:\n  A sword\n  A brass lantern (providing light)")
+				if bytes.Count(rendered, restored) != 2 {
+					t.Fatal("both restores must recover sword and lit lamp", string(rendered))
+				}
+				if len(observedSaveLengths) != 1 || observedSaveLengths[0] > 2204 {
+					t.Fatal("missing or oversized native save", observedSaveLengths)
+				}
+				t.Logf("cellar native save %d bytes; both inventory restores independently checked", observedSaveLengths[0])
 			}
 			t.Logf("exploration %d keys; %d output bytes; %d T; native stack %d bytes", keyAt, len(rendered), m.CPU.Tstates(), 0xbf00-int(minSP))
 			return

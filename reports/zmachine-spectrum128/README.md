@@ -865,3 +865,18 @@ BE00. All eight RAM banks and PC/SP/paging/IFF survive SNA roundtrip. Save slot
 2204 bytes, volatile RAM; failed overwrite invalidates previous save and overflow
 returns failure. RESTART archive remains immutable. Full-game capacity bounds,
 other V3 stories and external persistent save storage remain separate work.
+
+
+## Cellar gameplay save and repeated restores
+
+A second real Zork keyboard lifecycle reaches the cellar with lamp and sword,
+saves, drops sword, restores, drops lamp, restores the same save again, then quits.
+All 2480 game-output bytes match the host VM. An independent inventory assertion
+requires both restorations to show sword and lit brass lantern. Native slot length
+is observed at input boundaries: one 779-byte save, within the 2204-byte bank tail.
+
+183 keys, 1415435342 T, maximum 66-byte native stack, final PC/SP/paging/IFF correct.
+Final strengthened test PASS in 16.73 s. Same published snapshot/code; this expands
+real gameplay save coverage without claiming a full-game bound, RNG-specific
+continuation coverage, external disk persistence or support for other V3 stories.
+Transcripts retained locally and on the share.
