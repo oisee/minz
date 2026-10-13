@@ -18,6 +18,7 @@ p.add_argument('--restart-rle-bytes', type=int, default=0, help='validated RLE a
 p.add_argument('--restart-offset', type=int, help='logical bank address of the trusted restart archive')
 p.add_argument('--restart-bytes', type=int, default=0, help='decoded size of the archived original dynamic prefix')
 p.add_argument('--save-story', type=Path, help='enable volatile native SAVE/RESTORE for this exact story')
+p.add_argument('--layout-restart', action='store_true', help='enable trusted LZ restart for compressed story layout')
 p.add_argument('--story-layout', type=Path, help='experimental trusted 2K LZ layout metadata; no SAVE/restart integration yet')
 p.add_argument('--console', action='store_true', help='Spectrum screen and keyboard instead of RAM capture')
 a = p.parse_args()
@@ -283,7 +284,7 @@ if a.save_story:
 }}''')
 if a.story_layout:
     if a.restart_bytes or a.save_story:
-        p.error('compressed story cache does not yet support native restart/SAVE')
+        p.error('compressed story cache uses --layout-restart; SAVE not integrated')
     import json
     from native_story_cache import emit as cache_code
     metadata = json.loads(a.story_layout.read_text())
@@ -293,6 +294,52 @@ if a.story_layout:
     # six-page table used by dynamic writes.
     text = text.replace('import zx.story_memory\n', 'global story_pages:[u8;6]=[0,1,3,4,6,7]\n')
     text += cache_code(metadata)
+    if a.layout_restart:
+        archive = next(o for o in metadata['objects'] if o['name'] == 'restart')
+        if archive['page'] == 0:
+            p.error('compressed restart archive must be outside bank0')
+        replace_function('restart_story', f'''fun restart_story() {{
+ asm z80 (clob A,F,BC,DE,HL,IX,IY) {{
+  LD HL, (0xc010)
+  PUSH HL
+  LD A, {archive['physical_bank']+0x10}
+  LD HL, {archive['offset']}
+  LD DE, 0xc000
+  LD IX, {metadata['dynamic_bytes']}
+  CALL zx__lz__bank_unpack_lz
+  POP HL
+  LD (0xc010), HL
+  LD A, (0xc001)
+  AND 15
+  OR 16
+  LD (0xc001), A
+  LD A, (0xc00c)
+  LD H, A
+  LD A, (0xc00d)
+  LD L, A
+  LD (globals_at), HL
+  LD A, (0xc006)
+  LD H, A
+  LD A, (0xc007)
+  LD L, A
+  LD (pc), HL
+  LD HL, 0
+  LD (pc+2), HL
+  LD (v_sp), HL
+  LD (steps), HL
+  LD (steps+2), HL
+  XOR A
+  LD (frame), A
+  LD (stream3_depth), A
+  LD (input_mode), A
+  LD (record_commands), A
+  LD HL, 1
+  LD (random_state), HL
+  LD A, 1
+  LD (screen_enabled), A
+ }}
+}}''')
+
     replace_function('memory_read', """fun memory_read(address:u32)->u8 {
  return native_story_byte(u16(address),u8(address >> 16))
 }""")

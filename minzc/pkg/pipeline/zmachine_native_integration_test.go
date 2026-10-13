@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -97,6 +98,13 @@ func TestZMachineBankedZorkIICompressedNative(t *testing.T) {
 	}
 	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-compressed")
 }
+func TestZMachineBankedZorkIICompressedRestartNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" || os.Getenv("MINZ_Z3_FROTZ") == "" {
+		t.Skip("set Zork II story, VM and Frotz")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-compressed-restart")
+}
 func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, externalStory string, commands string) {
 	root := filepath.Clean("../../..")
 	story, err := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/stream3.z3"))
@@ -122,7 +130,8 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	compressedStory := commands == "@console-zork2-compressed"
+	compressedRestart := commands == "@console-zork2-compressed-restart"
+	compressedStory := commands == "@console-zork2-compressed" || compressedRestart
 	zorkII := commands == "@console-zork2" || compressedStory
 	cellarSave := commands == "@console-cellar-save"
 	saveRestore := commands == "@console-save" || cellarSave
@@ -171,6 +180,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			t.Fatal(err)
 		}
 		cmd.Args = append(cmd.Args, "--story-layout", filepath.Join(layoutDir, "layout-2048.json"))
+		if compressedRestart {
+			cmd.Args = append(cmd.Args, "--layout-restart")
+		}
 	}
 	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("generate: %v %s", err, out)
@@ -266,6 +278,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 		if zorkII {
 			route = []byte("look\ninventory\ntake lamp\nturn on lamp\nnorth\nlook\nsouth\nquit\ny\n")
 		}
+		if compressedRestart {
+			route = []byte("take lamp\nturn on lamp\nsouth\nrestart\ny\nlook\ninventory\nquit\ny\n")
+		}
 		if restart {
 			route = []byte("open mailbox\ntake leaflet\nrestart\ny\nlook\ninventory\nquit\ny\n")
 		}
@@ -333,7 +348,16 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 					t.Fatal(err)
 				}
 			}
-			if normalize(reference) != normalize(external) {
+			normalizedReference := reference
+			if compressedRestart {
+				// Host/native interpreter prints its own restart notice;
+				// Frotz does not. This is the only removed non-layout text.
+				normalizedReference = bytes.ReplaceAll(reference, []byte("Restarting.\n"), []byte("\n"))
+				// Frotz may append a status row to an existing prompt line.
+				// Remove only the row, retaining the preceding game prompt.
+				external = regexp.MustCompile(`Inside the Barrow[ ]+Score: [0-9]+[ ]+Moves: [0-9]+`).ReplaceAll(external, nil)
+			}
+			if normalize(normalizedReference) != normalize(external) {
 				t.Fatalf("VM/Frotz exploration differs VM%q Frotz%q", reference, external)
 			}
 			t.Log("exploration VM text matches independently implemented Frotz")
@@ -426,6 +450,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if zorkII {
 				phrases = []string{"ZORK II: The Wizard of Frobozz", "Inside the Barrow", "You are empty-handed.", "Taken.", "The lamp is now on.", "Narrow Tunnel", "total of 400 points"}
 			}
+			if compressedRestart {
+				phrases = []string{"Inside the Barrow", "The lamp is now on.", "Narrow Tunnel", "You are empty-handed."}
+			}
 			if saveRestore {
 				phrases = []string{"Ok.", "A leaflet", "You are empty-handed."}
 				if cellarSave {
@@ -451,6 +478,20 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 				t.Logf("cellar native save %d bytes; both inventory restores independently checked", observedSaveLengths[0])
 			}
 			if compressedStory {
+				dynamic := int(story[14])<<8 | int(story[15])
+				for i, b := range storageImage {
+					if i < dynamic {
+						continue
+					}
+					if m.Memory.RAM[pages[i/16384]][i%16384] != b {
+						t.Fatalf("compressed immutable storage changed at %d", i)
+					}
+				}
+				if compressedRestart {
+					if bytes.Count(rendered, []byte("ZORK II: The Wizard of Frobozz")) != 2 || !bytes.Contains(rendered, []byte("You are empty-handed.")) {
+						t.Fatal("restart did not return original world")
+					}
+				}
 				at := uint16(a.Symbols["native_story_cache_misses"])
 				misses := int(m.Memory.Read(at)) | int(m.Memory.Read(at+1))<<8
 				t.Logf("compressed resident %d bytes; cache misses %d (u16 counter)", len(a.Binary), misses)

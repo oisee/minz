@@ -1057,3 +1057,26 @@ RESTART/SAVE в compressed-пути пока явно запрещены ген�
 банков и проверил SNA roundtrip перед исполнением. Текущие downloadable
 raw-сборки не заменены. Следующая задача — streaming restart/original-reader
 без второго 2-КБ буфера, место для SAVE-кода и измерение cache misses.
+
+### 13 октября: RESTART сжатого Zork II без второго буфера
+
+`--story-layout ... --layout-restart` восстанавливает доверенный LZ-архив прямо
+в отображённый bank0 ($C000). Декодер переключает source-bank только на чтение
+сжатого байта и возвращает bank0 перед записью/копированием обратной ссылки.
+Отдельный output-buffer не требуется. Native reset повторяет уже проверенную
+raw-последовательность: сохраняет текущие flags2, восстанавливает globals/PC,
+сбрасывает frame/evaluation stack, steps, RNG, stream3 и режим ввода.
+
+Реальный маршрут: take lamp, turn on lamp, south, restart, y, look, inventory,
+quit, y. После restart второй banner и исходная комната, инвентарь пуст.
+61 клавиша, 2071 байт native-текста побайтно совпадают с VM. VM также сверён
+с Frotz: удалена только собственная строка интерпретатора `Restarting.`;
+статусные строки Frotz удаляются отдельно, включая строку, дописанную к промпту,
+чтобы не потерять сам игровой промпт. Пунктуация игрового текста сохранена.
+
+PASS: 1146194123 T, 610 cache misses, native stack 66 байт, восстановленные
+PC/SP/paging/IFF. Все байты банкового image выше dynamic-boundary проверены
+на неизменность: compressed blocks, descriptor index, restart archive и свободные
+хвосты. Полная сборка **25025 байт**, запас 319 байт до stack reservation.
+Это включённый экспериментальный RESTART, но SAVE для compressed-story
+пока не подключён, downloadable raw-комплекты не заменены.

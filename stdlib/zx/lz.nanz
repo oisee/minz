@@ -2,7 +2,8 @@
 // Control LSB first: 1 literal,  0 LE word ((distance-1)<<4)|(length-3).
 // distance1..4096,  length3..18; overlapping copies allowed.
 // Caller guarantees source bank !=2/5,  offset+encoded_size<=16384, 
-// dest+count<=C000,  nonoverlap with code/globals/SP; count exact and <=16384.
+// dest+count<=C000, or dest=C000 with count<=16384 to restore bank0.
+// Destination must not overlap code/globals/SP; count exact and <=16384.
 // NOT for untrusted saves: no runtime input/match bounds validation.
 // DI,  no NMI/reentry. Restores paging10; clobbers declared regs only.
 global lz_control: u8
