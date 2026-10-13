@@ -1,5 +1,21 @@
 # Z-machine V3: подготовка Spectrum 128K
 
+Текущий native checkpoint: полный кандидат Zork I (86928 байт) проходит
+старт и короткую игровую сессию на сгенерированном Z80 с физической банковой
+памятью Spectrum 128K. Вывод пока захватывается в RAM, команды подаются из
+transcript; экран, настоящая клавиатура, save/restart и готовый образ Spectrum
+ещё впереди. Ниже сохранены этапы подготовки; актуальные результаты — в
+[аудите](../../../reports/zmachine-spectrum128/README.md).
+
+Воспроизвести native gates на самостоятельно предоставленной story:
+
+```sh
+cd minzc
+MINZ_Z3_STORY=/path/to/zork1.z3 go test ./pkg/pipeline \
+  -run '^TestZMachineBankedZork(Startup|Gameplay)Native$' -count=1 -v
+```
+
+
 `zvm_core.nanz` — промежуточная версия интерпретатора с единым интерфейсом
 памяти. Она пока использует host I/O и массив story на 131072 байта и **не
 является программой для Spectrum**. Исходный VM showcase сохранён отдельно.

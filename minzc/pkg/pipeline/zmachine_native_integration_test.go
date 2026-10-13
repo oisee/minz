@@ -15,19 +15,26 @@ import (
 // Real Nanz interpreter executes an independent Inform-built Z3 story from
 // physical bank0. Host I/O is replaced by explicit native capture boundaries.
 func TestZMachineBankedInterpreterNative(t *testing.T) {
-	testZMachineBankedInterpreterNative(t, false, "")
+	testZMachineBankedInterpreterNative(t, false, "", "")
 }
 func TestZMachineBankedHighMemoryNative(t *testing.T) {
-	testZMachineBankedInterpreterNative(t, true, "")
+	testZMachineBankedInterpreterNative(t, true, "", "")
 }
 func TestZMachineBankedZorkStartupNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_STORY")
 	if path == "" {
 		t.Skip("set MINZ_Z3_STORY to an independently supplied Zork I story")
 	}
-	testZMachineBankedInterpreterNative(t, false, path)
+	testZMachineBankedInterpreterNative(t, false, path, "")
 }
-func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, externalStory string) {
+func TestZMachineBankedZorkGameplayNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_STORY")
+	if path == "" {
+		t.Skip("set MINZ_Z3_STORY to independently supplied Zork I story")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "look\nopen mailbox\ntake leaflet\nread leaflet\ninventory\nquit\ny\n")
+}
+func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, externalStory string, commands string) {
 	root := filepath.Clean("../../..")
 	story, err := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/stream3.z3"))
 	if err != nil {
@@ -52,6 +59,13 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
+	if commands != "" {
+		commandPath := filepath.Join(t.TempDir(), "commands.txt")
+		if err := os.WriteFile(commandPath, []byte(commands), 0600); err != nil {
+			t.Fatal(err)
+		}
+		cmd.Args = append(cmd.Args, "--commands", commandPath)
+	}
 	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("generate: %v %s", err, out)
 	}
@@ -66,6 +80,11 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	steps, err := CompileHIRSteps(h, Options{AssertMode: "none"})
 	if err != nil {
 		t.Fatal(err)
+	}
+	if os.Getenv("MINZ_Z3_ASM") != "" {
+		if err := os.WriteFile(os.Getenv("MINZ_Z3_ASM"), []byte(steps.Assembly), 0600); err != nil {
+			t.Fatal(err)
+		}
 	}
 	a, err := z80asm.NewAssembler().AssembleString("ORG 0x5b00\n" + steps.Assembly)
 	if err != nil {
@@ -141,6 +160,21 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 		for _, phrase := range []string{"ZORK I: The Great Underground Empire", "West of House", "There is a small mailbox here."} {
 			if !bytes.Contains(got, []byte(phrase)) {
 				t.Fatalf("missing %q: output %q", phrase, got)
+			}
+		}
+		if commands != "" {
+			at := uint16(a.Symbols["native_command_at"])
+			consumed := int(m.Memory.Read(at)) | int(m.Memory.Read(at+1))<<8
+			if consumed != len(commands) {
+				t.Fatalf("consumed %d of %d command bytes", consumed, len(commands))
+			}
+			for _, phrase := range []string{"Opening the small mailbox reveals a leaflet.", "ZORK is a game of adventure, danger, and low cunning.", "You are carrying:\n  A leaflet", "Your score is 0 (total of 350 points), in 5 moves.", "Do you wish to leave the game?"} {
+				if !bytes.Contains(got, []byte(phrase)) {
+					t.Fatalf("gameplay missing %q: %q", phrase, got)
+				}
+			}
+			if bytes.Count(got, []byte("There is a small mailbox here.")) != 2 {
+				t.Fatalf("LOOK did not repeat room: %q", got)
 			}
 		}
 		if bytes.Contains(got, []byte("Z3 error")) {

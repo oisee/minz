@@ -712,7 +712,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		if g.runtime == Z80RuntimeCPM {
 			g.genCPMGlobalStoreGuard(inst)
 		}
-		if isSpill(g.loc(inst.Src[0])) {
+		if isSpill(g.loc(inst.Src[0])) || inst.Ty.Width() == 16 {
 			defer g.saveWrittenScratch(inst)()
 		}
 		if g.ptrAddPushHL == inst.Src[0] {

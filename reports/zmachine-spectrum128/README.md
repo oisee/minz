@@ -270,3 +270,30 @@ experiment. No Z80 codec measurements or compressed release are claimed.
 
 Validation: native allocation matrix PASS (1.744 s), native fixture/header gates
 PASS (7.290 s), full MIR2 PASS (104.565 s), full candidate startup PASS (4.087 s).
+
+
+## Native command transcript: parser and world mutation
+
+The generator accepts an optional printable ASCII transcript with `--commands`.
+It feeds the same input buffer boundary used by the interpreter, without host
+I/O during Z80 execution. The opt-in TestZMachineBankedZorkGameplayNative runs
+LOOK, OPEN MAILBOX, TAKE LEAFLET, READ LEAFLET, INVENTORY, QUIT and confirmation.
+Expected game phrases, repeated room, absence of Z3 errors, all command bytes,
+and returned PC/SP/IFF/paging are checked. This is scripted input, not yet a
+Spectrum keyboard/console test or an independent Frotz full-text comparison.
+
+Initial run answered "I beg your pardon?" to each command: incrementing the
+16-bit transcript cursor stored through BC, overwriting A's live input length.
+Word stores now preserve scratch writes based on liveness. The independent
+regression checks all 65536 stored words through DE and BC, with live A and
+PC/SP: 131072 cases PASS. Gameplay now passes, including changing the mailbox,
+carrying the leaflet, and the five-move score. Module 24195 bytes; 523258591 T,
+including startup checksum and the entire scripted session. These timings are
+not a frame rate or keyboard latency measurement.
+
+Revalidated native fixture/header/startup/gameplay gates together: PASS 16.217 s.
+The optional transcript reader rejects non-ASCII, unterminated and oversized
+inputs; capture remains bounded at 1024 bytes. Longer transcripts need a larger
+or streamed boundary and a new resident/stack budget.
+
+Full MIR2 after the word-store fix: PASS (114.029 s).

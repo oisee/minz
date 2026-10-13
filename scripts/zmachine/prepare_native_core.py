@@ -13,6 +13,7 @@ import tempfile
 p = argparse.ArgumentParser()
 p.add_argument('output', type=Path)
 p.add_argument('--story-bytes', type=int, required=True)
+p.add_argument('--commands', type=Path, help='ASCII command transcript for native integration')
 a = p.parse_args()
 if not 64 <= a.story_bytes <= 98304:
     p.error('raw story capacity is 64..98304')
@@ -88,6 +89,27 @@ fun print_utf8(codepoint: u16) { native_putchar(63) }
 fun file_read_line(path: ^u8, buf: ^u8, maxlen: u8, offset: ^u8) -> u16 { return 0 }
 fun tui_read_line_or_eof(buf: ^u8, maxlen: u8) -> u8 { running = 0 return 0 }
 '''
+if a.commands:
+    commands = a.commands.read_bytes()
+    if not commands or commands[-1] != 10 or any(c != 10 and not 32 <= c < 127 for c in commands):
+        p.error('commands must be newline-terminated printable ASCII lines')
+    if len(commands) > 1024:
+        p.error('command transcript exceeds 1024 bytes')
+    stub = 'fun tui_read_line_or_eof(buf: ^u8, maxlen: u8) -> u8 { running = 0 return 0 }'
+    replacement = f"global native_commands: [u8; {len(commands)}] = [" + ','.join(map(str, commands)) + "]\n"
+    replacement += "global native_command_at: u16 = 0\n"
+    replacement += f'''fun tui_read_line_or_eof(buf: ^u8, maxlen: u8) -> u8 {{
+ var count: u8 = 0
+ while native_command_at < {len(commands)} {{
+  let ch: u8 = native_commands[native_command_at]
+  native_command_at = native_command_at + 1
+  if ch == 10 {{ return count }}
+  if count < maxlen {{ buf[count] = ch count = count + 1 }}
+ }}
+ return 255
+}}'''
+    assert stub in text
+    text = text.replace(stub, replacement)
 assert 'story[' not in text and '&story,' not in text
 assert 'snapshot[' not in text
 # Bank write belongs to the nested import: import it directly for stable naming.
