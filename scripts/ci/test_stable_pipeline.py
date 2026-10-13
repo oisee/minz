@@ -21,6 +21,14 @@ class StablePipelineTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 runner.partition(names, count)
 
+
+    def test_more_batches_than_workers_keep_exact_inventory(self):
+        names = ['Test' + str(index) for index in range(583)]
+        shards = runner.partition(names, 12)
+        self.assertEqual(len(shards), 12)
+        self.assertLessEqual(max(map(len, shards)), 49)
+        self.assertEqual(sorted(name for shard in shards for name in shard), sorted(names))
+
     def test_fake_binary_checks_cwd_coverage_and_failure_propagation(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
@@ -54,6 +62,21 @@ sys.exit(1 if os.environ.get('FAIL_ENTRY') in names else 0)
                 self.assertEqual(len(actual), len(set(actual)))
                 self.assertEqual(len(json.loads((out / 'statuses.json').read_text())), 3)
                 self.assertEqual(len(inventory['binary_sha256']), 64)
+                self.assertEqual(inventory['workers'], 3)
+            out = root / 'queued-batches'
+            result = subprocess.run([sys.executable, str(HELPER), '--go', str(fake),
+                                     '--output', str(out), '--shards', '12', '--workers', '2'],
+                                    cwd=root, env=dict(os.environ, FAIL_ENTRY='FuzzD'),
+                                    capture_output=True, text=True)
+            self.assertEqual(result.returncode, 1, result.stderr)
+            inventory = json.loads((out / 'inventory.json').read_text())
+            self.assertEqual(inventory['workers'], 2)
+            self.assertEqual(len(inventory['shards']), 4)
+            statuses = json.loads((out / 'statuses.json').read_text())
+            self.assertEqual(len(statuses), 4)
+            self.assertEqual([item['shard'] for item in statuses], [1, 2, 3, 4])
+            self.assertEqual(sum(item['exit_code'] != 0 for item in statuses), 1)
+
 
 
 if __name__ == '__main__':

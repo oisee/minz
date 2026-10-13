@@ -46,7 +46,7 @@ jobs:
         run: |
           go test -short -timeout 30m ./pkg/hir/... ./pkg/mir2/... ./pkg/z80asm/... ./pkg/c89/... ./pkg/codegen/... ./pkg/parser/... ./pkg/plm/... ./pkg/lanz/... ./pkg/lizp/...
           python3 ../scripts/ci/test_stable_pipeline.py
-          python3 ../scripts/ci/run_stable_pipeline.py --output "$RUNNER_TEMP/stable-pipeline" --shards 3
+          python3 ../scripts/ci/run_stable_pipeline.py --output "$RUNNER_TEMP/stable-pipeline" --shards 12 --workers 3
       - name: Preserve complete pipeline inventory and shard logs
         if: always()
         uses: actions/upload-artifact@v4

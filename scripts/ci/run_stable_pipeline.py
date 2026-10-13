@@ -25,7 +25,10 @@ def main():
     parser.add_argument('--go', default='go')
     parser.add_argument('--output', type=pathlib.Path, required=True)
     parser.add_argument('--shards', type=int, default=3)
+    parser.add_argument('--workers', type=int, default=3)
     args = parser.parse_args()
+    if args.workers < 1:
+        parser.error('workers must be positive')
     args.output.mkdir(parents=True, exist_ok=True)
     binary = (args.output / 'pipeline.test').resolve()
     build_command = [args.go, 'test', '-c', '-o', str(binary), './pkg/pipeline']
@@ -40,9 +43,10 @@ def main():
     (args.output / 'inventory.json').write_text(json.dumps({'entries': names, 'shards': shards,
         'binary_sha256': hashlib.sha256(binary.read_bytes()).hexdigest(),
         'build_command': build_command, 'package_cwd': str(package_dir),
+        'workers': args.workers,
         'commit': subprocess.run(['git', 'rev-parse', 'HEAD'], check=True,
                                  capture_output=True, text=True).stdout.strip()}, indent=2) + '\n')
-    print(f'Pipeline inventory: {len(names)} entries, {len(shards)} exhaustive process shards', flush=True)
+    print(f'Pipeline inventory: {len(names)} entries, {len(shards)} exhaustive process shards, {args.workers} workers', flush=True)
 
     def run(item):
         index, members = item
@@ -55,12 +59,14 @@ def main():
         return index, status, log
 
     statuses = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=len(shards)) as pool:
-        for index, status, log in pool.map(run, enumerate(shards)):
+    with concurrent.futures.ThreadPoolExecutor(max_workers=min(args.workers, len(shards))) as pool:
+        pending = [pool.submit(run, item) for item in enumerate(shards)]
+        for future in concurrent.futures.as_completed(pending):
+            index, status, log = future.result()
             print(f'Pipeline shard {index + 1}: exit {status}; log {log}', flush=True)
             print(log.read_text(), flush=True)
             statuses.append({'shard': index + 1, 'exit_code': status, 'log': str(log)})
-    (args.output / 'statuses.json').write_text(json.dumps(statuses) + '\n')
+    (args.output / 'statuses.json').write_text(json.dumps(sorted(statuses, key=lambda result: result['shard'])) + '\n')
     return int(any(status['exit_code'] != 0 for status in statuses))
 
 
