@@ -84,8 +84,13 @@ func TestCheckedCompositionRejectsCrossBoundaryLiveClobber(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+	complete := map[int]int{1: Z80.LocByName("A"), 2: Z80.LocByName("A"), 3: Z80.LocByName("A")}
+	if _, err := checkedLocalCost(p.Ops, complete, Z80, p.Options); err == nil {
+		t.Fatal("full admission missed cross-boundary live clobber")
+	}
+	// Composition additionally refuses the altered prepared operation list.
 	n, err := pool.ComposeCheckedCandidates(p, &target, []int{1, 2}, 16)
-	if err != nil || n != 0 || target.Size() != 0 {
+	if err == nil || n != 0 || target.Size() != 0 {
 		t.Fatal("cross-boundary clobber admitted", n, err)
 	}
 	// A work-limit error is atomic, including an existing target entry.
