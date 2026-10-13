@@ -1,0 +1,31 @@
+=== RUN   TestCompositionDomainPropagationPreservesAllSolutions
+    composition_domains_test.go:57: 343 finite domain configurations: complete solution sets preserved
+--- PASS: TestCompositionDomainPropagationPreservesAllSolutions (0.00s)
+=== RUN   TestCompositionDomainPropagationPrunesAndOwnsSlices
+--- PASS: TestCompositionDomainPropagationPrunesAndOwnsSlices (0.00s)
+=== RUN   TestCompositionDomainRejectsEmptyAndNonadjacentConflict
+--- PASS: TestCompositionDomainRejectsEmptyAndNonadjacentConflict (0.00s)
+=== RUN   TestCheckedCompositionRevalidatesWholeFunction
+--- PASS: TestCheckedCompositionRevalidatesWholeFunction (0.01s)
+=== RUN   TestCheckedCompositionRejectsCrossBoundaryLiveClobber
+--- PASS: TestCheckedCompositionRejectsCrossBoundaryLiveClobber (0.00s)
+=== RUN   TestCheckedCompositionPropagationFitsBoundedSearch
+--- PASS: TestCheckedCompositionPropagationFitsBoundedSearch (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.028s
+=== RUN   TestCheckedCompositionOrdinaryNative
+    checked_composition_test.go:86: composed two checked fragments: full module 8 -> 6 bytes; fixture T=56 -> 49; all 256 native inputs PASS
+--- PASS: TestCheckedCompositionOrdinaryNative (0.13s)
+=== RUN   TestCheckedCompositionWeightedNativeCaller
+    checked_composition_test.go:175: PFCCO=greedy grace=false composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+    checked_composition_test.go:175: PFCCO=greedy grace=true composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+    checked_composition_test.go:175: PFCCO=pbqp grace=false composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+    checked_composition_test.go:175: PFCCO=pbqp grace=true composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+--- PASS: TestCheckedCompositionWeightedNativeCaller (3.23s)
+=== RUN   TestCheckedCompositionHeldoutOperationsNative
+    checked_composition_test.go:258: x+19 reused add5 fragments: actual caller 76 -> 76 T; backend=checked-local-table; all 256 inputs PASS
+    checked_composition_test.go:258: x^90 reused add5 fragments: actual caller 69 -> 69 T; backend=PBQP; all 256 inputs PASS
+    checked_composition_test.go:258: x-11 reused add5 fragments: actual caller 76 -> 76 T; backend=checked-local-table; all 256 inputs PASS
+--- PASS: TestCheckedCompositionHeldoutOperationsNative (1.08s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.458s

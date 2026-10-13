@@ -1,0 +1,7 @@
+goos: linux
+goarch: amd64
+pkg: github.com/minz/minzc/pkg/vir
+cpu: AMD Ryzen 7 5800X 8-Core Processor             
+BenchmarkCompositionDomains-16    	   10000	     20615 ns/op	    1170 B/op	      25 allocs/op
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.225s
