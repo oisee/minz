@@ -1460,3 +1460,21 @@ sector buffer. Перенос staging в extended RAM и interactive distributio
 ещё впереди. Запись с повреждением/частичным отказом не сохраняет прежний slot
 гарантированно; нужен отдельный commit protocol. Existing physical TR-DOS
 ограничения остаются: emulator API traps, не заявленная ROM compatibility.
+
+### 13 октября: два дисковых слота и сохранение прежней копии при ошибке
+
+Дисковый прототип теперь использует marker track1/sector1 и два MZ3R slots
+tracks2..5 и6..9. SAVE пишет в inactive slot, header после payload и marker
+последним. RESTORE выбирает committed slot; marker содержит magic, номер и
+его complement. Использовать только выделенный пустой TRD, не существующий
+диск с пользовательскими файлами. Формат прежнего single-slot прототипа
+не читается автоматически.
+
+Zork I и Inform fixture: fresh-machine RESTORE PASS; принудительная ошибка
+host write при перезаписи сообщает failure, ранее committed disk перечитан
+и успешно restored. Corrupt MZ3R header отклоняется. Resident capture Zork I
+23258 B. Тест ошибки сейчас отказывает на первом изменённом секторе; полный
+fault injection после каждого payload/header/marker ещё впереди. Atomic host
+image replace обеспечивает целый сектор в emulator; torn physical sectors
+и реальный контроллер этим результатом не покрыты. Game staging по-прежнему
+в story bank, interactive distribution и перенос staging остаются следующими.

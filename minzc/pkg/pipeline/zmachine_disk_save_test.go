@@ -204,6 +204,22 @@ func testZMachineDiskSave(t *testing.T, externalStory string) {
 					}
 				}
 			}
+			// Failed overwrite must leave the previously committed record usable.
+			savedPath := disk.Path
+			disk.Path = filepath.Join(savedPath, "invalid-child")
+			failed := run(disk, false)
+			disk.Path = savedPath
+			if !bytes.Contains(failed, []byte("failed")) && !bytes.Contains(failed, []byte("Failed.")) {
+				t.Fatalf("write failure not reported %q", failed)
+			}
+			retained, err := formats.LoadTRD(savedPath)
+			if err != nil {
+				t.Fatal(err)
+			}
+			retainedOutput := run(retained, true)
+			if !bytes.Equal(retainedOutput, second) {
+				t.Fatalf("prior save lost %q", retainedOutput)
+			}
 			// Corrupt the stored header: restore must reject it before applying state.
 			reopened.Data[2*2*16*256] ^= 1
 			rejected := run(reopened, true)
