@@ -289,6 +289,11 @@ func testZMachineDiskSave(t *testing.T, externalStory string, extended, console,
 									break
 								}
 							}
+							if !found && keyText[keyAt] == '"' {
+								m.Keyboard.KeyPress(spectrum.KeySym.Row, spectrum.KeySym.Bit)
+								m.Keyboard.KeyPress(spectrum.KeyP.Row, spectrum.KeyP.Bit)
+								found = true
+							}
 							if !found {
 								t.Fatalf("unmapped key %q", keyText[keyAt])
 							}
