@@ -1,0 +1,13 @@
+=== RUN   TestStructuredCopyMatchesTextBaseline
+    structured_copy_test.go:64: source "linear" 24576 8 2 11; destination "linear" 25088 8 2 13; region 1 0 2 0 4 2; grace=false size=false: 53 -> 41 bytes; 637 -> 597 T-states; identical ASM=false
+    structured_copy_test.go:64: source "linear" 24576 8 2 11; destination "linear" 25088 8 2 13; region 1 0 2 0 4 2; grace=true size=false: 53 -> 41 bytes; 637 -> 597 T-states; identical ASM=false
+    structured_copy_test.go:64: source "linear" 24576 8 2 11; destination "linear" 25088 8 2 13; region 1 0 2 0 4 2; grace=true size=true: 53 -> 41 bytes; 637 -> 597 T-states; identical ASM=false
+    structured_copy_test.go:64: source "linear" 24576 256 1 256; destination "linear" 25088 256 1 256; region 0 0 0 0 256 1; grace=false size=false: 48 -> 30 bytes; 45708 -> 30559 T-states; identical ASM=false
+    structured_copy_test.go:64: source "linear" 24576 256 1 256; destination "linear" 25088 256 1 256; region 0 0 0 0 256 1; grace=true size=false: 48 -> 30 bytes; 45708 -> 30559 T-states; identical ASM=false
+    structured_copy_test.go:64: source "linear" 24576 256 1 256; destination "linear" 25088 256 1 256; region 0 0 0 0 256 1; grace=true size=true: 48 -> 30 bytes; 45708 -> 30559 T-states; identical ASM=false
+    structured_copy_test.go:64: source "linear" 24576 8 2 8; destination "zx_bitmap_bytes" 16384; region 0 0 2 7 5 2; grace=false size=false: 53 -> 41 bytes; 765 -> 725 T-states; identical ASM=false
+    structured_copy_test.go:64: source "linear" 24576 8 2 8; destination "zx_bitmap_bytes" 16384; region 0 0 2 7 5 2; grace=true size=false: 53 -> 41 bytes; 765 -> 725 T-states; identical ASM=false
+    structured_copy_test.go:64: source "linear" 24576 8 2 8; destination "zx_bitmap_bytes" 16384; region 0 0 2 7 5 2; grace=true size=true: 53 -> 41 bytes; 765 -> 725 T-states; identical ASM=false
+--- PASS: TestStructuredCopyMatchesTextBaseline (0.14s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.155s

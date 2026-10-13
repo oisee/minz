@@ -167,6 +167,17 @@ func (mr *metaRuntime) registerHIRHosts(vm *mir2.VM) {
 		}
 		return b.add(&hir.AssignStmt{Target: l, Val: r})
 	})
+	host("hir_load", 1, func(a []mir2.Value) ([]mir2.Value, error) {
+		ptr, err := b.expr(a[0].I)
+		if err != nil {
+			return nil, err
+		}
+		if ptr.ExprTy() != mir2.TyPtr {
+			return nil, fmt.Errorf("structured emit: load needs byte pointer")
+		}
+		return b.add(&hir.LoadExpr{Ptr: ptr, Ty: mir2.TyU8})
+	})
+
 	host("hir_store", 2, func(a []mir2.Value) ([]mir2.Value, error) {
 		ptr, e := b.expr(a[0].I)
 		if e != nil {
@@ -272,6 +283,10 @@ func snapshotMetaExpr(e hir.Expr) hir.Expr {
 		c := *n
 		c.L = snapshotMetaExpr(n.L)
 		c.R = snapshotMetaExpr(n.R)
+		return &c
+	case *hir.LoadExpr:
+		c := *n
+		c.Ptr = snapshotMetaExpr(n.Ptr)
 		return &c
 	case *hir.DerefExpr:
 		c := *n

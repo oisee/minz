@@ -9,6 +9,7 @@ import (
 
 func TestStructuredMetaDiagnostics(t *testing.T) {
 	for _, tc := range []struct{ name, body, want string }{
+		{"load-type", `emit_hir(hir_load(hir_int(1,c"u8")))`, "load needs byte pointer"},
 		{"handle", `emit_hir(0)`, "invalid node handle"},
 		{"kind", `emit_hir(hir_int(1,c"u8"))`, "expected statement"},
 		{"overflow", `emit_hir(hir_int(256,c"u8"))`, "integer outside"},
