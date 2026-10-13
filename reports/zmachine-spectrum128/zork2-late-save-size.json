@@ -1,0 +1,27 @@
+{
+  "measurement": "host-VM save workloads; not native save implementation or full-game bound",
+  "format": "legacy lengths artifact plus complete 32-byte CRC header + RLE state + RLE XOR dynamic",
+  "restore_requirements": [
+    "validate exact lengths and story identity before any mutation",
+    "restore RNG, screen/stream3 state and table arrays, not just PC/locals/stack",
+    "preserve current flags2 bytes 16/17",
+    "return failed SAVE on capacity overflow; never truncate",
+    "persist RAM save explicitly via emulator snapshot; not a disk-save claim"
+  ],
+  "story_sha256": "4cd8ac586b93881afe6fad00e72a33e93541c9573b15a1977ac67acf36ddc6b1",
+  "results": [
+    {
+      "workload": "wand",
+      "snapshot_bytes": 1786,
+      "dynamic_bytes": 11761,
+      "snapshot_rle_bytes": 308,
+      "delta_rle_bytes": 1592,
+      "encoded_bytes": 1904,
+      "changed_dynamic_bytes": 669,
+      "complete_record_bytes": 1932,
+      "capacity_bytes": 700,
+      "fits_capacity": false,
+      "save_sha256": "e1f27ea7a9e69a742b67cfa054dfdc6e4ed537cfbda4b1b3c64c026450621b54"
+    }
+  ]
+}

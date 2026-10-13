@@ -188,6 +188,14 @@ func TestZMachineBankedZork128LateSaveWalkthroughNative(t *testing.T) {
 	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-late-save")
 }
 
+func TestZMachineBankedZorkIIScorpionLateDiskSaveNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set Zork II story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-late-save")
+}
+
 func TestZMachineBankedZorkII128FullNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
 	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
@@ -425,7 +433,8 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	zorkIIFull := commands == "@console-zork2-full"
+	zorkIILateSave := commands == "@console-zork2-late-save"
+	zorkIIFull := commands == "@console-zork2-full" || zorkIILateSave
 	zorkIIWand := commands == "@console-zork2-wand" || zorkIIFull
 	zorkIIDemon := commands == "@console-zork2-demon" || zorkIIWand
 	zorkIIWorkshop := commands == "@console-zork2-workshop" || zorkIIDemon
@@ -481,15 +490,16 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	combinedLifecycle := commands == "@console-zork2-compressed-save-restart"
 	compressedSave := commands == "@console-zork2-compressed-save" || combinedLifecycle
 	compressedRestart := commands == "@console-zork2-compressed-restart" || combinedLifecycle
-	compressedStory := commands == "@console-zork2-compressed" || compressedRestart || compressedSave
-	zorkII := commands == "@console-zork2" || compressedStory
+	compressedStory := (commands == "@console-zork2-compressed" || compressedRestart || compressedSave) && !zorkIILateSave
+	zorkII := commands == "@console-zork2" || compressedStory || zorkIILateSave
 	cellarSave := commands == "@console-cellar-save"
-	saveRestore := commands == "@console-save" || cellarSave || compressedSave
+	saveRestore := commands == "@console-save" || cellarSave || compressedSave || zorkIILateSave
 	restart := commands == "@console-restart"
 	explore := commands == "@console-explore" || restart || saveRestore || zorkII
 	keyboard := commands == "@console-keyboard" || explore
 	console := commands == "@console-startup" || keyboard
 	var restartArchive []byte
+	restartOffset := len(story)
 	if (restart || saveRestore) && !compressedSave {
 		archivePath := filepath.Join(t.TempDir(), "restart.rle")
 		pack := exec.Command("python3", filepath.Join(root, "scripts/zmachine/restart_rle.py"), externalStory, archivePath)
@@ -500,6 +510,10 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 		restartArchive, err = os.ReadFile(archivePath)
 		if err != nil {
 			t.Fatal(err)
+		}
+		if zorkIILateSave {
+			restartOffset = 98304
+			cmd.Args = append(cmd.Args, "--restart-offset", strconv.Itoa(restartOffset), "--disk-save", "--extended-save")
 		}
 		cmd.Args = append(cmd.Args, "--restart-bytes", strconv.Itoa(int(story[14])<<8|int(story[15])), "--restart-rle-bytes", strconv.Itoa(len(restartArchive)))
 	}
@@ -574,6 +588,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 		t.Fatalf("resident core reaches %04x; native stack starts be00", 0x5b00+len(a.Binary))
 	}
 	m, err := spectrum.NewPentagon128(nil, nil)
+	if zorkIILateSave {
+		m, err = spectrum.NewScorpionMemory256(nil, nil)
+	}
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -598,8 +615,12 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	if (restart || saveRestore) && !compressedSave {
 		for i, b := range restartArchive {
-			at := len(story) + i
-			m.Memory.RAM[pages[at/16384]][at%16384] = b
+			at := restartOffset + i
+			if at >= 98304 {
+				m.Memory.ExtendedRAM[2][at-98304] = b
+			} else {
+				m.Memory.RAM[pages[at/16384]][at%16384] = b
+			}
 		}
 	}
 	m.Memory.SetPagingForce(0x10)
@@ -621,15 +642,43 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			t.Fatal(err)
 		}
 		fresh, err := spectrum.NewPentagon128(nil, nil)
+		if zorkIILateSave {
+			fresh, err = spectrum.NewScorpionMemory256(nil, nil)
+		}
 		if err != nil {
 			t.Fatal(err)
 		}
 		fresh.Memory.ROM = m.Memory.ROM
+		if zorkIILateSave {
+			fresh.Memory.ExtendedRAM = m.Memory.ExtendedRAM
+		}
 		formats.ApplySnapshot(fresh, saved)
 		if fresh.Memory.RAM != m.Memory.RAM || fresh.CPU.PC() != m.CPU.PC() || fresh.CPU.SP() != m.CPU.SP() {
 			t.Fatal("snapshot before keyboard differs")
 		}
 		m = fresh
+	}
+	var disk *formats.TRDFile
+	lateRestoreReads := 0
+	if zorkIILateSave {
+		disk = &formats.TRDFile{Path: filepath.Join(t.TempDir(), "late-save.trd"), Writeback: true}
+		if err := disk.Flush(); err != nil {
+			t.Fatal(err)
+		}
+		formats.InstallTRDTraps(m, disk, false)
+		m.SetPCTrap(uint16(a.Symbols["native_disk_restore"]), func() {
+			// Discard volatile staging and reopen the durable file. RESTORE
+			// must load its complete record from disk rather than reuse RAM.
+			clear(m.Memory.ExtendedRAM[0][:])
+			clear(m.Memory.ExtendedRAM[1][:])
+			reopened, err := formats.LoadTRD(disk.Path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			formats.InstallTRDTraps(m, reopened, false)
+			lateRestoreReads++
+			m.CPU.DoOpcode()
+		})
 	}
 	if zorkIIWindows {
 		verify := func(want byte) int {
@@ -790,6 +839,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			}
 			if zorkIIFull {
 				routeFile = "zork2-full-vm.txt"
+			}
+			if zorkIILateSave {
+				routeFile = "zork2-late-save-vm.txt"
 			}
 			route, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", routeFile))
 			if err != nil {
@@ -1324,6 +1376,44 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			}
 			if zorkIIFull {
 				phrases = []string{"The menhir floats majestically into the air", "You hear a strange rusty squeal", "The creature whines happily", "The secret door opens noiselessly.", "you have conquered the Wizard of Frobozz and become the master of his domain", "Your score would be 400 (total of 400 points), in 648 moves.", "This score gives you the rank of Master Adventurer."}
+			}
+			if zorkIILateSave {
+				phrases[len(phrases)-2] = "Your score would be 400 (total of 400 points), in 650 moves."
+				inventory := []byte("You are carrying:\n  A Wizard's magic wand\n  A china teapot\n  The china teapot contains:\n    A quantity of water\n  A lamp (providing light)\n  A matchbook")
+				if bytes.Count(rendered, inventory) != 2 {
+					t.Fatal("late restore did not recover complete wand inventory")
+				}
+				if len(observedSaveLengths) != 1 || observedSaveLengths[0] > 16384 {
+					t.Fatal("late SAVE missing/oversized", observedSaveLengths)
+				}
+				if !bytes.Equal(m.Memory.ExtendedRAM[0][:4], []byte("MZ3R")) {
+					t.Fatal("late record missing from physical bank8")
+				}
+				if lateRestoreReads != 1 {
+					t.Fatalf("late restore disk reads %d want 1", lateRestoreReads)
+				}
+				dynamic := int(story[14])<<8 | int(story[15])
+				for at := dynamic; at < len(story); at++ {
+					if m.Memory.RAM[pages[at/16384]][at%16384] != story[at] {
+						t.Fatalf("static story changed at %d", at)
+					}
+				}
+				for at, value := range restartArchive {
+					if m.Memory.ExtendedRAM[2][at] != value {
+						t.Fatalf("bank10 restart archive changed at %d", at)
+					}
+				}
+				if m.Memory.ScorpionPagingState() != 0 {
+					t.Fatal("late disk save leaked extended paging")
+				}
+				persisted, err := os.ReadFile(disk.Path)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if !bytes.Contains(persisted, []byte("MZ3R")) {
+					t.Fatal("late record missing from persisted TRD")
+				}
+				t.Logf("late Zork II disk SAVE %d/16384 bytes", observedSaveLengths[0])
 			}
 
 			for _, phrase := range phrases {
