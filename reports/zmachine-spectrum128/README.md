@@ -1378,3 +1378,23 @@ Native проверка: 16 банков × 6 граничных offsets × 3 и
 буферу, не завершённый persistent SAVE. Snapshot/CLI extended memory и game
 integration ещё впереди. Текущий дисковый adapter emulator использует TR-DOS
 API traps, а не проверенный physical controller.
+
+### 13 октября: секторный диск через расширенный bank8
+
+`zx.scorpion_disk.scorpion_disk_sector(op,offset,track,sector)` обращается к
+TR-DOS API emulator при `$3D13`, временно отображая bank8 для 256-байтного
+буфера. Предусловия: DI, unlocked paging, исходные порты `$10/$00`, fixed
+code/stack, валидные track/sector и offset<=16128. op5 читает, op6 пишет.
+Возвращает 1 при успехе, 0 при ошибке; оба порта восстанавливаются.
+
+Compiled Nanz caller записал 256 байт из bank8 на disk, `.trd` перечитан
+с host filesystem, новая машина загрузила сектор обратно в bank8: все байты,
+paging, IFF, stack и HALT boundary PASS. Это реальный путь compiled Z80 →
+emulator TR-DOS API → host file → fresh machine, не только in-memory disk.
+
+Physical TR-DOS compatibility не заявляется: этот adapter предназначен для
+existing emulator API traps. ROM workspace при `$5Cxx` пересекается с текущим
+resident core `$5B00`, а extended mapping ROM driver требует отдельной проверки.
+Необходимо отдельное размещение/adapter перед запуском на железе. Игровой
+SAVE пока не использует секторный API; следующий этап — запись complete
+MZ3R record, commit marker/CRC и RESTORE после нового запуска игры.
