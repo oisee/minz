@@ -98,6 +98,16 @@ func TestZMachineBankedZork128WindowsCellarLifecycleNative(t *testing.T) {
 	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-cellar")
 }
 
+// A treasure changes object ownership and score, independently checked with
+// Frotz as well as the original VM path. This is not a complete walkthrough.
+func TestZMachineBankedZork128TreasureNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" || os.Getenv("MINZ_Z3_FROTZ") == "" {
+		t.Skip("set story, VM and Frotz")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-treasure")
+}
+
 // A separately built full V3 story, not the Zork I workload used earlier.
 func TestZMachineBankedZorkIIGameplayNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
@@ -159,10 +169,14 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
+	treasure := commands == "@console-windows-treasure"
 	windowCellar := commands == "@console-windows-cellar"
-	windows := commands == "@console-windows-save" || windowCellar
+	windows := commands == "@console-windows-save" || windowCellar || treasure
 	if windows {
 		commands = "@console-save"
+		if treasure {
+			commands = "@console-explore"
+		}
 		if windowCellar {
 			commands = "@console-cellar-save"
 		}
@@ -324,6 +338,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	var reference []byte
 	if explore {
 		route := []byte("north\neast\nopen window\nenter window\nwest\ntake lamp\ntake sword\ninventory\nturn on lamp\nmove rug\nopen trap door\ndown\nlook\nup\nquit\ny\n")
+		if treasure {
+			route = []byte("north\nnorth\nclimb tree\ntake egg\ndown\nsouth\neast\nopen window\nenter window\nwest\nopen trophy case\nput egg in case\nlook in case\nscore\ninventory\nquit\ny\n")
+		}
 		if zorkII {
 			route = []byte("look\ninventory\ntake lamp\nturn on lamp\nnorth\nlook\nsouth\nquit\ny\n")
 		}
@@ -414,6 +431,16 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 				// Frotz may append a status row to an existing prompt line.
 				// Remove only the row, retaining the preceding game prompt.
 				external = regexp.MustCompile(`Inside the Barrow[ ]+Score: [0-9]+[ ]+Moves: [0-9]+`).ReplaceAll(external, nil)
+			}
+			if treasure {
+				// Forest ambience is random across interpreters. Remove only
+				// this exact optional sentence; score/objects/all other text remain.
+				ambient := []byte("You hear in the distance the chirping of a song bird.\n")
+				if bytes.Count(normalizedReference, ambient) > 1 || bytes.Count(external, ambient) > 1 {
+					t.Fatal("unexpected repeated ambience")
+				}
+				normalizedReference = bytes.ReplaceAll(normalizedReference, ambient, nil)
+				external = bytes.ReplaceAll(external, ambient, nil)
 			}
 			if normalize(normalizedReference) != normalize(external) {
 				t.Fatalf("VM/Frotz exploration differs VM%q Frotz%q", reference, external)
@@ -509,6 +536,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 				t.Fatalf("exploration text differs: native %q reference %q", rendered, reference)
 			}
 			phrases := []string{"Kitchen", "Living Room", "Cellar", "A brass lantern", "A sword"}
+			if treasure {
+				phrases = []string{"Up a Tree", "Taken.", "Done.", "Your collection of treasures consists of:\n  A jewel-encrusted egg", "Your score is 20 (total of 350 points), in 13 moves.", "You are empty-handed."}
+			}
 			if zorkII {
 				phrases = []string{"ZORK II: The Wizard of Frobozz", "Inside the Barrow", "You are empty-handed.", "Taken.", "The lamp is now on.", "Narrow Tunnel", "total of 400 points"}
 			}

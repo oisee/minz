@@ -1762,3 +1762,17 @@ height23; вводятся 40 или 79 букв. Inform-история пров
 полная дисковая сборка 25 343 байта, один байт до $BE00. Word stores относятся
 к соседним byte globals; изменённый ASM объявляет HL clobber. Окна, status
 score/time, матрица ввода, cellar VM/Z80 и обе disk fresh RESTORE: PASS61.503 с.
+
+
+### 13 октября: первое сокровище с независимым Frotz
+
+Новый TestZMachineBankedZork128TreasureNative проходит через лес и дерево,
+берёт jewel-encrusted egg, входит в дом, открывает trophy case, кладёт яйцо,
+осматривает содержимое case, проверяет score и inventory. 147 клавиш,
+2 685 байт вывода, 606 341 663 T-states, native stack70 B. PASS9.782 с.
+Z80 output byte-exact original VM. Frotz подтверждает весь оставшийся текст
+после terminal-layout normalization и удаления одной точной необязательной
+реплики "You hear in the distance the chirping of a song bird."; случайность
+различается между интерпретаторами. Проверяются предмет в case, score20
+на13 moves и пустой inventory. Остальной текст и пунктуация не удаляются.
+Это дополнительный законченный игровой эпизод, не полное прохождение.
