@@ -1,0 +1,13 @@
+{
+  "inventory": 693,
+  "selected": 346,
+  "shards": 4,
+  "exit_codes": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "scope": "final indexed-definition implementation and expanded 120 native workloads",
+  "code_checkpoint": "e0f5c685"
+}

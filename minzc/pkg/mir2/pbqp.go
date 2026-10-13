@@ -208,6 +208,10 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 	applyMul16DEAffinityNudge(f, states, allLocs)     // mul16 rhs → DE (skip LD D/E setup, 8T)
 	applyDJNZCounterAffinityNudge(f, states, allLocs) // DJNZ counter → B (skip LD B,r, 4T)
 
+	if _, z80 := ct.(Z80CostTable); z80 {
+		applyByteMemoryCosts(f, lr, states, allLocs)
+	}
+
 	result := &AllocResult{Locs: make(map[Reg]PhysLoc)}
 
 	// assigned[r] = index into allLocs, or -1 if not yet assigned.

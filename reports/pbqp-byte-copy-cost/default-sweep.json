@@ -1,0 +1,344 @@
+{
+  "files": 838,
+  "output_files_by_extension": {
+    ".a80": 315,
+    ".bin": 11
+  },
+  "output_files_compared": 326,
+  "by_extension": {
+    ".a80": 153,
+    ".abap": 30,
+    ".asm": 7,
+    ".c": 67,
+    ".frl": 18,
+    ".hir": 0,
+    ".lanz": 1,
+    ".lizp": 14,
+    ".m": 11,
+    ".minz": 274,
+    ".mir": 146,
+    ".nanz": 97,
+    ".pas": 11,
+    ".plm": 8,
+    ".z80": 0,
+    ".zil": 1
+  },
+  "exit_changes": [],
+  "stdout_changes": [],
+  "stderr_changes": [],
+  "output_file_changes": [
+    {
+      "file": "examples/c89/fatfs/ff.c",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "[HIR-SPLIT] create_name \u2192 create_name$split_14 (6 inputs, pressure 13)\n[HIR-SPLIT] mount_volume \u2192 mount_volume$split_22 (2 inputs, pressure 9)\n[HIR-SPLIT] f_open \u2192 f_open$split_7 (2 inputs, pressure 13)\n[HIR-SPLIT] f_read \u2192 f_read$split_17 (0 inputs, pressure 12)\n[HIR-SPLIT] f_write \u2192 f_write$split_16 (1 inputs, pressure 12)\n[HIR-SPLIT] f_getfree \u2192 f_getfree$split_10 (1 inputs, pressure 11)\n[HIR-SPLIT] f_rename \u2192 f_rename$split_9 (1 inputs, pressure 9)\n[label-audit] 10 undefined labels:\n  disk_initialize\n  disk_ioctl\n  disk_read\n  disk_status\n  disk_write\n  get_fattime\n  memcmp\n  memcpy\n  memset\n  strchr\n",
+        "outputs": {
+          "output.a80": {
+            "bytes": 476565,
+            "sha256": "c2c005c669f9dc434212f6ed367605f6fd8da6b78e553e44211d1621b5c76390"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "[HIR-SPLIT] create_name \u2192 create_name$split_14 (6 inputs, pressure 13)\n[HIR-SPLIT] mount_volume \u2192 mount_volume$split_22 (2 inputs, pressure 9)\n[HIR-SPLIT] f_open \u2192 f_open$split_7 (2 inputs, pressure 13)\n[HIR-SPLIT] f_read \u2192 f_read$split_17 (0 inputs, pressure 12)\n[HIR-SPLIT] f_write \u2192 f_write$split_16 (1 inputs, pressure 12)\n[HIR-SPLIT] f_getfree \u2192 f_getfree$split_10 (1 inputs, pressure 11)\n[HIR-SPLIT] f_rename \u2192 f_rename$split_9 (1 inputs, pressure 9)\n[label-audit] 10 undefined labels:\n  disk_initialize\n  disk_ioctl\n  disk_read\n  disk_status\n  disk_write\n  get_fattime\n  memcmp\n  memcpy\n  memset\n  strchr\n",
+        "outputs": {
+          "output.a80": {
+            "bytes": 476527,
+            "sha256": "8645cd179a5545308ba275c83af68dfde3762d159162166d5f2c123feef31fcd"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/games/snake_simple.minz",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "[label-audit] 1 undefined labels:\n  print_u8\n",
+        "outputs": {
+          "output.a80": {
+            "bytes": 32537,
+            "sha256": "f1535f05e0f0d5516517b0707eaec93bfda613bc1164ccdc9fca22ba79930891"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "[label-audit] 1 undefined labels:\n  print_u8\n",
+        "outputs": {
+          "output.a80": {
+            "bytes": 33377,
+            "sha256": "fc63d0dab253b4c4b81ca1418a191a399e4aa6709c8944cce916b44b452febac"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/nanz/grace_intern_checked.nanz",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 10511,
+            "sha256": "90bfe74fde648792aa10977029db59a88e1715423bd52812dd49776a021e4e22"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 10455,
+            "sha256": "4b5319b81ad8b9e6e5be2d535a11913e81383737bc017d26cc6645a43b935f23"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/nanz/grace_tokenizer_checked.nanz",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "[HIR-SPLIT] scan \u2192 scan$split_19 (4 inputs, pressure 9)\n",
+        "outputs": {
+          "output.a80": {
+            "bytes": 57342,
+            "sha256": "170632a57818d4078428008f4ffa2d1237babf032431c95241c6b2451b1ee913"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "[HIR-SPLIT] scan \u2192 scan$split_19 (4 inputs, pressure 9)\n",
+        "outputs": {
+          "output.a80": {
+            "bytes": 57286,
+            "sha256": "1c3811fa61cbbb5644d4f6671f09e4e3e9e52c08ce2dad437daf487274c00f12"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/nanz/irc_client.nanz",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 59587,
+            "sha256": "0e2e938f4cfad93208a39ad5e1f5c7e80d6603fa43e44144f67d2d87c0821984"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 59595,
+            "sha256": "45556e17917351c172baf0d887806863db131727fc8b8b7c63420897ee41fbc5"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    }
+  ],
+  "output_changes": [
+    {
+      "file": "examples/c89/fatfs/ff.c",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "[HIR-SPLIT] create_name \u2192 create_name$split_14 (6 inputs, pressure 13)\n[HIR-SPLIT] mount_volume \u2192 mount_volume$split_22 (2 inputs, pressure 9)\n[HIR-SPLIT] f_open \u2192 f_open$split_7 (2 inputs, pressure 13)\n[HIR-SPLIT] f_read \u2192 f_read$split_17 (0 inputs, pressure 12)\n[HIR-SPLIT] f_write \u2192 f_write$split_16 (1 inputs, pressure 12)\n[HIR-SPLIT] f_getfree \u2192 f_getfree$split_10 (1 inputs, pressure 11)\n[HIR-SPLIT] f_rename \u2192 f_rename$split_9 (1 inputs, pressure 9)\n[label-audit] 10 undefined labels:\n  disk_initialize\n  disk_ioctl\n  disk_read\n  disk_status\n  disk_write\n  get_fattime\n  memcmp\n  memcpy\n  memset\n  strchr\n",
+        "outputs": {
+          "output.a80": {
+            "bytes": 476565,
+            "sha256": "c2c005c669f9dc434212f6ed367605f6fd8da6b78e553e44211d1621b5c76390"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "[HIR-SPLIT] create_name \u2192 create_name$split_14 (6 inputs, pressure 13)\n[HIR-SPLIT] mount_volume \u2192 mount_volume$split_22 (2 inputs, pressure 9)\n[HIR-SPLIT] f_open \u2192 f_open$split_7 (2 inputs, pressure 13)\n[HIR-SPLIT] f_read \u2192 f_read$split_17 (0 inputs, pressure 12)\n[HIR-SPLIT] f_write \u2192 f_write$split_16 (1 inputs, pressure 12)\n[HIR-SPLIT] f_getfree \u2192 f_getfree$split_10 (1 inputs, pressure 11)\n[HIR-SPLIT] f_rename \u2192 f_rename$split_9 (1 inputs, pressure 9)\n[label-audit] 10 undefined labels:\n  disk_initialize\n  disk_ioctl\n  disk_read\n  disk_status\n  disk_write\n  get_fattime\n  memcmp\n  memcpy\n  memset\n  strchr\n",
+        "outputs": {
+          "output.a80": {
+            "bytes": 476527,
+            "sha256": "8645cd179a5545308ba275c83af68dfde3762d159162166d5f2c123feef31fcd"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/games/snake_simple.minz",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "[label-audit] 1 undefined labels:\n  print_u8\n",
+        "outputs": {
+          "output.a80": {
+            "bytes": 32537,
+            "sha256": "f1535f05e0f0d5516517b0707eaec93bfda613bc1164ccdc9fca22ba79930891"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "[label-audit] 1 undefined labels:\n  print_u8\n",
+        "outputs": {
+          "output.a80": {
+            "bytes": 33377,
+            "sha256": "fc63d0dab253b4c4b81ca1418a191a399e4aa6709c8944cce916b44b452febac"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/nanz/grace_intern_checked.nanz",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 10511,
+            "sha256": "90bfe74fde648792aa10977029db59a88e1715423bd52812dd49776a021e4e22"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 10455,
+            "sha256": "4b5319b81ad8b9e6e5be2d535a11913e81383737bc017d26cc6645a43b935f23"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/nanz/grace_tokenizer_checked.nanz",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "[HIR-SPLIT] scan \u2192 scan$split_19 (4 inputs, pressure 9)\n",
+        "outputs": {
+          "output.a80": {
+            "bytes": 57342,
+            "sha256": "170632a57818d4078428008f4ffa2d1237babf032431c95241c6b2451b1ee913"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "[HIR-SPLIT] scan \u2192 scan$split_19 (4 inputs, pressure 9)\n",
+        "outputs": {
+          "output.a80": {
+            "bytes": 57286,
+            "sha256": "1c3811fa61cbbb5644d4f6671f09e4e3e9e52c08ce2dad437daf487274c00f12"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    },
+    {
+      "file": "examples/nanz/irc_client.nanz",
+      "baseline": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 59587,
+            "sha256": "0e2e938f4cfad93208a39ad5e1f5c7e80d6603fa43e44144f67d2d87c0821984"
+          }
+        }
+      },
+      "candidate": {
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "output.a80": {
+            "bytes": 59595,
+            "sha256": "45556e17917351c172baf0d887806863db131727fc8b8b7c63420897ee41fbc5"
+          }
+        }
+      },
+      "same_exit": true,
+      "same_stdout": true,
+      "same_stderr": true,
+      "same_files": false,
+      "output_files_compared": 1,
+      "same_output": false
+    }
+  ],
+  "wall_seconds": 52.988
+}
