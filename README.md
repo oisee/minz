@@ -1,8 +1,12 @@
 <p align="center">
-
-**Zork I/II on native Z80 is now in main.** Full-game and fresh-machine SAVE/RESTORE evidence: [current port status](reports/zmachine-spectrum128/current-status.md). The Linux/Windows embedded-demo release is being verified: [release progress](reports/zmachine-spectrum128/release/progress.md).
   <img src="media/minz-logo-shamrock-mint.png" width="520" alt="MinZ logo: a mint-green shamrock">
 </p>
+
+## Play native Z80 demos
+
+[Download Linux or Windows — MinZ 0.25.0](https://github.com/oisee/minz/releases/tag/v0.25.0), unpack, and launch `mzx` / `mzx.exe`. Choose **Zork I/II, Spectrum Tetris, the 32×48 rotozoomer, or SMC sprites** with Up/Down and Enter. Escape returns to the menu. Separate SNA/TRD images and one-click launchers are included.
+
+SAVE files live outside the download in your user configuration directory, so upgrades preserve them. Zork I resumes the session after a clean exit; Zork II uses disk SAVE/RESTORE. [Release verification](reports/zmachine-spectrum128/release/verified.md) · [Full Z-machine status](reports/zmachine-spectrum128/current-status.md).
 
 # MinZ
 
