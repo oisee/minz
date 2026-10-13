@@ -1,0 +1,19 @@
+; conditional candidate: A input/return; clobbers A,F; no scratch/bank changes
+is_space:
+.__conditional_is_space_0:
+    CP 32
+    JRS Z, .__conditional_is_space_4
+.__conditional_is_space_1:
+    CP 9
+    JRS Z, .__conditional_is_space_4
+.__conditional_is_space_2:
+    CP 10
+    JRS Z, .__conditional_is_space_4
+.__conditional_is_space_3:
+    CP 13
+    JRS Z, .__conditional_is_space_4
+    LD A, 0
+    RET
+.__conditional_is_space_4:
+    LD A, 1
+    RET

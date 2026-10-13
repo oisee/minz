@@ -11,8 +11,33 @@ import (
 // Selection, layout search and checked-table instruction alternatives are not
 // performed here. No external solver or post-emission peephole is invoked.
 func (p *ConditionalTableProblem) EmitDirect() (string, error) {
+	if p == nil {
+		return "", fmt.Errorf("nil conditional contract")
+	}
+	order := make([]int, len(p.Blocks))
+	for i := range order {
+		order[i] = i
+	}
+	return p.EmitLayout(order)
+}
+
+// EmitLayout accepts exactly one permutation of the bound blocks, with the
+// original entry first. It changes only physical order, not CFG edges or values.
+func (p *ConditionalTableProblem) EmitLayout(order []int) (string, error) {
 	if err := p.Validate(); err != nil {
 		return "", err
+	}
+	if len(order) != len(p.Blocks) || len(order) == 0 || order[0] != 0 {
+		return "", fmt.Errorf("conditional layout must contain every block with entry first")
+	}
+	blocks := make([]ConditionalBlock, 0, len(order))
+	seen := map[int]bool{}
+	for _, index := range order {
+		if index < 0 || index >= len(p.Blocks) || seen[index] {
+			return "", fmt.Errorf("invalid conditional layout permutation")
+		}
+		seen[index] = true
+		blocks = append(blocks, p.Blocks[index])
 	}
 	name := p.function.Name
 	for i, c := range name {
@@ -25,7 +50,7 @@ func (p *ConditionalTableProblem) EmitDirect() (string, error) {
 		return "", fmt.Errorf("empty conditional function symbol")
 	}
 	labels := map[string]string{}
-	for i, node := range p.Blocks {
+	for i, node := range blocks {
 		labels[node.Label] = fmt.Sprintf(".__conditional_%s_%d", name, i)
 	}
 	var out strings.Builder
@@ -46,11 +71,11 @@ func (p *ConditionalTableProblem) EmitDirect() (string, error) {
 		skip := fmt.Sprintf(".__conditional_%s_skip_%d", name, skipID)
 		fmt.Fprintf(&out, "    JRS C, %s\n    JRS Z, %s\n    JRS %s\n%s:\n", skip, skip, target, skip)
 	}
-	for i, node := range p.Blocks {
+	for i, node := range blocks {
 		fmt.Fprintf(&out, "%s:\n", labels[node.Label])
 		next := ""
-		if i+1 < len(p.Blocks) {
-			next = p.Blocks[i+1].Label
+		if i+1 < len(blocks) {
+			next = blocks[i+1].Label
 		}
 		if node.Return {
 			fmt.Fprintf(&out, "    LD A, %d\n    RET\n", node.Value)
