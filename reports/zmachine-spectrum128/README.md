@@ -643,3 +643,26 @@ Combined diagnostic resident size 25123 bytes, end BD23, headroom 221 B before
 unchanged BE00 stack reservation: +49 B for shared read/write address machinery.
 Semantic state validation, delta apply, save publication and real gameplay
 SAVE→mutation→RESTORE remain unimplemented; desktop SAVE/RESTORE remain disabled.
+
+
+## Runtime saved-stream reader
+
+The trusted archive decoder can now emit a cursor configured by bank and offset
+at runtime. `native_saved_begin` resets the cursor and token state; indexed reads
+support repeated and backward requests without allocating a decoded save buffer.
+Every requested index must be bounded by the structurally preflighted decoded
+length, and source bytes must remain immutable. This trusted reader must not be
+called on arbitrary unvalidated payloads. It restores bank0 after each read.
+
+10295 native reads PASS in 0.17 s across five source banks and a bank0 stream switch:
+sequential/repeated/backward reads, literal/repeat transitions, and reconfiguration
+from a populated cache to a different bank/offset/run type. Full RAM comparison
+allows only declared cursor scratch and bounded stack; PC/SP/paging/IFF checked.
+Original archive+delta regression also PASS. Semantic saved-state validation and
+actual restore remain pending.
+
+Diagnostic combined resident size 25294 bytes, end BDCE, only 50 bytes before
+BE00 stack reservation. The two decoder bodies are still duplicated. Next share
+the decoder engine while retaining independent original/saved cursors; do not
+expand the stack region or call this complete SAVE support. Desktop checkpoint
+remains unchanged with SAVE/RESTORE disabled.

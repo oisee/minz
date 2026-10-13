@@ -97,6 +97,37 @@ fun native_original_byte(@z80_hl index: u16) -> u8 {{
 '''
 
 
+def emit_saved_reader():
+    """Runtime stream cursor. Structural preflight is mandatory before use."""
+    text = emit(0x17, 0).replace('native_original_byte', 'native_saved_byte')
+    text = text.replace('archive_', 'saved_')
+    text = text.replace('global saved_pointer: u16 = 49152', 'global saved_pointer: u16')
+    text = text.replace('  LD HL, 49152\n  LD (saved_pointer), HL',
+                        '  LD HL, (saved_begin)\n  LD (saved_pointer), HL')
+    text = text.replace('  LD A, 23\n  OUT (C), A',
+                        '  LD A, (saved_bank)\n  OUT (C), A')
+    initializer = """
+// Configure an immutable, structurally preflighted RLE stream. The caller must
+// bound every requested index by its preflighted decoded length. No reentry.
+global saved_begin:u16
+global saved_bank:u8
+fun native_saved_begin(@z80_a bank_bits:u8, @z80_hl offset:u16) -> void {
+ asm z80 (in bank_bits,offset) (clob A,F,HL) {
+  LD (saved_bank), A
+  SET 6, H
+  SET 7, H
+  LD (saved_begin), HL
+  LD (saved_pointer), HL
+  LD HL, 0
+  LD (saved_next), HL
+  LD A, L
+  LD (saved_left), A
+ }
+}
+"""
+    return text + initializer
+
+
 def emit_delta_packer():
     from native_state_stream import emit_packer
     packer = emit_packer().replace('native_state_pack', 'native_delta_pack')
