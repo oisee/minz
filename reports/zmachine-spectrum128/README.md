@@ -1224,3 +1224,17 @@ CRC/semantic checks и memory stream3 сохраняются.
 Это native integration gate, ещё не новый downloadable Zork II SNA. Следующий
 шаг — подключить compressed layout в snapshot-builder, проверить совместный
 SAVE/RESTART lifecycle и выпустить отдельный игровой комплект.
+
+### 13 октября: runnable сжатый Zork II — SAVE/RESTORE/RESTART вместе
+
+Совместный lifecycle прошёл Z80: 116 клавиш, 2214 байт текста побайтно VM,
+628/700 байт SAVE, resident 25193 байта, стек 60 байт, 1343968580 T.
+Меч восстановлен, горящий фонарь сохранён, RESTART возвращает пустой инвентарь.
+Проверены PC/SP/paging и immutable storage. Builder `--compressed` создаёт
+SNA со сверкой всех восьми банков после reload; Linux headless startup показал
+полный заголовок Zork II и промпт. Raw Zork I builder regression PASS.
+
+[Подробности и запуск](zork2/README.md#сжатая-версия-с-save-restore-и-restart-вместе).
+Linux/Windows архивы: `/mnt/safe/minz/grace/2026-10-13/zork2-play/`.
+Windows runtime не проверен; RAM SAVE volatile и ограничен 700 байтами;
+полное прохождение не заявляется. Цель V3 остаётся активной.

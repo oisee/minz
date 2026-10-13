@@ -112,6 +112,13 @@ func TestZMachineBankedZorkIICompressedSaveNative(t *testing.T) {
 	}
 	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-compressed-save")
 }
+func TestZMachineBankedZorkIICompressedSaveRestartNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set Zork II story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-compressed-save-restart")
+}
 func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, externalStory string, commands string) {
 	root := filepath.Clean("../../..")
 	story, err := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/stream3.z3"))
@@ -137,8 +144,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	compressedSave := commands == "@console-zork2-compressed-save"
-	compressedRestart := commands == "@console-zork2-compressed-restart"
+	combinedLifecycle := commands == "@console-zork2-compressed-save-restart"
+	compressedSave := commands == "@console-zork2-compressed-save" || combinedLifecycle
+	compressedRestart := commands == "@console-zork2-compressed-restart" || combinedLifecycle
 	compressedStory := commands == "@console-zork2-compressed" || compressedRestart || compressedSave
 	zorkII := commands == "@console-zork2" || compressedStory
 	cellarSave := commands == "@console-cellar-save"
@@ -303,6 +311,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 		}
 		if compressedSave {
 			route = []byte("take lamp\ntake sword\nturn on lamp\nsouth\nsave\ndrop sword\ninventory\nrestore\ninventory\nquit\ny\n")
+		}
+		if combinedLifecycle {
+			route = []byte("take lamp\ntake sword\nturn on lamp\nsouth\nsave\ndrop sword\ninventory\nrestore\ninventory\nrestart\ny\nlook\ninventory\nquit\ny\n")
 		}
 		if cellarSave {
 			route = []byte("north\neast\nopen window\nenter window\nwest\ntake lamp\ntake sword\nturn on lamp\nmove rug\nopen trap door\ndown\nsave\ndrop sword\ninventory\nrestore\ninventory\ndrop lamp\nrestore\ninventory\nquit\ny\n")

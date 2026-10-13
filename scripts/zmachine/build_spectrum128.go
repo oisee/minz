@@ -1,4 +1,4 @@
-// Run from minzc: go run ../scripts/zmachine/build_spectrum128.go STORY OUTDIR
+// Run from minzc: go run ../scripts/zmachine/build_spectrum128.go STORY OUTDIR [--compressed]
 // The story is supplied separately; it is never downloaded by this builder.
 package main
 
@@ -22,52 +22,88 @@ func must(err error) {
 	}
 }
 func main() {
-	if len(os.Args) != 3 {
-		panic("usage: build_spectrum128.go STORY OUTDIR (run from minzc)")
+	if len(os.Args) != 3 && !(len(os.Args) == 4 && os.Args[3] == "--compressed") {
+		panic("usage: build_spectrum128.go STORY OUTDIR [--compressed] (run from minzc)")
 	}
 	story, err := os.ReadFile(os.Args[1])
 	must(err)
 	if len(story) < 64 || len(story) > 98304 || story[0] != 3 {
 		panic("requires Z-machine V3 story, 64..98304 bytes")
 	}
-	dynamic := int(story[14])<<8 | int(story[15])
-	var archive []byte
-	archiveFile, err := os.CreateTemp("", "z3-restart-*.rle")
-	must(err)
-	archivePath := archiveFile.Name()
-	must(archiveFile.Close())
-	defer os.Remove(archivePath)
-	pack := exec.Command("python3", "../scripts/zmachine/restart_rle.py", os.Args[1], archivePath)
-	if data, err := pack.CombinedOutput(); err != nil {
-		panic(fmt.Sprintf("restart pack %v %s", err, data))
-	}
-	archive, err = os.ReadFile(archivePath)
-	must(err)
-	// Keep the immutable archive outside mutable bank0 and within one window.
-	archiveOffset := len(story)
-	if archiveOffset < 16384 {
-		archiveOffset = 16384
-	}
-	if len(archive) > 0 && archiveOffset/16384 != (archiveOffset+len(archive)-1)/16384 {
-		archiveOffset = (archiveOffset/16384 + 1) * 16384
-	}
-	restart := dynamic >= 64 && dynamic <= 16384 && len(archive) > 0 && archiveOffset+len(archive) <= 98304 && archiveOffset/16384 == (archiveOffset+len(archive)-1)/16384
-
-	saveOffset := archiveOffset + len(archive)
-	if saveOffset < 5*16384 {
-		saveOffset = 5 * 16384
-	}
-	saveSupported := restart && 98304-saveOffset >= 32
+	compressed := len(os.Args) == 4
 	out, err := filepath.Abs(os.Args[2])
 	must(err)
 	must(os.MkdirAll(out, 0755))
+	var layout map[string]any
+	var storageImage []byte
+	dynamic := int(story[14])<<8 | int(story[15])
+	var archive []byte
+	archiveOffset, saveOffset, saveCapacity := 0, 0, 0
+	restart, saveSupported := false, false
+	if compressed {
+		pack := exec.Command("python3", "../scripts/zmachine/story_lz_layout.py", os.Args[1], out, "--archive-blocks")
+		if data, err := pack.CombinedOutput(); err != nil {
+			panic(fmt.Sprintf("layout: %v %s", err, data))
+		}
+		data, err := os.ReadFile(filepath.Join(out, "layout-2048.json"))
+		must(err)
+		must(json.Unmarshal(data, &layout))
+		storageImage, err = os.ReadFile(filepath.Join(out, "layout-2048.bin"))
+		must(err)
+		if len(storageImage) != 98304 || layout["story_sha256"] != fmt.Sprintf("%x", sha256.Sum256(story)) {
+			panic("layout story identity/image size mismatch")
+		}
+		bank := int(layout["reserved_save_bank"].(float64))
+		for i, page := range []int{0, 1, 3, 4, 6, 7} {
+			if page == bank {
+				saveOffset = i*16384 + int(layout["reserved_save_offset"].(float64))
+			}
+		}
+		saveCapacity = int(layout["reserved_save_bytes"].(float64))
+		restart = true
+		saveSupported = saveCapacity >= 32
+	} else {
+		archiveFile, err := os.CreateTemp("", "z3-restart-*.rle")
+		must(err)
+		archivePath := archiveFile.Name()
+		must(archiveFile.Close())
+		defer os.Remove(archivePath)
+		pack := exec.Command("python3", "../scripts/zmachine/restart_rle.py", os.Args[1], archivePath)
+		if data, err := pack.CombinedOutput(); err != nil {
+			panic(fmt.Sprintf("restart pack %v %s", err, data))
+		}
+		archive, err = os.ReadFile(archivePath)
+		must(err)
+		// Keep the immutable archive outside mutable bank0 and within one window.
+		archiveOffset = len(story)
+		if archiveOffset < 16384 {
+			archiveOffset = 16384
+		}
+		if len(archive) > 0 && archiveOffset/16384 != (archiveOffset+len(archive)-1)/16384 {
+			archiveOffset = (archiveOffset/16384 + 1) * 16384
+		}
+		restart = dynamic >= 64 && dynamic <= 16384 && len(archive) > 0 && archiveOffset+len(archive) <= 98304 && archiveOffset/16384 == (archiveOffset+len(archive)-1)/16384
+
+		saveOffset = archiveOffset + len(archive)
+		if saveOffset < 5*16384 {
+			saveOffset = 5 * 16384
+		}
+		saveSupported = restart && 98304-saveOffset >= 32
+		saveCapacity = 98304 - saveOffset
+	}
 	source := filepath.Join(out, "zvm-spectrum128.nanz")
 	cmd := exec.Command("python3", "../scripts/zmachine/prepare_native_core.py", source, "--story-bytes", fmt.Sprint(len(story)), "--console")
-	if restart {
+	if restart && !compressed {
 		cmd.Args = append(cmd.Args, "--restart-offset", fmt.Sprint(archiveOffset), "--restart-bytes", fmt.Sprint(dynamic), "--restart-rle-bytes", fmt.Sprint(len(archive)))
 	}
-	if saveSupported {
+	if saveSupported && !compressed {
 		cmd.Args = append(cmd.Args, "--save-story", os.Args[1])
+	}
+	if compressed {
+		cmd.Args = append(cmd.Args, "--story-layout", filepath.Join(out, "layout-2048.json"), "--layout-restart")
+		if saveSupported {
+			cmd.Args = append(cmd.Args, "--layout-save-story", os.Args[1])
+		}
 	}
 	result, err := cmd.CombinedOutput()
 	if err != nil {
@@ -94,10 +130,14 @@ func main() {
 		m.Memory.Write(0x5b00+uint16(i), b, false)
 	}
 	pages := []int{0, 1, 3, 4, 6, 7}
-	for i, b := range story {
+	bankImage := story
+	if compressed {
+		bankImage = storageImage
+	}
+	for i, b := range bankImage {
 		m.Memory.RAM[pages[i/16384]][i%16384] = b
 	}
-	if restart {
+	if restart && !compressed {
 		for i, b := range archive {
 			at := archiveOffset + i
 			m.Memory.RAM[pages[at/16384]][at%16384] = b
@@ -130,11 +170,19 @@ func main() {
 	metadata["save_restore_supported"] = saveSupported
 	metadata["save_slot_bytes"] = 0
 	if saveSupported {
-		metadata["save_slot_bytes"] = 98304 - saveOffset
+		metadata["save_slot_bytes"] = saveCapacity
 		metadata["save_slot_offset"] = saveOffset
 	}
 	metadata["restart_supported"] = restart
-	if restart {
+	metadata["compressed_story"] = compressed
+	if compressed {
+		metadata["story_layout"] = "layout-2048.json"
+		metadata["cache_bytes"] = 2048
+		metadata["restart_archive_format"] = "lz-original-blocks-v1"
+		metadata["restart_archive_bytes"] = layout["restart_bytes"]
+		metadata["restart_decoded_bytes"] = dynamic
+	}
+	if restart && !compressed {
 		metadata["restart_archive_offset"] = archiveOffset
 		metadata["restart_archive_bytes"] = len(archive)
 		metadata["restart_decoded_bytes"] = dynamic
