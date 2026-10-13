@@ -1,0 +1,82 @@
+[
+  {
+    "baseline_bytes": 4186,
+    "heldout_baseline": 289789,
+    "heldout_selected": 289732,
+    "selected": 2,
+    "selected_bytes": 4186,
+    "training_baseline": 334871,
+    "training_selected": 334806,
+    "mode": "greedy-mirfalse-hirfalse"
+  },
+  {
+    "baseline_bytes": 4120,
+    "heldout_baseline": 284072,
+    "heldout_selected": 284015,
+    "selected": 2,
+    "selected_bytes": 4120,
+    "training_baseline": 329844,
+    "training_selected": 329779,
+    "mode": "greedy-mirfalse-hirtrue"
+  },
+  {
+    "baseline_bytes": 4197,
+    "heldout_baseline": 290214,
+    "heldout_selected": 290157,
+    "selected": 2,
+    "selected_bytes": 4197,
+    "training_baseline": 335303,
+    "training_selected": 335238,
+    "mode": "greedy-mirtrue-hirfalse"
+  },
+  {
+    "baseline_bytes": 4131,
+    "heldout_baseline": 284497,
+    "heldout_selected": 284440,
+    "selected": 2,
+    "selected_bytes": 4131,
+    "training_baseline": 330276,
+    "training_selected": 330211,
+    "mode": "greedy-mirtrue-hirtrue"
+  },
+  {
+    "baseline_bytes": 4191,
+    "heldout_baseline": 289789,
+    "heldout_selected": 289732,
+    "selected": 2,
+    "selected_bytes": 4191,
+    "training_baseline": 334871,
+    "training_selected": 334806,
+    "mode": "pbqp-mirfalse-hirfalse"
+  },
+  {
+    "baseline_bytes": 4135,
+    "heldout_baseline": 285203,
+    "heldout_selected": 285146,
+    "selected": 2,
+    "selected_bytes": 4135,
+    "training_baseline": 330975,
+    "training_selected": 330910,
+    "mode": "pbqp-mirfalse-hirtrue"
+  },
+  {
+    "baseline_bytes": 4202,
+    "heldout_baseline": 290214,
+    "heldout_selected": 290157,
+    "selected": 2,
+    "selected_bytes": 4202,
+    "training_baseline": 335303,
+    "training_selected": 335238,
+    "mode": "pbqp-mirtrue-hirfalse"
+  },
+  {
+    "baseline_bytes": 4146,
+    "heldout_baseline": 285628,
+    "heldout_selected": 285571,
+    "selected": 2,
+    "selected_bytes": 4146,
+    "training_baseline": 331407,
+    "training_selected": 331342,
+    "mode": "pbqp-mirtrue-hirtrue"
+  }
+]

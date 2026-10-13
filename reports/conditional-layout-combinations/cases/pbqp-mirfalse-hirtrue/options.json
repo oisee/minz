@@ -1,0 +1,14 @@
+{
+  "ProfileSelection": null,
+  "CollectHIRSites": false,
+  "ContractOpt": true,
+  "ContractStrategy": "pbqp",
+  "AnnotateTStates": false,
+  "UseGrace": false,
+  "GraceStats": null,
+  "UseHIRGrace": true,
+  "OptSize": true,
+  "Backend": "",
+  "AssertMode": "none",
+  "SkipZ80Emission": false
+}

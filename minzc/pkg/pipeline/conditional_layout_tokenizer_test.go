@@ -14,6 +14,29 @@ import (
 )
 
 func TestConditionalLayoutTokenizerHeldout(t *testing.T) {
+	conditionalLayoutTokenizerRun(t, Options{OptSize: true, ContractOpt: true, AssertMode: "none"}, os.Getenv("MINZ_CONDITIONAL_WORKLOAD_EXPORT"))
+}
+
+func TestConditionalLayoutTokenizerCompilerCombinations(t *testing.T) {
+	for _, strategy := range []string{"greedy", "pbqp"} {
+		for _, mirGrace := range []bool{false, true} {
+			for _, hirGrace := range []bool{false, true} {
+				name := fmt.Sprintf("%s-mir%v-hir%v", strategy, mirGrace, hirGrace)
+				t.Run(name, func(t *testing.T) {
+					directory := ""
+					if root := os.Getenv("MINZ_CONDITIONAL_COMBINATIONS_EXPORT"); root != "" {
+						directory = filepath.Join(root, name)
+					}
+					options := Options{OptSize: true, ContractOpt: true, ContractStrategy: strategy, AssertMode: "none", UseGrace: mirGrace, UseHIRGrace: hirGrace}
+					conditionalLayoutTokenizerRun(t, options, directory)
+				})
+			}
+		}
+	}
+}
+
+func conditionalLayoutTokenizerRun(t *testing.T, options Options, directory string) {
+	t.Helper()
 	path := "../../../examples/nanz/grace_tokenizer_checked.nanz"
 	source, err := os.ReadFile(path)
 	if err != nil {
@@ -32,7 +55,7 @@ func TestConditionalLayoutTokenizerHeldout(t *testing.T) {
 	}
 	train := makeWorkload([]string{"fun add(a: u8, b: u8) -> u8 { return a + b }", "alpha alpha beta alpha", "// comment\nfun"})
 	heldout := makeWorkload([]string{"0 007 123456789", "\tfn if else\r\nwhile let var true false return", "_ _a a1 A9"})
-	result, err := MeasureConditionalLayoutWorkload(factory, "is_space", train, Options{OptSize: true, ContractOpt: true, AssertMode: "none"}, "speed", 4)
+	result, err := MeasureConditionalLayoutWorkload(factory, "is_space", train, options, "speed", 4)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,11 +110,11 @@ func TestConditionalLayoutTokenizerHeldout(t *testing.T) {
 	check(heldout, after)
 	chosen := result.Evidence.Candidates[result.Evidence.Selected]
 	t.Logf("selected%d: module %d / %d B; train %d / %d T; heldout %d / %d T", result.Evidence.Selected, len(result.Evidence.Candidates[0].Binary), len(result.Binary), result.Evidence.Candidates[0].Run.TotalTStates, chosen.Run.TotalTStates, before.TotalTStates, after.TotalTStates)
-	if directory := os.Getenv("MINZ_CONDITIONAL_WORKLOAD_EXPORT"); directory != "" {
+	if directory != "" {
 		if err := os.MkdirAll(directory, 0755); err != nil {
 			t.Fatal(err)
 		}
-		values := map[string]any{"source.nanz": source, "evidence.json": result.Evidence, "train.json": train, "heldout.json": heldout, "heldout-before.json": before, "heldout-after.json": after, "selected.a80": []byte(result.Steps.Assembly), "selected.bin": result.Binary}
+		values := map[string]any{"options.json": options, "metrics.json": map[string]any{"selected": result.Evidence.Selected, "baseline_bytes": len(result.Evidence.Candidates[0].Binary), "selected_bytes": len(result.Binary), "training_baseline": result.Evidence.Candidates[0].Run.TotalTStates, "training_selected": chosen.Run.TotalTStates, "heldout_baseline": before.TotalTStates, "heldout_selected": after.TotalTStates}, "source.nanz": source, "evidence.json": result.Evidence, "train.json": train, "heldout.json": heldout, "heldout-before.json": before, "heldout-after.json": after, "selected.a80": []byte(result.Steps.Assembly), "selected.bin": result.Binary}
 		for name, value := range values {
 			data, ok := value.([]byte)
 			if !ok {

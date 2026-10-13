@@ -1,0 +1,36 @@
+=== RUN   TestConditionalLayoutTokenizerCompilerCombinations
+=== RUN   TestConditionalLayoutTokenizerCompilerCombinations/greedy-mirfalse-hirfalse
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    conditional_layout_tokenizer_test.go:31: selected2: module 4186 / 4186 B; train 334871 / 334806 T; heldout 289789 / 289732 T
+=== RUN   TestConditionalLayoutTokenizerCompilerCombinations/greedy-mirfalse-hirtrue
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    conditional_layout_tokenizer_test.go:31: selected2: module 4120 / 4120 B; train 329844 / 329779 T; heldout 284072 / 284015 T
+=== RUN   TestConditionalLayoutTokenizerCompilerCombinations/greedy-mirtrue-hirfalse
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    conditional_layout_tokenizer_test.go:31: selected2: module 4197 / 4197 B; train 335303 / 335238 T; heldout 290214 / 290157 T
+=== RUN   TestConditionalLayoutTokenizerCompilerCombinations/greedy-mirtrue-hirtrue
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    conditional_layout_tokenizer_test.go:31: selected2: module 4131 / 4131 B; train 330276 / 330211 T; heldout 284497 / 284440 T
+=== RUN   TestConditionalLayoutTokenizerCompilerCombinations/pbqp-mirfalse-hirfalse
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    conditional_layout_tokenizer_test.go:31: selected2: module 4191 / 4191 B; train 334871 / 334806 T; heldout 289789 / 289732 T
+=== RUN   TestConditionalLayoutTokenizerCompilerCombinations/pbqp-mirfalse-hirtrue
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    conditional_layout_tokenizer_test.go:31: selected2: module 4135 / 4135 B; train 330975 / 330910 T; heldout 285203 / 285146 T
+=== RUN   TestConditionalLayoutTokenizerCompilerCombinations/pbqp-mirtrue-hirfalse
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    conditional_layout_tokenizer_test.go:31: selected2: module 4202 / 4202 B; train 335303 / 335238 T; heldout 290214 / 290157 T
+=== RUN   TestConditionalLayoutTokenizerCompilerCombinations/pbqp-mirtrue-hirtrue
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    conditional_layout_tokenizer_test.go:31: selected2: module 4146 / 4146 B; train 331407 / 331342 T; heldout 285628 / 285571 T
+--- PASS: TestConditionalLayoutTokenizerCompilerCombinations (20.24s)
+    --- PASS: TestConditionalLayoutTokenizerCompilerCombinations/greedy-mirfalse-hirfalse (2.41s)
+    --- PASS: TestConditionalLayoutTokenizerCompilerCombinations/greedy-mirfalse-hirtrue (2.51s)
+    --- PASS: TestConditionalLayoutTokenizerCompilerCombinations/greedy-mirtrue-hirfalse (2.56s)
+    --- PASS: TestConditionalLayoutTokenizerCompilerCombinations/greedy-mirtrue-hirtrue (2.58s)
+    --- PASS: TestConditionalLayoutTokenizerCompilerCombinations/pbqp-mirfalse-hirfalse (2.48s)
+    --- PASS: TestConditionalLayoutTokenizerCompilerCombinations/pbqp-mirfalse-hirtrue (2.47s)
+    --- PASS: TestConditionalLayoutTokenizerCompilerCombinations/pbqp-mirtrue-hirfalse (2.62s)
+    --- PASS: TestConditionalLayoutTokenizerCompilerCombinations/pbqp-mirtrue-hirtrue (2.59s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	20.249s
