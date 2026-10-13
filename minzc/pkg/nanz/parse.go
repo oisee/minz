@@ -899,7 +899,7 @@ func (p *parser) parseModule() (*hir.Module, error) {
 					return nil, fmt.Errorf("line %d: @screen: %w", attr.line, err)
 				}
 				if emitted != "" {
-					generated, err := ParseWithOpts(emitted, p.name+"@screen", p.opts)
+					generated, err := ParseWithOpts(emitted, fmt.Sprintf("%s@screen:%d", p.name, attr.pos), p.opts)
 					if err != nil {
 						return nil, fmt.Errorf("line %d: @screen: generated code error: %w\n--- generated ---\n%s", attr.line, err, emitted)
 					}
@@ -994,7 +994,7 @@ func (p *parser) parseModule() (*hir.Module, error) {
 
 				// Parse emitted Nanz text and merge into current module
 				if emitted != "" {
-					generated, err := ParseWithOpts(emitted, p.name+"@"+metaName, p.opts)
+					generated, err := ParseWithOpts(emitted, fmt.Sprintf("%s@%s:%d", p.name, metaName, attr.pos), p.opts)
 					if err != nil {
 						return nil, fmt.Errorf("line %d: @%s: emitted code error: %w", attr.line, metaName, err)
 					}

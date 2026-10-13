@@ -228,3 +228,34 @@ fun main() -> u8 { return generated() }
 		}
 	}
 }
+
+func TestDistinctMetafunctionInvocationsHaveDistinctSourceUnits(t *testing.T) {
+	const src = `fun @constant(name: ^u8) -> void {
+ let value: u16 = node_arg_int(0, 0)
+ emit(str_concat(c"fun ", str_concat(name, str_concat(c"() -> u16 { return ", str_concat(str_from_int(value), c" }")))))
+ }
+ @constant("one") { value 1 }
+ @constant("two") { value 2 }
+ fun main() -> u16 { return one() + two() }
+ `
+	m, err := nanz.Parse(src, "distinct-meta.nanz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := mir2.NewVM(hir.LowerModule(m)).Call("main", nil)
+	if err != nil || len(got) != 1 || got[0].I != 3 {
+		t.Fatalf("got %v err %v", got, err)
+	}
+	again, err := nanz.Parse(src, "distinct-meta.nanz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(m.SourceUnits) != 3 || len(again.SourceUnits) != 3 {
+		t.Fatalf("source units: %v", m.SourceUnits)
+	}
+	for name, hash := range m.SourceUnits {
+		if again.SourceUnits[name] != hash {
+			t.Fatal("unstable source identity", name)
+		}
+	}
+}
