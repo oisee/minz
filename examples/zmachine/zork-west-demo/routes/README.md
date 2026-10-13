@@ -36,3 +36,10 @@ mirror, Atlantis Room/trident и air pump. Контроль146 на204 хода�
 сокровища в case и pump/trident/lamp/lit torch в инвентаре. Frotz checkpoint
 использует seed1: проверка seed1..24 даёт18 успешных маршрутов и6 смертей;
 seed12 здесь погибает после кражи света. RNG игрового Nanz/Z80 не изменён.
+
+
+`treasure-room.txt` проходит первые 260 исходных команд Jericho. Контроль:
+233 очка на 264 ходах, Treasure Room с живым thief и silver chalice;
+в инвентаре nasty knife/rusty knife/lamp/lit torch. Z80 побайтово совпадает
+с VM; Frotz seed1 отдельно подтверждает счёт, chalice и полный инвентарь.
+Это проверенный длинный сегмент, ещё не полное прохождение.
