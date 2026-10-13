@@ -166,7 +166,7 @@ if __name__ == '__main__':
             # Try to keep all otherwise free space in one bank. This heuristic
             # may fail even when a different packing exists; never claim optimal.
             free = 98304 - metadata['used_bytes']
-            for reserved in sorted({free, *[n for n in (3072, 2048, 1536, 1271, 1024, 768, 512, 256) if n <= free]}, reverse=True):
+            for reserved in sorted({free, *[n for n in (3072, 2048, 1536, 1271, 1024, 768, 700, 640, 512, 256) if n <= free]}, reverse=True):
                 found = False
                 for attempt in range(35):
                     page = (5, 4, 3, 2, 1)[attempt // 7]

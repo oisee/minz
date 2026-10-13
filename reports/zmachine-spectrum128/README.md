@@ -1111,3 +1111,35 @@ record/state/delta ещё не измерены для этого слота.
 whole-prefix layout, а compressed SAVE ещё не подключён. Следующее изменение
 должно переключить restart на блоки и связать existing saved-RLE cursor с
 новым original reader, затем измерить resident headroom и реальный SAVE.
+
+### 13 октября: реальные SAVE Zork II и RESTART блочного архива
+
+`probe_save_delta.py` принимает JSON-набор команд и ёмкость слота. Теперь он
+сохраняет полный MZ3R record с 32-байтовым CRC-заголовком, проверяет encode/decode
+по всему состоянию и dynamic memory и проверяет отказ bounded encoder при
+переполнении. Старый артефакт с двумя длинами оставлен для сравнения.
+
+Три реальных host-VM SAVE Zork II (32 frames, 256 evaluation words):
+
+| Состояние | RLE state | RLE XOR dynamic | Полный record |
+|---|---:|---:|---:|
+| Начало | 125 | 302 | 459 |
+| Взятый включённый фонарь | 193 | 389 | 614 |
+| Фонарь и меч, Narrow Tunnel | 203 | 393 | 628 |
+
+Все размеры в байтах; заголовок 32 включён. Слот 512 покрывал лишь начало.
+Поиск размещения теперь пробует также 700 и 640 байт: для Zork II найден
+700-байтовый слот в bank7 offset 15684 с тем же 2-КБ shared-cache и блочным
+архивом. Все три record помещаются, но full-game bound не доказан.
+
+`--layout-restart` теперь поддерживает оба типа архива. Для независимых
+original-blocks RESTART вызывает сохраняющий регистры original reader и
+пишет байты прямо в bank0. Это проверяет тот же reader, который затем нужен
+SAVE delta pack/apply. Игровой restart route PASS: 61 клавиша, 2071 байт текста
+побайтно совпадают с VM и сверены с Frotz; исходный мир и пустой inventory
+вернулись. Immutable storage проверен целиком. 1151031257 T, 616 cache misses,
+стек 66 байт. Resident 25107 байт, запас 237 байт до $BE00.
+
+Native SAVE compressed-story пока не подключён. Host record fit — основание
+для интеграции, не утверждение о работающем SAVE на Z80. Потребуются место
+для existing state/preflight/CRC/restore code и проверка реального lifecycle.

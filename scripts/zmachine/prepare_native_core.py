@@ -295,19 +295,38 @@ if a.story_layout:
     text = text.replace('import zx.story_memory\n', 'global story_pages:[u8;6]=[0,1,3,4,6,7]\n')
     text += cache_code(metadata)
     if a.layout_restart:
-        archive = next(o for o in metadata['objects'] if o['name'] == 'restart')
-        if archive['page'] == 0:
-            p.error('compressed restart archive must be outside bank0')
-        replace_function('restart_story', f'''fun restart_story() {{
- asm z80 (clob A,F,BC,DE,HL,IX,IY) {{
-  LD HL, (0xc010)
+        if metadata.get('archive_blocks'):
+            restore_archive = '''  LD HL,0
+ .restore_original_loop:
+  CALL native_original_byte
   PUSH HL
-  LD A, {archive['physical_bank']+0x10}
+  SET 6,H
+  SET 7,H
+  LD (HL),A
+  POP HL
+  INC HL
+  LD DE,{dynamic}
+  PUSH HL
+  OR A
+  SBC HL,DE
+  POP HL
+  JR C,.restore_original_loop
+'''.format(dynamic=metadata['dynamic_bytes'])
+        else:
+            archive = next(o for o in metadata['objects'] if o['name'] == 'restart')
+            if archive['page'] == 0:
+                p.error('compressed restart archive must be outside bank0')
+            restore_archive = f'''  LD A, {archive['physical_bank']+0x10}
   LD HL, {archive['offset']}
   LD DE, 0xc000
   LD IX, {metadata['dynamic_bytes']}
   CALL zx__lz__bank_unpack_lz
-  POP HL
+'''
+        replace_function('restart_story', f'''fun restart_story() {{
+ asm z80 (clob A,F,BC,DE,HL,IX,IY) {{
+  LD HL, (0xc010)
+  PUSH HL
+{restore_archive}  POP HL
   LD (0xc010), HL
   LD A, (0xc001)
   AND 15

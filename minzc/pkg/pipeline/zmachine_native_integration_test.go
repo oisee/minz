@@ -172,6 +172,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	if compressedStory {
 		layoutDir := t.TempDir()
 		layout := exec.Command("python3", filepath.Join(root, "scripts/zmachine/story_lz_layout.py"), externalStory, layoutDir)
+		if compressedRestart {
+			layout.Args = append(layout.Args, "--archive-blocks")
+		}
 		if out, err := layout.CombinedOutput(); err != nil {
 			t.Fatalf("layout: %v %s", err, out)
 		}
