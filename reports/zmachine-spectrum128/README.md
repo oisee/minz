@@ -1361,3 +1361,20 @@ OUT в оба порта, пишет bank13, возвращает bank0 и ко�
 Полные пакеты spectrum и spectrum/formats также PASS. Existing 128K модель
 не получает extended paging. Дальше — native bank API для story/дискового
 буфера и подключение persistent SAVE/RESTORE; playable Scorpion ещё не заявляется.
+
+### 13 октября: библиотечный доступ ко всем Scorpion-банкам
+
+`zx.scorpion_memory` предоставляет `scorpion_read(page,offset,prior7,prior1)`
+и `scorpion_write(page,offset,value,prior7,prior1)`. Предусловия: page0..15,
+offset0..16383, unlocked paging, DI, fixed code/stack и отсутствие reentry.
+Caller явно передаёт прежние значения обоих портов: библиотека не пытается
+читать write-only hardware registers. При выборе банка сохраняются остальные
+биты `$1FFD` и screen/ROM биты `$7FFD`; после доступа оба порта восстановлены.
+
+Native проверка: 16 банков × 6 граничных offsets × 3 исходных конфигурации
+× чтение/запись = 576 случаев. Проверены значение, paging, IFF и PC/SP.
+Дополнительный compiled Nanz caller записывает и читает bank13, проверяя
+реальное распределение аргументов. PASS. Это подготовка доступа к дисковому
+буферу, не завершённый persistent SAVE. Snapshot/CLI extended memory и game
+integration ещё впереди. Текущий дисковый adapter emulator использует TR-DOS
+API traps, а не проверенный physical controller.

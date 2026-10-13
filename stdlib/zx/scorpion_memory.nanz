@@ -1,0 +1,71 @@
+// Scorpion 256K memory only: $1FFD bit4 extends the $7FFD bank number.
+// Trusted page0..15 and offset0..16383; unlocked paging, DI/no reentry.
+// Code/stack/arguments resident below C000. Caller supplies exact prior ports.
+// Other $1FFD bits are preserved during access; both ports restored afterwards.
+fun scorpion_read(@z80_a page:u8, @z80_hl offset:u16, @z80_e prior7:u8, @z80_d prior1:u8)->u8 {
+ asm z80 (in page,offset,prior7,prior1) (ret A) (clob A,F,BC,HL,IX) {
+  LD IXL,A
+  LD A,IXL
+  AND 8
+  ADD A,A
+  LD B,A
+  LD A,D
+  AND 0xef
+  OR B
+  LD BC,0x1ffd
+  OUT (C),A
+  LD A,E
+  AND 0x18
+  LD B,A
+  LD A,IXL
+  AND 7
+  OR B
+  LD BC,0x7ffd
+  OUT (C),A
+  SET 6,H
+  SET 7,H
+  LD A,(HL)
+  LD IXH,A
+  LD A,D
+  LD BC,0x1ffd
+  OUT (C),A
+  LD A,E
+  LD BC,0x7ffd
+  OUT (C),A
+  LD A,IXH
+ }
+}
+
+fun scorpion_write(@z80_a page:u8, @z80_hl offset:u16, @z80_b value:u8, @z80_e prior7:u8, @z80_d prior1:u8)->void {
+ asm z80 (in page,offset,value,prior7,prior1) (clob A,F,BC,HL,IX) {
+  LD IXH,B
+  LD IXL,A
+  LD A,IXL
+  AND 8
+  ADD A,A
+  LD B,A
+  LD A,D
+  AND 0xef
+  OR B
+  LD BC,0x1ffd
+  OUT (C),A
+  LD A,E
+  AND 0x18
+  LD B,A
+  LD A,IXL
+  AND 7
+  OR B
+  LD BC,0x7ffd
+  OUT (C),A
+  SET 6,H
+  SET 7,H
+  LD A,IXH
+  LD (HL),A
+  LD A,D
+  LD BC,0x1ffd
+  OUT (C),A
+  LD A,E
+  LD BC,0x7ffd
+  OUT (C),A
+ }
+}
