@@ -1544,3 +1544,30 @@ fault-matrix tests сохраняются; fixture regression PASS за 8.886 s.
 harness, не игрового codegen. CLI загрузил созданный SNA с Scorpion-memory и
 TRD, за 2000 frames отрисовал West of House и prompt. Linux build проверен;
 новый Windows executable не собран в этом checkpoint.
+
+### 13 октября: V3 window primitives и исправление boolean branch
+
+В `zx.console` появились `z3_windows_reset`, `z3_window_split`,
+`z3_window_select`, `z3_window_put`. Контракт взят из Standard1.1 §§8.6.1–8.6.3:
+status row0, upper rows1..height, независимый lower cursor, reset upper cursor
+при selection, clear upper при split, no upper scroll. Height ограничивается
+23; пустое окно не выводит текст. Нижняя область прокручивается существующим
+`con_scroll_region(height+1)`. Инициализация ставит cursor bottom-left.
+
+Native checks проверяют split clear, status сохранность, upper cursor reset,
+lower cursor восстановление, no upper scroll, lower scroll без изменения
+верхней области, heights0/1/2/22/23/24/255/65535 и PC/SP. Региональная прокрутка
+по-прежнему проверяется отдельным независимым screen-address oracle.
+
+Первый тест выявил backend miscompile: короткое замыкание логических операций
+передаёт materialized bool через block parameter, но conditional branch
+использовал flags последнего comparison вместо значения этого параметра.
+Исправлен fallback `condCode`: canonical register bool проверяется BIT0,
+A — OR A, spill/index value тестируется с сохранением живых A/HL. Отдельная
+матрица AND/OR на 3×3 входах в legacy/Grace (18 native cases) проходит.
+Полный MIR2 PASS за96.613 s; console disk lifecycle и обе staging fixtures
+после исправления PASS за20.034 s.
+
+Это библиотечный checkpoint. VAR10/11 ещё не подключены в generated interpreter,
+header capability bit5 не выставлен; существующая playable сборка продолжает
+использовать прежнюю консоль. Status line и game integration остаются впереди.

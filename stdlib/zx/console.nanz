@@ -1014,3 +1014,54 @@ assert attr_addr(31, 0) == 0x581F via z80
 assert attr_addr(0, 1) == 0x5820 via z80
 assert attr_addr(0, 23) == 0x5AE0 via z80
 assert attr_addr(31, 23) == 0x5AFF via z80
+
+// Z-machine V3 screen windows, Standard 1.1 sections 8.6.1-8.6.3.
+// Row0 is status; upper window occupies rows1..height. Initialise after clear.
+
+global z3_upper_height:u8
+global z3_selected_window:u8
+global z3_lower_row:u8=23
+global z3_lower_col:u8
+
+fun z3_windows_reset() {
+ z3_upper_height=0 z3_selected_window=0
+ z3_lower_row=23 z3_lower_col=0
+ con_row=23 con_col=0
+}
+fun z3_window_select(window:u8) {
+ if window>1 { return }
+ if z3_selected_window==0 { z3_lower_row=con_row z3_lower_col=con_col }
+ z3_selected_window=window
+ if window==1 { con_row=1 con_col=0 }
+ else { con_row=z3_lower_row con_col=z3_lower_col }
+}
+fun z3_window_split(lines:u16) {
+ var height:u8=23
+ if lines<23 { height=u8(lines) }
+ z3_upper_height=height
+ var row:u8=1
+ while row<=height {
+  var col:u8=0
+  while col<32 { con_draw_char(col,row,32) col=col+1 }
+  row=row+1
+ }
+ if z3_lower_row<=height { z3_lower_row=23 z3_lower_col=0 }
+ if z3_selected_window==0 && con_row<=height { con_row=23 con_col=0 }
+ if z3_selected_window==1 { con_row=1 con_col=0 }
+}
+fun z3_window_put(ch:u8) {
+ if z3_selected_window==1 && z3_upper_height==0 { return }
+ if z3_selected_window==0 && z3_upper_height==23 { return }
+ if ch!=10 && ch!=13 {
+  con_draw_char(con_col,con_row,ch)
+  if con_col<31 { con_col=con_col+1 return }
+ }
+ if z3_selected_window==1 {
+  if con_row>=z3_upper_height { return }
+  con_col=0 con_row=con_row+1
+  return
+ }
+ con_col=0
+ if con_row<23 { con_row=con_row+1 return }
+ con_scroll_region(z3_upper_height+1)
+}
