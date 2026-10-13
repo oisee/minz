@@ -1266,3 +1266,24 @@ indirect opcodes и misc. Он не доказывает keyboard/tokenisation, 
 файловые streams или split_window/set_window. В текущем core `show_status`
 ещё no-op, а VAR split_window/set_window не реализованы; следующий этап —
 правильные экранные сервисы V3 и более длинные независимые игровые маршруты.
+
+### 13 октября: основа экранных окон — прокрутка нижней области
+
+`zx.console.con_scroll_region(top)` прокручивает только character rows
+`top..23`, сохраняя строки выше. `top >=24` не меняет экран. Это первый
+библиотечный примитив для V3 status/upper window; сами оконные opcode ещё
+не подключены. Спецификация [§8.6](https://inform-fiction.org/zmachine/standards/z1point1/sect08.html)
+требует неподвижного верхнего окна и прокрутки нижнего; верхнее окно V3
+необязательно и разрешается только при установленном Flags1 bit5.
+
+Native-тест независимой модели Spectrum адресов сравнивает всю 64-КБ память
+для каждого top 0..24 и 255, включая обе границы screen thirds, pixels,
+attributes, стек и PC/SP. PASS. Старый полный LDIR scroll и клавиатурный editor
+regression PASS. Новый примитив занимает 118 байт, stack 4, top=1 — 183683 T
+включая загрузку аргумента и CALL. Полный fast scroll остаётся 150706 T.
+
+Примитив исключён из локальной игровой console copy пока он не используется;
+опубликованные runnable SNA не менялись. Zork II имеет всего 151 байт resident
+headroom: подключение окон/status требует дополнительного уплотнения или
+перераспределения, а не отключения проверок SAVE. Следующие шаги: состояние
+двух курсоров, clearing при split, collapse после RESTORE и status row.

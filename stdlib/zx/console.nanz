@@ -356,6 +356,93 @@ fun con_scroll() -> void {
  }
 }
 
+// Scroll character rows top..23, preserving all rows above top.
+// Useful for a fixed status/upper window; top >=24 leaves the screen intact.
+fun con_scroll_region(@z80_a top: u8) -> void {
+ asm z80 (in top) (clob A,F,BC,DE,HL,IX,IY) {
+  CP 24
+  RET NC
+  LD IYL, A
+ .row:
+  LD IYH, 0
+ .plane:
+  LD A, IYL
+  AND 0x18
+  OR IYH
+  OR 0x40
+  LD D, A
+  LD A, IYL
+  AND 7
+  RRCA
+  RRCA
+  RRCA
+  LD E, A
+  LD A, IYL
+  CP 23
+  JR Z, .clear
+  INC A
+  PUSH AF
+  AND 0x18
+  OR IYH
+  OR 0x40
+  LD H, A
+  POP AF
+  AND 7
+  RRCA
+  RRCA
+  RRCA
+  LD L, A
+  LD BC, 32
+  LDIR
+  JR .next_plane
+ .clear:
+  XOR A
+  LD B, 32
+ .clear_pixels:
+  LD (DE), A
+  INC DE
+  DJNZ .clear_pixels
+ .next_plane:
+  INC IYH
+  LD A, IYH
+  CP 8
+  JR NZ, .plane
+  ; Attribute address = $5800 + row*32.
+  LD A, IYL
+  LD L, A
+  LD H, 0
+  ADD HL, HL
+  ADD HL, HL
+  ADD HL, HL
+  ADD HL, HL
+  ADD HL, HL
+  LD DE, 0x5800
+  ADD HL, DE
+  EX DE, HL
+  LD A, IYL
+  CP 23
+  JR Z, .clear_attrs
+  LD H, D
+  LD L, E
+  LD BC, 32
+  ADD HL, BC
+  LDIR
+  JR .next_row
+ .clear_attrs:
+  LD A, (zx__console__con_attr)
+  LD B, 32
+ .attr_loop:
+  LD (DE), A
+  INC DE
+  DJNZ .attr_loop
+ .next_row:
+  INC IYL
+  LD A, IYL
+  CP 24
+  JR NZ, .row
+ }
+}
+
 // ── Print helpers ───────────────────────────────────────────────────────────
 
 fun con_newline() -> void {
