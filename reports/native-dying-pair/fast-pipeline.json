@@ -1,0 +1,27 @@
+{
+  "selected": 355,
+  "total": 702,
+  "shards": [
+    {
+      "shard": 1,
+      "exit_code": 0,
+      "log": "/tmp/native-dying-pair-fast/shard-1.log"
+    },
+    {
+      "shard": 2,
+      "exit_code": 0,
+      "log": "/tmp/native-dying-pair-fast/shard-2.log"
+    },
+    {
+      "shard": 3,
+      "exit_code": 0,
+      "log": "/tmp/native-dying-pair-fast/shard-3.log"
+    },
+    {
+      "shard": 4,
+      "exit_code": 0,
+      "log": "/tmp/native-dying-pair-fast/shard-4.log"
+    }
+  ],
+  "scope": "main #103 plus dying-pair emitter; full release domains not repeated"
+}
