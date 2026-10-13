@@ -21,7 +21,8 @@ and return PC/SP. All 60 variants pass. Their baseline and candidate costs
 are identical. Order still changes entry setup by 6 bytes/20T in this family;
 this model does not fix edge/entry allocation moves.
 
-MIR2 core and 346-entry fast pipeline are being checked separately. This
+MIR2 core passed in 135.696s; all 346 fast pipeline tests passed in four
+processes. The subsequent definition-lookup refactor has its own directed rerun. This
 experiment is not integrated or proposed as a general performance win.
 Next work needs correlated operand costs and/or edge-aware allocation
 candidates, with full boundary moves measured.

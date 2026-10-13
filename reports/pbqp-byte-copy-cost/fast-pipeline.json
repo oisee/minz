@@ -1,0 +1,12 @@
+{
+  "inventory": 693,
+  "selected": 346,
+  "shards": 4,
+  "exit_codes": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "scope": "pre-indexed-definition implementation; final lookup refactor has separate directed rerun"
+}
