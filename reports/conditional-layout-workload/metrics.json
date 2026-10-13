@@ -1,0 +1,40 @@
+{
+  "function": "is_space",
+  "goal": "speed",
+  "selected": 2,
+  "candidates": [
+    {
+      "index": 0,
+      "order": null,
+      "bytes": 4186,
+      "training_t_states": 334871
+    },
+    {
+      "index": 1,
+      "order": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "bytes": 4186,
+      "training_t_states": 334871
+    },
+    {
+      "index": 2,
+      "order": [
+        0,
+        2,
+        3,
+        4,
+        1
+      ],
+      "bytes": 4186,
+      "training_t_states": 334806
+    }
+  ],
+  "heldout_baseline_t_states": 289789,
+  "heldout_selected_t_states": 289732,
+  "evidence_sha256": "82abe10ea86db175aa1d092debb3030079a42ff7ac94063561a49bff680dd7e0"
+}
