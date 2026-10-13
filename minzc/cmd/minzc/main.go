@@ -237,6 +237,9 @@ func init() {
 	registerMemoryHostCLIFlags(rootCmd)
 	registerMemoryHostPolicyCLIFlags(rootCmd)
 	registerMemoryHostSearchCLIFlags(rootCmd)
+	rootCmd.Flags().StringVar(&hirProfileLayoutFunction, "hir-profile-layout-modes", "", "measure eight compiler modes and conditional layouts for this function with --hir-profile-auto")
+	rootCmd.Flags().StringVar(&hirProfileLayoutReplay, "hir-profile-layout-modes-replay", "", "verify saved layout-mode search and run its winner on a new workload")
+	rootCmd.Flags().IntVar(&hirProfileLayoutLimit, "hir-profile-layout-limit", 4, "maximum conditional layouts per compiler mode (1..4)")
 	rootCmd.Flags().StringVar(&hirProfileCompilerModesReplay, "hir-profile-compiler-modes-replay", "", "run saved winning compiler-mode artifact on a new workload; requires same compiler executable")
 	rootCmd.Flags().BoolVar(&hirProfileCompilerModes, "hir-profile-compiler-modes", false, "measure ContractOpt/MIR Grace modes on controlled workload; requires --hir-profile-auto")
 	rootCmd.Flags().BoolVar(&hirProfileJoint, "hir-profile-joint", false, "measure candidate combinations on full VM/Z80 workload with --hir-profile-auto")
@@ -1140,6 +1143,9 @@ func compileViaHIR(sourceFile string) error {
 			}
 			m.Target = hir.TargetFromString(target)
 			return m, nil
+		}
+		if hirProfileLayoutFunction != "" || hirProfileLayoutReplay != "" {
+			return runHIRLayoutModes(sourceFile, stdlibDir, src, factory)
 		}
 		if hirProfileCompilerModesReplay != "" {
 			return runHIRCompilerModesReplay(sourceFile, stdlibDir, src, factory)

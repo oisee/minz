@@ -129,6 +129,10 @@ func decodeHIRProfileJSON(path string, limit int64, out any) error {
 	if err != nil {
 		return err
 	}
+	return decodeHIRProfileJSONBytes(path, data, out)
+}
+
+func decodeHIRProfileJSONBytes(path string, data []byte, out any) error {
 	// Reject duplicate keys as well as unknown fields: last-key-wins is ambiguous
 	// for workload identity and measured model evidence.
 	d := json.NewDecoder(bytes.NewReader(data))
