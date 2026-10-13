@@ -78,6 +78,9 @@ var (
 
 	// Backend selection
 	generateCheckedLocalTablePath string // offline output table
+	composeCheckedLocalTablePool  string // input fragment pool for bounded composition
+	composeCheckedLocalTablePath  string // exact current output table
+	composeCheckedLocalTableLimit int
 	checkedLocalSolver            string // Z3 executable for offline generation
 	checkedLocalTableSHA256       string // optional content pin
 	checkedLocalTablePath         string // --checked-local-table: admitted leaf OptSize candidates
@@ -266,6 +269,9 @@ func init() {
 	rootCmd.Flags().BoolVar(&ctieDebug, "ctie-debug", false, "show CTIE optimization decisions and statistics")
 	rootCmd.Flags().BoolVar(&compileTrace, "compile-trace", false, "show all optimization decisions and transformations")
 	rootCmd.Flags().StringVar(&superoptRules, "superopt-rules", "", "path to z80-optimizer rules.json[.gz] for superoptimizer peephole pass")
+	rootCmd.Flags().StringVar(&composeCheckedLocalTablePool, "checked-local-fragment-pool", "", "input checked assignment pool for automatic bounded composition")
+	rootCmd.Flags().StringVar(&composeCheckedLocalTablePath, "compose-checked-local-table", "", "prepare exact current table from fragments without external solver (requires --Osize)")
+	rootCmd.Flags().IntVar(&composeCheckedLocalTableLimit, "checked-local-composition-limit", 64, "bounded pool, partition and per-partition assignment count (1..1024)")
 	rootCmd.Flags().StringVar(&generateCheckedLocalTablePath, "generate-checked-local-table", "", "generate admitted leaf register table offline (requires --Osize)")
 	rootCmd.Flags().StringVar(&checkedLocalSolver, "checked-local-solver", "z3", "Z3 executable for offline local table generation")
 	rootCmd.Flags().StringVar(&checkedLocalTableSHA256, "checked-local-table-sha256", "", "pin exact checked table JSON content (required for measured HIR profile replay)")
@@ -295,6 +301,9 @@ func main() {
 }
 
 func compile(sourceFile string) error {
+	if err := validateCheckedCompositionCLI(sourceFile); err != nil {
+		return err
+	}
 	if err := validateContractStrategyCLI(sourceFile); err != nil {
 		return err
 	}
@@ -789,6 +798,9 @@ func compileFromMIR_deprecated(mirFile string) error {
 // assembleFile assembles a .a80/.asm/.z80 file using the built-in z80asm assembler.
 // This enables a one-tool workflow: mz source.minz -> mz output.a80 -> binary
 func compileViaHIR(sourceFile string) error {
+	if err := validateCheckedCompositionCLI(sourceFile); err != nil {
+		return err
+	}
 	if err := validateContractStrategyCLI(sourceFile); err != nil {
 		return err
 	}
@@ -1101,6 +1113,9 @@ func compileViaHIR(sourceFile string) error {
 			return err
 		}
 		opts.ProfileSelection = selection
+	}
+	if composeCheckedLocalTablePath != "" {
+		return runCheckedCompositionCLI(hirMod, opts, sourceFile, stdlibDir)
 	}
 	if generateCheckedLocalTablePath != "" {
 		table, notes, err := pipeline.GenerateCheckedLocalTables(hirMod, opts, vir.SolverOptions{Z3Path: checkedLocalSolver})
