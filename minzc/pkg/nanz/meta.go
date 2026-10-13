@@ -52,9 +52,10 @@ type metaBlockNode struct {
 
 // metaRuntime manages compile-time execution of metafunctions.
 type metaRuntime struct {
-	hirMod  *hir.Module
-	emitted strings.Builder
-	vm      *mir2.VM
+	hirMod     *hir.Module
+	emitted    strings.Builder
+	structured metaHIRBuilder
+	vm         *mir2.VM
 }
 
 func newMetaRuntime(hirMod *hir.Module) *metaRuntime {
@@ -64,6 +65,7 @@ func newMetaRuntime(hirMod *hir.Module) *metaRuntime {
 // registerHosts installs all metafunction host functions on the VM.
 func (mr *metaRuntime) registerHosts(vm *mir2.VM, block []metaBlockNode) {
 	mr.vm = vm
+	mr.registerHIRHosts(vm)
 
 	// ── Emit ──────────────────────────────────────────────────────
 	vm.Hosts["emit"] = func(args []mir2.Value) ([]mir2.Value, error) {
