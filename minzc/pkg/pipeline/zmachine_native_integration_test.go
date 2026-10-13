@@ -188,6 +188,22 @@ func TestZMachineBankedZork128LateSaveWalkthroughNative(t *testing.T) {
 	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-late-save")
 }
 
+func TestZMachineBankedZorkII128RobotNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set Zork II story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-robot")
+}
+
+func TestZMachineBankedZorkII128CakesNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set Zork II story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-cakes")
+}
+
 func TestZMachineBankedZorkII128WellNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
 	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
@@ -281,7 +297,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	zorkIIWell := commands == "@console-zork2-well"
+	zorkIIRobot := commands == "@console-zork2-robot"
+	zorkIICakes := commands == "@console-zork2-cakes" || zorkIIRobot
+	zorkIIWell := commands == "@console-zork2-well" || zorkIICakes
 	zorkIIRiddle := commands == "@console-zork2-riddle" || zorkIIWell
 	zorkIIGarden := commands == "@console-zork2-garden" || zorkIIRiddle
 	if zorkIIGarden {
@@ -575,6 +593,12 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if zorkIIWell {
 				routeFile = "zork2-well.txt"
 			}
+			if zorkIICakes {
+				routeFile = "zork2-cakes.txt"
+			}
+			if zorkIIRobot {
+				routeFile = "zork2-robot.txt"
+			}
 			route, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", routeFile))
 			if err != nil {
 				t.Fatal(err)
@@ -731,6 +755,12 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if zorkIIWell {
 				wants = []string{"The bucket rises and comes to a stop.", "Tea Room", "A pearl necklace\n  A newspaper\n  A matchbook\n  A letter opener\n  A place mat\n  A china teapot\n  A elvish sword\n  A lamp (providing light)", "Your score would be 30 (total of 400 points), in 36 moves."}
 			}
+			if zorkIICakes {
+				wants = []string{"Suddenly, the room appears to have become very large", "Most of the pool evaporates", "The room around you seems to be getting smaller.", "You are carrying:\n  A package of candy\n  A pearl necklace\n  A lamp (providing light)", "Your score would be 45 (total of 400 points), in 44 moves."}
+			}
+			if zorkIIRobot {
+				wants = []string{"The cage shakes and is hurled across the room.", "You are carrying:\n  A red crystal sphere\n  A package of candy\n  A pearl necklace\n  A lamp (providing light)", "Your score would be 65 (total of 400 points), in 56 moves.", "Low Room"}
+			}
 			for _, want := range wants {
 				if !bytes.Contains(output, []byte(want)) {
 					t.Fatalf("Frotz garden checkpoint missing %q", want)
@@ -813,6 +843,11 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 				if !found && keyText[keyAt] == '"' {
 					m.Keyboard.KeyPress(spectrum.KeySym.Row, spectrum.KeySym.Bit)
 					m.Keyboard.KeyPress(spectrum.KeyP.Row, spectrum.KeyP.Bit)
+					found = true
+				}
+				if !found && keyText[keyAt] == ',' {
+					m.Keyboard.KeyPress(spectrum.KeySym.Row, spectrum.KeySym.Bit)
+					m.Keyboard.KeyPress(spectrum.KeyN.Row, spectrum.KeyN.Bit)
 					found = true
 				}
 				if !found {
@@ -914,6 +949,12 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			}
 			if zorkIIWell {
 				phrases = []string{"The bucket rises and comes to a stop.", "Tea Room", "A pearl necklace\n  A newspaper\n  A matchbook\n  A letter opener\n  A place mat\n  A china teapot\n  A elvish sword\n  A lamp (providing light)", "Your score would be 30 (total of 400 points), in 36 moves."}
+			}
+			if zorkIICakes {
+				phrases = []string{"Suddenly, the room appears to have become very large", "Most of the pool evaporates", "The room around you seems to be getting smaller.", "You are carrying:\n  A package of candy\n  A pearl necklace\n  A lamp (providing light)", "Your score would be 45 (total of 400 points), in 44 moves."}
+			}
+			if zorkIIRobot {
+				phrases = []string{"The cage shakes and is hurled across the room.", "You are carrying:\n  A red crystal sphere\n  A package of candy\n  A pearl necklace\n  A lamp (providing light)", "Your score would be 65 (total of 400 points), in 56 moves.", "Low Room"}
 			}
 			for _, phrase := range phrases {
 				if !bytes.Contains(rendered, []byte(phrase)) {
