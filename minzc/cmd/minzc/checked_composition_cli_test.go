@@ -184,3 +184,42 @@ func TestCheckedCompositionCLIRealPrepareReplay(t *testing.T) {
 	}
 	t.Log("CLI prepared current exact table from one fragment; ordinary pipeline selected checked-local-table")
 }
+
+func TestCheckedCompositionCLIImportedSourceAlias(t *testing.T) {
+	checkedCompositionCLIState(t)
+	d := t.TempDir()
+	source, imported := filepath.Join(d, "source.nanz"), filepath.Join(d, "helper.nanz")
+	content := []byte("fun helper(x:u8)->u8{return x+5}")
+	if err := os.WriteFile(imported, content, 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(source, []byte("import helper\nfun main(x:u8)->u8{return helper(x)}"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	composeCheckedLocalTablePool = filepath.Join(d, "pool.json")
+	if err := os.WriteFile(composeCheckedLocalTablePool, []byte("[]"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	for _, kind := range []string{"direct", "hardlink", "symlink"} {
+		composeCheckedLocalTablePath = imported
+		if kind != "direct" {
+			composeCheckedLocalTablePath = filepath.Join(d, kind+".json")
+			var err error
+			if kind == "hardlink" {
+				err = os.Link(imported, composeCheckedLocalTablePath)
+			} else {
+				err = os.Symlink(imported, composeCheckedLocalTablePath)
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+		if err := compile(source); err == nil {
+			t.Fatal("imported source alias accepted", kind)
+		}
+		got, err := os.ReadFile(imported)
+		if err != nil || string(got) != string(content) {
+			t.Fatal("import changed", kind, err)
+		}
+	}
+}

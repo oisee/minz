@@ -1115,7 +1115,7 @@ func compileViaHIR(sourceFile string) error {
 		opts.ProfileSelection = selection
 	}
 	if composeCheckedLocalTablePath != "" {
-		return runCheckedCompositionCLI(hirMod, opts)
+		return runCheckedCompositionCLI(hirMod, opts, sourceFile, stdlibDir)
 	}
 	if generateCheckedLocalTablePath != "" {
 		table, notes, err := pipeline.GenerateCheckedLocalTables(hirMod, opts, vir.SolverOptions{Z3Path: checkedLocalSolver})

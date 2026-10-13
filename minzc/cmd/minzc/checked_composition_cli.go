@@ -44,7 +44,29 @@ func validateCheckedCompositionCLI(source string) error {
 	return nil
 }
 
-func runCheckedCompositionCLI(h *hir.Module, opts pipeline.Options) error {
+func runCheckedCompositionCLI(h *hir.Module, opts pipeline.Options, source, stdlibDir string) error {
+	if !h.SourceUnitsComplete {
+		return fmt.Errorf("checked composition: incomplete source dependency inventory")
+	}
+	dependencies, err := resolveCompilerModeSources(source, stdlibDir, h.SourceUnits)
+	if err != nil {
+		return err
+	}
+	output, err := canonicalMemoryHostCLIPath(composeCheckedLocalTablePath)
+	if err != nil {
+		return err
+	}
+	for _, path := range dependencies {
+		input, e := canonicalMemoryHostCLIPath(path)
+		if e != nil {
+			return e
+		}
+		a, ae := os.Stat(path)
+		b, be := os.Stat(composeCheckedLocalTablePath)
+		if output == input || ae == nil && be == nil && os.SameFile(a, b) {
+			return fmt.Errorf("checked composition output aliases imported source")
+		}
+	}
 	var pool vir.RegAllocTable
 	pool.Init()
 	if err := pool.Load(composeCheckedLocalTablePool); err != nil {
