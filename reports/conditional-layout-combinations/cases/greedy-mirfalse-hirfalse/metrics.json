@@ -1,0 +1,9 @@
+{
+  "baseline_bytes": 4186,
+  "heldout_baseline": 289789,
+  "heldout_selected": 289732,
+  "selected": 2,
+  "selected_bytes": 4186,
+  "training_baseline": 334871,
+  "training_selected": 334806
+}

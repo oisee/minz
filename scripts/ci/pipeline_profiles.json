@@ -370,6 +370,7 @@
   "deep": [
     "TestByteWordFusionAudit",
     "TestC89ExpressionEffectsNative",
+    "TestConditionalLayoutTokenizerCompilerCombinations",
     "TestConditionalLayoutTokenizerHeldout",
     "TestFATDirectoryWriteNativeState",
     "TestFATPackedFrozenNative",
