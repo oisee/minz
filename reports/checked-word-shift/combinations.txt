@@ -1,0 +1,52 @@
+=== RUN   TestCheckedWordShiftComposedNative
+    checked_word_shift_test.go:104: strategy=greedy grace=false
+    checked_word_shift_test.go:105: raw candidate shift1: 25 T; all65536 PASS
+    checked_word_shift_test.go:106: shift1 all65536: 4 -> 3 bytes, 29 -> 25 T; backend=checked-local-table
+    checked_word_shift_test.go:104: strategy=greedy grace=false
+    checked_word_shift_test.go:105: raw candidate shift4: 58 T; all65536 PASS
+    checked_word_shift_test.go:106: shift4 all65536: 7 -> 6 bytes, 62 -> 58 T; backend=checked-local-table
+    checked_word_shift_test.go:104: strategy=greedy grace=false
+    checked_word_shift_test.go:105: raw candidate shift8: 102 T; all65536 PASS
+    checked_word_shift_test.go:106: shift8 all65536: 6 -> 6 bytes, 29 -> 29 T; backend=PBQP
+    checked_word_shift_test.go:104: strategy=greedy grace=false
+    checked_word_shift_test.go:105: raw candidate shift15: 179 T; all65536 PASS
+    checked_word_shift_test.go:106: shift15 all65536: 18 -> 17 bytes, 183 -> 179 T; backend=checked-local-table
+    checked_word_shift_test.go:104: strategy=greedy grace=true
+    checked_word_shift_test.go:105: raw candidate shift1: 25 T; all65536 PASS
+    checked_word_shift_test.go:106: shift1 all65536: 4 -> 3 bytes, 29 -> 25 T; backend=checked-local-table
+    checked_word_shift_test.go:104: strategy=greedy grace=true
+    checked_word_shift_test.go:105: raw candidate shift4: 58 T; all65536 PASS
+    checked_word_shift_test.go:106: shift4 all65536: 7 -> 6 bytes, 62 -> 58 T; backend=checked-local-table
+    checked_word_shift_test.go:104: strategy=greedy grace=true
+    checked_word_shift_test.go:105: raw candidate shift8: 102 T; all65536 PASS
+    checked_word_shift_test.go:106: shift8 all65536: 6 -> 6 bytes, 29 -> 29 T; backend=PBQP
+    checked_word_shift_test.go:104: strategy=greedy grace=true
+    checked_word_shift_test.go:105: raw candidate shift15: 179 T; all65536 PASS
+    checked_word_shift_test.go:106: shift15 all65536: 18 -> 17 bytes, 183 -> 179 T; backend=checked-local-table
+    checked_word_shift_test.go:104: strategy=pbqp grace=false
+    checked_word_shift_test.go:105: raw candidate shift1: 25 T; all65536 PASS
+    checked_word_shift_test.go:106: shift1 all65536: 4 -> 3 bytes, 29 -> 25 T; backend=checked-local-table
+    checked_word_shift_test.go:104: strategy=pbqp grace=false
+    checked_word_shift_test.go:105: raw candidate shift4: 58 T; all65536 PASS
+    checked_word_shift_test.go:106: shift4 all65536: 7 -> 6 bytes, 62 -> 58 T; backend=checked-local-table
+    checked_word_shift_test.go:104: strategy=pbqp grace=false
+    checked_word_shift_test.go:105: raw candidate shift8: 102 T; all65536 PASS
+    checked_word_shift_test.go:106: shift8 all65536: 6 -> 6 bytes, 29 -> 29 T; backend=PBQP
+    checked_word_shift_test.go:104: strategy=pbqp grace=false
+    checked_word_shift_test.go:105: raw candidate shift15: 179 T; all65536 PASS
+    checked_word_shift_test.go:106: shift15 all65536: 18 -> 17 bytes, 183 -> 179 T; backend=checked-local-table
+    checked_word_shift_test.go:104: strategy=pbqp grace=true
+    checked_word_shift_test.go:105: raw candidate shift1: 25 T; all65536 PASS
+    checked_word_shift_test.go:106: shift1 all65536: 4 -> 3 bytes, 29 -> 25 T; backend=checked-local-table
+    checked_word_shift_test.go:104: strategy=pbqp grace=true
+    checked_word_shift_test.go:105: raw candidate shift4: 58 T; all65536 PASS
+    checked_word_shift_test.go:106: shift4 all65536: 7 -> 6 bytes, 62 -> 58 T; backend=checked-local-table
+    checked_word_shift_test.go:104: strategy=pbqp grace=true
+    checked_word_shift_test.go:105: raw candidate shift8: 102 T; all65536 PASS
+    checked_word_shift_test.go:106: shift8 all65536: 6 -> 6 bytes, 29 -> 29 T; backend=PBQP
+    checked_word_shift_test.go:104: strategy=pbqp grace=true
+    checked_word_shift_test.go:105: raw candidate shift15: 179 T; all65536 PASS
+    checked_word_shift_test.go:106: shift15 all65536: 18 -> 17 bytes, 183 -> 179 T; backend=checked-local-table
+--- PASS: TestCheckedWordShiftComposedNative (1.19s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.208s

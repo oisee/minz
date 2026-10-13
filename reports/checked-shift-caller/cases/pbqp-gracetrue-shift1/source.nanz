@@ -1,0 +1,2 @@
+fun shifted(x:u16)->u16{return x << 1}
+fun shift_caller(x:u16)->u16{return shifted(x)+x}
