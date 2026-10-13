@@ -1692,3 +1692,20 @@ Native/VM transcript pair каждого режима сохранён с отд
 CZECH не покрывает весь V3 I/O и полное прохождение игр: windows/status имеют
 independent Inform pixel tests, keyboard/SAVE/RESTART — игровые lifecycle tests.
 Цель остаётся active до итоговой проверки совокупного поведения и deliverables.
+
+### 13 октября: глубокий128K lifecycle со status/windows
+
+`TestZMachineBankedZork128WindowsCellarLifecycleNative` дополняет короткий
+mailbox маршрут.208 клавиш проходят actual Spectrum keyboard matrix/editor:
+через Kitchen/Living Room берутся sword/lamp, включается свет, открывается
+trap door, переход в Cellar, SAVE, drop sword/inventory/RESTORE/inventory,
+drop lamp/RESTORE/inventory, RESTART/y/look/inventory/quit. Оба RESTORE
+независимо возвращают sword и lit lantern; RESTART возвращает West of House
+и empty-handed, сохраняя screen capabilities.
+
+PASS16.179 s.3160 bytes игрового output byte-exact original VM, save779 B
+в пределах ordinary128K RAM slot2204 B. Static story и immutable restart
+archive byte-exact после lifecycle. PC/SP/paging/IFF и stack reservation
+проверены; peak native stack70 B. Этот маршрут не является полным прохождением,
+но покрывает больше изменяемого состояния, чем mailbox checkpoint. Стандартная
+128K сборка на шаре сохраняется; Scorpion disk вариант остаётся отдельно.

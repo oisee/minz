@@ -90,6 +90,14 @@ func TestZMachineBankedZorkCellarSaveRestoreNative(t *testing.T) {
 	testZMachineBankedInterpreterNative(t, false, path, "@console-cellar-save")
 }
 
+func TestZMachineBankedZork128WindowsCellarLifecycleNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set MINZ_Z3_STORY and MINZ_Z3_VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-cellar")
+}
+
 // A separately built full V3 story, not the Zork I workload used earlier.
 func TestZMachineBankedZorkIIGameplayNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
@@ -151,9 +159,13 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	windows := commands == "@console-windows-save"
+	windowCellar := commands == "@console-windows-cellar"
+	windows := commands == "@console-windows-save" || windowCellar
 	if windows {
 		commands = "@console-save"
+		if windowCellar {
+			commands = "@console-cellar-save"
+		}
 	}
 	combinedLifecycle := commands == "@console-zork2-compressed-save-restart"
 	compressedSave := commands == "@console-zork2-compressed-save" || combinedLifecycle
@@ -332,6 +344,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 		}
 		if cellarSave {
 			route = []byte("north\neast\nopen window\nenter window\nwest\ntake lamp\ntake sword\nturn on lamp\nmove rug\nopen trap door\ndown\nsave\ndrop sword\ninventory\nrestore\ninventory\ndrop lamp\nrestore\ninventory\nquit\ny\n")
+		}
+		if windowCellar {
+			route = bytes.Replace(route, []byte("quit\ny\n"), []byte("restart\ny\nlook\ninventory\nquit\ny\n"), 1)
 		}
 		d := t.TempDir()
 		source, err := os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/zvm.nanz"))
@@ -526,6 +541,26 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 					t.Fatal("missing or oversized native save", observedSaveLengths)
 				}
 				t.Logf("cellar native save %d bytes; both inventory restores independently checked", observedSaveLengths[0])
+			}
+			if windowCellar {
+				if !bytes.Contains(rendered, []byte("You are empty-handed.")) || bytes.Count(rendered, []byte("West of House")) < 2 {
+					t.Fatal("restart did not reset world")
+				}
+				dynamic := int(story[14])<<8 | int(story[15])
+				for at := dynamic; at < len(story); at++ {
+					if m.Memory.RAM[pages[at/16384]][at%16384] != story[at] {
+						t.Fatalf("static story changed at %d", at)
+					}
+				}
+				for offset, b := range restartArchive {
+					at := len(story) + offset
+					if m.Memory.RAM[pages[at/16384]][at%16384] != b {
+						t.Fatalf("restart archive changed at %d", at)
+					}
+				}
+				if m.Memory.RAM[0][1]&48 != 32 {
+					t.Fatal("restart lost UI capability")
+				}
 			}
 			if compressedSave {
 				if !bytes.Contains(rendered, []byte("You are carrying:\n  A lamp (providing light)\n")) || !bytes.Contains(rendered, []byte("You are carrying:\n  A elvish sword\n  A lamp (providing light)")) {
