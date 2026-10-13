@@ -50,7 +50,9 @@ func TestCheckedCompositionMoveBridgeNative(t *testing.T) {
 			boot := []byte{0x21, byte(flags), 0x55, 0xe5, 0xf1, 0x01, 0x12, 0x34, 0x11, 0x56, 0x78, 0xcd, 16, 0x80, 0xf3, 0x76}
 			z := emulator.NewRemogattoZ80()
 			z.MaxCycles = 1000
-			z.LoadMemory(0x8000, append(boot, bin.Binary...))
+			if err := z.LoadMemory(0x8000, append(boot, bin.Binary...)); err != nil {
+				t.Fatal(err)
+			}
 			z.SetPC(0x8000)
 			z.SetSP(0xf000)
 			if err := z.Run(); err != nil {
@@ -117,7 +119,9 @@ func TestCheckedCompositionWordMoveBridgeNative(t *testing.T) {
 				boot := []byte{0x21, byte(flags), 0x55, 0xe5, 0xf1, 0xcd, 10, 0x80, 0xf3, 0x76}
 				z := emulator.NewRemogattoZ80()
 				z.MaxCycles = 1000
-				z.LoadMemory(0x8000, append(boot, bin.Binary...))
+				if err := z.LoadMemory(0x8000, append(boot, bin.Binary...)); err != nil {
+					t.Fatal(err)
+				}
 				z.SetPC(0x8000)
 				z.SetSP(0xf000)
 				if err := z.Run(); err != nil {
