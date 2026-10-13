@@ -1,0 +1,29 @@
+{
+  "total": 698,
+  "selected": 351,
+  "profile": "fast",
+  "manifest_sha256": "8c99cf513a2bd5cd34d9effb155463922c77cdb5ce41e2df995640c2cbb62a74",
+  "build_commit": "dcf7cde4c9d17d74b1597a16df4dba9a04fc0ec5",
+  "statuses": [
+    {
+      "shard": 1,
+      "exit_code": 0,
+      "log": "/tmp/composition-move-final-fast/shard-1.log"
+    },
+    {
+      "shard": 2,
+      "exit_code": 0,
+      "log": "/tmp/composition-move-final-fast/shard-2.log"
+    },
+    {
+      "shard": 3,
+      "exit_code": 0,
+      "log": "/tmp/composition-move-final-fast/shard-3.log"
+    },
+    {
+      "shard": 4,
+      "exit_code": 0,
+      "log": "/tmp/composition-move-final-fast/shard-4.log"
+    }
+  ]
+}

@@ -32,6 +32,8 @@
     "TestCheckedActualWordMultiplication",
     "TestCheckedBranchCorpusLeafNativeAllByteInputs",
     "TestCheckedCompositionHeldoutOperationsNative",
+    "TestCheckedCompositionMoveBridgePipelineNative",
+    "TestCheckedCompositionMoveBridgeWeightedCaller",
     "TestCheckedCompositionOrdinaryNative",
     "TestCheckedCompositionWeightedNativeCaller",
     "TestCheckedExactBindingMissAndRevalidatedTransfer",

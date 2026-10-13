@@ -1,0 +1,25 @@
+=== RUN   TestCompositionDomainPropagationPreservesAllSolutions
+    composition_domains_test.go:57: 343 finite domain configurations: complete solution sets preserved
+--- PASS: TestCompositionDomainPropagationPreservesAllSolutions (0.00s)
+=== RUN   TestCompositionDomainPropagationPrunesAndOwnsSlices
+--- PASS: TestCompositionDomainPropagationPrunesAndOwnsSlices (0.00s)
+=== RUN   TestCompositionDomainRejectsEmptyAndNonadjacentConflict
+--- PASS: TestCompositionDomainRejectsEmptyAndNonadjacentConflict (0.00s)
+=== RUN   TestCompositionArcConsistencyDoesNotClaimGlobalSolution
+--- PASS: TestCompositionArcConsistencyDoesNotClaimGlobalSolution (0.00s)
+=== RUN   TestCheckedCompositionMoveBridgeNative
+    composition_moves_test.go:73: C -> A existing move: 21 admitted T-states; 256 complete flags bytes, register halves and PC/SP PASS
+    composition_moves_test.go:73: D -> A existing move: 21 admitted T-states; 256 complete flags bytes, register halves and PC/SP PASS
+    composition_moves_test.go:73: E -> A existing move: 21 admitted T-states; 256 complete flags bytes, register halves and PC/SP PASS
+--- PASS: TestCheckedCompositionMoveBridgeNative (0.03s)
+=== RUN   TestCompositionRenamedHashProposal
+    composition_probe_test.go:13: set COMPOSITION_EXPORT
+--- SKIP: TestCompositionRenamedHashProposal (0.00s)
+=== RUN   TestCheckedCompositionRevalidatesWholeFunction
+--- PASS: TestCheckedCompositionRevalidatesWholeFunction (0.01s)
+=== RUN   TestCheckedCompositionRejectsCrossBoundaryLiveClobber
+--- PASS: TestCheckedCompositionRejectsCrossBoundaryLiveClobber (0.00s)
+=== RUN   TestCheckedCompositionPropagationFitsBoundedSearch
+--- PASS: TestCheckedCompositionPropagationFitsBoundedSearch (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.061s

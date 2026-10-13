@@ -1,0 +1,10 @@
+=== RUN   TestCheckedCompositionMoveBridgeNative
+    composition_moves_test.go:73: C -> A existing move: 21 admitted T-states; 256 complete flags bytes, register halves and PC/SP PASS
+    composition_moves_test.go:73: D -> A existing move: 21 admitted T-states; 256 complete flags bytes, register halves and PC/SP PASS
+    composition_moves_test.go:73: E -> A existing move: 21 admitted T-states; 256 complete flags bytes, register halves and PC/SP PASS
+--- PASS: TestCheckedCompositionMoveBridgeNative (0.04s)
+=== RUN   TestCheckedCompositionWordMoveBridgeNative
+    composition_moves_test.go:133: 4096 word-move native checks: BC/DE/IX/IY to HL, boundary words, complete flags and PC/SP PASS
+--- PASS: TestCheckedCompositionWordMoveBridgeNative (0.17s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.221s
