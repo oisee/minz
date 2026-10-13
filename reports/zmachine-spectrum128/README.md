@@ -497,3 +497,24 @@ header: three real saves measure 485/652/779 bytes and roundtrip exactly. Six
 reference tests reject corruption, truncation, foreign records, capacity overflow
 and invalid state. This advances the save format; it does not enable native SAVE.
 See [layout and remaining integration work](save-format-plan.md).
+
+
+## Native bounded RLE encoder
+
+`stdlib/zx/rle.nanz` now packs resident bytes directly into a single bank window.
+The Z80 output matches the host greedy literal/repeat encoding byte-for-byte.
+It returns 65535 on capacity exhaustion and never writes outside the supplied
+capacity; a failed attempt may overwrite a partial record inside the slot.
+The SAVE caller must invalidate the slot before writing and publish validity
+only after successful payload/header completion. Previous save retention on
+failed overwrite is not promised by this primitive.
+
+2496 native cases PASS in 17.27 seconds: all six data banks, zero/exact/short/spare
+capacity, output at bank start/end, literal/repeat boundaries 128/130, and mixed
+patterns through 1024 bytes. Every physical RAM byte outside output, three
+resident scratch bytes and bounded stack remains unchanged; PC/SP, paging and
+IFF verified. Input/code/stack/scratch must remain below C000; IRQ disabled and
+no reentry. Source/offset/bank bounds are trusted caller preconditions.
+This separate module is not yet imported into the desktop checkpoint; native
+SAVE still needs state serialization, bank0 XOR streaming, integrity/header
+validation, and applying restored state.
