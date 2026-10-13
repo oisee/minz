@@ -359,6 +359,12 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.genSext(inst)
 
 	case OpTrunc:
+		if inst.SrcTy != nil && isZ80WideInt(inst.SrcTy) && inst.Ty.Width() == 16 {
+			// Wide integers carry their low word in the main pair. Preserve
+			// both bytes, including overlapping allocated destinations.
+			g.genUnsignedExtBytes(dst, g.loc(inst.Src[0]), 16, 16)
+			break
+		}
 		if g.loc(inst.Src[0]) == "F" || inst.Src[0] == g.pendingFlagReg {
 			// A predicate has no byte register to copy. Its truncation keeps
 			// the canonical 0/1 value and uses the same live-safe materializer

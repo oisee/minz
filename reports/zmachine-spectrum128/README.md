@@ -82,3 +82,24 @@ step4571, print_text2005, restore_state1274. Largest globals: snapshot9018,
 stack_words4096, local_words4096. native-size-map.json contains all regions;
 run from minzc: go run ../scripts/zmachine/native_size_map.go input.a80.
 Origin0 is for measurement only, not a runnable Spectrum layout.
+
+
+## Logical story reader and backend correction
+
+stdlib/zx/story_memory.nanz adds a raw logical reader for six 16K pages in
+RAM banks 0, 1, 3, 4, 6, 7. This is a pre-compression foundation, not the final
+resident-state placement. Callers validate bounds, disable IRQ, keep
+code/globals/native stack below $C000 and provide unlocked paging state.
+Bytes and Z-machine big-endian words retain logical addresses beyond 64 KB.
+
+TestZXStoryLogicalMemoryNative checks 220 cases: byte/word reads at each bank
+boundary, 255/256, 65535/65536, near the 86928-byte candidate end and 98304-byte
+capacity. Independent expectations come from physical bank RAM. Native PC/SP,
+IFF, paging restoration and all story-bank contents are checked. The generated
+module occupies 859 bytes; this does not prove a complete interpreter runs.
+
+The test exposed a real Z80 narrowing error: u32 → u16 used the byte-truncation
+path, zeroing the upper byte of the low word. The backend now copies the entire
+low word through overlap-safe byte staging. The boundary read failed before
+this correction and passes after it. The reader still needs connection to the
+interpreter and extension/replacement for compressed storage.

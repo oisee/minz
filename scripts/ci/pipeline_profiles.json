@@ -332,6 +332,7 @@
     "TestZSQLZXEmbeddedReadlineCapacity",
     "TestZSQLZXRealReadlineCapacity",
     "TestZXBankedMemoryNative",
+    "TestZXStoryLogicalMemoryNative",
     "TestZXHalfCellRotozoomerFullMachine",
     "TestZXHalfCellRotozoomerLibraryFullMachine"
   ],
