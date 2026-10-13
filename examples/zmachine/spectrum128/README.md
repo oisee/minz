@@ -169,3 +169,34 @@ Native full candidate Zork startup now passes: banner, initial room, mailbox and
 not implemented). The module is 24037 bytes. A backend 16-bit NEG operand fix
 was verified across all 65536 inputs and 36 source/result placements. See the
 chronological audit for candidate story identity and remaining release gates.
+
+
+## Запускаемый checkpoint Spectrum 128K
+
+Собрать из самостоятельно предоставленной Z3 story (до 98304 байт):
+
+```sh
+cd minzc
+go run ../scripts/zmachine/build_spectrum128.go /path/to/zork1.z3 /path/to/output
+# Графический эмулятор:
+mzx --model 128k --snapshot /path/to/output/zork-spectrum128.sna
+```
+
+В комплекте SNA, исходник Nanz, ASM, BIN и build.json с SHA256 story.
+Консоль использует ROM-шрифт по $3D00 и опрос матрицы клавиатуры; прерывания
+выключены. Короткая сессия LOOK/OPEN/TAKE/READ/INVENTORY/QUIT проверена после
+повторной загрузки snapshot: 61 клавиша, максимум 66 байт нативного стека на
+этом маршруте. Это не верхняя граница всей игры. Save/restore/restart внутри
+игры пока не поддерживаются; готовность полной игры не заявляется.
+
+Без графической среды:
+
+```sh
+go build -tags mzx_headless -o /tmp/mzx-headless ./cmd/mzx
+/tmp/mzx-headless --model 128k --snapshot /path/to/output/zork-spectrum128.sna \
+  --frames 4700 --screenshot /path/to/output/startup.png --no-border
+```
+
+Startup с полной проверкой checksum занимает около 325 миллионов тактов; на
+обычной скорости это примерно 93 секунды, поэтому пустой экран в начале ещё
+не означает зависание. Оптимизация загрузки/проверки остаётся отдельной задачей.

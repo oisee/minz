@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/spectrum"
+	"github.com/minz/minzc/pkg/spectrum/formats"
 	"github.com/minz/minzc/pkg/z80asm"
 	"os"
 	"os/exec"
@@ -41,6 +42,13 @@ func TestZMachineBankedZorkConsoleNative(t *testing.T) {
 	}
 	testZMachineBankedInterpreterNative(t, false, path, "@console-startup")
 }
+func TestZMachineBankedZorkKeyboardNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_STORY")
+	if path == "" {
+		t.Skip("set MINZ_Z3_STORY")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-keyboard")
+}
 func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, externalStory string, commands string) {
 	root := filepath.Clean("../../..")
 	story, err := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/stream3.z3"))
@@ -66,7 +74,8 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	console := commands == "@console-startup"
+	keyboard := commands == "@console-keyboard"
+	console := commands == "@console-startup" || keyboard
 	if console {
 		commands = ""
 		cmd.Args = append(cmd.Args, "--console")
@@ -134,15 +143,89 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	m.CPU.SetIFF1(false)
 	m.CPU.SetIFF2(false)
 	m.CPU.SetTstates(0)
+	if keyboard {
+		snapshot := filepath.Join(t.TempDir(), "keyboard.sna")
+		if err := formats.SaveSNA(snapshot, m); err != nil {
+			t.Fatal(err)
+		}
+		saved, err := formats.LoadSNA(snapshot)
+		if err != nil {
+			t.Fatal(err)
+		}
+		fresh, err := spectrum.NewPentagon128(nil, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		fresh.Memory.ROM = m.Memory.ROM
+		formats.ApplySnapshot(fresh, saved)
+		if fresh.Memory.RAM != m.Memory.RAM || fresh.CPU.PC() != m.CPU.PC() || fresh.CPU.SP() != m.CPU.SP() {
+			t.Fatal("snapshot before keyboard differs")
+		}
+		m = fresh
+	}
+	keyText := []byte("look\ropen mailbox\rtake leaflet\rread leaflet\rinventory\rquit\ry\r")
+	keys := []byte{0, 'z', 'x', 'c', 'v', 'a', 's', 'd', 'f', 'g', 'q', 'w', 'e', 'r', 't', '1', '2', '3', '4', '5', '0', '9', '8', '7', '6', 'p', 'o', 'i', 'u', 'y', 13, 'l', 'k', 'j', 'h', 32, 0, 'm', 'n', 'b'}
+	keyAt := 0
+	ready := false
+	minSP := uint16(0xbf00)
+	var rendered []byte
+
 	for i := 0; i < 100000000; i++ {
-		if console && m.CPU.PC() == uint16(a.Symbols["tui_read_line_or_eof"]) {
+		if console && !keyboard && m.CPU.PC() == uint16(a.Symbols["tui_read_line_or_eof"]) {
 			break
 		}
 		if m.CPU.PC() == 0x5000 && m.CPU.SP() == 0xbf02 {
 			break
 		}
+		if keyboard {
+			if m.CPU.PC() == uint16(a.Symbols["native_putchar"]) {
+				rendered = append(rendered, byte(m.CPU.AF()>>8))
+			}
+			if m.CPU.PC() == uint16(a.Symbols["zx__console__con_getchar"]) {
+				m.Keyboard.Reset()
+				ready = true
+			}
+			if ready && m.CPU.PC() == uint16(a.Symbols["zx__console__scan_row_key"]) {
+				if keyAt == len(keyText) {
+					t.Fatal("unexpected additional keyboard input")
+				}
+				found := false
+				for idx, ch := range keys {
+					if ch == keyText[keyAt] {
+						m.Keyboard.KeyPress(idx/5, idx%5)
+						found = true
+						break
+					}
+				}
+				if !found {
+					t.Fatalf("unmapped key %q", keyText[keyAt])
+				}
+				keyAt++
+				ready = false
+			}
+		}
 		m.CPU.DoOpcode()
+		if m.CPU.SP() < minSP {
+			minSP = m.CPU.SP()
+		}
+
 	}
+	if keyboard {
+		if m.CPU.PC() != 0x5000 || m.CPU.SP() != 0xbf02 || keyAt != len(keyText) || m.Memory.PagingState() != 0x10 || m.CPU.IFF1() || minSP < 0xbe00 {
+			t.Fatalf("keyboard keys%d/%d PC/SP%04x/%04x minSP%04x", keyAt, len(keyText), m.CPU.PC(), m.CPU.SP(), minSP)
+		}
+		for _, phrase := range []string{"Opening the small mailbox reveals a leaflet.", "ZORK is a game of adventure, danger, and low cunning.", "You are carrying:\n  A leaflet", "Your score is 0 (total of 350 points), in 5 moves."} {
+			if !bytes.Contains(rendered, []byte(phrase)) {
+				t.Fatalf("keyboard missing%q output%q", phrase, rendered)
+			}
+		}
+		if bytes.Contains(rendered, []byte("Z3 error")) {
+			t.Fatalf("keyboard error%q", rendered)
+		}
+		t.Logf("keyboard %d keys; %d bytes; %d T; native stack %d bytes", keyAt, len(a.Binary), m.CPU.Tstates(), 0xbf00-int(minSP))
+		return
+	}
+
 	if console {
 		if m.CPU.PC() != uint16(a.Symbols["tui_read_line_or_eof"]) {
 			t.Fatalf("console did not reach input PC%04x", m.CPU.PC())

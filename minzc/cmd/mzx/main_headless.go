@@ -63,8 +63,23 @@ func main() {
 			}
 		}
 		machine, err = spectrum.New48K(romData)
+	case "128k", "pentagon":
+		romData := embedded48ROM
+		if *romFlag != "" {
+			romData, err = os.ReadFile(*romFlag)
+			if err != nil {
+				log.Fatalf("ROM: %v", err)
+			}
+		}
+		// Match the graphical CLI's fallback: the 48K ROM supplies font
+		// data in both slots unless a 32K ROM image is supplied.
+		rom0, rom1 := romData, romData
+		if len(romData) == 32768 {
+			rom0, rom1 = romData[:16384], romData[16384:]
+		}
+		machine, err = spectrum.NewPentagon128(rom0, rom1)
 	default:
-		log.Fatalf("headless mode only supports 48k model (got %s)", *modelFlag)
+		log.Fatalf("unknown machine model %s (48k, 128k, pentagon)", *modelFlag)
 	}
 	if err != nil {
 		log.Fatalf("Machine init: %v", err)

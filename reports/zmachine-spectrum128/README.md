@@ -323,3 +323,27 @@ confused with the separate countdown iterator range path. Earlier suspicion of
 an indexing bug was disproved by the native check.
 
 Combined console budget/scroll and native Z3 fixture/Zork gates: PASS (24.376 s).
+
+
+## Keyboard matrix and runnable snapshot checkpoint
+
+Keyboard-native gate feeds 61 keypresses through physical matrix state; no input
+helper is replaced. Actual scanner, release waiting, line editing/echo and the
+Zork parser execute on Z80. The short gameplay route passes after SNA reload,
+with maximum 66 bytes of native stack, 24860-byte resident and 626644117 T for
+startup plus session. Font oracle is synthetic; a separate headless snapshot run
+uses embedded ROM font data. Full game stack bounds remain unproven.
+
+The standalone builder emits a 128K SNA, Nanz source, ASM, BIN and provenance JSON;
+all eight physical banks and PC/SP/paging are compared after snapshot reload.
+Returned main parks in DI/HALT in fixed RAM. The story is separately supplied
+and its SHA256 recorded; no implicit download. Save/restore/restart remain
+unsupported. Headless mzx now accepts 128k/pentagon, with the graphical CLI's
+48K ROM-in-both-slots fallback or a supplied 32K ROM image.
+
+Snapshot builder and headless 128K run passed: the built 131103-byte SNA renders
+Zork startup with embedded ROM font after 4700 frames. Screenshot is retained
+with source/ASM/BIN/build identity. Combined native gates PASS 31.911 s; Spectrum
+and snapshot-format packages PASS. Startup currently costs about 93 seconds at
+3.5 MHz due to the per-byte wide bank reader in checksum; optimize this before
+claiming a polished showcase.
