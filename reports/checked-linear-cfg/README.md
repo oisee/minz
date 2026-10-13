@@ -31,3 +31,13 @@ This is a linear CFG step. Branch joins, loops, calls, effects, arbitrary
 parallel-copy adapters, new placement changes for an existing SSA value and
 benefit on an untouched real CFG program remain unproven. Integration pending;
 this branch depends on checked-emission binding PR #110.
+
+Native edge follow-up: the order-sensitive subtraction now checks all 65536
+input pairs on assembled Z80 as well as both VMs. Old A is copied to D before
+old C becomes A; untargeted BC, HL and the E half remain unchanged. A competing
+assignment that writes old A into C before reading old C is explicitly rejected
+by whole-stream admission. Return PC/SP are checked for every pair.
+
+Full VIR was rerun after adding this native check and merging main PR #110;
+see full-native.txt. This still does not prove general parallel-copy schedules
+or gain on a real CFG program.

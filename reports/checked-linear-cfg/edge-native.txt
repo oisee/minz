@@ -1,0 +1,5 @@
+=== RUN   TestCheckedLinearCFGParallelArgumentsWordDomain
+    table_linear_cfg_test.go:198: 65536 ordered edge argument cases: original/normalized VM, native Z80, independent subtraction, untouched register halves and PC/SP PASS
+--- PASS: TestCheckedLinearCFGParallelArgumentsWordDomain (1.65s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	1.663s
