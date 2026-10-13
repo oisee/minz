@@ -1,0 +1,8 @@
+import hw.sprite
+fun sprite_test() { @sprite() {
+destination "linear" 24576 6 1 6
+region 0 0 6 1
+row "fff00faa5500" "00050340aaff"
+via "pointer"
+
+} }
