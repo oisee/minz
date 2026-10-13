@@ -1,0 +1,647 @@
+[
+  {
+    "functions": [
+      {
+        "blocks": 0,
+        "function": "peek",
+        "rejection": "local table requires single-result leaf block"
+      },
+      {
+        "blocks": 0,
+        "function": "poke",
+        "rejection": "local table requires single-result leaf block"
+      },
+      {
+        "blocks": 8,
+        "function": "is_space",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 5,
+        "function": "is_digit",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 14,
+        "function": "is_atom_char",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 3,
+        "function": "cur",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 11,
+        "function": "skip_ws",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 5,
+        "function": "region_match",
+        "rejection": "invalid checked linear CFG parameter"
+      },
+      {
+        "blocks": 11,
+        "function": "intern_region",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 1,
+        "function": "make_node",
+        "rejection": "hard class or invalid local definition unsupported"
+      },
+      {
+        "blocks": 1,
+        "function": "node_tag",
+        "rejection": "unsupported local opcode call"
+      },
+      {
+        "blocks": 1,
+        "function": "node_d0",
+        "rejection": "unsupported local opcode call"
+      },
+      {
+        "blocks": 1,
+        "function": "node_d1",
+        "rejection": "unsupported local opcode call"
+      },
+      {
+        "blocks": 1,
+        "function": "set_d1",
+        "rejection": "local table requires single-result leaf block"
+      },
+      {
+        "blocks": 22,
+        "function": "parse_sexpr",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 3,
+        "function": "print_str",
+        "rejection": "invalid checked linear CFG parameter"
+      },
+      {
+        "blocks": 21,
+        "function": "print_node",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 22,
+        "function": "main",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      }
+    ],
+    "path": "../examples/nanz/self_lanz_parser.nanz",
+    "sha256": "763d9f369e3bbbdbcb84dee2627aff5ee90e57d99ad8d0f69e7db0c8325a6b51"
+  },
+  {
+    "functions": [
+      {
+        "blocks": 0,
+        "function": "peek",
+        "rejection": "local table requires single-result leaf block"
+      },
+      {
+        "blocks": 0,
+        "function": "poke",
+        "rejection": "local table requires single-result leaf block"
+      },
+      {
+        "blocks": 1,
+        "function": "str_alloc_2",
+        "rejection": "hard class or invalid local definition unsupported"
+      },
+      {
+        "blocks": 1,
+        "function": "str_alloc_3",
+        "rejection": "hard class or invalid local definition unsupported"
+      },
+      {
+        "blocks": 1,
+        "function": "str_alloc_4",
+        "rejection": "hard class or invalid local definition unsupported"
+      },
+      {
+        "blocks": 1,
+        "function": "str_alloc_5",
+        "rejection": "hard class or invalid local definition unsupported"
+      },
+      {
+        "blocks": 1,
+        "function": "str_alloc_6",
+        "rejection": "hard class or invalid local definition unsupported"
+      },
+      {
+        "blocks": 1,
+        "function": "str_len",
+        "rejection": "unsupported local opcode call"
+      },
+      {
+        "blocks": 9,
+        "function": "str_eq",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 5,
+        "function": "region_eq",
+        "rejection": "invalid checked linear CFG parameter"
+      },
+      {
+        "blocks": 11,
+        "function": "intern",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 5,
+        "function": "is_digit",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 10,
+        "function": "is_alpha",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 3,
+        "function": "is_alnum",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 8,
+        "function": "is_space",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 3,
+        "function": "peek_char",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 3,
+        "function": "skip_ws",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 6,
+        "function": "skip_comment",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 1,
+        "function": "emit",
+        "rejection": "local table requires single-result leaf block"
+      },
+      {
+        "blocks": 21,
+        "function": "classify",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 60,
+        "function": "scan",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 1,
+        "function": "init_keywords",
+        "rejection": "local table requires single-result leaf block"
+      },
+      {
+        "blocks": 4,
+        "function": "tokenize_all",
+        "rejection": "invalid linear CFG definition"
+      },
+      {
+        "blocks": 3,
+        "function": "print_str",
+        "rejection": "invalid checked linear CFG parameter"
+      },
+      {
+        "blocks": 128,
+        "function": "tok_name",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 6,
+        "function": "print_all_tokens",
+        "rejection": "invalid checked linear CFG parameter"
+      },
+      {
+        "blocks": 13,
+        "function": "main",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      }
+    ],
+    "path": "../examples/nanz/self_tokenizer.nanz",
+    "sha256": "d893df00710b7f1105b8bfb58342aca1c1f8cce7eb674037a8d6ca41b91b0689"
+  },
+  {
+    "functions": [
+      {
+        "blocks": 1,
+        "function": "ld_word",
+        "rejection": "invalid or duplicate contract parameter"
+      },
+      {
+        "blocks": 1,
+        "function": "st_word",
+        "rejection": "local table requires single-result leaf block"
+      },
+      {
+        "blocks": 3,
+        "function": "read_fat12",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 4,
+        "function": "write_fat12",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 1,
+        "function": "read_fat16",
+        "rejection": "invalid or duplicate contract parameter"
+      },
+      {
+        "blocks": 1,
+        "function": "write_fat16",
+        "rejection": "local table requires single-result leaf block"
+      },
+      {
+        "blocks": 4,
+        "function": "read_fat",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 5,
+        "function": "write_fat",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 2,
+        "function": "eoc_marker",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 5,
+        "function": "is_eoc",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 8,
+        "function": "classify_fat12",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 3,
+        "function": "clst2sect",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 11,
+        "function": "chain_length",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 4,
+        "function": "is_deleted",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 3,
+        "function": "sfn_checksum",
+        "rejection": "invalid checked linear CFG parameter"
+      },
+      {
+        "admitted": true,
+        "blocks": 1,
+        "function": "dbc_1st",
+        "operations": 3
+      },
+      {
+        "admitted": true,
+        "blocks": 1,
+        "function": "dbc_2nd",
+        "operations": 3
+      },
+      {
+        "blocks": 0,
+        "function": "disk_read",
+        "rejection": "local table requires single-result leaf block"
+      },
+      {
+        "blocks": 0,
+        "function": "disk_write",
+        "rejection": "local table requires single-result leaf block"
+      },
+      {
+        "blocks": 5,
+        "function": "flush_win",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 7,
+        "function": "load_sector",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 1,
+        "function": "mark_win_dirty",
+        "rejection": "local table requires single-result leaf block"
+      },
+      {
+        "blocks": 8,
+        "function": "flush_fat",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 7,
+        "function": "load_fat_sector",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 10,
+        "function": "parse_bpb",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 1,
+        "function": "fat_mount",
+        "rejection": "hard class or invalid local definition unsupported"
+      },
+      {
+        "blocks": 3,
+        "function": "fat_byte_ofs",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 1,
+        "function": "fat_sect_for_clst",
+        "rejection": "unsupported local opcode call"
+      },
+      {
+        "blocks": 5,
+        "function": "fat_cache_get",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 6,
+        "function": "fat_cache_put",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 8,
+        "function": "fat_next",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 5,
+        "function": "fat_set",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 7,
+        "function": "find_free_cluster",
+        "rejection": "invalid checked linear CFG parameter"
+      },
+      {
+        "blocks": 9,
+        "function": "alloc_cluster",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 8,
+        "function": "free_chain",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 5,
+        "function": "sfn_match",
+        "rejection": "invalid checked linear CFG parameter"
+      },
+      {
+        "blocks": 14,
+        "function": "find_file",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 14,
+        "function": "get_file_size",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 26,
+        "function": "file_read",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 3,
+        "function": "read_named_file",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 31,
+        "function": "file_write_data",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 12,
+        "function": "find_free_dir_slot",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 9,
+        "function": "write_dir_entry",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 14,
+        "function": "update_dir_size",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 15,
+        "function": "create_file",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 20,
+        "function": "delete_file",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 30,
+        "function": "overwrite_file",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 4,
+        "function": "fat_sync",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 15,
+        "function": "count_dir_entries",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 19,
+        "function": "get_dir_entry",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 19,
+        "function": "get_dir_entry_full",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 1,
+        "function": "write_fat12$split_5",
+        "rejection": "local table requires single-result leaf block"
+      },
+      {
+        "blocks": 1,
+        "function": "fat_cache_put$split_2",
+        "rejection": "local table requires single-result leaf block"
+      },
+      {
+        "admitted": true,
+        "blocks": 1,
+        "function": "find_file$split_3",
+        "operations": 3
+      },
+      {
+        "admitted": true,
+        "blocks": 1,
+        "function": "get_file_size$split_3",
+        "operations": 3
+      },
+      {
+        "admitted": true,
+        "blocks": 1,
+        "function": "file_read$split_4",
+        "operations": 2
+      },
+      {
+        "blocks": 4,
+        "function": "file_write_data$split_3",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "admitted": true,
+        "blocks": 1,
+        "function": "update_dir_size$split_3",
+        "operations": 3
+      },
+      {
+        "admitted": true,
+        "blocks": 1,
+        "function": "delete_file$split_6",
+        "operations": 3
+      },
+      {
+        "admitted": true,
+        "blocks": 1,
+        "function": "overwrite_file$split_8",
+        "operations": 3
+      },
+      {
+        "admitted": true,
+        "blocks": 1,
+        "function": "count_dir_entries$split_4",
+        "operations": 2
+      },
+      {
+        "admitted": true,
+        "blocks": 1,
+        "function": "get_dir_entry$split_4",
+        "operations": 3
+      },
+      {
+        "admitted": true,
+        "blocks": 1,
+        "function": "get_dir_entry_full$split_4",
+        "operations": 3
+      }
+    ],
+    "path": "../stdlib/fs/fat12.nanz",
+    "sha256": "6c11a845959df00dc01471e273f0196e7939121eaa9cb6e1f6206cc492ffbbb5"
+  },
+  {
+    "error": "line 26: unknown type \"Arena\"",
+    "path": "../stdlib/core/hashmap.nanz",
+    "sha256": "76b1bb1c2f65e0ea87ab2f403e15a697795115d30379d47df44b34463defcfe6"
+  },
+  {
+    "functions": [
+      {
+        "blocks": 0,
+        "function": "canvas_init",
+        "rejection": "local table requires single-result leaf block"
+      },
+      {
+        "blocks": 0,
+        "function": "canvas_pixel",
+        "rejection": "local table requires single-result leaf block"
+      },
+      {
+        "blocks": 0,
+        "function": "canvas_palette",
+        "rejection": "local table requires single-result leaf block"
+      },
+      {
+        "blocks": 0,
+        "function": "canvas_save",
+        "rejection": "local table requires single-result leaf block"
+      },
+      {
+        "blocks": 1,
+        "function": "palette",
+        "rejection": "local table requires single-result leaf block"
+      },
+      {
+        "blocks": 2,
+        "function": "abs16",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 8,
+        "function": "texture",
+        "rejection": "checked linear CFG requires unconditional edges"
+      },
+      {
+        "blocks": 6,
+        "function": "draw_frame",
+        "rejection": "invalid linear CFG definition"
+      },
+      {
+        "blocks": 61,
+        "function": "axis_a",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 62,
+        "function": "axis_b",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 63,
+        "function": "save_frame",
+        "rejection": "checked linear CFG exceeds eight blocks"
+      },
+      {
+        "blocks": 1,
+        "function": "render_frame",
+        "rejection": "local table requires single-result leaf block"
+      },
+      {
+        "blocks": 3,
+        "function": "main",
+        "rejection": "invalid checked linear CFG parameter"
+      }
+    ],
+    "path": "../examples/nanz/rotozoomer.nanz",
+    "sha256": "df38ac3b0eca81e67432c4032bfcfb5c2ae44af3ca32fbdcc673de863d0cf06f"
+  }
+]

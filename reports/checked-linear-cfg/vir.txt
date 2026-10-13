@@ -1,0 +1,1 @@
+ok  	github.com/minz/minzc/pkg/vir	5.249s
