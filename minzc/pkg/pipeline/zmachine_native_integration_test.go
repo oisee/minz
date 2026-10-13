@@ -188,6 +188,14 @@ func TestZMachineBankedZork128LateSaveWalkthroughNative(t *testing.T) {
 	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-late-save")
 }
 
+func TestZMachineBankedZorkII128WideLedgeNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set Zork II story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-wide-ledge")
+}
+
 func TestZMachineBankedZorkII128BalloonNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
 	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
@@ -369,7 +377,8 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	zorkIIBalloon := commands == "@console-zork2-balloon"
+	zorkIIWideLedge := commands == "@console-zork2-wide-ledge"
+	zorkIIBalloon := commands == "@console-zork2-balloon" || zorkIIWideLedge
 	zorkIIRuby := commands == "@console-zork2-ruby" || zorkIIBalloon
 	zorkIIBankReturn := commands == "@console-zork2-bank-return" || zorkIIRuby
 	zorkIIBank := commands == "@console-zork2-bank" || zorkIIBankReturn
@@ -707,6 +716,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if zorkIIBalloon {
 				routeFile = "zork2-balloon.txt"
 			}
+			if zorkIIWideLedge {
+				routeFile = "zork2-wide-ledge.txt"
+			}
 			route, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", routeFile))
 			if err != nil {
 				t.Fatal(err)
@@ -864,7 +876,11 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			ref := exec.Command(os.Getenv("MINZ_Z3_FROTZ"), "-m", "-w", "255", "-s", seed, externalStory)
 			frotzRoute := route
 			if zorkIIBalloon {
-				frotzRoute, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes/zork2-balloon-frotz.txt"))
+				frotzFile := "zork2-balloon-frotz.txt"
+				if zorkIIWideLedge {
+					frotzFile = "zork2-wide-ledge-frotz.txt"
+				}
+				frotzRoute, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", frotzFile))
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -922,6 +938,10 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 
 			if zorkIIBalloon {
 				wants = []string{"The balloon rises slowly from the ground.", "The balloon lands.", "The balloon is fastened to the hook.", "Opening the purple book reveals a Flathead stamp.", "You are carrying:\n  A Flathead stamp\n  A matchbook\n  A china teapot\n  The china teapot contains:\n    A quantity of water\n  A lamp (providing light)", "Your score would be 195 (total of 400 points), in 368 moves."}
+			}
+
+			if zorkIIWideLedge {
+				wants = []string{"You are on a wide ledge high in the volcano.", "The balloon is fastened to the hook.", "You are carrying:\n  A priceless zorkmid\n  A Flathead stamp\n  A matchbook\n  A china teapot\n  The china teapot contains:\n    A quantity of water\n  A lamp (providing light)", "Your score would be 215 (total of 400 points), in 356 moves."}
 			}
 
 			for _, want := range wants {
@@ -1168,6 +1188,10 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 
 			if zorkIIBalloon {
 				phrases = []string{"The balloon rises slowly from the ground.", "The balloon lands.", "The balloon is fastened to the hook.", "Opening the purple book reveals a Flathead stamp.", "You are carrying:\n  A Flathead stamp\n  A matchbook\n  A china teapot\n  The china teapot contains:\n    A quantity of water\n  A lamp (providing light)", "Your score would be 195 (total of 400 points), in 354 moves."}
+			}
+
+			if zorkIIWideLedge {
+				phrases = []string{"You are on a wide ledge high in the volcano.", "The balloon is fastened to the hook.", "You are carrying:\n  A priceless zorkmid\n  A Flathead stamp\n  A matchbook\n  A china teapot\n  The china teapot contains:\n    A quantity of water\n  A lamp (providing light)", "Your score would be 215 (total of 400 points), in 369 moves."}
 			}
 
 			for _, phrase := range phrases {

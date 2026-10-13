@@ -132,3 +132,9 @@ mzv/Z80:185/400 на243 ходах; Frotz seed14:185/400 на237 ходах.
 на Narrow Ledge, крепление hook, stamp в Library: mzv/Z80195/354 хода.
 `zork2-balloon-frotz.txt` — независимый маршрут для Frotz seed14:195/368,
 те же события и полный инвентарь. Carousel и темп NPC требуют разных команд.
+
+
+`zork2-wide-ledge.txt` — zorkmid, подъём и посадка на Wide Ledge:
+mzv/Z80215/369 ходов. `zork2-wide-ledge-frotz.txt` — независимый маршрут
+Frotz seed14:215/356, та же посадка, закреплённый шар и полный инвентарь.
+Это отдельные команды для разных RNG, не общий маршрут для любого seed.
