@@ -6,7 +6,9 @@ import (
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/spectrum"
 	"github.com/minz/minzc/pkg/z80asm"
+	"os"
 	"os/exec"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -75,7 +77,14 @@ print(json.dumps({'source':source,'archive':list(pack(story[:256])),'state':list
  global ret_sp_hi:[u8;32]
  global stack_words:[u16;256]
  `
-	h, err := nanz.ParseWithOpts(globals+f.Source+"\nfun main()->u8 {return native_restore(6,0,0)}", "restore.nanz", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
+	core, err := os.ReadFile("../../../examples/zmachine/spectrum128/zvm_core.nanz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	begin := strings.Index(string(core), "fun random_number(")
+	end := strings.Index(string(core)[begin+4:], "\nfun ") + begin + 4
+	rngSource := string(core)[begin:end]
+	h, err := nanz.ParseWithOpts(globals+f.Source+rngSource+"\nfun main()->u8 {return native_restore(6,0,0)}", "restore.nanz", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -92,6 +101,31 @@ print(json.dumps({'source':source,'archive':list(pack(story[:256])),'state':list
 	}
 	names := []string{"pc", "frame", "v_sp", "random_state", "screen_enabled", "stream3_depth", "stream3_table_lo", "stream3_table_hi", "local_words", "ret_pc_lo", "ret_pc_hi", "ret_pc_bank", "ret_store", "ret_sp_lo", "ret_sp_hi", "stack_words"}
 	sizes := []int{3, 1, 2, 2, 1, 1, 16, 16, 1024, 32, 32, 32, 32, 32, 32, 512}
+	oracleSequence := func(seed uint16, ranges []uint16) []uint16 {
+		var result []uint16
+		for _, r := range ranges {
+			if r >= 32768 {
+				seed = 0 - r
+				result = append(result, 0)
+				continue
+			}
+			if r == 0 {
+				seed = 1
+				result = append(result, 0)
+				continue
+			}
+			limit := uint16(65535 - ((65535%uint32(r) + 1) % uint32(r)))
+			for {
+				seed = seed*25173 + 13849
+				if seed <= limit {
+					result = append(result, seed%r+1)
+					break
+				}
+			}
+		}
+		return result
+	}
+	ranges := []uint16{1, 2, 3, 7, 100, 32767, 0, 0xffd6, 32767, 3, 1000, 17}
 	for ci, c := range f.Cases {
 		m, err := spectrum.NewPentagon128(nil, nil)
 		if err != nil {
@@ -109,6 +143,26 @@ print(json.dumps({'source':source,'archive':list(pack(story[:256])),'state':list
 		offset := 16384 - len(c.Record)
 		copy(m.Memory.RAM[6][offset:], c.Record)
 
+		draw := func() []uint16 {
+			var results []uint16
+			for _, r := range ranges {
+				m.CPU.SetPC(uint16(a.Symbols["random_number"]))
+				m.CPU.SetSP(0xbf00)
+				m.CPU.SetHL(r)
+				for i := 0; i < 100000; i++ {
+					if m.CPU.PC() == 0x7000 && m.CPU.SP() == 0xbf02 {
+						break
+					}
+					m.CPU.DoOpcode()
+				}
+				if m.CPU.PC() != 0x7000 || m.CPU.SP() != 0xbf02 || m.Memory.PagingState() != 0x10 || m.CPU.IFF1() || m.CPU.IFF2() {
+					t.Fatal("RNG return", r)
+				}
+				results = append(results, m.CPU.HL())
+			}
+			return results
+		}
+		var beforeRestoreSequence []uint16
 		if ci == 0 {
 			// Exercise actual native SAVE against independently encoded record.
 			for i, value := range f.Memory {
@@ -157,6 +211,11 @@ print(json.dumps({'source':source,'archive':list(pack(story[:256])),'state':list
 				t.Fatal("native SAVE differs from reference record")
 			}
 			offset = 14180
+			beforeRestoreSequence = draw()
+			expected := oracleSequence(0xabcd, ranges)
+			if !slices.Equal(beforeRestoreSequence, expected) {
+				t.Fatalf("before restore RNG got%v want%v", beforeRestoreSequence, expected)
+			}
 		}
 		for j, name := range names {
 			for i := 0; i < sizes[j]; i++ {
@@ -221,6 +280,14 @@ print(json.dumps({'source':source,'archive':list(pack(story[:256])),'state':list
 				}
 			}
 		}
+		if ci == 0 {
+			afterRestoreSequence := draw()
+			if !slices.Equal(afterRestoreSequence, beforeRestoreSequence) {
+				t.Fatalf("RNG continuation differs after RESTORE: before%v after%v", beforeRestoreSequence, afterRestoreSequence)
+			}
+			t.Logf("native RNG save/restore sequence matches arithmetic oracle: %v", afterRestoreSequence)
+		}
+
 	}
 	t.Logf("%d restore cases: exact full state/dynamic apply; rejected records leave game state untouched", len(f.Cases))
 }

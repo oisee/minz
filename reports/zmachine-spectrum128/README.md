@@ -880,3 +880,20 @@ Final strengthened test PASS in 16.73 s. Same published snapshot/code; this expa
 real gameplay save coverage without claiming a full-game bound, RNG-specific
 continuation coverage, external disk persistence or support for other V3 stories.
 Transcripts retained locally and on the share.
+
+
+## Native RNG continuation after restore
+
+The integrated SAVE/RESTORE fixture now compiles the actual random_number
+function from the routed interpreter core and compares its output before and
+after restoring the native save. An independent host arithmetic oracle models
+16-bit LCG overflow, rejection sampling, range 0 reset and negative-range seeding.
+Ranges 1/2/3/7/100/32767, reset, seed -42 and further draws produce the same
+sequence before and after RESTORE: 1,2,3,2,83,11705,0,0,22540,3,842,12.
+
+The test executes SAVE, draws numbers (mutating RNG), poisons live state, restores,
+then draws again. Exact full state/dynamic comparison is retained before the final
+draws, alongside all eleven record acceptance/rejection cases and PC/SP/paging/IFF
+checks. PASS in 0.34 s. This demonstrates RNG continuation for this seed/range
+sequence; it is not an exhaustive RNG-domain proof or a real-game randomness
+scenario. Published runnable binaries are unchanged by this test-only extension.
