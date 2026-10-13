@@ -730,3 +730,20 @@ resident limit. It MUST NOT be released or loaded as a runnable snapshot. The
 existing builder's size guard remains intact, desktop bundles unchanged. Next
 reduce the semantic pass / place helper code without weakening checks, then wire
 save publication and full restore gameplay. Goal remains incomplete.
+
+
+## Compact saved-PC validation across the 64K boundary
+
+The saved-PC helper now uses explicit Z80 byte/word comparisons, retaining
+24-bit PC and arbitrary serialization stride (contiguous PC vs split return
+arrays). It rejects addresses below 64 and at/above the story file length.
+Native semantic tests now cover five story sizes: 1024, 65536, 65537, 86928
+(Zork size), and 98304. Each tests 369 state variants, including main/return
+PCs at 63/64, 65535/65536, file end and the maximum 24-bit address. Total 1845
+states PASS in 7.56 s, with the existing state/reference and physical-memory
+checks. These are synthetic states at real size boundaries, not five real games.
+
+Combined diagnostic resident 25964 bytes, end C06C: -42 B from the prior pass,
+but still 620 bytes over the BE00 limit. No runnable snapshot is produced from
+this oversized diagnostic. The remaining semantic pass and complete lifecycle
+still need placement/compaction. Distributed desktop checkpoint unchanged.

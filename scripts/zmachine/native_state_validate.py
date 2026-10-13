@@ -16,15 +16,55 @@ fun native_saved_word(index:u16)->u16 {{
  let hi:u8=native_saved_byte(index+1)
  return u16(lo)+u16(hi)*256
 }}
-fun native_saved_pc(index:u16, stride:u16)->u8 {{
- let lo:u8=native_saved_byte(index)
- let hi:u8=native_saved_byte(index+stride)
- let bank:u8=native_saved_byte(index+stride*2)
- let low:u16=u16(lo)+u16(hi)*256
- if bank==0 {{if low<64 {{return 0}}}}
- if bank>{len(story)>>16} {{return 0}}
- if bank=={len(story)>>16} {{if low>={len(story)&65535} {{return 0}}}}
- return 1
+// Compare a 24-bit story PC without constructing a wide arithmetic value.
+fun native_saved_pc(@z80_hl index:u16, @z80_de stride:u16)->u8 {{
+ asm z80 (in index,stride) (ret A) (clob A,F,BC,DE,HL,IX) {{
+  PUSH DE
+  PUSH HL
+  CALL native_saved_byte
+  POP HL
+  POP DE
+  PUSH AF
+  ADD HL,DE
+  PUSH HL
+  PUSH DE
+  CALL native_saved_byte
+  POP DE
+  POP HL
+  POP BC
+  LD C,B
+  LD B,A
+  ADD HL,DE
+  PUSH BC
+  CALL native_saved_byte
+  POP DE
+  OR A
+  JR NZ,.pc_upper
+  LD B,A
+  LD A,D
+  OR A
+  JR NZ,.pc_zero_valid
+  LD A,E
+  CP 64
+  JR C,.pc_invalid
+ .pc_zero_valid:
+  LD A,B
+ .pc_upper:
+  CP {len(story)>>16}
+  JR C,.pc_valid
+  JR NZ,.pc_invalid
+  EX DE,HL
+  LD DE,{len(story)&65535}
+  OR A
+  SBC HL,DE
+  JR NC,.pc_invalid
+ .pc_valid:
+  LD A,1
+  JR .pc_done
+ .pc_invalid:
+  XOR A
+ .pc_done:
+ }}
 }}
 fun native_state_validate()->u8 {{
  var i:u16=0
