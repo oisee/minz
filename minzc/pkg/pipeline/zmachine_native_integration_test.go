@@ -152,6 +152,14 @@ func TestZMachineBankedZorkIICompressedSaveRestartNative(t *testing.T) {
 	}
 	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-compressed-save-restart")
 }
+func TestZMachineBankedZorkII128WindowsLifecycleNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set Zork II story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-128-windows")
+}
+
 func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, externalStory string, commands string) {
 	root := filepath.Clean("../../..")
 	story, err := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/stream3.z3"))
@@ -177,11 +185,15 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
+	zorkIIWindows := commands == "@console-zork2-128-windows"
+	if zorkIIWindows {
+		commands = "@console-zork2-compressed-save-restart"
+	}
 	treasureSave := commands == "@console-windows-treasure-save"
 	treasure := commands == "@console-windows-treasure" || treasureSave
 	windowCellar := commands == "@console-windows-cellar"
-	windows := commands == "@console-windows-save" || windowCellar || treasure
-	if windows {
+	windows := commands == "@console-windows-save" || windowCellar || treasure || zorkIIWindows
+	if windows && !zorkIIWindows {
 		commands = "@console-save"
 		if treasure && !treasureSave {
 			commands = "@console-explore"

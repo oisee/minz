@@ -1788,3 +1788,26 @@ RESTORE, статическая история и архив RESTART неизм�
 в обычный128K слот2204 B. 202 клавиши,2778 B output byte-exact original VM,
 1006904137 T, peak stack70 B. PASS15.571 s. Это RAM lifecycle на128K,
 а не новый дисковый маршрут или доказательство полного прохождения игры.
+
+
+### 13 октября: Zork II с окнами и SAVE на обычном128K
+
+Совместная сборка compressed/windows первоначально занимала25813 B и была
+отклонена границей стека; OptSize не изменил размер. Compact fail_opcode
+сохраняет полный текст "Z3 error 1:form:op:pc-high:pc-mid:pc-low", заменяя
+множество ABI-пересылок короткой ASM-процедурой. Экономия570 B; resident25243 B.
+Независимый отказ opcode0OP15 проверяет точный текст и возврат PC/SP/paging.
+Builder сохраняет ASM/BIN даже при отказе resident gate; SNA создаётся только
+после успешного gate. Экспериментальный --size флаг не добавлен.
+
+TestZMachineBankedZorkII128WindowsLifecycleNative:116 клавиш,2214 B output
+byte-exact original VM,1355222473 T, peak stack70 B,1124 cache misses.
+SAVE628 B из700; оба предмета и горящая лампа восстановлены, RESTART сбрасывает
+комнату и инвентарь. PASS23.67 s. Базовая Inform история и high-memory путь
+прошли вместе; диагностика PASS1.558 s. Регрессии Zork I disk и treasure
+SAVE/RESTORE PASS25.372 s. Это игровые маршруты, не полное прохождение.
+
+Новый Linux/X11 комплект на шаре: zork2-128-windows/linux-x86_64/play.sh.
+Сохранённый128K SNA прошёл all-bank roundtrip и headless CLI startup15000frames
+до комнаты/статуса/prompt. Checksum сжатой истории делает старт заметно дольше;
+старые несжатые disk комплекты остаются доступны. RAM SAVE теряется при выходе.

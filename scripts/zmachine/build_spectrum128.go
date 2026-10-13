@@ -152,6 +152,9 @@ func main() {
 	if len(a.Errors) > 0 {
 		panic(a.Errors)
 	}
+	// Keep reviewable code even when the resident gate refuses a runnable SNA.
+	must(os.WriteFile(filepath.Join(out, "zvm-spectrum128.a80"), []byte(assembly), 0644))
+	must(os.WriteFile(filepath.Join(out, "zvm-spectrum128.bin"), a.Binary, 0644))
 	if 0x5b00+len(a.Binary) > 0xbe00 {
 		panic(fmt.Sprintf("resident %d bytes overlaps native stack reservation", len(a.Binary)))
 	}

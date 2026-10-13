@@ -19,6 +19,9 @@ func TestZMachineV3StatusStoryNative(t *testing.T) {
 	t.Run("score", func(t *testing.T) { testZMachineV3ScreenStory(t, "status", false) })
 	t.Run("time", func(t *testing.T) { testZMachineV3ScreenStory(t, "status", true) })
 }
+func TestZMachineNativeOpcodeDiagnostic(t *testing.T) {
+	testZMachineV3ScreenStory(t, "bad_opcode", false)
+}
 func TestZMachineV3UpperInputNative(t *testing.T) {
 	for _, c := range []struct{ height, window, count byte }{{1, 1, 40}, {0, 1, 79}, {2, 1, 79}, {23, 1, 79}, {23, 0, 79}} {
 		t.Run(fmt.Sprintf("height%d/window%d/count%d", c.height, c.window, c.count), func(t *testing.T) {
@@ -32,9 +35,17 @@ func testZMachineV3ScreenStory(t *testing.T, fixture string, timeMode bool) {
 func testZMachineV3ScreenStoryInput(t *testing.T, fixture string, timeMode bool, height, window, count byte) {
 	root := filepath.Clean("../../..")
 	dir := t.TempDir()
-	story, e := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/"+fixture+".z3"))
+	sourceFixture := fixture
+	if fixture == "bad_opcode" {
+		sourceFixture = "windows"
+	}
+	story, e := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/"+sourceFixture+".z3"))
 	if e != nil {
 		t.Fatal(e)
+	}
+	initialPC := int(story[6])<<8 | int(story[7])
+	if fixture == "bad_opcode" {
+		story[initialPC] = 0xbf
 	}
 	if fixture == "window_input" {
 		globals := int(story[12])<<8 | int(story[13])
@@ -137,7 +148,13 @@ func testZMachineV3ScreenStoryInput(t *testing.T, fixture string, timeMode bool,
 	if !m.CPU.Halted() || m.CPU.SP() != 0xbf02 || m.Memory.PagingState() != 0x10 {
 		t.Fatalf("boundary %04x/%04x output %q", m.CPU.PC(), m.CPU.SP(), output)
 	}
-	if fixture == "windows" {
+	if fixture == "bad_opcode" {
+		faultPC := initialPC + 1
+		want := fmt.Sprintf("Z3 error 1:0:15:%d:%d:%d\n", faultPC>>16, (faultPC>>8)&255, faultPC&255)
+		if string(output) != want {
+			t.Fatalf("diagnostic %q != %q", output, want)
+		}
+	} else if fixture == "windows" {
 		want := []byte("UPPER" + string(bytes.Repeat([]byte("lower\n"), 25)) + "RESETdone\n")
 		if !bytes.Equal(output, want) {
 			t.Fatalf("output %q != %q", output, want)

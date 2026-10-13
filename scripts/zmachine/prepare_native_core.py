@@ -153,6 +153,57 @@ replace_function('verify_story', '''fun verify_story() -> u8 {
 replace_function('memory_read', '''fun memory_read(address: u32) -> u8 {
  return story_byte(address, 0x10)
 }''')
+# Keep complete opcode diagnostics compact; unlike gameplay this cold path
+# repeatedly crossed the default ABI for every printed scalar.
+replace_function('fail_opcode', """fun fail_opcode(@z80_a form:u8,@z80_b op:u8) {
+ asm z80 (in form,op) (clob A,F,BC,DE,HL,IX,IY) {
+  PUSH BC
+  PUSH AF
+  LD HL,.prefix
+ .prefix_loop:
+  LD A,(HL)
+  OR A
+  JR Z,.fields
+  PUSH HL
+  CALL native_putchar
+  POP HL
+  INC HL
+  JR .prefix_loop
+ .fields:
+  POP AF
+  LD L,A
+  LD H,0
+  CALL .field
+  POP BC
+  LD L,B
+  LD H,0
+  CALL .field
+  LD A, (pc+2)
+  LD L,A
+  LD H,0
+  CALL .field
+  LD A, (pc+1)
+  LD L,A
+  LD H,0
+  CALL .field
+  LD A, (pc)
+  LD L,A
+  LD H,0
+  CALL .field
+  XOR A
+  LD (running),A
+  LD A,10
+  JP native_putchar
+ .field:
+  PUSH HL
+  LD A,58
+  CALL native_putchar
+  POP HL
+  JP print_num
+ .prefix:
+  DB 90,51,32,101,114,114,111,114,32,49,0
+ }
+}""")
 replace_function('memory_read16', '''fun memory_read16(address: u16) -> u8 {
  return story_byte_split(address, 0, 0x10)
 }''')
