@@ -518,3 +518,28 @@ no reentry. Source/offset/bank bounds are trusted caller preconditions.
 This separate module is not yet imported into the desktop checkpoint; native
 SAVE still needs state serialization, bank0 XOR streaming, integrity/header
 validation, and applying restored state.
+
+
+## Native save-state streaming without snapshot allocation
+
+`scripts/zmachine/native_state_stream.py` emits the configured compact field
+map and a bounded encoder specialized with a native byte callback. It reads
+1786 snapshot bytes directly from resident interpreter globals and bank0 story
+identity. No 1786-byte staging allocation is added. The callback restores bank0
+for each read, then switches back to the destination bank for output. Save state
+must remain stable throughout packing; no interrupts/reentry are permitted.
+
+Independent native test forms expected bytes from physical globals and the
+original compact serialization order: PC/frame/SP, RNG, screen/stream3 flags,
+all stream tables, locals, return records, evaluation stack. All 1786 bytes
+match, and two out-of-range indices return zero. Read-only pass changes no data
+outside bounded native stack. Full stream packing matches the host codec on a
+poorly compressible fixture (1800 encoded bytes), with short/exact/spare capacity
+checks and all eight banks checked outside output, declared scratch and stack.
+PASS in 0.17 seconds. This fixture measures codec behavior, not a valid game save
+or the real Zork compression budget.
+
+The generator is tested separately and not yet appended to the runnable core.
+Native dynamic-memory XOR streaming and full format validation/apply remain;
+resident fit must be measured once connected. SAVE/RESTORE remain disabled in
+the distributed desktop checkpoint.
