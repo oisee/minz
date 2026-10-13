@@ -46,3 +46,12 @@ roundtrip for every block and uses raw fallback; JSON retains exact SHA/results.
 Next practical experiment: Z80-friendly bounded LZSS/ZX0-like block format, cache
 miss costs and access locality, then compare total physical budget with no compression.
 Astra review was requested; first attempt rate-limited before advice, retry pending.
+
+Astra returned partial code-grounded advice before a second rate limit:
+resident mutable budget including dynamic11288 totals29522B before code; below
+C000 after6912 screen bytes only25856B remain. Remove permanent9018 snapshot
+from working state, place mutable state deliberately, keep decompression cache
+belowC000 so banked compressed input and output remain simultaneously accessible.
+Current dictionary lookup linearly scans all entries; transparent compression
+can repeatedly decompress the entire dictionary per input word. Optimize/measure
+that access before choosing cache and block size. Full Astra review did not finish.
