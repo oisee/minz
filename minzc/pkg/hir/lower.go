@@ -371,7 +371,11 @@ func (l *lowerer) findGlobal(name string) (mir2.Global, bool) {
 
 // globalAddr emits AddrOf for a global variable name.
 func (l *lowerer) globalAddr(name string) mir2.Reg {
-	return l.bld.AddrOf(name, mir2.ClassPointer)
+	r := l.bld.AddrOf(name, mir2.ClassPointer)
+	if l.target == TargetMZV {
+		l.bld.Cur.Insts[len(l.bld.Cur.Insts)-1].Ty = mir2.PtrFor(32)
+	}
+	return r
 }
 
 // lowerExprAddr lowers an expression to its address (lvalue), rather than its value.
@@ -394,6 +398,9 @@ func (l *lowerer) lowerExprAddr(ex Expr) mir2.Reg {
 		}
 		return baseAddr
 	case *IndexExpr:
+		if l.target == TargetMZV {
+			return l.lowerIndexAddr(e)
+		}
 		// base[i] address — same as lowerIndex but without the final Load
 		baseAddr := l.lowerExpr(e.Base)
 		idx := l.lowerExpr(e.Idx)
@@ -2402,7 +2409,12 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 
 	case *AddrOfExpr:
 		if ex.X != nil {
-			return l.lowerExprAddr(ex.X)
+			r := l.lowerExprAddr(ex.X)
+			if l.target == TargetMZV {
+				// Language pointers retain their 16-bit ABI, even for host globals.
+				return l.bld.Trunc(r, mir2.PtrFor(32), mir2.TyPtr, mir2.ClassPointer)
+			}
+			return r
 		}
 		// Local array promoted to global: env register IS the address.
 		if l.localArrays[ex.Sym] {
@@ -2518,28 +2530,44 @@ func (l *lowerer) lowerIndexAddr(ex *IndexExpr) mir2.Reg {
 
 	var offset mir2.Reg
 	idxTy := ex.Idx.ExprTy()
+	addressTy := mir2.Ty(mir2.TyU16)
+	hostGlobal := false
+	if l.target == TargetMZV {
+		if ref, ok := ex.Base.(*VarRefExpr); ok {
+			if g, found := l.findGlobal(ref.Name); found {
+				_, hostGlobal = mir2.BaseOf(g.Ty).(*mir2.ArrayTy)
+			}
+		}
+		if hostGlobal {
+			addressTy = mir2.TyU32
+		}
+	}
 	switch stride {
 	case 1:
-		if idxTy.Width() <= 8 {
-			offset = l.bld.Ext(idx, idxTy, mir2.TyU16, mir2.ClassIndex)
+		if idxTy.Width() < addressTy.Width() {
+			offset = l.bld.Ext(idx, idxTy, addressTy, mir2.ClassIndex)
 		} else {
 			offset = idx
 		}
 	case 2:
-		if idxTy.Width() <= 8 {
-			idx = l.bld.Ext(idx, idxTy, mir2.TyU16, mir2.ClassIndex)
+		if idxTy.Width() < addressTy.Width() {
+			idx = l.bld.Ext(idx, idxTy, addressTy, mir2.ClassIndex)
 		}
-		one := l.bld.Const(1, mir2.TyU16, mir2.ClassGeneral)
-		offset = l.bld.Shl(idx, one, mir2.TyU16, mir2.ClassIndex)
+		one := l.bld.Const(1, addressTy, mir2.ClassGeneral)
+		offset = l.bld.Shl(idx, one, addressTy, mir2.ClassIndex)
 	default:
-		if idxTy.Width() <= 8 {
-			idx = l.bld.Ext(idx, idxTy, mir2.TyU16, mir2.ClassIndex)
+		if idxTy.Width() < addressTy.Width() {
+			idx = l.bld.Ext(idx, idxTy, addressTy, mir2.ClassIndex)
 		}
-		strideReg := l.bld.Const(int64(stride), mir2.TyU16, mir2.ClassGeneral)
-		offset = l.bld.Mul(idx, strideReg, mir2.TyU16, mir2.ClassIndex)
+		strideReg := l.bld.Const(int64(stride), addressTy, mir2.ClassGeneral)
+		offset = l.bld.Mul(idx, strideReg, addressTy, mir2.ClassIndex)
 	}
 
-	return l.bld.PtrAdd(base, offset, mir2.ClassPointer)
+	r := l.bld.PtrAdd(base, offset, mir2.ClassPointer)
+	if hostGlobal {
+		l.bld.Cur.Insts[len(l.bld.Cur.Insts)-1].Ty = mir2.PtrFor(32)
+	}
+	return r
 }
 
 // lowerIndex lowers arr[i] → ptr_add(base, i * stride) → load.

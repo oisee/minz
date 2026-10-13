@@ -77,6 +77,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Host globals may exceed the Z80 address space; explicit pointers remain typed.
+	hm.Target = hir.TargetMZV
 	m := hir.LowerModule(hm)
 
 	// Per-function optimisation passes (same as pipeline.go, no regalloc).
