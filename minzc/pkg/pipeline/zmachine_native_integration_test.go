@@ -188,6 +188,14 @@ func TestZMachineBankedZork128LateSaveWalkthroughNative(t *testing.T) {
 	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-late-save")
 }
 
+func TestZMachineBankedZorkII128DemonNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set Zork II story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-demon")
+}
+
 func TestZMachineBankedZorkII128WorkshopNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
 	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
@@ -401,7 +409,8 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	zorkIIWorkshop := commands == "@console-zork2-workshop"
+	zorkIIDemon := commands == "@console-zork2-demon"
+	zorkIIWorkshop := commands == "@console-zork2-workshop" || zorkIIDemon
 	zorkIICrownDescent := commands == "@console-zork2-crown-descent" || zorkIIWorkshop
 	zorkIICrown := commands == "@console-zork2-crown" || zorkIICrownDescent
 	zorkIIWideLedge := commands == "@console-zork2-wide-ledge" || zorkIICrown
@@ -755,6 +764,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if zorkIIWorkshop {
 				routeFile = "zork2-workshop-vm.txt"
 			}
+			if zorkIIDemon {
+				routeFile = "zork2-demon-vm.txt"
+			}
 			route, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", routeFile))
 			if err != nil {
 				t.Fatal(err)
@@ -925,6 +937,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 				if zorkIIWorkshop {
 					frotzFile = "zork2-workshop-frotz.txt"
 				}
+				if zorkIIDemon {
+					frotzFile = "zork2-demon-frotz.txt"
+				}
 				frotzRoute, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", frotzFile))
 				if err != nil {
 					t.Fatal(err)
@@ -996,6 +1011,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			}
 			if zorkIIWorkshop {
 				wants = []string{"The guardian greedily wolfs down the candy", "The key turns and the bolt clicks. The door is unlocked.", "You are standing in the entry hall of the Wizard's Workshop.", "You are carrying:\n  A blue crystal sphere\n  A red crystal sphere\n  A delicate gold key\n  A matchbook\n  A lamp (providing light)", "Your score would be 245 (total of 400 points), in 436 moves."}
+			}
+			if zorkIIDemon {
+				wants = []string{"shatters the glass wall of the aquarium", "The three spheres begin to vibrate", "You no longer control the Black Crystal, hedge-wizard!", "There is a demon floating in midair here.", "You are carrying:\n  A lamp\n  A delicate gold key\n  A matchbook", "Your score would be 295 (total of 400 points), in 449 moves."}
 			}
 
 			for _, want := range wants {
@@ -1258,6 +1276,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			}
 			if zorkIIWorkshop {
 				phrases = []string{"The guardian greedily wolfs down the candy", "The key turns and the bolt clicks. The door is unlocked.", "You are standing in the entry hall of the Wizard's Workshop.", "You are carrying:\n  A blue crystal sphere\n  A red crystal sphere\n  A delicate gold key\n  A matchbook\n  A lamp (providing light)", "Your score would be 245 (total of 400 points), in 522 moves."}
+			}
+			if zorkIIDemon {
+				phrases = []string{"shatters the glass wall of the aquarium", "The three spheres begin to vibrate", "You no longer control the Black Crystal, hedge-wizard!", "There is a demon floating in midair here.", "You are carrying:\n  A lamp\n  A delicate gold key\n  A matchbook", "Your score would be 295 (total of 400 points), in 535 moves."}
 			}
 
 			for _, phrase := range phrases {
