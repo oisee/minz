@@ -1,0 +1,25 @@
+=== RUN   TestConditionalLayoutsBoundsAndIsolation
+--- PASS: TestConditionalLayoutsBoundsAndIsolation (0.01s)
+=== RUN   TestConditionalLayoutsOriginalMeasured
+=== RUN   TestConditionalLayoutsOriginalMeasured/is_space
+    conditional_layouts_native_test.go:131: candidate0: 22 B; train=3040 heldout=4664 uniform=19901 T
+    conditional_layouts_native_test.go:131: candidate1: 22 B; train=3040 heldout=4657 uniform=19894 T
+    conditional_layouts_native_test.go:131: candidate2: 22 B; train=2915 heldout=4447 uniform=18624 T
+    conditional_layouts_native_test.go:153: Size chooses0; pure Speed chooses2; baseline kept on ties; heldout Speed delta=-217 T
+=== RUN   TestConditionalLayoutsOriginalMeasured/is_digit
+    conditional_layouts_native_test.go:131: candidate0: 18 B; train=2194 heldout=3400 uniform=14907 T
+    conditional_layouts_native_test.go:131: candidate1: 18 B; train=2194 heldout=3400 uniform=14907 T
+    conditional_layouts_native_test.go:131: candidate2: 18 B; train=2189 heldout=3430 uniform=15707 T
+    conditional_layouts_native_test.go:131: candidate3: 18 B; train=2194 heldout=3400 uniform=14907 T
+    conditional_layouts_native_test.go:153: Size chooses0; pure Speed chooses2; baseline kept on ties; heldout Speed delta=30 T
+=== RUN   TestConditionalLayoutsOriginalMeasured/is_atom_char
+    conditional_layouts_native_test.go:131: candidate0: 33 B; train=4633 heldout=6984 uniform=29690 T
+    conditional_layouts_native_test.go:131: candidate1: 34 B; train=4726 heldout=7139 uniform=30451 T
+    conditional_layouts_native_test.go:131: candidate2: 34 B; train=4501 heldout=6799 uniform=29181 T
+    conditional_layouts_native_test.go:153: Size chooses0; pure Speed chooses2; baseline kept on ties; heldout Speed delta=-185 T
+--- PASS: TestConditionalLayoutsOriginalMeasured (11.43s)
+    --- PASS: TestConditionalLayoutsOriginalMeasured/is_space (4.08s)
+    --- PASS: TestConditionalLayoutsOriginalMeasured/is_digit (4.14s)
+    --- PASS: TestConditionalLayoutsOriginalMeasured/is_atom_char (3.07s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	11.449s
