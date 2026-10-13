@@ -188,6 +188,14 @@ func TestZMachineBankedZork128LateSaveWalkthroughNative(t *testing.T) {
 	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-late-save")
 }
 
+func TestZMachineBankedZorkII128RubyNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set Zork II story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-zork2-ruby")
+}
+
 func TestZMachineBankedZorkII128BankReturnNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
 	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
@@ -353,7 +361,8 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	zorkIIBankReturn := commands == "@console-zork2-bank-return"
+	zorkIIRuby := commands == "@console-zork2-ruby"
+	zorkIIBankReturn := commands == "@console-zork2-bank-return" || zorkIIRuby
 	zorkIIBank := commands == "@console-zork2-bank" || zorkIIBankReturn
 	zorkIIPrincessTreasure := commands == "@console-zork2-princess-treasure" || zorkIIBank
 	zorkIIPrincess := commands == "@console-zork2-princess" || zorkIIPrincessTreasure
@@ -683,6 +692,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if zorkIIBankReturn {
 				routeFile = "zork2-bank-return.txt"
 			}
+			if zorkIIRuby {
+				routeFile = "zork2-ruby.txt"
+			}
 			route, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", routeFile))
 			if err != nil {
 				t.Fatal(err)
@@ -882,6 +894,10 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 
 			if zorkIIBankReturn {
 				wants = []string{"Safety Depository", "Vault", "Dragon's Lair", "You are carrying:\n  A pearl necklace\n  A package of candy\n  A red crystal sphere\n  A blue crystal sphere\n  A delicate gold key\n  A golden dragon statuette\n  A lamp (providing light)", "Your score would be 170 (total of 400 points), in 230 moves."}
+			}
+
+			if zorkIIRuby {
+				wants = []string{"Lava Room", "You are carrying:\n  A ruby\n  A pearl necklace\n  A package of candy\n  A red crystal sphere\n  A blue crystal sphere\n  A delicate gold key\n  A golden dragon statuette\n  A lamp (providing light)", "Your score would be 185 (total of 400 points), in 237 moves."}
 			}
 
 			for _, want := range wants {
@@ -1120,6 +1136,10 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 
 			if zorkIIBankReturn {
 				phrases = []string{"Safety Depository", "Vault", "Dragon's Lair", "You are carrying:\n  A pearl necklace\n  A package of candy\n  A red crystal sphere\n  A blue crystal sphere\n  A delicate gold key\n  A golden dragon statuette\n  A lamp (providing light)", "Your score would be 170 (total of 400 points), in 236 moves."}
+			}
+
+			if zorkIIRuby {
+				phrases = []string{"Lava Room", "You are carrying:\n  A ruby\n  A pearl necklace\n  A package of candy\n  A red crystal sphere\n  A blue crystal sphere\n  A delicate gold key\n  A golden dragon statuette\n  A lamp (providing light)", "Your score would be 185 (total of 400 points), in 243 moves."}
 			}
 
 			for _, phrase := range phrases {
