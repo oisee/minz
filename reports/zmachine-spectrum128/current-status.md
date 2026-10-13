@@ -80,3 +80,5 @@ Scorpion: банк 8 — временная запись, банк 9 — сек�
 [Полный маршрут II](zork2-workshop-investigation.md) ·
 [История checkpoint](checkpoint-history-2026-10-13.md) ·
 [Исследовательский журнал](README.md).
+
+[Проверка требований цели и прямые доказательства](goal-audit.md).
