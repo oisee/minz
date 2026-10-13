@@ -1024,30 +1024,104 @@ global z3_lower_row:u8=23
 global z3_lower_col:u8
 
 fun z3_windows_reset() {
- z3_upper_height=0 z3_selected_window=0
- z3_lower_row=23 z3_lower_col=0
- con_row=23 con_col=0
-}
-fun z3_window_select(window:u8) {
- if window>1 { return }
- if z3_selected_window==0 { z3_lower_row=con_row z3_lower_col=con_col }
- z3_selected_window=window
- if window==1 { con_row=1 con_col=0 }
- else { con_row=z3_lower_row con_col=z3_lower_col }
-}
-fun z3_window_split(lines:u16) {
- var height:u8=23
- if lines<23 { height=u8(lines) }
- z3_upper_height=height
- var row:u8=1
- while row<=height {
-  var col:u8=0
-  while col<32 { con_draw_char(col,row,32) col=col+1 }
-  row=row+1
+ asm z80 (clob A,F) {
+  XOR A
+  LD (zx__console__z3_upper_height),A
+  LD (zx__console__z3_selected_window),A
+  LD (zx__console__z3_lower_col),A
+  LD (zx__console__con_col),A
+  LD A,23
+  LD (zx__console__z3_lower_row),A
+  LD (zx__console__con_row),A
  }
- if z3_lower_row<=height { z3_lower_row=23 z3_lower_col=0 }
- if z3_selected_window==0 && con_row<=height { con_row=23 con_col=0 }
- if z3_selected_window==1 { con_row=1 con_col=0 }
+}
+fun z3_window_select(@z80_a window:u8) {
+ asm z80 (in window) (clob A,F,BC) {
+  CP 2
+  RET NC
+  LD B,A
+  LD A, (zx__console__z3_selected_window)
+  OR A
+  JR NZ,.select
+  LD A, (zx__console__con_row)
+  LD (zx__console__z3_lower_row),A
+  LD A, (zx__console__con_col)
+  LD (zx__console__z3_lower_col),A
+ .select:
+  LD A,B
+  LD (zx__console__z3_selected_window),A
+  OR A
+  JR Z,.lower
+  LD A,1
+  LD (zx__console__con_row),A
+  XOR A
+  LD (zx__console__con_col),A
+  RET
+ .lower:
+  LD A, (zx__console__z3_lower_row)
+  LD (zx__console__con_row),A
+  LD A, (zx__console__z3_lower_col)
+  LD (zx__console__con_col),A
+ }
+}
+fun z3_window_split(@z80_hl lines:u16) {
+ asm z80 (in lines) (clob A,F,BC,DE,HL,IX,IY) {
+  LD A,H
+  OR A
+  LD A,23
+  JR NZ,.height
+  LD A,L
+  CP 24
+  JR C,.height
+  LD A,23
+ .height:
+  LD (zx__console__z3_upper_height),A
+  LD E,A
+  LD D,1
+  LD B,0
+ .row:
+  LD A,E
+  CP D
+  JR C,.cursors
+  PUSH DE
+  PUSH BC
+  LD C,32
+  CALL zx__console__con_draw_char
+  POP BC
+  POP DE
+  INC B
+  LD A,B
+  CP 32
+  JR C,.row
+  LD B,0
+  INC D
+  JR .row
+ .cursors:
+  LD A, (zx__console__z3_lower_row)
+  CP E
+  JR Z,.lower_reset
+  JR NC,.active
+ .lower_reset:
+  LD A,23
+  LD (zx__console__z3_lower_row),A
+  XOR A
+  LD (zx__console__z3_lower_col),A
+ .active:
+  LD A, (zx__console__z3_selected_window)
+  OR A
+  LD A,1
+  JR NZ,.reset_active
+  LD A, (zx__console__con_row)
+  CP E
+  JR Z,.active_lower_reset
+  RET NC
+ .active_lower_reset:
+  LD A,23
+ .reset_active:
+  LD (zx__console__con_row),A
+  XOR A
+  LD (zx__console__con_col),A
+ }
 }
 fun z3_window_put(@z80_a ch:u8) {
  asm z80 (in ch) (clob A,F,BC,DE,HL,IX,IY) {

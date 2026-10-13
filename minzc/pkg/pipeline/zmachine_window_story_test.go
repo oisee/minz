@@ -14,12 +14,25 @@ import (
 
 // Independent Inform bytecode exercises actual VAR10/11 dispatch, capability
 // flag, upper reselection and lower scrolling. No interpreter output is stubbed.
-func TestZMachineV3WindowStoryNative(t *testing.T) {
+func TestZMachineV3WindowStoryNative(t *testing.T) { testZMachineV3ScreenStory(t, "windows", false) }
+func TestZMachineV3StatusStoryNative(t *testing.T) {
+	t.Run("score", func(t *testing.T) { testZMachineV3ScreenStory(t, "status", false) })
+	t.Run("time", func(t *testing.T) { testZMachineV3ScreenStory(t, "status", true) })
+}
+func testZMachineV3ScreenStory(t *testing.T, fixture string, timeMode bool) {
 	root := filepath.Clean("../../..")
 	dir := t.TempDir()
-	story, e := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/windows.z3"))
+	story, e := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/"+fixture+".z3"))
 	if e != nil {
 		t.Fatal(e)
+	}
+	if timeMode {
+		globals := int(story[12])<<8 | int(story[13])
+		story[1] |= 2
+		story[globals+2] = 0
+		story[globals+3] = 17
+		story[globals+4] = 0
+		story[globals+5] = 4
 	}
 	source := filepath.Join(dir, "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), source, "--story-bytes", fmt.Sprint(len(story)), "--console", "--windows")
@@ -69,21 +82,52 @@ func TestZMachineV3WindowStoryNative(t *testing.T) {
 	if !m.CPU.Halted() || m.CPU.SP() != 0xbf02 || m.Memory.PagingState() != 0x10 {
 		t.Fatalf("boundary %04x/%04x output %q", m.CPU.PC(), m.CPU.SP(), output)
 	}
-	want := []byte("UPPER" + string(bytes.Repeat([]byte("lower\n"), 25)) + "RESETdone\n")
-	if !bytes.Equal(output, want) {
-		t.Fatalf("output %q != %q", output, want)
-	}
-	if m.Memory.RAM[0][1]&32 == 0 {
-		t.Fatal("capability missing")
-	}
-	for x, ch := range []byte("RESET") {
-		for line := 0; line < 8; line++ {
-			adr := uint16(0x4020 + line*256 + x)
-			font := m.Memory.Read(uint16(0x3d00 + int(ch-32)*8 + line))
-			if got := m.Memory.Read(adr); got != font {
-				t.Fatalf("upper pixels x%d line%d: %02x != %02x", x, line, got, font)
+	if fixture == "windows" {
+		want := []byte("UPPER" + string(bytes.Repeat([]byte("lower\n"), 25)) + "RESETdone\n")
+		if !bytes.Equal(output, want) {
+			t.Fatalf("output %q != %q", output, want)
+		}
+		if m.Memory.RAM[0][1]&32 == 0 {
+			t.Fatal("capability missing")
+		}
+		for x, ch := range []byte("RESET") {
+			for line := 0; line < 8; line++ {
+				adr := uint16(0x4020 + line*256 + x)
+				font := m.Memory.Read(uint16(0x3d00 + int(ch-32)*8 + line))
+				if got := m.Memory.Read(adr); got != font {
+					t.Fatalf("upper pixels x%d line%d: %02x != %02x", x, line, got, font)
+				}
 			}
 		}
+	} else {
+		if len(output) != 0 {
+			t.Fatalf("status polluted window/stream %q", output)
+		}
+		text := "-7/42"
+		if timeMode {
+			text = "17:04"
+		}
+		for x, ch := range []byte("Status room") {
+			for line := 0; line < 8; line++ {
+				adr := uint16(0x4000 + line*256 + x)
+				font := m.Memory.Read(uint16(0x3d00 + int(ch-32)*8 + line))
+				if m.Memory.Read(adr) != font {
+					t.Fatal("room status pixels", x, line)
+				}
+			}
+		}
+		for x, ch := range []byte(text) {
+			for line := 0; line < 8; line++ {
+				adr := uint16(0x4000 + line*256 + 20 + x)
+				font := m.Memory.Read(uint16(0x3d00 + int(ch-32)*8 + line))
+				if m.Memory.Read(adr) != font {
+					t.Fatalf("numeric status %s pixels %d/%d", text, x, line)
+				}
+			}
+		}
+		if m.Memory.RAM[0][1]&16 != 0 {
+			t.Fatal("status unavailable flag set")
+		}
 	}
-	t.Logf("V3 upper/lower bytecode, upper pixels and return PASS; %d resident bytes", len(a.Binary))
+	t.Logf("V3 %s screen bytecode/pixels/return PASS; %d resident bytes", fixture, len(a.Binary))
 }

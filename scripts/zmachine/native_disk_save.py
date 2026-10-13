@@ -9,7 +9,7 @@ def emit(bank,offset,capacity,extended=False):
     module = "scorpion_disk9" if extended else "scorpion_disk"
     read = f"scorpion_read(8,base+i,0x10,0)" if extended else f"bank_read({bank},{offset}+base+i,0x10)"
     write = f"scorpion_write(8,base+i,scorpion_read({buffer},i,0x10,0),0x10,0)" if extended else f"bank_write({bank},{offset}+base+i,scorpion_read({buffer},i,0x10,0),0x10)"
-    return f'''import zx.scorpion_memory
+    text = f'''import zx.scorpion_memory
 import zx.{module}
 global disk_record_length:u16
 global disk_slot:u8
@@ -81,3 +81,63 @@ fun native_disk_restore()->u8 {{
  return native_restore({bank},{offset},disk_record_length)
 }}
 '''
+
+    if extended:
+        start=text.index('fun native_disk_marker(')
+        end=text.index('fun native_disk_commit(',start)
+        text=text[:start]+"""fun native_disk_marker()->u8 {
+ asm z80 (ret A) (clob A,F,BC,DE,HL,IX,IY) {
+  LD A,5
+  LD HL,0
+  LD DE,0x0101
+  CALL zx__scorpion_disk9__scorpion_disk_sector
+  OR A
+  RET Z
+  LD A,0x51
+  CALL native_scorpion_page
+  LD D,0
+  LD A, (0xc000)
+  CP 77
+  JR NZ,.marker_done
+  LD A, (0xc001)
+  CP 90
+  JR NZ,.marker_done
+  LD A, (0xc002)
+  CP 2
+  JR NC,.marker_done
+  LD (disk_slot),A
+  CPL
+  LD B,A
+  LD A, (0xc003)
+  CP B
+  JR NZ,.marker_done
+  INC D
+ .marker_done:
+  LD A,0x10
+  CALL native_scorpion_page
+  LD A,D
+ }
+}
+"""+text[end:]
+        start=text.index('fun native_disk_commit(')
+        end=text.index('fun native_disk_copy_out(',start)
+        text=text[:start]+"""fun native_disk_commit()->u8 {
+ asm z80 (ret A) (clob A,F,BC,DE,HL,IX,IY) {
+  LD A,0x51
+  CALL native_scorpion_page
+  LD HL,0x5a4d
+  LD (0xc000),HL
+  LD A, (disk_slot)
+  LD (0xc002),A
+  CPL
+  LD (0xc003),A
+  LD A,0x10
+  CALL native_scorpion_page
+  LD A,6
+  LD HL,0
+  LD DE,0x0101
+  JP zx__scorpion_disk9__scorpion_disk_sector
+ }
+}
+"""+text[end:]
+    return text

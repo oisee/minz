@@ -18,3 +18,8 @@ The `.inf` files and committed `.z3` binaries were built with Inform 6.45. To re
 VAR10 split and VAR11 selection, prints into upper/lower regions and reselects
 upper after 25 lower newlines. Expected upper pixels spell RESET. Compile with
 Inform6.45 `inform -v3 windows.inf windows.z3`; native test cites Standard1.1 §8.6.
+
+`status.inf/status.z3`: independent V3 show_status fixture, active stream3 must
+remain empty. Pixel oracle checks room name and signed score -7/42; a time-mode
+variant changes globals to17:04 and checks the leading minute zero. Standard1.1
+§8.2. The globals are consumed by the interpreter, hence Inform unused warnings.

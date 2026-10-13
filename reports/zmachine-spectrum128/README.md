@@ -1594,3 +1594,32 @@ Zork I keyboard disk SAVE/fresh RESTORE. Zork I resident25308 B, fixed end$BDDC,
 и collapsed upper после RESTORE проверены. Initial snapshot roundtrip build
 PASS. Full status line ещё не реализована; opcode show_status остаётся no-op.
 Этот checkpoint не означает полного соответствия V3 screen specification.
+
+### 13 октября: настоящая V3 строка статуса
+
+`--windows` теперь также включает status line по Standard1.1 §8.2: короткое
+имя комнаты из первого global, signed score/turns или24-hour hours:minutes
+из следующих двух. Комната занимает левую часть (обрезается до20 символов),
+числа начинаются с column20; minutes<10 получают leading zero. Flags1 bit4
+(status unavailable) очищается, bit5 (upper window) сохраняется. Обновление
+происходит по show_status и перед keyboard read, не на startup. Status output
+обходит stream3/screen suppression и не меняет cursor selected window.
+
+Новая independent MIT Inform status fixture проверяет реальные show_status и
+активный stream3: buffer остаётся пустым. Pixel oracle проверяет Status room,
+-7/42 и отдельный time-mode17:04; PASS3.294 s. Zork I keyboard disk SAVE/fresh
+RESTORE со статусом PASS. CLI screenshot показывает West of House и0/0.
+
+Для памяти уплотнены reset/select/split console windows, marker read/commit
+в extended disk transport; оба порта переключаются shared resident helper
+вместо duplicate bodies. Marker сохраняет прежний четырёхбайтовый формат,
+байты после него не интерпретируются. Zork I disk fault matrix всех четырёх
+writes PASS54.377 s, static story/restart archive intact. Resident capture
+23034 B; полный screen/keyboard/windows/status/disk build25323 B (21 B до
+$BE00 stack reservation). Native stack capacity не сокращалась. Full
+window matrix и independent window bytecode остаются PASS.
+
+Это ещё не весь V3 conformance: full-game completion, arbitrary malformed
+object/stream combinations и physical TR-DOS не подтверждены. Новый status
+checkpoint пока отдельно от опубликованной playable disk bundle; её обновление
+и подтверждение другой реальной V3 story остаются следующими действиями.

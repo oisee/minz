@@ -518,8 +518,124 @@ if a.windows:
     text = text.replace(needle,needle+'\n        else if decoded_op == 10 { z3_window_split(decoded_a) }\n        else if decoded_op == 11 { if decoded_a<2 { z3_window_select(u8(decoded_a)) } }')
     text = text.replace('if restore_state() != 0 { branch(1) }','if restore_state() != 0 { z3_windows_reset() branch(1) }')
     text = text.replace('(memory_read16(1) & 15) | 16','(memory_read16(1) & 15) | 48')
+    # Status output goes directly to row0, bypassing stream3/screen suppression.
+    text = text.replace('fun emit_zscii(ch: u16) {','fun emit_zscii(ch: u16) {\n if native_status_mode!=0 { native_status_char(u8(ch)) return }')
+    text += """
+global native_status_mode:u8
+global native_status_col:u8
+fun native_status_char(@z80_a ch:u8) {
+ asm z80 (in ch) (clob A,F,BC,DE,HL,IX,IY) {
+  CP 32
+  RET C
+  CP 127
+  RET NC
+  LD C,A
+  LD A, (native_status_mode)
+  CP 1
+  LD A, (native_status_col)
+  JR NZ,.numeric
+  CP 20
+  RET NC
+ .numeric:
+  CP 32
+  RET NC
+  LD B,A
+  INC A
+  LD (native_status_col),A
+  LD D,0
+  JP zx__console__con_draw_char
+ }
+}
+fun native_status_clear() {
+ asm z80 (clob A,F,BC,DE,HL) {
+  LD HL,0x4000
+  LD C,8
+  XOR A
+ .plane:
+  LD B,32
+ .clear:
+  LD (HL),A
+  INC L
+  DJNZ .clear
+  LD L,0
+  INC H
+  DEC C
+  JR NZ,.plane
+ }
+}
+fun native_status_tail() {
+ asm z80 (clob A,F,BC,DE,HL,IX,IY) {
+  LD HL,1
+  CALL memory_read16
+  AND 2
+  PUSH AF
+  LD HL,47
+  JR Z,.separator
+  LD L,58
+ .separator:
+  CALL emit_zscii
+  LD HL, (globals_at)
+  LD DE,4
+  ADD HL,DE
+  CALL word_at
+  POP AF
+  JR Z,.print
+  LD A,H
+  OR A
+  JR NZ,.print
+  LD A,L
+  CP 10
+  JR NC,.print
+  PUSH HL
+  LD HL,48
+  CALL emit_zscii
+  POP HL
+ .print:
+  JP print_num
+ }
+}
+fun native_status_room() {
+ let room:u16=word_at(globals_at)
+ if room!=0 { print_text(u32(word_at(object_at(room)+7))+1) }
+}
+fun native_show_status() {
+ asm z80 (clob A,F,BC,DE,HL,IX,IY) {
+  CALL native_status_clear
+  LD A,1
+  LD (native_status_mode),A
+  XOR A
+  LD (native_status_col),A
+  CALL native_status_room
+  LD A,20
+  LD (native_status_col),A
+  LD (native_status_mode),A
+  LD HL, (globals_at)
+  INC HL
+  INC HL
+  CALL word_at
+  CALL print_num
+  CALL native_status_tail
+  XOR A
+  LD (native_status_mode),A
+ }
+}
+"""
+    text = text.replace('else if decoded_op == 12 { }','else if decoded_op == 12 { native_show_status() }',1)
+    text = text.replace('let n:u8 = tui_read_line_or_eof','native_show_status()\n    let n:u8 = tui_read_line_or_eof',1)
+    text = text.replace('(memory_read16(1) & 15) | 48','(memory_read16(1) & 15) | 32')
     # Native restart has a direct ASM implementation; reset its UI on entry.
-    text = text.replace('else if decoded_op == 7 { restart_story() }','else if decoded_op == 7 { restart_story() z3_windows_reset() memory_write(1,(memory_read16(1)&15)|48) }')
+    text = text.replace('else if decoded_op == 7 { restart_story() }','else if decoded_op == 7 { native_window_restart() }')
+    text += '''fun native_window_restart() {
+ asm z80 (clob A,F,BC,DE,HL,IX,IY) {
+  CALL restart_story
+  CALL zx__console__z3_windows_reset
+  LD A, (0xc001)
+  AND 15
+  OR 32
+  LD (0xc001),A
+ }
+}
+'''
 if a.extended_save:
     from scorpion_paging import adapt,HELPER
     # Keep nested module identity; all OUT(C),A in these two modules are paging.
@@ -528,9 +644,9 @@ if a.extended_save:
         local = a.output.parent / f'zx/{module}.nanz'
         local.parent.mkdir(parents=True,exist_ok=True)
         module_text = local.read_text() if module == 'banked' and a.story_layout else source.read_text()
-        # Inline-assembly labels are not renamed by nested imports. Keep a
-        # local helper in each directly imported module with its final label.
-        local.write_text(adapt(module_text).replace('CALL native_scorpion_page',f'CALL zx__{module}__native_scorpion_page')+'\n'+HELPER)
+        # Shared resident helper has an unmangled top-level ASM label.
+        # Imported ASM calls it directly, without duplicate helper bodies.
+        local.write_text(adapt(module_text))
     text = adapt(text)
     text += HELPER
 a.output.write_text('// Native banked integration harness: output capture; unsupported I/O fails.\n' + text)
