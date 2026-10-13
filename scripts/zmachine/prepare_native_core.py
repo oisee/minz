@@ -235,13 +235,30 @@ if a.commands:
     assert stub in text
     text = text.replace(stub, replacement)
 if a.console:
+    # Local module keeps zx.console names/ASM references, omitting helpers
+    # unreachable from the standalone game console. The stdlib stays complete.
+    console = (root / 'stdlib/zx/console.nanz').read_text()
+    for name in ['con_print_u8','con_print_u16','con_print','con_set_bright','con_set_attr','con_goto','con_newline','con_show_cursor','con_hide_cursor','zx_border','con_init']:
+        start = console.index('fun '+name+'(')
+        brace = console.index('{',start)
+        depth = 1
+        end = brace+1
+        while depth:
+            if console[end] == '{': depth += 1
+            if console[end] == '}': depth -= 1
+            end += 1
+        console = console[:start]+console[end:]
+    local_console = a.output.parent / 'zx/console.nanz'
+    local_console.parent.mkdir(parents=True,exist_ok=True)
+    local_console.write_text(console)
+if a.console:
     text = text.replace('import zx.story_memory', 'import zx.console\nimport zx.story_memory')
     text = text.replace('global native_output: [u8; 1024]\n', '')
     text = text.replace('global native_output_length: u16 = 0\n', '')
     replace_function('native_putchar', 'fun native_putchar(ch: u8) { con_putchar(ch) }')
     if not a.commands:
         replace_function('tui_read_line_or_eof', 'fun tui_read_line_or_eof(buf: ^u8, maxlen: u8) -> u8 { return con_input(buf, maxlen) }')
-    text = text.replace('fun main() {', 'fun main() {\n con_init(7, 0)\n con_clear()', 1)
+    text = text.replace('fun main() {', 'fun main() {\n con_clear()', 1)
 assert 'story[' not in text and '&story,' not in text
 assert 'snapshot[' not in text
 # Bank write belongs to the nested import: import it directly for stable naming.

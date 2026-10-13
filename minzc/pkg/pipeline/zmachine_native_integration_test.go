@@ -194,7 +194,7 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	if err != nil {
 		t.Fatal(err)
 	}
-	h, err := nanz.ParseWithOpts(string(src), path, nanz.ParseOpts{StdlibDir: filepath.Join(root, "stdlib")})
+	h, err := nanz.ParseWithOpts(string(src), path, nanz.ParseOpts{BaseDir: filepath.Dir(path), StdlibDir: filepath.Join(root, "stdlib")})
 	if err != nil {
 		t.Fatal(err)
 	}

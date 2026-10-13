@@ -75,7 +75,7 @@ func main() {
 	}
 	src, err := os.ReadFile(source)
 	must(err)
-	h, err := nanz.ParseWithOpts(string(src), source, nanz.ParseOpts{StdlibDir: "../stdlib"})
+	h, err := nanz.ParseWithOpts(string(src), source, nanz.ParseOpts{BaseDir: out, StdlibDir: "../stdlib"})
 	must(err)
 	steps, err := pipeline.CompileHIRSteps(h, pipeline.Options{AssertMode: "none"})
 	must(err)
