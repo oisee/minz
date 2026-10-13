@@ -295,6 +295,14 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
 		if inst.Ty.Width() == 16 {
+			defer g.saveWrittenScratch(inst)()
+			// The allocator may place either operand in a pair or a spill.
+			// NEG's fixed HL sequence must consume the actual source and
+			// publish its result at the allocated destination.
+			src, dst := g.loc(inst.Src[0]), g.loc(inst.Dst)
+			if src != "HL" {
+				g.genUnsignedExtBytes("HL", src, 16, 16)
+			}
 			// 16-bit NEG HL using the classic demo-scene SBC A,A trick:
 			//   XOR A      ; A=0, CF=0
 			//   SUB L      ; A = 0-L, CF=1 if L≠0 (borrow)
@@ -309,8 +317,12 @@ func (g *z80cg) genInst(inst *Inst) {
 			g.emit("    SBC A, A")
 			g.emit("    SUB H")
 			g.emit("    LD H, A")
+			if dst != "HL" {
+				g.genUnsignedExtBytes(dst, "HL", 16, 16)
+			}
 			g.invalidate("A")
 			g.invalidate("HL")
+			g.invalidate(dst)
 		} else {
 			// Z80 NEG always operates on A; ensure source is in A first.
 			srcLoc := g.loc(inst.Src[0])
@@ -359,6 +371,12 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.genSext(inst)
 
 	case OpTrunc:
+		if inst.SrcTy != nil && isZ80WideInt(inst.SrcTy) && inst.Ty.Width() == 16 {
+			// Wide integers carry their low word in the main pair. Preserve
+			// both bytes, including overlapping allocated destinations.
+			g.genUnsignedExtBytes(dst, g.loc(inst.Src[0]), 16, 16)
+			break
+		}
 		if g.loc(inst.Src[0]) == "F" || inst.Src[0] == g.pendingFlagReg {
 			// A predicate has no byte register to copy. Its truncation keeps
 			// the canonical 0/1 value and uses the same live-safe materializer
@@ -694,7 +712,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		if g.runtime == Z80RuntimeCPM {
 			g.genCPMGlobalStoreGuard(inst)
 		}
-		if isSpill(g.loc(inst.Src[0])) {
+		if isSpill(g.loc(inst.Src[0])) || inst.Ty.Width() == 16 {
 			defer g.saveWrittenScratch(inst)()
 		}
 		if g.ptrAddPushHL == inst.Src[0] {
@@ -1183,7 +1201,11 @@ func (g *z80cg) genInst(inst *Inst) {
 		// Place offset into offPair BEFORE moving the base (avoids clobbering
 		// the offset when base and off share a register like DE).
 		if off != offPair {
-			if len(off) == 1 { // 8-bit: zero-extend into pair
+			if info, ok := g.regInfo[inst.Src[1]]; ok && z80ValueWidth(info.Ty) <= 8 {
+				// Optimized ptr_add may consume a byte index directly. Its
+				// spill home is one byte, so never reload an adjacent byte.
+				g.genUnsignedExtBytes(offPair, off, 8, 16)
+			} else if len(off) == 1 { // 8-bit: zero-extend into pair
 				g.emitLD8(lowByte(offPair), off)
 				g.emitf("    LD %s, 0", highByte(offPair))
 			} else {

@@ -1,22 +1,24 @@
 package formats
 
 import (
+	"bytes"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/minz/minzc/pkg/spectrum"
 )
 
 // TRD disk geometry constants.
 const (
-	TRDSectorSize     = 256
+	TRDSectorSize      = 256
 	TRDSectorsPerTrack = 16
-	TRDSidesPerDisk   = 2
-	TRDTracksPerSide  = 80
-	TRDDiskSize       = TRDSectorSize * TRDSectorsPerTrack * TRDSidesPerDisk * TRDTracksPerSide // 655360
+	TRDSidesPerDisk    = 2
+	TRDTracksPerSide   = 80
+	TRDDiskSize        = TRDSectorSize * TRDSectorsPerTrack * TRDSidesPerDisk * TRDTracksPerSide // 655360
 
 	// Directory is on track 0, sectors 0-7 (128 entries, 16 bytes each)
-	TRDDirEntrySize = 16
+	TRDDirEntrySize  = 16
 	TRDMaxDirEntries = 128
 
 	// System sector: track 0, sector 8
@@ -27,17 +29,20 @@ const (
 type TRDFile struct {
 	Data [TRDDiskSize]byte
 	Path string
+	// Writeback is an explicit opt-in. Read-only loads never change host files.
+	Writeback      bool
+	LastWriteError error
 }
 
 // TRDEntry is a directory entry on a TR-DOS disk.
 type TRDEntry struct {
-	Name      string // 8 chars
-	Extension byte   // 'B'=BASIC, 'C'=Code, 'D'=Data, '#'=Sequential
-	Start     uint16 // start address (Code) or autostart line (BASIC)
-	Length    uint16 // length in bytes
-	Sectors   byte   // length in sectors
-	StartSec  byte   // starting sector
-	StartTrack byte  // starting track
+	Name       string // 8 chars
+	Extension  byte   // 'B'=BASIC, 'C'=Code, 'D'=Data, '#'=Sequential
+	Start      uint16 // start address (Code) or autostart line (BASIC)
+	Length     uint16 // length in bytes
+	Sectors    byte   // length in sectors
+	StartSec   byte   // starting sector
+	StartTrack byte   // starting track
 }
 
 // LoadTRD loads a .trd disk image.
@@ -57,6 +62,40 @@ func LoadTRD(path string) (*TRDFile, error) {
 	copy(trd.Data[:n], data[:n])
 
 	return trd, nil
+}
+
+// Flush atomically publishes a complete TRD image. Callers explicitly choose
+// the destination; an interrupted/failed write leaves the prior file intact.
+func (t *TRDFile) Flush() error {
+	if t.Path == "" {
+		return fmt.Errorf("TRD writeback requires a destination")
+	}
+	mode := os.FileMode(0644)
+	if info, err := os.Stat(t.Path); err == nil {
+		mode = info.Mode().Perm()
+	}
+	f, err := os.CreateTemp(filepath.Dir(t.Path), ".minz-trd-*")
+	if err != nil {
+		return err
+	}
+	temp := f.Name()
+	defer os.Remove(temp)
+	if err = f.Chmod(mode); err != nil {
+		f.Close()
+		return err
+	}
+	if _, err = f.Write(t.Data[:]); err != nil {
+		f.Close()
+		return err
+	}
+	if err = f.Sync(); err != nil {
+		f.Close()
+		return err
+	}
+	if err = f.Close(); err != nil {
+		return err
+	}
+	return os.Rename(temp, t.Path)
 }
 
 // ReadSector reads a 256-byte sector from the disk image.
@@ -203,7 +242,22 @@ func InstallTRDTraps(m *spectrum.Machine, trd *TRDFile, verbose bool) {
 
 	// Trap the main TR-DOS entry — C register = function number
 	m.SetPCTrap(TRDOSEntryPoint, func() {
+		if !trd.Writeback {
+			state.dispatch()
+			return
+		}
+		// Save the old image until the whole API operation has reached disk.
+		// A failed write reports an I/O error and rolls back the in-memory image.
+		before := trd.Data
 		state.dispatch()
+		if bytes.Equal(before[:], trd.Data[:]) {
+			return
+		}
+		trd.LastWriteError = trd.Flush()
+		if trd.LastWriteError != nil {
+			trd.Data = before
+			m.CPU.SetBC(0x0100)
+		}
 	})
 
 	// Cold start — just return, prevent crash
@@ -340,8 +394,8 @@ func (s *TRDState) readSectors() {
 	hl := cpu.HL()
 	bc := cpu.BC()
 	de := cpu.DE()
-	count := int(bc >> 8) // B register = sector count
-	track := int(de >> 8) // D register = track
+	count := int(bc >> 8)    // B register = sector count
+	track := int(de >> 8)    // D register = track
 	sector := int(de & 0xFF) // E register = sector (1-based in TR-DOS)
 
 	if count == 0 {
@@ -1059,4 +1113,3 @@ func writeWord(m *spectrum.Machine, addr, val uint16) {
 	m.Memory.Write(addr, byte(val), false)
 	m.Memory.Write(addr+1, byte(val>>8), false)
 }
-

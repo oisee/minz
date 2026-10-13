@@ -1,5 +1,12 @@
 # Zork I: West of House micro-demo
 
+For the full banked Spectrum implementation, playable bundles and verified
+Zork I/II routes, see [the current Spectrum status](../../../reports/zmachine-spectrum128/current-status.md)
+and [native verification report](../../../reports/zmachine-spectrum128/README.md).
+The small committed story described below is a separate micro-demo. The full
+Zork I walkthrough has been verified on compiled Z80; the latest Zork II
+checkpoints are listed in those reports.
+
 This is a **2,378-byte Z-machine v3 story**, not the full Zork I game. It keeps a tiny, playable opening scene: four sides of the house, the mailbox, and the leaflet. Commands include `LOOK`, `OPEN MAILBOX`, `TAKE LEAFLET`, `READ LEAFLET`, `INVENTORY`, directions, and `QUIT`. It has a deliberately small custom parser; the original Zork parser, objects, puzzles, and save/restore are not included.
 
 The ZIL source and text are an adaptation of the [MIT-licensed Zork I source](https://github.com/historicalsource/zork1/tree/97b7b3d68c075dd9af7da499c3e9690ada3471fd) at commit `97b7b3d68c075dd9af7da499c3e9690ada3471fd`. The full license is in [LICENSE-ZORK1.txt](LICENSE-ZORK1.txt). The Nanz interpreter is a separate experimental implementation in this directory; ZILF libraries are not included. This demo does not grant trademark rights to Zork branding.

@@ -1,0 +1,140 @@
+n
+n
+u
+get egg
+d
+s
+e
+open window
+w
+open sack
+get garlic
+w
+get lamp
+e
+u
+light lamp
+get rope
+get knife
+d
+douse lamp
+w
+get sword
+move rug
+open trapdoor
+d
+light lamp
+n
+kill troll with sword
+kill troll with sword
+kill troll with sword
+kill troll with sword
+kill troll with sword
+kill troll with sword
+drop egg
+e
+e
+se
+e
+tie rope to railing
+d
+douse lamp
+get torch
+d
+s
+drop sword
+get candles
+douse candles
+get book
+n
+get bell
+e
+open coffin
+get sceptre
+w
+s
+pray
+e
+s
+e
+w
+w
+read book
+drop all
+get torch
+get lamp
+open trapdoor
+d
+n
+e
+e
+se
+e
+d
+d
+d
+get coffin
+u
+s
+pray
+e
+s
+e
+w
+w
+open case
+put coffin in case
+get book
+get bell
+get candles
+d
+s
+e
+get painting
+w
+n
+n
+e
+e
+e
+echo
+get bar
+u
+e
+n
+drop painting
+get matchbook
+s
+s
+d
+w
+s
+s
+e
+d
+ring bell
+get candles
+light match
+light candles with match
+read prayer
+drop matchbook
+drop candles
+drop book
+s
+get skull
+n
+u
+n
+n
+n
+w
+w
+s
+u
+put skull in case
+put bar in case
+score
+look in case
+inventory
+quit
+y

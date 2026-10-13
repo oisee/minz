@@ -312,6 +312,11 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			return
 		}
 
+		// A may be the actual lhs home even when copy tracking is empty.
+		// Preserve it for successor-block uses before destructive arithmetic.
+		if lhs == "A" {
+			g.saveAccOperandIfLive(inst.Src[0], inst)
+		}
 		// Immediate peephole: AND/OR/XOR/ADD/SUB n — no register needed for rhs.
 		if cv, ok := g.constVals[inst.Src[1]]; ok {
 			if lhs != "A" {

@@ -12,7 +12,7 @@ tmp_dir=$(mktemp -d)
 trap 'rm -rf "$tmp_dir"' EXIT
 
 cp "$fixture_dir/stream3.z3" "$tmp_dir/zork-west-demo.z3"
-cp "$fixture_dir/../zork-west-demo/zvm.nanz" "$tmp_dir/zvm.nanz"
+cp "${ZVM_CORE:-$fixture_dir/../zork-west-demo/zvm.nanz}" "$tmp_dir/zvm.nanz"
 mkdir -p "$tmp_dir/text"
 cp "$fixture_dir/../../../stdlib/text/print.nanz" "$tmp_dir/text/print.nanz"
 "$vm" -H "$tmp_dir/zvm.nanz" > "$tmp_dir/stream3.out"
@@ -52,7 +52,7 @@ cp "$fixture_dir/save_restore.z3" "$tmp_dir/zork-west-demo.z3"
 printf 's\nr\nq\n' | "$vm" -H "$tmp_dir/zvm.nanz" > "$tmp_dir/save_restore.out"
 diff -u "$fixture_dir/save_restore.out" "$tmp_dir/save_restore.out"
 test -s "$tmp_dir/zvm-save.dat"
-expected_save_sha=d592d2a29adffbc1f448a6ae4bf74705feab597094e10a3bf6aec2c328152cc2
+expected_save_sha=${ZVM_EXPECTED_SAVE_SHA:-d592d2a29adffbc1f448a6ae4bf74705feab597094e10a3bf6aec2c328152cc2}
 actual_save_sha=$(sha256sum "$tmp_dir/zvm-save.dat" | cut -d ' ' -f 1)
 if [ "$actual_save_sha" != "$expected_save_sha" ]; then
     echo "save format changed: $actual_save_sha" >&2

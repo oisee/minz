@@ -1,0 +1,143 @@
+"""Disk MZ3R transport through emulator TR-DOS API; RAM slot is temporary staging.
+
+Dedicated TRD marker track1/sector1 and two slots tracks2..5 and6..9.
+Commit marker published last; atomic sector persistence is provided by emulator.
+Existing preflight validates identity/CRC/structure before applying game state.
+"""
+def emit(bank,offset,capacity,extended=False):
+    buffer = 9 if extended else 8
+    module = "scorpion_disk9" if extended else "scorpion_disk"
+    read = f"scorpion_read(8,base+i,0x10,0)" if extended else f"bank_read({bank},{offset}+base+i,0x10)"
+    write = f"scorpion_write(8,base+i,scorpion_read({buffer},i,0x10,0),0x10,0)" if extended else f"bank_write({bank},{offset}+base+i,scorpion_read({buffer},i,0x10,0),0x10)"
+    text = f'''import zx.scorpion_memory
+import zx.{module}
+global disk_record_length:u16
+global disk_slot:u8
+fun native_disk_marker()->u8 {{
+ if scorpion_disk_sector(5,0,1,1)==0 {{ return 0 }}
+ if scorpion_read({buffer},0,0x10,0)!=77 {{ return 0 }}
+ if scorpion_read({buffer},1,0x10,0)!=90 {{ return 0 }}
+ disk_slot=scorpion_read({buffer},2,0x10,0)
+ if disk_slot>1 {{ return 0 }}
+ if scorpion_read({buffer},3,0x10,0)!=(disk_slot xor 255) {{ return 0 }}
+ return 1
+}}
+fun native_disk_commit()->u8 {{
+ var i:u16=0
+ while i<256 {{ scorpion_write({buffer},i,0,0x10,0) i=i+1 }}
+ scorpion_write({buffer},0,77,0x10,0)
+ scorpion_write({buffer},1,90,0x10,0)
+ scorpion_write({buffer},2,disk_slot,0x10,0)
+ scorpion_write({buffer},3,disk_slot xor 255,0x10,0)
+ return scorpion_disk_sector(6,0,1,1)
+}}
+fun native_disk_copy_out(base:u16,count:u16) {{
+ var i:u16=0
+ while i<256 {{
+  var value:u8=0
+  if base+i<count {{ value={read} }}
+  scorpion_write({buffer},i,value,0x10,0)
+  i=i+1
+ }}
+}}
+fun native_disk_save()->u8 {{
+ if native_save()==0 {{ return 0 }}
+ if native_disk_marker()!=0 {{ disk_slot=disk_slot xor 1 }}
+ else {{ disk_slot=0 }}
+ disk_record_length=native_save_length
+ let sectors:u16=(disk_record_length+255)>>8
+ var sector:u16=1
+ while sector<sectors {{
+  native_disk_copy_out(sector<<8,disk_record_length)
+  if scorpion_disk_sector(6,0,u8(2+u16(disk_slot)*4+(sector>>4)),u8((sector&15)+1))==0 {{ return 0 }}
+  sector=sector+1
+ }}
+ native_disk_copy_out(0,disk_record_length)
+ if scorpion_disk_sector(6,0,2+disk_slot*4,1)==0 {{ return 0 }}
+ return native_disk_commit()
+}}
+fun native_disk_restore()->u8 {{
+ if native_disk_marker()==0 {{ return 0 }}
+ if scorpion_disk_sector(5,0,2+disk_slot*4,1)==0 {{ return 0 }}
+ // MZ3R stores two little-endian encoded lengths at offsets12 and14.
+ let first:u16=u16(scorpion_read({buffer},12,0x10,0)) | (u16(scorpion_read({buffer},13,0x10,0))<<8)
+ let second:u16=u16(scorpion_read({buffer},14,0x10,0)) | (u16(scorpion_read({buffer},15,0x10,0))<<8)
+ if first>{capacity}-32 {{ return 0 }}
+ if second>{capacity}-32-first {{ return 0 }}
+ disk_record_length=first+second+32
+ var base:u16=0
+ while base<disk_record_length {{
+  if base!=0 {{
+   let sector:u16=base>>8
+   if scorpion_disk_sector(5,0,u8(2+u16(disk_slot)*4+(sector>>4)),u8((sector&15)+1))==0 {{ return 0 }}
+  }}
+  var i:u16=0
+  while i<256 {{
+   if base+i<disk_record_length {{ {write} }}
+   i=i+1
+  }}
+  base=base+256
+ }}
+ return native_restore({bank},{offset},disk_record_length)
+}}
+'''
+
+    if extended:
+        start=text.index('fun native_disk_marker(')
+        end=text.index('fun native_disk_commit(',start)
+        text=text[:start]+"""fun native_disk_marker()->u8 {
+ asm z80 (ret A) (clob A,F,BC,DE,HL,IX,IY) {
+  LD A,5
+  LD HL,0
+  LD DE,0x0101
+  CALL zx__scorpion_disk9__scorpion_disk_sector
+  OR A
+  RET Z
+  LD A,0x51
+  CALL native_scorpion_page
+  LD D,0
+  LD A, (0xc000)
+  CP 77
+  JR NZ,.marker_done
+  LD A, (0xc001)
+  CP 90
+  JR NZ,.marker_done
+  LD A, (0xc002)
+  CP 2
+  JR NC,.marker_done
+  LD (disk_slot),A
+  CPL
+  LD B,A
+  LD A, (0xc003)
+  CP B
+  JR NZ,.marker_done
+  INC D
+ .marker_done:
+  LD A,0x10
+  CALL native_scorpion_page
+  LD A,D
+ }
+}
+"""+text[end:]
+        start=text.index('fun native_disk_commit(')
+        end=text.index('fun native_disk_copy_out(',start)
+        text=text[:start]+"""fun native_disk_commit()->u8 {
+ asm z80 (ret A) (clob A,F,BC,DE,HL,IX,IY) {
+  LD A,0x51
+  CALL native_scorpion_page
+  LD HL,0x5a4d
+  LD (0xc000),HL
+  LD A, (disk_slot)
+  LD (0xc002),A
+  CPL
+  LD (0xc003),A
+  LD A,0x10
+  CALL native_scorpion_page
+  LD A,6
+  LD HL,0
+  LD DE,0x0101
+  JP zx__scorpion_disk9__scorpion_disk_sector
+ }
+}
+"""+text[end:]
+    return text

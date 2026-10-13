@@ -138,46 +138,59 @@ fun con_clear() -> void {
 
 // ── Character output ────────────────────────────────────────────────────────
 
-fun con_putchar(ch: u8) -> void {
-    if ch == 13 {
-        // Carriage return
-        con_col = 0
-        con_row = con_row + 1
-        if con_row >= SCREEN_ROWS {
-            con_scroll()
-            con_row = SCREEN_ROWS - 1
-        }
-        return
-    }
-    if ch == 10 {
-        // Newline (same as CR for simplicity)
-        con_col = 0
-        con_row = con_row + 1
-        if con_row >= SCREEN_ROWS {
-            con_scroll()
-            con_row = SCREEN_ROWS - 1
-        }
-        return
-    }
-    if ch == 8 {
-        // Backspace
-        if con_col > 0 {
-            con_col = con_col - 1
-            con_draw_char(con_col, con_row, 32)
-        }
-        return
-    }
-
-    con_draw_char(con_col, con_row, ch)
-    con_col = con_col + 1
-    if con_col >= SCREEN_COLS {
-        con_col = 0
-        con_row = con_row + 1
-        if con_row >= SCREEN_ROWS {
-            con_scroll()
-            con_row = SCREEN_ROWS - 1
-        }
-    }
+fun con_putchar(@z80_a ch: u8) -> void {
+ asm z80 (in ch) (clob A,F,BC,DE,HL,IX,IY) {
+  CP 13
+  JR Z, .newline
+  CP 10
+  JR Z, .newline
+  CP 8
+  JR Z, .backspace
+  LD C, A
+  LD A, (zx__console__con_col)
+  LD B, A
+  LD A, (zx__console__con_row)
+  LD D, A
+  CALL zx__console__con_draw_char
+  LD A, (zx__console__con_col)
+  INC A
+  CP 32
+  JR NC, .newline
+  LD (zx__console__con_col), A
+  RET
+ .newline:
+  XOR A
+  LD (zx__console__con_col), A
+  LD A, (zx__console__con_row)
+  INC A
+  CP 24
+  JR NC, .scroll
+  LD (zx__console__con_row), A
+  RET
+ .scroll:
+  LD A, 23
+  LD (zx__console__con_row), A
+  JP zx__console__con_scroll
+ .backspace:
+  LD A, (zx__console__con_row)
+  LD D, A
+  LD A, (zx__console__con_col)
+  OR A
+  JR NZ, .previous_col
+  LD A, D
+  OR A
+  RET Z
+  DEC A
+  LD (zx__console__con_row), A
+  LD D, A
+  LD A, 32
+ .previous_col:
+  DEC A
+  LD (zx__console__con_col), A
+  LD B, A
+  LD C, 32
+  JP zx__console__con_draw_char
+ }
 }
 
 fun con_draw_char(@z80_b col: u8, @z80_d row: u8, @z80_c ch: u8) -> void {
@@ -295,26 +308,148 @@ fun scroll_attrs(row: u8) -> void {
     }
 }
 
+// Copy upward in each interleaved pixel plane; boundary rows come from
+// the next 2K third. Forward LDIR is safe because destination precedes source.
 fun con_scroll() -> void {
-    for row in 0..23 {
-        scroll_row(row)
-    }
-    // Clear bottom row pixels
-    for line in 0..8 {
-        let dst: u16 = screen_addr(0, 23, line)
-        for col in 0..32 {
-            zx_poke(dst + u16(col), 0)
-        }
-    }
-    // Scroll attributes
-    for row in 0..23 {
-        scroll_attrs(row)
-    }
-    // Clear bottom row attributes
-    let dst: u16 = attr_addr(0, 23)
-    for col in 0..32 {
-        zx_poke(dst + u16(col), con_attr)
-    }
+ asm z80 (clob A, F, BC, DE, HL, IX, IY) {
+  LD IX, 0x4000
+  LD IYL, 3
+ .third:
+  LD IYH, 0
+ .plane:
+  PUSH IX
+  POP HL
+  LD A, H
+  ADD A, IYH
+  LD H, A
+  LD D, H
+  LD E, L
+  LD BC, 32
+  ADD HL, BC
+  LD BC, 224
+  LDIR
+  LD A, IYL
+  CP 1
+  JR Z, .clear
+  LD BC, 0x700
+  ADD HL, BC
+  LD BC, 32
+  LDIR
+  JR .next
+ .clear:
+  XOR A
+  LD B, 32
+ .clear_loop:
+  LD (DE), A
+  INC DE
+  DJNZ .clear_loop
+ .next:
+  INC IYH
+  LD A, IYH
+  CP 8
+  JR NZ, .plane
+  LD BC, 0x800
+  ADD IX, BC
+  DEC IYL
+  JR NZ, .third
+  LD HL, 0x5820
+  LD DE, 0x5800
+  LD BC, 736
+  LDIR
+  LD A, (zx__console__con_attr)
+  LD B, 32
+ .attrs:
+  LD (DE), A
+  INC DE
+  DJNZ .attrs
+ }
+}
+
+// Scroll character rows top..23, preserving all rows above top.
+// Useful for a fixed status/upper window; top >=24 leaves the screen intact.
+fun con_scroll_region(@z80_a top: u8) -> void {
+ asm z80 (in top) (clob A,F,BC,DE,HL,IX,IY) {
+  CP 24
+  RET NC
+  LD IYL, A
+ .row:
+  LD IYH, 0
+ .plane:
+  LD A, IYL
+  AND 0x18
+  OR IYH
+  OR 0x40
+  LD D, A
+  LD A, IYL
+  AND 7
+  RRCA
+  RRCA
+  RRCA
+  LD E, A
+  LD A, IYL
+  CP 23
+  JR Z, .clear
+  INC A
+  PUSH AF
+  AND 0x18
+  OR IYH
+  OR 0x40
+  LD H, A
+  POP AF
+  AND 7
+  RRCA
+  RRCA
+  RRCA
+  LD L, A
+  LD BC, 32
+  LDIR
+  JR .next_plane
+ .clear:
+  XOR A
+  LD B, 32
+ .clear_pixels:
+  LD (DE), A
+  INC DE
+  DJNZ .clear_pixels
+ .next_plane:
+  INC IYH
+  LD A, IYH
+  CP 8
+  JR NZ, .plane
+  ; Attribute address = $5800 + row*32.
+  LD A, IYL
+  LD L, A
+  LD H, 0
+  ADD HL, HL
+  ADD HL, HL
+  ADD HL, HL
+  ADD HL, HL
+  ADD HL, HL
+  LD DE, 0x5800
+  ADD HL, DE
+  EX DE, HL
+  LD A, IYL
+  CP 23
+  JR Z, .clear_attrs
+  LD H, D
+  LD L, E
+  LD BC, 32
+  ADD HL, BC
+  LDIR
+  JR .next_row
+ .clear_attrs:
+  LD A, (zx__console__con_attr)
+  LD B, 32
+ .attr_loop:
+  LD (DE), A
+  INC DE
+  DJNZ .attr_loop
+ .next_row:
+  INC IYL
+  LD A, IYL
+  CP 24
+  JR NZ, .row
+ }
 }
 
 // ── Print helpers ───────────────────────────────────────────────────────────
@@ -406,13 +541,30 @@ global KBD_KEYS: [u8; 40] = [
     32,   0,   109, 110, 98       // SPACE, SS, m, n, b
 ]
 
+// Printable SYMBOL SHIFT legends; BASIC keywords keep their ordinary key.
+global KBD_SYMBOLS: [u8;40] = [
+ 0,58,0,63,47, 0,0,0,0,0, 0,0,0,60,62,
+ 33,64,35,36,37, 95,41,40,39,38, 34,59,0,93,0,
+ 0,61,43,45,94, 0,0,46,44,42
+]
+
+fun keyboard_char(index:u8)->u8 {
+ if (zx_in_fe(0x7f) & 2) == 0 {
+  let symbol:u8=KBD_SYMBOLS[index]
+  if symbol != 0 { return symbol }
+ }
+ return KBD_KEYS[index]
+}
+
 fun scan_row_key(row_addr: u8, base_idx: u8) -> u8 {
-    let row_val: u8 = zx_in_fe(row_addr)
-    if (row_val & 1) == 0 { return KBD_KEYS[base_idx] }
-    if (row_val & 2) == 0 { return KBD_KEYS[base_idx + 1] }
-    if (row_val & 4) == 0 { return KBD_KEYS[base_idx + 2] }
-    if (row_val & 8) == 0 { return KBD_KEYS[base_idx + 3] }
-    if (row_val & 16) == 0 { return KBD_KEYS[base_idx + 4] }
+    var row_val: u8 = zx_in_fe(row_addr)
+    if row_addr == 0xfe { row_val = row_val | 1 }
+    if row_addr == 0x7f { row_val = row_val | 2 }
+    if (row_val & 1) == 0 { return keyboard_char(base_idx) }
+    if (row_val & 2) == 0 { return keyboard_char(base_idx + 1) }
+    if (row_val & 4) == 0 { return keyboard_char(base_idx + 2) }
+    if (row_val & 8) == 0 { return keyboard_char(base_idx + 3) }
+    if (row_val & 16) == 0 { return keyboard_char(base_idx + 4) }
     return 0
 }
 
@@ -441,9 +593,15 @@ fun con_getchar() -> u8 {
         }
     }
 
-    // Check CAPS SHIFT for uppercase
+    // CAPS SHIFT controls follow the Spectrum legends; codes 8..11 are
+    // delete/left/down/up and 12 is right. Uppercase letters remain available.
     let cs_row: u8 = zx_in_fe(0xFE)
     if (cs_row & 1) == 0 {
+        if result == 48 { return 8 }
+        if result == 53 { return 9 }
+        if result == 54 { return 10 }
+        if result == 55 { return 11 }
+        if result == 56 { return 12 }
         if result >= 97 {
             if result <= 122 {
                 result = result - 32
@@ -454,40 +612,380 @@ fun con_getchar() -> u8 {
     return result
 }
 
-fun con_input(buf: ^u8, maxlen: u8) -> u8 {
-    var pos: u8 = 0
-    var done: u8 = 0
-    // Show cursor
-    con_draw_char(con_col, con_row, 95)    // underscore cursor
+// Four previous commands (up/down), with a draft restored below newest.
+// Line capacity is 79 bytes plus NUL. History is console state, not game SAVE.
+global con_history: [u8;320]
+global con_history_length: [u8;4]
+global con_history_count: u8
+global con_draft: [u8;80]
+global con_draft_length: u8
 
-    while done == 0 {
-        let ch: u8 = con_getchar()
+global con_edit_buf:u16
+global con_edit_anchor:u16
+global con_edit_length:u8
+global con_edit_cursor:u8
+global con_edit_limit:u8
+global con_edit_history:u8
+global con_edit_old:u8
 
-        if ch == 13 {
-            // Enter — finish
-            con_draw_char(con_col, con_row, 32)    // clear cursor
-            done = 1
-        } else {
-            if ch == 8 {
-                // Backspace
-                if pos > 0 {
-                    pos = pos - 1
-                    con_putchar(8)
-                    con_draw_char(con_col, con_row, 95)    // cursor
-                }
-            } else {
-                if pos < maxlen {
-                    buf[pos] = ch
-                    pos = pos + 1
-                    con_putchar(ch)
-                    con_draw_char(con_col, con_row, 95)    // cursor
-                }
-            }
-        }
-    }
-
-    buf[pos] = 0    // NUL-terminate
-    return pos
+// Compact resident editor. All scratch is console state; non-reentrant.
+fun con_input(@z80_hl buf:^u8, @z80_a maxlen:u8)->u8 {
+ asm z80 (in buf, maxlen) (ret A) (clob A, F, BC, DE, HL, IX, IY) {
+  LD (zx__console__con_edit_buf), HL
+  CP 80
+  JR C, .limit
+  LD A, 79
+ .limit:
+  LD (zx__console__con_edit_limit), A
+  LD A, (zx__console__con_row)
+  LD L, A
+  LD H, 0
+  ADD HL, HL
+  ADD HL, HL
+  ADD HL, HL
+  ADD HL, HL
+  ADD HL, HL
+  LD A, (zx__console__con_col)
+  LD E, A
+  LD D, 0
+  ADD HL, DE
+  LD (zx__console__con_edit_anchor), HL
+  XOR A
+  LD (zx__console__con_edit_length), A
+  LD (zx__console__con_edit_cursor), A
+  LD (zx__console__con_edit_old), A
+  LD A, (zx__console__con_history_count)
+  LD (zx__console__con_edit_history), A
+ .redraw:
+  CALL .render
+ .key:
+  CALL zx__console__con_getchar
+  CP 13
+  JP Z, .enter
+  LD B, A
+  LD A, (zx__console__con_edit_length)
+  LD (zx__console__con_edit_old), A
+  LD A, B
+  CP 9
+  JR Z, .left
+  CP 12
+  JR Z, .right
+  CP 8
+  JR Z, .delete
+  CP 11
+  JP Z, .history
+  CP 10
+  JP Z, .history
+  CP 32
+  JR C, .key
+  LD B, A
+  LD A, (zx__console__con_edit_limit)
+  LD C, A
+  LD A, (zx__console__con_edit_length)
+  CP C
+  JR NC, .key
+  LD C, A
+  LD A, (zx__console__con_edit_cursor)
+  LD E, A
+  LD A, C
+  SUB E
+  PUSH BC
+  LD C, A
+  LD B, 0
+  LD HL, (zx__console__con_edit_buf)
+  LD E, 1
+  LD D, 0
+  ADD HL, DE
+  LD A, (zx__console__con_edit_length)
+  LD E, A
+  ADD HL, DE
+  DEC HL
+  LD D, H
+  LD E, L
+  DEC HL
+  LD A, C
+  OR A
+  JR Z, .insert_done
+  LDDR
+ .insert_done:
+  POP BC
+  LD HL, (zx__console__con_edit_buf)
+  LD A, (zx__console__con_edit_cursor)
+  LD E, A
+  LD D, 0
+  ADD HL, DE
+  LD (HL), B
+  LD HL, zx__console__con_edit_length
+  INC (HL)
+  LD HL, zx__console__con_edit_cursor
+  INC (HL)
+  JP .redraw
+ .left:
+  LD HL, zx__console__con_edit_cursor
+  LD A, (HL)
+  OR A
+  JR Z, .key
+  DEC (HL)
+  JP .redraw
+ .right:
+  LD A, (zx__console__con_edit_length)
+  LD HL, zx__console__con_edit_cursor
+  CP (HL)
+  JR Z, .key
+  INC (HL)
+  JP .redraw
+ .delete:
+  LD A, (zx__console__con_edit_cursor)
+  OR A
+  JR Z, .key
+  DEC A
+  LD (zx__console__con_edit_cursor), A
+  LD E, A
+  LD D, 0
+  LD HL, (zx__console__con_edit_buf)
+  ADD HL, DE
+  LD D, H
+  LD E, L
+  INC HL
+  LD A, (zx__console__con_edit_length)
+  LD B, A
+  LD A, (zx__console__con_edit_cursor)
+  LD C, A
+  LD A, B
+  SUB C
+  DEC A
+  LD C, A
+  LD B, 0
+  OR A
+  JR Z, .delete_done
+  LDIR
+ .delete_done:
+  LD HL, zx__console__con_edit_length
+  DEC (HL)
+  JP .redraw
+ .history:
+  PUSH AF
+  LD A, (zx__console__con_edit_history)
+  LD B, A
+  LD A, (zx__console__con_history_count)
+  CP B
+  JR NZ, .have_draft
+  LD A, (zx__console__con_edit_length)
+  LD (zx__console__con_draft_length), A
+  LD C, A
+  LD B, 0
+  LD HL, (zx__console__con_edit_buf)
+  LD DE, zx__console__con_draft
+  CALL .copy
+ .have_draft:
+  POP AF
+  CP 11
+  LD HL, zx__console__con_edit_history
+  JR NZ, .down
+  LD A, (HL)
+  OR A
+  JR Z, .select_history
+  DEC (HL)
+  JR .select_history
+ .down:
+  LD A, (zx__console__con_history_count)
+  CP (HL)
+  JR Z, .select_history
+  INC (HL)
+ .select_history:
+  LD A, (zx__console__con_edit_history)
+  LD B, A
+  LD A, (zx__console__con_history_count)
+  CP B
+  JR NZ, .old_command
+  LD HL, zx__console__con_draft
+  LD A, (zx__console__con_draft_length)
+  JR .load_command
+ .old_command:
+  LD A, B
+  CALL .history_address
+  PUSH HL
+  LD A, (zx__console__con_edit_history)
+  LD E, A
+  LD D, 0
+  LD HL, zx__console__con_history_length
+  ADD HL, DE
+  LD A, (HL)
+  POP HL
+ .load_command:
+  LD B, A
+  LD A, (zx__console__con_edit_limit)
+  CP B
+  JR C, .clamped
+  LD A, B
+ .clamped:
+  LD (zx__console__con_edit_length), A
+  LD (zx__console__con_edit_cursor), A
+  LD C, A
+  LD B, 0
+  LD DE, (zx__console__con_edit_buf)
+  CALL .copy
+  JP .redraw
+ .enter:
+  LD A, (zx__console__con_edit_cursor)
+  LD E, A
+  LD D, 0
+  LD HL, (zx__console__con_edit_buf)
+  ADD HL, DE
+  LD A, (zx__console__con_edit_length)
+  CP E
+  LD C, 32
+  JR Z, .finish_glyph
+  LD C, (HL)
+ .finish_glyph:
+  LD HL, (zx__console__con_edit_anchor)
+  ADD HL, DE
+  CALL .draw
+  LD A, (zx__console__con_edit_length)
+  LD E, A
+  LD D, 0
+  LD HL, (zx__console__con_edit_buf)
+  ADD HL, DE
+  LD (HL), 0
+  LD HL, (zx__console__con_edit_anchor)
+  ADD HL, DE
+  CALL .position
+  LD A, (zx__console__con_edit_length)
+  OR A
+  RET Z
+  LD A, (zx__console__con_history_count)
+  CP 4
+  JR C, .store_history
+  LD HL, zx__console__con_history+80
+  LD DE, zx__console__con_history
+  LD BC, 240
+  LDIR
+  LD HL, zx__console__con_history_length+1
+  LD DE, zx__console__con_history_length
+  LD BC, 3
+  LDIR
+  LD A, 3
+ .store_history:
+  PUSH AF
+  CALL .history_address
+  EX DE, HL
+  LD HL, (zx__console__con_edit_buf)
+  LD A, (zx__console__con_edit_length)
+  LD C, A
+  LD B, 0
+  CALL .copy
+  POP AF
+  LD E, A
+  LD D, 0
+  INC A
+  LD (zx__console__con_history_count), A
+  LD HL, zx__console__con_history_length
+  ADD HL, DE
+  LD A, (zx__console__con_edit_length)
+  LD (HL), A
+  RET
+ .history_address:
+  LD L, A
+  LD H, 0
+  ADD HL, HL
+  ADD HL, HL
+  ADD HL, HL
+  ADD HL, HL
+  LD D, H
+  LD E, L
+  ADD HL, HL
+  ADD HL, HL
+  ADD HL, DE
+  LD DE, zx__console__con_history
+  ADD HL, DE
+  RET
+ .copy:
+  LD A, B
+  OR C
+  RET Z
+  LDIR
+  RET
+ .render:
+  LD HL, (zx__console__con_edit_anchor)
+  LD A, (zx__console__con_edit_length)
+  LD E, A
+  LD D, 0
+  ADD HL, DE
+  LD DE, 768
+  OR A
+  SBC HL, DE
+  JR C, .render_begin
+  CALL zx__console__con_scroll
+  LD HL, (zx__console__con_edit_anchor)
+  LD DE, 32
+  OR A
+  SBC HL, DE
+  LD (zx__console__con_edit_anchor), HL
+ .render_begin:
+  LD A, (zx__console__con_edit_old)
+  LD B, A
+  LD A, (zx__console__con_edit_length)
+  CP B
+  JR NC, .extent
+  LD A, B
+ .extent:
+  INC A
+  LD B, A
+  LD HL, (zx__console__con_edit_anchor)
+  LD DE, (zx__console__con_edit_buf)
+  LD IX, 0
+ .render_loop:
+  LD A, (zx__console__con_edit_length)
+  CP IXL
+  LD C, 32
+  JR Z, .glyph
+  JR C, .glyph
+  LD A, (DE)
+  LD C, A
+ .glyph:
+  LD A, (zx__console__con_edit_cursor)
+  CP IXL
+  JR NZ, .draw_glyph
+  LD C, 95
+ .draw_glyph:
+  PUSH BC
+  PUSH DE
+  PUSH HL
+  PUSH IX
+  CALL .draw
+  POP IX
+  POP HL
+  POP DE
+  POP BC
+  INC HL
+  INC DE
+  INC IX
+  DJNZ .render_loop
+  LD HL, (zx__console__con_edit_anchor)
+  LD A, (zx__console__con_edit_cursor)
+  LD E, A
+  LD D, 0
+  ADD HL, DE
+ .position:
+  LD A, L
+  AND 31
+  LD (zx__console__con_col), A
+  ADD HL, HL
+  ADD HL, HL
+  ADD HL, HL
+  LD A, H
+  LD (zx__console__con_row), A
+  RET
+ .draw:
+  LD A, L
+  AND 31
+  LD B, A
+  ADD HL, HL
+  ADD HL, HL
+  ADD HL, HL
+  LD D, H
+  JP zx__console__con_draw_char
+ }
 }
 
 // ── Cursor display ──────────────────────────────────────────────────────────
@@ -531,3 +1029,168 @@ assert attr_addr(31, 0) == 0x581F via z80
 assert attr_addr(0, 1) == 0x5820 via z80
 assert attr_addr(0, 23) == 0x5AE0 via z80
 assert attr_addr(31, 23) == 0x5AFF via z80
+
+// Z-machine V3 screen windows, Standard 1.1 sections 8.6.1-8.6.3.
+// Row0 is status; upper window occupies rows1..height. Initialise after clear.
+
+global z3_upper_height:u8
+global z3_selected_window:u8
+global z3_lower_row:u8=23
+global z3_lower_col:u8
+
+fun z3_windows_reset() {
+ asm z80 (clob A,F) {
+  XOR A
+  LD (zx__console__z3_upper_height),A
+  LD (zx__console__z3_selected_window),A
+  LD (zx__console__z3_lower_col),A
+  LD (zx__console__con_col),A
+  LD A,23
+  LD (zx__console__z3_lower_row),A
+  LD (zx__console__con_row),A
+ }
+}
+fun z3_window_select(@z80_a window:u8) {
+ asm z80 (in window) (clob A,F,BC) {
+  CP 2
+  RET NC
+  LD B,A
+  LD A, (zx__console__z3_selected_window)
+  OR A
+  JR NZ,.select
+  LD A, (zx__console__con_row)
+  LD (zx__console__z3_lower_row),A
+  LD A, (zx__console__con_col)
+  LD (zx__console__z3_lower_col),A
+ .select:
+  LD A,B
+  LD (zx__console__z3_selected_window),A
+  OR A
+  JR Z,.lower
+  LD A,1
+  LD (zx__console__con_row),A
+  XOR A
+  LD (zx__console__con_col),A
+  RET
+ .lower:
+  LD A, (zx__console__z3_lower_row)
+  LD (zx__console__con_row),A
+  LD A, (zx__console__z3_lower_col)
+  LD (zx__console__con_col),A
+ }
+}
+fun z3_window_split(@z80_hl lines:u16) {
+ asm z80 (in lines) (clob A,F,BC,DE,HL,IX,IY) {
+  LD A,H
+  OR A
+  LD A,23
+  JR NZ,.height
+  LD A,L
+  CP 24
+  JR C,.height
+  LD A,23
+ .height:
+  LD (zx__console__z3_upper_height),A
+  LD E,A
+  LD D,1
+  LD B,0
+ .row:
+  LD A,E
+  CP D
+  JR C,.cursors
+  PUSH DE
+  PUSH BC
+  LD C,32
+  CALL zx__console__con_draw_char
+  POP BC
+  POP DE
+  INC B
+  LD A,B
+  CP 32
+  JR C,.row
+  LD B,0
+  INC D
+  JR .row
+ .cursors:
+  LD A, (zx__console__z3_lower_row)
+  CP E
+  JR Z,.lower_reset
+  JR NC,.active
+ .lower_reset:
+  LD A,23
+  LD (zx__console__z3_lower_row),A
+  XOR A
+  LD (zx__console__z3_lower_col),A
+ .active:
+  LD A, (zx__console__z3_selected_window)
+  OR A
+  LD A,1
+  JR NZ,.reset_active
+  LD A, (zx__console__con_row)
+  CP E
+  JR Z,.active_lower_reset
+  RET NC
+ .active_lower_reset:
+  LD A,23
+ .reset_active:
+  LD (zx__console__con_row),A
+  XOR A
+  LD (zx__console__con_col),A
+ }
+}
+fun z3_window_put(@z80_a ch:u8) {
+ asm z80 (in ch) (clob A,F,BC,DE,HL,IX,IY) {
+  LD C,A
+  LD A, (zx__console__z3_selected_window)
+  OR A
+  LD A, (zx__console__z3_upper_height)
+  JR Z,.lower_check
+  OR A
+  RET Z
+  JR .character
+ .lower_check:
+  CP 23
+  RET Z
+ .character:
+  LD A,C
+  CP 10
+  JR Z,.newline
+  CP 13
+  JR Z,.newline
+  LD A, (zx__console__con_col)
+  LD B,A
+  LD A, (zx__console__con_row)
+  LD D,A
+  CALL zx__console__con_draw_char
+  LD A, (zx__console__con_col)
+  CP 31
+  JR NC,.newline
+  INC A
+  LD (zx__console__con_col),A
+  RET
+ .newline:
+  LD A, (zx__console__z3_selected_window)
+  OR A
+  JR Z,.lower_newline
+  LD A, (zx__console__z3_upper_height)
+  LD B,A
+  LD A, (zx__console__con_row)
+  CP B
+  RET NC
+  JR .advance
+ .lower_newline:
+  LD A, (zx__console__con_row)
+  CP 23
+  JR C,.advance
+  XOR A
+  LD (zx__console__con_col),A
+  LD A, (zx__console__z3_upper_height)
+  INC A
+  JP zx__console__con_scroll_region
+ .advance:
+  INC A
+  LD (zx__console__con_row),A
+  XOR A
+  LD (zx__console__con_col),A
+ }
+}

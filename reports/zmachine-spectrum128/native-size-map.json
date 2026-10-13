@@ -1,0 +1,463 @@
+{
+  "diagnostic_only": true,
+  "function_region_bytes": 23367,
+  "functions_largest_first": [
+    {
+      "name": "step",
+      "bytes": 4571
+    },
+    {
+      "name": "print_text",
+      "bytes": 2005
+    },
+    {
+      "name": "restore_state",
+      "bytes": 1274
+    },
+    {
+      "name": "enter",
+      "bytes": 1177
+    },
+    {
+      "name": "save_state",
+      "bytes": 1088
+    },
+    {
+      "name": "read_input",
+      "bytes": 1086
+    },
+    {
+      "name": "z3_unicode",
+      "bytes": 1035
+    },
+    {
+      "name": "z3_from_unicode",
+      "bytes": 963
+    },
+    {
+      "name": "finish",
+      "bytes": 794
+    },
+    {
+      "name": "fail_opcode",
+      "bytes": 737
+    },
+    {
+      "name": "branch",
+      "bytes": 735
+    },
+    {
+      "name": "main",
+      "bytes": 723
+    },
+    {
+      "name": "decode_input_utf8",
+      "bytes": 604
+    },
+    {
+      "name": "verify_story",
+      "bytes": 569
+    },
+    {
+      "name": "dictionary_lookup",
+      "bytes": 510
+    },
+    {
+      "name": "restart_story",
+      "bytes": 444
+    },
+    {
+      "name": "remove_object",
+      "bytes": 297
+    },
+    {
+      "name": "random_number",
+      "bytes": 277
+    },
+    {
+      "name": "zchar_at",
+      "bytes": 264
+    },
+    {
+      "name": "text__print__write_decimal",
+      "bytes": 260
+    },
+    {
+      "name": "output_stream",
+      "bytes": 252
+    },
+    {
+      "name": "put_zscii",
+      "bytes": 244
+    },
+    {
+      "name": "next_word",
+      "bytes": 243
+    },
+    {
+      "name": "next_byte",
+      "bytes": 239
+    },
+    {
+      "name": "z3_lower",
+      "bytes": 216
+    },
+    {
+      "name": "snapshot_identity",
+      "bytes": 202
+    },
+    {
+      "name": "insert_object",
+      "bytes": 148
+    },
+    {
+      "name": "signed_div",
+      "bytes": 145
+    },
+    {
+      "name": "code_word_at",
+      "bytes": 134
+    },
+    {
+      "name": "symbol",
+      "bytes": 123
+    },
+    {
+      "name": "print_num",
+      "bytes": 113
+    },
+    {
+      "name": "text__print__BufWriter_put",
+      "bytes": 105
+    },
+    {
+      "name": "signed_mod",
+      "bytes": 96
+    },
+    {
+      "name": "write_var",
+      "bytes": 94
+    },
+    {
+      "name": "is_separator",
+      "bytes": 94
+    },
+    {
+      "name": "property_at",
+      "bytes": 93
+    },
+    {
+      "name": "read_var",
+      "bytes": 90
+    },
+    {
+      "name": "peek_var",
+      "bytes": 88
+    },
+    {
+      "name": "print_error_prefix",
+      "bytes": 87
+    },
+    {
+      "name": "property_value",
+      "bytes": 79
+    },
+    {
+      "name": "next_property",
+      "bytes": 78
+    },
+    {
+      "name": "word_code",
+      "bytes": 69
+    },
+    {
+      "name": "put_property",
+      "bytes": 67
+    },
+    {
+      "name": "frame_sp_base",
+      "bytes": 52
+    },
+    {
+      "name": "stream3_table",
+      "bytes": 50
+    },
+    {
+      "name": "file_read_bounded",
+      "bytes": 49
+    },
+    {
+      "name": "object_at",
+      "bytes": 48
+    },
+    {
+      "name": "property_length",
+      "bytes": 47
+    },
+    {
+      "name": "text__print__BufWriter_init",
+      "bytes": 44
+    },
+    {
+      "name": "attribute_mask",
+      "bytes": 43
+    },
+    {
+      "name": "overwrite_var",
+      "bytes": 41
+    },
+    {
+      "name": "word_at",
+      "bytes": 40
+    },
+    {
+      "name": "object_sibling",
+      "bytes": 39
+    },
+    {
+      "name": "object_parent",
+      "bytes": 39
+    },
+    {
+      "name": "object_child",
+      "bytes": 39
+    },
+    {
+      "name": "put_word",
+      "bytes": 37
+    },
+    {
+      "name": "property_list_at",
+      "bytes": 35
+    },
+    {
+      "name": "signed_less",
+      "bytes": 31
+    },
+    {
+      "name": "attribute_address",
+      "bytes": 25
+    },
+    {
+      "name": "operand",
+      "bytes": 23
+    },
+    {
+      "name": "put_stack",
+      "bytes": 22
+    },
+    {
+      "name": "put_local",
+      "bytes": 22
+    },
+    {
+      "name": "print_text$split_6",
+      "bytes": 21
+    },
+    {
+      "name": "local_at",
+      "bytes": 18
+    },
+    {
+      "name": "stack_at",
+      "bytes": 18
+    },
+    {
+      "name": "magnitude",
+      "bytes": 16
+    },
+    {
+      "name": "code_byte_at",
+      "bytes": 14
+    },
+    {
+      "name": "text__print__Dec16_write_to",
+      "bytes": 14
+    },
+    {
+      "name": "byte_at",
+      "bytes": 6
+    },
+    {
+      "name": "file_read_line",
+      "bytes": 4
+    },
+    {
+      "name": "file_append_utf8",
+      "bytes": 3
+    },
+    {
+      "name": "file_append_byte",
+      "bytes": 3
+    },
+    {
+      "name": "file_read_pair_checked",
+      "bytes": 3
+    },
+    {
+      "name": "file_write_pair",
+      "bytes": 3
+    },
+    {
+      "name": "tui_read_line_or_eof",
+      "bytes": 3
+    },
+    {
+      "name": "decode_input_utf8$split_2",
+      "bytes": 2
+    },
+    {
+      "name": "print_utf8",
+      "bytes": 1
+    },
+    {
+      "name": "emit_zscii",
+      "bytes": 0
+    }
+  ],
+  "globals_bytes": 18633,
+  "globals_largest_first": [
+    {
+      "name": "snapshot",
+      "bytes": 9018
+    },
+    {
+      "name": "stack_words",
+      "bytes": 4096
+    },
+    {
+      "name": "local_words",
+      "bytes": 4096
+    },
+    {
+      "name": "story",
+      "bytes": 256
+    },
+    {
+      "name": "input",
+      "bytes": 256
+    },
+    {
+      "name": "ret_sp_hi",
+      "bytes": 128
+    },
+    {
+      "name": "ret_pc_bank",
+      "bytes": 128
+    },
+    {
+      "name": "ret_sp_lo",
+      "bytes": 128
+    },
+    {
+      "name": "ret_store",
+      "bytes": 128
+    },
+    {
+      "name": "ret_pc_lo",
+      "bytes": 128
+    },
+    {
+      "name": "ret_pc_hi",
+      "bytes": 128
+    },
+    {
+      "name": "transcript_path",
+      "bytes": 19
+    },
+    {
+      "name": "story_path",
+      "bytes": 18
+    },
+    {
+      "name": "command_path",
+      "bytes": 17
+    },
+    {
+      "name": "stream3_table_hi",
+      "bytes": 16
+    },
+    {
+      "name": "stream3_table_lo",
+      "bytes": 16
+    },
+    {
+      "name": "save_path",
+      "bytes": 13
+    },
+    {
+      "name": "number_writer",
+      "bytes": 7
+    },
+    {
+      "name": "number_bytes",
+      "bytes": 5
+    },
+    {
+      "name": "steps",
+      "bytes": 4
+    },
+    {
+      "name": "command_offset",
+      "bytes": 4
+    },
+    {
+      "name": "pc",
+      "bytes": 4
+    },
+    {
+      "name": "story_size",
+      "bytes": 4
+    },
+    {
+      "name": "globals_at",
+      "bytes": 2
+    },
+    {
+      "name": "random_state",
+      "bytes": 2
+    },
+    {
+      "name": "v_sp",
+      "bytes": 2
+    },
+    {
+      "name": "number_value",
+      "bytes": 2
+    },
+    {
+      "name": "running",
+      "bytes": 1
+    },
+    {
+      "name": "zc",
+      "bytes": 1
+    },
+    {
+      "name": "story_verified",
+      "bytes": 1
+    },
+    {
+      "name": "screen_enabled",
+      "bytes": 1
+    },
+    {
+      "name": "stream3_depth",
+      "bytes": 1
+    },
+    {
+      "name": "input_mode",
+      "bytes": 1
+    },
+    {
+      "name": "record_commands",
+      "bytes": 1
+    },
+    {
+      "name": "frame",
+      "bytes": 1
+    }
+  ],
+  "origin": 0,
+  "total_bytes": 42000
+}

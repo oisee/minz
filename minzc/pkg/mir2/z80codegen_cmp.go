@@ -292,11 +292,23 @@ func (g *z80cg) genCmp(inst *Inst) {
 		}
 	}
 
-	// 16-bit comparison: one or both operands are register pairs (HL/DE/BC/…).
+	// Preserve semantic word width when an operand lives in a spill slot.
+	// Its physical name alone does not identify a register pair.
 	// Z80 only supports SBC HL, rr for 16-bit flag-setting subtraction.
 	cv, immediate := g.constVals[inst.Src[1]]
 	byteImmediate := immediate && cv >= 0 && cv <= 255 && !isPairReg(lhs) && (isSimpleReg(lhs) || isIXYReg(lhs)) && lhs != "F" && (inst.SrcTy == nil || inst.SrcTy.Width() <= 8)
-	if isPairReg(lhs) || (isPairReg(rhs) && !byteImmediate) {
+	wordOperand := inst.SrcTy != nil && inst.SrcTy.Width() > 8
+	if inst.SrcTy == nil {
+		for _, r := range inst.Src {
+			if _, constant := g.constVals[r]; constant {
+				continue
+			}
+			if info, ok := g.regInfo[r]; ok && info.Ty != nil && info.Ty.Width() > 8 {
+				wordOperand = true
+			}
+		}
+	}
+	if wordOperand || isPairReg(lhs) || (isPairReg(rhs) && !byteImmediate) {
 		g.genCmp16(inst)
 		return
 	}
@@ -512,7 +524,26 @@ func (g *z80cg) condCode(f *Func, cond Reg) string {
 			}
 		}
 	}
-	return "NZ" // fallback
+	// A block parameter or another materialized boolean carries a byte,
+	// not the flags left by a predecessor's comparison. Test its location.
+	loc := g.loc(cond)
+	if loc != "F" {
+		if loc == "B" || loc == "C" || loc == "D" || loc == "E" || loc == "H" || loc == "L" {
+			g.emitf("    BIT 0, %s", loc)
+		} else if loc == "A" {
+			g.emit("    OR A")
+		} else {
+			// Preserve live A and HL without restoring stale flags.
+			g.emit("    PUSH HL")
+			g.emit("    PUSH AF")
+			g.emitLD8("A", loc)
+			g.emit("    OR A")
+			g.emit("    POP HL")
+			g.emit("    LD A, H")
+			g.emit("    POP HL")
+		}
+	}
+	return "NZ" // materialized byte is nonzero exactly when true
 }
 
 // invertCC returns the Z80 condition code that is the logical negation of cc.

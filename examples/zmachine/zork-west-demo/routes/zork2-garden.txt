@@ -1,0 +1,18 @@
+get lamp and sword
+s
+s
+s
+sw
+light lamp
+s
+se
+enter gazebo
+get teapot and mat and letter opener and matchbook and paper
+inventory
+out
+s
+w
+look
+score
+quit
+y

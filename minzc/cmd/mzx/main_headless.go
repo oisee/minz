@@ -30,9 +30,11 @@ import (
 var embedded48ROM []byte
 
 func main() {
-	modelFlag := flag.String("model", "48k", "Machine model: 48k, 128k, pentagon")
+	modelFlag := flag.String("model", "48k", "Machine profile: 48k, 128k, pentagon, scorpion-memory")
 	romFlag := flag.String("rom", "", "Path to ROM file")
 	snapshotFlag := flag.String("snapshot", "", "Path to .sna snapshot file")
+	trdFlag := flag.String("trd", "", "Attach a TR-DOS image through emulator API traps")
+	trdWriteback := flag.Bool("trd-writeback", false, "persist disk writes to --trd image")
 	tapFlag := flag.String("tap", "", "Path to .tap tape file")
 	screenshotFlag := flag.String("screenshot", "", "Save screenshot to PNG")
 	framesFlag := flag.String("frames", "50", "Frame count")
@@ -63,11 +65,45 @@ func main() {
 			}
 		}
 		machine, err = spectrum.New48K(romData)
+	case "128k", "pentagon", "scorpion-memory":
+		romData := embedded48ROM
+		if *romFlag != "" {
+			romData, err = os.ReadFile(*romFlag)
+			if err != nil {
+				log.Fatalf("ROM: %v", err)
+			}
+		}
+		// Match the graphical CLI's fallback: the 48K ROM supplies font
+		// data in both slots unless a 32K ROM image is supplied.
+		rom0, rom1 := romData, romData
+		if len(romData) == 32768 {
+			rom0, rom1 = romData[:16384], romData[16384:]
+		}
+		if *modelFlag == "scorpion-memory" {
+			machine, err = spectrum.NewScorpionMemory256(rom0, rom1)
+		} else {
+			machine, err = spectrum.NewPentagon128(rom0, rom1)
+		}
 	default:
-		log.Fatalf("headless mode only supports 48k model (got %s)", *modelFlag)
+		log.Fatalf("unknown machine model %s (48k, 128k, pentagon, scorpion-memory)", *modelFlag)
 	}
 	if err != nil {
 		log.Fatalf("Machine init: %v", err)
+	}
+
+	if *trdWriteback && *trdFlag == "" {
+		log.Fatal("--trd-writeback requires --trd")
+	}
+	if *modelFlag == "scorpion-memory" && *saveSnapshotFlag != "" {
+		log.Fatal("SNA cannot preserve Scorpion extended banks; extended snapshot format not implemented")
+	}
+	if *trdFlag != "" {
+		disk, err := formats.LoadTRD(*trdFlag)
+		if err != nil {
+			log.Fatalf("TRD: %v", err)
+		}
+		disk.Writeback = *trdWriteback
+		formats.InstallTRDTraps(machine, disk, false)
 	}
 
 	// Load snapshot
@@ -108,18 +144,32 @@ func main() {
 		if err != nil {
 			log.Fatalf("--load %s: %v", parts[0], err)
 		}
-		addr, err := strconv.ParseUint(strings.TrimPrefix(parts[1], "0x"), 16, 16)
+		addressParts := strings.SplitN(parts[1], ":", 2)
+		addr, err := strconv.ParseUint(strings.TrimPrefix(addressParts[0], "0x"), 16, 16)
 		if err != nil {
-			addr2, err2 := strconv.ParseUint(parts[1], 10, 16)
-			if err2 != nil {
-				log.Fatalf("--load: bad address %q", parts[1])
+			log.Fatalf("--load: bad address %q", addressParts[0])
+		}
+		page := -1
+		if len(addressParts) == 2 {
+			page, err = strconv.Atoi(addressParts[1])
+			if err != nil || page < 0 || page > 15 {
+				log.Fatal("--load page must be 0..15")
 			}
-			addr = addr2
+			if page > 7 && !machine.Memory.ScorpionPagingEnabled() {
+				log.Fatal("extended RAM load requires scorpion-memory")
+			}
+			if int(addr&0x3fff)+len(data) > 16384 {
+				log.Fatal("--load crosses physical bank boundary")
+			}
 		}
 		for j, b := range data {
-			machine.Memory.Write(uint16(addr)+uint16(j), b, false)
+			if page >= 0 {
+				machine.Memory.WriteRAMDirect(page, uint16(addr&0x3fff)+uint16(j), b)
+			} else {
+				machine.Memory.Write(uint16(addr)+uint16(j), b, false)
+			}
 		}
-		fmt.Fprintf(os.Stderr, "Loaded %d bytes at $%04X\n", len(data), addr)
+		fmt.Fprintf(os.Stderr, "Loaded %d bytes at $%04X page %d\n", len(data), addr, page)
 	}
 
 	// --set registers
@@ -335,13 +385,13 @@ func saveScreenPNG(m *spectrum.Machine, path string, noBorder bool) {
 
 func zxColor(c, bright byte) color.RGBA {
 	base := [8]color.RGBA{
-		{0, 0, 0, 255},       // black
-		{0, 0, 0xCD, 255},    // blue
-		{0xCD, 0, 0, 255},    // red
-		{0xCD, 0, 0xCD, 255}, // magenta
-		{0, 0xCD, 0, 255},    // green
-		{0, 0xCD, 0xCD, 255}, // cyan
-		{0xCD, 0xCD, 0, 255}, // yellow
+		{0, 0, 0, 255},          // black
+		{0, 0, 0xCD, 255},       // blue
+		{0xCD, 0, 0, 255},       // red
+		{0xCD, 0, 0xCD, 255},    // magenta
+		{0, 0xCD, 0, 255},       // green
+		{0, 0xCD, 0xCD, 255},    // cyan
+		{0xCD, 0xCD, 0, 255},    // yellow
 		{0xCD, 0xCD, 0xCD, 255}, // white
 	}
 	hi := [8]color.RGBA{

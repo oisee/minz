@@ -1,0 +1,41 @@
+// CRC-16/CCITT-FALSE, polynomial 0x1021, initial seed 0xffff.
+// Incremental: pass prior result as seed for the next range; no final XOR.
+// Trusted bank 0/1/3/4/6/7 and offset+count<=16384. Code/stack resident below
+// C000, IRQ disabled, no reentry. Restores paging 0x10, preserves IFF.
+// Detects accidental corruption, not cryptographic authenticity.
+fun bank_crc16(@z80_a bank_bits: u8, @z80_hl offset: u16, @z80_de count: u16, @z80_ix seed: u16) -> u16 {
+ asm z80 (in bank_bits, offset, count, seed) (ret HL) (clob A, F, BC, DE, HL, IX) {
+  LD BC, 0x7ffd
+  OUT (C), A
+  SET 6, H
+  SET 7, H
+ .crc_loop:
+  LD A, D
+  OR E
+  JR Z, .crc_done
+  LD A, (HL)
+  XOR IXH
+  LD IXH, A
+  LD B, 8
+ .crc_bit:
+  ADD IX, IX
+  JR NC, .crc_next_bit
+  LD A, IXH
+  XOR 0x10
+  LD IXH, A
+  LD A, IXL
+  XOR 0x21
+  LD IXL, A
+ .crc_next_bit:
+  DJNZ .crc_bit
+  INC HL
+  DEC DE
+  JR .crc_loop
+ .crc_done:
+  PUSH IX
+  POP HL
+  LD BC, 0x7ffd
+  LD A, 0x10
+  OUT (C), A
+ }
+}
