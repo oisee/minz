@@ -560,3 +560,27 @@ excluding stored CRC bytes 30/31. Every physical RAM byte outside bounded native
 stack remains unchanged; PC/SP/paging/IFF checked. CRC detects accidental damage,
 not authenticity. The primitive still needs wiring into the complete save header
 validator before the apply phase; desktop SAVE/RESTORE remain disabled.
+
+
+## Native dynamic-memory delta stream and combined resident budget
+
+`native_archive_stream.py` emits indexed reads of the trusted compressed original
+prefix. Sequential reads advance a small decoder, repeated indices reuse the
+last byte, and backward seeks reset and decode from the beginning. Archive input
+must be builder-validated and immutable. No large decoded-original buffer is
+allocated. The generated delta callback XORs each original byte with live bank0
+and feeds the bounded RLE packer directly into the save bank. Decoder scratch is
+transient interpreter machinery, not saved game state.
+
+10275 native indexed reads PASS, across five nonzero archive banks ending at
+16K boundary, including repeated/backward requests and literal/repeat transitions.
+Fifteen integrated XOR-pack cases (five archive banks × short/exact/spare output
+capacity) match host encoded deltas exactly. Full physical RAM comparison excludes
+only bounded output, declared scratch and stack; archive/live dynamic bytes stay
+unchanged. PC/SP, paging and IFF checked. Combined test PASS in 0.33 seconds.
+
+A diagnostic compilation appends state streaming, both specialized packers,
+archive/delta streaming and CRC to the native console core: 24969 resident bytes,
+ending BC89, only 375 bytes before BE00 native-stack reservation. This is not a
+released SAVE-enabled snapshot. Header validation and restore/apply still need
+space; share the duplicated encoder next, retaining current stack/capacity guards.
