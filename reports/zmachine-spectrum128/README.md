@@ -787,3 +787,23 @@ Combined diagnostic code/data 25706 bytes, end BF6A, 362 bytes over BE00. Do not
 load/release this oversized image. Save publication and gameplay wiring remain;
 code placement must be resolved before desktop bundle update. Existing builder
 size guard and distributed runnable checkpoint remain unchanged.
+
+
+## Native save publication and save→mutation→restore fixture
+
+`native_save.py` writes the bounded state/delta streams, full header and CRC into
+a fixed nonzero bank slot. Published resident length is cleared before attempting
+overwrite and set only after the complete record succeeds. Overflow returns zero
+and leaves published length zero; a failed overwrite does not preserve an old
+save. RAM storage is volatile. DI/no reentry and stable game state are required.
+
+Integrated native fixture now executes SAVE, compares the entire resulting record
+with the independent host encoder, poisons live state, and RESTOREs the native
+record. All saved state/dynamic bytes match expected values, preserving current
+flags2. A 32-byte slot rejects SAVE without publishing a record. Eleven restore
+acceptance/rejection cases remain PASS; combined test 0.27 s. Synthetic fixture,
+not yet Zork gameplay or disk persistence; PC/SP/paging/IFF checked.
+
+Combined diagnostic with native SAVE: 25922 bytes, end C042, 578 bytes beyond
+BE00. Existing builder guard retained: this is not a playable new snapshot.
+Code placement and real SAVE/RESTORE opcode lifecycle remain before distribution.

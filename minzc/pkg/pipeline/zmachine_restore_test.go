@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/spectrum"
@@ -21,6 +22,8 @@ from native_state_validate import emit as validate
 from native_save_preflight import emit as preflight
 from native_delta_apply import emit as apply
 from native_restore import emit as restore
+from native_save_stream import emit as packer
+from native_save import emit as save
 story=bytearray(1024);story[0]=3;story[2:4]=b'\x00\x01';story[14:16]=b'\x01\x00';story[18:24]=b'260101';story[28:30]=b'\x12\x34'
 saved=bytearray(1786);saved[:16]=b'MZ3S\x00\x01260101\x12\x34\x01\x00';saved[16]=128;saved[22:26]=b'\xcd\xab\x01\x01';saved[26]=64
 for i in range(58,len(saved)):saved[i]=(i*37)&255
@@ -36,7 +39,7 @@ for offset,value in [(19,32),(21,2),(25,17),(42,255),(16,0),(1083,0),(1147,255),
  bad=bytearray(saved);bad[offset]=value;cases.append({'record':list(forge(bad,memory)),'want':0})
 bad=bytearray(memory);bad[14]^=1;cases.append({'record':list(forge(saved,bad)),'want':0})
 bad=bytearray(valid);bad[-1]^=1;cases.append({'record':list(bad),'want':0})
-source=reader(0x17,0)+state()+validate(story)+preflight(story)+apply()+restore(story)
+source=reader(0x17,0)+state()+validate(story)+preflight(story)+apply()+restore(story)+packer()+save(story,0x16,14180)+save(story,0x16,14180,32).replace("global native_save_length:u16\n","").replace("fun native_save()","fun native_save_short()")
 print(json.dumps({'source':source,'archive':list(pack(story[:256])),'state':list(saved),'memory':list(memory),'cases':cases}))
 `)
 	command.Dir = "../../../scripts/zmachine"
@@ -105,6 +108,56 @@ print(json.dumps({'source':source,'archive':list(pack(story[:256])),'state':list
 		copy(m.Memory.RAM[7][:], f.Archive)
 		offset := 16384 - len(c.Record)
 		copy(m.Memory.RAM[6][offset:], c.Record)
+
+		if ci == 0 {
+			// Exercise actual native SAVE against independently encoded record.
+			for i, value := range f.Memory {
+				m.Memory.RAM[0][i] = value
+			}
+			at := 16
+			for j, name := range names {
+				for i := 0; i < sizes[j]; i++ {
+					m.Memory.Write(uint16(a.Symbols[name]+i), f.State[at], false)
+					at++
+				}
+			}
+			m.Memory.Write(0xbf00, 0, false)
+			m.Memory.Write(0xbf01, 0x70, false)
+			m.Memory.SetPagingForce(0x10)
+			m.CPU.SetPC(uint16(a.Symbols["native_save_short"]))
+			m.CPU.SetSP(0xbf00)
+			m.CPU.SetIFF1(false)
+			m.CPU.SetIFF2(false)
+			for i := 0; i < 4000000; i++ {
+				if m.CPU.PC() == 0x7000 && m.CPU.SP() == 0xbf02 {
+					break
+				}
+				m.CPU.DoOpcode()
+			}
+			lengthAddress := uint16(a.Symbols["native_save_length"])
+			if byte(m.CPU.AF()>>8) != 0 || m.Memory.Read(lengthAddress) != 0 || m.Memory.Read(lengthAddress+1) != 0 || m.CPU.PC() != 0x7000 || m.CPU.SP() != 0xbf02 || m.Memory.PagingState() != 0x10 {
+				t.Fatalf("short SAVE status%d length%02x%02x PC/SP%04x/%04x paging%x", m.CPU.AF()>>8, m.Memory.Read(lengthAddress+1), m.Memory.Read(lengthAddress), m.CPU.PC(), m.CPU.SP(), m.Memory.PagingState())
+			}
+			m.CPU.SetPC(uint16(a.Symbols["native_save"]))
+			m.CPU.SetSP(0xbf00)
+			m.CPU.SetIFF1(false)
+			m.CPU.SetIFF2(false)
+			for i := 0; i < 4000000; i++ {
+				if m.CPU.PC() == 0x7000 && m.CPU.SP() == 0xbf02 {
+					break
+				}
+				m.CPU.DoOpcode()
+			}
+			lengthAddr := uint16(a.Symbols["native_save_length"])
+			savedLength := int(m.Memory.Read(lengthAddr)) | int(m.Memory.Read(lengthAddr+1))<<8
+			if byte(m.CPU.AF()>>8) != 1 || savedLength != len(c.Record) || m.CPU.PC() != 0x7000 || m.CPU.SP() != 0xbf02 || m.Memory.PagingState() != 0x10 || m.CPU.IFF1() || m.CPU.IFF2() {
+				t.Fatalf("SAVE got%d length%d want%d PC/SP%04x/%04x", m.CPU.AF()>>8, savedLength, len(c.Record), m.CPU.PC(), m.CPU.SP())
+			}
+			if !bytes.Equal(m.Memory.RAM[6][14180:14180+savedLength], c.Record) {
+				t.Fatal("native SAVE differs from reference record")
+			}
+			offset = 14180
+		}
 		for j, name := range names {
 			for i := 0; i < sizes[j]; i++ {
 				m.Memory.Write(uint16(a.Symbols[name]+i), 0xee, false)
