@@ -34,9 +34,37 @@ func (t *RegAllocTable) ComposeCheckedAutomatically(p *LocalTableProblem, target
 		ordered = append(ordered, length)
 	}
 	sort.Ints(ordered)
+	partitions, err := discoverCompositionPartitions(p.Ops, ordered, limit)
+	if err != nil {
+		return 0, err
+	}
+	var staged RegAllocTable
+	staged.Init()
+	admitted := 0
+	for _, cuts := range partitions {
+		count, err := t.ComposeCheckedCandidatesWithMoves(p, &staged, cuts, limit)
+		if err != nil {
+			return 0, err
+		}
+		admitted += count
+	}
+	if admitted == 0 {
+		return 0, nil
+	}
+	assignment, _, ok := staged.LookupChecked(p.Ops, Z80, p.Options)
+	if !ok {
+		return 0, fmt.Errorf("automatic composition lost admission")
+	}
+	if err := target.AddChecked(p.Ops, assignment, Z80, p.Options); err != nil {
+		return 0, err
+	}
+	return admitted, nil
+}
+
+func discoverCompositionPartitions(ops []VIROp, ordered []int, limit int) ([][]int, error) {
 	// Suffix reachability avoids exploring incomplete prefixes. The fragment
 	// count is part of the state, keeping long streams bounded as well.
-	n := len(p.Ops)
+	n := len(ops)
 	ends := func(start int) []int {
 		choices := map[int]bool{}
 		for _, length := range ordered {
@@ -45,7 +73,7 @@ func (t *RegAllocTable) ComposeCheckedAutomatically(p *LocalTableProblem, target
 			}
 		}
 		for _, length := range []int{1, 2} {
-			if start+length <= n && isCompositionMoveFragment(p.Ops[start:start+length]) {
+			if start+length <= n && isCompositionMoveFragment(ops[start:start+length]) {
 				choices[start+length] = true
 			}
 		}
@@ -100,27 +128,7 @@ func (t *RegAllocTable) ComposeCheckedAutomatically(p *LocalTableProblem, target
 		return nil
 	}
 	if err := visit(0, nil); err != nil {
-		return 0, err
+		return nil, err
 	}
-	var staged RegAllocTable
-	staged.Init()
-	admitted := 0
-	for _, cuts := range partitions {
-		count, err := t.ComposeCheckedCandidatesWithMoves(p, &staged, cuts, limit)
-		if err != nil {
-			return 0, err
-		}
-		admitted += count
-	}
-	if admitted == 0 {
-		return 0, nil
-	}
-	assignment, _, ok := staged.LookupChecked(p.Ops, Z80, p.Options)
-	if !ok {
-		return 0, fmt.Errorf("automatic composition lost admission")
-	}
-	if err := target.AddChecked(p.Ops, assignment, Z80, p.Options); err != nil {
-		return 0, err
-	}
-	return admitted, nil
+	return partitions, nil
 }
