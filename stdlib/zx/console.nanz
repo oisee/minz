@@ -138,50 +138,59 @@ fun con_clear() -> void {
 
 // ── Character output ────────────────────────────────────────────────────────
 
-fun con_putchar(ch: u8) -> void {
-    if ch == 13 {
-        // Carriage return
-        con_col = 0
-        con_row = con_row + 1
-        if con_row >= SCREEN_ROWS {
-            con_scroll()
-            con_row = SCREEN_ROWS - 1
-        }
-        return
-    }
-    if ch == 10 {
-        // Newline (same as CR for simplicity)
-        con_col = 0
-        con_row = con_row + 1
-        if con_row >= SCREEN_ROWS {
-            con_scroll()
-            con_row = SCREEN_ROWS - 1
-        }
-        return
-    }
-    if ch == 8 {
-        // Backspace
-        if con_col > 0 {
-            con_col = con_col - 1
-        } else {
-            if con_row == 0 { return }
-            con_row = con_row - 1
-            con_col = 31
-        }
-        con_draw_char(con_col, con_row, 32)
-        return
-    }
-
-    con_draw_char(con_col, con_row, ch)
-    con_col = con_col + 1
-    if con_col >= SCREEN_COLS {
-        con_col = 0
-        con_row = con_row + 1
-        if con_row >= SCREEN_ROWS {
-            con_scroll()
-            con_row = SCREEN_ROWS - 1
-        }
-    }
+fun con_putchar(@z80_a ch: u8) -> void {
+ asm z80 (in ch) (clob A,F,BC,DE,HL,IX,IY) {
+  CP 13
+  JR Z, .newline
+  CP 10
+  JR Z, .newline
+  CP 8
+  JR Z, .backspace
+  LD C, A
+  LD A, (zx__console__con_col)
+  LD B, A
+  LD A, (zx__console__con_row)
+  LD D, A
+  CALL zx__console__con_draw_char
+  LD A, (zx__console__con_col)
+  INC A
+  CP 32
+  JR NC, .newline
+  LD (zx__console__con_col), A
+  RET
+ .newline:
+  XOR A
+  LD (zx__console__con_col), A
+  LD A, (zx__console__con_row)
+  INC A
+  CP 24
+  JR NC, .scroll
+  LD (zx__console__con_row), A
+  RET
+ .scroll:
+  LD A, 23
+  LD (zx__console__con_row), A
+  JP zx__console__con_scroll
+ .backspace:
+  LD A, (zx__console__con_row)
+  LD D, A
+  LD A, (zx__console__con_col)
+  OR A
+  JR NZ, .previous_col
+  LD A, D
+  OR A
+  RET Z
+  DEC A
+  LD (zx__console__con_row), A
+  LD D, A
+  LD A, 32
+ .previous_col:
+  DEC A
+  LD (zx__console__con_col), A
+  LD B, A
+  LD C, 32
+  JP zx__console__con_draw_char
+ }
 }
 
 fun con_draw_char(@z80_b col: u8, @z80_d row: u8, @z80_c ch: u8) -> void {
