@@ -350,6 +350,17 @@ func (m *Machine) SetPCTrap(addr uint16, handler func()) {
 	m.pcTraps[addr] = handler
 }
 
+// HandlePCTrap dispatches an installed trap at the current PC. It returns
+// true when the handler executed. Instruction-by-instruction harnesses must
+// call this before CPU.DoOpcode, just as the frame runners do.
+func (m *Machine) HandlePCTrap() bool {
+	if trap, ok := m.pcTraps[m.CPU.PC()]; ok {
+		trap()
+		return true
+	}
+	return false
+}
+
 // RemovePCTrap removes a PC trap.
 func (m *Machine) RemovePCTrap(addr uint16) {
 	if m.pcTraps != nil {

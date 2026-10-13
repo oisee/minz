@@ -1143,6 +1143,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 		limit = 5000000000
 	}
 	for i := 0; i < limit; i++ {
+		if m.HandlePCTrap() {
+			continue
+		}
 
 		if console && !keyboard && m.CPU.PC() == uint16(a.Symbols["tui_read_line_or_eof"]) {
 			break
