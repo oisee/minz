@@ -1,0 +1,55 @@
+{
+  "guards": [],
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:49e707732d72bfbdf181e3618f70363e418c806eb7e09fb90f6d9beb0769e935",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+      "target_id": "module-target:0/model:cpm-z80-v1",
+      "workload_sha256": "c2e845c4a3c8c0e79056cdaf5603bacd39fd9a62b509bb88528e94022b530639",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "../../../examples/nanz/grace_weighted_checksum.nanz": "b350e4307d9134ebdefbc5c1485b52d9529b8fcb6abfe37fd62eae728d2f6423",
+        "alternating": "31f045af3774d02af7c8ba47a6ce102a042cd91c15db0cee54684615946aff2f",
+        "ff": "a601fb0d5ab33a2306d7d8be16896d12e9c9037e5e7b0559227d85e33f5e85ae",
+        "mismatch": "9ab8f84577f5ec1d5ca66a3ce53052889b1041ea6c77998f9a9f4a728f72a208",
+        "ramp": "37c09723e453af7a4473059e201b8ebcbc39e26049ed552ef19a5acab8130d6e",
+        "zero": "c9fa15b359ed57a35045306aa8aea60dc46a9777e9fc02e7f61724d739df2753"
+      }
+    },
+    "hir_sha256": "7e9431b02bc97abd3e4c92a1c71e1d2a0f5420f94f64d045afdfe949c8d36bec",
+    "origins_sha256": "3f734e23e716fa17d3df2bcd37e6c8affe20dd4b3ee415ff6e0c803d90be68cd"
+  },
+  "schema": "minz.input-hir-loop-observations/v4",
+  "stage": "unoptimised-mir2-vm",
+  "sites": {
+    "schema": "minz.hir-loop-sites/v1",
+    "stage": "input-hir",
+    "sites": [
+      {
+        "id": "6a9d5fc441408d35d5ce4193723c7574e4a02e7bc74fcd1ca1772e84b79d2786",
+        "function": "weighted_checksum",
+        "kind": "while",
+        "ordinal": 0,
+        "hir_path": "body/s2",
+        "origin": {
+          "unit": "../../../examples/nanz/grace_weighted_checksum.nanz",
+          "byte_offset": 423,
+          "line": 10,
+          "byte_column": 5,
+          "source_sha256": "b350e4307d9134ebdefbc5c1485b52d9529b8fcb6abfe37fd62eae728d2f6423"
+        }
+      }
+    ],
+    "unmapped_loops": 0
+  },
+  "counts": [
+    {
+      "site_id": "6a9d5fc441408d35d5ce4193723c7574e4a02e7bc74fcd1ca1772e84b79d2786",
+      "entries": 30,
+      "body_entries": 1705
+    }
+  ],
+  "completed_calls": 30,
+  "failed_calls": 0
+}

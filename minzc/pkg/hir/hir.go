@@ -19,7 +19,7 @@
 //   - No virtual register numbers (variables are named)
 //   - Structured control flow (not basic blocks)
 //   - Types reuse mir2.Ty (both are target-neutral)
-//   - No optimizer passes — optimizations happen at MIR2 level
+//   - Structured rewrites can run before lowering (RunGrace, SplitHighPressure)
 package hir
 
 import "github.com/minz/minzc/pkg/mir2"
@@ -96,18 +96,29 @@ func TargetFromString(s string) uint8 {
 
 // Module is the top-level HIR unit.
 type Module struct {
-	AssertStats *AssertStats // optional invocation-local execution accounting
-	Name        string
-	Target      uint8 // platform target (TargetCPM, TargetZXSpectrum, etc.)
-	Funcs       []*Func
-	Globals     []mir2.Global     // reuse mir2.Global directly
-	Structs     []*mir2.StructTy  // named struct type declarations
-	Interfaces  []*InterfaceDecl  // interface declarations (zero-cost, monomorphised)
-	Strings     []string          // interned string literals (index = position)
-	StrKinds    []mir2.StringKind // encoding per string (SString/LString/CString)
-	Warnings    []string          // use-before-init and other diagnostic warnings
-	Asserts     []Assert          // top-level compile-time assertions (each gets fresh VM)
-	Sandboxes   []Sandbox         // grouped assertions (shared VM per sandbox)
+	OrderedByteRWPolicy map[string]FunctionChoice `json:"-"` // typed opt-in read/write function choices
+	OrderedBytePolicy   map[string]bool           `json:"-"` // opt-in ordered-byte function choices; distinct from loop sites
+	RegionComparePolicy map[string]bool           `json:"-"` // explicit measured region-site allowlist; nil never enables the rule
+	InvariantBasePolicy map[string]bool           `json:"-"` // nil defaults; source-site allowlist requires seeded lineage
+	GraceRulePolicy     map[string]bool           `json:"-"` // nil: defaults; explicit common-rule choices for measured variants
+	ForwardCopyPolicy   map[string]bool           `json:"-"` // explicit measured copy-site allowlist; nil only for manual rule opt-in
+	PointerWalkPolicy   map[string]bool           `json:"-"` // opt-in sticky PGO choice, independent of legality
+	LoopLineage         map[Stmt]LoopLineage      `json:"-"` // attribution after explicit seeding
+	SourceUnits         map[string]string         `json:"-"` // hashes of actual frontend inputs, including loop-free units
+	SourceUnitsComplete bool                      `json:"-"` // frontend recorded its transitive source dependencies
+	SourceLocations     map[Stmt]SourceLocation   `json:"-"` // optional frontend origins; not semantic evidence
+	AssertStats         *AssertStats              // optional invocation-local execution accounting
+	Name                string
+	Target              uint8 // platform target (TargetCPM, TargetZXSpectrum, etc.)
+	Funcs               []*Func
+	Globals             []mir2.Global     // reuse mir2.Global directly
+	Structs             []*mir2.StructTy  // named struct type declarations
+	Interfaces          []*InterfaceDecl  // interface declarations (zero-cost, monomorphised)
+	Strings             []string          // interned string literals (index = position)
+	StrKinds            []mir2.StringKind // encoding per string (SString/LString/CString)
+	Warnings            []string          // use-before-init and other diagnostic warnings
+	Asserts             []Assert          // top-level compile-time assertions (each gets fresh VM)
+	Sandboxes           []Sandbox         // grouped assertions (shared VM per sandbox)
 }
 
 // FuncByName returns the first HIR function with the given name, or nil.
@@ -124,8 +135,10 @@ func (m *Module) FuncByName(name string) *Func {
 
 // Func is a HIR function.
 type Func struct {
+	FallibleCY     bool // derived CY/error ABI, part of semantic identity
 	Name           string
 	Params         []Param
+	Captures       []Param   // explicit lexical dependencies; not ABI parameters
 	RetTy          mir2.Ty   // mir2.TyVoid for void functions (single-return)
 	RetTys         []mir2.Ty // non-empty → multiple return values (overrides RetTy)
 	Body           *Block    // nil for extern
@@ -397,11 +410,57 @@ type CallExpr struct {
 func (*CallExpr) hirExpr()          {}
 func (e *CallExpr) ExprTy() mir2.Ty { return e.Ty }
 
+// CallSignature keeps source types and the derived aggregate-result ownership ABI.
+// Nil at a call site means the frontend has not resolved its callable type.
+type CallSignature struct {
+	StructReturnBuffers []mir2.StructReturnBuffer `json:",omitempty"`
+	Params              []mir2.Ty
+	Returns             []mir2.Ty
+}
+
+func (s *CallSignature) Clone() *CallSignature {
+	if s == nil {
+		return nil
+	}
+	// Clone the recorded ABI exactly: cloning must not repair a malformed
+	// descriptor or change alias relationships before the verifier checks it.
+	source := &mir2.Inst{IndirectParamTys: s.Params, IndirectReturnTys: s.Returns, StructReturnBuffers: s.StructReturnBuffers}
+	copy := &mir2.Inst{}
+	mir2.CloneCallABIMetadata(copy, source)
+	return &CallSignature{Params: copy.IndirectParamTys, Returns: copy.IndirectReturnTys, StructReturnBuffers: copy.StructReturnBuffers}
+}
+
+func (f *Func) Signature() *CallSignature {
+	s := &CallSignature{}
+	for _, p := range f.Params {
+		s.Params = append(s.Params, p.Ty)
+	}
+	if len(f.RetTys) > 0 {
+		s.Returns = append(s.Returns, f.RetTys...)
+	} else if f.RetTy != mir2.TyVoid {
+		s.Returns = []mir2.Ty{f.RetTy}
+	}
+	s.ResolveStructReturnABI()
+	return s
+}
+
+// ResolveStructReturnABI records the ownership convention derived from source types.
+func (s *CallSignature) ResolveStructReturnABI() {
+	s.StructReturnBuffers = nil
+	for ri, ret := range s.Returns {
+		if ty, ok := mir2.BaseOf(ret).(*mir2.StructTy); ok {
+			s.StructReturnBuffers = append(s.StructReturnBuffers, mir2.StructReturnBuffer{ReturnIndex: ri, ParamIndex: len(s.Params) + len(s.StructReturnBuffers), Ty: ty})
+		}
+	}
+
+}
+
 // CallIndirectExpr is an indirect function call through a pointer.
 type CallIndirectExpr struct {
-	FnPtr Expr // expression yielding the function pointer
-	Args  []Expr
-	Ty    mir2.Ty // return type
+	Signature *CallSignature // optional resolved callable contract
+	FnPtr     Expr           // expression yielding the function pointer
+	Args      []Expr
+	Ty        mir2.Ty // return type
 }
 
 func (*CallIndirectExpr) hirExpr()          {}
@@ -432,12 +491,18 @@ func (*BitExpr) ExprTy() mir2.Ty { return mir2.TyU8 }
 // AddrOfExpr takes the address of either a named symbol or an addressable
 // expression such as a field/index lvalue.
 type AddrOfExpr struct {
-	Sym string // global/function/string symbol name
-	X   Expr   // optional addressable expression
+	Sym string  // global/function/string symbol name
+	X   Expr    // optional addressable expression
+	Ty  mir2.Ty // optional pointee-preserving pointer type; nil is legacy byte pointer
 }
 
-func (*AddrOfExpr) hirExpr()        {}
-func (*AddrOfExpr) ExprTy() mir2.Ty { return mir2.TyPtr }
+func (*AddrOfExpr) hirExpr() {}
+func (e *AddrOfExpr) ExprTy() mir2.Ty {
+	if e.Ty != nil {
+		return e.Ty
+	}
+	return mir2.TyPtr
+}
 
 // LoadExpr dereferences a pointer: *Ptr
 type LoadExpr struct {
@@ -512,8 +577,8 @@ func (*StructLitExpr) ExprTy() mir2.Ty { return mir2.TyPtr }
 
 // RangeSourceExpr is produced by range(lo..hi) / range(hi..lo).
 // It is a pure counter source — no memory pointer, no Load.
-// Rev=true means hi < lo in source (e.g. range(n..0)): counts from Lo down to Hi+1.
-// When used as an iterator source the element value equals the current counter value.
+// Elements are count..1: forward count is Hi-Lo; Rev selects Lo for range(n..0).
+// This is the countdown contract in Nanz Language Book chapter 6, not Lo..Hi-1.
 type RangeSourceExpr struct {
 	Lo, Hi Expr
 	Rev    bool // true when written as range(hi..lo), i.e. counting down

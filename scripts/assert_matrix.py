@@ -27,7 +27,7 @@ def tracked(root):
     return subprocess.check_output(['git', '-C', str(root), 'ls-files', '-z']).decode().split('\0')[:-1]
 
 
-def enumerate_asserts(root, files, globs, mz, jobs=1, timeout=30, errors=None):
+def enumerate_asserts(root, files, globs, mz, jobs=1, timeout=30, errors=None, progress=None):
     selected = {str(p.relative_to(root)) for g in globs for p in root.glob(g) if p.is_file()}
     def listing(name):
         p = subprocess.run([mz, name, '--list-asserts'], cwd=root,
@@ -47,8 +47,17 @@ def enumerate_asserts(root, files, globs, mz, jobs=1, timeout=30, errors=None):
             a['assert'] = a['expression']
             result.append(a)
         return result
+    names = sorted(set(files) & selected)
+    groups = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=jobs) as pool:
-        return [a for group in pool.map(listing, sorted(set(files) & selected)) for a in group]
+        pending = {pool.submit(listing, name): name for name in names}
+        for future in concurrent.futures.as_completed(pending):
+            name = pending[future]
+            groups[name] = future.result()
+            if progress:
+                progress({'stage': 'listing', 'file': name, 'assertions': groups[name],
+                          'completed_files': len(groups), 'total_files': len(names)})
+    return [a for name in names for a in groups[name]]
 
 
 def run_compiler(mz, path, timeout, cwd=None, lines=None, expected=1, control=None, backend='z80', control_element=0):
@@ -84,6 +93,13 @@ def outcomes(attempts):
             'flaky': len({a['pass'] for a in attempts}) > 1, 'runs': attempts}
 
 
+def top_level_identity(assertion):
+    # Source lines select assertions in each checkout; they are not semantic
+    # identity. Keep the backend and tuple shape, and count duplicate directives.
+    return (assertion['file'], assertion['expression'],
+            assertion.get('via'), assertion.get('tuple_elements', 0))
+
+
 def inventory_changes(before, after):
     def indexed(items):
         out, occurrences = {}, {}
@@ -94,22 +110,58 @@ def inventory_changes(before, after):
             out[(*key, occurrence)] = a
         return out
     b, c = indexed(before), indexed(after)
+    # Match unchanged independent directives across line shifts first. Sandbox
+    # members retain positional comparison: reordering shared-state assertions
+    # is a semantic change and must still be audited.
+    candidate_matches = {}
+    for key, assertion in c.items():
+        if assertion['kind'] == 'top-level':
+            candidate_matches.setdefault(top_level_identity(assertion), []).append(key)
+    for key, assertion in list(b.items()):
+        if assertion['kind'] != 'top-level':
+            continue
+        matches = candidate_matches.get(top_level_identity(assertion), [])
+        if matches:
+            del b[key]
+            del c[matches.pop(0)]
     return ([b[k] for k in sorted(b.keys() - c.keys())],
             [c[k] for k in sorted(c.keys() - b.keys())],
             [{'baseline': b[k], 'candidate': c[k]} for k in sorted(b.keys() & c.keys())
-             if b[k]['expression'] != c[k]['expression']])
+             if (b[k]['expression'] != c[k]['expression'] or
+                 b[k].get('via') != c[k].get('via') or
+                 b[k].get('tuple_elements', 0) != c[k].get('tuple_elements', 0))])
 
 
-def matrix(root, globs, compilers, jobs, runs, timeout, controls=False, roots=None, backend='z80', controls_only=False):
+def matrix(root, globs, compilers, jobs, runs, timeout, controls=False, roots=None, backend='z80', controls_only=False, progress=None, inventory_cache=None):
     roots = roots or {label: root for label in compilers}
     listing_errors = {label: {} for label in compilers}
-    inventories = {label: enumerate_asserts(roots[label], tracked(roots[label]), globs, mz, jobs, timeout, listing_errors[label])
-                   for label, mz in compilers.items()}
+    if inventory_cache is not None and inventory_cache:
+        inventories, listing_errors = inventory_cache['inventories'], inventory_cache['listing_errors']
+    else:
+        inventories = {}
+        for label, mz in compilers.items():
+            callback = (lambda event, label=label: progress({**event, 'label': label})) if progress else None
+            inventories[label] = enumerate_asserts(roots[label], tracked(roots[label]), globs,
+                                                  mz, jobs, timeout, listing_errors[label], callback)
+        if inventory_cache is not None:
+            inventory_cache.update(inventories=inventories, listing_errors=listing_errors)
+    if progress:
+        progress({'stage': 'inventory', 'inventories': inventories, 'listing_errors': listing_errors})
     # A sandbox is a unit: its assertions retain source order and shared state.
     units = {}
     for label, assertions in inventories.items():
+        occurrences = {}
         for a in assertions:
-            key = (a['file'], a['line'] if a['kind'] == 'top-level' else a['kind'])
+            if a['kind'] == 'top-level' and a['line'] == 0:
+                # Line-zero frontend receipts cannot select individual members.
+                key = ('line-zero', a['file'])
+            elif a['kind'] == 'top-level':
+                identity = top_level_identity(a)
+                occurrence = occurrences.get(identity, 0)
+                occurrences[identity] = occurrence + 1
+                key = ('top-level', identity, occurrence)
+            else:
+                key = ('sandbox', a['file'], a['kind'])
             unit = units.setdefault(key, {'file': a['file'], 'line': a['line'], 'kind': a['kind'], 'assert': a['expression'], 'members': {}})
             unit['members'].setdefault(label, []).append(a)
     local = threading.local()
@@ -177,8 +229,20 @@ def matrix(root, globs, compilers, jobs, runs, timeout, controls=False, roots=No
             else:
                 result['classification'] = 'flaky' if result['compiler']['flaky'] else 'pass' if result['compiler']['pass'] else 'fail'
             return result
+        ordered = list(units.values())
+        results = [None] * len(ordered)
+        if progress:
+            progress({'stage': 'execution', 'total_units': len(ordered)})
         with concurrent.futures.ThreadPoolExecutor(max_workers=jobs) as pool:
-            results = list(pool.map(work, units.values()))
+            pending = {pool.submit(work, unit): index for index, unit in enumerate(ordered)}
+            completed = 0
+            for future in concurrent.futures.as_completed(pending):
+                index = pending[future]
+                results[index] = future.result()
+                completed += 1
+                if progress:
+                    progress({'stage': 'unit', 'index': index, 'completed_units': completed,
+                              'total_units': len(ordered), 'result': results[index]})
     summary = {category: sum(r['classification'] == category for r in results)
                for category in (['pass both', 'newly pass', 'newly fail', 'fail both', 'flaky']
                                 if len(compilers) == 2 else ['pass', 'fail', 'flaky'])}
@@ -281,6 +345,61 @@ def exit_code(report, comparison, allow=False):
                    for r in report['results']))
 
 
+class MatrixProgress:
+    """Recoverable journal and bounded atomic snapshot; partial results never pass."""
+    def __init__(self, output):
+        self.output = output
+        self.started = time.monotonic()
+        self.last_snapshot = 0
+        self.state = {'version': 1, 'status': 'incomplete', 'passes': {}}
+        self.journal = None
+        if output:
+            output.parent.mkdir(parents=True, exist_ok=True)
+            self.journal = output.with_suffix('.events.jsonl').open('w', buffering=1)
+        self.snapshot(force=True)
+
+    def snapshot(self, force=False):
+        now = time.monotonic()
+        if not self.output or (not force and now - self.last_snapshot < 1):
+            return
+        self.state['wall_seconds'] = round(now - self.started, 3)
+        path = self.output.with_suffix('.progress.json')
+        temp = path.with_suffix('.tmp')
+        temp.write_text(json.dumps(self.state, indent=2) + '\n')
+        temp.replace(path)
+        self.last_snapshot = now
+
+    def event(self, backend, event):
+        if self.journal:
+            self.journal.write(json.dumps({'backend': backend, **event}) + '\n')
+        state = self.state['passes'].setdefault(backend, {'results': {}, 'stage': 'starting'})
+        state['stage'] = event['stage']
+        if event['stage'] == 'inventory':
+            state.update(inventories=event['inventories'], listing_errors=event['listing_errors'])
+        elif event['stage'] == 'listing':
+            state.update(completed_files=event['completed_files'], total_files=event['total_files'],
+                         current_label=event['label'])
+        elif event['stage'] == 'execution':
+            state['total_units'] = event['total_units']
+        elif event['stage'] == 'unit':
+            state['results'][str(event['index'])] = event['result']
+            state.update(completed_units=event['completed_units'], total_units=event['total_units'])
+        elif event['stage'] == 'complete':
+            state['report'] = event['report']
+        if event['stage'] != 'listing' or event['completed_files'] % 10 == 0:
+            print(f"{backend}: {event['stage']} " +
+                  (f"{event['completed_units']}/{event['total_units']} units" if event['stage'] == 'unit' else
+                   f"{event['completed_files']}/{event['total_files']} files" if event['stage'] == 'listing' else ''),
+                  file=sys.stderr, flush=True)
+        self.snapshot(force=event['stage'] in ('inventory', 'execution', 'complete'))
+
+    def close(self, status='incomplete'):
+        self.state['status'] = status
+        self.snapshot(force=True)
+        if self.journal:
+            self.journal.close()
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--root', type=Path, default=Path(__file__).resolve().parents[1])
@@ -312,6 +431,7 @@ def main():
         compilers = {k: str(Path(v).resolve()) for k, v in [('baseline', args.baseline), ('candidate', args.candidate)]}
     else:
         p.error('provide --mz OR both --baseline and --candidate')
+    progress = MatrixProgress(args.json)
     try:
         with tempfile.TemporaryDirectory(prefix='assert-baseline-') as temp:
             root = args.root.resolve()
@@ -330,15 +450,18 @@ def main():
             entries = load_known_failures(args.known_failures, globs)
             reports = {}
             codes = []
+            inventory_cache = {}
             for backend in (('z80', 'mir2') if args.backend == 'both' else (args.backend,)):
                 start = time.monotonic()
-                report = matrix(root, globs, compilers, args.j, args.runs, args.timeout, args.controls, roots, backend, args.controls_only)
+                report = matrix(root, globs, compilers, args.j, args.runs, args.timeout, args.controls, roots, backend, args.controls_only,
+                                progress=lambda event: progress.event(backend, event), inventory_cache=inventory_cache)
                 if not args.controls_only:
                     apply_known_failures(report, [e for e in entries if e.get('backend', 'z80') == backend],
                                          'candidate' if comparison else 'compiler')
                 report['summary']['wall_seconds'] = round(time.monotonic() - start, 3)
                 report['summary']['backend'] = backend
                 reports[backend] = report
+                progress.event(backend, {'stage': 'complete', 'report': report})
                 codes.append(exit_code(report, comparison, args.allow_assert_changes))
                 if comparison:
                     print(json.dumps(report['summary'], indent=2))
@@ -352,8 +475,10 @@ def main():
             args.json.write_text(json.dumps(output, indent=2) + '\n')
         if not comparison:
             print(json.dumps(output, indent=2))
+        progress.close('complete')
         return max(codes)
     except Exception as e:
+        progress.close()
         print(f'tool error: {e}', file=sys.stderr)
         return 2
 

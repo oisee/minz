@@ -1,0 +1,18 @@
+{
+  "PASS": true,
+  "bytes": 58,
+  "copied_bytes": 21,
+  "measurements": [
+    {
+      "T_states": 778,
+      "seed_salt": 19
+    },
+    {
+      "T_states": 778,
+      "seed_salt": 173
+    }
+  ],
+  "mode": "ordinary",
+  "primitive": "ldir",
+  "scope": "independent source/destination address oracle; all native RAM except exact spill declarations and bounded stack; source unchanged; exact PC/SP; raw/final VM for pointer only; preserved AF/BC/DE/HL/IX/IY for LDIR"
+}

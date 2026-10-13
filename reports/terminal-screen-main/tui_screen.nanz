@@ -1,0 +1,87 @@
+// tui_screen.nanz — OOP Screen demo (Level 2 TUI framework)
+//
+// Demonstrates the tui_* host functions for rendering colored TUI screens.
+// Run:  mzv examples/nanz/tui_screen.nanz
+// Headless: mzv -H examples/nanz/tui_screen.nanz
+
+@extern fun tui_goto(x: u8, y: u8) -> void
+@extern fun tui_color(fg: u8, bg: u8, bright: u8) -> void
+@extern fun tui_reset() -> void
+@extern fun tui_clear() -> void
+@extern fun tui_putch(ch: u8) -> void
+@extern fun tui_puts(str: ^u8) -> void
+@extern fun tui_read_key() -> u8
+@extern fun tui_width() -> u8
+@extern fun tui_height() -> u8
+
+fun main() -> void {
+    tui_clear()
+
+    // Title bar: white on blue
+    tui_color(7, 4, 1)
+    tui_goto(0, 0)
+    tui_puts(c"  Material Report")
+
+    // Pad to full width
+    var w: u8 = tui_width()
+    var i: u8 = 18
+    while i < w {
+        tui_putch(32)
+        i = i + 1
+    }
+    tui_reset()
+
+    // Field 1: Material
+    tui_goto(2, 2)
+    tui_color(6, 0, 0)
+    tui_puts(c"Material    ")
+    tui_color(7, 4, 1)
+    tui_puts(c"[*                 ]")
+    tui_reset()
+
+    // Field 2: Plant
+    tui_goto(2, 3)
+    tui_color(6, 0, 0)
+    tui_puts(c"Plant       ")
+    tui_color(7, 0, 0)
+    tui_puts(c"[    ]")
+    tui_reset()
+
+    // Field 3: Count
+    tui_goto(2, 4)
+    tui_color(6, 0, 0)
+    tui_puts(c"Count       ")
+    tui_color(7, 0, 0)
+    tui_puts(c"[10]")
+    tui_reset()
+
+    // Buttons
+    tui_goto(2, 6)
+    tui_color(0, 7, 1)
+    tui_puts(c"[F8=Execute]")
+    tui_reset()
+    tui_puts(c"  ")
+    tui_color(7, 0, 1)
+    tui_puts(c"[F3=Back]")
+    tui_reset()
+
+    // Status bar
+    var h: u8 = tui_height()
+    tui_color(7, 4, 0)
+    tui_goto(0, h - 1)
+    tui_puts(c"  TAB=Next  Enter=Edit  F8=Execute  F3=Back")
+    i = 44
+    while i < w {
+        tui_putch(32)
+        i = i + 1
+    }
+    tui_reset()
+
+    // Wait for a key
+    var key: u8 = tui_read_key()
+
+    // Clean exit
+    tui_clear()
+    tui_goto(0, 0)
+    tui_reset()
+}

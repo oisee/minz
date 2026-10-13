@@ -373,6 +373,8 @@ func blockUseDef(f *Func, b *Block, isEntry bool) (use *RegSet, def *RegSet) {
 		for _, arg := range t.ThenArgs {
 			addUse(arg)
 		}
+	case *TermErrorRet:
+		addUse(t.Code)
 	case *TermRet:
 		for _, v := range t.Vals {
 			addUse(v)

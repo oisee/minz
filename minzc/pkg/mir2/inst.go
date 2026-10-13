@@ -28,9 +28,17 @@ import "fmt"
 // Join-point values are expressed as BlockParam entries on the target Block
 // and as Args slices on TermJmp / TermBrIf.
 type Inst struct {
-	Op  Op
-	Dst Reg    // result register; NoReg if the instruction produces no value
-	Src [2]Reg // up to 2 operand registers
+	Op Op
+	// SequentialBytes preserves a fused low-to-high byte sequence, including
+	// partial observations/writes before a later byte fails bounds or authority.
+	SequentialBytes bool `json:",omitempty"`
+	// SequentialByteOrigins retain exact original byte callback identity.
+	// SequentialAddressDefs preserve the pure address DAG as checked metadata;
+	// neither retired values nor address proof nodes execute again.
+	SequentialAddressDefs []*Inst `json:",omitempty"`
+	SequentialByteOrigins []*Inst `json:",omitempty"`
+	Dst                   Reg     // result register; NoReg if the instruction produces no value
+	Src                   [2]Reg  // up to 2 operand registers
 
 	Imm int64  // immediate value (OpConst, OpAlloca byte count, OpPatchSlot init)
 	Sym string // symbol name (OpAddrOf, OpCall / intrinsic names)
@@ -62,7 +70,10 @@ type Inst struct {
 	SrcTy Ty
 
 	// Call metadata (OpCall, OpCallIndirect)
-	CallAttr CallAttrs
+	CallAttr            CallAttrs
+	StructReturnBuffers []StructReturnBuffer `json:",omitempty"`
+	IndirectParamTys    []Ty                 `json:",omitempty"`
+	IndirectReturnTys   []Ty                 `json:",omitempty"`
 
 	// Variadic argument list (OpCall, OpCallIndirect)
 	Args []Reg
@@ -80,6 +91,9 @@ type Inst struct {
 	// emitting CALL so that subsequent uses see the correct location.
 	// If an ExtraRet is never used, DSE removes it and no physical register
 	// is consumed (equivalent to Go's `_` blank identifier).
+	// FallibleCY: ExtraRets are exactly [failed:bool, code:u8], semantic
+	// outputs distinct from ordinary multi-return ABI.
+	FallibleCY      bool
 	ExtraRets       []Reg
 	ExtraRetClasses []RegClass
 	ExtraRetTys     []Ty
@@ -147,6 +161,9 @@ func (inst *Inst) Uses() []Reg {
 		return nil
 	case OpCall:
 		return inst.Args
+	case OpCallCond:
+		// Both the branch predicate and every argument are live uses.
+		return append(filterNoReg(inst.Src[0]), inst.Args...)
 	case OpCallIndirect:
 		out := make([]Reg, 0, len(inst.Args)+1)
 		if inst.Src[0] != NoReg {
@@ -370,6 +387,14 @@ func (t *TermRet) termUses() []Reg                    { return t.Vals }
 func (*TermRet) Successors() []string                 { return nil }
 func (*TermRet) ForEachEdge(func(string, []Reg, int)) {} // no successors
 
+// TermErrorRet returns a language-domain error via CY and A.
+type TermErrorRet struct{ Code Reg }
+
+func (*TermErrorRet) isTerm()                              {}
+func (t *TermErrorRet) termUses() []Reg                    { return []Reg{t.Code} }
+func (*TermErrorRet) Successors() []string                 { return nil }
+func (*TermErrorRet) ForEachEdge(func(string, []Reg, int)) {}
+
 // TermUnreachable marks dead code.
 type TermUnreachable struct{}
 
@@ -398,6 +423,8 @@ func TermString(term Term) string {
 	case *TermCondRet:
 		return fmt.Sprintf("cond_ret %%r%d, [%s], @%s(%s)",
 			t.Cond, regList(t.Vals), t.Then, regList(t.ThenArgs))
+	case *TermErrorRet:
+		return fmt.Sprintf("error_ret %%r%d", t.Code)
 	case *TermRet:
 		if len(t.Vals) == 0 {
 			return "ret void"

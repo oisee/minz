@@ -35,7 +35,7 @@ func TestGrace_AllFrontends(t *testing.T) {
 	frontends := []frontend{
 		{"nanz", filepath.Join(examplesRoot, "nanz"), "*.nanz",
 			func(src, name string) (*hir.Module, error) {
-				return nanz.ParseWithOpts(src, name, nanz.ParseOpts{})
+				return nanz.ParseWithOpts(src, name, nanz.ParseOpts{BaseDir: filepath.Join(examplesRoot, "nanz"), StdlibDir: filepath.Join("..", "..", "..", "stdlib")})
 			}},
 		{"lanz", filepath.Join(examplesRoot, "lizp"), "*.lanz",
 			func(src, name string) (*hir.Module, error) {
@@ -45,7 +45,7 @@ func TestGrace_AllFrontends(t *testing.T) {
 			func(src, name string) (*hir.Module, error) {
 				return lizp.Compile(src, name)
 			}},
-		{"plm", filepath.Join(examplesRoot, "nanz"), "*.plm",
+		{"plm", filepath.Join(examplesRoot, "plm"), "*.plm",
 			func(src, name string) (*hir.Module, error) {
 				return plm.Compile(src)
 			}},
@@ -91,7 +91,7 @@ func TestGrace_AllFrontends(t *testing.T) {
 			// Go path
 			hm1, err := fe.compile(string(src), base)
 			if err != nil {
-				t.Logf("%-35s %6s %6s %6s PARSE FAIL", base, "-", "-", "-")
+				t.Logf("%-35s %6s %6s %6s PARSE FAIL: %v", base, "-", "-", "-", err)
 				continue
 			}
 			goSteps, goErr := CompileHIRSteps(hm1, Options{ContractOpt: true})

@@ -1,0 +1,849 @@
+{
+  "module": "tui_screen",
+  "keys": [
+    97
+  ],
+  "line": null,
+  "focus": 0,
+  "material": "*",
+  "events": [
+    {
+      "name": "tui_clear",
+      "args": []
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        4,
+        1
+      ]
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "  Material Report"
+      ]
+    },
+    {
+      "name": "tui_width",
+      "args": []
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        2
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        6,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "Material    "
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        4,
+        1
+      ]
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "[*                 ]"
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        3
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        6,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "Plant       "
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "[    ]"
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        4
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        6,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "Count       "
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "[10]"
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        2,
+        6
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        0,
+        7,
+        1
+      ]
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "[F8=Execute]"
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "  "
+      ]
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "[F3=Back]"
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_height",
+      "args": []
+    },
+    {
+      "name": "tui_color",
+      "args": [
+        7,
+        4,
+        0
+      ]
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        0,
+        23
+      ]
+    },
+    {
+      "name": "tui_puts",
+      "args": [
+        "  TAB=Next  Enter=Edit  F8=Execute  F3=Back"
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_putch",
+      "args": [
+        32
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    },
+    {
+      "name": "tui_read_key",
+      "args": [
+        97
+      ]
+    },
+    {
+      "name": "tui_clear",
+      "args": []
+    },
+    {
+      "name": "tui_goto",
+      "args": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "tui_reset",
+      "args": []
+    }
+  ],
+  "stdout_bytes": 420
+}

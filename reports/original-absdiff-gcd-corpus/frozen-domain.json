@@ -1,0 +1,66 @@
+{
+  "schema": "original-absdiff-gcd-domain-v1",
+  "sources": [
+    {
+      "path": "reports/showcase-src/2026-03-10/ex4a_abs_diff.nanz",
+      "sha256": "d200af0eb58a60d00262b54224da749ecb07a25ec15638ba03e4bf3f308ccf90"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex4a_abs_diff.nanz",
+      "sha256": "d200af0eb58a60d00262b54224da749ecb07a25ec15638ba03e4bf3f308ccf90"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-10/ex4b_abs_diff_u16.nanz",
+      "sha256": "9ef0622b17529e2989b36a749291ee50f6facfbff17f7818c7c001e4348ffbca"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex4b_abs_diff_u16.nanz",
+      "sha256": "9ef0622b17529e2989b36a749291ee50f6facfbff17f7818c7c001e4348ffbca"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-10/ex8_gcd.nanz",
+      "sha256": "88747063a59526e797061cf828911c417e661723efb3b614715f2d2109977832"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex8_gcd.nanz",
+      "sha256": "88747063a59526e797061cf828911c417e661723efb3b614715f2d2109977832"
+    }
+  ],
+  "oracle": "absdiff mathematical abs(x-y); gcd Euclidean remainder oracle independent of source subtraction algorithm",
+  "spec": "Language Book v7 numeric unsigned widths/comparison, source control flow; no implicit zero-input fix",
+  "domains": {
+    "abs_diff": "all256x256bytepairs",
+    "abs_diff_u16": {
+      "lowbytepairs": "all256x256",
+      "extra_bounds": [
+        0,
+        1,
+        2,
+        7,
+        127,
+        128,
+        254,
+        255,
+        256,
+        257,
+        32767,
+        32768,
+        65534,
+        65535
+      ]
+    },
+    "gcd": {
+      "positive": "all255x255",
+      "zero_equal": "(0,0) returns0",
+      "mixed_zero": "all510 pairs exactlyonezero: source subtraction leaves state unchanged, nontermination expected; VM gas/native bounded nonreturn controls"
+    }
+  },
+  "modes": [
+    "ordinary",
+    "grace-size",
+    "grace-speed"
+  ],
+  "terminating_calls_per_mode": 196294,
+  "mixed_zero_controls_per_mode": 510,
+  "scope": "No all-u16-pairs claim; nonterminating original gcd inputs not replaced with mathematical gcd."
+}

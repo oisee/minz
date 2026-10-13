@@ -39,7 +39,7 @@ func TestMetaE2E_NanzToVM(t *testing.T) {
 
 fun meta_sizeof(ty: u8) -> u8 {
 	let n = struct_field_count(ty)
-	emit("(fun Color_size () u8 (return 3))")
+	emit(c"(fun Color_size () u8 (return 3))")
 	return n
 }
 `

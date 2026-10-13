@@ -1,0 +1,7 @@
+{
+  "source": "examples/nanz/mul_const.nanz",
+  "sha256": "a5ff9edb54a2fd290105b471ce6dc3e3937f5400ce9a90bdd1e5bb90f02e0d57",
+  "domain": "all65536u16inputs x;expected(10*x)%65536,3modes",
+  "oracle": "Bookv7\u00a73.1 u16 wrap;independentinteger multiplication;sourceasserts preserved",
+  "checks": "raw/finalVM,native trueCALL returnPC/SP/fullRAM/code"
+}

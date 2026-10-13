@@ -1,0 +1,526 @@
+[
+  {
+    "path": "minzc/pkg/pipeline/original_cpm_screen_main_test.go",
+    "sha256": "4a783f6f8cb63e8d265d74734d01c8150b6de4b0f7ec64a104f90251c308e143"
+  },
+  {
+    "path": "reports/cpm-screen-main/REPORT.md",
+    "sha256": "bb8fee2ef0150a9b2cd482fc78f14eb98b108c56557c0b2a722db0f3f99a0326"
+  },
+  {
+    "path": "reports/cpm-screen-main/before.txt",
+    "sha256": "02b96c76dd93edc2c59735a76cde89343baacf34a0be2cddb386c0d90009f334"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/meta_screen/grace-size/final.mir",
+    "sha256": "babbe0d7867da72e238ba685a8c7c51e0b30fad1a3fd40714e8107c28924b1b6"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/meta_screen/grace-size/ledger.json",
+    "sha256": "768544d3bb64b8932891ab7d2023747236ba08130b790f373b24eb57a7aa2159"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/meta_screen/grace-size/program.a80",
+    "sha256": "417a59a79b1557219d8e47304cb1dd142c154ae4a223aebee599a38950d8fd60"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/meta_screen/grace-size/program.com",
+    "sha256": "4381fbf83b71d33966cca603b713692bdfa18b33de7e8cc5cef53c7eb77cacff"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/meta_screen/grace-size/registers.json",
+    "sha256": "40f5b2d72ebbe9e83fe1293fd777f2ba3b7557d255f30619eb35b333bc4589c5"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/meta_screen/grace-size/stdout.bin",
+    "sha256": "37445849675991d56eecd6bb1ec217b1cf421ca93c5f32a8b26a417a6f268b1c"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/meta_screen/grace-size/summary.json",
+    "sha256": "271f09b903bc267be469167741283833d7264ed92db034b3d55184bc2e20c30a"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/meta_screen/grace-speed/final.mir",
+    "sha256": "babbe0d7867da72e238ba685a8c7c51e0b30fad1a3fd40714e8107c28924b1b6"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/meta_screen/grace-speed/ledger.json",
+    "sha256": "768544d3bb64b8932891ab7d2023747236ba08130b790f373b24eb57a7aa2159"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/meta_screen/grace-speed/program.a80",
+    "sha256": "417a59a79b1557219d8e47304cb1dd142c154ae4a223aebee599a38950d8fd60"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/meta_screen/grace-speed/program.com",
+    "sha256": "4381fbf83b71d33966cca603b713692bdfa18b33de7e8cc5cef53c7eb77cacff"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/meta_screen/grace-speed/registers.json",
+    "sha256": "40f5b2d72ebbe9e83fe1293fd777f2ba3b7557d255f30619eb35b333bc4589c5"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/meta_screen/grace-speed/stdout.bin",
+    "sha256": "37445849675991d56eecd6bb1ec217b1cf421ca93c5f32a8b26a417a6f268b1c"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/meta_screen/grace-speed/summary.json",
+    "sha256": "271f09b903bc267be469167741283833d7264ed92db034b3d55184bc2e20c30a"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/meta_screen/ordinary/final.mir",
+    "sha256": "babbe0d7867da72e238ba685a8c7c51e0b30fad1a3fd40714e8107c28924b1b6"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/meta_screen/ordinary/ledger.json",
+    "sha256": "768544d3bb64b8932891ab7d2023747236ba08130b790f373b24eb57a7aa2159"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/meta_screen/ordinary/program.a80",
+    "sha256": "01d3cef6d39edd5fafef0dd7600aeb1455dfec7f9cea4c811ed2f00daba2c7cf"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/meta_screen/ordinary/program.com",
+    "sha256": "4381fbf83b71d33966cca603b713692bdfa18b33de7e8cc5cef53c7eb77cacff"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/meta_screen/ordinary/registers.json",
+    "sha256": "40f5b2d72ebbe9e83fe1293fd777f2ba3b7557d255f30619eb35b333bc4589c5"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/meta_screen/ordinary/stdout.bin",
+    "sha256": "37445849675991d56eecd6bb1ec217b1cf421ca93c5f32a8b26a417a6f268b1c"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/meta_screen/ordinary/summary.json",
+    "sha256": "271f09b903bc267be469167741283833d7264ed92db034b3d55184bc2e20c30a"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/tui_cpm/grace-size/final.mir",
+    "sha256": "370791044cef584581a42d96b62f8a05299da79ee7565db5b2f7f3f34121490e"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/tui_cpm/grace-size/ledger.json",
+    "sha256": "3ffcf756b17cd28cced6944e6733b072e0e73b7174ff333d37c220872bd7deaa"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/tui_cpm/grace-size/program.a80",
+    "sha256": "98029bd50c67d4663ade726c738b4836c085712ce2fb3dce5b17efb32a02bdb8"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/tui_cpm/grace-size/program.com",
+    "sha256": "222e17bda8e3047196fa31b84d0005944710569f6cfa348df7c9d7915b06afb9"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/tui_cpm/grace-size/registers.json",
+    "sha256": "f09a66d80b5542bd4f278bc2b6d0e68f074f270aaff9a78169abe4a381032539"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/tui_cpm/grace-size/stdout.bin",
+    "sha256": "1eb52ec7e6f52c51993a08bff35c6284d88c51c0a9c846dd2b3b9945c016a5b4"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/tui_cpm/grace-size/summary.json",
+    "sha256": "805ac701bbbe7b8cae801bf931e32c6e992efe996d66a30f651be85a7b386503"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/tui_cpm/grace-speed/final.mir",
+    "sha256": "370791044cef584581a42d96b62f8a05299da79ee7565db5b2f7f3f34121490e"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/tui_cpm/grace-speed/ledger.json",
+    "sha256": "3ffcf756b17cd28cced6944e6733b072e0e73b7174ff333d37c220872bd7deaa"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/tui_cpm/grace-speed/program.a80",
+    "sha256": "98029bd50c67d4663ade726c738b4836c085712ce2fb3dce5b17efb32a02bdb8"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/tui_cpm/grace-speed/program.com",
+    "sha256": "222e17bda8e3047196fa31b84d0005944710569f6cfa348df7c9d7915b06afb9"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/tui_cpm/grace-speed/registers.json",
+    "sha256": "f09a66d80b5542bd4f278bc2b6d0e68f074f270aaff9a78169abe4a381032539"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/tui_cpm/grace-speed/stdout.bin",
+    "sha256": "1eb52ec7e6f52c51993a08bff35c6284d88c51c0a9c846dd2b3b9945c016a5b4"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/tui_cpm/grace-speed/summary.json",
+    "sha256": "805ac701bbbe7b8cae801bf931e32c6e992efe996d66a30f651be85a7b386503"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/tui_cpm/ordinary/final.mir",
+    "sha256": "370791044cef584581a42d96b62f8a05299da79ee7565db5b2f7f3f34121490e"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/tui_cpm/ordinary/ledger.json",
+    "sha256": "3ffcf756b17cd28cced6944e6733b072e0e73b7174ff333d37c220872bd7deaa"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/tui_cpm/ordinary/program.a80",
+    "sha256": "b6cf823858c433ba4a340ad97e646b1f6388d3d46b7ad94db21fbe960703abd2"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/tui_cpm/ordinary/program.com",
+    "sha256": "222e17bda8e3047196fa31b84d0005944710569f6cfa348df7c9d7915b06afb9"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/tui_cpm/ordinary/registers.json",
+    "sha256": "f09a66d80b5542bd4f278bc2b6d0e68f074f270aaff9a78169abe4a381032539"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/tui_cpm/ordinary/stdout.bin",
+    "sha256": "1eb52ec7e6f52c51993a08bff35c6284d88c51c0a9c846dd2b3b9945c016a5b4"
+  },
+  {
+    "path": "reports/cpm-screen-main/before/tui_cpm/ordinary/summary.json",
+    "sha256": "805ac701bbbe7b8cae801bf931e32c6e992efe996d66a30f651be85a7b386503"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-size/final.mir",
+    "sha256": "babbe0d7867da72e238ba685a8c7c51e0b30fad1a3fd40714e8107c28924b1b6"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-size/hir.txt",
+    "sha256": "65b4866a4c0c542cbd69f61ba146edac52800f3e44350e60a7231ee67653aa0c"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-size/ledger.json",
+    "sha256": "768544d3bb64b8932891ab7d2023747236ba08130b790f373b24eb57a7aa2159"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-size/program.a80",
+    "sha256": "417a59a79b1557219d8e47304cb1dd142c154ae4a223aebee599a38950d8fd60"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-size/program.com",
+    "sha256": "4381fbf83b71d33966cca603b713692bdfa18b33de7e8cc5cef53c7eb77cacff"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-size/raw.mir",
+    "sha256": "652568897b6c447bf19da3caec32aafa6cc0b0932298a18256baed81826c7467"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-size/registers.json",
+    "sha256": "40f5b2d72ebbe9e83fe1293fd777f2ba3b7557d255f30619eb35b333bc4589c5"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-size/stdout.bin",
+    "sha256": "37445849675991d56eecd6bb1ec217b1cf421ca93c5f32a8b26a417a6f268b1c"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-size/summary.json",
+    "sha256": "271f09b903bc267be469167741283833d7264ed92db034b3d55184bc2e20c30a"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-size/vm0-stdout.bin",
+    "sha256": "37445849675991d56eecd6bb1ec217b1cf421ca93c5f32a8b26a417a6f268b1c"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-size/vm0-summary.json",
+    "sha256": "c77cf276b76301c03596a0b5a3f431113296951313cc85921c602cf2667e0b71"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-size/vm1-stdout.bin",
+    "sha256": "37445849675991d56eecd6bb1ec217b1cf421ca93c5f32a8b26a417a6f268b1c"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-size/vm1-summary.json",
+    "sha256": "42868100a00353806d9f6e5ce27b750120399b2bef3547a3f314b317f4d95402"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-speed/final.mir",
+    "sha256": "babbe0d7867da72e238ba685a8c7c51e0b30fad1a3fd40714e8107c28924b1b6"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-speed/hir.txt",
+    "sha256": "65b4866a4c0c542cbd69f61ba146edac52800f3e44350e60a7231ee67653aa0c"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-speed/ledger.json",
+    "sha256": "768544d3bb64b8932891ab7d2023747236ba08130b790f373b24eb57a7aa2159"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-speed/program.a80",
+    "sha256": "417a59a79b1557219d8e47304cb1dd142c154ae4a223aebee599a38950d8fd60"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-speed/program.com",
+    "sha256": "4381fbf83b71d33966cca603b713692bdfa18b33de7e8cc5cef53c7eb77cacff"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-speed/raw.mir",
+    "sha256": "652568897b6c447bf19da3caec32aafa6cc0b0932298a18256baed81826c7467"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-speed/registers.json",
+    "sha256": "40f5b2d72ebbe9e83fe1293fd777f2ba3b7557d255f30619eb35b333bc4589c5"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-speed/stdout.bin",
+    "sha256": "37445849675991d56eecd6bb1ec217b1cf421ca93c5f32a8b26a417a6f268b1c"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-speed/summary.json",
+    "sha256": "271f09b903bc267be469167741283833d7264ed92db034b3d55184bc2e20c30a"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-speed/vm0-stdout.bin",
+    "sha256": "37445849675991d56eecd6bb1ec217b1cf421ca93c5f32a8b26a417a6f268b1c"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-speed/vm0-summary.json",
+    "sha256": "c77cf276b76301c03596a0b5a3f431113296951313cc85921c602cf2667e0b71"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-speed/vm1-stdout.bin",
+    "sha256": "37445849675991d56eecd6bb1ec217b1cf421ca93c5f32a8b26a417a6f268b1c"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/grace-speed/vm1-summary.json",
+    "sha256": "42868100a00353806d9f6e5ce27b750120399b2bef3547a3f314b317f4d95402"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/ordinary/final.mir",
+    "sha256": "babbe0d7867da72e238ba685a8c7c51e0b30fad1a3fd40714e8107c28924b1b6"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/ordinary/hir.txt",
+    "sha256": "65b4866a4c0c542cbd69f61ba146edac52800f3e44350e60a7231ee67653aa0c"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/ordinary/ledger.json",
+    "sha256": "768544d3bb64b8932891ab7d2023747236ba08130b790f373b24eb57a7aa2159"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/ordinary/program.a80",
+    "sha256": "01d3cef6d39edd5fafef0dd7600aeb1455dfec7f9cea4c811ed2f00daba2c7cf"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/ordinary/program.com",
+    "sha256": "4381fbf83b71d33966cca603b713692bdfa18b33de7e8cc5cef53c7eb77cacff"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/ordinary/raw.mir",
+    "sha256": "652568897b6c447bf19da3caec32aafa6cc0b0932298a18256baed81826c7467"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/ordinary/registers.json",
+    "sha256": "40f5b2d72ebbe9e83fe1293fd777f2ba3b7557d255f30619eb35b333bc4589c5"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/ordinary/stdout.bin",
+    "sha256": "37445849675991d56eecd6bb1ec217b1cf421ca93c5f32a8b26a417a6f268b1c"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/ordinary/summary.json",
+    "sha256": "271f09b903bc267be469167741283833d7264ed92db034b3d55184bc2e20c30a"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/ordinary/vm0-stdout.bin",
+    "sha256": "37445849675991d56eecd6bb1ec217b1cf421ca93c5f32a8b26a417a6f268b1c"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/ordinary/vm0-summary.json",
+    "sha256": "c77cf276b76301c03596a0b5a3f431113296951313cc85921c602cf2667e0b71"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/ordinary/vm1-stdout.bin",
+    "sha256": "37445849675991d56eecd6bb1ec217b1cf421ca93c5f32a8b26a417a6f268b1c"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/meta_screen/ordinary/vm1-summary.json",
+    "sha256": "42868100a00353806d9f6e5ce27b750120399b2bef3547a3f314b317f4d95402"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-size/final.mir",
+    "sha256": "370791044cef584581a42d96b62f8a05299da79ee7565db5b2f7f3f34121490e"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-size/hir.txt",
+    "sha256": "aaf4b467bbd238e858a43fd18f873b6ee23c6963ccdf164caf2bbd902138c25b"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-size/ledger.json",
+    "sha256": "3ffcf756b17cd28cced6944e6733b072e0e73b7174ff333d37c220872bd7deaa"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-size/program.a80",
+    "sha256": "98029bd50c67d4663ade726c738b4836c085712ce2fb3dce5b17efb32a02bdb8"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-size/program.com",
+    "sha256": "222e17bda8e3047196fa31b84d0005944710569f6cfa348df7c9d7915b06afb9"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-size/raw.mir",
+    "sha256": "0eed02fcfa53f83536f6fc0baf04e88abe5ac9fb68fc82752c5fa5503f46f15a"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-size/registers.json",
+    "sha256": "f09a66d80b5542bd4f278bc2b6d0e68f074f270aaff9a78169abe4a381032539"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-size/stdout.bin",
+    "sha256": "1eb52ec7e6f52c51993a08bff35c6284d88c51c0a9c846dd2b3b9945c016a5b4"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-size/summary.json",
+    "sha256": "805ac701bbbe7b8cae801bf931e32c6e992efe996d66a30f651be85a7b386503"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-size/vm0-stdout.bin",
+    "sha256": "1eb52ec7e6f52c51993a08bff35c6284d88c51c0a9c846dd2b3b9945c016a5b4"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-size/vm0-summary.json",
+    "sha256": "11a7934f0cfa2d2fcba4ab2e11e6826bb8fb054efc4ed19124c74f2f5b72f5bd"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-size/vm1-stdout.bin",
+    "sha256": "1eb52ec7e6f52c51993a08bff35c6284d88c51c0a9c846dd2b3b9945c016a5b4"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-size/vm1-summary.json",
+    "sha256": "063ca5791f60095a3cd22ecc7395cde043e38c1dbb725be6eaa562931255b80f"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-speed/final.mir",
+    "sha256": "370791044cef584581a42d96b62f8a05299da79ee7565db5b2f7f3f34121490e"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-speed/hir.txt",
+    "sha256": "aaf4b467bbd238e858a43fd18f873b6ee23c6963ccdf164caf2bbd902138c25b"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-speed/ledger.json",
+    "sha256": "3ffcf756b17cd28cced6944e6733b072e0e73b7174ff333d37c220872bd7deaa"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-speed/program.a80",
+    "sha256": "98029bd50c67d4663ade726c738b4836c085712ce2fb3dce5b17efb32a02bdb8"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-speed/program.com",
+    "sha256": "222e17bda8e3047196fa31b84d0005944710569f6cfa348df7c9d7915b06afb9"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-speed/raw.mir",
+    "sha256": "0eed02fcfa53f83536f6fc0baf04e88abe5ac9fb68fc82752c5fa5503f46f15a"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-speed/registers.json",
+    "sha256": "f09a66d80b5542bd4f278bc2b6d0e68f074f270aaff9a78169abe4a381032539"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-speed/stdout.bin",
+    "sha256": "1eb52ec7e6f52c51993a08bff35c6284d88c51c0a9c846dd2b3b9945c016a5b4"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-speed/summary.json",
+    "sha256": "805ac701bbbe7b8cae801bf931e32c6e992efe996d66a30f651be85a7b386503"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-speed/vm0-stdout.bin",
+    "sha256": "1eb52ec7e6f52c51993a08bff35c6284d88c51c0a9c846dd2b3b9945c016a5b4"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-speed/vm0-summary.json",
+    "sha256": "11a7934f0cfa2d2fcba4ab2e11e6826bb8fb054efc4ed19124c74f2f5b72f5bd"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-speed/vm1-stdout.bin",
+    "sha256": "1eb52ec7e6f52c51993a08bff35c6284d88c51c0a9c846dd2b3b9945c016a5b4"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/grace-speed/vm1-summary.json",
+    "sha256": "063ca5791f60095a3cd22ecc7395cde043e38c1dbb725be6eaa562931255b80f"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/ordinary/final.mir",
+    "sha256": "370791044cef584581a42d96b62f8a05299da79ee7565db5b2f7f3f34121490e"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/ordinary/hir.txt",
+    "sha256": "aaf4b467bbd238e858a43fd18f873b6ee23c6963ccdf164caf2bbd902138c25b"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/ordinary/ledger.json",
+    "sha256": "3ffcf756b17cd28cced6944e6733b072e0e73b7174ff333d37c220872bd7deaa"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/ordinary/program.a80",
+    "sha256": "b6cf823858c433ba4a340ad97e646b1f6388d3d46b7ad94db21fbe960703abd2"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/ordinary/program.com",
+    "sha256": "222e17bda8e3047196fa31b84d0005944710569f6cfa348df7c9d7915b06afb9"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/ordinary/raw.mir",
+    "sha256": "0eed02fcfa53f83536f6fc0baf04e88abe5ac9fb68fc82752c5fa5503f46f15a"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/ordinary/registers.json",
+    "sha256": "f09a66d80b5542bd4f278bc2b6d0e68f074f270aaff9a78169abe4a381032539"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/ordinary/stdout.bin",
+    "sha256": "1eb52ec7e6f52c51993a08bff35c6284d88c51c0a9c846dd2b3b9945c016a5b4"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/ordinary/summary.json",
+    "sha256": "805ac701bbbe7b8cae801bf931e32c6e992efe996d66a30f651be85a7b386503"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/ordinary/vm0-stdout.bin",
+    "sha256": "1eb52ec7e6f52c51993a08bff35c6284d88c51c0a9c846dd2b3b9945c016a5b4"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/ordinary/vm0-summary.json",
+    "sha256": "11a7934f0cfa2d2fcba4ab2e11e6826bb8fb054efc4ed19124c74f2f5b72f5bd"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/ordinary/vm1-stdout.bin",
+    "sha256": "1eb52ec7e6f52c51993a08bff35c6284d88c51c0a9c846dd2b3b9945c016a5b4"
+  },
+  {
+    "path": "reports/cpm-screen-main/execution/tui_cpm/ordinary/vm1-summary.json",
+    "sha256": "063ca5791f60095a3cd22ecc7395cde043e38c1dbb725be6eaa562931255b80f"
+  },
+  {
+    "path": "reports/cpm-screen-main/freeze-before.json",
+    "sha256": "bba0a0199232f6cbe6d795b6eaf0a0cf943cefa7fbaf604bb591275cd8ecd42a"
+  },
+  {
+    "path": "reports/cpm-screen-main/meta_screen-before.nanz",
+    "sha256": "d9e13ac784d0ceb162047602bd6938d497e5138898bca391cea7fad708fe422c"
+  },
+  {
+    "path": "reports/cpm-screen-main/meta_screen-expected-stdout.bin",
+    "sha256": "37445849675991d56eecd6bb1ec217b1cf421ca93c5f32a8b26a417a6f268b1c"
+  },
+  {
+    "path": "reports/cpm-screen-main/model.py",
+    "sha256": "13015911e51204c531dcd3c822b8c902c6c13dd3a15746d03f342cd464e71013"
+  },
+  {
+    "path": "reports/cpm-screen-main/terminal.txt",
+    "sha256": "54d65dddb44c2410d9310a073f74d5bd5a98d7fb221dbbe9e2f2f1ff4dfc53ee"
+  },
+  {
+    "path": "reports/cpm-screen-main/tui_cpm-before.nanz",
+    "sha256": "178294bd8a1fb6987be907cec3117b479fe2e04b08caae6aaebb14c7f36d6583"
+  },
+  {
+    "path": "reports/cpm-screen-main/tui_cpm-expected-stdout.bin",
+    "sha256": "1eb52ec7e6f52c51993a08bff35c6284d88c51c0a9c846dd2b3b9945c016a5b4"
+  },
+  {
+    "path": "reports/cpm-screen-main/vm-native.txt",
+    "sha256": "6917178abf8d024b760956d2bbd633b5f7f111ca47e31d8c106138f2066b0f16"
+  }
+]

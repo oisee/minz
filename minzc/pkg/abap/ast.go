@@ -39,7 +39,7 @@ type StmtNode struct {
 // We use a unified struct and dispatch on context.
 type ASTChild struct {
 	Type     string      `json:"type"`
-	Str      string      `json:"str,omitempty"`      // for Token nodes
+	Str      string      `json:"str,omitempty"` // for Token nodes
 	Row      int         `json:"row,omitempty"`
 	Col      int         `json:"col,omitempty"`
 	Tokens   []*Token    `json:"tokens,omitempty"`
@@ -59,9 +59,9 @@ type Token struct {
 type Program struct {
 	Name    string
 	Decls   []Decl
-	Params  []*ParamDecl        // PARAMETERS declarations (selection screen)
-	Events  map[string][]Stmt_  // INITIALIZATION, START-OF-SELECTION, END-OF-SELECTION, etc.
-	SeedSQL []string            // *!sql pragma lines (seed database setup)
+	Params  []*ParamDecl       // PARAMETERS declarations (selection screen)
+	Events  map[string][]Stmt_ // INITIALIZATION, START-OF-SELECTION, END-OF-SELECTION, etc.
+	SeedSQL []string           // *!sql pragma lines (seed database setup)
 }
 
 // Decl is any top-level or local declaration.
@@ -69,13 +69,14 @@ type Decl interface{ abapDecl() }
 
 // DataDecl is a DATA statement: DATA x TYPE i VALUE 42.
 type DataDecl struct {
-	Name    string
-	AbapTy  string // "i", "c", "string", "n", "p", "x", "d", "t", "f", etc.
-	Length  int    // for TYPE c LENGTH n, TYPE n LENGTH n, TYPE x LENGTH n
-	Value   *Expr_ // initial value (nil = default)
+	Name   string
+	AbapTy string // "i", "c", "string", "n", "p", "x", "d", "t", "f", etc.
+	Length int    // for TYPE c LENGTH n, TYPE n LENGTH n, TYPE x LENGTH n
+	Value  *Expr_ // initial value (nil = default)
 }
 
 func (*DataDecl) abapDecl() {}
+func (*DataDecl) abapStmt() {}
 
 // ParamDecl is a PARAMETERS statement (selection screen input field).
 // PARAMETERS p_name TYPE c LENGTH 20 DEFAULT 'Hello'.
@@ -90,7 +91,7 @@ func (*ParamDecl) abapDecl() {}
 
 // EventDecl wraps an ABAP event block (INITIALIZATION, START-OF-SELECTION, etc.)
 type EventDecl struct {
-	Event string  // "INITIALIZATION", "START-OF-SELECTION", "END-OF-SELECTION"
+	Event string // "INITIALIZATION", "START-OF-SELECTION", "END-OF-SELECTION"
 	Body  []Stmt_
 }
 
@@ -126,7 +127,7 @@ func (*FunctionDecl) abapDecl() {}
 // CallFunctionStmt is CALL FUNCTION 'name' EXPORTING/IMPORTING/CHANGING.
 type CallFunctionStmt struct {
 	FuncName  string
-	Exporting map[string]Expr_ // caller → function params
+	Exporting map[string]Expr_  // caller → function params
 	Importing map[string]string // function → caller vars
 	Changing  map[string]Expr_
 }
@@ -138,7 +139,7 @@ type ClassDecl struct {
 	Name       string
 	Super      string // INHERITING FROM
 	Interfaces []string
-	Attrs      []*DataDecl  // class-data / instance data
+	Attrs      []*DataDecl // class-data / instance data
 	Methods    []*MethodDecl
 }
 
@@ -170,43 +171,49 @@ type Stmt_ interface{ abapStmt() }
 type WriteStmt struct {
 	Exprs []Expr_ // WRITE: expr1, expr2, ...
 }
+
 func (*WriteStmt) abapStmt() {}
 
 type AssignStmt struct {
 	Target string // variable name
 	Val    Expr_
 }
+
 func (*AssignStmt) abapStmt() {}
 
 type IfStmt struct {
-	Cond Expr_
-	Then []Stmt_
+	Cond   Expr_
+	Then   []Stmt_
 	ElseIf []struct {
 		Cond Expr_
 		Body []Stmt_
 	}
 	Else []Stmt_
 }
+
 func (*IfStmt) abapStmt() {}
 
 type DoStmt struct {
 	Times *Expr_ // nil = infinite (needs EXIT)
 	Body  []Stmt_
 }
+
 func (*DoStmt) abapStmt() {}
 
 type WhileStmt struct {
 	Cond Expr_
 	Body []Stmt_
 }
+
 func (*WhileStmt) abapStmt() {}
 
 type LoopStmt struct {
-	Table string  // LOOP AT table
-	Into  string  // INTO wa
-	Where *Expr_  // WHERE condition
+	Table string // LOOP AT table
+	Into  string // INTO wa
+	Where *Expr_ // WHERE condition
 	Body  []Stmt_
 }
+
 func (*LoopStmt) abapStmt() {}
 
 type PerformStmt struct {
@@ -214,15 +221,17 @@ type PerformStmt struct {
 	Using    []Expr_
 	Changing []Expr_
 }
+
 func (*PerformStmt) abapStmt() {}
 
-type ExitStmt struct{} // EXIT
+type ExitStmt struct{}      // EXIT
 func (*ExitStmt) abapStmt() {}
 
-type ContinueStmt struct{} // CONTINUE
+type ContinueStmt struct{}      // CONTINUE
 func (*ContinueStmt) abapStmt() {}
 
 type ReturnStmt struct{}
+
 func (*ReturnStmt) abapStmt() {}
 
 type CallMethodStmt struct {
@@ -230,6 +239,7 @@ type CallMethodStmt struct {
 	Method   string
 	Args     map[string]Expr_ // named parameters
 }
+
 func (*CallMethodStmt) abapStmt() {}
 
 type CreateObjectStmt struct {
@@ -237,6 +247,7 @@ type CreateObjectStmt struct {
 	Class  string
 	Args   map[string]Expr_
 }
+
 func (*CreateObjectStmt) abapStmt() {}
 
 type CaseStmt struct {
@@ -247,6 +258,7 @@ type CaseStmt struct {
 	}
 	Others []Stmt_
 }
+
 func (*CaseStmt) abapStmt() {}
 
 // SelectStmt represents ABAP Open SQL: SELECT fields FROM table INTO vars WHERE cond.
@@ -295,12 +307,15 @@ func (*ExecSQLStmt) abapStmt() {}
 type Expr_ interface{ abapExpr() }
 
 type IntLit struct{ Val int64 }
+
 func (*IntLit) abapExpr() {}
 
 type StringLit struct{ Val string }
+
 func (*StringLit) abapExpr() {}
 
 type VarRef struct{ Name string }
+
 func (*VarRef) abapExpr() {}
 
 type BinOp struct {
@@ -308,18 +323,21 @@ type BinOp struct {
 	LHS Expr_
 	RHS Expr_
 }
+
 func (*BinOp) abapExpr() {}
 
 type UnaryOp struct {
 	Op  string // "-", "NOT"
 	Val Expr_
 }
+
 func (*UnaryOp) abapExpr() {}
 
 type FieldAccess struct {
 	Obj   Expr_
 	Field string // struct-field or attribute
 }
+
 func (*FieldAccess) abapExpr() {}
 
 type MethodCall struct {
@@ -327,16 +345,19 @@ type MethodCall struct {
 	Method   string
 	Args     map[string]Expr_
 }
+
 func (*MethodCall) abapExpr() {}
 
 type FuncCall struct {
 	Name string
 	Args []Expr_
 }
+
 func (*FuncCall) abapExpr() {}
 
 // SYField is a reference to a SY-* system variable (SY-INDEX, SY-SUBRC, etc.)
 type SYField struct {
 	Field string // "INDEX", "SUBRC", "UCOMM", "DATUM", "UZEIT", "TABIX"
 }
+
 func (*SYField) abapExpr() {}

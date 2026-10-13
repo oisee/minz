@@ -61,10 +61,10 @@ func DeadBlockArgElim(f *Func) bool {
 
 // compactEdgeArgs removes args at dead positions for edges to target.
 func compactEdgeArgs(t Term, target string, live []bool) {
-	compact := func(args []Reg) []Reg {
+	compact := func(args []Reg, mask []bool) []Reg {
 		out := make([]Reg, 0, len(args))
 		for i, a := range args {
-			if i < len(live) && live[i] {
+			if i < len(mask) && mask[i] {
 				out = append(out, a)
 			}
 		}
@@ -74,28 +74,37 @@ func compactEdgeArgs(t Term, target string, live []bool) {
 	switch t := t.(type) {
 	case *TermJmp:
 		if t.Target == target {
-			t.Args = compact(t.Args)
+			t.Args = compact(t.Args, live)
 		}
 	case *TermBrIf:
 		if t.Then == target {
-			t.ThenArgs = compact(t.ThenArgs)
+			t.ThenArgs = compact(t.ThenArgs, live)
 		}
 		if t.Else == target {
-			t.ElseArgs = compact(t.ElseArgs)
+			t.ElseArgs = compact(t.ElseArgs, live)
 		}
 	case *TermBrIf2:
 		if t.Eq == target {
-			t.EqArgs = compact(t.EqArgs)
+			t.EqArgs = compact(t.EqArgs, live)
 		}
 		if t.Lt == target {
-			t.LtArgs = compact(t.LtArgs)
+			t.LtArgs = compact(t.LtArgs, live)
 		}
 		if t.Gt == target {
-			t.GtArgs = compact(t.GtArgs)
+			t.GtArgs = compact(t.GtArgs, live)
+		}
+	case *TermDJNZ:
+		if t.Body == target && len(live) > 0 {
+			// Body's first parameter is supplied implicitly by the decremented
+			// counter; explicit body arguments start at parameter index one.
+			t.BodyArgs = compact(t.BodyArgs, live[1:])
+		}
+		if t.Exit == target {
+			t.ExitArgs = compact(t.ExitArgs, live)
 		}
 	case *TermCondRet:
 		if t.Then == target {
-			t.ThenArgs = compact(t.ThenArgs)
+			t.ThenArgs = compact(t.ThenArgs, live)
 		}
 	}
 }

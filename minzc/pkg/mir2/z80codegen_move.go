@@ -129,7 +129,7 @@ func (g *z80cg) emitLDA(src string) {
 		return
 	}
 	if isSpill(src) {
-		g.emitf("    LD A, (%s)", src)
+		g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
 	} else if isPairReg(src) {
 		// Width mismatch: pair→8bit. Take low byte.
 		g.emitf("    LD A, %s", lowByte(src))
@@ -173,7 +173,7 @@ func Z80SpillLabel(funcName string, r Reg) string {
 // spillWidth returns the byte width of a spilled register (1, 2, or 3 for eZ80).
 func (g *z80cg) spillWidth(r Reg) int {
 	if info, ok := collectRegInfo(g.fn)[r]; ok {
-		return (info.Ty.Width() + 7) / 8
+		return z80SpillBytes(info.Ty)
 	}
 	return 1
 }
@@ -233,24 +233,24 @@ func (g *z80cg) emitLD8(dst, src string) {
 	if srcSpill && dstSpill {
 		// Spill-to-spill: route through shadow A.
 		g.emit("    EX AF, AF'")
-		g.emitf("    LD A, (%s)", src)
-		g.emitf("    LD (%s), A", dst)
+		g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
+		g.emitNativeSpillf(dst, 0, 1, true, "    LD (%s), A", dst)
 		g.emit("    EX AF, AF'")
 	} else if srcSpill && dst == "A" {
-		g.emitf("    LD A, (%s)", src)
+		g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
 	} else if srcSpill {
 		// Load spill to non-A register via shadow A.
 		g.emit("    EX AF, AF'")
-		g.emitf("    LD A, (%s)", src)
+		g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
 		g.emitLD8(dst, "A")
 		g.emit("    EX AF, AF'")
 	} else if dstSpill && src == "A" {
-		g.emitf("    LD (%s), A", dst)
+		g.emitNativeSpillf(dst, 0, 1, true, "    LD (%s), A", dst)
 	} else if dstSpill {
 		// Store non-A register to spill via shadow A.
 		g.emit("    EX AF, AF'")
 		g.emitf("    LD A, %s", src)
-		g.emitf("    LD (%s), A", dst)
+		g.emitNativeSpillf(dst, 0, 1, true, "    LD (%s), A", dst)
 		g.emit("    EX AF, AF'")
 	} else {
 		g.emitf("    LD %s, %s", dst, src)
@@ -284,7 +284,7 @@ func (g *z80cg) loadSpill8(dst, src string) {
 				return
 			}
 		}
-		g.emitf("    LD A, (%s)", src)
+		g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
 	} else {
 		if pair := g.tsmcPairByAddr(src); pair != nil {
 			label := g.tsmcReloadLabel(pair.reg, g.blockIdx, g.curInstIdx, 0)
@@ -293,7 +293,7 @@ func (g *z80cg) loadSpill8(dst, src string) {
 				return
 			}
 		}
-		g.emitf("    LD A, (%s)", src)
+		g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
 		g.emitLD8(dst, "A")
 		g.invalidate("A")
 	}
@@ -307,7 +307,7 @@ func (g *z80cg) storeSpill8(dst, src string) {
 	if pair := g.tsmcPairByAddr(dst); pair != nil {
 		g.emitTSMCSpill(pair, "A")
 	} else {
-		g.emitf("    LD (%s), A", dst)
+		g.emitNativeSpillf(dst, 0, 1, true, "    LD (%s), A", dst)
 	}
 }
 
@@ -320,7 +320,7 @@ func (g *z80cg) loadSpill16(dst, src string) {
 			return
 		}
 	}
-	g.emitf("    LD %s, (%s)", dst, src)
+	g.emitNativeSpillf(src, 0, 2, false, "    LD %s, (%s)", dst, src)
 }
 
 // storeSpill16 stores a 16-bit pair to a spill address.
@@ -329,7 +329,7 @@ func (g *z80cg) storeSpill16(dst, src string) {
 		g.emitTSMCSpill(pair, src)
 	} else {
 		// Z80: only LD (nn),HL is native. DE/BC/SP need ED prefix (supported).
-		g.emitf("    LD (%s), %s", dst, src)
+		g.emitNativeSpillf(dst, 0, 2, true, "    LD (%s), %s", dst, src)
 	}
 }
 
@@ -397,14 +397,64 @@ func (g *z80cg) genExt(inst *Inst) {
 	src := g.loc(inst.Src[0])
 	srcW := inst.SrcTy.Width()
 	dstW := inst.Ty.Width()
-	if inst.SrcTy == TyBool && dstW == 8 && src == "F" {
-		// A comparison in F is a predicate, not a byte. Materialize its
-		// actual condition as 0/1; carry alone is wrong for GE/LE/EQ.
-		g.emitFlagPredicateByte(g.condCode(g.fn, inst.Src[0]))
-		if dst != "A" {
-			g.emitLD8(dst, "A")
+	if (inst.SrcTy == TyBool || src == "F" || inst.Src[0] == g.pendingFlagReg) && (dstW == 1 || dstW == 8 || dstW == 16 || dstW == 24 || dstW == 32) {
+		if src == "F" || inst.Src[0] == g.pendingFlagReg {
+			// F carries a predicate, not a byte; materialize the full condition.
+			// A may hold an unrelated live value, so preserve it until the
+			// canonical boolean has reached its allocated byte/word destination.
+			source := inst.Src[0]
+			sourceLive := g.regsLiveAfterInst(inst)[source]
+			keepA := dst != "A" && !(sourceLive && src == "A")
+			if keepA {
+				g.emit("    PUSH AF")
+			}
+			g.emitFlagPredicateByte(g.condCode(g.fn, inst.Src[0]))
+			if dstW >= 24 {
+				// Materialize the predicate before widening its canonical byte.
+				// Snapshotting also handles a destination overlapping a live pair.
+				g.genUnsignedExtBytes(dst, "A", 8, dstW)
+			} else if dstW == 16 {
+				g.emitLD8(lowByte(dst), "A")
+				g.emitLD8(highByte(dst), "0")
+			} else if dst != "A" {
+				g.emitLD8(dst, "A")
+			}
+			if sourceLive {
+				if src == "F" {
+					// A flag-only value must survive later flag-clobbering work.
+					home := g.freeScratch8(inst)
+					if home == "" {
+						home = g.spillLabel(source)
+					}
+					g.emitLD8(home, "A")
+					g.physOverride[source] = home
+				} else if src != "A" {
+					g.emitLD8(src, "A")
+					g.invalidate(src)
+				}
+			}
+			if keepA {
+				g.emit("    POP AF")
+			}
+			g.invalidate("A")
+			g.invalidate(dst)
+			g.pendingFlagReg = NoReg
+			return
 		}
-		g.pendingFlagReg = NoReg
+		if dstW == 8 {
+			if src != dst {
+				g.emitLD8(dst, src)
+			}
+			g.invalidate(dst)
+			return
+		}
+		// A materialized bool is already a canonical byte (0 or 1).
+		srcW = 8
+	}
+
+	if (srcW == 8 || srcW == 16 || srcW == 24) && dstW > srcW && dstW <= 32 &&
+		(dstW >= 24 || isSpill(dst) || isSpill(src) || isIXYReg(src) || strings.HasSuffix(src, "'")) {
+		g.genUnsignedExtBytes(dst, src, srcW, dstW)
 		return
 	}
 
@@ -429,6 +479,74 @@ func (g *z80cg) genExt(inst *Inst) {
 	g.comment(fmt.Sprintf("TODO: ext %s→%s %s→%s", inst.SrcTy, inst.Ty, src, dst))
 }
 
+// Snapshot every source byte before touching the destination: an allocated
+// destination may overlap either bank of its narrow operand. LD and EXX do not
+// change flags; the outer AF save also preserves an unrelated accumulator.
+func (g *z80cg) genUnsignedExtBytes(dst, src string, srcW, dstW int) {
+	byteLoc := func(loc string, width, i int) string {
+		if isSpill(loc) {
+			if i == 0 {
+				return loc
+			}
+			return fmt.Sprintf("%s+%d", loc, i)
+		}
+		if width <= 8 {
+			return loc
+		}
+		b := lowByte(loc)
+		if i%2 == 1 {
+			b = highByte(loc)
+		}
+		if i >= 2 {
+			b += "'"
+		}
+		return b
+	}
+	load := func(loc string) {
+		if loc == "A'" {
+			g.emit("    EX AF, AF'")
+			g.emit("    PUSH AF")
+			g.emit("    EX AF, AF'")
+			g.emit("    POP AF")
+		} else if strings.HasSuffix(loc, "'") {
+			g.emit("    EXX")
+			g.emitLD8("A", strings.TrimSuffix(loc, "'"))
+			g.emit("    EXX")
+		} else {
+			g.emitLD8("A", loc)
+		}
+	}
+	store := func(loc string) {
+		if strings.HasSuffix(loc, "'") {
+			g.emit("    EXX")
+			g.emitLD8(strings.TrimSuffix(loc, "'"), "A")
+			g.emit("    EXX")
+		} else {
+			g.emitLD8(loc, "A")
+		}
+	}
+	g.emit("    PUSH AF")
+	for i := 0; i < srcW/8; i++ {
+		load(byteLoc(src, srcW, i))
+		g.emit("    PUSH AF")
+	}
+	g.emit("    LD A, 0")
+	storageBytes := dstW / 8
+	// DWord registers reserve both halves of the shadow pair for u24 too.
+	if dstW == 24 && !isSpill(dst) {
+		storageBytes = 4
+	}
+	for i := srcW / 8; i < storageBytes; i++ {
+		store(byteLoc(dst, dstW, i))
+	}
+	for i := srcW/8 - 1; i >= 0; i-- {
+		g.emit("    POP AF")
+		store(byteLoc(dst, dstW, i))
+	}
+	g.emit("    POP AF")
+	g.invalidate(dst)
+}
+
 func (g *z80cg) genSext(inst *Inst) {
 	// Sign extension uses A as scratch, but the narrow source may remain live.
 	g.emit("    PUSH AF")
@@ -438,77 +556,78 @@ func (g *z80cg) genSext(inst *Inst) {
 	g.invalidate(g.loc(inst.Dst))
 }
 
+// Snapshot every narrow byte before any destination write. This also covers
+// in-place widening, subregister overlap and source bytes in the shadow bank.
+// genSext owns the outer AF save, so both arithmetic flags and live A survive.
 func (g *z80cg) genSextValue(inst *Inst) {
-	dst := g.loc(inst.Dst)
-	src := g.loc(inst.Src[0])
-	srcW := inst.SrcTy.Width()
-	dstW := inst.Ty.Width()
-
-	if srcW == 24 && dstW == 32 {
-		if src != dst {
-			g.emitMov32(dst, src)
-		}
-		g.emit("    EXX")
-		g.emitLDA(lowByte(dst))
-		g.emit("    RLCA")
-		g.emit("    SBC A, A")
-		g.emitLD8(highByte(dst), "A")
-		g.emit("    EXX")
-		g.invalidate("A")
-		g.invalidate(dst)
+	dst, src := g.loc(inst.Dst), g.loc(inst.Src[0])
+	sw, dw := inst.SrcTy.Width(), inst.Ty.Width()
+	if (sw != 8 && sw != 16 && sw != 24) || dw <= sw || dw > 32 {
+		g.err = fmt.Errorf("unsupported sign extension %s to %s", inst.SrcTy, inst.Ty)
 		return
 	}
-
-	if dstW >= 24 && (srcW == 8 || srcW == 16) {
-		hi, lo := highByte(dst), lowByte(dst)
-		if srcW == 8 {
-			if src != "A" {
-				g.emitLDA(src)
+	byteLoc := func(loc string, width, i int) string {
+		if isSpill(loc) {
+			if i == 0 {
+				return loc
 			}
-			g.emitLD8(lo, "A")
-			g.emit("    RLCA")
-			g.emit("    SBC A, A")
-			g.emitLD8(hi, "A")
-		} else {
-			if src != dst {
-				g.emitMov(dst, src, 16)
-			}
-			g.emitLDA(hi)
-			g.emit("    RLCA")
-			g.emit("    SBC A, A")
+			return fmt.Sprintf("%s+%d", loc, i)
 		}
-		g.emit("    EXX")
-		g.emitLD8(lo, "A")
-		if dstW == 24 {
-			g.emitf("    LD %s, 0", hi)
-		} else {
-			g.emitLD8(hi, "A")
+		if width <= 8 {
+			return loc
 		}
-		g.emit("    EXX")
-		g.invalidate("A")
-		g.invalidate(dst)
-		return
+		part := lowByte(loc)
+		if i%2 != 0 {
+			part = highByte(loc)
+		}
+		if i >= 2 {
+			part += "'"
+		}
+		return part
 	}
-
-	if srcW == 8 && dstW == 16 {
-		// Sign-extend u8 → u16 via A.
-		lo := lowByte(dst)
-		hi := highByte(dst)
-		if src != "A" {
-			g.emitLDA(src)
+	load := func(loc string) {
+		if loc == "A'" {
+			g.emit("    EX AF, AF'")
+			g.emit("    PUSH AF")
+			g.emit("    EX AF, AF'")
+			g.emit("    POP AF")
+		} else if strings.HasSuffix(loc, "'") {
+			g.emit("    EXX")
+			g.emitLD8("A", strings.TrimSuffix(loc, "'"))
+			g.emit("    EXX")
+		} else {
+			g.emitLD8("A", loc)
 		}
-		if lo != "A" {
-			g.emitLD8(lo, "A")
-		}
-		// Propagate sign bit into high byte: RLCA; SBC A,A gives 0x00 or 0xFF.
-		g.emit("    RLCA")
-		g.emit("    SBC A, A")
-		if hi != "A" {
-			g.emitLD8(hi, "A")
-		}
-		return
 	}
-	g.comment(fmt.Sprintf("TODO: sext %s→%s %s→%s", inst.SrcTy, inst.Ty, src, dst))
+	store := func(loc string) {
+		if strings.HasSuffix(loc, "'") {
+			g.emit("    EXX")
+			g.emitLD8(strings.TrimSuffix(loc, "'"), "A")
+			g.emit("    EXX")
+		} else {
+			g.emitLD8(loc, "A")
+		}
+	}
+	for i := 0; i < sw/8; i++ {
+		load(byteLoc(src, sw, i))
+		g.emit("    PUSH AF")
+	}
+	// A still holds the highest original source byte; propagate its sign.
+	g.emit("    RLCA")
+	g.emit("    SBC A, A")
+	for i := sw / 8; i < dw/8; i++ {
+		store(byteLoc(dst, dw, i))
+	}
+	// A register-backed i24 reserves four physical bytes, but its unused top
+	// byte is zero, matching constants/loads and the existing DWord contract.
+	if dw == 24 && !isSpill(dst) {
+		g.emit("    LD A, 0")
+		store(byteLoc(dst, dw, 3))
+	}
+	for i := sw/8 - 1; i >= 0; i-- {
+		g.emit("    POP AF")
+		store(byteLoc(dst, dw, i))
+	}
 }
 
 // ── 32-bit DWord helpers ──────────────────────────────────────────────────────
@@ -633,13 +752,13 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 			if pair := g.tsmcPairByAddr(src); pair != nil {
 				g.emitTSMCReload(g.tsmcReloadLabel(pair.reg, g.blockIdx, g.curInstIdx, 0), "A", 8)
 			} else {
-				g.emitf("    LD A, (%s)", src)
+				g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
 			}
 		case isSpill(src):
 			if pair := g.tsmcPairByAddr(src); pair != nil {
 				g.emitTSMCReload(g.tsmcReloadLabel(pair.reg, g.blockIdx, g.curInstIdx, 0), dst, 8)
 			} else {
-				g.emitf("    LD A, (%s)", src)
+				g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
 				g.emitLD8(dst, "A")
 				g.invalidate("A")
 			}
@@ -647,7 +766,7 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 			if pair := g.tsmcPairByAddr(dst); pair != nil {
 				g.emitTSMCSpill(pair, "A")
 			} else {
-				g.emitf("    LD (%s), A", dst)
+				g.emitNativeSpillf(dst, 0, 1, true, "    LD (%s), A", dst)
 			}
 		case isSpill(dst):
 			if pair := g.tsmcPairByAddr(dst); pair != nil {
@@ -655,7 +774,7 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 				g.emitTSMCSpill(pair, "A")
 			} else {
 				g.emitLDA(src)
-				g.emitf("    LD (%s), A", dst)
+				g.emitNativeSpillf(dst, 0, 1, true, "    LD (%s), A", dst)
 			}
 		default:
 			// Width mismatch: 8-bit move but one operand is a register pair.
@@ -747,14 +866,17 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 		}
 		// Spill-to-spill: route through HL.
 		if isSpill(src) && isSpill(dst) {
-			g.emitf("    LD HL, (%s)", src)
-			g.emitf("    LD (%s), HL", dst)
-			g.invalidate("HL")
+			// HL is implicit scratch, not a defined MIR destination. Preserve
+			// a live pointer (including a later argument shuffle source).
+			g.emit("    PUSH HL")
+			g.emitNativeSpillf(src, 0, 2, false, "    LD HL, (%s)", src)
+			g.emitNativeSpillf(dst, 0, 2, true, "    LD (%s), HL", dst)
+			g.emit("    POP HL")
 			break
 		}
 		// LocMem spill slot → register pair: use LD rr, (nn).
 		if isSpill(src) {
-			g.emitf("    LD %s, (%s)", dst, src)
+			g.emitNativeSpillf(src, 0, 2, false, "    LD %s, (%s)", dst, src)
 			break
 		}
 		// register pair → LocMem spill slot: use LD (nn), rr.
@@ -764,7 +886,7 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 				g.emitLD8(highByte(dst), "0")
 				break
 			}
-			g.emitf("    LD (%s), %s", dst, src)
+			g.emitNativeSpillf(dst, 0, 2, true, "    LD (%s), %s", dst, src)
 			break
 		}
 		// 16-bit pair → 8-bit: truncate (take low byte).
@@ -900,7 +1022,11 @@ func (g *z80cg) promote8toPair(r string) string {
 		return "BC"
 	}
 	pair := parentPair(r)
+	if r != lowByte(pair) {
+		g.emitLD8(lowByte(pair), r)
+	}
 	g.emitf("    LD %s, 0", highByte(pair))
+	g.invalidate(pair)
 	return pair
 }
 

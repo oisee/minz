@@ -1,0 +1,19 @@
+{
+  "files": [
+    {
+      "path": "docs/grace-integration-112/bool-root.txt",
+      "bytes": 1914,
+      "sha256": "b9f169f293232dfa49da31ffb83e5070e2627fb41153b26e4b03638759ccf89f"
+    },
+    {
+      "path": "docs/grace-integration-112/catalog-43-vm-native.json",
+      "bytes": 407729,
+      "sha256": "641f1847b4c40cf6263476f42f94a169880ba6cb0123fc980bbb479a25bd6fb4"
+    },
+    {
+      "path": "docs/grace-integration-112/README.md",
+      "bytes": 1246,
+      "sha256": "6eb22139c9d5d9d63c64bfb41b745144b62ed19177d4f1d3063bc07c8e2b16e0"
+    }
+  ]
+}

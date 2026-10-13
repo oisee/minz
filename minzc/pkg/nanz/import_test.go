@@ -376,3 +376,39 @@ assert use_plm(5, 1) == 6
 	}
 	t.Log("Nanz → PL/M-80 cross-language import: OK")
 }
+
+func TestImportExplicitStdlibRoot(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(dir, "math"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "math", "value.nanz"), []byte("fun value() -> u8 { return 7 }"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	m, err := nanz.ParseWithOpts("import stdlib.math.value\nfun main() -> u8 { return value() }\nassert main() == 7", "stdlib-root", nanz.ParseOpts{BaseDir: t.TempDir(), StdlibDir: dir})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := pipeline.CompileHIR(m); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestImportedGlobalAliasesAndLocalShadowVMZ80(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "values.nanz"), []byte("const ROW:u8=1\nglobal cell:u8=9"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	for _, source := range []string{
+		"import values\nfun row()->u8{return ROW}\nfun shadow(ROW:u8)->u8{return ROW}\nfun store()->u8{cell=27\nreturn cell}\nassert row()==1\nassert shadow(8)==8\nassert store()==27",
+		"import values {ROW as R,cell as c}\nfun row()->u8{return R}\nfun store()->u8{c=37\nreturn c}\nassert row()==1\nassert store()==37",
+	} {
+		h, err := nanz.ParseWithOpts(source, "aliases", nanz.ParseOpts{BaseDir: dir})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err = pipeline.CompileHIR(h); err != nil {
+			t.Fatal(err)
+		}
+	}
+}

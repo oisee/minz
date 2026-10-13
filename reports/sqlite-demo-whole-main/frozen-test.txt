@@ -1,0 +1,27 @@
+=== RUN   TestOriginalSQLiteDemoWholeMain
+=== RUN   TestOriginalSQLiteDemoWholeMain/ordinary
+=== RUN   TestOriginalSQLiteDemoWholeMain/ordinary/raw
+=== RUN   TestOriginalSQLiteDemoWholeMain/ordinary/final
+=== NAME  TestOriginalSQLiteDemoWholeMain/ordinary
+    sqlite_demo_main_test.go:393: original SQLite demo 787 B 12-byte stdout, SQL effects/fullRAM/SP PASS
+=== RUN   TestOriginalSQLiteDemoWholeMain/grace-size
+=== RUN   TestOriginalSQLiteDemoWholeMain/grace-size/raw
+=== RUN   TestOriginalSQLiteDemoWholeMain/grace-size/final
+=== NAME  TestOriginalSQLiteDemoWholeMain/grace-size
+    sqlite_demo_main_test.go:393: original SQLite demo 787 B 12-byte stdout, SQL effects/fullRAM/SP PASS
+=== RUN   TestOriginalSQLiteDemoWholeMain/grace-speed
+=== RUN   TestOriginalSQLiteDemoWholeMain/grace-speed/raw
+=== RUN   TestOriginalSQLiteDemoWholeMain/grace-speed/final
+=== NAME  TestOriginalSQLiteDemoWholeMain/grace-speed
+    sqlite_demo_main_test.go:393: original SQLite demo 787 B 12-byte stdout, SQL effects/fullRAM/SP PASS
+--- PASS: TestOriginalSQLiteDemoWholeMain (0.06s)
+    --- PASS: TestOriginalSQLiteDemoWholeMain/ordinary (0.02s)
+        --- PASS: TestOriginalSQLiteDemoWholeMain/ordinary/raw (0.00s)
+        --- PASS: TestOriginalSQLiteDemoWholeMain/ordinary/final (0.00s)
+    --- PASS: TestOriginalSQLiteDemoWholeMain/grace-size (0.02s)
+        --- PASS: TestOriginalSQLiteDemoWholeMain/grace-size/raw (0.00s)
+        --- PASS: TestOriginalSQLiteDemoWholeMain/grace-size/final (0.00s)
+    --- PASS: TestOriginalSQLiteDemoWholeMain/grace-speed (0.02s)
+        --- PASS: TestOriginalSQLiteDemoWholeMain/grace-speed/raw (0.00s)
+        --- PASS: TestOriginalSQLiteDemoWholeMain/grace-speed/final (0.00s)
+PASS

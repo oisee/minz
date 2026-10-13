@@ -34,25 +34,18 @@ func (g *z80cg) emitFlagPredicateByte(cc string) {
 
 // ── Compare ───────────────────────────────────────────────────────────────────
 
-// flagStillNeeded reports whether pendingFlagReg is used as a source
-// in any instruction AFTER upcomingInst in the current block.
+// flagStillNeeded uses instruction/CFG liveness, including call arguments and
+// terminators. A newly defined comparison is not the previous pending value.
 func (g *z80cg) flagStillNeeded(upcomingInst *Inst) bool {
-	if g.curBlock == nil {
+	if g.curBlock == nil || upcomingInst == nil || upcomingInst.Dst == g.pendingFlagReg {
 		return false
 	}
-	seen := false
-	for _, inst := range g.curBlock.Insts {
-		if inst == upcomingInst {
-			seen = true
-			continue
-		}
-		if !seen {
-			continue
-		}
-		for _, s := range inst.Src {
-			if s == g.pendingFlagReg {
-				return true
-			}
+	if g.regsLiveAfterInst(upcomingInst)[g.pendingFlagReg] {
+		return true
+	}
+	for _, r := range upcomingInst.Uses() {
+		if r == g.pendingFlagReg {
+			return true
 		}
 	}
 	return false
@@ -95,8 +88,17 @@ func (g *z80cg) accStillNeeded(upcomingInst *Inst) bool {
 // pickScratch8 returns an 8-bit scratch register that is not currently
 // occupied by an operand, destination or value live after upcomingInst.
 // Prefers E, H, L (unlikely to hold params) before D, B, C.
-// Always excludes "A" and "F".
+// Always excludes "A" and "F". Legacy multiplication callers retain the D
+// fallback; preservation callers use freeScratch8 and handle exhaustion.
 func (g *z80cg) pickScratch8(upcomingInst *Inst) string {
+	if scratch := g.freeScratch8(upcomingInst); scratch != "" {
+		return scratch
+	}
+	return "D" // legacy multiplication fallback; preservation must handle exhaustion
+}
+
+// freeScratch8 reports exhaustion rather than selecting an occupied register.
+func (g *z80cg) freeScratch8(upcomingInst *Inst) string {
 	used := map[string]bool{"A": true, "F": true}
 	mark := func(loc string) {
 		used[loc] = true
@@ -120,18 +122,11 @@ func (g *z80cg) pickScratch8(upcomingInst *Inst) string {
 			return r
 		}
 	}
-	return "D" // existing fallback for register-exhausted blocks
+	return ""
 }
 
-// materializePendingFlag checks whether the most recent ClassFlag result
-// (pendingFlagReg) is still needed after upcomingInst. If so, it emits:
-//
-//	SBC A, A      ; A = 0xFF if condition-true, 0x00 if condition-false
-//	LD  <scratch>, A
-//
-// where <scratch> is a register that is not currently holding any live value,
-// and reroutes pendingFlagReg via physOverride so subsequent genBinOp reads
-// it from there rather than from the (now-clobbered) carry flag.
+// materializePendingFlag preserves a live predicate before another comparison
+// overwrites F. Use its full condition (Z, C, NC, or compound), and retain A.
 func (g *z80cg) materializePendingFlag(upcomingInst *Inst) {
 	if g.pendingFlagReg == NoReg {
 		return
@@ -140,11 +135,16 @@ func (g *z80cg) materializePendingFlag(upcomingInst *Inst) {
 		g.pendingFlagReg = NoReg
 		return
 	}
-	scratch := g.pickScratch8(upcomingInst)
-	// Materialize carry → 0xFF (true) or 0x00 (false) via SBC A, A.
-	g.emit("    SBC A, A")
+	scratch := g.freeScratch8(upcomingInst)
+	if scratch == "" {
+		scratch = g.spillLabel(g.pendingFlagReg)
+	}
+	g.emit("    PUSH AF")
+	g.emitFlagPredicateByte(g.condCode(g.fn, g.pendingFlagReg))
+	g.emitLD8(scratch, "A")
+	g.emit("    POP AF")
 	g.invalidate("A")
-	g.emitf("    LD %s, A", scratch)
+	g.invalidate(scratch)
 	g.physOverride[g.pendingFlagReg] = scratch
 	g.pendingFlagReg = NoReg
 }
@@ -162,115 +162,61 @@ func (g *z80cg) materializePendingAcc(upcomingInst *Inst) {
 		g.pendingAccReg = NoReg
 		return
 	}
-	scratch := g.pickScratch8(upcomingInst)
-	g.emitf("    LD %s, A    ; materialize r%d (pendingAcc)", scratch, g.pendingAccReg)
+	scratch := g.freeScratch8(upcomingInst)
+	if scratch == "" {
+		// Every byte may belong to live pairs/counters. Never borrow D:
+		// that would corrupt the high byte of a live invariant in DE.
+		scratch = g.spillLabel(g.pendingAccReg)
+	}
+	g.emitLD8(scratch, "A")
+	g.comment(fmt.Sprintf("materialize r%d (pendingAcc)", g.pendingAccReg))
 	g.physOverride[g.pendingAccReg] = scratch
 	g.pendingAccReg = NoReg
 }
 
-// saveAccForCondRet saves A to a scratch register if a CMP is about to load a
-// different vreg into A and there is a live vreg in A that the terminator or a
-// successor block still needs.
-//
-// Originally this only covered TermCondRet (abs_val fix). Expanded to also
-// cover TermBrIf: gcd(a,b) has CmpEq(b,0) that loads b into A, clobbering a
-// which the then-branch returns.
-func (g *z80cg) saveAccForCondRet(cmpInst *Inst) {
-	if g.fn == nil || g.curBlock == nil {
-		return
+// saveAccForCondRet preserves a live accumulator before CMP replaces A.
+// CFG liveness includes values carried through blocks without block parameters.
+// The caller must defer a nonnil restoration when no scratch byte is free.
+func (g *z80cg) saveAccForCondRet(cmpInst *Inst) func() {
+	if g.fn == nil || g.curBlock == nil || g.loc(cmpInst.Src[0]) == "A" {
+		return nil
 	}
-	term := g.curBlock.Term
-	if term == nil {
-		return
-	}
-
-	// Check if CMP will load a different vreg into A (clobbering current A value).
+	// A byte comparison with a nonconstant RHS in A uses CP lhs below,
+	// swapping the predicate instead of loading lhs into A. CP preserves A,
+	// so relocating it would needlessly consume a scratch register (and the
+	// exhausted-register fallback can overwrite a live word's high byte).
 	lhs := g.loc(cmpInst.Src[0])
-	if lhs == "A" {
-		return // lhs already in A, no clobber
+	_, rhsConstant := g.constVals[cmpInst.Src[1]]
+	if g.loc(cmpInst.Src[1]) == "A" && !rhsConstant &&
+		(isSimpleReg(lhs) || isIXYReg(lhs)) && !isPairReg(lhs) && lhs != "F" &&
+		!g.isDWord(cmpInst.Src[0]) && !g.isDWord(cmpInst.Src[1]) &&
+		(cmpInst.SrcTy == nil || cmpInst.SrcTy.Width() <= 8) {
+		return nil
 	}
-
-	// Collect all vregs that the terminator and successor blocks need.
-	// If any of them is currently in A, save A before the CMP clobbers it.
-	liveInA := g.findVregInA()
-	if liveInA == NoReg {
-		return // nothing in A worth saving
-	}
-
-	needed := false
-	switch t := term.(type) {
-	case *TermCondRet:
-		for _, v := range t.Vals {
-			if v == liveInA {
-				needed = true
-				break
-			}
+	for r := range g.regsLiveAfterInst(cmpInst) {
+		if r == cmpInst.Dst || g.loc(r) != "A" {
+			continue
 		}
-		if !needed {
-			// Check if the Then successor needs it
-			needed = g.vregUsedInBlock(liveInA, t.Then)
+		scratch := g.freeScratch8(cmpInst)
+		if scratch == "" {
+			// All bytes belong to live words/counters. Save A on the stack;
+			// restore it through H without replacing the comparison's flags.
+			return g.saveLiveScratch(cmpInst, "AF")
 		}
-	case *TermBrIf:
-		// Check if either successor uses the vreg in A
-		needed = g.vregUsedInBlock(liveInA, t.Then) || g.vregUsedInBlock(liveInA, t.Else)
-	case *TermBrIf2:
-		needed = g.vregUsedInBlock(liveInA, t.Eq) ||
-			g.vregUsedInBlock(liveInA, t.Lt) ||
-			g.vregUsedInBlock(liveInA, t.Gt)
-	}
-
-	if needed {
-		scratch := g.pickScratch8(cmpInst)
-		g.emitf("    LD %s, A    ; save ret val before CMP", scratch)
-		g.physOverride[liveInA] = scratch
-	}
-}
-
-// findVregInA returns the vreg currently mapped to A, or NoReg if none.
-func (g *z80cg) findVregInA() Reg {
-	if g.fn == nil {
-		return NoReg
-	}
-	// Check block params first (they're live-through the block)
-	for _, bp := range g.curBlock.Params {
-		if g.loc(bp.Dst) == "A" {
-			return bp.Dst
+		g.emitf("    LD %s, A    ; preserve live accumulator before CMP", scratch)
+		g.physOverride[r] = scratch
+		if g.pendingAccReg == r {
+			g.pendingAccReg = NoReg
 		}
+		return nil
 	}
-	// Check function params that might still be in A
-	for _, cp := range g.fn.Contract.Params {
-		if g.loc(cp.Reg) == "A" {
-			return cp.Reg
-		}
-	}
-	return NoReg
-}
-
-// vregUsedInBlock checks if vreg is used in the instructions or terminator
-// of the block with the given label.
-func (g *z80cg) vregUsedInBlock(vreg Reg, label string) bool {
-	blk := g.fn.BlockByLabel(label)
-	if blk == nil {
-		return false
-	}
-	for _, inst := range blk.Insts {
-		for _, r := range inst.Uses() {
-			if r == vreg {
-				return true
-			}
-		}
-	}
-	if blk.Term != nil {
-		for _, r := range blk.Term.termUses() {
-			if r == vreg {
-				return true
-			}
-		}
-	}
-	return false
+	return nil
 }
 
 func (g *z80cg) genCmp(inst *Inst) {
+	if g.tryUnsignedPreservePairCmp(inst) {
+		return
+	}
 	// CmpSubCarry / CmpSubCarryNot: carry flag already set by the immediately
 	// preceding SUB.  No instruction needed — carry encodes a < b (C) or a >= b (NC).
 	if inst.Cond == CmpSubCarry || inst.Cond == CmpSubCarryNot {
@@ -281,20 +227,44 @@ func (g *z80cg) genCmp(inst *Inst) {
 	// 1. Materialize any live ClassFlag register whose carry would be overwritten.
 	// 2. Save any live ClassAcc register whose A value would be overwritten by
 	//    the "LD A, imm" used to set up the CP operand.
-	// 3. Save A if the block ends with TermCondRet and A holds a return value
-	//    that would be clobbered by loading the CMP operand (ADR-0041 fix).
-	// Both are saved to "D" (scratch) via physOverride; the OR-from-flag handler
-	// in genBinOp will then read them from "D" instead of from "F"/"A".
+	// 3. Preserve A values live through this block or needed by later instructions.
+	// Relocated values use a free scratch register through physOverride; on
+	// exhaustion, stack restoration preserves A and the new comparison flags.
 	g.materializePendingFlag(inst)
+	// A byte comparison against a right operand already in A can retain A:
+	// CP lhs sets the reversed predicate without writing either operand.
+	// Decide before relocating a live accumulator, otherwise the relocation
+	// itself hides this opportunity and introduces save/restore moves.
+	lhsBeforeSave, rhsBeforeSave := g.loc(inst.Src[0]), g.loc(inst.Src[1])
+	_, lhsConstant := g.constVals[inst.Src[0]]
+	_, rhsConstant := g.constVals[inst.Src[1]]
+	_, bitPattern := g.bitCmpPat[inst.Dst]
+	if rhsBeforeSave == "A" && lhsBeforeSave != "A" &&
+		!lhsConstant && !rhsConstant && !bitPattern &&
+		isSimpleReg(lhsBeforeSave) && lhsBeforeSave != "F" && !isPairReg(lhsBeforeSave) &&
+		!isSignedOrdering(inst) && !g.wideComparisonOperand(inst, inst.Src[0]) &&
+		!g.wideComparisonOperand(inst, inst.Src[1]) && (inst.SrcTy == nil || inst.SrcTy.Width() <= 8) {
+		g.lastFlagsLhs, g.lastFlagsRhs = "", ""
+		g.emit8ALU("CP", lhsBeforeSave)
+		g.cmpSwapped[inst.Dst] = true
+		swapped := inst.Cond.Swap()
+		if swapped == CmpGt || swapped == CmpUgt || swapped == CmpLe || swapped == CmpUle {
+			g.cmpNeedsTwo[inst.Dst] = true
+		}
+		g.pendingFlagReg = inst.Dst
+		return
+	}
 	g.materializePendingAcc(inst)
-	g.saveAccForCondRet(inst)
+	if restore := g.saveAccForCondRet(inst); restore != nil {
+		defer restore()
+	}
 
 	lhs := g.loc(inst.Src[0])
 	rhs := g.loc(inst.Src[1])
 
 	// 32-bit DWord comparison: must dispatch before isPairReg (DWord locs also
 	// have pair names like "HL", so they'd otherwise fall into genCmp16).
-	if g.isDWord(inst.Src[0]) || g.isDWord(inst.Src[1]) {
+	if g.wideComparisonOperand(inst, inst.Src[0]) || g.wideComparisonOperand(inst, inst.Src[1]) {
 		g.genCmp32(inst)
 		return
 	}
@@ -778,64 +748,121 @@ func (g *z80cg) genCmp16(inst *Inst) {
 	g.pendingFlagReg = inst.Dst
 }
 
-// genCmp32 emits a non-destructive 32-bit unsigned comparison (lhs vs rhs)
-// via a PUSH/SBC-chain/POP pattern; carry is set if lhs < rhs, NC if lhs >= rhs.
-//
-// Strategy (lhs=HL+H'L', rhs=DE+D'E'):
-//
-//	PUSH HL          ; save a_lo  (11T)
-//	EXX
-//	PUSH HL          ; save a_hi  (11T, HL = H'L' after EXX)
-//	EXX
-//	AND A            ; clear carry (4T)
-//	SBC HL, DE       ; a_lo - b_lo; carry = lo borrow (15T)
-//	EXX
-//	SBC HL, DE       ; a_hi - b_hi - lo_carry; carry = 32-bit borrow (15T)
-//	EXX
-//	EXX              ; switch to restore a_hi
-//	POP HL           ; restore H'L' (10T); carry preserved by POP rr
-//	EXX
-//	POP HL           ; restore HL  (10T); carry preserved
-//
-// Total: 91T.  For the typical abs_diff pattern this is followed immediately by
-// BrIf which branches on carry — no intermediate store of the flag needed.
+// wideComparisonOperand includes semantic widths for memory-backed u32 values.
+func (g *z80cg) wideComparisonOperand(inst *Inst, r Reg) bool {
+	if inst.SrcTy != nil && inst.SrcTy.Width() > 16 {
+		return true
+	}
+	if info, ok := g.regInfo[r]; ok && info.Ty != nil && info.Ty.Width() > 16 {
+		return true
+	}
+	return g.isDWord(r)
+}
+
+// genCmp32 snapshots operands before scratch writes, then compares bytes from
+// most to least significant. Biasing the signed high byte gives signed ordering
+// without overflowing subtraction. Final CP supplies full-value C and Z.
 func (g *z80cg) genCmp32(inst *Inst) {
-	lhs := g.loc(inst.Src[0])
-	rhs := g.loc(inst.Src[1])
-
-	// CmpGt/CmpLe: swap operands so the carry encodes the right condition.
-	//   CmpUgt(a,b): a>b ↔ b<a → swap, then carry = (b<a) ✓
-	//   CmpUle(a,b): a≤b ↔ b≥a → swap, then NC = (b≥a) ✓
-	isGtOrLe := inst.Cond == CmpGt || inst.Cond == CmpUgt ||
-		inst.Cond == CmpLe || inst.Cond == CmpUle
-	if isGtOrLe {
-		lhs, rhs = rhs, lhs
-		g.cmpSwapped[inst.Dst] = true
+	g.emit("    PUSH IX")
+	g.emit("    PUSH BC")
+	g.emit("    PUSH AF")
+	comparisonWidth := 32
+	if isSignedOrdering(inst) && inst.SrcTy != nil {
+		comparisonWidth = inst.SrcTy.Width()
 	}
-
-	// Z80 SBC requires lhs in HL.  The allocator biases ClassDWord toward HL (cost 0),
-	// so lhs=HL is the common case.
-	if lhs != "HL" {
-		g.comment(fmt.Sprintf("TODO: genCmp32 lhs=%s not HL (rhs=%s)", lhs, rhs))
-		return
+	pushedBytes := 0
+	for _, r := range inst.Src {
+		loc := g.loc(r)
+		width := 32
+		if info, ok := g.regInfo[r]; ok && info.Ty != nil {
+			width = info.Ty.Width()
+		}
+		for i := 0; i < 4; i++ {
+			if isSignedOrdering(inst) && i*8 >= comparisonWidth {
+				// VM signExtend truncates BOTH operands at SrcTy width. The
+				// preceding byte is its sign byte, regardless of operand type.
+				if i*8 == comparisonWidth {
+					g.emit("    RLCA")
+					g.emit("    SBC A, A")
+				}
+			} else if i*8 >= width {
+				g.emit("    LD A, 0")
+			} else if cv, ok := g.constVals[r]; ok {
+				g.emitf("    LD A, %d", uint64(cv)>>(8*i)&255)
+			} else if isSpill(loc) {
+				suffix := ""
+				if i != 0 {
+					suffix = fmt.Sprintf("+%d", i)
+				}
+				g.emitNativeSpillf(loc, i, 1, false, "    LD A, (%s%s)", loc, suffix)
+			} else if isPairReg(loc) {
+				if i >= 2 {
+					g.emit("    EXX")
+				}
+				part := lowByte(loc)
+				if i%2 != 0 {
+					part = highByte(loc)
+				}
+				g.emitf("    LD A, %s", part)
+				if i >= 2 {
+					g.emit("    EXX")
+				}
+			} else if width <= 8 && (isSimpleReg(loc) || isIXYReg(loc)) && loc != "F" {
+				if loc == "A" {
+					// Read original A, before either operand's scratch snapshot.
+					g.emit("    PUSH IX")
+					g.emit("    LD IX, 0")
+					g.emit("    ADD IX, SP")
+					g.emitf("    LD A, (IX+%d)", 3+pushedBytes)
+					g.emit("    POP IX")
+				} else {
+					g.emitf("    LD A, %s", loc)
+				}
+			} else {
+				g.err = fmt.Errorf("wide comparison r%d has unsupported home %s", r, loc)
+				return
+			}
+			g.emit("    PUSH AF")
+			pushedBytes += 2
+		}
 	}
-
-	// Non-destructive 32-bit comparison (lhs preserved by PUSH/POP):
-	g.emit("    PUSH HL") // save a_lo (main HL)
-	g.emit("    EXX")
-	g.emit("    PUSH HL") // save a_hi (shadow HL = H'L')
-	g.emit("    EXX")
-	g.emit("    AND A") // clear carry
-	g.emitSBCHL(rhs)    // a_lo - b_lo; carry = lo borrow
-	g.emit("    EXX")
-	g.emitSBCHL(rhs) // a_hi - b_hi - lo_carry; carry = 32-bit borrow
-	g.emit("    EXX")
-	// Restore a (carry preserved by POP rr — POP does not affect flags):
-	g.emit("    EXX")
-	g.emit("    POP HL") // restore H'L' (a_hi)
-	g.emit("    EXX")
-	g.emit("    POP HL") // restore HL   (a_lo)
-	g.invalidate("HL")   // HL was clobbered during SBC, now restored; flush cache
+	g.emit("    LD IX, 0")
+	g.emit("    ADD IX, SP")
+	idx := g.trampIdx
+	g.trampIdx++
+	done := fmt.Sprintf(".wide_cmp_done_%d", idx)
+	for i := 3; i >= 0; i-- {
+		g.emitf("    LD B, (IX+%d)", 7-2*i)
+		if i == 3 && isSignedOrdering(inst) {
+			g.emit("    LD A, B")
+			g.emit("    XOR 128")
+			g.emit("    LD B, A")
+		}
+		g.emitf("    LD A, (IX+%d)", 15-2*i)
+		if i == 3 && isSignedOrdering(inst) {
+			g.emit("    XOR 128")
+		}
+		g.emit("    CP B")
+		if i != 0 {
+			g.emitf("    JP NZ, %s", done)
+		}
+	}
+	g.emitf("%s:", done)
+	for i := 0; i < 8; i++ {
+		g.emit("    POP BC")
+	}
+	// POP and LD retain the comparison flags while restoring original A.
+	g.emit("    POP BC")
+	g.emit("    LD A, B")
+	g.emit("    POP BC")
+	g.emit("    POP IX")
+	g.invalidate("A")
+	g.invalidate("BC")
+	g.invalidate("IX")
+	g.pendingFlagReg = inst.Dst
+	if inst.Cond == CmpGt || inst.Cond == CmpUgt || inst.Cond == CmpLe || inst.Cond == CmpUle {
+		g.cmpNeedsTwo[inst.Dst] = true
+	}
 }
 
 // Comparisons can encode their result in Z, carry, or a two-flag predicate.

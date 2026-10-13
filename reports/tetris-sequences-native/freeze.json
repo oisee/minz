@@ -1,0 +1,29 @@
+{
+  "sources": {
+    "examples/nanz/tetris_cpm.nanz": "444a07777a59a5fd57e1d57f364232ae7c87eeba9430e665ef170a64b7d3793f",
+    "examples/nanz/tetris_tui.nanz": "7198ad68d26c197296e8c9cc28dd253cb02b4f2b12835c5bcaf9c7348efe78cd",
+    "stdlib/tui/render.nanz": "4711dbee908a2271f02d1fbb4720942604e23322d7745f32311f6b2c17c6d4a8"
+  },
+  "authority": "Bookv7 \u00a72.4 globalstate \u00a72.6 arrays \u00a73.1 widths; exact original spawn/hold/composed statements; previous independently frozen geometry onlydata authority",
+  "domain": {
+    "spawn": "all7nexttypes \u00d78seeds \u00d73boards \u00d7game_over0/1",
+    "hold": "all7currenttypes \u00d7hold255orall7types \u00d7used0/1/2 \u00d78seeds \u00d72boards",
+    "composed": "all7types \u00d74rotations \u00d73boards \u00d78seeds; original do_lock_and_clear fullclosure",
+    "persistent_sequences": "7types \u00d78seeds \u00d72boards; spawn,hold,hold,rotate,ghost query, externallyapplieddescent,do_lock_and_clear,hold,do_lock_and_clear; checkpointaftereachentry"
+  },
+  "seeds": [
+    0,
+    1,
+    2,
+    7,
+    255,
+    256,
+    44257,
+    65535
+  ],
+  "remaining": "main/device/input/rendering notexecuted; external descent transition explicittestcontroller notoriginalAPI",
+  "model_dependencies": {
+    "reports/tetris-family-native/freeze.json": "390d198011185da34881e478836dc320f0e602a41bd798e766fae2bf4ef573bb",
+    "minzc/pkg/pipeline/original_tetris_family_test.go": "82dddb20f2eb505680254bde2988390196c166e68d077dc3339ad98fb6b704fe"
+  }
+}

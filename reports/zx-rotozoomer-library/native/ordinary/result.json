@@ -1,0 +1,334 @@
+{
+  "PASS": true,
+  "accepted_rom_irq": 315,
+  "binary_bytes": 1709,
+  "binary_sha256": "8b802e4e1d6195ba6a205584c698bf9aeac1d9fc0d13d957e473d2679431efff",
+  "completed_draws": 64,
+  "completions": [
+    {
+      "frame": 0,
+      "absolute_t_states": 528565,
+      "return_sp": 61422
+    },
+    {
+      "frame": 1,
+      "absolute_t_states": 877192,
+      "return_sp": 61422
+    },
+    {
+      "frame": 2,
+      "absolute_t_states": 1226632,
+      "return_sp": 61422
+    },
+    {
+      "frame": 3,
+      "absolute_t_states": 1576072,
+      "return_sp": 61422
+    },
+    {
+      "frame": 4,
+      "absolute_t_states": 1925512,
+      "return_sp": 61422
+    },
+    {
+      "frame": 5,
+      "absolute_t_states": 2274952,
+      "return_sp": 61422
+    },
+    {
+      "frame": 6,
+      "absolute_t_states": 2624392,
+      "return_sp": 61422
+    },
+    {
+      "frame": 7,
+      "absolute_t_states": 2973832,
+      "return_sp": 61422
+    },
+    {
+      "frame": 8,
+      "absolute_t_states": 3323272,
+      "return_sp": 61422
+    },
+    {
+      "frame": 9,
+      "absolute_t_states": 3672712,
+      "return_sp": 61422
+    },
+    {
+      "frame": 10,
+      "absolute_t_states": 4022152,
+      "return_sp": 61422
+    },
+    {
+      "frame": 11,
+      "absolute_t_states": 4371592,
+      "return_sp": 61422
+    },
+    {
+      "frame": 12,
+      "absolute_t_states": 4721032,
+      "return_sp": 61422
+    },
+    {
+      "frame": 13,
+      "absolute_t_states": 5070472,
+      "return_sp": 61422
+    },
+    {
+      "frame": 14,
+      "absolute_t_states": 5419912,
+      "return_sp": 61422
+    },
+    {
+      "frame": 15,
+      "absolute_t_states": 5769352,
+      "return_sp": 61422
+    },
+    {
+      "frame": 16,
+      "absolute_t_states": 6118792,
+      "return_sp": 61422
+    },
+    {
+      "frame": 17,
+      "absolute_t_states": 6468232,
+      "return_sp": 61422
+    },
+    {
+      "frame": 18,
+      "absolute_t_states": 6817672,
+      "return_sp": 61422
+    },
+    {
+      "frame": 19,
+      "absolute_t_states": 7167112,
+      "return_sp": 61422
+    },
+    {
+      "frame": 20,
+      "absolute_t_states": 7516552,
+      "return_sp": 61422
+    },
+    {
+      "frame": 21,
+      "absolute_t_states": 7865992,
+      "return_sp": 61422
+    },
+    {
+      "frame": 22,
+      "absolute_t_states": 8215432,
+      "return_sp": 61422
+    },
+    {
+      "frame": 23,
+      "absolute_t_states": 8564872,
+      "return_sp": 61422
+    },
+    {
+      "frame": 24,
+      "absolute_t_states": 8914312,
+      "return_sp": 61422
+    },
+    {
+      "frame": 25,
+      "absolute_t_states": 9263752,
+      "return_sp": 61422
+    },
+    {
+      "frame": 26,
+      "absolute_t_states": 9613192,
+      "return_sp": 61422
+    },
+    {
+      "frame": 27,
+      "absolute_t_states": 9962632,
+      "return_sp": 61422
+    },
+    {
+      "frame": 28,
+      "absolute_t_states": 10312072,
+      "return_sp": 61422
+    },
+    {
+      "frame": 29,
+      "absolute_t_states": 10661512,
+      "return_sp": 61422
+    },
+    {
+      "frame": 30,
+      "absolute_t_states": 11010952,
+      "return_sp": 61422
+    },
+    {
+      "frame": 31,
+      "absolute_t_states": 11360392,
+      "return_sp": 61422
+    },
+    {
+      "frame": 0,
+      "absolute_t_states": 11709832,
+      "return_sp": 61422
+    },
+    {
+      "frame": 1,
+      "absolute_t_states": 12059272,
+      "return_sp": 61422
+    },
+    {
+      "frame": 2,
+      "absolute_t_states": 12408712,
+      "return_sp": 61422
+    },
+    {
+      "frame": 3,
+      "absolute_t_states": 12758152,
+      "return_sp": 61422
+    },
+    {
+      "frame": 4,
+      "absolute_t_states": 13107592,
+      "return_sp": 61422
+    },
+    {
+      "frame": 5,
+      "absolute_t_states": 13457032,
+      "return_sp": 61422
+    },
+    {
+      "frame": 6,
+      "absolute_t_states": 13806472,
+      "return_sp": 61422
+    },
+    {
+      "frame": 7,
+      "absolute_t_states": 14155912,
+      "return_sp": 61422
+    },
+    {
+      "frame": 8,
+      "absolute_t_states": 14505352,
+      "return_sp": 61422
+    },
+    {
+      "frame": 9,
+      "absolute_t_states": 14854792,
+      "return_sp": 61422
+    },
+    {
+      "frame": 10,
+      "absolute_t_states": 15204232,
+      "return_sp": 61422
+    },
+    {
+      "frame": 11,
+      "absolute_t_states": 15553672,
+      "return_sp": 61422
+    },
+    {
+      "frame": 12,
+      "absolute_t_states": 15903112,
+      "return_sp": 61422
+    },
+    {
+      "frame": 13,
+      "absolute_t_states": 16252552,
+      "return_sp": 61422
+    },
+    {
+      "frame": 14,
+      "absolute_t_states": 16601992,
+      "return_sp": 61422
+    },
+    {
+      "frame": 15,
+      "absolute_t_states": 16951432,
+      "return_sp": 61422
+    },
+    {
+      "frame": 16,
+      "absolute_t_states": 17300872,
+      "return_sp": 61422
+    },
+    {
+      "frame": 17,
+      "absolute_t_states": 17650312,
+      "return_sp": 61422
+    },
+    {
+      "frame": 18,
+      "absolute_t_states": 17999752,
+      "return_sp": 61422
+    },
+    {
+      "frame": 19,
+      "absolute_t_states": 18349192,
+      "return_sp": 61422
+    },
+    {
+      "frame": 20,
+      "absolute_t_states": 18698400,
+      "return_sp": 61422
+    },
+    {
+      "frame": 21,
+      "absolute_t_states": 19047789,
+      "return_sp": 61422
+    },
+    {
+      "frame": 22,
+      "absolute_t_states": 19397205,
+      "return_sp": 61422
+    },
+    {
+      "frame": 23,
+      "absolute_t_states": 19746645,
+      "return_sp": 61422
+    },
+    {
+      "frame": 24,
+      "absolute_t_states": 20096085,
+      "return_sp": 61422
+    },
+    {
+      "frame": 25,
+      "absolute_t_states": 20445525,
+      "return_sp": 61422
+    },
+    {
+      "frame": 26,
+      "absolute_t_states": 20794965,
+      "return_sp": 61422
+    },
+    {
+      "frame": 27,
+      "absolute_t_states": 21144405,
+      "return_sp": 61422
+    },
+    {
+      "frame": 28,
+      "absolute_t_states": 21493845,
+      "return_sp": 61422
+    },
+    {
+      "frame": 29,
+      "absolute_t_states": 21843285,
+      "return_sp": 61422
+    },
+    {
+      "frame": 30,
+      "absolute_t_states": 22192725,
+      "return_sp": 61422
+    },
+    {
+      "frame": 31,
+      "absolute_t_states": 22542165,
+      "return_sp": 61422
+    }
+  ],
+  "irq_during_draw": 252,
+  "returned_rom_irq": 315,
+  "rom_sha256": "d55daa439b673b0e3f5897f99ac37ecb45f974d1862b4dadb85dec34af99cb42",
+  "scope": "actual generated main; 48K ROM; IM1 IRQ; ULA contention; 64 complete screens; two frame-order cycles; draw PC/SP; ROM IRQ main and alternate register preservation",
+  "video_frames": 323
+}

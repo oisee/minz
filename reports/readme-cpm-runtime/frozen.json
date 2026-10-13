@@ -1,0 +1,24 @@
+{
+  "base": "91737dbd",
+  "sources": {
+    "hello_cpm": {
+      "source_sha256": "d9ef5575cf9241a89f060a66a532bb84c08bfe3ff25224790c6340b75f093563",
+      "stdout": "Hello!\r\n"
+    },
+    "hello_cpm_fib": {
+      "source_sha256": "1ad4ba073b38f4b194bcdc38feebb282f35035efc3b28658c0a0eee69e1407de",
+      "stdout": "Hello Frill!\r\nfib(7)=13\r\ngcd(12,8)=4\r\n"
+    }
+  },
+  "modes": [
+    "ordinary",
+    "grace-size",
+    "grace-speed"
+  ],
+  "runtime": "cpm",
+  "runtime_stack_bytes": 1024,
+  "entry": 256,
+  "incoming_SP": 65022,
+  "return_PC": 0,
+  "assertions": "preserve source; Runtime AssertMode none; independent scalar asserts separately"
+}

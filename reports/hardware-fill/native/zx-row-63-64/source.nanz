@@ -1,0 +1,8 @@
+import hw.fill
+fun fill_test() { @fill() {
+layout "zx_bitmap_bytes" 16384
+ region 29 63 3 2
+ traversal "rows"
+ value 147
+
+} }

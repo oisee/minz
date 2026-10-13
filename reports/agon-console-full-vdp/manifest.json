@@ -1,0 +1,434 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "46f33ece5a4b520c7f7e738ac256a64f555336c9b0a69712347f71a06bbd75b6"
+  },
+  {
+    "path": "agon_native_vdu_model.py",
+    "sha256": "d7a0fe831f8379b78d60851373e29fcf31d6c6d0b3cd4ff26c27197b49468662"
+  },
+  {
+    "path": "agon_native_vdu_replay.py",
+    "sha256": "be781ffda5935f21acc4ce9eb86d3c8673dc2d67c39cbec5a22f6d0a3d544678"
+  },
+  {
+    "path": "agon_tui_stream_model.py",
+    "sha256": "18e79aff84bf54ef1449321fd2392fc0c35befd56a6ffde1e43e0538b67357b8"
+  },
+  {
+    "path": "capture-nc.c",
+    "sha256": "bcf2eda3f6bfe46eb666581a005618653a6197cb5f9e2bef87941a0c422cb7c7"
+  },
+  {
+    "path": "capture-nc.so",
+    "sha256": "40d5e7f9a9ed78b766593c9fe7a5c96481682bbb9bd05fc186ab5e1f68c102a7"
+  },
+  {
+    "path": "capture.c",
+    "sha256": "100530626d508295bde7ff9114b1d5f7a7a8f47deb6561e1ed71d74c3a0d55e1"
+  },
+  {
+    "path": "capture.so",
+    "sha256": "6484860d13cc086fb0592c06ce0d7cd1b05a53fc2d2ce46cc707c72ce8d678be"
+  },
+  {
+    "path": "hello_agon/ordinary/asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/ordinary/asm.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/ordinary/before.ppm",
+    "sha256": "b79d695db641fba8c44662583d6ac7c764d0ec680fb788fa739126656d3a7c53"
+  },
+  {
+    "path": "hello_agon/ordinary/bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/ordinary/bin.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/ordinary/expected.bin",
+    "sha256": "b8bbd2ec4919d3dfa376ef982d2f73a211775b2ad1517ed8e5b46a74dd44c3ef"
+  },
+  {
+    "path": "hello_agon/ordinary/program.asm",
+    "sha256": "011a4f1d76557493d673ef21b4ed5acb3d8107a592f2cfb814aa3a1ce2423f25"
+  },
+  {
+    "path": "hello_agon/ordinary/program.bin",
+    "sha256": "2069e2a4b068f56d1426c2d842fe11ae982ed1b6ed20091fec977dfae8cd7e32"
+  },
+  {
+    "path": "hello_agon/ordinary/result.json",
+    "sha256": "bcdf668f112a2c78b4d9cbe89c5f5fb0630cae95ee18d84a64d08d0a26693e66"
+  },
+  {
+    "path": "hello_agon/ordinary/returned.ppm",
+    "sha256": "e24734723fdf3255f42f652fd9da113352d820350d3762e1869dc8ab84efaf19"
+  },
+  {
+    "path": "hello_agon/ordinary/sdcard/autoexec.txt",
+    "sha256": "21729aa38b3dbd35d95a21052f5c59a291c1b6f4a49d8285b1e11e955c264944"
+  },
+  {
+    "path": "hello_agon/ordinary/sdcard/program.bin",
+    "sha256": "2069e2a4b068f56d1426c2d842fe11ae982ed1b6ed20091fec977dfae8cd7e32"
+  },
+  {
+    "path": "hello_agon/ordinary/source.nanz",
+    "sha256": "4684218e7110368e2122eff39a16dd792dea3bd335383cec6000507505831f77"
+  },
+  {
+    "path": "hello_agon/ordinary/stderr.txt",
+    "sha256": "d4a00d66cda290839c08c8ab134ff8e0a5cff4a6fac50a678b4ec259a16d9476"
+  },
+  {
+    "path": "hello_agon/ordinary/stdout.txt",
+    "sha256": "94fa82566872cd36d2a077f5568a656a41418f87585039c90b752b6dc884f59f"
+  },
+  {
+    "path": "hello_agon/ordinary/wire.bin",
+    "sha256": "e31e1ed482a65f60e59e6a93d3d38fc6b8c8cba0e8e923dfad360288585efdce"
+  },
+  {
+    "path": "hello_agon/size/asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/size/asm.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/size/before.ppm",
+    "sha256": "52e9509a7db48534dcb111ddb09ad69dea8d5d94058e85e50be3a336ef6af40f"
+  },
+  {
+    "path": "hello_agon/size/bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/size/bin.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/size/expected.bin",
+    "sha256": "b8bbd2ec4919d3dfa376ef982d2f73a211775b2ad1517ed8e5b46a74dd44c3ef"
+  },
+  {
+    "path": "hello_agon/size/program.asm",
+    "sha256": "011a4f1d76557493d673ef21b4ed5acb3d8107a592f2cfb814aa3a1ce2423f25"
+  },
+  {
+    "path": "hello_agon/size/program.bin",
+    "sha256": "2069e2a4b068f56d1426c2d842fe11ae982ed1b6ed20091fec977dfae8cd7e32"
+  },
+  {
+    "path": "hello_agon/size/result.json",
+    "sha256": "8813fbb897a88db1692448583bf385b228f094d54cd93eb10aa19ae86068c06b"
+  },
+  {
+    "path": "hello_agon/size/returned.ppm",
+    "sha256": "ffd64ae252885a168589b9109c14dc7e018888e2e107d2eddaf41e957019fd23"
+  },
+  {
+    "path": "hello_agon/size/sdcard/autoexec.txt",
+    "sha256": "21729aa38b3dbd35d95a21052f5c59a291c1b6f4a49d8285b1e11e955c264944"
+  },
+  {
+    "path": "hello_agon/size/sdcard/program.bin",
+    "sha256": "2069e2a4b068f56d1426c2d842fe11ae982ed1b6ed20091fec977dfae8cd7e32"
+  },
+  {
+    "path": "hello_agon/size/source.nanz",
+    "sha256": "4684218e7110368e2122eff39a16dd792dea3bd335383cec6000507505831f77"
+  },
+  {
+    "path": "hello_agon/size/stderr.txt",
+    "sha256": "47a65680fd426fec3b526ad4ec39a05861378c07b3f8ee67c5584ea3b8aaadd0"
+  },
+  {
+    "path": "hello_agon/size/stdout.txt",
+    "sha256": "54135ecc81384a081bb7e367e018fffad61f73d114d52308cb879c927364673e"
+  },
+  {
+    "path": "hello_agon/size/wire.bin",
+    "sha256": "557a39c31867bfeb6a7fecef57cffa9589eb030f77de78385335caed48517a8c"
+  },
+  {
+    "path": "hello_agon/speed/asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/speed/asm.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/speed/before.ppm",
+    "sha256": "ec03f0b9f9adda87db7395b3e0e383ccf295a3732465c95c3669d59e835852d7"
+  },
+  {
+    "path": "hello_agon/speed/bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/speed/bin.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_agon/speed/expected.bin",
+    "sha256": "b8bbd2ec4919d3dfa376ef982d2f73a211775b2ad1517ed8e5b46a74dd44c3ef"
+  },
+  {
+    "path": "hello_agon/speed/program.asm",
+    "sha256": "011a4f1d76557493d673ef21b4ed5acb3d8107a592f2cfb814aa3a1ce2423f25"
+  },
+  {
+    "path": "hello_agon/speed/program.bin",
+    "sha256": "2069e2a4b068f56d1426c2d842fe11ae982ed1b6ed20091fec977dfae8cd7e32"
+  },
+  {
+    "path": "hello_agon/speed/result.json",
+    "sha256": "2af5ff9b53f3f00ca1aa40c82af8cd868cfbf91ae0b49291a0c2311ab7018dee"
+  },
+  {
+    "path": "hello_agon/speed/returned.ppm",
+    "sha256": "9aea783f12bacbc7ada709dc9e066cb7c0f376935dd3fd49b10e87a3266bbf0c"
+  },
+  {
+    "path": "hello_agon/speed/sdcard/autoexec.txt",
+    "sha256": "21729aa38b3dbd35d95a21052f5c59a291c1b6f4a49d8285b1e11e955c264944"
+  },
+  {
+    "path": "hello_agon/speed/sdcard/program.bin",
+    "sha256": "2069e2a4b068f56d1426c2d842fe11ae982ed1b6ed20091fec977dfae8cd7e32"
+  },
+  {
+    "path": "hello_agon/speed/source.nanz",
+    "sha256": "4684218e7110368e2122eff39a16dd792dea3bd335383cec6000507505831f77"
+  },
+  {
+    "path": "hello_agon/speed/stderr.txt",
+    "sha256": "3cb02ad93d31d44156453b929339181722c4c07ad6ba72486496865cc518fe88"
+  },
+  {
+    "path": "hello_agon/speed/stdout.txt",
+    "sha256": "919fbb06622c475f06c6082eb2441de8f334a282ae137a5f60252c0cc048c142"
+  },
+  {
+    "path": "hello_agon/speed/wire.bin",
+    "sha256": "6228a38300dc37b009c1f97e42b7d78de839a37f13e45ede794b15830c31e9b3"
+  },
+  {
+    "path": "hello_world/ordinary/asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/ordinary/asm.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/ordinary/before.ppm",
+    "sha256": "280bf0ad2dc37fd0b81f5f63b5126ee36c3f128e5d4249e8990e40b31c847f6c"
+  },
+  {
+    "path": "hello_world/ordinary/bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/ordinary/bin.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/ordinary/expected.bin",
+    "sha256": "946d3b65b9a8e68417bf3f3cb21fa4a2f1b80d5cb6b1ae94100ff3e4b3ca6dd1"
+  },
+  {
+    "path": "hello_world/ordinary/program.asm",
+    "sha256": "94d91f25f339028f8cf04410b6fe31d2058e701a6506fcec903ed8162acb70e5"
+  },
+  {
+    "path": "hello_world/ordinary/program.bin",
+    "sha256": "89e840b7e79fe2f35e544dce2aa7411db8fe0185d2c35d429834b6aca265f6a2"
+  },
+  {
+    "path": "hello_world/ordinary/result.json",
+    "sha256": "13934d3821b519a50db9de096ff5e0714f85a60eeecc66f172b36a83010f0bb8"
+  },
+  {
+    "path": "hello_world/ordinary/returned.ppm",
+    "sha256": "b534be35f6450130354156e5684872b84282e043ccdcec027f316669808fa5b7"
+  },
+  {
+    "path": "hello_world/ordinary/sdcard/autoexec.txt",
+    "sha256": "21729aa38b3dbd35d95a21052f5c59a291c1b6f4a49d8285b1e11e955c264944"
+  },
+  {
+    "path": "hello_world/ordinary/sdcard/program.bin",
+    "sha256": "89e840b7e79fe2f35e544dce2aa7411db8fe0185d2c35d429834b6aca265f6a2"
+  },
+  {
+    "path": "hello_world/ordinary/source.nanz",
+    "sha256": "f6d88281bb19c637b1dcde8ccdcbc6a26eaba47e09153d892f160f5177d3d6f5"
+  },
+  {
+    "path": "hello_world/ordinary/stderr.txt",
+    "sha256": "391619012a5a11d8f066501f4bb2a3cf9d548e5411b97813b1b09ad6aa0f98ef"
+  },
+  {
+    "path": "hello_world/ordinary/stdout.txt",
+    "sha256": "a90672bda163e2b620d219c6da588000eac7714c21fd67c375bd340735261b18"
+  },
+  {
+    "path": "hello_world/ordinary/wire.bin",
+    "sha256": "6b456a12530b05cf64dd17f80bbf13a0bfd3490c4ea89857c8f40278f9aac812"
+  },
+  {
+    "path": "hello_world/size/asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/size/asm.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/size/before.ppm",
+    "sha256": "8c370914022f07de9d4073aebf873f6f77e26934a07b0cf84d714837e65f7817"
+  },
+  {
+    "path": "hello_world/size/bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/size/bin.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/size/expected.bin",
+    "sha256": "946d3b65b9a8e68417bf3f3cb21fa4a2f1b80d5cb6b1ae94100ff3e4b3ca6dd1"
+  },
+  {
+    "path": "hello_world/size/program.asm",
+    "sha256": "94d91f25f339028f8cf04410b6fe31d2058e701a6506fcec903ed8162acb70e5"
+  },
+  {
+    "path": "hello_world/size/program.bin",
+    "sha256": "89e840b7e79fe2f35e544dce2aa7411db8fe0185d2c35d429834b6aca265f6a2"
+  },
+  {
+    "path": "hello_world/size/result.json",
+    "sha256": "4a217d5be2b25f303bc1ae81f50e2a2b5358e439c1305e2662db7e590b4559fa"
+  },
+  {
+    "path": "hello_world/size/returned.ppm",
+    "sha256": "f454894423c662fa33b47f3e0ee2b30178e27488d03db8f9101d19338ae1f923"
+  },
+  {
+    "path": "hello_world/size/sdcard/autoexec.txt",
+    "sha256": "21729aa38b3dbd35d95a21052f5c59a291c1b6f4a49d8285b1e11e955c264944"
+  },
+  {
+    "path": "hello_world/size/sdcard/program.bin",
+    "sha256": "89e840b7e79fe2f35e544dce2aa7411db8fe0185d2c35d429834b6aca265f6a2"
+  },
+  {
+    "path": "hello_world/size/source.nanz",
+    "sha256": "f6d88281bb19c637b1dcde8ccdcbc6a26eaba47e09153d892f160f5177d3d6f5"
+  },
+  {
+    "path": "hello_world/size/stderr.txt",
+    "sha256": "a91e0a7781ec7dfbdb52b244c17e8c8cc89df3dac53c6e79952bf54532074fd2"
+  },
+  {
+    "path": "hello_world/size/stdout.txt",
+    "sha256": "919fbb06622c475f06c6082eb2441de8f334a282ae137a5f60252c0cc048c142"
+  },
+  {
+    "path": "hello_world/size/wire.bin",
+    "sha256": "27e3116ca114578e563b4d095518a9601909682113818f0ff3976ef501aae004"
+  },
+  {
+    "path": "hello_world/speed/asm.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/speed/asm.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/speed/before.ppm",
+    "sha256": "cfeea1c9529d28d3f5e17e981a22669c9ee8ec71b0785ed27b83e34ccd812ebf"
+  },
+  {
+    "path": "hello_world/speed/bin.compile.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/speed/bin.compile.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "hello_world/speed/expected.bin",
+    "sha256": "946d3b65b9a8e68417bf3f3cb21fa4a2f1b80d5cb6b1ae94100ff3e4b3ca6dd1"
+  },
+  {
+    "path": "hello_world/speed/program.asm",
+    "sha256": "94d91f25f339028f8cf04410b6fe31d2058e701a6506fcec903ed8162acb70e5"
+  },
+  {
+    "path": "hello_world/speed/program.bin",
+    "sha256": "89e840b7e79fe2f35e544dce2aa7411db8fe0185d2c35d429834b6aca265f6a2"
+  },
+  {
+    "path": "hello_world/speed/result.json",
+    "sha256": "44072680bcfccd81a425e1b067d6582594d964582c9d461cb98afdc78ded8f3a"
+  },
+  {
+    "path": "hello_world/speed/returned.ppm",
+    "sha256": "81c3aa6618b2c12c82606e0ff3c8336b020e3a78e985a2d86fc469e80538725e"
+  },
+  {
+    "path": "hello_world/speed/sdcard/autoexec.txt",
+    "sha256": "21729aa38b3dbd35d95a21052f5c59a291c1b6f4a49d8285b1e11e955c264944"
+  },
+  {
+    "path": "hello_world/speed/sdcard/program.bin",
+    "sha256": "89e840b7e79fe2f35e544dce2aa7411db8fe0185d2c35d429834b6aca265f6a2"
+  },
+  {
+    "path": "hello_world/speed/source.nanz",
+    "sha256": "f6d88281bb19c637b1dcde8ccdcbc6a26eaba47e09153d892f160f5177d3d6f5"
+  },
+  {
+    "path": "hello_world/speed/stderr.txt",
+    "sha256": "b7705f2865f3a18a9b61f5c0d34f78bbf9cfbffc50d1068646502822bd04d0d4"
+  },
+  {
+    "path": "hello_world/speed/stdout.txt",
+    "sha256": "71196087fbbdbb5af14a791308a641db965e4f041ac112c129b293f209957ff5"
+  },
+  {
+    "path": "hello_world/speed/wire.bin",
+    "sha256": "b867589f5934200ad863bbb665156c61d6b3c7ee96a24f828ddd933ecd85a8cd"
+  },
+  {
+    "path": "summary.json",
+    "sha256": "a502b588257e5f6bf77dd6ffe2ed07a33eedc3fee0c7972004d6bebd7e2511f9"
+  },
+  {
+    "path": "tui_render.nanz",
+    "sha256": "df324615b171bed89dc29a768d826551123604867bc3279fb20020fd784046f8"
+  },
+  {
+    "path": "vdp-tee.c",
+    "sha256": "ba5e4952c3139945ecab5a95187795e755f203817bc39a0de8873d4f1a64425f"
+  },
+  {
+    "path": "vdp-tee.so",
+    "sha256": "39986e3e255a097202a20aff850cb7f241b9ab0c1459f38be71fec10c622443b"
+  }
+]

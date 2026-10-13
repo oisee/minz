@@ -1,0 +1,51 @@
+=== RUN   TestProfileGuidedSumVMZ80
+    profile_guided_sum_test.go:184: original n=0 result=0 T-states=69 module_bytes=201
+    profile_guided_sum_test.go:184: original n=1 result=1 T-states=260 module_bytes=201
+    profile_guided_sum_test.go:184: original n=5 result=15 T-states=1024 module_bytes=201
+    profile_guided_sum_test.go:184: original n=16 result=136 T-states=3125 module_bytes=201
+    profile_guided_sum_test.go:184: original n=64 result=32 T-states=12293 module_bytes=201
+    profile_guided_sum_test.go:184: original n=255 result=128 T-states=48774 module_bytes=201
+    profile_guided_sum_test.go:184: pointer-walk n=0 result=0 T-states=232 module_bytes=251
+    profile_guided_sum_test.go:184: pointer-walk n=1 result=1 T-states=278 module_bytes=251
+    profile_guided_sum_test.go:184: pointer-walk n=5 result=15 T-states=426 module_bytes=251
+    profile_guided_sum_test.go:184: pointer-walk n=16 result=136 T-states=833 module_bytes=251
+    profile_guided_sum_test.go:184: pointer-walk n=64 result=32 T-states=2609 module_bytes=251
+    profile_guided_sum_test.go:184: pointer-walk n=255 result=128 T-states=9676 module_bytes=251
+    profile_guided_sum_test.go:184: selected n=0 result=0 T-states=232 module_bytes=251
+    profile_guided_sum_test.go:184: selected n=1 result=1 T-states=278 module_bytes=251
+    profile_guided_sum_test.go:184: selected n=5 result=15 T-states=426 module_bytes=251
+    profile_guided_sum_test.go:184: selected n=16 result=136 T-states=833 module_bytes=251
+    profile_guided_sum_test.go:184: selected n=64 result=32 T-states=2609 module_bytes=251
+    profile_guided_sum_test.go:184: selected n=255 result=128 T-states=9676 module_bytes=251
+    profile_guided_sum_test.go:259: totals=map[original:65545 pointer-walk:14054 selected:14054] decisions=[{Compatibility:0xd33930382d0 SiteID:413717c0664c475bf9c67ee592bac740dccdcf0b002c75bd2dfb19155938ed2f Variant:pointer-walk Reason:lower measured workload T-states OriginalTStates:65545 PointerTStates:14054 Model:{CompilerID:executable-sha256:adf7a39a9af50ecf6c6485c353c6461990e2671e53c32a15429472fe307a34b4 SemanticsID:minz.unoptimised-mir2-vm-loop-events/v2 Function:sum_array HIRSHA256:846c32ad8bfa6acb4aa40c7c2aa4bb0109c5e0ae641ea8bf9d4e8139f7a08091 TargetID:module-target:0/model:cpm-z80-v1 CompilationID: EvidenceID:sum-array-z80-coalesced-edges-v5 OriginalBytes:201 PointerBytes:251 OriginalEntry:69 OriginalIteration:191 EqualEntryExtra:7 FastEntry:241 FastZeroEntry:232 FastZeroMeasured:true FallbackEntry:258 FallbackIteration:191 FallbackMeasured:true FastIteration:37}}]
+--- PASS: TestProfileGuidedSumVMZ80 (1.18s)
+=== RUN   TestMeasureLoopCostModel
+--- PASS: TestMeasureLoopCostModel (19.62s)
+=== RUN   TestMultiFunctionProfileVMZ80
+=== RUN   TestMultiFunctionProfileVMZ80/stale_first_config
+=== RUN   TestMultiFunctionProfileVMZ80/stale_second_config
+=== RUN   TestMultiFunctionProfileVMZ80/duplicate
+=== RUN   TestMultiFunctionProfileVMZ80/stale_hir
+=== RUN   TestMultiFunctionProfileVMZ80/stale_compiler
+=== RUN   TestMultiFunctionProfileVMZ80/missing_function
+=== RUN   TestMultiFunctionProfileVMZ80/both
+=== RUN   TestMultiFunctionProfileVMZ80/empty
+=== RUN   TestMultiFunctionProfileVMZ80/missing
+=== RUN   TestMultiFunctionProfileVMZ80/stale_profile
+=== RUN   TestMultiFunctionProfileVMZ80/size_config
+=== RUN   TestMultiFunctionProfileVMZ80/contract_strategy
+--- PASS: TestMultiFunctionProfileVMZ80 (0.39s)
+    --- PASS: TestMultiFunctionProfileVMZ80/stale_first_config (0.00s)
+    --- PASS: TestMultiFunctionProfileVMZ80/stale_second_config (0.00s)
+    --- PASS: TestMultiFunctionProfileVMZ80/duplicate (0.04s)
+    --- PASS: TestMultiFunctionProfileVMZ80/stale_hir (0.02s)
+    --- PASS: TestMultiFunctionProfileVMZ80/stale_compiler (0.03s)
+    --- PASS: TestMultiFunctionProfileVMZ80/missing_function (0.02s)
+    --- PASS: TestMultiFunctionProfileVMZ80/both (0.00s)
+    --- PASS: TestMultiFunctionProfileVMZ80/empty (0.03s)
+    --- PASS: TestMultiFunctionProfileVMZ80/missing (0.00s)
+    --- PASS: TestMultiFunctionProfileVMZ80/stale_profile (0.03s)
+    --- PASS: TestMultiFunctionProfileVMZ80/size_config (0.00s)
+    --- PASS: TestMultiFunctionProfileVMZ80/contract_strategy (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	21.204s

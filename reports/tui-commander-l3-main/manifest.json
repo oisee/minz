@@ -1,0 +1,250 @@
+{
+  "code_commit": "3a0c5f0a",
+  "files": [
+    {
+      "path": "events.json",
+      "bytes": 2540,
+      "sha256": "20f6118223b0a5c398e8bce5e49b0daa4310f647b6872dcc23c61771eec26b4a"
+    },
+    {
+      "path": "executable.json",
+      "bytes": 402,
+      "sha256": "8adbe17bfdcc8dab5eedf3ffd03be2965f02b2d8b01bf11ac159906774738449"
+    },
+    {
+      "path": "execution/expected-stdout.bin",
+      "bytes": 399,
+      "sha256": "c4cc5e4be3783090db3a58904036e8bf71a2b274ae416faf4f6652dfe47a2d4b"
+    },
+    {
+      "path": "execution/grace-size/allocation.json",
+      "bytes": 4717,
+      "sha256": "92991e62c26462824a2fdd6c1e3dcb00195a7e833824e232659adec2d8193516"
+    },
+    {
+      "path": "execution/grace-size/final-events.json",
+      "bytes": 2539,
+      "sha256": "59b4aa397ffbb9c619d712d7e43e7752f5a9aff80cc3f97f1198cfe402fecd9e"
+    },
+    {
+      "path": "execution/grace-size/final-stdout.bin",
+      "bytes": 399,
+      "sha256": "c4cc5e4be3783090db3a58904036e8bf71a2b274ae416faf4f6652dfe47a2d4b"
+    },
+    {
+      "path": "execution/grace-size/final.mir",
+      "bytes": 3973,
+      "sha256": "2ffe7d55df3fb682917db50c72eb2788e76bb68b90c2d0aba70cd68d33e94501"
+    },
+    {
+      "path": "execution/grace-size/native-events.json",
+      "bytes": 2539,
+      "sha256": "59b4aa397ffbb9c619d712d7e43e7752f5a9aff80cc3f97f1198cfe402fecd9e"
+    },
+    {
+      "path": "execution/grace-size/native-stdout.bin",
+      "bytes": 399,
+      "sha256": "c4cc5e4be3783090db3a58904036e8bf71a2b274ae416faf4f6652dfe47a2d4b"
+    },
+    {
+      "path": "execution/grace-size/program.a80",
+      "bytes": 3836,
+      "sha256": "05a1637f745226e25820345f93c0496680c5a25d3f1cc14f3a4cb4257f20c81b"
+    },
+    {
+      "path": "execution/grace-size/program.bin",
+      "bytes": 467,
+      "sha256": "95c34edb30a62a59c718c302c7a2309a4408056c44a706d92765d098e77795c8"
+    },
+    {
+      "path": "execution/grace-size/raw-events.json",
+      "bytes": 2539,
+      "sha256": "59b4aa397ffbb9c619d712d7e43e7752f5a9aff80cc3f97f1198cfe402fecd9e"
+    },
+    {
+      "path": "execution/grace-size/raw-stdout.bin",
+      "bytes": 399,
+      "sha256": "c4cc5e4be3783090db3a58904036e8bf71a2b274ae416faf4f6652dfe47a2d4b"
+    },
+    {
+      "path": "execution/grace-size/raw.mir",
+      "bytes": 4837,
+      "sha256": "aa8c7e20a2a4177105fc7c578ddfb872dcfe5e10d4ce922de54af4b04b32f677"
+    },
+    {
+      "path": "execution/grace-size/registers.json",
+      "bytes": 129,
+      "sha256": "34d0a6b55ab45f1626109939931db7204ff2d38caa1ba4bc24bdff88d6d0c742"
+    },
+    {
+      "path": "execution/grace-size/summary.json",
+      "bytes": 191,
+      "sha256": "8c7a1f27252447a6850dcaf09895ebed9797b2a476b0c55c88e08e552ef9399f"
+    },
+    {
+      "path": "execution/grace-speed/allocation.json",
+      "bytes": 4717,
+      "sha256": "92991e62c26462824a2fdd6c1e3dcb00195a7e833824e232659adec2d8193516"
+    },
+    {
+      "path": "execution/grace-speed/final-events.json",
+      "bytes": 2539,
+      "sha256": "59b4aa397ffbb9c619d712d7e43e7752f5a9aff80cc3f97f1198cfe402fecd9e"
+    },
+    {
+      "path": "execution/grace-speed/final-stdout.bin",
+      "bytes": 399,
+      "sha256": "c4cc5e4be3783090db3a58904036e8bf71a2b274ae416faf4f6652dfe47a2d4b"
+    },
+    {
+      "path": "execution/grace-speed/final.mir",
+      "bytes": 3973,
+      "sha256": "2ffe7d55df3fb682917db50c72eb2788e76bb68b90c2d0aba70cd68d33e94501"
+    },
+    {
+      "path": "execution/grace-speed/native-events.json",
+      "bytes": 2539,
+      "sha256": "59b4aa397ffbb9c619d712d7e43e7752f5a9aff80cc3f97f1198cfe402fecd9e"
+    },
+    {
+      "path": "execution/grace-speed/native-stdout.bin",
+      "bytes": 399,
+      "sha256": "c4cc5e4be3783090db3a58904036e8bf71a2b274ae416faf4f6652dfe47a2d4b"
+    },
+    {
+      "path": "execution/grace-speed/program.a80",
+      "bytes": 3836,
+      "sha256": "05a1637f745226e25820345f93c0496680c5a25d3f1cc14f3a4cb4257f20c81b"
+    },
+    {
+      "path": "execution/grace-speed/program.bin",
+      "bytes": 467,
+      "sha256": "95c34edb30a62a59c718c302c7a2309a4408056c44a706d92765d098e77795c8"
+    },
+    {
+      "path": "execution/grace-speed/raw-events.json",
+      "bytes": 2539,
+      "sha256": "59b4aa397ffbb9c619d712d7e43e7752f5a9aff80cc3f97f1198cfe402fecd9e"
+    },
+    {
+      "path": "execution/grace-speed/raw-stdout.bin",
+      "bytes": 399,
+      "sha256": "c4cc5e4be3783090db3a58904036e8bf71a2b274ae416faf4f6652dfe47a2d4b"
+    },
+    {
+      "path": "execution/grace-speed/raw.mir",
+      "bytes": 4837,
+      "sha256": "aa8c7e20a2a4177105fc7c578ddfb872dcfe5e10d4ce922de54af4b04b32f677"
+    },
+    {
+      "path": "execution/grace-speed/registers.json",
+      "bytes": 129,
+      "sha256": "34d0a6b55ab45f1626109939931db7204ff2d38caa1ba4bc24bdff88d6d0c742"
+    },
+    {
+      "path": "execution/grace-speed/summary.json",
+      "bytes": 191,
+      "sha256": "8c7a1f27252447a6850dcaf09895ebed9797b2a476b0c55c88e08e552ef9399f"
+    },
+    {
+      "path": "execution/ordinary/allocation.json",
+      "bytes": 4717,
+      "sha256": "92991e62c26462824a2fdd6c1e3dcb00195a7e833824e232659adec2d8193516"
+    },
+    {
+      "path": "execution/ordinary/final-events.json",
+      "bytes": 2539,
+      "sha256": "59b4aa397ffbb9c619d712d7e43e7752f5a9aff80cc3f97f1198cfe402fecd9e"
+    },
+    {
+      "path": "execution/ordinary/final-stdout.bin",
+      "bytes": 399,
+      "sha256": "c4cc5e4be3783090db3a58904036e8bf71a2b274ae416faf4f6652dfe47a2d4b"
+    },
+    {
+      "path": "execution/ordinary/final.mir",
+      "bytes": 3973,
+      "sha256": "2ffe7d55df3fb682917db50c72eb2788e76bb68b90c2d0aba70cd68d33e94501"
+    },
+    {
+      "path": "execution/ordinary/native-events.json",
+      "bytes": 2539,
+      "sha256": "59b4aa397ffbb9c619d712d7e43e7752f5a9aff80cc3f97f1198cfe402fecd9e"
+    },
+    {
+      "path": "execution/ordinary/native-stdout.bin",
+      "bytes": 399,
+      "sha256": "c4cc5e4be3783090db3a58904036e8bf71a2b274ae416faf4f6652dfe47a2d4b"
+    },
+    {
+      "path": "execution/ordinary/program.a80",
+      "bytes": 3852,
+      "sha256": "0617b488df69406a04ef4a109df96c4ed6701a588fa05d0187224f8eeeab5c98"
+    },
+    {
+      "path": "execution/ordinary/program.bin",
+      "bytes": 467,
+      "sha256": "95c34edb30a62a59c718c302c7a2309a4408056c44a706d92765d098e77795c8"
+    },
+    {
+      "path": "execution/ordinary/raw-events.json",
+      "bytes": 2539,
+      "sha256": "59b4aa397ffbb9c619d712d7e43e7752f5a9aff80cc3f97f1198cfe402fecd9e"
+    },
+    {
+      "path": "execution/ordinary/raw-stdout.bin",
+      "bytes": 399,
+      "sha256": "c4cc5e4be3783090db3a58904036e8bf71a2b274ae416faf4f6652dfe47a2d4b"
+    },
+    {
+      "path": "execution/ordinary/raw.mir",
+      "bytes": 4837,
+      "sha256": "aa8c7e20a2a4177105fc7c578ddfb872dcfe5e10d4ce922de54af4b04b32f677"
+    },
+    {
+      "path": "execution/ordinary/registers.json",
+      "bytes": 129,
+      "sha256": "34d0a6b55ab45f1626109939931db7204ff2d38caa1ba4bc24bdff88d6d0c742"
+    },
+    {
+      "path": "execution/ordinary/summary.json",
+      "bytes": 191,
+      "sha256": "8c7a1f27252447a6850dcaf09895ebed9797b2a476b0c55c88e08e552ef9399f"
+    },
+    {
+      "path": "first-probe.txt",
+      "bytes": 152,
+      "sha256": "61390f9210d7f12d4ecf60f105249171a41d543a537abc4b8fbbb056729e5439"
+    },
+    {
+      "path": "freeze.json",
+      "bytes": 355,
+      "sha256": "6f3cb242f0cc7a81b63483c41b909af47a4953071e53f04db828253a1eb2a334"
+    },
+    {
+      "path": "meta.go.txt",
+      "bytes": 14547,
+      "sha256": "13552d1dedc4bfbf63ce89c4b771da3599d371804359d83eb4af92de7e86a1b2"
+    },
+    {
+      "path": "parse.go.txt",
+      "bytes": 183595,
+      "sha256": "726c2eb68fccd2aaad69fc7107846c507af4da7fdabbdef0b4318a5fa97a5722"
+    },
+    {
+      "path": "retained-proof.txt",
+      "bytes": 287,
+      "sha256": "a058540d459d93ac832591dd2ef91bbfff6d26033ffce68274e84b17c47d4c45"
+    },
+    {
+      "path": "source.nanz",
+      "bytes": 2910,
+      "sha256": "182dfacd09df25de965104cd0a6242dfa5d09b5ccf25f7e6e7f2d81f6a2550a3"
+    },
+    {
+      "path": "tui_host.go.txt",
+      "bytes": 7100,
+      "sha256": "8d3fe8aaf13adf2f933a123a37bf847350205d9c933a180f675b761de4407ec1"
+    }
+  ]
+}

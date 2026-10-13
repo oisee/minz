@@ -1,6 +1,10 @@
 package mir2
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/minz/minzc/pkg/z80spec"
+)
 
 // parallelCopy is a single register-to-register move in a parallel copy sequence.
 type parallelCopy struct {
@@ -38,7 +42,8 @@ func (g *z80cg) buildReturnCopies(vals []Reg) []parallelCopy {
 }
 
 // buildBlockCopies computes the parallel copies needed to pass args to a
-// target block's formal parameters.  Returns only moves where src ≠ dst.
+// target block's formal parameters, including coalesced destinations so scratch
+// selection knows which registers already hold their final values.
 func (g *z80cg) buildBlockCopies(f *Func, targetName string, args []Reg) []parallelCopy {
 	if len(args) == 0 {
 		return nil
@@ -65,7 +70,9 @@ func (g *z80cg) buildBlockCopies(f *Func, targetName string, args []Reg) []paral
 		// moved to their canonical destination in the target block.
 		src := g.loc(arg)
 		if src == dst {
-			continue // pre-coalescing or same-location allocation — no copy needed
+			// Keep coalesced destinations visible to cycle scratch selection.
+			copies = append(copies, parallelCopy{srcName: src, dstName: dst, ty: ty})
+			continue
 		}
 		// If this argument is a compile-time constant, mark it for deferred
 		// rematerialisation AFTER all register-to-register copies are resolved.
@@ -93,6 +100,110 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 	if len(copies) == 0 {
 		return
 	}
+	// Snapshot wide inputs before any destination write. Word cycle shortcuts
+	// only move the main bank; a DWord edge must also preserve shadow values.
+	// Non-wide moves are resolved while all wide originals are on the stack.
+	var wide, narrow []parallelCopy
+	for _, c := range copies {
+		if z80ValueWidth(c.ty) >= 24 && !c.isImm && c.srcName != c.dstName {
+			wide = append(wide, c)
+		} else {
+			narrow = append(narrow, c)
+		}
+	}
+	if len(wide) > 0 {
+		for _, c := range wide {
+			for bank := 0; bank < 2; bank++ {
+				if isSpill(c.srcName) {
+					g.emit("    PUSH HL")
+					if bank == 0 {
+						g.loadSpill16("HL", c.srcName)
+					} else if z80ValueWidth(c.ty) == 24 {
+						g.emit("    PUSH AF")
+						g.emitLD8("L", c.srcName+"+2")
+						g.emit("    LD H, 0")
+						g.emit("    POP AF")
+					} else {
+						g.loadSpill16("HL", c.srcName+"+2")
+					}
+					g.emit("    EX (SP), HL")
+				} else {
+					g.emitf("    PUSH %s", c.srcName)
+				}
+				g.emit("    EXX")
+			}
+		}
+		g.emitParallelCopy(narrow)
+		for i := len(wide) - 1; i >= 0; i-- {
+			c := wide[i]
+			for bank := 1; bank >= 0; bank-- {
+				g.emit("    EXX")
+				if isSpill(c.dstName) {
+					g.emit("    EX (SP), HL")
+					if bank == 0 {
+						g.storeSpill16(c.dstName, "HL")
+					} else if z80ValueWidth(c.ty) == 24 {
+						g.emit("    PUSH AF")
+						g.emitLD8(c.dstName+"+2", "L")
+						g.emit("    POP AF")
+					} else {
+						g.storeSpill16(c.dstName+"+2", "HL")
+					}
+					g.emit("    POP HL")
+				} else {
+					g.emitf("    POP %s", c.dstName)
+				}
+			}
+		}
+		return
+	}
+	// A pair and either of its halves are the same storage. Resolve mixed
+	// pair/byte shuffles at byte granularity so both dependency ordering and
+	// cycle breaking see the actual registers (e.g. IY->DE, C->IYH).
+	partialOverlap := false
+	for _, a := range copies {
+		for _, b := range copies {
+			if !a.isImm && !b.isImm && a.dstName != b.srcName &&
+				z80spec.Overlaps(a.dstName, b.srcName) {
+				partialOverlap = true
+			}
+		}
+	}
+	if partialOverlap {
+		var bytes []parallelCopy
+		for _, c := range copies {
+			if c.isImm || z80ValueWidth(c.ty) > 16 || c.srcName == "F" || c.dstName == "F" {
+				bytes = append(bytes, c)
+				continue
+			}
+			if z80ValueWidth(c.ty) > 8 && (isPairReg(c.srcName) || isSpill(c.srcName)) &&
+				(isPairReg(c.dstName) || isSpill(c.dstName)) {
+				srcHi, srcLo := highByte(c.srcName), lowByte(c.srcName)
+				dstHi, dstLo := highByte(c.dstName), lowByte(c.dstName)
+				if isSpill(c.srcName) {
+					srcHi, srcLo = c.srcName+"+1", c.srcName
+				}
+				if isSpill(c.dstName) {
+					dstHi, dstLo = c.dstName+"+1", c.dstName
+				}
+				bytes = append(bytes,
+					parallelCopy{srcName: srcHi, dstName: dstHi, ty: TyU8},
+					parallelCopy{srcName: srcLo, dstName: dstLo, ty: TyU8})
+			} else {
+				// Match emitSingleCopy's truncation/zero-extension semantics.
+				c.ty = TyU8
+				if isPairReg(c.srcName) {
+					c.srcName = lowByte(c.srcName)
+				}
+				if isPairReg(c.dstName) {
+					bytes = append(bytes, parallelCopy{dstName: highByte(c.dstName), ty: TyU8, isImm: true})
+					c.dstName = lowByte(c.dstName)
+				}
+				bytes = append(bytes, c)
+			}
+		}
+		copies = bytes
+	}
 	type move struct {
 		src, dst string
 		ty       Ty
@@ -110,7 +221,7 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 	}
 	moves := make([]move, len(regCopies))
 	for i, c := range regCopies {
-		moves[i] = move{src: c.srcName, dst: c.dstName, ty: c.ty}
+		moves[i] = move{src: c.srcName, dst: c.dstName, ty: c.ty, done: c.srcName == c.dstName}
 	}
 
 	for {
@@ -178,7 +289,7 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 
 		// General cycle: break with a temporary.
 		m := &moves[first]
-		if m.ty.Width() <= 8 {
+		if z80ValueWidth(m.ty) <= 8 {
 			// u8 cycle: break by saving the first node's source to a scratch register.
 			//
 			// Walk BACKWARD through the cycle so we always read old values.
@@ -188,9 +299,8 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 			//   LD E, C     (backward: who writes TO E? C→E. C still original.)
 			//   LD C, A     (put D_old into C via scratch)
 			//
-			// When A is part of the cycle, using A as scratch would overwrite it
-			// during the walk before the final restore.  Pick the first 8-bit
-			// register not involved in any pending move instead.
+			// Only borrow A, saving AF first. Other unused byte registers may
+			// hold values live across the edge, outside this copy list.
 			cycleRegs := map[string]bool{}
 			for i := range moves {
 				if !moves[i].done {
@@ -203,21 +313,75 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 				}
 			}
 			scratch := "A"
-			if cycleRegs["A"] {
-				for _, r := range []string{"C", "E", "H", "L", "D", "B"} {
-					if !cycleRegs[r] {
-						scratch = r
+
+			if cycleRegs[scratch] {
+				// A main-bank byte cycle can borrow an entire disjoint pair.
+				// Saving that pair preserves values live outside the copy list;
+				// checking every original operand (including identities, completed
+				// copies and immediates) protects values within the list too.
+				var cycle []int
+				cur := m.src
+				mainByte := func(name string) bool {
+					return name == "A" || name == "B" || name == "C" || name == "D" || name == "E" || name == "H" || name == "L"
+				}
+				closed := mainByte(m.src) && mainByte(m.dst)
+				cycle = append(cycle, first)
+				for closed && cur != m.dst {
+					found := -1
+					for i := range moves {
+						if !moves[i].done && i != first && moves[i].dst == cur {
+							found = i
+							break
+						}
+					}
+					if found < 0 || len(cycle) >= len(moves) || z80ValueWidth(moves[found].ty) > 8 ||
+						!mainByte(moves[found].src) || !mainByte(moves[found].dst) {
+						closed = false
+						break
+					}
+					cycle = append(cycle, found)
+					cur = moves[found].src
+				}
+				if closed {
+					for _, pair := range []string{"BC", "DE", "HL"} {
+						free := true
+						for _, c := range copies {
+							if z80spec.Overlaps(pair, c.dstName) || (!c.isImm && z80spec.Overlaps(pair, c.srcName)) {
+								free = false
+								break
+							}
+						}
+						if !free {
+							continue
+						}
+						tmp := highByte(pair)
+						g.emitf("    PUSH %s", pair)
+						g.emitLD8(tmp, m.src)
+						for _, i := range cycle[1:] {
+							g.emitLD8(moves[i].dst, moves[i].src)
+						}
+						g.emitLD8(m.dst, tmp)
+						g.emitf("    POP %s", pair)
+						for _, i := range cycle {
+							moves[i].done = true
+						}
 						break
 					}
 				}
-			}
-
-			if cycleRegs[scratch] {
-				// All seven byte registers are occupied. Snapshot the pending
-				// sources on the stack; shadow AF protects the main accumulator.
+				if m.done {
+					continue
+				}
+				// A participates in the shuffle. Snapshot the pending sources on
+				// the stack; shadow AF protects the main accumulator.
+				// Give shadow F the original flags too: a snapshot read through
+				// shadow A may subsequently be popped into the main accumulator.
+				g.emit("    PUSH AF")
+				g.emit("    EX AF, AF'")
+				g.emit("    POP AF")
+				g.emit("    EX AF, AF'")
 				var pending []int
 				for i := range moves {
-					if moves[i].done {
+					if moves[i].done || z80ValueWidth(moves[i].ty) > 8 {
 						continue
 					}
 					pending = append(pending, i)
@@ -246,6 +410,7 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 			}
 
 			firstDst := m.dst
+			g.emit("    PUSH AF")
 			if m.src != scratch {
 				g.emitSingleCopy(m.src, scratch, m.ty)
 			}
@@ -269,6 +434,7 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 			if firstDst != scratch {
 				g.emitSingleCopy(scratch, firstDst, m.ty)
 			}
+			g.emit("    POP AF")
 		} else {
 			// Walk backwards around a word cycle, just as for byte cycles.
 			// Saving src frees src, not dst: BC->HL, HL->DE, DE->BC
@@ -324,11 +490,20 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 				if i > 0 {
 					addr += fmt.Sprintf("+%d", i)
 				}
-				g.emitf("    LD (%s), A", addr)
+				g.emitNativeSpillf(c.dstName, i, 1, true, "    LD (%s), A", addr)
 			}
 			g.emit("    EX AF, AF'")
-		} else if c.ty.Width() <= 8 {
+		} else if z80ValueWidth(c.ty) <= 8 {
 			g.emitf("    LD %s, %d", c.dstName, c.immVal&0xFF)
+		} else if z80ValueWidth(c.ty) >= 24 {
+			g.emitf("    LD %s, %d", c.dstName, c.immVal&0xFFFF)
+			g.emit("    EXX")
+			hiMask := int64(0xFFFF)
+			if z80ValueWidth(c.ty) == 24 {
+				hiMask = 0xFF
+			}
+			g.emitf("    LD %s, %d", c.dstName, (c.immVal>>16)&hiMask)
+			g.emit("    EXX")
 		} else {
 			g.emitf("    LD %s, %d", c.dstName, c.immVal&0xFFFF)
 		}
@@ -343,7 +518,7 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 	}
 	if isZ80WideInt(ty) {
 		g.emitMov32(dst, src)
-		if ty.Width() == 24 && isPairReg(dst) {
+		if z80ValueWidth(ty) == 24 && isPairReg(dst) {
 			g.emit("    EXX")
 			g.emitLD8(highByte(dst), "0")
 			g.emit("    EXX")
@@ -353,7 +528,7 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 	// F register: cannot be accessed directly. Materialise flag→register or
 	// register→flag via the same logic as emitMov.
 	if src == "F" {
-		if g.emitKnownFlagCopy(dst, ty.Width()) {
+		if g.emitKnownFlagCopy(dst, z80ValueWidth(ty)) {
 			return
 		}
 		// Flag → register: SBC A,A materialises carry into A (0xFF/0x00).
@@ -380,19 +555,16 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 		g.invalidate("A")
 		return
 	}
-	if ty.Width() <= 8 {
+	if z80ValueWidth(ty) <= 8 {
 		switch {
 		case isSpill(src) && dst == "A":
-			g.emitf("    LD A, (%s)", src)
+			g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
 		case isSpill(src):
-			g.emitf("    LD A, (%s)", src)
-			g.emitLD8(dst, "A")
-			g.invalidate("A")
+			g.emitLD8(dst, src)
 		case isSpill(dst) && src == "A":
-			g.emitf("    LD (%s), A", dst)
+			g.emitNativeSpillf(dst, 0, 1, true, "    LD (%s), A", dst)
 		case isSpill(dst):
-			g.emitLDA(src)
-			g.emitf("    LD (%s), A", dst)
+			g.emitLD8(dst, src)
 		case (isIXYReg(src) && (dst == "H" || dst == "L")) ||
 			(isIXYReg(dst) && (src == "H" || src == "L")):
 			// DD/FD prefix conflict: LD H,IXH encodes as LD IXH,IXH (NOP).
@@ -421,10 +593,20 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 			g.emitLD8(dst, src)
 		}
 	} else if isSpill(src) && isSpill(dst) {
-		// Spill-to-spill: route through HL.
+		// Spill-to-spill: HL is scratch. A TSMC destination additionally
+		// uses A while patching immediate bytes; preserve both live sources.
+		tsmcDestination := g.tsmcPairByAddr(dst) != nil
+		if tsmcDestination {
+			g.emit("    PUSH AF")
+		}
+		g.emit("    PUSH HL")
 		g.loadSpill16("HL", src)
 		g.storeSpill16(dst, "HL")
-		g.invalidate("HL")
+		g.emit("    POP HL")
+		if tsmcDestination {
+			g.emit("    POP AF")
+			g.invalidate("A")
+		}
 	} else if isSpill(src) {
 		// LocMem spill → register: use loadSpill16 (handles TSMC).
 		if isPairReg(dst) {

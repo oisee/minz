@@ -1,0 +1,70 @@
+{
+  "schema": "minz.published-current-evidence-integrity/v1",
+  "site_source_commit": "c2b19351c3234bb889f523915b03e767a0108e8e",
+  "confirmed_site_version": 59,
+  "scope": "Exact archives in retained published source; each inventory-listed payload verified against exact archive-relative path. No new native execution or claim that all local files are published.",
+  "archives": [
+    {
+      "archive": "grace-sum-decimal-cost-refresh.tar.xz",
+      "sha256": "99b28f6dbab0e3d31ceb64ac566409ccfe497ed32b0e7a9903a1f7990022fb45",
+      "bytes": 13428,
+      "verified_inventory_payloads": 153
+    },
+    {
+      "archive": "grace-sum-decimal-reassembly-audit.tar.xz",
+      "sha256": "5276d40fbc8756ef4de4d622b37ae25a1bfd44bee656c1c4d245de94f5aa4bc3",
+      "bytes": 4244,
+      "verified_inventory_payloads": 2
+    },
+    {
+      "archive": "grace-cpm-memory-capture.tar.xz",
+      "sha256": "7f1632ce4ae88bff2cbea0a1a6ddd85d61ae6e4e0e50a9ace2043c0ac130acaf",
+      "bytes": 19160,
+      "verified_inventory_payloads": 17
+    },
+    {
+      "archive": "grace-self-lanz-cpm-smoke.tar.xz",
+      "sha256": "cffd856a3774c391629aac4c4ceafb9eef66cc87b074d023a04f8ef3b04a82c0",
+      "bytes": 19212,
+      "verified_inventory_payloads": 15
+    },
+    {
+      "archive": "grace-print-u8-argument.tar.xz",
+      "sha256": "b70eaf390eee91b92cdf4317017c2811d81806440d466dc7dbdd06ad39b6022c",
+      "bytes": 62528,
+      "verified_inventory_payloads": 1617
+    },
+    {
+      "archive": "grace-call-spill-certificate-plumbing.tar.xz",
+      "sha256": "e5b075597213908af768e75f269f71d4abaedcbaaaf57726052c74199a250b74",
+      "bytes": 1907464,
+      "verified_inventory_payloads": 234
+    },
+    {
+      "archive": "grace-string-representation-artifacts.tar.xz",
+      "sha256": "b8999e4a352b5910c2554038db571bc9b39ab18b551cf88d7d4029eb227df22b",
+      "bytes": 130636,
+      "verified_inventory_payloads": 384
+    },
+    {
+      "archive": "grace-string-legacy-accumulator-artifacts.tar.xz",
+      "sha256": "0dee35d877e9b2c72aa34fb031bc8c9ca20ce6fa44b190282def76748b475efa",
+      "bytes": 47296,
+      "verified_inventory_payloads": 355
+    },
+    {
+      "archive": "grace-recursive-spill-call-save-artifacts.tar.xz",
+      "sha256": "cd17644dce4723fb9d4bc4464a5d2f8bbe9e7bcf58ff6c6eb8c8e5a35ff41390",
+      "bytes": 15272,
+      "verified_inventory_payloads": 63
+    },
+    {
+      "archive": "grace-call-spill-full30.tar.xz",
+      "sha256": "41d5a75fa1ecb3cb20132891f5411f5c293acf5b8a026f3b175c28eef83aee91",
+      "bytes": 4931280,
+      "verified_inventory_payloads": 823
+    }
+  ],
+  "verified_payloads": 3663,
+  "status": "PASS"
+}

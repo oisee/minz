@@ -9,14 +9,14 @@
 //   - Not extern, not recursive
 //
 // Inlining steps for each qualifying CALL in a loop-body block:
-//   1. Compute vreg offset = max(callerVregs) + 1
-//   2. Clone callee blocks (vreg += offset, labels = callsite_prefix + callee_label)
-//   3. Substitute callee param vregs → caller arg vregs (from inst.Args)
-//   4. Split caller block at the CALL instruction:
-//        B_before: ops[0..callIdx-1], Term = TermJmp(cloned_entry, no args)
-//        cloned callee blocks: TermRet → TermJmp(B_after, [retVreg+offset])
-//        B_after: ops[callIdx+1..end], Params = [callDst], Term = original term
-//   5. Splice all new blocks into f.Blocks after the original caller block
+//  1. Compute vreg offset = max(callerVregs) + 1
+//  2. Clone callee blocks (vreg += offset, labels = callsite_prefix + callee_label)
+//  3. Substitute callee param vregs → caller arg vregs (from inst.Args)
+//  4. Split caller block at the CALL instruction:
+//     B_before: ops[0..callIdx-1], Term = TermJmp(cloned_entry, no args)
+//     cloned callee blocks: TermRet → TermJmp(B_after, [retVreg+offset])
+//     B_after: ops[callIdx+1..end], Params = [callDst], Term = original term
+//  5. Splice all new blocks into f.Blocks after the original caller block
 //
 // This is standard compiler practice (LLVM inlines at LLVM-IR level).
 // After inlining, LowerFunc + solver see one enlarged function with no CALL.
@@ -267,6 +267,7 @@ func cloneBlock(b *mir2.Block, offset mir2.Reg, subst map[mir2.Reg]mir2.Reg, pre
 	// Clone instructions.
 	for _, inst := range b.Insts {
 		ni := *inst // shallow copy
+		mir2.CloneCallABIMetadata(&ni, inst)
 		ni.Dst = applySubst(inst.Dst, offset, subst)
 		if inst.Src[0] != mir2.NoReg {
 			ni.Src[0] = applySubst(inst.Src[0], offset, subst)

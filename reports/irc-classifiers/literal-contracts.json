@@ -1,0 +1,326 @@
+[
+  {
+    "line": 89,
+    "call": "set_str(&NICK, \"minz_user\")",
+    "contract": "src[i] != 0; copies characters then writes NUL",
+    "api": "set_str",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 365,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "API audited only; runtime not executed"
+  },
+  {
+    "line": 90,
+    "call": "set_str(&CHANNEL, \"#minz\")",
+    "contract": "src[i] != 0; copies characters then writes NUL",
+    "api": "set_str",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 365,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "API audited only; runtime not executed"
+  },
+  {
+    "line": 95,
+    "call": "status_msg(\"Connecting to irc.libera.chat:6667...\")",
+    "contract": "passes msg unchanged to tui_puts; imported ASM LD A,(HL)/OR A/RET Z",
+    "api": "status_msg",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 314,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "API audited only; runtime not executed"
+  },
+  {
+    "line": 96,
+    "call": "let r: ConnStatus = net_connect(\"irc.libera.chat\", 6667)",
+    "contract": "host[i] != 0; sends characters then command terminator",
+    "api": "net_connect",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 42,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "API audited only; runtime not executed"
+  },
+  {
+    "line": 98,
+    "call": "status_msg(\"Connection failed!\")",
+    "contract": "passes msg unchanged to tui_puts; imported ASM LD A,(HL)/OR A/RET Z",
+    "api": "status_msg",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 314,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "API audited only; runtime not executed"
+  },
+  {
+    "line": 102,
+    "call": "status_msg(\"MinZ IRC v0.1 \u2014 connected\")",
+    "contract": "passes msg unchanged to tui_puts; imported ASM LD A,(HL)/OR A/RET Z",
+    "api": "status_msg",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 314,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "API audited only; runtime not executed"
+  },
+  {
+    "line": 105,
+    "call": "net_send(\"NICK minz_user\\r\\n\")",
+    "contract": "s[i] != 0; writes characters to net_write",
+    "api": "net_send",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 414,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "API audited only; runtime not executed"
+  },
+  {
+    "line": 106,
+    "call": "net_send(\"USER minz 0 * :MinZ Z80 IRC Client\\r\\n\")",
+    "contract": "s[i] != 0; writes characters to net_write",
+    "api": "net_send",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 414,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "API audited only; runtime not executed"
+  },
+  {
+    "line": 138,
+    "call": "if buf_starts_with(buf, c\"PING\")              { return IrcCmd.Ping }",
+    "contract": "prefix[i] != 0; compares character at offset i",
+    "api": "buf_starts_with",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 386,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "executed classifier call"
+  },
+  {
+    "line": 139,
+    "call": "if region_match(buf, pos, c\"PRIVMSG\", 7)      { return IrcCmd.Privmsg }",
+    "contract": "compares len characters starting at target[0]; lengths exclude header",
+    "api": "region_match",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 376,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "executed classifier call"
+  },
+  {
+    "line": 140,
+    "call": "if region_match(buf, pos, c\"JOIN\", 4)          { return IrcCmd.Join }",
+    "contract": "compares len characters starting at target[0]; lengths exclude header",
+    "api": "region_match",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 376,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "executed classifier call"
+  },
+  {
+    "line": 141,
+    "call": "if region_match(buf, pos, c\"PART\", 4)          { return IrcCmd.Part }",
+    "contract": "compares len characters starting at target[0]; lengths exclude header",
+    "api": "region_match",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 376,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "executed classifier call"
+  },
+  {
+    "line": 142,
+    "call": "if region_match(buf, pos, c\"QUIT\", 4)          { return IrcCmd.Quit }",
+    "contract": "compares len characters starting at target[0]; lengths exclude header",
+    "api": "region_match",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 376,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "executed classifier call"
+  },
+  {
+    "line": 183,
+    "call": "Join    => show_event(nick_start, nick_len, \" joined\", Color.Green),",
+    "contract": "passes action unchanged to tui_puts NUL scanner",
+    "api": "show_event",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 217,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "API audited only; runtime not executed"
+  },
+  {
+    "line": 184,
+    "call": "Part    => show_event(nick_start, nick_len, \" left\", Color.Red),",
+    "contract": "passes action unchanged to tui_puts NUL scanner",
+    "api": "show_event",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 217,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "API audited only; runtime not executed"
+  },
+  {
+    "line": 185,
+    "call": "Quit    => show_event(nick_start, nick_len, \" quit\", Color.Red),",
+    "contract": "passes action unchanged to tui_puts NUL scanner",
+    "api": "show_event",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 217,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "API audited only; runtime not executed"
+  },
+  {
+    "line": 192,
+    "call": "net_send(\"PONG\")",
+    "contract": "s[i] != 0; writes characters to net_write",
+    "api": "net_send",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 414,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "API audited only; runtime not executed"
+  },
+  {
+    "line": 194,
+    "call": "net_send(\"\\r\\n\")",
+    "contract": "s[i] != 0; writes characters to net_write",
+    "api": "net_send",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 414,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "API audited only; runtime not executed"
+  },
+  {
+    "line": 266,
+    "call": "net_send(\"JOIN \")",
+    "contract": "s[i] != 0; writes characters to net_write",
+    "api": "net_send",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 414,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "API audited only; runtime not executed"
+  },
+  {
+    "line": 268,
+    "call": "net_send(\"\\r\\n\")",
+    "contract": "s[i] != 0; writes characters to net_write",
+    "api": "net_send",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 414,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "API audited only; runtime not executed"
+  },
+  {
+    "line": 270,
+    "call": "net_send(\"NICK \")",
+    "contract": "s[i] != 0; writes characters to net_write",
+    "api": "net_send",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 414,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "API audited only; runtime not executed"
+  },
+  {
+    "line": 272,
+    "call": "net_send(\"\\r\\n\")",
+    "contract": "s[i] != 0; writes characters to net_write",
+    "api": "net_send",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 414,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "API audited only; runtime not executed"
+  },
+  {
+    "line": 274,
+    "call": "net_send(\"QUIT :MinZ IRC signing off\\r\\n\")",
+    "contract": "s[i] != 0; writes characters to net_write",
+    "api": "net_send",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 414,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "API audited only; runtime not executed"
+  },
+  {
+    "line": 275,
+    "call": "status_msg(\"Disconnected.\")",
+    "contract": "passes msg unchanged to tui_puts; imported ASM LD A,(HL)/OR A/RET Z",
+    "api": "status_msg",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 314,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "API audited only; runtime not executed"
+  },
+  {
+    "line": 295,
+    "call": "net_send(\"PRIVMSG \")",
+    "contract": "s[i] != 0; writes characters to net_write",
+    "api": "net_send",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 414,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "API audited only; runtime not executed"
+  },
+  {
+    "line": 297,
+    "call": "net_send(\" :\")",
+    "contract": "s[i] != 0; writes characters to net_write",
+    "api": "net_send",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 414,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "API audited only; runtime not executed"
+  },
+  {
+    "line": 299,
+    "call": "net_send(\"\\r\\n\")",
+    "contract": "s[i] != 0; writes characters to net_write",
+    "api": "net_send",
+    "authority": {
+      "source": "reports/irc-classifiers/source.nanz",
+      "line": 414,
+      "book": "docs/Nanz_Language_Book_v7.md:2310"
+    },
+    "native_scope": "API audited only; runtime not executed"
+  }
+]

@@ -1,0 +1,130 @@
+{
+  "schema": "minz.pascal-string-proof/v1",
+  "files": [
+    {
+      "path": "actual/default/allocation.json",
+      "sha256": "99919aef6df75f5a5a95e137446ce0f1624a87b80358ef010c17f67093d56c6b",
+      "size": 1781
+    },
+    {
+      "path": "actual/default/evidence.json",
+      "sha256": "879cf2ae4e7c1b15df0c16e6d10baea40baccaa43c08e437989060031c10eb5c",
+      "size": 116282
+    },
+    {
+      "path": "actual/default/final.mir",
+      "sha256": "a44e5b424911d6ec40e9da99fc87545ffd26ba3022f4153d88c5fd02114ab03d",
+      "size": 1745
+    },
+    {
+      "path": "actual/default/raw.mir",
+      "sha256": "2cd4bf8ff60363b3d01784105c9d00d8fd77a9a2282bc804449576f69b4baef0",
+      "size": 2172
+    },
+    {
+      "path": "actual/default/source.pas",
+      "sha256": "ffd5d5a5e71f24bc5ef9a7a7f208ac42cee2f7e425cae64993d1d3bd9306c282",
+      "size": 998
+    },
+    {
+      "path": "actual/default/target.a80",
+      "sha256": "3ce5e514bdd52c1fbbddff7b50569109ecd25865373dd9a87d1b3e7711a987ba",
+      "size": 2240
+    },
+    {
+      "path": "actual/default/target.bin",
+      "sha256": "71b3cbd77630ab8c15bb337e8e61db8a82417707b2e5b5b32db7ff7df97627a2",
+      "size": 88
+    },
+    {
+      "path": "actual/grace-size/allocation.json",
+      "sha256": "f1ac662cfe2257ff69a685b5774963dad815eb89e25f63f83b5663677091a4e0",
+      "size": 1780
+    },
+    {
+      "path": "actual/grace-size/evidence.json",
+      "sha256": "7bd136822e53b66a678c9617e2e4ed357c5e0fd063a3123e770ba6efb6f1e98c",
+      "size": 115789
+    },
+    {
+      "path": "actual/grace-size/final.mir",
+      "sha256": "8c85007dbe17e53fa92c52079e9ac2ac0e33a84941012602c56a100eaf20a96a",
+      "size": 1420
+    },
+    {
+      "path": "actual/grace-size/raw.mir",
+      "sha256": "2cd4bf8ff60363b3d01784105c9d00d8fd77a9a2282bc804449576f69b4baef0",
+      "size": 2172
+    },
+    {
+      "path": "actual/grace-size/source.pas",
+      "sha256": "ffd5d5a5e71f24bc5ef9a7a7f208ac42cee2f7e425cae64993d1d3bd9306c282",
+      "size": 998
+    },
+    {
+      "path": "actual/grace-size/target.a80",
+      "sha256": "17f447c56fadb8b915e41af209041cc39e8d68ab870f76516677c8faf4ceae06",
+      "size": 1979
+    },
+    {
+      "path": "actual/grace-size/target.bin",
+      "sha256": "0b96a5804c513f1f533f2377e55cba57a4df2c6c6ada29de356749a1ac0f8bed",
+      "size": 79
+    },
+    {
+      "path": "actual/grace-speed/allocation.json",
+      "sha256": "f1ac662cfe2257ff69a685b5774963dad815eb89e25f63f83b5663677091a4e0",
+      "size": 1780
+    },
+    {
+      "path": "actual/grace-speed/evidence.json",
+      "sha256": "7bd136822e53b66a678c9617e2e4ed357c5e0fd063a3123e770ba6efb6f1e98c",
+      "size": 115789
+    },
+    {
+      "path": "actual/grace-speed/final.mir",
+      "sha256": "8c85007dbe17e53fa92c52079e9ac2ac0e33a84941012602c56a100eaf20a96a",
+      "size": 1420
+    },
+    {
+      "path": "actual/grace-speed/raw.mir",
+      "sha256": "2cd4bf8ff60363b3d01784105c9d00d8fd77a9a2282bc804449576f69b4baef0",
+      "size": 2172
+    },
+    {
+      "path": "actual/grace-speed/source.pas",
+      "sha256": "ffd5d5a5e71f24bc5ef9a7a7f208ac42cee2f7e425cae64993d1d3bd9306c282",
+      "size": 998
+    },
+    {
+      "path": "actual/grace-speed/target.a80",
+      "sha256": "17f447c56fadb8b915e41af209041cc39e8d68ab870f76516677c8faf4ceae06",
+      "size": 1979
+    },
+    {
+      "path": "actual/grace-speed/target.bin",
+      "sha256": "0b96a5804c513f1f533f2377e55cba57a4df2c6c6ada29de356749a1ac0f8bed",
+      "size": 79
+    },
+    {
+      "path": "freeze.json",
+      "sha256": "6c2f74fe1d673c2e1f50ed8ff25328e4fbbd342ac3b3bd5314f5d23f25d3be70",
+      "size": 557
+    },
+    {
+      "path": "native-tests.txt",
+      "sha256": "7eb58150da48255e2d79bdd01b7d973c1d89cb5f26619253f82961844d22b32b",
+      "size": 642
+    },
+    {
+      "path": "source.pas",
+      "sha256": "ffd5d5a5e71f24bc5ef9a7a7f208ac42cee2f7e425cae64993d1d3bd9306c282",
+      "size": 998
+    },
+    {
+      "path": "workload.json",
+      "sha256": "c5de3ce9ee9d63f79db1fbf2fb4947b0d51fd2e5fb62f5bb93624c8e499f5b1a",
+      "size": 52770
+    }
+  ]
+}

@@ -2,6 +2,7 @@ package c89
 
 import (
 	"fmt"
+	"maps"
 	"strings"
 
 	cc "github.com/minz/minzc/pkg/cparse"
@@ -484,7 +485,8 @@ type funcLow struct {
 	objcLocals    map[string]string // varName → className (for typed receivers)
 	objcProtoVars map[string]string // varName → protocolName (for id<Proto> dynamic dispatch)
 
-	inSwitch bool // true while lowering a switch body (C89 switch→if/else chain)
+	continuePrelude func() ([]hir.Stmt, error) // do/for effects before continue
+	inSwitch        bool                       // true while lowering a switch body (C89 switch→if/else chain)
 }
 
 func (fl *funcLow) tmpCounter() int {
@@ -501,6 +503,17 @@ func (fl *funcLow) drainPending(stmts *[]hir.Stmt) {
 }
 
 func (fl *funcLow) lowerCompound(cs *cc.CompoundStatement) ([]hir.Stmt, error) {
+	oldLocals, oldStatic, oldObjc, oldProto := fl.locals, fl.staticRenames, fl.objcLocals, fl.objcProtoVars
+	fl.locals = maps.Clone(fl.locals)
+	fl.staticRenames = maps.Clone(fl.staticRenames)
+	fl.objcLocals = maps.Clone(fl.objcLocals)
+	fl.objcProtoVars = maps.Clone(fl.objcProtoVars)
+	defer func() {
+		fl.locals = oldLocals
+		fl.staticRenames = oldStatic
+		fl.objcLocals = oldObjc
+		fl.objcProtoVars = oldProto
+	}()
 	if cs == nil {
 		return nil, nil
 	}
@@ -543,6 +556,9 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 			continue
 		}
 		ty := fl.low.mapType(decl.Type())
+		if !decl.IsStatic() {
+			delete(fl.staticRenames, name)
+		}
 
 		// static local → emit as mangled global, reference by mangled name.
 		// Skip __func__ (implicitly static, not a real user variable).
@@ -574,6 +590,17 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 			continue
 		}
 
+		// Give a shadowing object a distinct HIR identity; outer loop-control
+		// references must not become the inner object's name at continue.
+		sourceName := name
+		if _, shadowed := fl.locals[name]; shadowed {
+			name = fmt.Sprintf("__local_%s_%d", name, fl.tmpCounter())
+			if fl.staticRenames == nil {
+				fl.staticRenames = make(map[string]string)
+			}
+			fl.staticRenames[sourceName] = name
+		}
+		fl.locals[sourceName] = ty
 		fl.locals[name] = ty
 
 		var init hir.Expr
@@ -648,13 +675,71 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 
 // ── Statement lowering ──────────────────────────────────────────────────────
 
+// Each statement owns its expression effects. Parent conditions must never
+// be drained by a child compound, nor may arm effects escape their branch.
 func (fl *funcLow) lowerStmt(s *cc.Statement) ([]hir.Stmt, error) {
+	outer := fl.pendingStmts
+	fl.pendingStmts = nil
+	body, err := fl.lowerStmtInner(s)
+	effects := fl.pendingStmts
+	fl.pendingStmts = outer
+	return append(effects, body...), err
+}
+
+func (fl *funcLow) lowerControlExpr(e cc.ExpressionNode) (hir.Expr, []hir.Stmt, error) {
+	outer := fl.pendingStmts
+	fl.pendingStmts = nil
+	value, err := fl.lowerExprAsExpr(e)
+	effects := fl.pendingStmts
+	fl.pendingStmts = outer
+	return value, effects, err
+}
+
+// Re-lowered continue effects retain the lexical environment of the loop
+// header, while generated temporaries remain unique in the function.
+func (fl *funcLow) captureControlPrelude(fn func() ([]hir.Stmt, error)) func() ([]hir.Stmt, error) {
+	locals, renames := maps.Clone(fl.locals), maps.Clone(fl.staticRenames)
+	return func() ([]hir.Stmt, error) {
+		oldLocals, oldRenames := fl.locals, fl.staticRenames
+		fl.locals, fl.staticRenames = maps.Clone(locals), maps.Clone(renames)
+		defer func() { fl.locals, fl.staticRenames = oldLocals, oldRenames }()
+		return fn()
+	}
+}
+
+// lowerConditionalValue puts arm effects inside their selected branch. The
+// condition is evaluated before either arm and logical callers normalize truth.
+func (fl *funcLow) lowerConditionalValue(cond hir.Expr, then, els hir.Expr, thenEffects, elseEffects []hir.Stmt, ty mir2.Ty) hir.Expr {
+	if len(thenEffects) == 0 && len(elseEffects) == 0 {
+		return &hir.CondExpr{Cond: cond, Then: then, Else: els, Ty: ty}
+	}
+	name := fmt.Sprintf("__conditional_%d", fl.tmpCounter())
+	fl.locals[name] = ty
+	result := &hir.VarRefExpr{Name: name, Ty: ty}
+	fl.pendingStmts = append(fl.pendingStmts, &hir.VarDeclStmt{Name: name, Ty: ty}, hir.If(cond,
+		hir.Blk(append(thenEffects, &hir.AssignStmt{Target: result, Val: then})...),
+		hir.Blk(append(elseEffects, &hir.AssignStmt{Target: result, Val: els})...)))
+	return result
+}
+
+func (fl *funcLow) lowerLoopBody(s *cc.Statement, prelude func() ([]hir.Stmt, error)) ([]hir.Stmt, error) {
+	old := fl.continuePrelude
+	fl.continuePrelude = prelude
+	defer func() { fl.continuePrelude = old }()
+	return fl.lowerStmt(s)
+}
+
+func (fl *funcLow) lowerStmtInner(s *cc.Statement) ([]hir.Stmt, error) {
 	if s == nil {
 		return nil, nil
 	}
 	switch s.Case {
 	case cc.StatementCompound:
-		return fl.lowerCompound(s.CompoundStatement)
+		body, err := fl.lowerCompound(s.CompoundStatement)
+		if err != nil {
+			return nil, err
+		}
+		return []hir.Stmt{&hir.Block{Body: body}}, nil
 
 	case cc.StatementExpr:
 		return fl.lowerExprStmt(s.ExpressionStatement)
@@ -766,6 +851,9 @@ func (fl *funcLow) lowerSwitch(ss *cc.SelectionStatement) ([]hir.Stmt, error) {
 		return nil, err
 	}
 	switchTy := switchExpr.ExprTy()
+	// Selector effects precede the branch; arm effects must remain in the arm.
+	var selectorEffects []hir.Stmt
+	fl.drainPending(&selectorEffects)
 
 	// Collect case arms by walking the body.
 	type caseArm struct {
@@ -841,6 +929,7 @@ func (fl *funcLow) lowerSwitch(ss *cc.SelectionStatement) ([]hir.Stmt, error) {
 						if err != nil {
 							return nil, err
 						}
+						fl.drainPending(&curBody)
 						curBody = append(curBody, stmts...)
 					}
 					continue
@@ -853,6 +942,7 @@ func (fl *funcLow) lowerSwitch(ss *cc.SelectionStatement) ([]hir.Stmt, error) {
 						if err != nil {
 							return nil, err
 						}
+						fl.drainPending(&curBody)
 						curBody = append(curBody, stmts...)
 					}
 					continue
@@ -869,6 +959,7 @@ func (fl *funcLow) lowerSwitch(ss *cc.SelectionStatement) ([]hir.Stmt, error) {
 			if err != nil {
 				return nil, err
 			}
+			fl.drainPending(&curBody)
 			curBody = append(curBody, stmts...)
 
 		case cc.BlockItemDecl:
@@ -876,6 +967,7 @@ func (fl *funcLow) lowerSwitch(ss *cc.SelectionStatement) ([]hir.Stmt, error) {
 			if err != nil {
 				return nil, err
 			}
+			fl.drainPending(&curBody)
 			curBody = append(curBody, stmts...)
 		}
 	}
@@ -897,9 +989,9 @@ func (fl *funcLow) lowerSwitch(ss *cc.SelectionStatement) ([]hir.Stmt, error) {
 	}
 
 	if result == nil {
-		return nil, nil
+		return selectorEffects, nil
 	}
-	return result.Body, nil
+	return append(selectorEffects, result.Body...), nil
 }
 
 func (fl *funcLow) lowerIteration(is *cc.IterationStatement) ([]hir.Stmt, error) {
@@ -908,33 +1000,41 @@ func (fl *funcLow) lowerIteration(is *cc.IterationStatement) ([]hir.Stmt, error)
 	}
 	switch is.Case {
 	case cc.IterationStatementWhile:
-		cond, err := fl.lowerExprAsExpr(is.ExpressionList)
+		cond, effects, err := fl.lowerControlExpr(is.ExpressionList)
 		if err != nil {
 			return nil, err
 		}
-		body, err := fl.lowerStmt(is.Statement)
+		body, err := fl.lowerLoopBody(is.Statement, nil)
 		if err != nil {
 			return nil, err
 		}
-		return []hir.Stmt{hir.While(cond, hir.Blk(body...))}, nil
+		if len(effects) == 0 {
+			return []hir.Stmt{hir.While(cond, hir.Blk(body...))}, nil
+		}
+		test := hir.If(&hir.UnaryExpr{Op: "!", X: cond, Ty: mir2.TyBool}, hir.Blk(hir.Break()), nil)
+		loop := append(effects, test)
+		loop = append(loop, body...)
+		return []hir.Stmt{hir.While(hir.Bool(true), hir.Blk(loop...))}, nil
 
 	case cc.IterationStatementDo:
-		// do { body } while(cond)  →  while(true) { body; if(!cond) break; }
-		// This preserves break/continue semantics correctly.
-		body, err := fl.lowerStmt(is.Statement)
+		test := func() ([]hir.Stmt, error) {
+			cond, effects, err := fl.lowerControlExpr(is.ExpressionList)
+			if err != nil {
+				return nil, err
+			}
+			return append(effects, hir.If(&hir.UnaryExpr{Op: "!", X: cond, Ty: mir2.TyBool}, hir.Blk(hir.Break()), nil)), nil
+		}
+		body, err := fl.lowerLoopBody(is.Statement, fl.captureControlPrelude(test))
 		if err != nil {
 			return nil, err
 		}
-		cond, err := fl.lowerExprAsExpr(is.ExpressionList)
+		cond, effects, err := fl.lowerControlExpr(is.ExpressionList)
 		if err != nil {
 			return nil, err
 		}
-		negCond := &hir.UnaryExpr{Op: "!", X: cond, Ty: mir2.TyBool}
-		exitIf := hir.If(negCond, hir.Blk(hir.Break()), nil)
-		loopBody := make([]hir.Stmt, 0, len(body)+1)
-		loopBody = append(loopBody, body...)
-		loopBody = append(loopBody, exitIf)
-		return []hir.Stmt{hir.While(hir.Bool(true), hir.Blk(loopBody...))}, nil
+		body = append(body, effects...)
+		body = append(body, hir.If(&hir.UnaryExpr{Op: "!", X: cond, Ty: mir2.TyBool}, hir.Blk(hir.Break()), nil))
+		return []hir.Stmt{hir.While(hir.Bool(true), hir.Blk(body...))}, nil
 
 	case cc.IterationStatementFor:
 		return fl.lowerForLoop(is, false)
@@ -964,6 +1064,7 @@ func (fl *funcLow) lowerForLoop(is *cc.IterationStatement, isForDecl bool) ([]hi
 		if err != nil {
 			return nil, err
 		}
+		fl.drainPending(&stmts)
 		if r != nil {
 			if s := r.toStmt(); s != nil {
 				stmts = append(stmts, s)
@@ -983,9 +1084,10 @@ func (fl *funcLow) lowerForLoop(is *cc.IterationStatement, isForDecl bool) ([]hi
 
 	// Condition.
 	var cond hir.Expr
+	var conditionEffects []hir.Stmt
 	if condNode != nil {
 		var err error
-		cond, err = fl.lowerExprAsExpr(condNode)
+		cond, conditionEffects, err = fl.lowerControlExpr(condNode)
 		if err != nil {
 			return nil, err
 		}
@@ -993,27 +1095,42 @@ func (fl *funcLow) lowerForLoop(is *cc.IterationStatement, isForDecl bool) ([]hi
 		cond = hir.Bool(true)
 	}
 
-	// Body.
-	body, err := fl.lowerStmt(is.Statement)
+	// Continue evaluates post before testing the next condition.
+	post := func() ([]hir.Stmt, error) {
+		if postNode == nil {
+			return nil, nil
+		}
+		outer := fl.pendingStmts
+		fl.pendingStmts = nil
+		r, err := fl.lowerExpr(postNode)
+		effects := fl.pendingStmts
+		fl.pendingStmts = outer
+		if err != nil {
+			return nil, err
+		}
+		if r != nil {
+			if s := r.toStmt(); s != nil {
+				effects = append(effects, s)
+			}
+		}
+		return effects, nil
+	}
+	body, err := fl.lowerLoopBody(is.Statement, fl.captureControlPrelude(post))
 	if err != nil {
 		return nil, err
 	}
 
-	// Post.
-	if postNode != nil {
-		r, err := fl.lowerExpr(postNode)
-		if err != nil {
-			return nil, err
-		}
-		// Drain any side-effects from expressions like i++.
-		fl.drainPending(&body)
-		if r != nil {
-			if s := r.toStmt(); s != nil {
-				body = append(body, s)
-			}
-		}
+	postEffects, err := post()
+	if err != nil {
+		return nil, err
 	}
+	body = append(body, postEffects...)
 
+	if len(conditionEffects) > 0 {
+		test := hir.If(&hir.UnaryExpr{Op: "!", X: cond, Ty: mir2.TyBool}, hir.Blk(hir.Break()), nil)
+		body = append(append(conditionEffects, test), body...)
+		cond = hir.Bool(true)
+	}
 	stmts = append(stmts, hir.While(cond, hir.Blk(body...)))
 	return stmts, nil
 }
@@ -1042,6 +1159,13 @@ func (fl *funcLow) lowerJump(js *cc.JumpStatement) ([]hir.Stmt, error) {
 		return []hir.Stmt{hir.Break()}, nil
 
 	case cc.JumpStatementContinue:
+		if fl.continuePrelude != nil {
+			effects, err := fl.continuePrelude()
+			if err != nil {
+				return nil, err
+			}
+			return append(effects, hir.Continue()), nil
+		}
 		return []hir.Stmt{hir.Continue()}, nil
 
 	case cc.JumpStatementGoto:
@@ -1181,15 +1305,12 @@ func (fl *funcLow) lowerExpr(e cc.ExpressionNode) (*exprResult, error) {
 			if err != nil {
 				return nil, err
 			}
-			r, err := fl.lowerExprAsExpr(x.InclusiveOrExpression)
+			r, effects, err := fl.lowerControlExpr(x.InclusiveOrExpression)
 			if err != nil {
 				return nil, err
 			}
-			return wrapExpr(&hir.CondExpr{
-				Cond: l, Then: r,
-				Else: &hir.IntLitExpr{Val: 0, Ty: mir2.TyBool},
-				Ty:   mir2.TyBool,
-			}), nil
+			r = &hir.BinExpr{Op: "!=", L: r, R: &hir.IntLitExpr{Val: 0, Ty: r.ExprTy()}, Ty: mir2.TyBool}
+			return wrapExpr(fl.lowerConditionalValue(l, r, &hir.IntLitExpr{Val: 0, Ty: mir2.TyBool}, effects, nil, mir2.TyBool)), nil
 		}
 		return fl.lowerExpr(x.InclusiveOrExpression)
 
@@ -1200,15 +1321,12 @@ func (fl *funcLow) lowerExpr(e cc.ExpressionNode) (*exprResult, error) {
 			if err != nil {
 				return nil, err
 			}
-			r, err := fl.lowerExprAsExpr(x.LogicalAndExpression)
+			r, effects, err := fl.lowerControlExpr(x.LogicalAndExpression)
 			if err != nil {
 				return nil, err
 			}
-			return wrapExpr(&hir.CondExpr{
-				Cond: l,
-				Then: &hir.IntLitExpr{Val: 1, Ty: mir2.TyBool},
-				Else: r, Ty: mir2.TyBool,
-			}), nil
+			r = &hir.BinExpr{Op: "!=", L: r, R: &hir.IntLitExpr{Val: 0, Ty: r.ExprTy()}, Ty: mir2.TyBool}
+			return wrapExpr(fl.lowerConditionalValue(l, &hir.IntLitExpr{Val: 1, Ty: mir2.TyBool}, r, nil, effects, mir2.TyBool)), nil
 		}
 		return fl.lowerExpr(x.LogicalAndExpression)
 
@@ -1220,15 +1338,15 @@ func (fl *funcLow) lowerExpr(e cc.ExpressionNode) (*exprResult, error) {
 		if err != nil {
 			return nil, err
 		}
-		then, err := fl.lowerExprAsExpr(x.ExpressionList)
+		then, thenEffects, err := fl.lowerControlExpr(x.ExpressionList)
 		if err != nil {
 			return nil, err
 		}
-		els, err := fl.lowerExprAsExpr(x.ConditionalExpression)
+		els, elseEffects, err := fl.lowerControlExpr(x.ConditionalExpression)
 		if err != nil {
 			return nil, err
 		}
-		return wrapExpr(&hir.CondExpr{Cond: cond, Then: then, Else: els, Ty: fl.low.mapType(x.Type())}), nil
+		return wrapExpr(fl.lowerConditionalValue(cond, then, els, thenEffects, elseEffects, fl.low.mapType(x.Type()))), nil
 
 	case *cc.ConstantExpression:
 		return fl.lowerExpr(x.ConditionalExpression)

@@ -1,0 +1,9 @@
+{
+  "source_checkpoint": "7c415f2d",
+  "proof_checkpoint": "eef98926",
+  "compiler_binary_sha256": "5375e85ab36e1a47a588057a6dab0801265487a54fae5cdc5f1c8dd0e7d40c30",
+  "provider_file_sha256": "26a36ceacee08c01bb3cc1cd13feddfbd7aaf83c8a72c13710d07c0916a13ba3",
+  "executable": "/home/alice/dev/minz-artifacts/grace-checkpoints/sap-mara-whole-main.test",
+  "working_directory": "minzc/pkg/pipeline",
+  "command": "./pipeline.test -test.run '^TestOriginalSAPMaraWholeMain$' -test.v"
+}

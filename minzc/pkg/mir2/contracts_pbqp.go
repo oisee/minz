@@ -13,24 +13,18 @@ package mir2
 //              (how much does the caller pay if its convention is X and
 //               the callee's convention is Y?)
 //
-// The PBQP solver (R0/R1/RN reduction) finds the globally cheapest assignment
-// of conventions to all functions simultaneously, which the greedy DP can miss
+// The PBQP solver uses exact R0/R1 reductions and a greedy RN residual
+// assignment. It considers conventions jointly but does not guarantee a global
+// optimum. Joint choices can improve on the greedy DP
 // on diamond call graphs (A→C, B→C where A and B have conflicting preferences
 // for C's convention).
 //
-// Pass-through chain fix: simple forwarders (single call, no ALU on params)
-// get zero unary cost so edge costs drive the decision. This prevents
-// unaryCostWithMod's bias toward original callee contracts from dominating.
+// Call demands belong to edges; node costs infer only non-call body demands.
+// Z80 A/B/C transfers use instruction costs rather than placement constraints.
+// Static first-use costs still omit general call-save pressure and execution frequency;
+// even exact forest reduction does not establish a native-code optimum.
 //
-// Remaining gap: multi-call functions (e.g. double_sum calling double twice)
-// where unaryCostWithMod depends on original (pre-optimization) callee
-// contracts via inferNaturalClass. PBQP picks a different convention than
-// greedy in some cases. Fix: decouple unaryCost from original contracts.
-//
-// Status: NOT the default. Use OptimizeContracts() (greedy) for production.
-//
-// The solver reuses the existing candidateChoices / unaryCostWithMod / classMoveCost
-// helpers from contracts.go.
+// Status: NOT the default. OptimizeContracts remains unchanged.
 
 // pfccoNode is a PBQP node representing one function's convention choice.
 type pfccoNode struct {
@@ -49,8 +43,8 @@ type pfccoEdge struct {
 	callCount  int // static number of call sites (weight multiplier)
 }
 
-// OptimizeContractsPBQP finds globally-optimal register classes for all
-// function contracts using PBQP graph reduction on the call graph.
+// OptimizeContractsPBQP selects register classes jointly using PBQP reduction.
+// The residual graph is solved heuristically; optimality is not guaranteed.
 //
 // Drop-in replacement for OptimizeContracts.
 func OptimizeContractsPBQP(m *Module, ct CostTable) ContractSet {
@@ -69,7 +63,7 @@ func OptimizeContractsPBQP(m *Module, ct CostTable) ContractSet {
 		var costs []int
 
 		// Fixed-convention functions: extern, address-taken, asm — single choice.
-		if f.Attrs.IsExtern || len(f.Blocks) == 0 || addrTaken[f.Name] || funcHasAsm(f) {
+		if f.Attrs.FixedIndirectABI || f.Attrs.FallibleCY || f.Attrs.IsExtern || len(f.Blocks) == 0 || addrTaken[f.Name] || funcHasAsm(f) {
 			ch := currentChoice(f)
 			choices = []*ContractChoice{ch}
 			costs = []int{0}
@@ -77,23 +71,13 @@ func OptimizeContractsPBQP(m *Module, ct CostTable) ContractSet {
 			// Only vary param classes; keep return classes fixed.
 			// ApplyContracts never overrides return classes, so varying
 			// them in PBQP adds noise that skews param selection.
-			choices = candidateParamOnlyChoices(f, ct)
+			choices = candidatePFCCOWordChoices(f, ct)
 			if len(choices) == 0 {
 				choices = []*ContractChoice{currentChoice(f)}
 			}
 			costs = make([]int, len(choices))
-			// For pass-through functions (param only used as call arg, no ALU),
-			// unaryCostWithMod is biased toward the callee's *original* contract
-			// class, not the optimized one. Zero out unary costs and let edge
-			// costs drive the decision — they capture the real adapter cost.
-			if isPassThrough(f) {
-				for i := range costs {
-					costs[i] = 0
-				}
-			} else {
-				for i, ch := range choices {
-					costs[i] = unaryCostWithMod(f, ch, ct, m)
-				}
+			for i, ch := range choices {
+				costs[i] = pfccoBodyUnaryCost(f, ch, ct)
 			}
 		}
 
@@ -146,6 +130,16 @@ func OptimizeContractsPBQP(m *Module, ct CostTable) ContractSet {
 	// PBQP solve: R0/R1/RN reduction.
 	assignment := pfccoSolve(nodes, edges)
 
+	// Reject the whole proposed set if reduction did not produce a feasible
+	// assignment. Per-function fallback could retain incompatible neighbors.
+	if assignment == nil && len(nodes) != 0 {
+		cs := make(ContractSet, len(m.Funcs))
+		for _, f := range m.Funcs {
+			cs[f.Name] = currentChoice(f)
+		}
+		return cs
+	}
+
 	// Build result.
 	cs := make(ContractSet, len(m.Funcs))
 	for i, node := range nodes {
@@ -157,35 +151,6 @@ func OptimizeContractsPBQP(m *Module, ct CostTable) ContractSet {
 		}
 	}
 	return cs
-}
-
-// isPassThrough reports whether f is a simple forwarder: single call,
-// params only used as call args, no ALU/load/store on params.
-// Functions with multiple calls or ALU ops on params are NOT pass-through
-// because param class affects spill cost and register pressure.
-func isPassThrough(f *Func) bool {
-	paramRegs := make(map[Reg]bool, len(f.Contract.Params))
-	for _, p := range f.Contract.Params {
-		paramRegs[p.Reg] = true
-	}
-	callCount := 0
-	for _, b := range f.Blocks {
-		for _, inst := range b.Insts {
-			if inst.Op == OpCall {
-				callCount++
-				if callCount > 1 {
-					return false // multiple calls = spill pressure, unary cost matters
-				}
-				continue
-			}
-			for _, s := range inst.Src {
-				if paramRegs[s] {
-					return false
-				}
-			}
-		}
-	}
-	return true
 }
 
 // candidateParamOnlyChoices generates candidate ContractChoices varying only
@@ -232,6 +197,40 @@ func candidateParamOnlyChoices(f *Func, ct CostTable) []*ContractChoice {
 	return results
 }
 
+// candidatePFCCOWordChoices distinguishes soft primary-pair preferences from
+// hard ABI pins. At most three ordinary word parameters can occupy HL/DE/BC;
+// equal zero-cost preferences are not a physical infeasibility proof.
+func candidatePFCCOWordChoices(f *Func, ct CostTable) []*ContractChoice {
+	if _, z80 := ct.(Z80CostTable); !z80 || len(f.Contract.Params) > 3 {
+		return candidateParamOnlyChoices(f, ct)
+	}
+	for _, p := range f.Contract.Params {
+		if p.ClassHard || (p.Ty != TyU16 && p.Ty != TyI16 && !IsPointer(p.Ty)) {
+			return candidateParamOnlyChoices(f, ct)
+		}
+	}
+	candidates := make([][]RegClass, len(f.Contract.Params))
+	for i, p := range f.Contract.Params {
+		candidates[i] = plausibleClasses(p.Ty, p.Class)
+	}
+	base := currentChoice(f)
+	var result []*ContractChoice
+	var walk func(int, *ContractChoice)
+	walk = func(i int, c *ContractChoice) {
+		if i == len(candidates) {
+			result = append(result, c)
+			return
+		}
+		for _, cls := range candidates[i] {
+			q := c.clone()
+			q.ParamClasses[i] = cls
+			walk(i+1, q)
+		}
+	}
+	walk(0, base)
+	return result
+}
+
 // pfccoEdgeCost computes the adapter move cost at call sites from caller to
 // callee calleeName, given specific convention choices for both.
 func pfccoEdgeCost(caller *Func, callerCh *ContractChoice, calleeName string, calleeCh *ContractChoice, ct CostTable) int {
@@ -243,6 +242,25 @@ func pfccoEdgeCost(caller *Func, callerCh *ContractChoice, calleeName string, ca
 	for i, p := range caller.Contract.Params {
 		if i < len(callerCh.ParamClasses) {
 			paramOverride[p.Reg] = callerCh.ParamClasses[i]
+		}
+	}
+
+	// Forward the candidate convention through SSA copies. Otherwise a call-only
+	// move would reintroduce the original class at the edge after unary removal.
+	for changed := true; changed; {
+		changed = false
+		for _, b := range caller.Blocks {
+			for _, inst := range b.Insts {
+				if inst.Op != OpMove || inst.Src[0] == NoReg {
+					continue
+				}
+				if cls, ok := paramOverride[inst.Src[0]]; ok {
+					if _, known := paramOverride[inst.Dst]; !known {
+						paramOverride[inst.Dst] = cls
+						changed = true
+					}
+				}
+			}
 		}
 	}
 
@@ -264,8 +282,16 @@ func pfccoEdgeCost(caller *Func, callerCh *ContractChoice, calleeName string, ca
 					argClass = ClassGeneral
 				}
 				wantClass := calleeCh.ParamClasses[ai]
+				if _, z80 := ct.(Z80CostTable); z80 && caller.mod != nil && pfccoWordLiteralClass(wantClass) {
+					callee := caller.mod.FuncByName(calleeName)
+					if callee != nil && !callee.Attrs.IsExtern && !callee.Attrs.FixedIndirectABI && !funcHasAsm(callee) && ai < len(callee.Contract.Params) && !callee.Contract.Params[ai].ClassHard {
+						if d := pfccoCallWordLiteral(caller, inst, ai); d != nil && d.Ty == callee.Contract.Params[ai].Ty {
+							continue
+						}
+					}
+				}
 				if argClass != wantClass {
-					total += classMoveCost(argClass, wantClass, ct)
+					total += pfccoAdapterCost(argClass, wantClass, ct)
 				}
 			}
 		}
@@ -374,8 +400,10 @@ func pfccoSolve(nodes []pfccoNode, edges []pfccoEdge) []int {
 						}
 						var edgeCost int
 						if isCaller {
-							edgeCost = e.costMatrix[k][j] 						} else {
-							edgeCost = e.costMatrix[j][k] 						}
+							edgeCost = e.costMatrix[k][j]
+						} else {
+							edgeCost = e.costMatrix[j][k]
+						}
 						total := c + edgeCost
 						if total < bestI {
 							bestI = total
@@ -383,6 +411,9 @@ func pfccoSolve(nodes []pfccoNode, edges []pfccoEdge) []int {
 					}
 					if bestI < InfCost {
 						nbCosts[j] += bestI
+					} else {
+						// No eliminated-node choice can satisfy this neighbor.
+						nbCosts[j] = InfCost
 					}
 				}
 
@@ -432,8 +463,10 @@ func pfccoSolve(nodes []pfccoNode, edges []pfccoEdge) []int {
 				isCaller := (e.callerIdx == bestNode)
 				var ec int
 				if isCaller {
-					ec = e.costMatrix[k][assignment[other]] 				} else {
-					ec = e.costMatrix[assignment[other]][k] 				}
+					ec = e.costMatrix[k][assignment[other]]
+				} else {
+					ec = e.costMatrix[assignment[other]][k]
+				}
 				total += ec
 			}
 			if total < bestTotal {
@@ -455,14 +488,18 @@ func pfccoSolve(nodes []pfccoNode, edges []pfccoEdge) []int {
 
 		bestChoice := 0
 		bestCost := InfCost
-		for k, c := range nodes[entry.node].costs {
+		// Reduction has accumulated costs from eliminated neighbors here.
+		// Reconstruct using that vector, not the original unary costs.
+		for k, c := range costs[entry.node] {
 			if c >= InfCost {
 				continue
 			}
 			var ec int
 			if isCaller {
-				ec = e.costMatrix[k][nbChoice] 			} else {
-				ec = e.costMatrix[nbChoice][k] 			}
+				ec = e.costMatrix[k][nbChoice]
+			} else {
+				ec = e.costMatrix[nbChoice][k]
+			}
 			total := c + ec
 			if total < bestCost {
 				bestCost = total
@@ -472,6 +509,18 @@ func pfccoSolve(nodes []pfccoNode, edges []pfccoEdge) []int {
 		assignment[entry.node] = bestChoice
 	}
 
+	// Check the original graph independently of the reduction state. RN can
+	// dead-end, and an all-infinite vector has no admissible minimum.
+	for i, k := range assignment {
+		if k < 0 || k >= len(nodes[i].costs) || nodes[i].costs[k] >= InfCost {
+			return nil
+		}
+	}
+	for _, e := range edges {
+		if e.costMatrix[assignment[e.callerIdx]][assignment[e.calleeIdx]] >= InfCost {
+			return nil
+		}
+	}
 	return assignment
 }
 
@@ -495,4 +544,168 @@ func pfccoMinCostVal(costs []int) int {
 		}
 	}
 	return min
+}
+
+// Call-argument adapters belong to graph edges, including fixed extern callees.
+// Removing calls from demand inference prevents preoptimization callee classes
+// from appearing in both node and edge costs. Fixed return inference remains.
+func pfccoBodyUnaryCost(f *Func, choice *ContractChoice, ct CostTable) int {
+	body := *f
+	body.Blocks = make([]*Block, len(f.Blocks))
+	for i, b := range f.Blocks {
+		copyBlock := *b
+		copyBlock.Insts = nil
+		for _, inst := range b.Insts {
+			if inst.Op != OpCall && !(inst.Op == OpMove && !pfccoHasBodyUse(f, inst.Dst, map[Reg]bool{})) {
+				copyBlock.Insts = append(copyBlock.Insts, inst)
+			}
+		}
+		body.Blocks[i] = &copyBlock
+	}
+	total := 0
+	for i, p := range f.Contract.Params {
+		if i >= len(choice.ParamClasses) {
+			break
+		}
+		// No non-call use means there is no body adapter; graph edges own all
+		// demand. Move chains are retained so ALU/return use is still inferred.
+		if !pfccoHasBodyUse(&body, p.Reg, map[Reg]bool{}) {
+			continue
+		}
+		natural := inferNaturalClass(&body, p.Reg, nil)
+		if _, z80 := ct.(Z80CostTable); z80 && pfccoLiteralAccumulatorDemand(&body, p.Reg) {
+			natural = ClassAcc
+		}
+		total += pfccoAdapterCost(choice.ParamClasses[i], natural, ct)
+	}
+	for i, r := range f.Contract.Returns {
+		if i < len(choice.ReturnClasses) {
+			total += classMoveCost(inferNaturalRetClass(f, r), choice.ReturnClasses[i], ct) * countRetSites(f)
+		}
+	}
+	return total
+}
+func pfccoHasBodyUse(f *Func, r Reg, seen map[Reg]bool) bool {
+	if seen[r] {
+		return false
+	}
+	seen[r] = true
+	for _, b := range f.Blocks {
+		for _, i := range b.Insts {
+			for _, s := range i.Src {
+				if s == r {
+					if i.Op == OpMove {
+						if pfccoHasBodyUse(f, i.Dst, seen) {
+							return true
+						}
+					} else {
+						return true
+					}
+				}
+			}
+		}
+		if b.Term != nil {
+			for _, s := range b.Term.termUses() {
+				if s == r {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+// A hard A/B/C register placement does not prohibit a transfer into it. The
+// existing placement table is retained for all other class pairs; its width,
+// flags and index constraints must not be relaxed by this byte-only repair.
+func pfccoAdapterCost(from, to RegClass, ct CostTable) int {
+	cost := classMoveCost(from, to, ct)
+	if _, ok := ct.(Z80CostTable); !ok {
+		return cost
+	}
+	src, dst := bestLocForClass(from, ct), bestLocForClass(to, ct)
+	isByte := func(l PhysLoc) bool {
+		return l.Kind == LocReg && len(l.Name) == 1 && (l.Name == "A" || l.Name == "B" || l.Name == "C")
+	}
+	if !isByte(src) || !isByte(dst) {
+		return cost
+	}
+	if src == dst {
+		return 0
+	}
+	return 4 // LD r,r: one byte, four T-states, no flags modified.
+}
+
+// A byte commutative operation with a literal lhs can consume its rhs directly
+// in A, by commuting operands. Do not charge an adapter to an arbitrary general
+// register when codegen emits ADD/AND/OR/XOR A, literal instead. Other operands,
+// noncommutative operations and wider types retain the existing demand model.
+func pfccoLiteralAccumulatorDemand(f *Func, r Reg) bool {
+	// Overwriting a still-live rhs requires a save; do not assume a free A reuse.
+	liveAfter := make(map[*Inst]*RegSet)
+	lr := ComputeLiveness(f)
+	for bi, b := range f.Blocks {
+		live := lr.LiveOut[bi].Clone()
+		if b.Term != nil {
+			for _, r := range b.Term.termUses() {
+				live.Add(r)
+			}
+		}
+		for ii := len(b.Insts) - 1; ii >= 0; ii-- {
+			inst := b.Insts[ii]
+			liveAfter[inst] = live.Clone()
+			live.Remove(inst.Dst)
+			for _, r := range inst.ExtraRets {
+				live.Remove(r)
+			}
+			for _, r := range inst.Uses() {
+				live.Add(r)
+			}
+		}
+	}
+	defs := make(map[Reg]*Inst)
+	for _, b := range f.Blocks {
+		for _, i := range b.Insts {
+			if i.Dst != NoReg {
+				defs[i.Dst] = i
+			}
+		}
+	}
+	var visit func(Reg, map[Reg]bool) bool
+	visit = func(r Reg, seen map[Reg]bool) bool {
+		if seen[r] {
+			return false
+		}
+		seen[r] = true
+		for _, b := range f.Blocks {
+			for _, i := range b.Insts {
+				if i.Src[0] != r && i.Src[1] != r {
+					continue
+				}
+				if i.Op == OpMove {
+					return visit(i.Dst, seen)
+				}
+				if i.Ty != TyU8 && i.Ty != TyI8 {
+					return false
+				}
+				switch i.Op {
+				case OpAdd, OpAnd, OpOr, OpXor:
+				default:
+					return false
+				}
+				lhs := defs[i.Src[0]]
+				return i.Src[1] == r && lhs != nil && lhs.Op == OpConst && !liveAfter[i].Has(r)
+			}
+			// A return/branch use precedes a later-block ALU demand.
+			if b.Term != nil {
+				for _, use := range b.Term.termUses() {
+					if use == r {
+						return false
+					}
+				}
+			}
+		}
+		return false
+	}
+	return visit(r, map[Reg]bool{})
 }

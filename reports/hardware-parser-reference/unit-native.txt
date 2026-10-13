@@ -1,0 +1,36 @@
+=== RUN   TestRelocatedWordUnitArithmeticNative
+=== RUN   TestRelocatedWordUnitArithmeticNative/add/both_spilled
+=== RUN   TestRelocatedWordUnitArithmeticNative/add/source_spilled
+=== RUN   TestRelocatedWordUnitArithmeticNative/add/source_spilled_bc
+=== RUN   TestRelocatedWordUnitArithmeticNative/add/source_spilled_ix
+=== RUN   TestRelocatedWordUnitArithmeticNative/add/source_spilled_iy
+=== RUN   TestRelocatedWordUnitArithmeticNative/add/ix_source
+=== RUN   TestRelocatedWordUnitArithmeticNative/add/iy_source
+=== RUN   TestRelocatedWordUnitArithmeticNative/add/result_spilled
+=== RUN   TestRelocatedWordUnitArithmeticNative/sub/both_spilled
+=== RUN   TestRelocatedWordUnitArithmeticNative/sub/source_spilled
+=== RUN   TestRelocatedWordUnitArithmeticNative/sub/source_spilled_bc
+=== RUN   TestRelocatedWordUnitArithmeticNative/sub/source_spilled_ix
+=== RUN   TestRelocatedWordUnitArithmeticNative/sub/source_spilled_iy
+=== RUN   TestRelocatedWordUnitArithmeticNative/sub/ix_source
+=== RUN   TestRelocatedWordUnitArithmeticNative/sub/iy_source
+=== RUN   TestRelocatedWordUnitArithmeticNative/sub/result_spilled
+--- PASS: TestRelocatedWordUnitArithmeticNative (0.00s)
+    --- PASS: TestRelocatedWordUnitArithmeticNative/add/both_spilled (0.00s)
+    --- PASS: TestRelocatedWordUnitArithmeticNative/add/source_spilled (0.00s)
+    --- PASS: TestRelocatedWordUnitArithmeticNative/add/source_spilled_bc (0.00s)
+    --- PASS: TestRelocatedWordUnitArithmeticNative/add/source_spilled_ix (0.00s)
+    --- PASS: TestRelocatedWordUnitArithmeticNative/add/source_spilled_iy (0.00s)
+    --- PASS: TestRelocatedWordUnitArithmeticNative/add/ix_source (0.00s)
+    --- PASS: TestRelocatedWordUnitArithmeticNative/add/iy_source (0.00s)
+    --- PASS: TestRelocatedWordUnitArithmeticNative/add/result_spilled (0.00s)
+    --- PASS: TestRelocatedWordUnitArithmeticNative/sub/both_spilled (0.00s)
+    --- PASS: TestRelocatedWordUnitArithmeticNative/sub/source_spilled (0.00s)
+    --- PASS: TestRelocatedWordUnitArithmeticNative/sub/source_spilled_bc (0.00s)
+    --- PASS: TestRelocatedWordUnitArithmeticNative/sub/source_spilled_ix (0.00s)
+    --- PASS: TestRelocatedWordUnitArithmeticNative/sub/source_spilled_iy (0.00s)
+    --- PASS: TestRelocatedWordUnitArithmeticNative/sub/ix_source (0.00s)
+    --- PASS: TestRelocatedWordUnitArithmeticNative/sub/iy_source (0.00s)
+    --- PASS: TestRelocatedWordUnitArithmeticNative/sub/result_spilled (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.011s

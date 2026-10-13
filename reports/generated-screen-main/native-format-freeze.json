@@ -1,0 +1,7 @@
+{
+  "authority": "actual stdlib/tui/render.nanz goto _tui_print_dec emitsatleast2digits, realBDOS execution; imported API entry normalizedevents but stdoutfromactualASM",
+  "sources": {
+    "reports/generated-screen-main/declarative-cancel-native-stdout.bin": "7545e1528d50cc5e62374233731270b1c1c01df7ae39f0b4057b39063917758e",
+    "reports/generated-screen-main/declarative-native-stdout.bin": "d8f331185719c87d6122c907ae128d0f29b842986ec8dba615dd25649540a1d5"
+  }
+}

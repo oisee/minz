@@ -67,6 +67,9 @@ func (m *Module) Dump() string {
 }
 
 func dumpFunc(sb *strings.Builder, f *Func) {
+	if f.FallibleCY {
+		sb.WriteString("[fallible-cy] ")
+	}
 	if f.IsExtern {
 		sb.WriteString("extern ")
 	}
@@ -80,6 +83,16 @@ func dumpFunc(sb *strings.Builder, f *Func) {
 		fmt.Fprintf(sb, "%s: %s", p.Name, p.Ty)
 	}
 	sb.WriteString(")")
+	if len(f.Captures) > 0 {
+		sb.WriteString(" captures(")
+		for i, c := range f.Captures {
+			if i > 0 {
+				sb.WriteString(", ")
+			}
+			fmt.Fprintf(sb, "%s: %s", c.Name, c.Ty)
+		}
+		sb.WriteString(")")
+	}
 	if f.RetTy.String() != "void" {
 		fmt.Fprintf(sb, " -> %s", f.RetTy)
 	}

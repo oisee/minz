@@ -4,9 +4,11 @@
 // VIR instructions use Z80-flavored opcodes but virtual registers — no pattern
 // or physical register has been chosen yet.
 //
-// The unified solver (Z3 primary, WFC fast-path) converts VIR → PIR in one
-// pass, simultaneously selecting instruction patterns AND physical registers.
-// This eliminates the 5-layer pipeline that created exponential edge cases.
+// The research solver converts VIR → PIR, jointly choosing instruction patterns
+// and physical registers for a fixed operation schedule. Z3 is an offline
+// dependency; WFC remains a future research option, not an implemented fast path.
+// Ordinary compilation uses the MIR2 → Z80 path and validated table candidates.
+// See ADR-0043 and ADR-0047 for the current boundary and model limitations.
 //
 // Architecture:
 //
@@ -64,6 +66,7 @@ const (
 	OpBitSet                    // dst = bit_set(src0, imm=bit)
 	OpBitReset                  // dst = bit_reset(src0, imm=bit)
 	OpAsmBlock                  // inline asm: emit AsmTemplate verbatim, pinned ins/outs
+	OpKeepAlive                 // scheduling-only use: preserve src0 through this point
 )
 
 // ── VIROp ────────────────────────────────────────────────────────────────────
@@ -312,11 +315,13 @@ type pairAlias struct {
 	pair, hi, lo int
 }
 
-// Z80 pair aliasing: BC(7)=B(1)+C(2), DE(8)=D(3)+E(4), HL(9)=H(5)+L(6)
+// Z80 pair aliasing includes index registers and their undocumented halves.
 var pairAliases = []pairAlias{
-	{7, 1, 2}, // BC = B + C
-	{8, 3, 4}, // DE = D + E
-	{9, 5, 6}, // HL = H + L
+	{7, 1, 2},    // BC = B + C
+	{8, 3, 4},    // DE = D + E
+	{9, 5, 6},    // HL = H + L
+	{11, 14, 15}, // IX = IXH + IXL
+	{12, 16, 17}, // IY = IYH + IYL
 }
 
 // ── Constraint Rule ──────────────────────────────────────────────────────────
@@ -344,6 +349,10 @@ type PIROp struct {
 	Imm     int64    // immediate value
 	Sym     string   // symbol name
 	Comment string   // debug annotation (optional)
+
+	// ExitLocations records the solver's value locations after this schedule.
+	// Attached only to the final PIR op; emission does not interpret it.
+	ExitLocations map[int]int
 
 	// Inline asm (OpAsmBlock): emit verbatim, bypass pattern template
 	AsmText string

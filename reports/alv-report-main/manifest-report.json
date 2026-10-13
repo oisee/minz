@@ -1,0 +1,1279 @@
+{
+  "files": [
+    {
+      "path": "minzc/pkg/pipeline/original_report_screen_main_test.go",
+      "bytes": 24237,
+      "sha256": "437a2b7880500af216d7847ae1329f8bb597ccc01d2c284534ec52386e89f6f5"
+    },
+    {
+      "path": "reports/alv-report-main/ALV.md",
+      "bytes": 2081,
+      "sha256": "78e673109c1143357af36e90f458d9245476c3f030f4a82654df56f6d0395312"
+    },
+    {
+      "path": "reports/alv-report-main/REPORT.md",
+      "bytes": 3036,
+      "sha256": "9ad68db56e5d3313102fe2499ac1a1db029ecc1a9753b01d5c64ba522c4a4543"
+    },
+    {
+      "path": "reports/alv-report-main/SQL-FOLLOWUP.md",
+      "bytes": 547,
+      "sha256": "652450c3492bb4533e6de6b5479fd0100462cb9fc5b65f84be9bf64885dbdbda"
+    },
+    {
+      "path": "reports/alv-report-main/alv-first.txt",
+      "bytes": 289,
+      "sha256": "6e347ae5a2f726b6b611e9ec6edcf335b1e2e26dbc43d877edec79d3accbf502"
+    },
+    {
+      "path": "reports/alv-report-main/alv-native-stdout.bin",
+      "bytes": 652,
+      "sha256": "2aaf44b4ca201bd09d98ca9e772c65e278c97995c7d6fd989dd47d0ca92b6919"
+    },
+    {
+      "path": "reports/alv-report-main/alv-stdout.bin",
+      "bytes": 631,
+      "sha256": "58d1366c5e72fd5680e67ec5cb75c2273eca644819ba88630d15adce3892bcf4"
+    },
+    {
+      "path": "reports/alv-report-main/alv-tab-native-stdout.bin",
+      "bytes": 1266,
+      "sha256": "78735f0de5cfaaf402ce10c613e704b448bbdf73e89a890abf2abc7a80d37ebc"
+    },
+    {
+      "path": "reports/alv-report-main/alv-tab-stdout.bin",
+      "bytes": 1226,
+      "sha256": "df1e3fa2800db9a3d366696bb3c4762325bbf8aa0a4ae293a7b84cf94cd4c356"
+    },
+    {
+      "path": "reports/alv-report-main/alv-tab.json",
+      "bytes": 31191,
+      "sha256": "13ccacdc857af05e379cc06be3a8c28763f59d77979cfe7f28936f371e746518"
+    },
+    {
+      "path": "reports/alv-report-main/alv-terminal.txt",
+      "bytes": 686,
+      "sha256": "fe1f4f18f1c4864b152946fbe02cdee4568604491e369d69b77d18324cce1b88"
+    },
+    {
+      "path": "reports/alv-report-main/alv.json",
+      "bytes": 16153,
+      "sha256": "61d924a113e7a48da5d41020067f44d032d855a5280f93bea3b7dd0bbd25ccd8"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-size/final.mir",
+      "bytes": 52131,
+      "sha256": "8d69cca5eb777b87f3086854defb831bb3dc17a99827997843c11581f1c92668"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-size/hir.txt",
+      "bytes": 15868,
+      "sha256": "d0c8e12e490e9304ffa9bb6477719f344339e73c46eeb4d5cda06a6cf5fd8fd8"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-size/native/bdos-ledger.json",
+      "bytes": 52117,
+      "sha256": "02968e5544f0b519539c19a1737fffd2ba2c3eceb953bf488a91b3a7574e4d45"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-size/native/events.json",
+      "bytes": 25848,
+      "sha256": "5901df88bae677d16fa6929eb7c5313f7bbe9b57ab6c83747f70de34652e25e5"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-size/native/program.a80",
+      "bytes": 53394,
+      "sha256": "f5c8d24cdd61fc2445245bc108cd851c8deaf80af17a58acd4bbe4dc8f40c783"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-size/native/program.com",
+      "bytes": 3701,
+      "sha256": "d83584cfc33aeae8bea8377ee95575e4428960f83131f574fef945d6e9b6b778"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-size/native/stdout.bin",
+      "bytes": 1266,
+      "sha256": "78735f0de5cfaaf402ce10c613e704b448bbdf73e89a890abf2abc7a80d37ebc"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-size/native/summary.json",
+      "bytes": 274,
+      "sha256": "da9e1f93044016606b8f6eef4b57a77e50fe5c49f4603ff0e6acdca244e94475"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-size/native/unlinked.a80",
+      "bytes": 53043,
+      "sha256": "59e9ebcd1939075f14d4963cbbc38342bf298ea0bd5d505a731db321e2923ca4"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-size/raw.mir",
+      "bytes": 56800,
+      "sha256": "7df1adcbaf99f1b7e79da6e8378bcaa7e72db6aad3936d7c9c7d9702d7dfa4e2"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-size/vm0/events.json",
+      "bytes": 25848,
+      "sha256": "5901df88bae677d16fa6929eb7c5313f7bbe9b57ab6c83747f70de34652e25e5"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-size/vm0/stdout.bin",
+      "bytes": 1226,
+      "sha256": "df1e3fa2800db9a3d366696bb3c4762325bbf8aa0a4ae293a7b84cf94cd4c356"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-size/vm0/summary.json",
+      "bytes": 59,
+      "sha256": "264fb12685f3e3212796fd853e80c8d2618ca47448c8c2926f15bc9d4f19d9d9"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-size/vm1/events.json",
+      "bytes": 25848,
+      "sha256": "5901df88bae677d16fa6929eb7c5313f7bbe9b57ab6c83747f70de34652e25e5"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-size/vm1/stdout.bin",
+      "bytes": 1226,
+      "sha256": "df1e3fa2800db9a3d366696bb3c4762325bbf8aa0a4ae293a7b84cf94cd4c356"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-size/vm1/summary.json",
+      "bytes": 59,
+      "sha256": "04f133aabff431458bd8bc6b3168d4d7a8ea80121c41cb03f2ab26dbb65dd12d"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-speed/final.mir",
+      "bytes": 52131,
+      "sha256": "8d69cca5eb777b87f3086854defb831bb3dc17a99827997843c11581f1c92668"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-speed/hir.txt",
+      "bytes": 15868,
+      "sha256": "d0c8e12e490e9304ffa9bb6477719f344339e73c46eeb4d5cda06a6cf5fd8fd8"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-speed/native/bdos-ledger.json",
+      "bytes": 52117,
+      "sha256": "02968e5544f0b519539c19a1737fffd2ba2c3eceb953bf488a91b3a7574e4d45"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-speed/native/events.json",
+      "bytes": 25848,
+      "sha256": "5901df88bae677d16fa6929eb7c5313f7bbe9b57ab6c83747f70de34652e25e5"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-speed/native/program.a80",
+      "bytes": 53394,
+      "sha256": "f5c8d24cdd61fc2445245bc108cd851c8deaf80af17a58acd4bbe4dc8f40c783"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-speed/native/program.com",
+      "bytes": 3701,
+      "sha256": "d83584cfc33aeae8bea8377ee95575e4428960f83131f574fef945d6e9b6b778"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-speed/native/stdout.bin",
+      "bytes": 1266,
+      "sha256": "78735f0de5cfaaf402ce10c613e704b448bbdf73e89a890abf2abc7a80d37ebc"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-speed/native/summary.json",
+      "bytes": 274,
+      "sha256": "da9e1f93044016606b8f6eef4b57a77e50fe5c49f4603ff0e6acdca244e94475"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-speed/native/unlinked.a80",
+      "bytes": 53043,
+      "sha256": "59e9ebcd1939075f14d4963cbbc38342bf298ea0bd5d505a731db321e2923ca4"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-speed/raw.mir",
+      "bytes": 56800,
+      "sha256": "7df1adcbaf99f1b7e79da6e8378bcaa7e72db6aad3936d7c9c7d9702d7dfa4e2"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-speed/vm0/events.json",
+      "bytes": 25848,
+      "sha256": "5901df88bae677d16fa6929eb7c5313f7bbe9b57ab6c83747f70de34652e25e5"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-speed/vm0/stdout.bin",
+      "bytes": 1226,
+      "sha256": "df1e3fa2800db9a3d366696bb3c4762325bbf8aa0a4ae293a7b84cf94cd4c356"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-speed/vm0/summary.json",
+      "bytes": 59,
+      "sha256": "264fb12685f3e3212796fd853e80c8d2618ca47448c8c2926f15bc9d4f19d9d9"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-speed/vm1/events.json",
+      "bytes": 25848,
+      "sha256": "5901df88bae677d16fa6929eb7c5313f7bbe9b57ab6c83747f70de34652e25e5"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-speed/vm1/stdout.bin",
+      "bytes": 1226,
+      "sha256": "df1e3fa2800db9a3d366696bb3c4762325bbf8aa0a4ae293a7b84cf94cd4c356"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/grace-speed/vm1/summary.json",
+      "bytes": 59,
+      "sha256": "04f133aabff431458bd8bc6b3168d4d7a8ea80121c41cb03f2ab26dbb65dd12d"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/ordinary/final.mir",
+      "bytes": 52311,
+      "sha256": "647b45427a6d74222468abc078979b4288d9dd16c8fc79a699ecc1e0c193aab2"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/ordinary/hir.txt",
+      "bytes": 15868,
+      "sha256": "d0c8e12e490e9304ffa9bb6477719f344339e73c46eeb4d5cda06a6cf5fd8fd8"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/ordinary/native/bdos-ledger.json",
+      "bytes": 52117,
+      "sha256": "02968e5544f0b519539c19a1737fffd2ba2c3eceb953bf488a91b3a7574e4d45"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/ordinary/native/events.json",
+      "bytes": 25848,
+      "sha256": "5901df88bae677d16fa6929eb7c5313f7bbe9b57ab6c83747f70de34652e25e5"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/ordinary/native/program.a80",
+      "bytes": 53955,
+      "sha256": "6031d13951647ef732b03e5917214fb6723cbfba8c52af846302abcdaa1dcca9"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/ordinary/native/program.com",
+      "bytes": 3716,
+      "sha256": "430336210dc6814ec9538c64911b11cf36c5b2b73e19c07c9c29850a49dca453"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/ordinary/native/stdout.bin",
+      "bytes": 1266,
+      "sha256": "78735f0de5cfaaf402ce10c613e704b448bbdf73e89a890abf2abc7a80d37ebc"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/ordinary/native/summary.json",
+      "bytes": 274,
+      "sha256": "874e4731f107b7b48d7e55b6f11599e38eaf568a230a217c6e85467e84cb50d7"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/ordinary/native/unlinked.a80",
+      "bytes": 53604,
+      "sha256": "2422d6d4c423d1233eb445106b7faececb1bdc200034dcc6c3b365a681bf8f3c"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/ordinary/raw.mir",
+      "bytes": 56800,
+      "sha256": "7df1adcbaf99f1b7e79da6e8378bcaa7e72db6aad3936d7c9c7d9702d7dfa4e2"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/ordinary/vm0/events.json",
+      "bytes": 25848,
+      "sha256": "5901df88bae677d16fa6929eb7c5313f7bbe9b57ab6c83747f70de34652e25e5"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/ordinary/vm0/stdout.bin",
+      "bytes": 1226,
+      "sha256": "df1e3fa2800db9a3d366696bb3c4762325bbf8aa0a4ae293a7b84cf94cd4c356"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/ordinary/vm0/summary.json",
+      "bytes": 59,
+      "sha256": "264fb12685f3e3212796fd853e80c8d2618ca47448c8c2926f15bc9d4f19d9d9"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/ordinary/vm1/events.json",
+      "bytes": 25848,
+      "sha256": "5901df88bae677d16fa6929eb7c5313f7bbe9b57ab6c83747f70de34652e25e5"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/ordinary/vm1/stdout.bin",
+      "bytes": 1226,
+      "sha256": "df1e3fa2800db9a3d366696bb3c4762325bbf8aa0a4ae293a7b84cf94cd4c356"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv-tab/ordinary/vm1/summary.json",
+      "bytes": 59,
+      "sha256": "04f133aabff431458bd8bc6b3168d4d7a8ea80121c41cb03f2ab26dbb65dd12d"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-size/final.mir",
+      "bytes": 52131,
+      "sha256": "8d69cca5eb777b87f3086854defb831bb3dc17a99827997843c11581f1c92668"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-size/hir.txt",
+      "bytes": 15868,
+      "sha256": "d0c8e12e490e9304ffa9bb6477719f344339e73c46eeb4d5cda06a6cf5fd8fd8"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-size/native/bdos-ledger.json",
+      "bytes": 26844,
+      "sha256": "a49c5abb2a61f9cbfbb7ad7138882f0a5bfe3c1b4c278487b04ab8d92f1023bb"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-size/native/events.json",
+      "bytes": 13175,
+      "sha256": "ee5afbfb1908a59cfbd20dbb141ec6bef47af7f7f6031e10a596d098767adae3"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-size/native/program.a80",
+      "bytes": 53394,
+      "sha256": "f5c8d24cdd61fc2445245bc108cd851c8deaf80af17a58acd4bbe4dc8f40c783"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-size/native/program.com",
+      "bytes": 3701,
+      "sha256": "d83584cfc33aeae8bea8377ee95575e4428960f83131f574fef945d6e9b6b778"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-size/native/stdout.bin",
+      "bytes": 652,
+      "sha256": "2aaf44b4ca201bd09d98ca9e772c65e278c97995c7d6fd989dd47d0ca92b6919"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-size/native/summary.json",
+      "bytes": 273,
+      "sha256": "e0877d28dce54c3fb8f576ab8aaa481b8a119af47bf2e2b8fbaaf4750882ea52"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-size/native/unlinked.a80",
+      "bytes": 53043,
+      "sha256": "59e9ebcd1939075f14d4963cbbc38342bf298ea0bd5d505a731db321e2923ca4"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-size/raw.mir",
+      "bytes": 56800,
+      "sha256": "7df1adcbaf99f1b7e79da6e8378bcaa7e72db6aad3936d7c9c7d9702d7dfa4e2"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-size/vm0/events.json",
+      "bytes": 13175,
+      "sha256": "ee5afbfb1908a59cfbd20dbb141ec6bef47af7f7f6031e10a596d098767adae3"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-size/vm0/stdout.bin",
+      "bytes": 631,
+      "sha256": "58d1366c5e72fd5680e67ec5cb75c2273eca644819ba88630d15adce3892bcf4"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-size/vm0/summary.json",
+      "bytes": 59,
+      "sha256": "a3c6526548389321233a791c31bc1ba18ebea80f5343b133d341054755106d9f"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-size/vm1/events.json",
+      "bytes": 13175,
+      "sha256": "ee5afbfb1908a59cfbd20dbb141ec6bef47af7f7f6031e10a596d098767adae3"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-size/vm1/stdout.bin",
+      "bytes": 631,
+      "sha256": "58d1366c5e72fd5680e67ec5cb75c2273eca644819ba88630d15adce3892bcf4"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-size/vm1/summary.json",
+      "bytes": 59,
+      "sha256": "6ead254fa30a8559b1bdbe37213bd333816dfe71ce54ed483ba92d68aff100a2"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-speed/final.mir",
+      "bytes": 52131,
+      "sha256": "8d69cca5eb777b87f3086854defb831bb3dc17a99827997843c11581f1c92668"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-speed/hir.txt",
+      "bytes": 15868,
+      "sha256": "d0c8e12e490e9304ffa9bb6477719f344339e73c46eeb4d5cda06a6cf5fd8fd8"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-speed/native/bdos-ledger.json",
+      "bytes": 26844,
+      "sha256": "a49c5abb2a61f9cbfbb7ad7138882f0a5bfe3c1b4c278487b04ab8d92f1023bb"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-speed/native/events.json",
+      "bytes": 13175,
+      "sha256": "ee5afbfb1908a59cfbd20dbb141ec6bef47af7f7f6031e10a596d098767adae3"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-speed/native/program.a80",
+      "bytes": 53394,
+      "sha256": "f5c8d24cdd61fc2445245bc108cd851c8deaf80af17a58acd4bbe4dc8f40c783"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-speed/native/program.com",
+      "bytes": 3701,
+      "sha256": "d83584cfc33aeae8bea8377ee95575e4428960f83131f574fef945d6e9b6b778"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-speed/native/stdout.bin",
+      "bytes": 652,
+      "sha256": "2aaf44b4ca201bd09d98ca9e772c65e278c97995c7d6fd989dd47d0ca92b6919"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-speed/native/summary.json",
+      "bytes": 273,
+      "sha256": "e0877d28dce54c3fb8f576ab8aaa481b8a119af47bf2e2b8fbaaf4750882ea52"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-speed/native/unlinked.a80",
+      "bytes": 53043,
+      "sha256": "59e9ebcd1939075f14d4963cbbc38342bf298ea0bd5d505a731db321e2923ca4"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-speed/raw.mir",
+      "bytes": 56800,
+      "sha256": "7df1adcbaf99f1b7e79da6e8378bcaa7e72db6aad3936d7c9c7d9702d7dfa4e2"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-speed/vm0/events.json",
+      "bytes": 13175,
+      "sha256": "ee5afbfb1908a59cfbd20dbb141ec6bef47af7f7f6031e10a596d098767adae3"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-speed/vm0/stdout.bin",
+      "bytes": 631,
+      "sha256": "58d1366c5e72fd5680e67ec5cb75c2273eca644819ba88630d15adce3892bcf4"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-speed/vm0/summary.json",
+      "bytes": 59,
+      "sha256": "a3c6526548389321233a791c31bc1ba18ebea80f5343b133d341054755106d9f"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-speed/vm1/events.json",
+      "bytes": 13175,
+      "sha256": "ee5afbfb1908a59cfbd20dbb141ec6bef47af7f7f6031e10a596d098767adae3"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-speed/vm1/stdout.bin",
+      "bytes": 631,
+      "sha256": "58d1366c5e72fd5680e67ec5cb75c2273eca644819ba88630d15adce3892bcf4"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/grace-speed/vm1/summary.json",
+      "bytes": 59,
+      "sha256": "6ead254fa30a8559b1bdbe37213bd333816dfe71ce54ed483ba92d68aff100a2"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/ordinary/final.mir",
+      "bytes": 52311,
+      "sha256": "647b45427a6d74222468abc078979b4288d9dd16c8fc79a699ecc1e0c193aab2"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/ordinary/hir.txt",
+      "bytes": 15868,
+      "sha256": "d0c8e12e490e9304ffa9bb6477719f344339e73c46eeb4d5cda06a6cf5fd8fd8"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/ordinary/native/bdos-ledger.json",
+      "bytes": 26844,
+      "sha256": "a49c5abb2a61f9cbfbb7ad7138882f0a5bfe3c1b4c278487b04ab8d92f1023bb"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/ordinary/native/events.json",
+      "bytes": 13175,
+      "sha256": "ee5afbfb1908a59cfbd20dbb141ec6bef47af7f7f6031e10a596d098767adae3"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/ordinary/native/program.a80",
+      "bytes": 53955,
+      "sha256": "6031d13951647ef732b03e5917214fb6723cbfba8c52af846302abcdaa1dcca9"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/ordinary/native/program.com",
+      "bytes": 3716,
+      "sha256": "430336210dc6814ec9538c64911b11cf36c5b2b73e19c07c9c29850a49dca453"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/ordinary/native/stdout.bin",
+      "bytes": 652,
+      "sha256": "2aaf44b4ca201bd09d98ca9e772c65e278c97995c7d6fd989dd47d0ca92b6919"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/ordinary/native/summary.json",
+      "bytes": 273,
+      "sha256": "e51a0a1072a374d1f4d5ff8b324d4ddeb8989d93d7ac2c1666844b809fcd9468"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/ordinary/native/unlinked.a80",
+      "bytes": 53604,
+      "sha256": "2422d6d4c423d1233eb445106b7faececb1bdc200034dcc6c3b365a681bf8f3c"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/ordinary/raw.mir",
+      "bytes": 56800,
+      "sha256": "7df1adcbaf99f1b7e79da6e8378bcaa7e72db6aad3936d7c9c7d9702d7dfa4e2"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/ordinary/vm0/events.json",
+      "bytes": 13175,
+      "sha256": "ee5afbfb1908a59cfbd20dbb141ec6bef47af7f7f6031e10a596d098767adae3"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/ordinary/vm0/stdout.bin",
+      "bytes": 631,
+      "sha256": "58d1366c5e72fd5680e67ec5cb75c2273eca644819ba88630d15adce3892bcf4"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/ordinary/vm0/summary.json",
+      "bytes": 59,
+      "sha256": "a3c6526548389321233a791c31bc1ba18ebea80f5343b133d341054755106d9f"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/ordinary/vm1/events.json",
+      "bytes": 13175,
+      "sha256": "ee5afbfb1908a59cfbd20dbb141ec6bef47af7f7f6031e10a596d098767adae3"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/ordinary/vm1/stdout.bin",
+      "bytes": 631,
+      "sha256": "58d1366c5e72fd5680e67ec5cb75c2273eca644819ba88630d15adce3892bcf4"
+    },
+    {
+      "path": "reports/alv-report-main/execution/alv/ordinary/vm1/summary.json",
+      "bytes": 59,
+      "sha256": "6ead254fa30a8559b1bdbe37213bd333816dfe71ce54ed483ba92d68aff100a2"
+    },
+    {
+      "path": "reports/alv-report-main/freeze-report.json",
+      "bytes": 1748,
+      "sha256": "991b48212e6f5eb631b773ad9d53b7ce8ea7df75baf8604c53e625156320772b"
+    },
+    {
+      "path": "reports/alv-report-main/freeze-sql-before.json",
+      "bytes": 757,
+      "sha256": "aad2b070ad0955bb07a3a9df9d2b0e00e4e1820d4ec7e053f47f123c2150d540"
+    },
+    {
+      "path": "reports/alv-report-main/freeze.json",
+      "bytes": 1178,
+      "sha256": "73ddcdd7e477d30e68ed214e7098c177a316e03eb1ddfb82e760246e256eb261"
+    },
+    {
+      "path": "reports/alv-report-main/historical-freeze-report.json",
+      "bytes": 1206,
+      "sha256": "05ce463be8f1347069e1e11db752c5bcb7f39d52337f2da0f4eb04affd4886c6"
+    },
+    {
+      "path": "reports/alv-report-main/historical-report-decimal-native-stdout.bin",
+      "bytes": 2250,
+      "sha256": "04f84c1139f7a2f61d1705404cc1276fd40f0538293027f8d47770aaa538d567"
+    },
+    {
+      "path": "reports/alv-report-main/historical-report-model.py",
+      "bytes": 3176,
+      "sha256": "ab5b6ba653c6a9898999008e62cec46c8c41926c1d3f1a0580c42a2bcfb4f4e8"
+    },
+    {
+      "path": "reports/alv-report-main/historical-report-native-stdout.bin",
+      "bytes": 2231,
+      "sha256": "e864a2b49596703c94fcea571920cc3f5d00b3246b0d32ad7a3949c9daacfdf2"
+    },
+    {
+      "path": "reports/alv-report-main/historical-report-stdout.bin",
+      "bytes": 2185,
+      "sha256": "f8318b37bea7e8708fd236a7c27c1356afaf798f6381d5da05f5364b30455f6e"
+    },
+    {
+      "path": "reports/alv-report-main/historical-report.json",
+      "bytes": 40537,
+      "sha256": "9d31dc1cf5fb900e64de4b7aaa2eff9c00dde2857a07784807d78ffee151446f"
+    },
+    {
+      "path": "reports/alv-report-main/manifest-alv.json",
+      "bytes": 19414,
+      "sha256": "b456bd8d66095659d82744a7bb6abd3591e04a66c5e8f0a842441cf6908f6fe9"
+    },
+    {
+      "path": "reports/alv-report-main/model.py",
+      "bytes": 3222,
+      "sha256": "da7fc5493284e3a46fd8aeb7225289c45ce2ed28029930a469612a9108c83e9c"
+    },
+    {
+      "path": "reports/alv-report-main/native-freeze.json",
+      "bytes": 358,
+      "sha256": "2dd7aa039d743182fda9990459c4f77e3ca65e868534425ce0382c450a440004"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-size/final.mir",
+      "bytes": 38756,
+      "sha256": "27d0f295f12d49f98064b67dfe074fc0cad1816c541a0e461cf25d61db5d89b7"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-size/hir.txt",
+      "bytes": 13428,
+      "sha256": "40f4399a3aa9d412d5e449cc73e5c132a37cac71acbdcf4e587cba18e7287f83"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-size/native/bdos-ledger.json",
+      "bytes": 50649,
+      "sha256": "9b539df213e2da68548feca41a5afccfa74a77f34aa976bb3ec300284e7c8136"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-size/native/events.json",
+      "bytes": 47136,
+      "sha256": "5c7c83e5111c052dca98b43a6bd9cd9ebf13cac1360d15c19dd4ba3035255b83"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-size/native/program.a80",
+      "bytes": 39165,
+      "sha256": "127e3b3cb9b9ce5fb0855af6d790212c64261c5d84c0e9e7b186cc4220a9959f"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-size/native/program.com",
+      "bytes": 3882,
+      "sha256": "5ddc5acf16e56884adff40f61d2e57eba36c1b60743086d4a8341ae43f9eb348"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-size/native/sql-ledger.json",
+      "bytes": 2669,
+      "sha256": "dbdd742357b0d68031e7aa95a12e7195439856ef590c948f362f3d5ade0ec2ee"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-size/native/stdout.bin",
+      "bytes": 2766,
+      "sha256": "c56e36528abb122f495f2cdee20af7a940c54f5e44b199065b3bdaeab1290f95"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-size/native/summary.json",
+      "bytes": 274,
+      "sha256": "0f681a632add0248b4a93be4dc0c931a8b5b4e97c39c087df7183bef61c65702"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-size/native/unlinked.a80",
+      "bytes": 38519,
+      "sha256": "d169422856ec5a27235aea2fa62ce3346c101bbfed46b4063308219f05d1a78d"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-size/raw.mir",
+      "bytes": 42029,
+      "sha256": "7c9ee09e36644fbf8f5a2849f657679dbf6324c73f0216d792d04ef25afe808a"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-size/vm0/events.json",
+      "bytes": 47136,
+      "sha256": "5c7c83e5111c052dca98b43a6bd9cd9ebf13cac1360d15c19dd4ba3035255b83"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-size/vm0/sql-ledger.json",
+      "bytes": 2669,
+      "sha256": "dbdd742357b0d68031e7aa95a12e7195439856ef590c948f362f3d5ade0ec2ee"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-size/vm0/stdout.bin",
+      "bytes": 2766,
+      "sha256": "c56e36528abb122f495f2cdee20af7a940c54f5e44b199065b3bdaeab1290f95"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-size/vm0/summary.json",
+      "bytes": 59,
+      "sha256": "09273507da3daf6b2b668b72617ec5963b66f9e002fb72c0c45a0d43b34d5a0e"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-size/vm1/events.json",
+      "bytes": 47136,
+      "sha256": "5c7c83e5111c052dca98b43a6bd9cd9ebf13cac1360d15c19dd4ba3035255b83"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-size/vm1/sql-ledger.json",
+      "bytes": 2669,
+      "sha256": "dbdd742357b0d68031e7aa95a12e7195439856ef590c948f362f3d5ade0ec2ee"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-size/vm1/stdout.bin",
+      "bytes": 2766,
+      "sha256": "c56e36528abb122f495f2cdee20af7a940c54f5e44b199065b3bdaeab1290f95"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-size/vm1/summary.json",
+      "bytes": 59,
+      "sha256": "17c80bd142f8ccdf1058472c9be35378d9182067c8bdd252436daa9eaaff5f33"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-speed/final.mir",
+      "bytes": 38756,
+      "sha256": "27d0f295f12d49f98064b67dfe074fc0cad1816c541a0e461cf25d61db5d89b7"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-speed/hir.txt",
+      "bytes": 13428,
+      "sha256": "40f4399a3aa9d412d5e449cc73e5c132a37cac71acbdcf4e587cba18e7287f83"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-speed/native/bdos-ledger.json",
+      "bytes": 50649,
+      "sha256": "9b539df213e2da68548feca41a5afccfa74a77f34aa976bb3ec300284e7c8136"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-speed/native/events.json",
+      "bytes": 47136,
+      "sha256": "5c7c83e5111c052dca98b43a6bd9cd9ebf13cac1360d15c19dd4ba3035255b83"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-speed/native/program.a80",
+      "bytes": 39165,
+      "sha256": "127e3b3cb9b9ce5fb0855af6d790212c64261c5d84c0e9e7b186cc4220a9959f"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-speed/native/program.com",
+      "bytes": 3882,
+      "sha256": "5ddc5acf16e56884adff40f61d2e57eba36c1b60743086d4a8341ae43f9eb348"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-speed/native/sql-ledger.json",
+      "bytes": 2669,
+      "sha256": "dbdd742357b0d68031e7aa95a12e7195439856ef590c948f362f3d5ade0ec2ee"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-speed/native/stdout.bin",
+      "bytes": 2766,
+      "sha256": "c56e36528abb122f495f2cdee20af7a940c54f5e44b199065b3bdaeab1290f95"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-speed/native/summary.json",
+      "bytes": 274,
+      "sha256": "0f681a632add0248b4a93be4dc0c931a8b5b4e97c39c087df7183bef61c65702"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-speed/native/unlinked.a80",
+      "bytes": 38519,
+      "sha256": "d169422856ec5a27235aea2fa62ce3346c101bbfed46b4063308219f05d1a78d"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-speed/raw.mir",
+      "bytes": 42029,
+      "sha256": "7c9ee09e36644fbf8f5a2849f657679dbf6324c73f0216d792d04ef25afe808a"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-speed/vm0/events.json",
+      "bytes": 47136,
+      "sha256": "5c7c83e5111c052dca98b43a6bd9cd9ebf13cac1360d15c19dd4ba3035255b83"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-speed/vm0/sql-ledger.json",
+      "bytes": 2669,
+      "sha256": "dbdd742357b0d68031e7aa95a12e7195439856ef590c948f362f3d5ade0ec2ee"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-speed/vm0/stdout.bin",
+      "bytes": 2766,
+      "sha256": "c56e36528abb122f495f2cdee20af7a940c54f5e44b199065b3bdaeab1290f95"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-speed/vm0/summary.json",
+      "bytes": 59,
+      "sha256": "09273507da3daf6b2b668b72617ec5963b66f9e002fb72c0c45a0d43b34d5a0e"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-speed/vm1/events.json",
+      "bytes": 47136,
+      "sha256": "5c7c83e5111c052dca98b43a6bd9cd9ebf13cac1360d15c19dd4ba3035255b83"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-speed/vm1/sql-ledger.json",
+      "bytes": 2669,
+      "sha256": "dbdd742357b0d68031e7aa95a12e7195439856ef590c948f362f3d5ade0ec2ee"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-speed/vm1/stdout.bin",
+      "bytes": 2766,
+      "sha256": "c56e36528abb122f495f2cdee20af7a940c54f5e44b199065b3bdaeab1290f95"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/grace-speed/vm1/summary.json",
+      "bytes": 59,
+      "sha256": "17c80bd142f8ccdf1058472c9be35378d9182067c8bdd252436daa9eaaff5f33"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/ordinary/final.mir",
+      "bytes": 38941,
+      "sha256": "eeb74cdd44f59622b0aaf495bfd2907b32eb649c748acb5698c4c6e7776a0eec"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/ordinary/hir.txt",
+      "bytes": 13428,
+      "sha256": "40f4399a3aa9d412d5e449cc73e5c132a37cac71acbdcf4e587cba18e7287f83"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/ordinary/native/bdos-ledger.json",
+      "bytes": 50649,
+      "sha256": "9b539df213e2da68548feca41a5afccfa74a77f34aa976bb3ec300284e7c8136"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/ordinary/native/events.json",
+      "bytes": 47136,
+      "sha256": "5c7c83e5111c052dca98b43a6bd9cd9ebf13cac1360d15c19dd4ba3035255b83"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/ordinary/native/program.a80",
+      "bytes": 39528,
+      "sha256": "4b7af13e9e0681dfb52c2728d3147959f87173b16ffe8ff12fd68a49dee3d975"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/ordinary/native/program.com",
+      "bytes": 3897,
+      "sha256": "8017abfb2d9fc74799cc0bf8abd71821153740becc5b7253b9230d1ef1243bc8"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/ordinary/native/sql-ledger.json",
+      "bytes": 2669,
+      "sha256": "dbdd742357b0d68031e7aa95a12e7195439856ef590c948f362f3d5ade0ec2ee"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/ordinary/native/stdout.bin",
+      "bytes": 2766,
+      "sha256": "c56e36528abb122f495f2cdee20af7a940c54f5e44b199065b3bdaeab1290f95"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/ordinary/native/summary.json",
+      "bytes": 274,
+      "sha256": "76d32ce34da5738749570703e823779cb07e77a71aae168478c13fa8c751aafb"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/ordinary/native/unlinked.a80",
+      "bytes": 38882,
+      "sha256": "6a9f4db07ce94f9c715053162e29679351a8f5ed1926aca4c5e6d9a0e1cbaee1"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/ordinary/raw.mir",
+      "bytes": 42029,
+      "sha256": "7c9ee09e36644fbf8f5a2849f657679dbf6324c73f0216d792d04ef25afe808a"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/ordinary/vm0/events.json",
+      "bytes": 47136,
+      "sha256": "5c7c83e5111c052dca98b43a6bd9cd9ebf13cac1360d15c19dd4ba3035255b83"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/ordinary/vm0/sql-ledger.json",
+      "bytes": 2669,
+      "sha256": "dbdd742357b0d68031e7aa95a12e7195439856ef590c948f362f3d5ade0ec2ee"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/ordinary/vm0/stdout.bin",
+      "bytes": 2766,
+      "sha256": "c56e36528abb122f495f2cdee20af7a940c54f5e44b199065b3bdaeab1290f95"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/ordinary/vm0/summary.json",
+      "bytes": 59,
+      "sha256": "09273507da3daf6b2b668b72617ec5963b66f9e002fb72c0c45a0d43b34d5a0e"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/ordinary/vm1/events.json",
+      "bytes": 47136,
+      "sha256": "5c7c83e5111c052dca98b43a6bd9cd9ebf13cac1360d15c19dd4ba3035255b83"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/ordinary/vm1/sql-ledger.json",
+      "bytes": 2669,
+      "sha256": "dbdd742357b0d68031e7aa95a12e7195439856ef590c948f362f3d5ade0ec2ee"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/ordinary/vm1/stdout.bin",
+      "bytes": 2766,
+      "sha256": "c56e36528abb122f495f2cdee20af7a940c54f5e44b199065b3bdaeab1290f95"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report-lh/ordinary/vm1/summary.json",
+      "bytes": 59,
+      "sha256": "a7ab98810f36f92e4398a8007664e79f384724abca5e2a2487cf29d044bd0fd9"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-size/final.mir",
+      "bytes": 38756,
+      "sha256": "27d0f295f12d49f98064b67dfe074fc0cad1816c541a0e461cf25d61db5d89b7"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-size/hir.txt",
+      "bytes": 13428,
+      "sha256": "40f4399a3aa9d412d5e449cc73e5c132a37cac71acbdcf4e587cba18e7287f83"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-size/native/bdos-ledger.json",
+      "bytes": 45162,
+      "sha256": "5a3fb8ea5324b77d15a088e0def4ea48324405ff032abe5a46e084bcf004729b"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-size/native/events.json",
+      "bytes": 33664,
+      "sha256": "e70a4e6aaa4d9735f295b5dbc606cefcd1f1561abe13376ad37c98b8e1dba522"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-size/native/program.a80",
+      "bytes": 39165,
+      "sha256": "127e3b3cb9b9ce5fb0855af6d790212c64261c5d84c0e9e7b186cc4220a9959f"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-size/native/program.com",
+      "bytes": 3882,
+      "sha256": "5ddc5acf16e56884adff40f61d2e57eba36c1b60743086d4a8341ae43f9eb348"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-size/native/sql-ledger.json",
+      "bytes": 3652,
+      "sha256": "a7f098ea27149121f52d604d3a4cff4cc480650a43548e32a491e474bdb590ea"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-size/native/stdout.bin",
+      "bytes": 2202,
+      "sha256": "f65f8bd56c475793066167ec6bf33f695cda2ddd2bbbea83b2af17f9b369e9e5"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-size/native/summary.json",
+      "bytes": 274,
+      "sha256": "47c8f49cc378c57bdb922b9da5e1c07121314730f13392b269f1f61ed0f310f6"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-size/native/unlinked.a80",
+      "bytes": 38519,
+      "sha256": "d169422856ec5a27235aea2fa62ce3346c101bbfed46b4063308219f05d1a78d"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-size/raw.mir",
+      "bytes": 42029,
+      "sha256": "7c9ee09e36644fbf8f5a2849f657679dbf6324c73f0216d792d04ef25afe808a"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-size/vm0/events.json",
+      "bytes": 33664,
+      "sha256": "e70a4e6aaa4d9735f295b5dbc606cefcd1f1561abe13376ad37c98b8e1dba522"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-size/vm0/sql-ledger.json",
+      "bytes": 3652,
+      "sha256": "a7f098ea27149121f52d604d3a4cff4cc480650a43548e32a491e474bdb590ea"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-size/vm0/stdout.bin",
+      "bytes": 2202,
+      "sha256": "f65f8bd56c475793066167ec6bf33f695cda2ddd2bbbea83b2af17f9b369e9e5"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-size/vm0/summary.json",
+      "bytes": 59,
+      "sha256": "23a058c5ec29ccd966296fda49575c00d0154c8078c6723a3d5249b02c955423"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-size/vm1/events.json",
+      "bytes": 33664,
+      "sha256": "e70a4e6aaa4d9735f295b5dbc606cefcd1f1561abe13376ad37c98b8e1dba522"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-size/vm1/sql-ledger.json",
+      "bytes": 3652,
+      "sha256": "a7f098ea27149121f52d604d3a4cff4cc480650a43548e32a491e474bdb590ea"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-size/vm1/stdout.bin",
+      "bytes": 2202,
+      "sha256": "f65f8bd56c475793066167ec6bf33f695cda2ddd2bbbea83b2af17f9b369e9e5"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-size/vm1/summary.json",
+      "bytes": 59,
+      "sha256": "4f22f20f7f661935bf5a1282570a9ee89d21849a59db752a63eee1a640455f94"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-speed/final.mir",
+      "bytes": 38756,
+      "sha256": "27d0f295f12d49f98064b67dfe074fc0cad1816c541a0e461cf25d61db5d89b7"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-speed/hir.txt",
+      "bytes": 13428,
+      "sha256": "40f4399a3aa9d412d5e449cc73e5c132a37cac71acbdcf4e587cba18e7287f83"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-speed/native/bdos-ledger.json",
+      "bytes": 45162,
+      "sha256": "5a3fb8ea5324b77d15a088e0def4ea48324405ff032abe5a46e084bcf004729b"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-speed/native/events.json",
+      "bytes": 33664,
+      "sha256": "e70a4e6aaa4d9735f295b5dbc606cefcd1f1561abe13376ad37c98b8e1dba522"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-speed/native/program.a80",
+      "bytes": 39165,
+      "sha256": "127e3b3cb9b9ce5fb0855af6d790212c64261c5d84c0e9e7b186cc4220a9959f"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-speed/native/program.com",
+      "bytes": 3882,
+      "sha256": "5ddc5acf16e56884adff40f61d2e57eba36c1b60743086d4a8341ae43f9eb348"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-speed/native/sql-ledger.json",
+      "bytes": 3652,
+      "sha256": "a7f098ea27149121f52d604d3a4cff4cc480650a43548e32a491e474bdb590ea"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-speed/native/stdout.bin",
+      "bytes": 2202,
+      "sha256": "f65f8bd56c475793066167ec6bf33f695cda2ddd2bbbea83b2af17f9b369e9e5"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-speed/native/summary.json",
+      "bytes": 274,
+      "sha256": "47c8f49cc378c57bdb922b9da5e1c07121314730f13392b269f1f61ed0f310f6"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-speed/native/unlinked.a80",
+      "bytes": 38519,
+      "sha256": "d169422856ec5a27235aea2fa62ce3346c101bbfed46b4063308219f05d1a78d"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-speed/raw.mir",
+      "bytes": 42029,
+      "sha256": "7c9ee09e36644fbf8f5a2849f657679dbf6324c73f0216d792d04ef25afe808a"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-speed/vm0/events.json",
+      "bytes": 33664,
+      "sha256": "e70a4e6aaa4d9735f295b5dbc606cefcd1f1561abe13376ad37c98b8e1dba522"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-speed/vm0/sql-ledger.json",
+      "bytes": 3652,
+      "sha256": "a7f098ea27149121f52d604d3a4cff4cc480650a43548e32a491e474bdb590ea"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-speed/vm0/stdout.bin",
+      "bytes": 2202,
+      "sha256": "f65f8bd56c475793066167ec6bf33f695cda2ddd2bbbea83b2af17f9b369e9e5"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-speed/vm0/summary.json",
+      "bytes": 59,
+      "sha256": "23a058c5ec29ccd966296fda49575c00d0154c8078c6723a3d5249b02c955423"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-speed/vm1/events.json",
+      "bytes": 33664,
+      "sha256": "e70a4e6aaa4d9735f295b5dbc606cefcd1f1561abe13376ad37c98b8e1dba522"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-speed/vm1/sql-ledger.json",
+      "bytes": 3652,
+      "sha256": "a7f098ea27149121f52d604d3a4cff4cc480650a43548e32a491e474bdb590ea"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-speed/vm1/stdout.bin",
+      "bytes": 2202,
+      "sha256": "f65f8bd56c475793066167ec6bf33f695cda2ddd2bbbea83b2af17f9b369e9e5"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/grace-speed/vm1/summary.json",
+      "bytes": 59,
+      "sha256": "4f22f20f7f661935bf5a1282570a9ee89d21849a59db752a63eee1a640455f94"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/ordinary/final.mir",
+      "bytes": 38941,
+      "sha256": "eeb74cdd44f59622b0aaf495bfd2907b32eb649c748acb5698c4c6e7776a0eec"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/ordinary/hir.txt",
+      "bytes": 13428,
+      "sha256": "40f4399a3aa9d412d5e449cc73e5c132a37cac71acbdcf4e587cba18e7287f83"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/ordinary/native/bdos-ledger.json",
+      "bytes": 45162,
+      "sha256": "5a3fb8ea5324b77d15a088e0def4ea48324405ff032abe5a46e084bcf004729b"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/ordinary/native/events.json",
+      "bytes": 33664,
+      "sha256": "e70a4e6aaa4d9735f295b5dbc606cefcd1f1561abe13376ad37c98b8e1dba522"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/ordinary/native/program.a80",
+      "bytes": 39528,
+      "sha256": "4b7af13e9e0681dfb52c2728d3147959f87173b16ffe8ff12fd68a49dee3d975"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/ordinary/native/program.com",
+      "bytes": 3897,
+      "sha256": "8017abfb2d9fc74799cc0bf8abd71821153740becc5b7253b9230d1ef1243bc8"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/ordinary/native/sql-ledger.json",
+      "bytes": 3652,
+      "sha256": "a7f098ea27149121f52d604d3a4cff4cc480650a43548e32a491e474bdb590ea"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/ordinary/native/stdout.bin",
+      "bytes": 2202,
+      "sha256": "f65f8bd56c475793066167ec6bf33f695cda2ddd2bbbea83b2af17f9b369e9e5"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/ordinary/native/summary.json",
+      "bytes": 274,
+      "sha256": "0b4298909bb36eae9d9351b20d508074b9098afa7b6e55ba6b000a3ef17e3d64"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/ordinary/native/unlinked.a80",
+      "bytes": 38882,
+      "sha256": "6a9f4db07ce94f9c715053162e29679351a8f5ed1926aca4c5e6d9a0e1cbaee1"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/ordinary/raw.mir",
+      "bytes": 42029,
+      "sha256": "7c9ee09e36644fbf8f5a2849f657679dbf6324c73f0216d792d04ef25afe808a"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/ordinary/vm0/events.json",
+      "bytes": 33664,
+      "sha256": "e70a4e6aaa4d9735f295b5dbc606cefcd1f1561abe13376ad37c98b8e1dba522"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/ordinary/vm0/sql-ledger.json",
+      "bytes": 3652,
+      "sha256": "a7f098ea27149121f52d604d3a4cff4cc480650a43548e32a491e474bdb590ea"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/ordinary/vm0/stdout.bin",
+      "bytes": 2202,
+      "sha256": "f65f8bd56c475793066167ec6bf33f695cda2ddd2bbbea83b2af17f9b369e9e5"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/ordinary/vm0/summary.json",
+      "bytes": 59,
+      "sha256": "23a058c5ec29ccd966296fda49575c00d0154c8078c6723a3d5249b02c955423"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/ordinary/vm1/events.json",
+      "bytes": 33664,
+      "sha256": "e70a4e6aaa4d9735f295b5dbc606cefcd1f1561abe13376ad37c98b8e1dba522"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/ordinary/vm1/sql-ledger.json",
+      "bytes": 3652,
+      "sha256": "a7f098ea27149121f52d604d3a4cff4cc480650a43548e32a491e474bdb590ea"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/ordinary/vm1/stdout.bin",
+      "bytes": 2202,
+      "sha256": "f65f8bd56c475793066167ec6bf33f695cda2ddd2bbbea83b2af17f9b369e9e5"
+    },
+    {
+      "path": "reports/alv-report-main/report-execution/report/ordinary/vm1/summary.json",
+      "bytes": 59,
+      "sha256": "135c8b10eb41adb324d38aee9685cf23627410f113cc2c4ab720e60b24253d17"
+    },
+    {
+      "path": "reports/alv-report-main/report-fifth.txt",
+      "bytes": 246,
+      "sha256": "58a26c0946ca0cfcd9365606adeda678024acfc2c36b58d9bc82602995a9914b"
+    },
+    {
+      "path": "reports/alv-report-main/report-final.txt",
+      "bytes": 725,
+      "sha256": "1e0a18f54b44b35e21da6d15b71d7796a5b1619624b910f3fa1a27de3b685315"
+    },
+    {
+      "path": "reports/alv-report-main/report-first.txt",
+      "bytes": 303,
+      "sha256": "4f8f50050f4a01c736742aa8c5e3a03beda93f9010a30644b37fb366c62a4768"
+    },
+    {
+      "path": "reports/alv-report-main/report-fourth.txt",
+      "bytes": 215,
+      "sha256": "29bbc1d304a1df8ea9077ec88c85c6ce4b410188ff2d58dd2f8994a8ed38709d"
+    },
+    {
+      "path": "reports/alv-report-main/report-lh-first.txt",
+      "bytes": 725,
+      "sha256": "519634f405a8c08a69a157b3158ba1ffe9a51deb132d7b32b64bb45c4b0f498a"
+    },
+    {
+      "path": "reports/alv-report-main/report-lh-native-stdout.bin",
+      "bytes": 2766,
+      "sha256": "c56e36528abb122f495f2cdee20af7a940c54f5e44b199065b3bdaeab1290f95"
+    },
+    {
+      "path": "reports/alv-report-main/report-lh-stdout.bin",
+      "bytes": 2766,
+      "sha256": "c56e36528abb122f495f2cdee20af7a940c54f5e44b199065b3bdaeab1290f95"
+    },
+    {
+      "path": "reports/alv-report-main/report-lh.json",
+      "bytes": 56752,
+      "sha256": "a8007adcc314ae5c49c63efa385ef724584afcef08d93aa89e7968560fc07e36"
+    },
+    {
+      "path": "reports/alv-report-main/report-model.py",
+      "bytes": 3801,
+      "sha256": "8fa77ed3cb51ec32e6b193f98b9591924eaee8db6956445f7ca445c5443cea49"
+    },
+    {
+      "path": "reports/alv-report-main/report-native-stdout.bin",
+      "bytes": 2202,
+      "sha256": "f65f8bd56c475793066167ec6bf33f695cda2ddd2bbbea83b2af17f9b369e9e5"
+    },
+    {
+      "path": "reports/alv-report-main/report-second.txt",
+      "bytes": 207,
+      "sha256": "ca23ebffb69678ff26274142696e27302340413f4776aeb525a09336b685dd1f"
+    },
+    {
+      "path": "reports/alv-report-main/report-seventh.txt",
+      "bytes": 432,
+      "sha256": "c0298005a1ce02fe03673e31e0aa1a29372ae344844388308a2215cd303c247e"
+    },
+    {
+      "path": "reports/alv-report-main/report-sixth.txt",
+      "bytes": 246,
+      "sha256": "cae4297a97fccad0eb1b58d1eb8e71e0c836b814f10630380bee4041b386bdfb"
+    },
+    {
+      "path": "reports/alv-report-main/report-stdout.bin",
+      "bytes": 2202,
+      "sha256": "f65f8bd56c475793066167ec6bf33f695cda2ddd2bbbea83b2af17f9b369e9e5"
+    },
+    {
+      "path": "reports/alv-report-main/report-third.txt",
+      "bytes": 215,
+      "sha256": "e6b43c7a1fd3ec4b2255a4961a0c986271581abb89dc64b48d928a8478706d5d"
+    },
+    {
+      "path": "reports/alv-report-main/report.json",
+      "bytes": 40748,
+      "sha256": "e0d24ea671b3646a38dd2f8ec0d09e9fa15bb37ded04f6c0c28752b206c84c32"
+    },
+    {
+      "path": "reports/alv-report-main/screen_alv.nanz",
+      "bytes": 1421,
+      "sha256": "d6d74b99f7ce5aa97110f9f5cbe5fe6f1e3f85d00a56f442575d32b0661a7dc2"
+    },
+    {
+      "path": "reports/alv-report-main/screen_report.nanz",
+      "bytes": 4532,
+      "sha256": "6103aaba8f51e47158184097d14459788e1cf5019df171282c58e263a9418c5c"
+    },
+    {
+      "path": "reports/alv-report-main/sql-before.json",
+      "bytes": 1586,
+      "sha256": "92f3ac994cf1fdd1f650605f86f3bd2e8a8efca77c3f0bdad21abaa6e24de2aa"
+    },
+    {
+      "path": "reports/alv-report-main/sqlite-filter-followup.txt",
+      "bytes": 153,
+      "sha256": "5d4ec5e7b86c4bb93b522adc0422af8d6bbb536e3399d3787d08d7b7640afc86"
+    },
+    {
+      "path": "reports/alv-report-main/sqlite-filter.txt",
+      "bytes": 153,
+      "sha256": "5d4ec5e7b86c4bb93b522adc0422af8d6bbb536e3399d3787d08d7b7640afc86"
+    }
+  ]
+}

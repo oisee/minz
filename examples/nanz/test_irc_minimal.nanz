@@ -15,8 +15,8 @@ fun net_send(s: ^u8) -> void {
 
 fun main() -> void {
     @print("Starting...\n")
-    net_send("NICK minztest\r\n")
-    net_send("USER minz 0 * :test\r\n")
+    net_send(c"NICK minztest\r\n")
+    net_send(c"USER minz 0 * :test\r\n")
     @print("Sent NICK+USER\n")
 
     var count: u16 = 0

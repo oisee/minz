@@ -1,0 +1,466 @@
+[
+  {
+    "path": "minzc/cmd/mzv/sqlite_filter.go",
+    "sha256": "d3cc9438e3cab9d2b7f207af29393f4509dc684dfea88dcbc4cc9940448ebe69"
+  },
+  {
+    "path": "minzc/cmd/mzv/sqlite_filter_test.go",
+    "sha256": "4423f46bbf7b6a4f785f8627a82a66e049746f30b397516f37b7b0203d00a31c"
+  },
+  {
+    "path": "minzc/pkg/pipeline/original_alv_screen_main_test.go",
+    "sha256": "dded30eedc22d249c69b2895e2bfe7be981f57e71d396685ac331f3ecbeb9def"
+  },
+  {
+    "path": "reports/alv-report-main/ALV.md",
+    "sha256": "78e673109c1143357af36e90f458d9245476c3f030f4a82654df56f6d0395312"
+  },
+  {
+    "path": "reports/alv-report-main/alv-first.txt",
+    "sha256": "6e347ae5a2f726b6b611e9ec6edcf335b1e2e26dbc43d877edec79d3accbf502"
+  },
+  {
+    "path": "reports/alv-report-main/alv-native-stdout.bin",
+    "sha256": "2aaf44b4ca201bd09d98ca9e772c65e278c97995c7d6fd989dd47d0ca92b6919"
+  },
+  {
+    "path": "reports/alv-report-main/alv-stdout.bin",
+    "sha256": "58d1366c5e72fd5680e67ec5cb75c2273eca644819ba88630d15adce3892bcf4"
+  },
+  {
+    "path": "reports/alv-report-main/alv-tab-native-stdout.bin",
+    "sha256": "78735f0de5cfaaf402ce10c613e704b448bbdf73e89a890abf2abc7a80d37ebc"
+  },
+  {
+    "path": "reports/alv-report-main/alv-tab-stdout.bin",
+    "sha256": "df1e3fa2800db9a3d366696bb3c4762325bbf8aa0a4ae293a7b84cf94cd4c356"
+  },
+  {
+    "path": "reports/alv-report-main/alv-tab.json",
+    "sha256": "13ccacdc857af05e379cc06be3a8c28763f59d77979cfe7f28936f371e746518"
+  },
+  {
+    "path": "reports/alv-report-main/alv-terminal.txt",
+    "sha256": "fe1f4f18f1c4864b152946fbe02cdee4568604491e369d69b77d18324cce1b88"
+  },
+  {
+    "path": "reports/alv-report-main/alv.json",
+    "sha256": "61d924a113e7a48da5d41020067f44d032d855a5280f93bea3b7dd0bbd25ccd8"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-size/final.mir",
+    "sha256": "8d69cca5eb777b87f3086854defb831bb3dc17a99827997843c11581f1c92668"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-size/hir.txt",
+    "sha256": "d0c8e12e490e9304ffa9bb6477719f344339e73c46eeb4d5cda06a6cf5fd8fd8"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-size/native/bdos-ledger.json",
+    "sha256": "02968e5544f0b519539c19a1737fffd2ba2c3eceb953bf488a91b3a7574e4d45"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-size/native/events.json",
+    "sha256": "5901df88bae677d16fa6929eb7c5313f7bbe9b57ab6c83747f70de34652e25e5"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-size/native/program.a80",
+    "sha256": "f5c8d24cdd61fc2445245bc108cd851c8deaf80af17a58acd4bbe4dc8f40c783"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-size/native/program.com",
+    "sha256": "d83584cfc33aeae8bea8377ee95575e4428960f83131f574fef945d6e9b6b778"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-size/native/stdout.bin",
+    "sha256": "78735f0de5cfaaf402ce10c613e704b448bbdf73e89a890abf2abc7a80d37ebc"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-size/native/summary.json",
+    "sha256": "da9e1f93044016606b8f6eef4b57a77e50fe5c49f4603ff0e6acdca244e94475"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-size/native/unlinked.a80",
+    "sha256": "59e9ebcd1939075f14d4963cbbc38342bf298ea0bd5d505a731db321e2923ca4"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-size/raw.mir",
+    "sha256": "7df1adcbaf99f1b7e79da6e8378bcaa7e72db6aad3936d7c9c7d9702d7dfa4e2"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-size/vm0/events.json",
+    "sha256": "5901df88bae677d16fa6929eb7c5313f7bbe9b57ab6c83747f70de34652e25e5"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-size/vm0/stdout.bin",
+    "sha256": "df1e3fa2800db9a3d366696bb3c4762325bbf8aa0a4ae293a7b84cf94cd4c356"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-size/vm0/summary.json",
+    "sha256": "264fb12685f3e3212796fd853e80c8d2618ca47448c8c2926f15bc9d4f19d9d9"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-size/vm1/events.json",
+    "sha256": "5901df88bae677d16fa6929eb7c5313f7bbe9b57ab6c83747f70de34652e25e5"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-size/vm1/stdout.bin",
+    "sha256": "df1e3fa2800db9a3d366696bb3c4762325bbf8aa0a4ae293a7b84cf94cd4c356"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-size/vm1/summary.json",
+    "sha256": "04f133aabff431458bd8bc6b3168d4d7a8ea80121c41cb03f2ab26dbb65dd12d"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-speed/final.mir",
+    "sha256": "8d69cca5eb777b87f3086854defb831bb3dc17a99827997843c11581f1c92668"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-speed/hir.txt",
+    "sha256": "d0c8e12e490e9304ffa9bb6477719f344339e73c46eeb4d5cda06a6cf5fd8fd8"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-speed/native/bdos-ledger.json",
+    "sha256": "02968e5544f0b519539c19a1737fffd2ba2c3eceb953bf488a91b3a7574e4d45"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-speed/native/events.json",
+    "sha256": "5901df88bae677d16fa6929eb7c5313f7bbe9b57ab6c83747f70de34652e25e5"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-speed/native/program.a80",
+    "sha256": "f5c8d24cdd61fc2445245bc108cd851c8deaf80af17a58acd4bbe4dc8f40c783"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-speed/native/program.com",
+    "sha256": "d83584cfc33aeae8bea8377ee95575e4428960f83131f574fef945d6e9b6b778"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-speed/native/stdout.bin",
+    "sha256": "78735f0de5cfaaf402ce10c613e704b448bbdf73e89a890abf2abc7a80d37ebc"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-speed/native/summary.json",
+    "sha256": "da9e1f93044016606b8f6eef4b57a77e50fe5c49f4603ff0e6acdca244e94475"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-speed/native/unlinked.a80",
+    "sha256": "59e9ebcd1939075f14d4963cbbc38342bf298ea0bd5d505a731db321e2923ca4"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-speed/raw.mir",
+    "sha256": "7df1adcbaf99f1b7e79da6e8378bcaa7e72db6aad3936d7c9c7d9702d7dfa4e2"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-speed/vm0/events.json",
+    "sha256": "5901df88bae677d16fa6929eb7c5313f7bbe9b57ab6c83747f70de34652e25e5"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-speed/vm0/stdout.bin",
+    "sha256": "df1e3fa2800db9a3d366696bb3c4762325bbf8aa0a4ae293a7b84cf94cd4c356"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-speed/vm0/summary.json",
+    "sha256": "264fb12685f3e3212796fd853e80c8d2618ca47448c8c2926f15bc9d4f19d9d9"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-speed/vm1/events.json",
+    "sha256": "5901df88bae677d16fa6929eb7c5313f7bbe9b57ab6c83747f70de34652e25e5"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-speed/vm1/stdout.bin",
+    "sha256": "df1e3fa2800db9a3d366696bb3c4762325bbf8aa0a4ae293a7b84cf94cd4c356"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/grace-speed/vm1/summary.json",
+    "sha256": "04f133aabff431458bd8bc6b3168d4d7a8ea80121c41cb03f2ab26dbb65dd12d"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/ordinary/final.mir",
+    "sha256": "647b45427a6d74222468abc078979b4288d9dd16c8fc79a699ecc1e0c193aab2"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/ordinary/hir.txt",
+    "sha256": "d0c8e12e490e9304ffa9bb6477719f344339e73c46eeb4d5cda06a6cf5fd8fd8"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/ordinary/native/bdos-ledger.json",
+    "sha256": "02968e5544f0b519539c19a1737fffd2ba2c3eceb953bf488a91b3a7574e4d45"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/ordinary/native/events.json",
+    "sha256": "5901df88bae677d16fa6929eb7c5313f7bbe9b57ab6c83747f70de34652e25e5"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/ordinary/native/program.a80",
+    "sha256": "6031d13951647ef732b03e5917214fb6723cbfba8c52af846302abcdaa1dcca9"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/ordinary/native/program.com",
+    "sha256": "430336210dc6814ec9538c64911b11cf36c5b2b73e19c07c9c29850a49dca453"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/ordinary/native/stdout.bin",
+    "sha256": "78735f0de5cfaaf402ce10c613e704b448bbdf73e89a890abf2abc7a80d37ebc"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/ordinary/native/summary.json",
+    "sha256": "874e4731f107b7b48d7e55b6f11599e38eaf568a230a217c6e85467e84cb50d7"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/ordinary/native/unlinked.a80",
+    "sha256": "2422d6d4c423d1233eb445106b7faececb1bdc200034dcc6c3b365a681bf8f3c"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/ordinary/raw.mir",
+    "sha256": "7df1adcbaf99f1b7e79da6e8378bcaa7e72db6aad3936d7c9c7d9702d7dfa4e2"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/ordinary/vm0/events.json",
+    "sha256": "5901df88bae677d16fa6929eb7c5313f7bbe9b57ab6c83747f70de34652e25e5"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/ordinary/vm0/stdout.bin",
+    "sha256": "df1e3fa2800db9a3d366696bb3c4762325bbf8aa0a4ae293a7b84cf94cd4c356"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/ordinary/vm0/summary.json",
+    "sha256": "264fb12685f3e3212796fd853e80c8d2618ca47448c8c2926f15bc9d4f19d9d9"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/ordinary/vm1/events.json",
+    "sha256": "5901df88bae677d16fa6929eb7c5313f7bbe9b57ab6c83747f70de34652e25e5"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/ordinary/vm1/stdout.bin",
+    "sha256": "df1e3fa2800db9a3d366696bb3c4762325bbf8aa0a4ae293a7b84cf94cd4c356"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv-tab/ordinary/vm1/summary.json",
+    "sha256": "04f133aabff431458bd8bc6b3168d4d7a8ea80121c41cb03f2ab26dbb65dd12d"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-size/final.mir",
+    "sha256": "8d69cca5eb777b87f3086854defb831bb3dc17a99827997843c11581f1c92668"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-size/hir.txt",
+    "sha256": "d0c8e12e490e9304ffa9bb6477719f344339e73c46eeb4d5cda06a6cf5fd8fd8"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-size/native/bdos-ledger.json",
+    "sha256": "a49c5abb2a61f9cbfbb7ad7138882f0a5bfe3c1b4c278487b04ab8d92f1023bb"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-size/native/events.json",
+    "sha256": "ee5afbfb1908a59cfbd20dbb141ec6bef47af7f7f6031e10a596d098767adae3"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-size/native/program.a80",
+    "sha256": "f5c8d24cdd61fc2445245bc108cd851c8deaf80af17a58acd4bbe4dc8f40c783"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-size/native/program.com",
+    "sha256": "d83584cfc33aeae8bea8377ee95575e4428960f83131f574fef945d6e9b6b778"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-size/native/stdout.bin",
+    "sha256": "2aaf44b4ca201bd09d98ca9e772c65e278c97995c7d6fd989dd47d0ca92b6919"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-size/native/summary.json",
+    "sha256": "e0877d28dce54c3fb8f576ab8aaa481b8a119af47bf2e2b8fbaaf4750882ea52"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-size/native/unlinked.a80",
+    "sha256": "59e9ebcd1939075f14d4963cbbc38342bf298ea0bd5d505a731db321e2923ca4"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-size/raw.mir",
+    "sha256": "7df1adcbaf99f1b7e79da6e8378bcaa7e72db6aad3936d7c9c7d9702d7dfa4e2"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-size/vm0/events.json",
+    "sha256": "ee5afbfb1908a59cfbd20dbb141ec6bef47af7f7f6031e10a596d098767adae3"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-size/vm0/stdout.bin",
+    "sha256": "58d1366c5e72fd5680e67ec5cb75c2273eca644819ba88630d15adce3892bcf4"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-size/vm0/summary.json",
+    "sha256": "a3c6526548389321233a791c31bc1ba18ebea80f5343b133d341054755106d9f"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-size/vm1/events.json",
+    "sha256": "ee5afbfb1908a59cfbd20dbb141ec6bef47af7f7f6031e10a596d098767adae3"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-size/vm1/stdout.bin",
+    "sha256": "58d1366c5e72fd5680e67ec5cb75c2273eca644819ba88630d15adce3892bcf4"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-size/vm1/summary.json",
+    "sha256": "6ead254fa30a8559b1bdbe37213bd333816dfe71ce54ed483ba92d68aff100a2"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-speed/final.mir",
+    "sha256": "8d69cca5eb777b87f3086854defb831bb3dc17a99827997843c11581f1c92668"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-speed/hir.txt",
+    "sha256": "d0c8e12e490e9304ffa9bb6477719f344339e73c46eeb4d5cda06a6cf5fd8fd8"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-speed/native/bdos-ledger.json",
+    "sha256": "a49c5abb2a61f9cbfbb7ad7138882f0a5bfe3c1b4c278487b04ab8d92f1023bb"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-speed/native/events.json",
+    "sha256": "ee5afbfb1908a59cfbd20dbb141ec6bef47af7f7f6031e10a596d098767adae3"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-speed/native/program.a80",
+    "sha256": "f5c8d24cdd61fc2445245bc108cd851c8deaf80af17a58acd4bbe4dc8f40c783"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-speed/native/program.com",
+    "sha256": "d83584cfc33aeae8bea8377ee95575e4428960f83131f574fef945d6e9b6b778"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-speed/native/stdout.bin",
+    "sha256": "2aaf44b4ca201bd09d98ca9e772c65e278c97995c7d6fd989dd47d0ca92b6919"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-speed/native/summary.json",
+    "sha256": "e0877d28dce54c3fb8f576ab8aaa481b8a119af47bf2e2b8fbaaf4750882ea52"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-speed/native/unlinked.a80",
+    "sha256": "59e9ebcd1939075f14d4963cbbc38342bf298ea0bd5d505a731db321e2923ca4"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-speed/raw.mir",
+    "sha256": "7df1adcbaf99f1b7e79da6e8378bcaa7e72db6aad3936d7c9c7d9702d7dfa4e2"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-speed/vm0/events.json",
+    "sha256": "ee5afbfb1908a59cfbd20dbb141ec6bef47af7f7f6031e10a596d098767adae3"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-speed/vm0/stdout.bin",
+    "sha256": "58d1366c5e72fd5680e67ec5cb75c2273eca644819ba88630d15adce3892bcf4"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-speed/vm0/summary.json",
+    "sha256": "a3c6526548389321233a791c31bc1ba18ebea80f5343b133d341054755106d9f"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-speed/vm1/events.json",
+    "sha256": "ee5afbfb1908a59cfbd20dbb141ec6bef47af7f7f6031e10a596d098767adae3"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-speed/vm1/stdout.bin",
+    "sha256": "58d1366c5e72fd5680e67ec5cb75c2273eca644819ba88630d15adce3892bcf4"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/grace-speed/vm1/summary.json",
+    "sha256": "6ead254fa30a8559b1bdbe37213bd333816dfe71ce54ed483ba92d68aff100a2"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/ordinary/final.mir",
+    "sha256": "647b45427a6d74222468abc078979b4288d9dd16c8fc79a699ecc1e0c193aab2"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/ordinary/hir.txt",
+    "sha256": "d0c8e12e490e9304ffa9bb6477719f344339e73c46eeb4d5cda06a6cf5fd8fd8"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/ordinary/native/bdos-ledger.json",
+    "sha256": "a49c5abb2a61f9cbfbb7ad7138882f0a5bfe3c1b4c278487b04ab8d92f1023bb"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/ordinary/native/events.json",
+    "sha256": "ee5afbfb1908a59cfbd20dbb141ec6bef47af7f7f6031e10a596d098767adae3"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/ordinary/native/program.a80",
+    "sha256": "6031d13951647ef732b03e5917214fb6723cbfba8c52af846302abcdaa1dcca9"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/ordinary/native/program.com",
+    "sha256": "430336210dc6814ec9538c64911b11cf36c5b2b73e19c07c9c29850a49dca453"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/ordinary/native/stdout.bin",
+    "sha256": "2aaf44b4ca201bd09d98ca9e772c65e278c97995c7d6fd989dd47d0ca92b6919"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/ordinary/native/summary.json",
+    "sha256": "e51a0a1072a374d1f4d5ff8b324d4ddeb8989d93d7ac2c1666844b809fcd9468"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/ordinary/native/unlinked.a80",
+    "sha256": "2422d6d4c423d1233eb445106b7faececb1bdc200034dcc6c3b365a681bf8f3c"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/ordinary/raw.mir",
+    "sha256": "7df1adcbaf99f1b7e79da6e8378bcaa7e72db6aad3936d7c9c7d9702d7dfa4e2"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/ordinary/vm0/events.json",
+    "sha256": "ee5afbfb1908a59cfbd20dbb141ec6bef47af7f7f6031e10a596d098767adae3"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/ordinary/vm0/stdout.bin",
+    "sha256": "58d1366c5e72fd5680e67ec5cb75c2273eca644819ba88630d15adce3892bcf4"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/ordinary/vm0/summary.json",
+    "sha256": "a3c6526548389321233a791c31bc1ba18ebea80f5343b133d341054755106d9f"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/ordinary/vm1/events.json",
+    "sha256": "ee5afbfb1908a59cfbd20dbb141ec6bef47af7f7f6031e10a596d098767adae3"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/ordinary/vm1/stdout.bin",
+    "sha256": "58d1366c5e72fd5680e67ec5cb75c2273eca644819ba88630d15adce3892bcf4"
+  },
+  {
+    "path": "reports/alv-report-main/execution/alv/ordinary/vm1/summary.json",
+    "sha256": "6ead254fa30a8559b1bdbe37213bd333816dfe71ce54ed483ba92d68aff100a2"
+  },
+  {
+    "path": "reports/alv-report-main/freeze-sql-before.json",
+    "sha256": "aad2b070ad0955bb07a3a9df9d2b0e00e4e1820d4ec7e053f47f123c2150d540"
+  },
+  {
+    "path": "reports/alv-report-main/freeze.json",
+    "sha256": "73ddcdd7e477d30e68ed214e7098c177a316e03eb1ddfb82e760246e256eb261"
+  },
+  {
+    "path": "reports/alv-report-main/model.py",
+    "sha256": "da7fc5493284e3a46fd8aeb7225289c45ce2ed28029930a469612a9108c83e9c"
+  },
+  {
+    "path": "reports/alv-report-main/native-freeze.json",
+    "sha256": "2dd7aa039d743182fda9990459c4f77e3ca65e868534425ce0382c450a440004"
+  },
+  {
+    "path": "reports/alv-report-main/screen_alv.nanz",
+    "sha256": "d6d74b99f7ce5aa97110f9f5cbe5fe6f1e3f85d00a56f442575d32b0661a7dc2"
+  },
+  {
+    "path": "reports/alv-report-main/screen_report.nanz",
+    "sha256": "6103aaba8f51e47158184097d14459788e1cf5019df171282c58e263a9418c5c"
+  },
+  {
+    "path": "reports/alv-report-main/sql-before.json",
+    "sha256": "92f3ac994cf1fdd1f650605f86f3bd2e8a8efca77c3f0bdad21abaa6e24de2aa"
+  },
+  {
+    "path": "reports/alv-report-main/sqlite-filter.txt",
+    "sha256": "5d4ec5e7b86c4bb93b522adc0422af8d6bbb536e3399d3787d08d7b7640afc86"
+  }
+]

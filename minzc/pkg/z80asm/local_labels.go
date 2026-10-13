@@ -7,8 +7,8 @@ import (
 
 // LocalLabelContext manages local label scoping
 type LocalLabelContext struct {
-	currentGlobal string              // Current global label scope
-	localLabels   map[string]*Symbol  // Map of expanded local labels
+	currentGlobal string             // Current global label scope
+	localLabels   map[string]*Symbol // Map of expanded local labels
 }
 
 // NewLocalLabelContext creates a new local label context
@@ -26,7 +26,7 @@ func (ctx *LocalLabelContext) processLabelForContext(label string, addr int, pas
 		if ctx.currentGlobal == "" {
 			return "", fmt.Errorf("local label '%s' defined before any global label", label)
 		}
-		
+
 		// Expand local label to include global scope
 		expandedLabel := ctx.currentGlobal + label
 		return expandedLabel, nil
@@ -53,7 +53,24 @@ func (ctx *LocalLabelContext) expandLocalLabelReferences(operand string) string 
 	// A local label starts with '.' followed by a letter/underscore, then alphanumeric/_
 	result := []byte(operand)
 	i := 0
+	var quote byte
 	for i < len(result) {
+		if quote != 0 {
+			if result[i] == '\\' && i+1 < len(result) {
+				i += 2
+				continue
+			}
+			if result[i] == quote {
+				quote = 0
+			}
+			i++
+			continue
+		}
+		if result[i] == '"' || result[i] == '\'' {
+			quote = result[i]
+			i++
+			continue
+		}
 		if result[i] == '.' && i+1 < len(result) {
 			// Check if preceded by a letter/digit/underscore (part of another symbol like "foo.bar")
 			if i > 0 {
@@ -100,37 +117,37 @@ func (ctx *LocalLabelContext) expandLocalLabelReferences(operand string) string 
 func preprocessLocalLabels(lines []*Line) ([]*Line, error) {
 	ctx := NewLocalLabelContext()
 	result := make([]*Line, 0, len(lines))
-	
+
 	for _, line := range lines {
 		newLine := &Line{
-			Number:   line.Number,
-			Label:    line.Label,
+			Number:    line.Number,
+			Label:     line.Label,
 			Directive: line.Directive,
-			Mnemonic: line.Mnemonic,
-			Operands: make([]string, len(line.Operands)),
-			Comment:  line.Comment,
-			IsBlank:  line.IsBlank,
+			Mnemonic:  line.Mnemonic,
+			Operands:  make([]string, len(line.Operands)),
+			Comment:   line.Comment,
+			IsBlank:   line.IsBlank,
 		}
-		
+
 		// Process label if present
 		if line.Label != "" {
 			expandedLabel, err := ctx.processLabelForContext(line.Label, 0, 1)
 			if err != nil {
 				return nil, fmt.Errorf("line %d: %w", line.Number, err)
 			}
-			
+
 			// Update the label
 			newLine.Label = expandedLabel
 		}
-		
+
 		// Process operands for local label references
 		for i, operand := range line.Operands {
 			newLine.Operands[i] = ctx.expandLocalLabelReferences(operand)
 		}
-		
+
 		result = append(result, newLine)
 	}
-	
+
 	return result, nil
 }
 

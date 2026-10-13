@@ -1,0 +1,13 @@
+--- before/pointer-walk
++++ after/pointer-walk
+@@ -62,7 +62,9 @@
+     OUT (0x23), A
+     POP AF
+     LD HL, 1
+-    ADD HL, DE
++    LD H, D
++    LD L, E
++    INC HL
+     DEC C
+     LD D, H
+     LD E, L

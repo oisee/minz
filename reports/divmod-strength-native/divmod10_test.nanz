@@ -1,0 +1,14 @@
+// Test: divmod10 GPU-optimal inline
+
+fun div10(n: u8) -> u8 {
+    return n / 10
+}
+
+fun mod10(n: u8) -> u8 {
+    return n % 10
+}
+
+fun main() -> void {
+    let q: u8 = div10(42)
+    let r: u8 = mod10(42)
+}

@@ -11,6 +11,7 @@ package mir2
 
 import (
 	"fmt"
+	"slices"
 	"sync"
 
 	"github.com/minz/minzc/pkg/rewrite"
@@ -231,8 +232,10 @@ const graceBoundedLoopUnrollRule = `
 
 // Pointer-walk threading (Shape A): convert indexed addressing in a counted
 // loop to pointer increment. Pattern:
-//   header: br_if (cmp idx, limit), body, exit
-//   body:   addr = add base, idx; ...use addr...; idx' = add idx, stride; jmp header(idx')
+//
+//	header: br_if (cmp idx, limit), body, exit
+//	body:   addr = add base, idx; ...use addr...; idx' = add idx, stride; jmp header(idx')
+//
 // Transform: add pointer block arg, replace addr computation with pointer use,
 // thread pointer increment through back-edge.
 const gracePointerWalkRule = `
@@ -430,6 +433,9 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 
 	// condRetSink: hoist else insts, replace br_if with cond_ret
 	reg.RegisterAction("condRetSink", func(graph rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
+		if f.Attrs.FallibleCY {
+			return false
+		}
 		curLabel := bindings["cur"]
 		elseLabel := bindings["else"]
 		curBlock := f.BlockByLabel(curLabel)
@@ -443,6 +449,16 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		}
 		elseRet, ok := elseBlock.Term.(*TermRet)
 		if !ok {
+			return false
+		}
+
+		// Pure arithmetic can destroy Z/NZ as well as carry before cond_ret.
+		// Keep the same safety gate as the production Go CondRetSink pass.
+		if !hoistedConditionFlagsSafe(curBlock, brif.Cond, elseBlock.Insts) {
+			return false
+		}
+
+		if !f.TransferLoopOrigin(elseLabel, curLabel) {
 			return false
 		}
 
@@ -484,22 +500,27 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			switch t := b.Term.(type) {
 			case *TermJmp:
 				if t.Target == joinBlk.Label && len(t.Args) == 1 {
+					if !f.TransferLoopOrigin(joinBlk.Label, b.Label) {
+						continue
+					}
 					b.Term = &TermRet{Vals: []Reg{t.Args[0]}}
 					changed = true
 				}
 			case *TermBrIf:
 				if t.Then == joinBlk.Label && len(t.ThenArgs) == 1 {
-					retLabel := joinBlk.Label + "_ret_then"
+					retLabel := freshJoinRetLabel(f, joinBlk.Label+"_ret_then")
 					retBlk := &Block{Label: retLabel, Term: &TermRet{Vals: []Reg{t.ThenArgs[0]}}}
 					f.Blocks = append(f.Blocks, retBlk)
+					f.TransferLoopOrigin(joinBlk.Label, retLabel)
 					t.Then = retLabel
 					t.ThenArgs = nil
 					changed = true
 				}
 				if t.Else == joinBlk.Label && len(t.ElseArgs) == 1 {
-					retLabel := joinBlk.Label + "_ret_else"
+					retLabel := freshJoinRetLabel(f, joinBlk.Label+"_ret_else")
 					retBlk := &Block{Label: retLabel, Term: &TermRet{Vals: []Reg{t.ElseArgs[0]}}}
 					f.Blocks = append(f.Blocks, retBlk)
+					f.TransferLoopOrigin(joinBlk.Label, retLabel)
 					t.Else = retLabel
 					t.ElseArgs = nil
 					changed = true
@@ -658,7 +679,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		if !ok {
 			return false
 		}
-		return brif.Then == brif.Else
+		return brif.Then == brif.Else && slices.Equal(brif.ThenArgs, brif.ElseArgs)
 	})
 
 	// is-cond-ret-ne: block ends with cond_ret whose condition is cmp.ne
@@ -731,7 +752,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		succLabel := bindings[args[1]]
 		pred := f.BlockByLabel(predLabel)
 		succ := f.BlockByLabel(succLabel)
-		if pred == nil || succ == nil {
+		if !canForwardLoad(f, pred, succ) {
 			return false
 		}
 		// Value-number each load address in pred
@@ -752,7 +773,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			if inst.Op == OpLoad {
 				key := valueKey(inst.Src[0], f)
 				if key != "" {
-					if _, ok := predLoadKeys[key]; ok {
+					if previous, ok := predLoadKeys[key]; ok && sameLoadType(previous, inst) {
 						return true
 					}
 				}
@@ -785,6 +806,9 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 	// has-self-tail-call: block ends with ret(call_to_self). The call is to the
 	// same function we're in, and the return value is the call's result.
 	reg.RegisterPredicate("has-self-tail-call", func(graph rewrite.IRGraph, bindings grace.BlockBindings, args []string) bool {
+		if f.Attrs.FallibleCY {
+			return false
+		}
 		label := bindings[args[0]]
 		blk := f.BlockByLabel(label)
 		if blk == nil || len(blk.Insts) == 0 {
@@ -898,6 +922,13 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		if targetBlk != nil && len(targetBlk.Params) > 0 && len(jmp.Args) != len(targetBlk.Params) {
 			return false
 		}
+		// DJNZ supplies the first body parameter implicitly. Redirecting its
+		// body needs a separate counter-preserving composition proof.
+		for _, pred := range f.Blocks {
+			if t, ok := pred.Term.(*TermDJNZ); ok && t.Body == label {
+				return false
+			}
+		}
 		newTarget := jmp.Target
 		newArgs := jmp.Args
 		changed := false
@@ -923,6 +954,28 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 					t.ElseArgs = newArgs
 					changed = true
 				}
+			case *TermDJNZ:
+				if t.Exit == label {
+					t.Exit = newTarget
+					t.ExitArgs = append([]Reg(nil), newArgs...)
+					changed = true
+				}
+			case *TermBrIf2:
+				if t.Eq == label {
+					t.Eq = newTarget
+					t.EqArgs = append([]Reg(nil), newArgs...)
+					changed = true
+				}
+				if t.Lt == label {
+					t.Lt = newTarget
+					t.LtArgs = append([]Reg(nil), newArgs...)
+					changed = true
+				}
+				if t.Gt == label {
+					t.Gt = newTarget
+					t.GtArgs = append([]Reg(nil), newArgs...)
+					changed = true
+				}
 			case *TermCondRet:
 				if t.Then == label {
 					t.Then = newTarget
@@ -932,12 +985,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			}
 		}
 		if changed {
-			for i, b := range f.Blocks {
-				if b.Label == label {
-					f.Blocks = append(f.Blocks[:i], f.Blocks[i+1:]...)
-					break
-				}
-			}
+			f.removeBlock(label)
 		}
 		return changed
 	})
@@ -951,15 +999,13 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		if pred == nil || succ == nil {
 			return false
 		}
+		if !f.TransferLoopOrigin(sLabel, pLabel) {
+			return false
+		}
 		pred.Insts = append(pred.Insts, succ.Insts...)
 		pred.Term = succ.Term
 		// Remove successor block
-		for i, b := range f.Blocks {
-			if b.Label == sLabel {
-				f.Blocks = append(f.Blocks[:i], f.Blocks[i+1:]...)
-				break
-			}
-		}
+		f.removeBlock(sLabel)
 		return true
 	})
 
@@ -971,7 +1017,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		succLabel := bindings["succ"]
 		pred := f.BlockByLabel(predLabel)
 		succ := f.BlockByLabel(succLabel)
-		if pred == nil || succ == nil {
+		if !canForwardLoad(f, pred, succ) {
 			return false
 		}
 
@@ -997,7 +1043,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 					continue
 				}
 				succKey := valueKey(succInst.Src[0], f)
-				if succKey != pl.key {
+				if succKey != pl.key || !sameLoadType(pl.inst, succInst) {
 					continue
 				}
 
@@ -1086,27 +1132,32 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		loopBlock := &Block{
 			Label:  loopLabel,
 			Params: loopParams,
-			Insts:  entry.Insts,  // move entry's body to loop head
-			Term:   entry.Term,   // move entry's terminator to loop head
+			Insts:  entry.Insts, // move entry's body to loop head
+			Term:   entry.Term,  // move entry's terminator to loop head
 		}
 
-		// Remap param references in loop block's instructions
-		for _, inst := range loopBlock.Insts {
-			for si := range inst.Src {
-				if newR, ok := paramRemap[inst.Src[si]]; ok {
-					inst.Src[si] = newR
+		// Every use in the moved body must read the current loop parameters,
+		// including successor blocks (not just the former entry block).
+		bodyBlocks := append([]*Block{loopBlock}, f.Blocks[1:]...)
+		for _, body := range bodyBlocks {
+			for _, inst := range body.Insts {
+				for si, src := range inst.Src {
+					if newR, ok := paramRemap[src]; ok {
+						inst.Src[si] = newR
+					}
+				}
+				for ai, arg := range inst.Args {
+					if newR, ok := paramRemap[arg]; ok {
+						inst.Args[ai] = newR
+					}
 				}
 			}
-			for ai := range inst.Args {
-				if newR, ok := paramRemap[inst.Args[ai]]; ok {
-					inst.Args[ai] = newR
-				}
+			if body.Term != nil {
+				remapTermRegs(body.Term, paramRemap)
 			}
 		}
-
-		// Remap param references in loop block's terminator
-		if loopBlock.Term != nil {
-			remapTermRegs(loopBlock.Term, paramRemap)
+		if blk == entry {
+			blk = loopBlock
 		}
 
 		// Entry block now just jumps to loop head with original params
@@ -1123,6 +1174,8 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		newBlocks = append(newBlocks, loopBlock)
 		newBlocks = append(newBlocks, f.Blocks[1:]...)
 		f.Blocks = newBlocks
+		f.TransferLoopOrigin(entry.Label, loopLabel)
+		delete(f.LoopOrigins, entry.Label)
 
 		// Replace the tail call with JMP to loop head
 		blk.Insts = blk.Insts[:len(blk.Insts)-1]
@@ -1132,6 +1185,13 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		}
 
 		f.Attrs.IsRecursive = false
+		for _, body := range f.Blocks {
+			for _, inst := range body.Insts {
+				if inst.Op == OpCall && inst.Sym == f.Name {
+					f.Attrs.IsRecursive = true
+				}
+			}
+		}
 		return true
 	})
 
@@ -1175,13 +1235,16 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 
 	// tailCallOpt: mark the last CALL in a block as tail call when followed by RET
 	reg.RegisterAction("tailCallOpt", func(graph rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
+		if f.Attrs.FallibleCY {
+			return false
+		}
 		label := bindings["b"]
 		blk := f.BlockByLabel(label)
 		if blk == nil || len(blk.Insts) == 0 {
 			return false
 		}
 		lastInst := blk.Insts[len(blk.Insts)-1]
-		if lastInst.Op != OpCall || lastInst.CallAttr.IsTailCall {
+		if lastInst.Op != OpCall || lastInst.FallibleCY || lastInst.CallAttr.IsTailCall {
 			return false
 		}
 		lastInst.CallAttr.IsTailCall = true
@@ -1251,10 +1314,16 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		//   lt → brif.Else (a < b)
 		//   gt → brif.Then (a > b)
 
+		if !f.canTransferLoopOrigin(bodyLabel, headLabel) {
+			return false
+		}
+
 		// Create a new return block for the eq case
-		retLabel := headLabel + "_ret_eq"
+		retLabel := freshJoinRetLabel(f, headLabel+"_ret_eq")
 		retBlk := &Block{Label: retLabel, Term: &TermRet{Vals: cr.Vals}}
 		f.Blocks = append(f.Blocks, retBlk)
+		f.TransferLoopOrigin(headLabel, retLabel)
+		f.TransferLoopOrigin(bodyLabel, headLabel)
 
 		// Remove the cmp instruction from head (br_if2 does the comparison)
 		head.Insts = append(head.Insts[:cmpIdx], head.Insts[cmpIdx+1:]...)
@@ -1312,6 +1381,11 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			argSourceParamIdx[i] = paramIdx[a]
 		}
 
+		for _, pred := range f.Blocks {
+			if t, ok := pred.Term.(*TermDJNZ); ok && t.Body == label {
+				return false
+			}
+		}
 		newTarget := jmp.Target
 		changed := false
 
@@ -1349,6 +1423,28 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 					t.Else = newTarget
 					changed = true
 				}
+			case *TermDJNZ:
+				if t.Exit == label {
+					t.ExitArgs = remap(t.ExitArgs)
+					t.Exit = newTarget
+					changed = true
+				}
+			case *TermBrIf2:
+				if t.Eq == label {
+					t.EqArgs = remap(t.EqArgs)
+					t.Eq = newTarget
+					changed = true
+				}
+				if t.Lt == label {
+					t.LtArgs = remap(t.LtArgs)
+					t.Lt = newTarget
+					changed = true
+				}
+				if t.Gt == label {
+					t.GtArgs = remap(t.GtArgs)
+					t.Gt = newTarget
+					changed = true
+				}
 			case *TermCondRet:
 				if t.Then == label {
 					t.ThenArgs = remap(t.ThenArgs)
@@ -1359,12 +1455,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		}
 
 		if changed {
-			for i, b := range f.Blocks {
-				if b.Label == label {
-					f.Blocks = append(f.Blocks[:i], f.Blocks[i+1:]...)
-					break
-				}
-			}
+			f.removeBlock(label)
 		}
 		return changed
 	})
@@ -1377,7 +1468,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			return false
 		}
 		brif, ok := blk.Term.(*TermBrIf)
-		if !ok || brif.Then != brif.Else {
+		if !ok || brif.Then != brif.Else || !slices.Equal(brif.ThenArgs, brif.ElseArgs) {
 			return false
 		}
 		blk.Term = &TermJmp{Target: brif.Then, Args: brif.ThenArgs}
@@ -1477,7 +1568,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		prevBodyLabel := bodyLabel
 		for i := 1; i < maxIters; i++ {
 			// Duplicate CMP + BrIf block
-			newCmpLabel := fmt.Sprintf("unroll_cmp%d", i)
+			newCmpLabel := freshJoinRetLabel(f, fmt.Sprintf("unroll_cmp%d", i))
 			newCmpBlk := &Block{Label: newCmpLabel}
 			for _, inst := range head.Insts {
 				dup := *inst
@@ -1486,7 +1577,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			}
 
 			// Duplicate SUB block
-			newSubLabel := fmt.Sprintf("unroll_sub%d", i)
+			newSubLabel := freshJoinRetLabel(f, fmt.Sprintf("unroll_sub%d", i))
 			newSubBlk := &Block{Label: newSubLabel}
 			dupSub := *sub
 			dupSub.Dst = f.AllocReg()
@@ -1506,6 +1597,8 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			newSubBlk.Term = &TermJmp{Target: exitLabel, Args: brif.ElseArgs}
 
 			f.Blocks = append(f.Blocks, newCmpBlk, newSubBlk)
+			f.TransferLoopOrigin(headLabel, newCmpLabel)
+			f.TransferLoopOrigin(bodyLabel, newSubLabel)
 
 			// Wire previous body → this CMP block
 			prevBody := f.BlockByLabel(prevBodyLabel)
@@ -1648,7 +1741,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		if blk == nil || len(blk.Insts) != 1 {
 			return false
 		}
-		return blk.Insts[0].Op == OpCall && blk.Insts[0].Dst == NoReg
+		return blk.Insts[0].Op == OpCall && !blk.Insts[0].FallibleCY && blk.Insts[0].Dst == NoReg
 	})
 
 	// jumps-to-else: the call block's TermJmp target matches the BrIf's else target
@@ -1698,6 +1791,9 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			Cond: findCondForReg(curBlock, brif.Cond),
 		}
 
+		if !f.TransferLoopOrigin(callLabel, curLabel) {
+			return false
+		}
 		curBlock.Insts = append(curBlock.Insts, condCall)
 		curBlock.Term = &TermJmp{Target: brif.Else, Args: brif.ElseArgs}
 
@@ -1711,16 +1807,17 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 
 // pointerWalkCandidate describes a detected pointer-walk opportunity in a loop body.
 type pointerWalkCandidate struct {
-	idxParamIdx int    // index of the header param used as loop index
-	addrInst    *Inst  // the OpAdd instruction computing base + idx
-	addrInstIdx int    // index of addrInst in body.Insts
-	baseImm     int64  // the constant base address
-	stride      int64  // the constant increment per iteration
+	idxParamIdx int   // index of the header param used as loop index
+	addrInst    *Inst // the OpAdd instruction computing base + idx
+	addrInstIdx int   // index of addrInst in body.Insts
+	baseImm     int64 // the constant base address
+	stride      int64 // the constant increment per iteration
 }
 
 // findPointerWalkCandidate searches for the pattern:
-//   addr = add(const_base, idx_param) where addr is used by load/store
-//   idx_next = add(idx_param, const_stride) where idx_next flows back to header
+//
+//	addr = add(const_base, idx_param) where addr is used by load/store
+//	idx_next = add(idx_param, const_stride) where idx_next flows back to header
 func findPointerWalkCandidate(f *Func, head, body *Block) (pointerWalkCandidate, bool) {
 	// Build set of header param registers
 	headerParamRegs := make(map[Reg]int) // reg → param index
@@ -1981,6 +2078,17 @@ func addInitialPtrArg(f *Func, blk *Block, headerLabel string, baseImm int64, id
 // Returns true if any transformation was applied.
 // Stats (if non-nil) accumulates per-rule statistics.
 func RunGracePasses(f *Func, stats *GraceStats) bool {
+	return RunGracePassesWithOptions(f, stats, GracePassOptions{DisableInvariantAddressHoist: true})
+}
+
+// GracePassOptions controls the new speed-only invariant address experiment.
+// Existing RunGracePasses callers keep their prior behavior.
+type GracePassOptions struct {
+	OptimizeForSize              bool
+	DisableInvariantAddressHoist bool
+}
+
+func RunGracePassesWithOptions(f *Func, stats *GraceStats, options GracePassOptions) bool {
 	rules, err := loadAllRules()
 	if err != nil {
 		return false
@@ -1993,23 +2101,27 @@ func RunGracePasses(f *Func, stats *GraceStats) bool {
 
 	// Run shape-fact-driven passes after declarative Grace rules.
 
-	// Phase 1: True pointer threading — rewrite indexed loops to carry walking pointers.
-	var ptStats PointerThreadingStats
-	ptChanged := ApplyPointerThreading(f, &ptStats)
+	// Pointer threading remains a research API until index/address no-wrap
+	// preconditions are proved. Carrying a pointer does not preserve a narrow
+	// index wrapping independently of the pointer (e.g. u8 255 -> 0).
 
 	// Phase 2: PtrAdd CSE — deduplicate remaining repeated ptr_add in loop bodies.
 	var pwStats PointerWalkStats
 	pwChanged := ApplyPointerWalkDedup(f, &pwStats)
+	hoistChanged := false
+	if !options.OptimizeForSize && !options.DisableInvariantAddressHoist {
+		hoistChanged = HoistInvariantAddresses(f)
+	}
+	if hoistChanged && stats != nil {
+		stats.Record("invariant-address-hoist", 1)
+	}
 
 	if stats != nil {
 		stats.mu.Lock()
 		stats.Funcs++
-		stats.Total += result.Applied + ptStats.PtrAddsRemoved + pwStats.PtrAddsDeduped
+		stats.Total += result.Applied + pwStats.PtrAddsDeduped
 		for name, count := range result.ByRule {
 			stats.ByRule[name] += count
-		}
-		if ptStats.LoopsThreaded > 0 {
-			stats.ByRule["ptr-threading"] += ptStats.LoopsThreaded
 		}
 		if pwStats.PtrAddsDeduped > 0 {
 			stats.ByRule["ptr-add-cse"] += pwStats.PtrAddsDeduped
@@ -2017,7 +2129,7 @@ func RunGracePasses(f *Func, stats *GraceStats) bool {
 		stats.mu.Unlock()
 	}
 
-	return result.Applied > 0 || ptChanged || pwChanged
+	return result.Applied > 0 || pwChanged || hoistChanged
 }
 
 // RunGraceCondRetSink runs only the cond-ret-sink Grace rule.
@@ -2114,16 +2226,16 @@ func valueKeyDepth(r Reg, f *Func, depth int) string {
 				if inner == "" {
 					return ""
 				}
-				return fmt.Sprintf("ext(%s)", inner)
+				return fmt.Sprintf("%s:%v:%v(%s)", inst.Op, inst.SrcTy, inst.Ty, inner)
 			case OpPtrAdd:
 				k0 := valueKeyDepth(inst.Src[0], f, depth-1)
 				k1 := valueKeyDepth(inst.Src[1], f, depth-1)
 				if k0 == "" || k1 == "" {
 					return ""
 				}
-				return fmt.Sprintf("ptr_add(%s,%s)", k0, k1)
+				return fmt.Sprintf("ptr_add:%v(%s,%s)", inst.Ty, k0, k1)
 			case OpConst:
-				return fmt.Sprintf("const(%d)", inst.Imm)
+				return fmt.Sprintf("const:%v(%d)", inst.Ty, maskToWidth(inst.Imm, inst.Ty))
 			default:
 				return fmt.Sprintf("r%d", r)
 			}
@@ -2181,6 +2293,8 @@ func remapTermRegs(t Term, remap map[Reg]Reg) {
 		replSlice(t.EqArgs)
 		replSlice(t.LtArgs)
 		replSlice(t.GtArgs)
+	case *TermErrorRet:
+		repl(&t.Code)
 	case *TermRet:
 		replSlice(t.Vals)
 	case *TermCondRet:
@@ -2298,4 +2412,39 @@ func RunGraceFuseAbsDiff(f *Func) bool {
 	graph := FuncAsMutGraph(f)
 	result := grace.ApplyRules(graph, rules, reg, 20)
 	return result.Applied > 0
+}
+
+// Forwarding adds a parameter only when every incoming edge supplies it.
+// Without an alias/effect proof, keep memory-changing and opaque operations
+// out of both blocks. In particular a loop back-edge is not a dominating load.
+func canForwardLoad(f *Func, pred, succ *Block) bool {
+	if pred == nil || succ == nil || pred == succ || succ == f.Entry() {
+		return false
+	}
+	switch pred.Term.(type) {
+	case *TermJmp, *TermBrIf, *TermCondRet:
+	default:
+		return false
+	}
+	for _, b := range f.Blocks {
+		if b.Term == nil {
+			continue
+		}
+		for _, target := range b.Successors() {
+			if target == succ.Label && b != pred {
+				return false
+			}
+		}
+	}
+	for _, b := range []*Block{pred, succ} {
+		for _, inst := range b.Insts {
+			if inst.Op != OpLoad && !isDSEPure(inst.Op) {
+				return false
+			}
+		}
+	}
+	return true
+}
+func sameLoadType(a, b *Inst) bool {
+	return a.Ty != nil && b.Ty != nil && a.Ty.Width() == b.Ty.Width() && a.Ty.String() == b.Ty.String()
 }

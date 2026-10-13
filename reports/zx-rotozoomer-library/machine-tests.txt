@@ -1,0 +1,13 @@
+=== RUN   TestZXHalfCellRotozoomerLibraryFullMachine
+=== RUN   TestZXHalfCellRotozoomerLibraryFullMachine/ordinary
+    zx_rotozoomer_full_machine_test.go:245: ordinary: 64 full main draws, 323 video frames, 315 ROM IRQ (252 during draw), all screens/PC/SP/registers PASS
+=== RUN   TestZXHalfCellRotozoomerLibraryFullMachine/grace-size
+    zx_rotozoomer_full_machine_test.go:245: grace-size: 64 full main draws, 323 video frames, 315 ROM IRQ (252 during draw), all screens/PC/SP/registers PASS
+=== RUN   TestZXHalfCellRotozoomerLibraryFullMachine/grace-speed
+    zx_rotozoomer_full_machine_test.go:245: grace-speed: 64 full main draws, 323 video frames, 315 ROM IRQ (252 during draw), all screens/PC/SP/registers PASS
+--- PASS: TestZXHalfCellRotozoomerLibraryFullMachine (0.85s)
+    --- PASS: TestZXHalfCellRotozoomerLibraryFullMachine/ordinary (0.27s)
+    --- PASS: TestZXHalfCellRotozoomerLibraryFullMachine/grace-size (0.28s)
+    --- PASS: TestZXHalfCellRotozoomerLibraryFullMachine/grace-speed (0.30s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.859s

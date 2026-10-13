@@ -1,0 +1,10 @@
+=== RUN   TestOriginalCPMScreenMain
+    original_cpm_screen_main_test.go:293: tui_cpm/ordinary wholemain PASS
+    original_cpm_screen_main_test.go:293: tui_cpm/grace-size wholemain PASS
+    original_cpm_screen_main_test.go:293: tui_cpm/grace-speed wholemain PASS
+    original_cpm_screen_main_test.go:293: meta_screen/ordinary wholemain PASS
+    original_cpm_screen_main_test.go:293: meta_screen/grace-size wholemain PASS
+    original_cpm_screen_main_test.go:293: meta_screen/grace-speed wholemain PASS
+--- PASS: TestOriginalCPMScreenMain (0.21s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.217s

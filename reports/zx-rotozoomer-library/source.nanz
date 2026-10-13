@@ -1,0 +1,135 @@
+import hw.texture
+import hw.fill
+
+fun @roto_tables() -> void {
+    var axis_a: [i16;32] = [320,313,291,257,213,162,107,52,0,-48,-89,-122,-149,-169,-182,-190,-192,-190,-182,-169,-149,-122,-89,-48,0,52,107,162,213,257,291,313]
+    var axis_b: [i16;32] = [0,62,121,172,213,242,259,263,256,239,214,183,149,113,75,38,0,-38,-75,-113,-149,-183,-214,-239,-256,-263,-259,-242,-213,-172,-121,-62]
+    var table: u8 = 0
+    while table < 8 {
+        var name: ^u8 = c"setup_a"
+        if table == 1 { name = c"setup_minus_b" }
+        if table == 2 { name = c"setup_half_a" }
+        if table == 3 { name = c"setup_half_b" }
+        if table == 4 { name = c"setup_u" }
+        if table == 5 { name = c"setup_v" }
+ if table == 6 { name = c"setup_row_u" }
+ if table == 7 { name = c"setup_row_v" }
+        emit(str_concat(c"global ", str_concat(name, c": [u16;32] = [")))
+        var frame: u8 = 0
+        while frame < 32 {
+            let sa: i16 = axis_a[frame]
+            let sb: i16 = axis_b[frame]
+            let a: u16 = u16(sa)
+            let b: u16 = u16(sb)
+            var value: u16 = a
+            if table == 1 { value = 0 - b }
+            if table == 2 { value = u16(sa / 2) }
+            if table == 3 { value = u16(sb / 2) }
+            if table == 4 { value = 32768 - a * 16 - b * 12 }
+            if table == 5 { value = 32768 + b * 16 - a * 12 }
+ if table == 6 { value = u16(sb / 2) + u16(sb / 2) }
+ if table == 7 { value = u16(sa / 2) + u16(sa / 2) }
+            if frame == 31 { emit(str_concat(str_from_int(value), c"]")) }
+            else { emit(str_concat(str_from_int(value), c",")) }
+            frame = frame + 1
+        }
+        table = table + 1
+    }
+}
+@roto_tables()
+
+
+// ZX Spectrum 32x48 colour rotozoomer: each 8x8 cell contains two 8x4 samples.
+// PAPER colours its top half, INK its bottom half; BRIGHT is shared.
+// Fixed 8.8 texture coordinates wrap modulo 65536. Only attributes change.
+// Algorithm reference: antique-toy chapter7; half-cell display suggested by Alice.
+// Build: minzc source.nanz -t zxspectrum --asserts none -o rotozoomer.bin
+
+global axis_a: [i16;32] = [320,313,291,257,213,162,107,52,0,-48,-89,-122,-149,-169,-182,-190,-192,-190,-182,-169,-149,-122,-89,-48,0,52,107,162,213,257,291,313]
+global axis_b: [i16;32] = [0,62,121,172,213,242,259,263,256,239,214,183,149,113,75,38,0,-38,-75,-113,-149,-183,-214,-239,-256,-263,-259,-242,-213,-172,-121,-62]
+global texture: [u8;256] = [3,3,3,3,5,5,1,1,3,3,3,3,5,5,1,1,3,3,3,3,5,5,1,1,3,3,3,3,5,5,1,1,3,3,3,3,1,1,5,5,3,3,3,3,1,1,5,5,3,3,3,3,1,1,5,5,6,3,3,3,1,1,5,5,5,5,1,1,3,3,3,6,6,6,1,1,3,3,3,3,5,5,1,1,3,3,6,6,6,6,6,1,3,3,3,3,1,1,5,5,3,6,6,6,7,6,6,6,3,3,3,3,1,1,5,5,6,6,6,7,7,7,6,6,6,3,3,3,3,3,3,6,6,6,7,7,7,7,7,6,6,6,1,1,3,3,3,3,6,6,6,7,7,7,6,6,6,5,1,1,3,3,3,3,1,6,6,6,7,6,6,6,1,1,5,5,3,3,3,3,1,1,6,6,6,6,6,3,1,1,5,5,5,5,1,1,3,3,3,6,6,6,1,1,3,3,3,3,5,5,1,1,3,3,3,3,6,5,1,1,3,3,3,3,1,1,5,5,3,3,3,3,1,1,5,5,3,3,3,3,1,1,5,5,3,3,3,3,1,1,5,5,3,3,3,3]
+
+fun init_screen() {
+    @fill() {
+        layout "linear" 16384 1024 1 1024
+        value 0
+        via "ldir"
+    }
+    @fill() {
+        layout "linear" 17408 1024 1 1024
+        value 255
+        via "ldir"
+    }
+    @fill() {
+        layout "linear" 18432 1024 1 1024
+        value 0
+        via "ldir"
+    }
+    @fill() {
+        layout "linear" 19456 1024 1 1024
+        value 255
+        via "ldir"
+    }
+    @fill() {
+        layout "linear" 20480 1024 1 1024
+        value 0
+        via "ldir"
+    }
+    @fill() {
+        layout "linear" 21504 1024 1 1024
+        value 255
+        via "ldir"
+    }
+}
+
+fun texel(u: u16, v: u16) -> u8 {
+    let x: u16 = (u >> 8) & 15
+    let y: u16 = (v >> 8) & 15
+    return texture[y * 16 + x]
+}
+
+global step_a: u16 = 0
+global step_minus_b: u16 = 0
+global step_half_a: u16 = 0
+global step_half_b: u16 = 0
+global row_step_u: u16 = 0
+global row_step_v: u16 = 0
+global origin_u: u16 = 0
+global origin_v: u16 = 0
+
+fun init_texture() -> void {
+    var p: ^u8 = ptr(0xc000)
+    var i: u16 = 0
+    while i < 256 { p^ = texture[i] p = p + 1 i = i + 1 }
+}
+
+@texture_walk("render_kernel") {
+    destination "zx_halfcells" 0x5800 32 24
+    texture "page16x16" 0xc000
+    setup "origin_u" "origin_v" "step_a" "step_minus_b" "step_half_a" "step_half_b" "row_step_u" "row_step_v"
+    unroll 4
+}
+
+fun draw_frame(frame: u8) -> void {
+    step_a = setup_a[frame]
+    step_minus_b = setup_minus_b[frame]
+    step_half_a = setup_half_a[frame]
+    step_half_b = setup_half_b[frame]
+    row_step_u = setup_row_u[frame]
+    row_step_v = setup_row_v[frame]
+    origin_u = setup_u[frame]
+    origin_v = setup_v[frame]
+    render_kernel()
+}
+
+fun main() -> void {
+    init_screen()
+    init_texture()
+    var frame: u8 = 0
+    while true {
+        draw_frame(frame)
+        frame = (frame + 1) & 31
+        // Standard 48K ROM interrupt supplies frame pacing; no host graphics.
+        asm z80 (clob all) { EI / HALT }
+    }
+}

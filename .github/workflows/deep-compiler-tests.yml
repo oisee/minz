@@ -1,0 +1,53 @@
+name: Deep compiler domains
+
+on:
+  push:
+    tags: ['v*']
+  schedule:
+    - cron: '23 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pipeline:
+    name: Deep pipeline ${{ matrix.shard }} of 12
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    defaults:
+      run:
+        working-directory: minzc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: minzc/go.mod
+          cache-dependency-path: minzc/go.sum
+      - name: Verify profile and shard contracts
+        run: python3 ../scripts/ci/test_stable_pipeline.py
+      - name: Run complete deep profile shard
+        run: |
+          python3 ../scripts/ci/run_stable_pipeline.py \
+            --profile deep --shard-index '${{ matrix.shard }}' --shard-count 12 \
+            --shards 4 --workers 1 --output "$RUNNER_TEMP/deep-pipeline"
+      - name: Preserve inventory and execution logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deep-pipeline-${{ matrix.shard }}
+          path: ${{ runner.temp }}/deep-pipeline/
+          if-no-files-found: error
+
+  compiler_checks:
+    name: Release compiler matrix and fuzz
+    if: github.event_name != 'schedule'
+    uses: ./.github/workflows/assert-checks.yml
+    with:
+      candidate: ${{ github.sha }}
+      base: HEAD~1
+      nightly: true

@@ -1,0 +1,42 @@
+{
+  "base": "cccddb02",
+  "source_sha256": "11a31a7e49238da84a61e03e0a7d883670f787413e228c19616f9521035649bb",
+  "input_keys": [
+    129,
+    144,
+    142,
+    128,
+    27
+  ],
+  "frames": [
+    [
+      "list",
+      0
+    ],
+    [
+      "list",
+      1
+    ],
+    [
+      "detail",
+      1
+    ],
+    [
+      "list",
+      1
+    ],
+    [
+      "list",
+      0
+    ]
+  ],
+  "final_globals": {
+    "cursor": 0,
+    "_current_screen": 0,
+    "_running": 0,
+    "_depth": 0
+  },
+  "stack_global_zero": true,
+  "expected_events": 204,
+  "scope": "test-owned MZV ANSI TUI host native+VM whole main, notCPM runtime"
+}

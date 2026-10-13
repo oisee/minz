@@ -1,0 +1,2 @@
+ok  	github.com/minz/minzc/pkg/plm	0.011s
+ok  	github.com/minz/minzc/pkg/pipeline	0.599s

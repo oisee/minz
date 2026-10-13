@@ -1,0 +1,194 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "9ded7027f594091104506982a88ac25e667966be7f8f1e3875213c86c455efaa"
+  },
+  {
+    "path": "agon_debug_return_replay.py",
+    "sha256": "01ce65a8d14d98a07ab4227ae5b0ae02df572c75322b5bf85a598244354b103e"
+  },
+  {
+    "path": "capture.c",
+    "sha256": "13db77e088a3d07d1ce703e21946327c74c736d3078710a1395418fc8696b219"
+  },
+  {
+    "path": "capture.so",
+    "sha256": "7dab04e2fc4e01d98a04236e36ca031024f662f4cd49d4e9cb7e045d6872a80d"
+  },
+  {
+    "path": "hello_agon/ordinary/debugger.raw",
+    "sha256": "56cdf0ad918c5e4aee8905150950c8129c719e56293424f2c61270118ceabaf3"
+  },
+  {
+    "path": "hello_agon/ordinary/debugger.txt",
+    "sha256": "9dea577622058bbe6520ad44a5800b4744668269950ca5b35208b630ade123c2"
+  },
+  {
+    "path": "hello_agon/ordinary/program.bin",
+    "sha256": "2069e2a4b068f56d1426c2d842fe11ae982ed1b6ed20091fec977dfae8cd7e32"
+  },
+  {
+    "path": "hello_agon/ordinary/result.json",
+    "sha256": "3acf98bc84280f42fe29135d7efcfea909cfe5b193d762799b1d68f0cf293355"
+  },
+  {
+    "path": "hello_agon/ordinary/sdcard/autoexec.txt",
+    "sha256": "21729aa38b3dbd35d95a21052f5c59a291c1b6f4a49d8285b1e11e955c264944"
+  },
+  {
+    "path": "hello_agon/ordinary/sdcard/program.bin",
+    "sha256": "2069e2a4b068f56d1426c2d842fe11ae982ed1b6ed20091fec977dfae8cd7e32"
+  },
+  {
+    "path": "hello_agon/ordinary/source.nanz",
+    "sha256": "4684218e7110368e2122eff39a16dd792dea3bd335383cec6000507505831f77"
+  },
+  {
+    "path": "hello_agon/size/debugger.raw",
+    "sha256": "8774c6449b94a31a9705535568eb0c4dcdd74ac765e3c9b0d81896af5bfbcc0f"
+  },
+  {
+    "path": "hello_agon/size/debugger.txt",
+    "sha256": "e9f7c2813289ddfffa61e424d86335820e39eb48e749c8befcac5a958a7bceca"
+  },
+  {
+    "path": "hello_agon/size/program.bin",
+    "sha256": "2069e2a4b068f56d1426c2d842fe11ae982ed1b6ed20091fec977dfae8cd7e32"
+  },
+  {
+    "path": "hello_agon/size/result.json",
+    "sha256": "ad5bd92e9910e8d1a8ee7b8a954eb307dbb5cd614887a44eac27ba97a3234d14"
+  },
+  {
+    "path": "hello_agon/size/sdcard/autoexec.txt",
+    "sha256": "21729aa38b3dbd35d95a21052f5c59a291c1b6f4a49d8285b1e11e955c264944"
+  },
+  {
+    "path": "hello_agon/size/sdcard/program.bin",
+    "sha256": "2069e2a4b068f56d1426c2d842fe11ae982ed1b6ed20091fec977dfae8cd7e32"
+  },
+  {
+    "path": "hello_agon/size/source.nanz",
+    "sha256": "4684218e7110368e2122eff39a16dd792dea3bd335383cec6000507505831f77"
+  },
+  {
+    "path": "hello_agon/speed/debugger.raw",
+    "sha256": "b993ae683bc676c4e68d490f2b8fe8648baab1888d153ea02d758058a6aa57eb"
+  },
+  {
+    "path": "hello_agon/speed/debugger.txt",
+    "sha256": "8eac40c2b1fed9494b2219b163136fd8d600209543b5e9ac47c2585c7dc08e64"
+  },
+  {
+    "path": "hello_agon/speed/program.bin",
+    "sha256": "2069e2a4b068f56d1426c2d842fe11ae982ed1b6ed20091fec977dfae8cd7e32"
+  },
+  {
+    "path": "hello_agon/speed/result.json",
+    "sha256": "43b2fbf2018470c6c6045d54e870fdc508c750f6d3581feb64c6c92959d32531"
+  },
+  {
+    "path": "hello_agon/speed/sdcard/autoexec.txt",
+    "sha256": "21729aa38b3dbd35d95a21052f5c59a291c1b6f4a49d8285b1e11e955c264944"
+  },
+  {
+    "path": "hello_agon/speed/sdcard/program.bin",
+    "sha256": "2069e2a4b068f56d1426c2d842fe11ae982ed1b6ed20091fec977dfae8cd7e32"
+  },
+  {
+    "path": "hello_agon/speed/source.nanz",
+    "sha256": "4684218e7110368e2122eff39a16dd792dea3bd335383cec6000507505831f77"
+  },
+  {
+    "path": "hello_world/ordinary/debugger.raw",
+    "sha256": "69bee1ad8b56557eaef523d6b30b53a82b611bceb84f68a75114bcc8171a4855"
+  },
+  {
+    "path": "hello_world/ordinary/debugger.txt",
+    "sha256": "607f78b492e1d0ce75b5de4cc13bdff60f8ee3d2a2a596e722e571fbd64d5994"
+  },
+  {
+    "path": "hello_world/ordinary/program.bin",
+    "sha256": "89e840b7e79fe2f35e544dce2aa7411db8fe0185d2c35d429834b6aca265f6a2"
+  },
+  {
+    "path": "hello_world/ordinary/result.json",
+    "sha256": "114f0882e5896a04be9e778b077ea7da341fc16fe0a28b939c7b53b3bfe5288d"
+  },
+  {
+    "path": "hello_world/ordinary/sdcard/autoexec.txt",
+    "sha256": "21729aa38b3dbd35d95a21052f5c59a291c1b6f4a49d8285b1e11e955c264944"
+  },
+  {
+    "path": "hello_world/ordinary/sdcard/program.bin",
+    "sha256": "89e840b7e79fe2f35e544dce2aa7411db8fe0185d2c35d429834b6aca265f6a2"
+  },
+  {
+    "path": "hello_world/ordinary/source.nanz",
+    "sha256": "f6d88281bb19c637b1dcde8ccdcbc6a26eaba47e09153d892f160f5177d3d6f5"
+  },
+  {
+    "path": "hello_world/size/debugger.raw",
+    "sha256": "6191074ae81d5155a302e22186118aa5a51dcae44aaddb6801e90d08df3d1597"
+  },
+  {
+    "path": "hello_world/size/debugger.txt",
+    "sha256": "a4c7eec11706eba17353d08b7479a7b9dd9860d91337753efe6060dc6f2bf4f8"
+  },
+  {
+    "path": "hello_world/size/program.bin",
+    "sha256": "89e840b7e79fe2f35e544dce2aa7411db8fe0185d2c35d429834b6aca265f6a2"
+  },
+  {
+    "path": "hello_world/size/result.json",
+    "sha256": "d34d4ae9d9e166401f3912efca73adf7988aa4b4a485669f1d11eb7f30917202"
+  },
+  {
+    "path": "hello_world/size/sdcard/autoexec.txt",
+    "sha256": "21729aa38b3dbd35d95a21052f5c59a291c1b6f4a49d8285b1e11e955c264944"
+  },
+  {
+    "path": "hello_world/size/sdcard/program.bin",
+    "sha256": "89e840b7e79fe2f35e544dce2aa7411db8fe0185d2c35d429834b6aca265f6a2"
+  },
+  {
+    "path": "hello_world/size/source.nanz",
+    "sha256": "f6d88281bb19c637b1dcde8ccdcbc6a26eaba47e09153d892f160f5177d3d6f5"
+  },
+  {
+    "path": "hello_world/speed/debugger.raw",
+    "sha256": "2746bb0d853799b6b664ed40e074f164c2128adaf82c2ccea1c683b5298ea918"
+  },
+  {
+    "path": "hello_world/speed/debugger.txt",
+    "sha256": "41289d5fd24e72e42a1530c12cbede2316f956b21a90789576ecd5581ab685fb"
+  },
+  {
+    "path": "hello_world/speed/program.bin",
+    "sha256": "89e840b7e79fe2f35e544dce2aa7411db8fe0185d2c35d429834b6aca265f6a2"
+  },
+  {
+    "path": "hello_world/speed/result.json",
+    "sha256": "483a40ba196183cab0f6e78b4d46f9282e9e02653b1152ebb87f1a19bb98857f"
+  },
+  {
+    "path": "hello_world/speed/sdcard/autoexec.txt",
+    "sha256": "21729aa38b3dbd35d95a21052f5c59a291c1b6f4a49d8285b1e11e955c264944"
+  },
+  {
+    "path": "hello_world/speed/sdcard/program.bin",
+    "sha256": "89e840b7e79fe2f35e544dce2aa7411db8fe0185d2c35d429834b6aca265f6a2"
+  },
+  {
+    "path": "hello_world/speed/source.nanz",
+    "sha256": "f6d88281bb19c637b1dcde8ccdcbc6a26eaba47e09153d892f160f5177d3d6f5"
+  },
+  {
+    "path": "independent-audit.json",
+    "sha256": "8dfea3b1634a299fd9652ad9a136ffae8e98379d3c702a2c70cb9a7e699420fb"
+  },
+  {
+    "path": "summary.json",
+    "sha256": "7b429ac97cf2220364f0567a90fbc055067f8e8264a08bef526f101172eac41e"
+  }
+]

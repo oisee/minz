@@ -1,6 +1,7 @@
 package nanz_test
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,41 +17,14 @@ import (
 	"github.com/minz/minzc/pkg/z80asm"
 )
 
-// Known failures — skip these until the underlying bugs are fixed.
-// Each entry is the base filename (without extension).
+// Known failures are exact repository-relative paths. Basenames are not unique:
+// showcase.lizp must not hide showcase.plm, nor factorial.lizp factorial.pas.
+// MINZ_SHOWCASE_CHECK_KNOWN=1 executes these cases for an explicit failure audit.
 var knownFailures = map[string]string{
-	// Nanz compile failures
-	"ex4a_abs_diff_iar": "compile: IAR-style function not supported",
-	"ex14_fold_assert":  "compile: fold assertion not wired in showcase context",
-	// Nanz asm failures
-	"ex20_arena_allocator": "asm: BUG-008 arena codegen (LD IXL, (IX+d))",
-	"08_arena_allocator":   "asm: BUG-008 arena codegen (LD IXL, (IX+d))",
-	"ex34_tetris":          "asm: tetris needs clobber save/restore (WIP)",
-	"tetris":               "asm: tetris v1 needs clobber save/restore (WIP)",
-	"tetris_v2":            "asm: tetris v2 needs clobber save/restore (WIP)",
-	"plasma":               "asm: new example, not yet verified",
-	"zvm":                  "mzv-only Z3 interpreter; Z80 port is deferred",
-	// Import tests need module search path
-	"ex23_import_unqualified": "compile: import needs module search path",
-	"ex24_import_qualified":   "compile: import needs module search path",
-	"ex25_import_alias_glob":  "compile: import needs module search path",
-	"nc":                      "compile: import needs module search path (fs.fat12)",
-	// Lizp asm failures (MZA encoding gaps)
-	"cond_test":        "asm: lizp codegen produces instructions MZA can't encode yet",
-	"factorial":        "asm: lizp codegen produces instructions MZA can't encode yet",
-	"showcase":         "asm: lizp codegen produces instructions MZA can't encode yet",
-	"zx_checkerboard":  "asm: lizp codegen produces instructions MZA can't encode yet",
-	"zx_rainbow":       "asm: lizp codegen produces instructions MZA can't encode yet",
-	// PLM asm failures
-	"01_sum_array":      "asm: PLM codegen produces instructions MZA can't encode yet",
-	"01_sum_plm_origin": "asm: PLM codegen produces instructions MZA can't encode yet",
-	// Pascal asm failures (new frontend, codegen gaps)
-	"casetest":  "asm: Pascal case codegen not fully wired",
-	"sieve":     "asm: Pascal array codegen not fully wired",
-	// "factorial" already listed under lizp — covers both .lizp and .pas
+	"examples/zmachine/zork-west-demo/zvm.nanz": "host-only ZVM: story[131072] exceeds ordinary Z80 16-bit address space; native u32 spills are supported",
 }
 
-// TestShowcaseCompileAssemble compiles every .nanz/.lanz/.plm/.lizp file
+// TestShowcaseCompileAssemble compiles every .nanz/.lanz/.plm/.lizp/.pas file
 // found in reports/showcase-src/ and examples/ through the full pipeline:
 //
 //	source → HIR → MIR2 → Z80 asm → assemble
@@ -90,20 +64,42 @@ func TestShowcaseCompileAssemble(t *testing.T) {
 		ext := filepath.Ext(path)
 
 		t.Run(base+ext, func(t *testing.T) {
-			if reason, ok := knownFailures[base]; ok {
+			relPath, err := filepath.Rel(root, path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			stage := "skip"
+			defer func() {
+				status := "PASS"
+				if t.Skipped() {
+					status = "SKIP"
+				} else if t.Failed() {
+					status = "FAIL"
+				}
+				row := struct{ Path, Case, Status, Stage string }{filepath.ToSlash(relPath), t.Name(), status, stage}
+				encoded, _ := json.Marshal(row)
+				t.Logf("SHOWCASE_CASE %s", encoded)
+			}()
+			t.Logf("SOURCE_PATH %s", filepath.ToSlash(relPath))
+			if reason, ok := knownFailures[filepath.ToSlash(relPath)]; ok && os.Getenv("MINZ_SHOWCASE_CHECK_KNOWN") != "1" {
 				t.Skipf("known failure: %s", reason)
 			}
 
+			stage = "read"
 			src, err := os.ReadFile(path)
 			if err != nil {
 				t.Fatalf("read: %v", err)
 			}
 
+			stage = "frontend"
 			// Step 1: Parse to HIR via the appropriate frontend
 			var hm *hir.Module
 			switch ext {
 			case ".nanz":
-				hm, err = nanz.Parse(string(src), base)
+				hm, err = nanz.ParseWithOpts(string(src), base, nanz.ParseOpts{
+					BaseDir:   filepath.Dir(path),
+					StdlibDir: filepath.Join(root, "stdlib"),
+				})
 			case ".lanz":
 				hm, err = lanz.Compile(string(src), base)
 			case ".plm":
@@ -120,12 +116,24 @@ func TestShowcaseCompileAssemble(t *testing.T) {
 				t.Fatalf("frontend %s: %v", ext, err)
 			}
 
+			stage = "pipeline"
 			// Step 2: HIR → MIR2 → Z80 asm
 			asmText, err := pipeline.CompileHIR(hm)
 			if err != nil {
 				t.Fatalf("pipeline: %v", err)
 			}
 
+			// Opt-in diagnostics retain compiler output before assembly.
+			if dir := os.Getenv("MINZ_SHOWCASE_ARTIFACTS"); dir != "" {
+				if err := os.MkdirAll(dir, 0755); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(filepath.Join(dir, base+ext+".a80"), []byte(asmText), 0644); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			stage = "assembler"
 			// Step 3: Assemble
 			assembler := z80asm.NewAssembler()
 			result, err := assembler.AssembleString(asmText)
@@ -139,6 +147,7 @@ func TestShowcaseCompileAssemble(t *testing.T) {
 				t.Fatalf("assembly produced %d errors", len(result.Errors))
 			}
 
+			stage = "sanity"
 			// Step 4: Sanity checks — catch common codegen bugs
 			for _, line := range strings.Split(asmText, "\n") {
 				trimmed := strings.TrimSpace(line)
@@ -153,6 +162,7 @@ func TestShowcaseCompileAssemble(t *testing.T) {
 				}
 			}
 
+			stage = "complete"
 			t.Logf("OK: %d bytes asm, %d bytes binary", len(asmText), len(result.Binary))
 		})
 	}

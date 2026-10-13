@@ -1,0 +1,426 @@
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-one
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-one/ordinary
+    hardware_copy_test.go:214: seed 19: 26 bytes, 125 T-states; 1 copied bytes
+    hardware_copy_test.go:214: seed 173: 26 bytes, 125 T-states; 1 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-one/grace-size
+    hardware_copy_test.go:214: seed 19: 26 bytes, 125 T-states; 1 copied bytes
+    hardware_copy_test.go:214: seed 173: 26 bytes, 125 T-states; 1 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-one/grace-speed
+    hardware_copy_test.go:214: seed 19: 26 bytes, 125 T-states; 1 copied bytes
+    hardware_copy_test.go:214: seed 173: 26 bytes, 125 T-states; 1 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-strided
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-strided/ordinary
+    hardware_copy_test.go:214: seed 19: 107 bytes, 1799 T-states; 24 copied bytes
+    hardware_copy_test.go:214: seed 173: 107 bytes, 1799 T-states; 24 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-strided/grace-size
+    hardware_copy_test.go:214: seed 19: 107 bytes, 1799 T-states; 24 copied bytes
+    hardware_copy_test.go:214: seed 173: 107 bytes, 1799 T-states; 24 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-strided/grace-speed
+    hardware_copy_test.go:214: seed 19: 107 bytes, 1799 T-states; 24 copied bytes
+    hardware_copy_test.go:214: seed 173: 107 bytes, 1799 T-states; 24 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-page-crossing
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-page-crossing/ordinary
+    hardware_copy_test.go:214: seed 19: 26 bytes, 188 T-states; 2 copied bytes
+    hardware_copy_test.go:214: seed 173: 26 bytes, 188 T-states; 2 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-page-crossing/grace-size
+    hardware_copy_test.go:214: seed 19: 26 bytes, 188 T-states; 2 copied bytes
+    hardware_copy_test.go:214: seed 173: 26 bytes, 188 T-states; 2 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-page-crossing/grace-speed
+    hardware_copy_test.go:214: seed 19: 26 bytes, 188 T-states; 2 copied bytes
+    hardware_copy_test.go:214: seed 173: 26 bytes, 188 T-states; 2 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-255
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-255/ordinary
+    hardware_copy_test.go:214: seed 19: 26 bytes, 16127 T-states; 255 copied bytes
+    hardware_copy_test.go:214: seed 173: 26 bytes, 16127 T-states; 255 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-255/grace-size
+    hardware_copy_test.go:214: seed 19: 26 bytes, 16127 T-states; 255 copied bytes
+    hardware_copy_test.go:214: seed 173: 26 bytes, 16127 T-states; 255 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-255/grace-speed
+    hardware_copy_test.go:214: seed 19: 26 bytes, 16127 T-states; 255 copied bytes
+    hardware_copy_test.go:214: seed 173: 26 bytes, 16127 T-states; 255 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-256
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-256/ordinary
+    hardware_copy_test.go:214: seed 19: 48 bytes, 45708 T-states; 256 copied bytes
+    hardware_copy_test.go:214: seed 173: 48 bytes, 45708 T-states; 256 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-256/grace-size
+    hardware_copy_test.go:214: seed 19: 48 bytes, 45708 T-states; 256 copied bytes
+    hardware_copy_test.go:214: seed 173: 48 bytes, 45708 T-states; 256 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-256/grace-speed
+    hardware_copy_test.go:214: seed 19: 48 bytes, 45708 T-states; 256 copied bytes
+    hardware_copy_test.go:214: seed 173: 48 bytes, 45708 T-states; 256 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/destination-last-byte
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/destination-last-byte/ordinary
+    hardware_copy_test.go:214: seed 19: 53 bytes, 381 T-states; 4 copied bytes
+    hardware_copy_test.go:214: seed 173: 53 bytes, 381 T-states; 4 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/destination-last-byte/grace-size
+    hardware_copy_test.go:214: seed 19: 53 bytes, 381 T-states; 4 copied bytes
+    hardware_copy_test.go:214: seed 173: 53 bytes, 381 T-states; 4 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/destination-last-byte/grace-speed
+    hardware_copy_test.go:214: seed 19: 53 bytes, 381 T-states; 4 copied bytes
+    hardware_copy_test.go:214: seed 173: 53 bytes, 381 T-states; 4 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/source-last-byte
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/source-last-byte/ordinary
+    hardware_copy_test.go:214: seed 19: 53 bytes, 381 T-states; 4 copied bytes
+    hardware_copy_test.go:214: seed 173: 53 bytes, 381 T-states; 4 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/source-last-byte/grace-size
+    hardware_copy_test.go:214: seed 19: 53 bytes, 381 T-states; 4 copied bytes
+    hardware_copy_test.go:214: seed 173: 53 bytes, 381 T-states; 4 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/source-last-byte/grace-speed
+    hardware_copy_test.go:214: seed 19: 53 bytes, 381 T-states; 4 copied bytes
+    hardware_copy_test.go:214: seed 173: 53 bytes, 381 T-states; 4 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zero-width
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zero-width/ordinary
+    hardware_copy_test.go:214: seed 19: 1 bytes, 10 T-states; 0 copied bytes
+    hardware_copy_test.go:214: seed 173: 1 bytes, 10 T-states; 0 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zero-width/grace-size
+    hardware_copy_test.go:214: seed 19: 1 bytes, 10 T-states; 0 copied bytes
+    hardware_copy_test.go:214: seed 173: 1 bytes, 10 T-states; 0 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zero-width/grace-speed
+    hardware_copy_test.go:214: seed 19: 1 bytes, 10 T-states; 0 copied bytes
+    hardware_copy_test.go:214: seed 173: 1 bytes, 10 T-states; 0 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zero-height
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zero-height/ordinary
+    hardware_copy_test.go:214: seed 19: 1 bytes, 10 T-states; 0 copied bytes
+    hardware_copy_test.go:214: seed 173: 1 bytes, 10 T-states; 0 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zero-height/grace-size
+    hardware_copy_test.go:214: seed 19: 1 bytes, 10 T-states; 0 copied bytes
+    hardware_copy_test.go:214: seed 173: 1 bytes, 10 T-states; 0 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zero-height/grace-speed
+    hardware_copy_test.go:214: seed 19: 1 bytes, 10 T-states; 0 copied bytes
+    hardware_copy_test.go:214: seed 173: 1 bytes, 10 T-states; 0 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-7-8
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-7-8/ordinary
+    hardware_copy_test.go:214: seed 19: 53 bytes, 765 T-states; 10 copied bytes
+    hardware_copy_test.go:214: seed 173: 53 bytes, 765 T-states; 10 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-7-8/grace-size
+    hardware_copy_test.go:214: seed 19: 53 bytes, 765 T-states; 10 copied bytes
+    hardware_copy_test.go:214: seed 173: 53 bytes, 765 T-states; 10 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-7-8/grace-speed
+    hardware_copy_test.go:214: seed 19: 53 bytes, 765 T-states; 10 copied bytes
+    hardware_copy_test.go:214: seed 173: 53 bytes, 765 T-states; 10 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-63-64
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-63-64/ordinary
+    hardware_copy_test.go:214: seed 19: 53 bytes, 509 T-states; 6 copied bytes
+    hardware_copy_test.go:214: seed 173: 53 bytes, 509 T-states; 6 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-63-64/grace-size
+    hardware_copy_test.go:214: seed 19: 53 bytes, 509 T-states; 6 copied bytes
+    hardware_copy_test.go:214: seed 173: 53 bytes, 509 T-states; 6 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-63-64/grace-speed
+    hardware_copy_test.go:214: seed 19: 53 bytes, 509 T-states; 6 copied bytes
+    hardware_copy_test.go:214: seed 173: 53 bytes, 509 T-states; 6 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zx-to-raster
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zx-to-raster/ordinary
+    hardware_copy_test.go:214: seed 19: 80 bytes, 1539 T-states; 21 copied bytes
+    hardware_copy_test.go:214: seed 173: 80 bytes, 1539 T-states; 21 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zx-to-raster/grace-size
+    hardware_copy_test.go:214: seed 19: 80 bytes, 1539 T-states; 21 copied bytes
+    hardware_copy_test.go:214: seed 173: 80 bytes, 1539 T-states; 21 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zx-to-raster/grace-speed
+    hardware_copy_test.go:214: seed 19: 80 bytes, 1539 T-states; 21 copied bytes
+    hardware_copy_test.go:214: seed 173: 80 bytes, 1539 T-states; 21 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-full
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-full/ordinary
+    hardware_copy_test.go:214: seed 19: 5183 bytes, 411391 T-states; 6144 copied bytes
+    hardware_copy_test.go:214: seed 173: 5183 bytes, 411391 T-states; 6144 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-full/grace-size
+    hardware_copy_test.go:214: seed 19: 5609 bytes, 467623 T-states; 6144 copied bytes
+    hardware_copy_test.go:214: seed 173: 5609 bytes, 467623 T-states; 6144 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-full/grace-speed
+    hardware_copy_test.go:214: seed 19: 5609 bytes, 467623 T-states; 6144 copied bytes
+    hardware_copy_test.go:214: seed 173: 5609 bytes, 467623 T-states; 6144 copied bytes
+--- PASS: TestHardwareCopyPointerMemoryNativeAndVM (102.58s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-one (0.04s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-one/ordinary (0.01s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-one/grace-size (0.01s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-one/grace-speed (0.01s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-strided (0.09s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-strided/ordinary (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-strided/grace-size (0.03s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-strided/grace-speed (0.04s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-page-crossing (0.06s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-page-crossing/ordinary (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-page-crossing/grace-size (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-page-crossing/grace-speed (0.02s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-255 (0.07s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-255/ordinary (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-255/grace-size (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-255/grace-speed (0.02s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-256 (0.08s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-256/ordinary (0.03s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-256/grace-size (0.03s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-256/grace-speed (0.03s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/destination-last-byte (0.06s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/destination-last-byte/ordinary (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/destination-last-byte/grace-size (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/destination-last-byte/grace-speed (0.02s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/source-last-byte (0.08s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/source-last-byte/ordinary (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/source-last-byte/grace-size (0.03s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/source-last-byte/grace-speed (0.03s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zero-width (0.05s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zero-width/ordinary (0.01s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zero-width/grace-size (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zero-width/grace-speed (0.02s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zero-height (0.05s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zero-height/ordinary (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zero-height/grace-size (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zero-height/grace-speed (0.02s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-7-8 (0.08s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-7-8/ordinary (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-7-8/grace-size (0.03s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-7-8/grace-speed (0.03s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-63-64 (0.08s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-63-64/ordinary (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-63-64/grace-size (0.03s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-63-64/grace-speed (0.03s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zx-to-raster (0.09s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zx-to-raster/ordinary (0.03s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zx-to-raster/grace-size (0.03s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zx-to-raster/grace-speed (0.03s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-full (101.76s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-full/ordinary (13.26s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-full/grace-size (38.83s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-full/grace-speed (49.68s)
+=== RUN   TestHardwareCopyLDIRNative
+=== RUN   TestHardwareCopyLDIRNative/linear-one
+=== RUN   TestHardwareCopyLDIRNative/linear-one/ordinary
+    hardware_copy_test.go:214: seed 19: 20 bytes, 140 T-states; 1 copied bytes
+    hardware_copy_test.go:214: seed 173: 20 bytes, 140 T-states; 1 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/linear-one/grace-size
+    hardware_copy_test.go:214: seed 19: 20 bytes, 140 T-states; 1 copied bytes
+    hardware_copy_test.go:214: seed 173: 20 bytes, 140 T-states; 1 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/linear-one/grace-speed
+    hardware_copy_test.go:214: seed 19: 20 bytes, 140 T-states; 1 copied bytes
+    hardware_copy_test.go:214: seed 173: 20 bytes, 140 T-states; 1 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/linear-strided
+=== RUN   TestHardwareCopyLDIRNative/linear-strided/ordinary
+    hardware_copy_test.go:214: seed 19: 77 bytes, 950 T-states; 24 copied bytes
+    hardware_copy_test.go:214: seed 173: 77 bytes, 950 T-states; 24 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/linear-strided/grace-size
+    hardware_copy_test.go:214: seed 19: 77 bytes, 950 T-states; 24 copied bytes
+    hardware_copy_test.go:214: seed 173: 77 bytes, 950 T-states; 24 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/linear-strided/grace-speed
+    hardware_copy_test.go:214: seed 19: 77 bytes, 950 T-states; 24 copied bytes
+    hardware_copy_test.go:214: seed 173: 77 bytes, 950 T-states; 24 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/linear-page-crossing
+=== RUN   TestHardwareCopyLDIRNative/linear-page-crossing/ordinary
+    hardware_copy_test.go:214: seed 19: 20 bytes, 161 T-states; 2 copied bytes
+    hardware_copy_test.go:214: seed 173: 20 bytes, 161 T-states; 2 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/linear-page-crossing/grace-size
+    hardware_copy_test.go:214: seed 19: 20 bytes, 161 T-states; 2 copied bytes
+    hardware_copy_test.go:214: seed 173: 20 bytes, 161 T-states; 2 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/linear-page-crossing/grace-speed
+    hardware_copy_test.go:214: seed 19: 20 bytes, 161 T-states; 2 copied bytes
+    hardware_copy_test.go:214: seed 173: 20 bytes, 161 T-states; 2 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/linear-255
+=== RUN   TestHardwareCopyLDIRNative/linear-255/ordinary
+    hardware_copy_test.go:214: seed 19: 20 bytes, 5474 T-states; 255 copied bytes
+    hardware_copy_test.go:214: seed 173: 20 bytes, 5474 T-states; 255 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/linear-255/grace-size
+    hardware_copy_test.go:214: seed 19: 20 bytes, 5474 T-states; 255 copied bytes
+    hardware_copy_test.go:214: seed 173: 20 bytes, 5474 T-states; 255 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/linear-255/grace-speed
+    hardware_copy_test.go:214: seed 19: 20 bytes, 5474 T-states; 255 copied bytes
+    hardware_copy_test.go:214: seed 173: 20 bytes, 5474 T-states; 255 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/linear-256
+=== RUN   TestHardwareCopyLDIRNative/linear-256/ordinary
+    hardware_copy_test.go:214: seed 19: 20 bytes, 5495 T-states; 256 copied bytes
+    hardware_copy_test.go:214: seed 173: 20 bytes, 5495 T-states; 256 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/linear-256/grace-size
+    hardware_copy_test.go:214: seed 19: 20 bytes, 5495 T-states; 256 copied bytes
+    hardware_copy_test.go:214: seed 173: 20 bytes, 5495 T-states; 256 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/linear-256/grace-speed
+    hardware_copy_test.go:214: seed 19: 20 bytes, 5495 T-states; 256 copied bytes
+    hardware_copy_test.go:214: seed 173: 20 bytes, 5495 T-states; 256 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/destination-last-byte
+=== RUN   TestHardwareCopyLDIRNative/destination-last-byte/ordinary
+    hardware_copy_test.go:214: seed 19: 39 bytes, 312 T-states; 4 copied bytes
+    hardware_copy_test.go:214: seed 173: 39 bytes, 312 T-states; 4 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/destination-last-byte/grace-size
+    hardware_copy_test.go:214: seed 19: 39 bytes, 312 T-states; 4 copied bytes
+    hardware_copy_test.go:214: seed 173: 39 bytes, 312 T-states; 4 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/destination-last-byte/grace-speed
+    hardware_copy_test.go:214: seed 19: 39 bytes, 312 T-states; 4 copied bytes
+    hardware_copy_test.go:214: seed 173: 39 bytes, 312 T-states; 4 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/source-last-byte
+=== RUN   TestHardwareCopyLDIRNative/source-last-byte/ordinary
+    hardware_copy_test.go:214: seed 19: 39 bytes, 312 T-states; 4 copied bytes
+    hardware_copy_test.go:214: seed 173: 39 bytes, 312 T-states; 4 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/source-last-byte/grace-size
+    hardware_copy_test.go:214: seed 19: 39 bytes, 312 T-states; 4 copied bytes
+    hardware_copy_test.go:214: seed 173: 39 bytes, 312 T-states; 4 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/source-last-byte/grace-speed
+    hardware_copy_test.go:214: seed 19: 39 bytes, 312 T-states; 4 copied bytes
+    hardware_copy_test.go:214: seed 173: 39 bytes, 312 T-states; 4 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/zero-width
+=== RUN   TestHardwareCopyLDIRNative/zero-width/ordinary
+    hardware_copy_test.go:214: seed 19: 1 bytes, 10 T-states; 0 copied bytes
+    hardware_copy_test.go:214: seed 173: 1 bytes, 10 T-states; 0 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/zero-width/grace-size
+    hardware_copy_test.go:214: seed 19: 1 bytes, 10 T-states; 0 copied bytes
+    hardware_copy_test.go:214: seed 173: 1 bytes, 10 T-states; 0 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/zero-width/grace-speed
+    hardware_copy_test.go:214: seed 19: 1 bytes, 10 T-states; 0 copied bytes
+    hardware_copy_test.go:214: seed 173: 1 bytes, 10 T-states; 0 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/zero-height
+=== RUN   TestHardwareCopyLDIRNative/zero-height/ordinary
+    hardware_copy_test.go:214: seed 19: 1 bytes, 10 T-states; 0 copied bytes
+    hardware_copy_test.go:214: seed 173: 1 bytes, 10 T-states; 0 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/zero-height/grace-size
+    hardware_copy_test.go:214: seed 19: 1 bytes, 10 T-states; 0 copied bytes
+    hardware_copy_test.go:214: seed 173: 1 bytes, 10 T-states; 0 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/zero-height/grace-speed
+    hardware_copy_test.go:214: seed 19: 1 bytes, 10 T-states; 0 copied bytes
+    hardware_copy_test.go:214: seed 173: 1 bytes, 10 T-states; 0 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/raster-to-zx-row-7-8
+=== RUN   TestHardwareCopyLDIRNative/raster-to-zx-row-7-8/ordinary
+    hardware_copy_test.go:214: seed 19: 39 bytes, 438 T-states; 10 copied bytes
+    hardware_copy_test.go:214: seed 173: 39 bytes, 438 T-states; 10 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/raster-to-zx-row-7-8/grace-size
+    hardware_copy_test.go:214: seed 19: 39 bytes, 438 T-states; 10 copied bytes
+    hardware_copy_test.go:214: seed 173: 39 bytes, 438 T-states; 10 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/raster-to-zx-row-7-8/grace-speed
+    hardware_copy_test.go:214: seed 19: 39 bytes, 438 T-states; 10 copied bytes
+    hardware_copy_test.go:214: seed 173: 39 bytes, 438 T-states; 10 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/raster-to-zx-row-63-64
+=== RUN   TestHardwareCopyLDIRNative/raster-to-zx-row-63-64/ordinary
+    hardware_copy_test.go:214: seed 19: 39 bytes, 354 T-states; 6 copied bytes
+    hardware_copy_test.go:214: seed 173: 39 bytes, 354 T-states; 6 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/raster-to-zx-row-63-64/grace-size
+    hardware_copy_test.go:214: seed 19: 39 bytes, 354 T-states; 6 copied bytes
+    hardware_copy_test.go:214: seed 173: 39 bytes, 354 T-states; 6 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/raster-to-zx-row-63-64/grace-speed
+    hardware_copy_test.go:214: seed 19: 39 bytes, 354 T-states; 6 copied bytes
+    hardware_copy_test.go:214: seed 173: 39 bytes, 354 T-states; 6 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/zx-to-raster
+=== RUN   TestHardwareCopyLDIRNative/zx-to-raster/ordinary
+    hardware_copy_test.go:214: seed 19: 58 bytes, 778 T-states; 21 copied bytes
+    hardware_copy_test.go:214: seed 173: 58 bytes, 778 T-states; 21 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/zx-to-raster/grace-size
+    hardware_copy_test.go:214: seed 19: 58 bytes, 778 T-states; 21 copied bytes
+    hardware_copy_test.go:214: seed 173: 58 bytes, 778 T-states; 21 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/zx-to-raster/grace-speed
+    hardware_copy_test.go:214: seed 19: 58 bytes, 778 T-states; 21 copied bytes
+    hardware_copy_test.go:214: seed 173: 58 bytes, 778 T-states; 21 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/raster-to-zx-full
+=== RUN   TestHardwareCopyLDIRNative/raster-to-zx-full/ordinary
+    hardware_copy_test.go:214: seed 19: 3649 bytes, 149962 T-states; 6144 copied bytes
+    hardware_copy_test.go:214: seed 173: 3649 bytes, 149962 T-states; 6144 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/raster-to-zx-full/grace-size
+    hardware_copy_test.go:214: seed 19: 3649 bytes, 149962 T-states; 6144 copied bytes
+    hardware_copy_test.go:214: seed 173: 3649 bytes, 149962 T-states; 6144 copied bytes
+=== RUN   TestHardwareCopyLDIRNative/raster-to-zx-full/grace-speed
+    hardware_copy_test.go:214: seed 19: 3649 bytes, 149962 T-states; 6144 copied bytes
+    hardware_copy_test.go:214: seed 173: 3649 bytes, 149962 T-states; 6144 copied bytes
+--- PASS: TestHardwareCopyLDIRNative (0.77s)
+    --- PASS: TestHardwareCopyLDIRNative/linear-one (0.02s)
+        --- PASS: TestHardwareCopyLDIRNative/linear-one/ordinary (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/linear-one/grace-size (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/linear-one/grace-speed (0.01s)
+    --- PASS: TestHardwareCopyLDIRNative/linear-strided (0.04s)
+        --- PASS: TestHardwareCopyLDIRNative/linear-strided/ordinary (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/linear-strided/grace-size (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/linear-strided/grace-speed (0.01s)
+    --- PASS: TestHardwareCopyLDIRNative/linear-page-crossing (0.02s)
+        --- PASS: TestHardwareCopyLDIRNative/linear-page-crossing/ordinary (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/linear-page-crossing/grace-size (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/linear-page-crossing/grace-speed (0.01s)
+    --- PASS: TestHardwareCopyLDIRNative/linear-255 (0.03s)
+        --- PASS: TestHardwareCopyLDIRNative/linear-255/ordinary (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/linear-255/grace-size (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/linear-255/grace-speed (0.01s)
+    --- PASS: TestHardwareCopyLDIRNative/linear-256 (0.03s)
+        --- PASS: TestHardwareCopyLDIRNative/linear-256/ordinary (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/linear-256/grace-size (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/linear-256/grace-speed (0.01s)
+    --- PASS: TestHardwareCopyLDIRNative/destination-last-byte (0.03s)
+        --- PASS: TestHardwareCopyLDIRNative/destination-last-byte/ordinary (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/destination-last-byte/grace-size (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/destination-last-byte/grace-speed (0.01s)
+    --- PASS: TestHardwareCopyLDIRNative/source-last-byte (0.03s)
+        --- PASS: TestHardwareCopyLDIRNative/source-last-byte/ordinary (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/source-last-byte/grace-size (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/source-last-byte/grace-speed (0.01s)
+    --- PASS: TestHardwareCopyLDIRNative/zero-width (0.02s)
+        --- PASS: TestHardwareCopyLDIRNative/zero-width/ordinary (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/zero-width/grace-size (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/zero-width/grace-speed (0.01s)
+    --- PASS: TestHardwareCopyLDIRNative/zero-height (0.02s)
+        --- PASS: TestHardwareCopyLDIRNative/zero-height/ordinary (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/zero-height/grace-size (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/zero-height/grace-speed (0.01s)
+    --- PASS: TestHardwareCopyLDIRNative/raster-to-zx-row-7-8 (0.03s)
+        --- PASS: TestHardwareCopyLDIRNative/raster-to-zx-row-7-8/ordinary (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/raster-to-zx-row-7-8/grace-size (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/raster-to-zx-row-7-8/grace-speed (0.01s)
+    --- PASS: TestHardwareCopyLDIRNative/raster-to-zx-row-63-64 (0.03s)
+        --- PASS: TestHardwareCopyLDIRNative/raster-to-zx-row-63-64/ordinary (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/raster-to-zx-row-63-64/grace-size (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/raster-to-zx-row-63-64/grace-speed (0.01s)
+    --- PASS: TestHardwareCopyLDIRNative/zx-to-raster (0.03s)
+        --- PASS: TestHardwareCopyLDIRNative/zx-to-raster/ordinary (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/zx-to-raster/grace-size (0.01s)
+        --- PASS: TestHardwareCopyLDIRNative/zx-to-raster/grace-speed (0.01s)
+    --- PASS: TestHardwareCopyLDIRNative/raster-to-zx-full (0.46s)
+        --- PASS: TestHardwareCopyLDIRNative/raster-to-zx-full/ordinary (0.16s)
+        --- PASS: TestHardwareCopyLDIRNative/raster-to-zx-full/grace-size (0.17s)
+        --- PASS: TestHardwareCopyLDIRNative/raster-to-zx-full/grace-speed (0.13s)
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/zx-overflow
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/missing-destination
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/duplicate-destination
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/duplicate-via
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/destination-arity
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/via-arity
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/unknown-field
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/negative-source-base
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/unknown-destination-layout
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/missing-source
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/region-arity
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/source-address-overflow
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/destination-address-overflow
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/invalid-source-stride
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/destination-region-overflow
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/negative-region
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/disjoint-regions-overlapping-layouts
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/zx-arity
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/unknown-source-layout
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/unknown-via
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/missing-region
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/source-arity
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/source-region-overflow
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/overlapping-layouts
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/duplicate-source
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/duplicate-region
+=== RUN   TestHardwareCopyRejectsInvalidDescriptions/invalid-destination-stride
+--- PASS: TestHardwareCopyRejectsInvalidDescriptions (0.12s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/zx-overflow (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/missing-destination (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/duplicate-destination (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/duplicate-via (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/destination-arity (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/via-arity (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/unknown-field (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/negative-source-base (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/unknown-destination-layout (0.01s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/missing-source (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/region-arity (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/source-address-overflow (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/destination-address-overflow (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/invalid-source-stride (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/destination-region-overflow (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/negative-region (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/disjoint-regions-overlapping-layouts (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/zx-arity (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/unknown-source-layout (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/unknown-via (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/missing-region (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/source-arity (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/source-region-overflow (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/overlapping-layouts (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/duplicate-source (0.01s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/duplicate-region (0.00s)
+    --- PASS: TestHardwareCopyRejectsInvalidDescriptions/invalid-destination-stride (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	103.480s

@@ -1,0 +1,2390 @@
+{
+  "actual_events": [
+    {
+      "Op": 24,
+      "Offset": 190,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 191,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 192,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 193,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 194,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 195,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 196,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 197,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 198,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 199,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 180,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 181,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 182,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 183,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 184,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 185,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 186,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 187,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 188,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 189,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 170,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 171,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 172,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 173,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 174,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 175,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 176,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 177,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 178,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 179,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 160,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 161,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 162,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 163,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 164,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 165,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 166,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 167,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 168,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 169,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 150,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 151,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 152,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 153,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 154,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 155,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 156,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 157,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 158,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 159,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 140,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 141,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 142,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 143,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 144,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 145,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 146,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 147,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 148,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 149,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 130,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 131,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 132,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 133,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 134,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 135,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 136,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 137,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 138,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 139,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 120,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 121,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 122,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 123,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 124,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 125,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 126,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 127,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 128,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 129,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 110,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 111,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 112,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 113,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 114,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 115,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 116,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 117,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 118,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 119,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 100,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 101,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 102,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 103,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 104,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 105,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 106,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 107,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 108,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 109,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 90,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 91,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 92,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 93,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 94,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 95,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 96,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 97,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 98,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 99,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 80,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 81,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 82,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 83,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 84,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 85,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 86,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 87,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 88,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 89,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 70,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 71,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 72,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 73,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 74,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 75,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 76,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 77,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 78,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 79,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 60,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 61,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 62,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 63,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 64,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 65,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 66,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 67,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 68,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 69,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 50,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 51,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 52,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 53,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 54,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 55,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 56,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 57,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 58,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 59,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 40,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 41,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 42,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 43,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 44,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 45,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 46,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 47,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 48,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 49,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 30,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 31,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 32,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 33,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 34,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 35,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 36,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 37,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 38,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 39,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 20,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 21,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 22,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 23,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 24,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 25,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 26,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 27,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 28,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 29,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 10,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 11,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 12,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 13,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 14,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 15,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 16,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 17,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 18,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 19,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 0,
+      "Value": 0
+    },
+    {
+      "Op": 25,
+      "Offset": 10,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 1,
+      "Value": 2
+    },
+    {
+      "Op": 25,
+      "Offset": 11,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 2,
+      "Value": 3
+    },
+    {
+      "Op": 25,
+      "Offset": 12,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 3,
+      "Value": 4
+    },
+    {
+      "Op": 25,
+      "Offset": 13,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 4,
+      "Value": 5
+    },
+    {
+      "Op": 25,
+      "Offset": 14,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 5,
+      "Value": 6
+    },
+    {
+      "Op": 25,
+      "Offset": 15,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 6,
+      "Value": 7
+    },
+    {
+      "Op": 25,
+      "Offset": 16,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 7,
+      "Value": 1
+    },
+    {
+      "Op": 25,
+      "Offset": 17,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 8,
+      "Value": 2
+    },
+    {
+      "Op": 25,
+      "Offset": 18,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 9,
+      "Value": 3
+    },
+    {
+      "Op": 25,
+      "Offset": 19,
+      "Value": 3
+    },
+    {
+      "Op": 25,
+      "Offset": 0,
+      "Value": 0
+    },
+    {
+      "Op": 25,
+      "Offset": 1,
+      "Value": 0
+    },
+    {
+      "Op": 25,
+      "Offset": 2,
+      "Value": 0
+    },
+    {
+      "Op": 25,
+      "Offset": 3,
+      "Value": 0
+    },
+    {
+      "Op": 25,
+      "Offset": 4,
+      "Value": 0
+    },
+    {
+      "Op": 25,
+      "Offset": 5,
+      "Value": 0
+    },
+    {
+      "Op": 25,
+      "Offset": 6,
+      "Value": 0
+    },
+    {
+      "Op": 25,
+      "Offset": 7,
+      "Value": 0
+    },
+    {
+      "Op": 25,
+      "Offset": 8,
+      "Value": 0
+    },
+    {
+      "Op": 25,
+      "Offset": 9,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 0,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 1,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 2,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 3,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 4,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 5,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 6,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 7,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 8,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 9,
+      "Value": 0
+    }
+  ],
+  "actual_return": [
+    {
+      "I": 1
+    }
+  ],
+  "args": null,
+  "engine": 1,
+  "entry": "clear_lines",
+  "expected": {
+    "Board": "AAAAAAAAAAAAAAACAwQFBgcBAgMHAQADBAUGBwECAwQFAAcBAgMEBQYHAQIABAUGBwECAwQFBgABAgMEBQYHAQIDAAUGBwECAwQFBgcAAgMEBQYHAQIDBAAGBwECAwQFBgcBAAAEBQYHAQIDBAUGAAECAwQFBgcBAgMABQYHAQIDBAUGBwACAwQFBgcBAgMEAAYHAQIDBAUGBwEAAwQFBgcBAgMEBQAHAQIDBAUGBwECAAQFBgcBAgMEBQYAAQIDBAUGBwECAwA=",
+    "Globals": {
+      "cur_rot": 0,
+      "cur_type": 0,
+      "cur_x": 3,
+      "cur_y": 0,
+      "drop_speed": 8,
+      "lines_cleared": 0,
+      "rng_state": 0,
+      "score": 0
+    }
+  },
+  "expected_events": [
+    {
+      "Op": 24,
+      "Offset": 190,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 191,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 192,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 193,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 194,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 195,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 196,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 197,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 198,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 199,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 180,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 181,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 182,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 183,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 184,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 185,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 186,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 187,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 188,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 189,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 170,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 171,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 172,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 173,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 174,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 175,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 176,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 177,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 178,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 179,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 160,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 161,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 162,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 163,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 164,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 165,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 166,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 167,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 168,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 169,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 150,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 151,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 152,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 153,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 154,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 155,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 156,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 157,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 158,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 159,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 140,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 141,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 142,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 143,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 144,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 145,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 146,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 147,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 148,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 149,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 130,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 131,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 132,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 133,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 134,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 135,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 136,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 137,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 138,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 139,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 120,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 121,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 122,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 123,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 124,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 125,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 126,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 127,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 128,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 129,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 110,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 111,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 112,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 113,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 114,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 115,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 116,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 117,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 118,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 119,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 100,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 101,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 102,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 103,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 104,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 105,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 106,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 107,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 108,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 109,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 90,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 91,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 92,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 93,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 94,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 95,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 96,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 97,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 98,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 99,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 80,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 81,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 82,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 83,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 84,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 85,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 86,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 87,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 88,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 89,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 70,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 71,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 72,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 73,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 74,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 75,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 76,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 77,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 78,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 79,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 60,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 61,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 62,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 63,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 64,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 65,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 66,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 67,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 68,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 69,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 50,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 51,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 52,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 53,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 54,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 55,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 56,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 57,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 58,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 59,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 40,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 41,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 42,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 43,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 44,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 45,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 46,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 47,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 48,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 49,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 30,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 31,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 32,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 33,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 34,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 35,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 36,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 37,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 38,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 39,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 20,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 21,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 22,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 23,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 24,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 25,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 26,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 27,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 28,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 29,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 10,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 11,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 12,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 13,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 14,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 15,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 16,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 17,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 18,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 19,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 0,
+      "Value": 0
+    },
+    {
+      "Op": 25,
+      "Offset": 10,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 1,
+      "Value": 2
+    },
+    {
+      "Op": 25,
+      "Offset": 11,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 2,
+      "Value": 3
+    },
+    {
+      "Op": 25,
+      "Offset": 12,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 3,
+      "Value": 4
+    },
+    {
+      "Op": 25,
+      "Offset": 13,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 4,
+      "Value": 5
+    },
+    {
+      "Op": 25,
+      "Offset": 14,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 5,
+      "Value": 6
+    },
+    {
+      "Op": 25,
+      "Offset": 15,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 6,
+      "Value": 7
+    },
+    {
+      "Op": 25,
+      "Offset": 16,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 7,
+      "Value": 1
+    },
+    {
+      "Op": 25,
+      "Offset": 17,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 8,
+      "Value": 2
+    },
+    {
+      "Op": 25,
+      "Offset": 18,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 9,
+      "Value": 3
+    },
+    {
+      "Op": 25,
+      "Offset": 19,
+      "Value": 3
+    },
+    {
+      "Op": 25,
+      "Offset": 0,
+      "Value": 0
+    },
+    {
+      "Op": 25,
+      "Offset": 1,
+      "Value": 0
+    },
+    {
+      "Op": 25,
+      "Offset": 2,
+      "Value": 0
+    },
+    {
+      "Op": 25,
+      "Offset": 3,
+      "Value": 0
+    },
+    {
+      "Op": 25,
+      "Offset": 4,
+      "Value": 0
+    },
+    {
+      "Op": 25,
+      "Offset": 5,
+      "Value": 0
+    },
+    {
+      "Op": 25,
+      "Offset": 6,
+      "Value": 0
+    },
+    {
+      "Op": 25,
+      "Offset": 7,
+      "Value": 0
+    },
+    {
+      "Op": 25,
+      "Offset": 8,
+      "Value": 0
+    },
+    {
+      "Op": 25,
+      "Offset": 9,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 10,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 11,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 12,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 13,
+      "Value": 4
+    },
+    {
+      "Op": 24,
+      "Offset": 14,
+      "Value": 5
+    },
+    {
+      "Op": 24,
+      "Offset": 15,
+      "Value": 6
+    },
+    {
+      "Op": 24,
+      "Offset": 16,
+      "Value": 7
+    },
+    {
+      "Op": 24,
+      "Offset": 17,
+      "Value": 1
+    },
+    {
+      "Op": 24,
+      "Offset": 18,
+      "Value": 2
+    },
+    {
+      "Op": 24,
+      "Offset": 19,
+      "Value": 3
+    },
+    {
+      "Op": 24,
+      "Offset": 0,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 1,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 2,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 3,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 4,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 5,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 6,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 7,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 8,
+      "Value": 0
+    },
+    {
+      "Op": 24,
+      "Offset": 9,
+      "Value": 0
+    }
+  ],
+  "input": {
+    "Board": "AAIDBAUGBwECAwQFBgcBAgMEBQYHAQADBAUGBwECAwQFAAcBAgMEBQYHAQIABAUGBwECAwQFBgABAgMEBQYHAQIDAAUGBwECAwQFBgcAAgMEBQYHAQIDBAAGBwECAwQFBgcBAAAEBQYHAQIDBAUGAAECAwQFBgcBAgMABQYHAQIDBAUGBwACAwQFBgcBAgMEAAYHAQIDBAUGBwEAAwQFBgcBAgMEBQAHAQIDBAUGBwECAAQFBgcBAgMEBQYAAQIDBAUGBwECAwA=",
+    "Globals": {
+      "cur_rot": 0,
+      "cur_type": 0,
+      "cur_x": 3,
+      "cur_y": 0,
+      "drop_speed": 8,
+      "lines_cleared": 0,
+      "rng_state": 0,
+      "score": 0
+    }
+  }
+}

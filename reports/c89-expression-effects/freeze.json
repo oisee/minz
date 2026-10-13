@@ -1,0 +1,6 @@
+{
+  "source_sha256": "9e3e25ff87b3b251733c63fd3c285d286797f71d0de107f944c45e8d6053641e",
+  "domain": "5 two-unsigned-byte functions: all 65536 orderedpairs each; 4 unaryentries all256; mark called via trace entries",
+  "authority": "ISO C90 6.3.13 logical AND,6.3.14 logical OR,6.3.15 conditional; sequence point after first operand before selected evaluation",
+  "semantics": "unsigned char updates mod256; logical results normalized0/1; no unsequenced read/write or undefined overflow"
+}

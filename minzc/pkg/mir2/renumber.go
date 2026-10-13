@@ -10,6 +10,60 @@ package mir2
 // The combined AllocResult (one flat map[Reg]PhysLoc for all functions) relies
 // on every function's regs being unique.
 func (m *Module) RenumberRegs() {
+	// CFG rewrites may share or overlap edge-argument backing arrays. Detach
+	// every owned argument field before mutating IDs; each function's mapping
+	// must read its original IDs, including when another function shares a slice.
+	clone := func(rs []Reg) []Reg {
+		if rs == nil {
+			return nil
+		}
+		return append([]Reg{}, rs...)
+	}
+	for _, f := range m.Funcs {
+		for _, b := range f.Blocks {
+			for _, in := range b.Insts {
+				in.Args = clone(in.Args)
+				in.ExtraRets = clone(in.ExtraRets)
+				if in.Asm != nil {
+					a := *in.Asm
+					a.Ins = clone(a.Ins)
+					a.Outs = clone(a.Outs)
+					in.Asm = &a
+				}
+			}
+			switch t := b.Term.(type) {
+			case *TermJmp:
+				n := *t
+				n.Args = clone(t.Args)
+				b.Term = &n
+			case *TermBrIf:
+				n := *t
+				n.ThenArgs = clone(t.ThenArgs)
+				n.ElseArgs = clone(t.ElseArgs)
+				b.Term = &n
+			case *TermBrIf2:
+				n := *t
+				n.EqArgs = clone(t.EqArgs)
+				n.LtArgs = clone(t.LtArgs)
+				n.GtArgs = clone(t.GtArgs)
+				b.Term = &n
+			case *TermDJNZ:
+				n := *t
+				n.BodyArgs = clone(t.BodyArgs)
+				n.ExitArgs = clone(t.ExitArgs)
+				b.Term = &n
+			case *TermCondRet:
+				n := *t
+				n.Vals = clone(t.Vals)
+				n.ThenArgs = clone(t.ThenArgs)
+				b.Term = &n
+			case *TermRet:
+				n := *t
+				n.Vals = clone(t.Vals)
+				b.Term = &n
+			}
+		}
+	}
 	next := Reg(1)
 	for _, f := range m.Funcs {
 		remap := make(map[Reg]Reg)
@@ -55,6 +109,16 @@ func (m *Module) RenumberRegs() {
 						}
 					}
 				}
+				if inst.Asm != nil {
+					for _, r := range append(append([]Reg{}, inst.Asm.Ins...), inst.Asm.Outs...) {
+						if r != NoReg {
+							if _, ok := remap[r]; !ok {
+								remap[r] = next
+								next++
+							}
+						}
+					}
+				}
 				for _, er := range inst.ExtraRets {
 					if er != NoReg {
 						if _, ok := remap[er]; !ok {
@@ -76,6 +140,30 @@ func (m *Module) RenumberRegs() {
 			}
 		}
 
+		// Allocate metadata-only IDs after executable registers, preserving native allocation.
+		for _, b := range f.Blocks {
+			for _, i := range b.Insts {
+				var regs []Reg
+				for _, d := range i.SequentialAddressDefs {
+					if d != nil {
+						regs = append(regs, d.Dst, d.Src[0], d.Src[1])
+					}
+				}
+				for _, o := range i.SequentialByteOrigins {
+					if o != nil {
+						regs = append(regs, o.Src[0])
+					}
+				}
+				for _, r := range regs {
+					if r != NoReg {
+						if _, ok := remap[r]; !ok {
+							remap[r] = next
+							next++
+						}
+					}
+				}
+			}
+		}
 		if len(remap) == 0 {
 			continue
 		}
@@ -108,8 +196,26 @@ func (m *Module) RenumberRegs() {
 				for i := range inst.Src {
 					inst.Src[i] = mr(inst.Src[i])
 				}
+				// Metadata registers need a consistent mapping even when their
+				// executable definitions were eliminated after fusion.
+				for _, d := range inst.SequentialAddressDefs {
+					if d != nil {
+						d.Dst = mr(d.Dst)
+						d.Src[0] = mr(d.Src[0])
+						d.Src[1] = mr(d.Src[1])
+					}
+				}
+				for _, o := range inst.SequentialByteOrigins {
+					if o != nil {
+						o.Src[0] = mr(o.Src[0])
+					}
+				}
 				mrs(inst.Args)
 				mrs(inst.ExtraRets)
+				if inst.Asm != nil {
+					mrs(inst.Asm.Ins)
+					mrs(inst.Asm.Outs)
+				}
 			}
 			if b.Term != nil {
 				remapTerm(b.Term, mr, mrs)
@@ -143,6 +249,8 @@ func remapTerm(t Term, mr func(Reg) Reg, mrs func([]Reg)) {
 		t.Cond = mr(t.Cond)
 		mrs(t.Vals)
 		mrs(t.ThenArgs)
+	case *TermErrorRet:
+		t.Code = mr(t.Code)
 	case *TermRet:
 		mrs(t.Vals)
 	case *TermUnreachable:

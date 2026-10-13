@@ -1,0 +1,12 @@
+{
+  "minzc": {
+    "path": "/mnt/safe/minz/grace/2026-10-12/pascal-cpm-main/executables/minzc",
+    "sha256": "f266f8f8f084a4354f5315869d0a89de5dd91b409d3bfbc96570de4967260542",
+    "commit": "f0fe0c27"
+  },
+  "pipeline.test": {
+    "path": "/mnt/safe/minz/grace/2026-10-12/pascal-cpm-main/executables/pipeline.test",
+    "sha256": "7042de9e6d2fe0deb2918d289e1b6d298f37deba5d1a48bb2fcddb41a7c8f96c",
+    "commit": "f0fe0c27"
+  }
+}

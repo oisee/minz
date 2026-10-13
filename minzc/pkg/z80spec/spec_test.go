@@ -5,12 +5,10 @@ import (
 	"go/parser"
 	"go/token"
 	"path/filepath"
-	"reflect"
 	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/minz/minzc/pkg/lir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/vir"
 	"github.com/minz/minzc/pkg/z80spec"
@@ -24,7 +22,6 @@ func TestNamespaceRoundTrips(t *testing.T) {
 		from  func(int) (z80spec.Location, bool)
 		to    func(string) (int, bool)
 	}{
-		{"LIR", lirNames(), z80spec.FromLIR, z80spec.ToLIR},
 		{"VIR", virNames(), z80spec.FromVIR, z80spec.ToVIR},
 	} {
 		for i, name := range ns.names {
@@ -59,7 +56,7 @@ func TestNamespaceRoundTrips(t *testing.T) {
 			to   func(string) (int, bool)
 			from func(int) (z80spec.Location, bool)
 		}{
-			{z80spec.ToLIR, z80spec.FromLIR}, {z80spec.ToVIR, z80spec.FromVIR}, {z80spec.ToGPU, z80spec.FromGPU},
+			{z80spec.ToVIR, z80spec.FromVIR}, {z80spec.ToGPU, z80spec.FromGPU},
 		} {
 			if i, ok := ns.to(loc.Name); ok {
 				back, valid := ns.from(i)
@@ -81,9 +78,6 @@ func TestNamespaceRoundTrips(t *testing.T) {
 	if _, ok := mir2loc.From(mir2.PhysLoc{Kind: mir2.LocMem, Name: "mem", Offset: 1}); ok {
 		t.Error("accepted dynamic offset")
 	}
-	if _, ok := z80spec.ToLIR("stk0"); ok {
-		t.Error("LIR has no stack slot")
-	}
 	if _, ok := z80spec.ToVIR("gpu_mem"); ok {
 		t.Error("GPU spill has no VIR equivalent")
 	}
@@ -95,31 +89,12 @@ func TestNamespaceRoundTrips(t *testing.T) {
 		}
 	}
 }
-func lirNames() []string {
-	var names []string
-	for _, loc := range lir.Z80.Locs {
-		names = append(names, loc.Name)
-	}
-	return names
-}
 func virNames() []string {
 	var names []string
 	for _, loc := range vir.Z80.Locs {
 		names = append(names, loc.Name)
 	}
 	return names
-}
-
-func TestSharedIndices(t *testing.T) {
-	if len(lir.Z80.Locs) != 37 || len(vir.Z80.Locs) != 41 {
-		t.Fatal("namespace size changed")
-	}
-	for i := 0; i <= 32; i++ {
-		a, b := lir.Z80.Locs[i], vir.Z80.Locs[i]
-		if a.Name != b.Name || a.Width != b.Width {
-			t.Errorf("index %d: LIR %+v vs VIR %+v", i, a, b)
-		}
-	}
 }
 
 func TestOverlapProperties(t *testing.T) {
@@ -287,9 +262,6 @@ func TestVIRPairAliases(t *testing.T) {
 		}
 		actual[pair.Name] = [2]string{hi.Name, lo.Name}
 	}
-	// Known VIR gap: pairAliases omits both index registers. A future fix must
-	// remove these entries, so newly fixed or newly missing relations fail.
-	known := map[string][2]string{"IX": {"IXH", "IXL"}, "IY": {"IYH", "IYL"}}
 	missing := map[string][2]string{}
 	for _, loc := range vir.Z80.Locs {
 		hi, lo, ok := z80spec.Halves(loc.Name)
@@ -300,17 +272,15 @@ func TestVIRPairAliases(t *testing.T) {
 			missing[loc.Name] = [2]string{hi, lo}
 		}
 	}
-	if !reflect.DeepEqual(missing, known) {
-		t.Errorf("VIR missing aliases: %v, known %v", missing, known)
+	if len(missing) != 0 {
+		t.Errorf("VIR missing canonical pair aliases: %v", missing)
 	}
 }
 
 func TestMIR2KnownAliasGaps(t *testing.T) {
-	// Directed gaps: PBQP has no IX/IY containment edges; shadow bytes omit
-	// their DWord container even though DWord -> shadow edges are present.
+	// Remaining directed gaps: shadow bytes omit their DWord container
+	// even though DWord -> shadow edges are present. IX/IY containment is fixed.
 	known := map[string][]string{
-		"IX": {"IXH", "IXL"}, "IXH": {"IX"}, "IXL": {"IX"},
-		"IY": {"IYH", "IYL"}, "IYH": {"IY"}, "IYL": {"IY"},
 		"B'": {"BC32"}, "C'": {"BC32"}, "D'": {"DE32"}, "E'": {"DE32"}, "H'": {"HL32"}, "L'": {"HL32"},
 	}
 	visited := map[string]bool{}
@@ -363,42 +333,12 @@ func TestMIR2KnownAliasGaps(t *testing.T) {
 	}
 }
 
-func TestLIRKnownEmptyAliasGaps(t *testing.T) {
-	// Known LIR gap: every Loc.Alias is empty. Explicitly list each missing
-	// non-self relation; fixes require updating this list instead of passing silently.
-	known := map[string][]string{
-		"B": {"BC"}, "C": {"BC"}, "BC": {"B", "C"},
-		"D": {"DE"}, "E": {"DE"}, "DE": {"D", "E"},
-		"H": {"HL"}, "L": {"HL"}, "HL": {"H", "L"},
-		"IX": {"IXH", "IXL"}, "IXH": {"IX"}, "IXL": {"IX"},
-		"IY": {"IYH", "IYL"}, "IYH": {"IY"}, "IYL": {"IY"},
-	}
-	for i, a := range lir.Z80.Locs {
-		if a.Alias != 0 {
-			t.Errorf("known empty LIR Alias changed: %s = %x", a.Name, a.Alias)
-		}
-		for j, b := range lir.Z80.Locs {
-			want := i != j && z80spec.Overlaps(a.Name, b.Name)
-			isKnown := false
-			for _, name := range known[a.Name] {
-				if name == b.Name {
-					isKnown = true
-				}
-			}
-			if (a.Alias.Has(j) != want) != isKnown {
-				t.Errorf("LIR %s -> %s: alias %v spec %v known %v", a.Name, b.Name, a.Alias.Has(j), want, isKnown)
-			}
-		}
-	}
-}
-
 func TestDocumentedWidthsAndKinds(t *testing.T) {
 	for _, ns := range []struct {
 		name      string
 		flagWidth int
 		hlIndex   bool
 	}{
-		{"LIR", lir.Z80.Locs[13].Width, lir.Z80.Locs[9].Kind == lir.LocIndex},
 		{"VIR", vir.Z80.Locs[13].Width, vir.Z80.Locs[9].Kind == vir.LocIndex},
 	} {
 		if ns.flagWidth != 1 || z80spec.Width("F") != 8 {
@@ -410,8 +350,8 @@ func TestDocumentedWidthsAndKinds(t *testing.T) {
 		}
 	}
 	for i := 14; i <= 17; i++ {
-		loc, _ := z80spec.FromLIR(i)
-		if lir.Z80.Locs[i].Kind != lir.LocIndex || vir.Z80.Locs[i].Kind != vir.LocIXHalf || loc.Kind != z80spec.IndexHalf {
+		loc, _ := z80spec.FromVIR(i)
+		if vir.Z80.Locs[i].Kind != vir.LocIXHalf || loc.Kind != z80spec.IndexHalf {
 			t.Errorf("index-half kind disagreement changed: %s", loc.Name)
 		}
 	}

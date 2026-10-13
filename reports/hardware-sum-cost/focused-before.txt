@@ -1,0 +1,6 @@
+=== RUN   TestProfileGuidedSumVMZ80
+    profile_guided_sum_test.go:180: cost model disproved: original n=0 got=69/203 expected=69/201
+--- FAIL: TestProfileGuidedSumVMZ80 (0.38s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.387s
+FAIL

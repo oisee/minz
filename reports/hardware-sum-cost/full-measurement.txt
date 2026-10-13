@@ -1,0 +1,4 @@
+=== RUN   TestMeasureLoopCostModel
+--- PASS: TestMeasureLoopCostModel (22.42s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	22.427s

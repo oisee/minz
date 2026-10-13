@@ -1,0 +1,45 @@
+{
+  "source_sha256": "444865f7ad85c4c7eeaa51e53827f58303436339ba8bbda82683ee4fc5364eaf",
+  "sqlite_sha256": "bc177e0dc25ad2f36f3694b115439356efbfb3d956b46b2701afe82bde277fc8",
+  "inputs": [
+    "CREATE TABLE t(a,b)",
+    "INSERT INTO t VALUES('hi',42)",
+    "SELECT * FROM t",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+  ],
+  "commands": [
+    1,
+    8,
+    8,
+    3,
+    4,
+    5,
+    5,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    7,
+    2
+  ],
+  "texts": [
+    "hi",
+    "42"
+  ],
+  "output_sha256": "9ec22e4f2871bb2c4567a20d7334708682cd76f21719cab6dda49915b1a81b49"
+}

@@ -1,0 +1,67 @@
+
+;; ── Load combining ──────────────────────────────────────────────────────
+;;
+;; Pattern: or(shl(load8(add(base, 1)), 8), load8(base))
+;; Result:  load16_le(base)
+;;
+;; This is the FatFS ld_word pattern: two 8-bit loads fused into one 16-bit LE load.
+
+(rule 20 (or (shl (load8 (add ?base (const 1))) (const 8))
+             (load8 ?base))
+         (load16_le ?base))
+
+;; Commuted variant: load8(base) is first arg to or
+(rule 20 (or (load8 ?base)
+             (shl (load8 (add ?base (const 1))) (const 8)))
+         (load16_le ?base))
+
+;; ── Multiply strength reduction ──────────────────────────────────────────
+;;
+;; Z80 has no MUL instruction. Reduce to shifts+adds.
+;; These fire during the combining pass BEFORE isel.
+
+(rule 15 (mul ?x (const 2))   (add ?x ?x))
+(rule 15 (mul (const 2) ?x)   (add ?x ?x))
+(rule 15 (mul ?x (const 4))   (shl ?x (const 2)))
+(rule 15 (mul (const 4) ?x)   (shl ?x (const 2)))
+(rule 15 (mul ?x (const 8))   (shl ?x (const 3)))
+(rule 15 (mul (const 8) ?x)   (shl ?x (const 3)))
+
+;; Non-power-of-2: decompose to shifts+adds
+;; x*3 = x + x*2;  x*5 = x + x*4;  x*6 = x*2 + x*4
+;; x*10 = x*2 + x*8;  x*12 = x*4 + x*8
+(rule 14 (mul ?x (const 3))   (add ?x (add ?x ?x)))
+(rule 14 (mul (const 3) ?x)   (add ?x (add ?x ?x)))
+(rule 14 (mul ?x (const 5))   (add ?x (shl ?x (const 2))))
+(rule 14 (mul (const 5) ?x)   (add ?x (shl ?x (const 2))))
+(rule 14 (mul ?x (const 6))   (add (add ?x ?x) (shl ?x (const 2))))
+(rule 14 (mul (const 6) ?x)   (add (add ?x ?x) (shl ?x (const 2))))
+(rule 14 (mul ?x (const 10))  (add (add ?x ?x) (shl ?x (const 3))))
+(rule 14 (mul (const 10) ?x)  (add (add ?x ?x) (shl ?x (const 3))))
+(rule 14 (mul ?x (const 12))  (add (shl ?x (const 2)) (shl ?x (const 3))))
+(rule 14 (mul (const 12) ?x)  (add (shl ?x (const 2)) (shl ?x (const 3))))
+
+(rule 10 (mul ?x (const 1))   ?x)
+(rule 10 (mul (const 1) ?x)   ?x)
+(rule 10 (mul ?x (const 0))   (const 0))
+(rule 10 (mul (const 0) ?x)   (const 0))
+
+;; ── Identity / strength reduction ───────────────────────────────────────
+
+(rule (add ?x (const 0))  ?x)
+(rule (add (const 0) ?x)  ?x)
+(rule (or  ?x (const 0))  ?x)
+(rule (or  (const 0) ?x)  ?x)
+(rule (shl ?x (const 0))  ?x)
+(rule (and ?x (const 0))  (const 0))
+(rule (and (const 0) ?x)  (const 0))
+(rule (sub ?x (const 0))  ?x)
+(rule (xor ?x (const 0))  ?x)
+(rule (xor (const 0) ?x)  ?x)
+
+;; ── Immediate ALU folding ────────────────────────────────────────────────
+;;
+;; NOT done here — handled in isel.go (foldConstIntoALU) to avoid
+;; breaking load16_le patterns. ISLE rewrites bottom-up, so
+;; add(base,const(1)) inside load8() would get rewritten to addi()
+;; before load16_le sees the full tree.

@@ -1,0 +1,10248 @@
+{
+  "source_sha256": "290fb4faeeeba36ff27ea3eb72157f9ee63f6161229b85d2e46ed00423e4ed1e",
+  "byte_domain": "all 0..255; u8 results modulo256 (frontend Byte maps TyU8)",
+  "termination": "Fact <=1 and SumTo=0 base; decrements positive unsigned N; max255 recursion-depth input",
+  "main": "all14 asserts lower to module expectations; executable main has no runtime computational statements; proof separately executes unchanged main and all source asserts",
+  "cases": [
+    {
+      "entry": "Inc2",
+      "input": 0,
+      "expected": 2
+    },
+    {
+      "entry": "Dec2",
+      "input": 0,
+      "expected": 254
+    },
+    {
+      "entry": "Negate",
+      "input": 0,
+      "expected": 0
+    },
+    {
+      "entry": "Identity",
+      "input": 0,
+      "expected": 0
+    },
+    {
+      "entry": "Zero",
+      "input": 0,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 0,
+      "expected": 0
+    },
+    {
+      "entry": "Fact",
+      "input": 0,
+      "expected": 1
+    },
+    {
+      "entry": "SumTo",
+      "input": 0,
+      "expected": 0
+    },
+    {
+      "entry": "Inc2",
+      "input": 1,
+      "expected": 3
+    },
+    {
+      "entry": "Dec2",
+      "input": 1,
+      "expected": 255
+    },
+    {
+      "entry": "Negate",
+      "input": 1,
+      "expected": 255
+    },
+    {
+      "entry": "Identity",
+      "input": 1,
+      "expected": 1
+    },
+    {
+      "entry": "Zero",
+      "input": 1,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 1,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 1,
+      "expected": 1
+    },
+    {
+      "entry": "SumTo",
+      "input": 1,
+      "expected": 1
+    },
+    {
+      "entry": "Inc2",
+      "input": 2,
+      "expected": 4
+    },
+    {
+      "entry": "Dec2",
+      "input": 2,
+      "expected": 0
+    },
+    {
+      "entry": "Negate",
+      "input": 2,
+      "expected": 254
+    },
+    {
+      "entry": "Identity",
+      "input": 2,
+      "expected": 2
+    },
+    {
+      "entry": "Zero",
+      "input": 2,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 2,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 2,
+      "expected": 2
+    },
+    {
+      "entry": "SumTo",
+      "input": 2,
+      "expected": 3
+    },
+    {
+      "entry": "Inc2",
+      "input": 3,
+      "expected": 5
+    },
+    {
+      "entry": "Dec2",
+      "input": 3,
+      "expected": 1
+    },
+    {
+      "entry": "Negate",
+      "input": 3,
+      "expected": 253
+    },
+    {
+      "entry": "Identity",
+      "input": 3,
+      "expected": 3
+    },
+    {
+      "entry": "Zero",
+      "input": 3,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 3,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 3,
+      "expected": 6
+    },
+    {
+      "entry": "SumTo",
+      "input": 3,
+      "expected": 6
+    },
+    {
+      "entry": "Inc2",
+      "input": 4,
+      "expected": 6
+    },
+    {
+      "entry": "Dec2",
+      "input": 4,
+      "expected": 2
+    },
+    {
+      "entry": "Negate",
+      "input": 4,
+      "expected": 252
+    },
+    {
+      "entry": "Identity",
+      "input": 4,
+      "expected": 4
+    },
+    {
+      "entry": "Zero",
+      "input": 4,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 4,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 4,
+      "expected": 24
+    },
+    {
+      "entry": "SumTo",
+      "input": 4,
+      "expected": 10
+    },
+    {
+      "entry": "Inc2",
+      "input": 5,
+      "expected": 7
+    },
+    {
+      "entry": "Dec2",
+      "input": 5,
+      "expected": 3
+    },
+    {
+      "entry": "Negate",
+      "input": 5,
+      "expected": 251
+    },
+    {
+      "entry": "Identity",
+      "input": 5,
+      "expected": 5
+    },
+    {
+      "entry": "Zero",
+      "input": 5,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 5,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 5,
+      "expected": 120
+    },
+    {
+      "entry": "SumTo",
+      "input": 5,
+      "expected": 15
+    },
+    {
+      "entry": "Inc2",
+      "input": 6,
+      "expected": 8
+    },
+    {
+      "entry": "Dec2",
+      "input": 6,
+      "expected": 4
+    },
+    {
+      "entry": "Negate",
+      "input": 6,
+      "expected": 250
+    },
+    {
+      "entry": "Identity",
+      "input": 6,
+      "expected": 6
+    },
+    {
+      "entry": "Zero",
+      "input": 6,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 6,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 6,
+      "expected": 208
+    },
+    {
+      "entry": "SumTo",
+      "input": 6,
+      "expected": 21
+    },
+    {
+      "entry": "Inc2",
+      "input": 7,
+      "expected": 9
+    },
+    {
+      "entry": "Dec2",
+      "input": 7,
+      "expected": 5
+    },
+    {
+      "entry": "Negate",
+      "input": 7,
+      "expected": 249
+    },
+    {
+      "entry": "Identity",
+      "input": 7,
+      "expected": 7
+    },
+    {
+      "entry": "Zero",
+      "input": 7,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 7,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 7,
+      "expected": 176
+    },
+    {
+      "entry": "SumTo",
+      "input": 7,
+      "expected": 28
+    },
+    {
+      "entry": "Inc2",
+      "input": 8,
+      "expected": 10
+    },
+    {
+      "entry": "Dec2",
+      "input": 8,
+      "expected": 6
+    },
+    {
+      "entry": "Negate",
+      "input": 8,
+      "expected": 248
+    },
+    {
+      "entry": "Identity",
+      "input": 8,
+      "expected": 8
+    },
+    {
+      "entry": "Zero",
+      "input": 8,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 8,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 8,
+      "expected": 128
+    },
+    {
+      "entry": "SumTo",
+      "input": 8,
+      "expected": 36
+    },
+    {
+      "entry": "Inc2",
+      "input": 9,
+      "expected": 11
+    },
+    {
+      "entry": "Dec2",
+      "input": 9,
+      "expected": 7
+    },
+    {
+      "entry": "Negate",
+      "input": 9,
+      "expected": 247
+    },
+    {
+      "entry": "Identity",
+      "input": 9,
+      "expected": 9
+    },
+    {
+      "entry": "Zero",
+      "input": 9,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 9,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 9,
+      "expected": 128
+    },
+    {
+      "entry": "SumTo",
+      "input": 9,
+      "expected": 45
+    },
+    {
+      "entry": "Inc2",
+      "input": 10,
+      "expected": 12
+    },
+    {
+      "entry": "Dec2",
+      "input": 10,
+      "expected": 8
+    },
+    {
+      "entry": "Negate",
+      "input": 10,
+      "expected": 246
+    },
+    {
+      "entry": "Identity",
+      "input": 10,
+      "expected": 10
+    },
+    {
+      "entry": "Zero",
+      "input": 10,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 10,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 10,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 10,
+      "expected": 55
+    },
+    {
+      "entry": "Inc2",
+      "input": 11,
+      "expected": 13
+    },
+    {
+      "entry": "Dec2",
+      "input": 11,
+      "expected": 9
+    },
+    {
+      "entry": "Negate",
+      "input": 11,
+      "expected": 245
+    },
+    {
+      "entry": "Identity",
+      "input": 11,
+      "expected": 11
+    },
+    {
+      "entry": "Zero",
+      "input": 11,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 11,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 11,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 11,
+      "expected": 66
+    },
+    {
+      "entry": "Inc2",
+      "input": 12,
+      "expected": 14
+    },
+    {
+      "entry": "Dec2",
+      "input": 12,
+      "expected": 10
+    },
+    {
+      "entry": "Negate",
+      "input": 12,
+      "expected": 244
+    },
+    {
+      "entry": "Identity",
+      "input": 12,
+      "expected": 12
+    },
+    {
+      "entry": "Zero",
+      "input": 12,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 12,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 12,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 12,
+      "expected": 78
+    },
+    {
+      "entry": "Inc2",
+      "input": 13,
+      "expected": 15
+    },
+    {
+      "entry": "Dec2",
+      "input": 13,
+      "expected": 11
+    },
+    {
+      "entry": "Negate",
+      "input": 13,
+      "expected": 243
+    },
+    {
+      "entry": "Identity",
+      "input": 13,
+      "expected": 13
+    },
+    {
+      "entry": "Zero",
+      "input": 13,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 13,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 13,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 13,
+      "expected": 91
+    },
+    {
+      "entry": "Inc2",
+      "input": 14,
+      "expected": 16
+    },
+    {
+      "entry": "Dec2",
+      "input": 14,
+      "expected": 12
+    },
+    {
+      "entry": "Negate",
+      "input": 14,
+      "expected": 242
+    },
+    {
+      "entry": "Identity",
+      "input": 14,
+      "expected": 14
+    },
+    {
+      "entry": "Zero",
+      "input": 14,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 14,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 14,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 14,
+      "expected": 105
+    },
+    {
+      "entry": "Inc2",
+      "input": 15,
+      "expected": 17
+    },
+    {
+      "entry": "Dec2",
+      "input": 15,
+      "expected": 13
+    },
+    {
+      "entry": "Negate",
+      "input": 15,
+      "expected": 241
+    },
+    {
+      "entry": "Identity",
+      "input": 15,
+      "expected": 15
+    },
+    {
+      "entry": "Zero",
+      "input": 15,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 15,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 15,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 15,
+      "expected": 120
+    },
+    {
+      "entry": "Inc2",
+      "input": 16,
+      "expected": 18
+    },
+    {
+      "entry": "Dec2",
+      "input": 16,
+      "expected": 14
+    },
+    {
+      "entry": "Negate",
+      "input": 16,
+      "expected": 240
+    },
+    {
+      "entry": "Identity",
+      "input": 16,
+      "expected": 16
+    },
+    {
+      "entry": "Zero",
+      "input": 16,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 16,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 16,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 16,
+      "expected": 136
+    },
+    {
+      "entry": "Inc2",
+      "input": 17,
+      "expected": 19
+    },
+    {
+      "entry": "Dec2",
+      "input": 17,
+      "expected": 15
+    },
+    {
+      "entry": "Negate",
+      "input": 17,
+      "expected": 239
+    },
+    {
+      "entry": "Identity",
+      "input": 17,
+      "expected": 17
+    },
+    {
+      "entry": "Zero",
+      "input": 17,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 17,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 17,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 17,
+      "expected": 153
+    },
+    {
+      "entry": "Inc2",
+      "input": 18,
+      "expected": 20
+    },
+    {
+      "entry": "Dec2",
+      "input": 18,
+      "expected": 16
+    },
+    {
+      "entry": "Negate",
+      "input": 18,
+      "expected": 238
+    },
+    {
+      "entry": "Identity",
+      "input": 18,
+      "expected": 18
+    },
+    {
+      "entry": "Zero",
+      "input": 18,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 18,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 18,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 18,
+      "expected": 171
+    },
+    {
+      "entry": "Inc2",
+      "input": 19,
+      "expected": 21
+    },
+    {
+      "entry": "Dec2",
+      "input": 19,
+      "expected": 17
+    },
+    {
+      "entry": "Negate",
+      "input": 19,
+      "expected": 237
+    },
+    {
+      "entry": "Identity",
+      "input": 19,
+      "expected": 19
+    },
+    {
+      "entry": "Zero",
+      "input": 19,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 19,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 19,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 19,
+      "expected": 190
+    },
+    {
+      "entry": "Inc2",
+      "input": 20,
+      "expected": 22
+    },
+    {
+      "entry": "Dec2",
+      "input": 20,
+      "expected": 18
+    },
+    {
+      "entry": "Negate",
+      "input": 20,
+      "expected": 236
+    },
+    {
+      "entry": "Identity",
+      "input": 20,
+      "expected": 20
+    },
+    {
+      "entry": "Zero",
+      "input": 20,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 20,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 20,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 20,
+      "expected": 210
+    },
+    {
+      "entry": "Inc2",
+      "input": 21,
+      "expected": 23
+    },
+    {
+      "entry": "Dec2",
+      "input": 21,
+      "expected": 19
+    },
+    {
+      "entry": "Negate",
+      "input": 21,
+      "expected": 235
+    },
+    {
+      "entry": "Identity",
+      "input": 21,
+      "expected": 21
+    },
+    {
+      "entry": "Zero",
+      "input": 21,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 21,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 21,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 21,
+      "expected": 231
+    },
+    {
+      "entry": "Inc2",
+      "input": 22,
+      "expected": 24
+    },
+    {
+      "entry": "Dec2",
+      "input": 22,
+      "expected": 20
+    },
+    {
+      "entry": "Negate",
+      "input": 22,
+      "expected": 234
+    },
+    {
+      "entry": "Identity",
+      "input": 22,
+      "expected": 22
+    },
+    {
+      "entry": "Zero",
+      "input": 22,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 22,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 22,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 22,
+      "expected": 253
+    },
+    {
+      "entry": "Inc2",
+      "input": 23,
+      "expected": 25
+    },
+    {
+      "entry": "Dec2",
+      "input": 23,
+      "expected": 21
+    },
+    {
+      "entry": "Negate",
+      "input": 23,
+      "expected": 233
+    },
+    {
+      "entry": "Identity",
+      "input": 23,
+      "expected": 23
+    },
+    {
+      "entry": "Zero",
+      "input": 23,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 23,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 23,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 23,
+      "expected": 20
+    },
+    {
+      "entry": "Inc2",
+      "input": 24,
+      "expected": 26
+    },
+    {
+      "entry": "Dec2",
+      "input": 24,
+      "expected": 22
+    },
+    {
+      "entry": "Negate",
+      "input": 24,
+      "expected": 232
+    },
+    {
+      "entry": "Identity",
+      "input": 24,
+      "expected": 24
+    },
+    {
+      "entry": "Zero",
+      "input": 24,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 24,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 24,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 24,
+      "expected": 44
+    },
+    {
+      "entry": "Inc2",
+      "input": 25,
+      "expected": 27
+    },
+    {
+      "entry": "Dec2",
+      "input": 25,
+      "expected": 23
+    },
+    {
+      "entry": "Negate",
+      "input": 25,
+      "expected": 231
+    },
+    {
+      "entry": "Identity",
+      "input": 25,
+      "expected": 25
+    },
+    {
+      "entry": "Zero",
+      "input": 25,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 25,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 25,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 25,
+      "expected": 69
+    },
+    {
+      "entry": "Inc2",
+      "input": 26,
+      "expected": 28
+    },
+    {
+      "entry": "Dec2",
+      "input": 26,
+      "expected": 24
+    },
+    {
+      "entry": "Negate",
+      "input": 26,
+      "expected": 230
+    },
+    {
+      "entry": "Identity",
+      "input": 26,
+      "expected": 26
+    },
+    {
+      "entry": "Zero",
+      "input": 26,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 26,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 26,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 26,
+      "expected": 95
+    },
+    {
+      "entry": "Inc2",
+      "input": 27,
+      "expected": 29
+    },
+    {
+      "entry": "Dec2",
+      "input": 27,
+      "expected": 25
+    },
+    {
+      "entry": "Negate",
+      "input": 27,
+      "expected": 229
+    },
+    {
+      "entry": "Identity",
+      "input": 27,
+      "expected": 27
+    },
+    {
+      "entry": "Zero",
+      "input": 27,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 27,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 27,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 27,
+      "expected": 122
+    },
+    {
+      "entry": "Inc2",
+      "input": 28,
+      "expected": 30
+    },
+    {
+      "entry": "Dec2",
+      "input": 28,
+      "expected": 26
+    },
+    {
+      "entry": "Negate",
+      "input": 28,
+      "expected": 228
+    },
+    {
+      "entry": "Identity",
+      "input": 28,
+      "expected": 28
+    },
+    {
+      "entry": "Zero",
+      "input": 28,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 28,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 28,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 28,
+      "expected": 150
+    },
+    {
+      "entry": "Inc2",
+      "input": 29,
+      "expected": 31
+    },
+    {
+      "entry": "Dec2",
+      "input": 29,
+      "expected": 27
+    },
+    {
+      "entry": "Negate",
+      "input": 29,
+      "expected": 227
+    },
+    {
+      "entry": "Identity",
+      "input": 29,
+      "expected": 29
+    },
+    {
+      "entry": "Zero",
+      "input": 29,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 29,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 29,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 29,
+      "expected": 179
+    },
+    {
+      "entry": "Inc2",
+      "input": 30,
+      "expected": 32
+    },
+    {
+      "entry": "Dec2",
+      "input": 30,
+      "expected": 28
+    },
+    {
+      "entry": "Negate",
+      "input": 30,
+      "expected": 226
+    },
+    {
+      "entry": "Identity",
+      "input": 30,
+      "expected": 30
+    },
+    {
+      "entry": "Zero",
+      "input": 30,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 30,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 30,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 30,
+      "expected": 209
+    },
+    {
+      "entry": "Inc2",
+      "input": 31,
+      "expected": 33
+    },
+    {
+      "entry": "Dec2",
+      "input": 31,
+      "expected": 29
+    },
+    {
+      "entry": "Negate",
+      "input": 31,
+      "expected": 225
+    },
+    {
+      "entry": "Identity",
+      "input": 31,
+      "expected": 31
+    },
+    {
+      "entry": "Zero",
+      "input": 31,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 31,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 31,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 31,
+      "expected": 240
+    },
+    {
+      "entry": "Inc2",
+      "input": 32,
+      "expected": 34
+    },
+    {
+      "entry": "Dec2",
+      "input": 32,
+      "expected": 30
+    },
+    {
+      "entry": "Negate",
+      "input": 32,
+      "expected": 224
+    },
+    {
+      "entry": "Identity",
+      "input": 32,
+      "expected": 32
+    },
+    {
+      "entry": "Zero",
+      "input": 32,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 32,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 32,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 32,
+      "expected": 16
+    },
+    {
+      "entry": "Inc2",
+      "input": 33,
+      "expected": 35
+    },
+    {
+      "entry": "Dec2",
+      "input": 33,
+      "expected": 31
+    },
+    {
+      "entry": "Negate",
+      "input": 33,
+      "expected": 223
+    },
+    {
+      "entry": "Identity",
+      "input": 33,
+      "expected": 33
+    },
+    {
+      "entry": "Zero",
+      "input": 33,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 33,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 33,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 33,
+      "expected": 49
+    },
+    {
+      "entry": "Inc2",
+      "input": 34,
+      "expected": 36
+    },
+    {
+      "entry": "Dec2",
+      "input": 34,
+      "expected": 32
+    },
+    {
+      "entry": "Negate",
+      "input": 34,
+      "expected": 222
+    },
+    {
+      "entry": "Identity",
+      "input": 34,
+      "expected": 34
+    },
+    {
+      "entry": "Zero",
+      "input": 34,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 34,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 34,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 34,
+      "expected": 83
+    },
+    {
+      "entry": "Inc2",
+      "input": 35,
+      "expected": 37
+    },
+    {
+      "entry": "Dec2",
+      "input": 35,
+      "expected": 33
+    },
+    {
+      "entry": "Negate",
+      "input": 35,
+      "expected": 221
+    },
+    {
+      "entry": "Identity",
+      "input": 35,
+      "expected": 35
+    },
+    {
+      "entry": "Zero",
+      "input": 35,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 35,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 35,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 35,
+      "expected": 118
+    },
+    {
+      "entry": "Inc2",
+      "input": 36,
+      "expected": 38
+    },
+    {
+      "entry": "Dec2",
+      "input": 36,
+      "expected": 34
+    },
+    {
+      "entry": "Negate",
+      "input": 36,
+      "expected": 220
+    },
+    {
+      "entry": "Identity",
+      "input": 36,
+      "expected": 36
+    },
+    {
+      "entry": "Zero",
+      "input": 36,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 36,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 36,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 36,
+      "expected": 154
+    },
+    {
+      "entry": "Inc2",
+      "input": 37,
+      "expected": 39
+    },
+    {
+      "entry": "Dec2",
+      "input": 37,
+      "expected": 35
+    },
+    {
+      "entry": "Negate",
+      "input": 37,
+      "expected": 219
+    },
+    {
+      "entry": "Identity",
+      "input": 37,
+      "expected": 37
+    },
+    {
+      "entry": "Zero",
+      "input": 37,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 37,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 37,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 37,
+      "expected": 191
+    },
+    {
+      "entry": "Inc2",
+      "input": 38,
+      "expected": 40
+    },
+    {
+      "entry": "Dec2",
+      "input": 38,
+      "expected": 36
+    },
+    {
+      "entry": "Negate",
+      "input": 38,
+      "expected": 218
+    },
+    {
+      "entry": "Identity",
+      "input": 38,
+      "expected": 38
+    },
+    {
+      "entry": "Zero",
+      "input": 38,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 38,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 38,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 38,
+      "expected": 229
+    },
+    {
+      "entry": "Inc2",
+      "input": 39,
+      "expected": 41
+    },
+    {
+      "entry": "Dec2",
+      "input": 39,
+      "expected": 37
+    },
+    {
+      "entry": "Negate",
+      "input": 39,
+      "expected": 217
+    },
+    {
+      "entry": "Identity",
+      "input": 39,
+      "expected": 39
+    },
+    {
+      "entry": "Zero",
+      "input": 39,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 39,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 39,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 39,
+      "expected": 12
+    },
+    {
+      "entry": "Inc2",
+      "input": 40,
+      "expected": 42
+    },
+    {
+      "entry": "Dec2",
+      "input": 40,
+      "expected": 38
+    },
+    {
+      "entry": "Negate",
+      "input": 40,
+      "expected": 216
+    },
+    {
+      "entry": "Identity",
+      "input": 40,
+      "expected": 40
+    },
+    {
+      "entry": "Zero",
+      "input": 40,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 40,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 40,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 40,
+      "expected": 52
+    },
+    {
+      "entry": "Inc2",
+      "input": 41,
+      "expected": 43
+    },
+    {
+      "entry": "Dec2",
+      "input": 41,
+      "expected": 39
+    },
+    {
+      "entry": "Negate",
+      "input": 41,
+      "expected": 215
+    },
+    {
+      "entry": "Identity",
+      "input": 41,
+      "expected": 41
+    },
+    {
+      "entry": "Zero",
+      "input": 41,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 41,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 41,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 41,
+      "expected": 93
+    },
+    {
+      "entry": "Inc2",
+      "input": 42,
+      "expected": 44
+    },
+    {
+      "entry": "Dec2",
+      "input": 42,
+      "expected": 40
+    },
+    {
+      "entry": "Negate",
+      "input": 42,
+      "expected": 214
+    },
+    {
+      "entry": "Identity",
+      "input": 42,
+      "expected": 42
+    },
+    {
+      "entry": "Zero",
+      "input": 42,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 42,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 42,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 42,
+      "expected": 135
+    },
+    {
+      "entry": "Inc2",
+      "input": 43,
+      "expected": 45
+    },
+    {
+      "entry": "Dec2",
+      "input": 43,
+      "expected": 41
+    },
+    {
+      "entry": "Negate",
+      "input": 43,
+      "expected": 213
+    },
+    {
+      "entry": "Identity",
+      "input": 43,
+      "expected": 43
+    },
+    {
+      "entry": "Zero",
+      "input": 43,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 43,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 43,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 43,
+      "expected": 178
+    },
+    {
+      "entry": "Inc2",
+      "input": 44,
+      "expected": 46
+    },
+    {
+      "entry": "Dec2",
+      "input": 44,
+      "expected": 42
+    },
+    {
+      "entry": "Negate",
+      "input": 44,
+      "expected": 212
+    },
+    {
+      "entry": "Identity",
+      "input": 44,
+      "expected": 44
+    },
+    {
+      "entry": "Zero",
+      "input": 44,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 44,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 44,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 44,
+      "expected": 222
+    },
+    {
+      "entry": "Inc2",
+      "input": 45,
+      "expected": 47
+    },
+    {
+      "entry": "Dec2",
+      "input": 45,
+      "expected": 43
+    },
+    {
+      "entry": "Negate",
+      "input": 45,
+      "expected": 211
+    },
+    {
+      "entry": "Identity",
+      "input": 45,
+      "expected": 45
+    },
+    {
+      "entry": "Zero",
+      "input": 45,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 45,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 45,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 45,
+      "expected": 11
+    },
+    {
+      "entry": "Inc2",
+      "input": 46,
+      "expected": 48
+    },
+    {
+      "entry": "Dec2",
+      "input": 46,
+      "expected": 44
+    },
+    {
+      "entry": "Negate",
+      "input": 46,
+      "expected": 210
+    },
+    {
+      "entry": "Identity",
+      "input": 46,
+      "expected": 46
+    },
+    {
+      "entry": "Zero",
+      "input": 46,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 46,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 46,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 46,
+      "expected": 57
+    },
+    {
+      "entry": "Inc2",
+      "input": 47,
+      "expected": 49
+    },
+    {
+      "entry": "Dec2",
+      "input": 47,
+      "expected": 45
+    },
+    {
+      "entry": "Negate",
+      "input": 47,
+      "expected": 209
+    },
+    {
+      "entry": "Identity",
+      "input": 47,
+      "expected": 47
+    },
+    {
+      "entry": "Zero",
+      "input": 47,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 47,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 47,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 47,
+      "expected": 104
+    },
+    {
+      "entry": "Inc2",
+      "input": 48,
+      "expected": 50
+    },
+    {
+      "entry": "Dec2",
+      "input": 48,
+      "expected": 46
+    },
+    {
+      "entry": "Negate",
+      "input": 48,
+      "expected": 208
+    },
+    {
+      "entry": "Identity",
+      "input": 48,
+      "expected": 48
+    },
+    {
+      "entry": "Zero",
+      "input": 48,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 48,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 48,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 48,
+      "expected": 152
+    },
+    {
+      "entry": "Inc2",
+      "input": 49,
+      "expected": 51
+    },
+    {
+      "entry": "Dec2",
+      "input": 49,
+      "expected": 47
+    },
+    {
+      "entry": "Negate",
+      "input": 49,
+      "expected": 207
+    },
+    {
+      "entry": "Identity",
+      "input": 49,
+      "expected": 49
+    },
+    {
+      "entry": "Zero",
+      "input": 49,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 49,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 49,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 49,
+      "expected": 201
+    },
+    {
+      "entry": "Inc2",
+      "input": 50,
+      "expected": 52
+    },
+    {
+      "entry": "Dec2",
+      "input": 50,
+      "expected": 48
+    },
+    {
+      "entry": "Negate",
+      "input": 50,
+      "expected": 206
+    },
+    {
+      "entry": "Identity",
+      "input": 50,
+      "expected": 50
+    },
+    {
+      "entry": "Zero",
+      "input": 50,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 50,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 50,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 50,
+      "expected": 251
+    },
+    {
+      "entry": "Inc2",
+      "input": 51,
+      "expected": 53
+    },
+    {
+      "entry": "Dec2",
+      "input": 51,
+      "expected": 49
+    },
+    {
+      "entry": "Negate",
+      "input": 51,
+      "expected": 205
+    },
+    {
+      "entry": "Identity",
+      "input": 51,
+      "expected": 51
+    },
+    {
+      "entry": "Zero",
+      "input": 51,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 51,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 51,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 51,
+      "expected": 46
+    },
+    {
+      "entry": "Inc2",
+      "input": 52,
+      "expected": 54
+    },
+    {
+      "entry": "Dec2",
+      "input": 52,
+      "expected": 50
+    },
+    {
+      "entry": "Negate",
+      "input": 52,
+      "expected": 204
+    },
+    {
+      "entry": "Identity",
+      "input": 52,
+      "expected": 52
+    },
+    {
+      "entry": "Zero",
+      "input": 52,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 52,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 52,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 52,
+      "expected": 98
+    },
+    {
+      "entry": "Inc2",
+      "input": 53,
+      "expected": 55
+    },
+    {
+      "entry": "Dec2",
+      "input": 53,
+      "expected": 51
+    },
+    {
+      "entry": "Negate",
+      "input": 53,
+      "expected": 203
+    },
+    {
+      "entry": "Identity",
+      "input": 53,
+      "expected": 53
+    },
+    {
+      "entry": "Zero",
+      "input": 53,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 53,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 53,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 53,
+      "expected": 151
+    },
+    {
+      "entry": "Inc2",
+      "input": 54,
+      "expected": 56
+    },
+    {
+      "entry": "Dec2",
+      "input": 54,
+      "expected": 52
+    },
+    {
+      "entry": "Negate",
+      "input": 54,
+      "expected": 202
+    },
+    {
+      "entry": "Identity",
+      "input": 54,
+      "expected": 54
+    },
+    {
+      "entry": "Zero",
+      "input": 54,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 54,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 54,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 54,
+      "expected": 205
+    },
+    {
+      "entry": "Inc2",
+      "input": 55,
+      "expected": 57
+    },
+    {
+      "entry": "Dec2",
+      "input": 55,
+      "expected": 53
+    },
+    {
+      "entry": "Negate",
+      "input": 55,
+      "expected": 201
+    },
+    {
+      "entry": "Identity",
+      "input": 55,
+      "expected": 55
+    },
+    {
+      "entry": "Zero",
+      "input": 55,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 55,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 55,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 55,
+      "expected": 4
+    },
+    {
+      "entry": "Inc2",
+      "input": 56,
+      "expected": 58
+    },
+    {
+      "entry": "Dec2",
+      "input": 56,
+      "expected": 54
+    },
+    {
+      "entry": "Negate",
+      "input": 56,
+      "expected": 200
+    },
+    {
+      "entry": "Identity",
+      "input": 56,
+      "expected": 56
+    },
+    {
+      "entry": "Zero",
+      "input": 56,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 56,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 56,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 56,
+      "expected": 60
+    },
+    {
+      "entry": "Inc2",
+      "input": 57,
+      "expected": 59
+    },
+    {
+      "entry": "Dec2",
+      "input": 57,
+      "expected": 55
+    },
+    {
+      "entry": "Negate",
+      "input": 57,
+      "expected": 199
+    },
+    {
+      "entry": "Identity",
+      "input": 57,
+      "expected": 57
+    },
+    {
+      "entry": "Zero",
+      "input": 57,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 57,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 57,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 57,
+      "expected": 117
+    },
+    {
+      "entry": "Inc2",
+      "input": 58,
+      "expected": 60
+    },
+    {
+      "entry": "Dec2",
+      "input": 58,
+      "expected": 56
+    },
+    {
+      "entry": "Negate",
+      "input": 58,
+      "expected": 198
+    },
+    {
+      "entry": "Identity",
+      "input": 58,
+      "expected": 58
+    },
+    {
+      "entry": "Zero",
+      "input": 58,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 58,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 58,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 58,
+      "expected": 175
+    },
+    {
+      "entry": "Inc2",
+      "input": 59,
+      "expected": 61
+    },
+    {
+      "entry": "Dec2",
+      "input": 59,
+      "expected": 57
+    },
+    {
+      "entry": "Negate",
+      "input": 59,
+      "expected": 197
+    },
+    {
+      "entry": "Identity",
+      "input": 59,
+      "expected": 59
+    },
+    {
+      "entry": "Zero",
+      "input": 59,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 59,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 59,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 59,
+      "expected": 234
+    },
+    {
+      "entry": "Inc2",
+      "input": 60,
+      "expected": 62
+    },
+    {
+      "entry": "Dec2",
+      "input": 60,
+      "expected": 58
+    },
+    {
+      "entry": "Negate",
+      "input": 60,
+      "expected": 196
+    },
+    {
+      "entry": "Identity",
+      "input": 60,
+      "expected": 60
+    },
+    {
+      "entry": "Zero",
+      "input": 60,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 60,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 60,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 60,
+      "expected": 38
+    },
+    {
+      "entry": "Inc2",
+      "input": 61,
+      "expected": 63
+    },
+    {
+      "entry": "Dec2",
+      "input": 61,
+      "expected": 59
+    },
+    {
+      "entry": "Negate",
+      "input": 61,
+      "expected": 195
+    },
+    {
+      "entry": "Identity",
+      "input": 61,
+      "expected": 61
+    },
+    {
+      "entry": "Zero",
+      "input": 61,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 61,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 61,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 61,
+      "expected": 99
+    },
+    {
+      "entry": "Inc2",
+      "input": 62,
+      "expected": 64
+    },
+    {
+      "entry": "Dec2",
+      "input": 62,
+      "expected": 60
+    },
+    {
+      "entry": "Negate",
+      "input": 62,
+      "expected": 194
+    },
+    {
+      "entry": "Identity",
+      "input": 62,
+      "expected": 62
+    },
+    {
+      "entry": "Zero",
+      "input": 62,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 62,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 62,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 62,
+      "expected": 161
+    },
+    {
+      "entry": "Inc2",
+      "input": 63,
+      "expected": 65
+    },
+    {
+      "entry": "Dec2",
+      "input": 63,
+      "expected": 61
+    },
+    {
+      "entry": "Negate",
+      "input": 63,
+      "expected": 193
+    },
+    {
+      "entry": "Identity",
+      "input": 63,
+      "expected": 63
+    },
+    {
+      "entry": "Zero",
+      "input": 63,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 63,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 63,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 63,
+      "expected": 224
+    },
+    {
+      "entry": "Inc2",
+      "input": 64,
+      "expected": 66
+    },
+    {
+      "entry": "Dec2",
+      "input": 64,
+      "expected": 62
+    },
+    {
+      "entry": "Negate",
+      "input": 64,
+      "expected": 192
+    },
+    {
+      "entry": "Identity",
+      "input": 64,
+      "expected": 64
+    },
+    {
+      "entry": "Zero",
+      "input": 64,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 64,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 64,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 64,
+      "expected": 32
+    },
+    {
+      "entry": "Inc2",
+      "input": 65,
+      "expected": 67
+    },
+    {
+      "entry": "Dec2",
+      "input": 65,
+      "expected": 63
+    },
+    {
+      "entry": "Negate",
+      "input": 65,
+      "expected": 191
+    },
+    {
+      "entry": "Identity",
+      "input": 65,
+      "expected": 65
+    },
+    {
+      "entry": "Zero",
+      "input": 65,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 65,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 65,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 65,
+      "expected": 97
+    },
+    {
+      "entry": "Inc2",
+      "input": 66,
+      "expected": 68
+    },
+    {
+      "entry": "Dec2",
+      "input": 66,
+      "expected": 64
+    },
+    {
+      "entry": "Negate",
+      "input": 66,
+      "expected": 190
+    },
+    {
+      "entry": "Identity",
+      "input": 66,
+      "expected": 66
+    },
+    {
+      "entry": "Zero",
+      "input": 66,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 66,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 66,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 66,
+      "expected": 163
+    },
+    {
+      "entry": "Inc2",
+      "input": 67,
+      "expected": 69
+    },
+    {
+      "entry": "Dec2",
+      "input": 67,
+      "expected": 65
+    },
+    {
+      "entry": "Negate",
+      "input": 67,
+      "expected": 189
+    },
+    {
+      "entry": "Identity",
+      "input": 67,
+      "expected": 67
+    },
+    {
+      "entry": "Zero",
+      "input": 67,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 67,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 67,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 67,
+      "expected": 230
+    },
+    {
+      "entry": "Inc2",
+      "input": 68,
+      "expected": 70
+    },
+    {
+      "entry": "Dec2",
+      "input": 68,
+      "expected": 66
+    },
+    {
+      "entry": "Negate",
+      "input": 68,
+      "expected": 188
+    },
+    {
+      "entry": "Identity",
+      "input": 68,
+      "expected": 68
+    },
+    {
+      "entry": "Zero",
+      "input": 68,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 68,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 68,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 68,
+      "expected": 42
+    },
+    {
+      "entry": "Inc2",
+      "input": 69,
+      "expected": 71
+    },
+    {
+      "entry": "Dec2",
+      "input": 69,
+      "expected": 67
+    },
+    {
+      "entry": "Negate",
+      "input": 69,
+      "expected": 187
+    },
+    {
+      "entry": "Identity",
+      "input": 69,
+      "expected": 69
+    },
+    {
+      "entry": "Zero",
+      "input": 69,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 69,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 69,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 69,
+      "expected": 111
+    },
+    {
+      "entry": "Inc2",
+      "input": 70,
+      "expected": 72
+    },
+    {
+      "entry": "Dec2",
+      "input": 70,
+      "expected": 68
+    },
+    {
+      "entry": "Negate",
+      "input": 70,
+      "expected": 186
+    },
+    {
+      "entry": "Identity",
+      "input": 70,
+      "expected": 70
+    },
+    {
+      "entry": "Zero",
+      "input": 70,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 70,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 70,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 70,
+      "expected": 181
+    },
+    {
+      "entry": "Inc2",
+      "input": 71,
+      "expected": 73
+    },
+    {
+      "entry": "Dec2",
+      "input": 71,
+      "expected": 69
+    },
+    {
+      "entry": "Negate",
+      "input": 71,
+      "expected": 185
+    },
+    {
+      "entry": "Identity",
+      "input": 71,
+      "expected": 71
+    },
+    {
+      "entry": "Zero",
+      "input": 71,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 71,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 71,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 71,
+      "expected": 252
+    },
+    {
+      "entry": "Inc2",
+      "input": 72,
+      "expected": 74
+    },
+    {
+      "entry": "Dec2",
+      "input": 72,
+      "expected": 70
+    },
+    {
+      "entry": "Negate",
+      "input": 72,
+      "expected": 184
+    },
+    {
+      "entry": "Identity",
+      "input": 72,
+      "expected": 72
+    },
+    {
+      "entry": "Zero",
+      "input": 72,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 72,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 72,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 72,
+      "expected": 68
+    },
+    {
+      "entry": "Inc2",
+      "input": 73,
+      "expected": 75
+    },
+    {
+      "entry": "Dec2",
+      "input": 73,
+      "expected": 71
+    },
+    {
+      "entry": "Negate",
+      "input": 73,
+      "expected": 183
+    },
+    {
+      "entry": "Identity",
+      "input": 73,
+      "expected": 73
+    },
+    {
+      "entry": "Zero",
+      "input": 73,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 73,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 73,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 73,
+      "expected": 141
+    },
+    {
+      "entry": "Inc2",
+      "input": 74,
+      "expected": 76
+    },
+    {
+      "entry": "Dec2",
+      "input": 74,
+      "expected": 72
+    },
+    {
+      "entry": "Negate",
+      "input": 74,
+      "expected": 182
+    },
+    {
+      "entry": "Identity",
+      "input": 74,
+      "expected": 74
+    },
+    {
+      "entry": "Zero",
+      "input": 74,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 74,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 74,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 74,
+      "expected": 215
+    },
+    {
+      "entry": "Inc2",
+      "input": 75,
+      "expected": 77
+    },
+    {
+      "entry": "Dec2",
+      "input": 75,
+      "expected": 73
+    },
+    {
+      "entry": "Negate",
+      "input": 75,
+      "expected": 181
+    },
+    {
+      "entry": "Identity",
+      "input": 75,
+      "expected": 75
+    },
+    {
+      "entry": "Zero",
+      "input": 75,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 75,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 75,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 75,
+      "expected": 34
+    },
+    {
+      "entry": "Inc2",
+      "input": 76,
+      "expected": 78
+    },
+    {
+      "entry": "Dec2",
+      "input": 76,
+      "expected": 74
+    },
+    {
+      "entry": "Negate",
+      "input": 76,
+      "expected": 180
+    },
+    {
+      "entry": "Identity",
+      "input": 76,
+      "expected": 76
+    },
+    {
+      "entry": "Zero",
+      "input": 76,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 76,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 76,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 76,
+      "expected": 110
+    },
+    {
+      "entry": "Inc2",
+      "input": 77,
+      "expected": 79
+    },
+    {
+      "entry": "Dec2",
+      "input": 77,
+      "expected": 75
+    },
+    {
+      "entry": "Negate",
+      "input": 77,
+      "expected": 179
+    },
+    {
+      "entry": "Identity",
+      "input": 77,
+      "expected": 77
+    },
+    {
+      "entry": "Zero",
+      "input": 77,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 77,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 77,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 77,
+      "expected": 187
+    },
+    {
+      "entry": "Inc2",
+      "input": 78,
+      "expected": 80
+    },
+    {
+      "entry": "Dec2",
+      "input": 78,
+      "expected": 76
+    },
+    {
+      "entry": "Negate",
+      "input": 78,
+      "expected": 178
+    },
+    {
+      "entry": "Identity",
+      "input": 78,
+      "expected": 78
+    },
+    {
+      "entry": "Zero",
+      "input": 78,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 78,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 78,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 78,
+      "expected": 9
+    },
+    {
+      "entry": "Inc2",
+      "input": 79,
+      "expected": 81
+    },
+    {
+      "entry": "Dec2",
+      "input": 79,
+      "expected": 77
+    },
+    {
+      "entry": "Negate",
+      "input": 79,
+      "expected": 177
+    },
+    {
+      "entry": "Identity",
+      "input": 79,
+      "expected": 79
+    },
+    {
+      "entry": "Zero",
+      "input": 79,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 79,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 79,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 79,
+      "expected": 88
+    },
+    {
+      "entry": "Inc2",
+      "input": 80,
+      "expected": 82
+    },
+    {
+      "entry": "Dec2",
+      "input": 80,
+      "expected": 78
+    },
+    {
+      "entry": "Negate",
+      "input": 80,
+      "expected": 176
+    },
+    {
+      "entry": "Identity",
+      "input": 80,
+      "expected": 80
+    },
+    {
+      "entry": "Zero",
+      "input": 80,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 80,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 80,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 80,
+      "expected": 168
+    },
+    {
+      "entry": "Inc2",
+      "input": 81,
+      "expected": 83
+    },
+    {
+      "entry": "Dec2",
+      "input": 81,
+      "expected": 79
+    },
+    {
+      "entry": "Negate",
+      "input": 81,
+      "expected": 175
+    },
+    {
+      "entry": "Identity",
+      "input": 81,
+      "expected": 81
+    },
+    {
+      "entry": "Zero",
+      "input": 81,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 81,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 81,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 81,
+      "expected": 249
+    },
+    {
+      "entry": "Inc2",
+      "input": 82,
+      "expected": 84
+    },
+    {
+      "entry": "Dec2",
+      "input": 82,
+      "expected": 80
+    },
+    {
+      "entry": "Negate",
+      "input": 82,
+      "expected": 174
+    },
+    {
+      "entry": "Identity",
+      "input": 82,
+      "expected": 82
+    },
+    {
+      "entry": "Zero",
+      "input": 82,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 82,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 82,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 82,
+      "expected": 75
+    },
+    {
+      "entry": "Inc2",
+      "input": 83,
+      "expected": 85
+    },
+    {
+      "entry": "Dec2",
+      "input": 83,
+      "expected": 81
+    },
+    {
+      "entry": "Negate",
+      "input": 83,
+      "expected": 173
+    },
+    {
+      "entry": "Identity",
+      "input": 83,
+      "expected": 83
+    },
+    {
+      "entry": "Zero",
+      "input": 83,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 83,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 83,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 83,
+      "expected": 158
+    },
+    {
+      "entry": "Inc2",
+      "input": 84,
+      "expected": 86
+    },
+    {
+      "entry": "Dec2",
+      "input": 84,
+      "expected": 82
+    },
+    {
+      "entry": "Negate",
+      "input": 84,
+      "expected": 172
+    },
+    {
+      "entry": "Identity",
+      "input": 84,
+      "expected": 84
+    },
+    {
+      "entry": "Zero",
+      "input": 84,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 84,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 84,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 84,
+      "expected": 242
+    },
+    {
+      "entry": "Inc2",
+      "input": 85,
+      "expected": 87
+    },
+    {
+      "entry": "Dec2",
+      "input": 85,
+      "expected": 83
+    },
+    {
+      "entry": "Negate",
+      "input": 85,
+      "expected": 171
+    },
+    {
+      "entry": "Identity",
+      "input": 85,
+      "expected": 85
+    },
+    {
+      "entry": "Zero",
+      "input": 85,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 85,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 85,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 85,
+      "expected": 71
+    },
+    {
+      "entry": "Inc2",
+      "input": 86,
+      "expected": 88
+    },
+    {
+      "entry": "Dec2",
+      "input": 86,
+      "expected": 84
+    },
+    {
+      "entry": "Negate",
+      "input": 86,
+      "expected": 170
+    },
+    {
+      "entry": "Identity",
+      "input": 86,
+      "expected": 86
+    },
+    {
+      "entry": "Zero",
+      "input": 86,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 86,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 86,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 86,
+      "expected": 157
+    },
+    {
+      "entry": "Inc2",
+      "input": 87,
+      "expected": 89
+    },
+    {
+      "entry": "Dec2",
+      "input": 87,
+      "expected": 85
+    },
+    {
+      "entry": "Negate",
+      "input": 87,
+      "expected": 169
+    },
+    {
+      "entry": "Identity",
+      "input": 87,
+      "expected": 87
+    },
+    {
+      "entry": "Zero",
+      "input": 87,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 87,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 87,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 87,
+      "expected": 244
+    },
+    {
+      "entry": "Inc2",
+      "input": 88,
+      "expected": 90
+    },
+    {
+      "entry": "Dec2",
+      "input": 88,
+      "expected": 86
+    },
+    {
+      "entry": "Negate",
+      "input": 88,
+      "expected": 168
+    },
+    {
+      "entry": "Identity",
+      "input": 88,
+      "expected": 88
+    },
+    {
+      "entry": "Zero",
+      "input": 88,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 88,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 88,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 88,
+      "expected": 76
+    },
+    {
+      "entry": "Inc2",
+      "input": 89,
+      "expected": 91
+    },
+    {
+      "entry": "Dec2",
+      "input": 89,
+      "expected": 87
+    },
+    {
+      "entry": "Negate",
+      "input": 89,
+      "expected": 167
+    },
+    {
+      "entry": "Identity",
+      "input": 89,
+      "expected": 89
+    },
+    {
+      "entry": "Zero",
+      "input": 89,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 89,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 89,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 89,
+      "expected": 165
+    },
+    {
+      "entry": "Inc2",
+      "input": 90,
+      "expected": 92
+    },
+    {
+      "entry": "Dec2",
+      "input": 90,
+      "expected": 88
+    },
+    {
+      "entry": "Negate",
+      "input": 90,
+      "expected": 166
+    },
+    {
+      "entry": "Identity",
+      "input": 90,
+      "expected": 90
+    },
+    {
+      "entry": "Zero",
+      "input": 90,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 90,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 90,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 90,
+      "expected": 255
+    },
+    {
+      "entry": "Inc2",
+      "input": 91,
+      "expected": 93
+    },
+    {
+      "entry": "Dec2",
+      "input": 91,
+      "expected": 89
+    },
+    {
+      "entry": "Negate",
+      "input": 91,
+      "expected": 165
+    },
+    {
+      "entry": "Identity",
+      "input": 91,
+      "expected": 91
+    },
+    {
+      "entry": "Zero",
+      "input": 91,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 91,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 91,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 91,
+      "expected": 90
+    },
+    {
+      "entry": "Inc2",
+      "input": 92,
+      "expected": 94
+    },
+    {
+      "entry": "Dec2",
+      "input": 92,
+      "expected": 90
+    },
+    {
+      "entry": "Negate",
+      "input": 92,
+      "expected": 164
+    },
+    {
+      "entry": "Identity",
+      "input": 92,
+      "expected": 92
+    },
+    {
+      "entry": "Zero",
+      "input": 92,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 92,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 92,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 92,
+      "expected": 182
+    },
+    {
+      "entry": "Inc2",
+      "input": 93,
+      "expected": 95
+    },
+    {
+      "entry": "Dec2",
+      "input": 93,
+      "expected": 91
+    },
+    {
+      "entry": "Negate",
+      "input": 93,
+      "expected": 163
+    },
+    {
+      "entry": "Identity",
+      "input": 93,
+      "expected": 93
+    },
+    {
+      "entry": "Zero",
+      "input": 93,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 93,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 93,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 93,
+      "expected": 19
+    },
+    {
+      "entry": "Inc2",
+      "input": 94,
+      "expected": 96
+    },
+    {
+      "entry": "Dec2",
+      "input": 94,
+      "expected": 92
+    },
+    {
+      "entry": "Negate",
+      "input": 94,
+      "expected": 162
+    },
+    {
+      "entry": "Identity",
+      "input": 94,
+      "expected": 94
+    },
+    {
+      "entry": "Zero",
+      "input": 94,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 94,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 94,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 94,
+      "expected": 113
+    },
+    {
+      "entry": "Inc2",
+      "input": 95,
+      "expected": 97
+    },
+    {
+      "entry": "Dec2",
+      "input": 95,
+      "expected": 93
+    },
+    {
+      "entry": "Negate",
+      "input": 95,
+      "expected": 161
+    },
+    {
+      "entry": "Identity",
+      "input": 95,
+      "expected": 95
+    },
+    {
+      "entry": "Zero",
+      "input": 95,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 95,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 95,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 95,
+      "expected": 208
+    },
+    {
+      "entry": "Inc2",
+      "input": 96,
+      "expected": 98
+    },
+    {
+      "entry": "Dec2",
+      "input": 96,
+      "expected": 94
+    },
+    {
+      "entry": "Negate",
+      "input": 96,
+      "expected": 160
+    },
+    {
+      "entry": "Identity",
+      "input": 96,
+      "expected": 96
+    },
+    {
+      "entry": "Zero",
+      "input": 96,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 96,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 96,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 96,
+      "expected": 48
+    },
+    {
+      "entry": "Inc2",
+      "input": 97,
+      "expected": 99
+    },
+    {
+      "entry": "Dec2",
+      "input": 97,
+      "expected": 95
+    },
+    {
+      "entry": "Negate",
+      "input": 97,
+      "expected": 159
+    },
+    {
+      "entry": "Identity",
+      "input": 97,
+      "expected": 97
+    },
+    {
+      "entry": "Zero",
+      "input": 97,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 97,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 97,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 97,
+      "expected": 145
+    },
+    {
+      "entry": "Inc2",
+      "input": 98,
+      "expected": 100
+    },
+    {
+      "entry": "Dec2",
+      "input": 98,
+      "expected": 96
+    },
+    {
+      "entry": "Negate",
+      "input": 98,
+      "expected": 158
+    },
+    {
+      "entry": "Identity",
+      "input": 98,
+      "expected": 98
+    },
+    {
+      "entry": "Zero",
+      "input": 98,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 98,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 98,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 98,
+      "expected": 243
+    },
+    {
+      "entry": "Inc2",
+      "input": 99,
+      "expected": 101
+    },
+    {
+      "entry": "Dec2",
+      "input": 99,
+      "expected": 97
+    },
+    {
+      "entry": "Negate",
+      "input": 99,
+      "expected": 157
+    },
+    {
+      "entry": "Identity",
+      "input": 99,
+      "expected": 99
+    },
+    {
+      "entry": "Zero",
+      "input": 99,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 99,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 99,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 99,
+      "expected": 86
+    },
+    {
+      "entry": "Inc2",
+      "input": 100,
+      "expected": 102
+    },
+    {
+      "entry": "Dec2",
+      "input": 100,
+      "expected": 98
+    },
+    {
+      "entry": "Negate",
+      "input": 100,
+      "expected": 156
+    },
+    {
+      "entry": "Identity",
+      "input": 100,
+      "expected": 100
+    },
+    {
+      "entry": "Zero",
+      "input": 100,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 100,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 100,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 100,
+      "expected": 186
+    },
+    {
+      "entry": "Inc2",
+      "input": 101,
+      "expected": 103
+    },
+    {
+      "entry": "Dec2",
+      "input": 101,
+      "expected": 99
+    },
+    {
+      "entry": "Negate",
+      "input": 101,
+      "expected": 155
+    },
+    {
+      "entry": "Identity",
+      "input": 101,
+      "expected": 101
+    },
+    {
+      "entry": "Zero",
+      "input": 101,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 101,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 101,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 101,
+      "expected": 31
+    },
+    {
+      "entry": "Inc2",
+      "input": 102,
+      "expected": 104
+    },
+    {
+      "entry": "Dec2",
+      "input": 102,
+      "expected": 100
+    },
+    {
+      "entry": "Negate",
+      "input": 102,
+      "expected": 154
+    },
+    {
+      "entry": "Identity",
+      "input": 102,
+      "expected": 102
+    },
+    {
+      "entry": "Zero",
+      "input": 102,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 102,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 102,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 102,
+      "expected": 133
+    },
+    {
+      "entry": "Inc2",
+      "input": 103,
+      "expected": 105
+    },
+    {
+      "entry": "Dec2",
+      "input": 103,
+      "expected": 101
+    },
+    {
+      "entry": "Negate",
+      "input": 103,
+      "expected": 153
+    },
+    {
+      "entry": "Identity",
+      "input": 103,
+      "expected": 103
+    },
+    {
+      "entry": "Zero",
+      "input": 103,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 103,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 103,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 103,
+      "expected": 236
+    },
+    {
+      "entry": "Inc2",
+      "input": 104,
+      "expected": 106
+    },
+    {
+      "entry": "Dec2",
+      "input": 104,
+      "expected": 102
+    },
+    {
+      "entry": "Negate",
+      "input": 104,
+      "expected": 152
+    },
+    {
+      "entry": "Identity",
+      "input": 104,
+      "expected": 104
+    },
+    {
+      "entry": "Zero",
+      "input": 104,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 104,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 104,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 104,
+      "expected": 84
+    },
+    {
+      "entry": "Inc2",
+      "input": 105,
+      "expected": 107
+    },
+    {
+      "entry": "Dec2",
+      "input": 105,
+      "expected": 103
+    },
+    {
+      "entry": "Negate",
+      "input": 105,
+      "expected": 151
+    },
+    {
+      "entry": "Identity",
+      "input": 105,
+      "expected": 105
+    },
+    {
+      "entry": "Zero",
+      "input": 105,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 105,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 105,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 105,
+      "expected": 189
+    },
+    {
+      "entry": "Inc2",
+      "input": 106,
+      "expected": 108
+    },
+    {
+      "entry": "Dec2",
+      "input": 106,
+      "expected": 104
+    },
+    {
+      "entry": "Negate",
+      "input": 106,
+      "expected": 150
+    },
+    {
+      "entry": "Identity",
+      "input": 106,
+      "expected": 106
+    },
+    {
+      "entry": "Zero",
+      "input": 106,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 106,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 106,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 106,
+      "expected": 39
+    },
+    {
+      "entry": "Inc2",
+      "input": 107,
+      "expected": 109
+    },
+    {
+      "entry": "Dec2",
+      "input": 107,
+      "expected": 105
+    },
+    {
+      "entry": "Negate",
+      "input": 107,
+      "expected": 149
+    },
+    {
+      "entry": "Identity",
+      "input": 107,
+      "expected": 107
+    },
+    {
+      "entry": "Zero",
+      "input": 107,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 107,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 107,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 107,
+      "expected": 146
+    },
+    {
+      "entry": "Inc2",
+      "input": 108,
+      "expected": 110
+    },
+    {
+      "entry": "Dec2",
+      "input": 108,
+      "expected": 106
+    },
+    {
+      "entry": "Negate",
+      "input": 108,
+      "expected": 148
+    },
+    {
+      "entry": "Identity",
+      "input": 108,
+      "expected": 108
+    },
+    {
+      "entry": "Zero",
+      "input": 108,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 108,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 108,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 108,
+      "expected": 254
+    },
+    {
+      "entry": "Inc2",
+      "input": 109,
+      "expected": 111
+    },
+    {
+      "entry": "Dec2",
+      "input": 109,
+      "expected": 107
+    },
+    {
+      "entry": "Negate",
+      "input": 109,
+      "expected": 147
+    },
+    {
+      "entry": "Identity",
+      "input": 109,
+      "expected": 109
+    },
+    {
+      "entry": "Zero",
+      "input": 109,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 109,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 109,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 109,
+      "expected": 107
+    },
+    {
+      "entry": "Inc2",
+      "input": 110,
+      "expected": 112
+    },
+    {
+      "entry": "Dec2",
+      "input": 110,
+      "expected": 108
+    },
+    {
+      "entry": "Negate",
+      "input": 110,
+      "expected": 146
+    },
+    {
+      "entry": "Identity",
+      "input": 110,
+      "expected": 110
+    },
+    {
+      "entry": "Zero",
+      "input": 110,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 110,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 110,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 110,
+      "expected": 217
+    },
+    {
+      "entry": "Inc2",
+      "input": 111,
+      "expected": 113
+    },
+    {
+      "entry": "Dec2",
+      "input": 111,
+      "expected": 109
+    },
+    {
+      "entry": "Negate",
+      "input": 111,
+      "expected": 145
+    },
+    {
+      "entry": "Identity",
+      "input": 111,
+      "expected": 111
+    },
+    {
+      "entry": "Zero",
+      "input": 111,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 111,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 111,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 111,
+      "expected": 72
+    },
+    {
+      "entry": "Inc2",
+      "input": 112,
+      "expected": 114
+    },
+    {
+      "entry": "Dec2",
+      "input": 112,
+      "expected": 110
+    },
+    {
+      "entry": "Negate",
+      "input": 112,
+      "expected": 144
+    },
+    {
+      "entry": "Identity",
+      "input": 112,
+      "expected": 112
+    },
+    {
+      "entry": "Zero",
+      "input": 112,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 112,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 112,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 112,
+      "expected": 184
+    },
+    {
+      "entry": "Inc2",
+      "input": 113,
+      "expected": 115
+    },
+    {
+      "entry": "Dec2",
+      "input": 113,
+      "expected": 111
+    },
+    {
+      "entry": "Negate",
+      "input": 113,
+      "expected": 143
+    },
+    {
+      "entry": "Identity",
+      "input": 113,
+      "expected": 113
+    },
+    {
+      "entry": "Zero",
+      "input": 113,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 113,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 113,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 113,
+      "expected": 41
+    },
+    {
+      "entry": "Inc2",
+      "input": 114,
+      "expected": 116
+    },
+    {
+      "entry": "Dec2",
+      "input": 114,
+      "expected": 112
+    },
+    {
+      "entry": "Negate",
+      "input": 114,
+      "expected": 142
+    },
+    {
+      "entry": "Identity",
+      "input": 114,
+      "expected": 114
+    },
+    {
+      "entry": "Zero",
+      "input": 114,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 114,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 114,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 114,
+      "expected": 155
+    },
+    {
+      "entry": "Inc2",
+      "input": 115,
+      "expected": 117
+    },
+    {
+      "entry": "Dec2",
+      "input": 115,
+      "expected": 113
+    },
+    {
+      "entry": "Negate",
+      "input": 115,
+      "expected": 141
+    },
+    {
+      "entry": "Identity",
+      "input": 115,
+      "expected": 115
+    },
+    {
+      "entry": "Zero",
+      "input": 115,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 115,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 115,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 115,
+      "expected": 14
+    },
+    {
+      "entry": "Inc2",
+      "input": 116,
+      "expected": 118
+    },
+    {
+      "entry": "Dec2",
+      "input": 116,
+      "expected": 114
+    },
+    {
+      "entry": "Negate",
+      "input": 116,
+      "expected": 140
+    },
+    {
+      "entry": "Identity",
+      "input": 116,
+      "expected": 116
+    },
+    {
+      "entry": "Zero",
+      "input": 116,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 116,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 116,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 116,
+      "expected": 130
+    },
+    {
+      "entry": "Inc2",
+      "input": 117,
+      "expected": 119
+    },
+    {
+      "entry": "Dec2",
+      "input": 117,
+      "expected": 115
+    },
+    {
+      "entry": "Negate",
+      "input": 117,
+      "expected": 139
+    },
+    {
+      "entry": "Identity",
+      "input": 117,
+      "expected": 117
+    },
+    {
+      "entry": "Zero",
+      "input": 117,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 117,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 117,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 117,
+      "expected": 247
+    },
+    {
+      "entry": "Inc2",
+      "input": 118,
+      "expected": 120
+    },
+    {
+      "entry": "Dec2",
+      "input": 118,
+      "expected": 116
+    },
+    {
+      "entry": "Negate",
+      "input": 118,
+      "expected": 138
+    },
+    {
+      "entry": "Identity",
+      "input": 118,
+      "expected": 118
+    },
+    {
+      "entry": "Zero",
+      "input": 118,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 118,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 118,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 118,
+      "expected": 109
+    },
+    {
+      "entry": "Inc2",
+      "input": 119,
+      "expected": 121
+    },
+    {
+      "entry": "Dec2",
+      "input": 119,
+      "expected": 117
+    },
+    {
+      "entry": "Negate",
+      "input": 119,
+      "expected": 137
+    },
+    {
+      "entry": "Identity",
+      "input": 119,
+      "expected": 119
+    },
+    {
+      "entry": "Zero",
+      "input": 119,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 119,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 119,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 119,
+      "expected": 228
+    },
+    {
+      "entry": "Inc2",
+      "input": 120,
+      "expected": 122
+    },
+    {
+      "entry": "Dec2",
+      "input": 120,
+      "expected": 118
+    },
+    {
+      "entry": "Negate",
+      "input": 120,
+      "expected": 136
+    },
+    {
+      "entry": "Identity",
+      "input": 120,
+      "expected": 120
+    },
+    {
+      "entry": "Zero",
+      "input": 120,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 120,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 120,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 120,
+      "expected": 92
+    },
+    {
+      "entry": "Inc2",
+      "input": 121,
+      "expected": 123
+    },
+    {
+      "entry": "Dec2",
+      "input": 121,
+      "expected": 119
+    },
+    {
+      "entry": "Negate",
+      "input": 121,
+      "expected": 135
+    },
+    {
+      "entry": "Identity",
+      "input": 121,
+      "expected": 121
+    },
+    {
+      "entry": "Zero",
+      "input": 121,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 121,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 121,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 121,
+      "expected": 213
+    },
+    {
+      "entry": "Inc2",
+      "input": 122,
+      "expected": 124
+    },
+    {
+      "entry": "Dec2",
+      "input": 122,
+      "expected": 120
+    },
+    {
+      "entry": "Negate",
+      "input": 122,
+      "expected": 134
+    },
+    {
+      "entry": "Identity",
+      "input": 122,
+      "expected": 122
+    },
+    {
+      "entry": "Zero",
+      "input": 122,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 122,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 122,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 122,
+      "expected": 79
+    },
+    {
+      "entry": "Inc2",
+      "input": 123,
+      "expected": 125
+    },
+    {
+      "entry": "Dec2",
+      "input": 123,
+      "expected": 121
+    },
+    {
+      "entry": "Negate",
+      "input": 123,
+      "expected": 133
+    },
+    {
+      "entry": "Identity",
+      "input": 123,
+      "expected": 123
+    },
+    {
+      "entry": "Zero",
+      "input": 123,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 123,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 123,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 123,
+      "expected": 202
+    },
+    {
+      "entry": "Inc2",
+      "input": 124,
+      "expected": 126
+    },
+    {
+      "entry": "Dec2",
+      "input": 124,
+      "expected": 122
+    },
+    {
+      "entry": "Negate",
+      "input": 124,
+      "expected": 132
+    },
+    {
+      "entry": "Identity",
+      "input": 124,
+      "expected": 124
+    },
+    {
+      "entry": "Zero",
+      "input": 124,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 124,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 124,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 124,
+      "expected": 70
+    },
+    {
+      "entry": "Inc2",
+      "input": 125,
+      "expected": 127
+    },
+    {
+      "entry": "Dec2",
+      "input": 125,
+      "expected": 123
+    },
+    {
+      "entry": "Negate",
+      "input": 125,
+      "expected": 131
+    },
+    {
+      "entry": "Identity",
+      "input": 125,
+      "expected": 125
+    },
+    {
+      "entry": "Zero",
+      "input": 125,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 125,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 125,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 125,
+      "expected": 195
+    },
+    {
+      "entry": "Inc2",
+      "input": 126,
+      "expected": 128
+    },
+    {
+      "entry": "Dec2",
+      "input": 126,
+      "expected": 124
+    },
+    {
+      "entry": "Negate",
+      "input": 126,
+      "expected": 130
+    },
+    {
+      "entry": "Identity",
+      "input": 126,
+      "expected": 126
+    },
+    {
+      "entry": "Zero",
+      "input": 126,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 126,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 126,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 126,
+      "expected": 65
+    },
+    {
+      "entry": "Inc2",
+      "input": 127,
+      "expected": 129
+    },
+    {
+      "entry": "Dec2",
+      "input": 127,
+      "expected": 125
+    },
+    {
+      "entry": "Negate",
+      "input": 127,
+      "expected": 129
+    },
+    {
+      "entry": "Identity",
+      "input": 127,
+      "expected": 127
+    },
+    {
+      "entry": "Zero",
+      "input": 127,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 127,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 127,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 127,
+      "expected": 192
+    },
+    {
+      "entry": "Inc2",
+      "input": 128,
+      "expected": 130
+    },
+    {
+      "entry": "Dec2",
+      "input": 128,
+      "expected": 126
+    },
+    {
+      "entry": "Negate",
+      "input": 128,
+      "expected": 128
+    },
+    {
+      "entry": "Identity",
+      "input": 128,
+      "expected": 128
+    },
+    {
+      "entry": "Zero",
+      "input": 128,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 128,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 128,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 128,
+      "expected": 64
+    },
+    {
+      "entry": "Inc2",
+      "input": 129,
+      "expected": 131
+    },
+    {
+      "entry": "Dec2",
+      "input": 129,
+      "expected": 127
+    },
+    {
+      "entry": "Negate",
+      "input": 129,
+      "expected": 127
+    },
+    {
+      "entry": "Identity",
+      "input": 129,
+      "expected": 129
+    },
+    {
+      "entry": "Zero",
+      "input": 129,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 129,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 129,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 129,
+      "expected": 193
+    },
+    {
+      "entry": "Inc2",
+      "input": 130,
+      "expected": 132
+    },
+    {
+      "entry": "Dec2",
+      "input": 130,
+      "expected": 128
+    },
+    {
+      "entry": "Negate",
+      "input": 130,
+      "expected": 126
+    },
+    {
+      "entry": "Identity",
+      "input": 130,
+      "expected": 130
+    },
+    {
+      "entry": "Zero",
+      "input": 130,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 130,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 130,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 130,
+      "expected": 67
+    },
+    {
+      "entry": "Inc2",
+      "input": 131,
+      "expected": 133
+    },
+    {
+      "entry": "Dec2",
+      "input": 131,
+      "expected": 129
+    },
+    {
+      "entry": "Negate",
+      "input": 131,
+      "expected": 125
+    },
+    {
+      "entry": "Identity",
+      "input": 131,
+      "expected": 131
+    },
+    {
+      "entry": "Zero",
+      "input": 131,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 131,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 131,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 131,
+      "expected": 198
+    },
+    {
+      "entry": "Inc2",
+      "input": 132,
+      "expected": 134
+    },
+    {
+      "entry": "Dec2",
+      "input": 132,
+      "expected": 130
+    },
+    {
+      "entry": "Negate",
+      "input": 132,
+      "expected": 124
+    },
+    {
+      "entry": "Identity",
+      "input": 132,
+      "expected": 132
+    },
+    {
+      "entry": "Zero",
+      "input": 132,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 132,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 132,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 132,
+      "expected": 74
+    },
+    {
+      "entry": "Inc2",
+      "input": 133,
+      "expected": 135
+    },
+    {
+      "entry": "Dec2",
+      "input": 133,
+      "expected": 131
+    },
+    {
+      "entry": "Negate",
+      "input": 133,
+      "expected": 123
+    },
+    {
+      "entry": "Identity",
+      "input": 133,
+      "expected": 133
+    },
+    {
+      "entry": "Zero",
+      "input": 133,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 133,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 133,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 133,
+      "expected": 207
+    },
+    {
+      "entry": "Inc2",
+      "input": 134,
+      "expected": 136
+    },
+    {
+      "entry": "Dec2",
+      "input": 134,
+      "expected": 132
+    },
+    {
+      "entry": "Negate",
+      "input": 134,
+      "expected": 122
+    },
+    {
+      "entry": "Identity",
+      "input": 134,
+      "expected": 134
+    },
+    {
+      "entry": "Zero",
+      "input": 134,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 134,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 134,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 134,
+      "expected": 85
+    },
+    {
+      "entry": "Inc2",
+      "input": 135,
+      "expected": 137
+    },
+    {
+      "entry": "Dec2",
+      "input": 135,
+      "expected": 133
+    },
+    {
+      "entry": "Negate",
+      "input": 135,
+      "expected": 121
+    },
+    {
+      "entry": "Identity",
+      "input": 135,
+      "expected": 135
+    },
+    {
+      "entry": "Zero",
+      "input": 135,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 135,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 135,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 135,
+      "expected": 220
+    },
+    {
+      "entry": "Inc2",
+      "input": 136,
+      "expected": 138
+    },
+    {
+      "entry": "Dec2",
+      "input": 136,
+      "expected": 134
+    },
+    {
+      "entry": "Negate",
+      "input": 136,
+      "expected": 120
+    },
+    {
+      "entry": "Identity",
+      "input": 136,
+      "expected": 136
+    },
+    {
+      "entry": "Zero",
+      "input": 136,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 136,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 136,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 136,
+      "expected": 100
+    },
+    {
+      "entry": "Inc2",
+      "input": 137,
+      "expected": 139
+    },
+    {
+      "entry": "Dec2",
+      "input": 137,
+      "expected": 135
+    },
+    {
+      "entry": "Negate",
+      "input": 137,
+      "expected": 119
+    },
+    {
+      "entry": "Identity",
+      "input": 137,
+      "expected": 137
+    },
+    {
+      "entry": "Zero",
+      "input": 137,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 137,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 137,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 137,
+      "expected": 237
+    },
+    {
+      "entry": "Inc2",
+      "input": 138,
+      "expected": 140
+    },
+    {
+      "entry": "Dec2",
+      "input": 138,
+      "expected": 136
+    },
+    {
+      "entry": "Negate",
+      "input": 138,
+      "expected": 118
+    },
+    {
+      "entry": "Identity",
+      "input": 138,
+      "expected": 138
+    },
+    {
+      "entry": "Zero",
+      "input": 138,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 138,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 138,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 138,
+      "expected": 119
+    },
+    {
+      "entry": "Inc2",
+      "input": 139,
+      "expected": 141
+    },
+    {
+      "entry": "Dec2",
+      "input": 139,
+      "expected": 137
+    },
+    {
+      "entry": "Negate",
+      "input": 139,
+      "expected": 117
+    },
+    {
+      "entry": "Identity",
+      "input": 139,
+      "expected": 139
+    },
+    {
+      "entry": "Zero",
+      "input": 139,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 139,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 139,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 139,
+      "expected": 2
+    },
+    {
+      "entry": "Inc2",
+      "input": 140,
+      "expected": 142
+    },
+    {
+      "entry": "Dec2",
+      "input": 140,
+      "expected": 138
+    },
+    {
+      "entry": "Negate",
+      "input": 140,
+      "expected": 116
+    },
+    {
+      "entry": "Identity",
+      "input": 140,
+      "expected": 140
+    },
+    {
+      "entry": "Zero",
+      "input": 140,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 140,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 140,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 140,
+      "expected": 142
+    },
+    {
+      "entry": "Inc2",
+      "input": 141,
+      "expected": 143
+    },
+    {
+      "entry": "Dec2",
+      "input": 141,
+      "expected": 139
+    },
+    {
+      "entry": "Negate",
+      "input": 141,
+      "expected": 115
+    },
+    {
+      "entry": "Identity",
+      "input": 141,
+      "expected": 141
+    },
+    {
+      "entry": "Zero",
+      "input": 141,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 141,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 141,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 141,
+      "expected": 27
+    },
+    {
+      "entry": "Inc2",
+      "input": 142,
+      "expected": 144
+    },
+    {
+      "entry": "Dec2",
+      "input": 142,
+      "expected": 140
+    },
+    {
+      "entry": "Negate",
+      "input": 142,
+      "expected": 114
+    },
+    {
+      "entry": "Identity",
+      "input": 142,
+      "expected": 142
+    },
+    {
+      "entry": "Zero",
+      "input": 142,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 142,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 142,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 142,
+      "expected": 169
+    },
+    {
+      "entry": "Inc2",
+      "input": 143,
+      "expected": 145
+    },
+    {
+      "entry": "Dec2",
+      "input": 143,
+      "expected": 141
+    },
+    {
+      "entry": "Negate",
+      "input": 143,
+      "expected": 113
+    },
+    {
+      "entry": "Identity",
+      "input": 143,
+      "expected": 143
+    },
+    {
+      "entry": "Zero",
+      "input": 143,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 143,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 143,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 143,
+      "expected": 56
+    },
+    {
+      "entry": "Inc2",
+      "input": 144,
+      "expected": 146
+    },
+    {
+      "entry": "Dec2",
+      "input": 144,
+      "expected": 142
+    },
+    {
+      "entry": "Negate",
+      "input": 144,
+      "expected": 112
+    },
+    {
+      "entry": "Identity",
+      "input": 144,
+      "expected": 144
+    },
+    {
+      "entry": "Zero",
+      "input": 144,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 144,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 144,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 144,
+      "expected": 200
+    },
+    {
+      "entry": "Inc2",
+      "input": 145,
+      "expected": 147
+    },
+    {
+      "entry": "Dec2",
+      "input": 145,
+      "expected": 143
+    },
+    {
+      "entry": "Negate",
+      "input": 145,
+      "expected": 111
+    },
+    {
+      "entry": "Identity",
+      "input": 145,
+      "expected": 145
+    },
+    {
+      "entry": "Zero",
+      "input": 145,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 145,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 145,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 145,
+      "expected": 89
+    },
+    {
+      "entry": "Inc2",
+      "input": 146,
+      "expected": 148
+    },
+    {
+      "entry": "Dec2",
+      "input": 146,
+      "expected": 144
+    },
+    {
+      "entry": "Negate",
+      "input": 146,
+      "expected": 110
+    },
+    {
+      "entry": "Identity",
+      "input": 146,
+      "expected": 146
+    },
+    {
+      "entry": "Zero",
+      "input": 146,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 146,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 146,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 146,
+      "expected": 235
+    },
+    {
+      "entry": "Inc2",
+      "input": 147,
+      "expected": 149
+    },
+    {
+      "entry": "Dec2",
+      "input": 147,
+      "expected": 145
+    },
+    {
+      "entry": "Negate",
+      "input": 147,
+      "expected": 109
+    },
+    {
+      "entry": "Identity",
+      "input": 147,
+      "expected": 147
+    },
+    {
+      "entry": "Zero",
+      "input": 147,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 147,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 147,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 147,
+      "expected": 126
+    },
+    {
+      "entry": "Inc2",
+      "input": 148,
+      "expected": 150
+    },
+    {
+      "entry": "Dec2",
+      "input": 148,
+      "expected": 146
+    },
+    {
+      "entry": "Negate",
+      "input": 148,
+      "expected": 108
+    },
+    {
+      "entry": "Identity",
+      "input": 148,
+      "expected": 148
+    },
+    {
+      "entry": "Zero",
+      "input": 148,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 148,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 148,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 148,
+      "expected": 18
+    },
+    {
+      "entry": "Inc2",
+      "input": 149,
+      "expected": 151
+    },
+    {
+      "entry": "Dec2",
+      "input": 149,
+      "expected": 147
+    },
+    {
+      "entry": "Negate",
+      "input": 149,
+      "expected": 107
+    },
+    {
+      "entry": "Identity",
+      "input": 149,
+      "expected": 149
+    },
+    {
+      "entry": "Zero",
+      "input": 149,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 149,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 149,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 149,
+      "expected": 167
+    },
+    {
+      "entry": "Inc2",
+      "input": 150,
+      "expected": 152
+    },
+    {
+      "entry": "Dec2",
+      "input": 150,
+      "expected": 148
+    },
+    {
+      "entry": "Negate",
+      "input": 150,
+      "expected": 106
+    },
+    {
+      "entry": "Identity",
+      "input": 150,
+      "expected": 150
+    },
+    {
+      "entry": "Zero",
+      "input": 150,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 150,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 150,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 150,
+      "expected": 61
+    },
+    {
+      "entry": "Inc2",
+      "input": 151,
+      "expected": 153
+    },
+    {
+      "entry": "Dec2",
+      "input": 151,
+      "expected": 149
+    },
+    {
+      "entry": "Negate",
+      "input": 151,
+      "expected": 105
+    },
+    {
+      "entry": "Identity",
+      "input": 151,
+      "expected": 151
+    },
+    {
+      "entry": "Zero",
+      "input": 151,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 151,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 151,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 151,
+      "expected": 212
+    },
+    {
+      "entry": "Inc2",
+      "input": 152,
+      "expected": 154
+    },
+    {
+      "entry": "Dec2",
+      "input": 152,
+      "expected": 150
+    },
+    {
+      "entry": "Negate",
+      "input": 152,
+      "expected": 104
+    },
+    {
+      "entry": "Identity",
+      "input": 152,
+      "expected": 152
+    },
+    {
+      "entry": "Zero",
+      "input": 152,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 152,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 152,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 152,
+      "expected": 108
+    },
+    {
+      "entry": "Inc2",
+      "input": 153,
+      "expected": 155
+    },
+    {
+      "entry": "Dec2",
+      "input": 153,
+      "expected": 151
+    },
+    {
+      "entry": "Negate",
+      "input": 153,
+      "expected": 103
+    },
+    {
+      "entry": "Identity",
+      "input": 153,
+      "expected": 153
+    },
+    {
+      "entry": "Zero",
+      "input": 153,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 153,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 153,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 153,
+      "expected": 5
+    },
+    {
+      "entry": "Inc2",
+      "input": 154,
+      "expected": 156
+    },
+    {
+      "entry": "Dec2",
+      "input": 154,
+      "expected": 152
+    },
+    {
+      "entry": "Negate",
+      "input": 154,
+      "expected": 102
+    },
+    {
+      "entry": "Identity",
+      "input": 154,
+      "expected": 154
+    },
+    {
+      "entry": "Zero",
+      "input": 154,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 154,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 154,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 154,
+      "expected": 159
+    },
+    {
+      "entry": "Inc2",
+      "input": 155,
+      "expected": 157
+    },
+    {
+      "entry": "Dec2",
+      "input": 155,
+      "expected": 153
+    },
+    {
+      "entry": "Negate",
+      "input": 155,
+      "expected": 101
+    },
+    {
+      "entry": "Identity",
+      "input": 155,
+      "expected": 155
+    },
+    {
+      "entry": "Zero",
+      "input": 155,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 155,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 155,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 155,
+      "expected": 58
+    },
+    {
+      "entry": "Inc2",
+      "input": 156,
+      "expected": 158
+    },
+    {
+      "entry": "Dec2",
+      "input": 156,
+      "expected": 154
+    },
+    {
+      "entry": "Negate",
+      "input": 156,
+      "expected": 100
+    },
+    {
+      "entry": "Identity",
+      "input": 156,
+      "expected": 156
+    },
+    {
+      "entry": "Zero",
+      "input": 156,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 156,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 156,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 156,
+      "expected": 214
+    },
+    {
+      "entry": "Inc2",
+      "input": 157,
+      "expected": 159
+    },
+    {
+      "entry": "Dec2",
+      "input": 157,
+      "expected": 155
+    },
+    {
+      "entry": "Negate",
+      "input": 157,
+      "expected": 99
+    },
+    {
+      "entry": "Identity",
+      "input": 157,
+      "expected": 157
+    },
+    {
+      "entry": "Zero",
+      "input": 157,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 157,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 157,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 157,
+      "expected": 115
+    },
+    {
+      "entry": "Inc2",
+      "input": 158,
+      "expected": 160
+    },
+    {
+      "entry": "Dec2",
+      "input": 158,
+      "expected": 156
+    },
+    {
+      "entry": "Negate",
+      "input": 158,
+      "expected": 98
+    },
+    {
+      "entry": "Identity",
+      "input": 158,
+      "expected": 158
+    },
+    {
+      "entry": "Zero",
+      "input": 158,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 158,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 158,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 158,
+      "expected": 17
+    },
+    {
+      "entry": "Inc2",
+      "input": 159,
+      "expected": 161
+    },
+    {
+      "entry": "Dec2",
+      "input": 159,
+      "expected": 157
+    },
+    {
+      "entry": "Negate",
+      "input": 159,
+      "expected": 97
+    },
+    {
+      "entry": "Identity",
+      "input": 159,
+      "expected": 159
+    },
+    {
+      "entry": "Zero",
+      "input": 159,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 159,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 159,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 159,
+      "expected": 176
+    },
+    {
+      "entry": "Inc2",
+      "input": 160,
+      "expected": 162
+    },
+    {
+      "entry": "Dec2",
+      "input": 160,
+      "expected": 158
+    },
+    {
+      "entry": "Negate",
+      "input": 160,
+      "expected": 96
+    },
+    {
+      "entry": "Identity",
+      "input": 160,
+      "expected": 160
+    },
+    {
+      "entry": "Zero",
+      "input": 160,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 160,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 160,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 160,
+      "expected": 80
+    },
+    {
+      "entry": "Inc2",
+      "input": 161,
+      "expected": 163
+    },
+    {
+      "entry": "Dec2",
+      "input": 161,
+      "expected": 159
+    },
+    {
+      "entry": "Negate",
+      "input": 161,
+      "expected": 95
+    },
+    {
+      "entry": "Identity",
+      "input": 161,
+      "expected": 161
+    },
+    {
+      "entry": "Zero",
+      "input": 161,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 161,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 161,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 161,
+      "expected": 241
+    },
+    {
+      "entry": "Inc2",
+      "input": 162,
+      "expected": 164
+    },
+    {
+      "entry": "Dec2",
+      "input": 162,
+      "expected": 160
+    },
+    {
+      "entry": "Negate",
+      "input": 162,
+      "expected": 94
+    },
+    {
+      "entry": "Identity",
+      "input": 162,
+      "expected": 162
+    },
+    {
+      "entry": "Zero",
+      "input": 162,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 162,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 162,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 162,
+      "expected": 147
+    },
+    {
+      "entry": "Inc2",
+      "input": 163,
+      "expected": 165
+    },
+    {
+      "entry": "Dec2",
+      "input": 163,
+      "expected": 161
+    },
+    {
+      "entry": "Negate",
+      "input": 163,
+      "expected": 93
+    },
+    {
+      "entry": "Identity",
+      "input": 163,
+      "expected": 163
+    },
+    {
+      "entry": "Zero",
+      "input": 163,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 163,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 163,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 163,
+      "expected": 54
+    },
+    {
+      "entry": "Inc2",
+      "input": 164,
+      "expected": 166
+    },
+    {
+      "entry": "Dec2",
+      "input": 164,
+      "expected": 162
+    },
+    {
+      "entry": "Negate",
+      "input": 164,
+      "expected": 92
+    },
+    {
+      "entry": "Identity",
+      "input": 164,
+      "expected": 164
+    },
+    {
+      "entry": "Zero",
+      "input": 164,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 164,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 164,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 164,
+      "expected": 218
+    },
+    {
+      "entry": "Inc2",
+      "input": 165,
+      "expected": 167
+    },
+    {
+      "entry": "Dec2",
+      "input": 165,
+      "expected": 163
+    },
+    {
+      "entry": "Negate",
+      "input": 165,
+      "expected": 91
+    },
+    {
+      "entry": "Identity",
+      "input": 165,
+      "expected": 165
+    },
+    {
+      "entry": "Zero",
+      "input": 165,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 165,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 165,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 165,
+      "expected": 127
+    },
+    {
+      "entry": "Inc2",
+      "input": 166,
+      "expected": 168
+    },
+    {
+      "entry": "Dec2",
+      "input": 166,
+      "expected": 164
+    },
+    {
+      "entry": "Negate",
+      "input": 166,
+      "expected": 90
+    },
+    {
+      "entry": "Identity",
+      "input": 166,
+      "expected": 166
+    },
+    {
+      "entry": "Zero",
+      "input": 166,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 166,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 166,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 166,
+      "expected": 37
+    },
+    {
+      "entry": "Inc2",
+      "input": 167,
+      "expected": 169
+    },
+    {
+      "entry": "Dec2",
+      "input": 167,
+      "expected": 165
+    },
+    {
+      "entry": "Negate",
+      "input": 167,
+      "expected": 89
+    },
+    {
+      "entry": "Identity",
+      "input": 167,
+      "expected": 167
+    },
+    {
+      "entry": "Zero",
+      "input": 167,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 167,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 167,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 167,
+      "expected": 204
+    },
+    {
+      "entry": "Inc2",
+      "input": 168,
+      "expected": 170
+    },
+    {
+      "entry": "Dec2",
+      "input": 168,
+      "expected": 166
+    },
+    {
+      "entry": "Negate",
+      "input": 168,
+      "expected": 88
+    },
+    {
+      "entry": "Identity",
+      "input": 168,
+      "expected": 168
+    },
+    {
+      "entry": "Zero",
+      "input": 168,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 168,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 168,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 168,
+      "expected": 116
+    },
+    {
+      "entry": "Inc2",
+      "input": 169,
+      "expected": 171
+    },
+    {
+      "entry": "Dec2",
+      "input": 169,
+      "expected": 167
+    },
+    {
+      "entry": "Negate",
+      "input": 169,
+      "expected": 87
+    },
+    {
+      "entry": "Identity",
+      "input": 169,
+      "expected": 169
+    },
+    {
+      "entry": "Zero",
+      "input": 169,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 169,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 169,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 169,
+      "expected": 29
+    },
+    {
+      "entry": "Inc2",
+      "input": 170,
+      "expected": 172
+    },
+    {
+      "entry": "Dec2",
+      "input": 170,
+      "expected": 168
+    },
+    {
+      "entry": "Negate",
+      "input": 170,
+      "expected": 86
+    },
+    {
+      "entry": "Identity",
+      "input": 170,
+      "expected": 170
+    },
+    {
+      "entry": "Zero",
+      "input": 170,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 170,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 170,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 170,
+      "expected": 199
+    },
+    {
+      "entry": "Inc2",
+      "input": 171,
+      "expected": 173
+    },
+    {
+      "entry": "Dec2",
+      "input": 171,
+      "expected": 169
+    },
+    {
+      "entry": "Negate",
+      "input": 171,
+      "expected": 85
+    },
+    {
+      "entry": "Identity",
+      "input": 171,
+      "expected": 171
+    },
+    {
+      "entry": "Zero",
+      "input": 171,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 171,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 171,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 171,
+      "expected": 114
+    },
+    {
+      "entry": "Inc2",
+      "input": 172,
+      "expected": 174
+    },
+    {
+      "entry": "Dec2",
+      "input": 172,
+      "expected": 170
+    },
+    {
+      "entry": "Negate",
+      "input": 172,
+      "expected": 84
+    },
+    {
+      "entry": "Identity",
+      "input": 172,
+      "expected": 172
+    },
+    {
+      "entry": "Zero",
+      "input": 172,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 172,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 172,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 172,
+      "expected": 30
+    },
+    {
+      "entry": "Inc2",
+      "input": 173,
+      "expected": 175
+    },
+    {
+      "entry": "Dec2",
+      "input": 173,
+      "expected": 171
+    },
+    {
+      "entry": "Negate",
+      "input": 173,
+      "expected": 83
+    },
+    {
+      "entry": "Identity",
+      "input": 173,
+      "expected": 173
+    },
+    {
+      "entry": "Zero",
+      "input": 173,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 173,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 173,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 173,
+      "expected": 203
+    },
+    {
+      "entry": "Inc2",
+      "input": 174,
+      "expected": 176
+    },
+    {
+      "entry": "Dec2",
+      "input": 174,
+      "expected": 172
+    },
+    {
+      "entry": "Negate",
+      "input": 174,
+      "expected": 82
+    },
+    {
+      "entry": "Identity",
+      "input": 174,
+      "expected": 174
+    },
+    {
+      "entry": "Zero",
+      "input": 174,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 174,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 174,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 174,
+      "expected": 121
+    },
+    {
+      "entry": "Inc2",
+      "input": 175,
+      "expected": 177
+    },
+    {
+      "entry": "Dec2",
+      "input": 175,
+      "expected": 173
+    },
+    {
+      "entry": "Negate",
+      "input": 175,
+      "expected": 81
+    },
+    {
+      "entry": "Identity",
+      "input": 175,
+      "expected": 175
+    },
+    {
+      "entry": "Zero",
+      "input": 175,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 175,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 175,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 175,
+      "expected": 40
+    },
+    {
+      "entry": "Inc2",
+      "input": 176,
+      "expected": 178
+    },
+    {
+      "entry": "Dec2",
+      "input": 176,
+      "expected": 174
+    },
+    {
+      "entry": "Negate",
+      "input": 176,
+      "expected": 80
+    },
+    {
+      "entry": "Identity",
+      "input": 176,
+      "expected": 176
+    },
+    {
+      "entry": "Zero",
+      "input": 176,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 176,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 176,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 176,
+      "expected": 216
+    },
+    {
+      "entry": "Inc2",
+      "input": 177,
+      "expected": 179
+    },
+    {
+      "entry": "Dec2",
+      "input": 177,
+      "expected": 175
+    },
+    {
+      "entry": "Negate",
+      "input": 177,
+      "expected": 79
+    },
+    {
+      "entry": "Identity",
+      "input": 177,
+      "expected": 177
+    },
+    {
+      "entry": "Zero",
+      "input": 177,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 177,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 177,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 177,
+      "expected": 137
+    },
+    {
+      "entry": "Inc2",
+      "input": 178,
+      "expected": 180
+    },
+    {
+      "entry": "Dec2",
+      "input": 178,
+      "expected": 176
+    },
+    {
+      "entry": "Negate",
+      "input": 178,
+      "expected": 78
+    },
+    {
+      "entry": "Identity",
+      "input": 178,
+      "expected": 178
+    },
+    {
+      "entry": "Zero",
+      "input": 178,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 178,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 178,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 178,
+      "expected": 59
+    },
+    {
+      "entry": "Inc2",
+      "input": 179,
+      "expected": 181
+    },
+    {
+      "entry": "Dec2",
+      "input": 179,
+      "expected": 177
+    },
+    {
+      "entry": "Negate",
+      "input": 179,
+      "expected": 77
+    },
+    {
+      "entry": "Identity",
+      "input": 179,
+      "expected": 179
+    },
+    {
+      "entry": "Zero",
+      "input": 179,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 179,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 179,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 179,
+      "expected": 238
+    },
+    {
+      "entry": "Inc2",
+      "input": 180,
+      "expected": 182
+    },
+    {
+      "entry": "Dec2",
+      "input": 180,
+      "expected": 178
+    },
+    {
+      "entry": "Negate",
+      "input": 180,
+      "expected": 76
+    },
+    {
+      "entry": "Identity",
+      "input": 180,
+      "expected": 180
+    },
+    {
+      "entry": "Zero",
+      "input": 180,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 180,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 180,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 180,
+      "expected": 162
+    },
+    {
+      "entry": "Inc2",
+      "input": 181,
+      "expected": 183
+    },
+    {
+      "entry": "Dec2",
+      "input": 181,
+      "expected": 179
+    },
+    {
+      "entry": "Negate",
+      "input": 181,
+      "expected": 75
+    },
+    {
+      "entry": "Identity",
+      "input": 181,
+      "expected": 181
+    },
+    {
+      "entry": "Zero",
+      "input": 181,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 181,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 181,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 181,
+      "expected": 87
+    },
+    {
+      "entry": "Inc2",
+      "input": 182,
+      "expected": 184
+    },
+    {
+      "entry": "Dec2",
+      "input": 182,
+      "expected": 180
+    },
+    {
+      "entry": "Negate",
+      "input": 182,
+      "expected": 74
+    },
+    {
+      "entry": "Identity",
+      "input": 182,
+      "expected": 182
+    },
+    {
+      "entry": "Zero",
+      "input": 182,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 182,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 182,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 182,
+      "expected": 13
+    },
+    {
+      "entry": "Inc2",
+      "input": 183,
+      "expected": 185
+    },
+    {
+      "entry": "Dec2",
+      "input": 183,
+      "expected": 181
+    },
+    {
+      "entry": "Negate",
+      "input": 183,
+      "expected": 73
+    },
+    {
+      "entry": "Identity",
+      "input": 183,
+      "expected": 183
+    },
+    {
+      "entry": "Zero",
+      "input": 183,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 183,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 183,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 183,
+      "expected": 196
+    },
+    {
+      "entry": "Inc2",
+      "input": 184,
+      "expected": 186
+    },
+    {
+      "entry": "Dec2",
+      "input": 184,
+      "expected": 182
+    },
+    {
+      "entry": "Negate",
+      "input": 184,
+      "expected": 72
+    },
+    {
+      "entry": "Identity",
+      "input": 184,
+      "expected": 184
+    },
+    {
+      "entry": "Zero",
+      "input": 184,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 184,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 184,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 184,
+      "expected": 124
+    },
+    {
+      "entry": "Inc2",
+      "input": 185,
+      "expected": 187
+    },
+    {
+      "entry": "Dec2",
+      "input": 185,
+      "expected": 183
+    },
+    {
+      "entry": "Negate",
+      "input": 185,
+      "expected": 71
+    },
+    {
+      "entry": "Identity",
+      "input": 185,
+      "expected": 185
+    },
+    {
+      "entry": "Zero",
+      "input": 185,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 185,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 185,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 185,
+      "expected": 53
+    },
+    {
+      "entry": "Inc2",
+      "input": 186,
+      "expected": 188
+    },
+    {
+      "entry": "Dec2",
+      "input": 186,
+      "expected": 184
+    },
+    {
+      "entry": "Negate",
+      "input": 186,
+      "expected": 70
+    },
+    {
+      "entry": "Identity",
+      "input": 186,
+      "expected": 186
+    },
+    {
+      "entry": "Zero",
+      "input": 186,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 186,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 186,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 186,
+      "expected": 239
+    },
+    {
+      "entry": "Inc2",
+      "input": 187,
+      "expected": 189
+    },
+    {
+      "entry": "Dec2",
+      "input": 187,
+      "expected": 185
+    },
+    {
+      "entry": "Negate",
+      "input": 187,
+      "expected": 69
+    },
+    {
+      "entry": "Identity",
+      "input": 187,
+      "expected": 187
+    },
+    {
+      "entry": "Zero",
+      "input": 187,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 187,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 187,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 187,
+      "expected": 170
+    },
+    {
+      "entry": "Inc2",
+      "input": 188,
+      "expected": 190
+    },
+    {
+      "entry": "Dec2",
+      "input": 188,
+      "expected": 186
+    },
+    {
+      "entry": "Negate",
+      "input": 188,
+      "expected": 68
+    },
+    {
+      "entry": "Identity",
+      "input": 188,
+      "expected": 188
+    },
+    {
+      "entry": "Zero",
+      "input": 188,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 188,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 188,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 188,
+      "expected": 102
+    },
+    {
+      "entry": "Inc2",
+      "input": 189,
+      "expected": 191
+    },
+    {
+      "entry": "Dec2",
+      "input": 189,
+      "expected": 187
+    },
+    {
+      "entry": "Negate",
+      "input": 189,
+      "expected": 67
+    },
+    {
+      "entry": "Identity",
+      "input": 189,
+      "expected": 189
+    },
+    {
+      "entry": "Zero",
+      "input": 189,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 189,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 189,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 189,
+      "expected": 35
+    },
+    {
+      "entry": "Inc2",
+      "input": 190,
+      "expected": 192
+    },
+    {
+      "entry": "Dec2",
+      "input": 190,
+      "expected": 188
+    },
+    {
+      "entry": "Negate",
+      "input": 190,
+      "expected": 66
+    },
+    {
+      "entry": "Identity",
+      "input": 190,
+      "expected": 190
+    },
+    {
+      "entry": "Zero",
+      "input": 190,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 190,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 190,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 190,
+      "expected": 225
+    },
+    {
+      "entry": "Inc2",
+      "input": 191,
+      "expected": 193
+    },
+    {
+      "entry": "Dec2",
+      "input": 191,
+      "expected": 189
+    },
+    {
+      "entry": "Negate",
+      "input": 191,
+      "expected": 65
+    },
+    {
+      "entry": "Identity",
+      "input": 191,
+      "expected": 191
+    },
+    {
+      "entry": "Zero",
+      "input": 191,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 191,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 191,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 191,
+      "expected": 160
+    },
+    {
+      "entry": "Inc2",
+      "input": 192,
+      "expected": 194
+    },
+    {
+      "entry": "Dec2",
+      "input": 192,
+      "expected": 190
+    },
+    {
+      "entry": "Negate",
+      "input": 192,
+      "expected": 64
+    },
+    {
+      "entry": "Identity",
+      "input": 192,
+      "expected": 192
+    },
+    {
+      "entry": "Zero",
+      "input": 192,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 192,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 192,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 192,
+      "expected": 96
+    },
+    {
+      "entry": "Inc2",
+      "input": 193,
+      "expected": 195
+    },
+    {
+      "entry": "Dec2",
+      "input": 193,
+      "expected": 191
+    },
+    {
+      "entry": "Negate",
+      "input": 193,
+      "expected": 63
+    },
+    {
+      "entry": "Identity",
+      "input": 193,
+      "expected": 193
+    },
+    {
+      "entry": "Zero",
+      "input": 193,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 193,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 193,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 193,
+      "expected": 33
+    },
+    {
+      "entry": "Inc2",
+      "input": 194,
+      "expected": 196
+    },
+    {
+      "entry": "Dec2",
+      "input": 194,
+      "expected": 192
+    },
+    {
+      "entry": "Negate",
+      "input": 194,
+      "expected": 62
+    },
+    {
+      "entry": "Identity",
+      "input": 194,
+      "expected": 194
+    },
+    {
+      "entry": "Zero",
+      "input": 194,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 194,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 194,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 194,
+      "expected": 227
+    },
+    {
+      "entry": "Inc2",
+      "input": 195,
+      "expected": 197
+    },
+    {
+      "entry": "Dec2",
+      "input": 195,
+      "expected": 193
+    },
+    {
+      "entry": "Negate",
+      "input": 195,
+      "expected": 61
+    },
+    {
+      "entry": "Identity",
+      "input": 195,
+      "expected": 195
+    },
+    {
+      "entry": "Zero",
+      "input": 195,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 195,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 195,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 195,
+      "expected": 166
+    },
+    {
+      "entry": "Inc2",
+      "input": 196,
+      "expected": 198
+    },
+    {
+      "entry": "Dec2",
+      "input": 196,
+      "expected": 194
+    },
+    {
+      "entry": "Negate",
+      "input": 196,
+      "expected": 60
+    },
+    {
+      "entry": "Identity",
+      "input": 196,
+      "expected": 196
+    },
+    {
+      "entry": "Zero",
+      "input": 196,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 196,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 196,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 196,
+      "expected": 106
+    },
+    {
+      "entry": "Inc2",
+      "input": 197,
+      "expected": 199
+    },
+    {
+      "entry": "Dec2",
+      "input": 197,
+      "expected": 195
+    },
+    {
+      "entry": "Negate",
+      "input": 197,
+      "expected": 59
+    },
+    {
+      "entry": "Identity",
+      "input": 197,
+      "expected": 197
+    },
+    {
+      "entry": "Zero",
+      "input": 197,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 197,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 197,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 197,
+      "expected": 47
+    },
+    {
+      "entry": "Inc2",
+      "input": 198,
+      "expected": 200
+    },
+    {
+      "entry": "Dec2",
+      "input": 198,
+      "expected": 196
+    },
+    {
+      "entry": "Negate",
+      "input": 198,
+      "expected": 58
+    },
+    {
+      "entry": "Identity",
+      "input": 198,
+      "expected": 198
+    },
+    {
+      "entry": "Zero",
+      "input": 198,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 198,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 198,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 198,
+      "expected": 245
+    },
+    {
+      "entry": "Inc2",
+      "input": 199,
+      "expected": 201
+    },
+    {
+      "entry": "Dec2",
+      "input": 199,
+      "expected": 197
+    },
+    {
+      "entry": "Negate",
+      "input": 199,
+      "expected": 57
+    },
+    {
+      "entry": "Identity",
+      "input": 199,
+      "expected": 199
+    },
+    {
+      "entry": "Zero",
+      "input": 199,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 199,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 199,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 199,
+      "expected": 188
+    },
+    {
+      "entry": "Inc2",
+      "input": 200,
+      "expected": 202
+    },
+    {
+      "entry": "Dec2",
+      "input": 200,
+      "expected": 198
+    },
+    {
+      "entry": "Negate",
+      "input": 200,
+      "expected": 56
+    },
+    {
+      "entry": "Identity",
+      "input": 200,
+      "expected": 200
+    },
+    {
+      "entry": "Zero",
+      "input": 200,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 200,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 200,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 200,
+      "expected": 132
+    },
+    {
+      "entry": "Inc2",
+      "input": 201,
+      "expected": 203
+    },
+    {
+      "entry": "Dec2",
+      "input": 201,
+      "expected": 199
+    },
+    {
+      "entry": "Negate",
+      "input": 201,
+      "expected": 55
+    },
+    {
+      "entry": "Identity",
+      "input": 201,
+      "expected": 201
+    },
+    {
+      "entry": "Zero",
+      "input": 201,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 201,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 201,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 201,
+      "expected": 77
+    },
+    {
+      "entry": "Inc2",
+      "input": 202,
+      "expected": 204
+    },
+    {
+      "entry": "Dec2",
+      "input": 202,
+      "expected": 200
+    },
+    {
+      "entry": "Negate",
+      "input": 202,
+      "expected": 54
+    },
+    {
+      "entry": "Identity",
+      "input": 202,
+      "expected": 202
+    },
+    {
+      "entry": "Zero",
+      "input": 202,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 202,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 202,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 202,
+      "expected": 23
+    },
+    {
+      "entry": "Inc2",
+      "input": 203,
+      "expected": 205
+    },
+    {
+      "entry": "Dec2",
+      "input": 203,
+      "expected": 201
+    },
+    {
+      "entry": "Negate",
+      "input": 203,
+      "expected": 53
+    },
+    {
+      "entry": "Identity",
+      "input": 203,
+      "expected": 203
+    },
+    {
+      "entry": "Zero",
+      "input": 203,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 203,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 203,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 203,
+      "expected": 226
+    },
+    {
+      "entry": "Inc2",
+      "input": 204,
+      "expected": 206
+    },
+    {
+      "entry": "Dec2",
+      "input": 204,
+      "expected": 202
+    },
+    {
+      "entry": "Negate",
+      "input": 204,
+      "expected": 52
+    },
+    {
+      "entry": "Identity",
+      "input": 204,
+      "expected": 204
+    },
+    {
+      "entry": "Zero",
+      "input": 204,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 204,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 204,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 204,
+      "expected": 174
+    },
+    {
+      "entry": "Inc2",
+      "input": 205,
+      "expected": 207
+    },
+    {
+      "entry": "Dec2",
+      "input": 205,
+      "expected": 203
+    },
+    {
+      "entry": "Negate",
+      "input": 205,
+      "expected": 51
+    },
+    {
+      "entry": "Identity",
+      "input": 205,
+      "expected": 205
+    },
+    {
+      "entry": "Zero",
+      "input": 205,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 205,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 205,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 205,
+      "expected": 123
+    },
+    {
+      "entry": "Inc2",
+      "input": 206,
+      "expected": 208
+    },
+    {
+      "entry": "Dec2",
+      "input": 206,
+      "expected": 204
+    },
+    {
+      "entry": "Negate",
+      "input": 206,
+      "expected": 50
+    },
+    {
+      "entry": "Identity",
+      "input": 206,
+      "expected": 206
+    },
+    {
+      "entry": "Zero",
+      "input": 206,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 206,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 206,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 206,
+      "expected": 73
+    },
+    {
+      "entry": "Inc2",
+      "input": 207,
+      "expected": 209
+    },
+    {
+      "entry": "Dec2",
+      "input": 207,
+      "expected": 205
+    },
+    {
+      "entry": "Negate",
+      "input": 207,
+      "expected": 49
+    },
+    {
+      "entry": "Identity",
+      "input": 207,
+      "expected": 207
+    },
+    {
+      "entry": "Zero",
+      "input": 207,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 207,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 207,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 207,
+      "expected": 24
+    },
+    {
+      "entry": "Inc2",
+      "input": 208,
+      "expected": 210
+    },
+    {
+      "entry": "Dec2",
+      "input": 208,
+      "expected": 206
+    },
+    {
+      "entry": "Negate",
+      "input": 208,
+      "expected": 48
+    },
+    {
+      "entry": "Identity",
+      "input": 208,
+      "expected": 208
+    },
+    {
+      "entry": "Zero",
+      "input": 208,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 208,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 208,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 208,
+      "expected": 232
+    },
+    {
+      "entry": "Inc2",
+      "input": 209,
+      "expected": 211
+    },
+    {
+      "entry": "Dec2",
+      "input": 209,
+      "expected": 207
+    },
+    {
+      "entry": "Negate",
+      "input": 209,
+      "expected": 47
+    },
+    {
+      "entry": "Identity",
+      "input": 209,
+      "expected": 209
+    },
+    {
+      "entry": "Zero",
+      "input": 209,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 209,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 209,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 209,
+      "expected": 185
+    },
+    {
+      "entry": "Inc2",
+      "input": 210,
+      "expected": 212
+    },
+    {
+      "entry": "Dec2",
+      "input": 210,
+      "expected": 208
+    },
+    {
+      "entry": "Negate",
+      "input": 210,
+      "expected": 46
+    },
+    {
+      "entry": "Identity",
+      "input": 210,
+      "expected": 210
+    },
+    {
+      "entry": "Zero",
+      "input": 210,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 210,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 210,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 210,
+      "expected": 139
+    },
+    {
+      "entry": "Inc2",
+      "input": 211,
+      "expected": 213
+    },
+    {
+      "entry": "Dec2",
+      "input": 211,
+      "expected": 209
+    },
+    {
+      "entry": "Negate",
+      "input": 211,
+      "expected": 45
+    },
+    {
+      "entry": "Identity",
+      "input": 211,
+      "expected": 211
+    },
+    {
+      "entry": "Zero",
+      "input": 211,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 211,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 211,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 211,
+      "expected": 94
+    },
+    {
+      "entry": "Inc2",
+      "input": 212,
+      "expected": 214
+    },
+    {
+      "entry": "Dec2",
+      "input": 212,
+      "expected": 210
+    },
+    {
+      "entry": "Negate",
+      "input": 212,
+      "expected": 44
+    },
+    {
+      "entry": "Identity",
+      "input": 212,
+      "expected": 212
+    },
+    {
+      "entry": "Zero",
+      "input": 212,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 212,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 212,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 212,
+      "expected": 50
+    },
+    {
+      "entry": "Inc2",
+      "input": 213,
+      "expected": 215
+    },
+    {
+      "entry": "Dec2",
+      "input": 213,
+      "expected": 211
+    },
+    {
+      "entry": "Negate",
+      "input": 213,
+      "expected": 43
+    },
+    {
+      "entry": "Identity",
+      "input": 213,
+      "expected": 213
+    },
+    {
+      "entry": "Zero",
+      "input": 213,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 213,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 213,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 213,
+      "expected": 7
+    },
+    {
+      "entry": "Inc2",
+      "input": 214,
+      "expected": 216
+    },
+    {
+      "entry": "Dec2",
+      "input": 214,
+      "expected": 212
+    },
+    {
+      "entry": "Negate",
+      "input": 214,
+      "expected": 42
+    },
+    {
+      "entry": "Identity",
+      "input": 214,
+      "expected": 214
+    },
+    {
+      "entry": "Zero",
+      "input": 214,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 214,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 214,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 214,
+      "expected": 221
+    },
+    {
+      "entry": "Inc2",
+      "input": 215,
+      "expected": 217
+    },
+    {
+      "entry": "Dec2",
+      "input": 215,
+      "expected": 213
+    },
+    {
+      "entry": "Negate",
+      "input": 215,
+      "expected": 41
+    },
+    {
+      "entry": "Identity",
+      "input": 215,
+      "expected": 215
+    },
+    {
+      "entry": "Zero",
+      "input": 215,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 215,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 215,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 215,
+      "expected": 180
+    },
+    {
+      "entry": "Inc2",
+      "input": 216,
+      "expected": 218
+    },
+    {
+      "entry": "Dec2",
+      "input": 216,
+      "expected": 214
+    },
+    {
+      "entry": "Negate",
+      "input": 216,
+      "expected": 40
+    },
+    {
+      "entry": "Identity",
+      "input": 216,
+      "expected": 216
+    },
+    {
+      "entry": "Zero",
+      "input": 216,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 216,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 216,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 216,
+      "expected": 140
+    },
+    {
+      "entry": "Inc2",
+      "input": 217,
+      "expected": 219
+    },
+    {
+      "entry": "Dec2",
+      "input": 217,
+      "expected": 215
+    },
+    {
+      "entry": "Negate",
+      "input": 217,
+      "expected": 39
+    },
+    {
+      "entry": "Identity",
+      "input": 217,
+      "expected": 217
+    },
+    {
+      "entry": "Zero",
+      "input": 217,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 217,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 217,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 217,
+      "expected": 101
+    },
+    {
+      "entry": "Inc2",
+      "input": 218,
+      "expected": 220
+    },
+    {
+      "entry": "Dec2",
+      "input": 218,
+      "expected": 216
+    },
+    {
+      "entry": "Negate",
+      "input": 218,
+      "expected": 38
+    },
+    {
+      "entry": "Identity",
+      "input": 218,
+      "expected": 218
+    },
+    {
+      "entry": "Zero",
+      "input": 218,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 218,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 218,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 218,
+      "expected": 63
+    },
+    {
+      "entry": "Inc2",
+      "input": 219,
+      "expected": 221
+    },
+    {
+      "entry": "Dec2",
+      "input": 219,
+      "expected": 217
+    },
+    {
+      "entry": "Negate",
+      "input": 219,
+      "expected": 37
+    },
+    {
+      "entry": "Identity",
+      "input": 219,
+      "expected": 219
+    },
+    {
+      "entry": "Zero",
+      "input": 219,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 219,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 219,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 219,
+      "expected": 26
+    },
+    {
+      "entry": "Inc2",
+      "input": 220,
+      "expected": 222
+    },
+    {
+      "entry": "Dec2",
+      "input": 220,
+      "expected": 218
+    },
+    {
+      "entry": "Negate",
+      "input": 220,
+      "expected": 36
+    },
+    {
+      "entry": "Identity",
+      "input": 220,
+      "expected": 220
+    },
+    {
+      "entry": "Zero",
+      "input": 220,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 220,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 220,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 220,
+      "expected": 246
+    },
+    {
+      "entry": "Inc2",
+      "input": 221,
+      "expected": 223
+    },
+    {
+      "entry": "Dec2",
+      "input": 221,
+      "expected": 219
+    },
+    {
+      "entry": "Negate",
+      "input": 221,
+      "expected": 35
+    },
+    {
+      "entry": "Identity",
+      "input": 221,
+      "expected": 221
+    },
+    {
+      "entry": "Zero",
+      "input": 221,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 221,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 221,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 221,
+      "expected": 211
+    },
+    {
+      "entry": "Inc2",
+      "input": 222,
+      "expected": 224
+    },
+    {
+      "entry": "Dec2",
+      "input": 222,
+      "expected": 220
+    },
+    {
+      "entry": "Negate",
+      "input": 222,
+      "expected": 34
+    },
+    {
+      "entry": "Identity",
+      "input": 222,
+      "expected": 222
+    },
+    {
+      "entry": "Zero",
+      "input": 222,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 222,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 222,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 222,
+      "expected": 177
+    },
+    {
+      "entry": "Inc2",
+      "input": 223,
+      "expected": 225
+    },
+    {
+      "entry": "Dec2",
+      "input": 223,
+      "expected": 221
+    },
+    {
+      "entry": "Negate",
+      "input": 223,
+      "expected": 33
+    },
+    {
+      "entry": "Identity",
+      "input": 223,
+      "expected": 223
+    },
+    {
+      "entry": "Zero",
+      "input": 223,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 223,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 223,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 223,
+      "expected": 144
+    },
+    {
+      "entry": "Inc2",
+      "input": 224,
+      "expected": 226
+    },
+    {
+      "entry": "Dec2",
+      "input": 224,
+      "expected": 222
+    },
+    {
+      "entry": "Negate",
+      "input": 224,
+      "expected": 32
+    },
+    {
+      "entry": "Identity",
+      "input": 224,
+      "expected": 224
+    },
+    {
+      "entry": "Zero",
+      "input": 224,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 224,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 224,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 224,
+      "expected": 112
+    },
+    {
+      "entry": "Inc2",
+      "input": 225,
+      "expected": 227
+    },
+    {
+      "entry": "Dec2",
+      "input": 225,
+      "expected": 223
+    },
+    {
+      "entry": "Negate",
+      "input": 225,
+      "expected": 31
+    },
+    {
+      "entry": "Identity",
+      "input": 225,
+      "expected": 225
+    },
+    {
+      "entry": "Zero",
+      "input": 225,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 225,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 225,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 225,
+      "expected": 81
+    },
+    {
+      "entry": "Inc2",
+      "input": 226,
+      "expected": 228
+    },
+    {
+      "entry": "Dec2",
+      "input": 226,
+      "expected": 224
+    },
+    {
+      "entry": "Negate",
+      "input": 226,
+      "expected": 30
+    },
+    {
+      "entry": "Identity",
+      "input": 226,
+      "expected": 226
+    },
+    {
+      "entry": "Zero",
+      "input": 226,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 226,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 226,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 226,
+      "expected": 51
+    },
+    {
+      "entry": "Inc2",
+      "input": 227,
+      "expected": 229
+    },
+    {
+      "entry": "Dec2",
+      "input": 227,
+      "expected": 225
+    },
+    {
+      "entry": "Negate",
+      "input": 227,
+      "expected": 29
+    },
+    {
+      "entry": "Identity",
+      "input": 227,
+      "expected": 227
+    },
+    {
+      "entry": "Zero",
+      "input": 227,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 227,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 227,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 227,
+      "expected": 22
+    },
+    {
+      "entry": "Inc2",
+      "input": 228,
+      "expected": 230
+    },
+    {
+      "entry": "Dec2",
+      "input": 228,
+      "expected": 226
+    },
+    {
+      "entry": "Negate",
+      "input": 228,
+      "expected": 28
+    },
+    {
+      "entry": "Identity",
+      "input": 228,
+      "expected": 228
+    },
+    {
+      "entry": "Zero",
+      "input": 228,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 228,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 228,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 228,
+      "expected": 250
+    },
+    {
+      "entry": "Inc2",
+      "input": 229,
+      "expected": 231
+    },
+    {
+      "entry": "Dec2",
+      "input": 229,
+      "expected": 227
+    },
+    {
+      "entry": "Negate",
+      "input": 229,
+      "expected": 27
+    },
+    {
+      "entry": "Identity",
+      "input": 229,
+      "expected": 229
+    },
+    {
+      "entry": "Zero",
+      "input": 229,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 229,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 229,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 229,
+      "expected": 223
+    },
+    {
+      "entry": "Inc2",
+      "input": 230,
+      "expected": 232
+    },
+    {
+      "entry": "Dec2",
+      "input": 230,
+      "expected": 228
+    },
+    {
+      "entry": "Negate",
+      "input": 230,
+      "expected": 26
+    },
+    {
+      "entry": "Identity",
+      "input": 230,
+      "expected": 230
+    },
+    {
+      "entry": "Zero",
+      "input": 230,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 230,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 230,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 230,
+      "expected": 197
+    },
+    {
+      "entry": "Inc2",
+      "input": 231,
+      "expected": 233
+    },
+    {
+      "entry": "Dec2",
+      "input": 231,
+      "expected": 229
+    },
+    {
+      "entry": "Negate",
+      "input": 231,
+      "expected": 25
+    },
+    {
+      "entry": "Identity",
+      "input": 231,
+      "expected": 231
+    },
+    {
+      "entry": "Zero",
+      "input": 231,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 231,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 231,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 231,
+      "expected": 172
+    },
+    {
+      "entry": "Inc2",
+      "input": 232,
+      "expected": 234
+    },
+    {
+      "entry": "Dec2",
+      "input": 232,
+      "expected": 230
+    },
+    {
+      "entry": "Negate",
+      "input": 232,
+      "expected": 24
+    },
+    {
+      "entry": "Identity",
+      "input": 232,
+      "expected": 232
+    },
+    {
+      "entry": "Zero",
+      "input": 232,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 232,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 232,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 232,
+      "expected": 148
+    },
+    {
+      "entry": "Inc2",
+      "input": 233,
+      "expected": 235
+    },
+    {
+      "entry": "Dec2",
+      "input": 233,
+      "expected": 231
+    },
+    {
+      "entry": "Negate",
+      "input": 233,
+      "expected": 23
+    },
+    {
+      "entry": "Identity",
+      "input": 233,
+      "expected": 233
+    },
+    {
+      "entry": "Zero",
+      "input": 233,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 233,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 233,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 233,
+      "expected": 125
+    },
+    {
+      "entry": "Inc2",
+      "input": 234,
+      "expected": 236
+    },
+    {
+      "entry": "Dec2",
+      "input": 234,
+      "expected": 232
+    },
+    {
+      "entry": "Negate",
+      "input": 234,
+      "expected": 22
+    },
+    {
+      "entry": "Identity",
+      "input": 234,
+      "expected": 234
+    },
+    {
+      "entry": "Zero",
+      "input": 234,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 234,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 234,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 234,
+      "expected": 103
+    },
+    {
+      "entry": "Inc2",
+      "input": 235,
+      "expected": 237
+    },
+    {
+      "entry": "Dec2",
+      "input": 235,
+      "expected": 233
+    },
+    {
+      "entry": "Negate",
+      "input": 235,
+      "expected": 21
+    },
+    {
+      "entry": "Identity",
+      "input": 235,
+      "expected": 235
+    },
+    {
+      "entry": "Zero",
+      "input": 235,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 235,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 235,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 235,
+      "expected": 82
+    },
+    {
+      "entry": "Inc2",
+      "input": 236,
+      "expected": 238
+    },
+    {
+      "entry": "Dec2",
+      "input": 236,
+      "expected": 234
+    },
+    {
+      "entry": "Negate",
+      "input": 236,
+      "expected": 20
+    },
+    {
+      "entry": "Identity",
+      "input": 236,
+      "expected": 236
+    },
+    {
+      "entry": "Zero",
+      "input": 236,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 236,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 236,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 236,
+      "expected": 62
+    },
+    {
+      "entry": "Inc2",
+      "input": 237,
+      "expected": 239
+    },
+    {
+      "entry": "Dec2",
+      "input": 237,
+      "expected": 235
+    },
+    {
+      "entry": "Negate",
+      "input": 237,
+      "expected": 19
+    },
+    {
+      "entry": "Identity",
+      "input": 237,
+      "expected": 237
+    },
+    {
+      "entry": "Zero",
+      "input": 237,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 237,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 237,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 237,
+      "expected": 43
+    },
+    {
+      "entry": "Inc2",
+      "input": 238,
+      "expected": 240
+    },
+    {
+      "entry": "Dec2",
+      "input": 238,
+      "expected": 236
+    },
+    {
+      "entry": "Negate",
+      "input": 238,
+      "expected": 18
+    },
+    {
+      "entry": "Identity",
+      "input": 238,
+      "expected": 238
+    },
+    {
+      "entry": "Zero",
+      "input": 238,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 238,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 238,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 238,
+      "expected": 25
+    },
+    {
+      "entry": "Inc2",
+      "input": 239,
+      "expected": 241
+    },
+    {
+      "entry": "Dec2",
+      "input": 239,
+      "expected": 237
+    },
+    {
+      "entry": "Negate",
+      "input": 239,
+      "expected": 17
+    },
+    {
+      "entry": "Identity",
+      "input": 239,
+      "expected": 239
+    },
+    {
+      "entry": "Zero",
+      "input": 239,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 239,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 239,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 239,
+      "expected": 8
+    },
+    {
+      "entry": "Inc2",
+      "input": 240,
+      "expected": 242
+    },
+    {
+      "entry": "Dec2",
+      "input": 240,
+      "expected": 238
+    },
+    {
+      "entry": "Negate",
+      "input": 240,
+      "expected": 16
+    },
+    {
+      "entry": "Identity",
+      "input": 240,
+      "expected": 240
+    },
+    {
+      "entry": "Zero",
+      "input": 240,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 240,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 240,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 240,
+      "expected": 248
+    },
+    {
+      "entry": "Inc2",
+      "input": 241,
+      "expected": 243
+    },
+    {
+      "entry": "Dec2",
+      "input": 241,
+      "expected": 239
+    },
+    {
+      "entry": "Negate",
+      "input": 241,
+      "expected": 15
+    },
+    {
+      "entry": "Identity",
+      "input": 241,
+      "expected": 241
+    },
+    {
+      "entry": "Zero",
+      "input": 241,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 241,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 241,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 241,
+      "expected": 233
+    },
+    {
+      "entry": "Inc2",
+      "input": 242,
+      "expected": 244
+    },
+    {
+      "entry": "Dec2",
+      "input": 242,
+      "expected": 240
+    },
+    {
+      "entry": "Negate",
+      "input": 242,
+      "expected": 14
+    },
+    {
+      "entry": "Identity",
+      "input": 242,
+      "expected": 242
+    },
+    {
+      "entry": "Zero",
+      "input": 242,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 242,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 242,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 242,
+      "expected": 219
+    },
+    {
+      "entry": "Inc2",
+      "input": 243,
+      "expected": 245
+    },
+    {
+      "entry": "Dec2",
+      "input": 243,
+      "expected": 241
+    },
+    {
+      "entry": "Negate",
+      "input": 243,
+      "expected": 13
+    },
+    {
+      "entry": "Identity",
+      "input": 243,
+      "expected": 243
+    },
+    {
+      "entry": "Zero",
+      "input": 243,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 243,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 243,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 243,
+      "expected": 206
+    },
+    {
+      "entry": "Inc2",
+      "input": 244,
+      "expected": 246
+    },
+    {
+      "entry": "Dec2",
+      "input": 244,
+      "expected": 242
+    },
+    {
+      "entry": "Negate",
+      "input": 244,
+      "expected": 12
+    },
+    {
+      "entry": "Identity",
+      "input": 244,
+      "expected": 244
+    },
+    {
+      "entry": "Zero",
+      "input": 244,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 244,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 244,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 244,
+      "expected": 194
+    },
+    {
+      "entry": "Inc2",
+      "input": 245,
+      "expected": 247
+    },
+    {
+      "entry": "Dec2",
+      "input": 245,
+      "expected": 243
+    },
+    {
+      "entry": "Negate",
+      "input": 245,
+      "expected": 11
+    },
+    {
+      "entry": "Identity",
+      "input": 245,
+      "expected": 245
+    },
+    {
+      "entry": "Zero",
+      "input": 245,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 245,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 245,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 245,
+      "expected": 183
+    },
+    {
+      "entry": "Inc2",
+      "input": 246,
+      "expected": 248
+    },
+    {
+      "entry": "Dec2",
+      "input": 246,
+      "expected": 244
+    },
+    {
+      "entry": "Negate",
+      "input": 246,
+      "expected": 10
+    },
+    {
+      "entry": "Identity",
+      "input": 246,
+      "expected": 246
+    },
+    {
+      "entry": "Zero",
+      "input": 246,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 246,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 246,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 246,
+      "expected": 173
+    },
+    {
+      "entry": "Inc2",
+      "input": 247,
+      "expected": 249
+    },
+    {
+      "entry": "Dec2",
+      "input": 247,
+      "expected": 245
+    },
+    {
+      "entry": "Negate",
+      "input": 247,
+      "expected": 9
+    },
+    {
+      "entry": "Identity",
+      "input": 247,
+      "expected": 247
+    },
+    {
+      "entry": "Zero",
+      "input": 247,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 247,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 247,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 247,
+      "expected": 164
+    },
+    {
+      "entry": "Inc2",
+      "input": 248,
+      "expected": 250
+    },
+    {
+      "entry": "Dec2",
+      "input": 248,
+      "expected": 246
+    },
+    {
+      "entry": "Negate",
+      "input": 248,
+      "expected": 8
+    },
+    {
+      "entry": "Identity",
+      "input": 248,
+      "expected": 248
+    },
+    {
+      "entry": "Zero",
+      "input": 248,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 248,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 248,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 248,
+      "expected": 156
+    },
+    {
+      "entry": "Inc2",
+      "input": 249,
+      "expected": 251
+    },
+    {
+      "entry": "Dec2",
+      "input": 249,
+      "expected": 247
+    },
+    {
+      "entry": "Negate",
+      "input": 249,
+      "expected": 7
+    },
+    {
+      "entry": "Identity",
+      "input": 249,
+      "expected": 249
+    },
+    {
+      "entry": "Zero",
+      "input": 249,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 249,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 249,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 249,
+      "expected": 149
+    },
+    {
+      "entry": "Inc2",
+      "input": 250,
+      "expected": 252
+    },
+    {
+      "entry": "Dec2",
+      "input": 250,
+      "expected": 248
+    },
+    {
+      "entry": "Negate",
+      "input": 250,
+      "expected": 6
+    },
+    {
+      "entry": "Identity",
+      "input": 250,
+      "expected": 250
+    },
+    {
+      "entry": "Zero",
+      "input": 250,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 250,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 250,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 250,
+      "expected": 143
+    },
+    {
+      "entry": "Inc2",
+      "input": 251,
+      "expected": 253
+    },
+    {
+      "entry": "Dec2",
+      "input": 251,
+      "expected": 249
+    },
+    {
+      "entry": "Negate",
+      "input": 251,
+      "expected": 5
+    },
+    {
+      "entry": "Identity",
+      "input": 251,
+      "expected": 251
+    },
+    {
+      "entry": "Zero",
+      "input": 251,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 251,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 251,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 251,
+      "expected": 138
+    },
+    {
+      "entry": "Inc2",
+      "input": 252,
+      "expected": 254
+    },
+    {
+      "entry": "Dec2",
+      "input": 252,
+      "expected": 250
+    },
+    {
+      "entry": "Negate",
+      "input": 252,
+      "expected": 4
+    },
+    {
+      "entry": "Identity",
+      "input": 252,
+      "expected": 252
+    },
+    {
+      "entry": "Zero",
+      "input": 252,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 252,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 252,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 252,
+      "expected": 134
+    },
+    {
+      "entry": "Inc2",
+      "input": 253,
+      "expected": 255
+    },
+    {
+      "entry": "Dec2",
+      "input": 253,
+      "expected": 251
+    },
+    {
+      "entry": "Negate",
+      "input": 253,
+      "expected": 3
+    },
+    {
+      "entry": "Identity",
+      "input": 253,
+      "expected": 253
+    },
+    {
+      "entry": "Zero",
+      "input": 253,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 253,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 253,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 253,
+      "expected": 131
+    },
+    {
+      "entry": "Inc2",
+      "input": 254,
+      "expected": 0
+    },
+    {
+      "entry": "Dec2",
+      "input": 254,
+      "expected": 252
+    },
+    {
+      "entry": "Negate",
+      "input": 254,
+      "expected": 2
+    },
+    {
+      "entry": "Identity",
+      "input": 254,
+      "expected": 254
+    },
+    {
+      "entry": "Zero",
+      "input": 254,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 254,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 254,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 254,
+      "expected": 129
+    },
+    {
+      "entry": "Inc2",
+      "input": 255,
+      "expected": 1
+    },
+    {
+      "entry": "Dec2",
+      "input": 255,
+      "expected": 253
+    },
+    {
+      "entry": "Negate",
+      "input": 255,
+      "expected": 1
+    },
+    {
+      "entry": "Identity",
+      "input": 255,
+      "expected": 255
+    },
+    {
+      "entry": "Zero",
+      "input": 255,
+      "expected": 0
+    },
+    {
+      "entry": "IsPositive",
+      "input": 255,
+      "expected": 1
+    },
+    {
+      "entry": "Fact",
+      "input": 255,
+      "expected": 0
+    },
+    {
+      "entry": "SumTo",
+      "input": 255,
+      "expected": 128
+    }
+  ]
+}

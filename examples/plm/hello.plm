@@ -1,5 +1,5 @@
 /* PL/M-80 Hello World for CP/M */
-/* mz hello.plm --target=cpm -o hello.a80 && mza hello.a80 -o HELLO.COM */
+/* mz hello.plm --target=cpm --runtime=cpm --runtime-stack=1024 -o hello.a80 && mza hello.a80 -o HELLO.COM */
 
 HELLO: DO;
 
@@ -8,7 +8,8 @@ DECLARE LF LITERALLY '0AH';
 
 PRINT$CHAR: PROCEDURE (C);
     DECLARE C BYTE;
-    /* BDOS function 2: console output */
+    /* Compiler CP/M console intrinsic: emitted runtime calls BDOS function 2. */
+    CALL BDOS(2, C);
 END PRINT$CHAR;
 
 PRINT$MSG: PROCEDURE (PTR);
@@ -23,7 +24,7 @@ PRINT$MSG: PROCEDURE (PTR);
 END PRINT$MSG;
 
 /* Main program */
-CALL PRINT$MSG(.'Hello from PL/M-80!');
+CALL PRINT$MSG(.('Hello from PL/M-80!', 0));
 CALL PRINT$CHAR(CR);
 CALL PRINT$CHAR(LF);
 

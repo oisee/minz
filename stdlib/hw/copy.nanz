@@ -1,0 +1,170 @@
+// Static row-copy generator; source and destination layouts must be disjoint.
+fun @copy() {
+    var sl: ^u8 = c""
+    var dl: ^u8 = c""
+    var primitive: ^u8 = c"pointer"
+    var sb: i32 = 0
+    var db: i32 = 0
+    var sc: i32 = 0
+    var dc: i32 = 0
+    var sr: i32 = 0
+    var dr: i32 = 0
+    var ss: i32 = 0
+    var ds: i32 = 0
+    var sx: i32 = 0
+    var sy: i32 = 0
+    var dx: i32 = 0
+    var dy: i32 = 0
+    var width: i32 = 0
+    var height: i32 = 0
+    var seen_source: u8 = 0
+    var seen_destination: u8 = 0
+    var seen_region: u8 = 0
+    var seen_via: u8 = 0
+    var i: u16 = 0
+    while i < block_len() {
+        let key: ^u8 = node_keyword(i)
+        if str_eq(key, c"source") == 1 {
+            if seen_source != 0 { meta_error(c"copy: duplicate source") }
+            seen_source = 1
+            sl = node_arg_str(i, 0)
+            if str_eq(sl, c"linear") == 1 {
+                if node_arg_count(i) != 5 { meta_error(c"copy: linear needs base, columns, rows, stride") }
+                sb = node_arg_int(i, 1)
+                sc = node_arg_int(i, 2)
+                sr = node_arg_int(i, 3)
+                ss = node_arg_int(i, 4)
+            } else if str_eq(sl, c"zx_bitmap_bytes") == 1 {
+                if node_arg_count(i) != 2 { meta_error(c"copy: ZX needs base") }
+                sb = node_arg_int(i, 1)
+                sc = 32
+                sr = 192
+                ss = 32
+            } else { meta_error(c"copy: unknown layout") }
+        } else if str_eq(key, c"destination") == 1 {
+            if seen_destination != 0 { meta_error(c"copy: duplicate destination") }
+            seen_destination = 1
+            dl = node_arg_str(i, 0)
+            if str_eq(dl, c"linear") == 1 {
+                if node_arg_count(i) != 5 { meta_error(c"copy: linear needs base, columns, rows, stride") }
+                db = node_arg_int(i, 1)
+                dc = node_arg_int(i, 2)
+                dr = node_arg_int(i, 3)
+                ds = node_arg_int(i, 4)
+            } else if str_eq(dl, c"zx_bitmap_bytes") == 1 {
+                if node_arg_count(i) != 2 { meta_error(c"copy: ZX needs base") }
+                db = node_arg_int(i, 1)
+                dc = 32
+                dr = 192
+                ds = 32
+            } else { meta_error(c"copy: unknown layout") }
+        } else if str_eq(key, c"region") == 1 {
+            if seen_region != 0 { meta_error(c"copy: duplicate region") }
+            if node_arg_count(i) != 6 { meta_error(c"copy: region needs sx, sy, dx, dy, width, height") }
+            seen_region = 1
+            sx = node_arg_int(i, 0)
+            sy = node_arg_int(i, 1)
+            dx = node_arg_int(i, 2)
+            dy = node_arg_int(i, 3)
+            width = node_arg_int(i, 4)
+            height = node_arg_int(i, 5)
+        } else if str_eq(key, c"via") == 1 {
+            if seen_via != 0 { meta_error(c"copy: duplicate via") }
+            if node_arg_count(i) != 1 { meta_error(c"copy: via needs one name") }
+            seen_via = 1
+            primitive = node_arg_str(i, 0)
+        } else { meta_error(c"copy: unknown field") }
+        i = i + 1
+    }
+    if seen_source == 0 { meta_error(c"copy: missing source") }
+    if seen_destination == 0 { meta_error(c"copy: missing destination") }
+    if seen_region == 0 { meta_error(c"copy: missing region") }
+    if sb < 0 { meta_error(c"copy: invalid layout dimensions/address") }
+    if sb > 65535 { meta_error(c"copy: invalid layout dimensions/address") }
+    if sc <= 0 { meta_error(c"copy: invalid layout dimensions/address") }
+    if sc > 65535 { meta_error(c"copy: invalid layout dimensions/address") }
+    if sr <= 0 { meta_error(c"copy: invalid layout dimensions/address") }
+    if sr > 65535 { meta_error(c"copy: invalid layout dimensions/address") }
+    if ss < sc { meta_error(c"copy: invalid layout dimensions/address") }
+    if ss > 65535 { meta_error(c"copy: invalid layout dimensions/address") }
+    let sextent: u32 = u32(sr - 1) * u32(ss) + u32(sc - 1)
+    if sextent > u32(65535 - sb) { meta_error(c"copy: layout exceeds address space") }
+    if db < 0 { meta_error(c"copy: invalid layout dimensions/address") }
+    if db > 65535 { meta_error(c"copy: invalid layout dimensions/address") }
+    if dc <= 0 { meta_error(c"copy: invalid layout dimensions/address") }
+    if dc > 65535 { meta_error(c"copy: invalid layout dimensions/address") }
+    if dr <= 0 { meta_error(c"copy: invalid layout dimensions/address") }
+    if dr > 65535 { meta_error(c"copy: invalid layout dimensions/address") }
+    if ds < dc { meta_error(c"copy: invalid layout dimensions/address") }
+    if ds > 65535 { meta_error(c"copy: invalid layout dimensions/address") }
+    let dextent: u32 = u32(dr - 1) * u32(ds) + u32(dc - 1)
+    if dextent > u32(65535 - db) { meta_error(c"copy: layout exceeds address space") }
+    if str_eq(primitive, c"pointer") == 0 {
+        if str_eq(primitive, c"ldir") == 0 { meta_error(c"copy: unknown primitive") }
+    }
+    if sx < 0 { meta_error(c"copy: region outside layout") }
+    if sy < 0 { meta_error(c"copy: region outside layout") }
+    if dx < 0 { meta_error(c"copy: region outside layout") }
+    if dy < 0 { meta_error(c"copy: region outside layout") }
+    if width < 0 { meta_error(c"copy: region outside layout") }
+    if height < 0 { meta_error(c"copy: region outside layout") }
+    if sx > sc { meta_error(c"copy: region outside layout") }
+    if sy > sr { meta_error(c"copy: region outside layout") }
+    if dx > dc { meta_error(c"copy: region outside layout") }
+    if dy > dr { meta_error(c"copy: region outside layout") }
+    if width > sc - sx { meta_error(c"copy: region outside layout") }
+    if width > dc - dx { meta_error(c"copy: region outside layout") }
+    if height > sr - sy { meta_error(c"copy: region outside layout") }
+    if height > dr - dy { meta_error(c"copy: region outside layout") }
+    if width == 0 { return }
+    if height == 0 { return }
+    if u32(sb) <= u32(db) + dextent {
+        if u32(db) <= u32(sb) + sextent { meta_error(c"copy: overlapping layouts; use disjoint buffers") }
+    }
+    var row: i32 = 0
+    while row < height {
+        var saddress: i32 = sb + (sy + row) * ss + sx
+        if str_eq(sl, c"zx_bitmap_bytes") == 1 {
+            let scan: i32 = sy + row
+            saddress = sb + ((scan & 192) << 5) + ((scan & 7) << 8) + ((scan & 56) << 2) + sx
+        }
+        var daddress: i32 = db + (dy + row) * ds + dx
+        if str_eq(dl, c"zx_bitmap_bytes") == 1 {
+            let scan: i32 = dy + row
+            daddress = db + ((scan & 192) << 5) + ((scan & 7) << 8) + ((scan & 56) << 2) + dx
+        }
+        if str_eq(primitive, c"ldir") == 1 {
+            emit(c"asm z80 (clob) {")
+            emit(c"PUSH AF")
+            emit(c"PUSH BC")
+            emit(c"PUSH DE")
+            emit(c"PUSH HL")
+            emit(str_concat(c"LD HL, ", str_from_int(saddress)))
+            emit(str_concat(c"LD DE, ", str_from_int(daddress)))
+            emit(str_concat(c"LD BC, ", str_from_int(width)))
+            emit(c"LDIR")
+            emit(c"POP HL")
+            emit(c"POP DE")
+            emit(c"POP BC")
+            emit(c"POP AF")
+            emit(c"}")
+        } else {
+            emit(c"{")
+            emit(str_concat(c"var copy_src: ^u8 = ptr(", str_concat(str_from_int(saddress), c")")))
+            emit(str_concat(c"var copy_dst: ^u8 = ptr(", str_concat(str_from_int(daddress), c")")))
+            if width < 256 {
+                emit(str_concat(c"var copy_left: u8 = ", str_from_int(width)))
+            } else {
+                emit(str_concat(c"var copy_left: u16 = ", str_from_int(width)))
+            }
+            emit(c"while copy_left != 0 {")
+            emit(c"copy_dst^ = copy_src^")
+            emit(c"copy_src = copy_src + 1")
+            emit(c"copy_dst = copy_dst + 1")
+            emit(c"copy_left = copy_left - 1")
+            emit(c"}")
+            emit(c"}")
+        }
+        row = row + 1
+    }
+}

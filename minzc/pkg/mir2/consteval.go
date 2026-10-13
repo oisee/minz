@@ -88,12 +88,15 @@ func isConstEliminableCall(inst *Inst, m *Module) bool {
 	if callee == nil {
 		return false // external / not defined in this module
 	}
-	if callee.Attrs.IsExtern {
+	if len(callee.Contract.StructReturnBuffers) > 0 || len(inst.StructReturnBuffers) > 0 || callee.Attrs.IsExtern || callee.Attrs.FallibleCY || inst.FallibleCY {
 		return false
 	}
 	// Recursive functions would loop forever in the VM.
 	// The VM's MaxSteps handles this, but we can skip them cheaply.
 	if callee.Attrs.IsRecursive {
+		return false
+	}
+	if !constantCallPure(callee, m, make(map[string]bool)) {
 		return false
 	}
 	// Functions that access globals are not pure — their result depends on
@@ -117,6 +120,9 @@ func funcAccessesGlobals(f *Func, m *Module) bool {
 }
 
 func funcAccessesGlobalsRec(f *Func, m *Module, globalNames, visited map[string]bool) bool {
+	if len(f.Contract.StructReturnBuffers) > 0 {
+		return true
+	}
 	if visited[f.Name] {
 		return false
 	}
@@ -141,4 +147,40 @@ func funcAccessesGlobalsRec(f *Func, m *Module, globalNames, visited map[string]
 		}
 	}
 	return false
+}
+
+// constantCallPure admits only scalar computation independent of evaluator
+// memory and external state. A successful VM execution alone is not proof:
+// loads can observe its fresh heap, and stores/allocas can disappear on folding.
+// Follow known calls transitively; unknown opcodes/calls fail closed.
+func constantCallPure(f *Func, m *Module, visited map[string]bool) bool {
+	if f == nil || f.Attrs.IsExtern || f.Attrs.FallibleCY || len(f.Blocks) == 0 {
+		return false
+	}
+	if visited[f.Name] {
+		return true
+	}
+	visited[f.Name] = true
+	for _, ret := range f.Contract.Returns {
+		ty := BaseOf(ret.Ty)
+		if !IsInt(ty) || IsPointer(ty) {
+			return false
+		}
+	}
+	for _, b := range f.Blocks {
+		for _, i := range b.Insts {
+			switch i.Op {
+			case OpConst, OpMove, OpAdd, OpSub, OpMul, OpDiv, OpMod, OpSDiv, OpSMod,
+				OpAnd, OpOr, OpXor, OpShl, OpShr, OpSar, OpNeg, OpNot,
+				OpExt, OpSext, OpTrunc, OpCmp, OpBitGet, OpBitSet, OpBitReset:
+			case OpCall:
+				if i.CallAttr.IsHost || i.FallibleCY || !constantCallPure(m.FuncByName(i.Sym), m, visited) {
+					return false
+				}
+			default:
+				return false
+			}
+		}
+	}
+	return true
 }

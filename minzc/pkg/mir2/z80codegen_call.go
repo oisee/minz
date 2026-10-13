@@ -16,16 +16,25 @@ func (g *z80cg) genCall(inst *Inst) error {
 	// ── Built-in intrinsics (inlined, no CALL emitted) ────────────────────────
 	switch inst.Sym {
 	case "@mir.io.print.str":
-		// Emit inline NUL-terminated string output loop via OUT ($23), A.
-		// The string pointer must be in HL (ClassPointer).
-		// HL is advanced in-place; A and F are clobbered.
+		if len(inst.Args) != 1 {
+			return fmt.Errorf("print.str requires one pointer argument")
+		}
+		// Inline output uses HL/A/F, independent of the allocated argument home.
+		// Preserve the original pointer too when it remains live after printing.
+		restore := g.saveStringPrintScratch(inst)
+		defer restore()
+		src := g.loc(inst.Args[0])
+		if src == "F" || g.pendingFlagReg == inst.Args[0] {
+			return fmt.Errorf("print.str requires a pointer, not a flag")
+		}
+		g.emitMov("HL", src, 16)
 		idx := g.trampIdx
 		g.trampIdx++
 		g.emitf(".print_str_%d:", idx)
 		g.emit("    LD A, (HL)")
 		g.emit("    AND A")
 		g.emitf("    JR Z, .print_str_done_%d", idx)
-		g.emit("    OUT (0x23), A")
+		g.emitConsoleA()
 		g.emit("    INC HL")
 		g.emitf("    JR .print_str_%d", idx)
 		g.emitf(".print_str_done_%d:", idx)
@@ -34,29 +43,69 @@ func (g *z80cg) genCall(inst *Inst) error {
 		g.invalidate("HL")
 		return nil
 
-	case "@mir.io.print.u8":
-		// Emit single OUT ($23), A.  The value must already be in A.
-		g.emit("    OUT (0x23), A")
-		g.invalidate("A")
-		return nil
-
 	case "@mir.io.print.char":
-		// Print ASCII character in A via OUT ($23).
-		g.emit("    OUT (0x23), A")
+		if len(inst.Args) != 1 {
+			return fmt.Errorf("print.char requires one byte argument")
+		}
+		// The allocator may coalesce the ABI move into another byte register.
+		// LD A and OUT preserve flags and every other register. Snapshot AF
+		// only when materialization would overwrite another live value in A.
+		src := g.loc(inst.Args[0])
+		if src == "F" {
+			return fmt.Errorf("print.char requires a byte value, not an unmaterialized flag")
+		}
+		if src != "A" {
+			saveA := false
+			for r := range g.scratchLiveAfter(inst) {
+				if r != inst.Dst && g.loc(r) == "A" {
+					saveA = true
+					break
+				}
+			}
+			if saveA {
+				g.emit("    PUSH AF")
+				defer func() { g.emit("    POP AF"); g.invalidate("A") }()
+			}
+			g.emitLDA(src)
+		}
+		g.emitConsoleA()
 		g.invalidate("A")
 		return nil
 
 	case "@mir.io.print.nl":
-		// Emit newline (\n = 0x0A) via OUT ($23), A.
+		// Newline has no result; a live accumulator is not its scratch value.
+		saveA := false
+		for r := range g.scratchLiveAfter(inst) {
+			if r != inst.Dst && (g.loc(r) == "A" || r == g.pendingAccReg) {
+				saveA = true
+			}
+		}
+		if saveA {
+			g.emit("    PUSH AF")
+			defer func() { g.emit("    POP AF"); g.invalidate("A") }()
+		}
 		g.emit("    LD A, 0x0A")
-		g.emit("    OUT (0x23), A")
+		g.emitConsoleA()
 		g.invalidate("A")
 		return nil
 
-	case "@mir.io.print.dec":
-		// Print u8 value in A as decimal ASCII digits via OUT ($23).
+	case "@mir.io.print.u8", "@mir.io.print.dec":
+		if len(inst.Args) != 1 {
+			return fmt.Errorf("%s requires one integer argument", inst.Sym)
+		}
+		src := g.loc(inst.Args[0])
+		if g.pendingAccReg == inst.Args[0] {
+			src = "A" // deferred accumulator values physically occupy A
+		}
+		if src == "F" || g.pendingFlagReg == inst.Args[0] {
+			return fmt.Errorf("%s requires an integer value, not an unmaterialized flag", inst.Sym)
+		}
+		restore := g.saveDecimalPrintScratch(inst)
+		defer restore()
+		g.emitLDA(src)
+		// Match the VM: decimal ASCII of uint8(argument), including word arguments.
 		// Inline: divide by 100, 10 (using repeated subtraction — small and fast
-		// enough for 0-255).  Clobbers A, B, C, D, H, L.
+		// enough for 0-255). Uses A, B, C, D and flags.
 		idx := g.trampIdx
 		g.trampIdx++
 		// Hundreds digit
@@ -76,7 +125,7 @@ func (g *z80cg) genCall(inst *Inst) error {
 		g.emitf("    OR A")
 		g.emitf("    JR Z, .pdec_t%d", idx)
 		g.emitf("    ADD A, 48") // '0'
-		g.emitf("    OUT (0x23), A")
+		g.emitConsoleA()
 		// Tens digit
 		g.emitf(".pdec_t%d:", idx)
 		g.emitf("    LD D, 0") // D = tens count
@@ -95,12 +144,12 @@ func (g *z80cg) genCall(inst *Inst) error {
 		g.emitf("    JR Z, .pdec_u%d", idx)
 		g.emitf("    LD A, D")
 		g.emitf("    ADD A, 48")
-		g.emitf("    OUT (0x23), A")
+		g.emitConsoleA()
 		// Units digit (always print)
 		g.emitf(".pdec_u%d:", idx)
 		g.emitf("    LD A, C")
 		g.emitf("    ADD A, 48")
-		g.emitf("    OUT (0x23), A")
+		g.emitConsoleA()
 		g.invalidate("A")
 		g.invalidate("B")
 		g.invalidate("C")
@@ -109,7 +158,7 @@ func (g *z80cg) genCall(inst *Inst) error {
 
 	case "@mir.io.console.log":
 		// console_log(n: u8) — OUT ($23), A  (mze/mzx stdout port)
-		g.emit("    OUT (0x23), A")
+		g.emitConsoleA()
 		g.invalidate("A")
 		return nil
 
@@ -119,32 +168,9 @@ func (g *z80cg) genCall(inst *Inst) error {
 		g.invalidate("A")
 		return nil
 
-	case "@error":
-		// @error(N) — set carry flag, error code in A, return.
-		// Used in fallible functions (name?). A = argument (error code).
-		g.emit("    SCF") // CY = 1 (error)
-		g.emit("    RET") // return to caller with CY set + A = code
-		g.invalidate("A")
-		return nil
+	case "@error", "@check", "@propagate":
+		return fmt.Errorf("error intrinsics require first-class MIR lowering")
 
-	case "@check":
-		// @check — jump to error handler if carry set.
-		// Emits: JR NC, .skip / <handler will be next block> / .skip:
-		// For now: just emit RET C (propagate). Handler block TBD.
-		idx := g.trampIdx
-		g.trampIdx++
-		g.emitf("    JR NC, .check_ok_%d", idx)
-		// The handler code follows in the next statement.
-		// For simple propagation, emit RET:
-		g.emit("    RET") // propagate error (CY + A intact)
-		g.emitf(".check_ok_%d:", idx)
-		return nil
-
-	case "@propagate":
-		// @propagate — conditional return on carry. 1 byte, 5T.
-		// If CY=1 (error from previous call), return immediately.
-		g.emit("    RET C")
-		return nil
 	}
 
 	sym := sanitizeIdent(inst.Sym)
@@ -155,10 +181,40 @@ func (g *z80cg) genCall(inst *Inst) error {
 		callee = &Func{}
 		for i, arg := range inst.Args {
 			ty := inferTyFromAlloc(g.ar, arg)
+			if i < len(inst.IndirectParamTys) {
+				ty = inst.IndirectParamTys[i]
+			} else if info, ok := g.regInfo[arg]; ok && info.Ty != nil {
+				ty = info.Ty
+			}
+			for _, slot := range inst.StructReturnBuffers {
+				if slot.ParamIndex == i {
+					ty = TyPtr
+				}
+			}
 			callee.Contract.Params = append(callee.Contract.Params, Param{Ty: ty, Class: standardParamClass(ty, i)})
 		}
-		if inst.Dst != NoReg {
-			callee.Contract.Returns = []Return{{Ty: inst.Ty, Class: ClassAcc}}
+		paramTys := make([]Ty, len(callee.Contract.Params))
+		for i, p := range callee.Contract.Params {
+			paramTys[i] = p.Ty
+		}
+		classes, err := CanonicalIndirectParamClasses(paramTys)
+		if err != nil {
+			return err
+		}
+		for i := range callee.Contract.Params {
+			callee.Contract.Params[i].Class = classes[i]
+		}
+		callee.Contract.StructReturnBuffers = inst.StructReturnBuffers
+		returns := inst.IndirectReturnTys
+		if len(returns) == 0 && inst.Dst != NoReg {
+			returns = []Ty{inst.Ty}
+		}
+		returnClasses, err := CanonicalIndirectReturnClasses(returns)
+		if err != nil {
+			return err
+		}
+		for i, ty := range returns {
+			callee.Contract.Returns = append(callee.Contract.Returns, Return{Ty: ty, Class: returnClasses[i]})
 		}
 	} else if g.mod != nil {
 		// Resolve on emitted symbols. Never discard an ABI to handle ambiguity.
@@ -174,8 +230,31 @@ func (g *z80cg) genCall(inst *Inst) error {
 
 	// Save live caller values before argument copies, including reused args.
 	var callerSavePairs []string
+	var callerSaveShadowPairs []string
+	var callerSaveHomes []callSpillHome
 	if inst != g.tailCallInst {
+		callerSaveHomes = g.callerSaveSpillHomes(inst)
+		g.pushCallSpillHomes(callerSaveHomes)
 		callerSavePairs = g.callerSavePairs(inst, callee)
+		liveAfterCall := g.regsLiveAfterInst(inst)
+		for _, pair := range callerSavePairs {
+			for r := range liveAfterCall {
+				if r == inst.Dst || slices.Contains(inst.ExtraRets, r) {
+					continue
+				}
+				if info, ok := g.regInfo[r]; ok && isZ80WideInt(info.Ty) && g.loc(r) == pair {
+					callerSaveShadowPairs = append(callerSaveShadowPairs, pair)
+					break
+				}
+			}
+		}
+		if len(callerSaveShadowPairs) != 0 {
+			g.emit("    EXX")
+			for _, pair := range callerSaveShadowPairs {
+				g.emitf("    PUSH %s", pair)
+			}
+			g.emit("    EXX")
+		}
 		for _, pair := range callerSavePairs {
 			g.emitf("    PUSH %s", pair)
 		}
@@ -186,7 +265,7 @@ func (g *z80cg) genCall(inst *Inst) error {
 		g.pushWord(g.loc(inst.Src[0]))
 	}
 	if len(inst.Args) > 0 && callee != nil {
-		g.emitCallArgs(inst.Args, callee)
+		g.emitCallArgsForInst(inst.Args, callee, inst)
 	}
 	if indirect {
 		g.emit("    POP IX")
@@ -213,10 +292,10 @@ func (g *z80cg) genCall(inst *Inst) error {
 		if addr <= 0x38 && addr%8 == 0 {
 			g.emitf("    RST 0x%02X", addr)
 		} else {
-			g.emitf("    CALL 0x%04X", addr)
+			g.emitNativeSpillCall(inst, fmt.Sprintf("    CALL 0x%04X", addr))
 		}
 	} else {
-		g.emitf("    CALL %s", sym)
+		g.emitNativeSpillCall(inst, fmt.Sprintf("    CALL %s", sym))
 	}
 
 	// Pick up every result without letting caller restores destroy it. If a
@@ -234,21 +313,28 @@ func (g *z80cg) genCall(inst *Inst) error {
 			results = append(results, parallelCopy{srcName: canonicalReturnLoc(ret.Class, ret.Ty), dstName: dstPhys, ty: ret.Ty})
 		}
 	}
-	for i, r := range inst.ExtraRets {
-		if r == NoReg {
-			continue
+	if inst.FallibleCY {
+		if callee == nil || !callee.Attrs.FallibleCY || len(inst.ExtraRets) != 2 {
+			return fmt.Errorf("invalid fallible native call")
 		}
-		cls, ty := ClassIndex, Ty(TyU16)
-		if callee != nil && i+1 < len(callee.Contract.Returns) {
-			cls, ty = callee.Contract.Returns[i+1].Class, callee.Contract.Returns[i+1].Ty
+		results = append(results, parallelCopy{srcName: "F", dstName: g.loc(inst.ExtraRets[0]), ty: TyBool}, parallelCopy{srcName: "A", dstName: g.loc(inst.ExtraRets[1]), ty: TyU8})
+	} else {
+		for i, r := range inst.ExtraRets {
+			if r == NoReg {
+				continue
+			}
+			cls, ty := ClassIndex, Ty(TyU16)
+			if callee != nil && i+1 < len(callee.Contract.Returns) {
+				cls, ty = callee.Contract.Returns[i+1].Class, callee.Contract.Returns[i+1].Ty
+			}
+			if i < len(inst.ExtraRetClasses) {
+				cls = inst.ExtraRetClasses[i]
+			}
+			if i < len(inst.ExtraRetTys) {
+				ty = inst.ExtraRetTys[i]
+			}
+			results = append(results, parallelCopy{srcName: canonicalReturnLoc(cls, ty), dstName: g.loc(r), ty: ty})
 		}
-		if i < len(inst.ExtraRetClasses) {
-			cls = inst.ExtraRetClasses[i]
-		}
-		if i < len(inst.ExtraRetTys) {
-			ty = inst.ExtraRetTys[i]
-		}
-		results = append(results, parallelCopy{srcName: canonicalReturnLoc(cls, ty), dstName: g.loc(r), ty: ty})
 	}
 	var protected []string
 	for r := range g.regsLiveAfterInst(inst) {
@@ -257,6 +343,14 @@ func (g *z80cg) genCall(inst *Inst) error {
 		}
 	}
 	g.pickupCallResults(results, callerSavePairs, flagResult, protected...)
+	if len(callerSaveShadowPairs) != 0 {
+		g.emit("    EXX")
+		for i := len(callerSaveShadowPairs) - 1; i >= 0; i-- {
+			g.emitf("    POP %s", callerSaveShadowPairs[i])
+		}
+		g.emit("    EXX")
+	}
+	g.popCallSpillHomes(callerSaveHomes)
 
 	// CALL and argument setup invalidate cached physical contents, including
 	// registers used only as scratch by the emitted callee/runtime sequences.
@@ -294,11 +388,12 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 		savedPair[p] = true
 	}
 	before, after := true, true
+	fallible := slices.ContainsFunc(results, func(r parallelCopy) bool { return r.srcName == "F" })
 	for _, r := range results {
 		before = before && !savedPair[regToPairMap[r.dstName]]
 		after = after && !savedPair[regToPairMap[r.srcName]]
 	}
-	if flagResult && savedPair["AF"] {
+	if fallible || flagResult && savedPair["AF"] {
 		before, after = false, false
 	}
 	if before || after {
@@ -315,7 +410,7 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 	}
 	// A byte result can use an unsaved pair only when its scratch byte does
 	// not hold a live value preserved by a narrow extern contract.
-	if !flagResult && len(results) == 1 && results[0].ty.Width() <= 8 && regToPairMap[results[0].dstName] != "" {
+	if !flagResult && len(results) == 1 && z80ValueWidth(results[0].ty) <= 8 && regToPairMap[results[0].dstName] != "" {
 		r := results[0]
 		for _, scratch := range []string{"E", "H", "L", "D", "B", "C"} {
 			if !savedPair[regToPairMap[scratch]] && !slices.ContainsFunc(protected, func(name string) bool {
@@ -333,7 +428,6 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 
 	// IX addresses snapshots and the caller-save image. Its original value
 	// is restored separately, including when IX itself is a result destination.
-	g.emit("    PUSH IX")
 	pairs := []string{"AF"}
 	for _, r := range results {
 		p := regToPairMap[r.srcName]
@@ -341,6 +435,9 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 			pairs = append(pairs, p)
 		}
 	}
+	g.beginNativeCallFrame(saved, pairs, results)
+	defer g.endNativeCallFrame()
+	g.emit("    PUSH IX")
 	for _, p := range pairs {
 		g.emitf("    PUSH %s", p)
 	}
@@ -356,6 +453,9 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 		restore[p] = base + 2 + 2*(len(saved)-1-i)
 	}
 	byteOffset := func(name string) int {
+		if name == "F" {
+			return snapshot["AF"]
+		}
 		p := regToPairMap[name]
 		o := snapshot[p]
 		if name == "A" || name == highByte(p) {
@@ -365,6 +465,13 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 	}
 	storeByte := func(src, dst int) {
 		g.emitf("    LD A, (IX+%d)", src)
+		g.emitf("    LD (IX+%d), A", dst)
+	}
+	storeResultByte := func(r parallelCopy, dst int) {
+		g.emitf("    LD A, (IX+%d)", byteOffset(r.srcName))
+		if r.srcName == "F" {
+			g.emit("    AND 1")
+		}
 		g.emitf("    LD (IX+%d), A", dst)
 	}
 	// Patch saved destinations before loading any final register, since A
@@ -378,7 +485,7 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 		if !ok {
 			continue
 		}
-		if r.ty.Width() > 8 {
+		if z80ValueWidth(r.ty) > 8 {
 			src := snapshot[regToPairMap[r.srcName]]
 			storeByte(src, o)
 			storeByte(src+1, o+1)
@@ -386,7 +493,7 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 			if r.dstName == "A" || r.dstName == highByte(p) {
 				o++
 			}
-			storeByte(byteOffset(r.srcName), o)
+			storeResultByte(r, o)
 		}
 	}
 	if flagResult && savedPair["AF"] {
@@ -395,7 +502,7 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 	// Preserve the result in A in the AF snapshot until all scratch work is done.
 	for _, r := range results {
 		if r.dstName == "A" && !savedPair["AF"] {
-			storeByte(byteOffset(r.srcName), snapshot["AF"]+1)
+			storeResultByte(r, snapshot["AF"]+1)
 		}
 	}
 	for _, r := range results {
@@ -403,7 +510,13 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 		if savedPair[p] || p == "IX" || r.dstName == "A" {
 			continue
 		}
-		if r.ty.Width() <= 8 {
+		if z80ValueWidth(r.ty) <= 8 {
+			if r.srcName == "F" {
+				g.emitf("    LD A, (IX+%d)", snapshot["AF"])
+				g.emit("    AND 1")
+				g.emitLD8(r.dstName, "A")
+				continue
+			}
 			// Indexed memory cannot load IY halves directly; use A as scratch.
 			if p != "" && p != "IY" {
 				g.emitf("    LD %s, (IX+%d)", r.dstName, byteOffset(r.srcName))
@@ -417,7 +530,7 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 				g.emit("    PUSH HL")
 				g.emitf("    LD L, (IX+%d)", src)
 				g.emitf("    LD H, (IX+%d)", src+1)
-				g.emitMov(r.dstName, "HL", r.ty.Width())
+				g.emitMov(r.dstName, "HL", z80ValueWidth(r.ty))
 				g.emit("    POP HL")
 			} else {
 				g.emitf("    LD %s, (IX+%d)", lowByte(p), src)
@@ -450,7 +563,20 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 // Argument locations are transient. Caller values keep their original locations
 // after caller-save restoration, so argument setup does not change physOverride.
 func (g *z80cg) emitCallArgs(args []Reg, callee *Func) {
+	g.emitCallArgsForInst(args, callee, nil)
+}
+
+func (g *z80cg) emitCallArgsForInst(args []Reg, callee *Func, call *Inst) {
 	var copies []parallelCopy
+	var external map[Reg]PhysLoc
+	if callee.Attrs.IsExtern {
+		var e error
+		external, e = Z80ExternParamLocations(callee)
+		if e != nil {
+			g.err = e
+			return
+		}
+	}
 	for i, arg := range args {
 		if i >= len(callee.Contract.Params) {
 			break
@@ -460,7 +586,7 @@ func (g *z80cg) emitCallArgs(args []Reg, callee *Func) {
 		// Use the callee's actual allocated register for the param if available
 		// (from PBQP). Fall back to canonical class-based location otherwise.
 		dstPhys := ""
-		if loc, ok := g.ar.Locs[param.Reg]; ok && loc.Name != "" {
+		if loc, ok := g.ar.Locs[param.Reg]; ok && loc.Name != "" && !callee.Attrs.FixedIndirectABI {
 			if loc.Kind == LocMem && callee.Name != "" && len(callee.Blocks) > 0 {
 				// Production codegen reads the callee's named spill slot, not
 				// the allocator's provisional $F0xx offset.
@@ -468,6 +594,9 @@ func (g *z80cg) emitCallArgs(args []Reg, callee *Func) {
 			} else {
 				dstPhys = physName(loc)
 			}
+		}
+		if callee.Attrs.IsExtern {
+			dstPhys = external[param.Reg].Name
 		}
 		if dstPhys == "" {
 			dstPhys = canonicalReturnLoc(param.Class, param.Ty)
@@ -481,8 +610,93 @@ func (g *z80cg) emitCallArgs(args []Reg, callee *Func) {
 	if len(copies) == 0 {
 		return
 	}
+	// An acyclic LD r,r costs less than a duplicate literal LD r,n. Only
+	// rematerialize edges in an exact-storage cycle, where breaking the cycle
+	// removes a stack snapshot. Keep aliases/mixed halves on the old path.
+	original := append([]parallelCopy(nil), copies...)
+	for i, c := range original {
+		if c.srcName == c.dstName || c.ty.Width() > 8 {
+			continue
+		}
+		cur := c.dstName
+		for steps := 0; steps < len(original); steps++ {
+			if cur == c.srcName {
+				if value, ok := g.callArgumentLiteral(args[i], c.ty, c.dstName, call); ok {
+					copies[i] = parallelCopy{dstName: c.dstName, ty: c.ty, isImm: true, immVal: value}
+				}
+				break
+			}
+			next := ""
+			for j, other := range original {
+				if i != j && other.ty.Width() <= 8 && other.srcName == cur && other.srcName != other.dstName {
+					next = other.dstName
+					break
+				}
+			}
+			if next == "" {
+				break
+			}
+			cur = next
+		}
+	}
 	g.emitParallelCopy(copies)
 
+}
+
+// A unique same-block literal definition is not an assumed const propagated
+// through a phi/web. Keep the original producer LD; only avoid a boundary
+// shuffle, after all nonliteral source values have been copied.
+func (g *z80cg) callArgumentLiteral(arg Reg, ty Ty, dst string, call *Inst) (int64, bool) {
+	if call == nil || call.Op != OpCall || g.fn == nil || g.curBlock == nil || g.regsLiveAfterInst(call)[arg] {
+		return 0, false
+	}
+	if ty != TyU8 && ty != TyI8 && ty != TyU16 && ty != TyI16 {
+		return 0, false
+	}
+	if ty.Width() <= 8 {
+		if dst != "A" && dst != "B" && dst != "C" && dst != "D" && dst != "E" && dst != "H" && dst != "L" &&
+			dst != "IXH" && dst != "IXL" && dst != "IYH" && dst != "IYL" {
+			return 0, false
+		}
+	} else if !isPairReg(dst) {
+		return 0, false
+	}
+	for _, p := range g.fn.Contract.Params {
+		if p.Reg == arg {
+			return 0, false
+		}
+	}
+	var definition *Inst
+	for _, b := range g.fn.Blocks {
+		for _, p := range b.Params {
+			if p.Dst == arg {
+				return 0, false
+			}
+		}
+		for _, i := range b.Insts {
+			for _, r := range append([]Reg{i.Dst}, i.ExtraRets...) {
+				if r == arg {
+					if definition != nil || i.Op != OpConst || i.Ty != ty || b != g.curBlock {
+						return 0, false
+					}
+					definition = i
+				}
+			}
+		}
+	}
+	if definition == nil {
+		return 0, false
+	}
+	seen := false
+	for _, i := range g.curBlock.Insts {
+		if i == call {
+			return definition.Imm, seen
+		}
+		if i == definition {
+			seen = true
+		}
+	}
+	return 0, false
 }
 
 // ReturnLocation exposes the physical return ABI to execution judges.
@@ -493,7 +707,7 @@ func ReturnLocation(cls RegClass, ty Ty) string {
 // canonicalReturnLoc returns the physical register name where a return value of
 // the given class and type must reside on function exit (calling convention).
 func canonicalReturnLoc(cls RegClass, ty Ty) string {
-	w := ty.Width()
+	w := z80ValueWidth(ty)
 	switch cls {
 	case ClassFlag:
 		// Flag-return ABI: result lives in the CPU flag register (F), not in A.
@@ -542,10 +756,10 @@ func canonicalReturnLoc(cls RegClass, ty Ty) string {
 // standard callable ABI (used by function pointers / indirect calls).
 // Matches classForParam in hir/lower.go.
 func standardParamClass(ty Ty, pos int) RegClass {
-	if ty == TyPtr {
+	if IsPointer(ty) {
 		return ClassPointer
 	}
-	if ty.Width() > 8 {
+	if z80ValueWidth(ty) > 8 {
 		if pos == 0 {
 			return ClassPointer // HL
 		}
@@ -800,8 +1014,12 @@ func (g *z80cg) saveABeforeOverwrite(inst *Inst) {
 			return
 		}
 	}
-	scratch := g.pickScratch8(inst)
-	g.emitf("    LD %s, A    ; save r%d before A overwrite", scratch, bestReg)
+	scratch := g.freeScratch8(inst)
+	if scratch == "" {
+		scratch = g.spillLabel(bestReg)
+	}
+	g.emitLD8(scratch, "A")
+	g.comment(fmt.Sprintf("save r%d before A overwrite", bestReg))
 	g.physOverride[bestReg] = scratch
 }
 
@@ -814,8 +1032,12 @@ func (g *z80cg) saveAccOperandIfLive(src Reg, inst *Inst) {
 	if src == NoReg || src == inst.Dst || !g.isVregLiveAfter(src, inst) {
 		return
 	}
-	scratch := g.pickScratch8(inst)
-	g.emitf("    LD %s, A    ; save r%d before ALU overwrite", scratch, src)
+	scratch := g.freeScratch8(inst)
+	if scratch == "" {
+		scratch = g.spillLabel(src)
+	}
+	g.emitLD8(scratch, "A")
+	g.comment(fmt.Sprintf("save r%d before ALU overwrite", src))
 	g.physOverride[src] = scratch
 	if g.pendingAccReg == src {
 		g.pendingAccReg = NoReg

@@ -1,0 +1,54 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "b6a48286b4e30fab900fd64954902ce59fb7c034b5bf00836ceb7d0375c44c83"
+  },
+  {
+    "path": "after-key.png",
+    "sha256": "b7d64db6b22b62eed7e77032976ba37be6e4f8004c17bca8cc62b70ccc122453"
+  },
+  {
+    "path": "after-key.ppm",
+    "sha256": "eb58a7f40c47fa804e0254df1395ed602623cc22ee5e057bcf38af68d5bf36b7"
+  },
+  {
+    "path": "autoexec.txt",
+    "sha256": "21729aa38b3dbd35d95a21052f5c59a291c1b6f4a49d8285b1e11e955c264944"
+  },
+  {
+    "path": "before-key.png",
+    "sha256": "6f791af5087fed55f29ccc6feb466eb0392713eb7ed3667a2fce8e1a27f25bda"
+  },
+  {
+    "path": "before-key.ppm",
+    "sha256": "15e2616770559b6eca92979d6b7c8a2022ba61a0a4a0894366355e0eea0c0018"
+  },
+  {
+    "path": "capture.c",
+    "sha256": "71b462b5bd5422218370067bc9b58b1b3da4a9f8bf4b9efb70f475238cfc7b43"
+  },
+  {
+    "path": "emulator.log",
+    "sha256": "8e99e070504ebfd1217237a1577146e9e62a49ef7116433428fbd1ad1ff76357"
+  },
+  {
+    "path": "products.txt",
+    "sha256": "b60579f21a79cddbecbc22234b3ca146d6d214056ff2bb2e2b22b8e1d2926c76"
+  },
+  {
+    "path": "program.bin",
+    "sha256": "7753540a53c8d7de37bed5d92c3baee4206a90035765b1e6d0d9183eadab6a3b"
+  },
+  {
+    "path": "result.json",
+    "sha256": "c3af24f838a50dc38af928e99fd73ed3f9879c016ce0ef0a5ad290bd646a44af"
+  },
+  {
+    "path": "source.nanz",
+    "sha256": "44f505b14ac4c5c674db470d9f81684aeaf078498c03ad267e81a05d13d25f90"
+  },
+  {
+    "path": "tui_render.nanz",
+    "sha256": "df324615b171bed89dc29a768d826551123604867bc3279fb20020fd784046f8"
+  }
+]

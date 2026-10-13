@@ -6,23 +6,23 @@
 // Primary use: correctness oracle for MIR2 semantics.
 // If a program produces the same result when run via:
 //
-//   (a) MIR2 → Z80 codegen → MZE emulator, and
-//   (b) MIR2 → QBE → native binary
+//	(a) MIR2 → Z80 codegen → MZE emulator, and
+//	(b) MIR2 → QBE → native binary
 //
 // then the MIR2 IR and HIR→MIR2 lowering are correct.
 // Any divergence points directly at the Z80 codegen.
 //
 // Type mapping
 //
-//   TyBool, TyU8, TyI8, TyU16, TyI16  →  w  (QBE 32-bit word)
-//   TyPtr                               →  l  (QBE 64-bit long, native ptr)
-//   TyVoid                              →  (no type, omitted)
+//	TyBool, TyU8, TyI8, TyU16, TyI16  →  w  (QBE 32-bit word)
+//	TyPtr                               →  l  (QBE 64-bit long, native ptr)
+//	TyVoid                              →  (no type, omitted)
 //
 // Block params → phi nodes
 //
-//   MIR2 uses block arguments (Cranelift-style).
-//   QBE uses phi nodes (SSA-style).
-//   We build a predecessor map per function and emit phi nodes at block entry.
+//	MIR2 uses block arguments (Cranelift-style).
+//	QBE uses phi nodes (SSA-style).
+//	We build a predecessor map per function and emit phi nodes at block entry.
 package mir2qbe
 
 import (
@@ -530,14 +530,14 @@ func findPointerRegs(f *mir2.Func) map[mir2.Reg]bool {
 				ptrs[inst.Src[0]] = true // Src[0] = ptr
 			}
 			// Any reg with MIR2 type TyPtr is always a pointer.
-			if inst.Ty == mir2.TyPtr && inst.Dst != mir2.NoReg {
+			if mir2.IsPointer(inst.Ty) && inst.Dst != mir2.NoReg {
 				ptrs[inst.Dst] = true
 			}
 		}
 	}
 	// Function params declared as TyPtr are pointers.
 	for _, p := range f.Contract.Params {
-		if p.Ty == mir2.TyPtr {
+		if mir2.IsPointer(p.Ty) {
 			ptrs[p.Reg] = true
 		}
 	}
@@ -680,7 +680,7 @@ func qbeTy(ty mir2.Ty) string {
 	if ty == nil || ty == mir2.TyVoid {
 		return ""
 	}
-	if ty == mir2.TyPtr {
+	if mir2.IsPointer(ty) {
 		return "l"
 	}
 	return "w" // u8, u16, i8, i16, bool all fit in QBE word
@@ -741,6 +741,9 @@ func isSigned(ty mir2.Ty) bool {
 func typeBits(ty mir2.Ty) int {
 	if ty == nil {
 		return 32
+	}
+	if mir2.IsPointer(ty) {
+		return 64
 	}
 	switch ty {
 	case mir2.TyBool:

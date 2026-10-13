@@ -1,0 +1,29 @@
+{
+  "base": "c9dedcf0",
+  "source_sha256": {
+    "examples/nanz/tuple_assert_gate.nanz": "4d4456e75beb9dcb43df6bc1483a3b8c9fa2b3c8dfe9d4f68c3b6679abcde6d8",
+    "reports/showcase-src/2026-03-11/ex11_minmax_multiret.nanz": "f7f3be929afe1d2ce0b4212b46b004bfeb9a562780ff9b54b9eef2a7efcf7326",
+    "reports/showcase-src/2026-03-11/ex13_multiret_assert.nanz": "6677d09ec89a8489a9691bd4caa184ef88149c370b87fe543dc4b3e1432270b7",
+    "reports/showcase-src/2026-03-13/ex11_minmax_multiret.nanz": "f7f3be929afe1d2ce0b4212b46b004bfeb9a562780ff9b54b9eef2a7efcf7326",
+    "reports/showcase-src/2026-03-13/ex13_multiret_assert.nanz": "6677d09ec89a8489a9691bd4caa184ef88149c370b87fe543dc4b3e1432270b7"
+  },
+  "oracle": "Book v7 \u00a77.5 plus exact source min/max,swap,projection; divmod integer quotient/remainder",
+  "divmod": "all a=0..255,b=1..255; 256 zero-divisor cases excluded before execution because nonterminating source",
+  "word_domain": "all 0..255 ordered pairs plus Cartesian word boundaries",
+  "word_boundaries": [
+    0,
+    1,
+    2,
+    7,
+    127,
+    128,
+    254,
+    255,
+    256,
+    257,
+    32767,
+    32768,
+    65534,
+    65535
+  ]
+}

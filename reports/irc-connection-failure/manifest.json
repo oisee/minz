@@ -1,0 +1,32 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "8119c19ed603d1181da9b0557f4fcfd7fbc3347d6021b3dfe8f0d0d652c7bc8c"
+    },
+    {
+      "path": "frozen/events.json",
+      "sha256": "5d13483239e9df0e744bf6613e497add79ac662909a9f34f43b7c6226f20b934"
+    },
+    {
+      "path": "frozen/freeze.json",
+      "sha256": "20f33500247c879a0e149fffe5aa4fde5813d65083eaacfff6d6fe2ec1ee7057"
+    },
+    {
+      "path": "frozen/irc_client.nanz",
+      "sha256": "240ecc56c7b35683c15801f20490f22033837dfafa1e4d991ed1ca26a66d6f53"
+    },
+    {
+      "path": "frozen/render.nanz",
+      "sha256": "4711dbee908a2271f02d1fbb4720942604e23322d7745f32311f6b2c17c6d4a8"
+    },
+    {
+      "path": "observer-before.txt",
+      "sha256": "dc3462150be66c2ac0953db37ca38b4f36175338f8fed9b4ec12469edb03efda"
+    },
+    {
+      "path": "root.txt",
+      "sha256": "b95fa57887d0d32c8dbb834fc1fd1110405a899290e2c91f353ba007e79a459a"
+    }
+  ]
+}

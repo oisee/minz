@@ -1,0 +1,9 @@
+import hw.sprite
+fun sprite_test() { @sprite() {
+destination "linear" 65532 2 2 2
+region 0 0 2 2
+row "00ff" "7700"
+row "aa00" "1188"
+via "compiled"
+
+} }

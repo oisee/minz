@@ -1,0 +1,19 @@
+import hw.copy
+global input: u16 = 0
+global answer: u16 = 0
+fun copy_test() {
+    let keep: u16 = input * 3 + 7
+    @copy() {
+        source "linear" 0x6000 256 1 256
+        destination "linear" 0x6200 256 1 256
+        region 0 0 0 0 256 1
+        via "ldir"
+    }
+    @copy() {
+        source "linear" 0x6100 1 1 1
+        destination "linear" 0x6300 1 1 1
+        region 0 0 0 0 1 1
+        via "ldir"
+    }
+    answer = keep ^ input
+}

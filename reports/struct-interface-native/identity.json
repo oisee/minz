@@ -1,0 +1,7 @@
+{
+  "base_commit": "d61a8664",
+  "freeze_sources": "cc9a82ee",
+  "freeze_domain": "61432f43",
+  "executable_sha256": "6488521a10feb2a964d115ff5b4fb8d304fb64c1204fd0699684a78c5a7d1dfb",
+  "command": "from minzc/pkg/pipeline: MINZ_STRUCT_INTERFACE_ARTIFACTS=<packet>/actual <frozen-exe> -test.run ^TestOriginalStructInterfaceNative$ -test.count=1 -test.v"
+}

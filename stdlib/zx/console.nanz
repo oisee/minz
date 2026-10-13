@@ -126,13 +126,13 @@ fun con_clear() -> void {
         LD HL, 0x5800
         LD DE, 0x5801
         LD BC, 767
-        LD A, (zx_console_con_attr)
+        LD A, (zx__console__con_attr)
         LD (HL), A
         LDIR
         ; Reset cursor
         XOR A
-        LD (zx_console_con_col), A
-        LD (zx_console_con_row), A
+        LD (zx__console__con_col), A
+        LD (zx__console__con_row), A
     }
 }
 
@@ -180,9 +180,8 @@ fun con_putchar(ch: u8) -> void {
     }
 }
 
-fun con_draw_char(col: u8, row: u8, ch: u8) -> void {
-    // PBQP assigns: col=B, row=D, ch=C for this 3-param function
-    // (verified from generated signature)
+fun con_draw_char(@z80_b col: u8, @z80_d row: u8, @z80_c ch: u8) -> void {
+    // Explicit register ABI: the ASM body reads col=B, row=D, ch=C.
     asm z80 (in col, row, ch) {
         ; Entry: B=col, D=row, C=ch
         LD IYL, B           ; IYL = col
@@ -242,7 +241,7 @@ fun con_draw_char(col: u8, row: u8, ch: u8) -> void {
         AND 0x03
         OR 0x58
         LD H, A
-        LD A, (zx_console_con_attr)
+        LD A, (zx__console__con_attr)
         LD (HL), A
     }
 }

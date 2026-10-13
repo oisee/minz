@@ -1,0 +1,9 @@
+{
+  "source": "examples/nanz/test_irc_minimal.nanz",
+  "sha256": "c0ddc381e0a51a4527d168ae3e2fb7154c619d1d4a93fe0be8f4cc3574ba3b11",
+  "expected_wire": [
+    "NICK minztest\r\n",
+    "USER minz 0 * :test\r\n"
+  ],
+  "contract": "net_send scans byte indexed pointer until NUL; ordinary Nanz strings use length prefix, CString NUL termination."
+}

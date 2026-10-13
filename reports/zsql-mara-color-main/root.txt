@@ -1,0 +1,13 @@
+=== RUN   TestOriginalZSQLMaraColorMainNative
+=== RUN   TestOriginalZSQLMaraColorMainNative/ordinary
+    original_zsql_mara_color_main_test.go:219: 1699 478352 492 20 static screen/full RAM PASS
+=== RUN   TestOriginalZSQLMaraColorMainNative/grace-size
+    original_zsql_mara_color_main_test.go:219: 1699 478352 492 20 static screen/full RAM PASS
+=== RUN   TestOriginalZSQLMaraColorMainNative/grace-speed
+    original_zsql_mara_color_main_test.go:219: 1699 478352 492 20 static screen/full RAM PASS
+--- PASS: TestOriginalZSQLMaraColorMainNative (0.05s)
+    --- PASS: TestOriginalZSQLMaraColorMainNative/ordinary (0.02s)
+    --- PASS: TestOriginalZSQLMaraColorMainNative/grace-size (0.02s)
+    --- PASS: TestOriginalZSQLMaraColorMainNative/grace-speed (0.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.061s

@@ -1,0 +1,18 @@
+{
+  "sources": {
+    "examples/nanz/irc_client.nanz": "240ecc56c7b35683c15801f20490f22033837dfafa1e4d991ed1ca26a66d6f53",
+    "stdlib/tui/render.nanz": "4711dbee908a2271f02d1fbb4720942604e23322d7745f32311f6b2c17c6d4a8"
+  },
+  "control_reads": [
+    0,
+    0,
+    2
+  ],
+  "other_failure_statuses": [
+    3,
+    4
+  ],
+  "width": 80,
+  "boundary": "Original main returns after failed connection. No registration, server traffic, keyboard loop or physical network. Host preserves registers except declared result.",
+  "events_sha256": "5d13483239e9df0e744bf6613e497add79ac662909a9f34f43b7c6226f20b934"
+}

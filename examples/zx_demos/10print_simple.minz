@@ -10,14 +10,14 @@ fun random_bit() -> u8 {
     // Simple LFSR
     let bit: u8 = ((seed >> 0) ^ (seed >> 2) ^ (seed >> 3) ^ (seed >> 5)) as u8 & 1
     seed = (seed >> 1) | ((bit as u16) << 15)
-    bit
+    return bit
 }
 
 // Calculate screen address for pixel
 fun screen_addr(x: u8, y: u8) -> u16 {
     let high: u8 = 0x40 | ((y & 0xC0) >> 3) | (y & 0x07)
     let low: u8 = ((y & 0x38) << 2) | (x >> 3)
-    (high as u16 << 8) | (low as u16)
+    return ((high as u16 << 8) | (low as u16))
 }
 
 // Set a pixel (simplified)

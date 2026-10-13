@@ -1,0 +1,61 @@
+{
+  "schema": "minz.original-corpus-frozen-domain/v1",
+  "base_commit": "d61a8664",
+  "sources": [
+    {
+      "path": "reports/showcase-src/2026-03-10/ex1_struct.nanz",
+      "sha256": "1028825d183ba0d11d2f43ac678b6afcc9cd91c475450d440a9239c731d7682e",
+      "identical_duplicate": "reports/showcase-src/2026-03-13/ex1_struct.nanz"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-10/ex2_ufcs.nanz",
+      "sha256": "a7ebf82edbfcc931bb336de2808c4aae2835c5a293b78f124ed96c39f23421ea",
+      "identical_duplicate": "reports/showcase-src/2026-03-13/ex2_ufcs.nanz"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-10/ex3_iface.nanz",
+      "sha256": "3a0c1b5a906485e6a0e3871bdad241072a9429adf6a186ecdd339b6c14984d35",
+      "identical_duplicate": "reports/showcase-src/2026-03-13/ex3_iface.nanz"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-10/ex3b_iface_param.nanz",
+      "sha256": "d71ba92330826788fb759f58f88660312dc2018c89dbddef06d25b1b41acdc3c",
+      "identical_duplicate": "reports/showcase-src/2026-03-13/ex3b_iface_param.nanz"
+    },
+    {
+      "path": "reports/showcase-src/2026-03-11/ex0_test_struct.nanz",
+      "sha256": "7ca3725c6ae9a3dbd3c497a3df7e7d2dc2d62f3acd57a96855db3db50aea78b5"
+    }
+  ],
+  "models": {
+    "ex1_struct": {
+      "set_rgb": "Color inlinebytes[r,g,b]; eachbyte all256 holdingotherssentinel; 216mixedboundarytriples [0,1,127,128,254,255]^3",
+      "get_r/get_g/get_b": "read respectivefullu8byte, wholeotherbytesunchanged"
+    },
+    "ex2_ufcs/ex0_test_struct": {
+      "Acc_add": "initialbyte0..255 \u00d7amount0..255 at6000andffff: stores(initial+amount)&255 returnsit",
+      "Acc_reset": "initialall256 at6000andffff stores0 void",
+      "sum_two": "all65536a,b, globalinitial173 resetthenadd, final(a+b)&255"
+    },
+    "ex3_iface": {
+      "Dog_speak": "emptyDog objectat6000/ffff constant1 noaccess",
+      "Cat_speak": "emptyCat at6000/ffff constant2 noaccess",
+      "demo": "globalDogdispatch returns1"
+    },
+    "ex3b_iface_param": {
+      "Dog_speak/feed": "emptyDog at6000/ffff singleimplementationstaticdispatch returns1 noaccess"
+    }
+  },
+  "authority": [
+    "Bookv7 \u00a74.1 fieldlayout/struct",
+    "\u00a74.2 pointerselfmutation/UFCS",
+    "\u00a74.3 singleimplementormonomorphization",
+    "\u00a73.1 u8 width"
+  ],
+  "modes": [
+    "ordinary",
+    "grace-size",
+    "grace-speed"
+  ],
+  "memory": "fullobjectbyteexpected, inputpointer16bitwrap, adjacentguards, raw/final/native independently; actualPC/SP; no fabricatedmain; preserve originals"
+}

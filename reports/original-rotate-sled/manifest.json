@@ -1,0 +1,90 @@
+{
+  "base": "432a3950",
+  "files": [
+    {
+      "path": "freeze.json",
+      "bytes": 845,
+      "sha256": "cce56887224ebc16d754d04bc6454b93853f541362eaa3f6eb083ef59f95e461"
+    },
+    {
+      "path": "native/grace-size.a80",
+      "bytes": 3608,
+      "sha256": "c18f56d5ece88fa674d7b2be05199b063e2542d239d703689308595c522d78f5"
+    },
+    {
+      "path": "native/grace-size.bin",
+      "bytes": 192,
+      "sha256": "f47ff5113eedfcbc1ccaef3cdcf15a7ed6814ad06fe983613baef0e0a36cfdb9"
+    },
+    {
+      "path": "native/grace-size.json",
+      "bytes": 349,
+      "sha256": "86cd405fd6cb6189244087d9cefe183db51a2e7a283304e2f924bba4cd946662"
+    },
+    {
+      "path": "native/grace-size.mir",
+      "bytes": 1011,
+      "sha256": "fde07273c7568a682a087dfc03255e6d09121a0a6d7755ee0ed44425cb9b6daf"
+    },
+    {
+      "path": "native/grace-speed.a80",
+      "bytes": 3608,
+      "sha256": "c18f56d5ece88fa674d7b2be05199b063e2542d239d703689308595c522d78f5"
+    },
+    {
+      "path": "native/grace-speed.bin",
+      "bytes": 192,
+      "sha256": "f47ff5113eedfcbc1ccaef3cdcf15a7ed6814ad06fe983613baef0e0a36cfdb9"
+    },
+    {
+      "path": "native/grace-speed.json",
+      "bytes": 349,
+      "sha256": "86cd405fd6cb6189244087d9cefe183db51a2e7a283304e2f924bba4cd946662"
+    },
+    {
+      "path": "native/grace-speed.mir",
+      "bytes": 1011,
+      "sha256": "fde07273c7568a682a087dfc03255e6d09121a0a6d7755ee0ed44425cb9b6daf"
+    },
+    {
+      "path": "native/ordinary.a80",
+      "bytes": 3683,
+      "sha256": "28de0cf5293ef717e68e520e368cfcce554514548d0f3bd8db4f0f64601a5401"
+    },
+    {
+      "path": "native/ordinary.bin",
+      "bytes": 192,
+      "sha256": "f47ff5113eedfcbc1ccaef3cdcf15a7ed6814ad06fe983613baef0e0a36cfdb9"
+    },
+    {
+      "path": "native/ordinary.json",
+      "bytes": 349,
+      "sha256": "86cd405fd6cb6189244087d9cefe183db51a2e7a283304e2f924bba4cd946662"
+    },
+    {
+      "path": "native/ordinary.mir",
+      "bytes": 1011,
+      "sha256": "fde07273c7568a682a087dfc03255e6d09121a0a6d7755ee0ed44425cb9b6daf"
+    },
+    {
+      "path": "native-test-executable.xz",
+      "bytes": 12145444,
+      "sha256": "66101daafbaf5510b0196fd30e545584969426857225c84deabe10c98ac9b69b"
+    },
+    {
+      "path": "native.txt",
+      "bytes": 727,
+      "sha256": "390dbcad65ea7589c6a924f8c944f69037019eb3de5b606f8bf6fc853f7e72ca"
+    },
+    {
+      "path": "source0.nanz",
+      "bytes": 1442,
+      "sha256": "de903b9610bef3db82d4143cb2cf51b749895cb1ef6937df9970f8a226a4baeb"
+    },
+    {
+      "path": "source1.nanz",
+      "bytes": 1442,
+      "sha256": "de903b9610bef3db82d4143cb2cf51b749895cb1ef6937df9970f8a226a4baeb"
+    }
+  ]
+}

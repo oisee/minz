@@ -1,0 +1,24 @@
+{
+  "source": "examples/nanz/tetris_cpm.nanz",
+  "source_sha256": "91b2a3cc7be3a309b17b6655ed7e1757b70b89ac67985cad0bcc3a5e2f55c23d",
+  "dependency": "stdlib/tui/render.nanz",
+  "dependency_sha256": "4711dbee908a2271f02d1fbb4720942604e23322d7745f32311f6b2c17c6d4a8",
+  "scenario": {
+    "keys": [
+      "z",
+      "q",
+      "a"
+    ],
+    "initial": "all original globals, RNG0xACE1, empty originalboard",
+    "command": "rotate then quit then finalack",
+    "frames": 2
+  },
+  "authority": [
+    "Bookv7\u00a718.1 plainSString length+data (notNUL API)",
+    "stdlibtui/render.nanz BDOS1blockinginput/2consoleoutput, width80height24",
+    "originalmain resetsboard then random_piece+spawn; originalgeometry/model dependency"
+  ],
+  "remaining": "testownednativeJPmainloader, no productionRuntimeCPM support claim; VMtargetASM cannotexecute and TUIexternnative notbound",
+  "original_source_sha256": "444a07777a59a5fd57e1d57f364232ae7c87eeba9430e665ef170a64b7d3793f",
+  "correction": "3CPM +7TUI literalpointerarguments nowCString; previous computational freeze historicalsource not currentexacthash"
+}

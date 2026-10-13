@@ -1,0 +1,8 @@
+{
+  "source_sha256": "d893df00710b7f1105b8bfb58342aca1c1f8cce7eb674037a8d6ca41b91b0689",
+  "inputs_sha256": {
+    "training.json": "5ace775afddd19ab46d7bb306570d215db48fefff1fcfb8408d722d974e745d5",
+    "heldout.json": "b19a3ded75082341ed1874f4902df176f605171969eb26e9e848cc5205cbfabf"
+  },
+  "scope": "Training two new complete sequences; heldout four new sequences absent historical two; frozen before candidate measurement. All modes same native adapters and source. No syntax acceptance claim for token stream."
+}

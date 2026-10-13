@@ -1,0 +1,45 @@
+{
+  "exit_code": 0,
+  "stderr_bytes": 0,
+  "stdout_bytes": 45704,
+  "frame_cyan_rows": [
+    [
+      2
+    ],
+    [
+      2
+    ],
+    [
+      2
+    ],
+    [
+      2
+    ],
+    [
+      2
+    ],
+    [
+      2
+    ],
+    [
+      2
+    ],
+    [
+      2
+    ],
+    [
+      3
+    ],
+    [
+      3
+    ],
+    [
+      3
+    ],
+    [
+      3
+    ]
+  ],
+  "idle_seconds_before_q": 1.15,
+  "PASS": true
+}

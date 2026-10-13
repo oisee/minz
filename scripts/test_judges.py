@@ -81,6 +81,38 @@ sys.exit(int(fail))
             self.assertEqual(matrix.exit_code(report,True),1)
             self.assertEqual(matrix.exit_code(report,True,True),0)
 
+    def test_inventory_line_shifts_preserve_top_level_identity(self):
+        before = [dict(file='x', line=i, kind='top-level', expression=e, via='mir2')
+                  for i, e in enumerate(('assert a() == 1', 'assert b() == 2'), 1)]
+        after = [dict(a, line=a['line'] + 1) for a in before]
+        self.assertEqual(matrix.inventory_changes(before, after), ([], [], []))
+        literal_before = [dict(before[0], expression='assert text() == \"a  b\"')]
+        literal_after = [dict(before[0], expression='assert text() == \"a b\"')]
+        self.assertEqual(len(matrix.inventory_changes(literal_before, literal_after)[2]), 1)
+        # Removing a duplicate still removes an obligation.
+        removed, added, changed = matrix.inventory_changes(before + [dict(before[0], line=8)], after)
+        self.assertEqual((len(removed), len(added), len(changed)), (1, 0, 0))
+        # Sandbox order, backend and tuple shape are not cosmetic source shifts.
+        sandbox = [dict(a, kind='sandbox:1') for a in before]
+        swapped = [dict(sandbox[1], line=1), dict(sandbox[0], line=2)]
+        self.assertEqual(len(matrix.inventory_changes(sandbox, swapped)[2]), 2)
+        self.assertEqual(len(matrix.inventory_changes(before, [dict(a, via='z80') for a in before])[2]), 2)
+        self.assertEqual(len(matrix.inventory_changes(before, [dict(a, tuple_elements=2) for a in before])[2]), 2)
+
+    def test_matrix_shifted_units_execute_each_checkouts_line(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            self.fixture(root)
+            before = [dict(file='case.nanz', line=2, kind='top-level', expression='assert answer() == 42')]
+            after = [dict(before[0], line=3)]
+            with patch.object(matrix, 'enumerate_asserts', side_effect=[before, after]), \
+                 patch.object(matrix, 'run_compiler', return_value={'pass': True, 'exit_code': 0}) as run:
+                report = matrix.matrix(root, ['*.nanz'], {'baseline': 'old', 'candidate': 'new'}, 1, 1, 5)
+            self.assertEqual(report['summary']['units'], 1)
+            self.assertEqual(report['summary']['pass both'], 1)
+            self.assertEqual([call.args[4] for call in run.call_args_list], [[2], [3]])
+            self.assertEqual(matrix.exit_code(report, True), 0)
+
     def known_report(self, candidate=None, classification='added', expression='assert answer() == 43'):
         failed = {'pass': False, 'error': 'error: assertion failed'}
         member = dict(file='case.nanz', line=3, expression=expression)
@@ -221,6 +253,52 @@ sys.exit(int(fail))
                 report=matrix.matrix(before,['*.nanz'],{'compiler':fake},1,1,5)
             self.assertEqual(len(report['results']),1)
             self.assertEqual(run.call_args.args[4:6],([2,3],2))
+
+    def test_progress_retains_inventory_and_completed_units(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); self.fixture(root); fake = self.fake(root)
+            output = root / 'matrix.json'
+            progress = matrix.MatrixProgress(output)
+            events = []
+            def callback(event):
+                events.append(event)
+                progress.event('z80', event)
+            cache = {}
+            with patch.object(matrix, 'enumerate_asserts', wraps=matrix.enumerate_asserts) as listing:
+                first = matrix.matrix(root, ['*.nanz'], {'compiler': fake}, 2, 1, 5,
+                                      progress=callback, inventory_cache=cache)
+                second = matrix.matrix(root, ['*.nanz'], {'compiler': fake}, 2, 1, 5,
+                                       backend='mir2', inventory_cache=cache)
+                self.assertEqual(listing.call_count, 1)
+            progress.close() # Cancellation/error state must never imply success.
+            state = json.loads(output.with_suffix('.progress.json').read_text())
+            self.assertEqual(state['status'], 'incomplete')
+            inventory = next(event for event in events if event['stage'] == 'inventory')
+            execution_index = next(i for i,event in enumerate(events) if event['stage'] == 'execution')
+            self.assertLess(events.index(inventory), execution_index)
+            journal = [json.loads(line) for line in output.with_suffix('.events.jsonl').read_text().splitlines()]
+            completed = [event for event in journal if event['stage'] == 'unit']
+            self.assertEqual(len(completed), first['summary']['units'])
+            self.assertEqual(len(state['passes']['z80']['results']), len(completed))
+            self.assertEqual(first['results'], second['results'])
+            self.assertEqual(len(inventory['inventories']['compiler']), 2)
+
+    def test_progress_publishes_completed_unit_before_slow_first(self):
+        import threading
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); self.fixture(root); fake = self.fake(root)
+            fast_reported = threading.Event()
+            def run(*args, **kwargs):
+                if args[4] == [2]:
+                    self.assertTrue(fast_reported.wait(2), 'first unit blocked completed-unit publication')
+                return {'pass': True, 'exit_code': 0, 'error': ''}
+            def progress(event):
+                if event['stage'] == 'unit' and event['index'] == 1:
+                    fast_reported.set()
+            with patch.object(matrix, 'run_compiler', side_effect=run):
+                report = matrix.matrix(root, ['*.nanz'], {'compiler':fake},2,1,5,progress=progress)
+            self.assertEqual([result['line'] for result in report['results']], [2,3])
+            self.assertTrue(fast_reported.is_set())
 
     def test_listing_failures_are_audited(self):
         with tempfile.TemporaryDirectory() as temp:

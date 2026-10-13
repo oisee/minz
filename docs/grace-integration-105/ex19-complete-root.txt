@@ -1,0 +1,30 @@
+=== RUN   TestOriginalEx19RemainingNativeModels
+    showcase_ex19_complete_native_test.go:282: default {Entry:abs_diff Args:[0 0] Expected:0 ExpectedMulti:[]} 48T native/raw/final model code/SP/RAM PASS
+    showcase_ex19_complete_native_test.go:282: default {Entry:minmax Args:[0 0] Expected:0 ExpectedMulti:[0 0]} 77T native/raw/final model code/SP/RAM PASS
+    showcase_ex19_complete_native_test.go:282: default {Entry:swap Args:[0 0] Expected:0 ExpectedMulti:[0 0]} 37T native/raw/final model code/SP/RAM PASS
+    showcase_ex19_complete_native_test.go:286: default 11791 workload calls PASS (1536 raw-only eliminated callback); 40 source assertions retained
+    showcase_ex19_complete_native_test.go:282: grace-size {Entry:abs_diff Args:[0 0] Expected:0 ExpectedMulti:[]} 48T native/raw/final model code/SP/RAM PASS
+    showcase_ex19_complete_native_test.go:282: grace-size {Entry:minmax Args:[0 0] Expected:0 ExpectedMulti:[0 0]} 77T native/raw/final model code/SP/RAM PASS
+    showcase_ex19_complete_native_test.go:282: grace-size {Entry:swap Args:[0 0] Expected:0 ExpectedMulti:[0 0]} 37T native/raw/final model code/SP/RAM PASS
+    showcase_ex19_complete_native_test.go:286: grace-size 11791 workload calls PASS (1536 raw-only eliminated callback); 40 source assertions retained
+    showcase_ex19_complete_native_test.go:282: grace-speed {Entry:abs_diff Args:[0 0] Expected:0 ExpectedMulti:[]} 48T native/raw/final model code/SP/RAM PASS
+    showcase_ex19_complete_native_test.go:282: grace-speed {Entry:minmax Args:[0 0] Expected:0 ExpectedMulti:[0 0]} 77T native/raw/final model code/SP/RAM PASS
+    showcase_ex19_complete_native_test.go:282: grace-speed {Entry:swap Args:[0 0] Expected:0 ExpectedMulti:[0 0]} 37T native/raw/final model code/SP/RAM PASS
+    showcase_ex19_complete_native_test.go:286: grace-speed 11791 workload calls PASS (1536 raw-only eliminated callback); 40 source assertions retained
+--- PASS: TestOriginalEx19RemainingNativeModels (2.81s)
+=== RUN   TestOriginalManhattanNativeModel
+    showcase_manhattan_native_test.go:280: default {Entry:manhattan Args:[0 0 0 0] Expected:0} 525T native/raw/final model code/SP/RAM PASS
+    showcase_manhattan_native_test.go:280: default {Entry:manhattan Args:[0 0 0 1] Expected:1} 538T native/raw/final model code/SP/RAM PASS
+    showcase_manhattan_native_test.go:280: default {Entry:manhattan Args:[0 0 0 127] Expected:127} 538T native/raw/final model code/SP/RAM PASS
+    showcase_manhattan_native_test.go:283: default 3856 original calls PASS; 40 source assertions retained
+    showcase_manhattan_native_test.go:280: grace-size {Entry:manhattan Args:[0 0 0 0] Expected:0} 525T native/raw/final model code/SP/RAM PASS
+    showcase_manhattan_native_test.go:280: grace-size {Entry:manhattan Args:[0 0 0 1] Expected:1} 538T native/raw/final model code/SP/RAM PASS
+    showcase_manhattan_native_test.go:280: grace-size {Entry:manhattan Args:[0 0 0 127] Expected:127} 538T native/raw/final model code/SP/RAM PASS
+    showcase_manhattan_native_test.go:283: grace-size 3856 original calls PASS; 40 source assertions retained
+    showcase_manhattan_native_test.go:280: grace-speed {Entry:manhattan Args:[0 0 0 0] Expected:0} 525T native/raw/final model code/SP/RAM PASS
+    showcase_manhattan_native_test.go:280: grace-speed {Entry:manhattan Args:[0 0 0 1] Expected:1} 538T native/raw/final model code/SP/RAM PASS
+    showcase_manhattan_native_test.go:280: grace-speed {Entry:manhattan Args:[0 0 0 127] Expected:127} 538T native/raw/final model code/SP/RAM PASS
+    showcase_manhattan_native_test.go:283: grace-speed 3856 original calls PASS; 40 source assertions retained
+--- PASS: TestOriginalManhattanNativeModel (2.58s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	5.396s

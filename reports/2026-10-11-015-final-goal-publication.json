@@ -1,0 +1,17 @@
+{
+  "project_id": "appgprj_6aca41311f188191b08d000f04498106",
+  "version_id": "appgprj_6aca41311f188191b08d000f04498106~appgver_f8859b0866c08191b45ee3ffa8ff4720",
+  "deployment_id": "appgdep_6acb9c3a8f9481919ed5261997112caa",
+  "status": "succeeded",
+  "url": "https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site",
+  "version_number": 60,
+  "site_commit": "0ae1c982041d15cb5192e8863354435ef364985f",
+  "archive": "/home/alice/dev/minz-artifacts/grace-checkpoints/minz-final-goal-site.tar.gz",
+  "archive_sha256": "7e2320634ce0ed23b19fcacd4417fa240dc960bafcaf96c00d9d4729bb57ba80",
+  "archive_bytes": 201898349,
+  "schema": "minz.final-goal-publication/v1",
+  "offline_static_files_verified": 9645,
+  "published_archives_verified": 16,
+  "published_inventory_payloads_verified": 3779,
+  "owner_private_verified": true
+}

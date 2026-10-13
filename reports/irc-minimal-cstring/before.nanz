@@ -1,0 +1,37 @@
+import tui.render
+
+@extern fun net_read() -> u8
+@extern fun net_write(b: u8)
+@extern fun ctl_read() -> u8
+@extern fun ctl_write(b: u8)
+
+fun net_send(s: ^u8) -> void {
+    var i: u8 = 0
+    while s[i] != 0 {
+        net_write(s[i])
+        i = i + 1
+    }
+}
+
+fun main() -> void {
+    @print("Starting...\n")
+    net_send("NICK minztest\r\n")
+    net_send("USER minz 0 * :test\r\n")
+    @print("Sent NICK+USER\n")
+
+    var count: u16 = 0
+    while count < 500 {
+        let b: u8 = net_read()
+        if b != 0 {
+            let ch: u8 = b & 0x7F
+            if ch >= 32 {
+                @print_char(ch)
+            }
+            if ch == 10 {
+                @print_nl()
+            }
+            count = count + 1
+        }
+    }
+    @print("\nDone.\n")
+}

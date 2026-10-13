@@ -1,0 +1,49 @@
+=== RUN   TestAgonCorpusADLProducts
+=== RUN   TestAgonCorpusADLProducts/tui_demo.nanz/ordinary
+    agon_corpus_product_test.go:71: 1420 bytes at 040045; ADL/MOS execution remains unverified
+=== RUN   TestAgonCorpusADLProducts/tui_demo.nanz/size
+    agon_corpus_product_test.go:71: 1420 bytes at 040045; ADL/MOS execution remains unverified
+=== RUN   TestAgonCorpusADLProducts/tui_demo.nanz/speed
+    agon_corpus_product_test.go:71: 1420 bytes at 040045; ADL/MOS execution remains unverified
+=== RUN   TestAgonCorpusADLProducts/tui_hello.nanz/ordinary
+    agon_corpus_product_test.go:71: 1030 bytes at 040045; ADL/MOS execution remains unverified
+=== RUN   TestAgonCorpusADLProducts/tui_hello.nanz/size
+    agon_corpus_product_test.go:71: 1030 bytes at 040045; ADL/MOS execution remains unverified
+=== RUN   TestAgonCorpusADLProducts/tui_hello.nanz/speed
+    agon_corpus_product_test.go:71: 1030 bytes at 040045; ADL/MOS execution remains unverified
+=== RUN   TestAgonCorpusADLProducts/hello_agon.nanz/ordinary
+    agon_corpus_product_test.go:71: 119 bytes at 040045; ADL/MOS execution remains unverified
+=== RUN   TestAgonCorpusADLProducts/hello_agon.nanz/size
+    agon_corpus_product_test.go:71: 119 bytes at 040045; ADL/MOS execution remains unverified
+=== RUN   TestAgonCorpusADLProducts/hello_agon.nanz/speed
+    agon_corpus_product_test.go:71: 119 bytes at 040045; ADL/MOS execution remains unverified
+=== RUN   TestAgonCorpusADLProducts/hello_world.nanz/ordinary
+    agon_corpus_product_test.go:71: 197 bytes at 040045; ADL/MOS execution remains unverified
+=== RUN   TestAgonCorpusADLProducts/hello_world.nanz/size
+    agon_corpus_product_test.go:71: 197 bytes at 040045; ADL/MOS execution remains unverified
+=== RUN   TestAgonCorpusADLProducts/hello_world.nanz/speed
+    agon_corpus_product_test.go:71: 197 bytes at 040045; ADL/MOS execution remains unverified
+=== RUN   TestAgonCorpusADLProducts/nc_agon.nanz/ordinary
+    agon_corpus_product_test.go:71: 1940 bytes at 040045; ADL/MOS execution remains unverified
+=== RUN   TestAgonCorpusADLProducts/nc_agon.nanz/size
+    agon_corpus_product_test.go:71: 1940 bytes at 040045; ADL/MOS execution remains unverified
+=== RUN   TestAgonCorpusADLProducts/nc_agon.nanz/speed
+    agon_corpus_product_test.go:71: 1940 bytes at 040045; ADL/MOS execution remains unverified
+--- PASS: TestAgonCorpusADLProducts (0.56s)
+    --- PASS: TestAgonCorpusADLProducts/tui_demo.nanz/ordinary (0.05s)
+    --- PASS: TestAgonCorpusADLProducts/tui_demo.nanz/size (0.05s)
+    --- PASS: TestAgonCorpusADLProducts/tui_demo.nanz/speed (0.06s)
+    --- PASS: TestAgonCorpusADLProducts/tui_hello.nanz/ordinary (0.05s)
+    --- PASS: TestAgonCorpusADLProducts/tui_hello.nanz/size (0.04s)
+    --- PASS: TestAgonCorpusADLProducts/tui_hello.nanz/speed (0.05s)
+    --- PASS: TestAgonCorpusADLProducts/hello_agon.nanz/ordinary (0.00s)
+    --- PASS: TestAgonCorpusADLProducts/hello_agon.nanz/size (0.00s)
+    --- PASS: TestAgonCorpusADLProducts/hello_agon.nanz/speed (0.00s)
+    --- PASS: TestAgonCorpusADLProducts/hello_world.nanz/ordinary (0.00s)
+    --- PASS: TestAgonCorpusADLProducts/hello_world.nanz/size (0.00s)
+    --- PASS: TestAgonCorpusADLProducts/hello_world.nanz/speed (0.00s)
+    --- PASS: TestAgonCorpusADLProducts/nc_agon.nanz/ordinary (0.08s)
+    --- PASS: TestAgonCorpusADLProducts/nc_agon.nanz/size (0.09s)
+    --- PASS: TestAgonCorpusADLProducts/nc_agon.nanz/speed (0.09s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.572s

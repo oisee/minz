@@ -1,0 +1,6 @@
+{
+  "source_sha256": "9e41884457b0a4bae28dc95e5b18c54eaba60b2fe59c6e29b2396f14c2076982",
+  "read_count": 500,
+  "description": "50 repetitions of ten nonzero bytes; masked ASCII/control/newline/high-bit cases. Main counts nonzero reads, prints >=32 or newline exactly.",
+  "spec": "Nanz Language Book v7 chapter18.1 (CString); source main byte mask and loop bound."
+}

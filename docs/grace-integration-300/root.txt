@@ -1,0 +1,40 @@
+=== RUN   TestOriginalALVScreenWholeMain
+    original_alv_screen_main_test.go:665: alv ordinary wholemain raw/final/native PASS
+    original_alv_screen_main_test.go:665: alv grace-size wholemain raw/final/native PASS
+    original_alv_screen_main_test.go:665: alv grace-speed wholemain raw/final/native PASS
+    original_alv_screen_main_test.go:665: alv-tab ordinary wholemain raw/final/native PASS
+    original_alv_screen_main_test.go:665: alv-tab grace-size wholemain raw/final/native PASS
+    original_alv_screen_main_test.go:665: alv-tab grace-speed wholemain raw/final/native PASS
+--- PASS: TestOriginalALVScreenWholeMain (2.01s)
+=== RUN   TestOriginalTUICommanderWholeMain
+--- PASS: TestOriginalTUICommanderWholeMain (0.23s)
+=== RUN   TestOriginalTUIDemoWholeMain
+--- PASS: TestOriginalTUIDemoWholeMain (0.02s)
+=== RUN   TestOriginalSQLiteDemoWholeMain
+=== RUN   TestOriginalSQLiteDemoWholeMain/ordinary
+=== RUN   TestOriginalSQLiteDemoWholeMain/ordinary/raw
+=== RUN   TestOriginalSQLiteDemoWholeMain/ordinary/final
+=== NAME  TestOriginalSQLiteDemoWholeMain/ordinary
+    sqlite_demo_main_test.go:393: original SQLite demo 787 B 12-byte stdout, SQL effects/fullRAM/SP PASS
+=== RUN   TestOriginalSQLiteDemoWholeMain/grace-size
+=== RUN   TestOriginalSQLiteDemoWholeMain/grace-size/raw
+=== RUN   TestOriginalSQLiteDemoWholeMain/grace-size/final
+=== NAME  TestOriginalSQLiteDemoWholeMain/grace-size
+    sqlite_demo_main_test.go:393: original SQLite demo 787 B 12-byte stdout, SQL effects/fullRAM/SP PASS
+=== RUN   TestOriginalSQLiteDemoWholeMain/grace-speed
+=== RUN   TestOriginalSQLiteDemoWholeMain/grace-speed/raw
+=== RUN   TestOriginalSQLiteDemoWholeMain/grace-speed/final
+=== NAME  TestOriginalSQLiteDemoWholeMain/grace-speed
+    sqlite_demo_main_test.go:393: original SQLite demo 787 B 12-byte stdout, SQL effects/fullRAM/SP PASS
+--- PASS: TestOriginalSQLiteDemoWholeMain (0.10s)
+    --- PASS: TestOriginalSQLiteDemoWholeMain/ordinary (0.04s)
+        --- PASS: TestOriginalSQLiteDemoWholeMain/ordinary/raw (0.00s)
+        --- PASS: TestOriginalSQLiteDemoWholeMain/ordinary/final (0.00s)
+    --- PASS: TestOriginalSQLiteDemoWholeMain/grace-size (0.03s)
+        --- PASS: TestOriginalSQLiteDemoWholeMain/grace-size/raw (0.00s)
+        --- PASS: TestOriginalSQLiteDemoWholeMain/grace-size/final (0.00s)
+    --- PASS: TestOriginalSQLiteDemoWholeMain/grace-speed (0.03s)
+        --- PASS: TestOriginalSQLiteDemoWholeMain/grace-speed/raw (0.00s)
+        --- PASS: TestOriginalSQLiteDemoWholeMain/grace-speed/final (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.358s

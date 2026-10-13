@@ -1,0 +1,22 @@
+{
+  "sources": {
+    "examples/nanz/screen_report.nanz": "6103aaba8f51e47158184097d14459788e1cf5019df171282c58e263a9418c5c",
+    "minzc/pkg/nanz/screen_gen.go": "14d655cdc870297591a3ff44096221b5e58352f5ebb046e2d117e72430a1f1bc",
+    "minzc/cmd/mzv/tui_host.go": "8d3fe8aaf13adf2f933a123a37bf847350205d9c933a180f675b761de4407ec1",
+    "stdlib/tui/render.nanz": "4711dbee908a2271f02d1fbb4720942604e23322d7745f32311f6b2c17c6d4a8",
+    "reports/alv-report-main/model.py": "da7fc5493284e3a46fd8aeb7225289c45ce2ed28029930a469612a9108c83e9c",
+    "reports/alv-report-main/report.json": "e0d24ea671b3646a38dd2f8ec0d09e9fa15bb37ded04f6c0c28752b206c84c32",
+    "reports/alv-report-main/report-stdout.bin": "f65f8bd56c475793066167ec6bf33f695cda2ddd2bbbea83b2af17f9b369e9e5",
+    "reports/alv-report-main/report-lh.json": "a8007adcc314ae5c49c63efa385ef724584afcef08d93aa89e7968560fc07e36",
+    "reports/alv-report-main/report-lh-stdout.bin": "c56e36528abb122f495f2cdee20af7a940c54f5e44b199065b3bdaeab1290f95",
+    "reports/alv-report-main/report-model.py": "8fa77ed3cb51ec32e6b193f98b9591924eaee8db6956445f7ca445c5443cea49",
+    "reports/alv-report-main/report-native-stdout.bin": "f65f8bd56c475793066167ec6bf33f695cda2ddd2bbbea83b2af17f9b369e9e5",
+    "reports/alv-report-main/report-lh-native-stdout.bin": "c56e36528abb122f495f2cdee20af7a940c54f5e44b199065b3bdaeab1290f95"
+  },
+  "authority": [
+    "sourceSQLseed8rows sortedcarrid; DSLwidth4/22/30 stride59; two screensF8 thenF3",
+    "screen_gen source API/table rowordering",
+    "terminalmzvANSI80x24 exact contract",
+    "Frozen LH scenario Enter input LH, F8 requery, F3 exit; exact table retains unmodified tail bytes of former AA row and seven stale rows because table_init only resets count."
+  ]
+}

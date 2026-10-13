@@ -1,0 +1,17 @@
+global byte:u8
+ global word:u16
+ global small:u24
+ global a:u32
+ global b:u32
+ global c:u32
+ global d:u24
+ global e:u24
+ fun embed() {a=u32(byte)
+ b=u32(word)
+ c=u32(small)
+ d=u24(byte)
+ e=u24(word)}
+ fun main(x:u8,y:u16,z:u24) {byte=x
+ word=y
+ small=z
+ embed()}

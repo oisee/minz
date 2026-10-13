@@ -1,0 +1,451 @@
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/transparent
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/transparent/ordinary
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/transparent/grace-size
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/transparent/grace-speed
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/opaque
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/opaque/ordinary
+    hardware_sprite_test.go:242: seed 19: 21 bytes, 90 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 21 bytes, 90 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/opaque/grace-size
+    hardware_sprite_test.go:242: seed 19: 21 bytes, 90 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 21 bytes, 90 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/opaque/grace-speed
+    hardware_sprite_test.go:242: seed 19: 21 bytes, 90 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 21 bytes, 90 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/mixed
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/mixed/ordinary
+    hardware_sprite_test.go:242: seed 19: 46 bytes, 198 T-states; 6 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 46 bytes, 198 T-states; 6 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/mixed/grace-size
+    hardware_sprite_test.go:242: seed 19: 46 bytes, 198 T-states; 6 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 46 bytes, 198 T-states; 6 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/mixed/grace-speed
+    hardware_sprite_test.go:242: seed 19: 46 bytes, 198 T-states; 6 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 46 bytes, 198 T-states; 6 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/overlapping-mask-graphics
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/overlapping-mask-graphics/ordinary
+    hardware_sprite_test.go:242: seed 19: 41 bytes, 178 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 41 bytes, 178 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/overlapping-mask-graphics/grace-size
+    hardware_sprite_test.go:242: seed 19: 41 bytes, 178 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 41 bytes, 178 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/overlapping-mask-graphics/grace-speed
+    hardware_sprite_test.go:242: seed 19: 41 bytes, 178 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 41 bytes, 178 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/strided
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/strided/ordinary
+    hardware_sprite_test.go:242: seed 19: 74 bytes, 313 T-states; 12 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 74 bytes, 313 T-states; 12 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/strided/grace-size
+    hardware_sprite_test.go:242: seed 19: 74 bytes, 313 T-states; 12 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 74 bytes, 313 T-states; 12 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/strided/grace-speed
+    hardware_sprite_test.go:242: seed 19: 74 bytes, 313 T-states; 12 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 74 bytes, 313 T-states; 12 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/page-crossing
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/page-crossing/ordinary
+    hardware_sprite_test.go:242: seed 19: 16 bytes, 72 T-states; 3 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 16 bytes, 72 T-states; 3 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/page-crossing/grace-size
+    hardware_sprite_test.go:242: seed 19: 16 bytes, 72 T-states; 3 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 16 bytes, 72 T-states; 3 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/page-crossing/grace-speed
+    hardware_sprite_test.go:242: seed 19: 16 bytes, 72 T-states; 3 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 16 bytes, 72 T-states; 3 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/last-byte
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/last-byte/ordinary
+    hardware_sprite_test.go:242: seed 19: 21 bytes, 92 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 21 bytes, 92 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/last-byte/grace-size
+    hardware_sprite_test.go:242: seed 19: 21 bytes, 92 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 21 bytes, 92 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/last-byte/grace-speed
+    hardware_sprite_test.go:242: seed 19: 21 bytes, 92 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 21 bytes, 92 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zero-width
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zero-width/ordinary
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zero-width/grace-size
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zero-width/grace-speed
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zero-height
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zero-height/ordinary
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zero-height/grace-size
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zero-height/grace-speed
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-row-7-8
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-row-7-8/ordinary
+    hardware_sprite_test.go:242: seed 19: 64 bytes, 273 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 64 bytes, 273 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-row-7-8/grace-size
+    hardware_sprite_test.go:242: seed 19: 64 bytes, 273 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 64 bytes, 273 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-row-7-8/grace-speed
+    hardware_sprite_test.go:242: seed 19: 64 bytes, 273 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 64 bytes, 273 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-row-63-64
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-row-63-64/ordinary
+    hardware_sprite_test.go:242: seed 19: 64 bytes, 273 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 64 bytes, 273 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-row-63-64/grace-size
+    hardware_sprite_test.go:242: seed 19: 64 bytes, 273 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 64 bytes, 273 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-row-63-64/grace-speed
+    hardware_sprite_test.go:242: seed 19: 64 bytes, 273 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 64 bytes, 273 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-last-row
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-last-row/ordinary
+    hardware_sprite_test.go:242: seed 19: 16 bytes, 72 T-states; 2 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 16 bytes, 72 T-states; 2 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-last-row/grace-size
+    hardware_sprite_test.go:242: seed 19: 16 bytes, 72 T-states; 2 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 16 bytes, 72 T-states; 2 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/zx-last-row/grace-speed
+    hardware_sprite_test.go:242: seed 19: 16 bytes, 72 T-states; 2 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 16 bytes, 72 T-states; 2 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/default-via
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/default-via/ordinary
+    hardware_sprite_test.go:242: seed 19: 6 bytes, 30 T-states; 2 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 6 bytes, 30 T-states; 2 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/default-via/grace-size
+    hardware_sprite_test.go:242: seed 19: 6 bytes, 30 T-states; 2 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 6 bytes, 30 T-states; 2 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/default-via/grace-speed
+    hardware_sprite_test.go:242: seed 19: 6 bytes, 30 T-states; 2 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 6 bytes, 30 T-states; 2 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/patterned-128x16
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/patterned-128x16/ordinary
+    hardware_sprite_test.go:242: seed 19: 1601 bytes, 6666 T-states; 256 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1601 bytes, 6666 T-states; 256 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/patterned-128x16/grace-size
+    hardware_sprite_test.go:242: seed 19: 1601 bytes, 6666 T-states; 256 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1601 bytes, 6666 T-states; 256 sprite bytes
+=== RUN   TestHardwareSpritePointerMemoryNativeAndVM/patterned-128x16/grace-speed
+    hardware_sprite_test.go:242: seed 19: 1601 bytes, 6666 T-states; 256 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1601 bytes, 6666 T-states; 256 sprite bytes
+--- PASS: TestHardwareSpritePointerMemoryNativeAndVM (1.73s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/transparent (0.03s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/transparent/ordinary (0.01s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/transparent/grace-size (0.01s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/transparent/grace-speed (0.01s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/opaque (0.04s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/opaque/ordinary (0.01s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/opaque/grace-size (0.01s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/opaque/grace-speed (0.02s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/mixed (0.07s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/mixed/ordinary (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/mixed/grace-size (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/mixed/grace-speed (0.02s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/overlapping-mask-graphics (0.07s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/overlapping-mask-graphics/ordinary (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/overlapping-mask-graphics/grace-size (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/overlapping-mask-graphics/grace-speed (0.02s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/strided (0.08s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/strided/ordinary (0.03s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/strided/grace-size (0.03s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/strided/grace-speed (0.03s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/page-crossing (0.06s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/page-crossing/ordinary (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/page-crossing/grace-size (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/page-crossing/grace-speed (0.02s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/last-byte (0.06s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/last-byte/ordinary (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/last-byte/grace-size (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/last-byte/grace-speed (0.02s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zero-width (0.05s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zero-width/ordinary (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zero-width/grace-size (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zero-width/grace-speed (0.02s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zero-height (0.05s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zero-height/ordinary (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zero-height/grace-size (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zero-height/grace-speed (0.02s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-row-7-8 (0.06s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-row-7-8/ordinary (0.03s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-row-7-8/grace-size (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-row-7-8/grace-speed (0.02s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-row-63-64 (0.07s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-row-63-64/ordinary (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-row-63-64/grace-size (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-row-63-64/grace-speed (0.03s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-last-row (0.06s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-last-row/ordinary (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-last-row/grace-size (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/zx-last-row/grace-speed (0.02s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/default-via (0.05s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/default-via/ordinary (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/default-via/grace-size (0.02s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/default-via/grace-speed (0.02s)
+    --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/patterned-128x16 (0.98s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/patterned-128x16/ordinary (0.27s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/patterned-128x16/grace-size (0.35s)
+        --- PASS: TestHardwareSpritePointerMemoryNativeAndVM/patterned-128x16/grace-speed (0.36s)
+=== RUN   TestHardwareSpriteCompiledNative
+=== RUN   TestHardwareSpriteCompiledNative/transparent
+=== RUN   TestHardwareSpriteCompiledNative/transparent/ordinary
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/transparent/grace-size
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/transparent/grace-speed
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/opaque
+=== RUN   TestHardwareSpriteCompiledNative/opaque/ordinary
+    hardware_sprite_test.go:242: seed 19: 19 bytes, 120 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 19 bytes, 120 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/opaque/grace-size
+    hardware_sprite_test.go:242: seed 19: 19 bytes, 120 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 19 bytes, 120 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/opaque/grace-speed
+    hardware_sprite_test.go:242: seed 19: 19 bytes, 120 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 19 bytes, 120 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/mixed
+=== RUN   TestHardwareSpriteCompiledNative/mixed/ordinary
+    hardware_sprite_test.go:242: seed 19: 38 bytes, 208 T-states; 6 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 38 bytes, 208 T-states; 6 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/mixed/grace-size
+    hardware_sprite_test.go:242: seed 19: 38 bytes, 208 T-states; 6 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 38 bytes, 208 T-states; 6 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/mixed/grace-speed
+    hardware_sprite_test.go:242: seed 19: 38 bytes, 208 T-states; 6 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 38 bytes, 208 T-states; 6 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/overlapping-mask-graphics
+=== RUN   TestHardwareSpriteCompiledNative/overlapping-mask-graphics/ordinary
+    hardware_sprite_test.go:242: seed 19: 35 bytes, 192 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 35 bytes, 192 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/overlapping-mask-graphics/grace-size
+    hardware_sprite_test.go:242: seed 19: 35 bytes, 192 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 35 bytes, 192 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/overlapping-mask-graphics/grace-speed
+    hardware_sprite_test.go:242: seed 19: 35 bytes, 192 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 35 bytes, 192 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/strided
+=== RUN   TestHardwareSpriteCompiledNative/strided/ordinary
+    hardware_sprite_test.go:242: seed 19: 69 bytes, 398 T-states; 12 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 69 bytes, 398 T-states; 12 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/strided/grace-size
+    hardware_sprite_test.go:242: seed 19: 69 bytes, 398 T-states; 12 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 69 bytes, 398 T-states; 12 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/strided/grace-speed
+    hardware_sprite_test.go:242: seed 19: 69 bytes, 398 T-states; 12 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 69 bytes, 398 T-states; 12 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/page-crossing
+=== RUN   TestHardwareSpriteCompiledNative/page-crossing/ordinary
+    hardware_sprite_test.go:242: seed 19: 17 bytes, 106 T-states; 3 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 17 bytes, 106 T-states; 3 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/page-crossing/grace-size
+    hardware_sprite_test.go:242: seed 19: 17 bytes, 106 T-states; 3 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 17 bytes, 106 T-states; 3 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/page-crossing/grace-speed
+    hardware_sprite_test.go:242: seed 19: 17 bytes, 106 T-states; 3 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 17 bytes, 106 T-states; 3 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/last-byte
+=== RUN   TestHardwareSpriteCompiledNative/last-byte/ordinary
+    hardware_sprite_test.go:242: seed 19: 26 bytes, 168 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 26 bytes, 168 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/last-byte/grace-size
+    hardware_sprite_test.go:242: seed 19: 26 bytes, 168 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 26 bytes, 168 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/last-byte/grace-speed
+    hardware_sprite_test.go:242: seed 19: 26 bytes, 168 T-states; 4 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 26 bytes, 168 T-states; 4 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zero-width
+=== RUN   TestHardwareSpriteCompiledNative/zero-width/ordinary
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zero-width/grace-size
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zero-width/grace-speed
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zero-height
+=== RUN   TestHardwareSpriteCompiledNative/zero-height/ordinary
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zero-height/grace-size
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zero-height/grace-speed
+    hardware_sprite_test.go:242: seed 19: 1 bytes, 10 T-states; 0 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1 bytes, 10 T-states; 0 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zx-row-7-8
+=== RUN   TestHardwareSpriteCompiledNative/zx-row-7-8/ordinary
+    hardware_sprite_test.go:242: seed 19: 57 bytes, 320 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 57 bytes, 320 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zx-row-7-8/grace-size
+    hardware_sprite_test.go:242: seed 19: 57 bytes, 320 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 57 bytes, 320 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zx-row-7-8/grace-speed
+    hardware_sprite_test.go:242: seed 19: 57 bytes, 320 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 57 bytes, 320 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zx-row-63-64
+=== RUN   TestHardwareSpriteCompiledNative/zx-row-63-64/ordinary
+    hardware_sprite_test.go:242: seed 19: 57 bytes, 320 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 57 bytes, 320 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zx-row-63-64/grace-size
+    hardware_sprite_test.go:242: seed 19: 57 bytes, 320 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 57 bytes, 320 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zx-row-63-64/grace-speed
+    hardware_sprite_test.go:242: seed 19: 57 bytes, 320 T-states; 8 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 57 bytes, 320 T-states; 8 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zx-last-row
+=== RUN   TestHardwareSpriteCompiledNative/zx-last-row/ordinary
+    hardware_sprite_test.go:242: seed 19: 17 bytes, 106 T-states; 2 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 17 bytes, 106 T-states; 2 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zx-last-row/grace-size
+    hardware_sprite_test.go:242: seed 19: 17 bytes, 106 T-states; 2 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 17 bytes, 106 T-states; 2 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/zx-last-row/grace-speed
+    hardware_sprite_test.go:242: seed 19: 17 bytes, 106 T-states; 2 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 17 bytes, 106 T-states; 2 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/default-via
+    hardware_sprite_test.go:119: default selects pointer; covered by pointer matrix
+=== RUN   TestHardwareSpriteCompiledNative/patterned-128x16
+=== RUN   TestHardwareSpriteCompiledNative/patterned-128x16/ordinary
+    hardware_sprite_test.go:242: seed 19: 1241 bytes, 6458 T-states; 256 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1241 bytes, 6458 T-states; 256 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/patterned-128x16/grace-size
+    hardware_sprite_test.go:242: seed 19: 1241 bytes, 6458 T-states; 256 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1241 bytes, 6458 T-states; 256 sprite bytes
+=== RUN   TestHardwareSpriteCompiledNative/patterned-128x16/grace-speed
+    hardware_sprite_test.go:242: seed 19: 1241 bytes, 6458 T-states; 256 sprite bytes
+    hardware_sprite_test.go:242: seed 173: 1241 bytes, 6458 T-states; 256 sprite bytes
+--- PASS: TestHardwareSpriteCompiledNative (0.60s)
+    --- PASS: TestHardwareSpriteCompiledNative/transparent (0.02s)
+        --- PASS: TestHardwareSpriteCompiledNative/transparent/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/transparent/grace-size (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/transparent/grace-speed (0.01s)
+    --- PASS: TestHardwareSpriteCompiledNative/opaque (0.03s)
+        --- PASS: TestHardwareSpriteCompiledNative/opaque/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/opaque/grace-size (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/opaque/grace-speed (0.01s)
+    --- PASS: TestHardwareSpriteCompiledNative/mixed (0.03s)
+        --- PASS: TestHardwareSpriteCompiledNative/mixed/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/mixed/grace-size (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/mixed/grace-speed (0.01s)
+    --- PASS: TestHardwareSpriteCompiledNative/overlapping-mask-graphics (0.03s)
+        --- PASS: TestHardwareSpriteCompiledNative/overlapping-mask-graphics/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/overlapping-mask-graphics/grace-size (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/overlapping-mask-graphics/grace-speed (0.01s)
+    --- PASS: TestHardwareSpriteCompiledNative/strided (0.04s)
+        --- PASS: TestHardwareSpriteCompiledNative/strided/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/strided/grace-size (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/strided/grace-speed (0.01s)
+    --- PASS: TestHardwareSpriteCompiledNative/page-crossing (0.02s)
+        --- PASS: TestHardwareSpriteCompiledNative/page-crossing/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/page-crossing/grace-size (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/page-crossing/grace-speed (0.01s)
+    --- PASS: TestHardwareSpriteCompiledNative/last-byte (0.02s)
+        --- PASS: TestHardwareSpriteCompiledNative/last-byte/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/last-byte/grace-size (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/last-byte/grace-speed (0.01s)
+    --- PASS: TestHardwareSpriteCompiledNative/zero-width (0.02s)
+        --- PASS: TestHardwareSpriteCompiledNative/zero-width/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/zero-width/grace-size (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/zero-width/grace-speed (0.01s)
+    --- PASS: TestHardwareSpriteCompiledNative/zero-height (0.02s)
+        --- PASS: TestHardwareSpriteCompiledNative/zero-height/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/zero-height/grace-size (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/zero-height/grace-speed (0.01s)
+    --- PASS: TestHardwareSpriteCompiledNative/zx-row-7-8 (0.03s)
+        --- PASS: TestHardwareSpriteCompiledNative/zx-row-7-8/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/zx-row-7-8/grace-size (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/zx-row-7-8/grace-speed (0.01s)
+    --- PASS: TestHardwareSpriteCompiledNative/zx-row-63-64 (0.03s)
+        --- PASS: TestHardwareSpriteCompiledNative/zx-row-63-64/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/zx-row-63-64/grace-size (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/zx-row-63-64/grace-speed (0.01s)
+    --- PASS: TestHardwareSpriteCompiledNative/zx-last-row (0.02s)
+        --- PASS: TestHardwareSpriteCompiledNative/zx-last-row/ordinary (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/zx-last-row/grace-size (0.01s)
+        --- PASS: TestHardwareSpriteCompiledNative/zx-last-row/grace-speed (0.01s)
+    --- SKIP: TestHardwareSpriteCompiledNative/default-via (0.00s)
+    --- PASS: TestHardwareSpriteCompiledNative/patterned-128x16 (0.28s)
+        --- PASS: TestHardwareSpriteCompiledNative/patterned-128x16/ordinary (0.09s)
+        --- PASS: TestHardwareSpriteCompiledNative/patterned-128x16/grace-size (0.09s)
+        --- PASS: TestHardwareSpriteCompiledNative/patterned-128x16/grace-speed (0.09s)
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/address-overflow
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/invalid-stride
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/region-overflow
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/bad-graphics-hex
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/empty
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/duplicate-destination
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/duplicate-via
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/region-arity
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/negative-base
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/bad-mask-hex
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/wrong-mask-width
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/wrong-graphics-width
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/unknown-layout
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/missing-destination
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/missing-region
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/via-arity
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/negative-region
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/missing-row
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/extra-row
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/zx-arity
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/zx-overflow
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/unknown-via
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/duplicate-region
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/odd-mask-hex
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/destination-arity
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/row-arity
+=== RUN   TestHardwareSpriteRejectsInvalidDescriptions/unknown-field
+--- PASS: TestHardwareSpriteRejectsInvalidDescriptions (0.11s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/address-overflow (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/invalid-stride (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/region-overflow (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/bad-graphics-hex (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/empty (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/duplicate-destination (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/duplicate-via (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/region-arity (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/negative-base (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/bad-mask-hex (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/wrong-mask-width (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/wrong-graphics-width (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/unknown-layout (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/missing-destination (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/missing-region (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/via-arity (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/negative-region (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/missing-row (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/extra-row (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/zx-arity (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/zx-overflow (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/unknown-via (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/duplicate-region (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/odd-mask-hex (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/destination-arity (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/row-arity (0.00s)
+    --- PASS: TestHardwareSpriteRejectsInvalidDescriptions/unknown-field (0.00s)
+=== RUN   TestHardwareSpriteCompiledLiveValues
+=== RUN   TestHardwareSpriteCompiledLiveValues/ordinary
+=== RUN   TestHardwareSpriteCompiledLiveValues/grace-size
+=== RUN   TestHardwareSpriteCompiledLiveValues/grace-speed
+--- PASS: TestHardwareSpriteCompiledLiveValues (0.04s)
+    --- PASS: TestHardwareSpriteCompiledLiveValues/ordinary (0.01s)
+    --- PASS: TestHardwareSpriteCompiledLiveValues/grace-size (0.01s)
+    --- PASS: TestHardwareSpriteCompiledLiveValues/grace-speed (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.502s

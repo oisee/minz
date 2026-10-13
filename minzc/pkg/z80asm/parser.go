@@ -9,35 +9,35 @@ import (
 
 // Line represents a parsed line from the source
 type Line struct {
-	Number     int
-	Label      string
-	Directive  string
-	Mnemonic   string
-	Operands   []string
-	Comment    string
-	IsBlank    bool
-	FromJRS    bool // true when expanded from JRS pseudo-instruction; pass 1 reserves 3 bytes
+	Number    int
+	Label     string
+	Directive string
+	Mnemonic  string
+	Operands  []string
+	Comment   string
+	IsBlank   bool
+	FromJRS   bool // true when expanded from JRS pseudo-instruction; pass 1 reserves 3 bytes
 }
 
 // ParseLine parses a single line of assembly
 func ParseLine(line string, lineNum int) (*Line, error) {
 	result := &Line{Number: lineNum}
-	
+
 	// Remove comments
 	if idx := strings.Index(line, ";"); idx >= 0 {
 		result.Comment = strings.TrimSpace(line[idx+1:])
 		line = line[:idx]
 	}
-	
+
 	// Trim whitespace
 	line = strings.TrimSpace(line)
-	
+
 	// Check if blank
 	if line == "" {
 		result.IsBlank = true
 		return result, nil
 	}
-	
+
 	// Check for label (ends with : OR contains : followed by more content)
 	if strings.HasSuffix(line, ":") {
 		result.Label = strings.TrimSuffix(line, ":")
@@ -74,7 +74,7 @@ func ParseLine(line string, lineNum int) (*Line, error) {
 		result.IsBlank = true
 		return result, nil
 	}
-	
+
 	// Check for LABEL EQU VALUE pattern
 	if len(tokens) >= 3 && strings.ToUpper(tokens[1]) == "EQU" {
 		result.Label = tokens[0]
@@ -83,26 +83,26 @@ func ParseLine(line string, lineNum int) (*Line, error) {
 		result.Operands = []string{strings.Join(tokens[2:], " ")}
 		return result, nil
 	}
-	
+
 	// Check if first token is a directive (starts with uppercase)
 	if isDirective(tokens[0]) {
 		result.Directive = strings.ToUpper(tokens[0])
 		if len(tokens) > 1 {
 			// Handle operands - could be comma-separated
-			operandStr := strings.Join(tokens[1:], " ")
+			operandStr := strings.TrimSpace(line[len(tokens[0]):])
 			result.Operands = parseOperands(operandStr)
 		}
 		return result, nil
 	}
-	
+
 	// Otherwise it's a mnemonic
 	result.Mnemonic = strings.ToUpper(tokens[0])
 	if len(tokens) > 1 {
 		// Handle operands
-		operandStr := strings.Join(tokens[1:], " ")
+		operandStr := strings.TrimSpace(line[len(tokens[0]):])
 		result.Operands = parseOperands(operandStr)
 	}
-	
+
 	return result, nil
 }
 
@@ -113,7 +113,7 @@ func isDirective(token string) bool {
 		"ORG", "END", "DB", "DEFB", "DW", "DEFW", "DW24", "DL", "DS", "DEFS", "EQU",
 		"ALIGN", "INCLUDE", "INCBIN", "MACRO", "ENDM",
 		".ASSUME", "ASSUME", // eZ80 ADL mode control
-		"TARGET", "MODEL",  // Platform-specific directives
+		"TARGET", "MODEL", // Platform-specific directives
 	}
 	for _, d := range directives {
 		if upper == d {
@@ -130,7 +130,7 @@ func parseOperands(operandStr string) []string {
 	parenDepth := 0
 	inQuotes := false
 	quoteChar := rune(0)
-	
+
 	bracketDepth := 0
 
 	for _, ch := range operandStr {
@@ -178,12 +178,12 @@ func parseOperands(operandStr string) []string {
 			current.WriteRune(ch)
 		}
 	}
-	
+
 	// Add last operand
 	if current.Len() > 0 {
 		operands = append(operands, strings.TrimSpace(current.String()))
 	}
-	
+
 	return operands
 }
 
@@ -192,7 +192,7 @@ func ParseSource(source string) ([]*Line, error) {
 	var lines []*Line
 	scanner := bufio.NewScanner(strings.NewReader(source))
 	lineNum := 1
-	
+
 	for scanner.Scan() {
 		line, err := ParseLine(scanner.Text(), lineNum)
 		if err != nil {
@@ -201,11 +201,11 @@ func ParseSource(source string) ([]*Line, error) {
 		lines = append(lines, line)
 		lineNum++
 	}
-	
+
 	if err := scanner.Err(); err != nil {
 		return nil, err
 	}
-	
+
 	return lines, nil
 }
 
@@ -292,7 +292,7 @@ func parseNumber(s string) (int, error) {
 
 	// Check for character literal 'X' or "X"
 	if (strings.HasPrefix(s, "'") && strings.HasSuffix(s, "'") && len(s) >= 3) ||
-	   (strings.HasPrefix(s, "\"") && strings.HasSuffix(s, "\"") && len(s) >= 3) {
+		(strings.HasPrefix(s, "\"") && strings.HasSuffix(s, "\"") && len(s) >= 3) {
 		content := s[1 : len(s)-1]
 		if len(content) == 2 && content[0] == '\\' {
 			switch content[1] {

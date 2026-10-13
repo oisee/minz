@@ -1,0 +1,22 @@
+{
+  "sources": {
+    "examples/nanz/tui_screen.nanz": "ffd82561eba30cf4673888d868e60cca0f48d2c2f0005d5a5aa012ff44ef49c5",
+    "examples/nanz/abap_screen.nanz": "241483fe9a7ebbf7a6db1d9f7564935107a9fcf2a63b2c9e99cd7e0bff911b27",
+    "minzc/cmd/mzv/tui_host.go": "8d3fe8aaf13adf2f933a123a37bf847350205d9c933a180f675b761de4407ec1",
+    "reports/frozen-language-spec/Nanz_Language_Book_v7.md": "c78a79e60a35235efe1beeb4282ec117b7244ab1f0b437d3490c5912672aec34",
+    "reports/terminal-screen-main/model.py": "46dfba109bad2749870538d55f3e6879de2d06d45651cb081afe5208932c23fd",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/original-terminal-screen-main/reports/terminal-screen-main/cancel-stdout.bin": "01575e37add128ea156a8cdcf0912f10659edfe3971a8b17413280229cb49d32",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/original-terminal-screen-main/reports/terminal-screen-main/edit-stdout.bin": "cb0c6d2b0e473105a4802f12389962206de929bb09f897a4c75ce5a1b88c1342",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/original-terminal-screen-main/reports/terminal-screen-main/tab-stdout.bin": "d03f380d6e23a483ae0a31c1b1d8b3ef3208b83e2feff07faf96783922e4556f",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/original-terminal-screen-main/reports/terminal-screen-main/tui-stdout.bin": "d8dfa1b7882ad4f8db2b7cce00f7d390c6ae5a3295c80593308386b10aa47777",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/original-terminal-screen-main/reports/terminal-screen-main/tui.json": "afa0fa25f0811493f73746b94a296698578a38a65f5596229a0a44fe0c4e0d8a",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/original-terminal-screen-main/reports/terminal-screen-main/tab.json": "be2f87da0109ce0568129bf9a459c630babf952ac953a83c193d832fec65cee8",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/original-terminal-screen-main/reports/terminal-screen-main/edit.json": "038db9146695f6d5f03289de54c3af1c80e087a9e4918080e623ff52777c9dad",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/original-terminal-screen-main/reports/terminal-screen-main/cancel.json": "e2138d4ebfe7d2b8717b36641d4b763aab7cb3873a4a015d3c785c28a01351c1"
+  },
+  "authority": [
+    "mzv realANSI/width80height24/nonblockingprequeuedkeys",
+    "interactive read_line showcursor+trimCRLF+truncateNUL+hidecursor",
+    "Bookv7 unsigned modular/global pointer semantics"
+  ]
+}

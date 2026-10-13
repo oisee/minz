@@ -47,6 +47,9 @@ func dumpFunc(sb *strings.Builder, f *Func) {
 	if f.Attrs.IsExtern {
 		sb.WriteString("extern ")
 	}
+	if f.Attrs.FallibleCY {
+		sb.WriteString("[fallible-cy] ")
+	}
 	if f.Attrs.IsComptime {
 		sb.WriteString("[comptime] ")
 	}
@@ -58,9 +61,15 @@ func dumpFunc(sb *strings.Builder, f *Func) {
 			sb.WriteString(", ")
 		}
 		fmt.Fprintf(sb, "%%r%d: %s [%s]", p.Reg, p.Ty, p.Class)
+		if p.ClassHard {
+			sb.WriteString("!")
+		}
 	}
 	sb.WriteString(")")
 
+	for _, slot := range f.Contract.StructReturnBuffers {
+		fmt.Fprintf(sb, " [struct-result%d param%d %s:%dB]", slot.ReturnIndex, slot.ParamIndex, slot.Ty, ByteWidth(slot.Ty))
+	}
 	rets := f.Contract.Returns
 	if len(rets) > 0 {
 		sb.WriteString(" -> ")
@@ -180,6 +189,9 @@ func DumpInst(inst *Inst) string {
 		if inst.Ty != TyVoid {
 			fmt.Fprintf(&sb, " : %s%s", inst.Ty, clsSuffix())
 		}
+		if inst.FallibleCY {
+			fmt.Fprintf(&sb, " outcome [%s]", regList(inst.ExtraRets))
+		}
 		dumpCallAttrs(&sb, inst.CallAttr)
 
 	case OpCallIndirect:
@@ -221,6 +233,15 @@ func DumpInst(inst *Inst) string {
 		}
 	}
 
+	if len(inst.IndirectParamTys) > 0 || len(inst.IndirectReturnTys) > 0 {
+		fmt.Fprintf(&sb, " [indirect-abi %v -> %v]", inst.IndirectParamTys, inst.IndirectReturnTys)
+	}
+	for _, slot := range inst.StructReturnBuffers {
+		fmt.Fprintf(&sb, " [struct-result%d param%d %s:%dB]", slot.ReturnIndex, slot.ParamIndex, slot.Ty, ByteWidth(slot.Ty))
+	}
+	if inst.SequentialBytes {
+		sb.WriteString(" [sequential-bytes]")
+	}
 	return sb.String()
 }
 

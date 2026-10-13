@@ -157,22 +157,25 @@ func (*IfStmt) pasStmt() {}
 
 // WhileStmt: while Cond do Body
 type WhileStmt struct {
-	Cond Expr
-	Body Stmt
+	Token Token // origin of the loop keyword
+	Cond  Expr
+	Body  Stmt
 }
 
 func (*WhileStmt) pasStmt() {}
 
 // RepeatStmt: repeat Body until Cond
 type RepeatStmt struct {
-	Body []Stmt
-	Cond Expr
+	Token Token // origin of the loop keyword
+	Body  []Stmt
+	Cond  Expr
 }
 
 func (*RepeatStmt) pasStmt() {}
 
 // ForStmt: for Var := Start to/downto End do Body
 type ForStmt struct {
+	Token  Token // origin of the loop keyword
 	Var    string
 	Start  Expr
 	End    Expr
@@ -322,6 +325,14 @@ func PasTypeToMIR2(t PasType) mir2.Ty {
 	case *ArrayType:
 		elem := PasTypeToMIR2(t.Elem)
 		return &mir2.ArrayTy{Elem: elem, Len: t.Hi - t.Lo + 1}
+	case *RecordType:
+		st := &mir2.StructTy{}
+		for _, f := range t.Fields {
+			for _, name := range f.Names {
+				st.Fields = append(st.Fields, mir2.StructField{Name: name, Ty: PasTypeToMIR2(f.Ty)})
+			}
+		}
+		return st
 	case *PointerType:
 		return mir2.TyPtr
 	case *ProcPtrType:

@@ -1,5 +1,7 @@
 package mir2
 
+import "fmt"
+
 // SplitJoinRet splits trivial join-blocks that only contain a Ret into
 // separate Ret blocks at each predecessor. This enables CondRetSink and
 // FuseAbsDiff to fire on patterns like:
@@ -64,17 +66,19 @@ func SplitJoinRet(f *Func) bool {
 			case *TermBrIf:
 				if t.Then == joinBlk.Label && len(t.ThenArgs) == 1 {
 					// Then-branch jumps to join. Replace with a new ret block.
-					retLabel := joinBlk.Label + "_ret_then"
+					retLabel := freshJoinRetLabel(f, joinBlk.Label+"_ret_then")
 					retBlk := &Block{Label: retLabel, Term: &TermRet{Vals: []Reg{t.ThenArgs[0]}}}
 					f.Blocks = append(f.Blocks, retBlk)
+					f.TransferLoopOrigin(joinBlk.Label, retLabel)
 					t.Then = retLabel
 					t.ThenArgs = nil
 					changed = true
 				}
 				if t.Else == joinBlk.Label && len(t.ElseArgs) == 1 {
-					retLabel := joinBlk.Label + "_ret_else"
+					retLabel := freshJoinRetLabel(f, joinBlk.Label+"_ret_else")
 					retBlk := &Block{Label: retLabel, Term: &TermRet{Vals: []Reg{t.ElseArgs[0]}}}
 					f.Blocks = append(f.Blocks, retBlk)
+					f.TransferLoopOrigin(joinBlk.Label, retLabel)
 					t.Else = retLabel
 					t.ElseArgs = nil
 					changed = true
@@ -84,10 +88,27 @@ func SplitJoinRet(f *Func) bool {
 
 		// Replace TermJmp predecessors with TermRet.
 		for _, p := range preds {
+			if !f.TransferLoopOrigin(joinBlk.Label, p.block.Label) {
+				continue
+			}
 			p.block.Term = &TermRet{Vals: []Reg{p.arg}}
 			changed = true
 		}
 	}
 
 	return changed
+}
+
+// Multiple conditional predecessors may return different values through the
+// same edge kind. Their return blocks must never share a label.
+func freshJoinRetLabel(f *Func, prefix string) string {
+	if f.BlockByLabel(prefix) == nil {
+		return prefix
+	}
+	for n := 1; ; n++ {
+		label := fmt.Sprintf("%s_%d", prefix, n)
+		if f.BlockByLabel(label) == nil {
+			return label
+		}
+	}
 }

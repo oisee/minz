@@ -1,0 +1,12 @@
+{
+  "minzc": {
+    "path": "/mnt/safe/minz/grace/2026-10-12/readme-cpm-runtime/executables/minzc",
+    "sha256": "9a90aec25fa849a26cc852aacac5b9a719daaefcc3dd102e7d1fd3f52a06ddcb",
+    "compiler_commit": "8b01bf07"
+  },
+  "pipeline.test": {
+    "path": "/mnt/safe/minz/grace/2026-10-12/readme-cpm-runtime/executables/pipeline.test",
+    "sha256": "283436f27ef78350ae0e45c4d484935e1a2a66717cea16fcc49025a313768fbd",
+    "compiler_commit": "8b01bf07"
+  }
+}

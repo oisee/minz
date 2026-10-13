@@ -58,6 +58,21 @@ func (g *z80cg) emitSBCHL(rhs string) {
 // ── Binary operations ─────────────────────────────────────────────────────────
 
 func (g *z80cg) genBinOp(mnem string, inst *Inst) {
+	g.materializePendingFlag(inst)
+	if mnem == "OR" && g.genDisjointByteOr(inst) {
+		return
+	}
+	// A pending predicate may be assigned an ordinary byte register by PBQP,
+	// but that register has not received a value. Materialize it before ALU work.
+	if g.pendingFlagReg != NoReg && (inst.Src[0] == g.pendingFlagReg || inst.Src[1] == g.pendingFlagReg) {
+		home := g.freeScratch8(inst)
+		if home == "" {
+			home = g.spillLabel(g.pendingFlagReg)
+		}
+		g.emitKnownFlagCopy(home, 8)
+		g.physOverride[g.pendingFlagReg] = home
+		g.pendingFlagReg = NoReg
+	}
 	dst := g.loc(inst.Dst)
 	lhs := g.loc(inst.Src[0])
 	rhs := g.loc(inst.Src[1])
@@ -66,6 +81,26 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 
 	if w == 16 {
 		defer g.saveWrittenScratch(inst)()
+		// Constant suppression is decided before codegen relocates values.
+		// Consume a unit RHS directly even when an originally in-place
+		// operation now has a spilled source or destination; its allocated
+		// RHS home may never have been initialized.
+		if cv, ok := g.constVals[rhsReg]; ok && cv == 1 && (mnem == "ADD" || mnem == "SUB") {
+			work := dst
+			if isSpill(work) {
+				work = "HL"
+			}
+			g.emitMov(work, lhs, 16)
+			op := "INC"
+			if mnem == "SUB" {
+				op = "DEC"
+			}
+			g.emitf("    %s %s", op, work)
+			g.emitMov(dst, work, 16)
+			g.invalidate(work)
+			g.invalidate(dst)
+			return
+		}
 	}
 
 	if w >= 24 {
@@ -206,7 +241,9 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		// Loading lhs into A would destroy the rhs value.
 		//   ADD: commutative → just ADD A, lhs.
 		//   SUB: A = lhs - A → NEG first (A = -A), then ADD A, lhs.
-		if rhs == "A" && lhs != "A" {
+		// Folded constants need not reside in their allocated register. In
+		// particular A may still hold lhs when a constant RHS is allocated A.
+		if rhs == "A" && lhs != "A" && (!rhsIsConst || !g.deadConsts[inst.Src[1]]) {
 			// The result overwrites A, which holds rhs: save rhs if it is
 			// still live (gcd's b = b - a keeps a live in A for the loop).
 			g.saveAccOperandIfLive(inst.Src[1], inst)
@@ -256,7 +293,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			}
 			return
 		}
-		if isCommutative && g.holdsValue("A", rhs) {
+		if isCommutative && !rhsIsConst && g.holdsValue("A", rhs) {
 			// A == rhs, commutative swap: emit OP A, lhs instead.
 			g.saveAccOperandIfLive(inst.Src[1], inst)
 			g.invalidate("A")
@@ -282,6 +319,9 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				// Example: fib — after first CALL, A=fib(n-1) is needed later but
 				// computing n-2 requires loading n (from scratch) into A.
 				g.saveABeforeOverwrite(inst)
+				if restore := g.saveAccIfLive(inst); restore != nil {
+					defer restore()
+				}
 				g.emitLDA(lhs)
 			}
 			switch mnem {
@@ -311,7 +351,9 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			g.saveABeforeOverwrite(inst)
 			// A will be clobbered (LD A,lhs then ALU). If A holds a value
 			// that's used later, save it.
-			g.saveAccIfLive(inst)
+			if restore := g.saveAccIfLive(inst); restore != nil {
+				defer restore()
+			}
 		}
 		if lhs != "A" {
 			g.emitLDA(lhs)
@@ -564,7 +606,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 	}
 }
 
-// genBinOp32 emits 32-bit ADD or SUB using the Z80 EXX / shadow-pair technique.
+// genBinOp32 emits 32-bit arithmetic or logic using the Z80 EXX / shadow-pair technique.
 //
 // The 32-bit value is split across main and shadow register banks:
 //
@@ -595,6 +637,29 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 // Limitation: Z80 only provides ADD/ADC/SBC with HL as destination.
 // When dst≠HL, we temporarily use HL via emitMov32 (TODO: optimise).
 func (g *z80cg) genBinOp32(mnem, dst, lhs, rhs string) {
+	if mnem == "AND" || mnem == "OR" || mnem == "XOR" {
+		// Logical operations are commutative; reuse an allocated rhs destination
+		// before moving lhs so neither main nor shadow rhs is overwritten.
+		if rhs == dst && lhs != dst {
+			lhs, rhs = rhs, lhs
+		}
+		g.emit("    PUSH AF")
+		if lhs != dst {
+			g.emitMov32(dst, lhs)
+		}
+		for bank := 0; bank < 2; bank++ {
+			for _, bytePart := range []func(string) string{lowByte, highByte} {
+				d, r := bytePart(dst), bytePart(rhs)
+				g.emitf("    LD A, %s", d)
+				g.emitf("    %s %s", mnem, r)
+				g.emitf("    LD %s, A", d)
+			}
+			g.emit("    EXX")
+		}
+		g.emit("    POP AF")
+		return
+	}
+
 	// ADD is commutative: if rhs == dst and lhs != dst, swap so we don't clobber rhs.
 	if mnem == "ADD" && rhs == dst && lhs != dst {
 		lhs, rhs = rhs, lhs
@@ -692,38 +757,26 @@ func (g *z80cg) genBinOp32(mnem, dst, lhs, rhs string) {
 // saveAccIfLive checks whether A contains a live value from a virtual register
 // that will be needed AFTER the current instruction.  If so, it relocates
 // A's value to a scratch register (via physOverride) so the ALU can use A freely.
-func (g *z80cg) saveAccIfLive(inst *Inst) {
-	// Find which virtual reg currently lives in A. Prefer the lowest ID
-	// on ties, matching definition order and the allocator tie-break.
-	var accReg Reg
-	for _, r := range slices.Sorted(maps.Keys(g.ar.Locs)) {
-		loc := g.ar.Locs[r]
-		if loc.Kind == LocReg && loc.Name == "A" {
-			accReg = r
-			break
-		}
-	}
-	if accReg == NoReg {
-		return
-	}
-	// Check if physOverride already moved it away.
-	if p, ok := g.physOverride[accReg]; ok && p != "A" {
-		return
-	}
-	// Skip if this instruction defines or uses accReg (it'll be handled normally).
-	if accReg == inst.Dst || accReg == inst.Src[0] || accReg == inst.Src[1] {
-		return
-	}
-	// Check if accReg is used after this instruction in the block.
+// On exhaustion, the caller must defer the returned stack restoration until
+// after copying the ALU result to its allocated destination.
+func (g *z80cg) saveAccIfLive(inst *Inst) func() {
+	// Several non-overlapping vregs can share A. Select a value that is live
+	// here, not the lowest allocated ID (which may be a long-dead parameter).
 	live := g.regsLiveAfterInst(inst)
-	if !live[accReg] {
-		return
+	for _, r := range slices.Sorted(maps.Keys(live)) {
+		if r == inst.Dst || r == inst.Src[0] || r == inst.Src[1] || g.loc(r) != "A" {
+			continue
+		}
+		scratch := g.freeScratch8(inst)
+		if scratch == "" {
+			// The result is copied out of A before this deferred restoration.
+			// Do not overwrite a live word byte when all scratch bytes are busy.
+			return g.saveLiveScratch(inst, "AF")
+		}
+		g.emitf("    LD %s, A    ; preserve live r%d before ALU scratch", scratch, r)
+		g.physOverride[r] = scratch
 	}
-	// accReg is live in A and will be clobbered — save to scratch.
-	// Pick a scratch register that isn't used by this instruction.
-	scratch := g.pickScratch8(inst)
-	g.emitf("    LD %s, A", scratch)
-	g.physOverride[accReg] = scratch
+	return nil
 }
 
 // reorderAccMoves swaps consecutive instruction pairs where a move→A is followed
@@ -782,7 +835,7 @@ func (g *z80cg) emit8ALU(mnem, src string) {
 		// For now, load into A via memory, which works if LHS is already in A.
 		g.emit("    PUSH HL")
 		g.emitf("    LD HL, %s", src)
-		g.emitf("    LD H, (HL)") // H = value at spill address
+		g.emitNativeSpillf(src, 0, 1, false, "    LD H, (HL)") // H = value at spill address
 		switch mnem {
 		case "ADD", "ADC":
 			g.emitf("    %s A, H", mnem)
@@ -819,6 +872,7 @@ func (g *z80cg) emit8ALUImm(mnem string, imm int64) {
 // ── Shifts ────────────────────────────────────────────────────────────────────
 
 func (g *z80cg) genShift(mnem string, inst *Inst) {
+	g.materializePendingFlag(inst)
 	if dst := g.loc(inst.Dst); isSpill(dst) && inst.Ty.Width() <= 16 {
 		// Z80 shifts accept registers or indirect memory, never absolute
 		// spill labels. Stage the result without disturbing a live HL/A.
@@ -846,6 +900,21 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 		return
 	}
 	dst := g.loc(inst.Dst)
+	// IX/IY word shifts use HL as encoding scratch. Preserve an independently
+	// live HL value before staging (including before copying the shift source).
+	preserveHL := false
+	if w == 16 && isIXY(dst) {
+		for r := range g.regsLiveAfterInst(inst) {
+			if r != inst.Dst && (g.loc(r) == "HL" || parentPair(g.loc(r)) == "HL") {
+				preserveHL = true
+				break
+			}
+		}
+	}
+	if preserveHL {
+		g.emit("    PUSH HL    ; preserve live HL across indexed word shift")
+		defer func() { g.emit("    POP HL     ; restore indexed word shift scratch"); g.invalidate("HL") }()
+	}
 	src := g.loc(inst.Src[0])
 	if dst != src {
 		g.emitMov(dst, src, w)
@@ -872,6 +941,10 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 		if mnem == "SLA" && count == 8 {
 			g.emitf("    LD %s, %s", hi, lo)
 			g.emitf("    LD %s, 0", lo)
+		} else if mnem == "SRL" && count == 8 {
+			// Unsigned word >> 8 is just its high byte, zero extended.
+			g.emitf("    LD %s, %s", lo, hi)
+			g.emitf("    LD %s, 0", hi)
 		} else {
 			for i := int64(0); i < count; i++ {
 				switch mnem {
@@ -924,7 +997,43 @@ func (g *z80cg) genVariableShift(mnem string, inst *Inst) {
 		panic("no scratch pair for variable shift")
 	}
 	g.emitf("    PUSH %s", pair)
-	g.emitLD8(counter, lowByte(g.loc(inst.Src[1])))
+	// Saturate the entire count at the result width before taking its byte.
+	// Inspect before writing counter: its high byte may alias the count itself.
+	g.emit("    PUSH AF")
+	idx := g.trampIdx
+	g.trampIdx++
+	countLoc := g.loc(inst.Src[1])
+	countWidth := 8
+	if info, ok := g.regInfo[inst.Src[1]]; ok && info.Ty != nil {
+		countWidth = info.Ty.Width()
+	}
+	for byteIndex := 1; byteIndex < (countWidth+7)/8; byteIndex++ {
+		part := highByte(countLoc)
+		shadow := byteIndex >= 2 && !isSpill(countLoc)
+		if isSpill(countLoc) {
+			part = fmt.Sprintf("%s+%d", countLoc, byteIndex)
+		} else if byteIndex == 2 {
+			part = lowByte(countLoc)
+		}
+		if shadow {
+			g.emit("    EXX")
+		}
+		g.emitLDA(part)
+		if shadow {
+			g.emit("    EXX")
+		}
+		g.emit("    OR A")
+		g.emitf("    JP NZ, .shift_count_large_%d", idx)
+	}
+	g.emitLDA(lowByte(countLoc))
+	g.emitf("    CP %d", w)
+	g.emitf("    JR C, .shift_count_ready_%d", idx)
+	g.emitf(".shift_count_large_%d:", idx)
+	g.emitf("    LD A, %d", w)
+	g.emitf(".shift_count_ready_%d:", idx)
+	g.emitf("    LD %s, A", counter)
+	g.emit("    POP AF")
+	g.invalidate("A")
 	if dst != src {
 		g.emitMov(dst, src, w)
 	}
@@ -939,8 +1048,6 @@ func (g *z80cg) genVariableShift(mnem string, inst *Inst) {
 		g.emitLDA(dst)
 		shiftDst = "A"
 	}
-	idx := g.trampIdx
-	g.trampIdx++
 	// INC/DEC test zero without touching the shifted value or accumulator.
 	g.emitf("    INC %s", counter)
 	g.emitf("    DEC %s", counter)
@@ -1032,21 +1139,21 @@ func (g *z80cg) genShift32(mnem string, inst *Inst) {
 
 	switch mnem {
 	case "SLA":
-		// Left shift: ADD HL,HL / EXX / ADC HL,HL / EXX  (× count)
-		// Z80 only supports ADD HL,HL — not ADD DE,DE or ADD BC,BC.
-		// Route through HL if needed.
-		if dst != "HL" {
-			g.emitMov("HL", dst, 16)
-		}
+		// HL has native word ADD/ADC. Other pairs use a byte carry chain,
+		// keeping both their shadow result and independently live HL intact.
 		for i := int64(0); i < count; i++ {
-			g.emit("    ADD HL, HL")
+			if dst == "HL" {
+				g.emit("    ADD HL, HL")
+				g.emit("    EXX")
+				g.emit("    ADC HL, HL")
+			} else {
+				g.emitf("    SLA %s", lo)
+				g.emitf("    RL %s", hi)
+				g.emit("    EXX")
+				g.emitf("    RL %s", lo)
+				g.emitf("    RL %s", hi)
+			}
 			g.emit("    EXX")
-			g.emit("    ADC HL, HL")
-			g.emit("    EXX")
-		}
-		if dst != "HL" {
-			g.emitMov(dst, "HL", 16)
-			g.invalidate("HL")
 		}
 	case "SRL":
 		// Logical right shift: EXX / SRL H / RR L / EXX / RR H / RR L  (× count)

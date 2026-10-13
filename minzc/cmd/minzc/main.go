@@ -35,6 +35,7 @@ import (
 	"github.com/minz/minzc/pkg/semantic"
 	"github.com/minz/minzc/pkg/trace"
 	"github.com/minz/minzc/pkg/version"
+	"github.com/minz/minzc/pkg/vir"
 	"github.com/minz/minzc/pkg/z80asm"
 	"github.com/spf13/cobra"
 )
@@ -54,6 +55,7 @@ var (
 	ctieDebug         bool // Debug CTIE decisions
 	tasFile           string
 	tasReplay         string
+	contractStrategy  string
 	backend           string
 	target            string // Target platform (zxspectrum, cpm, etc.)
 	forceOutput       bool   // --force: overwrite implicit generated C output
@@ -75,10 +77,14 @@ var (
 	pgoDebug   bool   // Debug PGO decisions
 
 	// Backend selection
-	useLIR   bool // Report disabled native LIR; compile with PBQP
-	useZ3    bool // No effect while native LIR emission is disabled
-	optSize  bool // -Osize: optimize for code size (Grace reroll, DJNZ loops)
-	useGrace bool // --grace: run all Grace MIR2 passes before VIR lowering
+	generateCheckedLocalTablePath string // offline output table
+	checkedLocalSolver            string // Z3 executable for offline generation
+	checkedLocalTableSHA256       string // optional content pin
+	checkedLocalTablePath         string // --checked-local-table: admitted leaf OptSize candidates
+	optSize                       bool   // -Osize: optimize for code size (Grace reroll, DJNZ loops)
+	fuseByteWords                 bool
+	useGrace                      bool // --grace: run all Grace MIR2 passes before VIR lowering
+	useHIRGrace                   bool // --hir-grace: run structural Grace rules before HIR lowering
 
 	// Assert control
 	listAsserts          bool
@@ -155,9 +161,6 @@ Platform Independence Guide:
 	Run: func(cmd *cobra.Command, args []string) {
 		assertLinesSet = cmd.Flags().Changed("assert-lines")
 		assertControlSet = cmd.Flags().Changed("assert-control-line")
-		if useZ3 {
-			fmt.Fprintln(os.Stderr, "note: --z3 has no effect: native LIR emission disabled")
-		}
 		// Handle version flags
 		if showVersion {
 			fmt.Println(version.GetVersion())
@@ -227,7 +230,31 @@ func init() {
 	// PGO flags (Quick Win integration)
 	rootCmd.Flags().StringVar(&pgoProfile, "pgo", "", "use profile-guided optimization with .tas profile file")
 	rootCmd.Flags().BoolVar(&pgoDebug, "pgo-debug", false, "show PGO optimization decisions and hot/cold analysis")
+	registerHIRProfileFlags(rootCmd)
+	registerMemoryHostCLIFlags(rootCmd)
+	registerMemoryHostPolicyCLIFlags(rootCmd)
+	registerMemoryHostSearchCLIFlags(rootCmd)
+	rootCmd.Flags().StringVar(&hirProfileCompilerModesReplay, "hir-profile-compiler-modes-replay", "", "run saved winning compiler-mode artifact on a new workload; requires same compiler executable")
+	rootCmd.Flags().BoolVar(&hirProfileCompilerModes, "hir-profile-compiler-modes", false, "measure ContractOpt/MIR Grace modes on controlled workload; requires --hir-profile-auto")
+	rootCmd.Flags().BoolVar(&hirProfileJoint, "hir-profile-joint", false, "measure candidate combinations on full VM/Z80 workload with --hir-profile-auto")
+	rootCmd.Flags().BoolVar(&hirProfileIndependentRules, "hir-profile-independent-rules", false, "measure constant-if and invariant-base independently with --hir-profile-joint")
+	rootCmd.Flags().BoolVar(&hirProfileInvariantSites, "hir-profile-invariant-sites", false, "measure scalar invariant-base choices by source site with --hir-profile-joint")
+	rootCmd.Flags().BoolVar(&hirProfileSiteRules, "hir-profile-site-rules", false, "Cross constant-if choices with --hir-profile-invariant-sites (up to 32 measured variants)")
+	rootCmd.Flags().BoolVar(&hirProfileJointSites, "hir-profile-joint-sites", false, "Jointly measure pointer-walk, scalar source-site hoists and constant-if (up to 32 variants)")
+	rootCmd.Flags().BoolVar(&hirProfileMixedCopyRegionSites, "hir-profile-mixed-copy-region-sites", false, "Measure exact copy and byte-region choices with --hir-profile-joint (up to 16 variants)")
+	rootCmd.Flags().BoolVar(&hirProfileOrderedByteFunctions, "hir-profile-ordered-byte-functions", false, "Measure exact ordered-byte helper functions with --hir-profile-joint (up to 16 variants)")
+	rootCmd.Flags().BoolVar(&hirProfileOrderedByteRWFunctions, "hir-profile-ordered-byte-rw-functions", false, "Measure exact ordered-byte read/write helpers with --hir-profile-joint (up to 16 variants)")
+	rootCmd.Flags().BoolVar(&hirProfileRegionCompareSites, "hir-profile-region-compare-sites", false, "Measure exact byte-region comparison sites with --hir-profile-joint (up to 16 variants)")
+	rootCmd.Flags().BoolVar(&hirProfileForwardCopySites, "hir-profile-forward-copy-sites", false, "Measure exact forward byte-copy sites with --hir-profile-joint (up to 16 variants)")
+	rootCmd.Flags().BoolVar(&hirProfileMixedCopyWeightedSites, "hir-profile-mixed-copy-weighted-sites", false, "Measure exact copy and weighted checksum choices with --hir-profile-joint (up to 16 variants)")
+	rootCmd.Flags().BoolVar(&hirProfileWeightedSites, "hir-profile-weighted-sites", false, "Permit verified weighted checksum composition with --hir-profile-joint-sites")
+	rootCmd.Flags().StringVar(&hirProfileAutoDirectory, "hir-profile-auto", "", "collect, measure full u8 sum domain and compile; save evidence in directory")
+	rootCmd.Flags().StringVar(&hirProfileAutoFunction, "hir-profile-function", "", "exact sum function to measure with --hir-profile-auto")
+	rootCmd.Flags().StringVar(&hirProfileAutoWorkload, "hir-profile-auto-workload", "", "controlled workload JSON for --hir-profile-auto")
+	rootCmd.Flags().StringVar(&contractStrategy, "contract-strategy", "", "interprocedural contracts: greedy (default) or experimental pbqp")
 	rootCmd.Flags().StringVarP(&backend, "backend", "b", defaultBackend, "target backend (z80, ez80)")
+	rootCmd.Flags().IntVar(&runtimeStackBytes, "runtime-stack", 0, "explicit guarded CP/M stack bytes (even 64..16384; enables recursive calls)")
+	rootCmd.Flags().StringVar(&runtimeMode, "runtime", "", "explicit application runtime: cpm (console and byte-memory ABI, proven resident 256-byte stack)")
 	rootCmd.Flags().StringVarP(&target, "target", "t", "zxspectrum", "target platform (zxspectrum, cpm, msx, cpc, amstrad)")
 	rootCmd.Flags().StringVarP(&outputFormat, "format", "f", "", "output format: code (raw binary, default), sna, tap")
 	rootCmd.Flags().BoolVar(&forceOutput, "force", false, "overwrite existing implicit .generated.c output")
@@ -239,10 +266,14 @@ func init() {
 	rootCmd.Flags().BoolVar(&ctieDebug, "ctie-debug", false, "show CTIE optimization decisions and statistics")
 	rootCmd.Flags().BoolVar(&compileTrace, "compile-trace", false, "show all optimization decisions and transformations")
 	rootCmd.Flags().StringVar(&superoptRules, "superopt-rules", "", "path to z80-optimizer rules.json[.gz] for superoptimizer peephole pass")
-	rootCmd.Flags().BoolVar(&useLIR, "lir", false, "native LIR disabled; compile whole module with PBQP")
-	rootCmd.Flags().BoolVar(&useZ3, "z3", false, "use Z3 SMT solver (no effect: native LIR emission disabled)")
-	rootCmd.Flags().BoolVar(&optSize, "Osize", false, "optimize for code size: Grace reroll (repeated CALLs → DJNZ loop + data table)")
+	rootCmd.Flags().StringVar(&generateCheckedLocalTablePath, "generate-checked-local-table", "", "generate admitted leaf register table offline (requires --Osize)")
+	rootCmd.Flags().StringVar(&checkedLocalSolver, "checked-local-solver", "z3", "Z3 executable for offline local table generation")
+	rootCmd.Flags().StringVar(&checkedLocalTableSHA256, "checked-local-table-sha256", "", "pin exact checked table JSON content (required for measured HIR profile replay)")
+	rootCmd.Flags().StringVar(&checkedLocalTablePath, "checked-local-table", "", "use checked local register table for smaller leaf Z80 functions (requires --Osize)")
+	rootCmd.Flags().BoolVar(&optSize, "Osize", false, "optimize for code size: Grace reroll; skip HIR Grace's versioned pointer loops")
 	rootCmd.Flags().BoolVar(&useGrace, "grace", false, "run all Grace MIR2 passes before VIR lowering (DSE, CondRetSink, BlockMerge, etc.)")
+	rootCmd.Flags().BoolVar(&fuseByteWords, "fuse-byte-words", false, "fuse consecutive little-endian byte accesses with sequential fault semantics (experimental)")
+	rootCmd.Flags().BoolVar(&useHIRGrace, "hir-grace", false, "run structural Grace HIR rules before lowering (experimental)")
 	rootCmd.Flags().BoolVar(&assertReceipt, "assert-receipt", false, "print assertion execution counts to stderr for judge tools")
 	rootCmd.Flags().BoolVar(&listAsserts, "list-asserts", false, "list frontend assertions as JSON lines without executing")
 	rootCmd.Flags().StringVar(&assertLines, "assert-lines", "", "run only assertions at these comma-separated source lines")
@@ -264,6 +295,27 @@ func main() {
 }
 
 func compile(sourceFile string) error {
+	if err := validateContractStrategyCLI(sourceFile); err != nil {
+		return err
+	}
+	if err := validateCLIRuntime(sourceFile); err != nil {
+		return err
+	}
+	if memoryHostSearchCLIRequested() {
+		return runMemoryHostSearchCLI(sourceFile)
+	}
+	if memoryHostPolicyCLIRequested() {
+		return runMemoryHostPolicyCLI(sourceFile)
+	}
+	if memoryHostCLI != (memoryHostCLIFlags{}) {
+		return runMemoryHostCLI(sourceFile)
+	}
+	if err := validateHIRProfileAuto(sourceFile); err != nil {
+		return err
+	}
+	if err := validateHIRProfileFlags(sourceFile); err != nil {
+		return err
+	}
 	// Silent by default (like Go compiler)
 	if debug {
 		fmt.Printf("Compiling %s...\n", sourceFile)
@@ -737,6 +789,18 @@ func compileFromMIR_deprecated(mirFile string) error {
 // assembleFile assembles a .a80/.asm/.z80 file using the built-in z80asm assembler.
 // This enables a one-tool workflow: mz source.minz -> mz output.a80 -> binary
 func compileViaHIR(sourceFile string) error {
+	if err := validateContractStrategyCLI(sourceFile); err != nil {
+		return err
+	}
+	if err := validateCLIRuntime(sourceFile); err != nil {
+		return err
+	}
+	if err := validateHIRProfileAuto(sourceFile); err != nil {
+		return err
+	}
+	if err := validateHIRProfileFlags(sourceFile); err != nil {
+		return err
+	}
 	stats := &hir.AssertStats{}
 	if !listAsserts {
 		cliAssertStats = stats
@@ -976,6 +1040,9 @@ func compileViaHIR(sourceFile string) error {
 
 	// Set target platform so @target() intrinsic resolves correctly.
 	hirMod.Target = hir.TargetFromString(target)
+	if hirProfile.collect != "" {
+		return collectHIRProfile(hirMod)
+	}
 
 	// ── GPU backend path ───────────────────────────────────────────────────
 	// -b cuda|opencl|vulkan|metal → HIR → MIR2 → mir2gpu → write output
@@ -1013,16 +1080,76 @@ func compileViaHIR(sourceFile string) error {
 		((am == "" || am == "all") && (len(hirMod.Asserts) > 0 || len(hirMod.Sandboxes) > 0) && !pipeline.NeedsZ80Asserts(hirMod, am))
 
 	opts := pipeline.Options{
-		ContractOpt:     true,
-		AnnotateTStates: annotateTStates,
-		UseLIR:          useLIR,   // --lir reports disabled native LIR; emission uses PBQP
-		OptSize:         optSize,  // --Osize enables Grace reroll
-		UseGrace:        useGrace, // --grace enables full Grace MIR2 pass suite
-		Backend:         backend,
-		AssertMode:      am,
-		SkipZ80Emission: skipZ80,
+		Runtime:                 mir2.Z80Runtime(runtimeMode),
+		RuntimeStackBytes:       runtimeStackBytes,
+		CheckedLocalTablePath:   checkedLocalTablePath,
+		CheckedLocalTableSHA256: checkedLocalTableSHA256,
+		ContractStrategy:        contractStrategy,
+		ContractOpt:             true,
+		AnnotateTStates:         annotateTStates,
+		OptSize:                 optSize, // --Osize enables Grace reroll
+		FuseByteWords:           fuseByteWords,
+		UseGrace:                useGrace, // --grace enables full Grace MIR2 pass suite
+		UseHIRGrace:             useHIRGrace,
+		Backend:                 backend,
+		AssertMode:              am,
+		SkipZ80Emission:         skipZ80,
 	}
-	steps, err := pipeline.CompileHIRSteps(hirMod, opts)
+	if hirProfile.profile != "" {
+		selection, err := loadHIRProfileSelection()
+		if err != nil {
+			return err
+		}
+		opts.ProfileSelection = selection
+	}
+	if generateCheckedLocalTablePath != "" {
+		table, notes, err := pipeline.GenerateCheckedLocalTables(hirMod, opts, vir.SolverOptions{Z3Path: checkedLocalSolver})
+		if err != nil {
+			return err
+		}
+		for _, note := range notes {
+			fmt.Fprintln(os.Stderr, "[checked-local] "+note)
+		}
+		if table.Size() == 0 {
+			return fmt.Errorf("no checked local entries admitted")
+		}
+		return table.Save(generateCheckedLocalTablePath)
+	}
+	var steps pipeline.Steps
+	jointCompiled := false
+	if hirProfileAutoDirectory != "" {
+		factory := func() (*hir.Module, error) {
+			m, err := nanz.ParseWithOpts(string(src), sourceFile, nanz.ParseOpts{BaseDir: baseDir, StdlibDir: stdlibDir})
+			if err != nil {
+				return nil, err
+			}
+			m.Target = hir.TargetFromString(target)
+			return m, nil
+		}
+		if hirProfileCompilerModesReplay != "" {
+			return runHIRCompilerModesReplay(sourceFile, stdlibDir, src, factory)
+		}
+		if hirProfileCompilerModes {
+			return runHIRCompilerModes(sourceFile, stdlibDir, src, factory)
+		}
+		if hirProfileJoint {
+			result, jointErr := prepareHIRProfileJoint(hirMod, factory, opts)
+			if jointErr != nil {
+				return jointErr
+			}
+			steps = result.Steps
+			steps.ProfileDecisions = result.Decisions
+			jointCompiled = true
+		} else {
+			opts.ProfileSelection, err = prepareHIRProfileAuto(hirMod, factory, opts)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	if !jointCompiled {
+		steps, err = pipeline.CompileHIRSteps(hirMod, opts)
+	}
 	if err != nil && !skipZ80 && outputFile == "" && mir2Only && steps.MIR2Module != nil {
 		if abiErr := mir2.ValidateZ80IndirectCalls(steps.MIR2Module); abiErr != nil && err.Error() == abiErr.Error() {
 			fmt.Fprintf(os.Stderr, "warning: Z80 output skipped because of the unsupported indirect-call ABI: %v\n", abiErr)
@@ -1032,6 +1159,24 @@ func compileViaHIR(sourceFile string) error {
 	}
 	if err != nil {
 		return fmt.Errorf("HIR compile: %w", err)
+	}
+	if hirProfile.decisions != "" {
+		if err := writeHIRProfileJSON(hirProfile.decisions, steps.ProfileDecisions); err != nil {
+			return err
+		}
+	}
+
+	if hirProfileAutoDirectory != "" {
+		for name, data := range map[string]string{"input.hir": steps.HIR, "raw.mir": steps.MIR2Raw, "optimized.mir": steps.MIR2Opt, "selected.a80": steps.Assembly} {
+			if err := os.WriteFile(filepath.Join(hirProfileAutoDirectory, name), []byte(data), 0644); err != nil {
+				return err
+			}
+		}
+		if !hirProfileOrderedByteRWFunctions && !hirProfileOrderedByteFunctions && !hirProfileMixedCopyRegionSites && !hirProfileRegionCompareSites && !hirProfileForwardCopySites && !hirProfileMixedCopyWeightedSites {
+			if err := writeHIRProfileJSON(filepath.Join(hirProfileAutoDirectory, "decisions.json"), steps.ProfileDecisions); err != nil {
+				return err
+			}
+		}
 	}
 
 	// --emit=lanz  → HIR as Lanz S-expressions
@@ -1215,6 +1360,18 @@ func compileViaHIR(sourceFile string) error {
 	asmTarget := target
 	if backend == "ez80" {
 		asmTarget = "agon" // eZ80 backend always targets Agon Light 2
+	}
+	// Profile evidence measures the default assembler at the explicit all-RAM
+	// origin. Reuse that exact configuration, including compact binary layout.
+	if opts.ProfileSelection != nil || jointCompiled {
+		r, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + asmSrc)
+		if err != nil {
+			return err
+		}
+		if len(r.Errors) != 0 {
+			return fmt.Errorf("profile assembly: %v", r.Errors)
+		}
+		return os.WriteFile(out, r.Binary, 0644)
 	}
 	bin, errs := pipeline.Assemble(asmSrc, asmTarget)
 	if len(errs) > 0 {

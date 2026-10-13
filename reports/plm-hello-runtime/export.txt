@@ -1,0 +1,22 @@
+=== RUN   TestCPMConsoleIntrinsic
+--- PASS: TestCPMConsoleIntrinsic (0.00s)
+=== RUN   TestAddressedByteListExplicitTerminator
+--- PASS: TestAddressedByteListExplicitTerminator (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/plm	0.007s
+=== RUN   TestOriginalPLMHelloWholeCPM
+=== RUN   TestOriginalPLMHelloWholeCPM/ordinary
+    plm_hello_cpm_native_test.go:185: ordinary clobber=false COM=1183 bytes native=14135 T excluding host BDOS, stdout="Hello from PL/M-80!\r\n" PC=0 SP=fe00 full RAM guard PASS
+    plm_hello_cpm_native_test.go:185: ordinary clobber=true COM=1183 bytes native=14135 T excluding host BDOS, stdout="Hello from PL/M-80!\r\n" PC=0 SP=fe00 full RAM guard PASS
+=== RUN   TestOriginalPLMHelloWholeCPM/grace-size
+    plm_hello_cpm_native_test.go:185: grace-size clobber=false COM=1183 bytes native=14135 T excluding host BDOS, stdout="Hello from PL/M-80!\r\n" PC=0 SP=fe00 full RAM guard PASS
+    plm_hello_cpm_native_test.go:185: grace-size clobber=true COM=1183 bytes native=14135 T excluding host BDOS, stdout="Hello from PL/M-80!\r\n" PC=0 SP=fe00 full RAM guard PASS
+=== RUN   TestOriginalPLMHelloWholeCPM/grace-speed
+    plm_hello_cpm_native_test.go:185: grace-speed clobber=false COM=1183 bytes native=14135 T excluding host BDOS, stdout="Hello from PL/M-80!\r\n" PC=0 SP=fe00 full RAM guard PASS
+    plm_hello_cpm_native_test.go:185: grace-speed clobber=true COM=1183 bytes native=14135 T excluding host BDOS, stdout="Hello from PL/M-80!\r\n" PC=0 SP=fe00 full RAM guard PASS
+--- PASS: TestOriginalPLMHelloWholeCPM (0.02s)
+    --- PASS: TestOriginalPLMHelloWholeCPM/ordinary (0.01s)
+    --- PASS: TestOriginalPLMHelloWholeCPM/grace-size (0.01s)
+    --- PASS: TestOriginalPLMHelloWholeCPM/grace-speed (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.032s

@@ -268,16 +268,19 @@ func (mr *MetaRuntime) hostStrFromInt(args []mir2.Value) ([]mir2.Value, error) {
 // these IDs and pass them back to introspection host functions.
 
 const (
-	tyIDVoid  = 0
-	tyIDU8    = 1
-	tyIDU16   = 2
-	tyIDI8    = 3
-	tyIDI16   = 4
-	tyIDBool  = 5
-	tyIDPtr   = 6
+	tyIDVoid = 0
+	tyIDU8   = 1
+	tyIDU16  = 2
+	tyIDI8   = 3
+	tyIDI16  = 4
+	tyIDBool = 5
+	tyIDPtr  = 6
 )
 
 func tyToID(ty mir2.Ty) int64 {
+	if mir2.IsPointer(ty) {
+		return tyIDPtr
+	}
 	switch ty {
 	case mir2.TyVoid:
 		return tyIDVoid

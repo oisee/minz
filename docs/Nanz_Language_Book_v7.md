@@ -56,9 +56,9 @@
 
 Nanz (`.nanz`) is the active frontend language of the **MinZ compiler system**. It targets the MIR2 backend — a modern, SSA-like intermediate representation with:
 
-- **VIR backend (default):** Z3 SMT solver for joint instruction selection + register allocation — provably optimal code
-- **PBQP fallback:** cost-weighted register allocation for asm-heavy functions
-- Interprocedural calling convention optimization (PFCCO / Z3-PFCCO)
+- **MIR2 → Z80 backend (default):** cost-weighted PBQP register allocation
+- **VIR research backend:** joint instruction selection and allocation; Z3 is an offline dependency, with optimality limited to its encoded schedule and cost model
+- Interprocedural calling convention optimization (PFCCO) on the default path
 - Pre-allocation coalescing (block-parameter register unification)
 - LUT synthesis (pure functions with bounded inputs → lookup tables)
 - Compile-time assertion evaluation on both the MIR2 VM *and* the Z80 binary
@@ -85,13 +85,13 @@ source.nanz
     │                   ← Interprocedural calling convention selection
     ▼  PreallocCoalesce
     │                   ← Block-param → block-arg register unification
-    ▼  VIR: Z3 joint isel+regalloc (default)
-    │                   ← SMT solver: instruction selection + register allocation
-    │                      in one pass. Provably optimal for leaf functions.
-    │                      PBQP fallback for HasAsm / complex functions.
+    ▼  PBQP register allocation (default)
+    │                   ← Cost-weighted physical register assignment
+    │                      Validated local table candidates may replace
+    │                      supported leaf code; ordinary compilation needs no Z3.
     ▼  Peephole optimization (16 rules)
     │                   ← LD r,r elimination, tail call CALL+RET→JP, etc.
-    ▼  Z80Codegen / VIR emit
+    ▼  Z80Codegen
 source.a80              ← MZA-compatible Z80 assembly text
     │
     ▼  Compile-time assertions (Z80 binary)
@@ -100,7 +100,9 @@ source.a80              ← MZA-compatible Z80 assembly text
 source.bin / .tap       ← Ready to run on Z80 hardware or emulator
 ```
 
-The compiler runs assertions **twice**: once on the abstract MIR2 VM (fast, catches algorithm bugs) and once on the assembled Z80 binary (catches codegen bugs). If both pass, the function is correct by construction.
+The compiler runs assertions **twice**: once on the abstract MIR2 VM (fast, catches algorithm bugs) and once on the assembled Z80 binary (catches codegen bugs). If both pass, the tested inputs agree with their stated expectations on both execution paths. This does not prove behavior for untested inputs or validate an incorrect expectation. Assertions may also be disabled by the selected compiler options.
+
+The current production/research boundary is specified in [ADR-0043](adr/0043-vir-demoted-to-offline-oracle.md) and [ADR-0047](adr/0047-mir-native-candidates-and-offline-vir.md). Language semantics in the following chapters are separate from historical backend choices.
 
 ### 1.2 Nanz vs. MinZ
 
@@ -2648,7 +2650,7 @@ For more complex metaprogramming, you can write metafunctions in Nanz itself, co
 
 fun meta_sizeof(ty: u8) -> u8 {
     let n = struct_field_count(ty)
-    emit("(fun Color_size () u8 (return 3))")
+    emit(c"(fun Color_size () u8 (return 3))") // emit takes a CString pointer
     return n
 }
 ```
@@ -2791,6 +2793,21 @@ assert lizp_inc(3) == 4
 ```
 
 The Lizp desugarer expands macros, converts `defun` → `fun`, `1+` → `(+ x 1)`, and threading macros into nested calls — all before the Lanz parser sees it. The result is pure HIR, indistinguishable from Nanz-generated code.
+
+#### Lizp function results
+
+A non-void `defun` (and its `define` shorthand) returns the value of its last body form. Earlier forms execute in source order. In a final `let`, `progn` or `begin`, the final nested form supplies the result. Both branches of a final `if` must supply a value; `cond` executes the selected clause's prefix before its final form. A `cond` without a matching clause retains Lizp's zero default.
+
+An explicit `(return value)` exits immediately and remains valid inside branches and lexical blocks. Void functions receive no automatic value return. Empty result bodies, bare `(return)`, final assignments/loops/stores, and void-valued calls in value functions are diagnosed.
+
+```lisp
+(defun classify ((n u8)) -> u8
+  (cond ((= n 0) 0) ((< n 10) 1) (t 2)))
+(defun increment ((n u8)) -> u8
+  (let ((x u8 (+ n 1))) x))
+```
+
+This is a Lizp frontend rule; Lanz and Nanz keep their existing return syntax. Native tests cover the original `cond_test.lizp` across all 256 byte inputs and nested forms with explicit returns and prefix effects in ordinary, Grace Size and Grace Speed modes.
 
 ### 21.5 Importing PL/M-80 Modules
 

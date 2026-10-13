@@ -1,15 +1,21 @@
 package mir2
 
-// Func is a MIR2 function.
-//
-// A function is a list of basic blocks. The first block is the entry.
-// Virtual register numbering is monotonically increasing.  When created via
-// Module.AddFunc the counter is module-wide (all funcs share unique IDs).
+// LoopOrigin attributes a block to a source loop site. It is not a proof of
+// loop shape, bounds, or the legality of an optimization.
+type LoopOrigin struct {
+	SiteID string `json:"site_id"`
+	Role   string `json:"role"`
+	Rule   string `json:"rule,omitempty"`
+}
+
+// Func is a MIR2 function. The first block is the entry. Register numbering is
+// monotonically increasing (module-wide when created via Module.AddFunc).
 type Func struct {
-	Name     string
-	Contract Contract  // calling ABI in target-independent terms
-	Attrs    FuncAttrs // boolean property flags
-	Blocks   []*Block  // first block = entry (label conventionally "entry")
+	LoopOrigins map[string]LoopOrigin // attribution of existing block labels
+	Name        string
+	Contract    Contract  // calling ABI in target-independent terms
+	Attrs       FuncAttrs // boolean property flags
+	Blocks      []*Block  // first block = entry (label conventionally "entry")
 
 	nextReg Reg     // next available virtual register
 	mod     *Module // parent module; non-nil when created via AddFunc
@@ -21,19 +27,21 @@ type Func struct {
 // instead of physical register names.  Backends map classes to physical
 // resources for each target.
 type Contract struct {
-	Params         []Param  // ordered parameter slots
-	Returns        []Return // ordered return value slots (multi-return = len > 1)
-	ExternClobbers []string // nil = unknown; non-nil = declared physical Z80 writes
-	Clobbers       ClassSet // register classes modified by this function (caller-save)
+	StructReturnBuffers []StructReturnBuffer `json:",omitempty"`
+	Params              []Param              // ordered parameter slots
+	Returns             []Return             // ordered return value slots (multi-return = len > 1)
+	ExternClobbers      []string             // nil = unknown; non-nil = declared physical Z80 writes
+	Clobbers            ClassSet             // register classes modified by this function (caller-save)
 }
 
 // Param is one parameter: a named, typed, class-constrained value that arrives
 // in a specific virtual register at function entry.
 type Param struct {
-	Name  string   // source-level parameter name (for diagnostics)
-	Reg   Reg      // virtual register holding this param on entry
-	Ty    Ty       // type of the parameter
-	Class RegClass // required register class
+	ClassHard bool     `json:",omitempty"` // explicit source physical constraint; not a default ABI preference
+	Name      string   // source-level parameter name (for diagnostics)
+	Reg       Reg      // virtual register holding this param on entry
+	Ty        Ty       // type of the parameter
+	Class     RegClass // required register class
 }
 
 // Return is one return value slot (one element of a multi-return tuple).
@@ -61,6 +69,11 @@ type Return struct {
 // IsLeaf and IsRecursive are computed by analysis; the rest are set during
 // code generation from the source AST.
 type FuncAttrs struct {
+	// FixedIndirectABI fixes canonical physical parameters for address-taken
+	// functions; contract classes alone are allocator preferences.
+	FixedIndirectABI bool `json:",omitempty"`
+	// FallibleCY fixes error ABI: success NC, failure CY+A code.
+	FallibleCY bool
 	// IsExtern: declaration only (no body blocks).
 	// The function is defined elsewhere (ROM routine, stdlib, FFI).
 	IsExtern bool
@@ -113,6 +126,10 @@ func (f *Func) NewBlock(label string) *Block {
 // If this Func was created via Module.AddFunc, the module-wide counter is
 // kept in sync so subsequent functions start above this function's regs.
 func (f *Func) AllocReg() Reg {
+	// Other functions and module renumbering can advance the shared counter.
+	if f.mod != nil && f.nextReg < f.mod.nextReg {
+		f.nextReg = f.mod.nextReg
+	}
 	if f.nextReg < 1 {
 		f.nextReg = 1
 	}

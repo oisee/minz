@@ -1,0 +1,20 @@
+=== RUN   TestOriginalZSQLPortMainNative
+=== RUN   TestOriginalZSQLPortMainNative/ordinary
+[Z80-VALIDATE] terminate: 1 invalid instruction(s)
+  line 3: >>> LD HL, _inbuf+2 <<<
+    original_sqlite_import_main_test.go:206: stdout byte66 got5f want2e
+=== RUN   TestOriginalZSQLPortMainNative/grace-size
+[Z80-VALIDATE] terminate: 1 invalid instruction(s)
+  line 3: >>> LD HL, _inbuf+2 <<<
+    original_sqlite_import_main_test.go:206: stdout byte66 got5f want2e
+=== RUN   TestOriginalZSQLPortMainNative/grace-speed
+[Z80-VALIDATE] terminate: 1 invalid instruction(s)
+  line 3: >>> LD HL, _inbuf+2 <<<
+    original_sqlite_import_main_test.go:206: stdout byte66 got5f want2e
+--- FAIL: TestOriginalZSQLPortMainNative (0.12s)
+    --- FAIL: TestOriginalZSQLPortMainNative/ordinary (0.03s)
+    --- FAIL: TestOriginalZSQLPortMainNative/grace-size (0.04s)
+    --- FAIL: TestOriginalZSQLPortMainNative/grace-speed (0.04s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.126s
+FAIL

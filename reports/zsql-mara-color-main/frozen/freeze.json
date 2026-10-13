@@ -1,0 +1,114 @@
+{
+  "output_sha256": "0ef8fdfa73103694cb12f48125b3772a7c0fdbe7900f7ca257d13c59815fd744",
+  "lines": [
+    " ZSQL - Z80 SQLite on Spectrum",
+    " ==============================",
+    " ",
+    " zsql> CREATE TABLE mara",
+    "   (matnr, mtart, meins, maktx)",
+    " OK",
+    " ",
+    " zsql> INSERT INTO mara VALUES",
+    "   100-100 FERT ST Pump Assy",
+    "   100-300 FERT ST Valve Unit",
+    "   200-100 ROH  KG Raw Steel",
+    "   200-200 HALB KG Steel Plate",
+    " OK (4 rows)",
+    " ",
+    " zsql> SELECT * FROM mara",
+    "   WHERE mtart = FERT",
+    " ",
+    " matnr   |mtart|meins|maktx",
+    " --------|-----|-----|----------",
+    " 100-100 |FERT |ST   |Pump Assy",
+    " 100-300 |FERT |ST   |Valve Unit",
+    " ",
+    " 2 rows. SQL on Z80!"
+  ],
+  "attributes": [
+    [
+      0,
+      79
+    ],
+    [
+      1,
+      79
+    ],
+    [
+      3,
+      68
+    ],
+    [
+      4,
+      68
+    ],
+    [
+      5,
+      68
+    ],
+    [
+      6,
+      68
+    ],
+    [
+      5,
+      71
+    ],
+    [
+      7,
+      68
+    ],
+    [
+      8,
+      68
+    ],
+    [
+      9,
+      68
+    ],
+    [
+      10,
+      68
+    ],
+    [
+      11,
+      68
+    ],
+    [
+      12,
+      71
+    ],
+    [
+      14,
+      69
+    ],
+    [
+      15,
+      69
+    ],
+    [
+      17,
+      71
+    ],
+    [
+      18,
+      69
+    ],
+    [
+      19,
+      70
+    ],
+    [
+      20,
+      70
+    ],
+    [
+      22,
+      71
+    ]
+  ],
+  "initial_attribute": 7,
+  "classification": "static text and color demonstration; no SQLite imports or SQL execution",
+  "source_sha256": "276c8e88303743887f96c8cbcd840a615d5b6a5868cb44c88cc491d92ab7ff4a",
+  "font_sha256": "cfc6408b429f4374660042275e0ed00d2bec74ac31e3df4fdc986c3f61b73f11"
+}

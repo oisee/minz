@@ -1,0 +1,8 @@
+import hw.fill
+fun fill_test() { @fill() {
+layout "linear" 26624 8 4 10
+ region 0 4 8 0
+ traversal "rows"
+ value 165
+
+} }

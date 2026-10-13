@@ -1,0 +1,19 @@
+import hw.sprite
+global input: u16 = 0
+global answer: u16 = 0
+fun sprite_test() {
+ let keep: u16 = input * 3 + 7
+ @sprite() {
+  destination "linear" 0x6000 4 1 4
+  region 0 0 4 1
+  row "ff0055aa" "00880011"
+  via "compiled"
+ }
+ @sprite() {
+  destination "linear" 0x6100 1 1 1
+  region 0 0 1 1
+  row "f0" "05"
+  via "compiled"
+ }
+ answer = keep ^ input
+}

@@ -229,7 +229,8 @@ fun print_node(n: u16) -> void {
 
 fun main() -> void {
     // Load Lanz source: (fun add ((a u8) (b u8)) u8 (return (+ a b)))
-    let src: ^u8 = "(fun add ((a u8) (b u8)) u8 (return (+ a b)))"
+    // Book v7 section 18.1: peek-until-NUL requires a CString.
+    let src: ^u8 = c"(fun add ((a u8) (b u8)) u8 (return (+ a b)))"
     var i: u16 = 0
     while peek(src + i) != 0 {
         poke(src_buf + i, peek(src + i))

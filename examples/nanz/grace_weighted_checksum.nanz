@@ -1,0 +1,28 @@
+// Seeded buffer checksum: every byte contributes its value and the invariant
+// 16-bit weight a+b. All additions wrap modulo 65536. No data is read for n=0.
+// Calls surround the loop because hir-invariant-base's proof excludes loop calls.
+global checksum_calls: u8 = 0
+global checksum_last: u16 = 0
+
+fun weighted_checksum(ptr: ^u8, n: u8, a: u16, b: u16, seed: u16) -> u16 {
+    var sum: u16 = seed
+    var i: u8 = 0
+    while i < n {
+        sum = sum + (a + b)
+        sum = sum + u16(ptr[i])
+        i = i + 1
+    }
+    return sum
+}
+
+fun record_checksum(value: u16) -> u16 {
+    checksum_calls = checksum_calls + 1
+    checksum_last = value
+    return value
+}
+
+// An ordinary source caller exercises the real multi-function calling convention.
+fun checksum_packet(ptr: ^u8, n: u8, a: u16, b: u16, seed: u16) -> u16 {
+    var value: u16 = weighted_checksum(ptr, n, a, b, seed)
+    return record_checksum(value)
+}

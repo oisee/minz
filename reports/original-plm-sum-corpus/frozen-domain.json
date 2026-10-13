@@ -1,0 +1,47 @@
+{
+  "schema": "original-plm-sum-domain-v1",
+  "sources": [
+    {
+      "path": "examples/nanz/01_sum_array.plm",
+      "sha256": "fa0911df63dbc5bb16f169e1392f92be3f64e09c299156127ef37a7ff9d20c8e"
+    },
+    {
+      "path": "examples/nanz/01_sum_plm_origin.plm",
+      "sha256": "6564b22b460943d7b8ac088ec482f05857f752eb40f5c6103534fcaf2a0ec023"
+    },
+    {
+      "path": "examples/plm/sum_array.plm",
+      "sha256": "6564b22b460943d7b8ac088ec482f05857f752eb40f5c6103534fcaf2a0ec023"
+    }
+  ],
+  "oracle": "Independent unsigned BYTE sum: sum(memory[(ptr+i) mod65536] for i=0..n-1) mod256. Forward read exactly n bytes; no stores. BYTE n=0 performs no reads.",
+  "spec": "Nanz Language Book v7 \u00a721.5 BYTE\u2192u8; PL/M lower scalar WORD indexing byte access; SEM-PTR modulo65536. Source while I<N increments BYTE I.",
+  "array_family": "memory[(ptr+i) mod65536]=byte(seed+73*i), i=-1..255 (both guards included)",
+  "seed_values": "all0..255",
+  "main_domain": {
+    "ptr": 16384,
+    "n": "all0..255"
+  },
+  "wrap_domain": {
+    "ptr": [
+      65280,
+      65534,
+      65535
+    ],
+    "n": [
+      0,
+      1,
+      2,
+      127,
+      128,
+      255
+    ]
+  },
+  "modes": [
+    "ordinary ContractOpt=true",
+    "Grace Size ContractOpt=true",
+    "Grace Speed ContractOpt=true"
+  ],
+  "expected_calls_per_source_mode": 70144,
+  "scope": "Finite257-byte affine array family, not all possible arrays. Separate path SHA checks, including byte-identical source-1/source-2."
+}

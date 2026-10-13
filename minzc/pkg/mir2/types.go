@@ -12,10 +12,14 @@
 //   - Comptime attribute for @-functions; host-call attribute for @emit
 package mir2
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
 // Ty is the type of a MIR2 value.
-// All types are immutable singleton pointers — use == for equality.
+// Primitive and pointer types are immutable canonical pointers. Composite
+// types can be separately constructed; their identity belongs to their declaration.
 type Ty interface {
 	// Width returns storage width in bits. 0 for void.
 	Width() int
@@ -74,11 +78,11 @@ var (
 	TyBCD24 = &bcdTy{bytes: 3, digits: 6, name: "bcd24"}
 	TyBCD32 = &bcdTy{bytes: 4, digits: 8, name: "bcd32"}
 
-	TyF0_8  = &fixedTy{intBits: 0, fracBits: 8}  // pure fraction .8  (0.0 – 0.996)
-	TyF0_16 = &fixedTy{intBits: 0, fracBits: 16} // pure fraction .16 (0.0 – 0.99998)
-	TyF8_8  = &fixedTy{intBits: 8, fracBits: 8}  // 0..255 + 1/256 steps
-	TyF8_16 = &fixedTy{intBits: 8, fracBits: 16} // 0..255 + 1/65536 steps (24-bit)
-	TyF16_8 = &fixedTy{intBits: 16, fracBits: 8} // 0..65535 + 1/256 steps (24-bit)
+	TyF0_8   = &fixedTy{intBits: 0, fracBits: 8}   // pure fraction .8  (0.0 – 0.996)
+	TyF0_16  = &fixedTy{intBits: 0, fracBits: 16}  // pure fraction .16 (0.0 – 0.99998)
+	TyF8_8   = &fixedTy{intBits: 8, fracBits: 8}   // 0..255 + 1/256 steps
+	TyF8_16  = &fixedTy{intBits: 8, fracBits: 16}  // 0..255 + 1/65536 steps (24-bit)
+	TyF16_8  = &fixedTy{intBits: 16, fracBits: 8}  // 0..65535 + 1/256 steps (24-bit)
 	TyF16_16 = &fixedTy{intBits: 16, fracBits: 16} // 0..65535 + high-precision (32-bit)
 )
 
@@ -107,15 +111,62 @@ func (t *intTy) isTy()          {}
 
 type ptrTy struct {
 	width int // 16 = Z80, 24 = eZ80/Agon, 32 = x86, 64 = x86-64
+	elem  Ty  // nil for the legacy byte-address pointer
 }
 
-func (t *ptrTy) Width() int     { return t.width }
-func (t *ptrTy) String() string { return "ptr" }
-func (t *ptrTy) isTy()          {}
+func (t *ptrTy) Width() int { return t.width }
+func (t *ptrTy) String() string {
+	if t.elem != nil {
+		return "^" + t.elem.String()
+	}
+	return "ptr"
+}
+func (t *ptrTy) isTy() {}
 
 // PtrFor returns a pointer type sized for the given target word width in bits.
 // Common: PtrFor(16)=Z80, PtrFor(24)=eZ80, PtrFor(32)=x86, PtrFor(64)=x86-64.
-func PtrFor(wordBits int) Ty { return &ptrTy{width: wordBits} }
+func PtrFor(wordBits int) Ty {
+	if wordBits == 16 {
+		return TyPtr
+	}
+	return internPointer(wordBits, nil)
+}
+
+var pointerTypes sync.Map
+
+type pointerTypeKey struct {
+	width int
+	elem  Ty
+}
+
+func internPointer(width int, elem Ty) Ty {
+	key := pointerTypeKey{width, elem}
+	ty, _ := pointerTypes.LoadOrStore(key, &ptrTy{width: width, elem: elem})
+	return ty.(Ty)
+}
+
+// PointerTo retains a pointee's semantic type; addresses and arithmetic still
+// use the target pointer width and byte offsets. Indexing supplies element stride.
+func PointerTo(elem Ty) Ty {
+	if elem == nil || elem == TyU8 {
+		return TyPtr
+	}
+	return internPointer(16, elem)
+}
+
+func IsPointer(ty Ty) bool { _, ok := ty.(*ptrTy); return ok }
+
+// PointerElem returns the pointee type, or nil for a non-pointer. The legacy
+// untyped pointer is a byte address and preserves its historical u8 dereference.
+func PointerElem(ty Ty) Ty {
+	if p, ok := ty.(*ptrTy); ok {
+		if p.elem == nil {
+			return TyU8
+		}
+		return p.elem
+	}
+	return nil
+}
 
 // ── Fixed-point ───────────────────────────────────────────────────────────────
 
@@ -284,7 +335,9 @@ type ArrayTy struct {
 	Align  int         // alignment in bytes; 0 = natural; 256 = page-aligned (SoA256)
 }
 
-func (t *ArrayTy) Width() int { return t.Elem.Width() * t.Len }
+// Elements occupy independently addressable byte slots; bool values are not
+// bit-packed because array indexing/load/store use a byte stride.
+func (t *ArrayTy) Width() int { return ByteWidth(t.Elem) * 8 * t.Len }
 func (t *ArrayTy) String() string {
 	s := fmt.Sprintf("[%d]%s", t.Len, t.Elem.String())
 	if t.Layout != LayoutAoS {
@@ -334,7 +387,7 @@ func (t *StructTy) Width() int {
 	if t.IsUnion {
 		max := 0
 		for _, f := range t.Fields {
-			if w := f.Ty.Width(); w > max {
+			if w := ByteWidth(f.Ty) * 8; w > max {
 				max = w
 			}
 		}
@@ -342,7 +395,7 @@ func (t *StructTy) Width() int {
 	}
 	w := 0
 	for _, f := range t.Fields {
-		w += f.Ty.Width()
+		w += ByteWidth(f.Ty) * 8
 	}
 	return w
 }
@@ -396,9 +449,9 @@ func (t *SliceTy) isTy()          {}
 //   - Width(), IsSigned() etc. delegate to Base — the type is storage-identical
 //     to its base type; no runtime overhead.
 //   - The range annotation is used by the optimiser only:
-//     • LUTGen detects single-ranged-param functions (range ≤ 256) and replaces
-//       the call with a table-lookup.
-//     • Future: bounds-check elimination for array indexing.
+//   - LUTGen detects single-ranged-param functions (range ≤ 256) and replaces
+//     the call with a table-lookup.
+//   - Future: bounds-check elimination for array indexing.
 //   - Two RangedTy values are equal iff Base, Lo, and Hi all match.
 type RangedTy struct {
 	Base Ty

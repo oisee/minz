@@ -213,6 +213,10 @@ func findReturnedStructInBlock(blk *hir.Block, idx structIndex, fieldAssigned ma
 	for _, s := range blk.Body {
 		// Recurse into nested blocks with current scope.
 		switch st := s.(type) {
+		case *hir.Block:
+			if !findReturnedStructInBlock(st, idx, fieldAssigned, found, scopeVars) {
+				return false
+			}
 		case *hir.IfStmt:
 			if !findReturnedStructInBlock(st.Then, idx, fieldAssigned, found, scopeVars) {
 				return false
@@ -365,6 +369,8 @@ func rewriteReturnsInBlock(blk *hir.Block, info *promotionInfo, fieldAssigns map
 	for i, s := range blk.Body {
 		// Recurse into nested blocks with current scope.
 		switch st := s.(type) {
+		case *hir.Block:
+			rewriteReturnsInBlock(st, info, fieldAssigns, scopeVars)
 		case *hir.IfStmt:
 			rewriteReturnsInBlock(st.Then, info, fieldAssigns, scopeVars)
 			rewriteReturnsInBlock(st.Else, info, fieldAssigns, scopeVars)
@@ -527,6 +533,8 @@ func rewriteCallSites(blk *hir.Block, eligible map[string]*promotionInfo) {
 
 		// Recurse into nested blocks.
 		switch st := s.(type) {
+		case *hir.Block:
+			rewriteCallSites(st, eligible)
 		case *hir.IfStmt:
 			rewriteCallSites(st.Then, eligible)
 			rewriteCallSites(st.Else, eligible)
@@ -563,6 +571,9 @@ func rewriteCallSites(blk *hir.Block, eligible map[string]*promotionInfo) {
 		}
 
 		// Replace the VarDeclStmt with TupleLetStmt.
+		// The tuple carries its result types separately; the scalar call type
+		// must match the promoted function's now-void RetTy.
+		call.Ty = mir2.TyVoid
 		blk.Body[i] = &hir.TupleLetStmt{
 			Names: names,
 			Tys:   info.fieldTys,
@@ -1013,6 +1024,8 @@ func eliminateDeadStructDecls(blk *hir.Block) {
 	// Recurse first.
 	for _, s := range blk.Body {
 		switch st := s.(type) {
+		case *hir.Block:
+			eliminateDeadStructDecls(st)
 		case *hir.IfStmt:
 			eliminateDeadStructDecls(st.Then)
 			eliminateDeadStructDecls(st.Else)
@@ -1068,6 +1081,8 @@ func eliminateDeadStructDecls(blk *hir.Block) {
 // stmtUsesVar checks if any expression in a statement references a variable.
 func stmtUsesVar(s hir.Stmt, name string) bool {
 	switch st := s.(type) {
+	case *hir.Block:
+		return blockUsesVar(st, name)
 	case *hir.VarDeclStmt:
 		return exprUsesVar(st.Init, name)
 	case *hir.AssignStmt:

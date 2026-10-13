@@ -1,0 +1,37 @@
+{
+  "base": "f4eec5d6",
+  "source_sha256": "451ac1b053f68fbd6f1f9f59f0316397396297a8aeb39291ef173a6a55573140",
+  "source_semantics": [
+    "Book v7 chapter4 struct field layout and ordinary local values; chapter7 typed function returns",
+    "lowerStructLitAlloca explicitly supports literals in return values"
+  ],
+  "model": {
+    "delayed": "x unchanged after unrelated overwrite(y); witness=y",
+    "two_returns": "(x+y) modulo256; independent returned instances"
+  },
+  "inputs": [
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      17,
+      83
+    ],
+    [
+      128,
+      255
+    ],
+    [
+      255,
+      0
+    ]
+  ],
+  "scope": "No native pointer escapes source language; S return and local binding are ordinary supported parsed constructs. Book lacks explicit lifetime/aggregate ABI chapter; backend must not silently give ordinary local value dangling lifetime.",
+  "source_call_sha256": "13fb14e81194bd5dabde7cdde1cba208112c19c0e57dd247ef2c5dbdde30a94f",
+  "call_source_reason": "Original smaller source inlines make (\u22644 instructions), moving Alloca into caller; control-flow identity branch retains ordinary real CALL without disabling production optimization."
+}

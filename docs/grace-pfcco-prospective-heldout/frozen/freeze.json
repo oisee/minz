@@ -1,0 +1,9 @@
+{
+  "source_sha256": "6a8ecc8d50e41f5609cabb061b7a06474a7e72619295259d9e5aa4e3cc5bb4ab",
+  "source": "examples/nanz/pfcco_weighted_packet.nanz",
+  "decision": "Fresh inputs, disjoint train/heldout and excluding all previously measured17pairs. Freeze before any candidate measurement. Fixedfour actualproductionContractOpt/MIRGrace combinations. Select both pureSpeed and Size trainingonly; samechosenSteps/BIN heldout. Independent modulo65536 displacement and persistentcounter oracle, initialtrace65532. Existing sourceunchanged.",
+  "inputs_sha256": {
+    "training-pairs.json": "31ff55f9041158bb9506afae103824b5c058c8637cc90d5ee4f6940c01fa07f6",
+    "heldout-pairs.json": "9e6ef4a366c0806e187b4d765a2adb3d79a40c27dfc7396f20ef03161ba2a004"
+  }
+}

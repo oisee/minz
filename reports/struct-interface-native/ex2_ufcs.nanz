@@ -1,0 +1,21 @@
+struct Acc {
+    val: u8
+}
+
+global acc_g: Acc
+
+fun Acc.add(self: ^Acc, amount: u8) -> u8 {
+    self.val = self.val + amount
+    return self.val
+}
+
+fun Acc.reset(self: ^Acc) -> void {
+    self.val = 0
+}
+
+fun sum_two(a: u8, b: u8) -> u8 {
+    acc_g.reset()
+    acc_g.add(a)
+    acc_g.add(b)
+    return acc_g.val
+}

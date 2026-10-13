@@ -1,0 +1,4 @@
+ok  	github.com/minz/minzc/pkg/hir	0.007s [no tests to run]
+ok  	github.com/minz/minzc/pkg/mir2	0.007s [no tests to run]
+ok  	github.com/minz/minzc/pkg/vir	0.007s [no tests to run]
+ok  	github.com/minz/minzc/cmd/mze	0.003s [no tests to run]

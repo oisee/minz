@@ -1,0 +1,11 @@
+{
+  "schema": "minz.option-native/v1",
+  "source_path": "examples/nanz/10_adt_option.nanz",
+  "source_sha256": "0387f5a0f616e6cd5f0d9b432131593326cf81c807a28d4ce36859664a6edb30",
+  "safe_div": "all256x256bytepairs; b0explicitNone branch elseSome(floor(a/b))",
+  "is_some": "allvalidNone0 andSomepayload0..255",
+  "unwrap_or": "None andSomeall256payload \u00d7 all256defaultbytes; no invalidOptiontags asserted",
+  "original_wrappers": "all5 unchanged parameterfree wrappers",
+  "oracle": "Bookv7\u00a716.2 None0000 Some(v)0100|v; \u00a716.3 match destructuring; source explicit b0 branch",
+  "generated_helper_scope": "inspectretainedtag/payload/mpay; no inventednativeexport"
+}

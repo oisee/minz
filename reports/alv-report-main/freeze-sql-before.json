@@ -1,0 +1,11 @@
+{
+  "sources": {
+    "examples/nanz/screen_alv.nanz": "d6d74b99f7ce5aa97110f9f5cbe5fe6f1e3f85d00a56f442575d32b0661a7dc2",
+    "examples/nanz/screen_report.nanz": "6103aaba8f51e47158184097d14459788e1cf5019df171282c58e263a9418c5c",
+    "minzc/cmd/mzv/main.go": "d52e3f1ccc920cd3847529e7d089dab554d8683fe43fe6d1adc5f07361310a64",
+    "minzc/pkg/nanz/screen_gen.go": "14d655cdc870297591a3ff44096221b5e58352f5ebb046e2d117e72430a1f1bc",
+    "stdlib/tui/render.nanz": "4711dbee908a2271f02d1fbb4720942604e23322d7745f32311f6b2c17c6d4a8",
+    "reports/alv-report-main/sql-before.json": "92f3ac994cf1fdd1f650605f86f3bd2e8a8efca77c3f0bdad21abaa6e24de2aa"
+  },
+  "authority": "Python sqlite3 independent SQL syntax/execution; actual mzv appended WHERE after ORDER BY"
+}

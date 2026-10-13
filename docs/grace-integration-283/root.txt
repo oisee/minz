@@ -1,0 +1,47 @@
+=== RUN   TestOriginalCPMScreenMain
+    original_cpm_screen_main_test.go:286: tui_cpm/ordinary wholemain PASS
+    original_cpm_screen_main_test.go:286: tui_cpm/grace-size wholemain PASS
+    original_cpm_screen_main_test.go:286: tui_cpm/grace-speed wholemain PASS
+    original_cpm_screen_main_test.go:286: meta_screen/ordinary wholemain PASS
+    original_cpm_screen_main_test.go:286: meta_screen/grace-size wholemain PASS
+    original_cpm_screen_main_test.go:286: meta_screen/grace-speed wholemain PASS
+--- PASS: TestOriginalCPMScreenMain (0.31s)
+=== RUN   TestSQLiteOriginalWholeMain
+=== RUN   TestSQLiteOriginalWholeMain/ordinary
+=== RUN   TestSQLiteOriginalWholeMain/ordinary/false
+    sqlite_whole_main_test.go:364: main 1670 B 12173 native T excluding host BDOS stdout 59 SP f000 minSP eff8
+=== RUN   TestSQLiteOriginalWholeMain/ordinary/true
+    sqlite_whole_main_test.go:364: main 1670 B 12173 native T excluding host BDOS stdout 59 SP f000 minSP eff8
+=== RUN   TestSQLiteOriginalWholeMain/grace-size
+=== RUN   TestSQLiteOriginalWholeMain/grace-size/false
+    sqlite_whole_main_test.go:364: main 1670 B 12173 native T excluding host BDOS stdout 59 SP f000 minSP eff8
+=== RUN   TestSQLiteOriginalWholeMain/grace-size/true
+    sqlite_whole_main_test.go:364: main 1670 B 12173 native T excluding host BDOS stdout 59 SP f000 minSP eff8
+=== RUN   TestSQLiteOriginalWholeMain/grace-speed
+=== RUN   TestSQLiteOriginalWholeMain/grace-speed/false
+    sqlite_whole_main_test.go:364: main 1670 B 12173 native T excluding host BDOS stdout 59 SP f000 minSP eff8
+=== RUN   TestSQLiteOriginalWholeMain/grace-speed/true
+    sqlite_whole_main_test.go:364: main 1670 B 12173 native T excluding host BDOS stdout 59 SP f000 minSP eff8
+--- PASS: TestSQLiteOriginalWholeMain (0.20s)
+    --- PASS: TestSQLiteOriginalWholeMain/ordinary (0.07s)
+        --- PASS: TestSQLiteOriginalWholeMain/ordinary/false (0.00s)
+        --- PASS: TestSQLiteOriginalWholeMain/ordinary/true (0.00s)
+    --- PASS: TestSQLiteOriginalWholeMain/grace-size (0.07s)
+        --- PASS: TestSQLiteOriginalWholeMain/grace-size/false (0.00s)
+        --- PASS: TestSQLiteOriginalWholeMain/grace-size/true (0.00s)
+    --- PASS: TestSQLiteOriginalWholeMain/grace-speed (0.06s)
+        --- PASS: TestSQLiteOriginalWholeMain/grace-speed/false (0.00s)
+        --- PASS: TestSQLiteOriginalWholeMain/grace-speed/true (0.00s)
+=== RUN   TestSQLiteOriginalBoundedPortAPIs
+=== RUN   TestSQLiteOriginalBoundedPortAPIs/ordinary
+    sqlite_whole_main_test.go:545: original send/receive 0,1,17,255 bytes; column int signed/modulo boundaries; handles/columns/status; fullRAM/SP PASS
+=== RUN   TestSQLiteOriginalBoundedPortAPIs/grace-size
+    sqlite_whole_main_test.go:545: original send/receive 0,1,17,255 bytes; column int signed/modulo boundaries; handles/columns/status; fullRAM/SP PASS
+=== RUN   TestSQLiteOriginalBoundedPortAPIs/grace-speed
+    sqlite_whole_main_test.go:545: original send/receive 0,1,17,255 bytes; column int signed/modulo boundaries; handles/columns/status; fullRAM/SP PASS
+--- PASS: TestSQLiteOriginalBoundedPortAPIs (0.49s)
+    --- PASS: TestSQLiteOriginalBoundedPortAPIs/ordinary (0.18s)
+    --- PASS: TestSQLiteOriginalBoundedPortAPIs/grace-size (0.18s)
+    --- PASS: TestSQLiteOriginalBoundedPortAPIs/grace-speed (0.13s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.013s

@@ -1,0 +1,8 @@
+fun swap(a: u8, b: u8) -> (u8, u8) {
+    return (b, a)
+}
+fun use_swap(x: u8, y: u8) -> u8 {
+    let (a, b) = swap(x, y)
+    return a + b
+}
+fun main() -> u8 { return use_swap(3, 7) }

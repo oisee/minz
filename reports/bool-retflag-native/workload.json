@@ -1,0 +1,9 @@
+{
+  "schema": "minz.bool-retflag-workload/v1",
+  "source_path": "examples/nanz/17_bool_retflag.nanz",
+  "source_sha256": "95896d353dfdd27b523890cb7f1526b7ebe9d659eed0cfc461433e95f616bce7",
+  "unary": "all256bytes \u00d7 is_zero_b,is_ten_b,is_small_b,is_big_b,is_digit_b,is_upper_b,is_zero,is_small,is_digit",
+  "binary": "all256\u00d7256 pairs \u00d7 eq_b,lt_b,gt_b",
+  "oracle": "unsigned integer predicates; bool false0 true!=0 per Bookv7\u00a73.1; physical return decoded from actual production contract, caller must preserve return flags",
+  "new_heldout_selection": false
+}

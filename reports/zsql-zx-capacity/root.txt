@@ -1,0 +1,75 @@
+=== RUN   TestOriginalZSQLZXRealMainNative
+=== RUN   TestOriginalZSQLZXRealMainNative/ordinary
+    original_zsql_zx_real_main_test.go:294: 1148 312516 247 screen/SQL/full RAM PASS
+=== RUN   TestOriginalZSQLZXRealMainNative/grace-size
+    original_zsql_zx_real_main_test.go:294: 1148 312516 247 screen/SQL/full RAM PASS
+=== RUN   TestOriginalZSQLZXRealMainNative/grace-speed
+    original_zsql_zx_real_main_test.go:294: 1148 312516 247 screen/SQL/full RAM PASS
+--- PASS: TestOriginalZSQLZXRealMainNative (0.09s)
+    --- PASS: TestOriginalZSQLZXRealMainNative/ordinary (0.03s)
+    --- PASS: TestOriginalZSQLZXRealMainNative/grace-size (0.03s)
+    --- PASS: TestOriginalZSQLZXRealMainNative/grace-speed (0.03s)
+=== RUN   TestZSQLZXRealReadlineCapacity
+=== RUN   TestZSQLZXRealReadlineCapacity/ordinary
+=== RUN   TestZSQLZXRealReadlineCapacity/ordinary/length-0
+    zsql_zx_input_capacity_test.go:136: 0 input 0 accepted 1 reads/full RAM PASS
+=== RUN   TestZSQLZXRealReadlineCapacity/ordinary/length-39
+    zsql_zx_input_capacity_test.go:136: 39 input 39 accepted 40 reads/full RAM PASS
+=== RUN   TestZSQLZXRealReadlineCapacity/ordinary/length-40
+    zsql_zx_input_capacity_test.go:136: 40 input 40 accepted 41 reads/full RAM PASS
+=== RUN   TestZSQLZXRealReadlineCapacity/ordinary/length-59
+    zsql_zx_input_capacity_test.go:136: 59 input 59 accepted 60 reads/full RAM PASS
+=== RUN   TestZSQLZXRealReadlineCapacity/ordinary/length-60
+    zsql_zx_input_capacity_test.go:136: 60 input 60 accepted 60 reads/full RAM PASS
+=== RUN   TestZSQLZXRealReadlineCapacity/ordinary/length-61
+    zsql_zx_input_capacity_test.go:136: 61 input 60 accepted 60 reads/full RAM PASS
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-size
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-size/length-0
+    zsql_zx_input_capacity_test.go:136: 0 input 0 accepted 1 reads/full RAM PASS
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-size/length-39
+    zsql_zx_input_capacity_test.go:136: 39 input 39 accepted 40 reads/full RAM PASS
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-size/length-40
+    zsql_zx_input_capacity_test.go:136: 40 input 40 accepted 41 reads/full RAM PASS
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-size/length-59
+    zsql_zx_input_capacity_test.go:136: 59 input 59 accepted 60 reads/full RAM PASS
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-size/length-60
+    zsql_zx_input_capacity_test.go:136: 60 input 60 accepted 60 reads/full RAM PASS
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-size/length-61
+    zsql_zx_input_capacity_test.go:136: 61 input 60 accepted 60 reads/full RAM PASS
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-speed
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-speed/length-0
+    zsql_zx_input_capacity_test.go:136: 0 input 0 accepted 1 reads/full RAM PASS
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-speed/length-39
+    zsql_zx_input_capacity_test.go:136: 39 input 39 accepted 40 reads/full RAM PASS
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-speed/length-40
+    zsql_zx_input_capacity_test.go:136: 40 input 40 accepted 41 reads/full RAM PASS
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-speed/length-59
+    zsql_zx_input_capacity_test.go:136: 59 input 59 accepted 60 reads/full RAM PASS
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-speed/length-60
+    zsql_zx_input_capacity_test.go:136: 60 input 60 accepted 60 reads/full RAM PASS
+=== RUN   TestZSQLZXRealReadlineCapacity/grace-speed/length-61
+    zsql_zx_input_capacity_test.go:136: 61 input 60 accepted 60 reads/full RAM PASS
+--- PASS: TestZSQLZXRealReadlineCapacity (0.09s)
+    --- PASS: TestZSQLZXRealReadlineCapacity/ordinary (0.02s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/ordinary/length-0 (0.00s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/ordinary/length-39 (0.00s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/ordinary/length-40 (0.00s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/ordinary/length-59 (0.00s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/ordinary/length-60 (0.00s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/ordinary/length-61 (0.00s)
+    --- PASS: TestZSQLZXRealReadlineCapacity/grace-size (0.03s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/grace-size/length-0 (0.00s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/grace-size/length-39 (0.00s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/grace-size/length-40 (0.00s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/grace-size/length-59 (0.00s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/grace-size/length-60 (0.00s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/grace-size/length-61 (0.00s)
+    --- PASS: TestZSQLZXRealReadlineCapacity/grace-speed (0.04s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/grace-speed/length-0 (0.00s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/grace-speed/length-39 (0.00s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/grace-speed/length-40 (0.00s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/grace-speed/length-59 (0.00s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/grace-speed/length-60 (0.00s)
+        --- PASS: TestZSQLZXRealReadlineCapacity/grace-speed/length-61 (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.179s

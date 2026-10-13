@@ -1,0 +1,105 @@
+{
+  "base": "75fb35b5",
+  "files": [
+    {
+      "path": "docs/grace-wide-extension/REPORT.md",
+      "bytes": 3606,
+      "sha256": "9c87c87ede4e2b603e17e32437b5fa27cadf434544afd31e13978950b9040634"
+    },
+    {
+      "path": "docs/grace-wide-extension/after.txt",
+      "bytes": 43,
+      "sha256": "c32684285ec7d47e81a9404468a7f7b5cfdb5053f2e1b7a64329f4e0ed259e92"
+    },
+    {
+      "path": "docs/grace-wide-extension/before.txt",
+      "bytes": 34804,
+      "sha256": "94620ee319e60ee23c544a74a94cec01a97eadfb7d39abccaeecf5b0021efc89"
+    },
+    {
+      "path": "docs/grace-wide-extension/full-mir2.txt",
+      "bytes": 44,
+      "sha256": "d4bb442f4fea57232cd3b4860fe00b3019d4818c189ad77e44fa6b91179c3840"
+    },
+    {
+      "path": "docs/grace-wide-extension/mode-false-false.a80",
+      "bytes": 5226,
+      "sha256": "04993f9af017cdc661e318bc417ce8e24079790f46f5ae9dbdad2f9c5da87cee"
+    },
+    {
+      "path": "docs/grace-wide-extension/mode-false-false.bin",
+      "bytes": 504,
+      "sha256": "a3e0120c610f88b154251ee9084e2a31e69b0a3626a8dd150bcfa5068fd1d176"
+    },
+    {
+      "path": "docs/grace-wide-extension/mode-false-false.mir2",
+      "bytes": 1442,
+      "sha256": "2bc0687320c5cdb20ccb425aa9ce24894d20ec3cbccc0a73f30e0af35638003e"
+    },
+    {
+      "path": "docs/grace-wide-extension/mode-true-false.a80",
+      "bytes": 5226,
+      "sha256": "04993f9af017cdc661e318bc417ce8e24079790f46f5ae9dbdad2f9c5da87cee"
+    },
+    {
+      "path": "docs/grace-wide-extension/mode-true-false.bin",
+      "bytes": 504,
+      "sha256": "a3e0120c610f88b154251ee9084e2a31e69b0a3626a8dd150bcfa5068fd1d176"
+    },
+    {
+      "path": "docs/grace-wide-extension/mode-true-false.mir2",
+      "bytes": 1442,
+      "sha256": "2bc0687320c5cdb20ccb425aa9ce24894d20ec3cbccc0a73f30e0af35638003e"
+    },
+    {
+      "path": "docs/grace-wide-extension/mode-true-true.a80",
+      "bytes": 5226,
+      "sha256": "04993f9af017cdc661e318bc417ce8e24079790f46f5ae9dbdad2f9c5da87cee"
+    },
+    {
+      "path": "docs/grace-wide-extension/mode-true-true.bin",
+      "bytes": 504,
+      "sha256": "a3e0120c610f88b154251ee9084e2a31e69b0a3626a8dd150bcfa5068fd1d176"
+    },
+    {
+      "path": "docs/grace-wide-extension/mode-true-true.mir2",
+      "bytes": 1442,
+      "sha256": "2bc0687320c5cdb20ccb425aa9ce24894d20ec3cbccc0a73f30e0af35638003e"
+    },
+    {
+      "path": "docs/grace-wide-extension/original-zvm.nanz",
+      "bytes": 36005,
+      "sha256": "26c396961731c73045b4f3e84f810aede7fb91e0c78d6e710cc492a7c45a59e1"
+    },
+    {
+      "path": "docs/grace-wide-extension/source-after.txt",
+      "bytes": 1211,
+      "sha256": "889c6158c479f8a70e438dbcbf883209124ea2c7e42f258ca0db9e18c9304c21"
+    },
+    {
+      "path": "docs/grace-wide-extension/source-before.txt",
+      "bytes": 6632,
+      "sha256": "af2b0272c208390791a076a8d1d8fd464f24af50fdfef4d3a5c18863a2cf30bf"
+    },
+    {
+      "path": "docs/grace-wide-extension/source.nanz",
+      "bytes": 262,
+      "sha256": "d413c0b517c0f7fc81360fd6ef0d6c029c02c157e82a199a6298a40738912e66"
+    },
+    {
+      "path": "minzc/pkg/mir2/z80codegen_move.go",
+      "bytes": 31931,
+      "sha256": "b3da81642ad0eeacc60b0e6c1a668f2a255c87b3ca5c03797f06e67d36b02a92"
+    },
+    {
+      "path": "minzc/pkg/mir2/zero_extension_native_test.go",
+      "bytes": 6210,
+      "sha256": "9c2d53f65a9dd3cf130e37fe02b21faaeba871c0d98a17f827064d9ae248fbe7"
+    },
+    {
+      "path": "minzc/pkg/pipeline/unsigned_extension_source_test.go",
+      "bytes": 7723,
+      "sha256": "7e3088b229bd34e693e64517f067b01bec164552205714c9c02bbe3d96ee300c"
+    }
+  ]
+}

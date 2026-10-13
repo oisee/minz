@@ -1,0 +1,42 @@
+ZSQL - Z80 SQLite Client v1.0
+Connected to :memory:
+Type SQL or .help
+
+zsql> 
+OK
+zsql> 
+OK
+zsql> 
+hello | 42
+1 rows
+zsql> 
+.help .quit
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+zsql> 
+Session ended.

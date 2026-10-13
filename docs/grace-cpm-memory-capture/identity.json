@@ -1,0 +1,9 @@
+{
+  "harness_commit": "d868ff55",
+  "capture_executable_sha256": "0f31f5f96bca63ef2fa94e2dd8df26c5ac643581d9d1125ac20f5b5b188930f4",
+  "compiler_source_commit": "e51846f1",
+  "compiler_executable_sha256": "9ec48c5f2eaa42e786be9adddc0b824c374d5c39a599a8d2dd0ef3181a2b65d1",
+  "COM_sha256": "087a9c7376591a82169b963891493ab6389cf26ebab728ef08a63e7664c73112",
+  "run_count": 1,
+  "exit_code": 0
+}

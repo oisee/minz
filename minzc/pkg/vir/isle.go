@@ -3,7 +3,7 @@
 // Runs BEFORE Z3 solver to reduce the VIROp count via term rewriting.
 // Each rule matches a tree of VIR operations and rewrites to a combined op.
 //
-// Rules are written in ISLE S-expression syntax (same as pkg/lir/combine.go).
+// Rules are written in ISLE S-expression syntax (legacy declarations retained in pkg/rewrite/isle/testdata).
 // This is a "pre-solver" optimization — fewer VIROps = simpler Z3 problem.
 //
 // Pipeline:
@@ -70,7 +70,7 @@ var ISLECombineRules = `
 // ISLECombine runs ISLE combining rules on VIROps.
 // Currently a no-op placeholder — the constant folding is already in
 // bridge.go (foldConstIntoALU). Full ISLE engine integration TODO
-// (requires porting pkg/lir/isle/ to work with VIROp types).
+// (a shared matcher exists in pkg/rewrite/isle; VIR uses the Go passes below).
 //
 // The rules above are kept for documentation and future use.
 func ISLECombine(ops []VIROp) []VIROp {
@@ -92,61 +92,93 @@ func ISLECombine(ops []VIROp) []VIROp {
 func fuseStore16LE(ops []VIROp) []VIROp {
 	defAt := make(map[int]int)
 	for i, op := range ops {
-		if op.Dst > 0 { defAt[op.Dst] = i }
+		if op.Dst > 0 {
+			defAt[op.Dst] = i
+		}
 	}
 	consts := make(map[int]int64)
 	for _, op := range ops {
-		if op.Op == OpConst && op.Dst > 0 && op.Sym == "" { consts[op.Dst] = op.Imm }
+		if op.Op == OpConst && op.Dst > 0 && op.Sym == "" {
+			consts[op.Dst] = op.Imm
+		}
 	}
 
 	// Find pairs of stores: store(low_addr, low_val) + store(high_addr, high_val)
 	skip := make(map[int]bool)
 	type storeFusion struct {
-		lowIdx, highIdx int
+		lowIdx, highIdx  int
 		ptrVreg, valVreg int
 	}
 	var fusions []storeFusion
 
 	for i, opLow := range ops {
-		if opLow.Op != OpStore || opLow.Width != 8 { continue }
+		if opLow.Op != OpStore || opLow.Width != 8 {
+			continue
+		}
 
 		// Low store value = trunc(val16) → OpMove
 		lowValIdx, ok := defAt[opLow.Src[1]]
-		if !ok { continue }
+		if !ok {
+			continue
+		}
 		lowValOp := ops[lowValIdx]
-		if lowValOp.Op != OpMove { continue }
+		if lowValOp.Op != OpMove {
+			continue
+		}
 		val16 := lowValOp.Src[0]
-		if val16 <= 0 { continue }
+		if val16 <= 0 {
+			continue
+		}
 
 		// Low store addr = ptr or add(ptr, 0) or addImm(ptr, 0)
 		lowAddr := opLow.Src[0]
 		ptrVreg := lowAddr
 		if ai, ok := defAt[lowAddr]; ok {
 			a := ops[ai]
-			if a.Op == OpAddImm && a.Imm == 0 { ptrVreg = a.Src[0] }
-			if a.Op == OpMove { ptrVreg = a.Src[0] }
+			if a.Op == OpAddImm && a.Imm == 0 {
+				ptrVreg = a.Src[0]
+			}
+			if a.Op == OpMove {
+				ptrVreg = a.Src[0]
+			}
 		}
 
 		// Find matching high store after this one
 		for j := i + 1; j < len(ops); j++ {
 			opHigh := ops[j]
-			if opHigh.Op != OpStore || opHigh.Width != 8 { continue }
+			if opHigh.Op != OpStore || opHigh.Width != 8 {
+				continue
+			}
 
 			// High store value = trunc(shr(val16, 8))
 			highValIdx, ok := defAt[opHigh.Src[1]]
-			if !ok { continue }
+			if !ok {
+				continue
+			}
 			highValOp := ops[highValIdx]
-			if highValOp.Op != OpMove { continue }
+			if highValOp.Op != OpMove {
+				continue
+			}
 			shrVreg := highValOp.Src[0]
-			if shrVreg <= 0 { continue }
+			if shrVreg <= 0 {
+				continue
+			}
 			shrIdx, ok := defAt[shrVreg]
-			if !ok { continue }
+			if !ok {
+				continue
+			}
 			shrOp := ops[shrIdx]
-			if shrOp.Op != OpShr { continue }
-			if shrOp.Src[0] != val16 { continue }
+			if shrOp.Op != OpShr {
+				continue
+			}
+			if shrOp.Src[0] != val16 {
+				continue
+			}
 			// shift by 8?
 			if shrOp.Src[1] > 0 {
-				if v, ok := consts[shrOp.Src[1]]; !ok || v != 8 { continue }
+				if v, ok := consts[shrOp.Src[1]]; !ok || v != 8 {
+					continue
+				}
 			} else {
 				continue
 			}
@@ -154,7 +186,9 @@ func fuseStore16LE(ops []VIROp) []VIROp {
 			// High store addr = add(ptr, 1) or addImm(ptr, 1)
 			highAddr := opHigh.Src[0]
 			highAddrIdx, ok := defAt[highAddr]
-			if !ok { continue }
+			if !ok {
+				continue
+			}
 			highAddrOp := ops[highAddrIdx]
 			validHigh := false
 			if highAddrOp.Op == OpAddImm && highAddrOp.Imm == 1 && highAddrOp.Src[0] == ptrVreg {
@@ -176,15 +210,17 @@ func fuseStore16LE(ops []VIROp) []VIROp {
 			if validHigh {
 				fusions = append(fusions, storeFusion{i, j, ptrVreg, val16})
 				// Mark all constituent ops
-				skip[i] = true   // low store
-				skip[j] = true   // high store
-				skip[lowValIdx] = true  // trunc low
-				skip[highValIdx] = true // trunc high
-				skip[shrIdx] = true     // shr
+				skip[i] = true           // low store
+				skip[j] = true           // high store
+				skip[lowValIdx] = true   // trunc low
+				skip[highValIdx] = true  // trunc high
+				skip[shrIdx] = true      // shr
 				skip[highAddrIdx] = true // add(ptr,1)
 				// Consts: 0, 8, 1
 				if shrOp.Src[1] > 0 {
-					if ci, ok := defAt[shrOp.Src[1]]; ok { skip[ci] = true }
+					if ci, ok := defAt[shrOp.Src[1]]; ok {
+						skip[ci] = true
+					}
 				}
 				// Low addr: add(ptr,0) or move(ptr) + any const feeding it
 				if lowAddr != ptrVreg {
@@ -193,7 +229,9 @@ func fuseStore16LE(ops []VIROp) []VIROp {
 						// Skip consts feeding the low addr op
 						for _, s := range ops[ai].Src {
 							if s > 0 && s != ptrVreg {
-								if ci, ok := defAt[s]; ok && ops[ci].Op == OpConst { skip[ci] = true }
+								if ci, ok := defAt[s]; ok && ops[ci].Op == OpConst {
+									skip[ci] = true
+								}
 							}
 						}
 					}
@@ -201,7 +239,9 @@ func fuseStore16LE(ops []VIROp) []VIROp {
 				// Const for high addr
 				for _, s := range ops[highAddrIdx].Src {
 					if s > 0 && s != ptrVreg {
-						if ci, ok := defAt[s]; ok && ops[ci].Op == OpConst { skip[ci] = true }
+						if ci, ok := defAt[s]; ok && ops[ci].Op == OpConst {
+							skip[ci] = true
+						}
 					}
 				}
 				break
@@ -209,11 +249,15 @@ func fuseStore16LE(ops []VIROp) []VIROp {
 		}
 	}
 
-	if len(fusions) == 0 { return ops }
+	if len(fusions) == 0 {
+		return ops
+	}
 
 	// Build output
 	fusionLow := make(map[int]storeFusion)
-	for _, f := range fusions { fusionLow[f.lowIdx] = f }
+	for _, f := range fusions {
+		fusionLow[f.lowIdx] = f
+	}
 
 	var result []VIROp
 	for i, op := range ops {
@@ -221,12 +265,14 @@ func fuseStore16LE(ops []VIROp) []VIROp {
 		if f, ok := fusionLow[i]; ok {
 			result = append(result, VIROp{
 				Op: OpStore, Dst: -1,
-				Src: [2]int{f.ptrVreg, f.valVreg},
+				Src:   [2]int{f.ptrVreg, f.valVreg},
 				Width: 16,
 			})
 			continue
 		}
-		if skip[i] { continue }
+		if skip[i] {
+			continue
+		}
 		result = append(result, op)
 	}
 	return result
@@ -239,7 +285,9 @@ func eliminateDeadOps(ops []VIROp) []VIROp {
 	used := make(map[int]bool)
 	for _, op := range ops {
 		for _, s := range op.Src {
-			if s > 0 { used[s] = true }
+			if s > 0 {
+				used[s] = true
+			}
 		}
 	}
 	var result []VIROp
@@ -257,11 +305,15 @@ func eliminateDeadOps(ops []VIROp) []VIROp {
 func fuseLoad16LE(ops []VIROp) []VIROp {
 	defAt := make(map[int]int)
 	for i, op := range ops {
-		if op.Dst > 0 { defAt[op.Dst] = i }
+		if op.Dst > 0 {
+			defAt[op.Dst] = i
+		}
 	}
 	consts := make(map[int]int64)
 	for _, op := range ops {
-		if op.Op == OpConst && op.Dst > 0 && op.Sym == "" { consts[op.Dst] = op.Imm }
+		if op.Op == OpConst && op.Dst > 0 && op.Sym == "" {
+			consts[op.Dst] = op.Imm
+		}
 	}
 
 	// Pass 1: find all fusion points + collect all skip indices
@@ -328,20 +380,30 @@ func matchLoad16LE(ops []VIROp, orIdx int, defAt map[int]int, consts map[int]int
 
 		shlIdx, shlOk := defAt[shlSrc]
 		loadLowIdx, loadLowOk := defAt[loadLowSrc]
-		if !shlOk || !loadLowOk { continue }
-		if ops[shlIdx].Op != OpShl || ops[loadLowIdx].Op != OpLoad { continue }
+		if !shlOk || !loadLowOk {
+			continue
+		}
+		if ops[shlIdx].Op != OpShl || ops[loadLowIdx].Op != OpLoad {
+			continue
+		}
 
 		shlOp := ops[shlIdx]
 		loadLowOp := ops[loadLowIdx]
 
 		// Shift by 8?
-		if shlOp.Src[1] <= 0 { continue }
+		if shlOp.Src[1] <= 0 {
+			continue
+		}
 		shiftAmt, ok := consts[shlOp.Src[1]]
-		if !ok || shiftAmt != 8 { continue }
+		if !ok || shiftAmt != 8 {
+			continue
+		}
 
 		// SHL source = load(high_addr)
 		loadHighIdx, ok := defAt[shlOp.Src[0]]
-		if !ok || ops[loadHighIdx].Op != OpLoad { continue }
+		if !ok || ops[loadHighIdx].Op != OpLoad {
+			continue
+		}
 		loadHighOp := ops[loadHighIdx]
 
 		// High addr = base + 1 (via Add, AddImm, or Add with const)
@@ -367,7 +429,9 @@ func matchLoad16LE(ops []VIROp, orIdx int, defAt map[int]int, consts map[int]int
 				}
 			}
 		}
-		if baseVreg == 0 { continue }
+		if baseVreg == 0 {
+			continue
+		}
 
 		// Low addr = base or base+0
 		lowBase := loadLowOp.Src[0]
@@ -384,20 +448,30 @@ func matchLoad16LE(ops []VIROp, orIdx int, defAt map[int]int, consts map[int]int
 				}
 			}
 		}
-		if !validLow { continue }
+		if !validLow {
+			continue
+		}
 
 		// MATCH! Collect all indices to skip
 		skips = append(skips, orIdx, shlIdx, loadLowIdx, loadHighIdx)
-		if addHighIdx >= 0 { skips = append(skips, addHighIdx) }
-		if addLowIdx >= 0 { skips = append(skips, addLowIdx) }
+		if addHighIdx >= 0 {
+			skips = append(skips, addHighIdx)
+		}
+		if addLowIdx >= 0 {
+			skips = append(skips, addLowIdx)
+		}
 		// Const vregs used in the pattern
-		if ci, ok := defAt[shlOp.Src[1]]; ok && ops[ci].Op == OpConst { skips = append(skips, ci) }
+		if ci, ok := defAt[shlOp.Src[1]]; ok && ops[ci].Op == OpConst {
+			skips = append(skips, ci)
+		}
 		// Const 1 for add
 		if addHighIdx >= 0 && ops[addHighIdx].Op == OpAdd {
 			for _, s := range ops[addHighIdx].Src {
 				if s > 0 {
 					if _, isConst := consts[s]; isConst {
-						if ci, ok := defAt[s]; ok { skips = append(skips, ci) }
+						if ci, ok := defAt[s]; ok {
+							skips = append(skips, ci)
+						}
 					}
 				}
 			}
@@ -407,7 +481,9 @@ func matchLoad16LE(ops []VIROp, orIdx int, defAt map[int]int, consts map[int]int
 			for _, s := range ops[addLowIdx].Src {
 				if s > 0 && s != baseVreg {
 					if _, isConst := consts[s]; isConst {
-						if ci, ok := defAt[s]; ok { skips = append(skips, ci) }
+						if ci, ok := defAt[s]; ok {
+							skips = append(skips, ci)
+						}
 					}
 				}
 			}
@@ -450,14 +526,18 @@ func eliminateIdentityOps(ops []VIROp) []VIROp {
 	// Mark const 0 vregs for potential sub(0,x)→neg(x) rewrite
 	zeroConsts := make(map[int]bool)
 	for vreg, imm := range consts {
-		if imm == 0 { zeroConsts[vreg] = true }
+		if imm == 0 {
+			zeroConsts[vreg] = true
+		}
 	}
 
 	// Pre-scan: mark dead consts for sub(0,x)→neg(x) rewrites
 	for _, op := range ops {
 		if op.Op == OpSub && op.Src[0] > 0 && zeroConsts[op.Src[0]] {
 			for j, cop := range ops {
-				if cop.Op == OpConst && cop.Dst == op.Src[0] { skip[j] = true }
+				if cop.Op == OpConst && cop.Dst == op.Src[0] {
+					skip[j] = true
+				}
 			}
 		}
 	}
@@ -549,29 +629,36 @@ func eliminateIdentityOps(ops []VIROp) []VIROp {
 					continue
 				case 3:
 					// x*3 = x + (x+x)
-					tmp := nextVreg; nextVreg++
+					tmp := nextVreg
+					nextVreg++
 					result = append(result, VIROp{Op: OpAdd, Dst: tmp, Src: [2]int{mulSrc, mulSrc}, Width: op.Width})
 					result = append(result, VIROp{Op: OpAdd, Dst: op.Dst, Src: [2]int{mulSrc, tmp}, Width: op.Width})
 					continue
 				case 4:
 					// x*4 = x << 2
-					tmp := nextVreg; nextVreg++
+					tmp := nextVreg
+					nextVreg++
 					result = append(result, VIROp{Op: OpConst, Dst: tmp, Imm: 2, Width: op.Width})
 					result = append(result, VIROp{Op: OpShl, Dst: op.Dst, Src: [2]int{mulSrc, tmp}, Width: op.Width})
 					continue
 				case 5:
 					// x*5 = x + (x<<2)
-					tmp1 := nextVreg; nextVreg++
-					tmp2 := nextVreg; nextVreg++
+					tmp1 := nextVreg
+					nextVreg++
+					tmp2 := nextVreg
+					nextVreg++
 					result = append(result, VIROp{Op: OpConst, Dst: tmp1, Imm: 2, Width: op.Width})
 					result = append(result, VIROp{Op: OpShl, Dst: tmp2, Src: [2]int{mulSrc, tmp1}, Width: op.Width})
 					result = append(result, VIROp{Op: OpAdd, Dst: op.Dst, Src: [2]int{mulSrc, tmp2}, Width: op.Width})
 					continue
 				case 6:
 					// x*6 = (x+x) + (x<<2)
-					tmp1 := nextVreg; nextVreg++ // x*2
-					tmp2 := nextVreg; nextVreg++ // const 2
-					tmp3 := nextVreg; nextVreg++ // x*4
+					tmp1 := nextVreg
+					nextVreg++ // x*2
+					tmp2 := nextVreg
+					nextVreg++ // const 2
+					tmp3 := nextVreg
+					nextVreg++ // x*4
 					result = append(result, VIROp{Op: OpAdd, Dst: tmp1, Src: [2]int{mulSrc, mulSrc}, Width: op.Width})
 					result = append(result, VIROp{Op: OpConst, Dst: tmp2, Imm: 2, Width: op.Width})
 					result = append(result, VIROp{Op: OpShl, Dst: tmp3, Src: [2]int{mulSrc, tmp2}, Width: op.Width})
@@ -579,15 +666,19 @@ func eliminateIdentityOps(ops []VIROp) []VIROp {
 					continue
 				case 8:
 					// x*8 = x << 3
-					tmp := nextVreg; nextVreg++
+					tmp := nextVreg
+					nextVreg++
 					result = append(result, VIROp{Op: OpConst, Dst: tmp, Imm: 3, Width: op.Width})
 					result = append(result, VIROp{Op: OpShl, Dst: op.Dst, Src: [2]int{mulSrc, tmp}, Width: op.Width})
 					continue
 				case 10:
 					// x*10 = (x+x) + (x<<3)
-					tmp1 := nextVreg; nextVreg++ // x*2
-					tmp2 := nextVreg; nextVreg++ // const 3
-					tmp3 := nextVreg; nextVreg++ // x*8
+					tmp1 := nextVreg
+					nextVreg++ // x*2
+					tmp2 := nextVreg
+					nextVreg++ // const 3
+					tmp3 := nextVreg
+					nextVreg++ // x*8
 					result = append(result, VIROp{Op: OpAdd, Dst: tmp1, Src: [2]int{mulSrc, mulSrc}, Width: op.Width})
 					result = append(result, VIROp{Op: OpConst, Dst: tmp2, Imm: 3, Width: op.Width})
 					result = append(result, VIROp{Op: OpShl, Dst: tmp3, Src: [2]int{mulSrc, tmp2}, Width: op.Width})
@@ -595,10 +686,14 @@ func eliminateIdentityOps(ops []VIROp) []VIROp {
 					continue
 				case 12:
 					// x*12 = (x<<2) + (x<<3)
-					tmp1 := nextVreg; nextVreg++ // const 2
-					tmp2 := nextVreg; nextVreg++ // x*4
-					tmp3 := nextVreg; nextVreg++ // const 3
-					tmp4 := nextVreg; nextVreg++ // x*8
+					tmp1 := nextVreg
+					nextVreg++ // const 2
+					tmp2 := nextVreg
+					nextVreg++ // x*4
+					tmp3 := nextVreg
+					nextVreg++ // const 3
+					tmp4 := nextVreg
+					nextVreg++ // x*8
 					result = append(result, VIROp{Op: OpConst, Dst: tmp1, Imm: 2, Width: op.Width})
 					result = append(result, VIROp{Op: OpShl, Dst: tmp2, Src: [2]int{mulSrc, tmp1}, Width: op.Width})
 					result = append(result, VIROp{Op: OpConst, Dst: tmp3, Imm: 3, Width: op.Width})

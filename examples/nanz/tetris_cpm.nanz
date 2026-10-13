@@ -412,7 +412,7 @@ fun draw_number(val: u16) -> void {
 fun draw_info() -> void {
     tui_color(FG_WHITE, BG_BLACK, 0)
     tui_goto(1, 23)
-    tui_puts("Arrows:Move Z:Rot X:Drop C:Hold Q:Quit")
+    tui_puts(c"Arrows:Move Z:Rot X:Drop C:Hold Q:Quit")
 }
 
 fun render() -> void {
@@ -515,9 +515,9 @@ fun main() -> void {
 
     tui_color(FG_WHITE, BG_BLACK, 1)
     tui_goto(DRAW_X + 4, DRAW_Y + 9)
-    tui_puts("GAME OVER!")
+    tui_puts(c"GAME OVER!")
     tui_goto(DRAW_X + 2, DRAW_Y + 11)
-    tui_puts("Score: ")
+    tui_puts(c"Score: ")
     draw_number(score)
     tui_reset()
     tui_goto(1, 23)

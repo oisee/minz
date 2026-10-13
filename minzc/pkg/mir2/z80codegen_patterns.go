@@ -267,27 +267,12 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 	clear(g.bitCmpSkip)
 
 	defInst := make(map[Reg]*Inst, len(b.Insts))
-	useCount := make(map[Reg]int, len(b.Insts))
+	// Definitions may be used in successor blocks; skipping a load requires
+	// a function-wide single-use proof, not merely a count in this block.
+	useCount := countRegUses(g.fn)
 	for _, inst := range b.Insts {
 		if inst.Dst != NoReg {
 			defInst[inst.Dst] = inst
-		}
-		for _, src := range inst.Src {
-			if src != NoReg {
-				useCount[src]++
-			}
-		}
-		for _, arg := range inst.Args {
-			if arg != NoReg {
-				useCount[arg]++
-			}
-		}
-	}
-	if b.Term != nil {
-		for _, src := range b.Term.termUses() {
-			if src != NoReg {
-				useCount[src]++
-			}
 		}
 	}
 
@@ -336,7 +321,7 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 				matched = true
 			}
 		}
-		if matched {
+		if matched && g.canEmitBitCmpPattern(pat) && bitCmpMemoryAdjacent(b, inst, pat, skipRegs, zeroReg) {
 			g.bitCmpPat[inst.Dst] = pat
 			g.bitCmpSkip[zeroReg] = true
 			for _, r := range skipRegs {
@@ -395,7 +380,7 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 			}
 		}
 
-		if matched {
+		if matched && g.canEmitBitCmpPattern(pat) && bitCmpMemoryAdjacent(b, inst, pat, skipRegs, zeroReg) {
 			g.bitCmpPat[inst.Dst] = pat
 			g.bitCmpSkip[zeroReg] = true
 			for _, r := range skipRegs {
@@ -403,6 +388,33 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 			}
 		}
 	}
+}
+
+// A memory BIT reads at the compare, so moving a prior load across unrelated
+// work can change memory or lose the allocated pointer. Fuse only the exact
+// contiguous expression (constants and the definitions being eliminated).
+func bitCmpMemoryAdjacent(b *Block, cmp *Inst, pat bitCmpPat, skipped []Reg, zero Reg) bool {
+	if !pat.useMem {
+		return true
+	}
+	allowed := map[Reg]bool{zero: true}
+	for _, r := range skipped {
+		allowed[r] = true
+	}
+	started := false
+	for _, i := range b.Insts {
+		if i == cmp {
+			return started
+		}
+		if i.Op == OpLoad && i.Src[0] == pat.ptrReg && allowed[i.Dst] {
+			started = true
+			continue
+		}
+		if started && !allowed[i.Dst] && i.Op != OpConst {
+			return false
+		}
+	}
+	return false
 }
 
 // isGlobalPageAligned reports whether the named global in the current module
@@ -416,6 +428,20 @@ func (g *z80cg) isGlobalPageAligned(sym string) bool {
 		}
 	}
 	return false
+}
+
+// Never skip the original definitions until the selected BIT form can be
+// encoded. genCmp's ordinary fallback requires those AND/shift/zero values.
+func (g *z80cg) canEmitBitCmpPattern(pat bitCmpPat) bool {
+	if pat.useMem {
+		ptr := g.loc(pat.ptrReg)
+		if isSpill(ptr) {
+			ptr = "HL"
+		}
+		return ptr == "HL" && (pat.byteOffset == 0 || pat.byteOffset == 1) || isIXY(ptr) && pat.byteOffset >= 0 && pat.byteOffset <= 127
+	}
+	src := selectBitReg(g.loc(pat.srcReg), pat.byteOffset)
+	return isSimpleReg(src) && !isSpill(src) && !isIXYReg(src)
 }
 
 func (g *z80cg) emitBitMemOp(op string, bit int, ptr string, byteOffset int) bool {
@@ -786,16 +812,17 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 	}
 
 	// ── u16 direct-address load detection ────────────────────────────────────
-	// Pattern: OpLoad(w=16, addrReg=AddrOf(sym)) → dst (u16, must be HL)
-	// Enables LD HL, (sym) (20T, no A clobber) instead of INC/DEC trick via A.
+	// Pattern: OpLoad(w=16, addrReg=AddrOf(sym)) → dst (u16, must be HL/DE/BC)
+	// Enables direct LD rr, (sym) without scratch-register clobbers.
 	// Only fires when addrReg is used solely by this load (useCount==1) so we
 	// can safely skip the AddrOf instruction (suppress LD HL,sym).
 	for _, inst := range b.Insts {
 		if inst.Op != OpLoad || inst.Ty.Width() != 16 || inst.Dst == NoReg {
 			continue
 		}
-		if g.ar.Loc(inst.Dst).Name != "HL" {
-			continue // only LD HL,(nn) exists for direct u16 load
+		dst := g.ar.Loc(inst.Dst).Name
+		if dst != "HL" && dst != "DE" && dst != "BC" {
+			continue
 		}
 		addrReg := inst.Src[0]
 		def, ok := defInst[addrReg]
@@ -804,6 +831,22 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 		}
 		if useCount[addrReg] != 1 {
 			continue // addr reg used by other instructions too
+		}
+		// The DE/BC extension requires the address to have one use across
+		// the whole function, including direct successor and terminator uses.
+		if dst != "HL" {
+			if g.fn == nil || countRegUses(g.fn)[addrReg] != 1 {
+				continue
+			}
+			storage := false
+			for _, global := range g.mod.Globals {
+				if global.Name == def.Sym && ByteWidth(global.Ty) >= 2 {
+					storage = true
+				}
+			}
+			if !storage {
+				continue
+			}
 		}
 		g.globalU16LoadSym[addrReg] = def.Sym
 		g.globalFieldSkip[addrReg] = true // suppress LD HL, sym from OpAddrOf
@@ -816,12 +859,19 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 // arrange for PUSH HL before the ADD and POP HL after the subsequent load.
 //
 // Sets g.ptrAddPushHL = ptr_add.Dst  when the pattern fires; cleared by the
-// OpLoad codegen after it emits the POP HL.
+// OpLoad/OpStore codegen after it emits the POP HL.
 func (g *z80cg) scanPtrAddBase(b *Block) {
 	g.ptrAddPushHL = NoReg
 
+	uses := countRegUses(g.fn)
 	for idx, inst := range b.Insts {
-		if inst.Op != OpPtrAdd {
+		if inst.Op != OpPtrAdd || idx+1 >= len(b.Insts) {
+			continue
+		}
+		consumer := b.Insts[idx+1]
+		// A delayed save must have an immediate, single-use consumer that
+		// restores the stack before any subsequent pointer calculation.
+		if (consumer.Op != OpLoad && consumer.Op != OpStore) || consumer.Src[0] != inst.Dst || uses[inst.Dst] != 1 {
 			continue
 		}
 		baseReg := inst.Src[0]

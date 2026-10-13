@@ -44,6 +44,20 @@ type VM struct {
 	// Console ($23), network ($30), control ($31) — all through one interface.
 	Ports PortIO
 
+	// ObserveDataAccess optionally receives each byte actually read by OpLoad or
+	// written by OpStore, in execution order (low byte first). Nil disables
+	// observation. The callback cannot fail and should not mutate or reenter VM.
+	// This is raw MIR2 data traffic, not a universal target memory trace: heap
+	// setup/snapshots, host functions (including memcpy/memset), OpPatchSlot,
+	// OpPatch, OpLoadPatched, ASM, ports, and instruction fetches are excluded.
+	ObserveDataAccess func(VMDataAccess)
+
+	// CheckDataAccess runs before each actual OpLoad/OpStore byte access.
+	// A non-nil error stops the instruction before that byte is accessed; earlier
+	// successful bytes and their observations remain committed. Nil preserves
+	// the default VM behavior. The hook must not mutate or reenter the VM.
+	CheckDataAccess func(inst *Inst, addr int64) error
+
 	// Execution limits (protect against infinite loops in comptime code).
 	MaxSteps  int64 // 0 = unlimited (not recommended for comptime)
 	MaxMemory int   // heap byte limit; 0 = 64 KB default
@@ -58,6 +72,23 @@ type VM struct {
 	// Populated by NewVM from Module.Globals.
 	globalSyms map[string]int64
 }
+
+// VMDataAccess is one executed OpLoad/OpStore byte access. Addr is the actual
+// VM heap offset after pointer-width wrapping, not a relocated Z80 address.
+// Value is the byte read or written. Repeated/overlapping accesses produce
+// separate events; a rejected heap-range instruction produces none. A per-byte
+// CheckDataAccess failure retains observations for earlier successful bytes.
+type VMDataAccess struct {
+	Op    Op // OpLoad (read) or OpStore (write)
+	Addr  int64
+	Value byte
+}
+
+// StepsExecuted returns the cumulative instruction steps charged by
+// this VM, including steps across successive calls. This is VM work, not target
+// CPU cycles. Terminators are not charged by the current VM; a step rejected by
+// the gas limit is also included.
+func (vm *VM) StepsExecuted() int64 { return vm.steps }
 
 // GlobalAddr returns the heap offset for a named global, or -1 if not found.
 func (vm *VM) GlobalAddr(name string) int64 {
@@ -109,12 +140,42 @@ func signExtend(v Value, srcBits int) Value {
 
 // frame is one activation record on the call stack.
 type frame struct {
-	fn   *Func
-	vals map[Reg]Value // virtual register file for this call
+	fn            *Func
+	vals          map[Reg]Value // virtual register file for this call
+	pointerWidths map[Reg]int   // only non-default pointer widths
 }
 
 func newFrame(fn *Func) *frame {
-	return &frame{fn: fn, vals: make(map[Reg]Value, 32)}
+	fr := &frame{fn: fn, vals: make(map[Reg]Value, 32)}
+	record := func(r Reg, ty Ty) {
+		if p, ok := ty.(*ptrTy); ok && p.width != 16 {
+			if fr.pointerWidths == nil {
+				fr.pointerWidths = make(map[Reg]int)
+			}
+			fr.pointerWidths[r] = p.width
+		}
+	}
+	for _, p := range fn.Contract.Params {
+		record(p.Reg, p.Ty)
+	}
+	for _, b := range fn.Blocks {
+		for _, p := range b.Params {
+			record(p.Dst, p.Ty)
+		}
+		for _, i := range b.Insts {
+			record(i.Dst, i.Ty)
+			if i.Op == OpCall && fn.mod != nil {
+				if callee := fn.mod.FuncByName(i.Sym); callee != nil {
+					for n, r := range i.ExtraRets {
+						if n+1 < len(callee.Contract.Returns) {
+							record(r, callee.Contract.Returns[n+1].Ty)
+						}
+					}
+				}
+			}
+		}
+	}
+	return fr
 }
 
 func (fr *frame) get(r Reg) Value {
@@ -197,19 +258,47 @@ func NewVM(m *Module) *VM {
 	return vm
 }
 
+// CallOutcome is a language result; Go error remains a VM trap, not CY failure.
+type CallOutcome struct {
+	Values    []Value
+	Failed    bool
+	ErrorCode byte
+}
+
+func (vm *VM) CallWithOutcome(name string, args []Value) (CallOutcome, error) {
+	fn := vm.Module.FuncByName(name)
+	if fn == nil {
+		return CallOutcome{}, fmt.Errorf("mir2.VM: function @%s not found", name)
+	}
+	bound, err := vm.BindStructReturnArguments(fn, args)
+	if err != nil {
+		return CallOutcome{}, err
+	}
+	return vm.callFuncOutcome(fn, bound)
+}
+
 // Call executes a named function with the given argument values.
-// Returns the return values (empty for void).
+// Returns ordinary values; failure returns the u8 code for legacy callers.
+// Use CallWithOutcome to distinguish a language error from a success value.
 func (vm *VM) Call(funcName string, args []Value) ([]Value, error) {
 	fn := vm.Module.FuncByName(funcName)
 	if fn == nil {
 		return nil, fmt.Errorf("mir2.VM: function @%s not found", funcName)
 	}
-	return vm.callFunc(fn, args)
+	bound, err := vm.BindStructReturnArguments(fn, args)
+	if err != nil {
+		return nil, err
+	}
+	return vm.callFunc(fn, bound)
 }
 
 // CallFunc executes a Func directly.
 func (vm *VM) CallFunc(fn *Func, args []Value) ([]Value, error) {
-	return vm.callFunc(fn, args)
+	bound, err := vm.BindStructReturnArguments(fn, args)
+	if err != nil {
+		return nil, err
+	}
+	return vm.callFunc(fn, bound)
 }
 
 // AllocHeap appends data to the VM heap and returns a pointer value (heap offset).
@@ -268,17 +357,25 @@ func (vm *VM) WriteHeapBytes(addr int64, data []byte) {
 // ── Execution engine ──────────────────────────────────────────────────────────
 
 func (vm *VM) callFunc(fn *Func, args []Value) ([]Value, error) {
+	out, err := vm.callFuncOutcome(fn, args)
+	if out.Failed {
+		return []Value{{I: int64(out.ErrorCode)}}, err
+	}
+	return out.Values, err
+}
+func (vm *VM) callFuncOutcome(fn *Func, args []Value) (CallOutcome, error) {
 	if fn.Attrs.IsExtern {
 		// Try host table by function name.
 		if hf, ok := vm.Hosts["@"+fn.Name]; ok {
-			return hf(args)
+			values, err := hf(args)
+			return CallOutcome{Values: values}, err
 		}
-		return nil, fmt.Errorf("mir2.VM: extern @%s has no host implementation", fn.Name)
+		return CallOutcome{}, fmt.Errorf("mir2.VM: extern @%s has no host implementation", fn.Name)
 	}
 
 	entry := fn.Entry()
 	if entry == nil {
-		return nil, fmt.Errorf("mir2.VM: @%s has no entry block", fn.Name)
+		return CallOutcome{}, fmt.Errorf("mir2.VM: @%s has no entry block", fn.Name)
 	}
 
 	fr := newFrame(fn)
@@ -286,7 +383,7 @@ func (vm *VM) callFunc(fn *Func, args []Value) ([]Value, error) {
 	// Bind function parameters.
 	params := fn.Contract.Params
 	if len(args) != len(params) {
-		return nil, fmt.Errorf("mir2.VM: @%s expects %d args, got %d",
+		return CallOutcome{}, fmt.Errorf("mir2.VM: @%s expects %d args, got %d",
 			fn.Name, len(params), len(args))
 	}
 	for i, p := range params {
@@ -303,7 +400,7 @@ func (vm *VM) callFunc(fn *Func, args []Value) ([]Value, error) {
 	for {
 		// Bind block arguments to block params.
 		if len(blockArgs) != len(blk.Params) {
-			return nil, fmt.Errorf("mir2.VM: block @%s expects %d params, got %d args",
+			return CallOutcome{}, fmt.Errorf("mir2.VM: block @%s expects %d params, got %d args",
 				blk.Label, len(blk.Params), len(blockArgs))
 		}
 		for i, p := range blk.Params {
@@ -313,21 +410,24 @@ func (vm *VM) callFunc(fn *Func, args []Value) ([]Value, error) {
 		// Execute instructions.
 		for _, inst := range blk.Insts {
 			if err := vm.step(); err != nil {
-				return nil, err
+				return CallOutcome{}, err
 			}
 			if err := vm.execInst(fr, inst); err != nil {
-				return nil, fmt.Errorf("block @%s: %w", blk.Label, err)
+				return CallOutcome{}, fmt.Errorf("block @%s: %w", blk.Label, err)
 			}
 		}
 
+		if term, ok := blk.Term.(*TermErrorRet); ok {
+			return CallOutcome{Failed: true, ErrorCode: byte(fr.get(term.Code).I)}, nil
+		}
 		// Resolve terminator → either return or jump to next block.
 		rets, next, nextArgs, err := vm.execTerm(fr, blk)
 		if err != nil {
-			return nil, err
+			return CallOutcome{}, err
 		}
 		if next == nil {
 			// TermRet or TermCondRet(return path) — done.
-			return rets, nil
+			return CallOutcome{Values: rets}, nil
 		}
 		// Jump to next block — iterate, don't recurse.
 		blk = next
@@ -599,39 +699,93 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		result = Value{I: offset}
 
 	case OpField:
-		// Advance pointer by compile-time byte offset (struct field access).
-		result = Value{I: a.I + inst.Imm}
+		// Keep the legacy SoA256 encoding consistent with native Z80.
+		if inst.Imm == -1 {
+			result = truncate(Value{I: (a.I &^ 255) | ((a.I + 1) & 255)}, ty)
+		} else {
+			result = truncate(Value{I: a.I + inst.Imm}, ty)
+		}
 
 	case OpPtrAdd:
 		// Advance pointer by runtime offset: ptr + offset.
-		result = Value{I: a.I + b.I}
+		result = truncate(Value{I: a.I + b.I}, ty)
 
 	case OpPtrBump:
-		// Advance iterator pointer by compile-time stride.
-		result = Value{I: a.I + inst.Imm}
+		// The legacy -1 encoding means SoA256 low-byte advance.
+		if inst.Imm == -1 {
+			result = truncate(Value{I: (a.I &^ 255) | ((a.I + 1) & 255)}, ty)
+		} else {
+			result = truncate(Value{I: a.I + inst.Imm}, ty)
+		}
 
 	case OpLoad:
+		if inst.SequentialBytes && (ty != TyU16 || len(inst.SequentialByteOrigins) != 2 || inst.SequentialByteOrigins[0] == nil || inst.SequentialByteOrigins[1] == nil) {
+			return fmt.Errorf("invalid sequential byte load")
+		}
 		offset := int(a.I)
 		width := ByteWidth(ty)
-		if offset < 0 || offset+width > len(vm.heap) {
+		mask := fr.pointerMask(inst.Src[0])
+		if !inst.SequentialBytes && !vm.wrappedHeapRangeValid(a.I, width, mask) {
 			return fmt.Errorf("load: out-of-bounds address %d (heap size %d)", offset, len(vm.heap))
 		}
 		var v int64
-		for i := 0; i < width; i++ {
-			v |= int64(vm.heap[offset+i]) << (8 * i)
+		if observe := vm.ObserveDataAccess; observe != nil || vm.CheckDataAccess != nil || inst.SequentialBytes {
+			for i := 0; i < width; i++ {
+				addr := int64((uint64(a.I) + uint64(i)) & mask)
+				if inst.SequentialBytes && !vm.wrappedHeapRangeValid(addr, 1, mask) {
+					return fmt.Errorf("sequential byte access: out-of-bounds address %d (heap size %d)", addr, len(vm.heap))
+				}
+				if vm.CheckDataAccess != nil {
+					if err := vm.CheckDataAccess(sequentialByteInstruction(inst, i), addr); err != nil {
+						return err
+					}
+				}
+				value := vm.heap[int(addr)]
+				v |= int64(value) << (8 * i)
+				if observe != nil {
+					observe(VMDataAccess{Op: OpLoad, Addr: addr, Value: value})
+				}
+			}
+		} else {
+			for i := 0; i < width; i++ {
+				v |= int64(vm.heap[int((uint64(a.I)+uint64(i))&mask)]) << (8 * i)
+			}
 		}
 		result = truncate(Value{I: v}, ty)
 
 	case OpStore:
+		if inst.SequentialBytes && (ty != TyU16 || len(inst.SequentialByteOrigins) != 2 || inst.SequentialByteOrigins[0] == nil || inst.SequentialByteOrigins[1] == nil) {
+			return fmt.Errorf("invalid sequential byte store")
+		}
 		// Src[0]=ptr, Src[1]=val; ty is value type.
 		offset := int(a.I)
 		val := b.I
 		width := ByteWidth(ty)
-		if offset < 0 || offset+width > len(vm.heap) {
+		mask := fr.pointerMask(inst.Src[0])
+		if !inst.SequentialBytes && !vm.wrappedHeapRangeValid(a.I, width, mask) {
 			return fmt.Errorf("store: out-of-bounds address %d (heap size %d)", offset, len(vm.heap))
 		}
-		for i := 0; i < width; i++ {
-			vm.heap[offset+i] = byte(val >> (8 * i))
+		if observe := vm.ObserveDataAccess; observe != nil || vm.CheckDataAccess != nil || inst.SequentialBytes {
+			for i := 0; i < width; i++ {
+				addr := int64((uint64(a.I) + uint64(i)) & mask)
+				if inst.SequentialBytes && !vm.wrappedHeapRangeValid(addr, 1, mask) {
+					return fmt.Errorf("sequential byte access: out-of-bounds address %d (heap size %d)", addr, len(vm.heap))
+				}
+				if vm.CheckDataAccess != nil {
+					if err := vm.CheckDataAccess(sequentialByteInstruction(inst, i), addr); err != nil {
+						return err
+					}
+				}
+				value := byte(val >> (8 * i))
+				vm.heap[int(addr)] = value
+				if observe != nil {
+					observe(VMDataAccess{Op: OpStore, Addr: addr, Value: value})
+				}
+			}
+		} else {
+			for i := 0; i < width; i++ {
+				vm.heap[int((uint64(a.I)+uint64(i))&mask)] = byte(val >> (8 * i))
+			}
 		}
 		return nil // no Dst
 
@@ -655,12 +809,13 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		// a = slot (heap offset), ty = value type
 		offset := int(a.I)
 		width := ByteWidth(ty)
-		if offset < 0 || offset+width > len(vm.heap) {
+		mask := fr.pointerMask(inst.Src[0])
+		if !vm.wrappedHeapRangeValid(a.I, width, mask) {
 			return fmt.Errorf("load_patched: out-of-bounds slot %d", offset)
 		}
 		var v int64
 		for i := 0; i < width; i++ {
-			v |= int64(vm.heap[offset+i]) << (8 * i)
+			v |= int64(vm.heap[int((uint64(a.I)+uint64(i))&mask)]) << (8 * i)
 		}
 		result = truncate(Value{I: v}, ty)
 
@@ -673,22 +828,63 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		if ty != nil {
 			width = ByteWidth(ty)
 		}
-		if offset < 0 || offset+width > len(vm.heap) {
+		mask := fr.pointerMask(inst.Src[0])
+		if !vm.wrappedHeapRangeValid(a.I, width, mask) {
 			return fmt.Errorf("patch: out-of-bounds slot %d", offset)
 		}
 		for i := 0; i < width; i++ {
-			vm.heap[offset+i] = byte(val >> (8 * i))
+			vm.heap[int((uint64(a.I)+uint64(i))&mask)] = byte(val >> (8 * i))
 		}
 		return nil // no Dst
 
 	// ── Function calls ────────────────────────────────────────────────────────
-	case OpCall:
+	case OpCall, OpCallCond:
+		if inst.Op == OpCallCond {
+			take, err := conditionalCallTaken(fr, inst)
+			if err != nil {
+				return err
+			}
+			if !take {
+				return nil
+			}
+		}
+		if inst.FallibleCY {
+			fn := vm.Module.FuncByName(inst.Sym)
+			if fn == nil || !fn.Attrs.FallibleCY || len(inst.ExtraRets) != 2 {
+				return fmt.Errorf("invalid fallible call %s", inst.Sym)
+			}
+			out, err := vm.callFuncOutcome(fn, collectArgs(fr, inst.Args))
+			if err != nil {
+				return err
+			}
+			value := Value{}
+			if len(out.Values) > 0 {
+				value = out.Values[0]
+			}
+			if out.Failed {
+				value.I = int64(out.ErrorCode)
+			}
+			if inst.Dst != NoReg {
+				fr.set(inst.Dst, value)
+			}
+			status := int64(0)
+			if out.Failed {
+				status = 1
+			}
+			fr.set(inst.ExtraRets[0], Value{I: status})
+			fr.set(inst.ExtraRets[1], Value{I: int64(out.ErrorCode)})
+			return nil
+		}
 		rets, err := vm.execCall(inst.Sym, inst.Args, fr)
 		if err != nil {
 			return err
 		}
 		if inst.Dst != NoReg && len(rets) > 0 {
-			fr.set(inst.Dst, rets[0])
+			if _, pointer := inst.Ty.(*ptrTy); pointer {
+				fr.set(inst.Dst, truncate(rets[0], inst.Ty))
+			} else {
+				fr.set(inst.Dst, rets[0])
+			}
 		}
 		// Capture extra return values (positions 1, 2, …).
 		for i, r := range inst.ExtraRets {
@@ -716,12 +912,24 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		if targetFn == nil {
 			return fmt.Errorf("mir2.VM: OpCallIndirect: no function at address %d", ptrVal)
 		}
+		if err := ValidateIndirectTargetABI(inst, targetFn); err != nil {
+			return err
+		}
 		rets, err := vm.callFunc(targetFn, args)
 		if err != nil {
 			return err
 		}
 		if inst.Dst != NoReg && len(rets) > 0 {
-			fr.set(inst.Dst, rets[0])
+			if _, pointer := inst.Ty.(*ptrTy); pointer {
+				fr.set(inst.Dst, truncate(rets[0], inst.Ty))
+			} else {
+				fr.set(inst.Dst, rets[0])
+			}
+		}
+		for i, r := range inst.ExtraRets {
+			if r != NoReg && i+1 < len(rets) {
+				fr.set(r, rets[i+1])
+			}
 		}
 		return nil
 
@@ -767,6 +975,9 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		return fmt.Errorf("mir2.VM: unhandled opcode %s", inst.Op)
 	}
 
+	if _, pointer := inst.Ty.(*ptrTy); pointer {
+		result = truncate(result, inst.Ty)
+	}
 	fr.set(inst.Dst, result)
 	return nil
 }
@@ -836,8 +1047,37 @@ func (vm *VM) resolveSymbol(sym string) (int64, error) {
 		}
 		s := vm.Module.Strings.At(idx)
 		offset := int64(len(vm.heap))
+		kind := vm.Module.Strings.Kind(idx)
+		overhead := 1
+		if kind == StrLString {
+			overhead = 2
+		}
+		limit := vm.MaxMemory
+		if limit <= 0 {
+			limit = 65536
+		}
+		if len(vm.heap) > limit || len(s)+overhead > limit-len(vm.heap) {
+			return 0, fmt.Errorf("mir2.VM: string storage exceeds %d byte memory limit", limit)
+		}
+		switch kind {
+		case StrSString:
+			if len(s) > 255 {
+				return 0, fmt.Errorf("mir2.VM: SString exceeds 255 bytes")
+			}
+			vm.heap = append(vm.heap, byte(len(s)))
+		case StrLString:
+			if len(s) > 65535 {
+				return 0, fmt.Errorf("mir2.VM: LString exceeds 65535 bytes")
+			}
+			vm.heap = append(vm.heap, byte(len(s)), byte(len(s)>>8))
+		case StrCString:
+		default:
+			return 0, fmt.Errorf("mir2.VM: invalid string kind %d", kind)
+		}
 		vm.heap = append(vm.heap, []byte(s)...)
-		vm.heap = append(vm.heap, 0) // NUL terminator
+		if kind == StrCString {
+			vm.heap = append(vm.heap, 0)
+		}
 		// Cache so repeated references get the same address.
 		vm.globalSyms[sym] = offset
 		return offset, nil
@@ -853,7 +1093,10 @@ func (vm *VM) registerBuiltinHosts() {
 		if len(args) < 1 {
 			return nil, nil
 		}
-		fmt.Printf("%c", rune(args[0].I))
+		_, err := os.Stdout.Write([]byte{byte(args[0].I)})
+		if err != nil {
+			return nil, err
+		}
 		return nil, nil
 	}
 	vm.Hosts["@mir.io.print.u8"] = func(args []Value) ([]Value, error) {
@@ -1010,4 +1253,57 @@ func (vm *VM) registerBuiltinHosts() {
 		copy(vm.heap[dst:], vm.heap[src:src+n])
 		return nil, nil
 	}
+}
+
+func (fr *frame) pointerMask(r Reg) uint64 {
+	bits := fr.pointerWidths[r]
+	if bits == 0 {
+		bits = 16
+	}
+	if bits >= 64 {
+		return ^uint64(0)
+	}
+	return (uint64(1) << uint(bits)) - 1
+}
+func (vm *VM) wrappedHeapRangeValid(address int64, width int, mask uint64) bool {
+	if address < 0 || width < 0 {
+		return false
+	}
+	for i := 0; i < width; i++ {
+		addr := (uint64(address) + uint64(i)) & mask
+		if addr >= uint64(len(vm.heap)) {
+			return false
+		}
+	}
+	return true
+}
+
+func sequentialByteInstruction(inst *Inst, byteIndex int) *Inst {
+	if inst.SequentialBytes && len(inst.SequentialByteOrigins) == 2 {
+		return inst.SequentialByteOrigins[byteIndex]
+	}
+	return inst
+}
+
+// OpCallCond consumes an already computed boolean. Cond is its native flag
+// predicate and may invert the producer when the else-arm was folded.
+func conditionalCallTaken(fr *frame, inst *Inst) (bool, error) {
+	predicate := CmpNe // documented fallback for a non-comparison boolean
+	// Use the call's own block, exactly as FoldConditionalCalls does. A
+	// dominating comparison in another block intentionally uses CmpNe fallback.
+	for _, b := range fr.fn.Blocks {
+		for _, i := range b.Insts {
+			if i == inst {
+				predicate = findCondForReg(b, inst.Src[0])
+			}
+		}
+	}
+	take := fr.get(inst.Src[0]).I != 0
+	if inst.Cond == predicate {
+		return take, nil
+	}
+	if inst.Cond == invertCmpCond(predicate) {
+		return !take, nil
+	}
+	return false, fmt.Errorf("mir2.VM: ambiguous conditional call predicate %v for boolean %v", inst.Cond, predicate)
 }

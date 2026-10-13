@@ -161,6 +161,10 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 				for _, d := range subDecls {
 					if fbd, ok := d.(*formBodyDecl); ok {
 						currentEvent.Body = append(currentEvent.Body, fbd.stmt)
+					} else {
+						// DATA in report events has report scope, including
+						// declarations wrapped in a Body or chained DATA node.
+						decls = append(decls, d)
 					}
 				}
 			} else {
@@ -887,8 +891,11 @@ func filterTokens(tokens []string, skip ...string) []string {
 func collectStmtsFromDecls(decls []Decl) []Stmt_ {
 	var stmts []Stmt_
 	for _, d := range decls {
-		if fbd, ok := d.(*formBodyDecl); ok {
-			stmts = append(stmts, fbd.stmt)
+		switch d := d.(type) {
+		case *formBodyDecl:
+			stmts = append(stmts, d.stmt)
+		case *DataDecl:
+			stmts = append(stmts, d)
 		}
 	}
 	return stmts
@@ -1345,6 +1352,13 @@ func parseWriteStmt(tokens []string) (Decl, error) {
 			}
 			parts := expandStringTemplateTokens(tmplTokens)
 			w.Exprs = append(w.Exprs, parts...)
+			continue
+		}
+		// abaplint tokenizes a structure component as SY, -, SUBRC.
+		// Preserve it as one system-field expression rather than three values.
+		if strings.EqualFold(t, "SY") && i+2 < len(tokens) && tokens[i+1] == "-" {
+			w.Exprs = append(w.Exprs, &SYField{Field: strings.ToUpper(tokens[i+2])})
+			i += 2
 			continue
 		}
 		w.Exprs = append(w.Exprs, parseTokenExpr(t))

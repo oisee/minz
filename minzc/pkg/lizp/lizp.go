@@ -39,12 +39,13 @@ import (
 
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/lanz"
+	"github.com/minz/minzc/pkg/mir2"
 )
 
 // macros holds user-defined macros: name → (params, body template).
 type macro struct {
-	params []string   // parameter names
-	body   lanz.Node  // template body (params substituted on expansion)
+	params []string  // parameter names
+	body   lanz.Node // template body (params substituted on expansion)
 }
 
 // Compile parses Lizp source and returns a HIR module.
@@ -68,7 +69,68 @@ func Compile(src, name string) (*hir.Module, error) {
 		desugared[i] = sanitizeIdents(desugared[i])
 	}
 	// Pass desugared nodes directly to Lanz compiler (no serialize roundtrip).
-	return lanz.CompileNodes(desugared, name)
+	m, err := lanz.CompileNodes(desugared, name)
+	if err != nil {
+		return nil, err
+	}
+	for _, f := range m.Funcs {
+		if f.IsExtern || f.RetTy == mir2.TyVoid {
+			continue
+		}
+		if err := verifyValueReturns(f.Body); err != nil {
+			return nil, fmt.Errorf("lizp function %s: %w", f.Name, err)
+		}
+	}
+	return m, nil
+}
+
+// Reject void-valued returns even when a statement-shaped tail was parsed
+// as a call. This also catches known void callees and bare early returns.
+func verifyValueReturns(b *hir.Block) error {
+	if b == nil {
+		return nil
+	}
+	for _, s := range b.Body {
+		switch s := s.(type) {
+		case *hir.ReturnStmt:
+			if len(s.Vals) == 0 && (s.Val == nil || s.Val.ExprTy() == mir2.TyVoid) {
+				return fmt.Errorf("return requires a non-void value")
+			}
+		case *hir.Block:
+			if err := verifyValueReturns(s); err != nil {
+				return err
+			}
+		case *hir.IfStmt:
+			if err := verifyValueReturns(s.Then); err != nil {
+				return err
+			}
+			if err := verifyValueReturns(s.Else); err != nil {
+				return err
+			}
+		case *hir.WhileStmt:
+			if err := verifyValueReturns(s.Body); err != nil {
+				return err
+			}
+		case *hir.ForRangeStmt:
+			if err := verifyValueReturns(s.Body); err != nil {
+				return err
+			}
+		case *hir.ForEachStmt:
+			if err := verifyValueReturns(s.Body); err != nil {
+				return err
+			}
+		case *hir.SwitchStmt:
+			for _, c := range s.Cases {
+				if err := verifyValueReturns(c.Body); err != nil {
+					return err
+				}
+			}
+			if err := verifyValueReturns(s.Default); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // desugar transforms a Lizp top-level form into one or more Lanz forms.
@@ -88,7 +150,22 @@ func desugar(n lanz.Node, macros map[string]*macro) ([]lanz.Node, error) {
 	case "defmacro":
 		return desugarDefmacro(n, macros)
 	case "defun":
-		return desugarDefun(n)
+		expanded := n
+		expanded.List = append([]lanz.Node(nil), n.List...)
+		var err error
+		// Function names and typed parameters are declarations, not macro calls.
+		for i := 3; i < len(n.List); i++ {
+			if n.List[i].IsAtom() && n.List[i].Atom == "->" {
+				for j := i + 2; j < len(n.List); j++ {
+					expanded.List[j], err = expandBodyMacros(n.List[j], macros, 0)
+					if err != nil {
+						return nil, err
+					}
+				}
+				break
+			}
+		}
+		return desugarDefun(expanded)
 	case "define":
 		// Scheme R5RS: (define (name params...) body) → defun
 		return desugarDefine(n)
@@ -117,6 +194,35 @@ func desugar(n lanz.Node, macros map[string]*macro) ([]lanz.Node, error) {
 	}
 }
 
+// Expand macros inside function bodies before ordinary form desugaring.
+// A bounded expansion depth reports recursive templates instead of emitting
+// an unresolved CALL or recursing without a limit.
+func expandBodyMacros(n lanz.Node, macros map[string]*macro, depth int) (lanz.Node, error) {
+	if depth > 128 {
+		return lanz.Node{}, fmt.Errorf("line %d: macro expansion depth exceeded", n.Line)
+	}
+	if n.IsAtom() || len(n.List) == 0 {
+		return n, nil
+	}
+	if n.List[0].IsAtom() {
+		if m, ok := macros[n.List[0].Atom]; ok {
+			if len(n.List)-1 != len(m.params) {
+				return lanz.Node{}, fmt.Errorf("line %d: macro %s arity %d, want %d", n.Line, n.List[0].Atom, len(n.List)-1, len(m.params))
+			}
+			return expandBodyMacros(expandMacro(m, n), macros, depth+1)
+		}
+	}
+	children := make([]lanz.Node, len(n.List))
+	for i, ch := range n.List {
+		var err error
+		children[i], err = expandBodyMacros(ch, macros, depth)
+		if err != nil {
+			return lanz.Node{}, err
+		}
+	}
+	return lanz.Node{List: children, Line: n.Line}, nil
+}
+
 // (defun name ((param type) ...) -> rettype body...)
 // → (fun name ((param type) ...) rettype body'...)
 func desugarDefun(n lanz.Node) ([]lanz.Node, error) {
@@ -141,11 +247,30 @@ func desugarDefun(n lanz.Node) ([]lanz.Node, error) {
 	retType := n.List[arrowIdx+1]
 	bodyStart := arrowIdx + 2
 
+	// Preserve parameters named t/nil: these names are identifiers when bound,
+	// and only unbound occurrences are Lisp truth/zero aliases.
+	aliases := map[string]string{}
+	aliasID := 0
+	reserveAliasNames(n, aliases)
+	params = renameTruthBindings(params, aliases, &aliasID)
+
 	// Desugar body statements
 	var body []lanz.Node
 	for _, s := range n.List[bodyStart:] {
-		ds := desugarExpr(s)
+		ds := desugarExpr(shadowTruthAliases(s, aliases, &aliasID))
 		body = append(body, ds)
+	}
+
+	// Value functions return the last form, after syntax normalization.
+	if retType.Atom != "void" {
+		if len(body) == 0 {
+			return nil, fmt.Errorf("line %d: defun %s: missing result form", n.Line, name.Atom)
+		}
+		tail, err := returnTail(body[len(body)-1])
+		if err != nil {
+			return nil, fmt.Errorf("defun %s: %w", name.Atom, err)
+		}
+		body[len(body)-1] = tail
 	}
 
 	// Build (fun name params rettype body...)
@@ -159,6 +284,40 @@ func desugarDefun(n lanz.Node) ([]lanz.Node, error) {
 		Line: n.Line,
 	}
 	return []lanz.Node{result}, nil
+}
+
+// returnTail consumes normalized Lanz forms, preserving explicit returns.
+func returnTail(n lanz.Node) (lanz.Node, error) {
+	if n.IsList() && len(n.List) > 0 && n.List[0].IsAtom() {
+		switch n.List[0].Atom {
+		case "return":
+			if len(n.List) != 2 {
+				return n, fmt.Errorf("line %d: value function requires a return value", n.Line)
+			}
+			return n, nil
+		case "block":
+			if len(n.List) < 2 {
+				return n, fmt.Errorf("line %d: empty result block", n.Line)
+			}
+			items := append([]lanz.Node(nil), n.List...)
+			tail, err := returnTail(items[len(items)-1])
+			items[len(items)-1] = tail
+			return lanz.Node{List: items, Line: n.Line}, err
+		case "if":
+			if len(n.List) != 4 {
+				return n, fmt.Errorf("line %d: result if requires both branches", n.Line)
+			}
+			left, err := returnTail(n.List[2])
+			if err != nil {
+				return n, err
+			}
+			right, err := returnTail(n.List[3])
+			return list(n.Line, n.List[0], n.List[1], left, right), err
+		case "set", "var", "store", "while", "for", "break", "continue":
+			return n, fmt.Errorf("line %d: %s does not supply a result", n.Line, n.List[0].Atom)
+		}
+	}
+	return list(n.Line, atom("return", n.Line), n), nil
 }
 
 // (define (name ((param type) ...)) -> rettype body...)
@@ -239,6 +398,89 @@ func desugarDefextern(n lanz.Node) ([]lanz.Node, error) {
 	return []lanz.Node{result}, nil
 }
 
+// Alpha-renaming happens before sugar expansion, so truth aliases remain
+// available without rewriting a declared parameter or let variable into a literal.
+func reserveAliasNames(n lanz.Node, scope map[string]string) {
+	if n.IsAtom() {
+		scope["\x00"+n.Atom] = n.Atom
+		return
+	}
+	for _, child := range n.List {
+		reserveAliasNames(child, scope)
+	}
+}
+
+func renameTruthBindings(bindings lanz.Node, scope map[string]string, id *int) lanz.Node {
+	bindings.List = append([]lanz.Node(nil), bindings.List...)
+	for i, b := range bindings.List {
+		if !b.IsList() || len(b.List) == 0 {
+			continue
+		}
+		name := b.List[0].Atom
+		if name != "t" && name != "nil" {
+			continue
+		}
+		fresh := ""
+		for {
+			(*id)++
+			fresh = fmt.Sprintf("__lizp_alias_%s_%d", name, *id)
+			if _, occupied := scope["\x00"+fresh]; !occupied {
+				break
+			}
+		}
+		scope["\x00"+fresh] = fresh
+		scope[name] = fresh
+		b.List = append([]lanz.Node(nil), b.List...)
+		b.List[0] = atom(fresh, b.Line)
+		bindings.List[i] = b
+	}
+	return bindings
+}
+
+func shadowTruthAliases(n lanz.Node, scope map[string]string, id *int) lanz.Node {
+	if n.IsAtom() {
+		if name, ok := scope[n.Atom]; ok {
+			n.Atom = name
+		}
+		return n
+	}
+	if len(n.List) == 0 {
+		return n
+	}
+	n.List = append([]lanz.Node(nil), n.List...)
+	head := n.List[0].Atom
+	if (head == "let" || head == "fn" || head == "lambda") && len(n.List) >= 3 {
+		inner := make(map[string]string, len(scope))
+		for k, v := range scope {
+			inner[k] = v
+		}
+		bindings := n.List[1]
+		if head == "let" {
+			bindings.List = append([]lanz.Node(nil), bindings.List...)
+			for i, b := range bindings.List {
+				b.List = append([]lanz.Node(nil), b.List...)
+				for j := 2; j < len(b.List); j++ {
+					b.List[j] = shadowTruthAliases(b.List[j], scope, id)
+				}
+				bindings.List[i] = b
+			}
+		}
+		n.List[1] = renameTruthBindings(bindings, inner, id)
+		start := 2
+		if head != "let" {
+			start = 3
+		}
+		for i := start; i < len(n.List); i++ {
+			n.List[i] = shadowTruthAliases(n.List[i], inner, id)
+		}
+		return n
+	}
+	for i := 1; i < len(n.List); i++ {
+		n.List[i] = shadowTruthAliases(n.List[i], scope, id)
+	}
+	return n
+}
+
 // desugarExpr transforms Lizp expression sugar into Lanz forms.
 func desugarExpr(n lanz.Node) lanz.Node {
 	if n.IsAtom() {
@@ -273,6 +515,21 @@ func desugarExpr(n lanz.Node) lanz.Node {
 	}
 
 	switch head.Atom {
+	case "@print_u8":
+		if len(n.List) != 2 {
+			return desugarList(n)
+		}
+		return list(n.Line, atom("@mir.io.print.u8", n.Line), desugarExpr(n.List[1]))
+	case "@print_nl":
+		if len(n.List) != 1 {
+			return desugarList(n)
+		}
+		return list(n.Line, atom("@mir.io.print.nl", n.Line))
+	case "return":
+		if len(n.List) == 2 {
+			return desugarReturnValue(n.List[1], n.Line)
+		}
+		return n
 	case "let":
 		return desugarLet(n)
 	case "cond":
@@ -411,6 +668,18 @@ func desugarExpr(n lanz.Node) lanz.Node {
 			return desugarExpr(n.List[1])
 		}
 		return n
+	case "peek":
+		if len(n.List) == 2 {
+			return list(n.Line, atom("load", n.Line), desugarExpr(n.List[1]), atom("u8", n.Line))
+		}
+		return n
+	case "poke":
+		if len(n.List) == 3 {
+			// Poke writes one byte even when the value expression is a word.
+			val := list(n.Line, atom("cast", n.Line), desugarExpr(n.List[2]), atom("u8", n.Line))
+			return list(n.Line, atom("store", n.Line), desugarExpr(n.List[1]), val)
+		}
+		return n
 	case "string-ref":
 		// (string-ref str idx) → (load (+ str idx))
 		if len(n.List) == 3 {
@@ -490,7 +759,7 @@ func desugarDo(n lanz.Node) lanz.Node {
 	if len(n.List) < 3 || !n.List[1].IsList() || !n.List[2].IsList() {
 		return n
 	}
-	bindings := n.List[1] // ((var type init step) ...)
+	bindings := n.List[1]   // ((var type init step) ...)
 	testClause := n.List[2] // (test result)
 	body := n.List[3:]
 
@@ -570,6 +839,36 @@ func desugarLet(n lanz.Node) lanz.Node {
 	return lanz.Node{List: stmts, Line: n.Line}
 }
 
+// In a return context, progn must run its prefix before returning its final
+// value. Convert branches to statement control flow rather than a void call
+// to the syntactic block form.
+func desugarReturnValue(n lanz.Node, line int) lanz.Node {
+	if n.IsList() && len(n.List) > 0 {
+		switch n.List[0].Atom {
+		case "return":
+			return desugarExpr(n)
+		case "let":
+			return desugarReturnValue(desugarLet(n), line)
+		case "cond":
+			return desugarReturnValue(desugarCond(n), line)
+		case "if":
+			if len(n.List) == 4 {
+				return list(line, atom("if", line), desugarExpr(n.List[1]), desugarReturnValue(n.List[2], line), desugarReturnValue(n.List[3], line))
+			}
+		case "progn", "begin", "block":
+			if len(n.List) > 1 {
+				body := []lanz.Node{atom("block", line)}
+				for _, s := range n.List[1 : len(n.List)-1] {
+					body = append(body, desugarExpr(s))
+				}
+				body = append(body, desugarReturnValue(n.List[len(n.List)-1], line))
+				return lanz.Node{List: body, Line: line}
+			}
+		}
+	}
+	return list(line, atom("return", line), desugarExpr(n))
+}
+
 // (cond (test1 expr1) (test2 expr2) ... (t default))
 // → (if test1 expr1 (if test2 expr2 ... default))
 func desugarCond(n lanz.Node) lanz.Node {
@@ -587,6 +886,9 @@ func buildCondChain(clauses []lanz.Node, line int) lanz.Node {
 	}
 	test := desugarExpr(clause.List[0])
 	body := desugarExpr(clause.List[1])
+	if len(clause.List) > 2 {
+		body = desugarProgn(lanz.Node{List: append([]lanz.Node{atom("progn", line)}, clause.List[1:]...), Line: line})
+	}
 
 	// (t expr) → unconditional (default clause)
 	if test.IsAtom() && (test.Atom == "true" || test.Atom == "t") {
@@ -733,7 +1035,7 @@ func desugarThreadFirst(n lanz.Node) lanz.Node {
 			// (-> x (f a b)) → (f x a b)
 			children := make([]lanz.Node, 0, len(form.List)+1)
 			children = append(children, form.List[0]) // function name
-			children = append(children, acc)           // threaded value
+			children = append(children, acc)          // threaded value
 			children = append(children, form.List[1:]...)
 			acc = lanz.Node{List: children, Line: n.Line}
 		}

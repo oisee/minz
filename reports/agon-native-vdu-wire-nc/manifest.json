@@ -1,0 +1,62 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "cad029389dc9df28730daf30a5f5bb2bf04b063ba729e33177c069c81876f6e8"
+  },
+  {
+    "path": "capture.c",
+    "sha256": "bcf2eda3f6bfe46eb666581a005618653a6197cb5f9e2bef87941a0c422cb7c7"
+  },
+  {
+    "path": "emulator.log",
+    "sha256": "aa90a981dcac18d5901640151bd7be21659f71b35830d4129ba56bcbdec7d4aa"
+  },
+  {
+    "path": "expected.bin",
+    "sha256": "9e9647d0c8cb09a63ec88bc2c152eb34514ff6b0cf533f8d600fb532b3a4d104"
+  },
+  {
+    "path": "last.ppm",
+    "sha256": "0cb36036aff291752ad6e91f68cc704d07763a1e1a0fa98eefb584e9292f7a45"
+  },
+  {
+    "path": "program.asm",
+    "sha256": "c1e79e8ed60428835ae6e5402cdeb8a75914aa8c9a8a26157b0ea2d999a7facb"
+  },
+  {
+    "path": "program.bin",
+    "sha256": "33e9482d01c8f17111aac455691601f8845e258fa20c4d2e4128f28cb12b67ae"
+  },
+  {
+    "path": "result.json",
+    "sha256": "431104995b2e812416da73a62ee92ce3ea1599e36e650f562dde6fb4b48b97d0"
+  },
+  {
+    "path": "returned.ppm",
+    "sha256": "30e0e67068adf9af22ca8237d54207b96f1752933a168325e5269d51ec61463b"
+  },
+  {
+    "path": "source.nanz",
+    "sha256": "8063ebaf25ab5faff632017874a06d1db25019fa7efe559c4d0cfc6f3b3e9b38"
+  },
+  {
+    "path": "tui_render.nanz",
+    "sha256": "df324615b171bed89dc29a768d826551123604867bc3279fb20020fd784046f8"
+  },
+  {
+    "path": "up.ppm",
+    "sha256": "bf61063dc05a2866008d61858f79a13957898d342a2c6f3a23b26652c944e6cb"
+  },
+  {
+    "path": "vdp-tee.c",
+    "sha256": "ba5e4952c3139945ecab5a95187795e755f203817bc39a0de8873d4f1a64425f"
+  },
+  {
+    "path": "verify.py",
+    "sha256": "62e666ca330915aa51d93972bd1120c4cea090eeb440befa0fee4d29f29fa912"
+  },
+  {
+    "path": "wire.bin",
+    "sha256": "d8210158d1f5b0bf1c7a5101078d9765b15d9b1c0440277815e0919ee38e13d4"
+  }
+]

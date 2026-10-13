@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/minz/minzc/pkg/dap"
 	"github.com/minz/minzc/pkg/dzrp"
@@ -17,22 +18,25 @@ import (
 )
 
 var (
-	loadAddr     uint
-	startAddr    uint
-	target       string
-	verbose      bool
-	cycles       bool
-	timeout      uint
-	debugMode    bool
+	loadAddr  uint
+	startAddr uint
+	target    string
+	verbose   bool
+	cycles    bool
+	timeout   uint
+	debugMode bool
 
 	// New flags
-	profilePath    string
-	tracePath      string
-	consolePort    string
-	consoleIO      bool
-	warnOnHalt     bool
-	breakAtTstate  int64
-	diag           bool
+	profilePath   string
+	tracePath     string
+	consolePort   string
+	consoleIO     bool
+	warnOnHalt    bool
+	breakAtTstate int64
+	diag          bool
+
+	cpmInputTickMS uint
+	cpmNoEcho      bool
 
 	// IDE disk
 	ideNemo   string
@@ -206,9 +210,8 @@ SUPPORTED PLATFORMS (-t/--target):
 
 		// Set up CP/M BDOS handler if target is cpm
 		if target == "cpm" {
-			// Note: raw terminal mode disabled — BDOS 0x0A (buffered line input)
-			// needs cooked mode with Enter to submit. Raw mode only for BDOS 6
-			// (direct console I/O) which is handled inside the BDOS handler.
+			// Terminal mode is managed by the caller. Interactive games need
+			// raw mode; ordinary BDOS 0x0A line input uses cooked mode.
 			setupCPMBDOS(z80)
 			// SQLite I/O port bridge ($41/$43/$45/$47)
 			setupSQLitePorts(z80, verbose)
@@ -243,7 +246,7 @@ SUPPORTED PLATFORMS (-t/--target):
 		if target == "cpm" {
 			sp := uint16(0xFE00) // top of TPA (below BDOS)
 			sp -= 2
-			z80.WriteMemory(sp, 0x00) // return addr lo = 0x00
+			z80.WriteMemory(sp, 0x00)   // return addr lo = 0x00
 			z80.WriteMemory(sp+1, 0x00) // return addr hi = 0x00
 			z80.SetSP(sp)
 		}
@@ -334,6 +337,10 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 	fileHandles := make(map[byte]*os.File) // FCB cr byte → host file
 	nextHandle := byte(1)
 	var pendingInput *byte
+	var tickInput *cpmTickInput
+	if cpmInputTickMS > 0 {
+		tickInput = &cpmTickInput{fd: int(os.Stdin.Fd()), interval: time.Duration(cpmInputTickMS) * time.Millisecond}
+	}
 
 	// ── CP/M Zero Page Setup ─────────────────────────────────────────────
 	// 0x0000: JP 0x0000 (warm boot → intercepted as exit)
@@ -380,13 +387,13 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 	getFCBName := func(fcbAddr uint16) string {
 		var name, ext []byte
 		for i := uint16(1); i <= 8; i++ {
-			b := z80.ReadMemory(fcbAddr + i) & 0x7F
+			b := z80.ReadMemory(fcbAddr+i) & 0x7F
 			if b > 0x20 {
 				name = append(name, b)
 			}
 		}
 		for i := uint16(9); i <= 11; i++ {
-			b := z80.ReadMemory(fcbAddr + i) & 0x7F
+			b := z80.ReadMemory(fcbAddr+i) & 0x7F
 			if b > 0x20 {
 				ext = append(ext, b)
 			}
@@ -427,14 +434,26 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 		case 0x00: // System reset (warm boot)
 			return 0, 0, true
 
-		case 0x01: // Console input (blocking)
+		case 0x01: // Console input (blocking unless the opt-in game clock is enabled)
+			if tickInput != nil {
+				ch := tickInput.read()
+				if ch == '\n' {
+					ch = '\r'
+				}
+				if ch != 0 && !cpmNoEcho {
+					fmt.Printf("%c", ch)
+				}
+				return ch, 0, true
+			}
 			if pendingInput != nil {
 				ch := *pendingInput
 				pendingInput = nil
 				if ch == '\n' {
 					ch = '\r'
 				}
-				fmt.Printf("%c", ch)
+				if !cpmNoEcho {
+					fmt.Printf("%c", ch)
+				}
 				return ch, 0, true
 			}
 			buf := make([]byte, 1)
@@ -443,7 +462,9 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 				if buf[0] == '\n' {
 					buf[0] = '\r'
 				}
-				fmt.Printf("%c", buf[0])
+				if !cpmNoEcho {
+					fmt.Printf("%c", buf[0])
+				}
 				return buf[0], 0, true
 			}
 			return 0, 0, true
@@ -501,7 +522,9 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 					break
 				}
 				z80.WriteMemory(de+2+uint16(n), ch)
-				fmt.Printf("%c", ch) // echo like real CP/M
+				if !cpmNoEcho { // echo like real CP/M
+					fmt.Printf("%c", ch)
+				}
 				n++
 			}
 			z80.WriteMemory(de+1, byte(n))
@@ -613,7 +636,7 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 			}
 			// Calculate file position from FCB: (s2*4096 + ex*128 + cr) * 128
 			ex := z80.ReadMemory(fcbAddr + 12)
-			s2 := z80.ReadMemory(fcbAddr + 14) & 0x7F
+			s2 := z80.ReadMemory(fcbAddr+14) & 0x7F
 			cr := z80.ReadMemory(fcbAddr + 32) // We use cr for handle, so seek from current pos
 			_ = cr
 			fpos := int64(s2)*4096*128 + int64(ex)*128*128
@@ -752,7 +775,7 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 		case 0x24: // Set random record from sequential
 			fcbAddr := de
 			ex := z80.ReadMemory(fcbAddr + 12)
-			s2 := z80.ReadMemory(fcbAddr + 14) & 0x7F
+			s2 := z80.ReadMemory(fcbAddr+14) & 0x7F
 			cr := z80.ReadMemory(fcbAddr + 32)
 			rec := int(s2)*4096 + int(ex)*128 + int(cr)
 			z80.WriteMemory(fcbAddr+33, byte(rec&0xFF))
@@ -832,6 +855,8 @@ func init() {
 	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "verbose execution info")
 	rootCmd.Flags().BoolVarP(&cycles, "cycles", "c", false, "show T-state cycle count")
 	rootCmd.Flags().UintVar(&timeout, "timeout", 0, "execution timeout in cycles (0 = no timeout)")
+	rootCmd.Flags().UintVar(&cpmInputTickMS, "cpm-input-tick-ms", 0, "CP/M game clock: BDOS1 returns one key or zero per interval (0 = ordinary blocking input)")
+	rootCmd.Flags().BoolVar(&cpmNoEcho, "cpm-no-echo", false, "suppress CP/M BDOS1/10 input echo (terminal raw mode must be set separately)")
 
 	// Debug options
 	rootCmd.Flags().BoolVarP(&debugMode, "debug", "d", false, "start DAP debug server on stdin/stdout")

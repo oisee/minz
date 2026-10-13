@@ -75,7 +75,7 @@ func findFileCI(dir, name string) string {
 //  5. Replaces every occurrence of the defined names (as whole words) with
 //     the substitution text.
 func Preprocess(src string) string {
-	upper := strings.ToUpper(src)
+	upper := foldPLMIdentifiers(src)
 	upper = stripDollarDirectives(upper)
 
 	// Iteratively resolve LITERALLY aliases.
@@ -227,19 +227,52 @@ func stripBlockComments(s string) string {
 	return b.String()
 }
 
-// replaceWord replaces all whole-word occurrences of old with newText in s.
+// replaceWord substitutes whole source identifiers, preserving literals and comments.
 func replaceWord(s, old, newText string) string {
 	if old == "" {
 		return s
 	}
 	var b strings.Builder
 	for i := 0; i < len(s); {
-		idx := strings.Index(s[i:], old)
-		if idx < 0 {
-			b.WriteString(s[i:])
-			break
+		if i+1 < len(s) && s[i] == '/' && s[i+1] == '*' {
+			start := i
+			i += 2
+			for i+1 < len(s) && !(s[i] == '*' && s[i+1] == '/') {
+				i++
+			}
+			if i+1 < len(s) {
+				i += 2
+			} else {
+				i = len(s)
+			}
+			b.WriteString(s[start:i])
+			continue
 		}
-		abs := i + idx
+
+		if s[i] == '\'' {
+			start := i
+			i++
+			for i < len(s) {
+				if s[i] == '\'' {
+					i++
+					if i < len(s) && s[i] == '\'' {
+						i++
+						continue
+					}
+					break
+				}
+				i++
+			}
+			b.WriteString(s[start:i])
+			continue
+		}
+
+		if !strings.HasPrefix(s[i:], old) {
+			b.WriteByte(s[i])
+			i++
+			continue
+		}
+		abs := i
 		// Check left boundary.
 		if abs > 0 && isIdentChar(s[abs-1]) {
 			b.WriteByte(s[i])
@@ -263,4 +296,35 @@ func replaceWord(s, old, newText string) string {
 func isIdentChar(c byte) bool {
 	return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
 		(c >= '0' && c <= '9') || c == '_' || c == '$'
+}
+
+// foldPLMIdentifiers preserves character constants while normalizing the
+// case-insensitive source spelling used by LITERALLY substitution.
+func foldPLMIdentifiers(src string) string {
+	b := []byte(src)
+	quoted := false
+	for i := 0; i < len(b); i++ {
+		if !quoted && i+1 < len(b) && b[i] == '/' && b[i+1] == '*' {
+			i += 2
+			for i+1 < len(b) && !(b[i] == '*' && b[i+1] == '/') {
+				i++
+			}
+			if i+1 < len(b) {
+				i++
+			}
+			continue
+		}
+		if b[i] == '\'' {
+			if quoted && i+1 < len(b) && b[i+1] == '\'' {
+				i++
+				continue
+			}
+			quoted = !quoted
+			continue
+		}
+		if !quoted && b[i] >= 'a' && b[i] <= 'z' {
+			b[i] -= 'a' - 'A'
+		}
+	}
+	return string(b)
 }

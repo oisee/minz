@@ -1,0 +1,9 @@
+{
+  "source_sha256": "e88d580c3ce9499cdea28a05794e6c6146f88a0e67967d148933b17c969e9540",
+  "source": "examples/nanz/18_tail_recursion.nanz",
+  "decision": "Freeze exact calls before any compile/run/selection. Four combinations of MIRGrace false/true and ContractOpt false/true; strict measured Speed and Size goals. Heldout never selects; same candidate BIN required. All arithmetic interpreted modulo256, independent iterative oracle. No workload tuning if no benefit.",
+  "inputs_sha256": {
+    "training-calls.json": "58bb8264ba2c2969b061ffb0fa3c81820c11964c83c77f3c981889da60f719f4",
+    "heldout-calls.json": "368da9a8d5204beb9a38cda87d89e453bb3d801c20a1e9511c31488e336bd26d"
+  }
+}

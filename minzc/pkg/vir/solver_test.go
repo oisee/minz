@@ -3,6 +3,7 @@ package vir
 import (
 	"os"
 	"os/exec"
+	"reflect"
 	"testing"
 )
 
@@ -498,10 +499,10 @@ func TestEnrichedGapAnalysis(t *testing.T) {
 
 	// Function with a call and a vreg live across it — should benefit from IX
 	callOps := []VIROp{
-		{Op: OpConst, Dst: 1, Imm: 42, Width: 8},       // v1 = 42
-		{Op: OpConst, Dst: 2, Imm: 10, Width: 8},        // v2 = 10 (arg for call)
+		{Op: OpConst, Dst: 1, Imm: 42, Width: 8},                      // v1 = 42
+		{Op: OpConst, Dst: 2, Imm: 10, Width: 8},                      // v2 = 10 (arg for call)
 		{Op: OpCall, Dst: 3, Src: [2]int{2, 0}, Width: 8, Sym: "foo"}, // v3 = foo(v2)
-		{Op: OpAdd, Dst: 4, Src: [2]int{1, 3}, Width: 8}, // v4 = v1 + v3  (v1 was live across call)
+		{Op: OpAdd, Dst: 4, Src: [2]int{1, 3}, Width: 8},              // v4 = v1 + v3  (v1 was live across call)
 	}
 	callInfo := AnalyzeEnrichedGap(callOps, Z80, "call_add")
 	t.Logf("call_add: %+v", callInfo)
@@ -748,24 +749,23 @@ func TestPreSplitHitRateMeasurement(t *testing.T) {
 }
 
 func TestLocSets8IXDefinitions(t *testing.T) {
-	// Verify IX-expanded loc sets contain expected locations
-	if len(locSets8IX) != 6 {
-		t.Fatalf("expected 6 IX-expanded locSets, got %d", len(locSets8IX))
-	}
-	// Index 4: IX halves only
-	ixOnly := locSets8IX[4]
-	if len(ixOnly) != 4 {
-		t.Fatalf("locSets8IX[4] should have 4 entries, got %d", len(ixOnly))
-	}
-	for _, loc := range ixOnly {
-		if loc < 10 || loc > 13 {
-			t.Errorf("locSets8IX[4] should only contain 10-13, got %d", loc)
+	// These are GPU namespace indices, mapped to canonical Z80 names.
+	// Set 5 excludes H/L because DD/FD byte operations reinterpret them.
+	want := [][]string{{"A"}, {"C"}, {"A", "B", "C", "D", "E", "H", "L"}, {"B", "C", "D", "E", "H", "L"}, {"IXH", "IXL", "IYH", "IYL"}, {"A", "B", "C", "D", "E", "IXH", "IXL", "IYH", "IYL"}}
+	var actual [][]string
+	for _, set := range locSets8IX {
+		var names []string
+		for _, gpu := range set {
+			loc := gpuLocToZ80(gpu)
+			if loc < 0 || loc >= len(Z80.Locs) || Z80.Locs[loc].Width != 8 {
+				t.Fatalf("invalid byte location %d", gpu)
+			}
+			names = append(names, Z80.Locs[loc].Name)
 		}
+		actual = append(actual, names)
 	}
-	// Index 5: GPR8 + IX halves
-	gprIx := locSets8IX[5]
-	if len(gprIx) != 11 {
-		t.Fatalf("locSets8IX[5] should have 11 entries, got %d", len(gprIx))
+	if !reflect.DeepEqual(actual, want) {
+		t.Fatalf("canonical IX location sets = %v; want %v", actual, want)
 	}
 }
 

@@ -214,23 +214,5 @@ fun main() -> void {
 }
 
 // ── Input buffer ───────────────────────────────────────────────
-global _inbuf: u16 = 0
-global _inbuf2: u16 = 0
-global _inbuf3: u16 = 0
-global _inbuf4: u16 = 0
-global _inbuf5: u16 = 0
-global _inbuf6: u16 = 0
-global _inbuf7: u16 = 0
-global _inbuf8: u16 = 0
-global _inbuf9: u16 = 0
-global _inbufa: u16 = 0
-global _inbufb: u16 = 0
-global _inbufc: u16 = 0
-global _inbufd: u16 = 0
-global _inbufe: u16 = 0
-global _inbuff: u16 = 0
-global _inbufg: u16 = 0
-global _inbufh: u16 = 0
-global _inbufi: u16 = 0
-global _inbufj: u16 = 0
-global _inbufk: u16 = 0
+// 60 input characters plus the terminating NUL written by readline.
+global _inbuf: [u8; 61]

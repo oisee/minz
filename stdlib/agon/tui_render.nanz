@@ -5,8 +5,8 @@
 //   RST.LIL $18  — print string (HL = pointer to null-terminated string)
 //   RST.LIL $08  — MOS API call (A = function number)
 //
-// Agon VDP understands VT100 escape sequences, so tui_goto / tui_color / etc.
-// use the same ANSI codes as the CP/M version. Only the low-level I/O differs.
+// Native VDU works in ordinary MOS mode; ANSI requires terminal mode
+// and changes keyboard transport. These primitives retain MOS key input.
 //
 // Usage:
 //   import stdlib.agon.tui_render
@@ -23,13 +23,9 @@ fun _tui_mos_putchar(ch: u8) -> void {
     }
 }
 
-// Print ESC (0x1B)
-fun _tui_esc() -> void {
-    asm z80 {
-        LD A, $1B
-        RST.LIL $10
-    }
-}
+global _tui_fg: u8 = 7
+global _tui_bg: u8 = 0
+global _tui_reversed: u8 = 0
 
 // Print null-terminated string via loop + RST $10 (more reliable than RST $18)
 fun _tui_mos_puts(str: ^u8) -> void {
@@ -48,79 +44,40 @@ fun _tui_vdu(byte: u8) -> void {
     }
 }
 
-// Print u8 as decimal (for ANSI escape sequences: row/col numbers)
-fun _tui_print_dec(val: u8) -> void {
-    asm z80 (in val) {
-        ; A = val (0-255)
-        LD B, A
-        ; Hundreds digit
-        LD C, 0
-        .hloop: CP 100 / JR C, .hdone / SUB 100 / INC C / JR .hloop
-        .hdone:
-        LD B, A
-        LD A, C / OR A / JR Z, .skip_h
-        ADD A, 48 / RST.LIL $10
-        .skip_h:
-        ; Tens digit
-        LD A, B / LD C, 0
-        .tloop: CP 10 / JR C, .tdone / SUB 10 / INC C / JR .tloop
-        .tdone:
-        LD B, A
-        LD A, C / ADD A, 48 / RST.LIL $10
-        ; Units digit
-        LD A, B / ADD A, 48 / RST.LIL $10
-    }
-}
-
 // =============================================================================
-// TUI primitives — Agon MOS + VT100 (same escape sequences as CP/M)
+// TUI primitives — native VDU, default16-color palette
 // =============================================================================
 
 // Position cursor at (x, y) — 0-based.
-// Emits: ESC [ (y+1) ; (x+1) H
+// VDU31,x,y uses zero-based coordinates.
 fun tui_goto(x: u8, y: u8) -> void {
-    _tui_esc()
-    _tui_mos_putchar(91)    // [
-    _tui_print_dec(y + 1)
-    _tui_mos_putchar(59)    // ;
-    _tui_print_dec(x + 1)
-    _tui_mos_putchar(72)    // H
+    _tui_vdu(31)
+    _tui_vdu(x)
+    _tui_vdu(y)
 }
 
 // Set text color: fg (0-7), bg (0-7), bright (0 or 1).
-// Emits: ESC [ (30+fg) ; (40+bg) m   (bright adds 60)
+// VDU17 logical foreground/background; bright adds8.
 fun tui_color(fg: u8, bg: u8, bright: u8) -> void {
-    var fg_code: u8 = 30 + fg
-    var bg_code: u8 = 40 + bg
-    if bright != 0 {
-        fg_code = fg_code + 60
-        bg_code = bg_code + 60
-    }
-    _tui_esc()
-    _tui_mos_putchar(91)    // [
-    _tui_print_dec(fg_code)
-    _tui_mos_putchar(59)    // ;
-    _tui_print_dec(bg_code)
-    _tui_mos_putchar(109)   // m
+    var intensity: u8 = 0
+    if bright != 0 { intensity = 8 }
+    _tui_reversed = 0
+    _tui_fg = (fg & 7) + intensity
+    _tui_bg = (bg & 7) + intensity
+    _tui_vdu(17)
+    _tui_vdu(_tui_fg)
+    _tui_vdu(17)
+    _tui_vdu(128 + _tui_bg)
 }
 
-// Reset colors to default. Emits: ESC [ 0 m
+// Reset logical white7 on black0.
 fun tui_reset() -> void {
-    _tui_esc()
-    _tui_mos_putchar(91)    // [
-    _tui_mos_putchar(48)    // 0
-    _tui_mos_putchar(109)   // m
+    tui_color(7, 0, 0)
 }
 
-// Clear the entire screen. Emits: ESC [ 2 J  ESC [ H
+// VDU12 clears and homes the current text viewport.
 fun tui_clear() -> void {
-    _tui_esc()
-    _tui_mos_putchar(91)    // [
-    _tui_mos_putchar(50)    // 2
-    _tui_mos_putchar(74)    // J
-    _tui_esc()
-    _tui_mos_putchar(91)    // [
-    _tui_mos_putchar(72)    // H
+    _tui_vdu(12)
 }
 
 // Print a single character. Codes 1-6 → box-drawing (ASCII fallback).
@@ -186,42 +143,41 @@ fun tui_set_mode(mode: u8) -> void {
     _tui_vdu(mode)
 }
 
-// Hide cursor: ESC [ ? 25 l
+// Cursor visibility: VDU23,1,0.
 fun tui_hide_cursor() -> void {
-    _tui_esc()
-    _tui_mos_putchar(91)    // [
-    _tui_mos_putchar(63)    // ?
-    _tui_mos_putchar(50)    // 2
-    _tui_mos_putchar(53)    // 5
-    _tui_mos_putchar(108)   // l
+    _tui_vdu(23)
+    _tui_vdu(1)
+    _tui_vdu(0)
 }
 
-// Show cursor: ESC [ ? 25 h
+// Cursor visibility: VDU23,1,1.
 fun tui_show_cursor() -> void {
-    _tui_esc()
-    _tui_mos_putchar(91)    // [
-    _tui_mos_putchar(63)    // ?
-    _tui_mos_putchar(50)    // 2
-    _tui_mos_putchar(53)    // 5
-    _tui_mos_putchar(104)   // h
+    _tui_vdu(23)
+    _tui_vdu(1)
+    _tui_vdu(1)
 }
 
-// Scroll region: ESC [ top ; bottom r
+// Native full-width text viewport, inclusive zero-based rows.
+// Coordinates become relative to viewport (differs from ANSI margins).
 fun tui_scroll_region(top: u8, bottom: u8) -> void {
-    _tui_esc()
-    _tui_mos_putchar(91)    // [
-    _tui_print_dec(top + 1)
-    _tui_mos_putchar(59)    // ;
-    _tui_print_dec(bottom + 1)
-    _tui_mos_putchar(114)   // r
+    _tui_vdu(28)
+    _tui_vdu(0)
+    _tui_vdu(bottom)
+    _tui_vdu(tui_width() - 1)
+    _tui_vdu(top)
 }
 
-// Reverse video on: ESC [ 7 m
+// Swap the last foreground/background selected through this library.
 fun tui_reverse() -> void {
-    _tui_esc()
-    _tui_mos_putchar(91)    // [
-    _tui_mos_putchar(55)    // 7
-    _tui_mos_putchar(109)   // m
+    if _tui_reversed != 0 { return }
+    _tui_reversed = 1
+    let previous_fg = _tui_fg
+    _tui_fg = _tui_bg
+    _tui_bg = previous_fg
+    _tui_vdu(17)
+    _tui_vdu(_tui_fg)
+    _tui_vdu(17)
+    _tui_vdu(128 + _tui_bg)
 }
 
 // =============================================================================
