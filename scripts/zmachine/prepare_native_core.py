@@ -23,10 +23,12 @@ p.add_argument('--layout-restart', action='store_true', help='enable trusted LZ 
 p.add_argument('--story-layout', type=Path, help='trusted 2K LZ layout metadata; use layout flags for SAVE/restart')
 p.add_argument('--extended-save',action='store_true',help='stage disk record in Scorpion bank8; requires --disk-save')
 p.add_argument('--disk-save',action='store_true',help='persist MZ3R through emulator TR-DOS sector API; dedicated disk required')
+p.add_argument('--windows',action='store_true',help='enable V3 upper/lower windows; requires console')
 p.add_argument('--console', action='store_true', help='Spectrum screen and keyboard instead of RAM capture')
 a = p.parse_args()
 if a.extended_save and (not a.disk_save or not (a.save_story or a.layout_save_story)):
     p.error('extended-save requires disk-save and a SAVE story')
+if a.windows and not a.console: p.error('windows requires console')
 archive_offset = a.story_bytes if a.restart_offset is None else a.restart_offset
 if not 64 <= a.story_bytes <= 98304:
     p.error('raw story capacity is 64..98304')
@@ -269,7 +271,10 @@ if a.console:
     # Local module keeps zx.console names/ASM references, omitting helpers
     # unreachable from the standalone game console. The stdlib stays complete.
     console = (root / 'stdlib/zx/console.nanz').read_text()
-    for name in ['z3_windows_reset','z3_window_select','z3_window_split','z3_window_put','con_scroll_region','con_print_u8','con_print_u16','con_print','con_set_bright','con_set_attr','con_goto','con_newline','con_show_cursor','con_hide_cursor','zx_border','con_init','scroll_line','scroll_row','scroll_attrs','screen_addr','attr_addr']:
+    pruned = ['z3_windows_reset','z3_window_select','z3_window_split','z3_window_put','con_scroll_region','con_print_u8','con_print_u16','con_print','con_set_bright','con_set_attr','con_goto','con_newline','con_show_cursor','con_hide_cursor','zx_border','con_init','scroll_line','scroll_row','scroll_attrs','screen_addr','attr_addr']
+    if a.windows:
+        pruned = [name for name in pruned if name not in ('z3_windows_reset','z3_window_select','z3_window_split','z3_window_put','con_scroll_region')]
+    for name in pruned:
         start = console.index('fun '+name+'(')
         brace = console.index('{',start)
         depth = 1
@@ -279,6 +284,23 @@ if a.console:
             if console[end] == '}': depth -= 1
             end += 1
         console = console[:start]+console[end:]
+    if a.windows:
+        # The line editor calls con_scroll directly; keep it below upper/status.
+        start = console.index('fun con_scroll(')
+        brace = console.index('{',start)
+        depth,end=1,brace+1
+        while depth:
+            if console[end]=='{': depth+=1
+            if console[end]=='}': depth-=1
+            end+=1
+        console = console[:start]+"""fun con_scroll() {
+ asm z80 (clob A,F,BC,DE,HL,IX,IY) {
+  LD A, (zx__console__z3_upper_height)
+  INC A
+  JP zx__console__con_scroll_region
+ }
+}
+"""+console[end:]
     console = re.sub(r'^assert (?:screen_addr|attr_addr)\([^\n]+\n', '', console, flags=re.M)
     local_console = a.output.parent / 'zx/console.nanz'
     local_console.parent.mkdir(parents=True,exist_ok=True)
@@ -488,6 +510,16 @@ if a.disk_save:
     text += disk_code(bank,offset,capacity,extended=a.extended_save)
     replace_function('save_state','fun save_state()->u8 { return native_disk_save() }')
     replace_function('restore_state','fun restore_state()->u8 { return native_disk_restore() }')
+if a.windows:
+    replace_function('native_putchar','fun native_putchar(ch:u8) { z3_window_put(ch) }')
+    text = text.replace(' con_clear()', ' con_clear()\n z3_windows_reset()',1)
+    needle = 'else if decoded_op == 9 { overwrite_var(u8(decoded_a), read_var(0)) }'
+    assert needle in text
+    text = text.replace(needle,needle+'\n        else if decoded_op == 10 { z3_window_split(decoded_a) }\n        else if decoded_op == 11 { if decoded_a<2 { z3_window_select(u8(decoded_a)) } }')
+    text = text.replace('if restore_state() != 0 { branch(1) }','if restore_state() != 0 { z3_windows_reset() branch(1) }')
+    text = text.replace('(memory_read16(1) & 15) | 16','(memory_read16(1) & 15) | 48')
+    # Native restart has a direct ASM implementation; reset its UI on entry.
+    text = text.replace('else if decoded_op == 7 { restart_story() }','else if decoded_op == 7 { restart_story() z3_windows_reset() memory_write(1,(memory_read16(1)&15)|48) }')
 if a.extended_save:
     from scorpion_paging import adapt,HELPER
     # Keep nested module identity; all OUT(C),A in these two modules are paging.

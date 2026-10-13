@@ -20,24 +20,34 @@ func TestZMachineZorkDiskSaveAcrossRestart(t *testing.T) {
 	if path == "" {
 		t.Skip("set MINZ_Z3_STORY to Zork I")
 	}
-	testZMachineDiskSave(t, path, true, false)
+	testZMachineDiskSave(t, path, true, false, false)
 }
 
-func TestZMachineDiskSaveAcrossRestart(t *testing.T) { testZMachineDiskSave(t, "", true, false) }
+func TestZMachineDiskSaveAcrossRestart(t *testing.T) { testZMachineDiskSave(t, "", true, false, false) }
 
-func TestZMachineDiskSaveLegacyStaging(t *testing.T) { testZMachineDiskSave(t, "", false, false) }
+func TestZMachineDiskSaveLegacyStaging(t *testing.T) {
+	testZMachineDiskSave(t, "", false, false, false)
+}
 
 func TestZMachineZorkDiskConsoleSaveAcrossRestart(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_STORY")
 	if path == "" {
 		t.Skip("set MINZ_Z3_STORY to Zork I")
 	}
-	testZMachineDiskSave(t, path, true, true)
+	testZMachineDiskSave(t, path, true, true, false)
+}
+
+func TestZMachineZorkWindowDiskConsoleSaveAcrossRestart(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_STORY")
+	if path == "" {
+		t.Skip("set MINZ_Z3_STORY to Zork I")
+	}
+	testZMachineDiskSave(t, path, true, true, true)
 }
 
 // Independent Inform story: SAVE branches again after RESTORE, recovering
 // value=1 even though the restore command sets it to 7 first.
-func testZMachineDiskSave(t *testing.T, externalStory string, extended, console bool) {
+func testZMachineDiskSave(t *testing.T, externalStory string, extended, console, windows bool) {
 	root := filepath.Clean("../../..")
 	original, err := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/save_restore.z3"))
 	if err != nil {
@@ -92,6 +102,9 @@ func testZMachineDiskSave(t *testing.T, externalStory string, extended, console 
 			}
 			if extended {
 				gen.Args = append(gen.Args, "--extended-save")
+			}
+			if windows {
+				gen.Args = append(gen.Args, "--windows")
 			}
 			if out, err := gen.CombinedOutput(); err != nil {
 				t.Fatalf("generate: %v %s", err, out)
@@ -229,7 +242,9 @@ func testZMachineDiskSave(t *testing.T, externalStory string, extended, console 
 					})
 				}
 				putchar := a.Symbols["native_putchar"]
-				if console {
+				if windows {
+					putchar = a.Symbols["zx__console__z3_window_put"]
+				} else if console {
 					putchar = a.Symbols["zx__console__con_putchar"]
 				}
 				if putchar == 0 {
@@ -246,6 +261,14 @@ func testZMachineDiskSave(t *testing.T, externalStory string, extended, console 
 					t.Fatalf("return boundary PC/SP %04x/%04x keys %d/%d output %q", m.CPU.PC(), m.CPU.SP(), keyAt, len(keyText), output)
 				}
 
+				if windows {
+					if m.Memory.RAM[0][1]&32 == 0 {
+						t.Fatal("window capability lost")
+					}
+					if restore && m.Memory.Read(uint16(a.Symbols["zx__console__z3_upper_height"])) != 0 {
+						t.Fatal("upper window not collapsed after restore")
+					}
+				}
 				if console && keyAt != len(keyText) {
 					t.Fatalf("keys %d/%d", keyAt, len(keyText))
 				}

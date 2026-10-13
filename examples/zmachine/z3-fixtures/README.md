@@ -13,3 +13,8 @@ These original MIT-licensed stories exercise Z3 behavior missing from CZECH v0.8
 | `high_memory.py` | Generates a 131,070-byte story whose routine and Z-text lie near the 128 KiB limit |
 
 The `.inf` files and committed `.z3` binaries were built with Inform 6.45. To rebuild one story, run `inform -v3 stream3.inf stream3.z3` (substitute its basename). `high_memory.py` generates its story at test time, so no large binary is committed.
+
+`windows.inf` / `windows.z3`: independent V3 window fixture. Checks Flags1 bit5,
+VAR10 split and VAR11 selection, prints into upper/lower regions and reselects
+upper after 25 lower newlines. Expected upper pixels spell RESET. Compile with
+Inform6.45 `inform -v3 windows.inf windows.z3`; native test cites Standard1.1 §8.6.

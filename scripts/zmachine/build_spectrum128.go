@@ -23,18 +23,20 @@ func must(err error) {
 }
 func main() {
 	if len(os.Args) < 3 {
-		panic("usage: build_spectrum128.go STORY OUTDIR [--compressed] [--scorpion-disk] (run from minzc)")
+		panic("usage: build_spectrum128.go STORY OUTDIR [--compressed] [--scorpion-disk] [--windows] (run from minzc)")
 	}
 	story, err := os.ReadFile(os.Args[1])
 	must(err)
 	if len(story) < 64 || len(story) > 98304 || story[0] != 3 {
 		panic("requires Z-machine V3 story, 64..98304 bytes")
 	}
-	compressed, diskSave := false, false
+	compressed, diskSave, windows := false, false, false
 	for _, arg := range os.Args[3:] {
 		switch arg {
 		case "--compressed":
 			compressed = true
+		case "--windows":
+			windows = true
 		case "--scorpion-disk":
 			diskSave = true
 		default:
@@ -121,6 +123,9 @@ func main() {
 			cmd.Args = append(cmd.Args, "--layout-save-story", os.Args[1])
 		}
 	}
+	if windows {
+		cmd.Args = append(cmd.Args, "--windows")
+	}
 	if diskSave {
 		cmd.Args = append(cmd.Args, "--disk-save", "--extended-save")
 	}
@@ -141,7 +146,7 @@ func main() {
 		panic(a.Errors)
 	}
 	if 0x5b00+len(a.Binary) > 0xbe00 {
-		panic("resident code/data overlaps native stack reservation")
+		panic(fmt.Sprintf("resident %d bytes overlaps native stack reservation", len(a.Binary)))
 	}
 	m, err := spectrum.NewPentagon128(nil, nil)
 	must(err)
@@ -193,6 +198,7 @@ func main() {
 		metadata["save_slot_offset"] = 0
 		metadata["limitations"] = []string{"dedicated TRD required; emulator TR-DOS API traps, physical controller not supported", "initial SNA stores original eight banks only; extra banks start empty", "ROM font required; IRQs disabled; full game not proven"}
 	}
+	metadata["v3_windows"] = windows
 	metadata["save_restore_supported"] = saveSupported
 	metadata["save_slot_bytes"] = 0
 	if saveSupported {

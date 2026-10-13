@@ -1571,3 +1571,26 @@ A — OR A, spill/index value тестируется с сохранением �
 Это библиотечный checkpoint. VAR10/11 ещё не подключены в generated interpreter,
 header capability bit5 не выставлен; существующая playable сборка продолжает
 использовать прежнюю консоль. Status line и game integration остаются впереди.
+
+### 13 октября: оконные opcodes подключены к native interpreter
+
+Opt-in `--windows` (requires `--console`) включает VAR10 split_window и VAR11
+set_window, header Flags1 bit5, bottom-left startup, collapse после successful
+RESTORE и reset после RESTART. Builder принимает `--windows`; без флага прежний
+UI сохраняется. Console editor scroll тоже направлен в lower region, а не во
+весь экран. Вывод окна переписан компактным ASM с тем же библиотечным API и
+ABI: high-level версия не помещалась вместе с disk SAVE в fixed RAM.
+
+Новая независимая MIT Inform fixture `windows.inf/windows.z3` исполняет
+реальные VAR10/11, 25 lower newlines и повторный выбор upper. Native output
+совпадает с ожидаемой последовательностью; pixels upper содержат RESET после
+lower scroll. Проверяются capability, PC/SP/paging. Эта fixture обнаружила
+молчаливо пропущенную генератором замену: компактный core использует decoded_op,
+а замена искала op. Теперь соответствующий anchor проверяется assert.
+
+Integrated tests PASS за13.300 s: library matrix, Inform window bytecode,
+Zork I keyboard disk SAVE/fresh RESTORE. Zork I resident25308 B, fixed end$BDDC,
+44 B до stack reservation$BE00; размер проверяется строго. Header capability
+и collapsed upper после RESTORE проверены. Initial snapshot roundtrip build
+PASS. Full status line ещё не реализована; opcode show_status остаётся no-op.
+Этот checkpoint не означает полного соответствия V3 screen specification.

@@ -1049,19 +1049,59 @@ fun z3_window_split(lines:u16) {
  if z3_selected_window==0 && con_row<=height { con_row=23 con_col=0 }
  if z3_selected_window==1 { con_row=1 con_col=0 }
 }
-fun z3_window_put(ch:u8) {
- if z3_selected_window==1 && z3_upper_height==0 { return }
- if z3_selected_window==0 && z3_upper_height==23 { return }
- if ch!=10 && ch!=13 {
-  con_draw_char(con_col,con_row,ch)
-  if con_col<31 { con_col=con_col+1 return }
+fun z3_window_put(@z80_a ch:u8) {
+ asm z80 (in ch) (clob A,F,BC,DE,HL,IX,IY) {
+  LD C,A
+  LD A, (zx__console__z3_selected_window)
+  OR A
+  LD A, (zx__console__z3_upper_height)
+  JR Z,.lower_check
+  OR A
+  RET Z
+  JR .character
+ .lower_check:
+  CP 23
+  RET Z
+ .character:
+  LD A,C
+  CP 10
+  JR Z,.newline
+  CP 13
+  JR Z,.newline
+  LD A, (zx__console__con_col)
+  LD B,A
+  LD A, (zx__console__con_row)
+  LD D,A
+  CALL zx__console__con_draw_char
+  LD A, (zx__console__con_col)
+  CP 31
+  JR NC,.newline
+  INC A
+  LD (zx__console__con_col),A
+  RET
+ .newline:
+  LD A, (zx__console__z3_selected_window)
+  OR A
+  JR Z,.lower_newline
+  LD A, (zx__console__z3_upper_height)
+  LD B,A
+  LD A, (zx__console__con_row)
+  CP B
+  RET NC
+  JR .advance
+ .lower_newline:
+  LD A, (zx__console__con_row)
+  CP 23
+  JR C,.advance
+  XOR A
+  LD (zx__console__con_col),A
+  LD A, (zx__console__z3_upper_height)
+  INC A
+  JP zx__console__con_scroll_region
+ .advance:
+  INC A
+  LD (zx__console__con_row),A
+  XOR A
+  LD (zx__console__con_col),A
  }
- if z3_selected_window==1 {
-  if con_row>=z3_upper_height { return }
-  con_col=0 con_row=con_row+1
-  return
- }
- con_col=0
- if con_row<23 { con_row=con_row+1 return }
- con_scroll_region(z3_upper_height+1)
 }
