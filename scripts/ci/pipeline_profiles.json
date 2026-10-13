@@ -50,6 +50,7 @@
     "TestCheckedTableModuleRelocationRequiresReadmission",
     "TestCheckedTableNegativeCorpusAudit",
     "TestCheckedTablePinnedSnapshotNative",
+    "TestCheckedWordShiftComposedNative",
     "TestCombinedContractTableGraceNative",
     "TestCompileHIRRejectsBeforeDumpAndLowering",
     "TestCompileHIRStepsRespectsContractOption",

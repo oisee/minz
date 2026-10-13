@@ -35,7 +35,7 @@ func PrepareLocalTableProblem(f *mir2.Func, allocation *mir2.AllocResult) (*Loca
 		}
 		parameters[p.Reg] = p
 	}
-	hasWordMul := false
+	hasWordExpansion := false
 	constants := map[mir2.Reg]int64{}
 	defined := map[mir2.Reg]mir2.Ty{}
 	entryParams := map[mir2.Reg]bool{}
@@ -58,6 +58,11 @@ func PrepareLocalTableProblem(f *mir2.Func, allocation *mir2.AllocResult) (*Loca
 		case mir2.OpConst:
 		case mir2.OpMove:
 			arity = 1
+		case mir2.OpShl:
+			arity = 2
+			if inst.Ty.Width() != 16 {
+				return nil, fmt.Errorf("local constant shift requires word width")
+			}
 		case mir2.OpMul:
 			arity = 2
 			if inst.Ty.Width() != 16 {
@@ -81,10 +86,17 @@ func PrepareLocalTableProblem(f *mir2.Func, allocation *mir2.AllocResult) (*Loca
 			return nil, fmt.Errorf("redefined local vreg %d", inst.Dst)
 		}
 		if inst.Op == mir2.OpMul {
-			hasWordMul = true
+			hasWordExpansion = true
 			k, ok := constants[inst.Src[1]]
 			if !ok || k < 2 || k > 255 {
 				return nil, fmt.Errorf("local word multiply requires RHS constant2..255")
+			}
+		}
+		if inst.Op == mir2.OpShl {
+			hasWordExpansion = true
+			amount, ok := constants[inst.Src[1]]
+			if !ok || amount < 1 || amount > 15 {
+				return nil, fmt.Errorf("local word shift requires RHS constant1..15")
 			}
 		}
 		if inst.Op == mir2.OpConst {
@@ -128,7 +140,7 @@ func PrepareLocalTableProblem(f *mir2.Func, allocation *mir2.AllocResult) (*Loca
 	}
 	var ops []VIROp
 	maxReg := 0
-	if hasWordMul {
+	if hasWordExpansion {
 		for r := range defined {
 			if int(r) > maxReg {
 				maxReg = int(r)
@@ -139,7 +151,18 @@ func PrepareLocalTableProblem(f *mir2.Func, allocation *mir2.AllocResult) (*Loca
 		copyInst := *inst
 		var lowered []VIROp
 		var err error
-		if inst.Op == mir2.OpMul {
+		if inst.Op == mir2.OpShl {
+			// Exact modulo-word doubling chain; no implicit repeat-count pattern.
+			maxReg++
+			acc := maxReg
+			lowered = append(lowered, VIROp{Op: OpMove, Dst: acc, Src: [2]int{int(inst.Src[0]), -1}, Width: 16, DstHint: Z80.LocSetByNames("HL")})
+			for count := int64(0); count < constants[inst.Src[1]]; count++ {
+				maxReg++
+				lowered = append(lowered, VIROp{Op: OpAdd, Dst: maxReg, Src: [2]int{acc, acc}, Width: 16, DstHint: Z80.LocSetByNames("HL")})
+				acc = maxReg
+			}
+			lowered = append(lowered, VIROp{Op: OpMove, Dst: int(inst.Dst), Src: [2]int{acc, -1}, Width: 16, DstHint: Z80.LocSetByNames("HL")})
+		} else if inst.Op == mir2.OpMul {
 			// Binary Horner chain. Original MIR remains bound; every shift/add is
 			// explicit, so scratch/liveness/ABI is independently admitted and costed.
 			k := constants[inst.Src[1]]
@@ -202,7 +225,7 @@ func PrepareLocalTableProblem(f *mir2.Func, allocation *mir2.AllocResult) (*Loca
 	beforeSaves := maxReg + 1
 	ops = insertSaveMoves(append([]VIROp(nil), ops...), Z80)
 	for i := range ops {
-		if hasWordMul && ops[i].Op == OpMove && ops[i].Width == 16 && ops[i].Dst > beforeSaves {
+		if hasWordExpansion && ops[i].Op == OpMove && ops[i].Width == 16 && ops[i].Dst > beforeSaves {
 			// This save must copy the live HL value, not exchange and destroy it.
 			ops[i].DstHint = Z80.LocSetByNames("BC")
 		}
