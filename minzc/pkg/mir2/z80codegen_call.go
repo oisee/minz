@@ -1029,7 +1029,7 @@ func (g *z80cg) saveABeforeOverwrite(inst *Inst) {
 // register when an 8-bit ALU result is about to overwrite A and the operand is
 // still used after inst. Later reads of the vreg are redirected via physOverride.
 func (g *z80cg) saveAccOperandIfLive(src Reg, inst *Inst) {
-	if src == NoReg || src == inst.Dst || !g.isVregLiveAfter(src, inst) {
+	if src == NoReg || src == inst.Dst || !g.regsLiveAfterInst(inst)[src] {
 		return
 	}
 	scratch := g.freeScratch8(inst)

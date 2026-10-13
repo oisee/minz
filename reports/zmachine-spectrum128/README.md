@@ -225,3 +225,19 @@ After both changes, frame return PCs match the VM trace and full Zork proceeds
 further. Startup still stops before the banner, now with empty output rather
 than the earlier invalid-opcode report. Further investigation is required;
 full native Zork startup remains unproven. Trace logs and reductions are saved.
+
+
+## First native Zork banner and West of House
+
+The stop at $5208 was put_prop, not a direct memory_write. Its object number
+was correct (156); property traversal lost the original header after AND31.
+The accumulator operand-preservation path used only current-block liveness,
+missing successor uses, and skipped preservation when physical A held lhs but
+copy tracking was empty. It now uses CFG liveness and covers the actual A lhs.
+
+A 256-value independent header traversal reduction passes, as do native
+stream3 and high-memory integration. Full candidate Zork now prints the banner,
+release/serial and West of House room description on generated Z80. Startup
+still fails before the mailbox line with `Z3 error 1:2:29:0:24:57`; therefore the
+startup gate remains red. This is progress into real story execution, not a
+completed native game. Full logs and reductions are retained on the share.
