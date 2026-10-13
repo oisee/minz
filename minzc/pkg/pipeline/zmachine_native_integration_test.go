@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -49,6 +50,16 @@ func TestZMachineBankedZorkKeyboardNative(t *testing.T) {
 	}
 	testZMachineBankedInterpreterNative(t, false, path, "@console-keyboard")
 }
+func TestZMachineBankedZorkExploreNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_STORY")
+	if path == "" {
+		t.Skip("set MINZ_Z3_STORY")
+	}
+	if os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set MINZ_Z3_VM for original-interpreter transcript reference")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-explore")
+}
 func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, externalStory string, commands string) {
 	root := filepath.Clean("../../..")
 	story, err := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/stream3.z3"))
@@ -74,7 +85,8 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
-	keyboard := commands == "@console-keyboard"
+	explore := commands == "@console-explore"
+	keyboard := commands == "@console-keyboard" || explore
 	console := commands == "@console-startup" || keyboard
 	if console {
 		commands = ""
@@ -164,13 +176,83 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 		m = fresh
 	}
 	keyText := []byte("look\ropen mailbox\rtake leaflet\rread leaflet\rinventory\rquit\ry\r")
+	var reference []byte
+	if explore {
+		route := []byte("north\neast\nopen window\nenter window\nwest\ntake lamp\ntake sword\ninventory\nturn on lamp\nmove rug\nopen trap door\ndown\nlook\nup\nquit\ny\n")
+		d := t.TempDir()
+		source, err := os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/zvm.nanz"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(d, "zvm.nanz"), source, 0600); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(d, "zork-west-demo.z3"), story, 0600); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.Mkdir(filepath.Join(d, "text"), 0700); err != nil {
+			t.Fatal(err)
+		}
+		printSource, err := os.ReadFile(filepath.Join(root, "stdlib/text/print.nanz"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(d, "text/print.nanz"), printSource, 0600); err != nil {
+			t.Fatal(err)
+		}
+		vm := exec.Command(os.Getenv("MINZ_Z3_VM"), "-H", filepath.Join(d, "zvm.nanz"))
+		vm.Stdin = bytes.NewReader(route)
+		reference, err = vm.Output()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if bytes.Contains(reference, []byte("Z3 error")) {
+			t.Fatalf("reference failed%q", reference)
+		}
+		if tool := os.Getenv("MINZ_Z3_FROTZ"); tool != "" {
+			referenceCmd := exec.Command(tool, "-m", "-w", "255", externalStory)
+			referenceCmd.Stdin = bytes.NewReader(route)
+			external, err := referenceCmd.Output()
+			if err != nil {
+				t.Fatal(err)
+			}
+			normalize := func(data []byte) string {
+				var lines []string
+				for _, line := range strings.Split(string(data), "\n") {
+					line = strings.TrimRight(line, " \r")
+					line = strings.TrimLeft(line, "> ")
+					if line == "" || strings.Contains(line, "Score:") && strings.Contains(line, "Moves:") {
+						continue
+					}
+					lines = append(lines, line)
+				}
+				// Ignore terminal wrapping while retaining every word and punctuation.
+				return strings.Join(strings.Fields(strings.Join(lines, "\n")), " ")
+			}
+			if d := os.Getenv("MINZ_Z3_TRANSCRIPTS"); d != "" {
+				if err := os.MkdirAll(d, 0755); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(filepath.Join(d, "explore-frotz.txt"), external, 0644); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if normalize(reference) != normalize(external) {
+				t.Fatalf("VM/Frotz exploration differs VM%q Frotz%q", reference, external)
+			}
+			t.Log("exploration VM text matches independently implemented Frotz")
+		}
+		keyText = bytes.ReplaceAll(route, []byte{10}, []byte{13})
+	}
 	keys := []byte{0, 'z', 'x', 'c', 'v', 'a', 's', 'd', 'f', 'g', 'q', 'w', 'e', 'r', 't', '1', '2', '3', '4', '5', '0', '9', '8', '7', '6', 'p', 'o', 'i', 'u', 'y', 13, 'l', 'k', 'j', 'h', 32, 0, 'm', 'n', 'b'}
 	keyAt := 0
 	ready := false
 	minSP := uint16(0xbf00)
 	var rendered []byte
+	inputEcho := false
+	var inputReturn, inputSP uint16
 
-	for i := 0; i < 100000000; i++ {
+	for i := 0; i < 200000000; i++ {
 		if console && !keyboard && m.CPU.PC() == uint16(a.Symbols["tui_read_line_or_eof"]) {
 			break
 		}
@@ -178,7 +260,15 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			break
 		}
 		if keyboard {
-			if m.CPU.PC() == uint16(a.Symbols["native_putchar"]) {
+			if m.CPU.PC() == uint16(a.Symbols["tui_read_line_or_eof"]) {
+				inputEcho = true
+				inputSP = m.CPU.SP()
+				inputReturn = uint16(m.Memory.Read(inputSP)) | uint16(m.Memory.Read(inputSP+1))<<8
+			}
+			if inputEcho && m.CPU.PC() == inputReturn && m.CPU.SP() == inputSP+2 {
+				inputEcho = false
+			}
+			if !inputEcho && m.CPU.PC() == uint16(a.Symbols["native_putchar"]) {
 				rendered = append(rendered, byte(m.CPU.AF()>>8))
 			}
 			if m.CPU.PC() == uint16(a.Symbols["zx__console__con_getchar"]) {
@@ -213,6 +303,28 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	if keyboard {
 		if m.CPU.PC() != 0x5000 || m.CPU.SP() != 0xbf02 || keyAt != len(keyText) || m.Memory.PagingState() != 0x10 || m.CPU.IFF1() || minSP < 0xbe00 {
 			t.Fatalf("keyboard keys%d/%d PC/SP%04x/%04x minSP%04x", keyAt, len(keyText), m.CPU.PC(), m.CPU.SP(), minSP)
+		}
+		if explore {
+			if d := os.Getenv("MINZ_Z3_TRANSCRIPTS"); d != "" {
+				if err := os.MkdirAll(d, 0755); err != nil {
+					t.Fatal(err)
+				}
+				for name, data := range map[string][]byte{"explore-native.txt": rendered, "explore-vm.txt": reference} {
+					if err := os.WriteFile(filepath.Join(d, name), data, 0644); err != nil {
+						t.Fatal(err)
+					}
+				}
+			}
+			if !bytes.Equal(rendered, reference) {
+				t.Fatalf("exploration text differs: native %q reference %q", rendered, reference)
+			}
+			for _, phrase := range []string{"Kitchen", "Living Room", "Cellar", "A brass lantern", "A sword"} {
+				if !bytes.Contains(rendered, []byte(phrase)) {
+					t.Fatalf("exploration missing %q: %q", phrase, rendered)
+				}
+			}
+			t.Logf("exploration %d keys; %d output bytes; %d T; native stack %d bytes", keyAt, len(rendered), m.CPU.Tstates(), 0xbf00-int(minSP))
+			return
 		}
 		for _, phrase := range []string{"Opening the small mailbox reveals a leaflet.", "ZORK is a game of adventure, danger, and low cunning.", "You are carrying:\n  A leaflet", "Your score is 0 (total of 350 points), in 5 moves."} {
 			if !bytes.Contains(rendered, []byte(phrase)) {

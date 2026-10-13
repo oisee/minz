@@ -371,3 +371,28 @@ full 98304-byte capacity, and both correct and deliberately corrupt checksums.
 
 Combined native checksum/console/Z3/Zork gates PASS (31.079 s). Updated SNA
 roundtrip and ROM-font startup screenshot PASS after 300 headless frames.
+
+
+## Exploration heldout: native keyboard, VM and independent Frotz
+
+A second route walks north/east, opens the kitchen window, enters the house,
+takes the brass lantern and sword, lights the lantern, moves the rug, opens the
+trap door and descends into the cellar. It checks Kitchen/Living Room/Cellar and
+both inventory objects, then LOOK/UP/QUIT. The route ends at 35 points in 14 moves.
+
+Native console/physical keyboard, after snapshot reload: 129 keys, 2509 game-text
+bytes, 980280674 T, observed 66-byte native stack. Output excluding input echo
+compares byte-for-byte with the original host VM interpreter. Echo is excluded
+only while the real input routine is active; all scanner/editor/rendering ASM
+still executes. Frotz independently matches all words/punctuation after removing
+its status lines, prompt indentation and terminal whitespace/wrapping.
+
+Reference: DavidGriffith/frotz commit fe66e2ef738354f5e2fe37c7c01b1781ef659acd,
+dfrotz built with `make dfrotz CFLAGS='-O2 -fcommon'` for its historical common
+globals. The first default build failed with modern GCC multiple definitions;
+no source patch was used. The story remains the reproducible 140fc6... candidate,
+not the separate 66e549... pinned gate. This is broader real gameplay evidence,
+not full completion or proof of all Z3 stories. Save/restore/restart remain open.
+
+Revalidated startup, short keyboard and exploration/reference gates PASS
+(22.307 s). Native/VM/Frotz transcripts retained with runnable artifacts.

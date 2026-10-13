@@ -200,3 +200,13 @@ go build -tags mzx_headless -o /tmp/mzx-headless ./cmd/mzx
 Startup после суммирования блоков внутри банка занимает около 17 миллионов
 тактов (примерно 4,9 секунды на 3,5 МГц), с полной проверкой checksum.
 Первый побайтный вариант занимал около 93 секунд.
+
+Дополнительный маршрут через кухню, гостиную и подвал проверен на Z80 через
+матрицу клавиатуры: 129 нажатий, 35 очков. Игровой текст совпадает побайтно с
+исходным VM, а после нормализации терминальных переносов — с Frotz.
+
+```sh
+MINZ_Z3_STORY=/path/to/story.z3 MINZ_Z3_VM=/path/to/mzv \
+  MINZ_Z3_FROTZ=/path/to/dfrotz go test ./pkg/pipeline \
+  -run '^TestZMachineBankedZorkExploreNative$' -count=1 -v
+```
