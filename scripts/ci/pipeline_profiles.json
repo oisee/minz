@@ -31,6 +31,7 @@
     "TestCaretXORAndPointerDereferenceVMZ80",
     "TestCheckedActualWordMultiplication",
     "TestCheckedBranchCorpusLeafNativeAllByteInputs",
+    "TestCheckedCompositionOrdinaryNative",
     "TestCheckedExactBindingMissAndRevalidatedTransfer",
     "TestCheckedExistingFunctionPointerLeaf",
     "TestCheckedExistingHash16GenerationEvidence",
