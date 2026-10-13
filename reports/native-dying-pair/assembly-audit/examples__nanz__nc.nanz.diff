@@ -1,0 +1,26 @@
+--- before
+
++++ after
+
+@@ -1090,8 +1090,7 @@
+
+     ADD HL, DE
+     RET
+ .fs__fat12__fat_byte_ofs_if_join2:
+-    LD H, D
+-    LD L, E
++    EX DE, HL
+     ADD HL, HL
+     RET
+ 
+@@ -1160,8 +1159,7 @@
+
+     BIT 0, C
+     JRS Z, .fs__fat12__fat_cache_get_if_join4
+ .fs__fat12__fat_cache_get_if_then3:
+-    LD H, D
+-    LD L, E
++    EX DE, HL
+     SRL H
+     RR  L
+     SRL H

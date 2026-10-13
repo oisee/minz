@@ -1200,7 +1200,7 @@ func (g *z80cg) genShift32(mnem string, inst *Inst) {
 // of copying both bytes. Refuse when either source half or another destination
 // value survives; ordinary copies remain non-destructive everywhere else.
 func (g *z80cg) emitDyingPairExchange(inst *Inst, dst, src string, width int) bool {
-	if width != 16 || !((dst == "HL" && src == "DE") || (dst == "DE" && src == "HL")) {
+	if width != 16 || (dst != "HL" || src != "DE") && (dst != "DE" || src != "HL") {
 		return false
 	}
 	for reg := range g.regsLiveAfterInst(inst) {

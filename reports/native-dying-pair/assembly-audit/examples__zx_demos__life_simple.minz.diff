@@ -1,0 +1,15 @@
+--- before
+
++++ after
+
+@@ -117,8 +117,7 @@
+
+     LD (HL), D     ; hi
+     DEC HL
+     LD DE, (seed)    ; u16 direct load, no scratch clobber
+-    LD H, D
+-    LD L, E
++    EX DE, HL
+     LD L, H
+     LD H, 0
+     LD A, L

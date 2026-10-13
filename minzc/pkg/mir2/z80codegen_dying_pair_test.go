@@ -1,7 +1,6 @@
 package mir2_test
 
 import (
-	"fmt"
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/z80asm"
@@ -96,7 +95,7 @@ func TestZ80ConstantShiftDyingPairExchange(t *testing.T) {
 					}
 				}
 			}
-			t.Log(fmt.Sprintf("%s→%s mode=%d all65536 PASS", source, dest, mode))
+			t.Logf("%s→%s mode=%d all65536 PASS", source, dest, mode)
 		}
 	}
 }
