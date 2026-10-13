@@ -1,0 +1,8 @@
+=== RUN   TestCheckedCompositionWeightedNativeCaller
+    checked_composition_test.go:175: PFCCO=greedy grace=false composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+    checked_composition_test.go:175: PFCCO=greedy grace=true composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+    checked_composition_test.go:175: PFCCO=pbqp grace=false composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+    checked_composition_test.go:175: PFCCO=pbqp grace=true composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+--- PASS: TestCheckedCompositionWeightedNativeCaller (3.94s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.955s

@@ -13,6 +13,9 @@ and the existing explicit return move. Fragment costs are never added or
 trusted: complete cost is recomputed. Work limits are checked before target
 mutation. This is an allocation proposal search, not shape-equivalence proof.
 
+Before combining proposals, the API rebuilds the problem from current MIR and
+actual parameter placements; mutating the prepared operation list is refused.
+
 The initial native consumer composes two fragments of add5. The ordinary
 pipeline selects the full candidate; full module is 8→6 bytes and all 256 byte
 inputs pass native return/result checks. This demonstrates composition plumbing,
@@ -24,3 +27,10 @@ admission rejects it. Different return ABI and excessive search bounds are also
 refused. The current API requires matching placements; explicit boundary adapters,
 CFG regions, automatic partition selection and larger real-program benefits
 remain the next steps. No optimality claim or ordinary default enablement.
+
+
+The existing weighted corpus helper also composes successfully in four modes:
+PFCCO greedy/PBQP × Grace off/on. Complete module 44→20 bytes and real caller
+238→142T in every mode, all 256 byte inputs per path. The caller keeps x live
+across CALL, so saves and ABI transfers are included. This reproduces the
+monolithic candidate's benefit through composition, without invoking Z3.
