@@ -285,6 +285,24 @@ if a.console:
             end += 1
         console = console[:start]+console[end:]
     if a.windows:
+        # Adjacent byte globals allow word stores; screen tests verify both
+        # cursor pairs after startup, RESTORE and RESTART. Declare HL clobber.
+        reset = """  XOR A
+  LD (zx__console__z3_upper_height),A
+  LD (zx__console__z3_selected_window),A
+  LD (zx__console__z3_lower_col),A
+  LD (zx__console__con_col),A
+  LD A,23
+  LD (zx__console__z3_lower_row),A
+  LD (zx__console__con_row),A"""
+        assert console.count(reset) == 1
+        console = console.replace(reset,"""  LD HL,0
+  LD (zx__console__z3_upper_height),HL
+  LD L,23
+  LD (zx__console__z3_lower_row),HL
+  LD HL,0x1700
+  LD (zx__console__con_col),HL""")
+        console = console.replace('fun z3_windows_reset() {\n asm z80 (clob A,F)', 'fun z3_windows_reset() {\n asm z80 (clob A,F,HL)')
         # The line editor calls con_scroll directly; keep it below upper/status.
         start = console.index('fun con_scroll(')
         brace = console.index('{',start)
@@ -339,7 +357,12 @@ if a.console:
   LD D, H
   LD A, (zx__console__z3_selected_window)
   OR A
-  JR Z, .position_store
+  JR NZ, .position_upper
+  LD A, (zx__console__z3_upper_height)
+  CP 23
+  CCF
+  JR .position_store
+ .position_upper:
   LD A, (zx__console__z3_upper_height)
   CP D
   JR NC, .position_store
@@ -601,18 +624,18 @@ fun native_status_char(@z80_a ch:u8) {
 fun native_status_clear() {
  asm z80 (clob A,F,BC,DE,HL) {
   LD HL,0x4000
-  LD C,8
+  LD B,8
   XOR A
  .plane:
-  LD B,32
+  LD D,32
  .clear:
   LD (HL),A
   INC L
-  DJNZ .clear
+  DEC D
+  JR NZ,.clear
   LD L,0
   INC H
-  DEC C
-  JR NZ,.plane
+  DJNZ .plane
  }
 }
 fun native_status_tail() {
@@ -653,14 +676,11 @@ fun native_status_room() {
 fun native_show_status() {
  asm z80 (clob A,F,BC,DE,HL,IX,IY) {
   CALL native_status_clear
-  LD A,1
-  LD (native_status_mode),A
-  XOR A
-  LD (native_status_col),A
+  LD HL,1
+  LD (native_status_mode),HL
   CALL native_status_room
-  LD A,20
-  LD (native_status_col),A
-  LD (native_status_mode),A
+  LD HL,0x1414
+  LD (native_status_mode),HL
   LD HL, (globals_at)
   INC HL
   INC HL

@@ -20,14 +20,29 @@ func TestZMachineV3StatusStoryNative(t *testing.T) {
 	t.Run("time", func(t *testing.T) { testZMachineV3ScreenStory(t, "status", true) })
 }
 func TestZMachineV3UpperInputNative(t *testing.T) {
-	testZMachineV3ScreenStory(t, "window_input", false)
+	for _, c := range []struct{ height, window, count byte }{{1, 1, 40}, {0, 1, 79}, {2, 1, 79}, {23, 1, 79}, {23, 0, 79}} {
+		t.Run(fmt.Sprintf("height%d/window%d/count%d", c.height, c.window, c.count), func(t *testing.T) {
+			testZMachineV3ScreenStoryInput(t, "window_input", false, c.height, c.window, c.count)
+		})
+	}
 }
 func testZMachineV3ScreenStory(t *testing.T, fixture string, timeMode bool) {
+	testZMachineV3ScreenStoryInput(t, fixture, timeMode, 1, 1, 40)
+}
+func testZMachineV3ScreenStoryInput(t *testing.T, fixture string, timeMode bool, height, window, count byte) {
 	root := filepath.Clean("../../..")
 	dir := t.TempDir()
 	story, e := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/"+fixture+".z3"))
 	if e != nil {
 		t.Fatal(e)
+	}
+	if fixture == "window_input" {
+		globals := int(story[12])<<8 | int(story[13])
+		// Inform globals 3..5 configure the independent story, leaving its
+		// opcode bodies intact; every typed letter is checked by the story.
+		story[globals+7] = height
+		story[globals+9] = window
+		story[globals+11] = count
 	}
 	if timeMode {
 		globals := int(story[12])<<8 | int(story[13])
@@ -82,10 +97,10 @@ func testZMachineV3ScreenStory(t *testing.T, fixture string, timeMode bool) {
 		m.SetPCTrap(uint16(a.Symbols["zx__console__scan_row_key"]), func() {
 			if ready {
 				ch := byte('a')
-				if keyAt == 40 {
+				if keyAt == int(count) {
 					ch = 13
 				}
-				if keyAt > 40 {
+				if keyAt > int(count) {
 					t.Fatal("extra input")
 				}
 				for idx, key := range keys {
@@ -96,6 +111,17 @@ func testZMachineV3ScreenStory(t *testing.T, fixture string, timeMode bool) {
 				}
 				keyAt++
 				ready = false
+			}
+			m.CPU.DoOpcode()
+		})
+	}
+	if fixture == "window_input" {
+		editing := false
+		m.SetPCTrap(uint16(a.Symbols["zx__console__con_input"]), func() { editing = true; m.CPU.DoOpcode() })
+		m.SetPCTrap(uint16(a.Symbols["zx__console__con_draw_char"]), func() {
+			row := byte(m.CPU.DE() >> 8)
+			if editing && (row > 23 || (row != 0 && ((window == 1 && row > height) || (window == 0 && row <= height)))) {
+				t.Fatalf("draw escaped window: row %d height %d window %d", row, height, window)
 			}
 			m.CPU.DoOpcode()
 		})
@@ -129,10 +155,14 @@ func testZMachineV3ScreenStory(t *testing.T, fixture string, timeMode bool) {
 			}
 		}
 	} else if fixture == "window_input" {
-		if keyAt != 41 || !bytes.Equal(output, []byte("123456789012345678901234567890\r")) {
+		if keyAt != int(count)+1 || !bytes.Equal(output, []byte("123456789012345678901234567890\r")) {
 			t.Fatalf("input not preserved: keys %d output %q", keyAt, output)
 		}
-		for row := 2; row < 24; row++ {
+		first, last := int(height)+1, 24
+		if window == 0 {
+			first, last = 1, 24
+		}
+		for row := first; row < last; row++ {
 			for line := 0; line < 8; line++ {
 				for x := 0; x < 32; x++ {
 					adr := uint16(0x4000 | ((row & 0x18) << 8) | (line << 8) | ((row & 7) << 5) | x)
@@ -142,7 +172,19 @@ func testZMachineV3ScreenStory(t *testing.T, fixture string, timeMode bool) {
 				}
 			}
 		}
-		for name, want := range map[string]byte{"con_row": 1, "con_col": 31, "z3_selected_window": 1, "z3_lower_row": 23, "z3_lower_col": 0} {
+		wantRow, wantCol := byte(1), byte(31)
+		if height == 0 {
+			wantRow, wantCol = 0, 31
+		} else if height > 1 {
+			wantRow, wantCol = 5, 0
+			if height < 4 {
+				wantRow, wantCol = height, 31
+			}
+		}
+		if window == 0 {
+			wantRow, wantCol = 23, 15
+		}
+		for name, want := range map[string]byte{"con_row": wantRow, "con_col": wantCol, "z3_selected_window": window, "z3_lower_row": 23, "z3_lower_col": 0} {
 			if got := m.Memory.Read(uint16(a.Symbols["zx__console__"+name])); got != want {
 				t.Fatalf("upper input changed %s: %d != %d", name, got, want)
 			}
