@@ -1,0 +1,17 @@
+; conditional candidate: A input/return; clobbers A,F; no scratch/bank changes
+is_digit:
+.__conditional_is_digit_0:
+    CP 48
+    JRS C, .__conditional_is_digit_4
+.__conditional_is_digit_1:
+    CP 57
+    JRS C, .__conditional_is_digit_3
+    JRS Z, .__conditional_is_digit_3
+.__conditional_is_digit_2:
+    JRS .__conditional_is_digit_4
+.__conditional_is_digit_3:
+    LD A, 1
+    RET
+.__conditional_is_digit_4:
+    LD A, 0
+    RET
