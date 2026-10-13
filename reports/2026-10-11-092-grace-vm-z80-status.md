@@ -2,6 +2,33 @@
 
 **Обзор от 11 октября, обновлён 13 октября 2026 года.** Интеграционная ветка компилятора, аппаратная библиотека и Spectrum-демо уже в `main`: [PR #85](https://github.com/oisee/minz/pull/85), merge-коммит `26cc879e`. Исследовательская ветка [`feat/grace-hir-vm`](https://github.com/oisee/minz/tree/feat/grace-hir-vm) и архивы сохраняются. Новейший раздел ниже описывает текущий статус; датированные разделы 11–12 октября сохраняют результаты и незавершённые работы своих checkpoint.
 
+## Последнее обновление 13 октября: спрайты перемещаются патчами кода
+
+**`@sprite_chain` уже в main**, [PR #90](https://github.com/oisee/minz/pull/90), merge `201146cf`. Декларация на Nanz создаёт runtime-рисовалку и setters для адресов строк, entry и JP-продолжений. Можно перемещать один экземпляр картинки, переставлять порядок исполнения, пропускать строки или сделать пустую цепочку. Это SMC реальных Z80-operands в writable RAM; дополнительный слой IR не добавлен.
+
+`via "compiled"` поддерживает известные keep-masks и обычный SP. `via "push"` пишет непрозрачные пары через временный экранный SP, затем восстанавливает normal SP и регистры. PUSH требует even byte width и `irq "disabled"`; DI/EI задаёт caller. Динамические raw setters не проверяют clipping, владение RAM и корректность графа переходов. Экземпляр должен завершаться в своей done-секции; NMI/reentry не поддержаны.
+
+| Новое подтверждение | Результат | Граница |
+|---|---|---|
+| Позиции, порядок, subsets | **108 native-исполнений** | Точный PC trace секций, RAM, регистры и return PC/SP |
+| Повторные маски/патчи | **768 native-вызовов**, 17 отказных случаев | Один экземпляр кода, все 256 byte-фоны, три режима |
+| Actual Spectrum main | **384 completed screens** | 64 × два примитива × три режима; 189 ROM IRQ в каждом прогоне; ULA, PC/SP и IRQ-регистры |
+| Чистый main `201146cf` | **Chain suite PASS 4,487 с** | Полная новая серия; это не новый полный 583-entry pipeline |
+| Launcher из чистого main | **exit 0, 100 video frames** | PUSH snapshot; completed-screen oracle проверяется отдельно |
+
+**Стоимость move + draw:** для восьми строк по 16 B, ordinary, runtime x/y: pointer **3884 + 2138 = 6022 T**, PUSH **4091 + 1638 = 5729 T** (~−4,9%). Модули — 1155 / 1168 B. Сам draw быстрее примерно на 23,4%, но патчинг end-адресов дороже. На ширине 4 и 8 B полная цена проигрывает pointer. Compiled-цепочка здесь тоже не быстрее простых непрозрачных stores. Примитивы выбираются явно; целевая Speed вправе тратить байты, универсального ускорения не заявляем.
+
+Замеры включают RET, исключают внешний CALL, DI/EI, ROM IRQ и ULA; исходники и одинаковый runtime workload сохранены. Это 81 cost-check с natural traversal; цена relinking подтверждена отдельно. [Статья с Nanz/ASM и анимацией](2026-10-13-134-moving-sprites-smc-push.md) · [Полные таблицы и API](hardware-sprite-chain/README.md).
+
+```sh
+scripts/play_zx_sprite_chain.sh
+scripts/play_zx_sprite_chain.sh --push
+```
+
+Пройден весь Nanz/HIR/MIR2 checkpoint перед последними trace/error-check усилениями: 20,735 / 33,953 / 99,807 с. Финальный PR прошёл обязательный CI и lint с нулём новых замечаний. Логи, 509 machine и 82 cost SHA entries, snapshots/GIF и final completion audit находятся в `/mnt/safe/minz/grace/2026-10-13/hardware-sprite-chain-*`. Физическое железо, NMI и tear-free rendering не подтверждены.
+
+Следующая согласованная цель — **Z-machine V3 на Spectrum 128K, сначала Zork I с историей в банковой памяти**. Host VM с большими globals не является 128K Z80-портом. Нужны banked story reader, resident memory budget, экран/клавиатура, загрузчик и независимое сравнение команд. Другие V3-истории допускаются только после отдельных проверок. [План следующего этапа](2026-10-13-135-zmachine-v3-spectrum-128k-plan.md).
+
 ## Обновление 13 октября: интеграция в main и работающая аппаратная библиотека
 
 **Теперь это код основного компилятора, а не только опубликованный обзор.** PR #85 объединяет проверенные compiler/frontend/backend изменения и сопутствующие доказательства. Все шесть обязательных CI-контекстов на финальной интеграционной сборке `01f5df59` завершились успешно. Это не отменяет ограничений отдельных путей: advisory lint/output sweep и report-only fuzz findings остаются отдельными результатами; green CI не означает отсутствие всех miscompile.
@@ -14,7 +41,7 @@
 | Frontend-контракты | Перенесены исправления Nanz, C89, Lizp, PL/M и других путей интеграции | Lizp last-form и PL/M Hello закрыты; полная поддержка каждого языка не заявлена |
 | Grace / PFCCO / checked tables | Интегрированы код, проверенные альтернативы и fixtures | Прежние heldout и table-выигрыши сохраняют свои baseline; нового универсального выигрыша не заявляем |
 | LIR / VIR | Отдельный пакет LIR удалён; VIR сохранён как исследовательский путь | Обычная компиляция не требует Z3; offline-кандидат проходит текущий admission |
-| `stdlib/hw` | Четыре импортируемых генератора на Nanz | Fill, copy, byte-aligned masked sprites, affine texture walk |
+| `stdlib/hw` | Пять импортируемых генераторов на Nanz | Fill, copy, fixed masked sprites, mutable compiled/PUSH chains, affine texture walk |
 | Spectrum showcase | 32×48 PAPER/INK rotozoomer и launcher | Actual main с ROM/IRQ/ULA; физическое железо и tear-free ещё не проверены |
 | CP/M showcase | Playable Tetris и статья о миллионных проверках | Runtime-игра и исчерпывающие семейства механики — разные проверки |
 

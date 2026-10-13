@@ -1,9 +1,10 @@
 # Patchable sprite chains: implementation checkpoint
 
-October 13, 2026. Work in progress on `feat/hw-patchable-sprites`; not yet in main.
-The implemented operations, native masks/refusals, full Spectrum animation and
-comparative move+draw measurements are verified below. Main publication and
-final shared manifest audit remain pending.
+October 13, 2026. **Integrated into main** through [PR #90](https://github.com/oisee/minz/pull/90), merge `201146cf`. All required checks and advisory checks succeeded. A clean main checkout repeated the complete chain suite: PASS 4.487 s, and PUSH headless launcher: 100 video frames, exit 0.
+
+[Readable article with Nanz and Z80 examples](../2026-10-13-134-moving-sprites-smc-push.md).
+
+Source/report/snapshots match main. 509 machine and 82 cost SHA entries were verified on the share, alongside source, logs and CI reports. Current publication and completion evidence supersede the dated implementation checkpoints below.
 
 `import hw.sprite_chain` provides `@sprite_chain("actor")` with the existing
 sprite destination/region/hex rows and `via "compiled"` or `via "push"`.
@@ -31,7 +32,7 @@ First native checkpoint: 108 executions (two primitives × three modes × three
 positions × six orders/subsets), plus two Nanz main setter/draw scenarios.
 Independent full-RAM comparisons permit only the exact eight-byte save frame
 and PUSH saved-SP immediate; exact return PC/SP and registers are checked.
-See first-native.log. This initial positive matrix uses opaque four-byte rows;
+The initial log is retained on the share, outside Git. This initial positive matrix uses opaque four-byte rows;
 mixed masks, rejection tests and full IRQ/ULA proof remain outstanding.
 
 Expanded checkpoint: 768 masked executions (256 backgrounds × three modes)
@@ -61,8 +62,7 @@ collided in source provenance. Generated source-unit names now include invocatio
 position; a regression verifies both generated functions and deterministic hashes.
 
 Machine exports and logs are retained on `/mnt/safe/minz/grace/2026-10-13/`.
-Comparative move+draw cost, final API docs, main integration and final share audit
-remain required before the goal can close.
+At that checkpoint comparative cost and publication were still pending. Both are now complete; see measured results and current main status above.
 
 ## Measured move + draw
 
