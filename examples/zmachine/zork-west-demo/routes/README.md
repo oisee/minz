@@ -17,3 +17,9 @@ Jericho (с дополнительными атаками). Контроль: 10
 Dam Lobby, platinum bar/candles/bell/book/lamp/lit torch. Coffin перенесён
 в trophy case. Frotz seed12 подтверждает score и инвентарь; случайный текст
 не является общим оракулом для двух разных RNG.
+
+
+`crystal-skull.txt` продолжает первые 130 исходных команд Jericho:
+ритуал bell/candles/book, Land of the Dead, skull, возврат в дом.
+Контроль: 127 очков на 134 ходах; в case platinum bar/crystal skull/gold coffin,
+в инвентаре lamp/lit torch. RNG-адаптация боя сохраняется.

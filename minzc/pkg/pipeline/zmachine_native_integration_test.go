@@ -132,6 +132,14 @@ func TestZMachineBankedZork128DamLobbyNative(t *testing.T) {
 	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-dam")
 }
 
+func TestZMachineBankedZork128CrystalSkullNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-skull")
+}
+
 // A separately built full V3 story, not the Zork I workload used earlier.
 func TestZMachineBankedZorkIIGameplayNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
@@ -201,8 +209,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
+	crystalSkull := commands == "@console-windows-skull"
 	damLobby := commands == "@console-windows-dam"
-	earlyDungeon := commands == "@console-windows-dungeon" || damLobby
+	earlyDungeon := commands == "@console-windows-dungeon" || damLobby || crystalSkull
 	zorkIIWindows := commands == "@console-zork2-128-windows"
 	if zorkIIWindows {
 		commands = "@console-zork2-compressed-save-restart"
@@ -445,6 +454,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if damLobby {
 				routeFile = "dam-lobby.txt"
 			}
+			if crystalSkull {
+				routeFile = "crystal-skull.txt"
+			}
 			route, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", routeFile))
 			if err != nil {
 				t.Fatal(err)
@@ -543,6 +555,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if damLobby {
 				checkpoint = []string{"Your score is 102 (total of 350 points), in 104 moves.", "You are carrying:\n  A platinum bar\n  A pair of candles\n  A brass bell\n  A black book\n  A brass lantern\n  A torch (providing light)"}
 			}
+			if crystalSkull {
+				checkpoint = []string{"Your score is 127 (total of 350 points), in 134 moves.", "Your collection of treasures consists of:\n  A platinum bar\n  A crystal skull\n  A gold coffin", "You are carrying:\n  A brass lantern\n  A torch (providing light)"}
+			}
 			for _, want := range checkpoint {
 				if !bytes.Contains(output, []byte(want)) {
 					t.Fatalf("Frotz checkpoint missing %q", want)
@@ -571,7 +586,7 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 
 	limit := 200000000
 	if earlyDungeon {
-		limit = 600000000
+		limit = 1000000000
 	}
 	for i := 0; i < limit; i++ {
 		if console && !keyboard && m.CPU.PC() == uint16(a.Symbols["tui_read_line_or_eof"]) {
@@ -659,6 +674,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			}
 			if damLobby {
 				phrases = []string{"Dam Lobby", "Your score is 102 (total of 350 points), in 104 moves.", "You are carrying:\n  A platinum bar\n  A pair of candles\n  A brass bell\n  A black book\n  A brass lantern\n  A torch (providing light)"}
+			}
+			if crystalSkull {
+				phrases = []string{"Land of the Dead", "Your score is 127 (total of 350 points), in 134 moves.", "Your collection of treasures consists of:\n  A platinum bar\n  A crystal skull\n  A gold coffin", "You are carrying:\n  A brass lantern\n  A torch (providing light)"}
 			}
 			if zorkII {
 				phrases = []string{"ZORK II: The Wizard of Frobozz", "Inside the Barrow", "You are empty-handed.", "Taken.", "The lamp is now on.", "Narrow Tunnel", "total of 400 points"}

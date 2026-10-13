@@ -1871,3 +1871,16 @@ Frotz seed12 отдельно подтверждает score102 на104 moves и
 platinum bar/candles/bell/book/lamp/lit torch. PASS52.870 s. Random combat
 texts Frotz не сравниваются; Z80/VM текст сравнивается целиком. Это checkpoint
 раннего walkthrough, не прохождение всех396 исходных команд.
+
+
+### 13 октября: crystal skull и127 очков
+
+routes/crystal-skull.txt продолжает walkthrough до130 исходных команд:
+bell/candles/book ritual, Land of the Dead, crystal skull, возврат в дом,
+перенос skull/bar в case. 925 клавиш,13837 B output byte-exact original VM,
+5680089207 T, stack70 B; штатный PC/SP/paging. Frotz seed12 подтверждает
+score127 на134 moves, case platinum bar/crystal skull/gold coffin и inventory
+lamp/lit torch. PASS66.985 s. Первый прогон исчерпал600M инструкции после855
+клавиш; повышен лимит длительного harness до1B, повтор завершился штатно.
+Компилятор/runtime в этом этапе не изменены. Следующий probe до200 исходных
+команд дал146 очков в VM, но его Z80 результат ещё не подтверждён.
