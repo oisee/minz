@@ -28,3 +28,9 @@ Windows PE действительно исполнялся под Wine, вклю
 У Zork включены MIT notices из закреплённых исходников historicalsource.
 Сборку пакетов выполняет `scripts/package_demo_release.py`: бинарники, отдельные
 образы, лицензии, launch scripts и SHA256 manifest; существующий пакет не заменяется.
+
+Обновление: PR #92 слит в main (`675216c6`), обязательный PR gate PASS.
+PR #93 содержит каталог демо. Кандидат 2 проверен побайтно против обоих ZIP
+и SHA256 manifest; все шесть запусков Linux и шесть Windows/Wine — PASS.
+После CLI-выхода Zork I создан session.sna. Это ещё не полный SAVE/workflow audit.
+Пакеты лежат в `embedded-demo-release/candidate-2`, доказательства — `proof-rc2`.
