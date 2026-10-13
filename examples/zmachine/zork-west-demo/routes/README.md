@@ -23,3 +23,9 @@ Dam Lobby, platinum bar/candles/bell/book/lamp/lit torch. Coffin перенес�
 ритуал bell/candles/book, Land of the Dead, skull, возврат в дом.
 Контроль: 127 очков на 134 ходах; в case platinum bar/crystal skull/gold coffin,
 в инвентаре lamp/lit torch. RNG-адаптация боя сохраняется.
+
+
+`cyclops.txt` — первые 146 исходных команд Jericho, затем score/case/inventory.
+Контроль: 142 очка на 150 ходах, четыре сокровища в case, rusty knife/lamp/lit
+ torch в инвентаре. Более длинный probe до200 исходных команд даёт146 в VM,
+но Frotz seed12 погибает после кражи света; он не принят как общий checkpoint.

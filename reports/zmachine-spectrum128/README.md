@@ -1884,3 +1884,17 @@ lamp/lit torch. PASS66.985 s. Первый прогон исчерпал600M и�
 клавиш; повышен лимит длительного harness до1B, повтор завершился штатно.
 Компилятор/runtime в этом этапе не изменены. Следующий probe до200 исходных
 команд дал146 очков в VM, но его Z80 результат ещё не подтверждён.
+
+
+### 13 октября: Cyclops и142 очка
+
+routes/cyclops.txt продолжает первые146 исходных команд Jericho. Bag of coins
+из maze помещается в case, Cyclops освобождает passage после Odysseus.
+994 клавиши,15502 B output byte-exact VM,6340704161 T, stack70 B и штатный
+PC/SP/paging. Frotz seed12 подтверждает score142 на150 moves, case coins/bar/
+skull/coffin, inventory rusty knife/lamp/lit torch. PASS75.581 s.
+
+Probe до200 исходных команд: VM146, Frotz132 и смерть после кражи света в
+Cellar на184-м ходе. Это различие случайного поведения NPC, не установленный
+miscompile. Поздний probe не принят как общий checkpoint; нужен устойчивый
+маршрут/разделение семантической проверки и RNG-dependent событий.

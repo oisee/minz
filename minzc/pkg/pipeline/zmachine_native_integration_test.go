@@ -140,6 +140,14 @@ func TestZMachineBankedZork128CrystalSkullNative(t *testing.T) {
 	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-skull")
 }
 
+func TestZMachineBankedZork128CyclopsNative(t *testing.T) {
+	path := os.Getenv("MINZ_Z3_STORY")
+	if path == "" || os.Getenv("MINZ_Z3_VM") == "" {
+		t.Skip("set story and VM")
+	}
+	testZMachineBankedInterpreterNative(t, false, path, "@console-windows-cyclops")
+}
+
 // A separately built full V3 story, not the Zork I workload used earlier.
 func TestZMachineBankedZorkIIGameplayNative(t *testing.T) {
 	path := os.Getenv("MINZ_Z3_ZORK2_STORY")
@@ -209,9 +217,10 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 	}
 	path := filepath.Join(t.TempDir(), "core.nanz")
 	cmd := exec.Command("python3", filepath.Join(root, "scripts/zmachine/prepare_native_core.py"), path, "--story-bytes", strconv.Itoa(len(story)))
+	cyclops := commands == "@console-windows-cyclops"
 	crystalSkull := commands == "@console-windows-skull"
 	damLobby := commands == "@console-windows-dam"
-	earlyDungeon := commands == "@console-windows-dungeon" || damLobby || crystalSkull
+	earlyDungeon := commands == "@console-windows-dungeon" || damLobby || crystalSkull || cyclops
 	zorkIIWindows := commands == "@console-zork2-128-windows"
 	if zorkIIWindows {
 		commands = "@console-zork2-compressed-save-restart"
@@ -457,6 +466,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			if crystalSkull {
 				routeFile = "crystal-skull.txt"
 			}
+			if cyclops {
+				routeFile = "cyclops.txt"
+			}
 			route, err = os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes", routeFile))
 			if err != nil {
 				t.Fatal(err)
@@ -557,6 +569,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			}
 			if crystalSkull {
 				checkpoint = []string{"Your score is 127 (total of 350 points), in 134 moves.", "Your collection of treasures consists of:\n  A platinum bar\n  A crystal skull\n  A gold coffin", "You are carrying:\n  A brass lantern\n  A torch (providing light)"}
+			}
+			if cyclops {
+				checkpoint = []string{"Your score is 142 (total of 350 points), in 150 moves.", "Your collection of treasures consists of:\n  A leather bag of coins\n  A platinum bar\n  A crystal skull\n  A gold coffin", "You are carrying:\n  A rusty knife\n  A brass lantern\n  A torch (providing light)"}
 			}
 			for _, want := range checkpoint {
 				if !bytes.Contains(output, []byte(want)) {
@@ -677,6 +692,9 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 			}
 			if crystalSkull {
 				phrases = []string{"Land of the Dead", "Your score is 127 (total of 350 points), in 134 moves.", "Your collection of treasures consists of:\n  A platinum bar\n  A crystal skull\n  A gold coffin", "You are carrying:\n  A brass lantern\n  A torch (providing light)"}
+			}
+			if cyclops {
+				phrases = []string{"The cyclops, hearing the name of his father's deadly nemesis, flees the room", "Your score is 142 (total of 350 points), in 150 moves.", "Your collection of treasures consists of:\n  A leather bag of coins\n  A platinum bar\n  A crystal skull\n  A gold coffin", "You are carrying:\n  A rusty knife\n  A brass lantern\n  A torch (providing light)"}
 			}
 			if zorkII {
 				phrases = []string{"ZORK II: The Wizard of Frobozz", "Inside the Barrow", "You are empty-handed.", "Taken.", "The lamp is now on.", "Narrow Tunnel", "total of 400 points"}
