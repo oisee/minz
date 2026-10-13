@@ -48,6 +48,13 @@ func demoDataDir(root, id string) (string, error) {
 func ensureDemoDisk(path string) error {
 	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
 	if os.IsExist(err) {
+		info, statErr := os.Stat(path)
+		if statErr != nil {
+			return statErr
+		}
+		if !info.Mode().IsRegular() || info.Size() != formats.TRDDiskSize {
+			return fmt.Errorf("invalid existing SAVE disk %s; preserved without modification", path)
+		}
 		return nil
 	}
 	if err != nil {
