@@ -1,0 +1,250 @@
+=== RUN   TestStructuredMetaDiagnostics
+=== RUN   TestStructuredMetaDiagnostics/load-type
+=== RUN   TestStructuredMetaDiagnostics/handle
+=== RUN   TestStructuredMetaDiagnostics/kind
+=== RUN   TestStructuredMetaDiagnostics/overflow
+=== RUN   TestStructuredMetaDiagnostics/type
+=== RUN   TestStructuredMetaDiagnostics/cycle
+=== RUN   TestStructuredMetaDiagnostics/mixed
+=== RUN   TestStructuredMetaDiagnostics/identifier
+--- PASS: TestStructuredMetaDiagnostics (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/load-type (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/handle (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/kind (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/overflow (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/type (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/cycle (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/mixed (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/identifier (0.00s)
+=== RUN   TestStructuredMetaBuildsTypedHIR
+--- PASS: TestStructuredMetaBuildsTypedHIR (0.00s)
+=== RUN   TestStructuredMetaSnapshotsAndInvocationIsolation
+--- PASS: TestStructuredMetaSnapshotsAndInvocationIsolation (0.00s)
+=== RUN   TestStructuredMetaHandleLimit
+--- PASS: TestStructuredMetaHandleLimit (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/nanz	0.017s
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-one
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-one/ordinary
+    hardware_copy_test.go:214: seed 19: 20 bytes, 105 T-states; 1 copied bytes
+    hardware_copy_test.go:214: seed 173: 20 bytes, 105 T-states; 1 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-one/grace-size
+    hardware_copy_test.go:214: seed 19: 20 bytes, 105 T-states; 1 copied bytes
+    hardware_copy_test.go:214: seed 173: 20 bytes, 105 T-states; 1 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-one/grace-speed
+    hardware_copy_test.go:214: seed 19: 20 bytes, 105 T-states; 1 copied bytes
+    hardware_copy_test.go:214: seed 173: 20 bytes, 105 T-states; 1 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-strided
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-strided/ordinary
+    hardware_copy_test.go:214: seed 19: 83 bytes, 1719 T-states; 24 copied bytes
+    hardware_copy_test.go:214: seed 173: 83 bytes, 1719 T-states; 24 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-strided/grace-size
+    hardware_copy_test.go:214: seed 19: 83 bytes, 1719 T-states; 24 copied bytes
+    hardware_copy_test.go:214: seed 173: 83 bytes, 1719 T-states; 24 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-strided/grace-speed
+    hardware_copy_test.go:214: seed 19: 83 bytes, 1719 T-states; 24 copied bytes
+    hardware_copy_test.go:214: seed 173: 83 bytes, 1719 T-states; 24 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-page-crossing
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-page-crossing/ordinary
+    hardware_copy_test.go:214: seed 19: 20 bytes, 168 T-states; 2 copied bytes
+    hardware_copy_test.go:214: seed 173: 20 bytes, 168 T-states; 2 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-page-crossing/grace-size
+    hardware_copy_test.go:214: seed 19: 20 bytes, 168 T-states; 2 copied bytes
+    hardware_copy_test.go:214: seed 173: 20 bytes, 168 T-states; 2 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-page-crossing/grace-speed
+    hardware_copy_test.go:214: seed 19: 20 bytes, 168 T-states; 2 copied bytes
+    hardware_copy_test.go:214: seed 173: 20 bytes, 168 T-states; 2 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-255
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-255/ordinary
+    hardware_copy_test.go:214: seed 19: 20 bytes, 16107 T-states; 255 copied bytes
+    hardware_copy_test.go:214: seed 173: 20 bytes, 16107 T-states; 255 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-255/grace-size
+    hardware_copy_test.go:214: seed 19: 20 bytes, 16107 T-states; 255 copied bytes
+    hardware_copy_test.go:214: seed 173: 20 bytes, 16107 T-states; 255 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-255/grace-speed
+    hardware_copy_test.go:214: seed 19: 20 bytes, 16107 T-states; 255 copied bytes
+    hardware_copy_test.go:214: seed 173: 20 bytes, 16107 T-states; 255 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-256
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-256/ordinary
+    hardware_copy_test.go:214: seed 19: 30 bytes, 30559 T-states; 256 copied bytes
+    hardware_copy_test.go:214: seed 173: 30 bytes, 30559 T-states; 256 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-256/grace-size
+    hardware_copy_test.go:214: seed 19: 30 bytes, 30559 T-states; 256 copied bytes
+    hardware_copy_test.go:214: seed 173: 30 bytes, 30559 T-states; 256 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/linear-256/grace-speed
+    hardware_copy_test.go:214: seed 19: 30 bytes, 30559 T-states; 256 copied bytes
+    hardware_copy_test.go:214: seed 173: 30 bytes, 30559 T-states; 256 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/destination-last-byte
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/destination-last-byte/ordinary
+    hardware_copy_test.go:214: seed 19: 41 bytes, 341 T-states; 4 copied bytes
+    hardware_copy_test.go:214: seed 173: 41 bytes, 341 T-states; 4 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/destination-last-byte/grace-size
+    hardware_copy_test.go:214: seed 19: 41 bytes, 341 T-states; 4 copied bytes
+    hardware_copy_test.go:214: seed 173: 41 bytes, 341 T-states; 4 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/destination-last-byte/grace-speed
+    hardware_copy_test.go:214: seed 19: 41 bytes, 341 T-states; 4 copied bytes
+    hardware_copy_test.go:214: seed 173: 41 bytes, 341 T-states; 4 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/source-last-byte
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/source-last-byte/ordinary
+    hardware_copy_test.go:214: seed 19: 41 bytes, 341 T-states; 4 copied bytes
+    hardware_copy_test.go:214: seed 173: 41 bytes, 341 T-states; 4 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/source-last-byte/grace-size
+    hardware_copy_test.go:214: seed 19: 41 bytes, 341 T-states; 4 copied bytes
+    hardware_copy_test.go:214: seed 173: 41 bytes, 341 T-states; 4 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/source-last-byte/grace-speed
+    hardware_copy_test.go:214: seed 19: 41 bytes, 341 T-states; 4 copied bytes
+    hardware_copy_test.go:214: seed 173: 41 bytes, 341 T-states; 4 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zero-width
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zero-width/ordinary
+    hardware_copy_test.go:214: seed 19: 1 bytes, 10 T-states; 0 copied bytes
+    hardware_copy_test.go:214: seed 173: 1 bytes, 10 T-states; 0 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zero-width/grace-size
+    hardware_copy_test.go:214: seed 19: 1 bytes, 10 T-states; 0 copied bytes
+    hardware_copy_test.go:214: seed 173: 1 bytes, 10 T-states; 0 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zero-width/grace-speed
+    hardware_copy_test.go:214: seed 19: 1 bytes, 10 T-states; 0 copied bytes
+    hardware_copy_test.go:214: seed 173: 1 bytes, 10 T-states; 0 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zero-height
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zero-height/ordinary
+    hardware_copy_test.go:214: seed 19: 1 bytes, 10 T-states; 0 copied bytes
+    hardware_copy_test.go:214: seed 173: 1 bytes, 10 T-states; 0 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zero-height/grace-size
+    hardware_copy_test.go:214: seed 19: 1 bytes, 10 T-states; 0 copied bytes
+    hardware_copy_test.go:214: seed 173: 1 bytes, 10 T-states; 0 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zero-height/grace-speed
+    hardware_copy_test.go:214: seed 19: 1 bytes, 10 T-states; 0 copied bytes
+    hardware_copy_test.go:214: seed 173: 1 bytes, 10 T-states; 0 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-7-8
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-7-8/ordinary
+    hardware_copy_test.go:214: seed 19: 41 bytes, 725 T-states; 10 copied bytes
+    hardware_copy_test.go:214: seed 173: 41 bytes, 725 T-states; 10 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-7-8/grace-size
+    hardware_copy_test.go:214: seed 19: 41 bytes, 725 T-states; 10 copied bytes
+    hardware_copy_test.go:214: seed 173: 41 bytes, 725 T-states; 10 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-7-8/grace-speed
+    hardware_copy_test.go:214: seed 19: 41 bytes, 725 T-states; 10 copied bytes
+    hardware_copy_test.go:214: seed 173: 41 bytes, 725 T-states; 10 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-63-64
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-63-64/ordinary
+    hardware_copy_test.go:214: seed 19: 41 bytes, 469 T-states; 6 copied bytes
+    hardware_copy_test.go:214: seed 173: 41 bytes, 469 T-states; 6 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-63-64/grace-size
+    hardware_copy_test.go:214: seed 19: 41 bytes, 469 T-states; 6 copied bytes
+    hardware_copy_test.go:214: seed 173: 41 bytes, 469 T-states; 6 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-63-64/grace-speed
+    hardware_copy_test.go:214: seed 19: 41 bytes, 469 T-states; 6 copied bytes
+    hardware_copy_test.go:214: seed 173: 41 bytes, 469 T-states; 6 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zx-to-raster
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zx-to-raster/ordinary
+    hardware_copy_test.go:214: seed 19: 62 bytes, 1479 T-states; 21 copied bytes
+    hardware_copy_test.go:214: seed 173: 62 bytes, 1479 T-states; 21 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zx-to-raster/grace-size
+    hardware_copy_test.go:214: seed 19: 62 bytes, 1479 T-states; 21 copied bytes
+    hardware_copy_test.go:214: seed 173: 62 bytes, 1479 T-states; 21 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/zx-to-raster/grace-speed
+    hardware_copy_test.go:214: seed 19: 62 bytes, 1479 T-states; 21 copied bytes
+    hardware_copy_test.go:214: seed 173: 62 bytes, 1479 T-states; 21 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-full
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-full/ordinary
+    hardware_copy_test.go:214: seed 19: 4031 bytes, 407551 T-states; 6144 copied bytes
+    hardware_copy_test.go:214: seed 173: 4031 bytes, 407551 T-states; 6144 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-full/grace-size
+    hardware_copy_test.go:214: seed 19: 4457 bytes, 463783 T-states; 6144 copied bytes
+    hardware_copy_test.go:214: seed 173: 4457 bytes, 463783 T-states; 6144 copied bytes
+=== RUN   TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-full/grace-speed
+    hardware_copy_test.go:214: seed 19: 4457 bytes, 463783 T-states; 6144 copied bytes
+    hardware_copy_test.go:214: seed 173: 4457 bytes, 463783 T-states; 6144 copied bytes
+--- PASS: TestHardwareCopyPointerMemoryNativeAndVM (90.20s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-one (0.06s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-one/ordinary (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-one/grace-size (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-one/grace-speed (0.02s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-strided (0.09s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-strided/ordinary (0.03s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-strided/grace-size (0.03s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-strided/grace-speed (0.03s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-page-crossing (0.06s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-page-crossing/ordinary (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-page-crossing/grace-size (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-page-crossing/grace-speed (0.02s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-255 (0.06s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-255/ordinary (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-255/grace-size (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-255/grace-speed (0.02s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-256 (0.06s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-256/ordinary (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-256/grace-size (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/linear-256/grace-speed (0.02s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/destination-last-byte (0.07s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/destination-last-byte/ordinary (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/destination-last-byte/grace-size (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/destination-last-byte/grace-speed (0.02s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/source-last-byte (0.07s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/source-last-byte/ordinary (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/source-last-byte/grace-size (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/source-last-byte/grace-speed (0.02s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zero-width (0.05s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zero-width/ordinary (0.01s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zero-width/grace-size (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zero-width/grace-speed (0.02s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zero-height (0.04s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zero-height/ordinary (0.01s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zero-height/grace-size (0.01s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zero-height/grace-speed (0.01s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-7-8 (0.07s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-7-8/ordinary (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-7-8/grace-size (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-7-8/grace-speed (0.02s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-63-64 (0.06s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-63-64/ordinary (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-63-64/grace-size (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-row-63-64/grace-speed (0.02s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zx-to-raster (0.08s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zx-to-raster/ordinary (0.02s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zx-to-raster/grace-size (0.03s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/zx-to-raster/grace-speed (0.03s)
+    --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-full (89.43s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-full/ordinary (11.21s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-full/grace-size (33.83s)
+        --- PASS: TestHardwareCopyPointerMemoryNativeAndVM/raster-to-zx-full/grace-speed (44.39s)
+=== RUN   TestStructuredCopyLiveValues
+=== RUN   TestStructuredCopyLiveValues/ordinary
+=== RUN   TestStructuredCopyLiveValues/grace-size
+=== RUN   TestStructuredCopyLiveValues/grace-speed
+--- PASS: TestStructuredCopyLiveValues (0.07s)
+    --- PASS: TestStructuredCopyLiveValues/ordinary (0.02s)
+    --- PASS: TestStructuredCopyLiveValues/grace-size (0.03s)
+    --- PASS: TestStructuredCopyLiveValues/grace-speed (0.02s)
+=== RUN   TestStructuredFillLiveValues
+=== RUN   TestStructuredFillLiveValues/ordinary
+=== RUN   TestStructuredFillLiveValues/grace-size
+=== RUN   TestStructuredFillLiveValues/grace-speed
+--- PASS: TestStructuredFillLiveValues (0.05s)
+    --- PASS: TestStructuredFillLiveValues/ordinary (0.02s)
+    --- PASS: TestStructuredFillLiveValues/grace-size (0.01s)
+    --- PASS: TestStructuredFillLiveValues/grace-speed (0.02s)
+=== RUN   TestStructuredCopyMatchesTextBaseline
+    structured_copy_test.go:63: source "linear" 24576 8 2 11; destination "linear" 25088 8 2 13; region 1 0 2 0 4 2; grace=false size=false: 53 -> 41 bytes; 637 -> 597 T-states; identical ASM=false
+    structured_copy_test.go:63: source "linear" 24576 8 2 11; destination "linear" 25088 8 2 13; region 1 0 2 0 4 2; grace=true size=false: 53 -> 41 bytes; 637 -> 597 T-states; identical ASM=false
+    structured_copy_test.go:63: source "linear" 24576 8 2 11; destination "linear" 25088 8 2 13; region 1 0 2 0 4 2; grace=true size=true: 53 -> 41 bytes; 637 -> 597 T-states; identical ASM=false
+    structured_copy_test.go:63: source "linear" 24576 256 1 256; destination "linear" 25088 256 1 256; region 0 0 0 0 256 1; grace=false size=false: 48 -> 30 bytes; 45708 -> 30559 T-states; identical ASM=false
+    structured_copy_test.go:63: source "linear" 24576 256 1 256; destination "linear" 25088 256 1 256; region 0 0 0 0 256 1; grace=true size=false: 48 -> 30 bytes; 45708 -> 30559 T-states; identical ASM=false
+    structured_copy_test.go:63: source "linear" 24576 256 1 256; destination "linear" 25088 256 1 256; region 0 0 0 0 256 1; grace=true size=true: 48 -> 30 bytes; 45708 -> 30559 T-states; identical ASM=false
+    structured_copy_test.go:63: source "linear" 24576 8 2 8; destination "zx_bitmap_bytes" 16384; region 0 0 2 7 5 2; grace=false size=false: 53 -> 41 bytes; 765 -> 725 T-states; identical ASM=false
+    structured_copy_test.go:63: source "linear" 24576 8 2 8; destination "zx_bitmap_bytes" 16384; region 0 0 2 7 5 2; grace=true size=false: 53 -> 41 bytes; 765 -> 725 T-states; identical ASM=false
+    structured_copy_test.go:63: source "linear" 24576 8 2 8; destination "zx_bitmap_bytes" 16384; region 0 0 2 7 5 2; grace=true size=true: 53 -> 41 bytes; 765 -> 725 T-states; identical ASM=false
+--- PASS: TestStructuredCopyMatchesTextBaseline (0.19s)
+=== RUN   TestStructuredFillMatchesTextBaseline
+    structured_fill_test.go:63: layout "linear" 24576 8 2 11; region 1 0 4 2; value 91; grace=false size=false: 27 -> 27 bytes; 401 -> 401 T-states; identical ASM=true
+    structured_fill_test.go:63: layout "linear" 24576 8 2 11; region 1 0 4 2; value 91; grace=true size=false: 27 -> 27 bytes; 401 -> 401 T-states; identical ASM=true
+    structured_fill_test.go:63: layout "linear" 24576 8 2 11; region 1 0 4 2; value 91; grace=true size=true: 27 -> 27 bytes; 401 -> 401 T-states; identical ASM=true
+    structured_fill_test.go:63: layout "linear" 24576 256 1 256; value 255; grace=false size=false: 30 -> 22 bytes; 34901 -> 23889 T-states; identical ASM=false
+    structured_fill_test.go:63: layout "linear" 24576 256 1 256; value 255; grace=true size=false: 30 -> 22 bytes; 34901 -> 23889 T-states; identical ASM=false
+    structured_fill_test.go:63: layout "linear" 24576 256 1 256; value 255; grace=true size=true: 30 -> 22 bytes; 34901 -> 23889 T-states; identical ASM=false
+    structured_fill_test.go:63: layout "zx_bitmap_bytes" 16384; region 2 7 5 2; value 71; grace=false size=false: 27 -> 27 bytes; 485 -> 485 T-states; identical ASM=true
+    structured_fill_test.go:63: layout "zx_bitmap_bytes" 16384; region 2 7 5 2; value 71; grace=true size=false: 27 -> 27 bytes; 485 -> 485 T-states; identical ASM=true
+    structured_fill_test.go:63: layout "zx_bitmap_bytes" 16384; region 2 7 5 2; value 71; grace=true size=true: 27 -> 27 bytes; 485 -> 485 T-states; identical ASM=true
+--- PASS: TestStructuredFillMatchesTextBaseline (0.14s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	90.657s
