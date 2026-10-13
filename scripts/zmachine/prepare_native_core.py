@@ -571,18 +571,68 @@ if a.story_layout:
     replace_function('memory_read16', """fun memory_read16(address:u16)->u8 {
  return native_story_byte(address,0)
 }""")
-    # Raw bank_sum would checksum compressed storage instead of the story.
-    replace_function('verify_story', """fun verify_story()->u8 {
- let length:u32 = u32(word_at(26))*2
- if length < 64 { return 0 }
- if length > story_size { return 0 }
- var checksum:u16 = 0
- var at:u32 = 64
- while at < length {
-  checksum = checksum + u16(memory_read(at))
-  at = at + 1
+    # Preserve logical reads/cache behavior; keep the 24-bit sequential loop
+    # in ASM instead of repeated generated u32 arithmetic and call setup.
+    text += """
+fun native_checksum_story(@z80_hl low:u16,@z80_a high:u8)->u16 {
+ asm z80 (in low,high) (ret HL) (clob A,F,BC,DE,HL,IX,IY) {
+  LD DE,64
+  OR A
+  SBC HL,DE
+  SBC A,0
+  LD B,A
+  LD D,H
+  LD E,L
+  LD HL,64
+  LD C,0
+  LD IX,0
+ .byte:
+  LD A,B
+  OR D
+  OR E
+  JR Z,.done
+  PUSH BC
+  PUSH DE
+  PUSH HL
+  PUSH IX
+  LD A,C
+  CALL native_story_byte
+  POP IX
+  POP HL
+  POP DE
+  POP BC
+  PUSH HL
+  PUSH DE
+  LD E,A
+  LD D,0
+  ADD IX,DE
+  POP DE
+  POP HL
+  INC HL
+  LD A,H
+  OR L
+  JR NZ,.address_ready
+  INC C
+ .address_ready:
+  LD A,D
+  OR E
+  JR NZ,.decrement
+  DEC B
+ .decrement:
+  DEC DE
+  JR .byte
+ .done:
+  PUSH IX
+  POP HL
  }
- if checksum == word_at(28) { return 1 }
+}
+"""
+    replace_function('verify_story', """fun verify_story()->u8 {
+ let length:u32=u32(word_at(26))*2
+ if length<64 {return 0}
+ if length>story_size {return 0}
+ let checksum:u16=native_checksum_story(u16(length),u8(length>>16))
+ if checksum==word_at(28) {return 1}
  return 0
 }""")
 if a.layout_save_story:

@@ -355,6 +355,39 @@ func testZMachineBankedInterpreterNative(t *testing.T, highMemory bool, external
 		}
 		m = fresh
 	}
+	if zorkIIWindows {
+		verify := func(want byte) int {
+			m.CPU.SetPC(uint16(a.Symbols["verify_story"]))
+			m.CPU.SetSP(0xbf00)
+			m.CPU.SetTstates(0)
+			for i := 0; i < 100000000; i++ {
+				if m.CPU.PC() == 0xbf10 && m.CPU.SP() == 0xbf02 {
+					break
+				}
+				m.CPU.DoOpcode()
+			}
+			if m.CPU.PC() != 0xbf10 || m.CPU.SP() != 0xbf02 || byte(m.CPU.AF()>>8) != want || m.Memory.PagingState() != 0x10 {
+				t.Fatalf("checksum verification result PC/SP %04x/%04x A %d want %d", m.CPU.PC(), m.CPU.SP(), byte(m.CPU.AF()>>8), want)
+			}
+			return m.CPU.Tstates()
+		}
+		// verify_story validates against the runtime story_size populated by main.
+		sizeAddr := uint16(a.Symbols["story_size"])
+		for i := 0; i < 4; i++ {
+			m.Memory.Write(sizeAddr+uint16(i), byte(len(story)>>(8*i)), false)
+		}
+		ticks := verify(1)
+		m.Memory.RAM[0][64] ^= 1
+		verify(0)
+		m.Memory.RAM[0][64] ^= 1
+		t.Logf("full compressed checksum %d T; one-byte corruption rejected", ticks)
+		m.Memory.Write(uint16(a.Symbols["native_story_cache_key"]), 255, false)
+		m.Memory.Write(uint16(a.Symbols["native_story_cache_misses"]), 0, false)
+		m.Memory.Write(uint16(a.Symbols["native_story_cache_misses"])+1, 0, false)
+		m.CPU.SetPC(uint16(a.Symbols["main"]))
+		m.CPU.SetSP(0xbf00)
+		m.CPU.SetTstates(0)
+	}
 	keyText := []byte("look\ropen mailbox\rtake leaflet\rread leaflet\rinventory\rquit\ry\r")
 	var reference []byte
 	if explore {

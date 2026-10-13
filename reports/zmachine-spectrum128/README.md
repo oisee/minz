@@ -1811,3 +1811,18 @@ SAVE/RESTORE PASS25.372 s. Это игровые маршруты, не полн
 Сохранённый128K SNA прошёл all-bank roundtrip и headless CLI startup15000frames
 до комнаты/статуса/prompt. Checksum сжатой истории делает старт заметно дольше;
 старые несжатые disk комплекты остаются доступны. RAM SAVE теряется при выходе.
+
+
+### 13 октября: checksum сжатой истории быстрее в5,7 раза
+
+Исходный sequential checksum пересекал generated u32/call ABI для каждого
+байта. Compact ASM loop сохраняет все регистры вокруг native_story_byte,
+считает 24-bit address/count и16-bit сумму. Декодер и cache policy не изменены;
+каждый логический байт64..declared-length-1 по-прежнему прочитан.
+
+A/B с одной историей, тем же lifecycle и corruption probe: checksum
+335639053 →58849998 T (−82,5%,5,7x). Полный lifecycle1355222473 →1078433418 T
+(−20,4%). Resident25243 →25279 B (+36 B); остаётся65 B до$BE00. Cache misses1124
+в обоих вариантах. SAVE628/700 B, output2214 B byte-exact VM, stack70 B.
+Оба варианта verify принимают оригинал и отклоняют xor1 по адресу64.
+Это контроль одной corrupt позиции, а не всех возможных повреждений.
