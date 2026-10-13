@@ -211,6 +211,28 @@ func (mr *metaRuntime) registerHIRHosts(vm *mir2.VM) {
 		}
 		return b.add(&hir.WhileStmt{Cond: cond, Body: body})
 	})
+	host("hir_if", 3, func(a []mir2.Value) ([]mir2.Value, error) {
+		cond, err := b.expr(a[0].I)
+		if err != nil {
+			return nil, err
+		}
+		branches := [2]*hir.Block{}
+		for i := range branches {
+			n, err := b.node(a[i+1].I)
+			if err != nil {
+				return nil, err
+			}
+			block, ok := n.(*hir.Block)
+			if !ok {
+				return nil, fmt.Errorf("structured emit: if needs boolean and two blocks")
+			}
+			branches[i] = block
+		}
+		if cond.ExprTy() != mir2.TyBool {
+			return nil, fmt.Errorf("structured emit: if needs boolean and two blocks")
+		}
+		return b.add(&hir.IfStmt{Cond: cond, Then: branches[0], Else: branches[1]})
+	})
 	host("emit_hir", 1, func(a []mir2.Value) ([]mir2.Value, error) {
 		n, e := b.node(a[0].I)
 		if e != nil {
@@ -247,6 +269,8 @@ func containsMetaBlock(s hir.Stmt, want *hir.Block) bool {
 				return true
 			}
 		}
+	case *hir.IfStmt:
+		return containsMetaBlock(n.Then, want) || containsMetaBlock(n.Else, want)
 	case *hir.WhileStmt:
 		return containsMetaBlock(n.Body, want)
 	}
@@ -269,6 +293,8 @@ func snapshotMetaStmt(s hir.Stmt) hir.Stmt {
 		return &c
 	case *hir.AssignStmt:
 		return &hir.AssignStmt{Target: snapshotMetaExpr(n.Target), Val: snapshotMetaExpr(n.Val)}
+	case *hir.IfStmt:
+		return &hir.IfStmt{Cond: snapshotMetaExpr(n.Cond), Then: snapshotMetaStmt(n.Then).(*hir.Block), Else: snapshotMetaStmt(n.Else).(*hir.Block)}
 	case *hir.WhileStmt:
 		return &hir.WhileStmt{Cond: snapshotMetaExpr(n.Cond), Body: snapshotMetaStmt(n.Body).(*hir.Block)}
 	default:
