@@ -8,5 +8,6 @@
     0,
     0
   ],
-  "scope": "pre-indexed-definition implementation; final lookup refactor has separate directed rerun"
+  "scope": "final indexed-definition implementation and expanded 120 native workloads",
+  "code_checkpoint": "e0f5c685"
 }

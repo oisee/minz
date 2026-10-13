@@ -35,7 +35,8 @@ heldout lengths. Order still affects entry setup; this is not complete
 order-independent allocation or a global optimality proof.
 
 MIR2 core passed in 135.696s; all 346 fast pipeline tests passed in four
-processes. The subsequent definition-lookup refactor has its own directed rerun. This
+processes. The final indexed-definition implementation and expanded workloads
+also passed all 346 fast tests; final directed MIR2/pipeline rerun passed. This
 experiment is not integrated; the evidence supports this bounded copy family.
 Next work needs correlated operand costs and/or edge-aware allocation
 candidates, with full boundary moves measured.
