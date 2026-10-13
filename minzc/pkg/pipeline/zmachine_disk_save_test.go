@@ -55,9 +55,20 @@ func TestZMachineZorkIIWindowDiskConsoleSaveAcrossRestart(t *testing.T) {
 	testZMachineDiskSave(t, path, true, true, true)
 }
 
+// Reopen a late-game TRD produced by the full native walkthrough in a
+// genuinely fresh machine, then complete the final puzzles from that record.
+func TestZMachineZorkIILateDiskRestoreFreshNative(t *testing.T) {
+	story := os.Getenv("MINZ_Z3_ZORK2_STORY")
+	disk := os.Getenv("MINZ_Z3_LATE_TRD")
+	if story == "" || disk == "" {
+		t.Skip("set Zork II story and independently persisted late native TRD")
+	}
+	testZMachineDiskSave(t, story, true, true, true, disk)
+}
+
 // Independent Inform story: SAVE branches again after RESTORE, recovering
 // value=1 even though the restore command sets it to 7 first.
-func testZMachineDiskSave(t *testing.T, externalStory string, extended, console, windows bool) {
+func testZMachineDiskSave(t *testing.T, externalStory string, extended, console, windows bool, lateDisk ...string) {
 	root := filepath.Clean("../../..")
 	original, err := os.ReadFile(filepath.Join(root, "examples/zmachine/z3-fixtures/save_restore.z3"))
 	if err != nil {
@@ -167,7 +178,18 @@ func testZMachineDiskSave(t *testing.T, externalStory string, extended, console,
 			}
 
 			diskPath := filepath.Join(dir, "save.trd")
+			lateRestore := len(lateDisk) > 0
 			disk := &formats.TRDFile{Path: diskPath, Writeback: true}
+			if lateRestore {
+				data, err := os.ReadFile(lateDisk[0])
+				if err != nil {
+					t.Fatal(err)
+				}
+				if len(data) != len(disk.Data) || !bytes.Contains(data, []byte("MZ3R")) {
+					t.Fatal("invalid persisted late disk")
+				}
+				copy(disk.Data[:], data)
+			}
 			if err := disk.Flush(); err != nil {
 				t.Fatal(err)
 			}
@@ -201,6 +223,17 @@ func testZMachineDiskSave(t *testing.T, externalStory string, extended, console,
 						if zorkII {
 							restoreRoute = []byte("restore\ninventory\nrestart\ny\nlook\ninventory\nquit\ny\n")
 						}
+					}
+					if lateRestore {
+						lateRoute, err := os.ReadFile(filepath.Join(root, "examples/zmachine/zork-west-demo/routes/zork2-late-save-vm.txt"))
+						if err != nil {
+							t.Fatal(err)
+						}
+						at := bytes.Index(lateRoute, []byte("restore\n"))
+						if at < 0 {
+							t.Fatal("missing late restore route")
+						}
+						restoreRoute = lateRoute[at:]
 					}
 					keyText = bytes.ReplaceAll(restoreRoute, []byte("\n"), []byte("\r"))
 					if !console {
@@ -275,7 +308,11 @@ func testZMachineDiskSave(t *testing.T, externalStory string, extended, console,
 					t.Fatal("missing output symbol")
 				}
 				m.SetPCTrap(uint16(putchar), func() { output = append(output, byte(m.CPU.AF()>>8)); m.CPU.DoOpcode() })
-				for i := 0; i < 10000; i++ {
+				frameLimit := 10000
+				if lateRestore {
+					frameLimit = 100000
+				}
+				for i := 0; i < frameLimit; i++ {
 					m.RunFrameFast()
 					if m.CPU.Halted() {
 						break
@@ -317,8 +354,11 @@ func testZMachineDiskSave(t *testing.T, externalStory string, extended, console,
 				stagingMagic = append([]byte(nil), m.Memory.ExtendedRAM[0][:4]...)
 				return output
 			}
-			first := run(disk, false)
-			if extended && !bytes.Equal(stagingMagic, []byte("MZ3R")) {
+			var first []byte
+			if !lateRestore {
+				first = run(disk, false)
+			}
+			if !lateRestore && extended && !bytes.Equal(stagingMagic, []byte("MZ3R")) {
 				t.Fatalf("save not staged in physical bank8: %x", stagingMagic)
 			}
 			if externalStory == "" && !bytes.Equal(first, []byte(">saved 1\n>\n")) {
@@ -329,6 +369,30 @@ func testZMachineDiskSave(t *testing.T, externalStory string, extended, console,
 				t.Fatal(err)
 			}
 			second := run(reopened, true)
+			if lateRestore {
+				for _, needle := range []string{
+					"You are carrying:\n  A Wizard's magic wand\n  A china teapot\n  The china teapot contains:\n    A quantity of water\n  A lamp (providing light)\n  A matchbook",
+					"Your score would be 400 (total of 400 points), in 650 moves.",
+					"you have conquered the Wizard of Frobozz and become the master of his domain",
+				} {
+					if !bytes.Contains(second, []byte(needle)) {
+						t.Fatalf("fresh late restore missing %q: %q", needle, second)
+					}
+				}
+				if bytes.Contains(second, []byte("Z3 error")) || bytes.Contains(second, []byte("You have died")) {
+					t.Fatal("fresh late restore game failure")
+				}
+				if d := os.Getenv("MINZ_Z3_TRANSCRIPTS"); d != "" {
+					if err := os.MkdirAll(d, 0755); err != nil {
+						t.Fatal(err)
+					}
+					if err := os.WriteFile(filepath.Join(d, "late-restore-fresh.txt"), second, 0644); err != nil {
+						t.Fatal(err)
+					}
+				}
+				t.Logf("fresh late disk restore: wand inventory and full 400/400 ending; resident %d bytes", len(a.Binary))
+				return
+			}
 			if externalStory == "" && !bytes.Equal(second, first) {
 				t.Fatalf("fresh restore %q save %q", second, first)
 			}
