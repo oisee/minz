@@ -1,0 +1,47 @@
+; conditional candidate: A input/return; clobbers A,F; no scratch/bank changes
+is_atom_char:
+.__conditional_is_atom_char_0:
+    CP 0
+    JRS NZ, .__conditional_is_atom_char_2
+.__conditional_is_atom_char_1:
+    LD A, 0
+    RET
+.__conditional_is_atom_char_2:
+    CP 32
+    JRS NZ, .__conditional_is_atom_char_4
+.__conditional_is_atom_char_3:
+    LD A, 0
+    RET
+.__conditional_is_atom_char_4:
+    CP 9
+    JRS NZ, .__conditional_is_atom_char_6
+.__conditional_is_atom_char_5:
+    LD A, 0
+    RET
+.__conditional_is_atom_char_6:
+    CP 10
+    JRS NZ, .__conditional_is_atom_char_8
+.__conditional_is_atom_char_7:
+    LD A, 0
+    RET
+.__conditional_is_atom_char_8:
+    CP 13
+    JRS NZ, .__conditional_is_atom_char_10
+.__conditional_is_atom_char_9:
+    LD A, 0
+    RET
+.__conditional_is_atom_char_10:
+    CP 40
+    JRS NZ, .__conditional_is_atom_char_12
+.__conditional_is_atom_char_11:
+    LD A, 0
+    RET
+.__conditional_is_atom_char_12:
+    CP 41
+    JRS NZ, .__conditional_is_atom_char_14
+.__conditional_is_atom_char_13:
+    LD A, 0
+    RET
+.__conditional_is_atom_char_14:
+    LD A, 1
+    RET
