@@ -1,0 +1,14 @@
+{
+  "checkpoint": "bbca6943",
+  "inventory": 692,
+  "fast_selected": 345,
+  "workers": 4,
+  "shards": 4,
+  "exit_codes": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "scope": "code and tests in bbca6943; later changes add reports and check native LoadMemory errors"
+}
