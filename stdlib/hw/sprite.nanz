@@ -149,8 +149,7 @@ fun @sprite() -> void {
                         }
                     } else {
                         let region: u16 = hir_block()
-                        let pixel: u16 = hir_ref(c"sprite_ptr", c"ptr")
-                        hir_append(region, hir_var(c"sprite_ptr", c"ptr", hir_int(u16(address + col), c"ptr")))
+                        let pixel: u16 = hir_int(u16(address + col), c"ptr")
                         let bits: u16 = hir_int(u16(graphic), c"u8")
                         var value: u16 = bits
                         if mask != 0 {

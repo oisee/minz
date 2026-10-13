@@ -266,6 +266,10 @@ type loopCtx struct {
 }
 
 type lowerer struct {
+	// Only active within one literal-address read/modify/write assignment.
+	// Memory operations retain their order; the pure address is computed once.
+	literalStorePointers map[int64]mir2.Reg
+
 	errorFlag, errorCode mir2.Reg
 	gotoDeadBodies       map[*Block]bool
 	gotoDemands          map[string]map[string]bool
@@ -1154,6 +1158,15 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		return false
 
 	case *AssignStmt:
+		if target, ok := st.Target.(*DerefExpr); ok {
+			_, integer := target.Ptr.(*IntLitExpr)
+			_, constant := target.Ptr.(*ConstPtrExpr)
+			if (integer && target.Ptr.ExprTy() == mir2.TyPtr || constant) && literalPointerExpression(st.Val) {
+				previous := l.literalStorePointers
+				l.literalStorePointers = make(map[int64]mir2.Reg)
+				defer func() { l.literalStorePointers = previous }()
+			}
+		}
 		// Check for fold/reduce: x = fold(ptr, init, cb, n)
 		if foldReg, ok := l.tryLowerFold(st.Val); ok {
 			if tgt, ok2 := st.Target.(*VarRefExpr); ok2 {
@@ -2269,6 +2282,14 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 	switch ex := e.(type) {
 
 	case *IntLitExpr:
+		if ex.Ty == mir2.TyPtr && l.literalStorePointers != nil {
+			if reg, ok := l.literalStorePointers[ex.Val]; ok {
+				return reg
+			}
+			reg := l.bld.Const(ex.Val, ex.Ty, classForExpr(ex.Ty))
+			l.literalStorePointers[ex.Val] = reg
+			return reg
+		}
 		return l.bld.Const(ex.Val, ex.Ty, classForExpr(ex.Ty))
 
 	case *BoolLitExpr:
@@ -2425,7 +2446,16 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 		return l.bld.AddrOf(ex.Sym, mir2.ClassPointer)
 
 	case *ConstPtrExpr:
-		return l.bld.Const(int64(ex.Addr), mir2.TyPtr, mir2.ClassPointer)
+		address := int64(ex.Addr)
+		if l.literalStorePointers != nil {
+			if reg, ok := l.literalStorePointers[address]; ok {
+				return reg
+			}
+			reg := l.bld.Const(address, mir2.TyPtr, mir2.ClassPointer)
+			l.literalStorePointers[address] = reg
+			return reg
+		}
+		return l.bld.Const(address, mir2.TyPtr, mir2.ClassPointer)
 
 	case *LoadExpr:
 		ptr := l.lowerExpr(ex.Ptr)
@@ -4315,5 +4345,27 @@ func collectGotoAncestors(b *Block, path []*Block, out map[string][]*Block) {
 			}
 			collectGotoAncestors(x.Default, path, out)
 		}
+	}
+}
+
+// A store-value tree without control flow or callbacks keeps all reused
+// constants in the same dominating evaluation sequence. Loads are never merged.
+func literalPointerExpression(expr Expr) bool {
+	switch value := expr.(type) {
+	case *IntLitExpr, *BoolLitExpr, *VarRefExpr, *ConstPtrExpr:
+		return true
+	case *BinExpr:
+		switch value.Op {
+		case "+", "-", "&", "|", "^":
+			return literalPointerExpression(value.L) && literalPointerExpression(value.R)
+		default:
+			return false
+		}
+	case *LoadExpr:
+		literal, integer := value.Ptr.(*IntLitExpr)
+		_, constant := value.Ptr.(*ConstPtrExpr)
+		return (integer && literal.Ty == mir2.TyPtr) || constant
+	default:
+		return false
 	}
 }

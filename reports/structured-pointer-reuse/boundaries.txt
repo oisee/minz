@@ -1,0 +1,6 @@
+=== RUN   TestLiteralStorePointerReuseBoundaries
+--- PASS: TestLiteralStorePointerReuseBoundaries (0.00s)
+=== RUN   TestLiteralStorePointerDoesNotCrossCalls
+--- PASS: TestLiteralStorePointerDoesNotCrossCalls (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	0.012s
