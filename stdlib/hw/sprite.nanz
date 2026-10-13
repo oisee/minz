@@ -1,5 +1,7 @@
 // Known masked sprite specialized at compile time: (old & keep_mask) | graphics.
 fun @sprite() -> void {
+    var condition: ^u8 = c""
+    var seen_when: u8 = 0
     var layout: ^u8 = c""
     var mask_row_count: i32 = 0
     var primitive: ^u8 = c"pointer"
@@ -17,7 +19,14 @@ fun @sprite() -> void {
     var i: u16 = 0
     while i < block_len() {
         let key: ^u8 = node_keyword(i)
-        if str_eq(key, c"destination") == 1 {
+        if str_eq(key, c"when") == 1 {
+            if seen_when != 0 { meta_error(c"sprite: duplicate when") }
+            if node_arg_count(i) != 1 { meta_error(c"sprite: when needs one boolean variable name") }
+            seen_when = 1
+            condition = node_arg_str(i, 0)
+            // Validate the name and retain a typed reference to caller scope.
+            let checked: u16 = hir_ref(condition, c"bool")
+        } else if str_eq(key, c"destination") == 1 {
             if seen_layout != 0 { meta_error(c"sprite: duplicate layout") }
             seen_layout = 1
             layout = node_arg_str(i, 0)
@@ -77,6 +86,10 @@ fun @sprite() -> void {
     if str_eq(primitive, c"pointer") == 0 {
         if str_eq(primitive, c"compiled") == 0 { meta_error(c"sprite: unknown primitive") }
     }
+    if seen_when == 1 {
+        if str_eq(primitive, c"pointer") == 0 { meta_error(c"sprite: when requires pointer primitive") }
+    }
+    let conditional_body: u16 = hir_block()
     // Decode bytes on the compile-time VM, then emit only the resulting work.
     var row: i32 = 0
     i = 0
@@ -158,7 +171,8 @@ fun @sprite() -> void {
                             value = hir_binary(c"|", kept, bits)
                         }
                         hir_append(region, hir_store(pixel, value))
-                        emit_hir(region)
+                        if seen_when == 1 { hir_append(conditional_body, region) }
+                        else { emit_hir(region) }
                     }
                 }
                 col = col + 1
@@ -171,5 +185,8 @@ fun @sprite() -> void {
             row = row + 1
         }
         i = i + 1
+    }
+    if seen_when == 1 {
+        emit_hir(hir_if(hir_ref(condition, c"bool"), conditional_body, hir_block()))
     }
 }
