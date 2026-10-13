@@ -456,3 +456,15 @@ literal/repeat counts around 128/130, zero count, full-bank decoded output and
 source ending at bank boundary; all eight banks checked against independent
 output oracle outside bounded native stack. Host codec 49 roundtrip/rejection
 cases PASS. Live dynamic memory remains raw; save/restore still unfinished.
+
+
+## Real-save delta budget
+
+Three compact host-VM saves, including the cellar route, encoded to 457/624/751
+bytes with RLE(state) and RLE(dynamic XOR original). Full decode matched saved
+state/dynamic bytes. This demonstrates room in the 2204-byte bank tail for these
+samples, not a full-game bound or implemented native SAVE. A complete integrity/
+identity header still needs measuring. The native restore must validate before
+mutation and restore RNG/stream3 state; shared host restore currently omits
+metadata bytes 22..57 despite saving them. See [save format plan](save-format-plan.md).
+Raw saves, encoded candidates and output logs are retained on the share.
