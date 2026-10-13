@@ -151,7 +151,8 @@ func PrepareLocalTableProblem(f *mir2.Func, allocation *mir2.AllocResult) (*Loca
 		copyInst := *inst
 		var lowered []VIROp
 		var err error
-		if inst.Op == mir2.OpShl {
+		switch inst.Op {
+		case mir2.OpShl:
 			// Exact modulo-word doubling chain; no implicit repeat-count pattern.
 			maxReg++
 			acc := maxReg
@@ -162,7 +163,7 @@ func PrepareLocalTableProblem(f *mir2.Func, allocation *mir2.AllocResult) (*Loca
 				acc = maxReg
 			}
 			lowered = append(lowered, VIROp{Op: OpMove, Dst: int(inst.Dst), Src: [2]int{acc, -1}, Width: 16, DstHint: Z80.LocSetByNames("HL")})
-		} else if inst.Op == mir2.OpMul {
+		case mir2.OpMul:
 			// Binary Horner chain. Original MIR remains bound; every shift/add is
 			// explicit, so scratch/liveness/ABI is independently admitted and costed.
 			k := constants[inst.Src[1]]
@@ -185,7 +186,7 @@ func PrepareLocalTableProblem(f *mir2.Func, allocation *mir2.AllocResult) (*Loca
 				}
 			}
 			lowered = append(lowered, VIROp{Op: OpMove, Dst: int(inst.Dst), Src: [2]int{acc, -1}, Width: 16, DstHint: Z80.LocSetByNames("HL")})
-		} else {
+		default:
 			lowered, err = translateInst(&copyInst, Z80, nil)
 		}
 		if err != nil {
