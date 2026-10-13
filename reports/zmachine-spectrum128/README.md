@@ -2,6 +2,10 @@
 
 October 13, 2026. Active goal, implementation not complete.
 
+**Актуальный обзор:** [что работает, как запустить и что осталось](current-status.md).
+Ниже — хронологический журнал исследований. Его ранние записи описывают
+состояние на момент проверки, а не текущие ограничения реализации.
+
 Current Nanz core: examples/zmachine/zork-west-demo/zvm.nanz. It interprets story
 instructions in Nanz, with host services for file/input/output. Story data lives
 in a 131072-byte global; native Z80 correctly rejects that flat allocation.
