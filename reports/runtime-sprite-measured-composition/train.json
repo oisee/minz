@@ -1,0 +1,86 @@
+{
+  "exact_data_access": true,
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 1000000,
+  "max_memory": 65536,
+  "resources": {
+    "frame0": "ACVKb5S53gMoTXKXvOEGK1B1mr/kCS5TeJ3C5wwxVns=",
+    "frame1": "CzBVep/E6Q4zWH2ix+wRNluApcrvFDleg6jN8hc8YYY=",
+    "frame2": "FjtgharP9Bk+Y4it0vccQWaLsNX6H0RpjrPY/SJHbJE="
+  },
+  "globals": null,
+  "calls": [
+    {
+      "function": "render",
+      "arguments": [
+        {
+          "resource": "frame0"
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "render",
+      "arguments": [
+        {
+          "resource": "frame1",
+          "offset": 1
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "render",
+      "arguments": [
+        {
+          "resource": "frame2",
+          "offset": 7
+        },
+        {
+          "value": 2
+        }
+      ]
+    },
+    {
+      "function": "render",
+      "arguments": [
+        {
+          "resource": "frame0",
+          "offset": 2
+        },
+        {
+          "value": 255
+        }
+      ]
+    },
+    {
+      "function": "render",
+      "arguments": [
+        {
+          "resource": "frame1",
+          "offset": 13
+        },
+        {
+          "value": 99
+        }
+      ]
+    },
+    {
+      "function": "render",
+      "arguments": [
+        {
+          "resource": "frame2",
+          "offset": 19
+        },
+        {
+          "value": 1
+        }
+      ]
+    }
+  ]
+}

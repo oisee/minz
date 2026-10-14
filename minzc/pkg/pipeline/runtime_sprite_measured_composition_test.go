@@ -220,6 +220,9 @@ func TestRuntimeSpriteMeasuredCompositionHeldout(t *testing.T) {
 			ev := result.Evidence
 			selected := ev.Runs[ev.SelectedMode]
 			winner := selected.Candidates[selected.Selected]
+			if ev.Options[ev.SelectedMode].CheckedLocalTablePath == "" {
+				t.Fatal("winner did not use the composed table configuration")
+			}
 			baseline := ev.Runs[0].Candidates[0]
 			if !bytes.Equal(result.Binary, winner.Binary) || result.Steps.Assembly != winner.Assembly {
 				t.Fatal("selected executable drift")

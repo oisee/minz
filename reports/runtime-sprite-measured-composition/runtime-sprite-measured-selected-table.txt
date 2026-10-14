@@ -1,0 +1,10 @@
+=== RUN   TestRuntimeSpriteMeasuredCompositionHeldout
+=== RUN   TestRuntimeSpriteMeasuredCompositionHeldout/speed
+    runtime_sprite_measured_composition_test.go:324: speed mode1 layout2: 97→89 B; train 2081→1936 T; heldout 2553→2372 T
+=== RUN   TestRuntimeSpriteMeasuredCompositionHeldout/size
+    runtime_sprite_measured_composition_test.go:324: size mode1 layout0: 97→88 B; train 2081→1945 T; heldout 2553→2383 T
+--- PASS: TestRuntimeSpriteMeasuredCompositionHeldout (4.74s)
+    --- PASS: TestRuntimeSpriteMeasuredCompositionHeldout/speed (2.24s)
+    --- PASS: TestRuntimeSpriteMeasuredCompositionHeldout/size (2.26s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.748s

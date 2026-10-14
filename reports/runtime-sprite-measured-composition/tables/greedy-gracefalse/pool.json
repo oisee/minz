@@ -1,0 +1,87 @@
+[
+  {
+    "schema": "vir-local-direct-v1",
+    "costModel": "expanded-pattern-tstates-v1",
+    "sig": "vir-local-direct-v1:2b3c05aa43eec08472d471dde92bc161d0c59fe82c846bfd77531068d9471059",
+    "nVregs": 8,
+    "nOps": 8,
+    "cost": 68,
+    "assignment": [
+      9,
+      0,
+      0,
+      0,
+      9,
+      8,
+      8,
+      8
+    ]
+  },
+  {
+    "schema": "vir-local-direct-v1",
+    "costModel": "expanded-pattern-tstates-v1",
+    "sig": "vir-local-direct-v1:8550887dbf8f68323cb8423cdf50e0af51ccb1a5104f3b29038ac827ba043754",
+    "nVregs": 8,
+    "nOps": 8,
+    "cost": 56,
+    "assignment": [
+      8,
+      9,
+      0,
+      0,
+      0,
+      9,
+      8,
+      8
+    ]
+  },
+  {
+    "schema": "vir-local-direct-v1",
+    "costModel": "expanded-pattern-tstates-v1",
+    "sig": "vir-local-direct-v1:9e1a3a5bb735eac946c15358b69fd32396751aa3ad1004225eb659517a5cd258",
+    "nVregs": 8,
+    "nOps": 8,
+    "cost": 70,
+    "assignment": [
+      9,
+      0,
+      0,
+      0,
+      9,
+      8,
+      8,
+      8
+    ]
+  },
+  {
+    "schema": "vir-local-direct-v1",
+    "costModel": "expanded-pattern-tstates-v1",
+    "sig": "vir-local-direct-v1:a7149c81902b0f258068ade531ecf8bf2e772acc84f0549c13fe295916a99279",
+    "nVregs": 8,
+    "nOps": 8,
+    "cost": 70,
+    "assignment": [
+      9,
+      0,
+      0,
+      0,
+      9,
+      8,
+      8,
+      8
+    ]
+  },
+  {
+    "schema": "vir-local-direct-v1",
+    "costModel": "expanded-pattern-tstates-v1",
+    "sig": "vir-local-direct-v1:f4c2721eb6f19eb6512601cab19bdf8615bd47eb44e2b7976ce77766bac860db",
+    "nVregs": 3,
+    "nOps": 4,
+    "cost": 45,
+    "assignment": [
+      0,
+      9,
+      8
+    ]
+  }
+]
