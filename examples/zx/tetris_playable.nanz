@@ -18,6 +18,17 @@
 //
 // ============================================================================
 
+import hw.scene
+
+// Owned attribute regions: compose privately, snapshot dirty cells, then publish
+// in raster order after the next frame interrupt. init_screen establishes zero.
+@scene("tetris") {
+    surface 0x5800 32 24 32
+    plane 11 2 10 20
+    plane 23 3 4 4
+    plane 5 3 4 4
+}
+
 // ── ZX Spectrum primitives ──────────────────────────────────────────────────
 
 fun zx_poke(@z80_hl addr: u16, @z80_a val: u8) -> void {
@@ -454,62 +465,66 @@ fun init_screen() -> void {
     zx_border(0)
 }
 
-fun render_preview(t: u8, sx: u8, sy: u8) -> void {
-    // Clear 4x4 preview area
-    for py in 0..4 {
-        for px in 0..4 {
-            zx_poke(zx_attr_addr(sx + px, sy + py), Attr.BLACK)
-        }
+fun render_preview(t: u8, offset: u8) -> void {
+    var i: u8 = 0
+    while i < 16 {
+        tetris_values[offset + i] = Attr.BLACK
+        i = i + 1
     }
-    // Draw piece cells
     if t < 7 {
         let pc: u8 = piece_color(t)
-        for c in 0..4 {
+        var c: u8 = 0
+        while c < 4 {
             let dx: u8 = piece_dx(t, 0, c)
             let dy: u8 = piece_dy(t, 0, c)
-            zx_poke(zx_attr_addr(sx + dx, sy + dy), pc)
+            tetris_values[offset + dy * 4 + dx] = pc
+            c = c + 1
         }
     }
 }
 
-fun render() -> void {
-    // Render board
-    for y in 0..20 {
-        for x in 0..10 {
-            let cell: u8 = board_get(x, y)
-            let attr: u8 = color_attr(cell)
-            zx_poke(zx_attr_addr(BOARD_X + x, BOARD_Y + y), attr)
-        }
+fun compose() -> void {
+    // Build the final image without touching screen RAM. An unchanged active
+    // cell is never briefly replaced by the underlying board colour.
+    var i: u8 = 0
+    while i < 200 {
+        tetris_values[i] = color_attr(board[i])
+        i = i + 1
     }
-
-    // Ghost piece (dim shadow at landing position)
     let gy: u8 = ghost_y()
     if gy != cur_y {
         let gc: u8 = (piece_color(cur_type) >> 3) & 7
-        for c in 0..4 {
+        var c: u8 = 0
+        while c < 4 {
             let cx: u8 = cur_x + piece_dx(cur_type, cur_rot, c)
             let cy: u8 = gy + piece_dy(cur_type, cur_rot, c)
             if (cx < BOARD_W) & (cy < BOARD_H) {
                 if board_get(cx, cy) == 0 {
-                    zx_poke(zx_attr_addr(BOARD_X + cx, BOARD_Y + cy), gc)
+                    tetris_values[cy * 10 + cx] = gc
                 }
             }
+            c = c + 1
         }
     }
-
-    // Current piece (bright, on top)
     let pc: u8 = piece_color(cur_type)
-    for c in 0..4 {
+    var c: u8 = 0
+    while c < 4 {
         let cx: u8 = cur_x + piece_dx(cur_type, cur_rot, c)
         let cy: u8 = cur_y + piece_dy(cur_type, cur_rot, c)
         if (cx < BOARD_W) & (cy < BOARD_H) {
-            zx_poke(zx_attr_addr(BOARD_X + cx, BOARD_Y + cy), pc)
+            tetris_values[cy * 10 + cx] = pc
         }
+        c = c + 1
     }
+    render_preview(next_type, 200)
+    render_preview(hold_type, 216)
+}
 
-    // Next / Hold previews
-    render_preview(next_type, PREVIEW_NEXT_X, PREVIEW_Y)
-    render_preview(hold_type, PREVIEW_HOLD_X, PREVIEW_Y)
+fun render() -> void {
+    compose()
+    tetris_prepare()
+    zx_halt()
+    tetris_publish()
 }
 
 // ── Input ───────────────────────────────────────────────────────────────────
@@ -589,7 +604,6 @@ fun main() -> void {
 
     // ── Game loop ───────────────────────────────────────────────────────
     while game_over == 0 {
-        zx_halt()
         frame_count = frame_count + 1
 
         // Input (edge-detect for single-press actions)

@@ -6,7 +6,7 @@ milestone with rendering and declarative-library work, not a completion claim.
 | Requirement | Evidence required | Current status |
 |---|---|---|
 | Flicker-free compiled and PUSH sprite demos | Independent screens at every display frame, ROM/ULA timing, dirty writes and IRQ/SP checks | 48K model: baseline detects partial display; dirty renderer 0/64 partial frames in all six variants. Physical display/release pending |
-| Tetris removes intermediate actor erasure | Composited frame, dirty publication, independent gameplay and display oracles | Pending |
+| Tetris removes intermediate actor erasure | Composited frame, dirty publication, independent gameplay and display oracles | 12 render fixtures × 3 modes: final full RAM, gameplay state, IM2 and fetched ULA pixels; baseline detects flicker, composition 0 partial frames. Preparation still ~6 frames; real game input/substeps pending |
 | Smooth pixel-step falling piece | Pixel geometry and substep/rotation/locking model, native frames | Pending |
 | Optional TV sine/noise/row-shift effects | Deterministic render oracle; game state identical with effects on/off | Pending |
 | Declarative typed Nanz, object composition and compile-time interfaces | Real consumers using common reusable APIs; compile-time diagnostics | Pending |
