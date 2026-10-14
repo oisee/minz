@@ -21,8 +21,8 @@ func prepareSingleBlockTableProblem(f *mir2.Func, allocation *mir2.AllocResult) 
 	if f != nil && f.Attrs.FixedIndirectABI {
 		return nil, fmt.Errorf("checked local table does not model the canonical indirect entry bridge")
 	}
-	if f == nil || allocation == nil || len(f.Blocks) != 1 || f.Attrs.IsExtern || len(f.Contract.Returns) != 1 {
-		return nil, fmt.Errorf("local table requires single-result leaf block")
+	if f == nil || allocation == nil || len(f.Blocks) != 1 || f.Attrs.IsExtern || len(f.Contract.Returns) > 1 {
+		return nil, fmt.Errorf("local table requires leaf block with at most one result")
 	}
 	block := f.Blocks[0]
 	if block == nil {
@@ -30,7 +30,7 @@ func prepareSingleBlockTableProblem(f *mir2.Func, allocation *mir2.AllocResult) 
 	}
 	parameters := map[mir2.Reg]mir2.Param{}
 	for _, p := range f.Contract.Params {
-		if _, duplicate := parameters[p.Reg]; p.Reg <= 0 || duplicate || !localIntegerType(p.Ty) {
+		if _, duplicate := parameters[p.Reg]; p.Reg <= 0 || duplicate || !localTableValueType(p.Ty) {
 			return nil, fmt.Errorf("invalid or duplicate contract parameter")
 		}
 		parameters[p.Reg] = p
@@ -50,26 +50,47 @@ func prepareSingleBlockTableProblem(f *mir2.Func, allocation *mir2.AllocResult) 
 		defined[r] = p.Ty
 	}
 	for _, inst := range block.Insts {
-		if inst == nil || inst.Dst <= 0 || inst.ClsHard || !localIntegerType(inst.Ty) {
+		if inst == nil || inst.ClsHard || !localTableValueType(inst.Ty) || (inst.Op != mir2.OpStore && inst.Dst <= 0) || (inst.Op == mir2.OpStore && inst.Dst != mir2.NoReg) {
 			return nil, fmt.Errorf("hard class or invalid local definition unsupported")
 		}
 		arity := 0
 		switch inst.Op {
 		case mir2.OpConst:
+			if inst.Ty == mir2.TyPtr && (inst.Imm < 0 || inst.Imm > 65535) {
+				return nil, fmt.Errorf("local pointer constant outside 16-bit address space")
+			}
+		case mir2.OpLoad:
+			arity = 1
+			if inst.Ty != mir2.TyU8 && inst.Ty != mir2.TyI8 {
+				return nil, fmt.Errorf("local memory supports byte loads only")
+			}
+		case mir2.OpStore:
+			arity = 2
+			if inst.Ty != mir2.TyU8 && inst.Ty != mir2.TyI8 {
+				return nil, fmt.Errorf("local memory supports byte stores only")
+			}
+		case mir2.OpPtrAdd:
+			arity = 2
+			if inst.Ty != mir2.TyPtr {
+				return nil, fmt.Errorf("local pointer add requires byte pointer result")
+			}
 		case mir2.OpMove:
 			arity = 1
 		case mir2.OpShl:
 			arity = 2
-			if inst.Ty.Width() != 16 {
+			if !localIntegerType(inst.Ty) || inst.Ty.Width() != 16 {
 				return nil, fmt.Errorf("local constant shift requires word width")
 			}
 		case mir2.OpMul:
 			arity = 2
-			if inst.Ty.Width() != 16 {
+			if !localIntegerType(inst.Ty) || inst.Ty.Width() != 16 {
 				return nil, fmt.Errorf("local constant multiply requires word width")
 			}
 		case mir2.OpAdd, mir2.OpSub, mir2.OpAnd, mir2.OpOr, mir2.OpXor:
 			arity = 2
+			if !localIntegerType(inst.Ty) {
+				return nil, fmt.Errorf("local integer operation requires integer type")
+			}
 		default:
 			return nil, fmt.Errorf("unsupported local opcode %s", inst.Op)
 		}
@@ -78,9 +99,22 @@ func prepareSingleBlockTableProblem(f *mir2.Func, allocation *mir2.AllocResult) 
 				if r != 0 {
 					return nil, fmt.Errorf("unexpected local operand")
 				}
-			} else if r <= 0 || defined[r] != inst.Ty {
-				return nil, fmt.Errorf("missing, unbound or mistyped local input vreg %d", r)
+			} else {
+				want := inst.Ty
+				if (inst.Op == mir2.OpLoad || inst.Op == mir2.OpStore || inst.Op == mir2.OpPtrAdd) && i == 0 {
+					want = mir2.TyPtr
+				}
+				valid := r > 0 && defined[r] == want
+				if inst.Op == mir2.OpPtrAdd && i == 1 {
+					valid = r > 0 && (defined[r] == mir2.TyU16 || defined[r] == mir2.TyI16)
+				}
+				if !valid {
+					return nil, fmt.Errorf("missing, unbound or mistyped local input vreg %d", r)
+				}
 			}
+		}
+		if inst.Op == mir2.OpStore {
+			continue // A byte store consumes pointer/value; it defines no SSA value.
 		}
 		if _, exists := defined[inst.Dst]; exists {
 			return nil, fmt.Errorf("redefined local vreg %d", inst.Dst)
@@ -106,27 +140,32 @@ func prepareSingleBlockTableProblem(f *mir2.Func, allocation *mir2.AllocResult) 
 	}
 
 	term, ok := block.Term.(*mir2.TermRet)
-	if !ok || len(term.Vals) != 1 {
-		return nil, fmt.Errorf("local table requires unconditional single return")
+	if !ok || len(term.Vals) != len(f.Contract.Returns) {
+		return nil, fmt.Errorf("local table requires unconditional matching return")
 	}
-	ret := f.Contract.Returns[0]
-	if !localIntegerType(ret.Ty) || ret.Class == mir2.ClassFlag {
-		return nil, fmt.Errorf("unsupported return ABI")
-	}
-	for _, p := range block.Params {
-		if p.Dst == term.Vals[0] {
-			return nil, fmt.Errorf("return block parameter not yet certified")
+	opts := SolverOptions{OptSize: true, CheckedRawEmission: true, ParamLocs: map[int]int{}}
+	var returnWidth, returnLoc int
+	if len(term.Vals) == 1 {
+		ret := f.Contract.Returns[0]
+		if !localTableValueType(ret.Ty) || ret.Class == mir2.ClassFlag {
+			return nil, fmt.Errorf("unsupported return ABI")
 		}
+		for _, p := range block.Params {
+			if p.Dst == term.Vals[0] {
+				return nil, fmt.Errorf("return block parameter not yet certified")
+			}
+		}
+		if defined[term.Vals[0]] != ret.Ty {
+			return nil, fmt.Errorf("unbound or mistyped return value")
+		}
+		returnName := mir2.ReturnLocation(ret.Class, ret.Ty)
+		returnLoc = Z80.LocByName(returnName)
+		returnWidth = ret.Ty.Width()
+		if returnLoc < 0 || Z80.Locs[returnLoc].Width != returnWidth {
+			return nil, fmt.Errorf("unsupported return location")
+		}
+		opts.CheckedReturnLocation = returnName
 	}
-	if defined[term.Vals[0]] != ret.Ty {
-		return nil, fmt.Errorf("unbound or mistyped return value")
-	}
-	returnName := mir2.ReturnLocation(ret.Class, ret.Ty)
-	returnLoc := Z80.LocByName(returnName)
-	if returnLoc < 0 || Z80.Locs[returnLoc].Width != ret.Ty.Width() {
-		return nil, fmt.Errorf("unsupported return location")
-	}
-	opts := SolverOptions{OptSize: true, CheckedReturnLocation: returnName, CheckedRawEmission: true, ParamLocs: map[int]int{}}
 	for _, p := range f.Contract.Params {
 		loc, exists := allocation.Locs[p.Reg]
 		if !exists {
@@ -203,9 +242,13 @@ func prepareSingleBlockTableProblem(f *mir2.Func, allocation *mir2.AllocResult) 
 		}
 	}
 	// Pin only the explicit return move, irrespective of ALU or param guesses.
-	abiReg := maxReg + 1
-	ops = append(ops, VIROp{Op: OpMove, Dst: abiReg, Src: [2]int{int(term.Vals[0]), -1}, Width: ret.Ty.Width(), DstHint: Singleton(returnLoc)})
-	ops = append(ops, VIROp{Op: OpRet, Src: [2]int{abiReg, -1}, Width: ret.Ty.Width()})
+	if len(term.Vals) == 1 {
+		abiReg := maxReg + 1
+		ops = append(ops, VIROp{Op: OpMove, Dst: abiReg, Src: [2]int{int(term.Vals[0]), -1}, Width: returnWidth, DstHint: Singleton(returnLoc)})
+		ops = append(ops, VIROp{Op: OpRet, Src: [2]int{abiReg, -1}, Width: returnWidth})
+	} else {
+		ops = append(ops, VIROp{Op: OpRet, Src: [2]int{-1, -1}})
+	}
 	for v := range opts.ParamLocs {
 		used := false
 		for _, op := range ops {
@@ -264,6 +307,12 @@ func (p *LocalTableProblem) Emit(table *RegAllocTable) (string, error) {
 }
 
 // Width alone is not a semantic type proof (e.g. bool, BCD and fixed point).
+// Only canonical 16-bit byte pointers join integer values. Other pointee types,
+// wider host addresses, flags and non-integer arithmetic remain unsupported.
+func localTableValueType(ty mir2.Ty) bool {
+	return localIntegerType(ty) || ty == mir2.TyPtr
+}
+
 func localIntegerType(ty mir2.Ty) bool {
 	return ty == mir2.TyU8 || ty == mir2.TyI8 || ty == mir2.TyU16 || ty == mir2.TyI16
 }

@@ -1,0 +1,23 @@
+=== RUN   TestCheckedByteMemoryPointerWrapNative
+    table_byte_memory_test.go:90: all 65536 byte-pointer sums, including wrap to 0: native byte result, unchanged RAM and PC/SP PASS
+--- PASS: TestCheckedByteMemoryPointerWrapNative (0.01s)
+=== RUN   TestCheckedByteMemoryRejectsWrongTypes
+=== RUN   TestCheckedByteMemoryRejectsWrongTypes/wide-pointer
+=== RUN   TestCheckedByteMemoryRejectsWrongTypes/word-load
+=== RUN   TestCheckedByteMemoryRejectsWrongTypes/integer-address
+=== RUN   TestCheckedByteMemoryRejectsWrongTypes/pointer-alu
+=== RUN   TestCheckedByteMemoryRejectsWrongTypes/byte-offset
+=== RUN   TestCheckedByteMemoryRejectsWrongTypes/bad-pointer-constant
+=== RUN   TestCheckedByteMemoryRejectsWrongTypes/defined-store
+--- PASS: TestCheckedByteMemoryRejectsWrongTypes (0.00s)
+    --- PASS: TestCheckedByteMemoryRejectsWrongTypes/wide-pointer (0.00s)
+    --- PASS: TestCheckedByteMemoryRejectsWrongTypes/word-load (0.00s)
+    --- PASS: TestCheckedByteMemoryRejectsWrongTypes/integer-address (0.00s)
+    --- PASS: TestCheckedByteMemoryRejectsWrongTypes/pointer-alu (0.00s)
+    --- PASS: TestCheckedByteMemoryRejectsWrongTypes/byte-offset (0.00s)
+    --- PASS: TestCheckedByteMemoryRejectsWrongTypes/bad-pointer-constant (0.00s)
+    --- PASS: TestCheckedByteMemoryRejectsWrongTypes/defined-store (0.00s)
+=== RUN   TestCheckedByteMemoryRejectsLocallyValidForgedLoad
+--- PASS: TestCheckedByteMemoryRejectsLocallyValidForgedLoad (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.021s
