@@ -42,8 +42,9 @@ func pixelGameCells(kind, rot int) []pixelGameCell {
 }
 
 type pixelGameModel struct {
-	v     map[string]int
-	board [200]byte
+	v               map[string]int
+	board           [200]byte
+	fixedDifficulty bool
 }
 
 func newPixelGameModel() pixelGameModel {
@@ -152,7 +153,7 @@ func (m *pixelGameModel) lock() {
 	v["score"] = (v["score"] + bonus) & 65535
 	if cleared > 0 {
 		v["lines_cleared"] = (v["lines_cleared"] + cleared) & 65535
-		if v["drop_speed"] > 5 && v["lines_cleared"]&7 == 0 {
+		if !m.fixedDifficulty && v["drop_speed"] > 5 && v["lines_cleared"]&7 == 0 {
 			v["drop_speed"] -= 2
 		}
 	}

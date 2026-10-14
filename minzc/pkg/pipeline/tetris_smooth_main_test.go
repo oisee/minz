@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"image"
+	"image/png"
 	"os"
 	"path/filepath"
 	"sort"
@@ -34,14 +36,16 @@ func (c *smoothGameObserver) DoOpcode() {
 // IM2 timer, renderer and game-over return. The independent physics model owns
 // the expected state across successive calls; it is never reseeded from the game.
 func TestTetrisShadowMainMachine(t *testing.T) {
-	runTetrisMainMachine(t, "../../../reports/advanced-demos/tetris/shadow-candidate.nanz", true)
+	runTetrisMainMachine(t, "../../../reports/advanced-demos/tetris/shadow-candidate.nanz", true, 0)
 }
 
 func TestTetrisDirectMainMachine(t *testing.T) {
-	runTetrisMainMachine(t, "../../../examples/zx/tetris_playable.nanz", false)
+	for _, level := range []int{1, 2} {
+		t.Run(fmt.Sprintf("level-%d", level), func(t *testing.T) { runTetrisMainMachine(t, "../../../examples/zx/tetris_playable.nanz", false, level) })
+	}
 }
 
-func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool) {
+func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selectedLevel int) {
 	t.Helper()
 	src, e := os.ReadFile(sourcePath)
 	if e != nil {
@@ -105,6 +109,10 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool) {
 			m.CPU.SetIFF1(false)
 			m.CPU.SetIFF2(false)
 			model := newPixelGameModel()
+			if selectedLevel != 0 {
+				model.fixedDifficulty = true
+				model.v["drop_speed"] = 16 / selectedLevel
+			}
 			model.spawn()
 			model.spawn()
 			model.v["board_dirty"] = 0
@@ -276,6 +284,11 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool) {
 			var frameCandidates [][]byte
 			fetchedFrames := 0
 			commands := []int{0, 0, 0, 0, 1, 0, 2, 0, 4, 0, 32, 0, 32, 0, 8, 8, 8, 0, 4, 0}
+			quietSteps := 0
+			if selectedLevel != 0 {
+				quietSteps = 80
+				commands = append(make([]int, quietSteps), commands...)
+			}
 			var stepReturn, stepSP, renderReturn, renderSP uint16
 			stepActive, renderActive, clockReady := false, false, false
 			previousClock := byte(0)
@@ -301,6 +314,10 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool) {
 			}
 			m.CPU = c
 			c.before = func() {
+				if selectedLevel != 0 && c.PC() == sym("choose_difficulty") {
+					m.Keyboard.Reset()
+					m.Keyboard.KeyPress(3, selectedLevel-1)
+				}
 				if renderActive && c.PC() == renderReturn && c.SP() == renderSP+2 {
 					renderActive = false
 					checkImage()
@@ -317,6 +334,25 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool) {
 						stepCosts = nil
 					}
 					if !clockReady {
+						if selectedLevel != 0 && int(read("difficulty_mode", 1)[0]) != selectedLevel {
+							t.Fatal("keyboard menu selected the wrong difficulty")
+						}
+						if selectedLevel != 0 {
+							for row, text := range []string{"1: 1 PX / 2 FRAMES", "2: 1 PX / FRAME"} {
+								for col, ch := range text {
+									for scan := 0; scan < 8; scan++ {
+										address := uint16(0x4000 + scan*256 + row*32 + 6 + col)
+										want := rom[0x3d00+(int(ch)-32)*8+scan]
+										if got := m.Memory.ReadByteInternal(address); got != want {
+											t.Fatalf("menu glyph row%d col%d scan%d=%02x want%02x", row, col, scan, got, want)
+										}
+									}
+									if got := m.Memory.ReadByteInternal(uint16(0x5800 + row*32 + 6 + col)); got != 7 {
+										t.Fatalf("menu attribute row%d col%d=%02x", row, col, got)
+									}
+								}
+							}
+						}
 						previousClock = m.Memory.ReadByteInternal(0x5c78)
 						clockReady = true
 					}
@@ -365,6 +401,9 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool) {
 					now := read("clock_seen", 1)[0]
 					ticks := int(byte(now - previousClock))
 					tickHistogram[ticks]++
+					if steps >= 2 && steps < quietSteps && ticks != 1 {
+						t.Fatalf("steady level%d step%d missed its frame: elapsed=%d", selectedLevel, steps, ticks)
+					}
 					previousClock = now
 					if arg(0) != selected || arg(1) != ticks {
 						t.Fatalf("step%d arguments keys%d/%d ticks%d/%d", steps, arg(0), selected, arg(1), ticks)
@@ -379,6 +418,35 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool) {
 					stepReturn = uint16(m.Memory.ReadByteInternal(c.SP())) | uint16(m.Memory.ReadByteInternal(c.SP()+1))<<8
 				}
 			}
+			videoDir := ""
+			if root := os.Getenv("MINZ_TETRIS_MAIN_VIDEO"); root != "" && selectedLevel == 2 && mode == "ordinary" {
+				videoDir = filepath.Join(root, "frames")
+				if e := os.MkdirAll(videoDir, 0755); e != nil {
+					t.Fatal(e)
+				}
+			}
+			var videoTimeline []map[string]int
+			var fullVideoTimeline []map[string]int
+			dumpVideo := func(dir string, number int) {
+				if e := os.MkdirAll(dir, 0755); e != nil {
+					t.Fatal(e)
+				}
+				img := image.NewRGBA(image.Rect(0, 0, m.ScreenWidth(), m.ScreenHeight()))
+				copy(img.Pix, m.Framebuffer())
+				f, e := os.Create(filepath.Join(dir, fmt.Sprintf("frame_%04d.png", number)))
+				if e != nil {
+					t.Fatal(e)
+				}
+				encodeErr := png.Encode(f, img)
+				closeErr := f.Close()
+				if encodeErr != nil {
+					t.Fatal(encodeErr)
+				}
+				if closeErr != nil {
+					t.Fatal(closeErr)
+				}
+			}
+			lastVideoFrame := -1
 			frames := 0
 			for ; frames < 2000 && !c.done; frames++ {
 				ready := shown != nil
@@ -408,6 +476,18 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool) {
 						t.Fatalf("main mixed field in fetched frame%d step%d", frames, steps)
 					}
 					fetchedFrames++
+					if videoDir != "" {
+						fullVideoTimeline = append(fullVideoTimeline, map[string]int{"hardware_frame": frames, "step": steps, "grid_y": model.v["cur_y"], "pixel_phase": model.v["pixel_phase"]})
+						dumpVideo(filepath.Join(filepath.Dir(videoDir), "full-frames"), len(fullVideoTimeline))
+					}
+					if videoDir != "" && steps >= 2 && steps < quietSteps {
+						if lastVideoFrame >= 0 && frames != lastVideoFrame+1 {
+							t.Fatal("capture skipped an emulated frame")
+						}
+						lastVideoFrame = frames
+						videoTimeline = append(videoTimeline, map[string]int{"hardware_frame": frames, "step": steps, "grid_y": model.v["cur_y"], "pixel_phase": model.v["pixel_phase"]})
+						dumpVideo(videoDir, len(videoTimeline))
+					}
 				}
 			}
 			if !c.done || model.v["game_over"] != 1 {
@@ -425,6 +505,9 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool) {
 			}
 			if root := os.Getenv("MINZ_TETRIS_MAIN_EXPORT"); root != "" {
 				dir := filepath.Join(root, mode)
+				if selectedLevel != 0 {
+					dir = filepath.Join(root, fmt.Sprintf("level-%d", selectedLevel), mode)
+				}
 				if e := os.MkdirAll(dir, 0755); e != nil {
 					t.Fatal(e)
 				}
@@ -437,6 +520,18 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool) {
 					if e := os.WriteFile(filepath.Join(dir, name), data, 0644); e != nil {
 						t.Fatal(e)
 					}
+				}
+			}
+			if videoDir != "" {
+				if len(videoTimeline) < 70 {
+					t.Fatal("too few consecutive video frames", len(videoTimeline))
+				}
+				data, e := json.MarshalIndent(map[string]any{"fps": 50, "source": "actual ULA framebuffer", "frames": videoTimeline, "full_session_frames": fullVideoTimeline, "interpolation": false}, "", "  ")
+				if e != nil {
+					t.Fatal(e)
+				}
+				if e = os.WriteFile(filepath.Join(filepath.Dir(videoDir), "timeline.json"), data, 0644); e != nil {
+					t.Fatal(e)
 				}
 			}
 			t.Logf("%d frames, %d independently checked main steps, %d fractional poses, %d locks, %d IRQ; game-over returned with SP restored; clock-delta histogram %v", frames, steps, nonzeroPhases, locks, c.irq, tickHistogram)
