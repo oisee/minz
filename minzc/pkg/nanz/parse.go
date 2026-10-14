@@ -3317,7 +3317,14 @@ func (p *parser) parseMetaStmt(metaSrc, name string) (hir.Stmt, error) {
 			return nil, fmt.Errorf("line %d: @%s block: %w", callLine, name, err)
 		}
 	}
-	emitted, nodes, err := executeMetaOutput(metaSrc, name, scalarArgs, block, p.module)
+	callerTypes := make(map[string]mir2.Ty, len(p.globalTypes)+len(p.varTypes))
+	for symbol, ty := range p.globalTypes {
+		callerTypes[symbol] = ty
+	}
+	for symbol, ty := range p.varTypes {
+		callerTypes[symbol] = ty
+	}
+	emitted, nodes, err := executeMetaOutput(metaSrc, name, scalarArgs, block, p.module, callerTypes)
 	if err != nil {
 		return nil, fmt.Errorf("line %d: @%s: %w", callLine, name, err)
 	}
@@ -6042,6 +6049,7 @@ func (p *parser) captureMetaFuncSource(name string) (string, error) {
 	// Build extern declarations for host functions the metafunction can call
 	for _, decl := range []string{
 		"hir_int(value: u16, ty: ^u8) -> u16", "hir_ref(name: ^u8, ty: ^u8) -> u16",
+		"hir_caller_ref(name: ^u8, ty: ^u8) -> u16",
 		"hir_binary(op: ^u8, left: u16, right: u16) -> u16", "hir_block() -> u16",
 		"hir_append(block: u16, statement: u16) -> void", "hir_var(name: ^u8, ty: ^u8, initial: u16) -> u16",
 		"hir_load(pointer: u16) -> u16", "hir_assign(target: u16, value: u16) -> u16", "hir_store(pointer: u16, value: u16) -> u16",
@@ -6153,6 +6161,7 @@ func executeMetaOutput(
 	stringArgs []string,
 	block []metaBlockNode,
 	callerMod *hir.Module,
+	callerScopes ...map[string]mir2.Ty,
 ) (string, []hir.Stmt, error) {
 	// 1. Parse metafunction source → HIR
 	metaHIR, err := Parse(metaSrc, "meta_"+funcName+".nanz")
@@ -6180,6 +6189,9 @@ func executeMetaOutput(
 
 	// 4. Register host functions
 	mr := newMetaRuntime(callerMod)
+	if len(callerScopes) > 0 {
+		mr.callerTypes = callerScopes[0]
+	}
 	mr.registerHosts(vm, block)
 
 	// 5. Allocate string args on heap

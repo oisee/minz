@@ -6,6 +6,7 @@ fun @sprite() -> void {
     var mask_row_count: i32 = 0
     var primitive: ^u8 = c"pointer"
     var base: i32 = 0
+    var runtime_base: u16 = 0
     var cols: i32 = 0
     var rows: i32 = 0
     var stride: i32 = 0
@@ -30,7 +31,21 @@ fun @sprite() -> void {
             if seen_layout != 0 { meta_error(c"sprite: duplicate layout") }
             seen_layout = 1
             layout = node_arg_str(i, 0)
-            if str_eq(layout, c"linear") == 1 {
+            if str_eq(layout, c"linear_relative") == 1 {
+                if node_arg_count(i) != 5 { meta_error(c"sprite: relative linear layout needs pointer name, columns, rows, stride") }
+                runtime_base = hir_caller_ref(node_arg_str(i, 1), c"ptr")
+                layout = c"linear"
+                cols = node_arg_int(i, 2)
+                rows = node_arg_int(i, 3)
+                stride = node_arg_int(i, 4)
+            } else if str_eq(layout, c"zx_bitmap_bytes_relative") == 1 {
+                if node_arg_count(i) != 2 { meta_error(c"sprite: relative ZX layout needs pointer name") }
+                runtime_base = hir_caller_ref(node_arg_str(i, 1), c"ptr")
+                layout = c"zx_bitmap_bytes"
+                cols = 32
+                rows = 192
+                stride = 32
+            } else if str_eq(layout, c"linear") == 1 {
                 if node_arg_count(i) != 5 { meta_error(c"sprite: linear layout needs base, columns, rows, stride") }
                 base = node_arg_int(i, 1)
                 cols = node_arg_int(i, 2)
@@ -88,6 +103,9 @@ fun @sprite() -> void {
     }
     if seen_when == 1 {
         if str_eq(primitive, c"pointer") == 0 { meta_error(c"sprite: when requires pointer primitive") }
+    }
+    if runtime_base != 0 {
+        if str_eq(primitive, c"pointer") == 0 { meta_error(c"sprite: relative layout requires pointer primitive") }
     }
     let conditional_body: u16 = hir_block()
     // Decode bytes on the compile-time VM, then emit only the resulting work.
@@ -162,7 +180,13 @@ fun @sprite() -> void {
                         }
                     } else {
                         let region: u16 = hir_block()
-                        let pixel: u16 = hir_int(u16(address + col), c"ptr")
+                        var pixel: u16 = hir_int(u16(address + col), c"ptr")
+                        if runtime_base != 0 {
+                            pixel = runtime_base
+                            if address + col != 0 {
+                                pixel = hir_binary(c"+", runtime_base, hir_int(u16(address + col), c"u16"))
+                            }
+                        }
                         let bits: u16 = hir_int(u16(graphic), c"u8")
                         var value: u16 = bits
                         if mask != 0 {

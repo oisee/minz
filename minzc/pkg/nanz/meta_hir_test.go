@@ -118,3 +118,26 @@ func TestStructuredIfSnapshotsBothBranches(t *testing.T) {
 		t.Fatal("shared conditional statements")
 	}
 }
+
+func TestStructuredCallerReferenceTypes(t *testing.T) {
+	for _, tc := range []struct{ name, decl, ref, want string }{
+		{"parameter", `fun main(frame:^u8) { @build() }`, `hir_caller_ref(c"frame",c"ptr")`, ""},
+		{"global", `global frame:ptr=0 fun main() { @build() }`, `hir_caller_ref(c"frame",c"ptr")`, ""},
+		{"local-shadows-global", `global frame:u16=0 fun main(frame:^u8) { @build() }`, `hir_caller_ref(c"frame",c"ptr")`, ""},
+		{"wrong-type", `fun main(frame:u16) { @build() }`, `hir_caller_ref(c"frame",c"ptr")`, "type u16, requested ptr"},
+		{"missing-even-without-emit", `fun main() { @build() }`, `hir_caller_ref(c"frame",c"ptr")`, "unknown caller variable"},
+		{"builder-local-is-not-caller", `fun main() { @build() }`, `hir_caller_ref(c"generated",c"u8")`, "unknown caller variable"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			source := `fun @build() { let local:u16=hir_var(c"generated",c"u8",hir_int(1,c"u8")) let ref:u16=` + tc.ref + ` } ` + tc.decl
+			_, e := Parse(source, "caller-ref.nanz")
+			if tc.want == "" {
+				if e != nil {
+					t.Fatal(e)
+				}
+			} else if e == nil || !strings.Contains(e.Error(), tc.want) {
+				t.Fatalf("got %v want %s", e, tc.want)
+			}
+		})
+	}
+}

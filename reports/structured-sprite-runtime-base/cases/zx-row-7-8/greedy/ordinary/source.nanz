@@ -1,0 +1,9 @@
+import hw.sprite
+fun draw(frame: ^u8, visible: bool) { @sprite() {
+destination "zx_bitmap_bytes_relative" "frame"
+region 2 7 3 2
+row "f000ff" "05ab00"
+row "55000f" "aa7710"
+via "pointer"
+when "visible"
+} }

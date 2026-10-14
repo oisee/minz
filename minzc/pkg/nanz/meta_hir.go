@@ -82,6 +82,26 @@ func (mr *metaRuntime) registerHIRHosts(vm *mir2.VM) {
 		}
 		return b.add(&hir.VarRefExpr{Name: name, Ty: ty})
 	})
+	// Unlike hir_ref, which may refer to a local declared by the builder,
+	// this resolves an existing caller binding before any target code is built.
+	host("hir_caller_ref", 2, func(a []mir2.Value) ([]mir2.Value, error) {
+		ty, e := metaHIRType(mr.readCString(a[1].I))
+		if e != nil {
+			return nil, e
+		}
+		name := mr.readCString(a[0].I)
+		if !validMetaIdentifier(name) {
+			return nil, fmt.Errorf("structured emit: invalid identifier %q", name)
+		}
+		declared := mr.callerTypes[name]
+		if declared == nil {
+			return nil, fmt.Errorf("structured emit: unknown caller variable %q", name)
+		}
+		if declared.String() != ty.String() {
+			return nil, fmt.Errorf("structured emit: caller variable %s type %s, requested %s", name, declared, ty)
+		}
+		return b.add(&hir.VarRefExpr{Name: name, Ty: declared})
+	})
 	host("hir_binary", 3, func(a []mir2.Value) ([]mir2.Value, error) {
 		l, e := b.expr(a[1].I)
 		if e != nil {

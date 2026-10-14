@@ -314,6 +314,8 @@
     "TestStructuredFillMatchesTextBaseline",
     "TestStructuredSpriteConditionalNative",
     "TestStructuredSpriteMatchesTextBaseline",
+    "TestStructuredSpriteRuntimeBaseDiagnostics",
+    "TestStructuredSpriteRuntimeBaseNativeAndVM",
     "TestStructuredSpriteWhenDiagnostics",
     "TestTetrisFamilyIndependentModelControls",
     "TestTetrisHistoricalModelIdentity",

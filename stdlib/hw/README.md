@@ -122,7 +122,31 @@ Transparent `ff/00` bytes are skipped; mask `00` emits a direct opaque store;
 mixed bytes read, AND, OR and write. The destination uses existing linear or
 ZX layouts; region is x-byte/y-row/width/height, entirely within bounds. This
 first API is byte-aligned, with known destination and mask/data. Pixel shifts,
-clipping, dynamic destinations and runtime sprite buffers are future extensions.
+clipping and runtime sprite buffers are future extensions.
+
+A runtime byte pointer can supply the layout base, while coordinates, stride,
+mask/data and ZX row offsets stay compile-time constants:
+
+```nanz
+fun draw(frame: ^u8) {
+    @sprite() {
+        destination "linear_relative" "frame" 8 4 10
+        region 1 1 2 1
+        row "f000" "05ab"
+    }
+}
+```
+
+`destination "zx_bitmap_bytes_relative" "frame"` uses the same Spectrum
+address permutation relative to the runtime pointer. Relative layouts require
+`via "pointer"`; they also support `when`. The generator uses
+`hir_caller_ref(name, type)` to resolve an existing caller local/parameter/global
+and reject missing or mismatched types, even if no output is emitted.
+Use `hir_ref` for references to locals constructed inside a generated block.
+Address additions follow the target's 16-bit pointer wrap semantics. The caller
+must provide writable destination memory disjoint from executing code, active
+stack and data that must survive the draw. Spectrum ROM remains read-only;
+the wrap test uses a CPU with the complete 64-KB address space configured as RAM.
 
 A pointer sprite can use a boolean from caller scope:
 
