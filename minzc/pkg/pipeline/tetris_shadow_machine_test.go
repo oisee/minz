@@ -54,6 +54,7 @@ func shadowScreenPixels(screen []byte) []byte {
 }
 
 func TestTetrisShadowTemporalMachine(t *testing.T) {
+	stdlibDir := historicalTetrisStdlib(t)
 	src, e := os.ReadFile("../../../reports/advanced-demos/tetris/shadow-candidate.nanz")
 	if e != nil {
 		t.Fatal(e)
@@ -84,7 +85,7 @@ func TestTetrisShadowTemporalMachine(t *testing.T) {
 			if control {
 				source = strings.Replace(source, "if field_pixels_count>4 {pixel_wait_field_end()}", "// Negative control: publish every size immediately after INT.", 1)
 			}
-			h, e := nanz.ParseWithOpts(source, "tetris-shadow.nanz", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
+			h, e := nanz.ParseWithOpts(source, "tetris-shadow.nanz", nanz.ParseOpts{StdlibDir: stdlibDir})
 			if e != nil {
 				t.Fatal(e)
 			}

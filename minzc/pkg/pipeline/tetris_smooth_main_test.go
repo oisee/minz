@@ -24,7 +24,16 @@ func (c *smoothGameObserver) DoOpcode() { c.before(); c.tetrisSceneObserver.DoOp
 // IM2 timer, renderer and game-over return. The independent physics model owns
 // the expected state across successive calls; it is never reseeded from the game.
 func TestTetrisShadowMainMachine(t *testing.T) {
-	src, e := os.ReadFile("../../../reports/advanced-demos/tetris/shadow-candidate.nanz")
+	runTetrisMainMachine(t, "../../../reports/advanced-demos/tetris/shadow-candidate.nanz", true)
+}
+
+func TestTetrisDirectMainMachine(t *testing.T) {
+	runTetrisMainMachine(t, "../../../examples/zx/tetris_playable.nanz", false)
+}
+
+func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool) {
+	t.Helper()
+	src, e := os.ReadFile(sourcePath)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -36,9 +45,13 @@ func TestTetrisShadowMainMachine(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
+	stdlibDir := "../../../stdlib"
+	if shadow {
+		stdlibDir = historicalTetrisStdlib(t)
+	}
 	for _, mode := range []string{"ordinary", "grace-speed", "grace-size"} {
 		t.Run(mode, func(t *testing.T) {
-			h, e := nanz.ParseWithOpts(string(src), "tetris-smooth-main.nanz", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
+			h, e := nanz.ParseWithOpts(string(src), "tetris-smooth-main.nanz", nanz.ParseOpts{StdlibDir: stdlibDir})
 			if e != nil {
 				t.Fatal(e)
 			}
@@ -51,8 +64,12 @@ func TestTetrisShadowMainMachine(t *testing.T) {
 			if e != nil || len(a.Errors) > 0 {
 				t.Fatal(e, a.Errors)
 			}
-			if 0x6000+len(a.Binary) >= 0xe000 {
-				t.Fatalf("code overlaps shadow: %d bytes", len(a.Binary))
+			limit := 0xfc60
+			if shadow {
+				limit = 0xe000
+			}
+			if 0x6000+len(a.Binary) >= limit {
+				t.Fatalf("code overlaps reserved RAM: %d bytes", len(a.Binary))
 			}
 			sym := func(n string) uint16 {
 				v, ok := a.Symbols[n]
@@ -106,6 +123,7 @@ func TestTetrisShadowMainMachine(t *testing.T) {
 				}
 			}
 			selected, steps, nonzeroPhases, locks := 0, 0, 0, 0
+			tickHistogram := map[int]int{}
 			colors := []byte{0, 5, 6, 3, 4, 2, 0x46, 1}
 			checkImage := func() {
 				var bitmap [160][10]byte
@@ -135,7 +153,11 @@ func TestTetrisShadowMainMachine(t *testing.T) {
 					for x := 0; x < 10; x++ {
 						scan := y + 16
 						at := uint16(0x4000 + (scan/64)*2048 + (scan%8)*256 + ((scan/8)%8)*32 + 11 + x)
-						for _, address := range []uint16{at, at + 0xa000} {
+						addresses := []uint16{at}
+						if shadow {
+							addresses = append(addresses, at+0xa000)
+						}
+						for _, address := range addresses {
 							if got := m.Memory.ReadByteInternal(address); got != bitmap[y][x] {
 								t.Fatalf("render%d bitmap %04x=%02x want%02x", steps, address, got, bitmap[y][x])
 							}
@@ -293,6 +315,7 @@ func TestTetrisShadowMainMachine(t *testing.T) {
 					check(fmt.Sprintf("step%d/entry", steps))
 					now := read("clock_seen", 1)[0]
 					ticks := int(byte(now - previousClock))
+					tickHistogram[ticks]++
 					previousClock = now
 					if arg(0) != selected || arg(1) != ticks {
 						t.Fatalf("step%d arguments keys%d/%d ticks%d/%d", steps, arg(0), selected, arg(1), ticks)
@@ -344,8 +367,12 @@ func TestTetrisShadowMainMachine(t *testing.T) {
 			if steps < 20 || nonzeroPhases < 3 || locks < 3 || c.irq < 20 {
 				t.Fatalf("insufficient gameplay coverage steps%d phases%d locks%d IRQ%d", steps, nonzeroPhases, locks, c.irq)
 			}
-			if c.minSP < 0xf860 {
-				t.Fatalf("stack entered shadow: %04x", c.minSP)
+			stackLimit := uint16(0xfc60)
+			if shadow {
+				stackLimit = 0xf860
+			}
+			if c.minSP < stackLimit {
+				t.Fatalf("stack exceeded reserved region: %04x", c.minSP)
 			}
 			if root := os.Getenv("MINZ_TETRIS_MAIN_EXPORT"); root != "" {
 				dir := filepath.Join(root, mode)
@@ -359,7 +386,7 @@ func TestTetrisShadowMainMachine(t *testing.T) {
 					}
 				}
 			}
-			t.Logf("%d frames, %d independently checked main steps, %d fractional poses, %d locks, %d IRQ; game-over returned with SP restored", frames, steps, nonzeroPhases, locks, c.irq)
+			t.Logf("%d frames, %d independently checked main steps, %d fractional poses, %d locks, %d IRQ; game-over returned with SP restored; clock-delta histogram %v", frames, steps, nonzeroPhases, locks, c.irq, tickHistogram)
 		})
 	}
 }

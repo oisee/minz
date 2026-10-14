@@ -331,6 +331,7 @@
     "TestStructuredSpriteRuntimeBaseDiagnostics",
     "TestStructuredSpriteRuntimeBaseNativeAndVM",
     "TestStructuredSpriteWhenDiagnostics",
+    "TestTetrisDirectMainMachine",
     "TestTetrisDirectTemporalMachine",
     "TestTetrisFamilyIndependentModelControls",
     "TestTetrisGhostLandingNativeVM",

@@ -141,6 +141,7 @@ func (c *tetrisSceneObserver) DoOpcode() {
 // the earlier tetris.nanz. The oracle uses O/I/T geometry and physical ULA
 // addresses. It inspects fetched pixels without RenderFullScreen.
 func TestTetrisSceneTemporalMachine(t *testing.T) {
+	stdlibDir := historicalTetrisStdlib(t)
 	rom, e := os.ReadFile("../../cmd/mzx/roms/48.rom")
 	if e != nil {
 		t.Fatal(e)
@@ -253,7 +254,7 @@ func TestTetrisSceneTemporalMachine(t *testing.T) {
 					source += "\nfun frame_render() { zx_halt()\nrender() }\n"
 					entry = "frame_render"
 				}
-				h, e := nanz.ParseWithOpts(source, "tetris-scene.nanz", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
+				h, e := nanz.ParseWithOpts(source, "tetris-scene.nanz", nanz.ParseOpts{StdlibDir: stdlibDir})
 				if e != nil {
 					t.Fatal(e)
 				}

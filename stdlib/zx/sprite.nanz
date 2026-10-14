@@ -136,10 +136,10 @@ fun @zx_sprite(name:^u8)->void {
         if placement==0 {
             emit(str_concat(str_concat(c"fun ",name),str_concat(c".stage_on(self:^",str_concat(name,c",base:u16)->bool {"))))
         } else {
-            emit(str_concat(str_concat(c"fun ",name),str_concat(c".stage(self:^",str_concat(name,c")->bool {"))))
+            emit(str_concat(str_concat(c"fun ",name),c"_stage_at(x:u8,y:u8)->bool {"))
         }
         emit(str_concat(name,c"_ready=false"))
-        emit(c"let x:u8=self.x let y:u8=self.y")
+        if placement==0 {emit(c"let x:u8=self.x let y:u8=self.y")}
         emit(c"if (x & 7)!=0 {return false}")
         emit(str_concat(str_concat(c"if u16(x)+",str_from_int(u16(width))),c">256 {return false}"))
         emit(str_concat(str_concat(c"if u16(y)+",str_from_int(u16(height))),c">192 {return false}"))
@@ -157,6 +157,10 @@ fun @zx_sprite(name:^u8)->void {
             row=row+1
         }
         emit(str_concat(name,c"_ready=true return true }"))
+        if placement==1 {
+            emit(str_concat(str_concat(c"fun ",name),str_concat(c".stage(self:^",str_concat(name,c")->bool {"))))
+            emit(str_concat(str_concat(c"return ",name),c"_stage_at(self.x,self.y) }"))
+        }
         placement=placement+1
     }
     emit(str_concat(str_concat(c"fun ",name),str_concat(c".publish(self:^",str_concat(name,c")->bool {"))))
@@ -233,9 +237,11 @@ fun @zx_sprite(name:^u8)->void {
         while action<2 {
             var method:^u8=c".erase"
             if action==1 {method=c".stage_erase"}
-            emit(str_concat(str_concat(c"fun ",name),str_concat(method,str_concat(c"(self:^",str_concat(name,c")->bool {")))))
+            if action==0 {
+                emit(str_concat(str_concat(c"fun ",name),str_concat(method,str_concat(c"(self:^",str_concat(name,c")->bool {")))))
+            } else {emit(str_concat(str_concat(c"fun ",name),c"_stage_erase_at(x:u8,y:u8)->bool {"))}
             emit(str_concat(name,c"_erase_ready=false"))
-            emit(c"let x:u8=self.x let y:u8=self.y")
+            if action==0 {emit(c"let x:u8=self.x let y:u8=self.y")}
             emit(c"if (x & 7)!=0 {return false}")
             emit(str_concat(str_concat(c"if u16(x)+",str_from_int(u16(width))),c">256 {return false}"))
             emit(str_concat(str_concat(c"if u16(y)+",str_from_int(u16(height))),c">192 {return false}"))
@@ -251,6 +257,10 @@ fun @zx_sprite(name:^u8)->void {
             }
             if action==1 {emit(str_concat(name,c"_erase_ready=true"))}
             emit(c"return true }")
+            if action==1 {
+                emit(str_concat(str_concat(c"fun ",name),str_concat(c".stage_erase(self:^",str_concat(name,c")->bool {"))))
+                emit(str_concat(str_concat(c"return ",name),c"_stage_erase_at(self.x,self.y) }"))
+            }
             action=action+1
         }
         emit(str_concat(str_concat(c"fun ",name),str_concat(c".erase_staged(self:^",str_concat(name,c")->bool {"))))
