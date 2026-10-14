@@ -143,6 +143,11 @@ address permutation relative to the runtime pointer. Relative layouts require
 `hir_caller_ref(name, type)` to resolve an existing caller local/parameter/global
 and reject missing or mismatched types, even if no output is emitted.
 Use `hir_ref` for references to locals constructed inside a generated block.
+Structured declarations receive private names at the HIR splice: an explicit
+caller reference stays bound to the caller even when a generated local has the
+same source name. Nested declarations obey lexical scope, and separate emitted
+snapshots have separate private bindings. See the
+[caller-reference regression](../../reports/structured-emit-hygiene/README.md).
 Address additions follow the target's 16-bit pointer wrap semantics. The caller
 must provide writable destination memory disjoint from executing code, active
 stack and data that must survive the draw. Spectrum ROM remains read-only;
