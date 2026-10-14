@@ -87,3 +87,5 @@ Pipeline inventory: 728, fast 375 / deep 353; новые короткие про
 
 Поверхность DSL и автоматические эффекты ASM обсуждаются в
 [design.md](design.md). Автоматическое обрамление SP/INT ещё не реализовано.
+
+Следующий foundation checkpoint: [точные эффекты ASM и независимые проверки](effects.md).

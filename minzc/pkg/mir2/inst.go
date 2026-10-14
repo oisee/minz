@@ -1,6 +1,9 @@
 package mir2
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/minz/minzc/pkg/z80effects"
+)
 
 // Inst is a single MIR2 instruction.
 //
@@ -142,6 +145,8 @@ type AsmExtra struct {
 	Ins      []Reg    // input operand registers (read by the asm block)
 	Outs     []Reg    // output operand registers (written by the asm block)
 	Clobbers ClassSet // classes clobbered but not listed in Outs
+	// Lexical instruction effects, not a CFG/SP/INT/SMC preservation certificate.
+	Effects []z80effects.Effect
 }
 
 // ── Use/def analysis ─────────────────────────────────────────────────────────

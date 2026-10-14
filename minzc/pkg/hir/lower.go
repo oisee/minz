@@ -38,6 +38,7 @@ import (
 	"strings"
 
 	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/z80effects"
 )
 
 // ── Public entry point ────────────────────────────────────────────────────────
@@ -1455,6 +1456,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			retTy, retCls = z80RetRegInfo(st.RetReg)
 		}
 		l.bld.Asm(code, ins, outs, clobbers, retTy, retCls)
+		l.bld.Cur.Insts[len(l.bld.Cur.Insts)-1].Asm.Effects = z80effects.Block(code)
 		l.bld.F.Attrs.HasAsm = true
 		return false
 
@@ -4201,34 +4203,36 @@ func z80RegNameToClass(reg string) mir2.RegClass {
 
 // z80RegToClassSet maps a physical Z80 register name to the classes it occupies.
 func z80RegToClassSet(reg string) mir2.ClassSet {
-	var cs mir2.ClassSet
-	switch strings.ToUpper(reg) {
-	case "A":
-		cs.Add(mir2.ClassAcc)
-		cs.Add(mir2.ClassGeneral)
-	case "B":
-		cs.Add(mir2.ClassCounter)
-		cs.Add(mir2.ClassGeneral)
-	case "C", "D", "E", "H", "L":
-		cs.Add(mir2.ClassGeneral)
-	case "HL":
-		cs.Add(mir2.ClassPointer)
-		cs.Add(mir2.ClassPair)
-	case "DE":
-		cs.Add(mir2.ClassIndex)
-		cs.Add(mir2.ClassPair)
-	case "BC":
-		cs.Add(mir2.ClassPair)
-	case "IX":
-		cs.Add(mir2.ClassIX)
-	case "IY":
-		cs.Add(mir2.ClassIY)
-	case "F":
-		cs.Add(mir2.ClassFlag)
-	case "SP":
-		// stack pointer — not allocatable, but flags as clobbered
+	physical := z80effects.Register(reg)
+	if physical == 0 {
+		return 0
 	}
-	return cs
+	return z80WrittenClasses(physical)
+}
+
+// A write to a byte also invalidates aliases allocated as pairs or hard pins.
+func z80WrittenClasses(writes z80effects.Registers) mir2.ClassSet {
+	var classes mir2.ClassSet
+	add := func(mask z80effects.Registers, values ...mir2.RegClass) {
+		if writes&mask != 0 {
+			for _, class := range values {
+				classes.Add(class)
+			}
+		}
+	}
+	add(z80effects.A, mir2.ClassAcc, mir2.ClassGeneral)
+	add(z80effects.B, mir2.ClassCounter, mir2.ClassGeneral, mir2.ClassPair, mir2.ClassDWord)
+	add(z80effects.C, mir2.ClassRegC, mir2.ClassGeneral, mir2.ClassPair, mir2.ClassDWord)
+	add(z80effects.D, mir2.ClassRegD, mir2.ClassGeneral, mir2.ClassIndex, mir2.ClassPair, mir2.ClassDWord)
+	add(z80effects.E, mir2.ClassRegE, mir2.ClassGeneral, mir2.ClassIndex, mir2.ClassPair, mir2.ClassDWord)
+	add(z80effects.H, mir2.ClassRegH, mir2.ClassGeneral, mir2.ClassPointer, mir2.ClassPair, mir2.ClassDWord)
+	add(z80effects.L, mir2.ClassRegL, mir2.ClassGeneral, mir2.ClassPointer, mir2.ClassPair, mir2.ClassDWord)
+	add(z80effects.IX, mir2.ClassIX, mir2.ClassIXY8)
+	add(z80effects.IY, mir2.ClassIY, mir2.ClassIXY8)
+	add(z80effects.F, mir2.ClassFlag)
+	add(z80effects.BCAlt|z80effects.DEAlt|z80effects.HLAlt, mir2.ClassShadow, mir2.ClassDWord)
+	add(z80effects.AFAlt, mir2.ClassAccShadow)
+	return classes
 }
 
 // z80RetRegInfo returns the MIR2 type and class for an asm (ret REG) clause.
@@ -4251,72 +4255,18 @@ func z80RetRegInfo(reg string) (mir2.Ty, mir2.RegClass) {
 	}
 }
 
-// z80AutoClobbers parses Z80 assembly text and returns the set of register
-// classes that are written by the instructions.  Conservative: unknown
-// instructions or CALL/RST clobber everything.  F (flags) is always included.
+// z80AutoClobbers projects explicit physical instruction writes into allocator
+// classes. Unknown instructions/calls/data remain conservatively AllClasses.
+// Path/stack/INT safety is separate from this write-set computation.
 func z80AutoClobbers(code string) mir2.ClassSet {
-	var cs mir2.ClassSet
-	cs.Add(mir2.ClassFlag) // almost every Z80 instruction touches F
-
-	for _, rawLine := range strings.Split(code, "\n") {
-		line := strings.TrimSpace(rawLine)
-		// Handle "/" as inline separator
-		for _, part := range strings.Split(line, "/") {
-			part = strings.TrimSpace(part)
-			if part == "" || strings.HasSuffix(part, ":") {
-				continue // empty or label
-			}
-			// Extract mnemonic (first word)
-			fields := strings.Fields(part)
-			if len(fields) == 0 {
-				continue
-			}
-			mnem := strings.ToUpper(fields[0])
-
-			// CALL/RST/DJNZ — conservative: clobber all
-			switch mnem {
-			case "CALL", "RST":
-				return mir2.AllClasses
-			}
-
-			// Parse destination (first operand) for instructions that write.
-			operands := ""
-			if len(fields) > 1 {
-				operands = strings.Join(fields[1:], " ")
-			}
-			parts := strings.SplitN(operands, ",", 2)
-			dst := strings.TrimSpace(parts[0])
-			dst = strings.Trim(dst, "()")
-
-			switch mnem {
-			case "LD", "ADD", "ADC", "SUB", "SBC", "AND", "OR", "XOR", "CP",
-				"INC", "DEC", "NEG", "CPL", "DAA", "RLA", "RRA", "RLCA", "RRCA",
-				"RL", "RR", "RLC", "RRC", "SLA", "SRA", "SRL", "BIT", "SET", "RES",
-				"POP", "IN":
-				cs = cs.Union(z80RegToClassSet(strings.ToUpper(dst)))
-			case "EX":
-				// EX DE,HL clobbers both
-				cs = cs.Union(z80RegToClassSet("DE"))
-				cs = cs.Union(z80RegToClassSet("HL"))
-			case "EXX":
-				cs.Add(mir2.ClassShadow)
-			case "PUSH", "NOP", "HALT", "DI", "EI", "RET", "JP", "JR",
-				"JRS", "OUT":
-				// These don't write to a general register
-			case "LDIR", "LDDR":
-				cs = cs.Union(z80RegToClassSet("HL"))
-				cs = cs.Union(z80RegToClassSet("DE"))
-				cs = cs.Union(z80RegToClassSet("BC"))
-			case "CPIR", "CPDR":
-				cs = cs.Union(z80RegToClassSet("HL"))
-				cs = cs.Union(z80RegToClassSet("BC"))
-			default:
-				// Unknown instruction → conservative
-				return mir2.AllClasses
-			}
+	var writes z80effects.Registers
+	for _, effect := range z80effects.Block(code) {
+		if !effect.Known {
+			return mir2.AllClasses
 		}
+		writes |= effect.Writes
 	}
-	return cs
+	return z80WrittenClasses(writes)
 }
 
 func collectGotoAncestors(b *Block, path []*Block, out map[string][]*Block) {

@@ -61,6 +61,12 @@ Alice выбрала автоматический вывод обычных эф
 
 ## Что уже есть
 
+Foundation после обсуждения: [instruction effects](effects.md). Новый decoder
+передаёт lexical effects в MIR2 и исправляет auto-clobber. Автоматическое
+обрамление пока не добавлено.
+
+## Исходное состояние до foundation
+
 HIR AsmStmt хранит Ins/Outs/RetReg и auto/explicit clobbers. Nanz (out REG) сейчас
 является alias RetReg, а не HIR.Outs. Default ASM включает auto-анализ, но он
 избыточен/местами неточен: всегда F, unknown DJNZ, implicit A/EX/EXX. Пустой (clob)
