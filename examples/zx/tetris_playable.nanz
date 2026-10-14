@@ -1052,7 +1052,9 @@ fun render_smooth()->bool {
     direct_preview=0
     if (drawn_valid==0)|(next_type!=drawn_next) {render_preview(next_type,200) direct_preview=1}
     if (drawn_valid==0)|(hold_type!=drawn_hold) {render_preview(hold_type,216) direct_preview=1}
-    pixel_prepare_bands()
+    // The baked full-board publisher already owns fixed row addresses.
+    // Dirty attribute bands are used only by the incremental actor commit.
+    if direct_refresh==0 {pixel_prepare_bands()}
     pixel_prepare_actor_row()
     if pixel_check_prepared()==false {return false}
     zx_halt()
@@ -1192,7 +1194,11 @@ fun game_step(keys:u8,ticks:u8) {
     }
     if (pressed & 4)!=0 {try_rotate()}
     if (pressed & 16)!=0 {
-        while can_place(cur_type,cur_rot,cur_x,cur_y+1) {cur_y=cur_y+1 score=score+2}
+        // Reuse the independently verified column-distance landing query.
+        // A single u16 addition preserves the old repeated +2 modulo 65536.
+        let landing:u8=ghost_y()
+        score=score+u16(landing-cur_y)*2
+        cur_y=landing
         pixel_phase=0
         do_lock_and_clear()
         drop_timer=0

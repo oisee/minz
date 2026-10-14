@@ -398,6 +398,7 @@
     "TestZXPairedSpriteNative",
     "TestZXStagedSpriteNative",
     "TestZXStoryLogicalMemoryNative",
+    "TestZXTileBoardRangeAdmission",
     "TestZXWholeSpriteAdmission",
     "TestZXWholeSpriteMachine",
     "TestZXWholeSpriteNative"
@@ -759,6 +760,7 @@
     "TestZMachineZorkWindowDiskConsoleSaveAcrossRestart",
     "TestZXBankedMemoryAllPagesNative",
     "TestZXPixelBandsNative",
-    "TestZXPixelFillCellNativeVM"
+    "TestZXPixelFillCellNativeVM",
+    "TestZXTileBoardRangeNative"
   ]
 }

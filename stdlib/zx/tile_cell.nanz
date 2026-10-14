@@ -257,7 +257,7 @@ fun tile_row_fill(@z80_hl source:^u8,@z80_de destination:^u8) {
 fun @zx_tile_board(name:^u8) {
     var x:i32=0 var y:i32=0 var rows:i32=0
     var tiles:^u8=c"" var attributes:^u8=c"" var callback:^u8=c""
-    var seen:u8=0 var i:u8=0
+    var seen:u8=0 var i:u8=0 var ranged:u8=0
     while i<block_len() {
         let key:^u8=node_keyword(i)
         if str_eq(key,c"viewport")==1 {
@@ -278,6 +278,10 @@ fun @zx_tile_board(name:^u8) {
             if (seen & 8)!=0 {meta_error(c"zx tile board: duplicate row_done")}
             if node_arg_count(i)!=1 {meta_error(c"zx tile board: row_done needs a symbol")}
             callback=node_arg_str(i,0) seen=seen | 8
+        } else if str_eq(key,c"row_range")==1 {
+            if ranged!=0 {meta_error(c"zx tile board: duplicate row_range")}
+            if node_arg_count(i)!=0 {meta_error(c"zx tile board: row_range takes no arguments")}
+            ranged=1
         } else {meta_error(c"zx tile board: unknown field")}
         i=i+1
     }
@@ -308,6 +312,13 @@ fun @zx_tile_board(name:^u8) {
         }
         symbol=symbol+1
     }
+    if ranged!=0 {
+        if str_eq(tiles,attributes)==1 {meta_error(c"zx tile board: duplicate input symbols")}
+        if str_eq(tiles,c"_zx_first")==1 {meta_error(c"zx tile board: reserved range symbol")}
+        if str_eq(tiles,c"_zx_limit")==1 {meta_error(c"zx tile board: reserved range symbol")}
+        if str_eq(attributes,c"_zx_first")==1 {meta_error(c"zx tile board: reserved range symbol")}
+        if str_eq(attributes,c"_zx_limit")==1 {meta_error(c"zx tile board: reserved range symbol")}
+    }
     emit(c"import zx.tile_cell")
     let signature:^u8=str_concat(str_concat(str_concat(c"fun ",name),c"("),tiles)
     emit(str_concat(str_concat(str_concat(signature,c":^u8,"),attributes),c":^u8) {"))
@@ -325,4 +336,33 @@ fun @zx_tile_board(name:^u8) {
         row=row+1
     }
     emit(c"}")
+    // Optional row-range API: no new code is emitted for full-only boards.
+    // Checked admission is separate from the prepared publication entry so
+    // a scene may perform all bounds checks before its HALT boundary.
+    if ranged!=0 {
+        let params:^u8=str_concat(str_concat(str_concat(tiles,c":^u8,"),attributes),c":^u8,_zx_first:u8,_zx_limit:u8")
+        emit(str_concat(str_concat(c"fun ",str_concat(name,c"_range(")),str_concat(params,c")->bool {")))
+        emit(c"if _zx_first>_zx_limit {return false}")
+        emit(str_concat(str_concat(c"if _zx_limit>",str_from_int(u16(rows))),c" {return false}"))
+        emit(str_concat(str_concat(name,c"_range_prepared("),str_concat(str_concat(str_concat(tiles,c","),attributes),c",_zx_first,_zx_limit)")))
+        emit(c"return true }")
+        emit(str_concat(str_concat(c"fun ",str_concat(name,c"_range_prepared(")),str_concat(params,c") {")))
+        row=0
+        while row<rows {
+            let n:^u8=str_from_int(u16(row))
+            emit(str_concat(str_concat(str_concat(c"if _zx_first<=",n),c" {if "),str_concat(n,c"<_zx_limit {")))
+            let scan:i32=(y+row)*8
+            let address:i32=16384+(scan/64)*2048+((scan/8)%8)*32+x
+            let attr_address:i32=22528+(y+row)*32+x
+            let offset:^u8=str_from_int(u16(row*10))
+            let tile_source:^u8=str_concat(str_concat(c"ptr(u16(&",tiles),str_concat(str_concat(c"[",offset),c"]))"))
+            let attr_source:^u8=str_concat(str_concat(c"ptr(u16(&",attributes),str_concat(str_concat(c"[",offset),c"]))"))
+            emit(str_concat(str_concat(str_concat(c"tile_attribute_span(",attr_source),c",ptr("),str_concat(str_from_int(u16(attr_address)),c"),10)")))
+            emit(str_concat(str_concat(str_concat(c"tile_row_fill(",tile_source),c",ptr("),str_concat(str_from_int(u16(address)),c"))")))
+            emit(str_concat(callback,str_concat(str_concat(c"(",n),c")")))
+            emit(c"}}")
+            row=row+1
+        }
+        emit(c"}")
+    }
 }

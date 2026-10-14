@@ -358,6 +358,9 @@ func TestTetrisPixelPhysicsNativeVM(t *testing.T) {
 	m.v["drop_speed"] = 0
 	add("clock-wrap/zero-speed", m, 0, 255)
 	m = newPixelGameModel()
+	m.v["score"] = 65535
+	add("hard-drop-score-wrap", m, 16, 0)
+	m = newPixelGameModel()
 	m.v["prev_keys"] = 3
 	add("held-keys-no-repeat", m, 3, 0)
 	m = newPixelGameModel()
