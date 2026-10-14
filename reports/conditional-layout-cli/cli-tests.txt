@@ -1,0 +1,127 @@
+=== RUN   TestLayoutModeCLICollectReplayExactOutput
+[layout-modes] speed mode0 layout2: 650 T / 43 B; artifacts /tmp/TestLayoutModeCLICollectReplayExactOutput601243913/002/.a80/collect
+[layout-modes-replay] saved winner: 683 heldout T / 43 B; artifacts /tmp/TestLayoutModeCLICollectReplayExactOutput601243913/002/.a80/replay
+[layout-modes] speed mode0 layout2: 650 T / 43 B; artifacts /tmp/TestLayoutModeCLICollectReplayExactOutput601243913/002/.BiN/collect
+[layout-modes-replay] saved winner: 683 heldout T / 43 B; artifacts /tmp/TestLayoutModeCLICollectReplayExactOutput601243913/002/.BiN/replay
+[layout-modes] size mode0 layout0: 665 T / 34 B; artifacts /tmp/TestLayoutModeCLICollectReplayExactOutput601243913/002/.a80-size/collect
+[layout-modes-replay] saved winner: 715 heldout T / 34 B; artifacts /tmp/TestLayoutModeCLICollectReplayExactOutput601243913/002/.a80-size/replay
+[layout-modes] size mode0 layout0: 665 T / 34 B; artifacts /tmp/TestLayoutModeCLICollectReplayExactOutput601243913/002/.BiN-size/collect
+[layout-modes-replay] saved winner: 715 heldout T / 34 B; artifacts /tmp/TestLayoutModeCLICollectReplayExactOutput601243913/002/.BiN-size/replay
+--- PASS: TestLayoutModeCLICollectReplayExactOutput (17.72s)
+=== RUN   TestLayoutModeCLIRejectsFlagsAndAliases
+=== RUN   TestLayoutModeCLIRejectsFlagsAndAliases/both
+=== RUN   TestLayoutModeCLIRejectsFlagsAndAliases/limit
+=== RUN   TestLayoutModeCLIRejectsFlagsAndAliases/compiler-modes
+=== RUN   TestLayoutModeCLIRejectsFlagsAndAliases/runtime
+=== RUN   TestLayoutModeCLIRejectsFlagsAndAliases/output-alias
+=== RUN   TestLayoutModeCLIRejectsFlagsAndAliases/goal-replay
+--- PASS: TestLayoutModeCLIRejectsFlagsAndAliases (0.01s)
+    --- PASS: TestLayoutModeCLIRejectsFlagsAndAliases/both (0.00s)
+    --- PASS: TestLayoutModeCLIRejectsFlagsAndAliases/limit (0.00s)
+    --- PASS: TestLayoutModeCLIRejectsFlagsAndAliases/compiler-modes (0.00s)
+    --- PASS: TestLayoutModeCLIRejectsFlagsAndAliases/runtime (0.00s)
+    --- PASS: TestLayoutModeCLIRejectsFlagsAndAliases/output-alias (0.00s)
+    --- PASS: TestLayoutModeCLIRejectsFlagsAndAliases/goal-replay (0.01s)
+=== RUN   TestLayoutModeCLIReplayRejectsResealedEvidenceAndImports
+[layout-modes] speed mode0 layout2: 483 T / 55 B; artifacts /tmp/TestLayoutModeCLIReplayRejectsResealedEvidenceAndImports3117390667/002/training
+=== RUN   TestLayoutModeCLIReplayRejectsResealedEvidenceAndImports/forged-timing
+=== RUN   TestLayoutModeCLIReplayRejectsResealedEvidenceAndImports/forged-assembly
+=== RUN   TestLayoutModeCLIReplayRejectsResealedEvidenceAndImports/duplicate-json
+=== RUN   TestLayoutModeCLIReplayRejectsResealedEvidenceAndImports/changed-import
+--- PASS: TestLayoutModeCLIReplayRejectsResealedEvidenceAndImports (6.96s)
+    --- PASS: TestLayoutModeCLIReplayRejectsResealedEvidenceAndImports/forged-timing (2.30s)
+    --- PASS: TestLayoutModeCLIReplayRejectsResealedEvidenceAndImports/forged-assembly (2.29s)
+    --- PASS: TestLayoutModeCLIReplayRejectsResealedEvidenceAndImports/duplicate-json (0.02s)
+    --- PASS: TestLayoutModeCLIReplayRejectsResealedEvidenceAndImports/changed-import (0.03s)
+=== RUN   TestCompilerModeReplayActualFrozenHeldout
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayActualFrozenHeldout3952961596/002/training
+[compiler-modes replay] fixed mode 1: 5568 T / 52 B; saved BIN 23a46320f4d5adaf3a706457cf721145f0ff0df85efcd4c8e0e2b0f0d83642f0
+--- PASS: TestCompilerModeReplayActualFrozenHeldout (1.23s)
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayRejectsMutatedTraining634957315/002/training
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/binary
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/missing-manifest-entry
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/selected-index
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/selected-flags
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/source
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/negative-total
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/forged-positive-total
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/forged-result
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/wrong-run-context
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/corrupt-manifest
+--- PASS: TestCompilerModeReplayRejectsMutatedTraining (1.23s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/binary (0.01s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/missing-manifest-entry (0.02s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/selected-index (0.02s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/selected-flags (0.02s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/source (0.01s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/negative-total (0.02s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/forged-positive-total (0.17s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/forged-result (0.02s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/wrong-run-context (0.02s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/corrupt-manifest (0.01s)
+=== RUN   TestCompilerModeReplayChangedImportedSource
+[compiler-modes] speed selected mode 0: 24 T / 10 B; artifacts /tmp/TestCompilerModeReplayChangedImportedSource3510782263/002/training
+--- PASS: TestCompilerModeReplayChangedImportedSource (0.87s)
+=== RUN   TestCompilerModeReplayFlagAndPathAdmission
+--- PASS: TestCompilerModeReplayFlagAndPathAdmission (0.01s)
+=== RUN   TestCompilerModeReplayRejectsHeldoutDiskMutation
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayRejectsHeldoutDiskMutation3206991841/002/training
+--- PASS: TestCompilerModeReplayRejectsHeldoutDiskMutation (1.20s)
+=== RUN   TestCompilerModeCLIPathsAndFlags
+=== RUN   TestCompilerModeCLIPathsAndFlags/missing-workload
+=== RUN   TestCompilerModeCLIPathsAndFlags/joint
+=== RUN   TestCompilerModeCLIPathsAndFlags/other-output
+=== RUN   TestCompilerModeCLIPathsAndFlags/hir-grace
+=== RUN   TestCompilerModeCLIPathsAndFlags/alias-input
+=== RUN   TestCompilerModeCLIPathsAndFlags/hardlink-input
+=== RUN   TestCompilerModeCLIPathsAndFlags/table-pin
+--- PASS: TestCompilerModeCLIPathsAndFlags (0.01s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/missing-workload (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/joint (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/other-output (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/hir-grace (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/alias-input (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/hardlink-input (0.01s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/table-pin (0.00s)
+=== RUN   TestCompilerModeCLIActualSelectedArtifacts
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts1368110965/002/evidence
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts1368110965/003/evidence
+[compiler-modes] size selected mode 0: 2605 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts1368110965/004/evidence
+[compiler-modes] size selected mode 0: 2605 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts1368110965/005/evidence
+--- PASS: TestCompilerModeCLIActualSelectedArtifacts (3.67s)
+=== RUN   TestCompilerModeCLIImportedSource
+[compiler-modes] speed selected mode 0: 24 T / 10 B; artifacts /tmp/TestCompilerModeCLIImportedSource1724976471/001/evidence
+--- PASS: TestCompilerModeCLIImportedSource (0.87s)
+=== RUN   TestCompilerModeCLIImportedOutputAlias
+--- PASS: TestCompilerModeCLIImportedOutputAlias (0.02s)
+=== RUN   TestHIRProfileStrictJSON
+=== RUN   TestHIRProfileStrictJSON/unknown
+=== RUN   TestHIRProfileStrictJSON/nested_unknown
+=== RUN   TestHIRProfileStrictJSON/trailing
+=== RUN   TestHIRProfileStrictJSON/trailing_garbage
+=== RUN   TestHIRProfileStrictJSON/duplicate
+=== RUN   TestHIRProfileStrictJSON/case_duplicate
+=== RUN   TestHIRProfileStrictJSON/nested_duplicate
+=== RUN   TestHIRProfileStrictJSON/null
+=== RUN   TestHIRProfileStrictJSON/oversized
+=== RUN   TestHIRProfileStrictJSON/model_unknown
+=== RUN   TestHIRProfileStrictJSON/model_trailing
+=== RUN   TestHIRProfileStrictJSON/model_overflow
+=== RUN   TestHIRProfileStrictJSON/model_null
+--- PASS: TestHIRProfileStrictJSON (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/unknown (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/nested_unknown (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/trailing (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/trailing_garbage (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/duplicate (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/case_duplicate (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/nested_duplicate (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/null (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/oversized (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/model_unknown (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/model_trailing (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/model_overflow (0.00s)
+    --- PASS: TestHIRProfileStrictJSON/model_null (0.00s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	33.825s

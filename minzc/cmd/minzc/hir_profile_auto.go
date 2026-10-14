@@ -25,6 +25,9 @@ var hirProfileOrderedByteRWFunctions bool
 var hirProfileMixedCopyRegionSites bool
 
 func validateHIRProfileAuto(source string) error {
+	if hirProfileLayoutFunction != "" || hirProfileLayoutReplay != "" {
+		return validateHIRLayoutModes(source)
+	}
 	if hirProfileCompilerModesReplay != "" {
 		return validateHIRCompilerModesReplay(source)
 	}

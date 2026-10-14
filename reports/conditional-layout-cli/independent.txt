@@ -1,0 +1,12 @@
+=== RUN   TestLayoutCLIArtifactsIndependentTokenizer
+=== RUN   TestLayoutCLIArtifactsIndependentTokenizer/speed
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    layout_cli_artifact_audit_test.go:111: 32 CLI candidates: independent tokenizer tokens/resources/globals/accesses PASS; ordinary/selected 4201/4138 B, training 334893/329689 T, heldout 289757/283909 T
+=== RUN   TestLayoutCLIArtifactsIndependentTokenizer/size
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    layout_cli_artifact_audit_test.go:111: 24 CLI candidates: independent tokenizer tokens/resources/globals/accesses PASS; ordinary/selected 4186/4120 B, training 334871/329844 T, heldout 289789/284072 T
+--- PASS: TestLayoutCLIArtifactsIndependentTokenizer (1.63s)
+    --- PASS: TestLayoutCLIArtifactsIndependentTokenizer/speed (0.82s)
+    --- PASS: TestLayoutCLIArtifactsIndependentTokenizer/size (0.81s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.643s
