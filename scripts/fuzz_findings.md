@@ -1,5 +1,45 @@
 # Differential fuzz smoke run
 
+## Literal-width oracle correction (2026-10-14)
+
+The long folded-fuzz job in run `38639897937` reported 9934/10000 passes and
+66 MIR2/oracle disagreements. All 66 are reference-interpreter errors: the
+Python interpreter treated literal-only arithmetic as u16, and selected the
+first typed operand's width rather than the widest operand. Nanz gives small
+integer literals u8 types and evaluates unsigned arithmetic at the widest
+operand width. A u16 binding widens the result after its initializer is evaluated;
+it does not change a nested byte operation.
+
+Book v7 §2.3 documents inferred byte literals, §2.9 documents explicit casts,
+and §16.2 casts byte operands to u16 before checking an addition for overflow.
+The parser's `parsePrimary` and `resultTy` and the typed HIR lowering implement
+these rules. The fixed reference interpreter models them independently.
+
+For example, seed 8299 reduces to:
+
+```nanz
+fun reduced(c: u16) -> u16 {
+    return (c + (0 - 2))
+}
+assert reduced(61050) == 61304 via z80
+```
+
+The inner byte subtraction yields 254; the outer word addition yields 61304.
+The previous oracle expected 61048. Casting zero before the subtraction,
+`((0 as u16) - 2)`, explicitly requests the word result 65534.
+Seed 8374's `(100 + (255 + 3))` similarly evaluates to 102, not 358.
+
+All 66 unchanged original reproducers return the same CI-reported values on
+baseline `0ffddf8b` and feature `9a2bd171`, on both MIR2 and Z80. Replacing
+only the expected value with the corrected independent oracle makes all 66
+pass on both backends and both commits. The corrected oracle changes exactly
+these 66 expected values among seeds 0–9999. The historical fixtures and
+reports below retain their original prototype-oracle expectations.
+
+`scripts/test_judges.py` now checks fixed arithmetic boundaries, cast ordering,
+and mixed-width operand symmetry, with optional real MIR2/Z80 integration
+when `JUDGE_MZ` is set. Both commits pass the complete judge-test suite.
+
 Main: `ed55c1c7fa0c775522b06154e4670b29ac1981a3` (also the branch base).
 Command: `python3 scripts/fuzz_diff.py --mz /tmp/j2a-main-mz --seed 0 --count 500 -j 16 --output /tmp/j2a-fuzz-verified`.
 Wall time: 5.19 seconds; exit code 1 (findings). 250 passed, 2 wrong-value
