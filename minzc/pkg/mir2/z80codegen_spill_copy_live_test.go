@@ -118,13 +118,15 @@ func TestZ80ByteSpillCopyPreservesLiveAccumulator(t *testing.T) {
 				g.genInst(block.Insts[0])
 				// Consume the logical live value, as argument setup/return emission does.
 				g.emitMov("A", g.loc(keep), 8)
-				sb.WriteString(fmt.Sprintf("DI\nHALT\n%s: DB %d\n%s: DB 0\n", g.loc(src), value, g.loc(dst)))
+				fmt.Fprintf(&sb, "DI\nHALT\n%s: DB %d\n%s: DB 0\n", g.loc(src), value, g.loc(dst))
 				a, e := z80asm.NewAssembler().AssembleString(sb.String())
 				if e != nil || len(a.Errors) != 0 {
 					t.Fatal(e, a.Errors, sb.String())
 				}
 				z := emulator.NewRemogattoZ80()
-				z.LoadMemory(0x8000, a.Binary)
+				if err := z.LoadMemory(0x8000, a.Binary); err != nil {
+					t.Fatal(err)
+				}
 				z.SetPC(0x8000)
 				for i := 0; !z.IsHalted(); i++ {
 					if i > 1000 {

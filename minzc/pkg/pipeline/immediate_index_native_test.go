@@ -105,9 +105,10 @@ fun update(x:u8)->u16 {
 			}
 			for i, value := range vm.ReadHeap(base[0].I, 512) {
 				expected := byte(0)
-				if i == 255 {
+				switch i {
+				case 255:
 					expected = byte(x)
-				} else if i == 256 {
+				case 256:
 					expected = byte(x + 1)
 				}
 				if value != expected {

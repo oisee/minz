@@ -142,7 +142,7 @@ fun draw_surface(x:u8,y:u8,base:u16)->u8 {
 					}
 				}
 				minSP := sp
-				for n := 0; !(z.GetPC() == pc && z.GetSP() == sp+2); n++ {
+				for n := 0; z.GetPC() != pc || z.GetSP() != sp+2; n++ {
 					if n > 20000 {
 						t.Fatalf("%s %v: no balanced return", name, args)
 					}

@@ -44,3 +44,29 @@ remain pending.
 Local logs and the packaging smoke are preserved under
 `/home/alice/dev/minz-artifacts/grace-reports/2026-10-14/demo-release-preparation/`;
 the corresponding share directory is `/mnt/safe/minz/grace/2026-10-14/demo-release-preparation/`.
+
+## Six native hosts — verified candidate
+
+[Run 38639893958](https://github.com/oisee/minz/actions/runs/38639893958)
+passes on all six native runners. Packages are built at `826c341d` and remain
+release candidates pending integration and the deep audit. Every downloaded
+package was independently checked against its manifest, ZIP contents and the
+current Tetris snapshot. All nine control PNG files agree byte-for-byte across
+Linux amd64/arm64, Windows amd64/arm64 and macOS Intel/Apple Silicon.
+
+Tetris field/actor/preview are visible. SAVE and fresh RESTORE both report `Ok`;
+the following `look` shows the expected Zork II room. Native platform startup
+does not replace the independent gameplay and ULA proofs, nor does it establish
+physical Spectrum/Pi/Parallels operation.
+
+Candidate ZIPs and `SHA256SUMS` are in
+`/mnt/safe/minz/releases/v0.25.1-candidate/`. Complete native build metadata,
+GUI receipts, screenshots and source/package hashes are preserved under the
+local/share `demo-release-preparation/native/` directories above. The other
+five demo snapshots are unchanged from 0.25.0; this candidate updates Tetris.
+
+Advisory lint found unchecked setup/export errors and style suggestions in
+test files. They are being corrected with a focused repeat of all 26 affected
+tests. This follow-up changes the test harness only; it does not change the
+compiler, emulator, library sources or embedded demo assets used by the six
+native packages. Required CI and the full deep audit remain pending.

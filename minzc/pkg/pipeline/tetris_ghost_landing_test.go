@@ -67,7 +67,9 @@ func TestTetrisGhostLandingNativeVM(t *testing.T) {
 			v := mir2.NewVM(steps.MIR2Module)
 			v.EnsureHeap(65536)
 			z := emulator.NewRemogattoZ80()
-			z.LoadMemory(0x8000, a.Binary)
+			if err := z.LoadMemory(0x8000, a.Binary); err != nil {
+				t.Fatal(err)
+			}
 			mem := z.Memory()
 			set := func(n string, b byte) {
 				addr, ok := a.Symbols[n]

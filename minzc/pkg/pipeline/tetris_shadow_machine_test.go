@@ -246,7 +246,7 @@ func TestTetrisShadowTemporalMachine(t *testing.T) {
 					}
 				}
 				ts := c.Tstates()
-				c.CPUCore.Reset()
+				c.Reset()
 				c.SetTstates(ts)
 				c.SetPC(symbol("render_smooth"))
 				c.SetSP(0xfce0)
@@ -278,8 +278,12 @@ func TestTetrisShadowTemporalMachine(t *testing.T) {
 						partial++
 						if root := os.Getenv("MINZ_TETRIS_SHADOW_EXPORT"); root != "" {
 							path := filepath.Join(root, mode, fmt.Sprintf("partial-%02d-%03d.rgba", sample, frames))
-							os.MkdirAll(filepath.Dir(path), 0755)
-							os.WriteFile(path, got, 0644)
+							if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+								t.Fatal(err)
+							}
+							if err := os.WriteFile(path, got, 0644); err != nil {
+								t.Fatal(err)
+							}
 						}
 					}
 					if c.done {

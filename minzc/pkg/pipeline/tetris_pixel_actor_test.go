@@ -182,7 +182,7 @@ func TestTetrisPixelActorNative(t *testing.T) {
 								z.SetSP(sp)
 								start := z.GetCycles()
 								minSP := uint16(sp)
-								for i := 0; !(z.GetPC() == ret && z.GetSP() == sp+2); i++ {
+								for i := 0; z.GetPC() != ret || z.GetSP() != sp+2; i++ {
 									if i > 100000 {
 										t.Fatalf("no return %s: %+v", name, z.GetRegisters())
 									}
@@ -311,7 +311,7 @@ func TestTetrisPixelActorNative(t *testing.T) {
 						z.SetPC(uint16(a.Symbols[name]))
 						z.SetSP(sp)
 						minimum := uint16(sp)
-						for i := 0; !(z.GetPC() == ret && z.GetSP() == sp+2); i++ {
+						for i := 0; z.GetPC() != ret || z.GetSP() != sp+2; i++ {
 							if i > 100000 {
 								t.Fatal("collision return", name)
 							}

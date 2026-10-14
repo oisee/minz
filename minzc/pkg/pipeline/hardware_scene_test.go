@@ -96,7 +96,9 @@ fun mutate() { var i:u8=0; while i<%d { image_values[i]=i xor 0xA5; i=i+1 } }
 								global = func(n string) int { return int(v.GlobalAddr(n)) }
 							} else {
 								z := emulator.NewRemogattoZ80()
-								z.LoadMemory(0x8000, a.Binary)
+								if err := z.LoadMemory(0x8000, a.Binary); err != nil {
+									t.Fatal(err)
+								}
 								mem := z.Memory()
 								read = func(a int) byte { return mem[a] }
 								global = func(n string) int {

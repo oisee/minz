@@ -92,7 +92,9 @@ fun run()->u8 {let value:u8=draw(inner(),&buffer[4]) draw_set_dst(&buffer[12]) r
 					for i := range memory {
 						memory[i] = byte(i*73 + seed)
 					}
-					z.LoadMemory(0x8000, a.Binary)
+					if err := z.LoadMemory(0x8000, a.Binary); err != nil {
+						t.Fatal(err)
+					}
 					entry, base, slot := a.Symbols["run"], a.Symbols["buffer"], a.Symbols[tc.slot]
 					memory[0x7000] = 0xcd
 					memory[0x7001] = byte(entry)

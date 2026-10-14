@@ -73,7 +73,7 @@ func TestZXPixelFillCellNativeVM(t *testing.T) {
 								want[p] = byte(value)
 							}
 							z.SetRegisters(emulator.Registers{PC: uint16(a.Symbols["fill_probe"]), SP: sp})
-							for n := 0; n < 2000 && !(z.GetPC() == ret && z.GetSP() == sp+2); n++ {
+							for n := 0; n < 2000 && (z.GetPC() != ret || z.GetSP() != sp+2); n++ {
 								z.Step()
 							}
 							if z.GetPC() != ret || z.GetSP() != sp+2 {

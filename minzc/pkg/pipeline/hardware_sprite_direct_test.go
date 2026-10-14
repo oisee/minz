@@ -125,7 +125,7 @@ func TestHardwareSpriteDirectRETNative(t *testing.T) {
 									}
 									writeWord(0xeff0, 0x7000)
 									z.SetRegisters(emulator.Registers{PC: uint16(a.Symbols[helper]), SP: 0xeff0, HL: address})
-									for i := 0; i < 300 && !(z.GetPC() == 0x7000 && z.GetSP() == 0xeff2); i++ {
+									for i := 0; i < 300 && (z.GetPC() != 0x7000 || z.GetSP() != 0xeff2); i++ {
 										z.Step()
 									}
 									if z.GetPC() != 0x7000 || z.GetSP() != 0xeff2 {
@@ -154,7 +154,7 @@ func TestHardwareSpriteDirectRETNative(t *testing.T) {
 						start := z.GetCycles()
 						var visits []string
 						minSP := z.GetSP()
-						for i := 0; i < 1000 && !(z.GetPC() == 0x7000 && z.GetSP() == 0xeff2); i++ {
+						for i := 0; i < 1000 && (z.GetPC() != 0x7000 || z.GetSP() != 0xeff2); i++ {
 							for _, name := range []string{"first", "second"} {
 								if z.GetPC() == uint16(a.Symbols[name]) {
 									visits = append(visits, name)
@@ -280,7 +280,7 @@ func TestHardwareSpritePointerWalkPlacementNative(t *testing.T) {
 				}
 				z.SetRegisters(registers)
 				start := z.GetCycles()
-				for n := 0; n < 10000 && !(z.GetPC() == 0x7000 && z.GetSP() == 0xeff2); n++ {
+				for n := 0; n < 10000 && (z.GetPC() != 0x7000 || z.GetSP() != 0xeff2); n++ {
 					z.Step()
 				}
 				if z.GetPC() != 0x7000 || z.GetSP() != 0xeff2 {

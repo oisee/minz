@@ -359,7 +359,7 @@ func TestTetrisSceneTemporalMachine(t *testing.T) {
 						}
 					}
 					ts := c.Tstates()
-					c.CPUCore.Reset()
+					c.Reset()
 					c.SetTstates(ts)
 					c.SetPC(symbol(entry))
 					c.SetSP(0xfce0)

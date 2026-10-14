@@ -142,7 +142,7 @@ func TestZXWholeSpriteNative(t *testing.T) {
 					}
 					start := z.GetCycles()
 					minSP := entrySP
-					for i := 0; !(z.GetPC() == returnPC && z.GetSP() == entrySP+2); i++ {
+					for i := 0; z.GetPC() != returnPC || z.GetSP() != entrySP+2; i++ {
 						if i > 20000 {
 							t.Fatalf("return (%d,%d): %+v", pos.x, pos.y, z.GetRegisters())
 						}
@@ -482,7 +482,9 @@ fun cancel_direct()->bool {
 					for at := range memory {
 						memory[at] = byte(at*37 + seed)
 					}
-					z.LoadMemory(assertLoadAddr, a.Binary)
+					if err := z.LoadMemory(assertLoadAddr, a.Binary); err != nil {
+						t.Fatal(err)
+					}
 					z.SetPC(assertLoadAddr)
 					for i := 0; z.GetPC() != uint16(a.Symbols["stage_block"]); i++ {
 						if i > 1000 {
@@ -505,7 +507,7 @@ fun cancel_direct()->bool {
 					execute := func(name string, expected int64) int {
 						begin := z.GetCycles()
 						minimum := entrySP
-						for i := 0; !(z.GetPC() == returnPC && z.GetSP() == entrySP+2); i++ {
+						for i := 0; z.GetPC() != returnPC || z.GetSP() != entrySP+2; i++ {
 							if i > 20000 {
 								t.Fatal("return", name, z.GetRegisters())
 							}

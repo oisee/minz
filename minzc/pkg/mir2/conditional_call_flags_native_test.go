@@ -70,7 +70,7 @@ func TestConditionalCallPhysicalFlagsNative(t *testing.T) {
 							z.Memory()[0xf000] = 3
 							z.Memory()[0xf001] = 0x70
 							z.SetRegisters(emulator.Registers{PC: uint16(a.Symbols["main"]), SP: 0xf000, A: uint8(input), DE: uint16(input) << 8})
-							for n := 0; !(z.GetPC() == 0x7003 && z.GetSP() == 0xf002); n++ {
+							for n := 0; z.GetPC() != 0x7003 || z.GetSP() != 0xf002; n++ {
 								if n > 10000 {
 									t.Fatal("no balanced return", input)
 								}
@@ -81,7 +81,7 @@ func TestConditionalCallPhysicalFlagsNative(t *testing.T) {
 								want = 42
 							}
 							if got := z.Memory()[a.Symbols["observed"]]; got != want {
-								t.Fatalf("input%d observed%d want%d\n%s", input, got, want,assembly)
+								t.Fatalf("input%d observed%d want%d\n%s", input, got, want, assembly)
 							}
 							vm := NewVM(m)
 							vm.WriteHeap(vm.GlobalAddr("observed"), 0)

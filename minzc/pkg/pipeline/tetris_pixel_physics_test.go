@@ -448,7 +448,7 @@ func TestTetrisPixelPhysicsNativeVM(t *testing.T) {
 				}
 				copy(expectedRAM[a.Symbols["board"]:], want.board[:])
 				z.SetRegisters(emulator.Registers{PC: uint16(a.Symbols["physics_probe"]), SP: sp})
-				for i := 0; i < 500000 && !(z.GetPC() == ret && z.GetSP() == sp+2); i++ {
+				for i := 0; i < 500000 && (z.GetPC() != ret || z.GetSP() != sp+2); i++ {
 					z.Step()
 				}
 				if z.GetPC() != ret || z.GetSP() != sp+2 {
