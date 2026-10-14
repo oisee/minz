@@ -308,6 +308,7 @@
     "TestStructReturnMetadataRejectsForgedIndirectABI",
     "TestStructReturnNestedAndRecursiveNative",
     "TestStructReturnPublicVMKeepsSourceArguments",
+    "TestStructuredCallerReferenceAvoidsGeneratedShadowing",
     "TestStructuredCopyLiveValues",
     "TestStructuredCopyMatchesTextBaseline",
     "TestStructuredFillLiveValues",
