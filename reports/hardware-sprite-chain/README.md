@@ -1,5 +1,7 @@
 # Patchable sprite chains: implementation checkpoint
 
+**14 October follow-up:** [dirty rendering and baked full-clear measurements](../advanced-demos/README.md) are being developed in `feat/advanced-demos`. They remove the old per-frame bitmap clear and add actual ULA-frame checks. This follow-up is not yet in main; the dated publication evidence below describes the original checkpoint.
+
 October 13, 2026. **Integrated into main** through [PR #90](https://github.com/oisee/minz/pull/90), merge `201146cf`. All required checks and advisory checks succeeded. A clean main checkout repeated the complete chain suite: PASS 4.487 s, and PUSH headless launcher: 100 video frames, exit 0.
 
 [Readable article with Nanz and Z80 examples](../2026-10-13-134-moving-sprites-smc-push.md).

@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -30,6 +31,8 @@ type spriteChainMachineObserver struct {
 	onComplete                func(byte)
 	pushActive                bool
 	pushReturn, pushSP        uint16
+	drawStart                 int64
+	maxDrawT                  int64
 }
 
 func (c *spriteChainMachineObserver) Interrupt() {
@@ -71,6 +74,7 @@ func (c *spriteChainMachineObserver) DoOpcode() {
 	}
 	if c.PC() == c.draw && !c.active {
 		c.active = true
+		c.drawStart = c.machine.AbsoluteTStates()
 		c.frame = byte(c.AF() >> 8)
 		if c.frame != byte(c.completed&31) {
 			c.t.Fatalf("frame order %d got %d", c.completed, c.frame)
@@ -82,6 +86,10 @@ func (c *spriteChainMachineObserver) DoOpcode() {
 		if c.SP() != c.callSP+2 {
 			c.t.Fatal("draw PC/SP", c.PC(), c.SP())
 		}
+		elapsed := c.machine.AbsoluteTStates() - c.drawStart
+		if elapsed > c.maxDrawT {
+			c.maxDrawT = elapsed
+		}
 		c.onComplete(c.frame)
 		c.completed++
 		c.active = false
@@ -89,7 +97,18 @@ func (c *spriteChainMachineObserver) DoOpcode() {
 	c.CPUCore.DoOpcode()
 }
 func TestHardwareSpriteChainFullMachine(t *testing.T) {
-	src, err := os.ReadFile("../../../reports/hardware-sprite-chain/demo/source.nanz")
+	for _, baseline := range []bool{true, false} {
+		name := "dirty"
+		path := "../../../reports/hardware-sprite-chain/demo/source.nanz"
+		if baseline {
+			name = "baseline"
+			path = "../../../reports/advanced-demos/sprite-baseline.nanz"
+		}
+		t.Run(name, func(t *testing.T) { spriteChainMachineCheck(t, path, baseline) })
+	}
+}
+func spriteChainMachineCheck(t *testing.T, sourcePath string, baseline bool) {
+	src, err := os.ReadFile(sourcePath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -100,6 +119,29 @@ func TestHardwareSpriteChainFullMachine(t *testing.T) {
 	// Independent image model; it does not inspect generated code or call an
 	// address helper from the Nanz program.
 	rows := []string{"00183c7e7e3c1800", "183c7effff7e3c18", "3c7effa5a5ff7e3c", "7effa55a5aa5ff7e", "7effa55a5aa5ff7e", "3c7effa5a5ff7e3c", "183c7effff7e3c18", "00183c7e7e3c1800"}
+	// Independent legal displayed-frame hashes. No RenderFullScreen call: the
+	// actual image below was fetched by the ULA while the CPU executed writes.
+	legal := map[[32]byte]bool{}
+	for frame := 0; frame < 32; frame++ {
+		pixels := make([]byte, 256*192*4)
+		for i := 3; i < len(pixels); i += 4 {
+			pixels[i] = 255
+		}
+		for row, encoded := range rows {
+			data, _ := hex.DecodeString(encoded)
+			for col, b := range data {
+				for bit := 0; bit < 8; bit++ {
+					if b&(128>>bit) != 0 {
+						x := (4+(frame&15)+col)*8 + bit
+						y := 56 + (frame>>4)*8 + row
+						offset := (y*256 + x) * 4
+						pixels[offset], pixels[offset+1] = 255, 255
+					}
+				}
+			}
+		}
+		legal[sha256.Sum256(pixels)] = true
+	}
 	for _, mode := range []string{"ordinary", "grace-size", "grace-speed"} {
 		for _, via := range []string{"compiled", "push"} {
 			t.Run(mode+"/"+via, func(t *testing.T) {
@@ -136,7 +178,7 @@ func TestHardwareSpriteChainFullMachine(t *testing.T) {
 				m.CPU = c
 				save := func(name string, data []byte) {
 					if d := os.Getenv("MINZ_HW_CHAIN_MACHINE_EXPORT"); d != "" {
-						p := filepath.Join(d, mode, via, name)
+						p := filepath.Join(d, t.Name()[len("TestHardwareSpriteChainFullMachine/"):], name)
 						if err := os.MkdirAll(filepath.Dir(p), 0755); err != nil {
 							t.Fatal(err)
 						}
@@ -170,22 +212,48 @@ func TestHardwareSpriteChainFullMachine(t *testing.T) {
 					}
 					save(fmt.Sprintf("completed-%02d.scr", c.completed), got)
 				}
+				displayed, broken := 0, 0
 				for f := 0; f < 200 && c.completed < 64; f++ {
 					m.RunFrame()
+					if c.completed == 0 {
+						continue
+					} // Initialization is not an animation frame.
+					pixels := make([]byte, 256*192*4)
+					fb := m.ULA.Framebuffer()
+					for y := 0; y < 192; y++ {
+						start := ((y+m.Mode.BorderTop)*m.Mode.TotalPixelWidth + m.Mode.BorderLeft) * 4
+						copy(pixels[y*256*4:(y+1)*256*4], fb[start:start+256*4])
+					}
+					displayed++
+					if !legal[sha256.Sum256(pixels)] {
+						broken++
+					}
+				}
+				if baseline {
+					if broken == 0 {
+						t.Fatal("temporal oracle failed to detect baseline flicker")
+					}
+				} else {
+					if broken != 0 {
+						t.Fatalf("%d/%d displayed frames contain a partial actor", broken, displayed)
+					}
+					if c.maxDrawT >= int64(m.Mode.TStatesPerFrame()) {
+						t.Fatalf("draw needs %d T, exceeds frame", c.maxDrawT)
+					}
 				}
 				if c.completed != 64 || c.irq == 0 || c.unsafeIRQ != 0 {
 					t.Fatalf("completed=%d IRQ=%d unsafe=%d", c.completed, c.irq, c.unsafeIRQ)
 				}
-				result, _ := json.MarshalIndent(map[string]any{"PASS": true, "mode": mode, "via": via, "completed": c.completed, "ROM_IRQ": c.irq, "unsafe_IRQ": c.unsafeIRQ, "video_frames": m.FrameCount(), "binary_bytes": len(a.Binary)}, "", "  ")
+				result, _ := json.MarshalIndent(map[string]any{"PASS": true, "mode": mode, "via": via, "completed": c.completed, "ROM_IRQ": c.irq, "unsafe_IRQ": c.unsafeIRQ, "video_frames": m.FrameCount(), "binary_bytes": len(a.Binary), "max_draw_T": c.maxDrawT, "displayed_frames": displayed, "partial_frames": broken}, "", "  ")
 				save("result.json", result)
 				save("program.a80", []byte(assembly))
 				save("program.bin", a.Binary)
 				if d := os.Getenv("MINZ_HW_CHAIN_MACHINE_EXPORT"); d != "" {
-					if err := formats.SaveSNA(filepath.Join(d, mode, via, "running.sna"), m); err != nil {
+					if err := formats.SaveSNA(filepath.Join(d, t.Name()[len("TestHardwareSpriteChainFullMachine/"):], "running.sna"), m); err != nil {
 						t.Fatal(err)
 					}
 				}
-				t.Logf("%s %s 64 independent screens, %d ROM IRQ, %d video frames, PC/SP preserved", mode, via, c.irq, m.FrameCount())
+				t.Logf("%s %s: 64 screens, %d IRQ, %d video frames, max draw %d T, partial display %d/%d, PC/SP preserved", mode, via, c.irq, m.FrameCount(), c.maxDrawT, broken, displayed)
 			})
 		}
 	}

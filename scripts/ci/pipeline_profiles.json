@@ -147,6 +147,8 @@
     "TestHIRScalarInvariantDiscoverySeesBothLoops",
     "TestHardwareCopyRejectsInvalidDescriptions",
     "TestHardwareFillRejectsInvalidDescriptions",
+    "TestHardwarePushFillRejectedContracts",
+    "TestHardwarePushFillScreenMachine",
     "TestHardwareSpriteChainCompile",
     "TestHardwareSpriteChainFullMachine",
     "TestHardwareSpriteChainRejectsInvalidDescriptions",
