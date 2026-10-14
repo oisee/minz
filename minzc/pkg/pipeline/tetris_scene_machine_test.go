@@ -27,6 +27,11 @@ type tetrisSceneObserver struct {
 	start, publishStart, elapsed, publishT int64
 	publish                                uint16
 	minSP                                  uint16
+	phases                                 map[uint16]string
+	activePhase                            string
+	phaseReturn, phaseSP                   uint16
+	phaseStart                             int64
+	phaseMax                               map[string]int64
 }
 
 func (c *tetrisSceneObserver) Interrupt() {
@@ -42,6 +47,20 @@ func (c *tetrisSceneObserver) Interrupt() {
 	c.CPUCore.Interrupt()
 }
 func (c *tetrisSceneObserver) DoOpcode() {
+	if c.activePhase != "" && c.PC() == c.phaseReturn && c.SP() == c.phaseSP+2 {
+		elapsed := c.m.AbsoluteTStates() - c.phaseStart
+		if elapsed > c.phaseMax[c.activePhase] {
+			c.phaseMax[c.activePhase] = elapsed
+		}
+		c.activePhase = ""
+	}
+	if name := c.phases[c.PC()]; name != "" && c.activePhase == "" {
+		c.activePhase = name
+		c.phaseStart = c.m.AbsoluteTStates()
+		c.phaseSP = c.SP()
+		c.phaseReturn = uint16(c.m.Memory.ReadByteInternal(c.SP())) | uint16(c.m.Memory.ReadByteInternal(c.SP()+1))<<8
+	}
+
 	if !c.done && c.SP() < c.minSP {
 		c.minSP = c.SP()
 	}
@@ -237,6 +256,8 @@ func TestTetrisSceneTemporalMachine(t *testing.T) {
 				c := &tetrisSceneObserver{CPUCore: m.CPU, t: t, m: m}
 				if !baseline {
 					c.publish = symbol("tetris_publish")
+					c.phases = map[uint16]string{symbol("compose"): "compose", symbol("tetris_prepare"): "prepare"}
+					c.phaseMax = map[string]int64{}
 				}
 				m.CPU = c
 				save := func(n string, b []byte) {
@@ -400,11 +421,12 @@ func TestTetrisSceneTemporalMachine(t *testing.T) {
 				if c.irq == 0 {
 					t.Fatal("no IM2 interrupts")
 				}
-				result, _ := json.MarshalIndent(map[string]any{"PASS": true, "baseline": baseline, "mode": mode, "samples": 12, "partial_frames": partial, "displayed_frames": displayed, "transient_erase_observations": transient, "max_render_including_wait_T": maxRender, "max_publish_T": maxPublish, "binary_bytes": len(a.Binary), "IM2_IRQ": c.irq}, "", "  ")
+				result, _ := json.MarshalIndent(map[string]any{"PASS": true, "baseline": baseline, "mode": mode, "samples": 12, "partial_frames": partial, "displayed_frames": displayed, "transient_erase_observations": transient, "max_render_including_wait_T": maxRender, "max_publish_T": maxPublish, "binary_bytes": len(a.Binary), "IM2_IRQ": c.irq, "phase_max_T": c.phaseMax}, "", "  ")
 				save("result.json", result)
 				save("program.a80", []byte(assembly))
 				save("program.bin", a.Binary)
 				t.Logf("%s: partial=%d/%d transient=%d publish=%d T renderer+wait=%d T bytes=%d IRQ=%d", name, partial, displayed, transient, maxPublish, maxRender, len(a.Binary), c.irq)
+				t.Logf("phase timings: %v", c.phaseMax)
 			})
 		}
 	}

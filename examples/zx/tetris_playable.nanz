@@ -280,11 +280,26 @@ fun clear_lines() -> u8 {
 // ── Ghost piece ─────────────────────────────────────────────────────────────
 
 fun ghost_y() -> u8 {
-    var gy: u8 = cur_y
-    while can_place(cur_type, cur_rot, cur_x, gy + 1) {
-        gy = gy + 1
+    // Each cell can fall until the next occupied cell in its own column.
+    // The minimum free distance gives the same landing pose as repeatedly
+    // testing the whole piece, without repeating geometry calls at every row.
+    var distance: u8 = BOARD_H
+    var c: u8 = 0
+    while c < 4 {
+        let cx: u8 = cur_x + piece_dx(cur_type, cur_rot, c)
+        let cy: u8 = cur_y + piece_dy(cur_type, cur_rot, c)
+        if (cx >= BOARD_W) | (cy >= BOARD_H) { return cur_y }
+        var row: u8 = cy + 1
+        var free: u8 = 0
+        while row < BOARD_H {
+            if board[row * 10 + cx] != 0 { break }
+            free = free + 1
+            row = row + 1
+        }
+        if free < distance { distance = free }
+        c = c + 1
     }
-    return gy
+    return cur_y + distance
 }
 
 // ── Wall kicks (SRS-lite) ───────────────────────────────────────────────────

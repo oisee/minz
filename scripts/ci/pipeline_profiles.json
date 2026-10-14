@@ -324,6 +324,7 @@
     "TestStructuredSpriteRuntimeBaseNativeAndVM",
     "TestStructuredSpriteWhenDiagnostics",
     "TestTetrisFamilyIndependentModelControls",
+    "TestTetrisGhostLandingNativeVM",
     "TestTetrisHistoricalModelIdentity",
     "TestTetrisSceneTemporalMachine",
     "TestTetrisSequenceIndependentModelControls",
