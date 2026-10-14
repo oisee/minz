@@ -76,7 +76,7 @@ func TestCheckedByteMemoryPointerWrapNative(t *testing.T) {
 	unchanged := append([]byte(nil), memory...)
 	for base := 0; base < 65536; base++ {
 		z.SetRegisters(emulator.Registers{PC: uint16(bin.Symbols["read_byte"]), SP: 0xeff0, HL: uint16(base), DE: 1, BC: 0x1234, IX: 0x5678, IY: 0x9abc, F: byte(base)})
-		for steps := 0; steps < 32 && !(z.GetPC() == 0x7000 && z.GetSP() == 0xeff2); steps++ {
+		for steps := 0; steps < 32 && (z.GetPC() != 0x7000 || z.GetSP() != 0xeff2); steps++ {
 			z.Step()
 		}
 		r := z.GetRegisters()

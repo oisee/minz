@@ -118,7 +118,7 @@ func TestCheckedByteMemoryComposedSpriteNative(t *testing.T) {
 							expected[0x6000+i] = (expected[0x6000+i] & masks[i]) | graphics[i]
 						}
 						z.SetRegisters(emulator.Registers{PC: uint16(a.Symbols["sprite_test"]), SP: 0xeff0, A: 0xa5, F: byte(seed), BC: 0x1234, DE: 0x5678, HL: 0x9abc, IX: 0x1357, IY: 0x2468})
-						for steps := 0; steps < 2000 && !(z.GetPC() == 0x7000 && z.GetSP() == 0xeff2); steps++ {
+						for steps := 0; steps < 2000 && (z.GetPC() != 0x7000 || z.GetSP() != 0xeff2); steps++ {
 							z.Step()
 						}
 						if z.GetPC() != 0x7000 || z.GetSP() != 0xeff2 {
