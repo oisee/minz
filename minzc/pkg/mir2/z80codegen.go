@@ -628,6 +628,7 @@ type z80cg struct {
 	//   Affected: AddrOf(base), Field(fptr), and (for stores) the store's addrReg.
 	globalFieldLoad  map[Reg]globalFieldInfo
 	globalFieldStore map[Reg]globalFieldInfo
+	globalFieldAddr  map[Reg]globalFieldInfo // literal global displacement into a pair
 	globalFieldSkip  map[Reg]bool
 
 	// bitStorePat maps the stored value reg of a Store to a fused u8/u16 bit-update
@@ -907,6 +908,7 @@ func (g *z80cg) genFunc(f *Func) {
 	g.lutSkip = make(map[Reg]bool)
 	g.globalFieldLoad = make(map[Reg]globalFieldInfo)
 	g.globalFieldStore = make(map[Reg]globalFieldInfo)
+	g.globalFieldAddr = make(map[Reg]globalFieldInfo)
 	g.globalFieldSkip = make(map[Reg]bool)
 	g.bitStorePat = make(map[Reg]bitStorePat)
 	g.bitStoreSkip = make(map[Reg]bool)

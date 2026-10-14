@@ -2549,7 +2549,6 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 // stride = ElemStride if set; otherwise ElemTy.Width()/8 (rounded up to 1).
 func (l *lowerer) lowerIndexAddr(ex *IndexExpr) mir2.Reg {
 	base := l.lowerExpr(ex.Base)
-	idx := l.lowerExpr(ex.Idx)
 
 	stride := ex.ElemStride
 	if stride == 0 {
@@ -2559,6 +2558,29 @@ func (l *lowerer) lowerIndexAddr(ex *IndexExpr) mir2.Reg {
 			stride = 1
 		}
 	}
+	// A literal global-array index is already a compile-time byte displacement.
+	// Keep it immediate so the native backend can use direct global addressing,
+	// rather than materializing an index register and doing runtime PtrAdd.
+	// The 16-bit target wraps the displacement modulo 65536. Host globals have
+	// wider addresses; signed/non-normalized literals retain ordinary lowering.
+	// Runtime pointer bases retain PtrAdd, including the sequential-byte fusion
+	// DAG; immediate Field alone is not cheaper for those native addresses.
+	globalArray := false
+	if ref, ok := ex.Base.(*VarRefExpr); ok {
+		if global, found := l.findGlobal(ref.Name); found {
+			_, globalArray = mir2.BaseOf(global.Ty).(*mir2.ArrayTy)
+		}
+	}
+	if globalArray && l.target != TargetMZV && l.target != TargetAgon && stride > 0 {
+		if literal, ok := ex.Idx.(*IntLitExpr); ok {
+			if (literal.Ty == mir2.TyU8 && literal.Val >= 0 && literal.Val <= 255) ||
+				(literal.Ty == mir2.TyU16 && literal.Val >= 0 && literal.Val <= 65535) {
+				offset := int64((uint64(literal.Val) * (uint64(stride) & 0xffff)) & 0xffff)
+				return l.bld.Field(base, offset, mir2.ClassPointer)
+			}
+		}
+	}
+	idx := l.lowerExpr(ex.Idx)
 
 	var offset mir2.Reg
 	idxTy := ex.Idx.ExprTy()

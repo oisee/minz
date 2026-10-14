@@ -1259,6 +1259,10 @@ func (g *z80cg) genInst(inst *Inst) {
 		// INC and ADD clobber flags.
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
+		if info, ok := g.globalFieldAddr[inst.Dst]; ok {
+			g.emitf("    LD %s, %s", dst, globalFieldLabel(info.sym, info.offset, ""))
+			break
+		}
 		src := g.loc(inst.Src[0])
 		offset := inst.Imm
 		if dst != src {
