@@ -250,7 +250,13 @@ func TestOriginalConsoleNative(t *testing.T) {
 					if !done || mismatch >= 0 || row != 11 || col != 0 || result["actual_row"] != byte(11) || result["actual_col"] != byte(0) {
 						t.Fatalf("ZX corrected returned=%v screen mismatch=%04x", done, mismatch)
 					}
-					expectedReads := []uint16{0xfefe, 0xfdfe, 0xfbfe, 0xf7fe, 0xeffe, 0xdffe, 0xbffe, 0x7ffe, 0xfefe, 0xfdfe, 0xfbfe, 0xf7fe, 0xeffe, 0xdffe, 0xbffe, 0x7ffe, 0xfefe}
+					// The printable A key requires a SYMBOL SHIFT (row 7F) lookup
+					// between row FD and FB; CAPS SHIFT is checked after the key scan.
+					expectedReads := []uint16{
+						0xfefe, 0xfdfe, 0xfbfe, 0xf7fe, 0xeffe, 0xdffe, 0xbffe, 0x7ffe,
+						0xfefe, 0xfdfe, 0x7ffe, 0xfbfe, 0xf7fe, 0xeffe, 0xdffe, 0xbffe, 0x7ffe,
+						0xfefe,
+					}
 					if fmt.Sprint(reads) != fmt.Sprint(expectedReads) || len(ports) != 0 {
 						t.Fatal("keyboard/ports", reads, ports)
 					}

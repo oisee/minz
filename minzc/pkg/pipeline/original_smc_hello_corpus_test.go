@@ -50,8 +50,19 @@ func TestOriginalSMCHelloCorpus(t *testing.T) {
 				return h
 			}
 			original := hir.LowerModule(parse())
-			if len(original.Funcs) != 2 {
-				t.Fatal("callable count", len(original.Funcs))
+			expectedFuncs := append([]string(nil), src.entries...)
+			if src.key == "ex15_smc_sprite" {
+				// Native source-call support lowers typed SMC setters into MIR2,
+				// alongside the two original drawing procedures.
+				expectedFuncs = append(expectedFuncs, "draw_row_set_r0", "draw_row4_set_r0")
+			}
+			if len(original.Funcs) != len(expectedFuncs) {
+				t.Fatalf("callable count %d, want exact entries %v", len(original.Funcs), expectedFuncs)
+			}
+			for _, name := range expectedFuncs {
+				if original.FuncByName(name) == nil {
+					t.Fatalf("missing callable %s", name)
+				}
 			}
 			export("source.nanz", data)
 			export("march13-source.nanz", other)
