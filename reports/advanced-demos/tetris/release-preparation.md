@@ -76,7 +76,10 @@ native packages. Required CI and the full deep audit remain pending.
 
 The 26 lint-affected harness tests pass (MIR2 0.095 s, pipeline 338.678 s).
 PR CI at `9a2bd171` passes all required checks and advisory lint; its advisory
-output sweep failed and still needs diagnosis. The earlier deep run
+output sweep reports 10 output differences. The only exit change is an
+improvement: old main panics on Tetris, while the candidate compiles it.
+The archived comparison spans 838 source files; output identity is not a
+semantic test of deliberately changed code generation. The earlier deep run
 38639897937 passes nine pipeline shards and fails three. Exact keyboard
 oracles omitted a SYMBOL SHIFT read already present on main; the SMC oracle
 omitted newly callable typed setters. All four affected families pass locally
