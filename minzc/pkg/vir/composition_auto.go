@@ -6,7 +6,8 @@ import (
 )
 
 // ComposeCheckedAutomatically discovers complete straight-line partitions from
-// checked proposal lengths and existing move bridges. Each partition still goes
+// checked proposal lengths, independently admitted fragment domains and existing
+// move bridges. Each partition still goes
 // through exact current MIR/ABI admission. Limit bounds both the number of
 // partitions and each partition's assignment search; at most eight fragments
 // are permitted. Failure never modifies the output table.
@@ -23,7 +24,13 @@ func (t *RegAllocTable) ComposeCheckedAutomatically(p *LocalTableProblem, target
 		return 0, fmt.Errorf("automatic composition pool exceeds bound")
 	}
 	lengths := map[int]bool{}
+	var entries []RegAllocEntry
 	for _, entry := range t.entries {
+		if entry != nil {
+			copy := *entry
+			copy.Assignment = append([]int(nil), entry.Assignment...)
+			entries = append(entries, copy)
+		}
 		if entry != nil && entry.Schema == checkedTableSchema && entry.CostModel == checkedTableCostModel && entry.NOps > 0 {
 			lengths[entry.NOps] = true
 		}
@@ -34,7 +41,28 @@ func (t *RegAllocTable) ComposeCheckedAutomatically(p *LocalTableProblem, target
 		ordered = append(ordered, length)
 	}
 	sort.Ints(ordered)
-	partitions, err := discoverCompositionPartitions(p.Ops, ordered, limit)
+	sort.Slice(entries, func(i, j int) bool { return entries[i].Signature < entries[j].Signature })
+	byLength := map[int][]RegAllocEntry{}
+	for _, entry := range entries {
+		if entry.Schema == checkedTableSchema && entry.CostModel == checkedTableCostModel {
+			byLength[entry.NOps] = append(byLength[entry.NOps], entry)
+		}
+	}
+	known, viable := map[[2]int]bool{}, map[[2]int]bool{}
+	admissible := func(start, end int) bool {
+		key := [2]int{start, end}
+		if !known[key] {
+			known[key] = true
+			fragment := p.Ops[start:end]
+			proposals := byLength[end-start]
+			if isCompositionMoveFragment(fragment) {
+				proposals = entries // Existing bridges can borrow any proposed location.
+			}
+			viable[key] = len(compositionFragmentChoices(fragment, proposals, p.Options, true)) > 0
+		}
+		return viable[key]
+	}
+	partitions, err := discoverCompositionPartitionsMatching(p.Ops, ordered, limit, admissible)
 	if err != nil {
 		return 0, err
 	}
@@ -62,18 +90,24 @@ func (t *RegAllocTable) ComposeCheckedAutomatically(p *LocalTableProblem, target
 }
 
 func discoverCompositionPartitions(ops []VIROp, ordered []int, limit int) ([][]int, error) {
+	return discoverCompositionPartitionsMatching(ops, ordered, limit, nil)
+}
+
+// A nonempty fragment domain is necessary, not sufficient: cross-fragment
+// liveness/aliases and the complete MIR/ABI still decide final admission.
+func discoverCompositionPartitionsMatching(ops []VIROp, ordered []int, limit int, admissible func(int, int) bool) ([][]int, error) {
 	// Suffix reachability avoids exploring incomplete prefixes. The fragment
 	// count is part of the state, keeping long streams bounded as well.
 	n := len(ops)
 	ends := func(start int) []int {
 		choices := map[int]bool{}
 		for _, length := range ordered {
-			if length <= n-start {
+			if length <= n-start && (admissible == nil || admissible(start, start+length)) {
 				choices[start+length] = true
 			}
 		}
 		for _, length := range []int{1, 2} {
-			if start+length <= n && isCompositionMoveFragment(ops[start:start+length]) {
+			if start+length <= n && isCompositionMoveFragment(ops[start:start+length]) && (admissible == nil || admissible(start, start+length)) {
 				choices[start+length] = true
 			}
 		}

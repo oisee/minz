@@ -60,52 +60,7 @@ func (t *RegAllocTable) composeCheckedCandidates(p *LocalTableProblem, target *R
 	start = 0
 	for _, end := range ends {
 		ops := p.Ops[start:end]
-		var ids []int
-		for v := range buildProblem(ops, Z80).vregs {
-			ids = append(ids, v)
-		}
-		sort.Ints(ids)
-		choices := []map[int]int{}
-		seen := map[string]bool{}
-		for _, entry := range entries {
-			if entry.Schema != checkedTableSchema || entry.CostModel != checkedTableCostModel || entry.NOps != len(ops) || entry.NVregs != len(ids) || len(entry.Assignment) != len(ids) {
-				continue
-			}
-			fragment := make(map[int]int, len(ids))
-			for i, v := range ids {
-				fragment[v] = entry.Assignment[i]
-			}
-			opts := p.Options
-			opts.ParamLocs = map[int]int{}
-			for v, loc := range p.Options.ParamLocs {
-				if _, exists := fragment[v]; exists {
-					opts.ParamLocs[v] = loc
-				}
-			}
-			if _, err := checkedLocalCost(ops, fragment, Z80, opts); err != nil {
-				continue
-			}
-			key := fmt.Sprint(entry.Assignment)
-			if !seen[key] {
-				choices = append(choices, fragment)
-				seen[key] = true
-			}
-		}
-		if moves && isCompositionMoveFragment(ops) {
-			for _, bridge := range compositionMoveChoices(ops, entries, p.Options) {
-				key := fmt.Sprint(bridge)
-				duplicate := false
-				for _, choice := range choices {
-					if fmt.Sprint(choice) == key {
-						duplicate = true
-						break
-					}
-				}
-				if !duplicate {
-					choices = append(choices, bridge)
-				}
-			}
-		}
+		choices := compositionFragmentChoices(ops, entries, p.Options, moves)
 		domains = append(domains, choices)
 		start = end
 	}
@@ -195,4 +150,54 @@ func validateCompositionProblem(p *LocalTableProblem) error {
 		return fmt.Errorf("composition problem differs from current MIR")
 	}
 	return nil
+}
+
+func compositionFragmentChoices(ops []VIROp, entries []RegAllocEntry, options SolverOptions, moves bool) []map[int]int {
+	var ids []int
+	for v := range buildProblem(ops, Z80).vregs {
+		ids = append(ids, v)
+	}
+	sort.Ints(ids)
+	choices := []map[int]int{}
+	seen := map[string]bool{}
+	for _, entry := range entries {
+		if entry.Schema != checkedTableSchema || entry.CostModel != checkedTableCostModel || entry.NOps != len(ops) || entry.NVregs != len(ids) || len(entry.Assignment) != len(ids) {
+			continue
+		}
+		fragment := make(map[int]int, len(ids))
+		for i, v := range ids {
+			fragment[v] = entry.Assignment[i]
+		}
+		opts := options
+		opts.ParamLocs = map[int]int{}
+		for v, loc := range options.ParamLocs {
+			if _, exists := fragment[v]; exists {
+				opts.ParamLocs[v] = loc
+			}
+		}
+		if _, err := checkedLocalCost(ops, fragment, Z80, opts); err != nil {
+			continue
+		}
+		key := fmt.Sprint(entry.Assignment)
+		if !seen[key] {
+			choices = append(choices, fragment)
+			seen[key] = true
+		}
+	}
+	if moves && isCompositionMoveFragment(ops) {
+		for _, bridge := range compositionMoveChoices(ops, entries, options) {
+			key := fmt.Sprint(bridge)
+			duplicate := false
+			for _, choice := range choices {
+				if fmt.Sprint(choice) == key {
+					duplicate = true
+					break
+				}
+			}
+			if !duplicate {
+				choices = append(choices, bridge)
+			}
+		}
+	}
+	return choices
 }

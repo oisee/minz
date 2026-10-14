@@ -376,6 +376,7 @@
   "deep": [
     "TestByteWordFusionAudit",
     "TestC89ExpressionEffectsNative",
+    "TestCheckedCompositionPartitionDomainsOracle",
     "TestConditionalLayoutModesTokenizerHeldout",
     "TestConditionalLayoutTokenizerCompilerCombinations",
     "TestConditionalLayoutTokenizerHeldout",
