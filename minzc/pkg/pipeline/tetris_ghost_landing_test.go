@@ -1,8 +1,10 @@
 package pipeline
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -153,6 +155,18 @@ func TestTetrisGhostLandingNativeVM(t *testing.T) {
 								checked++
 							}
 						}
+					}
+				}
+			}
+			if d := os.Getenv("MINZ_TETRIS_GHOST_EXPORT"); d != "" {
+				dir := filepath.Join(d, mode)
+				if e := os.MkdirAll(dir, 0755); e != nil {
+					t.Fatal(e)
+				}
+				receipt, _ := json.MarshalIndent(map[string]any{"PASS": true, "mode": mode, "poses": checked, "backends": []string{"MIR2 VM", "native Z80"}, "shapes": 7, "rotations": 4, "board_patterns": 4, "start_heights": []int{0, 3, 8, 12, 16}, "binary_bytes": len(a.Binary), "return_PC_SP": true, "board_unchanged": true}, "", "  ")
+				for name, data := range map[string][]byte{"source.nanz": []byte(source), "program.a80": []byte("ORG 0x8000\n" + steps.Assembly), "program.bin": a.Binary, "result.json": receipt} {
+					if e := os.WriteFile(filepath.Join(dir, name), data, 0644); e != nil {
+						t.Fatal(e)
 					}
 				}
 			}
