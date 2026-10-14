@@ -6,16 +6,16 @@ milestone with rendering and declarative-library work, not a completion claim.
 | Requirement | Evidence required | Current status |
 |---|---|---|
 | Flicker-free compiled and PUSH sprite demos | Independent screens at every display frame, ROM/ULA timing, dirty writes and IRQ/SP checks | 48K model: baseline detects partial display; dirty renderer 0/64 partial frames in all six variants. Physical display/release pending |
-| Tetris removes intermediate actor erasure | Composited frame, dirty publication, independent gameplay and display oracles | 14 cached-render fixtures × 3 modes: final full RAM, gameplay state, IM2 and fetched ULA pixels; baseline detects flicker, composition 0 partial frames. Idle composition skips preparation; immediate global-array addresses give baked16 downward compose+prepare+publish 44,724 T, at a 22,730-byte module cost; full board refresh exceeds a frame; real game input/substeps pending |
-| Smooth pixel-step falling piece | Pixel geometry and substep/rotation/locking model, native frames | Typed `FallingPose` consumes actual game geometry; all 28 shapes × 8 phases VM/Z80, pixel contact oracle; staged publication 3,653 T. Bitmap/attribute composition and game-loop integration pending; [report](tetris/pixel-actor.md) |
+| Tetris removes intermediate actor erasure | Composited frame, dirty publication, independent gameplay and display oracles | Playable shadow compositor: 14 scenes × 3 modes and 969 fetched main field frames, no mixed frames; negative control detects mixing. Full memory, gameplay, IM2, PC/SP checks pass. Native dirty-row preparation measured; stable 50 FPS is not established |
+| Smooth pixel-step falling piece | Pixel geometry and substep/rotation/locking model, native frames | Actual main uses pixel-step gravity, movement, kicks, hold and locking. Independent physics: 1596 cases/mode on native and raw/final VM; real main: 39 steps and 24 fractional poses per mode. [Gameplay report](tetris/smooth-gameplay.md) |
 | Optional TV sine/noise/row-shift effects | Deterministic render oracle; game state identical with effects on/off | Pending |
 | Declarative typed Nanz, object composition and compile-time interfaces | Real consumers using common reusable APIs; compile-time diagnostics | Pending |
-| Whole-sprite declarative Nanz API | One real multi-row sprite with size, pixels and mask; one draw call with coordinates; no public row-setter/address bookkeeping | First whole-sprite API verified: `Ship{x,y}.draw()`; 444 native and 888 VM calls; 99 fetched ULA frames in three modes. Byte-aligned X, arbitrary pixel Y; Tetris migration pending |
+| Whole-sprite declarative Nanz API | One real multi-row sprite with size, pixels and mask; one draw call with coordinates; no public row-setter/address bookkeeping | First whole-sprite API verified: `Ship{x,y}.draw()`; 444 native and 888 VM calls; 99 fetched ULA frames in three modes. Byte-aligned X, arbitrary pixel Y; four baked 8×8 instances now render the playable Tetris actor |
 | Shapes, masks, tables and specialized procedures baked | HIR/ASM/BIN inspection, runtime excludes generator and avoidable preparation | Native rows and whole 16×8 sprite verified; checkpoint 4849b2ed: 596–597-byte full module, 3,847–4,185 T including placement and drawing; current staging API: 748 bytes, 3,588–3,644 T for direct draw; [whole-sprite report](whole-sprite/README.md). Wider workloads/selection pending |
 | Checked SP-stream alternatives | Ordered memory effects, exact SP restoration, actual machine clobbers, native oracle and measured benefit | Astra research completed; automatic PUSH/POP selection pending |
 | Measured selection under Speed/Size/frame budget | Admitted alternatives, preserved winners, heldout native measurements | Full-clear candidates measured; closed 15-candidate scene receipt selection preserves Speed/Size/bounded winners and rejects all-fixture frame budget; compiler integration/heldout timings pending |
 | Explicit region, timing, IRQ, RAM and SMC contracts | Valid and rejected cases, native memory/PC/SP/IFF proof, beam deadlines | Pending |
-| Integration and updated demo release | Main PR/CI, six packaged platforms, playable artifacts and checksums | Pending |
+| Integration and updated demo release | Main PR/CI, six packaged platforms, playable artifacts and checksums | Preparing 0.25.1 candidate: fresh native builds of all six hosts, package SHA/ZIP and startup/SAVE checks; no release published yet |
 
 ## Work sequence
 
@@ -77,3 +77,12 @@ screen/shadow boundary positions on native/raw/final VM.
 
 See [the preparation report](tetris/native-preparation.md). Main integration and
 six-host release remain required; 50-FPS rendering is not established.
+
+## Main/release preparation — 14 October 2026
+
+The current table now describes the playable native-preparation checkpoint,
+with historical measurements retained below. Local common core and Nanz
+regressions pass. The versioned workflow prepares fresh builds of all six hosts,
+and packages include the declarative hardware library sources. See
+[release preparation](tetris/release-preparation.md). Required PR checks, full
+deep release receipts, main merge and publication remain pending.
