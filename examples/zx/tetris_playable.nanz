@@ -779,7 +779,7 @@ fun main() -> void {
 // Pixel geometry belongs to the previous grid row until its eighth step.
 // At phase 1 the six-pixel body still fits that row; at phases 2..7 its
 // lower body crosses the cell boundary and must also fit the following row.
-fun FallingPose.stage(self:^FallingPose)->bool {
+fun FallingPose.stage_into(self:^FallingPose,base:u16)->bool {
     FallingBlock_0_ready=false
     FallingBlock_1_ready=false
     FallingBlock_2_ready=false
@@ -793,16 +793,18 @@ fun FallingPose.stage(self:^FallingPose)->bool {
     if self.phase>1 {
         if can_place(self.kind,self.rotation,self.x,self.y+1)==false {return false}
     }
-    if stage_tetris_cell(self,0)==false {return false}
-    if stage_tetris_cell(self,1)==false {return false}
-    if stage_tetris_cell(self,2)==false {return false}
-    if stage_tetris_cell(self,3)==false {return false}
+    if stage_tetris_cell(self,0,base)==false {return false}
+    if stage_tetris_cell(self,1,base)==false {return false}
+    if stage_tetris_cell(self,2,base)==false {return false}
+    if stage_tetris_cell(self,3,base)==false {return false}
     return true
 }
 
+fun FallingPose.stage(self:^FallingPose)->bool {return self.stage_into(0x4000)}
+
 // Keep each address calculation local; four simultaneous live pointer walks
 // would force avoidable spills before the frame boundary.
-fun stage_tetris_cell(actor:^FallingPose,c:u8)->bool {
+fun stage_tetris_cell(actor:^FallingPose,c:u8,base:u16)->bool {
     let index:u16=u16(actor.kind)*16+u16(actor.rotation)*4+u16(c)
     let x:u16=(u16(BOARD_X)+u16(actor.x)+u16(PIECE_DX[index]))*8
     let y:u16=(u16(BOARD_Y)+u16(actor.y)+u16(PIECE_DY[index]))*8+u16(actor.phase)
@@ -810,19 +812,19 @@ fun stage_tetris_cell(actor:^FallingPose,c:u8)->bool {
     if y+8>192 {return false}
     if c==0 {
         let cell:FallingBlock_0=FallingBlock_0{x:u8(x),y:u8(y)}
-        return cell.stage()
+        return cell.stage_on(base)
     }
     if c==1 {
         let cell:FallingBlock_1=FallingBlock_1{x:u8(x),y:u8(y)}
-        return cell.stage()
+        return cell.stage_on(base)
     }
     if c==2 {
         let cell:FallingBlock_2=FallingBlock_2{x:u8(x),y:u8(y)}
-        return cell.stage()
+        return cell.stage_on(base)
     }
     if c==3 {
         let cell:FallingBlock_3=FallingBlock_3{x:u8(x),y:u8(y)}
-        return cell.stage()
+        return cell.stage_on(base)
     }
     return false
 }
@@ -857,4 +859,172 @@ fun stage_pixel_actor()->bool {
 fun publish_pixel_actor()->bool {
     let actor:FallingPose=FallingPose{kind:cur_type,rotation:cur_rot,x:cur_x,y:cur_y,phase:pixel_phase}
     return actor.publish()
+}
+
+fun stage_pixel_actor_shadow()->bool {
+    let actor:FallingPose=FallingPose{kind:cur_type,rotation:cur_rot,x:cur_x,y:cur_y,phase:pixel_phase}
+    return actor.stage_into(0x6000)
+}
+
+// Shadow bitmap occupies ordinary RAM below code; only the 10x20 field is
+// modified after startup. Prepared sources stay frozen until publication.
+import zx.pixel_bands
+@pixel_bands("field_pixels") {rows 20}
+// Owned RAM bitmap at 0x6000..0x77ff; addressed explicitly, not emitted data.
+global pixel_left:[u8;20]
+global pixel_right:[u8;20]
+global drawn_phase:u8=0
+
+fun pixel_reset_spans() {
+    var row:u8=0
+    while row<20 {
+        pixel_left[row]=10
+        pixel_right[row]=0
+        row=row+1
+    }
+    field_pixels_count=0
+}
+
+fun pixel_mark_cell(x:u8,y:u8) {
+    if x>=10 {return}
+    if y>=20 {return}
+    if x<pixel_left[y] {pixel_left[y]=x}
+    if x+1>pixel_right[y] {pixel_right[y]=x+1}
+}
+
+fun pixel_mark_pose(t:u8,r:u8,x:u8,y:u8,phase:u8) {
+    var c:u8=0
+    while c<4 {
+        let cx:u8=x+piece_dx(t,r,c)
+        let cy:u8=y+piece_dy(t,r,c)
+        pixel_mark_cell(cx,cy)
+        if phase>1 {pixel_mark_cell(cx,cy+1)}
+        c=c+1
+    }
+}
+
+fun pixel_restore_cell(x:u8,y:u8) {
+    var value:u8=0
+    if board[y*10+x]!=0 {value=255}
+    var p:^u8=ptr(zx_screen_addr(11+x,(2+y)*8)+0x2000)
+    var row:u8=0
+    while row<8 {
+        p^=value
+        p=p+256
+        row=row+1
+    }
+    tetris_values[y*10+x]=CELL_COLORS[board[y*10+x]]
+}
+
+fun pixel_restore_spans() {
+    var y:u8=0
+    while y<20 {
+        var x:u8=pixel_left[y]
+        while x<pixel_right[y] {
+            pixel_restore_cell(x,y)
+            x=x+1
+        }
+        y=y+1
+    }
+}
+
+fun pixel_actor_attributes() {
+    let color:u8=piece_color(cur_type)
+    var c:u8=0
+    while c<4 {
+        let x:u8=cur_x+piece_dx(cur_type,cur_rot,c)
+        let y:u8=cur_y+piece_dy(cur_type,cur_rot,c)
+        if pixel_phase<7 {tetris_values[y*10+x]=color}
+        if pixel_phase>1 {tetris_values[(y+1)*10+x]=color}
+        c=c+1
+    }
+}
+
+fun pixel_prepare_bands() {
+    field_pixels_count=0
+    var y:u8=0
+    while y<20 {
+        let left:u8=pixel_left[y]
+        let right:u8=pixel_right[y]
+        if left<right {
+            let destination:u16=zx_screen_addr(11+left,(2+y)*8)
+            let source:u16=destination+0x2000
+            var dirty:u8=0
+            var scan:u8=0
+            while scan<8 {
+                let offset:u16=u16(scan)*256
+                var col:u8=0
+                while col<right-left {
+                    let screen:^u8=ptr(destination+offset+u16(col))
+                    let shadow:^u8=ptr(source+offset+u16(col))
+                    if screen^!=shadow^ {dirty=1}
+                    col=col+1
+                }
+                scan=scan+1
+            }
+            if dirty!=0 {
+                field_pixels_sources[field_pixels_count]=source
+                field_pixels_destinations[field_pixels_count]=destination
+                field_pixels_widths[field_pixels_count]=right-left
+                field_pixels_count=field_pixels_count+1
+            }
+        }
+        y=y+1
+    }
+}
+
+fun pixel_init() {
+    // Initial field clear only. All subsequent changes use bounded dirty bands.
+    var y:u8=0
+    while y<20 {
+        var x:u8=0
+        while x<10 {
+            var p:^u8=ptr(zx_screen_addr(11+x,(2+y)*8))
+            var row:u8=0
+            while row<8 {p^=0 p=p+256 row=row+1}
+            x=x+1
+        }
+        y=y+1
+    }
+    var index:u16=0
+    while index<6144 {
+        let source:^u8=ptr(0x4000+index)
+        let destination:^u8=ptr(0x6000+index)
+        destination^=source^
+        index=index+1
+    }
+    drawn_phase=0
+}
+
+fun render_smooth()->bool {
+    if (BOARD_X!=11)|(BOARD_Y!=2)|(BOARD_W!=10)|(BOARD_H!=20) {return false}
+    if drawn_valid!=0 {
+        if board_dirty==0 {
+            if (cur_type==drawn_type)&(cur_rot==drawn_rot)&(cur_x==drawn_x)&(cur_y==drawn_y)&(pixel_phase==drawn_phase) {
+                if (next_type==drawn_next)&(hold_type==drawn_hold) {zx_halt() return true}
+            }
+        }
+    }
+    if stage_pixel_actor_shadow()==false {return false}
+    pixel_reset_spans()
+    if (board_dirty!=0)|(drawn_valid==0) {
+        var y:u8=0
+        while y<20 {pixel_left[y]=0 pixel_right[y]=10 y=y+1}
+    } else {
+        pixel_mark_pose(drawn_type,drawn_rot,drawn_x,drawn_y,drawn_phase)
+        pixel_mark_pose(cur_type,cur_rot,cur_x,cur_y,pixel_phase)
+    }
+    compose()
+    pixel_restore_spans()
+    pixel_actor_attributes()
+    publish_pixel_actor() // baked stores compose privately into the shadow.
+    pixel_prepare_bands()
+    tetris_prepare()
+    drawn_phase=pixel_phase
+    zx_halt()
+    asm z80 {DI}
+    tetris_publish()
+    field_pixels_publish()
+    asm z80 {EI}
+    return true
 }

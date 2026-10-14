@@ -122,21 +122,23 @@ fun @zx_sprite(name:^u8)->void {
     emit(c"return true }")
     // A scene can place SMC operands before its frame boundary, then publish
     // only the baked stores. One pending placement belongs to each form.
-    emit(str_concat(str_concat(c"fun ",name),str_concat(c".stage(self:^",str_concat(name,c")->bool {"))))
+    emit(str_concat(str_concat(c"fun ",name),str_concat(c".stage_on(self:^",str_concat(name,c",base:u16)->bool {"))))
     emit(str_concat(name,c"_ready=false"))
     emit(c"let x:u8=self.x let y:u8=self.y")
     emit(c"if (x & 7)!=0 {return false}")
     emit(str_concat(str_concat(c"if u16(x)+",str_from_int(u16(width))),c">256 {return false}"))
     emit(str_concat(str_concat(c"if u16(y)+",str_from_int(u16(height))),c">192 {return false}"))
+    emit(c"if base>0xe800 {return false}")
     emit(c"var address:u16=sprite_address(x,y)")
     row=0
     while row<height {
         let row_name:^u8=str_concat(name,str_concat(c"_row_",str_from_int(u16(row))))
-        emit(str_concat(row_name,c"_set_dst(ptr(address))"))
+        emit(str_concat(row_name,c"_set_dst(ptr(address-0x4000+base))"))
         if row+1<height {emit(c"address=sprite_next_line(address)")}
         row=row+1
     }
     emit(str_concat(name,c"_ready=true return true }"))
+    emit(str_concat(str_concat(c"fun ",name),str_concat(c".stage(self:^",str_concat(name,c")->bool {return self.stage_on(0x4000)}"))))
     emit(str_concat(str_concat(c"fun ",name),str_concat(c".publish(self:^",str_concat(name,c")->bool {"))))
     emit(str_concat(str_concat(c"if ",name),c"_ready==false {return false}"))
     row=0

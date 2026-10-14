@@ -59,7 +59,7 @@ func TestTetrisPixelActorNative(t *testing.T) {
 			if e != nil || len(a.Errors) != 0 {
 				t.Fatal(e, a.Errors)
 			}
-			if 0x8000+len(a.Binary) >= 0xee00 {
+			if 0x8000+len(a.Binary) >= 0xfc60 {
 				t.Fatalf("module overlaps bounded test stack: %d bytes", len(a.Binary))
 			}
 			// Permit only spill objects belonging to functions reachable from these two
@@ -135,7 +135,7 @@ func TestTetrisPixelActorNative(t *testing.T) {
 								memory[a.Symbols[name]] = value
 							}
 							clear(memory[a.Symbols["board"] : a.Symbols["board"]+200])
-							const sp = 0xeff0
+							const sp = 0xfce0
 							const ret = 0x7000
 							memory[sp], memory[sp+1] = byte(ret&255), byte(ret>>8)
 							before := append([]byte(nil), memory...)
@@ -285,7 +285,7 @@ func TestTetrisPixelActorNative(t *testing.T) {
 						memory[a.Symbols[name]] = value
 					}
 					copy(memory[a.Symbols["board"]:], board)
-					const sp = 0xeff0
+					const sp = 0xfce0
 					const ret = 0x7000
 					memory[sp], memory[sp+1] = byte(ret&255), byte(ret>>8)
 					before := append([]byte(nil), memory...)
