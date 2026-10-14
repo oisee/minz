@@ -1,0 +1,5 @@
+stderr: regalloc-server: ready
+regalloc-server: processed 2 functions, exiting
+add {"cost": 4, "assignment": [0, 1, 0], "searchSpace": 6, "feasible": 1}
+overlap_B_BC {"cost": 0, "assignment": [1, 7], "searchSpace": 60, "feasible": 1}
+process returncode=0 including CUDA startup seconds=0.161561

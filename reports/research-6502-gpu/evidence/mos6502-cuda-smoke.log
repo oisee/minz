@@ -1,0 +1,5 @@
+K=3 len=1 candidates=14 score=4294967295
+K=3 len=2 candidates=196 score=4294967295
+K=3 len=3 candidates=2744 score=4294967295
+K=3 len=4 candidates=38416 score=262154 ROL A; STA zp; ROR A; ADC zp;
+kernel+transfer wall_seconds=0.093931 (CUDA context warm)

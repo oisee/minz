@@ -1,0 +1,37 @@
+[
+  {
+    "file": "snapshots/6502-optimizer-c643bb9.tar.gz",
+    "bytes": 43347,
+    "sha256": "37e6a266c65a6595213182b65c5b100e402bce025b6fb7f62825e7afb029f496"
+  },
+  {
+    "file": "snapshots/generated-cuda-runtime-evidence.tar.gz",
+    "bytes": 881938,
+    "sha256": "809512d093410468f61ae438ac54ca642785b1e3a8ba200201ebe1b90e378cec"
+  },
+  {
+    "file": "snapshots/gpuforce-622109c.tar.gz",
+    "bytes": 14295973,
+    "sha256": "944a9100db3f024384e8417c5c1dea8335065e7e368a0c6af4c6b69881e18f65"
+  },
+  {
+    "file": "snapshots/minz-0ffddf8b-compiler-evidence.tar.gz",
+    "bytes": 806579,
+    "sha256": "9e9378b61ba62d012765400c1a9a8f844d7c9f2070d45f993685e3fb5f6ca56a"
+  },
+  {
+    "file": "snapshots/raw-logs.tar.gz",
+    "bytes": 7092,
+    "sha256": "6f15862cc574c352c0330b9b991641237174f56c0da86ad0c38e93315abbdb9a"
+  },
+  {
+    "file": "snapshots/reference-snapshots.tar.gz",
+    "bytes": 403892,
+    "sha256": "7774036ed0c4ab1f634e45f1ee041515228b07afb8aefe1fb30aa1c743c53b01"
+  },
+  {
+    "file": "snapshots/z80-optimizer-7701e47.tar.gz",
+    "bytes": 127083577,
+    "sha256": "61f68aa77c32bfa00e087616b6c73a32a05b85586cc61a669e2adebb4a1c54e5"
+  }
+]

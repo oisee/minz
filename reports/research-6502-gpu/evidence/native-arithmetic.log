@@ -1,0 +1,11 @@
+GPU-discovered mul3 a=3 entryCarry=0 result=9 expected=9
+GPU-discovered mul3 entryCarry=0 failures=0/256
+GPU-discovered mul3 a=3 entryCarry=1 result=11 expected=9
+GPU-discovered mul3 entryCarry=1 failures=256/256
+native valid BCD 09+01 = 10 (GPUFORCE binary model gives 0A)
+16-bit ADC chain: 2056 boundary+seeded cases PASS; baseline=13 bytes,20 cycles excl BRK/RTS
+16-bit SBC chain: 2056 boundary+seeded cases PASS; baseline=13 bytes,20 cycles excl BRK/RTS
+32-bit ADC chain: 2056 boundary+seeded cases PASS; baseline=25 bytes,38 cycles excl BRK/RTS
+32-bit SBC chain: 2056 boundary+seeded cases PASS; baseline=25 bytes,38 cycles excl BRK/RTS
+64-bit ADC chain: 2056 boundary+seeded cases PASS; baseline=49 bytes,74 cycles excl BRK/RTS
+64-bit SBC chain: 2056 boundary+seeded cases PASS; baseline=49 bytes,74 cycles excl BRK/RTS

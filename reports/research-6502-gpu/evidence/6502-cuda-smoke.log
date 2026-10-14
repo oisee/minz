@@ -1,0 +1,16 @@
+GPU 0: NVIDIA GeForce RTX 2070 (8.4 GB, SM 7.5)
+Instruction set: 2863 instructions (8-bit)
+Starting v2 search: max_target=2, dead_flags=0x00, gpu=0, ops=[2,3)
+=== Target length 2 ===
+  Length 2 done: 2601 targets, 8 found (0s)
+
+=== DONE (v2 batched pipeline) ===
+Targets tested:     2601
+Batches processed:  6
+QuickCheck hits:    8
+MidCheck survivors: 8
+ExhaustiveCheck:    8 (GPU:8 CPU:0)
+Results found:      8
+Total time:         0s
+False positive rate: 0.0% (QC->confirmed)
+wall_seconds=0.65

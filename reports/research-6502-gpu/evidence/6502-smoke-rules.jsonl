@@ -1,0 +1,8 @@
+{"source_asm":"TXA : TAX","replacement_asm":"TXA","source_bytes":2,"replacement_bytes":1,"bytes_saved":1,"cycles_saved":2}
+{"source_asm":"TXA : AND #$00","replacement_asm":"LDA #$00","source_bytes":3,"replacement_bytes":2,"bytes_saved":1,"cycles_saved":2}
+{"source_asm":"TXA : AND #$00","replacement_asm":"AND #$00","source_bytes":3,"replacement_bytes":2,"bytes_saved":1,"cycles_saved":2}
+{"source_asm":"TXA : AND #$FF","replacement_asm":"TXA","source_bytes":3,"replacement_bytes":1,"bytes_saved":2,"cycles_saved":2}
+{"source_asm":"TXA : ORA #$00","replacement_asm":"TXA","source_bytes":3,"replacement_bytes":1,"bytes_saved":2,"cycles_saved":2}
+{"source_asm":"TXA : ORA #$FF","replacement_asm":"LDA #$FF","source_bytes":3,"replacement_bytes":2,"bytes_saved":1,"cycles_saved":2}
+{"source_asm":"TXA : ORA #$FF","replacement_asm":"ORA #$FF","source_bytes":3,"replacement_bytes":2,"bytes_saved":1,"cycles_saved":2}
+{"source_asm":"TXA : EOR #$00","replacement_asm":"TXA","source_bytes":3,"replacement_bytes":1,"bytes_saved":2,"cycles_saved":2}

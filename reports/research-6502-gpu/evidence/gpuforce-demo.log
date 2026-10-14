@@ -1,0 +1,6 @@
+{"command": ["/home/alice/dev/minz-artifacts/research-6502-gpu/z80_regalloc_smoke", "--demo"], "cwd": "/home/alice/dev/minz-artifacts/research-6502-gpu/gpuforce", "returncode": 1}
+Search space: 15^3 = 0 assignments
+Launching GPU regalloc...
+No valid assignment found (all infeasible)
+Demo: add(a: u8 = A, b: u8 = B) -> u8
+  vregs: 3, ops: 1, interference: 1, constraints: 2

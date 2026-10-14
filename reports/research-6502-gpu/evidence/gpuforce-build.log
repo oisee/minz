@@ -1,0 +1,4 @@
+{"command": ["go", "build", "./cmd/gpugen"], "cwd": "/home/alice/dev/minz-artifacts/research-6502-gpu/gpuforce", "returncode": 1}
+go: cannot find main module, but found .git/config in /home/alice/dev/minz-artifacts/research-6502-gpu/gpuforce
+	to create a module there, run:
+	go mod init

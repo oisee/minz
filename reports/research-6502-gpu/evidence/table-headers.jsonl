@@ -1,0 +1,3 @@
+{"file": "enriched_4v.enr", "bytes": 4104402, "magic": "ENRT", "version": 1, "header_records": 156506, "max_vregs": 4, "metrics": 12, "parsed_records": 156506, "parsed_feasible": 123453}
+{"file": "enriched_5v.enr.zst", "bytes": 22829072, "magic": "ENRT", "version": 1, "header_records": 17366874, "max_vregs": 5, "metrics": 12}
+{"file": "enriched_6v_dense.enr.zst", "bytes": 58012779, "magic": "ENRT", "version": 1, "header_records": 66118738, "max_vregs": 6, "metrics": 12}

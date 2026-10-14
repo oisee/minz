@@ -1,0 +1,70 @@
+{
+  "created_utc": "2026-10-14T13:53:36.499794+00:00",
+  "minz_base": "0ffddf8b465ce813319f274ae624559beee7dc73",
+  "research_branch": "feat/research-6502-gpu",
+  "external_repositories": {
+    "gpuforce": {
+      "url": "https://github.com/oisee/gpuforce",
+      "commit": "622109c75657d6930a79ff1ed54178215ddc9f10",
+      "source_archive": "gpuforce-622109c.tar.gz"
+    },
+    "z80-optimizer": {
+      "url": "https://github.com/oisee/z80-optimizer",
+      "commit": "7701e474705b0a2d58364764870ff98d3c6390b7",
+      "source_archive": "z80-optimizer-7701e47.tar.gz"
+    },
+    "6502-optimizer": {
+      "url": "https://github.com/oisee/6502-optimizer",
+      "commit": "c643bb9074c5e5743016691a80466238d8199030",
+      "source_archive": "6502-optimizer-c643bb9.tar.gz"
+    }
+  },
+  "gpu": "NVIDIA GeForce RTX 2070, 8192 MiB, 550.120",
+  "cuda": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2023 NVIDIA Corporation\nBuilt on Fri_Jan__6_16:45:21_PST_2023\nCuda compilation tools, release 12.0, V12.0.140\nBuild cuda_12.0.r12.0/compiler.32267302_0",
+  "go_minz": "go1.24.3",
+  "go_external": "GOTOOLCHAIN=go1.26.8",
+  "references": [
+    {
+      "file": "c64mem.html",
+      "url": "https://www.pagetable.com/c64ref/c64mem/",
+      "sha256": "2db3ff9c3192c357f135837053f389f21ec80a1533d9b91d22857aa947dd1b1f"
+    },
+    {
+      "file": "instruction-set.html",
+      "url": "https://www.masswerk.at/6502/6502_instruction_set.html",
+      "sha256": "b5ebb0a02f18bc22a5017c7945b75083c004770e6a0f2bf167e35933c75ea8a6"
+    },
+    {
+      "file": "py65-mpu6502.py",
+      "url": "https://raw.githubusercontent.com/mnaberez/py65/master/py65/devices/mpu6502.py",
+      "sha256": "15d93835b4f279b702270d9a0b417938291347ec57cc12d9e0307cd344d381fe"
+    },
+    {
+      "file": "MOSRegisterInfo.td",
+      "url": "https://raw.githubusercontent.com/llvm-mos/llvm-mos/0f031168a7cc8e81b7b40c0ec0b1f7b3c90b8a63/llvm/lib/Target/MOS/MOSRegisterInfo.td",
+      "sha256": "a96ed543ff671dfb59a66d55756681fddc48342c5ea987a09d12d7c02e4e76c9"
+    },
+    {
+      "file": "MOSCallingConv.td",
+      "url": "https://raw.githubusercontent.com/llvm-mos/llvm-mos/0f031168a7cc8e81b7b40c0ec0b1f7b3c90b8a63/llvm/lib/Target/MOS/MOSCallingConv.td",
+      "sha256": "0eb8f6a7103c313473656a444df5a938ff40855a705215c1e119e231ef085669"
+    },
+    {
+      "file": "MOSRegisterInfo.cpp",
+      "url": "https://raw.githubusercontent.com/llvm-mos/llvm-mos/0f031168a7cc8e81b7b40c0ec0b1f7b3c90b8a63/llvm/lib/Target/MOS/MOSRegisterInfo.cpp",
+      "sha256": "387b7e9f3a802228b5c4db8b72e3456d2e2cb9fbae038792e356b10d45140a37"
+    }
+  ],
+  "reference_fetch_failures": [
+    {
+      "url": "https://www.6502.org/tutorials/decimal_mode.html",
+      "result": "HTTP404"
+    },
+    {
+      "url": "https://llvm-mos.org/wiki/Zero_page",
+      "result": "HTTP403"
+    }
+  ],
+  "scope": "Read-only compiler research; tracked report/probes/evidence only. No production compiler changes or PR/main merge.",
+  "committed_log_normalization": "Trailing spaces removed only; original raw outputs archived in raw-logs.tar.gz."
+}

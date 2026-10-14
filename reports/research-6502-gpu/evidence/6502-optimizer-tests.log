@@ -1,0 +1,7 @@
+go: downloading github.com/spf13/pflag v1.0.9
+?   	github.com/oisee/6502-optimizer/cmd/6502opt	[no test files]
+ok  	github.com/oisee/6502-optimizer/pkg/cpu	0.005s
+?   	github.com/oisee/6502-optimizer/pkg/inst	[no test files]
+?   	github.com/oisee/6502-optimizer/pkg/result	[no test files]
+ok  	github.com/oisee/6502-optimizer/pkg/search	0.024s
+ok  	github.com/oisee/6502-optimizer/pkg/stoke	0.003s
