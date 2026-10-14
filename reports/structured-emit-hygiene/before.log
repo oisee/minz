@@ -1,0 +1,14 @@
+=== RUN   TestStructuredCallerReferenceAvoidsGeneratedShadowing
+=== RUN   TestStructuredCallerReferenceAvoidsGeneratedShadowing/ordinary
+    structured_caller_hygiene_test.go:56: caller reference captured generated local: VM result[{0}] private=22 caller=00
+=== RUN   TestStructuredCallerReferenceAvoidsGeneratedShadowing/grace-size
+    structured_caller_hygiene_test.go:56: caller reference captured generated local: VM result[{0}] private=22 caller=00
+=== RUN   TestStructuredCallerReferenceAvoidsGeneratedShadowing/grace-speed
+    structured_caller_hygiene_test.go:56: caller reference captured generated local: VM result[{0}] private=22 caller=00
+--- FAIL: TestStructuredCallerReferenceAvoidsGeneratedShadowing (0.01s)
+    --- FAIL: TestStructuredCallerReferenceAvoidsGeneratedShadowing/ordinary (0.00s)
+    --- FAIL: TestStructuredCallerReferenceAvoidsGeneratedShadowing/grace-size (0.00s)
+    --- FAIL: TestStructuredCallerReferenceAvoidsGeneratedShadowing/grace-speed (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.022s
+FAIL

@@ -524,6 +524,8 @@ type nanzADTCtor struct {
 }
 
 type parser struct {
+	metaBindingCount int // deterministic private bindings for structured emit
+
 	sourceSHA256 string
 	l            *lexer
 	name         string
@@ -3329,7 +3331,7 @@ func (p *parser) parseMetaStmt(metaSrc, name string) (hir.Stmt, error) {
 		return nil, fmt.Errorf("line %d: @%s: %w", callLine, name, err)
 	}
 	if len(nodes) > 0 {
-		return &hir.Block{Body: nodes}, nil
+		return p.spliceMetaHIR(nodes), nil
 	}
 	if strings.TrimSpace(emitted) == "" {
 		return &hir.Block{}, nil

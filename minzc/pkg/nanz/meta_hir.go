@@ -2,6 +2,7 @@ package nanz
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
@@ -100,7 +101,7 @@ func (mr *metaRuntime) registerHIRHosts(vm *mir2.VM) {
 		if declared.String() != ty.String() {
 			return nil, fmt.Errorf("structured emit: caller variable %s type %s, requested %s", name, declared, ty)
 		}
-		return b.add(&hir.VarRefExpr{Name: name, Ty: declared})
+		return b.add(&hir.VarRefExpr{Name: metaCallerPrefix + name, Ty: declared})
 	})
 	host("hir_binary", 3, func(a []mir2.Value) ([]mir2.Value, error) {
 		l, e := b.expr(a[1].I)
@@ -265,6 +266,70 @@ func (mr *metaRuntime) registerHIRHosts(vm *mir2.VM) {
 		b.output = append(b.output, snapshotMetaStmt(s))
 		return nil, nil
 	})
+}
+
+// The marker is internal to builder snapshots. Neither it nor the private
+// generated names can be written as a Nanz identifier. Resolve it only after
+// renaming generated bindings, so explicit caller references cannot be captured.
+const metaCallerPrefix = "\x00caller:"
+
+func (p *parser) spliceMetaHIR(nodes []hir.Stmt) *hir.Block {
+	block := &hir.Block{Body: nodes}
+	p.renameMetaStmt(block, nil)
+	return block
+}
+
+func (p *parser) renameMetaStmt(stmt hir.Stmt, scope map[string]string) {
+	switch n := stmt.(type) {
+	case *hir.Block:
+		local := make(map[string]string, len(scope))
+		for name, binding := range scope {
+			local[name] = binding
+		}
+		for _, child := range n.Body {
+			p.renameMetaStmt(child, local)
+		}
+	case *hir.VarDeclStmt:
+		// An initializer sees the enclosing binding, before this declaration.
+		renameMetaExpr(n.Init, scope)
+		original := n.Name
+		p.metaBindingCount++
+		n.Name = fmt.Sprintf("$meta_%d_%s", p.metaBindingCount, original)
+		scope[original] = n.Name
+	case *hir.AssignStmt:
+		renameMetaExpr(n.Target, scope)
+		renameMetaExpr(n.Val, scope)
+	case *hir.IfStmt:
+		renameMetaExpr(n.Cond, scope)
+		p.renameMetaStmt(n.Then, scope)
+		p.renameMetaStmt(n.Else, scope)
+	case *hir.WhileStmt:
+		renameMetaExpr(n.Cond, scope)
+		p.renameMetaStmt(n.Body, scope)
+	default:
+		panic("unhandled structured statement hygiene")
+	}
+}
+
+func renameMetaExpr(expr hir.Expr, scope map[string]string) {
+	switch n := expr.(type) {
+	case *hir.IntLitExpr:
+	case *hir.VarRefExpr:
+		if strings.HasPrefix(n.Name, metaCallerPrefix) {
+			n.Name = strings.TrimPrefix(n.Name, metaCallerPrefix)
+		} else if binding, ok := scope[n.Name]; ok {
+			n.Name = binding
+		}
+	case *hir.BinExpr:
+		renameMetaExpr(n.L, scope)
+		renameMetaExpr(n.R, scope)
+	case *hir.LoadExpr:
+		renameMetaExpr(n.Ptr, scope)
+	case *hir.DerefExpr:
+		renameMetaExpr(n.Ptr, scope)
+	default:
+		panic("unhandled structured expression hygiene")
+	}
 }
 func validMetaIdentifier(s string) bool {
 	if s == "" {

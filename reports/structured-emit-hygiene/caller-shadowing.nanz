@@ -1,0 +1,9 @@
+fun @build() {
+ let caller:u16=hir_caller_ref(c"frame",c"ptr")
+ let block:u16=hir_block()
+ hir_append(block,hir_var(c"frame",c"ptr",hir_int(24576,c"ptr")))
+ hir_append(block,hir_store(hir_ref(c"frame",c"ptr"),hir_int(17,c"u8")))
+ hir_append(block,hir_store(caller,hir_int(34,c"u8")))
+ emit_hir(block)
+}
+fun draw(frame:^u8)->u8 { @build() return frame[0] }
