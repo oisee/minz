@@ -1,6 +1,6 @@
 # Advanced demos: implementation and acceptance plan
 
-The full objective is preserved in [objective.md](objective.md). This is one product
+The current combined objective and its historical refinements are preserved in [objective.md](objective.md). This is one product
 milestone with rendering and declarative-library work, not a completion claim.
 
 | Requirement | Evidence required | Current status |
@@ -99,3 +99,12 @@ calls pass; preparing either half leaves bitmap/attributes untouched. Prepared
 16×8 clearing/drawing cost 772/870 T, excluding placement and external CALL.
 See [the API and measurements](paired-sprites/README.md). Tetris migration,
 full-cycle/ULA proof, selection menu and media capture remain required.
+
+
+## Continuation and artifact policy
+
+The current goal includes the Tetris release and its following advanced-demo/DSL
+stage; the paired-kernel checkpoint is not completion. Alice clarified share
+usage: publish playable release packages and media to `/mnt/safe/minz/releases/`.
+Keep new detailed CI receipts, compiler binaries and research logs locally.
+Previously preserved shared audit packets remain historical records.
