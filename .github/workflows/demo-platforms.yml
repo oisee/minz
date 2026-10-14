@@ -96,7 +96,7 @@ jobs:
           DEMO_GO_ROOT=$(go env GOROOT)
           docker run --rm -v "$PWD:/work" -v "$DEMO_GO_ROOT:/opt/go:ro" -w /work -e PATH=/opt/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -e LIBGL_ALWAYS_SOFTWARE=1 debian:bookworm bash -ec '
             apt-get update
-            apt-get install -y --no-install-recommends ca-certificates gcc libc6-dev git python3 pkg-config libasound2-dev libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev libxxf86vm-dev libgl1-mesa-dev libgl1-mesa-dri xvfb xauth file
+            apt-get install -y --no-install-recommends ca-certificates gcc libc6-dev git python3 pkg-config libasound2-dev libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev libxxf86vm-dev libgl1-mesa-dev libgl1-mesa-dri xvfb xauth x11-utils xfonts-base file
             git config --global --add safe.directory /work
             mkdir -p out/build
             go version > out/build/toolchain.txt
@@ -108,7 +108,16 @@ jobs:
             file out/build/mzx > out/build/file.txt
             ldd out/build/mzx > out/build/libraries.txt
             python3 scripts/package_demo_release.py --platform linux-arm64=/work/out/build/mzx --headless-platform linux-arm64=/work/out/build/mzx-headless --output out/packages --version 0.25.0
-            xvfb-run -a -s "-screen 0 1024x768x24" python3 scripts/verify_demo_release.py out/packages/minz-demos-0.25.0-linux-arm64 --proof out/proof
+            Xvfb :99 -screen 0 1024x768x24 -ac -nolisten tcp > out/xvfb.log 2>&1 &
+            DEMO_XVFB_PID=$!
+            trap "kill $DEMO_XVFB_PID 2>/dev/null || true" EXIT
+            export DISPLAY=:99
+            for attempt in $(seq 1 30); do
+              if xdpyinfo >/dev/null 2>&1; then break; fi
+              sleep 1
+            done
+            timeout 10 xdpyinfo > out/display.txt
+            timeout 600 python3 -u scripts/verify_demo_release.py out/packages/minz-demos-0.25.0-linux-arm64 --proof out/proof
           '
       - uses: actions/upload-artifact@v4
         if: always()
