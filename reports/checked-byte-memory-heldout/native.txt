@@ -1,0 +1,40 @@
+=== RUN   TestCheckedByteMemoryFragmentsHeldoutDescriptors
+=== RUN   TestCheckedByteMemoryFragmentsHeldoutDescriptors/greedy-gracefalse/zx-last-row
+    checked_byte_memory_heldout_test.go:149: saved fragments: [26 25] B, [114 110] T; 512 native full-memory/PC/SP cases; raw and optimized VM; [heldout_draw: 1 admitted compositions]
+=== RUN   TestCheckedByteMemoryFragmentsHeldoutDescriptors/greedy-gracefalse/shifted-linear
+    checked_byte_memory_heldout_test.go:149: saved fragments: [46 43] B, [198 186] T; 512 native full-memory/PC/SP cases; raw and optimized VM; [heldout_draw: 1 admitted compositions]
+=== RUN   TestCheckedByteMemoryFragmentsHeldoutDescriptors/greedy-gracefalse/shorter-linear
+    checked_byte_memory_heldout_test.go:149: saved fragments: [36 34] B, [156 148] T; 512 native full-memory/PC/SP cases; raw and optimized VM; [heldout_draw: 1 admitted compositions]
+=== RUN   TestCheckedByteMemoryFragmentsHeldoutDescriptors/greedy-gracetrue/zx-last-row
+    checked_byte_memory_heldout_test.go:149: saved fragments: [26 25] B, [114 110] T; 512 native full-memory/PC/SP cases; raw and optimized VM; [heldout_draw: 1 admitted compositions]
+=== RUN   TestCheckedByteMemoryFragmentsHeldoutDescriptors/greedy-gracetrue/shifted-linear
+    checked_byte_memory_heldout_test.go:149: saved fragments: [46 43] B, [198 186] T; 512 native full-memory/PC/SP cases; raw and optimized VM; [heldout_draw: 1 admitted compositions]
+=== RUN   TestCheckedByteMemoryFragmentsHeldoutDescriptors/greedy-gracetrue/shorter-linear
+    checked_byte_memory_heldout_test.go:149: saved fragments: [36 34] B, [156 148] T; 512 native full-memory/PC/SP cases; raw and optimized VM; [heldout_draw: 1 admitted compositions]
+=== RUN   TestCheckedByteMemoryFragmentsHeldoutDescriptors/pbqp-gracefalse/zx-last-row
+    checked_byte_memory_heldout_test.go:149: saved fragments: [26 25] B, [114 110] T; 512 native full-memory/PC/SP cases; raw and optimized VM; [heldout_draw: 1 admitted compositions]
+=== RUN   TestCheckedByteMemoryFragmentsHeldoutDescriptors/pbqp-gracefalse/shifted-linear
+    checked_byte_memory_heldout_test.go:149: saved fragments: [46 43] B, [198 186] T; 512 native full-memory/PC/SP cases; raw and optimized VM; [heldout_draw: 1 admitted compositions]
+=== RUN   TestCheckedByteMemoryFragmentsHeldoutDescriptors/pbqp-gracefalse/shorter-linear
+    checked_byte_memory_heldout_test.go:149: saved fragments: [36 34] B, [156 148] T; 512 native full-memory/PC/SP cases; raw and optimized VM; [heldout_draw: 1 admitted compositions]
+=== RUN   TestCheckedByteMemoryFragmentsHeldoutDescriptors/pbqp-gracetrue/zx-last-row
+    checked_byte_memory_heldout_test.go:149: saved fragments: [26 25] B, [114 110] T; 512 native full-memory/PC/SP cases; raw and optimized VM; [heldout_draw: 1 admitted compositions]
+=== RUN   TestCheckedByteMemoryFragmentsHeldoutDescriptors/pbqp-gracetrue/shifted-linear
+    checked_byte_memory_heldout_test.go:149: saved fragments: [46 43] B, [198 186] T; 512 native full-memory/PC/SP cases; raw and optimized VM; [heldout_draw: 1 admitted compositions]
+=== RUN   TestCheckedByteMemoryFragmentsHeldoutDescriptors/pbqp-gracetrue/shorter-linear
+    checked_byte_memory_heldout_test.go:149: saved fragments: [36 34] B, [156 148] T; 512 native full-memory/PC/SP cases; raw and optimized VM; [heldout_draw: 1 admitted compositions]
+--- PASS: TestCheckedByteMemoryFragmentsHeldoutDescriptors (2.58s)
+    --- PASS: TestCheckedByteMemoryFragmentsHeldoutDescriptors/greedy-gracefalse/zx-last-row (0.20s)
+    --- PASS: TestCheckedByteMemoryFragmentsHeldoutDescriptors/greedy-gracefalse/shifted-linear (0.23s)
+    --- PASS: TestCheckedByteMemoryFragmentsHeldoutDescriptors/greedy-gracefalse/shorter-linear (0.21s)
+    --- PASS: TestCheckedByteMemoryFragmentsHeldoutDescriptors/greedy-gracetrue/zx-last-row (0.19s)
+    --- PASS: TestCheckedByteMemoryFragmentsHeldoutDescriptors/greedy-gracetrue/shifted-linear (0.22s)
+    --- PASS: TestCheckedByteMemoryFragmentsHeldoutDescriptors/greedy-gracetrue/shorter-linear (0.21s)
+    --- PASS: TestCheckedByteMemoryFragmentsHeldoutDescriptors/pbqp-gracefalse/zx-last-row (0.20s)
+    --- PASS: TestCheckedByteMemoryFragmentsHeldoutDescriptors/pbqp-gracefalse/shifted-linear (0.22s)
+    --- PASS: TestCheckedByteMemoryFragmentsHeldoutDescriptors/pbqp-gracefalse/shorter-linear (0.22s)
+    --- PASS: TestCheckedByteMemoryFragmentsHeldoutDescriptors/pbqp-gracetrue/zx-last-row (0.21s)
+    --- PASS: TestCheckedByteMemoryFragmentsHeldoutDescriptors/pbqp-gracetrue/shifted-linear (0.24s)
+    --- PASS: TestCheckedByteMemoryFragmentsHeldoutDescriptors/pbqp-gracetrue/shorter-linear (0.21s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.589s
