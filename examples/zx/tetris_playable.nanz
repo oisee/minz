@@ -23,6 +23,7 @@ import hw.scene
 // Owned attribute regions: compose privately, snapshot dirty cells, then publish
 // in raster order after the next frame interrupt. init_screen establishes zero.
 @scene("tetris") {
+    prepare "baked" 16
     surface 0x5800 32 24 32
     plane 11 2 10 20
     plane 23 3 4 4

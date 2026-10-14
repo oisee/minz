@@ -141,3 +141,61 @@ func TestStructuredCallerReferenceTypes(t *testing.T) {
 		})
 	}
 }
+
+func TestStructuredMetaCallerArrayHygieneAndSnapshots(t *testing.T) {
+	h, err := Parse(`global values:[u8;3]=[1,2,3]
+ fun @build() {
+  let b:u16=hir_block()
+  hir_append(b,hir_var(c"values",c"u8",hir_int(99,c"u8")))
+  hir_append(b,hir_var(c"index",c"u8",hir_int(1,c"u8")))
+  let element:u16=hir_caller_index(c"values",hir_ref(c"index",c"u8"))
+  hir_append(b,hir_assign(element,hir_int(7,c"u8")))
+  emit_hir(b)
+  hir_append(b,hir_assign(hir_caller_index(c"values",hir_int(2,c"u8")),hir_int(9,c"u8")))
+  emit_hir(b)
+ }
+ fun main() { @build() @build() }
+ `, "caller-array.nanz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = hir.Verify(h); err != nil {
+		t.Fatal(err)
+	}
+	v := mir2.NewVM(hir.LowerModule(h))
+	if _, err = v.Call("main", nil); err != nil {
+		t.Fatal(err)
+	}
+	got := v.ReadHeap(v.GlobalAddr("values"), 3)
+	if len(got) != 3 || got[0] != 1 || got[1] != 7 || got[2] != 9 {
+		t.Fatal("caller array captured by generated local", got)
+	}
+	// Both emitted blocks retain independent expression trees.
+	outer := h.Funcs[0].Body.Body[0].(*hir.Block)
+	first := outer.Body[0].(*hir.Block).Body[2].(*hir.AssignStmt).Target.(*hir.IndexExpr)
+	second := outer.Body[1].(*hir.Block).Body[2].(*hir.AssignStmt).Target.(*hir.IndexExpr)
+	if first == second || first.Base == second.Base || first.Idx == second.Idx {
+		t.Fatal("mutable index nodes shared by snapshots")
+	}
+}
+
+func TestStructuredMetaCallerArrayDiagnostics(t *testing.T) {
+	for _, tc := range []struct{ name, global, index, want string }{
+		{"unknown", "global other:[u8;3]", `hir_int(0,c"u8")`, "needs byte array"},
+		{"scalar", "global values:u8", `hir_int(0,c"u8")`, "needs byte array"},
+		{"word-array", "global values:[u16;3]", `hir_int(0,c"u8")`, "needs byte array"},
+		{"bool-index", "global values:[u8;3]", `hir_int(0,c"bool")`, "index needs u8 or u16"},
+		{"pointer-index", "global values:[u8;3]", `hir_int(0,c"ptr")`, "index needs u8 or u16"},
+		{"constant-bound", "global values:[u8;3]", `hir_int(3,c"u8")`, "index out of bounds"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := Parse(tc.global+`
+fun @build() { emit_hir(hir_assign(hir_caller_index(c"values",`+tc.index+`),hir_int(7,c"u8"))) }
+fun main() { @build() }`, "bad-caller-array.nanz")
+			// Use actual newlines in the constructed source.
+			if err == nil || !strings.Contains(err.Error(), tc.want) {
+				t.Fatalf("error=%v want %s", err, tc.want)
+			}
+		})
+	}
+}

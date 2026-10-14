@@ -399,6 +399,7 @@
     "TestHardwareFillLDIRLiveValues",
     "TestHardwareFillLDIRNative",
     "TestHardwareFillMemoryNativeAndVM",
+    "TestHardwareSceneBakedBoundaryMatrix",
     "TestHardwareSpriteChainMaskedNative",
     "TestHardwareSpriteChainMeasuredCost",
     "TestHardwareSpriteChainNative",

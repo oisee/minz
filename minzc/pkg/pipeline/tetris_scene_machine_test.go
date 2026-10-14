@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -14,6 +15,31 @@ import (
 	"github.com/minz/minzc/pkg/spectrum"
 	"github.com/minz/minzc/pkg/z80asm"
 )
+
+func scenePreparationSource(t *testing.T, source, variant string) string {
+	t.Helper()
+	var descriptor string
+	switch variant {
+	case "loop":
+		descriptor = "prepare \"loop\""
+	case "baked8":
+		descriptor = "prepare \"baked\" 8"
+	case "baked16":
+		descriptor = "prepare \"baked\" 16"
+	case "baked32":
+		descriptor = "prepare \"baked\" 32"
+	case "baked64":
+		descriptor = "prepare \"baked\" 64"
+	default:
+		t.Fatal("unknown scene prepare candidate", variant)
+	}
+	source = regexp.MustCompile(`(?m)^[ \t]*prepare[^\n]*\n`).ReplaceAllString(source, "")
+	opening := regexp.MustCompile(`@scene\("[A-Za-z_][A-Za-z_0-9]*"\)[ \t]*\{`)
+	if len(opening.FindAllStringIndex(source, -1)) != 1 {
+		t.Fatal("candidate source needs exactly one scene")
+	}
+	return opening.ReplaceAllStringFunc(source, func(s string) string { return s + "\n" + descriptor + "\n" })
+}
 
 type tetrisSceneObserver struct {
 	spectrum.CPUCore
@@ -205,6 +231,12 @@ func TestTetrisSceneTemporalMachine(t *testing.T) {
 		for _, mode := range []string{"ordinary", "grace-size", "grace-speed"} {
 			t.Run(name+"/"+mode, func(t *testing.T) {
 				source := string(src)
+				prepareVariant := "source"
+				if !baseline && os.Getenv("MINZ_TETRIS_SCENE_PREPARE") != "" {
+					prepareVariant = os.Getenv("MINZ_TETRIS_SCENE_PREPARE")
+					source = scenePreparationSource(t, source, prepareVariant)
+				}
+
 				entry := "render"
 				if baseline {
 					source += "\nfun frame_render() { zx_halt()\nrender() }\n"
@@ -465,8 +497,9 @@ func TestTetrisSceneTemporalMachine(t *testing.T) {
 				if c.irq == 0 {
 					t.Fatal("no IM2 interrupts")
 				}
-				result, _ := json.MarshalIndent(map[string]any{"PASS": true, "baseline": baseline, "mode": mode, "samples": len(poses), "partial_frames": partial, "displayed_frames": displayed, "transient_erase_observations": transient, "max_render_including_wait_T": maxRender, "max_publish_T": maxPublish, "binary_bytes": len(a.Binary), "IM2_IRQ": c.irq, "phase_max_T": c.phaseMax, "per_sample": samples}, "", "  ")
+				result, _ := json.MarshalIndent(map[string]any{"PASS": true, "baseline": baseline, "mode": mode, "samples": len(poses), "partial_frames": partial, "displayed_frames": displayed, "transient_erase_observations": transient, "max_render_including_wait_T": maxRender, "max_publish_T": maxPublish, "binary_bytes": len(a.Binary), "IM2_IRQ": c.irq, "phase_max_T": c.phaseMax, "per_sample": samples, "prepare_variant": prepareVariant}, "", "  ")
 				save("result.json", result)
+				save("source.nanz", []byte(source))
 				save("program.a80", []byte(assembly))
 				save("program.bin", a.Binary)
 				t.Logf("%s: partial=%d/%d transient=%d publish=%d T renderer+wait=%d T bytes=%d IRQ=%d", name, partial, displayed, transient, maxPublish, maxRender, len(a.Binary), c.irq)

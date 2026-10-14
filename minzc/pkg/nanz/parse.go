@@ -6068,6 +6068,7 @@ func (p *parser) captureMetaFuncSource(name string) (string, error) {
 	for _, decl := range []string{
 		"hir_int(value: u16, ty: ^u8) -> u16", "hir_ref(name: ^u8, ty: ^u8) -> u16",
 		"hir_caller_ref(name: ^u8, ty: ^u8) -> u16",
+		"hir_caller_index(name: ^u8, index: u16) -> u16",
 		"hir_binary(op: ^u8, left: u16, right: u16) -> u16", "hir_block() -> u16",
 		"hir_append(block: u16, statement: u16) -> void", "hir_var(name: ^u8, ty: ^u8, initial: u16) -> u16",
 		"hir_load(pointer: u16) -> u16", "hir_assign(target: u16, value: u16) -> u16", "hir_store(pointer: u16, value: u16) -> u16",

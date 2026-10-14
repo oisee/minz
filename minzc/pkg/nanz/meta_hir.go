@@ -103,6 +103,30 @@ func (mr *metaRuntime) registerHIRHosts(vm *mir2.VM) {
 		}
 		return b.add(&hir.VarRefExpr{Name: metaCallerPrefix + name, Ty: declared})
 	})
+	// Resolve a declared caller byte array and retain its type and ownership.
+	// Dynamic indices have the same semantics as ordinary Nanz indexing.
+	host("hir_caller_index", 2, func(a []mir2.Value) ([]mir2.Value, error) {
+		name := mr.readCString(a[0].I)
+		if !validMetaIdentifier(name) {
+			return nil, fmt.Errorf("structured emit: invalid identifier %q", name)
+		}
+		declared := mr.callerTypes[name]
+		array, ok := declared.(*mir2.ArrayTy)
+		if !ok || array.Elem != mir2.TyU8 || array.Len <= 0 {
+			return nil, fmt.Errorf("structured emit: caller %s needs byte array", name)
+		}
+		index, err := b.expr(a[1].I)
+		if err != nil {
+			return nil, err
+		}
+		if index.ExprTy() != mir2.TyU8 && index.ExprTy() != mir2.TyU16 {
+			return nil, fmt.Errorf("structured emit: array index needs u8 or u16")
+		}
+		if literal, ok := index.(*hir.IntLitExpr); ok && (literal.Val < 0 || literal.Val >= int64(array.Len)) {
+			return nil, fmt.Errorf("structured emit: constant array index out of bounds")
+		}
+		return b.add(&hir.IndexExpr{Base: &hir.VarRefExpr{Name: metaCallerPrefix + name, Ty: declared}, Idx: index, ElemTy: mir2.TyU8})
+	})
 	host("hir_binary", 3, func(a []mir2.Value) ([]mir2.Value, error) {
 		l, e := b.expr(a[1].I)
 		if e != nil {
@@ -180,8 +204,10 @@ func (mr *metaRuntime) registerHIRHosts(vm *mir2.VM) {
 		if e != nil {
 			return nil, e
 		}
-		if _, ok := l.(*hir.VarRefExpr); !ok {
-			return nil, fmt.Errorf("structured emit: assignment needs variable")
+		switch l.(type) {
+		case *hir.VarRefExpr, *hir.IndexExpr:
+		default:
+			return nil, fmt.Errorf("structured emit: assignment needs variable or array element")
 		}
 		r, e := b.expr(a[1].I)
 		if e != nil {
@@ -338,6 +364,9 @@ func renameMetaExpr(expr hir.Expr, scope map[string]string) {
 	case *hir.BinExpr:
 		renameMetaExpr(n.L, scope)
 		renameMetaExpr(n.R, scope)
+	case *hir.IndexExpr:
+		renameMetaExpr(n.Base, scope)
+		renameMetaExpr(n.Idx, scope)
 	case *hir.LoadExpr:
 		renameMetaExpr(n.Ptr, scope)
 	case *hir.DerefExpr:
@@ -413,6 +442,11 @@ func snapshotMetaExpr(e hir.Expr) hir.Expr {
 		c := *n
 		c.L = snapshotMetaExpr(n.L)
 		c.R = snapshotMetaExpr(n.R)
+		return &c
+	case *hir.IndexExpr:
+		c := *n
+		c.Base = snapshotMetaExpr(n.Base)
+		c.Idx = snapshotMetaExpr(n.Idx)
 		return &c
 	case *hir.LoadExpr:
 		c := *n

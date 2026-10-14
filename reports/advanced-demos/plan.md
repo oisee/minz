@@ -6,12 +6,12 @@ milestone with rendering and declarative-library work, not a completion claim.
 | Requirement | Evidence required | Current status |
 |---|---|---|
 | Flicker-free compiled and PUSH sprite demos | Independent screens at every display frame, ROM/ULA timing, dirty writes and IRQ/SP checks | 48K model: baseline detects partial display; dirty renderer 0/64 partial frames in all six variants. Physical display/release pending |
-| Tetris removes intermediate actor erasure | Composited frame, dirty publication, independent gameplay and display oracles | 14 cached-render fixtures × 3 modes: final full RAM, gameplay state, IM2 and fetched ULA pixels; baseline detects flicker, composition 0 partial frames. Idle composition skips preparation; downward compose+prepare still 75,504 T, just over a frame; real game input/substeps pending |
+| Tetris removes intermediate actor erasure | Composited frame, dirty publication, independent gameplay and display oracles | 14 cached-render fixtures × 3 modes: final full RAM, gameplay state, IM2 and fetched ULA pixels; baseline detects flicker, composition 0 partial frames. Idle composition skips preparation; baked16 downward compose+prepare+publish 54,426 T, at a 24,578-byte module cost; full board refresh exceeds a frame; real game input/substeps pending |
 | Smooth pixel-step falling piece | Pixel geometry and substep/rotation/locking model, native frames | Pending |
 | Optional TV sine/noise/row-shift effects | Deterministic render oracle; game state identical with effects on/off | Pending |
 | Declarative typed Nanz, object composition and compile-time interfaces | Real consumers using common reusable APIs; compile-time diagnostics | Pending |
 | Shapes, masks, tables and specialized procedures baked | HIR/ASM/BIN inspection, runtime excludes generator and avoidable preparation | Pending |
-| Measured selection under Speed/Size/frame budget | Admitted alternatives, preserved winners, heldout native measurements | Full-clear candidates measured; scene-wide automated selection and heldout timings pending |
+| Measured selection under Speed/Size/frame budget | Admitted alternatives, preserved winners, heldout native measurements | Full-clear candidates measured; closed 15-candidate scene receipt selection preserves Speed/Size/bounded winners and rejects all-fixture frame budget; compiler integration/heldout timings pending |
 | Explicit region, timing, IRQ, RAM and SMC contracts | Valid and rejected cases, native memory/PC/SP/IFF proof, beam deadlines | Pending |
 | Integration and updated demo release | Main PR/CI, six packaged platforms, playable artifacts and checksums | Pending |
 

@@ -1,0 +1,26 @@
+// Internal structural code builder for @scene's statically ordered groups.
+// The declared caller arrays are checked; generated locals are hygienic.
+fun @scene_checks(prefix: ^u8) -> void {
+    let values: ^u8 = str_concat(prefix, c"values")
+    let shown: ^u8 = str_concat(prefix, c"shown")
+    let dirty_cells: ^u8 = str_concat(prefix, c"dirty_cells")
+    let dirty_values: ^u8 = str_concat(prefix, c"dirty_values")
+    let count: u16 = hir_caller_ref(str_concat(prefix, c"dirty_count"), c"u8")
+    let body: u16 = hir_block()
+    var i: u16 = 0
+    while i < block_len() {
+        if str_eq(node_keyword(i), c"cell") == 0 { meta_error(c"scene: unknown check field") }
+        if node_arg_count(i) != 1 { meta_error(c"scene: check needs cell index") }
+        let cell: u16 = hir_int(node_arg_int(i, 0), c"u8")
+        let value_name: ^u8 = str_concat(c"value_", str_from_int(i))
+        let value: u16 = hir_ref(value_name, c"u8")
+        hir_append(body, hir_var(value_name, c"u8", hir_caller_index(values, cell)))
+        let change: u16 = hir_block()
+        hir_append(change, hir_assign(hir_caller_index(dirty_cells, count), cell))
+        hir_append(change, hir_assign(hir_caller_index(dirty_values, count), value))
+        hir_append(change, hir_assign(count, hir_binary(c"+", count, hir_int(1, c"u8"))))
+        hir_append(body, hir_if(hir_binary(c"!=", value, hir_caller_index(shown, cell)), change, hir_block()))
+        i = i + 1
+    }
+    emit_hir(body)
+}

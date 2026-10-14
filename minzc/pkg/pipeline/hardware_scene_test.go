@@ -13,7 +13,9 @@ import (
 
 // Surface addresses come from the declared linear byte layout, not generated
 // address helpers. Publication snapshots desired values before later mutation.
-func TestHardwareSceneSnapshotNativeVM(t *testing.T) {
+func TestHardwareSceneSnapshotNativeVM(t *testing.T)    { hardwareSceneSnapshotCheck(t, false) }
+func TestHardwareSceneBakedBoundaryMatrix(t *testing.T) { hardwareSceneSnapshotCheck(t, true) }
+func hardwareSceneSnapshotCheck(t *testing.T, baked bool) {
 	cases := []struct {
 		name, body string
 		addresses  []int
@@ -45,11 +47,24 @@ fun seed() { var i:u8=0; while i<%d { image_values[i]=i+1; i=i+1 } }
 fun mutate() { var i:u8=0; while i<%d { image_values[i]=i xor 0xA5; i=i+1 } }
 `, strings.ReplaceAll(tc.body, ";", "\n"), len(addresses), len(addresses))
 			for _, mode := range []struct {
-				name string
-				opts Options
-			}{{"ordinary", Options{AssertMode: "none"}}, {"grace-size", Options{AssertMode: "none", UseGrace: true, OptSize: true}}} {
+				name    string
+				opts    Options
+				prepare string
+			}{
+				{"ordinary", Options{AssertMode: "none"}, "loop"},
+				{"grace-size", Options{AssertMode: "none", UseGrace: true, OptSize: true}, "loop"},
+				{"baked8", Options{AssertMode: "none"}, "baked8"},
+				{"baked8-grace-size", Options{AssertMode: "none", UseGrace: true, OptSize: true}, "baked8"},
+				{"baked32", Options{AssertMode: "none"}, "baked32"},
+				{"baked32-grace-size", Options{AssertMode: "none", UseGrace: true, OptSize: true}, "baked32"},
+				{"baked64", Options{AssertMode: "none"}, "baked64"},
+				{"baked64-grace-size", Options{AssertMode: "none", UseGrace: true, OptSize: true}, "baked64"},
+			} {
+				if baked == (mode.prepare == "loop") {
+					continue
+				}
 				t.Run(mode.name, func(t *testing.T) {
-					h, e := nanz.ParseWithOpts(strings.ReplaceAll(source, ";", "\n"), "scene.nanz", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
+					h, e := nanz.ParseWithOpts(strings.ReplaceAll(scenePreparationSource(t, source, mode.prepare), ";", "\n"), "scene.nanz", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
 					if e != nil {
 						t.Fatal(e)
 					}
@@ -167,6 +182,11 @@ fun mutate() { var i:u8=0; while i<%d { image_values[i]=i xor 0xA5; i=i+1 } }
 func TestHardwareSceneRejectsInvalidDescriptions(t *testing.T) {
 	for name, body := range map[string]string{
 		"dimension-overflow": "surface 0 1 65539 65535; plane 0 0 1 1",
+		"bad-prepare":        "surface 22528 32 24 32; prepare \"unknown\"; plane 0 0 1 1",
+		"group-zero":         "surface 22528 32 24 32; prepare \"baked\" 0; plane 0 0 1 1",
+		"group-overflow":     "surface 22528 32 24 32; prepare \"baked\" 65; plane 0 0 1 1",
+		"duplicate-prepare":  "surface 22528 32 24 32; prepare \"loop\"; prepare \"loop\"; plane 0 0 1 1",
+		"loop-group":         "surface 22528 32 24 32; prepare \"loop\" 8; plane 0 0 1 1",
 		"missing":            "plane 0 0 1 1", "unknown": "surface 22528 32 24 32; actor 0 0 1 1",
 		"overlap":       "surface 22528 32 24 32; plane 1 1 3 3; plane 2 2 1 1",
 		"overflow":      "surface 65535 2 1 2; plane 0 0 1 1",
