@@ -432,6 +432,14 @@ func (l *lowerer) lowerExprAddr(ex Expr) mir2.Reg {
 		}
 		// base[i] address — same as lowerIndex but without the final Load
 		baseAddr := l.lowerExpr(e.Base)
+		if l.target != TargetAgon {
+			if offset, ok := l.smallSMCIndexOffset(e); ok {
+				if offset == 0 {
+					return baseAddr
+				}
+				return l.bld.Field(baseAddr, offset, mir2.ClassPointer)
+			}
+		}
 		idx := l.lowerExpr(e.Idx)
 		stride := int64(e.ElemStride)
 		if stride == 0 {
@@ -2597,6 +2605,40 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 	}
 }
 
+// Only 0..3-byte literal displacements use the native INC-pair path.
+// Larger offsets retain PtrAdd; Field's special SoA offsets are not indexing.
+func (l *lowerer) smallSMCIndexOffset(ex *IndexExpr) (int64, bool) {
+	// Ordinary pointers retain the PtrAdd graph consumed by sequential-byte
+	// fusion. This first specialization applies only to the named SMC base.
+	ref, ok := ex.Base.(*VarRefExpr)
+	if !ok {
+		return 0, false
+	}
+	smc := false
+	for _, p := range l.hf.Params {
+		if p.SMC && p.Name == ref.Name {
+			smc = true
+			break
+		}
+	}
+	if !smc {
+		return 0, false
+	}
+	index, ok := ex.Idx.(*IntLitExpr)
+	if !ok || index.Val < 0 || index.Val > 3 || (index.Ty != mir2.TyU8 && index.Ty != mir2.TyU16) {
+		return 0, false
+	}
+	stride := ex.ElemStride
+	if stride == 0 {
+		stride = (ex.ElemTy.Width() + 7) / 8
+	}
+	if stride <= 0 || stride > 3 {
+		return 0, false
+	}
+	offset := index.Val * int64(stride)
+	return offset, offset <= 3
+}
+
 // lowerIndexAddr lowers arr[i] → ptr_add(base, i * stride), returning the
 // pointer register (TyPtr).  Used by StoreStmt which needs the address, not
 // the loaded value.
@@ -2611,6 +2653,14 @@ func (l *lowerer) lowerIndexAddr(ex *IndexExpr) mir2.Reg {
 		stride = (w + 7) / 8
 		if stride == 0 {
 			stride = 1
+		}
+	}
+	if l.target != TargetMZV && l.target != TargetAgon {
+		if offset, ok := l.smallSMCIndexOffset(ex); ok {
+			if offset == 0 {
+				return base
+			}
+			return l.bld.Field(base, offset, mir2.ClassPointer)
 		}
 	}
 	// A literal global-array index is already a compile-time byte displacement.

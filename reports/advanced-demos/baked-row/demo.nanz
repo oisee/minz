@@ -1,0 +1,22 @@
+import hw.baked_row
+
+@baked_row("sprite0") {
+    b0 0xc3
+    b1 0x3c
+}
+
+@baked_bytes("sprite1") {
+    byte 195
+    byte 0x3c
+}
+
+global buffer:[u8;64]
+fun run()->u8 {
+    sprite0(u16(&buffer[4]))
+    sprite0_set_dst(u16(&buffer[12]))
+    sprite0()
+    sprite1(&buffer[20])
+    sprite1_set_dst(&buffer[28])
+    sprite1()
+    return buffer[4]+buffer[20]
+}

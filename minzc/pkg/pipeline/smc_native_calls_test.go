@@ -28,6 +28,22 @@ fun run()->u8 {draw(u16(&buffer[4])) draw_set_dst(u16(&buffer[12])) draw() retur
 fun run()->u8 {draw(&buffer[4]) draw_set_dst(&buffer[12]) draw() return buffer[4]+buffer[12]}`, "draw$dst$imm", map[int]byte{4: 195, 5: 60, 12: 195, 13: 60}, 134},
 		{"indexed", `fun draw(@smc dst:^u8) {dst[0]=195 dst[1]=60}
 fun run()->u8 {draw(&buffer[4]) draw_set_dst(&buffer[12]) draw() return buffer[4]+buffer[12]}`, "draw$dst$imm", map[int]byte{4: 195, 5: 60, 12: 195, 13: 60}, 134},
+		{"mapped-row", `import hw.baked_row
+@baked_row("draw") {
+ b0 0xc3
+ b1 0x3c
+}
+fun run()->u8 {draw(u16(&buffer[4])) draw_set_dst(u16(&buffer[12])) draw() return buffer[4]+buffer[12]}`, "draw$dst$imm", map[int]byte{4: 195, 5: 60, 12: 195, 13: 60}, 134},
+		{"mapped-bytes", `import hw.baked_row
+@baked_bytes("draw") {
+ byte 195
+ byte 60
+}
+fun run()->u8 {draw(&buffer[4]) draw_set_dst(&buffer[12]) draw() return buffer[4]+buffer[12]}`, "draw$dst$imm", map[int]byte{4: 195, 5: 60, 12: 195, 13: 60}, 134},
+		{"indexed-four", `fun draw(@smc dst:^u8) {dst[0]=195 dst[1]=60 dst[2]=129 dst[3]=255}
+fun run()->u8 {draw(&buffer[4]) draw_set_dst(&buffer[12]) draw() return buffer[4]+buffer[12]}`, "draw$dst$imm", map[int]byte{4: 195, 5: 60, 6: 129, 7: 255, 12: 195, 13: 60, 14: 129, 15: 255}, 134},
+		{"indexed-words", `fun draw(@smc dst:^u16) {dst[0]=0x3cc3 dst[1]=0xff81}
+fun run()->u8 {draw(ptr(&buffer[4])) draw_set_dst(ptr(&buffer[12])) draw() return buffer[4]+buffer[12]}`, "draw$dst$imm", map[int]byte{4: 195, 5: 60, 6: 129, 7: 255, 12: 195, 13: 60, 14: 129, 15: 255}, 134},
 		{"nested-mixed", `fun draw(@smc dst:^u8,value:u8)->u8 {dst^=value return value+1}
 fun inner()->u8 {return draw(&buffer[8],7)}
 fun run()->u8 {let value:u8=draw(&buffer[4],inner()) draw_set_dst(&buffer[12]) return value+draw(9)}`, "draw$dst$imm", map[int]byte{4: 8, 8: 7, 12: 9}, 19},
@@ -39,7 +55,7 @@ fun run()->u8 {let value:u8=draw(inner(),&buffer[4]) draw_set_dst(&buffer[12]) r
 			t.Run(fmt.Sprintf("%s/%d", tc.name, mode), func(t *testing.T) {
 				source := "global buffer:[u8;64]\n" + tc.source
 				parse := func() *hir.Module {
-					h, e := nanz.Parse(source, "native-smc")
+					h, e := nanz.ParseWithOpts(source, "native-smc", nanz.ParseOpts{StdlibDir: filepath.Join("..", "..", "..", "stdlib")})
 					if e != nil {
 						t.Fatal(e)
 					}
@@ -173,6 +189,49 @@ func TestSMCSourceAdmission(t *testing.T) {
 		}
 		measureGraceZ80HIR(t, parse(), "use", Options{AssertMode: "none"}, tc.args, nil, tc.want)
 	}
+	for index := 0; index < 4; index++ {
+		source := fmt.Sprintf("fun get(@smc p:^u8)->u8{return p[%d]}", index)
+		for _, base := range []uint16{0x47ff, 0xfffd, 0xffff} {
+			address := uint16(int(base) + index)
+			parse := func() *hir.Module {
+				h, e := nanz.Parse(source+fmt.Sprintf("\nfun run()->u8{return get(ptr(%d))}", base), "smc-index-read")
+				if e != nil {
+					t.Fatal(e)
+				}
+				return h
+			}
+			vm := mir2.NewVM(hir.LowerModule(parse()))
+			vm.EnsureHeap(65536)
+			vm.WriteHeap(int64(address), 195)
+			if _, e := vm.Call("get_set_p", []mir2.Value{{I: int64(base)}}); e != nil {
+				t.Fatal(e)
+			}
+			got, e := vm.Call("get", nil)
+			if e != nil || len(got) != 1 || got[0].I != 195 {
+				t.Fatalf("SMC read %v %v", got, e)
+			}
+			for _, opt := range []Options{{AssertMode: "none"}, {AssertMode: "none", UseGrace: true, UseHIRGrace: true}, {AssertMode: "none", UseGrace: true, UseHIRGrace: true, OptSize: true}} {
+				measureGraceZ80HIR(t, parse(), "run", opt, nil, map[uint16]byte{address: 195}, 195)
+			}
+		}
+	}
+
+	for _, tc := range []struct{ body, diagnostic string }{
+		{`@baked_row("bad-name") {b0 1}`, "invalid name"},
+		{`@baked_row("s") {}`, "empty data"},
+		{`@baked_row("s") {b0 256}`, "outside 0..255"},
+		{`@baked_row("s") {b0 1, b0 2}`, "duplicate field"},
+		{`@baked_row("s") {b0 1 2}`, "one byte"},
+		{`@baked_bytes("s") {word 1}`, "expected byte"},
+		{`@baked_bytes("s") {` + strings.Repeat("byte 1,", 65) + `}`, "at most 64"},
+		{`@baked_bytes("s") {` + strings.Repeat("byte 1,", 257) + `}`, "at most 64"},
+	} {
+		_, err := nanz.ParseWithOpts("import hw.baked_row\n"+tc.body, "bad-baked-row", nanz.ParseOpts{StdlibDir: filepath.Join("..", "..", "..", "stdlib")})
+		if err == nil || !strings.Contains(err.Error(), tc.diagnostic) {
+			t.Fatalf("baked row: %v want %q", err, tc.diagnostic)
+		}
+	}
+
 	for _, tc := range []struct{ source, diagnostic string }{
 		{`fun draw(@smc dst:u8){}`, "pointer or u16"},
 		{`fun draw(@smc x:u16,@smc y:u16){}`, "one address slot"},
