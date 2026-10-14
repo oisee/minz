@@ -753,6 +753,7 @@
     "TestZMachineZorkIIWindowDiskConsoleSaveAcrossRestart",
     "TestZMachineZorkWindowDiskConsoleSaveAcrossRestart",
     "TestZXBankedMemoryAllPagesNative",
-    "TestZXPixelBandsNative"
+    "TestZXPixelBandsNative",
+    "TestZXPixelFillCellNativeVM"
   ]
 }

@@ -265,3 +265,28 @@ fun @pixel_bands(name:^u8)->void {
     }
     emit(str_concat(name,c"_count=0 }"))
 }
+
+// Eight byte stores at a 256-byte stride, expressed in typed Nanz. Caller owns
+// the destination span; for Spectrum cells it supplies scanline zero of one
+// character row. This is not the general next-scanline mapping across cells.
+// No SP redirection or DI/EI is requested. The Tetris compositor uses private
+// RAM; publication and synchronization remain the owning renderer's contract.
+
+fun pixel_band_fill_cell(@z80_hl dst:^u8,@z80_a value:u8) {
+    var p:^u8=dst
+    p^=value
+    p=p+256
+    p^=value
+    p=p+256
+    p^=value
+    p=p+256
+    p^=value
+    p=p+256
+    p^=value
+    p=p+256
+    p^=value
+    p=p+256
+    p^=value
+    p=p+256
+    p^=value
+}

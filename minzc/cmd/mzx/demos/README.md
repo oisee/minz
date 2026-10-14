@@ -10,7 +10,10 @@ Exact sources, binaries and SHA256 receipts are preserved under
   bands. Native main is checked against independent physics and fetched ULA
   frames; see reports/advanced-demos/tetris/smooth-gameplay.md. Code starts at
   6000, shadow bitmap occupies E000..F7FF, ordinary launcher stack is FCE0.
-  Preparation remains slower than one frame; this is not a 50-FPS claim.
+  Preparation uses typed Nanz row walking and a baked eight-store fill kernel.
+  Full-field restoration is 54.6% faster than the first pixel candidate; see
+  reports/advanced-demos/tetris/native-preparation.md. Preparation remains slower
+  than one frame; this is not a 50-FPS claim.
 * zork1.sna: zork1-current-128/zork-spectrum128.sna, builder a4b9ac24.
 * zork2.sna and zork2-bank10.bin: zork2-late-save/play; Scorpion memory,
   persistent disk SAVE, verified full game and fresh-machine RESTORE.

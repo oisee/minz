@@ -65,3 +65,15 @@ reproducible builder now use code at 6000, shadow at E000 and stack at FCE0.
 See [the gameplay report](tetris/smooth-gameplay.md). Earlier table/checkpoint
 statements describe their historical versions. Preparation cost reduction,
 main integration and six-host publication are still required; the goal is active.
+
+## Native preparation checkpoint — 14 October 2026
+
+The measured winner walks across dirty rows and uses an eight-store typed Nanz
+library kernel. Full-field restoration falls 403569→183229 T; complete renderer
+with waiting falls 749064→539472 T on the same 14 scenes. All three modes pass
+physics, full memory, the temporal negative control and 323 actual main field
+frames each. The reusable fill kernel additionally passes all byte values and
+screen/shadow boundary positions on native/raw/final VM.
+
+See [the preparation report](tetris/native-preparation.md). Main integration and
+six-host release remain required; 50-FPS rendering is not established.

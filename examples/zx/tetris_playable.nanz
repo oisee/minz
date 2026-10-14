@@ -861,26 +861,28 @@ fun pixel_mark_pose(t:u8,r:u8,x:u8,y:u8,phase:u8) {
     }
 }
 
-fun pixel_restore_cell(x:u8,y:u8) {
+fun pixel_restore_cell(index:u8,p:^u8) {
+    let tile:u8=board[index]
+    tetris_values[index]=CELL_COLORS[tile]
     var value:u8=0
-    if board[y*10+x]!=0 {value=255}
-    var p:^u8=ptr(zx_screen_addr(11+x,(2+y)*8)+0xa000)
-    var row:u8=0
-    while row<8 {
-        p^=value
-        p=p+256
-        row=row+1
-    }
-    tetris_values[y*10+x]=CELL_COLORS[board[y*10+x]]
+    if tile!=0 {value=255}
+    pixel_band_fill_cell(p,value)
 }
 
 fun pixel_restore_spans() {
     var y:u8=0
     while y<20 {
         var x:u8=pixel_left[y]
-        while x<pixel_right[y] {
-            pixel_restore_cell(x,y)
-            x=x+1
+        let right:u8=pixel_right[y]
+        if x<right {
+            var index:u8=y*10+x
+            var p:^u8=ptr(zx_screen_addr(11+x,(2+y)*8)+0xa000)
+            while x<right {
+                pixel_restore_cell(index,p)
+                index=index+1
+                p=p+1
+                x=x+1
+            }
         }
         y=y+1
     }
