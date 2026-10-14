@@ -933,6 +933,7 @@ func (p *parser) parseModule() (*hir.Module, error) {
 					m.Structs = append(m.Structs, generated.Structs...)
 					for _, s := range generated.Structs {
 						p.structs[s.Name] = s
+						p.registerGeneratedMethods(s, generated.Funcs)
 					}
 					// Register generated symbols in parent parser
 					for _, g := range generated.Globals {
@@ -1029,6 +1030,7 @@ func (p *parser) parseModule() (*hir.Module, error) {
 					}
 					for _, s := range generated.Structs {
 						p.structs[s.Name] = s
+						p.registerGeneratedMethods(s, generated.Funcs)
 					}
 				}
 			} else {
@@ -6387,4 +6389,19 @@ func mergeSourceUnits(dst, src *hir.Module) error {
 	}
 	dst.SourceUnitsComplete = dst.SourceUnitsComplete && src.SourceUnitsComplete
 	return nil
+}
+
+// registerGeneratedMethods restores concrete UFCS dispatch after emitted source
+// has already been parsed and its method names desugared.
+func (p *parser) registerGeneratedMethods(s *mir2.StructTy, funcs []*hir.Func) {
+	prefix := s.Name + "_"
+	for _, f := range funcs {
+		if len(f.Params) == 0 || f.Params[0].Name != "self" || !strings.HasPrefix(f.Name, prefix) {
+			continue
+		}
+		if p.methodTable[s.Name] == nil {
+			p.methodTable[s.Name] = make(map[string]methodInfo)
+		}
+		p.methodTable[s.Name][strings.TrimPrefix(f.Name, prefix)] = methodInfo{funcName: f.Name, retTy: f.RetTy}
+	}
 }

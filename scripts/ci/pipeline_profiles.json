@@ -388,7 +388,10 @@
     "TestZXBankedMemoryNative",
     "TestZXHalfCellRotozoomerFullMachine",
     "TestZXHalfCellRotozoomerLibraryFullMachine",
-    "TestZXStoryLogicalMemoryNative"
+    "TestZXStoryLogicalMemoryNative",
+    "TestZXWholeSpriteAdmission",
+    "TestZXWholeSpriteMachine",
+    "TestZXWholeSpriteNative"
   ],
   "deep": [
     "TestByteWordFusionAudit",

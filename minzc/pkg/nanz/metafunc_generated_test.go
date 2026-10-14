@@ -259,3 +259,33 @@ func TestDistinctMetafunctionInvocationsHaveDistinctSourceUnits(t *testing.T) {
 		}
 	}
 }
+
+func TestGeneratedStructMethodsAreVisible(t *testing.T) {
+	const source = `fun @counter(name:^u8) {
+ emit(str_concat(str_concat(c"struct ",name),c" {value:u8}"))
+ emit(str_concat(str_concat(c"fun ",name),str_concat(c".add(self:^",str_concat(name,c",n:u8)->u8 {return self.value+n}"))))
+}
+@counter("First")
+@counter("Second")
+fun main()->u8 {
+ let a:First=First{value:3}
+ let b:Second=Second{value:4}
+ return a.add(2)+b.add(3)
+}`
+	m, err := nanz.Parse(source, "generated-methods.nanz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = hir.Verify(m); err != nil {
+		t.Fatal(err)
+	}
+	got, err := mir2.NewVM(hir.LowerModule(m)).Call("main", nil)
+	if err != nil || len(got) != 1 || got[0].I != 12 {
+		t.Fatalf("methods: %v %v want12", got, err)
+	}
+	for _, name := range []string{"First_add", "Second_add"} {
+		if !strings.Contains(m.Dump(), "call @"+name) {
+			t.Fatalf("missing concrete method %s", name)
+		}
+	}
+}

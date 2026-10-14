@@ -110,3 +110,7 @@ Pipeline inventory: 728, fast 375 / deep 353; новые короткие про
 [design.md](design.md). Автоматическое обрамление SP/INT ещё не реализовано.
 
 Следующий foundation checkpoint: [точные эффекты ASM и независимые проверки](effects.md).
+
+[Целый спрайт на Nanz](whole-sprite/README.md): `Ship{x,y}.draw()`,
+запечённые пиксели и маски, native Z80 и 99 считанных ULA кадров.
+Пиксельная фигура Tetris — следующий этап.

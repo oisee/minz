@@ -1,0 +1,32 @@
+{
+  "scope": "one static 16x8 sprite; byte-aligned X; arbitrary pixel Y; three compiler modes; no Tetris pixel animation yet",
+  "native_calls": 444,
+  "VM_calls": 888,
+  "machine_positions": 33,
+  "fetched_ULA_frames": 99,
+  "pipeline_fast_roots": 390,
+  "packages": [
+    "hir",
+    "nanz"
+  ],
+  "modes": [
+    {
+      "mode": "ordinary",
+      "module_bytes": 597,
+      "draw_T_min": 3847,
+      "draw_T_max": 4185
+    },
+    {
+      "mode": "Grace Speed",
+      "module_bytes": 596,
+      "draw_T_min": 3847,
+      "draw_T_max": 4161
+    },
+    {
+      "mode": "Grace Size",
+      "module_bytes": 596,
+      "draw_T_min": 3847,
+      "draw_T_max": 4161
+    }
+  ]
+}
