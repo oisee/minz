@@ -119,6 +119,10 @@ jobs:
             timeout 10 xdpyinfo > out/display.txt
             timeout --kill-after=10 600 python3 -u scripts/verify_demo_release.py out/packages/minz-demos-0.25.0-linux-arm64 --proof out/proof
           '
+      - name: Make container-created proof readable by the artifact uploader
+        if: always()
+        shell: bash
+        run: sudo chown -R "$(id -u):$(id -g)" out
       - uses: actions/upload-artifact@v4
         if: always()
         with:
