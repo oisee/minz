@@ -52,3 +52,16 @@ See [the measured renderer report](tetris/temporal-shadow.md). The playable main
 still uses the previous renderer. Pixel gravity/input integration, preparation
 cost reduction, the new 0x6000-code/0xE000-shadow playable build, main integration
 and release remain required. This checkpoint does not complete the goal.
+
+## Playable pixel checkpoint — 14 October 2026
+
+The actual main now runs pixel gravity/input, baked sprite instances and shadow
+publication. Three complete native Spectrum runs each verify 39 game steps,
+24 fractional poses, 10 locks and 359 fetched field frames without mixing;
+game-over returns with restored SP. Independent physics adds 1596 cases per
+mode across native Z80 and raw/final VM. The embedded Tetris candidate and
+reproducible builder now use code at 6000, shadow at E000 and stack at FCE0.
+
+See [the gameplay report](tetris/smooth-gameplay.md). Earlier table/checkpoint
+statements describe their historical versions. Preparation cost reduction,
+main integration and six-host publication are still required; the goal is active.

@@ -139,6 +139,7 @@ global cur_y: u8 = 0
 global drop_timer: u8 = 0
 global drop_speed: u8 = 30
 global frame_count: u16 = 0
+global clock_seen: u8 = 0
 
 global score: u16 = 0
 global lines_cleared: u16 = 0
@@ -342,13 +343,13 @@ fun try_rotate() -> u8 {
     let nr: u8 = (cur_rot + 1) & 3
 
     // Test 0: basic rotation
-    if can_place(cur_type, nr, cur_x, cur_y) {
+    if can_place_pixel(cur_type, nr, cur_x, cur_y) {
         cur_rot = nr
         return 1
     }
     // Test 1: shift right
     if cur_x < 9 {
-        if can_place(cur_type, nr, cur_x + 1, cur_y) {
+        if can_place_pixel(cur_type, nr, cur_x + 1, cur_y) {
             cur_x = cur_x + 1
             cur_rot = nr
             return 1
@@ -356,7 +357,7 @@ fun try_rotate() -> u8 {
     }
     // Test 2: shift left
     if cur_x > 0 {
-        if can_place(cur_type, nr, cur_x - 1, cur_y) {
+        if can_place_pixel(cur_type, nr, cur_x - 1, cur_y) {
             cur_x = cur_x - 1
             cur_rot = nr
             return 1
@@ -364,7 +365,7 @@ fun try_rotate() -> u8 {
     }
     // Test 3: shift up
     if cur_y > 0 {
-        if can_place(cur_type, nr, cur_x, cur_y - 1) {
+        if can_place_pixel(cur_type, nr, cur_x, cur_y - 1) {
             cur_y = cur_y - 1
             cur_rot = nr
             return 1
@@ -372,7 +373,7 @@ fun try_rotate() -> u8 {
     }
     // Test 4: shift right+up
     if (cur_x < 9) & (cur_y > 0) {
-        if can_place(cur_type, nr, cur_x + 1, cur_y - 1) {
+        if can_place_pixel(cur_type, nr, cur_x + 1, cur_y - 1) {
             cur_x = cur_x + 1
             cur_y = cur_y - 1
             cur_rot = nr
@@ -381,7 +382,7 @@ fun try_rotate() -> u8 {
     }
     // Test 5: shift left+up
     if (cur_x > 0) & (cur_y > 0) {
-        if can_place(cur_type, nr, cur_x - 1, cur_y - 1) {
+        if can_place_pixel(cur_type, nr, cur_x - 1, cur_y - 1) {
             cur_x = cur_x - 1
             cur_y = cur_y - 1
             cur_rot = nr
@@ -391,14 +392,14 @@ fun try_rotate() -> u8 {
     // I piece: try +/-2 horizontal
     if cur_type == Piece.I {
         if cur_x < 8 {
-            if can_place(cur_type, nr, cur_x + 2, cur_y) {
+            if can_place_pixel(cur_type, nr, cur_x + 2, cur_y) {
                 cur_x = cur_x + 2
                 cur_rot = nr
                 return 1
             }
         }
         if cur_x > 1 {
-            if can_place(cur_type, nr, cur_x - 2, cur_y) {
+            if can_place_pixel(cur_type, nr, cur_x - 2, cur_y) {
                 cur_x = cur_x - 2
                 cur_rot = nr
                 return 1
@@ -442,6 +443,7 @@ fun spawn_piece() -> void {
     cur_rot = 0
     cur_x = 3
     cur_y = 0
+    pixel_phase = 0
     hold_used = 0
     last_was_tspin = 0
     if can_place(cur_type, cur_rot, cur_x, cur_y) == false {
@@ -462,7 +464,12 @@ fun hold_piece() -> void {
         cur_rot = 0
         cur_x = 3
         cur_y = 0
+        pixel_phase = 0
+        if can_place(cur_type,cur_rot,cur_x,cur_y)==false {game_over=1}
     }
+    // A hold consumes this piece's hold action even when it spawned the queue.
+    hold_used = 1
+    drop_timer = 0
 }
 
 // ── Rendering ───────────────────────────────────────────────────────────────
@@ -699,68 +706,17 @@ fun main() -> void {
         }
     }
 
+    pixel_init()
     spawn_piece()
+    if render_smooth()==false {game_over=1}
+    clock_seen=zx_peek(0x5c78)
 
-    // ── Game loop ───────────────────────────────────────────────────────
-    while game_over == 0 {
-        frame_count = frame_count + 1
-
-        // Input (edge-detect for single-press actions)
-        let keys: u8 = read_input()
-        let changed: u8 = keys xor prev_keys
-        let new_keys: u8 = keys & changed
-        prev_keys = keys
-
-        // Left
-        if (new_keys & 1) != 0 {
-            if cur_x > 0 {
-                if can_place(cur_type, cur_rot, cur_x - 1, cur_y) {
-                    cur_x = cur_x - 1
-                    last_was_tspin = 0
-                }
-            }
-        }
-        // Right
-        if (new_keys & 2) != 0 {
-            if can_place(cur_type, cur_rot, cur_x + 1, cur_y) {
-                cur_x = cur_x + 1
-                last_was_tspin = 0
-            }
-        }
-        // Rotate (with wall kicks)
-        if (new_keys & 4) != 0 {
-            try_rotate()
-        }
-        // Soft drop (held = accelerate)
-        if (keys & 8) != 0 {
-            drop_timer = drop_speed
-        }
-        // Hard drop (instant)
-        if (new_keys & 16) != 0 {
-            while can_place(cur_type, cur_rot, cur_x, cur_y + 1) {
-                cur_y = cur_y + 1
-                score = score + 2
-            }
-            do_lock_and_clear()
-            drop_timer = 0
-        }
-        // Hold
-        if (new_keys & 32) != 0 {
-            hold_piece()
-        }
-
-        // Gravity
-        drop_timer = drop_timer + 1
-        if drop_timer >= drop_speed {
-            drop_timer = 0
-            if can_place(cur_type, cur_rot, cur_x, cur_y + 1) {
-                cur_y = cur_y + 1
-            } else {
-                do_lock_and_clear()
-            }
-        }
-
-        render()
+    while game_over==0 {
+        let now:u8=zx_peek(0x5c78)
+        let elapsed:u8=now-clock_seen
+        clock_seen=now
+        game_step(read_input(),elapsed)
+        if render_smooth()==false {game_over=1}
     }
 
     // Game over — flash border
@@ -996,19 +952,19 @@ fun render_smooth()->bool {
             }
         }
     }
-    if stage_pixel_actor_shadow()==false {return false}
+    if game_over==0 {if stage_pixel_actor_shadow()==false {return false}}
     pixel_reset_spans()
     if (board_dirty!=0)|(drawn_valid==0) {
         var y:u8=0
         while y<20 {pixel_left[y]=0 pixel_right[y]=10 y=y+1}
     } else {
         pixel_mark_pose(drawn_type,drawn_rot,drawn_x,drawn_y,drawn_phase)
-        pixel_mark_pose(cur_type,cur_rot,cur_x,cur_y,pixel_phase)
+        if game_over==0 {pixel_mark_pose(cur_type,cur_rot,cur_x,cur_y,pixel_phase)}
     }
     compose()
     pixel_restore_spans()
-    pixel_actor_attributes()
-    publish_pixel_actor() // baked stores compose privately into the shadow.
+    if game_over==0 {pixel_actor_attributes()
+    publish_pixel_actor()} // baked stores compose privately into the shadow.
     pixel_prepare_bands()
     drawn_phase=pixel_phase
     zx_halt()
@@ -1070,4 +1026,63 @@ pixel_wait_field_loop:
         OR C
         JR NZ,pixel_wait_field_loop
     }
+}
+
+// Nanz Language Book v7 ch6: u8 arithmetic wraps. Pixel pose validation is
+// explicit; the visible 6x6 body crosses into the next grid row at phase 2.
+fun can_place_pixel(t:u8,r:u8,x:u8,y:u8)->bool {
+    if can_place(t,r,x,y)==false {return false}
+    if pixel_phase>1 {return can_place(t,r,x,y+1)}
+    return true
+}
+
+// One physical pixel. At contact the phase-1 body still belongs to its old
+// grid row; the next attempted pixel locks that row and spawns phase zero.
+fun gravity_pixel()->bool {
+    if pixel_phase==0 {pixel_phase=1 return true}
+    if can_place(cur_type,cur_rot,cur_x,cur_y+1)==false {
+        do_lock_and_clear()
+        drop_timer=0
+        return false
+    }
+    pixel_phase=pixel_phase+1
+    if pixel_phase==8 {pixel_phase=0 cur_y=cur_y+1}
+    return true
+}
+
+// Separate input/physics from publication so their state changes have an
+// independent VM/Z80 oracle. ticks are accepted 50-Hz IM2 interrupts, not draws.
+fun game_step(keys:u8,ticks:u8) {
+    if game_over!=0 {return}
+    frame_count=frame_count+u16(ticks)
+    let pressed:u8=keys & (keys xor prev_keys)
+    prev_keys=keys
+    if (pressed & 1)!=0 {
+        if cur_x>0 {
+            if can_place_pixel(cur_type,cur_rot,cur_x-1,cur_y) {cur_x=cur_x-1 last_was_tspin=0}
+        }
+    }
+    if (pressed & 2)!=0 {
+        if can_place_pixel(cur_type,cur_rot,cur_x+1,cur_y) {cur_x=cur_x+1 last_was_tspin=0}
+    }
+    if (pressed & 4)!=0 {try_rotate()}
+    if (pressed & 16)!=0 {
+        while can_place(cur_type,cur_rot,cur_x,cur_y+1) {cur_y=cur_y+1 score=score+2}
+        pixel_phase=0
+        do_lock_and_clear()
+        drop_timer=0
+        return
+    }
+    if (pressed & 32)!=0 {
+        if hold_used==0 {hold_piece() return}
+    }
+    if game_over!=0 {return}
+    if drop_speed==0 {drop_speed=1}
+    var budget:u16=u16(drop_timer)+u16(ticks)*8
+    if (keys & 8)!=0 {budget=budget+u16(drop_speed)*8}
+    while budget>=u16(drop_speed) {
+        budget=budget-u16(drop_speed)
+        if gravity_pixel()==false {return}
+    }
+    drop_timer=u8(budget)
 }

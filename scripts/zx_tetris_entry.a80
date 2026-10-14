@@ -1,4 +1,4 @@
-ORG $8000
+ORG $6000
 JP demo_entry
 demo_irq:
 PUSH AF
@@ -7,6 +7,8 @@ PUSH DE
 PUSH HL
 PUSH IX
 PUSH IY
+LD HL,$5C78
+INC (HL)
 POP IY
 POP IX
 POP HL
@@ -31,4 +33,9 @@ LD A,$FE
 LD I,A
 IM 2
 EI
-JP main
+CALL main
+demo_done:
+DI
+demo_done_wait:
+HALT
+JR demo_done_wait

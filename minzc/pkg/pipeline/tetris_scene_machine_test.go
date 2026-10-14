@@ -277,7 +277,7 @@ func TestTetrisSceneTemporalMachine(t *testing.T) {
 					t.Fatal(e)
 				}
 				for i, b := range a.Binary {
-					m.Memory.Write(0x8000+uint16(i), b, false)
+					m.Memory.Write(0x6000+uint16(i), b, false)
 				}
 				for i, b := range initial {
 					m.Memory.Write(0x4000+uint16(i), b, false)
@@ -368,8 +368,8 @@ func TestTetrisSceneTemporalMachine(t *testing.T) {
 					c.SetIFF1(true)
 					c.SetIFF2(true)
 					m.Memory.Write(0xfce0, 0, false)
-					m.Memory.Write(0xfce1, 0x70, false)
-					m.Memory.Write(0x7000, 0x76, false)
+					m.Memory.Write(0xfce1, 0x5e, false)
+					m.Memory.Write(0x5e00, 0x76, false)
 					c.done, c.irqActive = false, false
 					c.unchanged = unchanged
 					c.transient = 0
@@ -379,6 +379,8 @@ func TestTetrisSceneTemporalMachine(t *testing.T) {
 					sampleFrames := m.FrameCount()
 					c.minSP = 0xfce0
 					c.returnSP = 0xfce2
+					c.returnPC = 0x5e00
+					irqBefore := c.irq
 					beforeRAM := make([]byte, 65536)
 					for address := range beforeRAM {
 						beforeRAM[address] = m.Memory.ReadByteInternal(uint16(address))
@@ -436,6 +438,9 @@ func TestTetrisSceneTemporalMachine(t *testing.T) {
 					}
 					for address, old := range beforeRAM {
 						expected := old
+						if address == 0x5c78 {
+							expected = old + byte(c.irq-irqBefore)
+						}
 						if address >= 0x4000 && address < 0x5b00 {
 							expected = want[address-0x4000]
 						} else if allowed[address] || (address >= int(c.minSP) && address < 0xfce0) {

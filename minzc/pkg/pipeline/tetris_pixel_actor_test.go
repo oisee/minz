@@ -55,11 +55,11 @@ func TestTetrisPixelActorNative(t *testing.T) {
 			if e != nil {
 				t.Fatal(e)
 			}
-			a, e := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + steps.Assembly)
+			a, e := z80asm.NewAssembler().AssembleString("ORG 0x6000\n" + steps.Assembly)
 			if e != nil || len(a.Errors) != 0 {
 				t.Fatal(e, a.Errors)
 			}
-			if 0x8000+len(a.Binary) >= 0xfc60 {
+			if 0x6000+len(a.Binary) >= 0xe000 {
 				t.Fatalf("module overlaps bounded test stack: %d bytes", len(a.Binary))
 			}
 			// Permit only spill objects belonging to functions reachable from these two
@@ -129,14 +129,14 @@ func TestTetrisPixelActorNative(t *testing.T) {
 							for at := range memory {
 								memory[at] = byte(at*37 + seed)
 							}
-							copy(memory[0x8000:0x8000+len(a.Binary)], a.Binary)
+							copy(memory[0x6000:0x6000+len(a.Binary)], a.Binary)
 							inputs := map[string]byte{"cur_type": byte(kind), "cur_rot": byte(rotation), "cur_x": 3, "cur_y": 5, "pixel_phase": byte(phase)}
 							for name, value := range inputs {
 								memory[a.Symbols[name]] = value
 							}
 							clear(memory[a.Symbols["board"] : a.Symbols["board"]+200])
 							const sp = 0xfce0
-							const ret = 0x7000
+							const ret = 0x5e00
 							memory[sp], memory[sp+1] = byte(ret&255), byte(ret>>8)
 							before := append([]byte(nil), memory...)
 							want := append([]byte(nil), memory...)
@@ -279,14 +279,14 @@ func TestTetrisPixelActorNative(t *testing.T) {
 					for i := range memory {
 						memory[i] = byte(i*37 + 173)
 					}
-					copy(memory[0x8000:0x8000+len(a.Binary)], a.Binary)
+					copy(memory[0x6000:0x6000+len(a.Binary)], a.Binary)
 					inputs := map[string]byte{"cur_type": 1, "cur_rot": 0, "cur_x": 3, "cur_y": byte(logicalY), "pixel_phase": byte(phase)}
 					for name, value := range inputs {
 						memory[a.Symbols[name]] = value
 					}
 					copy(memory[a.Symbols["board"]:], board)
 					const sp = 0xfce0
-					const ret = 0x7000
+					const ret = 0x5e00
 					memory[sp], memory[sp+1] = byte(ret&255), byte(ret>>8)
 					before := append([]byte(nil), memory...)
 					want := append([]byte(nil), memory...)

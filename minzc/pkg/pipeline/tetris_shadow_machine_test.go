@@ -263,6 +263,7 @@ func TestTetrisShadowTemporalMachine(t *testing.T) {
 				c.start = m.AbsoluteTStates()
 				c.publishStart = 0
 				c.phaseLast = map[string]int64{}
+				irqBefore := c.irq
 				before := make([]byte, 65536)
 				for at := range before {
 					before[at] = m.Memory.ReadByteInternal(uint16(at))
@@ -293,6 +294,9 @@ func TestTetrisShadowTemporalMachine(t *testing.T) {
 				}
 				for at, old := range before {
 					expected := old
+					if at == 0x5c78 {
+						expected = old + byte(c.irq-irqBefore)
+					}
 					if at >= 0x4000 && at < 0x5b00 {
 						expected = want[at-0x4000]
 					} else if at >= 0xe000 && at < 0xf800 {
