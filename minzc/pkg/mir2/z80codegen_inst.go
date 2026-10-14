@@ -1079,13 +1079,53 @@ func (g *z80cg) genInst(inst *Inst) {
 		// Only applies to void calls (Dst == NoReg) where args are already in place.
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
+		// Resolve the producer's actual flags: comparison lowering may swap
+		// operands, use AND A for zero, or require two flags for > / <=.
+		// Hand-written raw MIR can request an explicit current-flags call.
 		cc := cmpCondCode(inst.Cond)
+		if inst.Src[0] != NoReg {
+			cc = g.condCode(g.fn, inst.Src[0])
+			original := CmpNe // a materialized boolean is tested for nonzero
+			for _, block := range g.fn.Blocks {
+				for _, producer := range block.Insts {
+					if producer.Op == OpCmp && producer.Dst == inst.Src[0] {
+						original = producer.Cond
+					}
+				}
+			}
+			if inst.Cond == invertCmpCond(original) {
+				switch cc {
+				case "CGT":
+					cc = "CLE"
+				case "CLE":
+					cc = "CGT"
+				default:
+					cc = invertCC(cc)
+				}
+			} else if inst.Cond != original {
+				if g.err == nil {
+					g.err = fmt.Errorf("conditional call %s has unrelated predicate", inst.Sym)
+				}
+				return
+			}
+		}
 		g.comment(fmt.Sprintf("genCallCond: CALL %s, %s", cc, inst.Sym))
 		// Use the regular call lowering for intrinsics, fixed addresses, and
 		// sanitized symbols. Intrinsics have no callable assembly label.
 		skip := fmt.Sprintf(".%s_callcond%d", sanitizeIdent(g.fn.Name), g.trampIdx)
 		g.trampIdx++
-		g.emitf("    JRS %s, %s", invertCC(cc), skip)
+		switch cc {
+		case "CGT":
+			g.emitf("    JRS Z, %s", skip)
+			g.emitf("    JRS C, %s", skip)
+		case "CLE":
+			take := skip + "_take"
+			g.emitf("    JRS C, %s", take)
+			g.emitf("    JRS NZ, %s", skip)
+			g.emitf("%s:", take)
+		default:
+			g.emitf("    JRS %s, %s", invertCC(cc), skip)
+		}
 		if err := g.genCall(inst); err != nil && g.err == nil {
 			g.err = err
 		}
