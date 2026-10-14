@@ -1,0 +1,70 @@
+[
+  {
+    "schema": "vir-local-direct-v1",
+    "costModel": "expanded-pattern-tstates-v1",
+    "sig": "vir-local-direct-v1:60691cd274154090ab063e51072db0502819e350bf17dcf96b7bc972a4e3d5e8",
+    "nVregs": 4,
+    "nOps": 5,
+    "cost": 38,
+    "assignment": [
+      9,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "schema": "vir-local-direct-v1",
+    "costModel": "expanded-pattern-tstates-v1",
+    "sig": "vir-local-direct-v1:6f124e585499eea0cee4c525149ade0104265aa52032e3e0bbb4602f1841f55a",
+    "nVregs": 4,
+    "nOps": 5,
+    "cost": 38,
+    "assignment": [
+      9,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "schema": "vir-local-direct-v1",
+    "costModel": "expanded-pattern-tstates-v1",
+    "sig": "vir-local-direct-v1:92db598c0074d5f0ff7cb10a9547be40b8920293a18178fe60eba017bd6f53da",
+    "nVregs": 4,
+    "nOps": 5,
+    "cost": 38,
+    "assignment": [
+      9,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "schema": "vir-local-direct-v1",
+    "costModel": "expanded-pattern-tstates-v1",
+    "sig": "vir-local-direct-v1:c69daf289f53b125286dee2530c81bb901c3e7b0b095b2d1d64889144acc3ed8",
+    "nVregs": 2,
+    "nOps": 4,
+    "cost": 34,
+    "assignment": [
+      0,
+      9
+    ]
+  },
+  {
+    "schema": "vir-local-direct-v1",
+    "costModel": "expanded-pattern-tstates-v1",
+    "sig": "vir-local-direct-v1:d87977f43907a5350390724c177f172542580f4505de94f4a0398d2145d9c237",
+    "nVregs": 4,
+    "nOps": 5,
+    "cost": 38,
+    "assignment": [
+      9,
+      0,
+      0,
+      0
+    ]
+  }
+]

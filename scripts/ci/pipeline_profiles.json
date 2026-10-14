@@ -32,6 +32,7 @@
     "TestCheckedActualWordMultiplication",
     "TestCheckedBranchCorpusLeafNativeAllByteInputs",
     "TestCheckedByteMemoryComposedSpriteNative",
+    "TestCheckedByteMemoryFragmentsHeldoutDescriptors",
     "TestCheckedCompositionAutomaticHeldoutNative",
     "TestCheckedCompositionAutomaticWeightedCaller",
     "TestCheckedCompositionHeldoutOperationsNative",
@@ -376,6 +377,7 @@
   "deep": [
     "TestByteWordFusionAudit",
     "TestC89ExpressionEffectsNative",
+    "TestCheckedCompositionPartitionDomainsOracle",
     "TestConditionalLayoutModesTokenizerHeldout",
     "TestConditionalLayoutTokenizerCompilerCombinations",
     "TestConditionalLayoutTokenizerHeldout",
