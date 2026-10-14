@@ -1,0 +1,8 @@
+import hw.sprite
+fun heldout_draw() { @sprite() {
+destination "zx_bitmap_bytes" 16384
+region 29 191 3 1
+row "f05500" "03aa77"
+via "pointer"
+
+} }

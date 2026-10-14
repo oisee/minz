@@ -32,6 +32,7 @@
     "TestCheckedActualWordMultiplication",
     "TestCheckedBranchCorpusLeafNativeAllByteInputs",
     "TestCheckedByteMemoryComposedSpriteNative",
+    "TestCheckedByteMemoryFragmentsHeldoutDescriptors",
     "TestCheckedCompositionAutomaticHeldoutNative",
     "TestCheckedCompositionAutomaticWeightedCaller",
     "TestCheckedCompositionHeldoutOperationsNative",
