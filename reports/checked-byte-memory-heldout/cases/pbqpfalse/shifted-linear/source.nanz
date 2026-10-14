@@ -1,0 +1,8 @@
+import hw.sprite
+fun heldout_draw() { @sprite() {
+destination "linear" 25088 8 3 12
+region 2 1 6 1
+row "ffaaf0550f00" "005509aa2088"
+via "pointer"
+
+} }
