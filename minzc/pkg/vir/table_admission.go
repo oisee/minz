@@ -3,6 +3,7 @@ package vir
 import (
 	"fmt"
 	"github.com/minz/minzc/pkg/z80spec"
+	"sort"
 )
 
 // validateTableAssignment checks the input contract independently of table
@@ -60,10 +61,60 @@ func validateTableAssignment(ops []VIROp, assignment map[int]int, desc *MachineD
 			return a == b || desc.Locs[a].Alias.Has(b) || desc.Locs[b].Alias.Has(a) ||
 				(desc.Name == "z80" && z80spec.Overlaps(desc.Locs[a].Name, desc.Locs[b].Name))
 		}
+		// Track value epochs, rather than equating vreg names permanently.
+		// Exact-width moves copy a value; every other definition creates a new
+		// epoch. This also handles non-SSA research inputs conservatively.
+		type valueEpoch struct{ position, value int }
+		history := map[int][]valueEpoch{}
+		current := map[int]int{}
+		nextValue := 0
+		for v := range assignment {
+			nextValue++
+			current[v] = nextValue
+			history[v] = []valueEpoch{{0, nextValue}}
+		}
+		exactMove := func(op VIROp) bool {
+			return op.Op == OpMove && op.Dst > 0 && op.Src[0] > 0 && op.Width > 0 &&
+				desc.Locs[assignment[op.Dst]].Width == op.Width && desc.Locs[assignment[op.Src[0]]].Width == op.Width &&
+				len(op.AsmOuts) == 0 && op.Clobbers.IsEmpty()
+		}
+		for i, op := range ops {
+			value := 0
+			if exactMove(op) {
+				value = current[op.Src[0]]
+			}
+			for _, d := range append([]int{op.Dst}, op.AsmOuts...) {
+				if d <= 0 {
+					continue
+				}
+				nextValue++
+				newValue := nextValue
+				if d == op.Dst && value != 0 {
+					newValue = value
+				}
+				current[d] = newValue
+				history[d] = append(history[d], valueEpoch{i + 1, newValue})
+			}
+		}
+		sameValue := func(a, b, position int) bool {
+			if assignment[a] != assignment[b] {
+				return false
+			}
+			valueAt := func(v int) int {
+				epochs := history[v]
+				end := sort.Search(len(epochs), func(j int) bool { return epochs[j].position > position })
+				if end == 0 {
+					return 0
+				}
+				return epochs[end-1].value
+			}
+			aValue, bValue := valueAt(a), valueAt(b)
+			return aValue != 0 && aValue == bValue
+		}
 		check := func(values map[int]bool, i int) error {
 			for a := range values {
 				for b := range values {
-					if a < b && overlaps(assignment[a], assignment[b]) {
+					if a < b && overlaps(assignment[a], assignment[b]) && !sameValue(a, b, i) {
 						return fmt.Errorf("op %d overlapping live vregs %d and %d", i, a, b)
 					}
 				}
@@ -80,7 +131,7 @@ func validateTableAssignment(ops []VIROp, assignment map[int]int, desc *MachineD
 					continue
 				}
 				for v := range live {
-					if v != d && overlaps(assignment[d], assignment[v]) && !(op.Op == OpMove && v == op.Src[0] && assignment[d] == assignment[v]) {
+					if v != d && overlaps(assignment[d], assignment[v]) && !(exactMove(op) && assignment[d] == assignment[v] && sameValue(op.Src[0], v, i)) {
 						return fmt.Errorf("op %d definition vreg %d overwrites live vreg %d", i, d, v)
 					}
 				}
