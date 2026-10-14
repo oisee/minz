@@ -296,31 +296,37 @@ fun lock_piece() -> void {
 }
 
 fun clear_lines() -> u8 {
-    var cleared: u8 = 0
-    var y: u8 = 19
-    // Reverse scan — can't use for-range (row deletion shifts data)
-    while y < BOARD_H {
-        var full: u8 = 1
-        for x in 0..10 {
-            if board_get(x, y) == 0 { full = 0 }
+    var cleared:u8=0
+    var y:u8=19
+    // Nanz Book v7 ch6: y wraps to 255 after row zero, ending the scan.
+    // The board is owned game state; reads have no side effects. One empty
+    // cell proves the row is incomplete, so the remaining reads are unnecessary.
+    while y<BOARD_H {
+        var full:bool=true
+        var row:^u8=ptr(u16(&board)+u16(y)*10)
+        var count:u8=10
+        while count!=0 {
+            if row^==0 {full=false break}
+            row=row+1 count=count-1
         }
-        if full == 1 {
-            // Shift all rows above down by one
-            var sy: u8 = y
-            while sy > 0 {
-                for sx in 0..10 {
-                    board_set(sx, sy, board_get(sx, sy - 1))
+        if full {
+            board_dirty=1
+            // Overlapping copy walks backwards: original rows 0..y-1 move
+            // down one row without overwriting bytes still needed as input.
+            var remaining:u8=y*10
+            if remaining!=0 {
+                var source:^u8=ptr(u16(&board)+u16(remaining)-1)
+                var destination:^u8=source+10
+                while remaining!=0 {
+                    destination^=source^
+                    source=source-1 destination=destination-1 remaining=remaining-1
                 }
-                sy = sy - 1
             }
-            // Clear top row
-            for sx in 0..10 {
-                board_set(sx, 0, 0)
-            }
-            cleared = cleared + 1
-        } else {
-            y = y - 1
-        }
+            var top:^u8=ptr(u16(&board))
+            count=10
+            while count!=0 {top^=0 top=top+1 count=count-1}
+            cleared=cleared+1
+        } else {y=y-1}
     }
     return cleared
 }

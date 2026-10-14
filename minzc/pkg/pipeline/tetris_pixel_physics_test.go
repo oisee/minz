@@ -321,6 +321,30 @@ func TestTetrisPixelPhysicsNativeVM(t *testing.T) {
 		}
 	}
 	add("four-lines", m, 16, 255)
+	// Distinct row/cell colours make a backwards overlapping copy observable:
+	// preserving only the number of cleared lines would miss row reordering.
+	for seed := 0; seed < 32; seed++ {
+		m := newPixelGameModel()
+		for y := 0; y < 20; y++ {
+			full := (y+seed*3)%5 == 0
+			for x := 0; x < 10; x++ {
+				if full || (x+y*3+seed)%4 != 0 {
+					m.board[y*10+x] = byte(1 + (y*2+x+seed)%7)
+				}
+			}
+		}
+		// Keep the initial actor's four cells free; the rest remains a
+		// deterministic mixture of full and partial rows throughout the board.
+		for _, c := range pixelGameCells(m.v["cur_type"], m.v["cur_rot"]) {
+			m.board[(m.v["cur_y"]+c.y)*10+m.v["cur_x"]+c.x] = 0
+		}
+		add(fmt.Sprintf("coloured-row-order/%d", seed), m, 16, 0)
+	}
+	m = newPixelGameModel()
+	for i := range m.board {
+		m.board[i] = byte(1 + i%7)
+	}
+	add("clear-all-twenty-rows", m, 16, 0)
 	for _, hold := range []int{0, 6, 255} {
 		m := newPixelGameModel()
 		m.v["hold_type"] = hold
