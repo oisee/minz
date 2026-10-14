@@ -21,6 +21,19 @@
 // Small attribute values for the owned board and previews; no shadow bitmap.
 global tetris_values:[u8;232]
 
+// Prepared cell coordinates, shared by addresses, attributes and dirty spans.
+// These sixteen bytes are placement metadata, not an image buffer.
+global pixel_new_x:[u8;4]
+global pixel_new_y:[u8;4]
+global pixel_old_x:[u8;4]
+global pixel_old_y:[u8;4]
+global pixel_geometry_ready:u8=0
+global pixel_geometry_kind:u8=0
+global pixel_geometry_rotation:u8=0
+global pixel_geometry_x:u8=0
+global pixel_geometry_y:u8=0
+global pixel_geometry_last:u8=0
+
 // The pixel actor stages four independent SMC placements from one baked shape.
 // Its publication is separate so a scene can prepare before HALT.
 import zx.sprite
@@ -92,20 +105,20 @@ enum Attr {
 
 // ── Layout constants ────────────────────────────────────────────────────────
 
-global BOARD_X: u8 = 11      // playfield left column (screen chars)
-global BOARD_Y: u8 = 2       // playfield top row
-global BOARD_W: u8 = 10      // board width in cells
-global BOARD_H: u8 = 20      // board height in cells
-global BOARD_SIZE: u16 = 200  // BOARD_W * BOARD_H
+const BOARD_X: u8 = 11      // playfield left column (screen chars)
+const BOARD_Y: u8 = 2       // playfield top row
+const BOARD_W: u8 = 10      // board width in cells
+const BOARD_H: u8 = 20      // board height in cells
+const BOARD_SIZE: u16 = 200  // BOARD_W * BOARD_H
 
-global SCREEN_START: u16 = 0x4000
-global SCREEN_END: u16   = 0x5800
-global ATTR_START: u16   = 0x5800
-global ATTR_END: u16     = 0x5B00
+const SCREEN_START: u16 = 0x4000
+const SCREEN_END: u16   = 0x5800
+const ATTR_START: u16   = 0x5800
+const ATTR_END: u16     = 0x5B00
 
-global PREVIEW_NEXT_X: u8 = 23
-global PREVIEW_HOLD_X: u8 = 5
-global PREVIEW_Y: u8      = 3
+const PREVIEW_NEXT_X: u8 = 23
+const PREVIEW_HOLD_X: u8 = 5
+const PREVIEW_Y: u8      = 3
 
 // ── Game state ──────────────────────────────────────────────────────────────
 
@@ -253,12 +266,17 @@ fun board_set(x: u8, y: u8, val: u8) -> void {
 }
 
 fun can_place(t: u8, r: u8, px: u8, py: u8) -> bool {
+    if t>=7 {return false}
+    if r>=4 {return false}
+    // Validated shape indices are <=111, and board indices are <=199.
+    let shape:u8=t*16+r*4
     for c in 0..4 {
-        let cx: u8 = px + piece_dx(t, r, c)
-        let cy: u8 = py + piece_dy(t, r, c)
-        if cx >= BOARD_W { return false }
-        if cy >= BOARD_H { return false }
-        if board_get(cx, cy) != 0 { return false }
+        let index:u8=shape+c
+        let cx:u8=px+PIECE_DX[index]
+        let cy:u8=py+PIECE_DY[index]
+        if cx>=BOARD_W {return false}
+        if cy>=BOARD_H {return false}
+        if board[cy*BOARD_W+cx]!=0 {return false}
     }
     return true
 }
@@ -770,10 +788,35 @@ fun FallingPose.stage_render(self:^FallingPose)->bool {
     if self.x>=10 {return false}
     if self.y>=20 {return false}
     if self.phase>=8 {return false}
-    if stage_tetris_cell(self,0,0x4000)==false {return false}
-    if stage_tetris_cell(self,1,0x4000)==false {return false}
-    if stage_tetris_cell(self,2,0x4000)==false {return false}
-    if stage_tetris_cell(self,3,0x4000)==false {return false}
+    var refresh:bool=true
+    if pixel_geometry_ready!=0 {
+        if (self.kind==pixel_geometry_kind)&(self.rotation==pixel_geometry_rotation)&(self.x==pixel_geometry_x)&(self.y==pixel_geometry_y) {refresh=false}
+    }
+    if refresh {
+        pixel_geometry_ready=0
+        pixel_geometry_last=0
+        let shape:u8=self.kind*16+self.rotation*4
+        var c:u8=0
+        while c<4 {
+            let index:u8=shape+c
+            let x:u8=self.x+PIECE_DX[index]
+            let y:u8=self.y+PIECE_DY[index]
+            if x>=10 {return false}
+            if y>=20 {return false}
+            pixel_new_x[c]=x pixel_new_y[c]=y
+            if y>pixel_geometry_last {pixel_geometry_last=y}
+            c=c+1
+        }
+        pixel_geometry_kind=self.kind pixel_geometry_rotation=self.rotation
+        pixel_geometry_x=self.x pixel_geometry_y=self.y
+        pixel_geometry_ready=1
+    }
+    if self.phase>1 {if pixel_geometry_last+1>=20 {return false}}
+    let phase:u8=self.phase
+    if FallingBlock_0_stage_at((11+pixel_new_x[0])*8,(2+pixel_new_y[0])*8+phase)==false {return false}
+    if FallingBlock_1_stage_at((11+pixel_new_x[1])*8,(2+pixel_new_y[1])*8+phase)==false {return false}
+    if FallingBlock_2_stage_at((11+pixel_new_x[2])*8,(2+pixel_new_y[2])*8+phase)==false {return false}
+    if FallingBlock_3_stage_at((11+pixel_new_x[3])*8,(2+pixel_new_y[3])*8+phase)==false {return false}
     return true
 }
 fun stage_pixel_render()->bool {
@@ -798,40 +841,46 @@ import zx.tile_cell
 global direct_actor_lastrow:u8=255
 global pixel_left:[u8;20]
 global pixel_right:[u8;20]
+global pixel_first_row:u8=0
+global pixel_row_limit:u8=20
 global drawn_phase:u8=0
 global field_pixels_count:u8=0
 global field_pixels_sources:[u16;20]
 global field_pixels_destinations:[u16;20]
 global field_pixels_widths:[u8;20]
 global direct_refresh:u8=0
+global direct_preview:u8=0
 
 fun pixel_reset_spans() {
-    var row:u8=0
-    while row<20 {pixel_left[row]=10 pixel_right[row]=0 row=row+1}
+    var row:u8=pixel_first_row
+    while row<pixel_row_limit {pixel_left[row]=10 pixel_right[row]=0 row=row+1}
+    pixel_first_row=20 pixel_row_limit=0
     field_pixels_count=0
 }
 
 fun pixel_mark_cell(x:u8,y:u8) {
     if x>=10 {return}
     if y>=20 {return}
+    if y<pixel_first_row {pixel_first_row=y}
+    if y+1>pixel_row_limit {pixel_row_limit=y+1}
     if x<pixel_left[y] {pixel_left[y]=x}
     if x+1>pixel_right[y] {pixel_right[y]=x+1}
 }
 
-fun pixel_mark_pose(t:u8,r:u8,x:u8,y:u8,phase:u8) {
+fun pixel_mark_cells(xs:^u8,ys:^u8,phase:u8) {
     var c:u8=0
     while c<4 {
-        let cx:u8=x+piece_dx(t,r,c)
-        let cy:u8=y+piece_dy(t,r,c)
-        pixel_mark_cell(cx,cy)
-        if phase>1 {pixel_mark_cell(cx,cy+1)}
+        let x:u8=xs[c]
+        let y:u8=ys[c]
+        pixel_mark_cell(x,y)
+        if phase>1 {pixel_mark_cell(x,y+1)}
         c=c+1
     }
 }
 
 fun pixel_restore_attributes() {
-    var y:u8=0
-    while y<20 {
+    var y:u8=pixel_first_row
+    while y<pixel_row_limit {
         var x:u8=pixel_left[y]
         while x<pixel_right[y] {
             let index:u8=y*10+x
@@ -854,15 +903,8 @@ fun pixel_finish_board_row(row:u8) {
 fun pixel_prepare_actor_row() {
     direct_actor_lastrow=255
     if game_over!=0 {return}
-    var last:u8=cur_y
-    var c:u8=0
-    while c<4 {
-        let y:u8=cur_y+piece_dy(cur_type,cur_rot,c)
-        if y>last {last=y}
-        c=c+1
-    }
-    if pixel_phase>1 {last=last+1}
-    direct_actor_lastrow=last
+    direct_actor_lastrow=pixel_geometry_last
+    if pixel_phase>1 {direct_actor_lastrow=direct_actor_lastrow+1}
 }
 
 fun pixel_prepare_board_attributes() {
@@ -879,8 +921,8 @@ fun pixel_actor_attributes() {
     let color:u8=piece_color(cur_type)
     var c:u8=0
     while c<4 {
-        let x:u8=cur_x+piece_dx(cur_type,cur_rot,c)
-        let y:u8=cur_y+piece_dy(cur_type,cur_rot,c)
+        let x:u8=pixel_new_x[c]
+        let y:u8=pixel_new_y[c]
         if pixel_phase<7 {tetris_values[y*10+x]=color}
         if pixel_phase>1 {tetris_values[(y+1)*10+x]=color}
         c=c+1
@@ -889,8 +931,8 @@ fun pixel_actor_attributes() {
 
 fun pixel_prepare_bands() {
     field_pixels_count=0
-    var y:u8=0
-    while y<20 {
+    var y:u8=pixel_first_row
+    while y<pixel_row_limit {
         let left:u8=pixel_left[y]
         let right:u8=pixel_right[y]
         if left<right {
@@ -917,11 +959,19 @@ fun pixel_init() {
     drawn_phase=0
 }
 
+// The previous prepared draw is still intact here. Snapshot its addresses
+// for exact erase, then stage_pixel_render may replace the draw operands.
 fun stage_pixel_erase()->bool {
-    let actor:FallingPose=FallingPose{kind:drawn_type,rotation:drawn_rot,x:drawn_x,y:drawn_y,phase:drawn_phase}
-    return actor.stage_erase()
+    pixel_old_x[0]=pixel_new_x[0] pixel_old_y[0]=pixel_new_y[0]
+    pixel_old_x[1]=pixel_new_x[1] pixel_old_y[1]=pixel_new_y[1]
+    pixel_old_x[2]=pixel_new_x[2] pixel_old_y[2]=pixel_new_y[2]
+    pixel_old_x[3]=pixel_new_x[3] pixel_old_y[3]=pixel_new_y[3]
+    if FallingBlock_0_stage_erase_from_draw()==false {return false}
+    if FallingBlock_1_stage_erase_from_draw()==false {return false}
+    if FallingBlock_2_stage_erase_from_draw()==false {return false}
+    if FallingBlock_3_stage_erase_from_draw()==false {return false}
+    return true
 }
-
 fun publish_pixel_erase()->bool {
     let actor:FallingPose=FallingPose{kind:drawn_type,rotation:drawn_rot,x:drawn_x,y:drawn_y,phase:drawn_phase}
     return actor.erase_staged()
@@ -943,14 +993,16 @@ fun render_smooth()->bool {
     if (board_dirty!=0)|(drawn_valid==0) {
         var y:u8=0
         while y<20 {pixel_left[y]=0 pixel_right[y]=10 y=y+1}
+        pixel_first_row=0 pixel_row_limit=20
     } else {
-        pixel_mark_pose(drawn_type,drawn_rot,drawn_x,drawn_y,drawn_phase)
-        if game_over==0 {pixel_mark_pose(cur_type,cur_rot,cur_x,cur_y,pixel_phase)}
+        pixel_mark_cells(ptr(u16(&pixel_old_x)),ptr(u16(&pixel_old_y)),drawn_phase)
+        if game_over==0 {pixel_mark_cells(ptr(u16(&pixel_new_x)),ptr(u16(&pixel_new_y)),pixel_phase)}
     }
     if (board_dirty!=0)|(drawn_valid==0) {pixel_prepare_board_attributes()} else {pixel_restore_attributes()}
     if game_over==0 {pixel_actor_attributes()}
-    if (drawn_valid==0)|(next_type!=drawn_next) {render_preview(next_type,200)}
-    if (drawn_valid==0)|(hold_type!=drawn_hold) {render_preview(hold_type,216)}
+    direct_preview=0
+    if (drawn_valid==0)|(next_type!=drawn_next) {render_preview(next_type,200) direct_preview=1}
+    if (drawn_valid==0)|(hold_type!=drawn_hold) {render_preview(hold_type,216) direct_preview=1}
     pixel_prepare_bands()
     pixel_prepare_actor_row()
     if pixel_check_prepared()==false {return false}
@@ -994,7 +1046,7 @@ fun pixel_commit_actor() {
     FallingBlock_3_draw_prepared()
 }
 fun pixel_publish_direct() {
-    pixel_publish_previews()
+    if direct_preview!=0 {pixel_publish_previews()}
     if drawn_valid!=0 {pixel_commit_erase()}
     if direct_refresh!=0 {pixel_restore_board()} else {
         if game_over==0 {pixel_commit_actor()}

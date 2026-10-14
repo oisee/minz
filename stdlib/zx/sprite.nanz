@@ -67,6 +67,9 @@ fun @zx_sprite(name:^u8)->void {
     emit(c"import zx.sprite_address")
     emit(str_concat(str_concat(c"struct ",name),c" {x:u8,y:u8}"))
     emit(str_concat(str_concat(c"global ",name),c"_ready:bool=false"))
+    if paired_erase!=0 {
+        emit(str_concat(str_concat(str_concat(c"global ",name),c"_draw_addresses:[u16;"),str_concat(str_from_int(u16(height)),c"]")))
+    }
     var row:i32=0
     i=0
     while i < block_len() {
@@ -149,8 +152,14 @@ fun @zx_sprite(name:^u8)->void {
         while row<height {
             let row_name:^u8=str_concat(name,str_concat(c"_row_",str_from_int(u16(row))))
             if placement==0 {
+                if paired_erase!=0 {
+                    emit(str_concat(str_concat(str_concat(name,c"_draw_addresses["),str_from_int(u16(row))),c"]=address-0x4000+base"))
+                }
                 emit(str_concat(row_name,c"_set_dst(ptr(address-0x4000+base))"))
             } else {
+                if paired_erase!=0 {
+                    emit(str_concat(str_concat(str_concat(name,c"_draw_addresses["),str_from_int(u16(row))),c"]=address"))
+                }
                 emit(str_concat(row_name,c"_set_dst(ptr(address))"))
             }
             if row+1<height {emit(c"address=sprite_next_line(address)")}
@@ -176,6 +185,19 @@ fun @zx_sprite(name:^u8)->void {
     // Independent operands keep the old erase position intact while a new
     // drawing is staged. The description of the opaque mask is shared.
     if paired_erase!=0 {
+        // Snapshot the currently prepared draw placement before staging the
+        // next one. No geometry or Spectrum address walk is repeated here.
+        emit(str_concat(str_concat(c"fun ",name),c"_stage_erase_from_draw()->bool {"))
+        emit(str_concat(name,c"_erase_ready=false"))
+        emit(str_concat(str_concat(c"if ",name),c"_ready==false {return false}"))
+        row=0
+        while row<height {
+            let clear_name:^u8=str_concat(name,str_concat(c"_clear_row_",str_from_int(u16(row))))
+            let cached:^u8=str_concat(str_concat(name,c"_draw_addresses["),str_concat(str_from_int(u16(row)),c"]"))
+            emit(str_concat(str_concat(clear_name,c"_set_dst(ptr("),str_concat(cached,c"))")))
+            row=row+1
+        }
+        emit(str_concat(name,c"_erase_ready=true return true }"))
         // Internal scene commits contain only the nontransparent row calls.
         // The owner must validate readiness and stage all operands beforehand.
         var commit:u8=0

@@ -74,12 +74,12 @@ func TestTetrisDirectTemporalMachine(t *testing.T) {
 			if e != nil {
 				t.Fatal(e)
 			}
-			assembly := strings.Replace(string(boot), "ORG $8000", "ORG $6000", 1) + "\n" + steps.Assembly
+			assembly := strings.Replace(string(boot), "ORG $6000", "ORG $8000", 1) + "\n" + steps.Assembly
 			a, e := z80asm.NewAssembler().AssembleString(assembly)
 			if e != nil || len(a.Errors) != 0 {
 				t.Fatal(e, a.Errors)
 			}
-			if 0x6000+len(a.Binary) >= 0xe000 {
+			if 0x8000+len(a.Binary) >= 0xfc60 {
 				t.Fatalf("code overlaps bounded launcher stack: %d bytes", len(a.Binary))
 			}
 			symbol := func(name string) uint16 {
@@ -94,7 +94,7 @@ func TestTetrisDirectTemporalMachine(t *testing.T) {
 				t.Fatal(e)
 			}
 			for i, b := range a.Binary {
-				m.Memory.Write(0x6000+uint16(i), b, false)
+				m.Memory.Write(0x8000+uint16(i), b, false)
 			}
 			for at := 0xfe00; at <= 0xff00; at++ {
 				m.Memory.Write(uint16(at), 0xfd, false)
@@ -212,12 +212,16 @@ func TestTetrisDirectTemporalMachine(t *testing.T) {
 					}
 				}
 				allowed := map[int]bool{}
-				for name, width := range map[string]int{"tetris_values": 232, "board_dirty": 1, "drawn_valid": 1, "drawn_type": 1, "drawn_rot": 1, "drawn_x": 1, "drawn_y": 1, "drawn_ghost_y": 1, "drawn_next": 1, "drawn_hold": 1, "render_changed": 1, "drawn_phase": 1, "pixel_left": 20, "pixel_right": 20, "field_pixels_count": 1, "direct_refresh": 1, "direct_actor_lastrow": 1, "field_pixels_sources": 40, "field_pixels_destinations": 40, "field_pixels_widths": 20} {
+				for name, width := range map[string]int{"tetris_values": 232, "pixel_geometry_ready": 1, "pixel_geometry_kind": 1, "pixel_geometry_rotation": 1, "pixel_geometry_x": 1, "pixel_geometry_y": 1, "pixel_geometry_last": 1, "pixel_new_x": 4, "pixel_new_y": 4, "pixel_old_x": 4, "pixel_old_y": 4, "board_dirty": 1, "drawn_valid": 1, "drawn_type": 1, "drawn_rot": 1, "drawn_x": 1, "drawn_y": 1, "drawn_ghost_y": 1, "drawn_next": 1, "drawn_hold": 1, "render_changed": 1, "drawn_phase": 1, "pixel_first_row": 1, "pixel_row_limit": 1, "pixel_left": 20, "pixel_right": 20, "field_pixels_count": 1, "direct_refresh": 1, "direct_preview": 1, "direct_actor_lastrow": 1, "field_pixels_sources": 40, "field_pixels_destinations": 40, "field_pixels_widths": 20} {
 					for i := 0; i < width; i++ {
 						allowed[int(symbol(name))+i] = true
 					}
 				}
 				for instance := 0; instance < 4; instance++ {
+					for row := 0; row < 8; row++ {
+						at := int(symbol(fmt.Sprintf("FallingBlock_%d_draw_addresses", instance))) + row*2
+						allowed[at], allowed[at+1] = true, true
+					}
 					allowed[int(symbol(fmt.Sprintf("FallingBlock_%d_ready", instance)))] = true
 					allowed[int(symbol(fmt.Sprintf("FallingBlock_%d_erase_ready", instance)))] = true
 					for row := 0; row < 8; row++ {
@@ -310,6 +314,80 @@ func TestTetrisDirectTemporalMachine(t *testing.T) {
 						t.Fatalf("sample%d phase%d memory%04x=%02x want%02x", sample, p.phase, at, got, expected)
 					}
 				}
+				// The allowed coordinate metadata still has an independent
+				// oracle: derive it from the fixture geometry, not its LUTs.
+				for cell, offset := range geometry[p.kind] {
+					for row := 0; row < 8; row++ {
+						scan := (2+p.y+offset[1])*8 + p.phase + row
+						address := 0x4000 + (scan/64)*2048 + (scan%8)*256 + ((scan/8)%8)*32 + 11 + p.x + offset[0]
+						slot := symbol(fmt.Sprintf("FallingBlock_%d_draw_addresses", cell)) + uint16(row*2)
+						got := int(m.Memory.ReadByteInternal(slot)) | int(m.Memory.ReadByteInternal(slot+1))<<8
+						if got != address {
+							t.Fatalf("sample%d cached cell%d row%d=%04x want%04x", sample, cell, row, got, address)
+						}
+					}
+					for name, want := range map[string]int{"pixel_new_x": p.x + offset[0], "pixel_new_y": p.y + offset[1]} {
+						if got := m.Memory.ReadByteInternal(symbol(name) + uint16(cell)); got != byte(want) {
+							t.Fatalf("sample%d %s[%d]=%d want%d", sample, name, cell, got, want)
+						}
+					}
+				}
+				if sample >= 2 {
+					old := poses[sample-1]
+					for cell, offset := range geometry[old.kind] {
+						for name, want := range map[string]int{"pixel_old_x": old.x + offset[0], "pixel_old_y": old.y + offset[1]} {
+							if got := m.Memory.ReadByteInternal(symbol(name) + uint16(cell)); got != byte(want) {
+								t.Fatalf("sample%d %s[%d]=%d want%d", sample, name, cell, got, want)
+							}
+						}
+					}
+				}
+				if sample >= 2 {
+					first, limit := 0, 20
+					if !p.refresh {
+						first, limit = 20, 0
+						for _, pose := range []pose{poses[sample-1], p} {
+							for _, offset := range geometry[pose.kind] {
+								y := pose.y + offset[1]
+								if y < first {
+									first = y
+								}
+								end := y + 1
+								if pose.phase > 1 {
+									end++
+								}
+								if end > limit {
+									limit = end
+								}
+							}
+						}
+					}
+					for name, want := range map[string]int{"pixel_first_row": first, "pixel_row_limit": limit} {
+						if got := m.Memory.ReadByteInternal(symbol(name)); got != byte(want) {
+							t.Fatalf("sample%d %s=%d want%d", sample, name, got, want)
+						}
+					}
+				}
+				if sample != 1 {
+					expectedPreview := byte(0)
+					if sample == 0 || poses[sample-1].next != p.next || poses[sample-1].hold != p.hold {
+						expectedPreview = 1
+					}
+					if got := m.Memory.ReadByteInternal(symbol("direct_preview")); got != expectedPreview {
+						t.Fatalf("sample%d preview dirty=%d want%d", sample, got, expectedPreview)
+					}
+				}
+				lastY := p.y
+				for _, offset := range geometry[p.kind] {
+					if p.y+offset[1] > lastY {
+						lastY = p.y + offset[1]
+					}
+				}
+				for name, want := range map[string]int{"pixel_geometry_ready": 1, "pixel_geometry_kind": p.kind, "pixel_geometry_rotation": 0, "pixel_geometry_x": p.x, "pixel_geometry_y": p.y, "pixel_geometry_last": lastY} {
+					if got := m.Memory.ReadByteInternal(symbol(name)); got != byte(want) {
+						t.Fatalf("sample%d %s=%d want%d", sample, name, got, want)
+					}
+				}
 				if c.minSP < 0xfc60 {
 					t.Fatal("stack exceeded reserved 128 bytes", c.minSP)
 				}
@@ -354,7 +432,7 @@ func TestTetrisDirectTemporalMachine(t *testing.T) {
 				if e = os.MkdirAll(dir, 0755); e != nil {
 					t.Fatal(e)
 				}
-				receipt := fmt.Sprintf("scenes=%d\nfetched_frames=%d\npartial_frames=%d\nmax_render_and_wait_T=%d\nmax_publish_T=%d\ncode_origin=0x6000\nshadow_bitmap=none\nbytes=%d\n", len(poses), totalFrames, partial, maxRender, maxPublish, len(a.Binary))
+				receipt := fmt.Sprintf("scenes=%d\nfetched_frames=%d\npartial_frames=%d\nmax_render_and_wait_T=%d\nmax_publish_T=%d\ncode_origin=0x8000\nshadow_bitmap=none\nbytes=%d\n", len(poses), totalFrames, partial, maxRender, maxPublish, len(a.Binary))
 				for name, data := range map[string][]byte{"source.nanz": []byte(source), "program.a80": []byte(assembly), "program.bin": a.Binary, "receipt.txt": []byte(receipt), "last-expected.scr": previous, "last-fetched.rgba": shadowFetchedPixels(m)} {
 					if e = os.WriteFile(filepath.Join(dir, name), data, 0644); e != nil {
 						t.Fatal(e)

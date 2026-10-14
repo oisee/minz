@@ -151,6 +151,8 @@ func TestTetrisPixelActorNative(t *testing.T) {
 										t.Fatal("slot", c, row)
 									}
 									want[slot], want[slot+1] = byte(address), byte(address>>8)
+									cached := a.Symbols[fmt.Sprintf("FallingBlock_%d_draw_addresses", c)] + row*2
+									want[cached], want[cached+1] = byte(address), byte(address>>8)
 								}
 							}
 							check := func() {
@@ -298,6 +300,8 @@ func TestTetrisPixelActorNative(t *testing.T) {
 								address := 0x4000 + (scan/64)*2048 + (scan%8)*256 + ((scan/8)%8)*32 + 14 + cell.x
 								slot := a.Symbols[fmt.Sprintf("FallingBlock_%d_row_%d$dst$imm", c, row)]
 								want[slot], want[slot+1] = byte(address), byte(address>>8)
+								cached := a.Symbols[fmt.Sprintf("FallingBlock_%d_draw_addresses", c)] + row*2
+								want[cached], want[cached+1] = byte(address), byte(address>>8)
 							}
 						}
 					}

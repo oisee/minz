@@ -22,8 +22,10 @@ func TestZXPairedSpriteNative(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, staged := range []bool{false, true} {
-		t.Run(fmt.Sprintf("staged=%v", staged), func(t *testing.T) {
+	for _, variant := range []string{"direct", "staged", "snapshot"} {
+		staged := variant != "direct"
+		snapshot := variant == "snapshot"
+		t.Run(variant, func(t *testing.T) {
 			source := strings.Replace(string(sourceBytes), "size 16 8", "size 16 8\n    erase", 1)
 			source = strings.Replace(source, "return ship.draw()", "return ship.erase()", 1)
 			if staged {
@@ -39,6 +41,10 @@ func TestZXPairedSpriteNative(t *testing.T) {
  if old.erase_staged()==false {return false}
  return next.publish()
 }`
+			}
+			if snapshot {
+				source = strings.Replace(source, "if old.draw()==false {return false}", "if old.stage()==false {return false}\n if old.publish()==false {return false}", 1)
+				source = strings.Replace(source, "if old.stage_erase()==false {return false}", "if Ship_stage_erase_from_draw()==false {return false}", 1)
 			}
 			var pixels []string
 			for _, line := range strings.Split(source, "\n") {
@@ -154,6 +160,12 @@ func TestZXPairedSpriteNative(t *testing.T) {
 								patch("Ship_clear_row_", pos.x, pos.y)
 								if staged {
 									patch("Ship_row_", pos.x+8, pos.y+1)
+									for row := 0; row < 8; row++ {
+										scan := pos.y + 1 + row
+										address := 0x4000 + (scan/64)*2048 + (scan%8)*256 + ((scan/8)%8)*32 + (pos.x+8)/8
+										slot := a.Symbols["Ship_draw_addresses"] + row*2
+										want[slot], want[slot+1] = byte(address), byte(address>>8)
+									}
 									want[a.Symbols["Ship_ready"]] = 1
 									want[a.Symbols["Ship_erase_ready"]] = 1
 								}
@@ -166,6 +178,9 @@ func TestZXPairedSpriteNative(t *testing.T) {
 								active         bool
 							}
 							watchers := []watchedCall{{entry: uint16(a.Symbols["Ship_erase_staged"])}, {entry: uint16(a.Symbols["Ship_publish"])}, {entry: uint16(a.Symbols["Ship_stage_erase"])}, {entry: uint16(a.Symbols["Ship_stage"])}}
+							if snapshot {
+								watchers[2].entry = uint16(a.Symbols["Ship_stage_erase_from_draw"])
+							}
 							start := z.GetCycles()
 							minSP := entrySP
 							for i := 0; z.GetPC() != returnPC || z.GetSP() != entrySP+2; i++ {
@@ -279,6 +294,10 @@ func TestZXPairedSpriteAdmission(t *testing.T) {
  pixels ".#_#_#_."
 }
 fun run()->u8 {
+ if Pair_0_stage_erase_from_draw()!=false {return 0}
+ let invalid:Pair_0=Pair_0{x:1,y:0}
+ if invalid.stage()!=false {return 0}
+ if Pair_0_stage_erase_from_draw()!=false {return 0}
  let a:Pair_0=Pair_0{x:0,y:0}
  let b:Pair_1=Pair_1{x:8,y:0}
  if a.stage_erase()==false {return 0}

@@ -2,9 +2,11 @@ package pipeline
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 
@@ -15,10 +17,18 @@ import (
 
 type smoothGameObserver struct {
 	*tetrisSceneObserver
-	before func()
+	before  func()
+	profile *directProfileObserver
 }
 
-func (c *smoothGameObserver) DoOpcode() { c.before(); c.tetrisSceneObserver.DoOpcode() }
+func (c *smoothGameObserver) DoOpcode() {
+	c.before()
+	if c.profile != nil {
+		c.profile.DoOpcode()
+	} else {
+		c.tetrisSceneObserver.DoOpcode()
+	}
+}
 
 // Executes the frozen shadow-candidate main through its real loader, keyboard matrix,
 // IM2 timer, renderer and game-over return. The independent physics model owns
@@ -59,7 +69,12 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool) {
 			if e != nil {
 				t.Fatal(e)
 			}
-			asm := string(boot) + "\n" + s.Assembly
+			origin := 0x8000
+			if shadow {
+				origin = 0x6000
+			}
+			loader := strings.Replace(string(boot), "ORG $6000", fmt.Sprintf("ORG $%04X", origin), 1)
+			asm := loader + "\n" + s.Assembly
 			a, e := z80asm.NewAssembler().AssembleString(asm)
 			if e != nil || len(a.Errors) > 0 {
 				t.Fatal(e, a.Errors)
@@ -68,7 +83,7 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool) {
 			if shadow {
 				limit = 0xe000
 			}
-			if 0x6000+len(a.Binary) >= limit {
+			if origin+len(a.Binary) >= limit {
 				t.Fatalf("code overlaps reserved RAM: %d bytes", len(a.Binary))
 			}
 			sym := func(n string) uint16 {
@@ -83,9 +98,9 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool) {
 				t.Fatal(e)
 			}
 			for i, b := range a.Binary {
-				m.Memory.Write(0x6000+uint16(i), b, false)
+				m.Memory.Write(uint16(origin)+uint16(i), b, false)
 			}
-			m.CPU.SetPC(0x6000)
+			m.CPU.SetPC(uint16(origin))
 			m.CPU.SetSP(0xfce0)
 			m.CPU.SetIFF1(false)
 			m.CPU.SetIFF2(false)
@@ -266,6 +281,24 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool) {
 			previousClock := byte(0)
 			base := &tetrisSceneObserver{CPUCore: m.CPU, t: t, m: m, minSP: 0xfce0, returnPC: sym("demo_done"), returnSP: 0xfce0, phaseMax: map[string]int64{}}
 			c := &smoothGameObserver{tetrisSceneObserver: base}
+			var stepCosts map[string]int64
+			var profileSamples []map[string]any
+			if os.Getenv("MINZ_TETRIS_MAIN_EXPORT") != "" {
+				c.profile = &directProfileObserver{tetrisSceneObserver: base, costs: map[string]int64{}}
+				for _, line := range strings.Split(asm, "\n") {
+					if !strings.HasPrefix(line, "; fun ") {
+						continue
+					}
+					name := strings.Split(strings.Fields(strings.TrimPrefix(line, "; fun "))[0], "(")[0]
+					if at, ok := a.Symbols[name]; ok {
+						c.profile.labels = append(c.profile.labels, struct {
+							address uint16
+							name    string
+						}{uint16(at), name})
+					}
+				}
+				sort.Slice(c.profile.labels, func(i, j int) bool { return c.profile.labels[i].address < c.profile.labels[j].address })
+			}
 			m.CPU = c
 			c.before = func() {
 				if renderActive && c.PC() == renderReturn && c.SP() == renderSP+2 {
@@ -273,6 +306,16 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool) {
 					checkImage()
 					shown = fieldImage()
 					model.v["board_dirty"] = 0
+					if stepCosts != nil {
+						costs := map[string]int64{}
+						for name, total := range c.profile.costs {
+							if delta := total - stepCosts[name]; delta != 0 {
+								costs[name] = delta
+							}
+						}
+						profileSamples = append(profileSamples, map[string]any{"step": steps, "keys": selected, "phase": model.v["pixel_phase"], "costs_T": costs})
+						stepCosts = nil
+					}
 					if !clockReady {
 						previousClock = m.Memory.ReadByteInternal(0x5c78)
 						clockReady = true
@@ -312,6 +355,12 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool) {
 						t.Fatal("game_step before initial renderer returned")
 					}
 					model.v["board_dirty"] = 0
+					if c.profile != nil {
+						stepCosts = map[string]int64{}
+						for name, cost := range c.profile.costs {
+							stepCosts[name] = cost
+						}
+					}
 					check(fmt.Sprintf("step%d/entry", steps))
 					now := read("clock_seen", 1)[0]
 					ticks := int(byte(now - previousClock))
@@ -380,7 +429,11 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool) {
 					t.Fatal(e)
 				}
 				receipt := fmt.Sprintf("PASS\nfetched_complete_field_frames=%d\nframes=%d\nsteps=%d\npixel_phase_samples=%d\nlocks=%d\ninterrupts=%d\nminimum_SP=0x%04x\nbytes=%d\n", fetchedFrames, frames, steps, nonzeroPhases, locks, c.irq, c.minSP, len(a.Binary))
-				for name, data := range map[string][]byte{"source.nanz": src, "program.a80": []byte(asm), "program.bin": a.Binary, "receipt.txt": []byte(receipt)} {
+				profileJSON, e := json.MarshalIndent(map[string]any{"attribution": "nearest preceding emitted function label; HALT includes wait", "per_step": profileSamples, "total_costs_T": c.profile.costs, "clock_delta_histogram": tickHistogram}, "", "  ")
+				if e != nil {
+					t.Fatal(e)
+				}
+				for name, data := range map[string][]byte{"source.nanz": src, "program.a80": []byte(asm), "program.bin": a.Binary, "receipt.txt": []byte(receipt), "instruction-costs.json": profileJSON} {
 					if e := os.WriteFile(filepath.Join(dir, name), data, 0644); e != nil {
 						t.Fatal(e)
 					}
