@@ -59,6 +59,10 @@ func TestTetrisDirectTemporalMachine(t *testing.T) {
 		poses = append(poses, pose{1, 3, 0, phase, 0, 255, false})
 	}
 	poses = append(poses, pose{1, 3, 1, 0, 0, 255, false}, pose{1, 4, 1, 3, 1, 255, false}, pose{2, 4, 1, 3, 2, 1, false}, pose{2, 4, 1, 3, 2, 1, true}, pose{2, 4, 1, 3, 2, 1, true})
+	// Partial board updates: actor overlaps the last row of the range,
+	// lies above it, or extends below it and must follow its final row.
+	poses = append(poses, pose{2, 4, 1, 3, 2, 1, true}, pose{2, 5, 0, 0, 2, 1, true}, pose{1, 3, 0, 7, 2, 1, true})
+	ranges := map[int][2]int{14: {2, 3}, 15: {3, 4}, 16: {1, 2}}
 	for _, mode := range []string{"early-control", "ordinary", "grace-speed", "grace-size"} {
 		t.Run(mode, func(t *testing.T) {
 			control := mode == "early-control"
@@ -131,7 +135,7 @@ func TestTetrisDirectTemporalMachine(t *testing.T) {
 				m.Memory.Write(0x4000+uint16(i), b, false)
 			}
 			board := make([]byte, 200)
-			c := &tetrisSceneObserver{CPUCore: m.CPU, t: t, m: m, returnSP: 0xfce2, returnPC: 0x5e00, publish: symbol("pixel_publish_direct"), phaseMax: map[string]int64{}, phases: map[uint16]string{symbol("stage_pixel_render"): "stage", symbol("stage_pixel_erase"): "erase-stage", symbol("pixel_prepare_bands"): "bands", symbol("pixel_restore_attributes"): "attributes", symbol("pixel_restore_board"): "board"}}
+			c := &tetrisSceneObserver{CPUCore: m.CPU, t: t, m: m, returnSP: 0xfce2, returnPC: 0x5e00, publish: symbol("pixel_publish_direct"), phaseMax: map[string]int64{}, phases: map[uint16]string{symbol("stage_pixel_render"): "stage", symbol("stage_pixel_erase"): "erase-stage", symbol("pixel_prepare_bands"): "bands", symbol("pixel_restore_attributes"): "attributes", symbol("field_board_publish_range_prepared"): "board"}}
 			if symbol("pixel_wait_field_end") < 0x8000 {
 				t.Fatal("timed wait resides in contended RAM")
 			}
@@ -155,7 +159,7 @@ func TestTetrisDirectTemporalMachine(t *testing.T) {
 			totalFrames, partial := 0, 0
 			var maxPublish, maxRender int64
 			for sample, p := range poses {
-				if sample == len(poses)-2 {
+				if sample == 12 {
 					for y := 0; y < 20; y++ {
 						for x := 0; x < 10; x++ {
 							board[y*10+x] = byte((x+y)%7 + 1)
@@ -165,9 +169,19 @@ func TestTetrisDirectTemporalMachine(t *testing.T) {
 						}
 					}
 				}
-				if sample == len(poses)-1 {
+				if sample == 13 {
 					for i := range board {
 						board[i] = 0
+					}
+				}
+				if bounds, ok := ranges[sample]; ok {
+					for y := bounds[0]; y < bounds[1]; y++ {
+						for x := 0; x < 10; x++ {
+							board[y*10+x] = 0
+							if x < 3 || x > 7 {
+								board[y*10+x] = byte(1 + sample%7)
+							}
+						}
 					}
 				}
 				set := func(name string, value byte) { m.Memory.Write(symbol(name), value, false) }
@@ -179,6 +193,12 @@ func TestTetrisDirectTemporalMachine(t *testing.T) {
 				}
 				if p.refresh {
 					set("board_dirty", 1)
+					set("board_first", 20)
+					set("board_limit", 0)
+					if bounds, ok := ranges[sample]; ok {
+						set("board_first", byte(bounds[0]))
+						set("board_limit", byte(bounds[1]))
+					}
 				}
 				want := append([]byte(nil), initial...)
 				for cell, value := range board {
@@ -212,7 +232,7 @@ func TestTetrisDirectTemporalMachine(t *testing.T) {
 					}
 				}
 				allowed := map[int]bool{}
-				for name, width := range map[string]int{"tetris_values": 232, "pixel_geometry_ready": 1, "pixel_geometry_kind": 1, "pixel_geometry_rotation": 1, "pixel_geometry_x": 1, "pixel_geometry_y": 1, "pixel_geometry_last": 1, "pixel_new_x": 4, "pixel_new_y": 4, "pixel_old_x": 4, "pixel_old_y": 4, "board_dirty": 1, "drawn_valid": 1, "drawn_type": 1, "drawn_rot": 1, "drawn_x": 1, "drawn_y": 1, "drawn_ghost_y": 1, "drawn_next": 1, "drawn_hold": 1, "render_changed": 1, "drawn_phase": 1, "pixel_first_row": 1, "pixel_row_limit": 1, "pixel_left": 20, "pixel_right": 20, "field_pixels_count": 1, "direct_refresh": 1, "direct_preview": 1, "direct_actor_lastrow": 1, "field_pixels_sources": 40, "field_pixels_destinations": 40, "field_pixels_widths": 20} {
+				for name, width := range map[string]int{"tetris_values": 232, "pixel_geometry_ready": 1, "pixel_geometry_kind": 1, "pixel_geometry_rotation": 1, "pixel_geometry_x": 1, "pixel_geometry_y": 1, "pixel_geometry_last": 1, "pixel_new_x": 4, "pixel_new_y": 4, "pixel_old_x": 4, "pixel_old_y": 4, "board_dirty": 1, "drawn_valid": 1, "drawn_type": 1, "drawn_rot": 1, "drawn_x": 1, "drawn_y": 1, "drawn_ghost_y": 1, "drawn_next": 1, "drawn_hold": 1, "render_changed": 1, "drawn_phase": 1, "pixel_first_row": 1, "pixel_row_limit": 1, "pixel_left": 20, "pixel_right": 20, "field_pixels_count": 1, "direct_refresh": 1, "board_first": 1, "board_limit": 1, "direct_board_first": 1, "direct_board_limit": 1, "direct_actor_early": 1, "direct_preview": 1, "direct_actor_lastrow": 1, "field_pixels_sources": 40, "field_pixels_destinations": 40, "field_pixels_widths": 20} {
 					for i := 0; i < width; i++ {
 						allowed[int(symbol(name))+i] = true
 					}
@@ -343,8 +363,8 @@ func TestTetrisDirectTemporalMachine(t *testing.T) {
 					}
 				}
 				if sample >= 2 {
-					first, limit := 0, 20
-					if !p.refresh {
+					first, limit := 20, 0
+					{
 						first, limit = 20, 0
 						for _, pose := range []pose{poses[sample-1], p} {
 							for _, offset := range geometry[pose.kind] {
@@ -386,6 +406,40 @@ func TestTetrisDirectTemporalMachine(t *testing.T) {
 				for name, want := range map[string]int{"pixel_geometry_ready": 1, "pixel_geometry_kind": p.kind, "pixel_geometry_rotation": 0, "pixel_geometry_x": p.x, "pixel_geometry_y": p.y, "pixel_geometry_last": lastY} {
 					if got := m.Memory.ReadByteInternal(symbol(name)); got != byte(want) {
 						t.Fatalf("sample%d %s=%d want%d", sample, name, got, want)
+					}
+				}
+				expectedState := map[string]int{"board_first": 20, "board_limit": 0}
+				if p.refresh {
+					first, limit := 0, 20
+					if bounds, ok := ranges[sample]; ok {
+						first, limit = bounds[0], bounds[1]
+					}
+					minRow, maxRow := 20, 0
+					for _, offset := range geometry[p.kind] {
+						y := p.y + offset[1]
+						begin := (8*y + p.phase + 1) / 8
+						end := (8*y + p.phase + 6) / 8
+						if begin < minRow {
+							minRow = begin
+						}
+						if end > maxRow {
+							maxRow = end
+						}
+					}
+					early, last := 0, maxRow
+					if maxRow < first || minRow >= limit {
+						early = 1
+					} else if maxRow >= limit {
+						last = limit - 1
+					}
+					expectedState["direct_board_first"] = first
+					expectedState["direct_board_limit"] = limit
+					expectedState["direct_actor_early"] = early
+					expectedState["direct_actor_lastrow"] = last
+				}
+				for name, w := range expectedState {
+					if got := int(m.Memory.ReadByteInternal(symbol(name))); got != w {
+						t.Fatalf("sample%d %s=%d want%d", sample, name, got, w)
 					}
 				}
 				if c.minSP < 0xfc60 {

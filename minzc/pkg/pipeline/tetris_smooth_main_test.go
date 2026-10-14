@@ -124,6 +124,13 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 				return out
 			}
 			check := func(where string) {
+				if !shadow {
+					for name, w := range map[string]int{"board_first": model.rowFirst, "board_limit": model.rowLimit} {
+						if got := int(read(name, 1)[0]); got != w {
+							t.Fatalf("%s %s=%d want%d", where, name, got, w)
+						}
+					}
+				}
 				for n, want := range model.v {
 					size := 1
 					if n == "score" || n == "frame_count" || n == "lines_cleared" || n == "rng_state" {
@@ -313,16 +320,97 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 				sort.Slice(c.profile.labels, func(i, j int) bool { return c.profile.labels[i].address < c.profile.labels[j].address })
 			}
 			m.CPU = c
+			publishActive := false
+			publishedRows := []int{}
+			publishFirst, publishLimit := 0, 0
+			partialPublications := 0
+			pendingLock := false
+			lockTicks := map[int]int{}
 			c.before = func() {
+				if !shadow && c.PC() == sym("pixel_publish_direct") {
+					publishActive = true
+					publishedRows = nil
+					publishFirst, publishLimit = 0, 0
+					early, last := 0, 255
+					if model.v["game_over"] == 0 {
+						minRow, maxRow := 20, 0
+						for _, cell := range pixelGameCells(model.v["cur_type"], model.v["cur_rot"]) {
+							y := model.v["cur_y"] + cell.y
+							first := (8*y + model.v["pixel_phase"] + 1) / 8
+							end := (8*y + model.v["pixel_phase"] + 6) / 8
+							if first < minRow {
+								minRow = first
+							}
+							if end > maxRow {
+								maxRow = end
+							}
+						}
+						last = maxRow
+						if model.v["board_dirty"] != 0 {
+							publishFirst, publishLimit = model.rowFirst, model.rowLimit
+							if publishFirst >= publishLimit || read("drawn_valid", 1)[0] == 0 {
+								publishFirst, publishLimit = 0, 20
+							}
+							if maxRow < publishFirst || minRow >= publishLimit {
+								early = 1
+							} else if maxRow >= publishLimit {
+								last = publishLimit - 1
+							}
+						}
+					} else if model.v["board_dirty"] != 0 {
+						publishFirst, publishLimit = model.rowFirst, model.rowLimit
+						if publishFirst >= publishLimit {
+							publishFirst, publishLimit = 0, 20
+						}
+					}
+					expected := map[string]int{"direct_actor_early": early, "direct_actor_lastrow": last, "direct_refresh": model.v["board_dirty"]}
+					if model.v["board_dirty"] != 0 {
+						expected["direct_board_first"] = publishFirst
+						expected["direct_board_limit"] = publishLimit
+						if publishLimit-publishFirst < 20 {
+							partialPublications++
+						}
+					}
+					for name, w := range expected {
+						if got := int(read(name, 1)[0]); got != w {
+							t.Fatalf("step%d prepared %s=%d want%d", steps, name, got, w)
+						}
+					}
+				}
+				if !shadow && publishActive && c.PC() == sym("zx__tile_cell__tile_row_fill") {
+					row := publishFirst + len(publishedRows)
+					source := sym("board") + uint16(row*10)
+					scan := (row + 2) * 8
+					destination := uint16(0x4000 + (scan/64)*2048 + (scan%8)*256 + ((scan/8)%8)*32 + 11)
+					if row >= publishLimit || c.HL() != source || c.DE() != destination {
+						t.Fatalf("step%d row kernel outside prepared [%d,%d): row%d HL%04x DE%04x", steps, publishFirst, publishLimit, row, c.HL(), c.DE())
+					}
+					publishedRows = append(publishedRows, row)
+				}
 				if selectedLevel != 0 && c.PC() == sym("choose_difficulty") {
 					m.Keyboard.Reset()
 					m.Keyboard.KeyPress(3, selectedLevel-1)
 				}
 				if renderActive && c.PC() == renderReturn && c.SP() == renderSP+2 {
+					if publishActive && len(publishedRows) != publishLimit-publishFirst {
+						t.Fatalf("step%d published rows %v expected [%d,%d)", steps, publishedRows, publishFirst, publishLimit)
+					}
+					publishActive = false
 					renderActive = false
+					if !shadow && pendingLock {
+						elapsed := byte(m.Memory.ReadByteInternal(0x5c78) - previousClock)
+						// One IRQ remains the target; two is the measured current ceiling.
+						if elapsed < 1 || elapsed > 2 {
+							t.Fatalf("step%d lock exceeded measured budget: %d IRQ", steps, elapsed)
+						}
+						lockTicks[int(elapsed)]++
+						pendingLock = false
+					}
 					checkImage()
 					shown = fieldImage()
 					model.v["board_dirty"] = 0
+					model.rowFirst = 20
+					model.rowLimit = 0
 					if stepCosts != nil {
 						costs := map[string]int64{}
 						for name, total := range c.profile.costs {
@@ -411,6 +499,7 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 					oldRng := model.v["rng_state"]
 					model.step(selected, ticks)
 					if model.v["rng_state"] != oldRng && selected != 32 {
+						pendingLock = true
 						locks++
 					}
 					stepActive = true
@@ -496,6 +585,17 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 			if steps < 20 || nonzeroPhases < 3 || locks < 3 || c.irq < 20 {
 				t.Fatalf("insufficient gameplay coverage steps%d phases%d locks%d IRQ%d", steps, nonzeroPhases, locks, c.irq)
 			}
+			if !shadow && partialPublications < 3 {
+				t.Fatal("insufficient partial board publications", partialPublications)
+			}
+			measuredLocks := 0
+			for _, count := range lockTicks {
+				measuredLocks += count
+			}
+			if !shadow && measuredLocks != locks {
+				t.Fatalf("lock timing coverage %d/%d", measuredLocks, locks)
+			}
+			t.Logf("%d partial board publications: exact row-kernel inputs and ordering verified; lock IRQ histogram %v", partialPublications, lockTicks)
 			stackLimit := uint16(0xfc60)
 			if shadow {
 				stackLimit = 0xf860

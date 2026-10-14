@@ -42,13 +42,14 @@ func pixelGameCells(kind, rot int) []pixelGameCell {
 }
 
 type pixelGameModel struct {
-	v               map[string]int
-	board           [200]byte
-	fixedDifficulty bool
+	v                  map[string]int
+	board              [200]byte
+	fixedDifficulty    bool
+	rowFirst, rowLimit int
 }
 
 func newPixelGameModel() pixelGameModel {
-	return pixelGameModel{v: map[string]int{"cur_type": 2, "cur_rot": 0, "cur_x": 3, "cur_y": 5, "pixel_phase": 0,
+	return pixelGameModel{rowFirst: 20, v: map[string]int{"cur_type": 2, "cur_rot": 0, "cur_x": 3, "cur_y": 5, "pixel_phase": 0,
 		"drop_timer": 0, "drop_speed": 30, "frame_count": 0, "score": 0, "lines_cleared": 0, "game_over": 0,
 		"prev_keys": 0, "rng_state": 0xace1, "next_type": 1, "hold_type": 255, "hold_used": 0, "last_was_tspin": 0, "board_dirty": 0}}
 }
@@ -118,7 +119,14 @@ func (m *pixelGameModel) lock() {
 		tspin = corners >= 3
 	}
 	for _, c := range pixelGameCells(v["cur_type"], v["cur_rot"]) {
-		m.board[(v["cur_y"]+c.y)*10+v["cur_x"]+c.x] = byte(v["cur_type"] + 1)
+		y := v["cur_y"] + c.y
+		if y < m.rowFirst {
+			m.rowFirst = y
+		}
+		if y+1 > m.rowLimit {
+			m.rowLimit = y + 1
+		}
+		m.board[y*10+v["cur_x"]+c.x] = byte(v["cur_type"] + 1)
 	}
 	v["board_dirty"] = 1
 	var rows [][10]byte
@@ -133,6 +141,10 @@ func (m *pixelGameModel) lock() {
 			}
 		}
 		if full {
+			m.rowFirst = 0
+			if y+1 > m.rowLimit {
+				m.rowLimit = y + 1
+			}
 			cleared++
 		} else {
 			rows = append(rows, row)
@@ -459,6 +471,8 @@ func TestTetrisPixelPhysicsNativeVM(t *testing.T) {
 				for name, value := range tc.initial.v {
 					put(name, value)
 				}
+				put("board_first", tc.initial.rowFirst)
+				put("board_limit", tc.initial.rowLimit)
 				put("physics_keys", tc.keys)
 				put("physics_ticks", tc.ticks)
 				copy(mem[a.Symbols["board"]:], tc.initial.board[:])
@@ -474,6 +488,8 @@ func TestTetrisPixelPhysicsNativeVM(t *testing.T) {
 						expectedRAM[at+1] = byte(value >> 8)
 					}
 				}
+				expectedRAM[a.Symbols["board_first"]] = byte(want.rowFirst)
+				expectedRAM[a.Symbols["board_limit"]] = byte(want.rowLimit)
 				copy(expectedRAM[a.Symbols["board"]:], want.board[:])
 				z.SetRegisters(emulator.Registers{PC: uint16(a.Symbols["physics_probe"]), SP: sp})
 				for i := 0; i < 500000 && (z.GetPC() != ret || z.GetSP() != sp+2); i++ {
@@ -495,6 +511,11 @@ func TestTetrisPixelPhysicsNativeVM(t *testing.T) {
 						}
 						if got != value {
 							t.Fatalf("%s %s %s got %d want %d", tc.name, label, name, got, value)
+						}
+					}
+					for name, w := range map[string]int{"board_first": want.rowFirst, "board_limit": want.rowLimit} {
+						if got := int(read(name, 1)[0]); got != w {
+							t.Fatalf("%s %s %s=%d want%d", tc.name, label, name, got, w)
 						}
 					}
 					b := read("board", 200)
@@ -523,6 +544,8 @@ func TestTetrisPixelPhysicsNativeVM(t *testing.T) {
 						}
 						vm.WriteHeapSlice(vm.GlobalAddr(name), bs)
 					}
+					vm.WriteHeap(vm.GlobalAddr("board_first"), byte(tc.initial.rowFirst))
+					vm.WriteHeap(vm.GlobalAddr("board_limit"), byte(tc.initial.rowLimit))
 					vm.WriteHeapSlice(vm.GlobalAddr("board"), tc.initial.board[:])
 					vm.WriteHeap(vm.GlobalAddr("physics_keys"), byte(tc.keys))
 					vm.WriteHeap(vm.GlobalAddr("physics_ticks"), byte(tc.ticks))

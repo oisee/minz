@@ -125,6 +125,9 @@ const PREVIEW_Y: u8      = 3
 
 // Render ownership state, independent of collision/game coordinates.
 global board_dirty: u8 = 1
+// Half-open rows touched by owned writes; 20/0 is the untracked-dirt sentinel.
+global board_first:u8=20
+global board_limit:u8=0
 global drawn_valid: u8 = 0
 global drawn_type: u8 = 0
 global drawn_rot: u8 = 0
@@ -265,6 +268,8 @@ fun board_get(x: u8, y: u8) -> u8 {
 
 fun board_set(x: u8, y: u8, val: u8) -> void {
     board_dirty = 1
+    if y<board_first {board_first=y}
+    if y+1>board_limit {board_limit=y+1}
     board[u16(y) * u16(BOARD_W) + u16(x)] = val
 }
 
@@ -311,6 +316,8 @@ fun clear_lines() -> u8 {
         }
         if full {
             board_dirty=1
+            board_first=0
+            if y+1>board_limit {board_limit=y+1}
             // Overlapping copy walks backwards: original rows 0..y-1 move
             // down one row without overwriting bytes still needed as input.
             var remaining:u8=y*10
@@ -876,6 +883,7 @@ import zx.tile_cell
     tiles "board"
     attributes "tetris_values"
     row_done "pixel_finish_board_row"
+    row_range
 }
 global direct_actor_lastrow:u8=255
 global pixel_left:[u8;20]
@@ -888,6 +896,9 @@ global field_pixels_sources:[u16;20]
 global field_pixels_destinations:[u16;20]
 global field_pixels_widths:[u8;20]
 global direct_refresh:u8=0
+global direct_board_first:u8=0
+global direct_board_limit:u8=0
+global direct_actor_early:u8=0
 global direct_preview:u8=0
 
 fun pixel_reset_spans() {
@@ -956,10 +967,11 @@ fun pixel_prepare_actor_row() {
     if pixel_phase>1 {direct_actor_lastrow=direct_actor_lastrow+1}
 }
 
-fun pixel_prepare_board_attributes() {
-    var source:^u8=ptr(u16(&board))
-    var destination:^u8=ptr(u16(&tetris_values))
-    var count:u8=200
+fun pixel_prepare_board_attributes(first:u8,limit:u8) {
+    let offset:u8=first*10
+    var source:^u8=ptr(u16(&board)+u16(offset))
+    var destination:^u8=ptr(u16(&tetris_values)+u16(offset))
+    var count:u8=(limit-first)*10
     while count!=0 {
         destination^=CELL_COLORS[source^]
         source=source+1 destination=destination+1 count=count-1
@@ -984,7 +996,9 @@ fun pixel_prepare_bands() {
     while y<pixel_row_limit {
         let left:u8=pixel_left[y]
         let right:u8=pixel_right[y]
-        if left<right {
+        var extra:bool=true
+        if direct_refresh!=0 {if (y>=direct_board_first)&(y<direct_board_limit) {extra=false}}
+        if (left<right)&extra {
             field_pixels_sources[field_pixels_count]=u16(&tetris_values[y*10+left])
             field_pixels_destinations[field_pixels_count]=zx_attr_addr(11+left,2+y)
             field_pixels_widths[field_pixels_count]=right-left
@@ -1004,7 +1018,7 @@ fun pixel_publish_attributes() {
 
 fun pixel_init() {
     pixel_restore_board()
-    board_dirty=0
+    board_dirty=0 board_first=20 board_limit=0
     drawn_phase=0
 }
 
@@ -1038,30 +1052,50 @@ fun render_smooth()->bool {
     }
     if game_over==0 {if stage_pixel_render()==false {return false}}
     direct_refresh=board_dirty
+    direct_board_first=board_first direct_board_limit=board_limit
+    if direct_refresh!=0 {
+        if (direct_board_first>20)|(direct_board_limit>20) {return false}
+        if (drawn_valid==0)|((direct_board_first==20)&(direct_board_limit==0)) {direct_board_first=0 direct_board_limit=20}
+        else if direct_board_first>=direct_board_limit {return false}
+    }
     pixel_reset_spans()
-    if (board_dirty!=0)|(drawn_valid==0) {
+    if drawn_valid==0 {
         var y:u8=0
         while y<20 {pixel_left[y]=0 pixel_right[y]=10 y=y+1}
         pixel_first_row=0 pixel_row_limit=20
+        pixel_prepare_board_attributes(0,20)
     } else {
         pixel_mark_cells(ptr(u16(&pixel_old_x)),ptr(u16(&pixel_old_y)),drawn_phase)
         if game_over==0 {pixel_mark_cells(ptr(u16(&pixel_new_x)),ptr(u16(&pixel_new_y)),pixel_phase)}
+        pixel_restore_attributes()
+        if direct_refresh!=0 {pixel_prepare_board_attributes(direct_board_first,direct_board_limit)}
     }
-    if (board_dirty!=0)|(drawn_valid==0) {pixel_prepare_board_attributes()} else {pixel_restore_attributes()}
     if game_over==0 {pixel_actor_attributes()}
     direct_preview=0
     if (drawn_valid==0)|(next_type!=drawn_next) {render_preview(next_type,200) direct_preview=1}
     if (drawn_valid==0)|(hold_type!=drawn_hold) {render_preview(hold_type,216) direct_preview=1}
-    // The baked full-board publisher already owns fixed row addresses.
-    // Dirty attribute bands are used only by the incremental actor commit.
-    if direct_refresh==0 {pixel_prepare_bands()}
+    // Range-published rows own their attributes; remaining actor bands are
+    // prepared separately and published before an early top-of-field actor.
+    pixel_prepare_bands()
     pixel_prepare_actor_row()
+    direct_actor_early=0
+    if direct_refresh!=0 {if game_over==0 {
+        if direct_actor_lastrow<direct_board_first {direct_actor_early=1}
+        else if direct_actor_lastrow>=direct_board_limit {
+            var first:u8=20
+            var c:u8=0
+            while c<4 {if pixel_new_y[c]<first {first=pixel_new_y[c]} c=c+1}
+            if pixel_phase==7 {first=first+1}
+            if first>=direct_board_limit {direct_actor_early=1}
+            else {direct_actor_lastrow=direct_board_limit-1}
+        }
+    }}
     if pixel_check_prepared()==false {return false}
     zx_halt()
     asm z80 {DI}
     pixel_publish_direct()
     asm z80 {EI}
-    drawn_valid=1 board_dirty=0
+    drawn_valid=1 board_dirty=0 board_first=20 board_limit=0
     drawn_type=cur_type drawn_rot=cur_rot drawn_x=cur_x drawn_y=cur_y
     drawn_phase=pixel_phase drawn_next=next_type drawn_hold=hold_type
     return true
@@ -1099,7 +1133,11 @@ fun pixel_commit_actor() {
 fun pixel_publish_direct() {
     if direct_preview!=0 {pixel_publish_previews()}
     if drawn_valid!=0 {pixel_commit_erase()}
-    if direct_refresh!=0 {pixel_restore_board()} else {
+    if direct_refresh!=0 {
+        pixel_publish_attributes()
+        if direct_actor_early!=0 {pixel_commit_actor()}
+        field_board_publish_range_prepared(ptr(u16(&board)),ptr(u16(&tetris_values)),direct_board_first,direct_board_limit)
+    } else {
         if game_over==0 {pixel_commit_actor()}
         pixel_publish_attributes()
     }

@@ -6,6 +6,8 @@ from pathlib import Path
 
 def instrument(source):
     markers = (
+        ('        game_step(read_input(),elapsed)',
+         '        zx_border(7) // white: input/physics\n        game_step(read_input(),elapsed)'),
         ('    if drawn_valid!=0 {\n        if board_dirty==0 {',
          '    zx_border(1) // blue: placement/checks\n    if drawn_valid!=0 {\n        if board_dirty==0 {'),
         ('    pixel_reset_spans()\n', '    zx_border(3) // magenta: attribute preparation\n    pixel_reset_spans()\n'),
@@ -15,14 +17,18 @@ def instrument(source):
          '    zx_border(7) // white: commit entry\n    pixel_publish_direct()\n    zx_border(0) // black: commit complete\n    asm z80 {EI}'),
         ('    if drawn_valid!=0 {pixel_commit_erase()}',
          '    zx_border(2) // red: exact erase\n    if drawn_valid!=0 {pixel_commit_erase()}'),
-        ('    if direct_refresh!=0 {pixel_restore_board()}',
-         '    zx_border(6) // yellow: board refresh\n    if direct_refresh!=0 {pixel_restore_board()}'),
+        ('        field_board_publish_range_prepared(ptr(u16(&board)),ptr(u16(&tetris_values)),direct_board_first,direct_board_limit)',
+         '        zx_border(6) // yellow: prepared board rows\n        field_board_publish_range_prepared(ptr(u16(&board)),ptr(u16(&tetris_values)),direct_board_first,direct_board_limit)'),
+        ('        if direct_actor_early!=0 {pixel_commit_actor()}',
+         '        if direct_actor_early!=0 {zx_border(4) pixel_commit_actor()} // green: actor outside board range'),
         ('    if game_over==0 {pixel_commit_actor()}',
          '    zx_border(4) // green: sprite output\n    if game_over==0 {pixel_commit_actor()}'),
         ('    if direct_preview!=0 {pixel_publish_previews()}\n',
          '    if direct_preview!=0 {zx_border(7) pixel_publish_previews()} // white: preview attributes\n'),
-        ('        pixel_publish_attributes()\n',
-         '        zx_border(7) // white: field attributes\n        pixel_publish_attributes()\n'),
+        ('    if direct_refresh!=0 {\n        pixel_publish_attributes()',
+         '    if direct_refresh!=0 {\n        zx_border(7) // white: attributes outside board range\n        pixel_publish_attributes()'),
+        ('        pixel_publish_attributes()\n    }\n}',
+         '        zx_border(7) // white: field attributes\n        pixel_publish_attributes()\n    }\n}'),
         ('    if row==direct_actor_lastrow {pixel_commit_actor()}',
          '    if row==direct_actor_lastrow {zx_border(4) pixel_commit_actor() zx_border(6)}'),
     )
