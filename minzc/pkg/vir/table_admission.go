@@ -131,7 +131,8 @@ func validateTableAssignment(ops []VIROp, assignment map[int]int, desc *MachineD
 					continue
 				}
 				for v := range live {
-					if v != d && overlaps(assignment[d], assignment[v]) && !(exactMove(op) && assignment[d] == assignment[v] && sameValue(op.Src[0], v, i)) {
+					copiesSameValue := exactMove(op) && assignment[d] == assignment[v] && sameValue(op.Src[0], v, i)
+					if v != d && overlaps(assignment[d], assignment[v]) && !copiesSameValue {
 						return fmt.Errorf("op %d definition vreg %d overwrites live vreg %d", i, d, v)
 					}
 				}
