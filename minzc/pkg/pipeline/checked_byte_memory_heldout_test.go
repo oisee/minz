@@ -106,7 +106,7 @@ func TestCheckedByteMemoryFragmentsHeldoutDescriptors(t *testing.T) {
 								expected[address] = (expected[address] & op[0]) | op[1]
 							}
 							z.SetRegisters(emulator.Registers{PC: uint16(entry), SP: 0xeff0, A: 0x5a, F: byte(seed), BC: 0x1234, DE: 0x5678, HL: 0x9abc, IX: 0x1357, IY: 0x2468})
-							for count := 0; count < 2000 && !(z.GetPC() == 0x7000 && z.GetSP() == 0xeff2); count++ {
+							for count := 0; count < 2000 && (z.GetPC() != 0x7000 || z.GetSP() != 0xeff2); count++ {
 								z.Step()
 							}
 							if z.GetPC() != 0x7000 || z.GetSP() != 0xeff2 {

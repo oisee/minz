@@ -10,7 +10,7 @@
 
 | Descriptor | Байты ordinary / selected | Такты ordinary / selected |
 |---|---:|---:|
-| ZX: x=29, y=191, ширина 3, PAPER bitmap boundary | 26 / 25 | 114 / 110 |
+| ZX: x=29, y=191, ширина 3, последняя bitmap-строка | 26 / 25 | 114 / 110 |
 | Linear: другая база, stride 12, x=2,y=1, ширина 6 | 46 / 43 | 198 / 186 |
 | Linear: stride 9, x=1,y=1, ширина 4 | 36 / 34 | 156 / 148 |
 
