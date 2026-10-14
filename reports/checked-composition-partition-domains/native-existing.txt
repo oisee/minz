@@ -1,0 +1,54 @@
+=== RUN   TestCheckedByteMemoryComposedSpriteNative
+=== RUN   TestCheckedByteMemoryComposedSpriteNative/greedy-gracefalse
+    checked_byte_memory_sprite_test.go:159: baseline/candidate/selected: [46 43 43] B, [198 186 186] T; 1 admitted compositions; 3 x 256 full-RAM/PC/SP native cases
+=== RUN   TestCheckedByteMemoryComposedSpriteNative/greedy-gracetrue
+    checked_byte_memory_sprite_test.go:159: baseline/candidate/selected: [46 43 43] B, [198 186 186] T; 1 admitted compositions; 3 x 256 full-RAM/PC/SP native cases
+=== RUN   TestCheckedByteMemoryComposedSpriteNative/pbqp-gracefalse
+    checked_byte_memory_sprite_test.go:159: baseline/candidate/selected: [46 43 43] B, [198 186 186] T; 1 admitted compositions; 3 x 256 full-RAM/PC/SP native cases
+=== RUN   TestCheckedByteMemoryComposedSpriteNative/pbqp-gracetrue
+    checked_byte_memory_sprite_test.go:159: baseline/candidate/selected: [46 43 43] B, [198 186 186] T; 1 admitted compositions; 3 x 256 full-RAM/PC/SP native cases
+--- PASS: TestCheckedByteMemoryComposedSpriteNative (5.97s)
+    --- PASS: TestCheckedByteMemoryComposedSpriteNative/greedy-gracefalse (1.72s)
+    --- PASS: TestCheckedByteMemoryComposedSpriteNative/greedy-gracetrue (1.41s)
+    --- PASS: TestCheckedByteMemoryComposedSpriteNative/pbqp-gracefalse (1.42s)
+    --- PASS: TestCheckedByteMemoryComposedSpriteNative/pbqp-gracetrue (1.43s)
+=== RUN   TestCheckedCompositionOrdinaryNative
+    checked_composition_test.go:86: composed two checked fragments: full module 8 -> 6 bytes; fixture T=56 -> 49; all 256 native inputs PASS
+--- PASS: TestCheckedCompositionOrdinaryNative (0.15s)
+=== RUN   TestCheckedCompositionMoveBridgePipelineNative
+    checked_composition_test.go:166: composed table proposal plus explicit move/RET bridge: full module 8 -> 6 bytes; fixture T=56 -> 49; all 256 native inputs PASS
+--- PASS: TestCheckedCompositionMoveBridgePipelineNative (0.14s)
+=== RUN   TestCheckedCompositionWeightedNativeCaller
+    checked_composition_test.go:182: PFCCO=greedy grace=false composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+    checked_composition_test.go:182: PFCCO=greedy grace=true composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+    checked_composition_test.go:182: PFCCO=pbqp grace=false composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+    checked_composition_test.go:182: PFCCO=pbqp grace=true composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+--- PASS: TestCheckedCompositionWeightedNativeCaller (3.69s)
+=== RUN   TestCheckedCompositionMoveBridgeWeightedCaller
+    checked_composition_test.go:182: PFCCO=greedy grace=false composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+    checked_composition_test.go:182: PFCCO=greedy grace=true composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+    checked_composition_test.go:182: PFCCO=pbqp grace=false composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+    checked_composition_test.go:182: PFCCO=pbqp grace=true composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+--- PASS: TestCheckedCompositionMoveBridgeWeightedCaller (3.61s)
+=== RUN   TestCheckedCompositionAutomaticWeightedCaller
+    checked_composition_test.go:178: [weighted: 1 admitted compositions weighted_caller: skipped: unsupported local opcode call]
+    checked_composition_test.go:178: PFCCO=greedy grace=false composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+    checked_composition_test.go:178: [weighted: 1 admitted compositions weighted_caller: skipped: unsupported local opcode call]
+    checked_composition_test.go:178: PFCCO=greedy grace=true composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+    checked_composition_test.go:178: [weighted: 1 admitted compositions weighted_caller: skipped: unsupported local opcode call]
+    checked_composition_test.go:178: PFCCO=pbqp grace=false composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+    checked_composition_test.go:178: [weighted: 1 admitted compositions weighted_caller: skipped: unsupported local opcode call]
+    checked_composition_test.go:178: PFCCO=pbqp grace=true composed weighted: module 44 -> 20 bytes, caller 238 -> 142 T-states; all 256 inputs PASS
+--- PASS: TestCheckedCompositionAutomaticWeightedCaller (3.85s)
+=== RUN   TestCheckedCompositionHeldoutOperationsNative
+    checked_composition_test.go:301: x+19 reused add5 fragments: actual caller 76 -> 76 T; backend=checked-local-table; all 256 inputs PASS
+    checked_composition_test.go:301: x^90 reused add5 fragments: actual caller 69 -> 69 T; backend=PBQP; all 256 inputs PASS
+    checked_composition_test.go:301: x-11 reused add5 fragments: actual caller 76 -> 76 T; backend=checked-local-table; all 256 inputs PASS
+--- PASS: TestCheckedCompositionHeldoutOperationsNative (1.28s)
+=== RUN   TestCheckedCompositionAutomaticHeldoutNative
+    checked_composition_test.go:305: x+19 reused add5 fragments: actual caller 76 -> 76 T; backend=checked-local-table; all 256 inputs PASS
+    checked_composition_test.go:305: x^90 reused add5 fragments: actual caller 69 -> 69 T; backend=PBQP; all 256 inputs PASS
+    checked_composition_test.go:305: x-11 reused add5 fragments: actual caller 76 -> 76 T; backend=checked-local-table; all 256 inputs PASS
+--- PASS: TestCheckedCompositionAutomaticHeldoutNative (1.27s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	19.962s
