@@ -129,23 +129,36 @@ fun @zx_sprite(name:^u8)->void {
     emit(c"return true }")
     // A scene can place SMC operands before its frame boundary, then publish
     // only the baked stores. One pending placement belongs to each form.
-    emit(str_concat(str_concat(c"fun ",name),str_concat(c".stage_on(self:^",str_concat(name,c",base:u16)->bool {"))))
-    emit(str_concat(name,c"_ready=false"))
-    emit(c"let x:u8=self.x let y:u8=self.y")
-    emit(c"if (x & 7)!=0 {return false}")
-    emit(str_concat(str_concat(c"if u16(x)+",str_from_int(u16(width))),c">256 {return false}"))
-    emit(str_concat(str_concat(c"if u16(y)+",str_from_int(u16(height))),c">192 {return false}"))
-    emit(c"if base>0xe800 {return false}")
-    emit(c"var address:u16=sprite_address(x,y)")
-    row=0
-    while row<height {
-        let row_name:^u8=str_concat(name,str_concat(c"_row_",str_from_int(u16(row))))
-        emit(str_concat(row_name,c"_set_dst(ptr(address-0x4000+base))"))
-        if row+1<height {emit(c"address=sprite_next_line(address)")}
-        row=row+1
+    // Specialize screen placement as well as row stores: the public screen
+    // stage does not need the arbitrary-buffer base remapping on every row.
+    var placement:u8=0
+    while placement<2 {
+        if placement==0 {
+            emit(str_concat(str_concat(c"fun ",name),str_concat(c".stage_on(self:^",str_concat(name,c",base:u16)->bool {"))))
+        } else {
+            emit(str_concat(str_concat(c"fun ",name),str_concat(c".stage(self:^",str_concat(name,c")->bool {"))))
+        }
+        emit(str_concat(name,c"_ready=false"))
+        emit(c"let x:u8=self.x let y:u8=self.y")
+        emit(c"if (x & 7)!=0 {return false}")
+        emit(str_concat(str_concat(c"if u16(x)+",str_from_int(u16(width))),c">256 {return false}"))
+        emit(str_concat(str_concat(c"if u16(y)+",str_from_int(u16(height))),c">192 {return false}"))
+        if placement==0 {emit(c"if base>0xe800 {return false}")}
+        emit(c"var address:u16=sprite_address(x,y)")
+        row=0
+        while row<height {
+            let row_name:^u8=str_concat(name,str_concat(c"_row_",str_from_int(u16(row))))
+            if placement==0 {
+                emit(str_concat(row_name,c"_set_dst(ptr(address-0x4000+base))"))
+            } else {
+                emit(str_concat(row_name,c"_set_dst(ptr(address))"))
+            }
+            if row+1<height {emit(c"address=sprite_next_line(address)")}
+            row=row+1
+        }
+        emit(str_concat(name,c"_ready=true return true }"))
+        placement=placement+1
     }
-    emit(str_concat(name,c"_ready=true return true }"))
-    emit(str_concat(str_concat(c"fun ",name),str_concat(c".stage(self:^",str_concat(name,c")->bool {return self.stage_on(0x4000)}"))))
     emit(str_concat(str_concat(c"fun ",name),str_concat(c".publish(self:^",str_concat(name,c")->bool {"))))
     emit(str_concat(str_concat(c"if ",name),c"_ready==false {return false}"))
     row=0
@@ -159,6 +172,29 @@ fun @zx_sprite(name:^u8)->void {
     // Independent operands keep the old erase position intact while a new
     // drawing is staged. The description of the opaque mask is shared.
     if paired_erase!=0 {
+        // Internal scene commits contain only the nontransparent row calls.
+        // The owner must validate readiness and stage all operands beforehand.
+        var commit:u8=0
+        while commit<2 {
+            var suffix:^u8=c"_draw_prepared"
+            var prefix:^u8=c"_row_"
+            if commit==1 {suffix=c"_erase_prepared" prefix=c"_clear_row_"}
+            emit(str_concat(str_concat(c"fun ",name),str_concat(suffix,c"() {")))
+            row=0 i=0
+            while i<block_len() {
+                if str_eq(node_keyword(i),c"pixels")==1 {
+                    let data:^u8=node_arg_str(i,0)
+                    var opaque:u8=0
+                    var pixel:i32=0
+                    while pixel<width {if data[pixel]!=46 {opaque=1} pixel=pixel+1}
+                    if opaque!=0 {emit(str_concat(str_concat(name,str_concat(prefix,str_from_int(u16(row)))),c"()"))}
+                    row=row+1
+                }
+                i=i+1
+            }
+            emit(c"}")
+            commit=commit+1
+        }
         emit(str_concat(str_concat(c"global ",name),c"_erase_ready:bool=false"))
         row=0
         i=0

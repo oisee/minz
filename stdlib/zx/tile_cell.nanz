@@ -1,0 +1,328 @@
+// Direct fill of one aligned 8-scanline ZX cell. The caller owns this byte
+// column and supplies scanline zero; H progresses within the character row.
+fun tile_cell_fill(@z80_hl dst:^u8,@z80_a value:u8) {
+    var p:^u8=dst
+    p^=value
+    p=p+256
+    p^=value
+    p=p+256
+    p^=value
+    p=p+256
+    p^=value
+    p=p+256
+    p^=value
+    p=p+256
+    p^=value
+    p=p+256
+    p^=value
+    p=p+256
+    p^=value
+}
+
+// Attribute sources are frozen by the scene before publication; no bitmap copy.
+fun tile_attribute_span(@z80_hl source:^u8,@z80_de destination:^u8,@z80_b width:u8) {
+    if width==0 {return}
+    if width>32 {return}
+    asm z80 (in source,destination,width) {
+        LD C,B
+        LD B,0
+        LDIR
+    }
+}
+
+// Ten tile bytes expand directly to eight scanlines: 0 -> paper, nonzero -> ink.
+// Caller owns an aligned ten-column row, with start column <=22, and a disjoint
+// ten-byte source. C remembers the row high byte so each column can restore D
+// with one register copy instead of seven decrements. Ten columns are baked;
+// NEG/SBC maps every nonzero tile to 255 without a data-dependent branch.
+fun tile_row_fill(@z80_hl source:^u8,@z80_de destination:^u8) {
+    asm z80 (in source,destination) {
+        LD C,D
+        LD A,(HL)
+        INC HL
+        NEG
+        SBC A,A
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        LD D,C
+        INC E
+        LD A,(HL)
+        INC HL
+        NEG
+        SBC A,A
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        LD D,C
+        INC E
+        LD A,(HL)
+        INC HL
+        NEG
+        SBC A,A
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        LD D,C
+        INC E
+        LD A,(HL)
+        INC HL
+        NEG
+        SBC A,A
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        LD D,C
+        INC E
+        LD A,(HL)
+        INC HL
+        NEG
+        SBC A,A
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        LD D,C
+        INC E
+        LD A,(HL)
+        INC HL
+        NEG
+        SBC A,A
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        LD D,C
+        INC E
+        LD A,(HL)
+        INC HL
+        NEG
+        SBC A,A
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        LD D,C
+        INC E
+        LD A,(HL)
+        INC HL
+        NEG
+        SBC A,A
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        LD D,C
+        INC E
+        LD A,(HL)
+        INC HL
+        NEG
+        SBC A,A
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        LD D,C
+        INC E
+        LD A,(HL)
+        INC HL
+        NEG
+        SBC A,A
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        INC D
+        LD (DE),A
+        LD D,C
+        INC E
+    }
+}
+
+// Static board geometry bakes row addresses and source offsets into typed Nanz.
+// Ten columns share the direct tile kernel; row_done lets a scene interleave
+// its prepared actor once all board rows underneath it have been written.
+fun @zx_tile_board(name:^u8) {
+    var x:i32=0 var y:i32=0 var rows:i32=0
+    var tiles:^u8=c"" var attributes:^u8=c"" var callback:^u8=c""
+    var seen:u8=0 var i:u8=0
+    while i<block_len() {
+        let key:^u8=node_keyword(i)
+        if str_eq(key,c"viewport")==1 {
+            if (seen & 1)!=0 {meta_error(c"zx tile board: duplicate viewport")}
+            if node_arg_count(i)!=4 {meta_error(c"zx tile board: viewport needs x y width height")}
+            x=node_arg_int(i,0) y=node_arg_int(i,1) rows=node_arg_int(i,3)
+            if node_arg_int(i,2)!=10 {meta_error(c"zx tile board: this kernel needs ten columns")}
+            seen=seen | 1
+        } else if str_eq(key,c"tiles")==1 {
+            if (seen & 2)!=0 {meta_error(c"zx tile board: duplicate tiles")}
+            if node_arg_count(i)!=1 {meta_error(c"zx tile board: tiles needs a symbol")}
+            tiles=node_arg_str(i,0) seen=seen | 2
+        } else if str_eq(key,c"attributes")==1 {
+            if (seen & 4)!=0 {meta_error(c"zx tile board: duplicate attributes")}
+            if node_arg_count(i)!=1 {meta_error(c"zx tile board: attributes needs a symbol")}
+            attributes=node_arg_str(i,0) seen=seen | 4
+        } else if str_eq(key,c"row_done")==1 {
+            if (seen & 8)!=0 {meta_error(c"zx tile board: duplicate row_done")}
+            if node_arg_count(i)!=1 {meta_error(c"zx tile board: row_done needs a symbol")}
+            callback=node_arg_str(i,0) seen=seen | 8
+        } else {meta_error(c"zx tile board: unknown field")}
+        i=i+1
+    }
+    if seen!=15 {meta_error(c"zx tile board: missing field")}
+    if x<0 {meta_error(c"zx tile board: viewport bounds")}
+    if x>22 {meta_error(c"zx tile board: viewport bounds")}
+    if y<0 {meta_error(c"zx tile board: viewport bounds")}
+    if rows<1 {meta_error(c"zx tile board: viewport bounds")}
+    if y+rows>24 {meta_error(c"zx tile board: viewport bounds")}
+    var symbol:u8=0
+    while symbol<4 {
+        var text:^u8=name
+        if symbol==1 {text=tiles}
+        if symbol==2 {text=attributes}
+        if symbol==3 {text=callback}
+        if text[0]==0 {meta_error(c"zx tile board: empty symbol")}
+        var ch_index:i32=0
+        while text[ch_index]!=0 {
+            let ch:u8=text[ch_index]
+            var valid:u8=0
+            if ch>=65 {if ch<=90 {valid=1}}
+            if ch>=97 {if ch<=122 {valid=1}}
+            if ch==95 {valid=1}
+            if ch_index>0 {if ch>=48 {if ch<=57 {valid=1}}}
+            if valid==0 {meta_error(c"zx tile board: invalid symbol")}
+            ch_index=ch_index+1
+            if ch_index>80 {meta_error(c"zx tile board: symbol too long")}
+        }
+        symbol=symbol+1
+    }
+    emit(c"import zx.tile_cell")
+    let signature:^u8=str_concat(str_concat(str_concat(c"fun ",name),c"("),tiles)
+    emit(str_concat(str_concat(str_concat(signature,c":^u8,"),attributes),c":^u8) {"))
+    var row:i32=0
+    while row<rows {
+        let scan:i32=(y+row)*8
+        let address:i32=16384+(scan/64)*2048+((scan/8)%8)*32+x
+        let attr_address:i32=22528+(y+row)*32+x
+        let offset:^u8=str_from_int(u16(row*10))
+        let tile_source:^u8=str_concat(str_concat(c"ptr(u16(&",tiles),str_concat(str_concat(c"[",offset),c"]))"))
+        let attr_source:^u8=str_concat(str_concat(c"ptr(u16(&",attributes),str_concat(str_concat(c"[",offset),c"]))"))
+        emit(str_concat(str_concat(str_concat(c"tile_attribute_span(",attr_source),c",ptr("),str_concat(str_from_int(u16(attr_address)),c"),10)")))
+        emit(str_concat(str_concat(str_concat(c"tile_row_fill(",tile_source),c",ptr("),str_concat(str_from_int(u16(address)),c"))")))
+        emit(str_concat(callback,str_concat(str_concat(c"(",str_from_int(u16(row))),c")")))
+        row=row+1
+    }
+    emit(c"}")
+}

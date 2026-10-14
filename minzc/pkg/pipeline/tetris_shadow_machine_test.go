@@ -54,7 +54,7 @@ func shadowScreenPixels(screen []byte) []byte {
 }
 
 func TestTetrisShadowTemporalMachine(t *testing.T) {
-	src, e := os.ReadFile("../../../examples/zx/tetris_playable.nanz")
+	src, e := os.ReadFile("../../../reports/advanced-demos/tetris/shadow-candidate.nanz")
 	if e != nil {
 		t.Fatal(e)
 	}

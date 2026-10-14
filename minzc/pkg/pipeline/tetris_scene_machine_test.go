@@ -231,7 +231,7 @@ func TestTetrisSceneTemporalMachine(t *testing.T) {
 		return rgba
 	}
 	for _, baseline := range []bool{true, false} {
-		name, path := "scene", "../../../examples/zx/tetris_playable.nanz"
+		name, path := "scene", "../../../reports/advanced-demos/tetris/shadow-candidate.nanz"
 		if baseline {
 			name, path = "baseline", "../../../reports/advanced-demos/tetris/baseline.nanz"
 		}

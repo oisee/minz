@@ -20,11 +20,11 @@ type smoothGameObserver struct {
 
 func (c *smoothGameObserver) DoOpcode() { c.before(); c.tetrisSceneObserver.DoOpcode() }
 
-// Executes the untouched playable main through its real loader, keyboard matrix,
+// Executes the frozen shadow-candidate main through its real loader, keyboard matrix,
 // IM2 timer, renderer and game-over return. The independent physics model owns
 // the expected state across successive calls; it is never reseeded from the game.
-func TestTetrisSmoothMainMachine(t *testing.T) {
-	src, e := os.ReadFile("../../../examples/zx/tetris_playable.nanz")
+func TestTetrisShadowMainMachine(t *testing.T) {
+	src, e := os.ReadFile("../../../reports/advanced-demos/tetris/shadow-candidate.nanz")
 	if e != nil {
 		t.Fatal(e)
 	}

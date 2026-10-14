@@ -9,11 +9,9 @@ fun sprite_address(x:u8,y:u8)->u16 {
 // u8 addition deliberately wraps; lower < 32 means the L update carried.
 // Caller ensures another scanline remains within the 192-line bitmap.
 fun sprite_next_line(address:u16)->u16 {
-    var high:u8=u8(address>>8)+1
-    var low:u8=u8(address)
-    if (high & 7)==0 {
-        low=low+32
-        if low>=32 {high=high-8}
+    var next:u16=address+256
+    if (next & 0x700)==0 {
+        if u8(next)>=224 {next=next-224} else {next=next-2016}
     }
-    return u16(high)*256+u16(low)
+    return next
 }
