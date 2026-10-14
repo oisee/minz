@@ -1,0 +1,322 @@
+=== RUN   TestStructuredMetaNestedCallerHygiene
+--- PASS: TestStructuredMetaNestedCallerHygiene (0.00s)
+=== RUN   TestStructuredMetaGlobalCallerHygiene
+--- PASS: TestStructuredMetaGlobalCallerHygiene (0.00s)
+=== RUN   TestStructuredMetaLoopCallsiteProvenance
+--- PASS: TestStructuredMetaLoopCallsiteProvenance (0.01s)
+=== RUN   TestStructuredMetaImportedDefinitionFingerprint
+--- PASS: TestStructuredMetaImportedDefinitionFingerprint (0.00s)
+=== RUN   TestStructuredMetaNestedTextKeepsUnknownOrigin
+--- PASS: TestStructuredMetaNestedTextKeepsUnknownOrigin (0.00s)
+=== RUN   TestStructuredMetaDiagnostics
+=== RUN   TestStructuredMetaDiagnostics/if-condition
+=== RUN   TestStructuredMetaDiagnostics/if-branch
+=== RUN   TestStructuredMetaDiagnostics/if-cycle-then
+=== RUN   TestStructuredMetaDiagnostics/if-cycle-else
+=== RUN   TestStructuredMetaDiagnostics/bitwise-bool
+=== RUN   TestStructuredMetaDiagnostics/bitwise-mismatch
+=== RUN   TestStructuredMetaDiagnostics/load-type
+=== RUN   TestStructuredMetaDiagnostics/handle
+=== RUN   TestStructuredMetaDiagnostics/kind
+=== RUN   TestStructuredMetaDiagnostics/overflow
+=== RUN   TestStructuredMetaDiagnostics/type
+=== RUN   TestStructuredMetaDiagnostics/cycle
+=== RUN   TestStructuredMetaDiagnostics/mixed
+=== RUN   TestStructuredMetaDiagnostics/identifier
+--- PASS: TestStructuredMetaDiagnostics (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/if-condition (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/if-branch (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/if-cycle-then (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/if-cycle-else (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/bitwise-bool (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/bitwise-mismatch (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/load-type (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/handle (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/kind (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/overflow (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/type (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/cycle (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/mixed (0.00s)
+    --- PASS: TestStructuredMetaDiagnostics/identifier (0.00s)
+=== RUN   TestStructuredMetaBuildsTypedHIR
+--- PASS: TestStructuredMetaBuildsTypedHIR (0.00s)
+=== RUN   TestStructuredMetaSnapshotsAndInvocationIsolation
+--- PASS: TestStructuredMetaSnapshotsAndInvocationIsolation (0.00s)
+=== RUN   TestStructuredMetaHandleLimit
+--- PASS: TestStructuredMetaHandleLimit (0.00s)
+=== RUN   TestStructuredIfSnapshotsBothBranches
+--- PASS: TestStructuredIfSnapshotsBothBranches (0.00s)
+=== RUN   TestStructuredCallerReferenceTypes
+=== RUN   TestStructuredCallerReferenceTypes/parameter
+=== RUN   TestStructuredCallerReferenceTypes/global
+=== RUN   TestStructuredCallerReferenceTypes/local-shadows-global
+=== RUN   TestStructuredCallerReferenceTypes/wrong-type
+=== RUN   TestStructuredCallerReferenceTypes/missing-even-without-emit
+=== RUN   TestStructuredCallerReferenceTypes/builder-local-is-not-caller
+--- PASS: TestStructuredCallerReferenceTypes (0.00s)
+    --- PASS: TestStructuredCallerReferenceTypes/parameter (0.00s)
+    --- PASS: TestStructuredCallerReferenceTypes/global (0.00s)
+    --- PASS: TestStructuredCallerReferenceTypes/local-shadows-global (0.00s)
+    --- PASS: TestStructuredCallerReferenceTypes/wrong-type (0.00s)
+    --- PASS: TestStructuredCallerReferenceTypes/missing-even-without-emit (0.00s)
+    --- PASS: TestStructuredCallerReferenceTypes/builder-local-is-not-caller (0.00s)
+=== RUN   TestLoopProfileCompatibilityAndRefusals
+    profile_compat_test.go:61: {"guards":[],"compatibility":{"schema":"minz.loop-profile-compatibility/v1","context":{"compiler_id":"test-compiler-1","semantics_id":"mir2-vm-1","target_id":"z80-cpm-1","workload_sha256":"ee8b2832997d5902e312b2900f543d35c88687c97eb9f2dba4dd4ac42363921d","hosts_sha256":"b9b5b248e747dead8b9b17ac59bdcc520d5294f6ea1b96f911fa0fd872b78d5e","dependencies":{"compat.nanz":"5f2f31ab3082047be225e141350c06d1c40cf201410450da3003de76846bac76","external.bin":"64451ff981aa92887b070762e97302df00a0ab97a853c323394b0a9cfaf46fae"}},"hir_sha256":"c95a0ddb8444d67256f56b412738333ec214f284294402d89ae42988acabbe6b","origins_sha256":"3d4f1e0011987f38ac80408dfbb97892594b02570d38dd225f3ab634d610d55b"},"schema":"minz.input-hir-loop-observations/v5","stage":"unoptimised-mir2-vm","sites":{"schema":"minz.hir-loop-sites/v1","stage":"input-hir","sites":[{"id":"64c4fef12c4f43c2257b0637e2c3c41674359989273fa2ae531acd4e47135599","function":"test","kind":"while","ordinal":0,"hir_path":"body/s0","origin":{"unit":"compat.nanz","byte_offset":37,"line":2,"byte_column":21,"source_sha256":"5f2f31ab3082047be225e141350c06d1c40cf201410450da3003de76846bac76"}}],"unmapped_loops":0},"counts":[{"site_id":"64c4fef12c4f43c2257b0637e2c3c41674359989273fa2ae531acd4e47135599","entries":1,"body_entries":3}],"completed_calls":1,"failed_calls":0}
+=== RUN   TestLoopProfileCompatibilityAndRefusals/compiler
+=== RUN   TestLoopProfileCompatibilityAndRefusals/semantics
+=== RUN   TestLoopProfileCompatibilityAndRefusals/target
+=== RUN   TestLoopProfileCompatibilityAndRefusals/workload
+=== RUN   TestLoopProfileCompatibilityAndRefusals/hosts
+=== RUN   TestLoopProfileCompatibilityAndRefusals/dependency
+=== RUN   TestLoopProfileCompatibilityAndRefusals/old-schema
+=== RUN   TestLoopProfileCompatibilityAndRefusals/wrong-stage
+=== RUN   TestLoopProfileCompatibilityAndRefusals/no-key
+=== RUN   TestLoopProfileCompatibilityAndRefusals/failed
+=== RUN   TestLoopProfileCompatibilityAndRefusals/empty
+=== RUN   TestLoopProfileCompatibilityAndRefusals/missing-count
+=== RUN   TestLoopProfileCompatibilityAndRefusals/duplicate-count
+=== RUN   TestLoopProfileCompatibilityAndRefusals/unknown-site
+=== RUN   TestLoopProfileCompatibilityAndRefusals/impossible-count
+=== RUN   TestLoopProfileCompatibilityAndRefusals/unmapped
+=== RUN   TestLoopProfileCompatibilityAndRefusals/source-hash
+--- PASS: TestLoopProfileCompatibilityAndRefusals (0.04s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/compiler (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/semantics (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/target (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/workload (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/hosts (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/dependency (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/old-schema (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/wrong-stage (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/no-key (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/failed (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/empty (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/missing-count (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/duplicate-count (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/unknown-site (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/impossible-count (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/unmapped (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/source-hash (0.00s)
+=== RUN   TestLoopProfileMissingOriginsAndHostCollision
+--- PASS: TestLoopProfileMissingOriginsAndHostCollision (0.00s)
+=== RUN   TestLoopSourceSiteIdentity
+--- PASS: TestLoopSourceSiteIdentity (0.00s)
+=== RUN   TestImportedLoopSourceSites
+--- PASS: TestImportedLoopSourceSites (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/nanz	0.073s
+testing: warning: no tests to run
+PASS
+ok  	github.com/minz/minzc/pkg/hir	0.014s [no tests to run]
+=== RUN   TestStructuredCopyLiveValues
+=== RUN   TestStructuredCopyLiveValues/ordinary
+=== RUN   TestStructuredCopyLiveValues/grace-size
+=== RUN   TestStructuredCopyLiveValues/grace-speed
+--- PASS: TestStructuredCopyLiveValues (0.05s)
+    --- PASS: TestStructuredCopyLiveValues/ordinary (0.02s)
+    --- PASS: TestStructuredCopyLiveValues/grace-size (0.02s)
+    --- PASS: TestStructuredCopyLiveValues/grace-speed (0.02s)
+=== RUN   TestStructuredFillLiveValues
+=== RUN   TestStructuredFillLiveValues/ordinary
+=== RUN   TestStructuredFillLiveValues/grace-size
+=== RUN   TestStructuredFillLiveValues/grace-speed
+--- PASS: TestStructuredFillLiveValues (0.04s)
+    --- PASS: TestStructuredFillLiveValues/ordinary (0.01s)
+    --- PASS: TestStructuredFillLiveValues/grace-size (0.01s)
+    --- PASS: TestStructuredFillLiveValues/grace-speed (0.01s)
+=== RUN   TestInputHIRLoopSitesAreOptional
+    hir_sites_test.go:29: grace=false input-sites={
+          "schema": "minz.hir-loop-sites/v1",
+          "stage": "input-hir",
+          "sites": [
+            {
+              "id": "07e3a6e16f1392d2f39b8564b11978c946406c6652b80ed5e536eee93e1df3e5",
+              "function": "sum_array",
+              "kind": "while",
+              "ordinal": 0,
+              "hir_path": "body/s2",
+              "origin": {
+                "unit": "grace_measure.nanz",
+                "byte_offset": 70,
+                "line": 4,
+                "byte_column": 2,
+                "source_sha256": "2d12468027187dd0d377ced1daa14ceab34203710efd022a09bd0c96b9779722"
+              }
+            }
+          ],
+          "unmapped_loops": 0
+        }
+    hir_sites_test.go:29: grace=true input-sites={
+          "schema": "minz.hir-loop-sites/v1",
+          "stage": "input-hir",
+          "sites": [
+            {
+              "id": "07e3a6e16f1392d2f39b8564b11978c946406c6652b80ed5e536eee93e1df3e5",
+              "function": "sum_array",
+              "kind": "while",
+              "ordinal": 0,
+              "hir_path": "body/s2",
+              "origin": {
+                "unit": "grace_measure.nanz",
+                "byte_offset": 70,
+                "line": 4,
+                "byte_column": 2,
+                "source_sha256": "2d12468027187dd0d377ced1daa14ceab34203710efd022a09bd0c96b9779722"
+              }
+            }
+          ],
+          "unmapped_loops": 0
+        }
+--- PASS: TestInputHIRLoopSitesAreOptional (0.00s)
+=== RUN   TestStructuredCallerReferenceAvoidsGeneratedShadowing
+=== RUN   TestStructuredCallerReferenceAvoidsGeneratedShadowing/parameter
+=== RUN   TestStructuredCallerReferenceAvoidsGeneratedShadowing/parameter/ordinary
+=== RUN   TestStructuredCallerReferenceAvoidsGeneratedShadowing/parameter/grace-size
+=== RUN   TestStructuredCallerReferenceAvoidsGeneratedShadowing/parameter/grace-speed
+=== RUN   TestStructuredCallerReferenceAvoidsGeneratedShadowing/nested
+=== RUN   TestStructuredCallerReferenceAvoidsGeneratedShadowing/nested/ordinary
+=== RUN   TestStructuredCallerReferenceAvoidsGeneratedShadowing/nested/grace-size
+=== RUN   TestStructuredCallerReferenceAvoidsGeneratedShadowing/nested/grace-speed
+=== RUN   TestStructuredCallerReferenceAvoidsGeneratedShadowing/repeated
+=== RUN   TestStructuredCallerReferenceAvoidsGeneratedShadowing/repeated/ordinary
+=== RUN   TestStructuredCallerReferenceAvoidsGeneratedShadowing/repeated/grace-size
+=== RUN   TestStructuredCallerReferenceAvoidsGeneratedShadowing/repeated/grace-speed
+--- PASS: TestStructuredCallerReferenceAvoidsGeneratedShadowing (0.46s)
+    --- PASS: TestStructuredCallerReferenceAvoidsGeneratedShadowing/parameter (0.13s)
+        --- PASS: TestStructuredCallerReferenceAvoidsGeneratedShadowing/parameter/ordinary (0.04s)
+        --- PASS: TestStructuredCallerReferenceAvoidsGeneratedShadowing/parameter/grace-size (0.04s)
+        --- PASS: TestStructuredCallerReferenceAvoidsGeneratedShadowing/parameter/grace-speed (0.04s)
+    --- PASS: TestStructuredCallerReferenceAvoidsGeneratedShadowing/nested (0.15s)
+        --- PASS: TestStructuredCallerReferenceAvoidsGeneratedShadowing/nested/ordinary (0.05s)
+        --- PASS: TestStructuredCallerReferenceAvoidsGeneratedShadowing/nested/grace-size (0.05s)
+        --- PASS: TestStructuredCallerReferenceAvoidsGeneratedShadowing/nested/grace-speed (0.05s)
+    --- PASS: TestStructuredCallerReferenceAvoidsGeneratedShadowing/repeated (0.18s)
+        --- PASS: TestStructuredCallerReferenceAvoidsGeneratedShadowing/repeated/ordinary (0.06s)
+        --- PASS: TestStructuredCallerReferenceAvoidsGeneratedShadowing/repeated/grace-size (0.06s)
+        --- PASS: TestStructuredCallerReferenceAvoidsGeneratedShadowing/repeated/grace-speed (0.06s)
+=== RUN   TestStructuredCopyMatchesTextBaseline
+    structured_copy_test.go:65: source "linear" 24576 8 2 11; destination "linear" 25088 8 2 13; region 1 0 2 0 4 2; grace=false size=false: 53 -> 41 bytes; 637 -> 597 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 8 2 11; destination "linear" 25088 8 2 13; region 1 0 2 0 4 2; grace=true size=false: 53 -> 41 bytes; 637 -> 597 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 8 2 11; destination "linear" 25088 8 2 13; region 1 0 2 0 4 2; grace=true size=true: 53 -> 41 bytes; 637 -> 597 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 256 1 256; destination "linear" 25088 256 1 256; region 0 0 0 0 256 1; grace=false size=false: 48 -> 30 bytes; 45708 -> 30559 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 256 1 256; destination "linear" 25088 256 1 256; region 0 0 0 0 256 1; grace=true size=false: 48 -> 30 bytes; 45708 -> 30559 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 256 1 256; destination "linear" 25088 256 1 256; region 0 0 0 0 256 1; grace=true size=true: 48 -> 30 bytes; 45708 -> 30559 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 8 2 8; destination "zx_bitmap_bytes" 16384; region 0 0 2 7 5 2; grace=false size=false: 53 -> 41 bytes; 765 -> 725 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 8 2 8; destination "zx_bitmap_bytes" 16384; region 0 0 2 7 5 2; grace=true size=false: 53 -> 41 bytes; 765 -> 725 T-states; identical ASM=false
+    structured_copy_test.go:65: source "linear" 24576 8 2 8; destination "zx_bitmap_bytes" 16384; region 0 0 2 7 5 2; grace=true size=true: 53 -> 41 bytes; 765 -> 725 T-states; identical ASM=false
+--- PASS: TestStructuredCopyMatchesTextBaseline (0.14s)
+=== RUN   TestStructuredFillMatchesTextBaseline
+    structured_fill_test.go:65: layout "linear" 24576 8 2 11; region 1 0 4 2; value 91; grace=false size=false: 27 -> 27 bytes; 401 -> 401 T-states; identical ASM=true
+    structured_fill_test.go:65: layout "linear" 24576 8 2 11; region 1 0 4 2; value 91; grace=true size=false: 27 -> 27 bytes; 401 -> 401 T-states; identical ASM=true
+    structured_fill_test.go:65: layout "linear" 24576 8 2 11; region 1 0 4 2; value 91; grace=true size=true: 27 -> 27 bytes; 401 -> 401 T-states; identical ASM=true
+    structured_fill_test.go:65: layout "linear" 24576 256 1 256; value 255; grace=false size=false: 30 -> 22 bytes; 34901 -> 23889 T-states; identical ASM=false
+    structured_fill_test.go:65: layout "linear" 24576 256 1 256; value 255; grace=true size=false: 30 -> 22 bytes; 34901 -> 23889 T-states; identical ASM=false
+    structured_fill_test.go:65: layout "linear" 24576 256 1 256; value 255; grace=true size=true: 30 -> 22 bytes; 34901 -> 23889 T-states; identical ASM=false
+    structured_fill_test.go:65: layout "zx_bitmap_bytes" 16384; region 2 7 5 2; value 71; grace=false size=false: 27 -> 27 bytes; 485 -> 485 T-states; identical ASM=true
+    structured_fill_test.go:65: layout "zx_bitmap_bytes" 16384; region 2 7 5 2; value 71; grace=true size=false: 27 -> 27 bytes; 485 -> 485 T-states; identical ASM=true
+    structured_fill_test.go:65: layout "zx_bitmap_bytes" 16384; region 2 7 5 2; value 71; grace=true size=true: 27 -> 27 bytes; 485 -> 485 T-states; identical ASM=true
+--- PASS: TestStructuredFillMatchesTextBaseline (0.11s)
+=== RUN   TestStructuredFillLoopProfileProvenance
+    structured_loop_provenance_test.go:53: fill: one callsite loop, 1 entry / 256 iterations; strict profile reload and full RAM oracle PASS
+--- PASS: TestStructuredFillLoopProfileProvenance (0.02s)
+=== RUN   TestStructuredSpriteConditionalNative
+=== RUN   TestStructuredSpriteConditionalNative/gracefalse-visible0
+=== RUN   TestStructuredSpriteConditionalNative/gracefalse-visible1
+=== RUN   TestStructuredSpriteConditionalNative/gracetrue-visible0
+=== RUN   TestStructuredSpriteConditionalNative/gracetrue-visible1
+--- PASS: TestStructuredSpriteConditionalNative (0.07s)
+    --- PASS: TestStructuredSpriteConditionalNative/gracefalse-visible0 (0.02s)
+    --- PASS: TestStructuredSpriteConditionalNative/gracefalse-visible1 (0.02s)
+    --- PASS: TestStructuredSpriteConditionalNative/gracetrue-visible0 (0.02s)
+    --- PASS: TestStructuredSpriteConditionalNative/gracetrue-visible1 (0.02s)
+=== RUN   TestStructuredSpriteWhenDiagnostics
+--- PASS: TestStructuredSpriteWhenDiagnostics (0.02s)
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/linear/greedy/ordinary
+    structured_sprite_runtime_base_test.go:136: 78 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/linear/greedy/grace-size
+    structured_sprite_runtime_base_test.go:136: 75 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/linear/greedy/grace-speed
+    structured_sprite_runtime_base_test.go:136: 75 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/linear/pbqp/ordinary
+    structured_sprite_runtime_base_test.go:136: 78 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/linear/pbqp/grace-size
+    structured_sprite_runtime_base_test.go:136: 75 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/linear/pbqp/grace-speed
+    structured_sprite_runtime_base_test.go:136: 75 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-7-8/greedy/ordinary
+    structured_sprite_runtime_base_test.go:136: 63 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-7-8/greedy/grace-size
+    structured_sprite_runtime_base_test.go:136: 60 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-7-8/greedy/grace-speed
+    structured_sprite_runtime_base_test.go:136: 60 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-7-8/pbqp/ordinary
+    structured_sprite_runtime_base_test.go:136: 63 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-7-8/pbqp/grace-size
+    structured_sprite_runtime_base_test.go:136: 60 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-7-8/pbqp/grace-speed
+    structured_sprite_runtime_base_test.go:136: 60 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-63-64/greedy/ordinary
+    structured_sprite_runtime_base_test.go:136: 63 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-63-64/greedy/grace-size
+    structured_sprite_runtime_base_test.go:136: 60 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-63-64/greedy/grace-speed
+    structured_sprite_runtime_base_test.go:136: 60 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-63-64/pbqp/ordinary
+    structured_sprite_runtime_base_test.go:136: 63 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-63-64/pbqp/grace-size
+    structured_sprite_runtime_base_test.go:136: 60 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-63-64/pbqp/grace-speed
+    structured_sprite_runtime_base_test.go:136: 60 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/zx-last-row/greedy/ordinary
+    structured_sprite_runtime_base_test.go:136: 27 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/zx-last-row/greedy/grace-size
+    structured_sprite_runtime_base_test.go:136: 24 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/zx-last-row/greedy/grace-speed
+    structured_sprite_runtime_base_test.go:136: 24 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/zx-last-row/pbqp/ordinary
+    structured_sprite_runtime_base_test.go:136: 27 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/zx-last-row/pbqp/grace-size
+    structured_sprite_runtime_base_test.go:136: 24 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+=== RUN   TestStructuredSpriteRuntimeBaseNativeAndVM/zx-last-row/pbqp/grace-speed
+    structured_sprite_runtime_base_test.go:136: 24 bytes; 12 runtime base/visible/background cases; full RAM and PC/SP
+--- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM (1.81s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/linear/greedy/ordinary (0.08s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/linear/greedy/grace-size (0.08s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/linear/greedy/grace-speed (0.08s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/linear/pbqp/ordinary (0.08s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/linear/pbqp/grace-size (0.08s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/linear/pbqp/grace-speed (0.08s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-7-8/greedy/ordinary (0.08s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-7-8/greedy/grace-size (0.07s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-7-8/greedy/grace-speed (0.07s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-7-8/pbqp/ordinary (0.08s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-7-8/pbqp/grace-size (0.08s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-7-8/pbqp/grace-speed (0.08s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-63-64/greedy/ordinary (0.08s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-63-64/greedy/grace-size (0.07s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-63-64/greedy/grace-speed (0.08s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-63-64/pbqp/ordinary (0.07s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-63-64/pbqp/grace-size (0.07s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/zx-row-63-64/pbqp/grace-speed (0.08s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/zx-last-row/greedy/ordinary (0.07s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/zx-last-row/greedy/grace-size (0.07s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/zx-last-row/greedy/grace-speed (0.07s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/zx-last-row/pbqp/ordinary (0.07s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/zx-last-row/pbqp/grace-size (0.07s)
+    --- PASS: TestStructuredSpriteRuntimeBaseNativeAndVM/zx-last-row/pbqp/grace-speed (0.07s)
+=== RUN   TestStructuredSpriteRuntimeBaseDiagnostics
+--- PASS: TestStructuredSpriteRuntimeBaseDiagnostics (0.03s)
+=== RUN   TestStructuredSpriteMatchesTextBaseline
+    structured_sprite_test.go:65: destination "linear" 24576 4 1 4; region 0 0 4 1; row "00000000" "0055aaff"; grace=false size=false: 21 -> 21 bytes; 90 -> 90 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 4 1 4; region 0 0 4 1; row "00000000" "0055aaff"; grace=true size=false: 21 -> 21 bytes; 90 -> 90 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 4 1 4; region 0 0 4 1; row "00000000" "0055aaff"; grace=true size=true: 21 -> 21 bytes; 90 -> 90 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 6 1 6; region 0 0 6 1; row "fff00faa5500" "00050340aaff"; grace=false size=false: 46 -> 46 bytes; 198 -> 198 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 6 1 6; region 0 0 6 1; row "fff00faa5500" "00050340aaff"; grace=true size=false: 46 -> 46 bytes; 198 -> 198 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "linear" 24576 6 1 6; region 0 0 6 1; row "fff00faa5500" "00050340aaff"; grace=true size=true: 46 -> 46 bytes; 198 -> 198 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "zx_bitmap_bytes" 16384; region 2 7 4 2; row "00ff55aa" "12340011"; row "f00f0000" "0521abcd"; grace=false size=false: 64 -> 64 bytes; 273 -> 273 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "zx_bitmap_bytes" 16384; region 2 7 4 2; row "00ff55aa" "12340011"; row "f00f0000" "0521abcd"; grace=true size=false: 64 -> 64 bytes; 273 -> 273 T-states; identical ASM=true
+    structured_sprite_test.go:65: destination "zx_bitmap_bytes" 16384; region 2 7 4 2; row "00ff55aa" "12340011"; row "f00f0000" "0521abcd"; grace=true size=true: 64 -> 64 bytes; 273 -> 273 T-states; identical ASM=true
+--- PASS: TestStructuredSpriteMatchesTextBaseline (0.16s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.931s

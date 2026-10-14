@@ -17,9 +17,14 @@ type SourceLocation struct {
 	Line         int    `json:"line"`
 	Column       int    `json:"byte_column"`
 	SourceSHA256 string `json:"source_sha256"`
+	// Generated statements point at the actual invocation, not an invented
+	// source token. The definition fingerprint expires their profile attribution.
+	Metafunction       string `json:"metafunction,omitempty"`
+	MetafunctionSHA256 string `json:"metafunction_sha256,omitempty"`
 }
 
-// LoopSite identifies an original structured HIR loop. It does not certify
+// LoopSite identifies an input structured HIR loop, including an explicitly
+// attributed metafunction expansion. It does not certify
 // legality or claim correspondence to transformed/duplicated MIR instructions.
 type LoopSite struct {
 	ID       string         `json:"id"`
@@ -70,6 +75,12 @@ func BuildLoopSiteMap(m *Module) (*LoopSiteMap, error) {
 				rawHash, err := hex.DecodeString(origin.SourceSHA256)
 				if origin.Unit == "" || origin.ByteOffset < 0 || origin.Line < 1 || origin.Column < 1 || err != nil || len(rawHash) != sha256.Size {
 					mapErr = fmt.Errorf("HIR site: invalid source origin for %s %s", f.Name, kind)
+					continue
+				}
+				metaHash, metaErr := hex.DecodeString(origin.MetafunctionSHA256)
+				if (origin.Metafunction == "" && origin.MetafunctionSHA256 != "") ||
+					(origin.Metafunction != "" && (metaErr != nil || len(metaHash) != sha256.Size)) {
+					mapErr = fmt.Errorf("HIR site: invalid metafunction origin for %s %s", f.Name, kind)
 					continue
 				}
 				// JSON tuple encoding avoids ambiguity between names containing separators.

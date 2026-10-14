@@ -3279,6 +3279,7 @@ func (p *parser) parseStmt() (stmt hir.Stmt, err error) {
 // The compile-time function emits Nanz statements; parsing those statements
 // with this parser lets normal name/type resolution see local variables.
 func (p *parser) parseMetaStmt(metaSrc, name string) (hir.Stmt, error) {
+	callToken := p.l.peek()
 	callLine := p.l.peek().line
 	if p.metaExpandDepth >= 32 {
 		return nil, fmt.Errorf("line %d: @%s: metafunction expansion limit reached", callLine, name)
@@ -3331,7 +3332,22 @@ func (p *parser) parseMetaStmt(metaSrc, name string) (hir.Stmt, error) {
 		return nil, fmt.Errorf("line %d: @%s: %w", callLine, name, err)
 	}
 	if len(nodes) > 0 {
-		return p.spliceMetaHIR(nodes), nil
+		block := p.spliceMetaHIR(nodes)
+		// A nested textual expansion has a temporary lexer, so its offsets are
+		// not positions in the original source unit. Keep those nodes unmapped.
+		if p.metaExpandDepth == 0 {
+			lineStart := callToken.start
+			for lineStart > 0 && p.l.src[lineStart-1] != '\n' {
+				lineStart--
+			}
+			origin := hir.SourceLocation{
+				Unit: p.name, ByteOffset: callToken.start, Line: callToken.line,
+				Column: callToken.start - lineStart + 1, SourceSHA256: p.sourceSHA256,
+				Metafunction: name, MetafunctionSHA256: fmt.Sprintf("%x", sha256.Sum256([]byte(metaSrc))),
+			}
+			p.recordMetaOrigins(block, origin)
+		}
+		return block, nil
 	}
 	if strings.TrimSpace(emitted) == "" {
 		return &hir.Block{}, nil
