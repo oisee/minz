@@ -70,3 +70,29 @@ test files. They are being corrected with a focused repeat of all 26 affected
 tests. This follow-up changes the test harness only; it does not change the
 compiler, emulator, library sources or embedded demo assets used by the six
 native packages. Required CI and the full deep audit remain pending.
+
+
+## Audit follow-up and direct-rendering scope
+
+The 26 lint-affected harness tests pass (MIR2 0.095 s, pipeline 338.678 s).
+PR CI at `9a2bd171` passes all required checks and advisory lint; its advisory
+output sweep failed and still needs diagnosis. The earlier deep run
+38639897937 passes nine pipeline shards and fails three. Exact keyboard
+oracles omitted a SYMBOL SHIFT read already present on main; the SMC oracle
+omitted newly callable typed setters. All four affected families pass locally
+in 5.635 s. These test corrections are committed in `064dbc7b`.
+
+The separate Sol audit reproduces all 66 long-fuzz discrepancies identically
+on main and the feature branch. The Python oracle inferred the wrong width
+for literal arithmetic. Corrected literal/widest-operand semantics pass all
+10,000 seeds and all 20,000 MIR2/Z80 execution receipts; the independently
+checked correction is integrated as `2ab7fd31`. Full audit data is preserved
+under `demo-release-preparation/sol-fuzz/` on the share. The original failing
+receipts remain available; this does not turn the old CI run green.
+
+Alice then requested direct screen drawing, paired baked exact clearing,
+two gravity rates (one pixel per one/two frames), and a real 50-Hz recording.
+The six native packages above contain the earlier shadow renderer and remain
+historical candidates. They do not satisfy this newer product scope. See
+[the paired-sprite work](../paired-sprites/README.md); the Tetris migration,
+menu, frame timing and video capture still require verification.

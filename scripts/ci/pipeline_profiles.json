@@ -391,6 +391,8 @@
     "TestZXBankedMemoryNative",
     "TestZXHalfCellRotozoomerFullMachine",
     "TestZXHalfCellRotozoomerLibraryFullMachine",
+    "TestZXPairedSpriteAdmission",
+    "TestZXPairedSpriteNative",
     "TestZXStagedSpriteNative",
     "TestZXStoryLogicalMemoryNative",
     "TestZXWholeSpriteAdmission",

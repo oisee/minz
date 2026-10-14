@@ -1,5 +1,7 @@
 // A complete byte-aligned ZX sprite. '#' sets ink, '_' clears to paper,
 // '.' preserves the background. All pixel/mask bytes are baked at compile time.
+// Optional `erase` bakes matching clear kernels: opaque pixels become paper,
+// transparent pixels stay untouched. This clears; it does not restore a background.
 // Public value: <name>{x:pixel_x,y:pixel_y}; public method: value.draw()->bool.
 fun @zx_sprite(name:^u8)->void {
     var cursor: i32 = 0
@@ -20,6 +22,7 @@ fun @zx_sprite(name:^u8)->void {
     var height:i32=0
     var row_count:i32=0
     var seen_size:u8=0
+    var paired_erase:u8=0
     var i:u8=0
     while i < block_len() {
         let key:^u8=node_keyword(i)
@@ -32,6 +35,10 @@ fun @zx_sprite(name:^u8)->void {
         } else if str_eq(key,c"pixels")==1 {
             if node_arg_count(i)!=1 { meta_error(c"zx sprite: pixels needs one row") }
             row_count=row_count+1
+        } else if str_eq(key,c"erase")==1 {
+            if paired_erase!=0 {meta_error(c"zx sprite: duplicate erase")}
+            if node_arg_count(i)!=0 {meta_error(c"zx sprite: erase takes no arguments")}
+            paired_erase=1
         } else { meta_error(c"zx sprite: unknown field") }
         i=i+1
     }
@@ -149,6 +156,78 @@ fun @zx_sprite(name:^u8)->void {
     }
     emit(c"return true }")
 
+    // Independent operands keep the old erase position intact while a new
+    // drawing is staged. The description of the opaque mask is shared.
+    if paired_erase!=0 {
+        emit(str_concat(str_concat(c"global ",name),c"_erase_ready:bool=false"))
+        row=0
+        i=0
+        while i<block_len() {
+            if str_eq(node_keyword(i),c"pixels")==1 {
+                let data:^u8=node_arg_str(i,0)
+                let clear_name:^u8=str_concat(name,str_concat(c"_clear_row_",str_from_int(u16(row))))
+                emit(str_concat(str_concat(c"fun ",clear_name),c"(@smc dst:^u8) {"))
+                emit(c"var p:^u8=dst")
+                var col:i32=0
+                var previous:i32=0
+                while col<width/8 {
+                    var keep:u8=0
+                    var bit:i32=0
+                    while bit<8 {
+                        keep=keep*2
+                        if data[col*8+bit]==46 {keep=keep+1}
+                        bit=bit+1
+                    }
+                    if keep!=255 {
+                        if col!=previous {emit(str_concat(c"p=p+",str_from_int(u16(col-previous))))}
+                        previous=col
+                        if keep==0 {emit(c"p^=0")} else {
+                            emit(str_concat(c"p^=p^ & ",str_from_int(u16(keep))))
+                        }
+                    }
+                    col=col+1
+                }
+                emit(c"}")
+                row=row+1
+            }
+            i=i+1
+        }
+        // Check the complete rectangle before writing or patching anything.
+        var action:u8=0
+        while action<2 {
+            var method:^u8=c".erase"
+            if action==1 {method=c".stage_erase"}
+            emit(str_concat(str_concat(c"fun ",name),str_concat(method,str_concat(c"(self:^",str_concat(name,c")->bool {")))))
+            emit(str_concat(name,c"_erase_ready=false"))
+            emit(c"let x:u8=self.x let y:u8=self.y")
+            emit(c"if (x & 7)!=0 {return false}")
+            emit(str_concat(str_concat(c"if u16(x)+",str_from_int(u16(width))),c">256 {return false}"))
+            emit(str_concat(str_concat(c"if u16(y)+",str_from_int(u16(height))),c">192 {return false}"))
+            emit(c"var address:u16=sprite_address(x,y)")
+            row=0
+            while row<height {
+                let clear_name:^u8=str_concat(name,str_concat(c"_clear_row_",str_from_int(u16(row))))
+                if action==0 {emit(str_concat(clear_name,c"(ptr(address))"))} else {
+                    emit(str_concat(clear_name,c"_set_dst(ptr(address))"))
+                }
+                if row+1<height {emit(c"address=sprite_next_line(address)")}
+                row=row+1
+            }
+            if action==1 {emit(str_concat(name,c"_erase_ready=true"))}
+            emit(c"return true }")
+            action=action+1
+        }
+        emit(str_concat(str_concat(c"fun ",name),str_concat(c".erase_staged(self:^",str_concat(name,c")->bool {"))))
+        emit(str_concat(str_concat(c"if ",name),c"_erase_ready==false {return false}"))
+        row=0
+        while row<height {
+            let clear_name:^u8=str_concat(name,str_concat(c"_clear_row_",str_from_int(u16(row))))
+            emit(str_concat(clear_name,c"()"))
+            row=row+1
+        }
+        emit(c"return true }")
+    }
+
 }
 
 // Several independently staged instances share one declarative description.
@@ -190,6 +269,9 @@ fun @zx_sprite_instances(name:^u8)->void {
             } else if str_eq(key,c"pixels")==1 {
                 if node_arg_count(node)!=1 {meta_error(c"zx sprite instances: pixels needs one row")}
                 emit(str_concat(c"pixels ",str_quote_c(node_arg_str(node,0))))
+            } else if str_eq(key,c"erase")==1 {
+                if node_arg_count(node)!=0 {meta_error(c"zx sprite instances: erase takes no arguments")}
+                emit(c"erase")
             } else if str_eq(key,c"instances")!=1 {meta_error(c"zx sprite instances: unknown field")}
             node=node+1
         }

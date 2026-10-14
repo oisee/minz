@@ -1,0 +1,27 @@
+import zx.sprite
+
+@zx_sprite("Ship") {
+    size 16 8
+    erase
+    pixels "......####......"
+    pixels ".....######....."
+    pixels "...##########..."
+    pixels "..############.."
+    pixels ".##############."
+    pixels "####__####__####"
+    pixels "###...####...###"
+    pixels "......####......"
+}
+
+fun draw_ship(x:u8,y:u8)->bool {
+ if (x & 7)!=0 {return false}
+ if x>232 {return false}
+ if y>183 {return false}
+ let old:Ship=Ship{x:x,y:y}
+ if old.draw()==false {return false}
+ if old.stage_erase()==false {return false}
+ let next:Ship=Ship{x:x+8,y:y+1}
+ if next.stage()==false {return false}
+ if old.erase_staged()==false {return false}
+ return next.publish()
+}

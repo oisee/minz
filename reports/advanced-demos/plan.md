@@ -86,3 +86,16 @@ regressions pass. The versioned workflow prepares fresh builds of all six hosts,
 and packages include the declarative hardware library sources. See
 [release preparation](tetris/release-preparation.md). Required PR checks, full
 deep release receipts, main merge and publication remain pending.
+
+
+## Paired direct-screen kernels — 14 October 2026
+
+Alice's latest requirement supersedes the shadow renderer as the intended
+Tetris path: paired baked exact draw/erase directly in screen RAM, two gravity
+rates (one pixel per one/two frames), and real 50-Hz MP4/GIF capture.
+The opt-in `erase` field now shares one whole-sprite mask between drawing and
+clearing, with independent prepared SMC operands. All 888 native and 1776 VM
+calls pass; preparing either half leaves bitmap/attributes untouched. Prepared
+16×8 clearing/drawing cost 772/870 T, excluding placement and external CALL.
+See [the API and measurements](paired-sprites/README.md). Tetris migration,
+full-cycle/ULA proof, selection menu and media capture remain required.
