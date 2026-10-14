@@ -67,6 +67,14 @@ func LowerModule(hm *Module) *mir2.Module {
 		funcNames[f.Name] = true
 		hirFuncs[f.Name] = f
 	}
+	setters, err := smcAccessors(hm)
+	if err != nil {
+		panic(err)
+	}
+	for _, f := range setters {
+		funcNames[f.Name] = true
+		hirFuncs[f.Name] = f
+	}
 
 	// Collect global names for free-variable detection.
 	globalNames := make(map[string]bool, len(hm.Globals))
@@ -82,6 +90,22 @@ func LowerModule(hm *Module) *mir2.Module {
 			continue
 		}
 		lowerFuncWithFuncNames(m, f, funcNames, hirFuncs, hm.LoopLineage)
+	}
+	for _, f := range hm.Funcs {
+		for _, p := range f.Params {
+			if !p.SMC {
+				continue
+			}
+			sym := f.Name + "$" + p.Name
+			setter := m.AddFunc(mir2.SMCSetterName(sym))
+			setter.SMCSetterFor = sym
+			setter.Attrs.FixedIndirectABI = true
+			b := mir2.NewBuilder(setter)
+			b.SwitchToNewBlock("entry")
+			value := b.Param("value", p.Ty, mir2.ClassPointer)
+			b.PatchNamed(sym, value, p.Ty)
+			b.Ret()
+		}
 	}
 	if err := mir2.LowerStructReturnBuffers(m); err != nil {
 		panic(err)
@@ -585,8 +609,8 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 	for _, p := range f.Params {
 		if p.SMC {
 			sym := f.Name + "$" + p.Name
-			r := bld.PatchSlotNamed(sym, 0, mir2.TyPtr, mir2.ClassPointer)
-			l.bind(p.Name, r, mir2.TyPtr)
+			r := bld.PatchSlotNamed(sym, 0, p.Ty, mir2.ClassPointer)
+			l.bind(p.Name, r, p.Ty)
 			continue
 		}
 		cls := classForParam(p.Ty, nonSMCIdx)
@@ -2355,8 +2379,10 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 		}
 
 		var calleeParams []Param
+		smcCall := false
 		if callee := l.hirFuncs[fnName]; callee != nil {
-			calleeParams = callee.Params
+			calleeParams = smcCallParams(callee, len(ex.Args))
+			smcCall = hasSMCParams(callee)
 		}
 		args := make([]mir2.Reg, len(ex.Args))
 		for i, a := range ex.Args {
@@ -2373,11 +2399,40 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 			} else {
 				r = l.lowerExpr(a)
 			}
-			tgtCls := classForParam(paramTy, i)
-			if tgtCls != classForExpr(paramTy) {
-				r = l.bld.Move(r, paramTy, tgtCls)
+			if !smcCall {
+				tgtCls := classForParam(paramTy, i)
+				if tgtCls != classForExpr(paramTy) {
+					r = l.bld.Move(r, paramTy, tgtCls)
+				}
 			}
 			args[i] = r
+		}
+		// Evaluate every source argument before changing the callee's state.
+		// A nested argument may itself invoke the same SMC function.
+		if callee := l.hirFuncs[fnName]; callee != nil && hasSMCParams(callee) && len(ex.Args) == len(callee.Params) {
+			var runtime []mir2.Reg
+			for i, p := range callee.Params {
+				if p.SMC {
+					l.bld.CallVoid(mir2.SMCSetterName(fnName+"$"+p.Name), []mir2.Reg{args[i]}, mir2.CallAttrs{})
+				} else {
+					runtime = append(runtime, args[i])
+				}
+			}
+			args = runtime
+			calleeParams = smcCallParams(callee, len(args))
+		}
+		for i, r := range args {
+			if !smcCall {
+				break
+			}
+			paramTy := ex.Args[i].ExprTy()
+			if i < len(calleeParams) {
+				paramTy = calleeParams[i].Ty
+			}
+			tgtCls := classForParam(paramTy, i)
+			if tgtCls != classForExpr(paramTy) {
+				args[i] = l.bld.Move(r, paramTy, tgtCls)
+			}
 		}
 
 		if callee := l.hirFuncs[fnName]; callee != nil && callee.FallibleCY {

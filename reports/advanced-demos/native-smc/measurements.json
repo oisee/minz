@@ -1,0 +1,560 @@
+{
+  "row_struct/grace-size": {
+    "bytes": 13,
+    "native": {
+      "results": [
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4002",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4102",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "47e2",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4802",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4fe2",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "5002",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "5702",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        }
+      ],
+      "scope": "flat independent Z80 RAM, repeated repatching of one executable; decoded imm16 LD operand + generated setter + draw; whole RAM except 16 owned stack bytes; excludes external CALL, IRQ/ULA; addresses are linear row fixture, not ZX DOWN_HL oracle"
+    },
+    "symbols": {
+      "draw": 32768,
+      "draw$dst$imm": 32769,
+      "draw_set_dst": 32777
+    }
+  },
+  "row_struct/grace-speed": {
+    "bytes": 13,
+    "native": {
+      "results": [
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4002",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4102",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "47e2",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4802",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4fe2",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "5002",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "5702",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        }
+      ],
+      "scope": "flat independent Z80 RAM, repeated repatching of one executable; decoded imm16 LD operand + generated setter + draw; whole RAM except 16 owned stack bytes; excludes external CALL, IRQ/ULA; addresses are linear row fixture, not ZX DOWN_HL oracle"
+    },
+    "symbols": {
+      "draw": 32768,
+      "draw$dst$imm": 32769,
+      "draw_set_dst": 32777
+    }
+  },
+  "row_struct/ordinary": {
+    "bytes": 13,
+    "native": {
+      "results": [
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4002",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4102",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "47e2",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4802",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4fe2",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "5002",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "5702",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        }
+      ],
+      "scope": "flat independent Z80 RAM, repeated repatching of one executable; decoded imm16 LD operand + generated setter + draw; whole RAM except 16 owned stack bytes; excludes external CALL, IRQ/ULA; addresses are linear row fixture, not ZX DOWN_HL oracle"
+    },
+    "symbols": {
+      "draw": 32768,
+      "draw$dst$imm": 32769,
+      "draw_set_dst": 32777
+    }
+  },
+  "row_typed_index/grace-size": {
+    "bytes": 27,
+    "native": {
+      "results": [
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4002",
+          "draw_T_excluding_CALL": 131,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4102",
+          "draw_T_excluding_CALL": 131,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "47e2",
+          "draw_T_excluding_CALL": 131,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4802",
+          "draw_T_excluding_CALL": 131,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4fe2",
+          "draw_T_excluding_CALL": 131,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "5002",
+          "draw_T_excluding_CALL": 131,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "5702",
+          "draw_T_excluding_CALL": 131,
+          "patch_T_excluding_CALL": 26
+        }
+      ],
+      "scope": "flat independent Z80 RAM, repeated repatching of one executable; decoded imm16 LD operand + generated setter + draw; whole RAM except 16 owned stack bytes; excludes external CALL, IRQ/ULA; addresses are linear row fixture, not ZX DOWN_HL oracle"
+    },
+    "symbols": {
+      "draw": 32768,
+      "draw$dst$imm": 32769,
+      "draw_set_dst": 32791
+    }
+  },
+  "row_typed_index/grace-speed": {
+    "bytes": 27,
+    "native": {
+      "results": [
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4002",
+          "draw_T_excluding_CALL": 131,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4102",
+          "draw_T_excluding_CALL": 131,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "47e2",
+          "draw_T_excluding_CALL": 131,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4802",
+          "draw_T_excluding_CALL": 131,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4fe2",
+          "draw_T_excluding_CALL": 131,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "5002",
+          "draw_T_excluding_CALL": 131,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "5702",
+          "draw_T_excluding_CALL": 131,
+          "patch_T_excluding_CALL": 26
+        }
+      ],
+      "scope": "flat independent Z80 RAM, repeated repatching of one executable; decoded imm16 LD operand + generated setter + draw; whole RAM except 16 owned stack bytes; excludes external CALL, IRQ/ULA; addresses are linear row fixture, not ZX DOWN_HL oracle"
+    },
+    "symbols": {
+      "draw": 32768,
+      "draw$dst$imm": 32769,
+      "draw_set_dst": 32791
+    }
+  },
+  "row_typed_index/ordinary": {
+    "bytes": 27,
+    "native": {
+      "results": [
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4002",
+          "draw_T_excluding_CALL": 131,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4102",
+          "draw_T_excluding_CALL": 131,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "47e2",
+          "draw_T_excluding_CALL": 131,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4802",
+          "draw_T_excluding_CALL": 131,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4fe2",
+          "draw_T_excluding_CALL": 131,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "5002",
+          "draw_T_excluding_CALL": 131,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "5702",
+          "draw_T_excluding_CALL": 131,
+          "patch_T_excluding_CALL": 26
+        }
+      ],
+      "scope": "flat independent Z80 RAM, repeated repatching of one executable; decoded imm16 LD operand + generated setter + draw; whole RAM except 16 owned stack bytes; excludes external CALL, IRQ/ULA; addresses are linear row fixture, not ZX DOWN_HL oracle"
+    },
+    "symbols": {
+      "draw": 32768,
+      "draw$dst$imm": 32769,
+      "draw_set_dst": 32791
+    }
+  },
+  "row_typed_walk/grace-size": {
+    "bytes": 13,
+    "native": {
+      "results": [
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4002",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4102",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "47e2",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4802",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4fe2",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "5002",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "5702",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        }
+      ],
+      "scope": "flat independent Z80 RAM, repeated repatching of one executable; decoded imm16 LD operand + generated setter + draw; whole RAM except 16 owned stack bytes; excludes external CALL, IRQ/ULA; addresses are linear row fixture, not ZX DOWN_HL oracle"
+    },
+    "symbols": {
+      "draw": 32768,
+      "draw$dst$imm": 32769,
+      "draw_set_dst": 32777
+    }
+  },
+  "row_typed_walk/grace-speed": {
+    "bytes": 13,
+    "native": {
+      "results": [
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4002",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4102",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "47e2",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4802",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4fe2",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "5002",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "5702",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        }
+      ],
+      "scope": "flat independent Z80 RAM, repeated repatching of one executable; decoded imm16 LD operand + generated setter + draw; whole RAM except 16 owned stack bytes; excludes external CALL, IRQ/ULA; addresses are linear row fixture, not ZX DOWN_HL oracle"
+    },
+    "symbols": {
+      "draw": 32768,
+      "draw$dst$imm": 32769,
+      "draw_set_dst": 32777
+    }
+  },
+  "row_typed_walk/ordinary": {
+    "bytes": 13,
+    "native": {
+      "results": [
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4002",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4102",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "47e2",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4802",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "4fe2",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "5002",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        },
+        {
+          "PC": 28675,
+          "SP": 61440,
+          "base": "5702",
+          "draw_T_excluding_CALL": 46,
+          "patch_T_excluding_CALL": 26
+        }
+      ],
+      "scope": "flat independent Z80 RAM, repeated repatching of one executable; decoded imm16 LD operand + generated setter + draw; whole RAM except 16 owned stack bytes; excludes external CALL, IRQ/ULA; addresses are linear row fixture, not ZX DOWN_HL oracle"
+    },
+    "symbols": {
+      "draw": 32768,
+      "draw$dst$imm": 32769,
+      "draw_set_dst": 32777
+    }
+  }
+}

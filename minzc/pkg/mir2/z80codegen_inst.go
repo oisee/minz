@@ -1354,6 +1354,11 @@ func (g *z80cg) genInst(inst *Inst) {
 	case OpPatchSlot:
 		// Mutable immediate: emit initial value; the byte(s) after LD are patchable.
 		w := inst.Ty.Width()
+		var restore func()
+		if inst.Sym != "" && isSpill(dst) {
+			restore = g.saveLiveScratch(inst, "HL")
+			dst = "HL"
+		}
 		if w <= 8 {
 			g.emitf("    LD %s, %d          ; [patch_slot init=%d]", dst, inst.Imm, inst.Imm)
 		} else {
@@ -1362,9 +1367,13 @@ func (g *z80cg) genInst(inst *Inst) {
 		}
 		// Named slot (@smc parameter): record EQU label and register patcher.
 		if inst.Sym != "" {
-			eqLabel := inst.Sym + "$imm"
+			eqLabel := SMCImmediateLabel(inst.Sym)
 			g.sb.WriteString(eqLabel + "  EQU $-" + fmt.Sprintf("%d", w/8) + "\n")
 			g.smcPatchers = append(g.smcPatchers, smcPatcherInfo{sym: inst.Sym, eqLabel: eqLabel})
+		}
+		if restore != nil {
+			g.emitf("    LD (%s), HL", g.loc(inst.Dst))
+			restore()
 		}
 
 	case OpLoadPatched:
@@ -1376,6 +1385,16 @@ func (g *z80cg) genInst(inst *Inst) {
 		}
 
 	case OpPatch:
+		if inst.Sym != "" {
+			value := g.loc(inst.Src[1])
+			restore := g.saveLiveScratch(inst, "HL")
+			if value != "HL" {
+				g.emitMov("HL", value, 16)
+			}
+			g.emitf("    LD (%s), HL", SMCImmediateLabel(inst.Sym))
+			restore()
+			break
+		}
 		// SMC patch: at runtime the code rewrites the immediate in OpPatchSlot.
 		// In the pure-assembler path we emit a self-modifying write sequence.
 		// slot = inst.Src[0], newVal = inst.Src[1]

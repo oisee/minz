@@ -1,0 +1,2 @@
+struct Row2 { b0:u8,b1:u8 }
+fun draw(@smc dst:u16) { dst^ = Row2{ b0:0xc3,b1:0x3c } }

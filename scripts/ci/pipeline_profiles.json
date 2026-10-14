@@ -284,6 +284,8 @@
     "TestRegionCompareMeasuredRefusals",
     "TestRegionCompareUnknownAndEffectfulSites",
     "TestRetiredLIRConfigurationRefused",
+    "TestSMCNativeSourceCalls",
+    "TestSMCSourceAdmission",
     "TestSQLiteASMInputABI",
     "TestSQLiteOriginalBoundedPortAPIs",
     "TestSQLiteOriginalWholeMain",

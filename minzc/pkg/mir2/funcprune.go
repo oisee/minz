@@ -1,5 +1,7 @@
 package mir2
 
+import "strings"
+
 // PruneUnreachableFuncs removes functions that are not reachable from the
 // explicit root set after whole-module rewrites such as inlining.
 //
@@ -52,6 +54,14 @@ func PruneUnreachableFuncs(m *Module, roots map[string]bool) bool {
 					// indirect calls, or target-specific expressions. Parsing only
 					// CALL operands would miss valid dependencies.
 					return false
+				}
+				// A setter references its owner's executable operand. An owned
+				// named slot keeps its typed accessor, even without a source call.
+				if inst.Op == OpPatch && inst.Sym != "" {
+					enqueue(strings.SplitN(inst.Sym, "$", 2)[0])
+				}
+				if inst.Op == OpPatchSlot && inst.Sym != "" {
+					enqueue(SMCSetterName(inst.Sym))
 				}
 				if inst.Op == OpCall && inst.Sym != "" && inst.Sym[0] != '@' {
 					enqueue(inst.Sym)

@@ -11,11 +11,12 @@ type LoopOrigin struct {
 // Func is a MIR2 function. The first block is the entry. Register numbering is
 // monotonically increasing (module-wide when created via Module.AddFunc).
 type Func struct {
-	LoopOrigins map[string]LoopOrigin // attribution of existing block labels
-	Name        string
-	Contract    Contract  // calling ABI in target-independent terms
-	Attrs       FuncAttrs // boolean property flags
-	Blocks      []*Block  // first block = entry (label conventionally "entry")
+	SMCSetterFor string                `json:",omitempty"` // compiler-owned named immediate accessor
+	LoopOrigins  map[string]LoopOrigin // attribution of existing block labels
+	Name         string
+	Contract     Contract  // calling ABI in target-independent terms
+	Attrs        FuncAttrs // boolean property flags
+	Blocks       []*Block  // first block = entry (label conventionally "entry")
 
 	nextReg Reg     // next available virtual register
 	mod     *Module // parent module; non-nil when created via AddFunc

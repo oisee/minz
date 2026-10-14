@@ -5376,7 +5376,9 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		p.l.next()
 		// Bare function name used as a value (not followed by '(' call) →
 		// function pointer.  Emit AddrOfExpr so MIR2 generates LD HL, label.
-		if p.isKnownFunc(t.val) && !p.l.is(tokLParen) {
+		_, localValue := p.varTypes[t.val]
+		_, globalValue := p.globalTypes[t.val]
+		if !localValue && !globalValue && p.isKnownFunc(t.val) && !p.l.is(tokLParen) {
 			return &hir.AddrOfExpr{Sym: t.val}, nil
 		}
 		ty := mir2.Ty(mir2.TyU8)

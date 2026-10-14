@@ -71,6 +71,7 @@ type VM struct {
 	// globalSyms maps module global names to their heap offsets.
 	// Populated by NewVM from Module.Globals.
 	globalSyms map[string]int64
+	namedSMC   map[string]Value // persistent named immediate values, separate from generic slot addresses
 }
 
 // VMDataAccess is one executed OpLoad/OpStore byte access. Addr is the actual
@@ -192,6 +193,23 @@ func (fr *frame) set(r Reg, v Value) {
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
+
+// initNamedSMC registers owned immediates lazily, before a first read or patch.
+func (vm *VM) initNamedSMC() {
+	if vm.namedSMC != nil {
+		return
+	}
+	vm.namedSMC = make(map[string]Value)
+	for _, f := range vm.Module.Funcs {
+		for _, b := range f.Blocks {
+			for _, i := range b.Insts {
+				if i.Op == OpPatchSlot && i.Sym != "" {
+					vm.namedSMC[i.Sym] = truncate(Value{I: i.Imm}, i.Ty)
+				}
+			}
+		}
+	}
+}
 
 // NewVM creates a VM for the given module with sensible defaults.
 func NewVM(m *Module) *VM {
@@ -790,8 +808,13 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		return nil // no Dst
 
 	// ── SMC — mutable immediates ──────────────────────────────────────────────
-	// In the VM, patch_slot is simply a heap slot.
+	// Named slots retain immediate values; anonymous slots use heap addresses.
 	case OpPatchSlot:
+		if inst.Sym != "" {
+			vm.initNamedSMC()
+			result = vm.namedSMC[inst.Sym]
+			break
+		}
 		offset := int64(len(vm.heap))
 		width := ByteWidth(ty)
 		if width == 0 {
@@ -820,6 +843,14 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		result = truncate(Value{I: v}, ty)
 
 	case OpPatch:
+		if inst.Sym != "" {
+			vm.initNamedSMC()
+			if _, ok := vm.namedSMC[inst.Sym]; !ok {
+				return fmt.Errorf("unknown named SMC slot %s", inst.Sym)
+			}
+			vm.namedSMC[inst.Sym] = truncate(b, ty)
+			return nil
+		}
 		// Src[0]=slot, Src[1]=new value; Ty = value type of the slot.
 		// (We infer width from the slot content; use 2 as safe default.)
 		offset := int(a.I)

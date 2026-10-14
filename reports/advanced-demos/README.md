@@ -15,7 +15,9 @@
 
 [Исследование нативного SMC](native-smc-research.md) связывает прежние проекты
 графической библиотеки с работающими `@smc` и typed HIR. Маленький обычный
-pointer walk уже даёт compiled stores; вызовы, большие наборы row slots и
+pointer walk уже даёт compiled stores. [Первый рабочий контракт](native-smc.md)
+добавил типизированные source-вызовы и setter: структура и pointer walk дают
+9 B / 46 T kernel, setter — 4 B / 26 T. Большие наборы row slots и
 автоматическая специализация ещё требуют доработки.
 
 ## Спрайт без покадровой очистки экрана

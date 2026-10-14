@@ -39,6 +39,9 @@ func Verify(m *Module) error {
 	if err := VerifyStructReturnBuffers(m); err != nil {
 		return err
 	}
+	if err := validateNamedSMC(m); err != nil {
+		return err
+	}
 	for _, f := range m.Funcs {
 		if f.Attrs.FallibleCY {
 			if f.Attrs.IsExtern || len(f.Contract.Returns) > 1 || len(f.Contract.Returns) == 1 && (f.Contract.Returns[0].Ty != TyU8 || f.Contract.Returns[0].Class != ClassAcc) {
