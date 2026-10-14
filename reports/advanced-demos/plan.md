@@ -10,7 +10,9 @@ milestone with rendering and declarative-library work, not a completion claim.
 | Smooth pixel-step falling piece | Pixel geometry and substep/rotation/locking model, native frames | Pending |
 | Optional TV sine/noise/row-shift effects | Deterministic render oracle; game state identical with effects on/off | Pending |
 | Declarative typed Nanz, object composition and compile-time interfaces | Real consumers using common reusable APIs; compile-time diagnostics | Pending |
-| Shapes, masks, tables and specialized procedures baked | HIR/ASM/BIN inspection, runtime excludes generator and avoidable preparation | Pending |
+| Whole-sprite declarative Nanz API | One real multi-row sprite with size, pixels and mask; one draw call with coordinates; no public row-setter/address bookkeeping | Pending: @baked_row/@baked_bytes are internal prototypes, not the complete API |
+| Shapes, masks, tables and specialized procedures baked | HIR/ASM/BIN inspection, runtime excludes generator and avoidable preparation | Native two-byte kernels verified; max64-byte row verified; complete sprite specialization pending |
+| Checked SP-stream alternatives | Ordered memory effects, exact SP restoration, actual machine clobbers, native oracle and measured benefit | Astra research completed; automatic PUSH/POP selection pending |
 | Measured selection under Speed/Size/frame budget | Admitted alternatives, preserved winners, heldout native measurements | Full-clear candidates measured; closed 15-candidate scene receipt selection preserves Speed/Size/bounded winners and rejects all-fixture frame budget; compiler integration/heldout timings pending |
 | Explicit region, timing, IRQ, RAM and SMC contracts | Valid and rejected cases, native memory/PC/SP/IFF proof, beam deadlines | Pending |
 | Integration and updated demo release | Main PR/CI, six packaged platforms, playable artifacts and checksums | Pending |
@@ -23,8 +25,12 @@ milestone with rendering and declarative-library work, not a completion claim.
    region with a baked library kernel. Commit after native ROM/IRQ checks.
 3. Compose Tetris output before publishing changed bytes. Keep input/game logic
    separate from rendering; establish a pixel-substep collision oracle.
-4. Build the common declarative actor/scene/effect API in typed Nanz, using
-   compile-time interfaces and metafunction specialization. Migrate consumers.
+4. Build a complete sprite description and unified draw API in typed Nanz,
+   using compile-time interfaces and metafunction specialization. Keep row
+   kernels and address/setter bookkeeping internal. Validate size, masks,
+   coordinate mapping and full displayed frames on a real multi-row example.
+   Migrate the Tetris actor; extend scene/effect composition from that consumer.
+   Admit SP/PUSH kernels only with memory-order, liveness and SP/INT proofs.
 5. Add pixel actors and optional deterministic TV effects, measure admitted
    kernels on independent workloads, and publish the verified winners.
 6. Complete requirement-by-requirement audit, integrate in main and release
