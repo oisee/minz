@@ -1,0 +1,9 @@
+import hw.sprite
+fun draw(frame: ^u8, visible: bool) { @sprite() {
+destination "linear_relative" "frame" 8 4 11
+region 2 1 4 2
+row "fff00055" "0005ab80"
+row "00ff0faa" "77000344"
+via "pointer"
+when "visible"
+} }

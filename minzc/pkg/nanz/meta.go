@@ -52,10 +52,11 @@ type metaBlockNode struct {
 
 // metaRuntime manages compile-time execution of metafunctions.
 type metaRuntime struct {
-	hirMod     *hir.Module
-	emitted    strings.Builder
-	structured metaHIRBuilder
-	vm         *mir2.VM
+	hirMod      *hir.Module
+	callerTypes map[string]mir2.Ty
+	emitted     strings.Builder
+	structured  metaHIRBuilder
+	vm          *mir2.VM
 }
 
 func newMetaRuntime(hirMod *hir.Module) *metaRuntime {
