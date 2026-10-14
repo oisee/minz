@@ -113,11 +113,11 @@ jobs:
             trap "kill $DEMO_XVFB_PID 2>/dev/null || true" EXIT
             export DISPLAY=:99
             for attempt in $(seq 1 30); do
-              if xdpyinfo >/dev/null 2>&1; then break; fi
+              if timeout 2 xdpyinfo >/dev/null 2>&1; then break; fi
               sleep 1
             done
             timeout 10 xdpyinfo > out/display.txt
-            timeout 600 python3 -u scripts/verify_demo_release.py out/packages/minz-demos-0.25.0-linux-arm64 --proof out/proof
+            timeout --kill-after=10 600 python3 -u scripts/verify_demo_release.py out/packages/minz-demos-0.25.0-linux-arm64 --proof out/proof
           '
       - uses: actions/upload-artifact@v4
         if: always()
