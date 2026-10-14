@@ -1,0 +1,35 @@
+=== RUN   TestCheckedCompositionAutomaticFindsMovePartition
+    composition_auto_test.go:33: automatic constant/move/return partition ; fun prod() ; clobbers: F
+        prod:
+            LD C, 37
+            LD A, C
+            RET
+        
+--- PASS: TestCheckedCompositionAutomaticFindsMovePartition (0.01s)
+=== RUN   TestCompositionPartitionDomainsAvoidSpuriousSingletons
+    composition_partition_domains_test.go:71: length-only exceeds 64; admitted-domain discovery emits one checked assignment: ; fun memory_parts() ; clobbers: F
+        memory_parts:
+            LD HL, 24576
+            LD A, (HL)
+            LD (HL), A
+            LD HL, 24577
+            LD A, (HL)
+            LD (HL), A
+            LD HL, 24578
+            LD A, (HL)
+            LD (HL), A
+            LD HL, 24579
+            LD A, (HL)
+            LD (HL), A
+            LD HL, 24580
+            LD A, (HL)
+            LD (HL), A
+            RET
+--- PASS: TestCompositionPartitionDomainsAvoidSpuriousSingletons (0.04s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.062s
+=== RUN   TestCheckedCompositionPartitionDomainsOracle
+    checked_composition_partition_oracle_test.go:107: 21 byte-memory pool configurations: full independent cut-mask enumeration agrees on feasibility and best checked assignment; 16 feasible
+--- PASS: TestCheckedCompositionPartitionDomainsOracle (13.23s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	13.243s
