@@ -32,6 +32,7 @@ type tetrisSceneObserver struct {
 	phaseReturn, phaseSP                   uint16
 	phaseStart                             int64
 	phaseMax                               map[string]int64
+	phaseLast                              map[string]int64
 }
 
 func (c *tetrisSceneObserver) Interrupt() {
@@ -49,6 +50,7 @@ func (c *tetrisSceneObserver) Interrupt() {
 func (c *tetrisSceneObserver) DoOpcode() {
 	if c.activePhase != "" && c.PC() == c.phaseReturn && c.SP() == c.phaseSP+2 {
 		elapsed := c.m.AbsoluteTStates() - c.phaseStart
+		c.phaseLast[c.activePhase] = elapsed
 		if elapsed > c.phaseMax[c.activePhase] {
 			c.phaseMax[c.activePhase] = elapsed
 		}
@@ -224,6 +226,9 @@ func TestTetrisSceneTemporalMachine(t *testing.T) {
 				if len(a.Errors) > 0 {
 					t.Fatal(a.Errors)
 				}
+				for x := 0; x < 10; x++ {
+					board[140+x] = 0
+				}
 				m, e := spectrum.New48K(rom)
 				if e != nil {
 					t.Fatal(e)
@@ -274,10 +279,25 @@ func TestTetrisSceneTemporalMachine(t *testing.T) {
 				previous := append([]byte(nil), initial...)
 				partial, displayed, transient := 0, 0, 0
 				var maxPublish, maxRender int64
-				for sample := 0; sample < 12; sample++ {
-					x, y, next, hold := 3+(sample/2)%3, (sample/6)%2, sample%3, 255
-					if sample >= 4 {
-						hold = (sample / 3) % 3
+				var samples []map[string]any
+				poses := [][4]int{{3, 0, 0, 255}, {3, 0, 0, 255}, {4, 0, 1, 255}, {4, 1, 1, 255}, {4, 1, 2, 1}, {4, 1, 2, 1}, {4, 1, 2, 1}, {3, 1, 2, 1}, {3, 2, 2, 1}, {3, 2, 2, 1}, {5, 2, 2, 0}, {5, 2, 2, 0}, {5, 16, 2, 0}, {5, 0, 2, 0}}
+				for sample, pose := range poses {
+					x, y, next, hold := pose[0], pose[1], pose[2], pose[3]
+					if sample == 6 || sample == 9 || sample == 12 {
+						for cx := 0; cx < 10; cx++ {
+							value := byte(0)
+							if sample == 6 && cx%2 == 0 {
+								value = byte(cx%7 + 1)
+							}
+							if sample == 12 && (cx == 5 || cx == 6) {
+								value = 6
+							}
+							board[140+cx] = value
+							m.Memory.Write(symbol("board")+uint16(140+cx), value, false)
+						}
+						if !baseline {
+							set("board_dirty", 1)
+						}
 					}
 					want := image(x, y, next, hold)
 					set("cur_type", 1)
@@ -312,6 +332,8 @@ func TestTetrisSceneTemporalMachine(t *testing.T) {
 					c.transient = 0
 					c.publishStart = 0
 					c.start = m.AbsoluteTStates()
+					c.phaseLast = map[string]int64{}
+					sampleFrames := m.FrameCount()
 					c.minSP = 0xeff0
 					beforeRAM := make([]byte, 65536)
 					for address := range beforeRAM {
@@ -319,7 +341,7 @@ func TestTetrisSceneTemporalMachine(t *testing.T) {
 					}
 					allowed := map[int]bool{}
 					if !baseline {
-						for n, width := range map[string]int{"tetris_values": 232, "tetris_shown": 232, "tetris_dirty_cells": 232, "tetris_dirty_values": 232, "tetris_dirty_count": 1} {
+						for n, width := range map[string]int{"tetris_values": 232, "tetris_shown": 232, "tetris_dirty_cells": 232, "tetris_dirty_values": 232, "tetris_dirty_count": 1, "board_dirty": 1, "drawn_valid": 1, "drawn_type": 1, "drawn_rot": 1, "drawn_x": 1, "drawn_y": 1, "drawn_ghost_y": 1, "drawn_next": 1, "drawn_hold": 1, "render_changed": 1} {
 							for i := 0; i < width; i++ {
 								allowed[int(symbol(n))+i] = true
 							}
@@ -396,6 +418,28 @@ func TestTetrisSceneTemporalMachine(t *testing.T) {
 							t.Fatal("renderer changed gameplay", n)
 						}
 					}
+					if !baseline {
+						gy := y
+						canPlace := func(row int) bool {
+							for _, p := range geometry[1] {
+								cx, cy := x+p[0], row+p[1]
+								if cx >= 10 || cy >= 20 || board[cy*10+cx] != 0 {
+									return false
+								}
+							}
+							return true
+						}
+						for canPlace(gy + 1) {
+							gy++
+						}
+						if got := m.Memory.ReadByteInternal(symbol("drawn_ghost_y")); int(got) != gy {
+							t.Fatalf("sample %d cached landing %d want %d", sample, got, gy)
+						}
+					}
+					if !baseline && bytes.Equal(previous, want) && c.phaseLast["prepare"] != 0 {
+						t.Fatal("unchanged frame unnecessarily prepared")
+					}
+					samples = append(samples, map[string]any{"sample": sample, "pose": []int{x, y, next, hold}, "render_wait_T": c.elapsed, "publish_T": c.publishT, "phases_T": c.phaseLast, "video_frames": m.FrameCount() - sampleFrames})
 					transient += c.transient
 					if c.publishT > maxPublish {
 						maxPublish = c.publishT
@@ -421,12 +465,12 @@ func TestTetrisSceneTemporalMachine(t *testing.T) {
 				if c.irq == 0 {
 					t.Fatal("no IM2 interrupts")
 				}
-				result, _ := json.MarshalIndent(map[string]any{"PASS": true, "baseline": baseline, "mode": mode, "samples": 12, "partial_frames": partial, "displayed_frames": displayed, "transient_erase_observations": transient, "max_render_including_wait_T": maxRender, "max_publish_T": maxPublish, "binary_bytes": len(a.Binary), "IM2_IRQ": c.irq, "phase_max_T": c.phaseMax}, "", "  ")
+				result, _ := json.MarshalIndent(map[string]any{"PASS": true, "baseline": baseline, "mode": mode, "samples": len(poses), "partial_frames": partial, "displayed_frames": displayed, "transient_erase_observations": transient, "max_render_including_wait_T": maxRender, "max_publish_T": maxPublish, "binary_bytes": len(a.Binary), "IM2_IRQ": c.irq, "phase_max_T": c.phaseMax, "per_sample": samples}, "", "  ")
 				save("result.json", result)
 				save("program.a80", []byte(assembly))
 				save("program.bin", a.Binary)
 				t.Logf("%s: partial=%d/%d transient=%d publish=%d T renderer+wait=%d T bytes=%d IRQ=%d", name, partial, displayed, transient, maxPublish, maxRender, len(a.Binary), c.irq)
-				t.Logf("phase timings: %v", c.phaseMax)
+				t.Logf("phase timings: %v; samples: %v", c.phaseMax, samples)
 			})
 		}
 	}

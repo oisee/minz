@@ -96,6 +96,18 @@ global PREVIEW_Y: u8      = 3
 
 // ── Game state ──────────────────────────────────────────────────────────────
 
+// Render ownership state, independent of collision/game coordinates.
+global board_dirty: u8 = 1
+global drawn_valid: u8 = 0
+global drawn_type: u8 = 0
+global drawn_rot: u8 = 0
+global drawn_x: u8 = 0
+global drawn_y: u8 = 0
+global drawn_ghost_y: u8 = 0
+global drawn_next: u8 = 0
+global drawn_hold: u8 = 255
+global render_changed: u8 = 1
+
 global board: [u8; 200]       // 10x20, row-major. 0=empty, 1-7=piece color index
 
 global cur_type: u8 = 0
@@ -222,6 +234,7 @@ fun board_get(x: u8, y: u8) -> u8 {
 }
 
 fun board_set(x: u8, y: u8, val: u8) -> void {
+    board_dirty = 1
     board[u16(y) * u16(BOARD_W) + u16(x)] = val
 }
 
@@ -498,15 +511,50 @@ fun render_preview(t: u8, offset: u8) -> void {
     }
 }
 
-fun compose() -> void {
-    // Build the final image without touching screen RAM. An unchanged active
-    // cell is never briefly replaced by the underlying board colour.
-    var i: u8 = 0
-    while i < 200 {
-        tetris_values[i] = color_attr(board[i])
-        i = i + 1
+fun restore_piece(t: u8, r: u8, x: u8, y: u8) -> void {
+    var c: u8 = 0
+    while c < 4 {
+        let cx: u8 = x + piece_dx(t, r, c)
+        let cy: u8 = y + piece_dy(t, r, c)
+        if (cx < BOARD_W) & (cy < BOARD_H) {
+            let cell: u8 = cy * 10 + cx
+            tetris_values[cell] = CELL_COLORS[board[cell]]
+        }
+        c = c + 1
     }
-    let gy: u8 = ghost_y()
+}
+
+fun compose() -> void {
+    render_changed = 1
+    if drawn_valid != 0 {
+        if board_dirty == 0 {
+            if (cur_type == drawn_type) & (cur_rot == drawn_rot) & (cur_x == drawn_x) & (cur_y == drawn_y) {
+                if (next_type == drawn_next) & (hold_type == drawn_hold) {
+                    render_changed = 0
+                    return
+                }
+            }
+        }
+    }
+    let refresh: u8 = board_dirty | (drawn_valid xor 1)
+    if refresh != 0 {
+        var i: u8 = 0
+        while i < 200 {
+            tetris_values[i] = CELL_COLORS[board[i]]
+            i = i + 1
+        }
+    } else {
+        // Restore only the previous overlay footprint in the private buffer.
+        // Screen RAM still receives the complete final value, never this erase.
+        restore_piece(drawn_type, drawn_rot, drawn_x, drawn_y)
+        if drawn_ghost_y != drawn_y {
+            restore_piece(drawn_type, drawn_rot, drawn_x, drawn_ghost_y)
+        }
+    }
+    var gy: u8 = drawn_ghost_y
+    if (refresh != 0) | (cur_type != drawn_type) | (cur_rot != drawn_rot) | (cur_x != drawn_x) | (cur_y < drawn_y) {
+        gy = ghost_y()
+    }
     if gy != cur_y {
         let gc: u8 = (piece_color(cur_type) >> 3) & 7
         var c: u8 = 0
@@ -531,13 +579,26 @@ fun compose() -> void {
         }
         c = c + 1
     }
-    render_preview(next_type, 200)
-    render_preview(hold_type, 216)
+    if (drawn_valid == 0) | (next_type != drawn_next) {
+        render_preview(next_type, 200)
+    }
+    if (drawn_valid == 0) | (hold_type != drawn_hold) {
+        render_preview(hold_type, 216)
+    }
+    drawn_valid = 1
+    board_dirty = 0
+    drawn_type = cur_type
+    drawn_rot = cur_rot
+    drawn_x = cur_x
+    drawn_y = cur_y
+    drawn_ghost_y = gy
+    drawn_next = next_type
+    drawn_hold = hold_type
 }
 
 fun render() -> void {
     compose()
-    tetris_prepare()
+    if render_changed != 0 { tetris_prepare() }
     zx_halt()
     tetris_publish()
 }
@@ -597,6 +658,8 @@ fun do_lock_and_clear() -> void {
 // ── Main ────────────────────────────────────────────────────────────────────
 
 fun main() -> void {
+    board_dirty = 1
+    drawn_valid = 0
     // Clear board
     for i in 0..200 {
         board[i] = 0
