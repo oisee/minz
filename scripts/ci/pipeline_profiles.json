@@ -636,6 +636,7 @@
     "TestRegionCompareMeasuredSites",
     "TestRegionCompareTypedTokenizerMeasured",
     "TestReturnTailOriginalParserNative",
+    "TestRuntimeSpriteMeasuredCompositionHeldout",
     "TestScorpionLibraryNative",
     "TestSeededPointerWalkMeasuredCaller",
     "TestSumProfileCostFullU8Domain",

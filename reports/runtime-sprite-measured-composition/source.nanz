@@ -1,0 +1,8 @@
+import hw.sprite
+fun paint(frame:^u8) { @sprite() {
+ destination "linear_relative" "frame" 6 1 6
+ region 0 0 6 1
+ row "fff00faa5500" "00050340aaff"
+} }
+fun is_visible(value:u8)->u8 { if value==0 {return 0} if value==255 {return 0} return 1 }
+fun render(frame:^u8,value:u8) { if is_visible(value)!=0 {paint(frame)} }

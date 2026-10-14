@@ -40,6 +40,8 @@ all V3 stories remain future work. Disk SAVE uses the emulator's TR-DOS API.
 
 [**Full report: MinZ today — Nanz, the other frontends, compiler layers, and verified Z80**](reports/2026-10-11-092-grace-vm-z80-status.md) (Russian). A readable tour of the shared pipeline, Grace, PFCCO/PBQP and register-allocation tables, with measured results and remaining gaps. Research-branch results are identified separately from what is available in `main`. Updated October 13: compiler integration is in `main` (PR #85), with a shared Nanz hardware library, ROM/IRQ-verified Spectrum rotozoomer and moving compiled/PUSH sprites, explicit full-checkpoint results and parallel deep tests on release tags/nightly/manual runs.
 
+[Measured runtime sprites](reports/runtime-sprite-measured-composition/README.md): compose checked register-assignment fragments, retain a live base, and select tables plus conditional layouts on training inputs; replay the exact winner on heldout buffers.
+
 [Runtime-base structural sprites](reports/structured-sprite-runtime-base/README.md): specialize mask/data and screen offsets while taking a checked caller pointer at runtime; independent VM/Z80 full-memory checks include pointer wrap.
 
 [Measured build selection CLI](reports/conditional-layout-cli/README.md): choose compiler modes and a conditional layout by native Z80 timing or size, then replay the saved winner on heldout inputs. Includes complete artifacts and independent tokenizer checks.

@@ -11,6 +11,24 @@
 [Контракт, пример и результаты](structured-emit-hygiene/README.md).
 Этот раздел публикуется вместе с исправлением, отдельного ускорения не заявляем.
 
+## Интегрировано 14 октября: runtime DSL + таблицы + измерение
+
+Runtime masked sprite теперь работает с именованными workload-буферами. Совместный
+API сравнивает восемь compiler/table режимов и три раскладки условного caller-helper:
+Speed 97→89 байт, heldout 2553→2372 T; Size 97→88 байт, heldout 2553→2383 T.
+Базовый ASM/BIN отдельно сверен с предыдущим компилятором. Новый допуск constant
+pointer ADD, доказательство равенства живых копий и out-of-place address patterns
+позволяют держать базу в DE, результат в HL и masked byte в A.
+[Полный отчёт, исходник и ограничения](runtime-sprite-measured-composition/README.md).
+
+Этот checkpoint уже в main: [#123](https://github.com/oisee/minz/pull/123),
+`943f9a28`. Дополнительного
+вклада PFCCO или Grace на данном примере нет; pinned таблицы пока подключаются
+через API, а не через новый CLI. Отложенные descriptor проверки уже в main через
+[#120](https://github.com/oisee/minz/pull/120), bounded отсев разбиений — через
+[#121](https://github.com/oisee/minz/pull/121). Широкая цель переноса полезных
+VIR/WFC решений этим отдельным результатом ещё не объявляется завершённой.
+
 ## Дополнение 14 октября: байтовые shape-кандидаты и runtime DSL
 
 Byte LOAD/STORE и canonical pointer expressions теперь допускаются в ограниченном

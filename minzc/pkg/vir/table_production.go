@@ -54,6 +54,10 @@ func prepareSingleBlockTableProblem(f *mir2.Func, allocation *mir2.AllocResult) 
 			return nil, fmt.Errorf("hard class or invalid local definition unsupported")
 		}
 		arity := 0
+		// HIR binary pointer + constant retains u16 literals or widens narrow
+		// literals to TyPtr. Preserve that exact MIR with a constant RHS;
+		// runtime pointer offsets use the separately typed OpPtrAdd contract.
+		pointerConstantAdd := inst.Op == mir2.OpAdd && inst.Ty == mir2.TyPtr
 		switch inst.Op {
 		case mir2.OpConst:
 			if inst.Ty == mir2.TyPtr && (inst.Imm < 0 || inst.Imm > 65535) {
@@ -88,7 +92,7 @@ func prepareSingleBlockTableProblem(f *mir2.Func, allocation *mir2.AllocResult) 
 			}
 		case mir2.OpAdd, mir2.OpSub, mir2.OpAnd, mir2.OpOr, mir2.OpXor:
 			arity = 2
-			if !localIntegerType(inst.Ty) {
+			if !localIntegerType(inst.Ty) && !pointerConstantAdd {
 				return nil, fmt.Errorf("local integer operation requires integer type")
 			}
 		default:
@@ -107,6 +111,10 @@ func prepareSingleBlockTableProblem(f *mir2.Func, allocation *mir2.AllocResult) 
 				valid := r > 0 && defined[r] == want
 				if inst.Op == mir2.OpPtrAdd && i == 1 {
 					valid = r > 0 && (defined[r] == mir2.TyU16 || defined[r] == mir2.TyI16)
+				}
+				if pointerConstantAdd && i == 1 {
+					constant, exists := constants[r]
+					valid = r > 0 && (defined[r] == mir2.TyPtr || defined[r] == mir2.TyU16) && exists && constant >= 0 && constant <= 65535
 				}
 				if !valid {
 					return nil, fmt.Errorf("missing, unbound or mistyped local input vreg %d", r)
