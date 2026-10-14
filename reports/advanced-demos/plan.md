@@ -39,3 +39,16 @@ milestone with rendering and declarative-library work, not a completion claim.
 No global optimality is claimed: selection means the best admitted candidate for
 its explicit objective and measured workload. Deep corpora remain release/nightly
 checks; focused temporal/gameplay regressions run on PRs.
+
+## Temporal shadow checkpoint — 14 October 2026
+
+The whole-sprite consumer now has a verified shadow compositor on Spectrum 48K:
+201 fetched frames across three compiler modes, no partial frames; the early
+publication control detects two mixed frames. Conditional-call flag lowering
+and an unsafe CALL peephole are fixed (`72ca40b1`). MIR2 and all 393 fast pipeline
+entries pass. The deeper native band matrix also passes independently.
+
+See [the measured renderer report](tetris/temporal-shadow.md). The playable main
+still uses the previous renderer. Pixel gravity/input integration, preparation
+cost reduction, the new 0x6000-code/0xE000-shadow playable build, main integration
+and release remain required. This checkpoint does not complete the goal.

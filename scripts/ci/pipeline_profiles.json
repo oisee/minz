@@ -337,6 +337,7 @@
     "TestTetrisPixelActorNative",
     "TestTetrisSceneTemporalMachine",
     "TestTetrisSequenceIndependentModelControls",
+    "TestTetrisShadowTemporalMachine",
     "TestTokenizerContractObjectiveAttribution",
     "TestTokenizerIndependentHostKnownSemantics",
     "TestTruncMaskKeepsByteStoreIdentityAndFaultPrefix",
@@ -389,7 +390,6 @@
     "TestZXBankedMemoryNative",
     "TestZXHalfCellRotozoomerFullMachine",
     "TestZXHalfCellRotozoomerLibraryFullMachine",
-    "TestZXPixelBandsNative",
     "TestZXStagedSpriteNative",
     "TestZXStoryLogicalMemoryNative",
     "TestZXWholeSpriteAdmission",
@@ -750,6 +750,7 @@
     "TestZMachineZorkIILateDiskRestoreFreshNative",
     "TestZMachineZorkIIWindowDiskConsoleSaveAcrossRestart",
     "TestZMachineZorkWindowDiskConsoleSaveAcrossRestart",
-    "TestZXBankedMemoryAllPagesNative"
+    "TestZXBankedMemoryAllPagesNative",
+    "TestZXPixelBandsNative"
   ]
 }

@@ -17,6 +17,10 @@ func TestZXPixelBandsNative(t *testing.T) {
 	source := `import zx.pixel_bands
 import zx.sprite
 @pixel_bands("bands") { rows 2 }
+@pixel_bands("colored") {
+ rows 2
+ attributes 1
+}
 @zx_sprite("Tile") {
  size 8 8
  pixels "........"
@@ -36,6 +40,16 @@ fun copy_prepared(source:u16,destination:u16,width:u8)->u8 {
  bands_sources[0]=source bands_destinations[0]=destination
  bands_widths[0]=width bands_count=1
  bands_publish()
+ return 1
+}
+fun copy_attributes(source:u16,destination:u16,width:u8,attrs:u16)->u8 {
+ pixel_band_copy_attributes(ptr(source),ptr(destination),width,ptr(attrs))
+ return 1
+}
+fun copy_colored(source:u16,destination:u16,width:u8,attrs:u16)->u8 {
+ colored_sources[0]=source colored_destinations[0]=destination
+ colored_widths[0]=width colored_attributes[0]=attrs colored_count=1
+ colored_publish()
  return 1
 }
 fun draw_surface(x:u8,y:u8,base:u16)->u8 {
@@ -101,10 +115,17 @@ fun draw_surface(x:u8,y:u8,base:u16)->u8 {
 						allowed[int(a.Symbols[symbol])+i] = true
 					}
 				}
-				if name == "copy_prepared" {
-					for _, symbol := range []string{"bands_sources", "bands_destinations", "bands_widths", "bands_count"} {
+				if name == "copy_prepared" || name == "copy_colored" {
+					prefix := "bands_"
+					names := []string{"sources", "destinations", "widths", "count"}
+					if name == "copy_colored" {
+						prefix = "colored_"
+						names = append(names, "attributes")
+					}
+					for _, suffix := range names {
+						symbol := prefix + suffix
 						size := 1
-						if symbol == "bands_sources" || symbol == "bands_destinations" {
+						if suffix == "sources" || suffix == "destinations" || suffix == "attributes" {
 							size = 2
 						}
 						for i := 0; i < size; i++ {
@@ -145,7 +166,7 @@ fun draw_surface(x:u8,y:u8,base:u16)->u8 {
 					}
 				}
 			}
-			for _, entry := range []string{"copy_band", "copy_prepared"} {
+			for _, entry := range []string{"copy_band", "copy_prepared", "copy_attributes", "copy_colored"} {
 				for row := 0; row < 24; row++ {
 					for _, span := range [][2]int{{0, 1}, {0, 10}, {11, 10}, {30, 1}, {0, 0}, {0, 32}} {
 						left, width := span[0], span[1]
@@ -154,12 +175,22 @@ fun draw_surface(x:u8,y:u8,base:u16)->u8 {
 							return base + (y/64)*2048 + (y%8)*256 + ((y/8)%8)*32 + left
 						}
 						src, dst := address(0x6000, row, 0), address(0x4000, 23-row, 0)
-						run(entry, []int64{int64(src), int64(dst), int64(width)}, 1, func(want []byte) {
+						args := []int64{int64(src), int64(dst), int64(width)}
+						attrs := 0x7800 + row*32 + left
+						colored := entry == "copy_attributes" || entry == "copy_colored"
+						if colored {
+							args = append(args, int64(attrs))
+						}
+						run(entry, args, 1, func(want []byte) {
 							if width == 0 || width > 31 {
 								return
 							}
 							for scan := 0; scan < 8; scan++ {
 								copy(want[address(0x4000, 23-row, scan):address(0x4000, 23-row, scan)+width], want[address(0x6000, row, scan):address(0x6000, row, scan)+width])
+							}
+							if colored {
+								at := 0x5800 + (23-row)*32 + left
+								copy(want[at:at+width], want[attrs:attrs+width])
 							}
 						}, false)
 					}

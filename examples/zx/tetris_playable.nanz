@@ -805,25 +805,24 @@ fun FallingPose.stage(self:^FallingPose)->bool {return self.stage_into(0x4000)}
 // Keep each address calculation local; four simultaneous live pointer walks
 // would force avoidable spills before the frame boundary.
 fun stage_tetris_cell(actor:^FallingPose,c:u8,base:u16)->bool {
-    let index:u16=u16(actor.kind)*16+u16(actor.rotation)*4+u16(c)
-    let x:u16=(u16(BOARD_X)+u16(actor.x)+u16(PIECE_DX[index]))*8
-    let y:u16=(u16(BOARD_Y)+u16(actor.y)+u16(PIECE_DY[index]))*8+u16(actor.phase)
-    if x+8>256 {return false}
-    if y+8>192 {return false}
+    let index:u8=actor.kind*16+actor.rotation*4+c
+    let x:u8=(BOARD_X+actor.x+PIECE_DX[index])*8
+    let y:u8=(BOARD_Y+actor.y+PIECE_DY[index])*8+actor.phase
+    // Each generated stage_on checks pixel bounds before patching operands.
     if c==0 {
-        let cell:FallingBlock_0=FallingBlock_0{x:u8(x),y:u8(y)}
+        let cell:FallingBlock_0=FallingBlock_0{x:x,y:y}
         return cell.stage_on(base)
     }
     if c==1 {
-        let cell:FallingBlock_1=FallingBlock_1{x:u8(x),y:u8(y)}
+        let cell:FallingBlock_1=FallingBlock_1{x:x,y:y}
         return cell.stage_on(base)
     }
     if c==2 {
-        let cell:FallingBlock_2=FallingBlock_2{x:u8(x),y:u8(y)}
+        let cell:FallingBlock_2=FallingBlock_2{x:x,y:y}
         return cell.stage_on(base)
     }
     if c==3 {
-        let cell:FallingBlock_3=FallingBlock_3{x:u8(x),y:u8(y)}
+        let cell:FallingBlock_3=FallingBlock_3{x:x,y:y}
         return cell.stage_on(base)
     }
     return false
@@ -863,14 +862,17 @@ fun publish_pixel_actor()->bool {
 
 fun stage_pixel_actor_shadow()->bool {
     let actor:FallingPose=FallingPose{kind:cur_type,rotation:cur_rot,x:cur_x,y:cur_y,phase:pixel_phase}
-    return actor.stage_into(0x6000)
+    return actor.stage_into(0xe000)
 }
 
-// Shadow bitmap occupies ordinary RAM below code; only the 10x20 field is
+// Shadow bitmap occupies uncontended RAM above code; only the 10x20 field is
 // modified after startup. Prepared sources stay frozen until publication.
 import zx.pixel_bands
-@pixel_bands("field_pixels") {rows 20}
-// Owned RAM bitmap at 0x6000..0x77ff; addressed explicitly, not emitted data.
+@pixel_bands("field_pixels") {
+    rows 20
+    attributes 1
+}
+// Owned RAM bitmap at 0xe000..0xf7ff; addressed explicitly, not emitted data.
 global pixel_left:[u8;20]
 global pixel_right:[u8;20]
 global drawn_phase:u8=0
@@ -906,7 +908,7 @@ fun pixel_mark_pose(t:u8,r:u8,x:u8,y:u8,phase:u8) {
 fun pixel_restore_cell(x:u8,y:u8) {
     var value:u8=0
     if board[y*10+x]!=0 {value=255}
-    var p:^u8=ptr(zx_screen_addr(11+x,(2+y)*8)+0x2000)
+    var p:^u8=ptr(zx_screen_addr(11+x,(2+y)*8)+0xa000)
     var row:u8=0
     while row<8 {
         p^=value
@@ -948,26 +950,15 @@ fun pixel_prepare_bands() {
         let right:u8=pixel_right[y]
         if left<right {
             let destination:u16=zx_screen_addr(11+left,(2+y)*8)
-            let source:u16=destination+0x2000
-            var dirty:u8=0
-            var scan:u8=0
-            while scan<8 {
-                let offset:u16=u16(scan)*256
-                var col:u8=0
-                while col<right-left {
-                    let screen:^u8=ptr(destination+offset+u16(col))
-                    let shadow:^u8=ptr(source+offset+u16(col))
-                    if screen^!=shadow^ {dirty=1}
-                    col=col+1
-                }
-                scan=scan+1
-            }
-            if dirty!=0 {
-                field_pixels_sources[field_pixels_count]=source
-                field_pixels_destinations[field_pixels_count]=destination
-                field_pixels_widths[field_pixels_count]=right-left
-                field_pixels_count=field_pixels_count+1
-            }
+            let source:u16=destination+0xa000
+            // The compositor already owns the exact old/new footprint. Copy
+            // those bounded spans directly; scanning every byte costs more
+            // than publishing a short unchanged span.
+            field_pixels_sources[field_pixels_count]=source
+            field_pixels_destinations[field_pixels_count]=destination
+            field_pixels_attributes[field_pixels_count]=u16(&tetris_values[y*10+left])
+            field_pixels_widths[field_pixels_count]=right-left
+            field_pixels_count=field_pixels_count+1
         }
         y=y+1
     }
@@ -989,7 +980,7 @@ fun pixel_init() {
     var index:u16=0
     while index<6144 {
         let source:^u8=ptr(0x4000+index)
-        let destination:^u8=ptr(0x6000+index)
+        let destination:^u8=ptr(0xe000+index)
         destination^=source^
         index=index+1
     }
@@ -1019,12 +1010,64 @@ fun render_smooth()->bool {
     pixel_actor_attributes()
     publish_pixel_actor() // baked stores compose privately into the shadow.
     pixel_prepare_bands()
-    tetris_prepare()
     drawn_phase=pixel_phase
     zx_halt()
     asm z80 {DI}
-    tetris_publish()
+    // A full-field refresh starts after the beam has left the owned rows.
+    // It can use the bottom border and next frame's top border as headroom.
+    if field_pixels_count>4 {pixel_wait_field_end()}
+    pixel_publish_previews()
     field_pixels_publish()
     asm z80 {EI}
     return true
+}
+
+// Preview attributes are published before the raster-ordered field bands.
+fun pixel_publish_previews() {
+    let p200:^u8=ptr(22647) p200^=tetris_values[200]
+    let p201:^u8=ptr(22648) p201^=tetris_values[201]
+    let p202:^u8=ptr(22649) p202^=tetris_values[202]
+    let p203:^u8=ptr(22650) p203^=tetris_values[203]
+    let p204:^u8=ptr(22679) p204^=tetris_values[204]
+    let p205:^u8=ptr(22680) p205^=tetris_values[205]
+    let p206:^u8=ptr(22681) p206^=tetris_values[206]
+    let p207:^u8=ptr(22682) p207^=tetris_values[207]
+    let p208:^u8=ptr(22711) p208^=tetris_values[208]
+    let p209:^u8=ptr(22712) p209^=tetris_values[209]
+    let p210:^u8=ptr(22713) p210^=tetris_values[210]
+    let p211:^u8=ptr(22714) p211^=tetris_values[211]
+    let p212:^u8=ptr(22743) p212^=tetris_values[212]
+    let p213:^u8=ptr(22744) p213^=tetris_values[213]
+    let p214:^u8=ptr(22745) p214^=tetris_values[214]
+    let p215:^u8=ptr(22746) p215^=tetris_values[215]
+    let p216:^u8=ptr(22629) p216^=tetris_values[216]
+    let p217:^u8=ptr(22630) p217^=tetris_values[217]
+    let p218:^u8=ptr(22631) p218^=tetris_values[218]
+    let p219:^u8=ptr(22632) p219^=tetris_values[219]
+    let p220:^u8=ptr(22661) p220^=tetris_values[220]
+    let p221:^u8=ptr(22662) p221^=tetris_values[221]
+    let p222:^u8=ptr(22663) p222^=tetris_values[222]
+    let p223:^u8=ptr(22664) p223^=tetris_values[223]
+    let p224:^u8=ptr(22693) p224^=tetris_values[224]
+    let p225:^u8=ptr(22694) p225^=tetris_values[225]
+    let p226:^u8=ptr(22695) p226^=tetris_values[226]
+    let p227:^u8=ptr(22696) p227^=tetris_values[227]
+    let p228:^u8=ptr(22725) p228^=tetris_values[228]
+    let p229:^u8=ptr(22726) p229^=tetris_values[229]
+    let p230:^u8=ptr(22727) p230^=tetris_values[230]
+    let p231:^u8=ptr(22728) p231^=tetris_values[231]
+}
+
+// Spectrum 48K: the last mutable field scanline is 175. After the frame INT,
+// 2080 iterations consume 54085 T (including LD BC), beyond scanline 175.
+// Caller has excluded INT; code must reside above the contended RAM window.
+fun pixel_wait_field_end() {
+    asm z80 {
+        LD BC,2080
+pixel_wait_field_loop:
+        DEC BC
+        LD A,B
+        OR C
+        JR NZ,pixel_wait_field_loop
+    }
 }

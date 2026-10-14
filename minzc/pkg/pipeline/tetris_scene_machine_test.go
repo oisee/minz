@@ -53,6 +53,8 @@ type tetrisSceneObserver struct {
 	start, publishStart, elapsed, publishT int64
 	publish                                uint16
 	minSP                                  uint16
+	returnSP                               uint16
+	returnPC                               uint16
 	phases                                 map[uint16]string
 	activePhase                            string
 	phaseReturn, phaseSP                   uint16
@@ -101,8 +103,16 @@ func (c *tetrisSceneObserver) DoOpcode() {
 	if !c.done && c.PC() == c.publish && c.publish != 0 {
 		c.publishStart = c.m.AbsoluteTStates()
 	}
-	if !c.done && c.PC() == 0x7000 {
-		if c.SP() != 0xeff2 {
+	returnPC := c.returnPC
+	if returnPC == 0 {
+		returnPC = 0x7000
+	}
+	if !c.done && c.PC() == returnPC {
+		expectedSP := c.returnSP
+		if expectedSP == 0 {
+			expectedSP = 0xeff2
+		}
+		if c.SP() != expectedSP {
 			c.t.Fatal("renderer return SP", c.SP())
 		}
 		if !c.IFF1() || !c.IFF2() {
@@ -110,6 +120,7 @@ func (c *tetrisSceneObserver) DoOpcode() {
 		}
 		c.done = true
 		c.elapsed = c.m.AbsoluteTStates() - c.start
+		c.publishT = 0
 		if c.publishStart != 0 {
 			c.publishT = c.m.AbsoluteTStates() - c.publishStart
 		}
@@ -351,13 +362,13 @@ func TestTetrisSceneTemporalMachine(t *testing.T) {
 					c.CPUCore.Reset()
 					c.SetTstates(ts)
 					c.SetPC(symbol(entry))
-					c.SetSP(0xeff0)
+					c.SetSP(0xfce0)
 					c.SetI(0xfe)
 					c.SetIM(2)
 					c.SetIFF1(true)
 					c.SetIFF2(true)
-					m.Memory.Write(0xeff0, 0, false)
-					m.Memory.Write(0xeff1, 0x70, false)
+					m.Memory.Write(0xfce0, 0, false)
+					m.Memory.Write(0xfce1, 0x70, false)
 					m.Memory.Write(0x7000, 0x76, false)
 					c.done, c.irqActive = false, false
 					c.unchanged = unchanged
@@ -366,7 +377,8 @@ func TestTetrisSceneTemporalMachine(t *testing.T) {
 					c.start = m.AbsoluteTStates()
 					c.phaseLast = map[string]int64{}
 					sampleFrames := m.FrameCount()
-					c.minSP = 0xeff0
+					c.minSP = 0xfce0
+					c.returnSP = 0xfce2
 					beforeRAM := make([]byte, 65536)
 					for address := range beforeRAM {
 						beforeRAM[address] = m.Memory.ReadByteInternal(uint16(address))
@@ -426,7 +438,7 @@ func TestTetrisSceneTemporalMachine(t *testing.T) {
 						expected := old
 						if address >= 0x4000 && address < 0x5b00 {
 							expected = want[address-0x4000]
-						} else if allowed[address] || (address >= int(c.minSP) && address < 0xeff0) {
+						} else if allowed[address] || (address >= int(c.minSP) && address < 0xfce0) {
 							continue
 						}
 						if value := m.Memory.ReadByteInternal(uint16(address)); value != expected {
