@@ -1,0 +1,117 @@
+name: Demo platform packages
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [feat/demo-six-platforms]
+    paths:
+      - '.github/workflows/demo-platforms.yml'
+      - 'scripts/package_demo_release.py'
+      - 'scripts/verify_demo_release.py'
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    name: Package ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: darwin-amd64
+            runner: macos-15-intel
+            extension: ''
+          - platform: darwin-arm64
+            runner: macos-15
+            extension: ''
+          - platform: windows-arm64
+            runner: windows-11-arm
+            extension: '.exe'
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash
+    env:
+      MACOSX_DEPLOYMENT_TARGET: '12.0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.8'
+          cache-dependency-path: minzc/go.sum
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Build native GUI and headless executables
+        env:
+          TARGET: ${{ matrix.platform }}
+          EXT: ${{ matrix.extension }}
+        run: |
+          set -euo pipefail
+          mkdir -p out/build
+          go version > out/build/toolchain.txt
+          printf '%s\n' "$RUNNER_OS/$RUNNER_ARCH" > out/build/runner.txt
+          go -C minzc build -trimpath -ldflags "-s -w -X main.version=0.25.0 -X main.gitCommit=$(git rev-parse --short HEAD)" -o "$PWD/out/build/mzx$EXT" ./cmd/mzx
+          go -C minzc build -trimpath -tags mzx_headless -ldflags '-s -w' -o "$PWD/out/build/mzx-headless$EXT" ./cmd/mzx
+          go version -m "out/build/mzx$EXT" > out/build/binary-info.txt
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            codesign --force --sign - out/build/mzx
+            codesign --force --sign - out/build/mzx-headless
+          fi
+      - name: Package and run final native files
+        env:
+          TARGET: ${{ matrix.platform }}
+          EXT: ${{ matrix.extension }}
+        run: |
+          set -euo pipefail
+          python3 scripts/package_demo_release.py --platform "$TARGET=$PWD/out/build/mzx$EXT" --headless-platform "$TARGET=$PWD/out/build/mzx-headless$EXT" --output out/packages --version 0.25.0
+          python3 scripts/verify_demo_release.py "out/packages/minz-demos-0.25.0-$TARGET" --proof out/proof
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            codesign --verify --deep --strict "out/packages/minz-demos-0.25.0-$TARGET/MinZ Demos.app"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: demos-${{ matrix.platform }}
+          path: out/
+          if-no-files-found: error
+
+  linux_arm:
+    name: Package linux-arm64
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.8'
+          cache-dependency-path: minzc/go.sum
+      - name: Build and verify on ARM64 with Raspberry Pi OS Bookworm-compatible libc
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          docker run --rm -v "$PWD:/work" -v "$GOROOT:/opt/go:ro" -w /work -e PATH=/opt/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -e LIBGL_ALWAYS_SOFTWARE=1 debian:bookworm bash -ec '
+            apt-get update
+            apt-get install -y --no-install-recommends gcc libc6-dev git python3 pkg-config libasound2-dev libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev libxxf86vm-dev libgl1-mesa-dev libgl1-mesa-dri xvfb xauth file
+            git config --global --add safe.directory /work
+            mkdir -p out/build
+            go version > out/build/toolchain.txt
+            uname -m > out/build/runner.txt
+            ldd --version > out/build/libc.txt
+            go -C minzc build -trimpath -ldflags "-s -w -X main.version=0.25.0 -X main.gitCommit=$(git rev-parse --short HEAD)" -o /work/out/build/mzx ./cmd/mzx
+            go -C minzc build -trimpath -tags mzx_headless -ldflags "-s -w" -o /work/out/build/mzx-headless ./cmd/mzx
+            go version -m out/build/mzx > out/build/binary-info.txt
+            file out/build/mzx > out/build/file.txt
+            ldd out/build/mzx > out/build/libraries.txt
+            python3 scripts/package_demo_release.py --platform linux-arm64=/work/out/build/mzx --headless-platform linux-arm64=/work/out/build/mzx-headless --output out/packages --version 0.25.0
+            xvfb-run -a -s "-screen 0 1024x768x24" python3 scripts/verify_demo_release.py out/packages/minz-demos-0.25.0-linux-arm64 --proof out/proof
+          '
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: demos-linux-arm64
+          path: out/
+          if-no-files-found: error
