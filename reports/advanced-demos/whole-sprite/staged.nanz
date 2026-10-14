@@ -1,0 +1,24 @@
+import zx.sprite
+
+// A whole falling block: no cell-row functions or screen addresses at call sites.
+@zx_sprite("Block") {
+    size 8 8
+    pixels "________"
+    pixels "_######_"
+    pixels "_######_"
+    pixels "_######_"
+    pixels "_######_"
+    pixels "_######_"
+    pixels "_######_"
+    pixels "________"
+}
+
+fun stage_block(x:u8,y:u8)->bool {
+    let block:Block=Block{x:x,y:y}
+    return block.stage()
+}
+
+fun publish_block()->bool {
+    let block:Block=Block{x:0,y:0}
+    return block.publish()
+}

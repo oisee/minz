@@ -411,3 +411,190 @@ fun main(){
 		}
 	}
 }
+
+func TestZXStagedSpriteNative(t *testing.T) {
+
+	directSource, err := os.ReadFile("../../../reports/advanced-demos/whole-sprite/staged.nanz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	cancelSource := string(directSource) + `
+fun cancel_direct()->bool {
+ let block:Block=Block{x:112,y:0}
+ if block.stage()==false {return false}
+ if block.draw()==false {return false}
+ return block.publish()==false
+}`
+	parseCancel := func() *hir.Module {
+		h, e := nanz.ParseWithOpts(cancelSource, "cancel-direct-sprite.nanz", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
+		if e != nil {
+			t.Fatal(e)
+		}
+		return h
+	}
+	vmCancel := mir2.NewVM(hir.LowerModule(parseCancel()))
+	vmCancel.EnsureHeap(0x6000)
+	got, err := vmCancel.Call("cancel_direct", nil)
+	if err != nil || len(got) != 1 || got[0].I != 1 {
+		t.Fatal("direct draw did not cancel staged pose", got, err)
+	}
+	for _, opt := range []Options{{AssertMode: "none"}, {AssertMode: "none", UseGrace: true, UseHIRGrace: true}, {AssertMode: "none", UseGrace: true, UseHIRGrace: true, OptSize: true}} {
+		measureGraceZ80HIR(t, parseCancel(), "cancel_direct", opt, nil, nil, 1)
+	}
+	src, e := os.ReadFile("../../../reports/advanced-demos/whole-sprite/staged.nanz")
+	if e != nil {
+		t.Fatal(e)
+	}
+	pixels := []string{"________", "_######_", "_######_", "_######_", "_######_", "_######_", "_######_", "________"}
+	parse := func() *hir.Module {
+		h, e := nanz.ParseWithOpts(string(src), "staged-sprite.nanz", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
+		if e != nil {
+			t.Fatal(e)
+		}
+		return h
+	}
+	for mode, opt := range []Options{{ContractOpt: true, AssertMode: "none"}, {ContractOpt: true, AssertMode: "none", UseGrace: true, UseHIRGrace: true}, {ContractOpt: true, AssertMode: "none", UseGrace: true, UseHIRGrace: true, OptSize: true}} {
+		t.Run(fmt.Sprint(mode), func(t *testing.T) {
+			steps, e := CompileHIRSteps(parse(), opt)
+			if e != nil {
+				t.Fatal(e)
+			}
+			minPub, maxPub := int(^uint(0)>>1), 0
+			for _, y := range []int{0, 1, 2, 3, 4, 5, 6, 7, 63, 127, 184, 185} {
+				valid := y <= 184
+				expected := int64(0)
+				if valid {
+					expected = 1
+				}
+				assertion := hir.Assert{FuncName: "stage_block", Args: []int64{112, int64(y)}, Expected: expected, Via: "z80"}
+				f := steps.MIR2Module.FuncByName("stage_block")
+				boot := buildAssertBootstrap(assertLoadAddr, assertion, f, steps.Allocation)
+				a, e := z80asm.NewAssembler().AssembleString(boot + "\n" + steps.Assembly)
+				if e != nil || len(a.Errors) != 0 {
+					t.Fatal(e, a.Errors)
+				}
+				for _, seed := range []int{0, 173} {
+					platform := emulator.NewRemogattoZ80WithScreen()
+					platform.SetROMEnd(0)
+					z := platform.RemogattoZ80
+					z.SetSMCTracker(nil)
+					memory := z.Memory()
+					for at := range memory {
+						memory[at] = byte(at*37 + seed)
+					}
+					z.LoadMemory(assertLoadAddr, a.Binary)
+					z.SetPC(assertLoadAddr)
+					for i := 0; z.GetPC() != uint16(a.Symbols["stage_block"]); i++ {
+						if i > 1000 {
+							t.Fatal("bootstrap")
+						}
+						z.Step()
+					}
+					entrySP := z.GetSP()
+					returnPC := uint16(memory[entrySP]) | uint16(memory[entrySP+1])<<8
+					checkMemory := func(want []byte) {
+						for at, v := range want {
+							if at >= int(entrySP)-64 && at < int(entrySP) {
+								continue
+							}
+							if memory[at] != v {
+								t.Fatalf("y%d seed%d RAM%04x=%02x want%02x", y, seed, at, memory[at], v)
+							}
+						}
+					}
+					execute := func(name string, expected int64) int {
+						begin := z.GetCycles()
+						minimum := entrySP
+						for i := 0; !(z.GetPC() == returnPC && z.GetSP() == entrySP+2); i++ {
+							if i > 20000 {
+								t.Fatal("return", name, z.GetRegisters())
+							}
+							z.Step()
+							if z.GetSP() < minimum {
+								minimum = z.GetSP()
+							}
+						}
+						if minimum < entrySP-64 {
+							t.Fatal("stack bound", minimum)
+						}
+						assertion := hir.Assert{FuncName: name, Expected: expected, Via: "z80"}
+						if e = checkAssertZ80Result(z, assertion, steps.MIR2Module.FuncByName(name), map[string]*hir.Func{name: parse().FuncByName(name)}); e != nil {
+							t.Fatal(e)
+						}
+						return z.GetCycles() - begin
+					}
+					want := append([]byte(nil), memory...)
+					initialScreen := append([]byte(nil), memory[0x4000:0x5b00]...)
+					ready, ok := a.Symbols["Block_ready"]
+					if !ok {
+						t.Fatal("ready symbol")
+					}
+					want[ready] = byte(expected)
+					if valid {
+						for row := 0; row < 8; row++ {
+							scan := y + row
+							address := 0x4000 + (scan/64)*2048 + (scan%8)*256 + ((scan/8)%8)*32 + 112/8
+							slot := a.Symbols[fmt.Sprintf("Block_row_%d$dst$imm", row)]
+							want[slot], want[slot+1] = byte(address), byte(address>>8)
+						}
+					}
+					execute("stage_block", expected)
+					checkMemory(want) // staging never writes bitmap.
+					if valid {
+						wholeSpriteOracle(want, pixels, 112, y)
+					}
+					for repeat := 0; repeat < 2; repeat++ {
+						memory[entrySP], memory[entrySP+1] = byte(returnPC), byte(returnPC>>8)
+						z.SetPC(uint16(a.Symbols["publish_block"]))
+						z.SetSP(entrySP)
+						elapsed := execute("publish_block", expected)
+						checkMemory(want)
+						if valid {
+							if elapsed < minPub {
+								minPub = elapsed
+							}
+							if elapsed > maxPub {
+								maxPub = elapsed
+							}
+						}
+					}
+					for _, module := range []*mir2.Module{hir.LowerModule(parse()), steps.MIR2Module} {
+						vm := mir2.NewVM(module)
+						vm.EnsureHeap(0x6000)
+						vm.WriteHeapSlice(0x4000, initialScreen)
+						untouched := vm.ReadHeap(0x4000, 0x1b00)
+						got, e := vm.Call("publish_block", nil)
+						if e != nil || got[0].I != 0 {
+							t.Fatal("unprepared VM", got, e)
+						}
+						got, e = vm.Call("stage_block", []mir2.Value{{I: 112}, {I: int64(y)}})
+						if e != nil || got[0].I != expected {
+							t.Fatal("stage VM", got, e)
+						}
+						if string(vm.ReadHeap(0x4000, 0x1b00)) != string(untouched) {
+							t.Fatal("stage VM wrote screen")
+						}
+						got, e = vm.Call("publish_block", nil)
+						if e != nil || got[0].I != expected {
+							t.Fatal("publish VM", got, e)
+						}
+						if string(vm.ReadHeap(0x4000, 0x1b00)) != string(want[0x4000:0x5b00]) {
+							t.Fatal("publish VM screen")
+						}
+						if valid {
+							got, e = vm.Call("stage_block", []mir2.Value{{I: 112}, {I: 185}})
+							if e != nil || got[0].I != 0 {
+								t.Fatal("cancel VM", got, e)
+							}
+							got, e = vm.Call("publish_block", nil)
+							if e != nil || got[0].I != 0 {
+								t.Fatal("cancel did not inhibit publication", got, e)
+							}
+						}
+					}
+				}
+			}
+			t.Logf("24 staged poses and 48 repeated publications; full 64K except bounded stack and exact SMC/state; publish %d..%d T", minPub, maxPub)
+		})
+	}
+}

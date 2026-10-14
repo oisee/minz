@@ -30,6 +30,26 @@ import hw.scene
     plane 5 3 4 4
 }
 
+// The pixel actor stages four independent SMC placements from one baked shape.
+// Its publication is separate so a scene can prepare before HALT.
+import zx.sprite
+
+@zx_sprite_instances("FallingBlock") {
+    instances 4
+    size 8 8
+    pixels "........"
+    pixels ".######."
+    pixels ".######."
+    pixels ".######."
+    pixels ".######."
+    pixels ".######."
+    pixels ".######."
+    pixels "........"
+}
+
+struct FallingPose {kind:u8,rotation:u8,x:u8,y:u8,phase:u8}
+global pixel_phase:u8=0
+
 // ── ZX Spectrum primitives ──────────────────────────────────────────────────
 
 fun zx_poke(@z80_hl addr: u16, @z80_a val: u8) -> void {
@@ -754,4 +774,87 @@ fun main() -> void {
         zx_halt()
         zx_halt()
     }
+}
+
+// Pixel geometry belongs to the previous grid row until its eighth step.
+// At phase 1 the six-pixel body still fits that row; at phases 2..7 its
+// lower body crosses the cell boundary and must also fit the following row.
+fun FallingPose.stage(self:^FallingPose)->bool {
+    FallingBlock_0_ready=false
+    FallingBlock_1_ready=false
+    FallingBlock_2_ready=false
+    FallingBlock_3_ready=false
+    if self.kind>=7 {return false}
+    if self.rotation>=4 {return false}
+    if self.x>=BOARD_W {return false}
+    if self.y>=BOARD_H {return false}
+    if self.phase>=8 {return false}
+    if can_place(self.kind,self.rotation,self.x,self.y)==false {return false}
+    if self.phase>1 {
+        if can_place(self.kind,self.rotation,self.x,self.y+1)==false {return false}
+    }
+    if stage_tetris_cell(self,0)==false {return false}
+    if stage_tetris_cell(self,1)==false {return false}
+    if stage_tetris_cell(self,2)==false {return false}
+    if stage_tetris_cell(self,3)==false {return false}
+    return true
+}
+
+// Keep each address calculation local; four simultaneous live pointer walks
+// would force avoidable spills before the frame boundary.
+fun stage_tetris_cell(actor:^FallingPose,c:u8)->bool {
+    let index:u16=u16(actor.kind)*16+u16(actor.rotation)*4+u16(c)
+    let x:u16=(u16(BOARD_X)+u16(actor.x)+u16(PIECE_DX[index]))*8
+    let y:u16=(u16(BOARD_Y)+u16(actor.y)+u16(PIECE_DY[index]))*8+u16(actor.phase)
+    if x+8>256 {return false}
+    if y+8>192 {return false}
+    if c==0 {
+        let cell:FallingBlock_0=FallingBlock_0{x:u8(x),y:u8(y)}
+        return cell.stage()
+    }
+    if c==1 {
+        let cell:FallingBlock_1=FallingBlock_1{x:u8(x),y:u8(y)}
+        return cell.stage()
+    }
+    if c==2 {
+        let cell:FallingBlock_2=FallingBlock_2{x:u8(x),y:u8(y)}
+        return cell.stage()
+    }
+    if c==3 {
+        let cell:FallingBlock_3=FallingBlock_3{x:u8(x),y:u8(y)}
+        return cell.stage()
+    }
+    return false
+}
+
+fun FallingPose.publish(self:^FallingPose)->bool {
+    if FallingBlock_0_ready==false {return false}
+    if FallingBlock_1_ready==false {return false}
+    if FallingBlock_2_ready==false {return false}
+    if FallingBlock_3_ready==false {return false}
+    let cell0:FallingBlock_0=FallingBlock_0{x:0,y:0}
+    cell0.publish()
+    let cell1:FallingBlock_1=FallingBlock_1{x:0,y:0}
+    cell1.publish()
+    let cell2:FallingBlock_2=FallingBlock_2{x:0,y:0}
+    cell2.publish()
+    let cell3:FallingBlock_3=FallingBlock_3{x:0,y:0}
+    cell3.publish()
+    return true
+}
+
+fun FallingPose.draw(self:^FallingPose)->bool {
+    if self.stage()==false {return false}
+    return self.publish()
+}
+
+// Actual game-state consumer; no row setters or screen-address calculations.
+fun stage_pixel_actor()->bool {
+    let actor:FallingPose=FallingPose{kind:cur_type,rotation:cur_rot,x:cur_x,y:cur_y,phase:pixel_phase}
+    return actor.stage()
+}
+
+fun publish_pixel_actor()->bool {
+    let actor:FallingPose=FallingPose{kind:cur_type,rotation:cur_rot,x:cur_x,y:cur_y,phase:pixel_phase}
+    return actor.publish()
 }
