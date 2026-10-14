@@ -36,9 +36,29 @@ These results are in `feat/zmachine-spectrum128`. They cover specific stories
 and routes in the emulator; physical Spectrum hardware and compatibility with
 all V3 stories remain future work. Disk SAVE uses the emulator's TR-DOS API.
 
+## 🎉 Typed hardware DSL + measured Z80 optimization, now in main!
+
+Nanz metafunctions now build typed HIR for fills, copies and masked sprites.
+Generated names preserve caller references, and generated loops retain their
+source origins for profiling. Checked register-allocation fragments, PBQP/PFCCO
+and Grace work together in a bounded search with no external solver required
+for ordinary compilation.
+
+Two verified results:
+
+- **256-byte fill:** 30 → 22 bytes and 34,901 → 23,889 Z80 T-states
+  against the saved text-generator baseline. [Fill report](reports/structured-hardware-emit/README.md).
+- **Runtime masked sprite, complete caller module:** 97 → 89 bytes;
+  heldout workload 2,553 → 2,372 T-states. This Speed search uses the current
+  size-admitted table domain (`OptSize=true`). [Sprite report](reports/runtime-sprite-measured-composition/README.md).
+
+Independent VM/Z80 oracles check memory, access order and stack restoration.
+The sprite winner is replayed as the exact selected ASM/BIN on inputs that did
+not participate in selection. [**Full compiler overview →**](reports/2026-10-11-092-grace-vm-z80-status.md)
+
 ## Compiler progress — October 2026
 
-[**Full report: MinZ today — Nanz, the other frontends, compiler layers, and verified Z80**](reports/2026-10-11-092-grace-vm-z80-status.md) (Russian). A readable tour of the shared pipeline, Grace, PFCCO/PBQP and register-allocation tables, with measured results and remaining gaps. Research-branch results are identified separately from what is available in `main`. Updated October 13: compiler integration is in `main` (PR #85), with a shared Nanz hardware library, ROM/IRQ-verified Spectrum rotozoomer and moving compiled/PUSH sprites, explicit full-checkpoint results and parallel deep tests on release tags/nightly/manual runs.
+[**Full report: MinZ today — Nanz, the other frontends, compiler layers, and verified Z80**](reports/2026-10-11-092-grace-vm-z80-status.md) (Russian). A readable tour of the shared pipeline, Grace, PFCCO/PBQP and register-allocation tables, with measured results and remaining gaps. Research-branch results are identified separately from what is available in `main`. **Updated October 14:** typed hardware emit, caller-reference hygiene, generated-loop provenance and measured composition are integrated in `main` through PR #125. The overview also covers the shared hardware library, ROM/IRQ-verified Spectrum demos and parallel deep checks on release tags, nightly and manual runs.
 
 [Measured runtime sprites](reports/runtime-sprite-measured-composition/README.md): compose checked register-assignment fragments, retain a live base, and select tables plus conditional layouts on training inputs; replay the exact winner on heldout buffers.
 
