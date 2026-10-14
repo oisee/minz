@@ -23,7 +23,7 @@ func TestInstructionImportantEffects(t *testing.T) {
 	}
 }
 func TestUnknownNeverClaimsPreservation(t *testing.T) {
-	for _, s := range []string{"CALL helper", "RST 0x38", "DB 195", "DW next", "LD (HL), (DE)", "EX AF, HL", "NOTANOP", "LD DE, HL", "LD (0x6000), AF"} {
+	for _, s := range []string{"CALL helper", "RST 0x38", "DB 195", "DW next", "LD (HL), (DE)", "EX AF, HL", "NOTANOP", "LD DE, HL", "LD (0x6000), AF", "LD (SP), A", "LD IXH, H", "LD IYH, IXH", "LD IXH, (IX+1)", "LD (IX+1), IXH", "INC (SP)", "XOR (BC)", "JP (SP)", "JP (IX+1)", "RLC IXH", "IN IYH, (C)", "OUT (0xfe), B"} {
 		if Instruction(s).Known {
 			t.Fatalf("opaque/invalid accepted: %s", s)
 		}

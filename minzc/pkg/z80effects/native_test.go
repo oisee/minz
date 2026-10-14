@@ -30,7 +30,7 @@ func TestDeclaredEffectsCoverNativeChanges(t *testing.T) {
 	// Independent execution covers each declared non-write and every untouched
 	// flag bit; this is not a snapshot of the decoder's own expected output.
 	for _, code := range []string{
-		"LD A, B", "LD DE, 0x3456", "LD (HL), A", "LD A, (HL)", "LD SP, 0x5800",
+		"LD A, B", "LD DE, 0x3456", "LD IXH, A", "LD A, IXL", "LD H, (IX+1)", "LD (IX+1), H", "ADD A, IYH", "INC IXL", "LD (HL), A", "LD A, (HL)", "LD SP, 0x5800",
 		"LD A, I", "LD I, A", "LD A, R", "PUSH DE", "POP AF", "POP IX",
 		"INC B", "DEC C", "INC HL", "DEC SP", "DJNZ 0x8000",
 		"ADD A, C", "ADC A, D", "SUB B", "SBC A, E", "AND B", "OR C", "XOR B", "CP E",

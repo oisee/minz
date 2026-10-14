@@ -166,10 +166,22 @@ func validLD(dst, src string) bool {
 	dr, sr := Register(dst), Register(src)
 	if byteOperand(dst) {
 		if sr != 0 {
-			return byteOperand(src)
+			if !byteOperand(src) {
+				return false
+			}
+			db, sb := indexBank(dr), indexBank(sr)
+			if db != 0 || sb != 0 {
+				if db != 0 && sb != 0 && db != sb {
+					return false
+				}
+				if dr&HL != 0 || sr&HL != 0 {
+					return false
+				}
+			}
+			return true
 		}
 		if indirect(src) {
-			return dst == "A" || addressReads(src) == HL || addressReads(src) == IX || addressReads(src) == IY
+			return mainByteOperand(dst) && (byteMemory(src) || dst == "A" && addressReads(src) != SP)
 		}
 		return true
 	}
@@ -185,11 +197,29 @@ func validLD(dst, src string) bool {
 	address := addressReads(dst)
 	if sr != 0 {
 		if byteOperand(src) {
-			return src == "A" || address == HL || address == IX || address == IY
+			return mainByteOperand(src) && (src == "A" && address != SP || address == HL || address == IX || address == IY)
 		}
 		return pairOperand(src) && address == 0
 	}
 	return !indirect(src) && (address == HL || address == IX || address == IY)
+}
+
+func mainByteOperand(s string) bool {
+	r := Register(s)
+	return r == A || r == B || r == C || r == D || r == E || r == H || r == L
+}
+func indexBank(r Registers) Registers {
+	if r&IX != 0 {
+		return IX
+	}
+	if r&IY != 0 {
+		return IY
+	}
+	return 0
+}
+func byteMemory(s string) bool {
+	r := addressReads(s)
+	return indirect(s) && (r == HL || r == IX || r == IY)
 }
 
 func pairOperand(s string) bool {
@@ -307,7 +337,7 @@ func Instruction(line string) Effect {
 			return unknown("INC/DEC operands")
 		}
 		dst := args[0]
-		if !byteOperand(dst) && !pairOperand(dst) && !indirect(dst) {
+		if !byteOperand(dst) && !pairOperand(dst) && !byteMemory(dst) {
 			return unknown("INC/DEC destination")
 		}
 		readOperand(&e, dst)
@@ -350,7 +380,7 @@ func Instruction(line string) Effect {
 				return unknown("indirect conditional jump")
 			}
 			e.Reads |= addressReads(target)
-			if e.Reads == 0 {
+			if target != "(HL)" && target != "(IX)" && target != "(IY)" {
 				return unknown("indirect jump target")
 			}
 		}
@@ -423,7 +453,7 @@ func Instruction(line string) Effect {
 			e.Reads |= Register(dst) | Register(src)
 			e.Writes |= Register(dst)
 		} else {
-			if pairOperand(src) || src == "F" || src == "I" || src == "R" {
+			if pairOperand(src) || src == "F" || src == "I" || src == "R" || indirect(src) && !byteMemory(src) {
 				return unknown("8-bit ALU source")
 			}
 			readOperand(&e, src)
@@ -468,7 +498,7 @@ func Instruction(line string) Effect {
 			}
 		}
 	case "RL", "RR", "RLC", "RRC", "SLA", "SRA", "SRL", "SLL":
-		if !arity(1) || (!byteOperand(args[0]) && !indirect(args[0])) {
+		if !arity(1) || (!mainByteOperand(args[0]) && !byteMemory(args[0])) {
 			return unknown("rotate/shift form")
 		}
 		readOperand(&e, args[0])
@@ -478,7 +508,7 @@ func Instruction(line string) Effect {
 			e.flags(1, 0)
 		}
 	case "BIT", "SET", "RES":
-		if !arity(2) || (!byteOperand(args[1]) && !indirect(args[1])) {
+		if !arity(2) || (!mainByteOperand(args[1]) && !byteMemory(args[1])) {
 			return unknown("bit form")
 		}
 		readOperand(&e, args[1])
@@ -508,6 +538,9 @@ func Instruction(line string) Effect {
 		if !arity(2) {
 			return unknown("OUT operands")
 		}
+		if !indirect(args[0]) || args[0] == "(C)" && !mainByteOperand(args[1]) && args[1] != "0" || args[0] != "(C)" && args[1] != "A" {
+			return unknown("OUT form")
+		}
 		e.PortWrite = true
 		e.Reads |= Register(args[1])
 		if args[0] == "(C)" {
@@ -516,7 +549,7 @@ func Instruction(line string) Effect {
 			e.Reads |= A
 		}
 	case "IN":
-		if !arity(2) || !byteOperand(args[0]) {
+		if !arity(2) || !mainByteOperand(args[0]) || !indirect(args[1]) {
 			return unknown("IN form")
 		}
 		e.Writes |= Register(args[0])

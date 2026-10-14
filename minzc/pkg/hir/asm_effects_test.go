@@ -18,6 +18,10 @@ func TestAsmEffectsImplicitWritesAndAliases(t *testing.T) {
 			t.Fatalf("pair alias missed: %s %v", code, effects)
 		}
 	}
+	index := z80AutoClobbers("INC IXH")
+	if !index.Has(mir2.ClassIX) || !index.Has(mir2.ClassIXY8) || !index.Has(mir2.ClassGeneral) || !index.Has(mir2.ClassPair) {
+		t.Fatal(index)
+	}
 	exchange := z80AutoClobbers("EXX")
 	if !exchange.Has(mir2.ClassShadow) || !exchange.Has(mir2.ClassPointer) || exchange.Has(mir2.ClassFlag) {
 		t.Fatal(exchange)

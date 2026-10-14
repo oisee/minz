@@ -53,3 +53,18 @@ Pipeline fast: **375 / 375 PASS**, три независимых процесс�
 разные допустимые кандидаты, не единое обязательное PUSH/POP-обрамление.
 Генератор сможет добавлять структурный контракт к непрозрачному patch-site.
 См. согласованный [дизайн](design.md).
+
+## Follow-up: индексные половинки и native-формы
+
+После foundation расширено покрытие: **68 форм × 256 = 17 408 исполнений**.
+Проверены LD IXH,A, LD A,IXL, LD H,(IX+1), LD (IX+1),H, ADD A,IYH и INC IXL.
+Это различает обычные H/L и индексные половинки, включая особые правила
+indexed-memory LD. Неподдерживаемые прямые смеси банков, (SP) как byte-memory,
+не-native IN/OUT/rotate/indirect-JP получают unknown и консервативный fallback.
+Запись index halves также инвалидирует возможные General/Pair alias allocations.
+
+Финальные focused effects/HIR PASS 0.238/0.010 s; исходные ASM-contract/ZX peek
+проверки pipeline PASS 11.851 s. Полный fast-прогон выше относится к foundation;
+follow-up имеет указанные focused/native проверки. Дополнительный код-аудит Astra
+получил rate limit и не завершился; её завершённое ревью относится к дизайну,
+а не к окончательному decoder. Автоматическое сохранение по-прежнему впереди.
