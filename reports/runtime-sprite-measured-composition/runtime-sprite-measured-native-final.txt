@@ -1,0 +1,32 @@
+=== RUN   TestCheckedLiveBaseOffsetPatternsNative
+=== RUN   TestCheckedLiveBaseOffsetPatternsNative/BC-plus1
+    table_live_base_offset_test.go:72: 65536 bases; independent modulo address/flags, preserved BC/DE/A/IX/IY, PC/SP, exact 24 T-state cost
+=== RUN   TestCheckedLiveBaseOffsetPatternsNative/BC-plus2
+    table_live_base_offset_test.go:72: 65536 bases; independent modulo address/flags, preserved BC/DE/A/IX/IY, PC/SP, exact 30 T-state cost
+=== RUN   TestCheckedLiveBaseOffsetPatternsNative/BC-plus11
+    table_live_base_offset_test.go:72: 65536 bases; independent modulo address/flags, preserved BC/DE/A/IX/IY, PC/SP, exact 31 T-state cost
+=== RUN   TestCheckedLiveBaseOffsetPatternsNative/DE-plus1
+    table_live_base_offset_test.go:72: 65536 bases; independent modulo address/flags, preserved BC/DE/A/IX/IY, PC/SP, exact 24 T-state cost
+=== RUN   TestCheckedLiveBaseOffsetPatternsNative/DE-plus2
+    table_live_base_offset_test.go:72: 65536 bases; independent modulo address/flags, preserved BC/DE/A/IX/IY, PC/SP, exact 30 T-state cost
+=== RUN   TestCheckedLiveBaseOffsetPatternsNative/DE-plus11
+    table_live_base_offset_test.go:72: 65536 bases; independent modulo address/flags, preserved BC/DE/A/IX/IY, PC/SP, exact 31 T-state cost
+--- PASS: TestCheckedLiveBaseOffsetPatternsNative (0.05s)
+    --- PASS: TestCheckedLiveBaseOffsetPatternsNative/BC-plus1 (0.01s)
+    --- PASS: TestCheckedLiveBaseOffsetPatternsNative/BC-plus2 (0.01s)
+    --- PASS: TestCheckedLiveBaseOffsetPatternsNative/BC-plus11 (0.01s)
+    --- PASS: TestCheckedLiveBaseOffsetPatternsNative/DE-plus1 (0.01s)
+    --- PASS: TestCheckedLiveBaseOffsetPatternsNative/DE-plus2 (0.01s)
+    --- PASS: TestCheckedLiveBaseOffsetPatternsNative/DE-plus11 (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.061s
+=== RUN   TestRuntimeSpriteMeasuredCompositionHeldout
+=== RUN   TestRuntimeSpriteMeasuredCompositionHeldout/speed
+    runtime_sprite_measured_composition_test.go:321: speed mode1 layout2: 97→89 B; train 2081→1936 T; heldout 2553→2372 T
+=== RUN   TestRuntimeSpriteMeasuredCompositionHeldout/size
+    runtime_sprite_measured_composition_test.go:321: size mode1 layout0: 97→88 B; train 2081→1945 T; heldout 2553→2383 T
+--- PASS: TestRuntimeSpriteMeasuredCompositionHeldout (5.15s)
+    --- PASS: TestRuntimeSpriteMeasuredCompositionHeldout/speed (2.21s)
+    --- PASS: TestRuntimeSpriteMeasuredCompositionHeldout/size (2.22s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	5.164s

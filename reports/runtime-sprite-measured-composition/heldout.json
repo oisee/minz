@@ -1,0 +1,97 @@
+{
+  "exact_data_access": true,
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 1000000,
+  "max_memory": 65536,
+  "resources": {
+    "frame0": "/+7dzLuqmYh3ZlVEMyIRAO/ezbyrmol4Z1ZFNCMSAfA=",
+    "frame1": "4M++rZyLemlYRzYlFAPy4dC/rp2Me2pZSDcmFQTz4tE=",
+    "frame2": "wbCfjn1sW0o5KBcG9eTTwrGgj35tXEs6KRgH9uXUw7I="
+  },
+  "globals": null,
+  "calls": [
+    {
+      "function": "render",
+      "arguments": [
+        {
+          "resource": "frame0"
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "render",
+      "arguments": [
+        {
+          "resource": "frame1",
+          "offset": 3
+        },
+        {
+          "value": 254
+        }
+      ]
+    },
+    {
+      "function": "render",
+      "arguments": [
+        {
+          "resource": "frame2",
+          "offset": 8
+        },
+        {
+          "value": 255
+        }
+      ]
+    },
+    {
+      "function": "render",
+      "arguments": [
+        {
+          "resource": "frame0",
+          "offset": 11
+        },
+        {
+          "value": 128
+        }
+      ]
+    },
+    {
+      "function": "render",
+      "arguments": [
+        {
+          "resource": "frame1",
+          "offset": 17
+        },
+        {
+          "value": 17
+        }
+      ]
+    },
+    {
+      "function": "render",
+      "arguments": [
+        {
+          "resource": "frame2",
+          "offset": 22
+        },
+        {
+          "value": 2
+        }
+      ]
+    },
+    {
+      "function": "render",
+      "arguments": [
+        {
+          "resource": "frame0"
+        },
+        {
+          "value": 1
+        }
+      ]
+    }
+  ]
+}
