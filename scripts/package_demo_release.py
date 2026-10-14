@@ -95,7 +95,7 @@ for platform, binary in sorted(platforms.items()):
         shutil.copy2(source, dest / 'sources' / source.name)
     if platform.startswith('windows'):
         standalone = '@echo off\r\nset "SAVEDIR=%APPDATA%\\minz\\mzx\\zork2"\r\nif not exist "%SAVEDIR%" mkdir "%SAVEDIR%"\r\nif not exist "%SAVEDIR%\\save.trd" copy /b "%~dp0images\\save-blank.trd" "%SAVEDIR%\\save.trd" >nul\r\n"%~dp0mzx.exe" --model scorpion-memory --snapshot "%~dp0images\\zork2.sna" --load "%~dp0images\\zork2-bank10.bin@C000:10" --trd "%SAVEDIR%\\save.trd" --trd-writeback\r\n'
-        (dest / 'play-zork2-image.cmd').write_text(standalone)
+        (dest / 'play-zork2-image.cmd').write_text(standalone, encoding='utf-8', newline='')
     else:
         config = 'SAVE_DIR="$HOME/Library/Application Support/minz/mzx/zork2"' if platform.startswith('darwin') else 'SAVE_DIR=${XDG_CONFIG_HOME:-"$HOME/.config"}/minz/mzx/zork2'
         standalone = '\n'.join(['#!/bin/sh', 'set -eu', 'DEMO_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)', config, 'mkdir -p "$SAVE_DIR"', 'if [ ! -e "$SAVE_DIR/save.trd" ]; then (set -C; cat "$DEMO_DIR/images/save-blank.trd" > "$SAVE_DIR/save.trd"); fi', 'exec "$DEMO_DIR/mzx" --model scorpion-memory --snapshot "$DEMO_DIR/images/zork2.sna" --load "$DEMO_DIR/images/zork2-bank10.bin@C000:10" --trd "$SAVE_DIR/save.trd" --trd-writeback "$@"', ''])
@@ -103,9 +103,9 @@ for platform, binary in sorted(platforms.items()):
         (dest / 'play-zork2-image.sh').chmod(0o755)
         if platform.startswith('darwin'):
             shutil.copy2(dest / 'play-zork2-image.sh', dest / 'play-zork2-image.command')
-    entries = {str(p.relative_to(dest)): {'bytes': p.stat().st_size, 'sha256': hashlib.sha256(p.read_bytes()).hexdigest()} for p in sorted(dest.rglob('*')) if p.is_file()}
+    entries = {p.relative_to(dest).as_posix(): {'bytes': p.stat().st_size, 'sha256': hashlib.sha256(p.read_bytes()).hexdigest()} for p in sorted(dest.rglob('*')) if p.is_file()}
     (dest / 'manifest.json').write_text(json.dumps({'version': a.version, 'commit': commit, 'platform': platform, 'files': entries}, indent=2)+'\n')
     with zipfile.ZipFile(str(dest)+'.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
         for p in sorted(dest.rglob('*')):
-            if p.is_file(): archive.write(p, str(p.relative_to(a.output)))
+            if p.is_file(): archive.write(p, p.relative_to(a.output).as_posix())
     print(dest)

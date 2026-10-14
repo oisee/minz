@@ -13,7 +13,7 @@ for name, expected in manifest['files'].items():
  assert len(data)==expected['bytes'] and hashlib.sha256(data).hexdigest()==expected['sha256'],name
 with zipfile.ZipFile(str(a.package)+'.zip') as z:
  for f in a.package.rglob('*'):
-  if f.is_file():assert z.read(str(f.relative_to(a.package.parent)))==f.read_bytes(),f
+  if f.is_file():assert z.read(f.relative_to(a.package.parent).as_posix())==f.read_bytes(),f
 binary=a.package/('mzx.exe' if a.wine or (a.package/'mzx.exe').is_file() else 'mzx')
 userdata=a.proof/'userdata'
 def target(path):return 'Z:'+str(path).replace('/','\\') if a.wine else str(path)
