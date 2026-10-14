@@ -41,6 +41,13 @@ baseline сохраняют побайтно тот же ASM. Это испра�
 [Лог направленных проверок](regressions.log): pipeline PASS за 2,934 с.
 Полный пакет Nanz: [PASS за 27,786 с](nanz-full.log).
 
+Поверх main `943f9a28` повторён совместный прогон: Nanz PASS 0,027 с,
+pipeline PASS 7,737 с. Он включает новую привязку имён, прежние генераторы
+и полный measured runtime-sprite тест: Speed 97→89 байт / heldout 2553→2372 T,
+Size 97→88 байт / heldout 2553→2383 T. Это сохранение результата PR #123
+при интеграции исправления DSL, а не дополнительное ускорение.
+[Лог совместной проверки](joint-integration.log).
+
 Новая короткая native-регрессия включена в fast-профиль CI. Полные продукты,
 исходники и логи сохраняются на шаре:
 `/mnt/safe/minz/grace/2026-10-14/structured-emit-hygiene/manifest.json`.
