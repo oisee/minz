@@ -157,7 +157,17 @@ func (g *z80cg) genInst(inst *Inst) {
 		if dst == src {
 			return // no-op
 		}
+		// Absolute byte spill transfers use A as a scratch register, even
+		// when neither logical operand lives there. Keep an unrelated live
+		// accumulator (for example the first argument of a following CALL).
+		var restore func()
+		if z80SpillBytes(inst.Ty) == 1 && dst != "A" && src != "A" && (isSpill(dst) || isSpill(src)) {
+			restore = g.saveAccIfLive(inst)
+		}
 		g.emitMov(dst, src, 8*z80SpillBytes(inst.Ty))
+		if restore != nil {
+			restore()
+		}
 
 	case OpAdd:
 		g.lastFlagsLhs = ""
