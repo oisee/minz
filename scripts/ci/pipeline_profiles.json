@@ -312,6 +312,7 @@
     "TestStructuredCopyLiveValues",
     "TestStructuredCopyMatchesTextBaseline",
     "TestStructuredFillLiveValues",
+    "TestStructuredFillLoopProfileProvenance",
     "TestStructuredFillMatchesTextBaseline",
     "TestStructuredSpriteConditionalNative",
     "TestStructuredSpriteMatchesTextBaseline",

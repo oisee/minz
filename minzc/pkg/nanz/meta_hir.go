@@ -279,6 +279,21 @@ func (p *parser) spliceMetaHIR(nodes []hir.Stmt) *hir.Block {
 	return block
 }
 
+func (p *parser) recordMetaOrigins(stmt hir.Stmt, origin hir.SourceLocation) {
+	p.module.SourceLocations[stmt] = origin
+	switch n := stmt.(type) {
+	case *hir.Block:
+		for _, child := range n.Body {
+			p.recordMetaOrigins(child, origin)
+		}
+	case *hir.IfStmt:
+		p.recordMetaOrigins(n.Then, origin)
+		p.recordMetaOrigins(n.Else, origin)
+	case *hir.WhileStmt:
+		p.recordMetaOrigins(n.Body, origin)
+	}
+}
+
 func (p *parser) renameMetaStmt(stmt hir.Stmt, scope map[string]string) {
 	switch n := stmt.(type) {
 	case *hir.Block:
