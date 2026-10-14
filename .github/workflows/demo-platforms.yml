@@ -93,7 +93,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p out
-          docker run --rm -v "$PWD:/work" -v "$GOROOT:/opt/go:ro" -w /work -e PATH=/opt/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -e LIBGL_ALWAYS_SOFTWARE=1 debian:bookworm bash -ec '
+          DEMO_GO_ROOT=$(go env GOROOT)
+          docker run --rm -v "$PWD:/work" -v "$DEMO_GO_ROOT:/opt/go:ro" -w /work -e PATH=/opt/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -e LIBGL_ALWAYS_SOFTWARE=1 debian:bookworm bash -ec '
             apt-get update
             apt-get install -y --no-install-recommends gcc libc6-dev git python3 pkg-config libasound2-dev libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev libxxf86vm-dev libgl1-mesa-dev libgl1-mesa-dri xvfb xauth file
             git config --global --add safe.directory /work
