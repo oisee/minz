@@ -299,7 +299,7 @@ func TestTetrisPixelPhysicsNativeVM(t *testing.T) {
 }
 
 func TestTetrisVariableSpeedPhysicsNativeVM(t *testing.T) {
-	runTetrisPixelPhysicsNativeVM(t, "../../../reports/advanced-demos/tetris/variable-speed/candidate.nanz", true)
+	runTetrisPixelPhysicsNativeVM(t, "../../../examples/zx/tetris_playable.nanz", true)
 }
 
 func runTetrisPixelPhysicsNativeVM(t *testing.T, path string, variable bool) {

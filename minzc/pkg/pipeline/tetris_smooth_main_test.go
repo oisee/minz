@@ -832,16 +832,16 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 	}
 }
 
-// Research fixture is not the embedded release. Its seeded speed model is
-// independent; the existing observer retains field-frame and PC/SP/INT checks.
+// The canonical product source uses an independent seeded speed model;
+// the existing observer retains field-frame and PC/SP/INT checks.
 func TestTetrisVariableSpeedMainMachine(t *testing.T) {
-	runTetrisMainMachineConfigured(t, "../../../reports/advanced-demos/tetris/variable-speed/candidate.nanz", false, 3, true)
+	runTetrisMainMachineConfigured(t, "../../../examples/zx/tetris_playable.nanz", false, 3, true)
 }
 
 func TestTetrisVariableSpeedFixedLevelRegression(t *testing.T) {
 	for _, level := range []int{1, 2} {
 		t.Run(fmt.Sprint(level), func(t *testing.T) {
-			runTetrisMainMachineConfigured(t, "../../../reports/advanced-demos/tetris/variable-speed/candidate.nanz", false, level, true)
+			runTetrisMainMachineConfigured(t, "../../../examples/zx/tetris_playable.nanz", false, level, true)
 		})
 	}
 }
@@ -849,7 +849,7 @@ func TestTetrisVariableSpeedFixedLevelRegression(t *testing.T) {
 func TestTetrisVariableSpeedLineClearMachine(t *testing.T) {
 	for _, rows := range []int{1, 2, 4} {
 		t.Run(fmt.Sprint(rows), func(t *testing.T) {
-			runTetrisMainMachineConfigured(t, "../../../reports/advanced-demos/tetris/variable-speed/candidate.nanz", false, 3, true, rows)
+			runTetrisMainMachineConfigured(t, "../../../examples/zx/tetris_playable.nanz", false, 3, true, rows)
 		})
 	}
 }
