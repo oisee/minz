@@ -38,7 +38,7 @@ root = Path(__file__).resolve().parents[1]
 commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip()
 assets = root / 'minzc/cmd/mzx/demos'
 a.output.mkdir(parents=True, exist_ok=True)
-readme = '''MinZ Z80 demo collection\n\nLaunch mzx (Linux/macOS), MinZ Demos.app (macOS), or mzx.exe (Windows).\nUp/Down: choose; Enter: play; Escape: return to menu.\nTetris: select 1 or 2 for speed, then O/P move, Q rotate, A soft drop, Space hard drop, H hold.\nZork: type commands; Backspace deletes; cursor keys edit/history.\nF3 turbo, F4 hold turbo, F1 pause.\n\nSAVE files are outside this package, in the user config directory:\nLinux: ~/.config/minz/mzx; macOS: ~/Library/Application Support/minz/mzx; Windows: %AppData%\\minz\\mzx.\nOverride with --data-dir PATH. Do not delete that directory on upgrade.\nZork I automatically resumes session.sna after a clean exit.\nZork II uses SAVE/RESTORE with a persistent save.trd disk.\nScorpion memory is an emulator memory profile, not full hardware emulation.\n\nSeparate images are in images/. Zork II additionally requires restart bank 10\nand a writable TRD: see the supplied launch script. Never replace a user's disk.\nMIT notices for compiled Zork stories are in licenses/.\n'''
+readme = '''MinZ Z80 demo collection\n\nLaunch mzx (Linux/macOS), MinZ Demos.app (macOS), or mzx.exe (Windows).\nUp/Down: choose; Enter: play; Escape: return to menu.\nTetris: select 1 or 2 for speed, then O/P move, Q rotate, A soft drop, Space hard drop, H hold.\nSprites: sprites is the typed whole-sprite scene; sprite-wave adds ByteWave; sprite-tv composes wave and noise.\nDeclarative Nanz descriptions, libraries and verification notes are under sources/.\nZork: type commands; Backspace deletes; cursor keys edit/history.\nF3 turbo, F4 hold turbo, F1 pause.\n\nSAVE files are outside this package, in the user config directory:\nLinux: ~/.config/minz/mzx; macOS: ~/Library/Application Support/minz/mzx; Windows: %AppData%\\minz\\mzx.\nOverride with --data-dir PATH. Do not delete that directory on upgrade.\nZork I automatically resumes session.sna after a clean exit.\nZork II uses SAVE/RESTORE with a persistent save.trd disk.\nScorpion memory is an emulator memory profile, not full hardware emulation.\n\nSeparate images are in images/. Zork II additionally requires restart bank 10\nand a writable TRD: see the supplied launch script. Never replace a user's disk.\nMIT notices for compiled Zork stories are in licenses/.\n'''
 for platform, binary in sorted(platforms.items()):
     dest = a.output / f'minz-demos-{a.version}-{platform}'
     if dest.exists():
@@ -80,7 +80,7 @@ for platform, binary in sorted(platforms.items()):
     if platform == 'linux-arm64':
         notes += '\nRequires a 64-bit ARM Linux desktop (for example Raspberry Pi OS 64-bit), X11 or XWayland, ALSA and OpenGL. Built on Debian Bookworm (glibc 2.36+).\n'
     (dest / 'README.txt').write_text(notes, encoding='utf-8')
-    for id in ['tetris', 'zork1', 'zork2', 'rotozoomer', 'sprites', 'sprites-push']:
+    for id in ['tetris', 'zork1', 'zork2', 'rotozoomer', 'sprites', 'sprite-wave', 'sprite-tv', 'sprites-push']:
         if platform.startswith('windows'):
             (dest / f'play-{id}.cmd').write_text(f'@echo off\r\n"%~dp0mzx.exe" --demo {id}\r\n', encoding='utf-8', newline='')
         else:
@@ -93,11 +93,20 @@ for platform, binary in sorted(platforms.items()):
     # the distribution. Create only a missing disk, never seed over saved data.
     (dest / 'images/save-blank.trd').write_bytes(bytes(655360))
     (dest / 'sources').mkdir()
+    shutil.copy2(root / '.gitattributes', dest / 'sources/.gitattributes')
     for source in [root / 'examples/zx/tetris_playable.nanz', root / 'scripts/zx_tetris_entry.a80', root / 'reports/hardware-sprite-chain/demo/source.nanz']:
         shutil.copy2(source, dest / 'sources' / source.name)
     # Preserve the declarative sprite/scene generators used by the playable demo.
     for library in ['hw', 'zx']:
         shutil.copytree(root / 'stdlib' / library, dest / 'sources/stdlib' / library)
+    # Preserve the actual declarative descriptions used by the whole-sprite demos.
+    for scene in ['typed-sprite-scene', 'typed-sprite-effects', 'sprite-effect-composition']:
+        source_dir = root / 'reports/advanced-demos' / scene
+        scene_dir = dest / 'sources/reports/advanced-demos' / scene
+        scene_dir.mkdir(parents=True)
+        for name in ['source.nanz', 'README.md', 'measurements.json', 'capture.json', 'preview.png', 'wave-50hz.gif', 'tv-50hz.gif']:
+            if (source_dir / name).is_file():
+                shutil.copy2(source_dir / name, scene_dir / name)
     (dest / 'sources/scripts').mkdir()
     (dest / 'sources/examples/zx').mkdir(parents=True)
     for name in ['build_zx_tetris_demo.sh', 'zx_tetris_entry.a80']:

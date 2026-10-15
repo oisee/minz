@@ -47,5 +47,7 @@
   "source_sha256": "372cf80aea7405de86170b649ae624b2550cae109c4979c73dbf7e58c2ca3a91",
   "snapshot_sha256": "2a6746d9b1bfc43458f0c4af174313d2a2337856434f62ae69eca59ed6f1284d",
   "CLI_matches_native_BIN": true,
-  "backend_fix_commit": "11e3cac2"
+  "backend_fix_commit": "11e3cac2",
+  "compiler_source": "da0ee4b7: merged main PR140 storage/type fixes plus checked effect candidate",
+  "binary_sha256": "0f551bd174402cd83df1cd0f37f629880827743a07ddb569c81ed6b76e93a3f9"
 }

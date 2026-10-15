@@ -84,6 +84,7 @@ jobs:
           name: demos-${{ matrix.platform }}
           path: out/
           if-no-files-found: error
+          include-hidden-files: true
 
   linux:
     name: Package ${{ matrix.platform }}
@@ -147,3 +148,4 @@ jobs:
           name: demos-${{ matrix.platform }}
           path: out/
           if-no-files-found: error
+          include-hidden-files: true

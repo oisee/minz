@@ -1,0 +1,4 @@
+# Nanz source and its provenance must have identical bytes on native hosts.
+# Windows core.autocrlf must not change fingerprinted compile-time inputs.
+*.nanz text eol=lf
+*.json text eol=lf

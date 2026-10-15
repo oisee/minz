@@ -1,0 +1,15 @@
+import zx.sprite_effect
+
+// Compose the wave with bounded deterministic visual jitter. noise=0 disables
+// jitter; other values enable it. Actor physics are never read or modified.
+struct TVSignal {wave:ByteWave,noise:u8}
+
+fun TVSignal.offset(self:^TVSignal,row:u8)->i8 {
+    let shift:i8=self.wave.offset(row)
+    if self.noise==0 {return shift}
+    var hash:u8=(self.wave.phase*13+row*17)^0x5a
+    hash=hash^(hash>>3)
+    if (hash&3)==0 {return shift+1}
+    if (hash&3)==1 {return shift-1}
+    return shift
+}
