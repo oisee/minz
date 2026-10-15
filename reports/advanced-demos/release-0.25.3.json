@@ -1,0 +1,104 @@
+{
+  "version": "0.25.3",
+  "release_url": "https://github.com/oisee/minz/releases/tag/v0.25.3",
+  "source_commit": "c3574329f5b302644dbc71151b4119df53371d77",
+  "main_merge": "4b74fac8a287762c29ba2f10460a201fe944ee19",
+  "native_build_run": 38697909250,
+  "pr_ci_run": 38697245195,
+  "tag_deep_run": 38705410689,
+  "tag_deep_status": "success",
+  "pipeline_verification": {
+    "fast_run": 38697245195,
+    "deep_run": 38705410689,
+    "source": "c3574329f5b302644dbc71151b4119df53371d77",
+    "fast_tested_merge": "9c662e7ab1fbe1253ba09944dfa76543524fa1be",
+    "identical_source_tree": "a5dc8d6fdc3819c0ff3823cfde463ba4a572ba30",
+    "identical_pipeline_binary_sha256": "dbebcf3130f5bd4db45fe92f9c4427c0547267a1efea5c80c39c83773ed484e9",
+    "fast": {
+      "PASS": 391,
+      "SKIP": 32
+    },
+    "deep": {
+      "PASS": 305,
+      "SKIP": 61
+    },
+    "total": {
+      "PASS": 696,
+      "SKIP": 93,
+      "FAIL": 0
+    },
+    "unique_roots": 789,
+    "scope": "Exact disjoint fast/deep union of compiled pipeline test inventory. SKIP remains unexecuted coverage; no blanket compiler-correctness claim."
+  },
+  "native_checks": {
+    "executions": 66,
+    "save_integrity_checks": 6,
+    "scope": "12 native platform cases each; Tetris platform screenshot is a menu smoke, exact gameplay verified separately"
+  },
+  "share": "/mnt/safe/minz/releases/0.25.3/",
+  "assets_sha256": {
+    "README.txt": "e8af19e4a8bd08a392d057ffc9b9622314b1de06ca2ef3140290116641a7283f",
+    "manifest.json": "95f608b2578fb4a78874dbe203712fc44bdb962be6ebdfce515dd2fae685f330",
+    "minz-demos-0.25.3-darwin-amd64.zip": "5253f52fc91e18a13274a30bf97ccc7b8a846fa79be5588ed9bf7d62ccae4ac4",
+    "minz-demos-0.25.3-darwin-arm64.zip": "296a2a73293822d2d5658dde60a295e7208024567e88f549b9c4f542a943a374",
+    "minz-demos-0.25.3-images.zip": "21ea1468a773f7ab9549eb490a01a19cac1a6a5ab39de66354fc2b6b0a4d65d0",
+    "minz-demos-0.25.3-linux-amd64.zip": "b73f3614ebc2602f3f7204e806875037e450e0bc50295e6f88f003842daf5c05",
+    "minz-demos-0.25.3-linux-arm64.zip": "58c4c474dd4125f7bf6641b7950532763c47a241e729d78e2e0e612698cacd19",
+    "minz-demos-0.25.3-windows-amd64.zip": "ed49bce19035c3e201255ab275e4755db57df986259f479c2180a6ffd3b568eb",
+    "minz-demos-0.25.3-windows-arm64.zip": "e06b8bf05520787c63fdbe366f4cc4b8aab4f193e5a3832173b4bd456500ebf7",
+    "sprite-tv-50hz.gif": "d75329e2e13a7190c6200e2beb0939f0686c1aeeda0a84efff32567e97e11023",
+    "sprite-wave-50hz.gif": "ae66131c0b9e0648e4aa3063a49a6a284e585ed62452884a6c35855911efe940",
+    "tetris-variable-speed-50hz.gif": "dd38c0a484450dd27517a7edb8787352ac1016fec110096b07b30558381ce20e",
+    "tetris-variable-speed-session-50hz.mp4": "d1e5e5d3c35972e61293c34b4d6709f8aa14354b85f24d018026c4bfc628b124"
+  },
+  "packages": [
+    {
+      "platform": "darwin-amd64",
+      "archive": "minz-demos-0.25.3-darwin-amd64.zip",
+      "bytes": 14997207,
+      "sha256": "5253f52fc91e18a13274a30bf97ccc7b8a846fa79be5588ed9bf7d62ccae4ac4"
+    },
+    {
+      "platform": "darwin-arm64",
+      "archive": "minz-demos-0.25.3-darwin-arm64.zip",
+      "bytes": 13864775,
+      "sha256": "296a2a73293822d2d5658dde60a295e7208024567e88f549b9c4f542a943a374"
+    },
+    {
+      "platform": "linux-amd64",
+      "archive": "minz-demos-0.25.3-linux-amd64.zip",
+      "bytes": 9019224,
+      "sha256": "b73f3614ebc2602f3f7204e806875037e450e0bc50295e6f88f003842daf5c05"
+    },
+    {
+      "platform": "linux-arm64",
+      "archive": "minz-demos-0.25.3-linux-arm64.zip",
+      "bytes": 8362672,
+      "sha256": "58c4c474dd4125f7bf6641b7950532763c47a241e729d78e2e0e612698cacd19"
+    },
+    {
+      "platform": "windows-amd64",
+      "archive": "minz-demos-0.25.3-windows-amd64.zip",
+      "bytes": 9127831,
+      "sha256": "ed49bce19035c3e201255ab275e4755db57df986259f479c2180a6ffd3b568eb"
+    },
+    {
+      "platform": "windows-arm64",
+      "archive": "minz-demos-0.25.3-windows-arm64.zip",
+      "bytes": 8341036,
+      "sha256": "e06b8bf05520787c63fdbe366f4cc4b8aab4f193e5a3832173b4bd456500ebf7"
+    }
+  ],
+  "compiler_check_scope": {
+    "strict_source_assertion_fuzz": 10000,
+    "exploratory_direct_call": {
+      "pass": 7119,
+      "VM_Z80_mismatch": 370,
+      "compiler_error": 2511
+    },
+    "sweep_sources": 838,
+    "sweep_outputs": 326,
+    "sweep_changes": 0,
+    "assert_matrix": "4 controlled units per backend; not all showcase programs"
+  }
+}

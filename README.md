@@ -4,7 +4,7 @@
 
 ## Play native Z80 demos
 
-[Download for Linux, macOS or Windows — MinZ 0.25.1](https://github.com/oisee/minz/releases/tag/v0.25.1): **six platforms**, Intel/AMD x64 and ARM64 for each OS. Unpack and launch `mzx`, `MinZ Demos.app` on macOS, or `mzx.exe` on Windows. [Choose your package](reports/advanced-demos/tetris/release-0.25.1.md). Choose **Zork I/II, Spectrum Tetris, the 32×48 rotozoomer, or SMC sprites** with Up/Down and Enter. Escape returns to the menu. Separate SNA/TRD images and one-click launchers are included.
+[Download for Linux, macOS or Windows — MinZ demos 0.25.3](https://github.com/oisee/minz/releases/tag/v0.25.3): **six platforms**, Intel/AMD x64 and ARM64 for each OS. Unpack and launch `mzx`, `MinZ Demos.app` on macOS, or `mzx.exe` on Windows. [Choose your package](reports/advanced-demos/release-0.25.3.md). Choose **Zork I/II, Spectrum Tetris, the 32×48 rotozoomer, or SMC sprites** with Up/Down and Enter. Escape returns to the menu. Separate SNA/TRD images and one-click launchers are included.
 
 SAVE files live outside the download in your user configuration directory, so upgrades preserve them. Zork I resumes the session after a clean exit; Zork II uses disk SAVE/RESTORE. [Release verification](reports/zmachine-spectrum128/release/verified.md) · [Full Z-machine status](reports/zmachine-spectrum128/current-status.md).
 
@@ -58,7 +58,7 @@ not participate in selection. [**Full compiler overview →**](reports/2026-10-1
 
 ## Compiler progress — October 2026
 
-[**Full report: MinZ today — Nanz, the other frontends, compiler layers, and verified Z80**](reports/2026-10-11-092-grace-vm-z80-status.md) (Russian). A readable tour of the shared pipeline, Grace, PFCCO/PBQP and register-allocation tables, with measured results and remaining gaps. Research-branch results are identified separately from what is available in `main`. **Updated October 15:** whole baked sprites, direct smooth Tetris and typed wave/noise effects are integrated in `main`. [Demos 0.25.2](https://github.com/oisee/minz/releases/tag/v0.25.2) provides six native packages; [release verification and remaining limits](reports/advanced-demos/release-0.25.2.md) distinguish executed PASS, SKIP and open exploratory findings. The overview also covers the shared hardware library, ROM/IRQ-verified Spectrum demos and parallel deep checks on release tags, nightly and manual runs. Pixel-X kernels are in main; [the new smooth random-speed Tetris checkpoint](reports/advanced-demos/tetris/variable-speed/README.md) includes a playable preview and distinguishes pending integration from the published release.
+[**Full report: MinZ today — Nanz, the other frontends, compiler layers, and verified Z80**](reports/2026-10-11-092-grace-vm-z80-status.md) (Russian). A readable tour of the shared pipeline, Grace, PFCCO/PBQP and register-allocation tables, with measured results and remaining gaps. Research-branch results are identified separately from what is available in `main`. **Updated October 15:** whole baked sprites, direct smooth Tetris and typed wave/noise effects are integrated in `main`. [Demos 0.25.2](https://github.com/oisee/minz/releases/tag/v0.25.2) provides six native packages; [release verification and remaining limits](reports/advanced-demos/release-0.25.2.md) distinguish executed PASS, SKIP and open exploratory findings. The overview also covers the shared hardware library, ROM/IRQ-verified Spectrum demos and parallel deep checks on release tags, nightly and manual runs. Pixel-X kernels and smooth random-speed Tetris are in main. [Demos 0.25.3](https://github.com/oisee/minz/releases/tag/v0.25.3) adds three fall modes and pixel wobble, with six verified native packages and real 50-Hz media. [Release evidence and limits](reports/advanced-demos/release-0.25.3.md): 696 PASS, 93 SKIP, 0 FAIL across the complete fast/deep pipeline inventory. Measured Size/Speed/frame-budget specialization is now in main via #153. Automatic line-driven Tetris is now in main through [#155](https://github.com/oisee/minz/pull/155), with a no-text progress gauge and a complete 50-Hz game capture. Its new six-platform release is still pending; [#156](https://github.com/oisee/minz/pull/156) adds multi-line transition coverage.
 
 [Measured runtime sprites](reports/runtime-sprite-measured-composition/README.md): compose checked register-assignment fragments, retain a live base, and select tables plus conditional layouts on training inputs; replay the exact winner on heldout buffers.
 
@@ -163,14 +163,17 @@ publish directly to the screen. The implementation is now in main
 
 **Wave + noise: a composed Nanz effect**
 
-[<img src="reports/advanced-demos/sprite-effect-composition/tv-50hz.gif" width="352" alt="Spectrum baked sprite with typed wave and noise: 64 actual Z80/ULA frames at 50 Hz">](reports/advanced-demos/sprite-effect-composition/README.md)
+[<img src="reports/advanced-demos/meta-specialization/tv-50hz-long.gif" width="352" alt="Spectrum baked sprite with typed wave and noise: 256 actual Z80/ULA frames at 50 Hz">](reports/advanced-demos/meta-specialization/product.md)
 
 A concrete `TVSignal` composes wave and noise in Nanz. This GIF records
-**64 consecutive actual Z80/ULA frames at 50 Hz**, without interpolation.
-Every displayed frame is checked against an independent pixel oracle.
+**256 consecutive actual Z80/ULA frames at 50 Hz: 5.12 seconds**, four times
+the earlier preview. Every pixel and GIF duration is checked against an
+independent oracle, with no interpolation; the loop boundary continues the
+next phase. This recording uses the measured compact candidate from main.
 Addresses are patched before HALT; paired erase/draw kernels then publish
 directly to the screen. Try `mzx --demo sprite-tv` in [demos 0.25.2](https://github.com/oisee/minz/releases/tag/v0.25.2).
-[Source, timing, and capture provenance](reports/advanced-demos/sprite-effect-composition/README.md).
+[Source and timing](reports/advanced-demos/meta-specialization/product.md)
+· [Extended capture provenance](reports/advanced-demos/meta-specialization/tv-long-capture.json).
 
 **Pixel-wave Tetris: a baked visual effect**
 
@@ -189,7 +192,7 @@ native Z80/ULA checks. Heavy actions still take multiple frames.
 Choose **3** for a slowly changing random fall rate. A small typed Nanz
 controller integrates every elapsed frame before input; each pixel of motion
 still checks contact. Piece randomness is independent. Levels 1 and 2 keep
-their fixed speeds. [Code, native/VM checks, capture and limits](reports/advanced-demos/tetris/variable-speed/README.md).
+their fixed speeds. Available in [six-platform demos 0.25.3](https://github.com/oisee/minz/releases/tag/v0.25.3). [Code, native/VM checks, capture and limits](reports/advanced-demos/tetris/variable-speed/README.md).
 
 ## Explore
 

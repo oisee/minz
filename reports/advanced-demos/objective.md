@@ -256,6 +256,9 @@ PR #145 с Pixel-X API и общими immutable row-kernels уже в main (`7e
 
 Дополнительный кандидат проверки: `experiment/tetris-full-screen-proof` покрывает каждый полный активный экран 256×192 после первой публикации, а не только поле. 18 сессий, 4008 экранов и два отклонённых контрольных мутанта; игровой BIN не меняется. [Охват и ограничения](tetris/full-screen-proof/README.md). Общая цель остаётся открытой: текущая интеграция/финальный релиз, автоматический выбор допущенных специализаций по цели и дальнейшая композиция эффектов требуют собственных результатов.
 
+## 15 October: first product/release stage delivered
+
+Demos 0.25.3 is published on six native platforms, with exact source `c357` / main merge `4b74`, all 12 deep shards and the full 789-test disjoint fast/deep inventory verified (696 PASS / 93 SKIP / 0 FAIL). All 14 uploaded assets were downloaded and SHA-checked; playable files/media/instructions copied to /mnt/safe/minz/releases/0.25.3/. The remaining advanced-demo stage is measured specialization integration (#150/#151) and its updated playable product, not another implementation of already shipped whole sprites/Tetris. [Published release](release-0.25.3.md).
 
 ## Measured Size specialization checkpoint — 15 October 2026
 
@@ -268,3 +271,51 @@ PR #145 с Pixel-X API и общими immutable row-kernels уже в main (`7e
 ## 15 October: playable measured specialization
 
 `experiment/meta-specialized-snapshot` adds a cold-boot SNA output for the exact selected BIN and a real demo builder. Both Speed and budget snapshots preserve measured code byte-for-byte and pass 64 independent native full-screen/ULA frames after loading the saved file. This prepares the actual product path; it does not replace frozen 0.25.3 assets. [Run the selected scene](meta-specialization/playable-snapshot.md).
+
+## 15 октября: специализация в main, автоматическая игра готовится отдельно
+
+Measured Size/Speed/frame-budget выбор и запускаемая SNA интегрированы через
+PR #153, main `c11ab1db`. На том же TV workload Size/budget сохраняет
+4815 байт / 30128 T, чистый Speed — 5034 байта / 29350 T. Это измеренные
+варианты одного workload; на другие программы результат не переносим.
+
+Новая просьба Alice — автоматические line-driven стадии и цветной столбик
+вместо текста — реализована в PR #155. Native физика, полный ULA-экран,
+переходы и embedded image проверены. Слияние, шесть итоговых native-платформ
+и новый релиз остаются частью текущей цели. Старый 0.25.3 и подготовленный
+166 checkpoint сохраняются отдельно; они не объявляются новой игрой.
+
+## 15 октября: новый игровой preview проверен на шести платформах
+
+Автоматическая игра PR #155 и измеренный TV из main собраны из `ef783104`
+на Linux/macOS/Windows, amd64/arm64. Все 72 platform cases прошли; archive
+CRC, manifest SHA, native build-info, source/image associations и итоговые
+экраны совпали. На шаре — только игровые ZIP/образы/медиа и инструкция:
+`/mnt/safe/minz/releases/previews/tetris-line-progression-ef783104/`.
+Это preview, не объявление финального 0.25.4. Main-интеграция, полный
+релизный tag gate и публикация остаются обязательными следующими шагами.
+
+
+## 15 октября: автоматическая игра интегрирована, выпуск завершается
+
+PR #155 слит в main `ebaba5a6`; полное дерево совпадает с проверенным
+шестиплатформенным preview `ef783104`. Дополнительный PR #156 содержит
+только тесты и протокол: 48 native Z80/ULA-сессий очистки двух/четырёх линий
+через восемь порогов прогрессии, три режима компиляции. Локально все прошли;
+его обязательный CI ещё выполняется. Инвентарь после добавления —
+800 roots (429 fast / 371 deep), без заявления нового полного PASS.
+
+Good Enough для текущей цели требует завершить интеграцию этих проверок
+и отчётов, проверить финальный релизный fast/deep набор и шесть платформ,
+опубликовать запускаемые пакеты и длинные записи. Новые скроллы,
+универсальные runtime-kernels и расширение DSL не добавляются в этот этап.
+
+
+## 15 октября: тесты многолинейных переходов также в main
+
+PR #156 слит в main `2b72ede9` после всех обязательных проверок.
+Все 429 fast roots учтены: 397 PASS, 32 SKIP, 0 FAIL. Folded fuzz —
+300 PASS; direct-call находки совпадают по каждому seed с #155 и сохраняются
+отдельно от PASS. Обновление отчёта переносится на этот main. Оставшиеся
+результаты текущей цели — финальный релизный fast/deep набор, шесть итоговых
+native-пакетов и опубликованный 0.25.4 с длинными записями.
