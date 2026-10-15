@@ -92,6 +92,7 @@
     "TestFATPackedControlledWholeSourceAdmission",
     "TestFATSequentialWordFusionNative",
     "TestFATSequentialWordFusionNativeWrap",
+    "TestFallSpeedSeededTraceNativeVM",
     "TestFallibleSuffixHasExplicitSuccessStatusAndAPIParity",
     "TestFlagWriterRetainsBranchPredicate",
     "TestFlagWriterRetainsComparisonValue",

@@ -1,0 +1,23 @@
+// Smooth deterministic fall-rate controller. Call once per elapsed 50-Hz frame.
+// current/target are Q6 pixels per frame: 64 = 1 pixel/frame.
+// Initialize {seed:...,phase:0,current:64,target:64}. Valid speeds are 32..95.
+// Independent 8-bit Galois LFSR (right shift, feedback 0xb8) keeps this
+// visual/game-speed randomness separate from the piece generator.
+struct FallSpeed {seed:u8,phase:u8,current:u8,target:u8}
+
+fun FallSpeed.tick(self:^FallSpeed)->u8 {
+    if (self.phase & 127)==0 {
+        if self.seed==0 {self.seed=167}
+        let low:u8=self.seed & 1
+        self.seed=self.seed >> 1
+        if low!=0 {self.seed=self.seed xor 184}
+        self.target=32+(self.seed & 63)
+    }
+    // Change by 1/64 px/frame only once in four elapsed frames.
+    if (self.phase & 3)==0 {
+        if self.current<self.target {self.current=self.current+1}
+        else {if self.current>self.target {self.current=self.current-1}}
+    }
+    self.phase=self.phase+1
+    return self.current
+}
