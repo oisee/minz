@@ -152,6 +152,11 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 			if selectedLevel != 0 {
 				model.fixedDifficulty = true
 				model.v["drop_speed"] = 16 / selectedLevel
+				if selectedLevel == 3 {
+					model.v["drop_speed"] = 64
+					model.variableSpeed = true
+					model.fall = referenceFallRate{seed: 167, current: 64, target: 64}
+				}
 			}
 			model.spawn()
 			model.spawn()
@@ -164,6 +169,13 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 				return out
 			}
 			check := func(where string) {
+				if selectedLevel == 3 {
+					got := read("fall_rate", 4)
+					want := []byte{byte(model.fall.seed), byte(model.fall.phase), byte(model.fall.current), byte(model.fall.target)}
+					if !bytes.Equal(got, want) {
+						t.Fatalf("%s rate=%v want%v", where, got, want)
+					}
+				}
 				if !shadow {
 					for name, w := range map[string]int{"board_first": model.rowFirst, "board_limit": model.rowLimit} {
 						if got := int(read(name, 1)[0]); got != w {
@@ -542,6 +554,17 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 								}
 							}
 						}
+						if selectedLevel == 3 {
+							for col, ch := range "3: RAND" {
+								for scan := 0; scan < 8; scan++ {
+									at := uint16(0x4000 + scan*256 + 32 + 23 + col)
+									want := rom[0x3d00+(int(ch)-32)*8+scan]
+									if got := m.Memory.ReadByteInternal(at); got != want {
+										t.Fatalf("mode3 menu glyph col%d scan%d=%02x want%02x", col, scan, got, want)
+									}
+								}
+							}
+						}
 						previousClock = m.Memory.ReadByteInternal(0x5c78)
 						clockReady = true
 					}
@@ -627,7 +650,11 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 				}
 			}
 			videoDir := ""
-			if root := os.Getenv("MINZ_TETRIS_MAIN_VIDEO"); root != "" && selectedLevel == 2 && mode == "ordinary" && clearRows == 0 {
+			videoLevel := 2
+			if os.Getenv("MINZ_TETRIS_VIDEO_LEVEL") == "3" {
+				videoLevel = 3
+			}
+			if root := os.Getenv("MINZ_TETRIS_MAIN_VIDEO"); root != "" && selectedLevel == videoLevel && mode == "ordinary" && clearRows == 0 {
 				videoDir = filepath.Join(root, "frames")
 				if e := os.MkdirAll(videoDir, 0755); e != nil {
 					t.Fatal(e)
@@ -721,7 +748,7 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 					}
 					fetchedFrames++
 					if videoDir != "" {
-						fullVideoTimeline = append(fullVideoTimeline, map[string]int{"hardware_frame": frames, "step": steps, "grid_y": model.v["cur_y"], "pixel_phase": model.v["pixel_phase"]})
+						fullVideoTimeline = append(fullVideoTimeline, map[string]int{"hardware_frame": frames, "step": steps, "grid_y": model.v["cur_y"], "pixel_phase": model.v["pixel_phase"], "fall_current_q6": model.fall.current, "fall_target_q6": model.fall.target})
 						dumpVideo(filepath.Join(filepath.Dir(videoDir), "full-frames"), len(fullVideoTimeline))
 					}
 					if videoDir != "" && steps >= 2 && steps < quietSteps {
@@ -729,7 +756,7 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 							t.Fatal("capture skipped an emulated frame")
 						}
 						lastVideoFrame = frames
-						videoTimeline = append(videoTimeline, map[string]int{"hardware_frame": frames, "step": steps, "grid_y": model.v["cur_y"], "pixel_phase": model.v["pixel_phase"]})
+						videoTimeline = append(videoTimeline, map[string]int{"hardware_frame": frames, "step": steps, "grid_y": model.v["cur_y"], "pixel_phase": model.v["pixel_phase"], "fall_current_q6": model.fall.current, "fall_target_q6": model.fall.target})
 						dumpVideo(videoDir, len(videoTimeline))
 					}
 				}
@@ -801,6 +828,28 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 				}
 			}
 			t.Logf("%d frames, %d independently checked main steps, %d fractional poses, %d locks, %d IRQ; game-over returned with SP restored; clock-delta histogram %v", frames, steps, nonzeroPhases, locks, c.irq, tickHistogram)
+		})
+	}
+}
+
+// The canonical product source uses an independent seeded speed model;
+// the existing observer retains field-frame and PC/SP/INT checks.
+func TestTetrisVariableSpeedMainMachine(t *testing.T) {
+	runTetrisMainMachineConfigured(t, "../../../examples/zx/tetris_playable.nanz", false, 3, true)
+}
+
+func TestTetrisVariableSpeedFixedLevelRegression(t *testing.T) {
+	for _, level := range []int{1, 2} {
+		t.Run(fmt.Sprint(level), func(t *testing.T) {
+			runTetrisMainMachineConfigured(t, "../../../examples/zx/tetris_playable.nanz", false, level, true)
+		})
+	}
+}
+
+func TestTetrisVariableSpeedLineClearMachine(t *testing.T) {
+	for _, rows := range []int{1, 2, 4} {
+		t.Run(fmt.Sprint(rows), func(t *testing.T) {
+			runTetrisMainMachineConfigured(t, "../../../examples/zx/tetris_playable.nanz", false, 3, true, rows)
 		})
 	}
 }

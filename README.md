@@ -58,7 +58,7 @@ not participate in selection. [**Full compiler overview →**](reports/2026-10-1
 
 ## Compiler progress — October 2026
 
-[**Full report: MinZ today — Nanz, the other frontends, compiler layers, and verified Z80**](reports/2026-10-11-092-grace-vm-z80-status.md) (Russian). A readable tour of the shared pipeline, Grace, PFCCO/PBQP and register-allocation tables, with measured results and remaining gaps. Research-branch results are identified separately from what is available in `main`. **Updated October 15:** whole baked sprites, direct smooth Tetris and typed wave/noise effects are integrated in `main`. [Demos 0.25.2](https://github.com/oisee/minz/releases/tag/v0.25.2) provides six native packages; [release verification and remaining limits](reports/advanced-demos/release-0.25.2.md) distinguish executed PASS, SKIP and open exploratory findings. The overview also covers the shared hardware library, ROM/IRQ-verified Spectrum demos and parallel deep checks on release tags, nightly and manual runs.
+[**Full report: MinZ today — Nanz, the other frontends, compiler layers, and verified Z80**](reports/2026-10-11-092-grace-vm-z80-status.md) (Russian). A readable tour of the shared pipeline, Grace, PFCCO/PBQP and register-allocation tables, with measured results and remaining gaps. Research-branch results are identified separately from what is available in `main`. **Updated October 15:** whole baked sprites, direct smooth Tetris and typed wave/noise effects are integrated in `main`. [Demos 0.25.2](https://github.com/oisee/minz/releases/tag/v0.25.2) provides six native packages; [release verification and remaining limits](reports/advanced-demos/release-0.25.2.md) distinguish executed PASS, SKIP and open exploratory findings. The overview also covers the shared hardware library, ROM/IRQ-verified Spectrum demos and parallel deep checks on release tags, nightly and manual runs. Pixel-X kernels are in main; [the new smooth random-speed Tetris checkpoint](reports/advanced-demos/tetris/variable-speed/README.md) includes a playable preview and distinguishes pending integration from the published release.
 
 [Measured runtime sprites](reports/runtime-sprite-measured-composition/README.md): compose checked register-assignment fragments, retain a live base, and select tables plus conditional layouts on training inputs; replay the exact winner on heldout buffers.
 
@@ -174,6 +174,15 @@ Paired baked kernels erase and draw directly to the screen; physics stays in
 game coordinates. Both difficulty levels and 1/2/4-line clears pass independent
 native Z80/ULA checks. Heavy actions still take multiple frames.
 [Source, measurements, verified capture, and limits](reports/advanced-demos/tetris/pixel-wobble/README.md).
+
+**Smooth random fall speed**
+
+[<img src="reports/advanced-demos/tetris/variable-speed/tetris-variable-speed-50hz.gif" width="352" alt="Spectrum Tetris: actual 50-Hz ULA frames with smooth seeded fall speed">](reports/advanced-demos/tetris/variable-speed/README.md)
+
+Choose **3** for a slowly changing random fall rate. A small typed Nanz
+controller integrates every elapsed frame before input; each pixel of motion
+still checks contact. Piece randomness is independent. Levels 1 and 2 keep
+their fixed speeds. [Code, native/VM checks, capture and limits](reports/advanced-demos/tetris/variable-speed/README.md).
 
 ## Explore
 

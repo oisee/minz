@@ -10,6 +10,7 @@
 //   - Bitwise AND for fast modulo
 //
 // Start: 1 = one pixel per two 50-Hz frames, 2 = one pixel per frame.
+// 3 = smooth seeded variable speed; dedicated RNG leaves piece order unchanged.
 // Controls:  O = left,  P = right,  Q = rotate,  A = soft drop,
 //            SPACE = hard drop,  H = hold piece
 //
@@ -38,6 +39,7 @@ global pixel_geometry_last:u8=0
 // The pixel actor stages four independent SMC placements from one baked shape.
 // Its publication is separate so a scene can prepare before HALT.
 import zx.sprite
+import game.fall_speed
 import zx.sprite_effect
 
 @zx_sprite_instances("FallingBlock") {
@@ -155,6 +157,8 @@ global drop_timer: u8 = 0
 global drop_speed: u8 = 30
 // Zero keeps the historical game-step API; the menu selects a fixed rate.
 global difficulty_mode:u8=0
+global fall_rate:FallSpeed=FallSpeed{seed:167,phase:0,current:64,target:64}
+global fall_area:u16=0
 global frame_count: u16 = 0
 global clock_seen: u8 = 0
 
@@ -664,11 +668,13 @@ fun difficulty_print(col:u8,row:u8,text:^u8) {
 fun choose_difficulty() {
     difficulty_print(6,0,c"1: 1 PX / 2 FRAMES")
     difficulty_print(6,1,c"2: 1 PX / FRAME")
+    difficulty_print(23,1,c"3: RAND")
     while true {
         zx_halt()
         let keys:u8=zx_key_row(0xf7)
         if (keys & 1)==0 {difficulty_mode=1 drop_speed=16 return}
         if (keys & 2)==0 {difficulty_mode=2 drop_speed=8 return}
+        if (keys & 4)==0 {difficulty_mode=3 drop_speed=64 return}
     }
 }
 
@@ -1275,6 +1281,8 @@ fun gravity_pixel()->bool {
 fun game_step(keys:u8,ticks:u8) {
     if game_over!=0 {return}
     frame_count=frame_count+u16(ticks)
+    fall_area=u16(ticks)*8
+    if difficulty_mode==3 {fall_area=fall_rate.advance(ticks)}
     let pressed:u8=keys & (keys xor prev_keys)
     prev_keys=keys
     if (pressed & 1)!=0 {
@@ -1302,7 +1310,7 @@ fun game_step(keys:u8,ticks:u8) {
     }
     if game_over!=0 {return}
     if drop_speed==0 {drop_speed=1}
-    var budget:u16=u16(drop_timer)+u16(ticks)*8
+    var budget:u16=u16(drop_timer)+fall_area
     if (keys & 8)!=0 {budget=budget+u16(drop_speed)*8}
     // Input has finished. Shape, X and board stay unchanged until lock,
     // which returns immediately. Cache only within this call, per grid Y.

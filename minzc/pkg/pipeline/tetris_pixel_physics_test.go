@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"strings"
@@ -41,7 +42,39 @@ func pixelGameCells(kind, rot int) []pixelGameCell {
 	return out
 }
 
+type referenceFallRate struct{ seed, phase, current, target int }
+
+func (r *referenceFallRate) advance(frames int) int {
+	area := 0
+	for i := 0; i < frames; i++ {
+		if r.phase%128 == 0 {
+			if r.seed == 0 {
+				r.seed = 167
+			}
+			if r.seed%2 == 0 {
+				r.seed /= 2
+			} else {
+				r.seed = r.seed/2 ^ 184
+			}
+			r.target = 32 + r.seed%64
+		}
+		if r.phase%4 == 0 {
+			if r.current < r.target {
+				r.current++
+			} else if r.current > r.target {
+				r.current--
+			}
+		}
+		r.phase = (r.phase + 1) % 256
+		area += r.current
+	}
+	return area
+}
+
 type pixelGameModel struct {
+	variableSpeed      bool
+	fall               referenceFallRate
+	fallArea           int
 	v                  map[string]int
 	board              [200]byte
 	fixedDifficulty    bool
@@ -178,6 +211,11 @@ func (m *pixelGameModel) step(keys, ticks int) {
 		return
 	}
 	v["frame_count"] = (v["frame_count"] + ticks) & 65535
+	area := ticks * 8
+	if m.variableSpeed {
+		area = m.fall.advance(ticks)
+	}
+	m.fallArea = area
 	pressed := keys & (keys ^ v["prev_keys"])
 	v["prev_keys"] = keys
 	for _, move := range []struct{ bit, dx int }{{1, -1}, {2, 1}} {
@@ -233,7 +271,7 @@ func (m *pixelGameModel) step(keys, ticks int) {
 	if v["drop_speed"] == 0 {
 		v["drop_speed"] = 1
 	}
-	budget := v["drop_timer"] + ticks*8
+	budget := v["drop_timer"] + area
 	if keys&8 != 0 {
 		budget += v["drop_speed"] * 8
 	}
@@ -257,10 +295,20 @@ func (m *pixelGameModel) step(keys, ticks int) {
 }
 
 func TestTetrisPixelPhysicsNativeVM(t *testing.T) {
-	src, e := os.ReadFile("../../../examples/zx/tetris_playable.nanz")
+	runTetrisPixelPhysicsNativeVM(t, "../../../examples/zx/tetris_playable.nanz", false)
+}
+
+func TestTetrisVariableSpeedPhysicsNativeVM(t *testing.T) {
+	runTetrisPixelPhysicsNativeVM(t, "../../../examples/zx/tetris_playable.nanz", true)
+}
+
+func runTetrisPixelPhysicsNativeVM(t *testing.T, path string, variable bool) {
+	t.Helper()
+	src, e := os.ReadFile(path)
 	if e != nil {
 		t.Fatal(e)
 	}
+	hasRate := strings.Contains(string(src), "import game.fall_speed")
 	source := string(src) + "\nglobal physics_keys:u8=0\nglobal physics_ticks:u8=0\nfun physics_probe(){game_step(physics_keys,physics_ticks)}\n"
 	parse := func() *hir.Module {
 		h, e := nanz.ParseWithOpts(source, "pixel-physics.nanz", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
@@ -384,6 +432,15 @@ func TestTetrisPixelPhysicsNativeVM(t *testing.T) {
 	}
 	add("blocked-spawn/hold", m, 32, 0)
 	add("blocked-spawn/lock", m, 16, 0)
+	if variable {
+		for i := range trials {
+			m := &trials[i].initial
+			m.variableSpeed = true
+			m.fixedDifficulty = true
+			m.v["drop_speed"] = 64
+			m.fall = referenceFallRate{seed: []int{0, 1, 167, 255}[i%4], phase: []int{0, 127, 128, 255}[(i/4)%4], current: []int{32, 64, 95}[(i/16)%3], target: []int{95, 45, 32}[(i/48)%3]}
+		}
+	}
 	raw := hir.LowerModule(parse())
 	for _, mode := range []string{"ordinary", "grace-speed", "grace-size"} {
 		t.Run(mode, func(t *testing.T) {
@@ -471,6 +528,13 @@ func TestTetrisPixelPhysicsNativeVM(t *testing.T) {
 				for name, value := range tc.initial.v {
 					put(name, value)
 				}
+				if variable {
+					put("difficulty_mode", 3)
+					r := tc.initial.fall
+					copy(mem[a.Symbols["fall_rate"]:], []byte{byte(r.seed), byte(r.phase), byte(r.current), byte(r.target)})
+					mem[a.Symbols["fall_area"]] = 0
+					mem[a.Symbols["fall_area"]+1] = 0
+				}
 				put("board_first", tc.initial.rowFirst)
 				put("board_limit", tc.initial.rowLimit)
 				put("physics_keys", tc.keys)
@@ -488,6 +552,14 @@ func TestTetrisPixelPhysicsNativeVM(t *testing.T) {
 						expectedRAM[at+1] = byte(value >> 8)
 					}
 				}
+				if variable {
+					r := want.fall
+					copy(expectedRAM[a.Symbols["fall_rate"]:], []byte{byte(r.seed), byte(r.phase), byte(r.current), byte(r.target)})
+				}
+				if hasRate {
+					expectedRAM[a.Symbols["fall_area"]] = byte(want.fallArea)
+					expectedRAM[a.Symbols["fall_area"]+1] = byte(want.fallArea >> 8)
+				}
 				expectedRAM[a.Symbols["board_first"]] = byte(want.rowFirst)
 				expectedRAM[a.Symbols["board_limit"]] = byte(want.rowLimit)
 				copy(expectedRAM[a.Symbols["board"]:], want.board[:])
@@ -499,6 +571,19 @@ func TestTetrisPixelPhysicsNativeVM(t *testing.T) {
 					t.Fatalf("%s native PC/SP %04x/%04x", tc.name, z.GetPC(), z.GetSP())
 				}
 				check := func(label string, read func(string, int) []byte) {
+					if variable {
+						r := want.fall
+						expected := []byte{byte(r.seed), byte(r.phase), byte(r.current), byte(r.target)}
+						if got := read("fall_rate", 4); !bytes.Equal(got, expected) {
+							t.Fatalf("%s %s fall rate=%v want%v", tc.name, label, got, expected)
+						}
+					}
+					if hasRate {
+						b := read("fall_area", 2)
+						if got := int(b[0]) + int(b[1])*256; got != want.fallArea {
+							t.Fatalf("%s %s area=%d want%d", tc.name, label, got, want.fallArea)
+						}
+					}
 					for name, value := range want.v {
 						size := 1
 						if name == "score" || name == "lines_cleared" || name == "frame_count" || name == "rng_state" {
@@ -543,6 +628,15 @@ func TestTetrisPixelPhysicsNativeVM(t *testing.T) {
 							bs = append(bs, byte(value>>8))
 						}
 						vm.WriteHeapSlice(vm.GlobalAddr(name), bs)
+					}
+					if variable {
+						vm.WriteHeap(vm.GlobalAddr("difficulty_mode"), 3)
+						r := tc.initial.fall
+						vm.WriteHeapSlice(vm.GlobalAddr("fall_rate"), []byte{byte(r.seed), byte(r.phase), byte(r.current), byte(r.target)})
+						vm.WriteHeapSlice(vm.GlobalAddr("fall_area"), []byte{0, 0})
+					}
+					if hasRate {
+						vm.WriteHeapSlice(vm.GlobalAddr("fall_area"), []byte{0, 0})
 					}
 					vm.WriteHeap(vm.GlobalAddr("board_first"), byte(tc.initial.rowFirst))
 					vm.WriteHeap(vm.GlobalAddr("board_limit"), byte(tc.initial.rowLimit))
