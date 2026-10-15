@@ -56,8 +56,9 @@ import (
 	"github.com/minz/minzc/pkg/plm"
 )
 
-// ParseOpts configures module-aware parsing (import resolution).
+// ParseOpts configures import resolution and compile-time generation.
 type ParseOpts struct {
+	OptSize   bool            // compile-time size goal available to metafunctions
 	BaseDir   string          // directory of the source file (for relative imports)
 	StdlibDir string          // path to stdlib/ root (for stdlib imports)
 	Loaded    map[string]bool // already-loaded module paths (circular import detection)
@@ -1670,6 +1671,7 @@ func (p *parser) parseImport() error {
 		childOpts := ParseOpts{
 			BaseDir:   filepath.Dir(filePath),
 			StdlibDir: p.opts.StdlibDir,
+			OptSize:   p.opts.OptSize,
 			Loaded:    make(map[string]bool),
 		}
 		for k, v := range p.opts.Loaded {
@@ -3423,7 +3425,7 @@ func (p *parser) parseMetaStmt(metaSrc, name string) (hir.Stmt, error) {
 	for symbol, ty := range p.varTypes {
 		callerTypes[symbol] = ty
 	}
-	emitted, nodes, err := executeMetaOutput(metaSrc, name, scalarArgs, block, p.module, callerTypes)
+	emitted, nodes, err := executeMetaOutput(metaSrc, name, scalarArgs, block, p.module, p.opts, callerTypes)
 	if err != nil {
 		return nil, fmt.Errorf("line %d: @%s: %w", callLine, name, err)
 	}
@@ -6190,6 +6192,7 @@ func (p *parser) captureMetaFuncSource(name string) (string, error) {
 		sb.WriteString("@extern fun " + decl + "\n")
 	}
 	sb.WriteString("@extern fun emit(s: ^u8) -> void\n")
+	sb.WriteString("@extern fun meta_opt_size() -> bool\n")
 	sb.WriteString("@extern fun block_len() -> u8\n")
 	sb.WriteString("@extern fun node_keyword(i: u8) -> ^u8\n")
 	sb.WriteString("@extern fun node_arg_count(i: u8) -> u8\n")
@@ -6273,13 +6276,13 @@ func (p *parser) captureMetaFuncSource(name string) (string, error) {
 
 // executeMetaInvocation compiles and executes a metafunction, returning emitted Nanz source.
 func (p *parser) executeMetaInvocation(metaSrc, funcName string, scalarArgs []string, block []metaBlockNode) (string, error) {
-	return executeMetaFuncWithStringArgs(metaSrc, funcName, scalarArgs, block, p.module)
+	return executeMetaFuncWithStringArgs(metaSrc, funcName, scalarArgs, block, p.module, p.opts)
 }
 
 // executeMetaFuncWithStringArgs is like executeMetaFunc but pre-allocates
 // string arguments on the VM heap before calling the function.
-func executeMetaFuncWithStringArgs(metaSrc, funcName string, args []string, block []metaBlockNode, caller *hir.Module) (string, error) {
-	text, nodes, err := executeMetaOutput(metaSrc, funcName, args, block, caller)
+func executeMetaFuncWithStringArgs(metaSrc, funcName string, args []string, block []metaBlockNode, caller *hir.Module, opts ParseOpts) (string, error) {
+	text, nodes, err := executeMetaOutput(metaSrc, funcName, args, block, caller, opts)
 	if err == nil && len(nodes) > 0 {
 		return "", fmt.Errorf("metafunc @%s: structured statement emit requires a statement invocation", funcName)
 	}
@@ -6292,6 +6295,7 @@ func executeMetaOutput(
 	stringArgs []string,
 	block []metaBlockNode,
 	callerMod *hir.Module,
+	opts ParseOpts,
 	callerScopes ...map[string]mir2.Ty,
 ) (string, []hir.Stmt, error) {
 	// 1. Parse metafunction source → HIR
@@ -6320,6 +6324,7 @@ func executeMetaOutput(
 
 	// 4. Register host functions
 	mr := newMetaRuntime(callerMod)
+	mr.optSize = opts.OptSize
 	if len(callerScopes) > 0 {
 		mr.callerTypes = callerScopes[0]
 	}

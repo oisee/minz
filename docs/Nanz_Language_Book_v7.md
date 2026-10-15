@@ -2642,36 +2642,57 @@ Struct declaration → MetaRuntime introspection → Lanz S-expression → HIR �
 
 ### 20.4 VM-Hosted Metafunctions
 
-For more complex metaprogramming, you can write metafunctions in Nanz itself, compiled to MIR2 and executed on the VM:
+The current Nanz implementation compiles `fun @name(...)` to MIR2 and runs it
+on the compiler's VM. `emit` produces **Nanz source**, which is parsed into HIR;
+`emit_hir` can splice typed statements built with the HIR host API. This is
+compile-time execution, before target Z80 code generation.
 
 ```nanz
-@extern fun emit(ptr: u16) -> void
-@extern fun struct_field_count(ty: u8) -> u8
-
-fun meta_sizeof(ty: u8) -> u8 {
-    let n = struct_field_count(ty)
-    emit(c"(fun Color_size () u8 (return 3))") // emit takes a CString pointer
-    return n
+fun @make_value() -> void {
+    if meta_opt_size() {
+        emit(c"fun generated() -> u8 { return 9 }")
+    } else {
+        emit(c"fun generated() -> u8 { return 7 }")
+    }
 }
+@make_value()
+fun main() -> u8 { return generated() }
 ```
 
-The VM provides host functions for introspection:
+This small example demonstrates selection by build goal; returning a different
+constant is not an optimization claim. A sprite generator can use the same
+hint around its compact-loop and unrolled-call emitters. The generated target
+contains the chosen function, without a runtime call to `meta_opt_size`.
 
-| Host function | Returns |
+| Current host function | Purpose |
 |---|---|
-| `@meta.type.width(ty_id)` | Byte width of type |
-| `@meta.type.name(ty_id)` | Pointer to type name string |
-| `@meta.type.is_struct(ty_id)` | 1 if struct, 0 otherwise |
-| `@meta.struct.field_count(ty_id)` | Number of fields |
-| `@meta.struct.field_name(ty_id, i)` | Pointer to field name |
-| `@meta.struct.field_type(ty_id, i)` | Type ID of field |
-| `@meta.struct.field_offset(ty_id, i)` | Byte offset of field |
-| `@meta.ast.func(name_ptr)` | Lanz S-expression of function AST |
-| `@meta.str.concat(a, b)` | Concatenated string |
-| `@meta.str.from_int(n)` | Integer as decimal string |
-| `@meta.emit(ptr)` | Append string to emit buffer |
+| `emit(text: ^u8)` | Append Nanz source to the expansion |
+| `meta_opt_size() -> bool` | Whether this invocation has the Size build goal |
+| `block_len() -> u8` | Number of nodes in the descriptor block |
+| `node_keyword(i)` | Descriptor node keyword |
+| `node_arg_count(i)` | Number of positional arguments |
+| `node_arg_str(i,j)`, `node_arg_int(i,j)` | String/integer descriptor argument |
+| `str_concat(a,b)`, `str_from_int(n)`, `str_quote_c(text)` | Construct text safely |
+| `meta_error(message)` | Reject an invalid description at compile time |
+| `emit_hir(statement)` | Splice a statement from the typed HIR builder |
 
-The metafunction calls `@meta.emit()` to produce Lanz code, which is then compiled and spliced into the module. This enables arbitrarily complex compile-time logic — loops, conditionals, string building — all running on the MIR2 VM before any Z80 code is generated.
+These host declarations are supplied when the parser captures the metafunction;
+normal `fun @name` definitions do not need to redeclare them. Textual and
+structured output cannot be mixed in one invocation. The structured API is
+currently for statement expansion, not arbitrary declaration generation.
+
+`mz --Osize source.nanz` passes the Size hint through imports and generated
+expansions. API callers pass `nanz.ParseOpts{OptSize: true}` before parsing;
+setting only the later pipeline `Options.OptSize` cannot rerun an already
+expanded metafunction. The default hint is false. It is invocation-local,
+so one compilation cannot change the next compilation's goal.
+
+The hint tells a generator the requested policy; it does not prove that any
+candidate is smaller/faster. The checked sprite alternatives and their current
+measurement scope are documented in
+[the preparation report](../reports/advanced-demos/sprite-preparation-options/README.md).
+Automatic selection by whole-program measurements/frame budget is separate
+from exposing this compile-time context.
 
 ### 20.5 Testing @derive
 
