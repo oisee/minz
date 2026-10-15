@@ -217,11 +217,11 @@ func (m *pixelGameModel) lock() {
 	if cleared > 0 {
 		v["lines_cleared"] = (v["lines_cleared"] + cleared) & 65535
 		if m.automatic {
-			m.progression.lines += cleared
+			m.progression.lines += 2 * cleared
 			if m.progression.lines > 64 {
 				m.progression.lines = 64
 			}
-			m.gaugeHeight += cleared
+			m.gaugeHeight += 2 * cleared
 			if m.gaugeHeight > 160 {
 				m.gaugeHeight = 160
 			}
@@ -481,7 +481,7 @@ func runTetrisPixelPhysicsNativeVM(t *testing.T, path string, variable bool, aut
 		}
 	}
 	if automatic {
-		thresholds := []int{0, 7, 8, 15, 16, 23, 24, 31, 32, 39, 40, 47, 48, 55, 56, 63, 64, 159}
+		thresholds := []int{0, 3, 4, 7, 8, 11, 12, 15, 16, 19, 20, 23, 24, 27, 28, 31, 32, 79}
 		for i := range trials {
 			m := &trials[i].initial
 			m.automatic = true
@@ -492,11 +492,11 @@ func runTetrisPixelPhysicsNativeVM(t *testing.T, path string, variable bool, aut
 				count = 65535
 			}
 			m.v["lines_cleared"] = count
-			m.gaugeHeight = count
+			m.gaugeHeight = 2 * count
 			if m.gaugeHeight > 160 {
 				m.gaugeHeight = 160
 			}
-			m.progression = newLineFallOracle(count, []int{0, 167, 255}[(i/len(thresholds))%3])
+			m.progression = newLineFallOracle(2*count, []int{0, 167, 255}[(i/len(thresholds))%3])
 			m.progression.frame = []int{0, 127, 128, 255}[(i/54)%4]
 			m.progression.stage = m.progression.lines / 8
 			m.progression.rate = []int{96, 128, 159}[(i/216)%3]

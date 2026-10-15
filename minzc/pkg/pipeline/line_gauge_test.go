@@ -14,13 +14,13 @@ import (
 )
 
 // ZX layout is computed from scanline divisions, not from generated addresses.
-// The gauge owns one byte column (9), rows 16..175. Eight cleared lines fill
+// The gauge owns one byte column (8), rows 24..183. Four cleared lines fill
 // one character row; its preset INK changes from white through yellow to blue.
-func gaugeScreenAddress(y int) int { return 0x4000 + (y/64)*2048 + (y%8)*256 + ((y/8)%8)*32 + 9 }
+func gaugeScreenAddress(y int) int { return 0x4000 + (y/64)*2048 + (y%8)*256 + ((y/8)%8)*32 + 8 }
 func gaugeAttribute(row int) byte {
 	colors := []byte{71, 70, 69, 68, 67, 66, 65, 1}
-	if row >= 14 {
-		return colors[21-row]
+	if row >= 15 {
+		return colors[22-row]
 	}
 	return 1
 }
@@ -85,21 +85,21 @@ func TestLineGaugeOwnedMemoryNativeVM(t *testing.T) {
 			raw := hir.LowerModule(parse())
 			cases := 0
 			for _, initial := range []int{0, 1, 7, 8, 15, 16, 47, 48, 49, 63, 64, 65, 127, 128, 159, 160} {
-				for _, lines := range []int{0, 1, 4, 5, 255} {
+				for _, lines := range []int{0, 1, 2, 4, 8, 9, 255} {
 					height := initial + lines
 					if height > 160 {
 						height = 160
 					}
 					count := height - initial
-					admitted := count <= 4
+					admitted := count <= 8
 					state := []byte{byte(height), byte(initial), 77}
 					ready := byte(0)
-					prepared := bytes.Repeat([]byte{0xa5}, 8)
+					prepared := bytes.Repeat([]byte{0xa5}, 16)
 					if admitted {
 						ready = 1
 						state[2] = byte(count)
 						for i := 0; i < count; i++ {
-							at := gaugeScreenAddress(175 - initial - i)
+							at := gaugeScreenAddress(183 - initial - i)
 							prepared[2*i] = byte(at)
 							prepared[2*i+1] = byte(at >> 8)
 						}
@@ -113,7 +113,7 @@ func TestLineGaugeOwnedMemoryNativeVM(t *testing.T) {
 					copy(ram[sym("gauge"):], []byte{byte(initial), byte(initial), 77})
 					ram[sym("gauge_lines")] = byte(lines)
 					ram[sym("gauge_ready")] = 0
-					copy(ram[sym(addresses):], bytes.Repeat([]byte{0xa5}, 8))
+					copy(ram[sym(addresses):], bytes.Repeat([]byte{0xa5}, 16))
 					expected := append([]byte(nil), ram...)
 					call := func(name string) {
 						ram[0xff00], ram[0xff01] = 0x00, 0x70
@@ -132,12 +132,12 @@ func TestLineGaugeOwnedMemoryNativeVM(t *testing.T) {
 								continue
 							}
 							if v != expected[at] {
-								t.Fatalf("initial%d lines%d %s memory %04x got%02x want%02x gauge=%v ready=%d destinations=%v\n%s", initial, lines, name, at, v, expected[at], ram[sym("gauge"):sym("gauge")+3], ram[sym("gauge_ready")], ram[sym(addresses):sym(addresses)+8], steps.Assembly+"\n"+steps.MIR2Opt)
+								t.Fatalf("initial%d lines%d %s memory %04x got%02x want%02x gauge=%v ready=%d destinations=%v\n%s", initial, lines, name, at, v, expected[at], ram[sym("gauge"):sym("gauge")+3], ram[sym("gauge_ready")], ram[sym(addresses):sym(addresses)+16], steps.Assembly+"\n"+steps.MIR2Opt)
 							}
 						}
 					}
-					for row := 2; row < 22; row++ {
-						expected[0x5800+row*32+9] = gaugeAttribute(row)
+					for row := 3; row < 23; row++ {
+						expected[0x5800+row*32+8] = gaugeAttribute(row)
 					}
 					call("gauge_init_probe")
 					copy(expected[sym("gauge"):], state)
@@ -147,7 +147,7 @@ func TestLineGaugeOwnedMemoryNativeVM(t *testing.T) {
 					if admitted {
 						expected[sym("gauge")+1] = byte(height)
 						for i := 0; i < count; i++ {
-							expected[gaugeScreenAddress(175-initial-i)] = 255
+							expected[gaugeScreenAddress(183-initial-i)] = 255
 						}
 						call("gauge_commit_probe")
 					}
@@ -156,14 +156,14 @@ func TestLineGaugeOwnedMemoryNativeVM(t *testing.T) {
 						vm.EnsureHeap(65536)
 						vm.WriteHeapSlice(0x4000, expected[0x4000:0x5b00])
 						// Restore the independent pre-publication bitmap input, keeping attrs.
-						for y := 16; y < 176; y++ {
+						for y := 24; y < 184; y++ {
 							at := gaugeScreenAddress(y)
 							vm.WriteHeap(int64(at), byte(at*37+initial*11+lines))
 						}
 						vm.WriteHeapSlice(vm.GlobalAddr("gauge"), []byte{byte(initial), byte(initial), 77})
 						vm.WriteHeap(vm.GlobalAddr("gauge_lines"), byte(lines))
 						vm.WriteHeap(vm.GlobalAddr("gauge_ready"), 0)
-						vm.WriteHeapSlice(vm.GlobalAddr(addresses), bytes.Repeat([]byte{0xa5}, 8))
+						vm.WriteHeapSlice(vm.GlobalAddr(addresses), bytes.Repeat([]byte{0xa5}, 16))
 						for _, name := range []string{"gauge_init_probe", "gauge_prepare_probe"} {
 							if _, e := vm.Call(name, nil); e != nil {
 								t.Fatal(e)
@@ -175,12 +175,12 @@ func TestLineGaugeOwnedMemoryNativeVM(t *testing.T) {
 						if got := vm.ReadHeap(vm.GlobalAddr("gauge_ready"), 1)[0]; got != ready {
 							t.Fatal("VM admission", got, ready)
 						}
-						if got := vm.ReadHeap(vm.GlobalAddr(addresses), 8); !bytes.Equal(got, prepared) {
+						if got := vm.ReadHeap(vm.GlobalAddr(addresses), 16); !bytes.Equal(got, prepared) {
 							t.Fatalf("VM destinations %v want%v", got, prepared)
 						}
 						before := vm.ReadHeap(0x4000, 6912)
 						for i := 0; i < count && admitted; i++ {
-							at := gaugeScreenAddress(175 - initial - i)
+							at := gaugeScreenAddress(183 - initial - i)
 							if before[at-0x4000] != byte(at*37+initial*11+lines) {
 								t.Fatal("VM stage wrote screen")
 							}

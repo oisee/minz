@@ -102,19 +102,25 @@ func TestEmbeddedTetrisDifficulty(t *testing.T) {
 					}
 				}
 			}
-			for row := 2; row < 22; row++ {
+			for row := 3; row < 23; row++ {
 				want := byte(1)
-				if row >= 15 {
-					want = byte(65 + row - 15)
+				if row >= 16 {
+					want = byte(65 + row - 16)
 				}
-				if got := m.Memory.ReadByteInternal(uint16(0x5800 + row*32 + 9)); got != want {
+				if got := m.Memory.ReadByteInternal(uint16(0x5800 + row*32 + 8)); got != want {
 					t.Fatalf("gauge row %d attribute %d want %d", row, got, want)
 				}
 			}
-			for y := 16; y < 176; y++ {
-				address := uint16(0x4000 + (y/64)*2048 + (y%8)*256 + ((y/8)%8)*32 + 9)
+			for y := 24; y < 184; y++ {
+				address := uint16(0x4000 + (y/64)*2048 + (y%8)*256 + ((y/8)%8)*32 + 8)
 				if m.Memory.ReadByteInternal(address) != 0 {
 					t.Fatal("initial gauge should be empty")
+				}
+			}
+			for y := 16; y < 184; y++ {
+				address := uint16(0x4000 + (y/64)*2048 + (y%8)*256 + ((y/8)%8)*32 + 9)
+				if m.Memory.ReadByteInternal(address) != 0 {
+					t.Fatal("gauge/well separator must stay black")
 				}
 			}
 			top := func() int {
