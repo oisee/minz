@@ -165,6 +165,16 @@ Addresses are patched before HALT; paired erase/draw kernels then publish
 directly to the screen. Try `mzx --demo sprite-tv` in [demos 0.25.2](https://github.com/oisee/minz/releases/tag/v0.25.2).
 [Source, timing, and capture provenance](reports/advanced-demos/sprite-effect-composition/README.md).
 
+**Pixel-wave Tetris: a baked visual effect**
+
+[<img src="reports/advanced-demos/tetris/pixel-wobble/tetris-wobble-50hz.gif" width="352" alt="Spectrum Tetris: 78 consecutive actual ULA frames, with one-pixel horizontal wave">](reports/advanced-demos/tetris/pixel-wobble/README.md)
+
+A typed Nanz `ByteWave` shifts the falling figure by one pixel inside its cells.
+Paired baked kernels erase and draw directly to the screen; physics stays in
+game coordinates. Both difficulty levels and 1/2/4-line clears pass independent
+native Z80/ULA checks. Heavy actions still take multiple frames.
+[Source, measurements, verified capture, and limits](reports/advanced-demos/tetris/pixel-wobble/README.md).
+
 ## Explore
 
 - [Nanz language book](docs/Nanz_Language_Book_v7.md) and [Frill guide](docs/Frill_Language_Guide.md)

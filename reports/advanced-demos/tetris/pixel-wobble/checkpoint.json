@@ -162,5 +162,17 @@
       "minimum_SP": 64698,
       "bytes": 31561
     }
+  },
+  "integration": {
+    "baseline_main": "7e6e2abcae7344b492a2119007f486ad6fe9c35e",
+    "published_pixel_shifts_preserved": true,
+    "ordinary_binary_byte_identical_after_compatibility_change": true,
+    "binary_sha256": "e829195aecf9258e596c782bfe80ae13872e9db3a01a8d97abc5f32d552f2efb",
+    "compatibility_tests_seconds": 97.437,
+    "embedded_levels_PASS": true,
+    "library_sha256": {
+      "stdlib/zx/sprite.nanz": "b398d12f82ec18b9e6e84aaa9a7125fbb974dc18c7ed97653e1c550629574758",
+      "stdlib/zx/sprite_pixel_row.nanz": "c57ab2556e4aa8358d644a2133f8241d1b989689022cae8e74d9f313325097fe"
+    }
   }
 }

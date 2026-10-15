@@ -91,6 +91,9 @@ fun @zx_sprite(name:^u8)->void {
     }
     if effect_type[0]!=0 {row_shifts=1}
     if seen_phases!=0 {pixel_shifts=1}
+    // Preserve the published eight-phase API, including per-row effects.
+    // Finite phase descriptors opt into whole-sprite specialization instead.
+    if pixel_shifts!=0 {if seen_phases==0 {row_shifts=1}}
     if seen_size==0 { meta_error(c"zx sprite: missing size") }
     if width<=0 { meta_error(c"zx sprite: invalid width") }
     if width>64 { meta_error(c"zx sprite: maximum width is 64 pixels") }
