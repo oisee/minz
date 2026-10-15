@@ -32,6 +32,59 @@ func (c *smoothGameObserver) DoOpcode() {
 	}
 }
 
+// referenceTetrisInterface draws the fixed screen specification without
+// reading game screen RAM, renderer tables or generated code. ROM glyphs are
+// an input asset shared with the real Spectrum, not a captured expected image.
+// The well occupies columns 11..20, rows 2..21; its white border and
+// the two 4x4 previews are specified independently of rendering loops.
+func referenceTetrisInterface(rom []byte, menu, variableMenu bool) []byte {
+	screen := make([]byte, 6912)
+	fill := func(x, y int, attr byte) {
+		for line := 0; line < 8; line++ {
+			scan := y*8 + line
+			at := (scan/64)*2048 + (scan%8)*256 + ((scan/8)%8)*32 + x
+			screen[at] = 255
+		}
+		screen[6144+y*32+x] = attr
+	}
+	for y := 2; y < 22; y++ {
+		fill(10, y, 7)
+		fill(21, y, 7)
+	}
+	for x := 10; x < 22; x++ {
+		fill(x, 22, 7)
+	}
+	for y := 3; y < 7; y++ {
+		for x := 0; x < 4; x++ {
+			fill(5+x, y, 0)
+			fill(23+x, y, 0)
+		}
+	}
+	if menu {
+		texts := []struct {
+			x, y int
+			text string
+		}{{6, 0, "1: 1 PX / 2 FRAMES"}, {6, 1, "2: 1 PX / FRAME"}}
+		if variableMenu {
+			texts = append(texts, struct {
+				x, y int
+				text string
+			}{23, 1, "3: RAND"})
+		}
+		for _, label := range texts {
+			for col, ch := range label.text {
+				for line := 0; line < 8; line++ {
+					scan := label.y*8 + line
+					at := (scan/64)*2048 + (scan%8)*256 + ((scan/8)%8)*32 + label.x + col
+					screen[at] = rom[0x3d00+(int(ch)-32)*8+line]
+				}
+				screen[6144+label.y*32+label.x+col] = 7
+			}
+		}
+	}
+	return screen
+}
+
 // Executes the frozen shadow-candidate main through its real loader, keyboard matrix,
 // IM2 timer, renderer and game-over return. The independent physics model owns
 // the expected state across successive calls; it is never reseeded from the game.
@@ -303,10 +356,25 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 				t.Fatalf("unsupported byte argument location %s", loc)
 				return 0
 			}
-			// Compare every fetched field frame with complete independently drawn
-			// scenes encountered in that frame, never with a final-RAM screenshot.
+			// Direct mode compares all 256x192 fetched pixels: fixed UI, both
+			// previews and the independently simulated field. Historical shadow
+			// fixtures retain their existing field-only observation contract.
+			viewWidth, viewHeight := 80, 160
+			if !shadow {
+				viewWidth, viewHeight = 256, 192
+			}
 			fieldImage := func() []byte {
 				screen := make([]byte, 6912)
+				if !shadow {
+					screen = referenceTetrisInterface(rom, strings.Contains(string(src), "fun choose_difficulty"), strings.Contains(string(src), `c"3: RAND"`))
+					for _, preview := range []struct{ kind, x int }{{model.v["next_type"], 23}, {model.v["hold_type"], 5}} {
+						if preview.kind < 7 {
+							for _, cell := range pixelGameCells(preview.kind, 0) {
+								screen[6144+(cell.y+3)*32+preview.x+cell.x] = colors[preview.kind+1]
+							}
+						}
+					}
+				}
 				for y := 0; y < 20; y++ {
 					for x := 0; x < 10; x++ {
 						b := model.board[y*10+x]
@@ -332,6 +400,9 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 					}
 				}
 				full := shadowScreenPixels(screen)
+				if !shadow {
+					return full
+				}
 				out := make([]byte, 80*160*4)
 				for y := 0; y < 160; y++ {
 					at := ((y+16)*256 + 88) * 4
@@ -695,10 +766,13 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 				m.RunFrame()
 				if ready {
 					full := shadowFetchedPixels(m)
-					got := make([]byte, 80*160*4)
-					for y := 0; y < 160; y++ {
-						at := ((y+16)*256 + 88) * 4
-						copy(got[y*80*4:], full[at:at+80*4])
+					got := full
+					if shadow {
+						got = make([]byte, 80*160*4)
+						for y := 0; y < 160; y++ {
+							at := ((y+16)*256 + 88) * 4
+							copy(got[y*80*4:], full[at:at+80*4])
+						}
 					}
 					matched := false
 					for _, image := range frameCandidates {
@@ -722,9 +796,9 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 									t.Fatal(err)
 								}
 								rows := map[int]int{}
-								for y := 0; y < 160; y++ {
-									for x := 0; x < 80; x++ {
-										at := (y*80 + x) * 4
+								for y := 0; y < viewHeight; y++ {
+									for x := 0; x < viewWidth; x++ {
+										at := (y*viewWidth + x) * 4
 										if !bytes.Equal(got[at:at+4], candidate[at:at+4]) {
 											rows[y]++
 										}
@@ -744,7 +818,7 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 								t.Fatal(err)
 							}
 						}
-						t.Fatalf("main mixed field in fetched frame%d step%d", frames, steps)
+						t.Fatalf("main mixed or incorrect %dx%d screen in fetched frame%d step%d", viewWidth, viewHeight, frames, steps)
 					}
 					fetchedFrames++
 					if videoDir != "" {
@@ -804,7 +878,7 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 				if e := os.MkdirAll(dir, 0755); e != nil {
 					t.Fatal(e)
 				}
-				receipt := fmt.Sprintf("PASS\nfetched_complete_field_frames=%d\nframes=%d\nsteps=%d\npixel_phase_samples=%d\nlocks=%d\ninterrupts=%d\nminimum_SP=0x%04x\nbytes=%d\n", fetchedFrames, frames, steps, nonzeroPhases, locks, c.irq, c.minSP, len(a.Binary))
+				receipt := fmt.Sprintf("PASS\nfetched_complete_screen_frames=%d\nframes=%d\nsteps=%d\npixel_phase_samples=%d\nlocks=%d\ninterrupts=%d\nminimum_SP=0x%04x\nbytes=%d\nview_width=%d\nview_height=%d\n", fetchedFrames, frames, steps, nonzeroPhases, locks, c.irq, c.minSP, len(a.Binary), viewWidth, viewHeight)
 				profileJSON, e := json.MarshalIndent(map[string]any{"attribution": "nearest preceding emitted function label; HALT includes wait", "per_step": profileSamples, "total_costs_T": c.profile.costs, "clock_delta_histogram": tickHistogram, "input_irq_histogram": actionTicks}, "", "  ")
 				if e != nil {
 					t.Fatal(e)
