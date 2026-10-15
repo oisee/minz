@@ -71,22 +71,51 @@ func TestEmbeddedDemoBoots(t *testing.T) {
 	}
 }
 
-// Test the embedded image, not a separate source build. Select through the
-// Spectrum keyboard and observe the physical bitmap after settling at startup.
+// Test the embedded image, not a separate source build. Old menu keys must
+// leave automatic half-pixel-per-frame descent unchanged. Full source/ULA
+// matrices establish the later line-driven stages and lock/clear behavior.
 func TestEmbeddedTetrisDifficulty(t *testing.T) {
-	for _, level := range []int{1, 2, 3} {
-		t.Run(fmt.Sprintf("level-%d", level), func(t *testing.T) {
+	for _, key := range []int{0, 1, 2, 3} {
+		t.Run(fmt.Sprintf("automatic-key-%d", key), func(t *testing.T) {
 			m, _, err := loadDemo("tetris", t.TempDir(), embedded48ROM)
 			if err != nil {
 				t.Fatal(err)
 			}
-			m.Keyboard.KeyPress(3, level-1)
+			if key != 0 {
+				m.Keyboard.KeyPress(3, key-1)
+			}
 			for i := 0; i < 4; i++ {
 				m.RunFrame()
 			}
-			m.Keyboard.KeyRelease(3, level-1)
-			for i := 0; i < 20; i++ {
+			if key != 0 {
+				m.Keyboard.KeyRelease(3, key-1)
+			}
+			for i := 0; i < 16; i++ {
 				m.RunFrame()
+			}
+			// No text at the former two-line difficulty menu.
+			for y := 0; y < 16; y++ {
+				for x := 0; x < 32; x++ {
+					address := uint16(0x4000 + (y/64)*2048 + (y%8)*256 + ((y/8)%8)*32 + x)
+					if m.Memory.ReadByteInternal(address) != 0 {
+						t.Fatalf("text or pixels in former menu at %04x", address)
+					}
+				}
+			}
+			for row := 2; row < 22; row++ {
+				want := byte(1)
+				if row >= 15 {
+					want = byte(65 + row - 15)
+				}
+				if got := m.Memory.ReadByteInternal(uint16(0x5800 + row*32 + 9)); got != want {
+					t.Fatalf("gauge row %d attribute %d want %d", row, got, want)
+				}
+			}
+			for y := 16; y < 176; y++ {
+				address := uint16(0x4000 + (y/64)*2048 + (y%8)*256 + ((y/8)%8)*32 + 9)
+				if m.Memory.ReadByteInternal(address) != 0 {
+					t.Fatal("initial gauge should be empty")
+				}
 			}
 			top := func() int {
 				for y := 16; y < 176; y++ {
@@ -100,30 +129,17 @@ func TestEmbeddedTetrisDifficulty(t *testing.T) {
 				t.Fatal("no falling figure in embedded Tetris")
 				return -1
 			}
-			first := top()
-			previous := first
+			first, previous := top(), top()
 			for i := 0; i < 16; i++ {
 				m.RunFrame()
-				if level == 3 {
-					now := top()
-					delta := now - previous
-					if delta < 0 || delta > 2 {
-						t.Fatalf("variable speed frame%d moved%d pixels", i, delta)
-					}
-					previous = now
+				now := top()
+				if delta := now - previous; delta < 0 || delta > 1 {
+					t.Fatalf("frame %d moved %d pixels", i, delta)
 				}
+				previous = now
 			}
-			if level == 3 {
-				// Packaged-image smoke: independent full source/ULA tests
-				// establish the exact rate trace. Here verify menu 3 selects
-				// moving variable speed and never jumps over more than 2 pixels.
-				if got := top() - first; got < 17 || got > 24 {
-					t.Fatalf("mode3 16-frame descent=%d; expected 17..24 pixels", got)
-				}
-				return
-			}
-			if got, want := top()-first, 8*level; got != want {
-				t.Fatalf("16-frame descent=%d pixels want %d", got, want)
+			if got := top() - first; got != 8 {
+				t.Fatalf("16-frame descent=%d pixels want 8", got)
 			}
 		})
 	}

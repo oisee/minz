@@ -25,4 +25,4 @@ if size == 0 or 0x8000 + size >= 0xfc60:
     raise SystemExit(f"Tetris binary overlaps reserved stack: {size} bytes at 8000")
 print(f"Tetris: {size} bytes, code end {0x8000 + size:04X}, direct screen, reserved stack FC60..FCE0")
 PY_LAYOUT
-"$TETRIS_MZX" --model 48k --load "$TETRIS_OUT/program.bin@8000" --set PC=8000,SP=FCE0,DI,IM=1 --frames 100 --save-snapshot "$TETRIS_OUT/tetris.sna" --screenshot "$TETRIS_OUT/tetris.png"
+"$TETRIS_MZX" --model 48k --load "$TETRIS_OUT/program.bin@8000" --set PC=8000,SP=FCE0,DI,IM=1 --frames 40 --save-snapshot "$TETRIS_OUT/tetris.sna" --screenshot "$TETRIS_OUT/tetris.png"

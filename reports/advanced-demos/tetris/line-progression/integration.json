@@ -1,6 +1,6 @@
 {
   "date": "2026-10-15",
-  "status": "verified feature branch, not published game/release",
+  "status": "verified feature branch with updated embedded SNA; native release/main integration pending",
   "source_sha256": {
     "examples/zx/tetris_playable.nanz": "9c0ae51e7557f4d1477507fe9ceb6bb199a2f07f46740a2b466cc3552bacdebb",
     "stdlib/game/line_fall.nanz": "9469cb94c937b88eac0ae82df9cf10d4aaac7be26e756c03db593dc1f0fe7f1f",
@@ -61,7 +61,7 @@
     "one IRQ applies to checked ordinary motion, not every input action",
     "lock/hard input can take two IRQ; line clear up to three",
     "historical menu tests retained on exact c11ab1db source",
-    "embedded SNA and native release packages still need updating"
+    "new embedded SNA verified locally; native release packages still need rebuilding"
   ],
   "media": {
     "source": "actual ULA frame sequence from current automatic product, independently checked native main",
@@ -80,5 +80,49 @@
       "line-progression-32-full.mp4": "46bf0328f24afe7b201280334420fe27d516e2fb289cdd40b0ffbef779e5bd42",
       "timeline.json": "00e0e33fd6b1b72a87b0b813464e34bddec27bc2f4dd1e614c5aa015894fc589"
     }
+  },
+  "embedded_snapshot": {
+    "sha256": "7efd3e593044d90d2773a60c94439b17432924ae2f461d09b32d5b47a2918934",
+    "proof": {
+      "source": "examples/zx/tetris_playable.nanz",
+      "source_sha256": "9c0ae51e7557f4d1477507fe9ceb6bb199a2f07f46740a2b466cc3552bacdebb",
+      "source_commit": "7f456cb6",
+      "builder": "scripts/build_zx_tetris_demo.sh",
+      "builder_sha256": "864aec54e9939189b861e87551407ededf6be86a015e050768c03e58005a3c78",
+      "snapshot_sha256": "7efd3e593044d90d2773a60c94439b17432924ae2f461d09b32d5b47a2918934",
+      "assembly_sha256": "7fd7e8cf21a70957e4f79a912fdb8dc34b527a1c7ddb2da39de6685bf8fdac46",
+      "binary_sha256": "e5f7abc245554c88f919b1f723f831c1b9be0cd7ee74d9ee5eefd72ec666bb29",
+      "model": "Spectrum 48K",
+      "origin": 32768,
+      "code_end": 64113,
+      "bytes": 31345,
+      "stack_guard": 64608,
+      "gap_bytes": 495,
+      "snapshot_frame": 40,
+      "snapshot_state": "automatic game, no menu, empty gauge, grid Y=0 phase=1, line controller=0/current Q6=32",
+      "rendering": "four paired baked sprite instances, finite phases 0/1/7; patching and gauge placement before HALT; direct screen publication after HALT",
+      "scope": "3 native main sessions, 15 steady high-stage sessions, 27 threshold/clear sessions, 4890 native + 9780 raw/final VM physics calls; ordinary descent meets checked one-IRQ budget; heavy actions 2/3 frames",
+      "matches_full_native_main_binary": true,
+      "verification": [
+        "TestTetrisLineProgressionMainMachine",
+        "TestTetrisLineProgressionSteadyMachine",
+        "TestTetrisLineProgressionThresholdMachine",
+        "TestTetrisLineProgressionPhysicsNativeVM",
+        "TestLineGaugeOwnedMemoryNativeVM",
+        "TestEmbeddedTetrisDifficulty"
+      ],
+      "release_status": "candidate, not published",
+      "package_verification": {
+        "frames": 120,
+        "no_border": true,
+        "png_sha256": "d1bd92fe1198bc483e8e693b1cef145c4d2dd97616cc0448a1a3c1f6ce88e3b6",
+        "oracle": "independent RGB rectangles: fixed well and preview; known initial I, X=3 and visible displacement 60 from the frozen phase-1 start after 120 half-speed frames; all 49152 pixels compared",
+        "scope": "quiet startup of packaged image; later gameplay covered by full source/ULA matrices"
+      }
+    },
+    "local_embedded_log_sha256": "c38535c4e91befb12c6dabe6752b7a9543ecccf67b96a4f5086abca48cb46606",
+    "local_embedded_log": "tetris-line-embedded-tests.log",
+    "embedded_boot_save_resume": "PASS 0.868s",
+    "old_menu_keys": "0/1/2/3 all preserve half-pixel-per-frame automatic startup"
   }
 }
