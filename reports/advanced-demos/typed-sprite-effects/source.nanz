@@ -1,4 +1,5 @@
 import zx.sprite
+import zx.sprite_effect
 import hw.push_fill
 import hw.fill
 
@@ -19,8 +20,7 @@ import hw.fill
 global actor:Diamond=Diamond{x:32,y:56}
 global actor_visible:bool=false
 global frame:u8=0
-global wave:[i8;8]=[0,1,1,0,0,-1,-1,0]
-global row_offsets:[i8;8]
+global tv:ByteWave=ByteWave{phase:0}
 
 @push_fill("clear_bitmap") {
     region 0x4000 6144
@@ -42,12 +42,8 @@ fun prepare_frame(frame:u8)->bool {
     if actor_visible {if actor.stage_previous_erase()==false {return false}}
     actor.x=(4+(frame&15))*8
     actor.y=56+(frame>>4)*8
-    var row:u8=0
-    while row<8 {
-        row_offsets[row]=wave[(frame+row)&7]
-        row=row+1
-    }
-    return actor.stage_shifted(&row_offsets[0])
+    tv.phase=frame
+    return actor.stage_wave(&tv)
 }
 
 // Frame publication contains no geometry, row setters or screen addresses.

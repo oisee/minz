@@ -70,6 +70,7 @@ fun @zx_sprite(name:^u8)->void {
         i=i+1
     }
     emit(c"import zx.sprite_address")
+    if row_shifts!=0 {emit(c"import zx.sprite_effect")}
     emit(str_concat(str_concat(c"struct ",name),c" {x:u8,y:u8}"))
     emit(str_concat(str_concat(c"global ",name),c"_ready:bool=false"))
     if paired_erase!=0 {
@@ -207,6 +208,13 @@ fun @zx_sprite(name:^u8)->void {
             row=row+1
         }
         emit(str_concat(name,c"_ready=true return true }"))
+        // Concrete render-only effect surface: offsets and scanline count
+        // remain private to this generated form, alongside its SMC slots.
+        let offsets:^u8=str_concat(name,c"_wave_offsets")
+        emit(str_concat(str_concat(c"global ",offsets),str_concat(c":[i8;",str_concat(str_from_int(u16(height)),c"]"))))
+        emit(str_concat(str_concat(c"fun ",name),str_concat(c".stage_wave(self:^",str_concat(name,c",wave:^ByteWave)->bool {"))))
+        emit(str_concat(str_concat(c"wave.fill(&",offsets),str_concat(c"[0],",str_concat(str_from_int(u16(height)),c")"))))
+        emit(str_concat(str_concat(c"return self.stage_shifted(&",offsets),c"[0]) }"))
     }
     emit(str_concat(str_concat(c"fun ",name),str_concat(c".publish(self:^",str_concat(name,c")->bool {"))))
     emit(str_concat(str_concat(c"if ",name),c"_ready==false {return false}"))
