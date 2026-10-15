@@ -1,0 +1,682 @@
+{
+  "rows": [
+    {
+      "T_states": 1757,
+      "bytes": 826,
+      "effect": "stateful",
+      "height": 1,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "a78d30d970608685b614d9252265d5fd833f2ecf85fffd331345e1f13c949db7",
+        "program.a80": "0cd3c28ad6694c14bf80757a084740cd59de5e67aefd25abd83a40a9a114ca17",
+        "program.bin": "ff2de809c79a01114dbbb191c53b2e8e98dc9975bb1b648dfcad07288e55ac43"
+      }
+    },
+    {
+      "T_states": 2093,
+      "bytes": 879,
+      "effect": "stateful",
+      "height": 1,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "ddfac9ac9968dbbaed6217e6f1d965bafc02deb7274778d244c074c34f7b2ca7",
+        "program.a80": "e235744353b74a3333cfc790c4efdeb787e1512a99ad97ead44055d88d0bc049",
+        "program.bin": "bdbbf73caef17c2f965fc86591abf24ff4d2b10b4a181ca728005b66583dc97c"
+      }
+    },
+    {
+      "T_states": 3151,
+      "bytes": 1162,
+      "effect": "stateful",
+      "height": 2,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "fb06ad46d38197e12b62d69e9b47f02edd537f0ea901fb16edceb48db9c3e3c3",
+        "program.a80": "0a58386a14f025d22d6040188dd98547038c60aef0c6794704ac7e45e5b5a62b",
+        "program.bin": "c6d380289337fcdbf1b89dfe090237c56ac73cf4d6aa548a305d37e15876d331"
+      }
+    },
+    {
+      "T_states": 3611,
+      "bytes": 1183,
+      "effect": "stateful",
+      "height": 2,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "dd427e937a5be60c7e562af6c1734e13bb0dcff17819566f8794e567cc92b5e6",
+        "program.a80": "fea337751008fdfd6fafbe26ccc55efeff8ee97607df149f5a5e2921c0b740b0",
+        "program.bin": "ec0eab6ec85964c851250de6dc95d90e879a3362c1ea4cc3ab785d745a13ea05"
+      }
+    },
+    {
+      "T_states": 4602,
+      "bytes": 1434,
+      "effect": "stateful",
+      "height": 3,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "a505349f67492af984b1f45305a2a19589fec43881e8858464840f0737ac4960",
+        "program.a80": "d3e09dc12505969534f61342f0f2067a9ea3b16279ee49c1825b8c18ea66588d",
+        "program.bin": "0a0255b226f7f395c0fc9d5f9bf057d7d0a266f2f9d1182fa04bf1ee189f7ba0"
+      }
+    },
+    {
+      "T_states": 5115,
+      "bytes": 1415,
+      "effect": "stateful",
+      "height": 3,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "1e58712ffe225cfe49998be48d5924cc9b977c281cdfbc29fb64abbc32bdd5d7",
+        "program.a80": "22ff9a735960e1f69f36b6cbd6c9264990cc4c2e0c2002a9c0261c6194425d1b",
+        "program.bin": "cb6ea6b30fa878137f54c44a7744f71e2ca9f5ae9341bee94fbccec49bb7c0c3"
+      }
+    },
+    {
+      "T_states": 6086,
+      "bytes": 1711,
+      "effect": "stateful",
+      "height": 4,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "485e06f6bf6905096406f90141b663763f3d5371f40d9fb308ec658a1f5c19fa",
+        "program.a80": "1ad9bf89ca071e569ce42a428ea497810d6cdcd1550e0e4f28526328f8e3a9e4",
+        "program.bin": "a87ffcbfda315fba3e841f087de743640de03c2cc5219a0ecddf64a97634a9a8"
+      }
+    },
+    {
+      "T_states": 6652,
+      "bytes": 1652,
+      "effect": "stateful",
+      "height": 4,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "2b740b58e79bab3a8dc42971e73cc12441fc6ae4c6ec00871aae096cfc3e118b",
+        "program.a80": "a42258b2e256af937b7211c84cd30dba3ad139682fa0646fbfe89608779ad1d1",
+        "program.bin": "f57848c6ae56f97b52084825795cc780c82a11048443f4fe21a10735f36c751c"
+      }
+    },
+    {
+      "T_states": 12022,
+      "bytes": 2819,
+      "effect": "stateful",
+      "height": 8,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "c20c641e5ac73cf0b1acc63005c395ce7a1ab656b2c686b2fedebf73ef3cce9a",
+        "program.a80": "ad22d490b08289cebc97556dac3593b0499b4eaafd142a7d0e035b1cfb1d69fb",
+        "program.bin": "18e7fc1b404403eedfb90251004139b98d69c68bf442ed3d345e7055ac246bf2"
+      }
+    },
+    {
+      "T_states": 12800,
+      "bytes": 2600,
+      "effect": "stateful",
+      "height": 8,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "e98e2d403b803349470cb6af8bc0a31522edcece0c179b1a1bf1b46a70093761",
+        "program.a80": "0b6276f266a96f50a6e6535ed8e09314690a9d6dc061fcb3293cb4d4ccb8a0b9",
+        "program.bin": "c8d28a33790888a5651e3d76b565005cd6fb2554565ea0d0aa85821d29021432"
+      }
+    },
+    {
+      "T_states": 23984,
+      "bytes": 5035,
+      "effect": "stateful",
+      "height": 16,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "94d5f4fbba3d79af357f53b90d37482556d57f118494805cb5b149349c075669",
+        "program.a80": "5d5c582c2e2659a36f9e9bfe2457b2121dd9e01c2e387e10a47a1d57173e7870",
+        "program.bin": "66bbad402b25fbe4f2f6b614f3e3f22fda33262d63533fb4501cb6dd061d5e06"
+      }
+    },
+    {
+      "T_states": 25186,
+      "bytes": 4496,
+      "effect": "stateful",
+      "height": 16,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "b8d8438dd8aab0622de0a1432d66d2c43565844a54dc0f2110b0c81ad7994aa1",
+        "program.a80": "5fc5fdf506afebf2f6569cb62915e75b7f31589bbc281d4854493db46a23186c",
+        "program.bin": "5e64b0b92331d6dafe44378bdd864fd6c31632563d3e64145ec257d678cbdb35"
+      }
+    },
+    {
+      "T_states": 47942,
+      "bytes": 9467,
+      "effect": "stateful",
+      "height": 32,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "a00fef359e11d7e55a0c1bdfdbb29e5fe94f78d74c1592bf65d56692786e4ef9",
+        "program.a80": "b7df23eeb3d893b2d6878ae9caa16455cd19efd98e0803786dee8a46b38393b7",
+        "program.bin": "c57479b6bddde17b8714e628f0545c00a89ca0972b51573e6374b7021397d18e"
+      }
+    },
+    {
+      "T_states": 49992,
+      "bytes": 8288,
+      "effect": "stateful",
+      "height": 32,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "447bc00ebf8ae217727838d4b20098c02dac854be97daa47b3b37b1d518fda0e",
+        "program.a80": "9373304994b6cf6feeaf6c3dc146b27a974f9a94f3d430c877b2e4d64b467a91",
+        "program.bin": "01d793b5e36fd5a1961f48c903e7c765ffc7682ec038df939e98a6fd9bae462d"
+      }
+    },
+    {
+      "T_states": 95858,
+      "bytes": 18331,
+      "effect": "stateful",
+      "height": 64,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "29edc229925f79b0486bde93cff535e5a0efc9087d67b052eb1d396adbd07e6c",
+        "program.a80": "599ce9f095d88193d24ab6dd657bae762b9c6397d175249d34e16d47a6ef71a0",
+        "program.bin": "39739599795827f82fd19c363afb84f989f74d9b2c65b8a40efe6f9a5fe6186c"
+      }
+    },
+    {
+      "T_states": 99604,
+      "bytes": 15872,
+      "effect": "stateful",
+      "height": 64,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "258c1cdccc21e52d37fdaec5eb7d3d86245e22362dcfdd67299c271a92809b4c",
+        "program.a80": "b978697bb7bc2228c18425c7121ffc3b0b1ec5160bbcbde5e292ebee0ea5c8fd",
+        "program.bin": "ba45fabea6fdea09614f6185d52f1ca5b2e8ae9daf2b74b508cc357378b39461"
+      }
+    },
+    {
+      "T_states": 1777,
+      "bytes": 831,
+      "effect": "branch",
+      "height": 1,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "91c7f1894cef6dab1ac540c7422789679507d209e5fcb4d5c3cbf7b018693869",
+        "program.a80": "85a4c3dc3857c581f97f335b9f997b2c5cdb73b77a6d8a644da7ff7d27508eb6",
+        "program.bin": "1379f27ba537eb557a8b320543c006f9d747d9b6f679faaf8a2f0956455a005f"
+      }
+    },
+    {
+      "T_states": 2113,
+      "bytes": 884,
+      "effect": "branch",
+      "height": 1,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "589a5f279ed2c8fd065c4c4197f204322fd2fcb31fa1259a59448217585a9902",
+        "program.a80": "b963a490deed2ab24656b306e226ddcb838532208d74313d51643acf59277c59",
+        "program.bin": "6447f5a1651646220e17e752451ecc10d7c7e4bf4df1593d5da7eceabe244483"
+      }
+    },
+    {
+      "T_states": 3180,
+      "bytes": 1167,
+      "effect": "branch",
+      "height": 2,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "82f30f89d73ad81dd4545be9409ddcf0f096d97d9007b936c00fa51252eae0d5",
+        "program.a80": "039f165af49469d5fefc3ec48dce4962024064a37c7829e4e2d44a6c602102ce",
+        "program.bin": "c3d1be50b5aeaaa1ef6f0d01626a233b07da1ce1b601fa46109b0aa8b2a6c65f"
+      }
+    },
+    {
+      "T_states": 3640,
+      "bytes": 1188,
+      "effect": "branch",
+      "height": 2,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "628d91621698a23512aa5b8b6ae1e3e6274308c5e10798ec99ad745f3bf8a0d5",
+        "program.a80": "84cbd4f46e15f101167bf88e60a8e052fd36cac93119103c9fcdc8bb3d909c6e",
+        "program.bin": "2876c413248b460a7b9eccc71960f4506097246e925cb2a28996735c0a33bc5a"
+      }
+    },
+    {
+      "T_states": 4651,
+      "bytes": 1439,
+      "effect": "branch",
+      "height": 3,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "9e51b5e27c231ec5304a48d62d4636af002d5201b1da451582b1b3d34f5b3986",
+        "program.a80": "f13a122b282a4beeea198ea47e6657061df2a9b4af37022fbd1084f6e1485466",
+        "program.bin": "1f75d91f8cc883c577432cffabad2f2fe9c445ef53e0c0f009279b6e9ce8ec58"
+      }
+    },
+    {
+      "T_states": 5164,
+      "bytes": 1420,
+      "effect": "branch",
+      "height": 3,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "c6e62c0e2dabb7c64210be21527a2a1dd381fdc5e1bf8ba7df477fa0eb9334f0",
+        "program.a80": "75ce32fc3d356a061d5d85eae1cbcac4ebdcb54dda91fbcdbbd30a7ffd0e9b07",
+        "program.bin": "af8b524c0204037c4bdc35e005e53a80783c2f8c42c0329f1a17c2afb6162a2c"
+      }
+    },
+    {
+      "T_states": 6144,
+      "bytes": 1716,
+      "effect": "branch",
+      "height": 4,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "17186943663249c796b87e12ee5830e398948a9e38298cbf326a47c1e9040cdf",
+        "program.a80": "4f704693e73d610bca5c0c9f1a80230f26db839b9ad2d18f8a8c847ac1dca39d",
+        "program.bin": "7f954b5d5f62fc28f2d9dcb68febaa57778091c5611dbdeb949a89cab47111ee"
+      }
+    },
+    {
+      "T_states": 6710,
+      "bytes": 1657,
+      "effect": "branch",
+      "height": 4,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "d3df65bd4af69be34af3a9d381946c2d501e37d3451a1d9d76af6b5a806f71d8",
+        "program.a80": "753d69b9e52804149a1d4cb50d952edb210fb34e4fd18e50eac165b2c7f40cad",
+        "program.bin": "10515e98f6e2d1c0ead93c12f48d168de1a517f5a5e2d694cd92cf1e22d3f4a4"
+      }
+    },
+    {
+      "T_states": 12138,
+      "bytes": 2824,
+      "effect": "branch",
+      "height": 8,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "e4b4f01f472aaefec6cd95ab889a63b104637c25751f2b59076200879c1c1770",
+        "program.a80": "8ac7e2d369b09067428294846591f103b33f21a79ea4f459a83fec931bd3a854",
+        "program.bin": "cba5ab9de31c02ff1b29c60967be3a4e07525516701326e024c30769b71eb7de"
+      }
+    },
+    {
+      "T_states": 12916,
+      "bytes": 2605,
+      "effect": "branch",
+      "height": 8,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "48afcf0c3799053c5d83c32458e95648b4d2a630beb9796ba2030ad251201b9a",
+        "program.a80": "1a5e641750653ebc5c7288660556da8c10189de46429650fe2717d219f4c823f",
+        "program.bin": "f88d3ee77be5b03554c8b922e513939a32e0f8121ef5d937f44fb31087aae71e"
+      }
+    },
+    {
+      "T_states": 24216,
+      "bytes": 5040,
+      "effect": "branch",
+      "height": 16,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "1f94d3f89b6393b4a017919dac4e433edc21b164b765c687831a5bd726bb1d3a",
+        "program.a80": "991ba63b4097363f59d8e229ca22e12b81b2f44dfcafc852906b4132c57d8c33",
+        "program.bin": "75b57229256e98642b716de8abc61acfdea6cd070617d9ad30aef7f60c0c4893"
+      }
+    },
+    {
+      "T_states": 25418,
+      "bytes": 4501,
+      "effect": "branch",
+      "height": 16,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "43c27932973a02b0209aa273d77aec6bc3d12f83273de8d59e1876d16279e44a",
+        "program.a80": "99e3d859e89efc89c474f5b4c3201a8e3414603f7f7a108115a91c7ea2e622b0",
+        "program.bin": "380b2e0262048bf01316491c5a9ff39dcaa0873550e059ed90785102c2a9cc14"
+      }
+    },
+    {
+      "T_states": 48406,
+      "bytes": 9472,
+      "effect": "branch",
+      "height": 32,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "b6d70578fc35d7752137b223b4acf750c9d75f4f30c866c00c4206828224caeb",
+        "program.a80": "473baf97ad469889043974f662a7c58bf5b3505c736be6ff76501d08ec8ef0c3",
+        "program.bin": "242a64caa508b413dcba6c9311c246c6eafcdeee64fe384adaaf5f1ab0348b76"
+      }
+    },
+    {
+      "T_states": 50456,
+      "bytes": 8293,
+      "effect": "branch",
+      "height": 32,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "56a6c911e06b0a133d9a8ffafdef056f2196c519f43372256f89f241eef6c1d7",
+        "program.a80": "ec18ad1f53eca0db61d87f1815c15758c8e4768637f3776ce730a703703ae6fb",
+        "program.bin": "13d2e48885f1f48e10981a94a0ac523223c823c3285969d65707a8048f3bfaef"
+      }
+    },
+    {
+      "T_states": 96786,
+      "bytes": 18336,
+      "effect": "branch",
+      "height": 64,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "f4bcf1f4f970a32930e721b60a78b59d4bb4da895253d1e6fa01b625e43fc3b8",
+        "program.a80": "8367596e8bd3f3a2db328224121fab00fad7d051230ff09f3f6e92c9b157a02c",
+        "program.bin": "7e19060e4cc6d150c059fd6ca63f71e0bc627eb026f31b9c502aa215df679db9"
+      }
+    },
+    {
+      "T_states": 100532,
+      "bytes": 15877,
+      "effect": "branch",
+      "height": 64,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "4e291f726aaa9b71d79aefdb60e9c707e8bb5f612fe358b66c4af688e18f7986",
+        "program.a80": "6ab3d03690297a1a5528ec29b88842dbc47f8b1f8c023f918fe70b7a0063a787",
+        "program.bin": "bd0160c76548c23b72613da1d75e67a36416e7a96f5241d0d94a11faaf95120f"
+      }
+    },
+    {
+      "T_states": 2170,
+      "bytes": 852,
+      "effect": "modulo",
+      "height": 1,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "58e4eb6ad5be15968d511f3e4241f5967de455e79b68310b7f688721e15e81f4",
+        "program.a80": "7711abd8516606e6897f56a6d0b1c334ef0c43684fd4c820cbc8b110a995f430",
+        "program.bin": "72e297d6ca344faa3ef71eff1e1478f1dd480109308c0cb26c4dee8e6c77e406"
+      }
+    },
+    {
+      "T_states": 2506,
+      "bytes": 905,
+      "effect": "modulo",
+      "height": 1,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "3c8bd1a7f7236351d20c047fd1c8b7b9547df146112b28c92d39299d22ce4f58",
+        "program.a80": "266d372362190387446f13652dd4800b510e22753477a3c5b294f608161fc233",
+        "program.bin": "de6df2c142f51ec5dc17c85730c97425bed03895d7268d64805885259e0aa523"
+      }
+    },
+    {
+      "T_states": 3977,
+      "bytes": 1188,
+      "effect": "modulo",
+      "height": 2,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "b8aaa9abc68c3a7999265dd0d2bfa1f16ebc481eac4e699db4740da9de7f4fa0",
+        "program.a80": "51ce6ee4ed190193c1e462bda68320f52099ffa8d7c92397a5cc5d5e894b3518",
+        "program.bin": "85555d9f35ec72472749c8b76f0a091f2468513a75c398bfcb766882463e5256"
+      }
+    },
+    {
+      "T_states": 4437,
+      "bytes": 1209,
+      "effect": "modulo",
+      "height": 2,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "2eefcf9ace7ea54b35b7a12ff700644f957fcbf517fd708299d6a20d9ce85c5f",
+        "program.a80": "2fa4631d91f5868ed72ae7698d350f6ae33400f0f5afae3f1e33a2368c3db875",
+        "program.bin": "9944e8572dd0d0cfd851eabe9027e5c112bd044a01b8a6612fcda86b524d36cd"
+      }
+    },
+    {
+      "T_states": 5841,
+      "bytes": 1460,
+      "effect": "modulo",
+      "height": 3,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "e0832c3e0c0aa8c40f0934e75763d42268a1254d4f726a4f53e517ab273846e5",
+        "program.a80": "7c8eab3af1059c8dc48ea8444fd0e0b97a02711d7df3aeb45913942381bdb0c0",
+        "program.bin": "1e86afdd8817a2fa4591d6befb706105ecc68c7585f3a64755b8b5be4917aca5"
+      }
+    },
+    {
+      "T_states": 6354,
+      "bytes": 1441,
+      "effect": "modulo",
+      "height": 3,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "a1bc442b230e1c0d0cddb09bc8b55cee727d2252950a584fece35b69f3f4973a",
+        "program.a80": "c815bebe5b500472043a7eb9d47789462dd95c069fd9b84c7e8bb42a93929b96",
+        "program.bin": "026a5a7cac6f87deccdff078f5074508acc5a8c6a3e8d419f9a0c03ca8fed1c0"
+      }
+    },
+    {
+      "T_states": 7738,
+      "bytes": 1737,
+      "effect": "modulo",
+      "height": 4,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "a82e4a97da0af34ed8a3cd8b7eedf7a6c04b7b9735d7fdb5b6a1df3cda308db1",
+        "program.a80": "ffe0498c56b80e111af5b1b368b94c8bd87398170f5c34301be71275c5887d07",
+        "program.bin": "2eaaa254abba421e9ac8e94c34a2931ecb0cb9f5ad6b87d2578ba0432aa3382a"
+      }
+    },
+    {
+      "T_states": 8304,
+      "bytes": 1678,
+      "effect": "modulo",
+      "height": 4,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "0f862f9fcd4f3a5cafe791f9c2c460804cfc83a86625760c2aa8c27f08b7ca2b",
+        "program.a80": "0b3a31b608917a55d5ce94ce15d95b9efa5b353bf9fc4a37ea2a11d7fb3b3957",
+        "program.bin": "b4c23356d7ed420369681afd81fa7895a3a08d033366fc39e34299f843adcc3f"
+      }
+    },
+    {
+      "T_states": 15332,
+      "bytes": 2845,
+      "effect": "modulo",
+      "height": 8,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "877f2a844562c5121a4668bc019dcb3759e4d9354a55eefb5880ebacf1778411",
+        "program.a80": "442cd50ee28a669f816c2e74ed7ad926efac1ff02cea2522cc3bd61d353d070b",
+        "program.bin": "13bfcd1948c0eb81d384446e16b1acd06c885c395910ede10be8d84a88b67bff"
+      }
+    },
+    {
+      "T_states": 16110,
+      "bytes": 2626,
+      "effect": "modulo",
+      "height": 8,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "b7c097671a8f34506d716a1f16d69460399f237a3ec37540a3e4603f14e2be6e",
+        "program.a80": "7bcbe0ee8ce38aff76e1d953241de94be3b42ffe33379ac866656ecf4294c8ad",
+        "program.bin": "05b0ea756014ad8d01b9ef10cfde8f5b8f00ab3384652d706d54792166569da4"
+      }
+    },
+    {
+      "T_states": 30592,
+      "bytes": 5061,
+      "effect": "modulo",
+      "height": 16,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "f50991c711c46f50aa8268a37ee477706bc96d4ac79c0243f61ee926169e1084",
+        "program.a80": "355e0ead1ff5459309d368b05f90c355a54f873fd4dd2e38c991cdb1b6161c1e",
+        "program.bin": "29b04902aaa1463e88594f3df83467175a3fd8595c346da29cf0bc00d1eb117e"
+      }
+    },
+    {
+      "T_states": 31794,
+      "bytes": 4522,
+      "effect": "modulo",
+      "height": 16,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "7bd197be8259988e860b78eafb2a0f908eee137996b6339293b032a7b65aa311",
+        "program.a80": "2ca1fa69c3d407ec14989c0a951f668600e0124ad898acb21320b1f58d5538c1",
+        "program.bin": "fedd4c5c8c27aaa5a554c79418595896a046b26cc36239d60a009de80eefc9e3"
+      }
+    },
+    {
+      "T_states": 61200,
+      "bytes": 9493,
+      "effect": "modulo",
+      "height": 32,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "4095957d76c3e748391c735198e0e9b6bb4df0151c0a9f604b53b958b3aed3d8",
+        "program.a80": "2d218ae6c47dc0d5c6b8bc62c23d49ebd90f87ba81892b5a3a76ab2c81af9472",
+        "program.bin": "dae853218c64cfc66329939a663deed00db5dbb2f6d398881b75a5088be7e371"
+      }
+    },
+    {
+      "T_states": 63250,
+      "bytes": 8314,
+      "effect": "modulo",
+      "height": 32,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "eced9864e82e3506a58af37269773fc32d71f5a5067b1071ebc4519d50e03d87",
+        "program.a80": "b86519180d118da7fde2e87478a4dd4c15e0157551fe018e2d9edbcda3fd22a2",
+        "program.bin": "d4c11804558a3ae41a24f2cb3e2527e77f170dd1c8ee76a32d7f0cf01802fc8f"
+      }
+    },
+    {
+      "T_states": 122389,
+      "bytes": 18357,
+      "effect": "modulo",
+      "height": 64,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "unrolled",
+      "artifacts": {
+        "source.nanz": "5a8a5e29435db65553240c0dd38aba6dc6f0c8f9c50e323d153d7cedc0403973",
+        "program.a80": "2719ce73e7f9f9089a2c45009da65ea0310ae6e159624751465b578d2c6cc7c3",
+        "program.bin": "79861e0b1aaf28d8a55f6621c4905db0279a0563240451102a8ca582c3b1d15d"
+      }
+    },
+    {
+      "T_states": 126135,
+      "bytes": 15898,
+      "effect": "modulo",
+      "height": 64,
+      "native_state_checked": true,
+      "raw_final_vm_state_checked": true,
+      "style": "loop",
+      "artifacts": {
+        "source.nanz": "9751b66e7ae47f41d452590697710b72c922f6ec8c7753d189eb43c473b0fab5",
+        "program.a80": "99bb521ec5d09e725e6bbd019996210df1a40072ed9f5f15324fd251b17ef3ca",
+        "program.bin": "0e0f37f84008fe6c3ea101e80ab413f049c45aaf96396b64ab0df2cf4fd8e3e2"
+      }
+    }
+  ],
+  "scope": "OptSize=true fixed for all variants; whole module bytes and work() ordered-state native/raw/final VM check; not a ULA or full-screen proof",
+  "metric_verification": "measureGraceZ80HIR returns (cycles, byte_count); initial labels corrected using that contract; saved ASM independently assembled for every case",
+  "elapsed_seconds": 72.54,
+  "source_commit": "10e4769891719e964b0cc5518e8ae2442162e726",
+  "native_calls": 48,
+  "raw_final_vm_calls": 96
+}
