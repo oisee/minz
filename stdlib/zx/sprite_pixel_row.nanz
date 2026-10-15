@@ -1,13 +1,14 @@
 // Internal row generator: each invocation has its own compile-time arena.
 // Eight immutable pixel phases; only the destination wrapper uses SMC.
-fun @zx_sprite_phase_row(row_name:^u8,name:^u8) {
+fun @zx_sprite_phase_row(row_name:^u8,kernel_name:^u8) {
     let width:i32=node_arg_int(0,0)
     let row:i32=node_arg_int(1,0)
     let data:^u8=node_arg_str(2,0)
     let clear:u8=u8(node_arg_int(3,0))
     var phase:u8=0
+    if node_arg_int(4,0)!=0 {
     while phase<8 {
-        let kernel:^u8=str_concat(row_name,str_concat(c"_phase_",str_from_int(u16(phase))))
+        let kernel:^u8=str_concat(kernel_name,str_concat(c"_phase_",str_from_int(u16(phase))))
         emit(str_concat(str_concat(c"fun ",kernel),c"(dst:^u8) {"))
         emit(c"var p:^u8=dst")
         var col:i32=0
@@ -37,13 +38,14 @@ fun @zx_sprite_phase_row(row_name:^u8,name:^u8) {
         emit(c"}")
         phase=phase+1
     }
+    }
     emit(str_concat(str_concat(c"fun ",row_name),c"(@smc dst:^u8,phase:u8) {"))
     phase=0
     while phase<7 {
-        let kernel:^u8=str_concat(row_name,str_concat(c"_phase_",str_from_int(u16(phase))))
+        let kernel:^u8=str_concat(kernel_name,str_concat(c"_phase_",str_from_int(u16(phase))))
         emit(str_concat(str_concat(str_concat(c"if phase==",str_from_int(u16(phase))),c" {"),str_concat(kernel,c"(dst) return}")))
         phase=phase+1
     }
-    emit(str_concat(row_name,c"_phase_7(dst) }"))
+    emit(str_concat(kernel_name,c"_phase_7(dst) }"))
 
 }

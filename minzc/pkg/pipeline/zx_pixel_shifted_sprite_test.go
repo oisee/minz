@@ -22,7 +22,7 @@ func TestZXPixelSpriteSmokeNativeVM(t *testing.T) {
 	t.Run("erase", func(t *testing.T) { runZXPixelSpriteNativeVM(t, true, true) })
 }
 
-func runZXPixelSpriteNativeVM(t *testing.T, clear bool, quick bool) {
+func runZXPixelSpriteNativeVM(t *testing.T, clear bool, quick bool, sharedRows ...bool) {
 	source := `import zx.sprite
 @zx_sprite("Ship") {
  size 16 8
@@ -42,16 +42,31 @@ fun draw_ship(x:u8,y:u8)->bool {
  if actor.stage()==false {return false}
  return actor.publish()
 }`
+	height := 8
 	if quick {
-		source = strings.Replace(source, "size 16 8", "size 16 1", 1)
+		height = 1
+		if len(sharedRows) > 0 {
+			height = 2
+		}
+		source = strings.Replace(source, "size 16 8", fmt.Sprintf("size 16 %d", height), 1)
 		lines := strings.Split(source, "\n")
 		kept := lines[:0]
 		rows := 0
+		first := ""
 		for _, line := range lines {
 			if strings.HasPrefix(strings.TrimSpace(line), "pixels ") {
 				rows++
-				if rows > 1 {
+				if rows > height {
 					continue
+				}
+				if rows == 1 {
+					first = line
+				}
+				if rows == 2 && len(sharedRows) > 0 {
+					line = first
+					if !sharedRows[0] {
+						line = strings.ReplaceAll(line, "#", "_")
+					}
 				}
 			}
 			kept = append(kept, line)
@@ -67,10 +82,6 @@ fun draw_ship(x:u8,y:u8)->bool {
 		if strings.HasPrefix(line, "pixels ") {
 			pixels = append(pixels, strings.Trim(line[len("pixels "):], "\""))
 		}
-	}
-	height := 8
-	if quick {
-		height = 1
 	}
 	if len(pixels) != height {
 		t.Fatal("fixture height", len(pixels))
@@ -102,6 +113,17 @@ fun draw_ship(x:u8,y:u8)->bool {
 			steps, e := CompileHIRSteps(parse(), opt)
 			if e != nil {
 				t.Fatal(e)
+			}
+			if len(sharedRows) > 0 {
+				if strings.Contains(steps.Assembly, "Ship_clear_row_1_phase_0:") {
+					t.Fatal("duplicate immutable clear kernel retained")
+				}
+				if sharedRows[0] && strings.Contains(steps.Assembly, "Ship_row_1_phase_0:") {
+					t.Fatal("duplicate immutable draw kernel retained")
+				}
+				if !sharedRows[0] && !strings.Contains(steps.Assembly, "Ship_row_1_phase_0:") {
+					t.Fatal("different ink patterns merged")
+				}
 			}
 			f := steps.MIR2Module.FuncByName("draw_ship")
 			raw := hir.LowerModule(parse())
@@ -253,6 +275,14 @@ func TestZXPixelSpriteAdmission(t *testing.T) {
 		_, err := nanz.ParseWithOpts(source, "invalid-pixel-shifts.nanz", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
 		if err == nil || !strings.Contains(err.Error(), "pixel_shifts") {
 			t.Fatalf("%s: %v", field, err)
+		}
+	}
+}
+
+func TestZXPixelSpriteSharedRowsNativeVM(t *testing.T) {
+	for _, sameInk := range []bool{false, true} {
+		for _, clear := range []bool{false, true} {
+			t.Run(fmt.Sprintf("sameInk-%v/erase-%v", sameInk, clear), func(t *testing.T) { runZXPixelSpriteNativeVM(t, clear, true, sameInk) })
 		}
 	}
 }

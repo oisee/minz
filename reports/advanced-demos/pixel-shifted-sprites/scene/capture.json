@@ -137,7 +137,12 @@
   ],
   "gif_sha256": "7a8ab3f4bc3b2e3c786fd8c0991510c0c415de24ce4372e51f1cc0ddf6781de8",
   "source_sha256": "a92f5e12fd0996f3fe237f3782aa7d0892d63ca22a6bf0ad8de71cb9513aaa49",
-  "snapshot_sha256": "d5310cddb5aab70325e8a6b01f4cfc3ca1715560ecdfd16d3cabc0a7a6cdfb8d",
+  "snapshot_sha256": "a0dbde4936b993956b97b6da314a823c34bc30386a49a374a35fa92b61112316",
   "emulator_sha256": "c37d06eec72730eb6f89b47f7cfc22e77f55883eb3dd5f79b3fe442aaaa5f504",
-  "emulator_build_commit": "867281fcc264a4c5a4220eeba16978147fe11de4"
+  "emulator_build_commit": "867281fcc264a4c5a4220eeba16978147fe11de4",
+  "kernel_sharing": true,
+  "library_sha256": {
+    "stdlib/zx/sprite.nanz": "9e14db50fba6a6bc2165e780936baa95a079594a025cd5be52d9fabf1f05054f",
+    "stdlib/zx/sprite_pixel_row.nanz": "360f09121d65773690f1126150eeae6fec31d95aaec944afad00cd561e273e46"
+  }
 }

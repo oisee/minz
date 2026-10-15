@@ -403,6 +403,7 @@
     "TestZXPairedSpriteAdmission",
     "TestZXPairedSpriteNative",
     "TestZXPixelSpriteAdmission",
+    "TestZXPixelSpriteSharedRowsNativeVM",
     "TestZXPixelSpriteSmokeNativeVM",
     "TestZXPixelWaveSceneMachine",
     "TestZXSpriteByteWaveNative",

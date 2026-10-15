@@ -110,6 +110,8 @@ fun @zx_sprite(name:^u8)->void {
             emit(str_concat(str_concat(str_concat(c"global ",name),c"_erase_phases:[u8;"),str_concat(str_from_int(u16(height)),c"]")))
         }
     }
+    var previous_pixels:^u8=c""
+    var previous_kernel:^u8=c""
     var row:i32=0
     i=0
     while i < block_len() {
@@ -117,11 +119,24 @@ fun @zx_sprite(name:^u8)->void {
             let data:^u8=node_arg_str(i,0)
             let row_name:^u8=str_concat(name,str_concat(c"_row_",str_from_int(u16(row))))
             if pixel_shifts!=0 {
-                emit(str_concat(str_concat(c"@zx_sprite_phase_row(",str_quote_c(row_name)),str_concat(c",",str_concat(str_quote_c(name),c") {"))))
+                var kernel_name:^u8=row_name
+                var kernels:u8=1
+                if previous_pixels[0]!=0 {
+                    var same:u8=1
+                    var pixel:i32=0
+                    while pixel<width {
+                        if data[pixel]!=previous_pixels[pixel] {same=0}
+                        pixel=pixel+1
+                    }
+                    if same!=0 {kernel_name=previous_kernel kernels=0}
+                }
+                previous_pixels=data previous_kernel=kernel_name
+                emit(str_concat(str_concat(c"@zx_sprite_phase_row(",str_quote_c(row_name)),str_concat(c",",str_concat(str_quote_c(kernel_name),c") {"))))
                 emit(str_concat(c"width ",str_from_int(u16(width))))
                 emit(str_concat(c"row ",str_from_int(u16(row))))
                 emit(str_concat(c"pixels ",str_quote_c(data)))
-                emit(c"clear 0 }")
+                emit(c"clear 0")
+                emit(str_concat(c"kernels ",str_concat(str_from_int(u16(kernels)),c" }")))
             } else {
             emit(str_concat(str_concat(c"fun ",row_name),c"(@smc dst:^u8) {"))
             emit(c"var p:^u8=dst")
@@ -352,6 +367,7 @@ fun @zx_sprite(name:^u8)->void {
             commit=commit+1
         }
         emit(str_concat(str_concat(c"global ",name),c"_erase_ready:bool=false"))
+        previous_pixels=c"" previous_kernel=c""
         row=0
         i=0
         while i<block_len() {
@@ -359,11 +375,24 @@ fun @zx_sprite(name:^u8)->void {
                 let data:^u8=node_arg_str(i,0)
                 let clear_name:^u8=str_concat(name,str_concat(c"_clear_row_",str_from_int(u16(row))))
                 if pixel_shifts!=0 {
-                emit(str_concat(str_concat(c"@zx_sprite_phase_row(",str_quote_c(clear_name)),str_concat(c",",str_concat(str_quote_c(name),c") {"))))
+                var kernel_name:^u8=clear_name
+                var kernels:u8=1
+                if previous_pixels[0]!=0 {
+                    var same:u8=1
+                    var pixel:i32=0
+                    while pixel<width {
+                        if (data[pixel]==46)!=(previous_pixels[pixel]==46) {same=0}
+                        pixel=pixel+1
+                    }
+                    if same!=0 {kernel_name=previous_kernel kernels=0}
+                }
+                previous_pixels=data previous_kernel=kernel_name
+                emit(str_concat(str_concat(c"@zx_sprite_phase_row(",str_quote_c(clear_name)),str_concat(c",",str_concat(str_quote_c(kernel_name),c") {"))))
                 emit(str_concat(c"width ",str_from_int(u16(width))))
                 emit(str_concat(c"row ",str_from_int(u16(row))))
                 emit(str_concat(c"pixels ",str_quote_c(data)))
-                emit(c"clear 1 }")
+                emit(c"clear 1")
+                emit(str_concat(c"kernels ",str_concat(str_from_int(u16(kernels)),c" }")))
                 } else {
                 emit(str_concat(str_concat(c"fun ",clear_name),c"(@smc dst:^u8) {"))
                 emit(c"var p:^u8=dst")
