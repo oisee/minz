@@ -4,7 +4,7 @@
 
 ## Play native Z80 demos
 
-[Download for Linux, macOS or Windows — MinZ 0.25.0](https://github.com/oisee/minz/releases/tag/v0.25.0): **six platforms**, Intel/AMD x64 and ARM64 for each OS. Unpack and launch `mzx`, `MinZ Demos.app` on macOS, or `mzx.exe` on Windows. [Choose your package](reports/zmachine-spectrum128/release/platforms.md). Choose **Zork I/II, Spectrum Tetris, the 32×48 rotozoomer, or SMC sprites** with Up/Down and Enter. Escape returns to the menu. Separate SNA/TRD images and one-click launchers are included.
+[Download for Linux, macOS or Windows — MinZ 0.25.1](https://github.com/oisee/minz/releases/tag/v0.25.1): **six platforms**, Intel/AMD x64 and ARM64 for each OS. Unpack and launch `mzx`, `MinZ Demos.app` on macOS, or `mzx.exe` on Windows. [Choose your package](reports/advanced-demos/tetris/release-0.25.1.md). Choose **Zork I/II, Spectrum Tetris, the 32×48 rotozoomer, or SMC sprites** with Up/Down and Enter. Escape returns to the menu. Separate SNA/TRD images and one-click launchers are included.
 
 SAVE files live outside the download in your user configuration directory, so upgrades preserve them. Zork I resumes the session after a clean exit; Zork II uses disk SAVE/RESTORE. [Release verification](reports/zmachine-spectrum128/release/verified.md) · [Full Z-machine status](reports/zmachine-spectrum128/current-status.md).
 
@@ -131,8 +131,10 @@ its first frame. Sprite code is baked at compile time; screen addresses are
 patched before HALT, then paired draw/erase kernels write directly to the
 screen. Quiet descent meets its frame budget; some heavy actions still take
 two frames. The whole-sprite API and direct-screen game are **now in main**
-([PR #128](https://github.com/oisee/minz/pull/128), `a284fafc`). Refreshed
-six-platform packages are being built from that integrated commit.
+([PR #128](https://github.com/oisee/minz/pull/128), `a284fafc`). [Six-platform 0.25.1 packages](https://github.com/oisee/minz/releases/tag/v0.25.1)
+are published from that integrated commit. The smaller dirty-span/preview
+follow-up is also in main ([#130](https://github.com/oisee/minz/pull/130));
+it will enter the next package build.
 [Implementation and verification](reports/advanced-demos/tetris/direct-renderer.md)
 · [Capture provenance](media/tetris-direct-50hz.json).
 
