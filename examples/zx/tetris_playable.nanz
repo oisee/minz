@@ -559,17 +559,19 @@ fun init_screen() -> void {
 }
 
 fun render_preview(t: u8, offset: u8) -> void {
-    var i: u8 = 0
-    while i < 16 {
-        tetris_values[offset + i] = Attr.BLACK
-        i = i + 1
+    var p:^u8=ptr(u16(&tetris_values)+u16(offset))
+    var remaining:u8=16
+    while remaining!=0 {
+        p^=Attr.BLACK
+        p=p+1 remaining=remaining-1
     }
     if t < 7 {
         let pc: u8 = piece_color(t)
+        let base:u8=t*16
         var c: u8 = 0
         while c < 4 {
-            let dx: u8 = piece_dx(t, 0, c)
-            let dy: u8 = piece_dy(t, 0, c)
+            let dx: u8 = PIECE_DX[base+c]
+            let dy: u8 = PIECE_DY[base+c]
             tetris_values[offset + dy * 4 + dx] = pc
             c = c + 1
         }
