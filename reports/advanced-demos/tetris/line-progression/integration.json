@@ -1,0 +1,84 @@
+{
+  "date": "2026-10-15",
+  "status": "verified feature branch, not published game/release",
+  "source_sha256": {
+    "examples/zx/tetris_playable.nanz": "9c0ae51e7557f4d1477507fe9ceb6bb199a2f07f46740a2b466cc3552bacdebb",
+    "stdlib/game/line_fall.nanz": "9469cb94c937b88eac0ae82df9cf10d4aaac7be26e756c03db593dc1f0fe7f1f",
+    "stdlib/zx/line_gauge.nanz": "fae1b5acf45618ae4055c202fe8d5c9a3c35f78ba95f9b1a01ed04c82d52cf88",
+    "minzc/pkg/pipeline/line_gauge_test.go": "82ca695e90ca414bd9c0e452d58c7a425f9a434d6146d183624083239a030d91",
+    "minzc/pkg/pipeline/tetris_smooth_main_test.go": "c27af1ef44c5d9d6ae1d5bfb9d2443c84bd04ef83bb0896e26acab2f915495fe",
+    "minzc/pkg/pipeline/tetris_pixel_physics_test.go": "e1bfd4b0059db66cb87358597fe4406c86a935b24ce10848c074c1b1f09217e1",
+    "reports/advanced-demos/tetris/line-progression/legacy-menu.nanz": "6607775bd23e7d7f07f204992e3c4ce5986b3fa5afd9fbc24f89ac7aa168110e",
+    "reports/advanced-demos/tetris/line-progression/line-progression-full.gif": "a2c71819cbd88ebbed9be7bcf1d17fce7d1f297692a81375ffd7b96ec8d196b5",
+    "scripts/ci/pipeline_profiles.json": "fa745c7ffddb94b4ff53a42180abce17171d8914dfb5eb870ad4d390bcb64497"
+  },
+  "logs": {
+    "tetris-line-final-main-physics-gauge.log": {
+      "result": "PASS",
+      "local_path": "/home/alice/dev/minz-artifacts/grace-reports/2026-10-15/tetris-line-final-main-physics-gauge.log",
+      "sha256": "a3dd3edb73facfd7df853cfdd25252d8a7c2f455fc714fe54f8da097feaf22cc"
+    },
+    "tetris-line-steady-rowbase-all.log": {
+      "result": "PASS",
+      "local_path": "/home/alice/dev/minz-artifacts/grace-reports/2026-10-15/tetris-line-steady-rowbase-all.log",
+      "sha256": "e1b4e98461b5cf182a1d32bdc54462189e532433f3d99265a7b8c508c072778a"
+    },
+    "tetris-line-thresholds-rowbase-all.log": {
+      "result": "PASS",
+      "local_path": "/home/alice/dev/minz-artifacts/grace-reports/2026-10-15/tetris-line-thresholds-rowbase-all.log",
+      "sha256": "b50f072acc6a326a2b860107fe5d7632157c32b0a8d284804a2ed8867e747e7d"
+    },
+    "tetris-line-progress-capture32.log": {
+      "result": "PASS",
+      "local_path": "/home/alice/dev/minz-artifacts/grace-reports/2026-10-15/tetris-line-progress-capture32.log",
+      "sha256": "a61bc2c6ab36b8f4492827117bdae24ce74dca59542ef24662382eaa5d1e3b9c"
+    },
+    "tetris-line-mir2-promoted-final.log": {
+      "result": "PASS",
+      "local_path": "/home/alice/dev/minz-artifacts/grace-reports/2026-10-15/tetris-line-mir2-promoted-final.log",
+      "sha256": "e60a5aea7ebfb7d9e2a0cee38c9143821740092d2bfec59d0f53d32683c1dcbf"
+    }
+  },
+  "coverage": {
+    "physics_native": 4890,
+    "physics_raw_final_vm": 9780,
+    "gauge_native": 240,
+    "gauge_raw_final_vm": 480,
+    "native_main_modes": 3,
+    "native_steady_sessions": 15,
+    "native_threshold_clear_sessions": 27,
+    "pipeline_roots": 799,
+    "fast": 429,
+    "deep": 370
+  },
+  "layout": {
+    "bin_bytes": 31345,
+    "end_hex": "FA71",
+    "stack_guard_hex": "FC60",
+    "gap_bytes": 495
+  },
+  "limits": [
+    "one IRQ applies to checked ordinary motion, not every input action",
+    "lock/hard input can take two IRQ; line clear up to three",
+    "historical menu tests retained on exact c11ab1db source",
+    "embedded SNA and native release packages still need updating"
+  ],
+  "media": {
+    "source": "actual ULA frame sequence from current automatic product, independently checked native main",
+    "initial_lines": 32,
+    "fixture": "seeded stage and gauge, actual main/input/physics thereafter",
+    "fps": 50,
+    "hardware_frames": 260,
+    "duration_seconds": 5.2,
+    "short_frames": 78,
+    "length_ratio": 3.3333333333333335,
+    "interpolation": false,
+    "gif_pixels_and_durations_match_original_frames": true,
+    "ending": "game over, actual border flashes and restored return SP",
+    "sha256": {
+      "line-progression-32-full.gif": "a2c71819cbd88ebbed9be7bcf1d17fce7d1f297692a81375ffd7b96ec8d196b5",
+      "line-progression-32-full.mp4": "46bf0328f24afe7b201280334420fe27d516e2fb289cdd40b0ffbef779e5bd42",
+      "timeline.json": "00e0e33fd6b1b72a87b0b813464e34bddec27bc2f4dd1e614c5aa015894fc589"
+    }
+  }
+}

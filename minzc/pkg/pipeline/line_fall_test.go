@@ -23,6 +23,10 @@ func newLineFallOracle(lines, seed int) lineFallOracle {
 	return lineFallOracle{lines: lines, seed: seed, shakeSeed: 29, rate: 32, target: 32}
 }
 
+func (s lineFallOracle) stateBytes() []byte {
+	return []byte{byte(s.lines), byte(s.stage), byte(s.frame), byte(s.seed), byte(s.shakeSeed), byte(s.shakeOn), byte(s.rate), byte(s.target)}
+}
+
 func lineFallLFSR(seed, fallback int) int {
 	if seed == 0 {
 		seed = fallback

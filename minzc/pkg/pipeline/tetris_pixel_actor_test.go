@@ -36,7 +36,7 @@ func TestTetrisPixelActorNative(t *testing.T) {
 			}
 		}
 	}
-	src, e := os.ReadFile("../../../examples/zx/tetris_playable.nanz")
+	src, e := os.ReadFile("../../../reports/advanced-demos/tetris/line-progression/legacy-menu.nanz")
 	if e != nil {
 		t.Fatal(e)
 	}
