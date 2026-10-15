@@ -41,5 +41,27 @@
       ]
     }
   },
-  "scope": "Two actual builder script processes; exact measured BIN embedded at original ORG. Separate native saved-SNA boot test checks 64 full screen/fetched ULA frames each, independent oracle; startup/border excluded."
+  "scope": "Two actual builder script processes; exact measured BIN embedded at original ORG. Separate native saved-SNA boot test checks 64 full screen/fetched ULA frames each, independent oracle; startup/border excluded.",
+  "native_executable": {
+    "executable_sha256": "c2ba2b4cb2ceeb42aa2a9d21b313389e3d4dd7d7918e2bea1e7845ee09b5189b",
+    "scope": "Actual native Linux amd64 release executable loaded external selected SNA on existing X display; 120-frame capture matches independent full active-display RGBA oracle. Separate tests verify every frame.",
+    "cases": [
+      {
+        "goal": "speed",
+        "process_exit": 0,
+        "fetched_RGBA_sha256": "072588b8b472ad6907ca2605e5f01ee5e886c6965841e0e2f9c815c319e9ed4d",
+        "independent_oracle_pose": 21,
+        "png_sha256": "da39a4319358bab6c01c1f8c578110ca5d6d283b7c2054af8a039635a32da24a",
+        "frames": 120
+      },
+      {
+        "goal": "budget",
+        "process_exit": 0,
+        "fetched_RGBA_sha256": "072588b8b472ad6907ca2605e5f01ee5e886c6965841e0e2f9c815c319e9ed4d",
+        "independent_oracle_pose": 21,
+        "png_sha256": "da39a4319358bab6c01c1f8c578110ca5d6d283b7c2054af8a039635a32da24a",
+        "frames": 120
+      }
+    ]
+  }
 }
