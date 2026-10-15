@@ -362,6 +362,8 @@
     "share_assets_sha_verified": true,
     "tag_jobs_all18_success": true,
     "ci_harness_fix_pr": 159,
-    "ci_harness_fix_scope": "separate main merge; not in frozen runtime payload"
+    "ci_harness_fix_scope": "merged separately after required checks; not in frozen runtime payload",
+    "ci_harness_fix_main": "70fab9749d19d1ad1b76dfb1316ed242825ccf6d",
+    "ci_harness_fix_all9_jobs_success": true
   }
 }
