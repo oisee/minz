@@ -700,6 +700,7 @@
     "TestSeededPointerWalkMeasuredCaller",
     "TestSumProfileCostFullU8Domain",
     "TestTetrisDirectLineClearMachine",
+    "TestTetrisLineProgressionMultiClearMachine",
     "TestTetrisLineProgressionPhysicsNativeVM",
     "TestTetrisLineProgressionSteadyMachine",
     "TestTetrisLineProgressionThresholdMachine",
