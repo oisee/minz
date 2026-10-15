@@ -2556,17 +2556,89 @@ func (p *parser) parseInitializer(ty mir2.Ty) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if lit, ok := e.(*hir.IntLitExpr); ok {
-		width := mir2.ByteWidth(ty)
-		if width >= 1 && width <= 4 {
-			data := make([]byte, width)
-			for i := range data {
-				data[i] = byte(lit.Val >> uint(8*i))
-			}
-			return data, nil
-		}
+	data, constant, err := literalInitializer(e, ty)
+	if err != nil {
+		return nil, err
+	}
+	if constant {
+		return data, nil
 	}
 	return nil, nil
+}
+
+// Serialize literal aggregate fields using the same packed layout as runtime
+// field access. Nonliteral aggregate fields must not silently become zero.
+func literalInitializer(e hir.Expr, ty mir2.Ty) ([]byte, bool, error) {
+	if lit, ok := e.(*hir.StructLitExpr); ok {
+		st, ok := ty.(*mir2.StructTy)
+		if !ok || st.Name != lit.St.Name {
+			return nil, false, fmt.Errorf("global initializer: struct %s incompatible with %s", lit.St.Name, ty)
+		}
+		data := make([]byte, mir2.ByteWidth(st))
+		for _, value := range lit.Fields {
+			offset := 0
+			found := false
+			for _, field := range st.Fields {
+				if field.Name == value.Name {
+					bytes, constant, err := literalInitializer(value.Val, field.Ty)
+					if err != nil {
+						return nil, false, err
+					}
+					if !constant {
+						return nil, false, fmt.Errorf("global initializer: field %s requires a constant literal", value.Name)
+					}
+					copy(data[offset:], bytes)
+					found = true
+					break
+				}
+				offset += mir2.ByteWidth(field.Ty)
+			}
+			if !found {
+				return nil, false, fmt.Errorf("global initializer: unknown field %s", value.Name)
+			}
+		}
+		return data, true, nil
+	}
+	var value int64
+	switch lit := e.(type) {
+	case *hir.CastExpr:
+		bytes, constant, err := literalInitializer(lit.X, lit.Ty)
+		if err != nil || !constant {
+			return nil, constant, err
+		}
+		bits := mir2.BaseOf(lit.Ty).Width()
+		if bits < 1 || bits > 32 {
+			return nil, false, nil
+		}
+		var raw uint64
+		for i, b := range bytes {
+			raw |= uint64(b) << uint(8*i)
+		}
+		raw &= (uint64(1) << uint(bits)) - 1
+		value = int64(raw)
+		if mir2.IsSigned(lit.Ty) && raw&(uint64(1)<<uint(bits-1)) != 0 {
+			value -= int64(uint64(1) << uint(bits))
+		}
+	case *hir.IntLitExpr:
+		value = lit.Val
+	case *hir.BoolLitExpr:
+		if lit.Val {
+			value = 1
+		}
+	case *hir.ConstPtrExpr:
+		value = int64(lit.Addr)
+	default:
+		return nil, false, nil
+	}
+	width := mir2.ByteWidth(ty)
+	if width < 1 || width > 4 {
+		return nil, false, nil
+	}
+	data := make([]byte, width)
+	for i := range data {
+		data[i] = byte(value >> uint(8*i))
+	}
+	return data, true, nil
 }
 
 // ── Function declaration ──────────────────────────────────────────────────────
