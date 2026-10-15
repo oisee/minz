@@ -237,6 +237,7 @@
     "TestMultiFunctionProfileVMZ80",
     "TestNanzGeneratedCallerTypeNativeVM",
     "TestNanzGlobalAggregateLiteralNativeVM",
+    "TestNanzNestedFieldsWithImportNativeVM",
     "TestNegativeLiteralContextVMZ80",
     "TestOfflineLocalGenerationRefusesIncompatibleOptions",
     "TestOlderMeasuredAPIsRefuseRegionPolicy",

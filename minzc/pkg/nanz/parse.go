@@ -4998,6 +4998,20 @@ func caretRHSStarts(t token) bool {
 	return false
 }
 
+// A dotted variable/field chain must not be consumed as a module path merely
+// because another module was imported. Bindings take precedence over modules.
+func (p *parser) importedModuleRoot(name string) bool {
+	if p.varTypes[name] != nil || p.globalTypes[name] != nil {
+		return false
+	}
+	for key := range p.importedModules {
+		if key == name || strings.HasPrefix(key, name+".") {
+			return true
+		}
+	}
+	return false
+}
+
 func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 	for {
 		t := p.l.peek()
@@ -5060,7 +5074,7 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 			}
 
 			// Check for qualified module call: mod.func(...) or mod.sub.func(...)
-			if vr, ok := base.(*hir.VarRefExpr); ok && p.importedModules != nil {
+			if vr, ok := base.(*hir.VarRefExpr); ok && p.importedModules != nil && p.importedModuleRoot(vr.Name) {
 				resolved := false
 				// Try progressively longer module paths: "mod", "mod.sub", "mod.sub.pkg"
 				modKey := vr.Name
