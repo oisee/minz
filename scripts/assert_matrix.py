@@ -147,19 +147,29 @@ def matrix(root, globs, compilers, jobs, runs, timeout, controls=False, roots=No
             inventory_cache.update(inventories=inventories, listing_errors=listing_errors)
     if progress:
         progress({'stage': 'inventory', 'inventories': inventories, 'listing_errors': listing_errors})
-    # A sandbox is a unit: its assertions retain source order and shared state.
+    # A sandbox retains source order and shared state. Top-level cases sharing
+    # a source line are also indivisible: --assert-lines selects all of them.
     units = {}
     for label, assertions in inventories.items():
+        line_members = {}
+        for a in assertions:
+            if a['kind'] == 'top-level' and a['line'] != 0:
+                line_members.setdefault((a['file'], a['line']), []).append(a)
         occurrences = {}
+        line_keys = {}
+        for location, members in line_members.items():
+            # Match across source-line shifts using every ordered semantic
+            # member, including duplicates; never reduce the expected receipt.
+            identity = tuple(top_level_identity(a) for a in members)
+            occurrence = occurrences.get(identity, 0)
+            occurrences[identity] = occurrence + 1
+            line_keys[location] = ('top-level', identity, occurrence)
         for a in assertions:
             if a['kind'] == 'top-level' and a['line'] == 0:
                 # Line-zero frontend receipts cannot select individual members.
                 key = ('line-zero', a['file'])
             elif a['kind'] == 'top-level':
-                identity = top_level_identity(a)
-                occurrence = occurrences.get(identity, 0)
-                occurrences[identity] = occurrence + 1
-                key = ('top-level', identity, occurrence)
+                key = line_keys[(a['file'], a['line'])]
             else:
                 key = ('sandbox', a['file'], a['kind'])
             unit = units.setdefault(key, {'file': a['file'], 'line': a['line'], 'kind': a['kind'], 'assert': a['expression'], 'members': {}})
