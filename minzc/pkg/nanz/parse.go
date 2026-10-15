@@ -70,11 +70,15 @@ func Parse(src, name string) (*hir.Module, error) {
 
 // ParseWithOpts parses Nanz source with import resolution enabled.
 func ParseWithOpts(src, name string, opts ParseOpts) (*hir.Module, error) {
+	return parseWithTypeContext(src, name, opts, nil)
+}
+
+func parseWithTypeContext(src, name string, opts ParseOpts, types *parser) (*hir.Module, error) {
 	l := newLexer(src)
 	if opts.Loaded == nil {
 		opts.Loaded = make(map[string]bool)
 	}
-	p := &parser{l: l, name: name, opts: opts}
+	p := &parser{l: l, name: name, opts: opts, typeContext: types}
 	return p.parseModule()
 }
 
@@ -524,7 +528,8 @@ type nanzADTCtor struct {
 }
 
 type parser struct {
-	metaBindingCount int // deterministic private bindings for structured emit
+	typeContext      *parser // visible caller types/methods for generated declarations
+	metaBindingCount int     // deterministic private bindings for structured emit
 
 	sourceSHA256 string
 	l            *lexer
@@ -736,6 +741,23 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	p.metaFuncs = make(map[string]string)
 	p.adts = make(map[string]*nanzADT)
 	p.adtCtors = make(map[string]*nanzADTCtor)
+	// Borrow visible types, with independent map storage. Generated declarations
+	// retain their own namespace and cannot mutate the caller's method registry.
+	if context := p.typeContext; context != nil {
+		for name, st := range context.structs {
+			p.structs[name] = st
+		}
+		for name, ty := range context.typeAliases {
+			p.typeAliases[name] = ty
+		}
+		for name, methods := range context.methodTable {
+			copied := make(map[string]methodInfo, len(methods))
+			for method, info := range methods {
+				copied[method] = info
+			}
+			p.methodTable[name] = copied
+		}
+	}
 
 	for !p.l.is(tokEOF) {
 		t := p.l.peek()
@@ -997,7 +1019,7 @@ func (p *parser) parseModule() (*hir.Module, error) {
 
 				// Parse emitted Nanz text and merge into current module
 				if emitted != "" {
-					generated, err := ParseWithOpts(emitted, fmt.Sprintf("%s@%s:%d", p.name, metaName, attr.pos), p.opts)
+					generated, err := parseWithTypeContext(emitted, fmt.Sprintf("%s@%s:%d", p.name, metaName, attr.pos), p.opts, p)
 					if err != nil {
 						return nil, fmt.Errorf("line %d: @%s: emitted code error: %w", attr.line, metaName, err)
 					}
