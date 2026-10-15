@@ -1,22 +1,22 @@
 {
   "source": "examples/zx/tetris_playable.nanz",
-  "source_sha256": "9c0ae51e7557f4d1477507fe9ceb6bb199a2f07f46740a2b466cc3552bacdebb",
-  "source_commit": "7f456cb6",
+  "source_sha256": "ac7175eb0b1cf968aad96602095925b317fb5276c7456946d5669f5807cf0b59",
+  "source_commit": "866a4789e3a34a9a2f0df765f9434b21a989854d",
   "builder": "scripts/build_zx_tetris_demo.sh",
   "builder_sha256": "864aec54e9939189b861e87551407ededf6be86a015e050768c03e58005a3c78",
-  "snapshot_sha256": "7efd3e593044d90d2773a60c94439b17432924ae2f461d09b32d5b47a2918934",
-  "assembly_sha256": "7fd7e8cf21a70957e4f79a912fdb8dc34b527a1c7ddb2da39de6685bf8fdac46",
-  "binary_sha256": "e5f7abc245554c88f919b1f723f831c1b9be0cd7ee74d9ee5eefd72ec666bb29",
+  "snapshot_sha256": "72e0d6135bb40444e525f2f107c24b91ee1cfa7d7ca366f2e962277e7fa1d405",
+  "assembly_sha256": "b1dba762a6a02bcfad33e3d1264cb9167a208dab8d01dbc505274997d7f48969",
+  "binary_sha256": "7344b7b647ed2fda2446c8efdf9f319bda84d689eb2815a8a462c3b713c7c83a",
   "model": "Spectrum 48K",
   "origin": 32768,
-  "code_end": 64113,
-  "bytes": 31345,
+  "code_end": 64122,
+  "bytes": 31354,
   "stack_guard": 64608,
-  "gap_bytes": 495,
+  "gap_bytes": 486,
   "snapshot_frame": 40,
   "snapshot_state": "automatic game, no menu, empty gauge, grid Y=0 phase=1, line controller=0/current Q6=32",
   "rendering": "four paired baked sprite instances, finite phases 0/1/7; patching and gauge placement before HALT; direct screen publication after HALT",
-  "scope": "3 native main sessions, 15 steady high-stage sessions, 27 threshold/clear sessions, 4890 native + 9780 raw/final VM physics calls; ordinary descent meets checked one-IRQ budget; heavy actions 2/3 frames",
+  "scope": "Updated native/VM/ULA checks are recorded in reports/advanced-demos/tetris/line-progression/gauge-update.md",
   "matches_full_native_main_binary": true,
   "verification": [
     "TestTetrisLineProgressionMainMachine",
@@ -24,14 +24,17 @@
     "TestTetrisLineProgressionThresholdMachine",
     "TestTetrisLineProgressionPhysicsNativeVM",
     "TestLineGaugeOwnedMemoryNativeVM",
-    "TestEmbeddedTetrisDifficulty"
+    "TestEmbeddedTetrisDifficulty",
+    "TestTetrisLineProgressionMultiClearMachine"
   ],
-  "release_status": "candidate, not published",
+  "release_status": "unreleased update after0.25.4",
   "package_verification": {
     "frames": 120,
     "no_border": true,
     "png_sha256": "d1bd92fe1198bc483e8e693b1cef145c4d2dd97616cc0448a1a3c1f6ce88e3b6",
     "oracle": "independent RGB rectangles: fixed well and preview; known initial I, X=3 and visible displacement 60 from the frozen phase-1 start after 120 half-speed frames; all 49152 pixels compared",
     "scope": "quiet startup of packaged image; later gameplay covered by full source/ULA matrices"
-  }
+  },
+  "progression": "two progress points per cleared line; gauge x=64, y=24..183; hold preview x=4; black column x=72 between gauge and well",
+  "compiler_source_commit": "d2d8f7ba3f2968368bb47079b2b51a0cff569bab"
 }

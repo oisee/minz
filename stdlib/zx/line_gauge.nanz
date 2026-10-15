@@ -1,14 +1,14 @@
-// One owned 8px column immediately left of the Tetris well (x=72, y=16..175).
-// Startup sets INK once. A cleared line adds one bitmap scanline, up to 160.
-// The singleton's four destinations are prepared before HALT; publish writes
+// One owned 8px column left of the Tetris well (x=64, y=24..183), with a black column gap.
+// Startup sets INK once. Each progress point adds one bitmap scanline; Tetris awards two per cleared line, up to 160.
+// The singleton's eight destinations are prepared before HALT; publish writes
 // only those bytes. This is placement metadata, not a screen buffer.
 struct LineGauge {height:u8,shown:u8,count:u8}
-global LINE_GAUGE_ADDRESSES:[u16;4]
+global LINE_GAUGE_ADDRESSES:[u16;8]
 global LINE_GAUGE_COLORS:[u8;20]=[1,1,1,1,1,1,1,1,1,1,1,1,1,65,66,67,68,69,70,71]
 
 fun LineGauge.init(self:^LineGauge) {
     var row:u8=0
-    var attr:^u8=ptr(0x5849)
+    var attr:^u8=ptr(0x5868)
     while row<20 {
         attr^=LINE_GAUGE_COLORS[row]
         attr=attr+32
@@ -25,11 +25,11 @@ fun LineGauge.stage(self:^LineGauge)->bool {
     let shown:u8=self.shown
     if (height>160)|(shown>height) {return false}
     let count:u8=height-shown
-    if count>4 {return false}
+    if count>8 {return false}
     var i:u8=0
     while i<count {
-        let y:u16=175-u16(shown)-u16(i)
-        LINE_GAUGE_ADDRESSES[i]=0x4009+((y&192)<<5)+((y&7)<<8)+((y&56)<<2)
+        let y:u16=183-u16(shown)-u16(i)
+        LINE_GAUGE_ADDRESSES[i]=0x4008+((y&192)<<5)+((y&7)<<8)+((y&56)<<2)
         i=i+1
     }
     self.count=count

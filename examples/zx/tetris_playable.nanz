@@ -125,7 +125,7 @@ const ATTR_START: u16   = 0x5800
 const ATTR_END: u16     = 0x5B00
 
 const PREVIEW_NEXT_X: u8 = 23
-const PREVIEW_HOLD_X: u8 = 5
+const PREVIEW_HOLD_X: u8 = 4
 const PREVIEW_Y: u8      = 3
 
 // ── Game state ──────────────────────────────────────────────────────────────
@@ -650,8 +650,10 @@ fun score_lines(cl: u8) -> void {
         if cl == 4 { score = score + 800 }
     }
     lines_cleared = lines_cleared + u16(cl)
-    line_fall.add_lines(cl)
-    line_gauge.add_lines(cl)
+    // Two progress points/pixels per cleared line; scoring still counts real lines.
+    let progress:u8=cl+cl
+    line_fall.add_lines(progress)
+    line_gauge.add_lines(progress)
 
 }
 
@@ -679,7 +681,7 @@ fun main() -> void {
 
     // Fill preview areas with solid pixels
     for py in 3..7 {
-        for px in 5..9 {
+        for px in 4..8 {
             fill_cell(px, py)
         }
         for px in 23..27 {
@@ -1149,22 +1151,22 @@ fun pixel_publish_previews() {
     let p213:^u8=ptr(22744) p213^=tetris_values[213]
     let p214:^u8=ptr(22745) p214^=tetris_values[214]
     let p215:^u8=ptr(22746) p215^=tetris_values[215]
-    let p216:^u8=ptr(22629) p216^=tetris_values[216]
-    let p217:^u8=ptr(22630) p217^=tetris_values[217]
-    let p218:^u8=ptr(22631) p218^=tetris_values[218]
-    let p219:^u8=ptr(22632) p219^=tetris_values[219]
-    let p220:^u8=ptr(22661) p220^=tetris_values[220]
-    let p221:^u8=ptr(22662) p221^=tetris_values[221]
-    let p222:^u8=ptr(22663) p222^=tetris_values[222]
-    let p223:^u8=ptr(22664) p223^=tetris_values[223]
-    let p224:^u8=ptr(22693) p224^=tetris_values[224]
-    let p225:^u8=ptr(22694) p225^=tetris_values[225]
-    let p226:^u8=ptr(22695) p226^=tetris_values[226]
-    let p227:^u8=ptr(22696) p227^=tetris_values[227]
-    let p228:^u8=ptr(22725) p228^=tetris_values[228]
-    let p229:^u8=ptr(22726) p229^=tetris_values[229]
-    let p230:^u8=ptr(22727) p230^=tetris_values[230]
-    let p231:^u8=ptr(22728) p231^=tetris_values[231]
+    let p216:^u8=ptr(22628) p216^=tetris_values[216]
+    let p217:^u8=ptr(22629) p217^=tetris_values[217]
+    let p218:^u8=ptr(22630) p218^=tetris_values[218]
+    let p219:^u8=ptr(22631) p219^=tetris_values[219]
+    let p220:^u8=ptr(22660) p220^=tetris_values[220]
+    let p221:^u8=ptr(22661) p221^=tetris_values[221]
+    let p222:^u8=ptr(22662) p222^=tetris_values[222]
+    let p223:^u8=ptr(22663) p223^=tetris_values[223]
+    let p224:^u8=ptr(22692) p224^=tetris_values[224]
+    let p225:^u8=ptr(22693) p225^=tetris_values[225]
+    let p226:^u8=ptr(22694) p226^=tetris_values[226]
+    let p227:^u8=ptr(22695) p227^=tetris_values[227]
+    let p228:^u8=ptr(22724) p228^=tetris_values[228]
+    let p229:^u8=ptr(22725) p229^=tetris_values[229]
+    let p230:^u8=ptr(22726) p230^=tetris_values[230]
+    let p231:^u8=ptr(22727) p231^=tetris_values[231]
 }
 
 // Spectrum 48K: the last mutable field scanline is 175. After the frame INT,

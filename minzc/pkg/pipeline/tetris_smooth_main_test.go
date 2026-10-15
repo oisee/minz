@@ -37,7 +37,7 @@ func (c *smoothGameObserver) DoOpcode() {
 // an input asset shared with the real Spectrum, not a captured expected image.
 // The well occupies columns 11..20, rows 2..21; its white border and
 // the two 4x4 previews are specified independently of rendering loops.
-func referenceTetrisInterface(rom []byte, menu, variableMenu bool) []byte {
+func referenceTetrisInterface(rom []byte, menu, variableMenu bool, holdX int) []byte {
 	screen := make([]byte, 6912)
 	fill := func(x, y int, attr byte) {
 		for line := 0; line < 8; line++ {
@@ -56,7 +56,7 @@ func referenceTetrisInterface(rom []byte, menu, variableMenu bool) []byte {
 	}
 	for y := 3; y < 7; y++ {
 		for x := 0; x < 4; x++ {
-			fill(5+x, y, 0)
+			fill(holdX+x, y, 0)
 			fill(23+x, y, 0)
 		}
 	}
@@ -107,7 +107,7 @@ func TestTetrisLineProgressionMainMachine(t *testing.T) {
 }
 
 func TestTetrisLineProgressionSteadyMachine(t *testing.T) {
-	for _, lines := range []int{32, 40, 48, 56, 64} {
+	for _, lines := range []int{16, 20, 24, 28, 32} {
 		t.Run(fmt.Sprintf("lines-%d", lines), func(t *testing.T) {
 			runTetrisMainMachineConfigured(t, "../../../examples/zx/tetris_playable.nanz", false, 4, true, 0, lines)
 		})
@@ -115,7 +115,7 @@ func TestTetrisLineProgressionSteadyMachine(t *testing.T) {
 }
 
 func TestTetrisLineProgressionThresholdMachine(t *testing.T) {
-	for _, lines := range []int{7, 15, 23, 31, 39, 47, 55, 63, 159} {
+	for _, lines := range []int{3, 7, 11, 15, 19, 23, 27, 31, 79} {
 		t.Run(fmt.Sprintf("lines-%d", lines), func(t *testing.T) {
 			runTetrisMainMachineConfigured(t, "../../../examples/zx/tetris_playable.nanz", false, 4, true, 1, lines)
 		})
@@ -135,6 +135,10 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 }
 
 func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool, selectedLevel int, wobble bool, seededRows ...int) {
+	holdX := 5
+	if selectedLevel == 4 {
+		holdX = 4
+	}
 	t.Helper()
 	clearRows := 0
 	initialLines := 0
@@ -246,8 +250,8 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 				model.automatic = true
 				model.v["drop_speed"] = 64
 				model.v["lines_cleared"] = initialLines
-				model.progression = newLineFallOracle(initialLines, 167)
-				model.gaugeHeight = initialLines
+				model.progression = newLineFallOracle(2*initialLines, 167)
+				model.gaugeHeight = 2 * initialLines
 				if model.gaugeHeight > 160 {
 					model.gaugeHeight = 160
 				}
@@ -358,7 +362,7 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 						}
 					}
 				}
-				for _, preview := range []struct{ kind, x int }{{model.v["next_type"], 23}, {model.v["hold_type"], 5}} {
+				for _, preview := range []struct{ kind, x int }{{model.v["next_type"], 23}, {model.v["hold_type"], holdX}} {
 					var attrs [4][4]byte
 					if preview.kind < 7 {
 						for _, cell := range pixelGameCells(preview.kind, 0) {
@@ -417,16 +421,16 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 			fieldImage := func() []byte {
 				screen := make([]byte, 6912)
 				if !shadow {
-					screen = referenceTetrisInterface(rom, strings.Contains(string(src), "fun choose_difficulty"), strings.Contains(string(src), `c"3: RAND"`))
+					screen = referenceTetrisInterface(rom, strings.Contains(string(src), "fun choose_difficulty"), strings.Contains(string(src), `c"3: RAND"`), holdX)
 					if model.automatic {
-						for row := 2; row < 22; row++ {
-							screen[6144+row*32+9] = gaugeAttribute(row)
+						for row := 3; row < 23; row++ {
+							screen[6144+row*32+8] = gaugeAttribute(row)
 						}
 						for i := 0; i < model.gaugeHeight; i++ {
-							screen[gaugeScreenAddress(175-i)-0x4000] = 255
+							screen[gaugeScreenAddress(183-i)-0x4000] = 255
 						}
 					}
-					for _, preview := range []struct{ kind, x int }{{model.v["next_type"], 23}, {model.v["hold_type"], 5}} {
+					for _, preview := range []struct{ kind, x int }{{model.v["next_type"], 23}, {model.v["hold_type"], holdX}} {
 						if preview.kind < 7 {
 							for _, cell := range pixelGameCells(preview.kind, 0) {
 								screen[6144+(cell.y+3)*32+preview.x+cell.x] = colors[preview.kind+1]
@@ -476,7 +480,7 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 			quietSteps := 0
 			if selectedLevel != 0 && clearRows == 0 {
 				quietSteps = 80
-				if model.automatic && initialLines >= 40 {
+				if model.automatic && initialLines >= 20 {
 					quietSteps = 50
 				}
 				commands = append(make([]int, quietSteps), commands...)
@@ -535,7 +539,7 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 						m.Memory.Write(sym("line_gauge")+uint16(i), b, false)
 					}
 					for i := 0; i < model.gaugeHeight; i++ {
-						m.Memory.Write(uint16(gaugeScreenAddress(175-i)), 255, false)
+						m.Memory.Write(uint16(gaugeScreenAddress(183-i)), 255, false)
 					}
 					progressionApplied = true
 				}
