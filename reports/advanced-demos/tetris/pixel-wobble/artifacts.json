@@ -1,0 +1,54 @@
+{
+  "status": "compile-layout-only; no runtime admission",
+  "local_root": "/home/alice/dev/minz-artifacts/grace-reports/2026-10-15",
+  "files": {
+    "tetris-wobble-baseline/program.bin": {
+      "bytes": 24269,
+      "sha256": "1a7835e6f00b613836a658365c64431bd4017c6bdd5d1aa22d8a715590753024"
+    },
+    "tetris-wobble-baseline/program.a80": {
+      "bytes": 405556,
+      "sha256": "0fc913cb94290f12bd8a08cdecca8501c46578056defe879ccf18fe663fb4ea6"
+    },
+    "tetris-wobble-baseline/source.nanz": {
+      "bytes": 44980,
+      "sha256": "3ca17f79526e1a28b153897080c547749ea83dd5edec2afba761044b07b415fb"
+    },
+    "tetris-wobble-layout/program.bin": {
+      "bytes": 50755,
+      "sha256": "68d1e7091e1a0f9c638dd034d1ecd535a89a1d1a17065d2242ac53306ccbb062"
+    },
+    "tetris-wobble-layout/program.a80": {
+      "bytes": 835707,
+      "sha256": "2844761eabb6a9e38a439c1485e91122e65b5083280f80a89f4111c308a483e8"
+    },
+    "tetris-wobble-layout/source.nanz": {
+      "bytes": 45423,
+      "sha256": "440605423d9e0cdfc258356a2ffa5e54ac0ebcf6840ece0cbf481824660bea04"
+    },
+    "tetris-wobble-three-phases/program.bin": {
+      "bytes": 32362,
+      "sha256": "2a804282090e0242c25babf0ecd9937996c78c01e5ea8d4cd5f898de22c7a8a9"
+    },
+    "tetris-wobble-three-phases/program.a80": {
+      "bytes": 534087,
+      "sha256": "de166d4e80f19f14251c486db0c8af4cfd3ddbceb630725b889ddd84a8ac4d6a"
+    },
+    "tetris-wobble-three-phases/source.nanz": {
+      "bytes": 45486,
+      "sha256": "86c009cc44e14ba0281e1fe2024ccfddc175ed395975a8b78776e62d9536d210"
+    },
+    "tetris-wobble-three-phases-size/program.bin": {
+      "bytes": 32374,
+      "sha256": "802f41ec787acd889345878ab32b36a8f5d76bf12957036d1cc2d948d187b832"
+    },
+    "tetris-wobble-three-phases-size/program.a80": {
+      "bytes": 526774,
+      "sha256": "79094670e0ccc219b4d4a10d8bdaae8fc9484ed406ece1a2de03f638809793c4"
+    },
+    "tetris-wobble-three-phases-size/source.nanz": {
+      "bytes": 45486,
+      "sha256": "86c009cc44e14ba0281e1fe2024ccfddc175ed395975a8b78776e62d9536d210"
+    }
+  }
+}
