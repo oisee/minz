@@ -861,6 +861,7 @@ func compileViaHIR(sourceFile string) error {
 		hirMod, err = nanz.ParseWithOpts(string(src), sourceFile, nanz.ParseOpts{
 			BaseDir:   baseDir,
 			StdlibDir: stdlibDir,
+			OptSize:   optSize,
 		})
 		if err != nil {
 			return fmt.Errorf("Nanz parse: %w", err)
@@ -922,6 +923,7 @@ func compileViaHIR(sourceFile string) error {
 				sqlPath := filepath.Join(stdlibDir, "sql", "sqlite.nanz")
 				if sqlSrc, err2 := os.ReadFile(sqlPath); err2 == nil {
 					sqlMod, err3 := nanz.ParseWithOpts(string(sqlSrc), sqlPath, nanz.ParseOpts{
+						OptSize:   optSize,
 						BaseDir:   filepath.Dir(sqlPath),
 						StdlibDir: stdlibDir,
 					})
@@ -1137,7 +1139,7 @@ func compileViaHIR(sourceFile string) error {
 	jointCompiled := false
 	if hirProfileAutoDirectory != "" {
 		factory := func() (*hir.Module, error) {
-			m, err := nanz.ParseWithOpts(string(src), sourceFile, nanz.ParseOpts{BaseDir: baseDir, StdlibDir: stdlibDir})
+			m, err := nanz.ParseWithOpts(string(src), sourceFile, nanz.ParseOpts{BaseDir: baseDir, StdlibDir: stdlibDir, OptSize: optSize})
 			if err != nil {
 				return nil, err
 			}

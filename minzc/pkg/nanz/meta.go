@@ -53,6 +53,7 @@ type metaBlockNode struct {
 // metaRuntime manages compile-time execution of metafunctions.
 type metaRuntime struct {
 	hirMod      *hir.Module
+	optSize     bool
 	callerTypes map[string]mir2.Ty
 	emitted     strings.Builder
 	structured  metaHIRBuilder
@@ -67,6 +68,15 @@ func newMetaRuntime(hirMod *hir.Module) *metaRuntime {
 func (mr *metaRuntime) registerHosts(vm *mir2.VM, block []metaBlockNode) {
 	mr.vm = vm
 	mr.registerHIRHosts(vm)
+	// This is an invocation-local compile-time hint. No host call or flag
+	// is emitted into the target program; imports inherit the caller goal.
+	vm.Hosts["meta_opt_size"] = func(_ []mir2.Value) ([]mir2.Value, error) {
+		var value int64
+		if mr.optSize {
+			value = 1
+		}
+		return []mir2.Value{{I: value}}, nil
+	}
 
 	// ── Emit ──────────────────────────────────────────────────────
 	vm.Hosts["emit"] = func(args []mir2.Value) ([]mir2.Value, error) {

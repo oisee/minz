@@ -128,6 +128,11 @@ func runZXTypedSpriteSceneMachine(t *testing.T, scene, exportEnv string, rowShif
 	if err != nil {
 		t.Fatal(err)
 	}
+	runZXTypedSpriteSceneSourceMachine(t, src, exportEnv, rowShift, pixelUnits...)
+}
+
+func runZXTypedSpriteSceneSourceMachine(t *testing.T, src []byte, exportEnv string, rowShift func(frame, row int) int, pixelUnits ...bool) {
+	t.Helper()
 	rom, err := os.ReadFile("../../cmd/mzx/roms/48.rom")
 	if err != nil {
 		t.Fatal(err)
