@@ -1169,12 +1169,12 @@ fun pixel_publish_previews() {
     let p231:^u8=ptr(22727) p231^=tetris_values[231]
 }
 
-// Spectrum 48K: the last mutable gauge scanline is 183. After the frame INT,
-// 2160 iterations consume 56165 T (including LD BC), beyond scanline 183.
+// Spectrum 48K: the last mutable field scanline is 175. After the frame INT,
+// 2080 iterations consume 54085 T (including LD BC), beyond scanline 175.
 // Caller has excluded INT; code must reside above the contended RAM window.
 fun pixel_wait_field_end() {
     asm z80 {
-        LD BC,2160
+        LD BC,2080
 pixel_wait_field_loop:
         DEC BC
         LD A,B

@@ -480,7 +480,7 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 			quietSteps := 0
 			if selectedLevel != 0 && clearRows == 0 {
 				quietSteps = 80
-				if model.automatic && initialLines >= 40 {
+				if model.automatic && initialLines >= 20 {
 					quietSteps = 50
 				}
 				commands = append(make([]int, quietSteps), commands...)
