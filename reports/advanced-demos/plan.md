@@ -8,8 +8,8 @@ milestone with rendering and declarative-library work, not a completion claim.
 | Flicker-free compiled and PUSH sprite demos | Independent screens at every display frame, ROM/ULA timing, dirty writes and IRQ/SP checks | 48K model: baseline detects partial display; dirty renderer 0/64 partial frames in all six variants. Physical display/release pending |
 | Tetris removes intermediate actor erasure | Composited frame, dirty publication, independent gameplay and display oracles | Direct-screen paired sprite renderer in main/release; no bitmap shadow or full per-frame copy. Independent main/ULA gameplay matrix passes. Normal movement/rotation/hold cases fit one INT; hard-drop may take two and heavy line clear three. Universal one-frame gameplay is not claimed |
 | Smooth pixel-step falling piece | Pixel geometry and substep/rotation/locking model, native frames | Actual main uses pixel-step gravity, movement, kicks, hold and locking. Independent physics: 1596 cases/mode on native and raw/final VM; real main: 39 steps and 24 fractional poses per mode. [Gameplay report](tetris/smooth-gameplay.md) |
-| Optional TV sine/noise/row-shift effects | Deterministic render oracle; game state identical with effects on/off | ByteWave stage_wave candidate: 192 native/ULA +384 raw/final VM scenes PASS; exact 50 Hz capture. Byte-column wave on owned background; Tetris field preservation/noise/pixel X shifts pending |
-| Declarative typed Nanz, object composition and compile-time interfaces | Real consumers using common reusable APIs; compile-time diagnostics | Pending |
+| Optional TV sine/noise/row-shift effects | Deterministic render oracle; game state identical with effects on/off | ByteWave in main (PR137). Typed TVSignal wave/noise composition candidate: 192 native/ULA +384 raw/final VM scenes PASS, ordered 50 Hz capture. Owned background; Tetris settled-cell preservation and pixel X shifts pending |
+| Declarative typed Nanz, object composition and compile-time interfaces | Real consumers using common reusable APIs; compile-time diagnostics | Concrete type-specialized stage_effect and caller-defined effect methods pass native/raw-final VM; TVSignal composes ByteWave. PR141 pending independent Nanz fixes PR138/140. General multiple-implementation interfaces are not claimed |
 | Whole-sprite declarative Nanz API | One real multi-row sprite with size, pixels and mask; one draw call with coordinates; no public row-setter/address bookkeeping | Whole typed API and direct pixel-step Tetris in main (PR128). Default sprite scene now uses typed Diamond staging/publishing (PR134); 192 native/ULA scenes and 384 raw/final VM scenes. X byte-aligned, Y pixel-addressed |
 | Shapes, masks, tables and specialized procedures baked | HIR/ASM/BIN inspection, runtime excludes generator and avoidable preparation | Native rows and whole 16×8 sprite verified; checkpoint 4849b2ed: 596–597-byte full module, 3,847–4,185 T including placement and drawing; current staging API: 748 bytes, 3,588–3,644 T for direct draw; [whole-sprite report](whole-sprite/README.md). Wider workloads/selection pending |
 | Checked SP-stream alternatives | Ordered memory effects, exact SP restoration, actual machine clobbers, native oracle and measured benefit | Astra research completed; automatic PUSH/POP selection pending |
@@ -108,3 +108,19 @@ stage; the paired-kernel checkpoint is not completion. Alice clarified share
 usage: publish playable release packages and media to `/mnt/safe/minz/releases/`.
 Keep new detailed CI receipts, compiler binaries and research logs locally.
 Previously preserved shared audit packets remain historical records.
+
+## Typed effect composition checkpoint — 15 October 2026
+
+The concrete effect type is part of the sprite descriptor; typed Nanz methods
+provide offsets while baked geometry/SMC stays inside the library. TVSignal
+combines ByteWave with bounded deterministic noise. Native/ULA 192 frames and
+raw/final VM 384 frames pass, with exact screen, pose order and PC/SP/IFF/IY.
+Ordinary full module: 5241 bytes; prepare/publish <=26351/2819 T. CLI/native
+BIN equality and every captured PNG/GIF frame are verified. A compact-loop
+candidate saves 219 bytes for +778 T preparation; automatic policy selection
+between these layouts is not yet integrated.
+
+[Source, actual 50-Hz capture and measurements](sprite-effect-composition/README.md).
+PR141 is draft until independent Nanz fixes PR138/140 land. Six-host refreshed
+publication, pixel-X shifts and effects preserving settled Tetris cells remain
+required; this checkpoint does not complete the goal.
