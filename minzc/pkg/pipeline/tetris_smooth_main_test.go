@@ -45,8 +45,25 @@ func TestTetrisDirectMainMachine(t *testing.T) {
 	}
 }
 
-func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selectedLevel int) {
+// A seeded checkpoint enters the unchanged main before its first publication.
+// Each scene has coloured rows and a vertical-I gap for an exact line count.
+func TestTetrisDirectLineClearMachine(t *testing.T) {
+	for _, rows := range []int{1, 2, 4} {
+		t.Run(fmt.Sprintf("clear-%d", rows), func(t *testing.T) {
+			runTetrisMainMachine(t, "../../../examples/zx/tetris_playable.nanz", false, 2, rows)
+		})
+	}
+}
+
+func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selectedLevel int, seededRows ...int) {
 	t.Helper()
+	clearRows := 0
+	if len(seededRows) != 0 {
+		clearRows = seededRows[0]
+	}
+	if clearRows < 0 || clearRows > 4 || (shadow && clearRows != 0) {
+		t.Fatal("invalid seeded line-clear scene")
+	}
 	src, e := os.ReadFile(sourcePath)
 	if e != nil {
 		t.Fatal(e)
@@ -292,10 +309,15 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 			fetchedFrames := 0
 			commands := []int{0, 0, 0, 0, 1, 0, 2, 0, 4, 0, 32, 0, 32, 0, 8, 8, 8, 0, 4, 0}
 			quietSteps := 0
-			if selectedLevel != 0 {
+			if selectedLevel != 0 && clearRows == 0 {
 				quietSteps = 80
 				commands = append(make([]int, quietSteps), commands...)
 			}
+			if clearRows != 0 {
+				// Four idle reads separate the initial display from the hard drop.
+				commands = append([]int{0, 0, 0, 0, 16, 0}, commands...)
+			}
+			fixtureApplied := false
 			var stepReturn, stepSP, renderReturn, renderSP uint16
 			stepActive, renderActive, clockReady := false, false, false
 			previousClock := byte(0)
@@ -325,8 +347,33 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 			publishFirst, publishLimit := 0, 0
 			partialPublications := 0
 			pendingLock := false
+			pendingClear := false
+			clearTicks := map[int]int{}
 			lockTicks := map[int]int{}
 			c.before = func() {
+				if clearRows != 0 && !fixtureApplied && c.PC() == sym("render_smooth") {
+					// Seed from independent constants, never by reading the game.
+					for y := 20 - clearRows; y < 20; y++ {
+						for x := 0; x < 10; x++ {
+							if x != 3 {
+								model.board[y*10+x] = byte(1 + (y+x)%7)
+							}
+						}
+					}
+					// Distinct partial rows above the clear exercise stable row order.
+					model.board[120], model.board[121], model.board[149] = 2, 5, 7
+					for i, b := range model.board {
+						m.Memory.Write(sym("board")+uint16(i), b, false)
+					}
+					for name, value := range map[string]int{"cur_type": 0, "cur_rot": 1, "cur_x": 3, "cur_y": 0, "pixel_phase": 0, "board_dirty": 1} {
+						model.v[name] = value
+						m.Memory.Write(sym(name), byte(value), false)
+					}
+					model.rowFirst, model.rowLimit = 0, 20
+					m.Memory.Write(sym("board_first"), 0, false)
+					m.Memory.Write(sym("board_limit"), 20, false)
+					fixtureApplied = true
+				}
 				if !shadow && c.PC() == sym("pixel_publish_direct") {
 					publishActive = true
 					publishedRows = nil
@@ -400,10 +447,14 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 					if !shadow && pendingLock {
 						elapsed := byte(m.Memory.ReadByteInternal(0x5c78) - previousClock)
 						// One IRQ remains the target; two is the measured current ceiling.
-						if elapsed < 1 || elapsed > 2 {
+						if elapsed < 1 || (clearRows == 0 && elapsed > 2) {
 							t.Fatalf("step%d lock exceeded measured budget: %d IRQ", steps, elapsed)
 						}
 						lockTicks[int(elapsed)]++
+						if pendingClear {
+							clearTicks[int(elapsed)]++
+							pendingClear = false
+						}
 						pendingLock = false
 					}
 					checkImage()
@@ -497,7 +548,14 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 						t.Fatalf("step%d arguments keys%d/%d ticks%d/%d", steps, arg(0), selected, arg(1), ticks)
 					}
 					oldRng := model.v["rng_state"]
+					oldLines := model.v["lines_cleared"]
 					model.step(selected, ticks)
+					if model.v["lines_cleared"] != oldLines {
+						pendingClear = true
+					}
+					if clearRows != 0 && steps == 4 && model.v["lines_cleared"]-oldLines != clearRows {
+						t.Fatalf("seeded hard drop cleared %d lines want %d", model.v["lines_cleared"]-oldLines, clearRows)
+					}
 					if model.v["rng_state"] != oldRng && selected != 32 {
 						pendingLock = true
 						locks++
@@ -508,7 +566,7 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 				}
 			}
 			videoDir := ""
-			if root := os.Getenv("MINZ_TETRIS_MAIN_VIDEO"); root != "" && selectedLevel == 2 && mode == "ordinary" {
+			if root := os.Getenv("MINZ_TETRIS_MAIN_VIDEO"); root != "" && selectedLevel == 2 && mode == "ordinary" && clearRows == 0 {
 				videoDir = filepath.Join(root, "frames")
 				if e := os.MkdirAll(videoDir, 0755); e != nil {
 					t.Fatal(e)
@@ -595,7 +653,10 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 			if !shadow && measuredLocks != locks {
 				t.Fatalf("lock timing coverage %d/%d", measuredLocks, locks)
 			}
-			t.Logf("%d partial board publications: exact row-kernel inputs and ordering verified; lock IRQ histogram %v", partialPublications, lockTicks)
+			t.Logf("%d partial board publications: exact row-kernel inputs and ordering verified; lock IRQ histogram %v; line-clear IRQ histogram %v", partialPublications, lockTicks, clearTicks)
+			if clearRows != 0 && (!fixtureApplied || len(clearTicks) == 0) {
+				t.Fatal("missing seeded main line-clear coverage")
+			}
 			stackLimit := uint16(0xfc60)
 			if shadow {
 				stackLimit = 0xf860
@@ -607,6 +668,9 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 				dir := filepath.Join(root, mode)
 				if selectedLevel != 0 {
 					dir = filepath.Join(root, fmt.Sprintf("level-%d", selectedLevel), mode)
+				}
+				if clearRows != 0 {
+					dir = filepath.Join(dir, fmt.Sprintf("clear-%d", clearRows))
 				}
 				if e := os.MkdirAll(dir, 0755); e != nil {
 					t.Fatal(e)

@@ -669,6 +669,7 @@
     "TestScorpionLibraryNative",
     "TestSeededPointerWalkMeasuredCaller",
     "TestSumProfileCostFullU8Domain",
+    "TestTetrisDirectLineClearMachine",
     "TestTetrisPixelPhysicsNativeVM",
     "TestWeightedPointerPrototypeMeasuredCaller",
     "TestZMachineArchiveStreamNative",
