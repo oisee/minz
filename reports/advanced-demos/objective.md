@@ -79,10 +79,10 @@ POP-copy остаются дальнейшими расширениями.
 [Подробный renderer и границы доказательств](tetris/direct-renderer.md)
 · [Разметка клетки](tetris/span-helper.md).
 
-Новый backend-кандидат [PR #132](https://github.com/oisee/minz/pull/132)
+Интегрированный backend [PR #132](https://github.com/oisee/minz/pull/132)
 сокращает загрузку известных адресов erase: полный ordinary BIN
 24 560 → 24 272 байта. Совместная Tetris/ULA матрица прошла за 124,082 с;
-обязательные проверки PR ещё выполняются.
+все обязательные проверки PR прошли, изменение в main `60048e65`.
 [Прямые word loads](tetris/literal-word-loads.md).
 
 Следующий кандидат — общий pointer-walk helper подготовки атрибутов:
