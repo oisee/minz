@@ -53,3 +53,5 @@ stderr и SHA сохранены локально в `meta-size-goal-cli-real/`.
 [Language Book, раздел 20.4](../../docs/Nanz_Language_Book_v7.md#204-vm-hosted-metafunctions)
 теперь описывает текущий `emit` → Nanz → HIR и реальный host API,
 а не прежний концептуальный пример Lanz-строк.
+
+The reviewed showcase catalog reference to the mutable book is refreshed after this chapter20.4 edit. Chapter21.4 (Lizp last-form semantics), used by that evidence row, is byte-identical to `c3574329`; historical test manifests remain unchanged. The complete Nanz suite validates the refreshed reference.
