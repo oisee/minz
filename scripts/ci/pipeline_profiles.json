@@ -16,6 +16,7 @@
     "TestBoolStructAddressableFieldsNative",
     "TestBoolWideExtensionSourceNative",
     "TestByteLoadSpillKeepsLiveAccumulator",
+    "TestByteLowBitBeforeShiftNativeVM",
     "TestBytePackSourceCallAndConditionNative",
     "TestByteWordFusionCallbackRefusal",
     "TestByteWordFusionCompilationIdentity",

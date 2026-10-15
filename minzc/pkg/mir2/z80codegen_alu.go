@@ -920,6 +920,22 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 		g.emit("    PUSH HL    ; preserve live HL across indexed word shift")
 		defer func() { g.emit("    POP HL     ; restore indexed word shift scratch"); g.invalidate("HL") }()
 	}
+	if w <= 8 && isIXYReg(dst) && g.constVals[inst.Src[1]] > 0 {
+		// CB-prefixed shifts cannot address IXH/IXL/IYH/IYL. Stage the
+		// source through A before touching the destination, and preserve
+		// an independent live A just as the variable-shift path does.
+		g.emit("    PUSH AF    ; indexed byte shift scratch")
+		g.emitLDA(g.loc(inst.Src[0]))
+		for i := int64(0); i < g.constVals[inst.Src[1]]; i++ {
+			g.emitf("    %s A", mnem)
+		}
+		g.invalidate("A") // shifts broke the source-copy alias
+		g.emitMov(dst, "A", 8)
+		g.emit("    POP AF     ; restore indexed byte shift scratch")
+		g.invalidate("A")
+		g.invalidate(dst)
+		return
+	}
 	src := g.loc(inst.Src[0])
 	if dst != src {
 		if !g.emitDyingPairExchange(inst, dst, src, w) {
