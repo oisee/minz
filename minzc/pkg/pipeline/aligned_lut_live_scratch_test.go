@@ -46,3 +46,26 @@ func TestAlignedLUTNoLiveNeighbourRetainsFastPath(t *testing.T) {
 		t.Fatalf("uncontended page lookup costs %d T, want 24 including RET", cycles)
 	}
 }
+
+func TestAlignedLUTAddressStillUsableForStoreNative(t *testing.T) {
+	const source = `global colors:[u8;8]=[0,5,6,3,4,2,255,1]
+ fun change(@z80_c index:u8)->u8 {
+  let p:^u8=&colors[u16(index)]
+  let old:u8=p^
+  p^=old+1
+  return old
+ }
+ fun probe(@z80_c index:u8)->u8 {
+  let before:u8=change(index)
+  let after:u8=change(index)
+  return after-before
+ }`
+	for index := 0; index < 8; index++ {
+		h, e := nanz.Parse(source, "aligned-lut-store.nanz")
+		if e != nil {
+			t.Fatal(e)
+		}
+		h.Globals[0].Ty.(*mir2.ArrayTy).Align = 256
+		measureGraceZ80HIR(t, h, "probe", Options{ContractOpt: true, AssertMode: "none"}, []int64{int64(index)}, nil, 1)
+	}
+}

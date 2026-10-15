@@ -54,7 +54,8 @@ type globalFieldInfo struct {
 //   - g.lutSkip[idx16, base, ptr] = true
 //
 // The pattern is cleared (g.lutLoadPat, g.lutSkip rebuilt) at each new block.
-// This is safe because LUTGen only ever creates single-use intermediate regs.
+// Shared intermediates are admitted only when every use is consumed by
+// the selected fused accesses; all other chains keep their original definitions.
 func (g *z80cg) scanLUTPatterns(b *Block) {
 	// Reset per-block maps (keep same map objects; just clear them).
 	clear(g.lutLoadPat)
@@ -68,6 +69,7 @@ func (g *z80cg) scanLUTPatterns(b *Block) {
 		}
 	}
 
+	chains := make(map[Reg][3]Reg)
 	for _, inst := range b.Insts {
 		// Looking for: dst = Load(ptr, u8)
 		if inst.Op != OpLoad || inst.Ty.Width() != 8 || inst.Dst == NoReg {
@@ -108,6 +110,71 @@ func (g *z80cg) scanLUTPatterns(b *Block) {
 		g.lutSkip[idx16Reg] = true
 		g.lutSkip[baseReg] = true
 		g.lutSkip[ptrReg] = true
+		chains[inst.Dst] = [3]Reg{idx16Reg, baseReg, ptrReg}
+	}
+
+	if len(chains) == 0 {
+		return
+	}
+
+	// A pointer can also feed a later store, a call or a CFG edge. Its
+	// definition must survive in that case. Fall back for the entire chain:
+	// rebuilding only part of it could overwrite the original byte index
+	// before the fused load reads it. Shared indices of split word LUTs
+	// remain eligible when all users belong to the fused accesses.
+	type user struct {
+		block *Block
+		inst  *Inst
+	}
+	users := make(map[Reg][]user)
+	for _, block := range g.fn.Blocks {
+		for _, inst := range block.Insts {
+			for _, r := range inst.Uses() {
+				users[r] = append(users[r], user{block, inst})
+			}
+		}
+		if block.Term != nil {
+			for _, r := range block.Term.termUses() {
+				users[r] = append(users[r], user{block, nil})
+			}
+		}
+	}
+	for {
+		clear(g.lutSkip)
+		for dst, chain := range chains {
+			if _, ok := g.lutLoadPat[dst]; ok {
+				for _, r := range chain {
+					g.lutSkip[r] = true
+				}
+			}
+		}
+		var rejected []Reg
+		for dst, chain := range chains {
+			if _, ok := g.lutLoadPat[dst]; !ok {
+				continue
+			}
+			unsafe := false
+			for _, r := range chain {
+				for _, use := range users[r] {
+					if use.block == b && use.inst != nil {
+						_, fusedLoad := g.lutLoadPat[use.inst.Dst]
+						if g.lutSkip[use.inst.Dst] || (use.inst.Op == OpLoad && fusedLoad) {
+							continue
+						}
+					}
+					unsafe = true
+				}
+			}
+			if unsafe {
+				rejected = append(rejected, dst)
+			}
+		}
+		if len(rejected) == 0 {
+			break
+		}
+		for _, dst := range rejected {
+			delete(g.lutLoadPat, dst)
+		}
 	}
 }
 
