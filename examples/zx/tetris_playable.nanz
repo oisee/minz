@@ -348,6 +348,19 @@ fun clear_lines() -> u8 {
 
 // ── Ghost piece ─────────────────────────────────────────────────────────────
 
+fun column_gap(x:u8,y:u8,limit:u8)->u8 {
+    let row:u8=y+1
+    var count:u8=BOARD_H-row
+    if limit<count {count=limit}
+    var source:^u8=ptr(u16(&board)+u16(row)*10+u16(x))
+    var remaining:u8=count
+    while remaining!=0 {
+        if source^!=0 {break}
+        source=source+10 remaining=remaining-1
+    }
+    return count-remaining
+}
+
 fun ghost_y() -> u8 {
     // Each cell can fall until the next occupied cell in its own column.
     // The minimum free distance gives the same landing pose as repeatedly
@@ -361,13 +374,7 @@ fun ghost_y() -> u8 {
         let cx: u8 = cur_x + PIECE_DX[index]
         let cy: u8 = cur_y + PIECE_DY[index]
         if (cx >= BOARD_W) | (cy >= BOARD_H) { return cur_y }
-        var row: u8 = cy + 1
-        var free: u8 = 0
-        while row < BOARD_H {
-            if board[row * 10 + cx] != 0 { break }
-            free = free + 1
-            row = row + 1
-        }
+        let free:u8=column_gap(cx,cy,distance)
         if free < distance { distance = free }
         c = c + 1
     }
@@ -964,14 +971,24 @@ fun pixel_mark_cells(xs:^u8,ys:^u8,phase:u8) {
     }
 }
 
+fun pixel_restore_span(source:^u8,destination:^u8,count:u8) {
+    var sp:^u8=source
+    var dp:^u8=destination
+    var remaining:u8=count
+    while remaining!=0 {
+        dp^=CELL_COLORS[sp^]
+        sp=sp+1 dp=dp+1 remaining=remaining-1
+    }
+}
+
 fun pixel_restore_attributes() {
     var y:u8=pixel_first_row
     while y<pixel_row_limit {
-        var x:u8=pixel_left[y]
-        while x<pixel_right[y] {
-            let index:u8=y*10+x
-            tetris_values[index]=CELL_COLORS[board[index]]
-            x=x+1
+        let left:u8=pixel_left[y]
+        let right:u8=pixel_right[y]
+        if left<right {
+            let offset:u8=y*10+left
+            pixel_restore_span(ptr(u16(&board)+u16(offset)),ptr(u16(&tetris_values)+u16(offset)),right-left)
         }
         y=y+1
     }
@@ -995,13 +1012,7 @@ fun pixel_prepare_actor_row() {
 
 fun pixel_prepare_board_attributes(first:u8,limit:u8) {
     let offset:u8=first*10
-    var source:^u8=ptr(u16(&board)+u16(offset))
-    var destination:^u8=ptr(u16(&tetris_values)+u16(offset))
-    var count:u8=(limit-first)*10
-    while count!=0 {
-        destination^=CELL_COLORS[source^]
-        source=source+1 destination=destination+1 count=count-1
-    }
+    pixel_restore_span(ptr(u16(&board)+u16(offset)),ptr(u16(&tetris_values)+u16(offset)),(limit-first)*10)
 }
 
 fun pixel_actor_attributes() {
@@ -1022,13 +1033,15 @@ fun pixel_prepare_bands() {
     while y<pixel_row_limit {
         let left:u8=pixel_left[y]
         let right:u8=pixel_right[y]
-        var extra:bool=true
-        if direct_refresh!=0 {if (y>=direct_board_first)&(y<direct_board_limit) {extra=false}}
-        if (left<right)&extra {
-            field_pixels_sources[field_pixels_count]=u16(&tetris_values[y*10+left])
-            field_pixels_destinations[field_pixels_count]=zx_attr_addr(11+left,2+y)
-            field_pixels_widths[field_pixels_count]=right-left
-            field_pixels_count=field_pixels_count+1
+        if left<right {
+            var extra:bool=true
+            if direct_refresh!=0 {if (y>=direct_board_first)&(y<direct_board_limit) {extra=false}}
+            if extra {
+                field_pixels_sources[field_pixels_count]=u16(&tetris_values[y*10+left])
+                field_pixels_destinations[field_pixels_count]=zx_attr_addr(11+left,2+y)
+                field_pixels_widths[field_pixels_count]=right-left
+                field_pixels_count=field_pixels_count+1
+            }
         }
         y=y+1
     }
