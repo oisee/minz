@@ -36,3 +36,7 @@ published archives. See the typed-sprite report for its own proof and limits.
 actual ULA GIF and measurements: reports/advanced-demos/typed-sprite-effects/.
 The image is an additional demo; previously published 0.25.1 packages retain
 their original embedded images.
+
+`mzx --demo sprite-tv` composes ByteWave and bounded deterministic noise via
+a concrete Nanz effect type. It is an additional checked snapshot; source,
+50-Hz ULA capture and measurements: reports/advanced-demos/sprite-effect-composition/.

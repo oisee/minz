@@ -1,0 +1,8 @@
+{
+  "source": "reports/advanced-demos/sprite-effect-composition/source.nanz",
+  "source_sha256": "1369c93d4d21782ad764ce260e8f7632efa77644806d47ccd0e192ba30768bb0",
+  "snapshot_sha256": "a5136b39472ea9dc32341d66dd0185728277d421b20ef6ddf203b77f6d3c3835",
+  "binary_bytes": 5241,
+  "verification": "TestZXSpriteEffectCompositionMachine: native Z80/ULA ordered frames, raw/final VM; CLI/native BIN equality; every captured GIF frame checked by verify_zx_sprite_tv_capture.py",
+  "scope": "typed concrete effect composition; byte-column wave and bounded noise; owned black background; physical hardware and Tetris settled-cell effects unverified"
+}

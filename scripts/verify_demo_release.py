@@ -27,7 +27,7 @@ def run(name,demo,sequence=None):
  assert result.returncode==0 and picture.is_file(),name
  results.append({'case':name,'exit':result.returncode,'screen_sha256':hashlib.sha256(picture.read_bytes()).hexdigest()})
  print(name,'PASS',flush=True)
-for demo in ['tetris','rotozoomer','sprites','sprites-push','zork1','zork2']:run(demo,demo)
+for demo in ['tetris','rotozoomer','sprites','sprite-wave','sprite-tv','sprites-push','zork1','zork2']:run(demo,demo)
 assert (userdata/'zork1/session.sna').is_file()
 run('zork1-session-resume','zork1')
 run('zork2-save','zork2','{3000}save\n{3000}look\n')

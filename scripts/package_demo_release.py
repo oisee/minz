@@ -80,7 +80,7 @@ for platform, binary in sorted(platforms.items()):
     if platform == 'linux-arm64':
         notes += '\nRequires a 64-bit ARM Linux desktop (for example Raspberry Pi OS 64-bit), X11 or XWayland, ALSA and OpenGL. Built on Debian Bookworm (glibc 2.36+).\n'
     (dest / 'README.txt').write_text(notes, encoding='utf-8')
-    for id in ['tetris', 'zork1', 'zork2', 'rotozoomer', 'sprites', 'sprites-push']:
+    for id in ['tetris', 'zork1', 'zork2', 'rotozoomer', 'sprites', 'sprite-wave', 'sprite-tv', 'sprites-push']:
         if platform.startswith('windows'):
             (dest / f'play-{id}.cmd').write_text(f'@echo off\r\n"%~dp0mzx.exe" --demo {id}\r\n', encoding='utf-8', newline='')
         else:

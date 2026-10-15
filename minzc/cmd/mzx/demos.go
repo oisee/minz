@@ -22,6 +22,7 @@ var demoCatalog = []demoSpec{
 	{"rotozoomer", "32 x 48 colour rotozoomer", "48k", "Animated attribute graphics; Escape returns to the menu."},
 	{"sprites", "Baked Nanz sprites", "48k", "Whole sprites prepared before each frame; Escape returns to the menu."},
 	{"sprite-wave", "Baked Nanz TV wave", "48k", "Typed ByteWave effect, prepared before each frame; Escape returns to the menu."},
+	{"sprite-tv", "Baked Nanz wave + noise", "48k", "Typed TVSignal composes wave and visual noise; Escape returns to the menu."},
 	{"sprites-push", "PUSH SMC sprites", "48k", "Stack-writing sprite kernel; Escape returns to the menu."},
 }
 
