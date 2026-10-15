@@ -964,14 +964,24 @@ fun pixel_mark_cells(xs:^u8,ys:^u8,phase:u8) {
     }
 }
 
+fun pixel_restore_span(source:^u8,destination:^u8,count:u8) {
+    var sp:^u8=source
+    var dp:^u8=destination
+    var remaining:u8=count
+    while remaining!=0 {
+        dp^=CELL_COLORS[sp^]
+        sp=sp+1 dp=dp+1 remaining=remaining-1
+    }
+}
+
 fun pixel_restore_attributes() {
     var y:u8=pixel_first_row
     while y<pixel_row_limit {
-        var x:u8=pixel_left[y]
-        while x<pixel_right[y] {
-            let index:u8=y*10+x
-            tetris_values[index]=CELL_COLORS[board[index]]
-            x=x+1
+        let left:u8=pixel_left[y]
+        let right:u8=pixel_right[y]
+        if left<right {
+            let offset:u8=y*10+left
+            pixel_restore_span(ptr(u16(&board)+u16(offset)),ptr(u16(&tetris_values)+u16(offset)),right-left)
         }
         y=y+1
     }
@@ -995,13 +1005,7 @@ fun pixel_prepare_actor_row() {
 
 fun pixel_prepare_board_attributes(first:u8,limit:u8) {
     let offset:u8=first*10
-    var source:^u8=ptr(u16(&board)+u16(offset))
-    var destination:^u8=ptr(u16(&tetris_values)+u16(offset))
-    var count:u8=(limit-first)*10
-    while count!=0 {
-        destination^=CELL_COLORS[source^]
-        source=source+1 destination=destination+1 count=count-1
-    }
+    pixel_restore_span(ptr(u16(&board)+u16(offset)),ptr(u16(&tetris_values)+u16(offset)),(limit-first)*10)
 }
 
 fun pixel_actor_attributes() {
