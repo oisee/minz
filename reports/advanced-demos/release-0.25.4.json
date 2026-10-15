@@ -1,0 +1,233 @@
+{
+  "version": "0.25.4",
+  "status": "pending_final_audit_not_published",
+  "source": "d2d8f7ba3f2968368bb47079b2b51a0cff569bab",
+  "integrated_main": "494ad64eb48780841c6cc797474ad1d1fa5e1711",
+  "native_build_run": 38750621711,
+  "tag_run": 38761435720,
+  "fast": {
+    "PASS": 397,
+    "SKIP": 32,
+    "FAIL": 0
+  },
+  "tag_matrix": {
+    "run": 38761435720,
+    "source": "d2d8f7ba3f2968368bb47079b2b51a0cff569bab",
+    "backends": {
+      "z80": {
+        "units": 4,
+        "positive_executions": 16,
+        "negative_executions": 16,
+        "unexpected_pass": 0
+      },
+      "mir2": {
+        "units": 4,
+        "positive_executions": 16,
+        "negative_executions": 16,
+        "unexpected_pass": 0
+      }
+    },
+    "scope": "Tag configured tuple assertion smoke only. Four units per backend, baseline+candidate each repeated twice; sixteen negative executions per backend. Supplemental DEFAULT_GLOBS result required separately."
+  },
+  "sweep": {
+    "run": 38761435720,
+    "files": 838,
+    "outputs": 326,
+    "exit_counts": {
+      "0": 326,
+      "1": 512
+    },
+    "all_actual_baseline_candidate_records_equal": true,
+    "scope": "Default output equivalence including existing compiler errors; 838 files does not mean 838 successful compilations."
+  },
+  "full_default_matrix": {
+    "status": "incomplete",
+    "units_per_backend": 4729,
+    "required_before_publication": true
+  },
+  "known_limit": "Heavy game actions take two to three frames; physical Spectrum not tested.",
+  "pipeline_verification": {
+    "source": "d2d8f7ba3f2968368bb47079b2b51a0cff569bab",
+    "fast_tested_merge": "7db755fcedf6bdf6d07c2461cdb5b38dbfbb21f7",
+    "identical_source_tree": "f869f140c89a1f9f923272d60f800877f4e61b65",
+    "manifest_sha256": "c339f4bdd72d552b8a13cda86b1c471db91e19b6eada93c65127b3c40efb4abe",
+    "identical_pipeline_binary_sha256": "4595802429e13a414fb950e13d14d5aaf30143ad3006d12754483a822356a2c8",
+    "fast": {
+      "PASS": 397,
+      "SKIP": 32
+    },
+    "deep": {
+      "PASS": 310,
+      "SKIP": 61
+    },
+    "total": {
+      "PASS": 707,
+      "SKIP": 93
+    },
+    "unique_roots": 800,
+    "complete": true,
+    "jobs": [
+      {
+        "profile": "fast",
+        "job": 0,
+        "selected_roots": 429,
+        "counts": {
+          "PASS": 397,
+          "SKIP": 32
+        },
+        "all_process_exits": 0,
+        "inventory_binary_verified": true
+      },
+      {
+        "profile": "deep",
+        "job": 0,
+        "selected_roots": 31,
+        "counts": {
+          "PASS": 27,
+          "SKIP": 4
+        },
+        "all_process_exits": 0,
+        "inventory_binary_verified": true
+      },
+      {
+        "profile": "deep",
+        "job": 1,
+        "selected_roots": 31,
+        "counts": {
+          "PASS": 27,
+          "SKIP": 4
+        },
+        "all_process_exits": 0,
+        "inventory_binary_verified": true
+      },
+      {
+        "profile": "deep",
+        "job": 2,
+        "selected_roots": 31,
+        "counts": {
+          "PASS": 26,
+          "SKIP": 5
+        },
+        "all_process_exits": 0,
+        "inventory_binary_verified": true
+      },
+      {
+        "profile": "deep",
+        "job": 3,
+        "selected_roots": 31,
+        "counts": {
+          "PASS": 26,
+          "SKIP": 5
+        },
+        "all_process_exits": 0,
+        "inventory_binary_verified": true
+      },
+      {
+        "profile": "deep",
+        "job": 4,
+        "selected_roots": 31,
+        "counts": {
+          "PASS": 26,
+          "SKIP": 5
+        },
+        "all_process_exits": 0,
+        "inventory_binary_verified": true
+      },
+      {
+        "profile": "deep",
+        "job": 5,
+        "selected_roots": 31,
+        "counts": {
+          "PASS": 26,
+          "SKIP": 5
+        },
+        "all_process_exits": 0,
+        "inventory_binary_verified": true
+      },
+      {
+        "profile": "deep",
+        "job": 6,
+        "selected_roots": 31,
+        "counts": {
+          "PASS": 26,
+          "SKIP": 5
+        },
+        "all_process_exits": 0,
+        "inventory_binary_verified": true
+      },
+      {
+        "profile": "deep",
+        "job": 7,
+        "selected_roots": 31,
+        "counts": {
+          "PASS": 24,
+          "SKIP": 7
+        },
+        "all_process_exits": 0,
+        "inventory_binary_verified": true
+      },
+      {
+        "profile": "deep",
+        "job": 8,
+        "selected_roots": 31,
+        "counts": {
+          "PASS": 25,
+          "SKIP": 6
+        },
+        "all_process_exits": 0,
+        "inventory_binary_verified": true
+      },
+      {
+        "profile": "deep",
+        "job": 9,
+        "selected_roots": 31,
+        "counts": {
+          "PASS": 27,
+          "SKIP": 4
+        },
+        "all_process_exits": 0,
+        "inventory_binary_verified": true
+      },
+      {
+        "profile": "deep",
+        "job": 10,
+        "selected_roots": 31,
+        "counts": {
+          "PASS": 26,
+          "SKIP": 5
+        },
+        "all_process_exits": 0,
+        "inventory_binary_verified": true
+      },
+      {
+        "profile": "deep",
+        "job": 11,
+        "selected_roots": 30,
+        "counts": {
+          "PASS": 24,
+          "SKIP": 6
+        },
+        "all_process_exits": 0,
+        "inventory_binary_verified": true
+      }
+    ],
+    "scope": "Exact same full source tree and same binary, disjoint fast/deep inventory; SKIP remains unexecuted coverage, not PASS or compiler-correctness proof."
+  },
+  "folded_fuzz": {
+    "run": 38761435720,
+    "source": "d2d8f7ba3f2968368bb47079b2b51a0cff569bab",
+    "cases": 10000,
+    "mir2_executions": 10000,
+    "z80_executions": 10000,
+    "unchecked": 0,
+    "counts": {
+      "pass": 10000
+    },
+    "results_sha256": "341ee7eb1ee3f867d7cc9db8b0197ece5ad5890911d158715dfa1de15eb549fb",
+    "scope": "Actual source-assertion/folded-expression fuzz records, all unique seeds0..9999; no assertion skipped. Direct-call fuzz has a distinct scope and remains separate."
+  },
+  "direct_call_fuzz": {
+    "status": "in_progress",
+    "report_only": true
+  }
+}
