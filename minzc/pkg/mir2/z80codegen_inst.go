@@ -763,12 +763,12 @@ func (g *z80cg) genInst(inst *Inst) {
 		addrReg := inst.Src[0]
 		if info, ok := g.globalFieldStore[addrReg]; ok && inst.Ty.Width() == 8 {
 			if info.hlChain {
-				// HL-chain: consecutive field stores share one LD HL,sym base load.
-				//   head:  LD HL, sym   ; 10T
+				// HL-chain: adjacent field stores share one address load.
+				//   head:  LD HL, sym+offset   ; 10T
 				//   each:  LD (HL), r   ; 7T  (r already in correct reg)
 				//          INC HL       ; 6T  (omitted for last)
 				if info.hlHead {
-					g.emitf("    LD HL, %s", sanitizeIdent(info.sym))
+					g.emitf("    LD HL, %s", globalFieldLabel(info.sym, info.offset, ""))
 				}
 				if cv, ok := g.constVals[inst.Src[1]]; ok {
 					g.emitNativeMemoryf(inst, 0, 1, "    LD (HL), %d", cv)
@@ -796,6 +796,7 @@ func (g *z80cg) genInst(inst *Inst) {
 				if !info.hlLast {
 					g.emitf("    INC HL")
 				}
+				g.invalidate("HL")
 			} else {
 				// Global struct field direct-addressing fast path.
 				lbl := globalFieldLabel(info.sym, info.offset, info.fieldName)
