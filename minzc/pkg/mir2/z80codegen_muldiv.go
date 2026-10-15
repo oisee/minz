@@ -239,6 +239,20 @@ func (g *z80cg) genMul16(inst *Inst) {
 			g.emitf("    LD %s, 0", high)
 		}
 	}
+	loadSpilledOperand := func(reg Reg, spill, pair string) {
+		if info, ok := regInfo[reg]; ok && info.Ty != nil && info.Ty.Width() <= 8 {
+			// Promoted byte operands retain one-byte spill slots. Loading a
+			// word would accidentally include the neighbouring spill value.
+			g.emit("    PUSH AF")
+			g.emitNativeSpillf(spill, 0, 1, false, "    LD A, (%s)", spill)
+			g.emitLD8(lowByte(pair), "A")
+			g.emit("    POP AF")
+			g.invalidate("A")
+			extendByte(reg, lowByte(pair), highByte(pair))
+		} else {
+			g.loadSpill16(pair, spill)
+		}
+	}
 
 	// 16-bit multiply needs HL for ADD HL,rr.
 	// A live lhs must survive too when the result is allocated elsewhere.
@@ -265,7 +279,7 @@ func (g *z80cg) genMul16(inst *Inst) {
 			g.emitLD8("L", lhs)
 			extendByte(inst.Src[0], "L", "H")
 		} else if isSpill(lhs) {
-			g.loadSpill16("HL", lhs)
+			loadSpilledOperand(inst.Src[0], lhs, "HL")
 		} else {
 			g.emitf("    LD H, %s", highByte(lhs))
 			g.emitLD8("L", lowByte(lhs))
@@ -388,7 +402,7 @@ func (g *z80cg) genMul16(inst *Inst) {
 		g.invalidate("DE")
 	} else if rhs != "DE" {
 		if isSpill(rhs) {
-			g.loadSpill16("DE", rhs)
+			loadSpilledOperand(inst.Src[1], rhs, "DE")
 		} else if isIXY(rhs) {
 			// IX/IY → DE: safe byte-copy (D/E not substituted by DD/FD).
 			g.emitf("    LD D, %s", highByte(rhs))
