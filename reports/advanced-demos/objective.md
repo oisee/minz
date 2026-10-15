@@ -269,3 +269,13 @@ PR #153, main `c11ab1db`. На том же TV workload Size/budget сохран�
 переходы и embedded image проверены. Слияние, шесть итоговых native-платформ
 и новый релиз остаются частью текущей цели. Старый 0.25.3 и подготовленный
 166 checkpoint сохраняются отдельно; они не объявляются новой игрой.
+
+## 15 октября: новый игровой preview проверен на шести платформах
+
+Автоматическая игра PR #155 и измеренный TV из main собраны из `ef783104`
+на Linux/macOS/Windows, amd64/arm64. Все 72 platform cases прошли; archive
+CRC, manifest SHA, native build-info, source/image associations и итоговые
+экраны совпали. На шаре — только игровые ZIP/образы/медиа и инструкция:
+`/mnt/safe/minz/releases/previews/tetris-line-progression-ef783104/`.
+Это preview, не объявление финального 0.25.4. Main-интеграция, полный
+релизный tag gate и публикация остаются обязательными следующими шагами.
