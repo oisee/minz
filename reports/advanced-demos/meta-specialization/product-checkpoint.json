@@ -1,0 +1,258 @@
+{
+  "version": "0.25.4",
+  "commit": "f6b5123b0a19df6dd2770013031e6101783445b5",
+  "scope": "Six native packages verified for frozen f6 source, exact selected BIN and source-package ROM closure. Candidate, not published or integrated yet. Full main required gates and release tag checks remain.",
+  "packages": [
+    {
+      "platform": "darwin-amd64",
+      "archive": "minz-demos-0.25.4-darwin-amd64.zip",
+      "bytes": 15026912,
+      "sha256": "25378502cf108f74c767ae6ebe0d1733f5b65272e15690015305f2fa08753d88",
+      "platform_checks": 12,
+      "native_executions": 11,
+      "save_integrity_checks": 1,
+      "screens": {
+        "tetris": "4f1d8da2467e88f42291edb78c0def50cdd6dddf8616a619f34bc1028865e52b",
+        "rotozoomer": "5a65d084da46a630f1175d149b4548f54572811b0f6b891acf323ae13612b20b",
+        "sprites": "8035fd3b5e0486713e53b9f0ea6d53ba9abae74195664db142099c50ea732cc9",
+        "sprite-wave": "32a8c799339d90bf1359f2527dabdfa79246196c1106101faf0dbf6a9a99cf6f",
+        "sprite-tv": "da39a4319358bab6c01c1f8c578110ca5d6d283b7c2054af8a039635a32da24a",
+        "sprites-push": "601280cd94674e66973653de68631868f718e118ae082f5852dd9ace9c45fe1a",
+        "zork1": "60a66474d6ea24dcd50edd606d5a34097748f2eeecdcc6715b8ce673faf1a590",
+        "zork2": "a953163e0a3c30811f1730f0149c03744d7a3cc14c2b8f580d1e75cce8d33c1d",
+        "zork1-session-resume": "60a66474d6ea24dcd50edd606d5a34097748f2eeecdcc6715b8ce673faf1a590",
+        "zork2-save": "755b58406f842877ba7db60c02e2a8bf39969285d3a2fbf8ca9e41507f429f54",
+        "zork2-fresh-restore": "016ecb93ec36a7f5a86f3435fd5c3af1e1794db672ee5139ab0497228f907b86"
+      }
+    },
+    {
+      "platform": "darwin-arm64",
+      "archive": "minz-demos-0.25.4-darwin-arm64.zip",
+      "bytes": 13894389,
+      "sha256": "89efd83dfb431e77512e265ac8dcd8b73b187ccd99d51abe481a685e12ea4250",
+      "platform_checks": 12,
+      "native_executions": 11,
+      "save_integrity_checks": 1,
+      "screens": {
+        "tetris": "4f1d8da2467e88f42291edb78c0def50cdd6dddf8616a619f34bc1028865e52b",
+        "rotozoomer": "5a65d084da46a630f1175d149b4548f54572811b0f6b891acf323ae13612b20b",
+        "sprites": "8035fd3b5e0486713e53b9f0ea6d53ba9abae74195664db142099c50ea732cc9",
+        "sprite-wave": "32a8c799339d90bf1359f2527dabdfa79246196c1106101faf0dbf6a9a99cf6f",
+        "sprite-tv": "da39a4319358bab6c01c1f8c578110ca5d6d283b7c2054af8a039635a32da24a",
+        "sprites-push": "601280cd94674e66973653de68631868f718e118ae082f5852dd9ace9c45fe1a",
+        "zork1": "60a66474d6ea24dcd50edd606d5a34097748f2eeecdcc6715b8ce673faf1a590",
+        "zork2": "a953163e0a3c30811f1730f0149c03744d7a3cc14c2b8f580d1e75cce8d33c1d",
+        "zork1-session-resume": "60a66474d6ea24dcd50edd606d5a34097748f2eeecdcc6715b8ce673faf1a590",
+        "zork2-save": "755b58406f842877ba7db60c02e2a8bf39969285d3a2fbf8ca9e41507f429f54",
+        "zork2-fresh-restore": "016ecb93ec36a7f5a86f3435fd5c3af1e1794db672ee5139ab0497228f907b86"
+      }
+    },
+    {
+      "platform": "linux-amd64",
+      "archive": "minz-demos-0.25.4-linux-amd64.zip",
+      "bytes": 9048307,
+      "sha256": "4a3019ce574bf7848bf86000f67be2156087ee85d377772b06626b5d1a3cbcfb",
+      "platform_checks": 12,
+      "native_executions": 11,
+      "save_integrity_checks": 1,
+      "screens": {
+        "tetris": "4f1d8da2467e88f42291edb78c0def50cdd6dddf8616a619f34bc1028865e52b",
+        "rotozoomer": "5a65d084da46a630f1175d149b4548f54572811b0f6b891acf323ae13612b20b",
+        "sprites": "8035fd3b5e0486713e53b9f0ea6d53ba9abae74195664db142099c50ea732cc9",
+        "sprite-wave": "32a8c799339d90bf1359f2527dabdfa79246196c1106101faf0dbf6a9a99cf6f",
+        "sprite-tv": "da39a4319358bab6c01c1f8c578110ca5d6d283b7c2054af8a039635a32da24a",
+        "sprites-push": "601280cd94674e66973653de68631868f718e118ae082f5852dd9ace9c45fe1a",
+        "zork1": "60a66474d6ea24dcd50edd606d5a34097748f2eeecdcc6715b8ce673faf1a590",
+        "zork2": "a953163e0a3c30811f1730f0149c03744d7a3cc14c2b8f580d1e75cce8d33c1d",
+        "zork1-session-resume": "60a66474d6ea24dcd50edd606d5a34097748f2eeecdcc6715b8ce673faf1a590",
+        "zork2-save": "755b58406f842877ba7db60c02e2a8bf39969285d3a2fbf8ca9e41507f429f54",
+        "zork2-fresh-restore": "016ecb93ec36a7f5a86f3435fd5c3af1e1794db672ee5139ab0497228f907b86"
+      }
+    },
+    {
+      "platform": "linux-arm64",
+      "archive": "minz-demos-0.25.4-linux-arm64.zip",
+      "bytes": 8391367,
+      "sha256": "03e4d62484604bac526ad8a84b82faab1ff45d93c64003a61c73a2e3e6654811",
+      "platform_checks": 12,
+      "native_executions": 11,
+      "save_integrity_checks": 1,
+      "screens": {
+        "tetris": "4f1d8da2467e88f42291edb78c0def50cdd6dddf8616a619f34bc1028865e52b",
+        "rotozoomer": "5a65d084da46a630f1175d149b4548f54572811b0f6b891acf323ae13612b20b",
+        "sprites": "8035fd3b5e0486713e53b9f0ea6d53ba9abae74195664db142099c50ea732cc9",
+        "sprite-wave": "32a8c799339d90bf1359f2527dabdfa79246196c1106101faf0dbf6a9a99cf6f",
+        "sprite-tv": "da39a4319358bab6c01c1f8c578110ca5d6d283b7c2054af8a039635a32da24a",
+        "sprites-push": "601280cd94674e66973653de68631868f718e118ae082f5852dd9ace9c45fe1a",
+        "zork1": "60a66474d6ea24dcd50edd606d5a34097748f2eeecdcc6715b8ce673faf1a590",
+        "zork2": "a953163e0a3c30811f1730f0149c03744d7a3cc14c2b8f580d1e75cce8d33c1d",
+        "zork1-session-resume": "60a66474d6ea24dcd50edd606d5a34097748f2eeecdcc6715b8ce673faf1a590",
+        "zork2-save": "755b58406f842877ba7db60c02e2a8bf39969285d3a2fbf8ca9e41507f429f54",
+        "zork2-fresh-restore": "016ecb93ec36a7f5a86f3435fd5c3af1e1794db672ee5139ab0497228f907b86"
+      }
+    },
+    {
+      "platform": "windows-amd64",
+      "archive": "minz-demos-0.25.4-windows-amd64.zip",
+      "bytes": 9156878,
+      "sha256": "4410d162f5eceb9eab113436736f6f03955f3eb6995dec09cce580dce88b2bd9",
+      "platform_checks": 12,
+      "native_executions": 11,
+      "save_integrity_checks": 1,
+      "screens": {
+        "tetris": "4f1d8da2467e88f42291edb78c0def50cdd6dddf8616a619f34bc1028865e52b",
+        "rotozoomer": "5a65d084da46a630f1175d149b4548f54572811b0f6b891acf323ae13612b20b",
+        "sprites": "8035fd3b5e0486713e53b9f0ea6d53ba9abae74195664db142099c50ea732cc9",
+        "sprite-wave": "32a8c799339d90bf1359f2527dabdfa79246196c1106101faf0dbf6a9a99cf6f",
+        "sprite-tv": "da39a4319358bab6c01c1f8c578110ca5d6d283b7c2054af8a039635a32da24a",
+        "sprites-push": "601280cd94674e66973653de68631868f718e118ae082f5852dd9ace9c45fe1a",
+        "zork1": "60a66474d6ea24dcd50edd606d5a34097748f2eeecdcc6715b8ce673faf1a590",
+        "zork2": "a953163e0a3c30811f1730f0149c03744d7a3cc14c2b8f580d1e75cce8d33c1d",
+        "zork1-session-resume": "60a66474d6ea24dcd50edd606d5a34097748f2eeecdcc6715b8ce673faf1a590",
+        "zork2-save": "755b58406f842877ba7db60c02e2a8bf39969285d3a2fbf8ca9e41507f429f54",
+        "zork2-fresh-restore": "016ecb93ec36a7f5a86f3435fd5c3af1e1794db672ee5139ab0497228f907b86"
+      }
+    },
+    {
+      "platform": "windows-arm64",
+      "archive": "minz-demos-0.25.4-windows-arm64.zip",
+      "bytes": 8370524,
+      "sha256": "5fea5cbc44b10958b63272c30bc389aeaa44818e579d90291fdfbb6cbfa9adcc",
+      "platform_checks": 12,
+      "native_executions": 11,
+      "save_integrity_checks": 1,
+      "screens": {
+        "tetris": "4f1d8da2467e88f42291edb78c0def50cdd6dddf8616a619f34bc1028865e52b",
+        "rotozoomer": "5a65d084da46a630f1175d149b4548f54572811b0f6b891acf323ae13612b20b",
+        "sprites": "8035fd3b5e0486713e53b9f0ea6d53ba9abae74195664db142099c50ea732cc9",
+        "sprite-wave": "32a8c799339d90bf1359f2527dabdfa79246196c1106101faf0dbf6a9a99cf6f",
+        "sprite-tv": "da39a4319358bab6c01c1f8c578110ca5d6d283b7c2054af8a039635a32da24a",
+        "sprites-push": "601280cd94674e66973653de68631868f718e118ae082f5852dd9ace9c45fe1a",
+        "zork1": "60a66474d6ea24dcd50edd606d5a34097748f2eeecdcc6715b8ce673faf1a590",
+        "zork2": "a953163e0a3c30811f1730f0149c03744d7a3cc14c2b8f580d1e75cce8d33c1d",
+        "zork1-session-resume": "60a66474d6ea24dcd50edd606d5a34097748f2eeecdcc6715b8ce673faf1a590",
+        "zork2-save": "755b58406f842877ba7db60c02e2a8bf39969285d3a2fbf8ca9e41507f429f54",
+        "zork2-fresh-restore": "016ecb93ec36a7f5a86f3435fd5c3af1e1794db672ee5139ab0497228f907b86"
+      }
+    }
+  ],
+  "run": 38715660074,
+  "specialized_images": {
+    "run": 38715660074,
+    "source": "f6b5123b0a19df6dd2770013031e6101783445b5",
+    "platforms": [
+      {
+        "platform": "darwin-amd64",
+        "selected_BIN_bytes": 4815,
+        "measured_BIN_sha256": "f68ba9fb36cc4a3ed7e2aa6aecd2be431de2a8d7b0628c76897de1b411fb6314",
+        "native_PNG_sha256": "da39a4319358bab6c01c1f8c578110ca5d6d283b7c2054af8a039635a32da24a",
+        "exact_source_ROM_and_BIN_in_package": true
+      },
+      {
+        "platform": "darwin-arm64",
+        "selected_BIN_bytes": 4815,
+        "measured_BIN_sha256": "f68ba9fb36cc4a3ed7e2aa6aecd2be431de2a8d7b0628c76897de1b411fb6314",
+        "native_PNG_sha256": "da39a4319358bab6c01c1f8c578110ca5d6d283b7c2054af8a039635a32da24a",
+        "exact_source_ROM_and_BIN_in_package": true
+      },
+      {
+        "platform": "linux-amd64",
+        "selected_BIN_bytes": 4815,
+        "measured_BIN_sha256": "f68ba9fb36cc4a3ed7e2aa6aecd2be431de2a8d7b0628c76897de1b411fb6314",
+        "native_PNG_sha256": "da39a4319358bab6c01c1f8c578110ca5d6d283b7c2054af8a039635a32da24a",
+        "exact_source_ROM_and_BIN_in_package": true
+      },
+      {
+        "platform": "linux-arm64",
+        "selected_BIN_bytes": 4815,
+        "measured_BIN_sha256": "f68ba9fb36cc4a3ed7e2aa6aecd2be431de2a8d7b0628c76897de1b411fb6314",
+        "native_PNG_sha256": "da39a4319358bab6c01c1f8c578110ca5d6d283b7c2054af8a039635a32da24a",
+        "exact_source_ROM_and_BIN_in_package": true
+      },
+      {
+        "platform": "windows-amd64",
+        "selected_BIN_bytes": 4815,
+        "measured_BIN_sha256": "f68ba9fb36cc4a3ed7e2aa6aecd2be431de2a8d7b0628c76897de1b411fb6314",
+        "native_PNG_sha256": "da39a4319358bab6c01c1f8c578110ca5d6d283b7c2054af8a039635a32da24a",
+        "exact_source_ROM_and_BIN_in_package": true
+      },
+      {
+        "platform": "windows-arm64",
+        "selected_BIN_bytes": 4815,
+        "measured_BIN_sha256": "f68ba9fb36cc4a3ed7e2aa6aecd2be431de2a8d7b0628c76897de1b411fb6314",
+        "native_PNG_sha256": "da39a4319358bab6c01c1f8c578110ca5d6d283b7c2054af8a039635a32da24a",
+        "exact_source_ROM_and_BIN_in_package": true
+      }
+    ]
+  },
+  "native_builds": {
+    "run": 38715660074,
+    "platforms": [
+      {
+        "platform": "darwin-amd64",
+        "runner": "macOS/X64",
+        "GOOS": "darwin",
+        "GOARCH": "amd64",
+        "source": "f6b5123b0a19df6dd2770013031e6101783445b5",
+        "vcs_modified": false
+      },
+      {
+        "platform": "darwin-arm64",
+        "runner": "macOS/ARM64",
+        "GOOS": "darwin",
+        "GOARCH": "arm64",
+        "source": "f6b5123b0a19df6dd2770013031e6101783445b5",
+        "vcs_modified": false
+      },
+      {
+        "platform": "linux-amd64",
+        "runner": "x86_64",
+        "GOOS": "linux",
+        "GOARCH": "amd64",
+        "source": "f6b5123b0a19df6dd2770013031e6101783445b5",
+        "vcs_modified": false
+      },
+      {
+        "platform": "linux-arm64",
+        "runner": "aarch64",
+        "GOOS": "linux",
+        "GOARCH": "arm64",
+        "source": "f6b5123b0a19df6dd2770013031e6101783445b5",
+        "vcs_modified": false
+      },
+      {
+        "platform": "windows-amd64",
+        "runner": "Windows/X64",
+        "GOOS": "windows",
+        "GOARCH": "amd64",
+        "source": "f6b5123b0a19df6dd2770013031e6101783445b5",
+        "vcs_modified": false
+      },
+      {
+        "platform": "windows-arm64",
+        "runner": "Windows/ARM64",
+        "GOOS": "windows",
+        "GOARCH": "arm64",
+        "source": "f6b5123b0a19df6dd2770013031e6101783445b5",
+        "vcs_modified": false
+      }
+    ]
+  },
+  "source_package_rebuild": {
+    "package": "minz-demos-0.25.4-linux-amd64",
+    "selected_BIN_bytes": 4815,
+    "binary_sha256": "f68ba9fb36cc4a3ed7e2aa6aecd2be431de2a8d7b0628c76897de1b411fb6314",
+    "snapshot_sha256": "01ac0ba5e71e9741d761b706504f66ea44c794ab9d244cdc9140ca30bf83abef",
+    "exact_embedded_SNA_reproduced": true,
+    "source_libraries_and_ROM_from_package": true,
+    "compiler": "external compatible mz, not distributed in demo ZIP"
+  },
+  "main_integration": {
+    "base": "33c8e0e81ad4955898824fe75510a5e920211c75",
+    "merge": "ca4ae65c",
+    "full_Nanz": "PASS 38.284s",
+    "targeted_specialization_CLI": "PASS 11.027s",
+    "embedded_demo_tests": "PASS 0.803s",
+    "change_from_native_frozen_runtime": "Only tetris_smooth_main_test.go changed under minzc/stdlib/scripts when merging main; no runtime, library or image changes."
+  }
+}

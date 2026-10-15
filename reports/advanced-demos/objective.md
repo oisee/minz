@@ -240,3 +240,16 @@ PR #145 с Pixel-X API и общими immutable row-kernels уже в main (`7e
 Следующий режим 3 подготовлен отдельно в `experiment/tetris-variable-speed`: плавный seed-driven Q6-контроллер, основной Nanz-пример и встроенный образ. 18 native Z80/ULA игровых сессий, 4890 native + 9780 raw/final VM физического домена и контроллерные матрицы PASS. Основной BIN совпадает с проверенным кандидатом; обычная физика, temporal renderer и три встроенных пункта меню проверены после переноса. Preview и настоящая 50-Гц запись доступны на шаре. Режим 3 ещё не в main и не выпущен как окончательный шестиплатформенный релиз. [Отчёт](tetris/variable-speed/README.md).
 
 Дополнительный кандидат проверки: `experiment/tetris-full-screen-proof` покрывает каждый полный активный экран 256×192 после первой публикации, а не только поле. 18 сессий, 4008 экранов и два отклонённых контрольных мутанта; игровой BIN не меняется. [Охват и ограничения](tetris/full-screen-proof/README.md). Общая цель остаётся открытой: текущая интеграция/финальный релиз, автоматический выбор допущенных специализаций по цели и дальнейшая композиция эффектов требуют собственных результатов.
+
+
+## Measured Size specialization checkpoint — 15 October 2026
+
+`experiment/meta-specialization` adds `effect_preparation "auto"` and `mz specialize`: actual compact BIN selection, 5034 → 4815 bytes on the typed TV scene. All 960 native/ULA and 1920 raw/final VM scene frames pass; CLI candidates equal the native binaries. This is a separate candidate, not the v0.25.3 release. Speed/frame-budget selection remains incomplete. [API and full measurement](meta-specialization/README.md).
+
+## 15 October: measured Speed and frame-budget candidates
+
+`experiment/meta-specialization-workload` executes declared candidates with an explicit independent Spectrum 48K workload. Pure Speed retains the 5034-byte / 29350-T candidate; Size and a 32000-T budget select 4815 bytes / 30128 T. A 29700-T budget selects the faster candidate; an impossible budget creates no winner. Full steady cycles include caller work; fetched full-screen and global oracles are checked before selection. This is a bounded TV-scene candidate, not yet main or the frozen 0.25.3 product. [Commands, evidence and limits](meta-specialization/spectrum-workload.md).
+
+## 15 October: playable measured specialization
+
+`experiment/meta-specialized-snapshot` adds a cold-boot SNA output for the exact selected BIN and a real demo builder. Both Speed and budget snapshots preserve measured code byte-for-byte and pass 64 independent native full-screen/ULA frames after loading the saved file. This prepares the actual product path; it does not replace frozen 0.25.3 assets. [Run the selected scene](meta-specialization/playable-snapshot.md).

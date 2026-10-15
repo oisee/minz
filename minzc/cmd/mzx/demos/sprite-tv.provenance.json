@@ -1,15 +1,30 @@
 {
-  "source": "reports/advanced-demos/sprite-effect-composition/source.nanz",
-  "source_sha256": "1369c93d4d21782ad764ce260e8f7632efa77644806d47ccd0e192ba30768bb0",
-  "snapshot_sha256": "a5136b39472ea9dc32341d66dd0185728277d421b20ef6ddf203b77f6d3c3835",
-  "binary_bytes": 5241,
-  "verification": "TestZXSpriteEffectCompositionMachine: native Z80/ULA ordered frames, raw/final VM; CLI/native BIN equality; every captured GIF frame checked by verify_zx_sprite_tv_capture.py",
-  "scope": "typed concrete effect composition; byte-column wave and bounded noise; owned black background; physical hardware and Tetris settled-cell effects unverified",
+  "source": "reports/advanced-demos/meta-specialization/source.nanz",
+  "source_sha256": "b3907e3d7e8e60983bb512e03562315d1fd0e8fb0e0ea4b37b307cb25ec9ff34",
+  "snapshot_sha256": "01ac0ba5e71e9741d761b706504f66ea44c794ab9d244cdc9140ca30bf83abef",
+  "binary_bytes": 4815,
+  "binary_sha256": "f68ba9fb36cc4a3ed7e2aa6aecd2be431de2a8d7b0628c76897de1b411fb6314",
+  "verification": "TestMetaSpecializeSpectrumSnapshotBoot: 64 complete native screen/fetched ULA frames after saved-SNA load per candidate; actual native executable 120-frame oracle capture. Candidate measurement covers full busy cycles and complete screen/global/fetched oracles.",
+  "scope": "Explicit cold-start Spectrum 48K TV scene; owned black background; source assertions and independent scene oracle; not arbitrary game equivalence or physical hardware.",
+  "specialization": {
+    "goal": "budget",
+    "budget_t_states": 32000,
+    "selection": {
+      "zx.sprite.preparation.Diamond": 1
+    },
+    "max_full_busy_t_states": 30128,
+    "max_publication_interval_frames": 1,
+    "publications": 64,
+    "binary_preserved_in_snapshot": true,
+    "selection_evidence_sha256": "3ce2dd8ff2e9b97176ad1364aa800745564897e135421c4429d0c80cfd051690",
+    "workload_source": "reports/advanced-demos/meta-specialization/workload.json",
+    "workload_source_sha256": "56a927862724efa658e52e7ef3f412e37ae8bea35acfdb6778a58a2ebcc88a3f"
+  },
   "package_verification": {
     "frames": 120,
     "no_border": true,
-    "oracle_pose": 22,
-    "png_sha256": "fa392f0c0a6ce3d8d4ac4e354a7be15323835525bfa7a57dd8c4944f954b0c98",
-    "oracle": "Decoded pixels independently verified; final native package must reproduce this exact PNG"
+    "oracle_pose": 21,
+    "png_sha256": "da39a4319358bab6c01c1f8c578110ca5d6d283b7c2054af8a039635a32da24a",
+    "oracle": "Independent whole active-display RGBA matches native executable capture; final native package must reproduce exact PNG"
   }
 }

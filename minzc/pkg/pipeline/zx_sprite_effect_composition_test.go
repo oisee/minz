@@ -36,16 +36,24 @@ func TestZXSpriteEffectCompositionMachine(t *testing.T) {
 		return shift
 	}
 	root := os.Getenv("MINZ_SPRITE_COMPOSITION_EXPORT")
-	for _, style := range []string{"default", "unrolled", "loop"} {
+	for _, style := range []string{"default", "unrolled", "loop", "auto-default", "auto-loop"} {
 		t.Run(style, func(t *testing.T) {
 			candidate := source
+			descriptor := style
+			var variants map[string]uint8
+			if strings.HasPrefix(style, "auto-") {
+				descriptor = "auto"
+			}
+			if style == "auto-loop" {
+				variants = map[string]uint8{"zx.sprite.preparation.Diamond": 1}
+			}
 			if style != "default" {
-				candidate = []byte(strings.Replace(string(source), `effect "TVSignal"`, `effect "TVSignal"`+"\n    effect_preparation "+`"`+style+`"`, 1))
+				candidate = []byte(strings.Replace(string(source), `effect "TVSignal"`, `effect "TVSignal"`+"\n    effect_preparation "+`"`+descriptor+`"`, 1))
 				if root != "" {
 					t.Setenv("MINZ_SPRITE_COMPOSITION_EXPORT", filepath.Join(root, style))
 				}
 			}
-			runZXTypedSpriteSceneSourceMachine(t, candidate, "MINZ_SPRITE_COMPOSITION_EXPORT", shift)
+			runZXTypedSpriteSceneVariantMachine(t, candidate, "MINZ_SPRITE_COMPOSITION_EXPORT", shift, variants)
 		})
 	}
 }

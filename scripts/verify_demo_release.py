@@ -14,11 +14,24 @@ for name, expected in manifest['files'].items():
 with zipfile.ZipFile(str(a.package)+'.zip') as z:
  for f in a.package.rglob('*'):
   if f.is_file():assert z.read(f.relative_to(a.package.parent).as_posix())==f.read_bytes(),f
-for demo,scene in [('sprites','typed-sprite-scene'),('sprite-wave','typed-sprite-effects'),('sprite-tv','sprite-effect-composition')]:
+for demo in ['sprites','sprite-wave','sprite-tv']:
  provenance=json.loads((a.package/'images'/(demo+'.provenance.json')).read_text())
- source=a.package/'sources/reports/advanced-demos'/scene/'source.nanz'
+ source_path=Path(provenance['source'])
+ assert not source_path.is_absolute() and '..' not in source_path.parts
+ source=a.package/'sources'/source_path
  assert hashlib.sha256(source.read_bytes()).hexdigest()==provenance['source_sha256'],demo+' source association'
- assert hashlib.sha256((a.package/'images'/(demo+'.sna')).read_bytes()).hexdigest()==provenance['snapshot_sha256'],demo+' image association'
+ image=(a.package/'images'/(demo+'.sna')).read_bytes()
+ assert hashlib.sha256(image).hexdigest()==provenance['snapshot_sha256'],demo+' image association'
+ if 'specialization' in provenance:
+  measured=provenance['specialization']
+  assert measured['goal']=='budget' and measured['max_full_busy_t_states']<=measured['budget_t_states'] and measured['max_publication_interval_frames']<=1
+  assert measured['binary_preserved_in_snapshot'] is True
+  assert hashlib.sha256(image[27+0x4000:27+0x4000+provenance['binary_bytes']]).hexdigest()==provenance['binary_sha256'],demo+' measured BIN association'
+  workload=Path(measured['workload_source'])
+  assert not workload.is_absolute() and '..' not in workload.parts
+  assert hashlib.sha256((a.package/'sources'/workload).read_bytes()).hexdigest()==measured['workload_source_sha256']
+  w=json.loads((a.package/'sources'/workload).read_text())
+  assert hashlib.sha256((a.package/'sources'/workload.parent/w['rom']).read_bytes()).hexdigest()==w['rom_sha256']
 binary=a.package/('mzx.exe' if a.wine or (a.package/'mzx.exe').is_file() else 'mzx')
 userdata=a.proof/'userdata'
 def target(path):return 'Z:'+str(path).replace('/','\\') if a.wine else str(path)
