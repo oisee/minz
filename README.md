@@ -156,14 +156,17 @@ publish directly to the screen. The implementation is now in main
 
 **Wave + noise: a composed Nanz effect**
 
-[<img src="reports/advanced-demos/sprite-effect-composition/tv-50hz.gif" width="352" alt="Spectrum baked sprite with typed wave and noise: 64 actual Z80/ULA frames at 50 Hz">](reports/advanced-demos/sprite-effect-composition/README.md)
+[<img src="reports/advanced-demos/meta-specialization/tv-50hz-long.gif" width="352" alt="Spectrum baked sprite with typed wave and noise: 256 actual Z80/ULA frames at 50 Hz">](reports/advanced-demos/meta-specialization/product.md)
 
 A concrete `TVSignal` composes wave and noise in Nanz. This GIF records
-**64 consecutive actual Z80/ULA frames at 50 Hz**, without interpolation.
-Every displayed frame is checked against an independent pixel oracle.
+**256 consecutive actual Z80/ULA frames at 50 Hz: 5.12 seconds**, four times
+the earlier preview. Every pixel and GIF duration is checked against an
+independent oracle, with no interpolation; the loop boundary continues the
+next phase. This recording uses the measured compact candidate from main.
 Addresses are patched before HALT; paired erase/draw kernels then publish
 directly to the screen. Try `mzx --demo sprite-tv` in [demos 0.25.2](https://github.com/oisee/minz/releases/tag/v0.25.2).
-[Source, timing, and capture provenance](reports/advanced-demos/sprite-effect-composition/README.md).
+[Source and timing](reports/advanced-demos/meta-specialization/product.md)
+· [Extended capture provenance](reports/advanced-demos/meta-specialization/tv-long-capture.json).
 
 **Pixel-wave Tetris: a baked visual effect**
 
