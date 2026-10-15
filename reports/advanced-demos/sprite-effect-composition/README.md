@@ -113,6 +113,9 @@ native Z80/ULA кадра и 384 последовательных raw/final VM �
 Исправления и независимые регрессии выделены в
 [PR #138](https://github.com/oisee/minz/pull/138) и
 [PR #140](https://github.com/oisee/minz/pull/140).
+Повторная совместная проверка `TestTetrisDirectTemporalMachine` и
+`TestTetrisDirectMainMachine` после всех этих исправлений PASS за 53,236 с:
+оба уровня скорости, ordinary/Grace Size/Grace Speed и показанные ULA-кадры.
 
 ## Запустить и воспроизвести
 
