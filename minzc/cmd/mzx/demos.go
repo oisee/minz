@@ -16,7 +16,7 @@ var demoFiles embed.FS
 type demoSpec struct{ ID, Title, Model, Help string }
 
 var demoCatalog = []demoSpec{
-	{"tetris", "Spectrum Tetris", "48k", "O/P: move  Q: rotate  A: drop  Space: hard drop  H: hold"},
+	{"tetris", "Spectrum Tetris", "48k", "1/2: speed  O/P: move  Q: rotate  A: drop  Space: hard drop  H: hold"},
 	{"zork1", "Zork I", "128k", "Enter commands. Session resumes on next launch; SAVE is in RAM."},
 	{"zork2", "Zork II", "scorpion-memory", "Enter commands. SAVE / RESTORE use a persistent disk."},
 	{"rotozoomer", "32 x 48 colour rotozoomer", "48k", "Animated attribute graphics; Escape returns to the menu."},

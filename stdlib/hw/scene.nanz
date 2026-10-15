@@ -1,0 +1,208 @@
+// Compile-time composition layout for owned ordinary byte RAM. No volatile/MMIO.
+// Static disjoint planes; <=255 cells. Address order is suitable for a linear
+// Spectrum attribute plane. prepare snapshots changes; publish commits them.
+fun @scene(name: ^u8) -> void {
+ var base: i32 = 0
+ var columns: i32 = 0
+ var rows: i32 = 0
+ var stride: i32 = 0
+ var seen_surface: u8 = 0
+ var seen_prepare: u8 = 0
+ var baked: u8 = 0
+ var group_size: i32 = 16
+ var cells: i32 = 0
+ var addresses: [u16;255]
+ var order: [u8;255]
+ var i: u16 = 0
+ while i < block_len() {
+  let key: ^u8 = node_keyword(i)
+  if str_eq(key,c"surface") == 1 {
+   if seen_surface != 0 { meta_error(c"scene: duplicate surface") }
+   if node_arg_count(i) != 4 { meta_error(c"scene: surface needs base, columns, rows, stride") }
+   seen_surface = 1
+   base = node_arg_int(i,0)
+   columns = node_arg_int(i,1)
+   rows = node_arg_int(i,2)
+   stride = node_arg_int(i,3)
+  } else if str_eq(key,c"prepare") == 1 {
+   if seen_prepare != 0 { meta_error(c"scene: duplicate prepare") }
+   seen_prepare = 1
+   if node_arg_count(i) < 1 { meta_error(c"scene: prepare needs loop or baked") }
+   let mode: ^u8 = node_arg_str(i,0)
+   if str_eq(mode,c"loop") == 1 {
+    if node_arg_count(i) != 1 { meta_error(c"scene: loop prepare takes no group size") }
+   } else if str_eq(mode,c"baked") == 1 {
+    baked = 1
+    if node_arg_count(i) != 2 { meta_error(c"scene: baked prepare needs group size") }
+    group_size = node_arg_int(i,1)
+    if group_size < 1 { meta_error(c"scene: invalid prepare group size") }
+    if group_size > 64 { meta_error(c"scene: invalid prepare group size") }
+   } else { meta_error(c"scene: unknown prepare mode") }
+  } else if str_eq(key,c"plane") == 0 { meta_error(c"scene: unknown field") }
+  i = i + 1
+ }
+ if seen_surface == 0 { meta_error(c"scene: missing surface") }
+ if base < 0 { meta_error(c"scene: invalid base") }
+ if base > 65535 { meta_error(c"scene: invalid base") }
+ if columns <= 0 { meta_error(c"scene: invalid dimensions") }
+ if rows <= 0 { meta_error(c"scene: invalid dimensions") }
+ if columns > 65536 { meta_error(c"scene: invalid dimensions") }
+ if rows > 65536 { meta_error(c"scene: invalid dimensions") }
+ if stride < columns { meta_error(c"scene: invalid stride") }
+ if stride > 65535 { meta_error(c"scene: invalid stride") }
+ if u32(rows - 1) * u32(stride) + u32(columns - 1) > u32(65535 - base) { meta_error(c"scene: surface exceeds address space") }
+ var cursor: ^u8 = name
+ var chars: u16 = 0
+ while cursor^ != 0 {
+  let ch: u8 = cursor^
+  var valid: u8 = 0
+  if ch >= 65 { if ch <= 90 { valid = 1 } }
+  if ch >= 97 { if ch <= 122 { valid = 1 } }
+  if ch == 95 { valid = 1 }
+  if chars > 0 { if ch >= 48 { if ch <= 57 { valid = 1 } } }
+  if valid == 0 { meta_error(c"scene: invalid name") }
+  chars = chars + 1
+  if chars > 80 { meta_error(c"scene: name too long") }
+  cursor = cursor + 1
+ }
+ if chars == 0 { meta_error(c"scene: empty name") }
+ let prefix: ^u8 = str_concat(name,c"_")
+ i = 0
+ while i < block_len() {
+  if str_eq(node_keyword(i),c"plane") == 1 {
+   if node_arg_count(i) != 4 { meta_error(c"scene: plane needs x, y, width, height") }
+   let x: i32 = node_arg_int(i,0)
+   let y: i32 = node_arg_int(i,1)
+   let width: i32 = node_arg_int(i,2)
+   let height: i32 = node_arg_int(i,3)
+   if x < 0 { meta_error(c"scene: plane outside surface") }
+   if y < 0 { meta_error(c"scene: plane outside surface") }
+   if width <= 0 { meta_error(c"scene: plane must be nonempty") }
+   if height <= 0 { meta_error(c"scene: plane must be nonempty") }
+   if x > columns { meta_error(c"scene: plane outside surface") }
+   if y > rows { meta_error(c"scene: plane outside surface") }
+   if width > columns - x { meta_error(c"scene: plane outside surface") }
+   if height > rows - y { meta_error(c"scene: plane outside surface") }
+   if u32(width) * u32(height) > u32(255 - cells) { meta_error(c"scene: at most 255 cells") }
+   var py: i32 = 0
+   while py < height {
+    var px: i32 = 0
+    while px < width {
+     let address: u16 = u16(base + (y + py) * stride + x + px)
+     var previous: i32 = 0
+     while previous < cells {
+      if addresses[previous] == address { meta_error(c"scene: overlapping planes") }
+      previous = previous + 1
+     }
+     addresses[cells] = address
+     order[cells] = u8(cells)
+     cells = cells + 1
+     px = px + 1
+    }
+    py = py + 1
+   }
+  }
+  i = i + 1
+ }
+ if cells == 0 { meta_error(c"scene: missing planes") }
+ // Stable insertion sort on static physical addresses, entirely on the CT VM.
+ var sorted: i32 = 1
+ while sorted < cells {
+  let index: u8 = order[sorted]
+  var pos: i32 = sorted
+  while pos > 0 {
+   if addresses[order[pos - 1]] <= addresses[index] { break }
+   order[pos] = order[pos - 1]
+   pos = pos - 1
+  }
+  order[pos] = index
+  sorted = sorted + 1
+ }
+ if baked != 0 { emit(c"import hw.scene_checks") }
+ emit(str_concat(c"global ",str_concat(prefix,c"addresses: [u16;")))
+ emit(str_concat(str_from_int(cells),c"] = ["))
+ var cell: i32 = 0
+ while cell < cells {
+  var suffix: ^u8 = c","
+  if cell + 1 == cells { suffix = c"]" }
+  emit(str_concat(str_from_int(addresses[cell]),suffix))
+  cell = cell + 1
+ }
+ emit(str_concat(c"global ",str_concat(prefix,c"order: [u8;")))
+ emit(str_concat(str_from_int(cells),c"] = ["))
+ cell = 0
+ while cell < cells {
+  var suffix: ^u8 = c","
+  if cell + 1 == cells { suffix = c"]" }
+  emit(str_concat(str_from_int(order[cell]),suffix))
+  cell = cell + 1
+ }
+ var array: u8 = 0
+ while array < 4 {
+  var field: ^u8 = c"values"
+  if array == 1 { field = c"shown" }
+  if array == 2 { field = c"dirty_cells" }
+  if array == 3 { field = c"dirty_values" }
+  emit(str_concat(c"global ",str_concat(prefix,str_concat(field,c": [u8;"))))
+  emit(str_concat(str_from_int(cells),c"]"))
+  array = array + 1
+ }
+ emit(str_concat(c"global ",str_concat(prefix,c"dirty_count: u8 = 0")))
+ if baked == 0 {
+ emit(str_concat(c"fun ",str_concat(prefix,c"prepare() -> void {")))
+ emit(str_concat(prefix,c"dirty_count = 0"))
+ emit(c"var i: u8 = 0")
+ emit(str_concat(c"while i < ",str_concat(str_from_int(cells),c" {")))
+ emit(str_concat(c"let cell: u8 = ",str_concat(prefix,c"order[i]")))
+ emit(str_concat(c"let value: u8 = ",str_concat(prefix,c"values[cell]")))
+ emit(str_concat(c"if value != ",str_concat(prefix,c"shown[cell] {")))
+ emit(str_concat(prefix,str_concat(c"dirty_cells[",str_concat(prefix,c"dirty_count] = cell"))))
+ emit(str_concat(prefix,str_concat(c"dirty_values[",str_concat(prefix,c"dirty_count] = value"))))
+ emit(str_concat(prefix,str_concat(c"dirty_count = ",str_concat(prefix,c"dirty_count + 1"))))
+ emit(c"}")
+ emit(c"i = i + 1")
+ emit(c"}")
+ emit(c"}")
+ } else {
+  // Static cell indices remove runtime order lookup and loop control.
+  // Bounded helpers keep each CFG small; ordinary Nanz ABI handles their calls.
+  var pos: i32 = 0
+  var group: i32 = 0
+  while pos < cells {
+   let group_name: ^u8 = str_concat(prefix,str_concat(c"prepare_group_",str_from_int(group)))
+   emit(str_concat(c"fun ",str_concat(group_name,c"() -> void {")))
+   let quote: ^u8 = str_chr(34)
+   emit(str_concat(c"@scene_checks(",str_concat(quote,str_concat(prefix,str_concat(quote,c") {")))))
+   var local: i32 = 0
+   while local < group_size {
+    if pos >= cells { break }
+    emit(str_concat(c"cell ",str_from_int(order[pos])))
+    local = local + 1
+    pos = pos + 1
+   }
+   emit(c"}")
+   emit(c"}")
+   group = group + 1
+  }
+  emit(str_concat(c"fun ",str_concat(prefix,c"prepare() -> void {")))
+  emit(str_concat(prefix,c"dirty_count = 0"))
+  var call: i32 = 0
+  while call < group {
+   emit(str_concat(prefix,str_concat(c"prepare_group_",str_concat(str_from_int(call),c"()"))))
+   call = call + 1
+  }
+  emit(c"}")
+ }
+ emit(str_concat(c"fun ",str_concat(prefix,c"publish() -> void {")))
+ emit(c"var i: u8 = 0")
+ emit(str_concat(c"while i < ",str_concat(prefix,c"dirty_count {")))
+ emit(str_concat(c"let cell: u8 = ",str_concat(prefix,c"dirty_cells[i]")))
+ emit(str_concat(c"let value: u8 = ",str_concat(prefix,c"dirty_values[i]")))
+ emit(str_concat(c"let dest: ^u8 = ptr(",str_concat(prefix,c"addresses[cell])")))
+ emit(c"dest^ = value")
+ emit(str_concat(prefix,c"shown[cell] = value"))
+ emit(c"i = i + 1")
+ emit(c"}")
+ emit(str_concat(prefix,c"dirty_count = 0"))
+ emit(c"}")
+}

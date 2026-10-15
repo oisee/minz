@@ -89,3 +89,59 @@ func TestZ80TSMCSpillCopyPreservesPendingAccumulator(t *testing.T) {
 		})
 	}
 }
+
+func TestZ80ByteSpillCopyPreservesLiveAccumulator(t *testing.T) {
+	for _, busy := range []bool{false, true} {
+		for _, value := range []byte{1, 0xab, 0xff} {
+			t.Run(fmt.Sprintf("busy%v/value%02x", busy, value), func(t *testing.T) {
+				m := &Module{Name: "byte_spill_copy"}
+				f := m.AddFunc("byte_spill_copy")
+				b := NewBuilder(f)
+				block := b.SwitchToNewBlock("entry")
+				src := b.Param("src", TyU8, ClassGeneral)
+				keep := b.Param("keep", TyU8, ClassAcc)
+				ar := &AllocResult{Locs: map[Reg]PhysLoc{src: {Kind: LocMem, Offset: 0xf100}, keep: {Kind: LocReg, Name: "A"}}}
+				live := []Reg{keep}
+				if busy {
+					for _, name := range []string{"B", "C", "D", "E", "H", "L"} {
+						r := b.Param(name, TyU8, ClassGeneral)
+						ar.Locs[r] = PhysLoc{Kind: LocReg, Name: name}
+						live = append(live, r)
+					}
+				}
+				dst := b.Move(src, TyU8, ClassGeneral)
+				ar.Locs[dst] = PhysLoc{Kind: LocMem, Offset: 0xf102}
+				b.Ret(live...)
+				var sb strings.Builder
+				g := &z80cg{sb: &sb, fn: f, curBlock: block, ar: ar, liveness: ComputeLiveness(f), holdsPhys: map[string]string{}, physOverride: map[Reg]string{}, constVals: map[Reg]int64{}}
+				sb.WriteString("ORG 0x8000\nLD SP,0xff00\nLD A,103\nLD BC,0x1234\nLD DE,0x5678\nLD HL,0x9abc\nSCF\n")
+				g.genInst(block.Insts[0])
+				// Consume the logical live value, as argument setup/return emission does.
+				g.emitMov("A", g.loc(keep), 8)
+				fmt.Fprintf(&sb, "DI\nHALT\n%s: DB %d\n%s: DB 0\n", g.loc(src), value, g.loc(dst))
+				a, e := z80asm.NewAssembler().AssembleString(sb.String())
+				if e != nil || len(a.Errors) != 0 {
+					t.Fatal(e, a.Errors, sb.String())
+				}
+				z := emulator.NewRemogattoZ80()
+				if err := z.LoadMemory(0x8000, a.Binary); err != nil {
+					t.Fatal(err)
+				}
+				z.SetPC(0x8000)
+				for i := 0; !z.IsHalted(); i++ {
+					if i > 1000 {
+						t.Fatal("no halt")
+					}
+					z.Step()
+				}
+				r := z.GetRegisters()
+				if r.A != 103 || z.GetMemory(uint16(a.Symbols[g.loc(dst)])) != value || r.SP != 0xff00 || r.F&1 == 0 {
+					t.Fatalf("%+v byte%d\n%s", r, z.GetMemory(uint16(a.Symbols[g.loc(dst)])), sb.String())
+				}
+				if busy && (r.BC != 0x1234 || r.DE != 0x5678 || r.HL != 0x9abc) {
+					t.Fatal("busy register corrupted", r)
+				}
+			})
+		}
+	}
+}

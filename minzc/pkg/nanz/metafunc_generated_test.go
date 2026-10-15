@@ -259,3 +259,69 @@ func TestDistinctMetafunctionInvocationsHaveDistinctSourceUnits(t *testing.T) {
 		}
 	}
 }
+
+func TestGeneratedStructMethodsAreVisible(t *testing.T) {
+	const source = `fun @counter(name:^u8) {
+ emit(str_concat(str_concat(c"struct ",name),c" {value:u8}"))
+ emit(str_concat(str_concat(c"fun ",name),str_concat(c".add(self:^",str_concat(name,c",n:u8)->u8 {return self.value+n}"))))
+}
+@counter("First")
+@counter("Second")
+fun main()->u8 {
+ let a:First=First{value:3}
+ let b:Second=Second{value:4}
+ return a.add(2)+b.add(3)
+}`
+	m, err := nanz.Parse(source, "generated-methods.nanz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = hir.Verify(m); err != nil {
+		t.Fatal(err)
+	}
+	got, err := mir2.NewVM(hir.LowerModule(m)).Call("main", nil)
+	if err != nil || len(got) != 1 || got[0].I != 12 {
+		t.Fatalf("methods: %v %v want12", got, err)
+	}
+	for _, name := range []string{"First_add", "Second_add"} {
+		if !strings.Contains(m.Dump(), "call @"+name) {
+			t.Fatalf("missing concrete method %s", name)
+		}
+	}
+}
+
+func TestGeneratedSharedImportDeclarations(t *testing.T) {
+	directory := t.TempDir()
+	if err := os.WriteFile(filepath.Join(directory, "shared.nanz"), []byte(`struct Item {value:u8}
+global base:u8=2
+fun read(x:u8)->u8{return x+base}
+`), 0644); err != nil {
+		t.Fatal(err)
+	}
+	const meta = `fun @maker(name:^u8){
+ emit(c"import shared")
+ emit(str_concat(str_concat(c"fun ",name),c"()->u8{return read(1)}"))
+}
+`
+	m, err := nanz.ParseWithOpts(meta+`@maker("One")
+@maker("Two")
+fun main()->u8{return One()+Two()}`, "shared-generators.nanz", nanz.ParseOpts{BaseDir: directory})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = hir.Verify(m); err != nil {
+		t.Fatal(err)
+	}
+	got, err := mir2.NewVM(hir.LowerModule(m)).Call("main", nil)
+	if err != nil || len(got) != 1 || got[0].I != 6 {
+		t.Fatal(got, err)
+	}
+	if len(m.Globals) != 1 || len(m.Structs) != 1 {
+		t.Fatalf("reimported declarations: globals%d structs%d", len(m.Globals), len(m.Structs))
+	}
+	_, err = nanz.ParseWithOpts(meta+`@maker("Same")
+@maker("Same")`, "duplicate-generator.nanz", nanz.ParseOpts{BaseDir: directory})
+	if err == nil || !strings.Contains(err.Error(), "duplicate generated function") {
+		t.Fatalf("ordinary collision accepted: %v", err)
+	}
+}

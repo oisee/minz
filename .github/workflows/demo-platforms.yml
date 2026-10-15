@@ -2,15 +2,18 @@ name: Demo platform packages
 
 on:
   workflow_dispatch:
-  push:
-    branches: [feat/demo-six-platforms]
-    paths:
-      - '.github/workflows/demo-platforms.yml'
-      - 'scripts/package_demo_release.py'
-      - 'scripts/verify_demo_release.py'
+    inputs:
+      version:
+        description: 'Demo package version (builds and verifies; does not publish)'
+        required: true
+        default: '0.25.1'
+        type: string
 
 permissions:
   contents: read
+
+env:
+  DEMO_VERSION: ${{ inputs.version }}
 
 jobs:
   native:
@@ -25,6 +28,9 @@ jobs:
           - platform: darwin-arm64
             runner: macos-15
             extension: ''
+          - platform: windows-amd64
+            runner: windows-2022
+            extension: '.exe'
           - platform: windows-arm64
             runner: windows-11-arm
             extension: '.exe'
@@ -53,9 +59,10 @@ jobs:
           mkdir -p out/build
           go version > out/build/toolchain.txt
           printf '%s\n' "$RUNNER_OS/$RUNNER_ARCH" > out/build/runner.txt
-          go -C minzc build -trimpath -ldflags "-s -w -X main.version=0.25.0 -X main.gitCommit=$(git rev-parse --short HEAD)" -o "$PWD/out/build/mzx$EXT" ./cmd/mzx
+          go -C minzc build -trimpath -ldflags "-s -w -X main.version=$DEMO_VERSION -X main.gitCommit=$(git rev-parse --short HEAD)" -o "$PWD/out/build/mzx$EXT" ./cmd/mzx
           go -C minzc build -trimpath -tags mzx_headless -ldflags '-s -w' -o "$PWD/out/build/mzx-headless$EXT" ./cmd/mzx
           go version -m "out/build/mzx$EXT" > out/build/binary-info.txt
+          go -C minzc test -tags mzx_headless ./cmd/mzx -run '^(TestEmbeddedDemoBoots|TestEmbeddedTetrisDifficulty|TestDemoDiskSurvivesRelaunch|TestDemoSessionResumes)$' -count=1 > out/build/embedded-tests.txt
           if [[ "$RUNNER_OS" == macOS ]]; then
             codesign --force --sign - out/build/mzx
             codesign --force --sign - out/build/mzx-headless
@@ -66,10 +73,10 @@ jobs:
           EXT: ${{ matrix.extension }}
         run: |
           set -euo pipefail
-          python3 scripts/package_demo_release.py --platform "$TARGET=$PWD/out/build/mzx$EXT" --headless-platform "$TARGET=$PWD/out/build/mzx-headless$EXT" --output out/packages --version 0.25.0
-          python3 scripts/verify_demo_release.py "out/packages/minz-demos-0.25.0-$TARGET" --proof out/proof
+          python3 scripts/package_demo_release.py --platform "$TARGET=$PWD/out/build/mzx$EXT" --headless-platform "$TARGET=$PWD/out/build/mzx-headless$EXT" --output out/packages --version "$DEMO_VERSION"
+          python3 scripts/verify_demo_release.py "out/packages/minz-demos-${DEMO_VERSION}-$TARGET" --proof out/proof
           if [[ "$RUNNER_OS" == macOS ]]; then
-            codesign --verify --deep --strict "out/packages/minz-demos-0.25.0-$TARGET/MinZ Demos.app"
+            codesign --verify --deep --strict "out/packages/minz-demos-$DEMO_VERSION-$TARGET/MinZ Demos.app"
           fi
       - uses: actions/upload-artifact@v4
         if: always()
@@ -78,9 +85,17 @@ jobs:
           path: out/
           if-no-files-found: error
 
-  linux_arm:
-    name: Package linux-arm64
-    runs-on: ubuntu-24.04-arm
+  linux:
+    name: Package ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-amd64
+            runner: ubuntu-24.04
+          - platform: linux-arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
@@ -88,13 +103,15 @@ jobs:
         with:
           go-version: '1.26.8'
           cache-dependency-path: minzc/go.sum
-      - name: Build and verify on ARM64 with Raspberry Pi OS Bookworm-compatible libc
+      - name: Build and verify with Debian Bookworm-compatible libc
         shell: bash
+        env:
+          TARGET: ${{ matrix.platform }}
         run: |
           set -euo pipefail
           mkdir -p out
           DEMO_GO_ROOT=$(go env GOROOT)
-          docker run --rm -v "$PWD:/work" -v "$DEMO_GO_ROOT:/opt/go:ro" -w /work -e PATH=/opt/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -e LIBGL_ALWAYS_SOFTWARE=1 debian:bookworm bash -ec '
+          docker run --rm -e DEMO_VERSION -e TARGET -v "$PWD:/work" -v "$DEMO_GO_ROOT:/opt/go:ro" -w /work -e PATH=/opt/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -e LIBGL_ALWAYS_SOFTWARE=1 debian:bookworm bash -ec '
             apt-get update
             apt-get install -y --no-install-recommends ca-certificates gcc libc6-dev git python3 pkg-config libasound2-dev libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev libxxf86vm-dev libgl1-mesa-dev libgl1-mesa-dri xvfb xauth x11-utils xfonts-base file
             git config --global --add safe.directory /work
@@ -102,12 +119,13 @@ jobs:
             go version > out/build/toolchain.txt
             uname -m > out/build/runner.txt
             ldd --version > out/build/libc.txt
-            go -C minzc build -trimpath -ldflags "-s -w -X main.version=0.25.0 -X main.gitCommit=$(git rev-parse --short HEAD)" -o /work/out/build/mzx ./cmd/mzx
+            go -C minzc build -trimpath -ldflags "-s -w -X main.version=$DEMO_VERSION -X main.gitCommit=$(git rev-parse --short HEAD)" -o /work/out/build/mzx ./cmd/mzx
             go -C minzc build -trimpath -tags mzx_headless -ldflags "-s -w" -o /work/out/build/mzx-headless ./cmd/mzx
             go version -m out/build/mzx > out/build/binary-info.txt
+            go -C minzc test -tags mzx_headless ./cmd/mzx -run "^(TestEmbeddedDemoBoots|TestEmbeddedTetrisDifficulty|TestDemoDiskSurvivesRelaunch|TestDemoSessionResumes)$" -count=1 > out/build/embedded-tests.txt
             file out/build/mzx > out/build/file.txt
             ldd out/build/mzx > out/build/libraries.txt
-            python3 scripts/package_demo_release.py --platform linux-arm64=/work/out/build/mzx --headless-platform linux-arm64=/work/out/build/mzx-headless --output out/packages --version 0.25.0
+            python3 scripts/package_demo_release.py --platform "$TARGET=/work/out/build/mzx" --headless-platform "$TARGET=/work/out/build/mzx-headless" --output out/packages --version "$DEMO_VERSION"
             Xvfb :99 -screen 0 1024x768x24 -ac -nolisten tcp > out/xvfb.log 2>&1 &
             DEMO_XVFB_PID=$!
             trap "kill $DEMO_XVFB_PID 2>/dev/null || true" EXIT
@@ -117,7 +135,7 @@ jobs:
               sleep 1
             done
             timeout 10 xdpyinfo > out/display.txt
-            timeout --kill-after=10 600 python3 -u scripts/verify_demo_release.py out/packages/minz-demos-0.25.0-linux-arm64 --proof out/proof
+            timeout --kill-after=10 600 python3 -u scripts/verify_demo_release.py "out/packages/minz-demos-${DEMO_VERSION}-$TARGET" --proof out/proof
           '
       - name: Make container-created proof readable by the artifact uploader
         if: always()
@@ -126,6 +144,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: demos-linux-arm64
+          name: demos-${{ matrix.platform }}
           path: out/
           if-no-files-found: error

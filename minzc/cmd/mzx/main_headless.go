@@ -13,7 +13,6 @@ import (
 	"flag"
 	"fmt"
 	"image"
-	"image/color"
 	"image/png"
 	"log"
 	"os"
@@ -359,35 +358,20 @@ func main() {
 }
 
 func saveScreenPNG(m *spectrum.Machine, path string, noBorder bool) {
-	w, h := 256, 192
+	// Preserve the pixels fetched by the ULA during execution, including
+	// border timing and partially updated screen rows. Reading final VRAM
+	// here would hide tearing and discard diagnostic border stripes.
+	w, h := m.ScreenWidth(), m.ScreenHeight()
+	x0, y0 := 0, 0
+	if noBorder {
+		w, h = 256, 192
+		x0, y0 = m.Mode.BorderLeft, m.Mode.BorderTop
+	}
 	img := image.NewRGBA(image.Rect(0, 0, w, h))
-
-	for y := 0; y < 192; y++ {
-		for x := 0; x < 256; x++ {
-			col := x / 8
-			row := y / 8
-			attrAddr := 0x1800 + row*32 + col
-			attr := m.Memory.ReadScreen(uint16(attrAddr))
-
-			pixelY := y
-			pixelAddr := uint16(((pixelY & 0xC0) << 5) | ((pixelY & 0x07) << 8) | ((pixelY & 0x38) << 2) | col)
-			pixel := m.Memory.ReadScreen(pixelAddr)
-
-			bit := 7 - (x % 8)
-			isSet := (pixel>>bit)&1 != 0
-
-			ink := attr & 7
-			paper := (attr >> 3) & 7
-			bright := (attr >> 6) & 1
-
-			var c byte
-			if isSet {
-				c = ink
-			} else {
-				c = paper
-			}
-			img.Set(x, y, zxColor(c, bright))
-		}
+	fb := m.Framebuffer()
+	for y := 0; y < h; y++ {
+		start := ((y0+y)*m.ScreenWidth() + x0) * 4
+		copy(img.Pix[y*img.Stride:y*img.Stride+w*4], fb[start:start+w*4])
 	}
 
 	if dir := filepath.Dir(path); dir != "" && dir != "." {
@@ -403,34 +387,6 @@ func saveScreenPNG(m *spectrum.Machine, path string, noBorder bool) {
 		fmt.Fprintf(os.Stderr, "[mzx] png encode: %v\n", err)
 	}
 }
-
-func zxColor(c, bright byte) color.RGBA {
-	base := [8]color.RGBA{
-		{0, 0, 0, 255},          // black
-		{0, 0, 0xCD, 255},       // blue
-		{0xCD, 0, 0, 255},       // red
-		{0xCD, 0, 0xCD, 255},    // magenta
-		{0, 0xCD, 0, 255},       // green
-		{0, 0xCD, 0xCD, 255},    // cyan
-		{0xCD, 0xCD, 0, 255},    // yellow
-		{0xCD, 0xCD, 0xCD, 255}, // white
-	}
-	hi := [8]color.RGBA{
-		{0, 0, 0, 255},
-		{0, 0, 0xFF, 255},
-		{0xFF, 0, 0, 255},
-		{0xFF, 0, 0xFF, 255},
-		{0, 0xFF, 0, 255},
-		{0, 0xFF, 0xFF, 255},
-		{0xFF, 0xFF, 0, 255},
-		{0xFF, 0xFF, 0xFF, 255},
-	}
-	if bright != 0 {
-		return hi[c&7]
-	}
-	return base[c&7]
-}
-
 func bytesEqual(a, b []byte) bool {
 	if len(a) != len(b) {
 		return false

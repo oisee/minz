@@ -9,6 +9,7 @@
 //   - Named constants for screen layout
 //   - Bitwise AND for fast modulo
 //
+// Start: 1 = one pixel per two 50-Hz frames, 2 = one pixel per frame.
 // Controls:  O = left,  P = right,  Q = rotate,  A = soft drop,
 //            SPACE = hard drop,  H = hold piece
 //
@@ -17,6 +18,43 @@
 // The launcher installs a register-preserving IM2 interrupt handler.
 //
 // ============================================================================
+
+// Small attribute values for the owned board and previews; no shadow bitmap.
+global tetris_values:[u8;232]
+
+// Prepared cell coordinates, shared by addresses, attributes and dirty spans.
+// These sixteen bytes are placement metadata, not an image buffer.
+global pixel_new_x:[u8;4]
+global pixel_new_y:[u8;4]
+global pixel_old_x:[u8;4]
+global pixel_old_y:[u8;4]
+global pixel_geometry_ready:u8=0
+global pixel_geometry_kind:u8=0
+global pixel_geometry_rotation:u8=0
+global pixel_geometry_x:u8=0
+global pixel_geometry_y:u8=0
+global pixel_geometry_last:u8=0
+
+// The pixel actor stages four independent SMC placements from one baked shape.
+// Its publication is separate so a scene can prepare before HALT.
+import zx.sprite
+
+@zx_sprite_instances("FallingBlock") {
+    instances 4
+    size 8 8
+    erase
+    pixels "........"
+    pixels ".######."
+    pixels ".######."
+    pixels ".######."
+    pixels ".######."
+    pixels ".######."
+    pixels ".######."
+    pixels "........"
+}
+
+struct FallingPose {kind:u8,rotation:u8,x:u8,y:u8,phase:u8}
+global pixel_phase:u8=0
 
 // ── ZX Spectrum primitives ──────────────────────────────────────────────────
 
@@ -68,22 +106,37 @@ enum Attr {
 
 // ── Layout constants ────────────────────────────────────────────────────────
 
-global BOARD_X: u8 = 11      // playfield left column (screen chars)
-global BOARD_Y: u8 = 2       // playfield top row
-global BOARD_W: u8 = 10      // board width in cells
-global BOARD_H: u8 = 20      // board height in cells
-global BOARD_SIZE: u16 = 200  // BOARD_W * BOARD_H
+const BOARD_X: u8 = 11      // playfield left column (screen chars)
+const BOARD_Y: u8 = 2       // playfield top row
+const BOARD_W: u8 = 10      // board width in cells
+const BOARD_H: u8 = 20      // board height in cells
+const BOARD_SIZE: u16 = 200  // BOARD_W * BOARD_H
 
-global SCREEN_START: u16 = 0x4000
-global SCREEN_END: u16   = 0x5800
-global ATTR_START: u16   = 0x5800
-global ATTR_END: u16     = 0x5B00
+const SCREEN_START: u16 = 0x4000
+const SCREEN_END: u16   = 0x5800
+const ATTR_START: u16   = 0x5800
+const ATTR_END: u16     = 0x5B00
 
-global PREVIEW_NEXT_X: u8 = 23
-global PREVIEW_HOLD_X: u8 = 5
-global PREVIEW_Y: u8      = 3
+const PREVIEW_NEXT_X: u8 = 23
+const PREVIEW_HOLD_X: u8 = 5
+const PREVIEW_Y: u8      = 3
 
 // ── Game state ──────────────────────────────────────────────────────────────
+
+// Render ownership state, independent of collision/game coordinates.
+global board_dirty: u8 = 1
+// Half-open rows touched by owned writes; 20/0 is the untracked-dirt sentinel.
+global board_first:u8=20
+global board_limit:u8=0
+global drawn_valid: u8 = 0
+global drawn_type: u8 = 0
+global drawn_rot: u8 = 0
+global drawn_x: u8 = 0
+global drawn_y: u8 = 0
+global drawn_ghost_y: u8 = 0
+global drawn_next: u8 = 0
+global drawn_hold: u8 = 255
+global render_changed: u8 = 1
 
 global board: [u8; 200]       // 10x20, row-major. 0=empty, 1-7=piece color index
 
@@ -94,7 +147,10 @@ global cur_y: u8 = 0
 
 global drop_timer: u8 = 0
 global drop_speed: u8 = 30
+// Zero keeps the historical game-step API; the menu selects a fixed rate.
+global difficulty_mode:u8=0
 global frame_count: u16 = 0
+global clock_seen: u8 = 0
 
 global score: u16 = 0
 global lines_cleared: u16 = 0
@@ -211,16 +267,24 @@ fun board_get(x: u8, y: u8) -> u8 {
 }
 
 fun board_set(x: u8, y: u8, val: u8) -> void {
+    board_dirty = 1
+    if y<board_first {board_first=y}
+    if y+1>board_limit {board_limit=y+1}
     board[u16(y) * u16(BOARD_W) + u16(x)] = val
 }
 
 fun can_place(t: u8, r: u8, px: u8, py: u8) -> bool {
+    if t>=7 {return false}
+    if r>=4 {return false}
+    // Validated shape indices are <=111, and board indices are <=199.
+    let shape:u8=t*16+r*4
     for c in 0..4 {
-        let cx: u8 = px + piece_dx(t, r, c)
-        let cy: u8 = py + piece_dy(t, r, c)
-        if cx >= BOARD_W { return false }
-        if cy >= BOARD_H { return false }
-        if board_get(cx, cy) != 0 { return false }
+        let index:u8=shape+c
+        let cx:u8=px+PIECE_DX[index]
+        let cy:u8=py+PIECE_DY[index]
+        if cx>=BOARD_W {return false}
+        if cy>=BOARD_H {return false}
+        if board[cy*BOARD_W+cx]!=0 {return false}
     }
     return true
 }
@@ -236,44 +300,78 @@ fun lock_piece() -> void {
     }
 }
 
-fun clear_lines() -> u8 {
-    var cleared: u8 = 0
-    var y: u8 = 19
-    // Reverse scan — can't use for-range (row deletion shifts data)
-    while y < BOARD_H {
-        var full: u8 = 1
-        for x in 0..10 {
-            if board_get(x, y) == 0 { full = 0 }
-        }
-        if full == 1 {
-            // Shift all rows above down by one
-            var sy: u8 = y
-            while sy > 0 {
-                for sx in 0..10 {
-                    board_set(sx, sy, board_get(sx, sy - 1))
-                }
-                sy = sy - 1
-            }
-            // Clear top row
-            for sx in 0..10 {
-                board_set(sx, 0, 0)
-            }
-            cleared = cleared + 1
-        } else {
-            y = y - 1
-        }
+// The admitted source run moves down by removed rows. Reverse traversal
+// preserves overlapping bytes; each retained byte is copied at most once.
+fun slide_board_run(first:u8,count:u8,removed:u8) {
+    if count==0 {return}
+    var source:^u8=ptr(u16(&board)+u16(first)*10+u16(count)-1)
+    var destination:^u8=source+u16(removed)*10
+    var remaining:u8=count
+    while remaining!=0 {
+        destination^=source^
+        source=source-1 destination=destination-1 remaining=remaining-1
     }
+}
+
+fun clear_lines() -> u8 {
+    var cleared:u8=0
+    var pending:u8=0
+    var y:u8=19
+    // Nanz Book v7 ch6: y wraps to 255 after row zero, ending the scan.
+    // The board is owned game state; reads have no side effects. One empty
+    // cell proves the row is incomplete, so the remaining reads are unnecessary.
+    while y<BOARD_H {
+        var full:bool=true
+        var row:^u8=ptr(u16(&board)+u16(y)*10)
+        var count:u8=10
+        while count!=0 {
+            if row^==0 {full=false break}
+            row=row+1 count=count-1
+        }
+        if full {
+            board_dirty=1
+            board_first=0
+            if y+1>board_limit {board_limit=y+1}
+            // Flush the retained run below this full row before increasing
+            // its displacement. Future unread rows are strictly above y.
+            if pending!=0 {slide_board_run(y+1,pending,cleared) pending=0}
+            cleared=cleared+1
+        } else {if cleared!=0 {pending=pending+10}}
+        y=y-1
+    }
+    if pending!=0 {slide_board_run(0,pending,cleared)}
+    var top:^u8=ptr(u16(&board))
+    var empty:u8=cleared*10
+    while empty!=0 {top^=0 top=top+1 empty=empty-1}
     return cleared
 }
 
 // ── Ghost piece ─────────────────────────────────────────────────────────────
 
 fun ghost_y() -> u8 {
-    var gy: u8 = cur_y
-    while can_place(cur_type, cur_rot, cur_x, gy + 1) {
-        gy = gy + 1
+    // Each cell can fall until the next occupied cell in its own column.
+    // The minimum free distance gives the same landing pose as repeatedly
+    // testing the whole piece, without repeating geometry calls at every row.
+    var distance: u8 = BOARD_H
+    // Game state owns the admitted shape; reuse its packed table offset.
+    let shape:u8=cur_type*16+cur_rot*4
+    var c: u8 = 0
+    while c < 4 {
+        let index:u8=shape+c
+        let cx: u8 = cur_x + PIECE_DX[index]
+        let cy: u8 = cur_y + PIECE_DY[index]
+        if (cx >= BOARD_W) | (cy >= BOARD_H) { return cur_y }
+        var row: u8 = cy + 1
+        var free: u8 = 0
+        while row < BOARD_H {
+            if board[row * 10 + cx] != 0 { break }
+            free = free + 1
+            row = row + 1
+        }
+        if free < distance { distance = free }
+        c = c + 1
     }
-    return gy
+    return cur_y + distance
 }
 
 // ── Wall kicks (SRS-lite) ───────────────────────────────────────────────────
@@ -282,13 +380,13 @@ fun try_rotate() -> u8 {
     let nr: u8 = (cur_rot + 1) & 3
 
     // Test 0: basic rotation
-    if can_place(cur_type, nr, cur_x, cur_y) {
+    if can_place_pixel(cur_type, nr, cur_x, cur_y) {
         cur_rot = nr
         return 1
     }
     // Test 1: shift right
     if cur_x < 9 {
-        if can_place(cur_type, nr, cur_x + 1, cur_y) {
+        if can_place_pixel(cur_type, nr, cur_x + 1, cur_y) {
             cur_x = cur_x + 1
             cur_rot = nr
             return 1
@@ -296,7 +394,7 @@ fun try_rotate() -> u8 {
     }
     // Test 2: shift left
     if cur_x > 0 {
-        if can_place(cur_type, nr, cur_x - 1, cur_y) {
+        if can_place_pixel(cur_type, nr, cur_x - 1, cur_y) {
             cur_x = cur_x - 1
             cur_rot = nr
             return 1
@@ -304,7 +402,7 @@ fun try_rotate() -> u8 {
     }
     // Test 3: shift up
     if cur_y > 0 {
-        if can_place(cur_type, nr, cur_x, cur_y - 1) {
+        if can_place_pixel(cur_type, nr, cur_x, cur_y - 1) {
             cur_y = cur_y - 1
             cur_rot = nr
             return 1
@@ -312,7 +410,7 @@ fun try_rotate() -> u8 {
     }
     // Test 4: shift right+up
     if (cur_x < 9) & (cur_y > 0) {
-        if can_place(cur_type, nr, cur_x + 1, cur_y - 1) {
+        if can_place_pixel(cur_type, nr, cur_x + 1, cur_y - 1) {
             cur_x = cur_x + 1
             cur_y = cur_y - 1
             cur_rot = nr
@@ -321,7 +419,7 @@ fun try_rotate() -> u8 {
     }
     // Test 5: shift left+up
     if (cur_x > 0) & (cur_y > 0) {
-        if can_place(cur_type, nr, cur_x - 1, cur_y - 1) {
+        if can_place_pixel(cur_type, nr, cur_x - 1, cur_y - 1) {
             cur_x = cur_x - 1
             cur_y = cur_y - 1
             cur_rot = nr
@@ -331,14 +429,14 @@ fun try_rotate() -> u8 {
     // I piece: try +/-2 horizontal
     if cur_type == Piece.I {
         if cur_x < 8 {
-            if can_place(cur_type, nr, cur_x + 2, cur_y) {
+            if can_place_pixel(cur_type, nr, cur_x + 2, cur_y) {
                 cur_x = cur_x + 2
                 cur_rot = nr
                 return 1
             }
         }
         if cur_x > 1 {
-            if can_place(cur_type, nr, cur_x - 2, cur_y) {
+            if can_place_pixel(cur_type, nr, cur_x - 2, cur_y) {
                 cur_x = cur_x - 2
                 cur_rot = nr
                 return 1
@@ -382,6 +480,7 @@ fun spawn_piece() -> void {
     cur_rot = 0
     cur_x = 3
     cur_y = 0
+    pixel_phase = 0
     hold_used = 0
     last_was_tspin = 0
     if can_place(cur_type, cur_rot, cur_x, cur_y) == false {
@@ -402,7 +501,12 @@ fun hold_piece() -> void {
         cur_rot = 0
         cur_x = 3
         cur_y = 0
+        pixel_phase = 0
+        if can_place(cur_type,cur_rot,cur_x,cur_y)==false {game_over=1}
     }
+    // A hold consumes this piece's hold action even when it spawned the queue.
+    hold_used = 1
+    drop_timer = 0
 }
 
 // ── Rendering ───────────────────────────────────────────────────────────────
@@ -454,62 +558,22 @@ fun init_screen() -> void {
     zx_border(0)
 }
 
-fun render_preview(t: u8, sx: u8, sy: u8) -> void {
-    // Clear 4x4 preview area
-    for py in 0..4 {
-        for px in 0..4 {
-            zx_poke(zx_attr_addr(sx + px, sy + py), Attr.BLACK)
-        }
+fun render_preview(t: u8, offset: u8) -> void {
+    var i: u8 = 0
+    while i < 16 {
+        tetris_values[offset + i] = Attr.BLACK
+        i = i + 1
     }
-    // Draw piece cells
     if t < 7 {
         let pc: u8 = piece_color(t)
-        for c in 0..4 {
+        var c: u8 = 0
+        while c < 4 {
             let dx: u8 = piece_dx(t, 0, c)
             let dy: u8 = piece_dy(t, 0, c)
-            zx_poke(zx_attr_addr(sx + dx, sy + dy), pc)
+            tetris_values[offset + dy * 4 + dx] = pc
+            c = c + 1
         }
     }
-}
-
-fun render() -> void {
-    // Render board
-    for y in 0..20 {
-        for x in 0..10 {
-            let cell: u8 = board_get(x, y)
-            let attr: u8 = color_attr(cell)
-            zx_poke(zx_attr_addr(BOARD_X + x, BOARD_Y + y), attr)
-        }
-    }
-
-    // Ghost piece (dim shadow at landing position)
-    let gy: u8 = ghost_y()
-    if gy != cur_y {
-        let gc: u8 = (piece_color(cur_type) >> 3) & 7
-        for c in 0..4 {
-            let cx: u8 = cur_x + piece_dx(cur_type, cur_rot, c)
-            let cy: u8 = gy + piece_dy(cur_type, cur_rot, c)
-            if (cx < BOARD_W) & (cy < BOARD_H) {
-                if board_get(cx, cy) == 0 {
-                    zx_poke(zx_attr_addr(BOARD_X + cx, BOARD_Y + cy), gc)
-                }
-            }
-        }
-    }
-
-    // Current piece (bright, on top)
-    let pc: u8 = piece_color(cur_type)
-    for c in 0..4 {
-        let cx: u8 = cur_x + piece_dx(cur_type, cur_rot, c)
-        let cy: u8 = cur_y + piece_dy(cur_type, cur_rot, c)
-        if (cx < BOARD_W) & (cy < BOARD_H) {
-            zx_poke(zx_attr_addr(BOARD_X + cx, BOARD_Y + cy), pc)
-        }
-    }
-
-    // Next / Hold previews
-    render_preview(next_type, PREVIEW_NEXT_X, PREVIEW_Y)
-    render_preview(hold_type, PREVIEW_HOLD_X, PREVIEW_Y)
 }
 
 // ── Input ───────────────────────────────────────────────────────────────────
@@ -549,11 +613,11 @@ fun score_lines(cl: u8) -> void {
     }
     lines_cleared = lines_cleared + u16(cl)
     // Speed up every 8 lines
-    if drop_speed > 5 {
+    if difficulty_mode==0 {if drop_speed > 5 {
         if (u8(lines_cleared) & 0x07) == 0 {
             drop_speed = drop_speed - 2
         }
-    }
+    }}
 }
 
 fun do_lock_and_clear() -> void {
@@ -564,9 +628,40 @@ fun do_lock_and_clear() -> void {
     spawn_piece()
 }
 
+// Cold-path menu: ROM glyphs, typed pointers and row walk; no general console
+// or shadow bitmap is needed. Each string occupies one character row.
+fun difficulty_print(col:u8,row:u8,text:^u8) {
+    var x:u8=col
+    var i:u8=0
+    while text[i]!=0 {
+        let ch:u8=text[i]
+        var source:^u8=ptr(0x3d00+u16(ch-32)*8)
+        var destination:^u8=ptr(zx_screen_addr(x,row*8))
+        var line:u8=0
+        while line<8 {
+            destination^=source^
+            source=source+1 destination=destination+256 line=line+1
+        }
+        zx_poke(zx_attr_addr(x,row),Attr.WHITE)
+        x=x+1 i=i+1
+    }
+}
+fun choose_difficulty() {
+    difficulty_print(6,0,c"1: 1 PX / 2 FRAMES")
+    difficulty_print(6,1,c"2: 1 PX / FRAME")
+    while true {
+        zx_halt()
+        let keys:u8=zx_key_row(0xf7)
+        if (keys & 1)==0 {difficulty_mode=1 drop_speed=16 return}
+        if (keys & 2)==0 {difficulty_mode=2 drop_speed=8 return}
+    }
+}
+
 // ── Main ────────────────────────────────────────────────────────────────────
 
 fun main() -> void {
+    board_dirty = 1
+    drawn_valid = 0
     // Clear board
     for i in 0..200 {
         board[i] = 0
@@ -574,6 +669,7 @@ fun main() -> void {
 
     next_type = random_piece()
     init_screen()
+    choose_difficulty()
 
     // Fill preview areas with solid pixels
     for py in 3..7 {
@@ -585,69 +681,17 @@ fun main() -> void {
         }
     }
 
+    pixel_init()
     spawn_piece()
+    if render_smooth()==false {game_over=1}
+    clock_seen=zx_peek(0x5c78)
 
-    // ── Game loop ───────────────────────────────────────────────────────
-    while game_over == 0 {
-        zx_halt()
-        frame_count = frame_count + 1
-
-        // Input (edge-detect for single-press actions)
-        let keys: u8 = read_input()
-        let changed: u8 = keys xor prev_keys
-        let new_keys: u8 = keys & changed
-        prev_keys = keys
-
-        // Left
-        if (new_keys & 1) != 0 {
-            if cur_x > 0 {
-                if can_place(cur_type, cur_rot, cur_x - 1, cur_y) {
-                    cur_x = cur_x - 1
-                    last_was_tspin = 0
-                }
-            }
-        }
-        // Right
-        if (new_keys & 2) != 0 {
-            if can_place(cur_type, cur_rot, cur_x + 1, cur_y) {
-                cur_x = cur_x + 1
-                last_was_tspin = 0
-            }
-        }
-        // Rotate (with wall kicks)
-        if (new_keys & 4) != 0 {
-            try_rotate()
-        }
-        // Soft drop (held = accelerate)
-        if (keys & 8) != 0 {
-            drop_timer = drop_speed
-        }
-        // Hard drop (instant)
-        if (new_keys & 16) != 0 {
-            while can_place(cur_type, cur_rot, cur_x, cur_y + 1) {
-                cur_y = cur_y + 1
-                score = score + 2
-            }
-            do_lock_and_clear()
-            drop_timer = 0
-        }
-        // Hold
-        if (new_keys & 32) != 0 {
-            hold_piece()
-        }
-
-        // Gravity
-        drop_timer = drop_timer + 1
-        if drop_timer >= drop_speed {
-            drop_timer = 0
-            if can_place(cur_type, cur_rot, cur_x, cur_y + 1) {
-                cur_y = cur_y + 1
-            } else {
-                do_lock_and_clear()
-            }
-        }
-
-        render()
+    while game_over==0 {
+        let now:u8=zx_peek(0x5c78)
+        let elapsed:u8=now-clock_seen
+        clock_seen=now
+        game_step(read_input(),elapsed)
+        if render_smooth()==false {game_over=1}
     }
 
     // Game over — flash border
@@ -661,4 +705,596 @@ fun main() -> void {
         zx_halt()
         zx_halt()
     }
+}
+
+// Pixel geometry belongs to the previous grid row until its eighth step.
+// At phase 1 the six-pixel body still fits that row; at phases 2..7 its
+// lower body crosses the cell boundary and must also fit the following row.
+fun FallingPose.stage_into(self:^FallingPose,base:u16)->bool {
+    FallingBlock_0_ready=false
+    FallingBlock_1_ready=false
+    FallingBlock_2_ready=false
+    FallingBlock_3_ready=false
+    if self.kind>=7 {return false}
+    if self.rotation>=4 {return false}
+    if self.x>=BOARD_W {return false}
+    if self.y>=BOARD_H {return false}
+    if self.phase>=8 {return false}
+    if can_place(self.kind,self.rotation,self.x,self.y)==false {return false}
+    if self.phase>1 {
+        if can_place(self.kind,self.rotation,self.x,self.y+1)==false {return false}
+    }
+    if stage_tetris_cell(self,0,base)==false {return false}
+    if stage_tetris_cell(self,1,base)==false {return false}
+    if stage_tetris_cell(self,2,base)==false {return false}
+    if stage_tetris_cell(self,3,base)==false {return false}
+    return true
+}
+
+fun FallingPose.stage(self:^FallingPose)->bool {return self.stage_into(0x4000)}
+
+// Keep each address calculation local; four simultaneous live pointer walks
+// would force avoidable spills before the frame boundary.
+fun stage_tetris_cell(actor:^FallingPose,c:u8,base:u16)->bool {
+    let index:u8=actor.kind*16+actor.rotation*4+c
+    let cx:u8=actor.x+PIECE_DX[index]
+    let cy:u8=actor.y+PIECE_DY[index]
+    if cx>=BOARD_W {return false}
+    if cy>=BOARD_H {return false}
+    if actor.phase>1 {if cy+1>=BOARD_H {return false}}
+    let x:u8=(BOARD_X+cx)*8
+    let y:u8=(BOARD_Y+cy)*8+actor.phase
+    // Each generated stage_on checks pixel bounds before patching operands.
+    if c==0 {
+        if base==0x4000 {return FallingBlock_0_stage_at(x,y)}
+        let cell:FallingBlock_0=FallingBlock_0{x:x,y:y}
+        return cell.stage_on(base)
+    }
+    if c==1 {
+        if base==0x4000 {return FallingBlock_1_stage_at(x,y)}
+        let cell:FallingBlock_1=FallingBlock_1{x:x,y:y}
+        return cell.stage_on(base)
+    }
+    if c==2 {
+        if base==0x4000 {return FallingBlock_2_stage_at(x,y)}
+        let cell:FallingBlock_2=FallingBlock_2{x:x,y:y}
+        return cell.stage_on(base)
+    }
+    if c==3 {
+        if base==0x4000 {return FallingBlock_3_stage_at(x,y)}
+        let cell:FallingBlock_3=FallingBlock_3{x:x,y:y}
+        return cell.stage_on(base)
+    }
+    return false
+}
+
+fun FallingPose.publish(self:^FallingPose)->bool {
+    if FallingBlock_0_ready==false {return false}
+    if FallingBlock_1_ready==false {return false}
+    if FallingBlock_2_ready==false {return false}
+    if FallingBlock_3_ready==false {return false}
+    let cell0:FallingBlock_0=FallingBlock_0{x:0,y:0}
+    cell0.publish()
+    let cell1:FallingBlock_1=FallingBlock_1{x:0,y:0}
+    cell1.publish()
+    let cell2:FallingBlock_2=FallingBlock_2{x:0,y:0}
+    cell2.publish()
+    let cell3:FallingBlock_3=FallingBlock_3{x:0,y:0}
+    cell3.publish()
+    return true
+}
+
+fun FallingPose.draw(self:^FallingPose)->bool {
+    if self.stage()==false {return false}
+    return self.publish()
+}
+
+// Previous pixels may now belong to a locked piece; validate geometry here,
+// not current board occupancy. Screen writes still wait for erase_staged().
+fun FallingPose.stage_erase(self:^FallingPose)->bool {
+    if self.kind>=7 {return false}
+    if self.rotation>=4 {return false}
+    if self.x>=10 {return false}
+    if self.y>=20 {return false}
+    if self.phase>=8 {return false}
+    if stage_tetris_erase_cell(self,0)==false {return false}
+    if stage_tetris_erase_cell(self,1)==false {return false}
+    if stage_tetris_erase_cell(self,2)==false {return false}
+    if stage_tetris_erase_cell(self,3)==false {return false}
+    return true
+}
+
+fun stage_tetris_erase_cell(actor:^FallingPose,c:u8)->bool {
+    let index:u8=actor.kind*16+actor.rotation*4+c
+    let cx:u8=actor.x+PIECE_DX[index]
+    let cy:u8=actor.y+PIECE_DY[index]
+    if cx>=10 {return false}
+    if cy>=20 {return false}
+    let x:u8=(11+cx)*8
+    let y:u8=(2+cy)*8+actor.phase
+    if c==0 {return FallingBlock_0_stage_erase_at(x,y)}
+    if c==1 {return FallingBlock_1_stage_erase_at(x,y)}
+    if c==2 {return FallingBlock_2_stage_erase_at(x,y)}
+    if c==3 {return FallingBlock_3_stage_erase_at(x,y)}
+    return false
+}
+
+fun FallingPose.erase_staged(self:^FallingPose)->bool {
+    if FallingBlock_0_erase_ready==false {return false}
+    if FallingBlock_1_erase_ready==false {return false}
+    if FallingBlock_2_erase_ready==false {return false}
+    if FallingBlock_3_erase_ready==false {return false}
+    let cell0:FallingBlock_0=FallingBlock_0{x:0,y:0} cell0.erase_staged()
+    let cell1:FallingBlock_1=FallingBlock_1{x:0,y:0} cell1.erase_staged()
+    let cell2:FallingBlock_2=FallingBlock_2{x:0,y:0} cell2.erase_staged()
+    let cell3:FallingBlock_3=FallingBlock_3{x:0,y:0} cell3.erase_staged()
+    return true
+}
+
+// Actual game-state consumer; no row setters or screen-address calculations.
+fun stage_pixel_actor()->bool {
+    let actor:FallingPose=FallingPose{kind:cur_type,rotation:cur_rot,x:cur_x,y:cur_y,phase:pixel_phase}
+    return actor.stage()
+}
+
+// Main's game_step owns collision validation; rendering validates screen
+// geometry without repeating four board scans on every physical pixel.
+fun FallingPose.stage_render(self:^FallingPose)->bool {
+    if self.kind>=7 {return false}
+    if self.rotation>=4 {return false}
+    if self.x>=10 {return false}
+    if self.y>=20 {return false}
+    if self.phase>=8 {return false}
+    var refresh:bool=true
+    if pixel_geometry_ready!=0 {
+        if (self.kind==pixel_geometry_kind)&(self.rotation==pixel_geometry_rotation)&(self.x==pixel_geometry_x)&(self.y==pixel_geometry_y) {refresh=false}
+    }
+    if refresh {
+        if pixel_geometry_ready!=0 {
+            if (self.kind==pixel_geometry_kind)&(self.rotation==pixel_geometry_rotation)&(self.x==pixel_geometry_x) {
+                if self.y>pixel_geometry_y {
+                    // Same admitted shape and X: a downward translation keeps
+                    // every column and cell offset. The maximum proves bounds.
+                    let dy:u8=self.y-pixel_geometry_y
+                    if pixel_geometry_last+dy>=20 {return false}
+                    pixel_new_y[0]=pixel_new_y[0]+dy
+                    pixel_new_y[1]=pixel_new_y[1]+dy
+                    pixel_new_y[2]=pixel_new_y[2]+dy
+                    pixel_new_y[3]=pixel_new_y[3]+dy
+                    pixel_geometry_last=pixel_geometry_last+dy
+                    pixel_geometry_y=self.y
+                    refresh=false
+                }
+            }
+        }
+    }
+    if refresh {
+        pixel_geometry_ready=0
+        pixel_geometry_last=0
+        let shape:u8=self.kind*16+self.rotation*4
+        var c:u8=0
+        while c<4 {
+            let index:u8=shape+c
+            let x:u8=self.x+PIECE_DX[index]
+            let y:u8=self.y+PIECE_DY[index]
+            if x>=10 {return false}
+            if y>=20 {return false}
+            pixel_new_x[c]=x pixel_new_y[c]=y
+            if y>pixel_geometry_last {pixel_geometry_last=y}
+            c=c+1
+        }
+        pixel_geometry_kind=self.kind pixel_geometry_rotation=self.rotation
+        pixel_geometry_x=self.x pixel_geometry_y=self.y
+        pixel_geometry_ready=1
+    }
+    if self.phase>1 {if pixel_geometry_last+1>=20 {return false}}
+    let phase:u8=self.phase
+    if FallingBlock_0_stage_at((11+pixel_new_x[0])*8,(2+pixel_new_y[0])*8+phase)==false {return false}
+    if FallingBlock_1_stage_at((11+pixel_new_x[1])*8,(2+pixel_new_y[1])*8+phase)==false {return false}
+    if FallingBlock_2_stage_at((11+pixel_new_x[2])*8,(2+pixel_new_y[2])*8+phase)==false {return false}
+    if FallingBlock_3_stage_at((11+pixel_new_x[3])*8,(2+pixel_new_y[3])*8+phase)==false {return false}
+    return true
+}
+fun stage_pixel_render()->bool {
+    let actor:FallingPose=FallingPose{kind:cur_type,rotation:cur_rot,x:cur_x,y:cur_y,phase:pixel_phase}
+    return actor.stage_render()
+}
+
+fun publish_pixel_actor()->bool {
+    let actor:FallingPose=FallingPose{kind:cur_type,rotation:cur_rot,x:cur_x,y:cur_y,phase:pixel_phase}
+    return actor.publish()
+}
+
+// Direct screen renderer. Placement happens before HALT; prepared mask writes
+// happen together after the frame interrupt. No full bitmap is copied in RAM.
+import zx.tile_cell
+@zx_tile_board("field_board_publish") {
+    viewport 11 2 10 20
+    tiles "board"
+    attributes "tetris_values"
+    row_done "pixel_finish_board_row"
+    row_range
+}
+global direct_actor_lastrow:u8=255
+global pixel_left:[u8;20]
+global pixel_right:[u8;20]
+global pixel_first_row:u8=0
+global pixel_row_limit:u8=20
+global drawn_phase:u8=0
+global field_pixels_count:u8=0
+global field_pixels_sources:[u16;20]
+global field_pixels_destinations:[u16;20]
+global field_pixels_widths:[u8;20]
+global direct_refresh:u8=0
+global direct_board_first:u8=0
+global direct_board_limit:u8=0
+global direct_actor_early:u8=0
+global direct_preview:u8=0
+
+fun pixel_reset_spans() {
+    var row:u8=pixel_first_row
+    while row<pixel_row_limit {pixel_left[row]=10 pixel_right[row]=0 row=row+1}
+    pixel_first_row=20 pixel_row_limit=0
+    field_pixels_count=0
+}
+
+fun pixel_mark_cell(x:u8,y:u8) {
+    if x>=10 {return}
+    if y>=20 {return}
+    if y<pixel_first_row {pixel_first_row=y}
+    if y+1>pixel_row_limit {pixel_row_limit=y+1}
+    if x<pixel_left[y] {pixel_left[y]=x}
+    if x+1>pixel_right[y] {pixel_right[y]=x+1}
+}
+
+fun pixel_mark_cells(xs:^u8,ys:^u8,phase:u8) {
+    var c:u8=0
+    while c<4 {
+        let x:u8=xs[c]
+        let y:u8=ys[c]
+        // These coordinates come from an admitted render placement. Keep
+        // its exact row union without repeating per-cell bounds/call setup.
+        if y<pixel_first_row {pixel_first_row=y}
+        if y+1>pixel_row_limit {pixel_row_limit=y+1}
+        if x<pixel_left[y] {pixel_left[y]=x}
+        if x+1>pixel_right[y] {pixel_right[y]=x+1}
+        if phase>1 {
+            let lower:u8=y+1
+            if lower+1>pixel_row_limit {pixel_row_limit=lower+1}
+            if x<pixel_left[lower] {pixel_left[lower]=x}
+            if x+1>pixel_right[lower] {pixel_right[lower]=x+1}
+        }
+        c=c+1
+    }
+}
+
+fun pixel_restore_attributes() {
+    var y:u8=pixel_first_row
+    while y<pixel_row_limit {
+        var x:u8=pixel_left[y]
+        while x<pixel_right[y] {
+            let index:u8=y*10+x
+            tetris_values[index]=CELL_COLORS[board[index]]
+            x=x+1
+        }
+        y=y+1
+    }
+}
+
+// Board changes are infrequent (lock/line clear), not the pixel-motion path.
+// Fill exactly the board from its tile state, directly into the screen.
+fun pixel_restore_board() {field_board_publish(ptr(u16(&board)),ptr(u16(&tetris_values)))}
+
+// A frozen frame places the actor only after every tile row under its mask.
+// All attributes/addresses/readiness were prepared before HALT.
+fun pixel_finish_board_row(row:u8) {
+    if row==direct_actor_lastrow {pixel_commit_actor()}
+}
+fun pixel_prepare_actor_row() {
+    direct_actor_lastrow=255
+    if game_over!=0 {return}
+    direct_actor_lastrow=pixel_geometry_last
+    if pixel_phase>1 {direct_actor_lastrow=direct_actor_lastrow+1}
+}
+
+fun pixel_prepare_board_attributes(first:u8,limit:u8) {
+    let offset:u8=first*10
+    var source:^u8=ptr(u16(&board)+u16(offset))
+    var destination:^u8=ptr(u16(&tetris_values)+u16(offset))
+    var count:u8=(limit-first)*10
+    while count!=0 {
+        destination^=CELL_COLORS[source^]
+        source=source+1 destination=destination+1 count=count-1
+    }
+}
+
+fun pixel_actor_attributes() {
+    let color:u8=piece_color(cur_type)
+    var c:u8=0
+    while c<4 {
+        let x:u8=pixel_new_x[c]
+        let y:u8=pixel_new_y[c]
+        if pixel_phase<7 {tetris_values[y*10+x]=color}
+        if pixel_phase>1 {tetris_values[(y+1)*10+x]=color}
+        c=c+1
+    }
+}
+
+fun pixel_prepare_bands() {
+    field_pixels_count=0
+    var y:u8=pixel_first_row
+    while y<pixel_row_limit {
+        let left:u8=pixel_left[y]
+        let right:u8=pixel_right[y]
+        var extra:bool=true
+        if direct_refresh!=0 {if (y>=direct_board_first)&(y<direct_board_limit) {extra=false}}
+        if (left<right)&extra {
+            field_pixels_sources[field_pixels_count]=u16(&tetris_values[y*10+left])
+            field_pixels_destinations[field_pixels_count]=zx_attr_addr(11+left,2+y)
+            field_pixels_widths[field_pixels_count]=right-left
+            field_pixels_count=field_pixels_count+1
+        }
+        y=y+1
+    }
+}
+
+fun pixel_publish_attributes() {
+    var row:u8=0
+    while row<field_pixels_count {
+        tile_attribute_span(ptr(field_pixels_sources[row]),ptr(field_pixels_destinations[row]),field_pixels_widths[row])
+        row=row+1
+    }
+}
+
+fun pixel_init() {
+    pixel_restore_board()
+    board_dirty=0 board_first=20 board_limit=0
+    drawn_phase=0
+}
+
+// The previous prepared draw is still intact here. Snapshot its addresses
+// for exact erase, then stage_pixel_render may replace the draw operands.
+fun stage_pixel_erase()->bool {
+    pixel_old_x[0]=pixel_new_x[0] pixel_old_y[0]=pixel_new_y[0]
+    pixel_old_x[1]=pixel_new_x[1] pixel_old_y[1]=pixel_new_y[1]
+    pixel_old_x[2]=pixel_new_x[2] pixel_old_y[2]=pixel_new_y[2]
+    pixel_old_x[3]=pixel_new_x[3] pixel_old_y[3]=pixel_new_y[3]
+    if FallingBlock_0_stage_erase_from_draw()==false {return false}
+    if FallingBlock_1_stage_erase_from_draw()==false {return false}
+    if FallingBlock_2_stage_erase_from_draw()==false {return false}
+    if FallingBlock_3_stage_erase_from_draw()==false {return false}
+    return true
+}
+fun publish_pixel_erase()->bool {
+    let actor:FallingPose=FallingPose{kind:drawn_type,rotation:drawn_rot,x:drawn_x,y:drawn_y,phase:drawn_phase}
+    return actor.erase_staged()
+}
+
+fun render_smooth()->bool {
+    if (BOARD_X!=11)|(BOARD_Y!=2)|(BOARD_W!=10)|(BOARD_H!=20) {return false}
+    if drawn_valid!=0 {
+        if board_dirty==0 {
+            if (cur_type==drawn_type)&(cur_rot==drawn_rot)&(cur_x==drawn_x)&(cur_y==drawn_y)&(pixel_phase==drawn_phase) {
+                if (next_type==drawn_next)&(hold_type==drawn_hold) {zx_halt() return true}
+            }
+        }
+        if stage_pixel_erase()==false {return false}
+    }
+    if game_over==0 {if stage_pixel_render()==false {return false}}
+    direct_refresh=board_dirty
+    direct_board_first=board_first direct_board_limit=board_limit
+    if direct_refresh!=0 {
+        if (direct_board_first>20)|(direct_board_limit>20) {return false}
+        if (drawn_valid==0)|((direct_board_first==20)&(direct_board_limit==0)) {direct_board_first=0 direct_board_limit=20}
+        else if direct_board_first>=direct_board_limit {return false}
+    }
+    pixel_reset_spans()
+    if drawn_valid==0 {
+        var y:u8=0
+        while y<20 {pixel_left[y]=0 pixel_right[y]=10 y=y+1}
+        pixel_first_row=0 pixel_row_limit=20
+        pixel_prepare_board_attributes(0,20)
+    } else {
+        pixel_mark_cells(ptr(u16(&pixel_old_x)),ptr(u16(&pixel_old_y)),drawn_phase)
+        if game_over==0 {pixel_mark_cells(ptr(u16(&pixel_new_x)),ptr(u16(&pixel_new_y)),pixel_phase)}
+        pixel_restore_attributes()
+        if direct_refresh!=0 {pixel_prepare_board_attributes(direct_board_first,direct_board_limit)}
+    }
+    if game_over==0 {pixel_actor_attributes()}
+    direct_preview=0
+    if (drawn_valid==0)|(next_type!=drawn_next) {render_preview(next_type,200) direct_preview=1}
+    if (drawn_valid==0)|(hold_type!=drawn_hold) {render_preview(hold_type,216) direct_preview=1}
+    // Range-published rows own their attributes; remaining actor bands are
+    // prepared separately and published before an early top-of-field actor.
+    pixel_prepare_bands()
+    pixel_prepare_actor_row()
+    direct_actor_early=0
+    if direct_refresh!=0 {if game_over==0 {
+        if direct_actor_lastrow<direct_board_first {direct_actor_early=1}
+        else if direct_actor_lastrow>=direct_board_limit {
+            var first:u8=20
+            var c:u8=0
+            while c<4 {if pixel_new_y[c]<first {first=pixel_new_y[c]} c=c+1}
+            if pixel_phase==7 {first=first+1}
+            if first>=direct_board_limit {direct_actor_early=1}
+            else {direct_actor_lastrow=direct_board_limit-1}
+        }
+    }}
+    if pixel_check_prepared()==false {return false}
+    zx_halt()
+    asm z80 {DI}
+    pixel_publish_direct()
+    asm z80 {EI}
+    drawn_valid=1 board_dirty=0 board_first=20 board_limit=0
+    drawn_type=cur_type drawn_rot=cur_rot drawn_x=cur_x drawn_y=cur_y
+    drawn_phase=pixel_phase drawn_next=next_type drawn_hold=hold_type
+    return true
+}
+
+// These checks run before HALT, never inside the timed commit.
+fun pixel_check_prepared()->bool {
+    if drawn_valid!=0 {
+        if FallingBlock_0_erase_ready==false {return false}
+        if FallingBlock_1_erase_ready==false {return false}
+        if FallingBlock_2_erase_ready==false {return false}
+        if FallingBlock_3_erase_ready==false {return false}
+    }
+    if game_over==0 {
+        if FallingBlock_0_ready==false {return false}
+        if FallingBlock_1_ready==false {return false}
+        if FallingBlock_2_ready==false {return false}
+        if FallingBlock_3_ready==false {return false}
+    }
+    return true
+}
+
+fun pixel_commit_erase() {
+    FallingBlock_0_erase_prepared()
+    FallingBlock_1_erase_prepared()
+    FallingBlock_2_erase_prepared()
+    FallingBlock_3_erase_prepared()
+}
+fun pixel_commit_actor() {
+    FallingBlock_0_draw_prepared()
+    FallingBlock_1_draw_prepared()
+    FallingBlock_2_draw_prepared()
+    FallingBlock_3_draw_prepared()
+}
+fun pixel_publish_direct() {
+    if direct_preview!=0 {pixel_publish_previews()}
+    if drawn_valid!=0 {pixel_commit_erase()}
+    if direct_refresh!=0 {
+        pixel_publish_attributes()
+        if direct_actor_early!=0 {pixel_commit_actor()}
+        field_board_publish_range_prepared(ptr(u16(&board)),ptr(u16(&tetris_values)),direct_board_first,direct_board_limit)
+    } else {
+        if game_over==0 {pixel_commit_actor()}
+        pixel_publish_attributes()
+    }
+}
+
+// Preview attributes are published before the raster-ordered field bands.
+fun pixel_publish_previews() {
+    let p200:^u8=ptr(22647) p200^=tetris_values[200]
+    let p201:^u8=ptr(22648) p201^=tetris_values[201]
+    let p202:^u8=ptr(22649) p202^=tetris_values[202]
+    let p203:^u8=ptr(22650) p203^=tetris_values[203]
+    let p204:^u8=ptr(22679) p204^=tetris_values[204]
+    let p205:^u8=ptr(22680) p205^=tetris_values[205]
+    let p206:^u8=ptr(22681) p206^=tetris_values[206]
+    let p207:^u8=ptr(22682) p207^=tetris_values[207]
+    let p208:^u8=ptr(22711) p208^=tetris_values[208]
+    let p209:^u8=ptr(22712) p209^=tetris_values[209]
+    let p210:^u8=ptr(22713) p210^=tetris_values[210]
+    let p211:^u8=ptr(22714) p211^=tetris_values[211]
+    let p212:^u8=ptr(22743) p212^=tetris_values[212]
+    let p213:^u8=ptr(22744) p213^=tetris_values[213]
+    let p214:^u8=ptr(22745) p214^=tetris_values[214]
+    let p215:^u8=ptr(22746) p215^=tetris_values[215]
+    let p216:^u8=ptr(22629) p216^=tetris_values[216]
+    let p217:^u8=ptr(22630) p217^=tetris_values[217]
+    let p218:^u8=ptr(22631) p218^=tetris_values[218]
+    let p219:^u8=ptr(22632) p219^=tetris_values[219]
+    let p220:^u8=ptr(22661) p220^=tetris_values[220]
+    let p221:^u8=ptr(22662) p221^=tetris_values[221]
+    let p222:^u8=ptr(22663) p222^=tetris_values[222]
+    let p223:^u8=ptr(22664) p223^=tetris_values[223]
+    let p224:^u8=ptr(22693) p224^=tetris_values[224]
+    let p225:^u8=ptr(22694) p225^=tetris_values[225]
+    let p226:^u8=ptr(22695) p226^=tetris_values[226]
+    let p227:^u8=ptr(22696) p227^=tetris_values[227]
+    let p228:^u8=ptr(22725) p228^=tetris_values[228]
+    let p229:^u8=ptr(22726) p229^=tetris_values[229]
+    let p230:^u8=ptr(22727) p230^=tetris_values[230]
+    let p231:^u8=ptr(22728) p231^=tetris_values[231]
+}
+
+// Spectrum 48K: the last mutable field scanline is 175. After the frame INT,
+// 2080 iterations consume 54085 T (including LD BC), beyond scanline 175.
+// Caller has excluded INT; code must reside above the contended RAM window.
+fun pixel_wait_field_end() {
+    asm z80 {
+        LD BC,2080
+pixel_wait_field_loop:
+        DEC BC
+        LD A,B
+        OR C
+        JR NZ,pixel_wait_field_loop
+    }
+}
+
+// Nanz Language Book v7 ch6: u8 arithmetic wraps. Pixel pose validation is
+// explicit; the visible 6x6 body crosses into the next grid row at phase 2.
+fun can_place_pixel(t:u8,r:u8,x:u8,y:u8)->bool {
+    if can_place(t,r,x,y)==false {return false}
+    if pixel_phase>1 {return can_place(t,r,x,y+1)}
+    return true
+}
+
+// One physical pixel. At contact the phase-1 body still belongs to its old
+// grid row; the next attempted pixel locks that row and spawns phase zero.
+fun gravity_pixel()->bool {
+    if pixel_phase==0 {pixel_phase=1 return true}
+    if can_place(cur_type,cur_rot,cur_x,cur_y+1)==false {
+        do_lock_and_clear()
+        drop_timer=0
+        return false
+    }
+    pixel_phase=pixel_phase+1
+    if pixel_phase==8 {pixel_phase=0 cur_y=cur_y+1}
+    return true
+}
+
+// Separate input/physics from publication so their state changes have an
+// independent VM/Z80 oracle. ticks are accepted 50-Hz IM2 interrupts, not draws.
+fun game_step(keys:u8,ticks:u8) {
+    if game_over!=0 {return}
+    frame_count=frame_count+u16(ticks)
+    let pressed:u8=keys & (keys xor prev_keys)
+    prev_keys=keys
+    if (pressed & 1)!=0 {
+        if cur_x>0 {
+            if can_place_pixel(cur_type,cur_rot,cur_x-1,cur_y) {cur_x=cur_x-1 last_was_tspin=0}
+        }
+    }
+    if (pressed & 2)!=0 {
+        if can_place_pixel(cur_type,cur_rot,cur_x+1,cur_y) {cur_x=cur_x+1 last_was_tspin=0}
+    }
+    if (pressed & 4)!=0 {try_rotate()}
+    if (pressed & 16)!=0 {
+        // Reuse the independently verified column-distance landing query.
+        // A single u16 addition preserves the old repeated +2 modulo 65536.
+        let landing:u8=ghost_y()
+        score=score+u16(landing-cur_y)*2
+        cur_y=landing
+        pixel_phase=0
+        do_lock_and_clear()
+        drop_timer=0
+        return
+    }
+    if (pressed & 32)!=0 {
+        if hold_used==0 {hold_piece() return}
+    }
+    if game_over!=0 {return}
+    if drop_speed==0 {drop_speed=1}
+    var budget:u16=u16(drop_timer)+u16(ticks)*8
+    if (keys & 8)!=0 {budget=budget+u16(drop_speed)*8}
+    // Input has finished. Shape, X and board stay unchanged until lock,
+    // which returns immediately. Cache only within this call, per grid Y.
+    var query_y:u8=255
+    var query_ok:bool=false
+    while budget>=u16(drop_speed) {
+        budget=budget-u16(drop_speed)
+        if pixel_phase==0 {pixel_phase=1}
+        else {
+            if query_y!=cur_y {
+                query_ok=can_place(cur_type,cur_rot,cur_x,cur_y+1)
+                query_y=cur_y
+            }
+            if query_ok==false {do_lock_and_clear() drop_timer=0 return}
+            pixel_phase=pixel_phase+1
+            if pixel_phase==8 {pixel_phase=0 cur_y=cur_y+1}
+        }
+    }
+    drop_timer=u8(budget)
 }

@@ -1,0 +1,356 @@
+package pipeline
+
+import (
+	"bytes"
+	"crypto/sha256"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+
+	"github.com/minz/minzc/pkg/nanz"
+	"github.com/minz/minzc/pkg/spectrum"
+	"github.com/minz/minzc/pkg/z80asm"
+)
+
+func shadowFetchedPixels(m *spectrum.Machine) []byte {
+	got := make([]byte, 256*192*4)
+	fb := m.ULA.Framebuffer()
+	for y := 0; y < 192; y++ {
+		start := ((y+m.Mode.BorderTop)*m.Mode.TotalPixelWidth + m.Mode.BorderLeft) * 4
+		copy(got[y*256*4:(y+1)*256*4], fb[start:start+256*4])
+	}
+	return got
+}
+func shadowScreenPixels(screen []byte) []byte {
+	out := make([]byte, 256*192*4)
+	for y := 0; y < 192; y++ {
+		for x := 0; x < 256; x++ {
+			at := (y/64)*2048 + (y%8)*256 + ((y/8)%8)*32 + x/8
+			attr := screen[6144+y/8*32+x/8]
+			color := attr & 7
+			if screen[at]&(128>>uint(x%8)) == 0 {
+				color = (attr >> 3) & 7
+			}
+			level := byte(0xcd)
+			if attr&64 != 0 {
+				level = 255
+			}
+			offset := (y*256 + x) * 4
+			if color&2 != 0 {
+				out[offset] = level
+			}
+			if color&4 != 0 {
+				out[offset+1] = level
+			}
+			if color&1 != 0 {
+				out[offset+2] = level
+			}
+			out[offset+3] = 255
+		}
+	}
+	return out
+}
+
+func TestTetrisShadowTemporalMachine(t *testing.T) {
+	stdlibDir := historicalTetrisStdlib(t)
+	src, e := os.ReadFile("../../../reports/advanced-demos/tetris/shadow-candidate.nanz")
+	if e != nil {
+		t.Fatal(e)
+	}
+	boot, e := os.ReadFile("../../../scripts/zx_tetris_entry.a80")
+	if e != nil {
+		t.Fatal(e)
+	}
+	rom, e := os.ReadFile("../../cmd/mzx/roms/48.rom")
+	if e != nil {
+		t.Fatal(e)
+	}
+	colors := []byte{0, 5, 6, 3, 4, 2, 0x46, 1}
+	geometry := [][][2]int{{{0, 0}, {1, 0}, {2, 0}, {3, 0}}, {{0, 0}, {1, 0}, {0, 1}, {1, 1}}, {{1, 0}, {0, 1}, {1, 1}, {2, 1}}}
+	type pose struct {
+		kind, x, y, phase, next, hold int
+		refresh                       bool
+	}
+	poses := []pose{{1, 3, 0, 0, 0, 255, true}, {1, 3, 0, 0, 0, 255, false}}
+	for phase := 1; phase < 8; phase++ {
+		poses = append(poses, pose{1, 3, 0, phase, 0, 255, false})
+	}
+	poses = append(poses, pose{1, 3, 1, 0, 0, 255, false}, pose{1, 4, 1, 3, 1, 255, false}, pose{2, 4, 1, 3, 2, 1, false}, pose{2, 4, 1, 3, 2, 1, true}, pose{2, 4, 1, 3, 2, 1, true})
+	for _, mode := range []string{"early-control", "ordinary", "grace-speed", "grace-size"} {
+		t.Run(mode, func(t *testing.T) {
+			control := mode == "early-control"
+			source := string(src)
+			if control {
+				source = strings.Replace(source, "if field_pixels_count>4 {pixel_wait_field_end()}", "// Negative control: publish every size immediately after INT.", 1)
+			}
+			h, e := nanz.ParseWithOpts(source, "tetris-shadow.nanz", nanz.ParseOpts{StdlibDir: stdlibDir})
+			if e != nil {
+				t.Fatal(e)
+			}
+			steps, e := CompileHIRSteps(h, Options{AssertMode: "none", UseGrace: strings.HasPrefix(mode, "grace"), UseHIRGrace: strings.HasPrefix(mode, "grace"), OptSize: mode == "grace-size"})
+			if e != nil {
+				t.Fatal(e)
+			}
+			assembly := strings.Replace(string(boot), "ORG $8000", "ORG $6000", 1) + "\n" + steps.Assembly
+			a, e := z80asm.NewAssembler().AssembleString(assembly)
+			if e != nil || len(a.Errors) != 0 {
+				t.Fatal(e, a.Errors)
+			}
+			if 0x6000+len(a.Binary) >= 0xe000 {
+				t.Fatalf("code overlaps bounded launcher stack: %d bytes", len(a.Binary))
+			}
+			symbol := func(name string) uint16 {
+				v, ok := a.Symbols[name]
+				if !ok {
+					t.Fatal("missing symbol", name)
+				}
+				return uint16(v)
+			}
+			m, e := spectrum.New48K(rom)
+			if e != nil {
+				t.Fatal(e)
+			}
+			for i, b := range a.Binary {
+				m.Memory.Write(0x6000+uint16(i), b, false)
+			}
+			for at := 0xfe00; at <= 0xff00; at++ {
+				m.Memory.Write(uint16(at), 0xfd, false)
+			}
+			irq := symbol("demo_irq")
+			m.Memory.Write(0xfdfd, 0xc3, false)
+			m.Memory.Write(0xfdfe, byte(irq), false)
+			m.Memory.Write(0xfdff, byte(irq>>8), false)
+			initial := make([]byte, 6912)
+			solid := func(x, y int) {
+				for line := 0; line < 8; line++ {
+					scan := y*8 + line
+					initial[(scan/64)*2048+(scan%8)*256+((scan/8)%8)*32+x] = 255
+				}
+			}
+			for y := 2; y < 22; y++ {
+				for _, x := range []int{10, 21} {
+					solid(x, y)
+					initial[6144+y*32+x] = 7
+				}
+			}
+			for x := 10; x < 22; x++ {
+				solid(x, 22)
+				initial[6144+22*32+x] = 7
+			}
+			for y := 3; y < 7; y++ {
+				for _, base := range []int{5, 23} {
+					for x := 0; x < 4; x++ {
+						solid(base+x, y)
+					}
+				}
+			}
+			for i, b := range initial {
+				m.Memory.Write(0x4000+uint16(i), b, false)
+				if i < 6144 {
+					m.Memory.Write(0xe000+uint16(i), b, false)
+				}
+			}
+			board := make([]byte, 200)
+			c := &tetrisSceneObserver{CPUCore: m.CPU, t: t, m: m, returnSP: 0xfce2, returnPC: 0x5e00, publish: symbol("pixel_publish_previews"), phaseMax: map[string]int64{}, phases: map[uint16]string{symbol("stage_pixel_actor_shadow"): "stage", symbol("pixel_restore_spans"): "restore", symbol("pixel_prepare_bands"): "bands", symbol("tetris_prepare"): "attributes"}}
+			if symbol("pixel_wait_field_end") < 0x8000 {
+				t.Fatal("timed wait resides in contended RAM")
+			}
+			m.CPU = c
+			previous := initial
+			totalFrames, partial := 0, 0
+			var maxPublish, maxRender int64
+			for sample, p := range poses {
+				if sample == len(poses)-2 {
+					for y := 0; y < 20; y++ {
+						for x := 0; x < 10; x++ {
+							board[y*10+x] = byte((x+y)%7 + 1)
+							if y < 5 && x < 8 {
+								board[y*10+x] = 0
+							}
+						}
+					}
+				}
+				if sample == len(poses)-1 {
+					for i := range board {
+						board[i] = 0
+					}
+				}
+				set := func(name string, value byte) { m.Memory.Write(symbol(name), value, false) }
+				for i, b := range board {
+					m.Memory.Write(symbol("board")+uint16(i), b, false)
+				}
+				for name, v := range map[string]int{"cur_type": p.kind, "cur_rot": 0, "cur_x": p.x, "cur_y": p.y, "pixel_phase": p.phase, "next_type": p.next, "hold_type": p.hold} {
+					set(name, byte(v))
+				}
+				if p.refresh {
+					set("board_dirty", 1)
+				}
+				want := append([]byte(nil), initial...)
+				for cell, value := range board {
+					x, y := 11+cell%10, 2+cell/10
+					want[6144+y*32+x] = colors[value]
+					if value != 0 {
+						for scan := 0; scan < 8; scan++ {
+							py := y*8 + scan
+							want[(py/64)*2048+(py%8)*256+((py/8)%8)*32+x] = 255
+						}
+					}
+				}
+				for _, cell := range geometry[p.kind] {
+					cx, cy := 11+p.x+cell[0], 2+p.y+cell[1]
+					for scan := 1; scan <= 6; scan++ {
+						py := cy*8 + p.phase + scan
+						want[(py/64)*2048+(py%8)*256+((py/8)%8)*32+cx] |= 0x7e
+					}
+					if p.phase < 7 {
+						want[6144+cy*32+cx] = colors[p.kind+1]
+					}
+					if p.phase > 1 {
+						want[6144+(cy+1)*32+cx] = colors[p.kind+1]
+					}
+				}
+				for _, preview := range []struct{ kind, base int }{{p.next, 23}, {p.hold, 5}} {
+					if preview.kind < 3 {
+						for _, cell := range geometry[preview.kind] {
+							want[6144+(3+cell[1])*32+preview.base+cell[0]] = colors[preview.kind+1]
+						}
+					}
+				}
+				allowed := map[int]bool{}
+				for name, width := range map[string]int{"tetris_values": 232, "tetris_shown": 232, "tetris_dirty_cells": 232, "tetris_dirty_values": 232, "tetris_dirty_count": 1, "board_dirty": 1, "drawn_valid": 1, "drawn_type": 1, "drawn_rot": 1, "drawn_x": 1, "drawn_y": 1, "drawn_ghost_y": 1, "drawn_next": 1, "drawn_hold": 1, "render_changed": 1, "drawn_phase": 1, "pixel_left": 20, "pixel_right": 20, "field_pixels_count": 1, "field_pixels_sources": 40, "field_pixels_attributes": 40, "field_pixels_destinations": 40, "field_pixels_widths": 20} {
+					for i := 0; i < width; i++ {
+						allowed[int(symbol(name))+i] = true
+					}
+				}
+				for instance := 0; instance < 4; instance++ {
+					allowed[int(symbol(fmt.Sprintf("FallingBlock_%d_ready", instance)))] = true
+					for row := 0; row < 8; row++ {
+						slot := int(symbol(fmt.Sprintf("FallingBlock_%d_row_%d$dst$imm", instance, row)))
+						allowed[slot] = true
+						allowed[slot+1] = true
+					}
+				}
+				for _, line := range strings.Split(assembly, "\n") {
+					f := strings.Fields(line)
+					if len(f) < 3 || !strings.HasPrefix(f[0], "_spill_") {
+						continue
+					}
+					size := 1
+					if f[1] == "DW" {
+						size = 2
+					}
+					count := len(strings.Split(strings.Join(f[2:], ""), ","))
+					for i := 0; i < size*count; i++ {
+						allowed[int(symbol(strings.TrimSuffix(f[0], ":")))+i] = true
+					}
+				}
+				ts := c.Tstates()
+				c.Reset()
+				c.SetTstates(ts)
+				c.SetPC(symbol("render_smooth"))
+				c.SetSP(0xfce0)
+				c.SetI(0xfe)
+				c.SetIM(2)
+				c.SetIFF1(true)
+				c.SetIFF2(true)
+				m.Memory.Write(0xfce0, 0, false)
+				m.Memory.Write(0xfce1, 0x5e, false)
+				m.Memory.Write(0x5e00, 0x76, false)
+				c.done = false
+				c.irqActive = false
+				c.minSP = 0xfce0
+				c.start = m.AbsoluteTStates()
+				c.publishStart = 0
+				c.phaseLast = map[string]int64{}
+				irqBefore := c.irq
+				before := make([]byte, 65536)
+				for at := range before {
+					before[at] = m.Memory.ReadByteInternal(uint16(at))
+				}
+				legal := map[[32]byte]bool{sha256.Sum256(shadowScreenPixels(previous)): true, sha256.Sum256(shadowScreenPixels(want)): true}
+				frames := 0
+				for ; frames < 200; frames++ {
+					m.RunFrame()
+					got := shadowFetchedPixels(m)
+					totalFrames++
+					if !legal[sha256.Sum256(got)] {
+						partial++
+						if root := os.Getenv("MINZ_TETRIS_SHADOW_EXPORT"); root != "" {
+							path := filepath.Join(root, mode, fmt.Sprintf("partial-%02d-%03d.rgba", sample, frames))
+							if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+								t.Fatal(err)
+							}
+							if err := os.WriteFile(path, got, 0644); err != nil {
+								t.Fatal(err)
+							}
+						}
+					}
+					if c.done {
+						if !control && !bytes.Equal(got, shadowScreenPixels(want)) {
+							t.Fatalf("sample%d completed frame has not shown the new scene", sample)
+						}
+						break
+					}
+				}
+				if !c.done {
+					t.Fatal("no balanced renderer return", sample)
+				}
+				for at, old := range before {
+					expected := old
+					if at == 0x5c78 {
+						expected = old + byte(c.irq-irqBefore)
+					}
+					if at >= 0x4000 && at < 0x5b00 {
+						expected = want[at-0x4000]
+					} else if at >= 0xe000 && at < 0xf800 {
+						expected = want[at-0xe000]
+					} else if allowed[at] || (at >= int(c.minSP) && at < 0xfce0) {
+						continue
+					}
+					if got := m.Memory.ReadByteInternal(uint16(at)); got != expected {
+						t.Fatalf("sample%d phase%d memory%04x=%02x want%02x", sample, p.phase, at, got, expected)
+					}
+				}
+				if c.minSP < 0xfc60 {
+					t.Fatal("stack exceeded reserved 128 bytes", c.minSP)
+				}
+				if c.publishT > maxPublish {
+					maxPublish = c.publishT
+				}
+				if c.elapsed > maxRender {
+					maxRender = c.elapsed
+				}
+				t.Logf("sample%d phase%d frames%d render+wait%dT publish%dT stages%v", sample, p.phase, frames+1, c.elapsed, c.publishT, c.phaseLast)
+				previous = want
+			}
+			if control {
+				if partial == 0 {
+					t.Fatal("negative control missed mixed frames")
+				}
+			} else if partial != 0 {
+				t.Fatalf("partial fetched frames %d/%d", partial, totalFrames)
+			}
+			if c.irq == 0 {
+				t.Fatal("IRQ/frame budget", c.irq, maxPublish)
+			}
+			if bytes.Equal(previous, initial) {
+				t.Fatal("final actor unexpectedly absent")
+			}
+			t.Logf("%d scenes, %d fetched frames, %d partial frames; max render+wait%dT publish%dT", len(poses), totalFrames, partial, maxRender, maxPublish)
+			if root := os.Getenv("MINZ_TETRIS_SHADOW_EXPORT"); root != "" {
+				dir := filepath.Join(root, mode)
+				if e = os.MkdirAll(dir, 0755); e != nil {
+					t.Fatal(e)
+				}
+				receipt := fmt.Sprintf("scenes=%d\nfetched_frames=%d\npartial_frames=%d\nmax_render_and_wait_T=%d\nmax_publish_T=%d\ncode_origin=0x6000\nshadow_base=0xe000\nbytes=%d\n", len(poses), totalFrames, partial, maxRender, maxPublish, len(a.Binary))
+				for name, data := range map[string][]byte{"source.nanz": []byte(source), "program.a80": []byte(assembly), "program.bin": a.Binary, "receipt.txt": []byte(receipt), "last-expected.scr": previous, "last-fetched.rgba": shadowFetchedPixels(m)} {
+					if e = os.WriteFile(filepath.Join(dir, name), data, 0644); e != nil {
+						t.Fatal(e)
+					}
+				}
+			}
+		})
+	}
+}

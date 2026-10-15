@@ -38,6 +38,7 @@ import (
 	"strings"
 
 	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/z80effects"
 )
 
 // ── Public entry point ────────────────────────────────────────────────────────
@@ -66,6 +67,14 @@ func LowerModule(hm *Module) *mir2.Module {
 		funcNames[f.Name] = true
 		hirFuncs[f.Name] = f
 	}
+	setters, err := smcAccessors(hm)
+	if err != nil {
+		panic(err)
+	}
+	for _, f := range setters {
+		funcNames[f.Name] = true
+		hirFuncs[f.Name] = f
+	}
 
 	// Collect global names for free-variable detection.
 	globalNames := make(map[string]bool, len(hm.Globals))
@@ -81,6 +90,22 @@ func LowerModule(hm *Module) *mir2.Module {
 			continue
 		}
 		lowerFuncWithFuncNames(m, f, funcNames, hirFuncs, hm.LoopLineage)
+	}
+	for _, f := range hm.Funcs {
+		for _, p := range f.Params {
+			if !p.SMC {
+				continue
+			}
+			sym := f.Name + "$" + p.Name
+			setter := m.AddFunc(mir2.SMCSetterName(sym))
+			setter.SMCSetterFor = sym
+			setter.Attrs.FixedIndirectABI = true
+			b := mir2.NewBuilder(setter)
+			b.SwitchToNewBlock("entry")
+			value := b.Param("value", p.Ty, mir2.ClassPointer)
+			b.PatchNamed(sym, value, p.Ty)
+			b.Ret()
+		}
 	}
 	if err := mir2.LowerStructReturnBuffers(m); err != nil {
 		panic(err)
@@ -407,6 +432,14 @@ func (l *lowerer) lowerExprAddr(ex Expr) mir2.Reg {
 		}
 		// base[i] address — same as lowerIndex but without the final Load
 		baseAddr := l.lowerExpr(e.Base)
+		if l.target != TargetAgon {
+			if offset, ok := l.smallSMCIndexOffset(e); ok {
+				if offset == 0 {
+					return baseAddr
+				}
+				return l.bld.Field(baseAddr, offset, mir2.ClassPointer)
+			}
+		}
 		idx := l.lowerExpr(e.Idx)
 		stride := int64(e.ElemStride)
 		if stride == 0 {
@@ -584,8 +617,8 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 	for _, p := range f.Params {
 		if p.SMC {
 			sym := f.Name + "$" + p.Name
-			r := bld.PatchSlotNamed(sym, 0, mir2.TyPtr, mir2.ClassPointer)
-			l.bind(p.Name, r, mir2.TyPtr)
+			r := bld.PatchSlotNamed(sym, 0, p.Ty, mir2.ClassPointer)
+			l.bind(p.Name, r, p.Ty)
 			continue
 		}
 		cls := classForParam(p.Ty, nonSMCIdx)
@@ -1455,6 +1488,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			retTy, retCls = z80RetRegInfo(st.RetReg)
 		}
 		l.bld.Asm(code, ins, outs, clobbers, retTy, retCls)
+		l.bld.Cur.Insts[len(l.bld.Cur.Insts)-1].Asm.Effects = z80effects.Block(code)
 		l.bld.F.Attrs.HasAsm = true
 		return false
 
@@ -2353,8 +2387,10 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 		}
 
 		var calleeParams []Param
+		smcCall := false
 		if callee := l.hirFuncs[fnName]; callee != nil {
-			calleeParams = callee.Params
+			calleeParams = smcCallParams(callee, len(ex.Args))
+			smcCall = hasSMCParams(callee)
 		}
 		args := make([]mir2.Reg, len(ex.Args))
 		for i, a := range ex.Args {
@@ -2371,11 +2407,40 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 			} else {
 				r = l.lowerExpr(a)
 			}
-			tgtCls := classForParam(paramTy, i)
-			if tgtCls != classForExpr(paramTy) {
-				r = l.bld.Move(r, paramTy, tgtCls)
+			if !smcCall {
+				tgtCls := classForParam(paramTy, i)
+				if tgtCls != classForExpr(paramTy) {
+					r = l.bld.Move(r, paramTy, tgtCls)
+				}
 			}
 			args[i] = r
+		}
+		// Evaluate every source argument before changing the callee's state.
+		// A nested argument may itself invoke the same SMC function.
+		if callee := l.hirFuncs[fnName]; callee != nil && hasSMCParams(callee) && len(ex.Args) == len(callee.Params) {
+			var runtime []mir2.Reg
+			for i, p := range callee.Params {
+				if p.SMC {
+					l.bld.CallVoid(mir2.SMCSetterName(fnName+"$"+p.Name), []mir2.Reg{args[i]}, mir2.CallAttrs{})
+				} else {
+					runtime = append(runtime, args[i])
+				}
+			}
+			args = runtime
+			calleeParams = smcCallParams(callee, len(args))
+		}
+		for i, r := range args {
+			if !smcCall {
+				break
+			}
+			paramTy := ex.Args[i].ExprTy()
+			if i < len(calleeParams) {
+				paramTy = calleeParams[i].Ty
+			}
+			tgtCls := classForParam(paramTy, i)
+			if tgtCls != classForExpr(paramTy) {
+				args[i] = l.bld.Move(r, paramTy, tgtCls)
+			}
 		}
 
 		if callee := l.hirFuncs[fnName]; callee != nil && callee.FallibleCY {
@@ -2540,6 +2605,40 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 	}
 }
 
+// Only 0..3-byte literal displacements use the native INC-pair path.
+// Larger offsets retain PtrAdd; Field's special SoA offsets are not indexing.
+func (l *lowerer) smallSMCIndexOffset(ex *IndexExpr) (int64, bool) {
+	// Ordinary pointers retain the PtrAdd graph consumed by sequential-byte
+	// fusion. This first specialization applies only to the named SMC base.
+	ref, ok := ex.Base.(*VarRefExpr)
+	if !ok {
+		return 0, false
+	}
+	smc := false
+	for _, p := range l.hf.Params {
+		if p.SMC && p.Name == ref.Name {
+			smc = true
+			break
+		}
+	}
+	if !smc {
+		return 0, false
+	}
+	index, ok := ex.Idx.(*IntLitExpr)
+	if !ok || index.Val < 0 || index.Val > 3 || (index.Ty != mir2.TyU8 && index.Ty != mir2.TyU16) {
+		return 0, false
+	}
+	stride := ex.ElemStride
+	if stride == 0 {
+		stride = (ex.ElemTy.Width() + 7) / 8
+	}
+	if stride <= 0 || stride > 3 {
+		return 0, false
+	}
+	offset := index.Val * int64(stride)
+	return offset, offset <= 3
+}
+
 // lowerIndexAddr lowers arr[i] → ptr_add(base, i * stride), returning the
 // pointer register (TyPtr).  Used by StoreStmt which needs the address, not
 // the loaded value.
@@ -2547,7 +2646,6 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 // stride = ElemStride if set; otherwise ElemTy.Width()/8 (rounded up to 1).
 func (l *lowerer) lowerIndexAddr(ex *IndexExpr) mir2.Reg {
 	base := l.lowerExpr(ex.Base)
-	idx := l.lowerExpr(ex.Idx)
 
 	stride := ex.ElemStride
 	if stride == 0 {
@@ -2557,6 +2655,37 @@ func (l *lowerer) lowerIndexAddr(ex *IndexExpr) mir2.Reg {
 			stride = 1
 		}
 	}
+	if l.target != TargetMZV && l.target != TargetAgon {
+		if offset, ok := l.smallSMCIndexOffset(ex); ok {
+			if offset == 0 {
+				return base
+			}
+			return l.bld.Field(base, offset, mir2.ClassPointer)
+		}
+	}
+	// A literal global-array index is already a compile-time byte displacement.
+	// Keep it immediate so the native backend can use direct global addressing,
+	// rather than materializing an index register and doing runtime PtrAdd.
+	// The 16-bit target wraps the displacement modulo 65536. Host globals have
+	// wider addresses; signed/non-normalized literals retain ordinary lowering.
+	// Runtime pointer bases retain PtrAdd, including the sequential-byte fusion
+	// DAG; immediate Field alone is not cheaper for those native addresses.
+	globalArray := false
+	if ref, ok := ex.Base.(*VarRefExpr); ok {
+		if global, found := l.findGlobal(ref.Name); found {
+			_, globalArray = mir2.BaseOf(global.Ty).(*mir2.ArrayTy)
+		}
+	}
+	if globalArray && l.target != TargetMZV && l.target != TargetAgon && stride > 0 {
+		if literal, ok := ex.Idx.(*IntLitExpr); ok {
+			if (literal.Ty == mir2.TyU8 && literal.Val >= 0 && literal.Val <= 255) ||
+				(literal.Ty == mir2.TyU16 && literal.Val >= 0 && literal.Val <= 65535) {
+				offset := int64((uint64(literal.Val) * (uint64(stride) & 0xffff)) & 0xffff)
+				return l.bld.Field(base, offset, mir2.ClassPointer)
+			}
+		}
+	}
+	idx := l.lowerExpr(ex.Idx)
 
 	var offset mir2.Reg
 	idxTy := ex.Idx.ExprTy()
@@ -4201,34 +4330,36 @@ func z80RegNameToClass(reg string) mir2.RegClass {
 
 // z80RegToClassSet maps a physical Z80 register name to the classes it occupies.
 func z80RegToClassSet(reg string) mir2.ClassSet {
-	var cs mir2.ClassSet
-	switch strings.ToUpper(reg) {
-	case "A":
-		cs.Add(mir2.ClassAcc)
-		cs.Add(mir2.ClassGeneral)
-	case "B":
-		cs.Add(mir2.ClassCounter)
-		cs.Add(mir2.ClassGeneral)
-	case "C", "D", "E", "H", "L":
-		cs.Add(mir2.ClassGeneral)
-	case "HL":
-		cs.Add(mir2.ClassPointer)
-		cs.Add(mir2.ClassPair)
-	case "DE":
-		cs.Add(mir2.ClassIndex)
-		cs.Add(mir2.ClassPair)
-	case "BC":
-		cs.Add(mir2.ClassPair)
-	case "IX":
-		cs.Add(mir2.ClassIX)
-	case "IY":
-		cs.Add(mir2.ClassIY)
-	case "F":
-		cs.Add(mir2.ClassFlag)
-	case "SP":
-		// stack pointer — not allocatable, but flags as clobbered
+	physical := z80effects.Register(reg)
+	if physical == 0 {
+		return 0
 	}
-	return cs
+	return z80WrittenClasses(physical)
+}
+
+// A write to a byte also invalidates aliases allocated as pairs or hard pins.
+func z80WrittenClasses(writes z80effects.Registers) mir2.ClassSet {
+	var classes mir2.ClassSet
+	add := func(mask z80effects.Registers, values ...mir2.RegClass) {
+		if writes&mask != 0 {
+			for _, class := range values {
+				classes.Add(class)
+			}
+		}
+	}
+	add(z80effects.A, mir2.ClassAcc, mir2.ClassGeneral)
+	add(z80effects.B, mir2.ClassCounter, mir2.ClassGeneral, mir2.ClassPair, mir2.ClassDWord)
+	add(z80effects.C, mir2.ClassRegC, mir2.ClassGeneral, mir2.ClassPair, mir2.ClassDWord)
+	add(z80effects.D, mir2.ClassRegD, mir2.ClassGeneral, mir2.ClassIndex, mir2.ClassPair, mir2.ClassDWord)
+	add(z80effects.E, mir2.ClassRegE, mir2.ClassGeneral, mir2.ClassIndex, mir2.ClassPair, mir2.ClassDWord)
+	add(z80effects.H, mir2.ClassRegH, mir2.ClassGeneral, mir2.ClassPointer, mir2.ClassPair, mir2.ClassDWord)
+	add(z80effects.L, mir2.ClassRegL, mir2.ClassGeneral, mir2.ClassPointer, mir2.ClassPair, mir2.ClassDWord)
+	add(z80effects.IX, mir2.ClassIX, mir2.ClassIXY8, mir2.ClassGeneral, mir2.ClassPair)
+	add(z80effects.IY, mir2.ClassIY, mir2.ClassIXY8, mir2.ClassGeneral, mir2.ClassPair)
+	add(z80effects.F, mir2.ClassFlag)
+	add(z80effects.BCAlt|z80effects.DEAlt|z80effects.HLAlt, mir2.ClassShadow, mir2.ClassDWord)
+	add(z80effects.AFAlt, mir2.ClassAccShadow)
+	return classes
 }
 
 // z80RetRegInfo returns the MIR2 type and class for an asm (ret REG) clause.
@@ -4251,72 +4382,18 @@ func z80RetRegInfo(reg string) (mir2.Ty, mir2.RegClass) {
 	}
 }
 
-// z80AutoClobbers parses Z80 assembly text and returns the set of register
-// classes that are written by the instructions.  Conservative: unknown
-// instructions or CALL/RST clobber everything.  F (flags) is always included.
+// z80AutoClobbers projects explicit physical instruction writes into allocator
+// classes. Unknown instructions/calls/data remain conservatively AllClasses.
+// Path/stack/INT safety is separate from this write-set computation.
 func z80AutoClobbers(code string) mir2.ClassSet {
-	var cs mir2.ClassSet
-	cs.Add(mir2.ClassFlag) // almost every Z80 instruction touches F
-
-	for _, rawLine := range strings.Split(code, "\n") {
-		line := strings.TrimSpace(rawLine)
-		// Handle "/" as inline separator
-		for _, part := range strings.Split(line, "/") {
-			part = strings.TrimSpace(part)
-			if part == "" || strings.HasSuffix(part, ":") {
-				continue // empty or label
-			}
-			// Extract mnemonic (first word)
-			fields := strings.Fields(part)
-			if len(fields) == 0 {
-				continue
-			}
-			mnem := strings.ToUpper(fields[0])
-
-			// CALL/RST/DJNZ — conservative: clobber all
-			switch mnem {
-			case "CALL", "RST":
-				return mir2.AllClasses
-			}
-
-			// Parse destination (first operand) for instructions that write.
-			operands := ""
-			if len(fields) > 1 {
-				operands = strings.Join(fields[1:], " ")
-			}
-			parts := strings.SplitN(operands, ",", 2)
-			dst := strings.TrimSpace(parts[0])
-			dst = strings.Trim(dst, "()")
-
-			switch mnem {
-			case "LD", "ADD", "ADC", "SUB", "SBC", "AND", "OR", "XOR", "CP",
-				"INC", "DEC", "NEG", "CPL", "DAA", "RLA", "RRA", "RLCA", "RRCA",
-				"RL", "RR", "RLC", "RRC", "SLA", "SRA", "SRL", "BIT", "SET", "RES",
-				"POP", "IN":
-				cs = cs.Union(z80RegToClassSet(strings.ToUpper(dst)))
-			case "EX":
-				// EX DE,HL clobbers both
-				cs = cs.Union(z80RegToClassSet("DE"))
-				cs = cs.Union(z80RegToClassSet("HL"))
-			case "EXX":
-				cs.Add(mir2.ClassShadow)
-			case "PUSH", "NOP", "HALT", "DI", "EI", "RET", "JP", "JR",
-				"JRS", "OUT":
-				// These don't write to a general register
-			case "LDIR", "LDDR":
-				cs = cs.Union(z80RegToClassSet("HL"))
-				cs = cs.Union(z80RegToClassSet("DE"))
-				cs = cs.Union(z80RegToClassSet("BC"))
-			case "CPIR", "CPDR":
-				cs = cs.Union(z80RegToClassSet("HL"))
-				cs = cs.Union(z80RegToClassSet("BC"))
-			default:
-				// Unknown instruction → conservative
-				return mir2.AllClasses
-			}
+	var writes z80effects.Registers
+	for _, effect := range z80effects.Block(code) {
+		if !effect.Known {
+			return mir2.AllClasses
 		}
+		writes |= effect.Writes
 	}
-	return cs
+	return z80WrittenClasses(writes)
 }
 
 func collectGotoAncestors(b *Block, path []*Block, out map[string][]*Block) {

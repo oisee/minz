@@ -1,5 +1,7 @@
 import hw.fill
 import hw.sprite_chain
+import hw.sprite
+import hw.push_fill
 
 // Animated opaque byte-aligned sprite. Both kernels are mutable code in RAM.
 // All patching/drawing occurs under DI; EI/HALT resumes normal ROM IM1 IRQ.
@@ -34,13 +36,61 @@ import hw.sprite_chain
 }
 
 global primitive: u8 = 0
+global previous_x: u16 = 4
+global previous_y: u16 = 56
 
-fun clear_bitmap() -> void {
- @fill() {
-  layout "zx_bitmap_bytes" 0x4000
-  value 0
-  via "ldir"
+// This trajectory stays aligned to eight scanlines, so each row is +256.
+// Opaque sprite on a black background: the new rectangle overwrites overlap.
+fun erase_column(base: ^u8) -> void {
+ @sprite() {
+  destination "linear_relative" "base" 1 8 256
+  region 0 0 1 8
+  row "00" "00"
+  row "00" "00"
+  row "00" "00"
+  row "00" "00"
+  row "00" "00"
+  row "00" "00"
+  row "00" "00"
+  row "00" "00"
+  via "pointer"
  }
+}
+
+fun erase_actor(base: ^u8) -> void {
+ @sprite() {
+  destination "linear_relative" "base" 8 8 256
+  region 0 0 8 8
+  row "0000000000000000" "0000000000000000"
+  row "0000000000000000" "0000000000000000"
+  row "0000000000000000" "0000000000000000"
+  row "0000000000000000" "0000000000000000"
+  row "0000000000000000" "0000000000000000"
+  row "0000000000000000" "0000000000000000"
+  row "0000000000000000" "0000000000000000"
+  row "0000000000000000" "0000000000000000"
+  via "pointer"
+ }
+}
+
+fun erase_uncovered(x: u16, y: u16) -> void {
+ let old: ^u8 = ptr(screen_address(previous_x, previous_y))
+ if y == previous_y {
+  if x == previous_x + 1 { erase_column(old) }
+ } else {
+  // At trajectory wrap the old and new rectangles are vertically disjoint.
+  erase_actor(old)
+ }
+ previous_x = x
+ previous_y = y
+}
+
+// Compact admitted full-clear candidate: 16 PUSH per loop, only at startup.
+@push_fill("clear_bitmap") {
+ region 0x4000 6144
+ value 0
+ unroll 16
+ irq "disabled"
 }
 
 fun init_attributes() -> void {
@@ -56,7 +106,6 @@ fun screen_address(x: u16, y: u16) -> u16 {
 }
 
 fun draw_frame(frame: u8) -> void {
- clear_bitmap()
  let x: u16 = 4 + u16(frame & 15)
  let y: u16 = 56 + u16(frame >> 4) * 8
  // Patching is two-byte writes: schedule atomically against execution/reentry.
@@ -124,15 +173,18 @@ fun draw_frame(frame: u8) -> void {
   }
   actor_push()
  }
+ erase_uncovered(x, y)
  asm z80 (clob) { EI }
 }
 
 fun main() -> void {
+ asm z80 (clob) { DI }
+ clear_bitmap()
  init_attributes()
  var frame: u8 = 0
  while true {
+  asm z80 (clob) { EI / HALT }
   draw_frame(frame)
   frame = (frame + 1) & 31
-  asm z80 (clob) { EI / HALT }
  }
 }

@@ -37,6 +37,17 @@ func verifyHIRModule(m *Module, annotate bool) error {
 		}
 		v.funcs[f.Name] = f
 	}
+	setters, err := smcAccessors(m)
+	if err != nil {
+		return err
+	}
+	for _, f := range setters {
+		v.funcs[f.Name] = f
+	}
+	v.smcSetters = map[string]bool{}
+	for _, f := range setters {
+		v.smcSetters[f.Name] = true
+	}
 	// Iterate to propagate consumed callback contracts through forwarding wrappers.
 	v.callbackParams = map[*Func]map[int]*CallSignature{}
 	for {
@@ -98,10 +109,11 @@ func verifyHIRModule(m *Module, annotate bool) error {
 			break
 		}
 	}
-	return nil
+	return verifySMCRecursion(m)
 }
 
 type hirVerifier struct {
+	smcSetters       map[string]bool
 	funcs            map[string]*Func
 	globals          map[string]bool
 	fn               *Func
@@ -564,7 +576,10 @@ func (v *hirVerifier) expr(e Expr, env map[string]mir2.Ty) error {
 				return v.fail("unknown variable %q", e.Name)
 			}
 		}
-		if f := v.funcs[e.Name]; f != nil {
+		if f := v.funcs[e.Name]; f != nil && env[e.Name] == nil && !v.globals[e.Name] {
+			if hasSMCParams(f) {
+				return v.fail("SMC function %s requires a direct call; address escape is unsupported", f.Name)
+			}
 			return v.checkCaptureUse(f, env)
 		}
 	case *BinExpr:
@@ -587,7 +602,13 @@ func (v *hirVerifier) expr(e Expr, env map[string]mir2.Ty) error {
 			return v.fail("empty call target")
 		}
 		if f := v.funcs[e.Fn]; f != nil {
-			if len(e.Args) != len(f.Params) {
+			for i, a := range e.Args {
+				addressArg := v.smcSetters[e.Fn] || len(e.Args) == len(f.Params) && i < len(f.Params) && f.Params[i].SMC
+				if addressArg && a != nil && mir2.BaseOf(a.ExprTy()) == mir2.TyBool {
+					return v.fail("SMC address argument cannot be bool")
+				}
+			}
+			if len(e.Args) != len(smcCallParams(f, len(e.Args))) {
 				return v.fail("call %s arity %d, want %d", e.Fn, len(e.Args), len(f.Params))
 			}
 			if e != v.tupleCall && !assignableHIR(e.Ty, f.RetTy) {
@@ -618,10 +639,15 @@ func (v *hirVerifier) expr(e Expr, env map[string]mir2.Ty) error {
 					ret = f.RetTys[0]
 				}
 			}
-			return v.checkSignature(f.Signature(), e.Args, ret, env)
+			callFunc := *f
+			callFunc.Params = smcCallParams(f, len(e.Args))
+			return v.checkSignature(callFunc.Signature(), e.Args, ret, env)
 		}
 		return nil
 	case *CallIndirectExpr:
+		if hasSMCParams(v.fn) {
+			return v.fail("indirect calls inside SMC functions are unsupported")
+		}
 		if err := v.expr(e.FnPtr, env); err != nil {
 			return err
 		}
@@ -696,6 +722,9 @@ func (v *hirVerifier) expr(e Expr, env map[string]mir2.Ty) error {
 			return v.fail("empty address symbol")
 		}
 		if f := v.funcs[e.Sym]; f != nil {
+			if hasSMCParams(f) {
+				return v.fail("SMC function %s address escape is unsupported", f.Name)
+			}
 			return v.checkCaptureUse(f, env)
 		}
 	case *LoadExpr:

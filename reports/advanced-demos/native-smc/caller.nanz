@@ -1,0 +1,3 @@
+global buffer:[u8;64]
+fun draw(@smc dst:^u8) {var p:^u8=dst p^=195 p=p+1 p^=60}
+fun run()->u8 {draw(&buffer[4]) draw_set_dst(&buffer[12]) draw() return buffer[4]+buffer[12]}

@@ -76,11 +76,10 @@ func elimOverwrittenByteLiterals(lines []string) []string {
 // Pattern (any of JR/JRS, any condition):
 //
 //	JR  NC, .skip        (or JRS, or any cc: Z/NZ/C/NC)
-//	[.optional_label:]   (zero or more intermediate labels, no instructions)
 //	CALL target
 //	.skip:
 //
-// → CALL NC, target
+// → CALL C, target
 //
 // The inverse condition is used: JR NC skips the CALL when NC,
 // so we emit CALL C (call when condition is met, i.e. NOT NC).
@@ -138,6 +137,28 @@ func foldCondCall(lines []string) []string {
 			break
 		}
 
+		// A label before CALL may have an incoming branch which bypasses
+		// this guard. Turning CALL into CALL cc would gate that other path
+		// with unrelated flags (notably the C-or-Z predicate).
+		incoming := false
+		for _, declaration := range intermediateLabels {
+			label := strings.TrimSuffix(strings.TrimSpace(declaration), ":")
+			for _, candidate := range lines {
+				text := strings.TrimSpace(strings.SplitN(candidate, ";", 2)[0])
+				if strings.HasSuffix(text, ":") {
+					continue
+				}
+				if strings.Contains(text, label) {
+					incoming = true
+					break
+				}
+			}
+		}
+		if incoming {
+			out = append(out, lines[i])
+			i++
+			continue
+		}
 		// Expect CALL target at position j
 		if j >= len(lines) {
 			out = append(out, lines[i])

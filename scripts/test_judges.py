@@ -527,6 +527,42 @@ sys.exit(int(fail))
 
 
 class FuzzTests(unittest.TestCase):
+    # Explicit values exercise byte overflow before widening, widening before
+    # arithmetic, and operand symmetry. These are independent of compiler output.
+    WIDTH_CASES = (
+        ('(255 + 3)', 2),
+        ('(0 - 2)', 254),
+        ('(100 + (255 + 3))', 102),
+        ('((255 as u16) + 3)', 258),
+        ('((255 + 3) as u16)', 2),
+        ('(a + (0 - 2))', 61304),
+        ('(byte + 300)', 550),
+        ('(300 + byte)', 550),
+        ('(1 - 256)', 65281),
+        ('(256 / (0 - 2))', 1),
+    )
+
+    def width_program(self, expression):
+        return ('fun probe() -> u16 {\nlet a: u16 = 61050\n'
+                'let byte: u8 = 250\nreturn ' + expression + '\n}')
+
+    def test_oracle_literal_and_operand_widths(self):
+        for expression, expected in self.WIDTH_CASES:
+            with self.subTest(expression=expression):
+                self.assertEqual(fuzz.Interp(self.width_program(expression)).call('probe', []), expected)
+
+    @unittest.skipUnless(os.environ.get('JUDGE_MZ'), 'set JUDGE_MZ for real compiler integration')
+    def test_oracle_width_cases_on_both_backends(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / 'width.nanz'
+            for expression, expected in self.WIDTH_CASES:
+                path.write_text(self.width_program(expression) +
+                                f'\nassert probe() == {expected} via z80\n')
+                for backend in ('mir2', 'z80'):
+                    with self.subTest(expression=expression, backend=backend):
+                        result = matrix.run_compiler(os.environ['JUDGE_MZ'], path, 30, backend=backend)
+                        self.assertTrue(result['pass'], result)
+
     def test_cli_exit_policy_preserves_findings(self):
         statuses = ('pass', 'MIR2 != oracle', 'Z80 != MIR2',
                     'assembly failure', 'compiler error', 'oracle error')

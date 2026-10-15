@@ -270,3 +270,31 @@ not recursion/reentry-safe. Caller controls valid layout and executable links.
 The demo uses DI around patch/draw and EI after return, then HALT for ROM IRQ.
 Run `scripts/play_zx_sprite_chain.sh`; pass `--push` first to select PUSH.
 See [proof and costs](../../reports/hardware-sprite-chain/README.md).
+
+## Contiguous PUSH fill (owned mutable code)
+
+`import hw.push_fill` bakes a named `@push_fill("clear")` procedure:
+
+```nanz
+@push_fill("clear") {
+ region 0x4000 6144
+ value 0
+ unroll 16
+ irq "disabled"
+}
+```
+
+Call under DI. The procedure keeps IRQ disabled, preserves AF/BC/DE/HL (and
+therefore flags), saves four bytes on the caller stack for short DJNZ kernels, or six bytes
+when a larger body needs DEC B / JP NZ and saved AF and restores SP before
+RET. Its two-byte saved-SP operand is mutable RAM: no reentry or NMI is supported.
+The destination must be contiguous RAM, even-sized, and disjoint from the
+procedure, its saved-SP operand and caller stack; the caller owns these runtime
+separation guarantees. `unroll` is the number of PUSH DE instructions per loop,
+1..256, must divide the word count, and leave at most 256 loop chunks.
+Zero lengths, invalid regions, duplicate fields and absent IRQ contracts reject.
+
+Use it for initialization or scene changes, not as a substitute for dirty-region
+animation. Full clear completing within a PAL frame does not imply tear-free
+publication at every screen position. See
+[advanced demo measurements](../../reports/advanced-demos/README.md).

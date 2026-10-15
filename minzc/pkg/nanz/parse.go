@@ -933,6 +933,7 @@ func (p *parser) parseModule() (*hir.Module, error) {
 					m.Structs = append(m.Structs, generated.Structs...)
 					for _, s := range generated.Structs {
 						p.structs[s.Name] = s
+						p.registerGeneratedMethods(s, generated.Funcs)
 					}
 					// Register generated symbols in parent parser
 					for _, g := range generated.Globals {
@@ -1016,9 +1017,9 @@ func (p *parser) parseModule() (*hir.Module, error) {
 							}
 						}
 					}
-					m.Funcs = append(m.Funcs, generated.Funcs...)
-					m.Globals = append(m.Globals, generated.Globals...)
-					m.Structs = append(m.Structs, generated.Structs...)
+					if err := mergeGeneratedDeclarations(m, generated); err != nil {
+						return nil, fmt.Errorf("line %d: @%s: %w", attr.line, metaName, err)
+					}
 					// Generated declarations are visible to source parsed after the
 					// metafunction invocation, just like built-in @screen output.
 					for _, f := range generated.Funcs {
@@ -1029,6 +1030,7 @@ func (p *parser) parseModule() (*hir.Module, error) {
 					}
 					for _, s := range generated.Structs {
 						p.structs[s.Name] = s
+						p.registerGeneratedMethods(s, generated.Funcs)
 					}
 				}
 			} else {
@@ -5376,7 +5378,9 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		p.l.next()
 		// Bare function name used as a value (not followed by '(' call) →
 		// function pointer.  Emit AddrOfExpr so MIR2 generates LD HL, label.
-		if p.isKnownFunc(t.val) && !p.l.is(tokLParen) {
+		_, localValue := p.varTypes[t.val]
+		_, globalValue := p.globalTypes[t.val]
+		if !localValue && !globalValue && p.isKnownFunc(t.val) && !p.l.is(tokLParen) {
 			return &hir.AddrOfExpr{Sym: t.val}, nil
 		}
 		ty := mir2.Ty(mir2.TyU8)
@@ -6068,6 +6072,7 @@ func (p *parser) captureMetaFuncSource(name string) (string, error) {
 	for _, decl := range []string{
 		"hir_int(value: u16, ty: ^u8) -> u16", "hir_ref(name: ^u8, ty: ^u8) -> u16",
 		"hir_caller_ref(name: ^u8, ty: ^u8) -> u16",
+		"hir_caller_index(name: ^u8, index: u16) -> u16",
 		"hir_binary(op: ^u8, left: u16, right: u16) -> u16", "hir_block() -> u16",
 		"hir_append(block: u16, statement: u16) -> void", "hir_var(name: ^u8, ty: ^u8, initial: u16) -> u16",
 		"hir_load(pointer: u16) -> u16", "hir_assign(target: u16, value: u16) -> u16", "hir_store(pointer: u16, value: u16) -> u16",
@@ -6383,5 +6388,79 @@ func mergeSourceUnits(dst, src *hir.Module) error {
 		dst.SourceUnits[unit] = hash
 	}
 	dst.SourceUnitsComplete = dst.SourceUnitsComplete && src.SourceUnitsComplete
+	return nil
+}
+
+// registerGeneratedMethods restores concrete UFCS dispatch after emitted source
+// has already been parsed and its method names desugared.
+func (p *parser) registerGeneratedMethods(s *mir2.StructTy, funcs []*hir.Func) {
+	prefix := s.Name + "_"
+	for _, f := range funcs {
+		if len(f.Params) == 0 || f.Params[0].Name != "self" || !strings.HasPrefix(f.Name, prefix) {
+			continue
+		}
+		if p.methodTable[s.Name] == nil {
+			p.methodTable[s.Name] = make(map[string]methodInfo)
+		}
+		p.methodTable[s.Name][strings.TrimPrefix(f.Name, prefix)] = methodInfo{funcName: f.Name, retTy: f.RetTy}
+	}
+}
+
+// Nested generators may import the same library in separate expansion units.
+// Coalesce only identical declarations in a recorded import namespace; ordinary
+// generated name collisions remain errors, even when their bodies match.
+func mergeGeneratedDeclarations(dst, src *hir.Module) error {
+	imported := func(name string) bool {
+		for unit, hash := range src.SourceUnits {
+			if unit == src.Name || strings.Contains(unit, "@") || dst.SourceUnits[unit] != hash {
+				continue
+			}
+			if strings.HasPrefix(name, strings.ReplaceAll(unit, ".", "__")+"__") {
+				return true
+			}
+		}
+		return false
+	}
+	for _, f := range src.Funcs {
+		if old := dst.FuncByName(f.Name); old != nil {
+			if imported(f.Name) && reflect.DeepEqual(old, f) {
+				continue
+			}
+			return fmt.Errorf("duplicate generated function %q", f.Name)
+		}
+		dst.Funcs = append(dst.Funcs, f)
+	}
+	for _, g := range src.Globals {
+		var existing *mir2.Global
+		for i := range dst.Globals {
+			if dst.Globals[i].Name == g.Name {
+				existing = &dst.Globals[i]
+				break
+			}
+		}
+		if existing != nil {
+			if imported(g.Name) && reflect.DeepEqual(*existing, g) {
+				continue
+			}
+			return fmt.Errorf("duplicate generated global %q", g.Name)
+		}
+		dst.Globals = append(dst.Globals, g)
+	}
+	for _, st := range src.Structs {
+		var existing *mir2.StructTy
+		for _, old := range dst.Structs {
+			if old.Name == st.Name {
+				existing = old
+				break
+			}
+		}
+		if existing != nil {
+			if imported(st.Name) && reflect.DeepEqual(existing, st) {
+				continue
+			}
+			return fmt.Errorf("duplicate generated struct %q", st.Name)
+		}
+		dst.Structs = append(dst.Structs, st)
+	}
 	return nil
 }

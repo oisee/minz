@@ -565,6 +565,7 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 	// Reset per-block maps.
 	clear(g.globalFieldLoad)
 	clear(g.globalFieldStore)
+	clear(g.globalFieldAddr)
 	clear(g.globalFieldSkip)
 	clear(g.globalU16StoreSym)
 	clear(g.globalU16LoadSym)
@@ -730,6 +731,24 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 			g.globalFieldSkip[addrReg] = true  // Field result
 			g.globalFieldSkip[baseReg2] = true // AddrOf result
 		}
+	}
+
+	// A remaining literal global field address can be loaded directly into its
+	// allocated pair, even when the later byte load targets C/D/etc rather than
+	// A. Do not materialize a base plus scratch offset for LD HL,sym+offset.
+	// Whole-function use counts also protect an SSA base used by another block.
+	allUses := countRegUses(g.fn)
+	for _, inst := range b.Insts {
+		if inst.Op != OpField || inst.Imm < 0 || inst.Imm > 65535 || g.globalFieldSkip[inst.Dst] || !isPairReg(g.ar.Loc(inst.Dst).Name) {
+			continue
+		}
+		base := inst.Src[0]
+		definition := defInst[base]
+		if definition == nil || definition.Op != OpAddrOf || !isGlobal(definition.Sym) || allUses[base] != 1 {
+			continue
+		}
+		g.globalFieldAddr[inst.Dst] = globalFieldInfo{sym: definition.Sym, offset: inst.Imm}
+		g.globalFieldSkip[base] = true
 	}
 
 	// ── HL-chain detection ──────────────────────────────────────────────────────

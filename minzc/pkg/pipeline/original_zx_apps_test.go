@@ -221,7 +221,16 @@ func TestOriginalZXAppsNative(t *testing.T) {
 				}
 				result["outside_allowed_writes"] = outside
 				if i == 0 {
-					expected := []uint16{0xfefe, 0xfdfe, 0xfbfe, 0xf7fe, 0xeffe, 0xdffe, 0xbffe, 0x7ffe, 0xfefe, 0xfdfe, 0xfbfe, 0xf7fe, 0xeffe, 0xdffe, 0xbffe, 0x7ffe, 0xfefe}
+					// Release scan, then key scan: A is found in row FD. The console's
+					// printable-key mapping checks SYMBOL SHIFT in row 7F before the
+					// remaining rows; con_getchar checks CAPS SHIFT in row FE last.
+					// Keep the exact ordered port oracle, including both modifier reads.
+					expected := []uint16{
+						0xfefe, 0xfdfe, 0xfbfe, 0xf7fe, 0xeffe, 0xdffe, 0xbffe, 0x7ffe,
+						0xfefe, 0xfdfe, 0x7ffe, 0xfbfe, 0xf7fe, 0xeffe, 0xdffe, 0xbffe, 0x7ffe,
+						0xfefe,
+					}
+					result["expected_read_ports"] = expected
 					if !done || mismatch >= 0 || len(outside) > 0 || fmt.Sprint(reads) != fmt.Sprint(expected) || len(writes) > 0 {
 						t.Fatal("corrected hello model", result)
 					}

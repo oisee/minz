@@ -1,0 +1,89 @@
+// Field names define a byte structure; values become native literal stores.
+// This library emits ordinary Nanz, never assembly. The generated type is
+// <name>_Row and the generated callable is <name>(@smc dst:u16).
+fun @baked_row(name: ^u8) -> void {
+    var cursor: i32 = 0
+    if name[0] == 0 { meta_error(c"baked row: empty name") }
+    while name[cursor] != 0 {
+        let ch: u8 = name[cursor]
+        var valid: u8 = 0
+        if ch >= 65 { if ch <= 90 { valid = 1 } }
+        if ch >= 97 { if ch <= 122 { valid = 1 } }
+        if ch == 95 { valid = 1 }
+        if cursor > 0 { if ch >= 48 { if ch <= 57 { valid = 1 } } }
+        if valid == 0 { meta_error(c"baked row: invalid name") }
+        cursor = cursor + 1
+        if cursor > 80 { meta_error(c"baked row: name too long") }
+    }
+    if block_len() == 0 { meta_error(c"baked row: empty data") }
+    if block_len() > 64 { meta_error(c"baked row: at most 64 bytes") }
+    var i: u8 = 0
+    while i < block_len() {
+        if node_arg_count(i) != 1 { meta_error(c"baked row: each entry needs one byte") }
+        let value: i32 = node_arg_int(i, 0)
+        if value < 0 { meta_error(c"baked row: byte outside 0..255") }
+        if value > 255 { meta_error(c"baked row: byte outside 0..255") }
+        var j: u8 = 0
+        while j < i {
+            if str_eq(node_keyword(i), node_keyword(j)) == 1 {
+                meta_error(c"baked row: duplicate field")
+            }
+            j = j + 1
+        }
+        i = i + 1
+    }
+    let row_type: ^u8 = str_concat(name, c"_Row")
+    emit(str_concat(str_concat(c"struct ", row_type), c" {"))
+    i = 0
+    while i < block_len() {
+        emit(str_concat(node_keyword(i), c": u8,"))
+        i = i + 1
+    }
+    emit(c"}")
+    emit(str_concat(str_concat(c"fun ", name), c"(@smc dst:u16) {"))
+    emit(str_concat(str_concat(c"dst^ = ", row_type), c" {"))
+    i = 0
+    while i < block_len() {
+        emit(str_concat(str_concat(node_keyword(i), c": "), str_from_int(u16(node_arg_int(i, 0)))))
+        emit(c",")
+        i = i + 1
+    }
+    emit(c"} }")
+}
+
+// The positional form produces the same stores via an ordinary pointer walk.
+fun @baked_bytes(name: ^u8) -> void {
+    var cursor: i32 = 0
+    if name[0] == 0 { meta_error(c"baked row: empty name") }
+    while name[cursor] != 0 {
+        let ch: u8 = name[cursor]
+        var valid: u8 = 0
+        if ch >= 65 { if ch <= 90 { valid = 1 } }
+        if ch >= 97 { if ch <= 122 { valid = 1 } }
+        if ch == 95 { valid = 1 }
+        if cursor > 0 { if ch >= 48 { if ch <= 57 { valid = 1 } } }
+        if valid == 0 { meta_error(c"baked row: invalid name") }
+        cursor = cursor + 1
+        if cursor > 80 { meta_error(c"baked row: name too long") }
+    }
+    if block_len() == 0 { meta_error(c"baked row: empty data") }
+    if block_len() > 64 { meta_error(c"baked row: at most 64 bytes") }
+    var i: u8 = 0
+    while i < block_len() {
+        if node_arg_count(i) != 1 { meta_error(c"baked row: each entry needs one byte") }
+        let value: i32 = node_arg_int(i, 0)
+        if value < 0 { meta_error(c"baked row: byte outside 0..255") }
+        if value > 255 { meta_error(c"baked row: byte outside 0..255") }
+        if str_eq(node_keyword(i), c"byte") == 0 { meta_error(c"baked bytes: expected byte") }
+        i = i + 1
+    }
+    emit(str_concat(str_concat(c"fun ", name), c"(@smc dst:^u8) {"))
+    emit(c"var p:^u8 = dst")
+    i = 0
+    while i < block_len() {
+        if i != 0 { emit(c"p = p + 1") }
+        emit(str_concat(c"p^ = ", str_from_int(u16(node_arg_int(i, 0)))))
+        i = i + 1
+    }
+    emit(c"}")
+}

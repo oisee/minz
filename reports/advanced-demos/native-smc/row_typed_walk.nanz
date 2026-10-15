@@ -1,0 +1,1 @@
+fun draw(@smc dst:^u8) { var p:^u8=dst p^=0xc3 p=p+1 p^=0x3c }

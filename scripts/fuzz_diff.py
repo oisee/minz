@@ -159,7 +159,9 @@ class Interp:
             t = nxt()
             if t == '(':
                 v, w = full(); assert nxt() == ')'; return v, w
-            if t.isdigit(): return int(t), None
+            # Nanz literals have the smallest unsigned type that fits. An
+            # enclosing u16 binding does not widen a nested byte operation.
+            if t.isdigit(): return int(t), (8 if int(t) <= 255 else 16)
             if peek() == '(' and t in s.funcs:
                 nxt(); args = []
                 while True:
@@ -176,7 +178,8 @@ class Interp:
             v, w = cast(*prim())
             while peek() in ('+', '-', '&', '|', 'xor', '/', '%'):
                 op = nxt(); v2, w2 = cast(*prim())
-                wd = w or w2 or 16
+                # Primitive unsigned operations use the widest operand.
+                wd = max(w, w2)
                 mask = 0xFF if wd == 8 else M
                 if op == '+': v = (v + v2) & mask
                 elif op == '-': v = (v - v2) & mask

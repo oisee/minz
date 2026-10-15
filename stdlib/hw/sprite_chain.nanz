@@ -1,5 +1,6 @@
 // Named mutable compiled sprite. Code and patch operands must live in owned RAM.
 // PUSH form requires even byte width, opaque masks, and caller-disabled IRQ.
+// Direct form is a normal ABI leaf: baked rows fall through, then ordinary RET.
 fun @sprite_chain(name: ^u8) -> void {
     var layout: ^u8 = c""
     var mask_row_count: i32 = 0
@@ -82,9 +83,16 @@ fun @sprite_chain(name: ^u8) -> void {
     if height > rows - y { meta_error(c"sprite: region outside layout") }
     if mask_row_count != height { meta_error(c"sprite: row count differs from height") }
     if str_eq(primitive, c"compiled") == 0 {
+      if str_eq(primitive, c"direct") == 0 {
         if str_eq(primitive, c"push") == 0 { meta_error(c"sprite_chain: unknown primitive") }
         if irq_disabled == 0 { meta_error(c"sprite_chain: push requires irq disabled") }
         if width % 2 != 0 { meta_error(c"sprite_chain: push requires even width") }
+      } else {
+        if width == 0 | height == 0 { meta_error(c"sprite_chain: direct requires nonempty rows") }
+        if str_eq(layout,c"zx_bitmap_bytes") == 1 {
+            if base % 2048 != 0 { meta_error(c"sprite_chain: direct requires aligned ZX base for DOWN_HL") }
+        }
+      }
     }
     // Only safe assembler identifiers may enter generated symbol names.
     var cursor: ^u8 = name
@@ -105,16 +113,20 @@ fun @sprite_chain(name: ^u8) -> void {
     // Emit the JP opcode explicitly: peepholes must not elide mutable links.
     let prefix: ^u8 = str_concat(name, c"_chain_")
     emit(str_concat(c"fun ", str_concat(name, c"() -> void {")))
-    emit(c"asm z80 (clob) {")
-    emit(c"PUSH AF / PUSH BC / PUSH DE / PUSH HL")
+    if str_eq(primitive, c"direct") == 1 { emit(c"asm z80 {") }
+    else { emit(c"asm z80 (clob) {")
+      emit(c"PUSH AF / PUSH BC / PUSH DE / PUSH HL")
+    }
     if str_eq(primitive, c"push") == 1 {
         emit(str_concat(c"LD (", str_concat(prefix, c"restore+1), SP")))
     }
     emit(str_concat(prefix, c"entry:"))
+    if str_eq(primitive, c"direct") == 0 {
     if height == 0 { emit(c"DB 195")
         emit(str_concat(c"DW ", str_concat(prefix, c"done"))) }
     else { emit(c"DB 195")
     emit(str_concat(c"DW ", str_concat(prefix, c"row_0"))) }
+    }
     // Decode bytes on the compile-time VM, then emit only the resulting work.
     var row: i32 = 0
     i = 0
@@ -139,6 +151,7 @@ fun @sprite_chain(name: ^u8) -> void {
                 emit(str_concat(c"LD SP, ", str_from_int(u16(address + width))))
             } else { emit(str_concat(c"LD HL, ", str_from_int(address))) }
             var pair_high: u8 = 0
+            var row_writes: u8 = 0
             var col: i32 = 0
             while col < width {
                 var actual_col: i32 = col
@@ -168,24 +181,33 @@ fun @sprite_chain(name: ^u8) -> void {
                         emit(c"PUSH DE")
                     }
                 } else {
-                    if mask == 0 { emit(str_concat(c"LD (HL), ", str_from_int(graphic))) }
+                    if mask == 0 { emit(str_concat(c"LD (HL), ", str_from_int(graphic)))
+                        row_writes = 1
+                    }
                     else {
                         if mask != 255 | graphic != 0 {
                             emit(c"LD A, (HL)")
                             emit(str_concat(c"AND ", str_from_int(mask)))
                             emit(str_concat(c"OR ", str_from_int(graphic)))
                             emit(c"LD (HL), A")
+                            row_writes = 1
                         }
                     }
                     if col + 1 < width { emit(c"INC HL") }
                 }
                 col = col + 1
             }
+            if str_eq(primitive, c"direct") == 1 {
+                // A memory access anchors each mutable LD HL immediate through
+                // text peepholes. Purely transparent rows need patch metadata.
+                if row_writes == 0 { meta_error(c"sprite_chain: direct requires a write in each row") }
+            } else {
             emit(str_concat(rowname, c"_next:"))
             if row + 1 == height { emit(c"DB 195")
         emit(str_concat(c"DW ", str_concat(prefix, c"done"))) }
             else { emit(c"DB 195")
     emit(str_concat(c"DW ", str_concat(prefix, str_concat(c"row_", str_from_int(row + 1))))) }
+            }
             row = row + 1
         }
         i = i + 1
@@ -195,9 +217,55 @@ fun @sprite_chain(name: ^u8) -> void {
         emit(str_concat(prefix, c"restore:"))
         emit(c"LD SP, 0")
     }
-    emit(c"POP HL / POP DE / POP BC / POP AF")
+    if str_eq(primitive, c"direct") == 0 { emit(c"POP HL / POP DE / POP BC / POP AF") }
     emit(c"}")
     emit(c"}")
+    if str_eq(primitive, c"direct") == 1 {
+        emit(str_concat(c"fun ", str_concat(name, c"_address() -> u16 {")))
+        emit(str_concat(c"asm z80 (ret HL) { LD HL, ", str_concat(name, c" }")))
+        emit(c"}")
+        if str_eq(layout, c"zx_bitmap_bytes") == 1 {
+            // Position the complete baked sprite from ONE screen address.
+            // Antique Toy ch02 DOWN_HL: ordinary rows, character and third
+            // boundaries. Compact CALL and inline recipes remain measured
+            // alternatives. Ordinary CPU word stores patch known operands.
+            var recipe: u8 = 0
+            while recipe < 2 {
+                var walk_name: ^u8 = str_concat(name, c"_position")
+                if recipe == 1 { walk_name = str_concat(walk_name, c"_inline") }
+                emit(str_concat(c"fun ", str_concat(walk_name, c"(address:u16) -> void {")))
+                emit(c"asm z80 (in address) {")
+                var walk_row: i32 = 0
+                while walk_row < height {
+                    let patch: ^u8 = str_concat(prefix, str_concat(c"row_", str_from_int(walk_row)))
+                    emit(str_concat(c"LD (", str_concat(patch, c"+1), HL")))
+                    if walk_row + 1 < height {
+                        if recipe == 0 { emit(str_concat(c"CALL ", str_concat(prefix, c"down_hl"))) }
+                        else {
+                            let next_patch: ^u8 = str_concat(prefix, str_concat(c"walk_next_", str_from_int(walk_row)))
+                            emit(c"INC H / LD A,H / AND 7")
+                            emit(str_concat(c"JR NZ, ", next_patch))
+                            emit(c"LD A,L / ADD A,32 / LD L,A")
+                            emit(str_concat(c"JR C, ", next_patch))
+                            emit(c"LD A,H / SUB 8 / LD H,A")
+                            emit(str_concat(next_patch,c":"))
+                        }
+                    }
+                    walk_row = walk_row + 1
+                }
+                if recipe == 0 {
+                    emit(c"RET")
+                    emit(str_concat(prefix,c"down_hl:"))
+                    emit(c"INC H / LD A,H / AND 7 / RET NZ")
+                    emit(c"LD A,L / ADD A,32 / LD L,A / RET C")
+                    emit(c"LD A,H / SUB 8 / LD H,A / RET")
+                }
+                emit(c"}")
+                emit(c"}")
+                recipe = recipe + 1
+            }
+        }
+    }
     // Named helpers keep immediate locations symbolic through assembly.
     var helper: i32 = 0
     while helper < height + 2 {
@@ -211,14 +279,20 @@ fun @sprite_chain(name: ^u8) -> void {
             target = str_concat(prefix, c"done")
         }
         emit(str_concat(c"fun ", str_concat(name, str_concat(c"_", str_concat(suffix, c"_address() -> u16 {")))))
-        emit(str_concat(c"asm z80 (ret HL) (clob) { LD HL, ", str_concat(target, c" }")))
+        var address_head: ^u8 = c"asm z80 (ret HL) (clob) { LD HL, "
+        if str_eq(primitive, c"direct") == 1 { address_head = c"asm z80 (ret HL) { LD HL, " }
+        emit(str_concat(address_head, str_concat(target, c" }")))
         emit(c"}")
         if helper < height + 1 {
+          if str_eq(primitive, c"direct") == 0 | helper < height {
             emit(str_concat(c"fun ", str_concat(name, str_concat(c"_set_", str_concat(suffix, c"(address: u16) -> void {")))))
-            emit(str_concat(c"asm z80 (in address) (clob) { LD (", str_concat(target, c"+1), HL }")))
+            var patch_head: ^u8 = c"asm z80 (in address) (clob) { LD ("
+            if str_eq(primitive, c"direct") == 1 { patch_head = c"asm z80 (in address) { LD (" }
+            emit(str_concat(patch_head, str_concat(target, c"+1), HL }")))
             emit(c"}")
+          }
         }
-        if helper < height {
+        if helper < height & str_eq(primitive, c"direct") == 0 {
             emit(str_concat(c"fun ", str_concat(name, str_concat(c"_set_next_", str_concat(str_from_int(helper), c"(address: u16) -> void {")))))
             emit(str_concat(c"asm z80 (in address) (clob) { LD (", str_concat(target, c"_next+1), HL }")))
             emit(c"}")

@@ -38,7 +38,7 @@ root = Path(__file__).resolve().parents[1]
 commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip()
 assets = root / 'minzc/cmd/mzx/demos'
 a.output.mkdir(parents=True, exist_ok=True)
-readme = '''MinZ Z80 demo collection\n\nLaunch mzx (Linux/macOS), MinZ Demos.app (macOS), or mzx.exe (Windows).\nUp/Down: choose; Enter: play; Escape: return to menu.\nTetris: O/P move, Q rotate, A soft drop, Space hard drop, H hold.\nZork: type commands; Backspace deletes; cursor keys edit/history.\nF3 turbo, F4 hold turbo, F1 pause.\n\nSAVE files are outside this package, in the user config directory:\nLinux: ~/.config/minz/mzx; macOS: ~/Library/Application Support/minz/mzx; Windows: %AppData%\\minz\\mzx.\nOverride with --data-dir PATH. Do not delete that directory on upgrade.\nZork I automatically resumes session.sna after a clean exit.\nZork II uses SAVE/RESTORE with a persistent save.trd disk.\nScorpion memory is an emulator memory profile, not full hardware emulation.\n\nSeparate images are in images/. Zork II additionally requires restart bank 10\nand a writable TRD: see the supplied launch script. Never replace a user's disk.\nMIT notices for compiled Zork stories are in licenses/.\n'''
+readme = '''MinZ Z80 demo collection\n\nLaunch mzx (Linux/macOS), MinZ Demos.app (macOS), or mzx.exe (Windows).\nUp/Down: choose; Enter: play; Escape: return to menu.\nTetris: select 1 or 2 for speed, then O/P move, Q rotate, A soft drop, Space hard drop, H hold.\nZork: type commands; Backspace deletes; cursor keys edit/history.\nF3 turbo, F4 hold turbo, F1 pause.\n\nSAVE files are outside this package, in the user config directory:\nLinux: ~/.config/minz/mzx; macOS: ~/Library/Application Support/minz/mzx; Windows: %AppData%\\minz\\mzx.\nOverride with --data-dir PATH. Do not delete that directory on upgrade.\nZork I automatically resumes session.sna after a clean exit.\nZork II uses SAVE/RESTORE with a persistent save.trd disk.\nScorpion memory is an emulator memory profile, not full hardware emulation.\n\nSeparate images are in images/. Zork II additionally requires restart bank 10\nand a writable TRD: see the supplied launch script. Never replace a user's disk.\nMIT notices for compiled Zork stories are in licenses/.\n'''
 for platform, binary in sorted(platforms.items()):
     dest = a.output / f'minz-demos-{a.version}-{platform}'
     if dest.exists():
@@ -68,6 +68,8 @@ for platform, binary in sorted(platforms.items()):
     (dest / 'licenses').mkdir()
     for source in sorted(assets.glob('*.sna')):
         shutil.copy2(source, dest / 'images' / source.name)
+    for source in assets.glob('*.provenance.json'):
+        shutil.copy2(source, dest / 'images' / source.name)
     shutil.copy2(assets / 'zork2-bank10.bin', dest / 'images/zork2-bank10.bin')
     for source in assets.glob('LICENSE-*.txt'):
         shutil.copy2(source, dest / 'licenses' / source.name)
@@ -93,6 +95,14 @@ for platform, binary in sorted(platforms.items()):
     (dest / 'sources').mkdir()
     for source in [root / 'examples/zx/tetris_playable.nanz', root / 'scripts/zx_tetris_entry.a80', root / 'reports/hardware-sprite-chain/demo/source.nanz']:
         shutil.copy2(source, dest / 'sources' / source.name)
+    # Preserve the declarative sprite/scene generators used by the playable demo.
+    for library in ['hw', 'zx']:
+        shutil.copytree(root / 'stdlib' / library, dest / 'sources/stdlib' / library)
+    (dest / 'sources/scripts').mkdir()
+    (dest / 'sources/examples/zx').mkdir(parents=True)
+    for name in ['build_zx_tetris_demo.sh', 'zx_tetris_entry.a80']:
+        shutil.copy2(root / 'scripts' / name, dest / 'sources/scripts' / name)
+    shutil.copy2(root / 'examples/zx/tetris_playable.nanz', dest / 'sources/examples/zx/tetris_playable.nanz')
     if platform.startswith('windows'):
         standalone = '@echo off\r\nset "SAVEDIR=%APPDATA%\\minz\\mzx\\zork2"\r\nif not exist "%SAVEDIR%" mkdir "%SAVEDIR%"\r\nif not exist "%SAVEDIR%\\save.trd" copy /b "%~dp0images\\save-blank.trd" "%SAVEDIR%\\save.trd" >nul\r\n"%~dp0mzx.exe" --model scorpion-memory --snapshot "%~dp0images\\zork2.sna" --load "%~dp0images\\zork2-bank10.bin@C000:10" --trd "%SAVEDIR%\\save.trd" --trd-writeback\r\n'
         (dest / 'play-zork2-image.cmd').write_text(standalone, encoding='utf-8', newline='')

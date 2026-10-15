@@ -157,7 +157,17 @@ func (g *z80cg) genInst(inst *Inst) {
 		if dst == src {
 			return // no-op
 		}
+		// Absolute byte spill transfers use A as a scratch register, even
+		// when neither logical operand lives there. Keep an unrelated live
+		// accumulator (for example the first argument of a following CALL).
+		var restore func()
+		if z80SpillBytes(inst.Ty) == 1 && dst != "A" && src != "A" && (isSpill(dst) || isSpill(src)) {
+			restore = g.saveAccIfLive(inst)
+		}
 		g.emitMov(dst, src, 8*z80SpillBytes(inst.Ty))
+		if restore != nil {
+			restore()
+		}
 
 	case OpAdd:
 		g.lastFlagsLhs = ""
@@ -1069,13 +1079,53 @@ func (g *z80cg) genInst(inst *Inst) {
 		// Only applies to void calls (Dst == NoReg) where args are already in place.
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
+		// Resolve the producer's actual flags: comparison lowering may swap
+		// operands, use AND A for zero, or require two flags for > / <=.
+		// Hand-written raw MIR can request an explicit current-flags call.
 		cc := cmpCondCode(inst.Cond)
+		if inst.Src[0] != NoReg {
+			cc = g.condCode(g.fn, inst.Src[0])
+			original := CmpNe // a materialized boolean is tested for nonzero
+			for _, block := range g.fn.Blocks {
+				for _, producer := range block.Insts {
+					if producer.Op == OpCmp && producer.Dst == inst.Src[0] {
+						original = producer.Cond
+					}
+				}
+			}
+			if inst.Cond == invertCmpCond(original) {
+				switch cc {
+				case "CGT":
+					cc = "CLE"
+				case "CLE":
+					cc = "CGT"
+				default:
+					cc = invertCC(cc)
+				}
+			} else if inst.Cond != original {
+				if g.err == nil {
+					g.err = fmt.Errorf("conditional call %s has unrelated predicate", inst.Sym)
+				}
+				return
+			}
+		}
 		g.comment(fmt.Sprintf("genCallCond: CALL %s, %s", cc, inst.Sym))
 		// Use the regular call lowering for intrinsics, fixed addresses, and
 		// sanitized symbols. Intrinsics have no callable assembly label.
 		skip := fmt.Sprintf(".%s_callcond%d", sanitizeIdent(g.fn.Name), g.trampIdx)
 		g.trampIdx++
-		g.emitf("    JRS %s, %s", invertCC(cc), skip)
+		switch cc {
+		case "CGT":
+			g.emitf("    JRS Z, %s", skip)
+			g.emitf("    JRS C, %s", skip)
+		case "CLE":
+			take := skip + "_take"
+			g.emitf("    JRS C, %s", take)
+			g.emitf("    JRS NZ, %s", skip)
+			g.emitf("%s:", take)
+		default:
+			g.emitf("    JRS %s, %s", invertCC(cc), skip)
+		}
 		if err := g.genCall(inst); err != nil && g.err == nil {
 			g.err = err
 		}
@@ -1259,6 +1309,10 @@ func (g *z80cg) genInst(inst *Inst) {
 		// INC and ADD clobber flags.
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
+		if info, ok := g.globalFieldAddr[inst.Dst]; ok {
+			g.emitf("    LD %s, %s", dst, globalFieldLabel(info.sym, info.offset, ""))
+			break
+		}
 		src := g.loc(inst.Src[0])
 		offset := inst.Imm
 		if dst != src {
@@ -1350,6 +1404,11 @@ func (g *z80cg) genInst(inst *Inst) {
 	case OpPatchSlot:
 		// Mutable immediate: emit initial value; the byte(s) after LD are patchable.
 		w := inst.Ty.Width()
+		var restore func()
+		if inst.Sym != "" && isSpill(dst) {
+			restore = g.saveLiveScratch(inst, "HL")
+			dst = "HL"
+		}
 		if w <= 8 {
 			g.emitf("    LD %s, %d          ; [patch_slot init=%d]", dst, inst.Imm, inst.Imm)
 		} else {
@@ -1358,9 +1417,13 @@ func (g *z80cg) genInst(inst *Inst) {
 		}
 		// Named slot (@smc parameter): record EQU label and register patcher.
 		if inst.Sym != "" {
-			eqLabel := inst.Sym + "$imm"
+			eqLabel := SMCImmediateLabel(inst.Sym)
 			g.sb.WriteString(eqLabel + "  EQU $-" + fmt.Sprintf("%d", w/8) + "\n")
 			g.smcPatchers = append(g.smcPatchers, smcPatcherInfo{sym: inst.Sym, eqLabel: eqLabel})
+		}
+		if restore != nil {
+			g.emitf("    LD (%s), HL", g.loc(inst.Dst))
+			restore()
 		}
 
 	case OpLoadPatched:
@@ -1372,6 +1435,16 @@ func (g *z80cg) genInst(inst *Inst) {
 		}
 
 	case OpPatch:
+		if inst.Sym != "" {
+			value := g.loc(inst.Src[1])
+			restore := g.saveLiveScratch(inst, "HL")
+			if value != "HL" {
+				g.emitMov("HL", value, 16)
+			}
+			g.emitf("    LD (%s), HL", SMCImmediateLabel(inst.Sym))
+			restore()
+			break
+		}
 		// SMC patch: at runtime the code rewrites the immediate in OpPatchSlot.
 		// In the pure-assembler path we emit a self-modifying write sequence.
 		// slot = inst.Src[0], newVal = inst.Src[1]

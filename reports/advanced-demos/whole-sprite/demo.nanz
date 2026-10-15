@@ -1,0 +1,18 @@
+import zx.sprite
+
+@zx_sprite("Ship") {
+    size 16 8
+    pixels "......####......"
+    pixels ".....######....."
+    pixels "...##########..."
+    pixels "..############.."
+    pixels ".##############."
+    pixels "####__####__####"
+    pixels "###...####...###"
+    pixels "......####......"
+}
+
+fun draw_ship(x:u8,y:u8)->bool {
+    let ship:Ship=Ship{x:x,y:y}
+    return ship.draw()
+}

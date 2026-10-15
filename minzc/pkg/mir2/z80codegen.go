@@ -140,6 +140,9 @@ type Z80CodegenOptions struct {
 // ValidateZ80Symbols rejects distinct functions/data that emit the same symbol.
 // Calls resolve by symbol, so uniqueness is required before using a callee ABI.
 func ValidateZ80Symbols(m *Module) error {
+	if err := validateNamedSMC(m); err != nil {
+		return err
+	}
 	seen := make(map[string]string)
 	// Runtime names and internal namespaces are reserved even when unused.
 	for _, name := range []string{"__mul8", "__mul16", "__call_ix", "__agon_entry"} {
@@ -172,12 +175,12 @@ func ValidateZ80Symbols(m *Module) error {
 		for _, b := range f.Blocks {
 			for _, inst := range b.Insts {
 				if inst.Op == OpPatchSlot && inst.Sym != "" {
-					parts := strings.SplitN(inst.Sym, "$", 2)
-					patcher := inst.Sym
-					if len(parts) == 2 {
-						patcher = parts[0] + "_set_" + parts[1]
+					patcher := SMCSetterName(inst.Sym)
+					syms := []string{SMCImmediateLabel(inst.Sym)}
+					if setter := m.FuncByName(patcher); setter == nil || setter.SMCSetterFor != inst.Sym {
+						syms = append(syms, sanitizeIdent(patcher))
 					}
-					for _, sym := range []string{patcher, inst.Sym + "$imm"} {
+					for _, sym := range syms {
 						if err := reserve(sym, "generated patch slot for "+f.Name); err != nil {
 							return err
 						}
@@ -628,6 +631,7 @@ type z80cg struct {
 	//   Affected: AddrOf(base), Field(fptr), and (for stores) the store's addrReg.
 	globalFieldLoad  map[Reg]globalFieldInfo
 	globalFieldStore map[Reg]globalFieldInfo
+	globalFieldAddr  map[Reg]globalFieldInfo // literal global displacement into a pair
 	globalFieldSkip  map[Reg]bool
 
 	// bitStorePat maps the stored value reg of a Store to a fused u8/u16 bit-update
@@ -907,6 +911,7 @@ func (g *z80cg) genFunc(f *Func) {
 	g.lutSkip = make(map[Reg]bool)
 	g.globalFieldLoad = make(map[Reg]globalFieldInfo)
 	g.globalFieldStore = make(map[Reg]globalFieldInfo)
+	g.globalFieldAddr = make(map[Reg]globalFieldInfo)
 	g.globalFieldSkip = make(map[Reg]bool)
 	g.bitStorePat = make(map[Reg]bitStorePat)
 	g.bitStoreSkip = make(map[Reg]bool)
@@ -985,12 +990,11 @@ func (g *z80cg) genFunc(f *Func) {
 	// Emit synthesised @smc patcher functions for any named PatchSlots.
 	// Each patcher: draw_player_set_r0(v: u16 in HL) → patches imm16 bytes in draw_player.
 	for _, p := range g.smcPatchers {
-		// Derive patcher name: "funcName$paramName" → "funcName_set_paramName"
-		parts := strings.SplitN(p.sym, "$", 2)
-		patcherName := p.sym // fallback if no $
-		if len(parts) == 2 {
-			patcherName = parts[0] + "_set_" + parts[1]
+		if setter := g.mod.FuncByName(SMCSetterName(p.sym)); setter != nil && setter.SMCSetterFor == p.sym {
+			continue
 		}
+		// Derive patcher name: "funcName$paramName" → "funcName_set_paramName"
+		patcherName := sanitizeIdent(SMCSetterName(p.sym))
 		g.emitf("\n; synthesised @smc patcher — fun %s(v: u16 = HL)", patcherName)
 		g.emitf("; patches imm16 at %s", p.eqLabel)
 		g.emitf("%s:", patcherName)

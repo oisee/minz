@@ -1,0 +1,349 @@
+// A complete byte-aligned ZX sprite. '#' sets ink, '_' clears to paper,
+// '.' preserves the background. All pixel/mask bytes are baked at compile time.
+// Optional `erase` bakes matching clear kernels: opaque pixels become paper,
+// transparent pixels stay untouched. This clears; it does not restore a background.
+// Public value: <name>{x:pixel_x,y:pixel_y}; public method: value.draw()->bool.
+fun @zx_sprite(name:^u8)->void {
+    var cursor: i32 = 0
+    if name[0] == 0 { meta_error(c"zx sprite: empty name") }
+    while name[cursor] != 0 {
+        let ch: u8 = name[cursor]
+        var valid: u8 = 0
+        if ch >= 65 { if ch <= 90 { valid = 1 } }
+        if ch >= 97 { if ch <= 122 { valid = 1 } }
+        if ch == 95 { valid = 1 }
+        if cursor > 0 { if ch >= 48 { if ch <= 57 { valid = 1 } } }
+        if valid == 0 { meta_error(c"zx sprite: invalid name") }
+        cursor = cursor + 1
+        if cursor > 80 { meta_error(c"zx sprite: name too long") }
+    }
+    if block_len() > 128 { meta_error(c"zx sprite: too many fields") }
+    var width:i32=0
+    var height:i32=0
+    var row_count:i32=0
+    var seen_size:u8=0
+    var paired_erase:u8=0
+    var i:u8=0
+    while i < block_len() {
+        let key:^u8=node_keyword(i)
+        if str_eq(key,c"size")==1 {
+            if seen_size!=0 { meta_error(c"zx sprite: duplicate size") }
+            if node_arg_count(i)!=2 { meta_error(c"zx sprite: size needs width and height") }
+            width=node_arg_int(i,0)
+            height=node_arg_int(i,1)
+            seen_size=1
+        } else if str_eq(key,c"pixels")==1 {
+            if node_arg_count(i)!=1 { meta_error(c"zx sprite: pixels needs one row") }
+            row_count=row_count+1
+        } else if str_eq(key,c"erase")==1 {
+            if paired_erase!=0 {meta_error(c"zx sprite: duplicate erase")}
+            if node_arg_count(i)!=0 {meta_error(c"zx sprite: erase takes no arguments")}
+            paired_erase=1
+        } else { meta_error(c"zx sprite: unknown field") }
+        i=i+1
+    }
+    if seen_size==0 { meta_error(c"zx sprite: missing size") }
+    if width<=0 { meta_error(c"zx sprite: invalid width") }
+    if width>64 { meta_error(c"zx sprite: maximum width is 64 pixels") }
+    if width%8!=0 { meta_error(c"zx sprite: width must be a multiple of eight") }
+    if height<=0 { meta_error(c"zx sprite: invalid height") }
+    if height>64 { meta_error(c"zx sprite: maximum height is 64") }
+    if row_count!=height { meta_error(c"zx sprite: pixel row count differs from height") }
+    // Validate all pixels before emitting declarations.
+    i=0
+    while i < block_len() {
+        if str_eq(node_keyword(i),c"pixels")==1 {
+            let data:^u8=node_arg_str(i,0)
+            var n:i32=0
+            while data[n]!=0 {
+                let ch:u8=data[n]
+                if ch!=35 { if ch!=95 { if ch!=46 { meta_error(c"zx sprite: expected #, _ or . pixel") } } }
+                n=n+1
+            }
+            if n!=width { meta_error(c"zx sprite: pixel row width mismatch") }
+        }
+        i=i+1
+    }
+    emit(c"import zx.sprite_address")
+    emit(str_concat(str_concat(c"struct ",name),c" {x:u8,y:u8}"))
+    emit(str_concat(str_concat(c"global ",name),c"_ready:bool=false"))
+    if paired_erase!=0 {
+        emit(str_concat(str_concat(str_concat(c"global ",name),c"_draw_addresses:[u16;"),str_concat(str_from_int(u16(height)),c"]")))
+    }
+    var row:i32=0
+    i=0
+    while i < block_len() {
+        if str_eq(node_keyword(i),c"pixels")==1 {
+            let data:^u8=node_arg_str(i,0)
+            let row_name:^u8=str_concat(name,str_concat(c"_row_",str_from_int(u16(row))))
+            emit(str_concat(str_concat(c"fun ",row_name),c"(@smc dst:^u8) {"))
+            emit(c"var p:^u8=dst")
+            var col:i32=0
+            var previous:i32=0
+            while col < width/8 {
+                var keep:u8=0
+                var bits:u8=0
+                var bit:i32=0
+                while bit<8 {
+                    let ch:u8=data[col*8+bit]
+                    keep=keep*2
+                    bits=bits*2
+                    if ch==46 { keep=keep+1 }
+                    if ch==35 { bits=bits+1 }
+                    bit=bit+1
+                }
+                if keep!=255 {
+                    if col!=previous { emit(str_concat(c"p=p+",str_from_int(u16(col-previous)))) }
+                    previous=col
+                    if keep==0 {
+                        emit(str_concat(c"p^=",str_from_int(u16(bits))))
+                    } else {
+                        let text:^u8=str_concat(c"p^=(p^ & ",str_from_int(u16(keep)))
+                        emit(str_concat(str_concat(text,c") | "),str_from_int(u16(bits))))
+                    }
+                }
+                col=col+1
+            }
+            emit(c"}")
+            row=row+1
+        }
+        i=i+1
+    }
+    emit(str_concat(str_concat(c"fun ",name),str_concat(c".width(self:^",str_concat(name,c")->u8 {"))))
+    emit(str_concat(c"return ",str_from_int(u16(width))))
+    emit(c"}")
+    emit(str_concat(str_concat(c"fun ",name),str_concat(c".height(self:^",str_concat(name,c")->u8 {"))))
+    emit(str_concat(c"return ",str_from_int(u16(height))))
+    emit(c"}")
+    emit(str_concat(str_concat(c"fun ",name),str_concat(c".draw(self:^",str_concat(name,c")->bool {"))))
+    emit(str_concat(name,c"_ready=false"))
+    emit(c"let x:u8=self.x let y:u8=self.y")
+    emit(c"if (x & 7)!=0 {return false}")
+    emit(str_concat(str_concat(c"if u16(x)+",str_from_int(u16(width))),c">256 {return false}"))
+    emit(str_concat(str_concat(c"if u16(y)+",str_from_int(u16(height))),c">192 {return false}"))
+    emit(c"var address:u16=sprite_address(x,y)")
+    row=0
+    while row<height {
+        let row_name:^u8=str_concat(name,str_concat(c"_row_",str_from_int(u16(row))))
+        emit(str_concat(row_name,c"(ptr(address))"))
+        if row+1<height {emit(c"address=sprite_next_line(address)")}
+        row=row+1
+    }
+    emit(c"return true }")
+    // A scene can place SMC operands before its frame boundary, then publish
+    // only the baked stores. One pending placement belongs to each form.
+    // Specialize screen placement as well as row stores: the public screen
+    // stage does not need the arbitrary-buffer base remapping on every row.
+    var placement:u8=0
+    while placement<2 {
+        if placement==0 {
+            emit(str_concat(str_concat(c"fun ",name),str_concat(c".stage_on(self:^",str_concat(name,c",base:u16)->bool {"))))
+        } else {
+            emit(str_concat(str_concat(c"fun ",name),c"_stage_at(x:u8,y:u8)->bool {"))
+        }
+        emit(str_concat(name,c"_ready=false"))
+        if placement==0 {emit(c"let x:u8=self.x let y:u8=self.y")}
+        emit(c"if (x & 7)!=0 {return false}")
+        emit(str_concat(str_concat(c"if u16(x)+",str_from_int(u16(width))),c">256 {return false}"))
+        emit(str_concat(str_concat(c"if u16(y)+",str_from_int(u16(height))),c">192 {return false}"))
+        if placement==0 {emit(c"if base>0xe800 {return false}")}
+        emit(c"var address:u16=sprite_address(x,y)")
+        row=0
+        while row<height {
+            let row_name:^u8=str_concat(name,str_concat(c"_row_",str_from_int(u16(row))))
+            if placement==0 {
+                if paired_erase!=0 {
+                    emit(str_concat(str_concat(str_concat(name,c"_draw_addresses["),str_from_int(u16(row))),c"]=address-0x4000+base"))
+                }
+                emit(str_concat(row_name,c"_set_dst(ptr(address-0x4000+base))"))
+            } else {
+                if paired_erase!=0 {
+                    emit(str_concat(str_concat(str_concat(name,c"_draw_addresses["),str_from_int(u16(row))),c"]=address"))
+                }
+                emit(str_concat(row_name,c"_set_dst(ptr(address))"))
+            }
+            if row+1<height {emit(c"address=sprite_next_line(address)")}
+            row=row+1
+        }
+        emit(str_concat(name,c"_ready=true return true }"))
+        if placement==1 {
+            emit(str_concat(str_concat(c"fun ",name),str_concat(c".stage(self:^",str_concat(name,c")->bool {"))))
+            emit(str_concat(str_concat(c"return ",name),c"_stage_at(self.x,self.y) }"))
+        }
+        placement=placement+1
+    }
+    emit(str_concat(str_concat(c"fun ",name),str_concat(c".publish(self:^",str_concat(name,c")->bool {"))))
+    emit(str_concat(str_concat(c"if ",name),c"_ready==false {return false}"))
+    row=0
+    while row<height {
+        let row_name:^u8=str_concat(name,str_concat(c"_row_",str_from_int(u16(row))))
+        emit(str_concat(row_name,c"()"))
+        row=row+1
+    }
+    emit(c"return true }")
+
+    // Independent operands keep the old erase position intact while a new
+    // drawing is staged. The description of the opaque mask is shared.
+    if paired_erase!=0 {
+        // Snapshot the currently prepared draw placement before staging the
+        // next one. No geometry or Spectrum address walk is repeated here.
+        emit(str_concat(str_concat(c"fun ",name),c"_stage_erase_from_draw()->bool {"))
+        emit(str_concat(name,c"_erase_ready=false"))
+        emit(str_concat(str_concat(c"if ",name),c"_ready==false {return false}"))
+        row=0
+        while row<height {
+            let clear_name:^u8=str_concat(name,str_concat(c"_clear_row_",str_from_int(u16(row))))
+            let cached:^u8=str_concat(str_concat(name,c"_draw_addresses["),str_concat(str_from_int(u16(row)),c"]"))
+            emit(str_concat(str_concat(clear_name,c"_set_dst(ptr("),str_concat(cached,c"))")))
+            row=row+1
+        }
+        emit(str_concat(name,c"_erase_ready=true return true }"))
+        // Internal scene commits contain only the nontransparent row calls.
+        // The owner must validate readiness and stage all operands beforehand.
+        var commit:u8=0
+        while commit<2 {
+            var suffix:^u8=c"_draw_prepared"
+            var prefix:^u8=c"_row_"
+            if commit==1 {suffix=c"_erase_prepared" prefix=c"_clear_row_"}
+            emit(str_concat(str_concat(c"fun ",name),str_concat(suffix,c"() {")))
+            row=0 i=0
+            while i<block_len() {
+                if str_eq(node_keyword(i),c"pixels")==1 {
+                    let data:^u8=node_arg_str(i,0)
+                    var opaque:u8=0
+                    var pixel:i32=0
+                    while pixel<width {if data[pixel]!=46 {opaque=1} pixel=pixel+1}
+                    if opaque!=0 {emit(str_concat(str_concat(name,str_concat(prefix,str_from_int(u16(row)))),c"()"))}
+                    row=row+1
+                }
+                i=i+1
+            }
+            emit(c"}")
+            commit=commit+1
+        }
+        emit(str_concat(str_concat(c"global ",name),c"_erase_ready:bool=false"))
+        row=0
+        i=0
+        while i<block_len() {
+            if str_eq(node_keyword(i),c"pixels")==1 {
+                let data:^u8=node_arg_str(i,0)
+                let clear_name:^u8=str_concat(name,str_concat(c"_clear_row_",str_from_int(u16(row))))
+                emit(str_concat(str_concat(c"fun ",clear_name),c"(@smc dst:^u8) {"))
+                emit(c"var p:^u8=dst")
+                var col:i32=0
+                var previous:i32=0
+                while col<width/8 {
+                    var keep:u8=0
+                    var bit:i32=0
+                    while bit<8 {
+                        keep=keep*2
+                        if data[col*8+bit]==46 {keep=keep+1}
+                        bit=bit+1
+                    }
+                    if keep!=255 {
+                        if col!=previous {emit(str_concat(c"p=p+",str_from_int(u16(col-previous))))}
+                        previous=col
+                        if keep==0 {emit(c"p^=0")} else {
+                            emit(str_concat(c"p^=p^ & ",str_from_int(u16(keep))))
+                        }
+                    }
+                    col=col+1
+                }
+                emit(c"}")
+                row=row+1
+            }
+            i=i+1
+        }
+        // Check the complete rectangle before writing or patching anything.
+        var action:u8=0
+        while action<2 {
+            var method:^u8=c".erase"
+            if action==1 {method=c".stage_erase"}
+            if action==0 {
+                emit(str_concat(str_concat(c"fun ",name),str_concat(method,str_concat(c"(self:^",str_concat(name,c")->bool {")))))
+            } else {emit(str_concat(str_concat(c"fun ",name),c"_stage_erase_at(x:u8,y:u8)->bool {"))}
+            emit(str_concat(name,c"_erase_ready=false"))
+            if action==0 {emit(c"let x:u8=self.x let y:u8=self.y")}
+            emit(c"if (x & 7)!=0 {return false}")
+            emit(str_concat(str_concat(c"if u16(x)+",str_from_int(u16(width))),c">256 {return false}"))
+            emit(str_concat(str_concat(c"if u16(y)+",str_from_int(u16(height))),c">192 {return false}"))
+            emit(c"var address:u16=sprite_address(x,y)")
+            row=0
+            while row<height {
+                let clear_name:^u8=str_concat(name,str_concat(c"_clear_row_",str_from_int(u16(row))))
+                if action==0 {emit(str_concat(clear_name,c"(ptr(address))"))} else {
+                    emit(str_concat(clear_name,c"_set_dst(ptr(address))"))
+                }
+                if row+1<height {emit(c"address=sprite_next_line(address)")}
+                row=row+1
+            }
+            if action==1 {emit(str_concat(name,c"_erase_ready=true"))}
+            emit(c"return true }")
+            if action==1 {
+                emit(str_concat(str_concat(c"fun ",name),str_concat(c".stage_erase(self:^",str_concat(name,c")->bool {"))))
+                emit(str_concat(str_concat(c"return ",name),c"_stage_erase_at(self.x,self.y) }"))
+            }
+            action=action+1
+        }
+        emit(str_concat(str_concat(c"fun ",name),str_concat(c".erase_staged(self:^",str_concat(name,c")->bool {"))))
+        emit(str_concat(str_concat(c"if ",name),c"_erase_ready==false {return false}"))
+        row=0
+        while row<height {
+            let clear_name:^u8=str_concat(name,str_concat(c"_clear_row_",str_from_int(u16(row))))
+            emit(str_concat(clear_name,c"()"))
+            row=row+1
+        }
+        emit(c"return true }")
+    }
+
+}
+
+// Several independently staged instances share one declarative description.
+// Each instance receives its own SMC operands, baked from the same pixels.
+fun @zx_sprite_instances(name:^u8)->void {
+    if block_len()>128 {meta_error(c"zx sprite instances: too many fields")}
+    var count:i32=0
+    var count_nodes:u8=0
+    var inspect:u8=0
+    while inspect<block_len() {
+        if str_eq(node_keyword(inspect),c"instances")==1 {
+            if node_arg_count(inspect)!=1 {meta_error(c"zx sprite instances: instances needs a count")}
+            count=node_arg_int(inspect,0)
+            count_nodes=count_nodes+1
+        }
+        inspect=inspect+1
+    }
+    if count_nodes!=1 {meta_error(c"zx sprite instances: exactly one instances field required")}
+    if count<1 {meta_error(c"zx sprite instances: count must be 1..4")}
+    if count>4 {meta_error(c"zx sprite instances: count must be 1..4")}
+    emit(c"import zx.sprite")
+    var instance:u8=0
+    while instance<count {
+        let instance_name:^u8=str_concat(name,str_concat(c"_",str_from_int(u16(instance))))
+        emit(str_concat(str_concat(c"@zx_sprite(",str_quote_c(instance_name)),c") {"))
+        var node:u8=0
+        while node<block_len() {
+            let key:^u8=node_keyword(node)
+            if str_eq(key,c"size")==1 {
+                if node_arg_count(node)!=2 {meta_error(c"zx sprite instances: size needs width and height")}
+                let w:i32=node_arg_int(node,0)
+                let h:i32=node_arg_int(node,1)
+                if w<8 {meta_error(c"zx sprite instances: invalid width")}
+                if w>64 {meta_error(c"zx sprite instances: invalid width")}
+                if h<1 {meta_error(c"zx sprite instances: invalid height")}
+                if h>64 {meta_error(c"zx sprite instances: invalid height")}
+                let line:^u8=str_concat(c"size ",str_from_int(u16(w)))
+                emit(str_concat(str_concat(line,c" "),str_from_int(u16(h))))
+            } else if str_eq(key,c"pixels")==1 {
+                if node_arg_count(node)!=1 {meta_error(c"zx sprite instances: pixels needs one row")}
+                emit(str_concat(c"pixels ",str_quote_c(node_arg_str(node,0))))
+            } else if str_eq(key,c"erase")==1 {
+                if node_arg_count(node)!=0 {meta_error(c"zx sprite instances: erase takes no arguments")}
+                emit(c"erase")
+            } else if str_eq(key,c"instances")!=1 {meta_error(c"zx sprite instances: unknown field")}
+            node=node+1
+        }
+        emit(c"}")
+        instance=instance+1
+    }
+}

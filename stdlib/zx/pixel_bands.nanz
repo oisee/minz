@@ -1,0 +1,292 @@
+// Copy eight scanlines inside one Spectrum character row. Source and destination
+// use the ZX bitmap layout. The owning viewport guarantees columns never carry
+// into H/D: end column <=31. Width must be 1..31; screen/shadow are disjoint.
+// ALT AF is scratch, so the owning publisher excludes INT during this kernel.
+fun pixel_band_copy(@z80_hl source:^u8,@z80_de destination:^u8,@z80_b width:u8) {
+    if width==0 {return}
+    if width>31 {return}
+    asm z80 (in source,destination,width) {
+        LD A,B
+        LD C,A
+        LD B,0
+        EX AF,AF'
+        LDIR
+        EX AF,AF'
+        LD C,A
+        EX AF,AF'
+        LD A,L
+        SUB C
+        LD L,A
+        LD A,E
+        SUB C
+        LD E,A
+        INC H
+        INC D
+        LDIR
+        EX AF,AF'
+        LD C,A
+        EX AF,AF'
+        LD A,L
+        SUB C
+        LD L,A
+        LD A,E
+        SUB C
+        LD E,A
+        INC H
+        INC D
+        LDIR
+        EX AF,AF'
+        LD C,A
+        EX AF,AF'
+        LD A,L
+        SUB C
+        LD L,A
+        LD A,E
+        SUB C
+        LD E,A
+        INC H
+        INC D
+        LDIR
+        EX AF,AF'
+        LD C,A
+        EX AF,AF'
+        LD A,L
+        SUB C
+        LD L,A
+        LD A,E
+        SUB C
+        LD E,A
+        INC H
+        INC D
+        LDIR
+        EX AF,AF'
+        LD C,A
+        EX AF,AF'
+        LD A,L
+        SUB C
+        LD L,A
+        LD A,E
+        SUB C
+        LD E,A
+        INC H
+        INC D
+        LDIR
+        EX AF,AF'
+        LD C,A
+        EX AF,AF'
+        LD A,L
+        SUB C
+        LD L,A
+        LD A,E
+        SUB C
+        LD E,A
+        INC H
+        INC D
+        LDIR
+        EX AF,AF'
+        LD C,A
+        EX AF,AF'
+        LD A,L
+        SUB C
+        LD L,A
+        LD A,E
+        SUB C
+        LD E,A
+        INC H
+        INC D
+        LDIR
+    }
+}
+
+// Interleave one character row of attributes and bitmap before advancing.
+// Destination is a scanline-zero address in the standard 0x4000 ZX bitmap;
+// attributes points to width frozen bytes, one per copied column.
+fun pixel_band_copy_attributes(@z80_hl source:^u8,@z80_de destination:^u8,@z80_b width:u8,@z80_ix attributes:^u8) {
+    if width==0 {return}
+    if width>31 {return}
+    asm z80 (in source,destination,width,attributes) {
+        PUSH HL
+        PUSH DE
+        PUSH BC
+        PUSH IX
+        POP HL
+        LD A,D
+        AND 24
+        RRCA
+        RRCA
+        RRCA
+        ADD A,88
+        LD D,A
+        LD C,B
+        LD B,0
+        LDIR
+        POP BC
+        POP DE
+        POP HL
+        LD A,B
+        LD C,A
+        LD B,0
+        EX AF,AF'
+        LDIR
+        EX AF,AF'
+        LD C,A
+        EX AF,AF'
+        LD A,L
+        SUB C
+        LD L,A
+        LD A,E
+        SUB C
+        LD E,A
+        INC H
+        INC D
+        LDIR
+        EX AF,AF'
+        LD C,A
+        EX AF,AF'
+        LD A,L
+        SUB C
+        LD L,A
+        LD A,E
+        SUB C
+        LD E,A
+        INC H
+        INC D
+        LDIR
+        EX AF,AF'
+        LD C,A
+        EX AF,AF'
+        LD A,L
+        SUB C
+        LD L,A
+        LD A,E
+        SUB C
+        LD E,A
+        INC H
+        INC D
+        LDIR
+        EX AF,AF'
+        LD C,A
+        EX AF,AF'
+        LD A,L
+        SUB C
+        LD L,A
+        LD A,E
+        SUB C
+        LD E,A
+        INC H
+        INC D
+        LDIR
+        EX AF,AF'
+        LD C,A
+        EX AF,AF'
+        LD A,L
+        SUB C
+        LD L,A
+        LD A,E
+        SUB C
+        LD E,A
+        INC H
+        INC D
+        LDIR
+        EX AF,AF'
+        LD C,A
+        EX AF,AF'
+        LD A,L
+        SUB C
+        LD L,A
+        LD A,E
+        SUB C
+        LD E,A
+        INC H
+        INC D
+        LDIR
+        EX AF,AF'
+        LD C,A
+        EX AF,AF'
+        LD A,L
+        SUB C
+        LD L,A
+        LD A,E
+        SUB C
+        LD E,A
+        INC H
+        INC D
+        LDIR
+    }
+}
+
+// Small prepared band list, unrolled in Nanz rather than a byte queue. The
+// renderer owns and freezes its shadow surface from prepare through publish.
+fun @pixel_bands(name:^u8)->void {
+    var rows:i32=0
+    var seen:u8=0
+    var attributes:i32=0
+    var seen_attributes:u8=0
+    var node:u8=0
+    while node<block_len() {
+        if node_arg_count(node)!=1 {meta_error(c"pixel bands: field needs one integer")}
+        if str_eq(node_keyword(node),c"rows")==1 {
+            rows=node_arg_int(node,0)
+            seen=seen+1
+        } else if str_eq(node_keyword(node),c"attributes")==1 {
+            attributes=node_arg_int(node,0)
+            seen_attributes=seen_attributes+1
+        } else {meta_error(c"pixel bands: unknown field")}
+        node=node+1
+    }
+    if seen_attributes>1 {meta_error(c"pixel bands: duplicate attributes") }
+    if attributes<0 {meta_error(c"pixel bands: attributes must be 0 or 1") }
+    if attributes>1 {meta_error(c"pixel bands: attributes must be 0 or 1") }
+    if seen!=1 {meta_error(c"pixel bands: exactly one rows field required")}
+    if rows<1 {meta_error(c"pixel bands: invalid rows")}
+    if rows>24 {meta_error(c"pixel bands: invalid rows")}
+    emit(c"import zx.pixel_bands")
+    emit(str_concat(str_concat(c"global ",name),c"_count:u8=0"))
+    emit(str_concat(str_concat(c"global ",name),str_concat(c"_sources:[u16;",str_concat(str_from_int(u16(rows)),c"]"))))
+    emit(str_concat(str_concat(c"global ",name),str_concat(c"_destinations:[u16;",str_concat(str_from_int(u16(rows)),c"]"))))
+    emit(str_concat(str_concat(c"global ",name),str_concat(c"_widths:[u8;",str_concat(str_from_int(u16(rows)),c"]"))))
+    if attributes==1 {emit(str_concat(str_concat(c"global ",name),str_concat(c"_attributes:[u16;",str_concat(str_from_int(u16(rows)),c"]"))))}
+    emit(str_concat(str_concat(c"fun ",name),c"_publish() {"))
+    var row:i32=0
+    while row<rows {
+        let index:^u8=str_from_int(u16(row))
+        emit(str_concat(str_concat(str_concat(c"if ",name),c"_count>"),str_concat(index,c" {")))
+        let source:^u8=str_concat(name,str_concat(c"_sources[",str_concat(index,c"]")))
+        let destination:^u8=str_concat(name,str_concat(c"_destinations[",str_concat(index,c"]")))
+        let width:^u8=str_concat(name,str_concat(c"_widths[",str_concat(index,c"]")))
+        if attributes==1 {
+            let attr:^u8=str_concat(name,str_concat(c"_attributes[",str_concat(index,c"]")))
+            emit(str_concat(str_concat(str_concat(c"pixel_band_copy_attributes(ptr(",source),c"),ptr("),str_concat(str_concat(destination,c"),"),str_concat(str_concat(width,c",ptr("),str_concat(attr,c"))")))))
+        } else {
+        emit(str_concat(str_concat(str_concat(c"pixel_band_copy(ptr(",source),c"),ptr("),str_concat(str_concat(destination,c"),"),str_concat(width,c")"))))
+        }
+        emit(c"}")
+        row=row+1
+    }
+    emit(str_concat(name,c"_count=0 }"))
+}
+
+// Eight byte stores at a 256-byte stride, expressed in typed Nanz. Caller owns
+// the destination span; for Spectrum cells it supplies scanline zero of one
+// character row. This is not the general next-scanline mapping across cells.
+// No SP redirection or DI/EI is requested. The Tetris compositor uses private
+// RAM; publication and synchronization remain the owning renderer's contract.
+
+fun pixel_band_fill_cell(@z80_hl dst:^u8,@z80_a value:u8) {
+    var p:^u8=dst
+    p^=value
+    p=p+256
+    p^=value
+    p=p+256
+    p^=value
+    p=p+256
+    p^=value
+    p=p+256
+    p^=value
+    p=p+256
+    p^=value
+    p=p+256
+    p^=value
+    p=p+256
+    p^=value
+}
