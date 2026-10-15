@@ -452,6 +452,9 @@ func (g *z80cg) genInst(inst *Inst) {
 		// Phase 6e PBQP nudge (see pbqp_affinity.go) biases the allocator
 		// toward C/E for LUT indices so these paths fire more often.
 		if pat, ok := g.lutLoadPat[inst.Dst]; ok {
+			// Page/address scratch is not the MIR load's destination. A live
+			// high byte (B/D) or HL value must survive the selected sequence.
+			defer g.saveWrittenScratch(inst)()
 			src8 := g.loc(pat.src8Reg)
 			sym := sanitizeIdent(pat.sym)
 			switch src8 {
