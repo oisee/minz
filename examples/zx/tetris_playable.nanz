@@ -1106,8 +1106,12 @@ fun render_smooth()->bool {
     } else {
         pixel_mark_cells(ptr(u16(&pixel_old_x)),ptr(u16(&pixel_old_y)),drawn_phase)
         if game_over==0 {pixel_mark_cells(ptr(u16(&pixel_new_x)),ptr(u16(&pixel_new_y)),pixel_phase)}
-        pixel_restore_attributes()
-        if direct_refresh!=0 {pixel_prepare_board_attributes(direct_board_first,direct_board_limit)}
+        if direct_refresh!=0 {
+            // A containing board refresh overwrites every marked actor band.
+            // Avoid rebuilding those attributes twice before publication.
+            if (pixel_first_row<direct_board_first)|(pixel_row_limit>direct_board_limit) {pixel_restore_attributes()}
+            pixel_prepare_board_attributes(direct_board_first,direct_board_limit)
+        } else {pixel_restore_attributes()}
     }
     if game_over==0 {pixel_actor_attributes()}
     direct_preview=0

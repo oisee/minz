@@ -1,0 +1,73 @@
+{
+  "baseline_commit": "6e910f1138f3a94fc8e1f29a655fb2d4299969ae",
+  "scope": "Research only; native independent main and four-line fixture in ordinary/Grace Speed/Grace Size; no frame-count improvement or release image refresh claimed. Profile attribution is nearest preceding function label; HALT excluded from selected sums.",
+  "cases": [
+    {
+      "case": "level-2/ordinary",
+      "before_bytes": 24269,
+      "after_bytes": 24323,
+      "before_clock_histogram": {
+        "0": 1,
+        "1": 109,
+        "2": 9
+      },
+      "after_clock_histogram": {
+        "0": 1,
+        "1": 109,
+        "2": 9
+      },
+      "selected_steps": [
+        {
+          "step": 5,
+          "keys": 0,
+          "before_T_excluding_halt": 49138,
+          "after_T_excluding_halt": 49150
+        },
+        {
+          "step": 101,
+          "keys": 16,
+          "before_T_excluding_halt": 114232,
+          "after_T_excluding_halt": 114424
+        },
+        {
+          "step": 115,
+          "keys": 16,
+          "before_T_excluding_halt": 100745,
+          "after_T_excluding_halt": 100935
+        }
+      ],
+      "before_source_sha256": "3ca17f79526e1a28b153897080c547749ea83dd5edec2afba761044b07b415fb",
+      "after_source_sha256": "1f04744a1e6eb541fe2473959107ff9dff4a1659c0f2b0126977ce45e836cfa6"
+    },
+    {
+      "case": "level-2/ordinary/clear-4",
+      "before_bytes": 24269,
+      "after_bytes": 24323,
+      "before_clock_histogram": {
+        "0": 1,
+        "1": 32,
+        "2": 11,
+        "3": 1
+      },
+      "after_clock_histogram": {
+        "0": 1,
+        "1": 32,
+        "2": 11,
+        "3": 1
+      },
+      "selected_steps": [
+        {
+          "step": 5,
+          "keys": 16,
+          "before_T_excluding_halt": 199073,
+          "after_T_excluding_halt": 195065
+        }
+      ],
+      "before_source_sha256": "3ca17f79526e1a28b153897080c547749ea83dd5edec2afba761044b07b415fb",
+      "after_source_sha256": "1f04744a1e6eb541fe2473959107ff9dff4a1659c0f2b0126977ce45e836cfa6"
+    }
+  ],
+  "matrix_log_sha256": "a5d0c3b8fadc46a933340cf4ef795bbed03587491c5f497064558d7d0f2e59f5",
+  "matrix_elapsed_seconds": 35.582,
+  "local_artifacts": "/home/alice/dev/minz-artifacts/grace-reports/2026-10-15/tetris-attribute-contained-matrix"
+}
