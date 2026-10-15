@@ -505,6 +505,14 @@ func (g *z80cg) genInst(inst *Inst) {
 			g.invalidate("A")
 			break
 		}
+		// A checked single-use literal displacement needs no address pair or A scratch.
+		if inst.Ty.Width() == 16 && (dst == "HL" || dst == "DE" || dst == "BC") {
+			if info, ok := g.globalFieldAddr[inst.Src[0]]; ok && g.globalFieldSkip[inst.Src[0]] {
+				g.emitNativeMemoryf(inst, 0, 2, "    LD %s, (%s)    ; literal word load, no scratch clobber", dst, globalFieldLabel(info.sym, info.offset, info.fieldName))
+				g.invalidate(dst)
+				break
+			}
+		}
 		// Direct global word loads preserve all registers except their destination.
 		// The matcher accepts only a single-use AddrOf(global) and HL/DE/BC.
 		// Avoids the INC/DEC trick (LD A,(HL)/INC HL/LD H,(HL)/LD L,A) that

@@ -751,6 +751,23 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 		g.globalFieldSkip[base] = true
 	}
 
+	// Literal global displacements may feed a direct word load as well.
+	// Both the base and derived address must have one use across the entire
+	// function; otherwise skipping their materialization would lose a live pointer.
+	for _, inst := range b.Insts {
+		if inst.Op != OpLoad || inst.Ty.Width() != 16 || inst.Dst == NoReg {
+			continue
+		}
+		dst := g.ar.Loc(inst.Dst).Name
+		if dst != "HL" && dst != "DE" && dst != "BC" {
+			continue
+		}
+		addr := inst.Src[0]
+		if _, literal := g.globalFieldAddr[addr]; literal && allUses[addr] == 1 {
+			g.globalFieldSkip[addr] = true
+		}
+	}
+
 	// ── HL-chain detection ──────────────────────────────────────────────────────
 	// When 2+ stores to the same global struct cover consecutive byte offsets and
 	// all value registers are safe (not H or L, which alias with the HL pointer),
