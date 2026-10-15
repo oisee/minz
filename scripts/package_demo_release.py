@@ -93,6 +93,7 @@ for platform, binary in sorted(platforms.items()):
     # the distribution. Create only a missing disk, never seed over saved data.
     (dest / 'images/save-blank.trd').write_bytes(bytes(655360))
     (dest / 'sources').mkdir()
+    shutil.copy2(root / '.gitattributes', dest / 'sources/.gitattributes')
     for source in [root / 'examples/zx/tetris_playable.nanz', root / 'scripts/zx_tetris_entry.a80', root / 'reports/hardware-sprite-chain/demo/source.nanz']:
         shutil.copy2(source, dest / 'sources' / source.name)
     # Preserve the declarative sprite/scene generators used by the playable demo.
