@@ -461,7 +461,28 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 // contiguous expression (constants and the definitions being eliminated).
 func bitCmpMemoryAdjacent(b *Block, cmp *Inst, pat bitCmpPat, skipped []Reg, zero Reg) bool {
 	if !pat.useMem {
-		return true
+		// Deferring the AND/shift to BIT also extends the source register's
+		// lifetime past allocation. An intervening instruction may reuse that
+		// physical register, even though the original test value was live.
+		// Fuse only contiguous expressions for register operands too.
+		allowed := map[Reg]bool{zero: true}
+		for _, r := range skipped {
+			allowed[r] = true
+		}
+		started := false
+		for _, i := range b.Insts {
+			if i == cmp {
+				return started
+			}
+			if allowed[i.Dst] {
+				started = true
+				continue
+			}
+			if started && i.Op != OpConst {
+				return false
+			}
+		}
+		return false
 	}
 	allowed := map[Reg]bool{zero: true}
 	for _, r := range skipped {
