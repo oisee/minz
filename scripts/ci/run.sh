@@ -20,7 +20,9 @@ case "$job" in
     git -C "$baseline_root" init -q || exit $?
     git -C "$baseline_root" add -f . || exit $?
     extra=()
-    [[ -n ${MATRIX_GLOB:-} ]] && extra+=(--glob "$MATRIX_GLOB")
+    # Release/nightly audits always use the complete default corpus. Keep the
+    # PR smoke restriction out of that path, even when the workflow sets it.
+    [[ ${NIGHTLY:-false} != true && -n ${MATRIX_GLOB:-} ]] && extra+=(--glob "$MATRIX_GLOB")
     python3 scripts/assert_matrix.py --root "${MATRIX_ROOT:-.}" --baseline "$CI_BIN/baseline-mz" \
       --candidate "$CI_BIN/candidate-mz" --baseline-root "$baseline_root" \
       "$controls" --runs "${RUNS:-1}" -j "$jobs" --json "$report_dir/matrix.json" "${extra[@]}" 2>&1 | tee "$report_dir/log.txt"

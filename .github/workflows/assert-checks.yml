@@ -93,7 +93,7 @@ jobs:
           FUZZ_COUNT: ${{ inputs.nightly && '10000' || '300' }}
           # Full corpus and negative controls remain in deep/release audits.
           # PR checks execute a bounded tuple-return receipt/control smoke.
-          MATRIX_GLOB: ${{ inputs.nightly && '' || 'examples/nanz/tuple_assert_gate.nanz' }}
+          MATRIX_GLOB: examples/nanz/tuple_assert_gate.nanz
           NIGHTLY: ${{ inputs.nightly }}
         run: bash scripts/ci/run.sh '${{ matrix.job }}'
       - name: Upload report and reproducers

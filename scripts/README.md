@@ -247,8 +247,20 @@ simulating uncommitted changes. For a nightly simulation also set
 `NIGHTLY=true RUNS=2 FUZZ_COUNT=10000 BASE_REV=HEAD~1`. To rerun one job, set
 `CI_BIN` to the printed compiler directory, `REPORT_DIR` to a writable output
 directory, and run `bash scripts/ci/run.sh matrix` (or `judges`, `sweep`, `fuzz`, `fuzz-direct`).
-`MATRIX_ROOT` selects a disposable checkout; `MATRIX_GLOB` narrows a matrix
-run for a regression fixture. CI leaves both unset and audits the full corpus.
+`MATRIX_ROOT` selects a disposable checkout; `MATRIX_GLOB` narrows a non-nightly
+matrix run for a regression fixture. PR checks set the tuple-return smoke glob.
+Release/nightly checks set `NIGHTLY=true`: the driver ignores that smoke filter
+and uses the complete `DEFAULT_GLOBS` corpus declared in `assert_matrix.py`.
+Their metadata also enables negative controls and repeats positive runs.
+
+Keep this choice in the driver: GitHub's `condition && '' || smoke` expression
+always returns `smoke`, because its empty true arm is false-valued. The driver
+regression checks actual forwarded arguments for PR/nightly modes with both
+empty and nonempty filters:
+
+```sh
+python3 scripts/test_ci.py CITests.test_release_matrix_does_not_inherit_pr_smoke_glob
+```
 
 To verify that the CI matrix wrapper rejects a codegen regression after building
 both compilers:

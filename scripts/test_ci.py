@@ -1,15 +1,59 @@
 #!/usr/bin/env python3
 """Exercise CI tree selection, controls filtering and bounded summaries."""
 import json
+import io
 import os
 from pathlib import Path
 import subprocess
+import sys
+import tarfile
 import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 
 class CITests(unittest.TestCase):
+    def test_release_matrix_does_not_inherit_pr_smoke_glob(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            bins = root / 'bins'
+            bins.mkdir()
+            for name in ('candidate-mz', 'baseline-mz'):
+                (bins / name).write_text('unused compiler fixture')
+            with tarfile.open(bins / 'base.tar.gz', 'w:gz') as archive:
+                body = b'baseline fixture'
+                entry = tarfile.TarInfo('fixture.txt')
+                entry.size = len(body)
+                archive.addfile(entry, io.BytesIO(body))
+            python = bins / 'python3'
+            python.write_text(f'''#!{sys.executable}
+import json, os, sys
+from pathlib import Path
+if Path(sys.argv[1]).name == 'assert_matrix.py':
+    Path(os.environ['ARGV_CAPTURE']).write_text(json.dumps(sys.argv[2:]))
+    Path(sys.argv[sys.argv.index('--json') + 1]).write_text(json.dumps({{'version': 2, 'passes': {{}}}}))
+    raise SystemExit(0)
+os.execv({sys.executable!r}, [{sys.executable!r}] + sys.argv[1:])
+''')
+            python.chmod(0o755)
+            smoke = 'examples/nanz/tuple_assert_gate.nanz'
+            for index, (nightly, glob) in enumerate([
+                    ('false', smoke), ('true', smoke), ('true', ''), ('false', '')]):
+                with self.subTest(nightly=nightly, glob=glob):
+                    capture = root / f'argv-{index}.json'
+                    env = dict(os.environ, CI_BIN=str(bins), REPORT_DIR=str(root / f'report-{index}'),
+                               JOBS='1', NIGHTLY=nightly, MATRIX_GLOB=glob, CONTROLS='true',
+                               ARGV_CAPTURE=str(capture), GITHUB_STEP_SUMMARY=os.devnull,
+                               PATH=str(bins) + os.pathsep + os.environ['PATH'])
+                    subprocess.run(['bash', str(ROOT / 'scripts/ci/run.sh'), 'matrix'], cwd=ROOT,
+                                   env=env, capture_output=True, text=True, check=True)
+                    argv = json.loads(capture.read_text())
+                    if nightly == 'false' and glob:
+                        self.assertEqual(argv[argv.index('--glob') + 1], smoke)
+                    else:
+                        self.assertNotIn('--glob', argv)
+                    self.assertIn('--controls', argv)
+
     def test_merge_parent_and_controls_filter(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
