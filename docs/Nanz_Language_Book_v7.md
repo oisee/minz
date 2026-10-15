@@ -2668,6 +2668,7 @@ contains the chosen function, without a runtime call to `meta_opt_size`.
 |---|---|
 | `emit(text: ^u8)` | Append Nanz source to the expansion |
 | `meta_opt_size() -> bool` | Whether this invocation has the Size build goal |
+| `meta_variant(key, alternatives, fallback) -> u8` | Declare finite generator alternatives; an invocation-local selection chooses an index |
 | `block_len() -> u8` | Number of nodes in the descriptor block |
 | `node_keyword(i)` | Descriptor node keyword |
 | `node_arg_count(i)` | Number of positional arguments |
@@ -2693,6 +2694,15 @@ measurement scope are documented in
 [the preparation report](../reports/advanced-demos/sprite-preparation-options/README.md).
 Automatic selection by whole-program measurements/frame budget is separate
 from exposing this compile-time context.
+
+A normal parse returns the declared fallback. `mz specialize source.nanz
+--goal size --evidence new-directory -o selected.a80` enumerates the declared
+choices, compiles full candidates under identical Size options, and compares
+compact assembled code. Generator authors must supply equivalent alternatives;
+the declaration is not an equivalence proof. Source assertions remain unchanged
+and execute for every candidate. Speed/frame-budget selection needs a workload
+and is not implemented by this command. See [the complete sprite example and
+measurement](../reports/advanced-demos/meta-specialization/README.md).
 
 ### 20.5 Testing @derive
 

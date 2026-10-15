@@ -132,6 +132,10 @@ func runZXTypedSpriteSceneMachine(t *testing.T, scene, exportEnv string, rowShif
 }
 
 func runZXTypedSpriteSceneSourceMachine(t *testing.T, src []byte, exportEnv string, rowShift func(frame, row int) int, pixelUnits ...bool) {
+	runZXTypedSpriteSceneVariantMachine(t, src, exportEnv, rowShift, nil, pixelUnits...)
+}
+
+func runZXTypedSpriteSceneVariantMachine(t *testing.T, src []byte, exportEnv string, rowShift func(frame, row int) int, variants map[string]uint8, pixelUnits ...bool) {
 	t.Helper()
 	rom, err := os.ReadFile("../../cmd/mzx/roms/48.rom")
 	if err != nil {
@@ -192,7 +196,7 @@ func runZXTypedSpriteSceneSourceMachine(t *testing.T, src []byte, exportEnv stri
 	}
 	for _, mode := range []string{"ordinary", "grace-size", "grace-speed"} {
 		t.Run(mode, func(t *testing.T) {
-			h, err := nanz.ParseWithOpts(string(src), "typed-sprite-scene", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
+			h, err := nanz.ParseWithOpts(string(src), "typed-sprite-scene", nanz.ParseOpts{StdlibDir: "../../../stdlib", MetaVariants: nanz.NewMetaVariantContext(variants)})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -200,7 +204,7 @@ func runZXTypedSpriteSceneSourceMachine(t *testing.T, src []byte, exportEnv stri
 			if err != nil {
 				t.Fatal(err)
 			}
-			rawHIR, err := nanz.ParseWithOpts(string(src), "typed-sprite-scene-raw", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
+			rawHIR, err := nanz.ParseWithOpts(string(src), "typed-sprite-scene-raw", nanz.ParseOpts{StdlibDir: "../../../stdlib", MetaVariants: nanz.NewMetaVariantContext(variants)})
 			if err != nil {
 				t.Fatal(err)
 			}

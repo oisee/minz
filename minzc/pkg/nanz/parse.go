@@ -58,10 +58,11 @@ import (
 
 // ParseOpts configures import resolution and compile-time generation.
 type ParseOpts struct {
-	OptSize   bool            // compile-time size goal available to metafunctions
-	BaseDir   string          // directory of the source file (for relative imports)
-	StdlibDir string          // path to stdlib/ root (for stdlib imports)
-	Loaded    map[string]bool // already-loaded module paths (circular import detection)
+	MetaVariants *MetaVariantContext // optional invocation-local generator alternatives
+	OptSize      bool                // compile-time size goal available to metafunctions
+	BaseDir      string              // directory of the source file (for relative imports)
+	StdlibDir    string              // path to stdlib/ root (for stdlib imports)
+	Loaded       map[string]bool     // already-loaded module paths (circular import detection)
 }
 
 // Parse parses Nanz source and returns a HIR module (no import resolution).
@@ -1669,10 +1670,11 @@ func (p *parser) parseImport() error {
 		imported, err = pascal.Compile(string(src), modPath)
 	default: // .nanz
 		childOpts := ParseOpts{
-			BaseDir:   filepath.Dir(filePath),
-			StdlibDir: p.opts.StdlibDir,
-			OptSize:   p.opts.OptSize,
-			Loaded:    make(map[string]bool),
+			BaseDir:      filepath.Dir(filePath),
+			StdlibDir:    p.opts.StdlibDir,
+			OptSize:      p.opts.OptSize,
+			MetaVariants: p.opts.MetaVariants,
+			Loaded:       make(map[string]bool),
 		}
 		for k, v := range p.opts.Loaded {
 			childOpts.Loaded[k] = v
@@ -6193,6 +6195,7 @@ func (p *parser) captureMetaFuncSource(name string) (string, error) {
 	}
 	sb.WriteString("@extern fun emit(s: ^u8) -> void\n")
 	sb.WriteString("@extern fun meta_opt_size() -> bool\n")
+	sb.WriteString("@extern fun meta_variant(key:^u8, alternatives:u8, fallback:u8) -> u8\n")
 	sb.WriteString("@extern fun block_len() -> u8\n")
 	sb.WriteString("@extern fun node_keyword(i: u8) -> ^u8\n")
 	sb.WriteString("@extern fun node_arg_count(i: u8) -> u8\n")
@@ -6325,6 +6328,7 @@ func executeMetaOutput(
 	// 4. Register host functions
 	mr := newMetaRuntime(callerMod)
 	mr.optSize = opts.OptSize
+	mr.variants = opts.MetaVariants
 	if len(callerScopes) > 0 {
 		mr.callerTypes = callerScopes[0]
 	}

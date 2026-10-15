@@ -7,6 +7,8 @@
 // Optional effect_preparation "loop" reduces repeated offset-call code;
 // "unrolled" keeps direct constant-row calls (the default). Both visit rows
 // in order; this choice changes preparation, not baked pixel kernels.
+// "auto" declares both implementations for mz specialize; ordinary compilation
+// keeps the unrolled fallback, without guessing from the sprite height.
 // Public value: <name>{x:pixel_x,y:pixel_y}; public method: value.draw()->bool.
 fun @zx_sprite(name:^u8)->void {
     var cursor: i32 = 0
@@ -69,7 +71,9 @@ fun @zx_sprite(name:^u8)->void {
             if node_arg_count(i)!=1 {meta_error(c"zx sprite: effect_preparation needs loop or unrolled")}
             let style:^u8=node_arg_str(i,0)
             if str_eq(style,c"loop")==1 {effect_loop=1}
-            else {if str_eq(style,c"unrolled")!=1 {meta_error(c"zx sprite: effect_preparation needs loop or unrolled")}}
+            else {if str_eq(style,c"auto")==1 {
+                effect_loop=meta_variant(str_concat(c"zx.sprite.preparation.",name),2,0)
+            } else {if str_eq(style,c"unrolled")!=1 {meta_error(c"zx sprite: effect_preparation needs loop, unrolled or auto")}}}
             seen_effect_preparation=1
         } else if str_eq(key,c"row_shifts")==1 {
             if row_shifts!=0 {meta_error(c"zx sprite: duplicate row_shifts")}
