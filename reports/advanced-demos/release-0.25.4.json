@@ -1,6 +1,6 @@
 {
   "version": "0.25.4",
-  "status": "pending_final_audit_not_published",
+  "status": "audits_complete_draft_release_waiting_pr159_ci",
   "source": "d2d8f7ba3f2968368bb47079b2b51a0cff569bab",
   "integrated_main": "494ad64eb48780841c6cc797474ad1d1fa5e1711",
   "native_build_run": 38750621711,
@@ -41,9 +41,39 @@
     "scope": "Default output equivalence including existing compiler errors; 838 files does not mean 838 successful compilations."
   },
   "full_default_matrix": {
-    "status": "incomplete",
-    "units_per_backend": 4729,
-    "required_before_publication": true
+    "scope": "DEFAULT_GLOBS",
+    "status": "complete",
+    "judge_commit": "2a178f8e261bfd941f16be7d8276266ca64ba1c4",
+    "frozen_compiler_source": "d2d8f7ba3f2968368bb47079b2b51a0cff569bab",
+    "units_per_backend": 1669,
+    "assertions_per_compiler": 4809,
+    "full_ordered_inventory_preserved": true,
+    "runs": 2,
+    "wall_seconds": 336,
+    "backends": {
+      "z80": {
+        "pass_both": 1544,
+        "fail_both": 125,
+        "new_regressions": 0,
+        "negative_controls": 3354,
+        "unexpected_control_passes": 0,
+        "existing_failure_phases": {
+          "assertion mismatch": 500
+        }
+      },
+      "mir2": {
+        "pass_both": 1595,
+        "fail_both": 74,
+        "new_regressions": 0,
+        "negative_controls": 3354,
+        "unexpected_control_passes": 0,
+        "existing_failure_phases": {
+          "assertion mismatch": 44,
+          "assembly after MIR assertion": 252
+        }
+      }
+    },
+    "limits": "Identical existing assertion or assembly failures remain failures; not an all-program PASS claim."
   },
   "known_limit": "Heavy game actions take two to three frames; physical Spectrum not tested.",
   "pipeline_verification": {
@@ -227,7 +257,101 @@
     "scope": "Actual source-assertion/folded-expression fuzz records, all unique seeds0..9999; no assertion skipped. Direct-call fuzz has a distinct scope and remains separate."
   },
   "direct_call_fuzz": {
-    "status": "in_progress",
-    "report_only": true
+    "run": 38761435720,
+    "source": "d2d8f7ba3f2968368bb47079b2b51a0cff569bab",
+    "cases": 10000,
+    "counts": {
+      "pass": 7119,
+      "Z80 != MIR2": 370,
+      "compiler error": 2511
+    },
+    "all10000_records_identical_to0253": true,
+    "baseline_results_sha256": "b7db4b417caa88f055ea10aa11b4b8ba69b4b499d71076558ca0308275b5f97f",
+    "results_sha256": "b7db4b417caa88f055ea10aa11b4b8ba69b4b499d71076558ca0308275b5f97f",
+    "finding_source_files_verified": 3251,
+    "finding_sources_equal_baseline": true,
+    "report_only": true,
+    "tool_exit": 1,
+    "scope": "Unchanged per-seed full execution/error records and all preserved reproducer sources versus0.25.3. Known370 mismatches and2511 errors remain compiler issues, not PASS; no new direct-fuzz findings."
+  },
+  "native_packages": {
+    "source": "d2d8f7ba3f2968368bb47079b2b51a0cff569bab",
+    "files": [
+      {
+        "name": "README.txt",
+        "sha256": "b3d2b5f9d91d008619c939d8d829ce9921c8a2b4a1c5aad9a91ccf3b83d7ac27",
+        "bytes": 2248
+      },
+      {
+        "name": "SHA256SUMS",
+        "sha256": "1394c19adc69fb85adb7ba529b593c2cb6be1acf1abc4f7f192682a415e9c77b",
+        "bytes": 1198
+      },
+      {
+        "name": "manifest.json",
+        "sha256": "725b48c0b95312c9041725f746e40b97a28fc579b3612ba39156c7ba0d667116",
+        "bytes": 11629
+      },
+      {
+        "name": "minz-demos-0.25.4-darwin-amd64.zip",
+        "sha256": "d9a8dcffee917abcec533ce1d6c8cc906ef6b585148be1677df1cbb9793ac66a",
+        "bytes": 15150220
+      },
+      {
+        "name": "minz-demos-0.25.4-darwin-arm64.zip",
+        "sha256": "63f9f522e889e9f841ddbe054c7da44a8bb7cbe71fe9e6a04145b08190342155",
+        "bytes": 14018170
+      },
+      {
+        "name": "minz-demos-0.25.4-images.zip",
+        "sha256": "81ed4f3a448443254f7b988de1149e1aab0a6cfe15c226f4438169bade590e65",
+        "bytes": 194691
+      },
+      {
+        "name": "minz-demos-0.25.4-linux-amd64.zip",
+        "sha256": "e127720909ceb118a7c45cdd3550758205f583356ad1d95f9d79e7c6b6dbeaff",
+        "bytes": 9171005
+      },
+      {
+        "name": "minz-demos-0.25.4-linux-arm64.zip",
+        "sha256": "e9f392dfa315177e176c6e39ef3b73ea786fc3110a6fb46a4caf48585fc892dc",
+        "bytes": 8513844
+      },
+      {
+        "name": "minz-demos-0.25.4-windows-amd64.zip",
+        "sha256": "1bdf5bf176a07ee698a32d83e8a5d0e9e85b2b59724ed8ff9359ee9e30135ad0",
+        "bytes": 9279987
+      },
+      {
+        "name": "minz-demos-0.25.4-windows-arm64.zip",
+        "sha256": "dc6a02c48771b4af193ae7c45be1392b5c38b1fb1abe1857e9f60b99e9630f64",
+        "bytes": 8493487
+      },
+      {
+        "name": "tetris-full-50hz.gif",
+        "sha256": "a2c71819cbd88ebbed9be7bcf1d17fce7d1f297692a81375ffd7b96ec8d196b5",
+        "bytes": 261030
+      },
+      {
+        "name": "tetris-full-50hz.mp4",
+        "sha256": "46bf0328f24afe7b201280334420fe27d516e2fb289cdd40b0ffbef779e5bd42",
+        "bytes": 22262
+      },
+      {
+        "name": "tv-long-50hz.gif",
+        "sha256": "73c5063df335eb674d8d6ccb4f55041256d39b32ca289fb70ee6ca5bca179263",
+        "bytes": 43449
+      },
+      {
+        "name": "tv-long-50hz.mp4",
+        "sha256": "65294f8217cec8064844dd98542b39f84350128f90af252d2518a53c6489ea6e",
+        "bytes": 88864
+      }
+    ],
+    "native_archives_and_media_unchanged": true,
+    "image_data_unchanged": true,
+    "only_image_readme_updated": true,
+    "all_zip_crc_checked": true,
+    "public_release_pending": true
   }
 }

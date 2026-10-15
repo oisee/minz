@@ -58,7 +58,7 @@ not participate in selection. [**Full compiler overview →**](reports/2026-10-1
 
 ## Compiler progress — October 2026
 
-[**Full report: MinZ today — Nanz, the other frontends, compiler layers, and verified Z80**](reports/2026-10-11-092-grace-vm-z80-status.md) (Russian). A tour of the shared pipeline, Grace, PFCCO/PBQP and register-allocation tables, separating integrated changes from research checkpoints. **Updated October 15:** whole baked sprites, direct pixel-smooth Tetris, typed wave/noise effects and measured Size/Speed/frame-budget specialization are in `main`. Automatic line progression uses an 8-pixel colour gauge and no in-game text. [The 0.25.4 checkpoint](reports/advanced-demos/release-0.25.4.md) explains the Nanz API, six verified native packages, long 50-Hz recordings and pending final release checks. [Published demos 0.25.3](https://github.com/oisee/minz/releases/tag/v0.25.3) retain the previous three-mode game; [their verified results and limits](reports/advanced-demos/release-0.25.3.md) remain available.
+[**Full report: MinZ today — Nanz, the other frontends, compiler layers, and verified Z80**](reports/2026-10-11-092-grace-vm-z80-status.md) (Russian). A tour of the shared pipeline, Grace, PFCCO/PBQP and register-allocation tables, separating integrated changes from research checkpoints. **Updated October 15:** whole baked sprites, direct pixel-smooth Tetris, typed wave/noise effects and measured Size/Speed/frame-budget specialization are in `main`. Automatic line progression uses an 8-pixel colour gauge and no in-game text. [The 0.25.4 checkpoint](reports/advanced-demos/release-0.25.4.md) explains the Nanz API, six verified native packages and long 50-Hz recordings. All 800 pipeline roots are accounted for: **707 PASS, 93 SKIP, 0 FAIL**. The corrected full source-assertion audit preserves all 4,809 assertions per compiler and finds no new regressions; existing failures remain reported. The 14 release files have been uploaded to a draft and verified by downloading them again; public release awaits the CI-only harness fix. [Published demos 0.25.3](https://github.com/oisee/minz/releases/tag/v0.25.3) retain the previous three-mode game; [their verified results and limits](reports/advanced-demos/release-0.25.3.md) remain available.
 
 [Measured runtime sprites](reports/runtime-sprite-measured-composition/README.md): compose checked register-assignment fragments, retain a live base, and select tables plus conditional layouts on training inputs; replay the exact winner on heldout buffers.
 
@@ -142,7 +142,7 @@ or three frames. [Source, full verification and capture provenance](reports/adva
 The whole-sprite API, automatic line progression and this image are in main.
 Published [0.25.3 packages](https://github.com/oisee/minz/releases/tag/v0.25.3)
 still contain the previous game. [The new six-platform release checkpoint](reports/advanced-demos/release-0.25.4.md)
-records completed checks and what remains before publication.
+records the completed pipeline and full source-assertion audits, verified GitHub draft downloads, and the remaining publication step.
 [Earlier renderer and measurements](reports/advanced-demos/tetris/direct-renderer.md).
 
 [Typed sprite scene](reports/advanced-demos/typed-sprite-scene/README.md):
