@@ -1026,13 +1026,15 @@ fun pixel_prepare_bands() {
     while y<pixel_row_limit {
         let left:u8=pixel_left[y]
         let right:u8=pixel_right[y]
-        var extra:bool=true
-        if direct_refresh!=0 {if (y>=direct_board_first)&(y<direct_board_limit) {extra=false}}
-        if (left<right)&extra {
-            field_pixels_sources[field_pixels_count]=u16(&tetris_values[y*10+left])
-            field_pixels_destinations[field_pixels_count]=zx_attr_addr(11+left,2+y)
-            field_pixels_widths[field_pixels_count]=right-left
-            field_pixels_count=field_pixels_count+1
+        if left<right {
+            var extra:bool=true
+            if direct_refresh!=0 {if (y>=direct_board_first)&(y<direct_board_limit) {extra=false}}
+            if extra {
+                field_pixels_sources[field_pixels_count]=u16(&tetris_values[y*10+left])
+                field_pixels_destinations[field_pixels_count]=zx_attr_addr(11+left,2+y)
+                field_pixels_widths[field_pixels_count]=right-left
+                field_pixels_count=field_pixels_count+1
+            }
         }
         y=y+1
     }
