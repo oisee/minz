@@ -1,0 +1,171 @@
+{
+  "version": "0.25.4",
+  "status": "pending_final_audit_not_published",
+  "source": "d2d8f7ba3f2968368bb47079b2b51a0cff569bab",
+  "integrated_main": "494ad64eb48780841c6cc797474ad1d1fa5e1711",
+  "native_build_run": 38750621711,
+  "tag_run": 38761435720,
+  "fast": {
+    "PASS": 397,
+    "SKIP": 32,
+    "FAIL": 0
+  },
+  "deep_partial": {
+    "source": "d2d8f7ba3f2968368bb47079b2b51a0cff569bab",
+    "run": 38761435720,
+    "verified_shards": [
+      {
+        "shard": 1,
+        "roots": 31,
+        "counts": {
+          "PASS": 27,
+          "SKIP": 4
+        },
+        "all_four_process_exits": 0,
+        "binary_matches_fast": true
+      },
+      {
+        "shard": 2,
+        "roots": 31,
+        "counts": {
+          "PASS": 26,
+          "SKIP": 5
+        },
+        "all_four_process_exits": 0,
+        "binary_matches_fast": true
+      },
+      {
+        "shard": 3,
+        "roots": 31,
+        "counts": {
+          "PASS": 26,
+          "SKIP": 5
+        },
+        "all_four_process_exits": 0,
+        "binary_matches_fast": true
+      },
+      {
+        "shard": 4,
+        "roots": 31,
+        "counts": {
+          "PASS": 26,
+          "SKIP": 5
+        },
+        "all_four_process_exits": 0,
+        "binary_matches_fast": true
+      },
+      {
+        "shard": 5,
+        "roots": 31,
+        "counts": {
+          "PASS": 26,
+          "SKIP": 5
+        },
+        "all_four_process_exits": 0,
+        "binary_matches_fast": true
+      },
+      {
+        "shard": 6,
+        "roots": 31,
+        "counts": {
+          "PASS": 26,
+          "SKIP": 5
+        },
+        "all_four_process_exits": 0,
+        "binary_matches_fast": true
+      },
+      {
+        "shard": 7,
+        "roots": 31,
+        "counts": {
+          "PASS": 24,
+          "SKIP": 7
+        },
+        "all_four_process_exits": 0,
+        "binary_matches_fast": true
+      },
+      {
+        "shard": 8,
+        "roots": 31,
+        "counts": {
+          "PASS": 25,
+          "SKIP": 6
+        },
+        "all_four_process_exits": 0,
+        "binary_matches_fast": true
+      },
+      {
+        "shard": 9,
+        "roots": 31,
+        "counts": {
+          "PASS": 27,
+          "SKIP": 4
+        },
+        "all_four_process_exits": 0,
+        "binary_matches_fast": true
+      },
+      {
+        "shard": 10,
+        "roots": 31,
+        "counts": {
+          "PASS": 26,
+          "SKIP": 5
+        },
+        "all_four_process_exits": 0,
+        "binary_matches_fast": true
+      },
+      {
+        "shard": 11,
+        "roots": 30,
+        "counts": {
+          "PASS": 24,
+          "SKIP": 6
+        },
+        "all_four_process_exits": 0,
+        "binary_matches_fast": true
+      }
+    ],
+    "unique_deep_roots_verified": 340,
+    "complete": false,
+    "remaining_shards": [
+      0
+    ],
+    "scope": "Only complete downloaded shards, actual inventories/logs and binary hashes; all twelve plus fast required for complete release coverage. SKIP is not PASS."
+  },
+  "tag_matrix": {
+    "run": 38761435720,
+    "source": "d2d8f7ba3f2968368bb47079b2b51a0cff569bab",
+    "backends": {
+      "z80": {
+        "units": 4,
+        "positive_executions": 16,
+        "negative_executions": 16,
+        "unexpected_pass": 0
+      },
+      "mir2": {
+        "units": 4,
+        "positive_executions": 16,
+        "negative_executions": 16,
+        "unexpected_pass": 0
+      }
+    },
+    "scope": "Tag configured tuple assertion smoke only. Four units per backend, baseline+candidate each repeated twice; sixteen negative executions per backend. Supplemental DEFAULT_GLOBS result required separately."
+  },
+  "sweep": {
+    "run": 38761435720,
+    "files": 838,
+    "outputs": 326,
+    "exit_counts": {
+      "0": 326,
+      "1": 512
+    },
+    "all_actual_baseline_candidate_records_equal": true,
+    "scope": "Default output equivalence including existing compiler errors; 838 files does not mean 838 successful compilations."
+  },
+  "full_default_matrix": {
+    "status": "incomplete",
+    "units_per_backend": 4729,
+    "required_before_publication": true
+  },
+  "known_limit": "Heavy game actions take two to three frames; physical Spectrum not tested."
+}

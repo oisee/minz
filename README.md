@@ -58,7 +58,7 @@ not participate in selection. [**Full compiler overview →**](reports/2026-10-1
 
 ## Compiler progress — October 2026
 
-[**Full report: MinZ today — Nanz, the other frontends, compiler layers, and verified Z80**](reports/2026-10-11-092-grace-vm-z80-status.md) (Russian). A readable tour of the shared pipeline, Grace, PFCCO/PBQP and register-allocation tables, with measured results and remaining gaps. Research-branch results are identified separately from what is available in `main`. **Updated October 15:** whole baked sprites, direct smooth Tetris and typed wave/noise effects are integrated in `main`. [Demos 0.25.2](https://github.com/oisee/minz/releases/tag/v0.25.2) provides six native packages; [release verification and remaining limits](reports/advanced-demos/release-0.25.2.md) distinguish executed PASS, SKIP and open exploratory findings. The overview also covers the shared hardware library, ROM/IRQ-verified Spectrum demos and parallel deep checks on release tags, nightly and manual runs. Pixel-X kernels and smooth random-speed Tetris are in main. [Demos 0.25.3](https://github.com/oisee/minz/releases/tag/v0.25.3) adds three fall modes and pixel wobble, with six verified native packages and real 50-Hz media. [Release evidence and limits](reports/advanced-demos/release-0.25.3.md): 696 PASS, 93 SKIP, 0 FAIL across the complete fast/deep pipeline inventory. Measured Size/Speed/frame-budget specialization is now in main via #153. Automatic line-driven Tetris is now in main through [#155](https://github.com/oisee/minz/pull/155), with a no-text progress gauge and a complete 50-Hz game capture. Its new six-platform release is still pending; [#156](https://github.com/oisee/minz/pull/156) adds multi-line transition coverage.
+[**Full report: MinZ today — Nanz, the other frontends, compiler layers, and verified Z80**](reports/2026-10-11-092-grace-vm-z80-status.md) (Russian). A tour of the shared pipeline, Grace, PFCCO/PBQP and register-allocation tables, separating integrated changes from research checkpoints. **Updated October 15:** whole baked sprites, direct pixel-smooth Tetris, typed wave/noise effects and measured Size/Speed/frame-budget specialization are in `main`. Automatic line progression uses an 8-pixel colour gauge and no in-game text. [The 0.25.4 checkpoint](reports/advanced-demos/release-0.25.4.md) explains the Nanz API, six verified native packages, long 50-Hz recordings and pending final release checks. [Published demos 0.25.3](https://github.com/oisee/minz/releases/tag/v0.25.3) retain the previous three-mode game; [their verified results and limits](reports/advanced-demos/release-0.25.3.md) remain available.
 
 [Measured runtime sprites](reports/runtime-sprite-measured-composition/README.md): compose checked register-assignment fragments, retain a live base, and select tables plus conditional layouts on training inputs; replay the exact winner on heldout buffers.
 
@@ -139,10 +139,10 @@ sessions, 27 threshold/clear sessions and 4890 native Z80 physics scenarios.
 Ordinary motion meets its tested one-IRQ budget; some heavy actions take two
 or three frames. [Source, full verification and capture provenance](reports/advanced-demos/tetris/line-progression/README.md).
 
-The whole-sprite API is already in main. Automatic line progression and this
-new embedded image are being integrated separately; published
-[0.25.3 packages](https://github.com/oisee/minz/releases/tag/v0.25.3) still contain
-the previous game. The new six-platform release follows its own checks.
+The whole-sprite API, automatic line progression and this image are in main.
+Published [0.25.3 packages](https://github.com/oisee/minz/releases/tag/v0.25.3)
+still contain the previous game. [The new six-platform release checkpoint](reports/advanced-demos/release-0.25.4.md)
+records completed checks and what remains before publication.
 [Earlier renderer and measurements](reports/advanced-demos/tetris/direct-renderer.md).
 
 [Typed sprite scene](reports/advanced-demos/typed-sprite-scene/README.md):
