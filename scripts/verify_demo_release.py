@@ -14,6 +14,11 @@ for name, expected in manifest['files'].items():
 with zipfile.ZipFile(str(a.package)+'.zip') as z:
  for f in a.package.rglob('*'):
   if f.is_file():assert z.read(f.relative_to(a.package.parent).as_posix())==f.read_bytes(),f
+for demo,scene in [('sprites','typed-sprite-scene'),('sprite-wave','typed-sprite-effects'),('sprite-tv','sprite-effect-composition')]:
+ provenance=json.loads((a.package/'images'/(demo+'.provenance.json')).read_text())
+ source=a.package/'sources/reports/advanced-demos'/scene/'source.nanz'
+ assert hashlib.sha256(source.read_bytes()).hexdigest()==provenance['source_sha256'],demo+' source association'
+ assert hashlib.sha256((a.package/'images'/(demo+'.sna')).read_bytes()).hexdigest()==provenance['snapshot_sha256'],demo+' image association'
 binary=a.package/('mzx.exe' if a.wine or (a.package/'mzx.exe').is_file() else 'mzx')
 userdata=a.proof/'userdata'
 def target(path):return 'Z:'+str(path).replace('/','\\') if a.wine else str(path)

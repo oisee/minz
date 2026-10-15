@@ -142,8 +142,18 @@ it will enter the next package build.
 one Nanz description bakes the whole sprite and its erase mask.
 `mzx --demo sprites` runs the scene; placement precedes HALT and publication
 writes directly to the screen. [Nanz source](reports/advanced-demos/typed-sprite-scene/source.nanz).
-[Typed TV wave](reports/advanced-demos/typed-sprite-effects/README.md) adds a render-only
-`ByteWave` object and shows actual 50 Hz captures; `mzx --demo sprite-wave`.
+
+**Typed TV wave: baked sprites with a Nanz effect object**
+
+[<img src="reports/advanced-demos/typed-sprite-effects/wave-50hz.gif" width="352" alt="Spectrum ByteWave sprite: 64 consecutive actual Z80/ULA frames at 50 Hz">](reports/advanced-demos/typed-sprite-effects/README.md)
+
+These are **64 consecutive actual Z80/ULA frames at 50 Hz**, without
+interpolation. A typed `ByteWave` object shifts sprite rows by whole byte
+columns; addresses are staged before HALT, then paired erase/draw kernels
+publish directly to the screen. The implementation is now in main
+([PR #137](https://github.com/oisee/minz/pull/137)); it will enter the next
+package build. Run `mzx --demo sprite-wave` with a build from current main.
+[Implementation, Nanz source, and verification](reports/advanced-demos/typed-sprite-effects/README.md).
 [Typed wave + noise](reports/advanced-demos/sprite-effect-composition/README.md)
 composes a concrete Nanz effect type and validates every displayed ULA frame;
 `mzx --demo sprite-tv` in a build containing this candidate.
