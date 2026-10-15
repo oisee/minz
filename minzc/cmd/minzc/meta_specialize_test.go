@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/minz/minzc/pkg/nanz"
+	"github.com/minz/minzc/pkg/spectrum"
+	"github.com/minz/minzc/pkg/spectrum/formats"
+	"github.com/minz/minzc/pkg/z80asm"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -199,5 +202,114 @@ func TestMetaSpecializeSpectrumFlagRefusals(t *testing.T) {
 		if err := runMetaSpecialize("not-read.nanz", f); err == nil {
 			t.Fatal("invalid native search flags accepted")
 		}
+	}
+}
+
+func TestMetaSpecializeSnapshotNeedsWorkload(t *testing.T) {
+	dir := t.TempDir()
+	f := metaSpecializeFlags{Goal: "size", Target: "zxspectrum", Limit: 32, Evidence: filepath.Join(dir, "evidence"), Output: filepath.Join(dir, "bad.sna")}
+	if err := runMetaSpecialize("not-read.nanz", f); err == nil || !strings.Contains(err.Error(), ".sna requires") {
+		t.Fatal("snapshot without explicit boot workload accepted", err)
+	}
+	if _, err := os.Stat(f.Output); !os.IsNotExist(err) {
+		t.Fatal("refused snapshot created output")
+	}
+}
+
+func TestMetaSpecializeSpectrumSnapshotBoot(t *testing.T) {
+	for _, goal := range []string{"speed", "budget"} {
+		t.Run(goal, func(t *testing.T) {
+			dir := t.TempDir()
+			f := metaSpecializeFlags{Goal: goal, Target: "zxspectrum", Evidence: filepath.Join(dir, "evidence"), Output: filepath.Join(dir, "winner.sna"), Stdlib: "../../../stdlib", Workload: "../../../reports/advanced-demos/meta-specialization/workload.json", Limit: 32}
+			if goal == "budget" {
+				f.BudgetTStates = 32000
+			}
+			if err := runMetaSpecialize("../../../reports/advanced-demos/meta-specialization/source.nanz", f); err != nil {
+				t.Fatal(err)
+			}
+			var report metaSpecializeEvidence
+			payload, err := os.ReadFile(filepath.Join(f.Evidence, "selection.json"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err = json.Unmarshal(payload, &report); err != nil {
+				t.Fatal(err)
+			}
+			data, err := os.ReadFile(f.Output)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if fmt.Sprintf("%x", sha256.Sum256(data)) != report.SnapshotSHA256 {
+				t.Fatal("selected snapshot differs from evidence")
+			}
+			snap, err := formats.ParseSNA(data)
+			if err != nil {
+				t.Fatal(err)
+			}
+			raw, err := os.ReadFile(filepath.Join(f.Evidence, "selected.bin"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if fmt.Sprintf("%x", sha256.Sum256(raw)) != report.Candidates[report.Selected].BinarySHA256 {
+				t.Fatal("measured BIN changed")
+			}
+			for i, b := range raw {
+				if snap.RAM[0x4000+i] != b {
+					t.Fatal("snapshot did not embed measured BIN", i)
+				}
+			}
+			asm, err := os.ReadFile(filepath.Join(f.Evidence, "selected.a80"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			a, err := z80asm.NewAssembler().AssembleString(string(asm))
+			if err != nil || len(a.Errors) > 0 {
+				t.Fatal(err)
+			}
+			w := report.SpectrumWorkload
+			rom, err := os.ReadFile(w.ROM)
+			if err != nil {
+				t.Fatal(err)
+			}
+			m, err := spectrum.New48K(rom)
+			if err != nil {
+				t.Fatal(err)
+			}
+			formats.ApplySnapshot(m, snap)
+			if m.CPU.PC() != uint16(a.Symbols[w.Entry]) || m.CPU.SP() != w.Stack || m.CPU.IM() != 1 || m.CPU.IY() != 0x5c3a || m.CPU.IFF1() || m.CPU.IFF2() {
+				t.Fatal("incorrect boot state")
+			}
+			fetched := 0
+			for frames := 0; frames < w.MaxHardwareFrames && fetched < 64; frames++ {
+				m.RunFrame()
+				if m.Memory.ReadByteInternal(uint16(a.Symbols["actor_visible"])) == 0 {
+					continue
+				}
+				// Main advances frame immediately after publication and stages the next
+				// placement before HALT; the displayed image belongs to frame-1.
+				pose := (int(m.Memory.ReadByteInternal(uint16(a.Symbols["frame"]))) - 1) & 31
+				screen := make([]byte, 6912)
+				for i := range screen {
+					screen[i] = m.Memory.ReadByteInternal(0x4000 + uint16(i))
+				}
+				if fmt.Sprintf("%x", sha256.Sum256(screen)) != w.ExpectedScreenSHA256[pose] {
+					t.Fatal("snapshot screen oracle", frames, pose)
+				}
+				rgba := make([]byte, 256*192*4)
+				fb := m.ULA.Framebuffer()
+				for y := 0; y < 192; y++ {
+					offset := ((y+m.Mode.BorderTop)*m.Mode.TotalPixelWidth + m.Mode.BorderLeft) * 4
+					copy(rgba[y*256*4:(y+1)*256*4], fb[offset:offset+256*4])
+				}
+				if fmt.Sprintf("%x", sha256.Sum256(rgba)) != w.ExpectedRGBASHA256[pose] {
+					t.Fatal("snapshot fetched image oracle", frames, pose)
+				}
+				fetched++
+			}
+			if fetched != 64 {
+				t.Fatal("snapshot did not produce 64 verified native frames", fetched)
+			}
+			t.Logf("%s: selected=%d bytes=%d; 64 exact full-screen/fetched ULA frames from saved SNA", goal, report.Selected, len(raw))
+		})
 	}
 }

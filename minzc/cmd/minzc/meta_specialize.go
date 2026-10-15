@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
@@ -12,6 +13,8 @@ import (
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/pipeline"
+	"github.com/minz/minzc/pkg/spectrum"
+	"github.com/minz/minzc/pkg/spectrum/formats"
 	"github.com/minz/minzc/pkg/z80asm"
 	"github.com/spf13/cobra"
 )
@@ -46,6 +49,7 @@ type metaSpecializeEvidence struct {
 	SpectrumWorkload *pipeline.SpectrumPhaseWorkload `json:"spectrum_workload,omitempty"`
 	WorkloadSHA256   string                          `json:"workload_sha256,omitempty"`
 	BudgetTStates    int64                           `json:"budget_t_states,omitempty"`
+	SnapshotSHA256   string                          `json:"snapshot_sha256,omitempty"`
 }
 
 func init() {
@@ -53,7 +57,7 @@ func init() {
 	cmd := &cobra.Command{Use: "specialize source.nanz", Short: "measure declared Z80 variants and select by size, speed or frame budget", Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error { return runMetaSpecialize(args[0], f) }}
 	cmd.Flags().StringVar(&f.Goal, "goal", "size", "selection objective: size, speed (min max full busy T) or budget (min code under measured frame budget)")
 	cmd.Flags().StringVar(&f.Evidence, "evidence", "", "new directory for all candidate ASM/BIN and selection evidence (required)")
-	cmd.Flags().StringVarP(&f.Output, "output", "o", "", "chosen .a80/.asm/.bin output (default: source.a80)")
+	cmd.Flags().StringVarP(&f.Output, "output", "o", "", "chosen .a80/.asm/.bin/.sna output (default: source.a80)")
 	cmd.Flags().StringVarP(&f.Target, "target", "t", "generic", "Z80 target: generic, cpm or zxspectrum")
 	cmd.Flags().StringVar(&f.Stdlib, "stdlib", "", "stdlib directory (default: discover beside source or executable)")
 	cmd.Flags().IntVar(&f.Limit, "limit", 32, "maximum candidate combinations (2..64)")
@@ -168,8 +172,12 @@ func runMetaSpecialize(source string, f metaSpecializeFlags) error {
 	}
 	switch filepath.Ext(output) {
 	case ".a80", ".asm", ".bin":
+	case ".sna":
+		if f.Workload == "" {
+			return fail(fmt.Errorf(".sna requires an explicit Spectrum workload"))
+		}
 	default:
-		return fail(fmt.Errorf("output must be .a80/.asm/.bin"))
+		return fail(fmt.Errorf("output must be .a80/.asm/.bin/.sna"))
 	}
 	if _, err := os.Lstat(output); !os.IsNotExist(err) {
 		return fail(fmt.Errorf("output must not exist: %s", output))
@@ -388,6 +396,14 @@ func runMetaSpecialize(source string, f metaSpecializeFlags) error {
 	if string(current) != string(data) || !reflect.DeepEqual(inputs, physical) || !reflect.DeepEqual(variants, declared) {
 		return fail(fmt.Errorf("source changed during specialization"))
 	}
+	var snapshot []byte
+	if filepath.Ext(output) == ".sna" {
+		snapshot, err = specializeSpectrumSnapshot(filepath.Join(stage, "selected.sna"), chosenASM, chosenBIN, rom, *workload)
+		if err != nil {
+			return fail(err)
+		}
+		report.SnapshotSHA256 = fmt.Sprintf("%x", sha256.Sum256(snapshot))
+	}
 	payload, err := json.MarshalIndent(report, "", "  ")
 	if err != nil {
 		return fail(err)
@@ -403,6 +419,9 @@ func runMetaSpecialize(source string, f metaSpecializeFlags) error {
 	selected := chosenASM
 	if filepath.Ext(output) == ".bin" {
 		selected = chosenBIN
+	}
+	if filepath.Ext(output) == ".sna" {
+		selected = snapshot
 	}
 	file, err := os.OpenFile(output, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
 	if err != nil {
@@ -436,4 +455,55 @@ func findSpecializeStdlib(start string) string {
 		}
 	}
 	return ""
+}
+
+// Encode a cold boot of the already measured BIN. Assembly is read only for
+// symbols and checked against retained bytes; no new compiler output is used.
+func specializeSpectrumSnapshot(path string, assembly, binary, rom []byte, w pipeline.SpectrumPhaseWorkload) ([]byte, error) {
+	a, err := z80asm.NewAssembler().AssembleString(string(assembly))
+	if err != nil {
+		return nil, err
+	}
+	entry, ok := a.Symbols[w.Entry]
+	if len(a.Errors) > 0 || a.Origin != 0x8000 || !bytes.Equal(a.Binary, binary) || !ok || entry < 0x8000 || entry >= 0x8000+len(binary) {
+		return nil, fmt.Errorf("snapshot requires exact measured code and entry")
+	}
+	m, err := spectrum.New48K(append([]byte(nil), rom...))
+	if err != nil {
+		return nil, err
+	}
+	for i, b := range binary {
+		m.Memory.Write(0x8000+uint16(i), b, false)
+	}
+	m.CPU.SetPC(uint16(entry))
+	m.CPU.SetSP(w.Stack)
+	m.CPU.SetIY(0x5c3a)
+	m.CPU.SetIM(1)
+	m.CPU.SetIFF1(false)
+	m.CPU.SetIFF2(false)
+	if err = formats.SaveSNA(path, m); err != nil {
+		return nil, err
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	snap, err := formats.ParseSNA(data)
+	if err != nil {
+		return nil, err
+	}
+	loaded, err := spectrum.New48K(append([]byte(nil), rom...))
+	if err != nil {
+		return nil, err
+	}
+	formats.ApplySnapshot(loaded, snap)
+	if loaded.CPU.PC() != uint16(entry) || loaded.CPU.SP() != w.Stack || loaded.CPU.IY() != 0x5c3a || loaded.CPU.IFF1() || loaded.CPU.IFF2() {
+		return nil, fmt.Errorf("snapshot boot state changed")
+	}
+	for i, b := range binary {
+		if loaded.Memory.ReadByteInternal(0x8000+uint16(i)) != b {
+			return nil, fmt.Errorf("snapshot changed measured code")
+		}
+	}
+	return data, nil
 }

@@ -246,3 +246,7 @@ PR #145 с Pixel-X API и общими immutable row-kernels уже в main (`7e
 ## 15 October: measured Speed and frame-budget candidates
 
 `experiment/meta-specialization-workload` executes declared candidates with an explicit independent Spectrum 48K workload. Pure Speed retains the 5034-byte / 29350-T candidate; Size and a 32000-T budget select 4815 bytes / 30128 T. A 29700-T budget selects the faster candidate; an impossible budget creates no winner. Full steady cycles include caller work; fetched full-screen and global oracles are checked before selection. This is a bounded TV-scene candidate, not yet main or the frozen 0.25.3 product. [Commands, evidence and limits](meta-specialization/spectrum-workload.md).
+
+## 15 October: playable measured specialization
+
+`experiment/meta-specialized-snapshot` adds a cold-boot SNA output for the exact selected BIN and a real demo builder. Both Speed and budget snapshots preserve measured code byte-for-byte and pass 64 independent native full-screen/ULA frames after loading the saved file. This prepares the actual product path; it does not replace frozen 0.25.3 assets. [Run the selected scene](meta-specialization/playable-snapshot.md).

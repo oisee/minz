@@ -1,0 +1,45 @@
+{
+  "cli_sha256": "46c840acbc253697e2c63791f84caccae568bca0376565dbc20178c326d4fc1b",
+  "cases": [
+    {
+      "goal": "speed",
+      "selected": 0,
+      "bytes": 5034,
+      "busy_T": 29350,
+      "snapshot_sha256": "eabf8761241f2f7d2e992521531ce47fafdc4cd3163e67531d184ae6a1cc99f8",
+      "binary_sha256": "28d601b382ba9d849c1f1171829b411d780215d35f53f1f151b3ab864866c598",
+      "snapshot_embeds_exact_measured_BIN": true,
+      "script_exit": 0
+    },
+    {
+      "goal": "budget",
+      "selected": 1,
+      "bytes": 4815,
+      "busy_T": 30128,
+      "snapshot_sha256": "01ac0ba5e71e9741d761b706504f66ea44c794ab9d244cdc9140ca30bf83abef",
+      "binary_sha256": "f68ba9fb36cc4a3ed7e2aa6aecd2be431de2a8d7b0628c76897de1b411fb6314",
+      "snapshot_embeds_exact_measured_BIN": true,
+      "script_exit": 0
+    }
+  ],
+  "tests": {
+    "meta-specialized-snapshot-native.log": {
+      "sha256": "c32d8064fbc341dc1938f9a2f0d1e32e9b8fee913f8957fb1404989c225e08eb",
+      "tail": [
+        "    meta_specialize_test.go:301: budget: selected=1 bytes=4815; 64 exact full-screen/fetched ULA frames from saved SNA",
+        "--- PASS: TestMetaSpecializeSpectrumSnapshotBoot (3.67s)",
+        "    --- PASS: TestMetaSpecializeSpectrumSnapshotBoot/speed (1.81s)",
+        "    --- PASS: TestMetaSpecializeSpectrumSnapshotBoot/budget (1.86s)",
+        "PASS",
+        "ok  \tgithub.com/minz/minzc/cmd/minzc\t3.680s"
+      ]
+    },
+    "meta-specialized-snapshot-all-cli.log": {
+      "sha256": "a6704fcabc9b9e12091eacf89ed75af5f1dd266792350675a265e2b3bcb1ab08",
+      "tail": [
+        "ok  \tgithub.com/minz/minzc/cmd/minzc\t10.752s"
+      ]
+    }
+  },
+  "scope": "Two actual builder script processes; exact measured BIN embedded at original ORG. Separate native saved-SNA boot test checks 64 full screen/fetched ULA frames each, independent oracle; startup/border excluded."
+}
