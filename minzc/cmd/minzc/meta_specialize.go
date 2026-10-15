@@ -140,7 +140,7 @@ func runMetaSpecialize(source string, f metaSpecializeFlags) error {
 		return fail(fmt.Errorf("--budget-tstates requires --goal budget"))
 	}
 	if f.Workload != "" && f.Target != "zxspectrum" {
-		return fail(fmt.Errorf("Spectrum workload requires target zxspectrum"))
+		return fail(fmt.Errorf("spectrum workload requires target zxspectrum"))
 	}
 	if f.Target != "generic" && f.Target != "cpm" && f.Target != "zxspectrum" {
 		return fail(fmt.Errorf("unsupported Z80 target %q", f.Target))
@@ -271,7 +271,11 @@ func runMetaSpecialize(source string, f metaSpecializeFlags) error {
 	if err != nil {
 		return fail(err)
 	}
-	defer os.RemoveAll(stage)
+	defer func() {
+		if err := os.RemoveAll(stage); err != nil {
+			fmt.Fprintf(os.Stderr, "meta specialization: cleanup %s: %v\n", stage, err)
+		}
+	}()
 	var chosenASM, chosenBIN []byte
 	for i, selection := range selections {
 		m, declared, err := parse(selection)
@@ -313,7 +317,9 @@ func runMetaSpecialize(source string, f metaSpecializeFlags) error {
 		if err != nil {
 			return fail(err)
 		}
-		assembler.SetTarget(platform)
+		if err := assembler.SetTarget(platform); err != nil {
+			return fail(err)
+		}
 		origin := z80asm.GetTargetConfig(platform).MemoryLayout.DefaultOrigin
 		assembly := fmt.Sprintf("ORG 0x%04X\n", origin) + steps.Assembly
 		assembled, err := assembler.AssembleString(assembly)

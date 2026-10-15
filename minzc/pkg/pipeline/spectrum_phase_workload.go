@@ -139,7 +139,8 @@ type phaseObservedMemory struct {
 	observer *spectrumPhaseObserver
 }
 
-func (m *phaseObservedMemory) WriteByte(a uint16, v byte) {
+// WriteByte implements the emulator memory interface, rather than io.ByteWriter.
+func (m *phaseObservedMemory) WriteByte(a uint16, v byte) { //nolint:govet // Required Z80 memory interface signature.
 	m.observer.write(a)
 	m.Memory.WriteByte(a, v)
 }
@@ -284,7 +285,7 @@ func (c *spectrumPhaseObserver) DoOpcode() {
 // Any phase, image, bounds or interrupt failure returns nil evidence.
 func RunSpectrumPhaseWorkload(assembly string, binary, rom []byte, w SpectrumPhaseWorkload) (*SpectrumPhaseEvidence, error) {
 	fail := func(err error) (*SpectrumPhaseEvidence, error) {
-		return nil, fmt.Errorf("Spectrum phase workload: %w", err)
+		return nil, fmt.Errorf("spectrum phase workload: %w", err)
 	}
 	raw, err := json.Marshal(w)
 	if err != nil {
