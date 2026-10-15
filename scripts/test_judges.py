@@ -113,6 +113,78 @@ sys.exit(int(fail))
             self.assertEqual([call.args[4] for call in run.call_args_list], [[2], [3]])
             self.assertEqual(matrix.exit_code(report, True), 0)
 
+    def test_same_line_batch_executes_all_members_and_rejects_missing_receipts(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            self.fixture(root)
+            fake = root / 'batch-mz'
+            # Model the CLI selector independently: selecting a line executes
+            # every generated case on it, never a single expression.
+            fake.write_text('''#!/usr/bin/env python3
+import sys
+assert set(sys.argv[sys.argv.index('--assert-lines')+1].split(',')) == {'2'}
+if '--assert-control-line' in sys.argv:
+ print('ASSERTS: executed=1 passed=0 failed=1', file=sys.stderr)
+ sys.exit(1)
+print('ASSERTS: executed=3 passed=3 failed=0', file=sys.stderr)
+''')
+            fake.chmod(0o755)
+            members = [dict(file='case.nanz', line=2, kind='top-level',
+                            expression=f'property (x={i})', via='mir2') for i in range(3)]
+            with patch.object(matrix, 'enumerate_asserts', return_value=members):
+                report = matrix.matrix(root, ['*.nanz'], {'compiler': str(fake)}, 1, 2, 5, True)
+            self.assertEqual(report['summary']['units'], 1)
+            self.assertEqual(report['summary']['asserts'], {'compiler': 3})
+            self.assertEqual(report['summary']['pass'], 1)
+            self.assertEqual(report['summary']['controls_checked'], 2)
+            self.assertEqual(report['summary']['controls_unexpected_pass'], 0)
+            self.assertEqual([a['executed'] for a in report['results'][0]['compiler']['runs']], [3, 3])
+            fake.write_text(fake.read_text().replace('executed=3 passed=3', 'executed=2 passed=2'))
+            with patch.object(matrix, 'enumerate_asserts', return_value=members):
+                missing = matrix.matrix(root, ['*.nanz'], {'compiler': str(fake)}, 1, 1, 5)
+            self.assertEqual(missing['summary']['fail'], 1)
+            self.assertTrue(missing['results'][0]['compiler']['runs'][0]['unchecked'])
+
+    def test_same_line_batch_shift_duplicates_and_removal(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            self.fixture(root)
+            before = [dict(file='case.nanz', line=2, kind='top-level',
+                           expression=e, via='mir2') for e in ('x=0', 'x=1', 'x=1')]
+            after = [dict(a, line=3) for a in before]
+            with patch.object(matrix, 'enumerate_asserts', side_effect=[before, after]), \
+                 patch.object(matrix, 'run_compiler', return_value={'pass': True, 'exit_code': 0}) as run:
+                report = matrix.matrix(root, ['*.nanz'], {'baseline': 'old', 'candidate': 'new'}, 1, 1, 5)
+            self.assertEqual(report['summary']['units'], 1)
+            self.assertEqual(report['summary']['pass both'], 1)
+            self.assertEqual([call.args[4:6] for call in run.call_args_list],
+                             [([2, 2, 2], 3), ([3, 3, 3], 3)])
+            self.assertEqual(report['summary']['removed_count'], 0)
+            with patch.object(matrix, 'enumerate_asserts', side_effect=[before, after[:-1]]), \
+                 patch.object(matrix, 'run_compiler', return_value={'pass': True, 'exit_code': 0}):
+                removed = matrix.matrix(root, ['*.nanz'], {'baseline': 'old', 'candidate': 'new'}, 1, 1, 5)
+            self.assertEqual(removed['summary']['removed_count'], 1)
+            self.assertNotEqual(matrix.exit_code(removed, True), 0)
+
+    @unittest.skipUnless(os.environ.get('JUDGE_MZ'), 'set JUDGE_MZ for real compiler integration')
+    def test_real_frill_property_batch_covers_full_byte_domain(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / 'case.frl').write_text('let id (x : u8) = x\nassert id 7 == 7\nprop |x| id x == x\nlet main (x : u8) = 0\n')
+            subprocess.run(['git', 'init', '-q', str(root)], check=True)
+            subprocess.run(['git', '-C', str(root), 'add', '.'], check=True)
+            for backend in ('mir2', 'z80'):
+                report = matrix.matrix(root, ['*.frl'], {'compiler': os.environ['JUDGE_MZ']},
+                                       1, 1, 30, True, backend=backend)
+                self.assertEqual(report['summary']['asserts'], {'compiler': 257}, report)
+                self.assertEqual(report['summary']['units'], 2)
+                self.assertEqual(report['summary']['pass'], 2, report)
+                self.assertEqual(sorted(r['compiler']['runs'][0]['executed'] for r in report['results']), [1, 256])
+                self.assertEqual(report['summary']['controls_checked'], 2)
+                for result in report['results']:
+                    self.assertEqual(result['controls'][0]['executed'], 1)
+                    self.assertEqual(result['controls'][0]['failed'], 1)
+
     def known_report(self, candidate=None, classification='added', expression='assert answer() == 43'):
         failed = {'pass': False, 'error': 'error: assertion failed'}
         member = dict(file='case.nanz', line=3, expression=expression)
