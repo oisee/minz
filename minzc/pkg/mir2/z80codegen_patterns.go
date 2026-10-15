@@ -3,7 +3,6 @@ package mir2
 import (
 	"fmt"
 	"math/bits"
-	"sort"
 )
 
 // lutLoadPat describes a page-aligned LUT access merged at codegen time.
@@ -35,9 +34,9 @@ type globalFieldInfo struct {
 	sym       string // global symbol name (raw, before sanitize)
 	offset    int64  // byte offset within the global
 	fieldName string // field name for the EQU label (may be empty → use offset)
-	// HL-chain: when true, emit LD HL,sym chain instead of LD (sym__field),A.
+	// HL-chain: when true, adjacent stores share one HL address load.
 	hlChain bool // part of a consecutive-field HL-chain group
-	hlHead  bool // first in group → emit LD HL,sym before
+	hlHead  bool // first in group → load its field address into HL
 	hlLast  bool // last in group  → no INC HL after
 }
 
@@ -769,68 +768,58 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 	}
 
 	// ── HL-chain detection ──────────────────────────────────────────────────────
-	// When 2+ stores to the same global struct cover consecutive byte offsets and
-	// all value registers are safe (not H or L, which alias with the HL pointer),
+	// When 2+ adjacent stores cover consecutive byte offsets in source order and
+	// HL is free, with all values outside H/L,
 	// replace independent LD (sym__field),A sequences with:
 	//   LD HL,sym  ;  LD (HL),r  ;  INC HL  ;  LD (HL),r  ;  ...
 	// Saves 8T and 4 bytes for a 3-field struct (61T→53T, 12B→8B).
-	type hlEntry struct {
-		addrReg Reg
-		valReg  Reg
-		offset  int64
-	}
-	symStores := make(map[string][]hlEntry)
-	for addrReg, info := range g.globalFieldStore {
-		for _, inst := range b.Insts {
-			if inst.Op == OpStore && inst.Src[0] == addrReg {
-				symStores[info.sym] = append(symStores[info.sym], hlEntry{
-					addrReg: addrReg,
-					valReg:  inst.Src[1],
-					offset:  info.offset,
-				})
-				break
+	// The shared pointer is implicit, so MIR liveness cannot keep it safe
+	// across an intervening ALU scratch save, call, load, or other store.
+	// Only the address definitions already skipped above may separate stores.
+	var chain []*Inst
+	flushChain := func() {
+		defer func() { chain = nil }()
+		if len(chain) < 2 {
+			return
+		}
+		// Loading the head must not destroy an unrelated live HL value.
+		// Skipped address vregs never occupy their allocated register.
+		for r := range g.regsLiveAfterInst(chain[0]) {
+			if g.globalFieldSkip[r] {
+				continue
+			}
+			loc := g.ar.Loc(r).Name
+			if loc == "HL" || loc == "H" || loc == "L" {
+				return
 			}
 		}
-	}
-	for _, entries := range symStores {
-		if len(entries) < 2 {
-			continue
-		}
-		sort.Slice(entries, func(i, j int) bool { return entries[i].offset < entries[j].offset })
-		// Check consecutive offsets.
-		consecutive := true
-		for i := 1; i < len(entries); i++ {
-			if entries[i].offset != entries[i-1].offset+1 {
-				consecutive = false
-				break
-			}
-		}
-		if !consecutive {
-			continue
-		}
-		// Check all value regs safe (not H/L which aliases with HL pointer).
-		safe := true
-		for _, e := range entries {
-			if e.valReg != NoReg {
-				loc := g.ar.Loc(e.valReg).Name
-				if loc == "H" || loc == "L" {
-					safe = false
-					break
-				}
-			}
-		}
-		if !safe {
-			continue
-		}
-		// Mark as HL-chain.
-		for i, e := range entries {
-			entry := g.globalFieldStore[e.addrReg]
+		for i, store := range chain {
+			entry := g.globalFieldStore[store.Src[0]]
 			entry.hlChain = true
-			entry.hlHead = (i == 0)
-			entry.hlLast = (i == len(entries)-1)
-			g.globalFieldStore[e.addrReg] = entry
+			entry.hlHead = i == 0
+			entry.hlLast = i == len(chain)-1
+			g.globalFieldStore[store.Src[0]] = entry
 		}
 	}
+	for _, inst := range b.Insts {
+		if inst.Dst != NoReg && g.globalFieldSkip[inst.Dst] && (inst.Op == OpAddrOf || inst.Op == OpField) {
+			continue
+		}
+		info, eligible := g.globalFieldStore[inst.Src[0]]
+		value := g.ar.Loc(inst.Src[1]).Name
+		if inst.Op != OpStore || inst.Ty.Width() != 8 || !eligible || value == "H" || value == "L" || value == "HL" {
+			flushChain()
+			continue
+		}
+		if len(chain) > 0 {
+			previous := g.globalFieldStore[chain[len(chain)-1].Src[0]]
+			if previous.sym != info.sym || info.offset != previous.offset+1 {
+				flushChain()
+			}
+		}
+		chain = append(chain, inst)
+	}
+	flushChain()
 
 	// ── u16 direct-address store detection ──────────────────────────────────────
 	// Pattern: OpStore(w=16, addrReg=AddrOf(sym), valReg)
