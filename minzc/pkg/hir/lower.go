@@ -2508,6 +2508,15 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 				return reg
 			}
 		}
+		// Local structs already have addressable storage in the environment.
+		// Their names are not linker symbols.
+		if ty, ok := l.envTy[ex.Sym]; ok {
+			if _, isStruct := mir2.BaseOf(ty).(*mir2.StructTy); isStruct {
+				if reg, found := l.env[ex.Sym]; found {
+					return reg
+				}
+			}
+		}
 		return l.bld.AddrOf(ex.Sym, mir2.ClassPointer)
 
 	case *ConstPtrExpr:
