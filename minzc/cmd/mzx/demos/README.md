@@ -20,11 +20,14 @@ for the current Tetris; other archived receipts retain their prior locations.
 * zork2.sna and zork2-bank10.bin: zork2-late-save/play; Scorpion memory,
   persistent disk SAVE, verified full game and fresh-machine RESTORE.
 * rotozoomer.sna: reports/zx-rotozoomer-library/native/ordinary/running.sna.
-* sprites.sna and sprites-push.sna: reports/hardware-sprite-chain/demo.
+* sprites.sna: reports/advanced-demos/typed-sprite-scene/source.nanz.
+  Typed whole sprite, paired erase/draw, pre-HALT placement; native main/ULA
+  and successive raw/final VM calls verified. SHA256 is in sprites.provenance.json.
+* sprites-push.sna: reports/hardware-sprite-chain/demo (low-level PUSH kernel).
 
 Zork stories are compiled from the pinned licensed source identified in
 reports/zmachine-spectrum128/release/plan.md. MIT notices are included here.
 
-Release work is in progress: Linux graphical menu and Windows Tetris startup
-have been exercised. Final packaged-binary verification, main merge,
-publication and the release audit are still required.
+Release 0.25.1 was published from main a284fafc with six native packages.
+The typed-sprite snapshot is a later candidate and does not replace those
+published archives. See the typed-sprite report for its own proof and limits.

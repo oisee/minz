@@ -20,7 +20,7 @@ var demoCatalog = []demoSpec{
 	{"zork1", "Zork I", "128k", "Enter commands. Session resumes on next launch; SAVE is in RAM."},
 	{"zork2", "Zork II", "scorpion-memory", "Enter commands. SAVE / RESTORE use a persistent disk."},
 	{"rotozoomer", "32 x 48 colour rotozoomer", "48k", "Animated attribute graphics; Escape returns to the menu."},
-	{"sprites", "Compiled SMC sprites", "48k", "Moving generated sprites; Escape returns to the menu."},
+	{"sprites", "Baked Nanz sprites", "48k", "Whole sprites prepared before each frame; Escape returns to the menu."},
 	{"sprites-push", "PUSH SMC sprites", "48k", "Stack-writing sprite kernel; Escape returns to the menu."},
 }
 

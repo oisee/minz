@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# Run the ROM/IRQ-verified moving sprite demo; choose compiled or PUSH kernel.
+# Run the typed whole-sprite scene or the separate low-level PUSH demo.
 set -euo pipefail
 CHAIN_REPO=$(cd -- "$(dirname -- "$0")/.." && pwd)
 CHAIN_KERNEL=compiled
 if [[ ${1:-} == --push ]]; then CHAIN_KERNEL=push; shift; fi
-CHAIN_SNAPSHOT="$CHAIN_REPO/reports/hardware-sprite-chain/demo/$CHAIN_KERNEL.sna"
+CHAIN_SNAPSHOT="$CHAIN_REPO/reports/advanced-demos/typed-sprite-scene/running.sna"
+if [[ $CHAIN_KERNEL == push ]]; then CHAIN_SNAPSHOT="$CHAIN_REPO/reports/hardware-sprite-chain/demo/push.sna"; fi
 if [[ ${1:-} == --headless ]]; then
  shift
  mkdir -p "$CHAIN_REPO/build"

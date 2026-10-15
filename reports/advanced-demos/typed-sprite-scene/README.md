@@ -27,7 +27,7 @@ PUSH-очистка нужна один раз при старте.
 
 Обычный режим, Grace Size и Grace Speed прошли один и тот же независимый
 image oracle: 64 последовательных native main-сцены и реальные ULA-кадры
-на режим, 32 позы дважды без повторов или пропусков. До публикации вся
+на режим, 32 позы дважды без лишних повторов или пропусков. До публикации вся
 экранная память сохраняется. Проверяются 6912 байт bitmap/attributes,
 PC/SP, IFF, отсутствие принятого INT в публикации и правильный IY ROM ISR.
 Raw/final VM отдельно исполняют по 64 prepare/draw шага на режим:
@@ -59,6 +59,7 @@ compiled draw-frame тратит до 15 248 T на размещение и вы
 ```sh
 scripts/play_zx_typed_sprite.sh
 scripts/play_zx_typed_sprite.sh --headless --frames 100
+mzx --demo sprites
 ```
 
 С готовым эмулятором на Linux/macOS/Windows:
