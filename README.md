@@ -154,9 +154,18 @@ publish directly to the screen. The implementation is now in main
 ([PR #137](https://github.com/oisee/minz/pull/137)); it will enter the next
 package build. Run `mzx --demo sprite-wave` with a build from current main.
 [Implementation, Nanz source, and verification](reports/advanced-demos/typed-sprite-effects/README.md).
-[Typed wave + noise](reports/advanced-demos/sprite-effect-composition/README.md)
-composes a concrete Nanz effect type and validates every displayed ULA frame;
-`mzx --demo sprite-tv` in a build containing this candidate.
+
+**Wave + noise: a composed Nanz effect**
+
+[<img src="reports/advanced-demos/sprite-effect-composition/tv-50hz.gif" width="352" alt="Spectrum baked sprite with typed wave and noise: 64 actual Z80/ULA frames at 50 Hz">](reports/advanced-demos/sprite-effect-composition/README.md)
+
+A concrete `TVSignal` composes wave and noise in Nanz. This GIF records
+**64 consecutive actual Z80/ULA frames at 50 Hz**, without interpolation.
+Every displayed frame is checked against an independent pixel oracle.
+Addresses are patched before HALT; paired erase/draw kernels then publish
+directly to the screen. Try `mzx --demo sprite-tv` in a build containing
+[PR #141](https://github.com/oisee/minz/pull/141).
+[Source, timing, and capture provenance](reports/advanced-demos/sprite-effect-composition/README.md).
 
 ## Explore
 
