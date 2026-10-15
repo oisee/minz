@@ -345,10 +345,13 @@ fun ghost_y() -> u8 {
     // The minimum free distance gives the same landing pose as repeatedly
     // testing the whole piece, without repeating geometry calls at every row.
     var distance: u8 = BOARD_H
+    // Game state owns the admitted shape; reuse its packed table offset.
+    let shape:u8=cur_type*16+cur_rot*4
     var c: u8 = 0
     while c < 4 {
-        let cx: u8 = cur_x + piece_dx(cur_type, cur_rot, c)
-        let cy: u8 = cur_y + piece_dy(cur_type, cur_rot, c)
+        let index:u8=shape+c
+        let cx: u8 = cur_x + PIECE_DX[index]
+        let cy: u8 = cur_y + PIECE_DY[index]
         if (cx >= BOARD_W) | (cy >= BOARD_H) { return cur_y }
         var row: u8 = cy + 1
         var free: u8 = 0
