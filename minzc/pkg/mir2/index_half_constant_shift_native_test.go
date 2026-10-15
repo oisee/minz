@@ -32,13 +32,14 @@ func TestIndexHalfConstantShiftNative(t *testing.T) {
 						t.Fatal(err)
 					}
 					r := emulator.Registers{PC: 0x8000, SP: 0xff00, A: 0x5a, F: 0x45, IX: 0x1234, IY: 0x5678}
-					if dst == "IXH" {
+					switch dst {
+					case "IXH":
 						r.IX = uint16(value)<<8 | 0x34
-					} else if dst == "IXL" {
+					case "IXL":
 						r.IX = 0x1200 | uint16(value)
-					} else if dst == "IYH" {
+					case "IYH":
 						r.IY = uint16(value)<<8 | 0x78
-					} else {
+					case "IYL":
 						r.IY = 0x5600 | uint16(value)
 					}
 					z.Memory()[0xff00], z.Memory()[0xff01] = 0x00, 0x70
@@ -47,19 +48,21 @@ func TestIndexHalfConstantShiftNative(t *testing.T) {
 						z.Step()
 					}
 					want := byte(value << count)
-					if mnemonic == "SRL" {
+					switch mnemonic {
+					case "SRL":
 						want = byte(value >> count)
-					} else if mnemonic == "SRA" {
+					case "SRA":
 						want = byte(int8(value) >> count)
 					}
 					expected := r
-					if dst == "IXH" {
+					switch dst {
+					case "IXH":
 						expected.IX = uint16(want)<<8 | 0x34
-					} else if dst == "IXL" {
+					case "IXL":
 						expected.IX = 0x1200 | uint16(want)
-					} else if dst == "IYH" {
+					case "IYH":
 						expected.IY = uint16(want)<<8 | 0x78
-					} else {
+					case "IYL":
 						expected.IY = 0x5600 | uint16(want)
 					}
 					got := z.GetRegisters()
