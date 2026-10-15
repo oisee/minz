@@ -130,9 +130,10 @@ This preview records **78 consecutive actual Z80/ULA frames at 50 Hz**:
 its first frame. Sprite code is baked at compile time; screen addresses are
 patched before HALT, then paired draw/erase kernels write directly to the
 screen. Quiet descent meets its frame budget; some heavy actions still take
-two frames. The improved game is currently in `feat/advanced-demos`, pending
-integration and refreshed release packages.
-[Implementation and verification](https://github.com/oisee/minz/blob/982fba75f6cd53fc0973322994c2229047dff7a0/reports/advanced-demos/tetris/direct-renderer.md)
+two frames. The whole-sprite API and direct-screen game are **now in main**
+([PR #128](https://github.com/oisee/minz/pull/128), `a284fafc`). Refreshed
+six-platform packages are being built from that integrated commit.
+[Implementation and verification](reports/advanced-demos/tetris/direct-renderer.md)
 · [Capture provenance](media/tetris-direct-50hz.json).
 
 ## Explore
