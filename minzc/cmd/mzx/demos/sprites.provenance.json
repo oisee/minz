@@ -1,8 +1,9 @@
 {
   "source": "reports/advanced-demos/typed-sprite-scene/source.nanz",
   "source_sha256": "e83b11b41240d9eb1935d87e36af7e6d36bdb242a8674100c26cde96f2058f94",
-  "snapshot_sha256": "2028277326bda192388b14d188af351e25d3d860c60d25638c2598af690a4177",
-  "binary_bytes": 2784,
+  "snapshot_sha256": "4c7077bcd447c44b7ed3ff9fa069abeb7cad4509c5134e760ee094cd066d1f9a",
+  "binary_bytes": 2787,
   "verification": "TestZXTypedSpriteSceneMachine: native main/ULA plus successive raw/final VM scene calls",
-  "scope": "byte-aligned 64x8 sprite, 32 poses twice, owned black background; physical hardware/NMI unverified"
+  "scope": "byte-aligned 64x8 sprite, 32 poses twice, owned black background; physical hardware/NMI unverified",
+  "compiler_source": "da0ee4b7: merged main PR140 storage/type fixes plus checked effect candidate"
 }
