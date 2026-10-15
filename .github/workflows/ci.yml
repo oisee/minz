@@ -160,6 +160,10 @@ jobs:
       - name: Install pinned golangci-lint
         if: steps.lint-cache.outputs.cache-hit != 'true'
         run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.13.2
+      - name: Install GUI typecheck dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libasound2-dev libgl1-mesa-dev libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev libxxf86vm-dev
       - name: Report new lint issues and changed-file formatting
         env:
           BASE_SHA: HEAD^1
