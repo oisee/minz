@@ -19,16 +19,15 @@ import (
 	"os/exec"
 	"sort"
 	"sync"
-	"syscall"
 )
 
 // GPUFuncDesc is the JSON schema for the CUDA regalloc kernel.
 type GPUFuncDesc struct {
-	NVregs           int              `json:"nVregs"`
-	Widths           []int            `json:"widths,omitempty"`  // per-vreg width (8 or 16); omit for all-8-bit
-	Ops              []GPUOpDesc      `json:"ops"`
-	Interference     [][2]int         `json:"interference"`
-	ParamConstraints []GPUParamConst  `json:"paramConstraints"`
+	NVregs           int             `json:"nVregs"`
+	Widths           []int           `json:"widths,omitempty"` // per-vreg width (8 or 16); omit for all-8-bit
+	Ops              []GPUOpDesc     `json:"ops"`
+	Interference     [][2]int        `json:"interference"`
+	ParamConstraints []GPUParamConst `json:"paramConstraints"`
 }
 
 type GPUOpDesc struct {
@@ -92,7 +91,7 @@ func startGPUServer() (*gpuServer, error) {
 
 	cmd := exec.Command(binPath, "--server")
 	cmd.Env = append(os.Environ(), "CUDA_VISIBLE_DEVICES=0")
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true} // isolate from Go test signal group
+	configureGPUServerProcess(cmd)
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
@@ -361,8 +360,8 @@ func SolveGPU(ops []VIROp, desc *MachineDesc, opts SolverOptions) (map[int]int, 
 // GPU: A=0..L=6, BC=7, DE=8, HL=9, IXH=10, IXL=11, IYH=12, IYL=13, MEM0=14
 var z80ToGPULoc = map[int]int{
 	0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, // A-L
-	7: 7, 8: 8, 9: 9,                            // BC, DE, HL
-	14: 10, 15: 11, 16: 12, 17: 13,              // IXH, IXL, IYH, IYL
+	7: 7, 8: 8, 9: 9, // BC, DE, HL
+	14: 10, 15: 11, 16: 12, 17: 13, // IXH, IXL, IYH, IYL
 }
 
 const gpuMaxLocs = 15
