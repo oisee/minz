@@ -18,6 +18,7 @@ func TestZXPixelSpriteShiftBoundsNativeVM(t *testing.T) {
  size 16 2
  erase
  pixel_shifts
+ row_shifts
  pixels ".#_#_#_.##__..#_"
  pixels "##..__##.#_#_#_."
 }

@@ -1,5 +1,5 @@
 {
-  "status": "compile-layout-only; no runtime admission",
+  "status": "verified finite-phase VM/native, 15 native game/ULA sessions; integration pending",
   "local_root": "/home/alice/dev/minz-artifacts/grace-reports/2026-10-15",
   "files": {
     "tetris-wobble-baseline/program.bin": {
@@ -49,6 +49,378 @@
     "tetris-wobble-three-phases-size/source.nanz": {
       "bytes": 45486,
       "sha256": "86c009cc44e14ba0281e1fe2024ccfddc175ed395975a8b78776e62d9536d210"
+    },
+    "tetris-wobble-shared-target/program.bin": {
+      "bytes": 31534,
+      "sha256": "1c688430b2916742f9893f58a4c7c3d284ac42be284ff326ce64d504aa9b6179"
+    },
+    "tetris-wobble-shared-target/program.a80": {
+      "bytes": 525852,
+      "sha256": "df0d1ae93b236dc9696812ca376f8b9a6a241ecee04e3f9fdf700948ecd97591"
+    },
+    "tetris-wobble-shared-target/source.nanz": {
+      "bytes": 45486,
+      "sha256": "86c009cc44e14ba0281e1fe2024ccfddc175ed395975a8b78776e62d9536d210"
+    },
+    "tetris-pixel-wobble-final-main/level-2/grace-size/program.bin": {
+      "bytes": 31573,
+      "sha256": "84dbeb7280a2604c4ea80f587963113f12a3a011d91cef4ab854d9a0d61cf602"
+    },
+    "tetris-pixel-wobble-final-main/level-2/grace-size/instruction-costs.json": {
+      "bytes": 470378,
+      "sha256": "4149b2d3ee2d6c7a129f165bb96cdcd9271fa6f097f2f96446326a376810db54"
+    },
+    "tetris-pixel-wobble-final-main/level-2/grace-size/program.a80": {
+      "bytes": 518984,
+      "sha256": "c74565ccf35e058a8fb181369bda61ee4ead84c91ccacb54a078d7e47ef7811d"
+    },
+    "tetris-pixel-wobble-final-main/level-2/grace-size/source.nanz": {
+      "bytes": 45804,
+      "sha256": "b2721bdb18a8aea76645ffc1a5aadb6f11435b4a9c8d32fa2ca07829c34f472f"
+    },
+    "tetris-pixel-wobble-final-main/level-2/grace-size/receipt.txt": {
+      "bytes": 137,
+      "sha256": "6262c8714eba23b6d4b23c879b27c39bb7c47bc77e933a40ca580ccbed49d906"
+    },
+    "tetris-pixel-wobble-final-main/level-2/grace-speed/program.bin": {
+      "bytes": 31573,
+      "sha256": "84dbeb7280a2604c4ea80f587963113f12a3a011d91cef4ab854d9a0d61cf602"
+    },
+    "tetris-pixel-wobble-final-main/level-2/grace-speed/instruction-costs.json": {
+      "bytes": 470378,
+      "sha256": "4149b2d3ee2d6c7a129f165bb96cdcd9271fa6f097f2f96446326a376810db54"
+    },
+    "tetris-pixel-wobble-final-main/level-2/grace-speed/program.a80": {
+      "bytes": 518984,
+      "sha256": "c74565ccf35e058a8fb181369bda61ee4ead84c91ccacb54a078d7e47ef7811d"
+    },
+    "tetris-pixel-wobble-final-main/level-2/grace-speed/source.nanz": {
+      "bytes": 45804,
+      "sha256": "b2721bdb18a8aea76645ffc1a5aadb6f11435b4a9c8d32fa2ca07829c34f472f"
+    },
+    "tetris-pixel-wobble-final-main/level-2/grace-speed/receipt.txt": {
+      "bytes": 137,
+      "sha256": "6262c8714eba23b6d4b23c879b27c39bb7c47bc77e933a40ca580ccbed49d906"
+    },
+    "tetris-pixel-wobble-final-main/level-2/ordinary/program.bin": {
+      "bytes": 31561,
+      "sha256": "e829195aecf9258e596c782bfe80ae13872e9db3a01a8d97abc5f32d552f2efb"
+    },
+    "tetris-pixel-wobble-final-main/level-2/ordinary/instruction-costs.json": {
+      "bytes": 470382,
+      "sha256": "bb11fddf6979c682e7f8d6544c2922162795b361ac245ac034fc44d1051bd20d"
+    },
+    "tetris-pixel-wobble-final-main/level-2/ordinary/program.a80": {
+      "bytes": 526330,
+      "sha256": "f9b0b2f10b577d96db41b5948c18e8f9659f19c8313f0c5a3eec383fd57fdd4d"
+    },
+    "tetris-pixel-wobble-final-main/level-2/ordinary/source.nanz": {
+      "bytes": 45804,
+      "sha256": "b2721bdb18a8aea76645ffc1a5aadb6f11435b4a9c8d32fa2ca07829c34f472f"
+    },
+    "tetris-pixel-wobble-final-main/level-2/ordinary/receipt.txt": {
+      "bytes": 137,
+      "sha256": "7e90becc0883eb5682eb14699f70f8943c297ca6c6f2ed9744e40763c47782e9"
+    },
+    "tetris-pixel-wobble-final-main/level-1/grace-size/program.bin": {
+      "bytes": 31573,
+      "sha256": "84dbeb7280a2604c4ea80f587963113f12a3a011d91cef4ab854d9a0d61cf602"
+    },
+    "tetris-pixel-wobble-final-main/level-1/grace-size/instruction-costs.json": {
+      "bytes": 465432,
+      "sha256": "3fd4145e1b6329b3149457d47ecd9af0da9d3db218b2886a4495eddc48f3b583"
+    },
+    "tetris-pixel-wobble-final-main/level-1/grace-size/program.a80": {
+      "bytes": 518984,
+      "sha256": "c74565ccf35e058a8fb181369bda61ee4ead84c91ccacb54a078d7e47ef7811d"
+    },
+    "tetris-pixel-wobble-final-main/level-1/grace-size/source.nanz": {
+      "bytes": 45804,
+      "sha256": "b2721bdb18a8aea76645ffc1a5aadb6f11435b4a9c8d32fa2ca07829c34f472f"
+    },
+    "tetris-pixel-wobble-final-main/level-1/grace-size/receipt.txt": {
+      "bytes": 137,
+      "sha256": "3beee4a9df25245ed70e7fe3db9a96ade2f8d1672957852209eac2dc04014b8a"
+    },
+    "tetris-pixel-wobble-final-main/level-1/grace-speed/program.bin": {
+      "bytes": 31573,
+      "sha256": "84dbeb7280a2604c4ea80f587963113f12a3a011d91cef4ab854d9a0d61cf602"
+    },
+    "tetris-pixel-wobble-final-main/level-1/grace-speed/instruction-costs.json": {
+      "bytes": 465432,
+      "sha256": "3fd4145e1b6329b3149457d47ecd9af0da9d3db218b2886a4495eddc48f3b583"
+    },
+    "tetris-pixel-wobble-final-main/level-1/grace-speed/program.a80": {
+      "bytes": 518984,
+      "sha256": "c74565ccf35e058a8fb181369bda61ee4ead84c91ccacb54a078d7e47ef7811d"
+    },
+    "tetris-pixel-wobble-final-main/level-1/grace-speed/source.nanz": {
+      "bytes": 45804,
+      "sha256": "b2721bdb18a8aea76645ffc1a5aadb6f11435b4a9c8d32fa2ca07829c34f472f"
+    },
+    "tetris-pixel-wobble-final-main/level-1/grace-speed/receipt.txt": {
+      "bytes": 137,
+      "sha256": "3beee4a9df25245ed70e7fe3db9a96ade2f8d1672957852209eac2dc04014b8a"
+    },
+    "tetris-pixel-wobble-final-main/level-1/ordinary/program.bin": {
+      "bytes": 31561,
+      "sha256": "e829195aecf9258e596c782bfe80ae13872e9db3a01a8d97abc5f32d552f2efb"
+    },
+    "tetris-pixel-wobble-final-main/level-1/ordinary/instruction-costs.json": {
+      "bytes": 465432,
+      "sha256": "6877c66ce70ebdda39957e2346e68ba7f397a479daf68856b9fa3c9ac642d7ab"
+    },
+    "tetris-pixel-wobble-final-main/level-1/ordinary/program.a80": {
+      "bytes": 526330,
+      "sha256": "f9b0b2f10b577d96db41b5948c18e8f9659f19c8313f0c5a3eec383fd57fdd4d"
+    },
+    "tetris-pixel-wobble-final-main/level-1/ordinary/source.nanz": {
+      "bytes": 45804,
+      "sha256": "b2721bdb18a8aea76645ffc1a5aadb6f11435b4a9c8d32fa2ca07829c34f472f"
+    },
+    "tetris-pixel-wobble-final-main/level-1/ordinary/receipt.txt": {
+      "bytes": 137,
+      "sha256": "db1b76bda2886a6cb52feefe1999fb1dfb614d88b1ccf91bc8ae2865d86aa19a"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-size/clear-2/program.bin": {
+      "bytes": 31573,
+      "sha256": "84dbeb7280a2604c4ea80f587963113f12a3a011d91cef4ab854d9a0d61cf602"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-size/clear-2/instruction-costs.json": {
+      "bytes": 174179,
+      "sha256": "c30104b88a34b383a182ba1435e637b4d68b86664c2617a0a342fdf4c4728ac7"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-size/clear-2/program.a80": {
+      "bytes": 518984,
+      "sha256": "c74565ccf35e058a8fb181369bda61ee4ead84c91ccacb54a078d7e47ef7811d"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-size/clear-2/source.nanz": {
+      "bytes": 45804,
+      "sha256": "b2721bdb18a8aea76645ffc1a5aadb6f11435b4a9c8d32fa2ca07829c34f472f"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-size/clear-2/receipt.txt": {
+      "bytes": 136,
+      "sha256": "ed28ad3a9c08190d057a12c0a59bbc5ec236cce818a9c528c704fd454b5e9c73"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-size/clear-4/program.bin": {
+      "bytes": 31573,
+      "sha256": "84dbeb7280a2604c4ea80f587963113f12a3a011d91cef4ab854d9a0d61cf602"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-size/clear-4/instruction-costs.json": {
+      "bytes": 182559,
+      "sha256": "5546cef2b823c3d8806859bd347dd48a71927ad9de412da7c6072c2f884e5845"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-size/clear-4/program.a80": {
+      "bytes": 518984,
+      "sha256": "c74565ccf35e058a8fb181369bda61ee4ead84c91ccacb54a078d7e47ef7811d"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-size/clear-4/source.nanz": {
+      "bytes": 45804,
+      "sha256": "b2721bdb18a8aea76645ffc1a5aadb6f11435b4a9c8d32fa2ca07829c34f472f"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-size/clear-4/receipt.txt": {
+      "bytes": 136,
+      "sha256": "ec54b2ff13e9c798e0a8792a37b8820fc052a0409cbe090b60ceecd97037378f"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-size/clear-1/program.bin": {
+      "bytes": 31573,
+      "sha256": "84dbeb7280a2604c4ea80f587963113f12a3a011d91cef4ab854d9a0d61cf602"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-size/clear-1/instruction-costs.json": {
+      "bytes": 170178,
+      "sha256": "464759490887855751b293afc34475973aa5880516e79e08602c8c2ec8ef3777"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-size/clear-1/program.a80": {
+      "bytes": 518984,
+      "sha256": "c74565ccf35e058a8fb181369bda61ee4ead84c91ccacb54a078d7e47ef7811d"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-size/clear-1/source.nanz": {
+      "bytes": 45804,
+      "sha256": "b2721bdb18a8aea76645ffc1a5aadb6f11435b4a9c8d32fa2ca07829c34f472f"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-size/clear-1/receipt.txt": {
+      "bytes": 136,
+      "sha256": "076a4d6e5069be5e8254ebfbe0590914fca4e064f4f113e096e01ce503b67684"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-speed/clear-2/program.bin": {
+      "bytes": 31573,
+      "sha256": "84dbeb7280a2604c4ea80f587963113f12a3a011d91cef4ab854d9a0d61cf602"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-speed/clear-2/instruction-costs.json": {
+      "bytes": 174179,
+      "sha256": "c30104b88a34b383a182ba1435e637b4d68b86664c2617a0a342fdf4c4728ac7"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-speed/clear-2/program.a80": {
+      "bytes": 518984,
+      "sha256": "c74565ccf35e058a8fb181369bda61ee4ead84c91ccacb54a078d7e47ef7811d"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-speed/clear-2/source.nanz": {
+      "bytes": 45804,
+      "sha256": "b2721bdb18a8aea76645ffc1a5aadb6f11435b4a9c8d32fa2ca07829c34f472f"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-speed/clear-2/receipt.txt": {
+      "bytes": 136,
+      "sha256": "ed28ad3a9c08190d057a12c0a59bbc5ec236cce818a9c528c704fd454b5e9c73"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-speed/clear-4/program.bin": {
+      "bytes": 31573,
+      "sha256": "84dbeb7280a2604c4ea80f587963113f12a3a011d91cef4ab854d9a0d61cf602"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-speed/clear-4/instruction-costs.json": {
+      "bytes": 182559,
+      "sha256": "5546cef2b823c3d8806859bd347dd48a71927ad9de412da7c6072c2f884e5845"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-speed/clear-4/program.a80": {
+      "bytes": 518984,
+      "sha256": "c74565ccf35e058a8fb181369bda61ee4ead84c91ccacb54a078d7e47ef7811d"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-speed/clear-4/source.nanz": {
+      "bytes": 45804,
+      "sha256": "b2721bdb18a8aea76645ffc1a5aadb6f11435b4a9c8d32fa2ca07829c34f472f"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-speed/clear-4/receipt.txt": {
+      "bytes": 136,
+      "sha256": "ec54b2ff13e9c798e0a8792a37b8820fc052a0409cbe090b60ceecd97037378f"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-speed/clear-1/program.bin": {
+      "bytes": 31573,
+      "sha256": "84dbeb7280a2604c4ea80f587963113f12a3a011d91cef4ab854d9a0d61cf602"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-speed/clear-1/instruction-costs.json": {
+      "bytes": 170178,
+      "sha256": "464759490887855751b293afc34475973aa5880516e79e08602c8c2ec8ef3777"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-speed/clear-1/program.a80": {
+      "bytes": 518984,
+      "sha256": "c74565ccf35e058a8fb181369bda61ee4ead84c91ccacb54a078d7e47ef7811d"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-speed/clear-1/source.nanz": {
+      "bytes": 45804,
+      "sha256": "b2721bdb18a8aea76645ffc1a5aadb6f11435b4a9c8d32fa2ca07829c34f472f"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-speed/clear-1/receipt.txt": {
+      "bytes": 136,
+      "sha256": "076a4d6e5069be5e8254ebfbe0590914fca4e064f4f113e096e01ce503b67684"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/ordinary/clear-2/program.bin": {
+      "bytes": 31561,
+      "sha256": "e829195aecf9258e596c782bfe80ae13872e9db3a01a8d97abc5f32d552f2efb"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/ordinary/clear-2/instruction-costs.json": {
+      "bytes": 174179,
+      "sha256": "7c22d712498a9e1487f835b3b1b69557dd85c7b6c27e01c18b98e2908e3204d6"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/ordinary/clear-2/program.a80": {
+      "bytes": 526330,
+      "sha256": "f9b0b2f10b577d96db41b5948c18e8f9659f19c8313f0c5a3eec383fd57fdd4d"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/ordinary/clear-2/source.nanz": {
+      "bytes": 45804,
+      "sha256": "b2721bdb18a8aea76645ffc1a5aadb6f11435b4a9c8d32fa2ca07829c34f472f"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/ordinary/clear-2/receipt.txt": {
+      "bytes": 136,
+      "sha256": "0d7ec1b8684995867397c981e6227629afe2078ac0614d84d4f50c545d531c65"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/ordinary/clear-4/program.bin": {
+      "bytes": 31561,
+      "sha256": "e829195aecf9258e596c782bfe80ae13872e9db3a01a8d97abc5f32d552f2efb"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/ordinary/clear-4/instruction-costs.json": {
+      "bytes": 182559,
+      "sha256": "008b91a0a3d6c22ba460850b9793c177a0219735def3a15c2828778b3685c8f9"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/ordinary/clear-4/program.a80": {
+      "bytes": 526330,
+      "sha256": "f9b0b2f10b577d96db41b5948c18e8f9659f19c8313f0c5a3eec383fd57fdd4d"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/ordinary/clear-4/source.nanz": {
+      "bytes": 45804,
+      "sha256": "b2721bdb18a8aea76645ffc1a5aadb6f11435b4a9c8d32fa2ca07829c34f472f"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/ordinary/clear-4/receipt.txt": {
+      "bytes": 136,
+      "sha256": "d7f243d929fd00504c1f53abbbb469ea2576d3c8dc0b94297f658f22b8fb7ca5"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/ordinary/clear-1/program.bin": {
+      "bytes": 31561,
+      "sha256": "e829195aecf9258e596c782bfe80ae13872e9db3a01a8d97abc5f32d552f2efb"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/ordinary/clear-1/instruction-costs.json": {
+      "bytes": 170178,
+      "sha256": "a14afae7dc9f0514c616791a51b667e43ce0c5c5aff07fc783327724d4b733dd"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/ordinary/clear-1/program.a80": {
+      "bytes": 526330,
+      "sha256": "f9b0b2f10b577d96db41b5948c18e8f9659f19c8313f0c5a3eec383fd57fdd4d"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/ordinary/clear-1/source.nanz": {
+      "bytes": 45804,
+      "sha256": "b2721bdb18a8aea76645ffc1a5aadb6f11435b4a9c8d32fa2ca07829c34f472f"
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/ordinary/clear-1/receipt.txt": {
+      "bytes": 136,
+      "sha256": "15d0ccb4c503c5bb5c19f89caae50dc50c9fb53076789cddd7a15dcfae91485e"
+    },
+    "tetris-pixel-wobble-final-playable/body.a80": {
+      "bytes": 525960,
+      "sha256": "4d2f5c46163ee3f505e19ceaaf7af69170c2badd7440c2f37eb647da1b0c0785"
+    },
+    "tetris-pixel-wobble-final-playable/program.bin": {
+      "bytes": 31561,
+      "sha256": "e829195aecf9258e596c782bfe80ae13872e9db3a01a8d97abc5f32d552f2efb"
+    },
+    "tetris-pixel-wobble-final-playable/tetris.png": {
+      "bytes": 1245,
+      "sha256": "0deb6281a749d18edfd2ea49874ac77a1181877d9b9d6d02e85943d2ffdcd249"
+    },
+    "tetris-pixel-wobble-final-playable/program.a80": {
+      "bytes": 526329,
+      "sha256": "0a8043507c61197ae4749013c221a867f14d54819bd264fe883af238b9a987e1"
+    },
+    "tetris-pixel-wobble-final-playable/program.sym": {
+      "bytes": 110204,
+      "sha256": "e77df6e6c6dbbc4ed78e89f2b80ede73a6418a618809e67c325a29cd9f5b5352"
+    },
+    "tetris-pixel-wobble-final-playable/tetris.sna": {
+      "bytes": 49179,
+      "sha256": "906463bd0d46bd4c71014bfb1c0e9c0749b108ec80a7648f7e2f118912d20379"
+    },
+    "tetris-pixel-wobble-schedule/ordinary/clear-1/failure/candidate-2.rgba": {
+      "bytes": 51200,
+      "sha256": "c906c130461bc6033f4fe59ce03dd8e221f20ac645b1dd311c60aa3edccfc755"
+    },
+    "tetris-pixel-wobble-schedule/ordinary/clear-1/failure/candidate-1.rgba": {
+      "bytes": 51200,
+      "sha256": "f0c6e967c080223fc326b65a188c166ce6d5f17a1b1e300e559d1705d1bc30af"
+    },
+    "tetris-pixel-wobble-schedule/ordinary/clear-1/failure/fetched.rgba": {
+      "bytes": 51200,
+      "sha256": "391462c9da1b4565a96b859d9b2817fc31e990e1934bf3662de1b295a7878834"
+    },
+    "tetris-pixel-wobble-schedule/ordinary/clear-1/failure/diagnostic.json": {
+      "bytes": 12791,
+      "sha256": "8b0adbc9ac429099d3339de763b5128f3139161e54373a2968e93ce0cfc2aeb8"
+    },
+    "tetris-pixel-wobble-schedule/ordinary/clear-1/failure/candidate-0.rgba": {
+      "bytes": 51200,
+      "sha256": "515e1ec9e93309351dd97d83b4c2a869c50513cee75674bccaeb8947303432cd"
+    },
+    "tetris-pixel-wobble-final-video/tetris-wobble-50hz.mp4": {
+      "bytes": 7449,
+      "sha256": "f6778805b10cfe640e8ab867f43e41e8aab1072e18e5fb7f63a415495f319a01"
+    },
+    "tetris-pixel-wobble-final-video/tetris-wobble-50hz.gif": {
+      "bytes": 8785,
+      "sha256": "9f1d10ce1348ba319f371cbfe752814d36325b1b5b5a35305cd9c79bb30c24e5"
+    },
+    "tetris-pixel-wobble-final-video/timeline.json": {
+      "bytes": 34633,
+      "sha256": "dac606655c6689f27be5545b0d2463bc45be84e6392ec59902e95436417db338"
+    },
+    "tetris-pixel-wobble-final-video/tetris-wobble-session-50hz.mp4": {
+      "bytes": 27280,
+      "sha256": "efbba8801f9e1001fe27037daa6a8b025ab3a3ede58b1bf940caa46c2fd259a0"
     }
   }
 }

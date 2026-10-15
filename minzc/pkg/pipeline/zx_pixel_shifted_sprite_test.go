@@ -23,6 +23,15 @@ func TestZXPixelSpriteSmokeNativeVM(t *testing.T) {
 }
 
 func runZXPixelSpriteNativeVM(t *testing.T, clear bool, quick bool, sharedRows ...bool) {
+	runZXPixelSpriteNativeVMConfigured(t, clear, quick, false, sharedRows...)
+}
+
+func TestZXPixelSpriteFinitePhasesNativeVM(t *testing.T) {
+	t.Run("draw", func(t *testing.T) { runZXPixelSpriteNativeVMConfigured(t, false, true, true) })
+	t.Run("cached-erase", func(t *testing.T) { runZXPixelSpriteNativeVMConfigured(t, true, true, true) })
+}
+
+func runZXPixelSpriteNativeVMConfigured(t *testing.T, clear bool, quick bool, finite bool, sharedRows ...bool) {
 	source := `import zx.sprite
 @zx_sprite("Ship") {
  size 16 8
@@ -42,10 +51,13 @@ fun draw_ship(x:u8,y:u8)->bool {
  if actor.stage()==false {return false}
  return actor.publish()
 }`
+	if finite {
+		source = strings.Replace(source, "pixel_shifts", "pixel_phases 0 1 7", 1)
+	}
 	height := 8
 	if quick {
 		height = 1
-		if len(sharedRows) > 0 {
+		if len(sharedRows) > 0 || finite {
 			height = 2
 		}
 		source = strings.Replace(source, "size 16 8", fmt.Sprintf("size 16 %d", height), 1)
@@ -75,6 +87,11 @@ fun draw_ship(x:u8,y:u8)->bool {
 	}
 	if clear {
 		source = strings.Replace(source, "return actor.publish()", "actor.x=actor.x^7\n actor.y=0\n if actor.stage_previous_erase()==false {return false}\n return actor.erase_staged()", 1)
+	}
+	if finite && clear {
+		// Cache an admitted pose, then reject an unsupported new phase. The old
+		// erase address/phase must remain intact while draw readiness is cancelled.
+		source = strings.Replace(source, "return actor.erase_staged()", "actor.x=2\n if actor.stage()!=false {return false}\n if actor.publish()!=false {return false}\n return actor.erase_staged()", 1)
 	}
 	var pixels []string
 	for _, line := range strings.Split(source, "\n") {
@@ -125,12 +142,25 @@ fun draw_ship(x:u8,y:u8)->bool {
 					t.Fatal("different ink patterns merged")
 				}
 			}
+			if finite {
+				for phase := 2; phase <= 6; phase++ {
+					for _, prefix := range []string{"Ship_row_0_phase_", "Ship_clear_row_0_phase_"} {
+						if strings.Contains(steps.Assembly, fmt.Sprintf("%s%d:", prefix, phase)) {
+							t.Fatal("unsupported kernel retained", phase)
+						}
+					}
+				}
+			}
 			f := steps.MIR2Module.FuncByName("draw_ship")
 			raw := hir.LowerModule(parse())
 			descriptor := parse().FuncByName("draw_ship")
 			minT, maxT := int(^uint(0)>>1), 0
 			for _, pos := range positions {
 				valid := pos.x+16 <= 256 && pos.y+height <= 192
+				if finite {
+					phase := pos.x & 7
+					valid = valid && (phase == 0 || phase == 1 || phase == 7)
+				}
 				expected := int64(0)
 				if valid {
 					expected = 1
@@ -191,6 +221,9 @@ fun draw_ship(x:u8,y:u8)->bool {
 					copy(want[0x4000:0x5b00], wantBitmap[0x4000:0x5b00])
 					if valid {
 						want[a.Symbols["Ship_ready"]] = 1
+						if finite && clear {
+							want[a.Symbols["Ship_ready"]] = 0
+						}
 						for row := 0; row < height; row++ {
 							scan := pos.y + row
 							address := 0x4000 + (scan/64)*2048 + (scan%8)*256 + ((scan/8)%8)*32 + pos.x/8
@@ -283,6 +316,18 @@ func TestZXPixelSpriteSharedRowsNativeVM(t *testing.T) {
 	for _, sameInk := range []bool{false, true} {
 		for _, clear := range []bool{false, true} {
 			t.Run(fmt.Sprintf("sameInk-%v/erase-%v", sameInk, clear), func(t *testing.T) { runZXPixelSpriteNativeVM(t, clear, true, sameInk) })
+		}
+	}
+}
+
+func TestZXPixelSpriteFinitePhaseAdmission(t *testing.T) {
+	for _, field := range []string{"pixel_phases", "pixel_phases -1", "pixel_phases 8", "pixel_phases 0 0", "pixel_phases 0\n pixel_phases 1", "pixel_phases 0 1 2 3 4 5 6 7 0"} {
+		for _, descriptor := range []string{"@zx_sprite(\"Invalid\") {", "@zx_sprite_instances(\"Invalid\") {\n instances 2"} {
+			source := "import zx.sprite\n" + descriptor + "\n size 8 1\n pixels \"########\"\n" + field + "\n}"
+			_, err := nanz.ParseWithOpts(source, "finite-phase-admission.nanz", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
+			if err == nil || (field != "pixel_phases -1" && !strings.Contains(err.Error(), "phase")) {
+				t.Fatalf("%s / %s: %v", descriptor, field, err)
+			}
 		}
 	}
 }

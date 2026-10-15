@@ -265,10 +265,12 @@ fun @zx_sprite(name:^u8)->void {
             let row_name:^u8=str_concat(name,str_concat(c"_row_",str_from_int(u16(row))))
             if pixel_shifts!=0 {emit(str_concat(str_concat(name,c"_draw_phases["),str_concat(str_from_int(u16(row)),c"]=x&7")))}
             if placement==0 {
+                let target:^u8=str_concat(c"target_",str_from_int(u16(row)))
+                emit(str_concat(str_concat(c"let ",target),c":u16=address-0x4000+base"))
                 if paired_erase!=0 {
-                    emit(str_concat(str_concat(str_concat(name,c"_draw_addresses["),str_from_int(u16(row))),c"]=address-0x4000+base"))
+                    emit(str_concat(str_concat(str_concat(name,c"_draw_addresses["),str_from_int(u16(row))),str_concat(c"]=",target)))
                 }
-                emit(str_concat(row_name,c"_set_dst(ptr(address-0x4000+base))"))
+                emit(str_concat(str_concat(row_name,c"_set_dst(ptr("),str_concat(target,c"))")))
             } else {
                 if paired_erase!=0 {
                     emit(str_concat(str_concat(str_concat(name,c"_draw_addresses["),str_from_int(u16(row))),c"]=address"))
@@ -609,6 +611,7 @@ fun @zx_sprite_instances(name:^u8)->void {
                 emit(c"row_shifts")
             } else if str_eq(key,c"pixel_phases")==1 {
                 if node_arg_count(node)==0 {meta_error(c"zx sprite instances: pixel_phases needs values")}
+                if node_arg_count(node)>8 {meta_error(c"zx sprite instances: too many pixel_phases")}
                 var text:^u8=c"pixel_phases"
                 var arg:u8=0
                 while arg<node_arg_count(node) {

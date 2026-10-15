@@ -1185,6 +1185,12 @@ fun pixel_publish_direct() {
     if direct_refresh!=0 {
         pixel_publish_attributes()
         if direct_actor_early!=0 {pixel_commit_actor()}
+        // Full-board publication has the same raster order and callback,
+        // without a per-row range check. Geometry was admitted before HALT.
+        if direct_board_first==0 {if direct_board_limit==20 {
+            field_board_publish(ptr(u16(&board)),ptr(u16(&tetris_values)))
+            return
+        }}
         field_board_publish_range_prepared(ptr(u16(&board)),ptr(u16(&tetris_values)),direct_board_first,direct_board_limit)
     } else {
         if game_over==0 {pixel_commit_actor()}
