@@ -1,19 +1,21 @@
 # Embedded release candidates
 
 These are native Spectrum snapshots. The Tetris candidate was refreshed on
-14 October 2026; the other snapshots retain their archived 13 October builds.
+15 October 2026; the other snapshots retain their archived 13 October builds.
 Exact sources, binaries and SHA256 receipts are preserved under
-`/mnt/safe/minz/grace/`.
+`/home/alice/dev/minz-artifacts/grace-reports/2026-10-14/tetris-direct/`
+for the current Tetris; other archived receipts retain their prior locations.
 
 * tetris.sna: examples/zx/tetris_playable.nanz, scripts/build_zx_tetris_demo.sh.
-  Pixel-step falling actor uses baked Nanz sprite instances and shadow dirty
-  bands. Native main is checked against independent physics and fetched ULA
-  frames; see reports/advanced-demos/tetris/smooth-gameplay.md. Code starts at
-  6000, shadow bitmap occupies E000..F7FF, ordinary launcher stack is FCE0.
-  Preparation uses typed Nanz row walking and a baked eight-store fill kernel.
-  Full-field restoration is 54.6% faster than the first pixel candidate; see
-  reports/advanced-demos/tetris/native-preparation.md. Preparation remains slower
-  than one frame; this is not a 50-FPS claim.
+  Refreshed 15 October: direct paired baked sprites, no bitmap shadow.
+  Select 1 (one pixel per two frames) or 2 (one pixel per frame).
+  Geometry, address patching and attributes are prepared before HALT.
+  Native main, independent physics and fetched ULA frames are checked;
+  see reports/advanced-demos/tetris/direct-renderer.md. Code starts at
+  8000; the launcher reserves FC60..FCE0 for stack. Input, hold and lock
+  can still take multiple frames. This is a playable release candidate,
+  not a constant-50-FPS claim for every action. Source and image hashes
+  are in tetris.provenance.json; new detailed receipts stay local.
 * zork1.sna: zork1-current-128/zork-spectrum128.sna, builder a4b9ac24.
 * zork2.sna and zork2-bank10.bin: zork2-late-save/play; Scorpion memory,
   persistent disk SAVE, verified full game and fresh-machine RESTORE.

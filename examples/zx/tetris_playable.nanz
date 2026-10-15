@@ -850,6 +850,25 @@ fun FallingPose.stage_render(self:^FallingPose)->bool {
         if (self.kind==pixel_geometry_kind)&(self.rotation==pixel_geometry_rotation)&(self.x==pixel_geometry_x)&(self.y==pixel_geometry_y) {refresh=false}
     }
     if refresh {
+        if pixel_geometry_ready!=0 {
+            if (self.kind==pixel_geometry_kind)&(self.rotation==pixel_geometry_rotation)&(self.x==pixel_geometry_x) {
+                if self.y>pixel_geometry_y {
+                    // Same admitted shape and X: a downward translation keeps
+                    // every column and cell offset. The maximum proves bounds.
+                    let dy:u8=self.y-pixel_geometry_y
+                    if pixel_geometry_last+dy>=20 {return false}
+                    pixel_new_y[0]=pixel_new_y[0]+dy
+                    pixel_new_y[1]=pixel_new_y[1]+dy
+                    pixel_new_y[2]=pixel_new_y[2]+dy
+                    pixel_new_y[3]=pixel_new_y[3]+dy
+                    pixel_geometry_last=pixel_geometry_last+dy
+                    pixel_geometry_y=self.y
+                    refresh=false
+                }
+            }
+        }
+    }
+    if refresh {
         pixel_geometry_ready=0
         pixel_geometry_last=0
         let shape:u8=self.kind*16+self.rotation*4
@@ -1260,9 +1279,22 @@ fun game_step(keys:u8,ticks:u8) {
     if drop_speed==0 {drop_speed=1}
     var budget:u16=u16(drop_timer)+u16(ticks)*8
     if (keys & 8)!=0 {budget=budget+u16(drop_speed)*8}
+    // Input has finished. Shape, X and board stay unchanged until lock,
+    // which returns immediately. Cache only within this call, per grid Y.
+    var query_y:u8=255
+    var query_ok:bool=false
     while budget>=u16(drop_speed) {
         budget=budget-u16(drop_speed)
-        if gravity_pixel()==false {return}
+        if pixel_phase==0 {pixel_phase=1}
+        else {
+            if query_y!=cur_y {
+                query_ok=can_place(cur_type,cur_rot,cur_x,cur_y+1)
+                query_y=cur_y
+            }
+            if query_ok==false {do_lock_and_clear() drop_timer=0 return}
+            pixel_phase=pixel_phase+1
+            if pixel_phase==8 {pixel_phase=0 cur_y=cur_y+1}
+        }
     }
     drop_timer=u8(budget)
 }

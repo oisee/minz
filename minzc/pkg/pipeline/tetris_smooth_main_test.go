@@ -346,6 +346,9 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 			publishedRows := []int{}
 			publishFirst, publishLimit := 0, 0
 			partialPublications := 0
+			actionTicks := map[int]map[int]int{}
+			placementQueries, queryLimit, queryChecks := 0, 0, 0
+			queryProof := false
 			pendingLock := false
 			pendingClear := false
 			clearTicks := map[int]int{}
@@ -424,6 +427,9 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 						}
 					}
 				}
+				if stepActive && !shadow && c.PC() == sym("can_place") {
+					placementQueries++
+				}
 				if !shadow && publishActive && c.PC() == sym("zx__tile_cell__tile_row_fill") {
 					row := publishFirst + len(publishedRows)
 					source := sym("board") + uint16(row*10)
@@ -461,6 +467,13 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 							pendingClear = false
 						}
 						pendingLock = false
+					}
+					if !shadow && selected != 0 && clockReady {
+						elapsed := int(byte(m.Memory.ReadByteInternal(0x5c78) - previousClock))
+						if actionTicks[selected] == nil {
+							actionTicks[selected] = map[int]int{}
+						}
+						actionTicks[selected][elapsed]++
 					}
 					checkImage()
 					shown = fieldImage()
@@ -502,6 +515,13 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 					}
 				}
 				if stepActive && c.PC() == stepReturn && c.SP() == stepSP+2 {
+					if queryProof {
+						if placementQueries == 0 || placementQueries > queryLimit {
+							t.Fatalf("step%d soft drop made %d placement queries; crossed-row limit %d", steps, placementQueries, queryLimit)
+						}
+						queryChecks++
+						queryProof = false
+					}
 					stepActive = false
 					check(fmt.Sprintf("step%d/return", steps))
 					steps++
@@ -553,8 +573,12 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 						t.Fatalf("step%d arguments keys%d/%d ticks%d/%d", steps, arg(0), selected, arg(1), ticks)
 					}
 					oldRng := model.v["rng_state"]
+					oldY := model.v["cur_y"]
 					oldLines := model.v["lines_cleared"]
 					model.step(selected, ticks)
+					placementQueries = 0
+					queryProof = !shadow && selected == 8 && model.v["rng_state"] == oldRng
+					queryLimit = model.v["cur_y"] - oldY + 1
 					if model.v["lines_cleared"] != oldLines {
 						pendingClear = true
 					}
@@ -648,6 +672,11 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 			if steps < 20 || nonzeroPhases < 3 || locks < 3 || c.irq < 20 {
 				t.Fatalf("insufficient gameplay coverage steps%d phases%d locks%d IRQ%d", steps, nonzeroPhases, locks, c.irq)
 			}
+			if !shadow && clearRows == 0 && queryChecks < 3 {
+				t.Fatal("insufficient soft-drop query coverage", queryChecks)
+			}
+			t.Logf("%d soft-drop steps bounded by independently observed grid-row changes", queryChecks)
+			t.Logf("input IRQ histograms %v", actionTicks)
 			if !shadow && partialPublications < 3 {
 				t.Fatal("insufficient partial board publications", partialPublications)
 			}
@@ -681,7 +710,7 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 					t.Fatal(e)
 				}
 				receipt := fmt.Sprintf("PASS\nfetched_complete_field_frames=%d\nframes=%d\nsteps=%d\npixel_phase_samples=%d\nlocks=%d\ninterrupts=%d\nminimum_SP=0x%04x\nbytes=%d\n", fetchedFrames, frames, steps, nonzeroPhases, locks, c.irq, c.minSP, len(a.Binary))
-				profileJSON, e := json.MarshalIndent(map[string]any{"attribution": "nearest preceding emitted function label; HALT includes wait", "per_step": profileSamples, "total_costs_T": c.profile.costs, "clock_delta_histogram": tickHistogram}, "", "  ")
+				profileJSON, e := json.MarshalIndent(map[string]any{"attribution": "nearest preceding emitted function label; HALT includes wait", "per_step": profileSamples, "total_costs_T": c.profile.costs, "clock_delta_histogram": tickHistogram, "input_irq_histogram": actionTicks}, "", "  ")
 				if e != nil {
 					t.Fatal(e)
 				}
