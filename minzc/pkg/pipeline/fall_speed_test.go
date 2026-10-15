@@ -85,3 +85,83 @@ fun speed_trace(seed:u8,frames:u16)->u16 {
 		})
 	}
 }
+
+// Chunked elapsed time must integrate every frame, including target changes
+// and u8 phase wrap. Digest includes all state fields after each chunk.
+func TestFallSpeedElapsedAreaNativeVM(t *testing.T) {
+	source := `import game.fall_speed
+fun speed_area(seed:u8,chunk:u8)->u16 {
+ var speed:FallSpeed=FallSpeed{seed:seed,phase:0,current:64,target:64}
+ var digest:u16=0
+ var groups:u8=2
+ while groups!=0 {
+  digest=digest*3+speed.advance(chunk)
+  digest=digest*3+u16(speed.seed)
+  digest=digest*3+u16(speed.phase)
+  digest=digest*3+u16(speed.current)
+  digest=digest*3+u16(speed.target)
+  groups=groups-1
+ }
+ return digest
+}`
+	parse := func() *hir.Module {
+		h, e := nanz.ParseWithOpts(source, "fall-area.nanz", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
+		if e != nil {
+			t.Fatal(e)
+		}
+		return h
+	}
+	for mode, opt := range []Options{{ContractOpt: true, AssertMode: "none"}, {ContractOpt: true, AssertMode: "none", UseGrace: true, UseHIRGrace: true}, {ContractOpt: true, AssertMode: "none", UseGrace: true, UseHIRGrace: true, OptSize: true}} {
+		t.Run(fmt.Sprint(mode), func(t *testing.T) {
+			steps, e := CompileHIRSteps(parse(), opt)
+			if e != nil {
+				t.Fatal(e)
+			}
+			raw := hir.LowerModule(parse())
+			for _, initial := range []int{0, 1, 167, 255} {
+				for _, chunk := range []int{0, 1, 2, 4, 127, 128, 255} {
+					seed, current, target, frame, digest := initial, 64, 64, 0, 0
+					mix := func(v int) { digest = (digest*3 + v) % 65536 }
+					for group := 0; group < 2; group++ {
+						area := 0
+						for i := 0; i < chunk; i++ {
+							if frame%128 == 0 {
+								if seed == 0 {
+									seed = 167
+								}
+								if seed%2 == 0 {
+									seed /= 2
+								} else {
+									seed = seed/2 ^ 184
+								}
+								target = 32 + seed%64
+							}
+							if frame%4 == 0 {
+								if current < target {
+									current++
+								} else if current > target {
+									current--
+								}
+							}
+							frame++
+							area += current
+						}
+						mix(area)
+						mix(seed)
+						mix(frame % 256)
+						mix(current)
+						mix(target)
+					}
+					want := int64(digest)
+					for _, module := range []*mir2.Module{raw, steps.MIR2Module} {
+						got, e := mir2.NewVM(module).Call("speed_area", []mir2.Value{{I: int64(initial)}, {I: int64(chunk)}})
+						if e != nil || len(got) != 1 || got[0].I != want {
+							t.Fatalf("seed%d chunk%d: %v %v want%d", initial, chunk, got, e, want)
+						}
+					}
+					measureGraceZ80HIR(t, parse(), "speed_area", opt, []int64{int64(initial), int64(chunk)}, nil, want)
+				}
+			}
+		})
+	}
+}

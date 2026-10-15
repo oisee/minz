@@ -21,3 +21,16 @@ fun FallSpeed.tick(self:^FallSpeed)->u8 {
     self.phase=self.phase+1
     return self.current
 }
+
+// Integrate elapsed frames before rendering: no frame is dropped when a
+// lock or line-clear publication takes more than one interrupt.
+// Q6 area is <=255*95, so the returned u16 cannot overflow.
+fun FallSpeed.advance(self:^FallSpeed,frames:u8)->u16 {
+    var area:u16=0
+    var remaining:u8=frames
+    while remaining!=0 {
+        area=area+u16(self.tick())
+        remaining=remaining-1
+    }
+    return area
+}
