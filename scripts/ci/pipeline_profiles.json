@@ -235,6 +235,8 @@
     "TestMul16SmallConstantSourceVMZ80",
     "TestMultiCallPreservesFormalIntegerWidth",
     "TestMultiFunctionProfileVMZ80",
+    "TestNanzGeneratedCallerTypeNativeVM",
+    "TestNanzGlobalAggregateLiteralNativeVM",
     "TestNanzNestedFieldsWithImportNativeVM",
     "TestNegativeLiteralContextVMZ80",
     "TestOfflineLocalGenerationRefusesIncompatibleOptions",
