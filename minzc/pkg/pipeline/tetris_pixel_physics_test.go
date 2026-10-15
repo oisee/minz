@@ -214,8 +214,8 @@ func (m *pixelGameModel) step(keys, ticks int) {
 	area := ticks * 8
 	if m.variableSpeed {
 		area = m.fall.advance(ticks)
-		m.fallArea = area
 	}
+	m.fallArea = area
 	pressed := keys & (keys ^ v["prev_keys"])
 	v["prev_keys"] = keys
 	for _, move := range []struct{ bit, dx int }{{1, -1}, {2, 1}} {
@@ -308,6 +308,7 @@ func runTetrisPixelPhysicsNativeVM(t *testing.T, path string, variable bool) {
 	if e != nil {
 		t.Fatal(e)
 	}
+	hasRate := strings.Contains(string(src), "import game.fall_speed")
 	source := string(src) + "\nglobal physics_keys:u8=0\nglobal physics_ticks:u8=0\nfun physics_probe(){game_step(physics_keys,physics_ticks)}\n"
 	parse := func() *hir.Module {
 		h, e := nanz.ParseWithOpts(source, "pixel-physics.nanz", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
@@ -554,6 +555,8 @@ func runTetrisPixelPhysicsNativeVM(t *testing.T, path string, variable bool) {
 				if variable {
 					r := want.fall
 					copy(expectedRAM[a.Symbols["fall_rate"]:], []byte{byte(r.seed), byte(r.phase), byte(r.current), byte(r.target)})
+				}
+				if hasRate {
 					expectedRAM[a.Symbols["fall_area"]] = byte(want.fallArea)
 					expectedRAM[a.Symbols["fall_area"]+1] = byte(want.fallArea >> 8)
 				}
@@ -574,6 +577,8 @@ func runTetrisPixelPhysicsNativeVM(t *testing.T, path string, variable bool) {
 						if got := read("fall_rate", 4); !bytes.Equal(got, expected) {
 							t.Fatalf("%s %s fall rate=%v want%v", tc.name, label, got, expected)
 						}
+					}
+					if hasRate {
 						b := read("fall_area", 2)
 						if got := int(b[0]) + int(b[1])*256; got != want.fallArea {
 							t.Fatalf("%s %s area=%d want%d", tc.name, label, got, want.fallArea)
@@ -628,6 +633,9 @@ func runTetrisPixelPhysicsNativeVM(t *testing.T, path string, variable bool) {
 						vm.WriteHeap(vm.GlobalAddr("difficulty_mode"), 3)
 						r := tc.initial.fall
 						vm.WriteHeapSlice(vm.GlobalAddr("fall_rate"), []byte{byte(r.seed), byte(r.phase), byte(r.current), byte(r.target)})
+						vm.WriteHeapSlice(vm.GlobalAddr("fall_area"), []byte{0, 0})
+					}
+					if hasRate {
 						vm.WriteHeapSlice(vm.GlobalAddr("fall_area"), []byte{0, 0})
 					}
 					vm.WriteHeap(vm.GlobalAddr("board_first"), byte(tc.initial.rowFirst))

@@ -175,6 +175,15 @@ game coordinates. Both difficulty levels and 1/2/4-line clears pass independent
 native Z80/ULA checks. Heavy actions still take multiple frames.
 [Source, measurements, verified capture, and limits](reports/advanced-demos/tetris/pixel-wobble/README.md).
 
+**Smooth random fall speed**
+
+[<img src="reports/advanced-demos/tetris/variable-speed/tetris-variable-speed-50hz.gif" width="352" alt="Spectrum Tetris: actual 50-Hz ULA frames with smooth seeded fall speed">](reports/advanced-demos/tetris/variable-speed/README.md)
+
+Choose **3** for a slowly changing random fall rate. A small typed Nanz
+controller integrates every elapsed frame before input; each pixel of motion
+still checks contact. Piece randomness is independent. Levels 1 and 2 keep
+their fixed speeds. [Code, native/VM checks, capture and limits](reports/advanced-demos/tetris/variable-speed/README.md).
+
 ## Explore
 
 - [Nanz language book](docs/Nanz_Language_Book_v7.md) and [Frill guide](docs/Frill_Language_Guide.md)
