@@ -17,40 +17,48 @@ import (
 )
 
 type metaSpecializeFlags struct {
-	Goal, Evidence, Output, Target, Stdlib string
-	Limit                                  int
+	Goal, Evidence, Output, Target, Stdlib, Workload string
+	Limit                                            int
+	BudgetTStates                                    int64
 }
 type metaSpecializeCandidate struct {
-	Selection      map[string]uint8 `json:"selection"`
-	Bytes          int              `json:"bytes"`
-	AssemblySHA256 string           `json:"assembly_sha256"`
-	BinarySHA256   string           `json:"binary_sha256"`
-	HIRSHA256      string           `json:"hir_sha256"`
-	Directory      string           `json:"directory"`
+	Selection      map[string]uint8                `json:"selection"`
+	Bytes          int                             `json:"bytes"`
+	AssemblySHA256 string                          `json:"assembly_sha256"`
+	BinarySHA256   string                          `json:"binary_sha256"`
+	HIRSHA256      string                          `json:"hir_sha256"`
+	Directory      string                          `json:"directory"`
+	Run            *pipeline.SpectrumPhaseEvidence `json:"run,omitempty"`
+	Eligible       bool                            `json:"eligible"`
 }
 type metaSpecializeEvidence struct {
-	Schema        string                    `json:"schema"`
-	Goal          string                    `json:"goal"`
-	Source        string                    `json:"source"`
-	SourceSHA256  string                    `json:"source_sha256"`
-	Target        string                    `json:"target"`
-	Options       pipeline.Options          `json:"options"`
-	Inputs        map[string]string         `json:"physical_source_units"`
-	Variants      []nanz.MetaVariant        `json:"variants"`
-	Candidates    []metaSpecializeCandidate `json:"candidates"`
-	Selected      int                       `json:"selected"`
-	SemanticScope string                    `json:"semantic_scope"`
+	Schema           string                          `json:"schema"`
+	Goal             string                          `json:"goal"`
+	Source           string                          `json:"source"`
+	SourceSHA256     string                          `json:"source_sha256"`
+	Target           string                          `json:"target"`
+	Options          pipeline.Options                `json:"options"`
+	Inputs           map[string]string               `json:"physical_source_units"`
+	Variants         []nanz.MetaVariant              `json:"variants"`
+	Candidates       []metaSpecializeCandidate       `json:"candidates"`
+	Selected         int                             `json:"selected"`
+	SemanticScope    string                          `json:"semantic_scope"`
+	SpectrumWorkload *pipeline.SpectrumPhaseWorkload `json:"spectrum_workload,omitempty"`
+	WorkloadSHA256   string                          `json:"workload_sha256,omitempty"`
+	BudgetTStates    int64                           `json:"budget_t_states,omitempty"`
 }
 
 func init() {
 	f := metaSpecializeFlags{}
-	cmd := &cobra.Command{Use: "specialize source.nanz", Short: "measure declared compile-time variants and save the smallest full Z80 binary", Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error { return runMetaSpecialize(args[0], f) }}
-	cmd.Flags().StringVar(&f.Goal, "goal", "size", "selection objective (size; speed requires a future explicit workload)")
+	cmd := &cobra.Command{Use: "specialize source.nanz", Short: "measure declared Z80 variants and select by size, speed or frame budget", Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error { return runMetaSpecialize(args[0], f) }}
+	cmd.Flags().StringVar(&f.Goal, "goal", "size", "selection objective: size, speed (min max full busy T) or budget (min code under measured frame budget)")
 	cmd.Flags().StringVar(&f.Evidence, "evidence", "", "new directory for all candidate ASM/BIN and selection evidence (required)")
 	cmd.Flags().StringVarP(&f.Output, "output", "o", "", "chosen .a80/.asm/.bin output (default: source.a80)")
 	cmd.Flags().StringVarP(&f.Target, "target", "t", "generic", "Z80 target: generic, cpm or zxspectrum")
 	cmd.Flags().StringVar(&f.Stdlib, "stdlib", "", "stdlib directory (default: discover beside source or executable)")
 	cmd.Flags().IntVar(&f.Limit, "limit", 32, "maximum candidate combinations (2..64)")
+	cmd.Flags().StringVar(&f.Workload, "workload", "", "bounded Spectrum phase workload JSON with pinned ROM and independent screen/global oracles")
+	cmd.Flags().Int64Var(&f.BudgetTStates, "budget-tstates", 0, "max full busy T for --goal budget; requires consecutive frame publication")
 	rootCmd.AddCommand(cmd)
 }
 
@@ -114,8 +122,21 @@ func runMetaSpecialize(source string, f metaSpecializeFlags) error {
 	if filepath.Ext(source) != ".nanz" {
 		return fail(fmt.Errorf("requires a Nanz source"))
 	}
-	if f.Goal != "size" {
-		return fail(fmt.Errorf("only size is implemented; speed needs an explicit measured workload"))
+	if f.Goal != "size" && f.Goal != "speed" && f.Goal != "budget" {
+		return fail(fmt.Errorf("goal must be size, speed or budget"))
+	}
+	if f.Goal != "size" && f.Workload == "" {
+		return fail(fmt.Errorf("speed/budget requires an explicit measured workload"))
+	}
+	if f.Goal == "budget" {
+		if f.BudgetTStates < 1 || f.BudgetTStates > 69888 {
+			return fail(fmt.Errorf("48K budget must be 1..69888 T"))
+		}
+	} else if f.BudgetTStates != 0 {
+		return fail(fmt.Errorf("--budget-tstates requires --goal budget"))
+	}
+	if f.Workload != "" && f.Target != "zxspectrum" {
+		return fail(fmt.Errorf("Spectrum workload requires target zxspectrum"))
 	}
 	if f.Target != "generic" && f.Target != "cpm" && f.Target != "zxspectrum" {
 		return fail(fmt.Errorf("unsupported Z80 target %q", f.Target))
@@ -168,9 +189,36 @@ func runMetaSpecialize(source string, f metaSpecializeFlags) error {
 	if stdlib == "" {
 		stdlib = findSpecializeStdlib(filepath.Dir(source))
 	}
+	var workload *pipeline.SpectrumPhaseWorkload
+	var rom, workloadBytes []byte
+	if f.Workload != "" {
+		var w pipeline.SpectrumPhaseWorkload
+		if err := decodeHIRProfileJSON(f.Workload, 1<<20, &w); err != nil {
+			return fail(err)
+		}
+		if err := w.Validate(); err != nil {
+			return fail(err)
+		}
+		if !filepath.IsAbs(w.ROM) {
+			w.ROM = filepath.Join(filepath.Dir(f.Workload), w.ROM)
+		}
+		rom, err = os.ReadFile(w.ROM)
+		if err != nil {
+			return fail(err)
+		}
+		if len(rom) != 16384 || fmt.Sprintf("%x", sha256.Sum256(rom)) != w.ROMSHA256 {
+			return fail(fmt.Errorf("ROM differs from pinned workload"))
+		}
+		workloadBytes, err = json.Marshal(w)
+		if err != nil {
+			return fail(err)
+		}
+		workload = &w
+	}
+	compileSize := f.Goal != "speed"
 	parse := func(selection map[string]uint8) (*hir.Module, []nanz.MetaVariant, error) {
 		context := nanz.NewMetaVariantContext(selection)
-		m, err := nanz.ParseWithOpts(string(data), source, nanz.ParseOpts{BaseDir: filepath.Dir(source), StdlibDir: stdlib, OptSize: true, MetaVariants: context})
+		m, err := nanz.ParseWithOpts(string(data), source, nanz.ParseOpts{BaseDir: filepath.Dir(source), StdlibDir: stdlib, OptSize: compileSize, MetaVariants: context})
 		if err != nil {
 			return nil, nil, err
 		}
@@ -199,8 +247,14 @@ func runMetaSpecialize(source string, f metaSpecializeFlags) error {
 	if err != nil {
 		return fail(err)
 	}
-	opts := pipeline.Options{OptSize: true, ContractOpt: true, Backend: "z80", AssertMode: "all"}
-	report := metaSpecializeEvidence{Schema: "minz.meta-specialization/v1", Goal: f.Goal, Source: source, SourceSHA256: fmt.Sprintf("%x", sha256.Sum256(data)), Target: f.Target, Options: opts, Inputs: inputs, Variants: variants, SemanticScope: "Generator authors declare equivalent alternatives. Unchanged source assertions run for every candidate. Size measurements are complete assembled output; no general equivalence, native gameplay or frame-budget proof is inferred."}
+	opts := pipeline.Options{OptSize: compileSize, ContractOpt: true, Backend: "z80", AssertMode: "all"}
+	report := metaSpecializeEvidence{Schema: "minz.meta-specialization/v1", Goal: f.Goal, Source: source, SourceSHA256: fmt.Sprintf("%x", sha256.Sum256(data)), Target: f.Target, Options: opts, Inputs: inputs, Variants: variants, SemanticScope: "Generator authors declare equivalent alternatives. Unchanged source assertions run for every candidate. Size measurements are complete assembled output; no general equivalence is inferred. A supplied Spectrum workload additionally checks its declared screen/global oracles and full steady CPU-work cycles."}
+	report.SpectrumWorkload = workload
+	report.BudgetTStates = f.BudgetTStates
+	report.Selected = -1
+	if workload != nil {
+		report.WorkloadSHA256 = fmt.Sprintf("%x", sha256.Sum256(workloadBytes))
+	}
 	parent := filepath.Dir(evidence)
 	if err := os.MkdirAll(parent, 0755); err != nil {
 		return fail(err)
@@ -275,11 +329,46 @@ func runMetaSpecialize(source string, f metaSpecializeFlags) error {
 				return fail(err)
 			}
 		}
-		report.Candidates = append(report.Candidates, metaSpecializeCandidate{Selection: selection, Bytes: len(bin), AssemblySHA256: fmt.Sprintf("%x", sha256.Sum256([]byte(assembly))), BinarySHA256: fmt.Sprintf("%x", sha256.Sum256(bin)), HIRSHA256: fmt.Sprintf("%x", sha256.Sum256(metadata)), Directory: dir})
-		if i == 0 || len(bin) < len(chosenBIN) {
+		candidate := metaSpecializeCandidate{Selection: selection, Bytes: len(bin), AssemblySHA256: fmt.Sprintf("%x", sha256.Sum256([]byte(assembly))), BinarySHA256: fmt.Sprintf("%x", sha256.Sum256(bin)), HIRSHA256: fmt.Sprintf("%x", sha256.Sum256(metadata)), Directory: dir, Eligible: true}
+		if workload != nil {
+			run, err := pipeline.RunSpectrumPhaseWorkload(assembly, bin, rom, *workload)
+			if err != nil {
+				return fail(fmt.Errorf("candidate %d: %w", i, err))
+			}
+			candidate.Run = run
+			measured, err := json.MarshalIndent(run, "", "  ")
+			if err != nil {
+				return fail(err)
+			}
+			if err := os.WriteFile(filepath.Join(path, "native-run.json"), append(measured, '\n'), 0644); err != nil {
+				return fail(err)
+			}
+			if f.Goal == "budget" {
+				candidate.Eligible = run.MaxFullBusyTStates <= f.BudgetTStates && run.MaxPublicationIntervalFrames <= 1
+			}
+		}
+		report.Candidates = append(report.Candidates, candidate)
+		better := candidate.Eligible && report.Selected < 0
+		if candidate.Eligible && report.Selected >= 0 {
+			best := report.Candidates[report.Selected]
+			if f.Goal == "speed" {
+				better = candidate.Run.MaxFullBusyTStates < best.Run.MaxFullBusyTStates
+			} else {
+				better = candidate.Bytes < best.Bytes
+			}
+		}
+		if better {
 			report.Selected = i
 			chosenASM = []byte(assembly)
 			chosenBIN = append([]byte(nil), bin...)
+		}
+	}
+	if report.Selected < 0 {
+		return fail(fmt.Errorf("no candidate fits the requested full busy/frame budget"))
+	}
+	if workload != nil {
+		if err := os.WriteFile(filepath.Join(stage, "workload.json"), append(workloadBytes, '\n'), 0644); err != nil {
+			return fail(err)
 		}
 	}
 	// Final fresh parse detects dependency changes during compilation. Each

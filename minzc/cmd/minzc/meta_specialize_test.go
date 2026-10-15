@@ -132,3 +132,72 @@ func TestMetaSelectionsCombinationOrderAndLimit(t *testing.T) {
 		t.Fatal("empty choice set accepted")
 	}
 }
+
+func TestMetaSpecializeSpectrumSpeedAndBudget(t *testing.T) {
+	for _, tc := range []struct {
+		goal     string
+		budget   int64
+		selected int
+		success  bool
+	}{
+		{"size", 0, 1, true}, {"speed", 0, 0, true}, {"budget", 32000, 1, true}, {"budget", 29700, 0, true}, {"budget", 1, -1, false},
+	} {
+		t.Run(fmt.Sprintf("%s-%d", tc.goal, tc.budget), func(t *testing.T) {
+			dir := t.TempDir()
+			f := metaSpecializeFlags{Goal: tc.goal, BudgetTStates: tc.budget, Target: "zxspectrum", Evidence: filepath.Join(dir, "evidence"), Output: filepath.Join(dir, "winner.bin"), Stdlib: "../../../stdlib", Workload: "../../../reports/advanced-demos/meta-specialization/workload.json", Limit: 32}
+			err := runMetaSpecialize("../../../reports/advanced-demos/meta-specialization/source.nanz", f)
+			if !tc.success {
+				if err == nil {
+					t.Fatal("unmet budget accepted")
+				}
+				if _, err := os.Stat(f.Output); !os.IsNotExist(err) {
+					t.Fatal("ineligible output published")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			data, err := os.ReadFile(filepath.Join(f.Evidence, "selection.json"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			var report metaSpecializeEvidence
+			if err := json.Unmarshal(data, &report); err != nil {
+				t.Fatal(err)
+			}
+			if report.Selected != tc.selected || len(report.Candidates) != 2 || report.SpectrumWorkload == nil || report.WorkloadSHA256 == "" {
+				t.Fatal(report)
+			}
+			for _, candidate := range report.Candidates {
+				if candidate.Run == nil || candidate.Run.Publications != 64 || len(candidate.Run.FullBusyCycles) != 63 {
+					t.Fatal("incomplete native measurement")
+				}
+			}
+			selected := report.Candidates[report.Selected]
+			out, err := os.ReadFile(f.Output)
+			if err != nil || fmt.Sprintf("%x", sha256.Sum256(out)) != selected.BinarySHA256 {
+				t.Fatal("output is not measured winner", err)
+			}
+			if tc.goal == "speed" && selected.Bytes <= report.Candidates[1].Bytes {
+				t.Fatal("pure Speed unexpectedly constrained bytes")
+			}
+			if tc.goal == "budget" && (selected.Run.MaxFullBusyTStates > tc.budget || selected.Run.MaxPublicationIntervalFrames > 1) {
+				t.Fatal("budget or consecutive-publication condition ignored")
+			}
+		})
+	}
+}
+
+func TestMetaSpecializeSpectrumFlagRefusals(t *testing.T) {
+	for _, f := range []metaSpecializeFlags{
+		{Goal: "speed", Target: "zxspectrum", Limit: 32},
+		{Goal: "budget", Target: "zxspectrum", BudgetTStates: 69889, Workload: "missing.json", Limit: 32},
+		{Goal: "size", Target: "zxspectrum", BudgetTStates: 1, Limit: 32},
+		{Goal: "speed", Target: "generic", Workload: "missing.json", Limit: 32},
+	} {
+		if err := runMetaSpecialize("not-read.nanz", f); err == nil {
+			t.Fatal("invalid native search flags accepted")
+		}
+	}
+}

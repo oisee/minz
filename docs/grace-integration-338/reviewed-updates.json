@@ -191,7 +191,7 @@
     "evidence": {
       "minzc/pkg/pipeline/original_lizp_lanz_family_native_test.go": "1952fd3f9c44cb0596e5645f1a7fcf068bfbd70b0603561175cab6a5cd07ad73",
       "reports/lizp-last-form/manifest.json": "ed61e1c78b4e34e20d14898eb40da959fbcccf42dad6a77ef3850161053768b1",
-      "docs/Nanz_Language_Book_v7.md": "e27d22b50105dfdbb4e50cb821fccd5e4c64171178923ee66f684976cdff29b6"
+      "docs/Nanz_Language_Book_v7.md": "e84929ca31ffb948a856dba9ba6250ea23f62a9c0df539dfb74de8f54d1b4a03"
     }
   },
   {
@@ -275,7 +275,7 @@
     "source_sha256": "dccdb53d9ffe73cd95b939e9e35a3359417d827a1a3a81aa3580f97e012259de",
     "native_behavior": "executed-independent-bounded",
     "workload": "All13 original entries: seven unary full byte, factorial0..254, three binary full byte pairs, divisibility nonzero divisor, clamp256x10x10 bounds; 289535 calls per mode, 868605 total.",
-    "independent_model": "Frozen fdae8e86: direct byte arithmetic/branches, wrap intermediate operations per Bookv7\u00a73.1/21.2; raw/final/native trueCALL, PC/SP/fullRAM.",
+    "independent_model": "Frozen fdae8e86: direct byte arithmetic/branches, wrap intermediate operations per Bookv7§3.1/21.2; raw/final/native trueCALL, PC/SP/fullRAM.",
     "boundary": "fact_loop255 nontermination/divisorzero/fullclampdomain explicitly outside proof.",
     "evidence": {
       "docs/grace-integration-177/README.md": "5a86268aa1da01b8ff8b0714cf4685b188c5a0df131efc752ba8758c49415bcd",
@@ -356,7 +356,7 @@
     "path": "examples/nanz/01_sum_array.plm",
     "source_sha256": "fa0911df63dbc5bb16f169e1392f92be3f64e09c299156127ef37a7ff9d20c8e",
     "native_behavior": "bounded-independent-vm-native",
-    "workload": "Each source70,144calls/mode:all256seed\u00d7256length plus4608pointerwrapcases,three sources/modes631296calls.",
+    "workload": "Each source70,144calls/mode:all256seed×256length plus4608pointerwrapcases,three sources/modes631296calls.",
     "independent_model": "Frozen independentsumbyte/orderedread sourceSHA;raw/final/nativeCALL exactPC/SP/RAM/noextrasstores;threeoriginalsourcesparsedseparately.",
     "boundary": "Arrayfamiliesbounded,notallarrays;noGracegaincode28Bequal.",
     "evidence": {
@@ -369,7 +369,7 @@
     "path": "examples/nanz/01_sum_plm_origin.plm",
     "source_sha256": "6564b22b460943d7b8ac088ec482f05857f752eb40f5c6103534fcaf2a0ec023",
     "native_behavior": "bounded-independent-vm-native",
-    "workload": "Each source70,144calls/mode:all256seed\u00d7256length plus4608pointerwrapcases,three sources/modes631296calls.",
+    "workload": "Each source70,144calls/mode:all256seed×256length plus4608pointerwrapcases,three sources/modes631296calls.",
     "independent_model": "Frozen independentsumbyte/orderedread sourceSHA;raw/final/nativeCALL exactPC/SP/RAM/noextrasstores;threeoriginalsourcesparsedseparately.",
     "boundary": "Arrayfamiliesbounded,notallarrays;noGracegaincode28Bequal.",
     "evidence": {
@@ -393,7 +393,7 @@
     "path": "examples/nanz/03_filter_map_chain.nanz",
     "source_sha256": "53e50444cb55dc1c75e59b2dd1f6ac5cb3bd31ef9886f90e72ba871f0a69b238",
     "native_behavior": "executed-independent-vm-z80",
-    "workload": "Both exact original filter_map_forEach/filter_map_explicit entries: 6 lengths \u00d7 7 thresholds = 84 calls",
+    "workload": "Both exact original filter_map_forEach/filter_map_explicit entries: 6 lengths × 7 thresholds = 84 calls",
     "independent_model": "Independent byte doubling modulo256, ordered input reads and survivor callback writes; full 260 input/258 trace bytes, count and guards",
     "boundary": "Original source unchanged; explicit process(u8) runtime writes trace using typed poke adapter. No main exists; stack, code access and return checked by native runner.",
     "evidence": {
@@ -492,7 +492,7 @@
     "path": "examples/nanz/12_state_machine.nanz",
     "source_sha256": "e786b92e809a12eb3d8bdc98d75481c88d92c17be7139d51f76db34b85ec8838",
     "native_behavior": "executed-independent-vm-z80",
-    "workload": "states0..3 \u00d7 events0,1,2,3,4,127,255 plus alive/speed",
+    "workload": "states0..3 × events0,1,2,3,4,127,255 plus alive/speed",
     "independent_model": "Independent transition table and state property tables",
     "boundary": "TestShowcaseStateMachineNativeTransitionModel",
     "evidence": {
@@ -723,7 +723,7 @@
     "path": "examples/nanz/grace_seeded_sum.nanz",
     "source_sha256": "abc8df5dad8c2639a09de170f1cae6c31dc62ab5dcec01a0ce5c6a872b17c6c7",
     "native_behavior": "executed-independent-vm-z80",
-    "workload": "18 seeded_packet calls: 3 seeds \u00d7 6 lengths, carry and zero trip",
+    "workload": "18 seeded_packet calls: 3 seeds × 6 lengths, carry and zero trip",
     "independent_model": "Independent uint16 seeded sum plus globals/snapshots and exact resource reads",
     "boundary": "Named caller; separate synthetic address-domain matrix is not additional corpus proof.",
     "evidence": {
@@ -745,7 +745,7 @@
     "path": "examples/nanz/grace_weighted_checksum.nanz",
     "source_sha256": "b350e4307d9134ebdefbc5c1485b52d9529b8fcb6abfe37fd62eae728d2f6423",
     "native_behavior": "executed-independent-vm-z80",
-    "workload": "30 weighted_checksum/checksum_packet calls; 5 patterns \u00d7 6 lengths including 0/255 and carry",
+    "workload": "30 weighted_checksum/checksum_packet calls; 5 patterns × 6 lengths including 0/255 and carry",
     "independent_model": "Go integer accumulation modulo 65536 plus persistent globals and unchanged resources",
     "boundary": "Named entries; bounded workload, not all inputs or every derived packet caller.",
     "evidence": {
@@ -1038,7 +1038,7 @@
     "path": "examples/nanz/sql_test6.nanz",
     "source_sha256": "1300b30eb66c72c1f5cb5aeef778abe3c5cfc6dcc29a809c628e995159cea18f",
     "native_behavior": "executed-native-asm-bounded",
-    "workload": "Whole unchanged main, three modes \u00d7 two BDOS contracts; real SQLite, 11 commands, exact 59 stdout bytes; bounded port APIs.",
+    "workload": "Whole unchanged main, three modes × two BDOS contracts; real SQLite, 11 commands, exact 59 stdout bytes; bounded port APIs.",
     "independent_model": "Pre-execution frozen SQL/stdout oracle and real modernc SQLite through strict test-owned host.",
     "boundary": "Native only; test-owned runtime. MZX mismatch remains; recv requires NUL within 256 bytes.",
     "evidence": {
@@ -1222,7 +1222,7 @@
     "source_sha256": "4d4456e75beb9dcb43df6bc1483a3b8c9fa2b3c8dfe9d4f68c3b6679abcde6d8",
     "native_behavior": "bounded-independent-vm-native",
     "workload": "Divmod full byte numerator/nonzero denominator; word minmax/swap/projections all lowbyte orderedpairs plus14x14wordboundaries, both result slots. Three modes591136calls each across three source modules.",
-    "independent_model": "Frozen direct source arithmetic and Bookv7\u00a77.5 tuple results; raw/final/native actualCALL returnPC/SP full64KiBRAM. March13 duplicate exactSHA read independently.",
+    "independent_model": "Frozen direct source arithmetic and Bookv7§7.5 tuple results; raw/final/native actualCALL returnPC/SP full64KiBRAM. March13 duplicate exactSHA read independently.",
     "boundary": "No divisorzero/nonterminatingdivmod or fullu16pairdomain claim.",
     "evidence": {
       "reports/2026-10-11-original-tuple-corpus.md": "64f02fab27f37b46fa4e47e1f3ad898b4b986b584ed6d0ad8ebfc4c8f8664d7b",
@@ -1379,7 +1379,7 @@
     "path": "examples/pascal/logic_test.pas",
     "source_sha256": "59a713bce212dd1b353e032bb6addeaf05875799e1a4e7f8d4094dfcfde24f1e",
     "native_behavior": "bounded-independent-vm-native",
-    "workload": "All13 originalcallables acrosslogic/math,main+38asserts;completebyteunary/pairs,signedDoubleall65536patterns,Add3allpairs\u00d716frozenthirdvalues;4134264nativecalls three modes.",
+    "workload": "All13 originalcallables acrosslogic/math,main+38asserts;completebyteunary/pairs,signedDoubleall65536patterns,Add3allpairs×16frozenthirdvalues;4134264nativecalls three modes.",
     "independent_model": "Frozen871b03ea directarithmetic wrap/spec;Double signedactualworddecodeint16,raw/finalVM/nativePC/SP/fullRAM/imageeachcall.",
     "boundary": "Add3third16boundariesbounded,notall16Mtriples;allmathdeclareddomainscovered.",
     "evidence": {
@@ -1392,7 +1392,7 @@
     "path": "examples/pascal/math_test.pas",
     "source_sha256": "407967b334035ccf1576b857d2953759d55c4ad4e117d7361544330b0d41c529",
     "native_behavior": "executed-independent-vm-z80",
-    "workload": "All13 originalcallables acrosslogic/math,main+38asserts;completebyteunary/pairs,signedDoubleall65536patterns,Add3allpairs\u00d716frozenthirdvalues;4134264nativecalls three modes.",
+    "workload": "All13 originalcallables acrosslogic/math,main+38asserts;completebyteunary/pairs,signedDoubleall65536patterns,Add3allpairs×16frozenthirdvalues;4134264nativecalls three modes.",
     "independent_model": "Frozen871b03ea directarithmetic wrap/spec;Double signedactualworddecodeint16,raw/finalVM/nativePC/SP/fullRAM/imageeachcall.",
     "boundary": "Add3third16boundariesbounded,notall16Mtriples;allmathdeclareddomainscovered.",
     "evidence": {
@@ -1506,7 +1506,7 @@
     "path": "examples/plm/sum_array.plm",
     "source_sha256": "6564b22b460943d7b8ac088ec482f05857f752eb40f5c6103534fcaf2a0ec023",
     "native_behavior": "bounded-independent-vm-native",
-    "workload": "Each source70,144calls/mode:all256seed\u00d7256length plus4608pointerwrapcases,three sources/modes631296calls.",
+    "workload": "Each source70,144calls/mode:all256seed×256length plus4608pointerwrapcases,three sources/modes631296calls.",
     "independent_model": "Frozen independentsumbyte/orderedread sourceSHA;raw/final/nativeCALL exactPC/SP/RAM/noextrasstores;threeoriginalsourcesparsedseparately.",
     "boundary": "Arrayfamiliesbounded,notallarrays;noGracegaincode28Bequal.",
     "evidence": {
@@ -1561,7 +1561,7 @@
     "path": "examples/tests/divmod10_test.nanz",
     "source_sha256": "2c183337ceb6c7df4299d3db49cf0c43065a6aa3641152b5d1dfab85630b1678",
     "native_behavior": "executed-independent-vm-z80",
-    "workload": "All256div/mod10inputs,14constantcoeff\u00d7256bytes,board_idxall65536bytepairs,sourceasserts/mainthree modes208962calls.",
+    "workload": "All256div/mod10inputs,14constantcoeff×256bytes,board_idxall65536bytepairs,sourceasserts/mainthree modes208962calls.",
     "independent_model": "Frozen directarithwraporacle/raw/final/nativeSP/PC/fullRAM;sourceunchanged.",
     "boundary": "Full declared byte domainscovered;puremainunusedcalculationslegallyfolded.",
     "evidence": {
@@ -1586,7 +1586,7 @@
     "path": "examples/tests/mul8_strength_reduction.nanz",
     "source_sha256": "0083244993e5cb7216c3d0a75f806d2219a2c0ae534cdbc5295c596f5858c4e8",
     "native_behavior": "executed-independent-vm-z80",
-    "workload": "All256div/mod10inputs,14constantcoeff\u00d7256bytes,board_idxall65536bytepairs,sourceasserts/mainthree modes208962calls.",
+    "workload": "All256div/mod10inputs,14constantcoeff×256bytes,board_idxall65536bytepairs,sourceasserts/mainthree modes208962calls.",
     "independent_model": "Frozen directarithwraporacle/raw/final/nativeSP/PC/fullRAM;sourceunchanged.",
     "boundary": "Full declared byte domainscovered;puremainunusedcalculationslegallyfolded.",
     "evidence": {
@@ -1625,7 +1625,7 @@
     "native_behavior": "bounded-independent-vm-native",
     "workload": "All21 entries, three modes,1840989 actual CALL; fullbytepairs/unary, bounded word/clamp; active source via-z80 assertions",
     "independent_model": "Independent modular arithmetic and bit-count model; Book v7 widths/explicit loops",
-    "boundary": "Word lowbytepairs+12\u00b2 boundaries,clamp256x9\u00b2, sum_to255 source nontermination; no added bxor callable",
+    "boundary": "Word lowbytepairs+12² boundaries,clamp256x9², sum_to255 source nontermination; no added bxor callable",
     "evidence": {
       "reports/original-compute-verify-native/manifest.json": "d11908919793211141565a50aa68d0f01b27799b8afaa87f070d9dde5230f9fc",
       "minzc/pkg/pipeline/original_compute_verify_native_test.go": "33dbaec625c4cb68a3ad371660b079ce8f59130c00961a8cd2f66f28555a99b0"
@@ -1782,7 +1782,7 @@
     "path": "reports/showcase-src/2026-03-10/ex4a_abs_diff_iar.nanz",
     "source_sha256": "621fbdd24f4747af79b0e0d83fd90aaa304ed75d44fe72fda0b86b6cd4496361",
     "native_behavior": "executed-independent-vm-z80",
-    "workload": "abs_diff: 9\u00d79 signed boundaries, Grace on/off; other added helpers tracked separately",
+    "workload": "abs_diff: 9×9 signed boundaries, Grace on/off; other added helpers tracked separately",
     "independent_model": "Independent signed distance 0..255, Language Book v7 section 3.2",
     "boundary": "Derived test source appends helpers; original abs_diff unchanged. Original entry 162 cases; 810 total includes helpers and is not five corpus programs.",
     "evidence": {
@@ -1806,7 +1806,7 @@
     "path": "reports/showcase-src/2026-03-10/ex5_lut.nanz",
     "source_sha256": "d33826eba80cfd940d02c844ba58a0b085251763552b31de104564009b8c36c4",
     "native_behavior": "bounded-independent-vm-native",
-    "workload": "Popcount all256bytes;sum/max/map all256seeds\u00d7256lengths with ordered(seed+73*i)%256 arrays,three modes590592sourceCALL;March13duplicatesindependentSHA.",
+    "workload": "Popcount all256bytes;sum/max/map all256seeds×256lengths with ordered(seed+73*i)%256 arrays,three modes590592sourceCALL;March13duplicatesindependentSHA.",
     "independent_model": "Frozen directpopcount/sum_mod256/max/map+2;raw/final/nativeCALL,fullRAM/guards/SP,orderedactualmemoryaccess. Graceedgeargcounterexample before36instead219 fixed.",
     "boundary": "Arrayfamilies bounded,notallpossiblearrays. Liftedlambda inlinednotseparatenativeproof. Rootfulloriginalreplayrunning.",
     "evidence": {
@@ -1819,7 +1819,7 @@
     "path": "reports/showcase-src/2026-03-10/ex6_foreach.nanz",
     "source_sha256": "e1e53370ff161285310b11fd2a0ad573f96cef85193532c0f1ebe4c9217641eb",
     "native_behavior": "bounded-independent-vm-native",
-    "workload": "Popcount all256bytes;sum/max/map all256seeds\u00d7256lengths with ordered(seed+73*i)%256 arrays,three modes590592sourceCALL;March13duplicatesindependentSHA.",
+    "workload": "Popcount all256bytes;sum/max/map all256seeds×256lengths with ordered(seed+73*i)%256 arrays,three modes590592sourceCALL;March13duplicatesindependentSHA.",
     "independent_model": "Frozen directpopcount/sum_mod256/max/map+2;raw/final/nativeCALL,fullRAM/guards/SP,orderedactualmemoryaccess. Graceedgeargcounterexample before36instead219 fixed.",
     "boundary": "Arrayfamilies bounded,notallpossiblearrays. Liftedlambda inlinednotseparatenativeproof. Rootfulloriginalreplayrunning.",
     "evidence": {
@@ -1832,7 +1832,7 @@
     "path": "reports/showcase-src/2026-03-10/ex7_mapinplace.nanz",
     "source_sha256": "779c02d554372699c21d41ea3488a05eed304f8cbc55a6e3eca026fee316b780",
     "native_behavior": "bounded-independent-vm-native",
-    "workload": "Popcount all256bytes;sum/max/map all256seeds\u00d7256lengths with ordered(seed+73*i)%256 arrays,three modes590592sourceCALL;March13duplicatesindependentSHA.",
+    "workload": "Popcount all256bytes;sum/max/map all256seeds×256lengths with ordered(seed+73*i)%256 arrays,three modes590592sourceCALL;March13duplicatesindependentSHA.",
     "independent_model": "Frozen directpopcount/sum_mod256/max/map+2;raw/final/nativeCALL,fullRAM/guards/SP,orderedactualmemoryaccess. Graceedgeargcounterexample before36instead219 fixed.",
     "boundary": "Arrayfamilies bounded,notallpossiblearrays. Liftedlambda inlinednotseparatenativeproof. Rootfulloriginalreplayrunning.",
     "evidence": {
@@ -1919,7 +1919,7 @@
     "source_sha256": "f7f3be929afe1d2ce0b4212b46b004bfeb9a562780ff9b54b9eef2a7efcf7326",
     "native_behavior": "bounded-independent-vm-native",
     "workload": "Divmod full byte numerator/nonzero denominator; word minmax/swap/projections all lowbyte orderedpairs plus14x14wordboundaries, both result slots. Three modes591136calls each across three source modules.",
-    "independent_model": "Frozen direct source arithmetic and Bookv7\u00a77.5 tuple results; raw/final/native actualCALL returnPC/SP full64KiBRAM. March13 duplicate exactSHA read independently.",
+    "independent_model": "Frozen direct source arithmetic and Bookv7§7.5 tuple results; raw/final/native actualCALL returnPC/SP full64KiBRAM. March13 duplicate exactSHA read independently.",
     "boundary": "No divisorzero/nonterminatingdivmod or fullu16pairdomain claim.",
     "evidence": {
       "reports/2026-10-11-original-tuple-corpus.md": "64f02fab27f37b46fa4e47e1f3ad898b4b986b584ed6d0ad8ebfc4c8f8664d7b",
@@ -1931,7 +1931,7 @@
     "path": "reports/showcase-src/2026-03-11/ex12_assert.nanz",
     "source_sha256": "4972461eba6fb194fd5a844dd9e10a25ae800b92bf2c64709070f7df590f9ad1",
     "native_behavior": "bounded-independent-vm-native",
-    "workload": "All256\u00b3clamp andallbytepairsabs,unarydouble3modes",
+    "workload": "All256³clamp andallbytepairsabs,unarydouble3modes",
     "independent_model": "Independent byte clamp/abs/double",
     "boundary": "Allsourceasserts retained; exactsource March13 duplicate independently read; rootfullPASS111.521s; unchanged full domain independently rerun after metadata reuse and isolated parallel modes: PASS44.835s",
     "evidence": {
@@ -1944,7 +1944,7 @@
     "source_sha256": "6677d09ec89a8489a9691bd4caa184ef88149c370b87fe543dc4b3e1432270b7",
     "native_behavior": "bounded-independent-vm-native",
     "workload": "Divmod full byte numerator/nonzero denominator; word minmax/swap/projections all lowbyte orderedpairs plus14x14wordboundaries, both result slots. Three modes591136calls each across three source modules.",
-    "independent_model": "Frozen direct source arithmetic and Bookv7\u00a77.5 tuple results; raw/final/native actualCALL returnPC/SP full64KiBRAM. March13 duplicate exactSHA read independently.",
+    "independent_model": "Frozen direct source arithmetic and Bookv7§7.5 tuple results; raw/final/native actualCALL returnPC/SP full64KiBRAM. March13 duplicate exactSHA read independently.",
     "boundary": "No divisorzero/nonterminatingdivmod or fullu16pairdomain claim.",
     "evidence": {
       "reports/2026-10-11-original-tuple-corpus.md": "64f02fab27f37b46fa4e47e1f3ad898b4b986b584ed6d0ad8ebfc4c8f8664d7b",
@@ -2101,7 +2101,7 @@
     "source_sha256": "f7f3be929afe1d2ce0b4212b46b004bfeb9a562780ff9b54b9eef2a7efcf7326",
     "native_behavior": "bounded-independent-vm-native",
     "workload": "Divmod full byte numerator/nonzero denominator; word minmax/swap/projections all lowbyte orderedpairs plus14x14wordboundaries, both result slots. Three modes591136calls each across three source modules.",
-    "independent_model": "Frozen direct source arithmetic and Bookv7\u00a77.5 tuple results; raw/final/native actualCALL returnPC/SP full64KiBRAM. March13 duplicate exactSHA read independently.",
+    "independent_model": "Frozen direct source arithmetic and Bookv7§7.5 tuple results; raw/final/native actualCALL returnPC/SP full64KiBRAM. March13 duplicate exactSHA read independently.",
     "boundary": "No divisorzero/nonterminatingdivmod or fullu16pairdomain claim.",
     "evidence": {
       "reports/2026-10-11-original-tuple-corpus.md": "64f02fab27f37b46fa4e47e1f3ad898b4b986b584ed6d0ad8ebfc4c8f8664d7b",
@@ -2113,7 +2113,7 @@
     "path": "reports/showcase-src/2026-03-13/ex12_assert.nanz",
     "source_sha256": "4972461eba6fb194fd5a844dd9e10a25ae800b92bf2c64709070f7df590f9ad1",
     "native_behavior": "bounded-independent-vm-native",
-    "workload": "All256\u00b3clamp andallbytepairsabs,unarydouble3modes",
+    "workload": "All256³clamp andallbytepairsabs,unarydouble3modes",
     "independent_model": "Independent byte clamp/abs/double",
     "boundary": "Allsourceasserts retained; exactsource March13 duplicate independently read; rootfullPASS111.521s; unchanged full domain independently rerun after metadata reuse and isolated parallel modes: PASS44.835s",
     "evidence": {
@@ -2126,7 +2126,7 @@
     "source_sha256": "6677d09ec89a8489a9691bd4caa184ef88149c370b87fe543dc4b3e1432270b7",
     "native_behavior": "bounded-independent-vm-native",
     "workload": "Divmod full byte numerator/nonzero denominator; word minmax/swap/projections all lowbyte orderedpairs plus14x14wordboundaries, both result slots. Three modes591136calls each across three source modules.",
-    "independent_model": "Frozen direct source arithmetic and Bookv7\u00a77.5 tuple results; raw/final/native actualCALL returnPC/SP full64KiBRAM. March13 duplicate exactSHA read independently.",
+    "independent_model": "Frozen direct source arithmetic and Bookv7§7.5 tuple results; raw/final/native actualCALL returnPC/SP full64KiBRAM. March13 duplicate exactSHA read independently.",
     "boundary": "No divisorzero/nonterminatingdivmod or fullu16pairdomain claim.",
     "evidence": {
       "reports/2026-10-11-original-tuple-corpus.md": "64f02fab27f37b46fa4e47e1f3ad898b4b986b584ed6d0ad8ebfc4c8f8664d7b",
@@ -2307,7 +2307,7 @@
     "path": "reports/showcase-src/2026-03-13/ex5_lut.nanz",
     "source_sha256": "d33826eba80cfd940d02c844ba58a0b085251763552b31de104564009b8c36c4",
     "native_behavior": "bounded-independent-vm-native",
-    "workload": "Popcount all256bytes;sum/max/map all256seeds\u00d7256lengths with ordered(seed+73*i)%256 arrays,three modes590592sourceCALL;March13duplicatesindependentSHA.",
+    "workload": "Popcount all256bytes;sum/max/map all256seeds×256lengths with ordered(seed+73*i)%256 arrays,three modes590592sourceCALL;March13duplicatesindependentSHA.",
     "independent_model": "Frozen directpopcount/sum_mod256/max/map+2;raw/final/nativeCALL,fullRAM/guards/SP,orderedactualmemoryaccess. Graceedgeargcounterexample before36instead219 fixed.",
     "boundary": "Arrayfamilies bounded,notallpossiblearrays. Liftedlambda inlinednotseparatenativeproof. Rootfulloriginalreplayrunning.",
     "evidence": {
@@ -2320,7 +2320,7 @@
     "path": "reports/showcase-src/2026-03-13/ex6_foreach.nanz",
     "source_sha256": "e1e53370ff161285310b11fd2a0ad573f96cef85193532c0f1ebe4c9217641eb",
     "native_behavior": "bounded-independent-vm-native",
-    "workload": "Popcount all256bytes;sum/max/map all256seeds\u00d7256lengths with ordered(seed+73*i)%256 arrays,three modes590592sourceCALL;March13duplicatesindependentSHA.",
+    "workload": "Popcount all256bytes;sum/max/map all256seeds×256lengths with ordered(seed+73*i)%256 arrays,three modes590592sourceCALL;March13duplicatesindependentSHA.",
     "independent_model": "Frozen directpopcount/sum_mod256/max/map+2;raw/final/nativeCALL,fullRAM/guards/SP,orderedactualmemoryaccess. Graceedgeargcounterexample before36instead219 fixed.",
     "boundary": "Arrayfamilies bounded,notallpossiblearrays. Liftedlambda inlinednotseparatenativeproof. Rootfulloriginalreplayrunning.",
     "evidence": {
@@ -2333,7 +2333,7 @@
     "path": "reports/showcase-src/2026-03-13/ex7_mapinplace.nanz",
     "source_sha256": "779c02d554372699c21d41ea3488a05eed304f8cbc55a6e3eca026fee316b780",
     "native_behavior": "bounded-independent-vm-native",
-    "workload": "Popcount all256bytes;sum/max/map all256seeds\u00d7256lengths with ordered(seed+73*i)%256 arrays,three modes590592sourceCALL;March13duplicatesindependentSHA.",
+    "workload": "Popcount all256bytes;sum/max/map all256seeds×256lengths with ordered(seed+73*i)%256 arrays,three modes590592sourceCALL;March13duplicatesindependentSHA.",
     "independent_model": "Frozen directpopcount/sum_mod256/max/map+2;raw/final/nativeCALL,fullRAM/guards/SP,orderedactualmemoryaccess. Graceedgeargcounterexample before36instead219 fixed.",
     "boundary": "Arrayfamilies bounded,notallpossiblearrays. Liftedlambda inlinednotseparatenativeproof. Rootfulloriginalreplayrunning.",
     "evidence": {

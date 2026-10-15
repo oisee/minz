@@ -2700,9 +2700,13 @@ A normal parse returns the declared fallback. `mz specialize source.nanz
 choices, compiles full candidates under identical Size options, and compares
 compact assembled code. Generator authors must supply equivalent alternatives;
 the declaration is not an equivalence proof. Source assertions remain unchanged
-and execute for every candidate. Speed/frame-budget selection needs a workload
-and is not implemented by this command. See [the complete sprite example and
-measurement](../reports/advanced-demos/meta-specialization/README.md).
+and execute for every candidate. With an explicit bounded Spectrum 48K workload,
+`--goal speed` minimizes measured full busy T-states without a byte cap;
+`--goal budget --budget-tstates N` minimizes code size among verified candidates
+within N T-states and one hardware frame per publication. The workload supplies
+independent screen/RGBA/global oracles; it is not a general equivalence proof.
+See [the complete sprite example](../reports/advanced-demos/meta-specialization/README.md)
+and [native workload contract](../reports/advanced-demos/meta-specialization/spectrum-workload.md).
 
 ### 20.5 Testing @derive
 

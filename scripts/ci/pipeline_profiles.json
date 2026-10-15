@@ -320,6 +320,8 @@
     "TestSignedSubCmpBoundaryVMZ80",
     "TestSignedWideExtensionSourceNative",
     "TestSignedWordLiteralLeftKeepsArithmeticWidth",
+    "TestSpectrumPhaseWorkloadNative",
+    "TestSpectrumPhaseWorkloadRefusals",
     "TestStructMethodPointerAndFieldScratchNative",
     "TestStructReturnCanonicalIndirectSlotsDoNotOverlap",
     "TestStructReturnCanonicalReturnSlotsDoNotOverlap",
