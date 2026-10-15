@@ -36,7 +36,7 @@ fun init_attributes() {
 
 // Both placements are prepared before HALT. Kernels are compiled once.
 fun prepare_frame(frame:u8)->bool {
-    if actor_visible {if actor.stage_erase()==false {return false}}
+    if actor_visible {if actor.stage_previous_erase()==false {return false}}
     actor.x=(4+(frame&15))*8
     actor.y=56+(frame>>4)*8
     return actor.stage()
