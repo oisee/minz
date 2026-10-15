@@ -212,5 +212,22 @@
       }
     ],
     "scope": "Exact same full source tree and same binary, disjoint fast/deep inventory; SKIP remains unexecuted coverage, not PASS or compiler-correctness proof."
+  },
+  "folded_fuzz": {
+    "run": 38761435720,
+    "source": "d2d8f7ba3f2968368bb47079b2b51a0cff569bab",
+    "cases": 10000,
+    "mir2_executions": 10000,
+    "z80_executions": 10000,
+    "unchecked": 0,
+    "counts": {
+      "pass": 10000
+    },
+    "results_sha256": "341ee7eb1ee3f867d7cc9db8b0197ece5ad5890911d158715dfa1de15eb549fb",
+    "scope": "Actual source-assertion/folded-expression fuzz records, all unique seeds0..9999; no assertion skipped. Direct-call fuzz has a distinct scope and remains separate."
+  },
+  "direct_call_fuzz": {
+    "status": "in_progress",
+    "report_only": true
   }
 }
