@@ -6,16 +6,16 @@ milestone with rendering and declarative-library work, not a completion claim.
 | Requirement | Evidence required | Current status |
 |---|---|---|
 | Flicker-free compiled and PUSH sprite demos | Independent screens at every display frame, ROM/ULA timing, dirty writes and IRQ/SP checks | 48K model: baseline detects partial display; dirty renderer 0/64 partial frames in all six variants. Physical display/release pending |
-| Tetris removes intermediate actor erasure | Composited frame, dirty publication, independent gameplay and display oracles | Playable shadow compositor: 14 scenes × 3 modes and 969 fetched main field frames, no mixed frames; negative control detects mixing. Full memory, gameplay, IM2, PC/SP checks pass. Native dirty-row preparation measured; stable 50 FPS is not established |
+| Tetris removes intermediate actor erasure | Composited frame, dirty publication, independent gameplay and display oracles | Direct-screen paired sprite renderer in main/release; no bitmap shadow or full per-frame copy. Independent main/ULA gameplay matrix passes. Normal movement/rotation/hold cases fit one INT; hard-drop may take two and heavy line clear three. Universal one-frame gameplay is not claimed |
 | Smooth pixel-step falling piece | Pixel geometry and substep/rotation/locking model, native frames | Actual main uses pixel-step gravity, movement, kicks, hold and locking. Independent physics: 1596 cases/mode on native and raw/final VM; real main: 39 steps and 24 fractional poses per mode. [Gameplay report](tetris/smooth-gameplay.md) |
-| Optional TV sine/noise/row-shift effects | Deterministic render oracle; game state identical with effects on/off | Pending |
+| Optional TV sine/noise/row-shift effects | Deterministic render oracle; game state identical with effects on/off | ByteWave stage_wave candidate: 192 native/ULA +384 raw/final VM scenes PASS; exact 50 Hz capture. Byte-column wave on owned background; Tetris field preservation/noise/pixel X shifts pending |
 | Declarative typed Nanz, object composition and compile-time interfaces | Real consumers using common reusable APIs; compile-time diagnostics | Pending |
-| Whole-sprite declarative Nanz API | One real multi-row sprite with size, pixels and mask; one draw call with coordinates; no public row-setter/address bookkeeping | First whole-sprite API verified: `Ship{x,y}.draw()`; 444 native and 888 VM calls; 99 fetched ULA frames in three modes. Byte-aligned X, arbitrary pixel Y; four baked 8×8 instances now render the playable Tetris actor |
+| Whole-sprite declarative Nanz API | One real multi-row sprite with size, pixels and mask; one draw call with coordinates; no public row-setter/address bookkeeping | Whole typed API and direct pixel-step Tetris in main (PR128). Default sprite scene now uses typed Diamond staging/publishing (PR134); 192 native/ULA scenes and 384 raw/final VM scenes. X byte-aligned, Y pixel-addressed |
 | Shapes, masks, tables and specialized procedures baked | HIR/ASM/BIN inspection, runtime excludes generator and avoidable preparation | Native rows and whole 16×8 sprite verified; checkpoint 4849b2ed: 596–597-byte full module, 3,847–4,185 T including placement and drawing; current staging API: 748 bytes, 3,588–3,644 T for direct draw; [whole-sprite report](whole-sprite/README.md). Wider workloads/selection pending |
 | Checked SP-stream alternatives | Ordered memory effects, exact SP restoration, actual machine clobbers, native oracle and measured benefit | Astra research completed; automatic PUSH/POP selection pending |
 | Measured selection under Speed/Size/frame budget | Admitted alternatives, preserved winners, heldout native measurements | Full-clear candidates measured; closed 15-candidate scene receipt selection preserves Speed/Size/bounded winners and rejects all-fixture frame budget; compiler integration/heldout timings pending |
 | Explicit region, timing, IRQ, RAM and SMC contracts | Valid and rejected cases, native memory/PC/SP/IFF proof, beam deadlines | Pending |
-| Integration and updated demo release | Main PR/CI, six packaged platforms, playable artifacts and checksums | Preparing 0.25.1 candidate: fresh native builds of all six hosts, package SHA/ZIP and startup/SAVE checks; no release published yet |
+| Integration and updated demo release | Main PR/CI, six packaged platforms, playable artifacts and checksums | 0.25.1 published from a284fafc: six hosts, checked package SHA/ZIP and startup/SAVE. Later main changes require a new release |
 
 ## Work sequence
 
@@ -34,7 +34,7 @@ milestone with rendering and declarative-library work, not a completion claim.
 5. Add pixel actors and optional deterministic TV effects, measure admitted
    kernels on independent workloads, and publish the verified winners.
 6. Complete requirement-by-requirement audit, integrate in main and release
-   all six host packages. Keep logs, source, exact outputs and SHA256 on the share.
+   all six host packages. Keep detailed logs, source, exact outputs and SHA256 locally; only playable releases/media go on the share.
 
 No global optimality is claimed: selection means the best admitted candidate for
 its explicit objective and measured workload. Deep corpora remain release/nightly

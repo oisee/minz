@@ -1,0 +1,51 @@
+{
+  "ordinary": {
+    "PASS": true,
+    "PC_SP_IFF": true,
+    "ROM_IRQ": 64,
+    "VM_frames_per_module": 64,
+    "binary_bytes": 4736,
+    "completed": 64,
+    "displayed": 64,
+    "max_busy_T": 18974,
+    "max_prepare_T": 16155,
+    "max_publish_T": 2819,
+    "preparation_preserves_screen": true,
+    "raw_final_VM": true,
+    "unique_poses": 32
+  },
+  "grace-size": {
+    "PASS": true,
+    "PC_SP_IFF": true,
+    "ROM_IRQ": 64,
+    "VM_frames_per_module": 64,
+    "binary_bytes": 4735,
+    "completed": 64,
+    "displayed": 64,
+    "max_busy_T": 18974,
+    "max_prepare_T": 16155,
+    "max_publish_T": 2819,
+    "preparation_preserves_screen": true,
+    "raw_final_VM": true,
+    "unique_poses": 32
+  },
+  "grace-speed": {
+    "PASS": true,
+    "PC_SP_IFF": true,
+    "ROM_IRQ": 64,
+    "VM_frames_per_module": 64,
+    "binary_bytes": 4735,
+    "completed": 64,
+    "displayed": 64,
+    "max_busy_T": 18974,
+    "max_prepare_T": 16155,
+    "max_publish_T": 2819,
+    "preparation_preserves_screen": true,
+    "raw_final_VM": true,
+    "unique_poses": 32
+  },
+  "source_sha256": "372cf80aea7405de86170b649ae624b2550cae109c4979c73dbf7e58c2ca3a91",
+  "snapshot_sha256": "2a6746d9b1bfc43458f0c4af174313d2a2337856434f62ae69eca59ed6f1284d",
+  "CLI_matches_native_BIN": true,
+  "backend_fix_commit": "11e3cac2"
+}

@@ -1,0 +1,8 @@
+{
+  "source": "reports/advanced-demos/typed-sprite-effects/source.nanz",
+  "source_sha256": "372cf80aea7405de86170b649ae624b2550cae109c4979c73dbf7e58c2ca3a91",
+  "snapshot_sha256": "2a6746d9b1bfc43458f0c4af174313d2a2337856434f62ae69eca59ed6f1284d",
+  "binary_bytes": 4736,
+  "verification": "TestZXSpriteRowEffectMachine: native/ULA ordered frames and raw/final VM; snapshot resume and every GIF frame checked",
+  "scope": "signed byte-column row shifts, 64x8 whole sprite, owned black background; physical hardware/NMI unverified"
+}

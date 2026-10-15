@@ -1,0 +1,17 @@
+// Render-only byte-column wave. Phase belongs to the visual effect, not to
+// actor physics. Eight samples are baked data; no trigonometry in the frame.
+struct ByteWave {phase:u8}
+global byte_wave_samples:[i8;8]=[0,1,1,0,0,-1,-1,0]
+
+fun ByteWave.offset(self:^ByteWave,row:u8)->i8 {
+    return byte_wave_samples[(self.phase+row)&7]
+}
+
+// Caller owns count writable bytes. Call during preparation, before HALT.
+fun ByteWave.fill(self:^ByteWave,offsets:^i8,count:u8) {
+    var row:u8=0
+    while row<count {
+        offsets[row]=self.offset(row)
+        row=row+1
+    }
+}

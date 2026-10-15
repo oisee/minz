@@ -120,7 +120,11 @@ func (c *typedSpriteSceneObserver) DoOpcode() {
 // Expected pixels come from the archived byte pattern, not the new descriptor
 // or generated address helpers. Inspect actual ULA fetches, not RenderFullScreen.
 func TestZXTypedSpriteSceneMachine(t *testing.T) {
-	src, err := os.ReadFile("../../../reports/advanced-demos/typed-sprite-scene/source.nanz")
+	runZXTypedSpriteSceneMachine(t, "typed-sprite-scene", "MINZ_TYPED_SPRITE_EXPORT", func(frame, row int) int { return 0 })
+}
+
+func runZXTypedSpriteSceneMachine(t *testing.T, scene, exportEnv string, rowShift func(frame, row int) int) {
+	src, err := os.ReadFile("../../../reports/advanced-demos/" + scene + "/source.nanz")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -137,7 +141,7 @@ func TestZXTypedSpriteSceneMachine(t *testing.T) {
 		for row, encoded := range rows {
 			data, _ := hex.DecodeString(encoded)
 			y := 56 + (frame>>4)*8 + row
-			address := (y&0xc0)*32 + (y&7)*256 + (y&0x38)*4 + 4 + (frame & 15)
+			address := (y&0xc0)*32 + (y&7)*256 + (y&0x38)*4 + 4 + (frame & 15) + rowShift(frame, row)
 			copy(want[address:address+8], data)
 		}
 		return want
@@ -154,7 +158,7 @@ func TestZXTypedSpriteSceneMachine(t *testing.T) {
 			for col, b := range data {
 				for bit := 0; bit < 8; bit++ {
 					if b&(128>>bit) != 0 {
-						x := (4+(frame&15)+col)*8 + bit
+						x := (4+(frame&15)+col+rowShift(frame, row))*8 + bit
 						y := 56 + (frame>>4)*8 + row
 						offset := (y*256 + x) * 4
 						pixels[offset], pixels[offset+1] = 255, 255
@@ -263,7 +267,11 @@ func TestZXTypedSpriteSceneMachine(t *testing.T) {
 			m.CPU = c
 			c.onDraw = func(frame byte) {
 				if !bytes.Equal(c.screen(), expectedScreen(int(frame))) {
-					t.Fatalf("completed scene %d bitmap/attributes differ", frame)
+					for at, got := range c.screen() {
+						if want := expectedScreen(int(frame))[at]; got != want {
+							t.Fatalf("completed scene %d bitmap/attributes at %04x: got %02x want %02x", frame, 0x4000+at, got, want)
+						}
+					}
 				}
 			}
 
@@ -296,7 +304,7 @@ func TestZXTypedSpriteSceneMachine(t *testing.T) {
 			if c.maxBusy >= int64(m.Mode.TStatesPerFrame()) {
 				t.Fatalf("prepare+publish needs %d T", c.maxBusy)
 			}
-			if root := os.Getenv("MINZ_TYPED_SPRITE_EXPORT"); root != "" {
+			if root := os.Getenv(exportEnv); root != "" {
 				dir := filepath.Join(root, mode)
 				if err := os.MkdirAll(dir, 0755); err != nil {
 					t.Fatal(err)
