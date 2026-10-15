@@ -1,0 +1,75 @@
+{
+  "baseline": "6e910f1138f3a94fc8e1f29a655fb2d4299969ae",
+  "candidate_base": "e568f97e250ed30edd88709796cc4836a604982f",
+  "input_change": "CELL_COLORS ArrayTy.Align = 256 in parsed HIR; Nanz source identical; no CLI syntax exists yet",
+  "cases": [
+    {
+      "case": "level-2/ordinary",
+      "before_bytes": 24269,
+      "after_bytes": 24276,
+      "before_histogram": {
+        "0": 1,
+        "1": 109,
+        "2": 9
+      },
+      "after_histogram": {
+        "0": 1,
+        "1": 109,
+        "2": 9
+      },
+      "selected_steps": [
+        {
+          "step": 5,
+          "before_T_excluding_halt": 49138,
+          "after_T_excluding_halt": 49066,
+          "before_restore_span_T": 1942,
+          "after_restore_span_T": 1870
+        },
+        {
+          "step": 101,
+          "before_T_excluding_halt": 114232,
+          "after_T_excluding_halt": 113802,
+          "before_restore_span_T": 11317,
+          "after_restore_span_T": 10885
+        },
+        {
+          "step": 115,
+          "before_T_excluding_halt": 100745,
+          "after_T_excluding_halt": 100493,
+          "before_restore_span_T": 6596,
+          "after_restore_span_T": 6344
+        }
+      ]
+    },
+    {
+      "case": "level-2/ordinary/clear-4",
+      "before_bytes": 24269,
+      "after_bytes": 24276,
+      "before_histogram": {
+        "0": 1,
+        "1": 32,
+        "2": 11,
+        "3": 1
+      },
+      "after_histogram": {
+        "0": 1,
+        "1": 32,
+        "2": 11,
+        "3": 1
+      },
+      "selected_steps": [
+        {
+          "step": 5,
+          "before_T_excluding_halt": 199073,
+          "after_T_excluding_halt": 197199,
+          "before_restore_span_T": 47410,
+          "after_restore_span_T": 45538
+        }
+      ]
+    }
+  ],
+  "test_scope": "level-2 main and four-line fixture, ordinary only, independent native ULA/game/PC/SP/INT checks",
+  "test_elapsed_seconds": 11.101,
+  "test_log_sha256": "c45b82e09f002aaebb55e72cd73db68a9c100084b5e846cefa4daa17cfa27cf0",
+  "release_0_25_2_unchanged": true
+}

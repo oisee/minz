@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/spectrum"
 	"github.com/minz/minzc/pkg/z80asm"
@@ -85,6 +86,15 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 			h, e := nanz.ParseWithOpts(string(src), "tetris-smooth-main.nanz", nanz.ParseOpts{StdlibDir: stdlibDir})
 			if e != nil {
 				t.Fatal(e)
+			}
+			// Research admission: use the existing ArrayTy alignment metadata;
+			// do not add syntax or alter the frozen release/source yet.
+			for i := range h.Globals {
+				if h.Globals[i].Name == "CELL_COLORS" {
+					array := *h.Globals[i].Ty.(*mir2.ArrayTy)
+					array.Align = 256
+					h.Globals[i].Ty = &array
+				}
 			}
 			s, e := CompileHIRSteps(h, Options{AssertMode: "none", ContractOpt: true, UseGrace: mode != "ordinary", UseHIRGrace: mode != "ordinary", OptSize: mode == "grace-size"})
 			if e != nil {
