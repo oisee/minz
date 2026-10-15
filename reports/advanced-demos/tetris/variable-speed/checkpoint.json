@@ -37,7 +37,7 @@
     "selected": 421,
     "scope": "selected fast pipeline roots; required job also ran core and embedded/runtime checks, not counted here"
   },
-  "publication": "PR146 and PR147 integration and final release are pending",
+  "publication": "PR146 is in main; PR147 integration and final release are pending",
   "local_fast_profile": {
     "commit": "95fe29886843997a58daaa4e669377a10c5ce58b",
     "inventory": 789,
@@ -48,5 +48,6 @@
     },
     "processes": 3,
     "scope": "complete selected fast profile; deep and native-platform release checks are separate"
-  }
+  },
+  "previous_pr_main_merge": "3d008ebfb70bc06e246118203c6f4ddeb81b0e2a"
 }
