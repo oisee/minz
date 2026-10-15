@@ -74,7 +74,9 @@ func TestTetrisDirectTemporalMachine(t *testing.T) {
 			if e != nil {
 				t.Fatal(e)
 			}
-			steps, e := CompileHIRSteps(h, Options{AssertMode: "none", UseGrace: strings.HasPrefix(mode, "grace"), UseHIRGrace: strings.HasPrefix(mode, "grace"), OptSize: mode == "grace-size"})
+			// Match the playable CLI: contract optimization is enabled by default.
+			// Keep the same bounded stack and complete temporal screen/RAM checks.
+			steps, e := CompileHIRSteps(h, Options{AssertMode: "none", ContractOpt: true, UseGrace: strings.HasPrefix(mode, "grace"), UseHIRGrace: strings.HasPrefix(mode, "grace"), OptSize: mode == "grace-size"})
 			if e != nil {
 				t.Fatal(e)
 			}
