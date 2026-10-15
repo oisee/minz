@@ -4,7 +4,7 @@
 
 ## Play native Z80 demos
 
-[Download for Linux, macOS or Windows — MinZ demos 0.25.3](https://github.com/oisee/minz/releases/tag/v0.25.3): **six platforms**, Intel/AMD x64 and ARM64 for each OS. Unpack and launch `mzx`, `MinZ Demos.app` on macOS, or `mzx.exe` on Windows. [Choose your package](reports/advanced-demos/release-0.25.3.md). Choose **Zork I/II, Spectrum Tetris, the 32×48 rotozoomer, or SMC sprites** with Up/Down and Enter. Escape returns to the menu. Separate SNA/TRD images and one-click launchers are included.
+[Download for Linux, macOS or Windows — MinZ demos 0.25.4](https://github.com/oisee/minz/releases/tag/v0.25.4): **six platforms**, Intel/AMD x64 and ARM64 for each OS. Unpack and launch `mzx`, `MinZ Demos.app` on macOS, or `mzx.exe` on Windows. [Choose your package](reports/advanced-demos/release-0.25.4.md). Choose **Zork I/II, Spectrum Tetris, the 32×48 rotozoomer, or SMC sprites** with Up/Down and Enter. Escape returns to the menu. Separate SNA/TRD images and one-click launchers are included.
 
 SAVE files live outside the download in your user configuration directory, so upgrades preserve them. Zork I resumes the session after a clean exit; Zork II uses disk SAVE/RESTORE. [Release verification](reports/zmachine-spectrum128/release/verified.md) · [Full Z-machine status](reports/zmachine-spectrum128/current-status.md).
 
@@ -58,7 +58,7 @@ not participate in selection. [**Full compiler overview →**](reports/2026-10-1
 
 ## Compiler progress — October 2026
 
-[**Full report: MinZ today — Nanz, the other frontends, compiler layers, and verified Z80**](reports/2026-10-11-092-grace-vm-z80-status.md) (Russian). A tour of the shared pipeline, Grace, PFCCO/PBQP and register-allocation tables, separating integrated changes from research checkpoints. **Updated October 15:** whole baked sprites, direct pixel-smooth Tetris, typed wave/noise effects and measured Size/Speed/frame-budget specialization are in `main`. Automatic line progression uses an 8-pixel colour gauge and no in-game text. [The 0.25.4 checkpoint](reports/advanced-demos/release-0.25.4.md) explains the Nanz API, six verified native packages, long 50-Hz recordings and pending final release checks. [Published demos 0.25.3](https://github.com/oisee/minz/releases/tag/v0.25.3) retain the previous three-mode game; [their verified results and limits](reports/advanced-demos/release-0.25.3.md) remain available.
+[**Full report: MinZ today — Nanz, the other frontends, compiler layers, and verified Z80**](reports/2026-10-11-092-grace-vm-z80-status.md) (Russian). A tour of the shared pipeline, Grace, PFCCO/PBQP and register-allocation tables, separating integrated changes from research checkpoints. **Updated October 15:** whole baked sprites, direct pixel-smooth Tetris, typed wave/noise effects and measured Size/Speed/frame-budget specialization are in `main`. Automatic line progression uses an 8-pixel colour gauge and no in-game text. [The 0.25.4 checkpoint](reports/advanced-demos/release-0.25.4.md) explains the Nanz API, six verified native packages and long 50-Hz recordings. All 800 pipeline roots are accounted for: **707 PASS, 93 SKIP, 0 FAIL**. The corrected full source-assertion audit preserves all 4,809 assertions per compiler and finds no new regressions; existing failures remain reported. [Demos 0.25.4 is published](https://github.com/oisee/minz/releases/tag/v0.25.4): all 14 public downloads and their shared copies have matching SHA256. The release tag passed all 18 jobs; the CI-only harness fix is tracked separately. [Published demos 0.25.3](https://github.com/oisee/minz/releases/tag/v0.25.3) retain the previous three-mode game; [their verified results and limits](reports/advanced-demos/release-0.25.3.md) remain available.
 
 [Measured runtime sprites](reports/runtime-sprite-measured-composition/README.md): compose checked register-assignment fragments, retain a live base, and select tables plus conditional layouts on training inputs; replay the exact winner on heldout buffers.
 
@@ -139,10 +139,10 @@ sessions, 27 threshold/clear sessions and 4890 native Z80 physics scenarios.
 Ordinary motion meets its tested one-IRQ budget; some heavy actions take two
 or three frames. [Source, full verification and capture provenance](reports/advanced-demos/tetris/line-progression/README.md).
 
-The whole-sprite API, automatic line progression and this image are in main.
-Published [0.25.3 packages](https://github.com/oisee/minz/releases/tag/v0.25.3)
-still contain the previous game. [The new six-platform release checkpoint](reports/advanced-demos/release-0.25.4.md)
-records completed checks and what remains before publication.
+The whole-sprite API, automatic line progression and this image are in main
+and [published demos 0.25.4](https://github.com/oisee/minz/releases/tag/v0.25.4).
+[Six-platform downloads, controls and verified results](reports/advanced-demos/release-0.25.4.md).
+The older [0.25.3 packages](https://github.com/oisee/minz/releases/tag/v0.25.3) remain available.
 [Earlier renderer and measurements](reports/advanced-demos/tetris/direct-renderer.md).
 
 [Typed sprite scene](reports/advanced-demos/typed-sprite-scene/README.md):
