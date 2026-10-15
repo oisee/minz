@@ -1,0 +1,59 @@
+// Internal row generator: each invocation has its own compile-time arena.
+// Eight immutable pixel phases; only the destination wrapper uses SMC.
+fun @zx_sprite_phase_row(row_name:^u8,kernel_name:^u8) {
+    let width:i32=node_arg_int(0,0)
+    let row:i32=node_arg_int(1,0)
+    let data:^u8=node_arg_str(2,0)
+    let clear:u8=u8(node_arg_int(3,0))
+    var phase:u8=0
+    if node_arg_int(4,0)!=0 {
+    while phase<8 {
+        let kernel:^u8=str_concat(kernel_name,str_concat(c"_phase_",str_from_int(u16(phase))))
+        emit(str_concat(str_concat(c"fun ",kernel),c"(dst:^u8) {"))
+        emit(c"var p:^u8=dst")
+        var col:i32=0
+        var previous:i32=0
+        while col<(width+i32(phase)+7)/8 {
+            var keep:u8=0
+            var bits:u8=0
+            var bit:i32=0
+            while bit<8 {
+                let pixel:i32=col*8+bit-i32(phase)
+                var ch:u8=46
+                if pixel>=0 {if pixel<width {ch=data[pixel]}}
+                keep=keep*2 bits=bits*2
+                if ch==46 {keep=keep+1}
+                if clear==0 {if ch==35 {bits=bits+1}}
+                bit=bit+1
+            }
+            if keep!=255 {
+                if col!=previous {emit(str_concat(c"p=p+",str_from_int(u16(col-previous))))}
+                previous=col
+                if keep==0 {emit(str_concat(c"p^=",str_from_int(u16(bits))))} else {
+                    emit(str_concat(str_concat(str_concat(c"p^=(p^ & ",str_from_int(u16(keep))),c") | "),str_from_int(u16(bits))))
+                }
+            }
+            col=col+1
+        }
+        emit(c"}")
+        phase=phase+1
+    }
+    }
+    emit(str_concat(str_concat(c"fun ",row_name),c"(@smc dst:^u8,phase:u8) {"))
+    // Balanced decision tree: three comparisons select any admitted phase.
+    var pair:u8=0
+    emit(c"if phase<4 {")
+    while pair<8 {
+        if pair==0 {emit(c"if phase<2 {")}
+        if pair==4 {emit(c"if phase<6 {")}
+        let even:^u8=str_concat(kernel_name,str_concat(c"_phase_",str_from_int(u16(pair))))
+        let odd:^u8=str_concat(kernel_name,str_concat(c"_phase_",str_from_int(u16(pair+1))))
+        emit(str_concat(str_concat(str_concat(c"if phase==",str_from_int(u16(pair))),c" {"),str_concat(even,c"(dst) return}")))
+        emit(str_concat(odd,c"(dst) return"))
+        if pair==0 {emit(c"}")}
+        if pair==2 {emit(c"}")}
+        if pair==4 {emit(c"}")}
+        pair=pair+2
+    }
+    emit(c"}")
+}

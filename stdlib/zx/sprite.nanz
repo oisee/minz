@@ -1,7 +1,9 @@
-// A complete byte-aligned ZX sprite. '#' sets ink, '_' clears to paper,
+// A complete ZX sprite; byte aligned unless pixel_shifts is requested. '#' sets ink, '_' clears to paper,
 // '.' preserves the background. All pixel/mask bytes are baked at compile time.
 // Optional `erase` bakes matching clear kernels: opaque pixels become paper,
 // transparent pixels stay untouched. This clears; it does not restore a background.
+// Optional pixel_shifts bakes eight mask phases; coordinates and effect offsets
+// then use pixels. Without it, row_shifts/effects retain byte-column units.
 // Public value: <name>{x:pixel_x,y:pixel_y}; public method: value.draw()->bool.
 fun @zx_sprite(name:^u8)->void {
     var cursor: i32 = 0
@@ -24,6 +26,7 @@ fun @zx_sprite(name:^u8)->void {
     var seen_size:u8=0
     var paired_erase:u8=0
     var row_shifts:u8=0
+    var pixel_shifts:u8=0
     var effect_type:^u8=c""
     var i:u8=0
     while i < block_len() {
@@ -58,6 +61,10 @@ fun @zx_sprite(name:^u8)->void {
             if row_shifts!=0 {meta_error(c"zx sprite: duplicate row_shifts")}
             if node_arg_count(i)!=0 {meta_error(c"zx sprite: row_shifts takes no arguments")}
             row_shifts=1
+        } else if str_eq(key,c"pixel_shifts")==1 {
+            if pixel_shifts!=0 {meta_error(c"zx sprite: duplicate pixel_shifts")}
+            if node_arg_count(i)!=0 {meta_error(c"zx sprite: pixel_shifts takes no arguments")}
+            pixel_shifts=1
         } else if str_eq(key,c"erase")==1 {
             if paired_erase!=0 {meta_error(c"zx sprite: duplicate erase")}
             if node_arg_count(i)!=0 {meta_error(c"zx sprite: erase takes no arguments")}
@@ -66,6 +73,7 @@ fun @zx_sprite(name:^u8)->void {
         i=i+1
     }
     if effect_type[0]!=0 {row_shifts=1}
+    if pixel_shifts!=0 {row_shifts=1}
     if seen_size==0 { meta_error(c"zx sprite: missing size") }
     if width<=0 { meta_error(c"zx sprite: invalid width") }
     if width>64 { meta_error(c"zx sprite: maximum width is 64 pixels") }
@@ -89,18 +97,47 @@ fun @zx_sprite(name:^u8)->void {
         i=i+1
     }
     emit(c"import zx.sprite_address")
+    if pixel_shifts!=0 {emit(c"import zx.sprite_pixel_row")}
     if row_shifts!=0 {emit(c"import zx.sprite_effect")}
     emit(str_concat(str_concat(c"struct ",name),c" {x:u8,y:u8}"))
     emit(str_concat(str_concat(c"global ",name),c"_ready:bool=false"))
     if paired_erase!=0 {
         emit(str_concat(str_concat(str_concat(c"global ",name),c"_draw_addresses:[u16;"),str_concat(str_from_int(u16(height)),c"]")))
     }
+    if pixel_shifts!=0 {
+        emit(str_concat(str_concat(str_concat(c"global ",name),c"_draw_phases:[u8;"),str_concat(str_from_int(u16(height)),c"]")))
+        if paired_erase!=0 {
+            emit(str_concat(str_concat(str_concat(c"global ",name),c"_erase_phases:[u8;"),str_concat(str_from_int(u16(height)),c"]")))
+        }
+    }
+    var previous_pixels:^u8=c""
+    var previous_kernel:^u8=c""
     var row:i32=0
     i=0
     while i < block_len() {
         if str_eq(node_keyword(i),c"pixels")==1 {
             let data:^u8=node_arg_str(i,0)
             let row_name:^u8=str_concat(name,str_concat(c"_row_",str_from_int(u16(row))))
+            if pixel_shifts!=0 {
+                var kernel_name:^u8=row_name
+                var kernels:u8=1
+                if previous_pixels[0]!=0 {
+                    var same:u8=1
+                    var pixel:i32=0
+                    while pixel<width {
+                        if data[pixel]!=previous_pixels[pixel] {same=0}
+                        pixel=pixel+1
+                    }
+                    if same!=0 {kernel_name=previous_kernel kernels=0}
+                }
+                previous_pixels=data previous_kernel=kernel_name
+                emit(str_concat(str_concat(c"@zx_sprite_phase_row(",str_quote_c(row_name)),str_concat(c",",str_concat(str_quote_c(kernel_name),c") {"))))
+                emit(str_concat(c"width ",str_from_int(u16(width))))
+                emit(str_concat(c"row ",str_from_int(u16(row))))
+                emit(str_concat(c"pixels ",str_quote_c(data)))
+                emit(c"clear 0")
+                emit(str_concat(c"kernels ",str_concat(str_from_int(u16(kernels)),c" }")))
+            } else {
             emit(str_concat(str_concat(c"fun ",row_name),c"(@smc dst:^u8) {"))
             emit(c"var p:^u8=dst")
             var col:i32=0
@@ -130,6 +167,7 @@ fun @zx_sprite(name:^u8)->void {
                 col=col+1
             }
             emit(c"}")
+            }
             row=row+1
         }
         i=i+1
@@ -143,14 +181,17 @@ fun @zx_sprite(name:^u8)->void {
     emit(str_concat(str_concat(c"fun ",name),str_concat(c".draw(self:^",str_concat(name,c")->bool {"))))
     emit(str_concat(name,c"_ready=false"))
     emit(c"let x:u8=self.x let y:u8=self.y")
-    emit(c"if (x & 7)!=0 {return false}")
+    if pixel_shifts==0 {emit(c"if (x & 7)!=0 {return false}")}
     emit(str_concat(str_concat(c"if u16(x)+",str_from_int(u16(width))),c">256 {return false}"))
     emit(str_concat(str_concat(c"if u16(y)+",str_from_int(u16(height))),c">192 {return false}"))
     emit(c"var address:u16=sprite_address(x,y)")
     row=0
     while row<height {
         let row_name:^u8=str_concat(name,str_concat(c"_row_",str_from_int(u16(row))))
-        emit(str_concat(row_name,c"(ptr(address))"))
+        if pixel_shifts!=0 {emit(str_concat(str_concat(name,c"_draw_phases["),str_concat(str_from_int(u16(row)),c"]=x&7")))}
+        if pixel_shifts!=0 {
+            emit(str_concat(row_name,c"(ptr(address),x&7)"))
+        } else {emit(str_concat(row_name,c"(ptr(address))"))}
         if row+1<height {emit(c"address=sprite_next_line(address)")}
         row=row+1
     }
@@ -168,7 +209,7 @@ fun @zx_sprite(name:^u8)->void {
         }
         emit(str_concat(name,c"_ready=false"))
         if placement==0 {emit(c"let x:u8=self.x let y:u8=self.y")}
-        emit(c"if (x & 7)!=0 {return false}")
+        if pixel_shifts==0 {emit(c"if (x & 7)!=0 {return false}")}
         emit(str_concat(str_concat(c"if u16(x)+",str_from_int(u16(width))),c">256 {return false}"))
         emit(str_concat(str_concat(c"if u16(y)+",str_from_int(u16(height))),c">192 {return false}"))
         if placement==0 {emit(c"if base>0xe800 {return false}")}
@@ -176,6 +217,7 @@ fun @zx_sprite(name:^u8)->void {
         row=0
         while row<height {
             let row_name:^u8=str_concat(name,str_concat(c"_row_",str_from_int(u16(row))))
+            if pixel_shifts!=0 {emit(str_concat(str_concat(name,c"_draw_phases["),str_concat(str_from_int(u16(row)),c"]=x&7")))}
             if placement==0 {
                 if paired_erase!=0 {
                     emit(str_concat(str_concat(str_concat(name,c"_draw_addresses["),str_from_int(u16(row))),c"]=address-0x4000+base"))
@@ -197,27 +239,38 @@ fun @zx_sprite(name:^u8)->void {
         }
         placement=placement+1
     }
-    // Optional signed byte-column displacement for each scanline. Validate
+    // Optional signed displacement for each scanline (pixels with pixel_shifts,
+    // byte columns otherwise). Validate
     // every row before changing SMC operands; the caller supplies height bytes.
     if row_shifts!=0 {
         emit(str_concat(str_concat(c"fun ",name),str_concat(c".stage_shifted(self:^",str_concat(name,c",offsets:^i8)->bool {"))))
         emit(str_concat(name,c"_ready=false"))
         emit(c"let x:u8=self.x let y:u8=self.y")
-        emit(c"if (x & 7)!=0 {return false}")
+        if pixel_shifts==0 {emit(c"if (x & 7)!=0 {return false}")}
         emit(str_concat(str_concat(c"if u16(y)+",str_from_int(u16(height))),c">192 {return false}"))
         row=0
         while row<height {
             let index:^u8=str_from_int(u16(row))
+            if pixel_shifts!=0 {
+                emit(str_concat(str_concat(c"let pixel_",index),str_concat(c":i16=i16(x)+i16(offsets[",str_concat(index,c"])"))))
+                emit(str_concat(str_concat(c"if pixel_",index),c"<0 {return false}"))
+                emit(str_concat(str_concat(str_concat(c"if pixel_",index),str_concat(c"+",str_from_int(u16(width)))),c">256 {return false}"))
+            } else {
             emit(str_concat(str_concat(c"let col_",index),str_concat(c":i16=i16(x>>3)+i16(offsets[",str_concat(index,c"] )"))))
             emit(str_concat(str_concat(c"if col_",index),c"<0 {return false}"))
             emit(str_concat(str_concat(str_concat(c"if col_",index),str_concat(c"+",str_from_int(u16(width/8)))),c">32 {return false}"))
+            }
             row=row+1
         }
         emit(c"var address:u16=sprite_address(x,y)")
         row=0
         while row<height {
             let index:^u8=str_from_int(u16(row))
-            let shifted:^u8=str_concat(c"u16(i16(address)+i16(offsets[",str_concat(index,c"]))"))
+            var shifted:^u8=str_concat(c"u16(i16(address)+i16(offsets[",str_concat(index,c"]))"))
+            if pixel_shifts!=0 {
+                shifted=str_concat(c"address-u16(x>>3)+u16(u8(pixel_",str_concat(index,c")>>3)"))
+                emit(str_concat(str_concat(str_concat(name,c"_draw_phases["),index),str_concat(c"]=u8(pixel_",str_concat(index,c")&7"))))
+            }
             if paired_erase!=0 {
                 emit(str_concat(str_concat(str_concat(name,c"_draw_addresses["),index),str_concat(c"]=",shifted)))
             }
@@ -252,7 +305,9 @@ fun @zx_sprite(name:^u8)->void {
     row=0
     while row<height {
         let row_name:^u8=str_concat(name,str_concat(c"_row_",str_from_int(u16(row))))
-        emit(str_concat(row_name,c"()"))
+        if pixel_shifts!=0 {
+            emit(str_concat(str_concat(row_name,c"("),str_concat(str_concat(name,c"_draw_phases["),str_concat(str_from_int(u16(row)),c"])"))))
+        } else {emit(str_concat(row_name,c"()"))}
         row=row+1
     }
     emit(c"return true }")
@@ -269,6 +324,10 @@ fun @zx_sprite(name:^u8)->void {
         while row<height {
             let clear_name:^u8=str_concat(name,str_concat(c"_clear_row_",str_from_int(u16(row))))
             let cached:^u8=str_concat(str_concat(name,c"_draw_addresses["),str_concat(str_from_int(u16(row)),c"]"))
+            if pixel_shifts!=0 {
+                let index:^u8=str_from_int(u16(row))
+                emit(str_concat(str_concat(str_concat(name,c"_erase_phases["),index),str_concat(c"]=",str_concat(str_concat(name,c"_draw_phases["),str_concat(index,c"]")))))
+            }
             emit(str_concat(str_concat(clear_name,c"_set_dst(ptr("),str_concat(cached,c"))")))
             row=row+1
         }
@@ -292,7 +351,14 @@ fun @zx_sprite(name:^u8)->void {
                     var opaque:u8=0
                     var pixel:i32=0
                     while pixel<width {if data[pixel]!=46 {opaque=1} pixel=pixel+1}
-                    if opaque!=0 {emit(str_concat(str_concat(name,str_concat(prefix,str_from_int(u16(row)))),c"()"))}
+                    if opaque!=0 {
+                        let row_call:^u8=str_concat(name,str_concat(prefix,str_from_int(u16(row))))
+                        if pixel_shifts!=0 {
+                            var phases:^u8=c"_draw_phases["
+                            if commit==1 {phases=c"_erase_phases["}
+                            emit(str_concat(str_concat(row_call,c"("),str_concat(str_concat(name,phases),str_concat(str_from_int(u16(row)),c"])"))))
+                        } else {emit(str_concat(row_call,c"()"))}
+                    }
                     row=row+1
                 }
                 i=i+1
@@ -301,12 +367,33 @@ fun @zx_sprite(name:^u8)->void {
             commit=commit+1
         }
         emit(str_concat(str_concat(c"global ",name),c"_erase_ready:bool=false"))
+        previous_pixels=c"" previous_kernel=c""
         row=0
         i=0
         while i<block_len() {
             if str_eq(node_keyword(i),c"pixels")==1 {
                 let data:^u8=node_arg_str(i,0)
                 let clear_name:^u8=str_concat(name,str_concat(c"_clear_row_",str_from_int(u16(row))))
+                if pixel_shifts!=0 {
+                var kernel_name:^u8=clear_name
+                var kernels:u8=1
+                if previous_pixels[0]!=0 {
+                    var same:u8=1
+                    var pixel:i32=0
+                    while pixel<width {
+                        if (data[pixel]==46)!=(previous_pixels[pixel]==46) {same=0}
+                        pixel=pixel+1
+                    }
+                    if same!=0 {kernel_name=previous_kernel kernels=0}
+                }
+                previous_pixels=data previous_kernel=kernel_name
+                emit(str_concat(str_concat(c"@zx_sprite_phase_row(",str_quote_c(clear_name)),str_concat(c",",str_concat(str_quote_c(kernel_name),c") {"))))
+                emit(str_concat(c"width ",str_from_int(u16(width))))
+                emit(str_concat(c"row ",str_from_int(u16(row))))
+                emit(str_concat(c"pixels ",str_quote_c(data)))
+                emit(c"clear 1")
+                emit(str_concat(c"kernels ",str_concat(str_from_int(u16(kernels)),c" }")))
+                } else {
                 emit(str_concat(str_concat(c"fun ",clear_name),c"(@smc dst:^u8) {"))
                 emit(c"var p:^u8=dst")
                 var col:i32=0
@@ -329,6 +416,7 @@ fun @zx_sprite(name:^u8)->void {
                     col=col+1
                 }
                 emit(c"}")
+                }
                 row=row+1
             }
             i=i+1
@@ -343,14 +431,17 @@ fun @zx_sprite(name:^u8)->void {
             } else {emit(str_concat(str_concat(c"fun ",name),c"_stage_erase_at(x:u8,y:u8)->bool {"))}
             emit(str_concat(name,c"_erase_ready=false"))
             if action==0 {emit(c"let x:u8=self.x let y:u8=self.y")}
-            emit(c"if (x & 7)!=0 {return false}")
+            if pixel_shifts==0 {emit(c"if (x & 7)!=0 {return false}")}
             emit(str_concat(str_concat(c"if u16(x)+",str_from_int(u16(width))),c">256 {return false}"))
             emit(str_concat(str_concat(c"if u16(y)+",str_from_int(u16(height))),c">192 {return false}"))
             emit(c"var address:u16=sprite_address(x,y)")
             row=0
             while row<height {
                 let clear_name:^u8=str_concat(name,str_concat(c"_clear_row_",str_from_int(u16(row))))
-                if action==0 {emit(str_concat(clear_name,c"(ptr(address))"))} else {
+                if pixel_shifts!=0 {emit(str_concat(str_concat(name,c"_erase_phases["),str_concat(str_from_int(u16(row)),c"]=x&7")))}
+                if action==0 {
+                    if pixel_shifts!=0 {emit(str_concat(clear_name,c"(ptr(address),x&7)"))} else {emit(str_concat(clear_name,c"(ptr(address))"))}
+                } else {
                     emit(str_concat(clear_name,c"_set_dst(ptr(address))"))
                 }
                 if row+1<height {emit(c"address=sprite_next_line(address)")}
@@ -369,7 +460,9 @@ fun @zx_sprite(name:^u8)->void {
         row=0
         while row<height {
             let clear_name:^u8=str_concat(name,str_concat(c"_clear_row_",str_from_int(u16(row))))
-            emit(str_concat(clear_name,c"()"))
+            if pixel_shifts!=0 {
+                emit(str_concat(str_concat(clear_name,c"("),str_concat(str_concat(name,c"_erase_phases["),str_concat(str_from_int(u16(row)),c"])"))))
+            } else {emit(str_concat(clear_name,c"()"))}
             row=row+1
         }
         emit(c"return true }")
@@ -425,6 +518,9 @@ fun @zx_sprite_instances(name:^u8)->void {
             } else if str_eq(key,c"row_shifts")==1 {
                 if node_arg_count(node)!=0 {meta_error(c"zx sprite instances: row_shifts takes no arguments")}
                 emit(c"row_shifts")
+            } else if str_eq(key,c"pixel_shifts")==1 {
+                if node_arg_count(node)!=0 {meta_error(c"zx sprite instances: pixel_shifts takes no arguments")}
+                emit(c"pixel_shifts")
             } else if str_eq(key,c"instances")!=1 {meta_error(c"zx sprite instances: unknown field")}
             node=node+1
         }

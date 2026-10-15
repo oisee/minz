@@ -1,0 +1,62 @@
+{
+  "ordinary": {
+    "PASS": true,
+    "PC_SP_IFF": true,
+    "ROM_IRQ": 64,
+    "VM_frames_per_module": 64,
+    "binary_bytes": 11186,
+    "completed": 64,
+    "displayed": 64,
+    "max_busy_T": 36117,
+    "max_prepare_T": 30204,
+    "max_publish_T": 5913,
+    "preparation_preserves_screen": true,
+    "raw_final_VM": true,
+    "unique_poses": 32
+  },
+  "grace-size": {
+    "PASS": true,
+    "PC_SP_IFF": true,
+    "ROM_IRQ": 64,
+    "VM_frames_per_module": 64,
+    "binary_bytes": 11185,
+    "completed": 64,
+    "displayed": 64,
+    "max_busy_T": 36117,
+    "max_prepare_T": 30204,
+    "max_publish_T": 5913,
+    "preparation_preserves_screen": true,
+    "raw_final_VM": true,
+    "unique_poses": 32
+  },
+  "grace-speed": {
+    "PASS": true,
+    "PC_SP_IFF": true,
+    "ROM_IRQ": 64,
+    "VM_frames_per_module": 64,
+    "binary_bytes": 11185,
+    "completed": 64,
+    "displayed": 64,
+    "max_busy_T": 36117,
+    "max_prepare_T": 30204,
+    "max_publish_T": 5913,
+    "preparation_preserves_screen": true,
+    "raw_final_VM": true,
+    "unique_poses": 32
+  },
+  "sharing": {
+    "scope": "Adjacent equal draw pixels; adjacent equal opacity masks for clear; only immutable kernels shared, unique per-row destination wrappers",
+    "ordinary_before_bytes": 13250,
+    "ordinary_after_bytes": 11186,
+    "saved_bytes": 2064,
+    "shared_native_calls": 336,
+    "shared_vm_calls": 672,
+    "shared_rows_pass_seconds": 15.619,
+    "scene_smoke_pass_seconds": 11.025,
+    "original_full_matrix_source_asm_bin_identical": true,
+    "libraries": {
+      "stdlib/zx/sprite.nanz": "9e14db50fba6a6bc2165e780936baa95a079594a025cd5be52d9fabf1f05054f",
+      "stdlib/zx/sprite_pixel_row.nanz": "360f09121d65773690f1126150eeae6fec31d95aaec944afad00cd561e273e46"
+    }
+  }
+}

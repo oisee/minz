@@ -1,0 +1,68 @@
+import zx.sprite
+import zx.sprite_effect
+import hw.push_fill
+import hw.fill
+
+@zx_sprite("Diamond") {
+    size 64 8
+    pixel_shifts
+    erase
+    pixels "___________##_____####___######__######___####_____##___________"
+    pixels "___##_____####___######_################_######___####_____##___"
+    pixels "__####___######_#########_#__#_##_#__#_#########_######___####__"
+    pixels "_######_#########_#__#_#_#_##_#__#_##_#_#_#__#_#########_######_"
+    pixels "_######_#########_#__#_#_#_##_#__#_##_#_#_#__#_#########_######_"
+    pixels "__####___######_#########_#__#_##_#__#_#########_######___####__"
+    pixels "___##_____####___######_################_######___####_____##___"
+    pixels "___________##_____####___######__######___####_____##___________"
+}
+
+global actor:Diamond=Diamond{x:32,y:56}
+global actor_visible:bool=false
+global frame:u8=0
+global tv:ByteWave=ByteWave{phase:0}
+
+@push_fill("clear_bitmap") {
+    region 0x4000 6144
+    value 0
+    unroll 16
+    irq "disabled"
+}
+
+fun init_attributes() {
+    @fill() {
+        layout "linear" 0x5800 32 24 32
+        value 0x46
+        via "ldir"
+    }
+}
+
+// Both placements are prepared before HALT. Kernels are compiled once.
+fun prepare_frame(frame:u8)->bool {
+    if actor_visible {if actor.stage_previous_erase()==false {return false}}
+    actor.x=32+(frame&15)
+    actor.y=56+(frame>>4)*8
+    tv.phase=frame
+    return actor.stage_wave(&tv)
+}
+
+// Frame publication contains no geometry, row setters or screen addresses.
+fun draw_frame()->bool {
+    if actor_visible {if actor.erase_staged()==false {return false}}
+    if actor.publish()==false {return false}
+    actor_visible=true
+    return true
+}
+
+fun main() {
+    asm z80 {DI}
+    clear_bitmap()
+    init_attributes()
+    frame=0
+    while true {
+        if prepare_frame(frame)==false {asm z80 {EI} return}
+        asm z80 {LD IY, 0x5c3a / EI / HALT / DI}
+        if draw_frame()==false {asm z80 {EI} return}
+        frame=(frame+1)&31
+    }
+}

@@ -1,0 +1,19 @@
+import zx.sprite
+@zx_sprite("Ship") {
+ size 16 8
+ erase
+ pixel_shifts
+ pixels ".#_..##._#_.#..."
+ pixels "#._#.._#..##._#."
+ pixels "..###_____###..."
+ pixels "################"
+ pixels "................"
+ pixels "_____######_____"
+ pixels "#..............#"
+ pixels "._#_#_#_#_#_#_.."
+}
+fun draw_ship(x:u8,y:u8)->bool {
+ let actor:Ship=Ship{x:x,y:y}
+ if actor.stage()==false {return false}
+ return actor.publish()
+}

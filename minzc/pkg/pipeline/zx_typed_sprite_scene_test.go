@@ -123,7 +123,7 @@ func TestZXTypedSpriteSceneMachine(t *testing.T) {
 	runZXTypedSpriteSceneMachine(t, "typed-sprite-scene", "MINZ_TYPED_SPRITE_EXPORT", func(frame, row int) int { return 0 })
 }
 
-func runZXTypedSpriteSceneMachine(t *testing.T, scene, exportEnv string, rowShift func(frame, row int) int) {
+func runZXTypedSpriteSceneMachine(t *testing.T, scene, exportEnv string, rowShift func(frame, row int) int, pixelUnits ...bool) {
 	src, err := os.ReadFile("../../../reports/advanced-demos/" + scene + "/source.nanz")
 	if err != nil {
 		t.Fatal(err)
@@ -133,6 +133,13 @@ func runZXTypedSpriteSceneMachine(t *testing.T, scene, exportEnv string, rowShif
 		t.Fatal(err)
 	}
 	rows := []string{"00183c7e7e3c1800", "183c7effff7e3c18", "3c7effa5a5ff7e3c", "7effa55a5aa5ff7e", "7effa55a5aa5ff7e", "3c7effa5a5ff7e3c", "183c7effff7e3c18", "00183c7e7e3c1800"}
+	pixelShift := len(pixelUnits) > 0 && pixelUnits[0]
+	baseX := func(frame, row int) int {
+		if pixelShift {
+			return 32 + (frame & 15) + rowShift(frame, row)
+		}
+		return (4 + (frame & 15) + rowShift(frame, row)) * 8
+	}
 	expectedScreen := func(frame int) []byte {
 		want := make([]byte, 6912)
 		for i := 6144; i < len(want); i++ {
@@ -141,8 +148,16 @@ func runZXTypedSpriteSceneMachine(t *testing.T, scene, exportEnv string, rowShif
 		for row, encoded := range rows {
 			data, _ := hex.DecodeString(encoded)
 			y := 56 + (frame>>4)*8 + row
-			address := (y&0xc0)*32 + (y&7)*256 + (y&0x38)*4 + 4 + (frame & 15) + rowShift(frame, row)
-			copy(want[address:address+8], data)
+			for col, b := range data {
+				for bit := 0; bit < 8; bit++ {
+					if b&(128>>bit) == 0 {
+						continue
+					}
+					x := baseX(frame, row) + col*8 + bit
+					address := (y/64)*2048 + (y%8)*256 + ((y/8)%8)*32 + x/8
+					want[address] |= 128 >> uint(x%8)
+				}
+			}
 		}
 		return want
 	}
@@ -158,7 +173,7 @@ func runZXTypedSpriteSceneMachine(t *testing.T, scene, exportEnv string, rowShif
 			for col, b := range data {
 				for bit := 0; bit < 8; bit++ {
 					if b&(128>>bit) != 0 {
-						x := (4+(frame&15)+col+rowShift(frame, row))*8 + bit
+						x := baseX(frame, row) + col*8 + bit
 						y := 56 + (frame>>4)*8 + row
 						offset := (y*256 + x) * 4
 						pixels[offset], pixels[offset+1] = 255, 255
