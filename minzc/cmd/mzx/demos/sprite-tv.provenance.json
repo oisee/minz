@@ -4,5 +4,12 @@
   "snapshot_sha256": "a5136b39472ea9dc32341d66dd0185728277d421b20ef6ddf203b77f6d3c3835",
   "binary_bytes": 5241,
   "verification": "TestZXSpriteEffectCompositionMachine: native Z80/ULA ordered frames, raw/final VM; CLI/native BIN equality; every captured GIF frame checked by verify_zx_sprite_tv_capture.py",
-  "scope": "typed concrete effect composition; byte-column wave and bounded noise; owned black background; physical hardware and Tetris settled-cell effects unverified"
+  "scope": "typed concrete effect composition; byte-column wave and bounded noise; owned black background; physical hardware and Tetris settled-cell effects unverified",
+  "package_verification": {
+    "frames": 120,
+    "no_border": true,
+    "oracle_pose": 22,
+    "png_sha256": "fa392f0c0a6ce3d8d4ac4e354a7be15323835525bfa7a57dd8c4944f954b0c98",
+    "oracle": "Decoded pixels independently verified; final native package must reproduce this exact PNG"
+  }
 }

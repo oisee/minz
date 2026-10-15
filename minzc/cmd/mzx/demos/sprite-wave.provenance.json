@@ -4,5 +4,12 @@
   "snapshot_sha256": "2a6746d9b1bfc43458f0c4af174313d2a2337856434f62ae69eca59ed6f1284d",
   "binary_bytes": 4736,
   "verification": "TestZXSpriteRowEffectMachine: native/ULA ordered frames and raw/final VM; snapshot resume and every GIF frame checked",
-  "scope": "signed byte-column row shifts, 64x8 whole sprite, owned black background; physical hardware/NMI unverified"
+  "scope": "signed byte-column row shifts, 64x8 whole sprite, owned black background; physical hardware/NMI unverified",
+  "package_verification": {
+    "frames": 120,
+    "no_border": true,
+    "oracle_pose": 22,
+    "png_sha256": "32a8c799339d90bf1359f2527dabdfa79246196c1106101faf0dbf6a9a99cf6f",
+    "oracle": "Decoded pixels independently verified; final native package must reproduce this exact PNG"
+  }
 }

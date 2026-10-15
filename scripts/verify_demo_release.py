@@ -21,11 +21,21 @@ results=[]
 def run(name,demo,sequence=None):
  picture=a.proof/(name+'.png')
  args=([str(a.wine)] if a.wine else [])+[str(binary),'--demo',demo,'--no-audio','--data-dir',target(userdata),'--frames','10000' if sequence else ('3000' if demo.startswith('zork') else '120'),'--screenshot',target(picture)]
+ expected_picture=None
+ if demo in ('sprite-wave','sprite-tv'):
+  provenance=json.loads((a.package/'images'/(demo+'.provenance.json')).read_text())
+  check=provenance['package_verification']
+  assert check['frames']==120 and check['no_border'] is True
+  expected_picture=check['png_sha256']
+  args+=['--no-border']
  if sequence:args+=['--type',sequence]
  result=subprocess.run(args,capture_output=True,text=True,timeout=120)
  (a.proof/(name+'.log')).write_text(result.stdout+result.stderr)
  assert result.returncode==0 and picture.is_file(),name
- results.append({'case':name,'exit':result.returncode,'screen_sha256':hashlib.sha256(picture.read_bytes()).hexdigest()})
+ picture_sha256=hashlib.sha256(picture.read_bytes()).hexdigest()
+ if expected_picture is not None:
+  assert picture_sha256==expected_picture,name+' final executable disagrees with the verified pixel oracle'
+ results.append({'case':name,'exit':result.returncode,'screen_sha256':picture_sha256,'independent_pixel_oracle':expected_picture is not None})
  print(name,'PASS',flush=True)
 for demo in ['tetris','rotozoomer','sprites','sprite-wave','sprite-tv','sprites-push','zork1','zork2']:run(demo,demo)
 assert (userdata/'zork1/session.sna').is_file()
