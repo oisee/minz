@@ -58,7 +58,7 @@ not participate in selection. [**Full compiler overview →**](reports/2026-10-1
 
 ## Compiler progress — October 2026
 
-[**Full report: MinZ today — Nanz, the other frontends, compiler layers, and verified Z80**](reports/2026-10-11-092-grace-vm-z80-status.md) (Russian). A readable tour of the shared pipeline, Grace, PFCCO/PBQP and register-allocation tables, with measured results and remaining gaps. Research-branch results are identified separately from what is available in `main`. **Updated October 14:** typed hardware emit, caller-reference hygiene, generated-loop provenance and measured composition are integrated in `main` through PR #125. The overview also covers the shared hardware library, ROM/IRQ-verified Spectrum demos and parallel deep checks on release tags, nightly and manual runs.
+[**Full report: MinZ today — Nanz, the other frontends, compiler layers, and verified Z80**](reports/2026-10-11-092-grace-vm-z80-status.md) (Russian). A readable tour of the shared pipeline, Grace, PFCCO/PBQP and register-allocation tables, with measured results and remaining gaps. Research-branch results are identified separately from what is available in `main`. **Updated October 15:** whole baked sprites, direct smooth Tetris and typed wave/noise effects are integrated in `main`. [Demos 0.25.2](https://github.com/oisee/minz/releases/tag/v0.25.2) provides six native packages; [release verification and remaining limits](reports/advanced-demos/release-0.25.2.md) distinguish executed PASS, SKIP and open exploratory findings. The overview also covers the shared hardware library, ROM/IRQ-verified Spectrum demos and parallel deep checks on release tags, nightly and manual runs.
 
 [Measured runtime sprites](reports/runtime-sprite-measured-composition/README.md): compose checked register-assignment fragments, retain a live base, and select tables plus conditional layouts on training inputs; replay the exact winner on heldout buffers.
 
@@ -130,11 +130,11 @@ This preview records **78 consecutive actual Z80/ULA frames at 50 Hz**:
 its first frame. Sprite code is baked at compile time; screen addresses are
 patched before HALT, then paired draw/erase kernels write directly to the
 screen. Quiet descent meets its frame budget; some heavy actions still take
-two frames. The whole-sprite API and direct-screen game are **now in main**
+two or three frames. The whole-sprite API and direct-screen game are **now in main**
 ([PR #128](https://github.com/oisee/minz/pull/128), `a284fafc`). [Six-platform 0.25.1 packages](https://github.com/oisee/minz/releases/tag/v0.25.1)
 are published from that integrated commit. The smaller dirty-span/preview
 follow-up is also in main ([#130](https://github.com/oisee/minz/pull/130));
-it will enter the next package build.
+it is included in [demos 0.25.2](https://github.com/oisee/minz/releases/tag/v0.25.2).
 [Implementation and verification](reports/advanced-demos/tetris/direct-renderer.md)
 · [Capture provenance](media/tetris-direct-50hz.json).
 
@@ -151,8 +151,7 @@ These are **64 consecutive actual Z80/ULA frames at 50 Hz**, without
 interpolation. A typed `ByteWave` object shifts sprite rows by whole byte
 columns; addresses are staged before HALT, then paired erase/draw kernels
 publish directly to the screen. The implementation is now in main
-([PR #137](https://github.com/oisee/minz/pull/137)); it will enter the next
-package build. Run `mzx --demo sprite-wave` with a build from current main.
+([PR #137](https://github.com/oisee/minz/pull/137)); it is included in [demos 0.25.2](https://github.com/oisee/minz/releases/tag/v0.25.2). Run `mzx --demo sprite-wave` with a build from current main.
 [Implementation, Nanz source, and verification](reports/advanced-demos/typed-sprite-effects/README.md).
 
 **Wave + noise: a composed Nanz effect**
@@ -163,8 +162,7 @@ A concrete `TVSignal` composes wave and noise in Nanz. This GIF records
 **64 consecutive actual Z80/ULA frames at 50 Hz**, without interpolation.
 Every displayed frame is checked against an independent pixel oracle.
 Addresses are patched before HALT; paired erase/draw kernels then publish
-directly to the screen. Try `mzx --demo sprite-tv` in a build containing
-[PR #141](https://github.com/oisee/minz/pull/141).
+directly to the screen. Try `mzx --demo sprite-tv` in [demos 0.25.2](https://github.com/oisee/minz/releases/tag/v0.25.2).
 [Source, timing, and capture provenance](reports/advanced-demos/sprite-effect-composition/README.md).
 
 ## Explore
