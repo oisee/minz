@@ -1,7 +1,8 @@
 # MinZ demos 0.25.4: целые спрайты на Nanz и Tetris без текста
 
-15 октября 2026. Все локальные релизные проверки завершены; пакеты загружены в
-черновик GitHub Release. Публичный выпуск ждёт обязательный CI [PR #159](https://github.com/oisee/minz/pull/159).
+15 октября 2026. [Релиз 0.25.4 опубликован](https://github.com/oisee/minz/releases/tag/v0.25.4).
+Все 14 публичных файлов скачаны обратно и проверены по размерам, SHA256 и CRC
+архивов. Та же поставка сохранена в `/mnt/safe/minz/releases/0.25.4/`.
 Изменения интегрированы в main через [PR #152](https://github.com/oisee/minz/pull/152).
 Игровые сборки заморожены на `d2d8f7ba3f2968368bb47079b2b51a0cff569bab`;
 дерево main `494ad64e` полностью совпадает с этим исходником.
@@ -155,5 +156,22 @@ Linux ARM64 подходит Raspberry Pi с 64-битной ОС; Windows ARM �
 SAVE хранится вне архива игры и не заменяется обновлением. В итоговой поставке
 14 файлов: шесть native ZIP, пакет образов, четыре GIF/MP4, инструкция, манифест
 и SHA256SUMS. На шаре будут только игровые материалы; сырые CI-данные
-остаются локально. Перед публикацией проверяются все файлы, скачанные обратно
-с GitHub. Публичная ссылка и путь на шаре будут подтверждены после CI.
+остаются локально. Все 14 публичных файлов и копии на шаре совпадают с
+проверенными локальными пакетами. Старый 0.25.3 и пользовательские SAVE
+сохраняются. Релизный tag прошёл все 18 заданий; CI-only исправление стенда
+#159 сливается в main отдельно после своих обязательных проверок.
+
+
+| Платформа | ZIP |
+|---|---|
+| Linux x64 | [linux-amd64](https://github.com/oisee/minz/releases/download/v0.25.4/minz-demos-0.25.4-linux-amd64.zip) |
+| Linux ARM64, включая Raspberry Pi с 64-битной ОС | [linux-arm64](https://github.com/oisee/minz/releases/download/v0.25.4/minz-demos-0.25.4-linux-arm64.zip) |
+| Intel Mac | [darwin-amd64](https://github.com/oisee/minz/releases/download/v0.25.4/minz-demos-0.25.4-darwin-amd64.zip) |
+| Apple Silicon | [darwin-arm64](https://github.com/oisee/minz/releases/download/v0.25.4/minz-demos-0.25.4-darwin-arm64.zip) |
+| Windows x64 | [windows-amd64](https://github.com/oisee/minz/releases/download/v0.25.4/minz-demos-0.25.4-windows-amd64.zip) |
+| Windows ARM, включая Parallels | [windows-arm64](https://github.com/oisee/minz/releases/download/v0.25.4/minz-demos-0.25.4-windows-arm64.zip) |
+
+[Отдельные образы](https://github.com/oisee/minz/releases/download/v0.25.4/minz-demos-0.25.4-images.zip) ·
+[SHA256SUMS](https://github.com/oisee/minz/releases/download/v0.25.4/SHA256SUMS) ·
+[Полная запись Tetris, MP4](https://github.com/oisee/minz/releases/download/v0.25.4/tetris-full-50hz.mp4) ·
+[TV, MP4](https://github.com/oisee/minz/releases/download/v0.25.4/tv-long-50hz.mp4).

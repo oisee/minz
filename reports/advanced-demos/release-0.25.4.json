@@ -1,6 +1,6 @@
 {
   "version": "0.25.4",
-  "status": "audits_complete_draft_release_waiting_pr159_ci",
+  "status": "published",
   "source": "d2d8f7ba3f2968368bb47079b2b51a0cff569bab",
   "integrated_main": "494ad64eb48780841c6cc797474ad1d1fa5e1711",
   "native_build_run": 38750621711,
@@ -352,6 +352,16 @@
     "image_data_unchanged": true,
     "only_image_readme_updated": true,
     "all_zip_crc_checked": true,
-    "public_release_pending": true
+    "public_release_pending": false
+  },
+  "release_url": "https://github.com/oisee/minz/releases/tag/v0.25.4",
+  "share": "/mnt/safe/minz/releases/0.25.4/",
+  "publication": {
+    "public_assets": 14,
+    "public_downloads_sha_verified": true,
+    "share_assets_sha_verified": true,
+    "tag_jobs_all18_success": true,
+    "ci_harness_fix_pr": 159,
+    "ci_harness_fix_scope": "separate main merge; not in frozen runtime payload"
   }
 }
