@@ -1,0 +1,45 @@
+{
+  "source_commit": "2966b17bddaaa8e078ec95791cc7eed2bfabbd42",
+  "test_root": "TestTetrisLineProgressionMultiClearMachine",
+  "cases": 48,
+  "cleared_rows": [
+    2,
+    4
+  ],
+  "thresholds": [
+    16,
+    24,
+    32,
+    40,
+    48,
+    56,
+    64,
+    160
+  ],
+  "modes": [
+    "ordinary",
+    "grace-speed",
+    "grace-size"
+  ],
+  "status": "PASS",
+  "coverage": [
+    "independent main/physics/clock",
+    "complete fetched ULA screens",
+    "publication ordering",
+    "return PC/SP/INT"
+  ],
+  "inventory": {
+    "total": 800,
+    "fast": 429,
+    "deep": 371,
+    "claim": "classification only, not complete suite verdict"
+  },
+  "sha256": {
+    "examples/zx/tetris_playable.nanz": "9c0ae51e7557f4d1477507fe9ceb6bb199a2f07f46740a2b466cc3552bacdebb",
+    "minzc/pkg/pipeline/tetris_line_multiclear_test.go": "7bdae88909f1ea622ad858aa9ab733506328d3935e50d2b13b0a7021ee03f64f",
+    "minzc/pkg/pipeline/tetris_smooth_main_test.go": "c27af1ef44c5d9d6ae1d5bfb9d2443c84bd04ef83bb0896e26acab2f915495fe",
+    "scripts/ci/pipeline_profiles.json": "c339f4bdd72d552b8a13cda86b1c471db91e19b6eada93c65127b3c40efb4abe",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-15/tetris-line-multiclear-two.log": "5cd16bf886e43f11affc7cfe10efb50c1ff34d5f7984e852095ea1a9af668c57",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-15/tetris-line-multiclear-four.log": "b767d367e1cf6999355dabee2ba4cdaeae93b4b62f99067fb13595ff25d33fb9"
+  }
+}
