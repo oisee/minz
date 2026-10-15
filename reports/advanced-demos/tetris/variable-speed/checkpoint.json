@@ -1,0 +1,41 @@
+{
+  "product_source": "examples/zx/tetris_playable.nanz",
+  "source_sha256": "6607775bd23e7d7f07f204992e3c4ce5986b3fa5afd9fbc24f89ac7aa168110e",
+  "controller_sha256": "053ba5c883df0bc0a7f0cbfd760be69232f513cf480cad90dc8e4136a6f17943",
+  "snapshot_sha256": "ef3fa6c217a72bbd1f21f664cafd6c42ed75a56524e9be97b9f9c097cf08e28a",
+  "binary_sha256": "14a59d2044c91eac8ae70dc22b424b92f497b456e067a61a5211d1530e8a14d7",
+  "bytes": 31820,
+  "product_binary_matches_native": true,
+  "packaged_source_binary_matches_native": true,
+  "native_release_candidate": {
+    "version": "0.25.3-rc2",
+    "build_commit": "d87c9784b2d2ad1291ecd20ef6c76c914997b95a",
+    "workflow": 38693187398,
+    "platforms": 6,
+    "native_executions": 66,
+    "save_integrity_checks": 6,
+    "scope": "Tetris package execution is menu smoke; exact gameplay is checked separately"
+  },
+  "physics": {
+    "cases_per_mode": 1630,
+    "modes": 3,
+    "native_calls": 4890,
+    "raw_final_vm_calls": 9780
+  },
+  "main_sessions": 18,
+  "required_previous_pr_gate": {
+    "tested_merge": "ffe80429b5e3fa50a21c6fda9a0d3bce6d1d609c",
+    "parents": [
+      "7e6e2abcae7344b492a2119007f486ad6fe9c35e",
+      "07790103ec94cad00f4a39a3d4ac76a7d228c20e"
+    ],
+    "profile": "fast",
+    "counts": {
+      "PASS": 389,
+      "SKIP": 32
+    },
+    "selected": 421,
+    "scope": "selected fast pipeline roots; required job also ran core and embedded/runtime checks, not counted here"
+  },
+  "publication": "PR146 and PR147 integration and final release are pending"
+}
