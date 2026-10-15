@@ -348,6 +348,19 @@ fun clear_lines() -> u8 {
 
 // ── Ghost piece ─────────────────────────────────────────────────────────────
 
+fun column_gap(x:u8,y:u8,limit:u8)->u8 {
+    let row:u8=y+1
+    var count:u8=BOARD_H-row
+    if limit<count {count=limit}
+    var source:^u8=ptr(u16(&board)+u16(row)*10+u16(x))
+    var remaining:u8=count
+    while remaining!=0 {
+        if source^!=0 {break}
+        source=source+10 remaining=remaining-1
+    }
+    return count-remaining
+}
+
 fun ghost_y() -> u8 {
     // Each cell can fall until the next occupied cell in its own column.
     // The minimum free distance gives the same landing pose as repeatedly
@@ -361,13 +374,7 @@ fun ghost_y() -> u8 {
         let cx: u8 = cur_x + PIECE_DX[index]
         let cy: u8 = cur_y + PIECE_DY[index]
         if (cx >= BOARD_W) | (cy >= BOARD_H) { return cur_y }
-        var row: u8 = cy + 1
-        var free: u8 = 0
-        while row < BOARD_H {
-            if board[row * 10 + cx] != 0 { break }
-            free = free + 1
-            row = row + 1
-        }
+        let free:u8=column_gap(cx,cy,distance)
         if free < distance { distance = free }
         c = c + 1
     }
