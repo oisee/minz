@@ -446,8 +446,13 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 					renderActive = false
 					if !shadow && pendingLock {
 						elapsed := byte(m.Memory.ReadByteInternal(0x5c78) - previousClock)
-						// One IRQ remains the target; two is the measured current ceiling.
-						if elapsed < 1 || (clearRows == 0 && elapsed > 2) {
+						// One IRQ remains the target. Keep measured ceilings separate
+						// for ordinary locks and the seeded line-clear scenes.
+						budget := byte(2)
+						if clearRows != 0 {
+							budget = 3
+						}
+						if elapsed < 1 || elapsed > budget {
 							t.Fatalf("step%d lock exceeded measured budget: %d IRQ", steps, elapsed)
 						}
 						lockTicks[int(elapsed)]++
