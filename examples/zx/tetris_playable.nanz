@@ -38,10 +38,12 @@ global pixel_geometry_last:u8=0
 // The pixel actor stages four independent SMC placements from one baked shape.
 // Its publication is separate so a scene can prepare before HALT.
 import zx.sprite
+import zx.sprite_effect
 
 @zx_sprite_instances("FallingBlock") {
     instances 4
     size 8 8
+    pixel_phases 0 1 7
     erase
     pixels "........"
     pixels ".######."
@@ -55,6 +57,10 @@ import zx.sprite
 
 struct FallingPose {kind:u8,rotation:u8,x:u8,y:u8,phase:u8}
 global pixel_phase:u8=0
+// Experimental visual bias only. Ink columns 1..6 plus [-1,1] stay in one cell.
+global pixel_signal:ByteWave=ByteWave{phase:0}
+global pixel_bias:i8=0
+global drawn_bias:i8=0
 
 // ── ZX Spectrum primitives ──────────────────────────────────────────────────
 
@@ -898,10 +904,10 @@ fun FallingPose.stage_render(self:^FallingPose)->bool {
     }
     if self.phase>1 {if pixel_geometry_last+1>=20 {return false}}
     let phase:u8=self.phase
-    if FallingBlock_0_stage_at((11+pixel_new_x[0])*8,(2+pixel_new_y[0])*8+phase)==false {return false}
-    if FallingBlock_1_stage_at((11+pixel_new_x[1])*8,(2+pixel_new_y[1])*8+phase)==false {return false}
-    if FallingBlock_2_stage_at((11+pixel_new_x[2])*8,(2+pixel_new_y[2])*8+phase)==false {return false}
-    if FallingBlock_3_stage_at((11+pixel_new_x[3])*8,(2+pixel_new_y[3])*8+phase)==false {return false}
+    if FallingBlock_0_stage_at(u8(i16((11+pixel_new_x[0])*8)+i16(pixel_bias)),(2+pixel_new_y[0])*8+phase)==false {return false}
+    if FallingBlock_1_stage_at(u8(i16((11+pixel_new_x[1])*8)+i16(pixel_bias)),(2+pixel_new_y[1])*8+phase)==false {return false}
+    if FallingBlock_2_stage_at(u8(i16((11+pixel_new_x[2])*8)+i16(pixel_bias)),(2+pixel_new_y[2])*8+phase)==false {return false}
+    if FallingBlock_3_stage_at(u8(i16((11+pixel_new_x[3])*8)+i16(pixel_bias)),(2+pixel_new_y[3])*8+phase)==false {return false}
     return true
 }
 fun stage_pixel_render()->bool {
@@ -1080,10 +1086,13 @@ fun publish_pixel_erase()->bool {
 }
 
 fun render_smooth()->bool {
+    pixel_signal.phase=u8(frame_count)
+    pixel_bias=pixel_signal.offset(0)
+    if (pixel_bias < -1)|(pixel_bias > 1) {return false}
     if (BOARD_X!=11)|(BOARD_Y!=2)|(BOARD_W!=10)|(BOARD_H!=20) {return false}
     if drawn_valid!=0 {
         if board_dirty==0 {
-            if (cur_type==drawn_type)&(cur_rot==drawn_rot)&(cur_x==drawn_x)&(cur_y==drawn_y)&(pixel_phase==drawn_phase) {
+            if (cur_type==drawn_type)&(cur_rot==drawn_rot)&(cur_x==drawn_x)&(cur_y==drawn_y)&(pixel_phase==drawn_phase)&(pixel_bias==drawn_bias) {
                 if (next_type==drawn_next)&(hold_type==drawn_hold) {zx_halt() return true}
             }
         }
@@ -1135,6 +1144,7 @@ fun render_smooth()->bool {
     pixel_publish_direct()
     asm z80 {EI}
     drawn_valid=1 board_dirty=0 board_first=20 board_limit=0
+    drawn_bias=pixel_bias
     drawn_type=cur_type drawn_rot=cur_rot drawn_x=cur_x drawn_y=cur_y
     drawn_phase=pixel_phase drawn_next=next_type drawn_hold=hold_type
     return true
@@ -1175,6 +1185,12 @@ fun pixel_publish_direct() {
     if direct_refresh!=0 {
         pixel_publish_attributes()
         if direct_actor_early!=0 {pixel_commit_actor()}
+        // Full-board publication has the same raster order and callback,
+        // without a per-row range check. Geometry was admitted before HALT.
+        if direct_board_first==0 {if direct_board_limit==20 {
+            field_board_publish(ptr(u16(&board)),ptr(u16(&tetris_values)))
+            return
+        }}
         field_board_publish_range_prepared(ptr(u16(&board)),ptr(u16(&tetris_values)),direct_board_first,direct_board_limit)
     } else {
         if game_over==0 {pixel_commit_actor()}

@@ -1,0 +1,178 @@
+{
+  "frames": 78,
+  "duration_ms": 20,
+  "interpolation": false,
+  "actual_ULA": true,
+  "gif_matches_all_native_PNG_pixels": true,
+  "gif_sha256": "9f1d10ce1348ba319f371cbfe752814d36325b1b5b5a35305cd9c79bb30c24e5",
+  "source_sha256": "b2721bdb18a8aea76645ffc1a5aadb6f11435b4a9c8d32fa2ca07829c34f472f",
+  "library_sha256": {
+    "stdlib/zx/sprite.nanz": "62898b473dd019ab63e49c5f8b5e0e27218a0a9b97bf0df3ce45d37f91a2adc9",
+    "stdlib/zx/sprite_pixel_row.nanz": "c57ab2556e4aa8358d644a2133f8241d1b989689022cae8e74d9f313325097fe",
+    "stdlib/zx/tile_cell.nanz": "0a9eea2cbc4cd09d6c5e7a51d5beb9928d1e8f2fd55d45e3e369b9808b0e7b3c"
+  },
+  "native_receipts": {
+    "tetris-pixel-wobble-final-main/level-2/grace-size/receipt.txt": {
+      "fetched_complete_field_frames": 257,
+      "frames": 296,
+      "steps": 119,
+      "pixel_phase_samples": 97,
+      "locks": 10,
+      "interrupts": 295,
+      "minimum_SP": 64698,
+      "bytes": 31573
+    },
+    "tetris-pixel-wobble-final-main/level-2/grace-speed/receipt.txt": {
+      "fetched_complete_field_frames": 257,
+      "frames": 296,
+      "steps": 119,
+      "pixel_phase_samples": 97,
+      "locks": 10,
+      "interrupts": 295,
+      "minimum_SP": 64698,
+      "bytes": 31573
+    },
+    "tetris-pixel-wobble-final-main/level-2/ordinary/receipt.txt": {
+      "fetched_complete_field_frames": 260,
+      "frames": 299,
+      "steps": 119,
+      "pixel_phase_samples": 97,
+      "locks": 10,
+      "interrupts": 298,
+      "minimum_SP": 64698,
+      "bytes": 31561
+    },
+    "tetris-pixel-wobble-final-main/level-1/grace-size/receipt.txt": {
+      "fetched_complete_field_frames": 256,
+      "frames": 295,
+      "steps": 119,
+      "pixel_phase_samples": 96,
+      "locks": 10,
+      "interrupts": 294,
+      "minimum_SP": 64698,
+      "bytes": 31573
+    },
+    "tetris-pixel-wobble-final-main/level-1/grace-speed/receipt.txt": {
+      "fetched_complete_field_frames": 256,
+      "frames": 295,
+      "steps": 119,
+      "pixel_phase_samples": 96,
+      "locks": 10,
+      "interrupts": 294,
+      "minimum_SP": 64698,
+      "bytes": 31573
+    },
+    "tetris-pixel-wobble-final-main/level-1/ordinary/receipt.txt": {
+      "fetched_complete_field_frames": 256,
+      "frames": 295,
+      "steps": 119,
+      "pixel_phase_samples": 96,
+      "locks": 10,
+      "interrupts": 294,
+      "minimum_SP": 64698,
+      "bytes": 31561
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-size/clear-2/receipt.txt": {
+      "fetched_complete_field_frames": 183,
+      "frames": 222,
+      "steps": 43,
+      "pixel_phase_samples": 29,
+      "locks": 10,
+      "interrupts": 221,
+      "minimum_SP": 64698,
+      "bytes": 31573
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-size/clear-4/receipt.txt": {
+      "fetched_complete_field_frames": 186,
+      "frames": 225,
+      "steps": 45,
+      "pixel_phase_samples": 30,
+      "locks": 11,
+      "interrupts": 224,
+      "minimum_SP": 64698,
+      "bytes": 31573
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-size/clear-1/receipt.txt": {
+      "fetched_complete_field_frames": 182,
+      "frames": 221,
+      "steps": 42,
+      "pixel_phase_samples": 28,
+      "locks": 10,
+      "interrupts": 220,
+      "minimum_SP": 64698,
+      "bytes": 31573
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-speed/clear-2/receipt.txt": {
+      "fetched_complete_field_frames": 183,
+      "frames": 222,
+      "steps": 43,
+      "pixel_phase_samples": 29,
+      "locks": 10,
+      "interrupts": 221,
+      "minimum_SP": 64698,
+      "bytes": 31573
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-speed/clear-4/receipt.txt": {
+      "fetched_complete_field_frames": 186,
+      "frames": 225,
+      "steps": 45,
+      "pixel_phase_samples": 30,
+      "locks": 11,
+      "interrupts": 224,
+      "minimum_SP": 64698,
+      "bytes": 31573
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/grace-speed/clear-1/receipt.txt": {
+      "fetched_complete_field_frames": 182,
+      "frames": 221,
+      "steps": 42,
+      "pixel_phase_samples": 28,
+      "locks": 10,
+      "interrupts": 220,
+      "minimum_SP": 64698,
+      "bytes": 31573
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/ordinary/clear-2/receipt.txt": {
+      "fetched_complete_field_frames": 183,
+      "frames": 222,
+      "steps": 43,
+      "pixel_phase_samples": 29,
+      "locks": 10,
+      "interrupts": 221,
+      "minimum_SP": 64698,
+      "bytes": 31561
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/ordinary/clear-4/receipt.txt": {
+      "fetched_complete_field_frames": 186,
+      "frames": 225,
+      "steps": 45,
+      "pixel_phase_samples": 30,
+      "locks": 11,
+      "interrupts": 224,
+      "minimum_SP": 64698,
+      "bytes": 31561
+    },
+    "tetris-pixel-wobble-final-line-clear/level-2/ordinary/clear-1/receipt.txt": {
+      "fetched_complete_field_frames": 182,
+      "frames": 221,
+      "steps": 42,
+      "pixel_phase_samples": 28,
+      "locks": 10,
+      "interrupts": 220,
+      "minimum_SP": 64698,
+      "bytes": 31561
+    }
+  },
+  "integration": {
+    "baseline_main": "7e6e2abcae7344b492a2119007f486ad6fe9c35e",
+    "published_pixel_shifts_preserved": true,
+    "ordinary_binary_byte_identical_after_compatibility_change": true,
+    "binary_sha256": "e829195aecf9258e596c782bfe80ae13872e9db3a01a8d97abc5f32d552f2efb",
+    "compatibility_tests_seconds": 97.437,
+    "embedded_levels_PASS": true,
+    "library_sha256": {
+      "stdlib/zx/sprite.nanz": "b398d12f82ec18b9e6e84aaa9a7125fbb974dc18c7ed97653e1c550629574758",
+      "stdlib/zx/sprite_pixel_row.nanz": "c57ab2556e4aa8358d644a2133f8241d1b989689022cae8e74d9f313325097fe"
+    }
+  }
+}

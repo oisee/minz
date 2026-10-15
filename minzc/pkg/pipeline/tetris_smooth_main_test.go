@@ -41,7 +41,9 @@ func TestTetrisShadowMainMachine(t *testing.T) {
 
 func TestTetrisDirectMainMachine(t *testing.T) {
 	for _, level := range []int{1, 2} {
-		t.Run(fmt.Sprintf("level-%d", level), func(t *testing.T) { runTetrisMainMachine(t, "../../../examples/zx/tetris_playable.nanz", false, level) })
+		t.Run(fmt.Sprintf("level-%d", level), func(t *testing.T) {
+			runTetrisMainMachineConfigured(t, "../../../examples/zx/tetris_playable.nanz", false, level, true)
+		})
 	}
 }
 
@@ -50,12 +52,16 @@ func TestTetrisDirectMainMachine(t *testing.T) {
 func TestTetrisDirectLineClearMachine(t *testing.T) {
 	for _, rows := range []int{1, 2, 4} {
 		t.Run(fmt.Sprintf("clear-%d", rows), func(t *testing.T) {
-			runTetrisMainMachine(t, "../../../examples/zx/tetris_playable.nanz", false, 2, rows)
+			runTetrisMainMachineConfigured(t, "../../../examples/zx/tetris_playable.nanz", false, 2, true, rows)
 		})
 	}
 }
 
 func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selectedLevel int, seededRows ...int) {
+	runTetrisMainMachineConfigured(t, sourcePath, shadow, selectedLevel, false, seededRows...)
+}
+
+func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool, selectedLevel int, wobble bool, seededRows ...int) {
 	t.Helper()
 	clearRows := 0
 	if len(seededRows) != 0 {
@@ -126,6 +132,23 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 			m.CPU.SetIFF1(false)
 			m.CPU.SetIFF2(false)
 			model := newPixelGameModel()
+			// Independent effect oracle: signed displacement comes from the model's
+			// elapsed frame count, never from renderer state or generated phase tables.
+			actorMask := func() byte {
+				if !wobble {
+					return 0x7e
+				}
+				wave := [8]int{0, 1, 1, 0, 0, -1, -1, 0}
+				bias := wave[model.v["frame_count"]&7]
+				if bias < 0 {
+					return 0xfc
+				}
+				if bias > 0 {
+					return 0x3f
+				}
+				return 0x7e
+			}
+
 			if selectedLevel != 0 {
 				model.fixedDifficulty = true
 				model.v["drop_speed"] = 16 / selectedLevel
@@ -191,7 +214,7 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 						x, y := model.v["cur_x"]+cell.x, model.v["cur_y"]+cell.y
 						for row := 1; row <= 6; row++ {
 							scan := y*8 + model.v["pixel_phase"] + row
-							bitmap[scan][x] |= 0x7e
+							bitmap[scan][x] |= actorMask()
 							attributes[scan/8][x] = colors[model.v["cur_type"]+1]
 						}
 					}
@@ -291,7 +314,7 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 						for row := 1; row <= 6; row++ {
 							scan := 16 + y*8 + model.v["pixel_phase"] + row
 							at := (scan/64)*2048 + (scan%8)*256 + ((scan/8)%8)*32 + x + 11
-							screen[at] |= 0x7e
+							screen[at] |= actorMask()
 							screen[6144+scan/8*32+x+11] = colors[model.v["cur_type"]+1]
 						}
 					}
@@ -353,7 +376,16 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 			pendingClear := false
 			clearTicks := map[int]int{}
 			lockTicks := map[int]int{}
+			schedule := []map[string]int{}
 			c.before = func() {
+				if !shadow {
+					if c.PC() == sym("pixel_publish_direct") {
+						schedule = append(schedule, map[string]int{"event": 1, "step": steps, "T": int(m.AbsoluteTStates()), "refresh": int(read("direct_refresh", 1)[0]), "first": int(read("direct_board_first", 1)[0]), "limit": int(read("direct_board_limit", 1)[0])})
+					}
+					if publishActive && c.PC() == sym("pixel_finish_board_row") {
+						schedule = append(schedule, map[string]int{"event": 2, "step": steps, "T": int(m.AbsoluteTStates()), "row": publishFirst + len(publishedRows) - 1})
+					}
+				}
 				if clearRows != 0 && !fixtureApplied && c.PC() == sym("render_smooth") {
 					// Seed from independent constants, never by reading the game.
 					for y := 20 - clearRows; y < 20; y++ {
@@ -649,6 +681,42 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 						}
 					}
 					if !matched {
+						if root := os.Getenv("MINZ_TETRIS_MAIN_EXPORT"); root != "" {
+							dir := filepath.Join(root, mode, fmt.Sprintf("clear-%d", clearRows), "failure")
+							if err := os.MkdirAll(dir, 0755); err != nil {
+								t.Fatal(err)
+							}
+							if err := os.WriteFile(filepath.Join(dir, "fetched.rgba"), got, 0644); err != nil {
+								t.Fatal(err)
+							}
+							mismatchRows := []map[int]int{}
+							for i, candidate := range frameCandidates {
+								if err := os.WriteFile(filepath.Join(dir, fmt.Sprintf("candidate-%d.rgba", i)), candidate, 0644); err != nil {
+									t.Fatal(err)
+								}
+								rows := map[int]int{}
+								for y := 0; y < 160; y++ {
+									for x := 0; x < 80; x++ {
+										at := (y*80 + x) * 4
+										if !bytes.Equal(got[at:at+4], candidate[at:at+4]) {
+											rows[y]++
+										}
+									}
+								}
+								mismatchRows = append(mismatchRows, rows)
+							}
+							detail := map[string]any{"frame": frames, "step": steps, "model": model.v, "mismatch_pixels_per_row": mismatchRows, "absolute_T": m.AbsoluteTStates(), "PC": c.PC(), "SP": c.SP(), "prepare_or_publish_active": renderActive, "publication_schedule": schedule}
+							if c.profile != nil {
+								detail["costs_T"] = c.profile.costs
+							}
+							data, err := json.MarshalIndent(detail, "", "  ")
+							if err != nil {
+								t.Fatal(err)
+							}
+							if err = os.WriteFile(filepath.Join(dir, "diagnostic.json"), append(data, '\n'), 0644); err != nil {
+								t.Fatal(err)
+							}
+						}
 						t.Fatalf("main mixed field in fetched frame%d step%d", frames, steps)
 					}
 					fetchedFrames++
