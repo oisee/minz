@@ -1,0 +1,51 @@
+{
+  "ordinary": {
+    "PASS": true,
+    "PC_SP_IFF": true,
+    "ROM_IRQ": 64,
+    "VM_frames_per_module": 64,
+    "binary_bytes": 2784,
+    "completed": 64,
+    "displayed": 64,
+    "max_busy_T": 8542,
+    "max_prepare_T": 5723,
+    "max_publish_T": 2819,
+    "preparation_preserves_screen": true,
+    "raw_final_VM": true,
+    "unique_poses": 32
+  },
+  "grace-size": {
+    "PASS": true,
+    "PC_SP_IFF": true,
+    "ROM_IRQ": 64,
+    "VM_frames_per_module": 64,
+    "binary_bytes": 2783,
+    "completed": 64,
+    "displayed": 64,
+    "max_busy_T": 8542,
+    "max_prepare_T": 5723,
+    "max_publish_T": 2819,
+    "preparation_preserves_screen": true,
+    "raw_final_VM": true,
+    "unique_poses": 32
+  },
+  "grace-speed": {
+    "PASS": true,
+    "PC_SP_IFF": true,
+    "ROM_IRQ": 64,
+    "VM_frames_per_module": 64,
+    "binary_bytes": 2783,
+    "completed": 64,
+    "displayed": 64,
+    "max_busy_T": 8542,
+    "max_prepare_T": 5723,
+    "max_publish_T": 2819,
+    "preparation_preserves_screen": true,
+    "raw_final_VM": true,
+    "unique_poses": 32
+  },
+  "source_sha256": "c910f472526faa4559bf11872ce3cd94e74cf0cc17db0d093f938272d808a908",
+  "snapshot_sha256": "6c0f5bfe51a750edc0745f149259365df7491e3065c08511ee7f906e8cf6b922",
+  "compiler_source": "production compiler matches main 60048e65",
+  "CLI_matches_native_BIN": true
+}
