@@ -115,3 +115,7 @@ cache/отказ, signed-row bounds и pixel-wave ULA прошли за 97,437 �
 обновлён; оба уровня дают ожидаемые 8/16 пикселей за 16 кадров.
 Релиз 0.25.2 не изменён. Плавная случайная скорость на следующем уровне
 записана в общую цель; в этом checkpoint её ещё нет.
+
+### Integration gate follow-up
+
+The older `TestTetrisDirectTemporalMachine` fixture omitted the CLI default contract optimization and exceeded its unchanged 0xFC60 stack bound after the new renderer. Its options now match the playable build. All four modes (early-control, ordinary, Grace Speed and Size) pass in 33.204 seconds, with temporal screen, RAM and stack checks retained. This changes the test configuration only; the six 37b68acb playable packages retain the same embedded snapshot.
