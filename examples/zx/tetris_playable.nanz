@@ -947,24 +947,18 @@ fun pixel_mark_cell(x:u8,y:u8) {
     if x+1>pixel_right[y] {pixel_right[y]=x+1}
 }
 
+// A short cell helper keeps the loop pointers/count out of its register set.
+// The measured caller includes CALL preservation and both fractional rows.
 fun pixel_mark_cells(xs:^u8,ys:^u8,phase:u8) {
-    var c:u8=0
-    while c<4 {
-        let x:u8=xs[c]
-        let y:u8=ys[c]
-        // These coordinates come from an admitted render placement. Keep
-        // its exact row union without repeating per-cell bounds/call setup.
-        if y<pixel_first_row {pixel_first_row=y}
-        if y+1>pixel_row_limit {pixel_row_limit=y+1}
-        if x<pixel_left[y] {pixel_left[y]=x}
-        if x+1>pixel_right[y] {pixel_right[y]=x+1}
-        if phase>1 {
-            let lower:u8=y+1
-            if lower+1>pixel_row_limit {pixel_row_limit=lower+1}
-            if x<pixel_left[lower] {pixel_left[lower]=x}
-            if x+1>pixel_right[lower] {pixel_right[lower]=x+1}
-        }
-        c=c+1
+    var xp:^u8=xs
+    var yp:^u8=ys
+    var count:u8=4
+    while count!=0 {
+        let x:u8=xp^
+        let y:u8=yp^
+        pixel_mark_cell(x,y)
+        if phase>1 {pixel_mark_cell(x,y+1)}
+        xp=xp+1 yp=yp+1 count=count-1
     }
 }
 
