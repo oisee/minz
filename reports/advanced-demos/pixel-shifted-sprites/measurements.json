@@ -16,7 +16,7 @@
     "pass_seconds": 46.084
   },
   "main143_followup_pass_seconds": 8.884,
-  "ula_pixel_phase_proof": false,
+  "ula_pixel_phase_proof": true,
   "files": {
     "1/program.bin": {
       "bytes": 10529,
@@ -54,5 +54,16 @@
       "bytes": 417,
       "sha256": "f1d8c544b4ebdc0b9cb70db05325f87521b89b82da98684762b469ae00d1dcf8"
     }
+  },
+  "pixel_wave_scene": {
+    "native_frames": 192,
+    "raw_final_vm_frames": 384,
+    "max_prepare_T": 30204,
+    "max_publish_T": 5913,
+    "max_busy_T": 36117,
+    "ordinary_bytes": 13250,
+    "grace_bytes": 13249,
+    "capture_frames": 64,
+    "frame_duration_ms": 20
   }
 }

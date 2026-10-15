@@ -404,6 +404,7 @@
     "TestZXPairedSpriteNative",
     "TestZXPixelSpriteAdmission",
     "TestZXPixelSpriteSmokeNativeVM",
+    "TestZXPixelWaveSceneMachine",
     "TestZXSpriteByteWaveNative",
     "TestZXSpriteCallerEffectTypeNativeVM",
     "TestZXSpriteEffectCompositionMachine",
