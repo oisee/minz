@@ -1,0 +1,68 @@
+{
+  "scope": "controller/backend checkpoint; automatic playable UI and gauge not integrated or released",
+  "base": "c11ab1db12edbeb844533bb40f8d126eff83827b",
+  "backend_fix": "41523c57",
+  "inventory": {
+    "roots": 794,
+    "fast": 427,
+    "deep": 367
+  },
+  "controller_exhaustive": {
+    "native": 972,
+    "raw_and_final_VM": 1944,
+    "seconds": 105.98
+  },
+  "controller_smoke": {
+    "native": 108,
+    "raw_and_final_VM": 216
+  },
+  "byte_bit_regression": {
+    "native": 768,
+    "raw_and_final_VM": 1536
+  },
+  "index_half_regression": {
+    "native": 18432
+  },
+  "files": {
+    "tetris-line-fall-exhaustive-compact.log": {
+      "bytes": 49,
+      "sha256": "5f0e66600ba024706aee7dee1977d87a5ccdaf158ab2c1674760d5f11f0f2bf4"
+    },
+    "tetris-line-fall-smoke-compact.log": {
+      "bytes": 48,
+      "sha256": "d8f67b16e36982961f80725dfac83806bc38727895ec12436fdedc1909758adc"
+    },
+    "tetris-line-bit-before-shift.log": {
+      "bytes": 47,
+      "sha256": "fc492ffba326640e5e6cd3ba8e06d90018c71ac6d632a4947b9cfe5c1892811b"
+    },
+    "tetris-line-index-shift.log": {
+      "bytes": 43,
+      "sha256": "bed642706d9d0bea3aee716a87f4b30486aa2a15a38f8532ce3b5c738c5a4627"
+    },
+    "tetris-line-core-final.log": {
+      "bytes": 131,
+      "sha256": "e7981a8483e8a9e89dfa5ab49fd26e58bb2539985e91428b49ccd89fd9a7c658"
+    },
+    "tetris-line-progression-size.log": {
+      "bytes": 41,
+      "sha256": "7c3f1628e50d9e7e3f048edb1116bf1632d3378fa726473a3dfb7145ee0cbf1c"
+    },
+    "stdlib/game/line_fall.nanz": {
+      "bytes": 2677,
+      "sha256": "9469cb94c937b88eac0ae82df9cf10d4aaac7be26e756c03db593dc1f0fe7f1f"
+    },
+    "minzc/pkg/pipeline/line_fall_test.go": {
+      "bytes": 5262,
+      "sha256": "cbde427c436cf627c8103bda5556152b65f899fbcb898a52dba145935d4d146e"
+    },
+    "minzc/pkg/mir2/z80codegen_patterns.go": {
+      "bytes": 30349,
+      "sha256": "3d32c91a5e25c0fc2d3fa6637b1c432bae8c4c949779bcc0c3d25ac091266d3a"
+    },
+    "minzc/pkg/mir2/z80codegen_alu.go": {
+      "bytes": 38737,
+      "sha256": "a596c5ae02407021b901b571a7955d50281819c29761d32eb3b6d7c7d14feba6"
+    }
+  }
+}

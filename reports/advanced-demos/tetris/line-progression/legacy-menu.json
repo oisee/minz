@@ -1,0 +1,7 @@
+{
+  "source_commit": "c11ab1db12edbeb844533bb40f8d126eff83827b",
+  "source_path": "examples/zx/tetris_playable.nanz",
+  "sha256": "6607775bd23e7d7f07f204992e3c4ce5986b3fa5afd9fbc24f89ac7aa168110e",
+  "reason": "Historical 1/2/3-menu proofs retain exact source; new automatic product is tested separately on current examples/zx/tetris_playable.nanz",
+  "stdlib": "current; unchanged game.fall_speed and shared baked sprite API"
+}

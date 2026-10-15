@@ -23,6 +23,13 @@ func measureGraceZ80HIR(t *testing.T, h *hir.Module, name string, options Option
 	if err != nil {
 		t.Fatal(err)
 	}
+	return measureGraceZ80Compiled(t, h, s, name, args, memory, want, 100000)
+}
+
+// Reuse one compiled candidate across a workload matrix. The instruction
+// limit remains explicit so longer traces cannot silently hang the suite.
+func measureGraceZ80Compiled(t *testing.T, h *hir.Module, s Steps, name string, args []int64, memory map[uint16]byte, want int64, instructionLimit int) (int, int) {
+	t.Helper()
 	f := s.MIR2Module.FuncByName(name)
 	a := hir.Assert{FuncName: name, Args: args, Expected: want, Via: "z80"}
 	boot := buildAssertBootstrap(assertLoadAddr, a, f, s.Allocation)
@@ -61,7 +68,7 @@ func measureGraceZ80HIR(t *testing.T, h *hir.Module, name string, options Option
 	returnPC := uint16(z.GetMemory(entrySP)) | uint16(z.GetMemory(entrySP+1))<<8
 	start := z.GetCycles()
 	for i := 0; ; i++ {
-		if i > 100000 {
+		if i > instructionLimit {
 			t.Fatalf("function did not return: PC=%04x SP=%04x wantPC=%04x SP=%04x\n%s\n%s", z.GetPC(), z.GetSP(), returnPC, entrySP+2, s.MIR2Opt, s.Assembly)
 		}
 		z.Step()
