@@ -1,0 +1,47 @@
+{
+  "ordinary": {
+    "PASS": true,
+    "PC_SP_IFF": true,
+    "ROM_IRQ": 64,
+    "VM_frames_per_module": 64,
+    "binary_bytes": 5022,
+    "completed": 64,
+    "displayed": 64,
+    "max_busy_T": 29948,
+    "max_prepare_T": 27129,
+    "max_publish_T": 2819,
+    "preparation_preserves_screen": true,
+    "raw_final_VM": true,
+    "unique_poses": 32
+  },
+  "grace-size": {
+    "PASS": true,
+    "PC_SP_IFF": true,
+    "ROM_IRQ": 64,
+    "VM_frames_per_module": 64,
+    "binary_bytes": 5021,
+    "completed": 64,
+    "displayed": 64,
+    "max_busy_T": 29948,
+    "max_prepare_T": 27129,
+    "max_publish_T": 2819,
+    "preparation_preserves_screen": true,
+    "raw_final_VM": true,
+    "unique_poses": 32
+  },
+  "grace-speed": {
+    "PASS": true,
+    "PC_SP_IFF": true,
+    "ROM_IRQ": 64,
+    "VM_frames_per_module": 64,
+    "binary_bytes": 5021,
+    "completed": 64,
+    "displayed": 64,
+    "max_busy_T": 29948,
+    "max_prepare_T": 27129,
+    "max_publish_T": 2819,
+    "preparation_preserves_screen": true,
+    "raw_final_VM": true,
+    "unique_poses": 32
+  }
+}

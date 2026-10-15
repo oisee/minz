@@ -238,12 +238,10 @@ fun @zx_sprite(name:^u8)->void {
             // The descriptor fixes the concrete effect type at compile time.
             // No interface object/vtable or runtime row dispatcher is emitted.
             emit(str_concat(str_concat(c"fun ",name),str_concat(c".stage_effect(self:^",str_concat(name,str_concat(c",effect:^",str_concat(effect_type,c")->bool {"))))))
-            row=0
-            while row<height {
-                let index:^u8=str_from_int(u16(row))
-                emit(str_concat(str_concat(str_concat(offsets,c"["),index),str_concat(c"]=effect.offset(",str_concat(index,c")"))))
-                row=row+1
-            }
+            emit(c"var row:u8=0")
+            emit(str_concat(c"while row<",str_concat(str_from_int(u16(height)),c" {")))
+            emit(str_concat(offsets,c"[row]=effect.offset(row)"))
+            emit(c"row=row+1 }")
             emit(str_concat(str_concat(c"return self.stage_shifted(&",offsets),c"[0]) }"))
         }
     }
