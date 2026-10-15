@@ -1,0 +1,16 @@
+{
+  "source_commit": "982fba75f6cd53fc0973322994c2229047dff7a0",
+  "source_branch": "feat/advanced-demos",
+  "source": "examples/zx/tetris_playable.nanz",
+  "capture_test": "TestTetrisDirectMainMachine/level-2/ordinary",
+  "capture": "actual fetched Spectrum 48K ULA framebuffer; scripted keyboard input",
+  "frames": 78,
+  "frame_duration_ms": 20,
+  "fps": 50,
+  "motion": "77 consecutive one-pixel downward transitions",
+  "interpolation": false,
+  "time_compression": false,
+  "loop": "returns to the first frame",
+  "sha256": "4c654f90d33931177f1f5fa1d9e54cfae6b80496d722a6028dc9870744c6d4ca",
+  "scope": "quiet descent only; heavy actions can still span two hardware frames; research implementation is not integrated into main"
+}

@@ -119,6 +119,20 @@ The emulator prints `Hello!`. The [Nanz source](examples/nanz/hello_cpm.nanz) is
 
 These images are current MIR2 VM canvas renders. Build `mzv` with `make -C minzc mzv`, then run `python3 scripts/build_rotozoomer_gif.py` to regenerate the GIF (requires Pillow). Run `cd minzc && go test ./pkg/c89 ./pkg/nanz -run '^(TestPlasmaRender|TestCanvasImplShowcase|TestRotozoomerGallery)$' -count=1` to compare the gallery with the current source. The CP/M example above exercises the Z80 path. [Gallery verification](reports/2026-10-01-README-Gallery-Verification-RU.md) · [Rotozoomer details](reports/2026-10-01-Nanz-Rotozoomer-RU.md).
 
+**Spectrum Tetris: pixel-by-pixel descent with baked Nanz sprites**
+
+<img src="media/tetris-direct-50hz.gif" width="352" alt="Spectrum Tetris: 78 actual ULA frames at 50 Hz, moving down one pixel per frame">
+
+This preview records **78 consecutive actual Z80/ULA frames at 50 Hz**:
+77 one-pixel steps, with no interpolation or speedup. The GIF loops back to
+its first frame. Sprite code is baked at compile time; screen addresses are
+patched before HALT, then paired draw/erase kernels write directly to the
+screen. Quiet descent meets its frame budget; some heavy actions still take
+two frames. The improved game is currently in `feat/advanced-demos`, pending
+integration and refreshed release packages.
+[Implementation and verification](https://github.com/oisee/minz/blob/982fba75f6cd53fc0973322994c2229047dff7a0/reports/advanced-demos/tetris/direct-renderer.md)
+· [Capture provenance](media/tetris-direct-50hz.json).
+
 ## Explore
 
 - [Nanz language book](docs/Nanz_Language_Book_v7.md) and [Frill guide](docs/Frill_Language_Guide.md)
