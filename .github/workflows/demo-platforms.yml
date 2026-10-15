@@ -62,6 +62,7 @@ jobs:
           go -C minzc build -trimpath -ldflags "-s -w -X main.version=$DEMO_VERSION -X main.gitCommit=$(git rev-parse --short HEAD)" -o "$PWD/out/build/mzx$EXT" ./cmd/mzx
           go -C minzc build -trimpath -tags mzx_headless -ldflags '-s -w' -o "$PWD/out/build/mzx-headless$EXT" ./cmd/mzx
           go version -m "out/build/mzx$EXT" > out/build/binary-info.txt
+          go -C minzc test -tags mzx_headless ./cmd/mzx -run '^(TestEmbeddedDemoBoots|TestEmbeddedTetrisDifficulty|TestDemoDiskSurvivesRelaunch|TestDemoSessionResumes)$' -count=1 > out/build/embedded-tests.txt
           if [[ "$RUNNER_OS" == macOS ]]; then
             codesign --force --sign - out/build/mzx
             codesign --force --sign - out/build/mzx-headless
@@ -121,6 +122,7 @@ jobs:
             go -C minzc build -trimpath -ldflags "-s -w -X main.version=$DEMO_VERSION -X main.gitCommit=$(git rev-parse --short HEAD)" -o /work/out/build/mzx ./cmd/mzx
             go -C minzc build -trimpath -tags mzx_headless -ldflags "-s -w" -o /work/out/build/mzx-headless ./cmd/mzx
             go version -m out/build/mzx > out/build/binary-info.txt
+            go -C minzc test -tags mzx_headless ./cmd/mzx -run "^(TestEmbeddedDemoBoots|TestEmbeddedTetrisDifficulty|TestDemoDiskSurvivesRelaunch|TestDemoSessionResumes)$" -count=1 > out/build/embedded-tests.txt
             file out/build/mzx > out/build/file.txt
             ldd out/build/mzx > out/build/libraries.txt
             python3 scripts/package_demo_release.py --platform "$TARGET=/work/out/build/mzx" --headless-platform "$TARGET=/work/out/build/mzx-headless" --output out/packages --version "$DEMO_VERSION"
