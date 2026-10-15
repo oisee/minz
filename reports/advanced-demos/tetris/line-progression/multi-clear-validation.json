@@ -41,5 +41,48 @@
     "scripts/ci/pipeline_profiles.json": "c339f4bdd72d552b8a13cda86b1c471db91e19b6eada93c65127b3c40efb4abe",
     "/home/alice/dev/minz-artifacts/grace-reports/2026-10-15/tetris-line-multiclear-two.log": "5cd16bf886e43f11affc7cfe10efb50c1ff34d5f7984e852095ea1a9af668c57",
     "/home/alice/dev/minz-artifacts/grace-reports/2026-10-15/tetris-line-multiclear-four.log": "b767d367e1cf6999355dabee2ba4cdaeae93b4b62f99067fb13595ff25d33fb9"
+  },
+  "sprite_api_audit": {
+    "build_commit": "d0070be8",
+    "execution_source_commit": "afd644cccdd9c8a057bece308c46899fa09f448a",
+    "binary_sha256": "076508622348666c9d5f167ad622977d57593827964ccebe17a460fef016fb95",
+    "root_results": {
+      "PASS": 23,
+      "SKIP": 0,
+      "FAIL": 0
+    },
+    "roots": [
+      "TestZXPairedSpriteNative",
+      "TestZXPixelShiftedSpriteNativeVM",
+      "TestZXSpriteEffectTypeAdmission",
+      "TestZXWholeSpriteAdmission",
+      "TestZXPairedSpriteAdmission",
+      "TestZXPixelShiftedSpriteEraseNativeVM",
+      "TestZXTypedSpriteSceneMachine",
+      "TestZXWholeSpriteMachine",
+      "TestZXPixelWaveSceneMachine",
+      "TestZXSpriteEffectCompositionMachine",
+      "TestZXWholeSpriteNative",
+      "TestZXStagedSpriteNative",
+      "TestZXPixelSpriteShiftBoundsNativeVM",
+      "TestZXPixelSpriteFinitePhasesNativeVM",
+      "TestZXPixelSpriteAdmission",
+      "TestZXPixelSpriteSharedRowsNativeVM",
+      "TestZXPixelSpriteFinitePhaseAdmission",
+      "TestZXSpriteByteWaveNative",
+      "TestZXSpritePreviousEraseNativeVM",
+      "TestZXSpriteCallerEffectTypeNativeVM",
+      "TestZXSpriteRowEffectMachine",
+      "TestZXSpriteRowShiftAdmission",
+      "TestZXSpriteRowShiftBoundsNativeVM"
+    ],
+    "logs_sha256": {
+      "/home/alice/dev/minz-artifacts/grace-reports/2026-10-15/tetris-current-sprite-audit-1.log": "c1679506ca10d23aa4da088959553d9e4c96cc1e65398e17bd26d57e1d7a8f02",
+      "/home/alice/dev/minz-artifacts/grace-reports/2026-10-15/tetris-current-sprite-audit-2.log": "a16e84b4f7ede8ec1e18c8d721e887a815df64537f71e2f0b783b1c01504d0ce",
+      "/home/alice/dev/minz-artifacts/grace-reports/2026-10-15/tetris-current-sprite-audit-3.log": "1d8e716f4c15feb16cf62f668c6a82ddec1f663d6eaf2b4ad5c2fe8b6c26e3d2",
+      "/home/alice/dev/minz-artifacts/grace-reports/2026-10-15/tetris-current-sprite-audit-4.log": "d705163eaafe9c09dc371463f060ebf7668b45ad950208ceb93391e2fc88fac0"
+    },
+    "scope": "current whole-sprite/paired draw-erase, pixel phase bounds/reuse, typed composition and caller effect; targeted audit, not complete pipeline",
+    "final_release_status": "pending main integration and final tag/native six-platform gates"
   }
 }
