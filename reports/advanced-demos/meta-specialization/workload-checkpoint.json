@@ -1,0 +1,129 @@
+{
+  "cli_sha256": "d6273c184fd76d266356c9988a0a9845b8e7fca9d7f0864b568e900f96d1b4cd",
+  "source_sha256": "b3907e3d7e8e60983bb512e03562315d1fd0e8fb0e0ea4b37b307cb25ec9ff34",
+  "workload_sha256": "56a927862724efa658e52e7ef3f412e37ae8bea35acfdb6778a58a2ebcc88a3f",
+  "cases": [
+    {
+      "case": "size",
+      "goal": "size",
+      "budget": 0,
+      "exit": 0,
+      "selected": 1,
+      "candidates": [
+        {
+          "bytes": 5034,
+          "max_full_busy_T": 29350,
+          "native_publications": 64,
+          "fetched_frames": 64
+        },
+        {
+          "bytes": 4815,
+          "max_full_busy_T": 30128,
+          "native_publications": 64,
+          "fetched_frames": 64
+        }
+      ],
+      "selected_binary_sha256": "f68ba9fb36cc4a3ed7e2aa6aecd2be431de2a8d7b0628c76897de1b411fb6314",
+      "selected_matches_measured": true
+    },
+    {
+      "case": "speed",
+      "goal": "speed",
+      "budget": 0,
+      "exit": 0,
+      "selected": 0,
+      "candidates": [
+        {
+          "bytes": 5034,
+          "max_full_busy_T": 29350,
+          "native_publications": 64,
+          "fetched_frames": 64
+        },
+        {
+          "bytes": 4815,
+          "max_full_busy_T": 30128,
+          "native_publications": 64,
+          "fetched_frames": 64
+        }
+      ],
+      "selected_binary_sha256": "28d601b382ba9d849c1f1171829b411d780215d35f53f1f151b3ab864866c598",
+      "selected_matches_measured": true
+    },
+    {
+      "case": "budget-loose",
+      "goal": "budget",
+      "budget": 32000,
+      "exit": 0,
+      "selected": 1,
+      "candidates": [
+        {
+          "bytes": 5034,
+          "max_full_busy_T": 29350,
+          "native_publications": 64,
+          "fetched_frames": 64
+        },
+        {
+          "bytes": 4815,
+          "max_full_busy_T": 30128,
+          "native_publications": 64,
+          "fetched_frames": 64
+        }
+      ],
+      "selected_binary_sha256": "f68ba9fb36cc4a3ed7e2aa6aecd2be431de2a8d7b0628c76897de1b411fb6314",
+      "selected_matches_measured": true
+    },
+    {
+      "case": "budget-tight",
+      "goal": "budget",
+      "budget": 29700,
+      "exit": 0,
+      "selected": 0,
+      "candidates": [
+        {
+          "bytes": 5034,
+          "max_full_busy_T": 29350,
+          "native_publications": 64,
+          "fetched_frames": 64
+        },
+        {
+          "bytes": 4815,
+          "max_full_busy_T": 30128,
+          "native_publications": 64,
+          "fetched_frames": 64
+        }
+      ],
+      "selected_binary_sha256": "28d601b382ba9d849c1f1171829b411d780215d35f53f1f151b3ab864866c598",
+      "selected_matches_measured": true
+    },
+    {
+      "case": "budget-impossible",
+      "goal": "budget",
+      "budget": 1,
+      "exit": 1,
+      "no_winner": true
+    }
+  ],
+  "scope": "Actual standalone CLI executions; bounded cold-start contended Spectrum 48K TV scene, independent screen/RGBA/global oracle; excludes initial display, outer border, HALT idle and ROM ISR from full busy metric.",
+  "final_checks": {
+    "meta-workload-final-tests.log": {
+      "sha256": "6d2a0d0920ca475a7de8b01fe86b0cef9da0ecd8c65ac9c7da29d5bdebd7cd7e",
+      "tail": [
+        "ok  \tgithub.com/minz/minzc/pkg/pipeline\t4.401s",
+        "ok  \tgithub.com/minz/minzc/cmd/minzc\t7.514s"
+      ]
+    },
+    "meta-workload-full-nanz-after-pin.log": {
+      "sha256": "557f80e9ad52b2a27279d2f9cbc6458ca8d3cf0d48772c1511308fd737601706",
+      "tail": [
+        "ok  \tgithub.com/minz/minzc/pkg/nanz\t37.828s"
+      ]
+    }
+  },
+  "implementation_sha256": {
+    "minzc/pkg/pipeline/spectrum_phase_workload.go": "0853ec6fbce61840b3c389db5bbd0116177d3789ef813b30aee1ae2f2e5c420a",
+    "minzc/pkg/pipeline/spectrum_phase_workload_test.go": "d119de310aced30bf705007a9f77aefe5ad6311bcad1ea36d09ce1baff042744",
+    "minzc/cmd/minzc/meta_specialize.go": "8cdc94fcf0fdf3436817c3ff2b55ecff70c03e3bdffed77c3e67b28a147354c9",
+    "minzc/cmd/minzc/meta_specialize_test.go": "62f66cb63dabb558f344c0c9eb42322485f17dc8d83f47fdb6eb5afc36066b27"
+  },
+  "final_checks_note": "Final checks include missing fetched-publication guard and unsynchronized HALT mutant; original standalone receipt precedes this additional refusal guard. Candidate code and measured selection unchanged."
+}

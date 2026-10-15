@@ -244,3 +244,28 @@ PR #145 с Pixel-X API и общими immutable row-kernels уже в main (`7e
 ## 15 October: first product/release stage delivered
 
 Demos 0.25.3 is published on six native platforms, with exact source `c357` / main merge `4b74`, all 12 deep shards and the full 789-test disjoint fast/deep inventory verified (696 PASS / 93 SKIP / 0 FAIL). All 14 uploaded assets were downloaded and SHA-checked; playable files/media/instructions copied to /mnt/safe/minz/releases/0.25.3/. The remaining advanced-demo stage is measured specialization integration (#150/#151) and its updated playable product, not another implementation of already shipped whole sprites/Tetris. [Published release](release-0.25.3.md).
+
+## Measured Size specialization checkpoint — 15 October 2026
+
+`experiment/meta-specialization` adds `effect_preparation "auto"` and `mz specialize`: actual compact BIN selection, 5034 → 4815 bytes on the typed TV scene. All 960 native/ULA and 1920 raw/final VM scene frames pass; CLI candidates equal the native binaries. This is a separate candidate, not the v0.25.3 release. Speed/frame-budget selection remains incomplete. [API and full measurement](meta-specialization/README.md).
+
+## 15 October: measured Speed and frame-budget candidates
+
+`experiment/meta-specialization-workload` executes declared candidates with an explicit independent Spectrum 48K workload. Pure Speed retains the 5034-byte / 29350-T candidate; Size and a 32000-T budget select 4815 bytes / 30128 T. A 29700-T budget selects the faster candidate; an impossible budget creates no winner. Full steady cycles include caller work; fetched full-screen and global oracles are checked before selection. This is a bounded TV-scene candidate, not yet main or the frozen 0.25.3 product. [Commands, evidence and limits](meta-specialization/spectrum-workload.md).
+
+## 15 October: playable measured specialization
+
+`experiment/meta-specialized-snapshot` adds a cold-boot SNA output for the exact selected BIN and a real demo builder. Both Speed and budget snapshots preserve measured code byte-for-byte and pass 64 independent native full-screen/ULA frames after loading the saved file. This prepares the actual product path; it does not replace frozen 0.25.3 assets. [Run the selected scene](meta-specialization/playable-snapshot.md).
+
+## 15 октября: специализация в main, автоматическая игра готовится отдельно
+
+Measured Size/Speed/frame-budget выбор и запускаемая SNA интегрированы через
+PR #153, main `c11ab1db`. На том же TV workload Size/budget сохраняет
+4815 байт / 30128 T, чистый Speed — 5034 байта / 29350 T. Это измеренные
+варианты одного workload; на другие программы результат не переносим.
+
+Новая просьба Alice — автоматические line-driven стадии и цветной столбик
+вместо текста — реализована в PR #155. Native физика, полный ULA-экран,
+переходы и embedded image проверены. Слияние, шесть итоговых native-платформ
+и новый релиз остаются частью текущей цели. Старый 0.25.3 и подготовленный
+166 checkpoint сохраняются отдельно; они не объявляются новой игрой.

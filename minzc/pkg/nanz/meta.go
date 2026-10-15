@@ -54,6 +54,7 @@ type metaBlockNode struct {
 type metaRuntime struct {
 	hirMod      *hir.Module
 	optSize     bool
+	variants    *MetaVariantContext
 	callerTypes map[string]mir2.Ty
 	emitted     strings.Builder
 	structured  metaHIRBuilder
@@ -76,6 +77,17 @@ func (mr *metaRuntime) registerHosts(vm *mir2.VM, block []metaBlockNode) {
 			value = 1
 		}
 		return []mir2.Value{{I: value}}, nil
+	}
+
+	vm.Hosts["meta_variant"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		if len(args) != 3 {
+			return nil, fmt.Errorf("meta_variant expects key, alternatives and fallback")
+		}
+		selected, err := mr.variants.choose(mr.readCString(args[0].I), args[1].I, args[2].I)
+		if err != nil {
+			return nil, err
+		}
+		return []mir2.Value{{I: int64(selected)}}, nil
 	}
 
 	// ── Emit ──────────────────────────────────────────────────────
