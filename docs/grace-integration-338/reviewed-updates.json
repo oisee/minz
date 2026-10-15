@@ -3,28 +3,30 @@
     "path": "examples/abap/hello_zx.nanz",
     "source_sha256": "2784828bad84c2f0b7ab2e588f84fcf0cb2ff6535d50ce91cbb9432149a8bb48",
     "native_behavior": "executed-native-asm-bounded",
-    "workload": "Wholemain3modes, independent exact screen/attrs/termination/RAM; Hello correctedCString source and frozen17keyboard input.",
+    "workload": "Whole main in 3 modes; independent exact screen/attrs/termination/RAM. Hello corrected CString source; current frozen keyboard scenario reads 18 ordered ports, including SYMBOL SHIFT and CAPS SHIFT.",
     "independent_model": "Independent ZX pixel/attribute/font fixture and port model; exact old/newsource freezes and assembler quoted-space fix.",
     "boundary": "Injected device only, frozen scenario not fullkeyboard/font API or hardware. SAP source unchanged, Hello CString source corrected explicitly.",
     "evidence": {
-      "minzc/pkg/pipeline/original_zx_apps_test.go": "c1f72cd5d37d423296aba69a95b58ec34185dfa4bd6019e7796e1a1378ec7a6d",
+      "minzc/pkg/pipeline/original_zx_apps_test.go": "f7c7640e1b4795f7687535349225ec5ce7f2043c9f0d491835864a566ac2abc1",
       "reports/original-zx-apps/manifest.json": "5e5dc435fce383df29f9922a9aef062166ab88fcd7db35c0f67f045016df9cf1",
       "reports/zx-hello-corrected/manifest.json": "b8303954db7119c387b95cfbd834a66affb02921d416c4c7e7f9885abf93df79",
-      "docs/grace-integration-254/zx-root.txt": "16c3afe3bad10fdf4123bdaf8891f6ab597252d56201371cc476c48d5b8bb1c2"
+      "docs/grace-integration-254/zx-root.txt": "16c3afe3bad10fdf4123bdaf8891f6ab597252d56201371cc476c48d5b8bb1c2",
+      "reports/advanced-demos/tetris/catalog-review.md": "b7f498555e43165051324f79519289d77fa5ff466bedf570c9c86a216d6cd3ee"
     }
   },
   {
     "path": "examples/abap/sap_report_zx.nanz",
     "source_sha256": "5509c36b278ca724d2ac80e334c468dbba178091d10e74a032a6cdcdf201d463",
     "native_behavior": "executed-native-asm-bounded",
-    "workload": "Wholemain3modes, independent exact screen/attrs/termination/RAM; Hello correctedCString source and frozen17keyboard input.",
+    "workload": "Whole main in 3 modes; independent exact screen/attrs/termination/RAM. Hello corrected CString source; current frozen keyboard scenario reads 18 ordered ports, including SYMBOL SHIFT and CAPS SHIFT.",
     "independent_model": "Independent ZX pixel/attribute/font fixture and port model; exact old/newsource freezes and assembler quoted-space fix.",
     "boundary": "Injected device only, frozen scenario not fullkeyboard/font API or hardware. SAP source unchanged, Hello CString source corrected explicitly.",
     "evidence": {
-      "minzc/pkg/pipeline/original_zx_apps_test.go": "c1f72cd5d37d423296aba69a95b58ec34185dfa4bd6019e7796e1a1378ec7a6d",
+      "minzc/pkg/pipeline/original_zx_apps_test.go": "f7c7640e1b4795f7687535349225ec5ce7f2043c9f0d491835864a566ac2abc1",
       "reports/original-zx-apps/manifest.json": "5e5dc435fce383df29f9922a9aef062166ab88fcd7db35c0f67f045016df9cf1",
       "reports/zx-hello-corrected/manifest.json": "b8303954db7119c387b95cfbd834a66affb02921d416c4c7e7f9885abf93df79",
-      "docs/grace-integration-254/zx-root.txt": "16c3afe3bad10fdf4123bdaf8891f6ab597252d56201371cc476c48d5b8bb1c2"
+      "docs/grace-integration-254/zx-root.txt": "16c3afe3bad10fdf4123bdaf8891f6ab597252d56201371cc476c48d5b8bb1c2",
+      "reports/advanced-demos/tetris/catalog-review.md": "b7f498555e43165051324f79519289d77fa5ff466bedf570c9c86a216d6cd3ee"
     }
   },
   {
@@ -1646,9 +1648,10 @@
     "independent_model": "Independent byte output and ZX bitmap/attributes/keyboard port model; exact source before/new identity preserved. Native-only ASM proof.",
     "boundary": "ZX source/library contracts corrected explicitly. One lowercase keyboard/font scenario, no full scrolling/keys API or hardware claim; VM ASM no-op excluded.",
     "evidence": {
-      "minzc/pkg/pipeline/original_console_corpus_test.go": "7f9b02f77fe62d7d4ef5dff6f2b3e0daf1f7e6b3e4d1fe4eb56443d3fbcd8637",
+      "minzc/pkg/pipeline/original_console_corpus_test.go": "aec69f3a70e426537b05ad0fb9de1ec73e4854bf018594a5ee58e3572ce08579",
       "reports/original-console-corrected/manifest.json": "9542f0d2b7a97614fc8f8c6bffa2651caecb599d5820a855a500712debafb1da",
-      "docs/grace-integration-246/console-root.txt": "ad54b29180b92cda69c469db349e310030483d2ce6de51e89526bff3d55d1d0a"
+      "docs/grace-integration-246/console-root.txt": "ad54b29180b92cda69c469db349e310030483d2ce6de51e89526bff3d55d1d0a",
+      "reports/advanced-demos/tetris/catalog-review.md": "b7f498555e43165051324f79519289d77fa5ff466bedf570c9c86a216d6cd3ee"
     }
   },
   {
@@ -1973,7 +1976,8 @@
     "boundary": "NativephysicalSMC exactcodepatch/orderedwrites proven; raw/finalVM PatchSlot heap abstraction separately observed, no dynamicphysicalSMC equivalence claim",
     "evidence": {
       "reports/original-assert-smc-hello-corpus/manifest.json": "938fa58bbabadcbed80b3f9fa1d078575aca57029b9b7779025ec642441f7dfc",
-      "minzc/pkg/pipeline/original_smc_hello_corpus_test.go": "2d904a8002efd5e8b30a1399c1643f5c73079be93922616a4f112e92c99fe166"
+      "minzc/pkg/pipeline/original_smc_hello_corpus_test.go": "947244ca1028d86470dadc931bf51c4a8fb45c22f70b38add02ce8c07411ed70",
+      "reports/advanced-demos/tetris/catalog-review.md": "b7f498555e43165051324f79519289d77fa5ff466bedf570c9c86a216d6cd3ee"
     }
   },
   {
@@ -1985,7 +1989,8 @@
     "boundary": "Explicit OUT23 consolemodel, notCPM runtime; raw/finalstdout and nativebytes matched",
     "evidence": {
       "reports/original-assert-smc-hello-corpus/manifest.json": "938fa58bbabadcbed80b3f9fa1d078575aca57029b9b7779025ec642441f7dfc",
-      "minzc/pkg/pipeline/original_smc_hello_corpus_test.go": "2d904a8002efd5e8b30a1399c1643f5c73079be93922616a4f112e92c99fe166"
+      "minzc/pkg/pipeline/original_smc_hello_corpus_test.go": "947244ca1028d86470dadc931bf51c4a8fb45c22f70b38add02ce8c07411ed70",
+      "reports/advanced-demos/tetris/catalog-review.md": "b7f498555e43165051324f79519289d77fa5ff466bedf570c9c86a216d6cd3ee"
     }
   },
   {
@@ -2010,9 +2015,10 @@
     "independent_model": "Independent byte output and ZX bitmap/attributes/keyboard port model; exact source before/new identity preserved. Native-only ASM proof.",
     "boundary": "ZX source/library contracts corrected explicitly. One lowercase keyboard/font scenario, no full scrolling/keys API or hardware claim; VM ASM no-op excluded.",
     "evidence": {
-      "minzc/pkg/pipeline/original_console_corpus_test.go": "7f9b02f77fe62d7d4ef5dff6f2b3e0daf1f7e6b3e4d1fe4eb56443d3fbcd8637",
+      "minzc/pkg/pipeline/original_console_corpus_test.go": "aec69f3a70e426537b05ad0fb9de1ec73e4854bf018594a5ee58e3572ce08579",
       "reports/original-console-corrected/manifest.json": "9542f0d2b7a97614fc8f8c6bffa2651caecb599d5820a855a500712debafb1da",
-      "docs/grace-integration-246/console-root.txt": "ad54b29180b92cda69c469db349e310030483d2ce6de51e89526bff3d55d1d0a"
+      "docs/grace-integration-246/console-root.txt": "ad54b29180b92cda69c469db349e310030483d2ce6de51e89526bff3d55d1d0a",
+      "reports/advanced-demos/tetris/catalog-review.md": "b7f498555e43165051324f79519289d77fa5ff466bedf570c9c86a216d6cd3ee"
     }
   },
   {
@@ -2152,7 +2158,8 @@
     "boundary": "NativephysicalSMC exactcodepatch/orderedwrites proven; raw/finalVM PatchSlot heap abstraction separately observed, no dynamicphysicalSMC equivalence claim",
     "evidence": {
       "reports/original-assert-smc-hello-corpus/manifest.json": "938fa58bbabadcbed80b3f9fa1d078575aca57029b9b7779025ec642441f7dfc",
-      "minzc/pkg/pipeline/original_smc_hello_corpus_test.go": "2d904a8002efd5e8b30a1399c1643f5c73079be93922616a4f112e92c99fe166"
+      "minzc/pkg/pipeline/original_smc_hello_corpus_test.go": "947244ca1028d86470dadc931bf51c4a8fb45c22f70b38add02ce8c07411ed70",
+      "reports/advanced-demos/tetris/catalog-review.md": "b7f498555e43165051324f79519289d77fa5ff466bedf570c9c86a216d6cd3ee"
     }
   },
   {
@@ -2164,7 +2171,8 @@
     "boundary": "Explicit OUT23 consolemodel, notCPM runtime; raw/finalstdout and nativebytes matched",
     "evidence": {
       "reports/original-assert-smc-hello-corpus/manifest.json": "938fa58bbabadcbed80b3f9fa1d078575aca57029b9b7779025ec642441f7dfc",
-      "minzc/pkg/pipeline/original_smc_hello_corpus_test.go": "2d904a8002efd5e8b30a1399c1643f5c73079be93922616a4f112e92c99fe166"
+      "minzc/pkg/pipeline/original_smc_hello_corpus_test.go": "947244ca1028d86470dadc931bf51c4a8fb45c22f70b38add02ce8c07411ed70",
+      "reports/advanced-demos/tetris/catalog-review.md": "b7f498555e43165051324f79519289d77fa5ff466bedf570c9c86a216d6cd3ee"
     }
   },
   {
@@ -2189,9 +2197,10 @@
     "independent_model": "Independent byte output and ZX bitmap/attributes/keyboard port model; exact source before/new identity preserved. Native-only ASM proof.",
     "boundary": "ZX source/library contracts corrected explicitly. One lowercase keyboard/font scenario, no full scrolling/keys API or hardware claim; VM ASM no-op excluded.",
     "evidence": {
-      "minzc/pkg/pipeline/original_console_corpus_test.go": "7f9b02f77fe62d7d4ef5dff6f2b3e0daf1f7e6b3e4d1fe4eb56443d3fbcd8637",
+      "minzc/pkg/pipeline/original_console_corpus_test.go": "aec69f3a70e426537b05ad0fb9de1ec73e4854bf018594a5ee58e3572ce08579",
       "reports/original-console-corrected/manifest.json": "9542f0d2b7a97614fc8f8c6bffa2651caecb599d5820a855a500712debafb1da",
-      "docs/grace-integration-246/console-root.txt": "ad54b29180b92cda69c469db349e310030483d2ce6de51e89526bff3d55d1d0a"
+      "docs/grace-integration-246/console-root.txt": "ad54b29180b92cda69c469db349e310030483d2ce6de51e89526bff3d55d1d0a",
+      "reports/advanced-demos/tetris/catalog-review.md": "b7f498555e43165051324f79519289d77fa5ff466bedf570c9c86a216d6cd3ee"
     }
   },
   {
