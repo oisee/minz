@@ -142,6 +142,8 @@ it will enter the next package build.
 one Nanz description bakes the whole sprite and its erase mask.
 `mzx --demo sprites` runs the scene; placement precedes HALT and publication
 writes directly to the screen. [Nanz source](reports/advanced-demos/typed-sprite-scene/source.nanz).
+[Typed TV wave](reports/advanced-demos/typed-sprite-effects/README.md) adds a render-only
+`ByteWave` object and shows actual 50 Hz captures; `mzx --demo sprite-wave`.
 
 ## Explore
 

@@ -31,3 +31,8 @@ reports/zmachine-spectrum128/release/plan.md. MIT notices are included here.
 Release 0.25.1 was published from main a284fafc with six native packages.
 The typed-sprite snapshot is a later candidate and does not replace those
 published archives. See the typed-sprite report for its own proof and limits.
+
+`mzx --demo sprite-wave` adds the checked typed ByteWave scene. Source,
+actual ULA GIF and measurements: reports/advanced-demos/typed-sprite-effects/.
+The image is an additional demo; previously published 0.25.1 packages retain
+their original embedded images.
