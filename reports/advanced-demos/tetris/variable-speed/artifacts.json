@@ -1,0 +1,480 @@
+{
+  "local_root": "/home/alice/dev/minz-artifacts/grace-reports/2026-10-15",
+  "files": [
+    {
+      "path": "tetris-variable-speed-main-menu/level-3/grace-size/instruction-costs.json",
+      "bytes": 482500,
+      "sha256": "fcd3033e3dc6fa2cc6b95be3e248fc060fb560f3fc70be042b35daae2f211b3a"
+    },
+    {
+      "path": "tetris-variable-speed-main-menu/level-3/grace-size/program.a80",
+      "bytes": 524066,
+      "sha256": "5cf4cd494e4784fac612dd73e6814f3f28ba70aa731ca135072a96ca040c97e2"
+    },
+    {
+      "path": "tetris-variable-speed-main-menu/level-3/grace-size/program.bin",
+      "bytes": 31832,
+      "sha256": "a3c6fedc8072c68514bdec4a1d1141921afaa1507665b73a71048809df169854"
+    },
+    {
+      "path": "tetris-variable-speed-main-menu/level-3/grace-size/receipt.txt",
+      "bytes": 137,
+      "sha256": "51a57835ae78d0a45a43a4286c2519670a9818a5174a0dd267acd07df073138c"
+    },
+    {
+      "path": "tetris-variable-speed-main-menu/level-3/grace-size/source.nanz",
+      "bytes": 46198,
+      "sha256": "6607775bd23e7d7f07f204992e3c4ce5986b3fa5afd9fbc24f89ac7aa168110e"
+    },
+    {
+      "path": "tetris-variable-speed-main-menu/level-3/grace-speed/instruction-costs.json",
+      "bytes": 482500,
+      "sha256": "fcd3033e3dc6fa2cc6b95be3e248fc060fb560f3fc70be042b35daae2f211b3a"
+    },
+    {
+      "path": "tetris-variable-speed-main-menu/level-3/grace-speed/program.a80",
+      "bytes": 524066,
+      "sha256": "5cf4cd494e4784fac612dd73e6814f3f28ba70aa731ca135072a96ca040c97e2"
+    },
+    {
+      "path": "tetris-variable-speed-main-menu/level-3/grace-speed/program.bin",
+      "bytes": 31832,
+      "sha256": "a3c6fedc8072c68514bdec4a1d1141921afaa1507665b73a71048809df169854"
+    },
+    {
+      "path": "tetris-variable-speed-main-menu/level-3/grace-speed/receipt.txt",
+      "bytes": 137,
+      "sha256": "51a57835ae78d0a45a43a4286c2519670a9818a5174a0dd267acd07df073138c"
+    },
+    {
+      "path": "tetris-variable-speed-main-menu/level-3/grace-speed/source.nanz",
+      "bytes": 46198,
+      "sha256": "6607775bd23e7d7f07f204992e3c4ce5986b3fa5afd9fbc24f89ac7aa168110e"
+    },
+    {
+      "path": "tetris-variable-speed-main-menu/level-3/ordinary/instruction-costs.json",
+      "bytes": 482502,
+      "sha256": "d6d446454e55f60ad4e557d441ce1ad942d6e9499cf5ed8da9379153faad4ca1"
+    },
+    {
+      "path": "tetris-variable-speed-main-menu/level-3/ordinary/program.a80",
+      "bytes": 531521,
+      "sha256": "7e28833f15a17340cb3e5338ee05a15659c73d5ca84e57b81aa531a58edbed41"
+    },
+    {
+      "path": "tetris-variable-speed-main-menu/level-3/ordinary/program.bin",
+      "bytes": 31820,
+      "sha256": "14a59d2044c91eac8ae70dc22b424b92f497b456e067a61a5211d1530e8a14d7"
+    },
+    {
+      "path": "tetris-variable-speed-main-menu/level-3/ordinary/receipt.txt",
+      "bytes": 137,
+      "sha256": "5a34af4bceab1ee2f54097b648a1ac34ce6f3afc9656eb084ee6ca807cf98eff"
+    },
+    {
+      "path": "tetris-variable-speed-main-menu/level-3/ordinary/source.nanz",
+      "bytes": 46198,
+      "sha256": "6607775bd23e7d7f07f204992e3c4ce5986b3fa5afd9fbc24f89ac7aa168110e"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-size/clear-1/instruction-costs.json",
+      "bytes": 174468,
+      "sha256": "ce57224eb0e212530a0cca03747132a58b7d85c4046e5c0e1ba07e5c97c3ecc8"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-size/clear-1/program.a80",
+      "bytes": 524066,
+      "sha256": "5cf4cd494e4784fac612dd73e6814f3f28ba70aa731ca135072a96ca040c97e2"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-size/clear-1/program.bin",
+      "bytes": 31832,
+      "sha256": "a3c6fedc8072c68514bdec4a1d1141921afaa1507665b73a71048809df169854"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-size/clear-1/receipt.txt",
+      "bytes": 136,
+      "sha256": "c0bd941467e0d31b7c40dd9476868665e8b6332f29c7199e35dafed9138d63e5"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-size/clear-1/source.nanz",
+      "bytes": 46198,
+      "sha256": "6607775bd23e7d7f07f204992e3c4ce5986b3fa5afd9fbc24f89ac7aa168110e"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-size/clear-2/instruction-costs.json",
+      "bytes": 178567,
+      "sha256": "3f4b50a917996c1e226052137b02bb9a203a2096082dff061f25fe65c19d4b70"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-size/clear-2/program.a80",
+      "bytes": 524066,
+      "sha256": "5cf4cd494e4784fac612dd73e6814f3f28ba70aa731ca135072a96ca040c97e2"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-size/clear-2/program.bin",
+      "bytes": 31832,
+      "sha256": "a3c6fedc8072c68514bdec4a1d1141921afaa1507665b73a71048809df169854"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-size/clear-2/receipt.txt",
+      "bytes": 136,
+      "sha256": "0ec244c80d81268bbd8cc34831c97fbcee4adca9170508dfc71f9f51b127c564"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-size/clear-2/source.nanz",
+      "bytes": 46198,
+      "sha256": "6607775bd23e7d7f07f204992e3c4ce5986b3fa5afd9fbc24f89ac7aa168110e"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-size/clear-4/instruction-costs.json",
+      "bytes": 187148,
+      "sha256": "08bb153286450604707523d2545490a13816e7e2c56e428122b41a2e7a96e99e"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-size/clear-4/program.a80",
+      "bytes": 524066,
+      "sha256": "5cf4cd494e4784fac612dd73e6814f3f28ba70aa731ca135072a96ca040c97e2"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-size/clear-4/program.bin",
+      "bytes": 31832,
+      "sha256": "a3c6fedc8072c68514bdec4a1d1141921afaa1507665b73a71048809df169854"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-size/clear-4/receipt.txt",
+      "bytes": 136,
+      "sha256": "1f3f4f092d905d89784bfc1d241ae8aa5792fb4d804c65722f17a78671d2dca1"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-size/clear-4/source.nanz",
+      "bytes": 46198,
+      "sha256": "6607775bd23e7d7f07f204992e3c4ce5986b3fa5afd9fbc24f89ac7aa168110e"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-speed/clear-1/instruction-costs.json",
+      "bytes": 174468,
+      "sha256": "ce57224eb0e212530a0cca03747132a58b7d85c4046e5c0e1ba07e5c97c3ecc8"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-speed/clear-1/program.a80",
+      "bytes": 524066,
+      "sha256": "5cf4cd494e4784fac612dd73e6814f3f28ba70aa731ca135072a96ca040c97e2"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-speed/clear-1/program.bin",
+      "bytes": 31832,
+      "sha256": "a3c6fedc8072c68514bdec4a1d1141921afaa1507665b73a71048809df169854"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-speed/clear-1/receipt.txt",
+      "bytes": 136,
+      "sha256": "c0bd941467e0d31b7c40dd9476868665e8b6332f29c7199e35dafed9138d63e5"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-speed/clear-1/source.nanz",
+      "bytes": 46198,
+      "sha256": "6607775bd23e7d7f07f204992e3c4ce5986b3fa5afd9fbc24f89ac7aa168110e"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-speed/clear-2/instruction-costs.json",
+      "bytes": 178567,
+      "sha256": "3f4b50a917996c1e226052137b02bb9a203a2096082dff061f25fe65c19d4b70"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-speed/clear-2/program.a80",
+      "bytes": 524066,
+      "sha256": "5cf4cd494e4784fac612dd73e6814f3f28ba70aa731ca135072a96ca040c97e2"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-speed/clear-2/program.bin",
+      "bytes": 31832,
+      "sha256": "a3c6fedc8072c68514bdec4a1d1141921afaa1507665b73a71048809df169854"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-speed/clear-2/receipt.txt",
+      "bytes": 136,
+      "sha256": "0ec244c80d81268bbd8cc34831c97fbcee4adca9170508dfc71f9f51b127c564"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-speed/clear-2/source.nanz",
+      "bytes": 46198,
+      "sha256": "6607775bd23e7d7f07f204992e3c4ce5986b3fa5afd9fbc24f89ac7aa168110e"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-speed/clear-4/instruction-costs.json",
+      "bytes": 187148,
+      "sha256": "08bb153286450604707523d2545490a13816e7e2c56e428122b41a2e7a96e99e"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-speed/clear-4/program.a80",
+      "bytes": 524066,
+      "sha256": "5cf4cd494e4784fac612dd73e6814f3f28ba70aa731ca135072a96ca040c97e2"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-speed/clear-4/program.bin",
+      "bytes": 31832,
+      "sha256": "a3c6fedc8072c68514bdec4a1d1141921afaa1507665b73a71048809df169854"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-speed/clear-4/receipt.txt",
+      "bytes": 136,
+      "sha256": "1f3f4f092d905d89784bfc1d241ae8aa5792fb4d804c65722f17a78671d2dca1"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/grace-speed/clear-4/source.nanz",
+      "bytes": 46198,
+      "sha256": "6607775bd23e7d7f07f204992e3c4ce5986b3fa5afd9fbc24f89ac7aa168110e"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/ordinary/clear-1/instruction-costs.json",
+      "bytes": 174473,
+      "sha256": "a50b2a058ad4eaab78ce707b30ce4e2356fc040885932509681da364614559f2"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/ordinary/clear-1/program.a80",
+      "bytes": 531521,
+      "sha256": "7e28833f15a17340cb3e5338ee05a15659c73d5ca84e57b81aa531a58edbed41"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/ordinary/clear-1/program.bin",
+      "bytes": 31820,
+      "sha256": "14a59d2044c91eac8ae70dc22b424b92f497b456e067a61a5211d1530e8a14d7"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/ordinary/clear-1/receipt.txt",
+      "bytes": 136,
+      "sha256": "ca7718345031a7563c4ac9d49f2bd7cad2f5adc1cc29c9e21c36075d5f693a3d"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/ordinary/clear-1/source.nanz",
+      "bytes": 46198,
+      "sha256": "6607775bd23e7d7f07f204992e3c4ce5986b3fa5afd9fbc24f89ac7aa168110e"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/ordinary/clear-2/instruction-costs.json",
+      "bytes": 178575,
+      "sha256": "ab4daa6f98fe97f6bbb735082399e2a9fd99729d5ab168cb107a960d3dbdb72d"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/ordinary/clear-2/program.a80",
+      "bytes": 531521,
+      "sha256": "7e28833f15a17340cb3e5338ee05a15659c73d5ca84e57b81aa531a58edbed41"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/ordinary/clear-2/program.bin",
+      "bytes": 31820,
+      "sha256": "14a59d2044c91eac8ae70dc22b424b92f497b456e067a61a5211d1530e8a14d7"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/ordinary/clear-2/receipt.txt",
+      "bytes": 136,
+      "sha256": "4d5e5715be383d0d2ab090697131de662674fcac1e03dd93cb42c4fb4cc21d61"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/ordinary/clear-2/source.nanz",
+      "bytes": 46198,
+      "sha256": "6607775bd23e7d7f07f204992e3c4ce5986b3fa5afd9fbc24f89ac7aa168110e"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/ordinary/clear-4/instruction-costs.json",
+      "bytes": 187156,
+      "sha256": "18dd7f9b05e248fe20c8e6c9d02b4a8e1789400a352884bfb0f748f9f7728e1b"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/ordinary/clear-4/program.a80",
+      "bytes": 531521,
+      "sha256": "7e28833f15a17340cb3e5338ee05a15659c73d5ca84e57b81aa531a58edbed41"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/ordinary/clear-4/program.bin",
+      "bytes": 31820,
+      "sha256": "14a59d2044c91eac8ae70dc22b424b92f497b456e067a61a5211d1530e8a14d7"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/ordinary/clear-4/receipt.txt",
+      "bytes": 136,
+      "sha256": "48894a49f3f4d18bf32331cf827d05d4e461fbc44044379109867967bb134d45"
+    },
+    {
+      "path": "tetris-variable-speed-clear/level-3/ordinary/clear-4/source.nanz",
+      "bytes": 46198,
+      "sha256": "6607775bd23e7d7f07f204992e3c4ce5986b3fa5afd9fbc24f89ac7aa168110e"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-1/grace-size/instruction-costs.json",
+      "bytes": 465432,
+      "sha256": "c21a14633d74b61d83d9af605365654aff4720ad9dc13140b7d2ce105f4f9b94"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-1/grace-size/program.a80",
+      "bytes": 524066,
+      "sha256": "5cf4cd494e4784fac612dd73e6814f3f28ba70aa731ca135072a96ca040c97e2"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-1/grace-size/program.bin",
+      "bytes": 31832,
+      "sha256": "a3c6fedc8072c68514bdec4a1d1141921afaa1507665b73a71048809df169854"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-1/grace-size/receipt.txt",
+      "bytes": 137,
+      "sha256": "4545ed7141735e3c11c1f9ebc5b4bd5e81f5ef9f8bcffc24438ab29399d8c082"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-1/grace-size/source.nanz",
+      "bytes": 46198,
+      "sha256": "6607775bd23e7d7f07f204992e3c4ce5986b3fa5afd9fbc24f89ac7aa168110e"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-1/grace-speed/instruction-costs.json",
+      "bytes": 465432,
+      "sha256": "c21a14633d74b61d83d9af605365654aff4720ad9dc13140b7d2ce105f4f9b94"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-1/grace-speed/program.a80",
+      "bytes": 524066,
+      "sha256": "5cf4cd494e4784fac612dd73e6814f3f28ba70aa731ca135072a96ca040c97e2"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-1/grace-speed/program.bin",
+      "bytes": 31832,
+      "sha256": "a3c6fedc8072c68514bdec4a1d1141921afaa1507665b73a71048809df169854"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-1/grace-speed/receipt.txt",
+      "bytes": 137,
+      "sha256": "4545ed7141735e3c11c1f9ebc5b4bd5e81f5ef9f8bcffc24438ab29399d8c082"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-1/grace-speed/source.nanz",
+      "bytes": 46198,
+      "sha256": "6607775bd23e7d7f07f204992e3c4ce5986b3fa5afd9fbc24f89ac7aa168110e"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-1/ordinary/instruction-costs.json",
+      "bytes": 465432,
+      "sha256": "06130217008f6f75ae58aae8c0f44b36040b3129c460e3171ada698ec4eace03"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-1/ordinary/program.a80",
+      "bytes": 531521,
+      "sha256": "7e28833f15a17340cb3e5338ee05a15659c73d5ca84e57b81aa531a58edbed41"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-1/ordinary/program.bin",
+      "bytes": 31820,
+      "sha256": "14a59d2044c91eac8ae70dc22b424b92f497b456e067a61a5211d1530e8a14d7"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-1/ordinary/receipt.txt",
+      "bytes": 137,
+      "sha256": "9191a6f6c351a7944e5a517386266c3680990bc6ad27e3642b92fa7b1ce5d003"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-1/ordinary/source.nanz",
+      "bytes": 46198,
+      "sha256": "6607775bd23e7d7f07f204992e3c4ce5986b3fa5afd9fbc24f89ac7aa168110e"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-2/grace-size/instruction-costs.json",
+      "bytes": 470378,
+      "sha256": "1052a47b733563f2cc2164c2c0443c39d8b53b7381a4552dab11410daa829876"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-2/grace-size/program.a80",
+      "bytes": 524066,
+      "sha256": "5cf4cd494e4784fac612dd73e6814f3f28ba70aa731ca135072a96ca040c97e2"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-2/grace-size/program.bin",
+      "bytes": 31832,
+      "sha256": "a3c6fedc8072c68514bdec4a1d1141921afaa1507665b73a71048809df169854"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-2/grace-size/receipt.txt",
+      "bytes": 137,
+      "sha256": "ccc7d8ed16a215b57f1b45acada731b413b49a7343cc1fb6241b4de7ee73b773"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-2/grace-size/source.nanz",
+      "bytes": 46198,
+      "sha256": "6607775bd23e7d7f07f204992e3c4ce5986b3fa5afd9fbc24f89ac7aa168110e"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-2/grace-speed/instruction-costs.json",
+      "bytes": 470378,
+      "sha256": "1052a47b733563f2cc2164c2c0443c39d8b53b7381a4552dab11410daa829876"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-2/grace-speed/program.a80",
+      "bytes": 524066,
+      "sha256": "5cf4cd494e4784fac612dd73e6814f3f28ba70aa731ca135072a96ca040c97e2"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-2/grace-speed/program.bin",
+      "bytes": 31832,
+      "sha256": "a3c6fedc8072c68514bdec4a1d1141921afaa1507665b73a71048809df169854"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-2/grace-speed/receipt.txt",
+      "bytes": 137,
+      "sha256": "ccc7d8ed16a215b57f1b45acada731b413b49a7343cc1fb6241b4de7ee73b773"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-2/grace-speed/source.nanz",
+      "bytes": 46198,
+      "sha256": "6607775bd23e7d7f07f204992e3c4ce5986b3fa5afd9fbc24f89ac7aa168110e"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-2/ordinary/instruction-costs.json",
+      "bytes": 470382,
+      "sha256": "f8c682f10a2707bef8e0c06801da4fe23160c498c7ed69603ac776c733c93aaf"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-2/ordinary/program.a80",
+      "bytes": 531521,
+      "sha256": "7e28833f15a17340cb3e5338ee05a15659c73d5ca84e57b81aa531a58edbed41"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-2/ordinary/program.bin",
+      "bytes": 31820,
+      "sha256": "14a59d2044c91eac8ae70dc22b424b92f497b456e067a61a5211d1530e8a14d7"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-2/ordinary/receipt.txt",
+      "bytes": 137,
+      "sha256": "2727bfe270b2714596025c1c1b86c9c47fe15005682fb5ac2ec2de13345e2b16"
+    },
+    {
+      "path": "tetris-variable-speed-fixed/level-2/ordinary/source.nanz",
+      "bytes": 46198,
+      "sha256": "6607775bd23e7d7f07f204992e3c4ce5986b3fa5afd9fbc24f89ac7aa168110e"
+    },
+    {
+      "path": "tetris-variable-speed-playable/build.log",
+      "bytes": 296,
+      "sha256": "da2c65d401726f0a4dc19bd0c64e396b993b39013f0e24a05faef968969822ac"
+    },
+    {
+      "path": "tetris-variable-speed-playable/menu.png",
+      "bytes": 1322,
+      "sha256": "129d4cf05374e13a90f2a6b0cf951a589700ba44e0c9de9fd99d91f4b335303a"
+    },
+    {
+      "path": "tetris-variable-speed-playable/tetris-variable-speed-50hz.gif",
+      "bytes": 8943,
+      "sha256": "dd38c0a484450dd27517a7edb8787352ac1016fec110096b07b30558381ce20e"
+    },
+    {
+      "path": "tetris-variable-speed-playable/tetris-variable-speed-session-50hz.mp4",
+      "bytes": 28016,
+      "sha256": "d1e5e5d3c35972e61293c34b4d6709f8aa14354b85f24d018026c4bfc628b124"
+    },
+    {
+      "path": "tetris-variable-speed-playable/tetris.sna",
+      "bytes": 49179,
+      "sha256": "ef3fa6c217a72bbd1f21f664cafd6c42ed75a56524e9be97b9f9c097cf08e28a"
+    }
+  ]
+}

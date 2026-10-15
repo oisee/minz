@@ -650,7 +650,11 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 				}
 			}
 			videoDir := ""
-			if root := os.Getenv("MINZ_TETRIS_MAIN_VIDEO"); root != "" && selectedLevel == 2 && mode == "ordinary" && clearRows == 0 {
+			videoLevel := 2
+			if os.Getenv("MINZ_TETRIS_VIDEO_LEVEL") == "3" {
+				videoLevel = 3
+			}
+			if root := os.Getenv("MINZ_TETRIS_MAIN_VIDEO"); root != "" && selectedLevel == videoLevel && mode == "ordinary" && clearRows == 0 {
 				videoDir = filepath.Join(root, "frames")
 				if e := os.MkdirAll(videoDir, 0755); e != nil {
 					t.Fatal(e)
@@ -744,7 +748,7 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 					}
 					fetchedFrames++
 					if videoDir != "" {
-						fullVideoTimeline = append(fullVideoTimeline, map[string]int{"hardware_frame": frames, "step": steps, "grid_y": model.v["cur_y"], "pixel_phase": model.v["pixel_phase"]})
+						fullVideoTimeline = append(fullVideoTimeline, map[string]int{"hardware_frame": frames, "step": steps, "grid_y": model.v["cur_y"], "pixel_phase": model.v["pixel_phase"], "fall_current_q6": model.fall.current, "fall_target_q6": model.fall.target})
 						dumpVideo(filepath.Join(filepath.Dir(videoDir), "full-frames"), len(fullVideoTimeline))
 					}
 					if videoDir != "" && steps >= 2 && steps < quietSteps {
@@ -752,7 +756,7 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 							t.Fatal("capture skipped an emulated frame")
 						}
 						lastVideoFrame = frames
-						videoTimeline = append(videoTimeline, map[string]int{"hardware_frame": frames, "step": steps, "grid_y": model.v["cur_y"], "pixel_phase": model.v["pixel_phase"]})
+						videoTimeline = append(videoTimeline, map[string]int{"hardware_frame": frames, "step": steps, "grid_y": model.v["cur_y"], "pixel_phase": model.v["pixel_phase"], "fall_current_q6": model.fall.current, "fall_target_q6": model.fall.target})
 						dumpVideo(videoDir, len(videoTimeline))
 					}
 				}
