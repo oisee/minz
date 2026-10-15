@@ -1,0 +1,58 @@
+{
+  "scope": "Prototype pixel X phases; full matrices on ee2802ab, follow-up smoke and artifacts on main 91a7a315",
+  "full_draw": {
+    "native": 1764,
+    "vm": 3528,
+    "pass_seconds": 205.689
+  },
+  "cached_erase": {
+    "native": 1764,
+    "vm": 3528,
+    "pass_seconds": 204.577
+  },
+  "signed_bounds": {
+    "native": 729,
+    "vm": 1458,
+    "pass_seconds": 46.084
+  },
+  "main143_followup_pass_seconds": 8.884,
+  "ula_pixel_phase_proof": false,
+  "files": {
+    "1/program.bin": {
+      "bytes": 10529,
+      "sha256": "6f978516f36ec6a156cdb175a366eb7ea7e6a9808f110bf0a232cfc822490e79"
+    },
+    "1/program.a80": {
+      "bytes": 167891,
+      "sha256": "adc7f35f3fc53b704f6a417114d1a4b25c12db9f6a4cc108adac44cd66aaccf1"
+    },
+    "1/source.nanz": {
+      "bytes": 417,
+      "sha256": "f1d8c544b4ebdc0b9cb70db05325f87521b89b82da98684762b469ae00d1dcf8"
+    },
+    "2/program.bin": {
+      "bytes": 10529,
+      "sha256": "6f978516f36ec6a156cdb175a366eb7ea7e6a9808f110bf0a232cfc822490e79"
+    },
+    "2/program.a80": {
+      "bytes": 167891,
+      "sha256": "adc7f35f3fc53b704f6a417114d1a4b25c12db9f6a4cc108adac44cd66aaccf1"
+    },
+    "2/source.nanz": {
+      "bytes": 417,
+      "sha256": "f1d8c544b4ebdc0b9cb70db05325f87521b89b82da98684762b469ae00d1dcf8"
+    },
+    "0/program.bin": {
+      "bytes": 10530,
+      "sha256": "744ea843c054a2ae1ff234716a34c1d5f4a40187926cf8b16fa8f18d124650f9"
+    },
+    "0/program.a80": {
+      "bytes": 169633,
+      "sha256": "121163397d3f5135581f22f37ac6967edfcb0b055c79b73e1b82e5a30bc7f4db"
+    },
+    "0/source.nanz": {
+      "bytes": 417,
+      "sha256": "f1d8c544b4ebdc0b9cb70db05325f87521b89b82da98684762b469ae00d1dcf8"
+    }
+  }
+}

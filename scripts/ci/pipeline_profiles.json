@@ -402,6 +402,8 @@
     "TestZXHalfCellRotozoomerLibraryFullMachine",
     "TestZXPairedSpriteAdmission",
     "TestZXPairedSpriteNative",
+    "TestZXPixelSpriteAdmission",
+    "TestZXPixelSpriteSmokeNativeVM",
     "TestZXSpriteByteWaveNative",
     "TestZXSpriteCallerEffectTypeNativeVM",
     "TestZXSpriteEffectCompositionMachine",
@@ -777,6 +779,9 @@
     "TestZXBankedMemoryAllPagesNative",
     "TestZXPixelBandsNative",
     "TestZXPixelFillCellNativeVM",
+    "TestZXPixelShiftedSpriteEraseNativeVM",
+    "TestZXPixelShiftedSpriteNativeVM",
+    "TestZXPixelSpriteShiftBoundsNativeVM",
     "TestZXTileBoardRangeNative"
   ]
 }
