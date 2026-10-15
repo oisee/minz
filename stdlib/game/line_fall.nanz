@@ -1,0 +1,91 @@
+// Cleared-line progression, independent of the piece generator.
+// Q6 rates: 32 = 1px/2 frames, 64 = 1px/frame, 96 = 3px/2 frames.
+// A caller integrates every elapsed frame and checks every physical pixel.
+struct LineFall {
+    lines:u8, stage:u8, phase:u8
+    seed:u8, shake_seed:u8, shake_on:u8
+    current:u8, target:u8
+}
+
+global LINE_FALL_RATES:[u8;7]=[32,32,32,32,64,96,128]
+global LINE_FALL_WAVE:[i8;8]=[0,1,1,0,0,-1,-1,0]
+
+// Saturation keeps the final difficulty after long play and counter wrap.
+fun LineFall.add_lines(self:^LineFall,count:u8) {
+    let total:u16=u16(self.lines)+u16(count)
+    if total>=64 {self.lines=64}
+    else {self.lines=u8(total)}
+}
+
+fun LineFall.next_speed(self:^LineFall)->u8 {
+    var seed:u8=self.seed
+    if seed==0 {seed=167}
+    let low:u8=seed&1
+    seed=seed>>1
+    if low!=0 {seed=seed xor 184}
+    self.seed=seed
+    return 96+(seed&63)
+}
+
+fun LineFall.tick(self:^LineFall)->u8 {
+    let phase:u8=self.phase
+    let level:u8=self.lines>>3
+    if (phase&63)==0 {
+        var seed:u8=self.shake_seed
+        if seed==0 {seed=29}
+        let low:u8=seed&1
+        seed=seed>>1
+        if low!=0 {seed=seed xor 184}
+        self.shake_seed=seed
+        if (seed&3)==0 {self.shake_on=1}
+        else {self.shake_on=0}
+    }
+    var rate:u8=0
+    var target:u8=0
+    if level<7 {
+        rate=LINE_FALL_RATES[level]
+        target=rate
+    } else {
+        rate=self.current
+        target=self.target
+        // Pick a new target on entering random mode and every 128 frames.
+        if (self.stage<7)|((phase&127)==0) {
+            if self.stage<7 {rate=128}
+            target=self.next_speed()
+        }
+        if level==8 {rate=target}
+        else {
+            if (phase&3)==0 {
+                if rate<target {rate=rate+1}
+                else {if rate>target {rate=rate-1}}
+            }
+        }
+    }
+    self.current=rate
+    self.target=target
+    self.stage=level
+    self.phase=phase+1
+    return rate
+}
+
+// Visual bias only: no displacement of logical cells or collision queries.
+// At 16 lines, an eight-frame burst is enabled in one quarter of the
+// independently seeded 64-frame groups. From 24 lines, the wave is continuous.
+fun LineFall.bias(self:^LineFall)->i8 {
+    if self.lines<16 {return 0}
+    if self.lines<24 {
+        if (self.shake_on==0)|((self.phase&63)>=8) {return 0}
+    }
+    return LINE_FALL_WAVE[self.phase&7]
+}
+
+// 255 * 159 = 40545; every supported elapsed-frame area fits u16.
+fun LineFall.advance(self:^LineFall,frames:u8)->u16 {
+    var area:u16=0
+    var remaining:u8=frames
+    while remaining!=0 {
+        area=area+u16(self.tick())
+        remaining=remaining-1
+    }
+    return area
+}

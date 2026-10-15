@@ -72,6 +72,9 @@ func (r *referenceFallRate) advance(frames int) int {
 }
 
 type pixelGameModel struct {
+	automatic          bool
+	progression        lineFallOracle
+	gaugeHeight        int
 	variableSpeed      bool
 	fall               referenceFallRate
 	fallArea           int
@@ -163,6 +166,15 @@ func (m *pixelGameModel) lock() {
 	}
 	v["board_dirty"] = 1
 	var rows [][10]byte
+	firstContent := 20
+	if m.automatic {
+		for i, b := range m.board {
+			if b != 0 {
+				firstContent = i / 10
+				break
+			}
+		}
+	}
 	cleared := 0
 	for y := 0; y < 20; y++ {
 		var row [10]byte
@@ -174,7 +186,13 @@ func (m *pixelGameModel) lock() {
 			}
 		}
 		if full {
-			m.rowFirst = 0
+			if m.automatic {
+				if firstContent < m.rowFirst {
+					m.rowFirst = firstContent
+				}
+			} else {
+				m.rowFirst = 0
+			}
 			if y+1 > m.rowLimit {
 				m.rowLimit = y + 1
 			}
@@ -198,6 +216,16 @@ func (m *pixelGameModel) lock() {
 	v["score"] = (v["score"] + bonus) & 65535
 	if cleared > 0 {
 		v["lines_cleared"] = (v["lines_cleared"] + cleared) & 65535
+		if m.automatic {
+			m.progression.lines += cleared
+			if m.progression.lines > 64 {
+				m.progression.lines = 64
+			}
+			m.gaugeHeight += cleared
+			if m.gaugeHeight > 160 {
+				m.gaugeHeight = 160
+			}
+		}
 		if !m.fixedDifficulty && v["drop_speed"] > 5 && v["lines_cleared"]&7 == 0 {
 			v["drop_speed"] -= 2
 		}
@@ -214,6 +242,12 @@ func (m *pixelGameModel) step(keys, ticks int) {
 	area := ticks * 8
 	if m.variableSpeed {
 		area = m.fall.advance(ticks)
+	}
+	if m.automatic {
+		area = 0
+		for i := 0; i < ticks; i++ {
+			area += m.progression.tick()
+		}
 	}
 	m.fallArea = area
 	pressed := keys & (keys ^ v["prev_keys"])
@@ -295,20 +329,25 @@ func (m *pixelGameModel) step(keys, ticks int) {
 }
 
 func TestTetrisPixelPhysicsNativeVM(t *testing.T) {
-	runTetrisPixelPhysicsNativeVM(t, "../../../examples/zx/tetris_playable.nanz", false)
+	runTetrisPixelPhysicsNativeVM(t, "../../../reports/advanced-demos/tetris/line-progression/legacy-menu.nanz", false)
 }
 
 func TestTetrisVariableSpeedPhysicsNativeVM(t *testing.T) {
-	runTetrisPixelPhysicsNativeVM(t, "../../../examples/zx/tetris_playable.nanz", true)
+	runTetrisPixelPhysicsNativeVM(t, "../../../reports/advanced-demos/tetris/line-progression/legacy-menu.nanz", true)
 }
 
-func runTetrisPixelPhysicsNativeVM(t *testing.T, path string, variable bool) {
+func TestTetrisLineProgressionPhysicsNativeVM(t *testing.T) {
+	runTetrisPixelPhysicsNativeVM(t, "../../../examples/zx/tetris_playable.nanz", false, true)
+}
+
+func runTetrisPixelPhysicsNativeVM(t *testing.T, path string, variable bool, auto ...bool) {
+	automatic := len(auto) > 0 && auto[0]
 	t.Helper()
 	src, e := os.ReadFile(path)
 	if e != nil {
 		t.Fatal(e)
 	}
-	hasRate := strings.Contains(string(src), "import game.fall_speed")
+	hasRate := strings.Contains(string(src), "import game.fall_speed") || strings.Contains(string(src), "import game.line_fall")
 	source := string(src) + "\nglobal physics_keys:u8=0\nglobal physics_ticks:u8=0\nfun physics_probe(){game_step(physics_keys,physics_ticks)}\n"
 	parse := func() *hir.Module {
 		h, e := nanz.ParseWithOpts(source, "pixel-physics.nanz", nanz.ParseOpts{StdlibDir: "../../../stdlib"})
@@ -441,6 +480,29 @@ func runTetrisPixelPhysicsNativeVM(t *testing.T, path string, variable bool) {
 			m.fall = referenceFallRate{seed: []int{0, 1, 167, 255}[i%4], phase: []int{0, 127, 128, 255}[(i/4)%4], current: []int{32, 64, 95}[(i/16)%3], target: []int{95, 45, 32}[(i/48)%3]}
 		}
 	}
+	if automatic {
+		thresholds := []int{0, 7, 8, 15, 16, 23, 24, 31, 32, 39, 40, 47, 48, 55, 56, 63, 64, 159}
+		for i := range trials {
+			m := &trials[i].initial
+			m.automatic = true
+			m.fixedDifficulty = true
+			m.v["drop_speed"] = 64
+			count := thresholds[i%len(thresholds)]
+			if i%113 == 0 {
+				count = 65535
+			}
+			m.v["lines_cleared"] = count
+			m.gaugeHeight = count
+			if m.gaugeHeight > 160 {
+				m.gaugeHeight = 160
+			}
+			m.progression = newLineFallOracle(count, []int{0, 167, 255}[(i/len(thresholds))%3])
+			m.progression.frame = []int{0, 127, 128, 255}[(i/54)%4]
+			m.progression.stage = m.progression.lines / 8
+			m.progression.rate = []int{96, 128, 159}[(i/216)%3]
+			m.progression.target = []int{159, 110, 96}[(i/648)%3]
+		}
+	}
 	raw := hir.LowerModule(parse())
 	for _, mode := range []string{"ordinary", "grace-speed", "grace-size"} {
 		t.Run(mode, func(t *testing.T) {
@@ -535,6 +597,10 @@ func runTetrisPixelPhysicsNativeVM(t *testing.T, path string, variable bool) {
 					mem[a.Symbols["fall_area"]] = 0
 					mem[a.Symbols["fall_area"]+1] = 0
 				}
+				if automatic {
+					copy(mem[a.Symbols["line_fall"]:], tc.initial.progression.stateBytes())
+					copy(mem[a.Symbols["line_gauge"]:], []byte{byte(tc.initial.gaugeHeight), byte(tc.initial.gaugeHeight), 0})
+				}
 				put("board_first", tc.initial.rowFirst)
 				put("board_limit", tc.initial.rowLimit)
 				put("physics_keys", tc.keys)
@@ -556,6 +622,10 @@ func runTetrisPixelPhysicsNativeVM(t *testing.T, path string, variable bool) {
 					r := want.fall
 					copy(expectedRAM[a.Symbols["fall_rate"]:], []byte{byte(r.seed), byte(r.phase), byte(r.current), byte(r.target)})
 				}
+				if automatic {
+					copy(expectedRAM[a.Symbols["line_fall"]:], want.progression.stateBytes())
+					copy(expectedRAM[a.Symbols["line_gauge"]:], []byte{byte(want.gaugeHeight), byte(tc.initial.gaugeHeight), 0})
+				}
 				if hasRate {
 					expectedRAM[a.Symbols["fall_area"]] = byte(want.fallArea)
 					expectedRAM[a.Symbols["fall_area"]+1] = byte(want.fallArea >> 8)
@@ -571,6 +641,15 @@ func runTetrisPixelPhysicsNativeVM(t *testing.T, path string, variable bool) {
 					t.Fatalf("%s native PC/SP %04x/%04x", tc.name, z.GetPC(), z.GetSP())
 				}
 				check := func(label string, read func(string, int) []byte) {
+					if automatic {
+						if got := read("line_fall", 8); !bytes.Equal(got, want.progression.stateBytes()) {
+							t.Fatalf("%s %s progression %v want%v", tc.name, label, got, want.progression.stateBytes())
+						}
+						gauge := []byte{byte(want.gaugeHeight), byte(tc.initial.gaugeHeight), 0}
+						if got := read("line_gauge", 3); !bytes.Equal(got, gauge) {
+							t.Fatalf("%s %s gauge %v want%v", tc.name, label, got, gauge)
+						}
+					}
 					if variable {
 						r := want.fall
 						expected := []byte{byte(r.seed), byte(r.phase), byte(r.current), byte(r.target)}
@@ -634,6 +713,10 @@ func runTetrisPixelPhysicsNativeVM(t *testing.T, path string, variable bool) {
 						r := tc.initial.fall
 						vm.WriteHeapSlice(vm.GlobalAddr("fall_rate"), []byte{byte(r.seed), byte(r.phase), byte(r.current), byte(r.target)})
 						vm.WriteHeapSlice(vm.GlobalAddr("fall_area"), []byte{0, 0})
+					}
+					if automatic {
+						vm.WriteHeapSlice(vm.GlobalAddr("line_fall"), tc.initial.progression.stateBytes())
+						vm.WriteHeapSlice(vm.GlobalAddr("line_gauge"), []byte{byte(tc.initial.gaugeHeight), byte(tc.initial.gaugeHeight), 0})
 					}
 					if hasRate {
 						vm.WriteHeapSlice(vm.GlobalAddr("fall_area"), []byte{0, 0})

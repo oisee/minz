@@ -95,17 +95,37 @@ func TestTetrisShadowMainMachine(t *testing.T) {
 func TestTetrisDirectMainMachine(t *testing.T) {
 	for _, level := range []int{1, 2} {
 		t.Run(fmt.Sprintf("level-%d", level), func(t *testing.T) {
-			runTetrisMainMachineConfigured(t, "../../../examples/zx/tetris_playable.nanz", false, level, true)
+			runTetrisMainMachineConfigured(t, "../../../reports/advanced-demos/tetris/line-progression/legacy-menu.nanz", false, level, true)
 		})
 	}
 }
 
 // A seeded checkpoint enters the unchanged main before its first publication.
 // Each scene has coloured rows and a vertical-I gap for an exact line count.
+func TestTetrisLineProgressionMainMachine(t *testing.T) {
+	runTetrisMainMachineConfigured(t, "../../../examples/zx/tetris_playable.nanz", false, 4, true)
+}
+
+func TestTetrisLineProgressionSteadyMachine(t *testing.T) {
+	for _, lines := range []int{32, 40, 48, 56, 64} {
+		t.Run(fmt.Sprintf("lines-%d", lines), func(t *testing.T) {
+			runTetrisMainMachineConfigured(t, "../../../examples/zx/tetris_playable.nanz", false, 4, true, 0, lines)
+		})
+	}
+}
+
+func TestTetrisLineProgressionThresholdMachine(t *testing.T) {
+	for _, lines := range []int{7, 15, 23, 31, 39, 47, 55, 63, 159} {
+		t.Run(fmt.Sprintf("lines-%d", lines), func(t *testing.T) {
+			runTetrisMainMachineConfigured(t, "../../../examples/zx/tetris_playable.nanz", false, 4, true, 1, lines)
+		})
+	}
+}
+
 func TestTetrisDirectLineClearMachine(t *testing.T) {
 	for _, rows := range []int{1, 2, 4} {
 		t.Run(fmt.Sprintf("clear-%d", rows), func(t *testing.T) {
-			runTetrisMainMachineConfigured(t, "../../../examples/zx/tetris_playable.nanz", false, 2, true, rows)
+			runTetrisMainMachineConfigured(t, "../../../reports/advanced-demos/tetris/line-progression/legacy-menu.nanz", false, 2, true, rows)
 		})
 	}
 }
@@ -117,6 +137,14 @@ func runTetrisMainMachine(t *testing.T, sourcePath string, shadow bool, selected
 func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool, selectedLevel int, wobble bool, seededRows ...int) {
 	t.Helper()
 	clearRows := 0
+	initialLines := 0
+	if selectedLevel == 4 && len(seededRows) > 1 {
+		initialLines = seededRows[1]
+	}
+	exportRoot := os.Getenv("MINZ_TETRIS_MAIN_EXPORT")
+	if exportRoot != "" && selectedLevel == 4 {
+		exportRoot = filepath.Join(exportRoot, fmt.Sprintf("lines-%d", initialLines))
+	}
 	if len(seededRows) != 0 {
 		clearRows = seededRows[0]
 	}
@@ -193,6 +221,9 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 				}
 				wave := [8]int{0, 1, 1, 0, 0, -1, -1, 0}
 				bias := wave[model.v["frame_count"]&7]
+				if model.automatic {
+					bias = model.progression.bias()
+				}
 				if bias < 0 {
 					return 0xfc
 				}
@@ -211,6 +242,16 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 					model.fall = referenceFallRate{seed: 167, current: 64, target: 64}
 				}
 			}
+			if selectedLevel == 4 {
+				model.automatic = true
+				model.v["drop_speed"] = 64
+				model.v["lines_cleared"] = initialLines
+				model.progression = newLineFallOracle(initialLines, 167)
+				model.gaugeHeight = initialLines
+				if model.gaugeHeight > 160 {
+					model.gaugeHeight = 160
+				}
+			}
 			model.spawn()
 			model.spawn()
 			model.v["board_dirty"] = 0
@@ -222,6 +263,16 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 				return out
 			}
 			check := func(where string) {
+				if model.automatic {
+					r := model.progression
+					want := []byte{byte(r.lines), byte(r.stage), byte(r.frame), byte(r.seed), byte(r.shakeSeed), byte(r.shakeOn), byte(r.rate), byte(r.target)}
+					if got := read("line_fall", 8); !bytes.Equal(got, want) {
+						t.Fatalf("%s progression=%v want%v", where, got, want)
+					}
+					if got := int(read("line_gauge", 1)[0]); got != model.gaugeHeight {
+						t.Fatalf("%s gauge height=%d want%d", where, got, model.gaugeHeight)
+					}
+				}
 				if selectedLevel == 3 {
 					got := read("fall_rate", 4)
 					want := []byte{byte(model.fall.seed), byte(model.fall.phase), byte(model.fall.current), byte(model.fall.target)}
@@ -367,6 +418,14 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 				screen := make([]byte, 6912)
 				if !shadow {
 					screen = referenceTetrisInterface(rom, strings.Contains(string(src), "fun choose_difficulty"), strings.Contains(string(src), `c"3: RAND"`))
+					if model.automatic {
+						for row := 2; row < 22; row++ {
+							screen[6144+row*32+9] = gaugeAttribute(row)
+						}
+						for i := 0; i < model.gaugeHeight; i++ {
+							screen[gaugeScreenAddress(175-i)-0x4000] = 255
+						}
+					}
 					for _, preview := range []struct{ kind, x int }{{model.v["next_type"], 23}, {model.v["hold_type"], 5}} {
 						if preview.kind < 7 {
 							for _, cell := range pixelGameCells(preview.kind, 0) {
@@ -417,6 +476,9 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 			quietSteps := 0
 			if selectedLevel != 0 && clearRows == 0 {
 				quietSteps = 80
+				if model.automatic && initialLines >= 40 {
+					quietSteps = 50
+				}
 				commands = append(make([]int, quietSteps), commands...)
 			}
 			if clearRows != 0 {
@@ -424,6 +486,7 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 				commands = append([]int{0, 0, 0, 0, 16, 0}, commands...)
 			}
 			fixtureApplied := false
+			progressionApplied := false
 			var stepReturn, stepSP, renderReturn, renderSP uint16
 			stepActive, renderActive, clockReady := false, false, false
 			previousClock := byte(0)
@@ -431,7 +494,7 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 			c := &smoothGameObserver{tetrisSceneObserver: base}
 			var stepCosts map[string]int64
 			var profileSamples []map[string]any
-			if os.Getenv("MINZ_TETRIS_MAIN_EXPORT") != "" {
+			if exportRoot != "" {
 				c.profile = &directProfileObserver{tetrisSceneObserver: base, costs: map[string]int64{}}
 				for _, line := range strings.Split(asm, "\n") {
 					if !strings.HasPrefix(line, "; fun ") {
@@ -461,6 +524,21 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 			lockTicks := map[int]int{}
 			schedule := []map[string]int{}
 			c.before = func() {
+				if model.automatic && !progressionApplied && c.PC() == sym("render_smooth") {
+					m.Memory.Write(sym("lines_cleared"), byte(initialLines), false)
+					m.Memory.Write(sym("lines_cleared")+1, byte(initialLines>>8), false)
+					r := model.progression
+					for i, b := range []byte{byte(r.lines), 0, 0, 167, 29, 0, 32, 32} {
+						m.Memory.Write(sym("line_fall")+uint16(i), b, false)
+					}
+					for i, b := range []byte{byte(model.gaugeHeight), byte(model.gaugeHeight), 0} {
+						m.Memory.Write(sym("line_gauge")+uint16(i), b, false)
+					}
+					for i := 0; i < model.gaugeHeight; i++ {
+						m.Memory.Write(uint16(gaugeScreenAddress(175-i)), 255, false)
+					}
+					progressionApplied = true
+				}
 				if !shadow {
 					if c.PC() == sym("pixel_publish_direct") {
 						schedule = append(schedule, map[string]int{"event": 1, "step": steps, "T": int(m.AbsoluteTStates()), "refresh": int(read("direct_refresh", 1)[0]), "first": int(read("direct_board_first", 1)[0]), "limit": int(read("direct_board_limit", 1)[0])})
@@ -555,7 +633,7 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 					}
 					publishedRows = append(publishedRows, row)
 				}
-				if selectedLevel != 0 && c.PC() == sym("choose_difficulty") {
+				if selectedLevel != 0 && selectedLevel < 4 && c.PC() == sym("choose_difficulty") {
 					m.Keyboard.Reset()
 					m.Keyboard.KeyPress(3, selectedLevel-1)
 				}
@@ -606,10 +684,10 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 						stepCosts = nil
 					}
 					if !clockReady {
-						if selectedLevel != 0 && int(read("difficulty_mode", 1)[0]) != selectedLevel {
+						if selectedLevel != 0 && selectedLevel < 4 && int(read("difficulty_mode", 1)[0]) != selectedLevel {
 							t.Fatal("keyboard menu selected the wrong difficulty")
 						}
-						if selectedLevel != 0 {
+						if selectedLevel != 0 && selectedLevel < 4 {
 							for row, text := range []string{"1: 1 PX / 2 FRAMES", "2: 1 PX / FRAME"} {
 								for col, ch := range text {
 									for scan := 0; scan < 8; scan++ {
@@ -692,6 +770,19 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 					ticks := int(byte(now - previousClock))
 					tickHistogram[ticks]++
 					if steps >= 2 && steps < quietSteps && ticks != 1 {
+						if exportRoot != "" {
+							dir := filepath.Join(exportRoot, mode, "clock-failure")
+							if err := os.MkdirAll(dir, 0755); err != nil {
+								t.Fatal(err)
+							}
+							data, err := json.MarshalIndent(map[string]any{"step": steps, "elapsed": ticks, "state": model.v, "progression_bytes": model.progression.stateBytes(), "per_step": profileSamples, "total_costs_T": c.profile.costs}, "", "  ")
+							if err != nil {
+								t.Fatal(err)
+							}
+							if err := os.WriteFile(filepath.Join(dir, "instruction-costs.json"), data, 0644); err != nil {
+								t.Fatal(err)
+							}
+						}
 						t.Fatalf("steady level%d step%d missed its frame: elapsed=%d", selectedLevel, steps, ticks)
 					}
 					previousClock = now
@@ -722,8 +813,11 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 			}
 			videoDir := ""
 			videoLevel := 2
-			if os.Getenv("MINZ_TETRIS_VIDEO_LEVEL") == "3" {
+			switch os.Getenv("MINZ_TETRIS_VIDEO_LEVEL") {
+			case "3":
 				videoLevel = 3
+			case "4":
+				videoLevel = 4
 			}
 			if root := os.Getenv("MINZ_TETRIS_MAIN_VIDEO"); root != "" && selectedLevel == videoLevel && mode == "ordinary" && clearRows == 0 {
 				videoDir = filepath.Join(root, "frames")
@@ -782,7 +876,7 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 						}
 					}
 					if !matched {
-						if root := os.Getenv("MINZ_TETRIS_MAIN_EXPORT"); root != "" {
+						if root := exportRoot; root != "" {
 							dir := filepath.Join(root, mode, fmt.Sprintf("clear-%d", clearRows), "failure")
 							if err := os.MkdirAll(dir, 0755); err != nil {
 								t.Fatal(err)
@@ -821,8 +915,12 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 						t.Fatalf("main mixed or incorrect %dx%d screen in fetched frame%d step%d", viewWidth, viewHeight, frames, steps)
 					}
 					fetchedFrames++
+					videoRate, videoTarget := model.fall.current, model.fall.target
+					if model.automatic {
+						videoRate, videoTarget = model.progression.rate, model.progression.target
+					}
 					if videoDir != "" {
-						fullVideoTimeline = append(fullVideoTimeline, map[string]int{"hardware_frame": frames, "step": steps, "grid_y": model.v["cur_y"], "pixel_phase": model.v["pixel_phase"], "fall_current_q6": model.fall.current, "fall_target_q6": model.fall.target})
+						fullVideoTimeline = append(fullVideoTimeline, map[string]int{"hardware_frame": frames, "step": steps, "grid_y": model.v["cur_y"], "pixel_phase": model.v["pixel_phase"], "fall_current_q6": videoRate, "fall_target_q6": videoTarget})
 						dumpVideo(filepath.Join(filepath.Dir(videoDir), "full-frames"), len(fullVideoTimeline))
 					}
 					if videoDir != "" && steps >= 2 && steps < quietSteps {
@@ -830,7 +928,7 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 							t.Fatal("capture skipped an emulated frame")
 						}
 						lastVideoFrame = frames
-						videoTimeline = append(videoTimeline, map[string]int{"hardware_frame": frames, "step": steps, "grid_y": model.v["cur_y"], "pixel_phase": model.v["pixel_phase"], "fall_current_q6": model.fall.current, "fall_target_q6": model.fall.target})
+						videoTimeline = append(videoTimeline, map[string]int{"hardware_frame": frames, "step": steps, "grid_y": model.v["cur_y"], "pixel_phase": model.v["pixel_phase"], "fall_current_q6": videoRate, "fall_target_q6": videoTarget})
 						dumpVideo(videoDir, len(videoTimeline))
 					}
 				}
@@ -867,7 +965,7 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 			if c.minSP < stackLimit {
 				t.Fatalf("stack exceeded reserved region: %04x", c.minSP)
 			}
-			if root := os.Getenv("MINZ_TETRIS_MAIN_EXPORT"); root != "" {
+			if root := exportRoot; root != "" {
 				dir := filepath.Join(root, mode)
 				if selectedLevel != 0 {
 					dir = filepath.Join(root, fmt.Sprintf("level-%d", selectedLevel), mode)
@@ -879,7 +977,7 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 					t.Fatal(e)
 				}
 				receipt := fmt.Sprintf("PASS\nfetched_complete_screen_frames=%d\nframes=%d\nsteps=%d\npixel_phase_samples=%d\nlocks=%d\ninterrupts=%d\nminimum_SP=0x%04x\nbytes=%d\nview_width=%d\nview_height=%d\n", fetchedFrames, frames, steps, nonzeroPhases, locks, c.irq, c.minSP, len(a.Binary), viewWidth, viewHeight)
-				profileJSON, e := json.MarshalIndent(map[string]any{"attribution": "nearest preceding emitted function label; HALT includes wait", "per_step": profileSamples, "total_costs_T": c.profile.costs, "clock_delta_histogram": tickHistogram, "input_irq_histogram": actionTicks}, "", "  ")
+				profileJSON, e := json.MarshalIndent(map[string]any{"attribution": "nearest preceding emitted function label; HALT includes wait", "per_step": profileSamples, "total_costs_T": c.profile.costs, "clock_delta_histogram": tickHistogram, "input_irq_histogram": actionTicks, "initial_lines": initialLines, "automatic_progression": model.automatic}, "", "  ")
 				if e != nil {
 					t.Fatal(e)
 				}
@@ -909,13 +1007,13 @@ func runTetrisMainMachineConfigured(t *testing.T, sourcePath string, shadow bool
 // The canonical product source uses an independent seeded speed model;
 // the existing observer retains field-frame and PC/SP/INT checks.
 func TestTetrisVariableSpeedMainMachine(t *testing.T) {
-	runTetrisMainMachineConfigured(t, "../../../examples/zx/tetris_playable.nanz", false, 3, true)
+	runTetrisMainMachineConfigured(t, "../../../reports/advanced-demos/tetris/line-progression/legacy-menu.nanz", false, 3, true)
 }
 
 func TestTetrisVariableSpeedFixedLevelRegression(t *testing.T) {
 	for _, level := range []int{1, 2} {
 		t.Run(fmt.Sprint(level), func(t *testing.T) {
-			runTetrisMainMachineConfigured(t, "../../../examples/zx/tetris_playable.nanz", false, level, true)
+			runTetrisMainMachineConfigured(t, "../../../reports/advanced-demos/tetris/line-progression/legacy-menu.nanz", false, level, true)
 		})
 	}
 }
@@ -923,7 +1021,7 @@ func TestTetrisVariableSpeedFixedLevelRegression(t *testing.T) {
 func TestTetrisVariableSpeedLineClearMachine(t *testing.T) {
 	for _, rows := range []int{1, 2, 4} {
 		t.Run(fmt.Sprint(rows), func(t *testing.T) {
-			runTetrisMainMachineConfigured(t, "../../../examples/zx/tetris_playable.nanz", false, 3, true, rows)
+			runTetrisMainMachineConfigured(t, "../../../reports/advanced-demos/tetris/line-progression/legacy-menu.nanz", false, 3, true, rows)
 		})
 	}
 }

@@ -121,22 +121,29 @@ The emulator prints `Hello!`. The [Nanz source](examples/nanz/hello_cpm.nanz) is
 
 These images are current MIR2 VM canvas renders. Build `mzv` with `make -C minzc mzv`, then run `python3 scripts/build_rotozoomer_gif.py` to regenerate the GIF (requires Pillow). Run `cd minzc && go test ./pkg/c89 ./pkg/nanz -run '^(TestPlasmaRender|TestCanvasImplShowcase|TestRotozoomerGallery)$' -count=1` to compare the gallery with the current source. The CP/M example above exercises the Z80 path. [Gallery verification](reports/2026-10-01-README-Gallery-Verification-RU.md) · [Rotozoomer details](reports/2026-10-01-Nanz-Rotozoomer-RU.md).
 
-**Spectrum Tetris: pixel-by-pixel descent with baked Nanz sprites**
+**Spectrum Tetris: a complete short game with baked Nanz sprites**
 
-<img src="media/tetris-direct-50hz.gif" width="352" alt="Spectrum Tetris: 78 actual ULA frames at 50 Hz, moving down one pixel per frame">
+<img src="reports/advanced-demos/tetris/line-progression/line-progression-full.gif" width="352" alt="Spectrum Tetris: 260 consecutive actual ULA frames at 50 Hz, ending with game over">
 
-This preview records **78 consecutive actual Z80/ULA frames at 50 Hz**:
-77 one-pixel steps, with no interpolation or speedup. The GIF loops back to
-its first frame. Sprite code is baked at compile time; screen addresses are
-patched before HALT, then paired draw/erase kernels write directly to the
-screen. Quiet descent meets its frame budget; some heavy actions still take
-two or three frames. The whole-sprite API and direct-screen game are **now in main**
-([PR #128](https://github.com/oisee/minz/pull/128), `a284fafc`). [Six-platform 0.25.1 packages](https://github.com/oisee/minz/releases/tag/v0.25.1)
-are published from that integrated commit. The smaller dirty-span/preview
-follow-up is also in main ([#130](https://github.com/oisee/minz/pull/130));
-it is included in [demos 0.25.2](https://github.com/oisee/minz/releases/tag/v0.25.2).
-[Implementation and verification](reports/advanced-demos/tetris/direct-renderer.md)
-· [Capture provenance](media/tetris-direct-50hz.json).
+This preview shows **260 consecutive actual Z80/ULA frames: 5.2 seconds at
+50 Hz**, through game over. No interpolation or speedup. The new game starts
+without a difficulty menu: cleared lines grow an 8-pixel colour gauge and
+unlock faster descent, occasional then continuous shake, and smooth or abrupt
+random speed. The preview seeds the stage/gauge at 32 lines; subsequent play
+executes the real main with independent physics and full-screen checks.
+
+One Nanz description bakes the whole sprite and its paired draw/erase kernels.
+Addresses are patched before HALT; publication writes directly to the screen.
+The current candidate passes three complete main sessions, 15 steady high-stage
+sessions, 27 threshold/clear sessions and 4890 native Z80 physics scenarios.
+Ordinary motion meets its tested one-IRQ budget; some heavy actions take two
+or three frames. [Source, full verification and capture provenance](reports/advanced-demos/tetris/line-progression/README.md).
+
+The whole-sprite API is already in main. Automatic line progression and this
+new embedded image are being integrated separately; published
+[0.25.3 packages](https://github.com/oisee/minz/releases/tag/v0.25.3) still contain
+the previous game. The new six-platform release follows its own checks.
+[Earlier renderer and measurements](reports/advanced-demos/tetris/direct-renderer.md).
 
 [Typed sprite scene](reports/advanced-demos/typed-sprite-scene/README.md):
 one Nanz description bakes the whole sprite and its erase mask.
