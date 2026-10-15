@@ -399,6 +399,7 @@
     "TestZXStagedSpriteNative",
     "TestZXStoryLogicalMemoryNative",
     "TestZXTileBoardRangeAdmission",
+    "TestZXTypedSpriteSceneMachine",
     "TestZXWholeSpriteAdmission",
     "TestZXWholeSpriteMachine",
     "TestZXWholeSpriteNative"

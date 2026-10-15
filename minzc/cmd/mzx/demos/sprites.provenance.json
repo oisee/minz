@@ -1,0 +1,8 @@
+{
+  "source": "reports/advanced-demos/typed-sprite-scene/source.nanz",
+  "source_sha256": "c910f472526faa4559bf11872ce3cd94e74cf0cc17db0d093f938272d808a908",
+  "snapshot_sha256": "6c0f5bfe51a750edc0745f149259365df7491e3065c08511ee7f906e8cf6b922",
+  "binary_bytes": 2784,
+  "verification": "TestZXTypedSpriteSceneMachine: native main/ULA plus successive raw/final VM scene calls",
+  "scope": "byte-aligned 64x8 sprite, 32 poses twice, owned black background; physical hardware/NMI unverified"
+}

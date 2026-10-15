@@ -138,6 +138,11 @@ it will enter the next package build.
 [Implementation and verification](reports/advanced-demos/tetris/direct-renderer.md)
 · [Capture provenance](media/tetris-direct-50hz.json).
 
+[Typed sprite scene](reports/advanced-demos/typed-sprite-scene/README.md):
+one Nanz description bakes the whole sprite and its erase mask.
+`mzx --demo sprites` runs the scene; placement precedes HALT and publication
+writes directly to the screen. [Nanz source](reports/advanced-demos/typed-sprite-scene/source.nanz).
+
 ## Explore
 
 - [Nanz language book](docs/Nanz_Language_Book_v7.md) and [Frill guide](docs/Frill_Language_Guide.md)
