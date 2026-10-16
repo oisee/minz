@@ -20,12 +20,18 @@ def main():
     ap.add_argument('--z88dk-root', type=Path, required=True)
     ap.add_argument('--go', default='go')
     ap.add_argument('--jobs', type=int, default=2)
+    ap.add_argument('--sdcc45-root', type=Path)
+    ap.add_argument('--include-nanz', action='store_true')
     args = ap.parse_args()
     root = Path(__file__).resolve().parents[2]
     cases = root / 'research/c89-benchmark/cases'
     frozen = json.loads((cases / 'manifest.json').read_text())['cases']
     for case in frozen:
         assert sha(cases / case['file']) == case['sha256'], case
+    nanz_cases = root / 'research/c89-benchmark/nanz-cases'
+    nfrozen = json.loads((nanz_cases/'manifest.json').read_text())['cases'] if args.include_nanz else []
+    for case in nfrozen:
+        assert sha(nanz_cases/case['file']) == case['sha256']
     out = args.out.resolve()
     out.mkdir(parents=True, exist_ok=True)
     sdcc = args.sdcc_root.resolve() / 'usr/bin/sdcc'
@@ -43,23 +49,28 @@ def main():
         'runner_sha256': sha(root/'research/c89-benchmark/measure.go'),
         'driver_sha256': sha(__file__),
         'sources': frozen,
+        'nanz_sources': nfrozen,
+        'nanz_tuple_sources': json.loads((root/'research/c89-benchmark/nanz-tuple/manifest.json').read_text())['cases'] if args.include_nanz else [],
     }
+    if args.sdcc45_root:
+        meta['sdcc45_version'] = subprocess.check_output([str(args.sdcc45_root.resolve()/'usr/bin/sdcc'),'--version'],text=True).strip()
     (out/'toolchains.json').write_text(json.dumps(meta,indent=2)+'\n')
     profiles = [('minz','default'),('minz','size'),('minz','grace'),('sdcc','size'),('sdcc','speed'),('sccz80','o3')]
 
     def run_one(task):
         compiler, profile, case = task
-        source = cases/case['file']
+        source = (root/'research/c89-benchmark/nanz-tuple' if compiler == 'nanz-tuple' else nanz_cases if compiler == 'nanz' else cases)/case['file']
         assert sha(source) == case['sha256']
         dest = out/compiler/profile/source.stem
         dest.mkdir(parents=True, exist_ok=True)
         # Store the exact source bytes with every build, before invoking a compiler.
-        (dest/'input.c').write_bytes(source.read_bytes())
+        (dest/('input'+source.suffix)).write_bytes(source.read_bytes())
         commands=[]
         image=symbols=None
-        if compiler == 'sdcc':
+        if compiler in ('sdcc','sdcc45'):
             image,symbols=dest/'program.ihx',dest/'program.noi'
-            commands.append([str(sdcc),'-mz80','--std-c89','--opt-code-'+profile,'--no-std-crt0','--code-loc','0x8000','--data-loc','0xC000','--lib-path',str(args.sdcc_root.resolve()/'usr/share/sdcc/lib/z80'),'-o',str(image),str(source)])
+            sdroot = args.sdcc45_root.resolve() if compiler == 'sdcc45' else args.sdcc_root.resolve()
+            commands.append([str(sdroot/'usr/bin/sdcc'),'-mz80','--std-c89','--opt-code-'+profile,'--no-std-crt0','--code-loc','0x8000','--data-loc','0xC000','--lib-path',str(sdroot/'usr/share/sdcc/lib/z80'),'-o',str(image),str(source)])
         elif compiler == 'sccz80':
             image,symbols=dest/'program.bin',dest/'program.map'
             commands.append([str(zroot/'bin/zcc'),'+z80','-clib=classic','-compiler=sccz80','-O3','-S','-o',str(dest/'program.asm'),str(source)])
@@ -72,7 +83,7 @@ def main():
                     failed={'Compiler':compiler,'Profile':profile,'Case':source.stem,'SourceSHA256':sha(source),'Status':'COMPILE_ERROR','Error':f'exit {proc.returncode}; see build.log'}
                     break
         assert sha(source) == case['sha256']
-        measure=[str(out/'measure'),'-compiler',compiler,'-profile',profile,'-source',str(source),'-out',str(dest)]
+        measure=[str(out/'measure'),'-compiler',('sdcc' if compiler == 'sdcc45' else 'nanz' if compiler == 'nanz-tuple' else compiler),'-profile',profile,'-source',str(source),'-out',str(dest)]
         if failed is None and image:
             info={key+'_sha256':sha(path) for key,path in [('source',source),('image',image),('symbols',symbols)]}
             (dest/'build-info.json').write_text(json.dumps(info,indent=2)+'\n')
@@ -89,10 +100,17 @@ def main():
             result=failed
             (dest/'measurements.json').write_text(json.dumps(result,indent=2)+'\n')
         (dest/'commands.json').write_text(json.dumps(commands,indent=2)+'\n')
+        result['Compiler'] = compiler
+        (dest/'measurements.json').write_text(json.dumps(result,indent=2)+'\n')
         compact={k:v for k,v in result.items() if k != 'Observations'}
         print(json.dumps(compact),flush=True)
         return compact
     tasks=[(c,p,case) for c,p in profiles for case in frozen]
+    if args.include_nanz:
+        tasks += [('nanz',p,c) for p in ['default','size','grace'] for c in nfrozen]
+        tuple_cases=json.loads((root/'research/c89-benchmark/nanz-tuple/manifest.json').read_text())['cases']
+        tasks += [('nanz-tuple',p,c) for p in ['default','size','grace'] for c in tuple_cases]
+    if args.sdcc45_root: tasks += [('sdcc45',p,c) for p in ['size','speed'] for c in frozen]
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as pool:
         results=list(pool.map(run_one,tasks))
     # No winner filtering: failed/unsupported builds remain in the same table.
