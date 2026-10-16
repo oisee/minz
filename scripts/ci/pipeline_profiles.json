@@ -246,6 +246,8 @@
     "TestNanzGeneratedCallerTypeNativeVM",
     "TestNanzGlobalAggregateLiteralNativeVM",
     "TestNanzNestedFieldsWithImportNativeVM",
+    "TestNativeAssertReadsCompleteWideReturn",
+    "TestNativeAssertUsesScalarReturnContract",
     "TestNegativeLiteralContextVMZ80",
     "TestOfflineLocalGenerationRefusesIncompatibleOptions",
     "TestOlderMeasuredAPIsRefuseRegionPolicy",

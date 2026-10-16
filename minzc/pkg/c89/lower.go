@@ -71,7 +71,9 @@ func (l *lowerer) mapType(t cc.Type) mir2.Ty {
 			return mir2.TyI8
 		}
 		return mir2.TyU8
-	case cc.Short, cc.UShort, cc.Int, cc.UInt, cc.Enum:
+	case cc.Enum:
+		return l.mapType(t.(*cc.EnumType).UnderlyingType())
+	case cc.Short, cc.UShort, cc.Int, cc.UInt:
 		if cc.IsSignedInteger(t) {
 			return mir2.TyI16
 		}
@@ -301,6 +303,9 @@ func (l *lowerer) storageType(t cc.Type) mir2.Ty {
 // A flexible array member contributes no inline bytes to sizeof. Its element
 // type still determines accesses into caller-provided trailing storage.
 func (l *lowerer) storageFieldType(field *cc.Field) mir2.Ty {
+	if field.IsBitfield() && l.typeError == nil {
+		l.typeError = fmt.Errorf("c89: bit-field storage and access are not supported on Z80")
+	}
 	if field.IsFlexibleArrayMember() {
 		array := field.Type().(*cc.ArrayType)
 		return mir2.NewArray(l.storageType(array.Elem()), 0)
@@ -1703,6 +1708,10 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 		return wrapExpr(indexed), nil
 
 	case cc.PostfixExpressionSelect: // struct.field
+		if field := pf.Field(); field != nil && field.IsBitfield() {
+			return nil, fmt.Errorf("bit-field access is not supported on Z80")
+		}
+
 		base, err := fl.lowerExprAsExpr(pf.PostfixExpression)
 		if err != nil {
 			return nil, err
@@ -1726,6 +1735,10 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 		return wrapExpr(cFieldValue(&hir.FieldExpr{X: base, Field: field, Offset: offset, Ty: ty})), nil
 
 	case cc.PostfixExpressionPSelect: // struct->field
+		if field := pf.Field(); field != nil && field.IsBitfield() {
+			return nil, fmt.Errorf("bit-field access is not supported on Z80")
+		}
+
 		base, err := fl.lowerExprAsExpr(pf.PostfixExpression)
 		if err != nil {
 			return nil, err

@@ -1062,28 +1062,6 @@ func trampolineSize(a hir.Assert, mf *mir2.Func, ar *mir2.AllocResult) int {
 func checkAssertZ80Result(z *emulator.RemogattoZ80, a hir.Assert,
 	mf *mir2.Func, hirFuncs map[string]*hir.Func) error {
 
-	regs := z.GetRegisters()
-	var got int64
-	if len(mf.Contract.Returns) > 0 {
-		switch mf.Contract.Returns[0].Class {
-		case mir2.ClassPointer:
-			got = int64(regs.HL)
-		case mir2.ClassIndex:
-			got = int64(regs.DE)
-		case mir2.ClassPair:
-			got = int64(regs.BC)
-		default:
-			got = int64(regs.A)
-		}
-	} else {
-		hf := hirFuncs[a.FuncName]
-		if hf != nil && (hf.RetTy == mir2.TyU16 || hf.RetTy == mir2.TyI16) {
-			got = int64(regs.HL)
-		} else {
-			got = int64(regs.A)
-		}
-	}
-
 	if len(a.ExpectedMulti) > 0 {
 		if len(mf.Contract.Returns) < len(a.ExpectedMulti) {
 			return fmt.Errorf("line %d: assert %q [z80]: function returned %d values, want %d",
@@ -1091,62 +1069,107 @@ func checkAssertZ80Result(z *emulator.RemogattoZ80, a hir.Assert,
 		}
 		for i, want := range a.ExpectedMulti {
 			ret := mf.Contract.Returns[i]
-			var value int64
-			switch mir2.ReturnLocation(ret.Class, ret.Ty) {
-			case "A":
-				value = int64(regs.A)
-			case "B":
-				value = int64(regs.BC >> 8)
-			case "C":
-				value = int64(regs.BC & 255)
-			case "D":
-				value = int64(regs.DE >> 8)
-			case "E":
-				value = int64(regs.DE & 255)
-			case "H":
-				value = int64(regs.HL >> 8)
-			case "L":
-				value = int64(regs.HL & 255)
-			case "HL":
-				value = int64(regs.HL)
-			case "DE":
-				value = int64(regs.DE)
-			case "IX":
-				value = int64(regs.IX)
-			case "IY":
-				value = int64(regs.IY)
-			case "F":
-				truth := false
-				switch ret.FlagCond {
-				case mir2.CmpEq:
-					truth = regs.F&0x40 != 0
-				case mir2.CmpNe:
-					truth = regs.F&0x40 == 0
-				case mir2.CmpLt:
-					truth = regs.F&1 != 0
-				case mir2.CmpGe:
-					truth = regs.F&1 == 0
-				default:
-					return fmt.Errorf("unsupported tuple return flag condition %v", ret.FlagCond)
-				}
-				if truth {
-					value = 1
-				}
-			default:
-				return fmt.Errorf("unsupported tuple return location")
+			value, err := readAssertZ80Return(z, ret)
+			if err != nil {
+				return err
 			}
+
 			if value != want {
 				return fmt.Errorf("line %d: assert %q [z80]: return[%d] got %d, want %d",
 					a.Line, a.Source, i, value, want)
 			}
 		}
 	} else {
+		ret := mir2.Return{Ty: mir2.TyU8, Class: mir2.ClassAcc}
+		if len(mf.Contract.Returns) > 0 {
+			ret = mf.Contract.Returns[0]
+		} else if hf := hirFuncs[a.FuncName]; hf != nil && hf.RetTy != mir2.TyVoid {
+			ret.Ty = hf.RetTy
+			if hf.RetTy.Width() > 8 {
+				ret.Class = mir2.ClassPointer
+			}
+		}
+		got, err := readAssertZ80Return(z, ret)
+		if err != nil {
+			return err
+		}
 		if got != a.Expected {
 			return fmt.Errorf("line %d: assert %q [z80]: got %d, want %d",
 				a.Line, a.Source, got, a.Expected)
 		}
 	}
 	return nil
+}
+
+// Native MIR values use a bit-pattern representation, like VM.Value. Wide
+// pair returns occupy the corresponding main and alternate pairs.
+func readAssertZ80Return(z *emulator.RemogattoZ80, ret mir2.Return) (int64, error) {
+	regs := z.GetRegisters()
+	location := mir2.ReturnLocation(ret.Class, ret.Ty)
+	var value uint64
+	switch location {
+	case "A":
+		value = uint64(regs.A)
+	case "B":
+		value = uint64(regs.BC >> 8)
+	case "C":
+		value = uint64(regs.BC & 255)
+	case "D":
+		value = uint64(regs.DE >> 8)
+	case "E":
+		value = uint64(regs.DE & 255)
+	case "H":
+		value = uint64(regs.HL >> 8)
+	case "L":
+		value = uint64(regs.HL & 255)
+	case "HL":
+		value = uint64(regs.HL)
+	case "DE":
+		value = uint64(regs.DE)
+	case "BC":
+		value = uint64(regs.BC)
+	case "IX":
+		value = uint64(regs.IX)
+	case "IY":
+		value = uint64(regs.IY)
+	case "F":
+		truth := false
+		switch ret.FlagCond {
+		case mir2.CmpEq:
+			truth = regs.F&0x40 != 0
+		case mir2.CmpNe:
+			truth = regs.F&0x40 == 0
+		case mir2.CmpLt:
+			truth = regs.F&1 != 0
+		case mir2.CmpGe:
+			truth = regs.F&1 == 0
+		default:
+			return 0, fmt.Errorf("unsupported return flag condition %v", ret.FlagCond)
+		}
+		if truth {
+			value = 1
+		}
+	default:
+		return 0, fmt.Errorf("unsupported return location %s", location)
+	}
+	width := ret.Ty.Width()
+	if width > 16 {
+		shadow := z.GetShadowRegisters()
+		switch location {
+		case "HL":
+			value |= uint64(shadow.HL) << 16
+		case "DE":
+			value |= uint64(shadow.DE) << 16
+		case "BC":
+			value |= uint64(shadow.BC) << 16
+		default:
+			return 0, fmt.Errorf("unsupported wide return location %s", location)
+		}
+	}
+	if width > 0 && width < 64 {
+		value &= (uint64(1) << uint(width)) - 1
+	}
+	return int64(value), nil
 }
 
 // Assemble assembles .a80 text to a binary using MZA.
