@@ -481,6 +481,9 @@ func SimplifyIdentities(f *Func) bool {
 	if narrowTruncatedByteArithmetic(f) {
 		changed = true
 	}
+	if fuseByteLoadMoves(f) {
+		changed = true
+	}
 	for _, b := range f.Blocks {
 		defs := map[Reg]*Inst{}
 		for i, inst := range b.Insts {
