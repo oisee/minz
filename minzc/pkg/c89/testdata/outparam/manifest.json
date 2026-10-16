@@ -1,0 +1,12 @@
+{
+  "cases": [
+    {
+      "file": "local_pair.c",
+      "sha256": "1b149a4013951fbaf54095b446a5c289e38dd6d378eace525c74973c5145155b"
+    },
+    {
+      "file": "repeated_pair.c",
+      "sha256": "775174486b72ce9e10f942d03b6bda2c00ecc7babe6460f37571165b6ca9c7df"
+    }
+  ]
+}
