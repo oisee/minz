@@ -1,0 +1,172 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-old-claims-replay/research/c89-benchmark/old-claims/cases/old_wrap_min
+global @result : u16
+global @a : u8
+global @b : u8
+
+fun @fibonacci(%r1: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r2 = const 0 : i16 [pointer]
+    %r3 = const 1 : i16 [pointer]
+    jmp @loop_head1(%r2, %r3, %r1)
+  block @loop_head1(%r4: i16 [pointer], %r5: i16 [pointer], %r6: i16 [pointer]):
+    %r7 = const 0 : i16 [pointer]
+    %r8 = cmp.gt %r6, %r7 : bool [flag]
+    br_if %r8, @loop_body2(), @loop_exit3(%r4, %r5, %r6)
+  block @loop_body2:
+    %r9 = add %r4, %r5 : i16 [pointer]
+    %r10 = addr_of @a : ptr [pointer]
+    store %r10, %r5 : u8
+    %r11 = addr_of @b : ptr [pointer]
+    store %r11, %r9 : u8
+    %r12 = const 1 : i16 [pointer]
+    %r13 = sub %r6, %r12 : i16 [pointer]
+    jmp @loop_head1(%r4, %r5, %r13)
+  block @loop_exit3(%r14: i16 [pointer], %r15: i16 [pointer], %r16: i16 [pointer]):
+    ret %r14
+
+fun @fib10() -> i16 [pointer]
+  block @entry:
+    %r17 = const 10 : i16 [pointer]
+    %r18 = call @fibonacci(%r17) : i16 [pointer]
+    ret %r18
+
+fun @sum_to(%r19: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r20 = const 0 : i16 [pointer]
+    %r21 = const 0 : i16 [pointer]
+    jmp @loop_head1(%r21, %r19, %r20)
+  block @loop_head1(%r22: i16 [pointer], %r23: i16 [pointer], %r24: i16 [pointer]):
+    %r25 = cmp.lt %r22, %r23 : bool [flag]
+    br_if %r25, @loop_body2(), @loop_exit3(%r22, %r23, %r24)
+  block @loop_body2:
+    %r26 = add %r24, %r22 : i16 [pointer]
+    %r27 = const 1 : i16 [pointer]
+    %r28 = add %r22, %r27 : i16 [pointer]
+    jmp @loop_head1(%r28, %r23, %r26)
+  block @loop_exit3(%r29: i16 [pointer], %r30: i16 [pointer], %r31: i16 [pointer]):
+    ret %r31
+
+fun @sum10() -> i16 [pointer]
+  block @entry:
+    %r32 = const 10 : i16 [pointer]
+    %r33 = call @sum_to(%r32) : i16 [pointer]
+    ret %r33
+
+fun @factorial(%r34: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r35 = const 1 : i16 [pointer]
+    jmp @loop_head1(%r34, %r35)
+  block @loop_head1(%r36: i16 [pointer], %r37: i16 [pointer]):
+    %r38 = const 1 : i16 [pointer]
+    %r39 = cmp.gt %r36, %r38 : bool [flag]
+    br_if %r39, @loop_body2(), @loop_exit3(%r36, %r37)
+  block @loop_body2:
+    %r40 = mul %r37, %r36 : i16 [pointer]
+    %r41 = const 1 : i16 [pointer]
+    %r42 = sub %r36, %r41 : i16 [pointer]
+    jmp @loop_head1(%r42, %r40)
+  block @loop_exit3(%r43: i16 [pointer], %r44: i16 [pointer]):
+    ret %r44
+
+fun @fact6() -> i16 [pointer]
+  block @entry:
+    %r45 = const 6 : i16 [pointer]
+    %r46 = call @factorial(%r45) : i16 [pointer]
+    ret %r46
+
+fun @twice(%r47: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r48 = add %r47, %r47 : i16 [pointer]
+    ret %r48
+
+fun @add(%r49: i16 [pointer], %r50: i16 [index]) -> i16 [pointer]
+  block @entry:
+    %r51 = add %r49, %r50 : i16 [pointer]
+    ret %r51
+
+fun @abs_diff(%r52: u8 [acc], %r53: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r54 = ext %r52 : u8 -> i16 [pointer]
+    %r55 = ext %r53 : u8 -> i16 [pointer]
+    %r56 = cmp.gt %r54, %r55 : bool [flag]
+    br_if %r56, @if_then1(), @if_join2()
+  block @if_then1:
+    %r57 = ext %r52 : u8 -> i16 [pointer]
+    %r58 = ext %r53 : u8 -> i16 [pointer]
+    %r59 = sub %r57, %r58 : i16 [pointer]
+    %r60 = trunc %r59 : i16 -> u8 [general]
+    ret %r60
+  block @if_join2:
+    %r61 = ext %r53 : u8 -> i16 [pointer]
+    %r62 = ext %r52 : u8 -> i16 [pointer]
+    %r63 = sub %r61, %r62 : i16 [pointer]
+    %r64 = trunc %r63 : i16 -> u8 [general]
+    ret %r64
+
+fun @clamp(%r65: u8 [acc], %r66: u8 [general], %r67: u8 [counter]) -> u8 [acc]
+  block @entry:
+    %r68 = ext %r65 : u8 -> i16 [pointer]
+    %r69 = ext %r66 : u8 -> i16 [pointer]
+    %r70 = cmp.lt %r68, %r69 : bool [flag]
+    br_if %r70, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r66
+  block @if_join2:
+    %r71 = ext %r65 : u8 -> i16 [pointer]
+    %r72 = ext %r67 : u8 -> i16 [pointer]
+    %r73 = cmp.gt %r71, %r72 : bool [flag]
+    br_if %r73, @if_then3(), @if_join4()
+  block @if_then3:
+    ret %r67
+  block @if_join4:
+    ret %r65
+
+fun @min8(%r74: u8 [acc], %r75: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r76 = ext %r74 : u8 -> i16 [pointer]
+    %r77 = ext %r75 : u8 -> i16 [pointer]
+    %r78 = cmp.lt %r76, %r77 : bool [flag]
+    br_if %r78, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r74
+  block @if_join2:
+    ret %r75
+
+fun @square(%r79: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r80 = mul %r79, %r79 : i16 [pointer]
+    ret %r80
+
+fun @demo() -> i16 [pointer]
+  block @entry:
+    %r81 = const 4 : i16 [pointer]
+    %r82 = call @square(%r81) : i16 [pointer]
+    %r83 = const 5 : i16 [pointer]
+    %r84 = call @twice(%r83) : i16 [pointer]
+    %r85 = add %r82, %r84 : i16 [pointer]
+    ret %r85
+
+fun @wrap_min(%r86: u8 [acc], %r87: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r88 = move %r86 : u8 [acc]
+    %r89 = call @min8(%r88, %r87) : u8 [acc]
+    ret %r89
+
+fun @wrap_twice(%r90: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r91 = call @twice(%r90) : i16 [pointer]
+    ret %r91
+
+fun @execute()
+  block @entry:
+    %r92 = addr_of @a : ptr [pointer]
+    %r93 = load %r92 : u8 [general]
+    %r94 = move %r93 : u8 [acc]
+    %r95 = addr_of @b : ptr [pointer]
+    %r96 = load %r95 : u8 [general]
+    %r97 = call @wrap_min(%r94, %r96) : u8 [acc]
+    %r98 = ext %r97 : u8 -> u16 [pointer]
+    %r99 = addr_of @result : ptr [pointer]
+    store %r99, %r98 : u16
+    ret void
+

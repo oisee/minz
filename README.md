@@ -30,7 +30,7 @@ The project is active research: examples and targets have different levels of ma
 
 [Direct byte loads in C and Nanz](reports/2026-10-16-c89-byte-load-fusion.md): the complete 69-build matrix was repeated; abs_diff reaches 36 bytes / 289,366 T by removing caller-side moves. Core packages and all 432 fast pipeline checks pass. This stage is integrated through PR #176; the CFG follow-up below improves abs_diff further.
 
-[Old claims, new evidence](reports/2026-10-16-old-claims-new-evidence.md): a proven CFG rewrite now produces the five-byte abs_diff automatically from unchanged C and Nanz. The full module measures 30 bytes / 253,672 T versus SDCC 4.5 Size and Speed at 33 / 258,142; complete byte-domain VM/Z80 tests pass. Integration is pending.
+[Old claims, new evidence](reports/2026-10-16-old-claims-new-evidence.md): automatic five-byte abs_diff and a fresh replay of all eleven historical C examples. All 88 builds pass native and VM checks; constant folding and tailcalls are real, while full-module sizes and remaining SDCC losses correct the old advertising.
 
 [Extended C/Nanz benchmark with SDCC 4.5](reports/c89-optimization/baseline.md): same frozen C, separate idiomatic Nanz and tuple variants, all profiles retained. SDCC 4.5 supports the tested aggregate ABI; MinZ C wins that case. The five other common C cases favor SDCC. [Optimization milestones](reports/c89-optimization/objective.md) track the next verified work.
 

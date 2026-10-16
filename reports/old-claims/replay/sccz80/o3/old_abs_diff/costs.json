@@ -1,0 +1,15 @@
+{
+  "Compiler": "sccz80",
+  "Profile": "o3",
+  "Case": "old_abs_diff",
+  "SourceSHA256": "72e16295401edc28852bd12a872ce4ec91031bf49f694f556e6ba6e4ca044d10",
+  "WorkloadSHA256": "04b44700d5503cd99b259e4e6aaca2a584d4881bde83eabbed11bae9b446ebb2",
+  "Status": "PASS",
+  "InitializedBytes": 634,
+  "GlobalBytes": 4,
+  "ProgramBytes": 634,
+  "Calls": 2048,
+  "TotalT": 696320,
+  "ObservationCount": 2048,
+  "DetailedMeasurementsSHA256": "55e8bb9938f17ce91af630b81d8f31965e63f889316f31ea0aed19ea38e761c7"
+}

@@ -1,0 +1,15 @@
+{
+  "Compiler": "sccz80",
+  "Profile": "o3",
+  "Case": "old_wrap_twice",
+  "SourceSHA256": "86ad559e543c6d83c0efe8ea1b1a43dbce9ae05fc30a09238096d1c769a1312b",
+  "WorkloadSHA256": "60695471d920eed1ae8a71aa797b97d7eb9eb9b7282a4c405984f83f5b1d4ec6",
+  "Status": "PASS",
+  "InitializedBytes": 625,
+  "GlobalBytes": 4,
+  "ProgramBytes": 625,
+  "Calls": 134,
+  "TotalT": 32294,
+  "ObservationCount": 134,
+  "DetailedMeasurementsSHA256": "83069f02796f3f90b8ea735899dd2b23cf99188725153f65533825d0c7d52ccb"
+}

@@ -1,0 +1,15 @@
+{
+  "Compiler": "sdcc",
+  "Profile": "speed",
+  "Case": "old_abs_diff",
+  "SourceSHA256": "72e16295401edc28852bd12a872ce4ec91031bf49f694f556e6ba6e4ca044d10",
+  "WorkloadSHA256": "04b44700d5503cd99b259e4e6aaca2a584d4881bde83eabbed11bae9b446ebb2",
+  "Status": "PASS",
+  "InitializedBytes": 239,
+  "GlobalBytes": 4,
+  "ProgramBytes": 243,
+  "Calls": 2048,
+  "TotalT": 264286,
+  "ObservationCount": 2048,
+  "DetailedMeasurementsSHA256": "d9429f74a61d209d0a3f94c5380514a83d9632701f556bea68ff6d8b3612827e"
+}

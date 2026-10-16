@@ -1,0 +1,15 @@
+{
+  "Compiler": "sccz80",
+  "Profile": "o3",
+  "Case": "old_fib10",
+  "SourceSHA256": "78cf4883757c131bf96da1be3276d863d99ce3a5fe084d064a91f6b89cfd7420",
+  "WorkloadSHA256": "025bf37968c1d901af63eccba82163bac37b6babe7f12524585d25bd505d93b9",
+  "Status": "PASS",
+  "InitializedBytes": 618,
+  "GlobalBytes": 2,
+  "ProgramBytes": 618,
+  "Calls": 1,
+  "TotalT": 7351,
+  "ObservationCount": 1,
+  "DetailedMeasurementsSHA256": "a908bbf01820873ba3fa34edf319b059f7a6583b2ce3cfbaf775a31cf4ae71fc"
+}

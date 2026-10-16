@@ -1,0 +1,137 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-old-claims-replay/research/c89-benchmark/old-claims/cases/old_add
+global @result : u16
+global @a : i16
+global @b : i16
+
+fun @fibonacci(%r1: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r2 = const 0 : i16 [pointer]
+    %r3 = const 1 : i16 [pointer]
+    jmp @loop_head1(%r2, %r3, %r1)
+  block @loop_head1(%r2: i16 [pointer], %r3: i16 [pointer], %r6: i16 [pointer]):
+    %r7 = const 0 : i16 [pointer]
+    %r8 = cmp.gt %r6, %r7 : bool [flag]
+    cond_ret %r8, [%r2], @loop_body2()
+  block @loop_body2:
+    %r9 = add %r2, %r3 : i16 [pointer]
+    %r10 = addr_of @a : ptr [pointer]
+    store %r10, %r3 : i16
+    %r11 = addr_of @b : ptr [pointer]
+    store %r11, %r9 : i16
+    %r12 = const 1 : i16 [pointer]
+    %r13 = sub %r6, %r12 : i16 [pointer]
+    jmp @loop_head1(%r2, %r3, %r13)
+
+fun @fib10() -> i16 [pointer]
+  block @entry:
+    %r14 = const 10 : i16 [pointer]
+    %r15 = call @fibonacci(%r14) : i16 [pointer]
+    ret %r15
+
+fun @sum_to(%r16: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r17 = const 0 : i16 [pointer]
+    %r18 = const 0 : i16 [pointer]
+    jmp @loop_head1(%r18, %r16, %r17)
+  block @loop_head1(%r18: i16 [pointer], %r20: i16 [pointer], %r17: i16 [pointer]):
+    %r22 = cmp.lt %r18, %r20 : bool [flag]
+    cond_ret %r22, [%r17], @loop_body2()
+  block @loop_body2:
+    %r23 = add %r17, %r18 : i16 [pointer]
+    %r24 = const 1 : i16 [pointer]
+    %r25 = add %r18, %r24 : i16 [pointer]
+    jmp @loop_head1(%r25, %r20, %r23)
+
+fun @sum10() -> i16 [pointer]
+  block @entry:
+    %r26 = const 45 : i16 [pointer]
+    ret %r26
+
+fun @factorial(%r27: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r28 = const 1 : i16 [pointer]
+    jmp @loop_head1(%r27, %r28)
+  block @loop_head1(%r29: i16 [pointer], %r28: i16 [pointer]):
+    %r31 = const 1 : i16 [pointer]
+    %r32 = cmp.gt %r29, %r31 : bool [flag]
+    cond_ret %r32, [%r28], @loop_body2()
+  block @loop_body2:
+    %r33 = mul %r28, %r29 : i16 [pointer]
+    %r34 = const 1 : i16 [pointer]
+    %r35 = sub %r29, %r34 : i16 [pointer]
+    jmp @loop_head1(%r35, %r33)
+
+fun @fact6() -> i16 [pointer]
+  block @entry:
+    %r36 = const 720 : i16 [pointer]
+    ret %r36
+
+fun @twice(%r37: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r38 = add %r37, %r37 : i16 [pointer]
+    ret %r38
+
+fun @add(%r39: i16 [pointer], %r40: i16 [index]) -> i16 [pointer]
+  block @entry:
+    %r41 = add %r39, %r40 : i16 [pointer]
+    ret %r41
+
+fun @abs_diff(%r42: u8 [acc], %r43: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r44 = sub %r42, %r43 : u8 [general]
+    %r45 = cmp.sub_carry %r44, %r43 : bool [flag]
+    cond_ret %r45, [%r44], @if_join2()
+  block @if_join2:
+    %r46 = neg %r44 : u8 [general]
+    ret %r46
+
+fun @clamp(%r47: u8 [acc], %r48: u8 [general], %r49: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r50 = cmp.ult %r47, %r48 : bool [flag]
+    br_if %r50, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r48
+  block @if_join2:
+    %r51 = cmp.ugt %r47, %r49 : bool [flag]
+    cond_ret %r51, [%r47], @if_then3()
+  block @if_then3:
+    ret %r49
+
+fun @min8(%r52: u8 [acc], %r53: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r54 = cmp.ult %r52, %r53 : bool [flag]
+    cond_ret %r54, [%r53], @if_then1()
+  block @if_then1:
+    ret %r52
+
+fun @square(%r55: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r56 = mul %r55, %r55 : i16 [pointer]
+    ret %r56
+
+fun @demo() -> i16 [pointer]
+  block @entry:
+    %r57 = const 26 : i16 [pointer]
+    ret %r57
+
+fun @wrap_min(%r58: u8 [acc], %r59: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r60 = call @min8(%r58, %r59) : u8 [acc]
+    ret %r60
+
+fun @wrap_twice(%r61: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r62 = add %r61, %r61 : i16 [pointer]
+    ret %r62
+
+fun @execute()
+  block @entry:
+    %r63 = addr_of @a : ptr [pointer]
+    %r64 = load %r63 : i16 [pointer]
+    %r65 = addr_of @b : ptr [pointer]
+    %r66 = load %r65 : i16 [pointer]
+    %r67 = add %r64, %r66 : i16 [pointer]
+    %r68 = addr_of @result : ptr [pointer]
+    store %r68, %r67 : u16
+    ret void
+
