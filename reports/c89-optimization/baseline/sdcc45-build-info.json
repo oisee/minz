@@ -1,0 +1,41 @@
+{
+  "release": "4.5.0",
+  "source_url": "https://sourceforge.net/projects/sdcc/files/sdcc/4.5.0/sdcc-src-4.5.0.tar.bz2/download",
+  "source_sha256": "d5030437fb436bb1d93a8dbdbfb46baaa60613318f4fb3f5871d72815d1eed80",
+  "configure": "--prefix=/home/alice/dev/minz-artifacts/toolchains/sdcc-4.5/install CPPFLAGS=-I/home/alice/dev/minz-artifacts/toolchains/sdcc-4.5/build-deps/root/usr/include LDFLAGS=-L/home/alice/dev/minz-artifacts/toolchains/sdcc-4.5/build-deps/root/usr/lib/x86_64-linux-gnu --disable-mcs51-port --disable-z180-port --disable-r2k-port --disable-r2ka-port --disable-r3ka-port --disable-sm83-port --disable-tlcs90-port --disable-ez80_z80-port --disable-z80n-port --disable-r800-port --disable-ds390-port --disable-ds400-port --disable-pic14-port --disable-pic16-port --disable-hc08-port --disable-s08-port --disable-stm8-port --disable-pdk13-port --disable-pdk14-port --disable-pdk15-port --disable-mos6502-port --disable-mos65c02-port --disable-f8-port --disable-ucsim --disable-sdcdb --disable-non-free ",
+  "packages": [
+    {
+      "file": "bison_2%3a3.8.2+dfsg-1ubuntu0.24.04.1_amd64.deb",
+      "sha256": "9d75084d1293f68f3c1a2ee677dea5baa4e010bac2d4c455d8e23177e97aa353"
+    },
+    {
+      "file": "flex_2.6.4-8.2build1_amd64.deb",
+      "sha256": "c5604f55827b50e3f568b4731b7799f86b147454c867be02bc141d9d8ce561ff"
+    },
+    {
+      "file": "libboost1.83-dev_1.83.0-2.1ubuntu3.2_amd64.deb",
+      "sha256": "519ecf2c64308527e15b6582955681d192a832250baa4bc424967aaf7d02d68f"
+    },
+    {
+      "file": "m4_1.4.19-4build1_amd64.deb",
+      "sha256": "30ea715845a1863abd55d11e47ab91513130bf347852d4cdeae69e9d98fa795c"
+    },
+    {
+      "file": "zlib1g-dev_1%3a1.3.dfsg-3.1ubuntu2.2_amd64.deb",
+      "sha256": "e9152a08af21ab22bc99e8bfa98f1eb83955b2cc3653bcefecab394ecf9d1b63"
+    }
+  ],
+  "build_env": {
+    "PATH_prefix": "/home/alice/dev/minz-artifacts/toolchains/sdcc-4.5/build-deps/root/usr/bin",
+    "M4": "/home/alice/dev/minz-artifacts/toolchains/sdcc-4.5/build-deps/root/usr/bin/m4",
+    "BISON_PKGDATADIR": "/home/alice/dev/minz-artifacts/toolchains/sdcc-4.5/build-deps/root/usr/share/bison",
+    "C_INCLUDE_PATH": "/home/alice/dev/minz-artifacts/toolchains/sdcc-4.5/build-deps/root/usr/include",
+    "CPLUS_INCLUDE_PATH": "/home/alice/dev/minz-artifacts/toolchains/sdcc-4.5/build-deps/root/usr/include",
+    "LIBRARY_PATH": "/home/alice/dev/minz-artifacts/toolchains/sdcc-4.5/build-deps/root/usr/lib/x86_64-linux-gnu"
+  },
+  "build_command": [
+    "make",
+    "-j4",
+    "M4=/home/alice/dev/minz-artifacts/toolchains/sdcc-4.5/build-deps/root/usr/bin/m4"
+  ]
+}
