@@ -1,0 +1,41 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/nanz-cases/gcd.nanz
+global @a : u8
+global @b : u8
+global @result : u16
+
+fun @gcd(%r1: u8 [acc], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = const 0 : u8 [general]
+    %r4 = cmp.eq %r1, %r3 : bool [flag]
+    br_if %r4, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r2
+  block @if_join2:
+    %r5 = const 0 : u8 [general]
+    %r6 = cmp.eq %r2, %r5 : bool [flag]
+    br_if %r6, @if_then3(), @loop_head5(%r1, %r2)
+  block @if_then3:
+    ret %r1
+  block @loop_head5(%r7: u8 [general], %r8: u8 [general]):
+    br_if2 %r7, %r8, @loop_head5_ret_eq(), @if_else10(), @if_then8()
+  block @if_then8:
+    %r9 = sub %r7, %r8 : u8 [general]
+    jmp @loop_head5(%r9, %r8)
+  block @if_else10:
+    %r10 = sub %r8, %r7 : u8 [general]
+    jmp @loop_head5(%r7, %r10)
+  block @loop_head5_ret_eq:
+    ret %r7
+
+fun @execute()
+  block @entry:
+    %r11 = addr_of @a : ptr [pointer]
+    %r12 = load %r11 : u8 [acc]
+    %r13 = addr_of @b : ptr [pointer]
+    %r14 = load %r13 : u8 [general]
+    %r15 = call @gcd(%r12, %r14) : u8 [acc]
+    %r16 = ext %r15 : u8 -> u16 [pointer]
+    %r17 = addr_of @result : ptr [pointer]
+    store %r17, %r16 : u16
+    ret void
+

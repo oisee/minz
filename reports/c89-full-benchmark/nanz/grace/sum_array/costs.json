@@ -1,0 +1,15 @@
+{
+  "Compiler": "nanz",
+  "Profile": "grace",
+  "Case": "sum_array",
+  "SourceSHA256": "31692c9503d78066f1020ee04dfc19ba3f204d5a8dc971023967fccad682e648",
+  "WorkloadSHA256": "82da6e007142268463435727326074578dcc69de2170d9b5dc18ed9ff93a8c7b",
+  "Status": "PASS",
+  "InitializedBytes": 320,
+  "GlobalBytes": 259,
+  "ProgramBytes": 320,
+  "Calls": 512,
+  "TotalT": 8316876,
+  "ObservationCount": 512,
+  "DetailedMeasurementsSHA256": "0308d5309a01ac5171ec34c9370e1dbef6fd8ff9d6410796e4883b5097c04109"
+}

@@ -1,0 +1,52 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/struct_roundtrip
+global @a : u8
+global @b : u8
+global @result : u16
+
+fun @make_pair(%r1: u8 [acc]) -> (u8 [acc], u8 [counter])
+  block @entry:
+    %r2 = const 0 : i16 [pointer]
+    %r3 = trunc %r2 : i16 -> u8 [general]
+    %r4 = const 0 : i16 [pointer]
+    %r5 = trunc %r4 : i16 -> u8 [general]
+    %r6 = ext %r1 : u8 -> i16 [pointer]
+    %r7 = const 1 : i16 [pointer]
+    %r8 = add %r6, %r7 : i16 [pointer]
+    %r9 = trunc %r8 : i16 -> u8 [general]
+    %r10 = move %r1 : u8 [acc]
+    %r11 = move %r9 : u8 [counter]
+    ret %r10, %r11
+
+fun @consume(%r12: u8 [acc], %r13: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r14 = ext %r12 : u8 -> u16 [pointer]
+    %r15 = const 256 : u16 [pointer]
+    %r16 = mul %r14, %r15 : u16 [pointer]
+    %r17 = ext %r13 : u8 -> u16 [pointer]
+    %r18 = add %r16, %r17 : u16 [pointer]
+    ret %r18
+
+fun @caller(%r19: u8 [acc], %r20: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r21 = move %r19 : u8 [acc]
+    %r22 = call @make_pair(%r21) : u8 [acc]
+    %r24 = move %r22 : u8 [acc]
+    %r25 = call @consume(%r24, %r23) : u16 [pointer]
+    %r26 = ext %r19 : u8 -> u16 [pointer]
+    %r27 = add %r25, %r26 : u16 [pointer]
+    %r28 = ext %r20 : u8 -> u16 [pointer]
+    %r29 = xor %r27, %r28 : u16 [pointer]
+    ret %r29
+
+fun @execute()
+  block @entry:
+    %r30 = addr_of @a : ptr [pointer]
+    %r31 = load %r30 : u8 [general]
+    %r32 = move %r31 : u8 [acc]
+    %r33 = addr_of @b : ptr [pointer]
+    %r34 = load %r33 : u8 [general]
+    %r35 = call @caller(%r32, %r34) : u16 [pointer]
+    %r36 = addr_of @result : ptr [pointer]
+    store %r36, %r35 : u16
+    ret void
+

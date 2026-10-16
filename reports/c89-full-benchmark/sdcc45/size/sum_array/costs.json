@@ -1,0 +1,15 @@
+{
+  "Compiler": "sdcc45",
+  "Profile": "size",
+  "Case": "sum_array",
+  "SourceSHA256": "38c71b12b18062652cbdc3d21d0a9b6a83d55940d5e8b99b7047390e265647bb",
+  "WorkloadSHA256": "82da6e007142268463435727326074578dcc69de2170d9b5dc18ed9ff93a8c7b",
+  "Status": "PASS",
+  "InitializedBytes": 66,
+  "GlobalBytes": 259,
+  "ProgramBytes": 325,
+  "Calls": 512,
+  "TotalT": 9929216,
+  "ObservationCount": 512,
+  "DetailedMeasurementsSHA256": "0691d3cdf0c6d1d1511dc088cbac94fd3aec820a852680814c7798fa755cc221"
+}
