@@ -1,0 +1,140 @@
+package c89_test
+
+import (
+	"encoding/binary"
+	"fmt"
+	"strings"
+	"testing"
+
+	"github.com/minz/minzc/pkg/c89"
+	"github.com/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/pipeline"
+	"github.com/minz/minzc/pkg/z80asm"
+)
+
+// C99 6.2.5, 6.3.1.1, 6.3.1.8: long is 32 bits on our target;
+// unsigned operations wrap, and integer promotions happen before arithmetic.
+// Read all four result bytes on both VMs and the real assembled Z80 path.
+func TestCIntegerSemanticsNativeVM(t *testing.T) {
+	cases := []struct {
+		name, expr string
+		want       func(uint32, uint32) uint32
+	}{
+		{"add", "a+b", func(a, b uint32) uint32 { return a + b }},
+		{"sub", "a-b", func(a, b uint32) uint32 { return a - b }},
+		{"xor", "a^b", func(a, b uint32) uint32 { return a ^ b }},
+		{"and", "a&b", func(a, b uint32) uint32 { return a & b }},
+		{"or", "a|b", func(a, b uint32) uint32 { return a | b }},
+		{"shl", "a<<1", func(a, b uint32) uint32 { return a << 1 }},
+		{"shr", "a>>1", func(a, b uint32) uint32 { return a >> 1 }},
+		{"promoted_negate", "-(unsigned char)a", func(a, b uint32) uint32 { return uint32(-int32(uint8(a))) }},
+		{"promoted_complement", "~(unsigned char)a", func(a, b uint32) uint32 { return uint32(^int32(uint8(a))) }},
+		{"promoted_ushort", "((unsigned short)a>>1)", func(a, b uint32) uint32 { return uint32(uint16(a)) >> 1 }},
+		{"signed_call", "take((int)a)", func(a, b uint32) uint32 { return uint32(int32(int16(a))) + 1 }},
+		{"compound_div", "divide((unsigned char)a)", func(a, b uint32) uint32 { return uint32(int32(uint8(a))/-2) & 255 }},
+		{"ushort_div", "(unsigned short)a / -2", func(a, b uint32) uint32 { return uint32(uint16(a) / 65534) }},
+		{"long_signed_shift", "((long)(int)a)>>1", func(a, b uint32) uint32 { return uint32(int32(int16(a)) >> 1) }},
+		{"long_unsigned_compare", "a<b", func(a, b uint32) uint32 {
+			if a < b {
+				return 1
+			}
+			return 0
+		}},
+		{"long_signed_compare", "(long)a<(long)b", func(a, b uint32) uint32 {
+			if int32(a) < int32(b) {
+				return 1
+			}
+			return 0
+		}},
+
+		{"layout", "sizeof(long)+sizeof(struct Record)", func(a, b uint32) uint32 { return 11 }},
+
+		{"cast_char", "(long)(char)a", func(a, b uint32) uint32 { return uint32(int32(int8(a))) }},
+		{"promoted_sub", "(unsigned char)a-(unsigned char)b", func(a, b uint32) uint32 { return uint32(int32(uint8(a)) - int32(uint8(b))) }},
+		{"promoted_shift", "(unsigned char)a<<1", func(a, b uint32) uint32 { return uint32(uint8(a)) << 1 }},
+		{"mixed_compare", "(int)a < (unsigned int)b", func(a, b uint32) uint32 {
+			if uint16(a) < uint16(b) {
+				return 1
+			}
+			return 0
+		}},
+	}
+	values := []uint32{0, 1, 2, 127, 128, 255, 256, 32767, 32768, 65535, 65536, 0x12345678, 0x7fffffff, 0x80000000, 0xffffffff}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			source := fmt.Sprintf("unsigned long a,b,result; unsigned long initial=0x12345678UL; struct Record{unsigned char tag;long value;unsigned int tail;}; unsigned long take(long x){return x+1;} unsigned char divide(unsigned char x){x/=-2;return x;} void execute(void){result=%s;}", c.expr)
+			parse := func() *hir.Module {
+				h, e := c89.Compile(source, "integers.c")
+				if e != nil {
+					t.Fatal(e)
+				}
+				return h
+			}
+			raw := mir2.NewVM(hir.LowerModule(parse()))
+			steps, e := pipeline.CompileHIRSteps(parse(), pipeline.Options{ContractOpt: true, AssertMode: "none"})
+			if e != nil {
+				t.Fatal(e)
+			}
+			final := mir2.NewVM(steps.MIR2Module)
+			bin, e := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + steps.Assembly)
+			if e != nil || len(bin.Errors) > 0 {
+				t.Fatal(e, bin.Errors)
+			}
+			symbol := func(n string) int {
+				v := bin.Symbols[n]
+				if v == 0 {
+					v = bin.Symbols["v_"+n]
+				}
+				if v == 0 {
+					t.Fatalf("missing symbol %s", n)
+				}
+				return v
+			}
+			z := emulator.NewRemogattoZ80()
+			z.LoadMemory(0x8000, bin.Binary)
+			z.LoadMemory(0xeffe, []byte{0, 0xf1})
+			if got := binary.LittleEndian.Uint32(z.Memory()[symbol("initial") : symbol("initial")+4]); got != 0x12345678 {
+				t.Fatalf("initializer %08x", got)
+			}
+			for _, a := range values {
+				for _, b := range values {
+					want := c.want(a, b)
+					for _, vm := range []*mir2.VM{raw, final} {
+						var data [4]byte
+						binary.LittleEndian.PutUint32(data[:], a)
+						vm.WriteHeapSlice(vm.GlobalAddr("a"), data[:])
+						binary.LittleEndian.PutUint32(data[:], b)
+						vm.WriteHeapSlice(vm.GlobalAddr("b"), data[:])
+						if _, e := vm.Call("execute", nil); e != nil {
+							t.Fatal(e)
+						}
+						if got := binary.LittleEndian.Uint32(vm.ReadHeap(vm.GlobalAddr("result"), 4)); got != want {
+							t.Fatalf("VM a%08x b%08x got%08x want%08x", a, b, got, want)
+						}
+					}
+					binary.LittleEndian.PutUint32(z.Memory()[symbol("a"):symbol("a")+4], a)
+					binary.LittleEndian.PutUint32(z.Memory()[symbol("b"):symbol("b")+4], b)
+					z.SetRegisters(emulator.Registers{PC: uint16(symbol("execute")), SP: 0xeffe})
+					for n := 0; n < 10000 && z.GetRegisters().PC != 0xf100; n++ {
+						z.Step()
+					}
+					r := z.GetRegisters()
+					got := binary.LittleEndian.Uint32(z.Memory()[symbol("result") : symbol("result")+4])
+					if got != want || r.PC != 0xf100 || r.SP != 0xf000 {
+						t.Fatalf("Z80 a%08x b%08x got%08x want%08x regs%v\n%s", a, b, got, want, r, steps.Assembly)
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestCRejectsNarrowedLongLong(t *testing.T) {
+	for _, src := range []string{"long long f(long long x){return x+1;}", "unsigned long long data;"} {
+		if _, e := c89.Compile(src, "long-long.c"); e == nil || !strings.Contains(e.Error(), "64-bit") {
+			t.Fatalf("expected explicit 64-bit diagnostic, got %v", e)
+		}
+	}
+}

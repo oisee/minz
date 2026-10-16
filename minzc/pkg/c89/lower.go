@@ -12,12 +12,13 @@ import (
 )
 
 type lowerer struct {
-	ast      *cc.AST
-	hm       *hir.Module
-	globals  map[string]mir2.Ty
-	typedefs map[string]mir2.Ty
-	structs  map[string]*mir2.StructTy
-	cStructs map[cc.Type]string // C struct type → MIR2 struct name
+	typeError error // unsupported mapped types must never produce an executable
+	ast       *cc.AST
+	hm        *hir.Module
+	globals   map[string]mir2.Ty
+	typedefs  map[string]mir2.Ty
+	structs   map[string]*mir2.StructTy
+	cStructs  map[cc.Type]string // C struct type → MIR2 struct name
 
 	// ObjC: class info from @interface declarations.
 	objcClasses   map[string]*objcClassInfo
@@ -53,7 +54,7 @@ func (l *lowerer) lower() error {
 			l.lowerObjCProtocol(ed.ObjCProtocol)
 		}
 	}
-	return nil
+	return l.typeError
 }
 
 // ── Type mapping ────────────────────────────────────────────────────────────
@@ -66,21 +67,25 @@ func (l *lowerer) mapType(t cc.Type) mir2.Ty {
 	case cc.Void:
 		return mir2.TyVoid
 	case cc.Bool, cc.Char, cc.SChar, cc.UChar:
-		if t.Kind() == cc.SChar {
+		if cc.IsSignedInteger(t) {
 			return mir2.TyI8
 		}
 		return mir2.TyU8
 	case cc.Short, cc.UShort, cc.Int, cc.UInt, cc.Enum:
-		if t.Kind() == cc.Short || t.Kind() == cc.Int {
+		if cc.IsSignedInteger(t) {
 			return mir2.TyI16
 		}
 		return mir2.TyU16
-	case cc.Long, cc.ULong, cc.LongLong, cc.ULongLong:
-		// 32-bit not natively supported; use i16 for now
-		if t.Kind() == cc.Long || t.Kind() == cc.LongLong {
-			return mir2.TyI16
+	case cc.Long, cc.ULong:
+		if cc.IsSignedInteger(t) {
+			return mir2.TyI32
 		}
-		return mir2.TyU16
+		return mir2.TyU32
+	case cc.LongLong, cc.ULongLong:
+		if l.typeError == nil {
+			l.typeError = fmt.Errorf("c89: 64-bit %s is not supported by the Z80 frontend", t)
+		}
+		return mir2.TyU32 // error returned by lower; never emit narrowed code
 	case cc.Ptr, cc.Function:
 		return mir2.TyPtr
 	case cc.Array:
@@ -100,6 +105,15 @@ func (l *lowerer) structTag(st *cc.StructType) string {
 func (l *lowerer) unionTag(ut *cc.UnionType) string {
 	t := ut.Tag()
 	return t.SrcStr()
+}
+
+// cConvert leaves already matching values structurally intact, including
+// aggregate literals needed by struct-return promotion.
+func cConvert(e hir.Expr, ty mir2.Ty) hir.Expr {
+	if e.ExprTy() == ty {
+		return e
+	}
+	return hir.Cast(e, ty)
 }
 
 // boolNormalize wraps an expression so that any non-zero value becomes 1.
@@ -1154,7 +1168,7 @@ func (fl *funcLow) lowerJump(js *cc.JumpStatement) ([]hir.Stmt, error) {
 			if err != nil {
 				return nil, err
 			}
-			return []hir.Stmt{hir.Ret(val)}, nil
+			return []hir.Stmt{hir.Ret(cConvert(val, fl.retTy))}, nil
 		}
 		return []hir.Stmt{hir.RetVoid()}, nil
 
@@ -1635,12 +1649,23 @@ func (fl *funcLow) extractCalleeName(expr cc.ExpressionNode) string {
 }
 
 func (fl *funcLow) lowerCall(pf *cc.PostfixExpression) (*exprResult, error) {
-	// Lower arguments.
+	calleeTy := pf.PostfixExpression.Type()
+	if ptr, ok := calleeTy.(*cc.PointerType); ok {
+		calleeTy = ptr.Elem()
+	}
+	ft, _ := calleeTy.(*cc.FunctionType)
+	// Lower arguments using the declared parameter type, not their original
+	// expression width. This also defines the ABI for cross-language calls.
 	var args []hir.Expr
 	for al := pf.ArgumentExpressionList; al != nil; al = al.ArgumentExpressionList {
 		arg, err := fl.lowerExprAsExpr(al.AssignmentExpression)
 		if err != nil {
 			return nil, err
+		}
+		if ft != nil && len(args) < len(ft.Parameters()) {
+			arg = cConvert(arg, fl.low.mapType(ft.Parameters()[len(args)].Type()))
+		} else if cc.IsIntegerType(al.AssignmentExpression.Type()) {
+			arg = cConvert(arg, fl.low.mapType(cc.IntegerPromotion(al.AssignmentExpression.Type())))
 		}
 		args = append(args, arg)
 	}
@@ -1711,17 +1736,23 @@ func (fl *funcLow) lowerUnary(ue *cc.UnaryExpression) (*exprResult, error) {
 		if err != nil {
 			return nil, err
 		}
-		return wrapExpr(&hir.UnaryExpr{Op: "-", X: inner, Ty: inner.ExprTy()}), nil
+		ty := fl.low.mapType(ue.Type())
+		return wrapExpr(&hir.UnaryExpr{Op: "-", X: cConvert(inner, ty), Ty: ty}), nil
 
 	case cc.UnaryExpressionPlus:
-		return fl.lowerExpr(ue.CastExpression)
+		inner, err := fl.lowerExprAsExpr(ue.CastExpression)
+		if err != nil {
+			return nil, err
+		}
+		return wrapExpr(cConvert(inner, fl.low.mapType(ue.Type()))), nil
 
 	case cc.UnaryExpressionCpl:
 		inner, err := fl.lowerExprAsExpr(ue.CastExpression)
 		if err != nil {
 			return nil, err
 		}
-		return wrapExpr(&hir.UnaryExpr{Op: "~", X: inner, Ty: inner.ExprTy()}), nil
+		ty := fl.low.mapType(ue.Type())
+		return wrapExpr(&hir.UnaryExpr{Op: "~", X: cConvert(inner, ty), Ty: ty}), nil
 
 	case cc.UnaryExpressionNot:
 		inner, err := fl.lowerExprAsExpr(ue.CastExpression)
@@ -1766,30 +1797,41 @@ func (fl *funcLow) lowerAssignment(ae *cc.AssignmentExpression) (*exprResult, er
 	}
 
 	ty := fl.low.mapType(ae.Type())
+	operand, opTy := target, ty
+	if ae.Case != cc.AssignmentExpressionAssign && cc.IsIntegerType(ae.UnaryExpression.Type()) && cc.IsIntegerType(ae.AssignmentExpression.Type()) {
+		if ae.Case == cc.AssignmentExpressionLsh || ae.Case == cc.AssignmentExpressionRsh {
+			opTy = fl.low.mapType(cc.IntegerPromotion(ae.UnaryExpression.Type()))
+			operand = cConvert(target, opTy)
+			val = cConvert(val, fl.low.mapType(cc.IntegerPromotion(ae.AssignmentExpression.Type())))
+		} else {
+			opTy = fl.low.mapType(cc.UsualArithmeticConversions(ae.UnaryExpression.Type(), ae.AssignmentExpression.Type()))
+			operand, val = cConvert(target, opTy), cConvert(val, opTy)
+		}
+	}
 	switch ae.Case {
 	case cc.AssignmentExpressionAdd:
-		val = hir.Add(target, val, ty)
+		val = hir.Add(operand, val, opTy)
 	case cc.AssignmentExpressionSub:
-		val = hir.Sub(target, val, ty)
+		val = hir.Sub(operand, val, opTy)
 	case cc.AssignmentExpressionMul:
-		val = hir.Mul(target, val, ty)
+		val = hir.Mul(operand, val, opTy)
 	case cc.AssignmentExpressionAnd:
-		val = &hir.BinExpr{Op: "&", L: target, R: val, Ty: ty}
+		val = &hir.BinExpr{Op: "&", L: operand, R: val, Ty: opTy}
 	case cc.AssignmentExpressionOr:
-		val = &hir.BinExpr{Op: "|", L: target, R: val, Ty: ty}
+		val = &hir.BinExpr{Op: "|", L: operand, R: val, Ty: opTy}
 	case cc.AssignmentExpressionXor:
-		val = &hir.BinExpr{Op: "^", L: target, R: val, Ty: ty}
+		val = &hir.BinExpr{Op: "^", L: operand, R: val, Ty: opTy}
 	case cc.AssignmentExpressionLsh:
-		val = &hir.BinExpr{Op: "<<", L: target, R: val, Ty: ty}
+		val = &hir.BinExpr{Op: "<<", L: operand, R: val, Ty: opTy}
 	case cc.AssignmentExpressionRsh:
-		val = &hir.BinExpr{Op: ">>", L: target, R: val, Ty: ty}
+		val = &hir.BinExpr{Op: ">>", L: operand, R: val, Ty: opTy}
 	case cc.AssignmentExpressionDiv:
-		val = &hir.BinExpr{Op: "/", L: target, R: val, Ty: ty}
+		val = &hir.BinExpr{Op: "/", L: operand, R: val, Ty: opTy}
 	case cc.AssignmentExpressionMod:
-		val = &hir.BinExpr{Op: "%", L: target, R: val, Ty: ty}
+		val = &hir.BinExpr{Op: "%", L: operand, R: val, Ty: opTy}
 	}
 
-	return wrapAssign(target, val), nil
+	return wrapAssign(target, cConvert(val, ty)), nil
 }
 
 // lowerBinaryOp handles all binary expression types via the cc.Case value.
@@ -1808,15 +1850,6 @@ func (fl *funcLow) lowerBinaryOp(left, right cc.ExpressionNode, caseVal interfac
 	}
 
 	mty := fl.low.mapType(ty)
-
-	// Selectively undo C integer promotion for 8-bit operations.
-	// Only narrow for ops where u8 overflow doesn't lose information:
-	// subtraction, division, bitwise ops. Do NOT narrow addition or
-	// multiplication — those can legitimately overflow u8 (e.g. 200+200).
-	lty, rty := l.ExprTy(), r.ExprTy()
-	narrow8 := (lty == mir2.TyU8 || lty == mir2.TyI8) && lty == rty
-	// For shifts: narrow based on left operand only (shift count type is irrelevant)
-	narrow8Shift := lty == mir2.TyU8 || lty == mir2.TyI8
 
 	op := ""
 	switch v := caseVal.(type) {
@@ -1875,18 +1908,17 @@ func (fl *funcLow) lowerBinaryOp(left, right cc.ExpressionNode, caseVal interfac
 		return wrapExpr(l), nil
 	}
 
-	// Apply u8 narrowing only for safe operators.
-	if narrow8 {
-		switch op {
-		case "-", "/", "%", "&", "|", "^": // safe: result fits in u8
-			mty = lty
-			// "+", "*" — do NOT narrow, overflow loses information
+	// C integer promotions and usual arithmetic conversions belong to the
+	// operands, including comparisons whose result type is only bool.
+	// C99 6.3.1.1, 6.3.1.8 and 6.5.7: shifts promote each operand separately.
+	if cc.IsIntegerType(left.Type()) && cc.IsIntegerType(right.Type()) {
+		if op == "<<" || op == ">>" {
+			l = hir.Cast(l, fl.low.mapType(cc.IntegerPromotion(left.Type())))
+			r = hir.Cast(r, fl.low.mapType(cc.IntegerPromotion(right.Type())))
+		} else {
+			common := fl.low.mapType(cc.UsualArithmeticConversions(left.Type(), right.Type()))
+			l, r = hir.Cast(l, common), hir.Cast(r, common)
 		}
-	}
-	// Shifts: narrow based on LEFT operand only (shift count type is irrelevant).
-	// C promotes shift count to int, but u8 << N should stay u8 on Z80.
-	if narrow8Shift && (op == "<<" || op == ">>") {
-		mty = lty
 	}
 
 	return wrapExpr(&hir.BinExpr{Op: op, L: l, R: r, Ty: mty}), nil

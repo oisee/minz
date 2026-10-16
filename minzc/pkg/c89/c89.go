@@ -90,8 +90,8 @@ func z80ABI() *cc.ABI {
 			cc.UInt:       mkTy(2),
 			cc.Long:       mkTy(4),
 			cc.ULong:      mkTy(4),
-			cc.LongLong:   mkTy(4),
-			cc.ULongLong:  mkTy(4),
+			cc.LongLong:   mkTy(8),
+			cc.ULongLong:  mkTy(8),
 			cc.Float:      mkTy(4),
 			cc.Double:     mkTy(4),
 			cc.LongDouble: mkTy(4),
@@ -186,12 +186,12 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 	modName := strings.TrimSuffix(name, ".c")
 	modName = strings.TrimSuffix(modName, ".m")
 	l := &lowerer{
-		ast:         ast,
-		hm:          &hir.Module{Name: modName},
-		globals:     make(map[string]mir2.Ty),
-		typedefs:    make(map[string]mir2.Ty),
-		structs:     make(map[string]*mir2.StructTy),
-		cStructs:    make(map[cc.Type]string),
+		ast:           ast,
+		hm:            &hir.Module{Name: modName},
+		globals:       make(map[string]mir2.Ty),
+		typedefs:      make(map[string]mir2.Ty),
+		structs:       make(map[string]*mir2.StructTy),
+		cStructs:      make(map[cc.Type]string),
 		objcClasses:   make(map[string]*objcClassInfo),
 		objcProtocols: make(map[string]*objcProtocolInfo),
 	}
