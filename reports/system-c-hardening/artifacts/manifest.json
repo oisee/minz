@@ -13,12 +13,17 @@
     {
       "path": "compiler.json",
       "bytes": 119,
-      "sha256": "1bb211211a57a4668476caf9c4dce06127ab86b1d0b0948d44f6c137d299d258"
+      "sha256": "a729ad2fc3386b5abad8ab0a18b7b5ed3312fc1a8ed484af9e1ab068f7a2b5d8"
     },
     {
       "path": "core.log",
       "bytes": 177,
       "sha256": "65302e8c033b91f5643d0187acd7df485345be2c7a82423717888ac90a2e2cb5"
+    },
+    {
+      "path": "data-only-core.log",
+      "bytes": 264,
+      "sha256": "10e5ac46e17ceaa1662f8c9985d7a9644b803da2a5ece43b0fa2b84d791b2c51"
     },
     {
       "path": "default/heatshrink/final.mir",
@@ -94,6 +99,11 @@
       "path": "directed.log",
       "bytes": 130,
       "sha256": "019a92e99444e34293ec2353de16a32b5fcf227bc829066f7e5ebbeed557a558"
+    },
+    {
+      "path": "fatfs-sweep.diff",
+      "bytes": 3140,
+      "sha256": "1c34e22cd1e02bec5e3a89e98600b00870ada6bbbf484b3d72966a9a133d00c7"
     },
     {
       "path": "grace/heatshrink/final.mir",
@@ -184,6 +194,11 @@
       "path": "result.json",
       "bytes": 136,
       "sha256": "780f17272af8e0cbd5bf243136e32989ac7dd6edc12e7f3beba06f6688bcb324"
+    },
+    {
+      "path": "reviewed-sweep.json",
+      "bytes": 2468,
+      "sha256": "39f60e7db9338c4341dda432f189015ac0540be13191185ad198fcd5e708d9d9"
     },
     {
       "path": "size/heatshrink/final.mir",

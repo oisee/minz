@@ -36,7 +36,9 @@ and Z80 totals.
   value. Lowering now recognizes the checked function declarator after decay.
 - VM placed the first C global at address zero, making its address equal to NULL.
   Modules with C object semantics reserve zero. Raw-address MIR keeps its existing
-  layout and explicit address-zero accesses remain possible.
+  layout and explicit address-zero accesses remain possible. The C module policy
+  also survives data-only imports into Nanz; no C function is required. A mixed
+  frontend regression checks raw/final VM and native object addresses and PC/SP.
 - Loading a word through BC/DE into a spill overwrote an earlier live HL value.
   The load now preserves live HL scratch state.
 - The assembler treated `;` inside quoted DB operands as a comment. Comments now
@@ -47,8 +49,8 @@ and Z80 totals.
 ## What was measured
 
 [Sources, configuration, workloads and reproduction instructions](../research/system-c-validation/README.md).
-The published matrix was collected on committed compiler `398142f2f`,
-compiler tree `aff23878`, recorded in [compiler.json](system-c-hardening/artifacts/compiler.json).
+The published matrix was collected on committed compiler `7f109d361`,
+compiler tree `7fe5805c`, recorded in [compiler.json](system-c-hardening/artifacts/compiler.json).
 Upstream sources and licenses are unchanged; target headers/runtime shims and
 workload adapters are separate and hashed. The selected versions are inih r62
 (commit `26254ee9`) and heatshrink v0.4.1 (commit `b9ac05e9`).
@@ -77,11 +79,22 @@ performance comparison with another target compiler is claimed here.
 
 ## Integration status
 
-The library matrix, directed regressions, core C/MIR/assembler and HIR/Nanz/Lizp
-checks pass. The fast pipeline has 434 passing tests and one outdated indirect
-ABI limit assertion; the updated four-slot/fifth-slot test passes separately.
-CI reruns the full fast inventory and the real-library matrix before merging. The changes are on `feat/system-c-hardening`;
-this report does not yet claim that the fixes are in main.
+The required PR gate and assertion matrix passed on checkpoint `e58847d3e`.
+The final compiler checkpoint `7f109d361` adds the data-only import regression
+and a lint readability fix; its [C/HIR/Nanz/Lizp/interop/assembler checks](system-c-hardening/artifacts/data-only-core.log)
+and all six real-library builds pass. CI reruns the required gate before merging.
+The changes are on `feat/system-c-hardening`; this report does not yet claim
+that the fixes are in main.
+
+The informational [default-output sweep](system-c-hardening/artifacts/reviewed-sweep.json)
+reported five changes across 844 files. Three former C23 examples now give the
+intentional unsupported-feature diagnostics. The old SDCC `ff.asm` remains
+unsupported: quote-aware comment handling exposes one additional `.ASCII` line
+in each assembler pass. FatFs C still emits ASM with the same diagnostics;
+its [complete output diff](system-c-hardening/artifacts/fatfs-sweep.diff) adds
+exactly nine PUSH/POP HL pairs around spill loads that require live-HL preservation.
+This is output review, not proof that the complete FatFs library executes correctly.
+The sweep remains informational for PRs; its comparison policy was not weakened.
 
 Full local artifacts, including failed intermediate runs, live under
 `/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/system-c-hardening/`.

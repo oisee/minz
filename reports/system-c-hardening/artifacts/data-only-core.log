@@ -1,0 +1,6 @@
+ok  	github.com/minz/minzc/pkg/c89	60.484s
+ok  	github.com/minz/minzc/pkg/interop	0.003s
+ok  	github.com/minz/minzc/pkg/z80asm	0.048s
+ok  	github.com/minz/minzc/pkg/hir	28.629s
+ok  	github.com/minz/minzc/pkg/nanz	25.909s
+ok  	github.com/minz/minzc/pkg/lizp	2.140s
