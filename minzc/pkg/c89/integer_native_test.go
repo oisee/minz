@@ -3,6 +3,7 @@ package c89_test
 import (
 	"encoding/binary"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -136,5 +137,50 @@ func TestCRejectsNarrowedLongLong(t *testing.T) {
 		if _, e := c89.Compile(src, "long-long.c"); e == nil || !strings.Contains(e.Error(), "64-bit") {
 			t.Fatalf("expected explicit 64-bit diagnostic, got %v", e)
 		}
+	}
+}
+
+// C99 6.3.1.3 and 6.8.6.4: integer promotion happens during arithmetic,
+// followed by conversion to the declared uint8_t result on return.
+func TestCMath8ExampleNativeVM(t *testing.T) {
+	source, e := os.ReadFile("../../../examples/c/c99_math8.c")
+	if e != nil {
+		t.Fatal(e)
+	}
+	parse := func() *hir.Module {
+		h, e := c89.Compile(string(source), "c99_math8.c")
+		if e != nil {
+			t.Fatal(e)
+		}
+		return h
+	}
+	for _, mode := range []string{"default", "grace", "size"} {
+		t.Run(mode, func(t *testing.T) {
+			h := parse()
+			checks := append([]hir.Assert(nil), h.Asserts...)
+			if len(checks) != 31 {
+				t.Fatalf("expected complete 31-case example, got %d", len(checks))
+			}
+			for i := range h.Asserts {
+				h.Asserts[i].Via = "z80"
+			}
+			steps, e := pipeline.CompileHIRSteps(h, pipeline.Options{AssertMode: "z80", ContractOpt: true, UseGrace: mode != "default", UseHIRGrace: mode != "default", OptSize: mode == "size"})
+			if e != nil {
+				t.Fatal(e)
+			}
+			for _, m := range []*mir2.Module{hir.LowerModule(parse()), steps.MIR2Module} {
+				for _, check := range checks {
+					vm := mir2.NewVM(m)
+					args := make([]mir2.Value, len(check.Args))
+					for i, a := range check.Args {
+						args[i] = mir2.Value{I: a}
+					}
+					got, e := vm.Call(check.FuncName, args)
+					if e != nil || len(got) != 1 || got[0].I != check.Expected {
+						t.Fatalf("%s%v: got %v err %v want %d", check.FuncName, check.Args, got, e, check.Expected)
+					}
+				}
+			}
+		})
 	}
 }

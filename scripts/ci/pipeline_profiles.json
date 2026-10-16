@@ -344,6 +344,7 @@
     "TestStructuredSpriteRuntimeBaseDiagnostics",
     "TestStructuredSpriteRuntimeBaseNativeAndVM",
     "TestStructuredSpriteWhenDiagnostics",
+    "TestSystemCFAT12ImageNativeVM",
     "TestTetrisDirectMainMachine",
     "TestTetrisDirectTemporalMachine",
     "TestTetrisFamilyIndependentModelControls",

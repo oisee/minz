@@ -240,9 +240,24 @@ func (l *lowerer) storageType(t cc.Type) mir2.Ty {
 	case *cc.ArrayType:
 		return mir2.NewArray(l.storageType(t.Elem()), int(t.Len()))
 	case *cc.StructType:
-		return l.structs[l.structTag(t)]
+		if known := l.resolveStructType(t); known != nil {
+			return known
+		}
+		tag := l.structTag(t)
+		if tag == "" {
+			tag = fmt.Sprintf("__anonymous_struct_%d", len(l.structs))
+		}
+		l.lowerStructDecl(tag, t)
+		return l.structs[tag]
 	case *cc.UnionType:
-		return l.structs[l.unionTag(t)]
+		tag := l.unionTag(t)
+		if tag == "" {
+			tag = fmt.Sprintf("__anonymous_union_%d", len(l.structs))
+		}
+		if l.structs[tag] == nil {
+			l.lowerUnionDecl(tag, t)
+		}
+		return l.structs[tag]
 	default:
 		return l.mapType(t)
 	}
@@ -1574,7 +1589,7 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 			return nil, err
 		}
 		elemTy := fl.low.mapType(pf.Type())
-		return wrapExpr(hir.Index(base, idx, elemTy)), nil
+		return wrapExpr(&hir.IndexExpr{Base: base, Idx: idx, ElemTy: elemTy, ElemStride: int(pf.Type().Size())}), nil
 
 	case cc.PostfixExpressionSelect: // struct.field
 		base, err := fl.lowerExprAsExpr(pf.PostfixExpression)
@@ -1619,7 +1634,7 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 			return nil, err
 		}
 		ty := base.ExprTy()
-		return &exprResult{target: base, val: hir.Add(base, &hir.IntLitExpr{Val: 1, Ty: ty}, ty), isPostfix: true}, nil
+		return &exprResult{target: base, val: hir.Add(base, &hir.IntLitExpr{Val: fl.incrementStep(pf.PostfixExpression.Type()), Ty: ty}, ty), isPostfix: true}, nil
 
 	case cc.PostfixExpressionDec: // x--
 		base, err := fl.lowerExprAsExpr(pf.PostfixExpression)
@@ -1627,7 +1642,7 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 			return nil, err
 		}
 		ty := base.ExprTy()
-		return &exprResult{target: base, val: hir.Sub(base, &hir.IntLitExpr{Val: 1, Ty: ty}, ty), isPostfix: true}, nil
+		return &exprResult{target: base, val: hir.Sub(base, &hir.IntLitExpr{Val: fl.incrementStep(pf.PostfixExpression.Type()), Ty: ty}, ty), isPostfix: true}, nil
 
 	case cc.PostfixExpressionComplit: // (Type){init-list} — compound literal
 		ty := pf.Type()
@@ -1757,7 +1772,13 @@ func (fl *funcLow) lowerUnary(ue *cc.UnaryExpression) (*exprResult, error) {
 		if v, ok := inner.(*hir.VarRefExpr); ok {
 			return wrapExpr(hir.Addr(v.Name)), nil
 		}
-		return wrapExpr(inner), nil
+		if _, function := inner.(*hir.AddrOfExpr); function && ue.CastExpression.Type().Kind() == cc.Function {
+			return wrapExpr(inner), nil // function names already lower to their address
+		}
+		if deref, ok := inner.(*hir.DerefExpr); ok {
+			return wrapExpr(deref.Ptr), nil // &*p does not access the pointed-to object
+		}
+		return wrapExpr(hir.AddrExpr(inner)), nil
 
 	case cc.UnaryExpressionDeref: // *x
 		inner, err := fl.lowerExprAsExpr(ue.CastExpression)
@@ -1803,7 +1824,7 @@ func (fl *funcLow) lowerUnary(ue *cc.UnaryExpression) (*exprResult, error) {
 			return nil, err
 		}
 		ty := inner.ExprTy()
-		return wrapAssign(inner, hir.Add(inner, &hir.IntLitExpr{Val: 1, Ty: ty}, ty)), nil
+		return wrapAssign(inner, hir.Add(inner, &hir.IntLitExpr{Val: fl.incrementStep(ue.UnaryExpression.Type()), Ty: ty}, ty)), nil
 
 	case cc.UnaryExpressionDec: // --x
 		inner, err := fl.lowerExprAsExpr(ue.UnaryExpression)
@@ -1811,7 +1832,7 @@ func (fl *funcLow) lowerUnary(ue *cc.UnaryExpression) (*exprResult, error) {
 			return nil, err
 		}
 		ty := inner.ExprTy()
-		return wrapAssign(inner, hir.Sub(inner, &hir.IntLitExpr{Val: 1, Ty: ty}, ty)), nil
+		return wrapAssign(inner, hir.Sub(inner, &hir.IntLitExpr{Val: fl.incrementStep(ue.UnaryExpression.Type()), Ty: ty}, ty)), nil
 
 	default:
 		return fl.lowerExpr(ue.CastExpression)
@@ -1843,6 +1864,9 @@ func (fl *funcLow) lowerAssignment(ae *cc.AssignmentExpression) (*exprResult, er
 			opTy = fl.low.mapType(cc.UsualArithmeticConversions(ae.UnaryExpression.Type(), ae.AssignmentExpression.Type()))
 			operand, val = cConvert(target, opTy), cConvert(val, opTy)
 		}
+	}
+	if stride, pointer := fl.pointerStride(ae.UnaryExpression.Type()); pointer && (ae.Case == cc.AssignmentExpressionAdd || ae.Case == cc.AssignmentExpressionSub) {
+		val = fl.pointerOffset(val, stride)
 	}
 	switch ae.Case {
 	case cc.AssignmentExpressionAdd:
@@ -1944,6 +1968,20 @@ func (fl *funcLow) lowerBinaryOp(left, right cc.ExpressionNode, caseVal interfac
 		return wrapExpr(l), nil
 	}
 
+	// C99 6.5.6: pointer offsets and differences use the pointed-to size.
+	if op == "+" || op == "-" {
+		leftStride, leftPointer := fl.pointerStride(left.Type())
+		rightStride, rightPointer := fl.pointerStride(right.Type())
+		if leftPointer && rightPointer && op == "-" {
+			return wrapExpr(fl.pointerDifference(l, r, leftStride)), nil
+		}
+		if leftPointer && cc.IsIntegerType(right.Type()) {
+			r = fl.pointerOffset(r, leftStride)
+		} else if rightPointer && cc.IsIntegerType(left.Type()) && op == "+" {
+			l = fl.pointerOffset(l, rightStride)
+		}
+	}
+
 	// C integer promotions and usual arithmetic conversions belong to the
 	// operands, including comparisons whose result type is only bool.
 	// C99 6.3.1.1, 6.3.1.8 and 6.5.7: shifts promote each operand separately.
@@ -1958,6 +1996,61 @@ func (fl *funcLow) lowerBinaryOp(left, right cc.ExpressionNode, caseVal interfac
 	}
 
 	return wrapExpr(&hir.BinExpr{Op: op, L: l, R: r, Ty: mty}), nil
+}
+
+// pointerStride also accepts arrays before the parser's decay conversion.
+func (fl *funcLow) pointerStride(ty cc.Type) (int64, bool) {
+	var elem cc.Type
+	switch t := ty.(type) {
+	case *cc.PointerType:
+		elem = t.Elem()
+	case *cc.ArrayType:
+		elem = t.Elem()
+	default:
+		return 0, false
+	}
+	if elem.Size() <= 0 {
+		if fl.low.typeError == nil {
+			fl.low.typeError = fmt.Errorf("c89: pointer arithmetic requires a complete object type, got %s", ty)
+		}
+		return 1, true
+	}
+	return elem.Size(), true
+}
+
+func (fl *funcLow) incrementStep(ty cc.Type) int64 {
+	if stride, pointer := fl.pointerStride(ty); pointer {
+		return stride
+	}
+	return 1
+}
+
+// The byte distance can exceed signed int even when the element distance
+// fits ptrdiff_t. Divide an unsigned magnitude, then apply the direction.
+func (fl *funcLow) pointerDifference(left, right hir.Expr, stride int64) hir.Expr {
+	if stride == 1 {
+		return hir.Sub(cConvert(left, mir2.TyI16), cConvert(right, mir2.TyI16), mir2.TyI16)
+	}
+	values := []hir.Expr{left, right}
+	for i, value := range values {
+		name := fmt.Sprintf("__ptrdiff_%d", fl.tmpCounter())
+		fl.locals[name] = mir2.TyU16
+		fl.pendingStmts = append(fl.pendingStmts, &hir.VarDeclStmt{Name: name, Ty: mir2.TyU16, Init: cConvert(value, mir2.TyU16)})
+		values[i] = hir.Var(name, mir2.TyU16)
+	}
+	left, right = values[0], values[1]
+	quotient := func(a, b hir.Expr) hir.Expr {
+		return cConvert(&hir.BinExpr{Op: "/", L: hir.Sub(a, b, mir2.TyU16), R: &hir.IntLitExpr{Val: stride, Ty: mir2.TyU16}, Ty: mir2.TyU16}, mir2.TyI16)
+	}
+	return &hir.CondExpr{Cond: &hir.BinExpr{Op: ">=", L: left, R: right, Ty: mir2.TyBool}, Then: quotient(left, right), Else: &hir.UnaryExpr{Op: "-", X: quotient(right, left), Ty: mir2.TyI16}, Ty: mir2.TyI16}
+}
+
+func (fl *funcLow) pointerOffset(offset hir.Expr, stride int64) hir.Expr {
+	offset = cConvert(offset, mir2.TyI16)
+	if stride > 1 {
+		return hir.Mul(offset, &hir.IntLitExpr{Val: stride, Ty: mir2.TyI16}, mir2.TyI16)
+	}
+	return offset
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────

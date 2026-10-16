@@ -48,10 +48,11 @@ uint8_t average(uint8_t a, uint8_t b) {
 }
 
 // assert add8(100, 50) == 150 via mir2
-// assert add8(200, 100) == 300 via mir2
+// C99 6.3.1.3, 6.8.6.4: conversion to uint8_t happens on return.
+// assert add8(200, 100) == 44 via mir2
 // assert sub8(100, 30) == 70 via mir2
 // assert mul8(7, 6) == 42 via mir2
-// assert mul8(16, 16) == 256 via mir2
+// assert mul8(16, 16) == 0 via mir2
 // assert div8(100, 10) == 10 via mir2
 // assert div8(255, 1) == 255 via mir2
 // assert mod8(17, 5) == 2 via mir2
