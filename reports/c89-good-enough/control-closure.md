@@ -78,3 +78,6 @@ Nanz 27.373 s, interop 0.002 s. Реальный FAT12 и прежний control
 Итоговый head `44bafcb9` прошёл все шесть обязательных CI-проверок и lint.
 Advisory sweep показывает пять изменений ASM без изменений exit/stdout/stderr.
 Завершение этого этапа само по себе не означает завершение всей цели C89.
+
+Post-merge: чистый main `c69f2197` воспроизвёл control-closure и отдельный
+native truncation regression, C89 0.384 s / MIR2 0.009 s, PASS.
