@@ -1,0 +1,15 @@
+{
+  "Compiler": "minz",
+  "Profile": "size",
+  "Case": "old_clamp",
+  "SourceSHA256": "70aea832311dc0ed101bcd8f6f936ad47e8c8f6b6317caae019356451e41f018",
+  "WorkloadSHA256": "fa43e028ccaaa411a307ac50e18237cd6d16d4cdb8a60a0ce45b5b083d1ddad3",
+  "Status": "PASS",
+  "InitializedBytes": 288,
+  "GlobalBytes": 5,
+  "ProgramBytes": 288,
+  "Calls": 4096,
+  "TotalT": 770122,
+  "ObservationCount": 4096,
+  "DetailedMeasurementsSHA256": "b7b754b619f90bf42cde8ef262bfc2f3c80f447527ad0aa84aa6ae46721eab89"
+}

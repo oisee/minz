@@ -1,0 +1,15 @@
+{
+  "Compiler": "minz",
+  "Profile": "grace",
+  "Case": "old_wrap_twice",
+  "SourceSHA256": "86ad559e543c6d83c0efe8ea1b1a43dbce9ae05fc30a09238096d1c769a1312b",
+  "WorkloadSHA256": "60695471d920eed1ae8a71aa797b97d7eb9eb9b7282a4c405984f83f5b1d4ec6",
+  "Status": "PASS",
+  "InitializedBytes": 285,
+  "GlobalBytes": 4,
+  "ProgramBytes": 285,
+  "Calls": 134,
+  "TotalT": 14472,
+  "ObservationCount": 134,
+  "DetailedMeasurementsSHA256": "a607c119339d9239738f8a05c143f55f52388ea735d6584cc5d4380a87309102"
+}

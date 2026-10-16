@@ -1,0 +1,13 @@
+{
+  "samples": [
+    {
+      "id": "constant",
+      "inputs": {},
+      "expected": 45,
+      "after": {}
+    }
+  ],
+  "sizes": {
+    "result": 2
+  }
+}

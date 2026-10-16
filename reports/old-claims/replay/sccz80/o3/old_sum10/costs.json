@@ -1,0 +1,15 @@
+{
+  "Compiler": "sccz80",
+  "Profile": "o3",
+  "Case": "old_sum10",
+  "SourceSHA256": "8cc43992594f5a9871907d8e9e2700a3ac44072fad46d1735dd4ed2f42ede9ee",
+  "WorkloadSHA256": "4f906672c42eed2fc701fa7b3f495e9d3bcbd0c6b6c869d88bea78e97cb98436",
+  "Status": "PASS",
+  "InitializedBytes": 618,
+  "GlobalBytes": 2,
+  "ProgramBytes": 618,
+  "Calls": 1,
+  "TotalT": 5868,
+  "ObservationCount": 1,
+  "DetailedMeasurementsSHA256": "d049143b4ae777557303b3d38c56d5a87da4115e27087ebbf5c5db9eed467e6b"
+}

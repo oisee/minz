@@ -1,0 +1,15 @@
+{
+  "Compiler": "minz",
+  "Profile": "default",
+  "Case": "old_demo",
+  "SourceSHA256": "6b16543c6bd3a296f8442ab9c02fb2d937dda9bb6e6660decbbc2173cba25c52",
+  "WorkloadSHA256": "1f6a61763bf46bbcd5361d8bced870244833b410e899c0e35a350245acafd9fa",
+  "Status": "PASS",
+  "InitializedBytes": 249,
+  "GlobalBytes": 2,
+  "ProgramBytes": 249,
+  "Calls": 1,
+  "TotalT": 56,
+  "ObservationCount": 1,
+  "DetailedMeasurementsSHA256": "c13b612adef6e539bd12a197dc5ba2ee323e1988a1aba74776685b540a82c3b8"
+}

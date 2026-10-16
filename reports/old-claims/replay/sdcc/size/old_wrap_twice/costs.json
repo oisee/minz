@@ -1,0 +1,15 @@
+{
+  "Compiler": "sdcc",
+  "Profile": "size",
+  "Case": "old_wrap_twice",
+  "SourceSHA256": "86ad559e543c6d83c0efe8ea1b1a43dbce9ae05fc30a09238096d1c769a1312b",
+  "WorkloadSHA256": "60695471d920eed1ae8a71aa797b97d7eb9eb9b7282a4c405984f83f5b1d4ec6",
+  "Status": "PASS",
+  "InitializedBytes": 226,
+  "GlobalBytes": 4,
+  "ProgramBytes": 230,
+  "Calls": 134,
+  "TotalT": 13132,
+  "ObservationCount": 134,
+  "DetailedMeasurementsSHA256": "f8ef3303f08c5fdfd62ec3429628bf10602130aa4ec9e7c4334c42c469357dea"
+}

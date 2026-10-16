@@ -1,0 +1,15 @@
+[
+  [
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/old-claims-replay/measure",
+    "-compiler",
+    "minz",
+    "-profile",
+    "grace",
+    "-source",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/c89-old-claims-replay/research/c89-benchmark/old-claims/cases/old_sum10.c",
+    "-out",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/old-claims-replay/minz/grace/old_sum10",
+    "-workload",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/c89-old-claims-replay/research/c89-benchmark/old-claims/cases/old_sum10.json"
+  ]
+]

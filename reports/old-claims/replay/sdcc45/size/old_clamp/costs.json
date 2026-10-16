@@ -1,0 +1,15 @@
+{
+  "Compiler": "sdcc",
+  "Profile": "size",
+  "Case": "old_clamp",
+  "SourceSHA256": "70aea832311dc0ed101bcd8f6f936ad47e8c8f6b6317caae019356451e41f018",
+  "WorkloadSHA256": "fa43e028ccaaa411a307ac50e18237cd6d16d4cdb8a60a0ce45b5b083d1ddad3",
+  "Status": "PASS",
+  "InitializedBytes": 227,
+  "GlobalBytes": 5,
+  "ProgramBytes": 232,
+  "Calls": 4096,
+  "TotalT": 851370,
+  "ObservationCount": 4096,
+  "DetailedMeasurementsSHA256": "d018cebb243353e2ef30145128c990f007f5947d5f72b676d4ef2f0853b655ea"
+}

@@ -1,0 +1,15 @@
+{
+  "Compiler": "sdcc",
+  "Profile": "speed",
+  "Case": "old_fib10",
+  "SourceSHA256": "78cf4883757c131bf96da1be3276d863d99ce3a5fe084d064a91f6b89cfd7420",
+  "WorkloadSHA256": "025bf37968c1d901af63eccba82163bac37b6babe7f12524585d25bd505d93b9",
+  "Status": "PASS",
+  "InitializedBytes": 217,
+  "GlobalBytes": 2,
+  "ProgramBytes": 219,
+  "Calls": 1,
+  "TotalT": 1307,
+  "ObservationCount": 1,
+  "DetailedMeasurementsSHA256": "59f5aedd458997c7d7b2cc3098efe1fd3745168bcb28e602049f990ecd155913"
+}
