@@ -399,13 +399,10 @@ func (g *z80cg) genInst(inst *Inst) {
 		lo := lowByte(src)
 		if dst == lo {
 			// Already in place (e.g. dst=L, src=HL → L already has the value).
-		} else if (isIXYReg(lo) && (dst == "H" || dst == "L")) ||
-			((lo == "H" || lo == "L") && isIXYReg(dst)) {
-			// DD/FD prefix conflict: route through A.
-			g.emitLDA(lo)
-			g.emitLD8(dst, "A")
-			g.invalidate("A")
 		} else {
+			// emitLD8 handles DD/FD prefix conflicts through shadow A.
+			// A is implicit scratch, not this truncation's destination; a
+			// live accumulator (for example the original C argument) survives.
 			g.emitLD8(dst, lo)
 		}
 
