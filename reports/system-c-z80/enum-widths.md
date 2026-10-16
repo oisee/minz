@@ -64,10 +64,11 @@ go -C minzc test ./pkg/pipeline -run '^Test(NativeAssert|Z80Tuple)' -count=1
 `/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/system-c-z80/enum-widths/`.
 Короткий core HIR/MIR2/C89/cparse/Nanz/interop прошёл: 32.002/83.518/23.939/
 0.004/28.017/0.002 секунды. Проверка точного CI inventory также прошла.
-Полный fast pipeline (432 проверки, три процесса) ещё выполняется; его
-результат не включён в этот PASS.
+Полный fast pipeline этого checkpoint завершился: все 432 проверки
+в трёх процессах прошли. Это результат enum checkpoint до последующего
+исправления single evaluation; новые изменения имеют отдельный прогон.
 
 Следующая независимая проба обнаружила повторное вычисление адреса lvalue:
 `*pick() += 2` вызывает pick дважды вместо одного; pre/post increment и
 assignment expression также повторяют вызов. Расхождение подтверждено
-raw VM и native Z80. Это остаётся исправлением перед интеграцией.
+raw VM и native Z80. Исправление и проверки описаны в [следующем отчёте](lvalue-evaluation.md).

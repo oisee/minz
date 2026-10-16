@@ -66,6 +66,13 @@ func TestCVolatileAccessNativeVM(t *testing.T) {
 		{"bit_test", `void execute(void){result=(device&1)!=0;}`, 1, []volatileEvent{{Value: 1}}},
 		{"bit_update", `void execute(void){device|=2;result=device;}`, 3, []volatileEvent{{Value: 1}, {Write: true, Value: 3}, {Value: 3}}},
 
+		{"assignment_value", `void execute(void){result=(device=3);}`, 3, []volatileEvent{{Write: true, Value: 3}}},
+		{"compound_value", `void execute(void){result=(device+=2);}`, 3, []volatileEvent{{Value: 1}, {Write: true, Value: 3}}},
+		{"preincrement_value", `void execute(void){result=++device;}`, 2, []volatileEvent{{Value: 1}, {Write: true, Value: 2}}},
+		{"postincrement_value", `void execute(void){result=device++;}`, 1, []volatileEvent{{Value: 1}, {Write: true, Value: 2}}},
+		{"predecrement_value", `void execute(void){result=--device;}`, 0, []volatileEvent{{Value: 1}, {Write: true, Value: 0}}},
+		{"postdecrement_value", `void execute(void){result=device--;}`, 1, []volatileEvent{{Value: 1}, {Write: true, Value: 0}}},
+
 		{"volatile_pointer", `void execute(void){volatile unsigned char *volatile p=&device;result=*p;}`, 1, []volatileEvent{{Value: 1}}},
 		{"local_address", `void execute(void){volatile unsigned char x=3;volatile unsigned char *p=&x;*p=5;result=x;}`, 5, nil},
 

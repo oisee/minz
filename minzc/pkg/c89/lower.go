@@ -1331,7 +1331,8 @@ type exprResult struct {
 	expr      hir.Expr // non-nil for normal expressions
 	target    hir.Expr // non-nil for assignments
 	val       hir.Expr // non-nil for assignments
-	isPostfix bool     // true for x++/x-- (expression value is old target, not val)
+	isPostfix bool     // true for x++/x--
+	oldValue  hir.Expr // the single cached read before a postfix update
 }
 
 func (r *exprResult) isAssign() bool { return r != nil && r.target != nil }
@@ -1376,19 +1377,15 @@ func (fl *funcLow) lowerExprAsExpr(e cc.ExpressionNode) (hir.Expr, error) {
 	}
 	if r != nil && r.isAssign() {
 		if r.isPostfix {
-			// x++/x--: save old value in temp, then assign new value.
-			ty := r.target.ExprTy()
-			tmp := fmt.Sprintf("__post_%d", fl.tmpCounter())
-			fl.locals[tmp] = ty
-			fl.pendingStmts = append(fl.pendingStmts,
-				&hir.VarDeclStmt{Name: tmp, Ty: ty, Init: r.target},
-				r.toStmt())
-			return &hir.VarRefExpr{Name: tmp, Ty: ty}, nil
+			fl.pendingStmts = append(fl.pendingStmts, r.toStmt())
+			return r.oldValue, nil
 		}
-		// ++x, --x: emit assignment, return target (which now holds new value).
-		// a=b=c: emit assignment, return val (the assigned value).
+		// Assignment expressions yield the converted assigned value, without
+		// reading the destination again (particularly important for volatile).
+		value := fl.cacheExpression("assigned", r.val)
+		r.val = value
 		fl.pendingStmts = append(fl.pendingStmts, r.toStmt())
-		return r.target, nil
+		return value, nil
 	}
 	return r.toExpr(), nil
 }
@@ -1758,21 +1755,16 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 		}
 		return wrapExpr(cFieldValue(&hir.FieldExpr{X: base, Field: field, Offset: offset, Ty: ty})), nil
 
-	case cc.PostfixExpressionInc: // x++
+	case cc.PostfixExpressionInc, cc.PostfixExpressionDec:
 		base, err := fl.lowerExprAsExpr(pf.PostfixExpression)
 		if err != nil {
 			return nil, err
 		}
-		ty := base.ExprTy()
-		return &exprResult{target: base, val: fl.low.convertType(hir.Add(base, &hir.IntLitExpr{Val: fl.incrementStep(pf.PostfixExpression.Type()), Ty: ty}, ty), pf.PostfixExpression.Type()), isPostfix: true}, nil
-
-	case cc.PostfixExpressionDec: // x--
-		base, err := fl.lowerExprAsExpr(pf.PostfixExpression)
-		if err != nil {
-			return nil, err
+		step := fl.incrementStep(pf.PostfixExpression.Type())
+		if pf.Case == cc.PostfixExpressionDec {
+			step = -step
 		}
-		ty := base.ExprTy()
-		return &exprResult{target: base, val: fl.low.convertType(hir.Sub(base, &hir.IntLitExpr{Val: fl.incrementStep(pf.PostfixExpression.Type()), Ty: ty}, ty), pf.PostfixExpression.Type()), isPostfix: true}, nil
+		return fl.lowerIncrement(base, pf.PostfixExpression.Type(), step, true), nil
 
 	case cc.PostfixExpressionComplit: // (Type){init-list} — compound literal
 		ty := pf.Type()
@@ -1961,25 +1953,59 @@ func (fl *funcLow) lowerUnary(ue *cc.UnaryExpression) (*exprResult, error) {
 		}
 		return wrapExpr(&hir.UnaryExpr{Op: "!", X: inner, Ty: mir2.TyBool}), nil
 
-	case cc.UnaryExpressionInc: // ++x
+	case cc.UnaryExpressionInc, cc.UnaryExpressionDec:
 		inner, err := fl.lowerExprAsExpr(ue.UnaryExpression)
 		if err != nil {
 			return nil, err
 		}
-		ty := inner.ExprTy()
-		return wrapAssign(inner, fl.low.convertType(hir.Add(inner, &hir.IntLitExpr{Val: fl.incrementStep(ue.UnaryExpression.Type()), Ty: ty}, ty), ue.UnaryExpression.Type())), nil
-
-	case cc.UnaryExpressionDec: // --x
-		inner, err := fl.lowerExprAsExpr(ue.UnaryExpression)
-		if err != nil {
-			return nil, err
+		step := fl.incrementStep(ue.UnaryExpression.Type())
+		if ue.Case == cc.UnaryExpressionDec {
+			step = -step
 		}
-		ty := inner.ExprTy()
-		return wrapAssign(inner, fl.low.convertType(hir.Sub(inner, &hir.IntLitExpr{Val: fl.incrementStep(ue.UnaryExpression.Type()), Ty: ty}, ty), ue.UnaryExpression.Type())), nil
+		return fl.lowerIncrement(inner, ue.UnaryExpression.Type(), step, false), nil
 
 	default:
 		return fl.lowerExpr(ue.CastExpression)
 	}
+}
+
+// Cache the object address separately from its value: C compound assignment
+// and increment evaluate their lvalue once, even when it contains a call.
+func (fl *funcLow) stabilizeLvalue(target hir.Expr) hir.Expr {
+	var address hir.Expr
+	volatile := false
+	switch x := target.(type) {
+	case *hir.VarRefExpr:
+		return target
+	case *hir.DerefExpr:
+		address, volatile = x.Ptr, x.Volatile
+	case *hir.LoadExpr:
+		address, volatile = x.Ptr, x.Volatile
+	case *hir.FieldExpr:
+		address, volatile = hir.AddrExpr(x), x.Volatile
+	case *hir.IndexExpr:
+		address, volatile = hir.AddrExpr(x), x.Volatile
+	default:
+		return target
+	}
+	pointer := fl.cacheExpression("lvalue", address)
+	return &hir.DerefExpr{Ptr: pointer, Ty: target.ExprTy(), Volatile: volatile}
+}
+
+func (fl *funcLow) cacheExpression(kind string, value hir.Expr) hir.Expr {
+	name := fmt.Sprintf("__%s_%d", kind, fl.tmpCounter())
+	ty := value.ExprTy()
+	fl.locals[name] = ty
+	fl.pendingStmts = append(fl.pendingStmts, &hir.VarDeclStmt{Name: name, Ty: ty, Init: value})
+	return hir.Var(name, ty)
+}
+
+func (fl *funcLow) lowerIncrement(target hir.Expr, cType cc.Type, step int64, postfix bool) *exprResult {
+	target = fl.stabilizeLvalue(target)
+	old := fl.cacheExpression("before_update", target)
+	ty := target.ExprTy()
+	value := fl.low.convertType(hir.Add(old, &hir.IntLitExpr{Val: step, Ty: ty}, ty), cType)
+	return &exprResult{target: target, val: value, isPostfix: postfix, oldValue: old}
 }
 
 func (fl *funcLow) lowerAssignment(ae *cc.AssignmentExpression) (*exprResult, error) {
@@ -1991,6 +2017,7 @@ func (fl *funcLow) lowerAssignment(ae *cc.AssignmentExpression) (*exprResult, er
 	if err != nil {
 		return nil, err
 	}
+	target = fl.stabilizeLvalue(target)
 	val, err := fl.lowerExprAsExpr(ae.AssignmentExpression)
 	if err != nil {
 		return nil, err
