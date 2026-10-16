@@ -30,6 +30,8 @@ The project is active research: examples and targets have different levels of ma
 
 [Copy and packed-data optimization](reports/2026-10-16-copy-fat12-results.md): bounded pointer walks and bit-mask facts improve unchanged C and Nanz. Copy now measures 182 bytes / 301,600 Z80 T-states; additional workloads retain both gains and SDCC losses.
 
+[Learning from SDCC's own tests](reports/2026-10-16-sdcc-upstream-black-box.md): two unchanged upstream regression programs, ten passing builds, and concrete remaining byte-operation and signed-loop costs in the generated ASM.
+
 [Original identical-C Z80 baseline](reports/2026-10-16-c89-identical-c-benchmark.md): six frozen C inputs, MinZ / SDCC / sccz80, real T-states and independent oracles. SDCC wins speed and size on the five common examples; MinZ also supports the tested struct-by-value case. No overall compiler superiority is claimed.
 
 [From C promotions to CP: before/after Z80 ASM](reports/2026-10-16-c89-byte-compare-asm.md): unchanged C abs_diff and sum_array, exact code and timing, safe byte-range proof and heldout verification.

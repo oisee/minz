@@ -1,0 +1,11 @@
+{
+  "symbol": "_a",
+  "area": "_DATA",
+  "area_start": 49152,
+  "offset": 6,
+  "address": 49158,
+  "size": 398,
+  "original_sym_sha256": "3f2fabbef646e0bfe2283db764b10921c9acb95fea6f24b1232d7ab916474915",
+  "original_noi_sha256": "5b327f0359e5e72c1b9d432d31cbb3586b338b056be875f1e145d6a215d920ab",
+  "reason": "Static symbol recovered from object area and linked base; original code and NOI unchanged."
+}

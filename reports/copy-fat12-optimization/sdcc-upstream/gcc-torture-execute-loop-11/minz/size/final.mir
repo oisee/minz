@@ -1,0 +1,99 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/sdcc-upstream-pilot/gcc-torture-execute-loop-11/case
+global @regression_failures : u16
+global @regression_checks : u16
+global @result : u16
+global @a : [199]i16
+
+fun @foo()
+  block @entry:
+    %r1 = const 198 : i16 [pointer]
+    jmp @loop_head1(%r1)
+  block @loop_head1(%r1: i16 [pointer]):
+    %r3 = const 0 : i16 [pointer]
+    %r4 = cmp.ge %r1, %r3 : bool [flag]
+    cond_ret %r4, [], @loop_body2()
+  block @loop_body2:
+    %r5 = addr_of @a : ptr [pointer]
+    %r6 = const 2 : u16 [acc]
+    %r7 = mul %r1, %r6 : u16 [acc]
+    %r8 = ptr_add %r5, %r7 : ptr [pointer]
+    store %r8, %r1 : i16
+    %r9 = const -1 : i16 [pointer]
+    %r10 = add %r1, %r9 : i16 [pointer]
+    jmp @loop_head1(%r10)
+
+fun @testTortureExecute()
+  block @entry:
+    call @foo()
+    %r11 = const 0 : i16 [pointer]
+    jmp @loop_head1(%r11)
+  block @loop_head1(%r11: i16 [pointer]):
+    %r13 = const 199 : i16 [pointer]
+    %r14 = cmp.lt %r11, %r13 : bool [flag]
+    cond_ret %r14, [], @loop_body2()
+  block @loop_body2:
+    %r15 = addr_of @a : ptr [pointer]
+    %r16 = const 1 : u16 [general]
+    %r17 = shl %r11, %r16 : u16 [index]
+    %r18 = ptr_add %r15, %r17 : ptr [pointer]
+    %r19 = load %r18 : i16 [pointer]
+    %r20 = cmp.ne %r19, %r11 : bool [flag]
+    br_if %r20, @if_then4(), @if_join5()
+  block @if_then4:
+    jmp @loop_head6()
+  block @loop_head6:
+    jmp @loop_body7()
+  block @loop_body7:
+    %r21 = addr_of @regression_checks : ptr [pointer]
+    %r22 = load %r21 : u16 [pointer]
+    %r23 = const 1 : u16 [pointer]
+    %r24 = add %r22, %r23 : u16 [pointer]
+    %r25 = addr_of @regression_checks : ptr [pointer]
+    store %r25, %r24 : u16
+    jmp @if_then9()
+  block @if_then9:
+    %r26 = addr_of @regression_failures : ptr [pointer]
+    %r27 = load %r26 : u16 [pointer]
+    %r28 = const 1 : u16 [pointer]
+    %r29 = add %r27, %r28 : u16 [pointer]
+    %r30 = addr_of @regression_failures : ptr [pointer]
+    store %r30, %r29 : u16
+    jmp @if_join10()
+  block @if_join10:
+    jmp @if_then11()
+  block @if_then11:
+    jmp @loop_exit8()
+  block @loop_exit8:
+    jmp @if_join5()
+  block @if_join5:
+    %r31 = const 1 : i16 [pointer]
+    %r32 = add %r11, %r31 : i16 [pointer]
+    jmp @loop_head1(%r32)
+
+fun @execute()
+  block @entry:
+    %r33 = const 0 : i16 [pointer]
+    %r34 = addr_of @regression_failures : ptr [pointer]
+    store %r34, %r33 : u16
+    %r35 = const 0 : i16 [pointer]
+    %r36 = addr_of @regression_checks : ptr [pointer]
+    store %r36, %r35 : u16
+    call @testTortureExecute()
+    %r37 = addr_of @regression_failures : ptr [pointer]
+    %r38 = load %r37 : u16 [pointer]
+    %r39 = const 0 : u16 [general]
+    %r40 = cmp.ne %r38, %r39 : bool [flag]
+    br_if %r40, @cond_then1(), @cond_else2()
+  block @cond_then1:
+    %r41 = const 65535 : i32 [general]
+    jmp @cond_join3(%r41)
+  block @cond_join3(%r41: i32 [general]):
+    %r43 = trunc %r41 : i32 -> u16 [pointer]
+    %r44 = addr_of @result : ptr [pointer]
+    store %r44, %r43 : u16
+    ret void
+  block @cond_else2:
+    %r45 = addr_of @regression_checks : ptr [pointer]
+    %r46 = load %r45 : u16 [pointer]
+    jmp @cond_join3(%r46)
+

@@ -1,0 +1,7 @@
+In file included from /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/sdcc-upstream-pilot/gcc-torture-execute-loop-11/wrapper.c:2:
+/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/sdcc-upstream-pilot/gcc-torture-execute-loop-11/gcc-torture-execute-loop-11.c:11:81: error: operator '/' has no right operand
+   11 | #if !defined(__SDCC_mcs51) && !defined(__SDCC_pdk14) && !defined(__SDCC_pdk15) // Lack of memory
+      |                                                                                 ^
+/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/sdcc-upstream-pilot/gcc-torture-execute-loop-11/gcc-torture-execute-loop-11.c:26:81: error: operator '/' has no right operand
+   26 | #if !defined(__SDCC_mcs51) && !defined(__SDCC_pdk14) && !defined(__SDCC_pdk15) // Lack of memory
+      |                                                                                 ^

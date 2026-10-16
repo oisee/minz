@@ -3,27 +3,27 @@
 ;
 ;	Reconstructed for z80 Module Assembler
 ;
-;	Module compile time: Fri Oct 16 18:32:27 2026
+;	Module compile time: Fri Oct 16 19:14:14 2026
 
 
-	C_LINE	0,"/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/fat12_decode.c"
+	C_LINE	0,"/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/fat12_decode.c"
 
-	MODULE	X_home_alice_dev_minz_artifacts_grace_workspaces_copy_fat12_z80_research_c89_benchmark_cases_fat12_decode_c
+	MODULE	X_home_alice_dev_minz_artifacts_grace_workspaces_copy_fat12_main_audit_research_c89_benchmark_cases_fat12_decode_c
 
 
 	INCLUDE "z80_crt0.hdr"
 
 
-	C_LINE	1,"/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/fat12_decode.c"
-	C_LINE	2,"/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/fat12_decode.c"
-	C_LINE	3,"/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/fat12_decode.c"
+	C_LINE	1,"/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/fat12_decode.c"
+	C_LINE	2,"/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/fat12_decode.c"
+	C_LINE	3,"/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/fat12_decode.c"
 	SECTION	code_compiler
 
 ; Function fat12_decode flags 0x00000200 __smallc 
 ; unsigned int fat12_decode(unsigned char * fat, unsigned int cluster)
 ; parameter 'unsigned int cluster' at sp+2 size(2)
 ; parameter 'unsigned char * fat' at sp+4 size(2)
-	C_LINE	3,"/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/fat12_decode.c::fat12_decode::0::0"
+	C_LINE	3,"/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/fat12_decode.c::fat12_decode::0::0"
 ._fat12_decode
 	pop	bc
 	pop	hl
@@ -81,11 +81,11 @@
 	ret
 
 
-	C_LINE	9,"/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/fat12_decode.c::fat12_decode::0::1"
+	C_LINE	9,"/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/fat12_decode.c::fat12_decode::0::1"
 
 ; Function execute flags 0x00000200 __smallc 
 ; void execute()
-	C_LINE	9,"/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/fat12_decode.c::execute::0::1"
+	C_LINE	9,"/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/fat12_decode.c::execute::0::1"
 ._execute
 	ld	hl,_values
 	push	hl

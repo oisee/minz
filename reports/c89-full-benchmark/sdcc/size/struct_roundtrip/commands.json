@@ -12,7 +12,7 @@
     "--lib-path",
     "/home/alice/dev/minz-artifacts/toolchains/sdcc-4.2/root/usr/share/sdcc/lib/z80",
     "-o",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/sdcc/size/struct_roundtrip/program.ihx",
-    "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/struct_roundtrip.c"
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-main/sdcc/size/struct_roundtrip/program.ihx",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/struct_roundtrip.c"
   ]
 ]

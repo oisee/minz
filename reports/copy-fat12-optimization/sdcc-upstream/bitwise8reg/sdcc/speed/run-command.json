@@ -1,0 +1,19 @@
+[
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-catalog-refined/measure",
+  "-compiler",
+  "sdcc",
+  "-profile",
+  "speed",
+  "-source",
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/sdcc-upstream-pilot/bitwise8reg/case.c",
+  "-workload",
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/sdcc-upstream-pilot/bitwise8reg/workload.json",
+  "-out",
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/sdcc-upstream-pilot/bitwise8reg/sdcc/speed",
+  "-image",
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/sdcc-upstream-pilot/bitwise8reg/sdcc/speed/program.ihx",
+  "-symbols",
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/sdcc-upstream-pilot/bitwise8reg/sdcc/speed/program.noi",
+  "-build-info",
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/sdcc-upstream-pilot/bitwise8reg/sdcc/speed/build-info.json"
+]

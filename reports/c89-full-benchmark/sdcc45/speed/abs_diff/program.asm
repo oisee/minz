@@ -50,13 +50,13 @@ _result::
 ; code
 ;--------------------------------------------------------
 	.area _CODE
-;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/abs_diff.c:3: unsigned char abs_diff(unsigned char x, unsigned char y) {
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/abs_diff.c:3: unsigned char abs_diff(unsigned char x, unsigned char y) {
 ;	---------------------------------
 ; Function abs_diff
 ; ---------------------------------
 _abs_diff::
 	ld	c, a
-;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/abs_diff.c:4: if (x > y) return x - y;
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/abs_diff.c:4: if (x > y) return x - y;
 	ld	a, l
 	sub	a, c
 	jr	NC, 00102$
@@ -64,12 +64,12 @@ _abs_diff::
 	sub	a, l
 	ret
 00102$:
-;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/abs_diff.c:5: return y - x;
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/abs_diff.c:5: return y - x;
 	ld	a, l
 	sub	a, c
-;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/abs_diff.c:6: }
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/abs_diff.c:6: }
 	ret
-;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/abs_diff.c:7: void execute(void) { result = abs_diff(a, b); }
+;/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/abs_diff.c:7: void execute(void) { result = abs_diff(a, b); }
 ;	---------------------------------
 ; Function execute
 ; ---------------------------------

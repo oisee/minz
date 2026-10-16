@@ -1,0 +1,13 @@
+[
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-catalog-refined/measure",
+  "-compiler",
+  "minz",
+  "-profile",
+  "default",
+  "-source",
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/sdcc-upstream-pilot/gcc-torture-execute-loop-11/case.c",
+  "-workload",
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/sdcc-upstream-pilot/gcc-torture-execute-loop-11/workload.json",
+  "-out",
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/sdcc-upstream-pilot/gcc-torture-execute-loop-11/minz/default"
+]

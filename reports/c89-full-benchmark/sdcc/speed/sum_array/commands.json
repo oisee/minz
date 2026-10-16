@@ -12,24 +12,24 @@
     "--lib-path",
     "/home/alice/dev/minz-artifacts/toolchains/sdcc-4.2/root/usr/share/sdcc/lib/z80",
     "-o",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/sdcc/speed/sum_array/program.ihx",
-    "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/sum_array.c"
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-main/sdcc/speed/sum_array/program.ihx",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/sum_array.c"
   ],
   [
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/measure",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-main/measure",
     "-compiler",
     "sdcc",
     "-profile",
     "speed",
     "-source",
-    "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/sum_array.c",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-main-audit/research/c89-benchmark/cases/sum_array.c",
     "-out",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/sdcc/speed/sum_array",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-main/sdcc/speed/sum_array",
     "-image",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/sdcc/speed/sum_array/program.ihx",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-main/sdcc/speed/sum_array/program.ihx",
     "-symbols",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/sdcc/speed/sum_array/program.noi",
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-main/sdcc/speed/sum_array/program.noi",
     "-build-info",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/sdcc/speed/sum_array/build-info.json"
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-main/sdcc/speed/sum_array/build-info.json"
   ]
 ]

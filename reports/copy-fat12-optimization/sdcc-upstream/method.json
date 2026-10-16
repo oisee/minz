@@ -1,0 +1,25 @@
+{
+  "sdcc_release": "4.5.0",
+  "archive_sha256": "d5030437fb436bb1d93a8dbdbfb46baaa60613318f4fb3f5871d72815d1eed80",
+  "sources": [
+    {
+      "upstream_path": "support/regression/tests/bitwise8reg.c",
+      "entry": "test8",
+      "sha256": "03dee3752c8356c78fe847fb886366779d5032cba96b930b49cd85e5027ed09c",
+      "common_tu_sha256": "102885758996384fd6cb6df150b048feeb095242f6542f85e175a92d02cedb74",
+      "workload_sha256": "6e581842d83ef8f6debf5f81be296e8ab719965bee52793a17e7ddda0df83e46"
+    },
+    {
+      "upstream_path": "support/regression/tests/gcc-torture-execute-loop-11.c",
+      "entry": "testTortureExecute",
+      "sha256": "5a611371d60aba373012f8627cc219a269e40e1facf4ff572e3c24d65dc7b328",
+      "common_tu_sha256": "104cf9dac7eb91a1dc53f4183ba5002154346c6734eb96d2ea6383d485a84ac5",
+      "workload_sha256": "8cbb9ba3bee1b6e38aa6a19cdf731f7f779a1f4157c95b41608cdb698ea5a936"
+    }
+  ],
+  "scope": "Unchanged upstream files; common ASSERT adapter and SDCC C99 preprocessed TU. Regression cost, not algorithm benchmark. Initial C89 preprocessing rejection retained.",
+  "candidate_compiler_commit": "02d045bd1f51f9bbfcf6ae116d9e5b692812b5d8",
+  "candidate_compiler_tree": "3cd5c7bb68658373a6f461cfad8508c33cc770f8",
+  "measure_binary_sha256": "53ede8e800349fc0af58efe66e6b3e11a394f18c3dbe8bf58a9acf001320199e",
+  "driver_sha256": "d5116518766b2bf88fa04bc523f775b5362b44c3bf3a22f3e0b21ec6752d4904"
+}

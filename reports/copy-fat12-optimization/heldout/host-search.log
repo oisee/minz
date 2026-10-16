@@ -13,9 +13,9 @@
         "-O2",
         "-shared",
         "-fPIC",
-        "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/heldout-refined/host-cases/copy_xor.c",
+        "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/heldout-main/host-cases/copy_xor.c",
         "-o",
-        "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/heldout-refined/host-search/host-oracle/copy_xor.so"
+        "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/heldout-main/host-search/host-oracle/copy_xor.so"
       ]
     },
     {
@@ -30,9 +30,9 @@
         "-O2",
         "-shared",
         "-fPIC",
-        "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/heldout-refined/host-cases/packed_pair.c",
+        "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/heldout-main/host-cases/packed_pair.c",
         "-o",
-        "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/heldout-refined/host-search/host-oracle/packed_pair.so"
+        "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/heldout-main/host-search/host-oracle/packed_pair.so"
       ]
     }
   ],

@@ -1,0 +1,120 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/sdcc-upstream-pilot/gcc-torture-execute-loop-11/case
+global @regression_failures : u16
+global @regression_checks : u16
+global @result : u16
+global @a : [199]i16
+
+fun @foo()
+  block @entry:
+    %r1 = const 0 : i16 [pointer]
+    %r2 = const 198 : i16 [pointer]
+    jmp @loop_head1(%r2)
+  block @loop_head1(%r3: i16 [pointer]):
+    %r4 = const 0 : i16 [pointer]
+    %r5 = cmp.ge %r3, %r4 : bool [flag]
+    br_if %r5, @loop_body2(), @loop_exit3(%r3)
+  block @loop_body2:
+    %r6 = addr_of @a : ptr [pointer]
+    %r7 = const 2 : u16 [acc]
+    %r8 = mul %r3, %r7 : u16 [acc]
+    %r9 = ptr_add %r6, %r8 : ptr [pointer]
+    store %r9, %r3 : i16
+    %r10 = const -1 : i16 [pointer]
+    %r11 = add %r3, %r10 : i16 [pointer]
+    jmp @loop_head1(%r11)
+  block @loop_exit3(%r12: i16 [pointer]):
+    ret void
+
+fun @testTortureExecute()
+  block @entry:
+    %r13 = const 0 : i16 [pointer]
+    call @foo()
+    %r14 = const 0 : i16 [pointer]
+    jmp @loop_head1(%r14)
+  block @loop_head1(%r15: i16 [pointer]):
+    %r16 = const 199 : i16 [pointer]
+    %r17 = cmp.lt %r15, %r16 : bool [flag]
+    br_if %r17, @loop_body2(), @loop_exit3(%r15)
+  block @loop_body2:
+    %r18 = addr_of @a : ptr [pointer]
+    %r19 = const 1 : u16 [general]
+    %r20 = shl %r15, %r19 : u16 [index]
+    %r21 = ptr_add %r18, %r20 : ptr [pointer]
+    %r22 = load %r21 : i16 [pointer]
+    %r23 = cmp.ne %r22, %r15 : bool [flag]
+    br_if %r23, @if_then4(), @if_join5()
+  block @if_then4:
+    jmp @loop_head6()
+  block @loop_head6:
+    %r24 = const 1 : bool [general]
+    %r25 = const 0 : bool [general]
+    %r26 = cmp.ne %r24, %r25 : bool [flag]
+    br_if %r26, @loop_body7(), @loop_exit8()
+  block @loop_body7:
+    %r27 = addr_of @regression_checks : ptr [pointer]
+    %r28 = load %r27 : u16 [pointer]
+    %r29 = const 1 : u16 [pointer]
+    %r30 = add %r28, %r29 : u16 [pointer]
+    %r31 = addr_of @regression_checks : ptr [pointer]
+    store %r31, %r30 : u16
+    %r32 = const 0 : i16 [pointer]
+    %r33 = const 0 : bool [general]
+    %r34 = cmp.eq %r32, %r33 : bool [flag]
+    %r35 = const 0 : bool [general]
+    %r36 = cmp.ne %r34, %r35 : bool [flag]
+    br_if %r36, @if_then9(), @if_join10()
+  block @if_then9:
+    %r37 = addr_of @regression_failures : ptr [pointer]
+    %r38 = load %r37 : u16 [pointer]
+    %r39 = const 1 : u16 [pointer]
+    %r40 = add %r38, %r39 : u16 [pointer]
+    %r41 = addr_of @regression_failures : ptr [pointer]
+    store %r41, %r40 : u16
+    jmp @if_join10()
+  block @if_join10:
+    %r42 = const 0 : i16 [pointer]
+    %r43 = const 0 : bool [general]
+    %r44 = cmp.eq %r42, %r43 : bool [flag]
+    %r45 = const 0 : bool [general]
+    %r46 = cmp.ne %r44, %r45 : bool [flag]
+    br_if %r46, @if_then11(), @if_join12()
+  block @if_then11:
+    jmp @loop_exit8()
+  block @if_join12:
+    jmp @loop_head6()
+  block @loop_exit8:
+    jmp @if_join5()
+  block @if_join5:
+    %r47 = const 1 : i16 [pointer]
+    %r48 = add %r15, %r47 : i16 [pointer]
+    jmp @loop_head1(%r48)
+  block @loop_exit3(%r49: i16 [pointer]):
+    ret void
+
+fun @execute()
+  block @entry:
+    %r50 = const 0 : i16 [pointer]
+    %r51 = addr_of @regression_failures : ptr [pointer]
+    store %r51, %r50 : u16
+    %r52 = const 0 : i16 [pointer]
+    %r53 = addr_of @regression_checks : ptr [pointer]
+    store %r53, %r52 : u16
+    call @testTortureExecute()
+    %r54 = addr_of @regression_failures : ptr [pointer]
+    %r55 = load %r54 : u16 [pointer]
+    %r56 = const 0 : u16 [general]
+    %r57 = cmp.ne %r55, %r56 : bool [flag]
+    br_if %r57, @cond_then1(), @cond_else2()
+  block @cond_then1:
+    %r58 = const 65535 : i32 [general]
+    jmp @cond_join3(%r58)
+  block @cond_else2:
+    %r59 = addr_of @regression_checks : ptr [pointer]
+    %r60 = load %r59 : u16 [pointer]
+    jmp @cond_join3(%r60)
+  block @cond_join3(%r61: i32 [general]):
+    %r62 = trunc %r61 : i32 -> u16 [pointer]
+    %r63 = addr_of @result : ptr [pointer]
+    store %r63, %r62 : u16
+    ret void
+
