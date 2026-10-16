@@ -1,0 +1,67 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "6662e55690c0c42c6e97f71dfe272176fef91377fc1e29f6556d389952d9e9ae",
+    "bytes": 1744
+  },
+  {
+    "path": "assemble.go",
+    "sha256": "6f39b7caa53b7b8bb31552990ecde939abd639fce3b778cc123a34d668222550",
+    "bytes": 574
+  },
+  {
+    "path": "hand-caller/build-info.json",
+    "sha256": "ce6c8707d51e6503532feb543a9baaf9f9dee4fca73c32b7210cdb49d0bbe64f",
+    "bytes": 264
+  },
+  {
+    "path": "hand-caller/command.json",
+    "sha256": "8e4ad25945574e06647e8f68ef4f252f319cae75bdb3be38e457ddb961b87262",
+    "bytes": 744
+  },
+  {
+    "path": "hand-caller/costs.json",
+    "sha256": "9ef4ca83bb1bf90390f5d02e1072c7dda0b8a1aacdcec05cda373d2dd9120c7d",
+    "bytes": 528
+  },
+  {
+    "path": "hand-caller/origin.json",
+    "sha256": "512a93e1b3f0490397a3fa9ec92ad91c631477f85d59ea654ee28d0b63caed0c",
+    "bytes": 371
+  },
+  {
+    "path": "hand-caller.a80",
+    "sha256": "822af8bdf8f6c0662f55bf888a317e1d3874585fdf347d8cb4d469165da84aa4",
+    "bytes": 552
+  },
+  {
+    "path": "same-caller/build-info.json",
+    "sha256": "2fc21aa9a4ccce3b6c26c4e5a9d36acbb1491b867cce6138d92c874c216ecceb",
+    "bytes": 264
+  },
+  {
+    "path": "same-caller/command.json",
+    "sha256": "679cd62e4d0c6eda7e6babc9ab9c37d5c221492649b35c30391775bd8acb3502",
+    "bytes": 744
+  },
+  {
+    "path": "same-caller/costs.json",
+    "sha256": "43df0469c1f682f40c9c6989bea646a778c5cbd454b723d50a967c73f823309d",
+    "bytes": 528
+  },
+  {
+    "path": "same-caller/origin.json",
+    "sha256": "221a7369a6273ebf94325f70b923f684404273208b92f9c118471e63e7927c0b",
+    "bytes": 371
+  },
+  {
+    "path": "same-caller.a80",
+    "sha256": "0c93c5f7df760fced649fa66a9f6846e6deef35fd4b63cafef1fd8047201919b",
+    "bytes": 1090
+  },
+  {
+    "path": "summary.json",
+    "sha256": "ee98e1513301627c67c24bd3ab6c9147101365053cffa202c44fa8510db69228",
+    "bytes": 1301
+  }
+]

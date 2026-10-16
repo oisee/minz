@@ -86,6 +86,27 @@ HL и DE проходят по памяти; индекс C остаётся д�
 к памяти по IX/IY+d. LD/ALU для половинок IX/IY использовать можно.
 [Проверенный источник и разбор](copy-fat12-optimization/bit-mask-progress.md#undocumented-z80-есть-ли-bit-niyl).
 
+## Ручной ориентир: что мог бы написать человек
+
+На той же нагрузке из 64 вызовов отдельно проверили две вручную написанные
+версии. С прежними MinZ ABI и compiler-generated execute() получилось
+**135 B / 19 776 T**. С ручным execute() и ABI HL/DE → HL —
+**121 B / 13 696 T**. Обе прошли native результат, объявленные области памяти и PC/SP.
+Это ручной ASM, не новый output компилятора и не доказанная глобальная оптимальность.
+Его полное исполнение в MIR VM не заявляется.
+
+Человек сохраняет cluster в BC, сдвигает DE для cluster/2, прибавляет оба
+слагаемых к базе HL. Затем читает low/high сразу в E/D через INC HL; C сохраняет
+parity. В нечётной ветке — четыре SRL H / RR L, в чётной — маска только H.
+Промежуточные byte extensions, сборка через OR и повторный base+offset не нужны.
+Это ориентир для общей нормализации адресов, последовательного word-read,
+byte-pack fusion и выбора ABI с учётом caller.
+
+[Полный ручной ASM](copy-fat12-optimization/human-asm/hand-caller.a80) ·
+[Тот же compiler-generated caller](copy-fat12-optimization/human-asm/same-caller.a80) ·
+[Методика](copy-fat12-optimization/human-asm/README.md) ·
+[Оба замера](copy-fat12-optimization/human-asm/summary.json).
+
 ## Где правило допустимо
 
 Counted pointer walk принимает узкую доказанную форму: байтовый индекс от нуля,
@@ -191,3 +212,15 @@ PASS. Ранее прошли HIR, MIR2 и Nanz; после последней �
 Полные артефакты, бинарники, подробные наблюдения и SHA-манифесты лежат локально:
 `/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/`.
 На игровую шару исследовательские CI-протоколы не копировались.
+
+## Дополнительный аудит CI
+
+В initial PR #184 direct-call fuzz job отмечен зелёным по report-only политике,
+но сам протокол содержит 223 PASS, 70 compiler errors и семь Z80/MIR2 расхождений.
+Повтор всех 300 seeds на baseline дал **полностью идентичные наблюдения**,
+включая те же неверные результаты; новых находок в этом наборе нет.
+[Сравнение](copy-fat12-optimization/validation/pr184-initial-fuzz-comparison.json).
+Эти существующие ошибки не объявляются исправленными. Обычный folded fuzz прошёл.
+Default sweep изменил только 34 файла output ASM: exit/stdout/stderr changes — ноль.
+Каталог reviewed evidence потребовал обновить SHA повторно проверенного sum-profile
+теста; это исправлено с сохранённым протоколом новой границы стоимости.

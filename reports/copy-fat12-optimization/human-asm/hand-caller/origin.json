@@ -1,0 +1,6 @@
+{
+  "origin": "hand-written Z80, not C/Nanz compiler output",
+  "import_adapter": "sccz80 binary/map reader only; sccz80 did not generate this code",
+  "source_contract": "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/fat12_decode.c",
+  "assembly_sha256": "822af8bdf8f6c0662f55bf888a317e1d3874585fdf347d8cb4d469165da84aa4"
+}

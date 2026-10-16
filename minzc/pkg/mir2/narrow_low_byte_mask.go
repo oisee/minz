@@ -61,7 +61,7 @@ func NarrowLowByteMaskTests(f *Func) bool {
 			if admit {
 				for side := 0; side < 2; side++ {
 					a, z := defs[x.Src[side]], defs[x.Src[1-side]]
-					if a == nil || z == nil || a.Op != OpAnd || !word(a.Ty) || !plain(a, false) || counts[a.Dst] != 1 || z.Op != OpConst || !(word(z.Ty) || z.Ty == TyU8 || z.Ty == TyI8) || z.Imm != 0 || !plain(z, true) || counts[z.Dst] != 1 {
+					if a == nil || z == nil || a.Op != OpAnd || !word(a.Ty) || !plain(a, false) || counts[a.Dst] != 1 || z.Op != OpConst || (!word(z.Ty) && z.Ty != TyU8 && z.Ty != TyI8) || z.Imm != 0 || !plain(z, true) || counts[z.Dst] != 1 {
 						continue
 					}
 					if x.SrcTy != nil && x.SrcTy.Width() != 16 {

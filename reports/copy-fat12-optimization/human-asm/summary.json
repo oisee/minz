@@ -1,0 +1,34 @@
+[
+  {
+    "Compiler": "hand-written Z80",
+    "Profile": "handwritten-same-caller",
+    "Case": "fat12_decode",
+    "SourceSHA256": "4a7338748721cbacb1766df589a1374358f8e209265a9a64cc43561d72dae050",
+    "WorkloadSHA256": "79b58d62a769018f93a7f89bfdf84af2518123abf5b479ff8f302ca4903f8cd7",
+    "Status": "PASS",
+    "InitializedBytes": 135,
+    "GlobalBytes": 67,
+    "ProgramBytes": 135,
+    "Calls": 64,
+    "TotalT": 19776,
+    "Variant": "same-caller",
+    "OriginSHA256": "0c93c5f7df760fced649fa66a9f6846e6deef35fd4b63cafef1fd8047201919b",
+    "DetailedMeasurementsSHA256": "e8b494d4202f3a1652e5a0307951f83e7a75465c5a485875eeb499d9bd210111"
+  },
+  {
+    "Compiler": "hand-written Z80",
+    "Profile": "handwritten-hand-caller",
+    "Case": "fat12_decode",
+    "SourceSHA256": "4a7338748721cbacb1766df589a1374358f8e209265a9a64cc43561d72dae050",
+    "WorkloadSHA256": "79b58d62a769018f93a7f89bfdf84af2518123abf5b479ff8f302ca4903f8cd7",
+    "Status": "PASS",
+    "InitializedBytes": 121,
+    "GlobalBytes": 67,
+    "ProgramBytes": 121,
+    "Calls": 64,
+    "TotalT": 13696,
+    "Variant": "hand-caller",
+    "OriginSHA256": "822af8bdf8f6c0662f55bf888a317e1d3874585fdf347d8cb4d469165da84aa4",
+    "DetailedMeasurementsSHA256": "82a8e82ad68eb94d31e93af2f204271eb83832199a7e47841a65d99426124535"
+  }
+]

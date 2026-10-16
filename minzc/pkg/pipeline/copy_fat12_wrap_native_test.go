@@ -17,6 +17,7 @@ type copyFatWrapMemory struct {
 	accesses []mir2.VMDataAccess
 }
 
+//nolint:govet // Implements the addressable z80.Memory bus, not io.ByteReader.
 func (m *copyFatWrapMemory) ReadByte(a uint16) byte { m.add(3); return m.ReadByteInternal(a) }
 func (m *copyFatWrapMemory) ReadByteInternal(a uint16) byte {
 	v := m.data[a]
@@ -25,6 +26,8 @@ func (m *copyFatWrapMemory) ReadByteInternal(a uint16) byte {
 	}
 	return v
 }
+
+//nolint:govet // Implements the addressable z80.Memory bus, not io.ByteWriter.
 func (m *copyFatWrapMemory) WriteByte(a uint16, v byte) { m.add(3); m.WriteByteInternal(a, v) }
 func (m *copyFatWrapMemory) WriteByteInternal(a uint16, v byte) {
 	if a < 4096 || a >= 65000 {

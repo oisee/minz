@@ -1,0 +1,15 @@
+{
+  "Compiler": "hand-written Z80",
+  "Profile": "handwritten-hand-caller",
+  "Case": "fat12_decode",
+  "SourceSHA256": "4a7338748721cbacb1766df589a1374358f8e209265a9a64cc43561d72dae050",
+  "WorkloadSHA256": "79b58d62a769018f93a7f89bfdf84af2518123abf5b479ff8f302ca4903f8cd7",
+  "Status": "PASS",
+  "InitializedBytes": 121,
+  "GlobalBytes": 67,
+  "ProgramBytes": 121,
+  "Calls": 64,
+  "TotalT": 13696,
+  "ObservationCount": 64,
+  "DetailedMeasurementsSHA256": "82a8e82ad68eb94d31e93af2f204271eb83832199a7e47841a65d99426124535"
+}

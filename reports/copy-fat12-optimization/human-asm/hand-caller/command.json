@@ -1,0 +1,17 @@
+[
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/full-refined/measure",
+  "-compiler",
+  "sccz80",
+  "-profile",
+  "handwritten-hand-caller",
+  "-source",
+  "/home/alice/dev/minz-artifacts/grace-workspaces/copy-fat12-z80/research/c89-benchmark/cases/fat12_decode.c",
+  "-image",
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/human-asm/hand-caller.bin",
+  "-symbols",
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/human-asm/hand-caller.map",
+  "-build-info",
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/human-asm/hand-caller/build-info.json",
+  "-out",
+  "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/copy-fat12/human-asm/hand-caller"
+]
