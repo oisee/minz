@@ -227,8 +227,7 @@ func scalarObjectUses(b *hir.Block, decl *hir.VarDeclStmt, fields map[string]*hi
 		}
 		return e, true
 	}
-	var visit func(*hir.Block) bool
-	visit = func(block *hir.Block) bool {
+	visit := func(block *hir.Block) bool {
 		if block == nil {
 			return true
 		}
