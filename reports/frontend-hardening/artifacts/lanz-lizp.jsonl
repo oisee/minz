@@ -1,0 +1,391 @@
+{"Time":"2026-10-16T21:49:23.427371935Z","Action":"start","Package":"github.com/minz/minzc/pkg/lanz"}
+{"Time":"2026-10-16T21:49:23.427522654Z","Action":"start","Package":"github.com/minz/minzc/pkg/lizp"}
+{"Time":"2026-10-16T21:49:23.433897849Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestLambdaRecordsLexicalCaptures"}
+{"Time":"2026-10-16T21:49:23.433940108Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestLambdaRecordsLexicalCaptures","Output":"=== RUN   TestLambdaRecordsLexicalCaptures\n"}
+{"Time":"2026-10-16T21:49:23.433978618Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestLambdaRecordsLexicalCaptures","Output":"--- PASS: TestLambdaRecordsLexicalCaptures (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.433982728Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestLambdaRecordsLexicalCaptures","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.433987578Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_Introspection"}
+{"Time":"2026-10-16T21:49:23.433989888Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_Introspection","Output":"=== RUN   TestMetaRuntime_Introspection\n"}
+{"Time":"2026-10-16T21:49:23.433992858Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_Introspection","Output":"--- PASS: TestMetaRuntime_Introspection (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.433995328Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_Introspection","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434006018Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_Emit"}
+{"Time":"2026-10-16T21:49:23.434008238Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_Emit","Output":"=== RUN   TestMetaRuntime_Emit\n"}
+{"Time":"2026-10-16T21:49:23.434013398Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_Emit","Output":"--- PASS: TestMetaRuntime_Emit (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434016488Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_Emit","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434018838Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_ASTIntrospection"}
+{"Time":"2026-10-16T21:49:23.434020888Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_ASTIntrospection","Output":"=== RUN   TestMetaRuntime_ASTIntrospection\n"}
+{"Time":"2026-10-16T21:49:23.434050098Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_ASTIntrospection","Output":"    meta_test.go:148: AST of add:\n"}
+{"Time":"2026-10-16T21:49:23.434052608Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_ASTIntrospection","Output":"        (fun add ((a u8) (b u8)) u8\n"}
+{"Time":"2026-10-16T21:49:23.434054838Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_ASTIntrospection","Output":"          (return (+ a b)))\n"}
+{"Time":"2026-10-16T21:49:23.434057758Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_ASTIntrospection","Output":"--- PASS: TestMetaRuntime_ASTIntrospection (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434061148Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_ASTIntrospection","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434063468Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_EmitViaVM"}
+{"Time":"2026-10-16T21:49:23.434065508Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_EmitViaVM","Output":"=== RUN   TestMetaRuntime_EmitViaVM\n"}
+{"Time":"2026-10-16T21:49:23.434092017Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_EmitViaVM","Output":"    meta_test.go:219: Generated: Color_size, Color_field_count\n"}
+{"Time":"2026-10-16T21:49:23.434095687Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_EmitViaVM","Output":"--- PASS: TestMetaRuntime_EmitViaVM (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434104167Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_EmitViaVM","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434107757Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_StringHelpers"}
+{"Time":"2026-10-16T21:49:23.434109847Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_StringHelpers","Output":"=== RUN   TestMetaRuntime_StringHelpers\n"}
+{"Time":"2026-10-16T21:49:23.434112567Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_StringHelpers","Output":"--- PASS: TestMetaRuntime_StringHelpers (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434114927Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaRuntime_StringHelpers","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434117197Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_Sizeof"}
+{"Time":"2026-10-16T21:49:23.434119307Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_Sizeof","Output":"=== RUN   TestMetaFunc_Sizeof\n"}
+{"Time":"2026-10-16T21:49:23.434122607Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_Sizeof","Output":"--- PASS: TestMetaFunc_Sizeof (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434125677Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_Sizeof","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434128747Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_Sizeof_Color"}
+{"Time":"2026-10-16T21:49:23.434130987Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_Sizeof_Color","Output":"=== RUN   TestMetaFunc_Sizeof_Color\n"}
+{"Time":"2026-10-16T21:49:23.434135837Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_Sizeof_Color","Output":"--- PASS: TestMetaFunc_Sizeof_Color (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434138947Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_Sizeof_Color","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434141977Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_Sizeof_U16Fields"}
+{"Time":"2026-10-16T21:49:23.434143917Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_Sizeof_U16Fields","Output":"=== RUN   TestMetaFunc_Sizeof_U16Fields\n"}
+{"Time":"2026-10-16T21:49:23.434148557Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_Sizeof_U16Fields","Output":"--- PASS: TestMetaFunc_Sizeof_U16Fields (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434157677Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_Sizeof_U16Fields","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434159937Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_FieldCount"}
+{"Time":"2026-10-16T21:49:23.434162007Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_FieldCount","Output":"=== RUN   TestMetaFunc_FieldCount\n"}
+{"Time":"2026-10-16T21:49:23.434170977Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_FieldCount","Output":"--- PASS: TestMetaFunc_FieldCount (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434173347Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_FieldCount","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434175637Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_DeriveSizeof"}
+{"Time":"2026-10-16T21:49:23.434177937Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_DeriveSizeof","Output":"=== RUN   TestMetaFunc_DeriveSizeof\n"}
+{"Time":"2026-10-16T21:49:23.434185197Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_DeriveSizeof","Output":"    metafunc_test.go:115: Generated: [sizeof_Point offsetof_Point_x offsetof_Point_y]\n"}
+{"Time":"2026-10-16T21:49:23.434192137Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_DeriveSizeof","Output":"--- PASS: TestMetaFunc_DeriveSizeof (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434195357Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_DeriveSizeof","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434197587Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_DeriveEq"}
+{"Time":"2026-10-16T21:49:23.434199637Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_DeriveEq","Output":"=== RUN   TestMetaFunc_DeriveEq\n"}
+{"Time":"2026-10-16T21:49:23.434225347Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_DeriveEq","Output":"    metafunc_test.go:143: derive_eq Lanz:\n"}
+{"Time":"2026-10-16T21:49:23.434227827Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_DeriveEq","Output":"        (fun Point_eq ((a ptr) (b ptr)) bool\n"}
+{"Time":"2026-10-16T21:49:23.434230157Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_DeriveEq","Output":"          (return (\u0026 (== (load (cast (+ (cast a u16) 0) ptr) u8) (load (cast (+ (cast b u16) 0) ptr) u8)) (== (load (cast (+ (cast a u16) 1) ptr) u8) (load (cast (+ (cast b u16) 1) ptr) u8)))))\n"}
+{"Time":"2026-10-16T21:49:23.434248717Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_DeriveEq","Output":"--- PASS: TestMetaFunc_DeriveEq (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434251177Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_DeriveEq","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434254287Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_DeriveDebug"}
+{"Time":"2026-10-16T21:49:23.434256287Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_DeriveDebug","Output":"=== RUN   TestMetaFunc_DeriveDebug\n"}
+{"Time":"2026-10-16T21:49:23.434259317Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_DeriveDebug","Output":"    metafunc_test.go:163: derive_debug Lanz:\n"}
+{"Time":"2026-10-16T21:49:23.434262736Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_DeriveDebug","Output":"        (fun Point_debug ((self ptr)) void\n"}
+{"Time":"2026-10-16T21:49:23.434265616Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_DeriveDebug","Output":"          (print_u8 (load (cast (+ (cast self u16) 0) ptr) u8))\n"}
+{"Time":"2026-10-16T21:49:23.434267816Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_DeriveDebug","Output":"          (print_u8 (load (cast (+ (cast self u16) 1) ptr) u8))\n"}
+{"Time":"2026-10-16T21:49:23.434270856Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_DeriveDebug","Output":"        )\n"}
+{"Time":"2026-10-16T21:49:23.434284566Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_DeriveDebug","Output":"--- PASS: TestMetaFunc_DeriveDebug (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434287086Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_DeriveDebug","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434290166Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_SizeofPrimitive"}
+{"Time":"2026-10-16T21:49:23.434292176Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_SizeofPrimitive","Output":"=== RUN   TestMetaFunc_SizeofPrimitive\n"}
+{"Time":"2026-10-16T21:49:23.434295586Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_SizeofPrimitive","Output":"--- PASS: TestMetaFunc_SizeofPrimitive (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434299476Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_SizeofPrimitive","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434305286Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_UnknownMeta"}
+{"Time":"2026-10-16T21:49:23.434307766Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_UnknownMeta","Output":"=== RUN   TestMetaFunc_UnknownMeta\n"}
+{"Time":"2026-10-16T21:49:23.434311096Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_UnknownMeta","Output":"--- PASS: TestMetaFunc_UnknownMeta (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434313446Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaFunc_UnknownMeta","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434316486Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestGlobalArrayInitializerByteOrderAndZeroFill"}
+{"Time":"2026-10-16T21:49:23.434318906Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestGlobalArrayInitializerByteOrderAndZeroFill","Output":"=== RUN   TestGlobalArrayInitializerByteOrderAndZeroFill\n"}
+{"Time":"2026-10-16T21:49:23.434328446Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestLastFormReturnContracts"}
+{"Time":"2026-10-16T21:49:23.434330826Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestLastFormReturnContracts","Output":"=== RUN   TestLastFormReturnContracts\n"}
+{"Time":"2026-10-16T21:49:23.434343406Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestGlobalArrayInitializerByteOrderAndZeroFill","Output":"--- PASS: TestGlobalArrayInitializerByteOrderAndZeroFill (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434345806Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestGlobalArrayInitializerByteOrderAndZeroFill","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434348086Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestGlobalArrayRejectsInvalidShape"}
+{"Time":"2026-10-16T21:49:23.434350116Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestGlobalArrayRejectsInvalidShape","Output":"=== RUN   TestGlobalArrayRejectsInvalidShape\n"}
+{"Time":"2026-10-16T21:49:23.434353506Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestGlobalArrayRejectsInvalidShape","Output":"--- PASS: TestGlobalArrayRejectsInvalidShape (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434355726Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestGlobalArrayRejectsInvalidShape","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434358526Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestParseSExpr"}
+{"Time":"2026-10-16T21:49:23.434360506Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestParseSExpr","Output":"=== RUN   TestParseSExpr\n"}
+{"Time":"2026-10-16T21:49:23.434363796Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestParseSExpr","Output":"--- PASS: TestParseSExpr (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434366046Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestParseSExpr","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434368346Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestParseSExpr_Comments"}
+{"Time":"2026-10-16T21:49:23.434370346Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestParseSExpr_Comments","Output":"=== RUN   TestParseSExpr_Comments\n"}
+{"Time":"2026-10-16T21:49:23.434377666Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestParseSExpr_Comments","Output":"--- PASS: TestParseSExpr_Comments (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434380866Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestParseSExpr_Comments","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434383086Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestParseSExpr_String"}
+{"Time":"2026-10-16T21:49:23.434385196Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestParseSExpr_String","Output":"=== RUN   TestParseSExpr_String\n"}
+{"Time":"2026-10-16T21:49:23.434387616Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestParseSExpr_String","Output":"--- PASS: TestParseSExpr_String (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434392206Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestParseSExpr_String","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434394396Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_Add"}
+{"Time":"2026-10-16T21:49:23.434396386Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_Add","Output":"=== RUN   TestCompile_Add\n"}
+{"Time":"2026-10-16T21:49:23.434399736Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_Add","Output":"--- PASS: TestCompile_Add (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434401936Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_Add","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434404246Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestU16ValuesThroughHIRAndMIR2"}
+{"Time":"2026-10-16T21:49:23.434406256Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestU16ValuesThroughHIRAndMIR2","Output":"=== RUN   TestU16ValuesThroughHIRAndMIR2\n"}
+{"Time":"2026-10-16T21:49:23.434508235Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestU16ValuesThroughHIRAndMIR2/add16"}
+{"Time":"2026-10-16T21:49:23.434510515Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestU16ValuesThroughHIRAndMIR2/add16","Output":"=== RUN   TestU16ValuesThroughHIRAndMIR2/add16\n"}
+{"Time":"2026-10-16T21:49:23.434529935Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestU16ValuesThroughHIRAndMIR2/add16","Output":"--- PASS: TestU16ValuesThroughHIRAndMIR2/add16 (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434532445Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestU16ValuesThroughHIRAndMIR2/add16","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434535615Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestU16ValuesThroughHIRAndMIR2/local16"}
+{"Time":"2026-10-16T21:49:23.434537795Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestU16ValuesThroughHIRAndMIR2/local16","Output":"=== RUN   TestU16ValuesThroughHIRAndMIR2/local16\n"}
+{"Time":"2026-10-16T21:49:23.434541345Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestU16ValuesThroughHIRAndMIR2/local16","Output":"--- PASS: TestU16ValuesThroughHIRAndMIR2/local16 (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434543605Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestU16ValuesThroughHIRAndMIR2/local16","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434547205Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestU16ValuesThroughHIRAndMIR2/let16"}
+{"Time":"2026-10-16T21:49:23.434549305Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestU16ValuesThroughHIRAndMIR2/let16","Output":"=== RUN   TestU16ValuesThroughHIRAndMIR2/let16\n"}
+{"Time":"2026-10-16T21:49:23.434552685Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestU16ValuesThroughHIRAndMIR2/let16","Output":"--- PASS: TestU16ValuesThroughHIRAndMIR2/let16 (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434554965Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestU16ValuesThroughHIRAndMIR2/let16","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434557225Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestU16ValuesThroughHIRAndMIR2/reverse16"}
+{"Time":"2026-10-16T21:49:23.434559605Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestU16ValuesThroughHIRAndMIR2/reverse16","Output":"=== RUN   TestU16ValuesThroughHIRAndMIR2/reverse16\n"}
+{"Time":"2026-10-16T21:49:23.434562935Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestU16ValuesThroughHIRAndMIR2/reverse16","Output":"--- PASS: TestU16ValuesThroughHIRAndMIR2/reverse16 (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434565775Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestU16ValuesThroughHIRAndMIR2/reverse16","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434570615Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestU16ValuesThroughHIRAndMIR2","Output":"--- PASS: TestU16ValuesThroughHIRAndMIR2 (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434572945Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestU16ValuesThroughHIRAndMIR2","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434576055Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_Global"}
+{"Time":"2026-10-16T21:49:23.434578275Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_Global","Output":"=== RUN   TestCompile_Global\n"}
+{"Time":"2026-10-16T21:49:23.434580675Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_Global","Output":"--- PASS: TestCompile_Global (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434582955Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_Global","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434585125Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_IfWhile"}
+{"Time":"2026-10-16T21:49:23.434587235Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_IfWhile","Output":"=== RUN   TestCompile_IfWhile\n"}
+{"Time":"2026-10-16T21:49:23.434593145Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_IfWhile","Output":"--- PASS: TestCompile_IfWhile (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434596305Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_IfWhile","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434599315Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_ForRange"}
+{"Time":"2026-10-16T21:49:23.434601305Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_ForRange","Output":"=== RUN   TestCompile_ForRange\n"}
+{"Time":"2026-10-16T21:49:23.434606125Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_ForRange","Output":"--- PASS: TestCompile_ForRange (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434609205Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_ForRange","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434612245Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_Extern"}
+{"Time":"2026-10-16T21:49:23.434614375Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_Extern","Output":"=== RUN   TestCompile_Extern\n"}
+{"Time":"2026-10-16T21:49:23.434617655Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_Extern","Output":"--- PASS: TestCompile_Extern (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434620714Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_Extern","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434622884Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_Struct"}
+{"Time":"2026-10-16T21:49:23.434624934Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_Struct","Output":"=== RUN   TestCompile_Struct\n"}
+{"Time":"2026-10-16T21:49:23.434628104Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_Struct","Output":"--- PASS: TestCompile_Struct (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434630394Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_Struct","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434633414Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_BareCall"}
+{"Time":"2026-10-16T21:49:23.434635354Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_BareCall","Output":"=== RUN   TestCompile_BareCall\n"}
+{"Time":"2026-10-16T21:49:23.434652664Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_BareCall","Output":"--- PASS: TestCompile_BareCall (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434657334Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_BareCall","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434660374Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_RoundTrip"}
+{"Time":"2026-10-16T21:49:23.434662334Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_RoundTrip","Output":"=== RUN   TestCompile_RoundTrip\n"}
+{"Time":"2026-10-16T21:49:23.434679134Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_RoundTrip","Output":"    lanz_test.go:257: Lanz→HIR dump:\n"}
+{"Time":"2026-10-16T21:49:23.434681804Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_RoundTrip","Output":"        ; HIR module: test\n"}
+{"Time":"2026-10-16T21:49:23.434684014Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_RoundTrip","Output":"        fun @add(a: u8, b: u8) -\u003e u8\n"}
+{"Time":"2026-10-16T21:49:23.434686284Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_RoundTrip","Output":"          return ((a:u8) + (b:u8)):u8\n"}
+{"Time":"2026-10-16T21:49:23.434690474Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_RoundTrip","Output":"        \n"}
+{"Time":"2026-10-16T21:49:23.434693064Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_RoundTrip","Output":"--- PASS: TestCompile_RoundTrip (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434695474Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_RoundTrip","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434697804Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestDump_RoundTrip"}
+{"Time":"2026-10-16T21:49:23.434699814Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestDump_RoundTrip","Output":"=== RUN   TestDump_RoundTrip\n"}
+{"Time":"2026-10-16T21:49:23.434702944Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestDump_RoundTrip","Output":"    lanz_test.go:267: Dump output:\n"}
+{"Time":"2026-10-16T21:49:23.434705134Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestDump_RoundTrip","Output":"        ; Lanz module: test\n"}
+{"Time":"2026-10-16T21:49:23.434707704Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestDump_RoundTrip","Output":"        (fun add ((a u8) (b u8)) u8\n"}
+{"Time":"2026-10-16T21:49:23.434709834Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestDump_RoundTrip","Output":"          (return (+ a b)))\n"}
+{"Time":"2026-10-16T21:49:23.434713354Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestDump_RoundTrip","Output":"--- PASS: TestDump_RoundTrip (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434715524Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestDump_RoundTrip","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434717694Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestDump_Global"}
+{"Time":"2026-10-16T21:49:23.434719744Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestDump_Global","Output":"=== RUN   TestDump_Global\n"}
+{"Time":"2026-10-16T21:49:23.434723094Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestDump_Global","Output":"--- PASS: TestDump_Global (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434725294Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestDump_Global","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434727434Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestIsInt"}
+{"Time":"2026-10-16T21:49:23.434729384Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestIsInt","Output":"=== RUN   TestIsInt\n"}
+{"Time":"2026-10-16T21:49:23.434732824Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestIsInt","Output":"--- PASS: TestIsInt (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434735054Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestIsInt","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434741524Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_UnaryNeg"}
+{"Time":"2026-10-16T21:49:23.434743624Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_UnaryNeg","Output":"=== RUN   TestCompile_UnaryNeg\n"}
+{"Time":"2026-10-16T21:49:23.434747064Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_UnaryNeg","Output":"--- PASS: TestCompile_UnaryNeg (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434749254Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_UnaryNeg","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434751504Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_CondExpr"}
+{"Time":"2026-10-16T21:49:23.434753524Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_CondExpr","Output":"=== RUN   TestCompile_CondExpr\n"}
+{"Time":"2026-10-16T21:49:23.434756974Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_CondExpr","Output":"--- PASS: TestCompile_CondExpr (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434759174Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestCompile_CondExpr","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434762174Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestAssert_Parse"}
+{"Time":"2026-10-16T21:49:23.434764124Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestAssert_Parse","Output":"=== RUN   TestAssert_Parse\n"}
+{"Time":"2026-10-16T21:49:23.434775724Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestAssert_Parse","Output":"--- PASS: TestAssert_Parse (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434778254Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestAssert_Parse","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434781284Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestAssert_Via"}
+{"Time":"2026-10-16T21:49:23.434783294Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestAssert_Via","Output":"=== RUN   TestAssert_Via\n"}
+{"Time":"2026-10-16T21:49:23.434786594Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestAssert_Via","Output":"--- PASS: TestAssert_Via (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434788844Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestAssert_Via","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434791014Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestAssert_MultiArg"}
+{"Time":"2026-10-16T21:49:23.434793084Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestAssert_MultiArg","Output":"=== RUN   TestAssert_MultiArg\n"}
+{"Time":"2026-10-16T21:49:23.434796423Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestAssert_MultiArg","Output":"--- PASS: TestAssert_MultiArg (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.434799493Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestAssert_MultiArg","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.434801603Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestAssert_E2E"}
+{"Time":"2026-10-16T21:49:23.434803623Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestAssert_E2E","Output":"=== RUN   TestAssert_E2E\n"}
+{"Time":"2026-10-16T21:49:23.43546374Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestAssert_E2E","Output":"--- PASS: TestAssert_E2E (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.43546928Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestAssert_E2E","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.43547375Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestLambda_Parse"}
+{"Time":"2026-10-16T21:49:23.43547601Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestLambda_Parse","Output":"=== RUN   TestLambda_Parse\n"}
+{"Time":"2026-10-16T21:49:23.436381675Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestLambda_Parse","Output":"--- PASS: TestLambda_Parse (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.436400024Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestLambda_Parse","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.436407794Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestLetIn_Parse"}
+{"Time":"2026-10-16T21:49:23.436411794Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestLetIn_Parse","Output":"=== RUN   TestLetIn_Parse\n"}
+{"Time":"2026-10-16T21:49:23.436686933Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestLetIn_Parse","Output":"--- PASS: TestLetIn_Parse (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.436696013Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestLetIn_Parse","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.436702533Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestLetIn_Chained"}
+{"Time":"2026-10-16T21:49:23.436706593Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestLetIn_Chained","Output":"=== RUN   TestLetIn_Chained\n"}
+{"Time":"2026-10-16T21:49:23.437086761Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestLetIn_Chained","Output":"--- PASS: TestLetIn_Chained (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.43710635Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestLetIn_Chained","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.43711254Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMatch_Parse"}
+{"Time":"2026-10-16T21:49:23.43711598Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMatch_Parse","Output":"=== RUN   TestMatch_Parse\n"}
+{"Time":"2026-10-16T21:49:23.437659617Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMatch_Parse","Output":"--- PASS: TestMatch_Parse (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.437667367Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMatch_Parse","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.437672867Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMatch_Else"}
+{"Time":"2026-10-16T21:49:23.437685557Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMatch_Else","Output":"=== RUN   TestMatch_Else\n"}
+{"Time":"2026-10-16T21:49:23.437918466Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMatch_Else","Output":"--- PASS: TestMatch_Else (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.437925686Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMatch_Else","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.437931336Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestFuncall"}
+{"Time":"2026-10-16T21:49:23.437934846Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestFuncall","Output":"=== RUN   TestFuncall\n"}
+{"Time":"2026-10-16T21:49:23.438647732Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestFuncall","Output":"--- PASS: TestFuncall (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.438656532Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestFuncall","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.438660672Z","Action":"run","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaE2E_NanzToVM"}
+{"Time":"2026-10-16T21:49:23.438662902Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaE2E_NanzToVM","Output":"=== RUN   TestMetaE2E_NanzToVM\n"}
+{"Time":"2026-10-16T21:49:23.438861161Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaE2E_NanzToVM","Output":"    meta_e2e_test.go:80: Emitted Lanz:\n"}
+{"Time":"2026-10-16T21:49:23.438863891Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaE2E_NanzToVM","Output":"        (fun Color_size () u8 (return 3))\n"}
+{"Time":"2026-10-16T21:49:23.438870081Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaE2E_NanzToVM","Output":"    meta_e2e_test.go:95: SUCCESS: Nanz meta → VM → emit Lanz → HIR function \"Color_size\"\n"}
+{"Time":"2026-10-16T21:49:23.438878911Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaE2E_NanzToVM","Output":"--- PASS: TestMetaE2E_NanzToVM (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.438881451Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Test":"TestMetaE2E_NanzToVM","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.43888534Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Output":"PASS\n"}
+{"Time":"2026-10-16T21:49:23.439804765Z","Action":"output","Package":"github.com/minz/minzc/pkg/lanz","Output":"ok  \tgithub.com/minz/minzc/pkg/lanz\t0.012s\n"}
+{"Time":"2026-10-16T21:49:23.439820025Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lanz","Elapsed":0.012}
+{"Time":"2026-10-16T21:49:23.456022354Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestLastFormReturnContracts","Output":"--- PASS: TestLastFormReturnContracts (0.02s)\n"}
+{"Time":"2026-10-16T21:49:23.456035034Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestLastFormReturnContracts","Elapsed":0.02}
+{"Time":"2026-10-16T21:49:23.456041754Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestLastFormRejectsMissingValues"}
+{"Time":"2026-10-16T21:49:23.456044894Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestLastFormRejectsMissingValues","Output":"=== RUN   TestLastFormRejectsMissingValues\n"}
+{"Time":"2026-10-16T21:49:23.456091634Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestLastFormRejectsMissingValues","Output":"--- PASS: TestLastFormRejectsMissingValues (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.456094784Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestLastFormRejectsMissingValues","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.456098494Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestU16ThroughHIRAndMIR2"}
+{"Time":"2026-10-16T21:49:23.456100794Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestU16ThroughHIRAndMIR2","Output":"=== RUN   TestU16ThroughHIRAndMIR2\n"}
+{"Time":"2026-10-16T21:49:23.456166833Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestU16ThroughHIRAndMIR2/add16"}
+{"Time":"2026-10-16T21:49:23.456169023Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestU16ThroughHIRAndMIR2/add16","Output":"=== RUN   TestU16ThroughHIRAndMIR2/add16\n"}
+{"Time":"2026-10-16T21:49:23.456182313Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestU16ThroughHIRAndMIR2/add16","Output":"--- PASS: TestU16ThroughHIRAndMIR2/add16 (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.456184843Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestU16ThroughHIRAndMIR2/add16","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.456188123Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestU16ThroughHIRAndMIR2/local16"}
+{"Time":"2026-10-16T21:49:23.456190323Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestU16ThroughHIRAndMIR2/local16","Output":"=== RUN   TestU16ThroughHIRAndMIR2/local16\n"}
+{"Time":"2026-10-16T21:49:23.456193783Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestU16ThroughHIRAndMIR2/local16","Output":"--- PASS: TestU16ThroughHIRAndMIR2/local16 (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.456196283Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestU16ThroughHIRAndMIR2/local16","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.456198683Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestU16ThroughHIRAndMIR2","Output":"--- PASS: TestU16ThroughHIRAndMIR2 (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.456202853Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestU16ThroughHIRAndMIR2","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.456205093Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileMinimal"}
+{"Time":"2026-10-16T21:49:23.456211813Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileMinimal","Output":"=== RUN   TestCompileMinimal\n"}
+{"Time":"2026-10-16T21:49:23.456215643Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileMinimal","Output":"--- PASS: TestCompileMinimal (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.456217883Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileMinimal","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.456220343Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDefun"}
+{"Time":"2026-10-16T21:49:23.456222343Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDefun","Output":"=== RUN   TestCompileDefun\n"}
+{"Time":"2026-10-16T21:49:23.456241693Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDefun","Output":"--- PASS: TestCompileDefun (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.456245333Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDefun","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.456248483Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileLet"}
+{"Time":"2026-10-16T21:49:23.456250463Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileLet","Output":"=== RUN   TestCompileLet\n"}
+{"Time":"2026-10-16T21:49:23.456266733Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileLet","Output":"--- PASS: TestCompileLet (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.456269073Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileLet","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.456272053Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileCond"}
+{"Time":"2026-10-16T21:49:23.456274133Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileCond","Output":"=== RUN   TestCompileCond\n"}
+{"Time":"2026-10-16T21:49:23.456295373Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileCond","Output":"--- PASS: TestCompileCond (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.456297773Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileCond","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.456300862Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDotimes"}
+{"Time":"2026-10-16T21:49:23.456302952Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDotimes","Output":"=== RUN   TestCompileDotimes\n"}
+{"Time":"2026-10-16T21:49:23.456335142Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDotimes","Output":"--- PASS: TestCompileDotimes (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.456337612Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDotimes","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.456340692Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDefstruct"}
+{"Time":"2026-10-16T21:49:23.456343322Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDefstruct","Output":"=== RUN   TestCompileDefstruct\n"}
+{"Time":"2026-10-16T21:49:23.456346782Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDefstruct","Output":"--- PASS: TestCompileDefstruct (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.456349892Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDefstruct","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.456352942Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDefglobal"}
+{"Time":"2026-10-16T21:49:23.456354902Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDefglobal","Output":"=== RUN   TestCompileDefglobal\n"}
+{"Time":"2026-10-16T21:49:23.456368392Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDefglobal","Output":"--- PASS: TestCompileDefglobal (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.456370792Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDefglobal","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.456376702Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileWhenUnless"}
+{"Time":"2026-10-16T21:49:23.456378772Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileWhenUnless","Output":"=== RUN   TestCompileWhenUnless\n"}
+{"Time":"2026-10-16T21:49:23.456406262Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileWhenUnless","Output":"--- PASS: TestCompileWhenUnless (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.456408662Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileWhenUnless","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.456411722Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileHexBinary"}
+{"Time":"2026-10-16T21:49:23.456413742Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileHexBinary","Output":"=== RUN   TestCompileHexBinary\n"}
+{"Time":"2026-10-16T21:49:23.456429102Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileHexBinary","Output":"--- PASS: TestCompileHexBinary (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.456431742Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileHexBinary","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.456434822Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileSetq"}
+{"Time":"2026-10-16T21:49:23.456436802Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileSetq","Output":"=== RUN   TestCompileSetq\n"}
+{"Time":"2026-10-16T21:49:23.456449942Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileSetq","Output":"--- PASS: TestCompileSetq (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.456452262Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileSetq","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.456455242Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileProgn"}
+{"Time":"2026-10-16T21:49:23.456457242Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileProgn","Output":"=== RUN   TestCompileProgn\n"}
+{"Time":"2026-10-16T21:49:23.456479311Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileProgn","Output":"--- PASS: TestCompileProgn (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.456481711Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileProgn","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.456484701Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileBoolOps"}
+{"Time":"2026-10-16T21:49:23.456486681Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileBoolOps","Output":"=== RUN   TestCompileBoolOps\n"}
+{"Time":"2026-10-16T21:49:23.456501031Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileBoolOps","Output":"--- PASS: TestCompileBoolOps (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.456503361Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileBoolOps","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.456506321Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDefextern"}
+{"Time":"2026-10-16T21:49:23.456508321Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDefextern","Output":"=== RUN   TestCompileDefextern\n"}
+{"Time":"2026-10-16T21:49:23.456535371Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDefextern","Output":"--- PASS: TestCompileDefextern (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.456537651Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDefextern","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.456540681Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDefmacro"}
+{"Time":"2026-10-16T21:49:23.456542771Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDefmacro","Output":"=== RUN   TestCompileDefmacro\n"}
+{"Time":"2026-10-16T21:49:23.456560871Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDefmacro","Output":"--- PASS: TestCompileDefmacro (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.456563411Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileDefmacro","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.456572961Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileThreadFirst"}
+{"Time":"2026-10-16T21:49:23.456575141Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileThreadFirst","Output":"=== RUN   TestCompileThreadFirst\n"}
+{"Time":"2026-10-16T21:49:23.456618911Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileThreadFirst","Output":"--- PASS: TestCompileThreadFirst (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.456621341Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileThreadFirst","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.456624751Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileThreadLast"}
+{"Time":"2026-10-16T21:49:23.456627501Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileThreadLast","Output":"=== RUN   TestCompileThreadLast\n"}
+{"Time":"2026-10-16T21:49:23.45666055Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileThreadLast","Output":"--- PASS: TestCompileThreadLast (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.45666297Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCompileThreadLast","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.45666608Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestMacroExpansionRecursive"}
+{"Time":"2026-10-16T21:49:23.45666818Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestMacroExpansionRecursive","Output":"=== RUN   TestMacroExpansionRecursive\n"}
+{"Time":"2026-10-16T21:49:23.45668901Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestMacroExpansionRecursive","Output":"--- PASS: TestMacroExpansionRecursive (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.45669137Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestMacroExpansionRecursive","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.45669438Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestAssert_Parse"}
+{"Time":"2026-10-16T21:49:23.45669638Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestAssert_Parse","Output":"=== RUN   TestAssert_Parse\n"}
+{"Time":"2026-10-16T21:49:23.45671367Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestAssert_Parse","Output":"--- PASS: TestAssert_Parse (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.45671597Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestAssert_Parse","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.45671895Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestAssert_HexLiteral"}
+{"Time":"2026-10-16T21:49:23.456721Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestAssert_HexLiteral","Output":"=== RUN   TestAssert_HexLiteral\n"}
+{"Time":"2026-10-16T21:49:23.45673503Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestAssert_HexLiteral","Output":"--- PASS: TestAssert_HexLiteral (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.45673743Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestAssert_HexLiteral","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.45674043Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestAssert_E2E"}
+{"Time":"2026-10-16T21:49:23.4567425Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestAssert_E2E","Output":"=== RUN   TestAssert_E2E\n"}
+{"Time":"2026-10-16T21:49:23.457262677Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestAssert_E2E","Output":"--- PASS: TestAssert_E2E (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.457267857Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestAssert_E2E","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.457273317Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestFuncall"}
+{"Time":"2026-10-16T21:49:23.457275377Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestFuncall","Output":"=== RUN   TestFuncall\n"}
+{"Time":"2026-10-16T21:49:23.457941923Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestFuncall","Output":"--- PASS: TestFuncall (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.457947233Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestFuncall","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.457950793Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestLambda"}
+{"Time":"2026-10-16T21:49:23.457952993Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestLambda","Output":"=== RUN   TestLambda\n"}
+{"Time":"2026-10-16T21:49:23.458407811Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestLambda","Output":"--- PASS: TestLambda (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.458413451Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestLambda","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.458417391Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestLetStar"}
+{"Time":"2026-10-16T21:49:23.458420001Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestLetStar","Output":"=== RUN   TestLetStar\n"}
+{"Time":"2026-10-16T21:49:23.458820318Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestLetStar","Output":"--- PASS: TestLetStar (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.458823418Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestLetStar","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.458827248Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCase"}
+{"Time":"2026-10-16T21:49:23.458829918Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCase","Output":"=== RUN   TestCase\n"}
+{"Time":"2026-10-16T21:49:23.459661654Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCase","Output":"--- PASS: TestCase (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.459668094Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCase","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.459673544Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestPeekPokeReturnPrognVMZ80"}
+{"Time":"2026-10-16T21:49:23.459676204Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestPeekPokeReturnPrognVMZ80","Output":"=== RUN   TestPeekPokeReturnPrognVMZ80\n"}
+{"Time":"2026-10-16T21:49:23.463394883Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestPeekPokeReturnPrognVMZ80","Output":"--- PASS: TestPeekPokeReturnPrognVMZ80 (0.00s)\n"}
+{"Time":"2026-10-16T21:49:23.463402313Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestPeekPokeReturnPrognVMZ80","Elapsed":0}
+{"Time":"2026-10-16T21:49:23.463406543Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestTruthAliasBindingsVMZ80"}
+{"Time":"2026-10-16T21:49:23.463409222Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestTruthAliasBindingsVMZ80","Output":"=== RUN   TestTruthAliasBindingsVMZ80\n"}
+{"Time":"2026-10-16T21:49:23.64869447Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestTruthAliasBindingsVMZ80","Output":"    result_semantics_test.go:53: 90 independent assertions verified by MIR2 VM and assembled Z80\n"}
+{"Time":"2026-10-16T21:49:23.6487245Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestTruthAliasBindingsVMZ80","Output":"--- PASS: TestTruthAliasBindingsVMZ80 (0.19s)\n"}
+{"Time":"2026-10-16T21:49:23.64872894Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestTruthAliasBindingsVMZ80","Elapsed":0.19}
+{"Time":"2026-10-16T21:49:23.64873593Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestComparisonBooleanALUVMZ80"}
+{"Time":"2026-10-16T21:49:23.64874613Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestComparisonBooleanALUVMZ80","Output":"=== RUN   TestComparisonBooleanALUVMZ80\n"}
+{"Time":"2026-10-16T21:49:25.540206245Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestComparisonBooleanALUVMZ80","Output":"    result_semantics_test.go:89: 2700 independent assertions verified by MIR2 VM and assembled Z80\n"}
+{"Time":"2026-10-16T21:49:25.540238725Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestComparisonBooleanALUVMZ80","Output":"--- PASS: TestComparisonBooleanALUVMZ80 (1.89s)\n"}
+{"Time":"2026-10-16T21:49:25.540245824Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestComparisonBooleanALUVMZ80","Elapsed":1.89}
+{"Time":"2026-10-16T21:49:25.540253314Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCaesarExampleBoundaryVMZ80"}
+{"Time":"2026-10-16T21:49:25.540256304Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCaesarExampleBoundaryVMZ80","Output":"=== RUN   TestCaesarExampleBoundaryVMZ80\n"}
+{"Time":"2026-10-16T21:49:25.651291119Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCaesarExampleBoundaryVMZ80","Output":"    result_semantics_test.go:114: 61 source assertions verified by MIR2 VM and assembled Z80\n"}
+{"Time":"2026-10-16T21:49:25.651321209Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCaesarExampleBoundaryVMZ80","Output":"--- PASS: TestCaesarExampleBoundaryVMZ80 (0.11s)\n"}
+{"Time":"2026-10-16T21:49:25.651328949Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestCaesarExampleBoundaryVMZ80","Elapsed":0.11}
+{"Time":"2026-10-16T21:49:25.651334929Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestZXExamplesFullScreenVMZ80"}
+{"Time":"2026-10-16T21:49:25.651338949Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestZXExamplesFullScreenVMZ80","Output":"=== RUN   TestZXExamplesFullScreenVMZ80\n"}
+{"Time":"2026-10-16T21:49:25.651344959Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestZXExamplesFullScreenVMZ80/showcase"}
+{"Time":"2026-10-16T21:49:25.651348649Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestZXExamplesFullScreenVMZ80/showcase","Output":"=== RUN   TestZXExamplesFullScreenVMZ80/showcase\n"}
+{"Time":"2026-10-16T21:49:25.659005826Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestZXExamplesFullScreenVMZ80/showcase","Output":"    zx_memory_regression_test.go:114: 6912 screen bytes PASS VM+Z80; native return SP=fff2; code=148 bytes T=64864\n"}
+{"Time":"2026-10-16T21:49:25.659022286Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestZXExamplesFullScreenVMZ80/showcase","Output":"--- PASS: TestZXExamplesFullScreenVMZ80/showcase (0.01s)\n"}
+{"Time":"2026-10-16T21:49:25.659027976Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestZXExamplesFullScreenVMZ80/showcase","Elapsed":0.01}
+{"Time":"2026-10-16T21:49:25.659031936Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestZXExamplesFullScreenVMZ80/zx_checkerboard"}
+{"Time":"2026-10-16T21:49:25.659034946Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestZXExamplesFullScreenVMZ80/zx_checkerboard","Output":"=== RUN   TestZXExamplesFullScreenVMZ80/zx_checkerboard\n"}
+{"Time":"2026-10-16T21:49:25.67419777Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestZXExamplesFullScreenVMZ80/zx_checkerboard","Output":"    zx_memory_regression_test.go:114: 6912 screen bytes PASS VM+Z80; native return SP=fff2; code=160 bytes T=860837\n"}
+{"Time":"2026-10-16T21:49:25.67421026Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestZXExamplesFullScreenVMZ80/zx_checkerboard","Output":"--- PASS: TestZXExamplesFullScreenVMZ80/zx_checkerboard (0.02s)\n"}
+{"Time":"2026-10-16T21:49:25.67421531Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestZXExamplesFullScreenVMZ80/zx_checkerboard","Elapsed":0.02}
+{"Time":"2026-10-16T21:49:25.67422558Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestZXExamplesFullScreenVMZ80/zx_rainbow"}
+{"Time":"2026-10-16T21:49:25.67422846Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestZXExamplesFullScreenVMZ80/zx_rainbow","Output":"=== RUN   TestZXExamplesFullScreenVMZ80/zx_rainbow\n"}
+{"Time":"2026-10-16T21:49:25.683426458Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestZXExamplesFullScreenVMZ80/zx_rainbow","Output":"    zx_memory_regression_test.go:114: 6912 screen bytes PASS VM+Z80; native return SP=fff2; code=118 bytes T=616797\n"}
+{"Time":"2026-10-16T21:49:25.683437138Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestZXExamplesFullScreenVMZ80/zx_rainbow","Output":"--- PASS: TestZXExamplesFullScreenVMZ80/zx_rainbow (0.01s)\n"}
+{"Time":"2026-10-16T21:49:25.683442088Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestZXExamplesFullScreenVMZ80/zx_rainbow","Elapsed":0.01}
+{"Time":"2026-10-16T21:49:25.683445748Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestZXExamplesFullScreenVMZ80","Output":"--- PASS: TestZXExamplesFullScreenVMZ80 (0.03s)\n"}
+{"Time":"2026-10-16T21:49:25.683448978Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestZXExamplesFullScreenVMZ80","Elapsed":0.03}
+{"Time":"2026-10-16T21:49:25.683451948Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestNestedMacroArityAndRecursionRejected"}
+{"Time":"2026-10-16T21:49:25.683454438Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestNestedMacroArityAndRecursionRejected","Output":"=== RUN   TestNestedMacroArityAndRecursionRejected\n"}
+{"Time":"2026-10-16T21:49:25.683506438Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestNestedMacroArityAndRecursionRejected","Output":"--- PASS: TestNestedMacroArityAndRecursionRejected (0.00s)\n"}
+{"Time":"2026-10-16T21:49:25.683509688Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestNestedMacroArityAndRecursionRejected","Elapsed":0}
+{"Time":"2026-10-16T21:49:25.683517748Z","Action":"run","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestMacroNamesDoNotExpandFunctionParameters"}
+{"Time":"2026-10-16T21:49:25.683520738Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestMacroNamesDoNotExpandFunctionParameters","Output":"=== RUN   TestMacroNamesDoNotExpandFunctionParameters\n"}
+{"Time":"2026-10-16T21:49:25.683539898Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestMacroNamesDoNotExpandFunctionParameters","Output":"--- PASS: TestMacroNamesDoNotExpandFunctionParameters (0.00s)\n"}
+{"Time":"2026-10-16T21:49:25.683543728Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Test":"TestMacroNamesDoNotExpandFunctionParameters","Elapsed":0}
+{"Time":"2026-10-16T21:49:25.683549458Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Output":"PASS\n"}
+{"Time":"2026-10-16T21:49:25.685062849Z","Action":"output","Package":"github.com/minz/minzc/pkg/lizp","Output":"ok  \tgithub.com/minz/minzc/pkg/lizp\t2.257s\n"}
+{"Time":"2026-10-16T21:49:25.685090909Z","Action":"pass","Package":"github.com/minz/minzc/pkg/lizp","Elapsed":2.258}

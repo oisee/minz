@@ -1,0 +1,96 @@
+{
+  "baseline_main": "936749f61eacce9886b892f53460fc8802b40142",
+  "compiler_tree": "7fe5805c8cf348c91fdd3cdb9ed3173d3189ec5a",
+  "files": [
+    {
+      "path": "abap-npm-ci.log",
+      "bytes": 27,
+      "sha256": "18807c01c3ca43bc0954474894c5968d9a2451a4886dfdff779447f69619ec21"
+    },
+    {
+      "path": "abap.jsonl",
+      "bytes": 8610,
+      "sha256": "78f0ca3aba561de27a9950319a7976325010ae3d4a8e39579336baeebc6164c8"
+    },
+    {
+      "path": "abapiti-review.json",
+      "bytes": 448,
+      "sha256": "6e348f6ce0f5d0b17203d2c1d7ba188b856e05061e05cfa68b4abfe92272fea5"
+    },
+    {
+      "path": "additional-tests.json",
+      "bytes": 856,
+      "sha256": "7060e035f9a054c63db5674e409843a7a662cee1490efb66b15a134097c70194"
+    },
+    {
+      "path": "c-objc-corpus.jsonl",
+      "bytes": 40857,
+      "sha256": "b4b0cf1e96c3c630bacd87e0d2324b4b4f814078c8435f22a4a8a88a7c0d9a0c"
+    },
+    {
+      "path": "frill.jsonl",
+      "bytes": 23267,
+      "sha256": "970eabdda85f4f690a7933b8fde048e70f3da134cd07d0a2acac5861386d0f82"
+    },
+    {
+      "path": "lanz-lizp.jsonl",
+      "bytes": 64904,
+      "sha256": "bf20be5dc6f922f48efd802cd82a1f20a7059660b82402dc867c534a9ef4840e"
+    },
+    {
+      "path": "nanz-objc-interop.jsonl",
+      "bytes": 801058,
+      "sha256": "57b59fe0a6f9c0855af312710c8e6004b9422306ff5e0bc4826275c3d1cbefad"
+    },
+    {
+      "path": "pascal.jsonl",
+      "bytes": 25966,
+      "sha256": "742d0bf2c695eb1a2a2599a95744d929b7533808b0f29a2916fc6ab666225291"
+    },
+    {
+      "path": "plm.jsonl",
+      "bytes": 36890,
+      "sha256": "03466c43cd410b09ae0fd57bd9f8956d9634c8bd4c54dc86cddb239e45d4b96a"
+    },
+    {
+      "path": "probes/abap-clear.abap.a80",
+      "bytes": 7428,
+      "sha256": "039c6a2a85a6068f0617c7f45ef63c777472214ae6caf5ec672bf67adcafa48b"
+    },
+    {
+      "path": "probes/abap-clear.abap.final.mir.txt",
+      "bytes": 5136,
+      "sha256": "7a16ca1ef33c376b07d4391384fad192a4c58ad985fc9f16a1d73018465c9bfd"
+    },
+    {
+      "path": "probes/abap-clear.abap.hir.txt",
+      "bytes": 1454,
+      "sha256": "a74a2e5e6969ce0d19b887ebe255b5541ee3b61cac95ba90956ce0588a56f657"
+    },
+    {
+      "path": "probes/abap-clear.abap.json",
+      "bytes": 183,
+      "sha256": "a153afefab89f5570a8be9c69412080e7f459e00106c377e39fc71971a89c4e9"
+    },
+    {
+      "path": "probes/abap-clear.abap.raw.mir.txt",
+      "bytes": 5171,
+      "sha256": "f787cf8fb30cdd21aed5f897cfe5d6e1d1da656caf86bbef08020dfe9a79d74d"
+    },
+    {
+      "path": "probes/frill-wide-tuple.frl.hir.txt",
+      "bytes": 154,
+      "sha256": "af56f90f67c8cf1e142485791ccc7fc8e8c2fff87811bcaf3b601a91851ef252"
+    },
+    {
+      "path": "probes/frill-wide-tuple.frl.json",
+      "bytes": 134,
+      "sha256": "afd3dd7df21a39062db560c9b76e31bb013bcfe5f1714dfdf4e3228cb63287f1"
+    },
+    {
+      "path": "test-summary.json",
+      "bytes": 3528,
+      "sha256": "71dd64df31adb4fbec2187a851982b32e3c5c046fa3bea22d98a5b3612ce2a9f"
+    }
+  ]
+}

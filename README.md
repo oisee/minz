@@ -24,6 +24,8 @@ The project is active research: examples and targets have different levels of ma
 
 [C99/C11/C23 and Objective-C claim audit](reports/2026-10-16-c-standards-objc-audit.md): current executable coverage, 26 directed probes, preserved semantic and diagnostic failures, and the boundary between syntax extensions and ISO conformance.
 
+[**C and every frontend: supported scope and next hardening**](reports/2026-10-16-c-and-frontends-hardening.md): current C ABI and C99+ admission, fresh frontend tests, two new ABAP/Frill counterexamples, and a pinned abapiti/OSG plan for a native Go ABAP parser.
+
 [Practical C on Z80: real libraries and honest diagnostics](reports/2026-10-16-system-c-hardening.md): unchanged inih/heatshrink sources, VM/Z80 validation, and fixes found by real system code.
 
 [Direct word stores on Z80](reports/2026-10-16-c89-direct-word-store.md): unchanged C/Nanz abs_diff reaches 27 bytes / 220,904 T. All six C families improve; measured PFCCO interactions and remaining losses are recorded. Integration and required checks are tracked in [PR #181](https://github.com/oisee/minz/pull/181).

@@ -1,0 +1,8 @@
+; HIR module: frill-wide-tuple.frl
+fun @pair(x: u16) -> u16
+  return ((x:u16), 7:u8)
+
+fun @probe(x: u16) -> u16
+  let (a, b) = pair(...)
+  return (a:u8)
+

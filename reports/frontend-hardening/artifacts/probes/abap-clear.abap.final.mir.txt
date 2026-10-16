@@ -1,0 +1,110 @@
+; MIR2 module: abap-clear.abap
+global @sy : ptr
+global @lv_x : u16
+global @_abap_inbuf : u8
+
+fun @probe() -> u16 [pointer]
+  block @entry:
+    %r1 = addr_of @lv_x : ptr [pointer]
+    %r2 = load %r1 : u16 [pointer]
+    ret %r2
+
+fun @sy_get_subrc() -> u16 [pointer]
+  block @entry:
+    %r3 = const 0 : u16 [pointer]
+    ret %r3
+
+fun @sy_get_index() -> u16 [pointer]
+  block @entry:
+    %r4 = const 0 : u16 [pointer]
+    ret %r4
+
+fun @sy_get_tabix() -> u16 [pointer]
+  block @entry:
+    %r5 = const 0 : u16 [pointer]
+    ret %r5
+
+fun @sy_get_ucomm() -> u16 [pointer]
+  block @entry:
+    %r6 = const 0 : u16 [pointer]
+    ret %r6
+
+fun @sy_get_datum() -> u16 [pointer]
+  block @entry:
+    %r7 = const 0 : u16 [pointer]
+    ret %r7
+
+fun @sy_get_uzeit() -> u16 [pointer]
+  block @entry:
+    %r8 = const 0 : u16 [pointer]
+    ret %r8
+
+fun @sel_show() -> u8 [acc]
+  block @entry:
+    %r9 = asm "XOR A"
+    ret void
+
+fun @sel_register(%r10: ptr [pointer], %r11: u8 [general], %r12: u8 [counter])
+  block @entry:
+    ret void
+
+fun @sel_register_str(%r13: ptr [pointer], %r14: u8 [general], %r15: ptr [pointer], %r16: ptr [pointer])
+  block @entry:
+    asm "NOP"
+    ret void
+
+fun @sel_register_int(%r17: ptr [pointer], %r18: u16 [index])
+  block @entry:
+    asm "NOP"
+    ret void
+
+fun @sel_get_int(%r19: u8 [acc]) -> u16 [pointer]
+  block @entry:
+    %r20 = asm "LD HL, 0"
+    ret void
+
+fun @abap_sel_read(%r21: ptr [pointer])
+  block @entry:
+    asm "PUSH HL\n    LD DE, _abap_inbuf\n    LD A, 20\n    LD (_abap_inbuf), A\n    LD C, 10\n    CALL 5\n    LD E, 13\n    LD C, 2\n    CALL 5\n    LD E, 10\n    LD C, 2\n    CALL 5\n    LD A, (_abap_inbuf+1)\n    OR A\n    POP HL\n    JR Z, .keep\n    LD B, A\n    LD DE, _abap_inbuf+2\n    .copy: LD A, (DE)\n    LD (HL), A\n    INC HL\n    INC DE\n    DJNZ .copy\n    LD (HL), 0\n    JR .done\n    .keep:\n    .done:"
+    ret void
+
+fun @abap_read_int() -> u16 [pointer]
+  block @entry:
+    %r22 = asm "LD HL, _abap_inbuf\n    LD (HL), 20\n    EX DE, HL\n    LD C, 10\n    CALL 5\n    LD E, 13\n    LD C, 2\n    CALL 5\n    LD E, 10\n    LD C, 2\n    CALL 5\n    LD HL, _abap_inbuf+1\n    LD B, (HL)\n    INC HL\n    LD DE, 0\n    .parse_loop: LD A, B\n    OR A\n    JR Z, .parse_done\n    LD A, (HL)\n    SUB 48\n    JR C, .parse_done\n    CP 10\n    JR NC, .parse_done\n    PUSH HL\n    PUSH AF\n    LD H, D\n    LD L, E\n    ADD HL, HL\n    ADD HL, HL\n    ADD HL, DE\n    ADD HL, HL\n    POP AF\n    LD E, A\n    LD D, 0\n    ADD HL, DE\n    EX DE, HL\n    POP HL\n    INC HL\n    DEC B\n    JR .parse_loop\n    .parse_done: EX DE, HL"
+    ret void
+
+fun @abap_write(%r23: u16 [pointer])
+  block @entry:
+    asm "PUSH IX\n    PUSH HL\n    POP IX\n    LD D, 0\n    PUSH IX\n    POP HL\n    LD BC, 10000\n    CALL _abap_wr_dig\n    PUSH HL\n    POP IX\n    PUSH IX\n    POP HL\n    LD BC, 1000\n    CALL _abap_wr_dig\n    PUSH HL\n    POP IX\n    PUSH IX\n    POP HL\n    LD BC, 100\n    CALL _abap_wr_dig\n    PUSH HL\n    POP IX\n    PUSH IX\n    POP HL\n    LD BC, 10\n    CALL _abap_wr_dig\n    PUSH HL\n    POP IX\n    LD A, IXL\n    ADD A, 48\n    LD E, A\n    LD C, 2\n    CALL 5\n    LD E, 32\n    LD C, 2\n    CALL 5\n    POP IX"
+    ret void
+
+fun @_abap_wr_dig()
+  block @entry:
+    asm "LD A, 48\n    _awd_sub: OR A\n    SBC HL, BC\n    JR NC, _awd_cont\n    ADD HL, BC\n    CP 48\n    JR NZ, _awd_pr\n    LD A, D\n    OR A\n    RET Z\n    LD A, 48\n    _awd_pr: LD D, 1\n    LD E, A\n    PUSH HL\n    PUSH DE\n    PUSH BC\n    LD C, 2\n    CALL 5\n    POP BC\n    POP DE\n    POP HL\n    RET\n    _awd_cont: INC A\n    JR _awd_sub"
+    ret void
+
+fun @abap_write_str(%r24: ptr [pointer])
+  block @entry:
+    asm "PUSH DE\n    PUSH BC\n    .loop: LD A, (HL)\n    OR A\n    JR NZ, .print\n    POP BC\n    POP DE\n    RET\n    .print: LD E, A\n    LD C, 2\n    PUSH HL\n    CALL 5\n    POP HL\n    INC HL\n    JR .loop"
+    ret void
+
+fun @_abap_safe_write_str(%r25: ptr [pointer])
+  block @entry:
+    asm "PUSH HL\n    PUSH DE\n    PUSH BC\n    PUSH IX\n    POP IX\n    POP BC\n    POP DE\n    POP HL\n    PUSH IX\n    PUSH DE\n    PUSH BC\n    CALL abap_write_str\n    POP BC\n    POP DE\n    POP IX"
+    ret void
+
+fun @_abap_safe_write(%r26: u16 [pointer])
+  block @entry:
+    asm "PUSH IX\n    PUSH DE\n    PUSH BC\n    CALL abap_write\n    POP BC\n    POP DE\n    POP IX"
+    ret void
+
+fun @_itab_store_col(%r27: ptr [pointer], %r28: ptr [pointer], %r29: u8 [counter])
+  block @entry:
+    asm "LD B, C\n    .cp: LD A, (HL)\n    OR A\n    JR Z, .pad\n    LD (DE), A\n    INC HL\n    INC DE\n    DEC B\n    JR NZ, .cp\n    LD A, 0\n    LD (DE), A\n    RET\n    .pad: LD (DE), A\n    INC DE\n    DEC B\n    JR NZ, .pad\n    LD (DE), A\n    RET"
+    ret void
+
+fun @_itab_print_col(%r30: ptr [pointer], %r31: u8 [general])
+  block @entry:
+    asm "LD B, C\n    LD A, C\n    OR A\n    RET Z\n    .lp: LD A, (HL)\n    OR A\n    JR Z, .pd\n    LD E, A\n    PUSH HL\n    PUSH BC\n    LD C, 2\n    CALL 5\n    POP BC\n    POP HL\n    INC HL\n    DJNZ .lp\n    RET\n    .pd: LD E, 32\n    PUSH HL\n    PUSH BC\n    LD C, 2\n    CALL 5\n    POP BC\n    POP HL\n    DJNZ .pd\n    RET"
+    ret void
+

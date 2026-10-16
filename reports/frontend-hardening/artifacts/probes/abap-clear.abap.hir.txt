@@ -1,0 +1,70 @@
+; HIR module: abap-clear.abap
+struct @SY { SUBRC: u16, INDEX: u16, TABIX: u16, UCOMM: u16, DATUM: u16, UZEIT: u16 }
+global @sy : ptr
+global @lv_x : u16
+global @_abap_inbuf : u8
+
+fun @probe() -> u16
+  var result: u16 = 0:u16
+  (result:u16) = (lv_x:u16)
+  return (result:u16)
+
+fun @sy_get_subrc() -> u16
+  return 0:u16
+
+fun @sy_get_index() -> u16
+  return 0:u16
+
+fun @sy_get_tabix() -> u16
+  return 0:u16
+
+fun @sy_get_ucomm() -> u16
+  return 0:u16
+
+fun @sy_get_datum() -> u16
+  return 0:u16
+
+fun @sy_get_uzeit() -> u16
+  return 0:u16
+
+fun @sel_show() -> u8
+  <unknown stmt *hir.AsmStmt>
+
+fun @sel_register(name: ptr, ty: u8, length: u8)
+
+fun @sel_register_str(name: ptr, length: u8, defval: ptr, bufptr: ptr)
+  <unknown stmt *hir.AsmStmt>
+
+fun @sel_register_int(name: ptr, defval: u16)
+  <unknown stmt *hir.AsmStmt>
+
+fun @sel_get_int(idx: u8) -> u16
+  <unknown stmt *hir.AsmStmt>
+
+fun @abap_sel_read(buf: ptr)
+  <unknown stmt *hir.AsmStmt>
+
+fun @abap_read_int() -> u16
+  <unknown stmt *hir.AsmStmt>
+
+fun @abap_write(val: u16)
+  <unknown stmt *hir.AsmStmt>
+
+fun @_abap_wr_dig()
+  <unknown stmt *hir.AsmStmt>
+
+fun @abap_write_str(str: ptr)
+  <unknown stmt *hir.AsmStmt>
+
+fun @_abap_safe_write_str(str: ptr)
+  <unknown stmt *hir.AsmStmt>
+
+fun @_abap_safe_write(val: u16)
+  <unknown stmt *hir.AsmStmt>
+
+fun @_itab_store_col(src: ptr, dst: ptr, maxlen: u8)
+  <unknown stmt *hir.AsmStmt>
+
+fun @_itab_print_col(ptr: ptr, width: u8)
+  <unknown stmt *hir.AsmStmt>
+

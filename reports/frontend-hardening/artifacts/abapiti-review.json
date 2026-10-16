@@ -1,0 +1,17 @@
+{
+  "repo": "oisee/abapiti",
+  "commit": "17ed93a9c60c8e0854f66b545ff33f8f92e8cdc7",
+  "files": [
+    "README.md",
+    "docs/abaplint-cli.md",
+    "docs/abaplint-tests.md",
+    "docs/osgo-handoff-2026-10-12.md",
+    "cmd/abapiti/abaplint_go_test.go",
+    "cmd/abapiti/abaplint.go",
+    "tsfront/registry_driver.go"
+  ],
+  "review_only": true,
+  "full_suite_rerun_in_minz": false,
+  "minz_bridge_core": "2.117.2",
+  "abapiti_core_pin": "2.120.56"
+}

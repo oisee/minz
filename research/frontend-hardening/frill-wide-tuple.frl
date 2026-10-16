@@ -1,0 +1,2 @@
+let pair (x : u16) : (u16, u8) = (x, 7)
+let probe (x : u16) : u16 = let (a, b) = pair x in a

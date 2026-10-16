@@ -1,0 +1,50 @@
+{"Time":"2026-10-16T21:49:22.094517497Z","Action":"start","Package":"github.com/minz/minzc/pkg/abap"}
+{"Time":"2026-10-16T21:49:22.101577247Z","Action":"run","Package":"github.com/minz/minzc/pkg/abap","Test":"TestParseSimple"}
+{"Time":"2026-10-16T21:49:22.101619487Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestParseSimple","Output":"=== RUN   TestParseSimple\n"}
+{"Time":"2026-10-16T21:49:22.675366727Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestParseSimple","Output":"--- PASS: TestParseSimple (0.57s)\n"}
+{"Time":"2026-10-16T21:49:22.675396727Z","Action":"pass","Package":"github.com/minz/minzc/pkg/abap","Test":"TestParseSimple","Elapsed":0.57}
+{"Time":"2026-10-16T21:49:22.675405487Z","Action":"run","Package":"github.com/minz/minzc/pkg/abap","Test":"TestCompileToHIR"}
+{"Time":"2026-10-16T21:49:22.675408447Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestCompileToHIR","Output":"=== RUN   TestCompileToHIR\n"}
+{"Time":"2026-10-16T21:49:23.295783536Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestCompileToHIR","Output":"    abap_test.go:74: HIR module: 3 globals, 21 funcs, 0 strings\n"}
+{"Time":"2026-10-16T21:49:23.295819636Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestCompileToHIR","Output":"--- PASS: TestCompileToHIR (0.62s)\n"}
+{"Time":"2026-10-16T21:49:23.295825266Z","Action":"pass","Package":"github.com/minz/minzc/pkg/abap","Test":"TestCompileToHIR","Elapsed":0.62}
+{"Time":"2026-10-16T21:49:23.295832436Z","Action":"run","Package":"github.com/minz/minzc/pkg/abap","Test":"TestSelectionScreen"}
+{"Time":"2026-10-16T21:49:23.295835516Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestSelectionScreen","Output":"=== RUN   TestSelectionScreen\n"}
+{"Time":"2026-10-16T21:49:24.390514235Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestSelectionScreen","Output":"    abap_test.go:144: HIR: 6 globals, 21 funcs, 1 structs, params=2, events=2\n"}
+{"Time":"2026-10-16T21:49:24.390554075Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestSelectionScreen","Output":"--- PASS: TestSelectionScreen (1.09s)\n"}
+{"Time":"2026-10-16T21:49:24.390558545Z","Action":"pass","Package":"github.com/minz/minzc/pkg/abap","Test":"TestSelectionScreen","Elapsed":1.09}
+{"Time":"2026-10-16T21:49:24.390575045Z","Action":"run","Package":"github.com/minz/minzc/pkg/abap","Test":"TestProcedureLocalDataScopesAndReturns"}
+{"Time":"2026-10-16T21:49:24.390582815Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestProcedureLocalDataScopesAndReturns","Output":"=== RUN   TestProcedureLocalDataScopesAndReturns\n"}
+{"Time":"2026-10-16T21:49:24.969838074Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestProcedureLocalDataScopesAndReturns","Output":"--- PASS: TestProcedureLocalDataScopesAndReturns (0.58s)\n"}
+{"Time":"2026-10-16T21:49:24.969863924Z","Action":"pass","Package":"github.com/minz/minzc/pkg/abap","Test":"TestProcedureLocalDataScopesAndReturns","Elapsed":0.58}
+{"Time":"2026-10-16T21:49:24.969869794Z","Action":"run","Package":"github.com/minz/minzc/pkg/abap","Test":"TestFormsExampleStrictHIRAndNativeReturns"}
+{"Time":"2026-10-16T21:49:24.969873134Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestFormsExampleStrictHIRAndNativeReturns","Output":"=== RUN   TestFormsExampleStrictHIRAndNativeReturns\n"}
+{"Time":"2026-10-16T21:49:25.65469332Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestFormsExampleStrictHIRAndNativeReturns","Output":"--- PASS: TestFormsExampleStrictHIRAndNativeReturns (0.68s)\n"}
+{"Time":"2026-10-16T21:49:25.65471727Z","Action":"pass","Package":"github.com/minz/minzc/pkg/abap","Test":"TestFormsExampleStrictHIRAndNativeReturns","Elapsed":0.68}
+{"Time":"2026-10-16T21:49:25.65472444Z","Action":"run","Package":"github.com/minz/minzc/pkg/abap","Test":"TestProcedureLocalsDoNotLeakIntoSibling"}
+{"Time":"2026-10-16T21:49:25.65472906Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestProcedureLocalsDoNotLeakIntoSibling","Output":"=== RUN   TestProcedureLocalsDoNotLeakIntoSibling\n"}
+{"Time":"2026-10-16T21:49:26.187423882Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestProcedureLocalsDoNotLeakIntoSibling","Output":"--- PASS: TestProcedureLocalsDoNotLeakIntoSibling (0.53s)\n"}
+{"Time":"2026-10-16T21:49:26.187449942Z","Action":"pass","Package":"github.com/minz/minzc/pkg/abap","Test":"TestProcedureLocalsDoNotLeakIntoSibling","Elapsed":0.53}
+{"Time":"2026-10-16T21:49:26.187456462Z","Action":"run","Package":"github.com/minz/minzc/pkg/abap","Test":"TestEventDataHasReportScope"}
+{"Time":"2026-10-16T21:49:26.187459682Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestEventDataHasReportScope","Output":"=== RUN   TestEventDataHasReportScope\n"}
+{"Time":"2026-10-16T21:49:26.720103064Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestEventDataHasReportScope","Output":"--- PASS: TestEventDataHasReportScope (0.53s)\n"}
+{"Time":"2026-10-16T21:49:26.720128504Z","Action":"pass","Package":"github.com/minz/minzc/pkg/abap","Test":"TestEventDataHasReportScope","Elapsed":0.53}
+{"Time":"2026-10-16T21:49:26.720134664Z","Action":"run","Package":"github.com/minz/minzc/pkg/abap","Test":"TestReportEventExamplesCompile"}
+{"Time":"2026-10-16T21:49:26.720137744Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestReportEventExamplesCompile","Output":"=== RUN   TestReportEventExamplesCompile\n"}
+{"Time":"2026-10-16T21:49:26.720143044Z","Action":"run","Package":"github.com/minz/minzc/pkg/abap","Test":"TestReportEventExamplesCompile/mara_report"}
+{"Time":"2026-10-16T21:49:26.720145784Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestReportEventExamplesCompile/mara_report","Output":"=== RUN   TestReportEventExamplesCompile/mara_report\n"}
+{"Time":"2026-10-16T21:49:27.295333357Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestReportEventExamplesCompile/mara_report","Output":"--- PASS: TestReportEventExamplesCompile/mara_report (0.58s)\n"}
+{"Time":"2026-10-16T21:49:27.295359227Z","Action":"pass","Package":"github.com/minz/minzc/pkg/abap","Test":"TestReportEventExamplesCompile/mara_report","Elapsed":0.58}
+{"Time":"2026-10-16T21:49:27.295364707Z","Action":"run","Package":"github.com/minz/minzc/pkg/abap","Test":"TestReportEventExamplesCompile/selscreen"}
+{"Time":"2026-10-16T21:49:27.295379587Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestReportEventExamplesCompile/selscreen","Output":"=== RUN   TestReportEventExamplesCompile/selscreen\n"}
+{"Time":"2026-10-16T21:49:27.83493846Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestReportEventExamplesCompile/selscreen","Output":"--- PASS: TestReportEventExamplesCompile/selscreen (0.54s)\n"}
+{"Time":"2026-10-16T21:49:27.83497119Z","Action":"pass","Package":"github.com/minz/minzc/pkg/abap","Test":"TestReportEventExamplesCompile/selscreen","Elapsed":0.54}
+{"Time":"2026-10-16T21:49:27.83497872Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestReportEventExamplesCompile","Output":"--- PASS: TestReportEventExamplesCompile (1.11s)\n"}
+{"Time":"2026-10-16T21:49:27.834984019Z","Action":"pass","Package":"github.com/minz/minzc/pkg/abap","Test":"TestReportEventExamplesCompile","Elapsed":1.11}
+{"Time":"2026-10-16T21:49:27.834991279Z","Action":"run","Package":"github.com/minz/minzc/pkg/abap","Test":"TestWriteSplitSystemField"}
+{"Time":"2026-10-16T21:49:27.834995119Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestWriteSplitSystemField","Output":"=== RUN   TestWriteSplitSystemField\n"}
+{"Time":"2026-10-16T21:49:27.835009209Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Test":"TestWriteSplitSystemField","Output":"--- PASS: TestWriteSplitSystemField (0.00s)\n"}
+{"Time":"2026-10-16T21:49:27.835013209Z","Action":"pass","Package":"github.com/minz/minzc/pkg/abap","Test":"TestWriteSplitSystemField","Elapsed":0}
+{"Time":"2026-10-16T21:49:27.835025929Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Output":"PASS\n"}
+{"Time":"2026-10-16T21:49:27.852804229Z","Action":"output","Package":"github.com/minz/minzc/pkg/abap","Output":"ok  \tgithub.com/minz/minzc/pkg/abap\t5.758s\n"}
+{"Time":"2026-10-16T21:49:27.852825169Z","Action":"pass","Package":"github.com/minz/minzc/pkg/abap","Elapsed":5.758}

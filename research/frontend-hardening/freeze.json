@@ -1,0 +1,17 @@
+{
+  "expectations": {
+    "abap-clear.abap": {
+      "lv_x": 0,
+      "probe()": 0,
+      "reason": "CLEAR sets integer storage to its initial value before the return reads it"
+    },
+    "frill-wide-tuple.frl": {
+      "probe(300)": 300,
+      "reason": "destructuring retains the first u16 tuple component"
+    }
+  },
+  "files": {
+    "frill-wide-tuple.frl": "cab0093a76048b0b220500ede78431fb6a53df2d6a2b54711972441e65579931",
+    "abap-clear.abap": "1603daafa3c9a03f2c3f7e65f7c3436c400794a08546a330a637697281ffe3de"
+  }
+}

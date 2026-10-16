@@ -1,0 +1,226 @@
+{"Time":"2026-10-16T21:49:20.140327494Z","Action":"start","Package":"github.com/minz/minzc/pkg/plm"}
+{"Time":"2026-10-16T21:49:20.146624559Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestCPMConsoleIntrinsic"}
+{"Time":"2026-10-16T21:49:20.146661728Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestCPMConsoleIntrinsic","Output":"=== RUN   TestCPMConsoleIntrinsic\n"}
+{"Time":"2026-10-16T21:49:20.146823968Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestCPMConsoleIntrinsic","Output":"--- PASS: TestCPMConsoleIntrinsic (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.146830868Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestCPMConsoleIntrinsic","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.146839098Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestAddressedByteListExplicitTerminator"}
+{"Time":"2026-10-16T21:49:20.146842647Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestAddressedByteListExplicitTerminator","Output":"=== RUN   TestAddressedByteListExplicitTerminator\n"}
+{"Time":"2026-10-16T21:49:20.146939677Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestAddressedByteListExplicitTerminator","Output":"--- PASS: TestAddressedByteListExplicitTerminator (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.146946017Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestAddressedByteListExplicitTerminator","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.146953107Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestModuleEntryAndExactStringBytes"}
+{"Time":"2026-10-16T21:49:20.146956507Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestModuleEntryAndExactStringBytes","Output":"=== RUN   TestModuleEntryAndExactStringBytes\n"}
+{"Time":"2026-10-16T21:49:20.147167316Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestModuleEntryAndExactStringBytes","Output":"--- PASS: TestModuleEntryAndExactStringBytes (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.147176826Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestModuleEntryAndExactStringBytes","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.147182726Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestPLMLiteralCaseAndMacros"}
+{"Time":"2026-10-16T21:49:20.147186146Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestPLMLiteralCaseAndMacros","Output":"=== RUN   TestPLMLiteralCaseAndMacros\n"}
+{"Time":"2026-10-16T21:49:20.147333385Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestPLMLiteralCaseAndMacros","Output":"--- PASS: TestPLMLiteralCaseAndMacros (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.147339865Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestPLMLiteralCaseAndMacros","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.147345615Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestCorpus_Parse"}
+{"Time":"2026-10-16T21:49:20.147349105Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestCorpus_Parse","Output":"=== RUN   TestCorpus_Parse\n"}
+{"Time":"2026-10-16T21:49:20.147408344Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestCorpus_Parse","Output":"    corpus_test.go:38: no .plm/.pl1 files found under ../../../corpus/intel80tools\n"}
+{"Time":"2026-10-16T21:49:20.147418284Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestCorpus_Parse","Output":"--- SKIP: TestCorpus_Parse (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.147422464Z","Action":"skip","Package":"github.com/minz/minzc/pkg/plm","Test":"TestCorpus_Parse","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.147427774Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLexer_Basic"}
+{"Time":"2026-10-16T21:49:20.147431124Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLexer_Basic","Output":"=== RUN   TestLexer_Basic\n"}
+{"Time":"2026-10-16T21:49:20.147470194Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLexer_Basic","Output":"--- PASS: TestLexer_Basic (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.147483084Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLexer_Basic","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.147488464Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLexer_HexLiteral"}
+{"Time":"2026-10-16T21:49:20.147492174Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLexer_HexLiteral","Output":"=== RUN   TestLexer_HexLiteral\n"}
+{"Time":"2026-10-16T21:49:20.147538764Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLexer_HexLiteral","Output":"--- PASS: TestLexer_HexLiteral (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.147544644Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLexer_HexLiteral","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.147549704Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_SimpleProc"}
+{"Time":"2026-10-16T21:49:20.147552783Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_SimpleProc","Output":"=== RUN   TestParser_SimpleProc\n"}
+{"Time":"2026-10-16T21:49:20.147587613Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_SimpleProc","Output":"--- PASS: TestParser_SimpleProc (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.147592943Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_SimpleProc","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.147598363Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_IfElse"}
+{"Time":"2026-10-16T21:49:20.147601673Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_IfElse","Output":"=== RUN   TestParser_IfElse\n"}
+{"Time":"2026-10-16T21:49:20.147645843Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_IfElse","Output":"--- PASS: TestParser_IfElse (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.147651323Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_IfElse","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.147669693Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_DoWhile"}
+{"Time":"2026-10-16T21:49:20.147673773Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_DoWhile","Output":"=== RUN   TestParser_DoWhile\n"}
+{"Time":"2026-10-16T21:49:20.147721943Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_DoWhile","Output":"--- PASS: TestParser_DoWhile (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.147728722Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_DoWhile","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.147733862Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_DoCase"}
+{"Time":"2026-10-16T21:49:20.147737132Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_DoCase","Output":"=== RUN   TestParser_DoCase\n"}
+{"Time":"2026-10-16T21:49:20.147790222Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_DoCase","Output":"--- PASS: TestParser_DoCase (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.147795812Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_DoCase","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.147802312Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_BitwiseOps"}
+{"Time":"2026-10-16T21:49:20.147805702Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_BitwiseOps","Output":"=== RUN   TestParser_BitwiseOps\n"}
+{"Time":"2026-10-16T21:49:20.147844492Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_BitwiseOps","Output":"--- PASS: TestParser_BitwiseOps (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.147849772Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_BitwiseOps","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.147854902Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_GlobalDecl"}
+{"Time":"2026-10-16T21:49:20.147862792Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_GlobalDecl","Output":"=== RUN   TestParser_GlobalDecl\n"}
+{"Time":"2026-10-16T21:49:20.147903062Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_GlobalDecl","Output":"--- PASS: TestParser_GlobalDecl (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.147908161Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_GlobalDecl","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.147913341Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestPreprocess_Literally"}
+{"Time":"2026-10-16T21:49:20.147917821Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestPreprocess_Literally","Output":"=== RUN   TestPreprocess_Literally\n"}
+{"Time":"2026-10-16T21:49:20.148015521Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestPreprocess_Literally","Output":"--- PASS: TestPreprocess_Literally (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.148024141Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestPreprocess_Literally","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.148029681Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_ArrayDecl"}
+{"Time":"2026-10-16T21:49:20.148033041Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_ArrayDecl","Output":"=== RUN   TestParser_ArrayDecl\n"}
+{"Time":"2026-10-16T21:49:20.148067841Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_ArrayDecl","Output":"--- PASS: TestParser_ArrayDecl (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.148073191Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_ArrayDecl","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.148078391Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_DoTo"}
+{"Time":"2026-10-16T21:49:20.148081921Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_DoTo","Output":"=== RUN   TestParser_DoTo\n"}
+{"Time":"2026-10-16T21:49:20.14813113Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_DoTo","Output":"--- PASS: TestParser_DoTo (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.14813771Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_DoTo","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.14814283Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_DoToBy"}
+{"Time":"2026-10-16T21:49:20.14814607Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_DoToBy","Output":"=== RUN   TestParser_DoToBy\n"}
+{"Time":"2026-10-16T21:49:20.14818348Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_DoToBy","Output":"--- PASS: TestParser_DoToBy (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.14818988Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_DoToBy","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.14819506Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_EnableDisableHalt"}
+{"Time":"2026-10-16T21:49:20.14819836Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_EnableDisableHalt","Output":"=== RUN   TestParser_EnableDisableHalt\n"}
+{"Time":"2026-10-16T21:49:20.14822974Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_EnableDisableHalt","Output":"--- PASS: TestParser_EnableDisableHalt (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.14823509Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_EnableDisableHalt","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.14825024Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_BasedDecl"}
+{"Time":"2026-10-16T21:49:20.14825392Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_BasedDecl","Output":"=== RUN   TestParser_BasedDecl\n"}
+{"Time":"2026-10-16T21:49:20.148288399Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_BasedDecl","Output":"--- PASS: TestParser_BasedDecl (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.148298309Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestParser_BasedDecl","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.148303439Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo"}
+{"Time":"2026-10-16T21:49:20.148306789Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"=== RUN   TestLower_DoTo\n"}
+{"Time":"2026-10-16T21:49:20.149603032Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"    plm_test.go:381: do-to assembly:\n"}
+{"Time":"2026-10-16T21:49:20.149611542Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"        ; generated by MIR2 Z80 codegen\n"}
+{"Time":"2026-10-16T21:49:20.149614202Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"        \n"}
+{"Time":"2026-10-16T21:49:20.149616662Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"        ; fun SUM(N: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n"}
+{"Time":"2026-10-16T21:49:20.149619362Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"        SUM:\n"}
+{"Time":"2026-10-16T21:49:20.149623102Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            LD C, 0\n"}
+{"Time":"2026-10-16T21:49:20.149625922Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            LD D, 0\n"}
+{"Time":"2026-10-16T21:49:20.149628112Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            LD C, A\n"}
+{"Time":"2026-10-16T21:49:20.149630102Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            LD E, 0\n"}
+{"Time":"2026-10-16T21:49:20.149632122Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"        .SUM_loop_head1:\n"}
+{"Time":"2026-10-16T21:49:20.149634152Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            LD H, 1\n"}
+{"Time":"2026-10-16T21:49:20.149636202Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            LD A, C\n"}
+{"Time":"2026-10-16T21:49:20.149638232Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            SUB 1\n"}
+{"Time":"2026-10-16T21:49:20.149640302Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            LD H, A\n"}
+{"Time":"2026-10-16T21:49:20.149642362Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            INC H\n"}
+{"Time":"2026-10-16T21:49:20.149644422Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            LD A, D\n"}
+{"Time":"2026-10-16T21:49:20.149646462Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            CP H\n"}
+{"Time":"2026-10-16T21:49:20.149648552Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            JRS NC, .SUM_trmp0\n"}
+{"Time":"2026-10-16T21:49:20.149650702Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"        .SUM_loop_body2:\n"}
+{"Time":"2026-10-16T21:49:20.149652792Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            LD A, E\n"}
+{"Time":"2026-10-16T21:49:20.149654872Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            ADD A, D\n"}
+{"Time":"2026-10-16T21:49:20.149656902Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            LD E, A\n"}
+{"Time":"2026-10-16T21:49:20.149662932Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            INC D\n"}
+{"Time":"2026-10-16T21:49:20.149665332Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            JRS .SUM_loop_head1\n"}
+{"Time":"2026-10-16T21:49:20.149667382Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"        .SUM_loop_exit3:\n"}
+{"Time":"2026-10-16T21:49:20.149669492Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            LD A, E\n"}
+{"Time":"2026-10-16T21:49:20.149673652Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            RET\n"}
+{"Time":"2026-10-16T21:49:20.149675872Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"        .SUM_trmp0:\n"}
+{"Time":"2026-10-16T21:49:20.149677942Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            PUSH AF\n"}
+{"Time":"2026-10-16T21:49:20.149680022Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            LD A, D\n"}
+{"Time":"2026-10-16T21:49:20.149682092Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            LD D, C\n"}
+{"Time":"2026-10-16T21:49:20.149684271Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            LD C, A\n"}
+{"Time":"2026-10-16T21:49:20.149686411Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            POP AF\n"}
+{"Time":"2026-10-16T21:49:20.149688681Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"            JRS .SUM_loop_exit3\n"}
+{"Time":"2026-10-16T21:49:20.149690771Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"        \n"}
+{"Time":"2026-10-16T21:49:20.153153502Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Output":"--- PASS: TestLower_DoTo (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.153165962Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_DoTo","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.153170482Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_AddBytes"}
+{"Time":"2026-10-16T21:49:20.153172992Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_AddBytes","Output":"=== RUN   TestLower_AddBytes\n"}
+{"Time":"2026-10-16T21:49:20.153287181Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_AddBytes","Output":"--- PASS: TestLower_AddBytes (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.153289961Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_AddBytes","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.153293321Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop"}
+{"Time":"2026-10-16T21:49:20.153295461Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"=== RUN   TestLower_SumLoop\n"}
+{"Time":"2026-10-16T21:49:20.153817318Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"    plm_test.go:434: sum assembly:\n"}
+{"Time":"2026-10-16T21:49:20.153819908Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"        ; generated by MIR2 Z80 codegen\n"}
+{"Time":"2026-10-16T21:49:20.153822288Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"        \n"}
+{"Time":"2026-10-16T21:49:20.153824678Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"        ; fun SUM(N: u8 = A) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n"}
+{"Time":"2026-10-16T21:49:20.153834348Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"        SUM:\n"}
+{"Time":"2026-10-16T21:49:20.153837738Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"            LD C, 0\n"}
+{"Time":"2026-10-16T21:49:20.153839938Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"            LD D, 0\n"}
+{"Time":"2026-10-16T21:49:20.153842098Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"            LD C, A\n"}
+{"Time":"2026-10-16T21:49:20.153844278Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"            LD E, 0\n"}
+{"Time":"2026-10-16T21:49:20.153846398Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"        .SUM_loop_head1:\n"}
+{"Time":"2026-10-16T21:49:20.153848418Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"            LD A, D\n"}
+{"Time":"2026-10-16T21:49:20.153850438Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"            CP C\n"}
+{"Time":"2026-10-16T21:49:20.153852578Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"            JRS NC, .SUM_trmp0\n"}
+{"Time":"2026-10-16T21:49:20.153855698Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"        .SUM_loop_body2:\n"}
+{"Time":"2026-10-16T21:49:20.153858168Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"            LD A, E\n"}
+{"Time":"2026-10-16T21:49:20.153860268Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"            ADD A, D\n"}
+{"Time":"2026-10-16T21:49:20.153862288Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"            LD E, A\n"}
+{"Time":"2026-10-16T21:49:20.153864338Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"            INC D\n"}
+{"Time":"2026-10-16T21:49:20.153866478Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"            JRS .SUM_loop_head1\n"}
+{"Time":"2026-10-16T21:49:20.153868628Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"        .SUM_loop_exit3:\n"}
+{"Time":"2026-10-16T21:49:20.153870728Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"            LD A, E\n"}
+{"Time":"2026-10-16T21:49:20.153872768Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"            RET\n"}
+{"Time":"2026-10-16T21:49:20.153874818Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"        .SUM_trmp0:\n"}
+{"Time":"2026-10-16T21:49:20.153876928Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"            PUSH AF\n"}
+{"Time":"2026-10-16T21:49:20.153878948Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"            LD A, D\n"}
+{"Time":"2026-10-16T21:49:20.153881008Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"            LD D, C\n"}
+{"Time":"2026-10-16T21:49:20.153883018Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"            LD C, A\n"}
+{"Time":"2026-10-16T21:49:20.153885148Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"            POP AF\n"}
+{"Time":"2026-10-16T21:49:20.153887418Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"            JRS .SUM_loop_exit3\n"}
+{"Time":"2026-10-16T21:49:20.153891528Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"        \n"}
+{"Time":"2026-10-16T21:49:20.15705936Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Output":"--- PASS: TestLower_SumLoop (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.1570677Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_SumLoop","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.15707219Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction"}
+{"Time":"2026-10-16T21:49:20.15707489Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"=== RUN   TestLower_GCDSubtraction\n"}
+{"Time":"2026-10-16T21:49:20.157555127Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"    plm_test.go:469: gcd assembly:\n"}
+{"Time":"2026-10-16T21:49:20.157558057Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"        ; generated by MIR2 Z80 codegen\n"}
+{"Time":"2026-10-16T21:49:20.157560637Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"        \n"}
+{"Time":"2026-10-16T21:49:20.157563337Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"        ; fun GCD(A: u8 = A, B: u8 = C) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n"}
+{"Time":"2026-10-16T21:49:20.157567347Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"        GCD:\n"}
+{"Time":"2026-10-16T21:49:20.157571157Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"            LD D, C\n"}
+{"Time":"2026-10-16T21:49:20.157573817Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"            LD C, A\n"}
+{"Time":"2026-10-16T21:49:20.157576417Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"        .GCD_loop_head1:\n"}
+{"Time":"2026-10-16T21:49:20.157578997Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"            LD A, C\n"}
+{"Time":"2026-10-16T21:49:20.157581567Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"            CP D\n"}
+{"Time":"2026-10-16T21:49:20.157584197Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"            JRS Z, .GCD_loop_exit3\n"}
+{"Time":"2026-10-16T21:49:20.157587007Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"        .GCD_loop_body2:\n"}
+{"Time":"2026-10-16T21:49:20.157589637Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"            LD A, D\n"}
+{"Time":"2026-10-16T21:49:20.157592177Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"            CP C\n"}
+{"Time":"2026-10-16T21:49:20.157595957Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"            JRS NC, .GCD_if_else6\n"}
+{"Time":"2026-10-16T21:49:20.157598607Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"        .GCD_if_then4:\n"}
+{"Time":"2026-10-16T21:49:20.157601387Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"            LD A, C\n"}
+{"Time":"2026-10-16T21:49:20.157603967Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"            SUB D\n"}
+{"Time":"2026-10-16T21:49:20.157606587Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"            LD C, A\n"}
+{"Time":"2026-10-16T21:49:20.157614177Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"        .GCD_if_join5:\n"}
+{"Time":"2026-10-16T21:49:20.157617747Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"            JRS .GCD_loop_head1\n"}
+{"Time":"2026-10-16T21:49:20.157621847Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"        .GCD_if_else6:\n"}
+{"Time":"2026-10-16T21:49:20.157626057Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"            LD A, D\n"}
+{"Time":"2026-10-16T21:49:20.157630817Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"            SUB C\n"}
+{"Time":"2026-10-16T21:49:20.157633747Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"            LD D, A\n"}
+{"Time":"2026-10-16T21:49:20.157639877Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"            JRS .GCD_if_join5\n"}
+{"Time":"2026-10-16T21:49:20.157642687Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"        .GCD_loop_exit3:\n"}
+{"Time":"2026-10-16T21:49:20.157645297Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"            LD A, C\n"}
+{"Time":"2026-10-16T21:49:20.157647957Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"            RET\n"}
+{"Time":"2026-10-16T21:49:20.157650587Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"        \n"}
+{"Time":"2026-10-16T21:49:20.159547896Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Output":"--- PASS: TestLower_GCDSubtraction (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.159556166Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_GCDSubtraction","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.159563306Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_MaxByte"}
+{"Time":"2026-10-16T21:49:20.159566196Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_MaxByte","Output":"=== RUN   TestLower_MaxByte\n"}
+{"Time":"2026-10-16T21:49:20.159792605Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_MaxByte","Output":"    plm_test.go:502: maxb assembly:\n"}
+{"Time":"2026-10-16T21:49:20.159795695Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_MaxByte","Output":"        ; generated by MIR2 Z80 codegen\n"}
+{"Time":"2026-10-16T21:49:20.159798415Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_MaxByte","Output":"        \n"}
+{"Time":"2026-10-16T21:49:20.159801145Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_MaxByte","Output":"        ; fun MAXB(A: u8 = A, B: u8 = C) -\u003e u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L\n"}
+{"Time":"2026-10-16T21:49:20.159804685Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_MaxByte","Output":"        MAXB:\n"}
+{"Time":"2026-10-16T21:49:20.159808415Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_MaxByte","Output":"            CP C\n"}
+{"Time":"2026-10-16T21:49:20.159811135Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_MaxByte","Output":"            JRS Z, .MAXB_if_join2\n"}
+{"Time":"2026-10-16T21:49:20.159813834Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_MaxByte","Output":"            JRS C, .MAXB_if_join2\n"}
+{"Time":"2026-10-16T21:49:20.159816424Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_MaxByte","Output":"        .MAXB_if_then1:\n"}
+{"Time":"2026-10-16T21:49:20.159823194Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_MaxByte","Output":"            RET\n"}
+{"Time":"2026-10-16T21:49:20.159825974Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_MaxByte","Output":"        .MAXB_if_join2:\n"}
+{"Time":"2026-10-16T21:49:20.159828624Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_MaxByte","Output":"            LD A, C\n"}
+{"Time":"2026-10-16T21:49:20.159831314Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_MaxByte","Output":"            RET\n"}
+{"Time":"2026-10-16T21:49:20.159834234Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_MaxByte","Output":"        \n"}
+{"Time":"2026-10-16T21:49:20.160505751Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_MaxByte","Output":"--- PASS: TestLower_MaxByte (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.160512841Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestLower_MaxByte","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.160517691Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestAssert_Parse"}
+{"Time":"2026-10-16T21:49:20.160520311Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestAssert_Parse","Output":"=== RUN   TestAssert_Parse\n"}
+{"Time":"2026-10-16T21:49:20.16057314Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestAssert_Parse","Output":"--- PASS: TestAssert_Parse (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.16057615Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestAssert_Parse","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.16058004Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestAssert_MultiArg"}
+{"Time":"2026-10-16T21:49:20.16058262Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestAssert_MultiArg","Output":"=== RUN   TestAssert_MultiArg\n"}
+{"Time":"2026-10-16T21:49:20.16062327Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestAssert_MultiArg","Output":"--- PASS: TestAssert_MultiArg (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.16062622Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestAssert_MultiArg","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.16063002Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestAssert_E2E"}
+{"Time":"2026-10-16T21:49:20.16063246Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestAssert_E2E","Output":"=== RUN   TestAssert_E2E\n"}
+{"Time":"2026-10-16T21:49:20.161309096Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestAssert_E2E","Output":"--- PASS: TestAssert_E2E (0.00s)\n"}
+{"Time":"2026-10-16T21:49:20.161314306Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestAssert_E2E","Elapsed":0}
+{"Time":"2026-10-16T21:49:20.161317756Z","Action":"run","Package":"github.com/minz/minzc/pkg/plm","Test":"TestDeclaredWordPointerIndexVMZ80"}
+{"Time":"2026-10-16T21:49:20.161319826Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestDeclaredWordPointerIndexVMZ80","Output":"=== RUN   TestDeclaredWordPointerIndexVMZ80\n"}
+{"Time":"2026-10-16T21:49:20.166949774Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Test":"TestDeclaredWordPointerIndexVMZ80","Output":"--- PASS: TestDeclaredWordPointerIndexVMZ80 (0.01s)\n"}
+{"Time":"2026-10-16T21:49:20.167015124Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Test":"TestDeclaredWordPointerIndexVMZ80","Elapsed":0.01}
+{"Time":"2026-10-16T21:49:20.167022974Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Output":"PASS\n"}
+{"Time":"2026-10-16T21:49:20.168289787Z","Action":"output","Package":"github.com/minz/minzc/pkg/plm","Output":"ok  \tgithub.com/minz/minzc/pkg/plm\t0.028s\n"}
+{"Time":"2026-10-16T21:49:20.168315307Z","Action":"pass","Package":"github.com/minz/minzc/pkg/plm","Elapsed":0.028}
