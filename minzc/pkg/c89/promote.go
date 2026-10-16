@@ -393,8 +393,15 @@ func rewriteReturnsInBlock(blk *hir.Block, info *promotionInfo, fieldAssigns map
 
 		// Pattern 2: indirect via variable — use scoped resolution.
 		if ref, ok := ret.Val.(*hir.VarRefExpr); ok {
-			if lit, found := scopeVars[ref.Name]; found {
-				blk.Body[i] = &hir.ReturnStmt{Vals: structLitToTuple(lit, info)}
+			if _, found := scopeVars[ref.Name]; found {
+				// The object may have changed since its initializer. Read its
+				// current fields; replaying initializer expressions loses writes
+				// and can repeat their side effects.
+				vals := make([]hir.Expr, len(info.fieldTys))
+				for j, field := range info.st.Fields {
+					vals[j] = &hir.FieldExpr{X: hir.Var(ref.Name, mir2.TyPtr), Field: field.Name, Offset: info.st.ByteOffset(j), Ty: info.fieldTys[j]}
+				}
+				blk.Body[i] = &hir.ReturnStmt{Vals: vals}
 				continue
 			}
 		}
