@@ -205,68 +205,76 @@ func (l *lowerer) lowerTopDecl(d *cc.Declaration) error {
 		// Global variable.
 		// For arrays, preserve ArrayTy so HIR lowerer returns address
 		// (array decay) instead of loading the value as a pointer.
-		var mty mir2.Ty
-		if ty.Kind() == cc.Array {
-			at := ty.(*cc.ArrayType)
-			elemTy := l.mapType(at.Elem())
-			length := int(at.Len())
-			if length < 1 {
-				length = 1
-			}
-			mty = mir2.NewArray(elemTy, length)
-		} else {
-			mty = l.mapType(ty)
-		}
+		mty := l.storageType(ty)
 		g := mir2.Global{Name: name, Ty: mty}
-
-		// Initial value.
 		if id.Initializer != nil {
-			if id.Initializer.Case == cc.InitializerInitList && ty.Kind() == cc.Array {
-				// Array initializer: populate Init bytes from brace list.
-				at := ty.(*cc.ArrayType)
-				length := int(at.Len())
-				elemSize := int(at.Elem().Size())
-				if elemSize <= 0 {
-					elemSize = 1
-				}
-				initBytes := make([]byte, length*elemSize)
-				idx := 0
-				for il := id.Initializer.InitializerList; il != nil; il = il.InitializerList {
-					init := il.Initializer
-					if init == nil {
-						continue
-					}
-					// Check for [index] designator
-					if il.Designation != nil {
-						if dl := il.Designation.DesignatorList; dl != nil && dl.Designator != nil {
-							d := dl.Designator
-							if d.Case == cc.DesignatorIndex {
-								idx = int(constToInt64(d.ConstantExpression.Value()))
-							}
-						}
-					}
-					if init.Case == cc.InitializerExpr {
-						if v := init.Value(); v != nil {
-							val := constToInt64(v)
-							off := idx * elemSize
-							if off >= 0 && off < len(initBytes) {
-								initBytes[off] = byte(val)
-								if elemSize >= 2 && off+1 < len(initBytes) {
-									initBytes[off+1] = byte(val >> 8)
-								}
-							}
-						}
-					}
-					idx++
-				}
-				g.Init = initBytes
-			} else if val, ok := l.evalConstInit(id.Initializer); ok {
-				g.Init = []byte{byte(val)}
+			g.Init = make([]byte, mty.Width()/8)
+			if err := l.writeGlobalInitializer(g.Init, id.Initializer); err != nil {
+				return fmt.Errorf("global %s: %w", name, err)
 			}
 		}
 
 		l.hm.Globals = append(l.hm.Globals, g)
 		l.globals[name] = mty
+	}
+	return nil
+}
+
+// Storage preserves aggregate layout; expression types may still decay to pointers.
+func (l *lowerer) storageType(t cc.Type) mir2.Ty {
+	switch t := t.(type) {
+	case *cc.ArrayType:
+		return mir2.NewArray(l.storageType(t.Elem()), int(t.Len()))
+	case *cc.StructType:
+		return l.structs[l.structTag(t)]
+	case *cc.UnionType:
+		return l.structs[l.unionTag(t)]
+	default:
+		return l.mapType(t)
+	}
+}
+
+// The typed parser already resolves nested braces and designators to byte
+// offsets. Traverse all scalar leaves in source order so later designators win.
+func (l *lowerer) writeGlobalInitializer(data []byte, init *cc.Initializer) error {
+	if init == nil {
+		return nil
+	}
+	if init.Case == cc.InitializerInitList {
+		for list := init.InitializerList; list != nil; list = list.InitializerList {
+			if err := l.writeGlobalInitializer(data, list.Initializer); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	if f := init.Field(); f != nil && f.IsBitfield() {
+		return fmt.Errorf("bit-field initializer is not supported")
+	}
+	off, width := int(init.Offset()), int(init.Type().Size())
+	if off < 0 || width < 1 || off+width > len(data) {
+		return fmt.Errorf("initializer layout exceeds storage: offset %d width %d size %d", off, width, len(data))
+	}
+	if str, ok := init.Value().(cc.StringValue); ok {
+		if init.Type().Kind() != cc.Array {
+			return fmt.Errorf("string pointer initializer requires a relocation")
+		}
+		copy(data[off:off+width], []byte(str))
+		return nil
+	}
+	var value uint64
+	switch v := init.Value().(type) {
+	case cc.Int64Value:
+		value = uint64(v)
+	case cc.UInt64Value:
+		value = uint64(v)
+	case *cc.ZeroValue:
+		value = 0
+	default:
+		return fmt.Errorf("unsupported global initializer value %T", v)
+	}
+	for i := 0; i < width; i++ {
+		data[off+i] = byte(value >> (8 * i))
 	}
 	return nil
 }

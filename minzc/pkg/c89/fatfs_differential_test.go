@@ -1,4 +1,4 @@
-package c89
+package c89_test
 
 // Differential test: C89 fatfs_lowlevel.c vs Nanz fat12.minz
 //
@@ -11,6 +11,7 @@ package c89
 
 import (
 	"fmt"
+	c89 "github.com/minz/minzc/pkg/c89"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -32,7 +33,7 @@ func compileC89ToMIR2(t *testing.T, path string) *mir2.Module {
 	if err != nil {
 		t.Fatalf("read %s: %v", path, err)
 	}
-	hirMod, err := Compile(string(src), path)
+	hirMod, err := c89.Compile(string(src), path)
 	if err != nil {
 		t.Fatalf("C89→HIR: %v", err)
 	}
@@ -46,7 +47,7 @@ func compileC89ToMIR2Opt(t *testing.T, path string) *mir2.Module {
 	if err != nil {
 		t.Fatalf("read %s: %v", path, err)
 	}
-	hirMod, err := Compile(string(src), path)
+	hirMod, err := c89.Compile(string(src), path)
 	if err != nil {
 		t.Fatalf("C89→HIR: %v", err)
 	}
@@ -243,10 +244,10 @@ func TestDifferential_MIR2_CodeQuality(t *testing.T) {
 	}
 
 	type stats struct {
-		name       string
-		insts      int
-		blocks     int
-		blockArgs  int
+		name      string
+		insts     int
+		blocks    int
+		blockArgs int
 	}
 
 	funcStats := func(m *mir2.Module, name string) *stats {

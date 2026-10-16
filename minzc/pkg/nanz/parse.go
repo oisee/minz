@@ -48,6 +48,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/minz/minzc/pkg/c89"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/lanz"
 	"github.com/minz/minzc/pkg/lizp"
@@ -1660,6 +1661,8 @@ func (p *parser) parseImport() error {
 	var importedMetaFuncs map[string]string
 	ext := filepath.Ext(filePath)
 	switch ext {
+	case ".c":
+		imported, err = c89.CompileWithOpts(string(src), filePath, c89.CompileOpts{BaseDir: filepath.Dir(filePath), IncludePaths: []string{filepath.Dir(filePath)}})
 	case ".lanz":
 		imported, err = lanz.Compile(string(src), modPath)
 	case ".lizp":
@@ -1921,7 +1924,7 @@ func (p *parser) childTypeAliases(_ *hir.Module) map[string]mir2.Ty {
 // Tries extensions in priority order: .nanz, .lanz, .plm.
 func (p *parser) resolveModulePath(modPath string, line int) (string, error) {
 	basePath := strings.ReplaceAll(modPath, ".", string(filepath.Separator))
-	exts := []string{".nanz", ".minz", ".lanz", ".lizp", ".plm", ".pas"}
+	exts := []string{".nanz", ".minz", ".lanz", ".lizp", ".plm", ".pas", ".c"}
 	dirs := []string{}
 	if p.opts.BaseDir != "" {
 		dirs = append(dirs, p.opts.BaseDir)

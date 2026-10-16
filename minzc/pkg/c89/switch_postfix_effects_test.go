@@ -1,6 +1,7 @@
-package c89
+package c89_test
 
 import (
+	c89 "github.com/minz/minzc/pkg/c89"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/pipeline"
@@ -20,7 +21,7 @@ func TestSwitchArmPostfixEffectsVMZ80(t *testing.T) {
  return (unsigned int)n*256+x;
  }`
 	parse := func() *hir.Module {
-		h, e := Compile(source, "switch-effects.c")
+		h, e := c89.Compile(source, "switch-effects.c")
 		if e != nil {
 			t.Fatal(e)
 		}
@@ -76,7 +77,7 @@ func TestSwitchSelectorPostfixAndEmptyEffects(t *testing.T) {
 		`unsigned char probe(unsigned char n) { switch(n++) {} return n; }`,
 	} {
 		parse := func() *hir.Module {
-			h, e := Compile(source, "selector.c")
+			h, e := c89.Compile(source, "selector.c")
 			if e != nil {
 				t.Fatal(e)
 			}
