@@ -107,6 +107,7 @@ func z80ABI() *cc.ABI {
 
 // CompileOpts configures the C89 compiler.
 type CompileOpts struct {
+	DeferAggregateABI bool // imported source module: choose aggregate slots after linking
 	// PrivatePrefix isolates file-local symbols when this translation unit joins a source-module graph.
 	PrivatePrefix string
 	// BaseDir is the source file directory for resolving #import paths.
@@ -206,9 +207,11 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 		return nil, fmt.Errorf("c89 lower: %w", err)
 	}
 
-	// Struct-return promotion (ADR-0025): small struct returns → tuple returns.
-	// Must run before merge so promoted signatures are visible to importers.
-	PromoteStructReturns(l.hm)
+	// Keep the C source ABI while compiling a library: callers/prototypes in
+	// other translation units must be reconciled before choosing scalar slots.
+	for _, fn := range l.hm.Funcs {
+		fn.CValueABI = true
+	}
 
 	// Merge imported modules into this module.
 	if len(importedModules) > 0 {
@@ -231,6 +234,9 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 	l.generateObjCAssertWrappers(src)
 	l.generateObjCDynAssertWrappers(src)
 
+	if !opts.DeferAggregateABI {
+		hir.OptimizeCAggregateABI(l.hm)
+	}
 	return l.hm, nil
 }
 

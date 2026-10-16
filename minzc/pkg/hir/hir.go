@@ -135,6 +135,7 @@ func (m *Module) FuncByName(name string) *Func {
 
 // Func is a HIR function.
 type Func struct {
+	CValueABI      bool `json:",omitempty"` // C by-value aggregate semantics; delay ABI selection until linking
 	FallibleCY     bool // derived CY/error ABI, part of semantic identity
 	Name           string
 	Params         []Param

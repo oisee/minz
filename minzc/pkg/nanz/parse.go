@@ -1663,7 +1663,7 @@ func (p *parser) parseImport() error {
 	ext := filepath.Ext(filePath)
 	switch ext {
 	case ".c":
-		imported, err = c89.CompileWithOpts(string(src), filePath, c89.CompileOpts{BaseDir: filepath.Dir(filePath), IncludePaths: []string{filepath.Dir(filePath)}, Resolver: p.cSourceResolver(filePath)})
+		imported, err = c89.CompileWithOpts(string(src), filePath, c89.CompileOpts{DeferAggregateABI: true, BaseDir: filepath.Dir(filePath), IncludePaths: []string{filepath.Dir(filePath)}, Resolver: p.cSourceResolver(filePath)})
 	case ".lanz":
 		imported, err = lanz.Compile(string(src), modPath)
 	case ".lizp":
@@ -6624,7 +6624,7 @@ func (p *parser) cSourceResolver(sourceFile string) *interop.Resolver {
 	compilers[".minz"] = compilers[".nanz"]
 	compilers[".c"] = func(src, name string) (*hir.Module, error) {
 		identity := sha256.Sum256([]byte(name))
-		return c89.CompileWithOpts(src, name, c89.CompileOpts{BaseDir: filepath.Dir(name), IncludePaths: []string{filepath.Dir(name)}, PrivatePrefix: fmt.Sprintf("__c_%x__", identity[:16])})
+		return c89.CompileWithOpts(src, name, c89.CompileOpts{DeferAggregateABI: true, BaseDir: filepath.Dir(name), IncludePaths: []string{filepath.Dir(name)}, PrivatePrefix: fmt.Sprintf("__c_%x__", identity[:16])})
 	}
 	return &interop.Resolver{BaseDir: filepath.Dir(sourceFile), Compilers: compilers}
 }

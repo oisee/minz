@@ -1,14 +1,13 @@
-package c89
+package hir
 
 import (
 	"fmt"
-	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
 )
 
 // aggregateExpr/aggregateBlock deliberately reject unknown IR shapes. New HIR
 // nodes must be audited before this pass may remove an addressable C object.
-func aggregateExpr(e hir.Expr, f func(hir.Expr) (hir.Expr, bool)) (hir.Expr, bool) {
+func aggregateExpr(e Expr, f func(Expr) (Expr, bool)) (Expr, bool) {
 	if e == nil {
 		return nil, true
 	}
@@ -16,45 +15,45 @@ func aggregateExpr(e hir.Expr, f func(hir.Expr) (hir.Expr, bool)) (hir.Expr, boo
 	if !ok {
 		return e, false
 	}
-	child := func(p *hir.Expr) {
+	child := func(p *Expr) {
 		if ok {
 			*p, ok = aggregateExpr(*p, f)
 		}
 	}
 	switch x := e.(type) {
-	case *hir.IntLitExpr, *hir.BoolLitExpr, *hir.VarRefExpr, *hir.ConstPtrExpr:
-	case *hir.FieldExpr:
+	case *IntLitExpr, *BoolLitExpr, *VarRefExpr, *ConstPtrExpr:
+	case *FieldExpr:
 		child(&x.X)
-	case *hir.AddrOfExpr:
+	case *AddrOfExpr:
 		child(&x.X)
-	case *hir.BinExpr:
+	case *BinExpr:
 		child(&x.L)
 		child(&x.R)
-	case *hir.UnaryExpr:
+	case *UnaryExpr:
 		child(&x.X)
-	case *hir.CastExpr:
+	case *CastExpr:
 		child(&x.X)
-	case *hir.LoadExpr:
+	case *LoadExpr:
 		child(&x.Ptr)
-	case *hir.DerefExpr:
+	case *DerefExpr:
 		child(&x.Ptr)
-	case *hir.IndexExpr:
+	case *IndexExpr:
 		child(&x.Base)
 		child(&x.Idx)
-	case *hir.CallExpr:
+	case *CallExpr:
 		for i := range x.Args {
 			child(&x.Args[i])
 		}
-	case *hir.CallIndirectExpr:
+	case *CallIndirectExpr:
 		child(&x.FnPtr)
 		for i := range x.Args {
 			child(&x.Args[i])
 		}
-	case *hir.StructLitExpr:
+	case *StructLitExpr:
 		for i := range x.Fields {
 			child(&x.Fields[i].Val)
 		}
-	case *hir.CondExpr:
+	case *CondExpr:
 		child(&x.Cond)
 		child(&x.Then)
 		child(&x.Else)
@@ -64,65 +63,65 @@ func aggregateExpr(e hir.Expr, f func(hir.Expr) (hir.Expr, bool)) (hir.Expr, boo
 	return e, ok
 }
 
-func aggregateBlock(b *hir.Block, f func(hir.Expr) (hir.Expr, bool)) bool {
+func aggregateBlock(b *Block, f func(Expr) (Expr, bool)) bool {
 	if b == nil {
 		return true
 	}
 	ok := true
-	expr := func(p *hir.Expr) {
+	expr := func(p *Expr) {
 		if ok {
 			*p, ok = aggregateExpr(*p, f)
 		}
 	}
-	block := func(p *hir.Block) {
+	block := func(p *Block) {
 		if ok {
 			ok = aggregateBlock(p, f)
 		}
 	}
 	for _, s := range b.Body {
 		switch x := s.(type) {
-		case *hir.Block:
+		case *Block:
 			block(x)
-		case *hir.VarDeclStmt:
+		case *VarDeclStmt:
 			expr(&x.Init)
 			for i := range x.Initial {
 				expr(&x.Initial[i])
 			}
-		case *hir.AssignStmt:
+		case *AssignStmt:
 			expr(&x.Target)
 			expr(&x.Val)
-		case *hir.ReturnStmt:
+		case *ReturnStmt:
 			expr(&x.Val)
 			for i := range x.Vals {
 				expr(&x.Vals[i])
 			}
-		case *hir.TupleLetStmt:
-			var e hir.Expr = x.Call
+		case *TupleLetStmt:
+			var e Expr = x.Call
 			expr(&e)
-			x.Call = e.(*hir.CallExpr)
-		case *hir.ExprStmt:
+			x.Call = e.(*CallExpr)
+		case *ExprStmt:
 			expr(&x.Expr)
-		case *hir.IfStmt:
+		case *IfStmt:
 			expr(&x.Cond)
 			block(x.Then)
 			block(x.Else)
-		case *hir.WhileStmt:
+		case *WhileStmt:
 			expr(&x.Cond)
 			block(x.Body)
-		case *hir.ForRangeStmt:
+		case *ForRangeStmt:
 			expr(&x.Start)
 			expr(&x.End)
 			block(x.Body)
-		case *hir.SwitchStmt:
+		case *SwitchStmt:
 			expr(&x.Val)
 			for _, c := range x.Cases {
 				block(c.Body)
 			}
 			block(x.Default)
-		case *hir.StoreStmt:
+		case *StoreStmt:
 			expr(&x.Ptr)
 			expr(&x.Val)
-		case *hir.BreakStmt, *hir.ContinueStmt, *hir.LabelStmt, *hir.GotoStmt:
+		case *BreakStmt, *ContinueStmt, *LabelStmt, *GotoStmt:
 		default:
 			return false
 		}
@@ -133,10 +132,10 @@ func aggregateBlock(b *hir.Block, f func(hir.Expr) (hir.Expr, bool)) bool {
 	return true
 }
 
-func scalarFields(st *mir2.StructTy, name string) map[string]*hir.VarRefExpr {
-	result := make(map[string]*hir.VarRefExpr)
+func scalarFields(st *mir2.StructTy, name string) map[string]*VarRefExpr {
+	result := make(map[string]*VarRefExpr)
 	for i, field := range st.Fields {
-		result[field.Name] = hir.Var(fmt.Sprintf("__c89_scalar_%s_%d", name, i), field.Ty)
+		result[field.Name] = Var(fmt.Sprintf("__c89_scalar_%s_%d", name, i), field.Ty)
 	}
 	return result
 }
@@ -145,11 +144,11 @@ func scalarFields(st *mir2.StructTy, name string) map[string]*hir.VarRefExpr {
 // lvalue address temporaries are admitted only if all their uses dereference
 // exactly that field. An escaping pointer, volatile access, or whole-object use
 // keeps the original object and memory ABI.
-func scalarObjectUses(b *hir.Block, decl *hir.VarDeclStmt, fields map[string]*hir.VarRefExpr, apply bool) bool {
-	aliases := make(map[string]*hir.VarRefExpr)
+func scalarObjectUses(b *Block, decl *VarDeclStmt, fields map[string]*VarRefExpr, apply bool) bool {
+	aliases := make(map[string]*VarRefExpr)
 	duplicate := false
-	visitAggregateStmts(b, func(s hir.Stmt) {
-		d, ok := s.(*hir.VarDeclStmt)
+	visitAggregateStmts(b, func(s Stmt) {
+		d, ok := s.(*VarDeclStmt)
 		if !ok {
 			return
 		}
@@ -164,9 +163,9 @@ func scalarObjectUses(b *hir.Block, decl *hir.VarDeclStmt, fields map[string]*hi
 			}
 		}
 		if d != decl {
-			if a, ok := d.Init.(*hir.AddrOfExpr); ok {
-				if fe, ok := a.X.(*hir.FieldExpr); ok && !fe.Volatile {
-					if r, ok := fe.X.(*hir.VarRefExpr); ok && r.Name == decl.Name && !r.Volatile {
+			if a, ok := d.Init.(*AddrOfExpr); ok {
+				if fe, ok := a.X.(*FieldExpr); ok && !fe.Volatile {
+					if r, ok := fe.X.(*VarRefExpr); ok && r.Name == decl.Name && !r.Volatile {
 						if v := fields[fe.Field]; v != nil {
 							aliases[d.Name] = v
 						}
@@ -178,28 +177,28 @@ func scalarObjectUses(b *hir.Block, decl *hir.VarDeclStmt, fields map[string]*hi
 	if duplicate {
 		return false
 	}
-	rewrite := func(e hir.Expr) (hir.Expr, bool) {
+	rewrite := func(e Expr) (Expr, bool) {
 		switch x := e.(type) {
-		case *hir.FieldExpr:
-			if r, ok := x.X.(*hir.VarRefExpr); ok && r.Name == decl.Name {
+		case *FieldExpr:
+			if r, ok := x.X.(*VarRefExpr); ok && r.Name == decl.Name {
 				v := fields[x.Field]
 				if v == nil || x.Volatile || r.Volatile {
 					return e, false
 				}
 				// Substitute during validation too, to avoid visiting the object reference.
-				return hir.Var(v.Name, v.Ty), true
+				return Var(v.Name, v.Ty), true
 			}
-		case *hir.DerefExpr:
-			if r, ok := x.Ptr.(*hir.VarRefExpr); ok && aliases[r.Name] != nil && !x.Volatile {
+		case *DerefExpr:
+			if r, ok := x.Ptr.(*VarRefExpr); ok && aliases[r.Name] != nil && !x.Volatile {
 				v := aliases[r.Name]
-				return hir.Var(v.Name, v.Ty), true
+				return Var(v.Name, v.Ty), true
 			}
-		case *hir.LoadExpr:
-			if r, ok := x.Ptr.(*hir.VarRefExpr); ok && aliases[r.Name] != nil && !x.Volatile {
+		case *LoadExpr:
+			if r, ok := x.Ptr.(*VarRefExpr); ok && aliases[r.Name] != nil && !x.Volatile {
 				v := aliases[r.Name]
-				return hir.Var(v.Name, v.Ty), true
+				return Var(v.Name, v.Ty), true
 			}
-		case *hir.VarRefExpr:
+		case *VarRefExpr:
 			if x.Name == decl.Name || aliases[x.Name] != nil {
 				return e, false
 			}
@@ -208,7 +207,7 @@ func scalarObjectUses(b *hir.Block, decl *hir.VarDeclStmt, fields map[string]*hi
 					return e, false
 				}
 			}
-		case *hir.AddrOfExpr:
+		case *AddrOfExpr:
 			if x.Sym == decl.Name || aliases[x.Sym] != nil {
 				return e, false
 			}
@@ -217,22 +216,22 @@ func scalarObjectUses(b *hir.Block, decl *hir.VarDeclStmt, fields map[string]*hi
 	}
 	// Validate without mutating original expressions: use a dry visitor that
 	// replaces accepted fields with a sentinel, not a scalar binding.
-	validate := func(e hir.Expr) (hir.Expr, bool) {
+	validate := func(e Expr) (Expr, bool) {
 		r, ok := rewrite(e)
 		if !ok {
 			return e, false
 		}
 		if r != e {
-			return hir.U8(0), true
+			return U8(0), true
 		}
 		return e, true
 	}
-	visit := func(block *hir.Block) bool {
+	visit := func(block *Block) bool {
 		if block == nil {
 			return true
 		}
 		for _, s := range block.Body {
-			if d, ok := s.(*hir.VarDeclStmt); ok && (d == decl || aliases[d.Name] != nil) {
+			if d, ok := s.(*VarDeclStmt); ok && (d == decl || aliases[d.Name] != nil) {
 				continue
 			}
 			// A shallow copy of a statement is insufficient: validation must not rewrite
@@ -249,34 +248,34 @@ func scalarObjectUses(b *hir.Block, decl *hir.VarDeclStmt, fields map[string]*hi
 	if !apply {
 		return true
 	}
-	var transform func(*hir.Block)
-	transform = func(block *hir.Block) {
+	var transform func(*Block)
+	transform = func(block *Block) {
 		if block == nil {
 			return
 		}
-		var body []hir.Stmt
+		var body []Stmt
 		for _, s := range block.Body {
-			if d, ok := s.(*hir.VarDeclStmt); ok && aliases[d.Name] != nil {
+			if d, ok := s.(*VarDeclStmt); ok && aliases[d.Name] != nil {
 				continue
 			}
 			switch x := s.(type) {
-			case *hir.Block:
+			case *Block:
 				transform(x)
-			case *hir.IfStmt:
+			case *IfStmt:
 				transform(x.Then)
 				transform(x.Else)
-			case *hir.WhileStmt:
+			case *WhileStmt:
 				transform(x.Body)
-			case *hir.ForRangeStmt:
+			case *ForRangeStmt:
 				transform(x.Body)
-			case *hir.SwitchStmt:
+			case *SwitchStmt:
 				for _, c := range x.Cases {
 					transform(c.Body)
 				}
 				transform(x.Default)
 			}
 			if s != decl {
-				aggregateBlock(&hir.Block{Body: []hir.Stmt{s}}, func(e hir.Expr) (hir.Expr, bool) { r, _ := rewrite(e); return r, true })
+				aggregateBlock(&Block{Body: []Stmt{s}}, func(e Expr) (Expr, bool) { r, _ := rewrite(e); return r, true })
 			}
 			body = append(body, s)
 		}
@@ -286,7 +285,7 @@ func scalarObjectUses(b *hir.Block, decl *hir.VarDeclStmt, fields map[string]*hi
 	return true
 }
 
-func inspectAggregateExpr(e hir.Expr, f func(hir.Expr) (hir.Expr, bool)) bool {
+func inspectAggregateExpr(e Expr, f func(Expr) (Expr, bool)) bool {
 	if e == nil {
 		return true
 	}
@@ -297,34 +296,34 @@ func inspectAggregateExpr(e hir.Expr, f func(hir.Expr) (hir.Expr, bool)) bool {
 	if next != e {
 		return true
 	}
-	child := func(e hir.Expr) bool { return inspectAggregateExpr(e, f) }
+	child := func(e Expr) bool { return inspectAggregateExpr(e, f) }
 	switch x := e.(type) {
-	case *hir.IntLitExpr, *hir.BoolLitExpr, *hir.VarRefExpr, *hir.ConstPtrExpr:
+	case *IntLitExpr, *BoolLitExpr, *VarRefExpr, *ConstPtrExpr:
 		return true
-	case *hir.FieldExpr:
+	case *FieldExpr:
 		return child(x.X)
-	case *hir.AddrOfExpr:
+	case *AddrOfExpr:
 		return child(x.X)
-	case *hir.BinExpr:
+	case *BinExpr:
 		return child(x.L) && child(x.R)
-	case *hir.UnaryExpr:
+	case *UnaryExpr:
 		return child(x.X)
-	case *hir.CastExpr:
+	case *CastExpr:
 		return child(x.X)
-	case *hir.LoadExpr:
+	case *LoadExpr:
 		return child(x.Ptr)
-	case *hir.DerefExpr:
+	case *DerefExpr:
 		return child(x.Ptr)
-	case *hir.IndexExpr:
+	case *IndexExpr:
 		return child(x.Base) && child(x.Idx)
-	case *hir.CallExpr:
+	case *CallExpr:
 		for _, a := range x.Args {
 			if !child(a) {
 				return false
 			}
 		}
 		return true
-	case *hir.CallIndirectExpr:
+	case *CallIndirectExpr:
 		if !child(x.FnPtr) {
 			return false
 		}
@@ -334,21 +333,21 @@ func inspectAggregateExpr(e hir.Expr, f func(hir.Expr) (hir.Expr, bool)) bool {
 			}
 		}
 		return true
-	case *hir.StructLitExpr:
+	case *StructLitExpr:
 		for _, a := range x.Fields {
 			if !child(a.Val) {
 				return false
 			}
 		}
 		return true
-	case *hir.CondExpr:
+	case *CondExpr:
 		return child(x.Cond) && child(x.Then) && child(x.Else)
 	}
 	return false
 }
-func inspectAggregateStmt(s hir.Stmt, f func(hir.Expr) (hir.Expr, bool)) bool {
-	e := func(e hir.Expr) bool { return inspectAggregateExpr(e, f) }
-	b := func(b *hir.Block) bool {
+func inspectAggregateStmt(s Stmt, f func(Expr) (Expr, bool)) bool {
+	e := func(e Expr) bool { return inspectAggregateExpr(e, f) }
+	b := func(b *Block) bool {
 		if b == nil {
 			return true
 		}
@@ -360,9 +359,9 @@ func inspectAggregateStmt(s hir.Stmt, f func(hir.Expr) (hir.Expr, bool)) bool {
 		return true
 	}
 	switch x := s.(type) {
-	case *hir.Block:
+	case *Block:
 		return b(x)
-	case *hir.VarDeclStmt:
+	case *VarDeclStmt:
 		if !e(x.Init) {
 			return false
 		}
@@ -372,9 +371,9 @@ func inspectAggregateStmt(s hir.Stmt, f func(hir.Expr) (hir.Expr, bool)) bool {
 			}
 		}
 		return true
-	case *hir.AssignStmt:
+	case *AssignStmt:
 		return e(x.Target) && e(x.Val)
-	case *hir.ReturnStmt:
+	case *ReturnStmt:
 		if !e(x.Val) {
 			return false
 		}
@@ -384,17 +383,17 @@ func inspectAggregateStmt(s hir.Stmt, f func(hir.Expr) (hir.Expr, bool)) bool {
 			}
 		}
 		return true
-	case *hir.TupleLetStmt:
+	case *TupleLetStmt:
 		return e(x.Call)
-	case *hir.ExprStmt:
+	case *ExprStmt:
 		return e(x.Expr)
-	case *hir.IfStmt:
+	case *IfStmt:
 		return e(x.Cond) && b(x.Then) && b(x.Else)
-	case *hir.WhileStmt:
+	case *WhileStmt:
 		return e(x.Cond) && b(x.Body)
-	case *hir.ForRangeStmt:
+	case *ForRangeStmt:
 		return e(x.Start) && e(x.End) && b(x.Body)
-	case *hir.SwitchStmt:
+	case *SwitchStmt:
 		if !e(x.Val) || !b(x.Default) {
 			return false
 		}
@@ -404,30 +403,30 @@ func inspectAggregateStmt(s hir.Stmt, f func(hir.Expr) (hir.Expr, bool)) bool {
 			}
 		}
 		return true
-	case *hir.StoreStmt:
+	case *StoreStmt:
 		return e(x.Ptr) && e(x.Val)
-	case *hir.BreakStmt, *hir.ContinueStmt, *hir.LabelStmt, *hir.GotoStmt:
+	case *BreakStmt, *ContinueStmt, *LabelStmt, *GotoStmt:
 		return true
 	}
 	return false
 }
 
-func scalarizeAggregateLocals(b *hir.Block) {
+func scalarizeAggregateLocals(b *Block) {
 	if b == nil {
 		return
 	}
 	for _, s := range b.Body {
 		switch x := s.(type) {
-		case *hir.Block:
+		case *Block:
 			scalarizeAggregateLocals(x)
-		case *hir.IfStmt:
+		case *IfStmt:
 			scalarizeAggregateLocals(x.Then)
 			scalarizeAggregateLocals(x.Else)
-		case *hir.WhileStmt:
+		case *WhileStmt:
 			scalarizeAggregateLocals(x.Body)
-		case *hir.ForRangeStmt:
+		case *ForRangeStmt:
 			scalarizeAggregateLocals(x.Body)
-		case *hir.SwitchStmt:
+		case *SwitchStmt:
 			for _, c := range x.Cases {
 				scalarizeAggregateLocals(c.Body)
 			}
@@ -435,21 +434,21 @@ func scalarizeAggregateLocals(b *hir.Block) {
 		}
 	}
 	for i := 0; i < len(b.Body); i++ {
-		d, ok := b.Body[i].(*hir.VarDeclStmt)
+		d, ok := b.Body[i].(*VarDeclStmt)
 		if !ok || d.Volatile || d.ArrayLen != 0 || d.At != nil {
 			continue
 		}
-		lit, ok := d.Init.(*hir.StructLitExpr)
+		lit, ok := d.Init.(*StructLitExpr)
 		if !ok || !isShallowScalarStruct(lit.St) {
 			continue
 		}
 		fields := scalarFields(lit.St, d.Name)
 		tupleFields := false
 		if i > 0 {
-			if tuple, ok := b.Body[i-1].(*hir.TupleLetStmt); ok && len(tuple.Names) == len(lit.Fields) {
+			if tuple, ok := b.Body[i-1].(*TupleLetStmt); ok && len(tuple.Names) == len(lit.Fields) {
 				tupleFields = true
 				for j, fi := range lit.Fields {
-					r, ok := fi.Val.(*hir.VarRefExpr)
+					r, ok := fi.Val.(*VarRefExpr)
 					if !ok || r.Name != tuple.Names[j] {
 						tupleFields = false
 						break
@@ -457,22 +456,22 @@ func scalarizeAggregateLocals(b *hir.Block) {
 				}
 				if tupleFields {
 					for _, fi := range lit.Fields {
-						r := fi.Val.(*hir.VarRefExpr)
-						fields[fi.Name] = hir.Var(r.Name, r.Ty)
+						r := fi.Val.(*VarRefExpr)
+						fields[fi.Name] = Var(r.Name, r.Ty)
 					}
 				}
 			}
 		}
 		if !tupleFields {
 			used := map[string]bool{}
-			inspectAggregateStmt(b, func(e hir.Expr) (hir.Expr, bool) {
-				if r, ok := e.(*hir.VarRefExpr); ok {
+			inspectAggregateStmt(b, func(e Expr) (Expr, bool) {
+				if r, ok := e.(*VarRefExpr); ok {
 					used[r.Name] = true
 				}
 				return e, true
 			})
-			walkStmts(b, func(s hir.Stmt) bool {
-				if d, ok := s.(*hir.VarDeclStmt); ok {
+			walkStmts(b, func(s Stmt) bool {
+				if d, ok := s.(*VarDeclStmt); ok {
 					used[d.Name] = true
 				}
 				return true
@@ -490,7 +489,7 @@ func scalarizeAggregateLocals(b *hir.Block) {
 		}
 		scalarObjectUses(b, d, fields, true)
 		// Preserve initialization order and evaluate each initializer once.
-		var init []hir.Stmt
+		var init []Stmt
 		for _, fi := range lit.Fields {
 			if tupleFields {
 				continue
@@ -499,9 +498,9 @@ func scalarizeAggregateLocals(b *hir.Block) {
 			if v == nil {
 				continue
 			}
-			init = append(init, &hir.VarDeclStmt{Name: v.Name, Ty: v.Ty, Init: fi.Val})
+			init = append(init, &VarDeclStmt{Name: v.Name, Ty: v.Ty, Init: fi.Val})
 		}
-		var body []hir.Stmt
+		var body []Stmt
 		for _, s := range b.Body {
 			if s == d {
 				body = append(body, init...)
@@ -515,18 +514,22 @@ func scalarizeAggregateLocals(b *hir.Block) {
 
 // Scalarize only direct, module-local call sites with already materialized
 // arguments. This avoids duplicating calls or changing indirect/public ABI.
-func scalarizeAggregateParams(m *hir.Module) {
+func scalarizeAggregateParams(m *Module, onlyC bool) bool {
+	changed := false
 	for _, fn := range m.Funcs {
+		if onlyC && !fn.CValueABI {
+			continue
+		}
 		if fn.IsExtern || fn.Body == nil {
 			continue
 		}
 		for pi := len(fn.Params) - 1; pi >= 0; pi-- {
 			p := fn.Params[pi]
-			var decl *hir.VarDeclStmt
+			var decl *VarDeclStmt
 			for _, s := range fn.Body.Body {
-				if d, ok := s.(*hir.VarDeclStmt); ok && d.Name == p.Name {
+				if d, ok := s.(*VarDeclStmt); ok && d.Name == p.Name {
 					if st, ok := d.Ty.(*mir2.StructTy); ok && isShallowScalarStruct(st) {
-						if r, ok := d.Init.(*hir.VarRefExpr); ok && r.Name == p.Name {
+						if r, ok := d.Init.(*VarRefExpr); ok && r.Name == p.Name {
 							decl = d
 						}
 					}
@@ -554,19 +557,19 @@ func scalarizeAggregateParams(m *hir.Module) {
 				if caller.Body == nil {
 					continue
 				}
-				if !inspectAggregateStmt(caller.Body, func(e hir.Expr) (hir.Expr, bool) {
-					if a, ok := e.(*hir.AddrOfExpr); ok && a.Sym == fn.Name {
+				if !inspectAggregateStmt(caller.Body, func(e Expr) (Expr, bool) {
+					if a, ok := e.(*AddrOfExpr); ok && a.Sym == fn.Name {
 						safe = false
 					}
-					if r, ok := e.(*hir.VarRefExpr); ok && r.Name == fn.Name {
+					if r, ok := e.(*VarRefExpr); ok && r.Name == fn.Name {
 						safe = false
 					}
-					if c, ok := e.(*hir.CallExpr); ok && c.Fn == fn.Name {
+					if c, ok := e.(*CallExpr); ok && c.Fn == fn.Name {
 						calls++
 						if pi >= len(c.Args) {
 							safe = false
 						} else {
-							if r, ok := c.Args[pi].(*hir.VarRefExpr); !ok || r.Volatile {
+							if r, ok := c.Args[pi].(*VarRefExpr); !ok || r.Volatile {
 								safe = false
 							}
 						}
@@ -587,53 +590,56 @@ func scalarizeAggregateParams(m *hir.Module) {
 				continue
 			}
 			scalarObjectUses(fn.Body, decl, fields, true)
-			var body []hir.Stmt
+			var body []Stmt
 			for _, s := range fn.Body.Body {
 				if s != decl {
 					body = append(body, s)
 				}
 			}
 			fn.Body.Body = body
-			var params []hir.Param
+			var params []Param
 			for _, field := range st.Fields {
 				v := fields[field.Name]
-				params = append(params, hir.Param{Name: v.Name, Ty: v.Ty})
+				params = append(params, Param{Name: v.Name, Ty: v.Ty})
 			}
-			fn.Params = append(append(append([]hir.Param{}, fn.Params[:pi]...), params...), fn.Params[pi+1:]...)
+			changed = true
+			fn.Params = append(append(append([]Param{}, fn.Params[:pi]...), params...), fn.Params[pi+1:]...)
 			for _, caller := range m.Funcs {
-				aggregateBlock(caller.Body, func(e hir.Expr) (hir.Expr, bool) {
-					if c, ok := e.(*hir.CallExpr); ok && c.Fn == fn.Name {
+				aggregateBlock(caller.Body, func(e Expr) (Expr, bool) {
+					if c, ok := e.(*CallExpr); ok && c.Fn == fn.Name {
 						arg := c.Args[pi]
-						var args []hir.Expr
+						var args []Expr
 						for j, field := range st.Fields {
-							args = append(args, &hir.FieldExpr{X: arg, Field: field.Name, Offset: st.ByteOffset(j), Ty: field.Ty})
+							args = append(args, &FieldExpr{X: arg, Field: field.Name, Offset: st.ByteOffset(j), Ty: field.Ty})
 						}
-						c.Args = append(append(append([]hir.Expr{}, c.Args[:pi]...), args...), c.Args[pi+1:]...)
+						c.Args = append(append(append([]Expr{}, c.Args[:pi]...), args...), c.Args[pi+1:]...)
 					}
 					return e, true
 				})
 			}
 		}
 	}
+
+	return changed
 }
 
-func visitAggregateStmts(b *hir.Block, f func(hir.Stmt)) {
+func visitAggregateStmts(b *Block, f func(Stmt)) {
 	if b == nil {
 		return
 	}
 	for _, s := range b.Body {
 		f(s)
 		switch x := s.(type) {
-		case *hir.Block:
+		case *Block:
 			visitAggregateStmts(x, f)
-		case *hir.IfStmt:
+		case *IfStmt:
 			visitAggregateStmts(x.Then, f)
 			visitAggregateStmts(x.Else, f)
-		case *hir.WhileStmt:
+		case *WhileStmt:
 			visitAggregateStmts(x.Body, f)
-		case *hir.ForRangeStmt:
+		case *ForRangeStmt:
 			visitAggregateStmts(x.Body, f)
-		case *hir.SwitchStmt:
+		case *SwitchStmt:
 			for _, c := range x.Cases {
 				visitAggregateStmts(c.Body, f)
 			}
