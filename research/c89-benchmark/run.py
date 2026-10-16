@@ -50,6 +50,7 @@ def main():
         'driver_sha256': sha(__file__),
         'sources': frozen,
         'nanz_sources': nfrozen,
+        'nanz_tuple_sources': json.loads((root/'research/c89-benchmark/nanz-tuple/manifest.json').read_text())['cases'] if args.include_nanz else [],
     }
     if args.sdcc45_root:
         meta['sdcc45_version'] = subprocess.check_output([str(args.sdcc45_root.resolve()/'usr/bin/sdcc'),'--version'],text=True).strip()

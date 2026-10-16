@@ -59,3 +59,26 @@ SDCC code size and code speed; sccz80 `-O3`. MinZ Grace has no workload-guided
 selection, checked-local table or joint PFCCO option. No profile is selected after
 looking at timing results. Jobs are independent; parallel host execution does
 not change emulated T-state counts.
+
+## Nanz and SDCC 4.5 extension
+
+Add `--include-nanz` to replay the same workloads with the separately frozen
+Nanz cases. The struct and tuple versions remain separate rows; only the C
+source is identical between C compilers. Nanz sources use explicit byte types
+and a pointer-range foreach for sum_array. The copy loop preserves forward
+order. No inline asm, SMC, lookup table or benchmark-specific specialization
+is introduced.
+
+Add `--sdcc45-root /path/to/sdcc45/root` to run both SDCC releases in one
+matrix. That root uses the same `usr/bin` and `usr/share/sdcc/lib/z80` layout
+as the 4.2 package. For a locally installed official release, a `root/usr`
+symlink to its installation directory supplies this layout. SDCC 4.5 is not
+replaced by trunk or a patched version. All declared profiles are retained.
+
+Early Nanz syntax probes are saved separately: a return starting with a
+parenthesized subexpression consumed only that expression, and a semicolon
+after a void call was rejected. The fixtures were corrected with a named
+intermediate and separate statements; production parsing was not changed.
+Their updated manifest was committed before the final full matrix. Tuple
+return was added as a separate experiment after observing the struct result,
+not silently substituted for it.
