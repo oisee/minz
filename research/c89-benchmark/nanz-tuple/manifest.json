@@ -1,0 +1,9 @@
+{
+  "frozen_before_full_matrix": true,
+  "cases": [
+    {
+      "file": "struct_roundtrip.nanz",
+      "sha256": "0cdeb649a62237492687718e394a4a39db1dbb33382be71f3f53dccaef1d219e"
+    }
+  ]
+}

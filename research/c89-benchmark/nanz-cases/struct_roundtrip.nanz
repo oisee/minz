@@ -6,6 +6,7 @@ fun make_pair(x: u8) -> Pair { return Pair{ hi: x, lo: x + 1 } }
 fun consume(p: Pair) -> u16 { return u16(p.hi) * 256 + u16(p.lo) }
 fun caller(x: u8, y: u8) -> u16 {
     let p: Pair = make_pair(x)
-    return (consume(p) + u16(x)) ^ u16(y)
+    let combined: u16 = consume(p) + u16(x)
+    return combined xor u16(y)
 }
 fun execute() { result = caller(a, b) }

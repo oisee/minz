@@ -1,5 +1,5 @@
 {
-  "frozen_before_measurement": true,
+  "frozen_before_full_matrix": true,
   "cases": [
     {
       "file": "abs_diff.nanz",
@@ -19,7 +19,7 @@
     },
     {
       "file": "struct_roundtrip.nanz",
-      "sha256": "c460edd4413fce460a349d22bf1829646fbefcbb00d53284c2a2d8aa49eea999"
+      "sha256": "b35a6b5048aa289a9d3435ca13a468ddb707790412baf3a1b2b6fa656168f10e"
     },
     {
       "file": "sum_array.nanz",
