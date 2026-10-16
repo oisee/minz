@@ -1,5 +1,10 @@
 [
   {
+    "path": "combined-core.log",
+    "bytes": 175,
+    "sha256": "4a2a72bee27625e35a7c9c50b70708329f241703675f6056ef324ede3ecf9a2a"
+  },
+  {
     "path": "count_less/final.mir",
     "bytes": 1539,
     "sha256": "dc9b1f15c49e17b34d9257aac20ed957bf27b31cf356e228ba05310b0e2a2720"
@@ -38,6 +43,11 @@
     "path": "in_interval/raw.mir",
     "bytes": 1401,
     "sha256": "3ebe7840a3f1d96f907de7bd9d8cd3e750c2beda2156c2b4839fcaab217f82ee"
+  },
+  {
+    "path": "output-sweep.json",
+    "bytes": 2390,
+    "sha256": "951b5385e1b57ce3c14d9091603e356121f99a63f983080b17f7420e0dfdd03f"
   },
   {
     "path": "primary-host.json",

@@ -81,3 +81,13 @@ ULA contention, peak stack RAM, все программы компилятора
 Обычный compiler не зависит от исследовательских Z3/CUDA; чистый Speed остаётся
 допустимым выбором независимо от размера. Deep release/nightly корпус не назван
 PASS на основании быстрых checks.
+
+## Совместные проверки текущего кандидата
+
+Все четыре полных пакета прошли на совмещённом compiler tree: HIR 29,030 s,
+MIR2 111,433 s, C89 62,079 s, Nanz 25,199 s. [Протокол](c89-optimization-final-validation/combined-core.log).
+
+CI output-identity sweep проверил 844 исходных пути и 334 выходных файла.
+Изменений exit/stdout/stderr нет; различия ASM ожидаются после изменения
+codegen, поэтому этот advisory check остаётся FAILURE. Это не утверждение
+о проверенном поведении всех 844 программ. [Сводка](c89-optimization-final-validation/output-sweep.json).
