@@ -2276,12 +2276,12 @@
   },
   {
     "path": "charts/identical-c.svg",
-    "sha256": "4d3fbc1f10c1574933a2363541f41e6293725dde3168f7b2267823d54efe0e9d",
-    "bytes": 21133
+    "sha256": "83cefea21761576cb2f45b16a99565330e015d2577d4942de30b267827011532",
+    "bytes": 21142
   },
   {
     "path": "charts/idiomatic-nanz.svg",
-    "sha256": "90b56f11e51c6f67a09317c9c542100c8544dbda26fc0ecb6df893874045231b",
-    "bytes": 16685
+    "sha256": "f3f973abd3de6a464a109dfecdad6e402e72587cba23cea7367331b11a4cf075",
+    "bytes": 16694
   }
 ]
