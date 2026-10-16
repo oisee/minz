@@ -1,0 +1,58 @@
+=== RUN   TestUnsupportedStatementsAreNeverDropped
+=== RUN   TestUnsupportedStatementsAreNeverDropped/flat
+=== RUN   TestUnsupportedStatementsAreNeverDropped/report
+=== RUN   TestUnsupportedStatementsAreNeverDropped/form
+=== RUN   TestUnsupportedStatementsAreNeverDropped/function
+=== RUN   TestUnsupportedStatementsAreNeverDropped/while
+=== RUN   TestUnsupportedStatementsAreNeverDropped/if
+=== RUN   TestUnsupportedStatementsAreNeverDropped/do
+=== RUN   TestUnsupportedStatementsAreNeverDropped/select
+=== RUN   TestUnsupportedStatementsAreNeverDropped/method
+=== RUN   TestUnsupportedStatementsAreNeverDropped/case
+--- PASS: TestUnsupportedStatementsAreNeverDropped (0.00s)
+    --- PASS: TestUnsupportedStatementsAreNeverDropped/flat (0.00s)
+    --- PASS: TestUnsupportedStatementsAreNeverDropped/report (0.00s)
+    --- PASS: TestUnsupportedStatementsAreNeverDropped/form (0.00s)
+    --- PASS: TestUnsupportedStatementsAreNeverDropped/function (0.00s)
+    --- PASS: TestUnsupportedStatementsAreNeverDropped/while (0.00s)
+    --- PASS: TestUnsupportedStatementsAreNeverDropped/if (0.00s)
+    --- PASS: TestUnsupportedStatementsAreNeverDropped/do (0.00s)
+    --- PASS: TestUnsupportedStatementsAreNeverDropped/select (0.00s)
+    --- PASS: TestUnsupportedStatementsAreNeverDropped/method (0.00s)
+    --- PASS: TestUnsupportedStatementsAreNeverDropped/case (0.00s)
+=== RUN   TestLoweringFailureDoesNotDropProcedure
+=== RUN   TestLoweringFailureDoesNotDropProcedure/form
+=== RUN   TestLoweringFailureDoesNotDropProcedure/function
+=== RUN   TestLoweringFailureDoesNotDropProcedure/method
+--- PASS: TestLoweringFailureDoesNotDropProcedure (0.00s)
+    --- PASS: TestLoweringFailureDoesNotDropProcedure/form (0.00s)
+    --- PASS: TestLoweringFailureDoesNotDropProcedure/function (0.00s)
+    --- PASS: TestLoweringFailureDoesNotDropProcedure/method (0.00s)
+=== RUN   TestClearGlobalAfterExplicitCallVMAndZ80
+--- PASS: TestClearGlobalAfterExplicitCallVMAndZ80 (0.06s)
+PASS
+ok  	github.com/minz/minzc/pkg/abap	0.073s
+=== RUN   TestPinnedTypeScriptParserParity
+=== RUN   TestPinnedTypeScriptParserParity/clear.abap
+=== RUN   TestPinnedTypeScriptParserParity/unicode.abap
+=== RUN   TestPinnedTypeScriptParserParity/missing-endif.abap
+=== RUN   TestPinnedTypeScriptParserParity/empty.abap
+=== RUN   TestPinnedTypeScriptParserParity/changing.abap
+=== RUN   TestPinnedTypeScriptParserParity/chained.abap
+=== RUN   TestPinnedTypeScriptParserParity/class.abap
+=== RUN   TestPinnedTypeScriptParserParity/loops.abap
+=== RUN   TestPinnedTypeScriptParserParity/unknown.abap
+=== RUN   TestPinnedTypeScriptParserParity/bad-quote.abap
+--- PASS: TestPinnedTypeScriptParserParity (0.22s)
+    --- PASS: TestPinnedTypeScriptParserParity/clear.abap (0.03s)
+    --- PASS: TestPinnedTypeScriptParserParity/unicode.abap (0.02s)
+    --- PASS: TestPinnedTypeScriptParserParity/missing-endif.abap (0.02s)
+    --- PASS: TestPinnedTypeScriptParserParity/empty.abap (0.01s)
+    --- PASS: TestPinnedTypeScriptParserParity/changing.abap (0.02s)
+    --- PASS: TestPinnedTypeScriptParserParity/chained.abap (0.02s)
+    --- PASS: TestPinnedTypeScriptParserParity/class.abap (0.03s)
+    --- PASS: TestPinnedTypeScriptParserParity/loops.abap (0.03s)
+    --- PASS: TestPinnedTypeScriptParserParity/unknown.abap (0.03s)
+    --- PASS: TestPinnedTypeScriptParserParity/bad-quote.abap (0.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/abap/internal/abapparse	0.228s

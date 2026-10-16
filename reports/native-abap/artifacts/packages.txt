@@ -1,0 +1,2 @@
+ok  	github.com/minz/minzc/pkg/abap	0.417s
+ok  	github.com/minz/minzc/pkg/abap/internal/abapparse	(cached)
