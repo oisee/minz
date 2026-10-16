@@ -13,7 +13,7 @@ func TestC89VariadicAdmission(t *testing.T) {
 		"int check(int (*f)(int,...)){return f(2,3,4);}",
 		"#include <stdarg.h>\nint sum(int n,...){va_list ap; va_start(ap,n); return va_arg(ap,int);}",
 	} {
-		if _, e := c89.Compile(src, "variadic.c"); e == nil || !strings.Contains(e.Error(), "variadic") {
+		if _, e := c89.Compile(src, "variadic.c"); e == nil || !strings.Contains(e.Error(), "unsupported Z80 varargs ABI") {
 			t.Fatalf("expected explicit variadic ABI diagnostic, got %v for %s", e, src)
 		}
 	}
