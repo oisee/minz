@@ -16,7 +16,7 @@ The project is active research: examples and targets have different levels of ma
 
 ## Nanz + C for system code
 
-[Source imports, target ABI, supported subset and runnable examples](docs/Nanz_C_Interop.md) · [FAT12 disk-image reader](examples/system-c/fat12/README.md). The integration is being verified in [PR #162](https://github.com/oisee/minz/pull/162); it is not yet a completed main milestone.
+[Source imports, target ABI, supported subset and runnable examples](docs/Nanz_C_Interop.md) · [FAT12 disk-image reader](examples/system-c/fat12/README.md). Implementation, supported scope and verification are recorded in [PR #162](https://github.com/oisee/minz/pull/162) and the [integration report](reports/system-c-z80/integration-readiness.md).
 
 ## 🎉 Zork, compiled from Nanz to banked Z80!
 
