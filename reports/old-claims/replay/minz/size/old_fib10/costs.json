@@ -1,0 +1,15 @@
+{
+  "Compiler": "minz",
+  "Profile": "size",
+  "Case": "old_fib10",
+  "SourceSHA256": "78cf4883757c131bf96da1be3276d863d99ce3a5fe084d064a91f6b89cfd7420",
+  "WorkloadSHA256": "025bf37968c1d901af63eccba82163bac37b6babe7f12524585d25bd505d93b9",
+  "Status": "PASS",
+  "InitializedBytes": 249,
+  "GlobalBytes": 2,
+  "ProgramBytes": 249,
+  "Calls": 1,
+  "TotalT": 56,
+  "ObservationCount": 1,
+  "DetailedMeasurementsSHA256": "47de8b3098ed07d9a6e038ae474f7ddb140f21d872a62799688dfc6ef4439cef"
+}

@@ -82,3 +82,10 @@ intermediate and separate statements; production parsing was not changed.
 Their updated manifest was committed before the final full matrix. Tuple
 return was added as a separate experiment after observing the struct result,
 not silently substituted for it.
+
+Historical claims can be replayed with `old-claims/run.py --out /tmp/minz-old-claims
+--toolchains /path/to/toolchains --go /path/to/go`. The frozen historical source
+is kept intact as the prefix of each common C harness; the manifest also fixes
+independent inputs and expected outputs. `measure.go -workload file.json` accepts
+these explicit workloads (`samples` and named region `sizes`) and retains the
+same native, raw/final VM, memory and PC/SP checks as the original benchmark.

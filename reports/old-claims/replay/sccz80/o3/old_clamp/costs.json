@@ -1,0 +1,15 @@
+{
+  "Compiler": "sccz80",
+  "Profile": "o3",
+  "Case": "old_clamp",
+  "SourceSHA256": "70aea832311dc0ed101bcd8f6f936ad47e8c8f6b6317caae019356451e41f018",
+  "WorkloadSHA256": "fa43e028ccaaa411a307ac50e18237cd6d16d4cdb8a60a0ce45b5b083d1ddad3",
+  "Status": "PASS",
+  "InitializedBytes": 642,
+  "GlobalBytes": 5,
+  "ProgramBytes": 642,
+  "Calls": 4096,
+  "TotalT": 1550708,
+  "ObservationCount": 4096,
+  "DetailedMeasurementsSHA256": "a0fcd7182bc77bd506a18c9a08ebe2effd7fb877026057db02aa88a58b2ea6af"
+}

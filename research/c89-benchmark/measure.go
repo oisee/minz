@@ -438,6 +438,7 @@ func main() {
 	out := flag.String("out", "", "artifact directory")
 	image := flag.String("image", "", "external linked image")
 	symbols := flag.String("symbols", "", "external linked symbol map")
+	workloadFile := flag.String("workload", "", "optional frozen JSON workload: samples and sizes")
 	buildInfo := flag.String("build-info", "", "external source/image/symbol hash attestation from driver")
 	flag.Parse()
 	if *source == "" || *out == "" {
@@ -446,7 +447,37 @@ func main() {
 	os.MkdirAll(*out, 0755)
 	name := strings.TrimSuffix(filepath.Base(*source), filepath.Ext(*source))
 	r := report{Compiler: *compiler, Profile: *profile, Case: name, SourceSHA256: fmt.Sprintf("%x", sha256.Sum256(read(*source)))}
-	samples, sizes := fixtures(name)
+	var samples []sample
+	var sizes map[string]int
+	if *workloadFile == "" {
+		samples, sizes = fixtures(name)
+	} else {
+		var w struct {
+			Samples []sample       `json:"samples"`
+			Sizes   map[string]int `json:"sizes"`
+		}
+		if err := json.Unmarshal(read(*workloadFile), &w); err != nil {
+			panic(err)
+		}
+		samples, sizes = w.Samples, w.Sizes
+		if len(samples) == 0 || sizes["result"] != 2 {
+			panic("invalid frozen workload")
+		}
+		seen := map[string]bool{}
+		for _, sample := range samples {
+			if seen[sample.ID] {
+				panic("duplicate sample id")
+			}
+			seen[sample.ID] = true
+			for _, data := range []map[string][]byte{sample.Inputs, sample.After} {
+				for name, bytes := range data {
+					if sizes[name] <= 0 || len(bytes) != sizes[name] {
+						panic("workload region size mismatch: " + name)
+					}
+				}
+			}
+		}
+	}
 	workload, _ := json.Marshal(samples)
 	r.WorkloadSHA256 = fmt.Sprintf("%x", sha256.Sum256(workload))
 	writeJSON(filepath.Join(*out, "workload.json"), samples)

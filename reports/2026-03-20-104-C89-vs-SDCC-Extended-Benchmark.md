@@ -1,5 +1,7 @@
 # Report 104 — MinZ C89 vs SDCC 4.2.0: Extended Benchmark
 
+> Historical instruction-count comparison. For current identical-C native results, complete module sizes and corrected claims, see [the October replay](2026-10-16-old-claims-new-evidence.md#повтор-старого-c-бенчмарка-что-действительно-работает-сегодня). The original text below is retained as historical evidence.
+
 **Date:** 2026-03-20
 **Source:** `examples/c89/sdcc_benchmark.c` — identical C89 compiled by both
 **Result:** MinZ **33 instructions** vs SDCC **178 instructions** (−81%)

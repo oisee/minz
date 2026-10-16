@@ -1,0 +1,15 @@
+{
+  "Compiler": "sdcc",
+  "Profile": "size",
+  "Case": "old_fact6",
+  "SourceSHA256": "d22fc8e1325ba860038d2a5d3ddeac0102e5377d09f5d00eef6007aa1c302f6a",
+  "WorkloadSHA256": "a1798c2d7a749c04b7884034462b8b8fb794c6fcba0d179dc52c69648e28fea2",
+  "Status": "PASS",
+  "InitializedBytes": 212,
+  "GlobalBytes": 2,
+  "ProgramBytes": 214,
+  "Calls": 1,
+  "TotalT": 3294,
+  "ObservationCount": 1,
+  "DetailedMeasurementsSHA256": "ce61bd1bfb3ce292a2efc69527cb90f4cea0e5f7870fa04dd6f4a515bd0d7fdb"
+}
