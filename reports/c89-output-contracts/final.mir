@@ -1,0 +1,61 @@
+; MIR2 module: local_pair
+global @left : u8
+global @right : u8
+global @events : u8
+global @result : u16
+
+fun @fill(%r1: u8 [acc], %r2: u8 [general]) -> (u8 [acc], u8 [counter])
+  block @entry:
+    %r3 = const 0 : u8 [general]
+    %r4 = add %r1, %r2 : u8 [general]
+    %r5 = ext %r1 : u8 -> i16 [pointer]
+    %r6 = const 3 : i16 [pointer]
+    %r7 = add %r5, %r6 : i16 [pointer]
+    %r8 = trunc %r7 : i16 -> u8 [general]
+    %r9 = addr_of @events : ptr [pointer]
+    %r10 = load %r9 : u8 [general]
+    %r11 = ext %r10 : u8 -> i16 [pointer]
+    %r12 = const 3 : i16 [pointer]
+    %r13 = mul %r11, %r12 : i16 [pointer]
+    %r14 = const 1 : i16 [pointer]
+    %r15 = add %r13, %r14 : i16 [pointer]
+    %r16 = trunc %r15 : i16 -> u8 [general]
+    %r17 = addr_of @events : ptr [pointer]
+    store %r17, %r16 : u8
+    %r18 = ext %r8 : u8 -> i16 [pointer]
+    %r19 = const 128 : i16 [pointer]
+    %r20 = cmp.ge %r18, %r19 : bool [flag]
+    br_if %r20, @if_then1(), @if_join2()
+  block @if_then1:
+    %r21 = ext %r8 : u8 -> i16 [pointer]
+    %r22 = ext %r2 : u8 -> i16 [pointer]
+    %r23 = xor %r21, %r22 : i16 [pointer]
+    %r24 = trunc %r23 : i16 -> u8 [general]
+    %r25 = move %r4 : u8 [acc]
+    %r26 = move %r24 : u8 [counter]
+    ret %r25, %r26
+  block @if_join2:
+    %r27 = ext %r8 : u8 -> i16 [pointer]
+    %r28 = const 7 : i16 [pointer]
+    %r29 = add %r27, %r28 : i16 [pointer]
+    %r30 = trunc %r29 : i16 -> u8 [general]
+    %r31 = move %r4 : u8 [acc]
+    %r32 = move %r30 : u8 [counter]
+    ret %r31, %r32
+
+fun @execute()
+  block @entry:
+    %r33 = addr_of @left : ptr [pointer]
+    %r34 = load %r33 : u8 [acc]
+    %r35 = addr_of @right : ptr [pointer]
+    %r36 = load %r35 : u8 [general]
+    %r37 = call @fill(%r34, %r36) : u8 [acc]
+    %r39 = ext %r37 : u8 -> u16 [pointer]
+    %r40 = const 8 : i16 [pointer]
+    %r41 = shl %r39, %r40 : u16 [pointer]
+    %r42 = ext %r38 : u8 -> u16 [pointer]
+    %r43 = or %r41, %r42 : u16 [pointer]
+    %r44 = addr_of @result : ptr [pointer]
+    store %r44, %r43 : u16
+    ret void
+
