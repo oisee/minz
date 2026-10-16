@@ -138,6 +138,9 @@ func MergeInto(target *hir.Module, imports []*hir.Module) error {
 		seen[f.Name] = f
 	}
 	for _, m := range imports {
+		if err := hir.MergeImportedStrings(target, m); err != nil {
+			return err
+		}
 		for _, f := range m.Funcs {
 			if old, ok := seen[f.Name]; ok {
 				if reflect.DeepEqual(old, f) {
@@ -163,7 +166,6 @@ func MergeInto(target *hir.Module, imports []*hir.Module) error {
 		}
 		target.Globals = append(target.Globals, m.Globals...)
 		target.Structs = append(target.Structs, m.Structs...)
-		target.Strings = append(target.Strings, m.Strings...)
 	}
 	return nil
 }

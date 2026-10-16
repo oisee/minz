@@ -529,6 +529,9 @@ func (l *lowerer) lowerFunc(fd *cc.FunctionDefinition) (*hir.Func, error) {
 	if !ok {
 		return nil, fmt.Errorf("function %s: expected function type", name)
 	}
+	if ft.IsVariadic() {
+		return nil, fmt.Errorf("function %s: variadic definitions require an unsupported Z80 varargs ABI", name)
+	}
 
 	retTy := l.mapType(ft.Result())
 	if ft.Result().Kind() == cc.Struct || ft.Result().Kind() == cc.Union {
@@ -1520,14 +1523,22 @@ func (fl *funcLow) lowerPrimary(pe *cc.PrimaryExpression) (*exprResult, error) {
 		return wrapExpr(&hir.IntLitExpr{Val: constToInt64(v), Ty: mir2.TyU8}), nil
 
 	case cc.PrimaryExpressionString:
-		tok := pe.Token
-		s := tok.SrcStr()
-		if len(s) >= 2 && s[0] == '"' && s[len(s)-1] == '"' {
-			s = s[1 : len(s)-1]
+		value, ok := pe.Value().(cc.StringValue)
+		if !ok {
+			return nil, fmt.Errorf("unsupported string literal encoding at %s", pe.Position())
+		}
+		// The parser resolves escapes, adjacent literals and macro stringification.
+		// Its value includes the final NUL; the CString pool supplies that byte.
+		s := strings.TrimSuffix(string(value), "\x00")
+		for i, existing := range fl.low.hm.Strings {
+			if existing == s && i < len(fl.low.hm.StrKinds) && fl.low.hm.StrKinds[i] == mir2.StrCString {
+				return wrapExpr(hir.Addr(fmt.Sprintf("@mir2.str.%d", i))), nil
+			}
 		}
 		idx := len(fl.low.hm.Strings)
 		fl.low.hm.Strings = append(fl.low.hm.Strings, s)
-		return wrapExpr(&hir.IntLitExpr{Val: int64(idx), Ty: mir2.TyPtr}), nil
+		fl.low.hm.StrKinds = append(fl.low.hm.StrKinds, mir2.StrCString)
+		return wrapExpr(hir.Addr(fmt.Sprintf("@mir2.str.%d", idx))), nil
 
 	case cc.PrimaryExpressionExpr:
 		return fl.lowerExpr(pe.ExpressionList)
@@ -1754,6 +1765,9 @@ func (fl *funcLow) lowerCall(pf *cc.PostfixExpression) (*exprResult, error) {
 		calleeTy = ptr.Elem()
 	}
 	ft, _ := calleeTy.(*cc.FunctionType)
+	if ft != nil && ft.IsVariadic() {
+		return nil, fmt.Errorf("variadic call at %s requires an unsupported Z80 varargs ABI", pf.Position())
+	}
 	// Lower arguments using the declared parameter type, not their original
 	// expression width. This also defines the ABI for cross-language calls.
 	var args []hir.Expr
