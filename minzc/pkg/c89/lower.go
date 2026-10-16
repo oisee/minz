@@ -131,6 +131,10 @@ func cConvert(e hir.Expr, ty mir2.Ty) hir.Expr {
 // one-byte ABI representation (C99 6.3.1.2).
 func (l *lowerer) convertType(e hir.Expr, ty cc.Type) hir.Expr {
 	if ty != nil && (ty.Kind() == cc.Struct || ty.Kind() == cc.Union) {
+		switch e.(type) {
+		case *hir.CallExpr, *hir.CallIndirectExpr:
+			return e // aggregate call results already yield owned object addresses
+		}
 		if _, aggregate := mir2.BaseOf(e.ExprTy()).(*mir2.StructTy); aggregate {
 			return hir.AddrExpr(e)
 		}
@@ -527,6 +531,9 @@ func (l *lowerer) lowerFunc(fd *cc.FunctionDefinition) (*hir.Func, error) {
 	}
 
 	retTy := l.mapType(ft.Result())
+	if ft.Result().Kind() == cc.Struct || ft.Result().Kind() == cc.Union {
+		retTy = l.storageType(ft.Result())
+	}
 
 	var params []hir.Param
 	for _, p := range ft.Parameters() {
@@ -1180,7 +1187,11 @@ func (fl *funcLow) lowerJump(js *cc.JumpStatement) ([]hir.Stmt, error) {
 			}
 			val = fl.snapshotVolatileAggregate(val, js.ExpressionList.Type())
 			if fl.retCType != nil {
-				val = fl.low.convertType(val, fl.retCType)
+				// Retain aggregate values: MIR supplies caller-owned storage
+				// before the callee's local activation is released.
+				if fl.retCType.Kind() != cc.Struct && fl.retCType.Kind() != cc.Union {
+					val = fl.low.convertType(val, fl.retCType)
+				}
 			} else {
 				val = cConvert(val, fl.retTy)
 			}
@@ -1761,6 +1772,9 @@ func (fl *funcLow) lowerCall(pf *cc.PostfixExpression) (*exprResult, error) {
 	}
 
 	retTy := fl.low.mapType(pf.Type())
+	if pf.Type().Kind() == cc.Struct || pf.Type().Kind() == cc.Union {
+		retTy = fl.low.storageType(pf.Type())
+	}
 
 	// Try to extract a direct function name from the callee AST node.
 	// This avoids going through lowerExpr which may convert function names to AddrOfExpr.

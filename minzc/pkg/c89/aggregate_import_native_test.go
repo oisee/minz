@@ -23,8 +23,9 @@ struct Pair unrelated(unsigned char x) { struct Pair p = {0, 0}; p.a=x; return p
 	// Same lowered shape, but only the C-origin function is eligible for the
 	// C pointer-return convention. Other frontends retain their own ABI.
 	m.FuncByName("unrelated").CValueABI = false
+	unrelatedResult := m.FuncByName("unrelated").RetTy
 	hir.OptimizeCAggregateABI(m)
-	if len(m.FuncByName("marked").RetTys) != 2 || len(m.FuncByName("unrelated").RetTys) != 0 || m.FuncByName("unrelated").RetTy != mir2.TyPtr {
+	if len(m.FuncByName("marked").RetTys) != 2 || len(m.FuncByName("unrelated").RetTys) != 0 || m.FuncByName("unrelated").RetTy != unrelatedResult {
 		t.Fatal("aggregate eligibility ignored source ABI origin")
 	}
 	if err := hir.Verify(m); err != nil {
@@ -70,8 +71,11 @@ func TestC89AggregateImportVMZ80(t *testing.T) {
 				}
 				if frontend == "nanz" {
 					maker, consumer := m.FuncByName("library__make_pair"), m.FuncByName("library__consume")
-					if maker == nil || maker.RetTy != mir2.TyPtr || consumer == nil || len(consumer.Params) != 1 {
+					if maker == nil || len(maker.RetTys) != 0 || consumer == nil || len(consumer.Params) != 1 {
 						t.Fatal("library ABI changed before caller source was parsed")
+					}
+					if _, aggregate := mir2.BaseOf(maker.RetTy).(*mir2.StructTy); !aggregate {
+						t.Fatal("imported return lost its source aggregate ownership type")
 					}
 				}
 				return m
