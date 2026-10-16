@@ -1,0 +1,15 @@
+{
+  "Compiler": "minz",
+  "Profile": "size",
+  "Case": "fat12_decode",
+  "SourceSHA256": "4a7338748721cbacb1766df589a1374358f8e209265a9a64cc43561d72dae050",
+  "WorkloadSHA256": "79b58d62a769018f93a7f89bfdf84af2518123abf5b479ff8f302ca4903f8cd7",
+  "Status": "PASS",
+  "InitializedBytes": 187,
+  "GlobalBytes": 67,
+  "ProgramBytes": 187,
+  "Calls": 64,
+  "TotalT": 37856,
+  "ObservationCount": 64,
+  "DetailedMeasurementsSHA256": "a42d534b20c5eddce5e652fdc9ef66f525aebabea7fba658a8970be9c1496cba"
+}

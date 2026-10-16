@@ -1,0 +1,15 @@
+{
+  "Compiler": "nanz-tuple",
+  "Profile": "size",
+  "Case": "struct_roundtrip",
+  "SourceSHA256": "0cdeb649a62237492687718e394a4a39db1dbb33382be71f3f53dccaef1d219e",
+  "WorkloadSHA256": "536f1b1783fdea4262014dd37cf71b19c3a38997ed9faf52ed26695bc4b24384",
+  "Status": "PASS",
+  "InitializedBytes": 74,
+  "GlobalBytes": 4,
+  "ProgramBytes": 74,
+  "Calls": 2048,
+  "TotalT": 645120,
+  "ObservationCount": 2048,
+  "DetailedMeasurementsSHA256": "421e705a322e1435c823e79a6e4c3ccbc051d933e4ce1c56ea816238efd800d2"
+}

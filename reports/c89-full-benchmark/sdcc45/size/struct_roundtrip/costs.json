@@ -1,0 +1,15 @@
+{
+  "Compiler": "sdcc45",
+  "Profile": "size",
+  "Case": "struct_roundtrip",
+  "SourceSHA256": "719ab06cf429dd76e1bcca42e837ec2a64cf7b494ce958a3dae0135074f46689",
+  "WorkloadSHA256": "536f1b1783fdea4262014dd37cf71b19c3a38997ed9faf52ed26695bc4b24384",
+  "Status": "PASS",
+  "InitializedBytes": 149,
+  "GlobalBytes": 4,
+  "ProgramBytes": 153,
+  "Calls": 2048,
+  "TotalT": 1968128,
+  "ObservationCount": 2048,
+  "DetailedMeasurementsSHA256": "19d55140229611b7f2156db5970ea0b6bf9c92210438aba03e3f8c9ded494c6e"
+}

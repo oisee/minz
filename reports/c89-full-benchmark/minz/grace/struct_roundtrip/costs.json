@@ -1,0 +1,15 @@
+{
+  "Compiler": "minz",
+  "Profile": "grace",
+  "Case": "struct_roundtrip",
+  "SourceSHA256": "719ab06cf429dd76e1bcca42e837ec2a64cf7b494ce958a3dae0135074f46689",
+  "WorkloadSHA256": "536f1b1783fdea4262014dd37cf71b19c3a38997ed9faf52ed26695bc4b24384",
+  "Status": "PASS",
+  "InitializedBytes": 88,
+  "GlobalBytes": 4,
+  "ProgramBytes": 88,
+  "Calls": 2048,
+  "TotalT": 968704,
+  "ObservationCount": 2048,
+  "DetailedMeasurementsSHA256": "542aff9801221243707a423cc7994de002e30e5a02250881d28248e47aba23e9"
+}

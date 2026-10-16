@@ -1,0 +1,32 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/nanz-cases/sum_array.nanz
+global @values : [256]u8
+global @n : u8
+global @result : u16
+
+fun @sum_array(%r1: ptr [pointer], %r2: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r3 = const 0 : u16 [pointer]
+    %r4 = move %r1 : ptr [pointer]
+    %r5 = const 0 : u8 [acc]
+    %r6 = cmp.ne %r2, %r5 : bool [flag]
+    cond_ret %r6, [%r3], @fe_body1(%r2, %r4, %r3)
+  block @fe_body1(%r7: u8 [counter], %r8: ptr [pointer], %r9: u16 [pointer]):
+    %r10 = load %r8 : u8 [general]
+    %r11 = ext %r10 : u8 -> u16 [pointer]
+    %r12 = add %r9, %r11 : u16 [pointer]
+    %r13 = ptr_bump %r8, +1 : ptr [pointer]
+    djnz %r7, @fe_body1(%r13, %r12), @fe_exit2(%r12)
+  block @fe_exit2(%r12: u16 [pointer]):
+    ret %r12
+
+fun @execute()
+  block @entry:
+    %r15 = addr_of @values : ptr [pointer]
+    %r16 = move %r15 : ptr [pointer]
+    %r17 = addr_of @n : ptr [pointer]
+    %r18 = load %r17 : u8 [general]
+    %r19 = call @sum_array(%r16, %r18) : u16 [pointer]
+    %r20 = addr_of @result : ptr [pointer]
+    store %r20, %r19 : u16
+    ret void
+
