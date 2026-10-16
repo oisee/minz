@@ -58,3 +58,21 @@ long/VLA отклоняются. Их наличие в прежнем C-кор�
 декомпозицию на main и завершить [аудит условий цели](completion-audit.md).
 Runtime varargs и неизвестные indirect parameter ABI с живыми caller значениями явно
 не входят в заявленный Z80 допуск. Матрица сохраняет открытые строки.
+
+## Синтаксис новых исходников и проверка расширений
+
+В `minzc/pkg/c89/testdata` сейчас 23 новых C-файла. 20 принимаются непосредственно
+`cc -std=c89 -pedantic-errors -fsyntax-only`. Три entry-файла используют MinZ
+`#import`: это отдельное расширение для связывания модулей, не ISO C89 directive.
+После удаления только строки `#import` их отдельные C translation-unit тела
+также проходят strict syntax. Подменять `#import` текстовым `#include` нельзя:
+библиотека и caller имеют отдельные объявления типов и связываются как модули.
+Это аудит синтаксиса названного набора, не процент ISO semantic coverage.
+
+Advisory sweep PR170 поверх main c69f2197 меняет ASM только у
+[существующего C99/C11 struct-примера](../../examples/c/c99_structs.c):
+exit/stdout/stderr одинаковы. Дополнительный
+`TestCAggregateExampleStorageNativeVM` проверяет десять независимых ожидаемых
+результатов на raw/final VM и native Z80 в трёх режимах — 30 native / 40 VM.
+Этот extension regression пока в `feat/c89-completion-evidence`;
+в семантическое покрытие C89 он не включается.
