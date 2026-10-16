@@ -26,6 +26,9 @@ def main():
     parser.add_argument('--go',default=os.environ.get('GO','go'))
     args=parser.parse_args(); out=args.out.resolve(); out.mkdir(parents=True,exist_ok=True)
     frozen=verify()
+    revision=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+    tree=subprocess.check_output(['git','rev-parse','HEAD:minzc'],cwd=ROOT,text=True).strip()
+    (out/'compiler.json').write_text(json.dumps({'commit':revision,'minzc_tree':tree},indent=2)+'\n')
     (out/'input-manifest.json').write_text(json.dumps(frozen,indent=2)+'\n')
     results=[]
     for library in ['inih','heatshrink']:

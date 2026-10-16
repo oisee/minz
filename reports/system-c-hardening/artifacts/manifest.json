@@ -1,0 +1,254 @@
+{
+  "files": [
+    {
+      "path": "cli-baseline.log",
+      "bytes": 1587,
+      "sha256": "3a1cf16fd0de7e72840349cf651fa200f5f1abb97d12cf3eb8e2805b7430de97"
+    },
+    {
+      "path": "cli-current.log",
+      "bytes": 1584,
+      "sha256": "4d1057b338c0b61f0c69007b494d3fb64a992c952410ee0bc371ba8ff70f72d7"
+    },
+    {
+      "path": "core.log",
+      "bytes": 177,
+      "sha256": "65302e8c033b91f5643d0187acd7df485345be2c7a82423717888ac90a2e2cb5"
+    },
+    {
+      "path": "default/heatshrink/final.mir",
+      "bytes": 35267,
+      "sha256": "c0ddf30e04aa58738a1466b6987328bd0a866ab16d4ffbca00d591011dbf3b27"
+    },
+    {
+      "path": "default/heatshrink/measurements.json",
+      "bytes": 1521,
+      "sha256": "6411ae722c907a21edef084e9539a3969c086134ec1ad626edfe962f5889b59c"
+    },
+    {
+      "path": "default/heatshrink/program.a80",
+      "bytes": 72924,
+      "sha256": "8c6aacb3578cd30e6771919955b23711a0fe6d92aff3eade1359e103a7eb100d"
+    },
+    {
+      "path": "default/heatshrink/program.bin",
+      "bytes": 5593,
+      "sha256": "7dec38eac4128a42c744310c03c3e581a8f53e97e01b22dd17a3322fc58dc07c"
+    },
+    {
+      "path": "default/heatshrink/raw.mir",
+      "bytes": 40913,
+      "sha256": "b77bcb10a7087949164074e3f4d515549c378495b10d1a5135b87a4cc7561616"
+    },
+    {
+      "path": "default/heatshrink/run.log",
+      "bytes": 125,
+      "sha256": "7ef57a439e50335978f6c386a5d8ba745a330941972242cc4e889565dab80bf9"
+    },
+    {
+      "path": "default/heatshrink/symbols.json",
+      "bytes": 15162,
+      "sha256": "fce889dde5aff276cc0c77d86447789120bd0c7b7de293e46cde0b33e6daff8a"
+    },
+    {
+      "path": "default/inih/final.mir",
+      "bytes": 57816,
+      "sha256": "a32dcac75f421d9888d0082ff2efa2eaf1f6f8981a4aabf657a967375ae358dc"
+    },
+    {
+      "path": "default/inih/measurements.json",
+      "bytes": 1629,
+      "sha256": "fb4ce911bc76e9a6c30d3d4f692f442908cac00ef1e27aa9115a3f956b16c97e"
+    },
+    {
+      "path": "default/inih/program.a80",
+      "bytes": 127917,
+      "sha256": "f1b884c1e0fe11c6d7b194c106dbbae2a2cca5b14402c1ccd82f94f1d6d34888"
+    },
+    {
+      "path": "default/inih/program.bin",
+      "bytes": 9758,
+      "sha256": "636c70f813cb4fc9a97611a89907f5539655ce0ad18fa96aac4d4f049c1dd797"
+    },
+    {
+      "path": "default/inih/raw.mir",
+      "bytes": 64416,
+      "sha256": "a413e6d4d8317540a01023dbdad3c028c996c05c47153dcb16fae046a768e609"
+    },
+    {
+      "path": "default/inih/run.log",
+      "bytes": 221,
+      "sha256": "0e04db62c38a5aff101c9a3b5426220ddf86e5513b4c66a2ad6f84bab0a5cf54"
+    },
+    {
+      "path": "default/inih/symbols.json",
+      "bytes": 25077,
+      "sha256": "dba38d33e560c7aaefef5782df4103db7873a54440bf1877f496250f1150e6db"
+    },
+    {
+      "path": "directed.log",
+      "bytes": 130,
+      "sha256": "019a92e99444e34293ec2353de16a32b5fcf227bc829066f7e5ebbeed557a558"
+    },
+    {
+      "path": "grace/heatshrink/final.mir",
+      "bytes": 31750,
+      "sha256": "54a165549a1cd315d93cfcc9ba9297fe79f502e980dd69460f3eb7cf68362d1f"
+    },
+    {
+      "path": "grace/heatshrink/measurements.json",
+      "bytes": 1519,
+      "sha256": "a4c5c079c9781b4fcbd8ad35657822111e9915ef266ca5b2f5130ec7554a68ad"
+    },
+    {
+      "path": "grace/heatshrink/program.a80",
+      "bytes": 69335,
+      "sha256": "98df370c765e4201b8338238f6da3bc65a0abda60f5283b357becdf5626a1b4f"
+    },
+    {
+      "path": "grace/heatshrink/program.bin",
+      "bytes": 5464,
+      "sha256": "98f70df4d3a2901f37c2632a47c01d0a8934f77f44a5d5c39e548db763627bef"
+    },
+    {
+      "path": "grace/heatshrink/raw.mir",
+      "bytes": 40913,
+      "sha256": "b77bcb10a7087949164074e3f4d515549c378495b10d1a5135b87a4cc7561616"
+    },
+    {
+      "path": "grace/heatshrink/run.log",
+      "bytes": 123,
+      "sha256": "c41e504ddd9370b9772db1d6b517633aa0cbea8c672dbe6399a99e7afd75fd63"
+    },
+    {
+      "path": "grace/heatshrink/symbols.json",
+      "bytes": 13103,
+      "sha256": "4ff44cec220e64e639cbad089f8dc12e4e207c077a216fc46ecee28d66c02e82"
+    },
+    {
+      "path": "grace/inih/final.mir",
+      "bytes": 57215,
+      "sha256": "4c759fd834ab9c2489b17a368693c0c01d3a318c7b011ce16e3b88960c6f2546"
+    },
+    {
+      "path": "grace/inih/measurements.json",
+      "bytes": 1627,
+      "sha256": "6528a33641c41231ca88d1cd92850974a7410f56e5e99cccd4f69053b9aabaa4"
+    },
+    {
+      "path": "grace/inih/program.a80",
+      "bytes": 124343,
+      "sha256": "ae53b39333871540e08f7f01aa3f9d957097c379dafdc29c15d2d9f9a452caee"
+    },
+    {
+      "path": "grace/inih/program.bin",
+      "bytes": 9610,
+      "sha256": "65c2a2ca8314d6a5528da4e2da26ea31ae661f0f113269e9dfac1955acd0e144"
+    },
+    {
+      "path": "grace/inih/raw.mir",
+      "bytes": 64416,
+      "sha256": "a413e6d4d8317540a01023dbdad3c028c996c05c47153dcb16fae046a768e609"
+    },
+    {
+      "path": "grace/inih/run.log",
+      "bytes": 219,
+      "sha256": "e6093bac8a24edaa4ea855f9a15415860ff1b60ef4cee17042d3a6367393a640"
+    },
+    {
+      "path": "grace/inih/symbols.json",
+      "bytes": 24830,
+      "sha256": "b1e77770ae0ee66056dcfa52f287eef9792208995df70eba763540e36e99266c"
+    },
+    {
+      "path": "hir-nanz-lizp.log",
+      "bytes": 130,
+      "sha256": "cc29ab882f4afc06755cb48398a68511b15518e7427813cb9744db5d5eeeff12"
+    },
+    {
+      "path": "host-reference.json",
+      "bytes": 9671,
+      "sha256": "7f2ce06ce44b3cbca630b7b3fd73ed01e9b54cf49a96e2109d114d4ac0095724"
+    },
+    {
+      "path": "input-manifest.json",
+      "bytes": 2524,
+      "sha256": "2bfcf18af0ff9277628c6443b3b64ace06e2192f88090a7b26fbc8765f0435a2"
+    },
+    {
+      "path": "result.json",
+      "bytes": 136,
+      "sha256": "780f17272af8e0cbd5bf243136e32989ac7dd6edc12e7f3beba06f6688bcb324"
+    },
+    {
+      "path": "size/heatshrink/final.mir",
+      "bytes": 35123,
+      "sha256": "4835b5fa452a22821611038da7cb32bd463485897491a21b8a2059746cefc86d"
+    },
+    {
+      "path": "size/heatshrink/measurements.json",
+      "bytes": 1518,
+      "sha256": "d0cf69a284a728656dd263829003929522180a9f6ab881504a5a038eeb393002"
+    },
+    {
+      "path": "size/heatshrink/program.a80",
+      "bytes": 72896,
+      "sha256": "5835d5467c1ce8afeb629cc3f43480f465e8fd34802ca1c81ff98f82c12d6a4a"
+    },
+    {
+      "path": "size/heatshrink/program.bin",
+      "bytes": 5589,
+      "sha256": "3410fcdbe00f984787ca18a713cadc309ed08e12e494191f506dbcc4e7a3f0a2"
+    },
+    {
+      "path": "size/heatshrink/raw.mir",
+      "bytes": 40913,
+      "sha256": "b77bcb10a7087949164074e3f4d515549c378495b10d1a5135b87a4cc7561616"
+    },
+    {
+      "path": "size/heatshrink/run.log",
+      "bytes": 122,
+      "sha256": "25e8cc67a59a4f4dc5159d56cc8f2af72c0ebc1b3e7d87fccb269230090dfd1d"
+    },
+    {
+      "path": "size/heatshrink/symbols.json",
+      "bytes": 15010,
+      "sha256": "ead2a0e04394a6c313188718616dfb9d028c5fbdf425821e16d860827a6bd162"
+    },
+    {
+      "path": "size/inih/final.mir",
+      "bytes": 57816,
+      "sha256": "a32dcac75f421d9888d0082ff2efa2eaf1f6f8981a4aabf657a967375ae358dc"
+    },
+    {
+      "path": "size/inih/measurements.json",
+      "bytes": 1626,
+      "sha256": "d35911f6137b5476579e248224f89f90381f9b8dc01c573b8b912a7d08ad208d"
+    },
+    {
+      "path": "size/inih/program.a80",
+      "bytes": 127917,
+      "sha256": "f1b884c1e0fe11c6d7b194c106dbbae2a2cca5b14402c1ccd82f94f1d6d34888"
+    },
+    {
+      "path": "size/inih/program.bin",
+      "bytes": 9758,
+      "sha256": "636c70f813cb4fc9a97611a89907f5539655ce0ad18fa96aac4d4f049c1dd797"
+    },
+    {
+      "path": "size/inih/raw.mir",
+      "bytes": 64416,
+      "sha256": "a413e6d4d8317540a01023dbdad3c028c996c05c47153dcb16fae046a768e609"
+    },
+    {
+      "path": "size/inih/run.log",
+      "bytes": 218,
+      "sha256": "f6da8c9b0a116fd9650397263d5d4f4277f1cfc28c684ed35cee7c0c11c84de4"
+    },
+    {
+      "path": "size/inih/symbols.json",
+      "bytes": 25077,
+      "sha256": "dba38d33e560c7aaefef5782df4103db7873a54440bf1877f496250f1150e6db"
+    }
+  ]
+}

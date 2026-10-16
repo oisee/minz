@@ -58,8 +58,16 @@ status/count traces. This is not a full-address-space memory oracle.
 
 | Library/API | Inputs | default | Size | Grace |
 |---|---:|---|---|---|
-| inih string parser | 8 | PASS | PASS | PASS |
-| heatshrink static decoder | 7 | PASS | PASS | PASS |
+| inih string parser | 8 | [PASS](system-c-hardening/artifacts/default/inih/measurements.json) | [PASS](system-c-hardening/artifacts/size/inih/measurements.json) | [PASS](system-c-hardening/artifacts/grace/inih/measurements.json) |
+| heatshrink static decoder | 7 | [PASS](system-c-hardening/artifacts/default/heatshrink/measurements.json) | [PASS](system-c-hardening/artifacts/size/heatshrink/measurements.json) | [PASS](system-c-hardening/artifacts/grace/heatshrink/measurements.json) |
+
+Generated ASM: [inih default](system-c-hardening/artifacts/default/inih/program.a80),
+[Size](system-c-hardening/artifacts/size/inih/program.a80),
+[Grace](system-c-hardening/artifacts/grace/inih/program.a80);
+[heatshrink default](system-c-hardening/artifacts/default/heatshrink/program.a80),
+[Size](system-c-hardening/artifacts/size/heatshrink/program.a80),
+[Grace](system-c-hardening/artifacts/grace/heatshrink/program.a80).
+[Artifact SHA256 manifest](system-c-hardening/artifacts/manifest.json).
 
 The test configurations do not validate inih file I/O, heap allocation,
 heatshrink encoding on Z80, all malformed streams or all upstream tests. No
@@ -67,10 +75,22 @@ performance comparison with another target compiler is claimed here.
 
 ## Integration status
 
-The library matrix and directed regressions pass. Core and integration checks
-are being finalized before merging. The changes are on `feat/system-c-hardening`;
+The library matrix, directed regressions, core C/MIR/assembler and HIR/Nanz/Lizp
+checks pass. The fast pipeline has 434 passing tests and one outdated indirect
+ABI limit assertion; the updated four-slot/fifth-slot test passes separately.
+CI reruns the full fast inventory and the real-library matrix before merging. The changes are on `feat/system-c-hardening`;
 this report does not yet claim that the fixes are in main.
 
 Full local artifacts, including failed intermediate runs, live under
 `/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/system-c-hardening/`.
 Research/CI dumps are not copied to the playable-release share.
+
+Five CLI profile/selector tests fail on both the previous compiler tree
+`3cd5c7bb` and this branch, with the same selections and measured costs. The
+[preserved baseline run](system-c-hardening/artifacts/cli-baseline.log) and
+[current run](system-c-hardening/artifacts/cli-current.log) identify them:
+`TestHIRProfileAutoMeasuredCompilation`, `TestHIRProfileForwardCopyCompilation`,
+`TestHIRProfileMixedCopyWeightedCompilation`,
+`TestCompilerModeReplayActualFrozenHeldout`, and
+`TestCompilerModeCLIActualSelectedArtifacts`. This work does not resolve those
+failures or claim a clean full CLI suite.

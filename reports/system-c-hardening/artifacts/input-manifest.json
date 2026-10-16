@@ -1,0 +1,74 @@
+{
+  "adapters/heatshrink.c": {
+    "sha256": "a07ba8da1a55a1ab2cd16102057a8e382eb6767c430794fec4f2440c3b95ee37",
+    "bytes": 958
+  },
+  "adapters/inih.c": {
+    "sha256": "1fab43a386c351fbea1df26d007f755d808f830688bc11e0abaf5c5b26100126",
+    "bytes": 1009
+  },
+  "adapters/target_string.c": {
+    "sha256": "a493566e5764d4f4b5a3d600217b91fc17cecda04e9c30b83be1e41c7e0894c9",
+    "bytes": 559
+  },
+  "host_driver.c": {
+    "sha256": "16ece69f4dd6a0bbf2177c15b67bd92e44c6caa4b2c806321751378f21c66696",
+    "bytes": 603
+  },
+  "target-headers/stdio.h": {
+    "sha256": "ad4c64cd347bbd8c6ec8d6200e2fd16d3ff4939e2ebe5fadd54d45de5678c278",
+    "bytes": 311
+  },
+  "upstream/heatshrink/LICENSE": {
+    "sha256": "f41cc7241aea5951c2834ca86050c6bf094b223597830ab6e7b040d0dbd131df",
+    "bytes": 789
+  },
+  "upstream/heatshrink/heatshrink_common.h": {
+    "sha256": "bedf2a51b6e0d7febd537b96dbb3ef372c3d911440d2740397e9fdf8b796181f",
+    "bytes": 512
+  },
+  "upstream/heatshrink/heatshrink_config.h": {
+    "sha256": "7e91307108451351dfe5631410c7344466ff153f3d2a2454dcf8d003325512ff",
+    "bytes": 761
+  },
+  "upstream/heatshrink/heatshrink_decoder.c": {
+    "sha256": "5ced6bb057741a5772edaf46f7c8466b5da1751d7e704ffdb79eedd5aadf7821",
+    "bytes": 13337
+  },
+  "upstream/heatshrink/heatshrink_decoder.h": {
+    "sha256": "2678f67add847b08b5debd234e2435135f3b83c8e5cee565789cf9f8c4887096",
+    "bytes": 3849
+  },
+  "upstream/heatshrink/heatshrink_encoder.c": {
+    "sha256": "67ec42bb911790cab8e2c2ec5f8d5f81d6feb3a121609d8e8fd1381706e5484c",
+    "bytes": 20498
+  },
+  "upstream/heatshrink/heatshrink_encoder.h": {
+    "sha256": "941a4f89e29a774faf2d2ce3ef86a23e3fb7c42fb04dd9e68d0abb207ba9e950",
+    "bytes": 3615
+  },
+  "upstream/inih/LICENSE.txt": {
+    "sha256": "9ae3b39e83e9158e44b67733baa3bb2d84e80efdcfb14a5820210a42c7abdf7f",
+    "bytes": 1510
+  },
+  "upstream/inih/ini.c": {
+    "sha256": "cdba16f9e826d2c692efaecbbe010c17b417315db8261fbd48b66aaab8a9d46f",
+    "bytes": 9191
+  },
+  "upstream/inih/ini.h": {
+    "sha256": "154b56f8437ec3e08d19f9c455a409ddccd4462cff33babe5f2713269d6dd64e",
+    "bytes": 6425
+  },
+  "upstream/manifest.json": {
+    "sha256": "3d84f0186b909447fd2c004df56dfefe7db48a006c2b92037391149d63dc559d",
+    "bytes": 1980
+  },
+  "workloads/heatshrink.json": {
+    "sha256": "19126c1961b1b16194f6a05ee193208baea1e22b54ea31b2e90989138b6d53b0",
+    "bytes": 61174
+  },
+  "workloads/inih.json": {
+    "sha256": "2579fcb2a750ccdf4751001dc27457f7fc4a759a5fb6356336725d554656568f",
+    "bytes": 113011
+  }
+}
