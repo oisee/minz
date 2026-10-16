@@ -13,6 +13,10 @@ Completion requires:
 
 The SAP runtime is outside this goal. No success criterion is replaced by a narrower parser-only milestone.
 
+The inspected [PBO/PAI and Nanz TUI integration design](2026-10-16-pbo-pai-nanz-tui.md)
+records a follow-up selection-screen adapter. Current report input is not a
+general dynpro runtime; this extension does not replace semantic hardening.
+
 ## Current checkpoint
 
 The semantic adapter previously discarded errors at report, FORM, function, method and control-flow boundaries. These errors now propagate. Regression tests cover flat and nested trees and procedure-lowering failures. Single-object numeric CLEAR and PERFORM calls are parsed; CLEAR is checked on the actual global memory after an explicit call in raw/final VM and native Z80, with initial memory and PC/SP verified. The existing ABAP package tests pass.
