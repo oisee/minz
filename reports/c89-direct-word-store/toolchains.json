@@ -1,0 +1,68 @@
+{
+  "minz_commit": "3c097bcc0e5a09f9fd62bc80f06e5f7de6e91517",
+  "sdcc_version": "SDCC : mcs51/z80/z180/r2k/r2ka/r3ka/sm83/tlcs90/ez80_z80/z80n/ds390/TININative/ds400/hc08/s08/stm8/pdk13/pdk14/pdk15/mos6502 4.2.0 #13081 (Linux)\npublished under GNU General Public License (GPL)",
+  "z88dk_commit": "83383009c0e221e6d6fe955591058280510391c8",
+  "zcc_version": "zcc - Frontend for the z88dk Cross-C Compiler - v1-83383009-20261016",
+  "helper_archive_sha256": "4de31e11721afcb27439b95e91b13fa78360bd8127b7856a75a7fd487b5ab3f3",
+  "runner_sha256": "7c63f828b8dc999e3156a97b5d73ba702c678af11f71234c803ba2a87d64a734",
+  "driver_sha256": "009e36c82dc6f0f4b7ced62d6a9c895079e6d08e7d485f61518111d0421d6557",
+  "sources": [
+    {
+      "file": "abs_diff.c",
+      "sha256": "797200976ad2f54c936f593b225328d084ee435e5e91136ba06632103ff28aeb"
+    },
+    {
+      "file": "copy_bytes.c",
+      "sha256": "f86ef9fea5e75ee7360505f1c7c8fb65099907aede479fb67c1949d0b483d2c9"
+    },
+    {
+      "file": "fat12_decode.c",
+      "sha256": "4a7338748721cbacb1766df589a1374358f8e209265a9a64cc43561d72dae050"
+    },
+    {
+      "file": "gcd.c",
+      "sha256": "34cc83bcd467c8d5008df94c60371a3b7bdf16ecab65e5a38ea655878fbc2fdb"
+    },
+    {
+      "file": "struct_roundtrip.c",
+      "sha256": "719ab06cf429dd76e1bcca42e837ec2a64cf7b494ce958a3dae0135074f46689"
+    },
+    {
+      "file": "sum_array.c",
+      "sha256": "38c71b12b18062652cbdc3d21d0a9b6a83d55940d5e8b99b7047390e265647bb"
+    }
+  ],
+  "nanz_sources": [
+    {
+      "file": "abs_diff.nanz",
+      "sha256": "e593313aa8d9cb2ad125584ddc1601c3a7decf8b1ec7adc9590be03973023bbd"
+    },
+    {
+      "file": "copy_bytes.nanz",
+      "sha256": "38ef6d3bcc690090d23dc3f86de130332746ab0f2cb0139915e0a8d1116b38bd"
+    },
+    {
+      "file": "fat12_decode.nanz",
+      "sha256": "5f43ae7f72baaf7fb1cab6311fea3a456171a492eaeed8621c96634f1091fa59"
+    },
+    {
+      "file": "gcd.nanz",
+      "sha256": "87b7a3fc9dbd58b5343f22ae517874749d4b9f127d41d02ce2950d7c0c489fc9"
+    },
+    {
+      "file": "struct_roundtrip.nanz",
+      "sha256": "b35a6b5048aa289a9d3435ca13a468ddb707790412baf3a1b2b6fa656168f10e"
+    },
+    {
+      "file": "sum_array.nanz",
+      "sha256": "31692c9503d78066f1020ee04dfc19ba3f204d5a8dc971023967fccad682e648"
+    }
+  ],
+  "nanz_tuple_sources": [
+    {
+      "file": "struct_roundtrip.nanz",
+      "sha256": "0cdeb649a62237492687718e394a4a39db1dbb33382be71f3f53dccaef1d219e"
+    }
+  ],
+  "sdcc45_version": "SDCC : z80 TD- 4.5.0 #15242 (Linux)\npublished under GNU General Public License (GPL)"
+}

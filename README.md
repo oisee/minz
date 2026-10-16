@@ -18,7 +18,13 @@ The project is active research: examples and targets have different levels of ma
 
 [Source imports, target ABI, supported subset and runnable examples](docs/Nanz_C_Interop.md) · [FAT12 disk-image reader](examples/system-c/fat12/README.md). Implementation, supported scope and verification are recorded in [PR #162](https://github.com/oisee/minz/pull/162) and the [integration report](reports/system-c-z80/integration-readiness.md).
 
+[C/Nanz aggregate ABI admission audit](reports/2026-10-16-c89-nanz-aggregate-abi-audit.md): real scalar argument/return contracts, source-copy versus shared-object semantics, native boundary tests, and the corrected four-byte storage budget.
+
 [C89 practical coverage matrix](reports/c89-good-enough/feature-matrix.md): small struct input/return decomposition, linked aggregate ABI, switch lowering and caller-owned struct-return buffers are integrated. The four-byte scalar ABI is integrated through [PR #170](https://github.com/oisee/minz/pull/170). Independent raw/final VM and assembled Z80 tests cover field order, signed values, copying, volatile accesses and live caller values. [Completion audit](reports/c89-good-enough/completion-audit.md) records the practical scope, measured call costs and integration checks; full ISO C89 conformance is not claimed.
+
+[Direct word stores on Z80](reports/2026-10-16-c89-direct-word-store.md): unchanged C/Nanz abs_diff reaches 27 bytes / 220,904 T. All six C families improve; measured PFCCO interactions and remaining losses are recorded. Integration and required checks are tracked in [PR #181](https://github.com/oisee/minz/pull/181).
+
+[C89/Nanz optimization completion audit](reports/2026-10-16-c89-optimization-completion-audit.md): frozen inputs, exact final compiler tree, primary and heldout VM/Z80 evidence, remaining losses and integration criteria.
 
 [Current full C/Nanz Z80 benchmark — all sources and ASM](reports/2026-10-16-c89-nanz-full-benchmark.md): all 69 builds, MinZ C and idiomatic Nanz, SDCC 4.2/4.5 Size and Speed, sccz80. Every result links to its source, generated ASM and measurements; optimization milestones and remaining losses are retained.
 
@@ -31,7 +37,6 @@ The project is active research: examples and targets have different levels of ma
 [C output pointers as scalar returns](reports/2026-10-16-c89-output-contracts.md): three unchanged C programs preserve results and global effects on raw/final MIR VM and Z80 while using smaller, faster internal contracts. The separate feature branch passes core packages and all 432 fast pipeline checks; integrated through PR #177.
 
 [Direct byte loads in C and Nanz](reports/2026-10-16-c89-byte-load-fusion.md): the complete 69-build matrix was repeated; abs_diff reaches 36 bytes / 289,366 T by removing caller-side moves. Core packages and all 432 fast pipeline checks pass. This stage is integrated through PR #176; the CFG follow-up below improves abs_diff further.
-
 
 [Old claims, new evidence](reports/2026-10-16-old-claims-new-evidence.md): automatic five-byte abs_diff and a fresh replay of all eleven historical C examples. All 88 builds pass native and VM checks; constant folding and tailcalls are real, while full-module sizes and remaining SDCC losses correct the old advertising.
 

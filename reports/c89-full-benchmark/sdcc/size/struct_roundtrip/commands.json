@@ -12,7 +12,7 @@
     "--lib-path",
     "/home/alice/dev/minz-artifacts/toolchains/sdcc-4.2/root/usr/share/sdcc/lib/z80",
     "-o",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/absdiff-cfg-full/sdcc/size/struct_roundtrip/program.ihx",
-    "/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/struct_roundtrip.c"
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/sdcc/size/struct_roundtrip/program.ihx",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/struct_roundtrip.c"
   ]
 ]

@@ -1,0 +1,29 @@
+; MIR2 module: parameter_write
+global @a : u8
+global @result : u16
+
+fun @touch(%r1: u8 [general], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = ext %r1 : u8 -> i16 [pointer]
+    %r4 = const 1 : i16 [pointer]
+    %r5 = add %r3, %r4 : i16 [pointer]
+    %r6 = trunc %r5 : i16 -> u8 [general]
+    ret %r6
+
+fun @execute()
+  block @entry:
+    %r7 = addr_of @a : ptr [pointer]
+    %r8 = load %r7 : u8 [general]
+    %r9 = ext %r8 : u8 -> i16 [pointer]
+    %r10 = const 1 : i16 [pointer]
+    %r11 = add %r9, %r10 : i16 [pointer]
+    %r12 = trunc %r11 : i16 -> u8 [general]
+    %r13 = ext %r8 : u8 -> u16 [pointer]
+    %r14 = const 8 : i16 [pointer]
+    %r15 = shl %r13, %r14 : u16 [pointer]
+    %r16 = ext %r12 : u8 -> u16 [pointer]
+    %r17 = or %r15, %r16 : u16 [pointer]
+    %r18 = addr_of @result : ptr [pointer]
+    store %r18, %r17 : u16
+    ret void
+

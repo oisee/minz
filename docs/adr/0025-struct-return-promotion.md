@@ -1,20 +1,23 @@
 # ADR-0025: Struct-Return Promotion to Tuple
 
 ## Status
-**Implemented** (2026-03-15) — `pkg/c89/promote.go`
 
-### Implementation Notes
-- `PromoteStructReturns()` runs automatically after C89 lowering
-- SSS detection: all scalar fields, ≤4 bytes total, ≤4 fields
-- Rewrites: function signature (RetTy→RetTys), return statements (struct lit→tuple), call sites (VarDecl+FieldExpr→TupleLetStmt+VarRefExpr)
-- 3 unit tests: DivmodStruct, NotEligible_LargeStruct, SSS_Detection
-- **Known gap**: C89 lowerer doesn't yet produce StructLitExpr for brace-initialized struct returns (`DivResult res = {a/b, a%b}; return res;`). Only direct struct literal returns are promoted. Tracked for future work.
+Implemented in the linked HIR pipeline (`pkg/hir/c_aggregate_promote.go` and
+`c_aggregate_scalar.go`). The October C89 source tests cover brace-initialized
+locals, modified returns, by-value copies, scalar argument/return contracts,
+caller-owned large return buffers and memory-ABI fallbacks. The old brace-init
+gap listed here is closed. See the [current admission audit](../../reports/2026-10-16-c89-nanz-aggregate-abi-audit.md).
+
+Admission is at most four scalar fields and four **storage bytes**; bool consumes
+one byte despite its one-bit value type. Typed Nanz aggregates do not acquire
+C-copy semantics through this pass. Actual result transfers depend on compatible
+caller/callee contracts; zero moves are a possible result, not a guarantee.
 
 ## Context
 
 C uses `struct` as the sole mechanism for returning multiple values from a function. On Z80 this is a performance catastrophe: SDCC implements struct return via caller-allocated stack memory, each field requiring a separate load after return.
 
-Nanz natively supports `-> (T1, T2)` multi-return with PFCCO optimization. PFCCO assigns each return value an optimal register based on call graph analysis — no stack, no loads, 0T overhead for result transfer.
+Nanz natively supports `-> (T1, T2)` multi-return with PFCCO optimization. PFCCO assigns each return value an optimal register based on call graph analysis — compatible contracts can eliminate result moves, while other call sites retain transfers or storage.
 
 The C frontend must recognize struct-return patterns and promote them to HIR tuple returns, so PFCCO can apply its full power.
 

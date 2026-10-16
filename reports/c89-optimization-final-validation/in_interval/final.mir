@@ -1,0 +1,37 @@
+; MIR2 module: /home/alice/dev/minz-artifacts/grace-workspaces/c89-final-validation/research/c89-benchmark/heldout/in_interval
+global @a : u8
+global @b : u8
+global @result : u16
+
+fun @in_interval(%r1: u8 [acc], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = ext %r2 : u8 -> i16 [pointer]
+    %r4 = const 31 : i16 [pointer]
+    %r5 = add %r3, %r4 : i16 [pointer]
+    %r6 = trunc %r5 : i16 -> u8 [general]
+    %r7 = cmp.uge %r1, %r2 : bool [flag]
+    br_if %r7, @cond_then1(), @cond_else2()
+  block @cond_then1:
+    %r8 = cmp.ule %r1, %r6 : bool [flag]
+    %r9 = const 0 : bool [general]
+    %r10 = cmp.ne %r8, %r9 : bool [flag]
+    jmp @cond_join3(%r10)
+  block @cond_join3(%r11: bool [general]):
+    %r12 = ext %r11 : bool -> u8 [general]
+    ret %r12
+  block @cond_else2:
+    %r13 = const 0 : bool [general]
+    jmp @cond_join3(%r13)
+
+fun @execute()
+  block @entry:
+    %r14 = addr_of @a : ptr [pointer]
+    %r15 = load %r14 : u8 [acc]
+    %r16 = addr_of @b : ptr [pointer]
+    %r17 = load %r16 : u8 [general]
+    %r18 = call @in_interval(%r15, %r17) : u8 [acc]
+    %r19 = ext %r18 : u8 -> u16 [pointer]
+    %r20 = addr_of @result : ptr [pointer]
+    store %r20, %r19 : u16
+    ret void
+

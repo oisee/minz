@@ -1,0 +1,80 @@
+[
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "in_interval",
+    "SourceSHA256": "cd7b0731b715de905adaf5d5ad062ed32a730ae579b2d9051658e8994be7273f",
+    "WorkloadSHA256": "ec8a8bc282380ff5190392212661e59cc4af8d2c81df54663547a1ef61b239c2",
+    "Status": "PASS",
+    "InitializedBytes": 76,
+    "GlobalBytes": 4,
+    "ProgramBytes": 76,
+    "Calls": 2048,
+    "TotalT": 528554
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "default",
+    "Case": "count_less",
+    "SourceSHA256": "07c0dfbcbb9c199eb8a5e8e1259c87fd0486b08e21fdf8a8c5089d83105615b6",
+    "WorkloadSHA256": "a6f9088cee006523256ad8af4cc0dc951df406bb22ac80c1f79f23505d375cd1",
+    "Status": "PASS",
+    "InitializedBytes": 322,
+    "GlobalBytes": 260,
+    "ProgramBytes": 322,
+    "Calls": 4608,
+    "TotalT": 90325939
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "grace",
+    "Case": "in_interval",
+    "SourceSHA256": "cd7b0731b715de905adaf5d5ad062ed32a730ae579b2d9051658e8994be7273f",
+    "WorkloadSHA256": "ec8a8bc282380ff5190392212661e59cc4af8d2c81df54663547a1ef61b239c2",
+    "Status": "PASS",
+    "InitializedBytes": 76,
+    "GlobalBytes": 4,
+    "ProgramBytes": 76,
+    "Calls": 2048,
+    "TotalT": 528554
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "grace",
+    "Case": "count_less",
+    "SourceSHA256": "07c0dfbcbb9c199eb8a5e8e1259c87fd0486b08e21fdf8a8c5089d83105615b6",
+    "WorkloadSHA256": "a6f9088cee006523256ad8af4cc0dc951df406bb22ac80c1f79f23505d375cd1",
+    "Status": "PASS",
+    "InitializedBytes": 322,
+    "GlobalBytes": 260,
+    "ProgramBytes": 322,
+    "Calls": 4608,
+    "TotalT": 90325939
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "size",
+    "Case": "in_interval",
+    "SourceSHA256": "cd7b0731b715de905adaf5d5ad062ed32a730ae579b2d9051658e8994be7273f",
+    "WorkloadSHA256": "ec8a8bc282380ff5190392212661e59cc4af8d2c81df54663547a1ef61b239c2",
+    "Status": "PASS",
+    "InitializedBytes": 76,
+    "GlobalBytes": 4,
+    "ProgramBytes": 76,
+    "Calls": 2048,
+    "TotalT": 528554
+  },
+  {
+    "Compiler": "minz",
+    "Profile": "size",
+    "Case": "count_less",
+    "SourceSHA256": "07c0dfbcbb9c199eb8a5e8e1259c87fd0486b08e21fdf8a8c5089d83105615b6",
+    "WorkloadSHA256": "a6f9088cee006523256ad8af4cc0dc951df406bb22ac80c1f79f23505d375cd1",
+    "Status": "PASS",
+    "InitializedBytes": 322,
+    "GlobalBytes": 260,
+    "ProgramBytes": 322,
+    "Calls": 4608,
+    "TotalT": 90325939
+  }
+]

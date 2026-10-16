@@ -95,11 +95,7 @@ execute:
     CALL fat12_decode
     LD D, H
     LD E, L
-    LD HL, result
-    LD (HL), E     ; lo
-    INC HL
-    LD (HL), D     ; hi
-    DEC HL
+    LD (result), DE    ; u16 direct store, no scratch clobber
     RET
 
 ; globals

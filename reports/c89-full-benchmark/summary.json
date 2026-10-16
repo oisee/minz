@@ -6,11 +6,11 @@
     "SourceSHA256": "797200976ad2f54c936f593b225328d084ee435e5e91136ba06632103ff28aeb",
     "WorkloadSHA256": "50e4f8522d9fb49811756bd3c262262bddf484847601fd070531ce72f2f3dc9c",
     "Status": "PASS",
-    "InitializedBytes": 30,
+    "InitializedBytes": 27,
     "GlobalBytes": 4,
-    "ProgramBytes": 30,
+    "ProgramBytes": 27,
     "Calls": 2048,
-    "TotalT": 253672
+    "TotalT": 220904
   },
   {
     "Compiler": "minz",
@@ -19,11 +19,11 @@
     "SourceSHA256": "f86ef9fea5e75ee7360505f1c7c8fb65099907aede479fb67c1949d0b483d2c9",
     "WorkloadSHA256": "1e858bccd4774c87fff159a08a43224087c5199b8b5c1f9b2bb9ffca9395901c",
     "Status": "PASS",
-    "InitializedBytes": 213,
+    "InitializedBytes": 210,
     "GlobalBytes": 131,
-    "ProgramBytes": 213,
+    "ProgramBytes": 210,
     "Calls": 130,
-    "TotalT": 1121120
+    "TotalT": 1119040
   },
   {
     "Compiler": "minz",
@@ -32,11 +32,11 @@
     "SourceSHA256": "4a7338748721cbacb1766df589a1374358f8e209265a9a64cc43561d72dae050",
     "WorkloadSHA256": "79b58d62a769018f93a7f89bfdf84af2518123abf5b479ff8f302ca4903f8cd7",
     "Status": "PASS",
-    "InitializedBytes": 187,
+    "InitializedBytes": 184,
     "GlobalBytes": 67,
-    "ProgramBytes": 187,
+    "ProgramBytes": 184,
     "Calls": 64,
-    "TotalT": 37856
+    "TotalT": 36832
   },
   {
     "Compiler": "minz",
@@ -45,11 +45,11 @@
     "SourceSHA256": "34cc83bcd467c8d5008df94c60371a3b7bdf16ecab65e5a38ea655878fbc2fdb",
     "WorkloadSHA256": "20b2ddcb4c840a802c428d0734beaff2fd81c0e246cbea9a70bb6b1ccf82cd3e",
     "Status": "PASS",
-    "InitializedBytes": 77,
+    "InitializedBytes": 74,
     "GlobalBytes": 4,
-    "ProgramBytes": 77,
+    "ProgramBytes": 74,
     "Calls": 2048,
-    "TotalT": 5142126
+    "TotalT": 5109358
   },
   {
     "Compiler": "minz",
@@ -58,11 +58,11 @@
     "SourceSHA256": "719ab06cf429dd76e1bcca42e837ec2a64cf7b494ce958a3dae0135074f46689",
     "WorkloadSHA256": "536f1b1783fdea4262014dd37cf71b19c3a38997ed9faf52ed26695bc4b24384",
     "Status": "PASS",
-    "InitializedBytes": 88,
+    "InitializedBytes": 85,
     "GlobalBytes": 4,
-    "ProgramBytes": 88,
+    "ProgramBytes": 85,
     "Calls": 2048,
-    "TotalT": 968704
+    "TotalT": 935936
   },
   {
     "Compiler": "minz",
@@ -71,11 +71,11 @@
     "SourceSHA256": "38c71b12b18062652cbdc3d21d0a9b6a83d55940d5e8b99b7047390e265647bb",
     "WorkloadSHA256": "82da6e007142268463435727326074578dcc69de2170d9b5dc18ed9ff93a8c7b",
     "Status": "PASS",
-    "InitializedBytes": 317,
+    "InitializedBytes": 314,
     "GlobalBytes": 259,
-    "ProgramBytes": 317,
+    "ProgramBytes": 314,
     "Calls": 512,
-    "TotalT": 9356800
+    "TotalT": 9348608
   },
   {
     "Compiler": "minz",
@@ -84,11 +84,11 @@
     "SourceSHA256": "797200976ad2f54c936f593b225328d084ee435e5e91136ba06632103ff28aeb",
     "WorkloadSHA256": "50e4f8522d9fb49811756bd3c262262bddf484847601fd070531ce72f2f3dc9c",
     "Status": "PASS",
-    "InitializedBytes": 30,
+    "InitializedBytes": 27,
     "GlobalBytes": 4,
-    "ProgramBytes": 30,
+    "ProgramBytes": 27,
     "Calls": 2048,
-    "TotalT": 253672
+    "TotalT": 220904
   },
   {
     "Compiler": "minz",
@@ -97,11 +97,11 @@
     "SourceSHA256": "f86ef9fea5e75ee7360505f1c7c8fb65099907aede479fb67c1949d0b483d2c9",
     "WorkloadSHA256": "1e858bccd4774c87fff159a08a43224087c5199b8b5c1f9b2bb9ffca9395901c",
     "Status": "PASS",
-    "InitializedBytes": 213,
+    "InitializedBytes": 210,
     "GlobalBytes": 131,
-    "ProgramBytes": 213,
+    "ProgramBytes": 210,
     "Calls": 130,
-    "TotalT": 1121120
+    "TotalT": 1119040
   },
   {
     "Compiler": "minz",
@@ -110,11 +110,11 @@
     "SourceSHA256": "4a7338748721cbacb1766df589a1374358f8e209265a9a64cc43561d72dae050",
     "WorkloadSHA256": "79b58d62a769018f93a7f89bfdf84af2518123abf5b479ff8f302ca4903f8cd7",
     "Status": "PASS",
-    "InitializedBytes": 187,
+    "InitializedBytes": 184,
     "GlobalBytes": 67,
-    "ProgramBytes": 187,
+    "ProgramBytes": 184,
     "Calls": 64,
-    "TotalT": 37856
+    "TotalT": 36832
   },
   {
     "Compiler": "minz",
@@ -123,11 +123,11 @@
     "SourceSHA256": "34cc83bcd467c8d5008df94c60371a3b7bdf16ecab65e5a38ea655878fbc2fdb",
     "WorkloadSHA256": "20b2ddcb4c840a802c428d0734beaff2fd81c0e246cbea9a70bb6b1ccf82cd3e",
     "Status": "PASS",
-    "InitializedBytes": 77,
+    "InitializedBytes": 74,
     "GlobalBytes": 4,
-    "ProgramBytes": 77,
+    "ProgramBytes": 74,
     "Calls": 2048,
-    "TotalT": 5142126
+    "TotalT": 5109358
   },
   {
     "Compiler": "minz",
@@ -136,11 +136,11 @@
     "SourceSHA256": "719ab06cf429dd76e1bcca42e837ec2a64cf7b494ce958a3dae0135074f46689",
     "WorkloadSHA256": "536f1b1783fdea4262014dd37cf71b19c3a38997ed9faf52ed26695bc4b24384",
     "Status": "PASS",
-    "InitializedBytes": 88,
+    "InitializedBytes": 85,
     "GlobalBytes": 4,
-    "ProgramBytes": 88,
+    "ProgramBytes": 85,
     "Calls": 2048,
-    "TotalT": 968704
+    "TotalT": 935936
   },
   {
     "Compiler": "minz",
@@ -149,11 +149,11 @@
     "SourceSHA256": "38c71b12b18062652cbdc3d21d0a9b6a83d55940d5e8b99b7047390e265647bb",
     "WorkloadSHA256": "82da6e007142268463435727326074578dcc69de2170d9b5dc18ed9ff93a8c7b",
     "Status": "PASS",
-    "InitializedBytes": 317,
+    "InitializedBytes": 314,
     "GlobalBytes": 259,
-    "ProgramBytes": 317,
+    "ProgramBytes": 314,
     "Calls": 512,
-    "TotalT": 9356800
+    "TotalT": 9348608
   },
   {
     "Compiler": "minz",
@@ -162,11 +162,11 @@
     "SourceSHA256": "797200976ad2f54c936f593b225328d084ee435e5e91136ba06632103ff28aeb",
     "WorkloadSHA256": "50e4f8522d9fb49811756bd3c262262bddf484847601fd070531ce72f2f3dc9c",
     "Status": "PASS",
-    "InitializedBytes": 30,
+    "InitializedBytes": 27,
     "GlobalBytes": 4,
-    "ProgramBytes": 30,
+    "ProgramBytes": 27,
     "Calls": 2048,
-    "TotalT": 253672
+    "TotalT": 220904
   },
   {
     "Compiler": "minz",
@@ -175,11 +175,11 @@
     "SourceSHA256": "f86ef9fea5e75ee7360505f1c7c8fb65099907aede479fb67c1949d0b483d2c9",
     "WorkloadSHA256": "1e858bccd4774c87fff159a08a43224087c5199b8b5c1f9b2bb9ffca9395901c",
     "Status": "PASS",
-    "InitializedBytes": 213,
+    "InitializedBytes": 210,
     "GlobalBytes": 131,
-    "ProgramBytes": 213,
+    "ProgramBytes": 210,
     "Calls": 130,
-    "TotalT": 1121120
+    "TotalT": 1119040
   },
   {
     "Compiler": "minz",
@@ -188,11 +188,11 @@
     "SourceSHA256": "4a7338748721cbacb1766df589a1374358f8e209265a9a64cc43561d72dae050",
     "WorkloadSHA256": "79b58d62a769018f93a7f89bfdf84af2518123abf5b479ff8f302ca4903f8cd7",
     "Status": "PASS",
-    "InitializedBytes": 187,
+    "InitializedBytes": 184,
     "GlobalBytes": 67,
-    "ProgramBytes": 187,
+    "ProgramBytes": 184,
     "Calls": 64,
-    "TotalT": 37856
+    "TotalT": 36832
   },
   {
     "Compiler": "minz",
@@ -201,11 +201,11 @@
     "SourceSHA256": "34cc83bcd467c8d5008df94c60371a3b7bdf16ecab65e5a38ea655878fbc2fdb",
     "WorkloadSHA256": "20b2ddcb4c840a802c428d0734beaff2fd81c0e246cbea9a70bb6b1ccf82cd3e",
     "Status": "PASS",
-    "InitializedBytes": 71,
+    "InitializedBytes": 68,
     "GlobalBytes": 4,
-    "ProgramBytes": 71,
+    "ProgramBytes": 68,
     "Calls": 2048,
-    "TotalT": 3255173
+    "TotalT": 3222405
   },
   {
     "Compiler": "minz",
@@ -214,11 +214,11 @@
     "SourceSHA256": "719ab06cf429dd76e1bcca42e837ec2a64cf7b494ce958a3dae0135074f46689",
     "WorkloadSHA256": "536f1b1783fdea4262014dd37cf71b19c3a38997ed9faf52ed26695bc4b24384",
     "Status": "PASS",
-    "InitializedBytes": 88,
+    "InitializedBytes": 85,
     "GlobalBytes": 4,
-    "ProgramBytes": 88,
+    "ProgramBytes": 85,
     "Calls": 2048,
-    "TotalT": 968704
+    "TotalT": 935936
   },
   {
     "Compiler": "minz",
@@ -227,11 +227,11 @@
     "SourceSHA256": "38c71b12b18062652cbdc3d21d0a9b6a83d55940d5e8b99b7047390e265647bb",
     "WorkloadSHA256": "82da6e007142268463435727326074578dcc69de2170d9b5dc18ed9ff93a8c7b",
     "Status": "PASS",
-    "InitializedBytes": 317,
+    "InitializedBytes": 314,
     "GlobalBytes": 259,
-    "ProgramBytes": 317,
+    "ProgramBytes": 314,
     "Calls": 512,
-    "TotalT": 9356800
+    "TotalT": 9348608
   },
   {
     "Compiler": "sdcc",
@@ -459,11 +459,11 @@
     "SourceSHA256": "e593313aa8d9cb2ad125584ddc1601c3a7decf8b1ec7adc9590be03973023bbd",
     "WorkloadSHA256": "50e4f8522d9fb49811756bd3c262262bddf484847601fd070531ce72f2f3dc9c",
     "Status": "PASS",
-    "InitializedBytes": 30,
+    "InitializedBytes": 27,
     "GlobalBytes": 4,
-    "ProgramBytes": 30,
+    "ProgramBytes": 27,
     "Calls": 2048,
-    "TotalT": 253672
+    "TotalT": 220904
   },
   {
     "Compiler": "nanz",
@@ -472,11 +472,11 @@
     "SourceSHA256": "38ef6d3bcc690090d23dc3f86de130332746ab0f2cb0139915e0a8d1116b38bd",
     "WorkloadSHA256": "1e858bccd4774c87fff159a08a43224087c5199b8b5c1f9b2bb9ffca9395901c",
     "Status": "PASS",
-    "InitializedBytes": 214,
+    "InitializedBytes": 211,
     "GlobalBytes": 131,
-    "ProgramBytes": 214,
+    "ProgramBytes": 211,
     "Calls": 130,
-    "TotalT": 1044030
+    "TotalT": 1041950
   },
   {
     "Compiler": "nanz",
@@ -485,11 +485,11 @@
     "SourceSHA256": "5f43ae7f72baaf7fb1cab6311fea3a456171a492eaeed8621c96634f1091fa59",
     "WorkloadSHA256": "79b58d62a769018f93a7f89bfdf84af2518123abf5b479ff8f302ca4903f8cd7",
     "Status": "PASS",
-    "InitializedBytes": 188,
+    "InitializedBytes": 185,
     "GlobalBytes": 67,
-    "ProgramBytes": 188,
+    "ProgramBytes": 185,
     "Calls": 64,
-    "TotalT": 38112
+    "TotalT": 37088
   },
   {
     "Compiler": "nanz",
@@ -498,11 +498,11 @@
     "SourceSHA256": "87b7a3fc9dbd58b5343f22ae517874749d4b9f127d41d02ce2950d7c0c489fc9",
     "WorkloadSHA256": "20b2ddcb4c840a802c428d0734beaff2fd81c0e246cbea9a70bb6b1ccf82cd3e",
     "Status": "PASS",
-    "InitializedBytes": 60,
+    "InitializedBytes": 57,
     "GlobalBytes": 4,
-    "ProgramBytes": 60,
+    "ProgramBytes": 57,
     "Calls": 2048,
-    "TotalT": 4986734
+    "TotalT": 4953966
   },
   {
     "Compiler": "nanz",
@@ -511,11 +511,11 @@
     "SourceSHA256": "b35a6b5048aa289a9d3435ca13a468ddb707790412baf3a1b2b6fa656168f10e",
     "WorkloadSHA256": "536f1b1783fdea4262014dd37cf71b19c3a38997ed9faf52ed26695bc4b24384",
     "Status": "PASS",
-    "InitializedBytes": 157,
+    "InitializedBytes": 154,
     "GlobalBytes": 4,
-    "ProgramBytes": 157,
+    "ProgramBytes": 154,
     "Calls": 2048,
-    "TotalT": 1957888
+    "TotalT": 1925120
   },
   {
     "Compiler": "nanz",
@@ -524,11 +524,11 @@
     "SourceSHA256": "31692c9503d78066f1020ee04dfc19ba3f204d5a8dc971023967fccad682e648",
     "WorkloadSHA256": "82da6e007142268463435727326074578dcc69de2170d9b5dc18ed9ff93a8c7b",
     "Status": "PASS",
-    "InitializedBytes": 320,
+    "InitializedBytes": 317,
     "GlobalBytes": 259,
-    "ProgramBytes": 320,
+    "ProgramBytes": 317,
     "Calls": 512,
-    "TotalT": 8316876
+    "TotalT": 8308684
   },
   {
     "Compiler": "nanz",
@@ -537,11 +537,11 @@
     "SourceSHA256": "e593313aa8d9cb2ad125584ddc1601c3a7decf8b1ec7adc9590be03973023bbd",
     "WorkloadSHA256": "50e4f8522d9fb49811756bd3c262262bddf484847601fd070531ce72f2f3dc9c",
     "Status": "PASS",
-    "InitializedBytes": 30,
+    "InitializedBytes": 27,
     "GlobalBytes": 4,
-    "ProgramBytes": 30,
+    "ProgramBytes": 27,
     "Calls": 2048,
-    "TotalT": 253672
+    "TotalT": 220904
   },
   {
     "Compiler": "nanz",
@@ -550,11 +550,11 @@
     "SourceSHA256": "38ef6d3bcc690090d23dc3f86de130332746ab0f2cb0139915e0a8d1116b38bd",
     "WorkloadSHA256": "1e858bccd4774c87fff159a08a43224087c5199b8b5c1f9b2bb9ffca9395901c",
     "Status": "PASS",
-    "InitializedBytes": 214,
+    "InitializedBytes": 211,
     "GlobalBytes": 131,
-    "ProgramBytes": 214,
+    "ProgramBytes": 211,
     "Calls": 130,
-    "TotalT": 1044030
+    "TotalT": 1041950
   },
   {
     "Compiler": "nanz",
@@ -563,11 +563,11 @@
     "SourceSHA256": "5f43ae7f72baaf7fb1cab6311fea3a456171a492eaeed8621c96634f1091fa59",
     "WorkloadSHA256": "79b58d62a769018f93a7f89bfdf84af2518123abf5b479ff8f302ca4903f8cd7",
     "Status": "PASS",
-    "InitializedBytes": 188,
+    "InitializedBytes": 185,
     "GlobalBytes": 67,
-    "ProgramBytes": 188,
+    "ProgramBytes": 185,
     "Calls": 64,
-    "TotalT": 38112
+    "TotalT": 37088
   },
   {
     "Compiler": "nanz",
@@ -576,11 +576,11 @@
     "SourceSHA256": "87b7a3fc9dbd58b5343f22ae517874749d4b9f127d41d02ce2950d7c0c489fc9",
     "WorkloadSHA256": "20b2ddcb4c840a802c428d0734beaff2fd81c0e246cbea9a70bb6b1ccf82cd3e",
     "Status": "PASS",
-    "InitializedBytes": 60,
+    "InitializedBytes": 57,
     "GlobalBytes": 4,
-    "ProgramBytes": 60,
+    "ProgramBytes": 57,
     "Calls": 2048,
-    "TotalT": 4986734
+    "TotalT": 4953966
   },
   {
     "Compiler": "nanz",
@@ -589,11 +589,11 @@
     "SourceSHA256": "b35a6b5048aa289a9d3435ca13a468ddb707790412baf3a1b2b6fa656168f10e",
     "WorkloadSHA256": "536f1b1783fdea4262014dd37cf71b19c3a38997ed9faf52ed26695bc4b24384",
     "Status": "PASS",
-    "InitializedBytes": 157,
+    "InitializedBytes": 154,
     "GlobalBytes": 4,
-    "ProgramBytes": 157,
+    "ProgramBytes": 154,
     "Calls": 2048,
-    "TotalT": 1957888
+    "TotalT": 1925120
   },
   {
     "Compiler": "nanz",
@@ -602,11 +602,11 @@
     "SourceSHA256": "31692c9503d78066f1020ee04dfc19ba3f204d5a8dc971023967fccad682e648",
     "WorkloadSHA256": "82da6e007142268463435727326074578dcc69de2170d9b5dc18ed9ff93a8c7b",
     "Status": "PASS",
-    "InitializedBytes": 320,
+    "InitializedBytes": 317,
     "GlobalBytes": 259,
-    "ProgramBytes": 320,
+    "ProgramBytes": 317,
     "Calls": 512,
-    "TotalT": 8316876
+    "TotalT": 8308684
   },
   {
     "Compiler": "nanz",
@@ -615,11 +615,11 @@
     "SourceSHA256": "e593313aa8d9cb2ad125584ddc1601c3a7decf8b1ec7adc9590be03973023bbd",
     "WorkloadSHA256": "50e4f8522d9fb49811756bd3c262262bddf484847601fd070531ce72f2f3dc9c",
     "Status": "PASS",
-    "InitializedBytes": 30,
+    "InitializedBytes": 27,
     "GlobalBytes": 4,
-    "ProgramBytes": 30,
+    "ProgramBytes": 27,
     "Calls": 2048,
-    "TotalT": 253672
+    "TotalT": 220904
   },
   {
     "Compiler": "nanz",
@@ -628,11 +628,11 @@
     "SourceSHA256": "38ef6d3bcc690090d23dc3f86de130332746ab0f2cb0139915e0a8d1116b38bd",
     "WorkloadSHA256": "1e858bccd4774c87fff159a08a43224087c5199b8b5c1f9b2bb9ffca9395901c",
     "Status": "PASS",
-    "InitializedBytes": 214,
+    "InitializedBytes": 211,
     "GlobalBytes": 131,
-    "ProgramBytes": 214,
+    "ProgramBytes": 211,
     "Calls": 130,
-    "TotalT": 1044030
+    "TotalT": 1041950
   },
   {
     "Compiler": "nanz",
@@ -641,11 +641,11 @@
     "SourceSHA256": "5f43ae7f72baaf7fb1cab6311fea3a456171a492eaeed8621c96634f1091fa59",
     "WorkloadSHA256": "79b58d62a769018f93a7f89bfdf84af2518123abf5b479ff8f302ca4903f8cd7",
     "Status": "PASS",
-    "InitializedBytes": 188,
+    "InitializedBytes": 185,
     "GlobalBytes": 67,
-    "ProgramBytes": 188,
+    "ProgramBytes": 185,
     "Calls": 64,
-    "TotalT": 38112
+    "TotalT": 37088
   },
   {
     "Compiler": "nanz",
@@ -654,11 +654,11 @@
     "SourceSHA256": "87b7a3fc9dbd58b5343f22ae517874749d4b9f127d41d02ce2950d7c0c489fc9",
     "WorkloadSHA256": "20b2ddcb4c840a802c428d0734beaff2fd81c0e246cbea9a70bb6b1ccf82cd3e",
     "Status": "PASS",
-    "InitializedBytes": 54,
+    "InitializedBytes": 51,
     "GlobalBytes": 4,
-    "ProgramBytes": 54,
+    "ProgramBytes": 51,
     "Calls": 2048,
-    "TotalT": 3099781
+    "TotalT": 3067013
   },
   {
     "Compiler": "nanz",
@@ -667,11 +667,11 @@
     "SourceSHA256": "b35a6b5048aa289a9d3435ca13a468ddb707790412baf3a1b2b6fa656168f10e",
     "WorkloadSHA256": "536f1b1783fdea4262014dd37cf71b19c3a38997ed9faf52ed26695bc4b24384",
     "Status": "PASS",
-    "InitializedBytes": 157,
+    "InitializedBytes": 154,
     "GlobalBytes": 4,
-    "ProgramBytes": 157,
+    "ProgramBytes": 154,
     "Calls": 2048,
-    "TotalT": 1957888
+    "TotalT": 1925120
   },
   {
     "Compiler": "nanz",
@@ -680,11 +680,11 @@
     "SourceSHA256": "31692c9503d78066f1020ee04dfc19ba3f204d5a8dc971023967fccad682e648",
     "WorkloadSHA256": "82da6e007142268463435727326074578dcc69de2170d9b5dc18ed9ff93a8c7b",
     "Status": "PASS",
-    "InitializedBytes": 320,
+    "InitializedBytes": 317,
     "GlobalBytes": 259,
-    "ProgramBytes": 320,
+    "ProgramBytes": 317,
     "Calls": 512,
-    "TotalT": 8316876
+    "TotalT": 8308684
   },
   {
     "Compiler": "nanz-tuple",
@@ -693,11 +693,11 @@
     "SourceSHA256": "0cdeb649a62237492687718e394a4a39db1dbb33382be71f3f53dccaef1d219e",
     "WorkloadSHA256": "536f1b1783fdea4262014dd37cf71b19c3a38997ed9faf52ed26695bc4b24384",
     "Status": "PASS",
-    "InitializedBytes": 74,
+    "InitializedBytes": 71,
     "GlobalBytes": 4,
-    "ProgramBytes": 74,
+    "ProgramBytes": 71,
     "Calls": 2048,
-    "TotalT": 645120
+    "TotalT": 612352
   },
   {
     "Compiler": "nanz-tuple",
@@ -706,11 +706,11 @@
     "SourceSHA256": "0cdeb649a62237492687718e394a4a39db1dbb33382be71f3f53dccaef1d219e",
     "WorkloadSHA256": "536f1b1783fdea4262014dd37cf71b19c3a38997ed9faf52ed26695bc4b24384",
     "Status": "PASS",
-    "InitializedBytes": 74,
+    "InitializedBytes": 71,
     "GlobalBytes": 4,
-    "ProgramBytes": 74,
+    "ProgramBytes": 71,
     "Calls": 2048,
-    "TotalT": 645120
+    "TotalT": 612352
   },
   {
     "Compiler": "nanz-tuple",
@@ -719,11 +719,11 @@
     "SourceSHA256": "0cdeb649a62237492687718e394a4a39db1dbb33382be71f3f53dccaef1d219e",
     "WorkloadSHA256": "536f1b1783fdea4262014dd37cf71b19c3a38997ed9faf52ed26695bc4b24384",
     "Status": "PASS",
-    "InitializedBytes": 74,
+    "InitializedBytes": 71,
     "GlobalBytes": 4,
-    "ProgramBytes": 74,
+    "ProgramBytes": 71,
     "Calls": 2048,
-    "TotalT": 645120
+    "TotalT": 612352
   },
   {
     "Compiler": "sdcc45",

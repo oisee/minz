@@ -7,8 +7,8 @@
     "-O3",
     "-S",
     "-o",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/absdiff-cfg-full/sccz80/o3/struct_roundtrip/program.asm",
-    "/home/alice/dev/minz-artifacts/grace-workspaces/c89-absdiff-cfg/research/c89-benchmark/cases/struct_roundtrip.c"
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/sccz80/o3/struct_roundtrip/program.asm",
+    "/home/alice/dev/minz-artifacts/grace-workspaces/c89-direct-word-store/research/c89-benchmark/cases/struct_roundtrip.c"
   ],
   [
     "/home/alice/dev/minz-artifacts/toolchains/z88dk-src/bin/z88dk-z80asm",
@@ -16,8 +16,8 @@
     "-m",
     "-r0x8000",
     "-I/home/alice/dev/minz-artifacts/toolchains/z88dk-src/lib",
-    "-o/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/absdiff-cfg-full/sccz80/o3/struct_roundtrip/program.bin",
+    "-o/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/sccz80/o3/struct_roundtrip/program.bin",
     "-l/home/alice/dev/minz-artifacts/toolchains/z88dk-src/lib/z80_compiler_helpers.lib",
-    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/absdiff-cfg-full/sccz80/o3/struct_roundtrip/program.asm"
+    "/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/direct-word-store-full/sccz80/o3/struct_roundtrip/program.asm"
   ]
 ]

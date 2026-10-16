@@ -1,0 +1,62 @@
+[
+  {
+    "T": 35072,
+    "language": "c",
+    "mode": "default",
+    "module_bytes": 45,
+    "native_calls": 256,
+    "parameter_write_observed_by_caller": false,
+    "raw_final_vm_calls": 512,
+    "status": "PASS"
+  },
+  {
+    "T": 35072,
+    "language": "c",
+    "mode": "grace",
+    "module_bytes": 45,
+    "native_calls": 256,
+    "parameter_write_observed_by_caller": false,
+    "raw_final_vm_calls": 512,
+    "status": "PASS"
+  },
+  {
+    "T": 35072,
+    "language": "c",
+    "mode": "size",
+    "module_bytes": 45,
+    "native_calls": 256,
+    "parameter_write_observed_by_caller": false,
+    "raw_final_vm_calls": 512,
+    "status": "PASS"
+  },
+  {
+    "T": 82432,
+    "language": "nanz",
+    "mode": "default",
+    "module_bytes": 62,
+    "native_calls": 256,
+    "parameter_write_observed_by_caller": true,
+    "raw_final_vm_calls": 512,
+    "status": "PASS"
+  },
+  {
+    "T": 82432,
+    "language": "nanz",
+    "mode": "grace",
+    "module_bytes": 62,
+    "native_calls": 256,
+    "parameter_write_observed_by_caller": true,
+    "raw_final_vm_calls": 512,
+    "status": "PASS"
+  },
+  {
+    "T": 82432,
+    "language": "nanz",
+    "mode": "size",
+    "module_bytes": 62,
+    "native_calls": 256,
+    "parameter_write_observed_by_caller": true,
+    "raw_final_vm_calls": 512,
+    "status": "PASS"
+  }
+]
