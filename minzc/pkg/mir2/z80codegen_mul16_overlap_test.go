@@ -33,7 +33,9 @@ func TestNativeMul16HLSourceOverlap(t *testing.T) {
 				for _, a := range values {
 					for _, b := range values {
 						z := emulator.NewRemogattoZ80()
-						z.LoadMemory(0x8000, bin.Binary)
+						if err := z.LoadMemory(0x8000, bin.Binary); err != nil {
+							t.Fatal(err)
+						}
 						r := emulator.Registers{PC: 0x8000, SP: 0xeff0, HL: b}
 						switch lhs {
 						case "DE":
