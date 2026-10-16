@@ -5,7 +5,7 @@
 ожидания в исполняемых тестах; успешный разбор всего файла этого не заменяет.
 Aggregate scalarization интегрирована в main d6404fa4 через PR #163;
 switch/control-flow — в main 8fd960e5 через PR #164. Исправление ABI импортов — в main ce6d79ba через PR #165. Lifetime интегрирован в main 97e78d71 через PR #166.
-Language-admission — PR #167; wide CALL, стоимость scalar ABI и глобальные
+Language-admission интегрирован в main 1247c19d через PR #167; wide CALL, стоимость scalar ABI и глобальные
 relocations проверены в следующей ветке, пока не в main. Полная цель остаётся активной.
 
 | Семейство | Исполняемое доказательство | Состояние и граница |
@@ -33,11 +33,11 @@ relocations проверены в следующей ветке, пока не �
 | Глобальные address initializers | `TestC89GlobalRelocationsVMZ80`, `TestC89GlobalRelocationImportVMZ80` | Строки, поля, массивы, static local, function pointers, C/C и Nanz/C; 231 native / 308 VM вызовов, пока в ветке |
 | Косвенный вызов с живым out-pointer | `TestC89IndirectOutPointerAdmission` | Typed void CALL с живым адресом локальной структуры: 15 native / 20 VM, исправлен admission, пока в ветке |
 | Enum width/value | `TestCEnumWidthsNativeVM` | VM/Z80; конкретный ABI для крайних значений |
-| sizeof/layout | integer/storage cases + `TestC89LanguageAdmissionVMZ80` | Target layout и sizeof без вычисления x++/вызова; новый source-level набор пока в ветке |
-| Arrays/string/byte initializers | storage/string8 + language admission/string import suites | Escapes, соседние literals, NUL, C/Nanz linking, CString/SString identity; новая literal linkage пока в ветке; global pointer relocation имеет отдельный VM/Z80 набор в ветке |
+| sizeof/layout | integer/storage cases + `TestC89LanguageAdmissionVMZ80` | Target layout и sizeof без вычисления x++/вызова; source-level набор интегрирован через PR #167 |
+| Arrays/string/byte initializers | storage/string8 + language admission/string import suites | Escapes, соседние literals, NUL, C/Nanz linking, CString/SString identity; literal linkage интегрирован через PR #167; global pointer relocation имеет отдельный VM/Z80 набор в ветке |
 | Function pointers | `TestCStructParametersNativeVM`, aggregate indirect case | VM/Z80 на typed signatures; varargs ABI не следует из этого |
 | Includes/preprocessor | include/FatFS + `TestC89LanguageAdmissionVMZ80` | #if/#/## имеют raw/final VM/Z80 оракулы в новом наборе; не все варианты preprocessing |
-| K&R definitions, implicit int/prototypes | `TestC89LanguageAdmissionVMZ80` | K&R byte/int parameters, implicit int, forward no-prototype call на VM/Z80; новая матрица пока в ветке |
+| K&R definitions, implicit int/prototypes | `TestC89LanguageAdmissionVMZ80` | K&R byte/int parameters, implicit int, forward no-prototype call на VM/Z80; матрица интегрирована через PR #167 |
 | Variadic functions/stdarg | `TestC89VariadicAdmission` | Новый frontend явно отклоняет variadic definition/direct/indirect call; неиспользуемые prototypes допустимы; runtime ABI не реализован |
 | Bitfields | `TestCRejectsUnsupportedBitfieldStorageAndAccess` | Явно отклоняются для Z80; полный ISO C89 не заявляется |
 | float/double/long double | `TestCRejectsUnsupportedFloatingTypes` | Явно отклоняются для Z80 |
@@ -49,7 +49,7 @@ long/VLA отклоняются. Их наличие в прежнем C-кор�
 
 Новые доказательства: [wide CALL и стоимость scalar ABI](call-abi-and-cost.md),
 [глобальные адресные инициализаторы](global-address-initializers.md).
-Следующие работы: завершить строгую интеграцию admission и новых ABI/relocation
+Следующие работы: завершить строгую интеграцию новых ABI/relocation
 проверок, воспроизвести их на main и оценить оставшиеся пробелы в матрице.
 Runtime varargs и неизвестные indirect parameter ABI с живыми caller значениями явно
 не входят в заявленный Z80 допуск. Матрица сохраняет открытые строки.
