@@ -346,7 +346,7 @@ func parseCommentDirectives(src string) ([]hir.Assert, []hir.Sandbox) {
 }
 
 // bitIntRe matches C23 _BitInt(N) type specifier.
-var bitIntRe = regexp.MustCompile(`_BitInt\(\s*(\d+)\s*\)`)
+var bitIntRe = regexp.MustCompile(`\b_BitInt\(\s*(\d+)\s*\)`)
 
 // preprocessBitInt replaces _BitInt(N) with Z80-native types.
 //
@@ -355,7 +355,7 @@ var bitIntRe = regexp.MustCompile(`_BitInt\(\s*(\d+)\s*\)`)
 //	_BitInt(17)..._BitInt(32) → uint32_t
 //	_BitInt(>32)              → /* _BitInt(N) error: too wide for Z80 */ int
 func preprocessBitInt(src string) string {
-	return bitIntRe.ReplaceAllStringFunc(src, func(match string) string {
+	return replaceCCodeMatches(src, bitIntRe, false, func(match string) string {
 		m := bitIntRe.FindStringSubmatch(match)
 		if m == nil {
 			return match
@@ -385,7 +385,13 @@ var digitSepRe = regexp.MustCompile(`([0-9a-fA-F])'([0-9a-fA-F])`)
 // Applied repeatedly to handle multiple separators (1'000'000 → 1000000).
 func stripDigitSeparators(src string) string {
 	for digitSepRe.MatchString(src) {
-		src = digitSepRe.ReplaceAllString(src, "${1}${2}")
+		next := replaceCCodeMatches(src, digitSepRe, false, func(match string) string {
+			return strings.ReplaceAll(match, "'", "")
+		})
+		if next == src {
+			break
+		}
+		src = next
 	}
 	return src
 }
@@ -398,12 +404,14 @@ var c23AttrRe = regexp.MustCompile(`\[\[\s*(?:maybe_unused|nodiscard|noreturn|_N
 // stripC23Attributes removes [[attribute]] annotations from C23 source.
 // These are cosmetic hints (warnings) — no codegen effect on Z80.
 func stripC23Attributes(src string) string {
-	return c23AttrRe.ReplaceAllString(src, "")
+	return replaceCCodeMatches(src, c23AttrRe, true, func(match string) string {
+		return strings.Repeat("\n", strings.Count(match, "\n"))
+	})
 }
 
 // embedRe matches: #embed "filename" or #embed <filename>
 // Optional limit/offset params (C23): #embed "file" limit(N) offset(N)
-var embedRe = regexp.MustCompile(`(?m)^\s*#\s*embed\s+("([^"]+)"|<([^>]+)>)(?:\s+limit\((\d+)\))?(?:\s+offset\((\d+)\))?\s*$`)
+var embedRe = regexp.MustCompile(`(?m)^[ \t]*#[ \t]*embed[ \t]+("([^"\r\n]+)"|<([^>\r\n]+)>)(?:[ \t]+limit\((\d+)\))?(?:[ \t]+offset\((\d+)\))?[ \t]*$`)
 
 // preprocessEmbed replaces C23 #embed directives with comma-separated byte literals.
 // This runs before the cc parser sees the source.
@@ -412,7 +420,7 @@ var embedRe = regexp.MustCompile(`(?m)^\s*#\s*embed\s+("([^"]+)"|<([^>]+)>)(?:\s
 //	#embed "data.bin" limit(256)     → first 256 bytes
 //	#embed "data.bin" offset(128)    → skip 128 bytes
 func preprocessEmbed(src, baseDir string) string {
-	return embedRe.ReplaceAllStringFunc(src, func(match string) string {
+	return replaceCCodeMatches(src, embedRe, true, func(match string) string {
 		m := embedRe.FindStringSubmatch(match)
 		if m == nil {
 			return match
@@ -432,8 +440,9 @@ func preprocessEmbed(src, baseDir string) string {
 
 		data, err := os.ReadFile(filename)
 		if err != nil {
-			// Return error as comment so cc parser gives a clear message
-			return fmt.Sprintf("/* #embed error: %s */", err)
+			// Let the real preprocessor diagnose active directives and ignore
+			// inactive branches. A comment can silently create an empty initializer.
+			return fmt.Sprintf("#error minz #embed: %s", err)
 		}
 
 		// Optional offset

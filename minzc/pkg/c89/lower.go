@@ -1552,37 +1552,12 @@ func (fl *funcLow) lowerPrimary(pe *cc.PrimaryExpression) (*exprResult, error) {
 		return fl.lowerExpr(pe.ExpressionList)
 
 	case cc.PrimaryExpressionGeneric:
-		// C11 _Generic: type-based dispatch, resolved at compile time.
-		gs := pe.GenericSelection
-		if gs == nil {
-			return wrapExpr(hir.U8(0)), nil
+		// Reuse full C type compatibility and the selected, checked expression.
+		// Comparing Kind alone conflates distinct pointer and aggregate types.
+		if selected := pe.GenericSelection.SelectedExpression(); selected != nil {
+			return fl.lowerExpr(selected)
 		}
-		// Get controlling expression type.
-		ctrlTy := gs.AssignmentExpression.Type()
-		// Walk associations to find matching type or default.
-		var defaultExpr cc.ExpressionNode
-		for gal := gs.GenericAssociationList; gal != nil; gal = gal.GenericAssociationList {
-			ga := gal.GenericAssociation
-			if ga == nil {
-				continue
-			}
-			if ga.Case == cc.GenericAssociationDefault {
-				defaultExpr = ga.AssignmentExpression
-				continue
-			}
-			// Type association: compare types.
-			if ga.TypeName != nil && ctrlTy != nil {
-				assocTy := ga.TypeName.Type()
-				if assocTy != nil && assocTy.Kind() == ctrlTy.Kind() {
-					return fl.lowerExpr(ga.AssignmentExpression)
-				}
-			}
-		}
-		// No match — use default.
-		if defaultExpr != nil {
-			return fl.lowerExpr(defaultExpr)
-		}
-		return wrapExpr(hir.U8(0)), nil
+		return nil, fmt.Errorf("missing checked _Generic association at %s", pe.Position())
 
 	case cc.PrimaryExpressionObjCMessage:
 		if pe.ObjCMessage != nil {

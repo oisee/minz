@@ -459,7 +459,7 @@ func TestCorpus_AllExamples(t *testing.T) {
 			}
 			_, err = pipeline.CompileHIR(hm)
 			if err != nil {
-				t.Logf("  pipeline: %v", err)
+				t.Fatalf("pipeline: %v", err)
 			} else {
 				passedAsserts += mir2Asserts
 				t.Logf("  %d/%d mir2 asserts passed", mir2Asserts, mir2Asserts)
@@ -520,11 +520,11 @@ func TestCorpus_C99Examples(t *testing.T) {
 			}
 			_, err = pipeline.CompileHIR(hm)
 			if err != nil {
-				t.Logf("  pipeline: %v", err)
+				t.Fatalf("pipeline: %v", err)
 			} else {
-				passedMir2 += mir2Asserts
-				passedZ80 += z80Asserts
-				t.Logf("  %d mir2 + %d z80 asserts passed", mir2Asserts, z80Asserts)
+				passedMir2 += mir2Asserts + dualAsserts
+				passedZ80 += z80Asserts + dualAsserts
+				t.Logf("  %d mir2 + %d z80 asserts passed", mir2Asserts+dualAsserts, z80Asserts+dualAsserts)
 			}
 		})
 	}
