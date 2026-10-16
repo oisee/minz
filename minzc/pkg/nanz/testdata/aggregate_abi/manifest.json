@@ -1,0 +1,12 @@
+{
+  "cases": [
+    {
+      "file": "parameter_write.c",
+      "sha256": "1b4db14f4aaad780e83e1cf25776c4a3745378a555f3f0d904cda8595fce6eca"
+    },
+    {
+      "file": "parameter_write.nanz",
+      "sha256": "82e6d386e9a952b39b86ad82ecdb1c9839f01d2be7d2e39b105aca8a8103baac"
+    }
+  ]
+}
