@@ -46,17 +46,16 @@ fun @fill(%r1: u8 [acc], %r2: u8 [general]) -> (u8 [acc], u8 [counter])
 fun @execute()
   block @entry:
     %r33 = addr_of @left : ptr [pointer]
-    %r34 = load %r33 : u8 [general]
-    %r35 = move %r34 : u8 [acc]
-    %r36 = addr_of @right : ptr [pointer]
-    %r37 = load %r36 : u8 [general]
-    %r38 = call @fill(%r35, %r37) : u8 [acc]
-    %r40 = ext %r38 : u8 -> u16 [pointer]
-    %r41 = const 8 : i16 [pointer]
-    %r42 = shl %r40, %r41 : u16 [pointer]
-    %r43 = ext %r39 : u8 -> u16 [pointer]
-    %r44 = or %r42, %r43 : u16 [pointer]
-    %r45 = addr_of @result : ptr [pointer]
-    store %r45, %r44 : u16
+    %r34 = load %r33 : u8 [acc]
+    %r35 = addr_of @right : ptr [pointer]
+    %r36 = load %r35 : u8 [general]
+    %r37 = call @fill(%r34, %r36) : u8 [acc]
+    %r39 = ext %r37 : u8 -> u16 [pointer]
+    %r40 = const 8 : i16 [pointer]
+    %r41 = shl %r39, %r40 : u16 [pointer]
+    %r42 = ext %r38 : u8 -> u16 [pointer]
+    %r43 = or %r41, %r42 : u16 [pointer]
+    %r44 = addr_of @result : ptr [pointer]
+    store %r44, %r43 : u16
     ret void
 

@@ -19,17 +19,17 @@
 
 Байты включают полный BIN с данными. Такты — сумма всех входов, включая caller,
 CALL/RET и сохранённые глобальные эффекты. Оба ABI измерены одним compiler checkpoint
-67fbfba3; обычные MIR-оптимизации одинаковы. Memory-вариант сохраняет caller-owned
+7e41fb71; обычные MIR-оптимизации одинаковы. Memory-вариант сохраняет caller-owned
 объект, scalar-вариант включает C-specific aggregate eligibility. В этих исходниках
 нет других параметров/возвратов структур по значению.
 
 | Замороженный C | Режим | Memory ABI, байты / T | Scalar ABI, байты / T |
 |---|---|---:|---:|
-| local_pair, 2048 входов | default | 198 / 1 813 504 | **134 / 1 057 792** |
-| local_pair | Grace / Size | 191 / 1 771 520 | **130 / 1 041 408** |
-| repeated_pair, 73 новых входа | default / Grace / Size | 141 / 56 648 | **89 / 32 339** |
-| mixed_pair, 2048 входов | default | 152 / 1 775 616 | **103 / 1 189 888** |
-| mixed_pair | Grace / Size | 145 / 1 691 648 | **102 / 1 128 448** |
+| local_pair, 2048 входов | default | 193 / 1 772 544 | **132 / 1 041 408** |
+| local_pair | Grace / Size | 186 / 1 730 560 | **128 / 1 025 024** |
+| repeated_pair, 73 новых входа | default / Grace / Size | 136 / 55 188 | **87 / 31 755** |
+| mixed_pair, 2048 входов | default | 147 / 1 734 656 | **101 / 1 173 504** |
+| mixed_pair | Grace / Size | 140 / 1 650 688 | **100 / 1 112 064** |
 
 local_pair меняет входную переменную после первой записи и имеет ранний return.
 repeated_pair записывает поля в обратном порядке и одно поле повторно.
@@ -45,7 +45,7 @@ mixed_pair возвращает signed short и unsigned char: отрицате�
 [final scalar MIR](c89-output-contracts/final.mir).
 
 Полные протоколы каждого вызова и бинарники сохранены локально в
-`/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/outparam-reviewed/`,
+`/home/alice/dev/minz-artifacts/grace-reports/2026-10-16/c89-nanz-sdcc45/outparam-main-load-fusion/`,
 с SHA256-манифестом. Сводка в репозитории сохраняет все режимы и оба ABI.
 
 ## Условия доказательства
@@ -87,9 +87,13 @@ host C-компилятор подтвердил все **4169** ожидаем�
 escape в caller, вызов внутри callee, неизвестный второй caller и непроверенные
 pointer-наблюдения. Это проверки отказа оптимизатора, не native-прогоны опасных адресов.
 
-Полные HIR/C89/MIR2/Nanz пакеты — PASS (36,761 / 62,342 / 88,418 / 34,430 s).
+На checkpoint 67fbfba3 полные HIR/C89/MIR2/Nanz пакеты — PASS (36,761 / 62,342 / 88,418 / 34,430 s).
 Все 432 fast pipeline-проверки прошли в трёх процессах:
 [статусы](c89-output-contracts/fast-statuses.json).
+После интеграции byte-load fusion в main выполнен новый полный directed-прогон
+обоих ABI во всех режимах: PASS. Таблица и ASM обновлены для совмещённого кода;
+[предыдущие стоимости](c89-output-contracts/summary-before-load-fusion.json) сохранены.
+Обязательные CI-проверки нового merge-head ещё выполняются.
 Полный deep/release-набор и универсальное преобразование произвольных
 указателей/массивов не заявлены. Typed Nanz aggregate ABI требует отдельного аудита G2.
 
