@@ -6605,6 +6605,9 @@ func mergeGeneratedDeclarations(dst, src *hir.Module) error {
 		}
 		dst.Structs = append(dst.Structs, st)
 	}
+	// Generated checks are part of the module contract, including shared-state sandboxes.
+	dst.Asserts = append(dst.Asserts, src.Asserts...)
+	dst.Sandboxes = append(dst.Sandboxes, src.Sandboxes...)
 	return nil
 }
 

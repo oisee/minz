@@ -96,6 +96,7 @@ func TestMetaSpecializeCancelsIncompleteSearch(t *testing.T) {
 		`if meta_variant(c"x",2,0)==1 {emit(c"fun f()->u8 {return 1}")} else {emit(c"fun f()->u8 {return 0}")}`,
 		`if meta_variant(c"x",2,0)==1 {meta_variant(c"new",2,0)} emit(c"fun f()->u8 {return 0}")`,
 		`if meta_variant(c"x",2,0)==1 {emit(c"assert f()==1")} emit(c"fun f()->u8 {return 0}")`,
+		`if meta_variant(c"x",2,0)==1 {emit(c"""sandbox "generated" {assert f()==0}""")} emit(c"fun f()->u8 {return 0}")`,
 	} {
 		dir := t.TempDir()
 		src := filepath.Join(dir, "failure.nanz")
@@ -104,7 +105,7 @@ func TestMetaSpecializeCancelsIncompleteSearch(t *testing.T) {
 		}
 		f := metaSpecializeFlags{Goal: "size", Target: "generic", Evidence: filepath.Join(dir, "evidence"), Output: filepath.Join(dir, "winner.bin"), Limit: 32}
 		if err := runMetaSpecialize(src, f); err == nil {
-			t.Fatal("incomplete/invalid candidate accepted")
+			t.Fatalf("incomplete/invalid candidate accepted: %s", body)
 		}
 		for _, path := range []string{f.Output, f.Evidence} {
 			if _, err := os.Stat(path); !os.IsNotExist(err) {

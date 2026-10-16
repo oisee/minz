@@ -4,8 +4,8 @@
 [170](https://github.com/oisee/minz/pull/170) интегрированы в main d43e8559.
 Этот checkpoint добавляет полную небольшую width matrix, forwarding и volatile
 проверки, исправление MUL с удалённой загрузкой константы и target-size/VLA
-diagnostics. [PR #171](https://github.com/oisee/minz/pull/171) проходит
-строгий CI на финальном head перед слиянием.
+diagnostics. [PR #171](https://github.com/oisee/minz/pull/171) фиксирует этот checkpoint;
+статус строгого CI и слияния доступен по ссылке.
 
 C89 теперь полезен для выбранного embedded/system подмножества: integer,
 control, pointers, arrays, aggregate storage и реальные вызовы. Это не ISO
@@ -56,6 +56,16 @@ C89 корпус, включающий FAT12; они не меняют admission
 он теперь вызывает ту же sanitized ASM-метку `v_f`, которую создаёт backend.
 Это ошибка harness; production call lowering уже использовал верную метку.
 Native sizeof и spill-bootstrap regression после исправления — PASS.
+Нативный запускатель также раскрыл потерю assertions при merge emitted Nanz.
+Generated checks и sandboxes теперь сохраняются; meta-specialization отклоняет
+кандидата при изменении assertion contract до сохранения победителя. Новые
+positive/negative generated tests и все CLI meta-selection tests проходят.
+
+Advisory sweep сравнил 844 sources: exit/stdout/stderr не меняются, только
+Frill expr_eval ASM. Реальный native string-pointer probe улучшил 4/15 → 13/15
+в каждом режиме после MUL fix. Два parenthesized cases уже падали на baseline
+raw/native и остаются отдельным пробелом Frill, за пределами C89 scope.
+
 Старые и новые runs не складываются в процент уникального покрытия.
 
 ```sh
