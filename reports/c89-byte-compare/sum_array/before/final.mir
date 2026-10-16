@@ -33,4 +33,3 @@ fun @execute()
     %r24 = addr_of @result : ptr [pointer]
     store %r24, %r23 : u16
     ret void
-
