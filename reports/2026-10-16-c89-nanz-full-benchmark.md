@@ -267,3 +267,51 @@ constant evaluation, условные возвраты и tailcalls подтве
 Согласование ABI-контрактов остаётся следующим кандидатом; его пользу проверяем
 на фоне нового baseline. Ни один эвристический контракт не обязан выигрывать всегда. Новые выигрыши добавим сюда как следующие
 checkpoint; исходный baseline останется доступен [отдельно](c89-optimization/baseline.md).
+
+<!-- BEGIN GENERATED BENCHMARK CHARTS -->
+## Кто где выигрывает: диаграммы всей матрицы
+
+Каждая колонка — одна замороженная нагрузка. **Меньше — лучше**: 80% означает
+на 20% меньше, 120% — на 20% больше. Верхняя панель показывает байты полного
+модуля относительно **SDCC 4.5 Size**, нижняя — такты относительно **SDCC 4.5 Speed**.
+Эти два эталона выбраны по критерию, поэтому их строки не обязаны быть лучшими
+даже среди профилей самого SDCC. Проценты между разными программами не суммируем.
+
+**Одинаковый C.** Все восемь compiler/profile-вариантов для каждого из шести
+неизменных C-исходников; три отказа aggregate-сборки показаны как `E`.
+
+![Матрица одинакового C: размер и такты](c89-full-benchmark/charts/identical-c.svg)
+
+**Идиоматичный Nanz — отдельные исходники.** Ожидаемые результаты и нагрузки те же,
+но типы и способ выразить алгоритм отличаются от C. Nanz tuple измерен только для
+struct_roundtrip; `—` означает отсутствующий вариант, а не проигрыш или ошибку.
+
+![Матрица отдельного Nanz и tuple: размер и такты](c89-full-benchmark/charts/idiomatic-nanz.svg)
+
+Ниже — минимум **среди показанных успешных сборок**, отдельно по размеру и времени.
+Все ничьи сохранены: разные критерии могут выбирать разные варианты.
+
+| Нагрузка | Одинаковый C: меньше байтов | Одинаковый C: меньше тактов | Отдельный Nanz/tuple: меньше байтов | Отдельный Nanz/tuple: меньше тактов |
+|---|---|---|---|---|
+| abs_diff | MinZ C default/size/grace: **27** | MinZ C default/size/grace: **220 904** | Nanz default/size/grace: **27** | Nanz default/size/grace: **220 904** |
+| gcd | SDCC 4.5 size: **54** | MinZ C grace: **3 222 405** | Nanz grace: **51** | Nanz grace: **3 067 013** |
+| sum_array | MinZ C default/size/grace: **314** | SDCC 4.5 speed: **7 433 216** | Nanz default/size/grace: **317** | Nanz default/size/grace: **8 308 684** |
+| copy_bytes | MinZ C default/size/grace: **210** | SDCC 4.5 speed: **683 930** | Nanz default/size/grace: **211** | Nanz default/size/grace: **1 041 950** |
+| fat12_decode | SDCC 4.5 size: **140** | SDCC 4.5 speed: **25 152** | Nanz default/size/grace: **185** | Nanz default/size/grace: **37 088** |
+| struct_roundtrip | MinZ C default/size/grace: **85** | MinZ C default/size/grace: **935 936** | Nanz tuple default/size/grace: **71** | Nanz tuple default/size/grace: **612 352** |
+
+Таким образом, MinZ C берёт оба минимума на abs_diff и struct_roundtrip;
+на gcd Grace выигрывает по тактам, SDCC 4.5 Size — по байтам. На sum_array
+MinZ C меньше, SDCC 4.5 Speed быстрее; такая же развилка у copy. FAT12 здесь
+выигрывает SDCC 4.5 по обоим критериям, но с разными профилями. Это результаты
+этих шести программ.
+
+Цвет насыщается при 50%/200%; точное округлённое отношение остаётся в каждой
+ячейке. Абсолютные цифры, ASM и ошибки сборки находятся в таблицах выше.
+Статические SVG и эта таблица генерируются из [summary.json](c89-full-benchmark/summary.json)
+командой `python3 research/c89-benchmark/plot_summary.py`. Генератор проверяет все
+69 записей, SHA одинакового C, SHA общих нагрузок и число вызовов, прежде чем
+строить картинки: [исходник генератора](../research/c89-benchmark/plot_summary.py).
+Измерения — bare Z80 без ULA contention; размер — полный измеряемый модуль,
+не только тело функции и не общий объём RAM/стека.
+<!-- END GENERATED BENCHMARK CHARTS -->

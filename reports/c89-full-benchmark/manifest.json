@@ -2273,5 +2273,15 @@
     "path": "toolchains.json",
     "sha256": "7ac7bf8d75f781c4a4dbecdf127ef451435ecdcacc3948af24b32b247e782cd4",
     "bytes": 2544
+  },
+  {
+    "path": "charts/identical-c.svg",
+    "sha256": "4d3fbc1f10c1574933a2363541f41e6293725dde3168f7b2267823d54efe0e9d",
+    "bytes": 21133
+  },
+  {
+    "path": "charts/idiomatic-nanz.svg",
+    "sha256": "90b56f11e51c6f67a09317c9c542100c8544dbda26fc0ecb6df893874045231b",
+    "bytes": 16685
   }
 ]
